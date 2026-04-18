@@ -68,8 +68,10 @@ segments:
       - [0x4ce8, o, libapi/a39] # SetSp
       - [0x4cf8, asm]
       - [0x546c, o, libetc/vsync] # VSync
+      - [0x567c, o, libetc/intr_vb] # startIntrVSync
       # .data section
       - [0x4cb94, o, libetc/vsync, .data]
+      - [0x4cbb4, o, libetc/intr_vb, .data]
       # .sbss section
       # .bss section
 
