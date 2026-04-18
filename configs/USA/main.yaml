@@ -1,0 +1,73 @@
+name: Main Executable (SLUS_010.42)
+sha1: e2599d1aad77c08f6e145765b0ef04aba850d258
+options:
+  basename: main
+  target_path: rom/USA/disk1/SLUS_010.42
+  base_path: ../..
+  platform: psx
+  compiler: GCC
+
+  asm_path: asm/USA/main
+  src_path: src/main
+  o_path: ../../lib
+  build_path: build/USA
+  # create_asm_dependencies: True
+
+  ld_script_path: linkers/USA/main.ld
+
+  find_file_boundaries: False
+  gp_value: 0x80068f78
+
+  o_as_suffix: False
+  use_legacy_include_asm: False
+
+  asm_function_macro: glabel
+  asm_jtbl_label_macro: jlabel
+  asm_data_macro: dlabel
+  generate_asm_macros_files: False
+
+  section_order: [".rodata", ".text", ".data", ".sdata", ".sbss", ".bss"]
+  symbol_addrs_path:
+    - configs/USA/sym.main.txt
+  reloc_addrs_path:
+    - configs/USA/rel.main.txt
+
+  undefined_funcs_auto_path: linkers/USA/undefined_funcs_auto.main.txt
+  undefined_syms_auto_path: linkers/USA/undefined_syms_auto.main.txt
+
+  subalign: 4
+
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+  ld_bss_is_noload: False
+segments:
+  - name: header
+    type: header
+    start: 0x0
+
+  - name: main
+    type: code
+    start: 0x800
+    vram: 0x80010000
+    align: 4
+    subalign: 4
+    # bss_size: 0x1EC8
+    subsegments:
+      - [0x800, asm] # TODO: Remove
+
+      # .rodata section
+      # .text section
+      - [0x4b00, c, main] # Main function.
+      - [0x4b38, c]
+      - [0x4b58, asm, psyq/libsn/snmain] # entry point (psyq-obj-parser doesn't support it...)
+      - [0x4cd8, o, libapi/c57] # InitHeap
+      - [0x4ce8, o, libapi/a39] # SetSp
+      # .data section
+      # .sbss section
+      # .bss section
+
+      - [0x4cf8, data] # TODO: Remove
+  - [0x59800]

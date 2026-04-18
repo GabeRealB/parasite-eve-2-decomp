@@ -1,0 +1,12 @@
+asm/
+assets/
+build/
+rom/
+linkers/
+__pycache__/
+permuter/
+expected/
+.cache/
+.splache
+.ninja_log
+*.ninja

@@ -1,0 +1,6 @@
+splat64[mips]
+spimdisasm
+pycparser
+pyelftools
+ninja
+ninja_syntax
