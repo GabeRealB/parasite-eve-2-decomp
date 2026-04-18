@@ -59,15 +59,19 @@ segments:
       - [0x800, asm] # TODO: Remove
 
       # .rodata section
+      - [0x2f84, o, libetc/vsync, .rdata]
       # .text section
       - [0x4b00, c, main] # Main function.
       - [0x4b38, c]
       - [0x4b58, asm, psyq/libsn/snmain] # entry point (psyq-obj-parser doesn't support it...)
       - [0x4cd8, o, libapi/c57] # InitHeap
       - [0x4ce8, o, libapi/a39] # SetSp
+      - [0x4cf8, asm]
+      - [0x546c, o, libetc/vsync] # VSync
       # .data section
+      - [0x4cb94, o, libetc/vsync, .data]
       # .sbss section
       # .bss section
 
-      - [0x4cf8, data] # TODO: Remove
+      # - [0x546c, data] # TODO: Remove
   - [0x59800]
