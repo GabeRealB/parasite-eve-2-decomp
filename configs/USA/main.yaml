@@ -60,6 +60,8 @@ segments:
 
       # .rodata section
       - [0x2f84, o, libetc/vsync, .rdata]
+      - [0x2f94, o, libetc/intr, .rdata]
+      - [0x3004, o, libetc/intr_dma, .rdata]
       # .text section
       - [0x4b00, c, main] # Main function.
       - [0x4b38, c]
@@ -69,9 +71,13 @@ segments:
       - [0x4cf8, asm]
       - [0x546c, o, libetc/vsync] # VSync
       - [0x567c, o, libetc/intr_vb] # startIntrVSync
+      - [0x579c, o, libetc/intr] # ResetCallback, InterruptCallback, DMACallback, VSyncCallback, VSyncCallbacks, StopCallback, RestartCallback, CheckCallback, GetIntrMask, SetIntrMask
+      - [0x5e5c, o, libetc/intr_dma] # startIntrDMA
       # .data section
       - [0x4cb94, o, libetc/vsync, .data]
       - [0x4cbb4, o, libetc/intr_vb, .data]
+      - [0x4cbe4, o, libetc/intr, .data]
+      - [0x4dce4, o, libetc/intr_dma, .data]
       # .sbss section
       # .bss section
 
