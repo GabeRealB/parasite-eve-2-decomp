@@ -23,6 +23,7 @@ class GameVersionMetadata:
     version_dir: str
     exe_disk1: str
     exe_disk2: str
+    extended_exe_size: int
 
 
 @dataclass
@@ -42,6 +43,7 @@ GAME_VERSIONS = [
             "USA",
             "SLUS_010.42",
             "SLUS_010.55",
+            0x72947,
         ),
     ),
     GameVersionInfo(
@@ -53,6 +55,7 @@ GAME_VERSIONS = [
             "JAP",
             "SLPS_024.80",
             "SLPS_024.81",
+            0x72947,  # TODO
         ),
     ),
 ]
@@ -149,7 +152,7 @@ AS_FLAGS = (
 )
 OBJDUMP_FLAGS = "--disassemble-all --reloc --disassemble-zeroes -Mreg-names=32"
 
-TARGETS_POSTBUILD = []
+TARGETS_POSTBUILD = ["main"]
 
 
 def ninja_setup_list_add_source(
@@ -594,6 +597,8 @@ def extract_files(version: int):
             f"{target_rom}/disk2/STAGE4.CDF",
             "-s5",
             f"{target_rom}/disk2/STAGE5.CDF",
+            "-m_sz",
+            f"{GAME_VERSIONS[version].metadata.extended_exe_size}",
             "-o",
             target_assets,
         ]

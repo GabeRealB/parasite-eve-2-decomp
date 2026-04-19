@@ -1,8 +1,8 @@
 name: Main Executable (SLUS_010.42)
-sha1: e2599d1aad77c08f6e145765b0ef04aba850d258
+sha1: 565423d746f0a01f4248778fc7120a1165db56c7
 options:
   basename: main
-  target_path: rom/USA/disk1/SLUS_010.42
+  target_path: assets/USA/main.exe
   base_path: ../..
   platform: psx
   compiler: GCC
@@ -42,7 +42,7 @@ options:
   rodata_string_guesser_level: 2
   data_string_guesser_level: 2
 
-  ld_bss_is_noload: False
+  ld_bss_is_noload: True
 segments:
   - name: header
     type: header
@@ -54,32 +54,110 @@ segments:
     vram: 0x80010000
     align: 4
     subalign: 4
-    # bss_size: 0x1EC8
+    bss_size: 0x199c8
     subsegments:
-      - [0x800, asm] # TODO: Remove
 
       # .rodata section
+      - [0x800, rodata] # TODO
       - [0x2f84, o, libetc/vsync, .rdata]
       - [0x2f94, o, libetc/intr, .rdata]
       - [0x3004, o, libetc/intr_dma, .rdata]
+      - [0x3034, o, libcd/event, .rdata]
+      - [0x3054, o, libcd/sys, .rdata]
+      - [0x3064, o, libcd/bios, .rdata]
+      - [0x32c4, o, libgpu/sys, .rdata]
+      - [0x34e4, o, libpress/libpress, .rdata]
+      - [0x3534, o, libc2/prnt, .rdata]
+      - [0x3754, o, libc2/puts, .rdata]
+      - [0x3764, rodata] # TODO
+      - [0x3818, o, libcd/type, .rdata]
+      - [0x3838, rodata] # TODO
+
       # .text section
       - [0x4b00, c, main] # Main function.
-      - [0x4b38, c]
+      - [0x4b38, c] # TODO
       - [0x4b58, asm, psyq/libsn/snmain] # entry point (psyq-obj-parser doesn't support it...)
       - [0x4cd8, o, libapi/c57] # InitHeap
       - [0x4ce8, o, libapi/a39] # SetSp
-      - [0x4cf8, asm]
+      - [0x4cf8, asm] # TODO
       - [0x546c, o, libetc/vsync] # VSync
       - [0x567c, o, libetc/intr_vb] # startIntrVSync
       - [0x579c, o, libetc/intr] # ResetCallback, InterruptCallback, DMACallback, VSyncCallback, VSyncCallbacks, StopCallback, RestartCallback, CheckCallback, GetIntrMask, SetIntrMask
       - [0x5e5c, o, libetc/intr_dma] # startIntrDMA
+      - [0x60fc, o, libcd/event] # CdInit
+      - [0x624c, o, libcd/sys] # CdStatus, CdMode, CdLastCom, CdLastPos, CdReset, CdFlush, CdSetDebug, CdComstr, CdIntstr, CdSync, CdReady, CdSyncCallback, CdReadyCallback, CdControl, CdControlF, CdControlB, CdMix, CdGetSector, CdGetSector2, CdDataCallback, CdDataSync
+      - [0x685c, o, libcd/bios] # CD_sync, CD_ready, CD_cw, CD_vol, CD_flush, CD_initvol, CD_initintr, CD_init, CD_datasync, CD_getsector, CD_getsector2, CD_set_test_parmnum
+      - [0x7fcc, o, libcd/c_002] # StClearRing
+      - [0x802c, o, libcd/cdrom] # StSetRing
+      - [0x805c, o, libcd/c_003] # StUnSetRing
+      - [0x80dc, o, libcd/c_008] # init_ring_status
+      - [0x811c, o, libgpu/sys] # ResetGraph, SetGraphDebug, SetGraphQueue, GetGraphDebug, DrawSyncCallback, SetDispMask, DrawSync, ClearImage, ClearImage2, LoadImage, StoreImage, MoveImage, ClearOTag, ClearOTagR, DrawPrim, DrawOTag, PutDrawEnv, DrawOTagEn, GetDrawEnv, PutDispEnv, GetDispEnv, GetODE, SetDrawArea, SetDrawOffset, SetDrawEnv, LoadImage2, StoreImage2, MoveImage2, DrawOTag2, _GPU_ResetCallback
+      - [0xb04c, o, libetc/vmode] # SetVideoMode, GetVideoMode
+      - [0xb07c, o, libpress/libpress] # DecDCTReset, DecDCTGetEnv, DecDCTPutEnv, DecDCTin, DecDCTout, DecDCTinSync, DecDCToutSync, DecDCTinCallback, DecDCToutCallback
+      - [0xb6fc, o, libc2/memcpy] # memcpy
+      - [0xb73c, o, libc2/printf] # printf
+      - [0xb77c, o, libc2/prnt] # prnt
+      - [0xbe1c, o, libc2/ctype] # toupper, tolower
+      - [0xbe8c, o, libc2/memchr] # memchr
+      - [0xbedc, o, libc2/putchar] # _putchar, _putchar_flash, putchar
+      - [0xc13c, o, libc2/strlen] # strlen
+      - [0xc17c, o, libc2/puts] # puts
+      - [0xc1dc, o, libc2/setjmp] # setjmp, longjmp
+      - [0xc25c, o, libapi/c73] # GPU_cw
+      - [0xc26c, o, libapi/c114] # _96_remove
+      - [0xc28c, o, libapi/a07] # DeliverEvent
+      - [0xc29c, o, libapi/a23] # ReturnFromException
+      - [0xc2ac, o, libapi/a24] # ResetEntryInt
+      - [0xc2bc, o, libapi/a25] # HookEntryInt
+      - [0xc2cc, o, libapi/a36] # EnterCriticalSection
+      - [0xc2dc, o, libapi/a37] # ExitCriticalSection
+      - [0xc2ec, o, libapi/a53] # write
+      - [0xc2fc, o, libapi/a91] # ChangeClearPAD
+      - [0xc30c, o, libapi/l10] # ChangeClearRCnt
+      - [0xc31c, o, libds/dscb] # DsSyncCallback, DsReadyCallback, DsStartCallback, DsDataCallback
+      - [0xc37c, asm] # TODO
+      - [0xe4b4, o, libcd/s_002] # CdIntToPos, CdPosToInt
+      - [0xe644, o, libpress/build] # DecDCTvlcBuild
+      - [0xe734, asm] # TODO
+      - [0xf014, o, libcd/type] # CdDiskReady, CdGetDiskType
+      - [0xf2c4, o, libc2/strncmp] # strncmp
+      - [0xf344, data] # TODO
+
       # .data section
+      - [0x4cb30, data, psyq/libsn/snmain]
+      - [0x4cb54, o, libsn/sndef, .data]
+      - [0x4cb5c, data] # TODO
       - [0x4cb94, o, libetc/vsync, .data]
-      - [0x4cbb4, o, libetc/intr_vb, .data]
+      - [0x4cbb4, o, libetc/intr_vb, .data] # Vcount
       - [0x4cbe4, o, libetc/intr, .data]
       - [0x4dce4, o, libetc/intr_dma, .data]
-      # .sbss section
-      # .bss section
+      - [0x4dd14, o, libcd/event, .data] # CD_cbread, CD_read_dma_mode
+      - [0x4dd24, o, libcd/sys, .data]
+      - [0x4dda4, o, libcd/bios, .data] # CD_cbsync, CD_cbready, CD_debug, CD_status, CD_status1, CD_nopen, CD_pos, CD_mode, CD_com, DS_active, CD_comstr, CD_intstr
+      - [0x4e0c4, o, libcd/c_002, .data]
+      - [0x4e0d4, o, libcd/cdrom, .data]
+      - [0x4e0e4, o, libcd/c_003, .data]
+      - [0x4e0f4, o, libcd/c_008, .data]
+      - [0x4e104, o, libgpu/sys, .data]
+      - [0x4e2a4, o, libetc/vmode, .data]
+      - [0x4e2b4, o, libpress/libpress, .data]
+      - [0x4e404, o, libc2/ctype, .data]
+      - [0x4e494, o, libc2/putchar, .data]
+      - [0x4e4a4, o, libc2/puts, .data]
+      - [0x4e4b4, data] # TODO
+      - [0x4e4dc, o, libpress/build, .data]
+      - [0x4f2ec, data] # TODO
 
-      # - [0x546c, data] # TODO: Remove
-  - [0x59800]
+      # .sbss section
+      - [0x59778, sbss, psyq/libsn/snmain]
+
+      # .bss section
+      - [0x59a00, o, libcd/bios, .bss] # StMode
+      - [0x59a34, pad]
+      - [0x59a38, o, libcd/cdrom, .bss]
+        # StRingAddr, StRingSize, StRingBase, StRgb24, StEmu_Addr, StEmu_Idx, StRingIdx1, StRingIdx2, StRingIdx3, StSTART_FLAG, StStartFrame, StEndFrame, StFinalSector, Stframe_no, Stsector_offset, StCdIntrFlag, StCHANNEL, CChannel
+        # The symbols are defined in the wrong order in the object file and were manually reordered.
+      - [0x59a80, o, libgpu/sys, .bss] # _que
+      - [0x5b3d0, o, libc2/putchar, .bss]
+      - [0x5b3f0, o, libds/dscb, .bss] # GlobalCallback
+  - [0x72947]

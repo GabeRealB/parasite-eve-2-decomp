@@ -1,4 +1,5 @@
 import logging
+import shutil
 from argparse import ArgumentParser, FileType
 from dataclasses import dataclass
 from enum import IntEnum
@@ -386,6 +387,7 @@ def main():
     parser.add_argument("--stage3", "-s3", type=FileType("rb"))
     parser.add_argument("--stage4", "-s4", type=FileType("rb"))
     parser.add_argument("--stage5", "-s5", type=FileType("rb"))
+    parser.add_argument("--main_size", "-m_sz", type=int)
     parser.add_argument("--output", "-o", type=Path, default=".")
     parser.add_argument("--checksum", "-c", action="store_true")
     args = parser.parse_args()
@@ -408,6 +410,12 @@ def main():
     extract_stage_n(args.stage3, args.output / "stage3")
     extract_stage_n(args.stage4, args.output / "stage4")
     extract_stage_n(args.stage5, args.output / "stage5")
+
+    logging.info(f"Copying main executable {executable_disk1.name}")
+    shutil.copy(f"{executable_disk1.name}", f"{args.output / 'main.exe'}")
+    with open(f"{args.output / 'main.exe'}", "r+b") as f:
+        f.seek(args.main_size - 1)
+        f.write(b"\0")
 
     logging.info("All done!")
 

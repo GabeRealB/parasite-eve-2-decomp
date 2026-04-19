@@ -10,3 +10,6 @@ SLUS_010.42:    libmcrd (24):   4.5.0.0
 SLUS_010.42:    libcard (3):    4.5.0.0
 SLUS_010.42:    libmath (11):   4.5.0.0
 SLUS_010.42:    libspu (17):    4.5.0.0
+
+Some object needed editing:
+- libcd/cdrom.o: reordered weak .bss variables
