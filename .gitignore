@@ -10,3 +10,4 @@ expected/
 .splache
 .ninja_log
 *.ninja
+compile_commands.json

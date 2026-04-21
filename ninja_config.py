@@ -1,6 +1,7 @@
 # This file has been adapted from the silent-hill-decomp project.
 
 import argparse
+import json
 import os
 import re
 import shutil
@@ -137,12 +138,14 @@ DL_OVL_FLAGS = "-G0"
 
 # Compilation flags (Tool specific)
 if sys.platform == "win32":
+    COMPILE_COMMANDS_FLAGS = f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -Wall"
     CPP_FLAGS = (
         f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -N -Wall -I-"
     )
     MASPSX_FLAGS = f"--gnu-as-path {AS} --run-assembler"
     ICONV_FLAGS = "$in $out"
 else:
+    COMPILE_COMMANDS_FLAGS = f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -undef -Wall -lang-c -nostdinc"
     CPP_FLAGS = f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc"
     MASPSX_FLAGS = "--aspsx-version=2.77 --run-assembler"
     ICONV_FLAGS = "-f UTF-8 -t SHIFT-JIS $in -o $out"
@@ -153,6 +156,28 @@ AS_FLAGS = (
 OBJDUMP_FLAGS = "--disassemble-all --reloc --disassemble-zeroes -Mreg-names=32"
 
 TARGETS_POSTBUILD = ["main"]
+
+
+def compile_commands_entry(
+    target_path: str,
+    source_path: str,
+    non_matching_enabled,
+    game_version_idx: int,
+):
+    non_matching = ""
+
+    if non_matching_enabled:
+        non_matching = "-DNON_MATCHING"
+
+    if sys.platform == "win32":
+        source_path = re.sub(r"\\", r"/", source_path)
+        target_path = re.sub(r"\\", r"/", target_path)
+
+    return {
+        "directory": os.getcwd(),
+        "file": source_path,
+        "command": f"clang {COMPILE_COMMANDS_FLAGS} -DVER_{GAME_VERSIONS[game_version_idx].version_name} {non_matching} -m32 -o {target_path}.i {source_path}",
+    }
 
 
 def ninja_setup_list_add_source(
@@ -383,6 +408,7 @@ def ninja_build(
         command=f"{PYTHON} {OBJDIFF_GENSCRIPT} --ninja $in $version",
     )
 
+    cc_entries = []
     elf_build_requirements = []
     checksum_build_requirements = []
     objdiff_config_requirements = []
@@ -421,6 +447,15 @@ def ninja_build(
                                 variables={"DLFLAG": DL_OVL_FLAGS},
                             )
                     case "c":
+                        cc_entries.append(
+                            compile_commands_entry(
+                                target_path.removesuffix(".c.o"),
+                                source_path,
+                                non_matching,
+                                game_version_idx,
+                            )
+                        )
+
                         ninja_setup_list_add_source(
                             target_path.removesuffix(".c.o"),
                             source_path,
@@ -535,6 +570,9 @@ def ninja_build(
             inputs=checksum_target,
             implicit=checksum_build_requirements,
         )
+
+    with open("compile_commands.json", "w") as cc_file:
+        json.dump(cc_entries, cc_file, indent=2)
 
 
 def clean_working_files(clean_build_files: bool, clean_target_files: bool):

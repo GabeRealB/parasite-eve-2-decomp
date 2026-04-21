@@ -21,11 +21,11 @@
 #define VERSION_REGION_IS(region) defined(VERSION_##region)
 
 #if defined(VER_JAP)
-#define VERSION_NTSCJ 1
+#define VERSION_NTSCJ         1
 #define VERSION_SERIAL_DISK_1 "SLPS-02480"
 #define VERSION_SERIAL_DISK_2 "SLPS-02481"
 #elif defined(VER_USA)
-#define VERSION_NTSC 1
+#define VERSION_NTSC          1
 #define VERSION_SERIAL_DISK_1 "SLUS-01042"
 #define VERSION_SERIAL_DISK_2 "SLUS-01055"
 #endif

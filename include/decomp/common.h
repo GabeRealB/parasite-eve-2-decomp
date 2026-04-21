@@ -7,9 +7,9 @@
 
 #define PAD_RODATA()
 
-#define PSX_SCRATCH ((void *)0x1F800000)
+#define PSX_SCRATCH ((void*)0x1F800000)
 
-#define PSX_SCRATCH_ADDR(offset) ((void *)(((u8 *)PSX_SCRATCH) + (offset)))
+#define PSX_SCRATCH_ADDR(offset) ((void*)(((u8*)PSX_SCRATCH) + (offset)))
 
 /// Computes the size of an array.
 ///
@@ -21,10 +21,10 @@
 
 #define SECTION(x) __attribute__((section(x)))
 
-#define STATIC_ASSERT(cond, msg)                                               \
-  typedef char static_assertion_##msg[(cond) ? 1 : -1]
+#define STATIC_ASSERT(cond, msg) \
+    typedef char static_assertion_##msg[(cond) ? 1 : -1]
 
-#define STATIC_ASSERT_SIZEOF(type, size)                                       \
-  typedef char static_assertion_sizeof_##type[(sizeof(type) == (size)) ? 1 : -1]
+#define STATIC_ASSERT_SIZEOF(type, size) \
+    typedef char static_assertion_sizeof_##type[(sizeof(type) == (size)) ? 1 : -1]
 
 #endif // COMMON_H
