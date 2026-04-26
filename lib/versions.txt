@@ -13,3 +13,5 @@ SLUS_010.42:    libspu (17):    4.5.0.0
 
 Some object needed editing:
 - libcd/cdrom.o: reordered weak .bss variables
+- libpad/waitrc2.o: reordered weak .bss variables
+- libapi/free3.o: reordered weak .bss variables

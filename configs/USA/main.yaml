@@ -1,5 +1,5 @@
 name: Main Executable (SLUS_010.42)
-sha1: 565423d746f0a01f4248778fc7120a1165db56c7
+sha1: e2599d1aad77c08f6e145765b0ef04aba850d258
 options:
   basename: main
   target_path: assets/USA/main.exe
@@ -15,6 +15,7 @@ options:
 
   ld_script_path: linkers/USA/main.ld
 
+  migrate_rodata_to_functions: False
   find_file_boundaries: False
   gp_value: 0x80068f78
 
@@ -56,9 +57,8 @@ segments:
     subalign: 4
     bss_size: 0x199c8
     subsegments:
-
       # .rodata section
-      - [0x800, rodata] # TODO
+      - [0x800, rodata, 4CF8] # TODO
       - [0x2f84, o, libetc/vsync, .rdata]
       - [0x2f94, o, libetc/intr, .rdata]
       - [0x3004, o, libetc/intr_dma, .rdata]
@@ -69,14 +69,37 @@ segments:
       - [0x34e4, o, libpress/libpress, .rdata]
       - [0x3534, o, libc2/prnt, .rdata]
       - [0x3754, o, libc2/puts, .rdata]
-      - [0x3764, rodata] # TODO
+      - [0x3764, rodata, C37C] # TODO
       - [0x3818, o, libcd/type, .rdata]
-      - [0x3838, rodata] # TODO
+      - [0x3838, rodata, F344] # TODO
+      - [0x3880, o, libcd/c_011, .rdata]
+      - [0x38a0, rodata] # TODO
+      - [0x3a74, rodata] # TODO
+      - [0x3b58, rodata, 16494] # TODO
+      - [0x3b74, o, libspu/s_sca, .rdata]
+      - [0x3bb4, o, libspu/spu, .rdata]
+      - [0x3c04, rodata, 179D4] # TODO
+      - [0x3c0c, o, libgs/gs_123, .rdata]
+      - [0x3c9c, o, libpad/padentry, .rdata]
+      - [0x3cbc, rodata, 1C034] # TODO
+      - [0x40d8, rodata] # TODO
+      - [0x4264, rodata] # TODO
+      - [0x43c8, o, libmcrd/libmcrd, .rdata]
+      - [0x4658, o, libmcrd/userfunc, .rdata]
+      - [0x4678, o, libmcrd/low, .rdata]
+      - [0x4688, rodata, 32AF8] # TODO
+      - [0x4744, o, libc2/sprintf, .rdata]
+      - [0x4824, o, libspu/sl_sva, .rdata]
+      - [0x4864, rodata] # TODO
+      - [0x48e8, rodata] # TODO
+      - [0x49c4, rodata] # TODO
+      - [0x4a48, rodata] # TODO
+      - [0x4ad0, o, libspu/s_si, .rdata]
 
       # .text section
       - [0x4b00, c, main] # Main function.
       - [0x4b38, c, gpuext] # GpuExt_IsDisplayEnabled
-      - [0x4b54, pad] # TODO: Check if the padding can be included in the function.
+      - [0x4b54, pad] # libsn/snmain is aligned to an 8 byte boundary
       - [0x4b58, asm, psyq/libsn/snmain] # entry point (psyq-obj-parser doesn't support it...)
       - [0x4cd8, o, libapi/c57] # InitHeap
       - [0x4ce8, o, libapi/a39] # SetSp
@@ -122,7 +145,201 @@ segments:
       - [0xe734, asm] # TODO
       - [0xf014, o, libcd/type] # CdDiskReady, CdGetDiskType
       - [0xf2c4, o, libc2/strncmp] # strncmp
-      - [0xf344, data] # TODO
+      - [0xf344, asm] # TODO
+      - [0x10c5c, o, libcd/cdread2] # CdRead2
+      - [0x10d0c, o, libcd/c_004] # data_ready_callback, StGetBackloc
+      - [0x10dfc, o, libcd/c_005] # StSetStream
+      - [0x10e8c, o, libcd/c_007] # StFreeRing
+      - [0x10f3c, o, libcd/c_009] # StGetNext
+      - [0x10ffc, o, libcd/c_010] # StSetMask
+      - [0x1101c, o, libcd/c_011] # StCdInterrupt
+      - [0x11b0c, o, libpress/vlc_c] # DecDCTvlcSize2, DecDCTvlc2
+      - [0x11e8c, o, libpress/dct002] # DecDCTBufSize
+      - [0x11e9c, asm] # TODO
+      - [0x160f4, o, libgpu/break] # BreakDraw, IsIdleGPU, ContinueDraw
+      - [0x16314, o, libapi/c159] # SetMem
+      - [0x16324, o, libapi/counter] # SetRCnt, GetRCnt, StartRCnt, StopRCnt, ResetRCnt
+      - [0x16494, asm] # TODO
+      - [0x16b14, o, libspu/s_sca] # SpuSetCommonAttr
+      - [0x16e94, o, libspu/spu] # _spu_init, _spu_FiDMA, _spu_Fr_, _spu_t, _spu_Fw, _spu_Fr, _spu_FsetRXX, _spu_FsetRXXa, _spu_FgetRXXa, _spu_FsetPCR, _spu_Fw1ts
+      - [0x179d4, asm] # TODO
+      - [0x18c14, o, libgs/gs_123] # Gssub_make_matrix
+      - [0x18ce4, o, libgte/msc00] # InitGeom
+      - [0x18d74, o, libgte/patchgte] # _patch_gte
+      - [0x18e54, o, libapi/c68] # FlushCache
+      - [0x18e64, asm] # TODO
+      - [0x18f44, o, libpad/padentry] # PadChkVsync,PadStartCom, PadStopCom, PadChkMtap, PadGetState, PadInfoMode, PadInfoAct, PadInfoComb, PadSetActAlign, PadSetMainMode, PadSetAct
+      - [0x19404, o, libpad/padmain] # PadEnableCom, _padSetVsyncParam, _padChkVsync, _padStartCom, _padStopCom, _padInitSioMode, _padSioRW, _padSioRW2, _padClrIntSio0, _padWaitRXready
+      - [0x1a1d4, o, libapi/l02] # SysEnqIntRP
+      - [0x1a1e4, o, libapi/l03] # SysDeqIntRP
+      - [0x1a1f4, o, libpad/padcmd] # _padSetAct, _padSetCmd, _padSendAtLoadInfo, _padRecvAtLoadInfo, _padGetActSize, _padLoadActInfo, _padSetActAlign, _padSetMainMode, _padCmdParaMode
+      - [0x1adf4, o, libpad/padif]
+      - [0x1b424, o, libpad/padportd] # PadInitDirect
+      - [0x1ba84, o, libc2/bzero] # bzero
+      - [0x1bab4, o, libpad/padseqd] # _padInitDirSeq, _dirFailAuto
+      - [0x1bf74, o, libpad/waitrc2] # setRC2wait, chkRC2wait
+      - [0x1c034, asm] # TODO
+      - [0x1e464, o, libapi/i_heap3] # InitHeap3
+      - [0x1e4c4, o, libapi/malloc3] # malloc3
+      - [0x1e574, o, libapi/free3] # free3
+      - [0x1e6c4, asm] # TODO
+      - [0x27964, o, libc2/rand] # rand, srand
+      - [0x279a4, o, libmcrd/init] # MemCardInit, MemCardEnd
+      - [0x279f4, o, libapi/c112] # _bu_init
+      - [0x27a04, o, libcard/init] # InitCARD, StartCARD, StopCARD
+      - [0x27b04, o, libcard/a74] # InitCARD2
+      - [0x27b14, o, libcard/a75] # StartCARD2
+      - [0x27b24, o, libcard/a76] # StopCARD2
+      - [0x27b34, o, libcard/patch] # _patch_card_info, _patch_card, _patch_card2, _copy_memcard_patch
+      - [0x27d54, o, libcard/end] # _ExitCard
+      - [0x27dd4, o, libapi/pad] # SetInitPadFlag, ReadInitPadFlag, PAD_init, InitPAD, StartPAD, StopPAD
+      - [0x280d4, o, libapi/a18] # InitPAD2
+      - [0x280e4, o, libapi/a19] # StartPAD2
+      - [0x280f4, o, libapi/a20] # StopPAD2
+      - [0x28104, o, libapi/a21] # PAD_init2
+      - [0x28114, o, libapi/patch] # EnablePAD, DisablePAD, _patch_pad
+      - [0x281b4, o, libapi/chclrpad] # _remove_ChgclrPAD
+      - [0x28224, o, libmcrd/libmcrd] # MemCardStart, MemCardStop, MemCardExist, MemCardAccept, MemCardOpen, MemCardClose, MemCardReadData, MemCardWriteData, MemCardReadFile, MemCardWriteFile, MemCardGetDirentry, MemCardCallback, MemCardSync, MemCardCreateFile, MemCardDeleteFile, MemCardFormat, MemCardUnformat
+      - [0x29f44, o, libcard/c171] # _card_info
+      - [0x29f54, o, libcard/c172] # _card_load
+      - [0x29f64, o, libcard/a78] # _card_write
+      - [0x29f74, o, libcard/a80] # _new_card
+      - [0x29f84, o, libcard/card] # _card_clear
+      - [0x29fc4, o, libc2/strcat] # strcat
+      - [0x2a074, o, libapi/a50] # open
+      - [0x2a084, o, libapi/a51] # lseek
+      - [0x2a094, o, libapi/a52] # read
+      - [0x2a0a4, o, libapi/a54] # close
+      - [0x2a0b4, o, libapi/a67] # nextfile
+      - [0x2a0c4, o, libapi/a69] # erase
+      - [0x2a0d4, o, libapi/first] # firstfile
+      - [0x2a374, o, libc2/strcmp] # strcmp
+      - [0x2a3e4, o, libapi/a66] # firstfile2
+      - [0x2a3f4, o, libmcrd/userfunc] # UserFuncInit, UserFuncOpen, UserFuncExecute, UserFuncComplete
+      - [0x2a504, o, libmcrd/bios] # funcEvSpIOE, funcEvSpError, funcEvSpTimeout, funcEvSpNewcard, funcEvSpIOEx, funcEvSpErrorx, funcEvSpTimeoutx, funcEvSpNewcardx, _card_open, _card_start, _clr_card_event, _card_close, _card_stop, _get_card_event, _get_card_event_x, _chk_card_event, _chk_card_event_x
+      - [0x2abb4, o, libapi/a08] # OpenEvent
+      - [0x2abc4, o, libapi/a09] # CloseEvent
+      - [0x2abd4, o, libapi/a11] # TestEvent
+      - [0x2abe4, o, libapi/a12] # EnableEvent
+      - [0x2abf4, o, libmcrd/low] # _card_format2, _card_create2
+      - [0x2b684, o, libcard/a79] # _card_read
+      - [0x2b694, o, libc2/strncpy] # strncpy
+      - [0x2b704, asm] # TODO
+      - [0x2bb30, o, libgs/gs_107] # GsSetFlatLight
+      - [0x2c0a0, o, libgte/msc01] # SquareRoot0
+      - [0x2c130, o, libgte/mtx_11] # SetColorMatrix
+      - [0x2c160, asm] # TODO
+      - [0x2d838, o, libgte/geo_00] # rsin, sin_1
+      - [0x2d908, o, libgte/geo_01] # rcos
+      - [0x2d9a8, o, libgte/geo_03] # MatrixNormal_0, MatrixNormal_1, MatrixNormal_2
+      - [0x2dd08, o, libgte/msc02] # InvSquareRoot, VectorNormalS, VectorNormal, VectorNormalSS, MatrixNormal
+      - [0x2dfb8, o, libgte/smp_00] # LightColor, DpqColorLight, DpqColor3, Intpl, Square12, Square0, AverageZ3, AverageZ4, OuterProduct12, OuterProduct0, Lzc
+      - [0x2e1c8, o, libgte/ratan] # ratan2
+      - [0x2e348, asm] # TODO
+      - [0x2e6b0, o, libgpu/e03] # SetDefDrawEnv
+      - [0x2e770, o, libgpu/e04] # SetDefDispEnv
+      - [0x2e7b0, asm] # TODO
+      - [0x2f1e4, o, libgs/gs_113] # GsClearOt
+      - [0x2f244, asm] # TODO
+      - [0x328b8, o, libgte/fgo_00] # TransposeMatrix
+      - [0x328f8, o, libc2/memset] # memset
+      - [0x32928, o, libgte/mtx_004] # ApplyMatrixLV
+      - [0x32a88, o, libgpu/p40] # SetDrawStp
+      - [0x32ab8, o, libgpu/p36] # MargePrim
+      - [0x32af8, asm] # TODO
+      - [0x332e0, o, libgpu/p01] # GetClut
+      - [0x33300, asm] # TODO
+      - [0x34138, o, libgpu/p00] # GetTPage
+      - [0x34178, o, libgpu/p06] # AddPrim
+      - [0x341b8, asm] # TODO
+      - [0x34238, o, libgpu/p33] # SetDrawTPage
+      - [0x34268, o, libgte/mtx_06] # ApplyMatrixSV
+      - [0x342c8, o, libgte/fgo_01] # RotMatrix
+      - [0x34558, o, libgte/trr] # RotMatrix
+      - [0x34a08, o, libgte/mtx_000] # MulMatrix0
+      - [0x34b18, o, libgte/msc09] # SquareRoot12
+      - [0x34bb8, o, libgte/mtx_05] # ApplyMatrix
+      - [0x34c08, o, libgte/fgo_03] # RotMatrixZYX
+      - [0x34e98, asm] # TODO
+      - [0x3a584, o, libgte/rmat_01] # RotMatrix_gte
+      - [0x3a794, asm] # TODO
+      - [0x3a7a4, o, libsn/creat] # PCcreat
+      - [0x3a7c4, o, libsn/write] # PCwrite
+      - [0x3a884, o, libsn/snwrite] # _SN_write
+      - [0x3a89c, o, libc2/sprintf] # sprintf
+      - [0x3b11c, o, libc2/memmove] # memmove
+      - [0x3b18c, o, libgte/mtx_08] # ScaleMatrix
+      - [0x3b2cc, o, libgte/cor_04] # cln_1, cln
+      - [0x3b44c, asm] # TODO
+      - [0x3b518, o, libgpu/p34] # SetDrawMove
+      - [0x3b578, o, libgte/msc05] # gteMIMefunc
+      - [0x3b5f8, o, libgte/mtx_09] # SetRotMatrix
+      - [0x3b628, o, libgte/mtx_12] # SetTransMatrix
+      - [0x3b648, o, libgte/fgo_06] # RotMatrixZ
+      - [0x3b7e8, o, libmath/adddf3] # __adddf3
+      - [0x3bb68, o, libmath/addmant] # _add_mant_d
+      - [0x3bc18, o, libmath/dbshift] # _dbl_shift
+      - [0x3bcd8, o, libmath/fixdfsi] # __fixdfsi
+      - [0x3bdd8, o, libmath/fltsidf] # __floatsidf
+      - [0x3bef8, o, libmath/dbshiftu] # _dbl_shift_us
+      - [0x3bfb8, o, libmath/mainasu] # _mainasu
+      - [0x3c028, o, libmath/muldf3] # __muldf3, _mul_mant_d
+      - [0x3c428, o, libmath/subdf3] # __subdf3
+      - [0x3c4a8, o, libmath/negdf2] # __negdf2
+      - [0x3c4e8, o, libmath/ferr] # _err_math
+      - [0x3c558, o, libgte/smp_01] # _err_math
+      - [0x3c658, o, libgte/fgo_04] # RotMatrixX
+      - [0x3c7f8, o, libgte/fgo_05] # RotMatrixY
+      - [0x3c998, o, libgte/smp_02] # RotTransPers
+      - [0x3c9c8, asm] # TODO
+      - [0x3c9e8, o, libgte/smp_03] # RotTransPers3
+      - [0x3ca48, o, libgte/mtx_03] # MulMatrix
+      - [0x3cb58, o, libgte/cmb_00] # RotTransPers4
+      - [0x3cbd8, o, libsn/open] # PCopen
+      - [0x3cbf8, o, libsn/read] # PCread
+      - [0x3ccb8, o, libsn/snread] # _SN_read
+      - [0x3ccd0, asm] # TODO
+      - [0x3cd08, o, libgte/mtx_001] # MulRotMatrix
+      - [0x3cdf8, o, libgte/msc06] # LoadAverage12, LoadAverage0, LoadAverageShort12, LoadAverageShort0, LoadAverageByte, LoadAverageCol
+      - [0x3d088, o, libgte/mtx_00a] # ScaleMatrixL
+      - [0x3d1c8, o, libgte/fgo_08] # RotMatrixZXY
+      - [0x3d458, asm] # TODO
+      - [0x3e21c, o, libspu/s_i] # SpuInit
+      - [0x3e23c, o, libspu/s_ini] # _SpuInit, SpuStart
+      - [0x3e39c, o, libspu/s_dcb] # _SpuDataCallback
+      - [0x3e3cc, o, libspu/s_itc] # SpuIsTransferCompleted
+      - [0x3e47c, o, libapi/a13] # DisableEvent
+      - [0x3e48c, asm] # TODO
+      - [0x3f360, o, libspu/s_sr] # SpuSetReverb
+      - [0x3f430, o, libspu/s_m_util] # _SpuIsInAllocateArea, _SpuIsInAllocateArea_
+      - [0x3f540, o, libspu/s_srmp] # SpuSetReverbModeParam
+      - [0x3fa20, o, libspu/s_sra] # _spu_setReverbAttr
+      - [0x3fef0, o, libspu/s_rrwa] # SpuReserveReverbWorkArea
+      - [0x3ff40, o, libspu/s_srd] # SpuSetReverbDepth
+      - [0x3ffc0, o, libspu/s_srv] # SpuSetReverbVoice
+      - [0x3fff0, o, libspu/s_sav] # _SpuSetAnyVoice
+      - [0x402b0, o, libspu/s_grv] # SpuGetReverbVoice
+      - [0x402e0, o, libspu/s_gav] # _SpuGetAnyVoice
+      - [0x40310, o, libspu/s_crwa] # SpuClearReverbWorkArea
+      - [0x404b0, o, libspu/s_sk] # SpuSetKey
+      - [0x40670, o, libspu/s_w] # SpuWrite
+      - [0x406d0, o, libspu/s_stsa] # SpuSetTransferStartAddr
+      - [0x40730, o, libspu/sr_gaks] # SpuRGetAllKeysStatus, SpuGetAllKeysStatus
+      - [0x40890, o, libspu/sl_sva] # SpuLSetVoiceAttr
+      - [0x40ea0, o, libspu/s_n2p] # _spu_note2pitch, _spu_pitch2note
+      - [0x410a0, o, libapi/a10] # WaitEvent
+      - [0x410b0, asm] # TODO
+      - [0x43f6c, o, libspu/s_wp] # SpuWritePartly
+      - [0x43ffc, asm] # TODO
+      - [0x4c500, o, libspu/s_si] # SpuSetIRQ
+      - [0x4c640, o, libspu/s_sia] # SpuSetIRQAddr
+      - [0x4c680, o, libspu/s_sic] # SpuSetIRQCallback
+      - [0x4c6c0, o, libspu/s_cb] # _SpuCallback
+      - [0x4c6f0, o, libspu/s_stc] # SpuSetTransferCallback
+      - [0x4c720, o, libmath/divsf3] # __divsf3
+      - [0x4c870, o, libmath/fixsfsi] # __fixsfsi
+      - [0x4c920, o, libmath/fltsisf] # __floatsisf
+      - [0x4c9f0, o, libmath/mulsf3] # __mulsf3
 
       # .data section
       - [0x4cb30, data, psyq/libsn/snmain]
@@ -148,6 +365,51 @@ segments:
       - [0x4e4b4, data] # TODO
       - [0x4e4dc, o, libpress/build, .data]
       - [0x4f2ec, data] # TODO
+      - [0x4f2f0, o, libcd/c_004, .data]
+      - [0x4f300, o, libcd/c_005, .data]
+      - [0x4f310, o, libcd/c_007, .data]
+      - [0x4f320, o, libcd/c_009, .data]
+      - [0x4f330, o, libcd/c_010, .data]
+      - [0x4f340, o, libcd/c_011, .data] # debug_cause
+      - [0x4f390, o, libpress/vlc_c, .data]
+      - [0x4f3c0, data] # TODO
+      - [0x4f3c4, o, libgpu/break, .data]
+      - [0x4f3e4, o, libapi/counter, .data]
+      - [0x4f404, o, libspu/spu, .data] # _spu_RXX, _spu_tsa, _spu_transMode, _spu_addrMode, _spu_mem_mode, _spu_mem_mode_plus, _spu_mem_mode_unit, _spu_mem_mode_unitM, _spu_inTransfer, _spu_transferCallback, _spu_IRQCallback
+      - [0x4f464, data] # TODO, Contains libgs/global
+      - [0x4f494, o, libgte/msc00, .data]
+      - [0x4f4a4, o, libpad/padmain, .data] # _padFuncNextPort, _padFuncClrInfo, _padFuncGetTxd, _padFuncCurrLimit, _padFuncPtr2Port, _padFuncPort2Info, _padFuncSendAuto, _padFuncChkEng, _padFuncRecvAuto, _padFuncClrCmdNo, _padFuncIntGun, _padFuncSetGunPort, _padFuncGetGunPos, _padInfoDir, _padIntExec, _padGunExec, _padSioChan, _padSioState, _padTotalCurr, _padModeMtap, _padChanStart, _padChanStop, _padFixResult
+      - [0x4f524, o, libpad/padif, .data] # padIntFunc
+      - [0x4f554, o, libpad/padportd, .data]
+      - [0x4f564, data] # TODO
+      - [0x4f590, o, libapi/i_heap3, .data] # _freep
+      - [0x4f5a0, data] # TODO
+      - [0x51aec, o, libmcrd/init, .data]
+      - [0x51afc, o, libcard/init, .data]
+      - [0x51b0c, o, libapi/pad, .data]
+      - [0x51b1c, o, libmcrd/libmcrd, .data]
+      - [0x51b3c, o, libmcrd/userfunc, .data]
+      - [0x51b4c, o, libgte/sqrtbl, .data] # SQRT
+      - [0x51ccc, o, libgte/sincos, .data] # rsin_tbl
+      - [0x524dc, o, libgte/msc02, .data]
+      - [0x5267c, o, libgte/ratan, .data] # ratan_tbl
+      - [0x52e8c, data] # TODO
+      - [0x538d0, o, libgte/cstbl, .data] # rcossin_tbl
+      - [0x578d0, data] # TODO
+      - [0x57e98, o, libc2/sprintf, .data]
+      - [0x57ea8, data] # TODO
+      - [0x57f14, o, libgte/cor_04, .data] # H_ln_tbl
+      - [0x57f34, data] # TODO
+      - [0x58018, o, libmath/ferr, .data] # math_errno, math_err_point
+      - [0x58028, data] # TODO
+      - [0x588c4, o, libspu/s_ini, .data] # _spu_EVdma, _spu_keystat, _spu_trans_mode, _spu_rev_flag, _spu_rev_reserve_wa, _spu_rev_offsetaddr, _spu_rev_attr, _spu_RQvoice, _spu_RQmask, _spu_voice_centerNote, _spu_env, _spu_isCalled
+      - [0x58944, o, libspu/s_m, .data] # _spu_AllocBlockNum, _spu_AllocLastNum, _spu_memList
+      - [0x58954, o, libspu/s_rmp0, .data] # _spu_rev_startaddr
+      - [0x58984, data] # TODO
+      - [0x589b4, o, libspu/zerobuf, .data] # _spu_zerobuf
+      - [0x58db4, o, libspu/s_n2p, .data]
+      - [0x58ed4, o, libspu/s_rmp2, .data] # _spu_rev_param
+      - [0x59184, data] # Rest
 
       # .sbss section
       - [0x59778, sbss, psyq/libsn/snmain]
@@ -161,4 +423,36 @@ segments:
       - [0x59a80, o, libgpu/sys, .bss] # _que
       - [0x5b3d0, o, libc2/putchar, .bss]
       - [0x5b3f0, o, libds/dscb, .bss] # GlobalCallback
+      - [0x5b3fc, bss] # TODO
+      - [0x5b470, o, libcd/c_004, .bss]
+      - [0x5b480, o, libcd/c_005, .bss] # StFunc1, StFunc2
+      - [0x5b488, o, libcd/c_011, .bss]
+      - [0x5b498, bss] # TODO
+      - [0x5f400, o, libspu/spu, .bss] # _spu_RQ
+      - [0x5f414, bss] # TODO
+      - [0x61918, o, libgs/gs_123, .bss] # GsIDMATRIX, GsWSMATRIX, GsWSMATRIX_ORG, GsIDMATRIX2
+      - [0x61998, pad]
+      - [0x619a8, o, libgte/patchgte, .bss]
+      - [0x619b8, bss] # TODO
+      - [0x61a18, o, libpad/padmain, .bss]
+      - [0x61a38, o, libpad/padcmd, .bss]
+      - [0x61a48, o, libpad/padportd, .bss]
+      - [0x61cb8, o, libpad/waitrc2, .bss]
+      - [0x61cc0, bss] # TODO
+      - [0x61ef0, o, libapi/free3, .bss]
+      - [0x61f10, bss] # TODO
+      - [0x64410, o, libc2/rand, .bss]
+      - [0x64420, o, libcard/patch, .bss]
+      - [0x64430, o, libcard/end, .bss]
+      - [0x64440, o, libapi/pad, .bss]
+      - [0x64450, o, libapi/patch, .bss]
+      - [0x64460, o, libapi/chclrpad, .bss]
+      - [0x64470, o, libmcrd/libmcrd, .bss]
+      - [0x64500, o, libapi/first, .bss]
+      - [0x64530, o, libmcrd/userfunc, .bss]
+      - [0x64580, o, libmcrd/bios, .bss]
+      - [0x645c0, o, libmcrd/low, .bss]
+      - [0x64880, bss] # TODO
+      - [0x648a0, o, libgs/gs_107, .bss] # GsLIGHTWSMATRIX, _LC
+      - [0x648e0, bss] # Rest
   - [0x72947]
