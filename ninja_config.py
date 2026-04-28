@@ -528,8 +528,9 @@ def ninja_build(
                 inputs=output,
                 implicit=output,
             )
-
-        checksum_build_requirements += [str(s) for s in [output]]
+            checksum_build_requirements += [str(s) for s in [f"{output}.fix"]]
+        else:
+            checksum_build_requirements += [str(s) for s in [output]]
 
     if objdiff_mode:
         if sys.platform == "win32":
