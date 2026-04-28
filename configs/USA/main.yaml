@@ -415,6 +415,7 @@ segments:
       - [0x59778, sbss, psyq/libsn/snmain]
 
       # .bss section
+      - [0x59780, bss] # TODO
       - [0x59a00, o, libcd/bios, .bss] # StMode
       - [0x59a34, pad]
       - [0x59a38, o, libcd/cdrom, .bss]
