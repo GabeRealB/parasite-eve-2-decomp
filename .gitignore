@@ -10,4 +10,6 @@ expected/
 .splache
 .ninja_log
 *.ninja
+
+objdiff.json
 compile_commands.json

@@ -139,13 +139,13 @@ segments:
       - [0xc2fc, o, libapi/a91] # ChangeClearPAD
       - [0xc30c, o, libapi/l10] # ChangeClearRCnt
       - [0xc31c, o, libds/dscb] # DsSyncCallback, DsReadyCallback, DsStartCallback, DsDataCallback
-      - [0xc37c, asm] # TODO
+      - [0xc37c, c] # TODO
       - [0xe4b4, o, libcd/s_002] # CdIntToPos, CdPosToInt
       - [0xe644, o, libpress/build] # DecDCTvlcBuild
-      - [0xe734, asm] # TODO
+      - [0xe734, c] # TODO
       - [0xf014, o, libcd/type] # CdDiskReady, CdGetDiskType
       - [0xf2c4, o, libc2/strncmp] # strncmp
-      - [0xf344, asm] # TODO
+      - [0xf344, c] # TODO
       - [0x10c5c, o, libcd/cdread2] # CdRead2
       - [0x10d0c, o, libcd/c_004] # data_ready_callback, StGetBackloc
       - [0x10dfc, o, libcd/c_005] # StSetStream
@@ -155,19 +155,19 @@ segments:
       - [0x1101c, o, libcd/c_011] # StCdInterrupt
       - [0x11b0c, o, libpress/vlc_c] # DecDCTvlcSize2, DecDCTvlc2
       - [0x11e8c, o, libpress/dct002] # DecDCTBufSize
-      - [0x11e9c, asm] # TODO
+      - [0x11e9c, c] # TODO
       - [0x160f4, o, libgpu/break] # BreakDraw, IsIdleGPU, ContinueDraw
       - [0x16314, o, libapi/c159] # SetMem
       - [0x16324, o, libapi/counter] # SetRCnt, GetRCnt, StartRCnt, StopRCnt, ResetRCnt
-      - [0x16494, asm] # TODO
+      - [0x16494, c] # TODO
       - [0x16b14, o, libspu/s_sca] # SpuSetCommonAttr
       - [0x16e94, o, libspu/spu] # _spu_init, _spu_FiDMA, _spu_Fr_, _spu_t, _spu_Fw, _spu_Fr, _spu_FsetRXX, _spu_FsetRXXa, _spu_FgetRXXa, _spu_FsetPCR, _spu_Fw1ts
-      - [0x179d4, asm] # TODO
+      - [0x179d4, c] # TODO
       - [0x18c14, o, libgs/gs_123] # Gssub_make_matrix
       - [0x18ce4, o, libgte/msc00] # InitGeom
       - [0x18d74, o, libgte/patchgte] # _patch_gte
       - [0x18e54, o, libapi/c68] # FlushCache
-      - [0x18e64, asm] # TODO
+      - [0x18e64, c] # TODO
       - [0x18f44, o, libpad/padentry] # PadChkVsync,PadStartCom, PadStopCom, PadChkMtap, PadGetState, PadInfoMode, PadInfoAct, PadInfoComb, PadSetActAlign, PadSetMainMode, PadSetAct
       - [0x19404, o, libpad/padmain] # PadEnableCom, _padSetVsyncParam, _padChkVsync, _padStartCom, _padStopCom, _padInitSioMode, _padSioRW, _padSioRW2, _padClrIntSio0, _padWaitRXready
       - [0x1a1d4, o, libapi/l02] # SysEnqIntRP
@@ -178,11 +178,11 @@ segments:
       - [0x1ba84, o, libc2/bzero] # bzero
       - [0x1bab4, o, libpad/padseqd] # _padInitDirSeq, _dirFailAuto
       - [0x1bf74, o, libpad/waitrc2] # setRC2wait, chkRC2wait
-      - [0x1c034, asm] # TODO
+      - [0x1c034, c] # TODO
       - [0x1e464, o, libapi/i_heap3] # InitHeap3
       - [0x1e4c4, o, libapi/malloc3] # malloc3
       - [0x1e574, o, libapi/free3] # free3
-      - [0x1e6c4, asm] # TODO
+      - [0x1e6c4, c] # TODO
       - [0x27964, o, libc2/rand] # rand, srand
       - [0x279a4, o, libmcrd/init] # MemCardInit, MemCardEnd
       - [0x279f4, o, libapi/c112] # _bu_init
@@ -224,34 +224,34 @@ segments:
       - [0x2abf4, o, libmcrd/low] # _card_format2, _card_create2
       - [0x2b684, o, libcard/a79] # _card_read
       - [0x2b694, o, libc2/strncpy] # strncpy
-      - [0x2b704, asm] # TODO
+      - [0x2b704, c] # TODO
       - [0x2bb30, o, libgs/gs_107] # GsSetFlatLight
       - [0x2c0a0, o, libgte/msc01] # SquareRoot0
       - [0x2c130, o, libgte/mtx_11] # SetColorMatrix
-      - [0x2c160, asm] # TODO
+      - [0x2c160, c] # TODO
       - [0x2d838, o, libgte/geo_00] # rsin, sin_1
       - [0x2d908, o, libgte/geo_01] # rcos
       - [0x2d9a8, o, libgte/geo_03] # MatrixNormal_0, MatrixNormal_1, MatrixNormal_2
       - [0x2dd08, o, libgte/msc02] # InvSquareRoot, VectorNormalS, VectorNormal, VectorNormalSS, MatrixNormal
       - [0x2dfb8, o, libgte/smp_00] # LightColor, DpqColorLight, DpqColor3, Intpl, Square12, Square0, AverageZ3, AverageZ4, OuterProduct12, OuterProduct0, Lzc
       - [0x2e1c8, o, libgte/ratan] # ratan2
-      - [0x2e348, asm] # TODO
+      - [0x2e348, c] # TODO
       - [0x2e6b0, o, libgpu/e03] # SetDefDrawEnv
       - [0x2e770, o, libgpu/e04] # SetDefDispEnv
-      - [0x2e7b0, asm] # TODO
+      - [0x2e7b0, c] # TODO
       - [0x2f1e4, o, libgs/gs_113] # GsClearOt
-      - [0x2f244, asm] # TODO
+      - [0x2f244, c] # TODO
       - [0x328b8, o, libgte/fgo_00] # TransposeMatrix
       - [0x328f8, o, libc2/memset] # memset
       - [0x32928, o, libgte/mtx_004] # ApplyMatrixLV
       - [0x32a88, o, libgpu/p40] # SetDrawStp
       - [0x32ab8, o, libgpu/p36] # MargePrim
-      - [0x32af8, asm] # TODO
+      - [0x32af8, c] # TODO
       - [0x332e0, o, libgpu/p01] # GetClut
-      - [0x33300, asm] # TODO
+      - [0x33300, c] # TODO
       - [0x34138, o, libgpu/p00] # GetTPage
       - [0x34178, o, libgpu/p06] # AddPrim
-      - [0x341b8, asm] # TODO
+      - [0x341b8, c] # TODO
       - [0x34238, o, libgpu/p33] # SetDrawTPage
       - [0x34268, o, libgte/mtx_06] # ApplyMatrixSV
       - [0x342c8, o, libgte/fgo_01] # RotMatrix
@@ -260,9 +260,9 @@ segments:
       - [0x34b18, o, libgte/msc09] # SquareRoot12
       - [0x34bb8, o, libgte/mtx_05] # ApplyMatrix
       - [0x34c08, o, libgte/fgo_03] # RotMatrixZYX
-      - [0x34e98, asm] # TODO
+      - [0x34e98, c] # TODO
       - [0x3a584, o, libgte/rmat_01] # RotMatrix_gte
-      - [0x3a794, asm] # TODO
+      - [0x3a794, c] # TODO
       - [0x3a7a4, o, libsn/creat] # PCcreat
       - [0x3a7c4, o, libsn/write] # PCwrite
       - [0x3a884, o, libsn/snwrite] # _SN_write
@@ -270,7 +270,7 @@ segments:
       - [0x3b11c, o, libc2/memmove] # memmove
       - [0x3b18c, o, libgte/mtx_08] # ScaleMatrix
       - [0x3b2cc, o, libgte/cor_04] # cln_1, cln
-      - [0x3b44c, asm] # TODO
+      - [0x3b44c, c] # TODO
       - [0x3b518, o, libgpu/p34] # SetDrawMove
       - [0x3b578, o, libgte/msc05] # gteMIMefunc
       - [0x3b5f8, o, libgte/mtx_09] # SetRotMatrix
@@ -291,25 +291,25 @@ segments:
       - [0x3c658, o, libgte/fgo_04] # RotMatrixX
       - [0x3c7f8, o, libgte/fgo_05] # RotMatrixY
       - [0x3c998, o, libgte/smp_02] # RotTransPers
-      - [0x3c9c8, asm] # TODO
+      - [0x3c9c8, c] # TODO
       - [0x3c9e8, o, libgte/smp_03] # RotTransPers3
       - [0x3ca48, o, libgte/mtx_03] # MulMatrix
       - [0x3cb58, o, libgte/cmb_00] # RotTransPers4
       - [0x3cbd8, o, libsn/open] # PCopen
       - [0x3cbf8, o, libsn/read] # PCread
       - [0x3ccb8, o, libsn/snread] # _SN_read
-      - [0x3ccd0, asm] # TODO
+      - [0x3ccd0, c] # TODO
       - [0x3cd08, o, libgte/mtx_001] # MulRotMatrix
       - [0x3cdf8, o, libgte/msc06] # LoadAverage12, LoadAverage0, LoadAverageShort12, LoadAverageShort0, LoadAverageByte, LoadAverageCol
       - [0x3d088, o, libgte/mtx_00a] # ScaleMatrixL
       - [0x3d1c8, o, libgte/fgo_08] # RotMatrixZXY
-      - [0x3d458, asm] # TODO
+      - [0x3d458, c] # TODO
       - [0x3e21c, o, libspu/s_i] # SpuInit
       - [0x3e23c, o, libspu/s_ini] # _SpuInit, SpuStart
       - [0x3e39c, o, libspu/s_dcb] # _SpuDataCallback
       - [0x3e3cc, o, libspu/s_itc] # SpuIsTransferCompleted
       - [0x3e47c, o, libapi/a13] # DisableEvent
-      - [0x3e48c, asm] # TODO
+      - [0x3e48c, c] # TODO
       - [0x3f360, o, libspu/s_sr] # SpuSetReverb
       - [0x3f430, o, libspu/s_m_util] # _SpuIsInAllocateArea, _SpuIsInAllocateArea_
       - [0x3f540, o, libspu/s_srmp] # SpuSetReverbModeParam
@@ -328,9 +328,9 @@ segments:
       - [0x40890, o, libspu/sl_sva] # SpuLSetVoiceAttr
       - [0x40ea0, o, libspu/s_n2p] # _spu_note2pitch, _spu_pitch2note
       - [0x410a0, o, libapi/a10] # WaitEvent
-      - [0x410b0, asm] # TODO
+      - [0x410b0, c] # TODO
       - [0x43f6c, o, libspu/s_wp] # SpuWritePartly
-      - [0x43ffc, asm] # TODO
+      - [0x43ffc, c] # TODO
       - [0x4c500, o, libspu/s_si] # SpuSetIRQ
       - [0x4c640, o, libspu/s_sia] # SpuSetIRQAddr
       - [0x4c680, o, libspu/s_sic] # SpuSetIRQCallback
