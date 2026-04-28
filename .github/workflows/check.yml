@@ -1,0 +1,45 @@
+name: Build and check that the executables match
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  build:
+    if: github.repository == 'GabeRealB/parasite-eve-2-decomp'
+
+    container:
+      image: ghcr.io/gaberealb/decomp-images-parasite-eve-2:latest
+      options: --user root
+
+    strategy:
+      fail-fast: true
+      matrix:
+        game_id: [SLUS-01042]
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: "Setup Python"
+        run: pip3 install -r requirements.txt --break-system-packages
+
+      - name: "Copy ROM"
+        run: |
+          mkdir -p ./rom/image
+          cp -r -p /rom/* ./rom/image
+
+      - name: Extract ROM
+        run: python3 ./ninja_config.py --iso_extract
+
+      - name: Setup Environment
+        run: python3 ./ninja_config.py
+
+      - name: Build and Check for Match
+        run: ninja
