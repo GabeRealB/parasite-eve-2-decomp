@@ -8,12 +8,19 @@ import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
+from enum import IntEnum
 from pathlib import Path
 
 import spimdisasm
 import splat
 import splat.scripts.split as split
 from ninja import ninja_syntax
+
+
+class Platform(IntEnum):
+    Windows = 0
+    Linux = 1
+    MacOS = 2
 
 
 # For multi-version support
@@ -71,60 +78,84 @@ class YamlInfo:
 YAML_EXECUTABLE = ["main.yaml"]
 
 # Directories
-ASSETS_DIR = "assets"
-ASM_DIR = "asm"
-LINKER_DIR = "linkers"
-EXPECTED_DIR = "expected"
-CONFIG_DIR = "configs"
-TOOLS_DIR = "tools"
-ROM_DIR = "rom"
-BUILD_DIR = "build"
-PERMUTER_DIR = "permuter"
+ASSETS_DIR = Path("assets")
+ASM_DIR = Path("asm")
+LINKER_DIR = Path("linkers")
+EXPECTED_DIR = Path("expected")
+CONFIG_DIR = Path("configs")
+TOOLS_DIR = Path("tools")
+ROM_DIR = Path("rom")
+BUILD_DIR = Path("build")
+PERMUTER_DIR = Path("permuter")
+
+if sys.platform == "win32":
+    PLATFORM = Platform.Windows
+elif sys.platform == "linux" or sys.platform == "linux2":
+    PLATFORM = Platform.Linux
+elif sys.platform == "darwin":
+    PLATFORM = Platform.MacOS
+else:
+    raise ValueError(f"Unsupported platform: {sys.platform}")
 
 # Sub-directories
-if sys.platform == "win32":
-    IMAGE_DIR = f"{ROM_DIR}\\image"
-    OBJDIFF_DIR = f"{TOOLS_DIR}\\objdiff"
-    MKPSXISO_DIR = f"{TOOLS_DIR}\\mkpsxiso"
-else:
-    IMAGE_DIR = f"{ROM_DIR}/image"
-    OBJDIFF_DIR = f"{TOOLS_DIR}/objdiff"
-    MKPSXISO_DIR = f"{TOOLS_DIR}/mkpsxiso"
+match PLATFORM:
+    case Platform.Windows:
+        OS_DIR = TOOLS_DIR / "windows"
+    case Platform.Linux:
+        OS_DIR = TOOLS_DIR / "linux"
+    case Platform.MacOS:
+        OS_DIR = TOOLS_DIR / "macos"
+
+IMAGE_DIR = ROM_DIR / "image"
+MKPSXISO_DIR = OS_DIR / "mkpsxiso"
+OBJDIFF_DIR = TOOLS_DIR / "objdiff"
 
 # Tooling Paths
-if sys.platform == "win32":
+if PLATFORM == Platform.Windows:
     PYTHON = "python"
 else:
     PYTHON = "python3"
-MASPSX = f"{PYTHON} tools/maspsx/maspsx.py"
-if sys.platform == "win32":
-    CROSS = f"{TOOLS_DIR}/win-build/binutils/mips-linux-gnu"
-    AS = f"{CROSS}-as.exe"
-    LD = f"{CROSS}-ld.exe"
-    OBJCOPY = f"{CROSS}-objcopy.exe"
-    OBJDUMP = f"{CROSS}-objdump.exe"
-    CPP = f"{TOOLS_DIR}/win-build/mcpp/mcpp.exe"
-    CC = f"{TOOLS_DIR}/win-build/gcc-psx/cc1psx.exe"
-    CC272 = f"{TOOLS_DIR}/win-build/gcc-2.7.2-win/cc1psx.exe"
-    OBJDIFF = f"{OBJDIFF_DIR}\\objdiff.exe"
-    OBJDIFF_GENSCRIPT = f"{OBJDIFF_DIR}\\objdiff_generate.py"
-    POSTBUILD = f"{PYTHON} {TOOLS_DIR}\\postbuild.py"
-    DUMPSXISO = f"{MKPSXISO_DIR}\\dumpsxiso.exe"
-    ICONV = f"{TOOLS_DIR}\\win-build\\iconv\\iconv.bat"
-else:
-    CROSS = "mips-linux-gnu"
-    AS = f"{CROSS}-as"
-    LD = f"{CROSS}-ld"
-    OBJCOPY = f"{CROSS}-objcopy"
-    OBJDUMP = f"{CROSS}-objdump"
-    CPP = f"{CROSS}-cpp"
-    CC = f"{TOOLS_DIR}/gcc-2.8.1-psx/cc1"
-    CC272 = f"{TOOLS_DIR}/gcc-2.7.2-cdk/cc1"
-    OBJDIFF = f"{OBJDIFF_DIR}/objdiff"
-    OBJDIFF_GENSCRIPT = f"{OBJDIFF_DIR}/objdiff_generate.py"
-    POSTBUILD = f"{PYTHON} {TOOLS_DIR}/postbuild.py"
-    DUMPSXISO = f"{MKPSXISO_DIR}/dumpsxiso"
-    ICONV = "iconv"
+MASPSX = f"{PYTHON} {TOOLS_DIR / 'maspsx' / 'maspsx.py'}"
+match PLATFORM:
+    case Platform.Windows:
+        BINUTILS_DIR = OS_DIR / "binutils"
+        CROSS_TARGET = "mips-linux-gnu"
+        AS = BINUTILS_DIR / f"{CROSS_TARGET}-as.exe"
+        LD = BINUTILS_DIR / f"{CROSS_TARGET}-ld.exe"
+        OBJCOPY = BINUTILS_DIR / f"{CROSS_TARGET}-objcopy.exe"
+        OBJDUMP = BINUTILS_DIR / f"{CROSS_TARGET}-objdump.exe"
+        CPP = OS_DIR / "mcpp" / "mcpp.exe"
+        CC = OS_DIR / "gcc-psx" / "cc1psx.exe"
+        CC272 = OS_DIR / "gcc-2.7.2-win" / "cc1psx.exe"
+        DUMPSXISO = MKPSXISO_DIR / "dumpsxiso.exe"
+        ICONV = OS_DIR / "iconv" / "iconv.bat"
+
+    case Platform.Linux:
+        CROSS_TARGET = "mips-linux-gnu"
+        AS = f"{CROSS_TARGET}-as"
+        LD = f"{CROSS_TARGET}-ld"
+        OBJCOPY = f"{CROSS_TARGET}-objcopy"
+        OBJDUMP = f"{CROSS_TARGET}-objdump"
+        CPP = f"{CROSS_TARGET}-cpp"
+        CC = OS_DIR / "gcc-2.8.1-psx" / "cc1"
+        CC272 = OS_DIR / "gcc-2.7.2-cdk" / "cc1"
+        DUMPSXISO = MKPSXISO_DIR / "dumpsxiso"
+        ICONV = "iconv"
+
+    case Platform.MacOS:
+        CROSS_TARGET = "mipsel-linux-gnu"
+        AS = f"{CROSS_TARGET}-as"
+        LD = f"{CROSS_TARGET}-ld"
+        OBJCOPY = f"{CROSS_TARGET}-objcopy"
+        OBJDUMP = f"{CROSS_TARGET}-objdump"
+        CPP = "mcpp"
+        CC = OS_DIR / "gcc-2.8.1-psx" / "cc1"
+        CC272 = OS_DIR / "gcc-2.7.2-cdk" / "cc1"
+        DUMPSXISO = MKPSXISO_DIR / "dumpsxiso"
+        ICONV = "iconv"
+
+OBJDIFF_GENSCRIPT = OBJDIFF_DIR / "objdiff_generate.py"
+POSTBUILD = f"{PYTHON} {TOOLS_DIR / 'postbuild.py'}"
 
 # Compilation flags (General)
 INCLUDE_FLAGS = f"-Iinclude -I {BUILD_DIR} -Iinclude/psyq -Iinclude/decomp"
@@ -132,20 +163,34 @@ OPT_FLAGS = "-O2"
 ENDIAN = "-EL"
 DL_EXE_FLAGS = "-G8"
 DL_OVL_FLAGS = "-G0"
+MASPX_VERSION = "2.77"
 
 # Compilation flags (Tool specific)
-if sys.platform == "win32":
-    COMPILE_COMMANDS_FLAGS = f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -Wall"
-    CPP_FLAGS = (
-        f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -N -Wall -I-"
-    )
-    MASPSX_FLAGS = f"--gnu-as-path {AS} --run-assembler"
-    ICONV_FLAGS = "$in $out"
-else:
-    COMPILE_COMMANDS_FLAGS = f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -undef -Wall -lang-c -nostdinc"
-    CPP_FLAGS = f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc"
-    MASPSX_FLAGS = "--aspsx-version=2.77 --run-assembler"
-    ICONV_FLAGS = "-f UTF-8 -t SHIFT-JIS $in -o $out"
+match PLATFORM:
+    case Platform.Windows:
+        COMPILE_COMMANDS_FLAGS = (
+            f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -Wall"
+        )
+        CPP_FLAGS = (
+            f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -N -Wall -I-"
+        )
+        MASPSX_FLAGS = f"--gnu-as-path {AS} --run-assembler"
+        ICONV_FLAGS = "$in $out"
+
+    case Platform.Linux:
+        COMPILE_COMMANDS_FLAGS = f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -undef -Wall -lang-c -nostdinc"
+        CPP_FLAGS = f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc"
+        MASPSX_FLAGS = f"--aspsx-version={MASPX_VERSION} --run-assembler"
+        ICONV_FLAGS = "-f UTF-8 -t SHIFT-JIS $in -o $out"
+
+    case Platform.MacOS:
+        COMPILE_COMMANDS_FLAGS = f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -undef -Wall -lang-c -nostdinc"
+        CPP_FLAGS = (
+            f"{INCLUDE_FLAGS} -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -N -Wall -I-"
+        )
+        MASPSX_FLAGS = f"--aspsx-version={MASPX_VERSION} --run-assembler"
+        ICONV_FLAGS = "-f UTF-8 -t SHIFT-JIS $in -o $out"
+
 CC_FLAGS = f"{OPT_FLAGS} -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet"
 AS_FLAGS = (
     f"{ENDIAN} {INCLUDE_FLAGS} {OPT_FLAGS} -march=r3000 -mtune=r3000 -no-pad-sections"
@@ -192,20 +237,13 @@ def ninja_setup_list_add_source(
         skip_asm = "-DSKIP_ASM"
         non_matching = "-DNON_MATCHING"
 
-        if sys.platform == "win32":
-            source_target_path = re.sub(
-                r"^src",
-                rf"asm\\{GAME_VERSIONS[game_version_idx].version_name}",
-                source_path,
-            )
-        else:
-            source_target_path = re.sub(
-                r"^src",
-                rf"asm/{GAME_VERSIONS[game_version_idx].version_name}",
-                source_path,
-            )
+        source_target_path = re.sub(
+            r"^src",
+            str(Path("asm") / GAME_VERSIONS[game_version_idx].version_name),
+            source_path,
+        )
         source_target_path = re.sub(r".c$", r".s", source_target_path)
-        if sys.platform == "win32":
+        if PLATFORM == Platform.Windows:
             expected_path = re.sub(
                 rf"^build\\{GAME_VERSIONS[game_version_idx].version_name}\\src",
                 rf"expected\\{GAME_VERSIONS[game_version_idx].version_name}",
@@ -239,7 +277,7 @@ def ninja_setup_list_add_source(
     if non_matching_enabled:
         non_matching = "-DNON_MATCHING"
 
-    if sys.platform == "win32":
+    if PLATFORM == Platform.Windows:
         source_path = re.sub(r"\\", r"/", source_path)
         target_path = re.sub(r"\\", r"/", target_path)
 
@@ -381,11 +419,11 @@ def ninja_build(
         command=f"{OBJCOPY} -O binary $in $out",
     )
 
-    if sys.platform == "win32":
+    if PLATFORM == Platform.Windows:
         ninja_rules_file.rule(
             "sha256sum",
             description="checksum",
-            command=f"cmd.exe /c {TOOLS_DIR}\\sha256sum.bat $in",
+            command=f"cmd.exe /c {TOOLS_DIR / 'sha256sum.bat'} $in",
         )
     else:
         ninja_rules_file.rule(
@@ -463,7 +501,7 @@ def ninja_build(
                         )
 
                         if objdiff_mode:
-                            if sys.platform == "win32":
+                            if PLATFORM == Platform.Windows:
                                 expected_path = re.sub(
                                     rf"^build\\{GAME_VERSIONS[game_version_idx].version_name}\\src",
                                     rf"expected\\{GAME_VERSIONS[game_version_idx].version_name}\\asm",
@@ -533,29 +571,20 @@ def ninja_build(
             checksum_build_requirements += [str(s) for s in [output]]
 
     if objdiff_mode:
-        if sys.platform == "win32":
-            ninja_diff_file.build(
-                outputs=f"{EXPECTED_DIR}\\{GAME_VERSIONS[game_version_idx].version_name}\\objdiff.ok",
-                rule="objdiff-config",
-                inputs=f"{OBJDIFF_DIR}\\config-retail.yaml",
-                variables={
-                    "version": GAME_VERSIONS[game_version_idx].metadata.version_dir
-                },
-                implicit=objdiff_config_requirements,
-            )
-        else:
-            ninja_diff_file.build(
-                outputs=f"{EXPECTED_DIR}/{GAME_VERSIONS[game_version_idx].version_name}/objdiff.ok",
-                rule="objdiff-config",
-                inputs=f"{OBJDIFF_DIR}/config-retail.yaml",
-                variables={
-                    "version": GAME_VERSIONS[game_version_idx].metadata.version_dir
-                },
-                implicit=objdiff_config_requirements,
-            )
+        ninja_diff_file.build(
+            outputs=str(
+                EXPECTED_DIR
+                / GAME_VERSIONS[game_version_idx].version_name
+                / "objdiff.ok"
+            ),
+            rule="objdiff-config",
+            inputs=str(OBJDIFF_DIR / "config-retail.yaml"),
+            variables={"version": GAME_VERSIONS[game_version_idx].metadata.version_dir},
+            implicit=objdiff_config_requirements,
+        )
 
     if not skip_checksum:
-        if sys.platform == "win32":
+        if PLATFORM == Platform.Windows:
             checksum_target = (
                 f"{CONFIG_DIR}/{GAME_VERSIONS[game_version_idx].metadata.version_dir}"
             )
@@ -600,8 +629,8 @@ def clean_working_files(clean_build_files: bool, clean_target_files: bool):
 def extract_files(version: int):
     print(f"Extracting files for version {GAME_VERSIONS[version].version_name}")
 
-    target_assets = f"{ASSETS_DIR}/{GAME_VERSIONS[version].metadata.version_dir}"
-    target_rom = f"{ROM_DIR}/{GAME_VERSIONS[version].metadata.version_dir}"
+    target_assets = ASSETS_DIR / GAME_VERSIONS[version].metadata.version_dir
+    target_rom = ROM_DIR / GAME_VERSIONS[version].metadata.version_dir
 
     shutil.rmtree(target_assets, ignore_errors=True)
     shutil.rmtree(target_rom, ignore_errors=True)

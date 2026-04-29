@@ -1,8 +1,10 @@
 asm/
 assets/
 build/
+dumps/
 rom/
 linkers/
+local/
 __pycache__/
 permuter/
 expected/
@@ -11,5 +13,8 @@ expected/
 .ninja_log
 *.ninja
 
+.DS_Store
 objdiff.json
 compile_commands.json
+.venv*/
+venv*/
