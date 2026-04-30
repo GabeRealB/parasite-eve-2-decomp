@@ -13,6 +13,7 @@ expected/
 .ninja_log
 *.ninja
 
+ctx.c
 .DS_Store
 objdiff.json
 compile_commands.json

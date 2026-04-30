@@ -53,9 +53,9 @@ class FileChunkType(IntEnum):
 
     def is_compressed(self) -> bool:
         return {
-            FileChunkType.RoomPkg: True,
-            FileChunkType.Image: True,
-            FileChunkType.Clut: True,
+            FileChunkType.RoomPkg: False,
+            FileChunkType.Image: False,
+            FileChunkType.Clut: False,
             FileChunkType.Cap2: False,
             FileChunkType.RoomBackground: False,
             FileChunkType.Music: False,
@@ -1014,7 +1014,12 @@ def main():
         src_path = output_path / src
         dst_path = output_path / "OVR" / dst
         dst_path.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy(src_path, dst_path)
+        with open(src_path, "rb") as f:
+            pkg_data = f.read()
+        pkg_data = decode_lzss(pkg_data)
+
+        with open(dst_path, "wb") as f:
+            f.write(pkg_data)
 
     logging.info("All done!")
 

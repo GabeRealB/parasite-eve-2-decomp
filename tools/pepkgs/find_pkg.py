@@ -24,11 +24,14 @@ GAME_VERSIONS = [
 ASSETS_DIR = "assets"
 
 
-def iter_dir(dir_path: Path, matches: list[Match], pattern: bytes):
+def iter_dir(dir_path: Path, raw: bool, matches: list[Match], pattern: bytes):
     for entry in dir_path.iterdir():
         if entry.is_dir():
-            iter_dir(entry, matches, pattern)
-        elif entry.is_file() and entry.suffix == ".pe2pkg":
+            iter_dir(entry, raw, matches, pattern)
+        elif entry.is_file():
+            if raw and entry.suffix != ".pe2pkg":
+                continue
+
             with open(entry, "rb") as f:
                 pkg_data = f.read()
                 pos = pkg_data.find(pattern)
@@ -36,10 +39,14 @@ def iter_dir(dir_path: Path, matches: list[Match], pattern: bytes):
                     matches.append(Match(path=entry, offset=pos))
 
 
-def find_matches(version_idx: int, pattern: bytes) -> list[Match]:
+def find_matches(version_idx: int, raw: bool, pattern: bytes) -> list[Match]:
     matches: list[Match] = []
     asset_path = (Path(ASSETS_DIR) / GAME_VERSIONS[version_idx].version_dir).absolute()
-    iter_dir(asset_path, matches, pattern)
+    if raw:
+        iter_dir(asset_path, raw, matches, pattern)
+    else:
+        pkgs_path = asset_path / "OVR"
+        iter_dir(pkgs_path, raw, matches, pattern)
     return matches
 
 
@@ -52,6 +59,12 @@ def main():
         action="store_true",
     )
     parser.add_argument(
+        "-raw",
+        "--search_raw",
+        help="Search in the uncompressed packages",
+        action="store_true",
+    )
+    parser.add_argument(
         "-ver",
         "--game_version",
         help="Assume a specific version of the game",
@@ -60,6 +73,7 @@ def main():
     parser.add_argument("sequence", type=str, help="The byte sequence to find")
     args = parser.parse_args()
 
+    search_raw = args.search_raw
     game_version_option = 0  # USA by default
     if args.game_version is not None:
         for info in GAME_VERSIONS:
@@ -77,7 +91,7 @@ def main():
         sequence = sequence.replace(" ", "")
         pattern = bytes.fromhex(sequence)
 
-    matches = find_matches(game_version_option, pattern)
+    matches = find_matches(game_version_option, search_raw, pattern)
     print("Found matches:")
     for match in matches:
         print(f"\t{match.path}: {match.offset}")

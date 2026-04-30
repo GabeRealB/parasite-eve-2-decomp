@@ -24,6 +24,6 @@ INCLUDE_ASM("main/nonmatchings/179D4", func_80028290);
 
 INCLUDE_ASM("main/nonmatchings/179D4", func_800282D8);
 
-INCLUDE_ASM("main/nonmatchings/179D4", func_8002838C);
+INCLUDE_ASM("main/nonmatchings/179D4", GameMain);
 
-INCLUDE_ASM("main/nonmatchings/179D4", GsGetWorkBase);
+INCLUDE_ASM("main/nonmatchings/179D4", func_80028404);

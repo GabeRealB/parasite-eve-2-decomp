@@ -344,7 +344,8 @@ segments:
       # .data section
       - [0x4cb30, data, psyq/libsn/snmain]
       - [0x4cb54, o, libsn/sndef, .data]
-      - [0x4cb5c, data] # TODO
+      - [0x4cb5c, .data, main]
+      - [0x4cb60, data] # TODO
       - [0x4cb94, o, libetc/vsync, .data]
       - [0x4cbb4, o, libetc/intr_vb, .data] # Vcount
       - [0x4cbe4, o, libetc/intr, .data]

@@ -161,7 +161,7 @@ POSTBUILD = f"{PYTHON} {TOOLS_DIR / 'postbuild.py'}"
 INCLUDE_FLAGS = f"-Iinclude -I {BUILD_DIR} -Iinclude/psyq -Iinclude/decomp"
 OPT_FLAGS = "-O2"
 ENDIAN = "-EL"
-DL_EXE_FLAGS = "-G8"
+DL_EXE_FLAGS = "-G0"
 DL_OVL_FLAGS = "-G0"
 MASPX_VERSION = "2.77"
 
@@ -237,11 +237,18 @@ def ninja_setup_list_add_source(
         skip_asm = "-DSKIP_ASM"
         non_matching = "-DNON_MATCHING"
 
-        source_target_path = re.sub(
-            r"^src",
-            str(Path("asm") / GAME_VERSIONS[game_version_idx].version_name),
-            source_path,
-        )
+        if PLATFORM == Platform.Windows:
+            source_target_path = re.sub(
+                r"^src",
+                rf"asm\\{GAME_VERSIONS[game_version_idx].version_name}",
+                source_path,
+            )
+        else:
+            source_target_path = re.sub(
+                r"^src",
+                rf"asm/{GAME_VERSIONS[game_version_idx].version_name}",
+                source_path,
+            )
         source_target_path = re.sub(r".c$", r".s", source_target_path)
         if PLATFORM == Platform.Windows:
             expected_path = re.sub(
