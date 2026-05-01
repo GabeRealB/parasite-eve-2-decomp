@@ -20,6 +20,7 @@ typedef unsigned char      u8;
 typedef unsigned short     u16;
 typedef unsigned int       u32;
 typedef unsigned long long u64;
+typedef unsigned long      uintptr;
 
 typedef signed char        q0_7;   // Q0.7 fixed-point.
 typedef signed short       q11_4;  // Q11.4 fixed-point.

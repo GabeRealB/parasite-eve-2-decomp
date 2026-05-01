@@ -58,7 +58,8 @@ segments:
     bss_size: 0x199c8
     subsegments:
       # .rodata section
-      - [0x800, rodata, 4CF8] # TODO
+      - [0x800, rodata, psyq/libsn/snmain] # Seems to only be referenced by snmain.
+      - [0x808, rodata, 4CF8] # TODO
       - [0x2f84, o, libetc/vsync, .rdata]
       - [0x2f94, o, libetc/intr, .rdata]
       - [0x3004, o, libetc/intr_dma, .rdata]
@@ -179,6 +180,8 @@ segments:
       - [0x1bab4, o, libpad/padseqd] # _padInitDirSeq, _dirFailAuto
       - [0x1bf74, o, libpad/waitrc2] # setRC2wait, chkRC2wait
       - [0x1c034, c] # TODO
+      - [0x1e094, c, mem]
+      - [0x1e178, c] # TODO
       - [0x1e464, o, libapi/i_heap3] # InitHeap3
       - [0x1e4c4, o, libapi/malloc3] # malloc3
       - [0x1e574, o, libapi/free3] # free3
