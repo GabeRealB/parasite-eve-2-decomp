@@ -7,7 +7,18 @@
 // For some reason, the program starts by modifying its stack pointer and
 // calling the actual entry function of the game. This address does not
 // seem to be inserted by the linker.
-static u32 GStackBase = 0x801fff00;
+u32 GStackBase = 0x801fff00;
+
+// Apparently, it seems that the heap is not located on the heap, but rather
+// after the main heap defined by the entry point.
+u8* GHeap = (u8*)0x80083800;
+
+u8*    GAuxHeap;
+size_t GAuxHeapSize;
+size_t D_80068F88;
+u8*    GActiveAuxHeap;
+size_t D_80068F90;
+size_t GActiveAuxHeapSize;
 
 int main(void)
 {

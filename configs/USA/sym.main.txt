@@ -541,7 +541,16 @@ chkRC2wait                  = 0x8002B794;
 //--------------------------------------------------------------------
 //--- PA: 0x1E094   VA: 0x8002D894   subsegment: c, mem
 //--------------------------------------------------------------------
-Mem_Set                     = 0x8002D894;
+Mem_Set                     = 0x8002D894; // type:func
+Mem_Calloc                  = 0x8002D978; // type:func
+Mem_SetActiveHeap           = 0x8002DA90; // type:func
+Mem_Malloc                  = 0x8002DABC; // type:func
+Mem_Free                    = 0x8002DB20; // type:func
+Mem_Free2                   = 0x8002DB4C; // type:func
+Mem_InitAux                 = 0x8002DB90; // type:func
+Mem_Init                    = 0x8002DBC0; // type:func
+Mem_Dummy0                  = 0x8002DC00; // type:func
+Mem_SetActiveAuxHeap        = 0x8002DC08; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x1E464   VA: 0x8002DC64   subsegment: o, libapi/i_heap3
@@ -1369,6 +1378,7 @@ _ramsize                    = 0x8005C358;
 //--- PA: 0x4CB5C   VA: 0x8005C35C   subsegment: c, main
 //--------------------------------------------------------------------
 GStackBase                 = 0x8005C35C;
+GHeap                      = 0x8005C360;
 
 //--------------------------------------------------------------------
 //--- PA: 0x4CBD4   VA: 0x8005C3D4   subsegment: o, libetc/intr_vb
@@ -1541,7 +1551,17 @@ _spu_rev_param              = 0x800686D4;
 //================================================
 
 //--------------------------------------------------------------------
-//--- PA: 0x59a00   VA: 0x80069200   subsegment: o, libcd/bios
+//--- PA: 0x59780   VA: 0x80068F80   subsegment: c, main
+//--------------------------------------------------------------------
+GAuxHeap                    = 0x80068F80;
+GAuxHeapSize                = 0x80068F84;
+D_80068F88                  = 0x80068F88;
+GActiveAuxHeap              = 0x80068F8C;
+D_80068F90                  = 0x80068F90;
+GActiveAuxHeapSize          = 0x80068F94;
+
+//--------------------------------------------------------------------
+//--- PA: 0x59A00   VA: 0x80069200   subsegment: o, libcd/bios
 //--------------------------------------------------------------------
 StMode                      = 0x80069230;
 

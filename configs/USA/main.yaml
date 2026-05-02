@@ -83,6 +83,8 @@ segments:
       - [0x3c0c, o, libgs/gs_123, .rdata]
       - [0x3c9c, o, libpad/padentry, .rdata]
       - [0x3cbc, rodata, 1C034] # TODO
+      - [0x3d20, .rodata, mem] # TODO
+      - [0x3d44, rodata] # TODO
       - [0x40d8, rodata] # TODO
       - [0x4264, rodata] # TODO
       - [0x43c8, o, libmcrd/libmcrd, .rdata]
@@ -181,7 +183,6 @@ segments:
       - [0x1bf74, o, libpad/waitrc2] # setRC2wait, chkRC2wait
       - [0x1c034, c] # TODO
       - [0x1e094, c, mem]
-      - [0x1e178, c] # TODO
       - [0x1e464, o, libapi/i_heap3] # InitHeap3
       - [0x1e4c4, o, libapi/malloc3] # malloc3
       - [0x1e574, o, libapi/free3] # free3
@@ -348,7 +349,7 @@ segments:
       - [0x4cb30, data, psyq/libsn/snmain]
       - [0x4cb54, o, libsn/sndef, .data]
       - [0x4cb5c, .data, main]
-      - [0x4cb60, data] # TODO
+      - [0x4cb64, data] # TODO
       - [0x4cb94, o, libetc/vsync, .data]
       - [0x4cbb4, o, libetc/intr_vb, .data] # Vcount
       - [0x4cbe4, o, libetc/intr, .data]
@@ -419,7 +420,8 @@ segments:
       - [0x59778, sbss, psyq/libsn/snmain]
 
       # .bss section
-      - [0x59780, bss] # TODO
+      - [0x59780, .bss, main] # TODO
+      - [0x59798, bss] # TODO
       - [0x59a00, o, libcd/bios, .bss] # StMode
       - [0x59a34, pad]
       - [0x59a38, o, libcd/cdrom, .bss]
