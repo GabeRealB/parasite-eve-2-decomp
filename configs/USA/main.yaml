@@ -270,7 +270,7 @@ segments:
       - [0x34c08, o, libgte/fgo_03] # RotMatrixZYX
       - [0x34e98, c] # TODO
       - [0x3a584, o, libgte/rmat_01] # RotMatrix_gte
-      - [0x3a794, c] # TODO
+      - [0x3a794, o, libsn/close] # PCclose
       - [0x3a7a4, o, libsn/creat] # PCcreat
       - [0x3a7c4, o, libsn/write] # PCwrite
       - [0x3a884, o, libsn/snwrite] # _SN_write
