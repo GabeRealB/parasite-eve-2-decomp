@@ -300,7 +300,7 @@ segments:
       - [0x3c658, o, libgte/fgo_04] # RotMatrixX
       - [0x3c7f8, o, libgte/fgo_05] # RotMatrixY
       - [0x3c998, o, libgte/smp_02] # RotTransPers
-      - [0x3c9c8, c] # TODO
+      - [0x3c9c8, o, libgpu/p17] # SetPolyFT4
       - [0x3c9e8, o, libgte/smp_03] # RotTransPers3
       - [0x3ca48, o, libgte/mtx_03] # MulMatrix
       - [0x3cb58, o, libgte/cmb_00] # RotTransPers4
