@@ -10,9 +10,18 @@ INCLUDE_ASM("main/nonmatchings/E734", func_8001E57C);
 
 INCLUDE_ASM("main/nonmatchings/E734", func_8001E6AC);
 
-INCLUDE_ASM("main/nonmatchings/E734", func_8001E7C0);
+bool E734_CDIsShellOpenBitSet(void)
+{
+    bool tmp;
+    u8   result[8];
 
-bool E734_CDCanIssueCommand()
+    // Writing it as (result[0] & CdlStatShellOpen) != 0 produces the wrong code
+    CdControlB(CdlNop, NULL, result);
+    tmp = result[0] & CdlStatShellOpen;
+    return tmp != 0;
+}
+
+bool E734_CDCanIssueCommand(void)
 {
     return CdDiskReady(1) == CdlComplete;
 }
