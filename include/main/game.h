@@ -6,6 +6,12 @@
 /// Size of the game heap.
 #define G_HEAP_SIZE 0xFF80
 
+// It seems that the scratch space is used by the game as a temporary arena.
+// At least for the bottom part. The last word of the scratch points to the
+// current head, i.e., the arena grows downward.
+#define G_SCRATCH_HEAD         PSX_SCRATCH_ADDR(0x3FC)
+#define GameResetScratchHead() *(void**)G_SCRATCH_HEAD = G_SCRATCH_HEAD
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 
