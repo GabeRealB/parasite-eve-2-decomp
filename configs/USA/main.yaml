@@ -278,7 +278,8 @@ segments:
       - [0x3b11c, o, libc2/memmove] # memmove
       - [0x3b18c, o, libgte/mtx_08] # ScaleMatrix
       - [0x3b2cc, o, libgte/cor_04] # cln_1, cln
-      - [0x3b44c, c] # TODO
+      - [0x3b44c, o, libsn/fsinit] # PCinit
+      - [0x3b458, c] # TODO
       - [0x3b518, o, libgpu/p34] # SetDrawMove
       - [0x3b578, o, libgte/msc05] # gteMIMefunc
       - [0x3b5f8, o, libgte/mtx_09] # SetRotMatrix
