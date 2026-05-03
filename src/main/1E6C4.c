@@ -1,5 +1,9 @@
 #include "common.h"
 
+#include <psyq/libmcrd.h>
+
+#include "main/unknown_syms.h"
+
 void func_8002DEC4(void)
 {
 }
@@ -128,7 +132,13 @@ INCLUDE_ASM("main/nonmatchings/1E6C4", func_80033A70);
 
 INCLUDE_ASM("main/nonmatchings/1E6C4", func_80033AB8);
 
-INCLUDE_ASM("main/nonmatchings/1E6C4", func_80033BBC);
+// TODO
+void func_80033BBC(void)
+{
+    MemCardInit(0); // 0 = No control routine
+    MemCardStart();
+    func_800303AC();
+}
 
 INCLUDE_ASM("main/nonmatchings/1E6C4", func_80033BEC);
 
