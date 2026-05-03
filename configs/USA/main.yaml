@@ -74,9 +74,9 @@ segments:
       - [0x3818, o, libcd/type, .rdata]
       - [0x3838, rodata, F344] # TODO
       - [0x3880, o, libcd/c_011, .rdata]
-      - [0x38a0, rodata] # TODO
-      - [0x3a74, rodata] # TODO
-      - [0x3b58, rodata, 16494] # TODO
+      - [0x38a0, rodata, "11E9C"] # TODO
+      - [0x3a74, rodata, "12D18"] # TODO
+      - [0x3b58, rodata, "16494"] # TODO
       - [0x3b74, o, libspu/s_sca, .rdata]
       - [0x3bb4, o, libspu/spu, .rdata]
       - [0x3c04, rodata, 179D4] # TODO
@@ -84,19 +84,20 @@ segments:
       - [0x3c9c, o, libpad/padentry, .rdata]
       - [0x3cbc, rodata, 1C034] # TODO
       - [0x3d20, .rodata, mem] # TODO
-      - [0x3d44, rodata] # TODO
-      - [0x40d8, rodata] # TODO
-      - [0x4264, rodata] # TODO
+      - [0x3d44, rodata, "1E6C4"] # TODO
+      - [0x40d8, rodata, "201E0"] # TODO
+      - [0x418c, rodata, "20CAC"] # TODO
+      - [0x4264, rodata, "21FDC"] # TODO
       - [0x43c8, o, libmcrd/libmcrd, .rdata]
       - [0x4658, o, libmcrd/userfunc, .rdata]
       - [0x4678, o, libmcrd/low, .rdata]
       - [0x4688, rodata, 32AF8] # TODO
       - [0x4744, o, libc2/sprintf, .rdata]
       - [0x4824, o, libspu/sl_sva, .rdata]
-      - [0x4864, rodata] # TODO
-      - [0x48e8, rodata] # TODO
-      - [0x49c4, rodata] # TODO
-      - [0x4a48, rodata] # TODO
+      - [0x4864, rodata, "410B0"] # TODO
+      - [0x48e8, rodata, "43FFC"] # TODO
+      - [0x49c4, rodata, "46FE4"] # TODO
+      - [0x4a48, rodata, "4A6E0"] # TODO
       - [0x4ad0, o, libspu/s_si, .rdata]
 
       # .text section
@@ -159,6 +160,7 @@ segments:
       - [0x11b0c, o, libpress/vlc_c] # DecDCTvlcSize2, DecDCTvlc2
       - [0x11e8c, o, libpress/dct002] # DecDCTBufSize
       - [0x11e9c, c] # TODO
+      - [0x12d18, c] # TODO
       - [0x160f4, o, libgpu/break] # BreakDraw, IsIdleGPU, ContinueDraw
       - [0x16314, o, libapi/c159] # SetMem
       - [0x16324, o, libapi/counter] # SetRCnt, GetRCnt, StartRCnt, StopRCnt, ResetRCnt
@@ -187,6 +189,9 @@ segments:
       - [0x1e4c4, o, libapi/malloc3] # malloc3
       - [0x1e574, o, libapi/free3] # free3
       - [0x1e6c4, c] # TODO
+      - [0x201e0, c] # TODO
+      - [0x20cac, c] # TODO
+      - [0x21fdc, c] # TODO
       - [0x27964, o, libc2/rand] # rand, srand
       - [0x279a4, o, libmcrd/init] # MemCardInit, MemCardEnd
       - [0x279f4, o, libapi/c112] # _bu_init
@@ -340,6 +345,8 @@ segments:
       - [0x410b0, c] # TODO
       - [0x43f6c, o, libspu/s_wp] # SpuWritePartly
       - [0x43ffc, c] # TODO
+      - [0x46fe4, c] # TODO
+      - [0x4a6e0, c] # TODO
       - [0x4c500, o, libspu/s_si] # SpuSetIRQ
       - [0x4c640, o, libspu/s_sia] # SpuSetIRQAddr
       - [0x4c680, o, libspu/s_sic] # SpuSetIRQCallback
