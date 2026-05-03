@@ -251,11 +251,15 @@ segments:
       - [0x32a88, o, libgpu/p40] # SetDrawStp
       - [0x32ab8, o, libgpu/p36] # MargePrim
       - [0x32af8, c] # TODO
+      - [0x32b44, o, libgpu/p26] # SetTile
+      - [0x32b64, c] # TODO
       - [0x332e0, o, libgpu/p01] # GetClut
       - [0x33300, c] # TODO
       - [0x34138, o, libgpu/p00] # GetTPage
       - [0x34178, o, libgpu/p06] # AddPrim
-      - [0x341b8, c] # TODO
+      - [0x341b8, o, libgpu/p10] # SetSemiTrans
+      - [0x341e8, o, libgpu/p11] # SetShadeTex
+      - [0x34218, o, libgpu/p22] # SetSprt
       - [0x34238, o, libgpu/p33] # SetDrawTPage
       - [0x34268, o, libgte/mtx_06] # ApplyMatrixSV
       - [0x342c8, o, libgte/fgo_01] # RotMatrix
