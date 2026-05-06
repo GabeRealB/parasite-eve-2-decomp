@@ -474,4 +474,4 @@ segments:
       - [0x64880, bss] # TODO
       - [0x648a0, o, libgs/gs_107, .bss] # GsLIGHTWSMATRIX, _LC
       - [0x648e0, bss] # Rest
-  - [0x72947]
+  - [0x73148]

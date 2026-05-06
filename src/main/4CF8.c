@@ -8,7 +8,12 @@ INCLUDE_ASM("main/nonmatchings/4CF8", func_800144F8);
 
 INCLUDE_ASM("main/nonmatchings/4CF8", func_80014650);
 
-INCLUDE_ASM("main/nonmatchings/4CF8", func_800148A0);
+void func_800148A0(void)
+{
+    func_80056700();
+    while (D_80082798.field_2 != 4) {
+    }
+}
 
 void func_800148EC(void)
 {

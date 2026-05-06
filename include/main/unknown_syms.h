@@ -21,6 +21,9 @@ extern GStruct2* func_8002D32C(GStruct2* base, u32 idx);
 extern void      func_8002D444(GStruct0* state);
 extern void      func_8002D474(GStruct0* state);
 
+// 43FFC.c
+extern s32 func_80056700(void);
+
 // 46FE4.c
 extern void func_800574BC(void);
 
@@ -67,5 +70,8 @@ extern GStruct0Node  D_800716E0;
 extern GStruct0Node  D_8007A110;
 extern u8            D_8007E0CC;
 extern long          D_8007E0D0;
+
+// 648E0
+extern volatile GStruct4 D_80082798;
 
 #endif // UNKNOWN_SYMS_H
