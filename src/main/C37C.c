@@ -1,5 +1,8 @@
 #include "common.h"
 
+#include "main/game.h"
+#include "main/mem.h"
+
 INCLUDE_ASM("main/nonmatchings/C37C", func_8001BB7C);
 
 INCLUDE_ASM("main/nonmatchings/C37C", func_8001BE60);
@@ -26,7 +29,10 @@ INCLUDE_ASM("main/nonmatchings/C37C", func_8001D37C);
 
 INCLUDE_ASM("main/nonmatchings/C37C", func_8001D39C);
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001D3F8);
+void func_8001D3F8(void)
+{
+    Mem_Set(&D_80068FA0, 0, sizeof(D_80068FA0));
+}
 
 INCLUDE_ASM("main/nonmatchings/C37C", func_8001D424);
 

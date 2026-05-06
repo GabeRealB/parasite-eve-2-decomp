@@ -13,12 +13,17 @@ u32 GStackBase = 0x801fff00;
 // after the main heap defined by the entry point.
 u8* GHeap = (u8*)0x80083800;
 
-u8*    GAuxHeap;
-size_t GAuxHeapSize;
-size_t D_80068F88;
-u8*    GActiveAuxHeap;
-size_t D_80068F90;
-size_t GActiveAuxHeapSize;
+u8*        GAuxHeap;
+size_t     GAuxHeapSize;
+size_t     D_80068F88;
+u8*        GActiveAuxHeap;
+size_t     D_80068F90;
+size_t     GActiveAuxHeapSize;
+int        D_80068F98;
+static int MainPadding;
+GStruct3   D_80068FA0;
+u8*        D_800691F4;
+size_t     D_800691F8;
 
 int main(void)
 {

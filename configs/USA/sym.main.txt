@@ -1609,6 +1609,11 @@ D_80068F88                  = 0x80068F88;
 GActiveAuxHeap              = 0x80068F8C;
 D_80068F90                  = 0x80068F90;
 GActiveAuxHeapSize          = 0x80068F94;
+D_80068F98                  = 0x80068F98; // size:0x4
+D_80068F9C                  = 0x80068F9C; // ignore:true
+D_80068FA0                  = 0x80068FA0; // type:GStruct3 size:0x254
+D_800691F4                  = 0x800691F4;
+D_800691F8                  = 0x800691F8;
 
 //--------------------------------------------------------------------
 //--- PA: 0x59A00   VA: 0x80069200   subsegment: o, libcd/bios

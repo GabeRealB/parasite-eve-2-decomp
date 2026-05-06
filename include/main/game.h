@@ -57,6 +57,11 @@ typedef struct _GStruct2 {
 } GStruct2;
 STATIC_ASSERT_SIZEOF(GStruct2, 0xc);
 
+typedef struct _GStruct3 {
+    byte unknown_0[0x254];
+} GStruct3;
+STATIC_ASSERT_SIZEOF(GStruct3, 0x254);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 
@@ -75,6 +80,12 @@ extern size_t D_80068F90;
 
 /// Length in bytes of the heap pointed to by `GActiveAuxHeap`.
 extern size_t GActiveAuxHeapSize;
+
+extern int      D_80068F98;
+extern int      MainPadding;
+extern GStruct3 D_80068FA0;
+extern u8*      D_800691F4;
+extern size_t   D_800691F8;
 
 /// Game entry point. Called by `main`.
 void GameMain(void);

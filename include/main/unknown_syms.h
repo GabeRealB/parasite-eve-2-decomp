@@ -60,13 +60,6 @@ extern u32       D_800680C0;
 
 // .bss
 
-// TODO: These seem to be a pointer and size to a second auxilary heap.
-// `Mem_SetActiveAuxHeap` switches between these and those in `GAuxHeap`.
-// Could be that the game uses different heaps for each based on the kind
-// of data that must be allocated.
-extern u8*    D_800691F4;
-extern size_t D_800691F8;
-
 extern GStruct1      D_80070F68; // 0x80070F68 - 0x800710A0
 extern u32           D_800710A8;
 extern GStruct0Node* D_800716D8;
