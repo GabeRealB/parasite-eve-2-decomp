@@ -8,7 +8,6 @@
 void func_8004CC58(s32 arg0)
 {
     s32* temp_v0;
-    u16  temp_s1;
 
     D_800680C0 = 0;
     if (arg0 == 1) {
@@ -60,8 +59,7 @@ setup_events:
         D_800680A5 = 0;
     }
 
-    temp_s1 = D_8007108C;
-    if (temp_s1 == 1) {
+    if (D_80070F68.field_124 == 1) {
         D_800680A4 = 0;
         D_8007E0CC = 0;
         SetRCnt(RCntCNT0, 0xffff, RCntMdINTR | RCntMdSC);
@@ -96,7 +94,7 @@ setup_events:
 
         ExitCriticalSection();
         EnableEvent(D_8007E0D0);
-        D_800680A5 = temp_s1;
+        D_800680A5 = 1;
     }
     D_800680A4 = 0;
     D_8007E0CC = 0;

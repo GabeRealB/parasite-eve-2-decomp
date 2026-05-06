@@ -12,6 +12,51 @@
 #define G_SCRATCH_HEAD         PSX_SCRATCH_ADDR(0x3FC)
 #define GameResetScratchHead() *(void**)G_SCRATCH_HEAD = G_SCRATCH_HEAD
 
+// Type forwards declarations.
+struct _GStruct0;
+
+/// Callback function in a `_GStruct0`.
+typedef void (*GFunc0)(struct _GStruct0*);
+
+/// Intrusive linked list node for a `GStruct0`.
+///
+/// The head node is not an element in the linked list and points to the first
+/// and the last elements.
+typedef struct _GStruct0Node {
+    struct _GStruct0*     next;
+    struct _GStruct0Node* prev;
+} GStruct0Node;
+
+typedef struct _GStruct0 {
+    GStruct0Node      node;
+    struct _GStruct0* field_8;
+    struct _GStruct0* field_c;
+    struct _GStruct0* field_10;
+    GFunc0            field_14;
+    GFunc0            field_18;
+    byte              unknown1[0xc];
+    u8                field_28;
+    byte              unknown2[0x1c];
+} GStruct0;
+STATIC_ASSERT_SIZEOF(GStruct0, 0x48);
+
+typedef struct _GStruct1 {
+    byte unknown_0[0x10b];
+    u8   field_10b;
+    byte unknown_10c[0x18];
+    u16  field_124;
+    byte unknown_12a[0x12];
+} GStruct1;
+STATIC_ASSERT_SIZEOF(GStruct1, 0x138);
+
+typedef struct _GStruct2 {
+    u16    field_0;
+    byte   unknown_2[0x2];
+    GFunc0 field_4;
+    byte   unknown_8[0x4];
+} GStruct2;
+STATIC_ASSERT_SIZEOF(GStruct2, 0xc);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 

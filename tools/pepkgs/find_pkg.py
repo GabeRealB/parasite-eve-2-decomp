@@ -94,7 +94,7 @@ def main():
     matches = find_matches(game_version_option, search_raw, pattern)
     print("Found matches:")
     for match in matches:
-        print(f"\t{match.path}: {match.offset}")
+        print(f"\t{match.path}: 0x{match.offset:X}")
 
 
 if __name__ == "__main__":

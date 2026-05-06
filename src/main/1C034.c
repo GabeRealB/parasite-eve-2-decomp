@@ -1,5 +1,9 @@
 #include "common.h"
 
+#include "main/game.h"
+#include "main/mem.h"
+#include "main/unknown_syms.h"
+
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002B834);
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002BA9C);
@@ -70,13 +74,54 @@ INCLUDE_ASM("main/nonmatchings/1C034", func_8002D214);
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002D22C);
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002D248);
+void func_8002D248(GStruct0Node* node)
+{
+    D_800716D8 = node;
+    node->next = NULL;
+    node->prev = node;
+}
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002D25C);
+void func_8002D25C(GStruct0Node* node)
+{
+    GStruct0* next;
+    GStruct0* curr;
+    GStruct1* tmp_ptr; // The indirection is required.
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002D304);
+    curr       = node->next;
+    D_800716D8 = node;
+    if (curr != NULL) {
+        tmp_ptr = &D_80070F68;
+    loop_2:
+        curr->field_14(curr);
+        if (tmp_ptr->field_10b == 1) {
+            tmp_ptr->field_10b = 0;
+            return;
+        }
+        if (curr->field_28 == 0xFF) {
+            next               = curr->node.next;
+            tmp_ptr->field_10b = 0;
+            func_8002D444(curr);
+            func_8002D474(curr);
+            curr = next;
+        } else {
+            curr = curr->node.next;
+        }
+        if (curr != NULL) {
+            goto loop_2;
+        }
+    }
+}
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002D32C);
+GStruct2* func_8002D304(u32 idx1, u32 idx2)
+{
+    GStruct2* base = D_8005EF74[idx1];
+    return base + idx2;
+}
+
+GStruct2* func_8002D32C(GStruct2* base, u32 idx)
+{
+    return base + idx;
+}
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002D340);
 
@@ -90,7 +135,10 @@ INCLUDE_ASM("main/nonmatchings/1C034", func_8002D428);
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002D444);
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002D474);
+void func_8002D474(GStruct0* state)
+{
+    Mem_Free(state);
+}
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002D494);
 
