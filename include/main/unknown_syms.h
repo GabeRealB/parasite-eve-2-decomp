@@ -5,7 +5,10 @@
 #include "main/game.h"
 
 // 4CF8.c
+extern void func_800148A0(void);
+extern void func_800148EC(void);
 extern void func_80014A50(void);
+extern void func_80014A98(s32 mode);
 
 // E734.c
 extern void func_8002D248(GStruct0Node* node);
@@ -64,12 +67,14 @@ extern u32       D_800680C0;
 // .bss
 
 extern GStruct1      D_80070F68; // 0x80070F68 - 0x800710A0
-extern u32           D_800710A8;
 extern GStruct0Node* D_800716D8;
 extern GStruct0Node  D_800716E0;
 extern GStruct0Node  D_8007A110;
 extern u8            D_8007E0CC;
 extern long          D_8007E0D0;
+
+// 61CC0
+extern GStruct5 D_800710A8;
 
 // 648E0
 extern volatile GStruct4 D_80082798;

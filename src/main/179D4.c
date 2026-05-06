@@ -40,7 +40,7 @@ void GameMain(void)
     func_80033BBC();
     func_80028664();
     func_80014A50();
-    Mem_Set(&D_800710A8, 0, 0x20);
+    Mem_Set(&D_800710A8, 0, sizeof(D_800710A8));
     D_8005EC64 = 0;
     func_800271D4();
     func_8002785C();

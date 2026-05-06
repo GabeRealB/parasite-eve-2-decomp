@@ -1,6 +1,8 @@
 #include "common.h"
 
 #include <psyq/libcd.h>
+#include <psyq/libetc.h>
+#include <psyq/libpress.h>
 
 #include "main/unknown_syms.h"
 
@@ -35,7 +37,24 @@ void func_80014A50(void)
     func_8001D3F8();
 }
 
-INCLUDE_ASM("main/nonmatchings/4CF8", func_80014A98);
+void func_80014A98(s32 mode)
+{
+    u8 ctrlParam[8];
+
+    CdFlush();
+    VSync(3);
+    CdControlB(CdlPause, NULL, NULL);
+    if (D_800710A8.field_6 != 0) {
+        DecDCTReset(0);
+        StClearRing();
+        StUnSetRing();
+        D_800710A8.field_6 = 0;
+    }
+    CdReset(mode);
+    ctrlParam[0] = CdlModeSpeed;
+    CdControlB(CdlSetmode, ctrlParam, NULL);
+    func_8001D3F8();
+}
 
 INCLUDE_ASM("main/nonmatchings/4CF8", func_80014B38);
 
