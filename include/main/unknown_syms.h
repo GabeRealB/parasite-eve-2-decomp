@@ -4,15 +4,14 @@
 #include "common.h"
 #include "main/game.h"
 
+// 4CF8.c
 extern void func_80014A50(void);
-extern u32  func_8001F180(u32);
-extern void func_8002043C(u32 arg0);
-extern void func_800271D4(void);
-extern void func_8002604C(void);
-extern void func_80028664(void);
 
 // E734.c
 extern void func_8002D248(GStruct0Node* node);
+
+// C37C.c
+extern void func_8001D3F8(void);
 
 // 1C034.c
 extern void      func_8002D248(GStruct0Node* node);
@@ -22,6 +21,15 @@ extern GStruct2* func_8002D32C(GStruct2* base, u32 idx);
 extern void      func_8002D444(GStruct0* state);
 extern void      func_8002D474(GStruct0* state);
 
+// 46FE4.c
+extern void func_800574BC(void);
+
+// Other
+extern u32  func_8001F180(u32);
+extern void func_8002043C(u32 arg0);
+extern void func_800271D4(void);
+extern void func_8002604C(void);
+extern void func_80028664(void);
 extern void func_8002785C(void);
 extern void func_800303AC(void);
 extern void func_80033BBC(void);

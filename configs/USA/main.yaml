@@ -107,7 +107,7 @@ segments:
       - [0x4b58, asm, psyq/libsn/snmain] # entry point (psyq-obj-parser doesn't support it...)
       - [0x4cd8, o, libapi/c57] # InitHeap
       - [0x4ce8, o, libapi/a39] # SetSp
-      - [0x4cf8, asm] # TODO
+      - [0x4cf8, c] # TODO
       - [0x546c, o, libetc/vsync] # VSync
       - [0x567c, o, libetc/intr_vb] # startIntrVSync
       - [0x579c, o, libetc/intr] # ResetCallback, InterruptCallback, DMACallback, VSyncCallback, VSyncCallbacks, StopCallback, RestartCallback, CheckCallback, GetIntrMask, SetIntrMask
