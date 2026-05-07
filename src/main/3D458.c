@@ -34,7 +34,7 @@ wait_spu_transfer:
 
 unknown:
     D_800680BC = 0;
-    func_8002604C();
+    F16494_ResetSpuAttr();
 
 setup_events:
     func_8004D5A8();

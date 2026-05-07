@@ -1,6 +1,8 @@
 #ifndef UNKNOWN_SYMS_H
 #define UNKNOWN_SYMS_H
 
+#include <psyq/libspu.h>
+
 #include "common.h"
 #include "main/game.h"
 
@@ -15,6 +17,9 @@ extern void func_8002D248(GStruct0Node* node);
 
 // C37C.c
 extern void func_8001D3F8(void);
+
+// 16494.c
+extern void F16494_ResetSpuAttr(void);
 
 // 1C034.c
 extern void      func_8002D248(GStruct0Node* node);
@@ -34,7 +39,6 @@ extern void func_800574BC(void);
 extern u32  func_8001F180(u32);
 extern void func_8002043C(u32 arg0);
 extern void func_800271D4(void);
-extern void func_8002604C(void);
 extern void func_80028664(void);
 extern void func_8002785C(void);
 extern void func_800303AC(void);
@@ -66,12 +70,18 @@ extern u32       D_800680C0;
 
 // .bss
 
-extern GStruct1      D_80070F68; // 0x80070F68 - 0x800710A0
 extern GStruct0Node* D_800716D8;
 extern GStruct0Node  D_800716E0;
 extern GStruct0Node  D_8007A110;
 extern u8            D_8007E0CC;
 extern long          D_8007E0D0;
+
+// 5B498
+extern SpuCommonAttr D5B498_SpuAttr;
+extern s16           D5B498_8006EBF0;
+
+// 5F414
+extern GStruct1 D_80070F68; // 0x80070F68 - 0x800710A0
 
 // 61CC0
 extern GStruct5 D_800710A8;
