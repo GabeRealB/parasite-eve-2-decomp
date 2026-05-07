@@ -1,5 +1,9 @@
 #include "common.h"
 
+#include <psyq/libspu.h>
+
+#include "main/unknown_syms.h"
+
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004DC8C);
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004DDF0);
@@ -34,7 +38,23 @@ INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E71C);
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E764);
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E788);
+void F3E48C_ConfigSpuReverb(s32 mode)
+{
+    SpuReserveReverbWorkArea(SPU_ON);
+    SpuSetReverbVoice(SPU_OFF, SPU_ALLCH);
+    SpuSetReverb(SPU_ON);
+
+    D648E0_SpuReverbCfg.attr.mask = SPU_REV_MODE;
+    D648E0_SpuReverbCfg.attr.mode = mode;
+    SpuSetReverbModeParam(&D648E0_SpuReverbCfg.attr);
+
+    D648E0_SpuReverbCfg.attr.mask        = SPU_REV_DEPTHR | SPU_REV_DEPTHL;
+    D648E0_SpuReverbCfg.attr.depth.right = 0;
+    D648E0_SpuReverbCfg.attr.depth.left  = 0;
+    SpuSetReverbDepth(&D648E0_SpuReverbCfg.attr);
+
+    D648E0_SpuReverbCfg.attr.mask = 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E814);
 

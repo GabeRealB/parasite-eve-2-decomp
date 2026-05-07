@@ -40,7 +40,7 @@ setup_events:
     func_8004D5A8();
     func_800509B4();
     func_8004DDF0();
-    func_8004E788(3);
+    F3E48C_ConfigSpuReverb(3);
     func_8004DF10();
     func_8004D0A0();
     func_8004D88C();

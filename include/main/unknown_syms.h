@@ -29,6 +29,9 @@ extern GStruct2* func_8002D32C(GStruct2* base, u32 idx);
 extern void      func_8002D444(GStruct0* state);
 extern void      func_8002D474(GStruct0* state);
 
+// 3E48C.c
+extern void F3E48C_ConfigSpuReverb(s32 mode);
+
 // 43FFC.c
 extern s32 func_80056700(void);
 
@@ -53,7 +56,6 @@ extern void func_8004DDF0(void);
 extern void func_8004DF10(void);
 extern void func_8004D460(void*, u32, u32, s32*);
 extern s32* func_8004D5D8(u32);
-extern void func_8004E788(u32 arg0);
 extern void func_800509B4(void);
 extern void func_80050D20(u32);
 extern void func_80053E68(void);
@@ -87,6 +89,9 @@ extern GStruct1 D_80070F68; // 0x80070F68 - 0x800710A0
 extern GStruct5 D_800710A8;
 
 // 648E0
+extern GStruct6*         D648E0_8007A3B0_Ptr;
+extern GStruct6          D648E0_8007A3B0;
+extern GStruct7          D648E0_SpuReverbCfg;
 extern volatile GStruct4 D_80082798;
 
 #endif // UNKNOWN_SYMS_H

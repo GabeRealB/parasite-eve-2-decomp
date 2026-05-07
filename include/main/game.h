@@ -5,6 +5,7 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/libspu.h>
 
 /// Size of the game heap.
 #define G_HEAP_SIZE 0xFF80
@@ -85,6 +86,21 @@ typedef struct _GStruct5 {
     byte unknown_8[0x18];
 } GStruct5;
 STATIC_ASSERT_SIZEOF(GStruct5, 0x20);
+
+typedef struct _GStruct6 {
+    s32 field_0;
+    s16 field_4;
+    s16 field_6;
+    s32 field_8;
+    s32 field_c;
+} GStruct6;
+STATIC_ASSERT_SIZEOF(GStruct6, 0x10);
+
+typedef struct _GStruct7 {
+    byte          unknown_0[0x10];
+    SpuReverbAttr attr;
+} GStruct7;
+STATIC_ASSERT_SIZEOF(GStruct7, 0x24);
 
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
