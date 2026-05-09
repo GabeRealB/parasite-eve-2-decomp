@@ -48,7 +48,7 @@ setup_events:
     func_80053FF4(0);
     func_80050D20(0);
 
-    temp_v0  = func_8004D5D8(4);
+    temp_v0  = F3D458_Malloc(4);
     *temp_v0 = 0;
 
     func_8004D460(&func_80053F60, 0, 0x8801, temp_v0);
@@ -134,7 +134,105 @@ INCLUDE_ASM("main/nonmatchings/3D458", func_8004D460);
 
 INCLUDE_ASM("main/nonmatchings/3D458", func_8004D5A8);
 
-INCLUDE_ASM("main/nonmatchings/3D458", func_8004D5D8);
+void* F3D458_Malloc(size_t size)
+{
+    // Simple first-fit allocator, using linked lists.
+    // The allocator splits up the available space into variable-length blocks.
+    // Each block starts with a header, which contains the total length of the
+    // block in bytes (including the header), whether it is allocated, a magic
+    // value, and pointers to the previous/next blocks. The header is followed
+    // by a chunk of data, which is returned to the caller. The returned
+    // pointer (and the block header) are aligned to 4 bytes.
+
+    size_t    maxBlockSize;
+    size_t    newBlockSize;
+    size_t    allocSize;
+    GStruct6* block;
+    GStruct6* newBlock;
+
+    // Start the search at the first header.
+    maxBlockSize = 0;
+    block        = D648E0_HeapStart;
+
+    // Reserve additional space for the header and align to 4 bytes.
+    allocSize = (size + sizeof(GStruct6) + 3) & ~3;
+
+    // Find the first suitable block.
+    if (block != NULL) {
+        // If we use a normal while(...) loop GCC decides to allocate the
+        // registers in the order `t0`, `t1`, `t2`. Instead the registers
+        // must be allocated in the order `t1`, `t2`, `t0`. To achieve this
+        // we manually place the constants in the correct registers.
+        size_t          heapStart         = (size_t)&D648E0_HeapBuffer;
+        register size_t heapEnd asm("t1") = heapStart + C3D458_HEAP_SIZE;
+        register size_t magic asm("t2")   = C3D458_HEAP_MAGIC;
+
+        // Actual loop body.
+        do {
+            // Check that the block is still in bounds of our heap.
+            if ((size_t)block < heapStart || heapEnd < (size_t)block) {
+                return NULL;
+            }
+
+            // Skip allocated blocks.
+            if (block->isAllocated) {
+                goto next;
+            }
+
+            // Does not do anything, but is in the assembly for some reason.
+            if (maxBlockSize < block->size) {
+                maxBlockSize = block->size;
+            }
+
+            // If we found a block that is big enough, we can allocate from it.
+            if (block->size >= allocSize) {
+                // We allocate by splitting the block in two such that:
+                //
+                // [ block    | byte 0 | ... | byte blockSize ]
+                //
+                // Turns into the following if there is enough space
+                // for a new block:
+                //
+                // [ block    | byte 0 | ... | byte allocSize ]
+                // [ newBlock | byte 0 | ... | byte restSize  ]
+                //
+                // Or otherwise into:
+                //
+                // [ block    | byte 0 | ... | byte allocSize ]
+                // [            byte 0 | ... | byte restSize  ]
+                newBlockSize = block->size - allocSize;
+                newBlock     = (GStruct6*)((u8*)block + allocSize);
+
+                // If there is enough space for a new block, we must link it
+                // to the current block.
+                if (sizeof(GStruct6) < newBlockSize) {
+                    newBlock->size        = newBlockSize;
+                    newBlock->magic       = magic;
+                    newBlock->isAllocated = false;
+
+                    if (block->next == NULL) {
+                        newBlock->next = NULL;
+                    } else {
+                        block->next->prev = newBlock;
+                        newBlock->next    = block->next;
+                    }
+                    block->next    = newBlock;
+                    newBlock->prev = block;
+                    block->size    = allocSize;
+                }
+
+                // The allocated data is located just after the header.
+                block->isAllocated = true;
+                return (u8*)(block + 1);
+            }
+
+        next:
+            block = block->next;
+        } while (block != NULL);
+    }
+
+    return NULL;
+}
 
 INCLUDE_ASM("main/nonmatchings/3D458", func_8004D6C8);
 

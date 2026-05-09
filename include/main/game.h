@@ -88,11 +88,11 @@ typedef struct _GStruct5 {
 STATIC_ASSERT_SIZEOF(GStruct5, 0x20);
 
 typedef struct _GStruct6 {
-    s32 field_0;
-    s16 field_4;
-    s16 field_6;
-    s32 field_8;
-    s32 field_c;
+    u32               size;
+    u16               isAllocated;
+    u16               magic;
+    struct _GStruct6* prev;
+    struct _GStruct6* next;
 } GStruct6;
 STATIC_ASSERT_SIZEOF(GStruct6, 0x10);
 

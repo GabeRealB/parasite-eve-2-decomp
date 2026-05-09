@@ -6,6 +6,9 @@
 #include "common.h"
 #include "main/game.h"
 
+#define C3D458_HEAP_SIZE  0x3D00
+#define C3D458_HEAP_MAGIC 0xA52B
+
 // 4CF8.c
 extern void func_800148A0(void);
 extern void func_800148EC(void);
@@ -30,7 +33,8 @@ extern void      func_8002D444(GStruct0* state);
 extern void      func_8002D474(GStruct0* state);
 
 // 3D458.c
-extern void F3D458_8004D88C(void);
+extern void* F3D458_Malloc(size_t);
+extern void  F3D458_8004D88C(void);
 
 // 3E48C.c
 extern void F3E48C_ConfigSpuReverb(s32 mode);
@@ -57,7 +61,6 @@ extern void func_8004D0A0(void);
 extern void func_8004DDF0(void);
 extern void func_8004DF10(void);
 extern void func_8004D460(void*, u32, u32, s32*);
-extern s32* func_8004D5D8(u32);
 extern void func_800509B4(void);
 extern void func_80050D20(u32);
 extern void func_80053E68(void);
@@ -92,8 +95,8 @@ extern GStruct1 D_80070F68; // 0x80070F68 - 0x800710A0
 extern GStruct5 D_800710A8;
 
 // 648E0
-extern GStruct6*         D648E0_8007A3B0_Ptr;
-extern GStruct6          D648E0_8007A3B0;
+extern GStruct6*         D648E0_HeapStart;
+extern u8                D648E0_HeapBuffer[C3D458_HEAP_SIZE];
 extern GStruct8          D648E0_8007E0B0;
 extern u32               D648E0_8007E0C8;
 extern long              D648E0_SpuTimerED;
