@@ -37,7 +37,7 @@ unknown:
     F16494_ResetSpuAttr();
 
 setup_events:
-    func_8004D5A8();
+    F3D458_ResetHeap();
     func_800509B4();
     func_8004DDF0();
     F3E48C_ConfigSpuReverb(3);
@@ -132,7 +132,15 @@ INCLUDE_ASM("main/nonmatchings/3D458", func_8004D35C);
 
 INCLUDE_ASM("main/nonmatchings/3D458", func_8004D460);
 
-INCLUDE_ASM("main/nonmatchings/3D458", func_8004D5A8);
+void F3D458_ResetHeap(void)
+{
+    D648E0_HeapStart              = (HeapBlockHeader*)D648E0_HeapBuffer;
+    D648E0_HeapStart->size        = C3D458_HEAP_SIZE;
+    D648E0_HeapStart->magic       = C3D458_HEAP_START_MAGIC;
+    D648E0_HeapStart->isAllocated = false;
+    D648E0_HeapStart->prev        = NULL;
+    D648E0_HeapStart->next        = NULL;
+}
 
 void* F3D458_Malloc(size_t size)
 {
@@ -143,19 +151,18 @@ void* F3D458_Malloc(size_t size)
     // value, and pointers to the previous/next blocks. The header is followed
     // by a chunk of data, which is returned to the caller. The returned
     // pointer (and the block header) are aligned to 4 bytes.
-
-    size_t    maxBlockSize;
-    size_t    newBlockSize;
-    size_t    allocSize;
-    GStruct6* block;
-    GStruct6* newBlock;
+    size_t           maxBlockSize;
+    size_t           newBlockSize;
+    size_t           allocSize;
+    HeapBlockHeader* block;
+    HeapBlockHeader* newBlock;
 
     // Start the search at the first header.
     maxBlockSize = 0;
     block        = D648E0_HeapStart;
 
     // Reserve additional space for the header and align to 4 bytes.
-    allocSize = (size + sizeof(GStruct6) + 3) & ~3;
+    allocSize = (size + sizeof(HeapBlockHeader) + 3) & ~3;
 
     // Find the first suitable block.
     if (block != NULL) {
@@ -201,11 +208,11 @@ void* F3D458_Malloc(size_t size)
                 // [ block    | byte 0 | ... | byte allocSize ]
                 // [            byte 0 | ... | byte restSize  ]
                 newBlockSize = block->size - allocSize;
-                newBlock     = (GStruct6*)((u8*)block + allocSize);
+                newBlock     = (HeapBlockHeader*)((u8*)block + allocSize);
 
                 // If there is enough space for a new block, we must link it
                 // to the current block.
-                if (sizeof(GStruct6) < newBlockSize) {
+                if (sizeof(HeapBlockHeader) < newBlockSize) {
                     newBlock->size        = newBlockSize;
                     newBlock->magic       = magic;
                     newBlock->isAllocated = false;

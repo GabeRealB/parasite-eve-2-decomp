@@ -87,14 +87,14 @@ typedef struct _GStruct5 {
 } GStruct5;
 STATIC_ASSERT_SIZEOF(GStruct5, 0x20);
 
-typedef struct _GStruct6 {
-    u32               size;
-    u16               isAllocated;
-    u16               magic;
-    struct _GStruct6* prev;
-    struct _GStruct6* next;
-} GStruct6;
-STATIC_ASSERT_SIZEOF(GStruct6, 0x10);
+typedef struct _HeapBlockHeader {
+    u32                      size;
+    u16                      isAllocated;
+    u16                      magic;
+    struct _HeapBlockHeader* prev;
+    struct _HeapBlockHeader* next;
+} HeapBlockHeader;
+STATIC_ASSERT_SIZEOF(HeapBlockHeader, 0x10);
 
 typedef struct _GStruct7 {
     byte          unknown_0[0x10];

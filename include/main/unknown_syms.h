@@ -6,8 +6,9 @@
 #include "common.h"
 #include "main/game.h"
 
-#define C3D458_HEAP_SIZE  0x3D00
-#define C3D458_HEAP_MAGIC 0xA52B
+#define C3D458_HEAP_SIZE        0x3D00
+#define C3D458_HEAP_START_MAGIC 0xB25A
+#define C3D458_HEAP_MAGIC       0xA52B
 
 // 4CF8.c
 extern void func_800148A0(void);
@@ -33,6 +34,7 @@ extern void      func_8002D444(GStruct0* state);
 extern void      func_8002D474(GStruct0* state);
 
 // 3D458.c
+extern void  F3D458_ResetHeap(void);
 extern void* F3D458_Malloc(size_t);
 extern void  F3D458_8004D88C(void);
 
@@ -55,7 +57,7 @@ extern void func_800303AC(void);
 extern void func_80033BBC(void);
 extern void func_8004CC58(s32 arg0);
 extern void func_8004CFC8(void);
-extern void func_8004D5A8(void);
+extern void F3D458_ResetHeap(void);
 extern long func_8004D7D4(void);
 extern void func_8004D0A0(void);
 extern void func_8004DDF0(void);
@@ -95,7 +97,7 @@ extern GStruct1 D_80070F68; // 0x80070F68 - 0x800710A0
 extern GStruct5 D_800710A8;
 
 // 648E0
-extern GStruct6*         D648E0_HeapStart;
+extern HeapBlockHeader*  D648E0_HeapStart;
 extern u8                D648E0_HeapBuffer[C3D458_HEAP_SIZE];
 extern GStruct8          D648E0_8007E0B0;
 extern u32               D648E0_8007E0C8;
