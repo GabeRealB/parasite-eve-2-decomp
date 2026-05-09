@@ -393,7 +393,7 @@ segments:
       - [0x4f3c4, o, libgpu/break, .data]
       - [0x4f3e4, o, libapi/counter, .data]
       - [0x4f404, o, libspu/spu, .data] # _spu_RXX, _spu_tsa, _spu_transMode, _spu_addrMode, _spu_mem_mode, _spu_mem_mode_plus, _spu_mem_mode_unit, _spu_mem_mode_unitM, _spu_inTransfer, _spu_transferCallback, _spu_IRQCallback
-      - [0x4f464, data] # TODO, Contains libgs/global
+      - [0x4f464, data] # TODO
       - [0x4f494, o, libgte/msc00, .data]
       - [0x4f4a4, o, libpad/padmain, .data] # _padFuncNextPort, _padFuncClrInfo, _padFuncGetTxd, _padFuncCurrLimit, _padFuncPtr2Port, _padFuncPort2Info, _padFuncSendAuto, _padFuncChkEng, _padFuncRecvAuto, _padFuncClrCmdNo, _padFuncIntGun, _padFuncSetGunPort, _padFuncGetGunPos, _padInfoDir, _padIntExec, _padGunExec, _padSioChan, _padSioState, _padTotalCurr, _padModeMtap, _padChanStart, _padChanStop, _padFixResult
       - [0x4f524, o, libpad/padif, .data] # padIntFunc

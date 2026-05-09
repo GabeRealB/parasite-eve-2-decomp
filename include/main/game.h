@@ -102,6 +102,16 @@ typedef struct _GStruct7 {
 } GStruct7;
 STATIC_ASSERT_SIZEOF(GStruct7, 0x24);
 
+typedef struct _GStruct8 {
+    s32 field_0;
+    s32 field_4;
+    s16 field_8;
+    s32 field_c;
+    s32 field_10;
+    s32 field_14;
+} GStruct8;
+STATIC_ASSERT_SIZEOF(GStruct8, 0x18);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 

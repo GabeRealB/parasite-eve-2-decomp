@@ -29,6 +29,9 @@ extern GStruct2* func_8002D32C(GStruct2* base, u32 idx);
 extern void      func_8002D444(GStruct0* state);
 extern void      func_8002D474(GStruct0* state);
 
+// 3D458.c
+extern void F3D458_8004D88C(void);
+
 // 3E48C.c
 extern void F3E48C_ConfigSpuReverb(s32 mode);
 
@@ -51,7 +54,6 @@ extern void func_8004CFC8(void);
 extern void func_8004D5A8(void);
 extern long func_8004D7D4(void);
 extern void func_8004D0A0(void);
-extern void func_8004D88C(void);
 extern void func_8004DDF0(void);
 extern void func_8004DF10(void);
 extern void func_8004D460(void*, u32, u32, s32*);
@@ -65,10 +67,12 @@ extern void func_80053FF4(u32);
 // .data
 extern u32       D_8005EC64;
 extern GStruct2* D_8005EF74[];
-extern u8        D_800680A5;
 extern u8        D_800680A4;
 extern u32       D_800680BC;
 extern u32       D_800680C0;
+
+// 58028
+extern u8 D58028_SpuTimerEnabled;
 
 // .bss
 
@@ -76,7 +80,6 @@ extern GStruct0Node* D_800716D8;
 extern GStruct0Node  D_800716E0;
 extern GStruct0Node  D_8007A110;
 extern u8            D_8007E0CC;
-extern long          D_8007E0D0;
 
 // 5B498
 extern SpuCommonAttr D5B498_SpuAttr;
@@ -91,6 +94,9 @@ extern GStruct5 D_800710A8;
 // 648E0
 extern GStruct6*         D648E0_8007A3B0_Ptr;
 extern GStruct6          D648E0_8007A3B0;
+extern GStruct8          D648E0_8007E0B0;
+extern u32               D648E0_8007E0C8;
+extern long              D648E0_SpuTimerED;
 extern GStruct7          D648E0_SpuReverbCfg;
 extern volatile GStruct4 D_80082798;
 

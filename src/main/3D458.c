@@ -26,7 +26,7 @@ void func_8004CC58(s32 arg0)
 
 init_spu:
     SpuInit();
-    D_800680A5 = 0;
+    D58028_SpuTimerEnabled = false;
     goto unknown;
 
 wait_spu_transfer:
@@ -43,7 +43,7 @@ setup_events:
     F3E48C_ConfigSpuReverb(3);
     func_8004DF10();
     func_8004D0A0();
-    func_8004D88C();
+    F3D458_8004D88C();
     func_80053E68();
     func_80053FF4(0);
     func_80050D20(0);
@@ -52,11 +52,11 @@ setup_events:
     *temp_v0 = 0;
 
     func_8004D460(&func_80053F60, 0, 0x8801, temp_v0);
-    if (D_800680A5 != 0) {
-        DisableEvent(D_8007E0D0);
-        CloseEvent(D_8007E0D0);
+    if (D58028_SpuTimerEnabled) {
+        DisableEvent(D648E0_SpuTimerED);
+        CloseEvent(D648E0_SpuTimerED);
         StopRCnt(RCntCNT0);
-        D_800680A5 = 0;
+        D58028_SpuTimerEnabled = false;
     }
 
     if (D_80070F68.field_124 == 1) {
@@ -66,7 +66,7 @@ setup_events:
         ResetRCnt(RCntCNT0);
         StartRCnt(RCntCNT0);
         EnterCriticalSection();
-        D_8007E0D0 = OpenEvent(RCntCNT0, EvSpINT, EvMdINTR, func_8004D7D4);
+        D648E0_SpuTimerED = OpenEvent(RCntCNT0, EvSpINT, EvMdINTR, func_8004D7D4);
 
         // HACK: What is this? The control flow of this function already
         // looks bad. To add insult to injury, This is the output that we
@@ -74,7 +74,7 @@ setup_events:
         //
         // jal      OpenEvent
         // addiu    a3, a3, %lo(func_8004D7D4)
-        // sw       v0, %lo(D_8007E0D0)(s0)
+        // sw       v0, %lo(DE648E0_SpuTimerED)(s0)
         // jal      ExitCriticalSection
         // nop
         //
@@ -83,7 +83,7 @@ setup_events:
         // jal      OpenEvent
         // addiu    a3, a3, %lo(func_8004D7D4)
         // jal      ExitCriticalSection
-        // sw       v0, %lo(D_8007E0D0)(s0)
+        // sw       v0, %lo(DE648E0_SpuTimerED)(s0)
         //
         // Somehow the developers managed to insert the additional nop
         // instruction, and the only way I could think of is to insert
@@ -93,8 +93,8 @@ setup_events:
         asm("");
 
         ExitCriticalSection();
-        EnableEvent(D_8007E0D0);
-        D_800680A5 = 1;
+        EnableEvent(D648E0_SpuTimerED);
+        D58028_SpuTimerEnabled = true;
     }
     D_800680A4 = 0;
     D_8007E0CC = 0;
@@ -142,7 +142,16 @@ INCLUDE_ASM("main/nonmatchings/3D458", func_8004D7D4);
 
 INCLUDE_ASM("main/nonmatchings/3D458", func_8004D820);
 
-INCLUDE_ASM("main/nonmatchings/3D458", func_8004D88C);
+void F3D458_8004D88C(void)
+{
+    D648E0_8007E0B0.field_0  = 0;
+    D648E0_8007E0B0.field_4  = 0;
+    D648E0_8007E0B0.field_8  = 0;
+    D648E0_8007E0B0.field_c  = 0;
+    D648E0_8007E0B0.field_14 = NULL;
+    D648E0_8007E0B0.field_10 = 0;
+    D648E0_8007E0C8          = 1;
+}
 
 INCLUDE_ASM("main/nonmatchings/3D458", func_8004D8BC);
 
