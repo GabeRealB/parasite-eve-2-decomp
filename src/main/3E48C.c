@@ -97,7 +97,10 @@ void F3E48C_DisableVoice(u32 voiceIdx)
     D648E0_SpuReverbCfg.enableVoices  &= ~channel;
 }
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E920);
+bool F3E48C_ReverbVoiceIsEnabled(u32 voiceIdx)
+{
+    return ((s32)D648E0_8007E338.reverbVoiceStatus >> voiceIdx) & 1;
+}
 
 void F3E48C_ApplyReverbConfig(void)
 {

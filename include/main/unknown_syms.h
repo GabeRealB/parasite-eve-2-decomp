@@ -45,6 +45,7 @@ extern void F3E48C_SetReverbDepth(s16 depth);
 extern void F3E48C_SetReverbMode(u32 mode);
 extern void F3E48C_EnableVoice(u32 voiceIdx);
 extern void F3E48C_DisableVoice(u32 voiceIdx);
+extern bool F3E48C_ReverbVoiceIsEnabled(u32 voiceIdx);
 extern void F3E48C_ApplyReverbConfig(void);
 
 // 43FFC.c
@@ -108,6 +109,7 @@ extern u8                D648E0_HeapBuffer[C3D458_HEAP_SIZE];
 extern GStruct8          D648E0_8007E0B0;
 extern u32               D648E0_8007E0C8;
 extern long              D648E0_SpuTimerED;
+extern GStruct9          D648E0_8007E338;
 extern GStruct7          D648E0_SpuReverbCfg;
 extern volatile GStruct4 D_80082798;
 
