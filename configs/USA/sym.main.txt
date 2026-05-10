@@ -1354,6 +1354,7 @@ DisableEvent                = 0x8004DC7C;
 //--------------------------------------------------------------------
 //--- PA: 0x3E48C   VA: 0x8004DC7C   subsegment: c, 3E48C
 //--------------------------------------------------------------------
+F3E48C_8004E44C             = 0x8004E44C;
 F3E48C_QueryReverbVoices    = 0x8004E764;
 F3E48C_ConfigSpuReverb      = 0x8004E788;
 F3E48C_SetReverbDepth       = 0x8004E814;
@@ -1914,5 +1915,9 @@ D648E0_8007E0B0             = 0x8007E0B0; // type:GStruct8 size:0x18
 D648E0_8007E0C8             = 0x8007E0C8; // type:u32
 D648E0_SpuTimerED           = 0x8007E0D0; // type:s32
 D648E0_8007E338             = 0x8007E338; // type:GStruct9 size:0x1D4
+D648E0_8007E518             = 0x8007E518; // type:GStruct10 size:0x67C
+D648E0_8007EBA8             = 0x8007EBA8; // type:u32
+D648E0_8007EBAC             = 0x8007EBAC; // type:u32
+D648E0_8007EBB0             = 0x8007EBB0; // type:u32
 D648E0_SpuReverbCfg         = 0x8007EBB8; // type:GStruct7 size:0x24
 D_80082798                  = 0x80082798; // type:GStruct4 size:0x6

@@ -18,7 +18,70 @@ INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E060);
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E200);
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E44C);
+void F3E48C_8004E44C(void)
+{
+    i32        remaining;
+    u8*        current;
+    GStruct10* dataPtr;
+
+    if (D648E0_SpuReverbCfg.isDirty) {
+        F3E48C_ApplyReverbConfig();
+        D648E0_SpuReverbCfg.isDirty = false;
+    }
+
+    D648E0_8007EBB0 |= D648E0_8007EBA8;
+    if (D648E0_8007EBB0 != 0) {
+        SpuSetKey(SPU_OFF, D648E0_8007EBB0);
+        D648E0_8007EBB0 = 0;
+    }
+
+    // We take a pointer, as otherwise GCC will reload the address
+    // when we reset the count to zero below.
+    dataPtr = &D648E0_8007E518;
+    if (dataPtr->count != 0) {
+        SpuLSetVoiceAttr(dataPtr->count, dataPtr->attrs);
+
+        // Clear the list. For some reason GCC does not like to cooperate with
+        // the array indexing. Ideally we'd have the following:
+        //
+        // current = &dataPtr->field_664[remaining];
+        // ...
+        // *current-- = 0;
+        //
+        // This produces the following assembly:
+        //
+        // addu     v0, s0, 0x67B
+        // sb       zero, 0(v0)
+        //
+        // Instead of what we actually want:
+        //
+        // addu     v0, s0, v1
+        // sb       zero, 0x664(v0)
+        //
+        // Writing it this way forces GCC to perform the offsets in the correct
+        // order.
+        remaining = ARRAY_SIZE(dataPtr->field_664) - 1;
+        current   = (u8*)dataPtr + remaining;
+        do {
+            current[OFFSET_OF(GStruct10, field_664)] = 0;
+            current                                 -= 1;
+            remaining                               -= 1;
+        } while (remaining >= 0);
+        dataPtr->count = 0;
+    }
+
+    if ((D648E0_8007EBA8 | D648E0_8007EBAC) != 0) {
+        SpuSetKey(SPU_ON, D648E0_8007EBA8 | D648E0_8007EBAC);
+        if (D648E0_8007EBA8 != 0) {
+            D648E0_8007E338.field_1cc |= D648E0_8007EBA8;
+            D648E0_8007E338.field_1cc &= ~D648E0_8007E338.field_1d0;
+        }
+
+        D648E0_8007E338.field_1d0 = 0;
+        D648E0_8007EBA8           = 0;
+        D648E0_8007EBAC           = 0;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E560);
 

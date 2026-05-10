@@ -40,6 +40,7 @@ extern void  F3D458_Free(void* ptr);
 extern void  F3D458_8004D88C(void);
 
 // 3E48C.c
+extern void F3E48C_8004E44C(void);
 extern void F3E48C_QueryReverbVoices(void);
 extern void F3E48C_ConfigSpuReverb(s32 mode);
 extern void F3E48C_SetReverbDepth(s16 depth);
@@ -111,6 +112,10 @@ extern GStruct8          D648E0_8007E0B0;
 extern u32               D648E0_8007E0C8;
 extern long              D648E0_SpuTimerED;
 extern GStruct9          D648E0_8007E338;
+extern GStruct10         D648E0_8007E518;
+extern u32               D648E0_8007EBA8;
+extern u32               D648E0_8007EBAC;
+extern u32               D648E0_8007EBB0;
 extern GStruct7          D648E0_SpuReverbCfg;
 extern volatile GStruct4 D_80082798;
 

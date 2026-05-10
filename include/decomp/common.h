@@ -17,6 +17,8 @@
 /// @return Element count.
 #define ARRAY_SIZE(arr) (s32)(sizeof(arr) / sizeof((arr)[0]))
 
+#define OFFSET_OF(st, m) ((size_t)&(((st*)0)->m))
+
 #define ALIGN(x, a) (((u32)(x) + ((a) - 1)) & ~((a) - 1))
 
 #define SECTION(x) __attribute__((section(x)))

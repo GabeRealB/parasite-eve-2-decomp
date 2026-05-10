@@ -117,9 +117,18 @@ STATIC_ASSERT_SIZEOF(GStruct8, 0x18);
 
 typedef struct _GStruct9 {
     u32  reverbVoiceStatus;
-    byte unknown_0[0x1D0];
+    byte unknown_4[0x1C8];
+    u32  field_1cc;
+    u32  field_1d0;
 } GStruct9;
 STATIC_ASSERT_SIZEOF(GStruct9, 0x1D4);
+
+typedef struct _GStruct10 {
+    s16           count;
+    SpuLVoiceAttr attrs[24];
+    u8            field_664[24];
+} GStruct10;
+STATIC_ASSERT_SIZEOF(GStruct10, 0x67C);
 
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
