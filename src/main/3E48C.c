@@ -56,7 +56,13 @@ void F3E48C_ConfigSpuReverb(s32 mode)
     D648E0_SpuReverbCfg.attr.mask = 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E814);
+void F3E48C_SetReverbDepth(s16 depth)
+{
+    D648E0_SpuReverbCfg.isDirty          = true;
+    D648E0_SpuReverbCfg.attr.depth.right = depth;
+    D648E0_SpuReverbCfg.attr.depth.left  = depth;
+    D648E0_SpuReverbCfg.attr.mask       |= SPU_REV_DEPTHR | SPU_REV_DEPTHL;
+}
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E83C);
 

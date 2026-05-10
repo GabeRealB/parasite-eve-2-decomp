@@ -99,7 +99,8 @@ STATIC_ASSERT_SIZEOF(HeapBlockHeader, 0x10);
 typedef struct _GStruct7 {
     u32           enableVoices;
     u32           disableVoices;
-    byte          unknown_0[0x8];
+    u32           reverbMode;
+    u32           isDirty;
     SpuReverbAttr attr;
 } GStruct7;
 STATIC_ASSERT_SIZEOF(GStruct7, 0x24);
