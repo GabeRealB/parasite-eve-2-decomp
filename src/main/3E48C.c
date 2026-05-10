@@ -75,7 +75,16 @@ void F3E48C_SetReverbMode(u32 mode)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E8A8);
+void F3E48C_EnableVoice(u32 voiceIdx)
+{
+    u32 channel;
+    voiceIdx = (s8)voiceIdx;
+
+    D648E0_SpuReverbCfg.isDirty        = true;
+    channel                            = SPU_VOICECH(voiceIdx);
+    D648E0_SpuReverbCfg.enableVoices  |= channel;
+    D648E0_SpuReverbCfg.disableVoices &= ~channel;
+}
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E8E4);
 
