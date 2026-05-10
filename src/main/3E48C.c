@@ -36,7 +36,10 @@ INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E6C4);
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E71C);
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E764);
+void F3E48C_QueryReverbVoices(void)
+{
+    D648E0_8007E338.reverbVoiceStatus = SpuGetReverbVoice();
+}
 
 void F3E48C_ConfigSpuReverb(s32 mode)
 {
