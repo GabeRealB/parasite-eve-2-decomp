@@ -41,6 +41,7 @@ extern void  F3D458_8004D88C(void);
 
 // 3E48C.c
 extern void F3E48C_8004E44C(void);
+extern s32  F3E48C_8004E660(u32 voiceIdx);
 extern void F3E48C_QueryReverbVoices(void);
 extern void F3E48C_ConfigSpuReverb(s32 mode);
 extern void F3E48C_SetReverbDepth(s16 depth);

@@ -117,7 +117,11 @@ STATIC_ASSERT_SIZEOF(GStruct8, 0x18);
 
 typedef struct _GStruct9 {
     u32  reverbVoiceStatus;
-    byte unknown_4[0x1C8];
+    u32  field_4[24];
+    byte unknown_4[0x30];
+    u8   field_94[24];
+    u32  field_ac[24];
+    byte unknown_10c[0xC0];
     u32  field_1cc;
     u32  field_1d0;
 } GStruct9;

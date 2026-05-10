@@ -91,7 +91,18 @@ INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E5A0);
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E5C4);
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E660);
+s32 F3E48C_8004E660(u32 voiceIdx)
+{
+    s8 sVoiceIdx = (s8)voiceIdx;
+    if (sVoiceIdx > (u32)ARRAY_SIZE(D648E0_8007E338.field_94)) {
+        return -1;
+    }
+
+    D648E0_8007E338.field_94[sVoiceIdx] = 0;
+    D648E0_8007E338.field_ac[sVoiceIdx] = 0;
+    D648E0_8007E338.field_4[sVoiceIdx]  = 0;
+    return 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E6A4);
 
