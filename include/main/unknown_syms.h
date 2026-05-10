@@ -44,6 +44,7 @@ extern void F3E48C_ConfigSpuReverb(s32 mode);
 extern void F3E48C_SetReverbDepth(s16 depth);
 extern void F3E48C_SetReverbMode(u32 mode);
 extern void F3E48C_EnableVoice(u32 voiceIdx);
+extern void F3E48C_DisableVoice(u32 voiceIdx);
 extern void F3E48C_ApplyReverbConfig(void);
 
 // 43FFC.c

@@ -1358,6 +1358,7 @@ F3E48C_ConfigSpuReverb      = 0x8004E788;
 F3E48C_SetReverbDepth       = 0x8004E814;
 F3E48C_SetReverbMode        = 0x8004E83C;
 F3E48C_EnableVoice          = 0x8004E8A8;
+F3E48C_DisableVoice         = 0x8004E8E4;
 F3E48C_ApplyReverbConfig    = 0x8004E938;
 
 //--------------------------------------------------------------------
