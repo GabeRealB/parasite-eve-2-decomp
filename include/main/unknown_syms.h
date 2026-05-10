@@ -41,6 +41,7 @@ extern void  F3D458_8004D88C(void);
 
 // 3E48C.c
 extern void F3E48C_ConfigSpuReverb(s32 mode);
+extern void F3E48C_ApplyReverbConfig(void);
 
 // 43FFC.c
 extern s32 func_80056700(void);

@@ -66,7 +66,27 @@ INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E8E4);
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E920);
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E938);
+void F3E48C_ApplyReverbConfig(void)
+{
+    if (D648E0_SpuReverbCfg.disableVoices != 0) {
+        SpuSetReverbVoice(SPU_OFF, D648E0_SpuReverbCfg.disableVoices);
+        D648E0_SpuReverbCfg.disableVoices = 0;
+    }
+
+    if (D648E0_SpuReverbCfg.enableVoices != 0) {
+        SpuSetReverbVoice(SPU_ON, D648E0_SpuReverbCfg.enableVoices);
+        D648E0_SpuReverbCfg.enableVoices = 0;
+    }
+
+    if ((D648E0_SpuReverbCfg.attr.mask & SPU_REV_MODE) != 0) {
+        SpuSetReverbModeParam(&D648E0_SpuReverbCfg.attr);
+    }
+    if ((D648E0_SpuReverbCfg.attr.mask & SPU_REV_DEPTHL) != 0) {
+        SpuSetReverbDepth(&D648E0_SpuReverbCfg.attr);
+    }
+
+    D648E0_SpuReverbCfg.attr.mask = 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E9D8);
 
