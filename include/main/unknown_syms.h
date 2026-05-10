@@ -36,6 +36,7 @@ extern void      func_8002D474(GStruct0* state);
 // 3D458.c
 extern void  F3D458_ResetHeap(void);
 extern void* F3D458_Malloc(size_t);
+extern void  F3D458_Free(void* ptr);
 extern void  F3D458_8004D88C(void);
 
 // 3E48C.c

@@ -241,7 +241,72 @@ void* F3D458_Malloc(size_t size)
     return NULL;
 }
 
-INCLUDE_ASM("main/nonmatchings/3D458", func_8004D6C8);
+void F3D458_Free(void* ptr)
+{
+    // This is the inverse of the allocation function. Given a pointer, that we
+    // assume points to the start of the data region which was returned by the
+    // allocation function, we insert it into the linked list of blocks. To
+    // prevent fragmentation, we first try to merge neighboring blocks, if they
+    // are not in use.
+    size_t           heapStart;
+    size_t           heapEnd;
+    HeapBlockHeader* header;
+
+    // If `ptr` is `NULL` we are done.
+    if (ptr == NULL) {
+        return;
+    }
+
+    // Safety check: Ensure that the pointer is contained in the heap region.
+    // Otherwise we return.
+    heapStart = (size_t)D648E0_HeapBuffer;
+    if ((size_t)ptr < heapStart) {
+        return;
+    }
+
+    heapEnd = heapStart + C3D458_HEAP_SIZE;
+    if (heapEnd < (size_t)ptr) {
+        return;
+    }
+
+    // As with the allocation, the data pointer is located directly after the
+    // block header. For some reason, the original code first sets the
+    // `isAllocated` flag to `false`, before checking the magic number.
+    //
+    // TODO: Maybe there same heap is reused with a block kind that is not
+    // merged on free. Investigate!
+    header              = ptr - sizeof(HeapBlockHeader);
+    header->isAllocated = false;
+    if (header->magic != C3D458_HEAP_MAGIC && header->magic != C3D458_HEAP_START_MAGIC) {
+        return;
+    }
+
+    // If the preceding block is also free, we grow it to take up the
+    // additional space of the current block and make it point to the
+    // succeeding block. `header` will always point to the earliest block.
+    if (header->prev != NULL && header->prev->isAllocated == false) {
+        if (header->next != NULL) {
+            header->next->prev = header->prev;
+            header->prev       = header->prev;
+        }
+        header->prev->next  = header->next;
+        header->prev->size += header->size;
+        header              = header->prev;
+    }
+
+    // We do the same, in case the succeeding neighbor is also not in use.
+    if (header->next != NULL && header->next->isAllocated == false) {
+        if (header->next->next != NULL) {
+            header->next->next->prev = header;
+        }
+        header->size += header->next->size;
+        header->next  = header->next->next;
+    }
+
+    // This should not be required, since all headers already had the flag
+    // set to `false`. Nevertheless, here it is.
+    header->isAllocated = false;
+}
 
 INCLUDE_ASM("main/nonmatchings/3D458", func_8004D7D4);
 
