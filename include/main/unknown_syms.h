@@ -10,6 +10,9 @@
 #define C3D458_HEAP_START_MAGIC 0xB25A
 #define C3D458_HEAP_MAGIC       0xA52B
 
+#define C5F414_OTAG_ENTRIES  0x440
+#define C5F414_OTAG_END_PRIM 0xFFFFFF
+
 // 4CF8.c
 extern void func_800148A0(void);
 extern void func_800148EC(void);
@@ -24,6 +27,9 @@ extern void func_8001D3F8(void);
 
 // 16494.c
 extern void F16494_ResetSpuAttr(void);
+
+// 179D4.c
+extern void F179D4_ClearOTag(s16 tableIdx);
 
 // 1C034.c
 extern void      func_8002D248(GStruct0Node* node);
@@ -101,6 +107,7 @@ extern SpuCommonAttr D5B498_SpuAttr;
 extern s16           D5B498_8006EBF0;
 
 // 5F414
+extern u_long   D5F414_OrderingTables[2 * C5F414_OTAG_ENTRIES];
 extern GStruct1 D_80070F68; // 0x80070F68 - 0x800710A0
 
 // 61CC0

@@ -1,6 +1,8 @@
 #include "common.h"
 
 #include <psyq/libetc.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
 #include "main/game.h"
 #include "main/mem.h"
@@ -22,7 +24,12 @@ INCLUDE_ASM("main/nonmatchings/179D4", func_80027F48);
 
 INCLUDE_ASM("main/nonmatchings/179D4", func_800280F4);
 
-INCLUDE_ASM("main/nonmatchings/179D4", func_80028180);
+void F179D4_ClearOTag(s16 tableIdx)
+{
+    u_long* tableStart = D5F414_OrderingTables + tableIdx * C5F414_OTAG_ENTRIES;
+    ClearOTagR(tableStart, C5F414_OTAG_ENTRIES);
+    *tableStart = C5F414_OTAG_END_PRIM;
+}
 
 INCLUDE_ASM("main/nonmatchings/179D4", func_800281D4);
 
