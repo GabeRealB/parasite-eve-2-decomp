@@ -29,7 +29,7 @@ INCLUDE_ASM("main/nonmatchings/C37C", func_8001D37C);
 
 INCLUDE_ASM("main/nonmatchings/C37C", func_8001D39C);
 
-void func_8001D3F8(void)
+void F0C37C_ClearD80068FA0(void)
 {
     Mem_Set(&D_80068FA0, 0, sizeof(D_80068FA0));
 }

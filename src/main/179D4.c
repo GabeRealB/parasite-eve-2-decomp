@@ -46,7 +46,7 @@ void GameMain(void)
     func_8004CFC8();
     func_80033BBC();
     func_80028664();
-    func_80014A50();
+    F04CF8_80014A50();
     Mem_Set(&D_800710A8, 0, sizeof(D_800710A8));
     D_8005EC64 = 0;
     func_800271D4();

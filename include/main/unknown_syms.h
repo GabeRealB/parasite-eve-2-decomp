@@ -5,6 +5,7 @@
 
 #include "common.h"
 #include "main/game.h"
+#include "main/fs.h"
 
 #define C3D458_HEAP_SIZE        0x3D00
 #define C3D458_HEAP_START_MAGIC 0xB25A
@@ -14,16 +15,17 @@
 #define C5F414_OTAG_END_PRIM 0xFFFFFF
 
 // 4CF8.c
-extern void func_800148A0(void);
-extern void func_800148EC(void);
-extern void func_80014A50(void);
-extern void func_80014A98(s32 mode);
+extern void F04CF8_800148A0(void);
+extern void F04CF8_800148EC(void);
+extern void F04CF8_80014A50(void);
+extern void F04CF8_80014A98(s32 mode);
+extern bool F04CF8_StageCdfIsAvailable(u32 stageIdx);
 
 // E734.c
 extern void func_8002D248(GStruct0Node* node);
 
 // C37C.c
-extern void func_8001D3F8(void);
+extern void F0C37C_ClearD80068FA0(void);
 
 // 16494.c
 extern void F16494_ResetSpuAttr(void);
@@ -103,6 +105,12 @@ extern GStruct0Node  D_8007A110;
 extern u8            D_8007E0CC;
 
 // 5B498
+extern s32           D5B498_Stage0HdrSect;
+extern s32           D5B498_ReqCdSector;
+extern FsSector      D5B498_CdSectorBuffer;
+extern u8            D5B498_CdfEndFlag;
+extern s32           D5B498_StageSectors[FS_CDF_STAGE_COUNT];
+extern s32           D5B498_CurrCdSector;
 extern SpuCommonAttr D5B498_SpuAttr;
 extern s16           D5B498_8006EBF0;
 

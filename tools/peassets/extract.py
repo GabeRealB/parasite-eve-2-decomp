@@ -1,3 +1,4 @@
+import json
 import logging
 import shutil
 from argparse import ArgumentParser, FileType
@@ -75,6 +76,17 @@ class FileChunkHeader:
     unknown1: int
     chunk_size: int
     unknown2: int
+
+    def encode(self) -> dict:
+        return {
+            "chunk_type": self.chunk_type.get_name(),
+            "end_flag": "continue"
+            if self.end_flag == FileChunkEndFlag.Continue
+            else "end",
+            "unknown1": f"0x{self.unknown1:X}",
+            "chunk_size": f"0x{self.chunk_size:X}",
+            "unknown2": f"0x{self.unknown2:X}",
+        }
 
 
 @dataclass
@@ -818,8 +830,6 @@ def decode_lzss(stream: bytes) -> bytes:
 def output_chunk(file_path: Path, chunk: FileChunk, chunk_idx: int):
     chunk_type = chunk.header.chunk_type
     chunk_path = (file_path / f"{chunk_idx}{chunk_type.get_extension()}").absolute()
-    if not chunk_path.parent.exists():
-        chunk_path.parent.mkdir(parents=True)
 
     logging.info(
         f"Extracting {chunk_type.get_name()}({chunk_type.get_extension()}) to {chunk_path}..."
@@ -834,8 +844,15 @@ def output_chunk(file_path: Path, chunk: FileChunk, chunk_idx: int):
 def output_file(stage_path: Path, entry: FileListEntry, entry_size: int, file: File):
     file_path = (stage_path / f"file{entry.file_id}").absolute()
     logging.info(f"Extracting file {entry.file_id} to {file_path}...")
+    if not file_path.exists():
+        file_path.mkdir(parents=True)
+
     for idx, chunk in enumerate(file.chunks):
         output_chunk(file_path, chunk, idx)
+
+    headers = [chunk.header.encode() for chunk in file.chunks]
+    with open(file_path / "headers.json", "w") as f:
+        json.dump(headers, f, indent=4)
 
 
 def extract_stage_0(header: BinaryIO, data: BinaryIO, output: Path):
@@ -970,6 +987,45 @@ def extract_stage_n(data: BinaryIO, output: Path):
         folder_offset += entry.folder_size
 
 
+def create_pkg_summary_(path: Path, stage_idx: int, summary: dict):
+    for entry in path.iterdir():
+        if entry.is_dir():
+            create_pkg_summary_(entry, stage_idx, summary)
+        elif entry.is_file() and entry.name.endswith(".pe2pkg"):
+            pkg_idx = int(entry.stem)
+            with (entry.parent / "headers.json").open("r") as f:
+                headers = json.load(f)
+                header = headers[pkg_idx]
+
+            if stage_idx == 0:
+                pkg_name = Path(*Path(entry).parts[-3:])
+            else:
+                pkg_name = Path(*Path(entry).parts[-4:])
+
+            pkg_name = str(pkg_name).replace("\\", "/")
+            ovr_name = PKG_LIST[pkg_name] if pkg_name in PKG_LIST else "<DUPLICATE>"
+            chunk_size = header["chunk_size"]
+            load_address = header["unknown2"]
+            summary[pkg_name] = {
+                "ovr_name": ovr_name,
+                "chunk_size": chunk_size,
+                "load_address": load_address,
+            }
+
+
+def create_pkg_summary(output_path: Path):
+    summary = {}
+    create_pkg_summary_(output_path / "stage0", 0, summary)
+    create_pkg_summary_(output_path / "stage1", 1, summary)
+    create_pkg_summary_(output_path / "stage2", 2, summary)
+    create_pkg_summary_(output_path / "stage3", 3, summary)
+    create_pkg_summary_(output_path / "stage4", 4, summary)
+    create_pkg_summary_(output_path / "stage5", 5, summary)
+
+    with open(output_path / "OVR" / "map.json", "w") as f:
+        json.dump(summary, f, indent=4)
+
+
 def main():
     logging.basicConfig(level=logging.INFO)
     parser = ArgumentParser()
@@ -1009,7 +1065,7 @@ def main():
     logging.info(f"Copying main executable {executable_disk1.name}")
     shutil.copy(f"{executable_disk1.name}", f"{output_path / 'main.exe'}")
 
-    logging.info("Copying packages")
+    logging.info("Copying/decoding packages")
     for src, dst in PKG_LIST.items():
         src_path = output_path / src
         dst_path = output_path / "OVR" / dst
@@ -1020,6 +1076,9 @@ def main():
 
         with open(dst_path, "wb") as f:
             f.write(pkg_data)
+
+    logging.info("Creating package summary")
+    create_pkg_summary(output_path)
 
     logging.info("All done!")
 
