@@ -14,6 +14,9 @@
 #define C5F414_OTAG_ENTRIES  0x440
 #define C5F414_OTAG_END_PRIM 0xFFFFFF
 
+#define C12D18_800256F4_ARG_0 0x0
+#define C12D18_800256F4_ARG_2 0x2
+
 // 4CF8.c
 extern void F04CF8_800148A0(void);
 extern void F04CF8_800148EC(void);
@@ -30,6 +33,7 @@ extern void F0C37C_ClearD80068FA0(void);
 // 12D18.c
 extern void F12D18_InitStage0TablesCb(u8 status, u8* result);
 extern void F12D18_InitStage0Tables(void);
+extern void F12D18_800256F4(u8 arg0);
 
 // 16494.c
 extern void F16494_ResetSpuAttr(void);
@@ -62,6 +66,9 @@ extern void F3E48C_EnableVoice(u32 voiceIdx);
 extern void F3E48C_DisableVoice(u32 voiceIdx);
 extern bool F3E48C_ReverbVoiceIsEnabled(u32 voiceIdx);
 extern void F3E48C_ApplyReverbConfig(void);
+
+// 410B0.c
+extern void func_800532CC(void);
 
 // 43FFC.c
 extern s32 func_80056700(void);
@@ -130,6 +137,7 @@ extern u8             D5B498_CdfEndFlag;
 extern s32            D5B498_StageSectors[FS_CDF_STAGE_COUNT];
 extern s32            D5B498_CurrVBlank;
 extern s32            D5B498_CurrCdSector;
+extern u8             D5B498_CdErrorCount;
 extern SpuCommonAttr  D5B498_SpuAttr;
 extern s16            D5B498_8006EBF0;
 

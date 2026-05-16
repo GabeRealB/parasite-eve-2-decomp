@@ -418,6 +418,7 @@ DecDCTBufSize               = 0x8002168C;
 //--------------------------------------------------------------------
 F12D18_InitStage0TablesCb   = 0x80023B6C;
 F12D18_InitStage0Tables     = 0x800254FC;
+F12D18_800256F4             = 0x800256F4;
 
 //--------------------------------------------------------------------
 //--- PA: 0x160F4   VA: 0x800258f4   subsegment: o, libgpu/break
@@ -1883,6 +1884,7 @@ D5B498_CdfEndFlag           = 0x8006D86C; // type:u32
 D5B498_StageSectors         = 0x8006E9F0; // type:s32 size:0x18
 D5B498_CurrVBlank           = 0x8006EA10; // type:s32
 D5B498_CurrCdSector         = 0x8006EA14; // type:s32
+D5B498_CdErrorCount         = 0x8006EA18; // type:u8
 D5B498_SpuAttr              = 0x8006EBC8; // type:SpuCommonAttr size:0x28
 D5B498_8006EBF0             = 0x8006EBF0; // type:s16 size:0x2
 
