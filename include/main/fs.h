@@ -15,6 +15,11 @@
 /// Number of stage CDF files.
 #define FS_CDF_STAGE_COUNT 6
 
+typedef enum _FsCdfStreamType {
+    FS_CDF_STREAM_TYPE_MOVIE = 1,
+    FS_CDF_STREAM_TYPE_AUDIO = 2,
+} FsCdfStreamType;
+
 typedef enum _FsCdfChunkType {
     FS_CDF_CHUNK_TYPE_PKG   = 0,
     FS_CDF_CHUNK_TYPE_IMG   = 1,
@@ -30,6 +35,42 @@ typedef enum _FsCdfChunkEndFlag {
     FS_CDF_CHUNK_END_FLAG_CONTINUE = 1,  // File contains more chunks.
 } FsCdfChunkEndFlag;
 
+typedef struct _FsCdfStream {
+    u16 type;    // Stream type.
+    u16 field_2; // Unknown. The final msb is set in STAGE0.HED to differentiate streams and files.
+    u32 offset;  // Movie: Offset in folder. Audio: Offset in CDF.
+    union {
+        struct {
+            u32 interOffset;
+            u16 field_c;
+            u16 id;
+            u16 subId;
+            u16 width;
+            u16 height;
+            u16 field_16;
+            u16 field_18;
+            u16 field_1a;
+            u8  field_1c[6];
+            u16 field_22;
+            u16 field_24;
+            u16 field_26;
+        } movie;
+        struct {
+            u32 field_8;
+            u16 stageIdx;
+            u16 id;
+            u32 subId;
+            u16 field_14;
+            u16 field_16;
+            u32 field_18;
+            u16 field_1c;
+            u16 field_1e;
+            u8  field_20[8];
+        } audio;
+    } data;
+} FsCdfStream;
+STATIC_ASSERT_SIZEOF(FsCdfStream, 0x28);
+
 typedef struct _FsCdfFolder {
     u32 id;   // Folder id.
     u32 size; // Folder size.
@@ -40,10 +81,15 @@ typedef struct _FsCdfFile {
     u32 offset; // Offset from the beginning of the folder.
 } FsCdfFile;
 
+typedef struct _FsCdfFileSmall {
+    u16 id;     // File id.
+    u16 offset; // Offset from the beginning of the folder.
+} FsCdfFileSmall;
+
 typedef struct _FsCdfChunkHeader {
     u8    type;     // Type of data stored in the chunk.
     u8    endFlag;  // Flag indicating whether the chunk is the last in the file.
-    u16   field_4;  // Unknown.
+    u16   field_2;  // Unknown.
     u32   size;     // Chunk size.
     void* loadAddr; // Address to where the chunk must be loaded. Is not NULL for pkgs.
     u32   padding;  // Padding bytes. Are always 0 in the USA version.

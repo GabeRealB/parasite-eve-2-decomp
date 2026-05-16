@@ -27,6 +27,10 @@ extern void func_8002D248(GStruct0Node* node);
 // C37C.c
 extern void F0C37C_ClearD80068FA0(void);
 
+// 12D18.c
+extern void F12D18_InitStage0TablesCb(u8 status, u8* result);
+extern void F12D18_InitStage0Tables(void);
+
 // 16494.c
 extern void F16494_ResetSpuAttr(void);
 
@@ -105,14 +109,29 @@ extern GStruct0Node  D_8007A110;
 extern u8            D_8007E0CC;
 
 // 5B498
-extern s32           D5B498_Stage0HdrSect;
-extern s32           D5B498_ReqCdSector;
-extern FsSector      D5B498_CdSectorBuffer;
-extern u8            D5B498_CdfEndFlag;
-extern s32           D5B498_StageSectors[FS_CDF_STAGE_COUNT];
-extern s32           D5B498_CurrCdSector;
-extern SpuCommonAttr D5B498_SpuAttr;
-extern s16           D5B498_8006EBF0;
+extern s32            D5B498_Stage0HdrSect;
+extern FsCdfFile      D5B498_Stage0FileTable[0x10e];
+extern u16            D5B498_Stage0FileTableLen;
+extern u32            D5B498_Stage0FileSect90[0x8];
+extern u16            D5B498_Stage0FileSect0[0x30];
+extern u16            D5B498_Stage0FileSect5[0x40];
+extern FsCdfFileSmall D5B498_Stage0FileTable3[0x1e];
+extern u8             D5B498_Stage0FileTable3Len;
+extern FsCdfFileSmall D5B498_Stage0FileTable4[0x46];
+extern u8             D5B498_Stage0FileTable4Len;
+extern FsCdfFileSmall D5B498_Stage0FileTable1[0x3c];
+extern u8             D5B498_Stage0FileTable1Len;
+extern FsCdfFileSmall D5B498_Stage0FileTable2[0x160];
+extern u16            D5B498_Stage0FileTable2Len;
+extern s32            D5B498_ReqCdSector;
+extern u8             D5B498_8006C228;
+extern FsSector       D5B498_CdSectorBuffer;
+extern u8             D5B498_CdfEndFlag;
+extern s32            D5B498_StageSectors[FS_CDF_STAGE_COUNT];
+extern s32            D5B498_CurrVBlank;
+extern s32            D5B498_CurrCdSector;
+extern SpuCommonAttr  D5B498_SpuAttr;
+extern s16            D5B498_8006EBF0;
 
 // 5F414
 extern u_long   D5F414_OrderingTables[2 * C5F414_OTAG_ENTRIES];

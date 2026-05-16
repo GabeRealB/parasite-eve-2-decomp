@@ -1,5 +1,11 @@
 #include "common.h"
 
+#include <psyq/libetc.h>
+#include <psyq/libcd.h>
+
+#include "main/unknown_syms.h"
+#include "main/fs.h"
+
 INCLUDE_ASM("main/nonmatchings/12D18", func_80022518);
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_8002252C);
@@ -22,7 +28,7 @@ INCLUDE_ASM("main/nonmatchings/12D18", func_80023748);
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_8002397C);
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_80023B6C);
+INCLUDE_ASM("main/nonmatchings/12D18", F12D18_InitStage0TablesCb);
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_80023FA0);
 
@@ -48,7 +54,25 @@ INCLUDE_ASM("main/nonmatchings/12D18", func_80025408);
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_8002548C);
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_800254FC);
+void F12D18_InitStage0Tables(void)
+{
+    CdlLOC headerPos;
+
+    // Reset all tables.
+    D5B498_8006C228            = 0;
+    D5B498_Stage0FileTableLen  = 0;
+    D5B498_Stage0FileTable2Len = 0;
+    D5B498_Stage0FileTable4Len = 0;
+    D5B498_Stage0FileTable1Len = 0;
+    D5B498_Stage0FileTable3Len = 0;
+
+    // Read the stage header.
+    D5B498_ReqCdSector = D5B498_Stage0HdrSect;
+    CdIntToPos(D5B498_Stage0HdrSect, &headerPos);
+    CdControlF(CdlReadN, &headerPos.minute);
+    CdReadyCallback(F12D18_InitStage0TablesCb);
+    D5B498_CurrVBlank = VSync(-1);
+}
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_80025580);
 
