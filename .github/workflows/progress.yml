@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths-ignore:
-      - '**.md'
+      - "**.md"
 
 jobs:
   build:
@@ -39,7 +39,7 @@ jobs:
         run: python3 ./ninja_config.py --iso_extract
 
       - name: Setup Environment
-        run: python3 ./ninja_config.py --objdiff_config
+        run: python3 ./ninja_config.py --non_matching --objdiff_config
 
       - name: Build Objects
         run: ninja
