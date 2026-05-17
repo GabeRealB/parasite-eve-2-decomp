@@ -15,6 +15,9 @@
 /// Number of stage CDF files.
 #define FS_CDF_STAGE_COUNT 6
 
+/// Canary value at the end of the STAGE0.HED header.
+#define FS_CDF_STAGE0_CANARY -1
+
 typedef enum _FsCdfStreamType {
     FS_CDF_STREAM_TYPE_MOVIE = 1,
     FS_CDF_STREAM_TYPE_AUDIO = 2,

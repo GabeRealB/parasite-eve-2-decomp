@@ -1885,6 +1885,7 @@ D5B498_StageSectors         = 0x8006E9F0; // type:s32 size:0x18
 D5B498_CurrVBlank           = 0x8006EA10; // type:s32
 D5B498_CurrCdSector         = 0x8006EA14; // type:s32
 D5B498_CdErrorCount         = 0x8006EA18; // type:u8
+D5B498_Streams              = 0x8006EA20; // type:FsCdfStream size:0x190
 D5B498_SpuAttr              = 0x8006EBC8; // type:SpuCommonAttr size:0x28
 D5B498_8006EBF0             = 0x8006EBF0; // type:s16 size:0x2
 

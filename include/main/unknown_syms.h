@@ -138,6 +138,7 @@ extern s32            D5B498_StageSectors[FS_CDF_STAGE_COUNT];
 extern s32            D5B498_CurrVBlank;
 extern s32            D5B498_CurrCdSector;
 extern u8             D5B498_CdErrorCount;
+extern FsCdfStream    D5B498_Streams[0xa];
 extern SpuCommonAttr  D5B498_SpuAttr;
 extern s16            D5B498_8006EBF0;
 
