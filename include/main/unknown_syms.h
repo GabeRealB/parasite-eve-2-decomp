@@ -17,6 +17,8 @@
 #define C12D18_800256F4_ARG_0 0x0
 #define C12D18_800256F4_ARG_2 0x2
 
+#define D5B498_8006C228_FF -1
+
 // 4CF8.c
 extern void F04CF8_800148A0(void);
 extern void F04CF8_800148EC(void);
@@ -35,7 +37,7 @@ extern void F12D18_InitStage0TablesCb(u8 status, u8* result);
 extern void F12D18_InitStage0Tables(void);
 extern void F12D18_80025338(u8 arg0);
 extern void F12D18_SeekToPos(s32 sector);
-extern void F12D18_800256A8(u8 status, u8* result);
+extern void F12D18_SeekToPosCb(u8 status, u8* result);
 extern void F12D18_800256F4(u8 arg0);
 
 // 16494.c

@@ -235,7 +235,7 @@ void F12D18_SeekToPos(s32 sector)
     D5B498_SeekPos = sector;
     CdIntToPos(sector, loc);
     CdControlF(CdlSeekL, (u8*)loc);
-    CdSyncCallback(F12D18_800256A8);
+    CdSyncCallback(F12D18_SeekToPosCb);
     D5B498_CurrVBlank = VSync(-1);
 }
 
@@ -265,7 +265,16 @@ INCLUDE_ASM("main/nonmatchings/12D18", func_80025580);
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_8002563C);
 
-INCLUDE_ASM("main/nonmatchings/12D18", F12D18_800256A8);
+void F12D18_SeekToPosCb(u8 status, u8* result)
+{
+    if (status == CdlComplete) {
+        D5B498_8006C228 = D5B498_8006C228_FF;
+        CdSyncCallback(NULL);
+        D5B498_CdErrorCount = 0;
+    } else {
+        F12D18_800256F4(C12D18_800256F4_ARG_0);
+    }
+}
 
 void F12D18_800256F4(u8 arg0)
 {
