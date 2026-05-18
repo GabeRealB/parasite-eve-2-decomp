@@ -33,6 +33,9 @@ extern void F0C37C_ClearD80068FA0(void);
 // 12D18.c
 extern void F12D18_InitStage0TablesCb(u8 status, u8* result);
 extern void F12D18_InitStage0Tables(void);
+extern void F12D18_80025338(u8 arg0);
+extern void F12D18_SeekToPos(s32 sector);
+extern void F12D18_800256A8(u8 status, u8* result);
 extern void F12D18_800256F4(u8 arg0);
 
 // 16494.c
@@ -117,6 +120,7 @@ extern u8            D_8007E0CC;
 
 // 5B498
 extern s32            D5B498_Stage0HdrSect;
+extern s32            D5B498_SeekPos;
 extern FsCdfFile      D5B498_Stage0FileTable[0x10e];
 extern u16            D5B498_Stage0FileTableLen;
 extern u32            D5B498_Stage0FileSect90[0x8];

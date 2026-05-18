@@ -418,6 +418,9 @@ DecDCTBufSize               = 0x8002168C;
 //--------------------------------------------------------------------
 F12D18_InitStage0TablesCb   = 0x80023B6C;
 F12D18_InitStage0Tables     = 0x800254FC;
+F12D18_80025338             = 0x80025338;
+F12D18_SeekToPos            = 0x80025408;
+F12D18_800256A8             = 0x800256A8;
 F12D18_800256F4             = 0x800256F4;
 
 //--------------------------------------------------------------------
@@ -1864,6 +1867,7 @@ StFunc2                     = 0x8006AC84;
 //--- PA: 0x5B498   VA: 0x8006AC98   subsegment: bss
 //--------------------------------------------------------------------
 D5B498_Stage0HdrSect        = 0x8006ACCC; // type:s32
+D5B498_SeekPos              = 0x8006ACD0; // type:s32
 D5B498_Stage0FileTable      = 0x8006B718; // type:FsCdfFile size:0x870
 D5B498_Stage0FileTableLen   = 0x8006BF88; // type:u16
 D5B498_Stage0FileSect90     = 0x8006BF98; // type:u32 size:0x20

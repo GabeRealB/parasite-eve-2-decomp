@@ -219,9 +219,25 @@ INCLUDE_ASM("main/nonmatchings/12D18", func_80025170);
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_8002526C);
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_80025338);
+INCLUDE_ASM("main/nonmatchings/12D18", F12D18_80025338);
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_80025408);
+void F12D18_SeekToPos(s32 sector)
+{
+    s32    status;
+    CdlLOC loc[2];
+
+    D5B498_8006C228 = 0;
+    status          = CdSync(1, NULL);
+    if (status == CdlDiskError) {
+        F12D18_80025338(1);
+    }
+
+    D5B498_SeekPos = sector;
+    CdIntToPos(sector, loc);
+    CdControlF(CdlSeekL, (u8*)loc);
+    CdSyncCallback(F12D18_800256A8);
+    D5B498_CurrVBlank = VSync(-1);
+}
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_8002548C);
 
@@ -249,7 +265,7 @@ INCLUDE_ASM("main/nonmatchings/12D18", func_80025580);
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_8002563C);
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_800256A8);
+INCLUDE_ASM("main/nonmatchings/12D18", F12D18_800256A8);
 
 void F12D18_800256F4(u8 arg0)
 {
