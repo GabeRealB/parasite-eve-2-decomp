@@ -33,10 +33,12 @@ extern void func_8002D248(GStruct0Node* node);
 extern void F0C37C_ClearD80068FA0(void);
 
 // 12D18.c
+extern void func_80022BD0(u8 status, u8* result);
 extern void F12D18_InitStage0TablesCb(u8 status, u8* result);
 extern void F12D18_InitStage0Tables(void);
 extern void F12D18_80025338(u8 arg0);
 extern void F12D18_SeekToPos(s32 sector);
+extern void F12D18_8002563C(u8 status, u8* result);
 extern void F12D18_SeekToPosCb(u8 status, u8* result);
 extern void F12D18_800256F4(u8 arg0);
 
@@ -138,6 +140,7 @@ extern FsCdfFileSmall D5B498_Stage0FileTable2[0x160];
 extern u16            D5B498_Stage0FileTable2Len;
 extern s32            D5B498_ReqCdSector;
 extern u8             D5B498_8006C228;
+extern u8             D5B498_8006C231;
 extern FsSector       D5B498_CdSectorBuffer;
 extern u8             D5B498_CdfEndFlag;
 extern s32            D5B498_StageSectors[FS_CDF_STAGE_COUNT];

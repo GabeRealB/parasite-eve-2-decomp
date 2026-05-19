@@ -263,7 +263,18 @@ void F12D18_InitStage0Tables(void)
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_80025580);
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_8002563C);
+void F12D18_8002563C(u8 status, u8* result)
+{
+    if (status != CdlDiskError) {
+        D5B498_CurrVBlank   = VSync(-1);
+        D5B498_CdErrorCount = 0;
+        D5B498_8006C231     = 1;
+        CdReadyCallback(func_80022BD0);
+        CdSyncCallback(NULL);
+    } else {
+        F12D18_800256F4(C12D18_800256F4_ARG_0);
+    }
+}
 
 void F12D18_SeekToPosCb(u8 status, u8* result)
 {
