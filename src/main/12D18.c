@@ -211,7 +211,42 @@ INCLUDE_ASM("main/nonmatchings/12D18", func_80024A28);
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_80024DB8);
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_80024EC0);
+void F12D18_80024EC0(void)
+{
+    CdlLOC loc[2];
+    u8     ctrlParam[8];
+    u8     ctrlResult[8];
+    u8*    ctrlParamPtr;
+
+    if (CdSync(1, NULL) == CdlDiskError) {
+        // Wait for the command to finish and reset the operation mode.
+        CdSync(0, NULL);
+        ctrlParam[0] = 0;
+        ctrlParamPtr = ctrlParam;
+        CdControlB(CdlSetmode, ctrlParamPtr, NULL);
+        VSync(3);
+
+        // Wait until the CD shell is opened and closed again with a valid disk.
+        do {
+            do {
+                CdControlB(CdlNop, NULL, ctrlResult);
+            } while ((ctrlResult[0] & CdlStatShellOpen) != 0);
+        } while (CdDiskReady(0) != CdlComplete || CdGetDiskType() != CdlCdromFormat);
+
+        // Enable double speed and sector header.
+        ctrlParamPtr[0] = CdlModeSpeed | CdlModeSize1;
+        CdControlB(CdlSetmode, ctrlParam, NULL);
+        VSync(3);
+    }
+
+    CdIntToPos(D5B498_ReqCdSector, loc);
+    CdControlF(CdlReadN, &loc[0].minute);
+    if (D5B498_8006C228 == 0x40) {
+        CdSyncCallback(func_80025580);
+        D5B498_CurrVBlank = VSync(-1);
+        D5B498_8006C228  += 1;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_80024FEC);
 
