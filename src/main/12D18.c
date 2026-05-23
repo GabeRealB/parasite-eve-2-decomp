@@ -1,7 +1,9 @@
 #include "common.h"
 
-#include <psyq/libetc.h>
 #include <psyq/libcd.h>
+#include <psyq/libetc.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
 
 #include "main/unknown_syms.h"
 #include "main/fs.h"
@@ -362,7 +364,13 @@ void F12D18_800256F4(u8 arg0)
     CdControlF(CdlPause, NULL);
 }
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_8002576C);
+void F12D18_ContinueDrawing(u_long* ot)
+{
+    // Wait until the gpu is idling and then continue drawing.
+    while (IsIdleGPU(-1) != 0) {
+    }
+    ContinueDraw(NULL, ot);
+}
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_800257A4);
 
