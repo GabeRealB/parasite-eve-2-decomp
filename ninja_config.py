@@ -191,7 +191,7 @@ match PLATFORM:
         MASPSX_FLAGS = f"--aspsx-version={MASPX_VERSION} --run-assembler"
         ICONV_FLAGS = "-f UTF-8 -t SHIFT-JIS $in -o $out"
 
-CC_FLAGS = f"{OPT_FLAGS} -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet"
+CC_FLAGS = f"{OPT_FLAGS} -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff"
 AS_FLAGS = (
     f"{ENDIAN} {INCLUDE_FLAGS} {OPT_FLAGS} -march=r3000 -mtune=r3000 -no-pad-sections"
 )

@@ -254,17 +254,41 @@ INCLUDE_ASM("main/nonmatchings/12D18", func_80025170);
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_8002526C);
 
-INCLUDE_ASM("main/nonmatchings/12D18", F12D18_80025338);
+void F12D18_WaitDiskReset(s8 withSectHdr)
+{
+    u8 ctrlParam[8];
+    u8 ctrlResult[8];
+
+    // Wait for the command to finish and reset the operation mode.
+    CdSync(0, NULL);
+    ctrlParam[0] = 0;
+    CdControlB(CdlSetmode, ctrlParam, NULL);
+    VSync(3);
+
+    // Wait until the CD shell is opened and closed again with a valid disk.
+    do {
+        do {
+            CdControlB(CdlNop, NULL, ctrlResult);
+        } while ((ctrlResult[0] & CdlStatShellOpen) != 0);
+    } while (CdDiskReady(0) != CdlComplete || CdGetDiskType() != CdlCdromFormat);
+
+    // Enable double speed and optionally also the sector header.
+    if (withSectHdr != 0) {
+        ctrlParam[0] = CdlModeSpeed | CdlModeSize1;
+    } else {
+        ctrlParam[0] = CdlModeSpeed;
+    }
+    CdControlB(CdlSetmode, ctrlParam, NULL);
+    VSync(3);
+}
 
 void F12D18_SeekToPos(s32 sector)
 {
-    s32    status;
     CdlLOC loc[2];
 
     D5B498_8006C228 = 0;
-    status          = CdSync(1, NULL);
-    if (status == CdlDiskError) {
-        F12D18_80025338(1);
+    if (CdSync(1, NULL) == CdlDiskError) {
+        F12D18_WaitDiskReset(true);
     }
 
     D5B498_SeekPos = sector;
