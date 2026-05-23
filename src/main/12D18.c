@@ -374,7 +374,26 @@ void F12D18_ContinueDrawing(u_long* ot)
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_800257A4);
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_800257B0);
+void F12D18_800257B0(void)
+{
+    u8 ctrlResult[8];
+
+    if (D5B498_8006C228 != 0 && D5B498_8006C228 != 0x41) {
+        return;
+    }
+
+    if (VSync(-1) <= D5B498_CurrVBlank + 0xb4) {
+        return;
+    }
+
+    D5B498_CurrVBlank = VSync(-1);
+    D5B498_8006C228   = 0x80;
+    CdFlush();
+    func_800532CC();
+    CdReadyCallback(NULL);
+    CdSyncCallback(NULL);
+    CdControlB(CdlPause, NULL, ctrlResult);
+}
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_80025850);
 
