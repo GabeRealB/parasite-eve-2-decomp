@@ -300,7 +300,33 @@ void F12D18_SeekToPos(s32 sector)
     D5B498_CurrVBlank = VSync(-1);
 }
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_8002548C);
+void F12D18_InitFolderTable(void)
+{
+    u32                   offset;
+    FsCdfFolderListEntry* entry;
+
+    D5B498_FolderTableLen = 0;
+    entry                 = D5B498_CdSectorBuffer.folderList.entries;
+
+    // The cdf file starts with a header section. Therefore, the offset to
+    // the start of the first folder is always one. Following folders are
+    // located immediately after the previous ones.
+    offset = 1;
+    while (true) {
+        if (entry->size == FS_CDF_FOLDER_CANARY) {
+            return;
+        }
+
+        // Save the folder info into the table.
+        D5B498_FolderTable[D5B498_FolderTableLen].id     = entry->id;
+        D5B498_FolderTable[D5B498_FolderTableLen].offset = offset;
+        D5B498_FolderTableLen                           += 1;
+
+        // Go to the next entry.
+        offset += entry->size;
+        entry  += 1;
+    }
+}
 
 void F12D18_InitStage0Tables(void)
 {

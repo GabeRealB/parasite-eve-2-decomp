@@ -18,6 +18,9 @@
 /// Canary value at the end of the STAGE0.HED header.
 #define FS_CDF_STAGE0_CANARY -1
 
+/// Canary value at the end of the folder list.
+#define FS_CDF_FOLDER_CANARY 0
+
 typedef enum _FsCdfStreamType {
     FS_CDF_STREAM_TYPE_MOVIE = 1,
     FS_CDF_STREAM_TYPE_AUDIO = 2,
@@ -74,9 +77,21 @@ typedef struct _FsCdfStream {
 } FsCdfStream;
 STATIC_ASSERT_SIZEOF(FsCdfStream, 0x28);
 
-typedef struct _FsCdfFolder {
+/// An entry of the folder list, as stored in a .CDF file.
+typedef struct _FsCdfFolderListEntry {
     u32 id;   // Folder id.
     u32 size; // Folder size.
+} FsCdfFolderListEntry;
+
+/// A list of folders found in the header section of a .CDF file.
+typedef struct _FsCdfFolderList {
+    FsCdfFolderListEntry entries[0x100]; // List of folders. Zero padded.
+} FsCdfFolderList;
+STATIC_ASSERT_SIZEOF(FsCdfFolderList, FS_SECTOR_BYTE_SIZE);
+
+typedef struct _FsCdfFolder {
+    u32 id;     // Folder id.
+    u32 offset; // Offset from the beginning of the file.
 } FsCdfFolder;
 
 typedef struct _FsCdfFile {
@@ -116,7 +131,9 @@ STATIC_ASSERT_SIZEOF(FsCdfChunk, FS_SECTOR_BYTE_SIZE);
 typedef union _FsSector {
     u8               bytes[FS_SECTOR_BYTE_SIZE]; // Raw sector data.
     u32              words[FS_SECTOR_WORD_SIZE]; // Raw sector data as words.
+    FsCdfFolderList  folderList;                 // List of folders.
     FsCdfChunkHeader chunk;                      // A file chunk.
 } FsSector;
+STATIC_ASSERT_SIZEOF(FsSector, FS_SECTOR_BYTE_SIZE);
 
 #endif
