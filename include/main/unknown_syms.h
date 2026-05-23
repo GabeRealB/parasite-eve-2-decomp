@@ -45,6 +45,7 @@ extern void F12D18_SeekToPosCb(u8 status, u8* result);
 extern void F12D18_800256F4(u8 arg0);
 extern void F12D18_ContinueDrawing(u_long* ot);
 extern void F12D18_800257B0(void);
+extern void F12D18_StopCd(void);
 
 // 16494.c
 extern void F16494_ResetSpuAttr(void);

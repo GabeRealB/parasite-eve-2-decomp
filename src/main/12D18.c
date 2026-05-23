@@ -395,6 +395,16 @@ void F12D18_800257B0(void)
     CdControlB(CdlPause, NULL, ctrlResult);
 }
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_80025850);
+void F12D18_StopCd(void)
+{
+    u8 ctrlParam[9];
+
+    ctrlParam[0] = 0;
+    ctrlParam[8] = 0;
+    CdControlB(CdlSetmode, ctrlParam, NULL);
+
+    VSync(3);
+    CdControlB(CdlStop, NULL, NULL);
+}
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_80025898);
