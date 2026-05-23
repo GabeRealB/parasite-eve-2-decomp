@@ -1,4 +1,4 @@
-splat64[mips]
+splat64[mips]==0.39.1
 spimdisasm
 pycparser
 pyelftools
