@@ -420,6 +420,7 @@ F12D18_InitStage0TablesCb   = 0x80023B6C;
 F12D18_InitFolderTable      = 0x8002548C;
 F12D18_InitStage0Tables     = 0x800254FC;
 F12D18_80024EC0             = 0x80024EC0;
+F12D18_ReadSector           = 0x8002526C;
 F12D18_WaitDiskReset        = 0x80025338;
 F12D18_SeekToPos            = 0x80025408;
 F12D18_80025580             = 0x80025580;

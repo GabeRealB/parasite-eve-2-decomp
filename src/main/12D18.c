@@ -254,7 +254,30 @@ INCLUDE_ASM("main/nonmatchings/12D18", func_80024FEC);
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_80025170);
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_8002526C);
+void F12D18_ReadSector(s32 sector)
+{
+    CdlLOC loc[2];
+
+    if (CdSync(1, NULL) == CdlDiskError) {
+        F12D18_WaitDiskReset(true);
+    }
+
+    D5B498_8006C228    = 0;
+    D5B498_CdfEndFlag  = -1;
+    D5B498_ReqCdSector = sector;
+    D5B498_CurrVBlank  = VSync(-1);
+    if (D5B498_SeekPos == sector) {
+        D5B498_SeekPos  = 0;
+        D5B498_8006C231 = false;
+        CdControlF(CdlReadN, NULL);
+        CdReadyCallback(func_80022BD0);
+    } else {
+        D5B498_SeekPos = 0;
+        CdIntToPos(sector, loc);
+        CdControlF(CdlReadN, &loc[0].minute);
+        CdSyncCallback(F12D18_80025580);
+    }
+}
 
 void F12D18_WaitDiskReset(s8 withSectHdr)
 {
