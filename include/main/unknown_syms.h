@@ -39,7 +39,7 @@ extern void F12D18_InitStage0Tables(void);
 extern void F12D18_80024EC0(void);
 extern void F12D18_WaitDiskReset(s8 withSectHdr);
 extern void F12D18_SeekToPos(s32 sector);
-extern void func_80025580(u8 status, u8* result);
+extern void F12D18_80025580(u8 status, u8* result);
 extern void F12D18_8002563C(u8 status, u8* result);
 extern void F12D18_SeekToPosCb(u8 status, u8* result);
 extern void F12D18_800256F4(u8 arg0);
@@ -48,6 +48,7 @@ extern void F12D18_800257B0(void);
 extern void F12D18_StopCd(void);
 
 // 16494.c
+extern void func_80025C94(u8 status, u8* result);
 extern void F16494_ResetSpuAttr(void);
 
 // 179D4.c
@@ -80,6 +81,7 @@ extern bool F3E48C_ReverbVoiceIsEnabled(u32 voiceIdx);
 extern void F3E48C_ApplyReverbConfig(void);
 
 // 410B0.c
+extern void func_8005325C(void* arg0);
 extern void func_800532CC(void);
 
 // 43FFC.c
@@ -128,6 +130,7 @@ extern GStruct0Node  D_8007A110;
 extern u8            D_8007E0CC;
 
 // 5B498
+extern u8             D5B498_8006ACC8;
 extern s32            D5B498_Stage0HdrSect;
 extern s32            D5B498_SeekPos;
 extern FsCdfFile      D5B498_Stage0FileTable[0x10e];

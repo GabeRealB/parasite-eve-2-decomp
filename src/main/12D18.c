@@ -244,7 +244,7 @@ void F12D18_80024EC0(void)
     CdIntToPos(D5B498_ReqCdSector, loc);
     CdControlF(CdlReadN, &loc[0].minute);
     if (D5B498_8006C228 == 0x40) {
-        CdSyncCallback(func_80025580);
+        CdSyncCallback(F12D18_80025580);
         D5B498_CurrVBlank = VSync(-1);
         D5B498_8006C228  += 1;
     }
@@ -322,7 +322,28 @@ void F12D18_InitStage0Tables(void)
     D5B498_CurrVBlank = VSync(-1);
 }
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_80025580);
+void F12D18_80025580(u8 status, u8* result)
+{
+    if (status != CdlDiskError) {
+        if (D5B498_8006C228 == 0x41) {
+            D5B498_8006C228 = 0;
+            D5B498_8006C231 = true;
+            CdReadyCallback(func_80022BD0);
+        } else if (D5B498_8006ACC8 == false) {
+            D5B498_8006C231 = false;
+            CdReadyCallback(func_80022BD0);
+        } else {
+            func_8005325C(&D5B498_CdSectorBuffer);
+            CdReadyCallback(func_80025C94);
+        }
+
+        D5B498_CurrVBlank = VSync(-1);
+        CdSyncCallback(NULL);
+        D5B498_CdErrorCount = 0;
+    } else {
+        F12D18_800256F4(C12D18_800256F4_ARG_0);
+    }
+}
 
 void F12D18_8002563C(u8 status, u8* result)
 {
