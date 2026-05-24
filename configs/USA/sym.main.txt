@@ -419,6 +419,7 @@ DecDCTBufSize               = 0x8002168C;
 F12D18_InitStage0TablesCb   = 0x80023B6C;
 F12D18_InitFolderTable      = 0x8002548C;
 F12D18_InitStage0Tables     = 0x800254FC;
+F12D18_ClearDiskError       = 0x80024DB8;
 F12D18_80024EC0             = 0x80024EC0;
 F12D18_WaitDiskSwap         = 0x80024FEC;
 F12D18_ReadSector2          = 0x80025170;

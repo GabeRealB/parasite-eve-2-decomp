@@ -211,7 +211,44 @@ INCLUDE_ASM("main/nonmatchings/12D18", func_800248B4);
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_80024A28);
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_80024DB8);
+void F12D18_ClearDiskError(void)
+{
+    u8  done;
+    s32 status;
+    u8  ctrlParam[8];
+    u8  ctrlResult[8];
+
+    done = 0;
+    do {
+        // Poll the status of the current command.
+        status = CdSync(1, NULL);
+        switch (status) {
+            case CdlNoIntr:
+                break;
+            case CdlComplete:
+                done = 1;
+                break;
+            case CdlDiskError:
+                // Wait for the command to finish and reset the operation mode.
+                CdSync(0, NULL);
+                ctrlParam[0] = 0;
+                CdControlB(CdlSetmode, ctrlParam, NULL);
+                VSync(3);
+
+                // Wait until the CD shell is closed with a valid disk.
+                do {
+                    do {
+                        CdControlB(CdlNop, NULL, ctrlResult);
+                    } while (ctrlResult[0] & CdlStatShellOpen);
+                } while (CdDiskReady(0) != CdlComplete || CdGetDiskType() != CdlCdromFormat);
+
+                // Enable double speed and sector header.
+                ctrlParam[0] = CdlModeSpeed | CdlModeSize1;
+                CdControlB(CdlSetmode, ctrlParam, NULL);
+                VSync(3);
+        }
+    } while (done == 0);
+}
 
 void F12D18_80024EC0(void)
 {
@@ -228,7 +265,7 @@ void F12D18_80024EC0(void)
         CdControlB(CdlSetmode, ctrlParamPtr, NULL);
         VSync(3);
 
-        // Wait until the CD shell is opened and closed again with a valid disk.
+        // Wait until the CD shell is closed with a valid disk.
         do {
             do {
                 CdControlB(CdlNop, NULL, ctrlResult);
