@@ -250,7 +250,66 @@ void F12D18_80024EC0(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_80024FEC);
+u8 F12D18_WaitDiskSwap(void)
+{
+    s32    status;
+    u8     ctrlParam[8];
+    u8     ctrlResult[8];
+    CdlLOC loc[2];
+
+    VSync(0);
+
+    // Wait until the CD shell is opened.
+    do {
+        CdControlB(CdlNop, NULL, ctrlResult);
+    } while ((ctrlResult[0] & CdlStatShellOpen) == 0);
+
+    // Wait until the CD shell is closed.
+    do {
+        CdControlB(CdlNop, NULL, ctrlResult);
+    } while ((ctrlResult[0] & CdlStatShellOpen) != 0);
+
+    // Wait until the CD is spinning.
+    while ((ctrlResult[0] & CdlStatStandby) == 0) {
+        CdControlB(CdlNop, NULL, ctrlResult);
+    }
+
+    // Wait until the TOC is read.
+    status = CdControlB(CdlGetTN, NULL, ctrlResult);
+    while (ctrlResult[0] != CdlStatStandby || status == CdlNoIntr) {
+        VSync(0x1e);
+        status = CdControlB(CdlGetTN, NULL, ctrlResult);
+    }
+
+    // Enable double speed.
+    ctrlParam[0] = CdlModeSpeed;
+    CdControlB(CdlSetmode, ctrlParam, NULL);
+    VSync(3);
+
+    // Read the volume descriptor (sector 16).
+    CdIntToPos(0x10, loc);
+    CdControlB(CdlReadN, &loc[0].minute, ctrlResult);
+
+    // If we encountered an error, we return -1.
+    // Apparently, the developers performed additional checks, but they all
+    // return the same value.
+    if (CdSync(0, ctrlResult) == CdlDiskError) {
+        register u8 tmp asm("v1");
+        if ((ctrlResult[0] & CdlStatError) == 0 || (tmp = ctrlResult[1], (tmp & 0x40) == 0)) {
+            return -1;
+        }
+
+        // This prevents the compiler from optimizing away the branch.
+        asm("");
+        return -1;
+    }
+
+    // Enable the sector header.
+    CdControlB(CdlPause, NULL, ctrlResult);
+    ctrlParam[0] = CdlModeSpeed | CdlModeSize1;
+    CdControlB(CdlSetmode, ctrlParam, NULL);
+    return 0;
+}
 
 void F12D18_ReadSector2(s32 sector, s32 arg1, u8* arg2, u8 arg3)
 {

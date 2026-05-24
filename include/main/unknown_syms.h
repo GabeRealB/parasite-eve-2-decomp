@@ -38,6 +38,7 @@ extern void F12D18_InitStage0TablesCb(u8 status, u8* result);
 extern void F12D18_InitFolderTable(void);
 extern void F12D18_InitStage0Tables(void);
 extern void F12D18_80024EC0(void);
+extern u8   F12D18_WaitDiskSwap(void);
 extern void F12D18_ReadSector2(s32 sector, s32 arg1, u8* arg2, u8 arg3);
 extern void F12D18_ReadSector(s32 sector);
 extern void F12D18_WaitDiskReset(s8 withSectHdr);
