@@ -28,7 +28,13 @@ void F12D18_8002252C(u8* arg0, s16 arg1)
     D5B498_8006AC9A = 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_80022598);
+void F12D18_80022598(void)
+{
+    if (D5B498_8006AC9A == 0) {
+        func_8002207C();
+        D5B498_8006AC9A = 1;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_800225D4);
 

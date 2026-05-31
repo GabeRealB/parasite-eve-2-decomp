@@ -32,10 +32,14 @@ extern void func_8002D248(GStruct0Node* node);
 // C37C.c
 extern void F0C37C_ClearD80068FA0(void);
 
+// 11E9C.c
+extern void func_8002207C(void);
+
 // 12D18.c
 extern void func_80010024(void);
 extern void F12D18_80022518(void);
 extern void F12D18_8002252C(u8* arg0, s16 arg1);
+extern void F12D18_80022598(void);
 extern void func_80022BD0(u8 status, u8* result);
 extern void F12D18_InitStage0TablesCb(u8 status, u8* result);
 extern void F12D18_InitFolderTable(void);
