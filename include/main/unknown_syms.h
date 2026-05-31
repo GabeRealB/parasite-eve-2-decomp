@@ -33,8 +33,9 @@ extern void func_8002D248(GStruct0Node* node);
 extern void F0C37C_ClearD80068FA0(void);
 
 // 12D18.c
-extern void F12D18_80022518(void);
 extern void func_80010024(void);
+extern void F12D18_80022518(void);
+extern void F12D18_8002252C(u8* arg0, s16 arg1);
 extern void func_80022BD0(u8 status, u8* result);
 extern void F12D18_InitStage0TablesCb(u8 status, u8* result);
 extern void F12D18_InitFolderTable(void);
@@ -59,6 +60,7 @@ extern void func_80025C94(u8 status, u8* result);
 extern void F16494_ResetSpuAttr(void);
 
 // 179D4.c
+extern void func_800280F4(s32);
 extern void F179D4_ClearOTag(s16 tableIdx);
 
 // 1C034.c
@@ -126,6 +128,12 @@ extern u8        D_800680A4;
 extern u32       D_800680BC;
 extern u32       D_800680C0;
 
+// 4CB64
+extern GStruct11* D4CB64_ImgBuffers;
+
+// 4F564
+extern GStruct14* D4F564_8005ED64;
+
 // 58028
 extern u8 D58028_SpuTimerEnabled;
 
@@ -139,6 +147,8 @@ extern u8            D_8007E0CC;
 // 5B498
 extern s16            D5B498_8006AC98;
 extern u16            D5B498_8006AC9A;
+extern GStruct15      D5B498_8006ACB8;
+extern s16            D5B498_8006ACC0;
 extern u8             D5B498_8006ACC8;
 extern s32            D5B498_Stage0HdrSect;
 extern s32            D5B498_SeekPos;
@@ -194,9 +204,10 @@ extern s16            D5B498_8006EBF0;
 // 5F414
 extern u_long   D5F414_OrderingTables[2 * C5F414_OTAG_ENTRIES];
 extern GStruct1 D_80070F68; // 0x80070F68 - 0x800710A0
+extern GStruct5 D_800710A8;
 
 // 61CC0
-extern GStruct5 D_800710A8;
+extern GStruct14 D61CC0_800714C0;
 
 // 648E0
 extern HeapBlockHeader*  D648E0_HeapStart;

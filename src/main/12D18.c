@@ -7,6 +7,7 @@
 #include <psyq/libgpu.h>
 
 #include "main/unknown_syms.h"
+#include "main/mem.h"
 #include "main/fs.h"
 
 void F12D18_80022518(void)
@@ -15,7 +16,17 @@ void F12D18_80022518(void)
     D_80068FA0.field_224 = 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_8002252C);
+void F12D18_8002252C(u8* arg0, s16 arg1)
+{
+    D_80068FA0.field_224    = 1;
+    D5B498_8006ACB8.field_3 = arg0[3];
+    D5B498_8006ACB8.field_2 = arg0[2];
+    D5B498_8006ACC0         = arg1;
+
+    Mem_Set(D4CB64_ImgBuffers, 0, sizeof(*D4CB64_ImgBuffers));
+    func_800280F4(1);
+    D5B498_8006AC9A = 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_80022598);
 
