@@ -33,6 +33,8 @@ extern void func_8002D248(GStruct0Node* node);
 extern void F0C37C_ClearD80068FA0(void);
 
 // 12D18.c
+extern void F12D18_80022518(void);
+extern void func_80010024(void);
 extern void func_80022BD0(u8 status, u8* result);
 extern void F12D18_InitStage0TablesCb(u8 status, u8* result);
 extern void F12D18_InitFolderTable(void);
@@ -135,9 +137,17 @@ extern GStruct0Node  D_8007A110;
 extern u8            D_8007E0CC;
 
 // 5B498
+extern s16            D5B498_8006AC98;
+extern u16            D5B498_8006AC9A;
 extern u8             D5B498_8006ACC8;
 extern s32            D5B498_Stage0HdrSect;
 extern s32            D5B498_SeekPos;
+extern u16            D5B498_8006ACD4;
+extern RECT           D5B498_ImageRect;
+extern GStruct13      D5B498_8006ACE8[0x1F];
+extern u8             D5B498_8006ADE0;
+extern u8             D5B498_8006ADE1;
+extern u8             D5B498_8006ADF4;
 extern u16            D5B498_Stage0FileSect0[0x30];
 extern u16            D5B498_Stage0FileSect5[0x40];
 extern FsCdfFileSmall D5B498_Stage0FileTable3[0x1e];
@@ -155,17 +165,29 @@ extern FsCdfFolder    D5B498_FolderTable[50];
 extern u16            D5B498_FolderTableLen;
 extern s32            D5B498_ReqCdSector;
 extern u8             D5B498_8006C228;
+extern u8*            D5B498_8006C22C;
 extern u8             D5B498_8006C230;
 extern u8             D5B498_8006C231;
+extern u8             D5B498_8006C232;
+extern u8             D5B498_8006C233;
+extern u8             D5B498_8006C234;
 extern FsSector       D5B498_CdSectorBuffer;
 extern u8*            D5B498_8006D4D8;
+extern u8             D5B498_8006D4E0[0x10];
+extern u16            D5B498_8006D748;
+extern void*          D5B498_8006D850;
 extern s32            D5B498_8006D854;
+extern u16            D5B498_8006D858;
+extern u16            D5B498_8006D85A;
 extern u8             D5B498_CdfEndFlag;
+extern u_long         D5B498_8006D870[0x460];
 extern s32            D5B498_StageSectors[FS_CDF_STAGE_COUNT];
 extern s32            D5B498_CurrVBlank;
 extern s32            D5B498_CurrCdSector;
 extern u8             D5B498_CdErrorCount;
+extern u16            D5B498_8006EA1A;
 extern FsCdfStream    D5B498_Streams[0xa];
+extern u16            D5B498_8006EBB0;
 extern SpuCommonAttr  D5B498_SpuAttr;
 extern s16            D5B498_8006EBF0;
 

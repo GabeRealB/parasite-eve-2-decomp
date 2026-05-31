@@ -416,6 +416,7 @@ DecDCTBufSize               = 0x8002168C;
 //--------------------------------------------------------------------
 //--- PA: 0x12D18   VA: 0x80022518   subsegment: c, 12D18
 //--------------------------------------------------------------------
+F12D18_80022518             = 0x80022518;
 F12D18_InitStage0TablesCb   = 0x80023B6C;
 F12D18_InitFolderTable      = 0x8002548C;
 F12D18_InitStage0Tables     = 0x800254FC;
@@ -1877,9 +1878,17 @@ StFunc2                     = 0x8006AC84;
 //--------------------------------------------------------------------
 //--- PA: 0x5B498   VA: 0x8006AC98   subsegment: bss
 //--------------------------------------------------------------------
+D5B498_8006AC98             = 0x8006AC98; // type:s16
+D5B498_8006AC9A             = 0x8006AC9A; // type:u16
 D5B498_8006ACC8             = 0x8006ACC8; // type:u8
 D5B498_Stage0HdrSect        = 0x8006ACCC; // type:s32
 D5B498_SeekPos              = 0x8006ACD0; // type:s32
+D5B498_8006ACD4             = 0x8006ACD4; // type:u16 size:0x2
+D5B498_ImageRect            = 0x8006ACD8; // type:RECT size:0x8
+D5B498_8006ACE8             = 0x8006ACE8; // type:GStruct13 size:0xF8
+D5B498_8006ADE0             = 0x8006ADE0; // type:u8
+D5B498_8006ADE1             = 0x8006ADE1; // type:u8
+D5B498_8006ADF4             = 0x8006ADF4; // type:u8
 D5B498_Stage0FileSect0      = 0x8006AE08; // type:u16 size:0x60
 D5B498_Stage0FileSect5      = 0x8006AE68; // type:u16 size:0x80
 D5B498_Stage0FileTable3     = 0x8006AEE8; // type:FsCdfFileSmall size:0x3C
@@ -1897,17 +1906,29 @@ D5B498_FolderTable          = 0x8006BFB8; // type:FsCdfFolder size:0x64
 D5B498_FolderTableLen       = 0x8006C148; // type:u16
 D5B498_ReqCdSector          = 0x8006C224; // type:s32
 D5B498_8006C228             = 0x8006C228; // type:u8
+D5B498_8006C22C             = 0x8006C22C; // type:u32
 D5B498_8006C230             = 0x8006C230; // type:u8
 D5B498_8006C231             = 0x8006C231; // type:u8
+D5B498_8006C232             = 0x8006C232; // type:u8
+D5B498_8006C233             = 0x8006C233; // type:u8
+D5B498_8006C234             = 0x8006C234; // type:u8
 D5B498_CdSectorBuffer       = 0x8006C4D8; // type:u32 size:0x800
 D5B498_8006D4D8             = 0x8006D4D8; // type:u32
+D5B498_8006D4E0             = 0x8006D4E0; // type:u8 size:0x10
+D5B498_8006D748             = 0x8006D748; // type:u16 size:0x2
+D5B498_8006D850             = 0x8006D850; // type:u32
 D5B498_8006D854             = 0x8006D854; // type:s32
+D5B498_8006D858             = 0x8006D858; // type:u16
+D5B498_8006D85A             = 0x8006D85A; // type:u16
 D5B498_CdfEndFlag           = 0x8006D86C; // type:u32
+D5B498_8006D870             = 0x8006D870; // type:u32 size:0x1180
 D5B498_StageSectors         = 0x8006E9F0; // type:s32 size:0x18
 D5B498_CurrVBlank           = 0x8006EA10; // type:s32
 D5B498_CurrCdSector         = 0x8006EA14; // type:s32
 D5B498_CdErrorCount         = 0x8006EA18; // type:u8
+D5B498_8006EA1A             = 0x8006EA1A; // type:u16
 D5B498_Streams              = 0x8006EA20; // type:FsCdfStream size:0x190
+D5B498_8006EBB0             = 0x8006EBB0; // type:u16
 D5B498_SpuAttr              = 0x8006EBC8; // type:SpuCommonAttr size:0x28
 D5B498_8006EBF0             = 0x8006EBF0; // type:s16 size:0x2
 

@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include <psyq/libapi.h>
 #include <psyq/libcd.h>
 #include <psyq/libetc.h>
 #include <psyq/libgte.h>
@@ -8,7 +9,11 @@
 #include "main/unknown_syms.h"
 #include "main/fs.h"
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_80022518);
+void F12D18_80022518(void)
+{
+    D5B498_8006AC9A      = 0;
+    D_80068FA0.field_224 = 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_8002252C);
 
