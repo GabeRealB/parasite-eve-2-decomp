@@ -36,7 +36,22 @@ void F12D18_80022598(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_800225D4);
+void F12D18_800225D4(void)
+{
+    switch (D5B498_8006AC9A) {
+        case 0:
+            break;
+        case 1:
+            if (func_8001D37C(D5B498_8006AC98)) {
+                D5B498_8006AC9A = 2;
+                D5B498_8006AC9C = 0;
+            }
+            break;
+        case 2:
+            func_8002226C(D5B498_8006ACB0, D5B498_8006ACAC);
+            break;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_8002265C);
 
