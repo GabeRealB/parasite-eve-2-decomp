@@ -110,7 +110,10 @@ void func_8004CFC8(void)
     func_8004CC58(0);
 }
 
-INCLUDE_ASM("main/nonmatchings/3D458", func_8004CFE8);
+void func_8004CFE8(void)
+{
+    func_8004CC58(1);
+}
 
 INCLUDE_ASM("main/nonmatchings/3D458", func_8004D008);
 
