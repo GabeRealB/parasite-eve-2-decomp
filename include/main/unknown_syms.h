@@ -138,6 +138,7 @@ extern s32  func_80056700(void);
 
 // 46FE4.c
 extern void func_800574BC(void);
+extern s32  func_80057BC0(void);
 
 // 4A6E0.c
 extern void func_8005BBB0(s32 arg0);
