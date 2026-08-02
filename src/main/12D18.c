@@ -602,7 +602,10 @@ void F12D18_ContinueDrawing(u_long* ot)
     ContinueDraw(NULL, ot);
 }
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_800257A4);
+u8* func_800257A4(void)
+{
+    return &D5B498_CdSectorBuffer.bytes[0x10];
+}
 
 void F12D18_800257B0(void)
 {
