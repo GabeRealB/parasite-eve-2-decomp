@@ -295,3 +295,29 @@ end:
 Error sites earlier in the function `goto on_error`; soft-error sites that
 must not share the `jal` call `F(2)` then `goto end` (or `return`). Same idea
 as `F12D18_InitStage0TablesCb`, used for `func_80022BD0`.
+
+## Empty body with a pure stack frame (`addiu sp` / `addiu sp` / `jr ra`)
+
+Some table stubs look empty but are not `jr ra; nop`. The target only allocates
+and frees a frame:
+
+```
+addiu sp, sp, -0x10
+addiu sp, sp, 0x10
+jr    ra
+ nop
+```
+
+A bare `void f(void) {}` compiles to just `jr ra` (see `func_80033C38`,
+`func_8002DEC4`). Unused automatics still force a frame under this toolchain:
+size 1–8 → `-0x8`, size 9–16 → `-0x10`. Match with an unused buffer of the
+frame size:
+
+```c
+void func_80036A1C(void)
+{
+    char pad[0x10];
+}
+```
+
+No stores are required; do not save `$ra` if the target does not.

@@ -184,7 +184,10 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_800368DC);
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80036968);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80036A1C);
+void func_80036A1C(void)
+{
+    char pad[0x10];
+}
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80036A2C);
 
