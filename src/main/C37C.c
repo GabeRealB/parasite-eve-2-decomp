@@ -41,7 +41,10 @@ INCLUDE_ASM("main/nonmatchings/C37C", func_8001D498);
 
 INCLUDE_ASM("main/nonmatchings/C37C", func_8001D4F0);
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001D524);
+s16 func_8001D524(void)
+{
+    return D_80068FA0.field_20E;
+}
 
 INCLUDE_ASM("main/nonmatchings/C37C", func_8001D534);
 

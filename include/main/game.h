@@ -104,7 +104,9 @@ typedef struct _GStruct3 {
     u16           field_1ca;
     byte          unknown_1cc[0x38];
     u16           field_204;
-    byte          unknown_206[0x1E];
+    byte          unknown_206[0x8];
+    s16           field_20E;
+    byte          unknown_210[0x14];
     u16           field_224;
     byte          unknown_226[0xE];
     s16           field_234;
