@@ -330,6 +330,9 @@ extern GStruct5 D_800710A8;
 // 61CC0
 extern GStruct14 D61CC0_800714C0;
 
+// 64880
+extern MATRIX D_80074080;
+
 // 648E0
 extern HeapBlockHeader*  D648E0_HeapStart;
 extern u8                D648E0_HeapBuffer[C3D458_HEAP_SIZE];
