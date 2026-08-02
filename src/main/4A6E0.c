@@ -18,7 +18,10 @@ INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005B6EC);
 
 INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005B78C);
 
-INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005B830);
+void func_8005B830(void)
+{
+    D_80082818.unknown_0[0] = D_80082818.unknown_0[0] | 8;
+}
 
 INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005B84C);
 
