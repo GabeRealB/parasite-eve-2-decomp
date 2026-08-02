@@ -156,7 +156,10 @@ INCLUDE_ASM("main/nonmatchings/1C034", func_8002D340);
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002D3BC);
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002D40C);
+GStruct0Node* func_8002D40C(void)
+{
+    return D_800716D8;
+}
 
 void func_8002D41C(GStruct0Node* node)
 {
