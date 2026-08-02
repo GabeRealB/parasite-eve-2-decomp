@@ -136,6 +136,7 @@ extern GStruct16* func_800509F4(void);
 extern void       func_80050A38(GStruct16* arg0);
 extern void       func_800517B4(s32 arg0);
 extern s32        func_800517F8(void);
+extern void*      func_80051850(void);
 extern s32        func_800528F0(s32 arg0, s32 arg1);
 extern void       func_8005325C(void* arg0);
 extern void       func_800532CC(void);
@@ -297,6 +298,7 @@ extern u32               D648E0_8007EBA8;
 extern u32               D648E0_8007EBAC;
 extern u32               D648E0_8007EBB0;
 extern GStruct7          D648E0_SpuReverbCfg;
+extern u8                D_8007F8E0[0x2800];
 extern volatile GStruct4 D_80082798;
 extern u8                D_80094C8C[0x2E34];
 

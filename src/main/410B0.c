@@ -82,7 +82,9 @@ INCLUDE_ASM("main/nonmatchings/410B0", func_800517F8);
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80051808);
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80051850);
+void *func_80051850(void) {
+    return D_8007F8E0;
+}
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_8005185C);
 
