@@ -17,6 +17,10 @@ CLEAN=false
 RUN=false
 THREADS=4
 
+# Small-data threshold. Must match ninja_config.py, or the permuter compiles
+# with gp-relative addressing the target does not use.
+G_OPTION="-G0"
+
 # Parse flags
 while [[ "$1" == --* || "$1" == -j ]]; do
     case "$1" in
@@ -85,8 +89,8 @@ echo "Creating compile.sh file"
     echo "cd $SCRIPT_DIR"
     echo ''
     echo 'mips-linux-gnu-cpp -P -MMD -MP -MT "$INPUT_I" -MF "$INPUT_D" -Iinclude -Iinclude/psyq -I build -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc -o "$INPUT_I" "$INPUT"'
-    echo "tools/linux/gcc-2.8.1-psx/cc1 -O2 G0 -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -o \"\$INPUT_S\" \"\$INPUT_I\""
-    echo "python3 tools/maspsx/maspsx.py --aspsx-version=2.77 --run-assembler -EL -Iinclude -Iinclude/psyq -I build -O2 $G_OPTION -march=r3000 -mtune=r3000 -no-pad-sections -o \"\$OUTPUT\" \"\$INPUT_S\""
+    echo "tools/linux/gcc-2.8.1-psx/cc1 -O2 $G_OPTION -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -o \"\$INPUT_S\" \"\$INPUT_I\""
+    echo "python3 tools/maspsx/maspsx.py --aspsx-version=2.77 --run-assembler -EL -Iinclude -Iinclude/psyq -I build -O2 $G_OPTION -march=r3000 -mtune=r3000 -no-pad-sections -o \"\$OUTPUT\" \"\$INPUT_S\" < /dev/null"
 } > permuter/$FUNCTION_NAME/compile.sh
 
 chmod +x permuter/$FUNCTION_NAME/compile.sh

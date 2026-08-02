@@ -10,3 +10,4 @@ colorama
 watchdog
 levenshtein
 cxxfilt
+toml

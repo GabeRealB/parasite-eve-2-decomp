@@ -62,7 +62,7 @@ rm -f "$CPP_OUTPUT"
 rm -f "${CPP_OUTPUT}.d"
 
 # Run maspsx
-python3 "$MASPSX" $MASPSX_FLAGS $AS_FLAGS -G0 -o "$MASPSX_OUTPUT" "$CC_OUTPUT"
+python3 "$MASPSX" $MASPSX_FLAGS $AS_FLAGS -G0 -o "$MASPSX_OUTPUT" "$CC_OUTPUT" < /dev/null
 rm -f "$CC_OUTPUT"
 
 # Generate annotated assembly

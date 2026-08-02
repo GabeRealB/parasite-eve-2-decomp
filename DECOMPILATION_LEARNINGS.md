@@ -112,6 +112,73 @@ The remaining diff will then be a single cosmetic pair — target references
 `jtbl_XXXXXXXX` where your build references its own `.rodata`. That is expected
 in the scratch environment; see the next section for the real build.
 
+**`maspsx` hangs unless stdin is closed (fixed).** `maspsx.py` prints
+`Warning, no input from stdin, will try to read from a file` and then blocks
+forever waiting on stdin if stdin is still open — so `build.sh` appears to hang
+with no output, and orphaned processes accumulate. `build.sh` now redirects
+`< /dev/null` itself. If you invoke the toolchain by hand, or run `build.sh`
+from a wrapper that keeps stdin open, redirect it yourself:
+
+```sh
+./build.sh base_1.c < /dev/null
+```
+
+## `register asm` pins
+
+Pinning a local to a hard register is the practical tool for the register
+allocation differences that remain after the expression-level ones are fixed.
+Two rules learned the hard way:
+
+- **The `register` keyword is required.** `u8* p asm("a2");` is silently
+  ignored; only `register u8* p asm("a2");` binds. An inert pin looks like a
+  working one in the source and wastes a lot of time.
+- **Pin the variable the target *disagrees* about, not the one whose register
+  looks wrong.** Diffs shift in blocks: if the whole allocation is off by one
+  register, one pin on the earliest-allocated variable can realign everything
+  downstream. Pinning the later ones individually usually makes the score worse.
+
+Diagnostic worth knowing: dropping a pin can produce the *right instruction
+form* with the *wrong register* (`andi v0,t0,0xff` where the target has
+`andi v0,t1,0xff`), while keeping the pin produces the right register with the
+wrong form (`andi t1,t1,0xff`). That means the variable is naturally allocated
+elsewhere and the conflict is upstream — not that the pin is wrong.
+
+## Fixing clusters together, not individually
+
+When a large function is close but not matching, the remaining diff usually
+splits into clusters that *look* independent. They often are not: applying the
+obvious fix to one cluster in isolation can score worse than leaving it alone,
+because it perturbs allocation everywhere else.
+
+Concretely, while matching `F12D18_InitStage0TablesCb` the fix for one cluster
+(a value being reloaded rather than cached) scored worse every time it was
+applied alone — and then became unnecessary, because an unrelated change
+elsewhere (hoisting an assignment above a test) made the cluster disappear on
+its own. Treat a stubborn multi-cluster diff as one coupled problem and let
+`permute.sh` search it rather than hand-fixing cluster by cluster.
+
+## Running the permuter
+
+`./permute.sh --clean -j <N> <fn> <asm-path> <c-path>` sets up
+`permuter/<fn>/`, then run it with the project venv (the permuter needs `toml`,
+which is in `requirements.txt`):
+
+```sh
+./venv/bin/python tools/decomp-permuter/permuter.py \
+  -j 12 --better-only --stop-on-zero --algorithm levenshtein permuter/<fn>/
+```
+
+Check the reported `base score = N` against `dist.py`'s difference count for the
+same file — if they disagree, the generated `compile.sh` is not compiling the
+way `build.sh` does and the search is worthless.
+
+Improvements land in `permuter/<fn>/output-<score>-<n>/source.c`, as the whole
+preprocessed file reformatted by pycparser. Diff only the function against the
+same slice of `permuter/<fn>/base.c` (`awk '/^<rettype> <fn>/,0'`) or the
+reformatting drowns the real change. Reproduce the change in your own `base_N.c`
+and re-measure before trusting it, then reseed the permuter from the improved
+file — it searches from a fixed base and will not compound its own finds.
+
 ## Compiler-generated jump tables
 
 A switch that compiles to a jump table means the extracted `jtbl_XXXXXXXX` in
