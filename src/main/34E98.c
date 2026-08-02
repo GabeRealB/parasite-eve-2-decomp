@@ -94,7 +94,10 @@ INCLUDE_ASM("main/nonmatchings/34E98", func_80048F88);
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80049024);
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_800490A4);
+void func_800490A4(void* arg0, void* arg1)
+{
+    func_80048560(arg0, arg1, 0, 0);
+}
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_800490C8);
 

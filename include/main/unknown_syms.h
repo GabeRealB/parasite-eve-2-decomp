@@ -112,6 +112,7 @@ extern void func_80030074(void);
 
 // 34E98.c
 extern void func_80046EEC(void* arg0, void* arg1, s32 arg2);
+extern void func_80048560(void* arg0, void* arg1, s32 arg2, s32 arg3);
 extern void func_800488F8(GStruct0* arg0);
 extern void func_80048C10(void* arg0, void* arg1);
 
