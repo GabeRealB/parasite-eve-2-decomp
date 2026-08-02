@@ -235,6 +235,9 @@ extern u8 D58028_SpuTimerEnabled;
 
 // .bss
 
+// 5B3FC
+extern u16 D_8006AC04;
+
 extern GStruct0Node* D_800716D8;
 extern GStruct0Node  D_800716E0;
 extern GStruct0Node  D_8007A110;
