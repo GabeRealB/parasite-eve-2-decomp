@@ -1,5 +1,8 @@
 #include "common.h"
 
+#include "main/game.h"
+#include "main/unknown_syms.h"
+
 INCLUDE_ASM("main/nonmatchings/2F244", func_8003EA44);
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_8003EC44);
@@ -74,7 +77,10 @@ INCLUDE_ASM("main/nonmatchings/2F244", func_800408F4);
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_80040904);
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_800409B0);
+void func_800409B0(GStruct0* arg0)
+{
+    func_8002D0A4(arg0);
+}
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_800409D0);
 
