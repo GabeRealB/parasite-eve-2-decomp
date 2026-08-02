@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include <psyq/libcd.h>
 #include <psyq/libspu.h>
 
 #include "main/unknown_syms.h"
@@ -36,7 +37,30 @@ void F16494_ResetSpuAttr(void)
     D5B498_8006EBF0 = 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/16494", func_800260B0);
+void func_800260B0(s32 arg0)
+{
+    CdlATV atv;
+    s32 flag;
+
+    D_8006EBBA = arg0 & 1;
+    flag = D_8006EBBA;
+    func_800517B4(func_800517F8() & 0xFF);
+    flag = (u8)flag;
+    func_80055DFC(func_80055EE8());
+    func_8005BBB0(flag ^ 1);
+    if (flag == 0) {
+        atv.val0 = 0x5A;
+        atv.val1 = 0x5A;
+        atv.val2 = 0x5A;
+        atv.val3 = 0x5A;
+    } else {
+        atv.val0 = 0x78;
+        atv.val1 = 0;
+        atv.val2 = 0x78;
+        atv.val3 = 0;
+    }
+    CdMix(&atv);
+}
 
 INCLUDE_ASM("main/nonmatchings/16494", func_80026138);
 

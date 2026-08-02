@@ -75,6 +75,29 @@ A local `GStruct1*` would force a callee-saved register and a larger stack
 frame for no benefit. Use the pointer only when the address is live across
 calls.
 
+## Store-then-reload for prologue scheduling
+
+When the target opens with `lui %hi(global)` *before* the first `sw $s0` of the
+prologue, assigning into a local and then storing is usually wrong:
+
+```c
+/* Wrong schedule: andi into $s0, then later lui */
+flag = arg0 & 1;
+D_8006EBBA = flag;
+```
+
+Force the address load first by writing the expression into the global and
+reloading it for the rest of the function (`func_800260B0`):
+
+```c
+/* Matches: lui of D_8006EBBA, then sw $s0 / andi $s0 */
+D_8006EBBA = arg0 & 1;
+flag = D_8006EBBA;
+```
+
+CSE still reuses the masked value for later uses after the reload is combined,
+but the early store pulls the `lui` ahead of the callee-saved saves.
+
 ## Finding which pass causes a mismatch
 
 Rather than guessing at C-level rewrites, dump the RTL and find the pass that

@@ -71,6 +71,7 @@ extern void F12D18_StopCd(void);
 // 16494.c
 extern void func_80025C94(u8 status, u8* result);
 extern void F16494_ResetSpuAttr(void);
+extern void func_800260B0(s32 arg0);
 
 // 179D4.c
 extern void func_80027498(void);
@@ -119,15 +120,22 @@ extern bool F3E48C_ReverbVoiceIsEnabled(u32 voiceIdx);
 extern void F3E48C_ApplyReverbConfig(void);
 
 // 410B0.c
+extern void func_800517B4(s32 arg0);
+extern s32  func_800517F8(void);
 extern void func_8005325C(void* arg0);
 extern void func_800532CC(void);
 
 // 43FFC.c
 extern void func_80053FA0(s32 arg0);
+extern void func_80055DFC(s8 arg0);
+extern s8   func_80055EE8(void);
 extern s32  func_80056700(void);
 
 // 46FE4.c
 extern void func_800574BC(void);
+
+// 4A6E0.c
+extern void func_8005BBB0(s32 arg0);
 
 // Other
 extern u32  func_8001F180(u32);
@@ -237,6 +245,7 @@ extern u8             D5B498_CdErrorCount;
 extern u16            D5B498_8006EA1A;
 extern FsCdfStream    D5B498_Streams[0xa];
 extern u16            D5B498_8006EBB0;
+extern s8             D_8006EBBA;
 extern SpuCommonAttr  D5B498_SpuAttr;
 extern s16            D5B498_8006EBF0;
 
