@@ -185,7 +185,10 @@ s32 func_800528F0(s32 arg0, s32 arg1)
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_800528F8);
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_800529BC);
+u8* func_800529BC(s32 arg0, u8* arg1, GStruct22* arg2) {
+    arg2->field_484[arg0 & 0xF].field_4 = arg1[1];
+    return arg1 + 2;
+}
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_800529D8);
 

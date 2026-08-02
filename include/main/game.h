@@ -282,6 +282,25 @@ typedef struct _GStruct21 {
     /* 0x28 */ s32  field_28;
 } GStruct21;
 
+/// 8-byte slot at GStruct22::field_484 (16 entries, indexed by opcode low nibble).
+typedef struct _GStruct22Entry {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ u8  field_2;
+    /* 0x3 */ u8  field_3;
+    /* 0x4 */ u8  field_4;
+    /* 0x5 */ u8  field_5;
+    /* 0x6 */ s16 field_6;
+} GStruct22Entry;
+STATIC_ASSERT_SIZEOF(GStruct22Entry, 0x8);
+
+/// Large context object used by 410B0.c opcode handlers (e.g. func_800529BC).
+/// Only fields used so far are named; size is incomplete.
+typedef struct _GStruct22 {
+    /* 0x000 */ byte           unknown_0[0x484];
+    /* 0x484 */ GStruct22Entry field_484[16];
+} GStruct22;
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 
