@@ -98,4 +98,7 @@ void GameMain(void)
     func_8002785C();
 }
 
-INCLUDE_ASM("main/nonmatchings/179D4", func_80028404);
+u32 func_80028404(void)
+{
+    return D_8005EC64;
+}
