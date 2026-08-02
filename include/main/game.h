@@ -200,9 +200,11 @@ STATIC_ASSERT_SIZEOF(GStruct15, 0x4);
 
 /// 0x1C-byte slot allocated from D_8007EBF0 (see func_800509F4 / func_80050A38).
 typedef struct _GStruct16 {
-    s16              field_0;
-    s16              field_2;
-    byte             unknown_4[0x10];
+    s16                field_0;
+    s16                field_2;
+    byte               unknown_4[0x4];
+    s32                field_8;
+    byte               unknown_C[0x8];
     struct _GStruct16* field_14;
     struct _GStruct16* field_18;
 } GStruct16;
