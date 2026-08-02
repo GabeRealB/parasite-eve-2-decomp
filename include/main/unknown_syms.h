@@ -79,8 +79,10 @@ extern void func_800281D4(void);
 extern void F179D4_ClearOTag(s16 tableIdx);
 
 // 1C034.c
+extern void      func_8002BB9C(void);
 extern void      func_8002BE0C(GStruct0* arg0);
 extern void      func_8002CCB8(GStruct0* arg0);
+extern void      func_8002CFA0(void* arg0, s32 arg1, s32 arg2, s32 arg3);
 extern void      func_8002CFDC(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 extern void      func_8002D248(GStruct0Node* node);
 extern void      func_8002D25C(GStruct0Node* node);
@@ -89,6 +91,12 @@ extern GStruct2* func_8002D32C(GStruct2* base, u32 idx);
 extern void      func_8002D428(void);
 extern void      func_8002D444(GStruct0* state);
 extern void      func_8002D474(GStruct0* state);
+
+// 1E6C4.c
+extern void func_8002F98C(GStruct0* arg0);
+
+// 201E0.c
+extern void func_80030074(void);
 
 // 3D458.c
 extern void  func_8004CFE8(void);
@@ -252,5 +260,6 @@ extern u32               D648E0_8007EBAC;
 extern u32               D648E0_8007EBB0;
 extern GStruct7          D648E0_SpuReverbCfg;
 extern volatile GStruct4 D_80082798;
+extern u8                D_80094C8C[0x2E34];
 
 #endif // UNKNOWN_SYMS_H
