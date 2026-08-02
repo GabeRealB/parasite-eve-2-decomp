@@ -20,7 +20,9 @@ INCLUDE_ASM("main/nonmatchings/410B0", func_80050AB4);
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80050AE0);
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80050B0C);
+void func_80050B0C(GStruct16* arg0) {
+    func_8005166C(arg0->unknown_4[0], 1);
+}
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80050B30);
 
