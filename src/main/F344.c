@@ -32,7 +32,10 @@ INCLUDE_ASM("main/nonmatchings/F344", func_80020278);
 
 INCLUDE_ASM("main/nonmatchings/F344", func_80020298);
 
-INCLUDE_ASM("main/nonmatchings/F344", func_80020388);
+void func_80020388(void)
+{
+    D_8006AC28 = 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/F344", func_80020394);
 

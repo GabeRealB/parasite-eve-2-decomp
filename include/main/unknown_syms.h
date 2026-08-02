@@ -163,9 +163,13 @@ extern s32  func_80057BC0(void);
 // 4A6E0.c
 extern void func_8005BBB0(s32 arg0);
 
-// Other
+// F344.c
+extern s16  D_8006AC28;
+extern void func_80020388(void);
 extern u32  func_8001F180(u32);
 extern void func_8002043C(u32 arg0);
+
+// Other
 extern void func_800271D4(void);
 extern void func_80028664(void);
 extern void func_8002785C(void);
