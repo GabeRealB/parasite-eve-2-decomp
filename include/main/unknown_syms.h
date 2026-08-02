@@ -25,6 +25,7 @@ extern void F04CF8_800148A0(void);
 extern void F04CF8_800148EC(void);
 extern void F04CF8_80014A50(void);
 extern void F04CF8_80014A98(s32 mode);
+extern void func_80014C2C(void);
 extern bool F04CF8_StageCdfIsAvailable(u32 stageIdx);
 
 // E734.c
@@ -40,6 +41,7 @@ extern void func_8001CEFC(void);
 extern u16  func_8001D344(void);
 extern u16  func_8001D37C(s16 arg0);
 extern void func_8001D588(void);
+extern void func_8001DB84(void);
 extern void F0C37C_ClearD80068FA0(void);
 
 // 11E9C.c

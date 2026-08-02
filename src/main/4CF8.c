@@ -58,7 +58,10 @@ void F04CF8_80014A98(s32 mode)
 
 INCLUDE_ASM("main/nonmatchings/4CF8", func_80014B38);
 
-INCLUDE_ASM("main/nonmatchings/4CF8", func_80014C2C);
+void func_80014C2C(void)
+{
+    func_8001DB84();
+}
 
 bool F04CF8_StageCdfIsAvailable(u32 stageIdx)
 {
