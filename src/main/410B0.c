@@ -32,7 +32,12 @@ INCLUDE_ASM("main/nonmatchings/410B0", func_80050B54);
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80050B80);
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80050BBC);
+void func_80050BBC(GStruct16* arg0) {
+    GStruct16From4* temp;
+
+    temp = (GStruct16From4*)&arg0->field_4;
+    func_800546F4(temp->field_4, temp->field_2);
+}
 
 void func_80050BE8(GStruct16* arg0) {
     func_800559BC(arg0->field_8, 1);
