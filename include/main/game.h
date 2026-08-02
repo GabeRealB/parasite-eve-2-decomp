@@ -44,7 +44,9 @@ typedef struct _GStruct0 {
     u8                field_28;
     byte              unknown_29;
     s16               field_2a;
-    byte              unknown_2c[0x1c];
+    byte              unknown_2c[4];
+    s32               field_30;
+    byte              unknown_34[0x14];
 } GStruct0;
 STATIC_ASSERT_SIZEOF(GStruct0, 0x48);
 
@@ -271,6 +273,14 @@ typedef struct _GStruct20 {
     /* 0x22 */ s16  field_22;
 } GStruct20;
 STATIC_ASSERT_SIZEOF(GStruct20, 0x24);
+
+/// Second argument to memcard/save state handlers in 21FDC.c (e.g. func_80035AD4).
+/// Larger object; only fields used so far are named.
+typedef struct _GStruct21 {
+    /* 0x00 */ byte unknown_0[0x24];
+    /* 0x24 */ s32  field_24;
+    /* 0x28 */ s32  field_28;
+} GStruct21;
 
 /// Pointer to the start of the game heap.
 extern u8* GHeap;

@@ -154,7 +154,12 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_800359A4);
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80035A94);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80035AD4);
+void func_80035AD4(GStruct0* arg0, GStruct21* arg1)
+{
+    arg1->field_24 = 9;
+    arg1->field_28 = -1;
+    arg0->field_30 = 7;
+}
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80035AF0);
 
