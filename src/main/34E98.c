@@ -104,7 +104,10 @@ void func_800490C8(void* arg0, void* arg1)
     func_80048560(arg0, arg1, 0x20, 0);
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_800490EC);
+s32 func_800490EC(GStruct0* arg0)
+{
+    return (s32)arg0->field_8 >= 4;
+}
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80049100);
 
