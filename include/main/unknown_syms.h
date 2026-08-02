@@ -170,6 +170,7 @@ extern s32  func_80056700(void);
 
 // 46FE4.c
 extern void func_800574BC(void);
+extern u8   func_80057554(void);
 extern s32  func_80057BC0(void);
 
 // 4A6E0.c
@@ -321,6 +322,7 @@ extern u32               D648E0_8007EBB0;
 extern GStruct7          D648E0_SpuReverbCfg;
 extern u8                D_8007F8E0[0x2800];
 extern volatile GStruct4 D_80082798;
+extern u8                D_800827A0;
 extern u8                D_80094C8C[0x2E34];
 
 #endif // UNKNOWN_SYMS_H

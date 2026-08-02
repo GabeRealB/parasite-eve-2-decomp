@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "main/unknown_syms.h"
+
 INCLUDE_ASM("main/nonmatchings/46FE4", func_800567E4);
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_800569D4);
@@ -12,7 +14,10 @@ INCLUDE_ASM("main/nonmatchings/46FE4", func_800572FC);
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_800574BC);
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_80057554);
+u8 func_80057554(void)
+{
+    return D_800827A0;
+}
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_80057564);
 
