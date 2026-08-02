@@ -66,6 +66,15 @@ Note the target may still use `%lo(sym)($sN)` for the field at offset 0 while
 using `off($s0)` for the rest; that falls out of CSE on its own and is not a
 sign that a second expression is needed.
 
+**Inverse — skip the local pointer when all accesses are pre-call.** If every
+read/write of the global happens *before* any `jal`, a bare `D_80070F68.field`
+name matches fine: GCC loads the address into a temporary (`$v1`) once and
+never needs to reload it. `func_8002BE0C` is an example — it reads
+`field_101`, optionally writes `field_10b`, then only calls other functions.
+A local `GStruct1*` would force a callee-saved register and a larger stack
+frame for no benefit. Use the pointer only when the address is live across
+calls.
+
 ## Finding which pass causes a mismatch
 
 Rather than guessing at C-level rewrites, dump the RTL and find the pass that
