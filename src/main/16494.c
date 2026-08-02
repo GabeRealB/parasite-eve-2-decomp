@@ -70,7 +70,11 @@ INCLUDE_ASM("main/nonmatchings/16494", func_80026178);
 
 INCLUDE_ASM("main/nonmatchings/16494", func_800261C8);
 
-INCLUDE_ASM("main/nonmatchings/16494", func_800261D4);
+s32 func_800261D4(void)
+{
+    CdFlush();
+    return 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/16494", func_800261F4);
 
