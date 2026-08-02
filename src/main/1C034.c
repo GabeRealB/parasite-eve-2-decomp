@@ -50,7 +50,13 @@ INCLUDE_ASM("main/nonmatchings/1C034", func_8002BF58);
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002BFD4);
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002BFE0);
+void func_8002BFE0(GStruct0* arg0)
+{
+    if (func_8001D344() != 0) {
+        func_8002CFDC(0, 0x11, 1, 0);
+        func_8002CCB8(arg0);
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002C028);
 
