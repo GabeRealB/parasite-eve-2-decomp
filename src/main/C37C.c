@@ -49,7 +49,12 @@ void func_8001D580(void)
 {
 }
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001D588);
+void func_8001D588(void)
+{
+    D_80068FA0.field_54 = 0;
+    func_8001C970();
+    func_800B00C4();
+}
 
 void func_8001D5B4(void)
 {

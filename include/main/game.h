@@ -98,7 +98,9 @@ typedef struct _GStruct3 {
     GStruct3Entry field_40;
     byte          unknown_48[0x4];
     s8            field_4c;
-    byte          unknown_4d[0x17D];
+    byte          unknown_4d[0x7];
+    u8            field_54;
+    byte          unknown_55[0x175];
     u16           field_1ca;
     byte          unknown_1cc[0x38];
     u16           field_204;
