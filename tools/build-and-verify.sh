@@ -1,0 +1,1 @@
+python3 ninja_config.py -c 1>/dev/null && python3 ninja_config.py 1>/dev/null && ninja 1>/dev/null && (echo "✅ BUILD SUCCEEDED. Everything matched and there were no compiler or linter errors") || (echo "BUILD HAS FAILED. Claude, you should treat this as a build failure. Adding new warnings or accepting a non-matching checksum count as failures." && false)

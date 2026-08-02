@@ -4,3 +4,9 @@ pycparser
 pyelftools
 ninja
 ninja_syntax
+pycparser~=2.21
+numpy
+colorama
+watchdog
+levenshtein
+cxxfilt
