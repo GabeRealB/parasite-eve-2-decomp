@@ -10,7 +10,13 @@ INCLUDE_ASM("main/nonmatchings/1C034", func_8002BA9C);
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002BB9C);
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002BBC8);
+void func_8002BBC8(void)
+{
+    func_8002D428();
+    func_80028718();
+    Mem_Init();
+    func_8002CFDC(0, 9, 0, 0);
+}
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002BC0C);
 

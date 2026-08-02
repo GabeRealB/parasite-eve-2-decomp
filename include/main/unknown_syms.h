@@ -80,6 +80,7 @@ extern void F179D4_ClearOTag(s16 tableIdx);
 
 // 1C034.c
 extern void      func_8002BB9C(void);
+extern void      func_8002BBC8(void);
 extern void      func_8002BE0C(GStruct0* arg0);
 extern void      func_8002CCB8(GStruct0* arg0);
 extern void      func_8002CFA0(void* arg0, s32 arg1, s32 arg2, s32 arg3);
