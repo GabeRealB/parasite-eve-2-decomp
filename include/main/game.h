@@ -205,10 +205,22 @@ typedef struct _GStruct15 {
 STATIC_ASSERT_SIZEOF(GStruct15, 0x4);
 
 /// 0x1C-byte slot allocated from D_8007EBF0 (see func_800509F4 / func_80050A38).
+/// Overlay of `GStruct16` starting at offset 0x4 (`field_4` / `field_8`).
+/// Used when the compiler keeps `arg + 4` in a callee-saved register.
+typedef struct _GStruct16From4 {
+    u8  field_0;
+    u8  field_1;
+    u8  unknown_2[2];
+    s32 field_4;
+} GStruct16From4;
+STATIC_ASSERT_SIZEOF(GStruct16From4, 0x8);
+
 typedef struct _GStruct16 {
     s16                field_0;
     s16                field_2;
-    byte               unknown_4[0x4];
+    u8                 field_4;
+    u8                 field_5;
+    u8                 unknown_6[2];
     s32                field_8;
     byte               unknown_C[0x8];
     struct _GStruct16* field_14;

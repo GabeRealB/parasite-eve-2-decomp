@@ -21,11 +21,11 @@ INCLUDE_ASM("main/nonmatchings/410B0", func_80050AB4);
 INCLUDE_ASM("main/nonmatchings/410B0", func_80050AE0);
 
 void func_80050B0C(GStruct16* arg0) {
-    func_8005166C(arg0->unknown_4[0], 1);
+    func_8005166C(arg0->field_4, 1);
 }
 
 void func_80050B30(GStruct16* arg0) {
-    func_8005166C(arg0->unknown_4[0], 0);
+    func_8005166C(arg0->field_4, 0);
 }
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80050B54);
@@ -44,7 +44,16 @@ void func_80050C0C(GStruct16* arg0) {
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80050C30);
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80050C80);
+void func_80050C80(GStruct16* arg0) {
+    s32 temp_v0;
+    GStruct16From4* temp_s0;
+
+    temp_s0 = (GStruct16From4*)&arg0->field_4;
+    temp_v0 = func_80055DAC(temp_s0->field_4);
+    if (temp_v0 >= 0) {
+        func_80055B70(temp_v0, temp_s0->field_1);
+    }
+}
 
 void func_80050CC0(void) {
     func_80055C00();
@@ -79,7 +88,7 @@ s32 func_800513A0(s32 arg0) {
         return -2;
     }
     temp->field_2 = 3;
-    temp->unknown_4[0] = arg0;
+    temp->field_4 = arg0;
     func_80050A38(temp);
     return 0;
 }
@@ -95,7 +104,7 @@ s32 func_80051400(s32 arg0) {
         return -2;
     }
     temp->field_2 = 4;
-    temp->unknown_4[0] = arg0;
+    temp->field_4 = arg0;
     func_80050A38(temp);
     return 0;
 }

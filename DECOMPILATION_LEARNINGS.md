@@ -344,3 +344,29 @@ void func_80036A1C(void)
 ```
 
 No stores are required; do not save `$ra` if the target does not.
+
+## Mid-struct pointer for `addiu sN, a0, N`
+
+When the target keeps `arg + N` in a callee-saved register and then loads
+relative to that base (`lw a0, 4(s0)` / `lbu a1, 1(s0)` for fields at
+`arg+N+4` and `arg+N+1`), plain field access from the full struct base yields
+`move s0, a0` plus larger offsets instead — same semantics, wrong codegen.
+
+Symptom: only the base register and field offsets differ (e.g. `s0 = a0`
+vs `s0 = a0 + 4`, `lw 8(s0)` vs `lw 4(s0)`).
+
+Fix: take a local pointer to a typed overlay of the struct starting at offset
+`N`, and access fields through that pointer. `func_80050C80` does this with
+`GStruct16From4` overlaid at `&arg0->field_4`:
+
+```c
+GStruct16From4* mid = (GStruct16From4*)&arg0->field_4;
+temp = func_80055DAC(mid->field_4); /* was arg0->field_8 */
+if (temp >= 0) {
+    func_80055B70(temp, mid->field_1); /* was arg0->field_5 */
+}
+```
+
+Sibling helpers that only touch one field (`arg0->field_8`) do not need this;
+use it when the target rebased the pointer and multiple fields are relative to
+that new base.
