@@ -140,6 +140,7 @@ extern GStruct16* func_800509F4(void);
 extern void       func_80050A38(GStruct16* arg0);
 extern void       func_80050B0C(GStruct16* arg0);
 extern void       func_80050B30(GStruct16* arg0);
+extern void       func_80050BE8(GStruct16* arg0);
 extern void       func_80050C0C(GStruct16* arg0);
 extern void       func_8005166C(u8 arg0, s32 arg1);
 extern void       func_800517B4(s32 arg0);
