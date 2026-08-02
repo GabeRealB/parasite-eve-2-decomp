@@ -75,6 +75,23 @@ A local `GStruct1*` would force a callee-saved register and a larger stack
 frame for no benefit. Use the pointer only when the address is live across
 calls.
 
+## `~x != 0` for `nor` + `sltu` (not `x != -1`)
+
+When the target does:
+
+```
+nor  v0, zero, v0
+sltu v0, zero, v0
+```
+
+write `return ~x != 0;` (or the same expression in a larger return). That is
+semantically `x != -1`, but `x != -1` often compiles to a different compare
+sequence. `func_8005462C` is a one-liner that only matches with the `~` form:
+
+```c
+return ~func_80055DAC(func_80053F00()) != 0;
+```
+
 ## Store-then-reload for prologue scheduling
 
 When the target opens with `lui %hi(global)` *before* the first `sw $s0` of the
