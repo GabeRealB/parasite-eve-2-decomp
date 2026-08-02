@@ -62,7 +62,10 @@ void func_800260B0(s32 arg0)
     CdMix(&atv);
 }
 
-INCLUDE_ASM("main/nonmatchings/16494", func_80026138);
+u8 func_80026138(void)
+{
+    return D_8006EBBA;
+}
 
 INCLUDE_ASM("main/nonmatchings/16494", func_80026148);
 
