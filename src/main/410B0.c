@@ -16,7 +16,9 @@ void func_80050AAC(void)
 {
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80050AB4);
+void func_80050AB4(GStruct16* arg0) {
+    func_80050E3C(arg0->field_4, arg0->field_6);
+}
 
 void func_80050AE0(GStruct16* arg0) {
     func_800515C0(arg0->field_4, arg0->field_6);
