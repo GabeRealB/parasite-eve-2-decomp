@@ -49,7 +49,16 @@ s32 func_8005462C(void)
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80054658);
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_8005468C);
+void func_8005468C(void)
+{
+    GStruct16* temp;
+
+    temp = func_800509F4();
+    if (temp != NULL) {
+        temp->field_2 = 0xE;
+        func_80050A38(temp);
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_800546C0);
 

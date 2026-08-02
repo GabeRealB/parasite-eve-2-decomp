@@ -123,16 +123,19 @@ extern bool F3E48C_ReverbVoiceIsEnabled(u32 voiceIdx);
 extern void F3E48C_ApplyReverbConfig(void);
 
 // 410B0.c
-extern void func_800517B4(s32 arg0);
-extern s32  func_800517F8(void);
-extern s32  func_800528F0(s32 arg0, s32 arg1);
-extern void func_8005325C(void* arg0);
-extern void func_800532CC(void);
+extern GStruct16* func_800509F4(void);
+extern void       func_80050A38(GStruct16* arg0);
+extern void       func_800517B4(s32 arg0);
+extern s32        func_800517F8(void);
+extern s32        func_800528F0(s32 arg0, s32 arg1);
+extern void       func_8005325C(void* arg0);
+extern void       func_800532CC(void);
 
 // 43FFC.c
 extern s32  func_80053F00(void);
 extern void func_80053FA0(s32 arg0);
 extern s32  func_8005462C(void);
+extern void func_8005468C(void);
 extern s32  func_80055DAC(s32 arg0);
 extern void func_80055DFC(s8 arg0);
 extern s8   func_80055EE8(void);
