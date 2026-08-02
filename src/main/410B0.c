@@ -10,7 +10,13 @@ INCLUDE_ASM("main/nonmatchings/410B0", func_800509F4);
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80050A38);
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80050A90);
+void func_80050A90(GStruct16* arg0) {
+    if (arg0 != NULL) {
+        arg0->field_0 = 0;
+        arg0->field_14 = NULL;
+        arg0->field_18 = NULL;
+    }
+}
 
 void func_80050AAC(void)
 {

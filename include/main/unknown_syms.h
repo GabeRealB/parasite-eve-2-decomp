@@ -142,6 +142,7 @@ extern void F3E48C_ApplyReverbConfig(void);
 // 410B0.c
 extern GStruct16* func_800509F4(void);
 extern void       func_80050A38(GStruct16* arg0);
+extern void       func_80050A90(GStruct16* arg0);
 extern void       func_80050AB4(GStruct16* arg0);
 extern void       func_80050AE0(GStruct16* arg0);
 extern void       func_80050E3C(u8 arg0, u16 arg1);
