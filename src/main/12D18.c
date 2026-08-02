@@ -81,15 +81,15 @@ void F12D18_InitStage0TablesCb(u8 status, u8* result)
     u32         fileCategory;
     register u8 isValidCategory asm("t1") = false;
 
-    u32          i;
-    u32          tableLen;
+    register u32 i asm("a0");
     u32*         entry;
-    u8*          entryBytes asm("a2");
-    register u32 entryValue asm("a3");
+    u8*          entryBytes;
+    u32          entryValue;
 
     u8* streamCpyPos;
 
     FsSector*    sectorBuffer;
+    u32*         words;
     FsCdfStream* streamTable;
     u32*         fileSect90;
     u16*         fileSect5;
@@ -135,13 +135,14 @@ sector_start:
         if ((u16)headerOffset >= FS_SECTOR_WORD_SIZE)
             return;
 
-        entry      = &sectorBuffer->words[headerOffset];
+        entry      = &sectorBuffer->words[(u16)headerOffset];
         entryValue = *entry;
-        if (entryValue == FS_CDF_STAGE0_CANARY) {
+        fileId     = entryValue;
+        if (fileId == FS_CDF_STAGE0_CANARY) {
             goto table_end;
         }
 
-        if ((s32)entryValue < 0) {
+        if ((s32)fileId < 0) {
             *entry    &= 0x7fffffff;
             entryBytes = (u8*)entry;
 
@@ -222,7 +223,8 @@ sector_start:
             }
 
             if (!isValidCategory) {
-                if (sectorBuffer->words[(u16)headerOffset] / 100000 != 0) {
+                words = sectorBuffer->words;
+                if (words[(u16)headerOffset] / 100000 != 0) {
                     i = D5B498_Stage0FileTableLen;
                     D5B498_Stage0FileTableLen++;
 
