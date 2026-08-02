@@ -128,7 +128,10 @@ extern void func_8005325C(void* arg0);
 extern void func_800532CC(void);
 
 // 43FFC.c
+extern s32  func_80053F00(void);
 extern void func_80053FA0(s32 arg0);
+extern s32  func_8005462C(void);
+extern s32  func_80055DAC(s32 arg0);
 extern void func_80055DFC(s8 arg0);
 extern s8   func_80055EE8(void);
 extern s32  func_80056700(void);
