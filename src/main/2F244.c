@@ -48,7 +48,10 @@ INCLUDE_ASM("main/nonmatchings/2F244", func_8003FB20);
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_8003FB70);
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8003FC18);
+u8 func_8003FC18(void)
+{
+    return D_80062698->field_12;
+}
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_8003FC30);
 
