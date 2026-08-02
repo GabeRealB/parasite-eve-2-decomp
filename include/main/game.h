@@ -259,6 +259,17 @@ typedef struct _GStruct19 {
 } GStruct19;
 STATIC_ASSERT_SIZEOF(GStruct19, 0x58);
 
+/// Object passed to func_80048C10 / func_80048D58 (e.g. via GStruct0::field_20).
+typedef struct _GStruct20 {
+    /* 0x00 */ s32  field_0;
+    /* 0x04 */ byte unknown_4[0x18];
+    /* 0x1C */ s16  field_1c;
+    /* 0x1E */ s16  unknown_1e;
+    /* 0x20 */ s16  field_20;
+    /* 0x22 */ s16  field_22;
+} GStruct20;
+STATIC_ASSERT_SIZEOF(GStruct20, 0x24);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 

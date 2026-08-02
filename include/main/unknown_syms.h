@@ -118,6 +118,7 @@ extern void func_80048560(void* arg0, void* arg1, s32 arg2, s32 arg3);
 extern void func_800488B8(GStruct0* arg0);
 extern void func_800488F8(GStruct0* arg0);
 extern void func_80048C10(void* arg0, void* arg1);
+extern void func_80048D58(void* arg0, s32 arg1, s32 arg2);
 
 // 3D458.c
 extern void  func_8004CFE8(void);

@@ -189,7 +189,13 @@ void func_80036A1C(void)
     char pad[0x10];
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80036A2C);
+void func_80036A2C(void* arg0, GStruct20* arg1)
+{
+    func_80048C10(arg0, arg1);
+    if (arg1->field_0 == 1) {
+        func_80048D58(arg1, arg1->field_1c + 2, 0);
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80036A70);
 
