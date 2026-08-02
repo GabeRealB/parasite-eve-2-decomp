@@ -320,6 +320,7 @@ extern u32               D648E0_8007EBA8;
 extern u32               D648E0_8007EBAC;
 extern u32               D648E0_8007EBB0;
 extern GStruct7          D648E0_SpuReverbCfg;
+extern u8                D_8007F2F0;
 extern u8                D_8007F8E0[0x2800];
 extern volatile GStruct4 D_80082798;
 extern u8                D_800827A0;
