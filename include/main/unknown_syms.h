@@ -161,6 +161,7 @@ extern void func_800574BC(void);
 extern s32  func_80057BC0(void);
 
 // 4A6E0.c
+extern void func_8005B830(void);
 extern void func_8005BBB0(s32 arg0);
 
 // F344.c
@@ -204,6 +205,7 @@ extern void*        D_800626A8;
 extern u8           D_800680A4;
 extern u32          D_800680BC;
 extern u32          D_800680C0;
+extern u8           D_80068B5C;
 
 // 4CB64
 extern GStruct11* D4CB64_ImgBuffers;

@@ -1,5 +1,9 @@
 #include "common.h"
 
+#include <psyq/libspu.h>
+
+#include "main/unknown_syms.h"
+
 INCLUDE_ASM("main/nonmatchings/4A6E0", func_80059EE0);
 
 INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005A94C);
@@ -40,7 +44,23 @@ s32 func_8005BC28(void)
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005BC48);
+void func_8005BC48(s32 arg0, u32 arg1)
+{
+    if (arg0 == 1) {
+        if (D_80068B5C != 0) {
+            SpuSetIRQ(0);
+            SpuSetIRQCallback(0);
+        }
+        D_80068B5C = arg0;
+        SpuSetIRQCallback(func_8005B830);
+        SpuSetIRQAddr(arg1);
+        SpuSetIRQ(1);
+    } else if (D_80068B5C != 0) {
+        SpuSetIRQ(0);
+        SpuSetIRQCallback(0);
+        D_80068B5C = 0;
+    }
+}
 
 void func_8005BCF8(void)
 {
