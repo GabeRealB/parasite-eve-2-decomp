@@ -233,6 +233,14 @@ typedef struct _GStruct18 {
 } GStruct18;
 STATIC_ASSERT_SIZEOF(GStruct18, 0x10);
 
+/// BSS object D_80082818 (size 0x58). Also matches D_800828F0 layout.
+typedef struct _GStruct19 {
+    byte unknown_0[0x6];
+    s16  field_6;
+    byte unknown_8[0x50];
+} GStruct19;
+STATIC_ASSERT_SIZEOF(GStruct19, 0x58);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 

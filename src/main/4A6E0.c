@@ -32,7 +32,10 @@ INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005BAEC);
 
 INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005BB4C);
 
-INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005BB9C);
+void func_8005BB9C(void)
+{
+    D_80082818.field_6 = 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005BBB0);
 

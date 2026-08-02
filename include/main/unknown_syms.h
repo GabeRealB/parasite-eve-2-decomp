@@ -330,6 +330,7 @@ extern u8                D_8007F2F0;
 extern u8                D_8007F8E0[0x2800];
 extern volatile GStruct4  D_80082798;
 extern volatile GStruct18 D_800827A0;
+extern volatile GStruct19 D_80082818;
 extern u8                 D_80094C8C[0x2E34];
 
 #endif // UNKNOWN_SYMS_H
