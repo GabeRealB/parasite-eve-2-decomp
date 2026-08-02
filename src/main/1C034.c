@@ -20,7 +20,21 @@ INCLUDE_ASM("main/nonmatchings/1C034", func_8002BD24);
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002BDB8);
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002BE0C);
+void func_8002BE0C(GStruct0* arg0)
+{
+    if (D_80070F68.field_101 == 0) {
+        func_8002CFDC(0, 2, 0, 0);
+        func_8003DB48(0x5010);
+        func_8002CCB8(arg0);
+        return;
+    }
+    D_80070F68.field_10b = 1;
+    func_8002CCB8(arg0);
+    func_8002D428();
+    func_80028718();
+    Mem_Init();
+    func_8002CFDC(0, 9, 0, 0);
+}
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002BEA8);
 

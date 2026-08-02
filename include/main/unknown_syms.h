@@ -79,6 +79,9 @@ extern void func_800281D4(void);
 extern void F179D4_ClearOTag(s16 tableIdx);
 
 // 1C034.c
+extern void      func_8002BE0C(GStruct0* arg0);
+extern void      func_8002CCB8(GStruct0* arg0);
+extern void      func_8002CFDC(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 extern void      func_8002D248(GStruct0Node* node);
 extern void      func_8002D25C(GStruct0Node* node);
 extern GStruct2* func_8002D304(u32 idx1, u32 idx2);
