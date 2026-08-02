@@ -42,7 +42,9 @@ void func_80050CC0(void) {
     func_80055C00();
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80050CE0);
+void func_80050CE0(void) {
+    func_80055C8C();
+}
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80050D00);
 
