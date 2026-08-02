@@ -38,7 +38,9 @@ typedef struct _GStruct0 {
     struct _GStruct0* field_10;
     GFunc0            field_14;
     GFunc0            field_18;
-    byte              unknown1[0xc];
+    byte              unknown1[4];
+    void*             field_20;
+    byte              unknown_24[4];
     u8                field_28;
     byte              unknown2[0x1c];
 } GStruct0;

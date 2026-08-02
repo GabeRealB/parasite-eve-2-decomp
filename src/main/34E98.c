@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "main/mem.h"
 #include "main/unknown_syms.h"
 
 void func_80044698(void)
@@ -58,7 +59,13 @@ INCLUDE_ASM("main/nonmatchings/34E98", func_800486F0);
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80048838);
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_800488B8);
+void func_800488B8(GStruct0* arg0)
+{
+    if (arg0->field_20 != NULL) {
+        Mem_Free(arg0->field_20);
+    }
+    func_8002CCB8(arg0);
+}
 
 void func_800488F8(GStruct0* arg0)
 {
