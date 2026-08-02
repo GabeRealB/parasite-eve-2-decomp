@@ -169,7 +169,12 @@ void func_8002D41C(GStruct0Node* node)
     D_800716D8 = node;
 }
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002D428);
+void func_8002D428(void)
+{
+    D_800716D8 = &D_800716E0;
+    D_800716E0.next = NULL;
+    D_800716E0.prev = &D_800716E0;
+}
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002D444);
 
