@@ -222,6 +222,17 @@ typedef struct _GStruct17 {
 } GStruct17;
 STATIC_ASSERT_SIZEOF(GStruct17, 0x38);
 
+/// BSS object D_800827A0 (size 0x10).
+typedef struct _GStruct18 {
+    u8  field_0;
+    u8  field_1;
+    u16 field_2;
+    s32 field_4;
+    s32 field_8;
+    s32 field_C;
+} GStruct18;
+STATIC_ASSERT_SIZEOF(GStruct18, 0x10);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 

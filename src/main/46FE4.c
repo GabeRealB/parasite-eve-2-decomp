@@ -16,7 +16,7 @@ INCLUDE_ASM("main/nonmatchings/46FE4", func_800574BC);
 
 u8 func_80057554(void)
 {
-    return D_800827A0;
+    return D_800827A0.field_0;
 }
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_80057564);
@@ -47,7 +47,10 @@ s32 func_800578C4(void)
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_800578E4);
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_8005791C);
+void func_8005791C(s32 arg0)
+{
+    D_800827A0.field_4 = arg0;
+}
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_80057930);
 

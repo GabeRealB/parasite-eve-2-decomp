@@ -44,6 +44,29 @@ main loop `func_8002785C`, so `volatile` is semantically correct there.
 Inverse check: if the target *does* fill the slot with a store, that variable is
 **not** volatile — don't add the qualifier to fix something else.
 
+`volatile` also changes how field addresses are formed. A non-volatile store to
+a field at a non-zero offset folds into a single split-address access:
+
+```
+lui  v0, %hi(D_xxx+4)
+jr   ra
+ sw  a0, %lo(D_xxx+4)(v0)
+```
+
+Making the global `volatile` forces a base-address materialization plus an
+offset store, with the store *outside* the delay slot:
+
+```
+lui   v0, %hi(D_xxx)
+addiu v0, v0, %lo(D_xxx)
+sw    a0, 4(v0)
+jr    ra
+ nop
+```
+
+`func_8005791C` (`D_800827A0.field_4 = arg0`) is a pure example — only the
+`volatile GStruct18` form matches.
+
 ## Hold a global's address in a local pointer
 
 When a function touches the same global struct across several calls, the target
