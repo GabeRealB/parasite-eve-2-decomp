@@ -106,7 +106,9 @@ typedef struct _GStruct3 {
     u16           field_204;
     byte          unknown_206[0x1E];
     u16           field_224;
-    byte          unknown_226[0x2D];
+    byte          unknown_226[0xE];
+    s16           field_234;
+    byte          unknown_236[0x1E];
 } GStruct3;
 STATIC_ASSERT_SIZEOF(GStruct3, 0x254);
 
