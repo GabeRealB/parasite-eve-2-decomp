@@ -31,6 +31,11 @@ extern bool F04CF8_StageCdfIsAvailable(u32 stageIdx);
 extern void func_8002D248(GStruct0Node* node);
 
 // C37C.c
+extern void func_8001BE60(void);
+extern void func_8001C0D4(void);
+extern void func_8001C620(void);
+extern void func_8001CA70(void);
+extern void func_8001CEFC(void);
 extern u16  func_8001D37C(s16 arg0);
 extern void F0C37C_ClearD80068FA0(void);
 
@@ -135,6 +140,8 @@ extern void func_80050D20(u32);
 extern void func_80053E68(void);
 extern void func_80053F60(void);
 extern void func_80053FF4(u32);
+extern void func_800AFA44(void);
+extern void func_8017D6D4(void);
 
 // .data
 extern u32          D_8005EC64;

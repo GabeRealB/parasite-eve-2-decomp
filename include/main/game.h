@@ -81,10 +81,30 @@ typedef struct _GStruct2 {
 } GStruct2;
 STATIC_ASSERT_SIZEOF(GStruct2, 0xc);
 
+typedef struct _GStruct3Entry {
+    u8 field_0;
+    u8 field_1;
+    u8 field_2;
+    u8 field_3;
+    u8 field_4;
+    u8 field_5;
+    u8 field_6;
+    u8 field_7;
+} GStruct3Entry;
+STATIC_ASSERT_SIZEOF(GStruct3Entry, 0x8);
+
 typedef struct _GStruct3 {
-    byte unknown_0[0x224];
-    u16  field_224;
-    byte unknown_226[0x2D];
+    GStruct3Entry entries[8];
+    GStruct3Entry field_40;
+    byte          unknown_48[0x4];
+    s8            field_4c;
+    byte          unknown_4d[0x17D];
+    u16           field_1ca;
+    byte          unknown_1cc[0x38];
+    u16           field_204;
+    byte          unknown_206[0x1E];
+    u16           field_224;
+    byte          unknown_226[0x2D];
 } GStruct3;
 STATIC_ASSERT_SIZEOF(GStruct3, 0x254);
 
