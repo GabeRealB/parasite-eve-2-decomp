@@ -60,7 +60,10 @@ INCLUDE_ASM("main/nonmatchings/34E98", func_80048838);
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_800488B8);
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_800488F8);
+void func_800488F8(GStruct0* arg0)
+{
+    arg0->field_8 = (GStruct0*)4;
+}
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80048904);
 
