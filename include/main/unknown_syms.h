@@ -124,6 +124,7 @@ extern void F3E48C_ApplyReverbConfig(void);
 // 410B0.c
 extern void func_800517B4(s32 arg0);
 extern s32  func_800517F8(void);
+extern s32  func_800528F0(s32 arg0, s32 arg1);
 extern void func_8005325C(void* arg0);
 extern void func_800532CC(void);
 
