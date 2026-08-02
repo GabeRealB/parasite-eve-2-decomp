@@ -45,7 +45,14 @@ s32 func_800578C4(void)
     return func_80057ACC();
 }
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_800578E4);
+s32 func_800578E4(s32 arg0)
+{
+    if (arg0 == 0) {
+        return -1;
+    }
+    func_80057B88(arg0, D_80082124);
+    return 0;
+}
 
 void func_8005791C(s32 arg0)
 {
