@@ -68,7 +68,10 @@ INCLUDE_ASM("main/nonmatchings/16494", func_80026148);
 
 INCLUDE_ASM("main/nonmatchings/16494", func_80026178);
 
-INCLUDE_ASM("main/nonmatchings/16494", func_800261C8);
+void func_800261C8(void)
+{
+    D_8006EBF2 = 0;
+}
 
 s32 func_800261D4(void)
 {

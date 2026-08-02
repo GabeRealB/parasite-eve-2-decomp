@@ -274,6 +274,7 @@ extern u16            D5B498_8006EBB0;
 extern s8             D_8006EBBA;
 extern SpuCommonAttr  D5B498_SpuAttr;
 extern s16            D5B498_8006EBF0;
+extern s16            D_8006EBF2;
 
 // 5F414
 extern u_long   D5F414_OrderingTables[2 * C5F414_OTAG_ENTRIES];
