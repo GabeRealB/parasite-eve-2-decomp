@@ -89,6 +89,7 @@ extern void F179D4_ClearOTag(s16 tableIdx);
 extern void      func_8002BB9C(void);
 extern void      func_8002BBC8(void);
 extern void      func_8002BE0C(GStruct0* arg0);
+extern void      func_8002BFD4(void);
 extern void      func_8002CCB8(GStruct0* arg0);
 extern void      func_8002CFA0(void* arg0, s32 arg1, s32 arg2, s32 arg3);
 extern void      func_8002CFDC(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -205,6 +206,7 @@ extern GStruct11* D4CB64_ImgBuffers;
 
 // 4F564
 extern GStruct14* D4F564_8005ED64;
+extern s32        D_8005ED68;
 
 // 58028
 extern u8 D58028_SpuTimerEnabled;
