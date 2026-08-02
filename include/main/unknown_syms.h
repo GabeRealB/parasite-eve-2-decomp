@@ -104,6 +104,10 @@ extern void func_8002F98C(GStruct0* arg0);
 // 201E0.c
 extern void func_80030074(void);
 
+// 34E98.c
+extern void func_80046EEC(void* arg0, void* arg1, s32 arg2);
+extern void func_80048C10(void* arg0, void* arg1);
+
 // 3D458.c
 extern void  func_8004CFE8(void);
 extern void  F3D458_ResetHeap(void);
