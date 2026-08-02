@@ -102,6 +102,7 @@ extern GStruct2* func_8002D304(u32 idx1, u32 idx2);
 extern GStruct2* func_8002D32C(GStruct2* base, u32 idx);
 extern void      func_8002D0A4(GStruct0* arg0);
 extern void      func_8002D214(void* arg0, s32 arg1);
+extern void*     func_8002D22C(s32 arg0);
 extern void      func_8002D428(void);
 extern void      func_8002D444(GStruct0* state);
 extern void      func_8002D474(GStruct0* state);

@@ -104,7 +104,10 @@ void func_8002D214(void* arg0, s32 arg1)
     D4F564_8005ED64->field_C[arg1] = arg0;
 }
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002D22C);
+void* func_8002D22C(s32 arg0)
+{
+    return D4F564_8005ED64->field_C[arg0];
+}
 
 void func_8002D248(GStruct0Node* node)
 {
