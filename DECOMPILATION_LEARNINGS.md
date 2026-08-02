@@ -261,3 +261,37 @@ table, so a table at a 4-mod-8 address still lands correctly.
 - **If-else chain** (`beq`/`slti` cascade, no table): GCC chose this for a small
   dense set of cases. Again, body order in the asm = source order.
 - Unreferenced table slots map to the `break`/default label.
+
+## Shared error block between success path and cleanup
+
+When the target layout is:
+
+```
+[success helpers]  j check_ret   (andi in delay)
+[error: F(0)]      j end
+check_ret:         if (ret) cleanup
+end:
+```
+
+early `return`s / nested `if`s will either (a) place the error *before* the
+success path, or (b) merge the two `F(...)` calls into one `jal` with different
+`$a0` setups. Force the order with gotos that jump *over* the error block:
+
+```c
+/* success path */
+ret = helper();
+goto check_ret;
+
+on_error:
+    F(0);
+    goto end;
+
+check_ret:
+    if (ret != 0) { /* cleanup */ }
+end:
+    return;
+```
+
+Error sites earlier in the function `goto on_error`; soft-error sites that
+must not share the `jal` call `F(2)` then `goto end` (or `return`). Same idea
+as `F12D18_InitStage0TablesCb`, used for `func_80022BD0`.

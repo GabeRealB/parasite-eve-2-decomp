@@ -55,6 +55,8 @@ extern void F12D18_8002252C(u8* arg0, s16 arg1);
 extern void F12D18_80022598(void);
 extern void F12D18_800225D4(void);
 extern void func_80022BD0(u8 status, u8* result);
+extern u8   func_80022CF0(void);
+extern u8   func_800231A8(void);
 extern void F12D18_InitStage0TablesCb(u8 status, u8* result);
 extern void F12D18_InitFolderTable(void);
 extern void F12D18_InitStage0Tables(void);

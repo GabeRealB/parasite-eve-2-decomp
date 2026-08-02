@@ -55,7 +55,53 @@ void F12D18_800225D4(void)
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_8002265C);
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_80022BD0);
+void func_80022BD0(u8 status, u8* result)
+{
+    CdlLOC currLoc[3];
+    s32    currPos;
+    u8     ret;
+
+    if (status == CdlDiskError) {
+        goto on_error;
+    }
+
+    D5B498_CurrVBlank   = VSync(-1);
+    CdGetSector(currLoc, 3);
+    D5B498_CurrCdSector = currPos = CdPosToInt(currLoc);
+
+    if (currPos != D5B498_ReqCdSector) {
+        if ((D5B498_8006C231 != 0) && (D5B498_8006C230 != 6)) {
+            F12D18_800256F4(C12D18_800256F4_ARG_2);
+            goto end;
+        }
+        goto on_error;
+    }
+
+    D5B498_ReqCdSector = currPos + 1;
+    if (D5B498_8006C231 == 0) {
+        ret = func_80022CF0();
+    } else {
+        ret = func_800231A8();
+    }
+    goto check_ret;
+
+on_error:
+    F12D18_800256F4(C12D18_800256F4_ARG_0);
+    goto end;
+
+check_ret:
+    if (ret != 0) {
+        CdControlF(CdlPause, NULL);
+        CdReadyCallback(NULL);
+        D5B498_8006C234 = 0;
+        D5B498_8006C233 = 0;
+        D5B498_8006ADF4 = 0;
+        D5B498_8006C232 = 0;
+        D5B498_8006C228 = D5B498_8006C228_FF;
+    }
+end:
+    return;
+}
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_80022CF0);
 
