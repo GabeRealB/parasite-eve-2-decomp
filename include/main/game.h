@@ -63,7 +63,7 @@ typedef struct _GStruct1 {
     u8      field_1f;
     DISPENV field_20[2];
     DRAWENV field_48[2];
-    byte    unknown_100[0x1];
+    u8      field_100;
     u8      field_101;
     byte    unknown_102[0x9];
     u8      field_10b;
