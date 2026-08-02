@@ -213,6 +213,7 @@ extern void func_8017D6D4(void);
 extern u32          D_8005EC64;
 extern volatile u32 D_8005EC70;
 extern GStruct2*    D_8005EF74[];
+extern GStruct17*   D_80062698;
 extern void*        D_800626A8;
 extern u8           D_800680A4;
 extern u32          D_800680BC;
