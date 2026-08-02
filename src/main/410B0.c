@@ -24,7 +24,9 @@ void func_80050B0C(GStruct16* arg0) {
     func_8005166C(arg0->unknown_4[0], 1);
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80050B30);
+void func_80050B30(GStruct16* arg0) {
+    func_8005166C(arg0->unknown_4[0], 0);
+}
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80050B54);
 
