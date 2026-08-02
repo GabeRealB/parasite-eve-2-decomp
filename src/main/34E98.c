@@ -81,7 +81,9 @@ INCLUDE_ASM("main/nonmatchings/34E98", func_80048D58);
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80048E10);
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80048E2C);
+s32 func_80048E2C(s32 arg0) {
+    return (arg0 << 4) - arg0;
+}
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80048E38);
 
