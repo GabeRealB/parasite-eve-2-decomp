@@ -45,15 +45,31 @@ typedef struct _GStruct0 {
 STATIC_ASSERT_SIZEOF(GStruct0, 0x48);
 
 typedef struct _GStruct1 {
-    byte    unknown_0[0x1f];
+    s32     field_0;
+    s32     field_4;
+    s32     field_8;
+    s32     field_c;
+    s32     field_10;
+    s32     field_14;
+    byte    unknown_18[0x5];
+    s8      field_1d;
+    u8      field_1e;
     u8      field_1f;
     DISPENV field_20[2];
     DRAWENV field_48[2];
-    byte    unknown_100[0xb];
+    byte    unknown_100[0x1];
+    u8      field_101;
+    byte    unknown_102[0x9];
     u8      field_10b;
-    byte    unknown_10c[0x18];
+    byte    unknown_10c[0x1];
+    u8      field_10d;
+    byte    unknown_10e[0x12];
+    s16     field_120;
+    byte    unknown_122[0x2];
     u16     field_124;
-    byte    unknown_12a[0x12];
+    byte    unknown_126[0x4];
+    u16     field_12a;
+    byte    unknown_12c[0xc];
 } GStruct1;
 STATIC_ASSERT_SIZEOF(GStruct1, 0x138);
 

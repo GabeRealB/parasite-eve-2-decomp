@@ -20,6 +20,7 @@
 #define D5B498_8006C228_FF -1
 
 // 4CF8.c
+extern void func_800144F8(s32 arg0, s32 arg1);
 extern void F04CF8_800148A0(void);
 extern void F04CF8_800148EC(void);
 extern void F04CF8_80014A50(void);
@@ -67,7 +68,9 @@ extern void func_80025C94(u8 status, u8* result);
 extern void F16494_ResetSpuAttr(void);
 
 // 179D4.c
+extern void func_80027498(void);
 extern void func_800280F4(s32);
+extern void func_800281D4(void);
 extern void F179D4_ClearOTag(s16 tableIdx);
 
 // 1C034.c
@@ -75,10 +78,12 @@ extern void      func_8002D248(GStruct0Node* node);
 extern void      func_8002D25C(GStruct0Node* node);
 extern GStruct2* func_8002D304(u32 idx1, u32 idx2);
 extern GStruct2* func_8002D32C(GStruct2* base, u32 idx);
+extern void      func_8002D428(void);
 extern void      func_8002D444(GStruct0* state);
 extern void      func_8002D474(GStruct0* state);
 
 // 3D458.c
+extern void  func_8004CFE8(void);
 extern void  F3D458_ResetHeap(void);
 extern void* F3D458_Malloc(size_t);
 extern void  F3D458_Free(void* ptr);
@@ -101,7 +106,8 @@ extern void func_8005325C(void* arg0);
 extern void func_800532CC(void);
 
 // 43FFC.c
-extern s32 func_80056700(void);
+extern void func_80053FA0(s32 arg0);
+extern s32  func_80056700(void);
 
 // 46FE4.c
 extern void func_800574BC(void);
@@ -112,8 +118,10 @@ extern void func_8002043C(u32 arg0);
 extern void func_800271D4(void);
 extern void func_80028664(void);
 extern void func_8002785C(void);
+extern void func_80028718(void);
 extern void func_800303AC(void);
 extern void func_80033BBC(void);
+extern void func_8003DB48(s32 arg0);
 extern void func_8004CC58(s32 arg0);
 extern void func_8004CFC8(void);
 extern void F3D458_ResetHeap(void);
@@ -129,11 +137,13 @@ extern void func_80053F60(void);
 extern void func_80053FF4(u32);
 
 // .data
-extern u32       D_8005EC64;
-extern GStruct2* D_8005EF74[];
-extern u8        D_800680A4;
-extern u32       D_800680BC;
-extern u32       D_800680C0;
+extern u32          D_8005EC64;
+extern volatile u32 D_8005EC70;
+extern GStruct2*    D_8005EF74[];
+extern void*        D_800626A8;
+extern u8           D_800680A4;
+extern u32          D_800680BC;
+extern u32          D_800680C0;
 
 // 4CB64
 extern GStruct11* D4CB64_ImgBuffers;
