@@ -185,7 +185,21 @@ INCLUDE_ASM("main/nonmatchings/410B0", func_80053448);
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80053548);
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_800535F0);
+s32 func_800535F0(s32 arg0, s32 arg1, s32 arg2) {
+    s32 result;
+
+    arg0 &= 3;
+    result = 0;
+    switch (arg0) {
+    case 0:
+        result = 0x1010;
+        break;
+    case 2:
+        result = func_80053A20(arg2, arg1 & 0xFFFF);
+        break;
+    }
+    return result;
+}
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_8005363C);
 
