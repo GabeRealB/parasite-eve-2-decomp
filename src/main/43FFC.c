@@ -47,7 +47,16 @@ s32 func_8005462C(void)
     return ~func_80055DAC(func_80053F00()) != 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80054658);
+void func_80054658(void)
+{
+    GStruct16* temp;
+
+    temp = func_800509F4();
+    if (temp != NULL) {
+        temp->field_2 = 0xD;
+        func_80050A38(temp);
+    }
+}
 
 void func_8005468C(void)
 {
