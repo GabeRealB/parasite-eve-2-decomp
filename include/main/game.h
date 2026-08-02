@@ -42,7 +42,9 @@ typedef struct _GStruct0 {
     void*             field_20;
     byte              unknown_24[4];
     u8                field_28;
-    byte              unknown2[0x1c];
+    byte              unknown_29;
+    s16               field_2a;
+    byte              unknown_2c[0x1c];
 } GStruct0;
 STATIC_ASSERT_SIZEOF(GStruct0, 0x48);
 

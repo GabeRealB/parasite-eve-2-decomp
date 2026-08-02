@@ -2,6 +2,7 @@
 
 #include <psyq/libmcrd.h>
 
+#include "main/game.h"
 #include "main/unknown_syms.h"
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_800317DC);
@@ -156,7 +157,12 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_80035C2C);
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80035D14);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80035E18);
+void func_80035E18(GStruct0* arg0)
+{
+    if (arg0->field_2a != 0) {
+        func_8002CCB8(arg0);
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80035E48);
 
