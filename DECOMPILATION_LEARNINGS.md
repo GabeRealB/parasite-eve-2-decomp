@@ -1351,3 +1351,46 @@ typedef struct {
 Init pattern (see `func_8003E6E4`): hold `GStruct50* ot = D_8007A0E8`, write
 `length`/`org` for both slots, with the second `org` as `tags + (1 << length)`.
 OT tag storage of `0x200` bytes is two buffers of `0x100` (`u_long[0x80]`).
+
+## Delay `i = 0` until after a special-case rewrite of the same constant
+
+When the target puts `move a2, zero` (loop counter init) in the delay slot of a
+compare, then on the fall-through does `move a0, zero` to rewrite the argument,
+initializing `i = 0` *before* the `if` lets CSE rewrite the second zero as
+`move a0, a2`. The target wants a fresh `addu a0, zero, zero`.
+
+```c
+/* BAD — CSE turns arg0 = 0 into move a0, a2 */
+i = 0;
+if (arg0 == 0xFFFF) {
+    arg0 = 0;
+}
+
+/* GOOD — i lives in the for-init; delay slot still gets move a2, zero,
+   but arg0 = 0 remains move a0, zero */
+if (arg0 == 0xFFFF) {
+    arg0 = 0;
+}
+for (i = 0, ptr = base; i < n; i++, ptr++) { ... }
+```
+
+### Pin `andi` before the array `lui` with an `s32` copy
+
+After rewriting a `u16` arg to 0, the target recomputes `andi v1, a0, 0xFFFF`
+*before* the `lui`/`addiu` of the array base. Comparing the `u16` directly
+schedules that `andi` after the base load. Assigning through an `s32` id forces
+the early mask:
+
+```c
+if (arg0 == 0xFFFF) {
+    arg0 = 0;
+}
+id = arg0; /* s32 id — emits andi before lui */
+for (i = 0, ptr = D_arr; i < n; i++, ptr++) {
+    if (ptr->field == id) {
+        return ptr;
+    }
+}
+```
+
+`func_8004D150` is the pure example.

@@ -189,8 +189,9 @@ extern void  func_8004CFE8(void);
 extern void  F3D458_ResetHeap(void);
 extern void* F3D458_Malloc(size_t);
 extern void  F3D458_Free(void* ptr);
-extern void  func_8004D0F0(GStruct42* arg0);
-extern s32       func_8004D820(void);
+extern void       func_8004D0F0(GStruct42* arg0);
+extern GStruct42* func_8004D150(u16 arg0);
+extern s32        func_8004D820(void);
 extern void      func_8004D8BC(void);
 extern GStruct8* func_8004D94C(GStruct8* arg0);
 extern void      F3D458_8004D88C(void);
@@ -418,6 +419,7 @@ extern s16           D_8007A35C;
 extern void*         D_8007A360;
 extern u8            D_8007A394;
 extern u8            D_8007E0CC;
+extern GStruct42     D_8007E0D8[];
 
 // 5B498
 extern s16            D5B498_8006AC98;

@@ -148,7 +148,24 @@ void func_8004D0F0(GStruct42* arg0)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/3D458", func_8004D150);
+GStruct42* func_8004D150(u16 arg0)
+{
+    s32 i;
+    GStruct42* ptr;
+    s32 id;
+
+    if (arg0 == 0xFFFF) {
+        arg0 = 0;
+    }
+    id = arg0;
+
+    for (i = 0, ptr = D_8007E0D8; i < 0x10; i++, ptr++) {
+        if (ptr->field_8 == id) {
+            return ptr;
+        }
+    }
+    return NULL;
+}
 
 INCLUDE_ASM("main/nonmatchings/3D458", func_8004D19C);
 
