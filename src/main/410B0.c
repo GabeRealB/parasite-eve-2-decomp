@@ -37,7 +37,25 @@ GStruct16* func_800509F4(void) {
     return NULL;
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80050A38);
+void func_80050A38(GStruct16* arg0) {
+    GStruct16* temp;
+
+    if (arg0 != NULL) {
+        D_8007EBE0 = 0;
+        if (D_8007EBE4 == NULL) {
+            D_8007EBE8 = arg0;
+            D_8007EBE4 = arg0;
+            arg0->field_14 = NULL;
+        } else {
+            temp = D_8007EBE8;
+            D_8007EBE8 = arg0;
+            arg0->field_14 = temp;
+            temp->field_18 = arg0;
+        }
+        arg0->field_18 = NULL;
+        D_8007EBE0 = 1;
+    }
+}
 
 void func_80050A90(GStruct16* arg0) {
     if (arg0 != NULL) {
