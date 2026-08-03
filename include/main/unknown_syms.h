@@ -208,8 +208,9 @@ extern void func_80055C8C(void);
 extern void func_80055D78(s8 arg0);
 extern s32  func_80055DAC(s32 arg0);
 extern void func_80055DFC(s8 arg0);
-extern s8   func_80055EE8(void);
-extern s32  func_80056700(void);
+extern s8         func_80055EE8(void);
+extern GStruct31* func_800561C0(s32 arg0);
+extern s32        func_80056700(void);
 
 // 46FE4.c
 extern void func_800574BC(void);
@@ -407,6 +408,7 @@ extern u8                D_8007F8E0[0x2800];
 extern u8                D_8007E258;
 extern s32                D_80082124;
 extern volatile s8        D_80082134;
+extern GStruct31          D_80082148[16];
 extern volatile GStruct4  D_80082798;
 extern volatile GStruct18 D_800827A0;
 extern volatile GStruct19 D_80082818;

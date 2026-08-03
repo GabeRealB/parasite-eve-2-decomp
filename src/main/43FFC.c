@@ -175,7 +175,12 @@ INCLUDE_ASM("main/nonmatchings/43FFC", func_80056068);
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80056104);
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_800561C0);
+GStruct31* func_800561C0(s32 arg0) {
+    if ((u8)arg0 < 0x10) {
+        return &D_80082148[(s8)arg0];
+    }
+    return NULL;
+}
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_800561EC);
 

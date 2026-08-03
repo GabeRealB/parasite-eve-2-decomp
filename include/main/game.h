@@ -426,6 +426,16 @@ typedef struct _GStruct30 {
     /* 0x16 */ s16  field_16;
 } GStruct30;
 
+/// 16-byte slot in D_80082148[16] (BSS size 0x100). Indexed by func_800561C0
+/// and related helpers in 43FFC.c / 410B0.c.
+typedef struct _GStruct31 {
+    /* 0x0 */ void* field_0;
+    /* 0x4 */ void* field_4;
+    /* 0x8 */ s32   field_8;
+    /* 0xC */ void* field_C;
+} GStruct31;
+STATIC_ASSERT_SIZEOF(GStruct31, 0x10);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 
