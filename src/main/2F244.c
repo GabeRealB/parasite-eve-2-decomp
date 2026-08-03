@@ -589,7 +589,17 @@ INCLUDE_ASM("main/nonmatchings/2F244", func_80041BFC);
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_80041C50);
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_80041D3C);
+void func_80041D3C(GStruct27* arg0)
+{
+    GStruct27* node;
+
+    node = D_800711B8.next;
+    while (node != NULL) {
+        node->field_C |= 0x80;
+        node = node->next;
+    }
+    arg0->field_30++;
+}
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_80041D84);
 
