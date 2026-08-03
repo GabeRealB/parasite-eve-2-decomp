@@ -83,7 +83,13 @@ void F3E48C_8004E44C(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E560);
+void func_8004E560(u32 voiceIdx, s32 arg1, s32 arg2)
+{
+    s8 sVoiceIdx = (s8)voiceIdx;
+
+    D648E0_8007E338.field_10c[sVoiceIdx] = arg1;
+    D648E0_8007E338.field_16c[sVoiceIdx] = arg2;
+}
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E580);
 

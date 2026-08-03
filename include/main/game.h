@@ -171,7 +171,8 @@ typedef struct _GStruct9 {
     byte unknown_4[0x30];
     u8   field_94[24];
     u32  field_ac[24];
-    byte unknown_10c[0xC0];
+    u32  field_10c[24];
+    u32  field_16c[24];
     u32  field_1cc;
     u32  field_1d0;
 } GStruct9;
