@@ -2000,3 +2000,91 @@ while (j < (u32)size) {
 ```
 
 `func_80033E58` is the pure example (`D_800610FC[1..8]` buffer duplicate).
+
+## Switch result phi via `temp` + goto join
+
+When a `switch` on `CdSync` (or similar) must *assign* a status used by a later
+switch — not return it — GCC 2.8.1 wants a two-register phi:
+
+```
+li    v0, N
+...
+move  v1, v0    /* join */
+/* second switch on v1 */
+```
+
+Writing `status = N; break;` in each case often loads `v1` directly and skips
+the join. Match the target with an explicit temp and shared join label:
+
+```c
+s32 temp;
+s32 status;
+
+switch (CdSync(1, NULL)) {
+case CdlComplete:
+    state->field = 0;
+    temp = 1;
+    goto join;
+case CdlNoIntr:
+    goto set0;
+case CdlDiskError:
+    ...
+    temp = 2;
+    goto join;
+default:
+    temp = 2;
+    goto join;
+}
+set0:
+    temp = 0;
+join:
+    status = temp;
+switch (status) { ... }
+```
+
+Defaults must also go through the join (not assign `status` and jump past it),
+or the delay-slot `move v1, v0` / `li v0, 2` pattern breaks.
+
+## Final irregular switch: gotos for case body order
+
+The target layout for an irregular status switch (`li s0,1; beq case1; slti;
+bnez ret0; ... beq case2; beq case3`) places case bodies as
+`[case1][case2][case3]` right after the dispatch. A plain `switch` or
+`if (status != 1) { ... } else { case1 }` often emits case1 last.
+
+Force source order of bodies with gotos:
+
+```c
+one = 1;
+if (status == one) {
+    goto L_case1;
+}
+if (status < 2) {
+    goto L_ret0;
+}
+if (status == 2) {
+    goto L_case2;
+}
+if (status == 3) {
+    goto L_case3;
+}
+goto L_ret0;
+L_case1:
+    ...
+    return 1;
+L_case2:
+    ...
+    return 0;
+L_case3:
+    ...
+    /* fall through to shared return 0 when target does */
+L_ret0:
+    return 0;
+```
+
+`one = 1` before the tests lets CSE put `1` in `$s0` for both the compare and
+later `field = one` stores. Falling case3 into `L_ret0` avoids an extra
+`move v0, zero` / `j` before the shared epilogue path.
+
+`func_8001E2D4` is the full example (two copies of the CdSync status machine
+plus this final switch).

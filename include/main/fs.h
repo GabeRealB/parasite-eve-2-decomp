@@ -181,7 +181,11 @@ typedef struct _CdCmdQueue {
     u16        step;     // 0x1D0 — sub-state of current command
     u16        field_1d2;
     u16        field_1d4;
-    byte       unknown_1d6[0x10];
+    u16        field_1D6; // state for func_8001DF34
+    byte       unknown_1d8[0x6];
+    u16        field_1DE; // state for func_8001E2D4
+    u16        field_1E0;
+    byte       unknown_1E2[0x4];
     s16        field_1E6;
     byte       unknown_1E8[0x2];
     s16        field_1EA;
