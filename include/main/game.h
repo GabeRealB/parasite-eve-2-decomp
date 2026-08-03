@@ -477,6 +477,14 @@ typedef struct _GStruct31 {
 } GStruct31;
 STATIC_ASSERT_SIZEOF(GStruct31, 0x10);
 
+/// State block at D_800820F0; fields at +0x14/+0x18 cleared by func_800537FC.
+typedef struct _GStruct34 {
+    /* 0x00 */ u8  unknown_00[0x14];
+    /* 0x14 */ s32 field_14;
+    /* 0x18 */ s32 field_18;
+} GStruct34;
+STATIC_ASSERT_SIZEOF(GStruct34, 0x1C);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 

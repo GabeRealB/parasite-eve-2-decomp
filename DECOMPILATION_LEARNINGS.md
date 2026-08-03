@@ -546,3 +546,38 @@ The `u16` assignment forces the early `sw ra` plus `move v0,a0` / `andi v0,v0,
 0xffff` sequence. A plain `s32 temp = arg0` tends to land in `$a3` instead of
 `$v0` and breaks the later `li v0,0x2000` delay-slot preload. `func_80053548`
 needs the `u16` form.
+
+## Volatile `u8` for `lbu` + `sll 24` / `sra 24` instead of `lb`
+
+A non-volatile `u8` global cast to `s8` often collapses to a single `lb`
+(sign-extending load). The target sometimes wants the longer form:
+
+```
+lbu  v0, %lo(sym)(v0)
+li   a0, 1          /* other ops may interleave here */
+sll  v0, v0, 24
+sra  v1, v0, 24
+```
+
+Mark the global `volatile u8`. The volatile load forces `lbu`, and the cast
+then emits the shift pair. Related stores that must keep program order around
+that load (e.g. a `vol_a = 0; vol_b = vol_a;` chain just before the cast)
+should also be `volatile`, or the load will sink into the middle of them.
+
+`func_800537FC` needs this on `D_80082135` and the surrounding
+`D_80082128` / `D_80082124` / `D_80082130` stores.
+
+## Reuse formal parameters for live ranges that span early calls
+
+When the target keeps `arg0`/`arg1` in `$s0`/`$s1` through a later loop
+(`sll a0,s0,1` with `$s0` preserved), prefer:
+
+```c
+arg0 = arg0 & 0xFF;
+...
+if (table[var_v1 + arg0 * 2] == arg1)
+```
+
+over introducing new `temp_s0`/`temp_s1` locals. Fresh locals often free the
+compiler to clobber `$s0` with the shift (`sll s0,s0,1`) and put the table
+base in `$a0` instead of `$a1`.

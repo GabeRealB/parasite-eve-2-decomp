@@ -2,7 +2,79 @@
 
 #include "main/unknown_syms.h"
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_800537FC);
+void func_800537FC(s32 arg0, s32 arg1) {
+    u8* var_s0;
+    s32 var_a0;
+    s32 var_v1;
+    s32 temp_v1;
+
+    D_8008274C = 0;
+    func_800566A4();
+    arg0 = arg0 & 0xFF;
+    func_800546C0();
+    func_800542D0(0x50000000, 1);
+    func_800542D0(0x10000000, 1);
+    func_800542D0(0xFF0D, 1);
+    func_800542D0(0x20000000, 1);
+    func_800542D0(0xE0000000, 1);
+    arg1 = arg1 & 0xFF;
+    D_80082120 = arg0;
+    D_80082136 = arg1;
+    func_800561EC(1);
+    func_800561EC(7);
+
+    var_v1 = 0;
+    if (arg1 == 5) {
+        if (arg0 == 4) {
+            var_a0 = 3;
+        } else {
+            goto block_5;
+        }
+    } else {
+block_5:
+        do {
+            if (D_80068A54[var_v1 + arg0 * 2] == arg1) {
+                var_a0 = 2;
+                goto block_done;
+            }
+            var_v1++;
+        } while (var_v1 < 2);
+        var_a0 = 1;
+    }
+block_done:
+    func_80054608(var_a0);
+    D_80082130 = 0x3D010;
+    D_80082128 = 0;
+    D_80082124 = D_80082128;
+
+    temp_v1 = (s8)D_80082135;
+    switch (temp_v1) {
+    case 0:
+        func_8004D0F0(&D_8007E158);
+        func_800561EC(4);
+    case 1:
+        D_80082122 = 0;
+        break;
+    case 2:
+        D_80082122 = 1;
+        break;
+    }
+    var_s0 = D_8007E0F8;
+
+    D_800820F0.field_14 = 0;
+    D_800820F0.field_18 = 0;
+    D_8008212C = D_80082122;
+    D_80082121 = D_80082135;
+    func_8004D0F0(var_s0);
+    func_8004D0F0(var_s0 + 0xC0);
+    func_8004D0F0(var_s0 + 0x80);
+    func_800561EC(5);
+    func_8004D0F0(var_s0 + 0xA0);
+    func_800561EC(6);
+    func_8004D0F0(var_s0 + 0x40);
+    func_800561EC(3);
+    func_8005454C(1, 0x40000000);
+}
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80053A20);
 
