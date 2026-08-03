@@ -22,6 +22,12 @@ struct _GStruct0;
 /// Callback function in a `_GStruct0`.
 typedef void (*GFunc0)(struct _GStruct0*);
 
+/// Fixed-size table of `GFunc0` callbacks. Copied onto the stack by state
+/// dispatchers (e.g. `func_8002C028`) so the call uses a local jump table.
+typedef struct {
+    GFunc0 funcs[3];
+} GFunc0Table3;
+
 /// Intrusive linked list node for a `GStruct0`.
 ///
 /// The head node is not an element in the linked list and points to the first

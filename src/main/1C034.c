@@ -115,7 +115,14 @@ void func_8002BFE0(GStruct0* arg0)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002C028);
+void func_8002C028(GStruct0* arg0)
+{
+    GFunc0Table3 sp;
+
+    sp = D_800134D0;
+    func_8002C9B0(0);
+    sp.funcs[arg0->field_30](arg0);
+}
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002C090);
 

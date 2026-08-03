@@ -1917,3 +1917,45 @@ Insert-at-head: if head exists, rewire `new->next = old`, `old->prev = new`,
 `new->prev = NULL`, `owner->head = new`, `new->parent = owner`. If owner is
 NULL, only clear the node's three link fields. Pair with `func_80056068`
 (unlink/free) and `func_800563B4` (walk via `+0x3C`).
+
+## Local jump table via struct assignment of function pointers
+
+Dispatchers that index a small fixed table of `GFunc0` callbacks often copy the
+table onto the stack first, then call through the local copy. The target uses a
+3-word multi-load / multi-store:
+
+```
+addiu t0, v0, %lo(D_xxx)
+lw    a1, 0(t0)
+lw    a2, 4(t0)
+lw    a3, 8(t0)
+sw    a1, 0x10(sp)
+sw    a2, 0x14(sp)
+sw    a3, 0x18(sp)
+```
+
+Element-wise assignment (`sp[0] = table[0]; …`) does **not** produce this:
+it emits separate `%lo` loads and a different index form (`lw v0, 0x10(sp+idx)`).
+
+Match with a struct-of-array and structure assignment, then index the local:
+
+```c
+typedef struct {
+    GFunc0 funcs[3];
+} GFunc0Table3;
+
+extern GFunc0Table3 D_800134D0;
+
+void dispatcher(GStruct0* arg0)
+{
+    GFunc0Table3 sp;
+
+    sp = D_800134D0;
+    /* … setup … */
+    sp.funcs[arg0->field_30](arg0);
+}
+```
+
+The index form then becomes `addiu v1,sp,0x10` / `sll` / `addu v1,v1,v0` /
+`lw v0,0(v1)`. `func_8002C028` is the pure example (3 entries). The same idea
+applies to `D_800134BC` (5 entries) for the sibling dispatcher `func_8002BEA8`.
