@@ -1283,3 +1283,48 @@ typedef struct {
 ```
 
 `func_8002BF10` is the pure example (`D4F564_8005ED64` ← `D_80072168`).
+
+## Big-endian halfword from two `u8` fields (stack `sb`/`sb`/`lhu`)
+
+When the target stores two bytes onto the stack and reloads them with `lhu`
+before a `nor`/`andi`, it is assembling a 16-bit value with explicit byte
+order rather than doing a native halfword load.
+
+```
+lbu  v1, 2(ptr)
+sb   v1, 1(sp)   # high byte
+lbu  v0, 3(ptr)
+sb   v0, 0(sp)   # low byte
+lhu  v0, 0(sp)
+nor  v0, zero, v0
+andi v0, v0, 0xffff
+```
+
+Match with a local `u16` and byte stores (a `union { u16 h; u8 b[2]; }` often
+optimizes the stack stores away):
+
+```c
+u16 sp;
+GStruct* base;
+
+base = D_array;
+((u8*)&sp)[1] = base[arg0].field_2; /* high */
+((u8*)&sp)[0] = base[arg0].field_3; /* low */
+return (u16)~sp;
+```
+
+### Array base first for `lui`/`addu v0,v0,v1`
+
+When the target loads the array base into `$v1` *before* the index multiply and
+ends with `addu v0, v0, v1` (pointer in `$v0`), write:
+
+```c
+base = D_array;
+... base[arg0].field ...
+```
+
+Avoid `p = &D_array[arg0]` / `p = base + arg0` if that yields `addu v1, v0, v1`
+(pointer in `$v1`) — reusing the base local via `base[arg0]` twice keeps the
+pointer in `$v0` so the first `lbu` can land in `$v1`.
+
+`func_8002CA0C` is the pure example (`D_800711C8`, stride 0x24).

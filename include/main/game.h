@@ -535,6 +535,19 @@ STATIC_ASSERT_SIZEOF(GStruct27Head, 0x8);
 extern GStruct27Head D_800711B8;
 /// Second list head initialized alongside D_800711B8 by func_80028718.
 extern GStruct27Head D_800711C0;
+
+/// Element of BSS array D_800711C8 (2 entries between D_800711C0 and D_80071210).
+/// Indexed with stride 0x24. field_2/field_3 are combined as a big-endian
+/// halfword by func_8002CA0C (high byte at 0x2, low byte at 0x3).
+typedef struct _GStruct49 {
+    /* 0x00 */ byte unknown_0[0x2];
+    /* 0x02 */ u8   field_2;
+    /* 0x03 */ u8   field_3;
+    /* 0x04 */ byte unknown_4[0x20];
+} GStruct49;
+STATIC_ASSERT_SIZEOF(GStruct49, 0x24);
+
+extern GStruct49 D_800711C8[2];
 /// Cleared by func_80028718 during system init.
 extern s32 D_80071210;
 

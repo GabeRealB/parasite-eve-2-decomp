@@ -130,7 +130,16 @@ void func_8002C9E0(s32 arg0)
     p->field_A = 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002CA0C);
+s32 func_8002CA0C(s32 arg0)
+{
+    u16 sp;
+    GStruct49* base;
+
+    base = D_800711C8;
+    ((u8*)&sp)[1] = base[arg0].field_2;
+    ((u8*)&sp)[0] = base[arg0].field_3;
+    return (u16)~sp;
+}
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002CA54);
 
