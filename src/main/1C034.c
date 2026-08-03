@@ -279,7 +279,20 @@ GStruct2* func_8002D32C(GStruct2* base, u32 idx)
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002D340);
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002D3BC);
+s32 func_8002D3BC(GStruct0* arg0, s32* arg1)
+{
+    s32 result;
+
+    result = 0;
+    if (arg0->field_38 == 0xFF) {
+        if (arg1 != NULL) {
+            *arg1 = arg0->field_3c;
+        }
+        arg0->field_18(arg0);
+        result = 1;
+    }
+    return result;
+}
 
 GStruct0Node* func_8002D40C(void)
 {
