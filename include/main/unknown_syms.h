@@ -279,6 +279,7 @@ extern s32        func_80056700(void);
 // 46FE4.c
 extern void func_800574BC(void);
 extern u8   func_80057554(void);
+extern void func_80057564(void);
 extern s32  func_800577AC(s32 arg0, s32 arg1);
 extern s32  func_80057824(s32 arg0);
 extern s32  func_80057894(s32 arg0);
@@ -289,10 +290,12 @@ extern s32  func_80057A88(s32 arg0);
 extern void func_80057B88(s32 arg0, s32 arg1);
 extern s32  func_80057BC0(void);
 extern void func_80057D24(void);
+extern void func_80059348(void);
 extern s16  D_80068A7C[];
 extern u8   D_80068A80[];
 extern u8   D_80068AF0[];
 extern s16  D_80068B28[];
+extern s32  (*D_80068B34[])(void);
 
 // 43FFC.c
 extern void func_800542D0(s32 arg0, s32 arg1);

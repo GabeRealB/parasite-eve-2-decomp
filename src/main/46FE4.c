@@ -21,7 +21,13 @@ u8 func_80057554(void)
     return D_800827A0.field_0;
 }
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_80057564);
+void func_80057564(void)
+{
+    if ((D_800827A0.field_4 != 0) && (D_800827A0.field_0 != 0)) {
+        D_800827A0.field_0 = D_80068B34[D_800827A0.field_0 & 7]();
+        func_80059348();
+    }
+}
 
 s32 func_800575D8(s32 arg0)
 {
