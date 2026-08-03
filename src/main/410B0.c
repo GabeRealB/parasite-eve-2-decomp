@@ -184,7 +184,29 @@ s32 func_80051400(s32 arg0) {
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80051460);
+s32 func_80051460(s32 arg0, s32 arg1) {
+    GStruct16* temp;
+    GStruct16From4* mid;
+
+    if ((arg0 & 0xFF) == 0xFF) {
+        return -3;
+    }
+    temp = func_800509F4();
+    if (temp == NULL) {
+        return -2;
+    }
+    temp->field_4 = arg0;
+    temp->field_2 = 5;
+    mid = (GStruct16From4*)&temp->field_4;
+    if ((s8)arg1 >= 0) {
+        mid->field_1 = arg1;
+    } else {
+        mid->field_1 = 0x7F;
+    }
+    func_80050A38(temp);
+    D_800820E8 = mid->field_1;
+    return 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_800514F8);
 
