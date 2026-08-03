@@ -648,3 +648,28 @@ prev->next = state->node.next;
 Two separate `&…->prev` assignments (default head, then override) also produce
 the `addiu …, 4` / `sw 0(pp)` form; a single `head->prev = …` after updating
 `head` collapses to `sw 4(head)` and loses the delay-slot `addiu`.
+
+## Returning two `s16`s packed as one `s32`
+
+When the target stores two halfwords at `0(sp)` / `2(sp)` then `lw`s the word
+back into `$v0`, GCC is packing a 2-component fixed-point result. Emitting
+explicit shifts/masks (`(hi << 16) | (lo & 0xFFFF)`) does **not** match — it
+produces a completely different instruction sequence.
+
+Use adjacent stack halfwords (struct or array) and reload as a word:
+
+```c
+s32 func(void) {
+    struct {
+        s16 unk0;
+        s16 unk2;
+    } sp;
+
+    sp.unk0 = D_x >> 8;
+    sp.unk2 = D_y >> 8;
+    return *(s32 *)&sp;
+}
+```
+
+`func_80049950` is the pure example (fixed-point globals `D_80067648` /
+`D_8006764C`, sra by 8, packed return).

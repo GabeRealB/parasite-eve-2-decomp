@@ -189,7 +189,16 @@ INCLUDE_ASM("main/nonmatchings/34E98", func_800497F4);
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_800498D4);
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80049950);
+s32 func_80049950(void) {
+    struct {
+        s16 unk0;
+        s16 unk2;
+    } sp;
+
+    sp.unk0 = D_80067648 >> 8;
+    sp.unk2 = D_8006764C >> 8;
+    return *(s32 *)&sp;
+}
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80049980);
 
