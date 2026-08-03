@@ -236,11 +236,13 @@ STATIC_ASSERT_SIZEOF(GStruct16, 0x1C);
 
 /// Pointed to by D_80062698 (bss object D_8007A320, size 0x38).
 typedef struct _GStruct17 {
-    byte unknown_0[0x12];
-    u8   field_12;
-    byte unknown_13[0x7];
-    u8   field_1a;
-    byte unknown_1b[0x1D];
+    /* 0x00 */ byte unknown_0[0x12];
+    /* 0x12 */ u8   field_12;
+    /* 0x13 */ byte unknown_13[0x7];
+    /* 0x1A */ u8   field_1a;
+    /* 0x1B */ byte unknown_1b;
+    /* 0x1C */ u32  field_1c;
+    /* 0x20 */ byte unknown_20[0x18];
 } GStruct17;
 STATIC_ASSERT_SIZEOF(GStruct17, 0x38);
 
