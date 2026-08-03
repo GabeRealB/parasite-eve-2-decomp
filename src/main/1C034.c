@@ -238,7 +238,31 @@ INCLUDE_ASM("main/nonmatchings/1C034", func_8002D544);
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002D61C);
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002D6EC);
+void func_8002D6EC(GStruct0* arg0)
+{
+    void* temp_s0;
+
+    arg0->field_2a--;
+    if (arg0->field_2a != 0) {
+        return;
+    }
+
+    switch (arg0->field_28) {
+    case 1:
+        temp_s0 = arg0->field_2c;
+        func_800991DC(temp_s0);
+        func_80099214(temp_s0);
+        arg0->field_28 = 0xFF;
+        break;
+    case 2:
+        func_80099290(arg0->field_2c);
+        arg0->field_28 = 0xFF;
+        break;
+    default:
+        arg0->field_28 = 0xFF;
+        break;
+    }
+}
 
 void func_8002D780(void)
 {

@@ -44,7 +44,7 @@ typedef struct _GStruct0 {
     u8                field_28;
     byte              unknown_29;
     s16               field_2a;
-    byte              unknown_2c[4];
+    void*             field_2c;
     s32               field_30;
     byte              unknown_34[0x14];
 } GStruct0;
