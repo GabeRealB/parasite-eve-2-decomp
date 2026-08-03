@@ -58,7 +58,11 @@ u8 func_8003FC18(void)
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_8003FC30);
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8003FC6C);
+void func_8003FC6C(void)
+{
+    D_80062698->field_17 = 0;
+    D_80062698->field_1a = 0xFF;
+}
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_8003FC8C);
 
