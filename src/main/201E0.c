@@ -10,7 +10,10 @@ INCLUDE_ASM("main/nonmatchings/201E0", func_8002FD08);
 
 INCLUDE_ASM("main/nonmatchings/201E0", func_8002FDCC);
 
-INCLUDE_ASM("main/nonmatchings/201E0", func_8002FEAC);
+void func_8002FEAC(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5, void* arg6)
+{
+    func_8002FDCC(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+}
 
 INCLUDE_ASM("main/nonmatchings/201E0", func_8002FEE0);
 
