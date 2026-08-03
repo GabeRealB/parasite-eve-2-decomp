@@ -760,7 +760,7 @@ typedef struct _GStruct44 {
 STATIC_ASSERT_SIZEOF(GStruct44, 0x14);
 
 /// Buffer with a 16-bit sum / ones-complement pair at the head and a payload
-/// starting at offset 4. Written by `func_80033A28`.
+/// starting at offset 4. Written by `func_80033A28`, verified by `func_80033BEC`.
 typedef struct _GStruct47 {
     /* 0x0 */ s16 field_0;
     /* 0x2 */ s16 field_2;

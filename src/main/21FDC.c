@@ -133,7 +133,26 @@ void func_80033BBC(void)
     func_800303AC();
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80033BEC);
+s32 func_80033BEC(GStruct47* arg0, s32 arg1)
+{
+    s16 sum;
+    register u8* ptr asm("a2");
+    u32 count;
+    u32 i;
+
+    sum = 0;
+    ptr = arg0->field_4;
+    count = arg1 - 4;
+    i = 0;
+    if (count != 0) {
+        do {
+            i += 1;
+            sum += (s8)*ptr;
+            ptr += 1;
+        } while (i < count);
+    }
+    return ((u16)arg0->field_0 ^ (sum & 0xFFFF)) == 0;
+}
 
 void func_80033C38(void)
 {
