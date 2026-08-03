@@ -39,7 +39,17 @@ void func_8003E540(void) {
 
 INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E560);
 
-INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E610);
+void func_8003E610(void) {
+    GStruct1* temp;
+
+    temp = &D_80070F68;
+    if (temp->field_1d >= 0) {
+        temp->field_1d |= 0x80;
+        temp->field_11d = 1;
+    } else {
+        temp->field_11d++;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E64C);
 
