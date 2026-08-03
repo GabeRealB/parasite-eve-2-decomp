@@ -430,3 +430,41 @@ The `if (flag != 0) { ...; return 0; } return 0;` form often becomes
 success-path setup. `func_8004D820` needs this shape (with `volatile`
 `D_800680C0`) to free `$v0` for the return value before the `D_800680BC`
 update.
+
+## Fall-through return vs delay-slot return
+
+When the target ends with:
+
+```
+bltz  v1, end
+li    v0, -1      # delay: early-path return
+li    v0, 3       # fall-through return (NOT in delay slot)
+jr    ra
+nop
+```
+
+plain early returns put the last constant in the `jr` delay slot:
+
+```c
+if (a >= 0) return 2;
+if (b < 0) return -1;
+return 3;           /* becomes: jr ra; li v0, 3 */
+```
+
+Fix: early-return the branched cases, but materialise the fall-through value in
+a temporary before returning:
+
+```c
+if (a >= 0) {
+    return 2;
+}
+if (b < 0) {
+    return -1;
+}
+ret = 3;
+return ret;         /* becomes: li v0, 3; jr ra; nop */
+```
+
+Also prefer a local pointer (`p = &global`) so the base lands in `$v1` and gets
+overwritten by later field loads — matching the target's register reuse.
+`func_8001D4F0` needs this pattern.

@@ -42,7 +42,21 @@ INCLUDE_ASM("main/nonmatchings/C37C", func_8001D424);
 
 INCLUDE_ASM("main/nonmatchings/C37C", func_8001D498);
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001D4F0);
+s32 func_8001D4F0(void)
+{
+    GStruct3* p;
+    s32 ret;
+
+    p = &D_80068FA0;
+    if (p->field_21A >= 0) {
+        return 2;
+    }
+    if (p->field_236 < 0) {
+        return -1;
+    }
+    ret = 3;
+    return ret;
+}
 
 s16 func_8001D524(void)
 {
