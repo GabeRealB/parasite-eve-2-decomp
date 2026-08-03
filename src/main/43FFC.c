@@ -431,6 +431,32 @@ INCLUDE_ASM("main/nonmatchings/43FFC", func_800565B8);
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_8005664C);
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_800566A4);
+void func_800566A4(void)
+{
+    s32        i;
+    s32        mask;
+    s32        c600;
+    s32        c500;
+    s32        c100;
+    GStruct54* p;
+    s32        temp;
+
+    i    = 0;
+    mask = 0xF0000000;
+    c600 = 0x60000000;
+    c500 = 0x50000000;
+    c100 = 0x10000000;
+    p    = D_80082248;
+    do {
+        temp = p->field_0 & mask;
+        if (temp != c600) {
+            if ((temp == c500) || (temp == c100)) {
+                p->field_16 = 0;
+            }
+        }
+        i++;
+        p++;
+    } while (i < 8);
+}
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80056700);
