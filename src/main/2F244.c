@@ -70,7 +70,13 @@ void func_8003F9AC(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8003F9F4);
+void func_8003F9F4(void)
+{
+    if (D_80062698->field_14 == 1) {
+        func_8003E9C4();
+        D_80062698->field_14 = 0;
+    }
+}
 
 void func_8003FA3C(u8 arg0)
 {
