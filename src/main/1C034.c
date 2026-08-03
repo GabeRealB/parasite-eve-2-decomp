@@ -194,6 +194,13 @@ INCLUDE_ASM("main/nonmatchings/1C034", func_8002D61C);
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002D6EC);
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002D780);
+void func_8002D780(void)
+{
+    s32 i;
+
+    for (i = 0xF; i >= 0; i--) {
+        D4F564_8005ED64->field_C[i] = NULL;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002D7A8);
