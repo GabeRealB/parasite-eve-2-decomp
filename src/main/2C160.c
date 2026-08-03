@@ -38,7 +38,18 @@ void func_8003C748(MATRIX* arg0, volatile SVECTOR* arg1) {
     arg1->vz = t6;
 }
 
-INCLUDE_ASM("main/nonmatchings/2C160", func_8003C768);
+void func_8003C768(MATRIX* arg0, volatile SVECTOR* arg1) {
+    register short t4 asm("t4");
+    register short t5 asm("t5");
+    register short t6 asm("t6");
+
+    t4 = arg0->m[0][2];
+    t5 = arg0->m[1][2];
+    t6 = arg0->m[2][2];
+    arg1->vx = t4;
+    arg1->vy = t5;
+    arg1->vz = t6;
+}
 
 INCLUDE_ASM("main/nonmatchings/2C160", func_8003C788);
 
