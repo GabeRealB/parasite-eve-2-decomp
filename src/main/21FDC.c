@@ -229,7 +229,34 @@ s32 func_80033D88(void)
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80033DD4);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80033E58);
+void func_80033E58(void)
+{
+    u32        i;
+    u32        j;
+    GStruct53* p;
+    GStruct53* base;
+    u8*        src;
+    s32        size;
+    u8*        dest;
+
+    i    = 1;
+    base = D_800610FC;
+    p    = base + 1;
+    do {
+        src  = (u8*)p->field_0;
+        size = p->field_4;
+        j    = 0;
+        dest = src + size;
+        while (j < (u32)size) {
+            j    += 1;
+            *dest = *src;
+            src  += 1;
+            dest += 1;
+        }
+        i += 1;
+        p += 1;
+    } while (i < 9);
+}
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80033EB0);
 

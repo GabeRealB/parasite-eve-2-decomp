@@ -1959,3 +1959,44 @@ void dispatcher(GStruct0* arg0)
 The index form then becomes `addiu v1,sp,0x10` / `sll` / `addu v1,v1,v0` /
 `lw v0,0(v1)`. `func_8002C028` is the pure example (3 entries). The same idea
 applies to `D_800134BC` (5 entries) for the sibling dispatcher `func_8002BEA8`.
+
+## `while (j < n)` vs `if (n) do{}while` for counter/dest reg pair
+
+A byte-copy loop that increments both a counter and a destination pointer can
+allocate those two locals swapped (`$a0`/`$v1`) depending on loop shape.
+
+Target wants the counter in `$v1` and dest in `$a0`:
+
+```
+move  v1, zero        /* j = 0 */
+beqz  a2, end         /* size == 0 */
+ addu a0, a1, a2      /* dest = src + size */
+addiu v1, v1, 1
+lbu   v0, 0(a1)
+...
+sltu  v0, v1, a2
+bnez  v0, loop
+ addiu a0, a0, 1
+```
+
+`if (size != 0) { do { j++; *dest++ = *src++; } while (j < (u32)size); }`
+puts `j` in `$a0` and `dest` in `$v1` (98% match, pure reg swap).
+
+Use a pre-tested loop instead, and declare `size` before `dest`:
+
+```c
+u8* src;
+s32 size;
+u8* dest;
+...
+j = 0;
+dest = src + size;
+while (j < (u32)size) {
+    j += 1;
+    *dest = *src;
+    src += 1;
+    dest += 1;
+}
+```
+
+`func_80033E58` is the pure example (`D_800610FC[1..8]` buffer duplicate).
