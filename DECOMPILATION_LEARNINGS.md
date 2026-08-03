@@ -1540,3 +1540,37 @@ return ret;            /* move v1,zero; move v0,v1 — mismatch */
 Bare early `return 1;` / `return 0;` can also fail: the compiler may sink the
 `return 1` path after the work block instead of filling the branch delay slot.
 `func_80057724` is the pure example.
+
+## Statement order of independent increments fills load-delay slots
+
+When a loop body does a dependent load chain (`lw` of a pointer, then `lbu`
+through that pointer) plus two independent increments (`p++` and `i++`), GCC
+2.8.1 fills the first load-delay with whichever independent op is *first* in
+the source. The second increment lands after the second load (or in the
+branch delay if it is the pointer step).
+
+Target often wants:
+
+```
+lw    v0, 0(a0)
+nop
+lbu   v0, 0(v0)
+addiu a1, a1, 1      # i++
+addu  v1, v1, v0
+...
+bnez  ...
+ addiu a0, a0, 0xC  # p++ in branch delay
+```
+
+Writing `i++` before `p++` fills the `lw` delay with `i++` and leaves a `nop`
+after `lbu` — mismatch. Put the pointer step first:
+
+```c
+do {
+    sum += *(u8*)p->field_0;
+    p += 1;   /* scheduled into the branch delay */
+    i += 1;   /* fills the lbu delay, leaves nop after lw */
+} while (i < 9);
+```
+
+`func_80033D88` is the pure example. Same body with `i` then `p` scores ~94%.

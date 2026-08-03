@@ -185,7 +185,24 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_80033CC0);
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80033D3C);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80033D88);
+s32 func_80033D88(void)
+{
+    s32 sum;
+    u32 i;
+    GStruct53* p;
+    GStruct53* base;
+
+    sum = 0;
+    i = 1;
+    base = D_800610FC;
+    p = base + 1;
+    do {
+        sum += *(u8*)p->field_0;
+        p += 1;
+        i += 1;
+    } while (i < 9);
+    return ((u16)D_80072AA8 ^ (sum & 0xFFFF)) == 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80033DD4);
 

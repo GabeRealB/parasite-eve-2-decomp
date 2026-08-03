@@ -770,6 +770,16 @@ typedef struct _GStruct47 {
     /* 0x4 */ u8  field_4[1];
 } GStruct47;
 
+/// 0xC descriptor for a memcard/save buffer slot in D_800610FC[9].
+/// field_0 points at a GStruct47-style checksummed buffer; field_4 is its size.
+/// Iterated from index 1..8 by func_80033D88 and related helpers in 21FDC.c.
+typedef struct _GStruct53 {
+    /* 0x0 */ GStruct47* field_0;
+    /* 0x4 */ s32        field_4;
+    /* 0x8 */ s32        field_8;
+} GStruct53;
+STATIC_ASSERT_SIZEOF(GStruct53, 0xC);
+
 /// Out-parameter for `func_8004E5C4` (voice slot lookup/alloc).
 /// field_0 is the voice index; field_4 points at 16 words of voice data.
 typedef struct _GStruct48 {

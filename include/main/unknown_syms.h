@@ -151,6 +151,11 @@ extern u8 D_800604B0[];
 extern u8 D_80060DD8[0x18];
 extern u8 D_80060DF0[0x18];
 
+// Save/memcard buffer descriptors (9 entries of GStruct53, 0x6C bytes)
+extern GStruct53 D_800610FC[9];
+// Halfword checksum compared by func_80033D88 (also D_80072168 + 0x940)
+extern u16 D_80072AA8;
+
 // 201E0.c
 extern s32  func_8002FCBC(u8* arg0);
 extern void func_80030074(void);
