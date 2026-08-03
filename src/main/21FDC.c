@@ -365,7 +365,28 @@ void func_80036A2C(void* arg0, GStruct20* arg1)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80036A70);
+void func_80036A70(GStruct0* arg0)
+{
+    GStruct20* obj;
+    GStruct46* menu;
+
+    obj = arg0->field_20;
+    menu = &D_8006116C;
+    func_80047F40(obj, D_80013B64);
+    if (arg0->field_30 == 0) {
+        func_800489A0(menu, obj);
+        menu->field_A = 1;
+        menu->field_10 = 0;
+        menu->field_9 = 0;
+        func_8004917C(menu, 1);
+        arg0->field_30 += 1;
+    } else {
+        func_80048C10(menu, obj);
+        if (obj->field_0 == 1) {
+            func_80048D58(obj, obj->field_1c + 2, 0);
+        }
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80036B2C);
 
