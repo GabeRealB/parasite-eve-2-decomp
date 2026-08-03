@@ -1442,3 +1442,70 @@ return arg0;
 
 `func_8002F528` is the pure example. A plain `do { ... } while (arg1 > 0)` with
 the same locals peels the null check and reintroduces `andi` masks.
+
+## `x % 8` (not `x & 7`) for u16 queue indices
+
+When the target advances a u16 ring-buffer index with:
+
+```
+lhu  v0, idx
+addiu v0, 1
+sh   v0, idx
+andi v0, 0xffff
+andi v0, 7
+j    ...
+ sh  v0, idx
+```
+
+write two assignments using **modulo**, not bitwise and:
+
+```c
+state->field_1ca = state->field_1ca + 1;
+state->field_1ca = state->field_1ca % 8;
+```
+
+`% 8` on a u16 forces the zero-extend `andi 0xffff` before `andi 7`. Writing
+`x & 7` (or `(x + 1) & 7`) combines into a single `andi 7` and drops one store.
+`func_8001D898` (`D_8006AC04 = index + 1; D_8006AC04 = D_8006AC04 % 8;`) is the
+matched precedent; `func_8001C620` needs the same form for `field_1ca`.
+
+## Route a `volatile u8` load through an existing `s32` temp for s-reg order
+
+When `(s8)entry->field_5` must live in `$s3` while the constant `1` lives in
+`$s2`, a direct `field5 = (s8)*(volatile u8*)&entry->field_5` often steals
+`$s2` for `field5`. Assigning through an already-live `s32` first flips the
+colors:
+
+```c
+status = *(volatile u8*)&entry->field_5; /* existing s32, used later too */
+field5 = status;
+step   = state->field_1d0;
+field5 = (s8)field5;
+```
+
+The volatile load still yields `lbu` + `sll 24` / `sra 24` (not `lb`), and
+`field5` lands in `$s3`. `func_8001C620` needs this for the case-0x54 prologue.
+
+## Force `addu v0, v0, s0` (scaled-index + base) for `entries[i]`
+
+Plain `state->entries[idx].field_4 = 0` often emits `addu v0, s0, v0` (base
+first). When the target has the accumulate form after `move`/`sll`:
+
+```
+move v0, v1
+sll  v0, v0, 3
+addu v0, v0, s0   /* scaled index + base */
+sb   zero, 4(v0)
+```
+
+build the address explicitly so the add folds onto the shifted temp:
+
+```c
+u32 t;
+t = state->field_1ca << 3;
+t += (u32)state;
+((GStruct3Entry*)t)->field_4 = 0;
+```
+
+`func_8001C620` cleanup needs this; prefer struct indexing when the operand
+order already matches.

@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <psyq/libcd.h>
+
 #include "main/game.h"
 #include "main/mem.h"
 #include "main/unknown_syms.h"
@@ -11,7 +13,146 @@ INCLUDE_ASM("main/nonmatchings/C37C", func_8001BE60);
 
 INCLUDE_ASM("main/nonmatchings/C37C", func_8001C0D4);
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001C620);
+void func_8001C620(void)
+{
+    GStruct3* state;
+    s32       cmd;
+    s32       status;
+    s16       ret;
+
+    state = &D_80068FA0;
+    cmd   = state->entries[state->field_1ca].field_4;
+    if (cmd < 0x54) {
+        return;
+    }
+    switch (cmd) {
+    case 0x54: {
+        GStruct3Entry* entry;
+        s32            field5;
+        s32            step;
+
+        entry  = &state->entries[state->field_1ca];
+        status = *(volatile u8*)&entry->field_5;
+        field5 = status;
+        step   = state->field_1d0;
+        field5 = (s8)field5;
+        switch (step) {
+        case 0:
+            if (state->field_252 == 0) {
+                state->field_252      = 1;
+                D_80070F68.field_130 = 0xFF;
+            }
+            func_8002362C(field5 & 0xFF);
+            goto increment_step;
+        case 1:
+            if (CdSync(1, NULL) == CdlDiskError) {
+                CdSyncCallback(NULL);
+                CdReadyCallback(NULL);
+                goto wait_reset_clear_step;
+            }
+            F12D18_800257B0();
+            status = D5B498_8006C228;
+            switch (status) {
+            case 0x80:
+                ret = func_8001E6AC(0, 0);
+                if (ret != step) {
+                    if (ret < 2) {
+                        return;
+                    }
+                    if (ret != 2) {
+                        return;
+                    }
+                    CdFlush();
+                }
+                if (CdSync(1, NULL) == CdlDiskError) {
+                wait_reset_clear_step:
+                    F12D18_WaitDiskReset(1);
+                }
+                state->field_1d0 = 0;
+                return;
+            case 0xFF:
+                CdSyncCallback(NULL);
+                CdReadyCallback(NULL);
+            increment_step:
+                state->field_1d0 = state->field_1d0 + 1;
+                return;
+            case 0x10:
+            case 0x20:
+            case 0x40:
+                ret = func_8001E6AC(0, 0);
+                if (ret != 1) {
+                    if (ret < 2) {
+                        return;
+                    }
+                    if (ret != 2) {
+                        return;
+                    }
+                    CdFlush();
+                }
+                F12D18_80024EC0();
+                return;
+            }
+            return;
+        case 2:
+            ret = func_8001E6AC(0, 0);
+            if (ret != 1) {
+                if (ret < 2) {
+                    return;
+                }
+                if (ret != step) {
+                    return;
+                }
+                CdFlush();
+            }
+            F12D18_InitFolderTable(field5 & 0xFF);
+            goto cleanup;
+        }
+        return;
+    }
+    case 0x55:
+        status = D5B498_8006C228;
+        if (status != 0xFF) {
+            goto case55_cont;
+        }
+    cleanup:
+        if (state->field_252 != 0) {
+            state->field_252      = 0;
+            D_80070F68.field_130 = 0;
+        }
+        state->field_1d0 = 0;
+        state->field_1fc = 0;
+        state->field_222 = 0;
+        state->field_242 = 0;
+        if (state->field_1ca != state->field_1c8) {
+            u32 t;
+            t = state->field_1ca << 3;
+            t += (u32)state;
+            ((GStruct3Entry*)t)->field_4 = 0;
+            state->field_1ca = state->field_1ca + 1;
+            state->field_1ca = state->field_1ca % 8;
+        }
+        return;
+    case55_cont:
+        if (status != 0x80) {
+            return;
+        }
+        ret = func_8001E6AC(0, 0);
+        if (ret != 1) {
+            if (ret < 2) {
+                return;
+            }
+            if (ret != 2) {
+                return;
+            }
+            CdFlush();
+        }
+        if (CdSync(1, NULL) == CdlDiskError) {
+            F12D18_WaitDiskReset(1);
+        }
+        F12D18_InitStage0Tables();
+        return;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/C37C", func_8001C970);
 

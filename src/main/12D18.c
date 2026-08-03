@@ -529,7 +529,7 @@ void F12D18_SeekToPos(s32 sector)
     D5B498_CurrVBlank = VSync(-1);
 }
 
-void F12D18_InitFolderTable(void)
+void F12D18_InitFolderTable(s32 arg0)
 {
     u32                   offset;
     FsCdfFolderListEntry* entry;

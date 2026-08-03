@@ -31,6 +31,7 @@ extern void func_80014C2C(void);
 extern bool F04CF8_StageCdfIsAvailable(u32 stageIdx);
 
 // E734.c
+extern s32  func_8001E6AC(s32 arg0, s32 arg1);
 extern void func_8002D248(GStruct0Node* node);
 
 // C37C.c
@@ -69,7 +70,8 @@ extern void func_80022BD0(u8 status, u8* result);
 extern u8   func_80022CF0(void);
 extern u8   func_800231A8(void);
 extern void F12D18_InitStage0TablesCb(u8 status, u8* result);
-extern void F12D18_InitFolderTable(void);
+extern void F12D18_InitFolderTable(s32 arg0);
+extern void func_8002362C(s32 arg0);
 extern void F12D18_InitStage0Tables(void);
 extern void F12D18_ClearDiskError(void);
 extern void F12D18_80024EC0(void);
