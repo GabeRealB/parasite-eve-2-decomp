@@ -24,7 +24,17 @@ void func_8005B648(CdlCB arg0)
     D_800828F0.field_1 = 1;
 }
 
-INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005B6A8);
+void func_8005B6A8(void)
+{
+    volatile GStruct32* p;
+
+    p = &D_800828F0;
+    if (p->field_1 != 0) {
+        CdReadyCallback(0);
+        p->field_4 = 0;
+        p->field_1 = 0;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005B6EC);
 
