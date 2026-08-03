@@ -245,7 +245,10 @@ typedef struct _GStruct17 {
     /* 0x1A */ u8   field_1a;
     /* 0x1B */ byte unknown_1b;
     /* 0x1C */ u32  field_1c;
-    /* 0x20 */ byte unknown_20[0x18];
+    /* 0x20 */ s32  field_20;
+    /* 0x24 */ s32  field_24;
+    /* 0x28 */ s32  field_28;
+    /* 0x2C */ byte unknown_2C[0xC];
 } GStruct17;
 STATIC_ASSERT_SIZEOF(GStruct17, 0x38);
 

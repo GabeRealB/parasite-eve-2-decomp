@@ -1746,3 +1746,26 @@ if (D_80070F68.field_104 == 0) { ... }
 ```
 
 `func_800282D8` is the pure example.
+
+## `byte` is signed — cast to `u8` for `lbu`
+
+`typedef signed char byte` in `include/decomp/types.h`. Reading a `byte`
+field and assigning it to a wider integer emits `lb` (sign-extend). When the
+target uses `lbu` (zero-extend), cast through `u8`:
+
+```c
+/* target: lbu v1, 4(v1) ; sw v1, 0x20(a0) */
+val = (u8)ptr->field_4;   /* not bare ptr->field_4 */
+dst->field_20 = val;
+```
+
+Scratch envs that invent a local `unsigned char field_4` will match locally
+but fail the full build once the real `byte` typedef is used. Prefer the
+cast over changing the struct field type when other code relies on `byte`
+(or takes its address).
+
+Also: if the target loads the byte early but stores it late, hold it in a
+local (`val = (u8)...`) so the load schedules before intervening stores.
+
+`func_8003FB20` is the pure example (`D4F564_8005ED64->field_4` →
+`D_80062698->field_20`).

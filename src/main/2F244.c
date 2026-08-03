@@ -122,7 +122,24 @@ void func_8003FA4C(s32 arg0)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8003FB20);
+s32 func_8003FB20(void)
+{
+    GStruct17* temp;
+    u32        flags;
+    s32        val;
+
+    temp  = D_80062698;
+    flags = temp->field_1c;
+    if (!(flags & 0x40000000)) {
+        temp->field_1c = flags | 0x50000000;
+        val            = (u8)D4F564_8005ED64->field_4;
+        temp->field_24 = 0;
+        temp->field_28 = 0;
+        temp->field_11 = 3;
+        temp->field_20 = val;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_8003FB70);
 
