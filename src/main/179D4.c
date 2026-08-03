@@ -78,7 +78,14 @@ void F179D4_ClearOTag(s16 tableIdx)
 
 INCLUDE_ASM("main/nonmatchings/179D4", func_800281D4);
 
-INCLUDE_ASM("main/nonmatchings/179D4", func_80028290);
+void func_80028290(void)
+{
+    if (D_8005EC64 == 1) {
+        func_8002CFDC(0, 0x1F, 0, 0);
+    } else {
+        func_8002CFDC(0, 0x20, 0, 0);
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/179D4", func_800282D8);
 
