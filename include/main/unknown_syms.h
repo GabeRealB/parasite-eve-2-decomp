@@ -126,6 +126,7 @@ extern void func_800488F8(GStruct0* arg0);
 extern void func_80048C10(void* arg0, void* arg1);
 extern void func_80048D58(void* arg0, s32 arg1, s32 arg2);
 extern void func_80049288(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5);
+extern void func_800492B8(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5);
 
 // 3D458.c
 extern void  func_8004CFE8(void);

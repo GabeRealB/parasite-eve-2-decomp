@@ -129,7 +129,10 @@ void func_80049288(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, v
     func_80046B34(arg0, arg1, arg2, arg3, arg4, arg5, 0);
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_800492B8);
+void func_800492B8(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5)
+{
+    func_80046B34(arg0, arg1, arg2, arg3, arg4, arg5, 1);
+}
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_800492EC);
 
