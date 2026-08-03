@@ -188,7 +188,13 @@ s32 func_800517F8(void) {
     return D_8007F2F0;
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80051808);
+u8 *func_80051808(void) {
+    if (D_8007F300 != 0) {
+        func_80051AB8(&D_8007F300);
+        D_8007F300 = 4;
+    }
+    return &D_8007F300;
+}
 
 void *func_80051850(s32 arg0, s32 arg1) {
     return D_8007F8E0;
