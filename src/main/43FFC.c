@@ -31,7 +31,17 @@ INCLUDE_ASM("main/nonmatchings/43FFC", func_80053E68);
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80053F00);
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80053F60);
+s32 func_80053F60(s32* arg0) {
+    s32 temp;
+
+    temp = *arg0 + 1;
+    *arg0 = temp;
+    if (temp < 0x3D) {
+        return 0;
+    }
+    F3E48C_SetReverbDepth(0x2800);
+    return -1;
+}
 
 void func_80053FA0(s32 arg0) {
     s32 var_a0;

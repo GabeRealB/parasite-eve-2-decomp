@@ -266,7 +266,7 @@ extern void func_800509B4(void);
 extern void func_80050D20(u32);
 extern void func_80053E48(void);
 extern void func_80053E68(void);
-extern void func_80053F60(void);
+extern s32 func_80053F60(s32* arg0);
 extern void func_80053FF4(u32);
 extern void func_800AFA44(void);
 extern void func_800B00C4(void);
