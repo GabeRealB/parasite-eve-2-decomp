@@ -1509,3 +1509,34 @@ t += (u32)state;
 
 `func_8001C620` cleanup needs this; prefer struct indexing when the operand
 order already matches.
+
+## if/else ret assignment vs pre-set ret for delay-slot returns
+
+When the target puts `li v0, K` in a `bnez`/`beqz` delay slot (early return of a
+constant) and falls through to overwrite `v0` with the success value, an
+if/else that assigns both return paths into one `ret` matches:
+
+```c
+if (flag != 0) {
+    ret = 1;
+} else {
+    /* work */
+    ret = 0;
+}
+return ret;
+```
+
+The pre-set form often miscolors the constant into a non-`v0` temp:
+
+```c
+ret = 1;               /* lands in $v1 */
+if (flag == 0) {
+    /* work */
+    ret = 0;
+}
+return ret;            /* move v1,zero; move v0,v1 — mismatch */
+```
+
+Bare early `return 1;` / `return 0;` can also fail: the compiler may sink the
+`return 1` path after the work block instead of filling the branch delay slot.
+`func_80057724` is the pure example.

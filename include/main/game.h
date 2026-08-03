@@ -804,6 +804,14 @@ typedef struct _GStruct51 {
 } GStruct51;
 STATIC_ASSERT_SIZEOF(GStruct51, 0x14);
 
+/// 4-byte entry pointed to by D_80082794 (see func_80057724).
+/// Indexed by D_80082758.field_2; field_3 is compared across adjacent entries.
+typedef struct _GStruct52 {
+    /* 0x0 */ u8 pad[3];
+    /* 0x3 */ u8 field_3;
+} GStruct52;
+STATIC_ASSERT_SIZEOF(GStruct52, 0x4);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 
