@@ -110,7 +110,28 @@ INCLUDE_ASM("main/nonmatchings/1C034", func_8002C1D8);
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002C5A4);
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002C868);
+s32 func_8002C868(s32 arg0, s32 arg1, s32 arg2)
+{
+    GStruct25* p;
+    u16 val;
+
+    p = (GStruct25*)&D_80071620[arg0];
+    switch (arg1) {
+    case 1:
+        val = p->field_6;
+        break;
+    case 3:
+        val = p->field_8;
+        break;
+    default:
+        val = p->field_4;
+        break;
+    }
+    if (arg1 == 2) {
+        return (val & arg2) == arg2;
+    }
+    return (val & arg2) != 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002C8E4);
 

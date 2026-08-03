@@ -1651,3 +1651,39 @@ return -1;
 
 `func_80055DAC` is the pure example. Signed `i` + `do`/`while` also produces
 the target's `slti`/`bnez` count-up form.
+
+## Cast away `volatile` for switch delay-slot constant CSE
+
+When a `switch` is followed by a comparison against a small constant (e.g.
+`if (arg1 == 2)`), GCC 2.8.1 can CSE that constant into the delay slot of the
+last case `beq` — but only if the switch body loads are *not* volatile:
+
+```
+beq  a1, v0, case3
+li   v0, 2          # final cmp constant, scheduled into switch dispatch
+j    default
+...
+case bodies use v0=2 for `if (arg1 == 2)` without reloading on every path
+```
+
+With `volatile GStruct25* p` (or a volatile global accessed directly), the
+loads pin scheduling and the `li 2` is emitted separately on each path
+(~93% match: correct control flow, wrong delay slots). Strip the qualifier:
+
+```c
+/* Global stays volatile (other functions need it). */
+GStruct25* p;
+p = (GStruct25*)&D_80071620[arg0];
+switch (arg1) {
+case 1: val = p->field_6; break;
+case 3: val = p->field_8; break;
+default: val = p->field_4; break;
+}
+if (arg1 == 2) {
+    return (val & arg2) == arg2;
+}
+return (val & arg2) != 0;
+```
+
+`func_8002C868` is the pure example. This is the inverse of the
+"keep local pointer volatile" rule used by `func_8002C9E0` on the same array.
