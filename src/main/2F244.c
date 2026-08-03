@@ -54,7 +54,13 @@ s32 func_8003F944(void)
     return (D_80062698->field_1c & 0x48000000) != 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8003F964);
+void func_8003F964(void)
+{
+    if (D_80062698->field_13 == 0) {
+        func_8003E904();
+        D_80062698->field_13 = 1;
+    }
+}
 
 void func_8003F9AC(void)
 {
