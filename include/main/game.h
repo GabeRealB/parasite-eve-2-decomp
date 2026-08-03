@@ -83,7 +83,8 @@ typedef struct _GStruct1 {
     s32     field_118;
     byte    unknown_11c[0x1];
     u8      field_11d;
-    byte    unknown_11e[0x2];
+    u8      field_11e;
+    byte    unknown_11f[0x1];
     s16     field_120;
     byte    unknown_122[0x2];
     u16     field_124;
@@ -189,7 +190,9 @@ typedef struct _GStructOverlayAt4 {
 STATIC_ASSERT_SIZEOF(GStructOverlayAt4, 0xC);
 
 typedef struct _GStruct14 {
-    byte  unknown_0[0x4];
+    byte  unknown_0[0x2];
+    u8    field_2;
+    byte  unknown_3;
     byte  field_4; // address taken by func_8001D39C
     byte  unknown_5;
     u8    field_6;

@@ -138,27 +138,28 @@ extern void func_800429C8(s32 arg0);
 extern void func_800ACAA8(void);
 
 // 34E98.c
-extern void func_80046B34(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5, s32 arg6);
-extern void func_80046EEC(void* arg0, void* arg1, s32 arg2);
-extern void func_80048560(void* arg0, void* arg1, s32 arg2, s32 arg3);
-extern void func_80048838(GStruct37* arg0, void* arg1);
-extern void func_800488B8(GStruct0* arg0);
-extern void func_800488F8(GStruct0* arg0);
-extern void func_80047F40(GStruct20* arg0, char* arg1);
-extern void func_80048904(GStruct30* arg0, s32 arg1, s32 arg2);
-extern void func_80048964(GStruct30* arg0);
-extern void func_800489A0(GStruct46* arg0, GStruct20* arg1);
-extern void func_80048C10(void* arg0, void* arg1);
-extern void func_80048D58(void* arg0, s32 arg1, s32 arg2);
-extern void func_8004917C(GStruct46* arg0, s32 arg1);
-extern void func_80049288(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5);
-extern void func_800492B8(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5);
-extern void func_80045D24(GStruct30* arg0);
-extern void func_80049554(GStruct30* arg0, void* arg1);
-extern void func_800495B4(GStruct30* arg0, void* arg1);
-extern void func_8004965C(GStruct30* arg0, void* arg1);
-extern void func_800497F4(GStruct30* arg0, void* arg1);
-extern void func_80049A8C(GStruct0* arg0);
+extern void* func_800486F0(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+extern void  func_80046B34(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5, s32 arg6);
+extern void  func_80046EEC(void* arg0, void* arg1, s32 arg2);
+extern void  func_80048560(void* arg0, void* arg1, s32 arg2, s32 arg3);
+extern void  func_80048838(GStruct37* arg0, void* arg1);
+extern void  func_800488B8(GStruct0* arg0);
+extern void  func_800488F8(GStruct0* arg0);
+extern void  func_80047F40(GStruct20* arg0, char* arg1);
+extern void  func_80048904(GStruct30* arg0, s32 arg1, s32 arg2);
+extern void  func_80048964(GStruct30* arg0);
+extern void  func_800489A0(GStruct46* arg0, GStruct20* arg1);
+extern void  func_80048C10(void* arg0, void* arg1);
+extern void  func_80048D58(void* arg0, s32 arg1, s32 arg2);
+extern void  func_8004917C(GStruct46* arg0, s32 arg1);
+extern void  func_80049288(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5);
+extern void  func_800492B8(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5);
+extern void  func_80045D24(GStruct30* arg0);
+extern void  func_80049554(GStruct30* arg0, void* arg1);
+extern void  func_800495B4(GStruct30* arg0, void* arg1);
+extern void  func_8004965C(GStruct30* arg0, void* arg1);
+extern void  func_800497F4(GStruct30* arg0, void* arg1);
+extern void  func_80049A8C(GStruct0* arg0);
 
 // 3D458.c
 extern void       func_8004CFE8(void);
@@ -357,6 +358,7 @@ extern volatile u32 D_8005EC70;
 extern TaskDesc*    D_8005EF74[];
 extern char         D_80013B64[]; // "Select"
 extern GStruct46    D_8006116C;
+extern s32          D_800611C8[];
 extern TaskDesc     D_8006268C;
 extern GStruct17*   D_80062698;
 extern TaskDesc     D_8006269C;
