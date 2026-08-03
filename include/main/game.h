@@ -225,8 +225,10 @@ typedef struct _GStruct16From4 {
     u8  field_1;
     u16 field_2;
     s32 field_4;
+    s32 field_8;
+    s32 field_C;
 } GStruct16From4;
-STATIC_ASSERT_SIZEOF(GStruct16From4, 0x8);
+STATIC_ASSERT_SIZEOF(GStruct16From4, 0x10);
 
 typedef struct _GStruct16 {
     s16                field_0;
@@ -235,7 +237,8 @@ typedef struct _GStruct16 {
     u8                 field_5;
     u16                field_6;
     s32                field_8;
-    byte               unknown_C[0x8];
+    s32                field_C;
+    s32                field_10;
     struct _GStruct16* field_14;
     struct _GStruct16* field_18;
 } GStruct16;
