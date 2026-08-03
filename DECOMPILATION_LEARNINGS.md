@@ -2270,3 +2270,42 @@ return ret;
 
 `func_80057ACC` is the example. Pair with `if (x != K)` so the branch is
 `beq` to the else arm and the `!=` arm is fall-through (failure-first layout).
+
+## `register … asm("v1")` for `lui v1; addiu v1, v1, %lo`
+
+When a local is assigned an address-of-global in one arm and a small constant
+in another, GCC often materialises the address as:
+
+```
+lui   v0, %hi(sym)
+addiu v1, v0, %lo(sym)
+```
+
+even when the hard register for that local is already `$v1`. The target may
+instead want the same-reg form:
+
+```
+lui   v1, %hi(sym)
+addiu v1, v1, %lo(sym)
+```
+
+Pinning the local forces the high part into the result register:
+
+```c
+register s32 flag asm("v1");
+
+if (all_banks) {
+    flag = arg0 & 1;
+    /* … fill loop … */
+} else {
+    flag = (s32)D_80082138; /* lui v1 / addiu v1,v1 */
+    ((volatile u8*)flag)[idx] = arg0 & 1;
+}
+```
+
+Use a `volatile` cast on the store when the target keeps `sb` *before* the
+following `bnez` (delay slot holds the next `lui`, not the store). The project
+already uses `register … asm("reg")` elsewhere (`func_8005287C`, heap init).
+
+`func_8005454C` is the pure example: dual-purpose `flag` (loop fill value vs
+bank-table base) needs `asm("v1")` for the address load form.

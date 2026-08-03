@@ -254,7 +254,41 @@ void func_800544B8(s32 arg0, s32 arg1)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_8005454C);
+void func_8005454C(s32 arg0, s32 arg1)
+{
+    u8*             ptr;
+    register s32    flag asm("v1");
+    GStruct16*      temp;
+    GStruct16From4* mid;
+
+    if (arg1 == 0x80000000) {
+        arg1 = 0;
+        ptr  = D_80082138;
+        flag = arg0 & 1;
+    loop:
+        *(u8*)(arg1 + (s32)ptr) = flag;
+        arg1                   += 1;
+        if (arg1 < 0x10) {
+            goto loop;
+        }
+    } else {
+        flag                                  = (s32)D_80082138;
+        arg1                                 &= 0xF0000000;
+        ((volatile u8*)flag)[(u32)arg1 >> 28] = arg0 & 1;
+        if (arg0 == 0) {
+            if (arg1 == 0x40000000) {
+                temp = func_800509F4();
+                if (temp != NULL) {
+                    temp->field_2 = 7;
+                    mid           = (GStruct16From4*)&temp->field_4;
+                    mid->field_4  = func_80053F00(0x40000000);
+                    mid->field_2  = 1;
+                    func_80050A38(temp);
+                }
+            }
+        }
+    }
+}
 
 void func_80054608(s8 arg0)
 {
