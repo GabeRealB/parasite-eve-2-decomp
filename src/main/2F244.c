@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "main/game.h"
+#include "main/mem.h"
 #include "main/unknown_syms.h"
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_8003EA44);
@@ -150,7 +151,13 @@ INCLUDE_ASM("main/nonmatchings/2F244", func_80041700);
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_800418C0);
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_80041B4C);
+void func_80041B4C(GStruct27* arg0)
+{
+    if (arg0->field_18 != NULL) {
+        Mem_Free2(arg0->field_18, 1);
+        arg0->field_18 = NULL;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_80041B88);
 

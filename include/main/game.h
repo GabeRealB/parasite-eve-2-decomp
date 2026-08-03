@@ -367,6 +367,29 @@ typedef struct _GStruct26 {
 } GStruct26;
 STATIC_ASSERT_SIZEOF(GStruct26, 0x4);
 
+/// Node in the D_800711B8 linked list (2F244.c TMD/model objects).
+/// Header is 0x34 bytes with a variable payload after. Fields from func_80041700
+/// init and related free/alloc helpers (func_80041B4C, func_80041B88, etc.).
+typedef struct _GStruct27 {
+    /* 0x00 */ struct _GStruct27* next;
+    /* 0x04 */ byte               unknown_4[0x4];
+    /* 0x08 */ void*              field_8;
+    /* 0x0C */ u16                field_C;
+    /* 0x0E */ s8                 field_E;
+    /* 0x0F */ byte               unknown_F;
+    /* 0x10 */ void*              field_10;
+    /* 0x14 */ u16                field_14;
+    /* 0x16 */ u16                field_16;
+    /* 0x18 */ void*              field_18;
+    /* 0x1C */ void*              field_1C;
+    /* 0x20 */ void*              field_20;
+    /* 0x24 */ u8                 field_24;
+    /* 0x25 */ u8                 field_25;
+    /* 0x26 */ byte               unknown_26[0xA];
+    /* 0x30 */ s32                field_30;
+} GStruct27;
+STATIC_ASSERT_SIZEOF(GStruct27, 0x34);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 
