@@ -180,7 +180,22 @@ INCLUDE_ASM("main/nonmatchings/C37C", func_8001D760);
 
 INCLUDE_ASM("main/nonmatchings/C37C", func_8001D82C);
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001D898);
+GStruct3Entry* func_8001D898(void)
+{
+    GStruct3* p;
+    s32 index;
+    GStruct3Entry* entry;
+
+    p = &D_80068FA0;
+    index = D_8006AC04;
+    entry = &p->entries[index];
+    if (index == p->field_1c8) {
+        return NULL;
+    }
+    D_8006AC04 = index + 1;
+    D_8006AC04 = D_8006AC04 % 8;
+    return entry;
+}
 
 void func_8001D8DC(void)
 {

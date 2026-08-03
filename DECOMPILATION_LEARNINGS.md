@@ -1149,3 +1149,32 @@ if (arg0 == 0) {
 ```
 
 `if (arg0 != 0)` swaps the arms and GCC emits `beqz` with the non-zero path as fall-through — same code, inverted control flow, large score drop. `func_800338F4` is a short example (copy between `D_80060DD8` / `D_80060DF0`).
+
+## Ring-buffer wrap: `x = x + 1; x = x % N` keeps both stores
+
+For a power-of-two ring size, `x = (x + 1) & (N-1)` and `x++; x &= (N-1)` both
+collapse to a single store under `-O2`. The target often keeps the unmasked
+intermediate store, then masks:
+
+```
+addiu  v0, idx, 1
+sh     v0, counter        # unmasked
+andi   v1, v0, 0xffff
+...
+andi   v1, v1, 7
+jr     ra
+ sh    v1, counter        # masked
+```
+
+Writing the wrap as an unsigned modulo against the ring size preserves both
+stores — GCC still lowers `% 8` to `& 7`, but only after materializing the
+truncated u16 value of the first assignment:
+
+```c
+D_8006AC04 = index + 1;
+D_8006AC04 = D_8006AC04 % 8;  /* not &= 7, not (index+1)&7 */
+```
+
+`func_8001D898` (8-entry queue walk of `D_80068FA0.entries`) is a pure example.
+The same double-store shape appears on `field_1c8` / `field_1ca` updates in the
+nearby ring producers (e.g. `func_8001D760`).
