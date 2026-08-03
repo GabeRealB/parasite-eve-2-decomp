@@ -40,7 +40,24 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_8003380C);
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_800338A8);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_800338F4);
+void func_800338F4(s32 arg0)
+{
+    u8* src;
+    u8* dst;
+    s32 i;
+
+    if (arg0 == 0) {
+        src = D_80060DD8;
+        dst = D_80060DF0;
+    } else {
+        src = D_80060DF0;
+        dst = D_80060DD8;
+    }
+
+    for (i = 0; i < 0x15; i++) {
+        *dst++ = *src++;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80033944);
 

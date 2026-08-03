@@ -1135,3 +1135,17 @@ default:
 `func_8002EDFC` is a pure example: two independent `switch`es (glyph table by
 `field_C`, centering by `field_D`) both needed this layout; the equivalent
 `if`/`else if` form scored ~67%.
+
+## If/else branch polarity: `bnez` fall-through is the `== 0` body
+
+When the target starts with `bnez arg, else` (delay slot often hoists a load used by the else path) and falls through into the zero-arg setup before a `j join`, write:
+
+```c
+if (arg0 == 0) {
+    /* fall-through body */
+} else {
+    /* branch target */
+}
+```
+
+`if (arg0 != 0)` swaps the arms and GCC emits `beqz` with the non-zero path as fall-through — same code, inverted control flow, large score drop. `func_800338F4` is a short example (copy between `D_80060DD8` / `D_80060DF0`).
