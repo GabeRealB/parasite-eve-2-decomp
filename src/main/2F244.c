@@ -191,7 +191,7 @@ void func_80041E4C(void)
 {
     GStruct27* node;
 
-    node = D_800711B8;
+    node = D_800711B8.next;
     ResetGraph(1);
     F179D4_ClearOTag(0);
     F179D4_ClearOTag(1);
@@ -208,7 +208,7 @@ void func_80041EB4(void)
     GStruct27* node;
     void* mem;
 
-    node = D_800711B8;
+    node = D_800711B8.next;
     Mem_InitAux();
     func_8001BB7C();
     while (node != NULL) {

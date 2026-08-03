@@ -425,8 +425,21 @@ typedef struct _GStruct27 {
 } GStruct27;
 STATIC_ASSERT_SIZEOF(GStruct27, 0x34);
 
+/// Sentinel list head for GStruct27 (and similar) intrusive lists.
+/// Same layout as GStruct0Node: next is the first element, prev is the last
+/// (or &self when the list is empty). Initialized by func_80028718.
+typedef struct _GStruct27Head {
+    /* 0x00 */ GStruct27*             next;
+    /* 0x04 */ struct _GStruct27Head* prev;
+} GStruct27Head;
+STATIC_ASSERT_SIZEOF(GStruct27Head, 0x8);
+
 /// Head of the GStruct27 linked list used by 2F244.c TMD/model helpers.
-extern GStruct27* D_800711B8;
+extern GStruct27Head D_800711B8;
+/// Second list head initialized alongside D_800711B8 by func_80028718.
+extern GStruct27Head D_800711C0;
+/// Cleared by func_80028718 during system init.
+extern s32 D_80071210;
 
 /// Nested object reached via GStruct29::field_28 (see func_80049D34).
 /// Only field_34 is named so far.
