@@ -461,10 +461,13 @@ typedef struct _GStruct24 {
 STATIC_ASSERT_SIZEOF(GStruct24, 0x28);
 
 /// Element of BSS array D_80071620 (2 entries, total 0xB8).
-/// Indexed with stride 0x5C (see func_8002C9B0). field_A is a counter/flag
-/// written by pad-related setup (func_8002C9B0, func_8003FCF8, func_8003FC8C).
+/// Indexed with stride 0x5C (see func_8002C9B0). field_4 is a pad button mask
+/// (see func_8002CAB8); field_A is a counter/flag written by pad-related setup
+/// (func_8002C9B0, func_8003FCF8, func_8003FC8C).
 typedef struct _GStruct25 {
-    /* 0x00 */ byte unknown_0[0xA];
+    /* 0x00 */ byte unknown_0[0x4];
+    /* 0x04 */ u16  field_4;
+    /* 0x06 */ byte unknown_6[0x4];
     /* 0x0A */ u8   field_A;
     /* 0x0B */ byte unknown_B[0x51];
 } GStruct25;

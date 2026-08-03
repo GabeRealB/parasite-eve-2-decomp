@@ -143,7 +143,26 @@ s32 func_8002CA0C(s32 arg0)
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002CA54);
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002CAB8);
+s32 func_8002CAB8(void)
+{
+    volatile GStruct25* p;
+    u16 val;
+    s32 result;
+
+    p = D_80071620;
+    val = p->field_4;
+    if (val == 0x90F) {
+        result = D_8005ED8A == 0x90F;
+    } else {
+        result = 0;
+    }
+    D_8005ED8A = val;
+    if (p->field_A != 0) {
+        D_8005ED8A = 0;
+        result = 0;
+    }
+    return result;
+}
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002CB04);
 
