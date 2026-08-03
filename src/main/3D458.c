@@ -133,7 +133,33 @@ void func_8004D008(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/3D458", func_8004D0A0);
+void func_8004D0A0(void)
+{
+    s32 i;
+    s32* p;
+    GStruct42* ptr;
+    u16 flag;
+
+    p = (s32*)D_8007E0D8;
+    i = 0;
+    do {
+        *p = 0;
+        i++;
+        p++;
+    } while ((u32)i < 0x80);
+
+    flag = 0xFFFF;
+    i = 0xF;
+    ptr = D_8007E0D8;
+    ptr += 0xF;
+    do {
+        ptr->field_8 = flag;
+        i--;
+        ptr--;
+    } while (i >= 0);
+
+    D_8007E0D4 = 0;
+}
 
 void func_8004D0F0(GStruct42* arg0)
 {

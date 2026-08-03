@@ -429,6 +429,7 @@ extern s16           D_8007A35C;
 extern void*         D_8007A360;
 extern u8            D_8007A394;
 extern u8            D_8007E0CC;
+extern s32           D_8007E0D4;
 extern GStruct42     D_8007E0D8[];
 
 // 5B498
