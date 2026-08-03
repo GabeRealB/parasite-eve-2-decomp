@@ -130,6 +130,8 @@ extern void func_80046EEC(void* arg0, void* arg1, s32 arg2);
 extern void func_80048560(void* arg0, void* arg1, s32 arg2, s32 arg3);
 extern void func_800488B8(GStruct0* arg0);
 extern void func_800488F8(GStruct0* arg0);
+extern void func_80048904(GStruct30* arg0, s32 arg1, s32 arg2);
+extern void func_80048964(GStruct30* arg0);
 extern void func_80048C10(void* arg0, void* arg1);
 extern void func_80048D58(void* arg0, s32 arg1, s32 arg2);
 extern void func_80049288(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5);

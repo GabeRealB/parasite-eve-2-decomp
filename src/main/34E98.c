@@ -72,7 +72,18 @@ void func_800488F8(GStruct0* arg0)
     arg0->field_8 = (GStruct0*)4;
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80048904);
+void func_80048904(GStruct30* arg0, s32 arg1, s32 arg2) {
+    s16 temp_v1;
+
+    if ((arg2 != 0) && (arg0->field_8 >= 5)) {
+        temp_v1 = arg0->field_16;
+        if ((temp_v1 < 0) || ((arg2 + 9) < temp_v1)) {
+            arg0->field_16 = (s16)(arg2 + 9);
+        }
+    } else {
+        func_80048964(arg0);
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80048964);
 
