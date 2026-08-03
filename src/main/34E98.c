@@ -131,7 +131,14 @@ s32 func_800490EC(GStruct0* arg0)
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80049100);
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_8004917C);
+void func_8004917C(GStruct25* arg0, s32 arg1)
+{
+    if (arg1 == 0) {
+        arg0->field_A &= 0xFD;
+        return;
+    }
+    arg0->field_A |= 2;
+}
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_800491AC);
 
