@@ -226,7 +226,296 @@ void func_800409B0(GStruct0* arg0)
     func_8002D0A4(arg0);
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_800409D0);
+extern u8 D_800105AC;
+extern u8 D_800105F4;
+extern u8 D_80010718;
+extern u8 D_80010A90;
+extern u8 D_80010BF4;
+extern u8 D_80010E1C;
+extern u8 D_80010EF4;
+extern u8 D_80010F08;
+extern u8 D_8001108C;
+extern u8 D_800110A0;
+extern u8 D_800112DC;
+extern u8 D_800113B4;
+extern u8 D_800113E8;
+extern u8 D_800114FC;
+extern u8 D_80011530;
+extern u8 D_80011678;
+extern u8 D_800117BC;
+extern u8 D_80011994;
+extern u8 D_800119A8;
+extern u8 D_80011AF4;
+extern u8 D_80011B08;
+extern u8 D_8001237C;
+extern u8 D_80012520;
+extern u8 D_80099994;
+extern u8 D_80099B94;
+extern u8 D_80099D40;
+extern u8 D_80099FF4;
+extern u8 D_8009A348;
+extern u8 D_8009A57C;
+extern u8 D_8009AF90;
+extern u8 D_8009B2F4;
+extern u8 D_8009B500;
+extern u8 D_8009BD00;
+extern u8 D_8009C024;
+extern u8 D_8009C414;
+extern u8 D_8009CED0;
+extern u8 D_8009D0DC;
+extern u8 D_8009D388;
+extern u8 D_8009D518;
+extern u8 D_8009D718;
+extern u8 D_8009D900;
+extern u8 D_8009DB00;
+extern u8 D_8009DCB8;
+extern u8 D_8009DE48;
+extern u8 D_8009E048;
+extern u8 D_8009E274;
+extern u8 D_8009E4A0;
+extern u8 D_8009E770;
+extern u8 D_8009EAA4;
+extern u8 D_80136224;
+extern u8 D_80136500;
+extern u8 D_8013685C;
+extern u8 D_80136C00;
+extern u8 D_8013700C;
+extern u8 D_80137300;
+extern u8 D_801375F8;
+extern u8 D_801379B4;
+extern u8 D_80138004;
+extern u8 D_801386EC;
+
+void func_800409D0(GStruct33* arg0)
+{
+    u32* stream;
+    u32 id;
+    u32 dims;
+    void* handler;
+    s32 flag;
+    register u32 tmp asm("v0");
+
+    stream = arg0->field_20;
+    if (arg0->field_0 == 0) {
+        tmp = *(u32*)&D4F564_8005ED64->field_4;
+        tmp = (tmp & 0xFFFF0000) ^ 0x02100000;
+        flag = tmp < 1;
+        goto read_id;
+
+        for (;;) {
+            switch (id) {
+            case 0x20:
+            case 0x22:
+                handler = &D_80010A90;
+                break;
+            case 0x60:
+            case 0x62:
+                handler = &D_80010BF4;
+                break;
+            case 0xC0:
+                handler = &D_80010E1C;
+                break;
+            case 0xC4:
+                handler = &D_8009EAA4;
+                break;
+            case 5:
+                handler = &D_80099B94;
+                break;
+            case 0x45:
+                handler = &D_80099994;
+                break;
+            case 0x21:
+            case 0x121:
+                handler = &D_800105F4;
+                break;
+            case 0x61:
+            case 0x161:
+                handler = &D_80010718;
+                break;
+            case 0x38:
+                handler = &D_80010F08;
+                break;
+            case 0x8038:
+                handler = &D_80136224;
+                break;
+            case 0x10038:
+                handler = &D_8013700C;
+                break;
+            case 0x20038:
+                handler = &D_801379B4;
+                break;
+            case 0x3A:
+                handler = &D_80010EF4;
+                break;
+            case 0x1003A:
+                handler = &D_80137300;
+                break;
+            case 0x78:
+                handler = &D_800110A0;
+                break;
+            case 0x8078:
+                handler = &D_8013685C;
+                break;
+            case 0x10078:
+                handler = &D_801375F8;
+                break;
+            case 0x20078:
+                handler = &D_80138004;
+                break;
+            case 0x7A:
+                handler = &D_8001108C;
+                break;
+            case 0xC8:
+                handler = &D_800112DC;
+                break;
+            case 0x40C8:
+                handler = &D_8009AF90;
+                if (flag != 0) {
+                    handler = &D_8009B2F4;
+                }
+                break;
+            case 0x200C8:
+                handler = &D_801386EC;
+                break;
+            case 0x31:
+            case 0x39:
+            case 0x131:
+                handler = &D_800113E8;
+                break;
+            case 0x8039:
+                handler = &D_80136500;
+                break;
+            case 0x3B:
+                handler = &D_800113B4;
+                break;
+            case 0x71:
+            case 0x79:
+            case 0x171:
+                handler = &D_80011530;
+                break;
+            case 0x8079:
+                handler = &D_80136C00;
+                break;
+            case 0x7B:
+                handler = &D_800114FC;
+                break;
+            case 0x4039:
+                handler = &D_80099D40;
+                if (flag != 0) {
+                    handler = &D_8009A348;
+                }
+                break;
+            case 0x4079:
+                handler = &D_80099FF4;
+                if (flag != 0) {
+                    handler = &D_8009A57C;
+                }
+                break;
+            case 0:
+                handler = &D_80011678;
+                break;
+            case 0x40:
+                handler = &D_800117BC;
+                break;
+            case 0x18:
+                handler = &D_800119A8;
+                break;
+            case 0x1A:
+                handler = &D_80011994;
+                break;
+            case 0x58:
+                handler = &D_80011AF4;
+                break;
+            case 0x5A:
+                handler = &D_80011B08;
+                break;
+            case 0x4078:
+                handler = &D_8009C414;
+                if (flag != 0) {
+                    handler = &D_8009C024;
+                }
+                break;
+            case 0x4038:
+                handler = &D_8009B500;
+                if (flag != 0) {
+                    handler = &D_8009BD00;
+                }
+                break;
+            case 0x120:
+                handler = &D_8009E048;
+                break;
+            case 0x122:
+                handler = &D_8009E274;
+                break;
+            case 0x160:
+                handler = &D_8009E4A0;
+                break;
+            case 0x162:
+                handler = &D_8009E770;
+                break;
+            case 0x1C:
+                handler = &D_8009D388;
+                break;
+            case 0x1E:
+                handler = &D_8009DCB8;
+                break;
+            case 0x5C:
+                handler = &D_8009D518;
+                break;
+            case 0x5E:
+                handler = &D_8009DE48;
+                break;
+            case 0x30:
+                handler = &D_8009CED0;
+                break;
+            case 0x130:
+                handler = &D_8001237C;
+                break;
+            case 0x70:
+                handler = &D_8009D0DC;
+                break;
+            case 0x170:
+                handler = &D_80012520;
+                break;
+            case 0x156:
+                handler = &D_8009D718;
+                break;
+            case 4:
+                handler = &D_8009DB00;
+                break;
+            case 0x44:
+                handler = &D_8009D900;
+                break;
+            default:
+                handler = &D_800105AC;
+                break;
+            }
+
+            stream++;
+            *stream = (u32)handler;
+            stream++;
+            dims = *stream;
+            stream++;
+            id = dims & 0xFFFF;
+            stream += (dims >> 16) * id;
+            id = *stream;
+
+            while (1) {
+                if (id != -2U) {
+                    break;
+                }
+                stream++;
+read_id:
+                id = *stream;
+                if (id == -1U) {
+                    goto done;
+                }
+            }
+        }
+done:
+        arg0->field_0 = 1;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_800410F0);
 

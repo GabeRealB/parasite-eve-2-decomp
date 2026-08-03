@@ -886,3 +886,38 @@ For GTE *commands*, emit the real COP2 word:
 `func_8003D000` is the template: `gte_ldsvrtrow0` + `gte_ldv0` + custom
 command + `gte_stlvnl0`. Standard `gte_rtv0` is `mvmva 1,0,0,3,0`
 (`0x4A486012`); the sf=0 variant drops the 12-bit shift (`0x4A406012`).
+
+## Large sparse switches: case order and shared handlers
+
+GCC 2.8.1 emits switch case *bodies* in an order tied to the binary-search
+tree, not source order. When the decision tree already matches but the
+handler tails (`j epilogue` / `addiu %lo(...)`) are shuffled, reorder the
+`case` labels in the C source to match the target's leaf-emission order
+(read it off the end of `target.s` / the dump). Case *value* set still
+controls the tree; only body order changes.
+
+Also watch for **shared-handler IDs** the tree folds together even when they
+are far apart numerically — e.g. `0x21`/`0x121`, `0x61`/`0x161`, `0x31`/`0x39`/
+`0x131`. If a `sltiu` + `beqz` lands on a handler without an equality check,
+that gap value is a real case (or shares one). Missing them reshapes the
+whole tree.
+
+Local differ may report `lui v0,0x8001` vs `lui v0,%hi(D_8001xxxx)` as a
+mismatch: the ROM disassembly hard-codes the common high half, while cc1
+emits `%hi`. Linked output is identical when every symbol shares that half —
+always confirm with `./tools/build-and-verify.sh`.
+
+## Flag compare via pinned temp + xor
+
+When the target loads a word, masks with `0xFFFF0000`, xors with a constant,
+and `sltiu`s into the flag register (delay slot of a `j`):
+
+```c
+register u32 tmp asm("v0");
+tmp = *(u32*)&p->byte_field_at_offset; /* or a real u32 field */
+tmp = (tmp & 0xFFFF0000) ^ 0x02100000;
+flag = tmp < 1;
+```
+
+A single `(x & mask) == cst` often allocates the intermediate into the flag's
+eventual register (`a2`) instead of keeping it in `v0` through the xor.

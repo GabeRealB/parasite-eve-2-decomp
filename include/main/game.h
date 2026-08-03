@@ -446,10 +446,14 @@ typedef struct _GStruct26 {
 STATIC_ASSERT_SIZEOF(GStruct26, 0x4);
 
 /// Source/model data pointed to by GStruct27::field_10 (see func_80041700).
+/// field_0 is a one-shot init flag (func_800409D0 sets it to 1).
 /// field_4 is used as a byte-count for aux-heap allocations (calloc size * 2).
+/// field_20 points at a stream of [id, handler_slot, dims, data...] words.
 typedef struct _GStruct33 {
-    /* 0x00 */ byte unknown_0[0x4];
+    /* 0x00 */ s32  field_0;
     /* 0x04 */ s32  field_4;
+    /* 0x08 */ byte unknown_8[0x18];
+    /* 0x20 */ u32* field_20;
 } GStruct33;
 
 /// Node in the D_800711B8 linked list (2F244.c TMD/model objects).
