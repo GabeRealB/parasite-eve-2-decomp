@@ -89,6 +89,15 @@ s32 func_800261F4(void)
 
 INCLUDE_ASM("main/nonmatchings/16494", func_80026218);
 
-INCLUDE_ASM("main/nonmatchings/16494", func_80026268);
+void func_80026268(s32 arg0)
+{
+    s16 vol;
+
+    D5B498_SpuAttr.mask = SPU_COMMON_CDVOLL | SPU_COMMON_CDVOLR;
+    vol = (arg0 & 0x7F) << 8;
+    D5B498_SpuAttr.cd.volume.right = vol;
+    D5B498_SpuAttr.cd.volume.left = vol;
+    SpuSetCommonAttr(&D5B498_SpuAttr);
+}
 
 INCLUDE_ASM("main/nonmatchings/16494", func_800262A8);
