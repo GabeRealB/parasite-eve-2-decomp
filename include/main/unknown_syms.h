@@ -194,6 +194,7 @@ extern s32        func_800517F8(void);
 extern void*      func_80051850(s32 arg0, s32 arg1);
 extern void       func_80051888(void);
 extern void*      func_80053548(s32 arg0, s32 arg1, u32 arg2);
+extern void       func_800528BC(s32* arg0);
 extern s32        func_800528F0(s32 arg0, s32 arg1);
 extern u8*        func_800529BC(s32 arg0, u8* arg1, GStruct22* arg2);
 extern void       func_8005325C(void* arg0);

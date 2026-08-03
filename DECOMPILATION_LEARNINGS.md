@@ -673,3 +673,42 @@ s32 func(void) {
 
 `func_80049950` is the pure example (fixed-point globals `D_80067648` /
 `D_8006764C`, sra by 8, packed return).
+
+## Walk word pairs with `s32*`, not struct `+8`
+
+When the target fills an array of 8-byte slots as two consecutive word stores
+with a `+4` pointer bump between them:
+
+```
+sw   a1, 0(a0)
+addiu a0, a0, 4
+sw   zero, 0(a0)
+...
+addiu a0, a0, 4   # delay slot of the loop branch
+```
+
+Writing through an 8-byte struct element produces a different schedule:
+
+```
+sw   a1, 0(a0)
+sw   zero, 4(a0)
+addiu a0, a0, 8
+```
+
+Match the target by treating the buffer as `s32*` and post-incrementing twice
+per iteration (even if the high-level type is an 8-byte entry array):
+
+```c
+void init_slots(s32* arg0) {
+    s32 i;
+
+    if (arg0 != NULL) {
+        for (i = 0; i < 0x10; i++) {
+            *arg0++ = 0x407F4000;
+            *arg0++ = 0;
+        }
+    }
+}
+```
+
+`func_800528BC` (init of `GStruct22::field_484[16]`) is the pure example.

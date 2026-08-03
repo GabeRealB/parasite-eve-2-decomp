@@ -247,7 +247,16 @@ INCLUDE_ASM("main/nonmatchings/410B0", func_800526A4);
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_8005287C);
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_800528BC);
+void func_800528BC(s32* arg0) {
+    s32 i;
+
+    if (arg0 != NULL) {
+        for (i = 0; i < 0x10; i++) {
+            *arg0++ = 0x407F4000;
+            *arg0++ = 0;
+        }
+    }
+}
 
 s32 func_800528F0(s32 arg0, s32 arg1)
 {

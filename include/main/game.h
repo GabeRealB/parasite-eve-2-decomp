@@ -326,11 +326,9 @@ typedef struct _GStruct21 {
 } GStruct21;
 
 /// 8-byte slot at GStruct22::field_484 (16 entries, indexed by opcode low nibble).
+/// field_0 is written as a full word (0x407F4000) by func_800528BC; field_4 is a byte.
 typedef struct _GStruct22Entry {
-    /* 0x0 */ u8  field_0;
-    /* 0x1 */ u8  field_1;
-    /* 0x2 */ u8  field_2;
-    /* 0x3 */ u8  field_3;
+    /* 0x0 */ s32 field_0;
     /* 0x4 */ u8  field_4;
     /* 0x5 */ u8  field_5;
     /* 0x6 */ s16 field_6;
