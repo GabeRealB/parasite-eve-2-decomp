@@ -83,7 +83,13 @@ INCLUDE_ASM("main/nonmatchings/1C034", func_8002C868);
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002C8E4);
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002C9B0);
+void func_8002C9B0(s32 arg0)
+{
+    volatile GStruct25* p;
+
+    p = &D_80071620[arg0];
+    p->field_A = 0x3D;
+}
 
 void func_8002C9E0(s32 arg0)
 {
