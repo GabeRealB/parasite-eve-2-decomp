@@ -52,7 +52,19 @@ INCLUDE_ASM("main/nonmatchings/43FFC", func_80053FF4);
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_8005414C);
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_800542D0);
+void func_800542D0(s32 arg0, s32 arg1) {
+    GStruct16* temp;
+    GStruct16From4* mid;
+
+    temp = func_800509F4();
+    if (temp != NULL) {
+        temp->field_2 = 7;
+        mid = (GStruct16From4*)&temp->field_4;
+        mid->field_4 = func_80053F00(arg0);
+        mid->field_2 = arg1;
+        func_80050A38(temp);
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80054334);
 
