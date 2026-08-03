@@ -793,6 +793,14 @@ typedef struct _GStruct50 {
 } GStruct50;
 STATIC_ASSERT_SIZEOF(GStruct50, 0x14);
 
+/// Callback-queue slot used by D_8007E2E4 (stride 0x14).
+/// field_0 holds status flags (bit0 active, bit2 cancel/pending, etc.).
+typedef struct _GStruct51 {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ u8  pad_4[0x10];
+} GStruct51;
+STATIC_ASSERT_SIZEOF(GStruct51, 0x14);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 

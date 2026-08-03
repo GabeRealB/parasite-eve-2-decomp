@@ -198,6 +198,7 @@ extern void      F3D458_8004D88C(void);
 
 // 3E48C.c
 extern s16  func_8004DE18(void* arg0);
+extern void func_8004DEBC(s32 arg0);
 extern void func_8004E200(void);
 extern s32  func_8004E060(s16* arg0, s32 arg1, s32 arg2);
 extern void func_8004E560(u32 voiceIdx, s32 arg1, s32 arg2);
@@ -522,6 +523,7 @@ extern GStruct8          D648E0_8007E0B0;
 extern u32               D648E0_8007E0C8;
 extern long              D648E0_SpuTimerED;
 extern s32               D_8007E2E0[0x15];
+extern GStruct51         D_8007E2E4[];
 extern GStruct9          D648E0_8007E338;
 extern GStruct10         D648E0_8007E518;
 extern GStruct26         D_8007EB98[];

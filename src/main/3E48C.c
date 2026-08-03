@@ -22,7 +22,19 @@ void func_8004DDF0(void)
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004DE18);
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004DEBC);
+void func_8004DEBC(s32 arg0)
+{
+    GStruct51* entry;
+    s32        flags;
+
+    if ((arg0 << 0x10) != 0) {
+        entry = &D_8007E2E4[(s16)(arg0 - 1)];
+        flags = entry->field_0;
+        if (flags & 1) {
+            entry->field_0 = (flags & ~1) | 4;
+        }
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004DF10);
 
