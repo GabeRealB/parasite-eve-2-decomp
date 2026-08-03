@@ -311,7 +311,17 @@ void F3D458_Free(void* ptr)
     header->isAllocated = false;
 }
 
-INCLUDE_ASM("main/nonmatchings/3D458", func_8004D7D4);
+long func_8004D7D4(void)
+{
+    if (D_800680A4 != 0) {
+        D_8007E0CC--;
+        if (D_8007E0CC == 0) {
+            D_800680A4 = 0;
+            func_8004D820();
+        }
+    }
+    return 0;
+}
 
 s32 func_8004D820(void)
 {
