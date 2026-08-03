@@ -38,7 +38,28 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_800330D8);
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_8003380C);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_800338A8);
+void func_800338A8(void) {
+    u8 *ptr1;
+    u8 *ptr0;
+    s32 i;
+    s32 ch;
+
+    ptr1 = D_80060DD8;
+    ptr0 = D_80060DF0;
+    i = 0;
+    ch = 0x5F;
+    do {
+        if (i >= 0xC) {
+            *ptr0 = ch;
+            *ptr1 = ch;
+        }
+        ptr1++;
+        i++;
+        ptr0++;
+    } while (i < 0x14);
+    *ptr0 = 0;
+    *ptr1 = 0;
+}
 
 void func_800338F4(s32 arg0)
 {
