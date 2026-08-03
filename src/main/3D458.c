@@ -313,7 +313,19 @@ void F3D458_Free(void* ptr)
 
 INCLUDE_ASM("main/nonmatchings/3D458", func_8004D7D4);
 
-INCLUDE_ASM("main/nonmatchings/3D458", func_8004D820);
+s32 func_8004D820(void)
+{
+    if (D_800680C0 == 0) {
+        return 0;
+    }
+    D_800680C0 = 0;
+    func_8004E200();
+    func_8004D8BC();
+    F3E48C_8004E44C();
+    D_800680C0 = 1;
+    D_800680BC += 1;
+    return 0;
+}
 
 void F3D458_8004D88C(void)
 {

@@ -136,9 +136,12 @@ extern void  func_8004CFE8(void);
 extern void  F3D458_ResetHeap(void);
 extern void* F3D458_Malloc(size_t);
 extern void  F3D458_Free(void* ptr);
+extern s32   func_8004D820(void);
+extern void  func_8004D8BC(void);
 extern void  F3D458_8004D88C(void);
 
 // 3E48C.c
+extern void func_8004E200(void);
 extern void F3E48C_8004E44C(void);
 extern s32  F3E48C_8004E660(u32 voiceIdx);
 extern void F3E48C_QueryReverbVoices(void);
@@ -258,7 +261,7 @@ extern u8           D_80062734;
 extern s32          D_8006763C[];
 extern u8           D_800680A4;
 extern u32          D_800680BC;
-extern u32          D_800680C0;
+extern volatile u32 D_800680C0;
 extern u8           D_80068B5C;
 
 // 4CB64

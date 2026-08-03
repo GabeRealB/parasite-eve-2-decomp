@@ -67,6 +67,11 @@ jr    ra
 `func_8005791C` (`D_800827A0.field_4 = arg0`) is a pure example — only the
 `volatile GStruct18` form matches.
 
+`D_800680C0` is another interrupt-shared flag: the SPU timer callback
+`func_8004D7D4` / `func_8004D820` reads and writes it while main-line
+`func_8004CC58` does the same. Marking it `volatile` keeps stores out of
+`jal` delay slots (target has `nop` after `D_800680C0 = 0`).
+
 ## Hold a global's address in a local pointer
 
 When a function touches the same global struct across several calls, the target
@@ -370,3 +375,25 @@ if (temp >= 0) {
 Sibling helpers that only touch one field (`arg0->field_8`) do not need this;
 use it when the target rebased the pointer and multiple fields are relative to
 that new base.
+
+## Early-exit for `beqz` with dual returns
+
+When both arms return the same constant and the target uses `beqz` into the
+failure epilogue (with an early `move v0,zero` on the success path so later
+stores can free `$v0`), write the inverted early exit rather than
+`if (cond) { ...; return K; } return K;`:
+
+```c
+/* Matches: beqz v0, fail; ...; move v0,zero; stores; j epilogue; fail: move v0,zero */
+if (flag == 0) {
+    return 0;
+}
+/* work */
+return 0;
+```
+
+The `if (flag != 0) { ...; return 0; } return 0;` form often becomes
+`bnez` + an explicit jump to the shared epilogue, which mis-schedules the
+success-path setup. `func_8004D820` needs this shape (with `volatile`
+`D_800680C0`) to free `$v0` for the return value before the `D_800680BC`
+update.
