@@ -1038,3 +1038,33 @@ path and the branch is `bltz` to the cast path — that matches the shared
 post-merge arg shuffle (`a1=a2`, `a2=saved a3`, `a3=D_800716D8`) of
 `func_8002CFDC`. Dual early returns force separate call setup and reg-shuffle
 the args too early.
+
+## `while (1)` for linked-list walks that re-enter at the null check
+
+A normal `while (node != NULL)` puts the null test at the bottom of the loop
+body as `bnez`/`beqz` after advancing the pointer. When the target instead does
+an unconditional `j` back to a top-of-loop `beqz s0, end` (often because one
+path assigns `node = remove(node)` and the other does `node = node->next`),
+write:
+
+```c
+node = (GStruct8*)head->field_14;
+while (1) {
+    if (node == NULL) {
+        break;
+    }
+    if (callback != NULL) {
+        if (callback(node->field_c) == -1) {
+            node = func_8004D94C(node);
+            continue;
+        }
+    }
+    node = (GStruct8*)node->field_14;
+}
+```
+
+Also load `head = &global` *before* the enable-flag check so GCC materializes
+both `%hi/%lo` pairs up front (see "Hold a global's address in a local
+pointer"). Nested `if (flag) { if (head != NULL) { ... } }` rather than
+`flag && head` keeps the second null test in the first's delay-slot region.
+`func_8004D8BC` is the reference.

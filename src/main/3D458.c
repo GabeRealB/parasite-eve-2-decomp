@@ -364,6 +364,31 @@ void F3D458_8004D88C(void)
     D648E0_8007E0C8          = 1;
 }
 
-INCLUDE_ASM("main/nonmatchings/3D458", func_8004D8BC);
+void func_8004D8BC(void)
+{
+    GStruct8* head;
+    GStruct8* node;
+    s32 (*callback)(s32);
+
+    head = &D648E0_8007E0B0;
+    if (D648E0_8007E0C8 != 0) {
+        if (head != NULL) {
+            node = (GStruct8*)head->field_14;
+            while (1) {
+                if (node == NULL) {
+                    break;
+                }
+                callback = (s32 (*)(s32))node->field_0;
+                if (callback != NULL) {
+                    if (callback(node->field_c) == -1) {
+                        node = func_8004D94C(node);
+                        continue;
+                    }
+                }
+                node = (GStruct8*)node->field_14;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/3D458", func_8004D94C);
