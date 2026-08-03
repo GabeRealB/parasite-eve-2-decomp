@@ -103,6 +103,20 @@ A local `GStruct1*` would force a callee-saved register and a larger stack
 frame for no benefit. Use the pointer only when the address is live across
 calls.
 
+**Post-call store that uses `$s0` for `%hi/%lo`.** Even a single
+`global = func(...)` after a call can need the local-pointer form when the
+target saves `$s0`, does `lui s0,%hi(global)` / `sh v0,%lo(global)(s0)`, then
+restores `$s0`. A bare store picks `$v1` and drops the save/restore
+(`func_80026178` / `D_8006EBF2`):
+
+```c
+s16 *ptr;
+
+ptr = &D_8006EBF2;
+/* ... fill stack args ... */
+*ptr = func_8004DE18(&sp);
+```
+
 **Order: pointer first, then the shared constant.** When the target does
 `lui %hi(global)` *then* `li aN,K` before the first `sw %lo(global)`, assign the
 local pointer before the constant. Reversing those two lines swaps the

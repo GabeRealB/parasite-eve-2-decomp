@@ -72,7 +72,22 @@ void func_80026148(void)
     D_8006EBF4 = (D5B498_SpuAttr.cd.volume.left / 256) & 0x7F;
 }
 
-INCLUDE_ASM("main/nonmatchings/16494", func_80026178);
+void func_80026178(void)
+{
+    struct {
+        s32 pad[2];
+        void (*unk8)(void);
+        void (*unkC)(void);
+        s32 (*unk10)(void);
+    } sp;
+    s16 *ptr;
+
+    ptr = &D_8006EBF2;
+    sp.unk8 = func_80025DD8;
+    sp.unkC = func_800261C8;
+    sp.unk10 = func_800261D4;
+    *ptr = func_8004DE18(&sp);
+}
 
 void func_800261C8(void)
 {
