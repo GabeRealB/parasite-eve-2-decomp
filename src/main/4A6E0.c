@@ -49,7 +49,51 @@ INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005B84C);
 
 INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005B920);
 
-INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005B968);
+void func_8005B968(u32 *arg0)
+{
+    u32 temp_v1;
+
+    temp_v1 = *arg0;
+    if ((temp_v1 >> 1) & 1) {
+        *arg0 = temp_v1 & ~8;
+        return;
+    }
+    *arg0 = temp_v1 & ~8;
+    D_80082818.field_4C = 0;
+    switch ((*arg0 >> 5) & 0xFF) {
+    case 6:
+    case 7:
+        func_8005B6A8();
+        goto shared_flush;
+    case 8:
+        func_8005B6A8();
+        CdFlush();
+        CdControlF(CdlPause, NULL);
+        *arg0 = ((*arg0 | 8) & ~0x1FE0) | 0x1C0;
+        break;
+    case 9:
+    case 11:
+    case 12:
+    case 14:
+        CdFlush();
+        *arg0 = (*arg0 & ~0x1FE0) | 0x1A0;
+        /* fallthrough */
+    case 13:
+        if (SpuIsTransferCompleted(0) == 0) {
+            *arg0 |= 8;
+        }
+        break;
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 10:
+    shared_flush:
+        CdFlush();
+        break;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005BA8C);
 
