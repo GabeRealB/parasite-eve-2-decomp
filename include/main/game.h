@@ -276,13 +276,24 @@ typedef struct _GStruct18 {
 } GStruct18;
 STATIC_ASSERT_SIZEOF(GStruct18, 0x10);
 
-/// BSS object D_80082818 (size 0x58). Also matches D_800828F0 layout.
+/// BSS object D_80082818 (size 0x58).
 typedef struct _GStruct19 {
     byte unknown_0[0x6];
     s16  field_6;
     byte unknown_8[0x50];
 } GStruct19;
 STATIC_ASSERT_SIZEOF(GStruct19, 0x58);
+
+/// BSS object D_800828F0 (size 0x58). CD ready-callback install state.
+typedef struct _GStruct32 {
+    /* 0x00 */ u8    field_0;
+    /* 0x01 */ u8    field_1;
+    /* 0x02 */ u8    field_2;
+    /* 0x03 */ u8    field_3;
+    /* 0x04 */ void* field_4;
+    /* 0x08 */ byte  unknown_8[0x50];
+} GStruct32;
+STATIC_ASSERT_SIZEOF(GStruct32, 0x58);
 
 /// Object passed to func_80048C10 / func_80048D58 (e.g. via GStruct0::field_20).
 typedef struct _GStruct20 {

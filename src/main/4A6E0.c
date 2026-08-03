@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include <psyq/libcd.h>
 #include <psyq/libspu.h>
 
 #include "main/unknown_syms.h"
@@ -10,7 +11,18 @@ INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005A94C);
 
 INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005B3B4);
 
-INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005B648);
+void func_8005B648(CdlCB arg0)
+{
+    volatile GStruct32* p;
+
+    p = &D_800828F0;
+    if (p->field_1 == 0) {
+        p->field_4 = CdReadyCallback(arg0);
+    } else {
+        CdReadyCallback(arg0);
+    }
+    D_800828F0.field_1 = 1;
+}
 
 INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005B6A8);
 

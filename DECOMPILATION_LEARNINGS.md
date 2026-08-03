@@ -103,6 +103,24 @@ A local `GStruct1*` would force a callee-saved register and a larger stack
 frame for no benefit. Use the pointer only when the address is live across
 calls.
 
+**Hybrid — pointer for early accesses, global name after a call.** When the
+target keeps the address in `$s0` for pre-call loads/stores but reloads with a
+fresh `lui`/`addiu %lo` for a *post-call* store (instead of `off($s0)`), use the
+local pointer only up through the call and name the global for the later write:
+
+```c
+volatile GStruct32* p = &D_800828F0;
+if (p->field_1 == 0) {
+    p->field_4 = CdReadyCallback(arg0); /* uses $s0 */
+} else {
+    CdReadyCallback(arg0);
+}
+D_800828F0.field_1 = 1; /* reloads address into $v0 — not $s0 */
+```
+
+`func_8005B648` needs this plus `volatile` on the global (base+offset `sb`, not
+`%lo(sym+1)`). Writing `p->field_1 = 1` keeps `$s0` and mismatches.
+
 ## `~x != 0` for `nor` + `sltu` (not `x != -1`)
 
 When the target does:
