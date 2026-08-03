@@ -2177,3 +2177,55 @@ return -1;     /* L_early — reuses preloaded $v0 */
 ```
 
 `func_8005664C` is a pure example.
+
+## Same byte mask across a call: `andi` vs CSE'd `and`
+
+When the same immediate mask (e.g. `0xF7`) is applied to a `u8`/`byte` field
+both *before* and *after* a function call, GCC 2.8.1 CSE's the mask into a
+callee-saved register as `~bit` (`li s1,-9` for bit 3) and emits `and` instead
+of two `andi` immediates. That also inflates the stack frame for the extra
+`$s` save.
+
+Symptom: target has two `andi v0,v0,0xf7`; your build has `li s1,-0x9` plus
+`and v0,v0,s1` on both sides of the `jal`.
+
+Fix: keep the pre-call clear as a direct field expression (so it stays
+`lbu`/`andi` into `$v0`), and route the post-call clear through a `u8` temp
+plus a local pointer for the base:
+
+```c
+D_80082818.unknown_0[0] = D_80082818.unknown_0[0] & 0xF7;
+/* ... */
+func(...);
+p = &D_80082818;
+temp = p->unknown_0[2];
+p->unknown_0[2] = temp & 0xF7; /* separate andi — mask not CSE'd into $sN */
+```
+
+Using the temp form on *both* sides also yields `andi`, but loads into `$a1`
+instead of reusing `$v0`.
+
+`func_800588D8` is the example.
+
+## Non-volatile store reordered past volatile field stores
+
+A bare `global = 0` on a non-volatile `s16` can be scheduled *after* later
+volatile field stores and even into the epilogue (after `lw s0`), even when
+it appears earlier in the C source. The target often wants it strictly
+between two volatile updates.
+
+Symptom: target has `lui`/`sh zero` of the halfword between two `sb`s on a
+`volatile` struct; your build moves the `sh` to just before `jr ra`.
+
+Fix: declare the halfword `volatile`. That pins the store in source order
+relative to the surrounding volatile accesses:
+
+```c
+extern volatile s16 D_80082808;
+/* ... */
+p->unknown_0[2] = temp & 0xF7;
+D_80082808 = 0; /* stays here when volatile */
+D_80082818.unknown_0[0] = D_80082818.unknown_0[0] | 1;
+```
+
+`func_800588D8` / `D_80082808` is the example.

@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/libcd.h>
+#include <psyq/libspu.h>
 
 #include "main/unknown_syms.h"
 
@@ -235,7 +236,25 @@ INCLUDE_ASM("main/nonmatchings/46FE4", func_8005854C);
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_80058748);
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_800588D8);
+void func_800588D8(void)
+{
+    volatile GStruct19* p;
+    u8                  temp;
+
+    if (D_80068B5C != 0) {
+        SpuSetIRQ(0);
+        SpuSetIRQCallback(0);
+        D_80068B5C = 0;
+    }
+    D_80082818.unknown_0[0] = D_80082818.unknown_0[0] & 0xF7;
+    D_80082818.unknown_0[0] = D_80082818.unknown_0[0] & 0xBF;
+    func_800B0118(0, 0);
+    p                       = &D_80082818;
+    temp                    = p->unknown_0[2];
+    p->unknown_0[2]         = temp & 0xF7;
+    D_80082808              = 0;
+    D_80082818.unknown_0[0] = D_80082818.unknown_0[0] | 1;
+}
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_8005896C);
 
