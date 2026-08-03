@@ -163,7 +163,18 @@ INCLUDE_ASM("main/nonmatchings/2F244", func_800405E0);
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_80040820);
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_800408C0);
+void func_800408C0(void* arg0)
+{
+    GStruct3* p;
+
+    D_8007A35C = 0;
+    p = &D_80068FA0;
+    p->field_200 = 1;
+    p->field_1FE = 0;
+    p->field_202 = 0;
+    D_8007A360 = arg0;
+    D_8007A358 = 0;
+}
 
 void func_800408F4(void)
 {
