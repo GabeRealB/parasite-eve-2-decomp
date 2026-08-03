@@ -229,6 +229,7 @@ extern void       func_80053280(u8 arg0, void* arg1);
 extern void       func_800532CC(void);
 extern s32        func_8005333C(void* arg0);
 extern s32        func_80053414(void* arg0);
+extern void       func_80053448(GStruct34* arg0);
 extern void       func_8005363C(s32 arg0, void* arg1);
 
 // 43FFC.c

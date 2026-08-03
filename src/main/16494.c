@@ -1,11 +1,52 @@
 #include "common.h"
 
 #include <psyq/libcd.h>
+#include <psyq/libetc.h>
 #include <psyq/libspu.h>
 
 #include "main/unknown_syms.h"
 
-INCLUDE_ASM("main/nonmatchings/16494", func_80025C94);
+void func_80025C94(u8 status, u8* result)
+{
+    GStruct34* state;
+    CdlLOC     loc[3];
+    void*      buf;
+    s32        ret;
+    u8         errCount;
+
+    state          = &D_800820F0;
+    state->field_3 = 0;
+    if (status != CdlDiskError) {
+        CdGetSector(loc, 3);
+        if (CdPosToInt(loc) != Fs_ReqSector) {
+            errCount        = Fs_CdErrorCount;
+            Fs_CdOpStatus   = 0x80;
+            Fs_CdErrorCount = errCount + 1;
+            CdControlF(CdlPause, NULL);
+            CdReadyCallback(NULL);
+            return;
+        }
+        Fs_VBlank     = VSync(-1);
+        buf           = state->field_4;
+        Fs_ReqSector += 1;
+        CdGetSector(buf, 0x200);
+        ret = func_80053414(buf);
+        if (ret != -1) {
+            if (ret != 5) {
+                return;
+            }
+            CdControlF(CdlPause, NULL);
+            func_80053448(state);
+            Fs_CdOpStatus = 0xFF;
+            CdReadyCallback(NULL);
+            return;
+        }
+    }
+    Fs_CdErrorCount += 1;
+    CdControlF(CdlPause, NULL);
+    Fs_CdOpStatus = 0x80;
+    CdReadyCallback(NULL);
+}
 
 INCLUDE_ASM("main/nonmatchings/16494", func_80025DD8);
 

@@ -1824,3 +1824,32 @@ classic countdown `for (i = n - 2; i != -1; i--)` body; only the hoist of the
 pointer step matters.
 
 `func_8004D19C` is the pure example (u16 prefix table + 4-byte group headers).
+
+## Dual-global update: read first to pin `a3`/`a2` order
+
+When a basic block loads the addresses of two globals into `$a3` then `$a2`
+(e.g. `Fs_CdErrorCount` then `Fs_CdOpStatus`) and stores to both around a
+`jal`, a bare:
+
+```c
+Fs_CdOpStatus = 0x80;
+Fs_CdErrorCount += 1;
+CdControlF(CdlPause, NULL);
+```
+
+often schedules the *OpStatus* address into `$a3` first (because that store is
+written first), swapping the two `lui`s relative to the target.
+
+Force the target order by reading the incremented global into a local first so
+its address is materialised before the other store:
+
+```c
+u8 errCount;
+
+errCount        = Fs_CdErrorCount; /* lui a3,%hi(ErrorCount) first */
+Fs_CdOpStatus   = 0x80;            /* lui a2,%hi(OpStatus) second */
+Fs_CdErrorCount = errCount + 1;    /* delay-slot store of count */
+CdControlF(CdlPause, NULL);
+```
+
+`func_80025C94` is the pure example (sector-mismatch soft-error path).
