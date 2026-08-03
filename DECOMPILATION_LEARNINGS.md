@@ -2229,3 +2229,44 @@ D_80082818.unknown_0[0] = D_80082818.unknown_0[0] | 1;
 ```
 
 `func_800588D8` / `D_80082808` is the example.
+
+## Default return value belongs in the fall-through branch
+
+When the target puts `li a1,-1` in the *delay slot* of a `beq`/`bne` (then
+`move v0,a1` on both exit paths), do **not** initialize `ret` before the
+`if`. An early `ret = -1;` is scheduled *before* the address load of the
+struct being tested, which steals the delay slot for the fall-through's
+first real instruction (`li v0,4`, etc.) and drops the match a few percent.
+
+Put the default assignment *inside* the fall-through arm instead. GCC still
+lifts it into the branch delay slot (it is independent of the arm's stores),
+but leaves the prologue as pure `lui`/`addiu`/`lbu`/`li`/`beq`:
+
+```c
+/* Wrong: li a1,-1 first, delay slot filled with li v0,4 */
+ret = -1;
+p = &D_80082798;
+if (p->field_0 != 3) {
+    p->field_1 = 4;
+    p->field_2 = 1;
+} else {
+    ret = 0;
+    /* ... */
+}
+return ret;
+
+/* Right: li a1,-1 in beq delay slot */
+p = &D_80082798;
+if (p->field_0 != 3) {
+    ret = -1;          /* lifted into delay slot */
+    p->field_1 = 4;
+    p->field_2 = 1;
+} else {
+    ret = 0;
+    /* ... */
+}
+return ret;
+```
+
+`func_80057ACC` is the example. Pair with `if (x != K)` so the branch is
+`beq` to the else arm and the `!=` arm is fall-through (failure-first layout).

@@ -184,7 +184,24 @@ s32 func_80057A88(s32 arg0)
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_80057ACC);
+s32 func_80057ACC(void)
+{
+    volatile GStruct4* p;
+    s32                ret;
+
+    p = &D_80082798;
+    if (p->field_0 != 3) {
+        ret        = -1;
+        p->field_1 = 4;
+        p->field_2 = 1;
+    } else {
+        ret                = 0;
+        p->field_2         = 0;
+        p->field_1         = 1;
+        D_800827A0.field_0 = 2;
+    }
+    return ret;
+}
 
 void func_80057B24(s32 arg0)
 {
