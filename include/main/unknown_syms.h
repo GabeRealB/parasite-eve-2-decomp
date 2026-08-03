@@ -197,6 +197,7 @@ extern s16  func_8004DE18(void* arg0);
 extern void func_8004E200(void);
 extern s32  func_8004E060(s16* arg0, s32 arg1, s32 arg2);
 extern void func_8004E560(u32 voiceIdx, s32 arg1, s32 arg2);
+extern s32  func_8004E5C4(s8 arg0, GStruct48* arg1);
 extern void F3E48C_8004E44C(void);
 extern s32  F3E48C_8004E660(u32 voiceIdx);
 extern void F3E48C_QueryReverbVoices(void);

@@ -96,7 +96,23 @@ void func_8005791C(s32 arg0)
     D_800827A0.field_4 = arg0;
 }
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_80057930);
+void func_80057930(s8 arg0, s32* arg1)
+{
+    GStruct48 sp10;
+    s32*      dest;
+    u32       i;
+
+    func_8004E560(arg0, 0, 0);
+    func_8004E5C4(arg0, &sp10);
+    dest = sp10.field_4;
+    i    = 0;
+    do {
+        *dest = *arg1;
+        arg1++;
+        i++;
+        dest++;
+    } while (i < 0x10U);
+}
 
 void func_800579A0(s8* arg0, s8* arg1)
 {

@@ -737,6 +737,17 @@ typedef struct _GStruct47 {
     /* 0x4 */ u8  field_4[1];
 } GStruct47;
 
+/// Out-parameter for `func_8004E5C4` (voice slot lookup/alloc).
+/// field_0 is the voice index; field_4 points at 16 words of voice data.
+typedef struct _GStruct48 {
+    /* 0x0 */ s8   field_0;
+    /* 0x1 */ s8   field_1;
+    /* 0x2 */ s8   field_2;
+    /* 0x3 */ s8   field_3;
+    /* 0x4 */ s32* field_4;
+} GStruct48;
+STATIC_ASSERT_SIZEOF(GStruct48, 0x8);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 
