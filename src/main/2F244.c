@@ -3,6 +3,7 @@
 #include "main/game.h"
 #include "main/mem.h"
 #include "main/unknown_syms.h"
+#include "psyq/libpress.h"
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_8003EA44);
 
@@ -182,7 +183,23 @@ INCLUDE_ASM("main/nonmatchings/2F244", func_8004017C);
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_800405E0);
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_80040820);
+void func_80040820(void)
+{
+    GStruct3* p;
+
+    p = &D_80068FA0;
+    if (p->field_214 == 0) {
+        if (p->field_234 != 0) {
+            DecDCTvlcBuild((u16*)((u8*)D4CB64_ImgBuffers + 0x8800));
+            p->field_234 = 0;
+        }
+        if ((p->field_200 != 0) && (p->field_234 == 0)) {
+            func_800405E0();
+        }
+    } else if (p->field_200 != 0) {
+        func_8004017C();
+    }
+}
 
 void func_800408C0(void* arg0)
 {
