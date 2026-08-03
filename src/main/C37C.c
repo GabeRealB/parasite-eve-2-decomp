@@ -25,7 +25,16 @@ INCLUDE_ASM("main/nonmatchings/C37C", func_8001D0E8);
 
 INCLUDE_ASM("main/nonmatchings/C37C", func_8001D2B0);
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001D344);
+u16 func_8001D344(void)
+{
+    GStruct3* p;
+
+    p = &D_80068FA0;
+    if (p->field_4c != 0) {
+        return 0;
+    }
+    return p->field_1c8 == p->field_1ca;
+}
 
 u16 func_8001D37C(s16 arg0)
 {
