@@ -299,7 +299,29 @@ void func_80051888(void) {
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_800518E0);
+void func_800518E0(void) {
+    GStruct16* temp;
+    GStruct16From4* mid;
+    u8 saved;
+
+    if (D_800820E9 != 0) {
+        saved = D_800820E8;
+        D_800820E9 = 0;
+        temp = func_800509F4();
+        if (temp != NULL) {
+            mid = (GStruct16From4*)&temp->field_4;
+            temp->field_2 = 5;
+            temp->field_4 = 0;
+            if ((s8)saved >= 0) {
+                mid->field_1 = saved;
+            } else {
+                mid->field_1 = 0x7F;
+            }
+            func_80050A38(temp);
+            D_800820E8 = mid->field_1;
+        }
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80051964);
 

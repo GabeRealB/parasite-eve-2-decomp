@@ -531,7 +531,7 @@ extern u8                D_8007E258;
 extern u8                 D_80068A54[];
 extern s32                D_80068A78;
 extern u8                 D_800820E8;
-extern u8                 D_800820E9;
+extern s8                 D_800820E9;
 extern GStruct34          D_800820F0;
 extern u8                 D_800820F3;
 extern volatile u8        D_80082120;

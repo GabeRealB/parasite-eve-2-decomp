@@ -1178,3 +1178,23 @@ D_8006AC04 = D_8006AC04 % 8;  /* not &= 7, not (index+1)&7 */
 `func_8001D898` (8-entry queue walk of `D_80068FA0.entries`) is a pure example.
 The same double-store shape appears on `field_1c8` / `field_1ca` updates in the
 nearby ring producers (e.g. `func_8001D760`).
+
+## `s8` globals load with `lb`, not `lbu`
+
+`-funsigned-char` makes plain `char` unsigned, and a `u8` global always loads
+with `lbu`. When the target uses `lb` to read a byte flag (then `beqz` /
+compare), declare the global as `s8` even if it only holds 0/1.
+
+A cast at the use site is not enough:
+
+```c
+if ((s8)D_800820E9 != 0)  /* still emits lbu, then sign-extends the reg */
+```
+
+```c
+extern s8 D_800820E9;
+if (D_800820E9 != 0)      /* emits lb */
+```
+
+`func_800518E0` / `func_80051DF4` both `lb` `D_800820E9`; stores remain `sb`
+either way.
