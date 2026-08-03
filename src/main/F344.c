@@ -28,7 +28,10 @@ INCLUDE_ASM("main/nonmatchings/F344", func_8001FAE0);
 
 INCLUDE_ASM("main/nonmatchings/F344", func_80020058);
 
-INCLUDE_ASM("main/nonmatchings/F344", func_80020278);
+GStruct24* func_80020278(u32 arg0)
+{
+    return &D_8006D4F0[arg0 & 0xFFFF];
+}
 
 INCLUDE_ASM("main/nonmatchings/F344", func_80020298);
 

@@ -321,6 +321,30 @@ typedef struct _GStruct23 {
     /* 0x1AB */ u8   field_1ab;
 } GStruct23;
 
+/// Element of BSS array D_8006D4F0 (15 entries, total 0x258).
+/// Fields inferred from F344.c accessors (func_8001ED20, func_8001EED8, etc.).
+typedef struct _GStruct24 {
+    /* 0x00 */ s16  field_0;
+    /* 0x02 */ byte unknown_2[0x2];
+    /* 0x04 */ s32  field_4;
+    /* 0x08 */ byte unknown_8[0x4];
+    /* 0x0C */ u16  field_C;
+    /* 0x0E */ u16  field_E;
+    /* 0x10 */ byte unknown_10[0x2];
+    /* 0x12 */ u16  field_12;
+    /* 0x14 */ u16  field_14;
+    /* 0x16 */ u16  field_16;
+    /* 0x18 */ u16  field_18;
+    /* 0x1A */ u16  field_1A;
+    /* 0x1C */ u16  field_1C;
+    /* 0x1E */ u16  field_1E;
+    /* 0x20 */ byte unknown_20[0x2];
+    /* 0x22 */ u16  field_22;
+    /* 0x24 */ u16  field_24;
+    /* 0x26 */ u16  field_26;
+} GStruct24;
+STATIC_ASSERT_SIZEOF(GStruct24, 0x28);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 

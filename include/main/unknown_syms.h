@@ -210,10 +210,11 @@ extern void func_8005B830(void);
 extern void func_8005BBB0(s32 arg0);
 
 // F344.c
-extern s16  D_8006AC28;
-extern void func_80020388(void);
-extern u32  func_8001F180(u32);
-extern void func_8002043C(u32 arg0);
+extern s16       D_8006AC28;
+extern void      func_80020388(void);
+extern u32       func_8001F180(u32);
+extern GStruct24* func_80020278(u32 arg0);
+extern void      func_8002043C(u32 arg0);
 
 // Other
 extern void func_800271D4(void);
@@ -319,6 +320,7 @@ extern u8             D5B498_8006C234;
 extern FsSector       D5B498_CdSectorBuffer;
 extern u8*            D5B498_8006D4D8;
 extern u8             D5B498_8006D4E0[0x10];
+extern GStruct24      D_8006D4F0[15];
 extern u16            D5B498_8006D748;
 extern void*          D5B498_8006D850;
 extern s32            D5B498_8006D854;
