@@ -11,7 +11,17 @@ INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E324);
 
 INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E438);
 
-INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E4BC);
+GStruct0* func_8003E4BC(GStruct2* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    GStruct0Node* saved;
+    GStruct0* ret;
+
+    saved = func_8002D40C();
+    func_8002D41C(&D_800716E0);
+    ret = func_8002CFA0(arg0, arg1, arg2, arg3);
+    func_8002D41C(saved);
+    return ret;
+}
 
 void func_8003E540(void) {
     func_8003E814();
