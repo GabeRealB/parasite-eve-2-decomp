@@ -25,7 +25,16 @@ INCLUDE_ASM("main/nonmatchings/46FE4", func_800575D8);
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_80057618);
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_800576BC);
+s32 func_800576BC(s32 arg0)
+{
+    s32 temp_s0;
+
+    temp_s0 = arg0 & 0xFF;
+    if (temp_s0 != 0) {
+        func_80057A88(D_800827A0.field_4 + func_80057A1C((arg0 - 1) & 0xFF));
+    }
+    return temp_s0;
+}
 
 s32 func_80057704(void)
 {
