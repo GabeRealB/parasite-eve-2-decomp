@@ -68,7 +68,33 @@ default_case:
 
 INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E6E4);
 
-INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E72C);
+s32 func_8003E72C(s32 arg0) {
+    if (arg0 >= 0x20) {
+        if (arg0 < 0x80) {
+            D_80070F68.field_10d = 0;
+            if (arg0 != 0x43) {
+                func_8003FB70(&D_8006268C, arg0, 0, 0);
+            } else {
+                func_8003FB70(&D_8006268C, 0x43, 0, 0);
+            }
+            D_80070F68.field_10d = arg0;
+            if (D_80070F68.field_12c != 0) {
+                func_8003FA3C(0xFF);
+                func_8003F86C(0, 0, 0x10, 1);
+            } else if (arg0 != 0x42) {
+                if (arg0 == 0x43) {
+                    func_8003FA3C(0xFF);
+                    func_8003F86C(0, 0, 0x20, 1);
+                } else {
+                    func_8003FA3C(0x20);
+                    func_8003F86C(0, 0, 8, 1);
+                }
+            }
+        }
+        func_8003F690();
+    }
+    return 0;
+}
 
 void func_8003E814(void) {
     GStruct14* temp;
