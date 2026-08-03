@@ -248,6 +248,7 @@ extern s8   D_8008274A;
 extern s8   D_8008274B;
 extern void func_800537FC(s32 arg0, s32 arg1);
 extern s32  func_80053A20(s32 arg0, s32 arg1);
+// Unprototyped: func_8005462C calls with indeterminate a0 (nop in delay slot).
 extern s32  func_80053F00();
 extern void func_80053FA0(s32 arg0);
 extern void func_8005454C(s32 arg0, s32 arg1);
@@ -268,6 +269,7 @@ extern s32  func_80055DAC(s32 arg0);
 extern void func_80055DFC(s8 arg0);
 extern s8         func_80055EE8(void);
 extern void       func_80056068(void);
+extern GStruct31* func_80056104(s32 arg0, s32 arg1);
 extern GStruct31* func_800561C0(s32 arg0);
 extern void       func_800561EC(s32 arg0);
 extern GStruct43* func_80056240(s32 arg0);

@@ -114,7 +114,22 @@ void func_80053E48(void) {
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80053E68);
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80053F00);
+// K&R definition so the no-arg call in func_8005462C stays legal (indeterminate a0).
+s32 func_80053F00(arg0)
+s32 arg0;
+{
+    s32 var_s0;
+    GStruct31* temp_v0;
+
+    var_s0 = arg0;
+    if ((var_s0 & 0xF0000000) == 0x10000000) {
+        temp_v0 = func_80056104(0x1000, 1);
+        if (temp_v0 != NULL) {
+            var_s0 = (temp_v0->field_0->field_4 << 0x10) + (var_s0 & 0xFFFF);
+        }
+    }
+    return var_s0;
+}
 
 s32 func_80053F60(s32* arg0) {
     s32 temp;

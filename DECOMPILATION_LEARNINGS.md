@@ -1069,6 +1069,28 @@ pointer"). Nested `if (flag) { if (head != NULL) { ... } }` rather than
 `flag && head` keeps the second null test in the first's delay-slot region.
 `func_8004D8BC` is the reference.
 
+## K&R definition when a same-TU caller uses indeterminate args
+
+A modern prototype definition (`s32 f(s32 x) { ... }`) is visible to later
+call sites in the same translation unit. If an already-matched caller invokes
+the function with a bare `f()` and a `nop` delay slot (so `$a0` is whatever
+garbage was left), introducing a prototype makes that call a hard error
+("too few arguments").
+
+Use an old-style K&R definition instead — it does **not** create a prototype,
+so the no-arg call stays legal and the callee still matches:
+
+```c
+s32 func_80053F00(arg0)
+s32 arg0;
+{
+    /* ... */
+}
+```
+
+Keep the header declaration unprototyped too (`extern s32 func_80053F00();`).
+`func_8005462C` → `func_80053F00` is the reference.
+
 ## `switch` for equality chains that branch *to* case bodies
 
 When the target does positive equality tests that jump *to* handlers

@@ -526,13 +526,24 @@ typedef struct _GStruct30 {
     /* 0x24 */ void (*field_24)(void*);
 } GStruct30;
 
+/// Header for the bank table blob pointed to by GStruct31.field_0.
+/// field_4 is the bank ID (high halfword remapped by func_80053F00 when the
+/// request high nibble is 0x1); field_6 is the entry count used by func_8005414C.
+/// A u16 offset table follows at 0x8.
+typedef struct _GStruct45 {
+    /* 0x0 */ u8  unknown_0[4];
+    /* 0x4 */ u16 field_4;
+    /* 0x6 */ u16 field_6;
+} GStruct45;
+STATIC_ASSERT_SIZEOF(GStruct45, 0x8);
+
 /// 16-byte slot in D_80082148[16] (BSS size 0x100). Indexed by func_800561C0
 /// and related helpers in 43FFC.c / 410B0.c.
 typedef struct _GStruct31 {
-    /* 0x0 */ void* field_0;
-    /* 0x4 */ void* field_4;
-    /* 0x8 */ s32   field_8;
-    /* 0xC */ void* field_C;
+    /* 0x0 */ GStruct45* field_0;
+    /* 0x4 */ void*      field_4;
+    /* 0x8 */ s32        field_8;
+    /* 0xC */ void*      field_C;
 } GStruct31;
 STATIC_ASSERT_SIZEOF(GStruct31, 0x10);
 
