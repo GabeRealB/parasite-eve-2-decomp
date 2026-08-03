@@ -712,3 +712,53 @@ void init_slots(s32* arg0) {
 ```
 
 `func_800528BC` (init of `GStruct22::field_484[16]`) is the pure example.
+
+## Shared `return 0` via switch `break` (not early return)
+
+When several paths end by returning 0 and the target routes them through a
+single `move v0, zero` before the epilogue, write those paths as `break` out of
+the switch (or fall through) into one trailing `return 0`. Early `return 0`
+inside a case puts `move v0, zero` in a branch delay slot and jumps past the
+shared label — wrong labels, wrong register pressure, and often a missed
+delay-slot fill from the fall-through path.
+
+```c
+switch (state->field) {
+case 0:
+    if (ok) {
+        state->field++;
+        break; /* fall to shared return 0 */
+    }
+    return 2;
+case 1:
+    if (done()) {
+        state->field = 0;
+        return 2;
+    }
+    break;
+default:
+    return 0;
+}
+return 0;
+```
+
+`func_8001E6AC` needs this so the shell-open path can delay-slot-fill
+`andi a1, s1, 0xFFFF` from the not-open fall-through instead of preloading
+`v0 = 0`.
+
+## `s16` return types force `sll; beqz` at call sites
+
+Callers that test a halfword return emit:
+
+```
+jal  foo
+nop
+sll  v0, v0, 16
+beqz v0, ...
+```
+
+Declare (or cast) the callee as returning `s16`, not `bool`/`s32`. A `bool`
+definition still matches the callee body for 0/1 results, but call sites then
+lose the `sll`. `E734_CDIsShellOpenBitSet` was retyped from `bool` to `s16` so
+`func_8001E6AC` (and other CD helpers that already had the `sll` in target asm)
+match at the call site.

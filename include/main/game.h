@@ -118,7 +118,9 @@ typedef struct _GStruct3 {
     u8            field_54;
     byte          unknown_55[0x175];
     u16           field_1ca;
-    byte          unknown_1cc[0x38];
+    byte          unknown_1cc[0x8];
+    u16           field_1d4;
+    byte          unknown_1d6[0x2E];
     u16           field_204;
     byte          unknown_206[0x8];
     s16           field_20E;
@@ -126,7 +128,9 @@ typedef struct _GStruct3 {
     s16           field_21A;
     byte          unknown_21C[0x8];
     u16           field_224;
-    byte          unknown_226[0xE];
+    byte          unknown_226[0x2];
+    u16           field_228;
+    byte          unknown_22a[0xA];
     s16           field_234;
     s16           field_236;
     byte          unknown_238[0x1A];
