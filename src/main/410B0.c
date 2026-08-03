@@ -274,7 +274,18 @@ INCLUDE_ASM("main/nonmatchings/410B0", func_80052488);
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_800526A4);
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_8005287C);
+s32 func_8005287C(u8* arg0, u8* arg1) {
+    register s32 result asm("a2");
+
+    result = 0;
+    *arg1 = 0;
+    do {
+        result <<= 7;
+        result |= *arg0 & 0x7F;
+        *arg1 = *arg1 + 1;
+    } while (*arg0++ & 0x80);
+    return result;
+}
 
 void func_800528BC(s32* arg0) {
     s32 i;
