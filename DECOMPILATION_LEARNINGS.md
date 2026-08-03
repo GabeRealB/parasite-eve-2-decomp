@@ -1198,3 +1198,35 @@ if (D_800820E9 != 0)      /* emits lb */
 
 `func_800518E0` / `func_80051DF4` both `lb` `D_800820E9`; stores remain `sb`
 either way.
+
+## `u8` temp for `srl` bit tests on `byte` fields
+
+`byte` is `signed char`. Shifting a `byte` field directly as a condition inserts
+an extra `negu` after the `srl`:
+
+```
+lbu  v0,1(v1)
+srl  v0,v0,0x7
+negu v0,v0        /* unwanted */
+beqz v0,...
+```
+
+Symptom: target is plain `srl` + `beqz`; your build has `negu` between them and
+a slightly larger branch distance.
+
+Fix: load the byte into a `u8` temporary first, then shift that:
+
+```c
+u8 temp;
+
+temp = p->unknown_0[1];
+if (temp >> 7) {
+    ...
+}
+```
+
+That produces the clean `lbu` / `srl` / `beqz` sequence. Casting at the use site
+(`if ((u8)p->unknown_0[1] >> 7)`) is not enough — the temporary is required.
+
+`func_8005B920` is a pure example (bit 7 of `D_80082818.unknown_0[1]`).
+

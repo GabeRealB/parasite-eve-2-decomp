@@ -47,7 +47,20 @@ void func_8005B830(void)
 
 INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005B84C);
 
-INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005B920);
+void func_8005B920(s32 arg0)
+{
+    volatile GStruct19* p;
+    u8 temp;
+
+    p = &D_80082818;
+    temp = p->unknown_0[1];
+    if (temp >> 7) {
+        p->field_14 = arg0;
+        p->unknown_0[1] = p->unknown_0[1] | 8;
+        p->unknown_0[0] = p->unknown_0[0] | 1;
+    }
+}
+
 
 void func_8005B968(u32 *arg0)
 {
