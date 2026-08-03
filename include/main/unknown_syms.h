@@ -114,6 +114,9 @@ extern void func_8002F98C(GStruct0* arg0);
 // 201E0.c
 extern void func_80030074(void);
 
+// 32B64.c
+extern void func_800429C8(s32 arg0);
+
 // 34E98.c
 extern void func_80046B34(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5, s32 arg6);
 extern void func_80046EEC(void* arg0, void* arg1, s32 arg2);
@@ -338,6 +341,9 @@ extern s16            D_8006EBF2;
 extern u_long   D5F414_OrderingTables[2 * C5F414_OTAG_ENTRIES];
 extern GStruct1 D_80070F68; // 0x80070F68 - 0x800710A0
 extern GStruct5 D_800710A8;
+
+// 61F10
+extern GStruct23 D_80072168;
 
 // 61CC0
 extern GStruct14 D61CC0_800714C0;

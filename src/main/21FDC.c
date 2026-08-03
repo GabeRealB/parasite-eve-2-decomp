@@ -47,7 +47,20 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_800339C4);
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80033A28);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80033A70);
+void func_80033A70(void)
+{
+    GStruct23* p;
+
+    p = &D_80072168;
+    p->field_21  = 0;
+    p->field_1a8 = 0;
+    p->field_1aa = 0;
+    p->field_1ab = 0;
+    p->field_1a9 = 0;
+    p->field_25  = 0;
+    func_800260B0(1);
+    func_800429C8(0);
+}
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80033AB8);
 

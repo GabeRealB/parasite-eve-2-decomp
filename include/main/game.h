@@ -301,6 +301,20 @@ typedef struct _GStruct22 {
     /* 0x484 */ GStruct22Entry field_484[16];
 } GStruct22;
 
+/// BSS object D_80072168. Large; only fields used so far are named.
+/// Accessed up to at least 0x942 (see func_80033D3C).
+typedef struct _GStruct23 {
+    /* 0x000 */ byte unknown_0[0x21];
+    /* 0x021 */ u8   field_21;
+    /* 0x022 */ byte unknown_22[0x3];
+    /* 0x025 */ u8   field_25;
+    /* 0x026 */ byte unknown_26[0x182];
+    /* 0x1A8 */ u8   field_1a8;
+    /* 0x1A9 */ u8   field_1a9;
+    /* 0x1AA */ u8   field_1aa;
+    /* 0x1AB */ u8   field_1ab;
+} GStruct23;
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 
