@@ -156,7 +156,19 @@ s32 func_80057A88(s32 arg0)
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_80057ACC);
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_80057B24);
+void func_80057B24(s32 arg0)
+{
+    GStruct55*          p;
+    volatile GStruct56* parent;
+
+    p      = &D_800827B4;
+    parent = (volatile GStruct56*)p;
+    parent = parent - 1;
+    func_8004D200(p, (parent->field_2 >> 7) & 0xFF, 0, arg0);
+    D_80082798.field_1 = 4;
+    D_80082798.field_2 = 1;
+    parent->field_0    = 3;
+}
 
 void func_80057B88(s32 arg0, s32 arg1)
 {

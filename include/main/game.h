@@ -778,6 +778,30 @@ typedef struct _GStruct54 {
 } GStruct54;
 STATIC_ASSERT_SIZEOF(GStruct54, 0x60);
 
+/// 0x10-byte linear interpolator state used by func_8004D200 / func_8004D298 /
+/// func_8004D2EC. BSS object D_800827B4 sits 0x14 bytes after D_800827A0.
+typedef struct _GStruct55 {
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ s32 field_4;
+    /* 0x8 */ s32 field_8;
+    /* 0xC */ s16 field_C;
+    /* 0xE */ s16 field_E;
+} GStruct55;
+STATIC_ASSERT_SIZEOF(GStruct55, 0x10);
+
+/// BSS block covering D_800827A0 (0x10) + D_800827B0 (0x4). Immediately precedes
+/// D_800827B4; used when codegen holds &D_800827B4 and reaches back 0x14 bytes.
+typedef struct _GStruct56 {
+    /* 0x00 */ u8  field_0;
+    /* 0x01 */ u8  field_1;
+    /* 0x02 */ u16 field_2;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s32 field_10;
+} GStruct56;
+STATIC_ASSERT_SIZEOF(GStruct56, 0x14);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 

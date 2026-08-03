@@ -1769,3 +1769,28 @@ local (`val = (u8)...`) so the load schedules before intervening stores.
 
 `func_8003FB20` is the pure example (`D4F564_8005ED64->field_4` →
 `D_80062698->field_20`).
+
+## BSS adjacency: hold the later symbol, step back by typed size
+
+When the target loads `$s0 = &LaterSymbol` and reaches an earlier BSS object
+as `-0xN($s0)` / `addiu v0, s0, -0xN`, two separate `extern` names will **not**
+CSE into that form — GCC keeps a second `lui`/`addiu` for the earlier symbol
+(~82% match).
+
+If the earlier block has a fixed size that ends exactly at the later symbol,
+derive the parent pointer from the later one with a typed step-back. Split the
+cast and the arithmetic so the pointer-arithmetic linter stays quiet:
+
+```c
+/* D_800827A0..D_800827B0 is 0x14 bytes immediately before D_800827B4 */
+p = &D_800827B4;
+parent = (volatile GStruct56*)p;
+parent = parent - 1;   /* sizeof(GStruct56) == 0x14 */
+func_8004D200(p, (parent->field_2 >> 7) & 0xFF, 0, arg0);
+parent->field_0 = 3;   /* sb …, -0x14(s0) */
+```
+
+`volatile` on the parent pointer forces `addiu v0, s0, -0x14` + `lhu a1, 2(v0)`
+instead of a folded `lhu a1, -0x12(s0)`.
+
+`func_80057B24` is the pure example (`D_800827B4` / `D_800827A0`).
