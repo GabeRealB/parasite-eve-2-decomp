@@ -175,7 +175,24 @@ void func_80041B4C(GStruct27* arg0)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_80041B88);
+s32 func_80041B88(GStruct27* arg0)
+{
+    s32 result;
+    void* mem;
+
+    result = 0;
+    if (arg0->field_18 == NULL) {
+        mem = Mem_Calloc(arg0->field_10->field_4 * 2, 1);
+        arg0->field_18 = mem;
+        if (mem != NULL) {
+            arg0->field_14 = 0;
+            func_800410F0(arg0);
+            func_800410F0(arg0);
+            result = 1;
+        }
+    }
+    return result;
+}
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_80041BFC);
 
