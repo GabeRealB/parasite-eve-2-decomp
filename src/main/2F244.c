@@ -56,7 +56,13 @@ s32 func_8003F944(void)
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_8003F964);
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8003F9AC);
+void func_8003F9AC(void)
+{
+    if (D_80062698->field_14 == 0) {
+        func_8003E9A4();
+        D_80062698->field_14 = 1;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_8003F9F4);
 

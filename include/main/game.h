@@ -271,7 +271,8 @@ typedef struct _GStruct17 {
     /* 0x00 */ byte unknown_0[0x11];
     /* 0x11 */ u8   field_11;
     /* 0x12 */ u8   field_12;
-    /* 0x13 */ byte unknown_13[0x2];
+    /* 0x13 */ u8   field_13;
+    /* 0x14 */ u8   field_14;
     /* 0x15 */ u8   field_15;
     /* 0x16 */ byte unknown_16;
     /* 0x17 */ u8   field_17;
