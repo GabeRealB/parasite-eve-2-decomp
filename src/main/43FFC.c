@@ -302,7 +302,20 @@ void func_800561EC(s32 arg0) {
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80056240);
+GStruct43* func_80056240(s32 arg0) {
+    s32 voiceIdx;
+    GStruct43* ptr;
+
+    voiceIdx = (s8)func_8004E060(D_80068A7C, 2, arg0 & 0xFFFF);
+    if (voiceIdx < 0) {
+        return NULL;
+    }
+    ptr = (GStruct43*)D_80082148 + voiceIdx;
+    ptr->field_0 = voiceIdx;
+    func_8004E560(voiceIdx, (s32)func_80056068, (s32)ptr);
+    ptr->field_8 = 1;
+    return ptr;
+}
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_800562B4);
 

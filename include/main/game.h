@@ -531,6 +531,18 @@ typedef struct _GStruct31 {
 } GStruct31;
 STATIC_ASSERT_SIZEOF(GStruct31, 0x10);
 
+/// Voice/FX object carved from D_80082148 with stride 0x40 (func_80056240).
+/// field_0 is the SPU voice index; field_8 is a small state flag.
+/// func_80056068 walks link fields at 0x34/0x38/0x3C on free.
+typedef struct _GStruct43 {
+    /* 0x00 */ s8  field_0;
+    /* 0x01 */ u8  unknown_01[0x7];
+    /* 0x08 */ s16 field_8;
+    /* 0x0A */ u8  unknown_0A[0x2A];
+    /* 0x34 */ u8  unknown_34[0xC];
+} GStruct43;
+STATIC_ASSERT_SIZEOF(GStruct43, 0x40);
+
 /// State block at D_800820F0; fields at +0x14/+0x18 cleared by func_800537FC.
 typedef struct _GStruct34 {
     /* 0x00 */ u8  unknown_00[0x14];

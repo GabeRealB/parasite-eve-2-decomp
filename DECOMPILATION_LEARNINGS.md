@@ -966,3 +966,39 @@ The inverted early-exit form (`if (arg0 == NULL) return NULL; return ...;`)
 produces `beqz` with the null epilogue at the end of the function — same
 semantics, wrong layout. `func_8004EA60` only matches with the `!= NULL`
 shape.
+
+## Sign-extend a call result into `s32`, not `s8`
+
+When the target does:
+
+```
+jal  foo
+ ...
+sll  v0, v0, 24
+sra  a0, v0, 24
+bltz a0, ...
+...
+sb   a0, 0(s0)   /* delay slot of a later jal — same sign-extended reg */
+```
+
+assign the result to an `s32` through an `(s8)` cast:
+
+```c
+s32 idx;
+idx = (s8)foo(...);
+if (idx < 0) {
+    return NULL;
+}
+p->field_0 = idx;
+bar(idx, ...);
+```
+
+A plain `s8 idx = foo(...);` keeps a copy of the raw return (`move v1,v0`)
+and stores/`sb`s that copy instead of the sign-extended register, adding an
+instruction and shifting every later label. `func_80056240` only matches with
+the `s32` + `(s8)` form.
+
+Note also that `D_80082148` is walked two ways: as `GStruct31[16]` (stride
+`0x10`, via `func_800561C0` / `func_800561EC`) and as `GStruct43` slots
+(stride `0x40`, via `func_80056240`). Cast the base rather than changing
+`GStruct31`.
