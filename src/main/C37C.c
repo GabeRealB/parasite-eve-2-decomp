@@ -57,7 +57,16 @@ void F0C37C_ClearD80068FA0(void)
 
 INCLUDE_ASM("main/nonmatchings/C37C", func_8001D424);
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001D498);
+void func_8001D498(void)
+{
+    GStruct3* p;
+
+    p = &D_80068FA0;
+    if (func_8001EDC8(&D4F564_8005ED64->field_4, 0, 0) >= 0) {
+        D_8006AC40 = D_8006AC00;
+    }
+    p->field_1E6 = 0;
+}
 
 s32 func_8001D4F0(void)
 {

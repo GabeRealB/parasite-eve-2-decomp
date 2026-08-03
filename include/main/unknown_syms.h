@@ -312,6 +312,7 @@ extern void func_8005BBB0(s32 arg0);
 // F344.c
 extern s16       D_8006AC28;
 extern void      func_80020388(void);
+extern s16       func_8001EDC8(void* arg0, u16 arg1, u16 arg2);
 extern u32       func_8001F180(u32);
 extern GStruct24* func_80020278(u32 arg0);
 extern u16       func_80020414(u32 arg0);
@@ -399,7 +400,9 @@ extern u8 D58028_SpuTimerEnabled;
 // .bss
 
 // 5B3FC
-extern u16 D_8006AC04;
+extern void* D_8006AC00;
+extern u16   D_8006AC04;
+extern void* D_8006AC40;
 
 extern GStruct0Node* D_800716D8;
 extern GStruct0Node  D_800716E0;
