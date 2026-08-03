@@ -51,7 +51,22 @@ void func_8003E610(void) {
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E64C);
+void func_8003E64C(void) {
+    GStruct1* temp;
+    u8 val;
+
+    temp = &D_80070F68;
+    if (temp->field_1d >= 0) {
+        temp->field_11d = 0;
+    } else {
+        val = temp->field_11d - 1;
+        temp->field_11d = val;
+        if (val == 0) {
+            temp->field_1d &= 0x7F;
+            temp->field_11d = 0;
+        }
+    }
+}
 
 s32 func_8003E698(void) {
     s32 temp;
