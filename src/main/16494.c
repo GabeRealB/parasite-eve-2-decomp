@@ -166,4 +166,18 @@ void func_80026268(s32 arg0)
     SpuSetCommonAttr(&Fs_SpuAttr);
 }
 
-INCLUDE_ASM("main/nonmatchings/16494", func_800262A8);
+s32 func_800262A8(void)
+{
+    s16 vol;
+
+    D_8006EBF4 -= 8;
+    if (D_8006EBF4 < 0) {
+        D_8006EBF4 = 0;
+    }
+    Fs_SpuAttr.mask            = SPU_COMMON_CDVOLL | SPU_COMMON_CDVOLR;
+    vol                        = (D_8006EBF4 & 0x7F) << 8;
+    Fs_SpuAttr.cd.volume.right = vol;
+    Fs_SpuAttr.cd.volume.left  = vol;
+    SpuSetCommonAttr(&Fs_SpuAttr);
+    return D_8006EBF4;
+}
