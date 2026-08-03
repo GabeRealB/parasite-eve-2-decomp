@@ -485,6 +485,16 @@ typedef struct _GStruct34 {
 } GStruct34;
 STATIC_ASSERT_SIZEOF(GStruct34, 0x1C);
 
+/// Per-buffer OT context (D_80070EE8[2]). Indexed by display buffer (stride 0x14).
+/// field_4 is OT start; field_10 is the last tag (passed to DrawOTag).
+typedef struct _GStruct35 {
+    /* 0x00 */ s32     field_0;
+    /* 0x04 */ u_long* field_4;
+    /* 0x08 */ u8      unknown_08[0x8];
+    /* 0x10 */ u_long* field_10;
+} GStruct35;
+STATIC_ASSERT_SIZEOF(GStruct35, 0x14);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 

@@ -103,6 +103,26 @@ A local `GStruct1*` would force a callee-saved register and a larger stack
 frame for no benefit. Use the pointer only when the address is live across
 calls.
 
+**Order: pointer first, then the shared constant.** When the target does
+`lui %hi(global)` *then* `li aN,K` before the first `sw %lo(global)`, assign the
+local pointer before the constant. Reversing those two lines swaps the
+instructions and costs a near-match:
+
+```c
+/* Matches: lui of D_80070EE8, then li a1,0xA */
+otCtx = D_80070EE8;
+depth = 0xA;
+otCtx->field_0 = depth;
+/* ... otCtx[1].field_0 = depth reuses a1 */
+
+/* Mismatches: li first, then lui */
+depth = 0xA;
+otCtx = D_80070EE8;
+otCtx->field_0 = depth;
+```
+
+`func_800281D4` is the example — `depth` is shared across both OT buffers.
+
 **Hybrid — pointer for early accesses, global name after a call.** When the
 target keeps the address in `$s0` for pre-call loads/stores but reloads with a
 fresh `lui`/`addiu %lo` for a *post-call* store (instead of `off($s0)`), use the
