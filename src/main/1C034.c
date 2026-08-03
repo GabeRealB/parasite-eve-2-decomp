@@ -34,7 +34,15 @@ INCLUDE_ASM("main/nonmatchings/1C034", func_8002BCA8);
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002BD24);
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002BDB8);
+void func_8002BDB8(GStruct0* arg0)
+{
+    arg0->field_2a--;
+    if (arg0->field_2a != 0) {
+        return;
+    }
+    func_8002C9B0(0);
+    arg0->field_30 = arg0->field_30 + 1;
+}
 
 void func_8002BE0C(GStruct0* arg0)
 {
