@@ -357,6 +357,13 @@ typedef struct _GStruct25 {
 } GStruct25;
 STATIC_ASSERT_SIZEOF(GStruct25, 0x5C);
 
+/// 4-byte entry at D_8007EB98 (see func_8004E5A0).
+typedef struct _GStruct26 {
+    s16 field_0;
+    s16 field_2;
+} GStruct26;
+STATIC_ASSERT_SIZEOF(GStruct26, 0x4);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 

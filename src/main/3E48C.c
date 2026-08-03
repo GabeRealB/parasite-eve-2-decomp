@@ -99,7 +99,17 @@ void func_8004E580(u32 voiceIdx)
     D648E0_8007E338.field_16c[sVoiceIdx] = 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E5A0);
+s32 func_8004E5A0(s32 idx, s32 arg1, s32 arg2)
+{
+    GStruct26* p;
+    s16        sIdx;
+
+    sIdx        = idx;
+    p           = &D_8007EB98[sIdx];
+    p->field_0  = arg1;
+    p->field_2  = arg2;
+    return 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E5C4);
 
