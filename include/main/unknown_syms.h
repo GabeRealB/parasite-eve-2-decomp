@@ -233,6 +233,7 @@ extern s16       D_8006AC28;
 extern void      func_80020388(void);
 extern u32       func_8001F180(u32);
 extern GStruct24* func_80020278(u32 arg0);
+extern u16       func_80020414(u32 arg0);
 extern void      func_8002043C(u32 arg0);
 
 // Other

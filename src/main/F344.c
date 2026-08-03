@@ -42,7 +42,10 @@ void func_80020388(void)
 
 INCLUDE_ASM("main/nonmatchings/F344", func_80020394);
 
-INCLUDE_ASM("main/nonmatchings/F344", func_80020414);
+u16 func_80020414(u32 arg0)
+{
+    return D_8006D4F0[arg0 & 0xFFFF].field_1A;
+}
 
 void func_8002043C(u32 arg0)
 {
