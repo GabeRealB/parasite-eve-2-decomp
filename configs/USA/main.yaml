@@ -79,7 +79,7 @@ segments:
       - [0x3838, rodata, F344] # TODO
       - [0x3880, o, libcd/c_011, .rdata]
       - [0x38a0, rodata, "11E9C"] # TODO
-      - [0x3a74, rodata, "12D18"] # TODO
+      - [0x3a74, rodata, fs] # Fs_* strings / jump tables
       - [0x3b58, rodata, "16494"] # TODO
       - [0x3b74, o, libspu/s_sca, .rdata]
       - [0x3bb4, o, libspu/spu, .rdata]
@@ -115,7 +115,7 @@ segments:
       - [0x4b58, asm, psyq/libsn/snmain] # entry point (psyq-obj-parser doesn't support it...)
       - [0x4cd8, o, libapi/c57] # InitHeap
       - [0x4ce8, o, libapi/a39] # SetSp
-      - [0x4cf8, c] # TODO
+      - [0x4cf8, c, "4CF8"] # boot / CD init, Boot_LoadInitialFile
       - [0x546c, o, libetc/vsync] # VSync
       - [0x567c, o, libetc/intr_vb] # startIntrVSync
       - [0x579c, o, libetc/intr] # ResetCallback, InterruptCallback, DMACallback, VSyncCallback, VSyncCallbacks, StopCallback, RestartCallback, CheckCallback, GetIntrMask, SetIntrMask
@@ -151,7 +151,7 @@ segments:
       - [0xc2fc, o, libapi/a91] # ChangeClearPAD
       - [0xc30c, o, libapi/l10] # ChangeClearRCnt
       - [0xc31c, o, libds/dscb] # DsSyncCallback, DsReadyCallback, DsStartCallback, DsDataCallback
-      - [0xc37c, c] # TODO
+      - [0xc37c, c, C37C] # CdCmd queue consumer + game flow
       - [0xe4b4, o, libcd/s_002] # CdIntToPos, CdPosToInt
       - [0xe644, o, libpress/build] # DecDCTvlcBuild
       - [0xe734, c] # TODO
@@ -168,7 +168,7 @@ segments:
       - [0x11b0c, o, libpress/vlc_c] # DecDCTvlcSize2, DecDCTvlc2
       - [0x11e8c, o, libpress/dct002] # DecDCTBufSize
       - [0x11e9c, c] # TODO
-      - [0x12d18, c] # TODO
+      - [0x12d18, c, fs] # CD filesystem: STAGE*.CDF / STAGE0.HED load
       - [0x160f4, o, libgpu/break] # BreakDraw, IsIdleGPU, ContinueDraw
       - [0x16314, o, libapi/c159] # SetMem
       - [0x16324, o, libapi/counter] # SetRCnt, GetRCnt, StartRCnt, StopRCnt, ResetRCnt
@@ -368,8 +368,8 @@ segments:
       # .data section
       - [0x4cb30, data, psyq/libsn/snmain]
       - [0x4cb54, o, libsn/sndef, .data]
-      - [0x4cb5c, .data, main]
-      - [0x4cb64, data] # TODO
+      - [0x4cb5c, .data, main] # GStackBase, GHeap
+      - [0x4cb64, data, boot_loadbuf] # D4CB64_ImgBuffers, overlay/load region bases
       - [0x4cb94, o, libetc/vsync, .data]
       - [0x4cbb4, o, libetc/intr_vb, .data] # Vcount
       - [0x4cbe4, o, libetc/intr, .data]
@@ -387,9 +387,9 @@ segments:
       - [0x4e404, o, libc2/ctype, .data]
       - [0x4e494, o, libc2/putchar, .data]
       - [0x4e4a4, o, libc2/puts, .data]
-      - [0x4e4b4, data] # TODO
+      - [0x4e4b4, data, "4E4B4"] # game data (TODO: attribute)
       - [0x4e4dc, o, libpress/build, .data]
-      - [0x4f2ec, data] # TODO
+      - [0x4f2ec, data, "4F2EC"] # tiny pad/data
       - [0x4f2f0, o, libcd/c_004, .data]
       - [0x4f300, o, libcd/c_005, .data]
       - [0x4f310, o, libcd/c_007, .data]
@@ -397,18 +397,18 @@ segments:
       - [0x4f330, o, libcd/c_010, .data]
       - [0x4f340, o, libcd/c_011, .data] # debug_cause
       - [0x4f390, o, libpress/vlc_c, .data]
-      - [0x4f3c0, data] # TODO
+      - [0x4f3c0, data, "4F3C0"] # tiny pad/data
       - [0x4f3c4, o, libgpu/break, .data]
       - [0x4f3e4, o, libapi/counter, .data]
       - [0x4f404, o, libspu/spu, .data] # _spu_RXX, _spu_tsa, _spu_transMode, _spu_addrMode, _spu_mem_mode, _spu_mem_mode_plus, _spu_mem_mode_unit, _spu_mem_mode_unitM, _spu_inTransfer, _spu_transferCallback, _spu_IRQCallback
-      - [0x4f464, data] # TODO
+      - [0x4f464, data, "4F464"] # game data (TODO: attribute)
       - [0x4f494, o, libgte/msc00, .data]
       - [0x4f4a4, o, libpad/padmain, .data] # _padFuncNextPort, _padFuncClrInfo, _padFuncGetTxd, _padFuncCurrLimit, _padFuncPtr2Port, _padFuncPort2Info, _padFuncSendAuto, _padFuncChkEng, _padFuncRecvAuto, _padFuncClrCmdNo, _padFuncIntGun, _padFuncSetGunPort, _padFuncGetGunPos, _padInfoDir, _padIntExec, _padGunExec, _padSioChan, _padSioState, _padTotalCurr, _padModeMtap, _padChanStart, _padChanStop, _padFixResult
       - [0x4f524, o, libpad/padif, .data] # padIntFunc
       - [0x4f554, o, libpad/padportd, .data]
-      - [0x4f564, data] # TODO
+      - [0x4f564, data, "4F564"] # D4F564 game-state pointer block
       - [0x4f590, o, libapi/i_heap3, .data] # _freep
-      - [0x4f5a0, data] # TODO
+      - [0x4f5a0, data, task] # TaskDesc bank tables (D_8005EDA0, D_8005EF74, …)
       - [0x51aec, o, libmcrd/init, .data]
       - [0x51afc, o, libcard/init, .data]
       - [0x51b0c, o, libapi/pad, .data]
@@ -418,29 +418,29 @@ segments:
       - [0x51ccc, o, libgte/sincos, .data] # rsin_tbl
       - [0x524dc, o, libgte/msc02, .data]
       - [0x5267c, o, libgte/ratan, .data] # ratan_tbl
-      - [0x52e8c, data] # TODO
+      - [0x52e8c, data, "52E8C"] # game data / callbacks (TODO: attribute)
       - [0x538d0, o, libgte/cstbl, .data] # rcossin_tbl
-      - [0x578d0, data] # TODO
+      - [0x578d0, data, "578D0"] # game data (TODO: attribute)
       - [0x57e98, o, libc2/sprintf, .data]
-      - [0x57ea8, data] # TODO
+      - [0x57ea8, data, "57EA8"] # game data (TODO: attribute)
       - [0x57f14, o, libgte/cor_04, .data] # H_ln_tbl
-      - [0x57f34, data] # TODO
+      - [0x57f34, data, "57F34"] # game data (TODO: attribute)
       - [0x58018, o, libmath/ferr, .data] # math_errno, math_err_point
-      - [0x58028, data] # TODO
+      - [0x58028, data, "58028"] # Spu / audio game data
       - [0x588c4, o, libspu/s_ini, .data] # _spu_EVdma, _spu_keystat, _spu_trans_mode, _spu_rev_flag, _spu_rev_reserve_wa, _spu_rev_offsetaddr, _spu_rev_attr, _spu_RQvoice, _spu_RQmask, _spu_voice_centerNote, _spu_env, _spu_isCalled
       - [0x58944, o, libspu/s_m, .data] # _spu_AllocBlockNum, _spu_AllocLastNum, _spu_memList
       - [0x58954, o, libspu/s_rmp0, .data] # _spu_rev_startaddr
-      - [0x58984, data] # TODO
+      - [0x58984, data, "58984"] # game data (TODO: attribute)
       - [0x589b4, o, libspu/zerobuf, .data] # _spu_zerobuf
       - [0x58db4, o, libspu/s_n2p, .data]
       - [0x58ed4, o, libspu/s_rmp2, .data] # _spu_rev_param
-      - [0x59184, data] # Rest
+      - [0x59184, data, "59184"] # remaining .data (callbacks, etc.)
 
       # .sbss section
       - [0x59778, sbss, psyq/libsn/snmain]
 
       # .bss section
-      - [0x59780, .bss, main]
+      - [0x59780, bss, main] # GAuxHeap..CdCmd_Queue..D_800691F8 (keep as asm for layout)
       - [0x599fc, pad]
       - [0x59a00, o, libcd/bios, .bss] # StMode
       - [0x59a34, pad]
@@ -450,24 +450,24 @@ segments:
       - [0x59a80, o, libgpu/sys, .bss] # _que
       - [0x5b3d0, o, libc2/putchar, .bss]
       - [0x5b3f0, o, libds/dscb, .bss] # GlobalCallback
-      - [0x5b3fc, bss] # TODO
+      - [0x5b3fc, bss, "5B3FC"] # pre-FS bss (TODO: attribute)
       - [0x5b470, o, libcd/c_004, .bss]
       - [0x5b480, o, libcd/c_005, .bss] # StFunc1, StFunc2
       - [0x5b488, o, libcd/c_011, .bss]
-      - [0x5b498, bss] # TODO
+      - [0x5b498, bss, fs] # Fs_* runtime file tables, CD sector buf, streams
       - [0x5f400, o, libspu/spu, .bss] # _spu_RQ
-      - [0x5f414, bss] # TODO
+      - [0x5f414, bss, "5F414"] # OT / GPU buffers
       - [0x61918, o, libgs/gs_123, .bss] # GsIDMATRIX, GsWSMATRIX, GsWSMATRIX_ORG, GsIDMATRIX2
       - [0x61998, pad]
       - [0x619a8, o, libgte/patchgte, .bss]
-      - [0x619b8, bss] # TODO
+      - [0x619b8, bss, "619B8"] # game bss (TODO: attribute)
       - [0x61a18, o, libpad/padmain, .bss]
       - [0x61a38, o, libpad/padcmd, .bss]
       - [0x61a48, o, libpad/padportd, .bss]
       - [0x61cb8, o, libpad/waitrc2, .bss]
-      - [0x61cc0, bss] # TODO
+      - [0x61cc0, bss, "61CC0"] # game bss (TODO: attribute)
       - [0x61ef0, o, libapi/free3, .bss]
-      - [0x61f10, bss] # TODO
+      - [0x61f10, bss, "61F10"] # game bss (TODO: attribute)
       - [0x64410, o, libc2/rand, .bss]
       - [0x64420, o, libcard/patch, .bss]
       - [0x64430, o, libcard/end, .bss]
@@ -479,7 +479,7 @@ segments:
       - [0x64530, o, libmcrd/userfunc, .bss]
       - [0x64580, o, libmcrd/bios, .bss]
       - [0x645c0, o, libmcrd/low, .bss]
-      - [0x64880, bss] # TODO
+      - [0x64880, bss, "64880"] # game bss (TODO: attribute)
       - [0x648a0, o, libgs/gs_107, .bss] # GsLIGHTWSMATRIX, _LC
-      - [0x648e0, bss] # Rest
+      - [0x648e0, bss, "648E0"] # remaining .bss / heap
   - [0x73148]

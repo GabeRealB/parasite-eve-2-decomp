@@ -12,13 +12,13 @@
 
 void F12D18_80022518(void)
 {
-    D5B498_8006AC9A      = 0;
+    D5B498_8006AC9A       = 0;
     CdCmd_Queue.field_224 = 0;
 }
 
 void F12D18_8002252C(u8* arg0, s16 arg1)
 {
-    CdCmd_Queue.field_224    = 1;
+    CdCmd_Queue.field_224   = 1;
     D5B498_8006ACB8.field_3 = arg0[3];
     D5B498_8006ACB8.field_2 = arg0[2];
     D5B498_8006ACC0         = arg1;
@@ -53,7 +53,7 @@ void F12D18_800225D4(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/12D18", Fs_LoadFile);
+INCLUDE_ASM("main/nonmatchings/fs", Fs_LoadFile);
 
 void Fs_CdReadyCb(u8 status, u8* result)
 {
@@ -65,13 +65,13 @@ void Fs_CdReadyCb(u8 status, u8* result)
         goto on_error;
     }
 
-    Fs_VBlank   = VSync(-1);
+    Fs_VBlank = VSync(-1);
     CdGetSector(currLoc, 3);
     Fs_CurrSector = currPos = CdPosToInt(currLoc);
 
     if (currPos != Fs_ReqSector) {
         if ((Fs_Streaming != 0) && (Fs_LoadPhase != 6)) {
-            F12D18_800256F4(C12D18_800256F4_ARG_2);
+            F12D18_800256F4(FS_ERROR_HARD);
             goto end;
         }
         goto on_error;
@@ -86,7 +86,7 @@ void Fs_CdReadyCb(u8 status, u8* result)
     goto check_ret;
 
 on_error:
-    F12D18_800256F4(C12D18_800256F4_ARG_0);
+    F12D18_800256F4(FS_ERROR_SOFT);
     goto end;
 
 check_ret:
@@ -96,25 +96,25 @@ check_ret:
         D5B498_8006C234 = 0;
         D5B498_8006C233 = 0;
         D5B498_8006ADF4 = 0;
-        Fs_ChunkMode = 0;
-        Fs_CdOpStatus = FS_CD_STATUS_IDLE;
+        Fs_ChunkMode    = 0;
+        Fs_CdOpStatus   = FS_CD_STATUS_IDLE;
     }
 end:
     return;
 }
 
-INCLUDE_ASM("main/nonmatchings/12D18", Fs_ProcessChunkHeader);
+INCLUDE_ASM("main/nonmatchings/fs", Fs_ProcessChunkHeader);
 
-INCLUDE_ASM("main/nonmatchings/12D18", Fs_ProcessChunkData);
+INCLUDE_ASM("main/nonmatchings/fs", Fs_ProcessChunkData);
 
-INCLUDE_ASM("main/nonmatchings/12D18", Fs_SelectStage);
+INCLUDE_ASM("main/nonmatchings/fs", Fs_SelectStage);
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_80023748);
+INCLUDE_ASM("main/nonmatchings/fs", func_80023748);
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_8002397C);
+INCLUDE_ASM("main/nonmatchings/fs", func_8002397C);
 
 #ifndef NON_MATCHING
-INCLUDE_ASM("main/nonmatchings/12D18", Fs_InitStage0TablesCb);
+INCLUDE_ASM("main/nonmatchings/fs", Fs_InitStage0TablesCb);
 #else
 void Fs_InitStage0TablesCb(u8 status, u8* result)
 {
@@ -226,7 +226,7 @@ sector_start:
 
                     Fs_FileTableCat1[i].id     = fileId - 10000;
                     Fs_FileTableCat1[i].offset = ((FsCdfFile*)entry)->offset;
-                    isValidCategory                   = true;
+                    isValidCategory            = true;
                     break;
 
                 case 2:
@@ -235,7 +235,7 @@ sector_start:
 
                     Fs_FileTableCat2[i].id     = fileId - fileCategory * 10000;
                     Fs_FileTableCat2[i].offset = ((FsCdfFile*)entry)->offset;
-                    isValidCategory                   = true;
+                    isValidCategory            = true;
                     break;
 
                 case 3:
@@ -244,7 +244,7 @@ sector_start:
 
                     Fs_FileTableCat3[i].id     = fileId - 30000;
                     Fs_FileTableCat3[i].offset = ((FsCdfFile*)entry)->offset;
-                    isValidCategory                   = true;
+                    isValidCategory            = true;
                     break;
 
                 case 4: {
@@ -253,7 +253,7 @@ sector_start:
 
                     Fs_FileTableCat4[i].id     = fileId - fileCategory * 10000;
                     Fs_FileTableCat4[i].offset = ((FsCdfFile*)entry)->offset;
-                    isValidCategory                   = true;
+                    isValidCategory            = true;
                     break;
                 }
 
@@ -284,17 +284,17 @@ sector_start:
     }
 
 on_error:
-    F12D18_800256F4(C12D18_800256F4_ARG_0);
+    F12D18_800256F4(FS_ERROR_SOFT);
 }
 #endif
 
-INCLUDE_ASM("main/nonmatchings/12D18", Fs_ScanIsoDirectory);
+INCLUDE_ASM("main/nonmatchings/fs", Fs_ScanIsoDirectory);
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_800246B0);
+INCLUDE_ASM("main/nonmatchings/fs", func_800246B0);
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_800248B4);
+INCLUDE_ASM("main/nonmatchings/fs", func_800248B4);
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_80024A28);
+INCLUDE_ASM("main/nonmatchings/fs", func_80024A28);
 
 void Fs_ClearDiskError(void)
 {
@@ -367,8 +367,8 @@ void F12D18_80024EC0(void)
     CdControlF(CdlReadN, &loc[0].minute);
     if (Fs_CdOpStatus == 0x40) {
         CdSyncCallback(F12D18_80025580);
-        Fs_VBlank = VSync(-1);
-        Fs_CdOpStatus  += 1;
+        Fs_VBlank      = VSync(-1);
+        Fs_CdOpStatus += 1;
     }
 }
 
@@ -441,13 +441,13 @@ void Fs_ReadSectorEx(s32 sector, s32 arg1, u8* arg2, u8 arg3)
         Fs_WaitDiskReset(true);
     }
 
-    Fs_CdOpStatus    = 0;
-    Fs_ChunkEndFlag  = -1;
-    Fs_LoadPhase    = arg3;
-    Fs_ReqSector = sector;
-    Fs_ChunkEndSector    = arg1;
-    Fs_ChunkWritePtr    = arg2;
-    Fs_VBlank  = VSync(-1);
+    Fs_CdOpStatus     = 0;
+    Fs_ChunkEndFlag   = -1;
+    Fs_LoadPhase      = arg3;
+    Fs_ReqSector      = sector;
+    Fs_ChunkEndSector = arg1;
+    Fs_ChunkWritePtr  = arg2;
+    Fs_VBlank         = VSync(-1);
     if (Fs_SeekSector == sector) {
         CdControlF(CdlReadN, NULL);
         CdReadyCallback(F12D18_8002563C);
@@ -468,13 +468,13 @@ void Fs_ReadSector(s32 sector)
         Fs_WaitDiskReset(true);
     }
 
-    Fs_CdOpStatus    = 0;
-    Fs_ChunkEndFlag  = -1;
-    Fs_ReqSector = sector;
-    Fs_VBlank  = VSync(-1);
+    Fs_CdOpStatus   = 0;
+    Fs_ChunkEndFlag = -1;
+    Fs_ReqSector    = sector;
+    Fs_VBlank       = VSync(-1);
     if (Fs_SeekSector == sector) {
-        Fs_SeekSector  = 0;
-        Fs_Streaming = false;
+        Fs_SeekSector = 0;
+        Fs_Streaming  = false;
         CdControlF(CdlReadN, NULL);
         CdReadyCallback(Fs_CdReadyCb);
     } else {
@@ -535,7 +535,7 @@ void Fs_InitFolderTable(s32 arg0)
     FsCdfFolderListEntry* entry;
 
     Fs_FolderTableLen = 0;
-    entry                 = Fs_CdSector.folderList.entries;
+    entry             = Fs_CdSector.folderList.entries;
 
     // The cdf file starts with a header section. Therefore, the offset to
     // the start of the first folder is always one. Following folders are
@@ -549,7 +549,7 @@ void Fs_InitFolderTable(s32 arg0)
         // Save the folder info into the table.
         Fs_FolderTable[Fs_FolderTableLen].id     = entry->id;
         Fs_FolderTable[Fs_FolderTableLen].offset = offset;
-        Fs_FolderTableLen                           += 1;
+        Fs_FolderTableLen                       += 1;
 
         // Go to the next entry.
         offset += entry->size;
@@ -562,8 +562,8 @@ void Fs_InitStage0Tables(void)
     CdlLOC headerPos;
 
     // Reset all tables.
-    Fs_CdOpStatus            = 0;
-    Fs_FileTableLen  = 0;
+    Fs_CdOpStatus       = 0;
+    Fs_FileTableLen     = 0;
     Fs_FileTableCat2Len = 0;
     Fs_FileTableCat4Len = 0;
     Fs_FileTableCat1Len = 0;
@@ -582,7 +582,7 @@ void F12D18_80025580(u8 status, u8* result)
     if (status != CdlDiskError) {
         if (Fs_CdOpStatus == 0x41) {
             Fs_CdOpStatus = 0;
-            Fs_Streaming = true;
+            Fs_Streaming  = true;
             CdReadyCallback(Fs_CdReadyCb);
         } else if (D5B498_8006ACC8 == false) {
             Fs_Streaming = false;
@@ -596,20 +596,20 @@ void F12D18_80025580(u8 status, u8* result)
         CdSyncCallback(NULL);
         Fs_CdErrorCount = 0;
     } else {
-        F12D18_800256F4(C12D18_800256F4_ARG_0);
+        F12D18_800256F4(FS_ERROR_SOFT);
     }
 }
 
 void F12D18_8002563C(u8 status, u8* result)
 {
     if (status != CdlDiskError) {
-        Fs_VBlank   = VSync(-1);
+        Fs_VBlank       = VSync(-1);
         Fs_CdErrorCount = 0;
-        Fs_Streaming     = 1;
+        Fs_Streaming    = 1;
         CdReadyCallback(Fs_CdReadyCb);
         CdSyncCallback(NULL);
     } else {
-        F12D18_800256F4(C12D18_800256F4_ARG_0);
+        F12D18_800256F4(FS_ERROR_SOFT);
     }
 }
 
@@ -620,7 +620,7 @@ void Fs_SeekToPosCb(u8 status, u8* result)
         CdSyncCallback(NULL);
         Fs_CdErrorCount = 0;
     } else {
-        F12D18_800256F4(C12D18_800256F4_ARG_0);
+        F12D18_800256F4(FS_ERROR_SOFT);
     }
 }
 
@@ -630,7 +630,7 @@ void F12D18_800256F4(u8 arg0)
     CdReadyCallback(NULL);
     CdSyncCallback(NULL);
 
-    if (arg0 == C12D18_800256F4_ARG_2) {
+    if (arg0 == FS_ERROR_HARD) {
         Fs_CdOpStatus = 0x40;
     } else {
         func_800532CC();
@@ -665,8 +665,8 @@ void F12D18_800257B0(void)
         return;
     }
 
-    Fs_VBlank = VSync(-1);
-    Fs_CdOpStatus   = 0x80;
+    Fs_VBlank     = VSync(-1);
+    Fs_CdOpStatus = 0x80;
     CdFlush();
     func_800532CC();
     CdReadyCallback(NULL);
@@ -686,4 +686,4 @@ void Fs_StopCd(void)
     CdControlB(CdlStop, NULL, NULL);
 }
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_80025898);
+INCLUDE_ASM("main/nonmatchings/fs", func_80025898);

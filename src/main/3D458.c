@@ -135,10 +135,10 @@ void func_8004D008(void)
 
 void func_8004D0A0(void)
 {
-    s32 i;
-    s32* p;
+    s32        i;
+    s32*       p;
     GStruct42* ptr;
-    u16 flag;
+    u16        flag;
 
     p = (s32*)D_8007E0D8;
     i = 0;
@@ -149,8 +149,8 @@ void func_8004D0A0(void)
     } while ((u32)i < 0x80);
 
     flag = 0xFFFF;
-    i = 0xF;
-    ptr = D_8007E0D8;
+    i    = 0xF;
+    ptr  = D_8007E0D8;
     ptr += 0xF;
     do {
         ptr->field_8 = flag;
@@ -176,9 +176,9 @@ void func_8004D0F0(GStruct42* arg0)
 
 GStruct42* func_8004D150(u16 arg0)
 {
-    s32 i;
+    s32        i;
     GStruct42* ptr;
-    s32 id;
+    s32        id;
 
     if (arg0 == 0xFFFF) {
         arg0 = 0;
@@ -402,7 +402,7 @@ s32 func_8004D820(void)
     func_8004E200();
     func_8004D8BC();
     F3E48C_8004E44C();
-    D_800680C0 = 1;
+    D_800680C0  = 1;
     D_800680BC += 1;
     return 0;
 }
@@ -422,7 +422,7 @@ void func_8004D8BC(void)
 {
     GStruct8* head;
     GStruct8* node;
-    s32 (*callback)(s32);
+    s32       (*callback)(s32);
 
     head = &D648E0_8007E0B0;
     if (D648E0_8007E0C8 != 0) {

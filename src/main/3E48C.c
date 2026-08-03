@@ -8,11 +8,11 @@ INCLUDE_ASM("main/nonmatchings/3E48C", func_8004DC8C);
 
 void func_8004DDF0(void)
 {
-    u32 i;
+    u32  i;
     s32* ptr;
 
     ptr = D_8007E2E0;
-    i = 0;
+    i   = 0;
     do {
         *ptr = 0;
         i++;
@@ -128,10 +128,10 @@ s32 func_8004E5A0(s32 idx, s32 arg1, s32 arg2)
     GStruct26* p;
     s16        sIdx;
 
-    sIdx        = idx;
-    p           = &D_8007EB98[sIdx];
-    p->field_0  = arg1;
-    p->field_2  = arg2;
+    sIdx       = idx;
+    p          = &D_8007EB98[sIdx];
+    p->field_0 = arg1;
+    p->field_2 = arg2;
     return 0;
 }
 
@@ -162,13 +162,13 @@ INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E6C4);
 void func_8004E71C(u32 voiceIdx)
 {
     u32* pKeyOff;
-    u32 channel;
+    u32  channel;
 
-    pKeyOff = &D648E0_8007EBB0;
+    pKeyOff  = &D648E0_8007EBB0;
     voiceIdx = (s8)voiceIdx;
 
-    channel = SPU_VOICECH(voiceIdx);
-    *pKeyOff |= channel;
+    channel          = SPU_VOICECH(voiceIdx);
+    *pKeyOff        |= channel;
     D648E0_8007EBA8 &= ~channel;
     D648E0_8007EBAC &= ~channel;
 }

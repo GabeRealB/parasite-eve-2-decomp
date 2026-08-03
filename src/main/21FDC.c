@@ -38,16 +38,17 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_800330D8);
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_8003380C);
 
-void func_800338A8(void) {
-    u8 *ptr1;
-    u8 *ptr0;
+void func_800338A8(void)
+{
+    u8* ptr1;
+    u8* ptr0;
     s32 i;
     s32 ch;
 
     ptr1 = D_80060DD8;
     ptr0 = D_80060DF0;
-    i = 0;
-    ch = 0x5F;
+    i    = 0;
+    ch   = 0x5F;
     do {
         if (i >= 0xC) {
             *ptr0 = ch;
@@ -86,18 +87,18 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_800339C4);
 
 void func_80033A28(GStruct47* arg0, s32 arg1)
 {
-    s16 sum;
+    s16          sum;
     register u8* ptr asm("v1");
-    u32 count;
-    u32 i;
+    u32          count;
+    u32          i;
 
-    sum = 0;
-    ptr = arg0->field_4;
+    sum   = 0;
+    ptr   = arg0->field_4;
     count = arg1 - 4;
-    i = 0;
+    i     = 0;
     if (count != 0) {
         do {
-            i += 1;
+            i   += 1;
             sum += (s8)*ptr;
             ptr += 1;
         } while (i < count);
@@ -110,7 +111,7 @@ void func_80033A70(void)
 {
     GStruct23* p;
 
-    p = &D_80072168;
+    p            = &D_80072168;
     p->field_21  = 0;
     p->field_1a8 = 0;
     p->field_1aa = 0;
@@ -123,11 +124,11 @@ void func_80033A70(void)
 
 void func_80033AB8(void)
 {
-    u8 (*a)[0x6C];
-    u8 (*b)[0xB0];
-    u8 (*c)[0x24];
-    u8 (*d)[0xE4];
-    u8 (*e)[0xA4];
+    u8(*a)[0x6C];
+    u8(*b)[0xB0];
+    u8(*c)[0x24];
+    u8(*d)[0xE4];
+    u8(*e)[0xA4];
 
     a = D_800733F0;
     Mem_Set(a, 0, 0x6C);
@@ -156,18 +157,18 @@ void func_80033BBC(void)
 
 s32 func_80033BEC(GStruct47* arg0, s32 arg1)
 {
-    s16 sum;
+    s16          sum;
     register u8* ptr asm("a2");
-    u32 count;
-    u32 i;
+    u32          count;
+    u32          i;
 
-    sum = 0;
-    ptr = arg0->field_4;
+    sum   = 0;
+    ptr   = arg0->field_4;
     count = arg1 - 4;
-    i = 0;
+    i     = 0;
     if (count != 0) {
         do {
-            i += 1;
+            i   += 1;
             sum += (s8)*ptr;
             ptr += 1;
         } while (i < count);
@@ -188,20 +189,20 @@ void func_80033D3C(void)
     GStruct47* temp;
     GStruct53* p;
     GStruct53* base;
-    s16 next;
-    s16 sum;
-    u32 i;
+    s16        next;
+    s16        sum;
+    u32        i;
 
-    sum = 0;
-    i = 1;
+    sum  = 0;
+    i    = 1;
     base = D_800610FC;
-    p = base + 1;
+    p    = base + 1;
     do {
         temp = p->field_0;
-        p += 1;
-        i += 1;
+        p   += 1;
+        i   += 1;
         next = sum + *(u8*)temp;
-        sum = next;
+        sum  = next;
     } while (i < 9U);
     D_80072168.field_940 = next;
     D_80072168.field_942 = ~next;
@@ -209,19 +210,19 @@ void func_80033D3C(void)
 
 s32 func_80033D88(void)
 {
-    s32 sum;
-    u32 i;
+    s32        sum;
+    u32        i;
     GStruct53* p;
     GStruct53* base;
 
-    sum = 0;
-    i = 1;
+    sum  = 0;
+    i    = 1;
     base = D_800610FC;
-    p = base + 1;
+    p    = base + 1;
     do {
         sum += *(u8*)p->field_0;
-        p += 1;
-        i += 1;
+        p   += 1;
+        i   += 1;
     } while (i < 9);
     return ((u16)D_80072AA8 ^ (sum & 0xFFFF)) == 0;
 }
@@ -234,14 +235,14 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_80033EB0);
 
 void func_80033F6C(GStruct0* arg0)
 {
-    GStruct0*   child;
-    GStruct37*  obj;
-    GStruct37*  flag;
+    GStruct0*  child;
+    GStruct37* obj;
+    GStruct37* flag;
 
     child = arg0->field_c;
     if (child != NULL) {
-        obj  = child->field_20;
-        flag = arg0->field_20;
+        obj          = child->field_20;
+        flag         = arg0->field_20;
         obj->field_0 = 0;
         func_80048838(obj, obj->field_28);
         flag->field_0 = 1;
@@ -322,25 +323,25 @@ void func_80034E3C(GStruct0* arg0, GStruct21* arg1)
     }
     syncResult = MemCardSync(1, (long*)&arg1->field_10, (long*)&arg1->field_14);
     switch (syncResult) {
-    case -1:
-        MemCardExist(arg1->field_C);
-        return;
-    case 1:
-        rslt = arg1->field_14;
-        if (rslt == syncResult) {
-            child = arg0->field_c;
-            if (child != NULL) {
-                obj  = child->field_20;
-                flag = arg0->field_20;
-                obj->field_0 = 0;
-                func_80048838(obj, obj->field_28);
-                flag->field_0 = rslt;
+        case -1:
+            MemCardExist(arg1->field_C);
+            return;
+        case 1:
+            rslt = arg1->field_14;
+            if (rslt == syncResult) {
+                child = arg0->field_c;
+                if (child != NULL) {
+                    obj          = child->field_20;
+                    flag         = arg0->field_20;
+                    obj->field_0 = 0;
+                    func_80048838(obj, obj->field_28);
+                    flag->field_0 = rslt;
+                }
+                arg0->field_30 = 0x14;
             }
-            arg0->field_30 = 0x14;
-        }
-        return;
-    case 0:
-        return;
+            return;
+        case 0:
+            return;
     }
 }
 
@@ -388,14 +389,14 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_800359A4);
 
 void func_80035A94(GStruct0* arg0, GStruct21* arg1)
 {
-    arg1->field_0 = 0x10;
-    arg1->field_8 = 0x8;
-    arg1->field_A20 = 1;
-    arg1->field_4 = 0;
-    arg1->field_18 = 0;
-    arg1->field_C = 0;
+    arg1->field_0        = 0x10;
+    arg1->field_8        = 0x8;
+    arg1->field_A20      = 1;
+    arg1->field_4        = 0;
+    arg1->field_18       = 0;
+    arg1->field_C        = 0;
     D_80070F68.field_101 = 0;
-    arg0->field_30 += 1;
+    arg0->field_30      += 1;
 }
 
 void func_80035AD4(GStruct0* arg0, GStruct21* arg1)
@@ -436,24 +437,24 @@ void func_80035FD8(GStruct0* arg0, GStruct21* arg1)
     }
     syncResult = MemCardSync(1, (long*)&arg1->field_10, (long*)&arg1->field_14);
     switch (syncResult) {
-    case -1:
-        MemCardExist(arg1->field_C);
-        return;
-    case 1:
-        if (arg1->field_14 != syncResult) {
-            child = arg0->field_c;
-            if (child != NULL) {
-                obj  = child->field_20;
-                flag = arg0->field_20;
-                obj->field_0 = 0;
-                func_80048838(obj, obj->field_28);
-                flag->field_0 = syncResult;
+        case -1:
+            MemCardExist(arg1->field_C);
+            return;
+        case 1:
+            if (arg1->field_14 != syncResult) {
+                child = arg0->field_c;
+                if (child != NULL) {
+                    obj          = child->field_20;
+                    flag         = arg0->field_20;
+                    obj->field_0 = 0;
+                    func_80048838(obj, obj->field_28);
+                    flag->field_0 = syncResult;
+                }
+                arg0->field_30 = 7;
             }
-            arg0->field_30 = 7;
-        }
-        return;
-    case 0:
-        return;
+            return;
+        case 0:
+            return;
     }
 }
 
@@ -472,25 +473,25 @@ void func_800360C8(GStruct0* arg0, GStruct21* arg1)
     }
     syncResult = MemCardSync(1, (long*)&arg1->field_10, (long*)&arg1->field_14);
     switch (syncResult) {
-    case -1:
-        MemCardExist(arg1->field_C);
-        return;
-    case 1:
-        rslt = arg1->field_14;
-        if (rslt == syncResult) {
-            child = arg0->field_c;
-            if (child != NULL) {
-                obj  = child->field_20;
-                flag = arg0->field_20;
-                obj->field_0 = 0;
-                func_80048838(obj, obj->field_28);
-                flag->field_0 = rslt;
+        case -1:
+            MemCardExist(arg1->field_C);
+            return;
+        case 1:
+            rslt = arg1->field_14;
+            if (rslt == syncResult) {
+                child = arg0->field_c;
+                if (child != NULL) {
+                    obj          = child->field_20;
+                    flag         = arg0->field_20;
+                    obj->field_0 = 0;
+                    func_80048838(obj, obj->field_28);
+                    flag->field_0 = rslt;
+                }
+                arg0->field_30 = 0xA;
             }
-            arg0->field_30 = 0xA;
-        }
-        return;
-    case 0:
-        return;
+            return;
+        case 0:
+            return;
     }
 }
 
@@ -530,14 +531,14 @@ void func_80036A70(GStruct0* arg0)
     GStruct20* obj;
     GStruct46* menu;
 
-    obj = arg0->field_20;
+    obj  = arg0->field_20;
     menu = &D_8006116C;
     func_80047F40(obj, D_80013B64);
     if (arg0->field_30 == 0) {
         func_800489A0(menu, obj);
-        menu->field_A = 1;
+        menu->field_A  = 1;
         menu->field_10 = 0;
-        menu->field_9 = 0;
+        menu->field_9  = 0;
         func_8004917C(menu, 1);
         arg0->field_30 += 1;
     } else {

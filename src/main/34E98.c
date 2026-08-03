@@ -72,7 +72,8 @@ void func_800488F8(GStruct0* arg0)
     arg0->field_8 = (GStruct0*)4;
 }
 
-void func_80048904(GStruct30* arg0, s32 arg1, s32 arg2) {
+void func_80048904(GStruct30* arg0, s32 arg1, s32 arg2)
+{
     s16 temp_v1;
 
     if ((arg2 != 0) && (arg0->field_8 >= 5)) {
@@ -85,7 +86,8 @@ void func_80048904(GStruct30* arg0, s32 arg1, s32 arg2) {
     }
 }
 
-void func_80048964(GStruct30* arg0) {
+void func_80048964(GStruct30* arg0)
+{
     if (arg0->field_8 != 2) {
         if ((u16)arg0->field_16 >= 0xA) {
             arg0->field_16 = 9;
@@ -107,11 +109,13 @@ INCLUDE_ASM("main/nonmatchings/34E98", func_80048C30);
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80048D58);
 
-s32 func_80048E10(void* arg0, s32 arg1) {
+s32 func_80048E10(void* arg0, s32 arg1)
+{
     return D_8006763C[arg1];
 }
 
-s32 func_80048E2C(s32 arg0) {
+s32 func_80048E2C(s32 arg0)
+{
     return (arg0 << 4) - arg0;
 }
 
@@ -196,7 +200,8 @@ INCLUDE_ASM("main/nonmatchings/34E98", func_800497F4);
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_800498D4);
 
-s32 func_80049950(void) {
+s32 func_80049950(void)
+{
     struct {
         s16 unk0;
         s16 unk2;
@@ -204,7 +209,7 @@ s32 func_80049950(void) {
 
     sp.unk0 = D_80067648 >> 8;
     sp.unk2 = D_8006764C >> 8;
-    return *(s32 *)&sp;
+    return *(s32*)&sp;
 }
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80049980);

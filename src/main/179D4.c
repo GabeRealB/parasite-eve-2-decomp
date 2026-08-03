@@ -78,10 +78,10 @@ void F179D4_ClearOTag(s16 tableIdx)
 
 void func_800281D4(void)
 {
-    RECT rect;
+    RECT       rect;
     GStruct35* otCtx;
-    u_long* ot;
-    s32 depth;
+    u_long*    ot;
+    s32        depth;
 
     if (D_8005EC64 == 1) {
         ResetGraph(0);
@@ -95,14 +95,14 @@ void func_800281D4(void)
     DrawSync(0);
     InitGeom();
 
-    otCtx = D_80070EE8;
-    depth = 0xA;
-    otCtx->field_0 = depth;
-    ot = D5F414_OrderingTables;
-    otCtx->field_10 = ot + C5F414_OTAG_ENTRIES - 1;
-    otCtx->field_4 = ot;
-    otCtx[1].field_0 = depth;
-    otCtx[1].field_4 = ot + C5F414_OTAG_ENTRIES;
+    otCtx             = D_80070EE8;
+    depth             = 0xA;
+    otCtx->field_0    = depth;
+    ot                = D5F414_OrderingTables;
+    otCtx->field_10   = ot + C5F414_OTAG_ENTRIES - 1;
+    otCtx->field_4    = ot;
+    otCtx[1].field_0  = depth;
+    otCtx[1].field_4  = ot + C5F414_OTAG_ENTRIES;
     otCtx[1].field_10 = ot + 2 * C5F414_OTAG_ENTRIES - 1;
     func_80028290();
     func_80027E7C();

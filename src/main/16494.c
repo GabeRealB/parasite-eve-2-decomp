@@ -40,10 +40,10 @@ void F16494_ResetSpuAttr(void)
 void func_800260B0(s32 arg0)
 {
     CdlATV atv;
-    s32 flag;
+    s32    flag;
 
     D_8006EBBA = arg0 & 1;
-    flag = D_8006EBBA;
+    flag       = D_8006EBBA;
     func_800517B4(func_800517F8() & 0xFF);
     flag = (u8)flag;
     func_80055DFC(func_80055EE8());
@@ -75,18 +75,18 @@ void func_80026148(void)
 void func_80026178(void)
 {
     struct {
-        s32 pad[2];
+        s32  pad[2];
         void (*unk8)(void);
         void (*unkC)(void);
-        s32 (*unk10)(void);
+        s32  (*unk10)(void);
     } sp;
-    s16 *ptr;
+    s16* ptr;
 
-    ptr = &D_8006EBF2;
-    sp.unk8 = func_80025DD8;
-    sp.unkC = func_800261C8;
+    ptr      = &D_8006EBF2;
+    sp.unk8  = func_80025DD8;
+    sp.unkC  = func_800261C8;
     sp.unk10 = func_800261D4;
-    *ptr = func_8004DE18(&sp);
+    *ptr     = func_8004DE18(&sp);
 }
 
 void func_800261C8(void)
@@ -118,10 +118,10 @@ void func_80026268(s32 arg0)
 {
     s16 vol;
 
-    Fs_SpuAttr.mask = SPU_COMMON_CDVOLL | SPU_COMMON_CDVOLR;
-    vol = (arg0 & 0x7F) << 8;
+    Fs_SpuAttr.mask            = SPU_COMMON_CDVOLL | SPU_COMMON_CDVOLR;
+    vol                        = (arg0 & 0x7F) << 8;
     Fs_SpuAttr.cd.volume.right = vol;
-    Fs_SpuAttr.cd.volume.left = vol;
+    Fs_SpuAttr.cd.volume.left  = vol;
     SpuSetCommonAttr(&Fs_SpuAttr);
 }
 

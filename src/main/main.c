@@ -3,6 +3,7 @@
 #include <psyq/libapi.h>
 
 #include "main/game.h"
+#include "main/fs.h"
 
 // For some reason, the program starts by modifying its stack pointer and
 // calling the actual entry function of the game. This address does not
@@ -13,17 +14,9 @@ u32 GStackBase = 0x801fff00;
 // after the main heap defined by the entry point.
 u8* GHeap = (u8*)0x80083800;
 
-u8*        GAuxHeap;
-size_t     GAuxHeapSize;
-size_t     D_80068F88;
-u8*        GActiveAuxHeap;
-size_t     D_80068F90;
-size_t     GActiveAuxHeapSize;
-int        D_80068F98;
-static int MainPadding;
-CdCmdQueue   CdCmd_Queue;
-u8*        D_800691F4;
-size_t     D_800691F8;
+// BSS symbols (GAuxHeap … CdCmd_Queue … D_800691F8) live in the `main` bss
+// split (asm/USA/main/data/main.bss.s) so layout matches the retail binary.
+// Defining the large CdCmd_Queue here makes GCC 2.8.1 reorder .comm symbols.
 
 int main(void)
 {

@@ -14,27 +14,22 @@
 #define C5F414_OTAG_ENTRIES  0x440
 #define C5F414_OTAG_END_PRIM 0xFFFFFF
 
-#define C12D18_800256F4_ARG_0 0x0
-#define C12D18_800256F4_ARG_2 0x2
-
-#define FS_CD_STATUS_IDLE -1
-
 // 4CF8.c
 extern F04CF8_ImageSlot* D_8005C37C[];
-extern void func_800144F8(s32 arg0, s32 arg1);
-extern void F04CF8_800148A0(void);
-extern void F04CF8_800148EC(void);
-extern void func_800149E8(s32 arg0, s32 arg1, s32 arg2);
-extern void F04CF8_80014A50(void);
-extern void F04CF8_80014A98(s32 mode);
-extern void func_80014C2C(void);
-extern bool Fs_StageCdfIsAvailable(u32 stageIdx);
+extern void              func_800144F8(s32 arg0, s32 arg1);
+extern void              F04CF8_800148A0(void);
+extern void              F04CF8_800148EC(void);
+extern void              func_800149E8(s32 arg0, s32 arg1, s32 arg2);
+extern void              F04CF8_80014A50(void);
+extern void              F04CF8_80014A98(s32 mode);
+extern void              func_80014C2C(void);
+// Fs_StageCdfIsAvailable, Boot_LoadInitialFile → main/fs.h
 
 // E734.c
 extern s32  func_8001E6AC(s32 arg0, s32 arg1);
 extern void func_8002D248(GStruct0Node* node);
 
-// C37C.c
+// C37C.c (CdCmd_* → main/fs.h)
 extern void func_8001BB7C(void);
 extern void func_8001BE60(void);
 extern void func_8001C0D4(void);
@@ -44,50 +39,21 @@ extern void func_8001CA70(void);
 extern u16  func_8001CDF0(void);
 extern void func_8001CEFC(void);
 extern u16  func_8001D0E8(void);
-extern void CdCmd_Enqueue(s32 arg0, u8* arg1, u8* arg2);
 extern u16  func_8001D344(void);
 extern u16  func_8001D37C(s16 arg0);
 extern void func_8001D534(u16 arg0, u16 arg1, u16 arg2);
 extern void func_8001D588(void);
 extern void func_8001D628(void);
 extern void func_8001D6B8(void);
-extern void CdCmd_EnqueueReplace(s32 arg0, u8* arg1, u8* arg2);
 extern u16  func_8001D82C(void);
 extern void func_8001DB84(void);
-extern void CdCmd_ClearQueue(void);
 
 // 11E9C.c
 extern void func_8002207C(void);
 extern void func_8002226C(void*, void*);
 
-// 12D18.c
+// fs.c APIs and Fs_* data → main/fs.h
 extern void func_80010024(void);
-extern void F12D18_80022518(void);
-extern void F12D18_8002252C(u8* arg0, s16 arg1);
-extern void F12D18_80022598(void);
-extern void F12D18_800225D4(void);
-extern void Fs_CdReadyCb(u8 status, u8* result);
-extern u8   Fs_ProcessChunkHeader(void);
-extern u8   Fs_ProcessChunkData(void);
-extern void Fs_InitStage0TablesCb(u8 status, u8* result);
-extern void Fs_InitFolderTable(s32 arg0);
-extern void Fs_SelectStage(s32 arg0);
-extern void Fs_InitStage0Tables(void);
-extern void Fs_ClearDiskError(void);
-extern void F12D18_80024EC0(void);
-extern u8   Fs_WaitDiskSwap(void);
-extern void Fs_ReadSectorEx(s32 sector, s32 arg1, u8* arg2, u8 arg3);
-extern void Fs_ReadSector(s32 sector);
-extern void Fs_WaitDiskReset(s8 withSectHdr);
-extern void Fs_SeekToPos(s32 sector);
-extern void F12D18_80025580(u8 status, u8* result);
-extern void F12D18_8002563C(u8 status, u8* result);
-extern void Fs_SeekToPosCb(u8 status, u8* result);
-extern void F12D18_800256F4(u8 arg0);
-extern void Fs_ContinueDrawing(u_long* ot);
-extern u8*  func_800257A4(void);
-extern void F12D18_800257B0(void);
-extern void Fs_StopCd(void);
 
 // 16494.c
 extern void func_80025C94(u8 status, u8* result);
@@ -106,15 +72,15 @@ extern void func_800281D4(void);
 extern void F179D4_ClearOTag(s16 tableIdx);
 
 // 1C034.c
-extern void      func_8002BB9C(void);
-extern void      func_8002BBC8(void);
-extern void      func_8002BE0C(GStruct0* arg0);
-extern void      func_8002BFD4(void);
-extern s32       func_8002C868(s32 arg0, s32 arg1, s32 arg2);
-extern void      func_8002C9B0(s32 arg0);
-extern void      func_8002C9E0(s32 arg0);
-extern s32       func_8002CA0C(s32 arg0);
-extern void      func_8002CCB8(GStruct0* arg0);
+extern void          func_8002BB9C(void);
+extern void          func_8002BBC8(void);
+extern void          func_8002BE0C(GStruct0* arg0);
+extern void          func_8002BFD4(void);
+extern s32           func_8002C868(s32 arg0, s32 arg1, s32 arg2);
+extern void          func_8002C9B0(s32 arg0);
+extern void          func_8002C9E0(s32 arg0);
+extern s32           func_8002CA0C(s32 arg0);
+extern void          func_8002CCB8(GStruct0* arg0);
 extern GStruct0*     func_8002CB04(TaskDesc* arg0, s32 arg1, s32 arg2, GStruct0Node* arg3);
 extern GStruct0*     func_8002CFA0(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
 extern GStruct0*     func_8002CFDC(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -122,15 +88,15 @@ extern GStruct0Node* func_8002D40C(void);
 extern void          func_8002D41C(GStruct0Node* node);
 extern void          func_8002D248(GStruct0Node* node);
 extern void          func_8002D25C(GStruct0Node* node);
-extern TaskDesc* func_8002D304(u32 idx1, u32 idx2);
-extern TaskDesc* func_8002D32C(TaskDesc* base, u32 idx);
-extern void      func_8002D0A4(GStruct0* arg0);
-extern void      func_8002D214(void* arg0, s32 arg1);
-extern void*     func_8002D22C(s32 arg0);
-extern void      func_8002D428(void);
-extern void      func_8002D444(GStruct0* state);
-extern void      func_8002D474(GStruct0* state);
-extern void      func_8002D6EC(GStruct0* arg0);
+extern TaskDesc*     func_8002D304(u32 idx1, u32 idx2);
+extern TaskDesc*     func_8002D32C(TaskDesc* base, u32 idx);
+extern void          func_8002D0A4(GStruct0* arg0);
+extern void          func_8002D214(void* arg0, s32 arg1);
+extern void*         func_8002D22C(s32 arg0);
+extern void          func_8002D428(void);
+extern void          func_8002D444(GStruct0* state);
+extern void          func_8002D474(GStruct0* state);
+extern void          func_8002D6EC(GStruct0* arg0);
 
 // Dynamically loaded (BSS region)
 extern void func_800991DC(void* arg0);
@@ -192,16 +158,16 @@ extern void func_800497F4(GStruct30* arg0, void* arg1);
 extern void func_80049A8C(GStruct0* arg0);
 
 // 3D458.c
-extern void  func_8004CFE8(void);
-extern void  F3D458_ResetHeap(void);
-extern void* F3D458_Malloc(size_t);
-extern void  F3D458_Free(void* ptr);
+extern void       func_8004CFE8(void);
+extern void       F3D458_ResetHeap(void);
+extern void*      F3D458_Malloc(size_t);
+extern void       F3D458_Free(void* ptr);
 extern void       func_8004D0F0(GStruct42* arg0);
 extern GStruct42* func_8004D150(u16 arg0);
 extern s32        func_8004D820(void);
-extern void      func_8004D8BC(void);
-extern GStruct8* func_8004D94C(GStruct8* arg0);
-extern void      F3D458_8004D88C(void);
+extern void       func_8004D8BC(void);
+extern GStruct8*  func_8004D94C(GStruct8* arg0);
+extern void       F3D458_8004D88C(void);
 
 // 3E48C.c
 extern s16  func_8004DE18(void* arg0);
@@ -270,25 +236,25 @@ extern s8   D_8008274B;
 extern void func_800537FC(s32 arg0, s32 arg1);
 extern s32  func_80053A20(s32 arg0, s32 arg1);
 // Unprototyped: func_8005462C calls with indeterminate a0 (nop in delay slot).
-extern s32  func_80053F00();
-extern void func_80053FA0(s32 arg0);
-extern void func_800544B8(s32 arg0, s32 arg1);
-extern void func_8005454C(s32 arg0, s32 arg1);
-extern void func_80054608(s8 arg0);
-extern s32  func_8005462C(void);
-extern void func_8005468C(void);
-extern void func_800546C0(void);
-extern void func_800546F4(s32 arg0, u16 arg1);
-extern void func_80054F1C(void);
-extern void func_800558E8(s32 arg0, s8 arg1, s8 arg2, s32 arg3, s32 arg4);
-extern void func_800559BC(s32 arg0, s32 arg1);
-extern void func_80055A9C(s32 arg0, s8 arg1, s8 arg2);
-extern void func_80055B70(s32 arg0, u8 arg1);
-extern void func_80055C00(void);
-extern void func_80055C8C(void);
-extern void func_80055D78(s8 arg0);
-extern s32  func_80055DAC(s32 arg0);
-extern void func_80055DFC(s8 arg0);
+extern s32        func_80053F00();
+extern void       func_80053FA0(s32 arg0);
+extern void       func_800544B8(s32 arg0, s32 arg1);
+extern void       func_8005454C(s32 arg0, s32 arg1);
+extern void       func_80054608(s8 arg0);
+extern s32        func_8005462C(void);
+extern void       func_8005468C(void);
+extern void       func_800546C0(void);
+extern void       func_800546F4(s32 arg0, u16 arg1);
+extern void       func_80054F1C(void);
+extern void       func_800558E8(s32 arg0, s8 arg1, s8 arg2, s32 arg3, s32 arg4);
+extern void       func_800559BC(s32 arg0, s32 arg1);
+extern void       func_80055A9C(s32 arg0, s8 arg1, s8 arg2);
+extern void       func_80055B70(s32 arg0, u8 arg1);
+extern void       func_80055C00(void);
+extern void       func_80055C8C(void);
+extern void       func_80055D78(s8 arg0);
+extern s32        func_80055DAC(s32 arg0);
+extern void       func_80055DFC(s8 arg0);
 extern s8         func_80055EE8(void);
 extern void       func_80056068(void);
 extern GStruct31* func_80056104(s32 arg0, s32 arg1);
@@ -325,13 +291,13 @@ extern s32  func_8005BB4C(void);
 extern void func_8005BBB0(s32 arg0);
 
 // F344.c
-extern s16       D_8006AC28;
-extern void      func_80020388(void);
-extern s16       func_8001EDC8(void* arg0, u16 arg1, u16 arg2);
-extern u32       func_8001F180(u32);
+extern s16        D_8006AC28;
+extern void       func_80020388(void);
+extern s16        func_8001EDC8(void* arg0, u16 arg1, u16 arg2);
+extern u32        func_8001F180(u32);
 extern GStruct24* func_80020278(u32 arg0);
-extern u16       func_80020414(u32 arg0);
-extern void      func_8002043C(u32 arg0);
+extern u16        func_80020414(u32 arg0);
+extern void       func_8002043C(u32 arg0);
 
 // Other
 extern void func_800271D4(void);
@@ -369,7 +335,7 @@ extern void func_800509B4(void);
 extern void func_80050D20(u32);
 extern void func_80053E48(void);
 extern void func_80053E68(void);
-extern s32 func_80053F60(s32* arg0);
+extern s32  func_80053F60(s32* arg0);
 extern void func_80053FF4(u32);
 extern s16  func_800AF89C(u16 arg0, u16 arg1, u16 arg2, s32 arg3);
 extern void func_800AFA44(void);
@@ -398,8 +364,7 @@ extern u32          D_800680BC;
 extern volatile u32 D_800680C0;
 extern u8           D_80068B5C;
 
-// 4CB64
-extern GStruct11* D4CB64_ImgBuffers;
+// D4CB64_ImgBuffers + all Fs_* data / D5B498_* FS state → main/fs.h
 
 // 4F564
 extern GStruct14* D4F564_8005ED64;
@@ -432,76 +397,18 @@ extern u8            D_8007E0CC;
 extern s32           D_8007E0D4;
 extern GStruct42     D_8007E0D8[];
 
-// 5B498
-extern s16            D5B498_8006AC98;
-extern u16            D5B498_8006AC9A;
-extern u16            D5B498_8006AC9C;
-extern void*          D5B498_8006ACAC;
-extern void*          D5B498_8006ACB0;
-extern GStruct15      D5B498_8006ACB8;
-extern s16            D5B498_8006ACC0;
-extern u8             D5B498_8006ACC8;
-extern s32            Fs_Stage0HedSector;
-extern s32            Fs_SeekSector;
-extern u16            D5B498_8006ACD4;
-extern RECT           Fs_ImageRect;
-extern GStruct13      D5B498_8006ACE8[0x1F];
-extern u8             D5B498_8006ADE0;
-extern u8             D5B498_8006ADE1;
-extern u8             D5B498_8006ADF4;
-extern u16            Fs_FileOffsetsCat0[0x30];
-extern u16            Fs_FileOffsetsCat5[0x40];
-extern FsCdfFileSmall Fs_FileTableCat3[0x1e];
-extern u8             Fs_FileTableCat3Len;
-extern FsCdfFileSmall Fs_FileTableCat4[0x46];
-extern u8             Fs_FileTableCat4Len;
-extern FsCdfFileSmall Fs_FileTableCat1[0x3c];
-extern u8             Fs_FileTableCat1Len;
-extern FsCdfFileSmall Fs_FileTableCat2[0x160];
-extern u16            Fs_FileTableCat2Len;
-extern FsCdfFile      Fs_FileTable[0x10e];
-extern u16            Fs_FileTableLen;
-extern u32            Fs_FileOffsetsCat90[0x8];
-extern FsCdfFolder    Fs_FolderTable[50];
-extern u16            Fs_FolderTableLen;
-extern s32            Fs_ReqSector;
-extern u8             Fs_CdOpStatus;
-extern u8*            D5B498_8006C22C;
-extern u8             Fs_LoadPhase;
-extern u8             Fs_Streaming;
-extern u8             Fs_ChunkMode;
-extern u8             D5B498_8006C233;
-extern u8             D5B498_8006C234;
-extern FsSector       Fs_CdSector;
-extern u8*            Fs_ChunkWritePtr;
-extern u8             D5B498_8006D4E0[0x10];
-extern GStruct24      D_8006D4F0[15];
-extern u16            D5B498_8006D748;
-extern void*          D5B498_8006D850;
-extern s32            Fs_ChunkEndSector;
-extern u16            D5B498_8006D858;
-extern u16            D5B498_8006D85A;
-extern u8             Fs_ChunkEndFlag;
-extern u_long         D5B498_8006D870[0x460];
-extern s32            Fs_StageCdfSectors[FS_CDF_STAGE_COUNT];
-extern s32            Fs_VBlank;
-extern s32            Fs_CurrSector;
-extern u8             Fs_CdErrorCount;
-extern u16            D5B498_8006EA1A;
-extern FsCdfStream    Fs_Streams[0xa];
-extern u16            D5B498_8006EBB0;
-extern s8             D_8006EBBA;
-extern SpuCommonAttr  Fs_SpuAttr;
-extern s16            D5B498_8006EBF0;
-extern s16            D_8006EBF2;
-extern volatile s32   D_8006EBF4;
+// Stream slot table living next to FS bss (F344); not pure FS API.
+extern GStruct24    D_8006D4F0[15];
+extern s8           D_8006EBBA;
+extern s16          D_8006EBF2;
+extern volatile s32 D_8006EBF4;
 
 // 5F414
 extern u_long    D5F414_OrderingTables[2 * C5F414_OTAG_ENTRIES];
-extern u8       *D_80070EE0; // primitive buffer cursor
+extern u8*       D_80070EE0; // primitive buffer cursor
 extern GStruct35 D_80070EE8[2];
 extern GStruct1  D_80070F68; // 0x80070F68 - 0x800710A0
-extern u_long   *D_800710A0; // current OT base
+extern u_long*   D_800710A0; // current OT base
 extern GStruct5  D_800710A8;
 
 // 61F10
@@ -515,42 +422,42 @@ extern u8        D_80073980[0x208];
 extern GStruct40 D_80073B88;
 
 // 61CC0
-extern GStruct14            D61CC0_800714C0;
-extern volatile GStruct25   D_80071620[2];
+extern GStruct14          D61CC0_800714C0;
+extern volatile GStruct25 D_80071620[2];
 
 // 64880
 extern MATRIX D_80074080;
 
 // 648E0
-extern u8                D_800740E0[0x6000];
-extern void*             D_8007A0E0;
-extern s32               D_8007A0E4;
-extern GStruct50         D_8007A0E8[2];
-extern u_long            D_8007A120[0x80];
-extern HeapBlockHeader*  D648E0_HeapStart;
-extern u8                D648E0_HeapBuffer[C3D458_HEAP_SIZE];
-extern GStruct8          D648E0_8007E0B0;
-extern u32               D648E0_8007E0C8;
-extern long              D648E0_SpuTimerED;
-extern s32               D_8007E2E0[0x15];
-extern GStruct51         D_8007E2E4[];
-extern GStruct9          D648E0_8007E338;
-extern GStruct10         D648E0_8007E518;
-extern GStruct26         D_8007EB98[];
-extern u32               D648E0_8007EBA8;
-extern u32               D648E0_8007EBAC;
-extern u32               D648E0_8007EBB0;
-extern GStruct7          D648E0_SpuReverbCfg;
-extern s32               D_8007EBE0;
-extern GStruct16*        D_8007EBE4;
-extern GStruct16*        D_8007EBE8;
-extern GStruct16         D_8007EBF0[0x40];
-extern u8                D_8007F2F0;
-extern GStruct36         D_8007F300;
-extern u8                D_8007F8E0[0x2800];
-extern u8                D_8007E0F8[];
-extern u8                D_8007E158;
-extern u8                D_8007E258;
+extern u8                 D_800740E0[0x6000];
+extern void*              D_8007A0E0;
+extern s32                D_8007A0E4;
+extern GStruct50          D_8007A0E8[2];
+extern u_long             D_8007A120[0x80];
+extern HeapBlockHeader*   D648E0_HeapStart;
+extern u8                 D648E0_HeapBuffer[C3D458_HEAP_SIZE];
+extern GStruct8           D648E0_8007E0B0;
+extern u32                D648E0_8007E0C8;
+extern long               D648E0_SpuTimerED;
+extern s32                D_8007E2E0[0x15];
+extern GStruct51          D_8007E2E4[];
+extern GStruct9           D648E0_8007E338;
+extern GStruct10          D648E0_8007E518;
+extern GStruct26          D_8007EB98[];
+extern u32                D648E0_8007EBA8;
+extern u32                D648E0_8007EBAC;
+extern u32                D648E0_8007EBB0;
+extern GStruct7           D648E0_SpuReverbCfg;
+extern s32                D_8007EBE0;
+extern GStruct16*         D_8007EBE4;
+extern GStruct16*         D_8007EBE8;
+extern GStruct16          D_8007EBF0[0x40];
+extern u8                 D_8007F2F0;
+extern GStruct36          D_8007F300;
+extern u8                 D_8007F8E0[0x2800];
+extern u8                 D_8007E0F8[];
+extern u8                 D_8007E158;
+extern u8                 D_8007E258;
 extern u8                 D_80068A54[];
 extern s32                D_80068A78;
 extern u8                 D_800820E8;

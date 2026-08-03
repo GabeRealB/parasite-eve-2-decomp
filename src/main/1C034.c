@@ -66,7 +66,7 @@ void func_8002BF10(GStruct0* arg0)
 {
     ((GStructOverlayAt4*)D4F564_8005ED64)->field_4 =
         ((GStructOverlayAt4*)&D_80072168)->field_4;
-    D_8007A394 = 0;
+    D_8007A394     = 0;
     arg0->field_30 = arg0->field_30 + 1;
 }
 
@@ -113,19 +113,19 @@ INCLUDE_ASM("main/nonmatchings/1C034", func_8002C5A4);
 s32 func_8002C868(s32 arg0, s32 arg1, s32 arg2)
 {
     GStruct25* p;
-    u16 val;
+    u16        val;
 
     p = (GStruct25*)&D_80071620[arg0];
     switch (arg1) {
-    case 1:
-        val = p->field_6;
-        break;
-    case 3:
-        val = p->field_8;
-        break;
-    default:
-        val = p->field_4;
-        break;
+        case 1:
+            val = p->field_6;
+            break;
+        case 3:
+            val = p->field_8;
+            break;
+        default:
+            val = p->field_4;
+            break;
     }
     if (arg1 == 2) {
         return (val & arg2) == arg2;
@@ -139,7 +139,7 @@ void func_8002C9B0(s32 arg0)
 {
     volatile GStruct25* p;
 
-    p = &D_80071620[arg0];
+    p          = &D_80071620[arg0];
     p->field_A = 0x3D;
 }
 
@@ -147,16 +147,16 @@ void func_8002C9E0(s32 arg0)
 {
     volatile GStruct25* p;
 
-    p = &D_80071620[arg0];
+    p          = &D_80071620[arg0];
     p->field_A = 0;
 }
 
 s32 func_8002CA0C(s32 arg0)
 {
-    u16 sp;
+    u16        sp;
     GStruct49* base;
 
-    base = D_800711C8;
+    base          = D_800711C8;
     ((u8*)&sp)[1] = base[arg0].field_2;
     ((u8*)&sp)[0] = base[arg0].field_3;
     return (u16)~sp;
@@ -167,10 +167,10 @@ INCLUDE_ASM("main/nonmatchings/1C034", func_8002CA54);
 s32 func_8002CAB8(void)
 {
     volatile GStruct25* p;
-    u16 val;
-    s32 result;
+    u16                 val;
+    s32                 result;
 
-    p = D_80071620;
+    p   = D_80071620;
     val = p->field_4;
     if (val == 0x90F) {
         result = D_8005ED8A == 0x90F;
@@ -180,7 +180,7 @@ s32 func_8002CAB8(void)
     D_8005ED8A = val;
     if (p->field_A != 0) {
         D_8005ED8A = 0;
-        result = 0;
+        result     = 0;
     }
     return result;
 }
@@ -306,17 +306,17 @@ void func_8002D41C(GStruct0Node* node)
 
 void func_8002D428(void)
 {
-    D_800716D8 = &D_800716E0;
+    D_800716D8      = &D_800716E0;
     D_800716E0.next = NULL;
     D_800716E0.prev = &D_800716E0;
 }
 
 void func_8002D444(GStruct0* state)
 {
-    GStruct0* next;
-    GStruct0Node* head;
+    GStruct0*      next;
+    GStruct0Node*  head;
     GStruct0Node** pp;
-    GStruct0Node* prev;
+    GStruct0Node*  prev;
 
     next = state->node.next;
     head = D_800716D8;
@@ -326,8 +326,8 @@ void func_8002D444(GStruct0* state)
             pp = &next->node.prev;
         }
     } while (0);
-    prev = state->node.prev;
-    *pp = prev;
+    prev       = state->node.prev;
+    *pp        = prev;
     prev->next = state->node.next;
 }
 
@@ -352,19 +352,19 @@ void func_8002D6EC(GStruct0* arg0)
     }
 
     switch (arg0->field_28) {
-    case 1:
-        temp_s0 = arg0->field_2c;
-        func_800991DC(temp_s0);
-        func_80099214(temp_s0);
-        arg0->field_28 = 0xFF;
-        break;
-    case 2:
-        func_80099290(arg0->field_2c);
-        arg0->field_28 = 0xFF;
-        break;
-    default:
-        arg0->field_28 = 0xFF;
-        break;
+        case 1:
+            temp_s0 = arg0->field_2c;
+            func_800991DC(temp_s0);
+            func_80099214(temp_s0);
+            arg0->field_28 = 0xFF;
+            break;
+        case 2:
+            func_80099290(arg0->field_2c);
+            arg0->field_28 = 0xFF;
+            break;
+        default:
+            arg0->field_28 = 0xFF;
+            break;
     }
 }
 

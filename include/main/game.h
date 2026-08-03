@@ -106,68 +106,7 @@ typedef struct _TaskDesc {
 } TaskDesc;
 STATIC_ASSERT_SIZEOF(TaskDesc, 0xc);
 
-/// One slot in the CD load command ring (`CdCmd_Enqueue`).
-///
-/// File identity is packed as base-100 digits (`idB2*10000 + idB1*100 + idB0`).
-/// `cmd` selects the operation (0x21 load file, 0x54 mount stage, 0x55 parse HED).
-typedef struct _CdCmdEntry {
-    u8 idB0;   // ones digit / a2[0]
-    u8 idB1;   // hundreds digit / a2[1]
-    u8 idB2;   // ×10000 / category / a2[2]
-    u8 idB3;   // a2[3]
-    u8 cmd;    // command opcode
-    u8 param0; // a1[3]
-    u8 param1; // a1[2]
-    u8 param2; // a1[0]
-} CdCmdEntry;
-STATIC_ASSERT_SIZEOF(CdCmdEntry, 0x8);
-
-/// Global CD / asset load command queue (`CdCmd_Queue`).
-typedef struct _CdCmdQueue {
-    CdCmdEntry entries[8];
-    CdCmdEntry field_40;
-    byte       unknown_48[0x4];
-    s8         field_4c;
-    byte       unknown_4d[0x7];
-    u8         field_54;
-    byte       unknown_55[0x173];
-    u16        writeIdx; // 0x1C8 — next free slot (enqueue)
-    u16        readIdx;  // 0x1CA — slot being executed
-    byte       unknown_1cc[0x4];
-    u16        step; // 0x1D0 — sub-state of current command
-    u16        field_1d2;
-    u16        field_1d4;
-    byte       unknown_1d6[0x10];
-    s16        field_1E6;
-    byte       unknown_1E8[0x2];
-    s16        field_1EA;
-    byte       unknown_1EC[0x10];
-    u16        field_1fc;
-    u8         field_1FE; // load status (0xFF = idle/done in several paths)
-    u8         field_1FF;
-    u16        field_200;
-    u16        field_202;
-    u16        field_204;
-    byte       unknown_206[0x8];
-    s16        field_20E;
-    byte       unknown_210[0x4];
-    u16        field_214;
-    byte       unknown_216[0x4];
-    s16        field_21A;
-    byte       unknown_21C[0x6];
-    s16        field_222;
-    u16        field_224;
-    byte       unknown_226[0x2];
-    u16        field_228;
-    byte       unknown_22a[0xA];
-    s16        field_234;
-    s16        field_236;
-    byte       unknown_238[0xA];
-    s16        field_242;
-    byte       unknown_244[0xE];
-    s16        busy; // 0x252 — non-zero while a blocking load is active
-} CdCmdQueue;
-STATIC_ASSERT_SIZEOF(CdCmdQueue, 0x254);
+// CdCmdEntry / CdCmdQueue live in main/fs.h
 
 typedef struct _GStruct4 {
     u8 field_0;
@@ -235,17 +174,7 @@ typedef struct _GStruct10 {
 } GStruct10;
 STATIC_ASSERT_SIZEOF(GStruct10, 0x67C);
 
-typedef struct _GStruct11 {
-    u32 buffers[20][1920];
-} GStruct11;
-STATIC_ASSERT_SIZEOF(GStruct11, 0x25800);
-
-typedef struct _GStruct13 {
-    u16 field_0;
-    u16 field_2;
-    u32 field_4;
-} GStruct13;
-STATIC_ASSERT_SIZEOF(GStruct13, 0x8);
+// FsImgBuffers / FsWorkEntry / FsLoadParams live in main/fs.h
 
 /// 8-byte block assigned via unaligned lwl/lwr (see func_8002BF10).
 typedef struct _GBytes8 {
@@ -272,13 +201,6 @@ typedef struct _GStruct14 {
     byte  unknown_7E[0xBE];
 } GStruct14;
 STATIC_ASSERT_SIZEOF(GStruct14, 0x13C);
-
-typedef struct _GStruct15 {
-    byte unknown_0[0x2];
-    u8   field_2;
-    u8   field_3;
-} GStruct15;
-STATIC_ASSERT_SIZEOF(GStruct15, 0x4);
 
 /// 0x1C-byte slot allocated from D_8007EBF0 (see func_800509F4 / func_80050A38).
 /// Overlay of `GStruct16` starting at offset 0x4 (`field_4` / `field_8`).
@@ -737,17 +659,17 @@ STATIC_ASSERT_SIZEOF(GStruct40, 0x80);
 /// 0x14-byte sound/note entry indexed by func_8004EA60.
 /// Callers read field_1/field_3/field_4/field_5/field_A/field_B/field_10.
 typedef struct _GStruct41 {
-    /* 0x00 */ u8  field_0;
-    /* 0x01 */ u8  field_1;
-    /* 0x02 */ u8  pad_2;
-    /* 0x03 */ u8  field_3;
-    /* 0x04 */ u8  field_4;
-    /* 0x05 */ u8  field_5;
+    /* 0x00 */ u8   field_0;
+    /* 0x01 */ u8   field_1;
+    /* 0x02 */ u8   pad_2;
+    /* 0x03 */ u8   field_3;
+    /* 0x04 */ u8   field_4;
+    /* 0x05 */ u8   field_5;
     /* 0x06 */ byte unknown_6[0x4];
-    /* 0x0A */ u8  field_A;
-    /* 0x0B */ u8  field_B;
+    /* 0x0A */ u8   field_A;
+    /* 0x0B */ u8   field_B;
     /* 0x0C */ byte unknown_C[0x4];
-    /* 0x10 */ s32 field_10;
+    /* 0x10 */ s32  field_10;
 } GStruct41;
 STATIC_ASSERT_SIZEOF(GStruct41, 0x14);
 
@@ -812,7 +734,7 @@ STATIC_ASSERT_SIZEOF(GStruct48, 0x8);
 /// 8-byte VRAM/heap slot: pointer + size. Tables of these are selected via D_8005C37C.
 typedef struct _F04CF8_ImageSlot {
     /* 0x0 */ u_long* field_0;
-    /* 0x4 */ s32 field_4;
+    /* 0x4 */ s32     field_4;
 } F04CF8_ImageSlot;
 STATIC_ASSERT_SIZEOF(F04CF8_ImageSlot, 0x8);
 
@@ -872,11 +794,10 @@ extern size_t D_80068F90;
 /// Length in bytes of the heap pointed to by `GActiveAuxHeap`.
 extern size_t GActiveAuxHeapSize;
 
-extern int      D_80068F98;
-extern int      MainPadding;
-extern CdCmdQueue CdCmd_Queue;
-extern u8*      D_800691F4;
-extern size_t   D_800691F8;
+extern int D_80068F98;
+// CdCmd_Queue, pad at 0x80068F9C, D_800691F4/F8: see main.c / main/fs.h
+extern u8*    D_800691F4;
+extern size_t D_800691F8;
 
 /// Game entry point. Called by `main`.
 void GameMain(void);

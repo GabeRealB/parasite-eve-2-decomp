@@ -50,19 +50,18 @@ INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005B84C);
 void func_8005B920(s32 arg0)
 {
     volatile GStruct19* p;
-    u8 temp;
+    u8                  temp;
 
-    p = &D_80082818;
+    p    = &D_80082818;
     temp = p->unknown_0[1];
     if (temp >> 7) {
-        p->field_14 = arg0;
+        p->field_14     = arg0;
         p->unknown_0[1] = p->unknown_0[1] | 8;
         p->unknown_0[0] = p->unknown_0[0] | 1;
     }
 }
 
-
-void func_8005B968(u32 *arg0)
+void func_8005B968(u32* arg0)
 {
     u32 temp_v1;
 
@@ -71,44 +70,44 @@ void func_8005B968(u32 *arg0)
         *arg0 = temp_v1 & ~8;
         return;
     }
-    *arg0 = temp_v1 & ~8;
+    *arg0               = temp_v1 & ~8;
     D_80082818.field_4C = 0;
     switch ((*arg0 >> 5) & 0xFF) {
-    case 6:
-    case 7:
-        func_8005B6A8();
-        goto shared_flush;
-    case 8:
-        func_8005B6A8();
-        CdFlush();
-        CdControlF(CdlPause, NULL);
-        *arg0 = ((*arg0 | 8) & ~0x1FE0) | 0x1C0;
-        break;
-    case 9:
-    case 11:
-    case 12:
-    case 14:
-        CdFlush();
-        *arg0 = (*arg0 & ~0x1FE0) | 0x1A0;
-        /* fallthrough */
-    case 13:
-        if (SpuIsTransferCompleted(0) == 0) {
-            *arg0 |= 8;
-        }
-        break;
-    case 1:
-    case 2:
-    case 3:
-    case 4:
-    case 5:
-    case 10:
-    shared_flush:
-        CdFlush();
-        break;
+        case 6:
+        case 7:
+            func_8005B6A8();
+            goto shared_flush;
+        case 8:
+            func_8005B6A8();
+            CdFlush();
+            CdControlF(CdlPause, NULL);
+            *arg0 = ((*arg0 | 8) & ~0x1FE0) | 0x1C0;
+            break;
+        case 9:
+        case 11:
+        case 12:
+        case 14:
+            CdFlush();
+            *arg0 = (*arg0 & ~0x1FE0) | 0x1A0;
+            /* fallthrough */
+        case 13:
+            if (SpuIsTransferCompleted(0) == 0) {
+                *arg0 |= 8;
+            }
+            break;
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 10:
+        shared_flush:
+            CdFlush();
+            break;
     }
 }
 
-void func_8005BA8C(u32 *arg0)
+void func_8005BA8C(u32* arg0)
 {
     func_8005B968(arg0);
     if (!((*arg0 >> 3) & 1) && (D_80082818.field_8 != NULL)) {
@@ -136,9 +135,9 @@ void func_8005BBB0(s32 arg0)
 
 void func_8005BBF4(void)
 {
-    D_80082818.field_53 = D_80082818.field_53 & 0xFE;
+    D_80082818.field_53     = D_80082818.field_53 & 0xFE;
     D_80082818.unknown_0[1] = D_80082818.unknown_0[1] | 2;
-    D_80082818.field_54 = 0;
+    D_80082818.field_54     = 0;
 }
 
 s32 func_8005BC28(void)

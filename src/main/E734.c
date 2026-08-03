@@ -3,6 +3,8 @@
 #include <psyq/libcd.h>
 
 #include "main/game.h"
+#include "main/fs.h"
+#include "main/fs.h"
 
 INCLUDE_ASM("main/nonmatchings/E734", func_8001DF34);
 
@@ -16,45 +18,45 @@ s16 E734_CDIsShellOpenBitSet(void);
 s32 func_8001E6AC(s32 arg0, s32 arg1)
 {
     CdCmdQueue* state;
-    s32       status;
-    u16       a1;
+    s32         status;
+    u16         a1;
 
     state = &CdCmd_Queue;
     switch (state->field_228) {
-    case 0:
-        status = CdSync(1, NULL);
-        switch (status) {
-        case CdlNoIntr:
-            break;
-        case CdlComplete:
-            state->field_1d4 = 0;
-            return 1;
-        case CdlDiskError:
-            state->field_1d4 = 1;
-            if (E734_CDIsShellOpenBitSet() != 0) {
-                state->field_228++;
-                break;
+        case 0:
+            status = CdSync(1, NULL);
+            switch (status) {
+                case CdlNoIntr:
+                    break;
+                case CdlComplete:
+                    state->field_1d4 = 0;
+                    return 1;
+                case CdlDiskError:
+                    state->field_1d4 = 1;
+                    if (E734_CDIsShellOpenBitSet() != 0) {
+                        state->field_228++;
+                        break;
+                    }
+                    a1 = arg1 & 0xFFFF;
+                    if (a1 == 0) {
+                        return 2;
+                    }
+                    if ((arg0 & 0xFFFF) == a1) {
+                        return 1;
+                    }
+                    return 3;
+                default:
+                    return 2;
             }
-            a1 = arg1 & 0xFFFF;
-            if (a1 == 0) {
+            break;
+        case 1:
+            if (func_8001E57C() != 0) {
+                state->field_228 = 0;
                 return 2;
             }
-            if ((arg0 & 0xFFFF) == a1) {
-                return 1;
-            }
-            return 3;
+            break;
         default:
-            return 2;
-        }
-        break;
-    case 1:
-        if (func_8001E57C() != 0) {
-            state->field_228 = 0;
-            return 2;
-        }
-        break;
-    default:
-        return 0;
+            return 0;
     }
     return 0;
 }

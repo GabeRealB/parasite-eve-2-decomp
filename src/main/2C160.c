@@ -16,40 +16,43 @@ INCLUDE_ASM("main/nonmatchings/2C160", func_8003C4F0);
 
 INCLUDE_ASM("main/nonmatchings/2C160", func_8003C6D8);
 
-void func_8003C728(MATRIX* arg0, volatile SVECTOR* arg1) {
+void func_8003C728(MATRIX* arg0, volatile SVECTOR* arg1)
+{
     register short t4 asm("t4");
     register short t5 asm("t5");
     register short t6 asm("t6");
 
-    t4 = arg0->m[0][0];
-    t5 = arg0->m[1][0];
-    t6 = arg0->m[2][0];
+    t4       = arg0->m[0][0];
+    t5       = arg0->m[1][0];
+    t6       = arg0->m[2][0];
     arg1->vx = t4;
     arg1->vy = t5;
     arg1->vz = t6;
 }
 
-void func_8003C748(MATRIX* arg0, volatile SVECTOR* arg1) {
+void func_8003C748(MATRIX* arg0, volatile SVECTOR* arg1)
+{
     register short t4 asm("t4");
     register short t5 asm("t5");
     register short t6 asm("t6");
 
-    t4 = arg0->m[0][1];
-    t5 = arg0->m[1][1];
-    t6 = arg0->m[2][1];
+    t4       = arg0->m[0][1];
+    t5       = arg0->m[1][1];
+    t6       = arg0->m[2][1];
     arg1->vx = t4;
     arg1->vy = t5;
     arg1->vz = t6;
 }
 
-void func_8003C768(MATRIX* arg0, volatile SVECTOR* arg1) {
+void func_8003C768(MATRIX* arg0, volatile SVECTOR* arg1)
+{
     register short t4 asm("t4");
     register short t5 asm("t5");
     register short t6 asm("t6");
 
-    t4 = arg0->m[0][2];
-    t5 = arg0->m[1][2];
-    t6 = arg0->m[2][2];
+    t4       = arg0->m[0][2];
+    t5       = arg0->m[1][2];
+    t6       = arg0->m[2][2];
     arg1->vx = t4;
     arg1->vy = t5;
     arg1->vz = t6;
@@ -65,7 +68,8 @@ INCLUDE_ASM("main/nonmatchings/2C160", func_8003CD78);
 
 INCLUDE_ASM("main/nonmatchings/2C160", func_8003CEC4);
 
-s32 func_8003D000(SVECTOR* arg0, SVECTOR* arg1) {
+s32 func_8003D000(SVECTOR* arg0, SVECTOR* arg1)
+{
     s32 result;
 
     gte_ldsvrtrow0(arg0);

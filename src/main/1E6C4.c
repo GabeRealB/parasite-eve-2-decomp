@@ -26,26 +26,26 @@ void func_8002EDFC(GStruct38* arg0, u8* arg1)
     s32 width;
 
     switch (arg0->field_C) {
-    case 0:
-        table = D_8005EFB0;
-        break;
-    case 5:
-        table = D_800604B0;
-        break;
-    default:
-        table = D_8005FA30;
-        break;
+        case 0:
+            table = D_8005EFB0;
+            break;
+        case 5:
+            table = D_800604B0;
+            break;
+        default:
+            table = D_8005FA30;
+            break;
     }
 
     switch (arg0->field_D) {
-    case 1:
-        width = func_8002DECC(arg0, arg1, table);
-        arg0->field_0 -= width >> 1;
-        break;
-    case 2:
-        width = func_8002DECC(arg0, arg1, table);
-        arg0->field_0 -= width;
-        break;
+        case 1:
+            width          = func_8002DECC(arg0, arg1, table);
+            arg0->field_0 -= width >> 1;
+            break;
+        case 2:
+            width          = func_8002DECC(arg0, arg1, table);
+            arg0->field_0 -= width;
+            break;
     }
 }
 
@@ -61,15 +61,16 @@ INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002F3A0);
 
 INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002F44C);
 
-u8 *func_8002F528(u8 *arg0, s32 arg1) {
+u8* func_8002F528(u8* arg0, s32 arg1)
+{
     u8 temp;
 
     if (arg1 > 0) {
         s32 c_nl = 0xA;
-        s32 c_N = 0x4E;
-        s32 c_n = 0x6E;
+        s32 c_N  = 0x4E;
+        s32 c_n  = 0x6E;
         s32 c_bs = 0x5C;
-loop:
+    loop:
         temp = *arg0;
         if (temp == 0) {
             goto end;

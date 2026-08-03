@@ -22,8 +22,8 @@ void func_8003F690(void)
     GStruct1* temp;
 
     func_8003E6E4();
-    temp = &D_80070F68;
-    temp->field_1e = 1;
+    temp            = &D_80070F68;
+    temp->field_1e  = 1;
     temp->field_103 = 2;
     temp->field_118 = temp->field_114 ^ 1;
     func_8002D248(&D_8007A110);
@@ -51,9 +51,9 @@ INCLUDE_ASM("main/nonmatchings/2F244", func_8003F86C);
 s32 func_8003F900(void)
 {
     GStruct17* temp;
-    u8 temp_a0;
+    u8         temp_a0;
 
-    temp = D_80062698;
+    temp    = D_80062698;
     temp_a0 = temp->field_17;
     if (temp_a0 == 0) {
         return 0;
@@ -98,26 +98,27 @@ void func_8003FA3C(u8 arg0)
     D_80062698->field_1a = arg0;
 }
 
-void func_8003FA4C(s32 arg0) {
+void func_8003FA4C(s32 arg0)
+{
     switch (arg0) {
-    case 0:
-        D_80070F68.field_103 = 1;
-        D_80070F68.field_100 = 0;
-        func_8003DE14(0, 0, 0);
-        return;
-    case 1:
-        D_80070F68.field_103 = (u8)arg0;
-        D_80070F68.field_100 = 3;
-        func_8003DE14(-1, 0, 0);
-        return;
-    case 2:
-        D_80070F68.field_103 = 1;
-        D_80070F68.field_100 = 2;
-        func_8003DE14(-1, 0, 0);
-        return;
-    case 3:
-        D_80070F68.field_103 = 2;
-        return;
+        case 0:
+            D_80070F68.field_103 = 1;
+            D_80070F68.field_100 = 0;
+            func_8003DE14(0, 0, 0);
+            return;
+        case 1:
+            D_80070F68.field_103 = (u8)arg0;
+            D_80070F68.field_100 = 3;
+            func_8003DE14(-1, 0, 0);
+            return;
+        case 2:
+            D_80070F68.field_103 = 1;
+            D_80070F68.field_100 = 2;
+            func_8003DE14(-1, 0, 0);
+            return;
+        case 3:
+            D_80070F68.field_103 = 2;
+            return;
     }
 }
 
@@ -174,7 +175,7 @@ void func_8003FD58(GStruct0* arg0)
     u32 temp_v1;
 
     D_80070F68.field_103 = 2;
-    temp_v1 = D_80062698->field_C;
+    temp_v1              = D_80062698->field_C;
     if (temp_v1 < 5U) {
         if (temp_v1 < 3U) {
             if (temp_v1 != 1) {
@@ -182,7 +183,7 @@ void func_8003FD58(GStruct0* arg0)
             }
         }
     } else {
-block_3:
+    block_3:
         func_800144F8(D4F564_8005ED64->field_7, D4F564_8005ED64->field_6);
         func_80041EB4();
         func_800ACAA8();
@@ -240,13 +241,13 @@ void func_800408C0(void* arg0)
 {
     CdCmdQueue* p;
 
-    D_8007A35C = 0;
-    p = &CdCmd_Queue;
+    D_8007A35C   = 0;
+    p            = &CdCmd_Queue;
     p->field_200 = 1;
     p->field_1FE = 0;
     p->field_202 = 0;
-    D_8007A360 = arg0;
-    D_8007A358 = 0;
+    D_8007A360   = arg0;
+    D_8007A358   = 0;
 }
 
 void func_800408F4(void)
@@ -323,207 +324,207 @@ extern u8 D_801386EC;
 
 void func_800409D0(GStruct33* arg0)
 {
-    u32* stream;
-    u32 id;
-    u32 dims;
-    void* handler;
-    s32 flag;
+    u32*         stream;
+    u32          id;
+    u32          dims;
+    void*        handler;
+    s32          flag;
     register u32 tmp asm("v0");
 
     stream = arg0->field_20;
     if (arg0->field_0 == 0) {
-        tmp = *(u32*)&D4F564_8005ED64->field_4;
-        tmp = (tmp & 0xFFFF0000) ^ 0x02100000;
+        tmp  = *(u32*)&D4F564_8005ED64->field_4;
+        tmp  = (tmp & 0xFFFF0000) ^ 0x02100000;
         flag = tmp < 1;
         goto read_id;
 
         for (;;) {
             switch (id) {
-            case 0x20:
-            case 0x22:
-                handler = &D_80010A90;
-                break;
-            case 0x60:
-            case 0x62:
-                handler = &D_80010BF4;
-                break;
-            case 0xC0:
-                handler = &D_80010E1C;
-                break;
-            case 0xC4:
-                handler = &D_8009EAA4;
-                break;
-            case 5:
-                handler = &D_80099B94;
-                break;
-            case 0x45:
-                handler = &D_80099994;
-                break;
-            case 0x21:
-            case 0x121:
-                handler = &D_800105F4;
-                break;
-            case 0x61:
-            case 0x161:
-                handler = &D_80010718;
-                break;
-            case 0x38:
-                handler = &D_80010F08;
-                break;
-            case 0x8038:
-                handler = &D_80136224;
-                break;
-            case 0x10038:
-                handler = &D_8013700C;
-                break;
-            case 0x20038:
-                handler = &D_801379B4;
-                break;
-            case 0x3A:
-                handler = &D_80010EF4;
-                break;
-            case 0x1003A:
-                handler = &D_80137300;
-                break;
-            case 0x78:
-                handler = &D_800110A0;
-                break;
-            case 0x8078:
-                handler = &D_8013685C;
-                break;
-            case 0x10078:
-                handler = &D_801375F8;
-                break;
-            case 0x20078:
-                handler = &D_80138004;
-                break;
-            case 0x7A:
-                handler = &D_8001108C;
-                break;
-            case 0xC8:
-                handler = &D_800112DC;
-                break;
-            case 0x40C8:
-                handler = &D_8009AF90;
-                if (flag != 0) {
-                    handler = &D_8009B2F4;
-                }
-                break;
-            case 0x200C8:
-                handler = &D_801386EC;
-                break;
-            case 0x31:
-            case 0x39:
-            case 0x131:
-                handler = &D_800113E8;
-                break;
-            case 0x8039:
-                handler = &D_80136500;
-                break;
-            case 0x3B:
-                handler = &D_800113B4;
-                break;
-            case 0x71:
-            case 0x79:
-            case 0x171:
-                handler = &D_80011530;
-                break;
-            case 0x8079:
-                handler = &D_80136C00;
-                break;
-            case 0x7B:
-                handler = &D_800114FC;
-                break;
-            case 0x4039:
-                handler = &D_80099D40;
-                if (flag != 0) {
-                    handler = &D_8009A348;
-                }
-                break;
-            case 0x4079:
-                handler = &D_80099FF4;
-                if (flag != 0) {
-                    handler = &D_8009A57C;
-                }
-                break;
-            case 0:
-                handler = &D_80011678;
-                break;
-            case 0x40:
-                handler = &D_800117BC;
-                break;
-            case 0x18:
-                handler = &D_800119A8;
-                break;
-            case 0x1A:
-                handler = &D_80011994;
-                break;
-            case 0x58:
-                handler = &D_80011AF4;
-                break;
-            case 0x5A:
-                handler = &D_80011B08;
-                break;
-            case 0x4078:
-                handler = &D_8009C414;
-                if (flag != 0) {
-                    handler = &D_8009C024;
-                }
-                break;
-            case 0x4038:
-                handler = &D_8009B500;
-                if (flag != 0) {
-                    handler = &D_8009BD00;
-                }
-                break;
-            case 0x120:
-                handler = &D_8009E048;
-                break;
-            case 0x122:
-                handler = &D_8009E274;
-                break;
-            case 0x160:
-                handler = &D_8009E4A0;
-                break;
-            case 0x162:
-                handler = &D_8009E770;
-                break;
-            case 0x1C:
-                handler = &D_8009D388;
-                break;
-            case 0x1E:
-                handler = &D_8009DCB8;
-                break;
-            case 0x5C:
-                handler = &D_8009D518;
-                break;
-            case 0x5E:
-                handler = &D_8009DE48;
-                break;
-            case 0x30:
-                handler = &D_8009CED0;
-                break;
-            case 0x130:
-                handler = &D_8001237C;
-                break;
-            case 0x70:
-                handler = &D_8009D0DC;
-                break;
-            case 0x170:
-                handler = &D_80012520;
-                break;
-            case 0x156:
-                handler = &D_8009D718;
-                break;
-            case 4:
-                handler = &D_8009DB00;
-                break;
-            case 0x44:
-                handler = &D_8009D900;
-                break;
-            default:
-                handler = &D_800105AC;
-                break;
+                case 0x20:
+                case 0x22:
+                    handler = &D_80010A90;
+                    break;
+                case 0x60:
+                case 0x62:
+                    handler = &D_80010BF4;
+                    break;
+                case 0xC0:
+                    handler = &D_80010E1C;
+                    break;
+                case 0xC4:
+                    handler = &D_8009EAA4;
+                    break;
+                case 5:
+                    handler = &D_80099B94;
+                    break;
+                case 0x45:
+                    handler = &D_80099994;
+                    break;
+                case 0x21:
+                case 0x121:
+                    handler = &D_800105F4;
+                    break;
+                case 0x61:
+                case 0x161:
+                    handler = &D_80010718;
+                    break;
+                case 0x38:
+                    handler = &D_80010F08;
+                    break;
+                case 0x8038:
+                    handler = &D_80136224;
+                    break;
+                case 0x10038:
+                    handler = &D_8013700C;
+                    break;
+                case 0x20038:
+                    handler = &D_801379B4;
+                    break;
+                case 0x3A:
+                    handler = &D_80010EF4;
+                    break;
+                case 0x1003A:
+                    handler = &D_80137300;
+                    break;
+                case 0x78:
+                    handler = &D_800110A0;
+                    break;
+                case 0x8078:
+                    handler = &D_8013685C;
+                    break;
+                case 0x10078:
+                    handler = &D_801375F8;
+                    break;
+                case 0x20078:
+                    handler = &D_80138004;
+                    break;
+                case 0x7A:
+                    handler = &D_8001108C;
+                    break;
+                case 0xC8:
+                    handler = &D_800112DC;
+                    break;
+                case 0x40C8:
+                    handler = &D_8009AF90;
+                    if (flag != 0) {
+                        handler = &D_8009B2F4;
+                    }
+                    break;
+                case 0x200C8:
+                    handler = &D_801386EC;
+                    break;
+                case 0x31:
+                case 0x39:
+                case 0x131:
+                    handler = &D_800113E8;
+                    break;
+                case 0x8039:
+                    handler = &D_80136500;
+                    break;
+                case 0x3B:
+                    handler = &D_800113B4;
+                    break;
+                case 0x71:
+                case 0x79:
+                case 0x171:
+                    handler = &D_80011530;
+                    break;
+                case 0x8079:
+                    handler = &D_80136C00;
+                    break;
+                case 0x7B:
+                    handler = &D_800114FC;
+                    break;
+                case 0x4039:
+                    handler = &D_80099D40;
+                    if (flag != 0) {
+                        handler = &D_8009A348;
+                    }
+                    break;
+                case 0x4079:
+                    handler = &D_80099FF4;
+                    if (flag != 0) {
+                        handler = &D_8009A57C;
+                    }
+                    break;
+                case 0:
+                    handler = &D_80011678;
+                    break;
+                case 0x40:
+                    handler = &D_800117BC;
+                    break;
+                case 0x18:
+                    handler = &D_800119A8;
+                    break;
+                case 0x1A:
+                    handler = &D_80011994;
+                    break;
+                case 0x58:
+                    handler = &D_80011AF4;
+                    break;
+                case 0x5A:
+                    handler = &D_80011B08;
+                    break;
+                case 0x4078:
+                    handler = &D_8009C414;
+                    if (flag != 0) {
+                        handler = &D_8009C024;
+                    }
+                    break;
+                case 0x4038:
+                    handler = &D_8009B500;
+                    if (flag != 0) {
+                        handler = &D_8009BD00;
+                    }
+                    break;
+                case 0x120:
+                    handler = &D_8009E048;
+                    break;
+                case 0x122:
+                    handler = &D_8009E274;
+                    break;
+                case 0x160:
+                    handler = &D_8009E4A0;
+                    break;
+                case 0x162:
+                    handler = &D_8009E770;
+                    break;
+                case 0x1C:
+                    handler = &D_8009D388;
+                    break;
+                case 0x1E:
+                    handler = &D_8009DCB8;
+                    break;
+                case 0x5C:
+                    handler = &D_8009D518;
+                    break;
+                case 0x5E:
+                    handler = &D_8009DE48;
+                    break;
+                case 0x30:
+                    handler = &D_8009CED0;
+                    break;
+                case 0x130:
+                    handler = &D_8001237C;
+                    break;
+                case 0x70:
+                    handler = &D_8009D0DC;
+                    break;
+                case 0x170:
+                    handler = &D_80012520;
+                    break;
+                case 0x156:
+                    handler = &D_8009D718;
+                    break;
+                case 4:
+                    handler = &D_8009DB00;
+                    break;
+                case 0x44:
+                    handler = &D_8009D900;
+                    break;
+                default:
+                    handler = &D_800105AC;
+                    break;
             }
 
             stream++;
@@ -531,23 +532,23 @@ void func_800409D0(GStruct33* arg0)
             stream++;
             dims = *stream;
             stream++;
-            id = dims & 0xFFFF;
+            id      = dims & 0xFFFF;
             stream += (dims >> 16) * id;
-            id = *stream;
+            id      = *stream;
 
             while (1) {
                 if (id != -2U) {
                     break;
                 }
                 stream++;
-read_id:
+            read_id:
                 id = *stream;
                 if (id == -1U) {
                     goto done;
                 }
             }
         }
-done:
+    done:
         arg0->field_0 = 1;
     }
 }
@@ -568,12 +569,12 @@ void func_80041B4C(GStruct27* arg0)
 
 s32 func_80041B88(GStruct27* arg0)
 {
-    s32 result;
+    s32   result;
     void* mem;
 
     result = 0;
     if (arg0->field_18 == NULL) {
-        mem = Mem_Calloc(arg0->field_10->field_4 * 2, 1);
+        mem            = Mem_Calloc(arg0->field_10->field_4 * 2, 1);
         arg0->field_18 = mem;
         if (mem != NULL) {
             arg0->field_14 = 0;
@@ -596,7 +597,7 @@ void func_80041D3C(GStruct27* arg0)
     node = D_800711B8.next;
     while (node != NULL) {
         node->field_C |= 0x80;
-        node = node->next;
+        node           = node->next;
     }
     arg0->field_30++;
 }
@@ -624,7 +625,7 @@ void func_80041E4C(void)
 void func_80041EB4(void)
 {
     GStruct27* node;
-    void* mem;
+    void*      mem;
 
     node = D_800711B8.next;
     Mem_InitAux();
@@ -648,7 +649,7 @@ void func_80041EB4(void)
 void func_80041F58(GStruct0* arg0)
 {
     GStruct27* node;
-    void* mem;
+    void*      mem;
 
     node = D_800711B8.next;
     while (node != NULL) {

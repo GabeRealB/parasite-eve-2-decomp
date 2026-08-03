@@ -18,11 +18,11 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 
 ## Modules (current)
 
-| Prefix | Area | Source file(s) |
+| Prefix | Area | Source / splat unit |
 |---|---|---|
-| `Fs_` | CD filesystem, STAGE*.CDF / STAGE0.HED | `12D18.c`, `fs.h` |
+| `Fs_` | CD filesystem, STAGE*.CDF / STAGE0.HED | `src/main/fs.c` (+ `fs` rodata/bss) |
 | `CdCmd_` | CD load command ring buffer | `C37C.c`, `game.h` |
-| `Boot_` | Cold-boot / title path | `4CF8.c` |
+| `Boot_` | Cold-boot / title path | `4CF8.c`, `boot_loadbuf` data |
 | `Mem_` / `GHeap` | Heaps | `mem.c` |
 | `GameMain` | Entry after `main` | `179D4.c` |
 | `GpuExt_` | GPU helpers | `gpuext.c` |
