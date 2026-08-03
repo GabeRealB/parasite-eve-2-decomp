@@ -3,6 +3,7 @@
 #include "main/game.h"
 #include "main/mem.h"
 #include "main/unknown_syms.h"
+#include "psyq/libpress.h"
 
 INCLUDE_ASM("main/nonmatchings/C37C", func_8001BB7C);
 
@@ -31,7 +32,14 @@ u16 func_8001D37C(s16 arg0)
     return D_80068FA0.entries[arg0].field_4 == 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001D39C);
+void func_8001D39C(void)
+{
+    D_80068FA0.field_1EA = 1;
+    if (func_80020394(&D4F564_8005ED64->field_4) != 0) {
+        DecDCTvlcBuild(D_8005C36C);
+        D4F564_8005ED64->field_7C = 0;
+    }
+}
 
 void F0C37C_ClearD80068FA0(void)
 {

@@ -120,7 +120,9 @@ typedef struct _GStruct3 {
     u16           field_1ca;
     byte          unknown_1cc[0x8];
     u16           field_1d4;
-    byte          unknown_1d6[0x2E];
+    byte          unknown_1d6[0x14];
+    s16           field_1EA;
+    byte          unknown_1EC[0x18];
     u16           field_204;
     byte          unknown_206[0x8];
     s16           field_20E;
@@ -217,12 +219,16 @@ typedef struct _GStruct13 {
 STATIC_ASSERT_SIZEOF(GStruct13, 0x8);
 
 typedef struct _GStruct14 {
-    byte  unknown_0[0x6];
+    byte  unknown_0[0x4];
+    byte  field_4; // address taken by func_8001D39C
+    byte  unknown_5;
     u8    field_6;
     u8    field_7;
     byte  unknown_8[0x4];
     void* field_C[16]; // 0xC..0x4B; cleared by func_8002D780
-    byte  unknown_4C[0xF0];
+    byte  unknown_4C[0x30];
+    s16   field_7C;
+    byte  unknown_7E[0xBE];
 } GStruct14;
 STATIC_ASSERT_SIZEOF(GStruct14, 0x13C);
 

@@ -324,6 +324,10 @@ extern GStruct11* D4CB64_ImgBuffers;
 extern GStruct14* D4F564_8005ED64;
 extern s32        D_8005ED68;
 
+extern u16* D_8005C36C;
+
+extern s16 func_80020394(void* arg0);
+
 // 58028
 extern u8 D58028_SpuTimerEnabled;
 
