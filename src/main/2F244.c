@@ -192,7 +192,29 @@ void func_80041E4C(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_80041EB4);
+void func_80041EB4(void)
+{
+    GStruct27* node;
+    void* mem;
+
+    node = D_800711B8;
+    Mem_InitAux();
+    func_8001BB7C();
+    while (node != NULL) {
+        if (node->field_18 == NULL) {
+            if (!(node->field_C & 4)) {
+                mem = Mem_Calloc(node->field_10->field_4 * 2, 1);
+                if (mem != NULL) {
+                    node->field_18 = mem;
+                    node->field_14 = 0;
+                    func_800410F0(node);
+                    func_800410F0(node);
+                }
+            }
+        }
+        node = node->next;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_80041F58);
 

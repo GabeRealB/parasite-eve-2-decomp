@@ -32,6 +32,7 @@ extern bool F04CF8_StageCdfIsAvailable(u32 stageIdx);
 extern void func_8002D248(GStruct0Node* node);
 
 // C37C.c
+extern void func_8001BB7C(void);
 extern void func_8001BE60(void);
 extern void func_8001C0D4(void);
 extern void func_8001C620(void);
@@ -254,6 +255,7 @@ extern void func_8003DE14(s32 arg0, s32 arg1, s32 arg2);
 extern void func_8003DE78(s8 arg0);
 extern void func_8003EE68(void);
 extern void func_8003F450(s32 arg0);
+extern void func_800410F0(GStruct27* arg0);
 extern void func_8004CC58(s32 arg0);
 extern void func_8004CFC8(void);
 extern void F3D458_ResetHeap(void);

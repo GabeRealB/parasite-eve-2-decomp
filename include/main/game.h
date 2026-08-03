@@ -388,6 +388,13 @@ typedef struct _GStruct26 {
 } GStruct26;
 STATIC_ASSERT_SIZEOF(GStruct26, 0x4);
 
+/// Source/model data pointed to by GStruct27::field_10 (see func_80041700).
+/// field_4 is used as a byte-count for aux-heap allocations (calloc size * 2).
+typedef struct _GStruct33 {
+    /* 0x00 */ byte unknown_0[0x4];
+    /* 0x04 */ s32  field_4;
+} GStruct33;
+
 /// Node in the D_800711B8 linked list (2F244.c TMD/model objects).
 /// Header is 0x34 bytes with a variable payload after. Fields from func_80041700
 /// init and related free/alloc helpers (func_80041B4C, func_80041B88, etc.).
@@ -398,7 +405,7 @@ typedef struct _GStruct27 {
     /* 0x0C */ u16                field_C;
     /* 0x0E */ s8                 field_E;
     /* 0x0F */ byte               unknown_F;
-    /* 0x10 */ void*              field_10;
+    /* 0x10 */ GStruct33*         field_10;
     /* 0x14 */ u16                field_14;
     /* 0x16 */ u16                field_16;
     /* 0x18 */ void*              field_18;
