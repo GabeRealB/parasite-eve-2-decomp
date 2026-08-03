@@ -33,7 +33,22 @@ void func_8002FEAC(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, v
 
 INCLUDE_ASM("main/nonmatchings/201E0", func_8002FEE0);
 
-INCLUDE_ASM("main/nonmatchings/201E0", func_80030074);
+void func_80030074(void)
+{
+    RECT rect;
+
+    rect.x = 0x100;
+    rect.y = 0xF3;
+    rect.w = 0x40;
+    rect.h = 1;
+    LoadImage(&rect, D_80060910);
+
+    rect.x = 0x3D0;
+    rect.y = 0x1FF;
+    rect.w = 0x30;
+    rect.h = 1;
+    LoadImage(&rect, D_800609B0);
+}
 
 INCLUDE_ASM("main/nonmatchings/201E0", func_800300EC);
 

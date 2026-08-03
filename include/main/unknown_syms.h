@@ -125,6 +125,9 @@ extern u16 D_80072AA8;
 // 201E0.c
 extern s32  func_8002FCBC(u8* arg0);
 extern void func_80030074(void);
+// Image data uploaded to VRAM by func_80030074
+extern u_long D_80060910[];
+extern u_long D_800609B0[];
 
 // 32B64.c
 extern void func_80042364(s32 arg0, s32 arg1, s32 arg2);
