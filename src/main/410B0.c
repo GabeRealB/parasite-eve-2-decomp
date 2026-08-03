@@ -345,7 +345,44 @@ void func_80053280(u8 arg0, void* arg1) {
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_800532CC);
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_8005333C);
+s32 func_8005333C(void* arg0) {
+    GStruct34* temp_s1;
+    s32 temp_s0;
+
+    if (D_80068A78 != 0) {
+        return -1;
+    }
+    temp_s1 = &D_800820F0;
+    if (temp_s1->field_3 != 0) {
+        temp_s1->field_10 = 0x800;
+    } else {
+        switch (temp_s1->field_2) {
+        case 0:
+        case 1:
+        case 3:
+            temp_s1->field_10 = 0x7F0;
+            arg0 = (u8*)arg0 + 0x10;
+            break;
+        case 2:
+        case 4:
+        case 7:
+            temp_s1->field_10 = 0x800;
+            break;
+        case 5:
+            return 5;
+        case 8:
+            return 0;
+        }
+    }
+    temp_s0 = func_80052B30(arg0);
+    if (temp_s0 == 7) {
+        return -1;
+    }
+    if (temp_s0 == 5) {
+        func_800530DC(temp_s1);
+    }
+    return temp_s0;
+}
 
 s32 func_80053414(void* arg0) {
     s32 temp;

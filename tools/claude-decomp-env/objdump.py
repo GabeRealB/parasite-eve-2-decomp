@@ -114,6 +114,10 @@ def process_mips_reloc(reloc_row: str, repl: str, imm: str) -> str:
         return f"%hi({repl})"
     elif "R_MIPS_26" in reloc_row:
         return repl
+    elif "R_MIPS_PC16" in reloc_row:
+        return repl
+    elif "R_MIPS_32" in reloc_row:
+        return repl
     else:
         raise Exception(f"unknown relocation type '{reloc_row}'")
 
