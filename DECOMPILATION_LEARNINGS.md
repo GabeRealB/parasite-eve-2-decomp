@@ -1900,3 +1900,20 @@ var = (s32)((u32)(var * scale) / 65535);
 
 `func_8004D298` is the pure example (GStruct55 linear interpolator scale).
 
+
+## GStruct43 voice list (owner GStruct57)
+
+`func_800562B4` inserts a `GStruct43` at the head of a doubly-linked list owned
+by `GStruct57`:
+
+| Offset | Role |
+|--------|------|
+| owner `+0x40` | list head (`GStruct43*`) |
+| node `+0x34` | parent owner (`GStruct57*`) |
+| node `+0x38` | prev |
+| node `+0x3C` | next |
+
+Insert-at-head: if head exists, rewire `new->next = old`, `old->prev = new`,
+`new->prev = NULL`, `owner->head = new`, `new->parent = owner`. If owner is
+NULL, only clear the node's three link fields. Pair with `func_80056068`
+(unlink/free) and `func_800563B4` (walk via `+0x3C`).

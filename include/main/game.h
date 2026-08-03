@@ -547,16 +547,27 @@ typedef struct _GStruct31 {
 } GStruct31;
 STATIC_ASSERT_SIZEOF(GStruct31, 0x10);
 
+/// Owner of a doubly-linked GStruct43 voice list (head at field_40).
+/// Insert: func_800562B4; unlink: func_80056068; walk: func_800563B4.
+typedef struct _GStruct43 GStruct43;
+typedef struct _GStruct57 {
+    /* 0x00 */ u8         unknown_0[0x40];
+    /* 0x40 */ GStruct43* field_40;
+} GStruct57;
+STATIC_ASSERT_SIZEOF(GStruct57, 0x44);
+
 /// Voice/FX object carved from D_80082148 with stride 0x40 (func_80056240).
 /// field_0 is the SPU voice index; field_8 is a small state flag.
-/// func_80056068 walks link fields at 0x34/0x38/0x3C on free.
-typedef struct _GStruct43 {
-    /* 0x00 */ s8  field_0;
-    /* 0x01 */ u8  unknown_01[0x7];
-    /* 0x08 */ s16 field_8;
-    /* 0x0A */ u8  unknown_0A[0x2A];
-    /* 0x34 */ u8  unknown_34[0xC];
-} GStruct43;
+/// field_34/field_38/field_3C are parent/prev/next list links (func_80056068 free).
+struct _GStruct43 {
+    /* 0x00 */ s8         field_0;
+    /* 0x01 */ u8         unknown_01[0x7];
+    /* 0x08 */ s16        field_8;
+    /* 0x0A */ u8         unknown_0A[0x2A];
+    /* 0x34 */ GStruct57* field_34;
+    /* 0x38 */ GStruct43* field_38;
+    /* 0x3C */ GStruct43* field_3C;
+};
 STATIC_ASSERT_SIZEOF(GStruct43, 0x40);
 
 /// State block at D_800820F0; field_3 is also D_800820F3.
