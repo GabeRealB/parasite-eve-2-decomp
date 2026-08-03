@@ -1002,3 +1002,39 @@ Note also that `D_80082148` is walked two ways: as `GStruct31[16]` (stride
 `0x10`, via `func_800561C0` / `func_800561EC`) and as `GStruct43` slots
 (stride `0x40`, via `func_80056240`). Cast the base rather than changing
 `GStruct31`.
+
+## Two-step table index for early `lw` into `$a0`
+
+When the target loads `table[i]` into `$a0` *before* scaling `j`, then adds:
+
+```
+lw   a0, 0(v1)     /* a0 = table[i] */
+sll  v0, a1, 1
+addu v0, v0, a1
+sll  v0, v0, 2
+j    merge
+ addu a0, a0, v0   /* a0 = table[i] + j * stride */
+```
+
+a single expression (`D_8005EF74[arg0] + arg1` or `&D_8005EF74[arg0][arg1]`)
+schedules the multiply first and loads into `$v1` instead, breaking the match.
+
+Split the load from the index:
+
+```c
+GStruct2* ptr;
+
+if (arg0 >= 0) {
+    ptr = D_8005EF74[arg0];
+    ptr = &ptr[arg1];
+} else {
+    ptr = (GStruct2*)arg1;
+}
+return func_8002CB04(ptr, arg2, arg3, D_800716D8);
+```
+
+Also: use `if (arg0 >= 0)` (not `arg0 < 0`) so the fall-through is the table
+path and the branch is `bltz` to the cast path — that matches the shared
+post-merge arg shuffle (`a1=a2`, `a2=saved a3`, `a3=D_800716D8`) of
+`func_8002CFDC`. Dual early returns force separate call setup and reg-shuffle
+the args too early.

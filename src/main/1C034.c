@@ -139,7 +139,18 @@ GStruct0* func_8002CFA0(GStruct2* arg0, s32 arg1, s32 arg2, s32 arg3)
     return func_8002CB04(&arg0[arg1], arg2, arg3, D_800716D8);
 }
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002CFDC);
+GStruct0* func_8002CFDC(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    GStruct2* ptr;
+
+    if (arg0 >= 0) {
+        ptr = D_8005EF74[arg0];
+        ptr = &ptr[arg1];
+    } else {
+        ptr = (GStruct2*)arg1;
+    }
+    return func_8002CB04(ptr, arg2, arg3, D_800716D8);
+}
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002D03C);
 
