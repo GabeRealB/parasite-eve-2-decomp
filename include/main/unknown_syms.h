@@ -89,6 +89,7 @@ extern void F12D18_StopCd(void);
 extern void func_80025C94(u8 status, u8* result);
 extern void F16494_ResetSpuAttr(void);
 extern void func_800260B0(s32 arg0);
+extern void func_80026218(u16 arg0);
 
 // 179D4.c
 extern void func_80027498(void);
@@ -261,6 +262,7 @@ extern void func_80057B88(s32 arg0, s32 arg1);
 extern s32  func_80057BC0(void);
 extern void func_80057D24(void);
 extern u8   D_80068A80[];
+extern u8   D_80068AF0[];
 extern s16  D_80068B28[];
 
 // 43FFC.c
