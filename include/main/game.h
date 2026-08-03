@@ -333,15 +333,23 @@ typedef struct _GStruct20 {
 } GStruct20;
 STATIC_ASSERT_SIZEOF(GStruct20, 0x24);
 
-/// Second argument to memcard/save state handlers in 21FDC.c (e.g. func_80035AD4).
-/// Larger object; only fields used so far are named.
+/// Second argument to memcard/save state handlers in 21FDC.c (e.g. func_80035AD4,
+/// func_80034070). Larger object; only fields used so far are named.
 typedef struct _GStruct21 {
-    /* 0x00 */ byte unknown_0[0x4];
-    /* 0x04 */ s32  field_4;
-    /* 0x08 */ s32  field_8;
-    /* 0x0C */ byte unknown_c[0x18];
-    /* 0x24 */ s32  field_24;
-    /* 0x28 */ s32  field_28;
+    /* 0x000 */ s32  field_0;
+    /* 0x004 */ s32  field_4;
+    /* 0x008 */ s32  field_8;
+    /* 0x00C */ s32  field_C;
+    /* 0x010 */ byte unknown_10[0x8];
+    /* 0x018 */ s32  field_18;
+    /* 0x01C */ byte unknown_1C[0x8];
+    /* 0x024 */ s32  field_24;
+    /* 0x028 */ s32  field_28;
+    /* 0x02C */ s32  field_2C;
+    /* 0x030 */ byte unknown_30[0x9E8];
+    /* 0xA18 */ s32  field_A18;
+    /* 0xA1C */ s32  field_A1C;
+    /* 0xA20 */ s32  field_A20;
 } GStruct21;
 
 /// 8-byte slot at GStruct22::field_484 (16 entries, indexed by opcode low nibble).
