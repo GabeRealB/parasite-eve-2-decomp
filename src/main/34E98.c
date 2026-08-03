@@ -140,7 +140,20 @@ INCLUDE_ASM("main/nonmatchings/34E98", func_80049348);
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80049478);
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80049554);
+void func_80049554(GStruct30* arg0, void* arg1)
+{
+    if (arg0->field_16 == 0) {
+        arg0->field_16 = 9;
+        arg0->field_8 += 1;
+        func_800495B4(arg0, arg1);
+    } else {
+        if (arg0->field_16 > 0) {
+            arg0->field_16 += 9;
+        }
+        arg0->field_8 = 5;
+        func_800497F4(arg0, arg1);
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_800495B4);
 

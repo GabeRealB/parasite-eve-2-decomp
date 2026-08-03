@@ -416,6 +416,15 @@ typedef struct _GStruct29 {
     /* 0x28 */ GStruct28* field_28;
 } GStruct29;
 
+/// Object used by 34E98.c handlers (e.g. func_80049554 / D_80013F2C table).
+/// field_8 is a small integer state; field_16 is a signed counter/timer.
+typedef struct _GStruct30 {
+    /* 0x00 */ byte unknown_0[0x8];
+    /* 0x08 */ s32  field_8;
+    /* 0x0C */ byte unknown_C[0xA];
+    /* 0x16 */ s16  field_16;
+} GStruct30;
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 
