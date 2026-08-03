@@ -721,6 +721,14 @@ typedef struct _GStruct44 {
 } GStruct44;
 STATIC_ASSERT_SIZEOF(GStruct44, 0x14);
 
+/// Buffer with a 16-bit sum / ones-complement pair at the head and a payload
+/// starting at offset 4. Written by `func_80033A28`.
+typedef struct _GStruct47 {
+    /* 0x0 */ s16 field_0;
+    /* 0x2 */ s16 field_2;
+    /* 0x4 */ u8  field_4[1];
+} GStruct47;
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 
