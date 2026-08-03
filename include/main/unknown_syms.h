@@ -106,7 +106,7 @@ extern void      func_8002C9E0(s32 arg0);
 extern void      func_8002CCB8(GStruct0* arg0);
 extern GStruct0*     func_8002CB04(GStruct2* arg0, s32 arg1, s32 arg2, GStruct0Node* arg3);
 extern GStruct0*     func_8002CFA0(GStruct2* arg0, s32 arg1, s32 arg2, s32 arg3);
-extern void          func_8002CFDC(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+extern GStruct0*     func_8002CFDC(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 extern GStruct0Node* func_8002D40C(void);
 extern void          func_8002D41C(GStruct0Node* node);
 extern void          func_8002D248(GStruct0Node* node);
