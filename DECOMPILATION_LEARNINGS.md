@@ -2129,3 +2129,51 @@ if (flag == 1) {
 
 Declare the flag as `s8` (not plain `char` / `u8`) so the load is `lb`,
 matching the target. `func_8002BD24` (`D_80072311`) is the example.
+
+## Dual `return -1` paths: early-exit reuses a preloaded `$v0`
+
+When the target does:
+
+```
+li   v0, -1
+beq  cond, v0, L_early   # early exit reuses this -1
+...
+bne  other, ..., L_fail
+ nop
+... success: return 1 ...
+L_fail:
+jr   ra
+ li  v0, -1              # separate failure path reloads -1
+L_early:
+jr   ra
+ nop                     # $v0 already -1
+```
+
+writing the natural early-exit first:
+
+```c
+if (cond == -1) {
+    return -1;
+}
+if (other != magic) {
+    return -1;
+}
+return 1;
+```
+
+merges both failures: the compiler puts `li v0,-1` in the second branch's
+delay slot and drops the trailing reload. Invert the first test so the
+success/fail body is nested and each `return -1` stays a separate exit:
+
+```c
+if (cond != -1) {
+    if (other == magic) {
+        /* work */
+        return 1;
+    }
+    return -1; /* L_fail */
+}
+return -1;     /* L_early — reuses preloaded $v0 */
+```
+
+`func_8005664C` is a pure example.

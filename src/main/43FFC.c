@@ -452,7 +452,21 @@ INCLUDE_ASM("main/nonmatchings/43FFC", func_800564C4);
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_800565B8);
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_8005664C);
+s32 func_8005664C(u8* arg0, s16 arg1, GStruct59* arg2)
+{
+    GStruct58* chunk;
+
+    if (arg1 != -1) {
+        chunk = (GStruct58*)&arg0[arg1];
+        if (chunk->field_0 == 0x41656E6F) {
+            arg2->field_3A = chunk->field_4;
+            arg2->field_3C = chunk->field_6;
+            return 1;
+        }
+        return -1;
+    }
+    return -1;
+}
 
 void func_800566A4(void)
 {

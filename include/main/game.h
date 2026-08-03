@@ -838,6 +838,23 @@ typedef struct _GStruct56 {
 } GStruct56;
 STATIC_ASSERT_SIZEOF(GStruct56, 0x14);
 
+/// "oneA" (0x41656E6F) tagged chunk header read by func_8005664C.
+/// Located at a signed byte offset into a raw buffer.
+typedef struct _GStruct58 {
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ u16 field_4;
+    /* 0x6 */ u16 field_6;
+} GStruct58;
+STATIC_ASSERT_SIZEOF(GStruct58, 0x8);
+
+/// Destination for func_8005664C: receives halfwords from a GStruct58 chunk.
+typedef struct _GStruct59 {
+    /* 0x00 */ u8  pad_00[0x3A];
+    /* 0x3A */ u16 field_3A;
+    /* 0x3C */ u16 field_3C;
+} GStruct59;
+STATIC_ASSERT_SIZEOF(GStruct59, 0x3E);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 
