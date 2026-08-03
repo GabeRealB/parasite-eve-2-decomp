@@ -48,7 +48,21 @@ s32 func_8003F848(void)
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_8003F86C);
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8003F900);
+s32 func_8003F900(void)
+{
+    GStruct17* temp;
+    u8 temp_a0;
+
+    temp = D_80062698;
+    temp_a0 = temp->field_17;
+    if (temp_a0 == 0) {
+        return 0;
+    }
+    if (temp_a0 >= temp->field_1a) {
+        return 1;
+    }
+    return -1;
+}
 
 s32 func_8003F944(void)
 {
