@@ -182,7 +182,42 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_80034C54);
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80034D50);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80034E3C);
+void func_80034E3C(GStruct0* arg0, GStruct21* arg1)
+{
+    s32        syncResult;
+    s32        rslt;
+    GStruct0*  child;
+    GStruct37* obj;
+    GStruct37* flag;
+
+    arg1->field_8 = 0x13;
+    if (func_8003092C(arg0, 0x13, arg1->field_0) != 0) {
+        arg0->field_30 = 0x13;
+        return;
+    }
+    syncResult = MemCardSync(1, (long*)&arg1->field_10, (long*)&arg1->field_14);
+    switch (syncResult) {
+    case -1:
+        MemCardExist(arg1->field_C);
+        return;
+    case 1:
+        rslt = arg1->field_14;
+        if (rslt == syncResult) {
+            child = arg0->field_c;
+            if (child != NULL) {
+                obj  = child->field_20;
+                flag = arg0->field_20;
+                obj->field_0 = 0;
+                func_80048838(obj, obj->field_28);
+                flag->field_0 = rslt;
+            }
+            arg0->field_30 = 0x14;
+        }
+        return;
+    case 0:
+        return;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80034F2C);
 
