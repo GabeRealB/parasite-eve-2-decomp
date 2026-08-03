@@ -45,6 +45,8 @@ extern void func_8001D2B0(s32 arg0, u8* arg1, u8* arg2);
 extern u16  func_8001D344(void);
 extern u16  func_8001D37C(s16 arg0);
 extern void func_8001D588(void);
+extern void func_8001D628(void);
+extern void func_8001D6FC(s32 arg0, u8* arg1, u8* arg2);
 extern u16  func_8001D82C(void);
 extern void func_8001DB84(void);
 extern void F0C37C_ClearD80068FA0(void);

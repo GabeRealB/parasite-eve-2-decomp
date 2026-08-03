@@ -90,7 +90,17 @@ void func_8001D5C4(void)
 
 INCLUDE_ASM("main/nonmatchings/C37C", func_8001D5CC);
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001D628);
+void func_8001D628(void)
+{
+    GStruct3* p;
+    u8        sp10;
+
+    p = &D_80068FA0;
+    if (p->field_21A >= 0) {
+        sp10 = p->field_21A;
+        func_8001D6FC(0x81, 0, &sp10);
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/C37C", func_8001D66C);
 
