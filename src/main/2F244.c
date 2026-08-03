@@ -17,7 +17,11 @@ INCLUDE_ASM("main/nonmatchings/2F244", func_8003F5A4);
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_8003F690);
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8003F6F8);
+s32 func_8003F6F8(void)
+{
+    D_80062698->field_1c |= 0x80000000;
+    return 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_8003F71C);
 
