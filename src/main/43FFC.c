@@ -148,7 +148,20 @@ void func_800542D0(s32 arg0, s32 arg1) {
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80054334);
+void func_80054334(s32 arg0) {
+    GStruct16* temp;
+    GStruct16From4* mid;
+
+    if (D_80082138[(u32)arg0 >> 28] != 0) {
+        temp = func_800509F4();
+        if (temp != NULL) {
+            temp->field_2 = 8;
+            mid = (GStruct16From4*)&temp->field_4;
+            mid->field_4 = func_80053F00(arg0);
+            func_80050A38(temp);
+        }
+    }
+}
 
 void func_800543AC(s32 arg0) {
     GStruct16* temp;
