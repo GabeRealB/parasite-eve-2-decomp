@@ -2,6 +2,10 @@
 
 #include "main/game.h"
 
+#include <psyq/inline_c.h>
+
+#define gte_rtv0sf0() __asm__ volatile("nop; nop; .word 0x4A406012")
+
 INCLUDE_ASM("main/nonmatchings/2C160", func_8003B960);
 
 INCLUDE_ASM("main/nonmatchings/2C160", func_8003BD34);
@@ -61,4 +65,12 @@ INCLUDE_ASM("main/nonmatchings/2C160", func_8003CD78);
 
 INCLUDE_ASM("main/nonmatchings/2C160", func_8003CEC4);
 
-INCLUDE_ASM("main/nonmatchings/2C160", func_8003D000);
+s32 func_8003D000(SVECTOR* arg0, SVECTOR* arg1) {
+    s32 result;
+
+    gte_ldsvrtrow0(arg0);
+    gte_ldv0(arg1);
+    gte_rtv0sf0();
+    gte_stlvnl0(&result);
+    return result;
+}

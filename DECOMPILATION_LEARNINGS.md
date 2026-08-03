@@ -853,3 +853,22 @@ for (; i <= 0; i++) {
 
 The element type must be size `0x5DC` (logical stride). BSS for `D_8007F300` is
 still `0x5E0` (4 bytes of tail padding after the logical block).
+
+## GTE inline macros: real COP2 opcodes, not DMPSX encodings
+
+`include/psyq/inline_c.h` is DMPSX-oriented. Load/store helpers
+(`gte_ldv0`, `gte_ldsvrtrow0`, `gte_stlvnl0`, `gte_SetRotMatrix`, …) emit real
+MIPS `lwc2`/`ctc2`/`swc2` and match as-is. Command macros (`gte_rtv0`,
+`gte_mvmva`, …) emit DMPSX placeholder `.word 0x00000xxx` values that this
+toolchain never rewrites — they assemble to the wrong instruction.
+
+For GTE *commands*, emit the real COP2 word:
+
+```c
+/* mvmva sf=0, mx=0 (rot), v=0 (V0), cv=3 (none), lm=0 → 0x4A406012 */
+#define gte_rtv0sf0() __asm__ volatile("nop; nop; .word 0x4A406012")
+```
+
+`func_8003D000` is the template: `gte_ldsvrtrow0` + `gte_ldv0` + custom
+command + `gte_stlvnl0`. Standard `gte_rtv0` is `mvmva 1,0,0,3,0`
+(`0x4A486012`); the sf=0 variant drops the 12-bit shift (`0x4A406012`).
