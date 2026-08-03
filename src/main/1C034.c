@@ -8,7 +8,17 @@ INCLUDE_ASM("main/nonmatchings/1C034", func_8002B834);
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002BA9C);
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002BB9C);
+void func_8002BB9C(void)
+{
+    u8* ptr;
+    u32 i;
+
+    ptr = (u8*)D4F564_8005ED64;
+    for (i = 0; i < sizeof(GStruct14); i++) {
+        *ptr++ = 0;
+    }
+    D_80070F68.field_101 = 0;
+}
 
 void func_8002BBC8(void)
 {
