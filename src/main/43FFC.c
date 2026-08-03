@@ -254,7 +254,16 @@ INCLUDE_ASM("main/nonmatchings/43FFC", func_80055C8C);
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80055CE0);
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80055D78);
+void func_80055D78(s8 arg0) {
+    if (arg0 < 0) {
+        D_8008274B = -1;
+        return;
+    }
+    D_8008274B = arg0;
+    if (arg0 == 0) {
+        D_8008274B = 1;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80055DAC);
 
