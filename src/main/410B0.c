@@ -311,7 +311,12 @@ void func_8005325C(void* arg0) {
     func_8005363C(8, arg0);
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80053280);
+void func_80053280(u8 arg0, void* arg1) {
+    D_800820F3 = arg0;
+    D_8008212C = D_80082122;
+    D_80082121 = D_80082135;
+    func_8005363C(0, arg1);
+}
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_800532CC);
 
