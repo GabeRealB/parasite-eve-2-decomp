@@ -167,6 +167,7 @@ extern void*      F3D458_Malloc(size_t);
 extern void       F3D458_Free(void* ptr);
 extern void       func_8004D0F0(GStruct42* arg0);
 extern GStruct42* func_8004D150(u16 arg0);
+extern void       func_8004D19C(GStruct42* arg0);
 extern void       func_8004D200(GStruct55* arg0, s32 arg1, s32 arg2, s32 arg3);
 extern s32        func_8004D820(void);
 extern void       func_8004D8BC(void);

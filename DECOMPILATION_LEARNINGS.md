@@ -1794,3 +1794,33 @@ parent->field_0 = 3;   /* sb …, -0x14(s0) */
 instead of a folded `lhu a1, -0x12(s0)`.
 
 `func_80057B24` is the pure example (`D_800827B4` / `D_800827A0`).
+
+## Pre-advance a walk pointer before the loop bound check
+
+When the target puts `addiu ptr, ptr, stride` in the **delay slot of `blez`**
+(the loop-entry guard) and only then does `i = count - 2` / the empty-loop
+`beq i, -1`, write the pointer advance *before* the `if (count - 1 > 0)` test:
+
+```c
+/* BAD — GCC puts i = count-2 in the blez delay, table++ in the later beq delay */
+i = count - 1;
+if (i > 0) {
+    table++;
+    i = count - 2;
+    if (i != -1) { do { ... } while (i != -1); }
+}
+
+/* GOOD — table++ fills the blez delay slot */
+table++;
+i = count - 1;
+if (i > 0) {
+    i = count - 2;
+    if (i != -1) { do { ... } while (i != -1); }
+}
+```
+
+The advance is a no-op on the early-return path (local only). Same shape as the
+classic countdown `for (i = n - 2; i != -1; i--)` body; only the hoist of the
+pointer step matters.
+
+`func_8004D19C` is the pure example (u16 prefix table + 4-byte group headers).

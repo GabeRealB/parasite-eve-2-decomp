@@ -193,7 +193,33 @@ GStruct42* func_8004D150(u16 arg0)
     return NULL;
 }
 
-INCLUDE_ASM("main/nonmatchings/3D458", func_8004D19C);
+void func_8004D19C(GStruct42* arg0)
+{
+    u16*            table;
+    GStruct42Group* data;
+    s32             i;
+    u8              count;
+
+    table = arg0->field_10;
+    if (table != NULL) {
+        data   = arg0->field_0;
+        *table = 0;
+        count  = arg0->field_B;
+        table++;
+        i = count - 1;
+        if (i > 0) {
+            i = count - 2;
+            if (i != -1) {
+                do {
+                    *table = table[-1] + data->field_0;
+                    data++;
+                    i--;
+                    table++;
+                } while (i != -1);
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/3D458", func_8004D200);
 

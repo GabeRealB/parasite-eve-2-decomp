@@ -676,19 +676,31 @@ typedef struct _GStruct41 {
 } GStruct41;
 STATIC_ASSERT_SIZEOF(GStruct41, 0x14);
 
+/// 4-byte group header at the start of a GStruct42 heap block (field_0).
+/// field_0 is the group size; func_8004D19C prefix-sums these into field_10.
+typedef struct _GStruct42Group {
+    /* 0x0 */ u8 field_0;
+    /* 0x1 */ u8 pad[3];
+} GStruct42Group;
+STATIC_ASSERT_SIZEOF(GStruct42Group, 0x4);
+
 /// Sound bank header used by func_8004EA60 (and D_8007E0D8 entries, stride 0x20).
-/// field_4 is the base of GStruct41 entries; field_10 is a u16 index table.
-/// field_8 high nibble 0xF marks the slot free/invalid (see func_8004D0A0 / func_8004D0F0).
-/// field_1C is a heap allocation released by func_8004D0F0.
+/// field_0 points at GStruct42Group entries; field_4 is the base of GStruct41
+/// entries; field_10 is a u16 prefix-sum index table built by func_8004D19C.
+/// field_B is the group count. field_8 high nibble 0xF marks the slot free/invalid
+/// (see func_8004D0A0 / func_8004D0F0). field_1C is a heap allocation released by
+/// func_8004D0F0.
 typedef struct _GStruct42 {
-    /* 0x00 */ void*      field_0;
-    /* 0x04 */ GStruct41* field_4;
-    /* 0x08 */ u16        field_8;
-    /* 0x0A */ byte       unknown_A[0x6];
-    /* 0x10 */ u16*       field_10;
-    /* 0x14 */ void*      field_14;
-    /* 0x18 */ byte       unknown_18[0x4];
-    /* 0x1C */ void*      field_1C;
+    /* 0x00 */ GStruct42Group* field_0;
+    /* 0x04 */ GStruct41*      field_4;
+    /* 0x08 */ u16             field_8;
+    /* 0x0A */ u8              field_A;
+    /* 0x0B */ u8              field_B;
+    /* 0x0C */ byte            unknown_C[0x4];
+    /* 0x10 */ u16*            field_10;
+    /* 0x14 */ void*           field_14;
+    /* 0x18 */ byte            unknown_18[0x4];
+    /* 0x1C */ void*           field_1C;
 } GStruct42;
 STATIC_ASSERT_SIZEOF(GStruct42, 0x20);
 
