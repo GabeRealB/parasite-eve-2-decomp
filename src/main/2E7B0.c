@@ -43,7 +43,28 @@ INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E610);
 
 INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E64C);
 
-INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E698);
+s32 func_8003E698(void) {
+    s32 temp;
+
+    temp = D_8007A118;
+    if (temp == 2) {
+        goto case2;
+    }
+    if (temp < 3) {
+        goto default_case;
+    }
+    if (temp == 3) {
+        goto case3;
+    }
+    goto default_case;
+case2:
+    return 4;
+case3:
+    return 6;
+default_case:
+    return D_80070F68.field_1d;
+}
+
 
 INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E6E4);
 

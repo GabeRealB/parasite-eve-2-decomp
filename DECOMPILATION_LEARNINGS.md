@@ -762,3 +762,50 @@ definition still matches the callee body for 0/1 results, but call sites then
 lose the `sll`. `E734_CDIsShellOpenBitSet` was retyped from `bool` to `s16` so
 `func_8001E6AC` (and other CD helpers that already had the `sll` in target asm)
 match at the call site.
+
+## Two-case switch may drop the `slti` range check
+
+A target of the form:
+
+```
+beq  x, 2, case2
+slti t, x, 3
+bnez t, default      /* x < 3 → default */
+li   t, 3
+beq  x, t, case3
+j    default
+case2 / case3 / default bodies...
+```
+
+looks like `switch (x) { case 2: ...; case 3: ...; default: ... }`, but GCC
+2.8.1 with only those two cases often emits a plain equality chain *without*
+the `slti`/`bnez` range check (delay slot of the first `beq` becomes `li 3`
+instead). Score sits ~83% with identical case bodies.
+
+Force the target layout with an explicit decision tree and gotos so each
+comparison is a positive branch to a late body:
+
+```c
+s32 temp = x;
+if (temp == 2) {
+    goto case2;
+}
+if (temp < 3) {
+    goto default_case;
+}
+if (temp == 3) {
+    goto case3;
+}
+goto default_case;
+case2:
+    return 4;
+case3:
+    return 6;
+default_case:
+    return other;
+}
+```
+
+`func_8003E698` needs this. Adding dummy cases (0/1) that share the default
+body brings back `slti` but also inserts extra `bltz`/duplicate labels — not a
+full match.

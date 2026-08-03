@@ -343,6 +343,7 @@ extern u16 D_8006AC04;
 extern GStruct0Node* D_800716D8;
 extern GStruct0Node  D_800716E0;
 extern GStruct0Node  D_8007A110;
+extern s32           D_8007A118;
 extern s32           D_8007A358;
 extern s16           D_8007A35C;
 extern void*         D_8007A360;
