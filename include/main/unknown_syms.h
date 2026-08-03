@@ -147,8 +147,12 @@ extern s32  func_8002FCBC(u8* arg0);
 extern void func_80030074(void);
 
 // 32B64.c
+extern void func_80042364(s32 arg0, s32 arg1, s32 arg2);
 extern s32  func_80042500(void);
 extern void func_800429C8(s32 arg0);
+
+// overlay / high-address (called from 2F244.c)
+extern void func_800ACAA8(void);
 
 // 34E98.c
 extern void func_80046B34(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5, s32 arg6);

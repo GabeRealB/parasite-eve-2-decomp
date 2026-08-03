@@ -155,7 +155,28 @@ void func_8003FCF8(GStruct0* arg0)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8003FD58);
+void func_8003FD58(GStruct0* arg0)
+{
+    u32 temp_v1;
+
+    D_80070F68.field_103 = 2;
+    temp_v1 = D_80062698->field_C;
+    if (temp_v1 < 5U) {
+        if (temp_v1 < 3U) {
+            if (temp_v1 != 1) {
+                goto block_3;
+            }
+        }
+    } else {
+block_3:
+        func_800144F8(D4F564_8005ED64->field_7, D4F564_8005ED64->field_6);
+        func_80041EB4();
+        func_800ACAA8();
+    }
+    func_80042364(0, 0, 4);
+    arg0->field_30 = (s32)(arg0->field_30 + 1);
+    func_8003FE00(arg0);
+}
 
 void func_8003FE00(GStruct0* arg0)
 {
