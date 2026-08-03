@@ -3,6 +3,7 @@
 #include <psyq/libmcrd.h>
 
 #include "main/game.h"
+#include "main/mem.h"
 #include "main/unknown_syms.h"
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_800317DC);
@@ -62,7 +63,30 @@ void func_80033A70(void)
     func_800429C8(0);
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80033AB8);
+void func_80033AB8(void)
+{
+    u8 (*a)[0x6C];
+    u8 (*b)[0xB0];
+    u8 (*c)[0x24];
+    u8 (*d)[0xE4];
+    u8 (*e)[0xA4];
+
+    a = D_800733F0;
+    Mem_Set(a, 0, 0x6C);
+    b = D_800734C8;
+    Mem_Set(b, 0, 0xB0);
+    c = D_80073628;
+    Mem_Set(c, 0, 0x24);
+    d = D_80073670;
+    Mem_Set(d, 0, 0xE4);
+    e = D_80073838;
+    Mem_Set(e, 0, 0xA4);
+    Mem_Set(a + 1, 0xFF, 0x6C);
+    Mem_Set(b + 1, 0xFF, 0xB0);
+    Mem_Set(c + 1, 0xFF, 0x24);
+    Mem_Set(d + 1, 0xFF, 0xE4);
+    Mem_Set(e + 1, 0xFF, 0xA4);
+}
 
 // TODO
 void func_80033BBC(void)

@@ -442,6 +442,11 @@ extern GStruct5  D_800710A8;
 
 // 61F10
 extern GStruct23 D_80072168;
+extern u8        D_800733F0[2][0x6C];
+extern u8        D_800734C8[2][0xB0];
+extern u8        D_80073628[2][0x24];
+extern u8        D_80073670[2][0xE4];
+extern u8        D_80073838[2][0xA4];
 extern GStruct40 D_80073B88;
 
 // 61CC0
