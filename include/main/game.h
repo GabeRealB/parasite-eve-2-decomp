@@ -440,12 +440,15 @@ typedef struct _GStruct29 {
 } GStruct29;
 
 /// Object used by 34E98.c handlers (e.g. func_80049554 / D_80013F2C table).
-/// field_8 is a small integer state; field_16 is a signed counter/timer.
+/// field_8 is a small integer state; field_16 is a signed counter/timer;
+/// field_24 is a callback invoked with the second handler argument.
 typedef struct _GStruct30 {
     /* 0x00 */ byte unknown_0[0x8];
     /* 0x08 */ s32  field_8;
     /* 0x0C */ byte unknown_C[0xA];
     /* 0x16 */ s16  field_16;
+    /* 0x18 */ byte unknown_18[0xC];
+    /* 0x24 */ void (*field_24)(void*);
 } GStruct30;
 
 /// 16-byte slot in D_80082148[16] (BSS size 0x100). Indexed by func_800561C0
