@@ -112,7 +112,14 @@ void func_8005BB9C(void)
     D_80082818.field_6 = 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005BBB0);
+void func_8005BBB0(s32 arg0)
+{
+    if ((s8)arg0) {
+        D_80082818.field_53 = D_80082818.field_53 | 2;
+    } else {
+        D_80082818.field_53 = D_80082818.field_53 & 0xFD;
+    }
+}
 
 void func_8005BBF4(void)
 {
