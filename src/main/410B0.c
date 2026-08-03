@@ -402,7 +402,20 @@ void func_80053280(u8 arg0, void* arg1) {
     func_8005363C(0, arg1);
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_800532CC);
+void func_800532CC(void) {
+    GStruct34* temp;
+
+    D_80082122 = D_8008212C;
+    D_80082135 = D_80082121;
+    temp = &D_800820F0;
+    if (temp->field_2 != 6) {
+        temp->field_2 = 8;
+        F3D458_Free((void*)temp->field_14);
+        temp->field_14 = 0;
+        func_8004D0F0((GStruct42*)temp->field_18);
+        temp->field_18 = 0;
+    }
+}
 
 s32 func_8005333C(void* arg0) {
     GStruct34* temp_s1;
