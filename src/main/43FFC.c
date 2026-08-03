@@ -93,7 +93,20 @@ void func_80053DB0(s32 arg0) {
     D_80082134 = 1;
 }
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80053DF4);
+void func_80053DF4(s32 arg0) {
+    s8 temp;
+
+    temp = (s8)D_80082135;
+    if (temp == 0) {
+        if (arg0 != 0) {
+            D_80082135 = 1;
+        }
+    } else if (temp >= 0) {
+        if ((temp < 3) && (arg0 == 0)) {
+            D_80082135 = 0;
+        }
+    }
+}
 
 void func_80053E48(void) {
     func_8004DC8C();
