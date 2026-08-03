@@ -42,6 +42,7 @@ extern u16  func_8001D0E8(void);
 extern u16  func_8001D344(void);
 extern u16  func_8001D37C(s16 arg0);
 extern void func_8001D588(void);
+extern u16  func_8001D82C(void);
 extern void func_8001DB84(void);
 extern void F0C37C_ClearD80068FA0(void);
 
@@ -94,6 +95,7 @@ extern void      func_8002BBC8(void);
 extern void      func_8002BE0C(GStruct0* arg0);
 extern void      func_8002BFD4(void);
 extern s32       func_8002C868(s32 arg0, s32 arg1, s32 arg2);
+extern void      func_8002C9B0(s32 arg0);
 extern void      func_8002CCB8(GStruct0* arg0);
 extern void      func_8002CFA0(void* arg0, s32 arg1, s32 arg2, s32 arg3);
 extern void      func_8002CFDC(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -225,6 +227,7 @@ extern void func_800303AC(void);
 extern void func_80033BBC(void);
 extern void func_8003DB48(s32 arg0);
 extern void func_8003DE14(s32 arg0, s32 arg1, s32 arg2);
+extern void func_8003EE68(void);
 extern void func_8004CC58(s32 arg0);
 extern void func_8004CFC8(void);
 extern void F3D458_ResetHeap(void);
@@ -349,7 +352,8 @@ extern GStruct5 D_800710A8;
 extern GStruct23 D_80072168;
 
 // 61CC0
-extern GStruct14 D61CC0_800714C0;
+extern GStruct14            D61CC0_800714C0;
+extern volatile GStruct25   D_80071620[2];
 
 // 64880
 extern MATRIX D_80074080;
