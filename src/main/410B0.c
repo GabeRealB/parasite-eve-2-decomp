@@ -474,6 +474,27 @@ s32 func_800535F0(s32 arg0, s32 arg1, s32 arg2) {
     return result;
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_8005363C);
+void func_8005363C(s32 arg0, void* arg1) {
+    GStruct34* temp;
+    s32 size;
+
+    D_800689E8 = 0;
+    temp = &D_800820F0;
+    if (arg0 == 8) {
+        size = 0x800;
+        temp->field_0 = arg0;
+    } else {
+        size = 0x7F0;
+        temp->field_0 = 0;
+    }
+    temp->field_10 = size;
+    temp->field_2 = 0;
+    temp->field_1 = 0;
+    temp->field_4 = arg1;
+    temp->field_14 = 0;
+    temp->field_18 = 0;
+    temp->field_8 = 0;
+    temp->field_C = 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_8005368C);
