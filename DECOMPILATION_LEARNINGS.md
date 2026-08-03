@@ -121,6 +121,26 @@ D_800828F0.field_1 = 1; /* reloads address into $v0 — not $s0 */
 `func_8005B648` needs this plus `volatile` on the global (base+offset `sb`, not
 `%lo(sym+1)`). Writing `p->field_1 = 1` keeps `$s0` and mismatches.
 
+**Indexed volatile arrays — multiply before base load.** A direct
+`arr[i].field = 0` on a `volatile` global often schedules the `lui`/`addiu` of
+the array base *before* the stride multiply. The target for simple setters
+usually does the multiply first, then materializes the base. Force that order
+with a local pointer:
+
+```c
+/* Wrong schedule: lui/addiu base, then i*stride */
+D_80071620[arg0].field_A = 0;
+
+/* Right schedule: i*stride, then lui/addiu base */
+volatile GStruct25* p;
+p = &D_80071620[arg0];
+p->field_A = 0;
+```
+
+Keep the local pointer `volatile` as well so the store stays out of the `jr`
+delay slot (a plain `GStruct25*` still multiplies first but fills the slot with
+`sb`). `func_8002C9E0` is the minimal example.
+
 ## `~x != 0` for `nor` + `sltu` (not `x != -1`)
 
 When the target does:

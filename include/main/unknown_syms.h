@@ -99,6 +99,7 @@ extern void      func_8002BE0C(GStruct0* arg0);
 extern void      func_8002BFD4(void);
 extern s32       func_8002C868(s32 arg0, s32 arg1, s32 arg2);
 extern void      func_8002C9B0(s32 arg0);
+extern void      func_8002C9E0(s32 arg0);
 extern void      func_8002CCB8(GStruct0* arg0);
 extern void      func_8002CB04(GStruct2* arg0, s32 arg1, s32 arg2, GStruct0Node* arg3);
 extern void      func_8002CFA0(GStruct2* arg0, s32 arg1, s32 arg2, s32 arg3);
