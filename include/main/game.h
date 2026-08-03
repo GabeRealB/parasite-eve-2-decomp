@@ -595,6 +595,24 @@ typedef struct _GStruct39 {
 } GStruct39;
 STATIC_ASSERT_SIZEOF(GStruct39, 0x18);
 
+/// BSS object D_80073B88 (size 0x80). Initialized by func_8004C4D0.
+/// field_18..field_1e are four s16 values set to 100; field_21/field_26 are flags.
+typedef struct _GStruct40 {
+    /* 0x00 */ byte unknown_0[0x8];
+    /* 0x08 */ s32  field_8;
+    /* 0x0C */ byte unknown_C[0xC];
+    /* 0x18 */ s16  field_18;
+    /* 0x1A */ s16  field_1a;
+    /* 0x1C */ s16  field_1c;
+    /* 0x1E */ s16  field_1e;
+    /* 0x20 */ u8   field_20;
+    /* 0x21 */ u8   field_21;
+    /* 0x22 */ byte unknown_22[0x4];
+    /* 0x26 */ u8   field_26;
+    /* 0x27 */ byte unknown_27[0x59];
+} GStruct40;
+STATIC_ASSERT_SIZEOF(GStruct40, 0x80);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 
