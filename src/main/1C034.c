@@ -56,7 +56,24 @@ INCLUDE_ASM("main/nonmatchings/1C034", func_8002BEA8);
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002BF10);
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002BF58);
+void func_8002BF58(GStruct0* arg0)
+{
+    u8 param1[8];
+    u8 param2[8];
+
+    if ((u8)func_80042500() == 0) {
+        F12D18_8002252C(&D4F564_8005ED64->field_4, 0);
+        param1[3] = 0;
+        param1[2] = 0;
+        param1[0] = 0;
+        param2[0] = 0;
+        param2[1] = 0;
+        param2[2] = 0;
+        param2[3] = 0;
+        func_8001D2B0(0x21, param1, param2);
+        arg0->field_30 = arg0->field_30 + 1;
+    }
+}
 
 void func_8002BFD4(void)
 {

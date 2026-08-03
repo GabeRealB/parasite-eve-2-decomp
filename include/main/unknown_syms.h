@@ -141,6 +141,7 @@ extern s32  func_8002FCBC(u8* arg0);
 extern void func_80030074(void);
 
 // 32B64.c
+extern s32  func_80042500(void);
 extern void func_800429C8(s32 arg0);
 
 // 34E98.c
