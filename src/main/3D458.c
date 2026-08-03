@@ -135,7 +135,18 @@ void func_8004D008(void)
 
 INCLUDE_ASM("main/nonmatchings/3D458", func_8004D0A0);
 
-INCLUDE_ASM("main/nonmatchings/3D458", func_8004D0F0);
+void func_8004D0F0(GStruct42* arg0)
+{
+    if ((arg0 != NULL) && ((arg0->field_8 & 0xF000) != 0xF000)) {
+        F3D458_Free(arg0->field_1C);
+        arg0->field_1C = NULL;
+        arg0->field_0  = NULL;
+        arg0->field_4  = NULL;
+        arg0->field_10 = NULL;
+        arg0->field_8  = 0xFFFF;
+        arg0->field_14 = NULL;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/3D458", func_8004D150);
 

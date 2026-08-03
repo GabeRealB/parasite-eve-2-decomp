@@ -50,7 +50,7 @@ block_done:
     temp_v1 = (s8)D_80082135;
     switch (temp_v1) {
     case 0:
-        func_8004D0F0(&D_8007E158);
+        func_8004D0F0((GStruct42*)&D_8007E158);
         func_800561EC(4);
     case 1:
         D_80082122 = 0;
@@ -65,13 +65,13 @@ block_done:
     D_800820F0.field_18 = 0;
     D_8008212C = D_80082122;
     D_80082121 = D_80082135;
-    func_8004D0F0(var_s0);
-    func_8004D0F0(var_s0 + 0xC0);
-    func_8004D0F0(var_s0 + 0x80);
+    func_8004D0F0((GStruct42*)var_s0);
+    func_8004D0F0((GStruct42*)(var_s0 + 0xC0));
+    func_8004D0F0((GStruct42*)(var_s0 + 0x80));
     func_800561EC(5);
-    func_8004D0F0(var_s0 + 0xA0);
+    func_8004D0F0((GStruct42*)(var_s0 + 0xA0));
     func_800561EC(6);
-    func_8004D0F0(var_s0 + 0x40);
+    func_8004D0F0((GStruct42*)(var_s0 + 0x40));
     func_800561EC(3);
     func_8005454C(1, 0x40000000);
 }
@@ -86,7 +86,7 @@ void func_80053D90(void) {
 
 void func_80053DB0(s32 arg0) {
     if (arg0 == 0) {
-        func_8004D0F0(&D_8007E258);
+        func_8004D0F0((GStruct42*)&D_8007E258);
         D_80082134 = 0;
         return;
     }
