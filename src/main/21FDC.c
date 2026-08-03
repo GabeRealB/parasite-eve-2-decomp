@@ -171,7 +171,16 @@ void func_80033F6C(GStruct0* arg0)
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80033FB8);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80034028);
+s32 func_80034028(GStruct23* arg0, GStruct21* arg1)
+{
+    if (arg0->field_5C2 != 0) {
+        return 0;
+    }
+    if (arg0->field_23 != 0) {
+        return 0;
+    }
+    return arg0->field_93C == arg1->field_A1C;
+}
 
 void func_80034070(GStruct0* arg0, GStruct21* arg1)
 {

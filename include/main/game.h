@@ -376,7 +376,8 @@ typedef struct _GStruct21 {
     /* 0x02C */ s32  field_2C;
     /* 0x030 */ byte unknown_30[0x9E8];
     /* 0xA18 */ s32  field_A18;
-    /* 0xA1C */ s32  field_A1C;
+    /* 0xA1C */ u16  field_A1C;
+    /* 0xA1E */ u16  field_A1E;
     /* 0xA20 */ s32  field_A20;
 } GStruct21;
 
@@ -399,16 +400,23 @@ typedef struct _GStruct22 {
 
 /// BSS object D_80072168. Large; only fields used so far are named.
 /// Accessed up to at least 0x942 (see func_80033D3C).
+/// field_93C is a save-data checksum halfword compared by func_80034028.
 typedef struct _GStruct23 {
     /* 0x000 */ byte unknown_0[0x21];
     /* 0x021 */ u8   field_21;
-    /* 0x022 */ byte unknown_22[0x3];
+    /* 0x022 */ byte unknown_22[0x1];
+    /* 0x023 */ s8   field_23;
+    /* 0x024 */ byte unknown_24[0x1];
     /* 0x025 */ u8   field_25;
     /* 0x026 */ byte unknown_26[0x182];
     /* 0x1A8 */ u8   field_1a8;
     /* 0x1A9 */ u8   field_1a9;
     /* 0x1AA */ u8   field_1aa;
     /* 0x1AB */ u8   field_1ab;
+    /* 0x1AC */ byte unknown_1AC[0x416];
+    /* 0x5C2 */ s8   field_5C2;
+    /* 0x5C3 */ byte unknown_5C3[0x379];
+    /* 0x93C */ u16  field_93C;
 } GStruct23;
 
 /// Element of BSS array D_8006D4F0 (15 entries, total 0x258).
