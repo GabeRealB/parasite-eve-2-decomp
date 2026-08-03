@@ -29,7 +29,14 @@ INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E6E4);
 
 INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E72C);
 
-INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E814);
+void func_8003E814(void) {
+    GStruct14* temp;
+
+    temp = D4F564_8005ED64;
+    func_800144F8(temp->field_7, temp->field_6);
+    D_80070F68.field_1e = 0;
+    D_80070F68.field_10d = 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E854);
 

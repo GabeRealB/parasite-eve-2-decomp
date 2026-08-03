@@ -212,7 +212,10 @@ typedef struct _GStruct13 {
 STATIC_ASSERT_SIZEOF(GStruct13, 0x8);
 
 typedef struct _GStruct14 {
-    byte  unknown_0[0xC];
+    byte  unknown_0[0x6];
+    u8    field_6;
+    u8    field_7;
+    byte  unknown_8[0x4];
     void* field_C[16]; // 0xC..0x4B; cleared by func_8002D780
     byte  unknown_4C[0xF0];
 } GStruct14;
