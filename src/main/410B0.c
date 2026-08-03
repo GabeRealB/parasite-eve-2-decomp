@@ -182,7 +182,24 @@ INCLUDE_ASM("main/nonmatchings/410B0", func_8005166C);
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80051744);
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_800517B4);
+void func_800517B4(s32 arg0) {
+    s32 i;
+    s32 val;
+    u8* flag;
+
+    flag = &D_8007F2F0;
+    if ((s8)arg0 >= 0) {
+        *flag = arg0;
+    } else {
+        *flag = 0x7F;
+    }
+
+    i = 0;
+    val = 0xFFFF;
+    for (; i <= 0; i++) {
+        (&D_8007F300)[i].field_C = val;
+    }
+}
 
 s32 func_800517F8(void) {
     return D_8007F2F0;

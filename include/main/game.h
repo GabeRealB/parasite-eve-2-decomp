@@ -536,18 +536,23 @@ typedef struct _GStruct36Entry {
 } GStruct36Entry;
 STATIC_ASSERT_SIZEOF(GStruct36Entry, 0x3C);
 
-/// State block at D_8007F300 (BSS size 0x5E0). field_0 is status; field_3 is the
-/// number of track entries starting at 0x4C.
+/// State block at D_8007F300 (logical stride 0x5DC; BSS allocation 0x5E0).
+/// field_0 is status; field_3 is the number of track entries starting at 0x4C.
+/// field_8 is a scaled volume; field_C is a sentinel (0xFFFF when cleared).
 typedef struct _GStruct36 {
     /* 0x00 */ u8             field_0;
     /* 0x01 */ u8             field_1;
     /* 0x02 */ u8             field_2;
     /* 0x03 */ u8             field_3;
-    /* 0x04 */ u8             unknown_04[0x48];
+    /* 0x04 */ u8             unknown_04[4];
+    /* 0x08 */ s16            field_8;
+    /* 0x0A */ u8             unknown_0A[2];
+    /* 0x0C */ s32            field_C;
+    /* 0x10 */ u8             unknown_10[0x3C];
     /* 0x4C */ GStruct36Entry entries[1];
-    /*       */ u8            unknown_88[0x5E0 - 0x88];
+    /* 0x88 */ u8             unknown_88[0x5DC - 0x88];
 } GStruct36;
-STATIC_ASSERT_SIZEOF(GStruct36, 0x5E0);
+STATIC_ASSERT_SIZEOF(GStruct36, 0x5DC);
 
 /// Pointer to the start of the game heap.
 extern u8* GHeap;

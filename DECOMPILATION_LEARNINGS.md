@@ -809,3 +809,47 @@ default_case:
 `func_8003E698` needs this. Adding dummy cases (0/1) that share the default
 body brings back `slti` but also inserts extra `bltz`/duplicate labels — not a
 full match.
+
+## Local pointer CSE for a shared byte-store address
+
+When both arms of an `if`/`else` store to the same global `u8`, the target may
+load `%hi(sym)` once into a register that both `sb`s reuse (often from the
+branch delay slot). Naming the global twice emits a second `lui`:
+
+```
+bltz  v0, neg
+lui   v1, %hi(D_xxx)
+lui   v0, %hi(D_xxx)   /* extra — not in target */
+j     end
+ sb   a0, %lo(D_xxx)(v0)
+```
+
+Hold the address in a local first:
+
+```c
+u8* flag = &D_8007F2F0;
+if ((s8)arg0 >= 0) {
+    *flag = arg0;
+} else {
+    *flag = 0x7F;
+}
+```
+
+`func_800517B4` needs this so both stores share one `lui v1, %hi(D_8007F2F0)`.
+
+## One-iteration `for (i = 0; i <= 0; i++)` + array stride
+
+Several audio helpers walk `D_8007F300` with stride `0x5DC` and loop condition
+`blez` after `i++` from zero — i.e. exactly one iteration. A pointer `++` do/while
+often becomes a countdown (`addiu -1` / `bgez`). Array indexing matches:
+
+```c
+i = 0;
+val = 0xFFFF;
+for (; i <= 0; i++) {
+    (&D_8007F300)[i].field_C = val;
+}
+```
+
+The element type must be size `0x5DC` (logical stride). BSS for `D_8007F300` is
+still `0x5E0` (4 bytes of tail padding after the logical block).
