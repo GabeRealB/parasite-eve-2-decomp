@@ -85,7 +85,13 @@ void func_8005791C(s32 arg0)
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_80057930);
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_800579A0);
+void func_800579A0(s8* arg0, s8* arg1)
+{
+    *arg0 = func_8004E060(D_80068B28, 3, 0xFFFF);
+    *arg1 = func_8004E060(D_80068B28, 3, 0xFFFF);
+    F3E48C_DisableVoice(*arg0);
+    F3E48C_DisableVoice(*arg1);
+}
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_80057A1C);
 

@@ -149,6 +149,7 @@ extern void  F3D458_8004D88C(void);
 
 // 3E48C.c
 extern void func_8004E200(void);
+extern s32  func_8004E060(s16* arg0, s32 arg1, s32 arg2);
 extern void F3E48C_8004E44C(void);
 extern s32  F3E48C_8004E660(u32 voiceIdx);
 extern void F3E48C_QueryReverbVoices(void);
@@ -221,11 +222,13 @@ extern s32  func_80057824(s32 arg0);
 extern s32  func_80057894(s32 arg0);
 extern s32  func_800578E4(s32 arg0);
 extern void func_8005791C(s32 arg0);
+extern void func_800579A0(s8* arg0, s8* arg1);
 extern s32  func_80057A88(s32 arg0);
 extern void func_80057B88(s32 arg0, s32 arg1);
 extern s32  func_80057BC0(void);
 extern void func_80057D24(void);
 extern u8   D_80068A80[];
+extern s16  D_80068B28[];
 
 // 43FFC.c
 extern void func_800542D0(s32 arg0, s32 arg1);
