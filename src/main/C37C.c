@@ -26,7 +26,10 @@ INCLUDE_ASM("main/nonmatchings/C37C", func_8001D2B0);
 
 INCLUDE_ASM("main/nonmatchings/C37C", func_8001D344);
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001D37C);
+u16 func_8001D37C(s16 arg0)
+{
+    return D_80068FA0.entries[arg0].field_4 == 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/C37C", func_8001D39C);
 
