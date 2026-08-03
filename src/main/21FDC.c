@@ -183,7 +183,29 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_80033C40);
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80033CC0);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80033D3C);
+void func_80033D3C(void)
+{
+    GStruct47* temp;
+    GStruct53* p;
+    GStruct53* base;
+    s16 next;
+    s16 sum;
+    u32 i;
+
+    sum = 0;
+    i = 1;
+    base = D_800610FC;
+    p = base + 1;
+    do {
+        temp = p->field_0;
+        p += 1;
+        i += 1;
+        next = sum + *(u8*)temp;
+        sum = next;
+    } while (i < 9U);
+    D_80072168.field_940 = next;
+    D_80072168.field_942 = ~next;
+}
 
 s32 func_80033D88(void)
 {

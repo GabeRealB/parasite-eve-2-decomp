@@ -1574,3 +1574,50 @@ do {
 ```
 
 `func_80033D88` is the pure example. Same body with `i` then `p` scores ~94%.
+
+## Separate s16 next/sum forces a2/v1 accumulator split
+
+Checksum *write* loops that store both `sum` and `~sum` after iterating often
+need the final sum in `$v1` (for the stores) while the running total lives in
+`$a2`. A single in-place `sum += byte` collapses both into `$v1` and moves the
+pointer step into the branch delay:
+
+```
+addu  v1, v1, v0
+bnez  ...
+ addiu a0, a0, 0xC
+```
+
+Target wants:
+
+```
+addu  v1, a2, v0
+bnez  ...
+ move  a2, v1
+sh    v1, off(base)
+nor   v1, zero, v1
+sh    v1, off+2(base)
+```
+
+Force the split with a separate s16 temporary, and store that temp (not the
+reassigned sum):
+
+```c
+s16 next;
+s16 sum;
+...
+do {
+    temp = p->field_0;
+    p += 1;
+    i += 1;
+    next = sum + *(u8*)temp;
+    sum = next;
+} while (i < 9U);
+D_80072168.field_940 = next;
+D_80072168.field_942 = ~next;
+```
+
+Also keep an intermediate `base = D_800610FC; p = base + 1;` so the address
+forms as `addiu v0, %lo(D_800610FC)` then `addiu a0, v0, 0xC` rather than a
+folded `%lo(D_800610FC+0xC)`. `func_80033D3C` is the pure example; its verify
+sibling `func_80033D88` uses a plain `s32 sum` and different scheduling.
