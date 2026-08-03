@@ -80,7 +80,15 @@ s16 func_8001D524(void)
     return D_80068FA0.field_20E;
 }
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001D534);
+void func_8001D534(u16 arg0, u16 arg1, u16 arg2)
+{
+    GStruct3* p;
+
+    p = &D_80068FA0;
+    p->field_1FF = 1;
+    p->field_236 = -1;
+    p->field_21A = func_800AF89C(arg0, arg1, arg2, 0);
+}
 
 void func_8001D580(void)
 {

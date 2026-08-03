@@ -129,7 +129,7 @@ typedef struct _GStruct3 {
     byte          unknown_1EC[0x10];
     u16           field_1fc;
     u8            field_1FE;
-    byte          unknown_1FF[0x1];
+    u8            field_1FF;
     u16           field_200;
     u16           field_202;
     u16           field_204;
