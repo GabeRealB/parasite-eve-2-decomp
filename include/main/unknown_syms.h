@@ -171,6 +171,7 @@ extern bool F3E48C_ReverbVoiceIsEnabled(u32 voiceIdx);
 extern void F3E48C_ApplyReverbConfig(void);
 
 // 410B0.c
+extern void       func_800508B0(void);
 extern GStruct16* func_800509F4(void);
 extern void       func_80050A38(GStruct16* arg0);
 extern void       func_80050A90(GStruct16* arg0);

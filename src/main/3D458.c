@@ -115,7 +115,23 @@ void func_8004CFE8(void)
     func_8004CC58(1);
 }
 
-INCLUDE_ASM("main/nonmatchings/3D458", func_8004D008);
+void func_8004D008(void)
+{
+    if (D_800680C0 != 0) {
+        D_800680C0 = 0;
+        func_8004E200();
+        func_800508B0();
+        func_8004D8BC();
+        F3E48C_8004E44C();
+        D_800680BC += 1;
+        if (D_80070F68.field_124 == 1) {
+            D_8007E0CC = 6;
+            ResetRCnt(RCntCNT0);
+            D_800680A4 = 1;
+        }
+        D_800680C0 = 1;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/3D458", func_8004D0A0);
 
