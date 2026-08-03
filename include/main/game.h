@@ -97,71 +97,77 @@ typedef struct _GStruct1 {
 } GStruct1;
 STATIC_ASSERT_SIZEOF(GStruct1, 0x138);
 
-typedef struct _GStruct2 {
-    u16    field_0;
+/// Descriptor used to spawn a task. Indexed via `D_8005EF74[bank][type]`.
+typedef struct _TaskDesc {
+    u16    flags;
     byte   unknown_2[0x2];
-    GFunc0 field_4;
+    GFunc0 callback; // per-frame / state-machine entry
     byte   unknown_8[0x4];
-} GStruct2;
-STATIC_ASSERT_SIZEOF(GStruct2, 0xc);
+} TaskDesc;
+STATIC_ASSERT_SIZEOF(TaskDesc, 0xc);
 
-typedef struct _GStruct3Entry {
-    u8 field_0;
-    u8 field_1;
-    u8 field_2;
-    u8 field_3;
-    u8 field_4;
-    u8 field_5;
-    u8 field_6;
-    u8 field_7;
-} GStruct3Entry;
-STATIC_ASSERT_SIZEOF(GStruct3Entry, 0x8);
+/// One slot in the CD load command ring (`CdCmd_Enqueue`).
+///
+/// File identity is packed as base-100 digits (`idB2*10000 + idB1*100 + idB0`).
+/// `cmd` selects the operation (0x21 load file, 0x54 mount stage, 0x55 parse HED).
+typedef struct _CdCmdEntry {
+    u8 idB0;   // ones digit / a2[0]
+    u8 idB1;   // hundreds digit / a2[1]
+    u8 idB2;   // ×10000 / category / a2[2]
+    u8 idB3;   // a2[3]
+    u8 cmd;    // command opcode
+    u8 param0; // a1[3]
+    u8 param1; // a1[2]
+    u8 param2; // a1[0]
+} CdCmdEntry;
+STATIC_ASSERT_SIZEOF(CdCmdEntry, 0x8);
 
-typedef struct _GStruct3 {
-    GStruct3Entry entries[8];
-    GStruct3Entry field_40;
-    byte          unknown_48[0x4];
-    s8            field_4c;
-    byte          unknown_4d[0x7];
-    u8            field_54;
-    byte          unknown_55[0x173];
-    u16           field_1c8;
-    u16           field_1ca;
-    byte          unknown_1cc[0x4];
-    u16           field_1d0;
-    u16           field_1d2;
-    u16           field_1d4;
-    byte          unknown_1d6[0x10];
-    s16           field_1E6;
-    byte          unknown_1E8[0x2];
-    s16           field_1EA;
-    byte          unknown_1EC[0x10];
-    u16           field_1fc;
-    u8            field_1FE;
-    u8            field_1FF;
-    u16           field_200;
-    u16           field_202;
-    u16           field_204;
-    byte          unknown_206[0x8];
-    s16           field_20E;
-    byte          unknown_210[0x4];
-    u16           field_214;
-    byte          unknown_216[0x4];
-    s16           field_21A;
-    byte          unknown_21C[0x6];
-    s16           field_222;
-    u16           field_224;
-    byte          unknown_226[0x2];
-    u16           field_228;
-    byte          unknown_22a[0xA];
-    s16           field_234;
-    s16           field_236;
-    byte          unknown_238[0xA];
-    s16           field_242;
-    byte          unknown_244[0xE];
-    s16           field_252;
-} GStruct3;
-STATIC_ASSERT_SIZEOF(GStruct3, 0x254);
+/// Global CD / asset load command queue (`CdCmd_Queue`).
+typedef struct _CdCmdQueue {
+    CdCmdEntry entries[8];
+    CdCmdEntry field_40;
+    byte       unknown_48[0x4];
+    s8         field_4c;
+    byte       unknown_4d[0x7];
+    u8         field_54;
+    byte       unknown_55[0x173];
+    u16        writeIdx; // 0x1C8 — next free slot (enqueue)
+    u16        readIdx;  // 0x1CA — slot being executed
+    byte       unknown_1cc[0x4];
+    u16        step; // 0x1D0 — sub-state of current command
+    u16        field_1d2;
+    u16        field_1d4;
+    byte       unknown_1d6[0x10];
+    s16        field_1E6;
+    byte       unknown_1E8[0x2];
+    s16        field_1EA;
+    byte       unknown_1EC[0x10];
+    u16        field_1fc;
+    u8         field_1FE; // load status (0xFF = idle/done in several paths)
+    u8         field_1FF;
+    u16        field_200;
+    u16        field_202;
+    u16        field_204;
+    byte       unknown_206[0x8];
+    s16        field_20E;
+    byte       unknown_210[0x4];
+    u16        field_214;
+    byte       unknown_216[0x4];
+    s16        field_21A;
+    byte       unknown_21C[0x6];
+    s16        field_222;
+    u16        field_224;
+    byte       unknown_226[0x2];
+    u16        field_228;
+    byte       unknown_22a[0xA];
+    s16        field_234;
+    s16        field_236;
+    byte       unknown_238[0xA];
+    s16        field_242;
+    byte       unknown_244[0xE];
+    s16        busy; // 0x252 — non-zero while a blocking load is active
+} CdCmdQueue;
+STATIC_ASSERT_SIZEOF(CdCmdQueue, 0x254);
 
 typedef struct _GStruct4 {
     u8 field_0;
@@ -868,7 +874,7 @@ extern size_t GActiveAuxHeapSize;
 
 extern int      D_80068F98;
 extern int      MainPadding;
-extern GStruct3 D_80068FA0;
+extern CdCmdQueue CdCmd_Queue;
 extern u8*      D_800691F4;
 extern size_t   D_800691F8;
 

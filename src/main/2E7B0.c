@@ -21,7 +21,7 @@ GStruct0* func_8003E438(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     return ret;
 }
 
-GStruct0* func_8003E4BC(GStruct2* arg0, s32 arg1, s32 arg2, s32 arg3)
+GStruct0* func_8003E4BC(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     GStruct0Node* saved;
     GStruct0* ret;

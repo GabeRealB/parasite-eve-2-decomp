@@ -84,9 +84,9 @@ Assign it to a local pointer first — the same trick `func_8002D25C` in
 `src/main/1C034.c` annotates as *"The indirection is required."*:
 
 ```c
-GStruct3* state;
+CdCmdQueue* state;
 
-state = &D_80068FA0;
+state = &CdCmd_Queue;
 switch (state->field_4c) { ... }
 ```
 
@@ -369,7 +369,7 @@ splits into clusters that *look* independent. They often are not: applying the
 obvious fix to one cluster in isolation can score worse than leaving it alone,
 because it perturbs allocation everywhere else.
 
-Concretely, while matching `F12D18_InitStage0TablesCb` the fix for one cluster
+Concretely, while matching `Fs_InitStage0TablesCb` the fix for one cluster
 (a value being reloaded rather than cached) scored worse every time it was
 applied alone — and then became unnecessary, because an unrelated change
 elsewhere (hoisting an assignment above a test) made the cluster disappear on
@@ -464,7 +464,7 @@ end:
 
 Error sites earlier in the function `goto on_error`; soft-error sites that
 must not share the `jal` call `F(2)` then `goto end` (or `return`). Same idea
-as `F12D18_InitStage0TablesCb`, used for `func_80022BD0`.
+as `Fs_InitStage0TablesCb`, used for `Fs_CdReadyCb`.
 
 ## Empty body with a pure stack frame (`addiu sp` / `addiu sp` / `jr ra`)
 
@@ -1041,13 +1041,13 @@ schedules the multiply first and loads into `$v1` instead, breaking the match.
 Split the load from the index:
 
 ```c
-GStruct2* ptr;
+TaskDesc* ptr;
 
 if (arg0 >= 0) {
     ptr = D_8005EF74[arg0];
     ptr = &ptr[arg1];
 } else {
-    ptr = (GStruct2*)arg1;
+    ptr = (TaskDesc*)arg1;
 }
 return func_8002CB04(ptr, arg2, arg3, D_800716D8);
 ```
@@ -1175,7 +1175,7 @@ D_8006AC04 = index + 1;
 D_8006AC04 = D_8006AC04 % 8;  /* not &= 7, not (index+1)&7 */
 ```
 
-`func_8001D898` (8-entry queue walk of `D_80068FA0.entries`) is a pure example.
+`func_8001D898` (8-entry queue walk of `CdCmd_Queue.entries`) is a pure example.
 The same double-store shape appears on `field_1c8` / `field_1ca` updates in the
 nearby ring producers (e.g. `func_8001D760`).
 
@@ -1504,7 +1504,7 @@ build the address explicitly so the add folds onto the shifted temp:
 u32 t;
 t = state->field_1ca << 3;
 t += (u32)state;
-((GStruct3Entry*)t)->field_4 = 0;
+((CdCmdEntry*)t)->field_4 = 0;
 ```
 
 `func_8001C620` cleanup needs this; prefer struct indexing when the operand

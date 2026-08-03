@@ -15,11 +15,11 @@ s16 E734_CDIsShellOpenBitSet(void);
 
 s32 func_8001E6AC(s32 arg0, s32 arg1)
 {
-    GStruct3* state;
+    CdCmdQueue* state;
     s32       status;
     u16       a1;
 
-    state = &D_80068FA0;
+    state = &CdCmd_Queue;
     switch (state->field_228) {
     case 0:
         status = CdSync(1, NULL);

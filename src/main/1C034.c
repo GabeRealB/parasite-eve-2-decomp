@@ -84,7 +84,7 @@ void func_8002BF58(GStruct0* arg0)
         param2[1] = 0;
         param2[2] = 0;
         param2[3] = 0;
-        func_8001D2B0(0x21, param1, param2);
+        CdCmd_Enqueue(0x21, param1, param2);
         arg0->field_30 = arg0->field_30 + 1;
     }
 }
@@ -189,20 +189,20 @@ INCLUDE_ASM("main/nonmatchings/1C034", func_8002CB04);
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002CCB8);
 
-GStruct0* func_8002CFA0(GStruct2* arg0, s32 arg1, s32 arg2, s32 arg3)
+GStruct0* func_8002CFA0(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     return func_8002CB04(&arg0[arg1], arg2, arg3, D_800716D8);
 }
 
 GStruct0* func_8002CFDC(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    GStruct2* ptr;
+    TaskDesc* ptr;
 
     if (arg0 >= 0) {
         ptr = D_8005EF74[arg0];
         ptr = &ptr[arg1];
     } else {
-        ptr = (GStruct2*)arg1;
+        ptr = (TaskDesc*)arg1;
     }
     return func_8002CB04(ptr, arg2, arg3, D_800716D8);
 }
@@ -266,13 +266,13 @@ void func_8002D25C(GStruct0Node* node)
     }
 }
 
-GStruct2* func_8002D304(u32 idx1, u32 idx2)
+TaskDesc* func_8002D304(u32 idx1, u32 idx2)
 {
-    GStruct2* base = D_8005EF74[idx1];
+    TaskDesc* base = D_8005EF74[idx1];
     return base + idx2;
 }
 
-GStruct2* func_8002D32C(GStruct2* base, u32 idx)
+TaskDesc* func_8002D32C(TaskDesc* base, u32 idx)
 {
     return base + idx;
 }

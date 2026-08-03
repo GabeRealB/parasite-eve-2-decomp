@@ -8,7 +8,7 @@
 
 INCLUDE_ASM("main/nonmatchings/4CF8", func_800144F8);
 
-INCLUDE_ASM("main/nonmatchings/4CF8", func_80014650);
+INCLUDE_ASM("main/nonmatchings/4CF8", Boot_LoadInitialFile);
 
 void F04CF8_800148A0(void)
 {
@@ -49,7 +49,7 @@ void F04CF8_80014A50(void)
     param[0] = CdlModeSpeed;
     CdControlB(CdlSetmode, param, NULL);
     func_800574BC();
-    F0C37C_ClearD80068FA0();
+    CdCmd_ClearQueue();
 }
 
 void F04CF8_80014A98(s32 mode)
@@ -68,7 +68,7 @@ void F04CF8_80014A98(s32 mode)
     CdReset(mode);
     ctrlParam[0] = CdlModeSpeed;
     CdControlB(CdlSetmode, ctrlParam, NULL);
-    F0C37C_ClearD80068FA0();
+    CdCmd_ClearQueue();
 }
 
 void func_80014B38(GStruct0* arg0)
@@ -91,14 +91,14 @@ void func_80014B38(GStruct0* arg0)
         param2[1] = 0;
         param2[2] = 0;
         param2[3] = 0;
-        func_8001D2B0(0x21, param1, param2);
+        CdCmd_Enqueue(0x21, param1, param2);
         arg0->field_30 = arg0->field_30 + 1;
         return;
     case 1:
         if (func_8001D344() != 0) {
             SetDispMask(1);
             func_800144F8(0, 0);
-            func_8002CFA0((GStruct2*)&D_80094C8C, 0, 0, 0);
+            func_8002CFA0((TaskDesc*)&D_80094C8C, 0, 0, 0);
             func_8002CCB8(arg0);
             D_80070F68.field_112 = 0;
         }
@@ -111,7 +111,7 @@ void func_80014C2C(void)
     func_8001DB84();
 }
 
-bool F04CF8_StageCdfIsAvailable(u32 stageIdx)
+bool Fs_StageCdfIsAvailable(u32 stageIdx)
 {
-    return D5B498_StageSectors[(u8)stageIdx] != 0;
+    return Fs_StageCdfSectors[(u8)stageIdx] != 0;
 }

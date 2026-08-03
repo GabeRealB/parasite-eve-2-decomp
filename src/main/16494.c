@@ -12,28 +12,28 @@ INCLUDE_ASM("main/nonmatchings/16494", func_80025DD8);
 void F16494_ResetSpuAttr(void)
 {
     // Set all attributes.
-    D5B498_SpuAttr.mask = 0;
+    Fs_SpuAttr.mask = 0;
 
     // Set the master volume to maximum.
-    D5B498_SpuAttr.mvol.left      = 0x3FFF;
-    D5B498_SpuAttr.mvol.right     = 0x3FFF;
-    D5B498_SpuAttr.mvolmode.left  = SPU_VOICE_DIRECT;
-    D5B498_SpuAttr.mvolmode.right = SPU_VOICE_DIRECT;
+    Fs_SpuAttr.mvol.left      = 0x3FFF;
+    Fs_SpuAttr.mvol.right     = 0x3FFF;
+    Fs_SpuAttr.mvolmode.left  = SPU_VOICE_DIRECT;
+    Fs_SpuAttr.mvolmode.right = SPU_VOICE_DIRECT;
 
     // Set the CD Input volume to the minimum.
-    D5B498_SpuAttr.cd.volume.left  = 0;
-    D5B498_SpuAttr.cd.volume.right = 0;
-    D5B498_SpuAttr.cd.reverb       = SPU_OFF;
-    D5B498_SpuAttr.cd.mix          = SPU_ON;
+    Fs_SpuAttr.cd.volume.left  = 0;
+    Fs_SpuAttr.cd.volume.right = 0;
+    Fs_SpuAttr.cd.reverb       = SPU_OFF;
+    Fs_SpuAttr.cd.mix          = SPU_ON;
 
     // Disable External Digital Input.
-    D5B498_SpuAttr.ext.volume.left  = 0;
-    D5B498_SpuAttr.ext.volume.right = 0;
-    D5B498_SpuAttr.ext.reverb       = SPU_OFF;
-    D5B498_SpuAttr.ext.mix          = SPU_OFF;
+    Fs_SpuAttr.ext.volume.left  = 0;
+    Fs_SpuAttr.ext.volume.right = 0;
+    Fs_SpuAttr.ext.reverb       = SPU_OFF;
+    Fs_SpuAttr.ext.mix          = SPU_OFF;
 
     // Apply the settings.
-    SpuSetCommonAttr(&D5B498_SpuAttr);
+    SpuSetCommonAttr(&Fs_SpuAttr);
     D5B498_8006EBF0 = 0;
 }
 
@@ -69,7 +69,7 @@ u8 func_80026138(void)
 
 void func_80026148(void)
 {
-    D_8006EBF4 = (D5B498_SpuAttr.cd.volume.left / 256) & 0x7F;
+    D_8006EBF4 = (Fs_SpuAttr.cd.volume.left / 256) & 0x7F;
 }
 
 void func_80026178(void)
@@ -102,7 +102,7 @@ s32 func_800261D4(void)
 
 s32 func_800261F4(void)
 {
-    return (D5B498_SpuAttr.cd.volume.left / 256) & 0x7F;
+    return (Fs_SpuAttr.cd.volume.left / 256) & 0x7F;
 }
 
 void func_80026218(u16 arg0)
@@ -118,11 +118,11 @@ void func_80026268(s32 arg0)
 {
     s16 vol;
 
-    D5B498_SpuAttr.mask = SPU_COMMON_CDVOLL | SPU_COMMON_CDVOLR;
+    Fs_SpuAttr.mask = SPU_COMMON_CDVOLL | SPU_COMMON_CDVOLR;
     vol = (arg0 & 0x7F) << 8;
-    D5B498_SpuAttr.cd.volume.right = vol;
-    D5B498_SpuAttr.cd.volume.left = vol;
-    SpuSetCommonAttr(&D5B498_SpuAttr);
+    Fs_SpuAttr.cd.volume.right = vol;
+    Fs_SpuAttr.cd.volume.left = vol;
+    SpuSetCommonAttr(&Fs_SpuAttr);
 }
 
 INCLUDE_ASM("main/nonmatchings/16494", func_800262A8);

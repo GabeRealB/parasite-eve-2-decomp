@@ -220,9 +220,9 @@ INCLUDE_ASM("main/nonmatchings/2F244", func_800405E0);
 
 void func_80040820(void)
 {
-    GStruct3* p;
+    CdCmdQueue* p;
 
-    p = &D_80068FA0;
+    p = &CdCmd_Queue;
     if (p->field_214 == 0) {
         if (p->field_234 != 0) {
             DecDCTvlcBuild((u16*)((u8*)D4CB64_ImgBuffers + 0x8800));
@@ -238,10 +238,10 @@ void func_80040820(void)
 
 void func_800408C0(void* arg0)
 {
-    GStruct3* p;
+    CdCmdQueue* p;
 
     D_8007A35C = 0;
-    p = &D_80068FA0;
+    p = &CdCmd_Queue;
     p->field_200 = 1;
     p->field_1FE = 0;
     p->field_202 = 0;
@@ -251,7 +251,7 @@ void func_800408C0(void* arg0)
 
 void func_800408F4(void)
 {
-    D_80068FA0.field_234 = 1;
+    CdCmd_Queue.field_234 = 1;
 }
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_80040904);

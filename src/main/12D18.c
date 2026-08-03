@@ -13,12 +13,12 @@
 void F12D18_80022518(void)
 {
     D5B498_8006AC9A      = 0;
-    D_80068FA0.field_224 = 0;
+    CdCmd_Queue.field_224 = 0;
 }
 
 void F12D18_8002252C(u8* arg0, s16 arg1)
 {
-    D_80068FA0.field_224    = 1;
+    CdCmd_Queue.field_224    = 1;
     D5B498_8006ACB8.field_3 = arg0[3];
     D5B498_8006ACB8.field_2 = arg0[2];
     D5B498_8006ACC0         = arg1;
@@ -53,9 +53,9 @@ void F12D18_800225D4(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_8002265C);
+INCLUDE_ASM("main/nonmatchings/12D18", Fs_LoadFile);
 
-void func_80022BD0(u8 status, u8* result)
+void Fs_CdReadyCb(u8 status, u8* result)
 {
     CdlLOC currLoc[3];
     s32    currPos;
@@ -65,23 +65,23 @@ void func_80022BD0(u8 status, u8* result)
         goto on_error;
     }
 
-    D5B498_CurrVBlank   = VSync(-1);
+    Fs_VBlank   = VSync(-1);
     CdGetSector(currLoc, 3);
-    D5B498_CurrCdSector = currPos = CdPosToInt(currLoc);
+    Fs_CurrSector = currPos = CdPosToInt(currLoc);
 
-    if (currPos != D5B498_ReqCdSector) {
-        if ((D5B498_8006C231 != 0) && (D5B498_8006C230 != 6)) {
+    if (currPos != Fs_ReqSector) {
+        if ((Fs_Streaming != 0) && (Fs_LoadPhase != 6)) {
             F12D18_800256F4(C12D18_800256F4_ARG_2);
             goto end;
         }
         goto on_error;
     }
 
-    D5B498_ReqCdSector = currPos + 1;
-    if (D5B498_8006C231 == 0) {
-        ret = func_80022CF0();
+    Fs_ReqSector = currPos + 1;
+    if (Fs_Streaming == 0) {
+        ret = Fs_ProcessChunkHeader();
     } else {
-        ret = func_800231A8();
+        ret = Fs_ProcessChunkData();
     }
     goto check_ret;
 
@@ -96,27 +96,27 @@ check_ret:
         D5B498_8006C234 = 0;
         D5B498_8006C233 = 0;
         D5B498_8006ADF4 = 0;
-        D5B498_8006C232 = 0;
-        D5B498_8006C228 = D5B498_8006C228_FF;
+        Fs_ChunkMode = 0;
+        Fs_CdOpStatus = FS_CD_STATUS_IDLE;
     }
 end:
     return;
 }
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_80022CF0);
+INCLUDE_ASM("main/nonmatchings/12D18", Fs_ProcessChunkHeader);
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_800231A8);
+INCLUDE_ASM("main/nonmatchings/12D18", Fs_ProcessChunkData);
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_8002362C);
+INCLUDE_ASM("main/nonmatchings/12D18", Fs_SelectStage);
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_80023748);
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_8002397C);
 
 #ifndef NON_MATCHING
-INCLUDE_ASM("main/nonmatchings/12D18", F12D18_InitStage0TablesCb);
+INCLUDE_ASM("main/nonmatchings/12D18", Fs_InitStage0TablesCb);
 #else
-void F12D18_InitStage0TablesCb(u8 status, u8* result)
+void Fs_InitStage0TablesCb(u8 status, u8* result)
 {
     CdlLOC currLoc[3];
     s32    currPos;
@@ -148,11 +148,11 @@ void F12D18_InitStage0TablesCb(u8 status, u8* result)
 
     // The first 3 words contain the sector header.
     // Make sure that we seeked to the correct location.
-    D5B498_CurrVBlank = VSync(-1);
+    Fs_VBlank = VSync(-1);
     CdGetSector(currLoc, 3);
 
-    D5B498_CurrCdSector = currPos = CdPosToInt(currLoc);
-    if (currPos == D5B498_ReqCdSector) {
+    Fs_CurrSector = currPos = CdPosToInt(currLoc);
+    if (currPos == Fs_ReqSector) {
         goto sector_start;
     } else {
         goto on_error;
@@ -160,23 +160,23 @@ void F12D18_InitStage0TablesCb(u8 status, u8* result)
 
 table_end:
     CdReadyCallback(NULL);
-    D5B498_8006C228 = -1;
+    Fs_CdOpStatus = -1;
     CdControlF(CdlPause, NULL);
     return;
 
 sector_start:
     // Read the sector data.
-    D5B498_ReqCdSector += 1;
-    CdGetSector(D5B498_CdSectorBuffer.words, FS_SECTOR_WORD_SIZE);
+    Fs_ReqSector += 1;
+    CdGetSector(Fs_CdSector.words, FS_SECTOR_WORD_SIZE);
 
     headerOffset = 0;
 
     while (true) {
-        sectorBuffer = &D5B498_CdSectorBuffer;
-        streamTable  = D5B498_Streams;
-        fileSect0    = D5B498_Stage0FileSect0;
-        fileSect5    = D5B498_Stage0FileSect5;
-        fileSect90   = D5B498_Stage0FileSect90;
+        sectorBuffer = &Fs_CdSector;
+        streamTable  = Fs_Streams;
+        fileSect0    = Fs_FileOffsetsCat0;
+        fileSect5    = Fs_FileOffsetsCat5;
+        fileSect90   = Fs_FileOffsetsCat90;
 
         if ((u16)headerOffset >= FS_SECTOR_WORD_SIZE)
             return;
@@ -200,7 +200,7 @@ sector_start:
 
             // Move to the next entry and adjust the offset to be the absolute
             // offset on the CD rom.
-            streamTable[(u16)streamIdx++].offset += D5B498_StageSectors[0];
+            streamTable[(u16)streamIdx++].offset += Fs_StageCdfSectors[0];
             headerOffset                         += sizeof(FsCdfStream) / sizeof(u32);
         } else {
             fileId       = entryValue;
@@ -221,38 +221,38 @@ sector_start:
                     break;
 
                 case 1:
-                    i = D5B498_Stage0FileTable1Len;
-                    D5B498_Stage0FileTable1Len++;
+                    i = Fs_FileTableCat1Len;
+                    Fs_FileTableCat1Len++;
 
-                    D5B498_Stage0FileTable1[i].id     = fileId - 10000;
-                    D5B498_Stage0FileTable1[i].offset = ((FsCdfFile*)entry)->offset;
+                    Fs_FileTableCat1[i].id     = fileId - 10000;
+                    Fs_FileTableCat1[i].offset = ((FsCdfFile*)entry)->offset;
                     isValidCategory                   = true;
                     break;
 
                 case 2:
-                    i = D5B498_Stage0FileTable2Len;
-                    D5B498_Stage0FileTable2Len++;
+                    i = Fs_FileTableCat2Len;
+                    Fs_FileTableCat2Len++;
 
-                    D5B498_Stage0FileTable2[i].id     = fileId - fileCategory * 10000;
-                    D5B498_Stage0FileTable2[i].offset = ((FsCdfFile*)entry)->offset;
+                    Fs_FileTableCat2[i].id     = fileId - fileCategory * 10000;
+                    Fs_FileTableCat2[i].offset = ((FsCdfFile*)entry)->offset;
                     isValidCategory                   = true;
                     break;
 
                 case 3:
-                    i = D5B498_Stage0FileTable3Len;
-                    D5B498_Stage0FileTable3Len++;
+                    i = Fs_FileTableCat3Len;
+                    Fs_FileTableCat3Len++;
 
-                    D5B498_Stage0FileTable3[i].id     = fileId - 30000;
-                    D5B498_Stage0FileTable3[i].offset = ((FsCdfFile*)entry)->offset;
+                    Fs_FileTableCat3[i].id     = fileId - 30000;
+                    Fs_FileTableCat3[i].offset = ((FsCdfFile*)entry)->offset;
                     isValidCategory                   = true;
                     break;
 
                 case 4: {
-                    i = D5B498_Stage0FileTable4Len;
-                    D5B498_Stage0FileTable4Len++;
+                    i = Fs_FileTableCat4Len;
+                    Fs_FileTableCat4Len++;
 
-                    D5B498_Stage0FileTable4[i].id     = fileId - fileCategory * 10000;
-                    D5B498_Stage0FileTable4[i].offset = ((FsCdfFile*)entry)->offset;
+                    Fs_FileTableCat4[i].id     = fileId - fileCategory * 10000;
+                    Fs_FileTableCat4[i].offset = ((FsCdfFile*)entry)->offset;
                     isValidCategory                   = true;
                     break;
                 }
@@ -271,11 +271,11 @@ sector_start:
             if (!isValidCategory) {
                 words = sectorBuffer->words;
                 if (words[(u16)headerOffset] / 100000 != 0) {
-                    i = D5B498_Stage0FileTableLen;
-                    D5B498_Stage0FileTableLen++;
+                    i = Fs_FileTableLen;
+                    Fs_FileTableLen++;
 
-                    D5B498_Stage0FileTable[i].id     = fileId;
-                    D5B498_Stage0FileTable[i].offset = ((FsCdfFile*)entry)->offset;
+                    Fs_FileTable[i].id     = fileId;
+                    Fs_FileTable[i].offset = ((FsCdfFile*)entry)->offset;
                 }
             }
 
@@ -288,7 +288,7 @@ on_error:
 }
 #endif
 
-INCLUDE_ASM("main/nonmatchings/12D18", func_80023FA0);
+INCLUDE_ASM("main/nonmatchings/12D18", Fs_ScanIsoDirectory);
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_800246B0);
 
@@ -296,7 +296,7 @@ INCLUDE_ASM("main/nonmatchings/12D18", func_800248B4);
 
 INCLUDE_ASM("main/nonmatchings/12D18", func_80024A28);
 
-void F12D18_ClearDiskError(void)
+void Fs_ClearDiskError(void)
 {
     u8  done;
     s32 status;
@@ -363,16 +363,16 @@ void F12D18_80024EC0(void)
         VSync(3);
     }
 
-    CdIntToPos(D5B498_ReqCdSector, loc);
+    CdIntToPos(Fs_ReqSector, loc);
     CdControlF(CdlReadN, &loc[0].minute);
-    if (D5B498_8006C228 == 0x40) {
+    if (Fs_CdOpStatus == 0x40) {
         CdSyncCallback(F12D18_80025580);
-        D5B498_CurrVBlank = VSync(-1);
-        D5B498_8006C228  += 1;
+        Fs_VBlank = VSync(-1);
+        Fs_CdOpStatus  += 1;
     }
 }
 
-u8 F12D18_WaitDiskSwap(void)
+u8 Fs_WaitDiskSwap(void)
 {
     s32    status;
     u8     ctrlParam[8];
@@ -433,59 +433,59 @@ u8 F12D18_WaitDiskSwap(void)
     return 0;
 }
 
-void F12D18_ReadSector2(s32 sector, s32 arg1, u8* arg2, u8 arg3)
+void Fs_ReadSectorEx(s32 sector, s32 arg1, u8* arg2, u8 arg3)
 {
     CdlLOC loc[2];
 
     if (CdSync(1, NULL) == CdlDiskError) {
-        F12D18_WaitDiskReset(true);
+        Fs_WaitDiskReset(true);
     }
 
-    D5B498_8006C228    = 0;
-    D5B498_CdfEndFlag  = -1;
-    D5B498_8006C230    = arg3;
-    D5B498_ReqCdSector = sector;
-    D5B498_8006D854    = arg1;
-    D5B498_8006D4D8    = arg2;
-    D5B498_CurrVBlank  = VSync(-1);
-    if (D5B498_SeekPos == sector) {
+    Fs_CdOpStatus    = 0;
+    Fs_ChunkEndFlag  = -1;
+    Fs_LoadPhase    = arg3;
+    Fs_ReqSector = sector;
+    Fs_ChunkEndSector    = arg1;
+    Fs_ChunkWritePtr    = arg2;
+    Fs_VBlank  = VSync(-1);
+    if (Fs_SeekSector == sector) {
         CdControlF(CdlReadN, NULL);
         CdReadyCallback(F12D18_8002563C);
-        D5B498_SeekPos = 0;
+        Fs_SeekSector = 0;
     } else {
         CdIntToPos(sector, loc);
         CdControlF(CdlReadN, &loc[0].minute);
         CdSyncCallback(F12D18_8002563C);
-        D5B498_SeekPos = 0;
+        Fs_SeekSector = 0;
     }
 }
 
-void F12D18_ReadSector(s32 sector)
+void Fs_ReadSector(s32 sector)
 {
     CdlLOC loc[2];
 
     if (CdSync(1, NULL) == CdlDiskError) {
-        F12D18_WaitDiskReset(true);
+        Fs_WaitDiskReset(true);
     }
 
-    D5B498_8006C228    = 0;
-    D5B498_CdfEndFlag  = -1;
-    D5B498_ReqCdSector = sector;
-    D5B498_CurrVBlank  = VSync(-1);
-    if (D5B498_SeekPos == sector) {
-        D5B498_SeekPos  = 0;
-        D5B498_8006C231 = false;
+    Fs_CdOpStatus    = 0;
+    Fs_ChunkEndFlag  = -1;
+    Fs_ReqSector = sector;
+    Fs_VBlank  = VSync(-1);
+    if (Fs_SeekSector == sector) {
+        Fs_SeekSector  = 0;
+        Fs_Streaming = false;
         CdControlF(CdlReadN, NULL);
-        CdReadyCallback(func_80022BD0);
+        CdReadyCallback(Fs_CdReadyCb);
     } else {
-        D5B498_SeekPos = 0;
+        Fs_SeekSector = 0;
         CdIntToPos(sector, loc);
         CdControlF(CdlReadN, &loc[0].minute);
         CdSyncCallback(F12D18_80025580);
     }
 }
 
-void F12D18_WaitDiskReset(s8 withSectHdr)
+void Fs_WaitDiskReset(s8 withSectHdr)
 {
     u8 ctrlParam[8];
     u8 ctrlResult[8];
@@ -513,29 +513,29 @@ void F12D18_WaitDiskReset(s8 withSectHdr)
     VSync(3);
 }
 
-void F12D18_SeekToPos(s32 sector)
+void Fs_SeekToPos(s32 sector)
 {
     CdlLOC loc[2];
 
-    D5B498_8006C228 = 0;
+    Fs_CdOpStatus = 0;
     if (CdSync(1, NULL) == CdlDiskError) {
-        F12D18_WaitDiskReset(true);
+        Fs_WaitDiskReset(true);
     }
 
-    D5B498_SeekPos = sector;
+    Fs_SeekSector = sector;
     CdIntToPos(sector, loc);
     CdControlF(CdlSeekL, (u8*)loc);
-    CdSyncCallback(F12D18_SeekToPosCb);
-    D5B498_CurrVBlank = VSync(-1);
+    CdSyncCallback(Fs_SeekToPosCb);
+    Fs_VBlank = VSync(-1);
 }
 
-void F12D18_InitFolderTable(s32 arg0)
+void Fs_InitFolderTable(s32 arg0)
 {
     u32                   offset;
     FsCdfFolderListEntry* entry;
 
-    D5B498_FolderTableLen = 0;
-    entry                 = D5B498_CdSectorBuffer.folderList.entries;
+    Fs_FolderTableLen = 0;
+    entry                 = Fs_CdSector.folderList.entries;
 
     // The cdf file starts with a header section. Therefore, the offset to
     // the start of the first folder is always one. Following folders are
@@ -547,9 +547,9 @@ void F12D18_InitFolderTable(s32 arg0)
         }
 
         // Save the folder info into the table.
-        D5B498_FolderTable[D5B498_FolderTableLen].id     = entry->id;
-        D5B498_FolderTable[D5B498_FolderTableLen].offset = offset;
-        D5B498_FolderTableLen                           += 1;
+        Fs_FolderTable[Fs_FolderTableLen].id     = entry->id;
+        Fs_FolderTable[Fs_FolderTableLen].offset = offset;
+        Fs_FolderTableLen                           += 1;
 
         // Go to the next entry.
         offset += entry->size;
@@ -557,44 +557,44 @@ void F12D18_InitFolderTable(s32 arg0)
     }
 }
 
-void F12D18_InitStage0Tables(void)
+void Fs_InitStage0Tables(void)
 {
     CdlLOC headerPos;
 
     // Reset all tables.
-    D5B498_8006C228            = 0;
-    D5B498_Stage0FileTableLen  = 0;
-    D5B498_Stage0FileTable2Len = 0;
-    D5B498_Stage0FileTable4Len = 0;
-    D5B498_Stage0FileTable1Len = 0;
-    D5B498_Stage0FileTable3Len = 0;
+    Fs_CdOpStatus            = 0;
+    Fs_FileTableLen  = 0;
+    Fs_FileTableCat2Len = 0;
+    Fs_FileTableCat4Len = 0;
+    Fs_FileTableCat1Len = 0;
+    Fs_FileTableCat3Len = 0;
 
     // Read the stage header.
-    D5B498_ReqCdSector = D5B498_Stage0HdrSect;
-    CdIntToPos(D5B498_Stage0HdrSect, &headerPos);
+    Fs_ReqSector = Fs_Stage0HedSector;
+    CdIntToPos(Fs_Stage0HedSector, &headerPos);
     CdControlF(CdlReadN, &headerPos.minute);
-    CdReadyCallback(F12D18_InitStage0TablesCb);
-    D5B498_CurrVBlank = VSync(-1);
+    CdReadyCallback(Fs_InitStage0TablesCb);
+    Fs_VBlank = VSync(-1);
 }
 
 void F12D18_80025580(u8 status, u8* result)
 {
     if (status != CdlDiskError) {
-        if (D5B498_8006C228 == 0x41) {
-            D5B498_8006C228 = 0;
-            D5B498_8006C231 = true;
-            CdReadyCallback(func_80022BD0);
+        if (Fs_CdOpStatus == 0x41) {
+            Fs_CdOpStatus = 0;
+            Fs_Streaming = true;
+            CdReadyCallback(Fs_CdReadyCb);
         } else if (D5B498_8006ACC8 == false) {
-            D5B498_8006C231 = false;
-            CdReadyCallback(func_80022BD0);
+            Fs_Streaming = false;
+            CdReadyCallback(Fs_CdReadyCb);
         } else {
-            func_8005325C(&D5B498_CdSectorBuffer);
+            func_8005325C(&Fs_CdSector);
             CdReadyCallback(func_80025C94);
         }
 
-        D5B498_CurrVBlank = VSync(-1);
+        Fs_VBlank = VSync(-1);
         CdSyncCallback(NULL);
-        D5B498_CdErrorCount = 0;
+        Fs_CdErrorCount = 0;
     } else {
         F12D18_800256F4(C12D18_800256F4_ARG_0);
     }
@@ -603,22 +603,22 @@ void F12D18_80025580(u8 status, u8* result)
 void F12D18_8002563C(u8 status, u8* result)
 {
     if (status != CdlDiskError) {
-        D5B498_CurrVBlank   = VSync(-1);
-        D5B498_CdErrorCount = 0;
-        D5B498_8006C231     = 1;
-        CdReadyCallback(func_80022BD0);
+        Fs_VBlank   = VSync(-1);
+        Fs_CdErrorCount = 0;
+        Fs_Streaming     = 1;
+        CdReadyCallback(Fs_CdReadyCb);
         CdSyncCallback(NULL);
     } else {
         F12D18_800256F4(C12D18_800256F4_ARG_0);
     }
 }
 
-void F12D18_SeekToPosCb(u8 status, u8* result)
+void Fs_SeekToPosCb(u8 status, u8* result)
 {
     if (status == CdlComplete) {
-        D5B498_8006C228 = D5B498_8006C228_FF;
+        Fs_CdOpStatus = FS_CD_STATUS_IDLE;
         CdSyncCallback(NULL);
-        D5B498_CdErrorCount = 0;
+        Fs_CdErrorCount = 0;
     } else {
         F12D18_800256F4(C12D18_800256F4_ARG_0);
     }
@@ -626,21 +626,21 @@ void F12D18_SeekToPosCb(u8 status, u8* result)
 
 void F12D18_800256F4(u8 arg0)
 {
-    D5B498_CdErrorCount += 1;
+    Fs_CdErrorCount += 1;
     CdReadyCallback(NULL);
     CdSyncCallback(NULL);
 
     if (arg0 == C12D18_800256F4_ARG_2) {
-        D5B498_8006C228 = 0x40;
+        Fs_CdOpStatus = 0x40;
     } else {
         func_800532CC();
-        D5B498_8006C228 = 0x80;
+        Fs_CdOpStatus = 0x80;
     }
 
     CdControlF(CdlPause, NULL);
 }
 
-void F12D18_ContinueDrawing(u_long* ot)
+void Fs_ContinueDrawing(u_long* ot)
 {
     // Wait until the gpu is idling and then continue drawing.
     while (IsIdleGPU(-1) != 0) {
@@ -650,23 +650,23 @@ void F12D18_ContinueDrawing(u_long* ot)
 
 u8* func_800257A4(void)
 {
-    return &D5B498_CdSectorBuffer.bytes[0x10];
+    return &Fs_CdSector.bytes[0x10];
 }
 
 void F12D18_800257B0(void)
 {
     u8 ctrlResult[8];
 
-    if (D5B498_8006C228 != 0 && D5B498_8006C228 != 0x41) {
+    if (Fs_CdOpStatus != 0 && Fs_CdOpStatus != 0x41) {
         return;
     }
 
-    if (VSync(-1) <= D5B498_CurrVBlank + 0xb4) {
+    if (VSync(-1) <= Fs_VBlank + 0xb4) {
         return;
     }
 
-    D5B498_CurrVBlank = VSync(-1);
-    D5B498_8006C228   = 0x80;
+    Fs_VBlank = VSync(-1);
+    Fs_CdOpStatus   = 0x80;
     CdFlush();
     func_800532CC();
     CdReadyCallback(NULL);
@@ -674,7 +674,7 @@ void F12D18_800257B0(void)
     CdControlB(CdlPause, NULL, ctrlResult);
 }
 
-void F12D18_StopCd(void)
+void Fs_StopCd(void)
 {
     u8 ctrlParam[9];
 

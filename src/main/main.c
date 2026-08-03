@@ -21,7 +21,7 @@ size_t     D_80068F90;
 size_t     GActiveAuxHeapSize;
 int        D_80068F98;
 static int MainPadding;
-GStruct3   D_80068FA0;
+CdCmdQueue   CdCmd_Queue;
 u8*        D_800691F4;
 size_t     D_800691F8;
 
