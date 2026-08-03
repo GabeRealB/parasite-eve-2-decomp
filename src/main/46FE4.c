@@ -108,7 +108,18 @@ void func_800579A0(s8* arg0, s8* arg1)
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_80057A1C);
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_80057A88);
+s32 func_80057A88(s32 arg0)
+{
+    s32 temp_v0;
+
+    temp_v0 = D_80082798.field_1;
+    if ((temp_v0 == 4) || (temp_v0 == 0)) {
+        D_800827A0.field_C = arg0;
+        D_800827A0.field_0 = 1;
+        D_80082798.field_0 = 4;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_80057ACC);
 
