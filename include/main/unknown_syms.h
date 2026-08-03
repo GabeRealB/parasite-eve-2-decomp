@@ -355,6 +355,7 @@ extern GStruct14 D61CC0_800714C0;
 extern MATRIX D_80074080;
 
 // 648E0
+extern u8                D_800740E0[0x6000];
 extern void*             D_8007A0E0;
 extern s32               D_8007A0E4;
 extern HeapBlockHeader*  D648E0_HeapStart;

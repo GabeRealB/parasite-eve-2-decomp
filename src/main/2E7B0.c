@@ -40,4 +40,7 @@ void func_8003E9A4(void) {
     D_8007A0E0 = (void*)D_80068F88;
 }
 
-INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E9C4);
+void func_8003E9C4(void) {
+    D_8007A0E0 = D_800740E0;
+    D_8007A0E4 = 0x6000;
+}
