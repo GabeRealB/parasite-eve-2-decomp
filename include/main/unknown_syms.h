@@ -315,6 +315,7 @@ extern void func_8002785C(void);
 extern void func_80028718(void);
 extern void func_800303AC(void);
 extern s32  func_800304AC(GStruct0* arg0, s32 arg1, s32 arg2);
+extern s32  func_8003092C(GStruct0* arg0, s32 arg1, s32 arg2);
 extern void func_80033BBC(void);
 extern void func_8003DB48(s32 arg0);
 extern void func_8003DE14(s32 arg0, s32 arg1, s32 arg2);

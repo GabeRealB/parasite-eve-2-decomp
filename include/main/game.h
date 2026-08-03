@@ -357,13 +357,15 @@ typedef struct _GStruct37 {
 } GStruct37;
 
 /// Second argument to memcard/save state handlers in 21FDC.c (e.g. func_80035AD4,
-/// func_80034070). Larger object; only fields used so far are named.
+/// func_80034070, func_80035FD8). Larger object; only fields used so far are named.
+/// field_10/field_14 are MemCardSync cmds/rslt outs.
 typedef struct _GStruct21 {
     /* 0x000 */ s32  field_0;
     /* 0x004 */ s32  field_4;
     /* 0x008 */ s32  field_8;
     /* 0x00C */ s32  field_C;
-    /* 0x010 */ byte unknown_10[0x8];
+    /* 0x010 */ s32  field_10;
+    /* 0x014 */ s32  field_14;
     /* 0x018 */ s32  field_18;
     /* 0x01C */ byte unknown_1C[0x8];
     /* 0x024 */ s32  field_24;
