@@ -12,7 +12,14 @@ void func_80053D90(void) {
     func_80053DB0(0);
 }
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80053DB0);
+void func_80053DB0(s32 arg0) {
+    if (arg0 == 0) {
+        func_8004D0F0(&D_8007E258);
+        D_80082134 = 0;
+        return;
+    }
+    D_80082134 = 1;
+}
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80053DF4);
 
