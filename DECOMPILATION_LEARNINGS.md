@@ -1541,6 +1541,35 @@ Bare early `return 1;` / `return 0;` can also fail: the compiler may sink the
 `return 1` path after the work block instead of filling the branch delay slot.
 `func_80057724` is the pure example.
 
+## Ternary keeps a second `return 1` from merging with an early exit
+
+When the target has two separate `jr ra` / `li v0, 1` epilogues — one early
+exit and one late — writing both as bare `return 1;` lets GCC share a single
+epilogue and turn the late branch into a jump back to the early one:
+
+```c
+/* ~90%: late bne jumps to the early return-1 */
+if (flag & 1) {
+    return 1;
+}
+if (a == b) {
+    return x != 0;
+}
+return 1;
+```
+
+A trailing ternary forces a distinct late epilogue:
+
+```c
+if (flag & 1) {
+    return 1;
+}
+return (a != b) ? 1 : (x != 0);
+```
+
+`func_8005BB4C` is the pure example. An if/else that assigns into `ret` and
+returns once can also work, but the ternary is the minimal rewrite.
+
 ## Statement order of independent increments fills load-delay slots
 
 When a loop body does a dependent load chain (`lw` of a pointer, then `lbu`

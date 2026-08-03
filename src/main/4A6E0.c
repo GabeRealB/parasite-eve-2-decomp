@@ -117,7 +117,13 @@ void func_8005BA8C(u32* arg0)
 
 INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005BAEC);
 
-INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005BB4C);
+s32 func_8005BB4C(void)
+{
+    if (D_80082818.unknown_0[0] & 1) {
+        return 1;
+    }
+    return (D_800828F0.field_3 != D_800828F0.field_2) ? 1 : (D_80082818.field_54 != 0);
+}
 
 void func_8005BB9C(void)
 {
