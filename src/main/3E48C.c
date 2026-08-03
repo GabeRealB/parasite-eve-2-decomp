@@ -91,7 +91,13 @@ void func_8004E560(u32 voiceIdx, s32 arg1, s32 arg2)
     D648E0_8007E338.field_16c[sVoiceIdx] = arg2;
 }
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E580);
+void func_8004E580(u32 voiceIdx)
+{
+    s8 sVoiceIdx = (s8)voiceIdx;
+
+    D648E0_8007E338.field_10c[sVoiceIdx] = 0;
+    D648E0_8007E338.field_16c[sVoiceIdx] = 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E5A0);
 
