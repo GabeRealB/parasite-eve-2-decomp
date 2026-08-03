@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <psyq/libcd.h>
+
 #include "main/unknown_syms.h"
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_800567E4);
@@ -36,7 +38,28 @@ s32 func_800575D8(s32 arg0)
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_80057618);
+s32 func_80057618(void)
+{
+    u8                  mode;
+    s32                 mem;
+    s32                 buf;
+    volatile GStruct56* p;
+
+    D_80082798.field_3 = 5;
+    p                  = (volatile GStruct56*)&D_800827A0;
+    CdIntToPos(p->field_4, (CdlLOC*)&p->field_10);
+    buf = D_80082750;
+    if (buf != 0) {
+        F3D458_Free((void*)buf);
+    }
+    mem                = (s32)F3D458_Malloc(0x800);
+    D_80082750         = mem;
+    D_80082778         = mem + 4;
+    D_800827A0.field_0 = 5;
+    mode               = CdlModeSpeed | CdlModeSize1;
+    CdControlB(CdlSetmode, &mode, NULL);
+    return 0;
+}
 
 s32 func_800576BC(s32 arg0)
 {
