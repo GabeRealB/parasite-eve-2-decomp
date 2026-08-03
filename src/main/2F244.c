@@ -64,7 +64,16 @@ u8 func_8003FC18(void)
     return D_80062698->field_12;
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8003FC30);
+void func_8003FC30(u8 arg0)
+{
+    GStruct17* temp;
+
+    temp = D_80062698;
+    if (temp->field_15 == 1) {
+        temp->field_11 = arg0;
+        func_8003F450(0);
+    }
+}
 
 void func_8003FC6C(void)
 {

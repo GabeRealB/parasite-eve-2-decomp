@@ -242,6 +242,7 @@ extern void func_80033BBC(void);
 extern void func_8003DB48(s32 arg0);
 extern void func_8003DE14(s32 arg0, s32 arg1, s32 arg2);
 extern void func_8003EE68(void);
+extern void func_8003F450(s32 arg0);
 extern void func_8004CC58(s32 arg0);
 extern void func_8004CFC8(void);
 extern void F3D458_ResetHeap(void);
