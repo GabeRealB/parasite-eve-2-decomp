@@ -603,7 +603,21 @@ s32 func_80041B88(GStruct27* arg0)
     return result;
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_80041BFC);
+s32 func_80041BFC(void)
+{
+    GStruct27* node;
+    s32        result;
+
+    result = 0;
+    node   = D_800711B8.next;
+    while (node != NULL) {
+        if (node->field_18 != NULL) {
+            result += node->field_10->field_4 * 2;
+        }
+        node = node->next;
+    }
+    return result;
+}
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_80041C50);
 
