@@ -1394,3 +1394,51 @@ for (i = 0, ptr = D_arr; i < n; i++, ptr++) {
 ```
 
 `func_8004D150` is the pure example.
+
+## Hoist compare-constants as `s32` locals *inside* the early-exit `if`
+
+When a loop compares a loaded byte against several fixed values (`'\n'`, `'N'`,
+`'n'`, `'\\'`), the target loads all of those constants once *after* the early
+`blez arg1, out` (first `li` lives in the delay slot), then reuses the registers
+in the loop.
+
+Two failure modes:
+
+1. **Literals written inline** (`if (temp == 0xA)`) — GCC reloads a fresh `li`
+   at each compare and never pins them in temps.
+2. **`s32` locals declared before the `if`** — constants load *before* the
+   `blez`, so the branch no longer owns the first `li` delay slot.
+
+Fix: declare the `s32` constants at the top of the `if (arg1 > 0)` block so they
+materialize only on the taken path, and use a goto-based loop (not `do`/`while`)
+to keep the first iteration un-peeled:
+
+```c
+if (arg1 > 0) {
+    s32 c_nl = 0xA;
+    s32 c_N = 0x4E;
+    s32 c_n = 0x6E;
+    s32 c_bs = 0x5C;
+loop:
+    temp = *arg0;
+    if (temp == 0) {
+        goto end;
+    }
+    if (temp == c_nl) {
+        arg1 -= 1;
+    } else if (temp == c_N || temp == c_n) {
+        if (arg0[-1] == c_bs) {
+            arg1 -= 1;
+        }
+    }
+    arg0 += 1;
+    if (arg1 > 0) {
+        goto loop;
+    }
+}
+end:
+return arg0;
+```
+
+`func_8002F528` is the pure example. A plain `do { ... } while (arg1 > 0)` with
+the same locals peels the null check and reintroduces `andi` masks.

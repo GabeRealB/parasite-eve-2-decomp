@@ -61,7 +61,34 @@ INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002F3A0);
 
 INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002F44C);
 
-INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002F528);
+u8 *func_8002F528(u8 *arg0, s32 arg1) {
+    u8 temp;
+
+    if (arg1 > 0) {
+        s32 c_nl = 0xA;
+        s32 c_N = 0x4E;
+        s32 c_n = 0x6E;
+        s32 c_bs = 0x5C;
+loop:
+        temp = *arg0;
+        if (temp == 0) {
+            goto end;
+        }
+        if (temp == c_nl) {
+            arg1 -= 1;
+        } else if (temp == c_N || temp == c_n) {
+            if (arg0[-1] == c_bs) {
+                arg1 -= 1;
+            }
+        }
+        arg0 += 1;
+        if (arg1 > 0) {
+            goto loop;
+        }
+    }
+end:
+    return arg0;
+}
 
 INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002F588);
 
