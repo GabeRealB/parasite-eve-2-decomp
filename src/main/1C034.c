@@ -87,7 +87,10 @@ INCLUDE_ASM("main/nonmatchings/1C034", func_8002CB04);
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002CCB8);
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002CFA0);
+void func_8002CFA0(GStruct2* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    func_8002CB04(&arg0[arg1], arg2, arg3, D_800716D8);
+}
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002CFDC);
 

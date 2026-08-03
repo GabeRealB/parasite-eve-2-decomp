@@ -51,6 +51,6 @@ void func_8002F98C(GStruct0* arg0)
     func_80030074();
     func_8003DB48(0x1010);
     func_8002BB9C();
-    func_8002CFA0(&D_80094C8C, 0, 0, 0);
+    func_8002CFA0((GStruct2*)&D_80094C8C, 0, 0, 0);
     func_8002CCB8(arg0);
 }
