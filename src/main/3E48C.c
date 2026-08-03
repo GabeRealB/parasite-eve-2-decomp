@@ -116,7 +116,12 @@ s32 F3E48C_8004E660(u32 voiceIdx)
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E6A4);
+u8 func_8004E6A4(u32 voiceIdx)
+{
+    s8 sVoiceIdx = (s8)voiceIdx;
+
+    return D648E0_8007E338.field_64[sVoiceIdx];
+}
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E6C4);
 
