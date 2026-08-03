@@ -396,6 +396,9 @@ typedef struct _GStruct27 {
 } GStruct27;
 STATIC_ASSERT_SIZEOF(GStruct27, 0x34);
 
+/// Head of the GStruct27 linked list used by 2F244.c TMD/model helpers.
+extern GStruct27* D_800711B8;
+
 /// Nested object reached via GStruct29::field_28 (see func_80049D34).
 /// Only field_34 is named so far.
 typedef struct _GStruct28 {

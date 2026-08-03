@@ -171,7 +171,21 @@ INCLUDE_ASM("main/nonmatchings/2F244", func_80041D84);
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_80041DF4);
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_80041E4C);
+void func_80041E4C(void)
+{
+    GStruct27* node;
+
+    node = D_800711B8;
+    ResetGraph(1);
+    F179D4_ClearOTag(0);
+    F179D4_ClearOTag(1);
+    while (node != NULL) {
+        if (node->field_18 != NULL) {
+            node->field_18 = NULL;
+        }
+        node = node->next;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_80041EB4);
 
