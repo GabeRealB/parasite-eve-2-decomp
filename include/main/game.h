@@ -830,6 +830,16 @@ typedef struct _GStruct52 {
 } GStruct52;
 STATIC_ASSERT_SIZEOF(GStruct52, 0x4);
 
+/// 0x60-byte slot in D_80082248[8]. field_0 is an ID looked up by
+/// func_80055DAC; field_16 holds status flags (mask 0xA3 selects active entries).
+typedef struct _GStruct54 {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ u8  pad_4[0x12];
+    /* 0x16 */ u8  field_16;
+    /* 0x17 */ u8  pad_17[0x49];
+} GStruct54;
+STATIC_ASSERT_SIZEOF(GStruct54, 0x60);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 

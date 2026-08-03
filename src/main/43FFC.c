@@ -319,7 +319,21 @@ void func_80055D78(s8 arg0) {
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80055DAC);
+s32 func_80055DAC(s32 arg0) {
+    s32 i;
+    GStruct54* p;
+
+    i = 0;
+    p = D_80082248;
+    do {
+        if ((p->field_16 & 0xA3) && (p->field_0 == arg0)) {
+            return i;
+        }
+        i++;
+        p++;
+    } while (i < 8);
+    return -1;
+}
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80055DFC);
 

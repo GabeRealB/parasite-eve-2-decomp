@@ -1621,3 +1621,33 @@ Also keep an intermediate `base = D_800610FC; p = base + 1;` so the address
 forms as `addiu v0, %lo(D_800610FC)` then `addiu a0, v0, 0xC` rather than a
 folded `%lo(D_800610FC+0xC)`. `func_80033D3C` is the pure example; its verify
 sibling `func_80033D88` uses a plain `s32 sum` and different scheduling.
+
+## Statement order picks which local reuses `$a1`
+
+When a function takes only `arg0`, `$a1` is free for the first assigned local.
+A search over an array of structs often needs:
+
+```
+move  a1, zero          /* index */
+lui   v0, %hi(arr)
+addiu v1, v0, %lo(arr)  /* pointer */
+```
+
+Writing `p = arr; for (i = 0; ...)` gives the opposite assignment (`$a1` =
+pointer, `$v1` = index). Initialize the counter first:
+
+```c
+i = 0;
+p = D_80082248;
+do {
+    if ((p->field_16 & mask) && (p->field_0 == arg0)) {
+        return i;
+    }
+    i++;
+    p++;
+} while (i < 8);
+return -1;
+```
+
+`func_80055DAC` is the pure example. Signed `i` + `do`/`while` also produces
+the target's `slti`/`bnez` count-up form.
