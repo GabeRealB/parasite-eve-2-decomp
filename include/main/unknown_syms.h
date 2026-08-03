@@ -270,6 +270,7 @@ extern GStruct17*   D_80062698;
 extern void*        D_800626A8;
 extern u8           D_80062734;
 extern s32          D_8006763C[];
+extern GStruct29*   D_80067694;
 extern u8           D_800680A4;
 extern u32          D_800680BC;
 extern volatile u32 D_800680C0;

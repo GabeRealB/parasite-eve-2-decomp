@@ -393,6 +393,20 @@ typedef struct _GStruct27 {
 } GStruct27;
 STATIC_ASSERT_SIZEOF(GStruct27, 0x34);
 
+/// Nested object reached via GStruct29::field_28 (see func_80049D34).
+/// Only field_34 is named so far.
+typedef struct _GStruct28 {
+    /* 0x00 */ byte unknown_0[0x34];
+    /* 0x34 */ s32  field_34;
+} GStruct28;
+
+/// Object pointed to by D_80067694. field_28 is a child pointer written by
+/// UI/context setup; func_80049D34 stores through it.
+typedef struct _GStruct29 {
+    /* 0x00 */ byte       unknown_0[0x28];
+    /* 0x28 */ GStruct28* field_28;
+} GStruct29;
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 
