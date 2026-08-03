@@ -566,6 +566,21 @@ typedef struct _GStruct36 {
 } GStruct36;
 STATIC_ASSERT_SIZEOF(GStruct36, 0x5DC);
 
+/// Text-measure / draw-request block passed to func_8002EDFC / func_8002E53C.
+/// field_0 / field_2 are position (or accumulate measured width); field_C selects
+/// the glyph table; field_D selects centering mode (1 = half width, 2 = full).
+typedef struct _GStruct38 {
+    /* 0x00 */ s16 field_0;
+    /* 0x02 */ s16 field_2;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s8  field_C;
+    /* 0x0D */ s8  field_D;
+    /* 0x0E */ s8  field_E;
+    /* 0x0F */ s8  pad_F;
+} GStruct38;
+STATIC_ASSERT_SIZEOF(GStruct38, 0x10);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 

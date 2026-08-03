@@ -128,9 +128,11 @@ extern void func_80099214(void* arg0);
 extern void func_80099290(void* arg0);
 
 // 1E6C4.c
+extern void func_8002EDFC(GStruct38* arg0, u8* arg1);
 extern void func_8002F98C(GStruct0* arg0);
 
 // 201E0.c
+extern s32  func_8002FCBC(u8* arg0);
 extern void func_80030074(void);
 
 // 32B64.c
