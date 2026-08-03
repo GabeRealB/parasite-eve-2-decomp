@@ -175,6 +175,24 @@ Keep the local pointer `volatile` as well so the store stays out of the `jr`
 delay slot (a plain `GStruct25*` still multiplies first but fills the slot with
 `sb`). `func_8002C9E0` is the minimal example.
 
+**Inverse — non-volatile array: base before index.** For a plain (non-volatile)
+array, `&arr[(s8)i]` often schedules the signed index shift *before*
+`lui`/`addiu` of the base. When the target materializes the base first, assign
+the array to a local pointer, then index through that:
+
+```c
+/* Wrong schedule: sll/sra index, then lui/addiu base */
+p = &D_80082148[(s8)arg0];
+
+/* Right schedule: lui/addiu base, then sll/sra index */
+GStruct31* base;
+base = D_80082148;
+p = &base[(s8)arg0];
+```
+
+`func_800561EC` needs this form so `F3D458_Free` can take `p->field_0` with the
+base already in `$v0` before the stride multiply lands in `$s0`.
+
 ## `~x != 0` for `nor` + `sltu` (not `x != -1`)
 
 When the target does:

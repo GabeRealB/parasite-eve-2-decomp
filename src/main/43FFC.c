@@ -289,7 +289,18 @@ GStruct31* func_800561C0(s32 arg0) {
     return NULL;
 }
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_800561EC);
+void func_800561EC(s32 arg0) {
+    GStruct31* temp_s0;
+    GStruct31* base;
+
+    if ((u8)arg0 < 0x10) {
+        base = D_80082148;
+        temp_s0 = &base[(s8)arg0];
+        F3D458_Free(temp_s0->field_0);
+        temp_s0->field_8 = -1;
+        temp_s0->field_0 = NULL;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80056240);
 
