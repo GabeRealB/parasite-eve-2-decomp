@@ -314,7 +314,8 @@ STATIC_ASSERT_SIZEOF(GStruct18, 0x10);
 typedef struct _GStruct19 {
     /* 0x00 */ byte unknown_0[0x6];
     /* 0x06 */ s16  field_6;
-    /* 0x08 */ byte unknown_8[0x44];
+    /* 0x08 */ void (*field_8)(s32);
+    /* 0x0C */ byte unknown_C[0x40];
     /* 0x4C */ s16  field_4C;
     /* 0x4E */ byte unknown_4E[0x5];
     /* 0x53 */ u8   field_53;

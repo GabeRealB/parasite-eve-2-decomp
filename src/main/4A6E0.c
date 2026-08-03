@@ -95,7 +95,13 @@ void func_8005B968(u32 *arg0)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005BA8C);
+void func_8005BA8C(u32 *arg0)
+{
+    func_8005B968(arg0);
+    if (!((*arg0 >> 3) & 1) && (D_80082818.field_8 != NULL)) {
+        D_80082818.field_8(0);
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005BAEC);
 
