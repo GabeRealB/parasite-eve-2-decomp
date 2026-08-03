@@ -67,7 +67,10 @@ u8 func_80026138(void)
     return D_8006EBBA;
 }
 
-INCLUDE_ASM("main/nonmatchings/16494", func_80026148);
+void func_80026148(void)
+{
+    D_8006EBF4 = (D5B498_SpuAttr.cd.volume.left / 256) & 0x7F;
+}
 
 INCLUDE_ASM("main/nonmatchings/16494", func_80026178);
 
