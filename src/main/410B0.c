@@ -4,7 +4,21 @@
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_800508B0);
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_800509B4);
+void func_800509B4(void) {
+    u32 i;
+    s32* ptr;
+
+    ptr = (s32*)D_8007EBF0;
+    i = 0;
+    do {
+        *ptr = 0;
+        i++;
+        ptr++;
+    } while (i < 0x1C0U);
+    D_8007EBE4 = NULL;
+    D_8007EBE8 = NULL;
+    D_8007EBE0 = 1;
+}
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_800509F4);
 
