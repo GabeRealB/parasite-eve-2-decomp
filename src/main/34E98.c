@@ -57,7 +57,24 @@ INCLUDE_ASM("main/nonmatchings/34E98", func_80048560);
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_800486F0);
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80048838);
+void func_80048838(GStruct37* arg0, GStruct0* arg1)
+{
+    GStruct0* temp_s0;
+    GStruct0* child;
+
+    temp_s0 = arg0->field_28;
+    child   = temp_s0->field_c;
+    if (child != NULL) {
+        do {
+            func_80048838(child->field_20, child);
+            child = temp_s0->field_c;
+        } while (child != NULL);
+    }
+    if (arg0->field_8 != 3) {
+        func_8002D0CC(temp_s0);
+        arg0->field_8 = 3;
+    }
+}
 
 void func_800488B8(GStruct0* arg0)
 {
