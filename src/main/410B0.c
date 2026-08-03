@@ -59,7 +59,16 @@ void func_80050C0C(GStruct16* arg0) {
     func_800559BC(arg0->field_8, 0);
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80050C30);
+void func_80050C30(GStruct16* arg0) {
+    s32 temp_v0;
+    GStruct16From4* temp_s0;
+
+    temp_s0 = (GStruct16From4*)&arg0->field_4;
+    temp_v0 = func_80055DAC(temp_s0->field_4);
+    if (temp_v0 >= 0) {
+        func_80055A9C(temp_v0, arg0->field_4, temp_s0->field_1);
+    }
+}
 
 void func_80050C80(GStruct16* arg0) {
     s32 temp_v0;
