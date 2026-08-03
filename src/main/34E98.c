@@ -171,4 +171,9 @@ void func_80049D34(s32 arg0)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80049D5C);
+void func_80049D5C(s32 arg0)
+{
+    if (D_80067694 != NULL) {
+        D_80067694->field_28->field_34 = arg0;
+    }
+}
