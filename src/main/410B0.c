@@ -209,7 +209,21 @@ void func_8005185C(s32 *arg0) {
     ((s8 *)arg0)[0] = -1;
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80051888);
+void func_80051888(void) {
+    GStruct16* temp;
+    GStruct16From4* mid;
+
+    D_800820E9 = 1;
+    temp = func_800509F4();
+    if (temp != NULL) {
+        mid = (GStruct16From4*)&temp->field_4;
+        temp->field_2 = 5;
+        temp->field_4 = 0;
+        mid->field_1 = 0;
+        func_80050A38(temp);
+        D_800820E8 = mid->field_1;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_800518E0);
 
