@@ -20,7 +20,34 @@ INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002E53C);
 
 INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002EB94);
 
-INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002EDFC);
+void func_8002EDFC(GStruct38* arg0, u8* arg1)
+{
+    u8* table;
+    s32 width;
+
+    switch (arg0->field_C) {
+    case 0:
+        table = D_8005EFB0;
+        break;
+    case 5:
+        table = D_800604B0;
+        break;
+    default:
+        table = D_8005FA30;
+        break;
+    }
+
+    switch (arg0->field_D) {
+    case 1:
+        width = func_8002DECC(arg0, arg1, table);
+        arg0->field_0 -= width >> 1;
+        break;
+    case 2:
+        width = func_8002DECC(arg0, arg1, table);
+        arg0->field_0 -= width;
+        break;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002EEA0);
 

@@ -1068,3 +1068,29 @@ both `%hi/%lo` pairs up front (see "Hold a global's address in a local
 pointer"). Nested `if (flag) { if (head != NULL) { ... } }` rather than
 `flag && head` keeps the second null test in the first's delay-slot region.
 `func_8004D8BC` is the reference.
+
+## `switch` for equality chains that branch *to* case bodies
+
+When the target does positive equality tests that jump *to* handlers
+(`beq`/`beqz` to the case, default falls through then `j` past the bodies),
+an `if` / `else if` chain usually emits the inverse (`bne` past an inlined
+body). Sparse multi-way selection matches as a `switch` instead:
+
+```c
+/* Target: beqz x, case0 / beq x,5,case5 / default then j continue */
+switch (arg0->field_C) {
+case 0:
+    table = D_8005EFB0;
+    break;
+case 5:
+    table = D_800604B0;
+    break;
+default:
+    table = D_8005FA30;
+    break;
+}
+```
+
+`func_8002EDFC` is a pure example: two independent `switch`es (glyph table by
+`field_C`, centering by `field_D`) both needed this layout; the equivalent
+`if`/`else if` form scored ~67%.

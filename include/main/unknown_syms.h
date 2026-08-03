@@ -133,8 +133,14 @@ extern void func_80099214(void* arg0);
 extern void func_80099290(void* arg0);
 
 // 1E6C4.c
+extern s32  func_8002DECC(GStruct38* arg0, u8* arg1, u8* arg2);
 extern void func_8002EDFC(GStruct38* arg0, u8* arg1);
 extern void func_8002F98C(GStruct0* arg0);
+
+// Glyph tables (selected by GStruct38.field_C)
+extern u8 D_8005EFB0[];
+extern u8 D_8005FA30[];
+extern u8 D_800604B0[];
 
 // 201E0.c
 extern s32  func_8002FCBC(u8* arg0);
