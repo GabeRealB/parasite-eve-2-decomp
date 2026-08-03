@@ -148,7 +148,18 @@ void func_8001D90C(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001D934);
+void func_8001D934(void)
+{
+    GStruct3* state;
+
+    state = &D_80068FA0;
+    Mem_Set(state, 0, 0x40);
+    state->field_1c8 = 0;
+    state->field_1ca = 0;
+    state->field_1d0 = 0;
+    state->field_1fc = 0;
+    state->field_1d2 = 0;
+}
 
 void func_8001D97C(void)
 {
