@@ -64,7 +64,17 @@ void func_8003FC6C(void)
     D_80062698->field_1a = 0xFF;
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8003FC8C);
+void func_8003FC8C(GStruct0* arg0)
+{
+    func_8002C9B0(0);
+    if (func_8001CDF0() != 0) {
+        arg0->field_30 += 1;
+    } else {
+        D_80071620[0].field_A = 1;
+        func_8003EE68();
+        arg0->field_30 += 2;
+    }
+}
 
 void func_8003FCF8(GStruct0* arg0)
 {
