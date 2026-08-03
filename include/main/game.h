@@ -672,6 +672,19 @@ typedef struct _GStruct42 {
 } GStruct42;
 STATIC_ASSERT_SIZEOF(GStruct42, 0x20);
 
+/// BSS object D_80082780 (size 0x14). CD stream control for 46FE4.c.
+typedef struct _GStruct44 {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ u8  field_8;
+    /* 0x09 */ u8  field_9;
+    /* 0x0A */ s8  field_A;
+    /* 0x0B */ u8  field_B;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s32 field_10;
+} GStruct44;
+STATIC_ASSERT_SIZEOF(GStruct44, 0x14);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 

@@ -21,7 +21,20 @@ u8 func_80057554(void)
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_80057564);
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_800575D8);
+s32 func_800575D8(s32 arg0)
+{
+    volatile GStruct44* p;
+
+    D_800827E4 = 0;
+    D_80082754 = 0;
+    p = &D_80082780;
+    p->field_C = 0;
+    p->field_8 = 0;
+    p->field_9 = 0;
+    D_800827A0.field_4 = arg0;
+    D_80082750 = 0;
+    return 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_80057618);
 
