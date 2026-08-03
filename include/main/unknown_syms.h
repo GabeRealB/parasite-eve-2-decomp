@@ -144,6 +144,7 @@ extern void func_80049554(GStruct30* arg0, void* arg1);
 extern void func_800495B4(GStruct30* arg0, void* arg1);
 extern void func_8004965C(GStruct30* arg0, void* arg1);
 extern void func_800497F4(GStruct30* arg0, void* arg1);
+extern void func_80049A8C(GStruct0* arg0);
 
 // 3D458.c
 extern void  func_8004CFE8(void);
@@ -293,6 +294,7 @@ extern void func_80053FF4(u32);
 extern void func_800AFA44(void);
 extern void func_800B00C4(void);
 extern void func_8017D6D4(void);
+extern void func_801D4B64(GStruct0* arg0);
 
 // .data
 extern u32          D_8005EC64;

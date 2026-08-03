@@ -67,7 +67,8 @@ typedef struct _GStruct1 {
     u8      field_101;
     byte    unknown_102[0x1];
     u8      field_103;
-    byte    unknown_104[0x7];
+    byte    unknown_104[0x6];
+    u8      field_10a;
     u8      field_10b;
     byte    unknown_10c[0x1];
     u8      field_10d;
