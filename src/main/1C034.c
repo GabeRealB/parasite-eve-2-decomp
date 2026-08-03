@@ -62,7 +62,13 @@ void func_8002BE0C(GStruct0* arg0)
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002BEA8);
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002BF10);
+void func_8002BF10(GStruct0* arg0)
+{
+    ((GStructOverlayAt4*)D4F564_8005ED64)->field_4 =
+        ((GStructOverlayAt4*)&D_80072168)->field_4;
+    D_8007A394 = 0;
+    arg0->field_30 = arg0->field_30 + 1;
+}
 
 void func_8002BF58(GStruct0* arg0)
 {

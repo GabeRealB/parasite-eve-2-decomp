@@ -415,6 +415,7 @@ extern s32           D_8007A118;
 extern s32           D_8007A358;
 extern s16           D_8007A35C;
 extern void*         D_8007A360;
+extern u8            D_8007A394;
 extern u8            D_8007E0CC;
 
 // 5B498

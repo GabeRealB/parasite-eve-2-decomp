@@ -233,6 +233,18 @@ typedef struct _GStruct13 {
 } GStruct13;
 STATIC_ASSERT_SIZEOF(GStruct13, 0x8);
 
+/// 8-byte block assigned via unaligned lwl/lwr (see func_8002BF10).
+typedef struct _GBytes8 {
+    u8 data[8];
+} GBytes8;
+
+/// Overlay of objects with an 8-byte field at offset 0x4 (GStruct14, GStruct23).
+typedef struct _GStructOverlayAt4 {
+    byte    pad[4];
+    GBytes8 field_4;
+} GStructOverlayAt4;
+STATIC_ASSERT_SIZEOF(GStructOverlayAt4, 0xC);
+
 typedef struct _GStruct14 {
     byte  unknown_0[0x4];
     byte  field_4; // address taken by func_8001D39C

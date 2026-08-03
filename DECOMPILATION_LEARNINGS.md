@@ -1255,3 +1255,31 @@ When a function sets a bit in one global and clears it from two others
 `func_8004E71C` is the pure example: pointer on `D648E0_8007EBB0`, then
 `D648E0_8007EBA8 &= ~channel` before `D648E0_8007EBAC &= ~channel` so that
 EBAC is the early-loaded `$a2` value.
+
+## Unaligned 8-byte copy via nested `u8[8]` struct assignment
+
+When the target copies 8 bytes with `lwl`/`lwr`/`swl`/`swr` pairs (not
+`lw`/`sw`), both sides are being treated as alignment-1. Two traps:
+
+1. **`*(s32*)` through a `byte` field** is *not* enough. GCC 2.8.1 still
+   proves word alignment when the containing struct is aligned and the field
+   offset is a multiple of 4, and emits `lw`/`sw`.
+
+2. **Rebasing to the field address** (`*(Bytes8*)&obj->field_4 = ...`) produces
+   the right unaligned ops but with base `obj+4` and offsets `0`/`3`/`4`/`7`.
+   The target keeps the *object* base and uses offsets `4`/`7`/`8`/`0xB`.
+
+Match by assigning a nested `u8[8]` field that lives at offset 4 inside an
+overlay of the whole object:
+
+```c
+typedef struct { u8 data[8]; } GBytes8;
+typedef struct {
+    byte    pad[4];
+    GBytes8 field_4;
+} GStructOverlayAt4;
+
+((GStructOverlayAt4*)dst)->field_4 = ((GStructOverlayAt4*)src)->field_4;
+```
+
+`func_8002BF10` is the pure example (`D4F564_8005ED64` ← `D_80072168`).
