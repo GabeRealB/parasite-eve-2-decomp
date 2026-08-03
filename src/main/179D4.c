@@ -119,7 +119,18 @@ void func_80028290(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/179D4", func_800282D8);
+void func_800282D8(s32 arg0)
+{
+    PutDrawEnv(&D_80070F68.field_48[arg0]);
+    PutDispEnv(&D_80070F68.field_20[arg0]);
+    if (D_80070F68.field_100 != 0) {
+        func_80027F48(arg0);
+    }
+    func_80020058();
+    if (D_80070F68.field_104 == 0) {
+        DrawOTag(D_80070EE8[arg0].field_10);
+    }
+}
 
 // TODO
 void GameMain(void)

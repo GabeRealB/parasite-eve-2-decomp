@@ -1687,3 +1687,33 @@ return (val & arg2) != 0;
 
 `func_8002C868` is the pure example. This is the inverse of the
 "keep local pointer volatile" rule used by `func_8002C9E0` on the same array.
+
+## Prefer bare global field names when target CSEs a mid-struct address
+
+"Hold a global's address in a local pointer" is the right default when the
+target loads `%lo(D_xxx)` into `$sN` and then uses `off($sN)`. The inverse
+shows up when the first access is a non-zero-offset array field and later
+fields are reached by adjusting that same register:
+
+```
+lui    s0, %hi(D_80070F68)
+addiu  s0, s0, %lo(D_80070F68+0x48)   # DRAWENV array
+...
+addiu  a0, s0, -0x28                  # DISPENV array (= base+0x20)
+...
+addiu  s0, s0, -0x48                  # back to struct base
+lbu    v0, 0x100(s0)
+```
+
+A local `GStruct1* p = &D_80070F68` forces the base into a callee-saved reg
+and emits `addiu a0, a0, 0x48` / `addiu a0, s2, 0x20` instead — correct
+offsets, wrong CSE (~85%). Write the accesses by name:
+
+```c
+PutDrawEnv(&D_80070F68.field_48[arg0]);
+PutDispEnv(&D_80070F68.field_20[arg0]);
+if (D_80070F68.field_100 != 0) { ... }
+if (D_80070F68.field_104 == 0) { ... }
+```
+
+`func_800282D8` is the pure example.
