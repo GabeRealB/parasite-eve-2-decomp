@@ -223,7 +223,19 @@ void func_8004D19C(GStruct42* arg0)
 
 INCLUDE_ASM("main/nonmatchings/3D458", func_8004D200);
 
-INCLUDE_ASM("main/nonmatchings/3D458", func_8004D298);
+s32 func_8004D298(GStruct55* arg0, s32 arg1)
+{
+    s32 var_a1;
+
+    var_a1 = arg1;
+    if (arg0->field_E == 1) {
+        if (arg0->field_0 == arg0->field_4) {
+            arg0->field_8 = 0;
+        }
+        var_a1 = (s32)((u32)(var_a1 * arg0->field_0) / 65535);
+    }
+    return var_a1;
+}
 
 INCLUDE_ASM("main/nonmatchings/3D458", func_8004D2EC);
 

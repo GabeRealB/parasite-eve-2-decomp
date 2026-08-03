@@ -1872,3 +1872,31 @@ if (stage == 4 || stage == 5) return 2;
 ```
 
 `func_80025898` needs the equality spelling.
+
+## Unsigned divide by 65535 needs `(u32)` cast
+
+Target pattern for `n / 65535` when the product is treated as unsigned:
+
+```
+mult   a1, v0
+mflo   v1
+lui    v0, 0x8000
+ori    v0, v0, 0x8001
+multu  v1, v0
+mfhi   v1
+srl    a1, v1, 0xf
+```
+
+A plain signed `/ 65535` emits the signed-magic sequence (`mult` + bias +
+`sra`/`subu`), which never matches.
+
+```c
+/* BAD — signed division magic */
+var = (var * scale) / 65535;
+
+/* GOOD — unsigned division magic (multu + srl 15) */
+var = (s32)((u32)(var * scale) / 65535);
+```
+
+`func_8004D298` is the pure example (GStruct55 linear interpolator scale).
+
