@@ -939,3 +939,30 @@ flag = tmp < 1;
 
 A single `(x & mask) == cst` often allocates the intermediate into the flag's
 eventual register (`a2`) instead of keeping it in `v0` through the xor.
+
+## Null-check polarity: `!= NULL` for early `bnez` return
+
+When the target opens with an early null return:
+
+```
+bnez  a0, body
+ andi v0, a1, 0xff   # delay (shared setup)
+jr    ra
+ move v0, zero       # null return
+body:
+ ...
+```
+
+write the **positive** branch first, with the null return as the fall-through:
+
+```c
+if (arg0 != NULL) {
+    return &arg0->field_4[arg0->field_10[arg1] + arg2];
+}
+return NULL;
+```
+
+The inverted early-exit form (`if (arg0 == NULL) return NULL; return ...;`)
+produces `beqz` with the null epilogue at the end of the function — same
+semantics, wrong layout. `func_8004EA60` only matches with the `!= NULL`
+shape.

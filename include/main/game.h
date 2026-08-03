@@ -623,6 +623,35 @@ typedef struct _GStruct40 {
 } GStruct40;
 STATIC_ASSERT_SIZEOF(GStruct40, 0x80);
 
+/// 0x14-byte sound/note entry indexed by func_8004EA60.
+/// Callers read field_1/field_3/field_4/field_5/field_A/field_B/field_10.
+typedef struct _GStruct41 {
+    /* 0x00 */ u8  field_0;
+    /* 0x01 */ u8  field_1;
+    /* 0x02 */ u8  pad_2;
+    /* 0x03 */ u8  field_3;
+    /* 0x04 */ u8  field_4;
+    /* 0x05 */ u8  field_5;
+    /* 0x06 */ byte unknown_6[0x4];
+    /* 0x0A */ u8  field_A;
+    /* 0x0B */ u8  field_B;
+    /* 0x0C */ byte unknown_C[0x4];
+    /* 0x10 */ s32 field_10;
+} GStruct41;
+STATIC_ASSERT_SIZEOF(GStruct41, 0x14);
+
+/// Sound bank header used by func_8004EA60 (and D_8007E0D8 entries, stride 0x20).
+/// field_4 is the base of GStruct41 entries; field_10 is a u16 index table.
+typedef struct _GStruct42 {
+    /* 0x00 */ byte       unknown_0[0x4];
+    /* 0x04 */ GStruct41* field_4;
+    /* 0x08 */ u16        field_8;
+    /* 0x0A */ byte       unknown_A[0x6];
+    /* 0x10 */ u16*       field_10;
+    /* 0x14 */ byte       unknown_14[0xC];
+} GStruct42;
+STATIC_ASSERT_SIZEOF(GStruct42, 0x20);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 

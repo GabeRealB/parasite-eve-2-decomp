@@ -242,7 +242,13 @@ void F3E48C_ApplyReverbConfig(void)
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E9D8);
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004EA60);
+GStruct41* func_8004EA60(GStruct42* arg0, u8 arg1, u8 arg2)
+{
+    if (arg0 != NULL) {
+        return &arg0->field_4[arg0->field_10[arg1] + arg2];
+    }
+    return NULL;
+}
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004EAA0);
 
