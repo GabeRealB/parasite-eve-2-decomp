@@ -601,3 +601,50 @@ if (table[var_v1 + arg0 * 2] == arg1)
 over introducing new `temp_s0`/`temp_s1` locals. Fresh locals often free the
 compiler to clobber `$s0` with the shift (`sll s0,s0,1`) and put the table
 base in `$a0` instead of `$a1`.
+
+## `do {} while (0)` to interleave `lui` with an early load
+
+When unlinking from a doubly-linked list, the target often loads a local field
+between the `lui` and `%lo` of a global head pointer:
+
+```
+lui  v0, %hi(D_head)
+lw   v1, 0(a0)           /* next — between hi and lo */
+lw   v0, %lo(D_head)(v0)
+beqz v1, L
+ addiu v0, v0, 4         /* &head->prev */
+addiu v0, v1, 4          /* &next->prev */
+```
+
+Writing the natural form:
+
+```c
+next = state->node.next;
+head = D_head;
+pp = &head->prev;
+if (next != NULL) {
+    pp = &next->node.prev;
+}
+```
+
+fully loads `D_head` before `next` (and inserts a load-delay `nop` before
+`beqz`). Wrapping the address-of assignments in `do {} while (0)` restores the
+hi/next/lo interleaving without changing semantics (`func_8002D444`):
+
+```c
+next = state->node.next;
+head = D_800716D8;
+do {
+    pp = &head->prev;
+    if (next != NULL) {
+        pp = &next->node.prev;
+    }
+} while (0);
+prev = state->node.prev;
+*pp = prev;
+prev->next = state->node.next;
+```
+
+Two separate `&…->prev` assignments (default head, then override) also produce
+the `addiu …, 4` / `sw 0(pp)` form; a single `head->prev = …` after updating
+`head` collapses to `sw 4(head)` and loses the delay-slot `addiu`.

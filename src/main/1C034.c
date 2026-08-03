@@ -201,7 +201,25 @@ void func_8002D428(void)
     D_800716E0.prev = &D_800716E0;
 }
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002D444);
+void func_8002D444(GStruct0* state)
+{
+    GStruct0* next;
+    GStruct0Node* head;
+    GStruct0Node** pp;
+    GStruct0Node* prev;
+
+    next = state->node.next;
+    head = D_800716D8;
+    do {
+        pp = &head->prev;
+        if (next != NULL) {
+            pp = &next->node.prev;
+        }
+    } while (0);
+    prev = state->node.prev;
+    *pp = prev;
+    prev->next = state->node.next;
+}
 
 void func_8002D474(GStruct0* state)
 {
