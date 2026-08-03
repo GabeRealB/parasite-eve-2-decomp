@@ -121,7 +121,22 @@ s32 func_800512BC(s32 arg0, s32 arg1) {
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_8005132C);
+s32 func_8005132C(s32 arg0, s32 arg1) {
+    GStruct16* temp;
+
+    if ((arg0 & 0xFF) == 0xFF) {
+        return -3;
+    }
+    temp = func_800509F4();
+    if (temp == NULL) {
+        return -2;
+    }
+    temp->field_2 = 2;
+    temp->field_4 = arg0;
+    temp->field_6 = arg1 & 0xFFFC;
+    func_80050A38(temp);
+    return 0;
+}
 
 s32 func_800513A0(s32 arg0) {
     GStruct16* temp;
