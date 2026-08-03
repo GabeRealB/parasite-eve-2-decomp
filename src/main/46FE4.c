@@ -101,7 +101,13 @@ INCLUDE_ASM("main/nonmatchings/46FE4", func_80057ACC);
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_80057B24);
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_80057B88);
+void func_80057B88(s32 arg0, s32 arg1)
+{
+    D_800827A0.field_4 = arg0;
+    D_80082758.field_10 = arg1;
+    D_80082798.field_4 = 1;
+    D_800827A0.field_0 = 6;
+}
 
 s32 func_80057BC0(void)
 {
