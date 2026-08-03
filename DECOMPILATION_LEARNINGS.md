@@ -137,6 +137,25 @@ otCtx->field_0 = depth;
 
 `func_800281D4` is the example — `depth` is shared across both OT buffers.
 
+**Inverse — constant first, then pointer.** When the target does `li aN,K` *then*
+`lui %hi(global)`, assign the constant before the address. A bare
+`ptr->field = 1` often schedules `li` after the address load; force the order
+with a local:
+
+```c
+/* Matches: li a1,1 then lui/addiu of D_8007EBF0 */
+i = 0;
+flag = 1;
+for (ptr = D_8007EBF0; i < 0x40; i++, ptr++) {
+    if (ptr->field_0 == 0) {
+        ptr->field_0 = flag;
+        ...
+    }
+}
+```
+
+`func_800509F4` is the example.
+
 **Hybrid — pointer for early accesses, global name after a call.** When the
 target keeps the address in `$s0` for pre-call loads/stores but reloads with a
 fresh `lui`/`addiu %lo` for a *post-call* store (instead of `off($s0)`), use the

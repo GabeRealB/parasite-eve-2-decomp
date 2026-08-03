@@ -20,7 +20,22 @@ void func_800509B4(void) {
     D_8007EBE0 = 1;
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_800509F4);
+GStruct16* func_800509F4(void) {
+    s32 i;
+    s32 flag;
+    GStruct16* ptr;
+
+    i = 0;
+    flag = 1;
+    for (ptr = D_8007EBF0; i < 0x40; i++, ptr++) {
+        if (ptr->field_0 == 0) {
+            ptr->field_0 = flag;
+            ptr->field_2 = 0;
+            return ptr;
+        }
+    }
+    return NULL;
+}
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80050A38);
 
