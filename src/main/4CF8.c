@@ -24,7 +24,22 @@ void F04CF8_800148EC(void)
 
 INCLUDE_ASM("main/nonmatchings/4CF8", func_8001490C);
 
-INCLUDE_ASM("main/nonmatchings/4CF8", func_800149E8);
+void func_800149E8(s32 arg0, s32 arg1, s32 arg2)
+{
+    RECT rect;
+    F04CF8_ImageSlot* entries;
+
+    entries = D_8005C37C[arg0];
+    if (arg2 == 0) {
+        rect.y = 0;
+    } else {
+        rect.y = 0x110;
+    }
+    rect.w = 0x140;
+    rect.h = 0xF0;
+    rect.x = 0;
+    LoadImage(&rect, entries[arg1].field_0);
+}
 
 void F04CF8_80014A50(void)
 {

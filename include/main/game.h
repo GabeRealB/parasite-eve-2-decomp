@@ -750,6 +750,13 @@ typedef struct _GStruct48 {
 } GStruct48;
 STATIC_ASSERT_SIZEOF(GStruct48, 0x8);
 
+/// 8-byte VRAM/heap slot: pointer + size. Tables of these are selected via D_8005C37C.
+typedef struct _F04CF8_ImageSlot {
+    /* 0x0 */ u_long* field_0;
+    /* 0x4 */ s32 field_4;
+} F04CF8_ImageSlot;
+STATIC_ASSERT_SIZEOF(F04CF8_ImageSlot, 0x8);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 

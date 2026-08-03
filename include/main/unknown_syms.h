@@ -20,9 +20,11 @@
 #define D5B498_8006C228_FF -1
 
 // 4CF8.c
+extern F04CF8_ImageSlot* D_8005C37C[];
 extern void func_800144F8(s32 arg0, s32 arg1);
 extern void F04CF8_800148A0(void);
 extern void F04CF8_800148EC(void);
+extern void func_800149E8(s32 arg0, s32 arg1, s32 arg2);
 extern void F04CF8_80014A50(void);
 extern void F04CF8_80014A98(s32 mode);
 extern void func_80014C2C(void);
