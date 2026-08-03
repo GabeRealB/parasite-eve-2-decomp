@@ -147,7 +147,19 @@ u8 func_8004E6A4(u32 voiceIdx)
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E6C4);
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E71C);
+void func_8004E71C(u32 voiceIdx)
+{
+    u32* pKeyOff;
+    u32 channel;
+
+    pKeyOff = &D648E0_8007EBB0;
+    voiceIdx = (s8)voiceIdx;
+
+    channel = SPU_VOICECH(voiceIdx);
+    *pKeyOff |= channel;
+    D648E0_8007EBA8 &= ~channel;
+    D648E0_8007EBAC &= ~channel;
+}
 
 void F3E48C_QueryReverbVoices(void)
 {

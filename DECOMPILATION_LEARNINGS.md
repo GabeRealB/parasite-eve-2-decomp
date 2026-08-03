@@ -1230,3 +1230,28 @@ That produces the clean `lbu` / `srl` / `beqz` sequence. Casting at the use site
 
 `func_8005B920` is a pure example (bit 7 of `D_80082818.unknown_0[1]`).
 
+
+## Early-load order among independent `&= ~mask` globals
+
+When a function sets a bit in one global and clears it from two others
+(`A |= mask; B &= ~mask; C &= ~mask`), and all three are *separate* symbols
+(not fields of one struct), three codegen details interact:
+
+1. **Local pointer on the `|=` target.** Assign `&A` to a local before the
+   cast/shift. That forces the early `lui a1, %hi(A)` the target wants; without
+   it GCC sign-extends the argument first and puts the mask in `a1` instead of
+   `v1`.
+
+2. **Write `~channel` twice, not a temp.** `B &= ~channel; C &= ~channel;`
+   places `nor` *after* the `sw` of A. `inv = ~channel; B &= inv; C &= inv;`
+   moves `nor` *before* that store and breaks the match.
+
+3. **Source order of the two `&=` is not store order.** Writing
+   `B &= ~mask; C &= ~mask;` can early-load C and late-load B (or vice versa).
+   If the target early-loads one particular global into `$a2`, swap the two
+   statements until that symbol is the early one — the final store order still
+   ends up matching because of scheduling.
+
+`func_8004E71C` is the pure example: pointer on `D648E0_8007EBB0`, then
+`D648E0_8007EBA8 &= ~channel` before `D648E0_8007EBAC &= ~channel` so that
+EBAC is the early-loaded `$a2` value.
