@@ -92,7 +92,21 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_80033E58);
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80033EB0);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80033F6C);
+void func_80033F6C(GStruct0* arg0)
+{
+    GStruct0*   child;
+    GStruct37*  obj;
+    GStruct37*  flag;
+
+    child = arg0->field_c;
+    if (child != NULL) {
+        obj  = child->field_20;
+        flag = arg0->field_20;
+        obj->field_0 = 0;
+        func_80048838(obj, obj->field_28);
+        flag->field_0 = 1;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80033FB8);
 
