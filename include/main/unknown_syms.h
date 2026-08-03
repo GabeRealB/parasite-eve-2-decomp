@@ -204,6 +204,8 @@ extern s32  func_80056700(void);
 // 46FE4.c
 extern void func_800574BC(void);
 extern u8   func_80057554(void);
+extern s32  func_800577AC(s32 arg0, s32 arg1);
+extern s32  func_80057824(s32 arg0);
 extern s32  func_80057894(s32 arg0);
 extern s32  func_800578E4(s32 arg0);
 extern void func_8005791C(s32 arg0);
@@ -211,9 +213,14 @@ extern s32  func_80057A88(s32 arg0);
 extern void func_80057B88(s32 arg0, s32 arg1);
 extern s32  func_80057BC0(void);
 extern void func_80057D24(void);
+extern u8   D_80068A80[];
+
+// 43FFC.c
+extern void func_800542D0(s32 arg0, s32 arg1);
 
 // 4A6E0.c
 extern void func_8005B830(void);
+extern s32  func_8005BB4C(void);
 extern void func_8005BBB0(s32 arg0);
 
 // F344.c
