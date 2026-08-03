@@ -614,4 +614,14 @@ void func_80041FF8(GStruct27* node)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_80042058);
+void func_80042058(GStruct27* node)
+{
+    while (node != NULL) {
+        if (!(node->field_C & 0x80)) {
+            if (node->field_18 != NULL) {
+                func_800418C0(node);
+            }
+        }
+        node = node->next;
+    }
+}
