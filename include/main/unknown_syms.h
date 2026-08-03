@@ -429,6 +429,8 @@ extern GStruct5  D_800710A8;
 
 // 61F10
 extern GStruct23 D_80072168;
+// Alias of D_80072168.field_1a9 (offset 0x1A9); loaded with lb in audio setup.
+extern s8        D_80072311;
 extern u8        D_800733F0[2][0x6C];
 extern u8        D_800734C8[2][0xB0];
 extern u8        D_80073628[2][0x24];

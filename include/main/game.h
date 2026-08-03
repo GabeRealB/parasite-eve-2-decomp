@@ -313,12 +313,16 @@ STATIC_ASSERT_SIZEOF(GStruct20, 0x24);
 /// Object at GStruct0::field_20 used by func_80048838 / func_80033F6C.
 /// field_0 is a status flag; field_8 is set to 3 when torn down; field_28 is a
 /// parent/context pointer (has field_c for the recursive walk in func_80048838).
+/// field_2C / field_2E are halfwords polled by teardown state handlers
+/// (e.g. func_8002BD24 waits until field_2E == -1 before cleaning up).
 typedef struct _GStruct37 {
     /* 0x00 */ s32       field_0;
     /* 0x04 */ byte      unknown_4[0x4];
     /* 0x08 */ s32       field_8;
     /* 0x0C */ byte      unknown_C[0x1C];
     /* 0x28 */ GStruct0* field_28;
+    /* 0x2C */ s16       field_2C;
+    /* 0x2E */ s16       field_2E;
 } GStruct37;
 
 /// Second argument to memcard/save state handlers in 21FDC.c (e.g. func_80035AD4,

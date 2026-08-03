@@ -2088,3 +2088,44 @@ later `field = one` stores. Falling case3 into `L_ret0` avoids an extra
 
 `func_8001E2D4` is the full example (two copies of the CdSync status machine
 plus this final switch).
+
+## Dual `func(0)` / `func(1)` calls vs a computed argument
+
+When the target loads a signed byte, compares it to `1`, and builds the
+argument to a call as either `0` or `1` with:
+
+```
+lb    v1, flag
+li    v0, 1
+bne   v1, v0, L_one
+li    a0, 1
+move  a0, zero
+jal   func
+ nop
+```
+
+writing a single call with a computed argument:
+
+```c
+s32 a0 = (flag == 1) ? 0 : 1;
+func(a0);
+/* or: func(flag != 1); */
+```
+
+is optimised by GCC 2.8.1 into branchless `lb`/`xori`/`sltu` (or
+`lbu`/`xori`/`sltu` when the flag is unsigned). That is shorter than the
+target and fails to match.
+
+Emit two separate calls so the compiler keeps the branch and delay-slot
+`li a0, 1`:
+
+```c
+if (flag == 1) {
+    func(0);
+} else {
+    func(1);
+}
+```
+
+Declare the flag as `s8` (not plain `char` / `u8`) so the load is `lb`,
+matching the target. `func_8002BD24` (`D_80072311`) is the example.
