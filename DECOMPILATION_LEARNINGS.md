@@ -1853,3 +1853,22 @@ CdControlF(CdlPause, NULL);
 ```
 
 `func_80025C94` is the pure example (sector-mismatch soft-error path).
+
+## Two consecutive values: write `== a || == a+1`, not `(u32)(x-a) < 2`
+
+Both forms compile to `addiu`/`sltiu` range checks, but instruction scheduling
+differs when the true path returns a constant that equals the range width.
+
+```c
+/* Mismatch: CSE puts `li v0, 2` in the delay of the *first* range branch and
+   turns the second compare into `sltu` against that register. */
+if ((u32)(stage - 1) < 2U) return 1;
+if ((u32)(stage - 4) < 2U) return 2;
+
+/* Match: equality form still lowers to sltiu, but keeps `addiu …, -4` in the
+   first branch delay and `li v0, 2` in the second. */
+if (stage == 1 || stage == 2) return 1;
+if (stage == 4 || stage == 5) return 2;
+```
+
+`func_80025898` needs the equality spelling.

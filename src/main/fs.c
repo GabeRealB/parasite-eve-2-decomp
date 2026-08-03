@@ -686,4 +686,18 @@ void Fs_StopCd(void)
     CdControlB(CdlStop, NULL, NULL);
 }
 
-INCLUDE_ASM("main/nonmatchings/fs", func_80025898);
+s32 func_80025898(void)
+{
+    u8 stage;
+
+    stage = D4F564_8005ED64->field_7;
+    if (Fs_StageCdfSectors[stage] == 0) {
+        if (stage == 1 || stage == 2) {
+            return 1;
+        }
+        if (stage == 4 || stage == 5) {
+            return 2;
+        }
+    }
+    return 0;
+}
