@@ -468,3 +468,43 @@ return ret;         /* becomes: li v0, 3; jr ra; nop */
 Also prefer a local pointer (`p = &global`) so the base lands in `$v1` and gets
 overwritten by later field loads — matching the target's register reuse.
 `func_8001D4F0` needs this pattern.
+
+## `u16 x = arg0` for early `move v0,a0` + prologue `sw ra`
+
+When the target opens with:
+
+```
+addiu sp,sp,-0x18
+sw    ra,0x10(sp)
+andi  a1,a1,0xff
+bnez  a1, path
+ move  v0,a0          # delay: copy arg0 for later andi/srl
+...
+andi  v0,v0,0xffff
+srl   v0,v0,0xc
+```
+
+writing the index as `((u32)arg0 & 0xFFFF) >> 12` (or bare `arg0`) often puts
+`sw ra` *in* the `bnez` delay slot and uses `andi v0,a0,0xffff` with no copy —
+one instruction short and a mis-scheduled prologue.
+
+Fix: truncate into a `u16` local first, then shift that:
+
+```c
+u16 x;
+
+x = arg0;
+if ((arg1 & 0xFF) == 0) {
+    return other_path(...);
+}
+if (table[x >> 12] == -1) {
+    return 0;
+}
+/* still use arg0 for later masks that need the full value */
+switch (arg0 & 0xF000) { ... }
+```
+
+The `u16` assignment forces the early `sw ra` plus `move v0,a0` / `andi v0,v0,
+0xffff` sequence. A plain `s32 temp = arg0` tends to land in `$a3` instead of
+`$v0` and breaks the later `li v0,0x2000` delay-slot preload. `func_80053548`
+needs the `u16` form.

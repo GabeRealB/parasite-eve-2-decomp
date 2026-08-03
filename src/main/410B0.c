@@ -190,7 +190,7 @@ s32 func_800517F8(void) {
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80051808);
 
-void *func_80051850(void) {
+void *func_80051850(s32 arg0, s32 arg1) {
     return D_8007F8E0;
 }
 
@@ -264,7 +264,30 @@ s32 func_80053414(void* arg0) {
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80053448);
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80053548);
+void* func_80053548(s32 arg0, s32 arg1, u32 arg2) {
+    u16 x;
+
+    x = arg0;
+    if ((arg1 & 0xFF) == 0) {
+        return func_80051850(0, arg2 & 0xFFFF);
+    }
+    if (D_800680AC[x >> 12] == -1) {
+        return 0;
+    }
+    switch (arg0 & 0xF000) {
+    case 0x2000:
+        if (arg2 < 0x210U) {
+            arg2 = 0x210;
+        }
+        break;
+    case 0xE000:
+        if (arg2 < 0x168U) {
+            arg2 = 0x168;
+        }
+        break;
+    }
+    return F3D458_Malloc(arg2);
+}
 
 s32 func_800535F0(s32 arg0, s32 arg1, s32 arg2) {
     s32 result;
