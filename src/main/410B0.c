@@ -189,11 +189,11 @@ s32 func_800517F8(void) {
 }
 
 u8 *func_80051808(void) {
-    if (D_8007F300 != 0) {
+    if (D_8007F300.field_0 != 0) {
         func_80051AB8(&D_8007F300);
-        D_8007F300 = 4;
+        D_8007F300.field_0 = 4;
     }
-    return &D_8007F300;
+    return (u8*)&D_8007F300;
 }
 
 void *func_80051850(s32 arg0, s32 arg1) {
@@ -237,7 +237,13 @@ INCLUDE_ASM("main/nonmatchings/410B0", func_80051964);
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80051A2C);
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80051AB8);
+void func_80051AB8(GStruct36* arg0) {
+    s32 i;
+
+    for (i = 0; i < arg0->field_3; i++) {
+        arg0->entries[i].field_5 = 1;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80051AF0);
 

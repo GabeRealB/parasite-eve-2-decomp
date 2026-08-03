@@ -527,6 +527,28 @@ typedef struct _GStruct35 {
 } GStruct35;
 STATIC_ASSERT_SIZEOF(GStruct35, 0x14);
 
+/// Track/channel entry inside GStruct36 (stride 0x3C). field_5 is a per-entry flag
+/// written by func_80051AB8; absolute offset of first entry's field_5 is 0x51.
+typedef struct _GStruct36Entry {
+    /* 0x00 */ u8 unknown_00[5];
+    /* 0x05 */ u8 field_5;
+    /* 0x06 */ u8 unknown_06[0x36];
+} GStruct36Entry;
+STATIC_ASSERT_SIZEOF(GStruct36Entry, 0x3C);
+
+/// State block at D_8007F300 (BSS size 0x5E0). field_0 is status; field_3 is the
+/// number of track entries starting at 0x4C.
+typedef struct _GStruct36 {
+    /* 0x00 */ u8             field_0;
+    /* 0x01 */ u8             field_1;
+    /* 0x02 */ u8             field_2;
+    /* 0x03 */ u8             field_3;
+    /* 0x04 */ u8             unknown_04[0x48];
+    /* 0x4C */ GStruct36Entry entries[1];
+    /*       */ u8            unknown_88[0x5E0 - 0x88];
+} GStruct36;
+STATIC_ASSERT_SIZEOF(GStruct36, 0x5E0);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 
