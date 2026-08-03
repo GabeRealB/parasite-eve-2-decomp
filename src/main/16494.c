@@ -82,7 +82,10 @@ s32 func_800261D4(void)
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/16494", func_800261F4);
+s32 func_800261F4(void)
+{
+    return (D5B498_SpuAttr.cd.volume.left / 256) & 0x7F;
+}
 
 INCLUDE_ASM("main/nonmatchings/16494", func_80026218);
 
