@@ -143,6 +143,39 @@ flag = D_8006EBBA;
 CSE still reuses the masked value for later uses after the reload is combined,
 but the early store pulls the `lui` ahead of the callee-saved saves.
 
+## Count-up `do`/`while` with `u32` for `sltiu` clear loops
+
+A plain `for (i = 0; i < N; i++) { *ptr++ = 0; }` with a signed `i` often
+strength-reduces to a countdown (`li v1, N-1; ...; bgez`), which is wrong when
+the target counts up:
+
+```
+move   v1, zero
+sw     zero, 0(a0)
+addiu  v1, v1, 1
+sltiu  v0, v1, N
+bnez   v0, loop
+ addiu a0, a0, 4
+```
+
+Match with an unsigned counter and a `do`/`while` (`func_8004DDF0`):
+
+```c
+u32 i;
+s32* ptr;
+
+ptr = D_8007E2E0;
+i = 0;
+do {
+    *ptr = 0;
+    i++;
+    ptr++;
+} while (i < 0x15U);
+```
+
+`u32` + `< N` produces `sltiu`/`bnez`. Signed `i` or a counting-down `for`
+does not.
+
 ## Finding which pass causes a mismatch
 
 Rather than guessing at C-level rewrites, dump the RTL and find the pass that

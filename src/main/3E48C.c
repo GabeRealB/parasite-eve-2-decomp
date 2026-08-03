@@ -6,7 +6,19 @@
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004DC8C);
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004DDF0);
+void func_8004DDF0(void)
+{
+    u32 i;
+    s32* ptr;
+
+    ptr = D_8007E2E0;
+    i = 0;
+    do {
+        *ptr = 0;
+        i++;
+        ptr++;
+    } while (i < 0x15U);
+}
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004DE18);
 
