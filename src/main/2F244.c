@@ -106,7 +106,12 @@ void func_8003FCF8(GStruct0* arg0)
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_8003FD58);
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8003FE00);
+void func_8003FE00(GStruct0* arg0)
+{
+    if (func_8001D82C() != 0) {
+        arg0->field_30 += 1;
+    }
+}
 
 void func_8003FE40(GStruct0* arg0)
 {
