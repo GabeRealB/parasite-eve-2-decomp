@@ -83,7 +83,28 @@ void func_8003FA3C(u8 arg0)
     D_80062698->field_1a = arg0;
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8003FA4C);
+void func_8003FA4C(s32 arg0) {
+    switch (arg0) {
+    case 0:
+        D_80070F68.field_103 = 1;
+        D_80070F68.field_100 = 0;
+        func_8003DE14(0, 0, 0);
+        return;
+    case 1:
+        D_80070F68.field_103 = (u8)arg0;
+        D_80070F68.field_100 = 3;
+        func_8003DE14(-1, 0, 0);
+        return;
+    case 2:
+        D_80070F68.field_103 = 1;
+        D_80070F68.field_100 = 2;
+        func_8003DE14(-1, 0, 0);
+        return;
+    case 3:
+        D_80070F68.field_103 = 2;
+        return;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_8003FB20);
 
