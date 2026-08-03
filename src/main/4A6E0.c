@@ -64,7 +64,12 @@ void func_8005BB9C(void)
 
 INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005BBB0);
 
-INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005BBF4);
+void func_8005BBF4(void)
+{
+    D_80082818.field_53 = D_80082818.field_53 & 0xFE;
+    D_80082818.unknown_0[1] = D_80082818.unknown_0[1] | 2;
+    D_80082818.field_54 = 0;
+}
 
 s32 func_8005BC28(void)
 {

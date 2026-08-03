@@ -305,9 +305,12 @@ STATIC_ASSERT_SIZEOF(GStruct18, 0x10);
 
 /// BSS object D_80082818 (size 0x58).
 typedef struct _GStruct19 {
-    byte unknown_0[0x6];
-    s16  field_6;
-    byte unknown_8[0x50];
+    /* 0x00 */ byte unknown_0[0x6];
+    /* 0x06 */ s16  field_6;
+    /* 0x08 */ byte unknown_8[0x4B];
+    /* 0x53 */ u8   field_53;
+    /* 0x54 */ u16  field_54;
+    /* 0x56 */ byte unknown_56[0x2];
 } GStruct19;
 STATIC_ASSERT_SIZEOF(GStruct19, 0x58);
 
