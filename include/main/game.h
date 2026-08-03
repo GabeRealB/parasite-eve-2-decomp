@@ -782,6 +782,17 @@ typedef struct _F04CF8_ImageSlot {
 } F04CF8_ImageSlot;
 STATIC_ASSERT_SIZEOF(F04CF8_ImageSlot, 0x8);
 
+/// Double-buffered ordering-table descriptor (same layout as PsyQ GsOT).
+/// Used by D_8007A0E8 and passed to GsClearOt.
+typedef struct _GStruct50 {
+    /* 0x00 */ u_long  length;
+    /* 0x04 */ u_long* org;
+    /* 0x08 */ u_long  offset;
+    /* 0x0C */ u_long  point;
+    /* 0x10 */ u_long* tag;
+} GStruct50;
+STATIC_ASSERT_SIZEOF(GStruct50, 0x14);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 

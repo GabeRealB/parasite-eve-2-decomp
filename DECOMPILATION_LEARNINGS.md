@@ -1328,3 +1328,26 @@ Avoid `p = &D_array[arg0]` / `p = base + arg0` if that yields `addu v1, v0, v1`
 pointer in `$v0` so the first `lbu` can land in `$v1`.
 
 `func_8002CA0C` is the pure example (`D_800711C8`, stride 0x24).
+
+## PsyQ GsOT layout without including libgs.h
+
+`libgs.h` cannot be safely pulled into project-wide headers: it depends on
+extra libgs types (and redeclares several GPU primitives) that break GCC 2.8.1
+parse of units that only include `game.h` / `unknown_syms.h`.
+
+For double-buffered ordering-table descriptors (size `0x14`, two entries =
+`0x28`), define a local struct with the same layout as `GsOT`:
+
+```c
+typedef struct {
+    u_long  length; /* OT depth as bit count; 6 → 2^6 = 64 tags */
+    u_long* org;
+    u_long  offset;
+    u_long  point;
+    u_long* tag;
+} GStruct50; /* STATIC_ASSERT_SIZEOF(..., 0x14) */
+```
+
+Init pattern (see `func_8003E6E4`): hold `GStruct50* ot = D_8007A0E8`, write
+`length`/`org` for both slots, with the second `org` as `tags + (1 << length)`.
+OT tag storage of `0x200` bytes is two buffers of `0x100` (`u_long[0x80]`).

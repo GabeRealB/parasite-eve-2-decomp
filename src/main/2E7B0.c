@@ -76,7 +76,17 @@ default_case:
 }
 
 
-INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E6E4);
+void func_8003E6E4(void) {
+    GStruct50* ot;
+
+    ot = D_8007A0E8;
+    ot->length = 6;
+    ot->org = D_8007A120;
+    ot[1].length = 6;
+    ot[1].org = D_8007A120 + 0x40;
+    D_8007A0E0 = D_800740E0;
+    D_8007A0E4 = 0x6000;
+}
 
 s32 func_8003E72C(s32 arg0) {
     if (arg0 >= 0x20) {

@@ -512,6 +512,8 @@ extern MATRIX D_80074080;
 extern u8                D_800740E0[0x6000];
 extern void*             D_8007A0E0;
 extern s32               D_8007A0E4;
+extern GStruct50         D_8007A0E8[2];
+extern u_long            D_8007A120[0x80];
 extern HeapBlockHeader*  D648E0_HeapStart;
 extern u8                D648E0_HeapBuffer[C3D458_HEAP_SIZE];
 extern GStruct8          D648E0_8007E0B0;
