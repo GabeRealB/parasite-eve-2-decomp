@@ -208,7 +208,15 @@ INCLUDE_ASM("main/nonmatchings/410B0", func_800532CC);
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_8005333C);
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80053414);
+s32 func_80053414(void* arg0) {
+    s32 temp;
+
+    temp = func_80052B30(arg0);
+    if (temp == 7) {
+        return -1;
+    }
+    return temp;
+}
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80053448);
 
