@@ -779,6 +779,16 @@ void func_80036F18(GStruct60* arg0, GStruct37* arg1)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80036FB8);
+void func_80036FB8(GStruct60* arg0, GStruct37* arg1)
+{
+    func_8002FDCC(arg1, arg0->field_18, arg0->field_1A, D_80060A58, arg0->field_1C, 1, 0);
+    if (arg0->field_C == 1) {
+        if (func_8002C868(0, 1, D_8005ED70 | D_8005ED74) != 0) {
+            func_8005414C(0x3B, 0, 0);
+            arg1->field_2E = 6;
+            arg1->field_2C = -1;
+        }
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80037068);
