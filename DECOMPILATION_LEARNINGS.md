@@ -3300,3 +3300,45 @@ D_80068B5C = 0;
 
 Also match load width to the source type: `lhu` ⇒ `volatile u16` (not `s16`,
 which yields `lh`). `func_8005B6EC` is the pure example.
+
+## Local bitmask for correct s-reg assignment across a call
+
+When a function tests a flag bit, calls something, then ORs the same bit back
+into a field, CSE reuses the constant — but the s-reg it lands in is not always
+the one the target wants. A bare:
+
+```c
+if (!(p->field_1c & 0x40000000)) {
+    func(0);
+    p = D_xxx;
+    p->field_20 = arg0;   /* may get $s3 */
+    p->field_11 = arg1;   /* may get $s1 */
+    p->field_1c |= 0x40000000; /* mask may get $s2 */
+}
+```
+
+often rotates the callee-saved assignment (`arg0→s3`, `mask→s2`, `arg1→s1`)
+versus the target (`arg0→s2`, `mask→s1`, `arg1→s3`). Instruction shape and
+stack frame can still look ~98% correct.
+
+Fix: materialize the mask into a local *before* the test, and use that local for
+both the `and` and the later `or`:
+
+```c
+s32 mask;
+
+mask = 0x40000000;
+if (!(D_80062698->field_1c & mask)) {
+    func_8002C9B0(0);
+    temp = D_80062698;
+    temp->field_20 = arg0;
+    temp->field_24 = 0;
+    temp->field_28 = 0;
+    temp->field_11 = arg1;
+    temp->field_1c |= mask;
+}
+```
+
+That pins the mask in `$s1` and shifts `arg0`/`arg1` into `$s2`/`$s3` to match
+the target prologue (`move s2,a0` early, `lui s1,0x4000` after the field load,
+`move s3,a1` in the `bnez` delay slot). `func_8003F71C` is the pure example.
