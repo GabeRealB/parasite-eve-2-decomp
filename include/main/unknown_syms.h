@@ -272,6 +272,7 @@ extern void       func_8005363C(s32 arg0, void* arg1);
 // 43FFC.c
 extern s32  D_800689E8;
 extern s16  D_800689EC;
+extern u8   D_800689F0[];
 extern s8   D_80082748;
 extern s8   D_80082749;
 extern s8   D_8008274A;

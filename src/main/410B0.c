@@ -304,7 +304,24 @@ INCLUDE_ASM("main/nonmatchings/410B0", func_800515C0);
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_8005166C);
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80051744);
+void func_80051744(u8 arg0, u8 arg1)
+{
+    s32        i;
+    u8*        table;
+    GStruct36* arr;
+    s32        product;
+
+    i   = 0;
+    arr = &D_8007F300;
+    for (; i <= 0; i++) {
+        if ((arg0 == arr[i].field_1) || (arg0 == 0)) {
+            table          = D_800689F0;
+            product        = table[arr[i].field_1] * arg1;
+            arr[i].field_C = 0xFFFF;
+            arr[i].field_8 = product;
+        }
+    }
+}
 
 void func_800517B4(s32 arg0)
 {

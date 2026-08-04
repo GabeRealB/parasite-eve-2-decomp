@@ -3103,3 +3103,41 @@ if (temp != 0) {
 ```
 
 `func_8001E57C` case 0 is the example.
+
+## Place loop-invariant table load inside the `if` to order `andi` before `lui`
+
+When a `u8` parameter is used only in a loop condition, GCC 2.8.1 schedules its
+zero-extend `andi` next to that use — *after* independent prologue loads of a
+table address. The target often wants:
+
+```
+move  i, zero
+andi  a0, a0, 0xff     /* early */
+lui   / addiu table
+andi  a1, a1, 0xff
+li    sentinel, 0xFFFF
+```
+
+Assigning the table *inside* the conditional that first uses `arg0` still lets
+`-O2` hoist the loop-invariant load into the prologue, but now after the `andi`:
+
+```c
+i   = 0;
+arr = &D_8007F300;
+for (; i <= 0; i++) {
+    if ((arg0 == arr[i].field_1) || (arg0 == 0)) {
+        table = D_800689F0; /* hoisted after andi a0 */
+        product = table[arr[i].field_1] * arg1;
+        arr[i].field_C = 0xFFFF;
+        arr[i].field_8 = product;
+    }
+}
+```
+
+Do **not** fix this by early `arg0 &= 0xFF` on an `s32` parameter: that gets the
+`andi` order right but kills delay-slot fill of `addu index, table` on the
+equality branch (and the matching reload of `field_1` on the `arg0 == 0` path).
+Keeping `u8` params and moving the table assignment is what preserves both.
+
+`func_80051744` is the pure example. Pair with the one-iteration
+`for (i = 0; i <= 0; i++)` + `GStruct36` array pattern for `D_8007F300`.
