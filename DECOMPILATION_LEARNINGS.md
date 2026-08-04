@@ -3487,3 +3487,25 @@ addPrim(D_800710A0 + otz, p);
 `P_TAG`. Same pattern as `func_80043718` (which uses `AddPrim` the function
 instead of the macro — that one is a real call). `func_80049100` is the pure
 inline-macro example.
+
+## Array index vs intermediate pointer for `addu` operand order
+
+When the target indexes a struct array and wants the scaled offset added
+as `addu v0, v0, base` (offset first), an intermediate pointer often flips
+the operands to `addu v0, base, v0`:
+
+```c
+/* BAD near-match — addu v0, t3, v0 (base first) */
+p = base + idx;
+src = (u8*)p->field_0;
+size = p->field_4;
+
+/* GOOD — addu v0, v0, t3 (offset first); CSE still loads address once */
+src = (u8*)base[idx].field_0;
+size = base[idx].field_4;
+```
+
+Pair with `base = D_800610FC` kept live (not `D_800610FC[idx]` alone) so the
+`%lo` address stays in a temp across the loop. `func_80033C40` is the pure
+example (reverse walk of `D_800610FC[8..1]` comparing each buffer to its
+duplicate half).

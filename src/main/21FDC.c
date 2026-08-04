@@ -265,7 +265,41 @@ void func_80033C38(void)
 {
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80033C40);
+s32 func_80033C40(void)
+{
+    GStruct53*   base;
+    u8*          src;
+    u8*          dest;
+    s32          size;
+    register s32 flags asm("a3");
+    u32          i;
+    register u32 j asm("a0");
+    s32          idx;
+
+    flags = 0;
+    i     = 0;
+    base  = D_800610FC;
+    do {
+        idx  = 8 - i;
+        src  = (u8*)base[idx].field_0;
+        size = base[idx].field_4;
+        j    = 0;
+        dest = src + size;
+        if (size != 0) {
+            do {
+                if (*src != *dest) {
+                    flags |= 1;
+                }
+                j    += 1;
+                src  += 1;
+                dest += 1;
+            } while (j < (u32)size);
+        }
+        i     += 1;
+        flags *= 2;
+    } while (i < 8U);
+    return flags | 0x103;
+}
 
 void func_80033CC0(void)
 {
