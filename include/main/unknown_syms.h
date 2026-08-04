@@ -206,6 +206,9 @@ extern void  func_8004969C(GStruct30* arg0, void* arg1);
 extern void  func_800497F4(GStruct30* arg0, void* arg1);
 extern void  func_80049A8C(GStruct0* arg0);
 
+// 3B458.c
+extern s32 func_8004ACAC(s32 arg0);
+
 // 3D458.c
 extern void       func_8004CFE8(void);
 extern void       F3D458_ResetHeap(void);
@@ -439,7 +442,10 @@ extern GStruct17*   D_80062698;
 extern TaskDesc     D_8006269C;
 extern void*        D_800626A8;
 extern u8           D_80062734;
+extern u8           D_80062736;
 extern u8           D_80062739;
+extern GPairU8*     D_8006273C[];
+extern u8           D_80062764[];
 extern s32          D_8006763C[];
 extern s32          D_80067648;
 extern s32          D_8006764C;

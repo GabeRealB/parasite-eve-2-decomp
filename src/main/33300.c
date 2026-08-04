@@ -54,7 +54,30 @@ void func_800431FC(GStruct0* arg0)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/33300", func_8004323C);
+void func_8004323C(void)
+{
+    GStruct14* g;
+    s32        idx;
+    s32        product;
+    u8*        base;
+    s32        one;
+
+    g       = D4F564_8005ED64;
+    idx     = g->field_7 - 1;
+    product = g->field_6 * D_80062764[idx];
+    base    = (u8*)D_8006273C[idx];
+    if (base[product * 2] == 0x80) {
+        if (func_8004ACAC(0x108) == 1) {
+            one = 1;
+            func_800542D0(0x60010000 | one, 0x1E);
+            D_80062736 = 0;
+        } else if (D_80062736 == 0) {
+            one = 1;
+            func_8005414C(0x60010001, 0, 0);
+            D_80062736 = one;
+        }
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/33300", func_80043310);
 
