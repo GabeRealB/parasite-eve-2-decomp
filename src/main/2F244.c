@@ -90,7 +90,27 @@ s32 func_8003F71C(s32 arg0, s32 arg1)
     return (u8)D4F564_8005ED64->field_4;
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8003F7A8);
+s32 func_8003F7A8(s32 arg0)
+{
+    GStruct17* temp;
+    s32        mask;
+    s32        ret;
+
+    mask = 0x40000000;
+    ret  = -1;
+    if (!(D_80062698->field_1c & mask)) {
+        func_8002C9B0(0);
+        temp                  = D_80062698;
+        temp->field_20        = arg0;
+        temp->field_24        = 0;
+        temp->field_28        = 0;
+        temp->field_11        = 7;
+        temp->field_1c       |= mask;
+        ret                   = (u8)D4F564_8005ED64->field_4;
+        D_80062698->field_1c |= 0x80000000;
+    }
+    return ret;
+}
 
 s32 func_8003F848(void)
 {
