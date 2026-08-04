@@ -29,6 +29,10 @@ typedef struct {
 } GFunc0Table3;
 
 typedef struct {
+    GFunc0 funcs[4];
+} GFunc0Table4;
+
+typedef struct {
     GFunc0 funcs[6];
 } GFunc0Table6;
 

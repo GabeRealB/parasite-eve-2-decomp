@@ -13,7 +13,13 @@ INCLUDE_ASM("main/nonmatchings/33300", func_80043028);
 
 INCLUDE_ASM("main/nonmatchings/33300", func_800430E4);
 
-INCLUDE_ASM("main/nonmatchings/33300", func_80043198);
+void func_80043198(GStruct0* arg0)
+{
+    GFunc0Table4 sp;
+
+    sp = D_80013F1C;
+    sp.funcs[arg0->field_30](arg0);
+}
 
 void func_800431FC(GStruct0* arg0)
 {
