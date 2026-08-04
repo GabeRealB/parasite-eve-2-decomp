@@ -30,6 +30,75 @@ p->field_1f = flag; /* SImode constant — cse can't fold into the HI reg */
 A cast alone (`p->field_1f = (s32)1;`) does **not** work: the front end folds it
 back to the field's type before RTL is generated.
 
+## `s16 ret = K` keeps `slti` while still pinning K in a callee-saved reg
+
+When a function needs the same small constant K both as an early live return
+value (`li s2,K` reused across calls via `move v0,s2` / `sb s2,...`) *and* as a
+switch/range compare that the target emits as `slti ...,K`, an `s32 ret = K`
+is too good: reload substitutes the SImode register into the compare and you
+get `slt v0,v1,s2` plus `beq v1,s2,...` instead of `slti` / `li v0,K; beq`.
+
+Symptom: prologue and stack frame already match (including `li s2,K`), but the
+dispatch still differs by `slt` vs `slti` and a missing `li v0,K` before the
+case-K equality test.
+
+Fix: hold the return value in a narrower temporary so REG_EQUAL is HImode and
+cannot supply the SImode compare operand:
+
+```c
+s16 ret;
+
+ret = 3;
+switch (p->field_2) {
+case 1:
+    /* ...; early exits reuse s2 via move v0,s2 */
+    break;
+case 2:
+    p->field_2 = 3; /* still sb s2, ... — low byte of the HI reg */
+    /* fallthrough */
+case 3:
+    if (func() == 0) {
+        ret = 0;
+    }
+    break;
+}
+return ret; /* promotes to s32 at the return */
+```
+
+`func_800569D4` is the pure example. Leaving `ret` as `s32` stuck at ~96% with
+an otherwise identical switch.
+
+## Compute else-only address temps so they fill the `bne` delay slot in `$v0`
+
+When the target does:
+
+```
+bne  v1, v0, else
+ addiu v0, s1, -0x14   /* delay: parent = interp - 1 */
+move  a0, zero         /* if-body: a0 for the next call */
+...
+else:
+lhu   a1, 2(v0)
+```
+
+declaring the parent pointer *before* the `if` often allocates it to `$a0`,
+which the if-body immediately clobbers with `move a0,zero`. Computing it only
+inside the `else` lets delay-slot filling hoist the `addiu` while keeping the
+result in `$v0`:
+
+```c
+if (interp->field_0 == interp->field_4) {
+    /* equal path — never mentions parent */
+    func_X(0);
+} else {
+    parent = (volatile GStruct56*)interp - 1;
+    func_Y(parent->field_2);
+}
+```
+
+`func_800569D4` needs this (together with the `s16 ret` tip above) for the
+`D_800827B4` / `D_800827A0` pair linked by GStruct56.
+
 ## `volatile` blocks delay-slot filling
 
 `-fdelayed-branch` will not move a volatile memory access into a `jal` delay

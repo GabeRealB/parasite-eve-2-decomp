@@ -852,6 +852,16 @@ typedef struct _GStruct56 {
 } GStruct56;
 STATIC_ASSERT_SIZEOF(GStruct56, 0x14);
 
+/// Extended view of the D_800827A0 BSS block for SPU voice indices at +0x3E/+0x3F
+/// (used by func_800569D4 / func_80056E38). The zero-init in func_800574BC covers
+/// 0x44 bytes from D_800827A0, so these offsets sit inside that block.
+typedef struct _GStruct61 {
+    /* 0x00 */ u8 pad[0x3E];
+    /* 0x3E */ s8 field_3E;
+    /* 0x3F */ s8 field_3F;
+} GStruct61;
+STATIC_ASSERT_SIZEOF(GStruct61, 0x40);
+
 /// "oneA" (0x41656E6F) tagged chunk header read by func_8005664C.
 /// Located at a signed byte offset into a raw buffer.
 typedef struct _GStruct58 {

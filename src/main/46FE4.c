@@ -7,7 +7,47 @@
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_800567E4);
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_800569D4);
+s32 func_800569D4(void)
+{
+    volatile GStruct4*  p;
+    s16                 ret;
+    GStruct55*          interp;
+    volatile GStruct56* parent;
+    volatile GStruct61* voices;
+
+    p   = &D_80082798;
+    ret = 3;
+
+    switch (p->field_2) {
+        case 1:
+            interp     = &D_800827B4;
+            p->field_1 = 4;
+            func_8004D2EC(interp);
+            if (D_800827B4.field_0 == interp->field_4) {
+                interp->field_E = 0;
+                func_8005B84C(0);
+                func_8005842C();
+                p->field_2 = 2;
+            } else {
+                parent = (volatile GStruct56*)interp - 1;
+                func_8005B84C((s16)func_8004D298(interp, parent->field_2));
+            }
+            break;
+        case 2:
+            voices = (volatile GStruct61*)&D_800827A0;
+            func_8004E71C(voices->field_3E);
+            func_8004E71C(voices->field_3F);
+            p->field_2 = 3;
+            /* fallthrough */
+        case 3:
+            if (func_8005BB4C() == 0) {
+                D_80082798.field_2 = 4;
+                ret                = 0;
+            }
+            break;
+    }
+    return ret;
+}
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_80056B28);
 

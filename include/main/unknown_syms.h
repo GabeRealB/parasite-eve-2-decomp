@@ -186,6 +186,7 @@ extern GStruct42* func_8004D150(u16 arg0);
 extern void       func_8004D19C(GStruct42* arg0);
 extern void       func_8004D200(GStruct55* arg0, s32 arg1, s32 arg2, s32 arg3);
 extern s32        func_8004D298(GStruct55* arg0, s32 arg1);
+extern void       func_8004D2EC(GStruct55* arg0);
 extern s32        func_8004D820(void);
 extern void       func_8004D8BC(void);
 extern GStruct8*  func_8004D94C(GStruct8* arg0);
@@ -308,6 +309,7 @@ extern s32  func_80057A88(s32 arg0);
 extern void func_80057B88(s32 arg0, s32 arg1);
 extern s32  func_80057BC0(void);
 extern void func_80057D24(void);
+extern void func_8005842C(void);
 extern void func_80059348(void);
 extern s16  D_80068A7C[];
 extern u8   D_80068A80[];
@@ -321,6 +323,7 @@ extern void func_800542D0(s32 arg0, s32 arg1);
 // 4A6E0.c
 extern void func_8005B6EC(void);
 extern void func_8005B830(void);
+extern void func_8005B84C(s16 arg0);
 extern s32  func_8005BB4C(void);
 extern void func_8005BBB0(s32 arg0);
 
