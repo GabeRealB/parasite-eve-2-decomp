@@ -2633,3 +2633,43 @@ sum = sum + tmp;   /* addu v1, v1, v0 */
 ```
 
 `func_800339C4` needs both this and the s16/`volatile u8*` pairing above.
+
+## Parallel dead offset temp for `p + offset` bank loops
+
+When the target walks banks of a fixed-size array with:
+
+```
+li    a1, 0x10
+...
+addu  v1, a3, a1      /* entries = p + offset */
+...
+addiu a1, a1, 0x20    /* delay of outer branch */
+```
+
+writing the clean form `entries = p->field_10[i]` alone often loses the offset
+register and rewrites the address as `sll`/`addu` on `i`. Keep a parallel
+offset temporary that starts at the first bank's byte offset and advances by
+the bank stride each outer iteration — even if it is never read in C. GCC CSE
+equates `field_10[i]` with `p + offset` and emits the target's `addu` /
+`addiu …, 0x20` shape:
+
+```c
+i = 0;
+offset = 0x10; /* first bank at struct offset 0x10 */
+for (; i < 2; i++) {
+    entries = p->field_10[i]; /* not (Entry*)((u8*)p + offset) */
+    for (j = 0; j < 8; j++) {
+        entries[j].field_0 = 0;
+        entries[j].field_1 = 0;
+        entries[j].field_2 = 0;
+    }
+    offset += 0x20; /* bank stride; keeps a1 live for addu */
+}
+```
+
+Also: prefer `entries[j].field = …` over `entry->field = …; entry++`. Pointer
+increment tends to CSE a separate address for a mid-struct halfword field
+(`addiu v1, a0, 2` then `sb -1(v1)` / `sh 0(v1)`), while array indexing keeps
+one base and `sb 0` / `sb 1` / `sh 2` plus `addiu base, 4` in the branch delay.
+
+`func_8002CA54` (`GStruct25::field_10[2][8]`) is the example.

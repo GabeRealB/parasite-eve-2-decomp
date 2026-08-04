@@ -200,7 +200,28 @@ s32 func_8002CA0C(s32 arg0)
     return (u16)~sp;
 }
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002CA54);
+void func_8002CA54(s32 arg0)
+{
+    GStruct25*      p;
+    s32             i;
+    s32             j;
+    s32             offset;
+    GStruct25Entry* entries;
+
+    p      = (GStruct25*)&D_80071620[arg0];
+    i      = 0;
+    offset = 0x10;
+    for (; i < 2; i++) {
+        entries = p->field_10[i];
+        for (j = 0; j < 8; j++) {
+            entries[j].field_0 = 0;
+            entries[j].field_1 = 0;
+            entries[j].field_2 = 0;
+        }
+        offset += 0x20;
+    }
+    p->field_2 = 0;
+}
 
 s32 func_8002CAB8(void)
 {
