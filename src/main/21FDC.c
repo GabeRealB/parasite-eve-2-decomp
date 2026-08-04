@@ -158,7 +158,7 @@ s32 func_800339C4(GStruct23* arg0)
         return 0;
     }
     sum   = 0;
-    ptr   = arg0->field_4;
+    ptr   = &arg0->field_4;
     limit = 0x38;
     i     = 0;
     do {

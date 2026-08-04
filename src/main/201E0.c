@@ -3,6 +3,7 @@
 #include <psyq/rand.h>
 
 #include "main/game.h"
+#include "main/mem.h"
 #include "main/unknown_syms.h"
 
 INCLUDE_ASM("main/nonmatchings/201E0", func_8002F9E0);
@@ -74,6 +75,55 @@ void func_800300EC(u8* arg0, s32 arg1)
     arg0[1] = 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/201E0", func_800301FC);
+void func_800301FC(void)
+{
+    u8(*a)[0x6C];
+    u8(*b)[0xB0];
+    u8(*c)[0x24];
+    u8(*d)[0xE4];
+    u8(*e)[0xA4];
+    GStruct23* p;
+    s32        one;
+    s32        two;
+    s32        idx;
+
+    Mem_Set(&D_80073B88, 0, 0x40);
+    Mem_Set(D_80073B88.field_40, 0xFF, 0x40);
+    Mem_Set(D_80073980, 0, 0x100);
+    Mem_Set(&D_80073980[0x100], 0xFF, 0x100);
+
+    a = D_800733F0;
+    Mem_Set(a, 0, 0x6C);
+    do {
+        b = D_800734C8;
+        Mem_Set(b, 0, 0xB0);
+        c = D_80073628;
+        Mem_Set(c, 0, 0x24);
+        d = D_80073670;
+        Mem_Set(d, 0, 0xE4);
+        e = D_80073838;
+        Mem_Set(e, 0, 0xA4);
+        Mem_Set(a + 1, 0xFF, 0x6C);
+        Mem_Set(b + 1, 0xFF, 0xB0);
+        Mem_Set(c + 1, 0xFF, 0x24);
+        Mem_Set(d + 1, 0xFF, 0xE4);
+        Mem_Set(e + 1, 0xFF, 0xA4);
+        p = &D_80072168;
+    } while (0);
+
+    one          = 1;
+    p->field_6   = 0x14;
+    two          = 2;
+    p->field_7   = one;
+    p->field_4   = one;
+    p->field_5   = one;
+    p->field_8   = 7;
+    p->field_9   = one;
+    p->field_5C5 = two;
+    p->field_22  = one;
+    func_8004C4D0();
+    idx                         = p->field_22 - 1;
+    (&D_80073B88)[idx].field_21 = two;
+}
 
 INCLUDE_ASM("main/nonmatchings/201E0", func_800303AC);

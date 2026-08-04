@@ -431,15 +431,20 @@ typedef struct _GStruct22 {
 /// is also known as D_80072AA8 and checked by func_80033D88).
 typedef struct _GStruct23 {
     /* 0x000 */ byte unknown_0[0x4];
-    /* 0x004 */ u8   field_4[1];
-    /* 0x005 */ byte unknown_5[0xD];
+    /* 0x004 */ u8   field_4;
+    /* 0x005 */ u8   field_5;
+    /* 0x006 */ u8   field_6;
+    /* 0x007 */ u8   field_7;
+    /* 0x008 */ u8   field_8;
+    /* 0x009 */ u8   field_9;
+    /* 0x00A */ byte unknown_A[0x8];
     /* 0x012 */ u8   field_12;
     /* 0x013 */ byte unknown_13[0x9];
     /* 0x01C */ u16  field_1C;
     /* 0x01E */ u16  field_1E;
     /* 0x020 */ byte unknown_20[0x1];
     /* 0x021 */ u8   field_21;
-    /* 0x022 */ byte unknown_22[0x1];
+    /* 0x022 */ s8   field_22;
     /* 0x023 */ s8   field_23;
     /* 0x024 */ byte unknown_24[0x1];
     /* 0x025 */ u8   field_25;
@@ -450,7 +455,9 @@ typedef struct _GStruct23 {
     /* 0x1AB */ u8   field_1ab;
     /* 0x1AC */ byte unknown_1AC[0x416];
     /* 0x5C2 */ s8   field_5C2;
-    /* 0x5C3 */ byte unknown_5C3[0x379];
+    /* 0x5C3 */ byte unknown_5C3[0x2];
+    /* 0x5C5 */ u8   field_5C5;
+    /* 0x5C6 */ byte unknown_5C6[0x376];
     /* 0x93C */ u16  field_93C;
     /* 0x93E */ byte unknown_93E[0x2];
     /* 0x940 */ s16  field_940;
@@ -811,6 +818,7 @@ STATIC_ASSERT_SIZEOF(GStruct39, 0x18);
 
 /// BSS object D_80073B88 (size 0x80). Initialized by func_8004C4D0.
 /// field_18..field_1e are four s16 values set to 100; field_21/field_26 are flags.
+/// field_40 is the upper half filled with 0xFF by func_800301FC.
 typedef struct _GStruct40 {
     /* 0x00 */ byte unknown_0[0x8];
     /* 0x08 */ s32  field_8;
@@ -823,7 +831,8 @@ typedef struct _GStruct40 {
     /* 0x21 */ u8   field_21;
     /* 0x22 */ byte unknown_22[0x4];
     /* 0x26 */ u8   field_26;
-    /* 0x27 */ byte unknown_27[0x59];
+    /* 0x27 */ byte unknown_27[0x19];
+    /* 0x40 */ u8   field_40[0x40];
 } GStruct40;
 STATIC_ASSERT_SIZEOF(GStruct40, 0x80);
 

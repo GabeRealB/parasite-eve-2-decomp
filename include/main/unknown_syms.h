@@ -427,6 +427,7 @@ extern void func_800405E0(void);
 extern void func_800410F0(GStruct27* arg0);
 extern void func_800418C0(GStruct27* arg0);
 extern void func_80041E4C(void);
+extern void func_8004C4D0(void);
 extern void func_8004CC58(s32 arg0);
 extern void func_8004CFC8(void);
 extern void F3D458_ResetHeap(void);
