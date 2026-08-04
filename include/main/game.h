@@ -1036,6 +1036,39 @@ typedef struct _GStruct60 {
     /* 0x22 */ s16  field_22;
 } GStruct60;
 
+/// 0x18-byte voice-slot lookup result filled by func_80054D58 and consumed by
+/// func_800558E8 / func_80055EF8. field_0 is the chosen slot index (or error);
+/// field_1..field_6 are candidate slot indices (-1 = empty); field_7 is the
+/// candidate count; field_8/C/10/14 hold ranking scores / IDs.
+typedef struct _GStruct66 {
+    /* 0x00 */ s8  field_0;
+    /* 0x01 */ s8  field_1;
+    /* 0x02 */ s8  field_2;
+    /* 0x03 */ s8  field_3;
+    /* 0x04 */ s8  field_4;
+    /* 0x05 */ s8  field_5;
+    /* 0x06 */ s8  field_6;
+    /* 0x07 */ u8  field_7;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s32 field_10;
+    /* 0x14 */ s32 field_14;
+} GStruct66;
+STATIC_ASSERT_SIZEOF(GStruct66, 0x18);
+
+/// Descriptor pointed to by GStruct16From4::field_C and passed to func_800558E8.
+/// field_7 is a candidate-count threshold; field_8 is a preference key for
+/// func_80055EF8; field_C/field_E are halfword IDs matched by func_80054D58.
+typedef struct _GStruct67 {
+    /* 0x00 */ u8  pad_0[7];
+    /* 0x07 */ u8  field_7;
+    /* 0x08 */ s16 field_8;
+    /* 0x0A */ u8  pad_A[2];
+    /* 0x0C */ u16 field_C;
+    /* 0x0E */ u16 field_E;
+} GStruct67;
+STATIC_ASSERT_SIZEOF(GStruct67, 0x10);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 

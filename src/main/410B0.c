@@ -103,7 +103,7 @@ void func_80050B80(GStruct16* arg0)
     GStruct16From4* temp;
 
     temp = (GStruct16From4*)&arg0->field_4;
-    func_800558E8(temp->field_4, arg0->field_4, temp->field_1, temp->field_8, temp->field_C);
+    func_800558E8(temp->field_4, arg0->field_4, temp->field_1, temp->field_8, (GStruct67*)temp->field_C);
 }
 
 void func_80050BBC(GStruct16* arg0)

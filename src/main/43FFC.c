@@ -383,7 +383,21 @@ INCLUDE_ASM("main/nonmatchings/43FFC", func_80055078);
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80055678);
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_800558E8);
+s32 func_800558E8(s32 arg0, s8 arg1, s8 arg2, s32 arg3, GStruct67* arg4)
+{
+    GStruct66 sp18;
+
+    func_80054D58(&sp18, arg4->field_C, arg0, arg4->field_E);
+    if ((sp18.field_7 < arg4->field_7) && (sp18.field_3 != -1)) {
+        sp18.field_0 = sp18.field_3;
+    } else {
+        sp18.field_0 = func_80055EF8(&sp18, arg4->field_8);
+    }
+    if (sp18.field_0 >= 0) {
+        func_80055F70(sp18.field_0, arg1, arg2, arg0, arg3, arg4);
+    }
+    return sp18.field_0;
+}
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_800559BC);
 
