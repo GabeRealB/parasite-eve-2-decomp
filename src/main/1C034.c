@@ -387,7 +387,28 @@ TaskDesc* func_8002D32C(TaskDesc* base, u32 idx)
     return base + idx;
 }
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002D340);
+void func_8002D340(GStruct0* arg0, s32 arg1)
+{
+    GStruct0* start;
+    GStruct0* cur;
+    GStruct0* temp;
+
+    arg0->field_38 = 0xFF;
+    arg0->field_3c = arg1;
+    arg0->field_14 = (GFunc0)func_8002DEC4;
+
+    temp = arg0->field_c;
+    if (temp != NULL) {
+        start = temp;
+        cur   = start;
+        do {
+            cur->field_8 = NULL;
+            cur->field_18(cur);
+            cur = cur->field_10;
+        } while (cur != start);
+    }
+    arg0->field_c = NULL;
+}
 
 s32 func_8002D3BC(GStruct0* arg0, s32* arg1)
 {

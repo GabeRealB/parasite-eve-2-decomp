@@ -116,6 +116,7 @@ extern void func_80099214(void* arg0);
 extern void func_80099290(void* arg0);
 
 // 1E6C4.c
+extern void func_8002DEC4(void);
 extern s32  func_8002DECC(GStruct38* arg0, u8* arg1, u8* arg2);
 extern void func_8002EDFC(GStruct38* arg0, u8* arg1);
 extern void func_8002F98C(GStruct0* arg0);
