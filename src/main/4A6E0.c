@@ -38,7 +38,21 @@ void func_8005B6A8(void)
 
 INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005B6EC);
 
-INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005B78C);
+void func_8005B78C(void)
+{
+    volatile GStruct19* p;
+
+    D_80082818.unknown_0[0] = D_80082818.unknown_0[0] & 0xFD;
+    D_80082818.unknown_0[0] = D_80082818.unknown_0[0] & 0xF7;
+    p                       = &D_80082818;
+    p->unknown_0[4]         = 1;
+    p->field_18             = 0;
+    SpuSetIRQ(0);
+    SpuSetIRQCallback(func_8005B830);
+    SpuSetIRQAddr((p->field_3C + p->field_42 + 0x4F) & ~0x3F);
+    D_80082818.unknown_0[0] = D_80082818.unknown_0[0] & 0xBF;
+    D_80082818.unknown_0[0] = D_80082818.unknown_0[0] | 1;
+}
 
 void func_8005B830(void)
 {

@@ -288,7 +288,12 @@ typedef struct _GStruct19 {
     /* 0x08 */ void (*field_8)(s32);
     /* 0x0C */ byte unknown_C[0x8];
     /* 0x14 */ s32  field_14;
-    /* 0x18 */ byte unknown_18[0x34];
+    /* 0x18 */ s32  field_18;
+    /* 0x1C */ byte unknown_1C[0x20];
+    /* 0x3C */ s32  field_3C;
+    /* 0x40 */ byte unknown_40[0x2];
+    /* 0x42 */ s16  field_42;
+    /* 0x44 */ byte unknown_44[0x8];
     /* 0x4C */ s16  field_4C;
     /* 0x4E */ byte unknown_4E[0x5];
     /* 0x53 */ u8   field_53;
