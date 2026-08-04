@@ -4174,3 +4174,45 @@ path that builds a big-endian u32 then adds the base, write
 
 `func_80051A2C` is the pure example (track data pointer resolve from
 `GStruct36` / `field_10`).
+
+## Force `move aN, s0` for a known-zero live return value
+
+When the target sets `s0 = 0` early as a live return flag and later passes that
+same register three times into a call (`move a0,s0; move a1,s0; move a2,s0`),
+plain C with `ret = 0; foo(ret, ret, ret, …)` collapses to
+`move a0,zero; move a1,a0; move a2,a0` via REG_EQUAL of const 0.
+
+Two pieces are required:
+
+1. **Kill REG_EQUAL** with an empty operand asm so the value is still in a
+   register but no longer a proven constant:
+   ```c
+   asm("" : "+r"(ret));
+   foo(ret, ret, ret, 5);
+   ```
+2. **Pin the register** so the empty asm does not reshuffle the earlier
+   frame/arg allocation:
+   ```c
+   register s32 ret asm("s0");
+   ```
+
+Without the pin, `asm("" : "+r"(ret))` alone often copies `arg0` into `$v1`
+early and shifts the stack loads. Without the asm, CSE substitutes `$zero`.
+
+### Callee parameter width must not re-extend at the call site
+
+If the callee is declared `s16`/`s16`/`s16`, an "unknown" `s32` (post-asm)
+gets `sll`/`sra` sign-extension at the *call site*, which the target does not
+have (extension lives inside the callee for `GetTPage` etc.). Declare the
+callee as `s32` and cast to `s16` only where the body needs it:
+
+```c
+void func_80043718(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    /* … */
+    GetTPage(0, (s16)arg0, (s16)arg1, (s16)arg2);
+}
+```
+
+That keeps the callee's leading `sll`/`sra` chain while call sites can emit
+plain `move aN, s0`. `func_8004379C` is the pure example.

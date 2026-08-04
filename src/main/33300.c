@@ -121,17 +121,43 @@ INCLUDE_ASM("main/nonmatchings/33300", func_80043310);
 
 INCLUDE_ASM("main/nonmatchings/33300", func_800435F8);
 
-void func_80043718(s16 arg0, s16 arg1, s16 arg2, s32 arg3)
+void func_80043718(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     DR_TPAGE* p;
 
     p          = (DR_TPAGE*)D_80070EE0;
     D_80070EE0 = (u8*)(p + 1);
-    SetDrawTPage(p, 1, 0, GetTPage(0, arg0, arg1, arg2) & 0xFFFF);
+    SetDrawTPage(p, 1, 0, GetTPage(0, (s16)arg0, (s16)arg1, (s16)arg2) & 0xFFFF);
     AddPrim(D_800710A0 + arg3, p);
 }
 
-INCLUDE_ASM("main/nonmatchings/33300", func_8004379C);
+s32 func_8004379C(RECT* arg0, u8* arg1, s16* arg2)
+{
+    GStruct65    sp;
+    register s32 ret asm("s0");
+
+    ret = 0;
+    if (*arg1 != 0) {
+        ret = 1;
+    } else {
+        sp.field_0  = arg0->x;
+        sp.field_2  = arg0->y;
+        sp.field_8  = arg0->w;
+        sp.field_A  = arg0->h;
+        sp.field_E  = 0;
+        sp.field_D  = 0;
+        sp.field_C  = 0;
+        sp.field_10 = 1;
+        func_80043854(&sp);
+        asm("" : "+r"(ret));
+        func_80043718(ret, ret, ret, 5);
+        *arg2 = *arg2 - 1;
+        if (*arg2 <= 0) {
+            ret = 1;
+        }
+    }
+    return ret;
+}
 
 void func_80043854(GStruct65* arg0)
 {
