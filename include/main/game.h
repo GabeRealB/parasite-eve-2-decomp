@@ -28,6 +28,10 @@ typedef struct {
     GFunc0 funcs[3];
 } GFunc0Table3;
 
+typedef struct {
+    GFunc0 funcs[6];
+} GFunc0Table6;
+
 /// Intrusive linked list node for a `GStruct0`.
 ///
 /// The head node is not an element in the linked list and points to the first
