@@ -15,7 +15,32 @@ INCLUDE_ASM("main/nonmatchings/46FE4", func_80056E38);
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_800572FC);
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_800574BC);
+void func_800574BC(void)
+{
+    u32  i;
+    s32* p;
+
+    p = (s32*)&D_80082798;
+    i = 0;
+    do {
+        i++;
+        *p = 0;
+    } while (i < 2U);
+
+    p = (s32*)&D_800827A0;
+    i = 0;
+    do {
+        i++;
+        *p = 0;
+    } while (i < 0x11U);
+
+    D_8008277C         = 0;
+    D_80082750         = 0;
+    D_800827A0.field_8 = 0x51010;
+    func_8004E5A0(3, 0x16, 2);
+    func_8005B6EC();
+    func_800260B0(1);
+}
 
 u8 func_80057554(void)
 {

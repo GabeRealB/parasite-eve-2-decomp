@@ -191,6 +191,7 @@ extern void func_8004DEBC(s32 arg0);
 extern void func_8004E200(void);
 extern s32  func_8004E060(s16* arg0, s32 arg1, s32 arg2);
 extern void func_8004E560(u32 voiceIdx, s32 arg1, s32 arg2);
+extern s32  func_8004E5A0(s32 idx, s32 arg1, s32 arg2);
 extern s32  func_8004E5C4(s8 arg0, GStruct48* arg1);
 extern void F3E48C_8004E44C(void);
 extern s32  F3E48C_8004E660(u32 voiceIdx);
@@ -309,6 +310,7 @@ extern s32  (*D_80068B34[])(void);
 extern void func_800542D0(s32 arg0, s32 arg1);
 
 // 4A6E0.c
+extern void func_8005B6EC(void);
 extern void func_8005B830(void);
 extern s32  func_8005BB4C(void);
 extern void func_8005BBB0(s32 arg0);
@@ -510,6 +512,7 @@ extern volatile s32       D_80082750;
 extern volatile u8        D_80082754;
 extern volatile GStruct39 D_80082758;
 extern s32                D_80082778;
+extern volatile u8        D_8008277C;
 extern volatile GStruct44 D_80082780;
 extern GStruct52*         D_80082794;
 extern volatile GStruct4  D_80082798;
