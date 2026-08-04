@@ -3573,3 +3573,23 @@ sum += (s8)*ptr;   /* lbu + sll/sra, not lb */
 
 Side effect: with `s32 sum`, the following `j = 0` CSE's as `move a0,a2`
 instead of `move a0,zero`. The `s16` width also keeps the two zeros independent.
+
+## Force `addu rd, offset, base` with an integer cast
+
+Pointer + index usually emits `addu s0, base, offset`. The target sometimes
+wants the operands swapped (`addu s0, offset, base`). Casting the pointer to
+`s32` and adding the pre-scaled byte offset as integers preserves the source
+operand order:
+
+```c
+/* Matches: sll v0,v0,1 ; addu s0,v0,v1  (offset then base) */
+temp  = ((D_80062738 + product) & 0xFFFF) * 2;
+entry = (GPairU8*)(temp + (s32)D_8006273C[idx]);
+
+/* Mismatches: addu s0,v1,v0 */
+entry = D_8006273C[idx] + ((D_80062738 + product) & 0xFFFF);
+```
+
+`func_800430E4` is the pure example. Pair with a `register ... asm("v1")` pin
+on the stage pointer when the target loads `D4F564_8005ED64` into `$v1` (with
+an argument live in `$s1`) rather than `$a0`.
