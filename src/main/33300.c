@@ -72,4 +72,26 @@ void func_80043718(s16 arg0, s16 arg1, s16 arg2, s32 arg3)
 
 INCLUDE_ASM("main/nonmatchings/33300", func_8004379C);
 
-INCLUDE_ASM("main/nonmatchings/33300", func_80043854);
+void func_80043854(GStruct65* arg0)
+{
+    TILE* p;
+
+    p          = (TILE*)D_80070EE0;
+    D_80070EE0 = (u8*)(p + 1);
+    SetTile(p);
+    if (arg0->field_10 == 0) {
+        SetShadeTex(p, 1);
+        SetSemiTrans(p, 0);
+    } else {
+        SetShadeTex(p, 0);
+        SetSemiTrans(p, 1);
+    }
+    p->r0 = arg0->field_C;
+    p->g0 = arg0->field_D;
+    p->b0 = arg0->field_E;
+    p->x0 = arg0->field_0;
+    p->y0 = arg0->field_2;
+    p->w  = arg0->field_8 - 1;
+    p->h  = arg0->field_A - 1;
+    AddPrim(D_800710A0 + 5, p);
+}

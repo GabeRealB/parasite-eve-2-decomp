@@ -761,6 +761,23 @@ typedef struct _GStruct38 {
 } GStruct38;
 STATIC_ASSERT_SIZEOF(GStruct38, 0x10);
 
+/// Tile draw params for func_80043854. field_0/field_2 are x/y; field_8/field_A
+/// are width/height (stored as inclusive size, decremented when writing TILE);
+/// field_C/D/E are RGB; field_10 selects shade-tex (0) vs semi-trans (nonzero).
+typedef struct _GStruct65 {
+    /* 0x00 */ s16  field_0;
+    /* 0x02 */ s16  field_2;
+    /* 0x04 */ byte unknown_4[4];
+    /* 0x08 */ s16  field_8;
+    /* 0x0A */ s16  field_A;
+    /* 0x0C */ u8   field_C;
+    /* 0x0D */ u8   field_D;
+    /* 0x0E */ u8   field_E;
+    /* 0x0F */ u8   pad_F;
+    /* 0x10 */ s16  field_10;
+} GStruct65;
+STATIC_ASSERT_SIZEOF(GStruct65, 0x12);
+
 /// BSS object D_80082758 (size 0x18). CD/audio stream state for 46FE4.c.
 /// field_C is a base pointer into a halfword table; func_80057A1C indexes it
 /// with ((packed >> 14) & 0x3FC) / 2 (4-byte stride, low halfword of each slot).
