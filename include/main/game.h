@@ -762,9 +762,22 @@ typedef struct _GStruct36VoiceSlot {
 } GStruct36VoiceSlot;
 STATIC_ASSERT_SIZEOF(GStruct36VoiceSlot, 0xC);
 
+/// 0x10-byte linear interpolator state used by func_8004D200 / func_8004D298 /
+/// func_8004D2EC. Embedded at GStruct36::field_14; BSS object D_800827B4 sits
+/// 0x14 bytes after D_800827A0.
+typedef struct _GStruct55 {
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ s32 field_4;
+    /* 0x8 */ s32 field_8;
+    /* 0xC */ s16 field_C;
+    /* 0xE */ s16 field_E;
+} GStruct55;
+STATIC_ASSERT_SIZEOF(GStruct55, 0x10);
+
 /// State block at D_8007F300 (logical stride 0x5DC; BSS allocation 0x5E0).
 /// field_0 is status; field_3 is the number of track entries starting at 0x4C.
 /// field_8 is a scaled volume; field_C is a sentinel (0xFFFF when cleared).
+/// field_10 is a data pointer; field_14 is the volume interpolator.
 /// voiceSlots holds up to 18 active SPU voice indices (field_0 = -1 when free).
 typedef struct _GStruct36 {
     /* 0x00 */ u8                  field_0;
@@ -775,7 +788,9 @@ typedef struct _GStruct36 {
     /* 0x08 */ s16                 field_8;
     /* 0x0A */ u8                  unknown_0A[2];
     /* 0x0C */ s32                 field_C;
-    /* 0x10 */ u8                  unknown_10[0x3C];
+    /* 0x10 */ void*               field_10;
+    /* 0x14 */ GStruct55           field_14;
+    /* 0x24 */ u8                  unknown_24[0x4C - 0x24];
     /* 0x4C */ GStruct36Entry      entries[1];
     /* 0x88 */ u8                  unknown_88[0x504 - 0x88];
     /* 0x504 */ GStruct36VoiceSlot voiceSlots[0x12];
@@ -987,17 +1002,6 @@ typedef struct _GStruct54 {
     /* 0x17 */ u8  pad_17[0x49];
 } GStruct54;
 STATIC_ASSERT_SIZEOF(GStruct54, 0x60);
-
-/// 0x10-byte linear interpolator state used by func_8004D200 / func_8004D298 /
-/// func_8004D2EC. BSS object D_800827B4 sits 0x14 bytes after D_800827A0.
-typedef struct _GStruct55 {
-    /* 0x0 */ s32 field_0;
-    /* 0x4 */ s32 field_4;
-    /* 0x8 */ s32 field_8;
-    /* 0xC */ s16 field_C;
-    /* 0xE */ s16 field_E;
-} GStruct55;
-STATIC_ASSERT_SIZEOF(GStruct55, 0x10);
 
 /// BSS block covering D_800827A0 (0x10) + D_800827B0 (0x4). Immediately precedes
 /// D_800827B4; used when codegen holds &D_800827B4 and reaches back 0x14 bytes.

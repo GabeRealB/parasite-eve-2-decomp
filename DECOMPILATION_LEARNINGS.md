@@ -3934,3 +3934,40 @@ case 1:
 ```
 
 `func_8003F450` is the pure example (`u8 mode` → 97.6%, `u32 mode` → 100%).
+
+## Reassign `ptr = base + i` instead of `ptr++` to avoid mid-struct IV
+
+When a loop walks a large struct array and also takes the address of a mid-struct
+field for a call (`func(&ptr->field_14, ...)`), writing `ptr++` (or a for-loop
+`ptr++`) lets GCC strength-reduce `&ptr->field_14` into a second induction
+variable (`s1 = s0 + 0x14`, advanced by the same stride). Symptoms:
+
+- Extra callee-saved reg and larger stack frame
+- `move a0, s1` instead of `addiu a0, s0, 0x14`
+- `lbu v0, -0x13(s1)` for earlier fields instead of `lbu v0, 1(s0)`
+- Constant compares pinned in s-regs (`li s5, 2`)
+
+Branch-local `ptr++` after the call can avoid the IV but schedules the increment
+*before* the `jal` (capturing `a0` early), so the target's `j` delay
+`addiu s0, s0, stride` becomes `addiu s1, s1, 1` instead.
+
+Fix: recompute the element pointer from the index each iteration, with no
+`ptr++`:
+
+```c
+for (i = 0; i <= 0; i++) {
+    ptr = &D_8007F300 + i; /* not ptr++ */
+    if ((id == ptr->field_1) || (id == 0)) {
+        if (ptr->field_0 == 2) {
+            ptr->field_0 = 0x80;
+            func_8004D200(&ptr->field_14, vol, 0, fade);
+        } else {
+            ptr->field_0 = 4;
+        }
+    }
+}
+```
+
+GCC still walks with `addiu s0, s0, 0x5DC` and fills the post-call `j` delay
+with that step, but emits a one-shot `addiu a0, s0, 0x14` for the call.
+`func_800515C0` is the pure example.
