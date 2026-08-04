@@ -147,6 +147,10 @@ extern u8 D_80060A54[];
 extern u8 D_80060A58[];
 extern u8 D_80060A5C[];
 extern u8 D_80060A64[];
+// Indexed pairs of prompt/dialog pointers used by func_80033EB0
+extern GStruct62 D_80060D08[];
+// "Memory Card" string passed to func_80048E38 by func_80033EB0
+extern char D_8001398C[];
 
 // 21FDC.c
 extern void func_800330D8(void* arg0, s32 arg1, s8 arg2, s32 arg3, s32 arg4);
@@ -173,6 +177,8 @@ extern void  func_80048964(GStruct30* arg0);
 extern void  func_800489A0(GStruct46* arg0, GStruct20* arg1);
 extern void  func_80048C10(void* arg0, void* arg1);
 extern void  func_80048D58(void* arg0, s32 arg1, s32 arg2);
+extern s32   func_80048E10(void* arg0, s32 arg1);
+extern void  func_80048E38(void* arg0, char* arg1);
 extern void  func_8004917C(GStruct46* arg0, s32 arg1);
 extern void  func_80049288(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5);
 extern void  func_800492B8(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5);
