@@ -646,6 +646,24 @@ should also be `volatile`, or the load will sink into the middle of them.
 `func_800537FC` needs this on `D_80082135` and the surrounding
 `D_80082128` / `D_80082124` / `D_80082130` stores.
 
+Halfword analogue: a plain `s16` load is usually `lh`, but the target may want
+
+```
+lhu  v0, %lo(sym)(v0)
+li   v1, 1
+sll  v0, v0, 16
+sra  v0, v0, 16
+```
+
+Use a volatile load through the existing symbol rather than flipping its type
+(other matched sites may store through `s16`):
+
+```c
+if (*(volatile s16*)&D_800689EC == 1) { ... }
+```
+
+`func_80051560` needs this form for `D_800689EC`.
+
 ## Reuse formal parameters for live ranges that span early calls
 
 When the target keeps `arg0`/`arg1` in `$s0`/`$s1` through a later loop

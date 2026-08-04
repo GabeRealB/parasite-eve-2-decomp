@@ -266,7 +266,23 @@ s32 func_80051460(s32 arg0, s32 arg1)
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_800514F8);
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80051560);
+s32 func_80051560(u8 arg0)
+{
+    s32 i;
+
+    if (*(volatile s16*)&D_800689EC == 1) {
+        return 0;
+    }
+    if (arg0 == 0xFF) {
+        return 1;
+    }
+    for (i = 0; i <= 0; i++) {
+        if ((&D_8007F300)[i].field_1 == arg0) {
+            return 0;
+        }
+    }
+    return 1;
+}
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_800515C0);
 
