@@ -3547,3 +3547,29 @@ The early `y` store is free to schedule around the clamp setup; the compiler
 then emits target order (`lh` of `x`/`w`, compute `temp`, store `y`, `lhu` +
 `bgez` with `addu` in the delay slot). `func_80049024` is the pure example
 (dialog RECT clamp to 0x96 × 0x5A).
+
+## `s16` accumulator forces `lbu`+sign-extend (not `lb`) in checksum loops
+
+When summing signed bytes from a `u8*` buffer under `-funsigned-char`:
+
+```c
+sum += (s8)*ptr;
+```
+
+an `s32 sum` collapses the cast to a single `lb`. The target often wants the
+longer form (`lbu` / `sll 24` / `sra 24`) that `func_80033CC0` and its verify
+sibling `func_80033DD4` use over `D_800610FC[1..8]`.
+
+Declare the accumulator `s16`:
+
+```c
+s16 sum;
+...
+sum = 0;
+j = 0;
+...
+sum += (s8)*ptr;   /* lbu + sll/sra, not lb */
+```
+
+Side effect: with `s32 sum`, the following `j = 0` CSE's as `move a0,a2`
+instead of `move a0,zero`. The `s16` width also keeps the two zeros independent.

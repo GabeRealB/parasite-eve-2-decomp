@@ -381,7 +381,44 @@ s32 func_80033D88(void)
     return ((u16)D_80072AA8 ^ (sum & 0xFFFF)) == 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80033DD4);
+s32 func_80033DD4(void)
+{
+    GStruct47*   temp;
+    GStruct53*   p;
+    GStruct53*   base;
+    s16          sum;
+    u32          count;
+    u32          i;
+    register u32 j asm("a0");
+    u8*          ptr;
+    s32          flag;
+
+    flag = 1;
+    i    = 1;
+    base = D_800610FC;
+    p    = base + 1;
+    do {
+        sum   = 0;
+        j     = 0;
+        temp  = p->field_0;
+        count = p->field_4;
+        ptr   = temp->field_4;
+        count = count - 4;
+        if (count != 0) {
+            do {
+                j   += 1;
+                sum += (s8)*ptr;
+                ptr += 1;
+            } while (j < count);
+        }
+        if ((u16)temp->field_0 != (sum & 0xFFFF)) {
+            flag = 0;
+        }
+        i += 1;
+        p += 1;
+    } while (i < 9U);
+    return flag;
+}
 
 void func_80033E58(void)
 {
