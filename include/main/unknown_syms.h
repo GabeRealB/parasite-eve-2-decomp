@@ -135,6 +135,7 @@ extern void func_80030074(void);
 extern u_long D_80060910[];
 extern u_long D_800609B0[];
 // Prompt / dialog data table (see func_80036E78)
+extern u8 D_80060A5C[];
 extern u8 D_80060A64[];
 
 // 32B64.c
