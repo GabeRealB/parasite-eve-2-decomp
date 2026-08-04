@@ -379,7 +379,23 @@ INCLUDE_ASM("main/nonmatchings/43FFC", func_80055A9C);
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80055B70);
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80055C00);
+void func_80055C00(void)
+{
+    s8 temp;
+
+    D_8008274C += 1;
+    if (D_8008274C == 1) {
+        if (D_8008274A == 0) {
+            if (D_80082749 == 0) {
+                temp = func_80055EE8();
+                if (temp >= 0x30) {
+                    D_80082749 = temp;
+                    D_8008274A = -8;
+                }
+            }
+        }
+    }
+}
 
 void func_80055C8C(void)
 {
