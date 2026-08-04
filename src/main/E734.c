@@ -1,9 +1,9 @@
 #include "common.h"
 
 #include <psyq/libcd.h>
+#include <psyq/libetc.h>
 
 #include "main/game.h"
-#include "main/fs.h"
 #include "main/fs.h"
 
 INCLUDE_ASM("main/nonmatchings/E734", func_8001DF34);
@@ -146,7 +146,57 @@ s32 func_8001E2D4(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/E734", func_8001E57C);
+s16 func_8001E57C(void)
+{
+    u8          mode[8];
+    u8          result[8];
+    u8          loc[8];
+    CdCmdQueue* state;
+    s32         temp;
+
+    state = &CdCmd_Queue;
+    switch (state->field_226) {
+        case 0:
+            temp = CdDiskReady(1);
+            if (temp == CdlComplete) {
+                temp = 1;
+            } else {
+                temp = 0;
+            }
+            if (temp != 0) {
+                CdControlB(CdlGetTN, NULL, NULL);
+                mode[0] = CdlModeSpeed | CdlModeSize1;
+                CdControlB(CdlSetmode, mode, NULL);
+                VSync(3);
+                loc[0] = 0xA;
+                loc[1] = 0;
+                loc[2] = 0;
+                CdControlB(CdlReadN, loc, result);
+                if ((result[0] & CdlStatError) && (result[1] & 0x40)) {
+                    state->field_226 += 1;
+                } else {
+                    state->field_226 = 0;
+                    return 1;
+                }
+            }
+            break;
+        case 1:
+            CdControlB(CdlNop, NULL, mode);
+            temp = mode[0] & CdlStatShellOpen;
+            if (temp == CdlStatShellOpen) {
+                temp = 1;
+            } else {
+                temp = 0;
+            }
+            if (temp != 0) {
+                state->field_1E4 = 0;
+            }
+            break;
+        default:
+            break;
+    }
+    return 0;
+}
 
 s32 func_8001E6AC(s32 arg0, s32 arg1)
 {

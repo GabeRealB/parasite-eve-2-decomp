@@ -210,7 +210,7 @@ typedef struct _CdCmdQueue {
     byte       unknown_21C[0x6];
     s16        field_222;
     u16        field_224;
-    byte       unknown_226[0x2];
+    u16        field_226; // sub-state for func_8001E57C disk recovery
     u16        field_228;
     byte       unknown_22a[0xA];
     s16        field_234;

@@ -3048,3 +3048,58 @@ p->dirty = 1;
 `if (diff <= 0)` (not `if (diff > 0)` first) makes the positive arm the `bgtz`
 branch target and the negative arm fall through after `bgez` fails — matching
 the `bgtz` / `bgez` / shared-zero label shape of `func_80055B70` / `func_80055A9C`.
+
+## Booleanize `(x & mask)` via `== mask`, not `!= 0`
+
+After `temp = x & mask`, writing `if (temp != 0) temp = 1; else temp = 0;` (or
+`temp = 1; if (!(x & mask)) temp = 0;`) is jump-threaded away when the only use
+of `temp` is a later `if (temp)`. The target then has a short
+`andi` / `beqz` / store form instead of the longer materialization:
+
+```
+andi  v0, v0, mask
+bnez  v0, merge
+li    v0, 1
+move  v0, zero
+merge:
+beqz  v0, skip
+...
+```
+
+Fix: compare against the mask itself. Because `x & mask` is either `0` or
+`mask`, `temp == mask` is equivalent to `temp != 0`, but GCC 2.8.1 does not
+fold it into the control-only form:
+
+```c
+temp = result[0] & CdlStatShellOpen;
+if (temp == CdlStatShellOpen) {
+    temp = 1;
+} else {
+    temp = 0;
+}
+if (temp != 0) {
+    p->field = 0;
+}
+```
+
+`func_8001E57C` case 1 is the example (`CdlStatShellOpen == 0x10`).
+
+## Reassign call result to force `li`/`bne` equality tests
+
+`if (func() == K) { body }` often becomes `xori` / `bnez` (or a fused compare).
+To get the longer `li v1,K` / `bne` / `li v0,1` / `beqz v0,...` shape, capture
+the call result and reassign:
+
+```c
+temp = CdDiskReady(1);
+if (temp == CdlComplete) {
+    temp = 1;
+} else {
+    temp = 0;
+}
+if (temp != 0) {
+    /* body */
+}
+```
+
+`func_8001E57C` case 0 is the example.
