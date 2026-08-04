@@ -4086,3 +4086,44 @@ for (j = 0; j < 2; j++) {
     vpad++;
 }
 ```
+
+## Dense dummy cases force jump tables for sparse result maps
+
+A switch that maps only a few status codes (e.g. 0→0xA, 1→0x14, 4→0x15,
+7→0x19) with everything else → default will often lower to an if/else cascade
+even when the target uses a jump table over 0..N-1. GCC 2.8.1 only emits the
+`sltiu` + table form when enough case labels fill the span:
+
+```c
+/* Sparse — binary search / equality chain, no jtbl */
+switch (status) {
+case 0:  arg0->field_30 = 0xA;  break;
+case 1:  arg0->field_30 = 0x14; break;
+case 4:  arg0->field_30 = 0x15; break;
+case 7:  arg0->field_30 = 0x19; break;
+default: arg0->field_30 = 0x2A; break;
+}
+
+/* Dense — sltiu + jtbl; unused slots share the default body */
+switch (status) {
+case 0:  arg0->field_30 = 0xA;  break;
+case 1:  arg0->field_30 = 0x14; break;
+case 4:  arg0->field_30 = 0x15; break;
+case 7:  arg0->field_30 = 0x19; break;
+case 2:
+case 3:
+case 5:
+case 6:
+default: arg0->field_30 = 0x2A; break;
+}
+```
+
+Hold the discriminator in a `u32` so the range check is `sltiu` (see also
+"u32 switch discriminator"). Assign the destination field *inside* each arm;
+routing through an intermediate then storing once can pick the wrong register
+for the case immediates (`v1` vs target `v0`).
+
+`func_80031B1C` is the pure example (MemCardCreateFile status → UI state).
+Remember to hand the jtbl's address range to the C file via a `.rodata`
+subsegment in `configs/USA/main.yaml` (split surrounding asm tables into
+`21FDC_1` / `21FDC_2` style siblings).

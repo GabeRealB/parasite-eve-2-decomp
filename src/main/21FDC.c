@@ -10,7 +10,52 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_800317DC);
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_800319E4);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80031B1C);
+void func_80031B1C(GStruct0* arg0, GStruct21* arg1)
+{
+    s32        ret;
+    u32        status;
+    s32        idx;
+    GStruct37* obj;
+    GStruct62* entry;
+    GStruct62* base;
+
+    arg1->field_4 -= 1;
+    if (arg1->field_4 == 0) {
+        status         = MemCardCreateFile(arg1->field_C, D_80060DD8, 1);
+        arg1->field_14 = status;
+        switch (status) {
+            case 0:
+                arg0->field_30 = 0xA;
+                break;
+            case 1:
+                arg0->field_30 = 0x14;
+                break;
+            case 4:
+                arg0->field_30 = 0x15;
+                break;
+            case 7:
+                arg0->field_30 = 0x19;
+                break;
+            case 2:
+            case 3:
+            case 5:
+            case 6:
+            default:
+                arg0->field_30 = 0x2A;
+                break;
+        }
+    }
+
+    obj           = arg0->field_20;
+    idx           = arg1->field_8;
+    ret           = func_80048E10(obj, 1);
+    obj->field_2E = 0;
+    func_80048E38(obj, D_8001398C);
+    base  = D_80060D08;
+    entry = &base[idx];
+    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
+    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
+}
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80031C5C);
 
