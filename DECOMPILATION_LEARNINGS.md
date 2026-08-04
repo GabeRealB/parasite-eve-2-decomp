@@ -103,6 +103,14 @@ A local `GStruct1*` would force a callee-saved register and a larger stack
 frame for no benefit. Use the pointer only when the address is live across
 calls.
 
+**Also: capture a dest address before a call that you assign after.** Writing
+`Fs_ChunkWritePtr = (u8*)&Fs_CdSector` after `CdSync` materialises the address
+post-call. Pre-assigning `dest = (u8*)&Fs_CdSector` before `CdSync` puts the
+address in `$s1` and fills the call delay slot with `addiu s1, v0, %lo(...)`,
+which also forces `a1` for the call to be set earlier (matching the target
+prologue). `Fs_SelectStage` is the example — same shape as `Fs_ReadSectorEx`
+where the dest is already a parameter.
+
 **Post-call store that uses `$s0` for `%hi/%lo`.** Even a single
 `global = func(...)` after a call can need the local-pointer form when the
 target saves `$s0`, does `lui s0,%hi(global)` / `sh v0,%lo(global)(s0)`, then

@@ -107,7 +107,42 @@ INCLUDE_ASM("main/nonmatchings/fs", Fs_ProcessChunkHeader);
 
 INCLUDE_ASM("main/nonmatchings/fs", Fs_ProcessChunkData);
 
-INCLUDE_ASM("main/nonmatchings/fs", Fs_SelectStage);
+void Fs_SelectStage(s32 stageIdx)
+{
+    CdlLOC loc[2];
+    s32    sector;
+    u8*    dest;
+
+    Fs_ChunkMode    = 0;
+    D5B498_8006ADF4 = 0;
+    sector          = Fs_StageCdfSectors[(u8)stageIdx];
+    dest            = (u8*)&Fs_CdSector;
+
+    if (CdSync(1, NULL) == CdlDiskError) {
+        Fs_WaitDiskReset(1);
+    }
+
+    Fs_CdOpStatus     = 0;
+    Fs_ChunkEndFlag   = -1;
+    Fs_LoadPhase      = 0;
+    Fs_ReqSector      = sector;
+    Fs_ChunkEndSector = sector;
+    Fs_ChunkWritePtr  = dest;
+    Fs_VBlank         = VSync(-1);
+
+    if (Fs_SeekSector == sector) {
+        CdControlF(CdlReadN, NULL);
+        CdReadyCallback(F12D18_8002563C);
+        Fs_SeekSector = 0;
+    } else {
+        CdIntToPos(sector, loc);
+        CdControlF(CdlReadN, &loc[0].minute);
+        CdSyncCallback(F12D18_8002563C);
+        Fs_SeekSector = 0;
+    }
+
+    Fs_VBlank = VSync(-1);
+}
 
 INCLUDE_ASM("main/nonmatchings/fs", func_80023748);
 
