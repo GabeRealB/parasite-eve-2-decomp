@@ -1364,6 +1364,13 @@ that EBAC is the early-loaded `$a2` value. `func_8004E6C4` is the pure
 early-`nor` counterpart: pointer on the `|=` target plus `channel = ~channel`
 before the two clears.
 
+`func_8004EAF8` is late-`nor` with an extra struct-field clear in the middle
+(`A |= mask; field &= ~mask; B &= ~mask; C &= ~mask`). Same recipe as E71C:
+local pointer on A (`&D648E0_8007EBAC`) and three inline `~channel` uses — not
+`channel = ~channel`. Dropping the pointer alone leaves only `li a1,1`
+mis-scheduled before the `sb`; using `channel = ~channel` with the pointer
+falls back to ~70%.
+
 ## Unaligned 8-byte copy via nested `u8[8]` struct assignment
 
 When the target copies 8 bytes with `lwl`/`lwr`/`swl`/`swr` pairs (not

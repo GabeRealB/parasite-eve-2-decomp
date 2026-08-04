@@ -305,4 +305,19 @@ void func_8004EAA0(u32 voiceIdx)
     D648E0_8007EBB0      &= ~channel;
 }
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004EAF8);
+void func_8004EAF8(u32 voiceIdx)
+{
+    GStruct9* p;
+    u32*      pKeyOn;
+    u32       channel;
+
+    p                     = &D648E0_8007E338;
+    pKeyOn                = &D648E0_8007EBAC;
+    voiceIdx              = (s8)voiceIdx;
+    p->field_7c[voiceIdx] = 5;
+    channel               = SPU_VOICECH(voiceIdx);
+    *pKeyOn              |= channel;
+    p->field_1d0         &= ~channel;
+    D648E0_8007EBA8      &= ~channel;
+    D648E0_8007EBB0      &= ~channel;
+}
