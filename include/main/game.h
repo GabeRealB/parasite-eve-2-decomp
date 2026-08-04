@@ -76,7 +76,7 @@ typedef struct _GStruct0 {
     void*             field_20;
     byte              unknown_24[4];
     u8                field_28;
-    byte              unknown_29;
+    u8                field_29;
     s16               field_2a;
     void*             field_2c;
     s32               field_30;

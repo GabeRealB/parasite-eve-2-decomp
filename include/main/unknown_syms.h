@@ -95,6 +95,7 @@ extern GStruct0Node* func_8002D40C(void);
 extern void          func_8002D41C(GStruct0Node* node);
 extern void          func_8002D248(GStruct0Node* node);
 extern void          func_8002D25C(GStruct0Node* node);
+extern void          func_8002D61C(GStruct0Node* node, s32 arg1);
 extern TaskDesc*     func_8002D304(u32 idx1, u32 idx2);
 extern TaskDesc*     func_8002D32C(TaskDesc* base, u32 idx);
 extern void          func_8002D0A4(GStruct0* arg0);
