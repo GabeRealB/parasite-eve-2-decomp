@@ -521,6 +521,7 @@ extern volatile s32       D_8008274C;
 extern volatile s32       D_80082750;
 extern volatile u8        D_80082754;
 extern volatile GStruct39 D_80082758;
+extern volatile s32       D_80082770;
 extern s32                D_80082778;
 extern volatile u8        D_8008277C;
 extern volatile GStruct44 D_80082780;

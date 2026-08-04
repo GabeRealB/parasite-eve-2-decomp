@@ -257,7 +257,32 @@ s32 func_80057BC0(void)
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_80057BC8);
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_80057C74);
+void func_80057C74(s32 arg0)
+{
+    s32                 temp;
+    s32                 pos;
+    FsSector*           sector;
+    volatile GStruct18* state;
+
+    if (D_80082770 != 0) {
+        return;
+    }
+
+    temp = arg0 & 0xFF;
+    if (temp == 1) {
+        sector = &Fs_CdSector;
+        CdGetSector(sector, 3);
+        state = &D_800827A0;
+        pos   = CdPosToInt((CdlLOC*)sector);
+        if (state->field_4 != pos) {
+            D_80082780.field_A = -2;
+        }
+        CdGetSector((void*)D_80082750, 0x200);
+        D_80082770 = temp;
+    } else {
+        D_80082780.field_A = -1;
+    }
+}
 
 void func_80057D24(void)
 {

@@ -2457,3 +2457,21 @@ store:
 Temps for the call that precedes this block may also be required so `a3 = 0`
 is scheduled early and the 5th-arg `sw` fills the `jal` delay slot
 (`func_80036B2C`).
+
+## `beq` register order for call-result vs field compare
+
+`if (call() != p->field)` and `if (p->field != call())` are not always
+equivalent under GCC 2.8.1 register assignment. The inline form often emits
+`beq v0,v1` (return value first). When the target has `beq v1,v0` after
+`lw v1,off(sN)` of a struct field, assign the call result to a temp first:
+
+```c
+pos = CdPosToInt(loc);
+if (state->field_4 != pos) {  /* beq v1,v0 — field in v1, pos in v0 */
+    ...
+}
+```
+
+`func_80057C74` is the example. Also mark interrupt-shared flags like
+`D_80082770` (written by a `CdReadyCallback`, polled on the main path)
+`volatile` so the post-call store stays out of a `j` delay slot.
