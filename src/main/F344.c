@@ -76,7 +76,46 @@ INCLUDE_ASM("main/nonmatchings/F344", func_8001F6B8);
 
 INCLUDE_ASM("main/nonmatchings/F344", func_8001F854);
 
-INCLUDE_ASM("main/nonmatchings/F344", func_8001F990);
+void func_8001F990(void)
+{
+    StHEADER*   header;
+    CdCmdQueue* p;
+
+    p = &CdCmd_Queue;
+    if (D_8006AC1A != 0) {
+        if (DecDCTvlc2(NULL, NULL, D_8006AC38) == 0) {
+            func_8001F854();
+        }
+        return;
+    }
+
+    if (StGetNext(&D_8006AC68, (u_long**)&header) != 0) {
+        return;
+    }
+
+    if (header->frameCount >= (u32)D_8006AC0C) {
+        func_80026218(0);
+        p->field_1F6 = 1;
+        p->field_1E4 = 4;
+    }
+
+    p->field_242 = 0;
+    if (D_8006AC12 != 0) {
+        DecDCTvlcSize2(0);
+    } else {
+        DecDCTvlcSize2(DecDCTBufSize(D_8006AC68) / 2 + 2);
+    }
+
+    if (DecDCTvlc2(D_8006AC68, D_8006AC50[D_8005EAEC], D_8006AC38) == 0) {
+        func_8001F854();
+    } else {
+        D_8006AC1A = 1;
+    }
+
+    if (p->field_1E8 == 0) {
+        p->field_1E4 = 4;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/F344", func_8001FAE0);
 

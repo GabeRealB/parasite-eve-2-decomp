@@ -3386,3 +3386,34 @@ are swapped (`$a1`/`$a0`), pin the index: `register u32 j asm("a0")`.
 
 `func_80033CC0` is the pure example (batch write over `D_800610FC[1..8]`;
 contrast `func_80033A28` which uses `~sum` for a single buffer).
+
+## Signed `/ 2` chain must land in `$a0` via the call argument
+
+When the target does signed division by 2 entirely in `$a0` before a call:
+
+```
+jal    DecDCTBufSize
+ nop
+srl    a0,v0,0x1f
+addu   a0,a0,v0
+sra    a0,a0,0x1
+addiu  a0,a0,2
+jal    DecDCTvlcSize2
+```
+
+assigning through a local first (`size = x / 2 + 2; foo(size)`) often computes
+the shift chain in `$v1` and only the final `+ 2` into `$a0`. Pass the expression
+directly as the call argument so the whole chain is the argument:
+
+```c
+/* BAD — intermediates in $v1, only +2 in $a0 */
+size = DecDCTBufSize(frame) / 2 + 2;
+DecDCTvlcSize2(size);
+
+/* GOOD — entire signed-div sequence in $a0 */
+DecDCTvlcSize2(DecDCTBufSize(frame) / 2 + 2);
+```
+
+Pair with a separate `DecDCTvlcSize2(0)` on the other branch (rather than a
+shared `size` phi) so the zero path still fills the `bnez` delay with
+`move a0,zero` and both paths share no local. `func_8001F990` is the example.

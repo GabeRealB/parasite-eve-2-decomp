@@ -188,12 +188,13 @@ typedef struct _CdCmdQueue {
     u16        field_1E2;
     u16        field_1E4;
     s16        field_1E6;
-    byte       unknown_1E8[0x2];
+    u16        field_1E8;
     s16        field_1EA;
     u16        field_1EC; // MDEC out strip active (cleared by DecDCTout callback)
     byte       unknown_1EE[0x6];
     u16        field_1F4;
-    byte       unknown_1F6[0x4];
+    u16        field_1F6;
+    byte       unknown_1F8[0x2];
     u16        field_1FA;
     u16        field_1fc;
     u8         field_1FE; // load status (0xFF = idle/done in several paths)
