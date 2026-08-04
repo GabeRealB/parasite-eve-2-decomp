@@ -196,6 +196,7 @@ extern void  func_800488F8(GStruct0* arg0);
 extern void  func_80047F40(GStruct20* arg0, char* arg1);
 extern void  func_80048904(GStruct30* arg0, s32 arg1, s32 arg2);
 extern void  func_80048964(GStruct30* arg0);
+extern void  func_80046830(GStruct46* arg0, GStruct30* arg1);
 extern void  func_800489A0(GStruct46* arg0, GStruct20* arg1);
 extern void  func_80048C10(void* arg0, void* arg1);
 extern void  func_80048D58(void* arg0, s32 arg1, s32 arg2);
@@ -461,6 +462,9 @@ extern TaskDesc*    D_8005EF74[];
 extern char         D_80013B64[]; // "Select"
 extern GStruct46    D_8006116C;
 extern GStruct46    D_80061194;
+extern GStruct46    D_8006125C;
+extern GStruct46    D_80061284;
+extern GStruct46    D_800612AC;
 extern s32          D_800608F4[];
 extern s32          D_800611C8[];
 extern TaskDesc     D_8006268C;

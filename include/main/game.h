@@ -522,11 +522,12 @@ typedef struct _GStruct25 {
 } GStruct25;
 STATIC_ASSERT_SIZEOF(GStruct25, 0x5C);
 
-/// UI list/menu object (data symbols D_8006116C, D_80061194; size 0x24).
+/// UI list/menu object (data symbols D_8006116C, D_80061194, D_8006125C,
+/// D_80061284, D_800612AC; size 0x24).
 /// field_0 is a function-table pointer; field_5 is a base index subtracted when
 /// computing field_9; field_9 / field_A / field_10 are list cursor / flag /
-/// selection index used by func_80036A70 / func_80036C04 / func_800489A0 /
-/// func_8004917C.
+/// selection index used by func_80036A70 / func_80036C04 / func_80037068 /
+/// func_800489A0 / func_8004917C.
 typedef struct _GStruct46 {
     /* 0x00 */ byte unknown_0[0x5];
     /* 0x05 */ u8   field_5;

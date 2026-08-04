@@ -3682,3 +3682,54 @@ if (flag == 0) {
 
 `func_800429C8` (`D_80072311` → `func_800260B0`) is the pure `== 0` example.
 `func_8002BD24` is the sibling `== 1` form (`func_800260B0(0)` vs `(1)`).
+
+## Goto-forced block order for shared-default multi-way branch
+
+When the target dispatches on a small integer with a shared default tail that
+*falls through* into the next code (no `j` after the default assignment), and a
+special case block sits *before* that default in the object file:
+
+```
+beq   mode, 2, case2
+slti  v0, mode, 3
+beqz  v0, default          # mode >= 3
+...
+# case1 body; j done
+case2:
+  # assign special; j done
+default:
+  # assign default — falls into done
+done:
+  # rest of function
+```
+
+plain `if`/`else` or `switch` often places the special-case `else` *after*
+default, which inserts an extra `j` on the default path and mismatches offsets.
+
+Force the order with gotos (same pattern as `func_8003E698`):
+
+```c
+if (mode == 2) {
+    goto case2;
+}
+if (mode >= 3) {
+    goto default_case;
+}
+if (mode != 1) {
+    goto default_case;
+}
+menu = &special_1;
+goto done;
+case2:
+menu = &special_2;
+goto done;
+default_case:
+menu = &fallback;
+done:
+/* ... */
+```
+
+`if (mode >= 3) goto default` is what emits the `slti` / `beqz` pair; do not
+collapse the two default entries into one `else` if that reorders blocks.
+`func_80037068` is the pure example (menu pointer select among three
+`GStruct46` data objects).

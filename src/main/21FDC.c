@@ -1188,4 +1188,43 @@ void func_80036FB8(GStruct60* arg0, GStruct37* arg1)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80037068);
+void func_80037068(GStruct0* arg0)
+{
+    GStruct30* obj;
+    GStruct46* menu;
+    s32        mode;
+
+    mode = arg0->field_34;
+    obj  = arg0->field_20;
+    if (mode == 2) {
+        goto block_2;
+    }
+    if (mode >= 3) {
+        goto block_default;
+    }
+    if (mode != 1) {
+        goto block_default;
+    }
+    menu = &D_80061284;
+    goto block_done;
+block_2:
+    menu = &D_800612AC;
+    goto block_done;
+block_default:
+    menu = &D_8006125C;
+block_done:
+    if (arg0->field_30 == 0) {
+        func_80046830(menu, obj);
+        obj->field_C.y -= obj->field_C.h / 2;
+        if (arg0->field_34 != 3) {
+            menu->field_10 = 0;
+        } else {
+            menu->field_10 = 1;
+        }
+        menu->field_9 = 0;
+        func_8004917C(menu, 1);
+        arg0->field_30 += 1;
+    } else {
+        func_80048C10(menu, obj);
+    }
+}
