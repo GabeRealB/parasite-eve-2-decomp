@@ -34,7 +34,27 @@ void func_80042F54(GStruct0* arg0)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/33300", func_80043028);
+void func_80043028(s32 arg0)
+{
+    register GStruct14* g asm("v1");
+    s32                 idx;
+    s32                 product;
+    GPairU8*            entry;
+    s32                 temp;
+
+    g       = D4F564_8005ED64;
+    idx     = g->field_7 - 1;
+    product = g->field_6 * D_80062764[idx];
+    temp    = ((D_80062738 + product) & 0xFFFF) * 2;
+    entry   = (GPairU8*)(temp + (s32)D_8006273C[idx]);
+    if (entry->field_0 != 0xFF) {
+        if (entry->field_1 != 3) {
+            func_800512BC(entry->field_0, arg0 & 0xFFFF);
+            D_80062739 = entry->field_0;
+            func_800429C8(0);
+        }
+    }
+}
 
 void func_800430E4(s32 arg0)
 {
