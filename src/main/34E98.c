@@ -261,7 +261,15 @@ INCLUDE_ASM("main/nonmatchings/34E98", func_8004972C);
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_800497F4);
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_800498D4);
+void func_800498D4(GStruct0* arg0)
+{
+    GFunc30Table6 sp;
+    GStruct30*    temp;
+
+    sp   = D_80013F2C;
+    temp = arg0->field_20;
+    sp.funcs[temp->field_8](temp, arg0);
+}
 
 s32 func_80049950(void)
 {

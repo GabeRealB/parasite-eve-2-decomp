@@ -2096,6 +2096,18 @@ The index form then becomes `addiu v1,sp,0x10` / `sll` / `addu v1,v1,v0` /
 `lw v0,0(v1)`. `func_8002C028` is the pure example (3 entries). The same idea
 applies to `D_800134BC` (5 entries) for the sibling dispatcher `func_8002BEA8`.
 
+Two-arg handlers (e.g. `GFunc30` / `D_80013F2C` / `func_800498D4`) use the same
+struct-assignment pattern. When the object that supplies the index is also the
+first call argument, keep it in a temp so both the index and the call share it:
+
+```c
+temp = arg0->field_20;
+sp.funcs[temp->field_8](temp, arg0);
+```
+
+Six entries still multi-load in two groups of three (`lw`/`sw` at 0/4/8 then
+0xC/0x10/0x14).
+
 ## `while (j < n)` vs `if (n) do{}while` for counter/dest reg pair
 
 A byte-copy loop that increments both a counter and a destination pointer can

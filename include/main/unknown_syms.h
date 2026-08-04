@@ -85,6 +85,7 @@ extern GFunc0Table3  D_800134D0;
 extern GFunc0Table6  D_80013E98;
 extern GFunc0Table3  D_80013EDC;
 extern GFunc0Table4  D_80013F1C;
+extern GFunc30Table6 D_80013F2C;
 extern void          func_8002C9E0(s32 arg0);
 extern s32           func_8002CA0C(s32 arg0);
 extern void          func_8002CCB8(GStruct0* arg0);

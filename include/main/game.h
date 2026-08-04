@@ -633,6 +633,15 @@ typedef struct _GStruct30 {
     /* 0x24 */ void (*field_24)(void*);
 } GStruct30;
 
+/// Callback for GStruct30 state handlers (e.g. entries in D_80013F2C).
+typedef void (*GFunc30)(GStruct30* arg0, void* arg1);
+
+/// Fixed-size table of GFunc30 callbacks. Copied onto the stack by
+/// func_800498D4 so the call uses a local jump table.
+typedef struct {
+    GFunc30 funcs[6];
+} GFunc30Table6;
+
 /// Header for the bank table blob pointed to by GStruct31.field_0.
 /// field_4 is the bank ID (high halfword remapped by func_80053F00 when the
 /// request high nibble is 0x1); field_6 is the entry count used by func_8005414C.
