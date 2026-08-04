@@ -3782,3 +3782,26 @@ lands in `$v1` (the register that held the second table address) instead of
 
 `func_8004E9D8` is the example (volume-style lookup: `D_80068BB8[hi] *
 D_80068C78[lo] >> 8`, clamp to `0x3FFF`).
+
+## Early halfword temp so `lh` stays live across intervening stores
+
+When the target does `lh v1, field` early, fills other stack/struct fields, then
+only later does `addiu v1, v1, 1` / `sw v1, ...`, writing the expression inline
+at the store site reloads late (`lh` just before use) and scrambles schedule.
+
+Hoist the signed load into a temporary at the early point:
+
+```c
+sp.field_2 = ...;
+temp = (s16)arg0->field_14; /* early lh into a live temp */
+sp.field_8 = arg4;
+/* ... more stores ... */
+sp.field_4 = temp + 1;      /* addiu + sw near the call */
+sp.field_E = (s8)arg5;
+func(&sp, arg3);            /* field_E often lands in the jal delay slot */
+```
+
+Pair with `u16` fields that the target loads via `lhu` for unsigned arithmetic
+(`field_14 - 1` / `+ 1`) and `(s16)` only where the target uses `lh`.
+
+`func_80048F88` is the pure example.

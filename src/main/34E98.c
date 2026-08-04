@@ -138,7 +138,25 @@ s32 func_80048E2C(s32 arg0)
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80048E38);
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80048F88);
+void func_80048F88(GStruct30* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
+{
+    GStruct38 sp;
+    s32       temp;
+
+    if (arg0->field_8 == 2) {
+        arg0->field_14 = (u16)(arg0->field_14 - 1);
+        sp.field_0     = arg0->field_20 + arg1;
+        sp.field_2     = arg0->field_22 + arg2;
+        temp           = (s16)arg0->field_14;
+        sp.field_8     = arg4;
+        sp.field_C     = 0;
+        sp.field_D     = (s8)arg6;
+        sp.field_4     = temp + 1;
+        sp.field_E     = (s8)arg5;
+        func_8002E53C(&sp, arg3);
+        arg0->field_14 = (u16)(arg0->field_14 + 1);
+    }
+}
 
 void func_80049024(GStruct30* arg0, GStruct30* arg1, GStruct30* arg2)
 {

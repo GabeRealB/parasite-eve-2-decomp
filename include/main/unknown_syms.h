@@ -120,6 +120,7 @@ extern void func_80099290(void* arg0);
 // 1E6C4.c
 extern void func_8002DEC4(void);
 extern s32  func_8002DECC(GStruct38* arg0, u8* arg1, u8* arg2);
+extern void func_8002E53C(GStruct38* arg0, u8* arg1);
 extern void func_8002EDFC(GStruct38* arg0, u8* arg1);
 extern void func_8002F98C(GStruct0* arg0);
 
@@ -202,6 +203,7 @@ extern void  func_80048C10(void* arg0, void* arg1);
 extern void  func_80048D58(void* arg0, s32 arg1, s32 arg2);
 extern s32   func_80048E10(void* arg0, s32 arg1);
 extern void  func_80048E38(void* arg0, char* arg1);
+extern void  func_80048F88(GStruct30* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
 extern void  func_8004917C(GStruct46* arg0, s32 arg1);
 extern void  func_80049288(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5);
 extern void  func_800492B8(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5);
