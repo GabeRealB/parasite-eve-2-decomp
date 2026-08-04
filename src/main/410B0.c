@@ -264,7 +264,23 @@ s32 func_80051460(s32 arg0, s32 arg1)
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_800514F8);
+s32 func_800514F8(s32 arg0)
+{
+    s32 i;
+
+    arg0 &= 0xFF;
+    if (arg0 == 0xFF) {
+        return 0;
+    }
+    for (i = 0; i <= 0; i++) {
+        if ((arg0 == (&D_8007F300)[i].field_1) || (arg0 == 0)) {
+            if ((&D_8007F300)[i].field_0 & 0xCA) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
 
 s32 func_80051560(u8 arg0)
 {

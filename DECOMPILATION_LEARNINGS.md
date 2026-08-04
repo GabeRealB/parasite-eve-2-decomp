@@ -2705,3 +2705,16 @@ D_80070F68.field_106 = 0; /* separate lui after calls; delay-slot-friendly */
 ```
 
 `func_8001F2FC` is the pure example (`D_8006AC14` vs `D_80070F68.field_12a`).
+
+## Equality comparison operand order controls `beq` register order
+
+Target often has `beq a0, v0` after `lbu v0, field(ptr)` (loaded value in
+`$v0`, compare arg first). Writing `field == arg` tends to emit
+`beq v0, a0`; write `arg == field` to get `beq a0, v0`:
+
+```c
+/* target: beq a0, v0 after lbu v0, 1(v1) */
+if (arg0 == (&D_8007F300)[i].field_1) {
+```
+
+`func_800514F8` needed this (99.6% → 100%).
