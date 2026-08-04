@@ -510,22 +510,26 @@ typedef struct _GStruct25Entry {
 STATIC_ASSERT_SIZEOF(GStruct25Entry, 0x4);
 
 /// Element of BSS array D_80071620 (2 entries, total 0xB8).
-/// Indexed with stride 0x5C (see func_8002C9B0). field_4 / field_6 / field_8
-/// are pad button masks (see func_8002CAB8 / func_8002C868); field_A is a
-/// counter/flag written by pad-related setup (func_8002C9B0, func_8003FCF8,
-/// func_8003FC8C). field_2 is a ring index into field_10 banks (func_8002C8E4).
-/// field_10 holds two banks of 8 pad-event entries at 0x10 and 0x30.
+/// Indexed with stride 0x5C (see func_8002C9B0). field_0 is initialised to
+/// 0xFF by func_80028664 (pad status halfword); field_3 is set to 1 there.
+/// field_4 / field_6 / field_8 are pad button masks (see func_8002CAB8 /
+/// func_8002C868); field_A is a counter/flag written by pad-related setup
+/// (func_8002C9B0, func_8003FCF8, func_8003FC8C). field_2 is a ring index into
+/// field_10 banks (func_8002C8E4). field_10 holds two banks of 8 pad-event
+/// entries at 0x10 and 0x30. field_5A / field_5B are cleared during pad init.
 typedef struct _GStruct25 {
-    /* 0x00 */ byte           unknown_0[0x2];
+    /* 0x00 */ u16            field_0;
     /* 0x02 */ u8             field_2;
-    /* 0x03 */ byte           unknown_3;
+    /* 0x03 */ u8             field_3;
     /* 0x04 */ u16            field_4;
     /* 0x06 */ u16            field_6;
     /* 0x08 */ u16            field_8;
     /* 0x0A */ u8             field_A;
     /* 0x0B */ byte           unknown_B[0x5];
     /* 0x10 */ GStruct25Entry field_10[2][8];
-    /* 0x50 */ byte           unknown_50[0xC];
+    /* 0x50 */ byte           unknown_50[0xA];
+    /* 0x5A */ u8             field_5A;
+    /* 0x5B */ u8             field_5B;
 } GStruct25;
 STATIC_ASSERT_SIZEOF(GStruct25, 0x5C);
 

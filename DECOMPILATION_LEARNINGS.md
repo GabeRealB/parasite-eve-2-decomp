@@ -4018,3 +4018,71 @@ Contrast with `func_800495B4`, where the target *does* keep the shifted value in
 an s-reg — there `p->field_0 = temp << 0x10` is correct. `func_8004972C` is the
 reload form; pick based on whether the target reuses a shifted s-reg after the
 call or re-shifts from the original.
+
+## `tmp = (s32)base` barrier + `register … asm("a2")` for dual-pointer init loops
+
+When the target opens a fixed-base + walking-pointer init as:
+
+```
+lui    v0, %hi(arr)
+addiu  a3, v0, %lo(arr)   /* base */
+move   a1, a3             /* p = base */
+move   a2, zero           /* offset = 0 */
+addiu  t0, a1, 0xb8       /* end = p + n */
+…
+addu   a0, a2, a3         /* ptr = offset + base */
+```
+
+two coupled problems appear:
+
+1. **`offset = 0` between `base = arr` and `p = base`** forces the load into `$a3`
+   (needed so `addu a0, a2, a3` and `move a1, a3` match) but GCC hoists the
+   independent `move a2, zero` *before* the `lui` of the array.
+2. **`p = base` immediately after the load** schedules `move a2, zero` correctly
+   but steals the load into `$a1` (p is the heavier user).
+
+Fix both with a live integer copy of the base as a scheduling barrier, then
+assign `p` and `offset`, and pin the offset register:
+
+```c
+register s32 offset asm("a2");
+s32 tmp;
+volatile GStruct25* base;
+volatile GStruct25* p;
+
+base   = D_80071620;
+tmp    = (s32)base;   /* barrier: completes base before p, load stays in $a3 */
+p      = base;
+offset = 0;           /* now after move a1, a3 — not hoisted before lui */
+do {
+    ptr = (u8*)(offset + tmp); /* addu a0, a2, a3 */
+    /* byte-clear 0x5C; set fields via p */
+    p++;
+    offset += 0x5C;
+} while (p < base + 2); /* end materialises as addiu t0, a1, 0xb8 */
+```
+
+`tmp` must stay live for the whole loop (used in `offset + tmp`) so it is not
+DCE'd as a dead store. Pinning `offset` to `$a2` keeps the zero and the
+`addiu …, 0x5C` on that register. `func_80028664` is the pure example.
+
+### Companion: non-volatile load, volatile stores for pad buffers
+
+`PadInitDirect((u8*)pad, (u8*)(pad + 1))` wants `lui s0` / `addiu s0, s0, %lo`
+on a plain `GStruct49*`. Field stores `pad->field_2 = 0xFF` without `volatile`
+rebase the pointer (`addiu s0, 3` / `sb -1(s0)`). Load into a non-volatile
+pointer for the call, then assign a `volatile GStruct49*` for the init loop:
+
+```c
+GStruct49* pad;
+volatile GStruct49* vpad;
+
+pad = D_800711C8;
+PadInitDirect((u8*)pad, (u8*)(pad + 1));
+vpad = pad;
+for (j = 0; j < 2; j++) {
+    vpad->field_2 = 0xFF;
+    vpad->field_3 = 0xFF;
+    vpad++;
+}
+```
