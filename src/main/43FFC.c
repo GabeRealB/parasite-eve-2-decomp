@@ -335,7 +335,31 @@ void func_800546C0(void)
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_800546F4);
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_8005488C);
+void func_8005488C(void)
+{
+    s16 var_a0;
+    s8  bound;
+
+    var_a0 = func_80055EE8();
+    if (D_8008274A > 0) {
+        var_a0 = var_a0 + D_8008274A;
+        bound  = *(u8*)&D_80082749;
+        if (bound < var_a0) {
+            if (bound != 0) {
+                var_a0     = bound;
+                D_80082749 = 0;
+            }
+            D_8008274A = 0;
+        }
+    } else if (D_8008274A < 0) {
+        var_a0 = var_a0 + D_8008274A;
+        if (var_a0 < 0x30) {
+            var_a0     = 0x30;
+            D_8008274A = 0;
+        }
+    }
+    func_80055DFC(var_a0);
+}
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80054938);
 

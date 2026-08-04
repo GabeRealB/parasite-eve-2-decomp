@@ -2354,3 +2354,55 @@ if (flag == 1) {
 
 `func_80056308` is the pure example (`field_4 += 0xFFFF6667` vs `0xFFFF0000`
 gated on `D_80070F68.field_124 == 1`).
+
+## `s16` accumulator forces `sll/sra 16` on each add
+
+When a running total is added to an `s8` and then compared (either to another
+narrow value or a constant), an `s32` local often drops the `(s16)` truncation:
+GCC 2.8.1 proves the sum of two sign-extended bytes already fits in 16 bits and
+CSEs the cast away. The target still has the classic
+
+```
+addu  v0, a0, v1
+move  a0, v0
+sll   v0, v0, 16
+sra   v0, v0, 16
+slt/slti ...
+```
+
+pattern. Declaring the accumulator as `s16` restores it — each store truncates
+and each use re-extends, matching the split `a0` (full add result) / `v0`
+(truncated compare operand) form:
+
+```c
+s16 level;
+s8  delta;
+s8  bound;
+
+level = (s8)func();
+if (delta > 0) {
+    level = level + delta;   /* addu; move; sll/sra 16 */
+    bound = limit;
+    if (bound < level) { ... }
+} else if (delta < 0) {
+    level = level + delta;
+    if (level < 0x30) { ... }
+}
+```
+
+`func_8005488C` is the pure example. `s32 level` with an explicit `(s16)` cast
+in the compare still scored only ~81% — the cast was deleted.
+
+## Same global, `lb` in one function and `lbu` in another
+
+`D_80082749` is loaded with `lb` by `func_80055C8C` (`if (D_80082749 != 0)`)
+and with `lbu` (+ `sll/sra 24` sign-extend) by `func_8005488C`. Declaring the
+symbol `s8` matches the first; the second needs an unsigned load:
+
+```c
+bound = *(u8*)&D_80082749;  /* forces lbu, then s8 assignment sign-extends */
+```
+
+Flipping the global to `u8` breaks the already-matched `lb` site. Prefer
+keeping the type that matches the majority of call sites and type-pun only at
+the mismatched load.
