@@ -3509,3 +3509,41 @@ Pair with `base = D_800610FC` kept live (not `D_800610FC[idx]` alone) so the
 `%lo` address stays in a temp across the loop. `func_80033C40` is the pure
 example (reverse walk of `D_800610FC[8..1]` comparing each buffer to its
 duplicate half).
+
+## Store both halfwords first, then reload one into `s16` for a clamp
+
+When a function writes two related halfwords and then clamps the first against
+a bound that uses the second, a natural left-to-right order:
+
+```c
+p->x = a + b + 8;
+temp = 0x96 - (p->x + p->w);   /* CSE: sll/sra of the just-written reg */
+p->y = c + d - 2;
+if (temp < 0) {
+    p->x = (u16)p->x + temp;   /* y store sinks into bgez delay slot */
+}
+```
+
+scores ~79%: GCC sign-extends the store register with `sll`/`sra` instead of
+`lh`, and sinks the `y` store into the `bgez` delay slot (leaving a `nop`
+before the clamp `addu`).
+
+Write *both* stores first, then reload `x` into an `s16` local used for the
+clamp math and the `(u16)` adjust:
+
+```c
+s16 new_var;
+
+p->x = a + b + 8;
+p->y = c + d - 2;
+new_var = p->x;                /* forces lh after both stores */
+temp = 0x96 - (new_var + p->w);
+if (temp < 0) {
+    p->x = (u16)new_var + temp;
+}
+```
+
+The early `y` store is free to schedule around the clamp setup; the compiler
+then emits target order (`lh` of `x`/`w`, compute `temp`, store `y`, `lhu` +
+`bgez` with `addu` in the delay slot). `func_80049024` is the pure example
+(dialog RECT clamp to 0x96 × 0x5A).
