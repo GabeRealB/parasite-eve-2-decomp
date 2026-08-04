@@ -716,4 +716,33 @@ void func_800566A4(void)
     } while (i < 8);
 }
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80056700);
+s32 func_80056700(void)
+{
+    volatile GStruct4* p;
+
+    p          = &D_80082798;
+    p->field_5 = 1;
+    if (D_80082780.field_10 == 1) {
+        D_80082780.field_10 = 0;
+        return -3;
+    }
+    if ((p->field_1 == 0) || (p->field_1 == 4)) {
+        p->field_2 = 4;
+        return -2;
+    }
+    if (p->field_0 != 3) {
+        p->field_5 = 1;
+        return -1;
+    }
+    if (D_800827A0.field_0 == 6) {
+        if (p->field_4 != 0) {
+            p->field_4 = 0xB;
+            return -2;
+        }
+    }
+    if (D_80082798.field_2 != 0) {
+        return 1;
+    }
+    func_80057B24(0x20);
+    return 0;
+}

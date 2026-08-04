@@ -3417,3 +3417,39 @@ DecDCTvlcSize2(DecDCTBufSize(frame) / 2 + 2);
 Pair with a separate `DecDCTvlcSize2(0)` on the other branch (rather than a
 shared `size` phi) so the zero path still fills the `bnez` delay with
 `move a0,zero` and both paths share no local. `func_8001F990` is the example.
+
+## Reload a global (not the local pointer) to fill a branch delay with `lui`
+
+When the target ends a status-check cascade with:
+
+```
+bne  v1,v0,shared
+ lui  v0,%hi(D_xxx)     /* delay: start rematerialising &D_xxx */
+...
+shared:
+addiu v0,v0,%lo(D_xxx)
+lbu   v0,2(v0)
+```
+
+and an earlier local `p = &D_xxx` is still live in `$a0`, writing
+`if (p->field_2 != 0)` reuses `$a0` and leaves a `nop` in the delay slot. Access
+the same field through the global so the compiler rematerialises the address:
+
+```c
+/* BAD — reuses p in $a0; delay slot is nop */
+if (p->field_2 != 0) {
+    return 1;
+}
+
+/* GOOD — lui %hi(D_xxx) fills the prior bne delay; fallthrough path
+   re-issues lui when the delay value was clobbered */
+if (D_xxx.field_2 != 0) {
+    return 1;
+}
+func(...);
+return 0;
+```
+
+Pair with early `return 1` / `return 0` (not a `ret` phi) so the `bnez` delay
+holds `li v0,1` and the call path ends in `move v0,zero`. `func_80056700` is
+the pure example.
