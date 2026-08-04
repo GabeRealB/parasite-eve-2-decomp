@@ -221,7 +221,41 @@ void func_8004D19C(GStruct42* arg0)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/3D458", func_8004D200);
+void func_8004D200(GStruct55* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    s32 temp;
+    s32 limit;
+
+    arg1 &= 0xFF;
+    arg2 &= 0xFF;
+
+    if (arg1 != arg2) {
+        if (arg3 != 0) {
+            goto setup;
+        }
+    }
+
+    arg0->field_8 = 0;
+    arg0->field_4 = 0;
+    arg0->field_0 = 0;
+    arg0->field_E = 0;
+    return;
+
+setup:
+    limit         = 0xFFFF;
+    arg0->field_8 = limit / arg3;
+    temp          = arg2 - arg1;
+    if (temp < 0) {
+        arg0->field_C = -1;
+        arg0->field_0 = limit;
+        arg0->field_4 = 0;
+    } else {
+        arg0->field_C = 1;
+        arg0->field_0 = 0;
+        arg0->field_4 = limit;
+    }
+    arg0->field_E = 1;
+}
 
 s32 func_8004D298(GStruct55* arg0, s32 arg1)
 {

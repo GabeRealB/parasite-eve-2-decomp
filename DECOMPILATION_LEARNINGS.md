@@ -2959,8 +2959,8 @@ build has `div` then immediate `mflo` (and the rest of the function shifts by
 
 Fix: enable `--expand-div` for the translation unit in `ninja_config.py`
 (`EXPANDIVFLAG`), and use the same flag in the scratch `build.sh`. Power-of-two
-divides that become shifts do not need this. `func_80040904` / `2F244.c` is the
-first main TU that requires it.
+divides that become shifts do not need this. Known TUs: `2F244.c`
+(`func_80040904`), `3D458.c` (`func_8004D200`).
 
 ## Keep the `- 1` outside the div assignment for schedule
 
