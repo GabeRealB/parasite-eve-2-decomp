@@ -196,7 +196,32 @@ void CdCmd_ClearQueue(void)
     Mem_Set(&CdCmd_Queue, 0, sizeof(CdCmd_Queue));
 }
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001D424);
+s32 func_8001D424(void)
+{
+    CdCmdQueue* p;
+    u16         i;
+    u16         writeIdx;
+
+    p        = &CdCmd_Queue;
+    writeIdx = p->writeIdx;
+    if (writeIdx == p->readIdx) {
+        return 1;
+    }
+
+    i = p->readIdx + 1;
+    i = i % 8;
+    if (i != writeIdx) {
+        do {
+            p->entries[i].cmd = 0;
+            i                 = i + 1;
+            i                 = i % 8;
+        } while (i != p->writeIdx);
+    }
+
+    p->writeIdx = p->readIdx + 1;
+    p->writeIdx = p->writeIdx % 8;
+    return 0;
+}
 
 void func_8001D498(void)
 {

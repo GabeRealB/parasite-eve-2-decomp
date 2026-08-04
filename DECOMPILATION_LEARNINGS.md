@@ -1584,6 +1584,27 @@ state->field_1ca = state->field_1ca % 8;
 `func_8001D898` (`D_8006AC04 = index + 1; D_8006AC04 = D_8006AC04 % 8;`) is the
 matched precedent; `func_8001C620` needs the same form for `field_1ca`.
 
+Same rule applies to **loop indices** that index `entries[i]` each iteration. A
+u16 walk of the ring:
+
+```c
+i = p->readIdx + 1;
+i = i % 8;
+if (i != writeIdx) {
+    do {
+        p->entries[i].cmd = 0;
+        i = i + 1;
+        i = i % 8;
+    } while (i != p->writeIdx);
+}
+```
+
+needs `% 8` on both the initial wrap and the loop step. Using `i = (i + 1) & 7`
+lets GCC fold the zero-extend into the address calc (`sll` in the branch delay
+slot, pointer in `$a1` instead of `$a0`) and breaks the
+`andi v0, v1, 0xffff` / `addiu v1, v1, 1` / `sll v0, v0, 3` shape.
+`func_8001D424` is the pure example.
+
 ## Route a `volatile u8` load through an existing `s32` temp for s-reg order
 
 When `(s8)entry->field_5` must live in `$s3` while the constant `1` lives in
