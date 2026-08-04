@@ -549,6 +549,8 @@ extern DR_TPAGE* D_80071190; // primitive buffer cursor
 
 // 61F10
 extern GStruct23 D_80072168;
+// Alias of D_80072168.field_21 (offset 0x21).
+extern s8 D_80072189;
 // Alias of D_80072168.field_1a9 (offset 0x1A9); loaded with lb in audio setup.
 extern s8 D_80072311;
 // Alias of D_80072168.field_1aa (offset 0x1AA).

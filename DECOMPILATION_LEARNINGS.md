@@ -3805,3 +3805,50 @@ Pair with `u16` fields that the target loads via `lhu` for unsigned arithmetic
 (`field_14 - 1` / `+ 1`) and `(s16)` only where the target uses `lh`.
 
 `func_80048F88` is the pure example.
+
+## `s32` save temp forces `lb` for pure byte save/restore
+
+Saving an `s8` global into an `s8` local and only writing it back with `sb`
+lets GCC emit `lbu` — the sign bits are dead. The target often uses `lb`
+anyway (same pattern as interrupt-flag save/restore around a call).
+
+Hold the saved value in an `s32` so the load must sign-extend:
+
+```c
+s32 saved;
+
+saved = D_80072189;   /* lb, not lbu */
+/* ... call that may clobber the global ... */
+D_80072189 = saved;   /* sb */
+```
+
+`func_8002BC0C` is the pure example.
+
+## `do {} while (0)` keeps a post-call store before a later load
+
+When the target restores a saved global *before* touching another object
+(with a load-delay `nop`):
+
+```
+jal  func
+ ...
+lui  v0, %hi(flag)
+sb   s0, %lo(flag)(v0)
+lw   v0, 0x30(s1)
+nop
+addiu v0, v0, 1
+```
+
+a plain sequential write is often reordered so the `lw` fills the slot and the
+`sb` uses a different register. Wrapping only the restore in `do {} while (0)`
+pins the store first:
+
+```c
+func_800303AC();
+do {
+    D_80072189 = saved;
+} while (0);
+arg0->field_30 = arg0->field_30 + 1;
+```
+
+`func_8002BC0C` is the pure example.

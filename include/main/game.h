@@ -127,7 +127,8 @@ typedef struct _GStruct1 {
     byte    unknown_127[0x3];
     u16     field_12a;
     u16     field_12c;
-    byte    unknown_12e[0x2];
+    u8      field_12e;
+    byte    unknown_12f[0x1];
     u8      field_130;
     byte    unknown_131[0x7];
 } GStruct1;
@@ -155,7 +156,8 @@ typedef struct _GStruct4 {
 STATIC_ASSERT_SIZEOF(GStruct4, 0x6);
 
 typedef struct _GStruct5 {
-    byte unknown_0[0x6];
+    byte unknown_0[0x4];
+    s16  field_4;
     s16  field_6;
     byte unknown_8[0x18];
 } GStruct5;

@@ -28,7 +28,30 @@ void func_8002BBC8(void)
     func_8002CFDC(0, 9, 0, 0);
 }
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002BC0C);
+void func_8002BC0C(GStruct0* arg0)
+{
+    u8*         ptr;
+    u32         i;
+    s32         saved;
+    CdCmdQueue* p;
+
+    p     = &CdCmd_Queue;
+    saved = D_80072189;
+    ptr   = (u8*)D4F564_8005ED64;
+    for (i = 0; i < sizeof(GStruct14); i++) {
+        *ptr++ = 0;
+    }
+    D_80070F68.field_101 = 0;
+    D_80070F68.field_12e = 1;
+    p->field_248         = 1;
+    p->field_244         = 1;
+    D_800710A8.field_4   = 1;
+    func_800303AC();
+    do {
+        D_80072189 = saved;
+    } while (0);
+    arg0->field_30 = arg0->field_30 + 1;
+}
 
 void func_8002BCA8(GStruct0* arg0)
 {

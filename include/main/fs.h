@@ -219,7 +219,8 @@ typedef struct _CdCmdQueue {
     byte       unknown_238[0xA];
     s16        field_242;
     u16        field_244;
-    byte       unknown_246[0x4];
+    byte       unknown_246[0x2];
+    u16        field_248;
     u16        field_24A;
     byte       unknown_24C[0x6];
     s16        busy; // 0x252 — non-zero while a blocking load is active
