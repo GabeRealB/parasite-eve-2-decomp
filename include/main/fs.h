@@ -172,9 +172,9 @@ typedef struct _CdCmdQueue {
     CdCmdEntry field_40;
     byte       unknown_48[0x4];
     s8         field_4c;
-    byte       unknown_4d[0x7];
-    u8         field_54;
-    byte       unknown_55[0x173];
+    byte       unknown_4d[0x3];
+    CdCmdEntry field_50; // replace-slot used by CdCmd_EnqueueReplace (cmd at 0x54)
+    byte       unknown_58[0x170];
     u16        writeIdx; // 0x1C8 — next free slot (enqueue)
     u16        readIdx;  // 0x1CA — slot being executed
     byte       unknown_1cc[0x4];

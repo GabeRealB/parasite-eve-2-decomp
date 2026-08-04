@@ -246,7 +246,7 @@ void func_8001D580(void)
 
 void func_8001D588(void)
 {
-    CdCmd_Queue.field_54 = 0;
+    CdCmd_Queue.field_50.cmd = 0;
     func_8001C970();
     func_800B00C4();
 }
@@ -315,7 +315,22 @@ void func_8001D6B8(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/C37C", CdCmd_EnqueueReplace);
+void CdCmd_EnqueueReplace(s32 cmd, u8* paramA, u8* paramB)
+{
+    CdCmdQueue* p;
+    CdCmdEntry* entry;
+
+    p             = &CdCmd_Queue;
+    entry         = &p->field_50;
+    entry->cmd    = cmd;
+    entry->param0 = paramA[3];
+    entry->param1 = paramA[2];
+    entry->param2 = paramA[0];
+    entry->idB0   = paramB[0];
+    entry->idB1   = paramB[1];
+    entry->idB2   = paramB[2];
+    entry->idB3   = paramB[3];
+}
 
 INCLUDE_ASM("main/nonmatchings/C37C", func_8001D760);
 
