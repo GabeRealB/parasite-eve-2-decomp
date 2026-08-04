@@ -633,7 +633,20 @@ void func_80041D3C(GStruct27* arg0)
     arg0->field_30++;
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_80041D84);
+void func_80041D84(GStruct27* arg0)
+{
+    GStruct27* node;
+
+    node = D_800711B8.next;
+    while (node != NULL) {
+        if (node->field_18 != NULL) {
+            Mem_Free2(node->field_18, 1);
+            node->field_18 = NULL;
+        }
+        node = node->next;
+    }
+    arg0->field_30++;
+}
 
 void func_80041DF4(GStruct0* arg0)
 {
