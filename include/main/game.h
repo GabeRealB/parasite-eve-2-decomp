@@ -531,7 +531,8 @@ typedef struct _GStruct29 {
 /// field_8 is a small integer state; field_16 is a signed counter/timer;
 /// field_24 is a callback invoked with the second handler argument.
 typedef struct _GStruct30 {
-    /* 0x00 */ byte unknown_0[0x8];
+    /* 0x00 */ s32  field_0;
+    /* 0x04 */ byte unknown_4[0x4];
     /* 0x08 */ s32  field_8;
     /* 0x0C */ byte unknown_C[0xA];
     /* 0x16 */ s16  field_16;

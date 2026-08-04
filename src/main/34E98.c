@@ -209,7 +209,20 @@ void func_8004965C(GStruct30* arg0, void* arg1)
     arg0->field_24(arg1);
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_8004969C);
+void func_8004969C(GStruct30* arg0, void* arg1)
+{
+    if (arg0->field_16 >= 0) {
+        arg0->field_16 += D_80070F68.field_10a;
+    }
+    if ((u16)arg0->field_16 >= 9U) {
+        arg0->field_16 = 9;
+        func_8002D0A4(arg1);
+        return;
+    }
+    arg0->field_0 = 0;
+    func_80045F24(arg0);
+    arg0->field_24(arg1);
+}
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_8004972C);
 

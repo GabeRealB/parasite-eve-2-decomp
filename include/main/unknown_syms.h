@@ -164,9 +164,11 @@ extern void  func_8004917C(GStruct46* arg0, s32 arg1);
 extern void  func_80049288(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5);
 extern void  func_800492B8(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5);
 extern void  func_80045D24(GStruct30* arg0);
+extern void  func_80045F24(GStruct30* arg0);
 extern void  func_80049554(GStruct30* arg0, void* arg1);
 extern void  func_800495B4(GStruct30* arg0, void* arg1);
 extern void  func_8004965C(GStruct30* arg0, void* arg1);
+extern void  func_8004969C(GStruct30* arg0, void* arg1);
 extern void  func_800497F4(GStruct30* arg0, void* arg1);
 extern void  func_80049A8C(GStruct0* arg0);
 
