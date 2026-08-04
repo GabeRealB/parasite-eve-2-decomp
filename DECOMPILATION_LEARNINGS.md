@@ -2324,3 +2324,33 @@ already uses `register … asm("reg")` elsewhere (`func_8005287C`, heap init).
 
 `func_8005454C` is the pure example: dual-purpose `flag` (loop fill value vs
 bank-table base) needs `asm("v1")` for the address load form.
+
+## if/else field stores reuse `$v0` for large constants better than a temp addend
+
+When the target folds a large constant into `$v0` after a compare that also
+used `$v0` (typical pattern: `li v0,1; bne; lui v0,0xHHHH` in the delay slot,
+then `ori` / `addu v0,a0,v0`), a temporary addend variable often lands in
+`$a1` instead:
+
+```c
+/* Mismatch: addend in $a1 */
+addend = 0xFFFF0000;
+if (flag == 1) {
+    addend = 0xFFFF6667;
+}
+p->field = temp + addend;
+```
+
+Writing the store once per arm keeps the constant in `$v0`:
+
+```c
+/* Match: lui/ori into $v0, addu v0,a0,v0 */
+if (flag == 1) {
+    p->field = temp + 0xFFFF6667;
+} else {
+    p->field = temp + 0xFFFF0000;
+}
+```
+
+`func_80056308` is the pure example (`field_4 += 0xFFFF6667` vs `0xFFFF0000`
+gated on `D_80070F68.field_124 == 1`).

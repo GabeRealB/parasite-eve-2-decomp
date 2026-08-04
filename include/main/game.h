@@ -571,13 +571,19 @@ typedef struct _GStruct57 {
 STATIC_ASSERT_SIZEOF(GStruct57, 0x44);
 
 /// Voice/FX object carved from D_80082148 with stride 0x40 (func_80056240).
-/// field_0 is the SPU voice index; field_8 is a small state flag.
+/// field_0 is the SPU voice index; field_4 is a countdown/timer (func_80056308).
+/// field_8 is a small state flag; field_10/field_12 gate FX processing.
 /// field_34/field_38/field_3C are parent/prev/next list links (func_80056068 free).
 struct _GStruct43 {
     /* 0x00 */ s8         field_0;
-    /* 0x01 */ u8         unknown_01[0x7];
+    /* 0x01 */ u8         unknown_01[0x3];
+    /* 0x04 */ s32        field_4;
     /* 0x08 */ s16        field_8;
-    /* 0x0A */ u8         unknown_0A[0x2A];
+    /* 0x0A */ u8         unknown_0A[0x6];
+    /* 0x10 */ s8         field_10;
+    /* 0x11 */ u8         unknown_11;
+    /* 0x12 */ s8         field_12;
+    /* 0x13 */ u8         unknown_13[0x21];
     /* 0x34 */ GStruct57* field_34;
     /* 0x38 */ GStruct43* field_38;
     /* 0x3C */ GStruct43* field_3C;
