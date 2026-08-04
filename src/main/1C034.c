@@ -296,7 +296,35 @@ void func_8002D0A4(GStruct0* arg0)
     arg0->field_18(arg0);
 }
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002D0CC);
+void func_8002D0CC(GStruct0* arg0)
+{
+    GStruct0* parent;
+    GStruct0* next;
+    GStruct0* cur;
+
+    parent = arg0->field_8;
+    if (parent == NULL) {
+        return;
+    }
+
+    next = arg0->field_10;
+    if (next == arg0) {
+        parent->field_c = NULL;
+    } else {
+        if (parent->field_c == arg0) {
+            parent->field_c = next;
+        }
+        cur = arg0;
+        if (arg0->field_10 != arg0) {
+            do {
+                cur = cur->field_10;
+            } while (cur->field_10 != arg0);
+        }
+        cur->field_10  = arg0->field_10;
+        arg0->field_10 = arg0;
+    }
+    arg0->field_8 = NULL;
+}
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002D14C);
 
