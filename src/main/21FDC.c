@@ -267,7 +267,42 @@ void func_80033C38(void)
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80033C40);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80033CC0);
+void func_80033CC0(void)
+{
+    GStruct47*   temp;
+    GStruct53*   p;
+    GStruct53*   base;
+    s16          sum;
+    s32          inv;
+    u32          count;
+    u32          i;
+    register u32 j asm("a0");
+    u8*          ptr;
+
+    i    = 1;
+    inv  = 0xFFFF;
+    base = D_800610FC;
+    p    = base + 1;
+    do {
+        sum   = 0;
+        j     = 0;
+        temp  = p->field_0;
+        count = p->field_4;
+        ptr   = temp->field_4;
+        count = count - 4;
+        if (count != 0) {
+            do {
+                j   += 1;
+                sum += (s8)*ptr;
+                ptr += 1;
+            } while (j < count);
+        }
+        p            += 1;
+        i            += 1;
+        temp->field_2 = inv - sum;
+        temp->field_0 = sum;
+    } while (i < 9U);
+}
 
 void func_80033D3C(void)
 {

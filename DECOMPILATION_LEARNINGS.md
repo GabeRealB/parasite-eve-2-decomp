@@ -3342,3 +3342,47 @@ if (!(D_80062698->field_1c & mask)) {
 That pins the mask in `$s1` and shifts `arg0`/`arg1` into `$s2`/`$s3` to match
 the target prologue (`move s2,a0` early, `lui s1,0x4000` after the field load,
 `move s3,a1` in the `bnez` delay slot). `func_8003F71C` is the pure example.
+
+## Live `0xFFFF` register for ones-complement stores (`subu` not `nor`)
+
+When a checksum write stores both `sum` and its ones-complement, `field = ~sum`
+usually matches (`nor v0, zero, sum`). Some loops instead keep a live
+`0xFFFF` across the whole function and subtract:
+
+```
+li    t2, 0xffff          /* once, outside the loop */
+...
+subu  v0, t2, a2          /* each iteration */
+sh    v0, 2(buf)
+sh    a2, 0(buf)
+```
+
+`~sum` (or a folded `0xFFFF - sum` constant expression) becomes `nor` and
+drops the `li t2`. Force the live register with an outer-scope temporary:
+
+```c
+s32 inv = 0xFFFF;
+...
+temp->field_2 = inv - sum;  /* subu v0, t2, sum */
+temp->field_0 = sum;
+```
+
+Also form the slot pointer as `base = D_800610FC; p = base + 1;` (not
+`p = D_800610FC + 1`) so the address is `addiu v0, %lo(...)` then
+`addiu t0, v0, 0xC` rather than a folded `%lo(+0xC)`.
+
+For the per-slot size path that does `lw a1, 4(p); addiu a1, a1, -4`, split
+the subtract and interleave the payload pointer setup:
+
+```c
+count = p->field_4;
+ptr   = temp->field_4;
+count = count - 4;
+```
+
+`count = p->field_4 - 4` alone often routes through `$v0` and swaps the sum /
+count registers. If sum ends up correct in `$a2` but the loop index and count
+are swapped (`$a1`/`$a0`), pin the index: `register u32 j asm("a0")`.
+
+`func_80033CC0` is the pure example (batch write over `D_800610FC[1..8]`;
+contrast `func_80033A28` which uses `~sum` for a single buffer).
