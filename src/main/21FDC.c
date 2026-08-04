@@ -36,7 +36,46 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_80032F5C);
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_800330D8);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_8003380C);
+u16* func_8003380C(s8* arg0, u16* arg1)
+{
+    u16* lower;
+    u16* upper;
+    u16* symbol;
+    s32  ch;
+    s32  idx;
+    u8   ch_u;
+
+    ch_u = *arg0;
+    if (*arg0 != 0) {
+        lower  = D_80060E80;
+        upper  = D_80060E48;
+        symbol = D_80060EB8;
+        do {
+            ch = (s8)ch_u;
+            if (ch >= 0x61) {
+                idx  = (ch - 0x61) * 2;
+                idx += (s32)lower;
+                goto store;
+            }
+            if (ch >= 0x41) {
+                idx  = (ch - 0x41) * 2;
+                idx += (s32)upper;
+                goto store;
+            }
+            if (ch >= 0x20) {
+                idx  = (ch - 0x20) * 2;
+                idx += (s32)symbol;
+            store:
+                *arg1 = *(u16*)idx;
+            }
+            arg0++;
+            ch_u = *arg0;
+            arg1++;
+        } while (*arg0 != 0);
+    }
+    *arg1 = 0;
+    return arg1;
+}
 
 void func_800338A8(void)
 {

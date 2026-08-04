@@ -129,6 +129,12 @@ extern u8 D_800604B0[];
 extern u8 D_80060DD8[0x18];
 extern u8 D_80060DF0[0x18];
 
+// ASCII → Shift-JIS lookup tables used by func_8003380C
+// (uppercase 'A'+, lowercase 'a'+, symbols from space)
+extern u16 D_80060E48[];
+extern u16 D_80060E80[];
+extern u16 D_80060EB8[];
+
 // Save/memcard buffer descriptors (9 entries of GStruct53, 0x6C bytes)
 extern GStruct53 D_800610FC[9];
 // Buffer checksummed by func_80033FB8 when arg0 == 0 (0x200 signed bytes)
