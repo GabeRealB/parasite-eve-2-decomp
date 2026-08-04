@@ -139,6 +139,9 @@ extern u8 D_80060A54[];
 extern u8 D_80060A5C[];
 extern u8 D_80060A64[];
 
+// 21FDC.c
+extern void func_800330D8(void* arg0, s32 arg1, s8 arg2, s32 arg3, s32 arg4);
+
 // 32B64.c
 extern void func_80042364(s32 arg0, s32 arg1, s32 arg2);
 extern s32  func_80042500(void);

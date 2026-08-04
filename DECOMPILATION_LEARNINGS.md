@@ -2424,3 +2424,36 @@ bound = *(u8*)&D_80082749;  /* forces lbu, then s8 assignment sign-extends */
 Flipping the global to `u8` breaks the already-matched `lb` site. Prefer
 keeping the type that matches the majority of call sites and type-pun only at
 the mismatched load.
+
+## Shared `s16` phi + `(s8)(u8)` reload
+
+When two success arms write the same halfword field (one from a signed byte,
+one from a constant like `-1`) and the target has a single shared `sh` after a
+join label, use an `s16` temporary with a `goto` join — not an early `return`
+and not an `s32`/`s8` temp:
+
+```c
+s16 val;
+
+if (check_a()) {
+    ...
+    val = (s8)(u8)arg0->field_8;  /* lbu; nop; sll 24; j; sra 24 */
+    goto store;
+}
+if (check_b()) {
+    ...
+    val = -1;                     /* li v0,-1  (no extra sign-extend) */
+store:
+    arg1->field_2C = val;         /* shared sh */
+}
+```
+
+- `s8 val` re-extends `-1` with `sll/sra 24` after the join.
+- `s32 val` lets CSE sink each `sh` into its arm (and often drop the `lbu` path
+  back to a plain `lb`).
+- Plain `val = arg0->field_8` with an `s8` field emits `lb`, not the target's
+  `lbu` + sign-extend. The `(s8)(u8)` cast (or `*(u8*)&`, see above) forces it.
+
+Temps for the call that precedes this block may also be required so `a3 = 0`
+is scheduled early and the 5th-arg `sw` fills the `jal` delay slot
+(`func_80036B2C`).
