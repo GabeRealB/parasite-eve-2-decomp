@@ -511,11 +511,14 @@ typedef struct _GStruct25 {
 STATIC_ASSERT_SIZEOF(GStruct25, 0x5C);
 
 /// UI list/menu object (data symbols D_8006116C, D_80061194; size 0x24).
-/// field_0 is a function-table pointer; field_9 / field_A / field_10 are list
-/// cursor / flag / selection index used by func_80036A70 / func_80036C04 /
-/// func_800489A0 / func_8004917C.
+/// field_0 is a function-table pointer; field_5 is a base index subtracted when
+/// computing field_9; field_9 / field_A / field_10 are list cursor / flag /
+/// selection index used by func_80036A70 / func_80036C04 / func_800489A0 /
+/// func_8004917C.
 typedef struct _GStruct46 {
-    /* 0x00 */ byte unknown_0[0x9];
+    /* 0x00 */ byte unknown_0[0x5];
+    /* 0x05 */ u8   field_5;
+    /* 0x06 */ byte unknown_6[0x3];
     /* 0x09 */ u8   field_9;
     /* 0x0A */ u8   field_A;
     /* 0x0B */ byte unknown_B[0x5];
@@ -523,6 +526,13 @@ typedef struct _GStruct46 {
     /* 0x14 */ byte unknown_14[0x10];
 } GStruct46;
 STATIC_ASSERT_SIZEOF(GStruct46, 0x24);
+
+/// Context pointed to by GStruct0::field_34 in the D_8006121C select-menu path
+/// (func_80036C04). Only field_290 is named so far.
+typedef struct _GStruct64 {
+    /* 0x000 */ byte unknown_0[0x290];
+    /* 0x290 */ s32  field_290;
+} GStruct64;
 
 /// 4-byte entry at D_8007EB98 (see func_8004E5A0).
 typedef struct _GStruct26 {

@@ -419,6 +419,7 @@ extern volatile u32 D_8005EC70;
 extern TaskDesc*    D_8005EF74[];
 extern char         D_80013B64[]; // "Select"
 extern GStruct46    D_8006116C;
+extern GStruct46    D_80061194;
 extern s32          D_800608F4[];
 extern s32          D_800611C8[];
 extern TaskDesc     D_8006268C;
