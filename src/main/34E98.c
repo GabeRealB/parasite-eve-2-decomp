@@ -157,7 +157,15 @@ s32 func_800490EC(GStruct0* arg0)
     return (s32)arg0->field_8 >= 4;
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80049100);
+void func_80049100(s32 arg0, s32 arg1)
+{
+    DR_TPAGE* p;
+
+    p          = D_80071190;
+    D_80071190 = p + 1;
+    setDrawTPage(p, 0, 1, 0x1E | ((arg1 & 3) << 5));
+    addPrim(D_800710A0 + arg0, p);
+}
 
 void func_8004917C(GStruct46* arg0, s32 arg1)
 {

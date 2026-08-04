@@ -519,6 +519,7 @@ extern GStruct35 D_80070EE8[2];
 extern GStruct1  D_80070F68; // 0x80070F68 - 0x800710A0
 extern u_long*   D_800710A0; // current OT base
 extern GStruct5  D_800710A8;
+extern DR_TPAGE* D_80071190; // primitive buffer cursor
 
 // 61F10
 extern GStruct23 D_80072168;

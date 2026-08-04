@@ -3465,3 +3465,25 @@ return 0;
 Pair with early `return 1` / `return 0` (not a `ret` phi) so the `bnez` delay
 holds `li v0,1` and the call path ends in `move v0,zero`. `func_80056700` is
 the pure example.
+
+## Prefer Psy-Q GPU macros for OT prim insertion
+
+Hand-written `0xFFFFFF` / `0xFF000000` AND/OR for `addPrim`-style OT linking
+often lands near-matches (~91%) with wrong register assignment (`$a3`/`$t0`
+swapped for the two masks; OT pointer in `$a1` instead of `$a0`). The
+canonical Psy-Q macros expand through `P_TAG` bitfields and match the retail
+codegen:
+
+```c
+DR_TPAGE* p;
+
+p          = D_80071190;
+D_80071190 = p + 1;
+setDrawTPage(p, 0, 1, 0x1E | ((abr & 3) << 5));
+addPrim(D_800710A0 + otz, p);
+```
+
+`setDrawTPage` → `setlen` + `_get_mode`; `addPrim` → `setaddr`/`getaddr` on
+`P_TAG`. Same pattern as `func_80043718` (which uses `AddPrim` the function
+instead of the macro — that one is a real call). `func_80049100` is the pure
+inline-macro example.
