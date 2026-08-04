@@ -67,7 +67,22 @@ INCLUDE_ASM("main/nonmatchings/179D4", func_80027E7C);
 
 INCLUDE_ASM("main/nonmatchings/179D4", func_80027F48);
 
-INCLUDE_ASM("main/nonmatchings/179D4", func_800280F4);
+void func_800280F4(s32 arg0)
+{
+    if (arg0 == 0) {
+        D_80070F68.field_10a = 1;
+        D_8005EC68           = 0;
+        D_8005EC6C           = 0x106;
+    } else if (arg0 == 1) {
+        D_80070F68.field_10a = 2;
+        D_8005EC68           = 2;
+        D_8005EC6C           = 0x20D;
+    } else if (arg0 == 2) {
+        D_80070F68.field_10a = 3;
+        D_8005EC68           = 3;
+        D_8005EC6C           = 0x313;
+    }
+}
 
 void F179D4_ClearOTag(s16 tableIdx)
 {

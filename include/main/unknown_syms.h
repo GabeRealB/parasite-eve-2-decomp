@@ -68,7 +68,7 @@ extern void func_80026218(u16 arg0);
 
 // 179D4.c
 extern void func_80027498(void);
-extern void func_800280F4(s32);
+extern void func_800280F4(s32 arg0);
 extern void func_800281D4(void);
 extern void F179D4_ClearOTag(s16 tableIdx);
 
@@ -463,6 +463,8 @@ extern void func_801D4B64(GStruct0* arg0);
 
 // .data
 extern u32          D_8005EC64;
+extern s32          D_8005EC68;
+extern s32          D_8005EC6C;
 extern volatile u32 D_8005EC70;
 extern TaskDesc*    D_8005EF74[];
 extern char         D_80013B64[]; // "Select"
