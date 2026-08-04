@@ -180,7 +180,13 @@ void func_800492B8(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, v
     func_80046B34(arg0, arg1, arg2, arg3, arg4, arg5, 1);
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_800492EC);
+void func_800492EC(void* arg0, RECT* arg1, RECT* arg2)
+{
+    arg2->x = arg1->x + 2;
+    arg2->y = arg1->y + 2;
+    arg2->w = (arg1->w + arg1->x) - arg2->x - 1;
+    arg2->h = (arg1->h + arg1->y) - arg2->y - 1;
+}
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80049348);
 
