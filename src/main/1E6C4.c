@@ -120,7 +120,34 @@ INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002F69C);
 
 INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002F798);
 
-INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002F890);
+void func_8002F890(GStruct0* arg0)
+{
+    GStruct37* obj;
+    s16        temp;
+
+    if (arg0->field_30 == 0) {
+        D_80067694 = NULL;
+        obj        = func_800486F0(D_800608F4, 1, 1, 2, 0);
+        if (obj != NULL) {
+            arg0->field_20 = obj;
+            arg0->field_30 = arg0->field_30 + 1;
+        }
+    } else if (arg0->field_30 == 1) {
+        obj = arg0->field_20;
+        if (obj->field_2E == -1 || obj->field_2E == 6) {
+            arg0->field_2a = 0xA;
+            arg0->field_30 = arg0->field_30 + 1;
+            func_80048838(obj, obj->field_28);
+        }
+    } else {
+        temp           = arg0->field_2a - D_80070F68.field_10a;
+        arg0->field_2a = temp;
+        if (temp <= 0) {
+            func_8002CFDC(0, 2, 0xC, 0);
+            func_8002D0A4(arg0);
+        }
+    }
+}
 
 void func_8002F98C(GStruct0* arg0)
 {
