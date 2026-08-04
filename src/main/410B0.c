@@ -438,7 +438,23 @@ void func_800518E0(void)
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80051964);
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80051A2C);
+void* func_80051A2C(GStruct36* arg0, s32 arg1, u8* arg2)
+{
+    register s32 idx asm("v1");
+    u32          offset;
+
+    idx = arg1 & 0xFF;
+    if (idx != 0) {
+        idx  = idx - 1;
+        arg2 = arg0->entries[idx].field_28;
+        offset =
+            (arg2[-4] << 24) | (arg2[-3] << 16) | (arg2[-2] << 8) | arg2[-1];
+        return arg2 + offset + 8;
+    }
+    offset = (arg2[4] << 24) | (arg2[5] << 16) | (arg2[6] << 8) | arg2[7];
+    offset = offset + (u32)arg2;
+    return (void*)(offset + 0x10);
+}
 
 void func_80051AB8(GStruct36* arg0)
 {

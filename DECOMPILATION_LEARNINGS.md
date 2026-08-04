@@ -4127,3 +4127,35 @@ for the case immediates (`v1` vs target `v0`).
 Remember to hand the jtbl's address range to the C file via a `.rodata`
 subsegment in `configs/USA/main.yaml` (split surrounding asm tables into
 `21FDC_1` / `21FDC_2` style siblings).
+
+## `register s32 idx asm("v1")` for `andi v1,a1,0xff` + delay-slot `-1`
+
+When the target opens with:
+
+```
+andi   v1, a1, 0xff
+bnez   v1, nonzero
+ addiu  v1, v1, -1    # delay: idx-1 always computed
+```
+
+a plain `s32 idx = arg1 & 0xFF` often coalesces into `andi a1,a1,0xff` (clobbering
+`$a1`). Pin the masked index:
+
+```c
+register s32 idx asm("v1");
+idx = arg1 & 0xFF;
+if (idx != 0) {
+    idx = idx - 1;
+    /* use idx as original-1; GCC keeps addiu in the bnez delay slot */
+    p = base->entries[idx].field;
+}
+```
+
+Pair with `base->entries[idx].field` (not `*(T*)(base + idx*stride + off)`) so
+the scaled add is `addu v0, a0, v0` (base first). For the fall-through `== 0`
+path that builds a big-endian u32 then adds the base, write
+`offset = offset + (u32)ptr; return (void*)(offset + N);` to get
+`addu v0, v0, a2` (offset first).
+
+`func_80051A2C` is the pure example (track data pointer resolve from
+`GStruct36` / `field_10`).

@@ -754,10 +754,13 @@ STATIC_ASSERT_SIZEOF(GStruct35, 0x14);
 
 /// Track/channel entry inside GStruct36 (stride 0x3C). field_5 is a per-entry flag
 /// written by func_80051AB8; absolute offset of first entry's field_5 is 0x51.
+/// field_28 is a data pointer resolved by func_80051A2C (absolute offset 0x74).
 typedef struct _GStruct36Entry {
-    /* 0x00 */ u8 unknown_00[5];
-    /* 0x05 */ u8 field_5;
-    /* 0x06 */ u8 unknown_06[0x36];
+    /* 0x00 */ u8  unknown_00[5];
+    /* 0x05 */ u8  field_5;
+    /* 0x06 */ u8  unknown_06[0x22];
+    /* 0x28 */ u8* field_28;
+    /* 0x2C */ u8  unknown_2C[0x10];
 } GStruct36Entry;
 STATIC_ASSERT_SIZEOF(GStruct36Entry, 0x3C);
 
