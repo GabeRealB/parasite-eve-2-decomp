@@ -65,7 +65,44 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_80031F94);
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_800322B0);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_8003245C);
+void func_8003245C(GStruct0* arg0, GStruct21* arg1)
+{
+    s32        ret;
+    s32        status;
+    s32        idx;
+    s32        next;
+    GStruct37* obj;
+    GStruct62* entry;
+    GStruct62* base;
+
+    arg1->field_4 -= 1;
+    if (arg1->field_4 == 0) {
+        status         = MemCardFormat(arg1->field_C);
+        arg1->field_14 = status;
+        if (status != 1) {
+            if (status != 0) {
+                next = 0x2B;
+            } else {
+                func_800300EC(D_80060DD8, 0);
+                next            = 0x8;
+                arg1->field_288 = 0;
+            }
+        } else {
+            next = 0x14;
+        }
+        arg0->field_30 = next;
+    }
+
+    obj           = arg0->field_20;
+    idx           = arg1->field_8;
+    ret           = func_80048E10(obj, 1);
+    obj->field_2E = 0;
+    func_80048E38(obj, D_8001398C);
+    base  = D_80060D08;
+    entry = &base[idx];
+    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
+    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
+}
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80032578);
 
