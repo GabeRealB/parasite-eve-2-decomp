@@ -2861,3 +2861,55 @@ if (flag == 0) {
 
 Polarity still matters: fall-through must be the `== 0` arm (`bnez` to the
 non-zero constant). `func_80020298` is the pure example.
+
+## `ptr = (u8*)&global; ptr += 4` for shared-`%hi` base then offset
+
+When a function both walks bytes at a non-zero offset of a global struct and
+writes nearby fields via the bare global name, a direct
+
+```c
+ptr = global.field_4;          /* or p = &global; ptr = p->field_4 */
+```
+
+often folds to `%lo(D_xxx+4)` and then rebuilds the base as `addiu v1, a0, -4`.
+Keeping a live `GStruct* p = &global` through the end stores pins the base in
+`$a0` and steals the walk-pointer register.
+
+Write the walk pointer as a two-step from the global's address, and keep the
+field stores as bare `global.field_…` so the base dies after the prologue
+clears:
+
+```c
+sum = 0;
+ptr = (u8*)&D_80072168;
+ptr += 4;                      /* addiu a0, v1, %lo(D); addiu a0, a0, 4 */
+limit = 0x38;
+i = 0;
+D_80072168.field_1C = 0;       /* completes v1 with second %lo(D) */
+D_80072168.field_1E = 0xFFFF;
+do {
+    i += 1;
+    tmp = (s8)*ptr;
+    sum = sum + tmp;
+    ptr += 1;
+} while (i < limit);
+D_80072168.field_1C = sum;
+D_80072168.field_1E = ~sum;
+func_800339C4(&D_80072168);
+```
+
+That emits the shared-`%hi` shape:
+
+```
+lui    v1, %hi(D_80072168)
+addiu  a0, v1, %lo(D_80072168)
+addiu  a0, a0, 4
+...
+addiu  v1, v1, %lo(D_80072168)
+```
+
+After the loop, reloading `&D_80072168` as `%lo(D+4)` / `addiu -4` is fine —
+it links to the same address as a splat `D_xxx+4` symbol (e.g. `D_8007216C`).
+
+`func_80033944` is the pure example (checksum writer for `GStruct23::field_1C` /
+`field_1E`; pair with the s16 / `sum = sum + tmp` notes used by `func_800339C4`).

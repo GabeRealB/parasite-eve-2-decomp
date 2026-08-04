@@ -81,7 +81,31 @@ void func_800338F4(s32 arg0)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80033944);
+void func_80033944(void)
+{
+    s16 sum;
+    u8* ptr;
+    s32 limit;
+    s32 i;
+    s16 tmp;
+
+    sum                 = 0;
+    ptr                 = (u8*)&D_80072168;
+    ptr                += 4;
+    limit               = 0x38;
+    i                   = 0;
+    D_80072168.field_1C = 0;
+    D_80072168.field_1E = 0xFFFF;
+    do {
+        i   += 1;
+        tmp  = (s8)*ptr;
+        sum  = sum + tmp;
+        ptr += 1;
+    } while (i < limit);
+    D_80072168.field_1C = sum;
+    D_80072168.field_1E = ~sum;
+    func_800339C4(&D_80072168);
+}
 
 s32 func_800339C4(GStruct23* arg0)
 {
