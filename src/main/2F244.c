@@ -62,7 +62,25 @@ s32 func_8003F848(void)
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8003F86C);
+s32 func_8003F86C(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    if (arg2 == 0) {
+        D_80062698->field_18 = 0x20;
+    } else {
+        D_80062698->field_18 = arg2;
+    }
+    if (arg0 != 0) {
+        D_80062698->field_18 = -D_80062698->field_18;
+    }
+    D_80062698->field_19 = 0;
+    if (arg1 != 0) {
+        D_80062698->field_19 |= 1;
+    }
+    if (arg3 != 0) {
+        D_80062698->field_19 |= 2;
+    }
+    return 0;
+}
 
 s32 func_8003F900(void)
 {

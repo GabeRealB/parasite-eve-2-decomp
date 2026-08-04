@@ -423,7 +423,7 @@ extern void func_8003E6E4(void);
 extern void func_8003EE68(void);
 extern void func_8003F450(s32 arg0);
 extern void func_8003F690(void);
-extern void func_8003F86C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+extern s32  func_8003F86C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 extern void func_8003FA3C(u8 arg0);
 extern void func_8003FB70(void* arg0, s32 arg1, s32 arg2, s32 arg3);
 extern void func_8004017C(void);
