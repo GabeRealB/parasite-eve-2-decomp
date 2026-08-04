@@ -949,7 +949,28 @@ void func_80035574(GStruct0* arg0, GStruct21* arg1)
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80035684);
+void func_80035684(GStruct0* arg0, GStruct21* arg1)
+{
+    s32        ret;
+    GStruct37* obj;
+    GStruct62* entry;
+    GStruct62* base;
+    s32        idx;
+
+    arg0->field_2a -= 1;
+    if (arg0->field_2a <= 0) {
+        arg0->field_30 = 2;
+    }
+    obj           = arg0->field_20;
+    idx           = arg1->field_8;
+    ret           = func_80048E10(obj, 1);
+    obj->field_2E = 0;
+    func_80048E38(obj, D_8001398C);
+    base  = D_80060D08;
+    entry = &base[idx];
+    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
+    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
+}
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80035764);
 
