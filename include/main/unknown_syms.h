@@ -108,6 +108,7 @@ extern void          func_8002D474(GStruct0* state);
 extern void          func_8002D6EC(GStruct0* arg0);
 
 // Dynamically loaded (BSS region)
+extern void func_8009850C(GStruct35* arg0);
 extern void func_800991DC(void* arg0);
 extern void func_80099214(void* arg0);
 extern void func_80099290(void* arg0);
@@ -163,8 +164,9 @@ extern void func_80042364(s32 arg0, s32 arg1, s32 arg2);
 extern s32  func_80042500(void);
 extern void func_800429C8(s32 arg0);
 
-// overlay / high-address (called from 2F244.c)
-extern void func_800ACAA8(void);
+// overlay / high-address
+extern void func_800AC688(void);
+extern void func_800ACAA8(void); // called from 2F244.c
 
 // 34E98.c
 extern void* func_800486F0(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);

@@ -3248,3 +3248,26 @@ func_800330D8(obj, data, val, 0, 0);
 ```
 
 `func_80036CF0` is the pure example.
+
+## Advance a global pointer via a local after a store through it
+
+`*global_ptr = val; global_ptr += N` often reloads the global after the store
+(GCC 2.8.1 treats the store as a possible clobber of the pointer itself):
+
+```
+lw   v0, %lo(global)(s1)
+sw   v1, 0(v0)
+lw   v0, %lo(global)(s1)   /* unwanted reload */
+addiu v0, v0, 0x80
+sw   v0, %lo(global)(s1)
+```
+
+Target reuses the loaded register for the advance. Capture into a local first:
+
+```c
+ot = D_800710A0;
+*ot = C5F414_OTAG_END_PRIM;
+D_800710A0 = ot + 0x20; /* addiu reuses ot — no reload */
+```
+
+`func_8003E560` is the pure example (double-buffer OT flip).
