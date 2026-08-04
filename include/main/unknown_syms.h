@@ -298,6 +298,7 @@ extern GStruct31* func_800561C0(s32 arg0);
 extern void       func_800561EC(s32 arg0);
 extern GStruct43* func_80056240(s32 arg0);
 extern void       func_800562B4(GStruct57* arg0, GStruct43* arg1);
+extern void       func_800565B8(GStruct43* arg0, s16 arg1, u32 arg2, GStruct41* arg3);
 extern s32        func_8005664C(u8* arg0, s16 arg1, GStruct59* arg2);
 extern void       func_800566A4(void);
 extern s32        func_80056700(void);

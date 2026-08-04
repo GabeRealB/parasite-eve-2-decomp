@@ -4235,3 +4235,57 @@ Bare `p->field_4` with an `s8` formal also yields `lb`, but then the callee
 mismatches. Prefer `s32` formals + `(s8)` at the few call sites. `func_80055A9C`
 / `func_80050C30` are the pure example (sibling `func_80055B70` already takes
 `s32` and its caller correctly uses `lbu`).
+
+## Early load into a temp forces prior store before zero-fills
+
+When the target does:
+
+```
+lbu  v0, field_a(src)
+nop
+sh   v0, field_x(dst)   /* must store first to free v0 */
+lbu  v0, field_b(src)
+sh   zero, field_c(dst)
+sw   zero, field_d(dst)
+...
+sh   v0, field_y(dst)   /* field_b value stored last */
+```
+
+writing the C in source order:
+
+```c
+p->field_x = src->field_a;
+p->field_c = 0;
+p->field_d = 0;
+p->field_y = src->field_b;
+```
+
+lets GCC keep `field_a` in `$v0` across the zero stores and emit
+`sh field_x` *after* them. Force the free by loading `field_b` into a temp
+before the zeros:
+
+```c
+p->field_x = src->field_a;
+temp = src->field_b;   /* lbu reclaims v0 → prior sh must emit first */
+p->field_c = 0;
+p->field_d = 0;
+p->field_y = temp;
+```
+
+`func_800565B8` is the pure example (GStruct43Fx init from GStruct41 bytes).
+
+## Overlay pointer at a fixed offset for multi-field base `$tN`
+
+When the target does `addiu t0, a0, 0x10` once and then addresses many fields
+as `N(t0)`, take the address of the first field (or cast it to a nested
+struct type) and store through that pointer:
+
+```c
+GStruct43Fx* p = (GStruct43Fx*)&arg0->field_10;
+p->field_20 = chunk;
+p->field_1 = 0;
+/* ... */
+```
+
+Keep one or two stores as `arg0->field_10 = …` (parent-relative) when the
+target uses `sb …, 0x10(a0)` rather than `sb …, 0(t0)`.

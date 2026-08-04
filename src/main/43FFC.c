@@ -724,7 +724,41 @@ INCLUDE_ASM("main/nonmatchings/43FFC", func_800563B4);
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_800564C4);
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_800565B8);
+void func_800565B8(GStruct43* arg0, s16 arg1, u32 arg2, GStruct41* arg3)
+{
+    GStruct43Fx* p;
+    u8*          base;
+    s32*         chunk;
+    s32          magic;
+    s16          temp;
+
+    p = (GStruct43Fx*)&arg0->field_10;
+    if (arg1 == -1) {
+        arg0->field_10 = 0;
+        return;
+    }
+    if (arg0->field_34 == NULL) {
+        arg0->field_10 = 0;
+        return;
+    }
+    base        = *arg0->field_34->field_44;
+    chunk       = (s32*)&base[arg1];
+    p->field_20 = chunk;
+    magic       = *chunk;
+    if (magic == 0x45656E6F) {
+        arg0->field_10 = 1;
+        p->field_1     = 0;
+        p->field_2     = 0;
+        p->field_4     = arg2 & 0xFFFF;
+        p->field_8     = arg3->field_4;
+        temp           = arg3->field_5;
+        p->field_C     = 0;
+        p->field_14    = 0;
+        p->field_18    = 0;
+        p->field_1C    = 0;
+        p->field_A     = temp;
+    }
+}
 
 s32 func_8005664C(u8* arg0, s16 arg1, GStruct59* arg2)
 {

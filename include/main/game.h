@@ -449,16 +449,38 @@ STATIC_ASSERT_SIZEOF(GStruct31, 0x10);
 
 /// Owner of a doubly-linked GStruct43 voice list (head at field_40).
 /// Insert: func_800562B4; unlink: func_80056068; walk: func_800563B4.
+/// field_44 is a pointer to the raw oneE/script buffer base (func_800565B8).
 typedef struct _GStruct43 GStruct43;
 typedef struct _GStruct57 {
     /* 0x00 */ u8         unknown_0[0x40];
     /* 0x40 */ GStruct43* field_40;
+    /* 0x44 */ u8**       field_44;
 } GStruct57;
-STATIC_ASSERT_SIZEOF(GStruct57, 0x44);
+STATIC_ASSERT_SIZEOF(GStruct57, 0x48);
+
+/// FX/envelope sub-block embedded at GStruct43 + 0x10 (func_800565B8 / func_80055678).
+/// field_0 is an active flag; field_1 is the state-machine index; field_2 is a
+/// secondary gate; field_20 points at the current "oneE" (0x45656E6F) chunk.
+typedef struct _GStruct43Fx {
+    /* 0x00 */ s8   field_0;
+    /* 0x01 */ s8   field_1;
+    /* 0x02 */ s8   field_2;
+    /* 0x03 */ u8   pad_3;
+    /* 0x04 */ s32  field_4;
+    /* 0x08 */ s16  field_8;
+    /* 0x0A */ s16  field_A;
+    /* 0x0C */ s16  field_C;
+    /* 0x0E */ u8   pad_E[0x6];
+    /* 0x14 */ s32  field_14;
+    /* 0x18 */ s32  field_18;
+    /* 0x1C */ s32  field_1C;
+    /* 0x20 */ s32* field_20;
+} GStruct43Fx;
+STATIC_ASSERT_SIZEOF(GStruct43Fx, 0x24);
 
 /// Voice/FX object carved from D_80082148 with stride 0x40 (func_80056240).
 /// field_0 is the SPU voice index; field_4 is a countdown/timer (func_80056308).
-/// field_8 is a small state flag; field_10/field_12 gate FX processing.
+/// field_10/field_12 gate FX processing (aliases of fx.field_0 / fx.field_2).
 /// field_34/field_38/field_3C are parent/prev/next list links (func_80056068 free).
 struct _GStruct43 {
     /* 0x00 */ s8         field_0;
@@ -467,9 +489,18 @@ struct _GStruct43 {
     /* 0x08 */ s16        field_8;
     /* 0x0A */ u8         unknown_0A[0x6];
     /* 0x10 */ s8         field_10;
-    /* 0x11 */ u8         unknown_11;
+    /* 0x11 */ s8         field_11;
     /* 0x12 */ s8         field_12;
-    /* 0x13 */ u8         unknown_13[0x21];
+    /* 0x13 */ u8         unknown_13;
+    /* 0x14 */ s32        field_14;
+    /* 0x18 */ s16        field_18;
+    /* 0x1A */ s16        field_1A;
+    /* 0x1C */ s16        field_1C;
+    /* 0x1E */ u8         unknown_1E[0x6];
+    /* 0x24 */ s32        field_24;
+    /* 0x28 */ s32        field_28;
+    /* 0x2C */ s32        field_2C;
+    /* 0x30 */ s32*       field_30;
     /* 0x34 */ GStruct57* field_34;
     /* 0x38 */ GStruct43* field_38;
     /* 0x3C */ GStruct43* field_3C;
