@@ -858,7 +858,41 @@ void func_80035358(GStruct0* arg0, GStruct21* arg1)
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80035464);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80035574);
+void func_80035574(GStruct0* arg0, GStruct21* arg1)
+{
+    register GStruct21* a1 asm("s1");
+    register GStruct0*  a0 asm("s0");
+    register GStruct37* obj asm("s0");
+    register s32        modeIdx asm("s1");
+    register s32        ret asm("s3");
+    s32                 temp_v0;
+    GStruct62*          entry;
+    GStruct62*          base;
+
+    a1 = arg1;
+    a0 = arg0;
+    if (a1->field_14 == 0) {
+        MemCardClose();
+        temp_v0       = a1->field_A14 + 1;
+        a1->field_A14 = temp_v0;
+        if (temp_v0 < a1->field_288) {
+            a0->field_30 = 0x22;
+        } else {
+            a0->field_30 = a0->field_30 + 1;
+        }
+    } else {
+        a0->field_30 = 0x18;
+    }
+    obj           = a0->field_20;
+    modeIdx       = a1->field_8;
+    ret           = func_80048E10(obj, 1);
+    obj->field_2E = 0;
+    func_80048E38(obj, D_8001398C);
+    base  = D_80060D08;
+    entry = &base[modeIdx];
+    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
+    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
+}
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80035684);
 

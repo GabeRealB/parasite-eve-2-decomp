@@ -392,9 +392,11 @@ STATIC_ASSERT_SIZEOF(GStruct62, 0x8);
 /// field_10/field_14 are MemCardSync cmds/rslt outs.
 /// field_18 is a source buffer pointer for func_80033FB8 when mode != 0.
 /// field_30 is a 15-slot memcard directory buffer (DIRENTRY-sized, 0x28 each)
-/// filled by MemCardGetDirentry; field_A14 indexes the selected slot for
-/// MemCardOpen. field_A1C/field_A1E are a sum / ones-complement checksum pair
-/// over 0x200 signed bytes of that buffer (written by func_80033FB8).
+/// filled by MemCardGetDirentry; field_288 is the entry count used to bound
+/// field_A14 walks (func_80035574 / func_800367CC). field_A14 indexes the
+/// selected slot for MemCardOpen. field_A1C/field_A1E are a sum /
+/// ones-complement checksum pair over 0x200 signed bytes of that buffer
+/// (written by func_80033FB8).
 typedef struct _GStruct21 {
     /* 0x000 */ s32  field_0;
     /* 0x004 */ s32  field_4;
@@ -408,7 +410,8 @@ typedef struct _GStruct21 {
     /* 0x028 */ s32  field_28;
     /* 0x02C */ s32  field_2C;
     /* 0x030 */ char field_30[15][0x28];
-    /* 0x288 */ byte unknown_288[0x78C];
+    /* 0x288 */ s32  field_288;
+    /* 0x28C */ byte unknown_28C[0x788];
     /* 0xA14 */ s32  field_A14;
     /* 0xA18 */ s32  field_A18;
     /* 0xA1C */ u16  field_A1C;
