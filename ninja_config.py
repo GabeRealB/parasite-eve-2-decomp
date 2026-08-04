@@ -318,13 +318,18 @@ def ninja_setup_list_add_source(
         )
 
     maspxVersion = "2.77"
+    # ASPSX expands signed/unsigned div/rem into trap sequences; enable for TUs
+    # that contain matching division (e.g. 2F244's DecDCTout strip callback).
+    expand_div = ""
+    if re.search(r"2F244\.c$", source_path):
+        expand_div = "--expand-div"
     if re.search("^src.main.*", source_path):
         ninja_file.build(
             outputs=f"{target_path}.c.o",
             rule="maspsx",
             inputs=f"{target_path}.c.s",
             variables={
-                "EXPANDIVFLAG": "",
+                "EXPANDIVFLAG": expand_div,
                 "DLFLAG": DL_EXE_FLAGS,
                 "MASPSXVER": maspxVersion,
             },
@@ -335,7 +340,7 @@ def ninja_setup_list_add_source(
             rule="maspsx",
             inputs=f"{target_path}.c.s",
             variables={
-                "EXPANDIVFLAG": "",
+                "EXPANDIVFLAG": expand_div,
                 "DLFLAG": DL_OVL_FLAGS,
                 "MASPSXVER": maspxVersion,
             },

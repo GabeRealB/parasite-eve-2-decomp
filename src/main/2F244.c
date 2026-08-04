@@ -279,7 +279,21 @@ void func_800408F4(void)
     CdCmd_Queue.field_234 = 1;
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_80040904);
+void func_80040904(void)
+{
+    s32         temp;
+    CdCmdQueue* p;
+
+    temp = 0x140 / (D_8007A35E * 16);
+    p    = &CdCmd_Queue;
+    if (D_8007A35C == temp - 1) {
+        p->field_1EC = 0;
+        DecDCToutCallback(0);
+    } else {
+        D_8007A35C = D_8007A35C + 1;
+        DecDCTout(D4CB64_ImgBuffers->buffers[D_8007A35C], 0x780);
+    }
+}
 
 void func_800409B0(GStruct0* arg0)
 {

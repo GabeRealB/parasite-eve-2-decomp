@@ -2913,3 +2913,50 @@ it links to the same address as a splat `D_xxx+4` symbol (e.g. `D_8007216C`).
 
 `func_80033944` is the pure example (checksum writer for `GStruct23::field_1C` /
 `field_1E`; pair with the s16 / `sum = sum + tmp` notes used by `func_800339C4`).
+
+## Signed division needs `--expand-div` on the TU
+
+Retail ASPSX expands signed `div` into the full trap sequence (`bnez` / `break 7`
+/ overflow `break 6` / `mflo`). GCC 2.8.1 emits a bare `div $d,$s,$t`; maspsx
+only re-emits that sequence when `--expand-div` is passed.
+
+Symptom in the scratch: target starts with the trap block after `div`, your
+build has `div` then immediate `mflo` (and the rest of the function shifts by
+~10 instructions). Full-project checksum also fails without the expansion.
+
+Fix: enable `--expand-div` for the translation unit in `ninja_config.py`
+(`EXPANDIVFLAG`), and use the same flag in the scratch `build.sh`. Power-of-two
+divides that become shifts do not need this. `func_80040904` / `2F244.c` is the
+first main TU that requires it.
+
+## Keep the `- 1` outside the div assignment for schedule
+
+```c
+/* BAD — value of counter is hoisted before the stack frame / CdCmd_Queue setup */
+temp = 0x140 / (scale * 16) - 1;
+if (counter == temp) { ... }
+
+/* GOOD — mflo stays in $v1; -1 is delayed until after address loads */
+temp = 0x140 / (scale * 16);
+if (counter == temp - 1) { ... }
+```
+
+Folding the `- 1` into `temp` changes register pressure enough that GCC loads
+the counter early (`lhu a0, counter` before `addiu sp`) and puts `&CdCmd_Queue`
+only in the branch delay slot. Splitting keeps:
+
+```
+mflo   v1
+addiu  sp,sp,-0x18
+lui    a0,%hi(counter)
+sw     ra,...
+lui    v0,%hi(CdCmd_Queue)
+addiu  a1,v0,%lo(CdCmd_Queue)
+lhu    v0,%lo(counter)(a0)
+addiu  v1,v1,-1
+bne    v0,v1,else
+ addiu  v0,v0,1
+```
+
+Also type strip counters that the target loads with `lhu` as `u16` (not `s16`),
+or you get a second `lh` and sign-extend on the index path. `func_80040904`.
