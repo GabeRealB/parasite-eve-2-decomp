@@ -742,7 +742,34 @@ void func_80034894(Task* arg0, McWork* arg1)
 
 INCLUDE_ASM("main/nonmatchings/mc", func_80034938);
 
-INCLUDE_ASM("main/nonmatchings/mc", func_80034A40);
+void func_80034A40(Task* arg0, McWork* arg1)
+{
+    s32           ret;
+    UiObject*     obj;
+    McPromptPair* entry;
+    McPromptPair* base;
+    s32           idx;
+    UiObject*     flag;
+    s16           val;
+
+    MemCardClose();
+    idx           = arg1->field_8;
+    obj           = arg0->field_20;
+    ret           = func_80048E10(obj, 1);
+    obj->field_2E = 0;
+    func_80048E38(obj, D_8001398C);
+    base  = Mc_PromptTable;
+    entry = &base[idx];
+    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
+    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
+    arg0->field_30 = 0x1B;
+    flag           = arg0->field_20;
+    if (flag != NULL) {
+        val            = arg1->field_A18;
+        flag->field_2E = -1;
+        flag->field_2C = val;
+    }
+}
 
 void func_80034B38(Task* arg0)
 {

@@ -4331,3 +4331,39 @@ store:
 
 `func_800344B4` is the pure example (memcard state handler next to
 `func_80034C54`).
+
+## Reload pointer into a0 with halfword temp for dual end stores
+
+When the target ends like Mc_StateCloseReturn but also copies a halfword from
+a second arg before setting `field_2E = -1`:
+
+```
+lw    a0, 0x20(s3)       /* reload Task::field_20 */
+li    v0, K
+beqz  a0, end
+ sw   v0, 0x30(s3)
+lhu   v1, 0xA18(s5)      /* halfword from McWork */
+li    v0, -1
+sh    v0, 0x2e(a0)
+sh    v1, 0x2c(a0)
+```
+
+do **not** reuse the earlier `obj` for the null check (extends live range,
+scrambles s-regs). Declare a fresh pointer plus an `s16` temp, load the
+halfword first inside the `if`, then store:
+
+```c
+UiObject* flag;
+s16       val;
+
+arg0->field_30 = K;
+flag = arg0->field_20;
+if (flag != NULL) {
+    val            = arg1->field_A18; /* s32→s16 emits lhu */
+    flag->field_2E = -1;
+    flag->field_2C = val;
+}
+```
+
+Cast-only double loads of `arg0->field_20` (as in Mc_StateCloseReturn) reload
+twice and miss the `lhu`/`sh` pairing. `func_80034A40` is the pure example.
