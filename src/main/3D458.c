@@ -237,7 +237,25 @@ s32 func_8004D298(GStruct55* arg0, s32 arg1)
     return var_a1;
 }
 
-INCLUDE_ASM("main/nonmatchings/3D458", func_8004D2EC);
+void func_8004D2EC(GStruct55* arg0)
+{
+    s32 step = arg0->field_8;
+
+    if (step) {
+        if (arg0->field_C < 0) {
+            if ((u32)(arg0->field_4 + step) >= (u32)arg0->field_0) {
+                arg0->field_0 = arg0->field_4;
+            } else {
+                arg0->field_0 = arg0->field_0 - step;
+            }
+        } else {
+            arg0->field_0 = arg0->field_0 + step;
+            if ((u32)arg0->field_0 >= (u32)arg0->field_4) {
+                arg0->field_0 = arg0->field_4;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/3D458", func_8004D35C);
 

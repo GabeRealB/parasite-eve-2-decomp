@@ -2718,3 +2718,53 @@ if (arg0 == (&D_8007F300)[i].field_1) {
 ```
 
 `func_800514F8` needed this (99.6% → 100%).
+
+## Long-lived step in `$v1`: avoid intermediate field temps
+
+For small update/clamp helpers that load one long-lived value first (e.g. step
+from `arg0->field_8`) and use it in both arms, **do not** extract the other
+fields into locals. Temps for `cur`/`end` push the step into `$a1`/`$a2`, which
+then frees `$v1` for the sum and lets GCC put the store in a branch delay slot:
+
+```
+# BAD (~71%): step in a2, sum in v1, store delayed
+addu  v1, v0, a2
+sltu  v0, v1, a1
+bnez  v0, end
+ sw   v1, 0(a0)    # delay slot
+```
+
+Direct field access keeps step in `$v1` and reuses `$v0` for sum **and** the
+`sltu` result, forcing the store before the compare (matches target):
+
+```
+# GOOD: step in v1, sum/compare share v0
+addu  v0, v0, v1
+sw    v0, 0(a0)
+sltu  v0, v0, a1
+bnez  v0, end
+ nop
+```
+
+```c
+/* GOOD — step local only; fields accessed directly */
+s32 step = arg0->field_8;
+if (step) {
+    if (arg0->field_C < 0) {
+        if ((u32)(arg0->field_4 + step) >= (u32)arg0->field_0)
+            arg0->field_0 = arg0->field_4;
+        else
+            arg0->field_0 = arg0->field_0 - step;
+    } else {
+        arg0->field_0 = arg0->field_0 + step;
+        if ((u32)arg0->field_0 >= (u32)arg0->field_4)
+            arg0->field_0 = arg0->field_4;
+    }
+}
+```
+
+Branch polarity for the decreasing arm: write `if (end + step >= cur) clamp;
+else subtract` so fall-through is clamp and `bnez` targets subtract (matches
+`sltu`/`bnez`). Inverting to `<` swaps the arms.
+
+`func_8004D2EC` is the pure example (GStruct55 linear interpolator tick).
