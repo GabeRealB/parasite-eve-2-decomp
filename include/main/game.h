@@ -288,14 +288,21 @@ typedef struct _GStruct19 {
 } GStruct19;
 STATIC_ASSERT_SIZEOF(GStruct19, 0x58);
 
+/// One slot in D_800828F0.entries (stride 0x14). field_0 holds status flags.
+typedef struct _GStruct32Entry {
+    /* 0x00 */ u32  field_0;
+    /* 0x04 */ byte unknown_4[0x10];
+} GStruct32Entry;
+STATIC_ASSERT_SIZEOF(GStruct32Entry, 0x14);
+
 /// BSS object D_800828F0 (size 0x58). CD ready-callback install state.
 typedef struct _GStruct32 {
-    /* 0x00 */ u8    field_0;
-    /* 0x01 */ u8    field_1;
-    /* 0x02 */ u8    field_2;
-    /* 0x03 */ u8    field_3;
-    /* 0x04 */ void* field_4;
-    /* 0x08 */ byte  unknown_8[0x50];
+    /* 0x00 */ u8             field_0;
+    /* 0x01 */ u8             field_1;
+    /* 0x02 */ u8             field_2;
+    /* 0x03 */ u8             field_3;
+    /* 0x04 */ void*          field_4;
+    /* 0x08 */ GStruct32Entry entries[4];
 } GStruct32;
 STATIC_ASSERT_SIZEOF(GStruct32, 0x58);
 

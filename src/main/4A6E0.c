@@ -115,7 +115,24 @@ void func_8005BA8C(u32* arg0)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005BAEC);
+void func_8005BAEC(s16 arg0)
+{
+    u8              temp;
+    s16             idx;
+    u32             flags;
+    GStruct32Entry* entry;
+
+    temp = D_800828F0.field_0;
+    if (arg0 != 0) {
+        idx   = arg0 - 1;
+        entry = (GStruct32Entry*)&D_800828F0.entries[idx];
+        flags = entry->field_0;
+        if (flags & 1) {
+            entry->field_0 = (flags & ~1) | 4;
+        }
+        D_800828F0.field_0 = temp;
+    }
+}
 
 s32 func_8005BB4C(void)
 {

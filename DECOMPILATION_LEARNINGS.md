@@ -2475,3 +2475,40 @@ if (state->field_4 != pos) {  /* beq v1,v0 — field in v1, pos in v0 */
 `func_80057C74` is the example. Also mark interrupt-shared flags like
 `D_80082770` (written by a `CdReadyCallback`, polled on the main path)
 `volatile` so the post-call store stays out of a `j` delay slot.
+
+## Volatile global: index via global name, not a local pointer
+
+For a `volatile` global struct with an embedded array (e.g. `D_800828F0.entries`),
+taking a local `p = &D_800828F0` and then forming `&((T*)((u8*)p + off))[idx]`
+(or `p->entries[idx]` through that pointer) often folds the field offset into
+the scaled index:
+
+```
+sll  v1, idx, ...
+addiu v1, v1, 8      /* offset fused with scale */
+addu  v1, v1, a3
+```
+
+The target often materializes `base + offsetof` first, then adds the scale:
+
+```
+sll   v1, idx, ...
+addiu v0, a3, 8      /* base + offsetof(entries) */
+addu  v1, v1, v0
+```
+
+Use the global directly (no local pointer) so the address of the struct is
+shared between the `%lo(sym)` field_0 access and the array base:
+
+```c
+temp = D_800828F0.field_0; /* lui/addiu + %lo lbu */
+if (arg0 != 0) {
+    idx = arg0 - 1;
+    entry = (GStruct32Entry*)&D_800828F0.entries[idx];
+    ...
+    D_800828F0.field_0 = temp;
+}
+```
+
+`func_8005BAEC` is the minimal example. A local `volatile GStruct32* p` was the
+sole difference between a 99% and a 100% match.
