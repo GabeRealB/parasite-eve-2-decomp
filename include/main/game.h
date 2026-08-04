@@ -855,6 +855,18 @@ typedef struct _GStruct59 {
 } GStruct59;
 STATIC_ASSERT_SIZEOF(GStruct59, 0x3E);
 
+/// Dialog / prompt descriptor used by 21FDC.c handlers (e.g. func_80036E78).
+/// field_C is a selection/confirm flag (1 = confirm); field_18/field_1A are
+/// position halfwords; field_1C is data passed through to func_8002FDCC.
+typedef struct _GStruct60 {
+    /* 0x00 */ byte unknown_0[0xC];
+    /* 0x0C */ s32  field_C;
+    /* 0x10 */ byte unknown_10[0x8];
+    /* 0x18 */ s16  field_18;
+    /* 0x1A */ s16  field_1A;
+    /* 0x1C */ s32  field_1C;
+} GStruct60;
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 
