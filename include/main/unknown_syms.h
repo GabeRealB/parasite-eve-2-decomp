@@ -134,7 +134,8 @@ extern void func_80030074(void);
 // Image data uploaded to VRAM by func_80030074
 extern u_long D_80060910[];
 extern u_long D_800609B0[];
-// Prompt / dialog data table (see func_80036E78)
+// Prompt / dialog data tables (see func_80036D98 / func_80036E78 / func_80036F18)
+extern u8 D_80060A54[];
 extern u8 D_80060A5C[];
 extern u8 D_80060A64[];
 
@@ -402,6 +403,7 @@ extern void         func_800B0118(s32 arg0, s32 arg1);
 extern GStruct14* D4F564_8005ED64;
 extern s32        D_8005ED68;
 extern s32        D_8005ED70;
+extern s32        D_8005ED74;
 extern u16        D_8005ED8A;
 
 extern u16* D_8005C36C;
