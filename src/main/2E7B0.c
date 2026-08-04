@@ -185,7 +185,23 @@ void func_8003E854(void)
     temp->field_103 = 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E904);
+void func_8003E904(void)
+{
+    GStruct50* ot;
+    GStruct1*  temp;
+    u_long*    org;
+
+    ot           = D_8007A0E8;
+    ot->length   = 0xA;
+    ot->org      = D5F414_OrderingTables;
+    ot[1].length = 0xA;
+    ot[1].org    = D5F414_OrderingTables + C5F414_OTAG_ENTRIES;
+    temp         = &D_80070F68;
+    GsClearOt(0, 0, &ot[temp->field_118]);
+    org        = ot[temp->field_118].org;
+    *org       = C5F414_OTAG_END_PRIM;
+    D_800710A0 = org;
+}
 
 void func_8003E9A4(void)
 {

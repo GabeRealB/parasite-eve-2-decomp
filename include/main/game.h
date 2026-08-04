@@ -980,6 +980,9 @@ typedef struct _GStruct50 {
 } GStruct50;
 STATIC_ASSERT_SIZEOF(GStruct50, 0x14);
 
+/// PsyQ GsClearOt, declared with GStruct50* so callers need not include libgs.h.
+void GsClearOt(unsigned short offset, unsigned short point, GStruct50* otp);
+
 /// Callback-queue slot used by D_8007E2E4 (stride 0x14).
 /// field_0 holds status flags (bit0 active, bit2 cancel/pending, etc.).
 typedef struct _GStruct51 {

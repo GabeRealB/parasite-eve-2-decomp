@@ -1467,6 +1467,21 @@ Init pattern (see `func_8003E6E4`): hold `GStruct50* ot = D_8007A0E8`, write
 `length`/`org` for both slots, with the second `org` as `tags + (1 << length)`.
 OT tag storage of `0x200` bytes is two buffers of `0x100` (`u_long[0x80]`).
 
+When calling PsyQ `GsClearOt`, declare it with `GStruct50*` (in `game.h`) rather
+than including `libgs.h` or casting through `GsOT*`:
+
+```c
+void GsClearOt(unsigned short offset, unsigned short point, GStruct50* otp);
+/* ... */
+GsClearOt(0, 0, &ot[temp->field_118]);
+*ot[temp->field_118].org = C5F414_OTAG_END_PRIM;
+D_800710A0 = ot[temp->field_118].org;
+```
+
+`func_8003E904` is the reference: sets both `D_8007A0E8` slots to depth `0xA`
+with `D5F414_OrderingTables` / `+ C5F414_OTAG_ENTRIES`, clears the active buffer
+(`D_80070F68.field_118`), then points `D_800710A0` at the OT base.
+
 ## Delay `i = 0` until after a special-case rewrite of the same constant
 
 When the target puts `move a2, zero` (loop counter init) in the delay slot of a
