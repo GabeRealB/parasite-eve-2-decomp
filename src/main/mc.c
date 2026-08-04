@@ -627,7 +627,51 @@ INCLUDE_ASM("main/nonmatchings/mc", func_8003429C);
 
 INCLUDE_ASM("main/nonmatchings/mc", func_800343D0);
 
-INCLUDE_ASM("main/nonmatchings/mc", func_800344B4);
+void func_800344B4(Task* arg0, McWork* arg1)
+{
+    s32       ret;
+    s32       syncResult;
+    Task*     child;
+    UiObject* obj;
+    UiObject* flag;
+    u8*       src;
+    u8*       dst;
+    s32       i;
+
+    arg1->field_8 = 0xB;
+    ret           = func_8003062C(arg0, 0xB, arg1->field_0);
+    if (ret != -1) {
+        if (ret == 1) {
+            arg0->field_30 = 8;
+        }
+    } else {
+        src = Mc_FileNameBuf;
+        dst = Mc_FileName;
+        for (i = 0; i < 0x15; i++) {
+            *dst++ = *src++;
+        }
+        arg0->field_2a = 0xC;
+        arg0->field_30 = 0x27;
+    }
+    syncResult = MemCardSync(1, (long*)&arg1->field_10, (long*)&arg1->field_14);
+    if (syncResult != -1) {
+        if (syncResult == 1) {
+            if (arg1->field_14 != 0) {
+                child          = arg0->field_c;
+                arg0->field_30 = 2;
+                if (child != NULL) {
+                    obj          = child->field_20;
+                    flag         = arg0->field_20;
+                    obj->field_0 = 0;
+                    func_80048838(obj, obj->field_28);
+                    flag->field_0 = syncResult;
+                }
+            }
+        }
+    } else {
+        MemCardExist(arg1->field_C);
+    }
+}
 
 void func_800345CC(Task* arg0, McWork* arg1)
 {

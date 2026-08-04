@@ -4289,3 +4289,45 @@ p->field_1 = 0;
 
 Keep one or two stores as `arg0->field_10 = …` (parent-relative) when the
 target uses `sb …, 0x10(a0)` rather than `sb …, 0(t0)`.
+
+## Prefer separate stores over `next` + goto for shared `field_30`
+
+When the target joins two arms on a shared `sw v0, 0x30(s0)` after loading
+different constants into `$v0`, a C `next` temp plus goto often matches the
+control flow but **swaps** `$s0`/`$s2` for `arg0`/`arg1` (or otherwise shifts
+prologue allocation).
+
+Writing the store in each arm separately still CSE's into one shared `sw`,
+and keeps the natural `s0 = arg0; s2 = arg1` prologue:
+
+```c
+/* Matches: j store; li v0,8  /  …; li v0,0x27; store: sw v0,0x30(s0) */
+if (ret != -1) {
+    if (ret == 1) {
+        arg0->field_30 = 8;
+    }
+} else {
+    /* … side effects … */
+    arg0->field_2a = 0xC;
+    arg0->field_30 = 0x27;
+}
+```
+
+Avoid:
+
+```c
+/* Same CFG shape, wrong s0/s2 assignment */
+if (ret != -1) {
+    if (ret == 1) {
+        next = 8;
+        goto store;
+    }
+} else {
+    next = 0x27;
+store:
+    arg0->field_30 = next;
+}
+```
+
+`func_800344B4` is the pure example (memcard state handler next to
+`func_80034C54`).
