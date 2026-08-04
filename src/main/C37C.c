@@ -389,7 +389,25 @@ void func_8001D97C(void)
 
 INCLUDE_ASM("main/nonmatchings/C37C", func_8001D990);
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001DA48);
+void func_8001DA48(void)
+{
+    CdCmdQueue* state;
+
+    state = &CdCmd_Queue;
+    if (state->busy != 0) {
+        state->busy          = 0;
+        D_80070F68.field_130 = 0;
+    }
+    state->step      = 0;
+    state->field_1fc = 0;
+    state->field_222 = 0;
+    state->field_242 = 0;
+    if (state->readIdx != state->writeIdx) {
+        state->entries[state->readIdx].cmd = 0;
+        state->readIdx                     = state->readIdx + 1;
+        state->readIdx                     = state->readIdx % 8;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/C37C", func_8001DAB8);
 
