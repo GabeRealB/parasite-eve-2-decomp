@@ -2581,3 +2581,55 @@ if (arg0 != 0) {
 
 `func_8005BAEC` is the minimal example. A local `volatile GStruct32* p` was the
 sole difference between a 99% and a 100% match.
+
+## Early-return `move v0,zero` vs `move a1,zero` with a live sum
+
+When a checksum-style function zeros an accumulator, early-returns 0 on a
+range check, then zeros a loop index, CSE of the constant 0 creates a
+two-sided trap:
+
+```
+/* sum = 0 before the if: */
+bnez  valid, body
+ move  v1, zero      /* sum */
+jr    ra
+ move  v0, v1        /* return reuses sum — want move v0,zero */
+...
+ move  a1, zero      /* i is independent — good */
+
+/* sum = 0 after the if (sunk into the branch delay): */
+bnez  valid, body
+ move  v1, zero      /* sum */
+jr    ra
+ move  v0, zero      /* return independent — good */
+...
+ move  a1, v1        /* i reuses sum — want move a1,zero */
+```
+
+s32 sum lands in one of those two 99.8% states. Declaring the accumulator as
+`register s16 sum asm("v1")` (initialized *after* the early return) gives both
+independent zeros, keeps the sum in `$v1`, and still yields `lbu` + `sll 24` /
+`sra 24` when the pointer is `volatile u8*`.
+
+## `sum = sum + tmp` vs `sum += expr` for `addu` operand order
+
+With an s16 accumulator pinned in `$v1`, a direct
+
+```c
+sum += (s8)*ptr;   /* or sum = sum + (s8)*ptr */
+```
+
+often emits `addu v1, v0, v1` (addend first). The target usually wants
+`addu v1, v1, v0`. Route the byte through an s32 temporary and write the add
+as `sum = sum + tmp`:
+
+```c
+register s16 sum asm("v1");
+volatile u8* ptr;
+s32 tmp;
+...
+tmp = (s8)*ptr;
+sum = sum + tmp;   /* addu v1, v1, v0 */
+```
+
+`func_800339C4` needs both this and the s16/`volatile u8*` pairing above.

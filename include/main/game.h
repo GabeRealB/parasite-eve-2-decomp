@@ -375,12 +375,22 @@ typedef struct _GStruct22 {
 } GStruct22;
 
 /// BSS object D_80072168. Large; only fields used so far are named.
+/// field_12 is a slot/index validated by func_800339C4 (must be 1..16).
+/// field_1C / field_1E are a sum / ones-complement pair over the 0x38 bytes
+/// starting at field_4 (written by func_80033944, verified by func_800339C4).
 /// field_93C is a save-data checksum halfword compared by func_80034028.
 /// field_940 / field_942 are a sum / ones-complement pair over the first
 /// byte of D_800610FC[1..8] buffers (written by func_80033D3C; field_940
 /// is also known as D_80072AA8 and checked by func_80033D88).
 typedef struct _GStruct23 {
-    /* 0x000 */ byte unknown_0[0x21];
+    /* 0x000 */ byte unknown_0[0x4];
+    /* 0x004 */ u8   field_4[1];
+    /* 0x005 */ byte unknown_5[0xD];
+    /* 0x012 */ u8   field_12;
+    /* 0x013 */ byte unknown_13[0x9];
+    /* 0x01C */ u16  field_1C;
+    /* 0x01E */ u16  field_1E;
+    /* 0x020 */ byte unknown_20[0x1];
     /* 0x021 */ u8   field_21;
     /* 0x022 */ byte unknown_22[0x1];
     /* 0x023 */ s8   field_23;

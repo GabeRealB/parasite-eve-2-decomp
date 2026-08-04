@@ -83,7 +83,29 @@ void func_800338F4(s32 arg0)
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80033944);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_800339C4);
+s32 func_800339C4(GStruct23* arg0)
+{
+    register s16 sum asm("v1");
+    volatile u8* ptr;
+    s32          limit;
+    s32          i;
+    s32          tmp;
+
+    if ((u32)(arg0->field_12 - 1) >= 0x10U) {
+        return 0;
+    }
+    sum   = 0;
+    ptr   = arg0->field_4;
+    limit = 0x38;
+    i     = 0;
+    do {
+        i   += 1;
+        tmp  = (s8)*ptr;
+        sum  = sum + tmp;
+        ptr += 1;
+    } while (i < limit);
+    return ((u16)arg0->field_1C ^ (sum & 0xFFFF)) == 0;
+}
 
 void func_80033A28(GStruct47* arg0, s32 arg1)
 {
