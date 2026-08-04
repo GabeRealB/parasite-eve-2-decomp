@@ -3593,3 +3593,50 @@ entry = D_8006273C[idx] + ((D_80062738 + product) & 0xFFFF);
 `func_800430E4` is the pure example. Pair with a `register ... asm("v1")` pin
 on the stage pointer when the target loads `D4F564_8005ED64` into `$v1` (with
 an argument live in `$s1`) rather than `$a0`.
+
+## Pre-increment store `*++p = f()` fills `jal` delay with the previous store
+
+When walking a buffer and writing values that each depend on a call (e.g.
+`rand()`), splitting the step as `p++; *p = table[f() & mask]` schedules the
+call *before* the store and leaves a `nop` after `lbu`:
+
+```
+jal   rand
+ addiu p, p, 1      # delay: advance
+andi  ...
+lbu   ...
+nop
+sb    v0, 0(p)
+```
+
+The target wants the *previous* byte stored in the delay slot of the *next*
+`jal`, with the pointer advance between load and call:
+
+```
+lbu   v0, 0(v0)
+addiu p, p, 1
+jal   rand
+ sb   v0, 0(p)      # delay: store previous char
+```
+
+Write a single pre-increment assignment so the call and the pending store are
+adjacent in the same expression:
+
+```c
+/* BAD — call first, store after nop */
+*p = table[arg1];
+p++;
+*p = table[rand() & 0x3F];
+p++;
+*p = table[rand() & 0x3F];
+
+/* GOOD — *++p keeps store in jal delay of the next rand */
+*p = table[arg1];
+*++p = table[rand() & 0x3F];
+*++p = table[rand() & 0x3F];
+/* ... */
+p[1] = 0;
+```
+
+`func_800300EC` is the pure example (memcard filename: product-code prefix +
+selector char + 7 random chars + NUL).

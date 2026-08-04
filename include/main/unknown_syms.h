@@ -127,9 +127,13 @@ extern u8 D_8005EFB0[];
 extern u8 D_8005FA30[];
 extern u8 D_800604B0[];
 
+// Memcard product-code prefix (12 bytes, e.g. "BASLUS-01042")
+extern u8 D_80060DC8[];
 // Memcard product code buffers ("BASLUS-01042________")
 extern u8 D_80060DD8[0x18];
 extern u8 D_80060DF0[0x18];
+// 64-byte character table for random memcard filename body
+extern u8 D_80060E08[];
 
 // ASCII → Shift-JIS lookup tables used by func_8003380C
 // (uppercase 'A'+, lowercase 'a'+, symbols from space)
@@ -151,6 +155,8 @@ extern s32  func_8002FCBC(u8* arg0);
 extern void func_8002FDCC(void* arg0, s32 arg1, s32 arg2, void* arg3, s32 arg4, s32 arg5,
                           s32 arg6);
 extern void func_80030074(void);
+// Builds a memcard save filename into arg0 (prefix + arg1 char + 7 random)
+extern void func_800300EC(u8* arg0, s32 arg1);
 // Image data uploaded to VRAM by func_80030074
 extern u_long D_80060910[];
 extern u_long D_800609B0[];

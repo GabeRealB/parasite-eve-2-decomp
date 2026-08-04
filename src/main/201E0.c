@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <psyq/rand.h>
+
 #include "main/game.h"
 #include "main/unknown_syms.h"
 
@@ -50,7 +52,27 @@ void func_80030074(void)
     LoadImage(&rect, D_800609B0);
 }
 
-INCLUDE_ASM("main/nonmatchings/201E0", func_800300EC);
+void func_800300EC(u8* arg0, s32 arg1)
+{
+    s32 i;
+
+    i = 0;
+    do {
+        *arg0 = D_80060DC8[i];
+        i++;
+        arg0++;
+    } while (i < 0xC);
+
+    *arg0   = D_80060E08[arg1];
+    *++arg0 = D_80060E08[rand() & 0x3F];
+    *++arg0 = D_80060E08[rand() & 0x3F];
+    *++arg0 = D_80060E08[rand() & 0x3F];
+    *++arg0 = D_80060E08[rand() & 0x3F];
+    *++arg0 = D_80060E08[rand() & 0x3F];
+    *++arg0 = D_80060E08[rand() & 0x3F];
+    *++arg0 = D_80060E08[rand() & 0x3F];
+    arg0[1] = 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/201E0", func_800301FC);
 
