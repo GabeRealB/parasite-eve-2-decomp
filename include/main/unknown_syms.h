@@ -442,7 +442,9 @@ extern u8           D_800680A4;
 extern s8           D_800680AC[];
 extern u32          D_800680BC;
 extern volatile u32 D_800680C0;
-extern u8           D_80068B5C;
+extern volatile s32 D_80068B58;
+extern volatile u8  D_80068B5C;
+extern volatile s16 D_80068B6A;
 extern void         func_800B0118(s32 arg0, s32 arg1);
 
 // D4CB64_ImgBuffers + all Fs_* data / D5B498_* FS state → main/fs.h
@@ -577,7 +579,8 @@ extern volatile GStruct4  D_80082798;
 extern volatile GStruct18 D_800827A0;
 extern GStruct55          D_800827B4;
 extern volatile u8        D_800827E4;
-extern volatile s16       D_80082808;
+extern volatile u16       D_80082808;
+extern volatile u16       D_80082810;
 extern volatile GStruct19 D_80082818;
 extern volatile GStruct32 D_800828F0;
 extern u8                 D_80094C8C[0x2E34];

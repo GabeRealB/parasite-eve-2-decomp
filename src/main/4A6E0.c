@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include <psyq/libapi.h>
 #include <psyq/libcd.h>
 #include <psyq/libspu.h>
 
@@ -36,7 +37,29 @@ void func_8005B6A8(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005B6EC);
+void func_8005B6EC(void)
+{
+    s32* ptr;
+    u32  i;
+
+    ptr = (s32*)&D_800828F0;
+    for (i = 0; i < 0x16; i++) {
+        *ptr++ = 0;
+    }
+
+    ptr = (s32*)&D_80082818;
+    for (i = 0; i < 0x36; i++) {
+        *ptr++ = 0;
+    }
+
+    SetRCnt(RCntCNT2, 0xFFFF, RCntMdNOINTR);
+    StartRCnt(RCntCNT2);
+    D_80068B58 = 0;
+    D_80082808 = 0;
+    D_80082810 = D_80082808;
+    D_80068B6A = 0;
+    D_80068B5C = 0;
+}
 
 void func_8005B78C(void)
 {

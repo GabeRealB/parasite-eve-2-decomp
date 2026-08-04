@@ -3271,3 +3271,32 @@ D_800710A0 = ot + 0x20; /* addiu reuses ot — no reload */
 ```
 
 `func_8003E560` is the pure example (double-buffer OT flip).
+
+## Volatile on independent BSS stores preserves assignment order
+
+A tail of independent stores to distinct globals (`g1 = 0; g2 = 0; g3 = g2; …`)
+can be reordered when some targets are non-volatile: GCC 2.8.1 may hoist the
+volatile chain (e.g. `D_80082808 = 0; D_80082810 = D_80082808`) ahead of an
+earlier non-volatile `D_80068B58 = 0`, and may sink the `D_80082810` store past
+later non-volatile stores.
+
+Symptom: body matches except the final store sequence is permuted (and `%hi`
+temps may switch from `$v0` to `$v1`).
+
+Fix: declare every global in that ordered sequence `volatile` so each access is
+a sequence point the scheduler cannot cross:
+
+```c
+extern volatile s32 D_80068B58;
+extern volatile u16 D_80082808;
+extern volatile u16 D_80082810;
+/* ... */
+D_80068B58 = 0;
+D_80082808 = 0;
+D_80082810 = D_80082808; /* lhu requires unsigned half on the source */
+D_80068B6A = 0;
+D_80068B5C = 0;
+```
+
+Also match load width to the source type: `lhu` ⇒ `volatile u16` (not `s16`,
+which yields `lh`). `func_8005B6EC` is the pure example.
