@@ -276,7 +276,37 @@ void func_80033F6C(GStruct0* arg0)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80033FB8);
+void func_80033FB8(s32 arg0, GStruct21* arg1)
+{
+    s16          sum;
+    s32          count;
+    u8*          src;
+    s16*         dst;
+    register s32 i asm("v1");
+
+    sum   = 0;
+    count = 0x200;
+    if (arg0 == 0) {
+        src = D_80060EFC;
+        dst = &D_80072AA4;
+    } else {
+        src = (u8*)arg1->field_18;
+        dst = (s16*)&arg1->field_A1C;
+    }
+
+    i      = 0;
+    dst[0] = sum;
+    dst[1] = ~sum;
+    if (count != 0) {
+        do {
+            i   += 1;
+            sum += (s8)*src;
+            src += 1;
+        } while (i < count);
+    }
+    dst[0] = sum;
+    dst[1] = ~sum;
+}
 
 s32 func_80034028(GStruct23* arg0, GStruct21* arg1)
 {

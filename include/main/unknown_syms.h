@@ -123,7 +123,11 @@ extern u8 D_80060DF0[0x18];
 
 // Save/memcard buffer descriptors (9 entries of GStruct53, 0x6C bytes)
 extern GStruct53 D_800610FC[9];
-// Halfword checksum compared by func_80033D88 (also D_80072168 + 0x940)
+// Buffer checksummed by func_80033FB8 when arg0 == 0 (0x200 signed bytes)
+extern u8 D_80060EFC[];
+// sum / ones-complement pair written by func_80033FB8(0, ...); adjacent
+// halfword D_80072AA8 is compared by func_80033D88 (also D_80072168 + 0x940)
+extern s16 D_80072AA4;
 extern u16 D_80072AA8;
 
 // 201E0.c
