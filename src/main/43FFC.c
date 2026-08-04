@@ -117,7 +117,19 @@ void func_80053E48(void)
     func_8004DC8C();
 }
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80053E68);
+void func_80053E68(void)
+{
+    func_8004D460(func_800510D4, 0, 0x4800, 0);
+    func_8004D460(func_80054938, 0, 0x8800, 0);
+    D_80082130 = 0x3D010;
+    D_80082128 = 0x63810;
+    D_80082124 = D_80082128;
+    D_80082122 = 0;
+    D_8008212C = 0;
+    D_80082135 = 0;
+    D_80082121 = 0;
+    D_8008274C = 0;
+}
 
 // K&R definition so the no-arg call in func_8005462C stays legal (indeterminate a0).
 s32 func_80053F00(arg0)
