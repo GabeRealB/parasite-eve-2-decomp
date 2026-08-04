@@ -395,7 +395,36 @@ void func_8002D474(GStruct0* state)
     Mem_Free(state);
 }
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002D494);
+void func_8002D494(void)
+{
+    GStruct0* next;
+    GStruct0* curr;
+    GStruct1* tmp_ptr; // The indirection is required.
+
+    curr       = D_800716E0.next;
+    D_800716D8 = &D_800716E0;
+    if (curr != NULL) {
+        tmp_ptr = &D_80070F68;
+    loop_2:
+        curr->field_14(curr);
+        if (tmp_ptr->field_10b == 1) {
+            tmp_ptr->field_10b = 0;
+            return;
+        }
+        if (curr->field_28 == 0xFF) {
+            next               = curr->node.next;
+            tmp_ptr->field_10b = 0;
+            func_8002D444(curr);
+            func_8002D474(curr);
+            curr = next;
+        } else {
+            curr = curr->node.next;
+        }
+        if (curr != NULL) {
+            goto loop_2;
+        }
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002D544);
 
