@@ -289,6 +289,20 @@ GStruct41* func_8004EA60(GStruct42* arg0, u8 arg1, u8 arg2)
     return NULL;
 }
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004EAA0);
+void func_8004EAA0(u32 voiceIdx)
+{
+    GStruct9* p;
+    u32*      pKeyOn;
+    u32       channel;
+
+    p                     = &D648E0_8007E338;
+    pKeyOn                = &D648E0_8007EBA8;
+    voiceIdx              = (s8)voiceIdx;
+    p->field_7c[voiceIdx] = 5;
+    channel               = SPU_VOICECH(voiceIdx);
+    *pKeyOn              |= channel;
+    p->field_1d0         |= channel;
+    D648E0_8007EBB0      &= ~channel;
+}
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004EAF8);
