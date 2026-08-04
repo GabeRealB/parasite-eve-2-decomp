@@ -3640,3 +3640,45 @@ p[1] = 0;
 
 `func_800300EC` is the pure example (memcard filename: product-code prefix +
 selector char + 7 random chars + NUL).
+
+## Dual same-function calls beat `sltiu` for boolean `0`/`1` args
+
+When the target sets `$a0` with a branch then makes a single call:
+
+```
+lb    v1, flag
+...
+bnez  v1, skip
+ move  a0, zero
+li    a0, 1
+skip:
+jal   func
+ nop
+```
+
+writing the boolean into a temp (or a ternary) collapses to `sltiu` in the
+`jal` delay slot:
+
+```c
+/* BAD — emits jal / sltiu a0,a0,1 */
+a0 = 0;
+if (flag == 0) {
+    a0 = 1;
+}
+func(a0);
+/* also BAD: func(flag == 0); */
+```
+
+Write two calls with inverted constants and let GCC merge them:
+
+```c
+/* GOOD — bnez + move/li then one jal */
+if (flag == 0) {
+    func(1);
+} else {
+    func(0);
+}
+```
+
+`func_800429C8` (`D_80072311` → `func_800260B0`) is the pure `== 0` example.
+`func_8002BD24` is the sibling `== 1` form (`func_800260B0(0)` vs `(1)`).

@@ -84,6 +84,7 @@ extern GFunc0Table5  D_800134BC;
 extern GFunc0Table3  D_800134D0;
 extern GFunc0Table6  D_80013E98;
 extern GFunc0Table3  D_80013EDC;
+extern GBytes4       D_80013F18;
 extern GFunc0Table4  D_80013F1C;
 extern GFunc30Table6 D_80013F2C;
 extern void          func_8002C9E0(s32 arg0);
@@ -280,7 +281,9 @@ extern void       func_800517B4(s32 arg0);
 extern s32        func_800517F8(void);
 extern u8*        func_80051808(void);
 extern void*      func_80051850(s32 arg0, s32 arg1);
+extern s32        func_80051460(s32 arg0, s32 arg1);
 extern void       func_80051888(void);
+extern void       func_800518E0(void);
 extern void       func_80051AB8(GStruct36* arg0);
 extern void       func_80051AF0(GStruct36* arg0);
 extern void*      func_80053548(s32 arg0, s32 arg1, u32 arg2);
@@ -466,6 +469,7 @@ extern TaskDesc     D_8006269C;
 extern void*        D_800626A8;
 extern u8           D_80062734;
 extern u8           D_80062736;
+extern u8           D_80062737;
 extern u8           D_80062738;
 extern u8           D_80062739;
 extern GPairU8*     D_8006273C[];
@@ -515,6 +519,7 @@ extern u16           D_8007A35C;
 extern u16           D_8007A35E;
 extern void*         D_8007A360;
 extern u8            D_8007A394;
+extern s16           D_8007A396;
 extern u8            D_8007E0CC;
 extern s32           D_8007E0D4;
 extern GStruct42     D_8007E0D8[];
@@ -537,7 +542,9 @@ extern DR_TPAGE* D_80071190; // primitive buffer cursor
 // 61F10
 extern GStruct23 D_80072168;
 // Alias of D_80072168.field_1a9 (offset 0x1A9); loaded with lb in audio setup.
-extern s8        D_80072311;
+extern s8 D_80072311;
+// Alias of D_80072168.field_1aa (offset 0x1AA).
+extern u8        D_80072312;
 extern u8        D_800733F0[2][0x6C];
 extern u8        D_800734C8[2][0xB0];
 extern u8        D_80073628[2][0x24];

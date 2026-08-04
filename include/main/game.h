@@ -212,6 +212,11 @@ STATIC_ASSERT_SIZEOF(GStruct10, 0x67C);
 
 // FsImgBuffers / FsWorkEntry / FsLoadParams live in main/fs.h
 
+/// 4-byte block assigned via unaligned lwl/lwr (see func_800429C8).
+typedef struct _GBytes4 {
+    u8 data[4];
+} GBytes4;
+
 /// 8-byte block assigned via unaligned lwl/lwr (see func_8002BF10).
 typedef struct _GBytes8 {
     u8 data[8];
