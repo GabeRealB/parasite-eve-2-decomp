@@ -724,16 +724,18 @@ typedef struct _GStruct38 {
 STATIC_ASSERT_SIZEOF(GStruct38, 0x10);
 
 /// BSS object D_80082758 (size 0x18). CD/audio stream state for 46FE4.c.
+/// field_C is a base pointer into a halfword table; func_80057A1C indexes it
+/// with ((packed >> 14) & 0x3FC) / 2 (4-byte stride, low halfword of each slot).
 typedef struct _GStruct39 {
-    /* 0x00 */ u8  field_0;
-    /* 0x01 */ u8  field_1;
-    /* 0x02 */ u8  field_2;
-    /* 0x03 */ u8  pad_3;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
-    /* 0x14 */ s32 field_14;
+    /* 0x00 */ u8   field_0;
+    /* 0x01 */ u8   field_1;
+    /* 0x02 */ u8   field_2;
+    /* 0x03 */ u8   pad_3;
+    /* 0x04 */ s32  field_4;
+    /* 0x08 */ s32  field_8;
+    /* 0x0C */ u16* field_C;
+    /* 0x10 */ s32  field_10;
+    /* 0x14 */ s32  field_14;
 } GStruct39;
 STATIC_ASSERT_SIZEOF(GStruct39, 0x18);
 

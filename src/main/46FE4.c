@@ -234,7 +234,18 @@ void func_800579A0(s8* arg0, s8* arg1)
     F3E48C_DisableVoice(*arg1);
 }
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_80057A1C);
+s32 func_80057A1C(s32 arg0)
+{
+    u32  temp_v0;
+    u16* table;
+
+    temp_v0            = ((u32*)D_80082778)[D_80082754 + (arg0 & 0xFF)];
+    D_800827A0.field_2 = (temp_v0 >> 17) & 0x3F80;
+    D_80082758.field_0 = temp_v0 >> 31;
+    table              = D_80082758.field_C;
+    D_80082758.field_4 = table[((temp_v0 >> 14) & 0x3FC) / 2];
+    return temp_v0 & 0xFFFF;
+}
 
 s32 func_80057A88(s32 arg0)
 {
