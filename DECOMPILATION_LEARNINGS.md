@@ -2673,3 +2673,35 @@ increment tends to CSE a separate address for a mid-struct halfword field
 one base and `sb 0` / `sb 1` / `sh 2` plus `addiu base, 4` in the branch delay.
 
 `func_8002CA54` (`GStruct25::field_10[2][8]`) is the example.
+
+## Capture a reused halfword field so `%lo` wins and `$a0` stays free
+
+When the same global halfword is tested and then compared against another
+value, writing both accesses as bare `global.field` can make GCC materialise
+`&global` into `$a0`:
+
+```
+lui    v0,%hi(D_80070F68)
+addiu  a0,v0,%lo(D_80070F68)
+lhu    v1,0x12a(a0)
+```
+
+That steals `$a0` from another live value the target keeps there (e.g. an
+earlier `lhu a0, %lo(other_global)`), and it also breaks the pure
+`lhu v1,%lo(D_80070F68+0x12a)(v0)` form.
+
+Fix: load the field into a local once and reuse that local for both the
+equality-to-constant test and the later compare:
+
+```c
+ac14 = D_8006AC14;          /* stays in $a0 */
+f12a = D_80070F68.field_12a; /* lhu v1, %lo(...+0x12a)(v0) */
+if (f12a == 1) {
+    if (ac14 == f12a) { /* bne a0, v1 — both already live */
+        ...
+    }
+}
+D_80070F68.field_106 = 0; /* separate lui after calls; delay-slot-friendly */
+```
+
+`func_8001F2FC` is the pure example (`D_8006AC14` vs `D_80070F68.field_12a`).

@@ -185,11 +185,15 @@ typedef struct _CdCmdQueue {
     byte       unknown_1d8[0x6];
     u16        field_1DE; // state for func_8001E2D4
     u16        field_1E0;
-    byte       unknown_1E2[0x4];
+    u16        field_1E2;
+    u16        field_1E4;
     s16        field_1E6;
     byte       unknown_1E8[0x2];
     s16        field_1EA;
-    byte       unknown_1EC[0x10];
+    byte       unknown_1EC[0x8];
+    u16        field_1F4;
+    byte       unknown_1F6[0x4];
+    u16        field_1FA;
     u16        field_1fc;
     u8         field_1FE; // load status (0xFF = idle/done in several paths)
     u8         field_1FF;
@@ -212,7 +216,10 @@ typedef struct _CdCmdQueue {
     s16        field_236;
     byte       unknown_238[0xA];
     s16        field_242;
-    byte       unknown_244[0xE];
+    u16        field_244;
+    byte       unknown_246[0x4];
+    u16        field_24A;
+    byte       unknown_24C[0x6];
     s16        busy; // 0x252 — non-zero while a blocking load is active
 } CdCmdQueue;
 STATIC_ASSERT_SIZEOF(CdCmdQueue, 0x254);

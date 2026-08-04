@@ -26,6 +26,7 @@ extern void              func_80014C2C(void);
 // Fs_StageCdfIsAvailable, Boot_LoadInitialFile → main/fs.h
 
 // E734.c
+extern s32  func_8001E2D4(void);
 extern s32  func_8001E6AC(s32 arg0, s32 arg1);
 extern void func_8002D248(GStruct0Node* node);
 
@@ -332,7 +333,9 @@ extern s32  func_8005BB4C(void);
 extern void func_8005BBB0(s32 arg0);
 
 // F344.c
+extern u16        D_8006AC14;
 extern s16        D_8006AC28;
+extern u16        D_8006AC3C;
 extern void       func_80020388(void);
 extern s16        func_8001EDC8(void* arg0, u16 arg1, u16 arg2);
 extern u32        func_8001F180(u32);

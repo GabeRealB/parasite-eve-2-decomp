@@ -1,5 +1,12 @@
 #include "common.h"
 
+#include <psyq/libcd.h>
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libpress.h>
+
+#include "main/fs.h"
+#include "main/game.h"
 #include "main/unknown_syms.h"
 
 INCLUDE_ASM("main/nonmatchings/F344", func_8001EB44);
@@ -14,7 +21,53 @@ INCLUDE_ASM("main/nonmatchings/F344", func_8001EF9C);
 
 INCLUDE_ASM("main/nonmatchings/F344", func_8001F180);
 
-INCLUDE_ASM("main/nonmatchings/F344", func_8001F2FC);
+s32 func_8001F2FC(s32 arg0)
+{
+    RECT        rect;
+    s32         ac14;
+    s32         f12a;
+    CdCmdQueue* p;
+
+    if (func_8001E2D4() & 0xFFFF) {
+        p = &CdCmd_Queue;
+        DecDCToutCallback(0);
+        DecDCTReset(0);
+        StClearRing();
+        StUnSetRing();
+        ac14               = D_8006AC14;
+        D_800710A8.field_6 = 0;
+        p->field_24A       = 0;
+        p->field_1FA       = 0;
+        p->field_1F4       = 0;
+        p->field_1E2       = 0;
+        p->field_1E4       = 0;
+        if (ac14 != 0) {
+            f12a = D_80070F68.field_12a;
+            if (f12a == 1) {
+                if (arg0 & 0xFFFF) {
+                    rect.y = 0;
+                    rect.x = 0;
+                    if (ac14 == f12a) {
+                        rect.w = 0x1E0;
+                    } else {
+                        rect.w = 0x140;
+                    }
+                    rect.h = 0xF0;
+                    ClearImage(&rect, 0, 0, 0);
+                    rect.y = 0x110;
+                    ClearImage(&rect, 0, 0, 0);
+                }
+                func_8003DB48(0xD010);
+            }
+            p->field_1E6         = 0;
+            D_80070F68.field_106 = 0;
+        } else if (D_8006AC3C != 0) {
+            p->field_244 = 0;
+        }
+        return 1;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/F344", func_8001F430);
 
