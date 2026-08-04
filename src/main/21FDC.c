@@ -845,7 +845,30 @@ void func_80036C04(GStruct0* arg0)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80036CF0);
+void func_80036CF0(GStruct0* arg0)
+{
+    void*      obj;
+    s32        data;
+    GStruct46* menu;
+    s32        val;
+
+    obj = arg0->field_20;
+    if (arg0->field_30 == 0) {
+        arg0->field_2a  = (u16)arg0->field_34;
+        data            = arg0->field_8->field_34;
+        arg0->field_30 += 1;
+        arg0->field_34  = data;
+    }
+    data = arg0->field_34;
+    func_80048E38(obj, D_80013BB4);
+    if (arg0->field_2a == 1) {
+        menu = &D_80061194;
+    } else {
+        menu = &D_8006116C;
+    }
+    val = menu->field_10;
+    func_800330D8(obj, data, val, 0, 0);
+}
 
 void func_80036D98(GStruct60* arg0, GStruct37* arg1)
 {

@@ -3206,3 +3206,45 @@ do { ...; i++; slot++; } while (i < 0x12);
 ```
 
 `func_80051AF0` is the pure example.
+
+## Call-arg width: wrong prototype gives `lb` instead of `lw`
+
+When the target loads a struct field into `$aN` with `lw` for a call argument,
+but your build emits `lb`/`lh`/`lhu`, the callee's prototype is almost always
+too narrow. GCC loads only as much as the parameter type requires.
+
+```c
+/* Wrong — third param is s8, so menu->field_10 (s32) becomes lb a2,0x10(v0) */
+extern void func_800330D8(void* a0, s32 a1, s8 a2, s32 a3, s32 a4);
+
+/* Right — s32 third param yields lw a2,0x10(v0) */
+extern void func_800330D8(void* a0, s32 a1, s32 a2, s32 a3, s32 a4);
+```
+
+`func_80036CF0` is the pure example: the header had `s8` for arg2, but the
+target always used `lw` of `GStruct46::field_10`. Callers that pass an `s8`
+local still match after the widen (default argument promotion).
+
+## Pull a call arg into a local so the stack-arg store fills the `jal` delay
+
+For a 5-arg call whose last two args are zeros, the target often does:
+
+```
+move  a0, ...
+move  a1, ...
+lw    a2, off(v0)     /* field used as 3rd arg */
+move  a3, zero
+jal   func
+ sw   zero, 0x10(sp)  /* 5th arg in delay slot */
+```
+
+Writing `func(obj, data, menu->field_10, 0, 0)` can schedule the stack store
+*before* the field load and put `move a3,zero` in the delay slot instead.
+Forcing the field into a local first restores the target order:
+
+```c
+val = menu->field_10;
+func_800330D8(obj, data, val, 0, 0);
+```
+
+`func_80036CF0` is the pure example.

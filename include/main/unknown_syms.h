@@ -152,9 +152,11 @@ extern u8 D_80060A64[];
 extern GStruct62 D_80060D08[];
 // "Memory Card" string passed to func_80048E38 by func_80033EB0
 extern char D_8001398C[];
+// "File Information" string passed to func_80048E38 by func_80036CF0
+extern char D_80013BB4[];
 
 // 21FDC.c
-extern void func_800330D8(void* arg0, s32 arg1, s8 arg2, s32 arg3, s32 arg4);
+extern void func_800330D8(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 // 32B64.c
 extern void func_80042364(s32 arg0, s32 arg1, s32 arg2);
