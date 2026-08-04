@@ -93,7 +93,29 @@ void func_80020388(void)
     D_8006AC28 = 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/F344", func_80020394);
+s16 func_80020394(void* arg0)
+{
+    s32 i;
+    s32 result;
+
+    i      = 0;
+    result = 0;
+    while (1) {
+        if (D_8006D4F0[i & 0xFFFF].field_0 == 1) {
+            if (D_8006D4F0[i & 0xFFFF].field_E < 0x64U) {
+                if (D_8006D4F0[i & 0xFFFF].field_4 != 0) {
+                    result = 1;
+                    break;
+                }
+            }
+        }
+        i = i + 1;
+        if ((u32)(i & 0xFFFF) >= 0xFU) {
+            break;
+        }
+    }
+    return result;
+}
 
 u16 func_80020414(u32 arg0)
 {
