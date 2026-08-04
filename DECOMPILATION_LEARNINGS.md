@@ -3852,3 +3852,50 @@ arg0->field_30 = arg0->field_30 + 1;
 ```
 
 `func_8002BC0C` is the pure example.
+
+## Per-branch stores beat a phi-merged store for load/store ordering
+
+When both arms of an if/else write the same field and the target then loads a
+*different* field of the same object:
+
+```
+beqz  v0, else
+ ...
+addiu v0, v0, 1     /* if path: state + 1 */
+j     join
+else:
+li    v0, 6
+join:
+sw    v0, 0x30(s2)  /* store first */
+li    a1, 1
+lw    s0, 0x20(s2)  /* then load sibling field */
+```
+
+writing a shared store after the if often lets the subsequent `lw` sink above
+the `sw` (same base, different offset — no dependence):
+
+```c
+/* sinks: lw field_20, then sw field_30 */
+if (ok) {
+    state = p->field_30 + 1;
+} else {
+    state = 6;
+}
+p->field_30 = state;
+obj = p->field_20;
+```
+
+Store in each arm instead. GCC still emits the shared `sw` after the join, but
+keeps it *before* the sibling load:
+
+```c
+if (ok) {
+    p->field_4 = 0;
+    p->field_30 = p->field_30 + 1;
+} else {
+    p->field_30 = 6;
+}
+obj = p->field_20;
+```
+
+`func_800365B0` is the pure example (with `register asm` pins for `s0`/`s1`/`s2`).
