@@ -411,7 +411,45 @@ INCLUDE_ASM("main/nonmatchings/43FFC", func_80055EF8);
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80055F70);
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80056068);
+void func_80056068(GStruct43* arg0)
+{
+    GStruct43* temp_v0;
+    GStruct43* temp_v1;
+
+    if (arg0 != NULL) {
+        temp_v0       = arg0->field_38;
+        arg0->field_8 = 0;
+        arg0->field_0 = 0;
+        if (temp_v0 == NULL) {
+            temp_v1 = arg0->field_3C;
+            if (temp_v1 == NULL) {
+                temp_v0 = (GStruct43*)arg0->field_34;
+                if (temp_v0 != NULL) {
+                    ((GStruct57*)temp_v0)->field_40 = NULL;
+                }
+            } else {
+                temp_v0 = (GStruct43*)arg0->field_34;
+                if (temp_v0 != NULL) {
+                    ((GStruct57*)temp_v0)->field_40 = temp_v1;
+                }
+                temp_v0           = arg0->field_3C;
+                temp_v0->field_38 = NULL;
+            }
+        } else {
+            temp_v1 = arg0->field_3C;
+            if (temp_v1 == NULL) {
+                temp_v0->field_3C = NULL;
+            } else {
+                temp_v0->field_3C = temp_v1;
+                temp_v1           = arg0->field_3C;
+                temp_v0           = arg0->field_38;
+                temp_v1->field_38 = temp_v0;
+            }
+        }
+        arg0->field_38 = NULL;
+        arg0->field_3C = NULL;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80056104);
 
