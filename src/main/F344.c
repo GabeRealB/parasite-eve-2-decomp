@@ -7,6 +7,7 @@
 
 #include "main/fs.h"
 #include "main/game.h"
+#include "main/mem.h"
 #include "main/unknown_syms.h"
 
 INCLUDE_ASM("main/nonmatchings/F344", func_8001EB44);
@@ -86,7 +87,35 @@ GStruct24* func_80020278(u32 arg0)
     return &D_8006D4F0[arg0 & 0xFFFF];
 }
 
-INCLUDE_ASM("main/nonmatchings/F344", func_80020298);
+void func_80020298(s16 arg0)
+{
+    RECT        rect;
+    CdCmdQueue* p;
+
+    p = &CdCmd_Queue;
+    func_80041E4C();
+    Mem_SetActiveAuxHeap(0);
+    Mem_InitAux();
+    if (D_80070F68.field_12a == 0) {
+        D_8006AC40 = Mem_Malloc(0x4A800, 1);
+    } else {
+        D_8006AC40 = Mem_Malloc(0x45400, 1);
+    }
+    if ((arg0 & 0xFFFF) != 0) {
+        rect.x = 0x140;
+        rect.y = 0;
+        rect.w = 0xA0;
+        rect.h = 0x100;
+        MoveImage2(&rect, 0x2C0, 0);
+        rect.x = 0x140;
+        rect.y = 0x100;
+        rect.w = 0xA0;
+        rect.h = 0x100;
+        MoveImage2(&rect, 0x360, 0);
+    }
+    D_8006AC1E   = arg0;
+    p->field_244 = 1;
+}
 
 void func_80020388(void)
 {

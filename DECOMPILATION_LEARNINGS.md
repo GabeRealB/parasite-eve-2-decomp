@@ -2817,3 +2817,47 @@ case 4:
 ```
 
 `func_80049478` is the pure example.
+
+## Dual large constants: call in both if/else arms for shared `lui` + `j`
+
+When two multi-instruction constants share the same high 16 bits (e.g.
+`0x4A800` vs `0x45400`, both `lui a0,4` + different `ori`), assigning either to
+a temp then calling once:
+
+```c
+if (flag == 0) {
+    size = 0x4A800;
+} else {
+    size = 0x45400;
+}
+ptr = Mem_Malloc(size, 1);
+```
+
+lets GCC hoist the shared `lui` before the branch and emit `bnez`/`beqz` with a
+re-`lui` in the fall-through arm (~95%). The target often wants:
+
+```
+bnez  cond, L_if
+  lui   a0, HI        /* delay: shared high half */
+j     L_join
+  ori   a0, a0, LO_else
+L_if:
+  ori   a0, a0, LO_if
+L_join:
+  jal   Mem_Malloc
+```
+
+Force that layout by writing the call in **both** arms (same destination). GCC
+CSEs the calls back to one `jal` while keeping the `j` + shared-`lui`-in-delay
+form:
+
+```c
+if (flag == 0) {
+    ptr = Mem_Malloc(0x4A800, 1);
+} else {
+    ptr = Mem_Malloc(0x45400, 1);
+}
+```
+
+Polarity still matters: fall-through must be the `== 0` arm (`bnez` to the
+non-zero constant). `func_80020298` is the pure example.

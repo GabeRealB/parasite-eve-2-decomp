@@ -341,8 +341,10 @@ extern void func_8005BBB0(s32 arg0);
 
 // F344.c
 extern u16        D_8006AC14;
+extern s16        D_8006AC1E;
 extern s16        D_8006AC28;
 extern u16        D_8006AC3C;
+extern void       func_80020298(s16 arg0);
 extern void       func_80020388(void);
 extern s16        func_8001EDC8(void* arg0, u16 arg1, u16 arg2);
 extern u32        func_8001F180(u32);
@@ -374,6 +376,7 @@ extern void func_8004017C(void);
 extern void func_800405E0(void);
 extern void func_800410F0(GStruct27* arg0);
 extern void func_800418C0(GStruct27* arg0);
+extern void func_80041E4C(void);
 extern void func_8004CC58(s32 arg0);
 extern void func_8004CFC8(void);
 extern void F3D458_ResetHeap(void);
