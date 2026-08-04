@@ -444,7 +444,40 @@ void func_80055C8C(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80055CE0);
+void func_80055CE0(void)
+{
+    u32  i;
+    s32* ptr;
+
+    ptr = (s32*)D_80082248;
+    i   = 0;
+    do {
+        *ptr = 0;
+        i++;
+        ptr++;
+    } while (i < 0xC0U);
+
+    ptr = (s32*)D_80082148;
+    i   = 0;
+    do {
+        *ptr = 0;
+        i++;
+        ptr++;
+    } while (i < 0x40U);
+
+    ptr = (s32*)D_80082548;
+    i   = 0;
+    do {
+        *ptr = 0;
+        i++;
+        ptr++;
+    } while (i < 0x80U);
+
+    D_8008274A = 0;
+    D_80082749 = 0;
+    func_80055DFC(0x7F);
+    func_80055D78(1);
+}
 
 void func_80055D78(s8 arg0)
 {
