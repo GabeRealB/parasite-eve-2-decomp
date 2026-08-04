@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/mc.h"
 
 #include <psyq/libmcrd.h>
 
@@ -6,9 +7,9 @@
 #include "main/mem.h"
 #include "main/unknown_syms.h"
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_800317DC);
+INCLUDE_ASM("main/nonmatchings/mc", func_800317DC);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_800319E4);
+INCLUDE_ASM("main/nonmatchings/mc", func_800319E4);
 
 void Mc_StateCreateFile(Task* arg0, McWork* arg1)
 {
@@ -57,13 +58,13 @@ void Mc_StateCreateFile(Task* arg0, McWork* arg1)
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80031C5C);
+INCLUDE_ASM("main/nonmatchings/mc", func_80031C5C);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80031DA4);
+INCLUDE_ASM("main/nonmatchings/mc", func_80031DA4);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80031F94);
+INCLUDE_ASM("main/nonmatchings/mc", func_80031F94);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_800322B0);
+INCLUDE_ASM("main/nonmatchings/mc", func_800322B0);
 
 void Mc_StateFormat(Task* arg0, McWork* arg1)
 {
@@ -104,19 +105,19 @@ void Mc_StateFormat(Task* arg0, McWork* arg1)
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80032578);
+INCLUDE_ASM("main/nonmatchings/mc", func_80032578);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_800327A4);
+INCLUDE_ASM("main/nonmatchings/mc", func_800327A4);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_800328FC);
+INCLUDE_ASM("main/nonmatchings/mc", func_800328FC);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80032AB0);
+INCLUDE_ASM("main/nonmatchings/mc", func_80032AB0);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80032D54);
+INCLUDE_ASM("main/nonmatchings/mc", func_80032D54);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80032F5C);
+INCLUDE_ASM("main/nonmatchings/mc", func_80032F5C);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_800330D8);
+INCLUDE_ASM("main/nonmatchings/mc", func_800330D8);
 
 u16* Mc_EncodeAsciiGlyphs(s8* arg0, u16* arg1)
 {
@@ -618,15 +619,15 @@ void Mc_ResetWork(Task* arg0, McWork* arg1)
     arg0->field_30++;
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_800340A4);
+INCLUDE_ASM("main/nonmatchings/mc", func_800340A4);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_8003415C);
+INCLUDE_ASM("main/nonmatchings/mc", func_8003415C);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_8003429C);
+INCLUDE_ASM("main/nonmatchings/mc", func_8003429C);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_800343D0);
+INCLUDE_ASM("main/nonmatchings/mc", func_800343D0);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_800344B4);
+INCLUDE_ASM("main/nonmatchings/mc", func_800344B4);
 
 void func_800345CC(Task* arg0, McWork* arg1)
 {
@@ -668,7 +669,7 @@ void func_800346AC(Task* arg0, McWork* arg1)
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_8003477C);
+INCLUDE_ASM("main/nonmatchings/mc", func_8003477C);
 
 void func_80034894(Task* arg0, McWork* arg1)
 {
@@ -695,9 +696,9 @@ void func_80034894(Task* arg0, McWork* arg1)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80034938);
+INCLUDE_ASM("main/nonmatchings/mc", func_80034938);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80034A40);
+INCLUDE_ASM("main/nonmatchings/mc", func_80034A40);
 
 void func_80034B38(Task* arg0)
 {
@@ -782,7 +783,7 @@ void func_80034C54(Task* arg0, McWork* arg1)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80034D50);
+INCLUDE_ASM("main/nonmatchings/mc", func_80034D50);
 
 void func_80034E3C(Task* arg0, McWork* arg1)
 {
@@ -850,7 +851,7 @@ void func_80034F2C(Task* arg0, McWork* arg1)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80034FB4);
+INCLUDE_ASM("main/nonmatchings/mc", func_80034FB4);
 
 void func_800350B0(Task* arg0, McWork* arg1)
 {
@@ -872,7 +873,7 @@ void func_800350B0(Task* arg0, McWork* arg1)
     arg0->field_30 = 0x1F;
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80035180);
+INCLUDE_ASM("main/nonmatchings/mc", func_80035180);
 
 void func_8003527C(Task* arg0, McWork* arg1)
 {
@@ -929,7 +930,7 @@ void Mc_StateOpenSelected(Task* arg0, McWork* arg1)
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80035464);
+INCLUDE_ASM("main/nonmatchings/mc", func_80035464);
 
 void Mc_StateOpenNext(Task* arg0, McWork* arg1)
 {
@@ -1053,7 +1054,7 @@ void func_80035960(Task* arg0, McWork* arg1)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_800359A4);
+INCLUDE_ASM("main/nonmatchings/mc", func_800359A4);
 
 void func_80035A94(Task* arg0, McWork* arg1)
 {
@@ -1136,7 +1137,7 @@ void Mc_StateCloseReturn(Task* arg0, McWork* arg1)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80035D14);
+INCLUDE_ASM("main/nonmatchings/mc", func_80035D14);
 
 void func_80035E18(Task* arg0)
 {
@@ -1174,7 +1175,7 @@ void func_80035E48(Task* arg0, McWork* arg1)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80035ED4);
+INCLUDE_ASM("main/nonmatchings/mc", func_80035ED4);
 
 void func_80035FD8(Task* arg0, McWork* arg1)
 {
@@ -1248,9 +1249,9 @@ void func_800360C8(Task* arg0, McWork* arg1)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_800361C0);
+INCLUDE_ASM("main/nonmatchings/mc", func_800361C0);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_800362A4);
+INCLUDE_ASM("main/nonmatchings/mc", func_800362A4);
 
 void func_800363AC(Task* arg0, McWork* arg1)
 {
@@ -1272,7 +1273,7 @@ void func_800363AC(Task* arg0, McWork* arg1)
     arg0->field_30 = arg0->field_30 + 1;
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80036488);
+INCLUDE_ASM("main/nonmatchings/mc", func_80036488);
 
 void func_800365B0(Task* arg0, McWork* arg1)
 {
@@ -1309,7 +1310,7 @@ void func_800365B0(Task* arg0, McWork* arg1)
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_800366BC);
+INCLUDE_ASM("main/nonmatchings/mc", func_800366BC);
 
 void func_800367CC(Task* arg0, McWork* arg1)
 {
@@ -1376,223 +1377,4 @@ void func_800368DC(Task* arg0, McWork* arg1)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_80036968);
-
-void func_80036A1C(void)
-{
-    char pad[0x10];
-}
-
-void func_80036A2C(void* arg0, GStruct20* arg1)
-{
-    func_80048C10(arg0, arg1);
-    if (arg1->field_0 == 1) {
-        func_80048D58(arg1, arg1->field_1c + 2, 0);
-    }
-}
-
-void func_80036A70(Task* arg0)
-{
-    GStruct20* obj;
-    UiList*    menu;
-
-    obj  = arg0->field_20;
-    menu = &D_8006116C;
-    func_80047F40(obj, D_80013B64);
-    if (arg0->field_30 == 0) {
-        func_800489A0(menu, obj);
-        menu->field_A  = 1;
-        menu->field_10 = 0;
-        menu->field_9  = 0;
-        func_8004917C(menu, 1);
-        arg0->field_30 += 1;
-    } else {
-        func_80048C10(menu, obj);
-        if (obj->field_0 == 1) {
-            func_80048D58(obj, obj->field_1c + 2, 0);
-        }
-    }
-}
-
-void func_80036B2C(GStruct60* arg0, UiObject* arg1)
-{
-    s16 var_v0;
-    s32 temp;
-    s8  temp2;
-
-    temp2 = arg0->field_8;
-    temp  = arg1->field_28->field_34;
-    func_800330D8(arg1, temp, temp2, 0, arg0->field_1A + 7);
-    if (arg0->field_C == 1) {
-        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
-            func_8005414C(0x16, 0, 0);
-            arg1->field_2E = 6;
-            var_v0         = (s8)(u8)arg0->field_8;
-            goto block_5;
-        }
-        if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
-            func_8005414C(0x3B, 0, 0);
-            arg1->field_2E = 6;
-            var_v0         = -1;
-        block_5:
-            arg1->field_2C = var_v0;
-        }
-    }
-}
-
-void func_80036C04(Task* arg0)
-{
-    GStruct20* obj;
-    UiList*    menu;
-    GStruct64* ctx;
-    s32        temp;
-
-    obj  = arg0->field_20;
-    ctx  = (GStruct64*)arg0->field_34;
-    menu = &D_80061194;
-    func_80047F40(obj, D_80013B64);
-    if (arg0->field_30 == 0) {
-        func_800489A0(menu, obj);
-        menu->field_A  = 1;
-        menu->field_10 = ctx->field_290;
-        temp           = (u8)menu->field_10 - menu->field_5 + 1;
-        menu->field_9  = temp;
-        if ((s8)temp < 0) {
-            menu->field_9 = 0;
-        }
-        func_8004917C(menu, 1);
-        arg0->field_30 += 1;
-    } else {
-        func_80048C10(menu, obj);
-        if (obj->field_0 == 1) {
-            func_80048D58(obj, obj->field_1c + 2, 0);
-        }
-    }
-}
-
-void func_80036CF0(Task* arg0)
-{
-    void*   obj;
-    s32     data;
-    UiList* menu;
-    s32     val;
-
-    obj = arg0->field_20;
-    if (arg0->field_30 == 0) {
-        arg0->field_2a  = (u16)arg0->field_34;
-        data            = arg0->field_8->field_34;
-        arg0->field_30 += 1;
-        arg0->field_34  = data;
-    }
-    data = arg0->field_34;
-    func_80048E38(obj, D_80013BB4);
-    if (arg0->field_2a == 1) {
-        menu = &D_80061194;
-    } else {
-        menu = &D_8006116C;
-    }
-    val = menu->field_10;
-    func_800330D8(obj, data, val, 0, 0);
-}
-
-void func_80036D98(GStruct60* arg0, UiObject* arg1)
-{
-    s32 temp;
-
-    func_8002FDCC(arg1, arg0->field_18, arg0->field_1A, D_80060A54, arg0->field_1C, 1, 0);
-    temp = arg0->field_C;
-    if (temp == 1) {
-        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
-            func_8005414C(0x16, 0, 0);
-            arg1->field_2E = 6;
-            arg1->field_2C = temp;
-        } else if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
-            func_8005414C(0x15, 0, 0);
-            arg0->field_B  = temp;
-            arg0->field_22 = 0x41;
-        }
-    }
-}
-
-void func_80036E78(GStruct60* arg0, UiObject* arg1)
-{
-    s32 temp;
-
-    func_8002FDCC(arg1, arg0->field_18, arg0->field_1A, D_80060A64, arg0->field_1C, 1, 0);
-    temp = arg0->field_C;
-    if (temp == 1) {
-        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
-            func_8005414C(0x16, 0, 0);
-            arg1->field_2E = 6;
-            arg1->field_2C = temp;
-        }
-    }
-}
-
-void func_80036F18(GStruct60* arg0, UiObject* arg1)
-{
-    s32 temp;
-
-    func_8002FDCC(arg1, arg0->field_18, arg0->field_1A, D_80060A5C, arg0->field_1C, 1, 0);
-    temp = arg0->field_C;
-    if (temp == 1) {
-        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
-            func_8005414C(0x3B, 0, 0);
-            arg1->field_2E = 6;
-            arg1->field_2C = temp;
-        }
-    }
-}
-
-void func_80036FB8(GStruct60* arg0, UiObject* arg1)
-{
-    func_8002FDCC(arg1, arg0->field_18, arg0->field_1A, D_80060A58, arg0->field_1C, 1, 0);
-    if (arg0->field_C == 1) {
-        if (Pad_CheckButtons(0, 1, D_8005ED70 | D_8005ED74) != 0) {
-            func_8005414C(0x3B, 0, 0);
-            arg1->field_2E = 6;
-            arg1->field_2C = -1;
-        }
-    }
-}
-
-void func_80037068(Task* arg0)
-{
-    GStruct30* obj;
-    UiList*    menu;
-    s32        mode;
-
-    mode = arg0->field_34;
-    obj  = arg0->field_20;
-    if (mode == 2) {
-        goto block_2;
-    }
-    if (mode >= 3) {
-        goto block_default;
-    }
-    if (mode != 1) {
-        goto block_default;
-    }
-    menu = &D_80061284;
-    goto block_done;
-block_2:
-    menu = &D_800612AC;
-    goto block_done;
-block_default:
-    menu = &D_8006125C;
-block_done:
-    if (arg0->field_30 == 0) {
-        func_80046830(menu, obj);
-        obj->field_C.y -= obj->field_C.h / 2;
-        if (arg0->field_34 != 3) {
-            menu->field_10 = 0;
-        } else {
-            menu->field_10 = 1;
-        }
-        menu->field_9 = 0;
-        func_8004917C(menu, 1);
-        arg0->field_30 += 1;
-    } else {
-        func_80048C10(menu, obj);
-    }
-}
+INCLUDE_ASM("main/nonmatchings/mc", func_80036968);

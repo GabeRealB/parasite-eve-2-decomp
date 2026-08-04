@@ -34,7 +34,7 @@ InitHeap                    = 0x800144D8;
 SetSp                       = 0x800144E8;
 
 //--------------------------------------------------------------------
-//--- PA: 0x04CF8   VA: 0x800144F8   subsegment: c, 4CF8
+//--- PA: 0x04CF8   VA: 0x800144F8   subsegment: c, boot
 //--------------------------------------------------------------------
 func_800144F8               = 0x800144F8; // type:func
 Boot_LoadInitialFile        = 0x80014650; // type:func
@@ -309,7 +309,7 @@ DsStartCallback             = 0x8001BB44;
 DsDataCallback              = 0x8001BB58;
 
 //--------------------------------------------------------------------
-//--- PA: 0x0C37C   VA: 0x8001BB7C   subsegment: c, C37C
+//--- PA: 0x0C37C   VA: 0x8001BB7C   subsegment: c, cdcmd
 //--------------------------------------------------------------------
 func_8001BB7C               = 0x8001BB7C; // type:func
 func_8001BE60               = 0x8001BE60; // type:func
@@ -564,7 +564,7 @@ _spu_FsetPCR                = 0x800270C4;
 _spu_Fw1ts                  = 0x8002716C;
 
 //--------------------------------------------------------------------
-//--- PA: 0x179D4   VA: 0x800271D4   subsegment: c, 179D4
+//--- PA: 0x179D4   VA: 0x800271D4   subsegment: c, gamemain
 //--------------------------------------------------------------------
 func_800271D4               = 0x800271D4; // type:func
 func_8002731C               = 0x8002731C; // type:func
@@ -602,7 +602,7 @@ _patch_gte                  = 0x80028574;
 FlushCache                  = 0x80028654;
 
 //--------------------------------------------------------------------
-//--- PA: 0x18E64   VA: 0x80028644   subsegment: c, 18E64
+//--- PA: 0x18E64   VA: 0x80028644   subsegment: c, pad
 //--------------------------------------------------------------------
 Pad_Init                    = 0x80028664; // type:func
 func_80028718               = 0x80028718; // type:func
@@ -702,6 +702,10 @@ func_8002C028               = 0x8002C028; // type:func
 func_8002C090               = 0x8002C090; // type:func
 func_8002C1D8               = 0x8002C1D8; // type:func
 func_8002C5A4               = 0x8002C5A4; // type:func
+
+//--------------------------------------------------------------------
+//--- PA: 0x1D068   VA: 0x8002C868   subsegment: c, padutil
+//--------------------------------------------------------------------
 Pad_CheckButtons            = 0x8002C868; // type:func
 func_8002C8E4               = 0x8002C8E4; // type:func
 Pad_SetCooldown             = 0x8002C9B0; // type:func
@@ -709,6 +713,10 @@ Pad_ClearCooldown           = 0x8002C9E0; // type:func
 Pad_ReadButtonsInv          = 0x8002CA0C; // type:func
 Pad_ClearEvents             = 0x8002CA54; // type:func
 Pad_CheckSpecialCombo       = 0x8002CAB8; // type:func
+
+//--------------------------------------------------------------------
+//--- PA: 0x1D304   VA: 0x8002CB04   subsegment: c, task
+//--------------------------------------------------------------------
 Task_SpawnFromDesc          = 0x8002CB04; // type:func
 Task_Kill                   = 0x8002CCB8; // type:func
 Task_SpawnFromTable         = 0x8002CFA0; // type:func
@@ -819,7 +827,7 @@ func_800312DC               = 0x800312DC; // type:func
 func_800314D0               = 0x800314D0; // type:func
 
 //--------------------------------------------------------------------
-//--- PA: 0x21FDC   VA: 0x800317DC   subsegment: c, 21FDC
+//--- PA: 0x21FDC   VA: 0x800317DC   subsegment: c, mc
 //--------------------------------------------------------------------
 func_800317DC               = 0x800317DC; // type:func
 func_800319E4               = 0x800319E4; // type:func
@@ -907,6 +915,10 @@ func_800366BC               = 0x800366BC; // type:func
 func_800367CC               = 0x800367CC; // type:func
 func_800368DC               = 0x800368DC; // type:func
 func_80036968               = 0x80036968; // type:func
+
+//--------------------------------------------------------------------
+//--- PA: 0x2721C   VA: 0x80036A1C   subsegment: c, mcmenu
+//--------------------------------------------------------------------
 func_80036A1C               = 0x80036A1C; // type:func
 func_80036A2C               = 0x80036A2C; // type:func
 func_80036A70               = 0x80036A70; // type:func

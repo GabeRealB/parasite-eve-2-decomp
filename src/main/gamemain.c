@@ -1,4 +1,6 @@
 #include "common.h"
+#include "main/gamemain.h"
+#include "main/display.h"
 
 #include <psyq/libetc.h>
 #include <psyq/libgte.h>
@@ -55,17 +57,17 @@ void func_800271D4(void)
     Mem_Set(D_800626A8, 0, 0x1C);
 }
 
-INCLUDE_ASM("main/nonmatchings/179D4", func_8002731C);
+INCLUDE_ASM("main/nonmatchings/gamemain", func_8002731C);
 
-INCLUDE_ASM("main/nonmatchings/179D4", func_80027498);
+INCLUDE_ASM("main/nonmatchings/gamemain", func_80027498);
 
-INCLUDE_ASM("main/nonmatchings/179D4", func_8002764C);
+INCLUDE_ASM("main/nonmatchings/gamemain", func_8002764C);
 
-INCLUDE_ASM("main/nonmatchings/179D4", func_8002785C);
+INCLUDE_ASM("main/nonmatchings/gamemain", func_8002785C);
 
-INCLUDE_ASM("main/nonmatchings/179D4", func_80027E7C);
+INCLUDE_ASM("main/nonmatchings/gamemain", func_80027E7C);
 
-INCLUDE_ASM("main/nonmatchings/179D4", func_80027F48);
+INCLUDE_ASM("main/nonmatchings/gamemain", func_80027F48);
 
 void func_800280F4(s32 arg0)
 {

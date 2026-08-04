@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/pad.h"
 
 #include "main/game.h"
 #include "main/unknown_syms.h"

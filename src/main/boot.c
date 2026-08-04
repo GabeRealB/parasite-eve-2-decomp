@@ -1,4 +1,6 @@
 #include "common.h"
+#include "main/boot.h"
+#include "main/fs.h"
 
 #include <psyq/libcd.h>
 #include <psyq/libetc.h>
@@ -6,9 +8,9 @@
 
 #include "main/unknown_syms.h"
 
-INCLUDE_ASM("main/nonmatchings/4CF8", func_800144F8);
+INCLUDE_ASM("main/nonmatchings/boot", func_800144F8);
 
-INCLUDE_ASM("main/nonmatchings/4CF8", Boot_LoadInitialFile);
+INCLUDE_ASM("main/nonmatchings/boot", Boot_LoadInitialFile);
 
 void F04CF8_800148A0(void)
 {
@@ -22,7 +24,7 @@ void F04CF8_800148EC(void)
     func_800574BC();
 }
 
-INCLUDE_ASM("main/nonmatchings/4CF8", func_8001490C);
+INCLUDE_ASM("main/nonmatchings/boot", func_8001490C);
 
 void func_800149E8(s32 arg0, s32 arg1, s32 arg2)
 {

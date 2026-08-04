@@ -1,4 +1,5 @@
 #include "common.h"
+#include "main/gamemain.h"
 
 #include <psyq/libapi.h>
 

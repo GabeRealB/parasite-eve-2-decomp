@@ -14,23 +14,12 @@
 #define C5F414_OTAG_ENTRIES  0x440
 #define C5F414_OTAG_END_PRIM 0xFFFFFF
 
-// 4CF8.c
-extern F04CF8_ImageSlot* D_8005C37C[];
-extern void              func_800144F8(s32 arg0, s32 arg1);
-extern void              F04CF8_800148A0(void);
-extern void              F04CF8_800148EC(void);
-extern void              func_800149E8(s32 arg0, s32 arg1, s32 arg2);
-extern void              F04CF8_80014A50(void);
-extern void              F04CF8_80014A98(s32 mode);
-extern void              func_80014C2C(void);
-// Fs_StageCdfIsAvailable, Boot_LoadInitialFile → main/fs.h
+// boot.c APIs / F04CF8_* → main/boot.h; Boot_LoadInitialFile → main/fs.h
 
 // E734.c
-extern s32  func_8001E2D4(void);
-extern s32  func_8001E6AC(s32 arg0, s32 arg1);
-extern void Task_InitList(TaskNode* node);
-
-// C37C.c (CdCmd_* → main/fs.h)
+extern s32 func_8001E2D4(void);
+extern s32 func_8001E6AC(s32 arg0, s32 arg1);
+// cdcmd.c (CdCmd_* → main/fs.h)
 extern void func_8001BB7C(void);
 extern void func_8001BE60(void);
 extern void func_8001C0D4(void);
@@ -66,20 +55,15 @@ extern void func_800261C8(void);
 extern s32  func_800261D4(void);
 extern void func_80026218(u16 arg0);
 
-// 179D4.c
-extern void func_80027498(void);
-extern void func_800280F4(s32 arg0);
-extern void func_800281D4(void);
-extern void F179D4_ClearOTag(s16 tableIdx);
+// gamemain.c APIs → main/gamemain.h
 
-// 1C034.c
-extern void           func_8002BB9C(void);
-extern void           func_8002BBC8(void);
-extern void           func_8002BE0C(Task* arg0);
-extern void           func_8002BFD4(void);
-extern void           func_8002C028(Task* arg0);
-extern s32            Pad_CheckButtons(s32 arg0, s32 arg1, s32 arg2);
-extern void           Pad_SetCooldown(s32 arg0);
+// 1C034.c — game-flow state handlers
+extern void func_8002BB9C(void);
+extern void func_8002BBC8(void);
+extern void func_8002BE0C(Task* arg0);
+extern void func_8002BFD4(void);
+extern void func_8002C028(Task* arg0);
+// Pad_* → main/pad.h; Task_* → main/task.h
 extern TaskFuncTable5 D_800134BC;
 extern TaskFuncTable3 D_800134D0;
 extern TaskFuncTable6 D_80013E98;
@@ -87,28 +71,8 @@ extern TaskFuncTable3 D_80013EDC;
 extern GBytes4        D_80013F18;
 extern TaskFuncTable4 D_80013F1C;
 extern GFunc30Table6  D_80013F2C;
-extern void           Pad_ClearCooldown(s32 arg0);
-extern s32            Pad_ReadButtonsInv(s32 arg0);
-extern void           Task_Kill(Task* arg0);
-extern Task*          Task_SpawnFromDesc(TaskDesc* arg0, s32 arg1, s32 arg2, TaskNode* arg3);
-extern Task*          Task_SpawnFromTable(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
-extern Task*          Task_Spawn(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-extern TaskNode*      Task_GetActiveList(void);
-extern void           Task_SetActiveList(TaskNode* node);
-extern void           Task_InitList(TaskNode* node);
-extern void           Task_ExecList(TaskNode* node);
-extern void           Task_CallExitFiltered(TaskNode* node, s32 arg1);
-extern TaskDesc*      Task_GetDesc(u32 idx1, u32 idx2);
-extern TaskDesc*      Task_GetDescAt(TaskDesc* base, u32 idx);
-extern void           Task_CallExit(Task* arg0);
-extern void           Task_DetachFromParent(Task* arg0);
 extern void           func_8002D214(void* arg0, s32 arg1);
 extern void*          func_8002D22C(s32 arg0);
-extern void           Task_ResetDefaultList(void);
-extern void           Task_Unlink(Task* state);
-extern void           Task_Free(Task* state);
-extern void           Task_ExecDefaultList(TaskNode* node);
-extern void           Task_ExecListFiltered(TaskNode* node, s32 arg1);
 extern void           func_8002D6EC(Task* arg0);
 
 // Dynamically loaded (BSS region)
@@ -132,22 +96,10 @@ extern u8 D_800604B0[];
 
 // Memcard product-code prefix (12 bytes, e.g. "BASLUS-01042")
 extern u8 D_80060DC8[];
-// Memcard product code buffers ("BASLUS-01042________")
-extern u8 Mc_FileName[0x18];
-extern u8 Mc_FileNameBuf[0x18];
+// Mc_FileName / Mc_Glyphs* / Mc_BufferSlots / Mc_DefaultChecksumSrc / Mc_PromptTable
+// / Mc_SaveData → main/mc.h
 // 64-byte character table for random memcard filename body
 extern u8 D_80060E08[];
-
-// ASCII → Shift-JIS lookup tables used by Mc_EncodeAsciiGlyphs
-// (uppercase 'A'+, lowercase 'a'+, symbols from space)
-extern u16 Mc_GlyphsUpper[];
-extern u16 Mc_GlyphsLower[];
-extern u16 Mc_GlyphsSymbol[];
-
-// Save/memcard buffer descriptors (9 entries of McBufferSlot, 0x6C bytes)
-extern McBufferSlot Mc_BufferSlots[9];
-// Buffer checksummed by Mc_WriteDataChecksum when arg0 == 0 (0x200 signed bytes)
-extern u8 Mc_DefaultChecksumSrc[];
 // sum / ones-complement pair written by Mc_WriteDataChecksum(0, ...); adjacent
 // halfword D_80072AA8 is compared by func_80033D88 (also Mc_SaveData + 0x940)
 extern s16 D_80072AA4;
@@ -168,14 +120,10 @@ extern u8 D_80060A54[];
 extern u8 D_80060A58[];
 extern u8 D_80060A5C[];
 extern u8 D_80060A64[];
-// Indexed pairs of prompt/dialog pointers used by Mc_DrawPrompt
-extern McPromptPair Mc_PromptTable[];
-// "Memory Card" string passed to func_80048E38 by Mc_DrawPrompt
-extern char D_8001398C[];
-// "File Information" string passed to func_80048E38 by func_80036CF0
+// "File Information" string passed to func_80048E38 by func_80036CF0 (mcmenu)
 extern char D_80013BB4[];
 
-// 21FDC.c
+// mc.c
 extern void func_800330D8(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 // 32B64.c
@@ -413,8 +361,8 @@ extern u16        func_80020414(u32 arg0);
 extern void       func_8002043C(u32 arg0);
 
 // Other
-extern void func_800271D4(void);
-extern void Pad_Init(void);
+// func_800271D4 / GameMain → main/gamemain.h
+// Pad_Init → main/pad.h
 extern void func_8002785C(void);
 extern void func_80028718(void);
 extern void func_800303AC(void);
@@ -422,7 +370,7 @@ extern s32  func_800304AC(Task* arg0, s32 arg1, s32 arg2);
 extern s32  func_8003062C(Task* arg0, s32 arg1, s32 arg2);
 extern s32  func_800307AC(Task* arg0, s32 arg1, s32 arg2);
 extern s32  func_8003092C(Task* arg0, s32 arg1, s32 arg2);
-extern void Mc_InitLib(void);
+// Mc_InitLib → main/mc.h
 extern void func_8003DB48(s32 arg0);
 extern void func_8003DE14(s32 arg0, s32 arg1, s32 arg2);
 extern void func_8003DE78(s8 arg0);
@@ -467,7 +415,7 @@ extern u32          D_8005EC64;
 extern s32          D_8005EC68;
 extern s32          D_8005EC6C;
 extern volatile u32 D_8005EC70;
-extern TaskDesc*    Task_DescBanks[];
+// Task_DescBanks → main/task.h
 extern char         D_80013B64[]; // "Select"
 extern UiList       D_8006116C;
 extern UiList       D_80061194;
@@ -523,8 +471,7 @@ extern void* D_8006AC00;
 extern u16   D_8006AC04;
 extern void* D_8006AC40;
 
-extern TaskNode* Task_ActiveList;
-extern TaskNode  Task_DefaultList;
+// Task_ActiveList / Task_DefaultList → main/task.h
 extern TaskNode  D_8007A110;
 extern s32       D_8007A118;
 extern s32       D_8007A358;
@@ -544,16 +491,16 @@ extern s16          D_8006EBF2;
 extern volatile s32 D_8006EBF4;
 
 // 5F414
-extern u_long       D5F414_OrderingTables[2 * C5F414_OTAG_ENTRIES];
-extern u8*          D_80070EE0;    // primitive buffer cursor
-extern GStruct35    D_80070EE8[2];
-extern DisplayState Display_State; // 0x80070F68 - 0x800710A0
-extern u_long*      D_800710A0;    // current OT base
-extern GStruct5     D_800710A8;
-extern DR_TPAGE*    D_80071190;    // primitive buffer cursor
+extern u_long    D5F414_OrderingTables[2 * C5F414_OTAG_ENTRIES];
+extern u8*       D_80070EE0; // primitive buffer cursor
+extern GStruct35 D_80070EE8[2];
+// Display_State → main/display.h
+extern u_long*   D_800710A0; // current OT base
+extern GStruct5  D_800710A8;
+extern DR_TPAGE* D_80071190; // primitive buffer cursor
 
 // 61F10
-extern McSaveData Mc_SaveData;
+// Mc_SaveData → main/mc.h
 // Alias of Mc_SaveData.field_21 (offset 0x21).
 extern s8 D_80072189;
 // Alias of Mc_SaveData.field_1a9 (offset 0x1A9); loaded with lb in audio setup.
@@ -569,8 +516,8 @@ extern u8        D_80073980[0x208];
 extern GStruct40 D_80073B88;
 
 // 61CC0
-extern GStruct14         D61CC0_800714C0;
-extern volatile PadState Pad_States[2];
+extern GStruct14 D61CC0_800714C0;
+// Pad_States → main/pad.h
 
 // 64880
 extern MATRIX D_80074080;

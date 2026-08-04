@@ -1,4 +1,6 @@
 #include "common.h"
+#include "main/fs.h"
+#include "main/task.h"
 
 #include <psyq/libcd.h>
 
@@ -7,11 +9,11 @@
 #include "main/unknown_syms.h"
 #include "psyq/libpress.h"
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001BB7C);
+INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001BB7C);
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001BE60);
+INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001BE60);
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001C0D4);
+INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001C0D4);
 
 void func_8001C620(void)
 {
@@ -154,17 +156,17 @@ void func_8001C620(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001C970);
+INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001C970);
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001CA70);
+INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001CA70);
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001CDF0);
+INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001CDF0);
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001CEFC);
+INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001CEFC);
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001D0E8);
+INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001D0E8);
 
-INCLUDE_ASM("main/nonmatchings/C37C", CdCmd_Enqueue);
+INCLUDE_ASM("main/nonmatchings/cdcmd", CdCmd_Enqueue);
 
 u16 func_8001D344(void)
 {
@@ -357,9 +359,9 @@ void CdCmd_EnqueueReplace(s32 cmd, u8* paramA, u8* paramB)
     entry->idB3   = paramB[3];
 }
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001D760);
+INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001D760);
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001D82C);
+INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001D82C);
 
 CdCmdEntry* func_8001D898(void)
 {
@@ -412,7 +414,7 @@ void func_8001D97C(void)
     D_8006AC04 = CdCmd_Queue.readIdx;
 }
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001D990);
+INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001D990);
 
 void func_8001DA48(void)
 {
@@ -434,7 +436,7 @@ void func_8001DA48(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/C37C", func_8001DAB8);
+INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001DAB8);
 
 void func_8001DB84(void)
 {
