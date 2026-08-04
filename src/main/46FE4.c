@@ -295,7 +295,31 @@ s32 func_80057BC0(void)
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_80057BC8);
+s32 func_80057BC8(void)
+{
+    s16 ret;
+
+    ret = 2;
+    switch (D_80082798.field_1) {
+        case 0:
+            break;
+        case 1:
+        case 2:
+            func_8005B78C();
+            D_80082798.field_1 = 3;
+            break;
+        case 3:
+            if (func_8005BB4C() == 0) {
+                ret                = 3;
+                D_80082798.field_1 = 4;
+                D_80082798.field_2 = 2;
+            }
+            break;
+        case 4:
+            break;
+    }
+    return ret;
+}
 
 void func_80057C74(s32 arg0)
 {

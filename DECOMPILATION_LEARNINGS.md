@@ -68,6 +68,12 @@ return ret; /* promotes to s32 at the return */
 `func_800569D4` is the pure example. Leaving `ret` as `s32` stuck at ~96% with
 an otherwise identical switch.
 
+Same fix for jump-table index shifts: `s32 ret = 2` is CSE'd into the
+`index << 2` as `sllv v1,v1,s0` (shift amount is already in `$s0`), while the
+target wants `sll v1,v1,0x2`. An `s16 ret` keeps the HImode register out of
+SImode shift-amount CSE. `func_80057BC8` is the pure example — otherwise a
+100% body with only the `sll`/`sllv` line wrong.
+
 ## Compute else-only address temps so they fill the `bne` delay slot in `$v0`
 
 When the target does:
