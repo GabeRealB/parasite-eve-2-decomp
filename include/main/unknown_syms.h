@@ -105,9 +105,11 @@ extern void*         func_8002D22C(s32 arg0);
 extern void          func_8002D428(void);
 extern void          func_8002D444(GStruct0* state);
 extern void          func_8002D474(GStruct0* state);
+extern void          func_8002D544(GStruct0Node* node, s32 arg1);
 extern void          func_8002D6EC(GStruct0* arg0);
 
 // Dynamically loaded (BSS region)
+extern void func_80097AC0(GStruct35* arg0);
 extern void func_8009850C(GStruct35* arg0);
 extern void func_800991DC(void* arg0);
 extern void func_80099214(void* arg0);

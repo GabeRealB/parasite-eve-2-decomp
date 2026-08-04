@@ -166,7 +166,24 @@ void func_8003E814(void)
     D_80070F68.field_10d = 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E854);
+void func_8003E854(void)
+{
+    GStruct1* temp;
+    u_long*   saved;
+    s32       buf;
+
+    temp            = &D_80070F68;
+    saved           = D_800710A0;
+    buf             = temp->field_114 ^ 1;
+    temp->field_114 = buf;
+    D_800710A0      = D5F414_OrderingTables + buf * C5F414_OTAG_ENTRIES;
+    F179D4_ClearOTag(temp->field_114);
+    D_800710A0 = D_800710A0 + 0x20;
+    func_8002D544(&D_800716E0, 0x62);
+    func_80097AC0(&D_80070EE8[temp->field_114]);
+    D_800710A0      = saved;
+    temp->field_103 = 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E904);
 
