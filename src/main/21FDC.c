@@ -776,7 +776,34 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_800366BC);
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_800367CC);
 
-INCLUDE_ASM("main/nonmatchings/21FDC", func_800368DC);
+void func_800368DC(GStruct0* arg0, GStruct21* arg1)
+{
+    u8* ptr1;
+    u8* ptr0;
+    s32 i;
+    s32 ch;
+
+    arg1->field_8 = 0x17;
+    arg1->field_4 = 0;
+    if (func_800304AC(arg0, 0x17, 0) != 0) {
+        ptr1 = D_80060DD8;
+        ptr0 = D_80060DF0;
+        i    = 0;
+        ch   = 0x5F;
+        do {
+            if (i >= 0xC) {
+                *ptr0 = ch;
+                *ptr1 = ch;
+            }
+            ptr1++;
+            i++;
+            ptr0++;
+        } while (i < 0x14);
+        *ptr0          = 0;
+        *ptr1          = 0;
+        arg0->field_30 = 3;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80036968);
 
