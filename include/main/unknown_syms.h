@@ -295,7 +295,7 @@ extern void       func_800558E8(s32 arg0, s8 arg1, s8 arg2, s32 arg3, s32 arg4);
 extern s32        func_80056308(GStruct43* arg0);
 extern void       func_800559BC(s32 arg0, s32 arg1);
 extern void       func_80055A9C(s32 arg0, s8 arg1, s8 arg2);
-extern void       func_80055B70(s32 arg0, u8 arg1);
+extern void       func_80055B70(s32 arg0, s32 arg1);
 extern void       func_80055C00(void);
 extern void       func_80055C8C(void);
 extern void       func_80055D78(s8 arg0);

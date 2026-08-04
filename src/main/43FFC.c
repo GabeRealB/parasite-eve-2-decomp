@@ -377,7 +377,42 @@ INCLUDE_ASM("main/nonmatchings/43FFC", func_800559BC);
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80055A9C);
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80055B70);
+void func_80055B70(s32 arg0, s32 arg1)
+{
+    GStruct54*   p;
+    register s32 val asm("a0");
+    register s32 t asm("v0");
+
+    p      = &D_80082248[arg0 & 7];
+    t      = *(volatile u8*)&p->field_13;
+    arg1   = (~arg1) & 0x7F;
+    val    = arg1;
+    t      = (s8)t;
+    arg1  -= t;
+    arg1 <<= 16;
+    arg1 >>= 16;
+    t      = arg1;
+    if (arg1 < 0) {
+        t = -t;
+    }
+    if (t >= 0x21) {
+        p->field_14 = val;
+        if (arg1 <= 0) {
+            if (arg1 < 0) {
+                p->field_15 = -8;
+                goto end;
+            }
+        } else {
+            p->field_15 = 8;
+            goto end;
+        }
+    } else {
+        p->field_13 = val;
+    }
+    p->field_15 = 0;
+end:
+    p->field_E = 1;
+}
 
 void func_80055C00(void)
 {

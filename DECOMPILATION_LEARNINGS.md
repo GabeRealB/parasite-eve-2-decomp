@@ -2960,3 +2960,91 @@ bne    v0,v1,else
 
 Also type strip counters that the target loads with `lhu` as `u16` (not `s16`),
 or you get a second `lh` and sign-extend on the index path. `func_80040904`.
+
+## Pin `val` to `$a0` and abs temp to `$v0` for in-place `$a1` diff
+
+When a function saves a transformed arg into one register and then mutates the
+arg register in place (classic `move a0,a1` / `subu a1,a1,v0` / `sll;sra a1`),
+writing `arg0 = arg1; arg1 -= …` is not enough if later control flow prefers
+putting the diff in `$a0` and leaving val in `$a1`. That shows up as a clean
+~95% match with every branch correct but all `sb val` / `bgtz diff` using the
+swapped registers.
+
+Fix with hard-register pins (both need the `register` keyword):
+
+```c
+register s32 val asm("a0");
+register s32 t asm("v0");
+
+arg1 = (~arg1) & 0x7F;
+val  = arg1;           /* move a0, a1 */
+/* … load + sign-extend into t … */
+arg1 -= t;
+arg1 <<= 16;
+arg1 >>= 16;           /* in-place s16 truncate on a1 */
+```
+
+For the following abs that the target emits as:
+
+```
+bgez  a1, skip
+ move  v0, a1
+negu  v0, v0
+```
+
+compare the *source* register and negate the *pinned* temp — not the same name
+for both:
+
+```c
+t = arg1;
+if (arg1 < 0) {   /* bgez a1 — not bgez v0 */
+    t = -t;       /* negu v0, v0 because t is asm("v0") */
+}
+```
+
+`if (t < 0) t = -t` alone either keeps `negu v0, a1` (CSE) or moves the compare
+onto `$v0` and breaks the delay-slot form.
+
+## `*(volatile u8*)&field` then `(s8)` for `lbu` + `sll/sra`
+
+`(s8)p->u8_field` collapses to a single `lb`. When the target has early
+`lbu` scheduled before independent work (e.g. `nor`/`andi` on another arg) and
+a later `sll 24; sra 24`, split the load and the cast:
+
+```c
+t = *(volatile u8*)&p->field_13; /* lbu, may schedule early */
+/* … unrelated arg transforms … */
+t = (s8)t;                       /* sll; sra */
+```
+
+Same pattern as `C37C.c`'s `status = *(volatile u8*)&entry->param0` followed by
+`field5 = (s8)field5`. `func_80055B70` needs this for `GStruct54.field_13`.
+
+## Three-way sign with `<= 0` outer for `bgtz` fall-through
+
+Shared zero-store between "close" and "far-and-zero" paths:
+
+```c
+if (abs_diff >= threshold) {
+    p->target = val;
+    if (diff <= 0) {
+        if (diff < 0) {
+            p->step = -8;
+            goto end;
+        }
+        /* zero: fall through to shared store */
+    } else {
+        p->step = 8;
+        goto end;
+    }
+} else {
+    p->current = val;
+}
+p->step = 0;
+end:
+p->dirty = 1;
+```
+
+`if (diff <= 0)` (not `if (diff > 0)` first) makes the positive arm the `bgtz`
+branch target and the negative arm fall through after `bgez` fails — matching
+the `bgtz` / `bgez` / shared-zero label shape of `func_80055B70` / `func_80055A9C`.

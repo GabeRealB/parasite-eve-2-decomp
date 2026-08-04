@@ -880,9 +880,16 @@ STATIC_ASSERT_SIZEOF(GStruct52, 0x4);
 
 /// 0x60-byte slot in D_80082248[8]. field_0 is an ID looked up by
 /// func_80055DAC; field_16 holds status flags (mask 0xA3 selects active entries).
+/// field_E is a dirty flag; field_13/14/15 are a volume ramp (current/target/step)
+/// updated by func_80055B70 (sibling of field_10/11/12 for func_80055A9C).
 typedef struct _GStruct54 {
     /* 0x00 */ s32 field_0;
-    /* 0x04 */ u8  pad_4[0x12];
+    /* 0x04 */ u8  pad_4[0xA];
+    /* 0x0E */ s8  field_E;
+    /* 0x0F */ u8  pad_F[0x4];
+    /* 0x13 */ u8  field_13;
+    /* 0x14 */ u8  field_14;
+    /* 0x15 */ s8  field_15;
     /* 0x16 */ u8  field_16;
     /* 0x17 */ u8  pad_17[0x49];
 } GStruct54;
