@@ -7,7 +7,32 @@ INCLUDE_ASM("main/nonmatchings/33300", func_80042B00);
 
 INCLUDE_ASM("main/nonmatchings/33300", func_80042DF8);
 
-INCLUDE_ASM("main/nonmatchings/33300", func_80042F54);
+void func_80042F54(GStruct0* arg0)
+{
+    GStruct63* temp;
+    GPairU8*   entry;
+    u8         type;
+
+    temp = arg0->field_1C;
+    if (func_8001D344() != 0) {
+        entry = (GPairU8*)((temp->field_0 << 1) + (u32)temp->field_4);
+        type  = entry->field_1;
+        if (type != 3) {
+            if (type != 2) {
+                if (arg0->field_34 == 0) {
+                    if (D4F564_8005ED64->field_4D != 1) {
+                        return;
+                    }
+                }
+            }
+            func_800512BC(entry->field_0, 0);
+            func_800429C8(0);
+        }
+        D_80062734 = 0xFF;
+        D_80062739 = temp->field_4[temp->field_0].field_0;
+        func_8002CCB8(arg0);
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/33300", func_80043028);
 

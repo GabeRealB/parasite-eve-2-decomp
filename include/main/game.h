@@ -49,6 +49,22 @@ typedef struct _GStruct0Node {
     struct _GStruct0Node* prev;
 } GStruct0Node;
 
+/// 2-byte table entry (id + type). Indexed via GStruct63.
+typedef struct _GPairU8 {
+    /* 0x0 */ u8 field_0;
+    /* 0x1 */ u8 field_1;
+} GPairU8;
+STATIC_ASSERT_SIZEOF(GPairU8, 0x2);
+
+/// Index + pointer into a GPairU8 table. Allocated (Mem_Calloc(8)) and stored
+/// at GStruct0::field_1C by func_80042B00; read by func_80042F54 / func_80042DF8.
+typedef struct _GStruct63 {
+    /* 0x0 */ u16      field_0; // index into field_4
+    /* 0x2 */ byte     pad_2[2];
+    /* 0x4 */ GPairU8* field_4;
+} GStruct63;
+STATIC_ASSERT_SIZEOF(GStruct63, 0x8);
+
 typedef struct _GStruct0 {
     GStruct0Node      node;
     struct _GStruct0* field_8;
@@ -56,7 +72,7 @@ typedef struct _GStruct0 {
     struct _GStruct0* field_10;
     GFunc0            field_14;
     GFunc0            field_18;
-    byte              unknown1[4];
+    GStruct63*        field_1C;
     void*             field_20;
     byte              unknown_24[4];
     u8                field_28;
@@ -218,7 +234,9 @@ typedef struct _GStruct14 {
     u8    field_7;
     byte  unknown_8[0x4];
     void* field_C[16]; // 0xC..0x4B; cleared by func_8002D780
-    byte  unknown_4C[0x30];
+    byte  unknown_4C;
+    u8    field_4D;
+    byte  unknown_4E[0x2E];
     s16   field_7C;
     byte  unknown_7E[0xBE];
 } GStruct14;
