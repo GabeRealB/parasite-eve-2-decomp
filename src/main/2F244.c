@@ -36,7 +36,23 @@ s32 func_8003F6F8(void)
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8003F71C);
+s32 func_8003F71C(s32 arg0, s32 arg1)
+{
+    GStruct17* temp;
+    s32        mask;
+
+    mask = 0x40000000;
+    if (!(D_80062698->field_1c & mask)) {
+        func_8002C9B0(0);
+        temp            = D_80062698;
+        temp->field_20  = arg0;
+        temp->field_24  = 0;
+        temp->field_28  = 0;
+        temp->field_11  = arg1;
+        temp->field_1c |= mask;
+    }
+    return (u8)D4F564_8005ED64->field_4;
+}
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_8003F7A8);
 
