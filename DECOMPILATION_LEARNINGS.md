@@ -2774,3 +2774,39 @@ else subtract` so fall-through is clamp and `bnez` targets subtract (matches
 `sltu`/`bnez`). Inverting to `<` swaps the arms.
 
 `func_8004D2EC` is the pure example (GStruct55 linear interpolator tick).
+
+## Empty switch case as binary-search pivot to shared default
+
+When the target opens a small dense switch with:
+
+```
+li   v0, 2
+beq  v1, v0, shared_default
+slti v0, v1, 3
+beqz v0, check_hi
+...
+```
+
+case 2 is intentionally in the case set even though its body is the same as
+`default` — it is the binary-search pivot. Listing only the non-default cases
+(`1`, `3`/`4`) drops the `== 2` check and reshapes the tree (~83–86%).
+
+Force the pivot with an empty case that falls into the shared default body:
+
+```c
+switch (p->field_8) {
+case 1:
+    /* unique body */
+    return;
+case 2:
+    break; /* empty — falls into shared default */
+case 3:
+case 4:
+    /* unique body */
+    return;
+}
+/* shared default / case 2 body */
+*out = p->field_C;
+```
+
+`func_80049478` is the pure example.

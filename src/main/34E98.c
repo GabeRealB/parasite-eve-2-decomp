@@ -190,7 +190,34 @@ void func_800492EC(void* arg0, RECT* arg1, RECT* arg2)
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80049348);
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80049478);
+void func_80049478(GStruct30* arg0, RECT* arg1)
+{
+    s32 var_a2;
+
+    switch (arg0->field_8) {
+        case 1:
+            var_a2 = 9 - arg0->field_16;
+            if (var_a2 <= 0) {
+                var_a2 = 1;
+            }
+            func_80045A3C(arg0, arg1, var_a2, 0);
+            return;
+        case 2:
+            break;
+        case 3:
+        case 4:
+            var_a2 = 9 - arg0->field_16;
+            if ((u32)(var_a2 - 1) >= 8U) {
+                var_a2 = 1;
+            }
+            func_80045A3C(arg0, arg1, var_a2, 1);
+            return;
+    }
+    arg1->x = arg0->field_C.x;
+    arg1->y = arg0->field_C.y;
+    arg1->w = arg0->field_C.w;
+    arg1->h = arg0->field_C.h;
+}
 
 void func_80049554(GStruct30* arg0, void* arg1)
 {

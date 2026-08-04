@@ -571,13 +571,15 @@ typedef struct _GStruct29 {
 } GStruct29;
 
 /// Object used by 34E98.c handlers (e.g. func_80049554 / D_80013F2C table).
-/// field_8 is a small integer state; field_16 is a signed counter/timer;
+/// field_8 is a small integer state; field_C is a source RECT used by layout
+/// helpers (func_80049348 / func_80049478); field_16 is a signed counter/timer;
 /// field_24 is a callback invoked with the second handler argument.
 typedef struct _GStruct30 {
     /* 0x00 */ s32  field_0;
     /* 0x04 */ byte unknown_4[0x4];
     /* 0x08 */ s32  field_8;
-    /* 0x0C */ byte unknown_C[0xA];
+    /* 0x0C */ RECT field_C;
+    /* 0x14 */ byte unknown_14[0x2];
     /* 0x16 */ s16  field_16;
     /* 0x18 */ byte unknown_18[0xC];
     /* 0x24 */ void (*field_24)(void*);
