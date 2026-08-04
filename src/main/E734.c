@@ -6,10 +6,183 @@
 #include "main/game.h"
 #include "main/fs.h"
 
-INCLUDE_ASM("main/nonmatchings/E734", func_8001DF34);
-
 s16 func_8001E57C(void);
 s16 E734_CDIsShellOpenBitSet(void);
+
+s32 func_8001DF34(u8* loc)
+{
+    CdCmdQueue* state;
+    CdCmdQueue* p;
+    s32         temp;
+    s32         status;
+    s32         one;
+    u8          pad[8];
+
+    state = &CdCmd_Queue;
+    one   = 1;
+    switch (state->field_1D6) {
+        case 0:
+            switch (state->field_228) {
+                case 0:
+                    status = CdSync(1, NULL);
+                    switch (status) {
+                        case CdlComplete:
+                            state->field_1d4 = 0;
+                            temp             = 1;
+                            goto join1;
+                        case CdlNoIntr:
+                            goto set0_1;
+                        case CdlDiskError:
+                            state->field_1d4 = one;
+                            if (E734_CDIsShellOpenBitSet() != 0) {
+                                state->field_228 += 1;
+                                goto set0_1;
+                            }
+                            temp = 2;
+                            goto join1;
+                        default:
+                            temp = 2;
+                            goto join1;
+                    }
+                case 1:
+                    if (func_8001E57C() != 0) {
+                        state->field_228 = 0;
+                        temp             = 2;
+                        goto join1;
+                    }
+                    goto set0_1;
+                default:
+                    temp = 0;
+                    goto join1;
+            }
+        set0_1:
+            temp = 0;
+        join1:
+            status = temp;
+            switch (status) {
+                case 0:
+                    return 0;
+                case 2:
+                    CdFlush();
+                    /* fallthrough */
+                case 1:
+                    CdControlF(CdlSetloc, loc);
+                    state->field_1D6++;
+                    break;
+            }
+            /* fallthrough */
+        case 1:
+            p = &CdCmd_Queue;
+            switch (p->field_228) {
+                case 0:
+                    status = CdSync(1, NULL);
+                    switch (status) {
+                        case CdlComplete:
+                            p->field_1d4 = 0;
+                            temp         = 1;
+                            goto join2;
+                        case CdlNoIntr:
+                            goto set0_2;
+                        case CdlDiskError:
+                            p->field_1d4 = 1;
+                            if (E734_CDIsShellOpenBitSet() != 0) {
+                                p->field_228 += 1;
+                                goto set0_2;
+                            }
+                            temp = 2;
+                            goto join2;
+                        default:
+                            temp = 2;
+                            goto join2;
+                    }
+                case 1:
+                    if (func_8001E57C() != 0) {
+                        p->field_228 = 0;
+                        temp         = 2;
+                        goto join2;
+                    }
+                    goto set0_2;
+                default:
+                    temp = 0;
+                    goto join2;
+            }
+        set0_2:
+            temp = 0;
+        join2:
+            status = temp;
+            switch (status) {
+                case 0:
+                    return 0;
+                case 1:
+                    CdControlF(CdlSeekL, NULL);
+                    state->field_1D6++;
+                    break;
+                case 2:
+                    goto L_flush_clear;
+            }
+            /* fallthrough */
+        case 2:
+            p = &CdCmd_Queue;
+            switch (p->field_228) {
+                case 0:
+                    status = CdSync(1, NULL);
+                    switch (status) {
+                        case CdlComplete:
+                            p->field_1d4 = 0;
+                            temp         = 1;
+                            goto join3;
+                        case CdlNoIntr:
+                            goto set0_3;
+                        case CdlDiskError:
+                            p->field_1d4 = 1;
+                            if (E734_CDIsShellOpenBitSet() != 0) {
+                                p->field_228 += 1;
+                                goto set0_3;
+                            }
+                            temp = 2;
+                            goto join3;
+                        default:
+                            temp = 2;
+                            goto join3;
+                    }
+                case 1:
+                    if (func_8001E57C() != 0) {
+                        p->field_228 = 0;
+                        temp         = 2;
+                        goto join3;
+                    }
+                    goto set0_3;
+                default:
+                    temp = 0;
+                    goto join3;
+            }
+        set0_3:
+            temp = 0;
+        join3:
+            status = temp;
+            if (status == 1) {
+                goto L_done;
+            }
+            if (status < 2) {
+                goto L_ret0;
+            }
+            if (status == 2) {
+                goto L_flush_clear;
+            }
+            goto L_ret0;
+        L_done:
+            state->field_1D6 = 0;
+            state->field_1d4 = 0;
+            return 1;
+        L_flush_clear:
+            CdFlush();
+            state->field_1D6 = 0;
+        L_ret0:
+            return 0;
+        default:
+            return 0;
+    }
+}
 
 s32 func_8001E2D4(void)
 {
