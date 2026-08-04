@@ -91,7 +91,28 @@ end:
     return arg0;
 }
 
-INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002F588);
+u8* func_8002F588(u8* dest, u8* src)
+{
+    u8 c;
+
+    if (*dest != 0) {
+        while (*++dest != 0) {
+        }
+    }
+
+    c = *src;
+    if (c != 0) {
+        do {
+            src++;
+            *dest = c;
+            c     = *src;
+            dest++;
+        } while (c != 0);
+    }
+
+    *dest = 0;
+    return dest;
+}
 
 INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002F5E4);
 
