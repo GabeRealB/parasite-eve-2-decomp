@@ -279,7 +279,34 @@ void F3E48C_ApplyReverbConfig(void)
     D648E0_SpuReverbCfg.attr.mask = 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E9D8);
+u16 func_8004E9D8(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    u32  temp;
+    u32  hi;
+    u32  lo;
+    u32  offset;
+    u16* base;
+
+    temp  = arg1 + (arg0 << 8);
+    temp  = temp - ((arg2 << 8) - (arg3 << 1));
+    temp += 0x4800;
+
+    lo     = (temp & 0xFF) >> 1;
+    offset = 0;
+    hi     = temp & 0xFFFF;
+    do {
+        base = D_80068BB8;
+        hi >>= 8;
+        if (hi != 0) {
+            offset = hi << 1;
+        }
+    } while (0);
+    lo = ((u32) * (u16*)((u8*)base + offset) * (u32)D_80068C78[lo]) >> 8;
+    if ((lo & 0xFFFF) >= 0x4000) {
+        lo = 0x3FFF;
+    }
+    return lo;
+}
 
 GStruct41* func_8004EA60(GStruct42* arg0, u8 arg1, u8 arg2)
 {

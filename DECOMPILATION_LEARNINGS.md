@@ -3733,3 +3733,52 @@ done:
 collapse the two default entries into one `else` if that reorders blocks.
 `func_80037068` is the pure example (menu pointer select among three
 `GStruct46` data objects).
+
+## Table index: `offset = 0` then `if (hi) offset = hi << 1`
+
+When the target zeros a register, branch-skips an `sll` on a nonzero index, then
+`addu`s that byte offset onto a table base (so index 0 never emits the shift),
+match with an explicit offset local rather than `base[hi]` or `base += hi`:
+
+```
+andi  v0, temp, 0xFF
+srl   v1, v0, 1          /* lo index */
+move  a0, zero           /* offset = 0 */
+andi  a1, temp, 0xFFFF
+lui   v0, %hi(table)
+srl   a1, a1, 8          /* hi index */
+beqz  a1, L
+ addiu v0, v0, %lo(table)
+sll   a0, a1, 1          /* offset = hi << 1 — only when hi != 0 */
+L:
+addu  a0, a0, v0
+lhu   a0, 0(a0)
+```
+
+```c
+lo = (temp & 0xFF) >> 1;
+offset = 0;
+hi = temp & 0xFFFF;
+do {
+    base = table;
+    hi >>= 8;
+    if (hi != 0) {
+        offset = hi << 1;
+    }
+} while (0);
+val = *(u16 *)((u8 *)base + offset);
+```
+
+`base[hi]` / `offset = hi` then `base[offset]` emits `move`+`sll` or always-shifts
+and misses the branchy form. Split `hi = temp & 0xFFFF` from `hi >>= 8` so the
+`andi` and `srl` are separate statements; wrap `base = table` + the shift/`if` in
+`do {} while (0)` so `lui %hi(table)` sits between `andi` and `srl` with
+`addiu %lo` in the `beqz` delay slot (same interleave idea as the list-unlink
+`do {} while (0)` note above).
+
+Reuse the lo-index local for the multiply result so the product/`0x3FFF` clamp
+lands in `$v1` (the register that held the second table address) instead of
+`$a0`. Use `u32` temps so `>>` is `srl`, not `sra`.
+
+`func_8004E9D8` is the example (volume-style lookup: `D_80068BB8[hi] *
+D_80068C78[lo] >> 8`, clamp to `0x3FFF`).
