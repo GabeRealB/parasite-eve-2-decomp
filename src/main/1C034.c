@@ -521,7 +521,44 @@ void func_8002D494(GStruct0Node* node)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002D544);
+void func_8002D544(GStruct0Node* node, s32 arg1)
+{
+    GStruct0*     next;
+    GStruct0*     curr;
+    GStruct1*     tmp_ptr;
+    GStruct0Node* saved;
+    s32           filter;
+
+    curr       = node->next;
+    saved      = D_800716D8;
+    D_800716D8 = node;
+    if (curr != NULL) {
+        filter  = arg1 & 0xFF;
+        tmp_ptr = &D_80070F68;
+    loop_2:
+        if (curr->field_29 == (u8)filter) {
+            curr->field_14(curr);
+        }
+        if (tmp_ptr->field_10b == 1) {
+            tmp_ptr->field_10b = 0;
+            goto end;
+        }
+        if (curr->field_28 == 0xFF) {
+            next               = curr->node.next;
+            tmp_ptr->field_10b = 0;
+            func_8002D444(curr);
+            func_8002D474(curr);
+            curr = next;
+        } else {
+            curr = curr->node.next;
+        }
+        if (curr != NULL) {
+            goto loop_2;
+        }
+    }
+end:
+    D_800716D8 = saved;
+}
 
 void func_8002D61C(GStruct0Node* node, s32 arg1)
 {
