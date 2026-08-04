@@ -490,7 +490,7 @@ void func_8002D474(GStruct0* state)
     Mem_Free(state);
 }
 
-void func_8002D494(void)
+void func_8002D494(GStruct0Node* node)
 {
     GStruct0* next;
     GStruct0* curr;

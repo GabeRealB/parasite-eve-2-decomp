@@ -3899,3 +3899,38 @@ obj = p->field_20;
 ```
 
 `func_800365B0` is the pure example (with `register asm` pins for `s0`/`s1`/`s2`).
+
+## `u32` switch discriminator for `sltiu` range split
+
+When a switch on a byte field is compiled as equality-on-2, then
+`sltiu`/`beqz` for the `>= 3` group, then equality-on-1, a `u8` temporary
+often lowers the range check to signed `slti`:
+
+```
+beq   v1, v0, case2
+slti  v0, v1, 3     /* wrong — target wants sltiu */
+beqz  v0, high
+```
+
+Hold the discriminator in a `u32` (or compare via an unsigned cast) so the
+range check is `sltiu`:
+
+```c
+u32 mode;
+
+mode = ptr->field_11; /* u8 load still lbu */
+switch (mode) {
+case 3:
+case 0x20:
+    /* ... */
+    break;
+case 2:
+    /* ... */
+    break;
+case 1:
+    /* ... */
+    break;
+}
+```
+
+`func_8003F450` is the pure example (`u8 mode` → 97.6%, `u32 mode` → 100%).
