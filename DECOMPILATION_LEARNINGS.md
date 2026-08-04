@@ -3971,3 +3971,50 @@ for (i = 0; i <= 0; i++) {
 GCC still walks with `addiu s0, s0, 0x5DC` and fills the post-call `j` delay
 with that step, but emits a one-shot `addiu a0, s0, 0x14` for the call.
 `func_800515C0` is the pure example.
+
+## `field <<= 16` reloads; `field = saved << 16` CSE's into a callee-saved
+
+When a handler saves `temp = p->field_0`, then later both (a) stores a shifted
+copy into the field and (b) compares the field against `temp << 16` to restore:
+
+```c
+temp = p->field_0;
+/* … other work that does not touch field_0 … */
+p->field_0 = temp << 0x10;   /* BAD for some targets */
+func(p);
+if (p->field_0 == (temp << 0x10)) {
+    p->field_0 = temp;
+}
+```
+
+GCC CSE's the shift into a callee-saved (`sll s0, s2, 0x10; sw s0, …` then
+`bne v0, s0`), which grows the stack frame and mismatches targets that reload:
+
+```
+lw   v0, 0(s0)
+sll  v0, v0, 0x10
+jal  …
+ sw   v0, 0(s0)
+…
+lw   v1, 0(s0)
+sll  v0, s1, 0x10
+bne  v1, v0, …
+```
+
+Write the store as an in-place shift so the load is re-issued and the compare
+recomputes from the saved original only:
+
+```c
+temp = p->field_0;
+/* … */
+p->field_0 <<= 0x10;
+func(p);
+if (p->field_0 == (temp << 0x10)) {
+    p->field_0 = temp;
+}
+```
+
+Contrast with `func_800495B4`, where the target *does* keep the shifted value in
+an s-reg — there `p->field_0 = temp << 0x10` is correct. `func_8004972C` is the
+reload form; pick based on whether the target reuses a shifted s-reg after the
+call or re-shifts from the original.
