@@ -1242,9 +1242,14 @@ When a function sets a bit in one global and clears it from two others
    it GCC sign-extends the argument first and puts the mask in `a1` instead of
    `v1`.
 
-2. **Write `~channel` twice, not a temp.** `B &= ~channel; C &= ~channel;`
-   places `nor` *after* the `sw` of A. `inv = ~channel; B &= inv; C &= inv;`
-   moves `nor` *before* that store and breaks the match.
+2. **`nor` placement is target-dependent.** Compare where `nor` sits relative
+   to the `sw` of A:
+   - Target has `nor` *after* `sw` of A → write `~channel` twice inline:
+     `B &= ~channel; C &= ~channel;`. A shared temp (`inv = ~channel`) moves
+     `nor` too early. (`func_8004E71C`)
+   - Target has `nor` *before* `sw` of A → assign into the channel temp:
+     `channel = ~channel; B &= channel; C &= channel;`. (`func_8004E6C4`,
+     where B is a struct field via the same local pointer as other accesses)
 
 3. **Source order of the two `&=` is not store order.** Writing
    `B &= ~mask; C &= ~mask;` can early-load C and late-load B (or vice versa).
@@ -1252,9 +1257,11 @@ When a function sets a bit in one global and clears it from two others
    statements until that symbol is the early one — the final store order still
    ends up matching because of scheduling.
 
-`func_8004E71C` is the pure example: pointer on `D648E0_8007EBB0`, then
-`D648E0_8007EBA8 &= ~channel` before `D648E0_8007EBAC &= ~channel` so that
-EBAC is the early-loaded `$a2` value.
+`func_8004E71C` is the pure late-`nor` example: pointer on `D648E0_8007EBB0`,
+then `D648E0_8007EBA8 &= ~channel` before `D648E0_8007EBAC &= ~channel` so
+that EBAC is the early-loaded `$a2` value. `func_8004E6C4` is the pure
+early-`nor` counterpart: pointer on the `|=` target plus `channel = ~channel`
+before the two clears.
 
 ## Unaligned 8-byte copy via nested `u8[8]` struct assignment
 
