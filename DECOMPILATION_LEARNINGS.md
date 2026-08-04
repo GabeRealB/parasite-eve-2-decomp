@@ -3141,3 +3141,47 @@ Keeping `u8` params and moving the table assignment is what preserves both.
 
 `func_80051744` is the pure example. Pair with the one-iteration
 `for (i = 0; i <= 0; i++)` + `GStruct36` array pattern for `D_8007F300`.
+
+## Stack-struct pointer: RMW via temp forces `lw v1` then `lw a0`
+
+When the target updates two fields of a pointer loaded from a stack struct
+(`GStruct48 sp10`, pointer at `sp+0x14`) as:
+
+```
+lw   v1, 0x14(sp)
+lhu  v0, 0x3C(v1)
+...
+sh   v0, 0x3C(v1)
+lw   a0, 0x14(sp)   /* reload into a different reg */
+lw   v0, 4(a0)
+...
+sw   v0, 4(a0)
+```
+
+a local pointer CSE folds both accesses into one register (`lw a0` once or
+reused). Force the double-reload and the `v1`/`a0` split by:
+
+1. Reading the halfword into a `u16` temporary
+2. Writing both fields through `((Type*)sp10.field_4)->member` — no local
+   pointer held across the two updates
+
+```c
+u16 temp;
+
+func_8004E5C4(idx, &sp10);
+temp = ((SpuVoiceAttr*)sp10.field_4)->adsr2;
+temp = (temp & 0xFFE0) | 5;
+((SpuVoiceAttr*)sp10.field_4)->adsr2 = temp;
+((SpuVoiceAttr*)sp10.field_4)->mask |= SPU_VOICE_ADSR_ADSR2;
+```
+
+Also init the loop counter *before* the slot base pointer when the target
+prologue does `move s2,zero` then `addiu s0,a0,0x504`:
+
+```c
+i = 0;
+slot = arg0->voiceSlots;
+do { ...; i++; slot++; } while (i < 0x12);
+```
+
+`func_80051AF0` is the pure example.

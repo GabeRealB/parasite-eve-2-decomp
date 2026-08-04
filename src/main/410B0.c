@@ -433,7 +433,34 @@ void func_80051AB8(GStruct36* arg0)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80051AF0);
+void func_80051AF0(GStruct36* arg0)
+{
+    s32                 i;
+    GStruct36VoiceSlot* slot;
+    u8                  status;
+    GStruct48           sp10;
+    u16                 temp;
+
+    i    = 0;
+    slot = arg0->voiceSlots;
+    do {
+        if (slot->field_0 >= 0) {
+            status = func_8004E6A4(slot->field_0);
+            if (status != 0) {
+                func_8004E5C4(slot->field_0, &sp10);
+                temp                                 = ((SpuVoiceAttr*)sp10.field_4)->adsr2;
+                temp                                 = (temp & 0xFFE0) | 5;
+                ((SpuVoiceAttr*)sp10.field_4)->adsr2 = temp;
+                ((SpuVoiceAttr*)sp10.field_4)->mask |= SPU_VOICE_ADSR_ADSR2;
+                if (status != 2) {
+                    func_8004E71C(slot->field_0);
+                }
+            }
+        }
+        i++;
+        slot++;
+    } while (i < 0x12);
+}
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80051BB0);
 

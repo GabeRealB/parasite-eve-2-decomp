@@ -708,21 +708,31 @@ typedef struct _GStruct36Entry {
 } GStruct36Entry;
 STATIC_ASSERT_SIZEOF(GStruct36Entry, 0x3C);
 
+/// Active SPU voice slot inside GStruct36 (stride 0xC, 18 slots at 0x504).
+/// field_0 is the voice index (negative when free); iterated by func_80051AF0.
+typedef struct _GStruct36VoiceSlot {
+    /* 0x0 */ s8 field_0;
+    /* 0x1 */ u8 unknown_1[0xB];
+} GStruct36VoiceSlot;
+STATIC_ASSERT_SIZEOF(GStruct36VoiceSlot, 0xC);
+
 /// State block at D_8007F300 (logical stride 0x5DC; BSS allocation 0x5E0).
 /// field_0 is status; field_3 is the number of track entries starting at 0x4C.
 /// field_8 is a scaled volume; field_C is a sentinel (0xFFFF when cleared).
+/// voiceSlots holds up to 18 active SPU voice indices (field_0 = -1 when free).
 typedef struct _GStruct36 {
-    /* 0x00 */ u8             field_0;
-    /* 0x01 */ u8             field_1;
-    /* 0x02 */ u8             field_2;
-    /* 0x03 */ u8             field_3;
-    /* 0x04 */ u8             unknown_04[4];
-    /* 0x08 */ s16            field_8;
-    /* 0x0A */ u8             unknown_0A[2];
-    /* 0x0C */ s32            field_C;
-    /* 0x10 */ u8             unknown_10[0x3C];
-    /* 0x4C */ GStruct36Entry entries[1];
-    /* 0x88 */ u8             unknown_88[0x5DC - 0x88];
+    /* 0x00 */ u8                  field_0;
+    /* 0x01 */ u8                  field_1;
+    /* 0x02 */ u8                  field_2;
+    /* 0x03 */ u8                  field_3;
+    /* 0x04 */ u8                  unknown_04[4];
+    /* 0x08 */ s16                 field_8;
+    /* 0x0A */ u8                  unknown_0A[2];
+    /* 0x0C */ s32                 field_C;
+    /* 0x10 */ u8                  unknown_10[0x3C];
+    /* 0x4C */ GStruct36Entry      entries[1];
+    /* 0x88 */ u8                  unknown_88[0x504 - 0x88];
+    /* 0x504 */ GStruct36VoiceSlot voiceSlots[0x12];
 } GStruct36;
 STATIC_ASSERT_SIZEOF(GStruct36, 0x5DC);
 
