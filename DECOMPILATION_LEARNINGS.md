@@ -4216,3 +4216,22 @@ void func_80043718(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 
 That keeps the callee's leading `sll`/`sra` chain while call sites can emit
 plain `move aN, s0`. `func_8004379C` is the pure example.
+
+## `(s8)u8_field` at call sites forces `lb` with `s32` formals
+
+When a callee must take `s32` args so its *body* does not re-sign-extend the
+incoming registers (a plain `s8` formal emits early `sll`/`sra` on `$a1` and
+breaks an otherwise perfect match), call sites that pass `u8` struct fields
+would emit `lbu`. The original often wants `lb`.
+
+Cast the field through `(s8)` at the call:
+
+```c
+/* callee: void func_80055A9C(s32, s32, s32); — body keeps $a1 as-is */
+func_80055A9C(idx, (s8)p->field_4, (s8)mid->field_1); /* lb, not lbu */
+```
+
+Bare `p->field_4` with an `s8` formal also yields `lb`, but then the callee
+mismatches. Prefer `s32` formals + `(s8)` at the few call sites. `func_80055A9C`
+/ `func_80050C30` are the pure example (sibling `func_80055B70` already takes
+`s32` and its caller correctly uses `lbu`).

@@ -132,7 +132,7 @@ void func_80050C30(GStruct16* arg0)
     temp_s0 = (GStruct16From4*)&arg0->field_4;
     temp_v0 = func_80055DAC(temp_s0->field_4);
     if (temp_v0 >= 0) {
-        func_80055A9C(temp_v0, arg0->field_4, temp_s0->field_1);
+        func_80055A9C(temp_v0, (s8)arg0->field_4, (s8)temp_s0->field_1);
     }
 }
 
