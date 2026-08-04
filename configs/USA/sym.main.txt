@@ -36,12 +36,17 @@ SetSp                       = 0x800144E8;
 //--------------------------------------------------------------------
 //--- PA: 0x04CF8   VA: 0x800144F8   subsegment: c, 4CF8
 //--------------------------------------------------------------------
+func_800144F8               = 0x800144F8; // type:func
 Boot_LoadInitialFile        = 0x80014650; // type:func
-F04CF8_800148A0             = 0x800148A0;
-F04CF8_800148EC             = 0x800148EC;
-F04CF8_80014A50             = 0x80014A50;
-F04CF8_80014A98             = 0x80014A98;
-Fs_StageCdfIsAvailable      = 0x80014C4C;
+F04CF8_800148A0             = 0x800148A0; // type:func
+F04CF8_800148EC             = 0x800148EC; // type:func
+func_8001490C               = 0x8001490C; // type:func
+func_800149E8               = 0x800149E8; // type:func
+F04CF8_80014A50             = 0x80014A50; // type:func
+F04CF8_80014A98             = 0x80014A98; // type:func
+func_80014B38               = 0x80014B38; // type:func
+func_80014C2C               = 0x80014C2C; // type:func
+Fs_StageCdfIsAvailable      = 0x80014C4C; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x0546C   VA: 0x80014C6C   subsegment: o, libetc/vsync
@@ -306,9 +311,46 @@ DsDataCallback              = 0x8001BB58;
 //--------------------------------------------------------------------
 //--- PA: 0x0C37C   VA: 0x8001BB7C   subsegment: c, C37C
 //--------------------------------------------------------------------
+func_8001BB7C               = 0x8001BB7C; // type:func
+func_8001BE60               = 0x8001BE60; // type:func
+func_8001C0D4               = 0x8001C0D4; // type:func
+func_8001C620               = 0x8001C620; // type:func
+func_8001C970               = 0x8001C970; // type:func
+func_8001CA70               = 0x8001CA70; // type:func
+func_8001CDF0               = 0x8001CDF0; // type:func
+func_8001CEFC               = 0x8001CEFC; // type:func
+func_8001D0E8               = 0x8001D0E8; // type:func
 CdCmd_Enqueue               = 0x8001D2B0; // type:func
-CdCmd_ClearQueue            = 0x8001D3F8;
+func_8001D344               = 0x8001D344; // type:func
+func_8001D37C               = 0x8001D37C; // type:func
+func_8001D39C               = 0x8001D39C; // type:func
+CdCmd_ClearQueue            = 0x8001D3F8; // type:func
+func_8001D424               = 0x8001D424; // type:func
+func_8001D498               = 0x8001D498; // type:func
+func_8001D4F0               = 0x8001D4F0; // type:func
+func_8001D524               = 0x8001D524; // type:func
+func_8001D534               = 0x8001D534; // type:func
+func_8001D580               = 0x8001D580; // type:func
+func_8001D588               = 0x8001D588; // type:func
+func_8001D5B4               = 0x8001D5B4; // type:func
+func_8001D5BC               = 0x8001D5BC; // type:func
+func_8001D5C4               = 0x8001D5C4; // type:func
+func_8001D5CC               = 0x8001D5CC; // type:func
+func_8001D628               = 0x8001D628; // type:func
+func_8001D66C               = 0x8001D66C; // type:func
+func_8001D6B8               = 0x8001D6B8; // type:func
 CdCmd_EnqueueReplace        = 0x8001D6FC; // type:func
+func_8001D760               = 0x8001D760; // type:func
+func_8001D82C               = 0x8001D82C; // type:func
+func_8001D898               = 0x8001D898; // type:func
+func_8001D8DC               = 0x8001D8DC; // type:func
+func_8001D90C               = 0x8001D90C; // type:func
+func_8001D934               = 0x8001D934; // type:func
+func_8001D97C               = 0x8001D97C; // type:func
+func_8001D990               = 0x8001D990; // type:func
+func_8001DA48               = 0x8001DA48; // type:func
+func_8001DAB8               = 0x8001DAB8; // type:func
+func_8001DB84               = 0x8001DB84; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x0E4B4   VA: 0x8001DCB4   subsegment: o, libcd/s_002
@@ -345,25 +387,25 @@ strncmp                     = 0x8001EAC4;
 //--------------------------------------------------------------------
 //--- PA: 0x0F344   VA: 0x8001EB44   subsegment: c, F344
 //--------------------------------------------------------------------
-func_8001EB44               = 0x8001EB44;
-func_8001ED20               = 0x8001ED20;
-func_8001EDC8               = 0x8001EDC8;
-func_8001EED8               = 0x8001EED8;
-func_8001EF9C               = 0x8001EF9C;
-func_8001F180               = 0x8001F180;
-func_8001F2FC               = 0x8001F2FC;
-func_8001F430               = 0x8001F430;
-func_8001F6B8               = 0x8001F6B8;
-func_8001F854               = 0x8001F854;
-func_8001F990               = 0x8001F990;
-func_8001FAE0               = 0x8001FAE0;
-func_80020058               = 0x80020058;
-func_80020278               = 0x80020278;
-func_80020298               = 0x80020298;
-func_80020388               = 0x80020388;
-func_80020394               = 0x80020394;
-func_80020414               = 0x80020414;
-func_8002043C               = 0x8002043C;
+func_8001EB44               = 0x8001EB44; // type:func
+func_8001ED20               = 0x8001ED20; // type:func
+func_8001EDC8               = 0x8001EDC8; // type:func
+func_8001EED8               = 0x8001EED8; // type:func
+func_8001EF9C               = 0x8001EF9C; // type:func
+func_8001F180               = 0x8001F180; // type:func
+func_8001F2FC               = 0x8001F2FC; // type:func
+func_8001F430               = 0x8001F430; // type:func
+func_8001F6B8               = 0x8001F6B8; // type:func
+func_8001F854               = 0x8001F854; // type:func
+func_8001F990               = 0x8001F990; // type:func
+func_8001FAE0               = 0x8001FAE0; // type:func
+func_80020058               = 0x80020058; // type:func
+func_80020278               = 0x80020278; // type:func
+func_80020298               = 0x80020298; // type:func
+func_80020388               = 0x80020388; // type:func
+func_80020394               = 0x80020394; // type:func
+func_80020414               = 0x80020414; // type:func
+func_8002043C               = 0x8002043C; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x10C5C   VA: 0x8002045C   subsegment: o, libcd/cdread2
@@ -415,37 +457,53 @@ DecDCTBufSize               = 0x8002168C;
 //--------------------------------------------------------------------
 //--- PA: 0x11E9C   VA: 0x8002169C   subsegment: c, 11E9C
 //--------------------------------------------------------------------
+func_8002169C               = 0x8002169C; // type:func
+func_80021808               = 0x80021808; // type:func
+func_8002191C               = 0x8002191C; // type:func
+func_80021A20               = 0x80021A20; // type:func
+func_80021B28               = 0x80021B28; // type:func
+func_80021C0C               = 0x80021C0C; // type:func
+func_80021D8C               = 0x80021D8C; // type:func
+func_8002207C               = 0x8002207C; // type:func
+func_8002226C               = 0x8002226C; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x12D18   VA: 0x80022518   subsegment: c, fs
 //--------------------------------------------------------------------
-F12D18_80022518             = 0x80022518;
-F12D18_8002252C             = 0x8002252C;
-F12D18_80022598             = 0x80022598;
-F12D18_800225D4             = 0x800225D4;
+F12D18_80022518             = 0x80022518; // type:func
+F12D18_8002252C             = 0x8002252C; // type:func
+F12D18_80022598             = 0x80022598; // type:func
+F12D18_800225D4             = 0x800225D4; // type:func
 Fs_LoadFile                 = 0x8002265C; // type:func
-Fs_CdReadyCb                = 0x80022BD0;
+Fs_CdReadyCb                = 0x80022BD0; // type:func
 Fs_ProcessChunkHeader       = 0x80022CF0; // type:func
 Fs_ProcessChunkData         = 0x800231A8; // type:func
 Fs_SelectStage              = 0x8002362C; // type:func
-Fs_InitStage0TablesCb       = 0x80023B6C;
+func_80023748               = 0x80023748; // type:func
+func_8002397C               = 0x8002397C; // type:func
+Fs_InitStage0TablesCb       = 0x80023B6C; // type:func
 Fs_ScanIsoDirectory         = 0x80023FA0; // type:func
-Fs_InitFolderTable          = 0x8002548C;
-Fs_InitStage0Tables         = 0x800254FC;
-Fs_ClearDiskError           = 0x80024DB8;
-F12D18_80024EC0             = 0x80024EC0;
-Fs_WaitDiskSwap             = 0x80024FEC;
-Fs_ReadSectorEx             = 0x80025170;
-Fs_ReadSector               = 0x8002526C;
-Fs_WaitDiskReset            = 0x80025338;
-Fs_SeekToPos                = 0x80025408;
-F12D18_80025580             = 0x80025580;
-F12D18_8002563C             = 0x8002563C;
-Fs_SeekToPosCb              = 0x800256A8;
-F12D18_800256F4             = 0x800256F4;
-Fs_ContinueDrawing          = 0x8002576C;
-F12D18_800257B0             = 0x800257B0;
-Fs_StopCd                   = 0x80025850;
+func_800246B0               = 0x800246B0; // type:func
+func_800248B4               = 0x800248B4; // type:func
+func_80024A28               = 0x80024A28; // type:func
+Fs_ClearDiskError           = 0x80024DB8; // type:func
+F12D18_80024EC0             = 0x80024EC0; // type:func
+Fs_WaitDiskSwap             = 0x80024FEC; // type:func
+Fs_ReadSectorEx             = 0x80025170; // type:func
+Fs_ReadSector               = 0x8002526C; // type:func
+Fs_WaitDiskReset            = 0x80025338; // type:func
+Fs_SeekToPos                = 0x80025408; // type:func
+Fs_InitFolderTable          = 0x8002548C; // type:func
+Fs_InitStage0Tables         = 0x800254FC; // type:func
+F12D18_80025580             = 0x80025580; // type:func
+F12D18_8002563C             = 0x8002563C; // type:func
+Fs_SeekToPosCb              = 0x800256A8; // type:func
+F12D18_800256F4             = 0x800256F4; // type:func
+Fs_ContinueDrawing          = 0x8002576C; // type:func
+func_800257A4               = 0x800257A4; // type:func
+F12D18_800257B0             = 0x800257B0; // type:func
+Fs_StopCd                   = 0x80025850; // type:func
+func_80025898               = 0x80025898; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x160F4   VA: 0x800258f4   subsegment: o, libgpu/break
@@ -471,7 +529,19 @@ ResetRCnt                   = 0x80025C5C;
 //--------------------------------------------------------------------
 //--- PA: 0x16494   VA: 0x80025C94   subsegment: c, 16494
 //--------------------------------------------------------------------
-F16494_ResetSpuAttr         = 0x8002604C;
+func_80025C94               = 0x80025C94; // type:func
+func_80025DD8               = 0x80025DD8; // type:func
+F16494_ResetSpuAttr         = 0x8002604C; // type:func
+func_800260B0               = 0x800260B0; // type:func
+func_80026138               = 0x80026138; // type:func
+func_80026148               = 0x80026148; // type:func
+func_80026178               = 0x80026178; // type:func
+func_800261C8               = 0x800261C8; // type:func
+func_800261D4               = 0x800261D4; // type:func
+func_800261F4               = 0x800261F4; // type:func
+func_80026218               = 0x80026218; // type:func
+func_80026268               = 0x80026268; // type:func
+func_800262A8               = 0x800262A8; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x16B14   VA: 0x80026314   subsegment: o, libspu/s_sca
@@ -494,22 +564,22 @@ _spu_FsetPCR                = 0x800270C4;
 _spu_Fw1ts                  = 0x8002716C;
 
 //--------------------------------------------------------------------
-//--- PA: 0x179D4   VA: 0x800271D4   subsegment: c
+//--- PA: 0x179D4   VA: 0x800271D4   subsegment: c, 179D4
 //--------------------------------------------------------------------
-func_800271D4               = 0x800271D4;
-func_8002731C               = 0x8002731C;
-func_80027498               = 0x80027498;
-func_8002764C               = 0x8002764C;
-func_8002785C               = 0x8002785C;
-func_80027E7C               = 0x80027E7C;
-func_80027F48               = 0x80027F48;
-func_800280F4               = 0x800280F4;
-F179D4_ClearOTag            = 0x80028180;
-func_800281D4               = 0x800281D4;
-func_80028290               = 0x80028290;
-func_800282D8               = 0x800282D8;
-GameMain                    = 0x8002838C;
-func_80028404               = 0x80028404;
+func_800271D4               = 0x800271D4; // type:func
+func_8002731C               = 0x8002731C; // type:func
+func_80027498               = 0x80027498; // type:func
+func_8002764C               = 0x8002764C; // type:func
+func_8002785C               = 0x8002785C; // type:func
+func_80027E7C               = 0x80027E7C; // type:func
+func_80027F48               = 0x80027F48; // type:func
+func_800280F4               = 0x800280F4; // type:func
+F179D4_ClearOTag            = 0x80028180; // type:func
+func_800281D4               = 0x800281D4; // type:func
+func_80028290               = 0x80028290; // type:func
+func_800282D8               = 0x800282D8; // type:func
+GameMain                    = 0x8002838C; // type:func
+func_80028404               = 0x80028404; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x18C14   VA: 0x80028414   subsegment: o, libgs/gs_123
@@ -534,6 +604,8 @@ FlushCache                  = 0x80028654;
 //--------------------------------------------------------------------
 //--- PA: 0x18E64   VA: 0x80028644   subsegment: c, 18E64
 //--------------------------------------------------------------------
+Pad_Init                    = 0x80028664; // type:func
+func_80028718               = 0x80028718; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x18F44   VA: 0x80028744   subsegment: o, libpad/padentry
@@ -612,6 +684,58 @@ chkRC2wait                  = 0x8002B794;
 //--------------------------------------------------------------------
 //--- PA: 0x1C034   VA: 0x8002B834   subsegment: c, 1C034
 //--------------------------------------------------------------------
+func_8002B834               = 0x8002B834; // type:func
+func_8002BA9C               = 0x8002BA9C; // type:func
+func_8002BB9C               = 0x8002BB9C; // type:func
+func_8002BBC8               = 0x8002BBC8; // type:func
+func_8002BC0C               = 0x8002BC0C; // type:func
+func_8002BCA8               = 0x8002BCA8; // type:func
+func_8002BD24               = 0x8002BD24; // type:func
+func_8002BDB8               = 0x8002BDB8; // type:func
+func_8002BE0C               = 0x8002BE0C; // type:func
+func_8002BEA8               = 0x8002BEA8; // type:func
+func_8002BF10               = 0x8002BF10; // type:func
+func_8002BF58               = 0x8002BF58; // type:func
+func_8002BFD4               = 0x8002BFD4; // type:func
+func_8002BFE0               = 0x8002BFE0; // type:func
+func_8002C028               = 0x8002C028; // type:func
+func_8002C090               = 0x8002C090; // type:func
+func_8002C1D8               = 0x8002C1D8; // type:func
+func_8002C5A4               = 0x8002C5A4; // type:func
+Pad_CheckButtons            = 0x8002C868; // type:func
+func_8002C8E4               = 0x8002C8E4; // type:func
+Pad_SetCooldown             = 0x8002C9B0; // type:func
+Pad_ClearCooldown           = 0x8002C9E0; // type:func
+Pad_ReadButtonsInv          = 0x8002CA0C; // type:func
+Pad_ClearEvents             = 0x8002CA54; // type:func
+Pad_CheckSpecialCombo       = 0x8002CAB8; // type:func
+Task_SpawnFromDesc          = 0x8002CB04; // type:func
+Task_Kill                   = 0x8002CCB8; // type:func
+Task_SpawnFromTable         = 0x8002CFA0; // type:func
+Task_Spawn                  = 0x8002CFDC; // type:func
+Task_KillChildren           = 0x8002D03C; // type:func
+Task_CallExit               = 0x8002D0A4; // type:func
+Task_DetachFromParent       = 0x8002D0CC; // type:func
+func_8002D14C               = 0x8002D14C; // type:func
+func_8002D214               = 0x8002D214; // type:func
+func_8002D22C               = 0x8002D22C; // type:func
+Task_InitList               = 0x8002D248; // type:func
+Task_ExecList               = 0x8002D25C; // type:func
+Task_GetDesc                = 0x8002D304; // type:func
+Task_GetDescAt              = 0x8002D32C; // type:func
+Task_RequestKill            = 0x8002D340; // type:func
+Task_PollKill               = 0x8002D3BC; // type:func
+Task_GetActiveList          = 0x8002D40C; // type:func
+Task_SetActiveList          = 0x8002D41C; // type:func
+Task_ResetDefaultList       = 0x8002D428; // type:func
+Task_Unlink                 = 0x8002D444; // type:func
+Task_Free                   = 0x8002D474; // type:func
+Task_ExecDefaultList        = 0x8002D494; // type:func
+Task_ExecListFiltered       = 0x8002D544; // type:func
+Task_CallExitFiltered       = 0x8002D61C; // type:func
+func_8002D6EC               = 0x8002D6EC; // type:func
+func_8002D780               = 0x8002D780; // type:func
+func_8002D7A8               = 0x8002D7A8; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x1E094   VA: 0x8002D894   subsegment: c, mem
@@ -645,18 +769,155 @@ free3                       = 0x8002DD74;
 //--------------------------------------------------------------------
 //--- PA: 0x1E6C4   VA: 0x8002DEC4   subsegment: c, 1E6C4
 //--------------------------------------------------------------------
+func_8002DEC4               = 0x8002DEC4; // type:func
+func_8002DECC               = 0x8002DECC; // type:func
+func_8002E010               = 0x8002E010; // type:func
+func_8002E188               = 0x8002E188; // type:func
+func_8002E300               = 0x8002E300; // type:func
+func_8002E53C               = 0x8002E53C; // type:func
+func_8002EB94               = 0x8002EB94; // type:func
+func_8002EDFC               = 0x8002EDFC; // type:func
+func_8002EEA0               = 0x8002EEA0; // type:func
+func_8002F020               = 0x8002F020; // type:func
+func_8002F18C               = 0x8002F18C; // type:func
+func_8002F2A4               = 0x8002F2A4; // type:func
+func_8002F3A0               = 0x8002F3A0; // type:func
+func_8002F44C               = 0x8002F44C; // type:func
+func_8002F528               = 0x8002F528; // type:func
+func_8002F588               = 0x8002F588; // type:func
+func_8002F5E4               = 0x8002F5E4; // type:func
+func_8002F69C               = 0x8002F69C; // type:func
+func_8002F798               = 0x8002F798; // type:func
+func_8002F890               = 0x8002F890; // type:func
+func_8002F98C               = 0x8002F98C; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x201E0   VA: 0x8002F9E0   subsegment: c, 201E0
 //--------------------------------------------------------------------
+func_8002F9E0               = 0x8002F9E0; // type:func
+func_8002FB84               = 0x8002FB84; // type:func
+func_8002FCBC               = 0x8002FCBC; // type:func
+func_8002FD08               = 0x8002FD08; // type:func
+func_8002FDCC               = 0x8002FDCC; // type:func
+func_8002FEAC               = 0x8002FEAC; // type:func
+func_8002FEE0               = 0x8002FEE0; // type:func
+func_80030074               = 0x80030074; // type:func
+func_800300EC               = 0x800300EC; // type:func
+func_800301FC               = 0x800301FC; // type:func
+func_800303AC               = 0x800303AC; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x20CAC   VA: 0x800304AC   subsegment: c, 20CAC
 //--------------------------------------------------------------------
+func_800304AC               = 0x800304AC; // type:func
+func_8003062C               = 0x8003062C; // type:func
+func_800307AC               = 0x800307AC; // type:func
+func_8003092C               = 0x8003092C; // type:func
+func_80030AB0               = 0x80030AB0; // type:func
+func_80031118               = 0x80031118; // type:func
+func_800312DC               = 0x800312DC; // type:func
+func_800314D0               = 0x800314D0; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x21FDC   VA: 0x800317DC   subsegment: c, 21FDC
 //--------------------------------------------------------------------
+func_800317DC               = 0x800317DC; // type:func
+func_800319E4               = 0x800319E4; // type:func
+Mc_StateCreateFile          = 0x80031B1C; // type:func
+func_80031C5C               = 0x80031C5C; // type:func
+func_80031DA4               = 0x80031DA4; // type:func
+func_80031F94               = 0x80031F94; // type:func
+func_800322B0               = 0x800322B0; // type:func
+Mc_StateFormat              = 0x8003245C; // type:func
+func_80032578               = 0x80032578; // type:func
+func_800327A4               = 0x800327A4; // type:func
+func_800328FC               = 0x800328FC; // type:func
+func_80032AB0               = 0x80032AB0; // type:func
+func_80032D54               = 0x80032D54; // type:func
+func_80032F5C               = 0x80032F5C; // type:func
+func_800330D8               = 0x800330D8; // type:func
+Mc_EncodeAsciiGlyphs        = 0x8003380C; // type:func
+Mc_InitFileName             = 0x800338A8; // type:func
+Mc_CopyFileName             = 0x800338F4; // type:func
+Mc_WriteSaveHdrChecksum     = 0x80033944; // type:func
+Mc_VerifySaveHdrChecksum    = 0x800339C4; // type:func
+Mc_WriteBlockChecksum       = 0x80033A28; // type:func
+Mc_ResetSaveFlags           = 0x80033A70; // type:func
+Mc_ClearWorkBuffers         = 0x80033AB8; // type:func
+Mc_InitLib                  = 0x80033BBC; // type:func
+Mc_VerifyBlockChecksum      = 0x80033BEC; // type:func
+func_80033C38               = 0x80033C38; // type:func
+func_80033C40               = 0x80033C40; // type:func
+func_80033CC0               = 0x80033CC0; // type:func
+func_80033D3C               = 0x80033D3C; // type:func
+func_80033D88               = 0x80033D88; // type:func
+func_80033DD4               = 0x80033DD4; // type:func
+func_80033E58               = 0x80033E58; // type:func
+Mc_DrawPrompt               = 0x80033EB0; // type:func
+Mc_HideChildUi              = 0x80033F6C; // type:func
+Mc_WriteDataChecksum        = 0x80033FB8; // type:func
+Mc_CompareSaveChecksum      = 0x80034028; // type:func
+Mc_ResetWork                = 0x80034070; // type:func
+func_800340A4               = 0x800340A4; // type:func
+func_8003415C               = 0x8003415C; // type:func
+func_8003429C               = 0x8003429C; // type:func
+func_800343D0               = 0x800343D0; // type:func
+func_800344B4               = 0x800344B4; // type:func
+func_800345CC               = 0x800345CC; // type:func
+func_800346AC               = 0x800346AC; // type:func
+func_8003477C               = 0x8003477C; // type:func
+func_80034894               = 0x80034894; // type:func
+func_80034938               = 0x80034938; // type:func
+func_80034A40               = 0x80034A40; // type:func
+func_80034B38               = 0x80034B38; // type:func
+func_80034B68               = 0x80034B68; // type:func
+func_80034C54               = 0x80034C54; // type:func
+func_80034D50               = 0x80034D50; // type:func
+func_80034E3C               = 0x80034E3C; // type:func
+func_80034F2C               = 0x80034F2C; // type:func
+func_80034FB4               = 0x80034FB4; // type:func
+func_800350B0               = 0x800350B0; // type:func
+func_80035180               = 0x80035180; // type:func
+func_8003527C               = 0x8003527C; // type:func
+Mc_StateOpenSelected        = 0x80035358; // type:func
+func_80035464               = 0x80035464; // type:func
+Mc_StateOpenNext            = 0x80035574; // type:func
+func_80035684               = 0x80035684; // type:func
+func_80035764               = 0x80035764; // type:func
+func_80035844               = 0x80035844; // type:func
+func_8003591C               = 0x8003591C; // type:func
+func_80035960               = 0x80035960; // type:func
+func_800359A4               = 0x800359A4; // type:func
+func_80035A94               = 0x80035A94; // type:func
+func_80035AD4               = 0x80035AD4; // type:func
+func_80035AF0               = 0x80035AF0; // type:func
+Mc_StateCloseReturn         = 0x80035C2C; // type:func
+func_80035D14               = 0x80035D14; // type:func
+func_80035E18               = 0x80035E18; // type:func
+func_80035E48               = 0x80035E48; // type:func
+func_80035ED4               = 0x80035ED4; // type:func
+func_80035FD8               = 0x80035FD8; // type:func
+func_800360C8               = 0x800360C8; // type:func
+func_800361C0               = 0x800361C0; // type:func
+func_800362A4               = 0x800362A4; // type:func
+func_800363AC               = 0x800363AC; // type:func
+func_80036488               = 0x80036488; // type:func
+func_800365B0               = 0x800365B0; // type:func
+func_800366BC               = 0x800366BC; // type:func
+func_800367CC               = 0x800367CC; // type:func
+func_800368DC               = 0x800368DC; // type:func
+func_80036968               = 0x80036968; // type:func
+func_80036A1C               = 0x80036A1C; // type:func
+func_80036A2C               = 0x80036A2C; // type:func
+func_80036A70               = 0x80036A70; // type:func
+func_80036B2C               = 0x80036B2C; // type:func
+func_80036C04               = 0x80036C04; // type:func
+func_80036CF0               = 0x80036CF0; // type:func
+func_80036D98               = 0x80036D98; // type:func
+func_80036E78               = 0x80036E78; // type:func
+func_80036F18               = 0x80036F18; // type:func
+func_80036FB8               = 0x80036FB8; // type:func
+func_80037068               = 0x80037068; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x27964   VA: 0x80037164   subsegment: o, libc2/rand
@@ -916,6 +1177,10 @@ strncpy                     = 0x8003AE94;
 //--------------------------------------------------------------------
 //--- PA: 0x2B704   VA: 0x8003AF04   subsegment: c, 2B704
 //--------------------------------------------------------------------
+func_8003AF04               = 0x8003AF04; // type:func
+func_8003B140               = 0x8003B140; // type:func
+func_8003B228               = 0x8003B228; // type:func
+func_8003B318               = 0x8003B318; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x2BB30   VA: 0x8003B330   subsegment: o, libgs/gs_107
@@ -935,6 +1200,20 @@ SetColorMatrix              = 0x8003B930;
 //--------------------------------------------------------------------
 //--- PA: 0x2C160   VA: 0x8003B960   subsegment: c, 2C160
 //--------------------------------------------------------------------
+func_8003B960               = 0x8003B960; // type:func
+func_8003BD34               = 0x8003BD34; // type:func
+func_8003C110               = 0x8003C110; // type:func
+func_8003C4F0               = 0x8003C4F0; // type:func
+func_8003C6D8               = 0x8003C6D8; // type:func
+func_8003C728               = 0x8003C728; // type:func
+func_8003C748               = 0x8003C748; // type:func
+func_8003C768               = 0x8003C768; // type:func
+func_8003C788               = 0x8003C788; // type:func
+func_8003C98C               = 0x8003C98C; // type:func
+func_8003CB80               = 0x8003CB80; // type:func
+func_8003CD78               = 0x8003CD78; // type:func
+func_8003CEC4               = 0x8003CEC4; // type:func
+func_8003D000               = 0x8003D000; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x2D838   VA: 0x8003D038   subsegment: o, libgte/geo_00
@@ -986,6 +1265,10 @@ ratan2                      = 0x8003D9C8;
 //--------------------------------------------------------------------
 //--- PA: 0x2E348   VA: 0x8003DB48   subsegment: c, 2E348
 //--------------------------------------------------------------------
+func_8003DB48               = 0x8003DB48; // type:func
+func_8003DE14               = 0x8003DE14; // type:func
+func_8003DE58               = 0x8003DE58; // type:func
+func_8003DE78               = 0x8003DE78; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x2E650   VA: 0x8003DEB0   subsegment: o, libgpu/e03
@@ -1000,6 +1283,23 @@ SetDefDispEnv               = 0x8003DF70;
 //--------------------------------------------------------------------
 //--- PA: 0x2E7B0   VA: 0x8003DFB0   subsegment: c, 2E7B0
 //--------------------------------------------------------------------
+func_8003DFB0               = 0x8003DFB0; // type:func
+func_8003E210               = 0x8003E210; // type:func
+func_8003E324               = 0x8003E324; // type:func
+func_8003E438               = 0x8003E438; // type:func
+func_8003E4BC               = 0x8003E4BC; // type:func
+func_8003E540               = 0x8003E540; // type:func
+func_8003E560               = 0x8003E560; // type:func
+func_8003E610               = 0x8003E610; // type:func
+func_8003E64C               = 0x8003E64C; // type:func
+func_8003E698               = 0x8003E698; // type:func
+func_8003E6E4               = 0x8003E6E4; // type:func
+func_8003E72C               = 0x8003E72C; // type:func
+func_8003E814               = 0x8003E814; // type:func
+func_8003E854               = 0x8003E854; // type:func
+func_8003E904               = 0x8003E904; // type:func
+func_8003E9A4               = 0x8003E9A4; // type:func
+func_8003E9C4               = 0x8003E9C4; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x2F1E4   VA: 0x8003E9E4   subsegment: o, libgs/gs_113
@@ -1009,6 +1309,60 @@ GsClearOt                   = 0x8003E9E4;
 //--------------------------------------------------------------------
 //--- PA: 0x2F244   VA: 0x8003EA44   subsegment: c, 2F244
 //--------------------------------------------------------------------
+func_8003EA44               = 0x8003EA44; // type:func
+func_8003EC44               = 0x8003EC44; // type:func
+func_8003EE68               = 0x8003EE68; // type:func
+func_8003F034               = 0x8003F034; // type:func
+func_8003F450               = 0x8003F450; // type:func
+func_8003F5A4               = 0x8003F5A4; // type:func
+func_8003F690               = 0x8003F690; // type:func
+func_8003F6F8               = 0x8003F6F8; // type:func
+func_8003F71C               = 0x8003F71C; // type:func
+func_8003F7A8               = 0x8003F7A8; // type:func
+func_8003F848               = 0x8003F848; // type:func
+func_8003F86C               = 0x8003F86C; // type:func
+func_8003F900               = 0x8003F900; // type:func
+func_8003F944               = 0x8003F944; // type:func
+func_8003F964               = 0x8003F964; // type:func
+func_8003F9AC               = 0x8003F9AC; // type:func
+func_8003F9F4               = 0x8003F9F4; // type:func
+func_8003FA3C               = 0x8003FA3C; // type:func
+func_8003FA4C               = 0x8003FA4C; // type:func
+func_8003FB20               = 0x8003FB20; // type:func
+func_8003FB70               = 0x8003FB70; // type:func
+func_8003FC18               = 0x8003FC18; // type:func
+func_8003FC30               = 0x8003FC30; // type:func
+func_8003FC6C               = 0x8003FC6C; // type:func
+func_8003FC8C               = 0x8003FC8C; // type:func
+func_8003FCF8               = 0x8003FCF8; // type:func
+func_8003FD58               = 0x8003FD58; // type:func
+func_8003FE00               = 0x8003FE00; // type:func
+func_8003FE40               = 0x8003FE40; // type:func
+func_8003FE9C               = 0x8003FE9C; // type:func
+func_8003FF14               = 0x8003FF14; // type:func
+func_8004017C               = 0x8004017C; // type:func
+func_800405E0               = 0x800405E0; // type:func
+func_80040820               = 0x80040820; // type:func
+func_800408C0               = 0x800408C0; // type:func
+func_800408F4               = 0x800408F4; // type:func
+func_80040904               = 0x80040904; // type:func
+func_800409B0               = 0x800409B0; // type:func
+func_800409D0               = 0x800409D0; // type:func
+func_800410F0               = 0x800410F0; // type:func
+func_80041700               = 0x80041700; // type:func
+func_800418C0               = 0x800418C0; // type:func
+func_80041B4C               = 0x80041B4C; // type:func
+func_80041B88               = 0x80041B88; // type:func
+func_80041BFC               = 0x80041BFC; // type:func
+func_80041C50               = 0x80041C50; // type:func
+func_80041D3C               = 0x80041D3C; // type:func
+func_80041D84               = 0x80041D84; // type:func
+func_80041DF4               = 0x80041DF4; // type:func
+func_80041E4C               = 0x80041E4C; // type:func
+func_80041EB4               = 0x80041EB4; // type:func
+func_80041F58               = 0x80041F58; // type:func
+func_80041FF8               = 0x80041FF8; // type:func
+func_80042058               = 0x80042058; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x328B8   VA: 0x800420B8   subsegment: o, libgte/fgo_00
@@ -1038,6 +1392,7 @@ MargePrim                   = 0x800422B8;
 //--------------------------------------------------------------------
 //--- PA: 0x32AF8   VA: 0x800422F8   subsegment: c, 32AF8
 //--------------------------------------------------------------------
+func_800422F8               = 0x800422F8; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x32B44   VA: 0x80042344   subsegment: o, libgpu/p26
@@ -1047,6 +1402,10 @@ SetTile                     = 0x80042344;
 //--------------------------------------------------------------------
 //--- PA: 0x32B64   VA: 0x80042364   subsegment: c, 32B64
 //--------------------------------------------------------------------
+func_80042364               = 0x80042364; // type:func
+func_80042500               = 0x80042500; // type:func
+func_80042838               = 0x80042838; // type:func
+func_800429C8               = 0x800429C8; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x332E0   VA: 0x80042AE0   subsegment: o, libgpu/p01
@@ -1056,6 +1415,19 @@ GetClut                     = 0x80042AE0;
 //--------------------------------------------------------------------
 //--- PA: 0x33300   VA: 0x80042B00   subsegment: c, 33300
 //--------------------------------------------------------------------
+func_80042B00               = 0x80042B00; // type:func
+func_80042DF8               = 0x80042DF8; // type:func
+func_80042F54               = 0x80042F54; // type:func
+func_80043028               = 0x80043028; // type:func
+func_800430E4               = 0x800430E4; // type:func
+func_80043198               = 0x80043198; // type:func
+func_800431FC               = 0x800431FC; // type:func
+func_8004323C               = 0x8004323C; // type:func
+func_80043310               = 0x80043310; // type:func
+func_800435F8               = 0x800435F8; // type:func
+func_80043718               = 0x80043718; // type:func
+func_8004379C               = 0x8004379C; // type:func
+func_80043854               = 0x80043854; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x34138   VA: 0x80043938   subsegment: o, libgpu/p00
@@ -1128,6 +1500,72 @@ RotMatrixZYX                = 0x80044408;
 //--------------------------------------------------------------------
 //--- PA: 0x34E98   VA: 0x80044698   subsegment: c, 34E98
 //--------------------------------------------------------------------
+func_80044698               = 0x80044698; // type:func
+func_800446A0               = 0x800446A0; // type:func
+func_80044C34               = 0x80044C34; // type:func
+func_800454E4               = 0x800454E4; // type:func
+func_800457F8               = 0x800457F8; // type:func
+func_80045A3C               = 0x80045A3C; // type:func
+func_80045B24               = 0x80045B24; // type:func
+func_80045D24               = 0x80045D24; // type:func
+func_80045F24               = 0x80045F24; // type:func
+func_80046124               = 0x80046124; // type:func
+func_800463B4               = 0x800463B4; // type:func
+func_80046508               = 0x80046508; // type:func
+func_800466E4               = 0x800466E4; // type:func
+func_80046830               = 0x80046830; // type:func
+func_80046B34               = 0x80046B34; // type:func
+func_80046DEC               = 0x80046DEC; // type:func
+func_80046EEC               = 0x80046EEC; // type:func
+func_80047A0C               = 0x80047A0C; // type:func
+func_80047B24               = 0x80047B24; // type:func
+func_80047C40               = 0x80047C40; // type:func
+func_80047D90               = 0x80047D90; // type:func
+func_80047F40               = 0x80047F40; // type:func
+func_800480A0               = 0x800480A0; // type:func
+func_80048390               = 0x80048390; // type:func
+func_80048560               = 0x80048560; // type:func
+func_800486F0               = 0x800486F0; // type:func
+func_80048838               = 0x80048838; // type:func
+func_800488B8               = 0x800488B8; // type:func
+func_800488F8               = 0x800488F8; // type:func
+func_80048904               = 0x80048904; // type:func
+func_80048964               = 0x80048964; // type:func
+func_800489A0               = 0x800489A0; // type:func
+func_80048AEC               = 0x80048AEC; // type:func
+func_80048C10               = 0x80048C10; // type:func
+func_80048C30               = 0x80048C30; // type:func
+func_80048D58               = 0x80048D58; // type:func
+func_80048E10               = 0x80048E10; // type:func
+func_80048E2C               = 0x80048E2C; // type:func
+func_80048E38               = 0x80048E38; // type:func
+func_80048F88               = 0x80048F88; // type:func
+func_80049024               = 0x80049024; // type:func
+func_800490A4               = 0x800490A4; // type:func
+func_800490C8               = 0x800490C8; // type:func
+func_800490EC               = 0x800490EC; // type:func
+func_80049100               = 0x80049100; // type:func
+func_8004917C               = 0x8004917C; // type:func
+func_800491AC               = 0x800491AC; // type:func
+func_80049288               = 0x80049288; // type:func
+func_800492B8               = 0x800492B8; // type:func
+func_800492EC               = 0x800492EC; // type:func
+func_80049348               = 0x80049348; // type:func
+func_80049478               = 0x80049478; // type:func
+func_80049554               = 0x80049554; // type:func
+func_800495B4               = 0x800495B4; // type:func
+func_8004965C               = 0x8004965C; // type:func
+func_8004969C               = 0x8004969C; // type:func
+func_8004972C               = 0x8004972C; // type:func
+func_800497F4               = 0x800497F4; // type:func
+func_800498D4               = 0x800498D4; // type:func
+func_80049950               = 0x80049950; // type:func
+func_80049980               = 0x80049980; // type:func
+func_80049A8C               = 0x80049A8C; // type:func
+func_80049AF0               = 0x80049AF0; // type:func
+func_80049C00               = 0x80049C00; // type:func
+func_80049D34               = 0x80049D34; // type:func
+func_80049D5C               = 0x80049D5C; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x3A584   VA: 0x80049D84   subsegment: o, libgte/rmat_01
@@ -1183,6 +1621,9 @@ PCinit                      = 0x8004AC4C;
 //--------------------------------------------------------------------
 //--- PA: 0x3B458   VA: 0x8004AC58   subsegment: c, 3B458
 //--------------------------------------------------------------------
+func_8004AC58               = 0x8004AC58; // type:func
+func_8004ACAC               = 0x8004ACAC; // type:func
+func_8004ACF0               = 0x8004ACF0; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x3B518   VA: 0x8004AD18   subsegment: o, libgpu/p34
@@ -1327,6 +1768,7 @@ _SN_read                    = 0x8004C4B8;
 //--------------------------------------------------------------------
 //--- PA: 0x3CCD0   VA: 0x8004C4D0   subsegment: c, 3CCD0
 //--------------------------------------------------------------------
+func_8004C4D0               = 0x8004C4D0; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x3CD08   VA: 0x8004C508   subsegment: o, libgte/mtx_001
@@ -1356,10 +1798,28 @@ RotMatrixZXY                = 0x8004C9C8;
 //--------------------------------------------------------------------
 //--- PA: 0x3D458   VA: 0x8004CC58   subsegment: c, 3D458
 //--------------------------------------------------------------------
-F3D458_ResetHeap            = 0x8004D5A8;
-F3D458_Malloc               = 0x8004D5D8;
-F3D458_Free                 = 0x8004D6C8;
-F3D458_8004D88C             = 0x8004D88C;
+func_8004CC58               = 0x8004CC58; // type:func
+func_8004CE28               = 0x8004CE28; // type:func
+func_8004CFC8               = 0x8004CFC8; // type:func
+func_8004CFE8               = 0x8004CFE8; // type:func
+func_8004D008               = 0x8004D008; // type:func
+func_8004D0A0               = 0x8004D0A0; // type:func
+func_8004D0F0               = 0x8004D0F0; // type:func
+func_8004D150               = 0x8004D150; // type:func
+func_8004D19C               = 0x8004D19C; // type:func
+func_8004D200               = 0x8004D200; // type:func
+func_8004D298               = 0x8004D298; // type:func
+func_8004D2EC               = 0x8004D2EC; // type:func
+func_8004D35C               = 0x8004D35C; // type:func
+func_8004D460               = 0x8004D460; // type:func
+F3D458_ResetHeap            = 0x8004D5A8; // type:func
+F3D458_Malloc               = 0x8004D5D8; // type:func
+F3D458_Free                 = 0x8004D6C8; // type:func
+func_8004D7D4               = 0x8004D7D4; // type:func
+func_8004D820               = 0x8004D820; // type:func
+F3D458_8004D88C             = 0x8004D88C; // type:func
+func_8004D8BC               = 0x8004D8BC; // type:func
+func_8004D94C               = 0x8004D94C; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x3E21C   VA: 0x8004DA1C   subsegment: o, libspu/s_i
@@ -1390,16 +1850,34 @@ DisableEvent                = 0x8004DC7C;
 //--------------------------------------------------------------------
 //--- PA: 0x3E48C   VA: 0x8004DC7C   subsegment: c, 3E48C
 //--------------------------------------------------------------------
-F3E48C_8004E44C             = 0x8004E44C;
-F3E48C_8004E660             = 0x8004E660;
-F3E48C_QueryReverbVoices    = 0x8004E764;
-F3E48C_ConfigSpuReverb      = 0x8004E788;
-F3E48C_SetReverbDepth       = 0x8004E814;
-F3E48C_SetReverbMode        = 0x8004E83C;
-F3E48C_EnableVoice          = 0x8004E8A8;
-F3E48C_DisableVoice         = 0x8004E8E4;
-F3E48C_ReverbVoiceIsEnabled = 0x8004E920;
-F3E48C_ApplyReverbConfig    = 0x8004E938;
+func_8004DC8C               = 0x8004DC8C; // type:func
+func_8004DDF0               = 0x8004DDF0; // type:func
+func_8004DE18               = 0x8004DE18; // type:func
+func_8004DEBC               = 0x8004DEBC; // type:func
+func_8004DF10               = 0x8004DF10; // type:func
+func_8004E060               = 0x8004E060; // type:func
+func_8004E200               = 0x8004E200; // type:func
+F3E48C_8004E44C             = 0x8004E44C; // type:func
+func_8004E560               = 0x8004E560; // type:func
+func_8004E580               = 0x8004E580; // type:func
+func_8004E5A0               = 0x8004E5A0; // type:func
+func_8004E5C4               = 0x8004E5C4; // type:func
+F3E48C_8004E660             = 0x8004E660; // type:func
+func_8004E6A4               = 0x8004E6A4; // type:func
+func_8004E6C4               = 0x8004E6C4; // type:func
+func_8004E71C               = 0x8004E71C; // type:func
+F3E48C_QueryReverbVoices    = 0x8004E764; // type:func
+F3E48C_ConfigSpuReverb      = 0x8004E788; // type:func
+F3E48C_SetReverbDepth       = 0x8004E814; // type:func
+F3E48C_SetReverbMode        = 0x8004E83C; // type:func
+F3E48C_EnableVoice          = 0x8004E8A8; // type:func
+F3E48C_DisableVoice         = 0x8004E8E4; // type:func
+F3E48C_ReverbVoiceIsEnabled = 0x8004E920; // type:func
+F3E48C_ApplyReverbConfig    = 0x8004E938; // type:func
+func_8004E9D8               = 0x8004E9D8; // type:func
+func_8004EA60               = 0x8004EA60; // type:func
+func_8004EAA0               = 0x8004EAA0; // type:func
+func_8004EAF8               = 0x8004EAF8; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x3F360   VA: 0x8004EB60   subsegment: o, libspu/s_sr
@@ -1497,6 +1975,74 @@ WaitEvent                   = 0x800508A0;
 //--------------------------------------------------------------------
 //--- PA: 0x410B0   VA: 0x800508B0   subsegment: c, 410B0
 //--------------------------------------------------------------------
+func_800508B0               = 0x800508B0; // type:func
+func_800509B4               = 0x800509B4; // type:func
+func_800509F4               = 0x800509F4; // type:func
+func_80050A38               = 0x80050A38; // type:func
+func_80050A90               = 0x80050A90; // type:func
+func_80050AAC               = 0x80050AAC; // type:func
+func_80050AB4               = 0x80050AB4; // type:func
+func_80050AE0               = 0x80050AE0; // type:func
+func_80050B0C               = 0x80050B0C; // type:func
+func_80050B30               = 0x80050B30; // type:func
+func_80050B54               = 0x80050B54; // type:func
+func_80050B80               = 0x80050B80; // type:func
+func_80050BBC               = 0x80050BBC; // type:func
+func_80050BE8               = 0x80050BE8; // type:func
+func_80050C0C               = 0x80050C0C; // type:func
+func_80050C30               = 0x80050C30; // type:func
+func_80050C80               = 0x80050C80; // type:func
+func_80050CC0               = 0x80050CC0; // type:func
+func_80050CE0               = 0x80050CE0; // type:func
+func_80050D00               = 0x80050D00; // type:func
+func_80050D20               = 0x80050D20; // type:func
+func_80050E3C               = 0x80050E3C; // type:func
+func_800510D4               = 0x800510D4; // type:func
+func_800512BC               = 0x800512BC; // type:func
+func_8005132C               = 0x8005132C; // type:func
+func_800513A0               = 0x800513A0; // type:func
+func_80051400               = 0x80051400; // type:func
+func_80051460               = 0x80051460; // type:func
+func_800514F8               = 0x800514F8; // type:func
+func_80051560               = 0x80051560; // type:func
+func_800515C0               = 0x800515C0; // type:func
+func_8005166C               = 0x8005166C; // type:func
+func_80051744               = 0x80051744; // type:func
+func_800517B4               = 0x800517B4; // type:func
+func_800517F8               = 0x800517F8; // type:func
+func_80051808               = 0x80051808; // type:func
+func_80051850               = 0x80051850; // type:func
+func_8005185C               = 0x8005185C; // type:func
+func_80051888               = 0x80051888; // type:func
+func_800518E0               = 0x800518E0; // type:func
+func_80051964               = 0x80051964; // type:func
+func_80051A2C               = 0x80051A2C; // type:func
+func_80051AB8               = 0x80051AB8; // type:func
+func_80051AF0               = 0x80051AF0; // type:func
+func_80051BB0               = 0x80051BB0; // type:func
+func_80051DF4               = 0x80051DF4; // type:func
+func_800520A8               = 0x800520A8; // type:func
+func_80052488               = 0x80052488; // type:func
+func_800526A4               = 0x800526A4; // type:func
+func_8005287C               = 0x8005287C; // type:func
+func_800528BC               = 0x800528BC; // type:func
+func_800528F0               = 0x800528F0; // type:func
+func_800528F8               = 0x800528F8; // type:func
+func_800529BC               = 0x800529BC; // type:func
+func_800529D8               = 0x800529D8; // type:func
+func_80052B30               = 0x80052B30; // type:func
+func_80052F80               = 0x80052F80; // type:func
+func_800530DC               = 0x800530DC; // type:func
+func_8005325C               = 0x8005325C; // type:func
+func_80053280               = 0x80053280; // type:func
+func_800532CC               = 0x800532CC; // type:func
+func_8005333C               = 0x8005333C; // type:func
+func_80053414               = 0x80053414; // type:func
+func_80053448               = 0x80053448; // type:func
+func_80053548               = 0x80053548; // type:func
+func_800535F0               = 0x800535F0; // type:func
+func_8005363C               = 0x8005363C; // type:func
+func_8005368C               = 0x8005368C; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x43F6C   VA: 0x8005376C   subsegment: o, libspu/s_wp
@@ -1506,10 +2052,108 @@ SpuWritePartly              = 0x8005376C;
 //--------------------------------------------------------------------
 //--- PA: 0x43FFC   VA: 0x800537FC   subsegment: c, 43FFC
 //--------------------------------------------------------------------
+func_800537FC               = 0x800537FC; // type:func
+func_80053A20               = 0x80053A20; // type:func
+func_80053BF4               = 0x80053BF4; // type:func
+func_80053D90               = 0x80053D90; // type:func
+func_80053DB0               = 0x80053DB0; // type:func
+func_80053DF4               = 0x80053DF4; // type:func
+func_80053E48               = 0x80053E48; // type:func
+func_80053E68               = 0x80053E68; // type:func
+func_80053F00               = 0x80053F00; // type:func
+func_80053F60               = 0x80053F60; // type:func
+func_80053FA0               = 0x80053FA0; // type:func
+func_80053FF4               = 0x80053FF4; // type:func
+func_8005414C               = 0x8005414C; // type:func
+func_800542D0               = 0x800542D0; // type:func
+func_80054334               = 0x80054334; // type:func
+func_800543AC               = 0x800543AC; // type:func
+func_80054424               = 0x80054424; // type:func
+func_800544B8               = 0x800544B8; // type:func
+func_8005454C               = 0x8005454C; // type:func
+func_80054608               = 0x80054608; // type:func
+func_8005462C               = 0x8005462C; // type:func
+func_80054658               = 0x80054658; // type:func
+func_8005468C               = 0x8005468C; // type:func
+func_800546C0               = 0x800546C0; // type:func
+func_800546F4               = 0x800546F4; // type:func
+func_8005488C               = 0x8005488C; // type:func
+func_80054938               = 0x80054938; // type:func
+func_80054D58               = 0x80054D58; // type:func
+func_80054F1C               = 0x80054F1C; // type:func
+func_80055078               = 0x80055078; // type:func
+func_80055678               = 0x80055678; // type:func
+func_800558E8               = 0x800558E8; // type:func
+func_800559BC               = 0x800559BC; // type:func
+func_80055A9C               = 0x80055A9C; // type:func
+func_80055B70               = 0x80055B70; // type:func
+func_80055C00               = 0x80055C00; // type:func
+func_80055C8C               = 0x80055C8C; // type:func
+func_80055CE0               = 0x80055CE0; // type:func
+func_80055D78               = 0x80055D78; // type:func
+func_80055DAC               = 0x80055DAC; // type:func
+func_80055DFC               = 0x80055DFC; // type:func
+func_80055EE8               = 0x80055EE8; // type:func
+func_80055EF8               = 0x80055EF8; // type:func
+func_80055F70               = 0x80055F70; // type:func
+func_80056068               = 0x80056068; // type:func
+func_80056104               = 0x80056104; // type:func
+func_800561C0               = 0x800561C0; // type:func
+func_800561EC               = 0x800561EC; // type:func
+func_80056240               = 0x80056240; // type:func
+func_800562B4               = 0x800562B4; // type:func
+func_80056308               = 0x80056308; // type:func
+func_800563B4               = 0x800563B4; // type:func
+func_800564C4               = 0x800564C4; // type:func
+func_800565B8               = 0x800565B8; // type:func
+func_8005664C               = 0x8005664C; // type:func
+func_800566A4               = 0x800566A4; // type:func
+func_80056700               = 0x80056700; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x46FE4   VA: 0x800567E4   subsegment: c, 46FE4
 //--------------------------------------------------------------------
+func_800567E4               = 0x800567E4; // type:func
+func_800569D4               = 0x800569D4; // type:func
+func_80056B28               = 0x80056B28; // type:func
+func_80056E38               = 0x80056E38; // type:func
+func_800572FC               = 0x800572FC; // type:func
+func_800574BC               = 0x800574BC; // type:func
+func_80057554               = 0x80057554; // type:func
+func_80057564               = 0x80057564; // type:func
+func_800575D8               = 0x800575D8; // type:func
+func_80057618               = 0x80057618; // type:func
+func_800576BC               = 0x800576BC; // type:func
+func_80057704               = 0x80057704; // type:func
+func_80057724               = 0x80057724; // type:func
+func_800577AC               = 0x800577AC; // type:func
+func_80057824               = 0x80057824; // type:func
+func_80057894               = 0x80057894; // type:func
+func_800578C4               = 0x800578C4; // type:func
+func_800578E4               = 0x800578E4; // type:func
+func_8005791C               = 0x8005791C; // type:func
+func_80057930               = 0x80057930; // type:func
+func_800579A0               = 0x800579A0; // type:func
+func_80057A1C               = 0x80057A1C; // type:func
+func_80057A88               = 0x80057A88; // type:func
+func_80057ACC               = 0x80057ACC; // type:func
+func_80057B24               = 0x80057B24; // type:func
+func_80057B88               = 0x80057B88; // type:func
+func_80057BC0               = 0x80057BC0; // type:func
+func_80057BC8               = 0x80057BC8; // type:func
+func_80057C74               = 0x80057C74; // type:func
+func_80057D24               = 0x80057D24; // type:func
+func_80057D3C               = 0x80057D3C; // type:func
+func_80057E1C               = 0x80057E1C; // type:func
+func_80057FAC               = 0x80057FAC; // type:func
+func_80058320               = 0x80058320; // type:func
+func_8005842C               = 0x8005842C; // type:func
+func_8005854C               = 0x8005854C; // type:func
+func_80058748               = 0x80058748; // type:func
+func_800588D8               = 0x800588D8; // type:func
+func_8005896C               = 0x8005896C; // type:func
+func_80058ED4               = 0x80058ED4; // type:func
+func_80059348               = 0x80059348; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x4A6E0   VA: 0x80059EE0   subsegment: c, 4A6E0
@@ -1718,7 +2362,15 @@ _freep                      = 0x8005ED90;
 //--------------------------------------------------------------------
 //--- PA: 0x4F5A0   VA: 0x8005EDA0   subsegment: data
 //--------------------------------------------------------------------
-D_8005EF74                  = 0x8005EF74;  // size:0x3C
+Task_DescBanks              = 0x8005EF74; // size:0x3C
+Mc_PromptTable              = 0x80060D08; // type:McPromptPair
+Mc_FileName                 = 0x80060DD8;
+Mc_FileNameBuf              = 0x80060DF0;
+Mc_GlyphsUpper              = 0x80060E48;
+Mc_GlyphsLower              = 0x80060E80;
+Mc_GlyphsSymbol             = 0x80060EB8;
+Mc_DefaultChecksumSrc       = 0x80060EFC;
+Mc_BufferSlots              = 0x800610FC; // type:McBufferSlot
 
 //--------------------------------------------------------------------
 //--- PA: 0x51B4C   VA: 0x8006134C   subsegment: o, libgte/sqrtbl
@@ -1960,7 +2612,7 @@ _spu_RQ                     = 0x8006EC00;
 //--- PA: 0x5F414   VA: 0x8006EC14   subsegment: bss
 //--------------------------------------------------------------------
 D5F414_OrderingTables       = 0x8006EC38; // type:u32 size:0x2200
-D_80070F68                  = 0x80070F68; // type:GStruct1 size:0x138
+Display_State               = 0x80070F68; // type:DisplayState size:0x138
 D_800710A8                  = 0x800710A8; // size:0x20
 
 //--------------------------------------------------------------------
@@ -1974,6 +2626,7 @@ GsIDMATRIX2                  = 0x80071178;
 //--------------------------------------------------------------------
 //--- PA: 0x619B8   VA: 0x800711B8   subsegment: bss
 //--------------------------------------------------------------------
+Pad_RawPorts                = 0x800711C8; // type:PadRawPort
 
 //--------------------------------------------------------------------
 //--- PA: 0x61CB8   VA: 0x800714B8   subsegment: o, libpad/waitrc2
@@ -1985,6 +2638,9 @@ _waitTime                   = 0x800714BC;
 //--- PA: 0x61CC0   VA: 0x800714C0   subsegment: bss
 //--------------------------------------------------------------------
 D61CC0_800714C0             = 0x800714C0; // type:GStruct14 size:0x13C
+Pad_States                  = 0x80071620; // type:PadState
+Task_ActiveList             = 0x800716D8;
+Task_DefaultList            = 0x800716E0; // type:TaskNode
 
 //--------------------------------------------------------------------
 //--- PA: 0x61EF0   VA: 0x800716F0   subsegment: o, libapi/free3
@@ -1996,6 +2652,7 @@ _r_p                        = 0x80071700;
 //--------------------------------------------------------------------
 //--- PA: 0x61F10   VA: 0x80071710   subsegment: bss
 //--------------------------------------------------------------------
+Mc_SaveData                 = 0x80072168; // type:McSaveData
 
 //--------------------------------------------------------------------
 //--- PA: 0x648A0   VA: 0x800740A0   subsegment: o, libgs/gs_107

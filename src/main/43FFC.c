@@ -666,7 +666,7 @@ s32 func_80056308(GStruct43* arg0)
         }
     } else {
         if (temp <= 0x7FFFFFFE) {
-            if (D_80070F68.field_124 == 1) {
+            if (Display_State.field_124 == 1) {
                 arg0->field_4 = temp + 0xFFFF6667;
             } else {
                 arg0->field_4 = temp + 0xFFFF0000;

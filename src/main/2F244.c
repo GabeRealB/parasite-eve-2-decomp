@@ -15,13 +15,13 @@ INCLUDE_ASM("main/nonmatchings/2F244", func_8003F034);
 
 void func_8003F450(s32 arg0)
 {
-    GStruct1* temp;
-    u_long*   saved;
-    s32       buf;
-    u_long*   ot;
-    u32       mode;
+    DisplayState* temp;
+    u_long*       saved;
+    s32           buf;
+    u_long*       ot;
+    u32           mode;
 
-    temp            = &D_80070F68;
+    temp            = &Display_State;
     saved           = D_800710A0;
     buf             = temp->field_114 ^ 1;
     temp->field_114 = buf;
@@ -36,14 +36,14 @@ void func_8003F450(s32 arg0)
     switch (mode) {
         case 3:
         case 0x20:
-            func_8002D494(&D_800716E0);
+            Task_ExecDefaultList(&Task_DefaultList);
             break;
         case 2:
             func_800AC688();
             func_8009850C(&D_80070EE8[temp->field_114]);
             break;
         case 1:
-            func_8002D544(&D_800716E0, 0x62);
+            Task_ExecListFiltered(&Task_DefaultList, 0x62);
             func_800AC688();
             func_80097AC0(&D_80070EE8[temp->field_114]);
             break;
@@ -55,15 +55,15 @@ INCLUDE_ASM("main/nonmatchings/2F244", func_8003F5A4);
 
 void func_8003F690(void)
 {
-    GStruct1* temp;
+    DisplayState* temp;
 
     func_8003E6E4();
-    temp            = &D_80070F68;
+    temp            = &Display_State;
     temp->field_1e  = 1;
     temp->field_103 = 2;
     temp->field_118 = temp->field_114 ^ 1;
-    func_8002D248(&D_8007A110);
-    func_8002CFA0(&D_8006269C, 0, 0, 0);
+    Task_InitList(&D_8007A110);
+    Task_SpawnFromTable(&D_8006269C, 0, 0, 0);
 }
 
 s32 func_8003F6F8(void)
@@ -79,7 +79,7 @@ s32 func_8003F71C(s32 arg0, s32 arg1)
 
     mask = 0x40000000;
     if (!(D_80062698->field_1c & mask)) {
-        func_8002C9B0(0);
+        Pad_SetCooldown(0);
         temp            = D_80062698;
         temp->field_20  = arg0;
         temp->field_24  = 0;
@@ -99,7 +99,7 @@ s32 func_8003F7A8(s32 arg0)
     mask = 0x40000000;
     ret  = -1;
     if (!(D_80062698->field_1c & mask)) {
-        func_8002C9B0(0);
+        Pad_SetCooldown(0);
         temp                  = D_80062698;
         temp->field_20        = arg0;
         temp->field_24        = 0;
@@ -192,22 +192,22 @@ void func_8003FA4C(s32 arg0)
 {
     switch (arg0) {
         case 0:
-            D_80070F68.field_103 = 1;
-            D_80070F68.field_100 = 0;
+            Display_State.field_103 = 1;
+            Display_State.field_100 = 0;
             func_8003DE14(0, 0, 0);
             return;
         case 1:
-            D_80070F68.field_103 = (u8)arg0;
-            D_80070F68.field_100 = 3;
+            Display_State.field_103 = (u8)arg0;
+            Display_State.field_100 = 3;
             func_8003DE14(-1, 0, 0);
             return;
         case 2:
-            D_80070F68.field_103 = 1;
-            D_80070F68.field_100 = 2;
+            Display_State.field_103 = 1;
+            Display_State.field_100 = 2;
             func_8003DE14(-1, 0, 0);
             return;
         case 3:
-            D_80070F68.field_103 = 2;
+            Display_State.field_103 = 2;
             return;
     }
 }
@@ -255,34 +255,34 @@ void func_8003FC6C(void)
     D_80062698->field_1a = 0xFF;
 }
 
-void func_8003FC8C(GStruct0* arg0)
+void func_8003FC8C(Task* arg0)
 {
-    func_8002C9B0(0);
+    Pad_SetCooldown(0);
     if (func_8001CDF0() != 0) {
         arg0->field_30 += 1;
     } else {
-        D_80071620[0].field_A = 1;
+        Pad_States[0].field_A = 1;
         func_8003EE68();
         arg0->field_30 += 2;
     }
 }
 
-void func_8003FCF8(GStruct0* arg0)
+void func_8003FCF8(Task* arg0)
 {
-    func_8002C9B0(0);
+    Pad_SetCooldown(0);
     if (func_8001D82C() != 0) {
-        D_80071620[0].field_A = 1;
+        Pad_States[0].field_A = 1;
         func_8003EE68();
         arg0->field_30 += 1;
     }
 }
 
-void func_8003FD58(GStruct0* arg0)
+void func_8003FD58(Task* arg0)
 {
     u32 temp_v1;
 
-    D_80070F68.field_103 = 2;
-    temp_v1              = D_80062698->field_C;
+    Display_State.field_103 = 2;
+    temp_v1                 = D_80062698->field_C;
     if (temp_v1 < 5U) {
         if (temp_v1 < 3U) {
             if (temp_v1 != 1) {
@@ -300,27 +300,27 @@ void func_8003FD58(GStruct0* arg0)
     func_8003FE00(arg0);
 }
 
-void func_8003FE00(GStruct0* arg0)
+void func_8003FE00(Task* arg0)
 {
     if (func_8001D82C() != 0) {
         arg0->field_30 += 1;
     }
 }
 
-void func_8003FE40(GStruct0* arg0)
+void func_8003FE40(Task* arg0)
 {
     if (func_8001D0E8() != 0) {
-        D_80070F68.field_1e  = 0;
-        D_80070F68.field_10d = 0;
-        D_80070F68.field_100 = 1;
+        Display_State.field_1e  = 0;
+        Display_State.field_10d = 0;
+        Display_State.field_100 = 1;
         func_8003DE14(-1, 0, 0);
-        func_8002D0A4(arg0);
+        Task_CallExit(arg0);
     }
 }
 
-void func_8003FE9C(GStruct0* arg0)
+void func_8003FE9C(Task* arg0)
 {
-    GFunc0Table6 sp;
+    TaskFuncTable6 sp;
 
     sp = D_80013E98;
     sp.funcs[arg0->field_30](arg0);
@@ -385,9 +385,9 @@ void func_80040904(void)
     }
 }
 
-void func_800409B0(GStruct0* arg0)
+void func_800409B0(Task* arg0)
 {
-    func_8002D0A4(arg0);
+    Task_CallExit(arg0);
 }
 
 extern u8 D_800105AC;
@@ -759,9 +759,9 @@ void func_80041D84(GStruct27* arg0)
     arg0->field_30++;
 }
 
-void func_80041DF4(GStruct0* arg0)
+void func_80041DF4(Task* arg0)
 {
-    GFunc0Table3 sp;
+    TaskFuncTable3 sp;
 
     sp = D_80013EDC;
     sp.funcs[arg0->field_30](arg0);
@@ -807,7 +807,7 @@ void func_80041EB4(void)
     }
 }
 
-void func_80041F58(GStruct0* arg0)
+void func_80041F58(Task* arg0)
 {
     GStruct27* node;
     void*      mem;
@@ -826,7 +826,7 @@ void func_80041F58(GStruct0* arg0)
         }
         node = node->next;
     }
-    func_8002CCB8(arg0);
+    Task_Kill(arg0);
 }
 
 void func_80041FF8(GStruct27* node)

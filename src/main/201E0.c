@@ -82,10 +82,10 @@ void func_800301FC(void)
     u8(*c)[0x24];
     u8(*d)[0xE4];
     u8(*e)[0xA4];
-    GStruct23* p;
-    s32        one;
-    s32        two;
-    s32        idx;
+    McSaveData* p;
+    s32         one;
+    s32         two;
+    s32         idx;
 
     Mem_Set(&D_80073B88, 0, 0x40);
     Mem_Set(D_80073B88.field_40, 0xFF, 0x40);
@@ -108,7 +108,7 @@ void func_800301FC(void)
         Mem_Set(c + 1, 0xFF, 0x24);
         Mem_Set(d + 1, 0xFF, 0xE4);
         Mem_Set(e + 1, 0xFF, 0xA4);
-        p = &D_80072168;
+        p = &Mc_SaveData;
     } while (0);
 
     one          = 1;

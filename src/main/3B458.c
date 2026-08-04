@@ -35,5 +35,5 @@ s32 func_8004ACAC(s32 arg0)
 
 void func_8004ACF0(void)
 {
-    func_8002C868(0, 1, 0x800);
+    Pad_CheckButtons(0, 1, 0x800);
 }

@@ -17,37 +17,37 @@
 #define GameResetScratchHead() *(void**)G_SCRATCH_HEAD = G_SCRATCH_HEAD
 
 // Type forwards declarations.
-struct _GStruct0;
+struct _Task;
 
-/// Callback function in a `_GStruct0`.
-typedef void (*GFunc0)(struct _GStruct0*);
+/// Callback function in a `_Task`.
+typedef void (*TaskFunc)(struct _Task*);
 
-/// Fixed-size table of `GFunc0` callbacks. Copied onto the stack by state
+/// Fixed-size table of `TaskFunc` callbacks. Copied onto the stack by state
 /// dispatchers (e.g. `func_8002C028`) so the call uses a local jump table.
 typedef struct {
-    GFunc0 funcs[3];
-} GFunc0Table3;
+    TaskFunc funcs[3];
+} TaskFuncTable3;
 
 typedef struct {
-    GFunc0 funcs[4];
-} GFunc0Table4;
+    TaskFunc funcs[4];
+} TaskFuncTable4;
 
 typedef struct {
-    GFunc0 funcs[5];
-} GFunc0Table5;
+    TaskFunc funcs[5];
+} TaskFuncTable5;
 
 typedef struct {
-    GFunc0 funcs[6];
-} GFunc0Table6;
+    TaskFunc funcs[6];
+} TaskFuncTable6;
 
-/// Intrusive linked list node for a `GStruct0`.
+/// Intrusive linked list node for a `Task`.
 ///
 /// The head node is not an element in the linked list and points to the first
 /// and the last elements.
-typedef struct _GStruct0Node {
-    struct _GStruct0*     next;
-    struct _GStruct0Node* prev;
-} GStruct0Node;
+typedef struct _TaskNode {
+    struct _Task*     next;
+    struct _TaskNode* prev;
+} TaskNode;
 
 /// 2-byte table entry (id + type). Indexed via GStruct63.
 typedef struct _GPairU8 {
@@ -57,7 +57,7 @@ typedef struct _GPairU8 {
 STATIC_ASSERT_SIZEOF(GPairU8, 0x2);
 
 /// Index + pointer into a GPairU8 table. Allocated (Mem_Calloc(8)) and stored
-/// at GStruct0::field_1C by func_80042B00; read by func_80042F54 / func_80042DF8.
+/// at Task::field_1C by func_80042B00; read by func_80042F54 / func_80042DF8.
 typedef struct _GStruct63 {
     /* 0x0 */ u16      field_0; // index into field_4
     /* 0x2 */ byte     pad_2[2];
@@ -65,30 +65,30 @@ typedef struct _GStruct63 {
 } GStruct63;
 STATIC_ASSERT_SIZEOF(GStruct63, 0x8);
 
-typedef struct _GStruct0 {
-    GStruct0Node      node;
-    struct _GStruct0* field_8;
-    struct _GStruct0* field_c;
-    struct _GStruct0* field_10;
-    GFunc0            field_14;
-    GFunc0            field_18;
-    GStruct63*        field_1C;
-    void*             field_20;
-    byte              unknown_24[4];
-    u8                field_28;
-    u8                field_29;
-    s16               field_2a;
-    void*             field_2c;
-    s32               field_30;
-    s32               field_34;
-    u8                field_38;
-    byte              unknown_39[3];
-    s32               field_3c;
-    byte              unknown_40[8];
-} GStruct0;
-STATIC_ASSERT_SIZEOF(GStruct0, 0x48);
+typedef struct _Task {
+    TaskNode      node;
+    struct _Task* field_8;
+    struct _Task* field_c;
+    struct _Task* field_10;
+    TaskFunc      field_14;
+    TaskFunc      field_18;
+    GStruct63*    field_1C;
+    void*         field_20;
+    byte          unknown_24[4];
+    u8            field_28;
+    u8            field_29;
+    s16           field_2a;
+    void*         field_2c;
+    s32           field_30;
+    s32           field_34;
+    u8            field_38;
+    byte          unknown_39[3];
+    s32           field_3c;
+    byte          unknown_40[8];
+} Task;
+STATIC_ASSERT_SIZEOF(Task, 0x48);
 
-typedef struct _GStruct1 {
+typedef struct _DisplayState {
     s32     field_0;
     s32     field_4;
     s32     field_8;
@@ -131,15 +131,15 @@ typedef struct _GStruct1 {
     byte    unknown_12f[0x1];
     u8      field_130;
     byte    unknown_131[0x7];
-} GStruct1;
-STATIC_ASSERT_SIZEOF(GStruct1, 0x138);
+} DisplayState;
+STATIC_ASSERT_SIZEOF(DisplayState, 0x138);
 
-/// Descriptor used to spawn a task. Indexed via `D_8005EF74[bank][type]`.
+/// Descriptor used to spawn a task. Indexed via `Task_DescBanks[bank][type]`.
 typedef struct _TaskDesc {
-    u16    flags;
-    byte   unknown_2[0x2];
-    GFunc0 callback; // per-frame / state-machine entry
-    byte   unknown_8[0x4];
+    u16      flags;
+    byte     unknown_2[0x2];
+    TaskFunc callback; // per-frame / state-machine entry
+    byte     unknown_8[0x4];
 } TaskDesc;
 STATIC_ASSERT_SIZEOF(TaskDesc, 0xc);
 
@@ -224,7 +224,7 @@ typedef struct _GBytes8 {
     u8 data[8];
 } GBytes8;
 
-/// Overlay of objects with an 8-byte field at offset 0x4 (GStruct14, GStruct23).
+/// Overlay of objects with an 8-byte field at offset 0x4 (GStruct14, McSaveData).
 typedef struct _GStructOverlayAt4 {
     byte    pad[4];
     GBytes8 field_4;
@@ -350,7 +350,7 @@ typedef struct _GStruct32 {
 } GStruct32;
 STATIC_ASSERT_SIZEOF(GStruct32, 0x58);
 
-/// Object passed to func_80048C10 / func_80048D58 (e.g. via GStruct0::field_20).
+/// Object passed to func_80048C10 / func_80048D58 (e.g. via Task::field_20).
 typedef struct _GStruct20 {
     /* 0x00 */ s32  field_0;
     /* 0x04 */ byte unknown_4[0x18];
@@ -361,43 +361,43 @@ typedef struct _GStruct20 {
 } GStruct20;
 STATIC_ASSERT_SIZEOF(GStruct20, 0x24);
 
-/// Object at GStruct0::field_20 used by func_80048838 / func_80033F6C /
-/// func_80033EB0. field_0 is a status flag; field_8 is set to 3 when torn down;
+/// Object at Task::field_20 used by func_80048838 / Mc_HideChildUi /
+/// Mc_DrawPrompt. field_0 is a status flag; field_8 is set to 3 when torn down;
 /// field_1C is a position halfword (+2 when passed to func_8002FDCC);
 /// field_28 is a parent/context pointer (has field_c for the recursive walk in
 /// func_80048838). field_2C / field_2E are halfwords polled by teardown state
 /// handlers (e.g. func_8002BD24 waits until field_2E == -1 before cleaning up).
-typedef struct _GStruct37 {
-    /* 0x00 */ s32       field_0;
-    /* 0x04 */ byte      unknown_4[0x4];
-    /* 0x08 */ s32       field_8;
-    /* 0x0C */ byte      unknown_C[0x10];
-    /* 0x1C */ s16       field_1C;
-    /* 0x1E */ byte      unknown_1E[0xA];
-    /* 0x28 */ GStruct0* field_28;
-    /* 0x2C */ s16       field_2C;
-    /* 0x2E */ s16       field_2E;
-} GStruct37;
+typedef struct _UiObject {
+    /* 0x00 */ s32   field_0;
+    /* 0x04 */ byte  unknown_4[0x4];
+    /* 0x08 */ s32   field_8;
+    /* 0x0C */ byte  unknown_C[0x10];
+    /* 0x1C */ s16   field_1C;
+    /* 0x1E */ byte  unknown_1E[0xA];
+    /* 0x28 */ Task* field_28;
+    /* 0x2C */ s16   field_2C;
+    /* 0x2E */ s16   field_2E;
+} UiObject;
 
-/// Pair of prompt / dialog data pointers. D_80060D08 is an array of these,
-/// indexed by mode (see func_80033EB0).
-typedef struct _GStruct62 {
+/// Pair of prompt / dialog data pointers. Mc_PromptTable is an array of these,
+/// indexed by mode (see Mc_DrawPrompt).
+typedef struct _McPromptPair {
     /* 0x0 */ u8* field_0;
     /* 0x4 */ u8* field_4;
-} GStruct62;
-STATIC_ASSERT_SIZEOF(GStruct62, 0x8);
+} McPromptPair;
+STATIC_ASSERT_SIZEOF(McPromptPair, 0x8);
 
 /// Second argument to memcard/save state handlers in 21FDC.c (e.g. func_80035AD4,
-/// func_80034070, func_80035FD8). Larger object; only fields used so far are named.
+/// Mc_ResetWork, func_80035FD8). Larger object; only fields used so far are named.
 /// field_10/field_14 are MemCardSync cmds/rslt outs.
-/// field_18 is a source buffer pointer for func_80033FB8 when mode != 0.
+/// field_18 is a source buffer pointer for Mc_WriteDataChecksum when mode != 0.
 /// field_30 is a 15-slot memcard directory buffer (DIRENTRY-sized, 0x28 each)
 /// filled by MemCardGetDirentry; field_288 is the entry count used to bound
-/// field_A14 walks (func_80035574 / func_800367CC). field_A14 indexes the
+/// field_A14 walks (Mc_StateOpenNext / func_800367CC). field_A14 indexes the
 /// selected slot for MemCardOpen. field_A1C/field_A1E are a sum /
 /// ones-complement checksum pair over 0x200 signed bytes of that buffer
-/// (written by func_80033FB8).
-typedef struct _GStruct21 {
+/// (written by Mc_WriteDataChecksum).
+typedef struct _McWork {
     /* 0x000 */ s32  field_0;
     /* 0x004 */ s32  field_4;
     /* 0x008 */ s32  field_8;
@@ -417,7 +417,7 @@ typedef struct _GStruct21 {
     /* 0xA1C */ u16  field_A1C;
     /* 0xA1E */ u16  field_A1E;
     /* 0xA20 */ s32  field_A20;
-} GStruct21;
+} McWork;
 
 /// 8-byte slot at GStruct22::field_484 (16 entries, indexed by opcode low nibble).
 /// field_0 is written as a full word (0x407F4000) by func_800528BC; field_4 is a byte.
@@ -436,15 +436,15 @@ typedef struct _GStruct22 {
     /* 0x484 */ GStruct22Entry field_484[16];
 } GStruct22;
 
-/// BSS object D_80072168. Large; only fields used so far are named.
-/// field_12 is a slot/index validated by func_800339C4 (must be 1..16).
+/// BSS object Mc_SaveData. Large; only fields used so far are named.
+/// field_12 is a slot/index validated by Mc_VerifySaveHdrChecksum (must be 1..16).
 /// field_1C / field_1E are a sum / ones-complement pair over the 0x38 bytes
-/// starting at field_4 (written by func_80033944, verified by func_800339C4).
-/// field_93C is a save-data checksum halfword compared by func_80034028.
+/// starting at field_4 (written by Mc_WriteSaveHdrChecksum, verified by Mc_VerifySaveHdrChecksum).
+/// field_93C is a save-data checksum halfword compared by Mc_CompareSaveChecksum.
 /// field_940 / field_942 are a sum / ones-complement pair over the first
-/// byte of D_800610FC[1..8] buffers (written by func_80033D3C; field_940
+/// byte of Mc_BufferSlots[1..8] buffers (written by func_80033D3C; field_940
 /// is also known as D_80072AA8 and checked by func_80033D88).
-typedef struct _GStruct23 {
+typedef struct _McSaveData {
     /* 0x000 */ byte unknown_0[0x4];
     /* 0x004 */ u8   field_4;
     /* 0x005 */ u8   field_5;
@@ -477,7 +477,7 @@ typedef struct _GStruct23 {
     /* 0x93E */ byte unknown_93E[0x2];
     /* 0x940 */ s16  field_940;
     /* 0x942 */ s16  field_942;
-} GStruct23;
+} McSaveData;
 
 /// Element of BSS array D_8006D4F0 (15 entries, total 0x258).
 /// Fields inferred from F344.c accessors (func_8001ED20, func_8001EED8, etc.).
@@ -503,38 +503,38 @@ typedef struct _GStruct24 {
 } GStruct24;
 STATIC_ASSERT_SIZEOF(GStruct24, 0x28);
 
-/// 4-byte pad event entry in GStruct25 banks at 0x10 / 0x30 (see func_8002CA54,
+/// 4-byte pad event entry in PadState banks at 0x10 / 0x30 (see Pad_ClearEvents,
 /// func_8002C8E4). Cleared as sb/sb/sh of zero.
-typedef struct _GStruct25Entry {
+typedef struct _PadEvent {
     /* 0x0 */ u8  field_0;
     /* 0x1 */ u8  field_1;
     /* 0x2 */ u16 field_2;
-} GStruct25Entry;
-STATIC_ASSERT_SIZEOF(GStruct25Entry, 0x4);
+} PadEvent;
+STATIC_ASSERT_SIZEOF(PadEvent, 0x4);
 
-/// Element of BSS array D_80071620 (2 entries, total 0xB8).
-/// Indexed with stride 0x5C (see func_8002C9B0). field_0 is initialised to
-/// 0xFF by func_80028664 (pad status halfword); field_3 is set to 1 there.
-/// field_4 / field_6 / field_8 are pad button masks (see func_8002CAB8 /
-/// func_8002C868); field_A is a counter/flag written by pad-related setup
-/// (func_8002C9B0, func_8003FCF8, func_8003FC8C). field_2 is a ring index into
+/// Element of BSS array Pad_States (2 entries, total 0xB8).
+/// Indexed with stride 0x5C (see Pad_SetCooldown). field_0 is initialised to
+/// 0xFF by Pad_Init (pad status halfword); field_3 is set to 1 there.
+/// field_4 / field_6 / field_8 are pad button masks (see Pad_CheckSpecialCombo /
+/// Pad_CheckButtons); field_A is a counter/flag written by pad-related setup
+/// (Pad_SetCooldown, func_8003FCF8, func_8003FC8C). field_2 is a ring index into
 /// field_10 banks (func_8002C8E4). field_10 holds two banks of 8 pad-event
 /// entries at 0x10 and 0x30. field_5A / field_5B are cleared during pad init.
-typedef struct _GStruct25 {
-    /* 0x00 */ u16            field_0;
-    /* 0x02 */ u8             field_2;
-    /* 0x03 */ u8             field_3;
-    /* 0x04 */ u16            field_4;
-    /* 0x06 */ u16            field_6;
-    /* 0x08 */ u16            field_8;
-    /* 0x0A */ u8             field_A;
-    /* 0x0B */ byte           unknown_B[0x5];
-    /* 0x10 */ GStruct25Entry field_10[2][8];
-    /* 0x50 */ byte           unknown_50[0xA];
-    /* 0x5A */ u8             field_5A;
-    /* 0x5B */ u8             field_5B;
-} GStruct25;
-STATIC_ASSERT_SIZEOF(GStruct25, 0x5C);
+typedef struct _PadState {
+    /* 0x00 */ u16      field_0;
+    /* 0x02 */ u8       field_2;
+    /* 0x03 */ u8       field_3;
+    /* 0x04 */ u16      field_4;
+    /* 0x06 */ u16      field_6;
+    /* 0x08 */ u16      field_8;
+    /* 0x0A */ u8       field_A;
+    /* 0x0B */ byte     unknown_B[0x5];
+    /* 0x10 */ PadEvent field_10[2][8];
+    /* 0x50 */ byte     unknown_50[0xA];
+    /* 0x5A */ u8       field_5A;
+    /* 0x5B */ u8       field_5B;
+} PadState;
+STATIC_ASSERT_SIZEOF(PadState, 0x5C);
 
 /// UI list/menu object (data symbols D_8006116C, D_80061194, D_8006125C,
 /// D_80061284, D_800612AC; size 0x24).
@@ -542,7 +542,7 @@ STATIC_ASSERT_SIZEOF(GStruct25, 0x5C);
 /// computing field_9; field_9 / field_A / field_10 are list cursor / flag /
 /// selection index used by func_80036A70 / func_80036C04 / func_80037068 /
 /// func_800489A0 / func_8004917C.
-typedef struct _GStruct46 {
+typedef struct _UiList {
     /* 0x00 */ byte unknown_0[0x5];
     /* 0x05 */ u8   field_5;
     /* 0x06 */ byte unknown_6[0x3];
@@ -551,10 +551,10 @@ typedef struct _GStruct46 {
     /* 0x0B */ byte unknown_B[0x5];
     /* 0x10 */ s32  field_10;
     /* 0x14 */ byte unknown_14[0x10];
-} GStruct46;
-STATIC_ASSERT_SIZEOF(GStruct46, 0x24);
+} UiList;
+STATIC_ASSERT_SIZEOF(UiList, 0x24);
 
-/// Context pointed to by GStruct0::field_34 in the D_8006121C select-menu path
+/// Context pointed to by Task::field_34 in the D_8006121C select-menu path
 /// (func_80036C04). Only field_290 is named so far.
 typedef struct _GStruct64 {
     /* 0x000 */ byte unknown_0[0x290];
@@ -603,7 +603,7 @@ typedef struct _GStruct27 {
 STATIC_ASSERT_SIZEOF(GStruct27, 0x34);
 
 /// Sentinel list head for GStruct27 (and similar) intrusive lists.
-/// Same layout as GStruct0Node: next is the first element, prev is the last
+/// Same layout as TaskNode: next is the first element, prev is the last
 /// (or &self when the list is empty). Initialized by func_80028718.
 typedef struct _GStruct27Head {
     /* 0x00 */ GStruct27*             next;
@@ -616,18 +616,18 @@ extern GStruct27Head D_800711B8;
 /// Second list head initialized alongside D_800711B8 by func_80028718.
 extern GStruct27Head D_800711C0;
 
-/// Element of BSS array D_800711C8 (2 entries between D_800711C0 and D_80071210).
+/// Element of BSS array Pad_RawPorts (2 entries between D_800711C0 and D_80071210).
 /// Indexed with stride 0x24. field_2/field_3 are combined as a big-endian
-/// halfword by func_8002CA0C (high byte at 0x2, low byte at 0x3).
-typedef struct _GStruct49 {
+/// halfword by Pad_ReadButtonsInv (high byte at 0x2, low byte at 0x3).
+typedef struct _PadRawPort {
     /* 0x00 */ byte unknown_0[0x2];
     /* 0x02 */ u8   field_2;
     /* 0x03 */ u8   field_3;
     /* 0x04 */ byte unknown_4[0x20];
-} GStruct49;
-STATIC_ASSERT_SIZEOF(GStruct49, 0x24);
+} PadRawPort;
+STATIC_ASSERT_SIZEOF(PadRawPort, 0x24);
 
-extern GStruct49 D_800711C8[2];
+extern PadRawPort Pad_RawPorts[2];
 /// Cleared by func_80028718 during system init.
 extern s32 D_80071210;
 
@@ -934,22 +934,22 @@ typedef struct _GStruct44 {
 STATIC_ASSERT_SIZEOF(GStruct44, 0x14);
 
 /// Buffer with a 16-bit sum / ones-complement pair at the head and a payload
-/// starting at offset 4. Written by `func_80033A28`, verified by `func_80033BEC`.
-typedef struct _GStruct47 {
+/// starting at offset 4. Written by `Mc_WriteBlockChecksum`, verified by `Mc_VerifyBlockChecksum`.
+typedef struct _McChecksumBlock {
     /* 0x0 */ s16 field_0;
     /* 0x2 */ s16 field_2;
     /* 0x4 */ u8  field_4[1];
-} GStruct47;
+} McChecksumBlock;
 
-/// 0xC descriptor for a memcard/save buffer slot in D_800610FC[9].
-/// field_0 points at a GStruct47-style checksummed buffer; field_4 is its size.
+/// 0xC descriptor for a memcard/save buffer slot in Mc_BufferSlots[9].
+/// field_0 points at a McChecksumBlock-style checksummed buffer; field_4 is its size.
 /// Iterated from index 1..8 by func_80033D88 and related helpers in 21FDC.c.
-typedef struct _GStruct53 {
-    /* 0x0 */ GStruct47* field_0;
-    /* 0x4 */ s32        field_4;
-    /* 0x8 */ s32        field_8;
-} GStruct53;
-STATIC_ASSERT_SIZEOF(GStruct53, 0xC);
+typedef struct _McBufferSlot {
+    /* 0x0 */ McChecksumBlock* field_0;
+    /* 0x4 */ s32              field_4;
+    /* 0x8 */ s32              field_8;
+} McBufferSlot;
+STATIC_ASSERT_SIZEOF(McBufferSlot, 0xC);
 
 /// Out-parameter for `func_8004E5C4` (voice slot lookup/alloc).
 /// field_0 is the voice index; field_4 points at 16 words of voice data.

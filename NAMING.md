@@ -24,6 +24,10 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 | `CdCmd_` | CD load command ring buffer | `C37C.c`, `game.h` |
 | `Boot_` | Cold-boot / title path | `4CF8.c`, `boot_loadbuf` data |
 | `Mem_` / `GHeap` | Heaps | `mem.c` |
+| `Task_` | Cooperative task list / spawn / kill | `1C034.c`, `game.h` (`Task`, `TaskNode`, `TaskDesc`) |
+| `Pad_` | Controller state / button polls | `18E64.c`, `1C034.c` (`PadState`, `PadEvent`) |
+| `Mc_` | Memory-card save/load menu helpers | `21FDC.c` (`McWork`, `McSaveData`, prompts) |
+| `Display_` | Dual DISPENV/DRAWENV + system flags | `Display_State` / `DisplayState` in `game.h` |
 | `GameMain` | Entry after `main` | `179D4.c` |
 | `GpuExt_` | GPU helpers | `gpuext.c` |
 
@@ -63,4 +67,9 @@ Category tables:
 
 ## Tooling
 
-Bulk renames for the FS/CD pass live in `tools/rename_fs_syms.py` (idempotent only if old names are gone). Extend that map rather than hand-editing hundreds of `.s` files.
+Bulk renames live in:
+
+- `tools/rename_fs_syms.py` — FS / CD / boot
+- `tools/rename_task_mc_pad_syms.py` — Task / Pad / Mc / Display
+
+Idempotent only if old names are already gone. Extend the map rather than hand-editing hundreds of `.s` files.

@@ -254,7 +254,7 @@ typedef struct _FsImgBuffers {
 STATIC_ASSERT_SIZEOF(FsImgBuffers, 0x25800);
 
 // Forward decl for boot task callback (full type in game.h).
-struct _GStruct0;
+struct _Task;
 
 // =============================================================================
 // Functions — CD command queue
@@ -290,7 +290,7 @@ bool Fs_StageCdfIsAvailable(u32 stageIdx);
 void Fs_LoadFile(u8* req, s32 a1, s32 a2, s32 a3);
 
 /// Boot path: scan ISO, parse HED, load initial CDF file (file id 1).
-void Boot_LoadInitialFile(struct _GStruct0* task);
+void Boot_LoadInitialFile(struct _Task* task);
 
 // Still-unknown stubs in fs.c (legacy names until matched).
 void F12D18_80022518(void);

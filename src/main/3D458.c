@@ -59,7 +59,7 @@ setup_events:
         D58028_SpuTimerEnabled = false;
     }
 
-    if (D_80070F68.field_124 == 1) {
+    if (Display_State.field_124 == 1) {
         D_800680A4 = 0;
         D_8007E0CC = 0;
         SetRCnt(RCntCNT0, 0xffff, RCntMdINTR | RCntMdSC);
@@ -124,7 +124,7 @@ void func_8004D008(void)
         func_8004D8BC();
         F3E48C_8004E44C();
         D_800680BC += 1;
-        if (D_80070F68.field_124 == 1) {
+        if (Display_State.field_124 == 1) {
             D_8007E0CC = 6;
             ResetRCnt(RCntCNT0);
             D_800680A4 = 1;

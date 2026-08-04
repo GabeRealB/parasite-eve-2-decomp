@@ -10,18 +10,18 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_800317DC);
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_800319E4);
 
-void func_80031B1C(GStruct0* arg0, GStruct21* arg1)
+void Mc_StateCreateFile(Task* arg0, McWork* arg1)
 {
-    s32        ret;
-    u32        status;
-    s32        idx;
-    GStruct37* obj;
-    GStruct62* entry;
-    GStruct62* base;
+    s32           ret;
+    u32           status;
+    s32           idx;
+    UiObject*     obj;
+    McPromptPair* entry;
+    McPromptPair* base;
 
     arg1->field_4 -= 1;
     if (arg1->field_4 == 0) {
-        status         = MemCardCreateFile(arg1->field_C, D_80060DD8, 1);
+        status         = MemCardCreateFile(arg1->field_C, Mc_FileName, 1);
         arg1->field_14 = status;
         switch (status) {
             case 0:
@@ -51,7 +51,7 @@ void func_80031B1C(GStruct0* arg0, GStruct21* arg1)
     ret           = func_80048E10(obj, 1);
     obj->field_2E = 0;
     func_80048E38(obj, D_8001398C);
-    base  = D_80060D08;
+    base  = Mc_PromptTable;
     entry = &base[idx];
     func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
@@ -65,15 +65,15 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_80031F94);
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_800322B0);
 
-void func_8003245C(GStruct0* arg0, GStruct21* arg1)
+void Mc_StateFormat(Task* arg0, McWork* arg1)
 {
-    s32        ret;
-    s32        status;
-    s32        idx;
-    s32        next;
-    GStruct37* obj;
-    GStruct62* entry;
-    GStruct62* base;
+    s32           ret;
+    s32           status;
+    s32           idx;
+    s32           next;
+    UiObject*     obj;
+    McPromptPair* entry;
+    McPromptPair* base;
 
     arg1->field_4 -= 1;
     if (arg1->field_4 == 0) {
@@ -83,7 +83,7 @@ void func_8003245C(GStruct0* arg0, GStruct21* arg1)
             if (status != 0) {
                 next = 0x2B;
             } else {
-                func_800300EC(D_80060DD8, 0);
+                func_800300EC(Mc_FileName, 0);
                 next            = 0x8;
                 arg1->field_288 = 0;
             }
@@ -98,7 +98,7 @@ void func_8003245C(GStruct0* arg0, GStruct21* arg1)
     ret           = func_80048E10(obj, 1);
     obj->field_2E = 0;
     func_80048E38(obj, D_8001398C);
-    base  = D_80060D08;
+    base  = Mc_PromptTable;
     entry = &base[idx];
     func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
@@ -118,7 +118,7 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_80032F5C);
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_800330D8);
 
-u16* func_8003380C(s8* arg0, u16* arg1)
+u16* Mc_EncodeAsciiGlyphs(s8* arg0, u16* arg1)
 {
     u16* lower;
     u16* upper;
@@ -129,9 +129,9 @@ u16* func_8003380C(s8* arg0, u16* arg1)
 
     ch_u = *arg0;
     if (*arg0 != 0) {
-        lower  = D_80060E80;
-        upper  = D_80060E48;
-        symbol = D_80060EB8;
+        lower  = Mc_GlyphsLower;
+        upper  = Mc_GlyphsUpper;
+        symbol = Mc_GlyphsSymbol;
         do {
             ch = (s8)ch_u;
             if (ch >= 0x61) {
@@ -159,15 +159,15 @@ u16* func_8003380C(s8* arg0, u16* arg1)
     return arg1;
 }
 
-void func_800338A8(void)
+void Mc_InitFileName(void)
 {
     u8* ptr1;
     u8* ptr0;
     s32 i;
     s32 ch;
 
-    ptr1 = D_80060DD8;
-    ptr0 = D_80060DF0;
+    ptr1 = Mc_FileName;
+    ptr0 = Mc_FileNameBuf;
     i    = 0;
     ch   = 0x5F;
     do {
@@ -183,18 +183,18 @@ void func_800338A8(void)
     *ptr1 = 0;
 }
 
-void func_800338F4(s32 arg0)
+void Mc_CopyFileName(s32 arg0)
 {
     u8* src;
     u8* dst;
     s32 i;
 
     if (arg0 == 0) {
-        src = D_80060DD8;
-        dst = D_80060DF0;
+        src = Mc_FileName;
+        dst = Mc_FileNameBuf;
     } else {
-        src = D_80060DF0;
-        dst = D_80060DD8;
+        src = Mc_FileNameBuf;
+        dst = Mc_FileName;
     }
 
     for (i = 0; i < 0x15; i++) {
@@ -202,7 +202,7 @@ void func_800338F4(s32 arg0)
     }
 }
 
-void func_80033944(void)
+void Mc_WriteSaveHdrChecksum(void)
 {
     s16 sum;
     u8* ptr;
@@ -210,25 +210,25 @@ void func_80033944(void)
     s32 i;
     s16 tmp;
 
-    sum                 = 0;
-    ptr                 = (u8*)&D_80072168;
-    ptr                += 4;
-    limit               = 0x38;
-    i                   = 0;
-    D_80072168.field_1C = 0;
-    D_80072168.field_1E = 0xFFFF;
+    sum                  = 0;
+    ptr                  = (u8*)&Mc_SaveData;
+    ptr                 += 4;
+    limit                = 0x38;
+    i                    = 0;
+    Mc_SaveData.field_1C = 0;
+    Mc_SaveData.field_1E = 0xFFFF;
     do {
         i   += 1;
         tmp  = (s8)*ptr;
         sum  = sum + tmp;
         ptr += 1;
     } while (i < limit);
-    D_80072168.field_1C = sum;
-    D_80072168.field_1E = ~sum;
-    func_800339C4(&D_80072168);
+    Mc_SaveData.field_1C = sum;
+    Mc_SaveData.field_1E = ~sum;
+    Mc_VerifySaveHdrChecksum(&Mc_SaveData);
 }
 
-s32 func_800339C4(GStruct23* arg0)
+s32 Mc_VerifySaveHdrChecksum(McSaveData* arg0)
 {
     register s16 sum asm("v1");
     volatile u8* ptr;
@@ -252,7 +252,7 @@ s32 func_800339C4(GStruct23* arg0)
     return ((u16)arg0->field_1C ^ (sum & 0xFFFF)) == 0;
 }
 
-void func_80033A28(GStruct47* arg0, s32 arg1)
+void Mc_WriteBlockChecksum(McChecksumBlock* arg0, s32 arg1)
 {
     s16          sum;
     register u8* ptr asm("v1");
@@ -274,11 +274,11 @@ void func_80033A28(GStruct47* arg0, s32 arg1)
     arg0->field_2 = ~sum;
 }
 
-void func_80033A70(void)
+void Mc_ResetSaveFlags(void)
 {
-    GStruct23* p;
+    McSaveData* p;
 
-    p            = &D_80072168;
+    p            = &Mc_SaveData;
     p->field_21  = 0;
     p->field_1a8 = 0;
     p->field_1aa = 0;
@@ -289,7 +289,7 @@ void func_80033A70(void)
     func_800429C8(0);
 }
 
-void func_80033AB8(void)
+void Mc_ClearWorkBuffers(void)
 {
     u8(*a)[0x6C];
     u8(*b)[0xB0];
@@ -315,14 +315,14 @@ void func_80033AB8(void)
 }
 
 // TODO
-void func_80033BBC(void)
+void Mc_InitLib(void)
 {
     MemCardInit(0); // 0 = No control routine
     MemCardStart();
     func_800303AC();
 }
 
-s32 func_80033BEC(GStruct47* arg0, s32 arg1)
+s32 Mc_VerifyBlockChecksum(McChecksumBlock* arg0, s32 arg1)
 {
     s16          sum;
     register u8* ptr asm("a2");
@@ -349,18 +349,18 @@ void func_80033C38(void)
 
 s32 func_80033C40(void)
 {
-    GStruct53*   base;
-    u8*          src;
-    u8*          dest;
-    s32          size;
-    register s32 flags asm("a3");
-    u32          i;
-    register u32 j asm("a0");
-    s32          idx;
+    McBufferSlot* base;
+    u8*           src;
+    u8*           dest;
+    s32           size;
+    register s32  flags asm("a3");
+    u32           i;
+    register u32  j asm("a0");
+    s32           idx;
 
     flags = 0;
     i     = 0;
-    base  = D_800610FC;
+    base  = Mc_BufferSlots;
     do {
         idx  = 8 - i;
         src  = (u8*)base[idx].field_0;
@@ -385,19 +385,19 @@ s32 func_80033C40(void)
 
 void func_80033CC0(void)
 {
-    GStruct47*   temp;
-    GStruct53*   p;
-    GStruct53*   base;
-    s16          sum;
-    s32          inv;
-    u32          count;
-    u32          i;
-    register u32 j asm("a0");
-    u8*          ptr;
+    McChecksumBlock* temp;
+    McBufferSlot*    p;
+    McBufferSlot*    base;
+    s16              sum;
+    s32              inv;
+    u32              count;
+    u32              i;
+    register u32     j asm("a0");
+    u8*              ptr;
 
     i    = 1;
     inv  = 0xFFFF;
-    base = D_800610FC;
+    base = Mc_BufferSlots;
     p    = base + 1;
     do {
         sum   = 0;
@@ -422,16 +422,16 @@ void func_80033CC0(void)
 
 void func_80033D3C(void)
 {
-    GStruct47* temp;
-    GStruct53* p;
-    GStruct53* base;
-    s16        next;
-    s16        sum;
-    u32        i;
+    McChecksumBlock* temp;
+    McBufferSlot*    p;
+    McBufferSlot*    base;
+    s16              next;
+    s16              sum;
+    u32              i;
 
     sum  = 0;
     i    = 1;
-    base = D_800610FC;
+    base = Mc_BufferSlots;
     p    = base + 1;
     do {
         temp = p->field_0;
@@ -440,20 +440,20 @@ void func_80033D3C(void)
         next = sum + *(u8*)temp;
         sum  = next;
     } while (i < 9U);
-    D_80072168.field_940 = next;
-    D_80072168.field_942 = ~next;
+    Mc_SaveData.field_940 = next;
+    Mc_SaveData.field_942 = ~next;
 }
 
 s32 func_80033D88(void)
 {
-    s32        sum;
-    u32        i;
-    GStruct53* p;
-    GStruct53* base;
+    s32           sum;
+    u32           i;
+    McBufferSlot* p;
+    McBufferSlot* base;
 
     sum  = 0;
     i    = 1;
-    base = D_800610FC;
+    base = Mc_BufferSlots;
     p    = base + 1;
     do {
         sum += *(u8*)p->field_0;
@@ -465,19 +465,19 @@ s32 func_80033D88(void)
 
 s32 func_80033DD4(void)
 {
-    GStruct47*   temp;
-    GStruct53*   p;
-    GStruct53*   base;
-    s16          sum;
-    u32          count;
-    u32          i;
-    register u32 j asm("a0");
-    u8*          ptr;
-    s32          flag;
+    McChecksumBlock* temp;
+    McBufferSlot*    p;
+    McBufferSlot*    base;
+    s16              sum;
+    u32              count;
+    u32              i;
+    register u32     j asm("a0");
+    u8*              ptr;
+    s32              flag;
 
     flag = 1;
     i    = 1;
-    base = D_800610FC;
+    base = Mc_BufferSlots;
     p    = base + 1;
     do {
         sum   = 0;
@@ -504,16 +504,16 @@ s32 func_80033DD4(void)
 
 void func_80033E58(void)
 {
-    u32        i;
-    u32        j;
-    GStruct53* p;
-    GStruct53* base;
-    u8*        src;
-    s32        size;
-    u8*        dest;
+    u32           i;
+    u32           j;
+    McBufferSlot* p;
+    McBufferSlot* base;
+    u8*           src;
+    s32           size;
+    u8*           dest;
 
     i    = 1;
-    base = D_800610FC;
+    base = Mc_BufferSlots;
     p    = base + 1;
     do {
         src  = (u8*)p->field_0;
@@ -531,28 +531,28 @@ void func_80033E58(void)
     } while (i < 9);
 }
 
-void func_80033EB0(GStruct0* arg0, s32 arg1)
+void Mc_DrawPrompt(Task* arg0, s32 arg1)
 {
-    s32        ret;
-    GStruct37* obj;
-    GStruct62* entry;
-    GStruct62* base;
+    s32           ret;
+    UiObject*     obj;
+    McPromptPair* entry;
+    McPromptPair* base;
 
     obj           = arg0->field_20;
     ret           = func_80048E10(obj, 1);
     obj->field_2E = 0;
     func_80048E38(obj, D_8001398C);
-    base  = D_80060D08;
+    base  = Mc_PromptTable;
     entry = &base[arg1];
     func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void func_80033F6C(GStruct0* arg0)
+void Mc_HideChildUi(Task* arg0)
 {
-    GStruct0*  child;
-    GStruct37* obj;
-    GStruct37* flag;
+    Task*     child;
+    UiObject* obj;
+    UiObject* flag;
 
     child = arg0->field_c;
     if (child != NULL) {
@@ -564,7 +564,7 @@ void func_80033F6C(GStruct0* arg0)
     }
 }
 
-void func_80033FB8(s32 arg0, GStruct21* arg1)
+void Mc_WriteDataChecksum(s32 arg0, McWork* arg1)
 {
     s16          sum;
     s32          count;
@@ -575,7 +575,7 @@ void func_80033FB8(s32 arg0, GStruct21* arg1)
     sum   = 0;
     count = 0x200;
     if (arg0 == 0) {
-        src = D_80060EFC;
+        src = Mc_DefaultChecksumSrc;
         dst = &D_80072AA4;
     } else {
         src = (u8*)arg1->field_18;
@@ -596,7 +596,7 @@ void func_80033FB8(s32 arg0, GStruct21* arg1)
     dst[1] = ~sum;
 }
 
-s32 func_80034028(GStruct23* arg0, GStruct21* arg1)
+s32 Mc_CompareSaveChecksum(McSaveData* arg0, McWork* arg1)
 {
     if (arg0->field_5C2 != 0) {
         return 0;
@@ -607,7 +607,7 @@ s32 func_80034028(GStruct23* arg0, GStruct21* arg1)
     return arg0->field_93C == arg1->field_A1C;
 }
 
-void func_80034070(GStruct0* arg0, GStruct21* arg1)
+void Mc_ResetWork(Task* arg0, McWork* arg1)
 {
     arg1->field_0   = 0x10;
     arg1->field_4   = 0;
@@ -628,12 +628,12 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_800343D0);
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_800344B4);
 
-void func_800345CC(GStruct0* arg0, GStruct21* arg1)
+void func_800345CC(Task* arg0, McWork* arg1)
 {
-    s32        ret;
-    GStruct37* obj;
-    GStruct62* entry;
-    GStruct62* base;
+    s32           ret;
+    UiObject*     obj;
+    McPromptPair* entry;
+    McPromptPair* base;
 
     arg1->field_4 = 0xE;
     arg1->field_8 = 4;
@@ -641,19 +641,19 @@ void func_800345CC(GStruct0* arg0, GStruct21* arg1)
     ret           = func_80048E10(obj, 1);
     obj->field_2E = 0;
     func_80048E38(obj, D_8001398C);
-    base  = D_80060D08;
+    base  = Mc_PromptTable;
     entry = &base[4];
     func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
     arg0->field_30 = arg0->field_30 + 1;
 }
 
-void func_800346AC(GStruct0* arg0, GStruct21* arg1)
+void func_800346AC(Task* arg0, McWork* arg1)
 {
-    s32        ret;
-    GStruct37* obj;
-    GStruct62* entry;
-    GStruct62* base;
+    s32           ret;
+    UiObject*     obj;
+    McPromptPair* entry;
+    McPromptPair* base;
 
     arg1->field_4 = 0;
     arg0->field_30++;
@@ -662,7 +662,7 @@ void func_800346AC(GStruct0* arg0, GStruct21* arg1)
     ret           = func_80048E10(obj, 1);
     obj->field_2E = 0;
     func_80048E38(obj, D_8001398C);
-    base  = D_80060D08;
+    base  = Mc_PromptTable;
     entry = &base[4];
     func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
@@ -670,7 +670,7 @@ void func_800346AC(GStruct0* arg0, GStruct21* arg1)
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_8003477C);
 
-void func_80034894(GStruct0* arg0, GStruct21* arg1)
+void func_80034894(Task* arg0, McWork* arg1)
 {
     s32 ret;
 
@@ -699,19 +699,19 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_80034938);
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80034A40);
 
-void func_80034B38(GStruct0* arg0)
+void func_80034B38(Task* arg0)
 {
     if (arg0->field_2a != 0) {
-        func_8002CCB8(arg0);
+        Task_Kill(arg0);
     }
 }
 
-void func_80034B68(GStruct0* arg0, GStruct21* arg1)
+void func_80034B68(Task* arg0, McWork* arg1)
 {
-    s32        syncResult;
-    GStruct0*  child;
-    GStruct37* obj;
-    GStruct37* flag;
+    s32       syncResult;
+    Task*     child;
+    UiObject* obj;
+    UiObject* flag;
 
     arg1->field_8 = 3;
     if (func_8003092C(arg0, 3, arg1->field_0) != 0) {
@@ -741,13 +741,13 @@ void func_80034B68(GStruct0* arg0, GStruct21* arg1)
     }
 }
 
-void func_80034C54(GStruct0* arg0, GStruct21* arg1)
+void func_80034C54(Task* arg0, McWork* arg1)
 {
-    s32        ret;
-    s32        syncResult;
-    GStruct0*  child;
-    GStruct37* obj;
-    GStruct37* flag;
+    s32       ret;
+    s32       syncResult;
+    Task*     child;
+    UiObject* obj;
+    UiObject* flag;
 
     arg1->field_8 = 9;
     ret           = func_800307AC(arg0, 9, arg1->field_0);
@@ -784,13 +784,13 @@ void func_80034C54(GStruct0* arg0, GStruct21* arg1)
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80034D50);
 
-void func_80034E3C(GStruct0* arg0, GStruct21* arg1)
+void func_80034E3C(Task* arg0, McWork* arg1)
 {
-    s32        syncResult;
-    s32        rslt;
-    GStruct0*  child;
-    GStruct37* obj;
-    GStruct37* flag;
+    s32       syncResult;
+    s32       rslt;
+    Task*     child;
+    UiObject* obj;
+    UiObject* flag;
 
     arg1->field_8 = 0x13;
     if (func_8003092C(arg0, 0x13, arg1->field_0) != 0) {
@@ -821,7 +821,7 @@ void func_80034E3C(GStruct0* arg0, GStruct21* arg1)
     }
 }
 
-void func_80034F2C(GStruct0* arg0, GStruct21* arg1)
+void func_80034F2C(Task* arg0, McWork* arg1)
 {
     u8* ptr1;
     u8* ptr0;
@@ -831,8 +831,8 @@ void func_80034F2C(GStruct0* arg0, GStruct21* arg1)
     arg1->field_8 = 0;
     arg1->field_4 = 0;
     if (func_800304AC(arg0, arg1->field_8, 0) != 0) {
-        ptr1 = D_80060DD8;
-        ptr0 = D_80060DF0;
+        ptr1 = Mc_FileName;
+        ptr0 = Mc_FileNameBuf;
         i    = 0;
         ch   = 0x5F;
         do {
@@ -852,20 +852,20 @@ void func_80034F2C(GStruct0* arg0, GStruct21* arg1)
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80034FB4);
 
-void func_800350B0(GStruct0* arg0, GStruct21* arg1)
+void func_800350B0(Task* arg0, McWork* arg1)
 {
-    s32        ret;
-    GStruct37* obj;
-    GStruct62* entry;
-    GStruct62* base;
-    s32        idx;
+    s32           ret;
+    UiObject*     obj;
+    McPromptPair* entry;
+    McPromptPair* base;
+    s32           idx;
 
     idx           = arg1->field_8;
     obj           = arg0->field_20;
     ret           = func_80048E10(obj, 1);
     obj->field_2E = 0;
     func_80048E38(obj, D_8001398C);
-    base  = D_80060D08;
+    base  = Mc_PromptTable;
     entry = &base[idx];
     func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
@@ -874,12 +874,12 @@ void func_800350B0(GStruct0* arg0, GStruct21* arg1)
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80035180);
 
-void func_8003527C(GStruct0* arg0, GStruct21* arg1)
+void func_8003527C(Task* arg0, McWork* arg1)
 {
-    s32        ret;
-    GStruct37* obj;
-    GStruct62* entry;
-    GStruct62* base;
+    s32           ret;
+    UiObject*     obj;
+    McPromptPair* entry;
+    McPromptPair* base;
 
     arg1->field_4 = 4;
     arg1->field_8 = 1;
@@ -887,24 +887,24 @@ void func_8003527C(GStruct0* arg0, GStruct21* arg1)
     ret           = func_80048E10(obj, 1);
     obj->field_2E = 0;
     func_80048E38(obj, D_8001398C);
-    base  = D_80060D08;
+    base  = Mc_PromptTable;
     entry = &base[1];
     func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
     arg0->field_30 = arg0->field_30 + 1;
 }
 
-void func_80035358(GStruct0* arg0, GStruct21* arg1)
+void Mc_StateOpenSelected(Task* arg0, McWork* arg1)
 {
-    register GStruct21* a1 asm("s1");
-    register GStruct0*  a0 asm("s2");
-    register s32        openIdx asm("s0");
-    register GStruct37* obj asm("s0");
-    register s32        modeIdx asm("s1");
-    s32                 ret;
-    s32                 openResult;
-    GStruct62*          entry;
-    GStruct62*          base;
+    register McWork*   a1 asm("s1");
+    register Task*     a0 asm("s2");
+    register s32       openIdx asm("s0");
+    register UiObject* obj asm("s0");
+    register s32       modeIdx asm("s1");
+    s32                ret;
+    s32                openResult;
+    McPromptPair*      entry;
+    McPromptPair*      base;
 
     a1      = arg1;
     openIdx = a1->field_A14;
@@ -923,7 +923,7 @@ void func_80035358(GStruct0* arg0, GStruct21* arg1)
     ret           = func_80048E10(obj, 1);
     obj->field_2E = 0;
     func_80048E38(obj, D_8001398C);
-    base  = D_80060D08;
+    base  = Mc_PromptTable;
     entry = &base[modeIdx];
     func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
@@ -931,16 +931,16 @@ void func_80035358(GStruct0* arg0, GStruct21* arg1)
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80035464);
 
-void func_80035574(GStruct0* arg0, GStruct21* arg1)
+void Mc_StateOpenNext(Task* arg0, McWork* arg1)
 {
-    register GStruct21* a1 asm("s1");
-    register GStruct0*  a0 asm("s0");
-    register GStruct37* obj asm("s0");
-    register s32        modeIdx asm("s1");
-    register s32        ret asm("s3");
-    s32                 temp_v0;
-    GStruct62*          entry;
-    GStruct62*          base;
+    register McWork*   a1 asm("s1");
+    register Task*     a0 asm("s0");
+    register UiObject* obj asm("s0");
+    register s32       modeIdx asm("s1");
+    register s32       ret asm("s3");
+    s32                temp_v0;
+    McPromptPair*      entry;
+    McPromptPair*      base;
 
     a1 = arg1;
     a0 = arg0;
@@ -961,19 +961,19 @@ void func_80035574(GStruct0* arg0, GStruct21* arg1)
     ret           = func_80048E10(obj, 1);
     obj->field_2E = 0;
     func_80048E38(obj, D_8001398C);
-    base  = D_80060D08;
+    base  = Mc_PromptTable;
     entry = &base[modeIdx];
     func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void func_80035684(GStruct0* arg0, GStruct21* arg1)
+void func_80035684(Task* arg0, McWork* arg1)
 {
-    s32        ret;
-    GStruct37* obj;
-    GStruct62* entry;
-    GStruct62* base;
-    s32        idx;
+    s32           ret;
+    UiObject*     obj;
+    McPromptPair* entry;
+    McPromptPair* base;
+    s32           idx;
 
     arg0->field_2a -= 1;
     if (arg0->field_2a <= 0) {
@@ -984,19 +984,19 @@ void func_80035684(GStruct0* arg0, GStruct21* arg1)
     ret           = func_80048E10(obj, 1);
     obj->field_2E = 0;
     func_80048E38(obj, D_8001398C);
-    base  = D_80060D08;
+    base  = Mc_PromptTable;
     entry = &base[idx];
     func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void func_80035764(GStruct0* arg0, GStruct21* arg1)
+void func_80035764(Task* arg0, McWork* arg1)
 {
-    s32        ret;
-    GStruct37* obj;
-    GStruct62* entry;
-    GStruct62* base;
-    s32        idx;
+    s32           ret;
+    UiObject*     obj;
+    McPromptPair* entry;
+    McPromptPair* base;
+    s32           idx;
 
     arg0->field_2a -= 1;
     if (arg0->field_2a <= 0) {
@@ -1007,18 +1007,18 @@ void func_80035764(GStruct0* arg0, GStruct21* arg1)
     ret           = func_80048E10(obj, 1);
     obj->field_2E = 0;
     func_80048E38(obj, D_8001398C);
-    base  = D_80060D08;
+    base  = Mc_PromptTable;
     entry = &base[idx];
     func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void func_80035844(GStruct0* arg0, GStruct21* arg1)
+void func_80035844(Task* arg0, McWork* arg1)
 {
-    s32        ret;
-    GStruct37* obj;
-    GStruct62* entry;
-    GStruct62* base;
+    s32           ret;
+    UiObject*     obj;
+    McPromptPair* entry;
+    McPromptPair* base;
 
     arg1->field_4 -= 1;
     if (arg1->field_4 <= 0) {
@@ -1029,13 +1029,13 @@ void func_80035844(GStruct0* arg0, GStruct21* arg1)
     ret           = func_80048E10(obj, 1);
     obj->field_2E = 0;
     func_80048E38(obj, D_8001398C);
-    base  = D_80060D08;
+    base  = Mc_PromptTable;
     entry = &base[4];
     func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void func_8003591C(GStruct0* arg0, GStruct21* arg1)
+void func_8003591C(Task* arg0, McWork* arg1)
 {
     arg1->field_8 = 0xE;
     arg1->field_4 = 0;
@@ -1044,7 +1044,7 @@ void func_8003591C(GStruct0* arg0, GStruct21* arg1)
     }
 }
 
-void func_80035960(GStruct0* arg0, GStruct21* arg1)
+void func_80035960(Task* arg0, McWork* arg1)
 {
     arg1->field_8 = 0xD;
     arg1->field_4 = 0;
@@ -1055,33 +1055,33 @@ void func_80035960(GStruct0* arg0, GStruct21* arg1)
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_800359A4);
 
-void func_80035A94(GStruct0* arg0, GStruct21* arg1)
+void func_80035A94(Task* arg0, McWork* arg1)
 {
-    arg1->field_0        = 0x10;
-    arg1->field_8        = 0x8;
-    arg1->field_A20      = 1;
-    arg1->field_4        = 0;
-    arg1->field_18       = 0;
-    arg1->field_C        = 0;
-    D_80070F68.field_101 = 0;
-    arg0->field_30      += 1;
+    arg1->field_0           = 0x10;
+    arg1->field_8           = 0x8;
+    arg1->field_A20         = 1;
+    arg1->field_4           = 0;
+    arg1->field_18          = 0;
+    arg1->field_C           = 0;
+    Display_State.field_101 = 0;
+    arg0->field_30         += 1;
 }
 
-void func_80035AD4(GStruct0* arg0, GStruct21* arg1)
+void func_80035AD4(Task* arg0, McWork* arg1)
 {
     arg1->field_24 = 9;
     arg1->field_28 = -1;
     arg0->field_30 = 7;
 }
 
-void func_80035AF0(GStruct0* arg0, GStruct21* arg1)
+void func_80035AF0(Task* arg0, McWork* arg1)
 {
-    s32        status;
-    s32        ret;
-    s32        idx;
-    GStruct37* obj;
-    GStruct62* entry;
-    GStruct62* base;
+    s32           status;
+    s32           ret;
+    s32           idx;
+    UiObject*     obj;
+    McPromptPair* entry;
+    McPromptPair* base;
 
     if (arg1->field_0 > 0) {
         arg1->field_0 -= 2;
@@ -1105,20 +1105,20 @@ void func_80035AF0(GStruct0* arg0, GStruct21* arg1)
         ret           = func_80048E10(obj, 1);
         obj->field_2E = 0;
         func_80048E38(obj, D_8001398C);
-        base  = D_80060D08;
+        base  = Mc_PromptTable;
         entry = &base[idx];
         func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
         func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
     }
 }
 
-void func_80035C2C(GStruct0* arg0, GStruct21* arg1)
+void Mc_StateCloseReturn(Task* arg0, McWork* arg1)
 {
-    s32        ret;
-    GStruct37* obj;
-    GStruct62* entry;
-    GStruct62* base;
-    s32        idx;
+    s32           ret;
+    UiObject*     obj;
+    McPromptPair* entry;
+    McPromptPair* base;
+    s32           idx;
 
     MemCardClose();
     idx           = arg1->field_8;
@@ -1126,26 +1126,26 @@ void func_80035C2C(GStruct0* arg0, GStruct21* arg1)
     ret           = func_80048E10(obj, 1);
     obj->field_2E = 0;
     func_80048E38(obj, D_8001398C);
-    base  = D_80060D08;
+    base  = Mc_PromptTable;
     entry = &base[idx];
     func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
     arg0->field_30 = 4;
     if (arg0->field_20 != NULL) {
-        ((GStruct37*)arg0->field_20)->field_2E = -1;
+        ((UiObject*)arg0->field_20)->field_2E = -1;
     }
 }
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80035D14);
 
-void func_80035E18(GStruct0* arg0)
+void func_80035E18(Task* arg0)
 {
     if (arg0->field_2a != 0) {
-        func_8002CCB8(arg0);
+        Task_Kill(arg0);
     }
 }
 
-void func_80035E48(GStruct0* arg0, GStruct21* arg1)
+void func_80035E48(Task* arg0, McWork* arg1)
 {
     u8* ptr1;
     u8* ptr0;
@@ -1155,8 +1155,8 @@ void func_80035E48(GStruct0* arg0, GStruct21* arg1)
     arg1->field_8 = 0xF;
     arg1->field_4 = 0;
     if (func_800304AC(arg0, 0xF, 0) != 0) {
-        ptr1 = D_80060DD8;
-        ptr0 = D_80060DF0;
+        ptr1 = Mc_FileName;
+        ptr0 = Mc_FileNameBuf;
         i    = 0;
         ch   = 0x5F;
         do {
@@ -1176,12 +1176,12 @@ void func_80035E48(GStruct0* arg0, GStruct21* arg1)
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80035ED4);
 
-void func_80035FD8(GStruct0* arg0, GStruct21* arg1)
+void func_80035FD8(Task* arg0, McWork* arg1)
 {
-    s32        syncResult;
-    GStruct0*  child;
-    GStruct37* obj;
-    GStruct37* flag;
+    s32       syncResult;
+    Task*     child;
+    UiObject* obj;
+    UiObject* flag;
 
     arg1->field_8 = 3;
     if (func_8003092C(arg0, 3, arg1->field_0) != 0) {
@@ -1211,13 +1211,13 @@ void func_80035FD8(GStruct0* arg0, GStruct21* arg1)
     }
 }
 
-void func_800360C8(GStruct0* arg0, GStruct21* arg1)
+void func_800360C8(Task* arg0, McWork* arg1)
 {
-    s32        syncResult;
-    s32        rslt;
-    GStruct0*  child;
-    GStruct37* obj;
-    GStruct37* flag;
+    s32       syncResult;
+    s32       rslt;
+    Task*     child;
+    UiObject* obj;
+    UiObject* flag;
 
     arg1->field_8 = 0xA;
     if (func_8003092C(arg0, 0xA, arg1->field_0) != 0) {
@@ -1252,12 +1252,12 @@ INCLUDE_ASM("main/nonmatchings/21FDC", func_800361C0);
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_800362A4);
 
-void func_800363AC(GStruct0* arg0, GStruct21* arg1)
+void func_800363AC(Task* arg0, McWork* arg1)
 {
-    s32        ret;
-    GStruct37* obj;
-    GStruct62* entry;
-    GStruct62* base;
+    s32           ret;
+    UiObject*     obj;
+    McPromptPair* entry;
+    McPromptPair* base;
 
     arg1->field_4 = 4;
     arg1->field_8 = 1;
@@ -1265,7 +1265,7 @@ void func_800363AC(GStruct0* arg0, GStruct21* arg1)
     ret           = func_80048E10(obj, 1);
     obj->field_2E = 0;
     func_80048E38(obj, D_8001398C);
-    base  = D_80060D08;
+    base  = Mc_PromptTable;
     entry = &base[1];
     func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
@@ -1274,17 +1274,17 @@ void func_800363AC(GStruct0* arg0, GStruct21* arg1)
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_80036488);
 
-void func_800365B0(GStruct0* arg0, GStruct21* arg1)
+void func_800365B0(Task* arg0, McWork* arg1)
 {
-    register GStruct21* a1 asm("s1");
-    register GStruct0*  a0 asm("s2");
-    register s32        openIdx asm("s0");
-    register GStruct37* obj asm("s0");
-    register s32        modeIdx asm("s1");
-    s32                 ret;
-    s32                 openResult;
-    GStruct62*          entry;
-    GStruct62*          base;
+    register McWork*   a1 asm("s1");
+    register Task*     a0 asm("s2");
+    register s32       openIdx asm("s0");
+    register UiObject* obj asm("s0");
+    register s32       modeIdx asm("s1");
+    s32                ret;
+    s32                openResult;
+    McPromptPair*      entry;
+    McPromptPair*      base;
 
     a1      = arg1;
     openIdx = a1->field_A14;
@@ -1303,7 +1303,7 @@ void func_800365B0(GStruct0* arg0, GStruct21* arg1)
     ret           = func_80048E10(obj, 1);
     obj->field_2E = 0;
     func_80048E38(obj, D_8001398C);
-    base  = D_80060D08;
+    base  = Mc_PromptTable;
     entry = &base[modeIdx];
     func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
@@ -1311,16 +1311,16 @@ void func_800365B0(GStruct0* arg0, GStruct21* arg1)
 
 INCLUDE_ASM("main/nonmatchings/21FDC", func_800366BC);
 
-void func_800367CC(GStruct0* arg0, GStruct21* arg1)
+void func_800367CC(Task* arg0, McWork* arg1)
 {
-    register GStruct21* a1 asm("s1");
-    register GStruct0*  a0 asm("s0");
-    register GStruct37* obj asm("s0");
-    register s32        modeIdx asm("s1");
-    register s32        ret asm("s3");
-    s32                 temp_v0;
-    GStruct62*          entry;
-    GStruct62*          base;
+    register McWork*   a1 asm("s1");
+    register Task*     a0 asm("s0");
+    register UiObject* obj asm("s0");
+    register s32       modeIdx asm("s1");
+    register s32       ret asm("s3");
+    s32                temp_v0;
+    McPromptPair*      entry;
+    McPromptPair*      base;
 
     a1 = arg1;
     a0 = arg0;
@@ -1341,13 +1341,13 @@ void func_800367CC(GStruct0* arg0, GStruct21* arg1)
     ret           = func_80048E10(obj, 1);
     obj->field_2E = 0;
     func_80048E38(obj, D_8001398C);
-    base  = D_80060D08;
+    base  = Mc_PromptTable;
     entry = &base[modeIdx];
     func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void func_800368DC(GStruct0* arg0, GStruct21* arg1)
+void func_800368DC(Task* arg0, McWork* arg1)
 {
     u8* ptr1;
     u8* ptr0;
@@ -1357,8 +1357,8 @@ void func_800368DC(GStruct0* arg0, GStruct21* arg1)
     arg1->field_8 = 0x17;
     arg1->field_4 = 0;
     if (func_800304AC(arg0, 0x17, 0) != 0) {
-        ptr1 = D_80060DD8;
-        ptr0 = D_80060DF0;
+        ptr1 = Mc_FileName;
+        ptr0 = Mc_FileNameBuf;
         i    = 0;
         ch   = 0x5F;
         do {
@@ -1391,10 +1391,10 @@ void func_80036A2C(void* arg0, GStruct20* arg1)
     }
 }
 
-void func_80036A70(GStruct0* arg0)
+void func_80036A70(Task* arg0)
 {
     GStruct20* obj;
-    GStruct46* menu;
+    UiList*    menu;
 
     obj  = arg0->field_20;
     menu = &D_8006116C;
@@ -1414,7 +1414,7 @@ void func_80036A70(GStruct0* arg0)
     }
 }
 
-void func_80036B2C(GStruct60* arg0, GStruct37* arg1)
+void func_80036B2C(GStruct60* arg0, UiObject* arg1)
 {
     s16 var_v0;
     s32 temp;
@@ -1424,13 +1424,13 @@ void func_80036B2C(GStruct60* arg0, GStruct37* arg1)
     temp  = arg1->field_28->field_34;
     func_800330D8(arg1, temp, temp2, 0, arg0->field_1A + 7);
     if (arg0->field_C == 1) {
-        if (func_8002C868(0, 1, D_8005ED70) != 0) {
+        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
             func_8005414C(0x16, 0, 0);
             arg1->field_2E = 6;
             var_v0         = (s8)(u8)arg0->field_8;
             goto block_5;
         }
-        if (func_8002C868(0, 1, D_8005ED74) != 0) {
+        if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
             func_8005414C(0x3B, 0, 0);
             arg1->field_2E = 6;
             var_v0         = -1;
@@ -1440,10 +1440,10 @@ void func_80036B2C(GStruct60* arg0, GStruct37* arg1)
     }
 }
 
-void func_80036C04(GStruct0* arg0)
+void func_80036C04(Task* arg0)
 {
     GStruct20* obj;
-    GStruct46* menu;
+    UiList*    menu;
     GStruct64* ctx;
     s32        temp;
 
@@ -1470,12 +1470,12 @@ void func_80036C04(GStruct0* arg0)
     }
 }
 
-void func_80036CF0(GStruct0* arg0)
+void func_80036CF0(Task* arg0)
 {
-    void*      obj;
-    s32        data;
-    GStruct46* menu;
-    s32        val;
+    void*   obj;
+    s32     data;
+    UiList* menu;
+    s32     val;
 
     obj = arg0->field_20;
     if (arg0->field_30 == 0) {
@@ -1495,18 +1495,18 @@ void func_80036CF0(GStruct0* arg0)
     func_800330D8(obj, data, val, 0, 0);
 }
 
-void func_80036D98(GStruct60* arg0, GStruct37* arg1)
+void func_80036D98(GStruct60* arg0, UiObject* arg1)
 {
     s32 temp;
 
     func_8002FDCC(arg1, arg0->field_18, arg0->field_1A, D_80060A54, arg0->field_1C, 1, 0);
     temp = arg0->field_C;
     if (temp == 1) {
-        if (func_8002C868(0, 1, D_8005ED70) != 0) {
+        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
             func_8005414C(0x16, 0, 0);
             arg1->field_2E = 6;
             arg1->field_2C = temp;
-        } else if (func_8002C868(0, 1, D_8005ED74) != 0) {
+        } else if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
             func_8005414C(0x15, 0, 0);
             arg0->field_B  = temp;
             arg0->field_22 = 0x41;
@@ -1514,14 +1514,14 @@ void func_80036D98(GStruct60* arg0, GStruct37* arg1)
     }
 }
 
-void func_80036E78(GStruct60* arg0, GStruct37* arg1)
+void func_80036E78(GStruct60* arg0, UiObject* arg1)
 {
     s32 temp;
 
     func_8002FDCC(arg1, arg0->field_18, arg0->field_1A, D_80060A64, arg0->field_1C, 1, 0);
     temp = arg0->field_C;
     if (temp == 1) {
-        if (func_8002C868(0, 1, D_8005ED70) != 0) {
+        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
             func_8005414C(0x16, 0, 0);
             arg1->field_2E = 6;
             arg1->field_2C = temp;
@@ -1529,14 +1529,14 @@ void func_80036E78(GStruct60* arg0, GStruct37* arg1)
     }
 }
 
-void func_80036F18(GStruct60* arg0, GStruct37* arg1)
+void func_80036F18(GStruct60* arg0, UiObject* arg1)
 {
     s32 temp;
 
     func_8002FDCC(arg1, arg0->field_18, arg0->field_1A, D_80060A5C, arg0->field_1C, 1, 0);
     temp = arg0->field_C;
     if (temp == 1) {
-        if (func_8002C868(0, 1, D_8005ED70) != 0) {
+        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
             func_8005414C(0x3B, 0, 0);
             arg1->field_2E = 6;
             arg1->field_2C = temp;
@@ -1544,11 +1544,11 @@ void func_80036F18(GStruct60* arg0, GStruct37* arg1)
     }
 }
 
-void func_80036FB8(GStruct60* arg0, GStruct37* arg1)
+void func_80036FB8(GStruct60* arg0, UiObject* arg1)
 {
     func_8002FDCC(arg1, arg0->field_18, arg0->field_1A, D_80060A58, arg0->field_1C, 1, 0);
     if (arg0->field_C == 1) {
-        if (func_8002C868(0, 1, D_8005ED70 | D_8005ED74) != 0) {
+        if (Pad_CheckButtons(0, 1, D_8005ED70 | D_8005ED74) != 0) {
             func_8005414C(0x3B, 0, 0);
             arg1->field_2E = 6;
             arg1->field_2C = -1;
@@ -1556,10 +1556,10 @@ void func_80036FB8(GStruct60* arg0, GStruct37* arg1)
     }
 }
 
-void func_80037068(GStruct0* arg0)
+void func_80037068(Task* arg0)
 {
     GStruct30* obj;
-    GStruct46* menu;
+    UiList*    menu;
     s32        mode;
 
     mode = arg0->field_34;

@@ -155,7 +155,7 @@ usually loads its address once into a callee-saved register (`lui`/`addiu` into
 fresh `lui %hi(...)` after every call instead, often stuffed into delay slots
 that should hold a `nop`.
 
-Assign it to a local pointer first — the same trick `func_8002D25C` in
+Assign it to a local pointer first — the same trick `Task_ExecList` in
 `src/main/1C034.c` annotates as *"The indirection is required."*:
 
 ```c
@@ -170,11 +170,11 @@ using `off($s0)` for the rest; that falls out of CSE on its own and is not a
 sign that a second expression is needed.
 
 **Inverse — skip the local pointer when all accesses are pre-call.** If every
-read/write of the global happens *before* any `jal`, a bare `D_80070F68.field`
+read/write of the global happens *before* any `jal`, a bare `Display_State.field`
 name matches fine: GCC loads the address into a temporary (`$v1`) once and
 never needs to reload it. `func_8002BE0C` is an example — it reads
 `field_101`, optionally writes `field_10b`, then only calls other functions.
-A local `GStruct1*` would force a callee-saved register and a larger stack
+A local `DisplayState*` would force a callee-saved register and a larger stack
 frame for no benefit. Use the pointer only when the address is live across
 calls.
 
@@ -265,17 +265,17 @@ with a local pointer:
 
 ```c
 /* Wrong schedule: lui/addiu base, then i*stride */
-D_80071620[arg0].field_A = 0;
+Pad_States[arg0].field_A = 0;
 
 /* Right schedule: i*stride, then lui/addiu base */
-volatile GStruct25* p;
-p = &D_80071620[arg0];
+volatile PadState* p;
+p = &Pad_States[arg0];
 p->field_A = 0;
 ```
 
 Keep the local pointer `volatile` as well so the store stays out of the `jr`
-delay slot (a plain `GStruct25*` still multiplies first but fills the slot with
-`sb`). `func_8002C9E0` is the minimal example.
+delay slot (a plain `PadState*` still multiplies first but fills the slot with
+`sb`). `Pad_ClearCooldown` is the minimal example.
 
 **Inverse — non-volatile array: base before index.** For a plain (non-volatile)
 array, `&arr[(s8)i]` often schedules the signed index shift *before*
@@ -781,11 +781,11 @@ if (next != NULL) {
 
 fully loads `D_head` before `next` (and inserts a load-delay `nop` before
 `beqz`). Wrapping the address-of assignments in `do {} while (0)` restores the
-hi/next/lo interleaving without changing semantics (`func_8002D444`):
+hi/next/lo interleaving without changing semantics (`Task_Unlink`):
 
 ```c
 next = state->node.next;
-head = D_800716D8;
+head = Task_ActiveList;
 do {
     pp = &head->prev;
     if (next != NULL) {
@@ -1136,7 +1136,7 @@ j    merge
  addu a0, a0, v0   /* a0 = table[i] + j * stride */
 ```
 
-a single expression (`D_8005EF74[arg0] + arg1` or `&D_8005EF74[arg0][arg1]`)
+a single expression (`Task_DescBanks[arg0] + arg1` or `&Task_DescBanks[arg0][arg1]`)
 schedules the multiply first and loads into `$v1` instead, breaking the match.
 
 Split the load from the index:
@@ -1145,18 +1145,18 @@ Split the load from the index:
 TaskDesc* ptr;
 
 if (arg0 >= 0) {
-    ptr = D_8005EF74[arg0];
+    ptr = Task_DescBanks[arg0];
     ptr = &ptr[arg1];
 } else {
     ptr = (TaskDesc*)arg1;
 }
-return func_8002CB04(ptr, arg2, arg3, D_800716D8);
+return Task_SpawnFromDesc(ptr, arg2, arg3, Task_ActiveList);
 ```
 
 Also: use `if (arg0 >= 0)` (not `arg0 < 0`) so the fall-through is the table
 path and the branch is `bltz` to the cast path — that matches the shared
-post-merge arg shuffle (`a1=a2`, `a2=saved a3`, `a3=D_800716D8`) of
-`func_8002CFDC`. Dual early returns force separate call setup and reg-shuffle
+post-merge arg shuffle (`a1=a2`, `a2=saved a3`, `a3=Task_ActiveList`) of
+`Task_Spawn`. Dual early returns force separate call setup and reg-shuffle
 the args too early.
 
 ## `while (1)` for linked-list walks that re-enter at the null check
@@ -1249,7 +1249,7 @@ if (arg0 == 0) {
 }
 ```
 
-`if (arg0 != 0)` swaps the arms and GCC emits `beqz` with the non-zero path as fall-through — same code, inverted control flow, large score drop. `func_800338F4` is a short example (copy between `D_80060DD8` / `D_80060DF0`).
+`if (arg0 != 0)` swaps the arms and GCC emits `beqz` with the non-zero path as fall-through — same code, inverted control flow, large score drop. `Mc_CopyFileName` is a short example (copy between `Mc_FileName` / `Mc_FileNameBuf`).
 
 ## Ring-buffer wrap: `x = x + 1; x = x % N` keeps both stores
 
@@ -1397,7 +1397,7 @@ typedef struct {
 ((GStructOverlayAt4*)dst)->field_4 = ((GStructOverlayAt4*)src)->field_4;
 ```
 
-`func_8002BF10` is the pure example (`D4F564_8005ED64` ← `D_80072168`).
+`func_8002BF10` is the pure example (`D4F564_8005ED64` ← `Mc_SaveData`).
 
 ## Big-endian halfword from two `u8` fields (stack `sb`/`sb`/`lhu`)
 
@@ -1442,7 +1442,7 @@ Avoid `p = &D_array[arg0]` / `p = base + arg0` if that yields `addu v1, v0, v1`
 (pointer in `$v1`) — reusing the base local via `base[arg0]` twice keeps the
 pointer in `$v0` so the first `lbu` can land in `$v1`.
 
-`func_8002CA0C` is the pure example (`D_800711C8`, stride 0x24).
+`Pad_ReadButtonsInv` is the pure example (`Pad_RawPorts`, stride 0x24).
 
 ## PsyQ GsOT layout without including libgs.h
 
@@ -1480,7 +1480,7 @@ D_800710A0 = ot[temp->field_118].org;
 
 `func_8003E904` is the reference: sets both `D_8007A0E8` slots to depth `0xA`
 with `D5F414_OrderingTables` / `+ C5F414_OTAG_ENTRIES`, clears the active buffer
-(`D_80070F68.field_118`), then points `D_800710A0` at the OT base.
+(`Display_State.field_118`), then points `D_800710A0` at the OT base.
 
 ## Delay `i = 0` until after a special-case rewrite of the same constant
 
@@ -1793,13 +1793,13 @@ do {
     next = sum + *(u8*)temp;
     sum = next;
 } while (i < 9U);
-D_80072168.field_940 = next;
-D_80072168.field_942 = ~next;
+Mc_SaveData.field_940 = next;
+Mc_SaveData.field_942 = ~next;
 ```
 
-Also keep an intermediate `base = D_800610FC; p = base + 1;` so the address
-forms as `addiu v0, %lo(D_800610FC)` then `addiu a0, v0, 0xC` rather than a
-folded `%lo(D_800610FC+0xC)`. `func_80033D3C` is the pure example; its verify
+Also keep an intermediate `base = Mc_BufferSlots; p = base + 1;` so the address
+forms as `addiu v0, %lo(Mc_BufferSlots)` then `addiu a0, v0, 0xC` rather than a
+folded `%lo(Mc_BufferSlots+0xC)`. `func_80033D3C` is the pure example; its verify
 sibling `func_80033D88` uses a plain `s32 sum` and different scheduling.
 
 ## Statement order picks which local reuses `$a1`
@@ -1846,14 +1846,14 @@ j    default
 case bodies use v0=2 for `if (arg1 == 2)` without reloading on every path
 ```
 
-With `volatile GStruct25* p` (or a volatile global accessed directly), the
+With `volatile PadState* p` (or a volatile global accessed directly), the
 loads pin scheduling and the `li 2` is emitted separately on each path
 (~93% match: correct control flow, wrong delay slots). Strip the qualifier:
 
 ```c
 /* Global stays volatile (other functions need it). */
-GStruct25* p;
-p = (GStruct25*)&D_80071620[arg0];
+PadState* p;
+p = (PadState*)&Pad_States[arg0];
 switch (arg1) {
 case 1: val = p->field_6; break;
 case 3: val = p->field_8; break;
@@ -1865,8 +1865,8 @@ if (arg1 == 2) {
 return (val & arg2) != 0;
 ```
 
-`func_8002C868` is the pure example. This is the inverse of the
-"keep local pointer volatile" rule used by `func_8002C9E0` on the same array.
+`Pad_CheckButtons` is the pure example. This is the inverse of the
+"keep local pointer volatile" rule used by `Pad_ClearCooldown` on the same array.
 
 ## Prefer bare global field names when target CSEs a mid-struct address
 
@@ -1876,8 +1876,8 @@ shows up when the first access is a non-zero-offset array field and later
 fields are reached by adjusting that same register:
 
 ```
-lui    s0, %hi(D_80070F68)
-addiu  s0, s0, %lo(D_80070F68+0x48)   # DRAWENV array
+lui    s0, %hi(Display_State)
+addiu  s0, s0, %lo(Display_State+0x48)   # DRAWENV array
 ...
 addiu  a0, s0, -0x28                  # DISPENV array (= base+0x20)
 ...
@@ -1885,15 +1885,15 @@ addiu  s0, s0, -0x48                  # back to struct base
 lbu    v0, 0x100(s0)
 ```
 
-A local `GStruct1* p = &D_80070F68` forces the base into a callee-saved reg
+A local `DisplayState* p = &Display_State` forces the base into a callee-saved reg
 and emits `addiu a0, a0, 0x48` / `addiu a0, s2, 0x20` instead — correct
 offsets, wrong CSE (~85%). Write the accesses by name:
 
 ```c
-PutDrawEnv(&D_80070F68.field_48[arg0]);
-PutDispEnv(&D_80070F68.field_20[arg0]);
-if (D_80070F68.field_100 != 0) { ... }
-if (D_80070F68.field_104 == 0) { ... }
+PutDrawEnv(&Display_State.field_48[arg0]);
+PutDispEnv(&Display_State.field_20[arg0]);
+if (Display_State.field_100 != 0) { ... }
+if (Display_State.field_104 == 0) { ... }
 ```
 
 `func_800282D8` is the pure example.
@@ -2071,7 +2071,7 @@ NULL, only clear the node's three link fields. Pair with `func_80056068`
 
 ## Local jump table via struct assignment of function pointers
 
-Dispatchers that index a small fixed table of `GFunc0` callbacks often copy the
+Dispatchers that index a small fixed table of `TaskFunc` callbacks often copy the
 table onto the stack first, then call through the local copy. The target uses a
 3-word multi-load / multi-store:
 
@@ -2092,14 +2092,14 @@ Match with a struct-of-array and structure assignment, then index the local:
 
 ```c
 typedef struct {
-    GFunc0 funcs[3];
-} GFunc0Table3;
+    TaskFunc funcs[3];
+} TaskFuncTable3;
 
-extern GFunc0Table3 D_800134D0;
+extern TaskFuncTable3 D_800134D0;
 
-void dispatcher(GStruct0* arg0)
+void dispatcher(Task* arg0)
 {
-    GFunc0Table3 sp;
+    TaskFuncTable3 sp;
 
     sp = D_800134D0;
     /* … setup … */
@@ -2162,7 +2162,7 @@ while (j < (u32)size) {
 }
 ```
 
-`func_80033E58` is the pure example (`D_800610FC[1..8]` buffer duplicate).
+`func_80033E58` is the pure example (`Mc_BufferSlots[1..8]` buffer duplicate).
 
 ## Switch result phi via `temp` + goto join
 
@@ -2501,7 +2501,7 @@ if (flag == 1) {
 ```
 
 `func_80056308` is the pure example (`field_4 += 0xFFFF6667` vs `0xFFFF0000`
-gated on `D_80070F68.field_124 == 1`).
+gated on `Display_State.field_124 == 1`).
 
 ## `s16` accumulator forces `sll/sra 16` on each add
 
@@ -2693,7 +2693,7 @@ tmp = (s8)*ptr;
 sum = sum + tmp;   /* addu v1, v1, v0 */
 ```
 
-`func_800339C4` needs both this and the s16/`volatile u8*` pairing above.
+`Mc_VerifySaveHdrChecksum` needs both this and the s16/`volatile u8*` pairing above.
 
 ## Parallel dead offset temp for `p + offset` bank loops
 
@@ -2733,7 +2733,7 @@ increment tends to CSE a separate address for a mid-struct halfword field
 (`addiu v1, a0, 2` then `sb -1(v1)` / `sh 0(v1)`), while array indexing keeps
 one base and `sb 0` / `sb 1` / `sh 2` plus `addiu base, 4` in the branch delay.
 
-`func_8002CA54` (`GStruct25::field_10[2][8]`) is the example.
+`Pad_ClearEvents` (`PadState::field_10[2][8]`) is the example.
 
 ## Capture a reused halfword field so `%lo` wins and `$a0` stays free
 
@@ -2742,30 +2742,30 @@ value, writing both accesses as bare `global.field` can make GCC materialise
 `&global` into `$a0`:
 
 ```
-lui    v0,%hi(D_80070F68)
-addiu  a0,v0,%lo(D_80070F68)
+lui    v0,%hi(Display_State)
+addiu  a0,v0,%lo(Display_State)
 lhu    v1,0x12a(a0)
 ```
 
 That steals `$a0` from another live value the target keeps there (e.g. an
 earlier `lhu a0, %lo(other_global)`), and it also breaks the pure
-`lhu v1,%lo(D_80070F68+0x12a)(v0)` form.
+`lhu v1,%lo(Display_State+0x12a)(v0)` form.
 
 Fix: load the field into a local once and reuse that local for both the
 equality-to-constant test and the later compare:
 
 ```c
 ac14 = D_8006AC14;          /* stays in $a0 */
-f12a = D_80070F68.field_12a; /* lhu v1, %lo(...+0x12a)(v0) */
+f12a = Display_State.field_12a; /* lhu v1, %lo(...+0x12a)(v0) */
 if (f12a == 1) {
     if (ac14 == f12a) { /* bne a0, v1 — both already live */
         ...
     }
 }
-D_80070F68.field_106 = 0; /* separate lui after calls; delay-slot-friendly */
+Display_State.field_106 = 0; /* separate lui after calls; delay-slot-friendly */
 ```
 
-`func_8001F2FC` is the pure example (`D_8006AC14` vs `D_80070F68.field_12a`).
+`func_8001F2FC` is the pure example (`D_8006AC14` vs `Display_State.field_12a`).
 
 ## Equality comparison operand order controls `beq` register order
 
@@ -2929,38 +2929,38 @@ clears:
 
 ```c
 sum = 0;
-ptr = (u8*)&D_80072168;
+ptr = (u8*)&Mc_SaveData;
 ptr += 4;                      /* addiu a0, v1, %lo(D); addiu a0, a0, 4 */
 limit = 0x38;
 i = 0;
-D_80072168.field_1C = 0;       /* completes v1 with second %lo(D) */
-D_80072168.field_1E = 0xFFFF;
+Mc_SaveData.field_1C = 0;       /* completes v1 with second %lo(D) */
+Mc_SaveData.field_1E = 0xFFFF;
 do {
     i += 1;
     tmp = (s8)*ptr;
     sum = sum + tmp;
     ptr += 1;
 } while (i < limit);
-D_80072168.field_1C = sum;
-D_80072168.field_1E = ~sum;
-func_800339C4(&D_80072168);
+Mc_SaveData.field_1C = sum;
+Mc_SaveData.field_1E = ~sum;
+Mc_VerifySaveHdrChecksum(&Mc_SaveData);
 ```
 
 That emits the shared-`%hi` shape:
 
 ```
-lui    v1, %hi(D_80072168)
-addiu  a0, v1, %lo(D_80072168)
+lui    v1, %hi(Mc_SaveData)
+addiu  a0, v1, %lo(Mc_SaveData)
 addiu  a0, a0, 4
 ...
-addiu  v1, v1, %lo(D_80072168)
+addiu  v1, v1, %lo(Mc_SaveData)
 ```
 
-After the loop, reloading `&D_80072168` as `%lo(D+4)` / `addiu -4` is fine —
+After the loop, reloading `&Mc_SaveData` as `%lo(D+4)` / `addiu -4` is fine —
 it links to the same address as a splat `D_xxx+4` symbol (e.g. `D_8007216C`).
 
-`func_80033944` is the pure example (checksum writer for `GStruct23::field_1C` /
-`field_1E`; pair with the s16 / `sum = sum + tmp` notes used by `func_800339C4`).
+`Mc_WriteSaveHdrChecksum` is the pure example (checksum writer for `McSaveData::field_1C` /
+`field_1E`; pair with the s16 / `sum = sum + tmp` notes used by `Mc_VerifySaveHdrChecksum`).
 
 ## Signed division needs `--expand-div` on the TU
 
@@ -3249,7 +3249,7 @@ extern void func_800330D8(void* a0, s32 a1, s32 a2, s32 a3, s32 a4);
 ```
 
 `func_80036CF0` is the pure example: the header had `s8` for arg2, but the
-target always used `lw` of `GStruct46::field_10`. Callers that pass an `s8`
+target always used `lw` of `UiList::field_10`. Callers that pass an `s8`
 local still match after the widen (default argument promotion).
 
 ## Pull a call arg into a local so the stack-arg store fills the `jal` delay
@@ -3356,7 +3356,7 @@ s32 mask;
 
 mask = 0x40000000;
 if (!(D_80062698->field_1c & mask)) {
-    func_8002C9B0(0);
+    Pad_SetCooldown(0);
     temp = D_80062698;
     temp->field_20 = arg0;
     temp->field_24 = 0;
@@ -3394,8 +3394,8 @@ temp->field_2 = inv - sum;  /* subu v0, t2, sum */
 temp->field_0 = sum;
 ```
 
-Also form the slot pointer as `base = D_800610FC; p = base + 1;` (not
-`p = D_800610FC + 1`) so the address is `addiu v0, %lo(...)` then
+Also form the slot pointer as `base = Mc_BufferSlots; p = base + 1;` (not
+`p = Mc_BufferSlots + 1`) so the address is `addiu v0, %lo(...)` then
 `addiu t0, v0, 0xC` rather than a folded `%lo(+0xC)`.
 
 For the per-slot size path that does `lw a1, 4(p); addiu a1, a1, -4`, split
@@ -3411,8 +3411,8 @@ count = count - 4;
 count registers. If sum ends up correct in `$a2` but the loop index and count
 are swapped (`$a1`/`$a0`), pin the index: `register u32 j asm("a0")`.
 
-`func_80033CC0` is the pure example (batch write over `D_800610FC[1..8]`;
-contrast `func_80033A28` which uses `~sum` for a single buffer).
+`func_80033CC0` is the pure example (batch write over `Mc_BufferSlots[1..8]`;
+contrast `Mc_WriteBlockChecksum` which uses `~sum` for a single buffer).
 
 ## Signed `/ 2` chain must land in `$a0` via the call argument
 
@@ -3520,9 +3520,9 @@ src = (u8*)base[idx].field_0;
 size = base[idx].field_4;
 ```
 
-Pair with `base = D_800610FC` kept live (not `D_800610FC[idx]` alone) so the
+Pair with `base = Mc_BufferSlots` kept live (not `Mc_BufferSlots[idx]` alone) so the
 `%lo` address stays in a temp across the loop. `func_80033C40` is the pure
-example (reverse walk of `D_800610FC[8..1]` comparing each buffer to its
+example (reverse walk of `Mc_BufferSlots[8..1]` comparing each buffer to its
 duplicate half).
 
 ## Store both halfwords first, then reload one into `s16` for a clamp
@@ -3573,7 +3573,7 @@ sum += (s8)*ptr;
 
 an `s32 sum` collapses the cast to a single `lb`. The target often wants the
 longer form (`lbu` / `sll 24` / `sra 24`) that `func_80033CC0` and its verify
-sibling `func_80033DD4` use over `D_800610FC[1..8]`.
+sibling `func_80033DD4` use over `Mc_BufferSlots[1..8]`.
 
 Declare the accumulator `s16`:
 
@@ -3747,7 +3747,7 @@ done:
 `if (mode >= 3) goto default` is what emits the `slti` / `beqz` pair; do not
 collapse the two default entries into one `else` if that reorders blocks.
 `func_80037068` is the pure example (menu pointer select among three
-`GStruct46` data objects).
+`UiList` data objects).
 
 ## Table index: `offset = 0` then `if (hi) offset = hi << 1`
 
@@ -4062,10 +4062,10 @@ assign `p` and `offset`, and pin the offset register:
 ```c
 register s32 offset asm("a2");
 s32 tmp;
-volatile GStruct25* base;
-volatile GStruct25* p;
+volatile PadState* base;
+volatile PadState* p;
 
-base   = D_80071620;
+base   = Pad_States;
 tmp    = (s32)base;   /* barrier: completes base before p, load stays in $a3 */
 p      = base;
 offset = 0;           /* now after move a1, a3 — not hoisted before lui */
@@ -4079,20 +4079,20 @@ do {
 
 `tmp` must stay live for the whole loop (used in `offset + tmp`) so it is not
 DCE'd as a dead store. Pinning `offset` to `$a2` keeps the zero and the
-`addiu …, 0x5C` on that register. `func_80028664` is the pure example.
+`addiu …, 0x5C` on that register. `Pad_Init` is the pure example.
 
 ### Companion: non-volatile load, volatile stores for pad buffers
 
 `PadInitDirect((u8*)pad, (u8*)(pad + 1))` wants `lui s0` / `addiu s0, s0, %lo`
-on a plain `GStruct49*`. Field stores `pad->field_2 = 0xFF` without `volatile`
+on a plain `PadRawPort*`. Field stores `pad->field_2 = 0xFF` without `volatile`
 rebase the pointer (`addiu s0, 3` / `sb -1(s0)`). Load into a non-volatile
-pointer for the call, then assign a `volatile GStruct49*` for the init loop:
+pointer for the call, then assign a `volatile PadRawPort*` for the init loop:
 
 ```c
-GStruct49* pad;
-volatile GStruct49* vpad;
+PadRawPort* pad;
+volatile PadRawPort* vpad;
 
-pad = D_800711C8;
+pad = Pad_RawPorts;
 PadInitDirect((u8*)pad, (u8*)(pad + 1));
 vpad = pad;
 for (j = 0; j < 2; j++) {
@@ -4138,7 +4138,7 @@ Hold the discriminator in a `u32` so the range check is `sltiu` (see also
 routing through an intermediate then storing once can pick the wrong register
 for the case immediates (`v1` vs target `v0`).
 
-`func_80031B1C` is the pure example (MemCardCreateFile status → UI state).
+`Mc_StateCreateFile` is the pure example (MemCardCreateFile status → UI state).
 Remember to hand the jtbl's address range to the C file via a `.rodata`
 subsegment in `configs/USA/main.yaml` (split surrounding asm tables into
 `21FDC_1` / `21FDC_2` style siblings).

@@ -57,10 +57,10 @@ INCLUDE_ASM("main/nonmatchings/34E98", func_80048560);
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_800486F0);
 
-void func_80048838(GStruct37* arg0, GStruct0* arg1)
+void func_80048838(UiObject* arg0, Task* arg1)
 {
-    GStruct0* temp_s0;
-    GStruct0* child;
+    Task* temp_s0;
+    Task* child;
 
     temp_s0 = arg0->field_28;
     child   = temp_s0->field_c;
@@ -71,22 +71,22 @@ void func_80048838(GStruct37* arg0, GStruct0* arg1)
         } while (child != NULL);
     }
     if (arg0->field_8 != 3) {
-        func_8002D0CC(temp_s0);
+        Task_DetachFromParent(temp_s0);
         arg0->field_8 = 3;
     }
 }
 
-void func_800488B8(GStruct0* arg0)
+void func_800488B8(Task* arg0)
 {
     if (arg0->field_20 != NULL) {
         Mem_Free(arg0->field_20);
     }
-    func_8002CCB8(arg0);
+    Task_Kill(arg0);
 }
 
-void func_800488F8(GStruct0* arg0)
+void func_800488F8(Task* arg0)
 {
-    arg0->field_8 = (GStruct0*)4;
+    arg0->field_8 = (Task*)4;
 }
 
 void func_80048904(GStruct30* arg0, s32 arg1, s32 arg2)
@@ -188,7 +188,7 @@ void func_800490C8(void* arg0, void* arg1)
     func_80048560(arg0, arg1, 0x20, 0);
 }
 
-s32 func_800490EC(GStruct0* arg0)
+s32 func_800490EC(Task* arg0)
 {
     return (s32)arg0->field_8 >= 4;
 }
@@ -203,7 +203,7 @@ void func_80049100(s32 arg0, s32 arg1)
     addPrim(D_800710A0 + arg0, p);
 }
 
-void func_8004917C(GStruct46* arg0, s32 arg1)
+void func_8004917C(UiList* arg0, s32 arg1)
 {
     if (arg1 == 0) {
         arg0->field_A &= 0xFD;
@@ -286,7 +286,7 @@ void func_800495B4(GStruct30* arg0, void* arg1)
     arg0->field_0 = temp_s2 << 0x10;
     func_80045B24(arg0);
     arg0->field_24(arg1);
-    arg0->field_16 -= D_80070F68.field_10a;
+    arg0->field_16 -= Display_State.field_10a;
     if (arg0->field_16 <= 0) {
         arg0->field_16 = 0;
         if (arg0->field_8 == 1) {
@@ -307,11 +307,11 @@ void func_8004965C(GStruct30* arg0, void* arg1)
 void func_8004969C(GStruct30* arg0, void* arg1)
 {
     if (arg0->field_16 >= 0) {
-        arg0->field_16 += D_80070F68.field_10a;
+        arg0->field_16 += Display_State.field_10a;
     }
     if ((u16)arg0->field_16 >= 9U) {
         arg0->field_16 = 9;
-        func_8002D0A4(arg1);
+        Task_CallExit(arg1);
         return;
     }
     arg0->field_0 = 0;
@@ -325,7 +325,7 @@ void func_8004972C(GStruct30* arg0, void* arg1)
 
     temp_s1 = arg0->field_0;
     if (arg0->field_16 >= 0) {
-        arg0->field_16 += D_80070F68.field_10a;
+        arg0->field_16 += Display_State.field_10a;
     }
     if ((u16)arg0->field_16 >= 9U) {
         arg0->field_16 = -1;
@@ -343,7 +343,7 @@ void func_8004972C(GStruct30* arg0, void* arg1)
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_800497F4);
 
-void func_800498D4(GStruct0* arg0)
+void func_800498D4(Task* arg0)
 {
     GFunc30Table6 sp;
     GStruct30*    temp;
@@ -367,7 +367,7 @@ s32 func_80049950(void)
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80049980);
 
-void func_80049A8C(GStruct0* arg0)
+void func_80049A8C(Task* arg0)
 {
     GStruct30* temp_s0;
 
@@ -376,7 +376,7 @@ void func_80049A8C(GStruct0* arg0)
         func_801D4B64(arg0);
         return;
     }
-    temp_s0->field_16 += D_80070F68.field_10a;
+    temp_s0->field_16 += Display_State.field_10a;
 }
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80049AF0);

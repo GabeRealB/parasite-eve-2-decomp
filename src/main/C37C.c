@@ -39,8 +39,8 @@ void func_8001C620(void)
             switch (step) {
                 case 0:
                     if (state->busy == 0) {
-                        state->busy          = 1;
-                        D_80070F68.field_130 = 0xFF;
+                        state->busy             = 1;
+                        Display_State.field_130 = 0xFF;
                     }
                     Fs_SelectStage(field5 & 0xFF);
                     goto increment_step;
@@ -116,8 +116,8 @@ void func_8001C620(void)
             }
         cleanup:
             if (state->busy != 0) {
-                state->busy          = 0;
-                D_80070F68.field_130 = 0;
+                state->busy             = 0;
+                Display_State.field_130 = 0;
             }
             state->step      = 0;
             state->field_1fc = 0;
@@ -381,16 +381,16 @@ CdCmdEntry* func_8001D898(void)
 void func_8001D8DC(void)
 {
     if (CdCmd_Queue.busy == 0) {
-        CdCmd_Queue.busy     = 1;
-        D_80070F68.field_130 = 0xFF;
+        CdCmd_Queue.busy        = 1;
+        Display_State.field_130 = 0xFF;
     }
 }
 
 void func_8001D90C(void)
 {
     if (CdCmd_Queue.busy != 0) {
-        CdCmd_Queue.busy     = 0;
-        D_80070F68.field_130 = 0;
+        CdCmd_Queue.busy        = 0;
+        Display_State.field_130 = 0;
     }
 }
 
@@ -420,8 +420,8 @@ void func_8001DA48(void)
 
     state = &CdCmd_Queue;
     if (state->busy != 0) {
-        state->busy          = 0;
-        D_80070F68.field_130 = 0;
+        state->busy             = 0;
+        Display_State.field_130 = 0;
     }
     state->step      = 0;
     state->field_1fc = 0;

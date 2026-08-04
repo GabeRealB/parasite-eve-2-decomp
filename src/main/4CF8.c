@@ -71,7 +71,7 @@ void F04CF8_80014A98(s32 mode)
     CdCmd_ClearQueue();
 }
 
-void func_80014B38(GStruct0* arg0)
+void func_80014B38(Task* arg0)
 {
     u8  modeParam[8];
     u8  param1[8];
@@ -98,9 +98,9 @@ void func_80014B38(GStruct0* arg0)
             if (func_8001D344() != 0) {
                 SetDispMask(1);
                 func_800144F8(0, 0);
-                func_8002CFA0((TaskDesc*)&D_80094C8C, 0, 0, 0);
-                func_8002CCB8(arg0);
-                D_80070F68.field_112 = 0;
+                Task_SpawnFromTable((TaskDesc*)&D_80094C8C, 0, 0, 0);
+                Task_Kill(arg0);
+                Display_State.field_112 = 0;
             }
             return;
     }

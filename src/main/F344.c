@@ -43,7 +43,7 @@ s32 func_8001F2FC(s32 arg0)
         p->field_1E2       = 0;
         p->field_1E4       = 0;
         if (ac14 != 0) {
-            f12a = D_80070F68.field_12a;
+            f12a = Display_State.field_12a;
             if (f12a == 1) {
                 if (arg0 & 0xFFFF) {
                     rect.y = 0;
@@ -60,8 +60,8 @@ s32 func_8001F2FC(s32 arg0)
                 }
                 func_8003DB48(0xD010);
             }
-            p->field_1E6         = 0;
-            D_80070F68.field_106 = 0;
+            p->field_1E6            = 0;
+            Display_State.field_106 = 0;
         } else if (D_8006AC3C != 0) {
             p->field_244 = 0;
         }
@@ -135,7 +135,7 @@ void func_80020298(s16 arg0)
     func_80041E4C();
     Mem_SetActiveAuxHeap(0);
     Mem_InitAux();
-    if (D_80070F68.field_12a == 0) {
+    if (Display_State.field_12a == 0) {
         D_8006AC40 = Mem_Malloc(0x4A800, 1);
     } else {
         D_8006AC40 = Mem_Malloc(0x45400, 1);

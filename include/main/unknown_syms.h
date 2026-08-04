@@ -28,7 +28,7 @@ extern void              func_80014C2C(void);
 // E734.c
 extern s32  func_8001E2D4(void);
 extern s32  func_8001E6AC(s32 arg0, s32 arg1);
-extern void func_8002D248(GStruct0Node* node);
+extern void Task_InitList(TaskNode* node);
 
 // C37C.c (CdCmd_* → main/fs.h)
 extern void func_8001BB7C(void);
@@ -73,43 +73,43 @@ extern void func_800281D4(void);
 extern void F179D4_ClearOTag(s16 tableIdx);
 
 // 1C034.c
-extern void          func_8002BB9C(void);
-extern void          func_8002BBC8(void);
-extern void          func_8002BE0C(GStruct0* arg0);
-extern void          func_8002BFD4(void);
-extern void          func_8002C028(GStruct0* arg0);
-extern s32           func_8002C868(s32 arg0, s32 arg1, s32 arg2);
-extern void          func_8002C9B0(s32 arg0);
-extern GFunc0Table5  D_800134BC;
-extern GFunc0Table3  D_800134D0;
-extern GFunc0Table6  D_80013E98;
-extern GFunc0Table3  D_80013EDC;
-extern GBytes4       D_80013F18;
-extern GFunc0Table4  D_80013F1C;
-extern GFunc30Table6 D_80013F2C;
-extern void          func_8002C9E0(s32 arg0);
-extern s32           func_8002CA0C(s32 arg0);
-extern void          func_8002CCB8(GStruct0* arg0);
-extern GStruct0*     func_8002CB04(TaskDesc* arg0, s32 arg1, s32 arg2, GStruct0Node* arg3);
-extern GStruct0*     func_8002CFA0(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
-extern GStruct0*     func_8002CFDC(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-extern GStruct0Node* func_8002D40C(void);
-extern void          func_8002D41C(GStruct0Node* node);
-extern void          func_8002D248(GStruct0Node* node);
-extern void          func_8002D25C(GStruct0Node* node);
-extern void          func_8002D61C(GStruct0Node* node, s32 arg1);
-extern TaskDesc*     func_8002D304(u32 idx1, u32 idx2);
-extern TaskDesc*     func_8002D32C(TaskDesc* base, u32 idx);
-extern void          func_8002D0A4(GStruct0* arg0);
-extern void          func_8002D0CC(GStruct0* arg0);
-extern void          func_8002D214(void* arg0, s32 arg1);
-extern void*         func_8002D22C(s32 arg0);
-extern void          func_8002D428(void);
-extern void          func_8002D444(GStruct0* state);
-extern void          func_8002D474(GStruct0* state);
-extern void          func_8002D494(GStruct0Node* node);
-extern void          func_8002D544(GStruct0Node* node, s32 arg1);
-extern void          func_8002D6EC(GStruct0* arg0);
+extern void           func_8002BB9C(void);
+extern void           func_8002BBC8(void);
+extern void           func_8002BE0C(Task* arg0);
+extern void           func_8002BFD4(void);
+extern void           func_8002C028(Task* arg0);
+extern s32            Pad_CheckButtons(s32 arg0, s32 arg1, s32 arg2);
+extern void           Pad_SetCooldown(s32 arg0);
+extern TaskFuncTable5 D_800134BC;
+extern TaskFuncTable3 D_800134D0;
+extern TaskFuncTable6 D_80013E98;
+extern TaskFuncTable3 D_80013EDC;
+extern GBytes4        D_80013F18;
+extern TaskFuncTable4 D_80013F1C;
+extern GFunc30Table6  D_80013F2C;
+extern void           Pad_ClearCooldown(s32 arg0);
+extern s32            Pad_ReadButtonsInv(s32 arg0);
+extern void           Task_Kill(Task* arg0);
+extern Task*          Task_SpawnFromDesc(TaskDesc* arg0, s32 arg1, s32 arg2, TaskNode* arg3);
+extern Task*          Task_SpawnFromTable(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
+extern Task*          Task_Spawn(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+extern TaskNode*      Task_GetActiveList(void);
+extern void           Task_SetActiveList(TaskNode* node);
+extern void           Task_InitList(TaskNode* node);
+extern void           Task_ExecList(TaskNode* node);
+extern void           Task_CallExitFiltered(TaskNode* node, s32 arg1);
+extern TaskDesc*      Task_GetDesc(u32 idx1, u32 idx2);
+extern TaskDesc*      Task_GetDescAt(TaskDesc* base, u32 idx);
+extern void           Task_CallExit(Task* arg0);
+extern void           Task_DetachFromParent(Task* arg0);
+extern void           func_8002D214(void* arg0, s32 arg1);
+extern void*          func_8002D22C(s32 arg0);
+extern void           Task_ResetDefaultList(void);
+extern void           Task_Unlink(Task* state);
+extern void           Task_Free(Task* state);
+extern void           Task_ExecDefaultList(TaskNode* node);
+extern void           Task_ExecListFiltered(TaskNode* node, s32 arg1);
+extern void           func_8002D6EC(Task* arg0);
 
 // Dynamically loaded (BSS region)
 extern void func_80097AC0(GStruct35* arg0);
@@ -123,7 +123,7 @@ extern void func_8002DEC4(void);
 extern s32  func_8002DECC(GStruct38* arg0, u8* arg1, u8* arg2);
 extern void func_8002E53C(GStruct38* arg0, u8* arg1);
 extern void func_8002EDFC(GStruct38* arg0, u8* arg1);
-extern void func_8002F98C(GStruct0* arg0);
+extern void func_8002F98C(Task* arg0);
 
 // Glyph tables (selected by GStruct38.field_C)
 extern u8 D_8005EFB0[];
@@ -133,23 +133,23 @@ extern u8 D_800604B0[];
 // Memcard product-code prefix (12 bytes, e.g. "BASLUS-01042")
 extern u8 D_80060DC8[];
 // Memcard product code buffers ("BASLUS-01042________")
-extern u8 D_80060DD8[0x18];
-extern u8 D_80060DF0[0x18];
+extern u8 Mc_FileName[0x18];
+extern u8 Mc_FileNameBuf[0x18];
 // 64-byte character table for random memcard filename body
 extern u8 D_80060E08[];
 
-// ASCII → Shift-JIS lookup tables used by func_8003380C
+// ASCII → Shift-JIS lookup tables used by Mc_EncodeAsciiGlyphs
 // (uppercase 'A'+, lowercase 'a'+, symbols from space)
-extern u16 D_80060E48[];
-extern u16 D_80060E80[];
-extern u16 D_80060EB8[];
+extern u16 Mc_GlyphsUpper[];
+extern u16 Mc_GlyphsLower[];
+extern u16 Mc_GlyphsSymbol[];
 
-// Save/memcard buffer descriptors (9 entries of GStruct53, 0x6C bytes)
-extern GStruct53 D_800610FC[9];
-// Buffer checksummed by func_80033FB8 when arg0 == 0 (0x200 signed bytes)
-extern u8 D_80060EFC[];
-// sum / ones-complement pair written by func_80033FB8(0, ...); adjacent
-// halfword D_80072AA8 is compared by func_80033D88 (also D_80072168 + 0x940)
+// Save/memcard buffer descriptors (9 entries of McBufferSlot, 0x6C bytes)
+extern McBufferSlot Mc_BufferSlots[9];
+// Buffer checksummed by Mc_WriteDataChecksum when arg0 == 0 (0x200 signed bytes)
+extern u8 Mc_DefaultChecksumSrc[];
+// sum / ones-complement pair written by Mc_WriteDataChecksum(0, ...); adjacent
+// halfword D_80072AA8 is compared by func_80033D88 (also Mc_SaveData + 0x940)
 extern s16 D_80072AA4;
 extern u16 D_80072AA8;
 
@@ -168,9 +168,9 @@ extern u8 D_80060A54[];
 extern u8 D_80060A58[];
 extern u8 D_80060A5C[];
 extern u8 D_80060A64[];
-// Indexed pairs of prompt/dialog pointers used by func_80033EB0
-extern GStruct62 D_80060D08[];
-// "Memory Card" string passed to func_80048E38 by func_80033EB0
+// Indexed pairs of prompt/dialog pointers used by Mc_DrawPrompt
+extern McPromptPair Mc_PromptTable[];
+// "Memory Card" string passed to func_80048E38 by Mc_DrawPrompt
 extern char D_8001398C[];
 // "File Information" string passed to func_80048E38 by func_80036CF0
 extern char D_80013BB4[];
@@ -192,20 +192,20 @@ extern void* func_800486F0(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 extern void  func_80046B34(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5, s32 arg6);
 extern void  func_80046EEC(void* arg0, void* arg1, s32 arg2);
 extern void  func_80048560(void* arg0, void* arg1, s32 arg2, s32 arg3);
-extern void  func_80048838(GStruct37* arg0, GStruct0* arg1);
-extern void  func_800488B8(GStruct0* arg0);
-extern void  func_800488F8(GStruct0* arg0);
+extern void  func_80048838(UiObject* arg0, Task* arg1);
+extern void  func_800488B8(Task* arg0);
+extern void  func_800488F8(Task* arg0);
 extern void  func_80047F40(GStruct20* arg0, char* arg1);
 extern void  func_80048904(GStruct30* arg0, s32 arg1, s32 arg2);
 extern void  func_80048964(GStruct30* arg0);
-extern void  func_80046830(GStruct46* arg0, GStruct30* arg1);
-extern void  func_800489A0(GStruct46* arg0, GStruct20* arg1);
+extern void  func_80046830(UiList* arg0, GStruct30* arg1);
+extern void  func_800489A0(UiList* arg0, GStruct20* arg1);
 extern void  func_80048C10(void* arg0, void* arg1);
 extern void  func_80048D58(void* arg0, s32 arg1, s32 arg2);
 extern s32   func_80048E10(void* arg0, s32 arg1);
 extern void  func_80048E38(void* arg0, char* arg1);
 extern void  func_80048F88(GStruct30* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
-extern void  func_8004917C(GStruct46* arg0, s32 arg1);
+extern void  func_8004917C(UiList* arg0, s32 arg1);
 extern void  func_80049288(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5);
 extern void  func_800492B8(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5);
 extern void  func_80045A3C(GStruct30* arg0, RECT* arg1, s32 arg2, s32 arg3);
@@ -218,7 +218,7 @@ extern void  func_800495B4(GStruct30* arg0, void* arg1);
 extern void  func_8004965C(GStruct30* arg0, void* arg1);
 extern void  func_8004969C(GStruct30* arg0, void* arg1);
 extern void  func_800497F4(GStruct30* arg0, void* arg1);
-extern void  func_80049A8C(GStruct0* arg0);
+extern void  func_80049A8C(Task* arg0);
 
 // 3B458.c
 extern s32 func_8004ACAC(s32 arg0);
@@ -414,15 +414,15 @@ extern void       func_8002043C(u32 arg0);
 
 // Other
 extern void func_800271D4(void);
-extern void func_80028664(void);
+extern void Pad_Init(void);
 extern void func_8002785C(void);
 extern void func_80028718(void);
 extern void func_800303AC(void);
-extern s32  func_800304AC(GStruct0* arg0, s32 arg1, s32 arg2);
-extern s32  func_8003062C(GStruct0* arg0, s32 arg1, s32 arg2);
-extern s32  func_800307AC(GStruct0* arg0, s32 arg1, s32 arg2);
-extern s32  func_8003092C(GStruct0* arg0, s32 arg1, s32 arg2);
-extern void func_80033BBC(void);
+extern s32  func_800304AC(Task* arg0, s32 arg1, s32 arg2);
+extern s32  func_8003062C(Task* arg0, s32 arg1, s32 arg2);
+extern s32  func_800307AC(Task* arg0, s32 arg1, s32 arg2);
+extern s32  func_8003092C(Task* arg0, s32 arg1, s32 arg2);
+extern void Mc_InitLib(void);
 extern void func_8003DB48(s32 arg0);
 extern void func_8003DE14(s32 arg0, s32 arg1, s32 arg2);
 extern void func_8003DE78(s8 arg0);
@@ -460,20 +460,20 @@ extern s16  func_800AF89C(u16 arg0, u16 arg1, u16 arg2, s32 arg3);
 extern void func_800AFA44(void);
 extern void func_800B00C4(void);
 extern void func_8017D6D4(void);
-extern void func_801D4B64(GStruct0* arg0);
+extern void func_801D4B64(Task* arg0);
 
 // .data
 extern u32          D_8005EC64;
 extern s32          D_8005EC68;
 extern s32          D_8005EC6C;
 extern volatile u32 D_8005EC70;
-extern TaskDesc*    D_8005EF74[];
+extern TaskDesc*    Task_DescBanks[];
 extern char         D_80013B64[]; // "Select"
-extern GStruct46    D_8006116C;
-extern GStruct46    D_80061194;
-extern GStruct46    D_8006125C;
-extern GStruct46    D_80061284;
-extern GStruct46    D_800612AC;
+extern UiList       D_8006116C;
+extern UiList       D_80061194;
+extern UiList       D_8006125C;
+extern UiList       D_80061284;
+extern UiList       D_800612AC;
 extern s32          D_800608F4[];
 extern s32          D_800611C8[];
 extern TaskDesc     D_8006268C;
@@ -523,19 +523,19 @@ extern void* D_8006AC00;
 extern u16   D_8006AC04;
 extern void* D_8006AC40;
 
-extern GStruct0Node* D_800716D8;
-extern GStruct0Node  D_800716E0;
-extern GStruct0Node  D_8007A110;
-extern s32           D_8007A118;
-extern s32           D_8007A358;
-extern u16           D_8007A35C;
-extern u16           D_8007A35E;
-extern void*         D_8007A360;
-extern u8            D_8007A394;
-extern s16           D_8007A396;
-extern u8            D_8007E0CC;
-extern s32           D_8007E0D4;
-extern GStruct42     D_8007E0D8[];
+extern TaskNode* Task_ActiveList;
+extern TaskNode  Task_DefaultList;
+extern TaskNode  D_8007A110;
+extern s32       D_8007A118;
+extern s32       D_8007A358;
+extern u16       D_8007A35C;
+extern u16       D_8007A35E;
+extern void*     D_8007A360;
+extern u8        D_8007A394;
+extern s16       D_8007A396;
+extern u8        D_8007E0CC;
+extern s32       D_8007E0D4;
+extern GStruct42 D_8007E0D8[];
 
 // Stream slot table living next to FS bss (F344); not pure FS API.
 extern GStruct24    D_8006D4F0[15];
@@ -544,21 +544,21 @@ extern s16          D_8006EBF2;
 extern volatile s32 D_8006EBF4;
 
 // 5F414
-extern u_long    D5F414_OrderingTables[2 * C5F414_OTAG_ENTRIES];
-extern u8*       D_80070EE0; // primitive buffer cursor
-extern GStruct35 D_80070EE8[2];
-extern GStruct1  D_80070F68; // 0x80070F68 - 0x800710A0
-extern u_long*   D_800710A0; // current OT base
-extern GStruct5  D_800710A8;
-extern DR_TPAGE* D_80071190; // primitive buffer cursor
+extern u_long       D5F414_OrderingTables[2 * C5F414_OTAG_ENTRIES];
+extern u8*          D_80070EE0;    // primitive buffer cursor
+extern GStruct35    D_80070EE8[2];
+extern DisplayState Display_State; // 0x80070F68 - 0x800710A0
+extern u_long*      D_800710A0;    // current OT base
+extern GStruct5     D_800710A8;
+extern DR_TPAGE*    D_80071190;    // primitive buffer cursor
 
 // 61F10
-extern GStruct23 D_80072168;
-// Alias of D_80072168.field_21 (offset 0x21).
+extern McSaveData Mc_SaveData;
+// Alias of Mc_SaveData.field_21 (offset 0x21).
 extern s8 D_80072189;
-// Alias of D_80072168.field_1a9 (offset 0x1A9); loaded with lb in audio setup.
+// Alias of Mc_SaveData.field_1a9 (offset 0x1A9); loaded with lb in audio setup.
 extern s8 D_80072311;
-// Alias of D_80072168.field_1aa (offset 0x1AA).
+// Alias of Mc_SaveData.field_1aa (offset 0x1AA).
 extern u8        D_80072312;
 extern u8        D_800733F0[2][0x6C];
 extern u8        D_800734C8[2][0xB0];
@@ -569,8 +569,8 @@ extern u8        D_80073980[0x208];
 extern GStruct40 D_80073B88;
 
 // 61CC0
-extern GStruct14          D61CC0_800714C0;
-extern volatile GStruct25 D_80071620[2];
+extern GStruct14         D61CC0_800714C0;
+extern volatile PadState Pad_States[2];
 
 // 64880
 extern MATRIX D_80074080;

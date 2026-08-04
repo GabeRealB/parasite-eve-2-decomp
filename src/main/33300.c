@@ -7,7 +7,7 @@ INCLUDE_ASM("main/nonmatchings/33300", func_80042B00);
 
 INCLUDE_ASM("main/nonmatchings/33300", func_80042DF8);
 
-void func_80042F54(GStruct0* arg0)
+void func_80042F54(Task* arg0)
 {
     GStruct63* temp;
     GPairU8*   entry;
@@ -30,7 +30,7 @@ void func_80042F54(GStruct0* arg0)
         }
         D_80062734 = 0xFF;
         D_80062739 = temp->field_4[temp->field_0].field_0;
-        func_8002CCB8(arg0);
+        Task_Kill(arg0);
     }
 }
 
@@ -76,19 +76,19 @@ void func_800430E4(s32 arg0)
     }
 }
 
-void func_80043198(GStruct0* arg0)
+void func_80043198(Task* arg0)
 {
-    GFunc0Table4 sp;
+    TaskFuncTable4 sp;
 
     sp = D_80013F1C;
     sp.funcs[arg0->field_30](arg0);
 }
 
-void func_800431FC(GStruct0* arg0)
+void func_800431FC(Task* arg0)
 {
     if (func_8001D344() != 0) {
         D_80062734 = 0xFF;
-        func_8002CCB8(arg0);
+        Task_Kill(arg0);
     }
 }
 

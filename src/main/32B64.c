@@ -28,9 +28,9 @@ void func_800429C8(s32 arg0)
             func_80051460(0, (u8)D_8007A396);
         }
     } else {
-        temp       = sp10.data[D_80072168.field_1aa];
+        temp       = sp10.data[Mc_SaveData.field_1aa];
         D_8007A396 = temp;
-        if ((s8)D_80072168.field_1aa == 3) {
+        if ((s8)Mc_SaveData.field_1aa == 3) {
             func_80051888();
         } else {
             func_800518E0();

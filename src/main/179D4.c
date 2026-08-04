@@ -22,23 +22,23 @@ void func_800271D4(void)
     D_8005EC64++;
     func_800144F8(0, 0);
     Mem_Init();
-    func_8002D428();
+    Task_ResetDefaultList();
     func_80028718();
     func_800281D4();
 
-    Mem_Set(&D_80070F68, 0, sizeof(D_80070F68));
-    D_80070F68.field_120 = 1;
-    D_80070F68.field_124 = 0;
-    D_80070F68.field_101 = 0;
-    D_80070F68.field_1d  = -1;
-    D_80070F68.field_1e  = 0;
-    D_80070F68.field_10d = 0;
-    D_80070F68.field_0   = 0;
-    D_80070F68.field_4   = 0;
-    D_80070F68.field_8   = 0;
-    D_80070F68.field_c   = 0;
-    D_80070F68.field_10  = 0;
-    D_80070F68.field_14  = 0;
+    Mem_Set(&Display_State, 0, sizeof(Display_State));
+    Display_State.field_120 = 1;
+    Display_State.field_124 = 0;
+    Display_State.field_101 = 0;
+    Display_State.field_1d  = -1;
+    Display_State.field_1e  = 0;
+    Display_State.field_10d = 0;
+    Display_State.field_0   = 0;
+    Display_State.field_4   = 0;
+    Display_State.field_8   = 0;
+    Display_State.field_c   = 0;
+    Display_State.field_10  = 0;
+    Display_State.field_14  = 0;
     func_800280F4(0);
 
     D_8005EC70 = 0;
@@ -49,8 +49,8 @@ void func_800271D4(void)
     F04CF8_800148EC();
     VSyncCallback(func_80027498);
 
-    flag                = 1;
-    D_80070F68.field_1f = flag;
+    flag                   = 1;
+    Display_State.field_1f = flag;
     func_8003DB48(0x1010);
     Mem_Set(D_800626A8, 0, 0x1C);
 }
@@ -70,17 +70,17 @@ INCLUDE_ASM("main/nonmatchings/179D4", func_80027F48);
 void func_800280F4(s32 arg0)
 {
     if (arg0 == 0) {
-        D_80070F68.field_10a = 1;
-        D_8005EC68           = 0;
-        D_8005EC6C           = 0x106;
+        Display_State.field_10a = 1;
+        D_8005EC68              = 0;
+        D_8005EC6C              = 0x106;
     } else if (arg0 == 1) {
-        D_80070F68.field_10a = 2;
-        D_8005EC68           = 2;
-        D_8005EC6C           = 0x20D;
+        Display_State.field_10a = 2;
+        D_8005EC68              = 2;
+        D_8005EC6C              = 0x20D;
     } else if (arg0 == 2) {
-        D_80070F68.field_10a = 3;
-        D_8005EC68           = 3;
-        D_8005EC6C           = 0x313;
+        Display_State.field_10a = 3;
+        D_8005EC68              = 3;
+        D_8005EC6C              = 0x313;
     }
 }
 
@@ -122,27 +122,27 @@ void func_800281D4(void)
     func_80028290();
     func_80027E7C();
     func_8003AF04();
-    D_80070F68.field_100 = 0;
+    Display_State.field_100 = 0;
 }
 
 void func_80028290(void)
 {
     if (D_8005EC64 == 1) {
-        func_8002CFDC(0, 0x1F, 0, 0);
+        Task_Spawn(0, 0x1F, 0, 0);
     } else {
-        func_8002CFDC(0, 0x20, 0, 0);
+        Task_Spawn(0, 0x20, 0, 0);
     }
 }
 
 void func_800282D8(s32 arg0)
 {
-    PutDrawEnv(&D_80070F68.field_48[arg0]);
-    PutDispEnv(&D_80070F68.field_20[arg0]);
-    if (D_80070F68.field_100 != 0) {
+    PutDrawEnv(&Display_State.field_48[arg0]);
+    PutDispEnv(&Display_State.field_20[arg0]);
+    if (Display_State.field_100 != 0) {
         func_80027F48(arg0);
     }
     func_80020058();
-    if (D_80070F68.field_104 == 0) {
+    if (Display_State.field_104 == 0) {
         DrawOTag(D_80070EE8[arg0].field_10);
     }
 }
@@ -154,8 +154,8 @@ void GameMain(void)
     ResetCallback();
     SetVideoMode(MODE_NTSC);
     func_8004CFC8();
-    func_80033BBC();
-    func_80028664();
+    Mc_InitLib();
+    Pad_Init();
     F04CF8_80014A50();
     Mem_Set(&D_800710A8, 0, sizeof(D_800710A8));
     D_8005EC64 = 0;

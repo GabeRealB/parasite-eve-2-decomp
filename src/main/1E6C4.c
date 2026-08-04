@@ -120,10 +120,10 @@ INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002F69C);
 
 INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002F798);
 
-void func_8002F890(GStruct0* arg0)
+void func_8002F890(Task* arg0)
 {
-    GStruct37* obj;
-    s16        temp;
+    UiObject* obj;
+    s16       temp;
 
     if (arg0->field_30 == 0) {
         D_80067694 = NULL;
@@ -140,20 +140,20 @@ void func_8002F890(GStruct0* arg0)
             func_80048838(obj, obj->field_28);
         }
     } else {
-        temp           = arg0->field_2a - D_80070F68.field_10a;
+        temp           = arg0->field_2a - Display_State.field_10a;
         arg0->field_2a = temp;
         if (temp <= 0) {
-            func_8002CFDC(0, 2, 0xC, 0);
-            func_8002D0A4(arg0);
+            Task_Spawn(0, 2, 0xC, 0);
+            Task_CallExit(arg0);
         }
     }
 }
 
-void func_8002F98C(GStruct0* arg0)
+void func_8002F98C(Task* arg0)
 {
     func_80030074();
     func_8003DB48(0x1010);
     func_8002BB9C();
-    func_8002CFA0((TaskDesc*)&D_80094C8C, 0, 0, 0);
-    func_8002CCB8(arg0);
+    Task_SpawnFromTable((TaskDesc*)&D_80094C8C, 0, 0, 0);
+    Task_Kill(arg0);
 }

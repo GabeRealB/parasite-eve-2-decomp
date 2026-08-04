@@ -9,27 +9,27 @@ INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E210);
 
 INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E324);
 
-GStruct0* func_8003E438(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+Task* func_8003E438(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    GStruct0Node* saved;
-    GStruct0*     ret;
+    TaskNode* saved;
+    Task*     ret;
 
-    saved = func_8002D40C();
-    func_8002D41C(&D_800716E0);
-    ret = func_8002CFDC(arg0, arg1, arg2, arg3);
-    func_8002D41C(saved);
+    saved = Task_GetActiveList();
+    Task_SetActiveList(&Task_DefaultList);
+    ret = Task_Spawn(arg0, arg1, arg2, arg3);
+    Task_SetActiveList(saved);
     return ret;
 }
 
-GStruct0* func_8003E4BC(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
+Task* func_8003E4BC(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    GStruct0Node* saved;
-    GStruct0*     ret;
+    TaskNode* saved;
+    Task*     ret;
 
-    saved = func_8002D40C();
-    func_8002D41C(&D_800716E0);
-    ret = func_8002CFA0(arg0, arg1, arg2, arg3);
-    func_8002D41C(saved);
+    saved = Task_GetActiveList();
+    Task_SetActiveList(&Task_DefaultList);
+    ret = Task_SpawnFromTable(arg0, arg1, arg2, arg3);
+    Task_SetActiveList(saved);
     return ret;
 }
 
@@ -40,12 +40,12 @@ void func_8003E540(void)
 
 void func_8003E560(void)
 {
-    GStruct1* temp;
-    u_long*   saved;
-    s32       buf;
-    u_long*   ot;
+    DisplayState* temp;
+    u_long*       saved;
+    s32           buf;
+    u_long*       ot;
 
-    temp            = &D_80070F68;
+    temp            = &Display_State;
     saved           = D_800710A0;
     buf             = temp->field_114 ^ 1;
     temp->field_114 = buf;
@@ -62,9 +62,9 @@ void func_8003E560(void)
 
 void func_8003E610(void)
 {
-    GStruct1* temp;
+    DisplayState* temp;
 
-    temp = &D_80070F68;
+    temp = &Display_State;
     if (temp->field_1d >= 0) {
         temp->field_1d |= 0x80;
         temp->field_11d = 1;
@@ -75,10 +75,10 @@ void func_8003E610(void)
 
 void func_8003E64C(void)
 {
-    GStruct1* temp;
-    u8        val;
+    DisplayState* temp;
+    u8            val;
 
-    temp = &D_80070F68;
+    temp = &Display_State;
     if (temp->field_1d >= 0) {
         temp->field_11d = 0;
     } else {
@@ -111,7 +111,7 @@ case2:
 case3:
     return 6;
 default_case:
-    return D_80070F68.field_1d;
+    return Display_State.field_1d;
 }
 
 void func_8003E6E4(void)
@@ -131,14 +131,14 @@ s32 func_8003E72C(s32 arg0)
 {
     if (arg0 >= 0x20) {
         if (arg0 < 0x80) {
-            D_80070F68.field_10d = 0;
+            Display_State.field_10d = 0;
             if (arg0 != 0x43) {
                 func_8003FB70(&D_8006268C, arg0, 0, 0);
             } else {
                 func_8003FB70(&D_8006268C, 0x43, 0, 0);
             }
-            D_80070F68.field_10d = arg0;
-            if (D_80070F68.field_12c != 0) {
+            Display_State.field_10d = arg0;
+            if (Display_State.field_12c != 0) {
                 func_8003FA3C(0xFF);
                 func_8003F86C(0, 0, 0x10, 1);
             } else if (arg0 != 0x42) {
@@ -162,24 +162,24 @@ void func_8003E814(void)
 
     temp = D4F564_8005ED64;
     func_800144F8(temp->field_7, temp->field_6);
-    D_80070F68.field_1e  = 0;
-    D_80070F68.field_10d = 0;
+    Display_State.field_1e  = 0;
+    Display_State.field_10d = 0;
 }
 
 void func_8003E854(void)
 {
-    GStruct1* temp;
-    u_long*   saved;
-    s32       buf;
+    DisplayState* temp;
+    u_long*       saved;
+    s32           buf;
 
-    temp            = &D_80070F68;
+    temp            = &Display_State;
     saved           = D_800710A0;
     buf             = temp->field_114 ^ 1;
     temp->field_114 = buf;
     D_800710A0      = D5F414_OrderingTables + buf * C5F414_OTAG_ENTRIES;
     F179D4_ClearOTag(temp->field_114);
     D_800710A0 = D_800710A0 + 0x20;
-    func_8002D544(&D_800716E0, 0x62);
+    Task_ExecListFiltered(&Task_DefaultList, 0x62);
     func_80097AC0(&D_80070EE8[temp->field_114]);
     D_800710A0      = saved;
     temp->field_103 = 0;
@@ -187,16 +187,16 @@ void func_8003E854(void)
 
 void func_8003E904(void)
 {
-    GStruct50* ot;
-    GStruct1*  temp;
-    u_long*    org;
+    GStruct50*    ot;
+    DisplayState* temp;
+    u_long*       org;
 
     ot           = D_8007A0E8;
     ot->length   = 0xA;
     ot->org      = D5F414_OrderingTables;
     ot[1].length = 0xA;
     ot[1].org    = D5F414_OrderingTables + C5F414_OTAG_ENTRIES;
-    temp         = &D_80070F68;
+    temp         = &Display_State;
     GsClearOt(0, 0, &ot[temp->field_118]);
     org        = ot[temp->field_118].org;
     *org       = C5F414_OTAG_END_PRIM;
