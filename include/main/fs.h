@@ -261,7 +261,7 @@ struct _Task;
 // Functions — CD command queue
 // =============================================================================
 
-void CdCmd_Enqueue(s32 cmd, u8* paramA, u8* paramB);
+s32  CdCmd_Enqueue(s32 cmd, u8* paramA, u8* paramB);
 void CdCmd_EnqueueReplace(s32 cmd, u8* paramA, u8* paramB);
 void CdCmd_ClearQueue(void);
 

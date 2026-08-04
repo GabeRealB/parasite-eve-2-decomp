@@ -1573,6 +1573,46 @@ return arg0;
 `func_8002F528` is the pure example. A plain `do { ... } while (arg1 > 0)` with
 the same locals peels the null check and reintroduces `andi` masks.
 
+## "Dead" `andi reg, 0xffff` before `jr` is often a u16 return
+
+When the epilogue looks like:
+
+```
+lhu  v0, idx
+addiu v1, v0, 1
+sh   v1, idx
+andi v1, v1, 0xffff
+andi v1, v1, 7
+andi v0, v0, 0xffff   /* appears unused */
+jr   ra
+ sh  v1, idx
+```
+
+the final `andi v0, v0, 0xffff` is **not** a scheduler leftover — it is
+zero-extending a `u16` return value that already lives in `$v0`. The function
+is not `void`; it returns the pre-increment index (or another u16 that stayed
+in `$v0`). Callers that ignore the result do not prove the prototype is
+`void`.
+
+```c
+s32 CdCmd_Enqueue(...)  /* not void */
+{
+    u16 writeIdx;
+    u16 next;
+
+    writeIdx = p->writeIdx;
+    next = writeIdx + 1;
+    p->writeIdx = next;
+    next = p->writeIdx % 8;
+    p->writeIdx = next;
+    return writeIdx;  /* andi v0, v0, 0xffff */
+}
+```
+
+Without the `return`, GCC reuses `$v0` for the increment and the extra `andi`
+never appears. `CdCmd_Enqueue` is the pure example — stuck at ~97% with a
+`void` signature until the return type was corrected.
+
 ## `x % 8` (not `x & 7`) for u16 queue indices
 
 When the target advances a u16 ring-buffer index with:

@@ -166,7 +166,30 @@ INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001CEFC);
 
 INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001D0E8);
 
-INCLUDE_ASM("main/nonmatchings/cdcmd", CdCmd_Enqueue);
+s32 CdCmd_Enqueue(s32 cmd, u8* paramA, u8* paramB)
+{
+    CdCmdQueue* p;
+    CdCmdEntry* entry;
+    u16         writeIdx;
+    u16         next;
+
+    p             = &CdCmd_Queue;
+    entry         = &p->entries[p->writeIdx];
+    entry->cmd    = cmd;
+    entry->param0 = paramA[3];
+    entry->param1 = paramA[2];
+    entry->param2 = paramA[0];
+    entry->idB0   = paramB[0];
+    entry->idB1   = paramB[1];
+    entry->idB2   = paramB[2];
+    entry->idB3   = paramB[3];
+    writeIdx      = p->writeIdx;
+    next          = writeIdx + 1;
+    p->writeIdx   = next;
+    next          = p->writeIdx % 8;
+    p->writeIdx   = next;
+    return writeIdx;
+}
 
 u16 func_8001D344(void)
 {
