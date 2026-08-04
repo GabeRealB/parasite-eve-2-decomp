@@ -278,7 +278,25 @@ void func_80049554(GStruct30* arg0, void* arg1)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_800495B4);
+void func_800495B4(GStruct30* arg0, void* arg1)
+{
+    s32 temp_s2;
+
+    temp_s2       = arg0->field_0;
+    arg0->field_0 = temp_s2 << 0x10;
+    func_80045B24(arg0);
+    arg0->field_24(arg1);
+    arg0->field_16 -= D_80070F68.field_10a;
+    if (arg0->field_16 <= 0) {
+        arg0->field_16 = 0;
+        if (arg0->field_8 == 1) {
+            arg0->field_8 = 2;
+        }
+    }
+    if (arg0->field_0 == (temp_s2 << 0x10)) {
+        arg0->field_0 = temp_s2;
+    }
+}
 
 void func_8004965C(GStruct30* arg0, void* arg1)
 {
