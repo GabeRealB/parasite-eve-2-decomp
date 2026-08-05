@@ -90,9 +90,10 @@ extern void func_8002DEC4(void);
 extern s32  func_8002DECC(GStruct38* arg0, u8* arg1, u8* arg2);
 extern void func_8002E53C(GStruct38* arg0, u8* arg1);
 extern void func_8002EDFC(GStruct38* arg0, u8* arg1);
+extern void func_8002F5E4(GStruct38* arg0, GStruct68* arg1, s32 arg2);
 extern void func_8002F98C(Task* arg0);
 
-// Glyph tables (selected by GStruct38.field_C)
+// Glyph tables (selected by GStruct38.field_C); entries are GStruct68 (0xC each).
 extern u8 D_8005EFB0[];
 extern u8 D_8005FA30[];
 extern u8 D_800604B0[];
@@ -522,6 +523,8 @@ extern GStruct5  D_800710A8;
 extern DR_TPAGE* D_80071190; // primitive buffer cursor
 
 // 61F10
+// Immediate-mode SPRT scratch used by func_8002F5E4 (DrawPrim path).
+extern SPRT D_80071710;
 // Mc_SaveData → main/mc.h
 // Alias of Mc_SaveData.field_21 (offset 0x21).
 extern s8 D_80072189;

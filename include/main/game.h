@@ -609,7 +609,8 @@ STATIC_ASSERT_SIZEOF(GStruct36, 0x5DC);
 
 /// Text-measure / draw-request block passed to func_8002EDFC / func_8002E53C.
 /// field_0 / field_2 are position (or accumulate measured width); field_C selects
-/// the glyph table; field_D selects centering mode (1 = half width, 2 = full).
+/// the glyph table; field_D selects centering mode (1 = half width, 2 = full);
+/// field_F is added to glyph v when drawing sprites.
 typedef struct _GStruct38 {
     /* 0x00 */ s16 field_0;
     /* 0x02 */ s16 field_2;
@@ -618,9 +619,26 @@ typedef struct _GStruct38 {
     /* 0x0C */ s8  field_C;
     /* 0x0D */ s8  field_D;
     /* 0x0E */ s8  field_E;
-    /* 0x0F */ s8  pad_F;
+    /* 0x0F */ u8  field_F;
 } GStruct38;
 STATIC_ASSERT_SIZEOF(GStruct38, 0x10);
+
+/// Per-glyph metrics in the font tables (D_8005EFB0 / D_8005FA30 / D_800604B0).
+/// off_x / off_y are stored as bytes but used as signed offsets when drawing.
+typedef struct _GStruct68 {
+    /* 0x0 */ u8 u;
+    /* 0x1 */ u8 v;
+    /* 0x2 */ u8 w;
+    /* 0x3 */ u8 h;
+    /* 0x4 */ u8 off_x;
+    /* 0x5 */ u8 off_y;
+    /* 0x6 */ u8 field_6;
+    /* 0x7 */ u8 field_7;
+    /* 0x8 */ u8 field_8;
+    /* 0x9 */ u8 field_9;
+    /* 0xA */ u8 pad_A[2];
+} GStruct68;
+STATIC_ASSERT_SIZEOF(GStruct68, 0xC);
 
 /// Tile draw params for func_80043854. field_0/field_2 are x/y; field_8/field_A
 /// are width/height (stored as inclusive size, decremented when writing TILE);

@@ -4974,3 +4974,42 @@ for (i = 0; i < 0x12; i++) {
 
 `func_800528F8` is the pure example (opcode nibble + optional `0x90` skip,
 then key-off matching SPU voice slots).
+
+## Force late independent store with a reloaded temp
+
+When the target stores field A, then an unrelated constant to field B, then
+field C derived from a second load of a source already used earlier, GCC may
+hoist the constant store into the load/add/store window of A:
+
+```
+# wanted
+lbu  v0, w(src)
+nop
+addiu v0, v0, 1
+sh   v0, w(dst)
+lbu  v0, h(src)
+li   v1, K
+sh   v1, clut(dst)
+addiu v0, v0, 1
+sh   v0, h(dst)
+
+# got (same score almost, wrong schedule)
+lbu  v0, w(src)
+li   v1, K
+sh   v1, clut(dst)
+addiu v0, v0, 1
+sh   v0, w(dst)
+...
+```
+
+Fix: load the next source into a temporary *before* the independent store so
+the constant has nowhere to sit between A's load and store:
+
+```c
+p->w = src->w + 1;
+temp = src->h;       /* pins the next load here */
+p->clut = 0x7FFD;    /* independent store lands after w, before h+1 */
+p->h = temp + 1;
+```
+
+`func_8002F5E4` is the pure example (SPRT setup: w, then clut 0x7FFD, then h).
