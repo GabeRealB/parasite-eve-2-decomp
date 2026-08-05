@@ -4559,3 +4559,55 @@ const s32 jtbl_80012FCC[9] = {
 Remove the pad and absolute table when the middle function is matched (its
 compiler-generated jtbl will occupy the slot naturally). `func_8001CEFC` is the
 example (pad for `jtbl_80012FCC` / `func_8001D0E8`).
+
+## Hex digit loop: `asm("")` after the raw-digit store
+
+Unsigned hex itoa (`func_8002F3A0`) stores the raw nibble then overwrites it
+with ASCII. With `-fschedule-insns2`, GCC freely moves the first `sb` after
+`andi`/`mult` (starting the mult early). The target keeps:
+
+```
+mflo  v0
+nop
+sb    v0, 0(a3)     /* raw digit */
+andi  v1, v0, 0xff
+mult  v1, a2
+srl   a2, a2, 4
+sltiu v0, v1, 0xa
+mflo  t4
+```
+
+An empty `asm("");` between the raw store and the mask restores that order
+without changing semantics. Reusing the digit variable for the mask
+(`digit &= 0xFF`) also forces store-first but collapses `andi` into the same
+register and breaks the later `sltiu`/`addiu` schedule.
+
+## Split-address formation vs `0(reg)` loads of a string
+
+For the zero-path copy of `D_800138C8` ("0"), the target wants:
+
+```
+lui   v0, %hi(D_800138C8)
+addiu t3, v0, %lo(D_800138C8)
+lb    t0, 0(t3)
+lb    t1, 1(t3)
+```
+
+With `-msplit-addresses`, `src = D_800138C8; c0 = src[0]` emits the lui/addiu
+pair correctly but rewrites the first load to `lb t0, %lo(D_800138C8)(v0)`.
+`asm("" : "+r"(src))` kills the REG_EQUIV and yields `lb 0(t3)`, but also
+rematerializes as `lui t3` / `addiu t3,t3`. When both the intermediate `$v0`
+form *and* `0(t3)` loads are required, pin `src` to `$t3` and emit the
+address with inline asm:
+
+```c
+register s8* src asm("t3");
+register s32 hi asm("v0");
+asm volatile(
+    "lui %1, %%hi(D_800138C8)\n\t"
+    "addiu %0, %1, %%lo(D_800138C8)"
+    : "=r"(src), "=r"(hi));
+```
+
+`func_8002F3A0` is the pure example. Power-of-two / no-div TUs do not need
+`--expand-div`; this one does (`1E6C4.c`).

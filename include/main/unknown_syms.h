@@ -422,6 +422,7 @@ extern s32          D_8005EC6C;
 extern volatile u32 D_8005EC70;
 // Task_DescBanks → main/task.h
 extern char         D_80013B64[]; // "Select"
+extern s8           D_800138C8[]; // "0"
 extern UiList       D_8006116C;
 extern UiList       D_80061194;
 extern UiList       D_8006125C;
