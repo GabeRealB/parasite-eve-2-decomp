@@ -15,7 +15,30 @@ INCLUDE_ASM("main/nonmatchings/34E98", func_800454E4);
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_800457F8);
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80045A3C);
+void func_80045A3C(GStruct30* arg0, RECT* arg1, s32 arg2, s32 arg3)
+{
+    s16 temp;
+
+    if (((u8)arg0->unknown_4[0] >> 4) == 1) {
+        arg1->w = arg0->field_C.w;
+        arg1->h = (arg0->field_C.h * arg2) >> 3;
+        arg1->x = arg0->field_C.x;
+        arg1->y = (arg0->field_C.y + arg0->field_C.h) - arg1->h;
+    } else {
+        arg1->w = (arg0->field_C.w * arg2) >> 3;
+        temp    = arg0->field_C.h;
+        if (temp >= 0xC) {
+            temp = (((temp - 0xC) * arg2) >> 3) + 0xC;
+        } else {
+            temp = 0xC;
+        }
+        arg1->h = temp;
+        arg1->x = arg0->field_C.x;
+        arg1->y = (arg0->field_C.y + arg0->field_C.h) - arg1->h;
+        arg1->x = arg0->field_C.x;
+        arg1->w = arg0->field_C.w;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80045B24);
 

@@ -6356,3 +6356,36 @@ off = (arg0->field_8 << 7) + 0x294;
 save = (McSaveData*)(work + off);
 ```
 
+## `if (x >= K)` for `slti`/`bnez` fall-through compute + `j` join
+
+When one arm is a constant and the other is a multi-instruction expression,
+`if (x < K) { v = K; } else { v = expr; }` often peepholes to `bnez` with
+`li v0, K` in the delay slot and no `j`. The target that keeps the classic
+shape:
+
+```
+slti  v0, x, K
+bnez  v0, li_path     /* delay: first insn of expr */
+…expr…
+j     join
+addiu …
+li_path:
+li    v0, K
+join:
+sh    v0, …
+```
+
+needs the compute arm as fall-through:
+
+```c
+if (temp >= 0xC) {
+    temp = (((temp - 0xC) * arg2) >> 3) + 0xC;
+} else {
+    temp = 0xC;
+}
+arg1->h = temp;
+```
+
+Also cast `byte` (signed char) through `(u8)` before `>>` so the nibble test
+is `srl`, not `sll`/`sra`. `func_80045A3C`.
+
