@@ -50,6 +50,7 @@ extern void func_80025C94(u8 status, u8* result);
 extern void func_80025DD8(void);
 extern void F16494_ResetSpuAttr(void);
 extern void func_800260B0(s32 arg0);
+extern u8   func_80026138(void);
 extern void func_80026148(void);
 extern void func_80026178(void);
 extern void func_800261C8(void);
@@ -349,6 +350,7 @@ extern s16  D_80068B28[];
 extern s32  (*D_80068B34[])(void);
 extern u16  D_80068BB8[];
 extern u16  D_80068C78[];
+extern u16  D_80068D78[];
 extern u16  D_80068E78[];
 
 // 43FFC.c

@@ -291,7 +291,41 @@ void func_8004D2EC(GStruct55* arg0)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/3D458", func_8004D35C);
+void func_8004D35C(s16* arg0, s16 arg1, s32 arg2)
+{
+    s16 index;
+    u32 left;
+    u32 right;
+
+    if (arg1 > 0) {
+        index = arg1 - 1;
+        if (arg1 >= 0x80) {
+            index = 0x7E;
+        }
+    } else {
+        index = 0;
+    }
+
+    left  = (u32)(arg2 * D_80068D78[index]) >> 0xC;
+    right = (u32)(arg2 * D_80068D78[0x7E - index]) >> 0xC;
+
+    if (!(func_80026138() & 0xFF)) {
+        right = (u32)((left + right) * D_80068D78[0x3F]) >> 0xC;
+        left  = right;
+    }
+
+    if (left < 0x4000U) {
+        arg0[0] = (s16)left;
+    } else {
+        arg0[0] = 0x3FFF;
+    }
+
+    if (right < 0x4000U) {
+        arg0[1] = (s16)right;
+    } else {
+        arg0[1] = 0x3FFF;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/3D458", func_8004D460);
 
