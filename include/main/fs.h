@@ -287,6 +287,7 @@ void Fs_SeekToPosCb(u8 status, u8* result);
 void Fs_ContinueDrawing(u_long* ot);
 void Fs_StopCd(void);
 bool Fs_StageCdfIsAvailable(u32 stageIdx);
+void Fs_ScanIsoDirectory(s32 mode);
 
 /// Look up a packed file id and start a CD load (unmatched).
 void Fs_LoadFile(u8* req, s32 a1, s32 a2, s32 a3);

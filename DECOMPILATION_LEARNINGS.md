@@ -4669,3 +4669,44 @@ buf = sp10;
 (after `p = &sp50` and the zero init of the accumulators) flips `buf` into
 `$s3` and the max-width accumulator into `$s4` without changing semantics.
 `func_8002FD08` needs this together with the `s8`/`s32` constant trick above.
+
+## Force `Mem_Set` arg order: `move a1,zero` then `lui a2` then dest load
+
+When the target schedules a large-size `Mem_Set(ptr, 0, 0xNNNNN)` after a
+branch as:
+
+```
+bnez  cond, other
+ move  a1, zero       /* delay: fill byte */
+lui   a2, HI(size)
+lui   v0, %hi(ptr)
+lw    a0, %lo(ptr)(v0)
+jal   Mem_Set
+ ori   a2, a2, LO(size)
+```
+
+plain `Mem_Set(D4CB64_ImgBuffers, 0, 0x25800)` usually loads the global first
+(`lui v0` in the delay slot), then sets `a1`/`a2`. Score sticks at ~99% with
+only that reorder left.
+
+Two pieces together fix it:
+
+1. **Pin + kill REG_EQUAL on the fill and the size high half**, then complete
+   the low half with a bitwise OR so the `ori` can still fill the `jal` delay
+   slot:
+   ```c
+   register s32 ch asm("a1");
+   register u32 size asm("a2");
+
+   ch = 0;
+   size = 0x20000; /* high half only — do not write 0x25800 here */
+   asm("" : "+r"(ch), "+r"(size));
+   Mem_Set(D4CB64_ImgBuffers, ch, size | 0x5800);
+   ```
+2. Without the empty `asm`, CSE folds `ch` back to `$zero` / reorders past the
+   load. Without splitting `0x25800` into `0x20000 | 0x5800`, the full constant
+   is materialised before the call and the `jal` delay becomes `nop`.
+
+`Boot_LoadInitialFile` is the pure example (fade-out complete → clear image
+buffers). Same shape as the empty-asm REG_EQUAL kill under “Force `move aN, s0`
+for a known-zero live return value”.

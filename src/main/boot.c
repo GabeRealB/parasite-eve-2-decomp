@@ -1,6 +1,9 @@
 #include "common.h"
 #include "main/boot.h"
+#include "main/display.h"
 #include "main/fs.h"
+#include "main/mem.h"
+#include "main/task.h"
 
 #include <psyq/libcd.h>
 #include <psyq/libetc.h>
@@ -10,7 +13,110 @@
 
 INCLUDE_ASM("main/nonmatchings/boot", func_800144F8);
 
-INCLUDE_ASM("main/nonmatchings/boot", Boot_LoadInitialFile);
+void Boot_LoadInitialFile(Task* task)
+{
+    u8             modeParam[8];
+    u8             param1[8];
+    u8             param2[8];
+    s32            state;
+    s32            next;
+    u8             fade;
+    register Task* a0 asm("s0");
+    CdCmdQueue*    queue;
+    register s32   ch asm("a1");
+    register u32   size asm("a2");
+
+    a0    = task;
+    queue = &CdCmd_Queue;
+    state = a0->field_30;
+    switch (state) {
+        case 0:
+            goto L_case0;
+        case 1:
+            goto L_case1;
+        case 2:
+            goto L_case2;
+        case 3:
+            goto L_case3;
+        case 4:
+            goto L_case4;
+    }
+    return;
+
+L_case0:
+    func_8003DB48(0xD010);
+    modeParam[0] = CdlModeSpeed | CdlModeSize1;
+    CdControlB(CdlSetmode, modeParam, NULL);
+    SetDispMask(0);
+    Fs_ScanIsoDirectory(1);
+    Display_State.field_100 = 1;
+    CdCmd_Enqueue(0x55, NULL, NULL);
+    func_800144F8(0, 0);
+    while (queue->field_1FE != 0xFF) {
+        func_80040820();
+    }
+    param1[3] = 0;
+    param1[2] = 0;
+    param1[0] = 1;
+    param2[0] = 0;
+    param2[1] = 0;
+    param2[2] = 0;
+    param2[3] = 0;
+    CdCmd_Enqueue(0x21, param1, param2);
+    a0->field_2a = 0xFF;
+    fade         = a0->field_2a;
+    func_8002BA9C(fade, fade, fade, 2);
+    goto advance;
+
+L_case1:
+    SetDispMask(1);
+    a0->field_2a -= 8;
+    if (a0->field_2a <= 0) {
+        a0->field_2a = 0;
+        a0->field_30 = a0->field_30 + 1;
+    }
+    goto do_fade;
+
+L_case2:
+    if (a0->field_2a < 0x5A) {
+        a0->field_2a = a0->field_2a + 1;
+    }
+    if (func_8001D344() == 0) {
+        return;
+    }
+    if (a0->field_2a < 0x5A) {
+        return;
+    }
+    next         = a0->field_30;
+    a0->field_2a = 0;
+    goto advance_inc;
+
+L_case3:
+    a0->field_2a += 8;
+    if (a0->field_2a < 0x100) {
+        goto do_fade;
+    }
+    ch   = 0;
+    size = 0x20000;
+    asm("" : "+r"(ch), "+r"(size));
+    Mem_Set(D4CB64_ImgBuffers, ch, size | 0x5800);
+advance:
+    next = a0->field_30;
+advance_inc:
+    a0->field_30 = next + 1;
+    return;
+
+do_fade:
+    fade = a0->field_2a;
+    func_8002BA9C(fade, fade, fade, 2);
+    return;
+
+L_case4:
+    Task_Spawn(0, 0xD, 0, 0);
+    Task_Kill(a0);
+    SetDispMask(1);
+    Display_State.field_112 = 0;
+}
 
 void F04CF8_800148A0(void)
 {
