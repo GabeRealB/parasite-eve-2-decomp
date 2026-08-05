@@ -6117,3 +6117,37 @@ state->field_40->field_0 = state->field_40->field_1C;
 Also watch for a live `li v0, -1` through the epilogue with no store: the
 function returns `-1` even if call sites ignore it (`s32` not `void`).
 `func_80050D20` is the pure example.
+
+## Identity MATRIX: global `= ONE` first, then local `one = ONE`
+
+When the target opens with:
+
+```
+lui  v0, %hi(D_xxx)
+li   a1, 0x1000
+sw   a1, %lo(D_xxx)(v0)
+addiu v0, v0, %lo(D_xxx)
+```
+
+assigning a local first (`one = ONE; *(s32*)&D_xxx = one;`) schedules `li`
+before `lui`. Write the bare constant into the global, then load the local
+for the remaining word/halfword stores (CSE keeps `0x1000` in `$a1`):
+
+```c
+*(s32*)&D_80070E94 = ONE;
+one = ONE;
+m = &D_80070E94;
+*(s32*)&m->m[0][2] = 0;
+*(s32*)&m->m[1][1] = one;
+*(s32*)&m->m[2][0] = 0;
+m->m[2][2] = one;
+```
+
+The word stores through `*(s32*)&m->m[r][c]` match the target's packed
+halfword pairs; individual halfword assigns usually do not.
+
+`func_80027E7C` also derives the parent `GsCOORDINATE2*` as
+`(GsCOORDINATE2*)((u8*)m - OFFSET_OF(GsCOORDINATE2, coord))` so `sub` /
+`coord.t[]` / `flg` use `off($a2)` while the matrix body stays on `$v0`
+(including `sw zero, -4($v0)` for `flg`). Naming a separate base symbol
+(`&D_80070E90`) reloads with a fresh `lui` and breaks the match.

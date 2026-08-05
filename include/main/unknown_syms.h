@@ -561,8 +561,12 @@ extern volatile s32 D_8006EBF4;
 extern volatile u8 D_8006EC30;
 extern u_long      D5F414_OrderingTables[2 * C5F414_OTAG_ENTRIES];
 extern volatile u8 D_80070E38;
-extern u8*         D_80070EE0; // primitive buffer cursor
-extern GStruct35   D_80070EE8[2];
+// Identity-matrix storage for GsCOORDINATE2.coord (parent at symbol - 4).
+extern MATRIX    D_80070E44;
+extern MATRIX    D_80070E94;
+extern u8*       D_80070EE0; // primitive buffer cursor
+extern GStruct35 D_80070EE8[2];
+extern MATRIX    D_80070F14;
 // VSync countdown; written/read by func_80027498 (VSync callback).
 extern volatile s32 D_80070F64;
 // Display_State → main/display.h

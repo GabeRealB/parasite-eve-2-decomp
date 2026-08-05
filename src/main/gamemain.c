@@ -5,10 +5,22 @@
 #include <psyq/libetc.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/inline_c.h>
 
 #include "main/game.h"
 #include "main/mem.h"
 #include "main/unknown_syms.h"
+
+typedef struct _GsCOORDINATE2 {
+    unsigned long          flg;
+    MATRIX                 coord;
+    MATRIX                 workm;
+    void*                  param;
+    struct _GsCOORDINATE2* super;
+    struct _GsCOORDINATE2* sub;
+} GsCOORDINATE2;
+
+extern MATRIX GsWSMATRIX;
 
 void func_800271D4(void)
 {
@@ -138,7 +150,63 @@ INCLUDE_ASM("main/nonmatchings/gamemain", func_8002764C);
 
 INCLUDE_ASM("main/nonmatchings/gamemain", func_8002785C);
 
-INCLUDE_ASM("main/nonmatchings/gamemain", func_80027E7C);
+void func_80027E7C(void)
+{
+    MATRIX*        m;
+    GsCOORDINATE2* c1;
+    GsCOORDINATE2* c2;
+    GsCOORDINATE2* c3;
+    s32            one;
+
+    *(s32*)&D_80070E94 = ONE;
+    one                = ONE;
+    m                  = &D_80070E94;
+    c1                 = (GsCOORDINATE2*)((u8*)m - OFFSET_OF(GsCOORDINATE2, coord));
+    *(s32*)&m->m[0][2] = 0;
+    *(s32*)&m->m[1][1] = one;
+    *(s32*)&m->m[2][0] = 0;
+    m->m[2][2]         = one;
+    c1->sub            = NULL;
+    c1->coord.t[0]     = 0;
+    c1->coord.t[1]     = 0;
+    c1->coord.t[2]     = 0x8000;
+    c1->flg            = 0;
+
+    *(s32*)&D_80070E44 = one;
+    m                  = &D_80070E44;
+    c2                 = (GsCOORDINATE2*)((u8*)m - OFFSET_OF(GsCOORDINATE2, coord));
+    *(s32*)&m->m[0][2] = 0;
+    *(s32*)&m->m[1][1] = one;
+    *(s32*)&m->m[2][0] = 0;
+    m->m[2][2]         = one;
+    c2->sub            = c1;
+    c2->coord.t[0]     = 0;
+    c2->coord.t[1]     = 0;
+    c2->coord.t[2]     = 0;
+    c2->flg            = 0;
+
+    *(s32*)&D_80070F14 = one;
+    m                  = &D_80070F14;
+    c3                 = (GsCOORDINATE2*)((u8*)m - OFFSET_OF(GsCOORDINATE2, coord));
+    *(s32*)&m->m[0][2] = 0;
+    *(s32*)&m->m[1][1] = one;
+    *(s32*)&m->m[2][0] = 0;
+    m->m[2][2]         = one;
+    c3->sub            = c2;
+    c3->coord.t[0]     = 0;
+    c3->coord.t[1]     = 0;
+    c3->coord.t[2]     = 0;
+    c3->flg            = 0;
+
+    gte_SetGeomScreen(0x400);
+
+    *(s32*)&GsWSMATRIX = one;
+    m                  = &GsWSMATRIX;
+    *(s32*)&m->m[0][2] = 0;
+    *(s32*)&m->m[1][1] = one;
+    *(s32*)&m->m[2][0] = 0;
+    m->m[2][2]         = one;
+}
 
 INCLUDE_ASM("main/nonmatchings/gamemain", func_80027F48);
 
