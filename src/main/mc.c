@@ -9,7 +9,55 @@
 
 INCLUDE_ASM("main/nonmatchings/mc", func_800317DC);
 
-INCLUDE_ASM("main/nonmatchings/mc", func_800319E4);
+void func_800319E4(Task* arg0, McWork* arg1)
+{
+    s32           ret;
+    u32           status;
+    s32           idx;
+    UiObject*     obj;
+    McPromptPair* entry;
+    McPromptPair* base;
+
+    arg1->field_4 -= 1;
+    if (arg1->field_4 == 0) {
+        MemCardClose();
+        status         = MemCardOpen(arg1->field_C, Mc_FileName, 2);
+        arg1->field_14 = status;
+        switch (status) {
+            case 0:
+                arg0->field_30 = 0x1A;
+                break;
+            case 1:
+                arg0->field_30 = 0x18;
+                break;
+            case 2:
+                arg0->field_30 = 0x18;
+                break;
+            case 3:
+                arg0->field_30 = 0x18;
+                break;
+            case 4:
+                arg0->field_30 = 0x18;
+                break;
+            case 5:
+                arg0->field_30 = 0x7;
+                break;
+            default:
+                arg0->field_30 = 0x18;
+                break;
+        }
+    }
+
+    obj           = arg0->field_20;
+    idx           = arg1->field_8;
+    ret           = func_80048E10(obj, 1);
+    obj->field_2E = 0;
+    func_80048E38(obj, D_8001398C);
+    base  = Mc_PromptTable;
+    entry = &base[idx];
+    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
+    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
+}
 
 void Mc_StateCreateFile(Task* arg0, McWork* arg1)
 {

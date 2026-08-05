@@ -4183,6 +4183,39 @@ Remember to hand the jtbl's address range to the C file via a `.rodata`
 subsegment in `configs/USA/main.yaml` (split surrounding asm tables into
 `mc_1` / `mc_2` style siblings).
 
+When only **two** unique non-default results fill the span (e.g. 0→0x1A,
+5→0x7, everything else →0x18), fall-through dummy labels alone still lower to
+a binary-search cascade (`sltiu` 5 / `beq` case5 / `bnez` case0). Give each
+in-range slot its own assignment + `break` so the case-cost estimator sees
+enough nodes; GCC then emits the jump table and merges the identical bodies
+back to a shared label:
+
+```c
+/* Two unique results over 0..5 — fall-through dummies stay if/else */
+switch (status) {
+case 0:  arg0->field_30 = 0x1A; break;
+case 5:  arg0->field_30 = 0x7;  break;
+case 1:
+case 2:
+case 3:
+case 4:
+default: arg0->field_30 = 0x18; break;
+}
+
+/* Separate arms force jtbl; identical 0x18 bodies share one label */
+switch (status) {
+case 0:  arg0->field_30 = 0x1A; break;
+case 1:  arg0->field_30 = 0x18; break;
+case 2:  arg0->field_30 = 0x18; break;
+case 3:  arg0->field_30 = 0x18; break;
+case 4:  arg0->field_30 = 0x18; break;
+case 5:  arg0->field_30 = 0x7;  break;
+default: arg0->field_30 = 0x18; break;
+}
+```
+
+`func_800319E4` is the pure example (MemCardOpen status → UI state).
+
 ## `register s32 idx asm("v1")` for `andi v1,a1,0xff` + delay-slot `-1`
 
 When the target opens with:

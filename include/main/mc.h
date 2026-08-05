@@ -113,6 +113,7 @@ STATIC_ASSERT_SIZEOF(McBufferSlot, 0xC);
 // Functions — src/main/mc.c (matched helpers; state handlers also live here)
 // =============================================================================
 
+void func_800319E4(Task* task, McWork* work);
 void Mc_StateCreateFile(Task* task, McWork* work);
 void Mc_StateFormat(Task* task, McWork* work);
 u16* Mc_EncodeAsciiGlyphs(s8* src, u16* dst);
