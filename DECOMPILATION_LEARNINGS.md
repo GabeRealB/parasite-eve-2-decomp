@@ -5327,3 +5327,40 @@ end:
 
 `func_8003EE68` is the pure example (mode 4 first, then range `< 5`, then 1/3,
 with 4 falling into the 1/3 block).
+
+## `getClut` between SPRT `u0`/`v0` stores needs a `u8` temp for `v`
+
+When filling a `SPRT` with texture coords and a CLUT, the target often does:
+
+```
+lbu  v0, u(src)      # load u
+sll  v1, y, 6        # start getClut
+sb   v0, u0(p)       # store u
+srl  v0, x, 4
+andi v0, v0, 0x3f
+lbu  a0, v(src)      # load v into $a0
+or   v1, v1, v0
+sh   v1, clut(p)     # store clut
+sb   a0, v0(p)       # store v
+```
+
+Writing `p->u0 = ...; p->clut = getClut(...); p->v0 = ...;` reorders: the
+compiler computes the whole CLUT first, stores it, then does `u0`/`v0`, and
+may also fill the preceding `y0` load-delay with `sll` (target wants a `nop`
+there). Score stalls around ~92%.
+
+Fix: load `v` into a `u8` temporary *before* the `getClut` assignment, then
+store it after:
+
+```c
+u8 v;
+
+p->u0   = arg0->field_4;
+v       = arg0->field_6;
+p->clut = getClut(arg1, arg2); /* arg1 must be unsigned for srl, not sra */
+p->v0   = v;
+```
+
+Also type the CLUT X argument as `u32` (or cast) so `((x) >> 4)` emits `srl`
+rather than `sra`. `func_800435F8` is the pure example (SPRT twin of TILE
+helper `func_80043854`).
