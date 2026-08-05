@@ -4611,3 +4611,61 @@ asm volatile(
 
 `func_8002F3A0` is the pure example. Power-of-two / no-div TUs do not need
 `--expand-div`; this one does (`1E6C4.c`).
+
+## Loop-invariant QImode constants: `s8` temp + widen via `s32`
+
+When a loop repeatedly stores a small constant into a byte field
+(`p->field_C = 4`), LICM often pins the constant in a callee-saved register
+(`li s5,4` in the prologue), which grows the stack frame and mismatches a
+target that reloads with `li v1,4` each iteration.
+
+Routing the store through an `s8` (or `char`) temporary *and then* an `s32`
+temporary blocks both the hoist and the QImode CSE that would otherwise keep
+the value in an s-reg:
+
+```c
+s8  c;
+s32 tmp;
+
+c = 4;
+/* other stores */
+tmp = c;
+p->field_C = tmp;
+c = 2;
+p->field_D = c;
+```
+
+A plain `s32 v = 4; p->field_C = v; v = 2; p->field_D = v;` also avoids the
+s-reg hoist but schedules `li v1,4` *before* the `move a0/a1` setup for the
+following call. The `s8`+`s32` widen form keeps `move a0,p; move a1,buf;
+li v1,4` order.
+
+An empty `do {} while (0);` inside a nearby `if` can also be required to lock
+that schedule (same role as other `do {} while (0)` notes in this file).
+
+`func_8002FD08` is the pure example (multi-line text measure).
+
+## Pointer init order swaps callee-saved assignment (`s3`/`s4`)
+
+When two long-lived pointers are captured once in the prologue
+(`p = &stack_struct; buf = stack_array`), the order of those assignments
+controls which gets `$s3` vs `$s4`. Target:
+
+```
+move  s4, zero        /* maxWidth first */
+move  s2, s4          /* height = maxWidth */
+addiu s1, sp, 0x50    /* p */
+addiu s3, sp, 0x10    /* buf */
+```
+
+With `buf = sp10; cur = arg0` the allocator often puts `buf` in `$s4` and the
+accumulator in `$s3`. Swapping to:
+
+```c
+cur = arg0;
+buf = sp10;
+```
+
+(after `p = &sp50` and the zero init of the accumulators) flips `buf` into
+`$s3` and the max-width accumulator into `$s4` without changing semantics.
+`func_8002FD08` needs this together with the `s8`/`s32` constant trick above.

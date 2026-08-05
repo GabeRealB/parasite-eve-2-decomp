@@ -25,7 +25,51 @@ s32 func_8002FCBC(u8* arg0)
     return -sp10.field_0;
 }
 
-INCLUDE_ASM("main/nonmatchings/201E0", func_8002FD08);
+s32 func_8002FD08(u8* arg0)
+{
+    u8         sp10[0x40];
+    GStruct38  sp50;
+    s32        maxWidth;
+    s32        height;
+    GStruct38* p;
+    u8*        buf;
+    u8*        cur;
+    s32        ret;
+    s32        tmp;
+    s8         c;
+
+    maxWidth = 0;
+    height   = maxWidth;
+    p        = &sp50;
+    cur      = arg0;
+    buf      = sp10;
+
+    do {
+        ret = func_8002F9E0(&cur, sp10);
+
+        c            = 4;
+        sp50.field_0 = 0;
+        sp50.field_2 = 0;
+        sp50.field_4 = 0;
+        sp50.field_8 = 0;
+        tmp          = c;
+        p->field_C   = tmp;
+        c            = 2;
+        p->field_D   = c;
+        sp50.field_E = 0;
+        func_8002EDFC(p, buf);
+
+        if (maxWidth < -sp50.field_0) {
+            do {
+            } while (0);
+            maxWidth = -sp50.field_0;
+        }
+        height += 0xF;
+        cur     = buf;
+    } while (ret != -1);
+
+    return (height << 16) | maxWidth;
+}
 
 s32 func_8002FDCC(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
 {
