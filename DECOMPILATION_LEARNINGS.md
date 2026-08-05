@@ -6560,3 +6560,40 @@ GCC 2.8.1 lays this out as fallthrough setup → `j`/`move v0,s3` → `li v0,-1`
 `if (arg0 == 0)` path merges into `ret_orig`.
 
 `func_8005414C` is the pure example.
+
+## Switch case stores of `field_30` vs a shared `next` temp
+
+When a switch assigns the same struct field (`arg0->field_30 = K`) on every
+arm and then falls into shared post-switch code, write the store **inside each
+case** rather than:
+
+```c
+s32 next;
+switch (...) {
+case 0: ...; next = 0xF; break;
+...
+}
+arg0->field_30 = next;
+```
+
+Symptom with the `next` form: case bodies that free `$a0` (e.g. after
+`lui/addiu a0, %hi/%lo(Mc_BufferSlots)`) allocate `next` to `$a0`. The target
+wants the phi value in `$v0` (`li v0,K` / `sw v0, field_30`), and the early
+`li a0,K` also steals the load-delay slot that the target fills with `nop`
+between `lw v0,8(v0)` and `addu`.
+
+Writing `arg0->field_30 = K` in each case still compiles to one shared
+`sw v0, field_30` (GCC 2.8.1 phi-merges the constants), but the merged value
+lands in `$v0` and case 0 keeps the natural:
+
+```
+lw  v1, field_1C
+lw  v0, 8(v0)
+nop
+addu v1, v1, v0
+li  v0, 0xF
+j   common
+ sw v1, field_1C
+```
+
+`func_800322B0` is the pure example — ~98% with `next`, 100% with per-case stores.

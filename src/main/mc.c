@@ -113,7 +113,68 @@ INCLUDE_ASM("main/nonmatchings/mc", func_80031DA4);
 
 INCLUDE_ASM("main/nonmatchings/mc", func_80031F94);
 
-INCLUDE_ASM("main/nonmatchings/mc", func_800322B0);
+void func_800322B0(Task* arg0, McWork* arg1)
+{
+    s32           ret;
+    u32           status;
+    s32           idx;
+    s32           i;
+    s32           ch;
+    u8*           ptr1;
+    u8*           ptr0;
+    UiObject*     obj;
+    McPromptPair* entry;
+    McPromptPair* base;
+
+    status = arg1->field_14;
+    switch (status) {
+        case 0:
+            arg1->field_1C += Mc_BufferSlots[8 - arg1->field_24].field_8;
+            arg0->field_30  = 0xF;
+            break;
+        case 1:
+            MemCardClose();
+            arg0->field_30 = 0x14;
+            break;
+        case 3:
+            ptr1 = Mc_FileName;
+            ptr0 = Mc_FileNameBuf;
+            i    = 0;
+            ch   = 0x5F;
+            do {
+                if (i >= 0xC) {
+                    *ptr0 = ch;
+                    *ptr1 = ch;
+                }
+                ptr1++;
+                i++;
+                ptr0++;
+            } while (i < 0x14);
+            *ptr0 = 0;
+            *ptr1 = 0;
+            MemCardClose();
+            arg0->field_30 = 0x2;
+            break;
+        case 2:
+        case 4:
+        case 5:
+        default:
+            arg0->field_30 = 0x2A;
+            break;
+    }
+    Mem_Free((void*)arg1->field_18);
+    arg1->field_18 = 0;
+
+    obj           = arg0->field_20;
+    idx           = arg1->field_8;
+    ret           = func_80048E10(obj, 1);
+    obj->field_2E = 0;
+    func_80048E38(obj, D_8001398C);
+    base  = Mc_PromptTable;
+    entry = &base[idx];
+    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
+    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
+}
 
 void Mc_StateFormat(Task* arg0, McWork* arg1)
 {
@@ -155,17 +216,6 @@ void Mc_StateFormat(Task* arg0, McWork* arg1)
 }
 
 INCLUDE_ASM("main/nonmatchings/mc", func_80032578);
-
-/* Absolute copies of still-asm jump tables / data between matched jtbls
- * (func_800319E4 + Mc_StateCreateFile) and func_800327A4 / func_800328FC jtbls. */
-const s32 jtbl_80013AB4[6] = {
-    0x80032300,
-    0x80032340,
-    0x800323A4,
-    0x80032350,
-    0x800323A4,
-    0x800323A4,
-};
 
 const McStateFuncTable26 D_80013ACC = { {
     (McStateFunc)0x80035A94,
