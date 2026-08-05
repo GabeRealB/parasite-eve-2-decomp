@@ -237,7 +237,124 @@ s32 func_80050D20(u32 arg0)
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80050E3C);
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_800510D4);
+s32 func_800510D4(void)
+{
+    GStruct36*   obj;
+    s32          i;
+    register s32 j asm("s2");
+    register s32 off asm("s3");
+    register u8* cursor asm("s1");
+    s32          status;
+    register s32 two asm("s6");
+    register s32 eight asm("s7");
+    register s32 ffff asm("s5");
+
+    i     = 0;
+    eight = 8;
+    two   = 2;
+    ffff  = 0xFFFF;
+    obj   = &D_8007F300;
+
+loop:
+    if (obj->field_1 == 0xFF) {
+        goto end;
+    }
+    status = obj->field_0;
+    if (status == eight) {
+        goto case_8;
+    }
+    if (status >= 9) {
+        goto high;
+    }
+    if (status == two) {
+        goto case_2;
+    }
+    if (status < 3) {
+        goto end_switch;
+    }
+    if (status == 4) {
+        goto case_4;
+    }
+    goto end_switch;
+
+high:
+    if (status == 0x40) {
+        goto case_40_80;
+    }
+    if (status >= 0x41) {
+        goto higher;
+    }
+    if (status == 0x10) {
+        goto case_10;
+    }
+    goto end_switch;
+
+higher:
+    if (status != 0x80) {
+        goto end_switch;
+    }
+
+case_40_80:
+    if (obj->field_14.field_0 != obj->field_14.field_4) {
+        goto case_8;
+    }
+    if (obj->field_0 == 0x40) {
+        obj->field_0 = two;
+        goto case_8;
+    }
+    obj->field_0 = 4;
+    goto case_4;
+
+case_8:
+    func_8004D2EC(&obj->field_14);
+    obj->field_C = ffff;
+case_2:
+    j = 0;
+    if (obj->field_3 != 0) {
+        off    = 0x4C;
+        cursor = (u8*)obj;
+        do {
+            if (cursor[0x51] == 0) {
+                func_80051BB0(obj, (GStruct36Entry*)((u8*)obj + off));
+            }
+            off    += 0x3C;
+            cursor += 0x3C;
+        } while (++j < (s32)obj->field_3);
+    }
+    obj->field_4 = obj->field_6;
+    obj->field_5 = obj->field_7;
+    goto end_switch;
+
+case_4:
+    func_80051AB8(obj);
+    func_80051AF0(obj);
+    obj->field_0 = 0;
+    goto end_switch;
+
+case_10:
+    if (eight != status) {
+        goto case_8;
+    }
+    if ((u32)obj->field_14.field_0 < (u32)obj->field_14.field_4) {
+        goto case_8;
+    }
+    obj->field_C = ffff;
+    obj->field_0 = two;
+    goto case_2;
+
+end_switch:
+    if (obj->field_C != 0) {
+        func_80051DF4(obj);
+        obj->field_C = 0;
+    }
+    i   += 1;
+    obj += 1;
+    if (i <= 0) {
+        goto loop;
+    }
+end:
+    return 0;
+}
 
 s32 func_800512BC(s32 arg0, s32 arg1)
 {

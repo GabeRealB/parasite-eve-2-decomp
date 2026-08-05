@@ -6389,3 +6389,45 @@ arg1->h = temp;
 Also cast `byte` (signed char) through `(u8)` before `>>` so the nibble test
 is `srl`, not `sll`/`sra`. `func_80045A3C`.
 
+## Irregular status switch: if/goto + pinned s-regs + `while (++j < limit)`
+
+Sparse status dispatch that targets `beq $s7,$v1` / `beq $s6,$v1` with
+`slti` range pivots (not a jump table) will not match as a C `switch` — case
+bodies get reordered and case constants reload into `$v0` instead of the
+pinned s-regs. Match the binary-search tree with gotos, and pin the constants
+that are both compared and stored:
+
+```c
+register s32 two asm("s6");
+register s32 eight asm("s7");
+register s32 ffff asm("s5");
+
+two = 2;
+eight = 8;
+ffff = 0xFFFF;
+/* status == eight / status == two in the tree; field = two / field = ffff later */
+```
+
+Without the `asm("sN")` pins, GCC often swaps `$s5`/`$s6` when the store-only
+sentinel (`0xFFFF`) and the compare+store value (`2`) have different use
+patterns.
+
+For the per-entry walk that reloads `obj->field_3` every iteration and keeps
+a base cursor + byte offset (target: `addiu s3,0x3c; lbu field_3; addiu s2,1;
+slt; bnez` with `addiu s1,0x3c` in the branch delay):
+
+```c
+/* BAD: j++ before the limit load leaves a nop in the load delay */
+off += 0x3C;
+j += 1;
+cursor += 0x3C;
+} while (j < (s32)obj->field_3);
+
+/* GOOD: ++j in the condition; cursor+= before it fills the branch delay */
+off += 0x3C;
+cursor += 0x3C;
+} while (++j < (s32)obj->field_3);
+```
+
+`func_800510D4` is the pure example (GStruct36 status driver over D_8007F300).
+

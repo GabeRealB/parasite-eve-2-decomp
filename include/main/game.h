@@ -655,6 +655,7 @@ STATIC_ASSERT_SIZEOF(GStruct55, 0x10);
 
 /// State block at D_8007F300 (logical stride 0x5DC; BSS allocation 0x5E0).
 /// field_0 is status; field_3 is the number of track entries starting at 0x4C.
+/// field_4/field_5 are copied from field_6/field_7 by the per-frame driver.
 /// field_8 is a scaled volume; field_C is a sentinel (0xFFFF when cleared).
 /// field_10 is a data pointer; field_14 is the volume interpolator.
 /// field_484 is a 16-entry opcode table (same layout as GStruct22::field_484);
@@ -667,7 +668,10 @@ typedef struct _GStruct36 {
     /* 0x01 */ u8                  field_1;
     /* 0x02 */ u8                  field_2;
     /* 0x03 */ u8                  field_3;
-    /* 0x04 */ u8                  unknown_04[4];
+    /* 0x04 */ u8                  field_4;
+    /* 0x05 */ u8                  field_5;
+    /* 0x06 */ u8                  field_6;
+    /* 0x07 */ u8                  field_7;
     /* 0x08 */ s16                 field_8;
     /* 0x0A */ s16                 field_A;
     /* 0x0C */ s32                 field_C;
