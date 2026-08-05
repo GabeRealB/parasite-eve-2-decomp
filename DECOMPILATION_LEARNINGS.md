@@ -5388,3 +5388,30 @@ p->v0   = v;
 Also type the CLUT X argument as `u32` (or cast) so `((x) >> 4)` emits `srl`
 rather than `sra`. `func_800435F8` is the pure example (SPRT twin of TILE
 helper `func_80043854`).
+
+## Force `move v0, tN; sw v0` when CSE wants `sw tN`
+
+When a live loop counter (or other long-lived constant) sits in `$tN` and is
+also stored to a struct field, GCC 2.8.1 often emits `sw tN, off(reg)` while
+the target has:
+
+```
+move  v0, tN
+sw    v0, off(reg)
+```
+
+Assigning through a register pinned to `$v0` forces the extra move:
+
+```c
+register s32 val asm("v0");
+/* ... */
+val            = i;   /* move v0, t2 */
+arg1->field_2C = val; /* sw v0, 0x2c(a1) */
+```
+
+Plain `arg1->field_2C = i` (or `= 1` CSEd with `i`) collapses to `sw tN`.
+`func_800340A4` is the pure example.
+
+Same function also shows that a void-arg checksum sibling using
+`register u32 j asm("a0")` must switch to `asm("a1")` when `$a0` holds a live
+`Task*` argument through the end of the function.

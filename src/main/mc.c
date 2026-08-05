@@ -668,7 +668,54 @@ void Mc_ResetWork(Task* arg0, McWork* arg1)
     arg0->field_30++;
 }
 
-INCLUDE_ASM("main/nonmatchings/mc", func_800340A4);
+void func_800340A4(Task* arg0, McWork* arg1)
+{
+    McChecksumBlock* temp;
+    McBufferSlot*    p;
+    McBufferSlot*    base;
+    s16              sum;
+    s32              inv;
+    u32              count;
+    u32              i;
+    register u32     j asm("a1");
+    u8*              ptr;
+    register s32     val asm("v0");
+
+    i              = 1;
+    inv            = 0xFFFF;
+    base           = Mc_BufferSlots;
+    p              = base + 1;
+    arg1->field_24 = 9;
+    arg1->field_28 = -1;
+    val            = i;
+    arg1->field_2C = val;
+    do {
+        sum   = 0;
+        j     = 0;
+        temp  = p->field_0;
+        count = p->field_4;
+        ptr   = temp->field_4;
+        count = count - 4;
+        if (count != 0) {
+            do {
+                j   += 1;
+                sum += (s8)*ptr;
+                ptr += 1;
+            } while (j < count);
+        }
+        p            += 1;
+        i            += 1;
+        temp->field_2 = inv - sum;
+        temp->field_0 = sum;
+    } while (i < 9U);
+
+    if (arg0->field_34 != 0) {
+        arg0->field_2a = 2;
+        arg0->field_30 = 0x27;
+    } else {
+        arg0->field_30 = 0xE;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/mc", func_8003415C);
 
