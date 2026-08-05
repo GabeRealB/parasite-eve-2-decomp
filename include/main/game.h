@@ -100,6 +100,11 @@ typedef struct _GBytes4 {
     u8 data[4];
 } GBytes4;
 
+/// 6-byte block assigned via unaligned lwl/lwr + lb/sb (see func_80053BF4).
+typedef struct _GBytes6 {
+    u8 data[6];
+} GBytes6;
+
 /// 8-byte block assigned via unaligned lwl/lwr (see func_8002BF10).
 typedef struct _GBytes8 {
     u8 data[8];

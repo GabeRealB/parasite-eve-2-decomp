@@ -5463,3 +5463,50 @@ cur->field_10  = arg1;
 
 `func_8002D14C` is the pure example (reparent: detach then insert into parent's
 circular child list — same unlink shape as `Task_DetachFromParent`).
+
+## Force a second `(s8)` cast into the same reg (`sll v1; sra v1,v1`)
+
+When the target re-sign-extends `arg1` in an else/default arm even though a
+prior `(s8)arg1` is still live (e.g. switch dispatch left the value in `$v1`),
+plain `temp = (s8)arg1` is CSE'd away and the next use of the value is just
+`andi` / `slt` against the old reg — often stuffing the wrong instruction into
+the preceding `bne` delay slot.
+
+Symptom: case body is otherwise identical, but the `bne …, else` delay is
+`andi` (or similar) instead of `sll v1,a1,0x18`, and the else starts without
+`sra v1,v1,0x18`. Score stuck ~96–99% on an otherwise matching function.
+
+Two ingredients:
+
+1. **Dispatch with `switch ((s8)arg1)` / `switch (temp)`** so the default arm
+   is a real basic block that can hold a fresh cast (if/else chains often share
+   the first cast and never re-emit it).
+
+2. **Write the second cast as in-place shifts into the same temp** so regalloc
+   produces `sll v1,a1,24; sra v1,v1,24` rather than `sll v0; sra v1,v0`:
+
+```c
+temp = (s8)arg1;
+switch (temp) {
+case 0x14:
+    arg1 = 0;
+    break;
+case 0x1D:
+    arg1 = 1;
+    break;
+default:
+    temp = arg1 << 24;
+    temp = temp >> 24; /* must be two stmts — `(arg1<<24)>>24` regallocs via $v0 */
+    arg1 = arg1 - arg2;
+    temp = temp < ((arg2 & 0xFF) + 1); /* slt v1,v1,v0 then beqz v1 */
+    if (temp != 0) {
+        arg1 = 0;
+    }
+    break;
+}
+```
+
+`temp = temp < …; if (temp != 0)` is what turns the compare into `slt v1,v1,v0`
+(reuse the cast reg) instead of `slt v0,v1,v0`.
+
+`func_80053BF4` case 5 is the pure example.

@@ -74,6 +74,7 @@ extern TaskFuncTable3 D_80013EDC;
 extern GBytes4        D_80013F18;
 extern TaskFuncTable4 D_80013F1C;
 extern GFunc30Table6  D_80013F2C;
+extern GBytes6        D_80014124;
 extern void           func_8002D214(void* arg0, s32 arg1);
 extern void*          func_8002D22C(s32 arg0);
 extern void           func_8002D6EC(Task* arg0);

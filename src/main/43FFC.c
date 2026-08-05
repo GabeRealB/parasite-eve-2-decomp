@@ -79,7 +79,87 @@ block_done:
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80053A20);
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80053BF4);
+s32 func_80053BF4(s32 arg0, s32 arg1, s32 arg2)
+{
+    GBytes6 sp;
+    s32     temp;
+
+    sp   = D_80014124;
+    arg2 = arg2 - 1;
+
+    switch (arg0 & 0xFF) {
+        case 1:
+        case 2:
+            break;
+        case 3:
+            temp = (s8)arg1;
+            if (temp >= 9) {
+                if ((temp == 0x1A) || (temp == 0x1D)) {
+                    arg1 = 0xA;
+                } else {
+                    arg1 = 9;
+                }
+            }
+            break;
+        case 4:
+            temp = (s8)arg1;
+            if (temp >= 0x14) {
+                switch ((s8)(arg1 - 0x17)) {
+                    case 0:
+                        arg1 = 0xB - arg2;
+                        break;
+                    case 3:
+                        arg1 = 0x10 - arg2;
+                        break;
+                    case 5:
+                        arg1 = 0x11 - arg2;
+                        break;
+                    case 6:
+                        arg1 = 0x12 - arg2;
+                        break;
+                    case 7:
+                        arg1 = 0x13 - arg2;
+                        break;
+                    default:
+                        arg1 = 0xF - arg2;
+                        break;
+                }
+            } else if (temp < 9) {
+                arg1 = 0;
+            } else {
+                arg1 = arg1 - arg2;
+            }
+            break;
+        case 5:
+            temp = (s8)arg1;
+            switch (temp) {
+                case 0x14:
+                    arg1 = 0;
+                    break;
+                case 0x1D:
+                    arg1 = 1;
+                    break;
+                default:
+                    temp = arg1 << 24;
+                    temp = temp >> 24;
+                    arg1 = arg1 - arg2;
+                    temp = temp < ((arg2 & 0xFF) + 1);
+                    if (temp != 0) {
+                        arg1 = 0;
+                    }
+                    break;
+            }
+            break;
+        default:
+            arg1 = 0;
+            break;
+    }
+
+    if ((u32)(arg1 & 0xFF) >= (u32)sp.data[arg0 & 0xFF]) {
+        arg1 = 0;
+    }
+    return arg1 & 0xFF;
+}
 
 void func_80053D90(void)
 {
