@@ -8,7 +8,103 @@ void func_8002DEC4(void)
 {
 }
 
-INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002DECC);
+s32 func_8002DECC(GStruct38* arg0, u8* arg1, u8* arg2)
+{
+    register GStruct38* ctx asm("t5");
+    register s32        width asm("t0");
+    GStruct68*          glyph;
+    s32                 c;
+    s32                 prev9;
+    s32                 nl;
+    s32                 end_flag;
+    s32                 ch;
+    s32                 bs;
+    s32                 idx;
+
+    ctx   = arg0;
+    width = 0;
+    glyph = (GStruct68*)arg2;
+    asm("" : "+r"(ctx), "+r"(width), "+r"(glyph));
+    c = *arg1;
+    if (c == 0) {
+        goto end;
+    }
+    prev9 = width;
+    nl    = 0xA;
+
+    do {
+        if ((c & 0xFF) == nl) {
+            goto end;
+        }
+        end_flag = 0;
+        if ((c & 0xFF) == 0x5C) {
+            bs    = 0x5C;
+            arg1 += 1;
+            do {
+                ch = *arg1;
+                if ((u32)(ch - 0x42) < 0x36U) {
+                    switch (ch) {
+                        case 0x42:
+                        case 0x43:
+                        case 0x44:
+                        case 0x53:
+                        case 0x55:
+                        case 0x57:
+                        case 0x62:
+                        case 0x63:
+                        case 0x64:
+                        case 0x73:
+                        case 0x75:
+                        case 0x77:
+                            arg1 += 2;
+                            break;
+                        case 0x4E:
+                        case 0x6E:
+                            end_flag = 1;
+                        default:
+                            break;
+                    }
+                }
+                ch = *arg1;
+                if (ch != 0 && ch != nl) {
+                    goto check_bs;
+                }
+                end_flag = 1;
+                asm("" ::: "memory");
+                ch = *arg1;
+            check_bs:
+                arg1 += 1;
+                if (ch != bs) {
+                    arg1 -= 1;
+                    break;
+                }
+            } while (1);
+        }
+        if (end_flag != 0) {
+            goto end;
+        }
+        idx   = *arg1;
+        idx  -= 0x20;
+        glyph = (GStruct68*)(arg2 + idx * 0xC);
+        ch    = prev9;
+        ch   += glyph->field_8;
+        ch   += 1;
+        if ((u8)ch >= 3U) {
+            if (ctx->field_C == 5) {
+                width -= 1;
+            } else {
+                width -= 2;
+            }
+        }
+        arg1  += 1;
+        prev9  = glyph->field_9;
+        c      = *arg1;
+        width += glyph->w + (s8)glyph->field_6 + (s8)glyph->off_x;
+    } while (c != 0);
+
+end:
+    return width - (s8)glyph->field_6;
+}
 
 INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002E010);
 

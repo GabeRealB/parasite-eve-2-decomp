@@ -533,6 +533,70 @@ table, so a table at a 4-mod-8 address still lands correctly.
   dense set of cases. Again, body order in the asm = source order.
 - Unreferenced table slots map to the `break`/default label.
 
+## Force prologue moves before the first load (delay-slot fill)
+
+When the target opens with several independent `move`s *then* an `lbu`/`lw`
+with a hard `nop` delay, the scheduler will gladly fill that delay with one of
+the moves (or park a late-live arg copy in the `beqz` delay slot). Symptom:
+
+```
+# target                         # your build
+move  t5,a0                      move  t5,a0
+move  t0,zero                    move  t0,zero
+move  t1,a2                      lbu   a3,0(a1)
+lbu   a3,0(a1)                   move  t1,a2   /* filled load delay */
+nop                              beqz  a3,end
+beqz  a3,end                     move  t2,t0
+ move t2,t0
+```
+
+Pin the early registers and emit a multi-output empty asm *after* the moves so
+nothing that follows can be scheduled before them (`func_8002DECC`):
+
+```c
+register GStruct38* ctx asm("t5");
+register s32 width asm("t0");
+GStruct68* glyph;
+
+ctx   = arg0;
+width = 0;
+glyph = (GStruct68*)arg2;
+asm("" : "+r"(ctx), "+r"(width), "+r"(glyph));
+c = *arg1; /* only now may the load be emitted */
+```
+
+A single `+r` on one variable is not enough if the others are still free to
+slide past the load.
+
+## Shared flag block that reloads from memory
+
+When the target joins two early exits into:
+
+```
+li   a0, 1
+lbu  v0, 0(a1)   /* reload — same address, CSE would drop it */
+beq  v0, a3, ...
+```
+
+writing `end_flag = 1; ch = *arg1;` is not enough: CSE knows the load is
+redundant. Defeat it with a memory clobber between the store-to-reg and the
+reload (`func_8002DECC`):
+
+```c
+if (ch != 0 && ch != nl) {
+    goto check_bs;
+}
+end_flag = 1;
+asm("" ::: "memory");
+ch = *arg1;
+check_bs:
+...
+```
+
+The `if (ch != 0 && ch != nl) goto` / fallthrough shape is what produces the
+shared `li`+`lbu` block; an `if (ch == 0 || ch == nl) { ... }` tends to either
+drop the reload or emit an `andi` on a `u8` temporary.
+
 ## Shared error block between success path and cleanup
 
 When the target layout is:
