@@ -7181,3 +7181,50 @@ end:
 
 `func_8003EC44` is the pure example (switch ~96.7%, shared-goto ~97.2%,
 duplicated tails + if/gotos → 100%).
+
+## Duplicate shared RECT/field updates into both `if`/`else` arms
+
+When both arms of a branch update some fields differently and then apply the
+*same* further updates to other fields, factoring the common updates after the
+`if`/`else` often scores high but misses the target schedule:
+
+```c
+if (cond) {
+    r.y += 9;
+    r.h -= 0xB;
+} else {
+    r.y += 2;
+    r.h -= 4;
+}
+r.x += 2;   /* common — looks clean */
+r.w -= 4;
+```
+
+Symptom: join keeps `y` live in `$v0` and stores it after the branch; `$x` is
+loaded only after the join; later half-width math interleaves with the `x`/`w`
+stores (~73–81%). Target stores `y` and loads `x` in *both* arms, then joins
+with `x` in `$v0` / adjusted `h` in `$v1`.
+
+Duplicate the common updates into each arm so the compiler treats them as part
+of the branch bodies and sinks only the post-store half math:
+
+```c
+if (cond) {
+    r.y += 9;
+    r.h -= 0xB;
+    r.x += 2;
+    r.w -= 4;
+} else {
+    r.y += 2;
+    r.h -= 4;
+    r.x += 2;
+    r.w -= 4;
+}
+```
+
+Also for signed half of a `short` width stored then reloaded as `lhu; sll 16;
+sra 17; negu`: write `-(w >> 1)` (not `/ 2`, which emits the signed-div bias)
+and chain the pair through the field itself (`p->lo = -(w >> 1); p->hi = p->lo
++ w`) so `negu` stays in `$v0` rather than a separate temp in `$v1`.
+
+`func_80049348` is the pure example (factored tail ~81%, duplicated arms → 100%).
