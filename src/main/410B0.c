@@ -318,7 +318,28 @@ void func_800515C0(u8 arg0, u16 arg1)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_8005166C);
+void func_8005166C(u8 arg0, s32 arg1)
+{
+    s32        i;
+    GStruct36* ptr;
+
+    for (i = 0; i <= 0; i++) {
+        ptr = &D_8007F300 + i;
+        if ((arg0 == ptr->field_1) || (arg0 == 0)) {
+            if (arg1 == 0) {
+                if (ptr->field_0 == 8) {
+                    ptr->field_0 = 0x10;
+                    func_8004D200(&ptr->field_14, 0, D_8007F2F0, 8);
+                }
+            } else {
+                if (ptr->field_0 & 0x12) {
+                    ptr->field_0 = 8;
+                    func_8004D200(&ptr->field_14, D_8007F2F0, 0, 8);
+                }
+            }
+        }
+    }
+}
 
 void func_80051744(u8 arg0, u8 arg1)
 {
