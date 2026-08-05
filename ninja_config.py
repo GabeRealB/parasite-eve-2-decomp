@@ -321,7 +321,7 @@ def ninja_setup_list_add_source(
     # ASPSX expands signed/unsigned div/rem into trap sequences; enable for TUs
     # that contain matching division (e.g. 2F244's DecDCTout strip callback).
     expand_div = ""
-    if re.search(r"(2F244|3D458|1E6C4)\.c$", source_path):
+    if re.search(r"(2F244|3D458|1E6C4|34E98)\.c$", source_path):
         expand_div = "--expand-div"
     if re.search("^src.main.*", source_path):
         ninja_file.build(

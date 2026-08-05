@@ -7382,3 +7382,76 @@ D_80071190 = (DR_TPAGE*)((POLY_G3*)p + 1); /* +0x1C */
 ```
 
 Avoid raw `(u8*)p + 0x1C`.
+
+## Second arg as `s32` to reuse `$a1` after pointer loads
+
+When the target loads several fields through `$a1`, then sign-extends a
+halfword into `$a1` itself and reuses that register for the rest of the
+function, declare the second parameter as `s32` and cast once to the real
+pointer type:
+
+```c
+void func(UiList* arg0, s32 arg1)
+{
+    GStruct30* a1 = (GStruct30*)arg1;
+    s16 temp;
+
+    /* all loads from a1… */
+    temp = a1->field_1A - a1->field_18;
+    arg1 = temp;           /* sra a1, … — overwrites the pointer reg */
+    arg1 = arg1 - arg0->field_17;
+    /* further uses of arg1 as height */
+}
+```
+
+A typed pointer parameter forces the compiler to spill `$a0` into `$a2` and
+put temps in `$a0`/`$a1`, scrambling the whole body. `func_80048AEC`.
+
+## Dead stack `RECT` kept with an `"m"` constraint
+
+When the target builds a full `RECT` on the stack (`sh`×4) but never reads
+it, plain locals get DCE'd under `-O2`. Keep the stores without reloads:
+
+```c
+RECT sp;
+sp.x = …;
+sp.y = …;
+sp.w = …;
+sp.h = temp;
+/* … rest of function … */
+asm("" : : "m"(sp));
+```
+
+`volatile RECT` also keeps the stores but can reorder the final `sh` ahead of
+the sign-extend of `h`. The trailing `"m"` constraint matches the target
+schedule. `func_80048AEC`.
+
+## Memory clobber to force a same-field reload after store
+
+When the target does `sw field_10; lbu field_4` (reload into the same reg
+used for the prior compare) even though `field_4` was not written, a plain
+`temp = arg0->field_4` after the store is CSE'd away. Defeat it with a
+memory clobber between store and reload (`func_80048AEC`):
+
+```c
+temp = arg0->field_4;
+if (arg0->field_10 >= temp) {
+    arg0->field_10 = temp - 1;
+    asm("" ::: "memory");
+    temp = arg0->field_4; /* lbu only on this path, before the join */
+}
+if ((s8)arg0->field_5 >= temp) {
+    …
+}
+```
+
+A `u8` temporary for `temp` often inserts a redundant `andi …, 0xff` after
+the first `lbu`; prefer `s32 temp = arg0->field_4`.
+
+## `--expand-div` for TUs with signed division traps
+
+ASPSX expands `div` into the `bnez`/`break 7`/`break 6` trap sequence. Enable
+`--expand-div` in `ninja_config.py` for any TU whose target contains those
+traps (now includes `34E98.c` alongside `2F244` / `3D458` / `1E6C4`).
+Scratch-env `build.sh` does not pass this flag by default — use a local
+wrapper or expect a score gap of only the missing trap block.

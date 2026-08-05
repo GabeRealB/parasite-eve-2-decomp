@@ -272,7 +272,48 @@ void func_80048964(GStruct30* arg0, void* arg1)
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_800489A0);
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80048AEC);
+void func_80048AEC(UiList* arg0, s32 arg1)
+{
+    RECT       sp;
+    GStruct30* a1;
+    s16        temp_v0;
+    u8         temp_a2;
+    s8         temp_v1;
+    s32        temp_v1_2;
+
+    a1      = (GStruct30*)arg1;
+    sp.x    = a1->field_20 + a1->field_1C;
+    sp.y    = a1->field_22 + a1->field_18;
+    sp.w    = a1->field_1E - a1->field_1C;
+    temp_v0 = a1->field_1A - a1->field_18;
+    arg1    = temp_v0;
+    sp.h    = temp_v0;
+    arg1    = arg1 - arg0->field_17;
+    if (arg0->field_7 == 0) {
+        arg0->field_7 = 0xA;
+    }
+    temp_a2 = arg0->field_4;
+    temp_v1 = arg0->field_7;
+    if (arg1 >= (temp_a2 * temp_v1)) {
+        arg0->field_5 = temp_a2;
+    } else {
+        arg0->field_5 = arg1 / temp_v1;
+        if ((s8)arg0->field_5 <= 0) {
+            arg0->field_5 = 1;
+        }
+    }
+    temp_v1_2 = arg0->field_4;
+    if (arg0->field_10 >= temp_v1_2) {
+        arg0->field_10 = temp_v1_2 - 1;
+        asm("" ::: "memory");
+        temp_v1_2 = arg0->field_4;
+    }
+    if ((s8)arg0->field_5 >= temp_v1_2) {
+        arg0->field_9 = 0;
+    }
+    arg0->field_A = 0;
+    asm("" : : "m"(sp));
+}
 
 void func_80048C10(void* arg0, void* arg1)
 {
