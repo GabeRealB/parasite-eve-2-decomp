@@ -102,6 +102,7 @@ extern s32  func_8002DECC(GStruct38* arg0, u8* arg1, u8* arg2);
 extern void func_8002E53C(GStruct38* arg0, u8* arg1);
 extern void func_8002EDFC(GStruct38* arg0, u8* arg1);
 extern void func_8002F5E4(GStruct38* arg0, GStruct68* arg1, s32 arg2);
+extern void func_8002F798(GStruct38* arg0, GStruct68* arg1);
 extern void func_8002F98C(Task* arg0);
 
 // Glyph tables (selected by GStruct38.field_C); entries are GStruct68 (0xC each).

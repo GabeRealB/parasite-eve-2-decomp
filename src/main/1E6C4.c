@@ -247,7 +247,25 @@ void func_8002F5E4(GStruct38* arg0, GStruct68* arg1, s32 arg2)
 
 INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002F69C);
 
-INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002F798);
+void func_8002F798(GStruct38* arg0, GStruct68* arg1)
+{
+    SPRT* p;
+    s32   temp;
+
+    p          = (SPRT*)D_80071190;
+    D_80071190 = (DR_TPAGE*)(p + 1);
+    setlen(p, 4);
+    setcode(p, 0x67);
+    p->x0   = arg0->field_0 + (s8)arg1->off_x;
+    p->y0   = (arg0->field_2 - arg1->h) + (s8)arg1->off_y;
+    p->u0   = arg1->u;
+    p->v0   = arg1->v + arg0->field_F;
+    p->w    = arg1->w + 1;
+    temp    = arg1->h;
+    p->clut = 0x7FFF;
+    p->h    = temp + 1;
+    addPrim(D_800710A0 + arg0->field_4, p);
+}
 
 void func_8002F890(Task* arg0)
 {
