@@ -7324,3 +7324,61 @@ p->y0 = y + arg2 + 1;   /* addu + addiu, no separate subu of h */
 
 `func_80046DEC` is the pure example (together with the color-pin / memory-clobber
 tips above).
+
+## Force halfword reload after a live register holds the same value
+
+When the target reloads a field (`lhu v1, off(p)`) that is still live in another
+register from an earlier store of the same value, plain field access CSE's the
+reload away (`nop` instead of `lhu`). A volatile-qualified read forces the
+memory load without changing surrounding non-volatile stores:
+
+```c
+tv0 = p->x1;                          /* kills live y in $v0 */
+tv1 = ((volatile POLY_F3*)p)->y0;     /* must lhu, not reuse live y */
+```
+
+`func_80049980` needs this so the if/else arms start with `lhu x1; lhu y0`
+exactly as the target (register-asm on `$v0`/`$v1` alone is not enough when y
+is still live in `$v1` from the prologue).
+
+## Pin OT base and `0xFF000000` for dual-use addPrim codegen
+
+Manual OT linking that reloads `field_14` twice (equivalent to
+`addPrim(ot + (s16)field_14 + 1, p)`) wants:
+
+```
+lui  v1, %hi(D_800710A0)
+lui  a1, 0xFF000000
+lw   a2, %lo(D_800710A0)(v1)
+```
+
+Without pins, GCC often swaps `$a1`/`$a2` (mask in `$a2`, OT in `$a1`) or
+reloads the OT base. Pin both:
+
+```c
+register u32  mask_hi asm("a1");
+register u32* ot asm("a2");
+
+mask     = 0xFFFFFF;
+/* set color / setlen / setcode first so $a0 holds 0xFFFFFF */
+ot       = D_800710A0;
+mask_hi  = 0xFF000000;
+p->tag   = (p->tag & mask_hi) | (ot[(s16)idx + 1] & mask);
+ot[(s16)idx + 1] = (ot[(s16)idx + 1] & mask_hi) | ((u32)p & mask);
+```
+
+Assign `ot` before `mask_hi` so the `lui %hi(D_800710A0)` precedes
+`lui a1,0xFF00`. `func_80049980` is the pure example.
+
+## Oversize prim advance via a larger sibling type
+
+When the buffer cursor advances by more bytes than `sizeof` the prim being
+written (e.g. POLY_F3 is `0x14` but the target does `addiu …, 0x1C`), cast
+through a same-header type of the right size for the `+ 1` step:
+
+```c
+p          = (POLY_F3*)D_80071190;
+D_80071190 = (DR_TPAGE*)((POLY_G3*)p + 1); /* +0x1C */
+```
+
+Avoid raw `(u8*)p + 0x1C`.

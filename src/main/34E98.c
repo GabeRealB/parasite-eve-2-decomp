@@ -665,7 +665,61 @@ s32 func_80049950(void)
     return *(s32*)&sp;
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80049980);
+void func_80049980(GStruct30* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+{
+    POLY_F3*      p;
+    u16           temp_v0;
+    u32           mask;
+    register u32  mask_hi asm("a1");
+    register u32* ot asm("a2");
+
+    p          = (POLY_F3*)D_80071190;
+    temp_v0    = arg0->field_20 + arg1;
+    p->x2      = temp_v0;
+    p->x1      = temp_v0;
+    p->x0      = temp_v0;
+    D_80071190 = (DR_TPAGE*)((POLY_G3*)p + 1);
+    temp_v0    = arg0->field_22 + arg2;
+    p->y2      = temp_v0;
+    p->y1      = temp_v0;
+    p->y0      = temp_v0;
+    if (arg4 == 0) {
+        register u16 tv0 asm("v0");
+        register u16 tv1 asm("v1");
+
+        tv0   = p->x1;
+        tv1   = ((volatile POLY_F3*)p)->y0;
+        tv0   = tv0 - 4;
+        p->x1 = tv0;
+        tv0   = p->x2;
+        tv1   = tv1 + 5;
+        p->y2 = tv1;
+        p->y1 = tv1;
+        p->x2 = tv0 + 5;
+    } else {
+        register u16 tv0 asm("v0");
+        register u16 tv1 asm("v1");
+
+        tv0   = p->x1;
+        tv1   = ((volatile POLY_F3*)p)->y0;
+        tv0   = tv0 - 3;
+        p->x1 = tv0;
+        tv0   = p->x2;
+        tv1   = tv1 - 4;
+        p->y2 = tv1;
+        p->y1 = tv1;
+        p->x2 = tv0 + 4;
+    }
+    mask          = 0xFFFFFF;
+    *(s32*)&p->r0 = arg3 * 2;
+    setlen(p, 4);
+    setcode(p, 0x20);
+    ot      = D_800710A0;
+    mask_hi = 0xFF000000;
+    p->tag  = (p->tag & mask_hi) | (ot[(s16)arg0->field_14 + 1] & mask);
+    ot[(s16)arg0->field_14 + 1] =
+        (ot[(s16)arg0->field_14 + 1] & mask_hi) | ((u32)p & mask);
+}
 
 void func_80049A8C(Task* arg0)
 {
