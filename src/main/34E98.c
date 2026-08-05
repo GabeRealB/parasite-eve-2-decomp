@@ -99,11 +99,11 @@ void func_80048904(GStruct30* arg0, s32 arg1, s32 arg2)
             arg0->field_16 = (s16)(arg2 + 9);
         }
     } else {
-        func_80048964(arg0);
+        func_80048964(arg0, (void*)arg1);
     }
 }
 
-void func_80048964(GStruct30* arg0)
+void func_80048964(GStruct30* arg0, void* arg1)
 {
     if (arg0->field_8 != 2) {
         if ((u16)arg0->field_16 >= 0xA) {
@@ -368,7 +368,33 @@ void func_8004972C(GStruct30* arg0, void* arg1)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_800497F4);
+void func_800497F4(GStruct30* arg0, void* arg1)
+{
+    s16 temp_a0;
+    s16 temp_v0;
+    s32 temp_s0;
+    s32 temp_s2;
+
+    temp_s2       = arg0->field_0;
+    temp_s0       = temp_s2 << 0x10;
+    arg0->field_0 = temp_s0;
+    func_800457F8(arg0);
+    arg0->field_24(arg1);
+    if (arg0->field_0 == temp_s0) {
+        arg0->field_0 = temp_s2;
+    }
+    if (arg0->field_16 > 0) {
+        temp_v0        = (u16)arg0->field_16 - Display_State.field_10a;
+        arg0->field_16 = temp_v0;
+        if (temp_v0 < 9) {
+            arg0->field_16 = 9;
+        }
+    }
+    temp_a0 = arg0->field_16;
+    if (((temp_a0 < 0) && (arg0->field_0 == 1)) || (temp_a0 == 9)) {
+        func_80048964(arg0, arg1);
+    }
+}
 
 void func_800498D4(Task* arg0)
 {
