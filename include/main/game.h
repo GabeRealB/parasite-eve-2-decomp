@@ -674,20 +674,24 @@ typedef struct _GStruct68 {
 } GStruct68;
 STATIC_ASSERT_SIZEOF(GStruct68, 0xC);
 
-/// Tile draw params for func_80043854. field_0/field_2 are x/y; field_8/field_A
-/// are width/height (stored as inclusive size, decremented when writing TILE);
+/// Draw params for func_800435F8 (SPRT) / func_80043854 (TILE).
+/// field_0/field_2 are x/y; field_4/field_6 are texture u/v (SPRT only);
+/// field_8/field_A are width/height (inclusive size, decremented when written);
 /// field_C/D/E are RGB; field_10 selects shade-tex (0) vs semi-trans (nonzero).
 typedef struct _GStruct65 {
-    /* 0x00 */ s16  field_0;
-    /* 0x02 */ s16  field_2;
-    /* 0x04 */ byte unknown_4[4];
-    /* 0x08 */ s16  field_8;
-    /* 0x0A */ s16  field_A;
-    /* 0x0C */ u8   field_C;
-    /* 0x0D */ u8   field_D;
-    /* 0x0E */ u8   field_E;
-    /* 0x0F */ u8   pad_F;
-    /* 0x10 */ s16  field_10;
+    /* 0x00 */ s16 field_0;
+    /* 0x02 */ s16 field_2;
+    /* 0x04 */ u8  field_4;
+    /* 0x05 */ u8  pad_5;
+    /* 0x06 */ u8  field_6;
+    /* 0x07 */ u8  pad_7;
+    /* 0x08 */ s16 field_8;
+    /* 0x0A */ s16 field_A;
+    /* 0x0C */ u8  field_C;
+    /* 0x0D */ u8  field_D;
+    /* 0x0E */ u8  field_E;
+    /* 0x0F */ u8  pad_F;
+    /* 0x10 */ s16 field_10;
 } GStruct65;
 STATIC_ASSERT_SIZEOF(GStruct65, 0x12);
 

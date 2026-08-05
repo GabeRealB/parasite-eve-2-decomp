@@ -119,7 +119,34 @@ void func_8004323C(void)
 
 INCLUDE_ASM("main/nonmatchings/33300", func_80043310);
 
-INCLUDE_ASM("main/nonmatchings/33300", func_800435F8);
+void func_800435F8(GStruct65* arg0, u32 arg1, s32 arg2)
+{
+    SPRT* p;
+    u8    v;
+
+    p          = (SPRT*)D_80070EE0;
+    D_80070EE0 = (u8*)(p + 1);
+    SetSprt(p);
+    if (arg0->field_10 == 0) {
+        SetShadeTex(p, 1);
+        SetSemiTrans(p, 0);
+    } else {
+        SetShadeTex(p, 0);
+        SetSemiTrans(p, 1);
+    }
+    p->r0   = arg0->field_C;
+    p->g0   = arg0->field_D;
+    p->b0   = arg0->field_E;
+    p->x0   = arg0->field_0;
+    p->y0   = arg0->field_2;
+    p->u0   = arg0->field_4;
+    v       = arg0->field_6;
+    p->clut = getClut(arg1, arg2);
+    p->v0   = v;
+    p->w    = arg0->field_8 - 1;
+    p->h    = arg0->field_A - 1;
+    AddPrim(D_800710A0 + 4, p);
+}
 
 void func_80043718(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
