@@ -5929,3 +5929,50 @@ When setting several `u8` stack slots from one struct (e.g. `CdCmd_Enqueue`
 params), load each field into a local before the corresponding `sb` so the
 compiler emits `lbu` → `sb` → `lbu` → … rather than reordering independent
 zero-stores ahead of dependent field stores.
+
+## `(s16)` cast on a `u16` field forces `lh` without changing the struct
+
+When the target loads a halfword field with `lh` but the struct types it as
+`u16` (because other matched functions need `lhu` on the same field), a bare
+read emits `lhu`. Cast at the use site:
+
+```c
+/* target: lh v0, 0x20(s0) */
+func(x - (s16)arg0->field_20, y - (s16)arg0->field_22);
+```
+
+Changing the struct field to `s16` would break other matches that expect `lhu`
+(e.g. `func_80048F88` on `GStruct30::field_20`). `func_80048E38`.
+
+## Short-lived stack `RECT*` stays in `$a1` for switch stores + callee arg
+
+When a function takes a string in `$a1` (saved to `$s2`), then builds a stack
+`RECT` used both as `func_80045A3C(..., r, ...)` and for field stores in the
+default arm, a local `RECT *r = &sp18` that dies before the post-switch draw
+call is allocated to `$a1`. GCC then:
+
+- fills the first switch `beq` delay slot with `addiu a1, sp, 0x18`;
+- stores via `sh v0, off(a1)` instead of `sh v0, off(sp)`;
+- reuses `$a1` as the callee's RECT arg without a second materialization.
+
+If the same pointer is also read after a later `jal` (draw uses `r->x`), it
+spills to a callee-saved and the frame grows. Keep draw coords as
+`sp18.x` / `sp18.y` so `r` is switch-only. `func_80048E38`.
+
+## Split `x = x + 1` to stop `(x+1)-base` reassociating to `x-(base-1)`
+
+`(sp18.x + 1) - field_20` is algebraically equal to `sp18.x - (field_20 - 1)`,
+and GCC often emits the latter (`addiu a1, field, -1` then `subu`). The target
+wants the former (`lh` both operands, `addiu ..., 1`, then `subu`). Force it
+with temps and a separate increment:
+
+```c
+x = sp18.x;
+y = sp18.y;
+x = x + 1;
+y = y + 1;
+func(..., x - base_x, y - base_y, ...);
+```
+
+Inlining the `+ 1` into the call expression is enough to invite the rewrite.
+`func_80048E38`.

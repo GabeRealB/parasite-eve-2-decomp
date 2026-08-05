@@ -163,7 +163,51 @@ s32 func_80048E2C(s32 arg0)
     return (arg0 << 4) - arg0;
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80048E38);
+void func_80048E38(GStruct30* arg0, char* arg1)
+{
+    RECT  sp18;
+    RECT* r;
+    s32   var_a2;
+    s32   color;
+    s32   x;
+    s32   y;
+
+    color = 0x707060;
+    r     = &sp18;
+    switch (arg0->field_8) {
+        case 1:
+            var_a2 = 9 - arg0->field_16;
+            if (var_a2 <= 0) {
+                var_a2 = 1;
+            }
+            func_80045A3C(arg0, r, var_a2, 0);
+            break;
+        case 2:
+            goto block_default;
+        case 3:
+        case 4:
+            var_a2 = 9 - arg0->field_16;
+            if ((u32)(var_a2 - 1) >= 8U) {
+                var_a2 = 1;
+            }
+            func_80045A3C(arg0, r, var_a2, 1);
+            break;
+        default:
+        block_default:
+            r->x = arg0->field_C.x;
+            r->y = arg0->field_C.y;
+            r->w = arg0->field_C.w;
+            r->h = arg0->field_C.h;
+            break;
+    }
+    x              = sp18.x;
+    y              = sp18.y;
+    x              = x + 1;
+    y              = y + 1;
+    arg0->field_14 = (u16)(arg0->field_14 - 1);
+    func_80047C40(arg0, x - (s16)arg0->field_20, y - (s16)arg0->field_22, arg1, color);
+    arg0->field_14 = (u16)(arg0->field_14 + 1);
+}
 
 void func_80048F88(GStruct30* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
 {
