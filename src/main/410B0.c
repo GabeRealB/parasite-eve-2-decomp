@@ -700,4 +700,44 @@ void func_8005363C(s32 arg0, void* arg1)
     temp->field_C  = 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_8005368C);
+s32 func_8005368C(s16 arg0, s32 arg1)
+{
+    u16        x;
+    u8         slot;
+    s32        i;
+    GStruct42* base;
+    GStruct42* ptr;
+
+    x = arg0;
+    if ((arg1 & 0xFF) == 0) {
+        return 0;
+    }
+    slot = D_800680AC[x >> 12];
+    if ((s8)slot == -1) {
+        return -1;
+    }
+    switch ((u32)(arg0 & 0xF000) >> 12) {
+        case 4:
+            i    = 4;
+            base = D_8007E0D8;
+            ptr  = base + 4;
+            do {
+                if (ptr->field_8 == x) {
+                    return -1;
+                }
+                i++;
+                ptr++;
+            } while (i < 7);
+            slot = D_80082122 + 4;
+            break;
+        case 0xF:
+            break;
+        default:
+            if (D_8007E0D8[(s8)slot].field_8 == (arg0 & 0xFFFF)) {
+                return -1;
+            }
+            break;
+    }
+    func_800561EC((s8)slot);
+    return 0;
+}

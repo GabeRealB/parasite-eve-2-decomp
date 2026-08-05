@@ -4407,3 +4407,44 @@ if (flag != NULL) {
 
 Cast-only double loads of `arg0->field_20` (as in Mc_StateCloseReturn) reload
 twice and miss the `lhu`/`sh` pairing. `func_80034A40` is the pure example.
+
+## `s16` first arg forces `$a2`/`$a3` dual copies of the promoted value
+
+When the target saves arg0 twice before the early-out check:
+
+```
+move  a2, a0
+andi  a1, a1, 0xff
+beqz  a1, ret0
+ move a3, a2          /* delay: second full-width copy */
+andi  a1, a3, 0xffff  /* u16 id from a3 */
+...
+andi  v0, a2, 0xf000  /* switch key from a2 */
+...
+andi  v0, a3, 0xffff  /* default path re-masks from a3 */
+```
+
+declaring the first parameter as `s32` and writing `u16 x = arg0` only produces
+`move a2, a0` plus a short-lived `move v0, a2` for the truncation — `$a3` never
+appears, and the default re-mask uses `$a2` (~99.7%).
+
+Fix: type the first parameter as `s16` (or `short`). The ABI still passes it in
+`$a0`, but the HImode formal forces a second full-width copy into `$a3` for the
+`u16` path while `$a2` holds the value used for wider masks (`& 0xF000`). Keep
+the rest of the `func_80053548` pattern:
+
+```c
+s32 func_...(s16 arg0, s32 arg1)
+{
+    u16 x;
+
+    x = arg0;
+    if ((arg1 & 0xFF) == 0) {
+        return 0;
+    }
+    /* table[x >> 12], switch ((u32)(arg0 & 0xF000) >> 12), ... */
+}
+```
+
+`func_8005368C` is the pure example. Hard-register pins on the copies swap
+`$a2`/`$a3` or destroy `$a2` in-place for the switch key.
