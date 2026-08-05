@@ -484,6 +484,7 @@ extern UiList       D_80061284;
 extern UiList       D_800612AC;
 extern UiObjectDesc D_800608F4[];
 extern UiObjectDesc D_800611C8[];
+extern UiObjectDesc D_800612D0[];
 extern TaskDesc     D_8006268C;
 extern GStruct17*   D_80062698;
 extern TaskDesc     D_8006269C;

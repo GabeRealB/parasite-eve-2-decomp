@@ -7005,3 +7005,44 @@ separate. Also avoids `move a0, v0` after `func_8001E6AC` that appears when
 `ret` is live into a multi-predecessor shared label across calls.
 
 `func_8001C0D4` is the pure example (paired with the busy-temp tip above).
+
+## Reuse one pointer across Task* → field_20 → UiObject* for `$a0`/`lw a0,0x20(a0)`
+
+When the target does:
+
+```
+lw    a0, 0xc(s2)      # child = task->field_c
+nop
+bnez  a0, else
+ li    v0, 6           # else-only constant in delay slot
+# null fall-through: spawn UI into a0, ...
+else:
+lw    a0, 0x20(a0)     # childObj = child->field_20 (same reg)
+lh    v1, 0x2e(a0)
+nop
+bne   v1, v0, skip
+```
+
+Separate `Task* child` and `UiObject* childObj` variables put the child in
+`$v0`, so `li v0, 6` cannot ride in the outer delay slot and the else path
+becomes `lw a0, 0x20(v0)`.
+
+Fix: one pointer reused for both roles (cast through `Task*` for `field_20`):
+
+```c
+UiObject* p;
+
+p = (UiObject*)arg0->field_c;
+if (p == NULL) {
+    p = func_800486F0(...);
+    /* ... */
+    return 0;
+}
+p = ((Task*)p)->field_20;
+if (p->field_2E == 6) {
+    /* ...; func_80048838(p, p->field_28) keeps p in $a0 */
+}
+return obj->field_2C;
+```
+
+`func_8003062C` is the pure example (~97.5% → 100% with only this change).

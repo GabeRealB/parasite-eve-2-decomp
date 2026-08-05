@@ -311,12 +311,14 @@ STATIC_ASSERT_SIZEOF(GStruct20, 0x24);
 /// field_4 is copied from UiObjectDesc::field_0 at spawn; field_8 is a mode
 /// (5 = skip draw in func_8002FDCC; set to 3 when torn down); field_C..field_12
 /// are layout halfwords (RECT-like); field_14 is a halfword counter used as the
-/// text draw priority/order; field_16 is a signed timer/counter; field_1C is a
-/// position halfword (+2 when passed to func_8002FDCC); field_20/field_22 are
-/// base x/y for relative text placement; field_24 is a callback copied from the
-/// descriptor; field_28 is the owning Task*; field_2C / field_2E are halfwords
-/// polled by teardown state handlers (e.g. func_8002BD24 waits until
-/// field_2E == -1 before cleaning up).
+/// text draw priority/order; field_16 is a signed timer/counter; field_18/field_1A
+/// are layout offsets (shared with GStruct30; used when positioning child UI);
+/// field_1C is a position halfword (+2 when passed to func_8002FDCC); field_1E is
+/// an x offset paired with field_20; field_20/field_22 are base x/y for relative
+/// text placement; field_24 is a callback copied from the descriptor; field_28 is
+/// the owning Task*; field_2C / field_2E are halfwords polled by teardown state
+/// handlers (e.g. func_8002BD24 waits until field_2E == -1 before cleaning up;
+/// dialog pickers set field_2E == 6 when a choice is confirmed).
 typedef struct _UiObject {
     /* 0x00 */ s32   field_0;
     /* 0x04 */ s32   field_4;
@@ -327,9 +329,10 @@ typedef struct _UiObject {
     /* 0x12 */ u16   field_12;
     /* 0x14 */ u16   field_14;
     /* 0x16 */ s16   field_16;
-    /* 0x18 */ byte  unknown_18[0x4];
+    /* 0x18 */ u16   field_18;
+    /* 0x1A */ u16   field_1A;
     /* 0x1C */ s16   field_1C;
-    /* 0x1E */ s16   unknown_1E;
+    /* 0x1E */ u16   field_1E;
     /* 0x20 */ u16   field_20;
     /* 0x22 */ u16   field_22;
     /* 0x24 */ s32   field_24;
