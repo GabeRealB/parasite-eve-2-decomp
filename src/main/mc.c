@@ -781,7 +781,31 @@ void func_800346AC(Task* arg0, McWork* arg1)
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-INCLUDE_ASM("main/nonmatchings/mc", func_8003477C);
+void func_8003477C(Task* arg0, McWork* arg1)
+{
+    s32           ret;
+    UiObject*     obj;
+    McPromptPair* entry;
+    McPromptPair* base;
+    s32           idx;
+
+    if (MemCardWriteFile(arg1->field_C, Mc_FileName, (unsigned long*)Mc_DefaultChecksumSrc, 0,
+                         0x200) != 0) {
+        arg1->field_4  = 0;
+        arg0->field_30 = arg0->field_30 + 1;
+    } else {
+        arg1->field_4 = arg1->field_4 + 1;
+    }
+    idx           = arg1->field_8;
+    obj           = arg0->field_20;
+    ret           = func_80048E10(obj, 1);
+    obj->field_2E = 0;
+    func_80048E38(obj, D_8001398C);
+    base  = Mc_PromptTable;
+    entry = &base[idx];
+    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
+    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
+}
 
 void func_80034894(Task* arg0, McWork* arg1)
 {
