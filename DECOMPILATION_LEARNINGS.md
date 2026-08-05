@@ -1261,6 +1261,30 @@ if (arg0 == 0) {
 
 `if (arg0 != 0)` swaps the arms and GCC emits `beqz` with the non-zero path as fall-through — same code, inverted control flow, large score drop. `Mc_CopyFileName` is a short example (copy between `Mc_FileName` / `Mc_FileNameBuf`).
 
+**`return` in the `== 0` arm defeats this.** GCC sinks return blocks to the
+function end and rewrites the test as `beqz` → exit, with the continue path as
+fall-through — even when you wrote `if (x == NULL)`. Prefer `break` out of a
+`do { ... } while (cond != NULL)` so the null arm stays the fall-through of
+`bnez` and the non-null arm ends with an unconditional `j` back to the loop
+(GCC proves `cond` is true after the null check and folds the while test):
+
+```c
+do {
+    /* ... */
+    next = cur->field_18;
+    free_node(cur);
+    if (next == NULL) {
+        tail = NULL;
+        head = NULL;
+        break;              /* not return — keeps bnez fall-through */
+    }
+    head = next;
+} while (next != NULL);      /* folds to `j loop` on the non-null path */
+```
+
+`func_800508B0` only matches with this shape; `return` in the null arm stuck at
+~94% with inverted `beqz` and a missing `j` to the shared epilogue.
+
 ## Ring-buffer wrap: `x = x + 1; x = x % N` keeps both stores
 
 For a power-of-two ring size, `x = (x + 1) & (N-1)` and `x++; x &= (N-1)` both

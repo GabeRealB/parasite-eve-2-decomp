@@ -2,7 +2,47 @@
 
 #include "main/unknown_syms.h"
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_800508B0);
+void func_800508B0(void)
+{
+    GStruct16* next;
+    GStruct16* cur;
+    u32        i;
+    s32*       ptr;
+
+    if (D_8007EBE0 == 0) {
+        return;
+    }
+    if (D_8007EBE4 == NULL) {
+        return;
+    }
+
+    do {
+        cur = D_8007EBE4;
+        if ((u16)cur->field_2 >= 0x10U) {
+            ptr = (s32*)D_8007EBF0;
+            i   = 0;
+            do {
+                *ptr = 0;
+                i++;
+                ptr++;
+            } while (i < 0x1C0U);
+            D_8007EBE4 = NULL;
+            D_8007EBE8 = NULL;
+            D_8007EBE0 = 1;
+            return;
+        }
+        D_80068984[cur->field_2](cur);
+        cur  = D_8007EBE4;
+        next = cur->field_18;
+        func_80050A90(cur);
+        if (next == NULL) {
+            D_8007EBE8 = NULL;
+            D_8007EBE4 = NULL;
+            break;
+        }
+        D_8007EBE4 = next;
+    } while (next != NULL);
+}
 
 void func_800509B4(void)
 {
