@@ -171,6 +171,7 @@ extern void      func_80048560(void* arg0, void* arg1, s32 arg2, s32 arg3);
 extern void      func_80048838(UiObject* arg0, Task* arg1);
 extern void      func_800488B8(Task* arg0);
 extern void      func_800488F8(Task* arg0);
+extern void      func_80047D90(GStruct30* arg0, char* arg1);
 extern void      func_80047F40(GStruct30* arg0, char* arg1);
 extern void      func_80048904(GStruct30* arg0, s32 arg1, s32 arg2);
 extern void      func_80048964(GStruct30* arg0, void* arg1);
