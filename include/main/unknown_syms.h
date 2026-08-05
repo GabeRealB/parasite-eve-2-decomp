@@ -16,6 +16,10 @@
 
 // boot.c APIs / F04CF8_* → main/boot.h; Boot_LoadInitialFile → main/fs.h
 
+// Scratchpad image unpacker in boot rodata (func_80010398); reads
+// D5B498_8006C22C / Fs_ChunkWritePtr globals, takes no meaningful args.
+extern void func_80010398(void);
+
 // E734.c
 extern s32 func_8001E2D4(void);
 extern s32 func_8001E6AC(s32 arg0, s32 arg1);

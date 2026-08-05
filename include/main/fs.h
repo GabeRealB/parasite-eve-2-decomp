@@ -257,6 +257,18 @@ typedef struct _FsImgBuffers {
 } FsImgBuffers;
 STATIC_ASSERT_SIZEOF(FsImgBuffers, 0x25800);
 
+/// On-disk / in-sector image chunk header used by `func_800246B0`.
+/// Fields at +4/+6 are height then width (swapped relative to RECT).
+typedef struct _FsImageChunk {
+    u16 x;
+    u16 y;
+    u16 h;
+    u16 w;
+    u8  pad[8];
+    // pixel data follows at offset 0x10
+} FsImageChunk;
+STATIC_ASSERT_SIZEOF(FsImageChunk, 0x10);
+
 // Forward decl for boot task callback (full type in game.h).
 struct _Task;
 
@@ -290,6 +302,10 @@ void Fs_ContinueDrawing(u_long* ot);
 void Fs_StopCd(void);
 bool Fs_StageCdfIsAvailable(u32 stageIdx);
 void Fs_ScanIsoDirectory(s32 mode);
+
+/// Load an image chunk into VRAM (BreakDraw / LoadImage2 path).
+/// `retryNonzero` disables timeout aborts when non-zero.
+s32 func_800246B0(FsImageChunk* img, u8 retryNonzero);
 
 /// Look up a packed file id and start a CD load (unmatched).
 void Fs_LoadFile(u8* req, s32 a1, s32 a2, s32 a3);
@@ -362,6 +378,8 @@ extern SpuCommonAttr Fs_SpuAttr;
 extern FsImgBuffers* D4CB64_ImgBuffers;
 
 // Still-unlabeled FS bss (same segment; keep address names until understood)
+/// Per-slot image-load status bytes (indexed by `D5B498_8006ADF4`).
+extern u8           D_8006C4C8[0xC];
 extern s16          D5B498_8006AC98;
 extern u16          D5B498_8006AC9A;
 extern u16          D5B498_8006AC9C;

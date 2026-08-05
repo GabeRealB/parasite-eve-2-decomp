@@ -6182,3 +6182,63 @@ lands in `$t3` (without the pin, `$t2`/`$t3` for arg1/arg5 swap). Pair with
 Psy-Q `addPrim` / `setlen` / `setcode` (see above) and
 `addPrim(D_800710A0 + (s16)obj->field_14 + 1, p)` when the target uses `lh`
 on a `u16` OT index and OT slot `field_14 + 1`.
+
+## Empty `asm volatile` a0 clobber for branch-delay restore
+
+When a function sets `a0` in the delay of an earlier branch (e.g.
+`move a0, s0` after `bnez rcnt_ok`), then has:
+
+```
+bnez  s1, restore     /* if retry != 0 */
+ move  a0, zero       /* delay: for ContinueDraw(NULL, ...) */
+jal   ContinueDraw
+...
+restore:
+ move  a0, s0         /* undo the delay clobber before shared tail */
+lui   ...             /* shared finish */
+```
+
+GCC 2.8.1 often prefers to put the *finish* block's first `lui` in the
+`bnez s1` delay instead, and shares that `lui` with the taken path (so no
+`move a0, s0` restore is needed). That is functionally fine but mismatches.
+
+Fix: on the `retry != 0` path only, empty-clobber `$4`/`a0` so the taken
+path must re-materialize `ot` into `a0`. Fallthrough then keeps
+`move a0, zero` in the delay, and the taken path emits the restore:
+
+```c
+if (GetRCnt(timer) >= TIMEOUT) {
+    if (retry == 0) {
+        ContinueDraw(z, ot);  /* z = NULL forces move a0, zero not move a0, s1 */
+        return 0x7F;
+    }
+    asm volatile("" : : : "$4");
+}
+/* shared finish uses ot in a0 */
+```
+
+Also: assign `z = NULL` *before* the idle wait so CSE does not replace
+`move a0, zero` with `move a0, s1` when `retry == 0` is proven.
+
+`func_800246B0` is the pure example. Pair with `register ... asm("s0")` /
+`asm("s1")` when ot/retry would otherwise swap.
+
+## Split range-check condition into a temp for `move a1` delay fill
+
+When a later region needs `a1 = arg0` for field access (and the range
+compare must still load `y` from `s3`), compute the condition into a
+temporary *before* copying the pointer:
+
+```c
+inRange = (u32)(arg0->y - 0xF5) < 0xBU;
+img = arg0;           /* lands in beqz delay as move a1, s3 */
+if (inRange) {
+    yAdj = flag;
+} else {
+    yAdj = 0;
+}
+/* subsequent y/w/h loads use img/a1; j delay gets lui of next global */
+```
+
+Assigning `img = arg0` only after the if/else often puts `move a1` in the
+*true-path* `j` delay instead, and duplicates it on the else path.
