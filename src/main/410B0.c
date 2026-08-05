@@ -599,7 +599,29 @@ s32 func_800528F0(s32 arg0, s32 arg1)
     return arg1 + 1;
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_800528F8);
+u8* func_800528F8(s32 arg0, u8* arg1, GStruct36* arg2)
+{
+    s32 i;
+    u8  t;
+    u8  param;
+    u8* ptr;
+
+    ptr   = arg1;
+    t     = arg0 & 0xF;
+    param = ptr[1];
+    if ((arg0 & 0xF0) == 0x90) {
+        ptr += 1;
+    }
+    if (arg2->field_484[t].field_0 == 0) {
+        for (i = 0; i < 0x12; i++) {
+            if ((arg2->voiceSlots[i].field_2 == param) &&
+                (arg2->voiceSlots[i].field_1 == t)) {
+                func_8004E71C(arg2->voiceSlots[i].field_0);
+            }
+        }
+    }
+    return ptr + 2;
+}
 
 u8* func_800529BC(s32 arg0, u8* arg1, GStruct22* arg2)
 {

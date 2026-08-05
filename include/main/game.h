@@ -269,9 +269,13 @@ typedef struct _UiObject {
 } UiObject;
 
 /// 8-byte slot at GStruct22::field_484 (16 entries, indexed by opcode low nibble).
-/// field_0 is written as a full word (0x407F4000) by func_800528BC; field_4 is a byte.
+/// Seeded as the word 0x407F4000 by func_800528BC (field_0..field_3 little-endian);
+/// field_0 is tested as a flag byte (lbu); field_4 is a byte written by handlers.
 typedef struct _GStruct22Entry {
-    /* 0x0 */ s32 field_0;
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ u8  field_2;
+    /* 0x3 */ u8  field_3;
     /* 0x4 */ u8  field_4;
     /* 0x5 */ u8  field_5;
     /* 0x6 */ s16 field_6;
@@ -556,10 +560,12 @@ STATIC_ASSERT_SIZEOF(GStruct36Entry, 0x3C);
 /// Active SPU voice slot inside GStruct36 (stride 0xC, 18 slots at 0x504).
 /// field_0 is the voice index (negative when free); iterated by func_80051AF0.
 /// field_0 / field_1 are set to -1 when the slot is cleared (func_80051964).
+/// field_1 / field_2 match opcode nibble / param in func_800528F8.
 typedef struct _GStruct36VoiceSlot {
     /* 0x0 */ s8 field_0;
     /* 0x1 */ s8 field_1;
-    /* 0x2 */ u8 unknown_2[0xA];
+    /* 0x2 */ s8 field_2;
+    /* 0x3 */ u8 unknown_3[0x9];
 } GStruct36VoiceSlot;
 STATIC_ASSERT_SIZEOF(GStruct36VoiceSlot, 0xC);
 

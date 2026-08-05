@@ -4926,3 +4926,51 @@ func(obj, targetX - obj->field_20, targetY - obj->field_22);
 
 `func_80048D58` is the pure example (smooth cursor toward a UI object over
 `Display_State.field_10a` frames, then call `func_800463B4`).
+
+## `u8` index + `arr[i]` for large-offset slot walks
+
+When the target does:
+
+```
+andi  v1, a0, 0xf
+...
+andi  a0, v1, 0xff          /* delay of a later branch */
+sll   v0, a0, 3
+...
+move  s0, a2
+lb    v0, 0x506(s0)         /* voiceSlots[i].field_2 */
+...
+addiu s0, s0, 0xc
+```
+
+two codegen traps show up:
+
+1. **`s32 idx = arg0 & 0xF` kills the zero-extend.** GCC proves the value is
+   already 0..15 and drops `andi a0, v1, 0xff`. Hold the nibble in a `u8` so
+   promoting it to an array index / shift emits the zero-extend:
+
+```c
+u8 t = arg0 & 0xF;
+/* later: field_484[t] / voiceSlots[i].field_1 == t  →  andi a0, v1, 0xff */
+```
+
+2. **A mid-struct pointer rebases the walk.** `slot = arg2->voiceSlots; slot++`
+   becomes `addiu s0, a2, 0x504` + relative `lb 2(s0)`. Indexing from the parent
+   keeps the full base and the large offsets:
+
+```c
+for (i = 0; i < 0x12; i++) {
+    if (arg2->voiceSlots[i].field_2 == param &&
+        arg2->voiceSlots[i].field_1 == t) {
+        func_8004E71C(arg2->voiceSlots[i].field_0);
+    }
+}
+```
+
+3. **Do not copy `t` into a separate `s32 idx` for the loop.** That extra live
+   range often swaps the `s3`/`s4` assignment order (`move s4, a0` before
+   `andi s4, a1, 0xff`). Use the `u8` directly in both the table index and the
+   loop compare.
+
+`func_800528F8` is the pure example (opcode nibble + optional `0x90` skip,
+then key-off matching SPU voice slots).
