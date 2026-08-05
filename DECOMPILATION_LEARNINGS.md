@@ -7110,3 +7110,74 @@ return obj->field_2C;
 ```
 
 `func_8003062C` is the pure example (~97.5% → 100% with only this change).
+
+## Dense 0..N switch → equality-chain if/gotos with duplicated tails
+
+A target that dispatches with a pure equality chain:
+
+```
+li   s4, 1
+beq  v1, s4, case1
+nop
+beqz v1, case0
+li   a1, 2
+beq  v1, a1, case2
+li   v0, 3
+beq  v1, v0, case3
+...
+j    default
+```
+
+is *not* produced by `switch (x) { case 0: ... case 1: ... case 2: ... case 3: ... }`.
+GCC 2.8.1 emits a binary tree with `slti` / range checks for consecutive cases
+(score ~96% with otherwise identical bodies and correct `$s2` for a global).
+
+`if (x == 1) goto case1; if (x == 0) goto case0; ...` fixes the dispatch, but
+an explicit shared tail label for a common `p->field++` often rematerialises
+`%hi(global)` into `$v0` instead of reusing the callee-saved address reg, and
+can swap `$s2`/`$s3` between that global and a competing mid-function
+`&Display_State` (~97%).
+
+Match both: keep the if/goto equality dispatch, **and write the shared tail
+inline in every case** (duplicate `D_80062698->field_28++`). GCC CSEs those
+copies into the dual-entry shared block the target wants (`lw` via `$s2` at the
+head, case0 preloads and jumps mid-block with `sb` in the delay slot):
+
+```c
+temp = p->field_28;
+if (temp == 1) {
+    goto case1;
+}
+if (temp == 0) {
+    goto case0;
+}
+if (temp == 2) {
+    goto case2;
+}
+if (temp == 3) {
+    goto case3;
+}
+goto default_case;
+
+case0:
+    /* ... */
+    p->field_28 = p->field_28 + 1;
+    goto end;
+case1:
+    if (ready()) {
+        /* ... */
+        p->field_28 = p->field_28 + 1;
+    }
+    goto end;
+/* case2 likewise ends with the same increment */
+case3:
+    /* ... */
+    p->field_28 = p->field_28 + 1;
+default_case:
+    /* ... */
+end:
+    return 1;
+```
+
+`func_8003EC44` is the pure example (switch ~96.7%, shared-goto ~97.2%,
+duplicated tails + if/gotos → 100%).

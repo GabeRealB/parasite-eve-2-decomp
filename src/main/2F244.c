@@ -7,7 +7,69 @@
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_8003EA44);
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8003EC44);
+s32 func_8003EC44(void)
+{
+    RECT rect;
+    s32  temp_v1;
+
+    temp_v1 = D_80062698->field_28;
+    if (temp_v1 == 1) {
+        goto case1;
+    }
+    if (temp_v1 == 0) {
+        goto case0;
+    }
+    if (temp_v1 == 2) {
+        goto case2;
+    }
+    if (temp_v1 == 3) {
+        goto case3;
+    }
+    goto default_case;
+
+case0:
+    SetDispMask(0);
+    D_80062698->field_24    = Display_State.field_118;
+    Display_State.field_122 = 1;
+    func_800149E8(D4F564_8005ED64->field_7, D4F564_8005ED64->field_6, Display_State.field_118);
+    Display_State.field_103 = 2;
+    D_80062698->field_28    = D_80062698->field_28 + 1;
+    goto end;
+case1:
+    if (func_8001D344() & 0xFFFF) {
+        CdCmd_Enqueue(0x21, D_80062698->field_2C, D_80062698->field_34);
+        D_80062698->field_28 = D_80062698->field_28 + 1;
+    }
+    goto end;
+case2:
+    if ((func_8001D344() & 0xFFFF) && (Display_State.field_118 != D_80062698->field_24)) {
+        func_8001490C(D4F564_8005ED64->field_7, D4F564_8005ED64->field_6, Display_State.field_118, 0x10000);
+        Mem_InitAux();
+        rect.x = 0;
+        rect.w = 0x140;
+        rect.h = 0xF0;
+        rect.y = (Display_State.field_118 ^ 1) * 0x110;
+        ClearImage(&rect, 0, 0, 0);
+        rect.x = 0;
+        rect.w = 0x140;
+        rect.h = 0xF0;
+        rect.y = Display_State.field_118 * 0x110;
+        ClearImage(&rect, 0, 0, 0);
+        DrawSync(0);
+        D_80062698->field_12 = 1;
+        D_80062698->field_28 = D_80062698->field_28 + 1;
+    }
+    goto end;
+case3:
+    Display_State.field_103 = 1;
+    Display_State.field_100 = 2;
+    D_80062698->field_28    = D_80062698->field_28 + 1;
+default_case:
+    SetDispMask(1);
+    D_80062698->field_1c = D_80062698->field_1c & 0xF7FFFFFF;
+end:
+    return 1;
+}
 
 Task* func_8003EE68(void)
 {
