@@ -130,7 +130,43 @@ void F04CF8_800148EC(void)
     func_800574BC();
 }
 
-INCLUDE_ASM("main/nonmatchings/boot", func_8001490C);
+void func_8001490C(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    RECT              rect;
+    F04CF8_ImageSlot* entries;
+    u8*               ptr;
+    size_t            size;
+    size_t            imgBufSize;
+    size_t*           pSize;
+
+    entries = D_8005C37C[arg0];
+    rect.x  = 0;
+    if (arg2 != 0) {
+        rect.y = 0;
+    } else {
+        rect.y = 0x110;
+    }
+    rect.w = 0x140;
+    rect.h = 0xF0;
+    StoreImage(&rect, entries[arg1].field_0);
+    DrawSync(0);
+
+    imgBufSize = 0x25800;
+    do {
+        D_80068F90 = 0x10000;
+    } while (0);
+    pSize        = &GActiveAuxHeapSize;
+    size         = 0x10000 - arg3;
+    *pSize       = size;
+    D_800691F8   = 0x10000;
+    GAuxHeapSize = size;
+
+    ptr            = (u8*)entries[arg1].field_0 + imgBufSize;
+    D_80068F88     = (size_t)ptr;
+    GActiveAuxHeap = ptr + arg3;
+    D_800691F4     = ptr;
+    GAuxHeap       = ptr + arg3;
+}
 
 void func_800149E8(s32 arg0, s32 arg1, s32 arg2)
 {

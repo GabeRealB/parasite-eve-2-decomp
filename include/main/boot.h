@@ -23,6 +23,7 @@ STATIC_ASSERT_SIZEOF(F04CF8_ImageSlot, 0x8);
 
 void F04CF8_800148A0(void);
 void F04CF8_800148EC(void);
+void func_8001490C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800149E8(s32 arg0, s32 arg1, s32 arg2);
 void F04CF8_80014A50(void);
 void F04CF8_80014A98(s32 mode);

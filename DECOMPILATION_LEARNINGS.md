@@ -5023,3 +5023,41 @@ p->h = temp + 1;
 ```
 
 `func_8002F5E4` is the pure example (SPRT setup: w, then clut 0x7FFD, then h).
+
+## `do {} while (0)` + address-of global for store/`subu` interleave
+
+When a tail assigns several BSS size/heap globals and the target wants:
+
+```
+lui  v0, %hi(D_sizeA)
+lui  v1, 0x1
+sw   v1, %lo(D_sizeA)(v0)
+lui  v0, %hi(D_sizeB)
+subu a0, v1, s1
+sw   a0, %lo(D_sizeB)(v0)
+```
+
+a natural `D_sizeA = 0x10000; size = 0x10000 - arg; D_sizeB = size;` schedules
+`subu` *before* the first `sw` (into the free slot after `lui v1`). Wrapping
+only the first store in `do {} while (0)` forces that store first but can put
+`subu` before the second `lui %hi`. Taking the address of the second global
+before the subtraction restores the full sequence:
+
+```c
+size_t size;
+size_t* pSize;
+
+imgBufSize = 0x25800; /* keep late pointer math constant live early in $a1 */
+do {
+    D_80068F90 = 0x10000;
+} while (0);
+pSize  = &GActiveAuxHeapSize; /* lui %hi before subu */
+size   = 0x10000 - arg3;
+*pSize = size;
+D_800691F8   = 0x10000;
+GAuxHeapSize = size;
+```
+
+`func_8001490C` is the pure example (VRAM `StoreImage` then aux-heap base/size
+setup). Sibling `func_800149E8` is the matching `LoadImage` without heap work;
+note its `arg2` → `rect.y` polarity is the opposite of `func_8001490C`.
