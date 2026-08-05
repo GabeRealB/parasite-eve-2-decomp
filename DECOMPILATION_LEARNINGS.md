@@ -188,6 +188,14 @@ A local `DisplayState*` would force a callee-saved register and a larger stack
 frame for no benefit. Use the pointer only when the address is live across
 calls.
 
+**Hybrid — direct on the no-call arm, pointer only on the call arm.** When the
+target holds the address in `$v1` through an early branch that never calls, then
+reloads it into `$s0` only on the fallthrough path that *does* call, do not
+share one local pointer for both arms. Access the global by name (or return
+early) on the no-call arm, and introduce `p = &global` only after joining the
+call path. A single `p` live across both arms pins `$s0` for the whole function
+and mismatches prologue/early stores (`func_80058320` / `D_80082818`).
+
 **Also: capture a dest address before a call that you assign after.** Writing
 `Fs_ChunkWritePtr = (u8*)&Fs_CdSector` after `CdSync` materialises the address
 post-call. Pre-assigning `dest = (u8*)&Fs_CdSector` before `CdSync` puts the
