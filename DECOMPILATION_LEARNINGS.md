@@ -5061,3 +5061,85 @@ GAuxHeapSize = size;
 `func_8001490C` is the pure example (VRAM `StoreImage` then aux-heap base/size
 setup). Sibling `func_800149E8` is the matching `LoadImage` without heap work;
 note its `arg2` → `rect.y` polarity is the opposite of `func_8001490C`.
+
+## Goto-loop vs while: LICM of loop-invariant masks
+
+GCC 2.8.1's loop-invariant code motion hoists `arg & 0xFFFF` out of a
+`while (1)` / `for (;;)` / `do {} while`, rewriting it as an early
+`andi aN,aN,0xffff` and breaking delay-slot fills. The same body written as a
+goto-based loop does **not** get that hoist, so the mask stays at the use site
+and can fill the previous branch's delay slot:
+
+```
+bne  v1, v0, cont        /* e.g. field_E != arg0[0] */
+ andi v0, a1, 0xffff     /* delay: arg1 & 0xFFFF — only with goto-loop */
+lhu  v1, 0x10(a3)
+bne  v1, v0, cont
+```
+
+```c
+/* Hoists andi to prologue */
+while (1) {
+    if (entry->field_E == arg0[0]) {
+        if (entry->field_10 == (arg1 & 0xFFFF)) { /* ... */ }
+    }
+    /* ... */
+}
+
+/* Keeps andi at the compare (delay-slot fillable) */
+loop:
+    if (entry->field_E == arg0[0]) {
+        if (entry->field_10 == (arg1 & 0xFFFF)) { /* ... */ }
+    }
+    i++;
+    if ((u32)(i & 0xFFFF) < N) {
+        goto loop;
+    }
+```
+
+`func_8001EDC8` is the pure example (search of `D_8006D4F0`, mask of `arg1`
+against `field_10`).
+
+## Place `return -1` after shared match labels
+
+When a search function has a shared "record match then re-check found" tail
+(`matched:` / `matched_result:` after the main done-check), put the negative
+return **after** those labels, not as the then-branch of the found test:
+
+```c
+done:
+    if ((found & 0xFFFF) == 0) {
+        goto ret_neg;
+    }
+    ret = result << 0x10;
+    return ret >> 0x10;
+
+matched:
+    found = 1;
+matched_result:
+    result = i;
+    goto done;
+
+ret_neg:
+    return -1;
+```
+
+Putting `return -1` directly under `if (found == 0)` with `matched` after
+`done` often inverts the branch (`bnez` + early `-1`) and drops the
+`li t1,1` / `j done` / `move t2,t0` block past the success `jr`. Target layout:
+
+```
+andi  v0, t1, 0xffff
+beqz  v0, ret_neg
+sll   v0, t2, 16
+jr    ra
+ sra  v0, v0, 16
+li    t1, 1          /* matched */
+j     done
+ move t2, t0         /* matched_result */
+jr    ra             /* ret_neg */
+ li   v0, -1
+```
+
+Also: declare locals in order `i`, `found`, `result` (init `result = 0; i =
+result; found = result`) so `$t0`/`$t1`/`$t2` match that assignment chain.

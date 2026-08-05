@@ -33,7 +33,69 @@ void func_8001ED20(u32 arg0)
     D_8006AC18            = entry->field_26;
 }
 
-INCLUDE_ASM("main/nonmatchings/F344", func_8001EDC8);
+s16 func_8001EDC8(u8* arg0, s32 arg1, s32 arg2)
+{
+    s32        i;
+    s32        found;
+    s32        result;
+    GStruct24* base;
+    s32        one;
+    s32        ret;
+
+    result = 0;
+    i      = result;
+    found  = result;
+    base   = D_8006D4F0;
+    one    = 1;
+    arg2  &= 0xFFFF;
+
+loop:
+    if (base[i & 0xFFFF].field_0 == one) {
+        if (base[i & 0xFFFF].field_4 != 0) {
+            if (base[i & 0xFFFF].field_E == arg0[0]) {
+                if (base[i & 0xFFFF].field_10 == (arg1 & 0xFFFF)) {
+                    if (base[i & 0xFFFF].field_C == 0) {
+                        if (arg2 == 0) {
+                            goto matched;
+                        }
+                        if (base[i & 0xFFFF].field_1E != 0) {
+                            found = 1;
+                            goto matched_result;
+                        }
+                    } else if (base[i & 0xFFFF].field_C == arg0[1]) {
+                        if (arg2 == 0) {
+                            goto matched;
+                        }
+                        if (base[i & 0xFFFF].field_1E == 0) {
+                            goto done;
+                        }
+                        found = 1;
+                        goto matched_result;
+                    }
+                }
+            }
+        }
+    }
+    i = i + 1;
+    if ((u32)(i & 0xFFFF) < 0xFU) {
+        goto loop;
+    }
+done:
+    if ((found & 0xFFFF) == 0) {
+        goto ret_neg;
+    }
+    ret = result << 0x10;
+    return ret >> 0x10;
+
+matched:
+    found = 1;
+matched_result:
+    result = i;
+    goto done;
+
+ret_neg:
+    return -1;
+}
 
 s16 func_8001EED8(u8* arg0)
 {

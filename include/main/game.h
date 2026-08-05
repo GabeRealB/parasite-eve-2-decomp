@@ -300,7 +300,7 @@ typedef struct _GStruct24 {
     /* 0x08 */ byte unknown_8[0x4];
     /* 0x0C */ u16  field_C;
     /* 0x0E */ u16  field_E;
-    /* 0x10 */ byte unknown_10[0x2];
+    /* 0x10 */ u16  field_10;
     /* 0x12 */ u16  field_12;
     /* 0x14 */ u16  field_14;
     /* 0x16 */ u16  field_16;
