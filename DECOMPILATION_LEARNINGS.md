@@ -4622,6 +4622,17 @@ asm volatile(
 `func_8002F3A0` is the pure example. Power-of-two / no-div TUs do not need
 `--expand-div`; this one does (`1E6C4.c`).
 
+Signed hex sibling `func_8002F2A4` reuses the same digit-loop tricks (`asm("")`
+after the raw store, inline-asm zero-path with `D_800138C8`) but:
+
+- Prefixes `'-'` and recurses on `-arg1` when `arg1 < 0` (return value is the
+  original buffer, held in `$s0`).
+- Uses **signed** place math: `sra` / `slt` / `blez`/`bgtz` instead of
+  `srl` / `sltu` / `beqz`/`bnez`, and `div` instead of `divu`.
+- Saves `arg0` in `$s0`, so `place` can live in `$a0` and `dest` in `$a2`
+  (unsigned keeps `arg0` in `$a0`, so `place`/`dest` are `$a2`/`$a3`).
+- Zero-path pins differ: `src` in `$t2`, loads into `$a3`/`$t0`.
+
 ## Loop-invariant QImode constants: `s8` temp + widen via `s32`
 
 When a loop repeatedly stores a small constant into a byte field

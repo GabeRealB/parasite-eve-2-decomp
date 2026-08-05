@@ -55,7 +55,65 @@ INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002F020);
 
 INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002F18C);
 
-INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002F2A4);
+u8* func_8002F2A4(u8* arg0, s32 arg1)
+{
+    register u8* dest asm("a2");
+    register s32 place asm("a0");
+    s32          digit;
+    s32          temp;
+    s32          prod;
+    u8*          ret;
+
+    place = 0x10000000;
+    if (arg1 < 0) {
+        *arg0 = 0x2D;
+        func_8002F2A4(arg0 + 1, -arg1);
+        return arg0;
+    }
+    if (arg1 == 0) {
+        register s8* src asm("t2");
+        register s32 c0 asm("a3");
+        register s32 c1 asm("t0");
+        register s32 hi asm("v0");
+        do {
+            asm volatile("lui %1, %%hi(D_800138C8)\n\t"
+                         "addiu %0, %1, %%lo(D_800138C8)"
+                         : "=r"(src), "=r"(hi));
+            c0      = src[0];
+            c1      = src[1];
+            arg0[0] = c0;
+            arg0[1] = c1;
+        } while (0);
+        return arg0;
+    }
+    dest = arg0;
+    if (arg1 < place) {
+        do {
+            place >>= 4;
+        } while (arg1 < place);
+    }
+    if (place > 0) {
+        do {
+            digit = arg1 / place;
+            *dest = digit;
+            asm("");
+            temp    = digit & 0xFF;
+            prod    = temp * place;
+            place >>= 4;
+            arg1   -= prod;
+            if (temp >= 10U) {
+                *dest = temp + 0x37;
+            } else {
+                *dest = temp + 0x30;
+            }
+            dest++;
+        } while (place > 0);
+    }
+    *dest = 0;
+    ret   = arg0;
+    asm("" : "+r"(ret));
+    return ret;
+}
 
 u8* func_8002F3A0(u8* arg0, u32 arg1)
 {
