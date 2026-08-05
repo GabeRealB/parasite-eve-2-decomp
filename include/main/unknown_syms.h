@@ -302,7 +302,7 @@ extern s32        func_80055DAC(s32 arg0);
 extern void       func_80055DFC(s8 arg0);
 extern s8         func_80055EE8(void);
 extern void       func_80056068(GStruct43* arg0);
-extern GStruct31* func_80056104(s32 arg0, s32 arg1);
+extern GStruct31* func_80056104(u16 arg0, s32 arg1);
 extern GStruct31* func_800561C0(s32 arg0);
 extern void       func_800561EC(s32 arg0);
 extern GStruct43* func_80056240(s32 arg0);

@@ -4834,3 +4834,50 @@ do {
 
 Using the same `-2U` (or one local) for both compares coalesces them into a
 single register and shifts the rest of the allocation.
+
+## `u16` formal + `s32 key = arg0` for `move v0,a0` in `beqz` delay
+
+When a `switch (arg1)` target opens with:
+
+```
+beqz  a1, case0
+ move  v0, a0          /* delay: full-width copy of the first arg */
+li    v0, 1
+beq   a1, v0, case1
+ move  v0, zero
+...
+case0:
+move  a1, zero
+andi  a0, v0, 0xffff   /* mask the copy, not a0 itself */
+```
+
+an `s32 arg0` formal with `arg0 &= 0xFFFF` collapses to `andi a0, a0, 0xffff`
+and fills the `beqz` delay with `li v0, 1` instead (~97.5%).
+
+Fix: type the first parameter as `u16` and widen into an `s32` local inside
+the case that needs the zero-extend. The HImode formal forces a full-width
+copy that delay-slot filling hoists into `$v0`:
+
+```c
+GStruct31* func_...(u16 arg0, s32 arg1)
+{
+    s32 key;
+    /* ... */
+
+    switch (arg1) {
+    case 0:
+        key = arg0;          /* move v0,a0  then  andi a0,v0,0xffff */
+        /* walk with key */
+        return NULL;
+    case 1:
+        key = arg0 & 0xF000; /* andi a0,a0,0xf000 — no extra copy */
+        /* walk with key */
+        break;
+    }
+    return NULL;
+}
+```
+
+`func_80056104` is the pure example. A plain `s32` formal never emits the
+leading copy; `u16 key = arg0` alone reorders the `andi` after the table base
+load.

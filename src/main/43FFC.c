@@ -625,7 +625,47 @@ void func_80056068(GStruct43* arg0)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80056104);
+GStruct31* func_80056104(u16 arg0, s32 arg1)
+{
+    s32        i;
+    GStruct31* slot;
+    GStruct42* bank;
+    s32        key;
+
+    switch (arg1) {
+        case 0:
+            i    = 0;
+            key  = arg0;
+            slot = D_80082148;
+            do {
+                bank = (GStruct42*)slot->field_4;
+                if (bank != NULL) {
+                    if (bank->field_8 == key) {
+                        return slot;
+                    }
+                }
+                i++;
+                slot++;
+            } while (i < 0x10);
+            return NULL;
+        case 1:
+            i    = 0;
+            key  = arg0 & 0xF000;
+            slot = D_80082148;
+            do {
+                bank = (GStruct42*)slot->field_4;
+                if (bank != NULL) {
+                    if ((bank->field_8 & 0xF000) == key) {
+                        return slot;
+                    }
+                }
+                i++;
+                slot++;
+            } while (i < 0x10);
+            break;
+    }
+    return NULL;
+}
 
 GStruct31* func_800561C0(s32 arg0)
 {
