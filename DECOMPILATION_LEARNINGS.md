@@ -4740,3 +4740,97 @@ slot = ((GStruct36*)slot)->voiceSlots; /* addiu a1, a1, 0x504 */
 `func_80051964` is the pure example (voice-slot clear loop). Pair with the
 `offset + (s32)base` integer cast (see “Force `addu rd, offset, base`”) so the
 `addu` operands stay offset-first.
+
+## Separate `ptr += N` for switch case vs default (delay-slot fill)
+
+When a binary switch decision tree matches the target but every arm ends with
+the same `stream += 2` before shared work, a single post-switch advance (or
+identical advances that rejoin via one label) collapses to one `addiu` that
+empty/default arms branch *to*:
+
+```
+bne  id, K, shared      /* wrong — target wants j after; addiu in delay */
+nop
+j    shared
+ sw   val, 0(stream)
+shared:
+addiu stream, stream, 8
+after:
+lw   ...
+```
+
+The target keeps **two** advances: case arms fall through a shared `addiu`,
+while default is `j after` with `addiu` in the delay slot:
+
+```
+beq  id, K, case_body
+nop
+j    after
+ addiu stream, stream, 8   /* default */
+case_body:
+j    case_advance
+ sw   val, 0(stream)
+case_advance:
+addiu stream, stream, 8
+after:
+lw   ...
+```
+
+Force that shape with an explicit decision tree and **two** advance labels
+that both do `ptr += N` but are not merged before the shared load:
+
+```c
+if (id == 0x3B) {
+    goto case_advance;
+}
+if (id < 0x3C) {
+    if (id == 0x38) {
+        goto case_38;
+    }
+    goto default_advance;
+}
+/* ... more positive branches to late bodies ... */
+goto default_advance;
+
+case_38:
+    *stream = 0x4038;
+    goto case_advance;
+case_78:
+    *stream = 0x4078;
+case_advance:
+    stream += 2;
+    goto after;
+default_advance:
+    stream += 2;
+after:
+    dims = *stream;
+    /* ... */
+```
+
+A plain `switch` with empty cases for the non-writing IDs folds those cases
+into default and loses the `sltiu` split. Putting `stream += 2` only after the
+switch (or on every arm with one join) also merges the two `addiu`s.
+
+`func_80041C50` is the pure example (rewrite opcodes `0x38`→`0x4038` /
+`0x78`→`0x4078` while walking a `[id, handler, dims, data…]` stream).
+
+## Dual terminator constants for outer/inner loops
+
+When the target preloads `-2` into one register for the outer "skip group"
+check and reloads `-2` into another for the inner loop exit (`bne …, a1`),
+hold the outer value in a local and keep the inner compare as a literal:
+
+```c
+u32 stop = -2;
+do {
+    if (*stream != stop) {
+        do {
+            /* ... */
+        } while (*stream != -2U);
+    }
+    stream++;
+} while (*stream != -1U);
+```
+
+Using the same `-2U` (or one local) for both compares coalesces them into a
+single register and shifts the rest of the allocation.

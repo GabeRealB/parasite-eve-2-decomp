@@ -730,7 +730,62 @@ s32 func_80041BFC(void)
     return result;
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_80041C50);
+void func_80041C50(GStruct33* arg0)
+{
+    u32* stream;
+    u32  id;
+    u32  dims;
+    u32  lo;
+    u32  stop;
+
+    stream = arg0->field_20;
+    if (*stream != -1U) {
+        stop = -2;
+        do {
+            if (*stream != stop) {
+                do {
+                    id = *stream;
+                    if (id == 0x3B) {
+                        goto case_advance;
+                    }
+                    if (id < 0x3CU) {
+                        if (id == 0x38) {
+                            goto case_38;
+                        }
+                        goto default_advance;
+                    }
+                    if (id == 0x79) {
+                        goto case_advance;
+                    }
+                    if (id >= 0x7AU) {
+                        goto case_advance;
+                    }
+                    if (id == 0x78) {
+                        goto case_78;
+                    }
+                    goto default_advance;
+
+                case_38:
+                    *stream = 0x4038;
+                    goto case_advance;
+                case_78:
+                    *stream = 0x4078;
+                case_advance:
+                    stream += 2;
+                    goto after;
+                default_advance:
+                    stream += 2;
+                after:
+                    dims = *stream;
+                    lo   = dims & 0xFFFF;
+                    stream++;
+                    stream += (dims >> 16) * lo;
+                } while (*stream != -2U);
+            }
+            stream++;
+        } while (*stream != -1U);
+    }
+}
 
 void func_80041D3C(GStruct27* arg0)
 {
