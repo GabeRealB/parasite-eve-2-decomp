@@ -6089,3 +6089,31 @@ Pair with `idx + (s32)base` / `(slot << 5) + (s32)banks` for offset-first
 `addu`, and `*(volatile s32*)&flag = …` before a call so the last arg (`li a2`)
 fills the `jal` delay instead of the store (see “volatile blocks delay-slot
 filling”). `func_80053FF4` is the pure example.
+
+## Late `li a0, K` before malloc: wrap setup in `do {} while (0)`
+
+When the target prepares a constant call argument only after unrelated
+address setup (e.g. `sw field_10` then `lui %hi(slot); li a0, 0x582; lb …`),
+writing `F3D458_Malloc(0x582)` in straight-line code often hoists
+`li a0, 0x582` immediately after the previous `jal` returns — free `$a0` and
+an independent constant. That early `li` also steals the `lui` of the next
+symbol into `$v1` instead of `$v0`.
+
+Wrap the pointer math + flag store + malloc in a `do { … } while (0);` so the
+constant stays with the call:
+
+```c
+state->field_10 = buf;
+do {
+    bank            = &D_8007E0D8[D_800680BB];
+    state->field_40 = bank;
+    bank->field_8   = 0xF0FF;
+    state->field_40->field_1C = F3D458_Malloc(0x582);
+} while (0);
+state->field_40->field_0 = state->field_40->field_1C;
+/* … */
+```
+
+Also watch for a live `li v0, -1` through the epilogue with no store: the
+function returns `-1` even if call sites ignore it (`s32` not `void`).
+`func_80050D20` is the pure example.

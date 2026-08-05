@@ -203,7 +203,37 @@ void func_80050D00(void)
     func_80054F1C();
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80050D20);
+s32 func_80050D20(u32 arg0)
+{
+    s32        i;
+    GStruct36* state;
+    GStruct42* bank;
+
+    for (i = 0; i <= 0; i++) {
+        func_80051964(i & 0xFF);
+    }
+    D_8007F2F0 = 0x40;
+    D_800820E9 = 0;
+    D_800820E0 = 0;
+    D_800820E4 = 0;
+    func_8004E5A0(0, 0, 0x10);
+    state           = (GStruct36*)func_80051808(0xFF);
+    state->field_1  = 0xFF;
+    state->field_A  = 0x10;
+    state->field_10 = D_8007F8E0;
+    do {
+        bank                      = &D_8007E0D8[D_800680BB];
+        state->field_40           = bank;
+        bank->field_8             = 0xF0FF;
+        state->field_40->field_1C = F3D458_Malloc(0x582);
+    } while (0);
+    state->field_40->field_0  = state->field_40->field_1C;
+    state->field_40->field_4  = state->field_40->field_1C;
+    state->field_40->field_10 = state->field_40->field_1C;
+    D_8007E0D4                = (s32)state->field_40->field_1C;
+    state->field_3C           = 0x10;
+    return -1;
+}
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80050E3C);
 
