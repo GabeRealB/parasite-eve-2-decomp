@@ -201,4 +201,76 @@ void func_800301FC(void)
     (&D_80073B88)[idx].field_21 = two;
 }
 
-INCLUDE_ASM("main/nonmatchings/201E0", func_800303AC);
+void func_800303AC(void)
+{
+    McBufferSlot*             base;
+    register McBufferSlot*    slot asm("t1");
+    McBufferSlot*             end;
+    register McChecksumBlock* block asm("t0");
+    register s32              size asm("a3");
+    register u8*              fptr asm("a0");
+    register s16              sum asm("a2");
+    register u32              fi asm("v1");
+    register u32              i asm("a1");
+    register u32              count asm("a0");
+    register s32              fill asm("t2");
+    register volatile u8*     cptr asm("v1");
+    s32                       tmp;
+    s32                       cond;
+
+    fill = -1;
+    base = Mc_BufferSlots;
+    slot = base + 1;
+    end  = base + 9;
+    do {
+        size = slot->field_4;
+        fptr = (u8*)slot->field_0;
+        cond = size;
+        fi   = 0;
+        if (cond != 0) {
+            do {
+                *fptr = 0;
+                fi   += 1;
+                fptr += 1;
+            } while (fi < (u32)size);
+        }
+        cond = size;
+        fi   = 0;
+        if (cond != 0) {
+            do {
+                *fptr = fill;
+                fi   += 1;
+                fptr += 1;
+            } while (fi < (u32)size);
+        }
+        sum   = 0;
+        block = slot->field_0;
+        asm("");
+        i     = 0;
+        count = size - 4;
+        cptr  = block->field_4;
+        if (count != 0) {
+            do {
+                i    += 1;
+                tmp   = (s8)*cptr;
+                sum   = sum + tmp;
+                cptr += 1;
+            } while (i < count);
+        }
+        slot          += 1;
+        block->field_2 = ~sum;
+        block->field_0 = sum;
+    } while ((u32)slot < (u32)end);
+
+    Display_State.field_10e = 1;
+    func_800301FC();
+
+    Mc_SaveData.field_21  = 0;
+    Mc_SaveData.field_1a8 = 0;
+    Mc_SaveData.field_1aa = 0;
+    Mc_SaveData.field_1ab = 0;
+    Mc_SaveData.field_1a9 = 0;
+    Mc_SaveData.field_25  = 0;
+    func_800260B0(1);
+    func_800429C8(0);
+}

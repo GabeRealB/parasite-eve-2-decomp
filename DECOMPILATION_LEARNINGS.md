@@ -5634,3 +5634,64 @@ ch1->field_A = arg0;
 ```
 
 `func_8005B84C` is the pure example (`D_80082870.ch[0]` / `ch[1]`, stride `0x40`).
+
+## Dual `if (size != 0)` fill loops need a reloaded `cond`
+
+Two consecutive zero-test loops over the same size:
+
+```c
+if (size != 0) { /* zero-fill */ }
+if (size != 0) { /* 0xFF-fill */ }
+```
+
+are often merged by GCC 2.8.1 so the first `beqz` jumps past *both* loops. The
+target wants two separate branches (first `beqz` → second `beqz` → continue).
+Copy the size into a fresh local for each test:
+
+```c
+cond = size;
+if (cond != 0) { /* zero-fill */ }
+cond = size;
+if (cond != 0) { /* 0xFF-fill */ }
+```
+
+`func_800303AC` is the pure example (`Mc_BufferSlots[1..8]` dual fill + checksum).
+
+## `asm("")` pins independent zero-init after a load
+
+When the target needs:
+
+```
+move  a2, zero     /* sum = 0 */
+lw    t0, 0(t1)    /* block = slot->field_0 */
+move  a1, zero     /* i = 0 */
+```
+
+writing `sum = 0; block = slot->field_0; i = 0;` freely reorders the two
+`move …, zero` together before the `lw`. An empty `asm("");` after the load
+(same barrier used for hex-digit store order) keeps the load between them:
+
+```c
+sum   = 0;
+block = slot->field_0;
+asm("");
+i     = 0;
+```
+
+## Checksum add: `volatile u8*` + `sum = sum + tmp` together
+
+For `lbu` / `sll 24` / `sra 24` **and** `addu sum, sum, v0` (not
+`addu sum, v0, sum`):
+
+```c
+register volatile u8* cptr asm("v1");
+s32 tmp;
+…
+tmp = (s8)*cptr;
+sum = sum + tmp;   /* not sum += (s8)*cptr */
+```
+
+`sum += (s8)*cptr` alone gives the shift pair but the wrong `addu` operand
+order; a non-volatile `tmp = (s8)*ptr; sum = sum + tmp` gives the right `addu`
+but collapses to `lb`. Both together match. Used in `func_800303AC` over
+`McChecksumBlock` payloads (same loop shape as `Mc_WriteBlockChecksum`).
