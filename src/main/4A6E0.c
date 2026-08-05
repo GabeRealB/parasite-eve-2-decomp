@@ -82,7 +82,47 @@ void func_8005B830(void)
     D_80082818.unknown_0[0] = D_80082818.unknown_0[0] | 8;
 }
 
-INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005B84C);
+void func_8005B84C(s16 arg0)
+{
+    GStruct74*               p;
+    volatile GStruct19*      q;
+    GStruct74Entry*          ch1b;
+    register GStruct74Entry* ch1 asm("v0");
+    s16                      val;
+    s32                      t0;
+    s32                      t1;
+
+    p = &D_80082870;
+    q = (volatile GStruct19*)p - 1;
+
+    if ((q->unknown_0[0] >> 1) & 1) {
+        if (q->unknown_0[1] & 1) {
+            t0               = p->ch[0].field_4;
+            t1               = p->ch[1].field_4;
+            p->ch[0].field_4 = t0 | 3;
+            p->ch[1].field_4 = t1 | 3;
+        } else {
+            p->ch[1].field_4 = 3;
+            p->ch[0].field_4 = 3;
+            q->unknown_0[1]  = q->unknown_0[1] | 1;
+        }
+    }
+
+    if (D_80082818.field_53 & 2) {
+        ch1b             = &p->ch[1];
+        val              = (s16)((arg0 * 0xB5) >> 8);
+        ch1b->field_8    = val;
+        p->ch[0].field_A = val;
+        ch1b->field_A    = val;
+        p->ch[0].field_8 = val;
+        return;
+    }
+    ch1              = &p->ch[1];
+    ch1->field_A     = arg0;
+    p->ch[0].field_8 = arg0;
+    ch1->field_8     = 0;
+    p->ch[0].field_A = 0;
+}
 
 void func_8005B920(s32 arg0)
 {

@@ -252,6 +252,22 @@ typedef struct _GStruct19 {
 } GStruct19;
 STATIC_ASSERT_SIZEOF(GStruct19, 0x58);
 
+/// One half of D_80082870 (stride 0x40). Dual L/R audio channel state.
+typedef struct _GStruct74Entry {
+    /* 0x00 */ byte unknown_0[4];
+    /* 0x04 */ s32  field_4;
+    /* 0x08 */ s16  field_8;
+    /* 0x0A */ s16  field_A;
+    /* 0x0C */ byte unknown_C[0x34];
+} GStruct74Entry;
+STATIC_ASSERT_SIZEOF(GStruct74Entry, 0x40);
+
+/// BSS object D_80082870 (size 0x80). Two GStruct74Entry channels at +0x00 / +0x40.
+typedef struct _GStruct74 {
+    /* 0x00 */ GStruct74Entry ch[2];
+} GStruct74;
+STATIC_ASSERT_SIZEOF(GStruct74, 0x80);
+
 /// One slot in D_800828F0.entries (stride 0x14). field_0 holds status flags.
 typedef struct _GStruct32Entry {
     /* 0x00 */ u32  field_0;

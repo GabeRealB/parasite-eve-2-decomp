@@ -5587,3 +5587,50 @@ p->field_17 = 0;
 pointer arg (`desc = arg5; … p->field_48 = arg5; flags = desc->field_E`) when
 the target holds the same pointer in two callee-saved regs for interleaved
 `lhu` / `sw`.
+
+## Adjacent BSS via typed pointer subtraction
+
+When two BSS symbols are laid out back-to-back (e.g. `D_80082818` size `0x58`,
+then `D_80082870`) and the target forms the earlier address as
+`addiu a1, a2, -0x58` off the later base (`lbu v0, -0x58(a2)`), do not name both
+globals independently — that reloads `%hi/%lo(D_80082818)`. Anchor on the later
+symbol and step back one typed element:
+
+```c
+GStruct74* p = &D_80082870;
+volatile GStruct19* q = (volatile GStruct19*)p - 1; /* sizeof == gap */
+```
+
+`sizeof(*q)` must equal the BSS gap. Same pattern as `parent = (GStruct56*)interp - 1`.
+`func_8005B84C` needs this (with `volatile` on `q` so the else path reloads
+`unknown_0[1]` instead of CSEing the bit test).
+
+## Else-only `register … asm("v0")` for dual channel pointers
+
+When the target does:
+
+```
+beqz  v0, else
+ addiu v0, a2, 0x40   /* delay: else path channel ptr */
+addiu a1, a2, 0x40    /* then path recomputes into a1 */
+…
+else:
+sh    a0, 0xA(v0)
+```
+
+a single shared `ch1 = &p->ch[1]` before the `if` coalesces both paths into
+`$a1` and drops the delay-slot `$v0` copy. Keep two locals: one for the then
+path, and pin the else-only pointer to `$v0`, assigning it only on the fall-
+through path:
+
+```c
+if (flag) {
+    ch1b = &p->ch[1];
+    /* use ch1b → $a1 */
+    return;
+}
+ch1 = &p->ch[1];   /* register GStruct74Entry* ch1 asm("v0"); */
+ch1->field_A = arg0;
+```
+
+`func_8005B84C` is the pure example (`D_80082870.ch[0]` / `ch[1]`, stride `0x40`).

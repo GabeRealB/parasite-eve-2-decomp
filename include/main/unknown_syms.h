@@ -646,6 +646,7 @@ extern volatile u8        D_800827E4;
 extern volatile u16       D_80082808;
 extern volatile u16       D_80082810;
 extern volatile GStruct19 D_80082818;
+extern GStruct74          D_80082870;
 extern volatile GStruct32 D_800828F0;
 extern u8                 D_80094C8C[0x2E34];
 extern u8                 D_80725C54[];
