@@ -5262,3 +5262,68 @@ after the store, when the new value is `< 0`), which is one-off from a plain
 `x -= 1; if (x <= 0)` form and correctly gets `bgtz` on the decremented value
 because the check is at the top of the function with lower register pressure —
 same logical intent, different placement, different instruction shape.
+
+## `flag = field & 1; if (flag)` vs `if (field & 1)` for `andi rd,rd,1`
+
+When the target has:
+
+```
+lbu  v1, field(s0)
+...
+andi v1, v1, 0x1
+beqz v1, skip
+```
+
+writing `if (obj->field & 1)` (or `flag = obj->field; if (flag & 1)`) often
+emits `andi v0, v1, 0x1` / `beqz v0` — correct form, wrong dest. Force the
+mask into the same register as the load by assigning the masked result first:
+
+```c
+s32 flag;
+
+flag = obj->field_984 & 1;
+if (flag) {
+    /* ... */
+}
+```
+
+That yields `andi v1, v1, 0x1; beqz v1, ...`. `func_8003EE68` needs this on
+both copies of the slot-3 object setup. A `register u32 flag asm("v1")` pin
+also works but is unnecessary once the assign-then-test form is used.
+
+## Irregular switch: branch-to-case layout for sparse first case
+
+When the target checks a sparse case first with `beq` *into* the case body
+(body is not the fallthrough of the compare), a C `switch` reorders cases by
+density and an `if (mode == K) { body }` puts the body as fallthrough with
+`bne`. Match the branch-to-case layout with gotos:
+
+```c
+if (mode == 4) {
+    goto block_case4;
+}
+if (mode >= 5U) {
+    goto block_default;
+}
+if (mode == 1) {
+    goto block_case13;
+}
+if (mode == 3) {
+    goto block_case13;
+}
+goto block_default;
+
+block_case4:
+    /* case 4 work */
+    /* fallthrough */
+block_case13:
+    /* cases 1, 3, and fallthrough from 4 */
+    ...
+    goto end;
+block_default:
+    ...
+end:
+```
+
+`func_8003EE68` is the pure example (mode 4 first, then range `< 5`, then 1/3,
+with 4 falling into the 1/3 block).

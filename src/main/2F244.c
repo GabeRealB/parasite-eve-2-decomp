@@ -9,7 +9,81 @@ INCLUDE_ASM("main/nonmatchings/2F244", func_8003EA44);
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_8003EC44);
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8003EE68);
+Task* func_8003EE68(void)
+{
+    Task*           ret;
+    u32             mode;
+    Task*           slot;
+    GStruct71*      obj;
+    s32*            ptr;
+    GStruct14From4* ed;
+    s32             flag;
+
+    ret = Task_SpawnFromTable(D_80062698->field_0, 0, D_80062698->field_4, D_80062698->field_8);
+    if (ret != NULL) {
+        mode = D_80062698->field_C;
+        if (mode == 4) {
+            goto block_case4;
+        }
+        if (mode >= 5U) {
+            goto block_default;
+        }
+        if (mode == 1) {
+            goto block_case13;
+        }
+        if (mode == 3) {
+            goto block_case13;
+        }
+        goto block_default;
+
+    block_case4:
+        D_80062698->field_11 = 2;
+        slot                 = func_8002D22C(3);
+        obj                  = (GStruct71*)slot->field_1C;
+        flag                 = obj->field_984 & 1;
+        ptr                  = ((GStruct72*)slot->field_2c)->field_8;
+        if (flag) {
+            func_801011D0(ptr, obj->field_90, 6, &obj->field_930);
+        }
+        func_800E1A6C(&obj->field_17C);
+        *ptr = 0;
+    block_case13:
+        D_80062698->field_15 = 1;
+        if (D_80062698->field_C == 3) {
+            Display_State.field_103 = 2;
+            Display_State.field_100 = 0;
+        } else {
+            Display_State.field_103 = 0;
+            Display_State.field_100 = 1;
+        }
+    } else {
+        goto block_end;
+    }
+    goto block_end;
+
+block_default:
+    ed = (GStruct14From4*)&D4F564_8005ED64->field_4;
+    func_80041E4C();
+    func_8001490C(ed->field_3, ed->field_2, Display_State.field_1f, 0x10000);
+    if (D_80062698->field_C == 0x100) {
+        func_8003F5A4();
+    }
+    Mem_InitAux();
+    Display_State.field_103 = 1;
+    Display_State.field_100 = 3;
+    slot                    = func_8002D22C(3);
+    obj                     = (GStruct71*)slot->field_1C;
+    flag                    = obj->field_984 & 1;
+    ptr                     = ((GStruct72*)slot->field_2c)->field_8;
+    if (flag) {
+        func_801011D0(ptr, obj->field_90, 6, &obj->field_930);
+    }
+    func_800E1A6C(&obj->field_17C);
+    *ptr = 0;
+
+block_end:
+    return ret;
+}
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_8003F034);
 

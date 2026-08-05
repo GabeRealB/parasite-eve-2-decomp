@@ -130,6 +130,38 @@ typedef struct _GStruct14 {
 } GStruct14;
 STATIC_ASSERT_SIZEOF(GStruct14, 0x13C);
 
+/// Overlay of `GStruct14` starting at offset 0x4 (`field_4`..`field_7`).
+/// Used when the compiler keeps `&D4F564_8005ED64->field_4` in a register.
+typedef struct _GStruct14From4 {
+    /* 0x0 */ u8 field_0; // GStruct14.field_4
+    /* 0x1 */ u8 field_1; // GStruct14.unknown_5
+    /* 0x2 */ u8 field_2; // GStruct14.field_6
+    /* 0x3 */ u8 field_3; // GStruct14.field_7
+} GStruct14From4;
+STATIC_ASSERT_SIZEOF(GStruct14From4, 0x4);
+
+/// Large object pointed to by Task::field_1C for the slot-3 game object
+/// (func_8002D22C(3)). Sparse fields used by func_8003EE68.
+typedef struct _GStruct71 {
+    /* 0x000 */ byte pad_0[0x90];
+    /* 0x090 */ s32  field_90;
+    /* 0x094 */ byte pad_94[0xE8];
+    /* 0x17C */ byte field_17C; // address taken for func_800E1A6C
+    /* 0x17D */ byte pad_17D[0x7B3];
+    /* 0x930 */ byte field_930; // address taken for func_801011D0
+    /* 0x931 */ byte pad_931[0x53];
+    /* 0x984 */ u8   field_984;
+} GStruct71;
+STATIC_ASSERT_SIZEOF(GStruct71, 0x988);
+
+/// Object pointed to by Task::field_2c; field_8 is a s32* cleared by
+/// func_8003EE68 after optional func_801011D0 / func_800E1A6C setup.
+typedef struct _GStruct72 {
+    /* 0x0 */ byte pad_0[0x8];
+    /* 0x8 */ s32* field_8;
+} GStruct72;
+STATIC_ASSERT_SIZEOF(GStruct72, 0xC);
+
 /// 0x1C-byte slot allocated from D_8007EBF0 (see func_800509F4 / func_80050A38).
 /// Overlay of `GStruct16` starting at offset 0x4 (`field_4` / `field_8`).
 /// Used when the compiler keeps `arg + 4` in a callee-saved register.
