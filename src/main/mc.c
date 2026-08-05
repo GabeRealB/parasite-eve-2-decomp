@@ -163,7 +163,80 @@ void func_80031C5C(Task* arg0, McWork* arg1)
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-INCLUDE_ASM("main/nonmatchings/mc", func_80031DA4);
+void func_80031DA4(Task* arg0, McWork* arg1)
+{
+    register Task*     task asm("s3");
+    register McWork*   work asm("s2");
+    register UiObject* flag asm("s0");
+    register s32       syncResult asm("s1");
+    s32                status;
+    s32                idx;
+    s32                ret;
+    Task*              child;
+    UiObject*          obj;
+    u8*                src;
+    u8*                dst;
+    s32                i;
+    McPromptPair*      entry;
+    McPromptPair*      base;
+
+    task = arg0;
+    work = arg1;
+    arg1 = 0;
+    if (work->field_2C == 1) {
+        work->field_8 = 0x11;
+        status        = func_800307AC(arg0, 0x11, work->field_0);
+        switch (status) {
+            case 0:
+                break;
+            case 1:
+                work->field_4  = 0xE;
+                work->field_1C = 0;
+                task->field_30 = 0x28;
+                break;
+            case -1:
+                src = Mc_FileNameBuf;
+                dst = Mc_FileName;
+                for (i = 0; i < 0x15; i++) {
+                    *dst++ = *src++;
+                }
+                task->field_2a = 0xC;
+                task->field_30 = 0x27;
+                break;
+        }
+        syncResult = MemCardSync(1, (long*)&work->field_10, (long*)&work->field_14);
+        if (syncResult != -1) {
+            if (syncResult == 1) {
+                if (work->field_14 != 0) {
+                    child          = task->field_c;
+                    task->field_30 = 2;
+                    if (child != NULL) {
+                        obj          = child->field_20;
+                        flag         = task->field_20;
+                        obj->field_0 = 0;
+                        func_80048838(obj, obj->field_28);
+                        flag->field_0 = syncResult;
+                    }
+                }
+            }
+        } else {
+            MemCardExist(work->field_C);
+        }
+    } else {
+        work->field_1C = 0;
+        work->field_8  = 4;
+        flag           = task->field_20;
+        task->field_30 = 0xF;
+        idx            = work->field_8;
+        ret            = func_80048E10(flag, 1);
+        flag->field_2E = 0;
+        func_80048E38(flag, D_8001398C);
+        base  = Mc_PromptTable;
+        entry = &base[idx];
+        func_8002FDCC(flag, flag->field_1C + 2, -2, entry->field_0, ret, 1, 0);
+        func_8002FDCC(flag, flag->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/mc", func_80031F94);
 

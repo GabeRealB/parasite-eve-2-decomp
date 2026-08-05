@@ -141,6 +141,7 @@ STATIC_ASSERT_SIZEOF(McStateFuncTable26, 0x68);
 void func_800319E4(Task* task, McWork* work);
 void Mc_StateCreateFile(Task* task, McWork* work);
 void func_80031C5C(Task* task, McWork* work);
+void func_80031DA4(Task* task, McWork* work);
 void func_800322B0(Task* task, McWork* work);
 void Mc_StateFormat(Task* task, McWork* work);
 void func_800327A4(Task* task, McWork* work);

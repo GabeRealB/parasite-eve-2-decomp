@@ -6888,3 +6888,48 @@ bank = &banks[(s8)slot];
 ```
 
 `func_8004CE28` is the pure example.
+
+## Kill parameter `$a1` liveness after pin-copy so CSE can reuse it for call args
+
+When a formal is copied into a pinned callee-saved reg (`register McWork* work
+asm("s2"); work = arg1;`), GCC 2.8.1 often keeps the original `$a1` live as a
+second home for the same pointer. That breaks the classic delay-slot CSE for:
+
+```
+li    a1, K
+lw    a2, 0(s2)
+move  v0, a1
+jal   func
+ sw   v0, 8(s2)   /* field = K in delay slot */
+```
+
+and instead emits:
+
+```
+li    v0, K
+sw    v0, 8(s2)
+lw    a2, 0(a1)   /* still using original a1 as the base */
+jal   func
+ move a1, v0
+```
+
+An empty `asm("" : "+r"(work))` barrier can force the right call sequence, but
+it also reorders the prologue saves (`sw s2` / `move s2,a1` before `sw s3`).
+
+Fix: after the pin-copy, assign over the formal so `$a1` is dead:
+
+```c
+register McWork* work asm("s2");
+
+work = arg1;
+arg1 = 0; /* kills a1; CSE can put K in a1 and load field_0 from s2 */
+if (work->field_2C == 1) {
+    work->field_8 = 0x11;
+    status = func_800307AC(arg0, 0x11, work->field_0);
+    ...
+}
+```
+
+`func_80031DA4` is the pure example. Pair with `register Task* task asm("s3")`
+(and other pins for later reuse of `$s0`/`$s1`) so the prologue is
+`sw s3; sw s2; move s2,a1` with `move s3,a0` in the first `bne` delay slot.
