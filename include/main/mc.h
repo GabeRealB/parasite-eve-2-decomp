@@ -25,12 +25,13 @@ STATIC_ASSERT_SIZEOF(McPromptPair, 0x8);
 /// left by 7 for MemCardWriteData ofs); field_20 is the byte count.
 /// field_30 is a 15-slot memcard directory buffer (DIRENTRY-sized, 0x28 each)
 /// filled by MemCardGetDirentry; field_288 is the entry count used to bound
-/// field_A14 walks (Mc_StateOpenNext / func_800367CC). field_294 is a 15-slot
-/// array of 0x80-byte read buffers indexed by field_A14 (MemCardReadData adrs
-/// in func_800366BC, ofs 0x200, size 0x80). field_A14 indexes the selected
-/// slot for MemCardOpen / field_294 reads. field_A1C/field_A1E are a sum /
-/// ones-complement checksum pair over 0x200 signed bytes of that buffer
-/// (written by Mc_WriteDataChecksum).
+/// field_A14 walks (Mc_StateOpenNext / func_800367CC). field_290 is cleared
+/// when a non-empty directory listing is obtained (func_80036488). field_294
+/// is a 15-slot array of 0x80-byte read buffers indexed by field_A14
+/// (MemCardReadData adrs in func_800366BC, ofs 0x200, size 0x80). field_A14
+/// indexes the selected slot for MemCardOpen / field_294 reads.
+/// field_A1C/field_A1E are a sum / ones-complement checksum pair over 0x200
+/// signed bytes of that buffer (written by Mc_WriteDataChecksum).
 typedef struct _McWork {
     /* 0x000 */ s32           field_0;
     /* 0x004 */ s32           field_4;
@@ -46,7 +47,8 @@ typedef struct _McWork {
     /* 0x02C */ s32           field_2C;
     /* 0x030 */ char          field_30[15][0x28];
     /* 0x288 */ s32           field_288;
-    /* 0x28C */ byte          unknown_28C[0x8];
+    /* 0x28C */ byte          unknown_28C[0x4];
+    /* 0x290 */ s32           field_290;
     /* 0x294 */ unsigned long field_294[15][0x20];
     /* 0xA14 */ s32           field_A14;
     /* 0xA18 */ s32           field_A18;
