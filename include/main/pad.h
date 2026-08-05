@@ -63,6 +63,7 @@ void func_80028718(void);
 // =============================================================================
 
 s32  Pad_CheckButtons(s32 port, s32 mode, s32 mask);
+void func_8002C8E4(s32 port, s32 bank, s32 arg2, s32 arg3);
 void Pad_SetCooldown(s32 port);
 void Pad_ClearCooldown(s32 port);
 s32  Pad_ReadButtonsInv(s32 port);

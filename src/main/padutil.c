@@ -28,7 +28,46 @@ s32 Pad_CheckButtons(s32 arg0, s32 arg1, s32 arg2)
     return (val & arg2) != 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/padutil", func_8002C8E4);
+void func_8002C8E4(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    PadState* p;
+    PadEvent* entries;
+    PadEvent* entry;
+    s32       i;
+    s32       temp;
+    u8        idx;
+
+    p = (PadState*)&Pad_States[arg0];
+    if (Display_State.field_12c != 0) {
+        return;
+    }
+
+    i       = 0;
+    entries = p->field_10[arg1];
+    for (; i < 8; i++) {
+        idx   = p->field_2;
+        entry = &entries[idx];
+        if (entry->field_0 == 0) {
+            break;
+        }
+        idx        = idx + 1;
+        p->field_2 = idx;
+        if (idx >= 8) {
+            p->field_2 = 0;
+        }
+    }
+
+    entry->field_0 = 1;
+    temp           = (s16)arg3 * 2;
+    entry->field_1 = arg2;
+    entry->field_2 = temp;
+
+    idx        = p->field_2 + 1;
+    p->field_2 = idx;
+    if (idx >= 8) {
+        p->field_2 = 0;
+    }
+}
 
 void Pad_SetCooldown(s32 arg0)
 {

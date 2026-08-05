@@ -5774,3 +5774,31 @@ Pinning the abs/product temporary to `$v0` (as above) is usually also required
 so the following signed-division magic and clamp keep `$v0`/`$v1` the way the
 target does; without the pin, scale and product drift into `$a0` and the
 `mfhi`/`slti` register choices diverge. `func_800564C4` is the pure example.
+
+## `u8` ring index: store then compare (not check-then-store)
+
+For a wrap-around counter written as:
+
+```c
+idx = idx + 1;
+p->field_2 = idx;
+if (idx >= 8) {
+    p->field_2 = 0;
+}
+```
+
+`idx` must be `u8` (same width as the field). That emits:
+
+```
+addiu  v0, v1, 1
+sb     v0, field(t0)
+andi   v0, v0, 0xff
+sltiu  v0, v0, 8
+bnez   v0, no_wrap
+ nop
+sb     zero, field(t0)
+```
+
+An `s32` index with `(u8)idx >= 8` rewrites to check-first / store-in-delay-slot
+and mismatches. `func_8002C8E4` is the pure example (pad-event ring at
+`PadState.field_2`).
