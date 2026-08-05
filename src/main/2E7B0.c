@@ -5,7 +5,36 @@
 
 INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003DFB0);
 
-INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003E210);
+Task* func_8003E210(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    DisplayState* temp;
+    GStruct50*    ot;
+    TaskNode*     saved;
+    Task*         ret;
+
+    temp = &Display_State;
+    ret  = NULL;
+    if (temp->field_1e == 0) {
+        ot              = D_8007A0E8;
+        ot->length      = 6;
+        ot->org         = D_8007A120;
+        ot[1].length    = 6;
+        ot[1].org       = D_8007A120 + 0x40;
+        D_8007A0E0      = D_800740E0;
+        D_8007A0E4      = 0x6000;
+        temp->field_118 = temp->field_1f ^ 1;
+        saved           = Task_GetActiveList();
+        Task_InitList(&D_8007A110);
+        ret = Task_Spawn(arg0, arg1, arg2, arg3);
+        if (ret != NULL) {
+            temp->field_10d = 0xFF;
+            temp->field_1e  = 2;
+            temp->field_103 = 0;
+        }
+        Task_SetActiveList(saved);
+    }
+    return ret;
+}
 
 Task* func_8003E324(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
