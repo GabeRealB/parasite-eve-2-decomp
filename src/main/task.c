@@ -366,4 +366,57 @@ void func_8002D780(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/task", func_8002D7A8);
+void func_8002D7A8(void* src, void* dest, u32 count)
+{
+    u32 i;
+    u32 alignment;
+    u8* ptr;
+    u8* dst;
+    u32 remaining;
+
+    ptr       = (u8*)src;
+    dst       = (u8*)dest;
+    remaining = count;
+
+    while ((remaining & 0xFFFF) >= 4) {
+        alignment = (uintptr)ptr & 3;
+
+        switch (alignment) {
+            case 0:
+                *(u32*)dst = *(u32*)ptr;
+                ptr       += 4;
+                dst       += 4;
+                remaining -= 4;
+                break;
+
+            case 1:
+                *dst++     = *ptr++;
+                *(u16*)dst = *(u16*)ptr;
+                ptr       += 2;
+                dst       += 2;
+                remaining -= 3;
+                break;
+
+            case 2:
+                *(u16*)dst = *(u16*)ptr;
+                ptr       += 2;
+                dst       += 2;
+                remaining -= 2;
+                break;
+
+            case 3:
+                *dst       = *ptr;
+                ptr       += 1;
+                dst       += 1;
+                remaining -= 1;
+                break;
+        }
+    }
+
+    remaining &= 0xFFFF;
+    i          = 0;
+    while ((i & 0xFFFF) < remaining) {
+        *dst++ = *ptr++;
+        i++;
+    }
+}

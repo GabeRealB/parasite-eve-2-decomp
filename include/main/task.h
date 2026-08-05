@@ -112,6 +112,7 @@ void      Task_SetActiveList(TaskNode* node);
 void      Task_ResetDefaultList(void);
 void      Task_Unlink(Task* task);
 void      Task_Free(Task* task);
+void      func_8002D7A8(void* src, void* dest, u32 count);
 
 // =============================================================================
 // Globals
