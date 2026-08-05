@@ -6272,6 +6272,37 @@ extra callee-saved for a separate SVECTOR pointer. Computing the out-arg as
 loaded head. Colors go in MATRIX **columns** (`m[0/1/2][id] = component << 4`);
 directions go in MATRIX **rows** (`m[id][0/1/2] = -dir`).
 
+## `static __inline__` forces scratch-head rematerialisation (not s-reg CSE)
+
+`func_8003B140` takes `MATRIX* dirMtx/colorMtx` and keeps
+`scratch = (void**)G_SCRATCH_HEAD` in a callee-saved reg (`lui`/`ori` + `$sN`).
+`func_8003B228` is the same body writing to globals `&GsLIGHTWSMATRIX` /
+`&D_80074080`, but the ROM rematerialises `0x1F8003FC` on every access
+(`lui $r,0x1f80` / `lw|sw 0x3fc($r)`) and only uses five s-regs (frame `0x28`).
+
+Writing the body with local matrix pointers plus direct
+`*(void**)0x1F8003FC` still CSE's the address into `$s5` (frame `0x30`).
+The match is a `static __inline__` helper that takes the matrix pointers,
+called as:
+
+```c
+static __inline__ void setLightToMatrices(s32 id, FlatLight* light,
+                                          MATRIX* dirMtx, MATRIX* colorMtx)
+{
+    /* same body as func_8003B140 */
+}
+
+void func_8003B228(s32 id, FlatLight* light)
+{
+    setLightToMatrices(id, light, &GsLIGHTWSMATRIX, &D_80074080);
+}
+```
+
+Inlining that form rematerialises the scratch address and matches. Do **not**
+also route `func_8003B140` through the same inline — that changes its
+scratch-pointer codegen and breaks the existing match. Keep `func_8003B140`'s
+body out-of-line as written.
+
 ## Nested blocks force pointer reloads between store groups
 
 When the target reloads a stack-resident pointer between *pairs* of stores
