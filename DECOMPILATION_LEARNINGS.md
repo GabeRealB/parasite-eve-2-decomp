@@ -4770,6 +4770,23 @@ Clamp overflow with a 10-byte `u8[10]` struct assign of `"999999999"`; zero path
 is a 2-byte `u8[2]` assign of `"0"` — both emit the unaligned lwl/lwr/lb
 sequence without register pins. Needs `--expand-div` (`1E6C4.c`).
 
+## Signed decimal itoa: do **not** pin `place`/`dest`/`digit`
+
+Signed sibling `func_8002F020` (same shape as unsigned `func_8002F18C`, plus a
+`'-'` / recurse prefix and signed `slt`/`blez`/`div`) needs natural regalloc:
+
+- Start `place` at `0x989680` (10^7); clamp with a 9-byte copy of `"99999999"`.
+- Same digit-loop pattern as unsigned (`temp = *dest & 0xFF`, hoist `cmp` before
+  the zero check, `place > 0` for the digit loop).
+- **Do not** `register ... asm("a2"/"a3"/"v1")`. Pins push the signed `/10`
+  magic (`0x66666667`) into `$v1` and force `sra place, place, 31` instead of
+  the target's `lui a0, magic` / `sra v0, place, 31` / `sra v1, hi, 2` form.
+  Unpinned, GCC picks `$a0` for magic and `$v1` for digit exactly as in the ROM.
+- The empty `if (!arg0) {}` delay-slot trick is **not** needed once pins are
+  gone — the overflow `beqz` fills with `lui %hi(D_800138BC)` on its own.
+
+`func_8002F020` is the pure example. Needs `--expand-div` (`1E6C4.c`).
+
 ## Loop-invariant QImode constants: `s8` temp + widen via `s32`
 
 When a loop repeatedly stores a small constant into a byte field
