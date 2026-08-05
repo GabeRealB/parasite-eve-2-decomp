@@ -6846,3 +6846,45 @@ Writing `p = D_80070EE0` first swaps the two `lui`s (~99.7% near-match). The
 `*(volatile u8*)&` cast is required for the post-`sh` `lbu`; a plain
 `(u8)D_8006ACB4` may keep the value in a register. `func_80021808` is the pure
 example (fullscreen white TILE at OT slot `-0x10` plus `setDrawTPage(..., 0, 1, 0x40)`).
+
+## Scoped `register asm` pin for delay-slot `move a0,v1` after `lb`
+
+When the target loads a signed byte then copies it into `$a0` in the compare's
+delay slot:
+
+```
+lb    v1, 0(v0)
+li    v0, -1
+beq   v1, v0, fail
+ move  a0, v1
+```
+
+a plain `s8 temp; s32 slot = temp; if (temp == -1)` often coalesces `slot` into
+`$v1` (no move). An `s8 slot` used both for the `-1` compare and later as an
+index tends to emit **both** `lbu a0` and `lb v1`.
+
+A hard pin on `slot` for the whole function fixes the prologue but then forces
+later loads that *should* land in `$v0` (e.g. `lbu v0, D_xxx; addiu a0, v0, 4`)
+to write `$a0` directly.
+
+Fix: pin only long enough to force the delay-slot move, then copy out to an
+unpinned local for the rest of the function:
+
+```c
+s8  temp;
+s32 slot;
+
+temp = table[idx];
+{
+    register s32 p asm("a0");
+    p = temp;
+    if (temp == -1) {
+        return NULL;
+    }
+    slot = p;
+}
+/* later: slot = D_xxx + 4; uses lbu v0 / addiu a0,v0,4 as in the target */
+bank = &banks[(s8)slot];
+```
+
+`func_8004CE28` is the pure example.

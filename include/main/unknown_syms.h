@@ -198,6 +198,7 @@ extern s32 func_8004ACAC(s32 arg0);
 // 3D458.c
 extern void       func_8004CFE8(void);
 extern void       func_8004D008(void);
+extern GStruct42* func_8004CE28(GStruct34Payload* arg0);
 extern void       F3D458_ResetHeap(void);
 extern void*      F3D458_Malloc(size_t);
 extern void       F3D458_Free(void* ptr);

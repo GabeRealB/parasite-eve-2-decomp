@@ -622,6 +622,19 @@ struct _GStruct43 {
 };
 STATIC_ASSERT_SIZEOF(GStruct43, 0x40);
 
+/// Overlay of GStruct34 at +0x1C (sector payload header for sound-bank setup).
+/// Passed to func_8004CE28; filled from a CD sector by func_80052B30.
+/// field_4 high nibble indexes D_800680AC / selects bank type; field_7 is the
+/// GStruct42Group count and field_8 is the GStruct41 entry count used to size
+/// the GStruct42 heap block (groups*4 + entries*0x14 + groups*2).
+typedef struct _GStruct34Payload {
+    /* 0x0 */ u8  pad_0[4];
+    /* 0x4 */ u16 field_4;
+    /* 0x6 */ u8  field_6;
+    /* 0x7 */ u8  field_7;
+    /* 0x8 */ u8  field_8;
+} GStruct34Payload;
+
 /// State block at D_800820F0; field_3 is also D_800820F3.
 /// field_14/field_18 cleared by func_800537FC; field_10 sized by func_8005363C.
 /// field_26/field_28 set by the CD ready path in func_800572FC.

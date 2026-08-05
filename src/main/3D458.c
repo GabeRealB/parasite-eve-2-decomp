@@ -103,7 +103,79 @@ end:
     D_800680C0 = 1;
 }
 
-INCLUDE_ASM("main/nonmatchings/3D458", func_8004CE28);
+GStruct42* func_8004CE28(GStruct34Payload* arg0)
+{
+    u16        type;
+    s8         temp;
+    s32        slot;
+    GStruct42* bank;
+    s32        size;
+    s32        temp_v0;
+    s32        temp_a0;
+    s32        temp_a0_2;
+    s32        shared;
+
+    type = arg0->field_4 & 0xF000;
+    temp = D_800680AC[type >> 12];
+    {
+        register s32 p asm("a0");
+        p = temp;
+        if (temp == -1) {
+            return NULL;
+        }
+        slot = p;
+    }
+
+    if (type == 0x4000) {
+        slot = D_80082122 + 4;
+    }
+
+    if (type == 0xF000) {
+        shared = D_8007E0D4;
+        if (shared != 0) {
+            bank           = &D_8007E0D8[(s8)slot];
+            bank->field_1C = (void*)shared;
+            goto setup_ptrs;
+        }
+    }
+
+    bank = &D_8007E0D8[(s8)slot];
+    func_8004D0F0(bank);
+
+    size = ((arg0->field_8 * 5) + arg0->field_7) * 4 + (arg0->field_7 * 2);
+
+    switch (arg0->field_4 & 0xF000) {
+        case 0x2000:
+            if (size < 0xCF) {
+                size = 0xCE;
+            }
+            break;
+        case 0xE000:
+            if (size < 0x79) {
+                size = 0x78;
+            }
+            break;
+        case 0xF000:
+            if (size < 0x583) {
+                size = 0x582;
+            }
+            break;
+    }
+
+    temp_v0        = (s32)F3D458_Malloc(size);
+    bank->field_1C = (void*)temp_v0;
+    if (temp_v0 == 0) {
+        return NULL;
+    }
+
+setup_ptrs:
+    temp_a0        = (s32)bank->field_1C;
+    bank->field_0  = (GStruct42Group*)temp_a0;
+    temp_a0_2      = temp_a0 + (arg0->field_7 * 4);
+    bank->field_4  = (GStruct41*)temp_a0_2;
+    bank->field_10 = (u16*)(temp_a0_2 + (arg0->field_8 * 0x14));
+    return bank;
+}
 
 void func_8004CFC8(void)
 {
