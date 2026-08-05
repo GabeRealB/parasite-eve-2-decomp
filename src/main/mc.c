@@ -1099,7 +1099,27 @@ void func_800350B0(Task* arg0, McWork* arg1)
     arg0->field_30 = 0x1F;
 }
 
-INCLUDE_ASM("main/nonmatchings/mc", func_80035180);
+void func_80035180(Task* arg0, McWork* arg1)
+{
+    s32           ret;
+    UiObject*     obj;
+    McPromptPair* entry;
+    McPromptPair* base;
+
+    arg1->field_8 = 4;
+    obj           = arg0->field_20;
+    ret           = func_80048E10(obj, 1);
+    obj->field_2E = 0;
+    func_80048E38(obj, D_8001398C);
+    base  = Mc_PromptTable;
+    entry = &base[4];
+    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
+    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
+    if (arg1->field_4-- <= 0) {
+        arg1->field_A18 = 0x33;
+        arg0->field_30  = 0x13;
+    }
+}
 
 void func_8003527C(Task* arg0, McWork* arg1)
 {

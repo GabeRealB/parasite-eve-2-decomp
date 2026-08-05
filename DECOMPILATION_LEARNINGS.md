@@ -5208,3 +5208,46 @@ also matters for `beq $s4, $v1` vs the swapped form.
 `func_800559BC` is the pure example. Closely related: `func_8005166C` avoids the
 trap because its status byte sits at offset 0 (free relative to the base) and
 the interpolator is only `+0x14`.
+
+## Post-decrement for `move` + `bgtz` on the pre-decrement value
+
+A countdown that the target implements as:
+
+```
+lw    v0, field
+move  v1, v0
+addiu v0, v0, -1
+bgtz  v1, skip
+sw    v0, field
+```
+
+compares the *original* value (`bgtz v1`) while still storing `value - 1`.
+That is not the same codegen as either:
+
+```c
+x -= 1;
+if (x < 0) { ... }   /* addiu; bgez v0  — compare new value */
+```
+
+```c
+x -= 1;
+if (x <= 0) { ... }  /* addiu; bgtz v0  — compare new value */
+```
+
+Use a post-decrement in the condition:
+
+```c
+if (arg1->field_4-- <= 0) {
+    /* timeout / transition */
+}
+```
+
+GCC 2.8.1 keeps the pre-decrement copy in `$v1`, decrements `$v0`, and emits
+`bgtz $v1`. Semantically this enters when the original value was `<= 0` (i.e.
+after the store, when the new value is `< 0`), which is one-off from a plain
+`-= 1; if (x <= 0)` check that fires when the counter hits zero.
+
+`func_80035180` is the pure example. Nearby `func_80035844` uses the early
+`x -= 1; if (x <= 0)` form and correctly gets `bgtz` on the decremented value
+because the check is at the top of the function with lower register pressure —
+same logical intent, different placement, different instruction shape.
