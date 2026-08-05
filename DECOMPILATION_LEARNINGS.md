@@ -7572,3 +7572,42 @@ starts at the pad word:
 
 Do not expand the C range to include the zero — GCC will not emit it and the
 layout shifts. `func_80042364` / `jtbl_80013EE8`.
+
+## `goto` body forces `bnez` over a mid-function shared `return 0`
+
+When the target has:
+
+```
+beq  cond_fail, ret0
+nop
+bnez cond_ok, body
+nop
+jr   ra
+ move v0, zero     /* ret0 sits BETWEEN the checks and the body */
+body:
+ ...
+```
+
+nesting `if (outer) { if (inner) { /* body */; return 1; } } return 0;` (or a
+combined `&&`) produces `beqz` jumps to a trailing `return 0` epilogue — same
+semantics, wrong layout. Bare early `return 0` on each fail path also lands
+the epilogue at the end.
+
+Fix: keep the positive outer/inner tests, but jump to the work with `goto`,
+so the shared `return 0` is the fall-through between the branch and the label:
+
+```c
+if ((cmd >> 4) != 8) {
+    if (cmd != 0) {
+        goto do_work;
+    }
+}
+return 0;
+do_work:
+    /* long copy / setup */
+    return 1;
+}
+```
+
+Pairs with the early busy-path `if (flag != 0) return 1;` (which still puts
+`li v0, 1` in the `bnez` delay slot). `func_8001CDF0` is the pure example.

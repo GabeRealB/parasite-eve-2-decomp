@@ -434,7 +434,34 @@ s32 func_8001C970(void)
 
 INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001CA70);
 
-INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001CDF0);
+u16 func_8001CDF0(void)
+{
+    CdCmdQueue* p;
+    u8          cmd;
+
+    p = &CdCmd_Queue;
+    if (p->field_4c != 0) {
+        return 1;
+    }
+    cmd = p->entries[p->readIdx].cmd;
+    if ((cmd >> 4) != 8) {
+        if (cmd != 0) {
+            goto do_work;
+        }
+    }
+    return 0;
+do_work:
+    p->field_40.cmd    = cmd;
+    p->field_40.param0 = p->entries[p->readIdx].param0;
+    p->field_40.param1 = p->entries[p->readIdx].param1;
+    p->field_40.param2 = p->entries[p->readIdx].param2;
+    p->field_40.idB0   = p->entries[p->readIdx].idB0;
+    p->field_40.idB1   = p->entries[p->readIdx].idB1;
+    p->field_40.idB2   = p->entries[p->readIdx].idB2;
+    p->field_40.idB3   = p->entries[p->readIdx].idB3;
+    p->field_4c        = 2;
+    return 1;
+}
 
 void func_8001CEFC(void)
 {
