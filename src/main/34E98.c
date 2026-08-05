@@ -124,7 +124,34 @@ void func_80048C10(void* arg0, void* arg1)
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80048C30);
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80048D58);
+void func_80048D58(GStruct20* arg0, s32 arg1, s32 arg2)
+{
+    s32 i;
+    s32 targetX;
+    s32 targetY;
+    s16 baseX;
+    s16 baseY;
+    u8  count;
+
+    i         = 0;
+    baseX     = arg0->field_20;
+    baseY     = arg0->field_22;
+    targetX   = arg1 + baseX;
+    targetY   = arg2 + baseY;
+    targetX <<= 8;
+    targetY <<= 8;
+    count     = Display_State.field_10a;
+    if (count != 0) {
+        do {
+            i          += 1;
+            D_80067648 += (targetX - D_80067648) >> 2;
+            D_8006764C += (targetY - D_8006764C) >> 2;
+        } while (i < count);
+    }
+    targetX = D_80067648 >> 8;
+    targetY = D_8006764C >> 8;
+    func_800463B4(arg0, targetX - arg0->field_20, targetY - arg0->field_22);
+}
 
 s32 func_80048E10(void* arg0, s32 arg1)
 {

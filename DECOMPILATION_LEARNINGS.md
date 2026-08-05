@@ -4881,3 +4881,48 @@ GStruct31* func_...(u16 arg0, s32 arg1)
 `func_80056104` is the pure example. A plain `s32` formal never emits the
 leading copy; `u16 key = arg0` alone reorders the `andi` after the table base
 load.
+
+## s16 field temps + reuse long-lived locals for post-loop `>> 8`
+
+When a loop body uses two globals via live `%hi` bases in `$a1`/`$a2`, the
+fixed-point targets must live in `$t*` so the arg registers stay free. After
+the loop the target often reuses those same `$t*` for `(global >> 8) - field`
+before a call.
+
+Three pieces have to land together:
+
+1. **Load both halfword fields into `s16` locals first**, then add the args.
+   That forces `lh v0` / `lh v1` before both `addu`s (instead of folding each
+   field into an in-place `addu a1, a1, v0`).
+2. **Operand order `arg + base`** (not `base + arg`) so the `addu` is
+   `addu tN, aM, vK` matching the target.
+3. **Reuse the same `s32` locals after the loop** for `local = global >> 8`
+   then `func(..., local - field, ...)`. Fresh temps for the epilogue put the
+   loads straight into `$a1`/`$a2` and lose the `sra tN, v0, 8` form.
+
+```c
+s16 baseX, baseY;
+s32 targetX, targetY;
+u8 count;
+
+baseX = obj->field_20;
+baseY = obj->field_22;
+targetX = arg1 + baseX;
+targetY = arg2 + baseY;
+targetX <<= 8;
+targetY <<= 8;
+count = Display_State.field_10a;
+if (count != 0) {
+    do {
+        i += 1;
+        gX += (targetX - gX) >> 2;
+        gY += (targetY - gY) >> 2;
+    } while (i < count);
+}
+targetX = gX >> 8;          /* reuses the loop temps → sra t1/t0 */
+targetY = gY >> 8;
+func(obj, targetX - obj->field_20, targetY - obj->field_22);
+```
+
+`func_80048D58` is the pure example (smooth cursor toward a UI object over
+`Display_State.field_10a` frames, then call `func_800463B4`).
