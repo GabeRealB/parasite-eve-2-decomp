@@ -6300,3 +6300,59 @@ store site, not loop-invariant locals — otherwise GCC pins them in a callee-
 saved reg (`s3`) instead of interleaving `lui`/`ori` into `$a1` delay slots.
 
 `func_8004DF10` is the pure example (voice-attr init after `func_8004E5C4`).
+
+## Empty asm after pinned arg copies for prologue `li sN` order
+
+When `register … asm("s0")` / `asm("s1")` pin the formals and an early
+`flag = 1` lives in `$s3`, GCC often schedules:
+
+```
+sw   s3, …(sp)
+li   s3, 1
+sw   s1, …(sp)
+move s1, a0
+…
+```
+
+while the target wants the arg copies first, then `sw s3` / `li s3, 1`.
+
+An empty constraint after the copies blocks that hoist:
+
+```c
+register GStruct60* s1 asm("s1");
+register UiObject*  s0 asm("s0");
+register s32        s2 asm("s2");
+
+s1 = arg0;
+s0 = arg1;
+asm("" : "+r"(s0), "+r"(s1));
+var_s3 = 1; /* now after move s1,a0 / move s0,a1 */
+```
+
+Same empty-asm family as boot.c / the `ret` CSE notes; the `+r` operands on
+the pinned arg regs are what force the `move`s to complete first.
+
+Also pair with `register s32 temp asm("s2")` when a long-lived work pointer
+must occupy `$s2` (otherwise it steals `$s1` and flips the arg colors).
+
+`func_80032F5C` is the pure example (checksum gate + confirm/cancel pad path
+over `McWork::field_294[slot]`).
+
+## Force `(idx << k) + C` before base add for `addiu`/`addu` order
+
+`base + ((idx << 7) + 0x294)` often reassociates to
+`addiu v1, base, 0x294` then `addu a2, v1, shifted`. When the target does:
+
+```
+sll    v0, v0, 7
+addiu  v0, v0, 0x294
+addu   a2, s2, v0
+```
+
+compute the scaled offset first:
+
+```c
+off = (arg0->field_8 << 7) + 0x294;
+save = (McSaveData*)(work + off);
+```
+

@@ -327,7 +327,65 @@ INCLUDE_ASM("main/nonmatchings/mc", func_80032AB0);
 
 INCLUDE_ASM("main/nonmatchings/mc", func_80032D54);
 
-INCLUDE_ASM("main/nonmatchings/mc", func_80032F5C);
+void func_80032F5C(GStruct60* arg0, UiObject* arg1)
+{
+    register GStruct60* s1 asm("s1");
+    register UiObject*  s0 asm("s0");
+    register s32        s2 asm("s2");
+    s16                 var_v0;
+    s32                 ok;
+    s32                 var_s3;
+    McSaveData*         temp_a2;
+    register s16        sum asm("v1");
+    s32                 i;
+    s32                 limit;
+    s32                 tmp;
+    s32                 off;
+    volatile u8*        ptr;
+
+    s1 = arg0;
+    s0 = arg1;
+    asm("" : "+r"(s0), "+r"(s1));
+    var_s3  = 1;
+    off     = (s1->field_8 << 7) + 0x294;
+    s2      = s0->field_28->field_34;
+    temp_a2 = (McSaveData*)(s2 + off);
+    sum     = 0;
+    if ((u32)(temp_a2->field_12 - 1) >= 0x10U) {
+        ok = 0;
+    } else {
+        ptr   = &temp_a2->field_4;
+        limit = 0x38;
+        i     = 0;
+        do {
+            i   += 1;
+            tmp  = (s8)*ptr;
+            sum  = sum + tmp;
+            ptr += 1;
+        } while (i < limit);
+        ok = ((u16)temp_a2->field_1C ^ (sum & 0xFFFF)) == 0;
+    }
+    if (ok == 0) {
+        var_s3 = 0;
+        func_80048E10(s0, 2);
+    }
+    func_800330D8(s0, s2, s1->field_8, 0, s1->field_1A + 7);
+    if (s1->field_C == 1) {
+        if ((var_s3 != 0) && (Pad_CheckButtons(0, 1, D_8005ED70) != 0)) {
+            func_8005414C(0x16, 0, 0);
+            s0->field_2E = 6;
+            var_v0       = (s8)(u8)s1->field_8;
+            goto block_5;
+        }
+        if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
+            func_8005414C(0x3B, 0, 0);
+            s0->field_2E = 6;
+            var_v0       = -1;
+        block_5:
+            s0->field_2C = var_v0;
+        }
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/mc", func_800330D8);
 
