@@ -5872,3 +5872,60 @@ return (GStruct8*)prev->field_14;
 Also assign `head = &sentinel` *before* any callback that may clobber
 caller-saved regs — that keeps `&sentinel` in a callee-saved register across
 the call (matches early `addiu s1, ..., %lo(head)`). `func_8004D94C`.
+
+## State-machine dispatch: `goto case0` after the `>= N` arm
+
+When the target dispatches `state == 1` first (`beq …, case1`), then
+`state < 2` with:
+
+```
+beqz  v0, ge2        /* state >= 2 */
+li    v0, 2
+beqz  v1, case0      /* state == 0 → jump over ge2 */
+move  v0, zero
+j     ret_zero
+nop
+ge2:
+beq   v1, v0, ret_one
+…
+case0:
+/* large body */
+```
+
+an inlined `if (state == 0) { /* large */ }` puts the body *before* `ge2` and
+often fills the `beqz` delay slot with a `lui` from that body. Force the layout
+with an explicit forward goto and shared exit labels:
+
+```c
+if (state != 1) {
+    if (state < 2) {
+        if (state == 0) {
+            goto case0;
+        }
+        goto ret_zero;
+    }
+    if (state == 2) {
+        goto ret_one;
+    }
+    goto ret_zero;
+case0:
+    /* large body — lives after ge2 in the object */
+    …
+    goto ret_one;
+}
+/* case 1 */
+…
+ret_one:
+    return 1;
+ret_zero:
+    return 0;
+```
+
+`goto ret_zero` / `goto ret_one` also keeps a dedicated `move v0, zero` /
+`li v0, 1` before the epilogue instead of reusing a delay-slot instruction as a
+branch target. `func_8001EF9C`.
+
+When setting several `u8` stack slots from one struct (e.g. `CdCmd_Enqueue`
+params), load each field into a local before the corresponding `sb` so the
+compiler emits `lbu` → `sb` → `lbu` → … rather than reordering independent
+zero-stores ahead of dependent field stores.

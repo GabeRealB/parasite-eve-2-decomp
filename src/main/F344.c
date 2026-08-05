@@ -5,6 +5,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libpress.h>
 
+#include "main/boot.h"
 #include "main/fs.h"
 #include "main/game.h"
 #include "main/mem.h"
@@ -132,7 +133,83 @@ s16 func_8001EED8(u8* arg0)
     return -1;
 }
 
-INCLUDE_ASM("main/nonmatchings/F344", func_8001EF9C);
+s32 func_8001EF9C(s32 arg0, s32 arg1)
+{
+    RECT        rect;
+    u8          param1[8];
+    u8          param2[8];
+    GStruct14*  g;
+    CdCmdQueue* p;
+    s32         state;
+    u8          f7;
+    u8          f6;
+    u8          f74;
+
+    p     = &CdCmd_Queue;
+    state = D_8006AC28;
+    if (state != 1) {
+        if (state < 2) {
+            if (state == 0) {
+                goto case0;
+            }
+            goto ret_zero;
+        }
+        if (state == 2) {
+            goto ret_one;
+        }
+        goto ret_zero;
+    case0:
+        if (D_8006AC1E != 0) {
+            rect.x = 0x2C0;
+            rect.y = 0;
+            rect.w = 0xA0;
+            rect.h = 0x100;
+            MoveImage2(&rect, 0x140, 0);
+            rect.x = 0x360;
+            rect.y = 0;
+            rect.w = 0xA0;
+            rect.h = 0x100;
+            MoveImage2(&rect, 0x140, 0x100);
+        }
+        func_800144F8((s32)D4F564_8005ED64->field_7, (s32)D4F564_8005ED64->field_6);
+        if ((arg0 & 0xFFFF) == 1) {
+            Mem_SetActiveAuxHeap(1);
+        }
+        func_80041EB4();
+        if (Display_State.field_12a == 1) {
+            func_8001D39C();
+            func_8001D498();
+        }
+        D_8006AC28 = D_8006AC28 + 1;
+        if (arg1 & 0xFFFF) {
+            g         = D4F564_8005ED64;
+            f7        = g->field_7;
+            param1[3] = f7;
+            f6        = g->field_6;
+            param1[0] = 0;
+            param1[2] = f6;
+            f74       = g->field_74;
+            param2[1] = 5;
+            param2[2] = 0;
+            param2[3] = 0;
+            param2[0] = f74;
+            CdCmd_Enqueue(0x21, param1, param2);
+            goto ret_zero;
+        }
+        goto ret_one;
+    }
+    if (func_8001D344() & 0xFFFF) {
+        p->field_244 = 0;
+        D_8006AC28   = D_8006AC28 + 1;
+        return 1;
+    }
+    goto ret_zero;
+
+ret_one:
+    return 1;
+ret_zero:
+    return 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/F344", func_8001F180);
 
