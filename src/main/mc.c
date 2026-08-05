@@ -1109,7 +1109,30 @@ void Mc_StateOpenSelected(Task* arg0, McWork* arg1)
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-INCLUDE_ASM("main/nonmatchings/mc", func_80035464);
+void func_80035464(Task* arg0, McWork* arg1)
+{
+    s32           ret;
+    UiObject*     obj;
+    McPromptPair* entry;
+    McPromptPair* base;
+    s32           idx;
+
+    if (MemCardReadData(arg1->field_294[arg1->field_A14], 0x200, 0x80) != 0) {
+        arg1->field_4  = 0;
+        arg0->field_30 = arg0->field_30 + 1;
+    } else {
+        arg1->field_4 = arg1->field_4 + 1;
+    }
+    obj           = arg0->field_20;
+    idx           = arg1->field_8;
+    ret           = func_80048E10(obj, 1);
+    obj->field_2E = 0;
+    func_80048E38(obj, D_8001398C);
+    base  = Mc_PromptTable;
+    entry = &base[idx];
+    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
+    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
+}
 
 void Mc_StateOpenNext(Task* arg0, McWork* arg1)
 {
