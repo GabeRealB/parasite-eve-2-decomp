@@ -892,7 +892,46 @@ s32 func_80056308(GStruct43* arg0)
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_800563B4);
+s32 func_800563B4(GStruct54* arg0)
+{
+    GStruct48  sp10;
+    GStruct43* node;
+    GStruct43* head;
+    s32        count;
+    u8         status;
+    u16        temp;
+
+    head  = arg0->field_40;
+    count = 0;
+    if (head != NULL) {
+        node = head;
+        do {
+            if (node->field_0 >= 0) {
+                if (arg0->field_C != 1) {
+                    status = func_8004E6A4(node->field_0);
+                    if (status != 0) {
+                        func_8004E5C4(node->field_0, &sp10);
+                        temp                                 = ((SpuVoiceAttr*)sp10.field_4)->adsr2;
+                        temp                                 = (temp & 0xFFE0) | 5;
+                        ((SpuVoiceAttr*)sp10.field_4)->adsr2 = temp;
+                        ((SpuVoiceAttr*)sp10.field_4)->mask |= SPU_VOICE_ADSR_ADSR2;
+                        if (status != 2) {
+                            func_8004E71C(node->field_0);
+                        }
+                    }
+                } else {
+                    func_8004E71C(node->field_0);
+                }
+                if (node->field_10 != 0) {
+                    count         += 1;
+                    node->field_12 = 1;
+                }
+            }
+            node = node->field_3C;
+        } while (node != NULL);
+    }
+    return count;
+}
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_800564C4);
 
