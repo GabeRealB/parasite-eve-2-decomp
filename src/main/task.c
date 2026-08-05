@@ -81,7 +81,49 @@ void Task_DetachFromParent(Task* arg0)
     arg0->field_8 = NULL;
 }
 
-INCLUDE_ASM("main/nonmatchings/task", func_8002D14C);
+void func_8002D14C(Task* arg0, Task* arg1)
+{
+    Task* parent;
+    Task* next;
+    Task* cur;
+    Task* temp;
+
+    parent = arg1->field_8;
+    if (parent != NULL) {
+        next = arg1->field_10;
+        if (next == arg1) {
+            parent->field_c = NULL;
+        } else {
+            if (parent->field_c == arg1) {
+                parent->field_c = next;
+            }
+            cur = arg1;
+            if (arg1->field_10 != arg1) {
+                do {
+                    cur = cur->field_10;
+                } while (cur->field_10 != arg1);
+            }
+            cur->field_10  = arg1->field_10;
+            arg1->field_10 = arg1;
+        }
+        arg1->field_8 = NULL;
+    }
+    arg1->field_8 = arg0;
+    temp          = arg0->field_c;
+    if (temp == NULL) {
+        arg0->field_c = arg1;
+        return;
+    }
+    cur  = temp;
+    arg0 = temp;
+    if (cur->field_10 != cur) {
+        do {
+            cur = cur->field_10;
+        } while (cur->field_10 != arg0);
+    }
+    arg1->field_10 = arg0;
+    cur->field_10  = arg1;
+}
 
 void func_8002D214(void* arg0, s32 arg1)
 {

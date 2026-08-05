@@ -5415,3 +5415,51 @@ Plain `arg1->field_2C = i` (or `= 1` CSEd with `i`) collapses to `sw tN`.
 Same function also shows that a void-arg checksum sibling using
 `register u32 j asm("a0")` must switch to `asm("a1")` when `$a0` holds a live
 `Task*` argument through the end of the function.
+
+## Assign walk pointer after null early-return for `lw v0` + delay-slot `move v1,v0`
+
+When attaching into a circular sibling list, the target often loads the head once
+into `$v0`, tests it, and copies to the walk register in the branch delay slot:
+
+```
+lw    v0, 0xc(a0)
+nop
+bnez  v0, use
+ move  v1, v0
+jr    ra
+ sw    a1, 0xc(a0)   /* null path */
+/* use path walks from v1; a0 is then reused as the first-child sentinel */
+```
+
+Writing `cur = temp` *before* the null test CSE's both into one register and you
+get a plain `lw v1` with a `nop` delay:
+
+```c
+/* BAD — CSE merges temp and cur into v1 */
+temp = arg0->field_c;
+cur  = temp;
+if (temp == NULL) { arg0->field_c = arg1; return; }
+```
+
+Assign the walk pointer only on the non-null path, and rebind the dead parent
+argument as the first-child sentinel (so the loop compare uses `$a0`):
+
+```c
+temp = arg0->field_c;
+if (temp == NULL) {
+    arg0->field_c = arg1;
+    return;
+}
+cur  = temp;  /* delay-slot: move v1, v0 */
+arg0 = temp;  /* later: move a0, v1 before the walk */
+if (cur->field_10 != cur) {
+    do {
+        cur = cur->field_10;
+    } while (cur->field_10 != arg0);
+}
+arg1->field_10 = arg0;
+cur->field_10  = arg1;
+```
+
+`func_8002D14C` is the pure example (reparent: detach then insert into parent's
+circular child list — same unlink shape as `Task_DetachFromParent`).
