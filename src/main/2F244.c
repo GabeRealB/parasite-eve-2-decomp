@@ -125,7 +125,79 @@ void func_8003F450(s32 arg0)
     D_800710A0 = saved;
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8003F5A4);
+void func_8003F5A4(void)
+{
+    s32           i;
+    u32           maskR;
+    u32           maskG;
+    u32           maskB;
+    u32           maskAll;
+    register u32* p0 asm("a3");
+    u32*          p1;
+    register u32  a0 asm("a0");
+    register u32  a2 asm("a2");
+    register u32  a1 asm("a1");
+    register u32  v0 asm("v0");
+    register u32  v1 asm("v1");
+
+    v0      = 0xFFFDA800;
+    i       = 0;
+    maskR   = 0x001F001F;
+    maskG   = 0x03E003E0;
+    maskB   = 0x1F001F00;
+    maskAll = 0x1F1F1F1F;
+    v1      = D_80068F88;
+    p0      = (u32*)(v1 + v0);
+    p1      = p0 + 1;
+
+    do {
+        i += 1;
+        a0 = *p1;
+        a2 = *p0;
+
+        v1 = (a0 & maskR) << 8;
+        v0 = a2 & maskR;
+        v1 = v1 | v0;
+        v0 = v1 << 1;
+        a1 = v0 + v1;
+
+        v1 = (a0 & maskG) << 3;
+        a2 = a2 >> 5;
+        v0 = a2 & maskR;
+        v1 = v1 | v0;
+        v0 = v1 << 2;
+        a1 = a1 + v0;
+
+        a0 = a0 >> 2;
+        v1 = a0 & maskB;
+        a2 = a2 >> 5;
+        v0 = a2 & maskR;
+        v1 = v1 | v0;
+        a1 = a1 + v1;
+
+        v0 = a1 >> 3;
+        a1 = v0 & maskAll;
+        a1 = maskAll - a1;
+
+        a2 = a1 & maskR;
+        v0 = a2 << 10;
+        v1 = a2 << 5;
+        v0 = v0 | v1;
+        a2 = a2 | v0;
+
+        a0 = a1 & maskB;
+        a0 = a0 >> 8;
+        v0 = a0 << 10;
+        v1 = a0 << 5;
+        v0 = v0 | v1;
+        a0 = a0 | v0;
+
+        *p0 = a2;
+        *p1 = a0;
+        p1 += 2;
+        p0 += 2;
+    } while (i < 0x4B00);
+}
 
 void func_8003F690(void)
 {
