@@ -156,10 +156,8 @@ void Mc_StateFormat(Task* arg0, McWork* arg1)
 
 INCLUDE_ASM("main/nonmatchings/mc", func_80032578);
 
-INCLUDE_ASM("main/nonmatchings/mc", func_800327A4);
-
 /* Absolute copies of still-asm jump tables / data between matched jtbls
- * (func_800319E4 + Mc_StateCreateFile) and func_800328FC's jtbl. */
+ * (func_800319E4 + Mc_StateCreateFile) and func_800327A4 / func_800328FC jtbls. */
 const s32 jtbl_80013AB4[6] = {
     0x80032300,
     0x80032340,
@@ -198,14 +196,62 @@ const McStateFuncTable26 D_80013ACC = { {
     (McStateFunc)0x800368DC,
 } };
 
-const s32 jtbl_80013B34[6] = {
-    0x800327F0,
-    0x80032840,
-    0x80032850,
-    0x800327F0,
-    0x80032848,
-    0x00000000,
-};
+void func_800327A4(Task* arg0, McWork* arg1)
+{
+    s32           ret;
+    u32           status;
+    s32           idx;
+    s32           i;
+    s32           ch;
+    u8*           ptr1;
+    u8*           ptr0;
+    UiObject*     obj;
+    McPromptPair* entry;
+    McPromptPair* base;
+
+    status = arg1->field_14;
+    switch (status) {
+        case 0:
+        case 3:
+            ptr1 = Mc_FileName;
+            ptr0 = Mc_FileNameBuf;
+            i    = 0;
+            ch   = 0x5F;
+            do {
+                if (i >= 0xC) {
+                    *ptr0 = ch;
+                    *ptr1 = ch;
+                }
+                ptr1++;
+                i++;
+                ptr0++;
+            } while (i < 0x14);
+            *ptr0          = 0;
+            *ptr1          = 0;
+            arg0->field_30 = 0x12;
+            break;
+        case 1:
+            arg0->field_30 = 0xA;
+            break;
+        case 4:
+            arg0->field_30 = 0xB;
+            break;
+        case 2:
+        default:
+            arg0->field_30 = 0x6;
+            break;
+    }
+
+    obj           = arg0->field_20;
+    idx           = arg1->field_8;
+    ret           = func_80048E10(obj, 1);
+    obj->field_2E = 0;
+    func_80048E38(obj, D_8001398C);
+    base  = Mc_PromptTable;
+    entry = &base[idx];
+    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
+    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
+}
 
 void func_800328FC(Task* arg0, McWork* arg1)
 {
