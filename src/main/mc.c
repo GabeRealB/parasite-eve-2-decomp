@@ -158,7 +158,124 @@ INCLUDE_ASM("main/nonmatchings/mc", func_80032578);
 
 INCLUDE_ASM("main/nonmatchings/mc", func_800327A4);
 
-INCLUDE_ASM("main/nonmatchings/mc", func_800328FC);
+/* Absolute copies of still-asm jump tables / data between matched jtbls
+ * (func_800319E4 + Mc_StateCreateFile) and func_800328FC's jtbl. */
+const s32 jtbl_80013AB4[6] = {
+    0x80032300,
+    0x80032340,
+    0x800323A4,
+    0x80032350,
+    0x800323A4,
+    0x800323A4,
+};
+
+const McStateFuncTable26 D_80013ACC = { {
+    (McStateFunc)0x80035A94,
+    (McStateFunc)0x80035AD4,
+    (McStateFunc)0x80035AF0,
+    (McStateFunc)0x80035C2C,
+    (McStateFunc)0x80035D14,
+    (McStateFunc)0x80035E18,
+    (McStateFunc)0x80035E48,
+    (McStateFunc)0x80035ED4,
+    (McStateFunc)0x8003429C,
+    (McStateFunc)0x800327A4,
+    (McStateFunc)0x80035FD8,
+    (McStateFunc)0x800360C8,
+    (McStateFunc)0x800361C0,
+    (McStateFunc)0x800328FC,
+    (McStateFunc)0x80032AB0,
+    (McStateFunc)0x800362A4,
+    (McStateFunc)0x8003429C,
+    (McStateFunc)0x80032D54,
+    (McStateFunc)0x800363AC,
+    (McStateFunc)0x80036488,
+    (McStateFunc)0x800365B0,
+    (McStateFunc)0x800366BC,
+    (McStateFunc)0x8003429C,
+    (McStateFunc)0x800367CC,
+    (McStateFunc)0x80032578,
+    (McStateFunc)0x800368DC,
+} };
+
+const s32 jtbl_80013B34[6] = {
+    0x800327F0,
+    0x80032840,
+    0x80032850,
+    0x800327F0,
+    0x80032848,
+    0x00000000,
+};
+
+void func_800328FC(Task* arg0, McWork* arg1)
+{
+    register Task*   a0 asm("s5");
+    register McWork* a1 asm("s3");
+    s32              ret;
+    s32              syncResult;
+    u32              status;
+    s32              idx;
+    UiObject*        obj;
+    McPromptPair*    entry;
+    McPromptPair*    base;
+    char*            fileName;
+
+    a0            = arg0;
+    a1            = arg1;
+    obj           = a0->field_20;
+    idx           = a1->field_8;
+    ret           = func_80048E10(obj, 1);
+    obj->field_2E = 0;
+    func_80048E38(obj, D_8001398C);
+    base  = Mc_PromptTable;
+    entry = &base[idx];
+    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
+    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
+
+    syncResult = MemCardSync(1, (long*)&a1->field_10, (long*)&a1->field_14);
+    if (syncResult != -1) {
+        if (syncResult == 1) {
+            if (a1->field_10 == syncResult) {
+                if (a1->field_14 != 0) {
+                    a0->field_30 = 6;
+                }
+            }
+            a1->field_4 -= 1;
+            if (a1->field_4 == 0) {
+                fileName = Mc_FileName;
+                MemCardClose();
+                status       = MemCardOpen(a1->field_C, fileName, 1);
+                a1->field_14 = status;
+                switch (status) {
+                    case 0:
+                        a1->field_1C = 0;
+                        a0->field_30 = 0xE;
+                        break;
+                    case 1:
+                        a0->field_30 = 6;
+                        break;
+                    case 2:
+                        a0->field_30 = 6;
+                        break;
+                    case 3:
+                        a0->field_30 = 6;
+                        break;
+                    case 4:
+                        a0->field_30 = 6;
+                        break;
+                    case 5:
+                        a0->field_30 = 0xB;
+                        break;
+                    default:
+                        a0->field_30 = 6;
+                        break;
+                }
+            }
+        }
+    } else {
+        MemCardExist(a1->field_C);
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/mc", func_80032AB0);
 

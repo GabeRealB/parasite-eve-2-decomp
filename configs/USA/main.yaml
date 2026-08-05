@@ -93,8 +93,8 @@ segments:
       - [0x418c, rodata, "20CAC"] # TODO
       # Jump tables still used by unmatched assembly functions in mc.c.
       - [0x4264, rodata, "mc_1"] # jtbl_80013A64 (func_800317DC still asm)
-      - [0x427C, .rodata, "mc"] # jtbls from func_800319E4 + Mc_StateCreateFile
-      - [0x42B4, rodata, "mc_2"] # remaining jtbls / strings for unmatched assembly
+      - [0x427C, .rodata, "mc"] # jtbls from matched mc.c (+ abs copies for still-asm neighbors)
+      - [0x4364, rodata, "mc_2"] # remaining strings for unmatched assembly
       - [0x43c8, o, libmcrd/libmcrd, .rdata]
       - [0x4658, o, libmcrd/userfunc, .rdata]
       - [0x4678, o, libmcrd/low, .rdata]
