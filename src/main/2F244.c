@@ -231,7 +231,35 @@ s32 func_8003FB20(void)
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8003FB70);
+s32 func_8003FB70(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    GStruct17* temp;
+    u8*        ptr;
+    u32        i;
+
+    if (Display_State.field_10d != 0) {
+        return 0;
+    }
+
+    ptr = (u8*)D_80062698;
+    for (i = 0; i < 0x38U; i++) {
+        *ptr++ = 0;
+    }
+
+    temp          = D_80062698;
+    temp->field_0 = arg0;
+    temp->field_4 = arg1;
+    temp->field_8 = arg2;
+    temp->field_C = arg3;
+    if (arg3 == 0) {
+        if ((*(u32*)&D4F564_8005ED64->field_4 & 0xFFFF0000) == 0x1050000) {
+            temp->field_C = 1;
+        }
+    }
+    D_80062698->field_1a    = 0xFF;
+    Display_State.field_10d = 0x81;
+    return 0;
+}
 
 u8 func_8003FC18(void)
 {
