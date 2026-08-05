@@ -47,7 +47,54 @@ INCLUDE_ASM("main/nonmatchings/34E98", func_80047C40);
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80047D90);
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80047F40);
+void func_80047F40(GStruct30* arg0, char* arg1)
+{
+    RECT  sp18;
+    RECT* r;
+    s32   var_a2;
+    s32   color;
+    s32   x;
+    s32   y;
+
+    color = 0x505040;
+    if (arg0->field_0 == 1) {
+        color = 0x806020;
+    }
+    r = &sp18;
+    switch (arg0->field_8) {
+        case 1:
+            var_a2 = 9 - arg0->field_16;
+            if (var_a2 <= 0) {
+                var_a2 = 1;
+            }
+            func_80045A3C(arg0, r, var_a2, 0);
+            break;
+        case 2:
+            goto block_default;
+        case 3:
+        case 4:
+            var_a2 = 9 - arg0->field_16;
+            if ((u32)(var_a2 - 1) >= 8U) {
+                var_a2 = 1;
+            }
+            func_80045A3C(arg0, r, var_a2, 1);
+            break;
+        default:
+        block_default:
+            r->x = arg0->field_C.x;
+            r->y = arg0->field_C.y;
+            r->w = arg0->field_C.w;
+            r->h = arg0->field_C.h;
+            break;
+    }
+    x              = sp18.x;
+    y              = sp18.y;
+    x              = x + 1;
+    y              = y + 1;
+    arg0->field_14 = (u16)(arg0->field_14 - 1);
+    func_80047C40(arg0, x - (s16)arg0->field_20, y - (s16)arg0->field_22, arg1, color);
+    arg0->field_14 = (u16)(arg0->field_14 + 1);
+}
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_800480A0);
 
@@ -553,7 +600,7 @@ void func_80049C00(Task* arg0)
     }
     text = ctx->field_8;
     if (text != NULL) {
-        func_80047F40((GStruct20*)obj, text);
+        func_80047F40((GStruct30*)obj, text);
     }
     func_80046EEC(menu, obj, 0);
     if (obj->field_0 == 1) {
