@@ -4528,3 +4528,34 @@ early return — wrong block order. Only the if/else + continuation shape emits
 
 `func_8002FDCC` is the pure example (two `GStruct38` stack slots at `sp+0x10`
 and `sp+0x20` for the two draw paths).
+
+## Interleaved jump tables: pad + absolute copy for still-asm neighbors
+
+When matching a switch function whose `jtbl` sits *between* another still-asm
+function's table and an already-matched C table, GCC emits the matched tables
+contiguously in `.rodata` and squeezes out the middle slot. Link then fails
+(undefined `.L` labels from the asm table) or the later C table lands at the
+wrong VMA.
+
+Fix without matching the middle function yet:
+
+1. Expand the C unit's `.rodata` subsegment in `configs/USA/main.yaml` to cover
+   from the newly matched jtbl through the last C-owned jtbl (including the
+   middle slot's bytes).
+2. Emit a 4-byte alignment pad (GCC's 9-entry tables are 0x24; original layout
+   pads to 0x28) plus a global `const s32 jtbl_XXXXXXXX[N]` filled with the
+   **absolute** case addresses from the original table. The still-asm function
+   keeps referencing that symbol; the pad keeps subsequent tables at the right
+   offsets.
+
+```c
+static const s32 s_jtbl_pad = 0;
+const s32 jtbl_80012FCC[9] = {
+    0x8001D29C, /* absolute targets of still-asm func_8001D0E8 */
+    /* ... */
+};
+```
+
+Remove the pad and absolute table when the middle function is matched (its
+compiler-generated jtbl will occupy the slot naturally). `func_8001CEFC` is the
+example (pad for `jtbl_80012FCC` / `func_8001D0E8`).

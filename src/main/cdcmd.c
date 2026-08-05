@@ -162,7 +162,110 @@ INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001CA70);
 
 INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001CDF0);
 
-INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001CEFC);
+void func_8001CEFC(void)
+{
+    CdCmdQueue* p;
+    CdCmdQueue* p2;
+    u16*        statePtr;
+    u16         ret;
+    u8          result[8];
+    CdlLOC      loc;
+    s32         pos;
+
+    p = &CdCmd_Queue;
+    switch (p->field_40.cmd >> 4) {
+        case 0:
+        case 1:
+        case 2:
+            p->field_4c  = 0;
+            p->field_212 = 0;
+            break;
+        case 4:
+        case 6:
+        case 7:
+            if (p->field_242 != 0) {
+                if ((p->field_40.cmd >> 4) == 7) {
+                    func_8017D6D4();
+                } else {
+                    func_8001BE60();
+                }
+                break;
+            }
+            statePtr = &p->field_1d2;
+            switch (*statePtr) {
+                case 0:
+                    if (D_8006AC58 != 0) {
+                        func_80026148();
+                        p->field_1d2 = p->field_1d2 + 1;
+                    } else {
+                        p->field_1d2 = 2;
+                        goto case_2;
+                    }
+                    /* fallthrough */
+                case 1:
+                    if (func_800262A8() == 0) {
+                        *statePtr = *statePtr + 1;
+                    }
+                    func_8001BE60();
+                    ret = 0;
+                    break;
+                case 2:
+                case_2:
+                    if ((s16)func_8001F2FC(1)) {
+                        ret = 1;
+                    } else {
+                        func_8001BE60();
+                        ret = 0;
+                    }
+                    break;
+                default:
+                    ret = 0;
+                    break;
+            }
+            if (ret != 0) {
+                CdControlB(CdlGetlocL, NULL, result);
+                loc.minute   = result[0];
+                loc.second   = result[1];
+                loc.sector   = result[2];
+                loc.track    = 0;
+                pos          = CdPosToInt(&loc);
+                p2           = &CdCmd_Queue;
+                p->field_48  = pos;
+                p->field_4c  = 0;
+                p->field_1d2 = 0;
+                if (p2->busy != 0) {
+                    p2->busy                = 0;
+                    Display_State.field_130 = 0;
+                }
+                Mem_Set(p2, 0, 0x40);
+                p2->writeIdx  = 0;
+                p2->readIdx   = 0;
+                p2->step      = 0;
+                p2->field_1fc = 0;
+                p2->field_1d2 = 0;
+            }
+            break;
+        case 3:
+        case 5:
+        case 8:
+            break;
+    }
+}
+
+/* Alignment pad after the 9-entry func_8001CEFC jump table, then an
+ * absolute copy of jtbl_80012FCC for still-asm func_8001D0E8. */
+static const s32 s_jtbl_pad_CEFC  = 0;
+const s32        jtbl_80012FCC[9] = {
+    0x8001D29C,
+    0x8001D29C,
+    0x8001D29C,
+    0x8001D29C,
+    0x8001D29C,
+    0x8001D29C,
+    0x8001D130,
+    0x8001D130,
+    0x8001D29C,
+};
 
 INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001D0E8);
 

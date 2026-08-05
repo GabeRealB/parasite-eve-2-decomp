@@ -171,7 +171,7 @@ STATIC_ASSERT_SIZEOF(CdCmdEntry, 0x8);
 typedef struct _CdCmdQueue {
     CdCmdEntry entries[8];
     CdCmdEntry field_40;
-    byte       unknown_48[0x4];
+    s32        field_48; // last CD position from CdPosToInt
     s8         field_4c;
     byte       unknown_4d[0x3];
     CdCmdEntry field_50; // replace-slot used by CdCmd_EnqueueReplace (cmd at 0x54)
@@ -205,7 +205,8 @@ typedef struct _CdCmdQueue {
     u16        field_204;
     byte       unknown_206[0x8];
     s16        field_20E;
-    byte       unknown_210[0x4];
+    byte       unknown_210[0x2];
+    u16        field_212;
     u16        field_214;
     byte       unknown_216[0x4];
     s16        field_21A;

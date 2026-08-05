@@ -50,10 +50,12 @@ extern void func_80025C94(u8 status, u8* result);
 extern void func_80025DD8(void);
 extern void F16494_ResetSpuAttr(void);
 extern void func_800260B0(s32 arg0);
+extern void func_80026148(void);
 extern void func_80026178(void);
 extern void func_800261C8(void);
 extern s32  func_800261D4(void);
 extern void func_80026218(u16 arg0);
+extern s32  func_800262A8(void);
 
 // gamemain.c APIs → main/gamemain.h
 
@@ -351,7 +353,9 @@ extern s16        D_8006AC28;
 extern u16        D_8006AC3C;
 extern u_short*   D_8006AC38;
 extern u_long*    D_8006AC50[];
+extern u16        D_8006AC58;
 extern u_long*    D_8006AC68;
+extern s32        func_8001F2FC(s32 arg0);
 extern void       func_8001F854(void);
 extern void       func_80020298(s16 arg0);
 extern void       func_80020388(void);
