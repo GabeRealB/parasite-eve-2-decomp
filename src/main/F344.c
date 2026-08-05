@@ -263,7 +263,69 @@ s32 func_8001F2FC(s32 arg0)
 
 INCLUDE_ASM("main/nonmatchings/F344", func_8001F430);
 
-INCLUDE_ASM("main/nonmatchings/F344", func_8001F6B8);
+void func_8001F6B8(void)
+{
+    RECT              rect;
+    s32               index;
+    s32               w;
+    u16               y;
+    s32               new_val;
+    register u_long** base asm("s1");
+    s32               mask;
+    u_long**          p;
+    s32               size;
+    s32               t;
+    s32               flipped;
+    s32               x;
+    u16               ac0e;
+
+    if (D_8006AC14 != 0) {
+        if ((D_8006AC14 == 1) && (StCdIntrFlag != 0)) {
+            StCdInterrupt();
+            StCdIntrFlag = 0;
+        }
+        if (D_8006AC1C != ((D_8006AC5A >> 4) - 1)) {
+            new_val    = D_8006AC1C + 1;
+            D_8006AC1C = new_val;
+            mask       = 0xFFFF;
+            index      = (new_val & mask) - 1;
+            ac0e       = D_8006AC0E;
+            if (D_8006AC14 == 1) {
+                x = ac0e + (index * 0x18);
+            } else {
+                x = ac0e + (index * 0x10);
+            }
+            y      = D_8006AC10;
+            rect.x = x;
+            if (Display_State.field_118 != 0) {
+                y += 0x110;
+            }
+            w      = 0x10;
+            rect.y = y;
+            if (D_8006AC14 == 1) {
+                w = 0x18;
+            }
+            base   = D_8006AC48;
+            rect.h = D_8006AC6C;
+            rect.w = w;
+            LoadImage(&rect, base[D_8005EAEE ^ 1]);
+            t       = D_8005EAEE;
+            size    = D_8006AC6C;
+            flipped = t ^ 1;
+            p       = &base[t & mask];
+            asm("" : "+r"(p), "+r"(flipped));
+            D_8005EAEE = flipped;
+            if (D_8006AC14 == 1) {
+                size *= 0xC;
+            } else {
+                size *= 8;
+            }
+            DecDCTout(*p, size);
+            return;
+        }
+    }
+    func_8001F430();
+}
 
 void func_8001F854(void)
 {

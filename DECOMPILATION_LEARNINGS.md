@@ -7654,3 +7654,53 @@ through `mflo a1`. Pair with `register GStruct* note asm("a3")` when the
 target does `move a3, v0` in a `bltz` delay and later `lbu a2,4(a3); lbu a3,5(a3)`.
 
 `func_800529D8` is the pure example.
+
+## Force `andi` after `lhu` with a non-constant mask temp
+
+When the target does `lhu` then later `andi rd, rs, 0xFFFF` (e.g. array index
+from a `u16` that is also used for `xori` in between), a literal `t & 0xFFFF`
+is often deleted as redundant after the zero-extending load. Assign the mask
+to a local first and reuse it:
+
+```c
+s32 mask;
+
+mask = 0xFFFF;
+index = (new_val & mask) - 1;
+/* ... */
+p = &base[t & mask]; /* keeps andi after lhu / xori */
+```
+
+`func_8001F6B8` needs this so `xori` (flip) and `andi`/`sll`/`addu` (pointer)
+share the same `lhu` of `D_8005EAEE`.
+
+## Pin callee-saved reg + empty asm for store-in-delay-slot schedules
+
+When the target materializes a pointer with `addu a0, …` *before* loading a
+compare operand, then puts a halfword store in the `bne` delay slot, the
+scheduler often does the store first (freeing a reg for the compare) and
+parks the `addu` in the delay slot instead.
+
+Force the pointer to complete first with a multi-output empty asm (already
+documented above), and if that swaps which globals land in `$s0`/`$s1`, pin
+the one that should be in a specific callee-saved reg:
+
+```c
+register u_long** base asm("s1");
+
+base = D_8006AC48;
+/* ... */
+p = &base[t & mask];
+asm("" : "+r"(p), "+r"(flipped)); /* p fully in $a0 before store */
+D_8005EAEE = flipped;             /* lands in bne delay slot */
+if (D_8006AC14 == 1) {
+    size *= 0xC;
+} else {
+    size *= 8;
+}
+DecDCTout(*p, size);
+```
+
+Without `asm("s1")` on `base`, the empty asm alone matched the body but
+swapped `$s0`/`$s1` between `D_8005EAEE` (`%hi` only) and `D_8006AC48`
+(full address). `func_8001F6B8` is the pure example.
