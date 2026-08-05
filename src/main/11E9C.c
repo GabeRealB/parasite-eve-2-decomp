@@ -5,7 +5,6 @@
 #include "main/mem.h"
 #include "main/unknown_syms.h"
 
-void func_80021B28(u8* arg0);
 void func_80021D8C(u8* arg0);
 
 INCLUDE_ASM("main/nonmatchings/11E9C", func_8002169C);
@@ -63,47 +62,73 @@ void func_80021A20(u8* arg0)
     }
 }
 
+void func_80021B28(u8* arg0)
+{
+    switch (D5B498_8006ACB8.field_2) {
+        case 1:
+            if (D5B498_8006ACC0 == 0) {
+                D5B498_8006ACB0 = D_80062E50;
+                *arg0           = 0xA;
+            } else {
+                D5B498_8006ACB0 = D_80062A24;
+                D5B498_8006ACAC = D_80062A44;
+                *arg0           = 3;
+            }
+            break;
+        case 2:
+            D5B498_8006ACB0 = D_80062E50;
+            *arg0           = 0xA;
+            break;
+        case 27:
+            D5B498_8006ACB0 = D_80062E50;
+            *arg0           = 0xB;
+            break;
+        case 30:
+            D5B498_8006ACB0 = D_80062E50;
+            *arg0           = 4;
+            break;
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+        case 9:
+        case 10:
+        case 11:
+        case 12:
+        case 13:
+        case 14:
+        case 15:
+        case 16:
+        case 17:
+        case 18:
+        case 19:
+        case 20:
+        case 21:
+        case 22:
+        case 23:
+        case 24:
+        case 25:
+        case 26:
+        case 28:
+        case 29:
+        case 31:
+        case 32:
+        case 33:
+        case 34:
+        case 35:
+        case 36:
+        case 37:
+        case 38:
+        default:
+            D5B498_8006ACB0 = D_80062E50;
+            *arg0           = 0x27;
+            break;
+    }
+}
+
 /* Absolute copies of still-asm jump tables between matched jtbls. */
-const s32 jtbl_800130F0[38] = {
-    0x80021B60,
-    0x80021B74,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BB8,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BD4,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-    0x80021BF0,
-};
 const s32 jtbl_80013188[48] = {
     0x80021DDC,
     0x80022028,
@@ -154,8 +179,6 @@ const s32 jtbl_80013188[48] = {
     0x80022028,
     0x00000000,
 };
-
-INCLUDE_ASM("main/nonmatchings/11E9C", func_80021B28);
 
 void func_80021C0C(u8* arg0)
 {
