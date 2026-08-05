@@ -6772,3 +6772,50 @@ and schedule the join `sw` before the prompt setup.
 
 `func_80031C5C` is the pure example (status 0 vs pad-filename path for
 1..3/default).
+
+## Dual `lb`/`lbu` + `bltz` clamp to 0x7F
+
+When the target both sign-loads and zero-loads the same byte, then clamps a
+negative value to `0x7F`:
+
+```
+lb   v0, 2(s3)
+lbu  v1, 2(s3)
+bltz v0, neg
+li   v0, 0x7F
+j    join
+ sb  v1, 4(s0)   /* >= 0: store raw byte */
+neg:
+sb   v0, 4(s0)   /* < 0: store 0x7F */
+```
+
+Write the positive arm first (`>= 0`) so the branch is `bltz` to the clamp:
+
+```c
+if ((s8)arg1[2] >= 0) {
+    p->field_4 = arg1[2];
+} else {
+    p->field_4 = 0x7F;
+}
+```
+
+`if ((s8)x < 0)` inverts the polarity to `bgez` and swaps the store order.
+`func_80052488` (MIDI CC 6 data-entry path) is the pure example; same shape as
+`func_80051460` without the dual load.
+
+## `s32 value = u8; if ((value & 0xFF) == K)` keeps load-delay `andi`
+
+Assigning a byte load into `s32` and comparing with `(value & 0xFF)` forces:
+
+```
+lbu  v0, ...
+nop
+andi v1, v0, 0xFF
+sb   v0, ...
+li   v0, K
+beq  v1, v0, ...
+```
+
+A plain `u8 value` drops the `andi`/`nop` and shortens the function by 8 bytes,
+shifting every later label. Use this when the target has an otherwise-redundant
+`andi 0xFF` of a just-loaded byte. `func_80052488` case `0x63` needs it.

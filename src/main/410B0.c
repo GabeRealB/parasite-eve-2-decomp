@@ -751,7 +751,90 @@ INCLUDE_ASM("main/nonmatchings/410B0", func_80051DF4);
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_800520A8);
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80052488);
+u8* func_80052488(s32 arg0, u8* arg1, GStruct36* arg2, GStruct36Entry* arg3)
+{
+    u8  channel;
+    u8  ctrl;
+    s32 value;
+    u8  status;
+
+    channel = arg0 & 0xF;
+    ctrl    = arg1[1];
+
+    switch (ctrl) {
+        case 6:
+            status = arg3->field_0;
+            if (status != 0x10) {
+                if (status != 0x14) {
+                    return arg1 + 3;
+                }
+                if (arg3->field_4 != 0) {
+                    return arg1 + 3;
+                }
+                arg3->field_30 = arg1 + 3;
+                if ((s8)arg1[2] >= 0) {
+                    arg3->field_4 = arg1[2];
+                } else {
+                    arg3->field_4 = 0x7F;
+                }
+                arg3->field_0 = 0;
+            } else {
+                if (arg3->field_1 != status) {
+                    return arg1 + 3;
+                }
+                F3E48C_SetReverbDepth((s16)(arg1[2] << 8));
+                arg3->field_0 = 0;
+                arg3->field_1 = 0;
+            }
+            break;
+
+        case 7:
+            arg2->field_484[channel].field_1 = arg1[2];
+            arg2->field_C                   |= 1 << channel;
+            break;
+
+        case 0xA:
+            if (func_80026138() & 0xFF) {
+                arg2->field_484[channel].field_3 = arg1[2];
+            } else {
+                arg2->field_484[channel].field_3 = 0x40;
+            }
+            arg2->field_C |= 1 << channel;
+            break;
+
+        case 0xB:
+            arg2->field_484[channel].field_2 = arg1[2];
+            arg2->field_C                   |= 1 << channel;
+            break;
+
+        case 0x62:
+            arg3->field_1 = arg1[2];
+            break;
+
+        case 0x63:
+            value         = arg1[2];
+            arg3->field_0 = value;
+            if ((value & 0xFF) == 0x14) {
+                break;
+            }
+            if ((value & 0xFF) != 0x1E) {
+                return arg1 + 3;
+            }
+            if ((arg3->field_4 & 0xFF) < 0x7F) {
+                if ((arg3->field_4 & 0xFF) == 0) {
+                    arg3->field_4 = 0;
+                    break;
+                }
+                arg3->field_4 = arg3->field_4 - 1;
+            }
+            return arg3->field_30;
+
+        default:
+            return arg1 + 3;
+    }
+
+    return arg1 + 3;
+}
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_800526A4);
 
