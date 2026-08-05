@@ -425,7 +425,7 @@ s32 func_800517F8(void)
     return D_8007F2F0;
 }
 
-u8* func_80051808(void)
+u8* func_80051808(s32 arg0)
 {
     if (D_8007F300.field_0 != 0) {
         func_80051AB8(&D_8007F300);
@@ -757,7 +757,55 @@ s32 func_80053414(void* arg0)
     return temp;
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80053448);
+s32 func_80053448(GStruct34* arg0)
+{
+    GStruct42* bank;
+    GStruct36* state;
+    u16        index;
+    s32        i;
+    s32*       ptr;
+    s32        base;
+    s32        temp;
+    s32        end;
+
+    bank = (GStruct42*)arg0->field_18;
+    if (D_800689E8 == 0) {
+        index = bank->field_8;
+        if (index != 0xFFFF) {
+            goto success;
+        }
+    }
+    D_800689E4 = 0xFF;
+    return -1;
+
+success:
+    index          &= 0xFF;
+    state           = (GStruct36*)func_80051808(index);
+    state->field_1  = index;
+    state->field_A  = (arg0->field_2A + 3) & 0xFFFC;
+    temp            = arg0->field_14;
+    state->field_40 = bank;
+    state->field_10 = (void*)temp;
+    state->field_3C = arg0->field_2C;
+    i               = arg0->field_24;
+    base            = ((volatile GStruct42*)bank)->field_18;
+    ptr             = (s32*)((volatile GStruct42*)bank)->field_4;
+    i               = i - 1;
+    if (i != -1) {
+        end = -1;
+        ptr = (s32*)((u8*)ptr + 0x10);
+        do {
+            i    -= 1;
+            *ptr += base;
+            ptr   = (s32*)((u8*)ptr + 0x14);
+        } while (i != end);
+    }
+    func_8004D19C(state->field_40);
+    D_800689E4     = 0xFF;
+    arg0->field_18 = 0;
+    arg0->field_14 = 0;
+    return 0;
+}
 
 void* func_80053548(s32 arg0, s32 arg1, u32 arg2)
 {

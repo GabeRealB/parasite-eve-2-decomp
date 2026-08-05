@@ -596,10 +596,14 @@ typedef struct _GStruct34 {
     /* 0x10 */ s32   field_10;
     /* 0x14 */ s32   field_14;
     /* 0x18 */ s32   field_18;
-    /* 0x1C */ byte  unknown_1C[0xA];
+    /* 0x1C */ byte  unknown_1C[0x8];
+    /* 0x24 */ u8    field_24;
+    /* 0x25 */ byte  unknown_25;
     /* 0x26 */ s16   field_26;
     /* 0x28 */ u8    field_28;
-    /* 0x29 */ byte  unknown_29[0x7];
+    /* 0x29 */ byte  unknown_29;
+    /* 0x2A */ u16   field_2A;
+    /* 0x2C */ s32   field_2C;
 } GStruct34;
 STATIC_ASSERT_SIZEOF(GStruct34, 0x30);
 
@@ -656,6 +660,8 @@ STATIC_ASSERT_SIZEOF(GStruct55, 0x10);
 /// field_484 is a 16-entry opcode table (same layout as GStruct22::field_484);
 /// func_800528BC seeds each entry with 0x407F4000 / 0.
 /// voiceSlots holds up to 18 active SPU voice indices (field_0 = -1 when free).
+typedef struct _GStruct42 GStruct42;
+
 typedef struct _GStruct36 {
     /* 0x00 */ u8                  field_0;
     /* 0x01 */ u8                  field_1;
@@ -663,11 +669,14 @@ typedef struct _GStruct36 {
     /* 0x03 */ u8                  field_3;
     /* 0x04 */ u8                  unknown_04[4];
     /* 0x08 */ s16                 field_8;
-    /* 0x0A */ u8                  unknown_0A[2];
+    /* 0x0A */ s16                 field_A;
     /* 0x0C */ s32                 field_C;
     /* 0x10 */ void*               field_10;
     /* 0x14 */ GStruct55           field_14;
-    /* 0x24 */ u8                  unknown_24[0x4C - 0x24];
+    /* 0x24 */ u8                  unknown_24[0x18];
+    /* 0x3C */ s32                 field_3C;
+    /* 0x40 */ GStruct42*          field_40;
+    /* 0x44 */ u8                  unknown_44[0x8];
     /* 0x4C */ GStruct36Entry      entries[1];
     /* 0x88 */ u8                  unknown_88[0x484 - 0x88];
     /* 0x484 */ GStruct22Entry     field_484[16];
@@ -796,7 +805,7 @@ STATIC_ASSERT_SIZEOF(GStruct42Group, 0x4);
 /// field_B is the group count. field_8 high nibble 0xF marks the slot free/invalid
 /// (see func_8004D0A0 / func_8004D0F0). field_1C is a heap allocation released by
 /// func_8004D0F0.
-typedef struct _GStruct42 {
+struct _GStruct42 {
     /* 0x00 */ GStruct42Group* field_0;
     /* 0x04 */ GStruct41*      field_4;
     /* 0x08 */ u16             field_8;
@@ -805,9 +814,9 @@ typedef struct _GStruct42 {
     /* 0x0C */ byte            unknown_C[0x4];
     /* 0x10 */ u16*            field_10;
     /* 0x14 */ void*           field_14;
-    /* 0x18 */ byte            unknown_18[0x4];
+    /* 0x18 */ s32             field_18;
     /* 0x1C */ void*           field_1C;
-} GStruct42;
+};
 STATIC_ASSERT_SIZEOF(GStruct42, 0x20);
 
 /// BSS object D_80082780 (size 0x14). CD stream control for 46FE4.c.

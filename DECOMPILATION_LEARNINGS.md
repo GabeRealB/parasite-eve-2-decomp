@@ -5998,3 +5998,20 @@ like a large diff even when the body is otherwise identical.
 
 `func_800572FC` needs `sector = &Fs_CdSector` first, then the
 `D_80082780.field_B` / `D_80082758.field_1` guards, then `arg = arg0 & 0xFF`.
+
+## `volatile` struct pointer preserves independent field load order
+
+When the target loads two independent fields from the same struct in a fixed
+order (e.g. `lw a2, 0x18(s1)` then `lw v1, 4(s1)`) but GCC reorders them no
+matter how the C assignments are written, cast the base to `volatile` for those
+reads only:
+
+```c
+base = ((volatile GStruct42*)bank)->field_18;
+ptr  = (s32*)((volatile GStruct42*)bank)->field_4;
+```
+
+Plain `base = bank->field_18; ptr = bank->field_4;` is free to swap the loads
+by schedule/urgency (the pointer used sooner after a following branch often
+loads first). The `volatile` cast forces source order without changing the rest
+of the function. `func_80053448` is the pure example (relocate loop setup).

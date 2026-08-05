@@ -254,7 +254,7 @@ extern void       func_8005166C(u8 arg0, s32 arg1);
 extern void       func_80051744(u8 arg0, u8 arg1);
 extern void       func_800517B4(s32 arg0);
 extern s32        func_800517F8(void);
-extern u8*        func_80051808(void);
+extern u8*        func_80051808(s32 arg0);
 extern void*      func_80051850(s32 arg0, s32 arg1);
 extern s32        func_80051460(s32 arg0, s32 arg1);
 extern void       func_80051888(void);
@@ -276,10 +276,11 @@ extern void       func_80053280(u8 arg0, void* arg1);
 extern void       func_800532CC(void);
 extern s32        func_8005333C(void* arg0);
 extern s32        func_80053414(void* arg0);
-extern void       func_80053448(GStruct34* arg0);
+extern s32        func_80053448(GStruct34* arg0);
 extern void       func_8005363C(s32 arg0, void* arg1);
 
 // 43FFC.c
+extern s32  D_800689E4;
 extern s32  D_800689E8;
 extern s16  D_800689EC;
 extern u8   D_800689F0[];
