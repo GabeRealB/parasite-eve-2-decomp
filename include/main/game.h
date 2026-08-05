@@ -243,18 +243,26 @@ typedef struct _GStruct20 {
 STATIC_ASSERT_SIZEOF(GStruct20, 0x24);
 
 /// Object at Task::field_20 used by func_80048838 / Mc_HideChildUi /
-/// Mc_DrawPrompt. field_0 is a status flag; field_8 is set to 3 when torn down;
-/// field_1C is a position halfword (+2 when passed to func_8002FDCC);
-/// field_28 is a parent/context pointer (has field_c for the recursive walk in
-/// func_80048838). field_2C / field_2E are halfwords polled by teardown state
-/// handlers (e.g. func_8002BD24 waits until field_2E == -1 before cleaning up).
+/// Mc_DrawPrompt. field_0 is a status flag; field_8 is a mode (5 = skip draw in
+/// func_8002FDCC; set to 3 when torn down); field_14 is a halfword counter used
+/// as the text draw priority/order; field_1C is a position halfword (+2 when
+/// passed to func_8002FDCC); field_20/field_22 are base x/y for relative text
+/// placement; field_28 is a parent/context pointer (has field_c for the
+/// recursive walk in func_80048838). field_2C / field_2E are halfwords polled by
+/// teardown state handlers (e.g. func_8002BD24 waits until field_2E == -1 before
+/// cleaning up).
 typedef struct _UiObject {
     /* 0x00 */ s32   field_0;
     /* 0x04 */ byte  unknown_4[0x4];
     /* 0x08 */ s32   field_8;
-    /* 0x0C */ byte  unknown_C[0x10];
+    /* 0x0C */ byte  unknown_C[0x8];
+    /* 0x14 */ u16   field_14;
+    /* 0x16 */ byte  unknown_16[0x6];
     /* 0x1C */ s16   field_1C;
-    /* 0x1E */ byte  unknown_1E[0xA];
+    /* 0x1E */ s16   unknown_1E;
+    /* 0x20 */ u16   field_20;
+    /* 0x22 */ u16   field_22;
+    /* 0x24 */ byte  unknown_24[0x4];
     /* 0x28 */ Task* field_28;
     /* 0x2C */ s16   field_2C;
     /* 0x2E */ s16   field_2E;

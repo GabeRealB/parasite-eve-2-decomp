@@ -4481,3 +4481,50 @@ s32 func_...(s16 arg0, s32 arg1)
 
 `func_8005368C` is the pure example. Hard-register pins on the copies swap
 `$a2`/`$a3` or destroy `$a2` in-place for the switch key.
+
+## `if (p != NULL) { if (x == V) return; } else { ... } /* fallthrough */`
+
+When the target lays out blocks as:
+
+```
+beqz  p, L_else        # null → else
+...
+bne   x, V, L_cont     # non-V → continuation (past else)
+j     epilogue
+ move v0, zero         # early return for x == V
+L_else:
+ ...                   # null path
+ j    epilogue
+ ...
+L_cont:
+ ...                   # non-null && x != V path
+```
+
+write the early-return as a nested `if` inside the non-null arm, put the null
+path in the `else`, and leave the non-null non-V work as a shared continuation
+after the whole if/else:
+
+```c
+if (arg0 != NULL) {
+    if (arg0->field_8 == 5) {
+        return 0;
+    }
+} else {
+    /* null path — absolute draw */
+    ...
+    return arg1;
+}
+/* non-null && field_8 != 5 — relative draw */
+...
+return diff;
+```
+
+`if (arg0 == NULL) { null; return; } if (field_8 == 5) return 0; /* draw */`
+inverts the first branch (`bnez`) and places return-0 after the draw block.
+`if (arg0 != NULL) { if (field_8 != 5) { draw; return; } return 0; } /* null */`
+keeps `beqz` but falls through into the draw and branches on `beq` for the
+early return — wrong block order. Only the if/else + continuation shape emits
+`bne` over both the early return and the else into the shared tail.
+
+`func_8002FDCC` is the pure example (two `GStruct38` stack slots at `sp+0x10`
+and `sp+0x20` for the two draw paths).

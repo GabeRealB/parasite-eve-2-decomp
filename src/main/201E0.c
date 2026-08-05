@@ -27,7 +27,38 @@ s32 func_8002FCBC(u8* arg0)
 
 INCLUDE_ASM("main/nonmatchings/201E0", func_8002FD08);
 
-INCLUDE_ASM("main/nonmatchings/201E0", func_8002FDCC);
+s32 func_8002FDCC(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
+{
+    GStruct38 sp10;
+    GStruct38 sp20;
+    s32       temp;
+
+    if (arg0 != NULL) {
+        if (arg0->field_8 == 5) {
+            return 0;
+        }
+    } else {
+        sp20.field_0 = arg1;
+        sp20.field_2 = arg2;
+        sp20.field_4 = 4;
+        sp20.field_8 = arg4;
+        sp20.field_C = 4;
+        sp20.field_D = arg6;
+        sp20.field_E = arg5;
+        func_8002E53C(&sp20, arg3);
+        return arg1;
+    }
+    sp10.field_0 = arg0->field_20 + arg1;
+    sp10.field_2 = (arg0->field_22 + arg2) - 3;
+    temp         = (s16)arg0->field_14;
+    sp10.field_8 = arg4;
+    sp10.field_C = 4;
+    sp10.field_D = arg6;
+    sp10.field_E = arg5;
+    sp10.field_4 = temp + 1;
+    func_8002E53C(&sp10, arg3);
+    return sp10.field_0 - (s16)arg0->field_20;
+}
 
 void func_8002FEAC(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5, void* arg6)
 {

@@ -107,7 +107,7 @@ extern u16 D_80072AA8;
 
 // 201E0.c
 extern s32  func_8002FCBC(u8* arg0);
-extern void func_8002FDCC(void* arg0, s32 arg1, s32 arg2, void* arg3, s32 arg4, s32 arg5,
+extern s32  func_8002FDCC(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5,
                           s32 arg6);
 extern void func_80030074(void);
 // Builds a memcard save filename into arg0 (prefix + arg1 char + 7 random)
