@@ -4,14 +4,51 @@
 
 #include "main/unknown_syms.h"
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004DC8C);
+void func_8004DC8C(void)
+{
+    GStruct51* entry;
+    u32        flags;
+    s32        ret;
+    s32        mask;
+    s8         idx;
+    s8         current;
+
+    current = D_8007E2E0.field_0;
+    if (D_8007E2E0.field_1 != current) {
+        entry = &D_8007E2E0.entries[current];
+        flags = entry->field_0;
+        if (flags & 1) {
+            if (entry->field_8(entry) != 0) {
+                if (entry->field_C != NULL) {
+                    entry->field_C(entry);
+                }
+                entry->field_0    &= ~1;
+                entry->field_0    &= ~4;
+                idx                = (u8)D_8007E2E0.field_0 + 1;
+                D_8007E2E0.field_0 = idx;
+                if (idx >= 4) {
+                    D_8007E2E0.field_0 = 0;
+                }
+            }
+        } else if (!((flags >> 2) & 1) || ((flags >> 1) & 1) || (entry->field_10 == NULL) ||
+                   (ret = entry->field_10(entry), mask = ~8,
+                    entry->field_0 = (entry->field_0 & mask) | ((ret & 1) * 8), ((ret & 1) == 0))) {
+            entry->field_0    &= ~4;
+            idx                = (u8)D_8007E2E0.field_0 + 1;
+            D_8007E2E0.field_0 = idx;
+            if (idx >= 4) {
+                D_8007E2E0.field_0 = 0;
+            }
+        }
+    }
+}
 
 void func_8004DDF0(void)
 {
     u32  i;
     s32* ptr;
 
-    ptr = D_8007E2E0;
+    ptr = (s32*)&D_8007E2E0;
     i   = 0;
     do {
         *ptr = 0;

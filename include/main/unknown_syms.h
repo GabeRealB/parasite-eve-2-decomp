@@ -652,7 +652,7 @@ extern u8                 D648E0_HeapBuffer[C3D458_HEAP_SIZE];
 extern GStruct8           D648E0_8007E0B0;
 extern u32                D648E0_8007E0C8;
 extern long               D648E0_SpuTimerED;
-extern s32                D_8007E2E0[0x15];
+extern GStruct51Queue     D_8007E2E0;
 extern GStruct51          D_8007E2E4[];
 extern GStruct9           D648E0_8007E338;
 extern GStruct10          D648E0_8007E518;

@@ -7805,3 +7805,46 @@ if (next == K) {
 ```
 
 `func_8002F9E0` needs this for the `\r` / `\r\n` line-break arm.
+
+## Separate mask temp vs. in-place `&=` for flag bit clears
+
+When the target clears flag bits with a fresh load into `$v0` and masks in `$v1`:
+
+```
+lw  v0, 0(s0)
+li  v1, -2
+and v0, v0, v1
+li  v1, -5
+and v0, v0, v1
+sw  v0, 0(s0)
+```
+
+writing `flags = entry->field_0; flags = flags & ~1; flags = flags & ~4` reuses the
+early `flags` register (often `$v1` from the bit tests) and swaps the pair. Use
+in-place RMW instead so the load is a temporary in `$v0`:
+
+```c
+entry->field_0 &= ~1;
+entry->field_0 &= ~4;
+```
+
+Do **not** fold to `entry->field_0 &= ~1 & ~4` (or `&= ~6`) — the constant folder
+emits a single `li v1, -6`.
+
+When a later path needs `li a0, -9` *before* reloading flags (so `$a0` holds the
+mask and `$v1` the flags), assign the mask to its **own** temporary first — do
+not reuse the early `flags` name, which can pull the initial `flags` load into
+`$a0` (~99.8% with only that reg wrong):
+
+```c
+/* GOOD — mask is a separate local; early flags stays in $v1 */
+ret  = entry->field_10(entry);
+mask = ~8;
+entry->field_0 = (entry->field_0 & mask) | ((ret & 1) * 8);
+
+/* BAD — reusing flags for ~8 reallocates the early load into $a0 */
+flags = ~8;
+entry->field_0 = (entry->field_0 & flags) | ((ret & 1) * 8);
+```
+
+`func_8004DC8C` is the pure example.

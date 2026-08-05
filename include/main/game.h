@@ -944,13 +944,26 @@ STATIC_ASSERT_SIZEOF(GStruct50, 0x14);
 /// PsyQ GsClearOt, declared with GStruct50* so callers need not include libgs.h.
 void GsClearOt(unsigned short offset, unsigned short point, GStruct50* otp);
 
-/// Callback-queue slot used by D_8007E2E4 (stride 0x14).
-/// field_0 holds status flags (bit0 active, bit2 cancel/pending, etc.).
+/// Callback-queue slot used by D_8007E2E0.entries / D_8007E2E4 (stride 0x14).
+/// field_0 holds status flags (bit0 active, bit1 arm, bit2 pending, bit3 result).
 typedef struct _GStruct51 {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ u8  pad_4[0x10];
+    /* 0x00 */ s32  field_0;
+    /* 0x04 */ s32  field_4;
+    /* 0x08 */ s32  (*field_8)(struct _GStruct51*);
+    /* 0x0C */ void (*field_C)(struct _GStruct51*);
+    /* 0x10 */ s32  (*field_10)(struct _GStruct51*);
 } GStruct51;
 STATIC_ASSERT_SIZEOF(GStruct51, 0x14);
+
+/// Ring buffer of 4 GStruct51 callback slots (D_8007E2E0, size 0x54).
+/// field_0 is the read index; field_1 is the write index. D_8007E2E4 aliases entries.
+typedef struct _GStruct51Queue {
+    /* 0x00 */ s8        field_0;
+    /* 0x01 */ s8        field_1;
+    /* 0x02 */ u8        pad_2[2];
+    /* 0x04 */ GStruct51 entries[4];
+} GStruct51Queue;
+STATIC_ASSERT_SIZEOF(GStruct51Queue, 0x54);
 
 /// 4-byte entry pointed to by D_80082794 (see func_80057724).
 /// Indexed by D_80082758.field_2; field_3 is compared across adjacent entries.
