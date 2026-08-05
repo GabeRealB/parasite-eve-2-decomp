@@ -6713,3 +6713,62 @@ Do not hand-write the magic constant. `func_80055DFC` (and the same sequence in
 - `GStruct43::field_A` is the per-voice `u8` scale; `field_2` stores the result.
 - Null-check `field_40` via a temp then assign the walk pointer so the target
   keeps `lw v0,0x40; beqz v0; move a1,v0` (see earlier "temp then cur" entry).
+
+## Range-check + shared non-zero body needs `if`/`goto`, not `switch`
+
+When the target opens with
+
+```
+lw     v1, status
+sltiu  v0, v1, N
+beqz   v0, default_entry
+...
+bnez   v1, shared_body
+ # delay: load shared address
+# case 0 body
+j      join
+ # delay: last case-0 store
+default_entry:
+ # load same shared address
+shared_body:
+ # single copy of pad/work
+join:
+ sw     v0, field_30(a0)
+```
+
+a C `switch` whose case 0 is unique and cases `1..N-1` plus `default` all share
+one body collapses to a plain `bnez status` (no `sltiu`). Duplicate the shared
+body under `if (status < NU) { ... } else { ... }` and the compiler emits two
+copies.
+
+Match by writing the m2c shape with a single shared tail:
+
+```c
+status = work->field_14;
+if (status < 4U) {
+    ptr = Mc_FileName; /* also fills the bnez delay slot on the case-0 path */
+    if (status == 0) {
+        /* case 0 */
+        work->field_24 = 9;
+        work->field_28 = -1;
+        work->field_2C = 0;
+        task->field_30 = 5; /* leave value in $v0 for the join store */
+    } else {
+        goto shared;
+    }
+} else {
+    ptr = Mc_FileName;
+shared:
+    /* one pad / work block; ends with task->field_30 = 0x2A */
+}
+work->field_18 = 0;
+/* common prompt draw */
+```
+
+Assign `field_30` in each branch (do **not** funnel through a `next` temp). A
+`next` temporary often lands in `$v1` (colliding with the loop index) and
+reorders `sw field_30` past `li a1,1`. Direct stores keep the constant in `$v0`
+and schedule the join `sw` before the prompt setup.
+
+`func_80031C5C` is the pure example (status 0 vs pad-filename path for
+1..3/default).
