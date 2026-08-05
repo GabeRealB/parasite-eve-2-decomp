@@ -876,6 +876,23 @@ typedef struct _GStruct60 {
     /* 0x22 */ s16  field_22;
 } GStruct60;
 
+/// Linked text option node walked by func_80049AF0 (index via GStruct60::field_8).
+/// field_0 is the string passed to func_8002FDCC; field_4 is the next node.
+typedef struct _GStruct69 {
+    /* 0x0 */ u8*                field_0;
+    /* 0x4 */ struct _GStruct69* field_4;
+} GStruct69;
+STATIC_ASSERT_SIZEOF(GStruct69, 0x8);
+
+/// Context at Task::field_34 for the func_80049AF0 dialog path.
+/// field_4 is the head of a GStruct69 list; field_C bit0 gates cancel input.
+typedef struct _GStruct70 {
+    /* 0x00 */ byte       unknown_0[4];
+    /* 0x04 */ GStruct69* field_4;
+    /* 0x08 */ byte       unknown_8[4];
+    /* 0x0C */ u8         field_C;
+} GStruct70;
+
 /// 0x18-byte voice-slot lookup result filled by func_80054D58 and consumed by
 /// func_800558E8 / func_80055EF8. field_0 is the chosen slot index (or error);
 /// field_1..field_6 are candidate slot indices (-1 = empty); field_7 is the

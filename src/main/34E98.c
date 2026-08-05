@@ -406,7 +406,36 @@ void func_80049A8C(Task* arg0)
     temp_s0->field_16 += Display_State.field_10a;
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80049AF0);
+void func_80049AF0(GStruct60* arg0, UiObject* arg1)
+{
+    GStruct70* temp_s3;
+    GStruct69* var_a3;
+    s32        var_v0;
+    s16        temp;
+
+    temp_s3 = (GStruct70*)arg1->field_28->field_34;
+    var_v0  = arg0->field_8;
+    var_a3  = temp_s3->field_4;
+    if (var_v0 > 0) {
+        do {
+            var_a3  = var_a3->field_4;
+            var_v0 -= 1;
+        } while (var_v0 > 0);
+    }
+    func_8002FDCC(arg1, arg0->field_18, arg0->field_1A, var_a3->field_0, arg0->field_1C, 1, 0);
+    if (arg0->field_C == 1) {
+        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+            temp           = 6;
+            arg1->field_2C = (s8)(u8)arg0->field_8 + 1;
+            arg1->field_2E = temp;
+            return;
+        }
+        if ((temp_s3->field_C & 1) && (Pad_CheckButtons(0, 1, D_8005ED74 | D_8005ED78) != 0)) {
+            arg1->field_2C = -1;
+            arg1->field_2E = -1;
+        }
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80049C00);
 

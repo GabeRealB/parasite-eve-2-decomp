@@ -5143,3 +5143,27 @@ jr    ra             /* ret_neg */
 
 Also: declare locals in order `i`, `found`, `result` (init `result = 0; i =
 result; found = result`) so `$t0`/`$t1`/`$t2` match that assignment chain.
+
+## `s16` temp for constant + `(s8)(u8)` halfword pair
+
+When the target loads a constant into `$v1` in a branch delay slot, then
+`lbu`/`sll`/`sra` a signed-byte field into `$v0`, then `sh` both halfwords
+(`field_2E = 6` then `field_2C = field_8 + 1`), writing the constant store
+first forces `li $v0, 6; sh $v0` and leaves a nop after the later `lbu`.
+
+Hold the constant in an `s16` temporary, write the `(s8)(u8)` halfword first,
+then store the temp:
+
+```c
+s16 temp;
+
+if (Pad_CheckButtons(0, 1, mask) != 0) {
+    temp           = 6;
+    arg1->field_2C = (s8)(u8)arg0->field_8 + 1;
+    arg1->field_2E = temp;
+    return;
+}
+```
+
+`li $v1, 6` fills the `beqz` delay slot; `lbu` reuses `$v0`; `sh $v1, field_2E`
+sits between the load and the sign-extend. `func_80049AF0` is the example.
