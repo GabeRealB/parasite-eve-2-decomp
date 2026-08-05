@@ -6242,3 +6242,32 @@ if (inRange) {
 
 Assigning `img = arg0` only after the if/else often puts `move a1` in the
 *true-path* `j` delay instead, and duplicates it on the else path.
+
+## Do not include `libgs.h` for `GsF_LIGHT`
+
+`include/main/game.h` redeclares `GsClearOt` with `GStruct50*` so callers avoid
+libgs. Including `<psyq/libgs.h>` redeclares `GsClearOt` with `GsOT*` and fails
+with `conflicting types for GsClearOt`.
+
+For flat-light structs (vx/vy/vz + r/g/b at 0xC/0xD/0xE), define a local
+layout-matching type (e.g. `FlatLight`) instead of including libgs.
+
+## Scratch-head light direction: 0x18 block, SVECTOR at +0x10
+
+`G_SCRATCH_HEAD` (`PSX_SCRATCH_ADDR(0x3FC)`) is a downward-growing arena pointer.
+Helpers that call `func_8003CD78` to normalize a light direction use:
+
+```c
+head = *scratch;
+block = (ScratchLightBlock*)((u8*)head - 0x18); /* pad[0x10] + SVECTOR */
+*scratch = block;
+func_8003CD78(light, (SVECTOR*)((u8*)head - 8)); /* == &block->dir */
+/* read -block->dir.{vx,vy,vz} into MATRIX row id */
+*scratch = (u8*)*scratch + 0x18;                 /* free */
+```
+
+Keeping a single `block` base (access dir as `block->dir` / `+0x10`) avoids an
+extra callee-saved for a separate SVECTOR pointer. Computing the out-arg as
+`head - 8` (not `block + 0x10`) matches the target's `addiu a1, a1, -8` from the
+loaded head. Colors go in MATRIX **columns** (`m[0/1/2][id] = component << 4`);
+directions go in MATRIX **rows** (`m[id][0/1/2] = -dir`).
