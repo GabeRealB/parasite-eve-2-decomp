@@ -800,19 +800,21 @@ STATIC_ASSERT_SIZEOF(GStruct52, 0x4);
 /// func_80055DAC; field_16 holds status flags (mask 0xA3 selects active entries).
 /// field_E is a dirty flag; field_10/11/12 and field_13/14/15 are paired ramps
 /// (current/target/step) updated by func_80055A9C and func_80055B70 respectively.
+/// field_50 is a volume interpolator driven by func_800559BC via func_8004D200.
 typedef struct _GStruct54 {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ u8  pad_4[0xA];
-    /* 0x0E */ s8  field_E;
-    /* 0x0F */ u8  pad_F;
-    /* 0x10 */ u8  field_10;
-    /* 0x11 */ u8  field_11;
-    /* 0x12 */ s8  field_12;
-    /* 0x13 */ u8  field_13;
-    /* 0x14 */ u8  field_14;
-    /* 0x15 */ s8  field_15;
-    /* 0x16 */ u8  field_16;
-    /* 0x17 */ u8  pad_17[0x49];
+    /* 0x00 */ s32       field_0;
+    /* 0x04 */ u8        pad_4[0xA];
+    /* 0x0E */ s8        field_E;
+    /* 0x0F */ u8        pad_F;
+    /* 0x10 */ u8        field_10;
+    /* 0x11 */ u8        field_11;
+    /* 0x12 */ s8        field_12;
+    /* 0x13 */ u8        field_13;
+    /* 0x14 */ u8        field_14;
+    /* 0x15 */ s8        field_15;
+    /* 0x16 */ u8        field_16;
+    /* 0x17 */ u8        pad_17[0x39];
+    /* 0x50 */ GStruct55 field_50;
 } GStruct54;
 STATIC_ASSERT_SIZEOF(GStruct54, 0x60);
 

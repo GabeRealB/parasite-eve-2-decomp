@@ -5167,3 +5167,44 @@ if (Pad_CheckButtons(0, 1, mask) != 0) {
 
 `li $v1, 6` fills the `beqz` delay slot; `lbu` reuses `$v0`; `sh $v1, field_2E`
 sits between the load and the sign-extend. `func_80049AF0` is the example.
+
+## Array re-index each iteration to keep struct base as IV
+
+When a loop walks a fixed-size struct array and both (a) loads fields near the
+start and (b) takes the address of a mid/high field for a call, writing:
+
+```c
+GStruct54* p = D_80082248;
+for (i = 0; i < 8; i++, p++) {
+    if (p->field_0 == arg0) {
+        func_8004D200(&p->field_50, ...);
+    }
+}
+```
+
+lets GCC 2.8.1 keep *two* induction pointers — one at the struct base (for
+`field_0`) and one at `&field_50` (for the call / nearby bytes via negative
+offsets). That spills an extra callee-saved reg (`$s6`), shifts the stack frame,
+and mismatches even when the logic is identical.
+
+Re-deriving the element from the index each time keeps a single base IV:
+
+```c
+for (i = 0; i < 8; i++) {
+    p = &D_80082248[i];
+    if ((arg0 == p->field_0) || ((p->field_0 & 0xF0000000) == arg0)) {
+        if (p->field_16 == 8) {
+            p->field_16 = 0x10;
+            func_8004D200(&p->field_50, 0, (u8)D_80082748, 8);
+        }
+    }
+}
+```
+
+The compiler still emits `addiu $s0, $s0, 0x60` for the walk, but no longer
+CSEs `&p->field_50` into a second live pointer. Operand order `arg0 == p->field_0`
+also matters for `beq $s4, $v1` vs the swapped form.
+
+`func_800559BC` is the pure example. Closely related: `func_8005166C` avoids the
+trap because its status byte sits at offset 0 (free relative to the base) and
+the interpolator is only `+0x14`.

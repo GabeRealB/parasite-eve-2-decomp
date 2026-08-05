@@ -399,7 +399,28 @@ s32 func_800558E8(s32 arg0, s8 arg1, s8 arg2, s32 arg3, GStruct67* arg4)
     return sp18.field_0;
 }
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_800559BC);
+void func_800559BC(s32 arg0, s32 arg1)
+{
+    s32        i;
+    GStruct54* p;
+
+    for (i = 0; i < 8; i++) {
+        p = &D_80082248[i];
+        if ((arg0 == p->field_0) || ((p->field_0 & 0xF0000000) == arg0)) {
+            if (arg1 == 0) {
+                if (p->field_16 == 8) {
+                    p->field_16 = 0x10;
+                    func_8004D200(&p->field_50, 0, (u8)D_80082748, 8);
+                }
+            } else {
+                if (p->field_16 & 0x22) {
+                    p->field_16 = 8;
+                    func_8004D200(&p->field_50, (u8)D_80082748, 0, 8);
+                }
+            }
+        }
+    }
+}
 
 void func_80055A9C(s32 arg0, s32 arg1, s32 arg2)
 {
