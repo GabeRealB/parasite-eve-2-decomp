@@ -4710,3 +4710,33 @@ Two pieces together fix it:
 `Boot_LoadInitialFile` is the pure example (fade-out complete → clear image
 buffers). Same shape as the empty-asm REG_EQUAL kill under “Force `move aN, s0`
 for a known-zero live return value”.
+
+## Two-step address through the same pointer keeps `addu`/`addiu` in one reg
+
+When the target builds a slot pointer as:
+
+```
+addu  a1, a3, s0      /* tmp = offset + base */
+addiu a1, a1, 0x504   /* slot = tmp + voiceSlots */
+```
+
+a single expression `(offset + (s32)base) + 0x504` (or `base->voiceSlots` with
+an index) often lands the intermediate in `$v0`:
+
+```
+addu  v0, a3, s0
+addiu a1, v0, 0x504
+```
+
+Force the intermediate into the final register by assigning through the *same*
+pointer variable twice — first the integer `offset + base`, then the struct
+field that adds the fixed mid-struct offset:
+
+```c
+slot = (GStruct36VoiceSlot*)(offset + (s32)obj);
+slot = ((GStruct36*)slot)->voiceSlots; /* addiu a1, a1, 0x504 */
+```
+
+`func_80051964` is the pure example (voice-slot clear loop). Pair with the
+`offset + (s32)base` integer cast (see “Force `addu rd, offset, base`”) so the
+`addu` operands stay offset-first.

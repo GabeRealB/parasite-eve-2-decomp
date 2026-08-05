@@ -436,7 +436,50 @@ void func_800518E0(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80051964);
+void func_80051964(s32 arg0)
+{
+    GStruct36*          obj;
+    s32*                p;
+    u32                 i;
+    s32                 offset;
+    u32                 k;
+    GStruct36VoiceSlot* slot;
+    s32*                q;
+    s8                  freemark;
+
+    arg0 &= 0xFF;
+    obj   = &(&D_8007F300)[arg0];
+
+    p = (s32*)obj;
+    i = 0;
+    do {
+        *p = 0;
+        i++;
+        p++;
+    } while (i < 0x177U);
+
+    func_8004D200(&obj->field_14, 0, 0, 0);
+    func_800528BC((s32*)obj->field_484);
+
+    i        = 0;
+    freemark = -1;
+    offset   = 0;
+    do {
+        slot = (GStruct36VoiceSlot*)(offset + (s32)obj);
+        slot = ((GStruct36*)slot)->voiceSlots;
+        q    = (s32*)slot;
+        k    = 0;
+        do {
+            *q = 0;
+            k++;
+            q++;
+        } while (k < 3U);
+        offset += 0xC;
+        i++;
+        slot->field_1 = freemark;
+        slot->field_0 = freemark;
+    } while ((s32)i < 0x12);
+}
 
 void* func_80051A2C(GStruct36* arg0, s32 arg1, u8* arg2)
 {

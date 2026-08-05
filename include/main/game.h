@@ -555,9 +555,11 @@ STATIC_ASSERT_SIZEOF(GStruct36Entry, 0x3C);
 
 /// Active SPU voice slot inside GStruct36 (stride 0xC, 18 slots at 0x504).
 /// field_0 is the voice index (negative when free); iterated by func_80051AF0.
+/// field_0 / field_1 are set to -1 when the slot is cleared (func_80051964).
 typedef struct _GStruct36VoiceSlot {
     /* 0x0 */ s8 field_0;
-    /* 0x1 */ u8 unknown_1[0xB];
+    /* 0x1 */ s8 field_1;
+    /* 0x2 */ u8 unknown_2[0xA];
 } GStruct36VoiceSlot;
 STATIC_ASSERT_SIZEOF(GStruct36VoiceSlot, 0xC);
 
@@ -577,6 +579,8 @@ STATIC_ASSERT_SIZEOF(GStruct55, 0x10);
 /// field_0 is status; field_3 is the number of track entries starting at 0x4C.
 /// field_8 is a scaled volume; field_C is a sentinel (0xFFFF when cleared).
 /// field_10 is a data pointer; field_14 is the volume interpolator.
+/// field_484 is a 16-entry opcode table (same layout as GStruct22::field_484);
+/// func_800528BC seeds each entry with 0x407F4000 / 0.
 /// voiceSlots holds up to 18 active SPU voice indices (field_0 = -1 when free).
 typedef struct _GStruct36 {
     /* 0x00 */ u8                  field_0;
@@ -591,7 +595,8 @@ typedef struct _GStruct36 {
     /* 0x14 */ GStruct55           field_14;
     /* 0x24 */ u8                  unknown_24[0x4C - 0x24];
     /* 0x4C */ GStruct36Entry      entries[1];
-    /* 0x88 */ u8                  unknown_88[0x504 - 0x88];
+    /* 0x88 */ u8                  unknown_88[0x484 - 0x88];
+    /* 0x484 */ GStruct22Entry     field_484[16];
     /* 0x504 */ GStruct36VoiceSlot voiceSlots[0x12];
 } GStruct36;
 STATIC_ASSERT_SIZEOF(GStruct36, 0x5DC);
