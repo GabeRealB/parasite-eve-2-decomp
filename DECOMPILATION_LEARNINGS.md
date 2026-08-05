@@ -5695,3 +5695,37 @@ sum = sum + tmp;   /* not sum += (s8)*cptr */
 order; a non-volatile `tmp = (s8)*ptr; sum = sum + tmp` gives the right `addu`
 but collapses to `lb`. Both together match. Used in `func_800303AC` over
 `McChecksumBlock` payloads (same loop shape as `Mc_WriteBlockChecksum`).
+
+## Volatile byte cast forces reload of a just-tested field
+
+When the target tests a `u8` field then later stores that same field into
+another object, GCC 2.8.1 will CSE the load into a free register (`$a3`) and
+schedule the entry-pointer `addu` early. The target instead reuses `$v0` for
+the first load, spills other bytes to the stack, **reloads** the field, then
+`addu`s:
+
+```
+lbu  v0, field(a2)
+beqz v0, fail
+…
+sb   …, 0(sp)          # spill other bytes
+lbu  v0, field(a2)     # reload — not CSE'd
+addu v1, v1, a2
+sb   v0, 4(v1)
+```
+
+A plain second read CSEs (~96%). Route **one** of the two accesses through a
+volatile byte cast so the value cannot stay live:
+
+```c
+if (*(volatile u8*)&p->field_50.cmd == 0) {
+    return -1;
+}
+…
+entry->cmd = p->field_50.cmd;   /* second load now materializes */
+```
+
+(The cast can sit on either access.) Same shape already used in `cdcmd.c` for
+`entry->param0`. `func_8001D760` (commit `field_50` into the ring) is the pure
+example; pair with `(s16)writeIdx` when the return needs `sll`/`sra 16`
+sign-extend rather than Enqueue's `andi …, 0xffff` zero-extend.

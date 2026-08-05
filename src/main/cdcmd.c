@@ -485,7 +485,46 @@ void CdCmd_EnqueueReplace(s32 cmd, u8* paramA, u8* paramB)
     entry->idB3   = paramB[3];
 }
 
-INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001D760);
+s32 func_8001D760(void)
+{
+    CdCmdQueue* p;
+    CdCmdEntry* entry;
+    u16         writeIdx;
+    u16         next;
+    u8          paramA[4];
+    u8*         paramB;
+
+    p = &CdCmd_Queue;
+    if (*(volatile u8*)&p->field_50.cmd == 0) {
+        return -1;
+    }
+
+    paramA[3] = p->field_50.param0;
+    paramA[2] = p->field_50.param1;
+    paramA[0] = p->field_50.param2;
+
+    writeIdx      = p->writeIdx;
+    entry         = &p->entries[writeIdx];
+    entry->cmd    = p->field_50.cmd;
+    entry->param0 = paramA[3];
+    entry->param1 = paramA[2];
+    entry->param2 = paramA[0];
+
+    paramB      = (u8*)&p->field_50;
+    entry->idB0 = paramB[0];
+    entry->idB1 = paramB[1];
+    entry->idB2 = paramB[2];
+    entry->idB3 = paramB[3];
+
+    p->field_50.cmd = 0;
+
+    writeIdx    = p->writeIdx;
+    next        = writeIdx + 1;
+    p->writeIdx = next;
+    next        = p->writeIdx % 8;
+    p->writeIdx = next;
+    return (s16)writeIdx;
+}
 
 INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001D82C);
 
