@@ -6016,6 +6016,26 @@ func(x - (s16)arg0->field_20, y - (s16)arg0->field_22);
 Changing the struct field to `s16` would break other matches that expect `lhu`
 (e.g. `func_80048F88` on `GStruct30::field_20`). `func_80048E38`.
 
+## `(u16)` cast on an `s16` field forces `lhu` without changing the struct
+
+The inverse of the previous entry: when the target uses `lhu` for a zero-check
+(or other unsigned halfword use) but the field is `s16` (other matches need
+`lh` / signed stores), cast at the use site:
+
+```c
+/* target: lhu v0, 0x20E(a1); bnez v0, ... */
+if ((u16)p->field_20E != 0) {
+    p->field_4c = 1;
+    return 1;
+}
+return 0;
+```
+
+A bare `if (p->field_20E != 0)` emits `lh` and often inverts branch polarity
+(`beqz` with the non-zero body as fall-through). Prefer the positive `!= 0`
+test first so GCC emits `bnez` with the zero-return as the fall-through
+epilogue. `func_8001C970` (`CdCmd_Queue.field_20E`).
+
 ## Short-lived stack `RECT*` stays in `$a1` for switch stores + callee arg
 
 When a function takes a string in `$a1` (saved to `$s2`), then builds a stack

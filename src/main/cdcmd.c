@@ -406,7 +406,31 @@ void func_8001C620(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001C970);
+s32 func_8001C970(void)
+{
+    CdCmdQueue* p;
+    u8          cmd;
+
+    p   = &CdCmd_Queue;
+    cmd = p->entries[p->readIdx].cmd;
+    if (cmd != 0) {
+        p->field_40.cmd    = cmd;
+        p->field_40.param0 = p->entries[p->readIdx].param0;
+        p->field_40.param1 = p->entries[p->readIdx].param1;
+        p->field_40.param2 = p->entries[p->readIdx].param2;
+        p->field_40.idB0   = p->entries[p->readIdx].idB0;
+        p->field_40.idB1   = p->entries[p->readIdx].idB1;
+        p->field_40.idB2   = p->entries[p->readIdx].idB2;
+        p->field_40.idB3   = p->entries[p->readIdx].idB3;
+        p->field_4c        = 1;
+        return 1;
+    }
+    if ((u16)p->field_20E != 0) {
+        p->field_4c = 1;
+        return 1;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001CA70);
 

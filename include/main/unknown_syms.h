@@ -28,7 +28,7 @@ extern void func_8001BB7C(void);
 extern void func_8001BE60(void);
 extern void func_8001C0D4(void);
 extern void func_8001C620(void);
-extern void func_8001C970(void);
+extern s32  func_8001C970(void);
 extern void func_8001CA70(void);
 extern u16  func_8001CDF0(void);
 extern void func_8001CEFC(void);
