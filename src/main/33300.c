@@ -5,7 +5,51 @@
 
 INCLUDE_ASM("main/nonmatchings/33300", func_80042B00);
 
-INCLUDE_ASM("main/nonmatchings/33300", func_80042DF8);
+void func_80042DF8(Task* arg0)
+{
+    u8                param1[8];
+    u8                param2[8];
+    GStruct63*        temp;
+    register GPairU8* entry asm("v0");
+    s32               field34;
+    u8                flag;
+
+    temp = arg0->field_1C;
+    if (func_800514F8(D_80062739) == 0) {
+        param1[3] = 0;
+        param1[2] = 4;
+        entry     = (GPairU8*)((temp->field_0 << 1) + (u32)temp->field_4);
+        param1[0] = entry->field_0;
+        param2[0] = D4F564_8005ED64->field_74;
+        param2[3] = 0;
+        param2[2] = 0;
+        param2[1] = 0;
+        CdCmd_Enqueue(0x21, param1, param2);
+        field34 = arg0->field_34;
+        if (field34 == 3) {
+            arg0->field_30 = arg0->field_30 + 2;
+            return;
+        }
+        entry = (GPairU8*)((temp->field_0 << 1) + (u32)temp->field_4);
+        if ((entry->field_1 == 1) && (field34 == 0)) {
+            arg0->field_30 = arg0->field_30 + 2;
+            return;
+        }
+        arg0->field_30 = arg0->field_30 + 1;
+        return;
+    }
+    flag = D_8007A398;
+    if (flag == 0xFF) {
+        D_8007A39A = D_8007A39A - 1;
+        if (D_8007A39A == 0x3C) {
+            func_8005132C(D_80062739, 1);
+        }
+        if (D_8007A39A <= 0) {
+            D_80062734 = flag;
+            Task_Kill(arg0);
+        }
+    }
+}
 
 void func_80042F54(Task* arg0)
 {

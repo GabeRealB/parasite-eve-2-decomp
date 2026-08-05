@@ -545,6 +545,8 @@ extern u16       D_8007A35E;
 extern void*     D_8007A360;
 extern u8        D_8007A394;
 extern s16       D_8007A396;
+extern u8        D_8007A398;
+extern s16       D_8007A39A;
 extern u8        D_8007E0CC;
 extern s32       D_8007E0D4;
 extern GStruct42 D_8007E0D8[];
