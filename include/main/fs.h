@@ -385,6 +385,8 @@ extern u16          D5B498_8006AC9A;
 extern u16          D5B498_8006AC9C;
 extern void*        D5B498_8006ACAC;
 extern void*        D5B498_8006ACB0;
+// Fade/clear color; written as halfword, often re-read as byte for TILE RGB.
+extern volatile s16 D_8006ACB4;
 extern FsLoadParams D5B498_8006ACB8;
 extern s16          D5B498_8006ACC0;
 extern u8           D5B498_8006ACC8;

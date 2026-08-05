@@ -9,7 +9,35 @@ void func_80021D8C(u8* arg0);
 
 INCLUDE_ASM("main/nonmatchings/11E9C", func_8002169C);
 
-INCLUDE_ASM("main/nonmatchings/11E9C", func_80021808);
+void func_80021808(void)
+{
+    TILE*     p;
+    DR_TPAGE* dr;
+    u8        color;
+
+    func_8003DB48(0xD010);
+    SetDispMask(1);
+
+    D_8006ACB4 = 0xFF;
+    color      = *(volatile u8*)&D_8006ACB4;
+    p          = (TILE*)D_80070EE0;
+    D_80070EE0 = (u8*)(p + 1);
+    setlen(p, 3);
+    setcode(p, 0x62);
+    p->r0 = color;
+    p->g0 = color;
+    p->b0 = color;
+    p->x0 = -0xA0;
+    p->y0 = -0x78;
+    p->w  = 0x140;
+    p->h  = 0xF0;
+    addPrim(D_800710A0 - 0x10, p);
+
+    dr         = (DR_TPAGE*)D_80070EE0;
+    D_80070EE0 = (u8*)(dr + 1);
+    setDrawTPage(dr, 0, 1, 0x40);
+    addPrim(D_800710A0 - 0x10, dr);
+}
 
 INCLUDE_ASM("main/nonmatchings/11E9C", func_8002191C);
 

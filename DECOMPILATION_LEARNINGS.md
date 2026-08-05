@@ -6819,3 +6819,30 @@ beq  v1, v0, ...
 A plain `u8 value` drops the `andi`/`nop` and shortens the function by 8 bytes,
 shifting every later label. Use this when the target has an otherwise-redundant
 `andi 0xFF` of a just-loaded byte. `func_80052488` case `0x63` needs it.
+
+## Fade color global before prim cursor for `lui` order
+
+When a function both writes a halfword fade/clear color and allocates a TILE from
+`D_80070EE0`, source order of the *first mention* of each global controls the
+early `lui %hi` order, while the actual `lw`/`sh` can still schedule as
+`lw cursor` then `sh color`:
+
+```c
+extern volatile s16 D_8006ACB4;
+
+D_8006ACB4 = 0xFF;                      /* mention color first → lui v1 first */
+color      = *(volatile u8*)&D_8006ACB4; /* forces lbu reload, not reg reuse */
+p          = (TILE*)D_80070EE0;         /* lui t0 second; lw may still lead */
+D_80070EE0 = (u8*)(p + 1);
+setlen(p, 3);
+setcode(p, 0x62);                       /* 0x62 = TILE | semi-trans */
+p->r0 = color;
+p->g0 = color;
+p->b0 = color;
+/* x/y/w/h then addPrim(D_800710A0 - 0x10, p); DR_TPAGE with setDrawTPage */
+```
+
+Writing `p = D_80070EE0` first swaps the two `lui`s (~99.7% near-match). The
+`*(volatile u8*)&` cast is required for the post-`sh` `lbu`; a plain
+`(u8)D_8006ACB4` may keep the value in a register. `func_80021808` is the pure
+example (fullscreen white TILE at OT slot `-0x10` plus `setDrawTPage(..., 0, 1, 0x40)`).
