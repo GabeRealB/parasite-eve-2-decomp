@@ -1,7 +1,13 @@
 #include "common.h"
 
-#include "main/unknown_syms.h"
+#include "main/display.h"
 #include "main/fs.h"
+#include "main/mem.h"
+#include "main/unknown_syms.h"
+
+void func_80021B28(u8* arg0);
+void func_80021C0C(u8* arg0);
+void func_80021D8C(u8* arg0);
 
 INCLUDE_ASM("main/nonmatchings/11E9C", func_8002169C);
 
@@ -58,12 +64,188 @@ void func_80021A20(u8* arg0)
     }
 }
 
+/* Absolute copies of still-asm jump tables between matched jtbls. */
+const s32 jtbl_800130F0[38] = {
+    0x80021B60,
+    0x80021B74,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BB8,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BD4,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+    0x80021BF0,
+};
+const s32 jtbl_80013188[48] = {
+    0x80021DDC,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80021E04,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80021E4C,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80021EB4,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80021FC0,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80021F1C,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80021F78,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x80022028,
+    0x00000000,
+};
+
 INCLUDE_ASM("main/nonmatchings/11E9C", func_80021B28);
 
 INCLUDE_ASM("main/nonmatchings/11E9C", func_80021C0C);
 
 INCLUDE_ASM("main/nonmatchings/11E9C", func_80021D8C);
 
-INCLUDE_ASM("main/nonmatchings/11E9C", func_8002207C);
+void func_8002207C(void)
+{
+    u8    sp10[8];
+    u8    sp18[8];
+    RECT  rect;
+    RECT* r;
+    s32   field2;
+
+    Mem_Set(D4CB64_ImgBuffers, 0, 0x25800);
+    rect.y = 0;
+    rect.x = 0;
+    r      = &rect;
+    r->w   = 0x140;
+    r->h   = 0xF0;
+    ClearImage(r, 0, 0, 0);
+    r->y = 0x110;
+    ClearImage(r, 0, 0, 0);
+    Display_State.field_100 = 0;
+    SetDispMask(0);
+    sp10[3]         = 0;
+    sp10[2]         = 0;
+    D5B498_8006ACAC = NULL;
+    switch (D5B498_8006ACB8.field_3) {
+        case 1:
+            func_80021A20(sp10);
+            break;
+        case 2:
+            func_80021B28(sp10);
+            break;
+        case 3:
+            func_80021C0C(sp10);
+            break;
+        case 4:
+            func_80021D8C(sp10);
+            break;
+        case 5:
+        default:
+            func_8004ACAC(0x7A);
+            field2 = D5B498_8006ACB8.field_2;
+            if (field2 == 0x16) {
+                goto case_16;
+            }
+            if (field2 < 0x17) {
+                goto case_default;
+            }
+            if (field2 == 0x1A) {
+                goto case_1a;
+            }
+        case_default:
+            if (D5B498_8006ACC0 == 0) {
+                D5B498_8006ACB0 = D_800630B0;
+                sp10[0]         = 0x23;
+            } else {
+                D5B498_8006ACB0 = D_80062BA4;
+                D5B498_8006ACAC = D_80062BC4;
+                sp10[0]         = 3;
+            }
+            break;
+        case_16:
+            D5B498_8006ACB0 = D_80063068;
+            sp10[0]         = 0x1E;
+            break;
+        case_1a:
+            D5B498_8006ACB0 = D_80062B30;
+            D5B498_8006ACAC = D_80062B50;
+            sp10[0]         = 3;
+            break;
+    }
+    sp18[0]         = 0;
+    sp18[1]         = 0;
+    sp18[2]         = 0;
+    sp18[3]         = 0;
+    D5B498_8006AC98 = CdCmd_Enqueue(0x21, sp10, sp18);
+}
+
+/* Alignment pad after the 5-entry func_8002207C jump table, then an
+ * absolute copy of jtbl_80013260 for still-asm func_8002226C. */
+static const s32 s_jtbl_pad_2207C = 0;
+const s32        jtbl_80013260[5] = {
+    0x800222C4,
+    0x80022314,
+    0x8002233C,
+    0x80022444,
+    0x80022490,
+};
 
 INCLUDE_ASM("main/nonmatchings/11E9C", func_8002226C);
