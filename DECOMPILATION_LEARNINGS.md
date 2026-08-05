@@ -6015,3 +6015,40 @@ Plain `base = bank->field_18; ptr = bank->field_4;` is free to swap the loads
 by schedule/urgency (the pointer used sooner after a following branch often
 loads first). The `volatile` cast forces source order without changing the rest
 of the function. `func_80053448` is the pure example (relocate loop setup).
+
+## Shared `var_v0` + epilogue flips global pointer store register order
+
+For multi-way dispatch that ends every arm with `D5B498_8006ACB0 = some_table;
+*arg0 = K`, collecting `K` into a shared `var_v0` and one trailing `*arg0 =
+var_v0` looks like the target's shared `sb v0,0(s0)` epilogue — but it often
+compiles the stores as `lui v1,dest; lui v0,src; sw v0,(v1)` with the wrong
+symbol in the branch delay slot (`lui v0,src` instead of `lui v0,dest`).
+
+Writing each arm as an early return matches both the shared epilogue *and*
+the dest-first store pattern:
+
+```c
+/* BAD ~88%: shared phi for *arg0 flips store regs / delay-slot lui */
+case_arm:
+    D5B498_8006ACB0 = D_80062E50;
+    var_v0 = 0xC;
+    goto store;
+...
+store:
+    *arg0 = var_v0;
+
+/* GOOD 100%: early return; GCC still emits j + li v0,K into the shared sb */
+case_arm:
+    D5B498_8006ACB0 = D_80062E50;
+    *arg0 = 0xC;
+    return;
+```
+
+Also: sparse outer + dense inner irregular trees (`beq` / `slti` / `bnez`) need
+explicit if/goto decision trees (not `switch`) so case *body* order is
+`[fallthrough default][case4][case5]` after the dispatch, and the outer test
+order is `== 0x1B`, then `< 0x1C`, then `!= 0x11`. Keep the switch key in an
+`s32` (not `u8`) so the load is plain `lbu` without `andi`/`sltiu`.
+
+`func_80021C0C` is the pure example (FS load-table select by
+`D5B498_8006ACB8.field_2` × `func_8004ACAC(0x7A)`).

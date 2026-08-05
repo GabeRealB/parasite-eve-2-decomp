@@ -6,7 +6,6 @@
 #include "main/unknown_syms.h"
 
 void func_80021B28(u8* arg0);
-void func_80021C0C(u8* arg0);
 void func_80021D8C(u8* arg0);
 
 INCLUDE_ASM("main/nonmatchings/11E9C", func_8002169C);
@@ -158,7 +157,96 @@ const s32 jtbl_80013188[48] = {
 
 INCLUDE_ASM("main/nonmatchings/11E9C", func_80021B28);
 
-INCLUDE_ASM("main/nonmatchings/11E9C", func_80021C0C);
+void func_80021C0C(u8* arg0)
+{
+    s32 temp_v1;
+    s32 field2;
+    s32 val;
+
+    temp_v1 = func_8004ACAC(0x7A);
+    field2  = D5B498_8006ACB8.field_2;
+
+    if (field2 == 0x1B) {
+        goto case_1B;
+    }
+    if (field2 < 0x1C) {
+        if (field2 != 0x11) {
+            goto case_default;
+        }
+    } else {
+        goto case_default;
+    }
+
+    val = temp_v1 & 0xFFFF;
+    if (val == 4) {
+        goto case_11_4;
+    }
+    if (val < 5) {
+        goto case_11_def;
+    }
+    if (val == 5) {
+        goto case_11_5;
+    }
+case_11_def:
+    D5B498_8006ACB0 = D_80062E50;
+    *arg0           = 0xC;
+    return;
+case_11_4:
+    D5B498_8006ACB0 = D_80062F80;
+    *arg0           = 0x13;
+    return;
+case_11_5:
+    D5B498_8006ACB0 = D_80062F80;
+    *arg0           = 0x1A;
+    return;
+
+case_1B:
+    val = temp_v1 & 0xFFFF;
+    if (val == 4) {
+        goto case_1B_4;
+    }
+    if (val < 5) {
+        goto case_1B_def;
+    }
+    if (val == 5) {
+        goto case_1B_5;
+    }
+case_1B_def:
+    D5B498_8006ACB0 = D_80062E50;
+    *arg0           = 0xD;
+    return;
+case_1B_4:
+    D5B498_8006ACB0 = D_80062F80;
+    *arg0           = 0x14;
+    return;
+case_1B_5:
+    D5B498_8006ACB0 = D_80062F80;
+    *arg0           = field2;
+    return;
+
+case_default:
+    val = temp_v1 & 0xFFFF;
+    if (val == 4) {
+        goto case_def_4;
+    }
+    if (val < 5) {
+        goto case_def_def;
+    }
+    if (val == 5) {
+        goto case_def_5;
+    }
+case_def_def:
+    D5B498_8006ACB0 = D_80062E50;
+    *arg0           = 0xE;
+    return;
+case_def_4:
+    D5B498_8006ACB0 = D_80062F80;
+    *arg0           = 0xF;
+    return;
+case_def_5:
+    D5B498_8006ACB0 = D_80062F80;
+    *arg0           = 0x20;
+}
 
 INCLUDE_ASM("main/nonmatchings/11E9C", func_80021D8C);
 
