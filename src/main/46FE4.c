@@ -463,7 +463,48 @@ INCLUDE_ASM("main/nonmatchings/46FE4", func_80057FAC);
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_80058320);
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_8005842C);
+void func_8005842C(void)
+{
+    u8                  saved;
+    u8                  temp;
+    s16                 arg0;
+    s16                 idx;
+    u32                 flags;
+    GStruct32Entry*     entry;
+    volatile GStruct19* p;
+
+    saved              = D_800828F0.field_0;
+    D_800828F0.field_0 = 1;
+
+    if (D_80082818.unknown_0[0] & 1) {
+        D_80082818.unknown_0[0] = D_80082818.unknown_0[0] | 0x40;
+        SpuSetIRQ(0);
+        SpuSetIRQCallback(0);
+    } else {
+        if (D_80082818.field_6 != 0) {
+            arg0 = D_80082818.field_6;
+            temp = D_800828F0.field_0;
+            if (arg0 != 0) {
+                idx   = arg0 - 1;
+                entry = (GStruct32Entry*)&D_800828F0.entries[idx];
+                flags = entry->field_0;
+                if (flags & 1) {
+                    entry->field_0 = (flags & ~1) | 4;
+                }
+                D_800828F0.field_0 = temp;
+            }
+            D_80082818.field_6 = 0;
+        }
+
+        p = &D_80082818;
+        if ((p->unknown_0[2] >> 3) & 1) {
+            func_800B0118(0, 0);
+            p->unknown_0[2] = p->unknown_0[2] & 0xF7;
+        }
+    }
+
+    D_800828F0.field_0 = saved;
+}
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_8005854C);
 
