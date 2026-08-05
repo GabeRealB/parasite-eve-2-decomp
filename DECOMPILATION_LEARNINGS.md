@@ -6658,3 +6658,39 @@ shifts later register assignment. Early `return` paths that need `v0 = 0`
 then reuse `move v0,s0` for free.
 
 `func_800486F0` is the pure example.
+
+## Ternary second arg schedules `arr[idx]` base-before-index
+
+When `DecDCTin`/`similar` needs the target schedule
+
+```
+lui    v1,%hi(arr)
+lui    v0,%hi(idx)
+addiu  v1,v1,%lo(arr)
+lhu    v0,%lo(idx)(v0)
+...
+addu   a0,v0,v1
+lhu    v1,%lo(mode_global)
+li     v0,2
+beq    v1,v0,...
+ move   a1,zero
+move   a1,v1
+lw     a0,0(a0)
+jal    DecDCTin
+```
+
+writing a local `mode` first, then `DecDCTin(arr[idx], mode)`, materialises
+the mode compare *before* the array address and often evaluates the index
+before the base. Passing the conditional as the second call argument keeps
+address setup first and emits the branchless-looking `mode = 0; if != 2
+mode = val` pattern from a ternary:
+
+```c
+DecDCTin(D_8006AC50[D_8005EAEC], D_8006AC14 == 2 ? 0 : D_8006AC14);
+```
+
+Pair with `register u_long **base asm("v1")` when a later double-buffer base
+(`D_8006AC48`) must also be `lui v1; addiu v1,v1,%lo` rather than
+`lui v0; addiu v1,v0`.
+
+`func_8001F854` is the pure example.

@@ -265,7 +265,38 @@ INCLUDE_ASM("main/nonmatchings/F344", func_8001F430);
 
 INCLUDE_ASM("main/nonmatchings/F344", func_8001F6B8);
 
-INCLUDE_ASM("main/nonmatchings/F344", func_8001F854);
+void func_8001F854(void)
+{
+    CdCmdQueue*       p;
+    s32               size;
+    register u_long** base asm("v1");
+    u_long**          outs;
+    u16               ac6c;
+    s32               temp;
+
+    p = &CdCmd_Queue;
+    StFreeRing(D_8006AC68);
+    DecDCTin(D_8006AC50[D_8005EAEC], D_8006AC14 == 2 ? 0 : D_8006AC14);
+    if (D_8006AC14 != 0) {
+        base = D_8006AC48;
+        outs = &base[D_8005EAEE ^ 1];
+        ac6c = D_8006AC6C;
+        if (D_8006AC14 == 1) {
+            size = ac6c * 12;
+        } else {
+            size = ac6c * 8;
+        }
+        DecDCTout(*outs, size);
+    } else {
+        temp = D_8006AC6C;
+        size = (D_8006AC5A * temp) / 2;
+        base = D_8006AC48;
+        DecDCTout(base[D_8005EAEE ^ 1], size);
+    }
+    p->field_1EC = 1;
+    D_8006AC1A   = 0;
+    D_8005EAEC  ^= 1;
+}
 
 void func_8001F990(void)
 {
