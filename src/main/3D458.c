@@ -535,4 +535,35 @@ void func_8004D8BC(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/3D458", func_8004D94C);
+GStruct8* func_8004D94C(GStruct8* arg0)
+{
+    void      (*callback)(void);
+    GStruct8* head;
+    GStruct8* prev;
+    GStruct8* curr;
+
+    head            = &D648E0_8007E0B0;
+    callback        = (void (*)(void))arg0->field_4;
+    D648E0_8007E0C8 = 0;
+    if (callback != NULL) {
+        callback();
+    }
+
+    prev = head;
+    if (prev->field_14 != 0) {
+        do {
+            curr = (GStruct8*)prev->field_14;
+            if ((u16)curr->field_8 == (u16)arg0->field_8) {
+                prev->field_14 = arg0->field_14;
+                if (arg0->field_14 != 0) {
+                    ((GStruct8*)arg0->field_14)->field_10 = (s32)prev;
+                }
+                D648E0_8007E0C8 = 1;
+                return (GStruct8*)prev->field_14;
+            }
+            prev = curr;
+        } while (prev->field_14 != 0);
+    }
+    D648E0_8007E0C8 = 1;
+    return NULL;
+}

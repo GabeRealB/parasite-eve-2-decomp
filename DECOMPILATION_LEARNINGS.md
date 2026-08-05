@@ -5802,3 +5802,73 @@ sb     zero, field(t0)
 An `s32` index with `(u8)idx >= 8` rewrites to check-first / store-in-delay-slot
 and mismatches. `func_8002C8E4` is the pure example (pad-event ring at
 `PadState.field_2`).
+
+## Force `prev = curr` before the next-pointer load in list walks
+
+When walking a singly-/doubly-linked list:
+
+```c
+do {
+    curr = (Node*)prev->next;
+    if (/* match */) { /* ... */ return; }
+    prev = curr;
+} while (curr->next != 0);   /* BAD for scheduling */
+```
+
+GCC puts `move prev, curr` in the `bnez` delay slot. The target often wants:
+
+```
+move  a1, a0        /* prev = curr */
+lw    v0, next(a0)
+nop
+bnez  v0, loop
+ lui   ...          /* fail-path setup in delay */
+```
+
+Write the condition through `prev` so the assignment is a true data dependency
+of the load:
+
+```c
+prev = curr;
+} while (prev->next != 0);   /* GOOD */
+```
+
+`func_8004D94C` is the pure example.
+
+## Doubly-linked unlink: re-read `arg->next` after storing it (aliasing)
+
+Target:
+
+```
+lw  v0, next(s0)
+sw  v0, next(a1)     /* prev->next = arg->next */
+lw  a0, next(s0)     /* reload — not CSE'd */
+beqz a0, skip
+ nop
+sw  a1, prev(a0)     /* arg->next->prev = prev */
+lw  v0, next(a1)     /* return prev->next */
+```
+
+Do **not** stash `next` in a temporary before the store:
+
+```c
+/* BAD — CSE folds the two loads; delay-slot-fills the store */
+next = arg->next;
+prev->next = next;
+if (next != NULL) next->prev = prev;
+```
+
+Write the store first, then re-read. Same-type pointers may alias, so GCC 2.8.1
+reloads:
+
+```c
+prev->field_14 = arg0->field_14;
+if (arg0->field_14 != 0) {
+    ((GStruct8*)arg0->field_14)->field_10 = (s32)prev;
+}
+return (GStruct8*)prev->field_14;
+```
+
+Also assign `head = &sentinel` *before* any callback that may clobber
+caller-saved regs — that keeps `&sentinel` in a callee-saved register across
+the call (matches early `addiu s1, ..., %lo(head)`). `func_8004D94C`.
