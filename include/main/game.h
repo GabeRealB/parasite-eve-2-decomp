@@ -414,7 +414,8 @@ STATIC_ASSERT_SIZEOF(GStruct24, 0x28);
 /// uses field_7 as TILE height); field_9 / field_A / field_10 are list cursor /
 /// flag / selection index used by func_80036A70 / func_80036C04 / func_80037068 /
 /// func_800489A0 / func_8004917C; field_17 is a signed layout adjust subtracted
-/// from the child height when computing visible rows (func_80048AEC).
+/// from the child height when computing visible rows (func_80048AEC /
+/// func_80048C30; the latter also writes field_17 from its third argument).
 typedef struct _UiList {
     /* 0x00 */ byte unknown_0[0x4];
     /* 0x04 */ u8   field_4;
