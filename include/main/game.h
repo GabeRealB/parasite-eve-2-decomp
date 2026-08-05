@@ -310,7 +310,7 @@ STATIC_ASSERT_SIZEOF(GStruct20, 0x24);
 /// Mc_DrawPrompt / func_800486F0. Shares the GStruct30 layout through offset
 /// 0x24 (handlers cast field_20 to GStruct30*). field_0 is a status flag;
 /// field_4 is copied from UiObjectDesc::field_0 at spawn; field_8 is a mode
-/// (5 = skip draw in func_8002FDCC; set to 3 when torn down); field_C..field_12
+/// (5 = skip draw in func_8002FDCC / func_8002FB84; set to 3 when torn down); field_C..field_12
 /// are layout halfwords (RECT-like); field_14 is a halfword counter used as the
 /// text draw priority/order; field_16 is a signed timer/counter; field_18/field_1A
 /// are layout offsets (shared with GStruct30; used when positioning child UI);

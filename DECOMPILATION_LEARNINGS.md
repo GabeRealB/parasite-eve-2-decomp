@@ -7455,3 +7455,49 @@ ASPSX expands `div` into the `bnez`/`break 7`/`break 6` trap sequence. Enable
 traps (now includes `34E98.c` alongside `2F244` / `3D458` / `1E6C4`).
 Scratch-env `build.sh` does not pass this flag by default — use a local
 wrapper or expect a score gap of only the missing trap block.
+
+## Dual `GStruct38` stack slots via array + mixed `sp[i]` / `p[i]` access
+
+When the target draws through two adjacent `GStruct38` slots (e.g. `sp+0x50`
+relative path, `sp+0x60` absolute path) and mixes absolute stack stores
+(`sh …, 0x50(sp)`) with s0-relative ones (`sw s6, 0x14(s0)` / `sb s6, 0x1c(s0)`
+into the second slot), declare them as one array and take a pointer to the
+base:
+
+```c
+GStruct38 sp50[2];
+register GStruct38* p asm("s0");
+
+p = sp50;
+/* relative path: absolute addressing via sp50[0].field_…, field_C via p */
+sp50[0].field_0 = …;
+p->field_C = 4;
+func_8002E53C(p, buf);
+
+/* absolute path: most fields via sp50[1], field_4/field_C via p[1] */
+sp50[1].field_0 = x;
+p[1].field_4 = four;   /* sw four, 0x14(s0) */
+sp50[1].field_8 = arg4;
+p[1].field_C = four;   /* sb four, 0x1c(s0) */
+func_8002E53C(&sp50[1], buf);
+```
+
+Two separate `GStruct38 sp50, sp60` locals usually emit only absolute
+addressing for the second slot. Writing everything through `p` alone emits
+only relative `off(s0)`. The split is required.
+
+Also for multi-line loops over text (`func_8002F9E0` + `func_8002E53C`):
+
+- Pin long-lived args/temps into `$s0`–`$s7` so the remaining stack arg
+  (`arg4`) stays on the stack and is reloaded with `lw t0, 0xB0(sp)` each
+  use. Early-copy `arg5`/`arg6` into locals (one of them naturally lands in
+  `$fp`/`$s8`) *before* pinning `four = 4` into `$s6` for the dual-width
+  `field_4`/`field_C` stores.
+- Pass the stack array name (`sp10`) to the first call so the `jal` delay
+  slot rematerializes `addiu a1, sp, 0x10` instead of `move a1, s4`; keep
+  `buf` in `$s4` for later calls that need `move a1, s4`.
+- Reload the x formal from its home at the end of each iteration
+  (`x = arg1`) so the target's `lw s2, 0xA4(sp)` matches.
+
+`func_8002FB84` is the pure example (multi-line sibling of single-line
+`func_8002FDCC`).

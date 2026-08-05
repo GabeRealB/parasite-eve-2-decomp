@@ -8,7 +8,62 @@
 
 INCLUDE_ASM("main/nonmatchings/201E0", func_8002F9E0);
 
-INCLUDE_ASM("main/nonmatchings/201E0", func_8002FB84);
+s32 func_8002FB84(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
+{
+    u8                  sp10[0x40];
+    GStruct38           sp50[2];
+    u8*                 cur;
+    s32                 temp;
+    register UiObject*  obj asm("s3");
+    register s32        x asm("s2");
+    register s32        y asm("s1");
+    register GStruct38* p asm("s0");
+    register u8*        buf asm("s4");
+    register s32        ret asm("s5");
+    register s32        four asm("s6");
+    register s32        a6 asm("s7");
+    s32                 a5;
+
+    a5   = arg5;
+    a6   = arg6;
+    obj  = arg0;
+    x    = arg1;
+    y    = arg2;
+    p    = sp50;
+    buf  = sp10;
+    four = 4;
+    cur  = arg3;
+
+    do {
+        ret = func_8002F9E0(&cur, sp10);
+        if (obj != NULL) {
+            if (obj->field_8 != 5) {
+                sp50[0].field_0 = obj->field_20 + x;
+                sp50[0].field_2 = (obj->field_22 + y) - 3;
+                temp            = (s16)obj->field_14;
+                sp50[0].field_8 = arg4;
+                sp50[0].field_4 = temp + 1;
+                p->field_C      = 4;
+                sp50[0].field_D = a6;
+                sp50[0].field_E = a5;
+                func_8002E53C(p, buf);
+            }
+        } else {
+            sp50[1].field_0 = x;
+            sp50[1].field_2 = y;
+            p[1].field_4    = four;
+            sp50[1].field_8 = arg4;
+            p[1].field_C    = four;
+            sp50[1].field_D = a6;
+            sp50[1].field_E = a5;
+            func_8002E53C(&sp50[1], buf);
+        }
+        x  = arg1;
+        y += 0xF;
+    } while (ret != -1);
+
+    return 0;
+}
 
 s32 func_8002FCBC(u8* arg0)
 {

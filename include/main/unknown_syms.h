@@ -126,6 +126,9 @@ extern u16 D_80072AA8;
 // Extracts one text line (handles escapes/newlines) from *arg0 into arg1; advances *arg0.
 // Returns -1 at end of string, 1 on newline, other values for control escapes.
 extern s32 func_8002F9E0(u8** arg0, u8* arg1);
+// Multi-line text draw (func_8002FDCC per line, y += 0xF). Skips draw when UiObject.field_8 == 5.
+extern s32 func_8002FB84(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5,
+                         s32 arg6);
 extern s32 func_8002FCBC(u8* arg0);
 // Multi-line text measure: packed (height<<16)|maxWidth, 0xF pixels per line.
 extern s32  func_8002FD08(u8* arg0);
