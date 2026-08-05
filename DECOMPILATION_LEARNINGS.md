@@ -7501,3 +7501,74 @@ Also for multi-line loops over text (`func_8002F9E0` + `func_8002E53C`):
 
 `func_8002FB84` is the pure example (multi-line sibling of single-line
 `func_8002FDCC`).
+
+## Scratch-head 8-byte alloc: pin `v1`/`a3`/`v0` for `move s1,v0`
+
+Downward 8-byte scratch allocations that keep the buffer in `$s1` across
+calls often need:
+
+```
+lui  v1, 0x1f80
+ori  v1, v1, 0x3fc
+lw   a3, 0(v1)        /* head */
+addiu v0, a3, -8
+move s1, v0           /* param1 */
+sw   v0, 0(v1)
+li   v0, 2
+andi v1, a2, 0xff     /* reuse dead scratch ptr */
+sb   v0, 2(s1)
+sltiu v0, v1, 5
+sb   zero, 3(s1)
+sb   a1, -8(a3)       /* store via original head, not s1 */
+```
+
+Without register pins, GCC puts the scratch address in `$v0` and the head in
+`$v1`, which forces `addiu s1, v1, -8` / `sw s1, ...` (no `move`) and delays
+the `andi` until after the head-based store. Force the target allocation:
+
+```c
+register void** scratch asm("v1");
+register void*  head asm("a3");
+register void*  temp asm("v0");
+
+scratch  = (void**)G_SCRATCH_HEAD;
+head     = *scratch;
+temp     = (u8*)head - 8;
+param1   = temp;
+*scratch = temp;
+param1[2] = 2;
+param1[3] = 0;
+((u8*)head)[-8] = arg1; /* not param1[0] */
+```
+
+Free paths after a `jal` must rematerialize with a bare
+`*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8` (do not keep the
+`scratch` local live across the call). `func_80042364` is the pure example.
+
+## `s8` stack slots for signed `li` of negative byte constants
+
+Under `-funsigned-char`, `u8 param2[4]; param2[i] = -8` emits `li v0, 0xf8`.
+The target often wants `addiu v0, zero, -8` / `sb`. Declare the stack array
+as `s8` (and cast to `u8*` at the `CdCmd_Enqueue` call):
+
+```c
+s8 param2[4];
+param2[2] = -8; /* li v0, -8 */
+param2[3] = -3;
+CdCmd_Enqueue(0x21, param1, (u8*)param2);
+```
+
+## Jump-table slot with trailing zero pad
+
+When the original `jtbl` is N case words plus a trailing `.word 0` (for 8-byte
+alignment of the next table) and GCC emits only the N case words, split the
+rodata so the C `.rodata` covers just the N words and the next asm segment
+starts at the pad word:
+
+```yaml
+- [0x46E8, .rodata, 32B64]   # GCC 5-entry jtbl (0x14 bytes)
+- [0x46FC, rodata, 32AF8_1]  # .word 0 pad + still-asm jtbls
+```
+
+Do not expand the C range to include the zero — GCC will not emit it and the
+layout shifts. `func_80042364` / `jtbl_80013EE8`.

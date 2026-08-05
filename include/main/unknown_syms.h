@@ -42,6 +42,7 @@ extern void func_8001D588(void);
 extern void func_8001D628(void);
 extern void func_8001D6B8(void);
 extern u16  func_8001D82C(void);
+extern void func_8001D990(s32 cmd, u8* paramA, u8* paramB);
 extern void func_8001DB84(void);
 
 // 11E9C.c
@@ -159,6 +160,7 @@ extern void func_800429C8(s32 arg0);
 // overlay / high-address
 extern void func_800AC688(void);
 extern void func_800ACAA8(void); // called from 2F244.c
+extern s32  func_800AD284(void);
 
 // 34E98.c
 extern UiObject* func_800486F0(UiObjectDesc* arg0, s32 arg1, s32 arg2, s32 arg3,
@@ -495,6 +497,7 @@ extern TaskDesc     D_8006268C;
 extern GStruct17*   D_80062698;
 extern TaskDesc     D_8006269C;
 extern void*        D_800626A8;
+extern u8           D_800626E8;
 extern u8           D_80062734;
 extern u8           D_80062736;
 extern u8           D_80062737;
