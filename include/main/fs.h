@@ -310,6 +310,10 @@ s32 func_800246B0(FsImageChunk* img, u8 retryNonzero);
 /// Look up a packed file id and start a CD load (unmatched).
 void Fs_LoadFile(u8* req, s32 a1, s32 a2, s32 a3);
 
+/// CD load helpers used by the cmd-queue case-2 path (unmatched).
+void func_80023748(s32 arg0, s32 arg1, s32 arg2);
+void func_8002397C(s32 arg0, s32 arg1, s32 arg2);
+
 /// Boot path: scan ISO, parse HED, load initial CDF file (file id 1).
 void Boot_LoadInitialFile(struct _Task* task);
 
@@ -379,12 +383,12 @@ extern FsImgBuffers* D4CB64_ImgBuffers;
 
 // Still-unlabeled FS bss (same segment; keep address names until understood)
 /// Per-slot image-load status bytes (indexed by `D5B498_8006ADF4`).
-extern u8           D_8006C4C8[0xC];
-extern s16          D5B498_8006AC98;
-extern u16          D5B498_8006AC9A;
-extern u16          D5B498_8006AC9C;
-extern void*        D5B498_8006ACAC;
-extern void*        D5B498_8006ACB0;
+extern u8    D_8006C4C8[0xC];
+extern s16   D5B498_8006AC98;
+extern u16   D5B498_8006AC9A;
+extern u16   D5B498_8006AC9C;
+extern void* D5B498_8006ACAC;
+extern void* D5B498_8006ACB0;
 // Fade/clear color; written as halfword, often re-read as byte for TILE RGB.
 extern volatile s16 D_8006ACB4;
 extern FsLoadParams D5B498_8006ACB8;

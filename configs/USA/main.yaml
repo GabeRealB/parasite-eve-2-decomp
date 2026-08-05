@@ -71,10 +71,9 @@ segments:
       - [0x34e4, o, libpress/libpress, .rdata]
       - [0x3534, o, libc2/prnt, .rdata]
       - [0x3754, o, libc2/puts, .rdata]
-      # Jump tables for unmatched assembly in cdcmd.c. The tail is owned by
-      # src/main/cdcmd.c (.rodata), so it needs its own name.
-      - [0x3764, rodata, cdcmd_1] # unmatched jtbls (func_8001C0D4, func_8001CA70)
-      - [0x37A4, .rodata, cdcmd] # jtbls from func_8001CEFC (+ pad for D0E8) + func_8001DB84
+      # Jump tables for cdcmd.c: compiler-generated C0D4 table, absolute copy
+      # of still-asm CA70 table, then CEFC (+ pad for D0E8) + DB84 tables.
+      - [0x3764, .rodata, cdcmd]
       - [0x3818, o, libcd/type, .rdata]
       - [0x3838, rodata, F344] # TODO
       - [0x3880, o, libcd/c_011, .rdata]

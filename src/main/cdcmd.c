@@ -13,7 +13,257 @@ INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001BB7C);
 
 INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001BE60);
 
-INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001C0D4);
+void func_8001C0D4(void)
+{
+    CdCmdQueue* state;
+    CdCmdQueue* p;
+    s16         ret;
+    s32         status;
+    u8          req[4];
+    u8          mode;
+
+    state  = &CdCmd_Queue;
+    req[3] = state->entries[state->readIdx].param0;
+    req[2] = state->entries[state->readIdx].param1;
+    req[0] = state->entries[state->readIdx].param2;
+    req[1] = state->entries[state->readIdx].idB0;
+
+    switch (state->step) {
+        case 0:
+            p = &CdCmd_Queue;
+            {
+                s32 busy;
+                busy             = p->busy;
+                state->field_222 = 1;
+                if (busy == 0) {
+                    p->busy                 = 1;
+                    Display_State.field_130 = 0xFF;
+                }
+            }
+            ret = func_8001E6AC(0, 0);
+            if (ret != 1) {
+                if (ret < 2) {
+                    if (ret == 0) {
+                        return;
+                    }
+                    goto end_check;
+                }
+                if (ret != 2) {
+                    goto end_check;
+                }
+                CdFlush();
+            }
+            mode = 0xA0;
+            CdControlB(CdlSetmode, &mode, NULL);
+            if ((s8)state->entries[state->readIdx].idB1 != 0) {
+                state->step = 4;
+                goto do_load;
+            }
+            if (req[3] == 0) {
+                state->step = 4;
+                goto do_load;
+            }
+            if (req[0] != 0) {
+                state->step = 4;
+                goto do_load;
+            }
+            state->step = state->step + 1;
+            /* fallthrough */
+        case 1:
+            func_80023748(req[3], req[2], req[1]);
+            goto increment_step;
+        case 2: {
+            s32 sync;
+            s32 diskErr;
+
+            sync    = CdSync(1, NULL);
+            diskErr = CdlDiskError;
+            asm("" : "+r"(diskErr));
+            if (sync == diskErr) {
+                CdSyncCallback(NULL);
+                CdReadyCallback(NULL);
+                goto wait_reset_step1;
+            }
+            F12D18_800257B0();
+            status = Fs_CdOpStatus;
+            switch (status) {
+                case 0x80:
+                    ret = func_8001E6AC(0, 0);
+                    if (ret != 1) {
+                        if (ret < 2) {
+                            if (ret == 0) {
+                                return;
+                            }
+                            goto end_check;
+                        }
+                        if (ret != 2) {
+                            goto end_check;
+                        }
+                        CdFlush();
+                    }
+                    sync    = CdSync(1, NULL);
+                    diskErr = CdlDiskError;
+                    asm("" : "+r"(diskErr));
+                    if (sync == diskErr) {
+                    wait_reset_step1:
+                        Fs_WaitDiskReset(1);
+                    }
+                    state->step = 1;
+                    goto end_check;
+                case 0xFF:
+                    CdSyncCallback(NULL);
+                    CdReadyCallback(NULL);
+                    goto increment_step;
+                case 0x10:
+                case 0x20:
+                case 0x40:
+                    ret = func_8001E6AC(0, 0);
+                    if (ret != 1) {
+                        if (ret < 2) {
+                            if (ret == 0) {
+                                return;
+                            }
+                            goto end_check;
+                        }
+                        if (ret != 2) {
+                            goto end_check;
+                        }
+                        CdFlush();
+                    }
+                    F12D18_80024EC0();
+                    goto end_check;
+            }
+            goto end_check;
+        }
+        case 3:
+            ret = func_8001E6AC(0, 0);
+            if (ret != 1) {
+                if (ret < 2) {
+                    if (ret == 0) {
+                        return;
+                    }
+                    goto do_load;
+                }
+                if (ret != 2) {
+                    goto do_load;
+                }
+                CdFlush();
+            }
+            func_8002397C(req[3], req[2], req[1]);
+            state->step = state->step + 1;
+            /* fallthrough */
+        case 4:
+        do_load:
+            Fs_LoadFile(
+                req,
+                state->entries[state->readIdx].idB1,
+                (s8)state->entries[state->readIdx].idB2,
+                (s8)state->entries[state->readIdx].idB3);
+        increment_step:
+            state->step = state->step + 1;
+            goto end_check;
+        case 5: {
+            s32 sync;
+            s32 diskErr;
+
+            sync    = CdSync(1, NULL);
+            diskErr = CdlDiskError;
+            asm("" : "+r"(diskErr));
+            if (sync == diskErr) {
+                CdSyncCallback(NULL);
+                CdReadyCallback(NULL);
+                goto wait_reset_step4;
+            }
+            F12D18_800257B0();
+            status = Fs_CdOpStatus;
+            switch (status) {
+                case 0x80:
+                    ret = func_8001E6AC(0, 0);
+                    if (ret != 1) {
+                        if (ret < 2) {
+                            if (ret == 0) {
+                                return;
+                            }
+                            goto end_check;
+                        }
+                        if (ret != 2) {
+                            goto end_check;
+                        }
+                        CdFlush();
+                    }
+                    sync    = CdSync(1, NULL);
+                    diskErr = CdlDiskError;
+                    asm("" : "+r"(diskErr));
+                    if (sync == diskErr) {
+                    wait_reset_step4:
+                        Fs_WaitDiskReset(1);
+                    }
+                    state->step = 4;
+                    goto end_check;
+                case 0xFF:
+                    if (state->field_1FE != status) {
+                        goto end_check;
+                    }
+                    CdSyncCallback(NULL);
+                    CdReadyCallback(NULL);
+                    p = &CdCmd_Queue;
+                    if (p->busy != 0) {
+                        p->busy                 = 0;
+                        Display_State.field_130 = 0;
+                    }
+                    p->step      = 0;
+                    p->field_1fc = 0;
+                    p->field_222 = 0;
+                    p->field_242 = 0;
+                    if (p->readIdx != p->writeIdx) {
+                        p->entries[p->readIdx].cmd = 0;
+                        p->readIdx                 = p->readIdx + 1;
+                        p->readIdx                 = p->readIdx % 8;
+                    }
+                    goto end_check;
+                case 0x10:
+                case 0x20:
+                case 0x40:
+                    ret = func_8001E6AC(0, 0);
+                    if (ret == 1) {
+                        F12D18_80024EC0();
+                        goto end_check;
+                    }
+                    if (ret < 2) {
+                        if (ret == 0) {
+                            return;
+                        }
+                        goto end_check;
+                    }
+                    if (ret == 2) {
+                        CdFlush();
+                        F12D18_80024EC0();
+                    }
+                    goto end_check;
+            }
+            goto end_check;
+        }
+    }
+
+end_check:
+    if (state->field_200 != 0) {
+        func_80040820();
+    }
+}
+
+/* Absolute copy of jtbl_80012F7C for still-asm func_8001CA70. */
+const s32 jtbl_80012F7C[10] = {
+    0x8001CABC,
+    0x8001CABC,
+    0x8001CABC,
+    0x8001CAC4,
+    0x8001CAC4,
+    0x8001CDDC,
+    0x8001CAC4,
+    0x8001CAC4,
+    0x8001CC44,
+    0x00000000,
+};
 
 void func_8001C620(void)
 {

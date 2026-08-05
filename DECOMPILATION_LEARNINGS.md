@@ -6933,3 +6933,75 @@ if (work->field_2C == 1) {
 `func_80031DA4` is the pure example. Pair with `register Task* task asm("s3")`
 (and other pins for later reuse of `$s0`/`$s1`) so the prologue is
 `sw s3; sw s2; move s2,a1` with `move s3,a0` in the first `bne` delay slot.
+
+## `field_222 = 1` in the delay of `bnez busy` (dual base pointers)
+
+When the target does:
+
+```
+lh   v0, busy(a0)     /* p = &Queue reloaded into a0 */
+li   v1, 1
+bnez v0, skip
+ sh  v1, field_222(s0) /* always; state lives in s0 */
+sh   v1, busy(a0)
+```
+
+writing `state->field_222 = 1; if (p->busy == 0) p->busy = 1;` stores
+`field_222` *before* the load. Force the load first with a temporary, then
+assign `field_222` (still before the if body so the store can fill the
+branch delay):
+
+```c
+p = &CdCmd_Queue;
+{
+    s32 busy = p->busy;
+    state->field_222 = 1;
+    if (busy == 0) {
+        p->busy = 1;
+        Display_State.field_130 = 0xFF;
+    }
+}
+```
+
+`func_8001C0D4` is the pure example. The two bases (`s0` for `state`, `a0` for
+the reloaded `p`) are required so `field_222` and `busy` use different
+addressing.
+
+## Rematerialize `CdlDiskError` so it is not pinned in `$sN`
+
+A function that only saves `$s0` but compares `CdSync(...) == CdlDiskError`
+twice (outer check + 0x80 path) will CSE `5` into `$s1` and grow the frame.
+Block the CSE by assigning through a throwaway and killing its REG_EQUAL:
+
+```c
+s32 sync;
+s32 diskErr;
+
+sync = CdSync(1, NULL);
+diskErr = CdlDiskError;
+asm("" : "+r"(diskErr));
+if (sync == diskErr) {
+    ...
+}
+```
+
+Each site reloads `li v1, 5` after the `jal`, matching the ROM. Same idea as
+other `asm("" : "+r"(...))` REG_EQUAL kills; `func_8001C0D4` is the pure
+CdSync example.
+
+## Two near-identical status switches: fully inline the shared tails
+
+Two `switch (Fs_CdOpStatus)` blocks in one function (e.g. step 2 and step 5)
+will cross-merge their `0x10/0x20/0x40` retry bodies when both go through a
+shared `handle_ret` / `flush_or_retry` label. The dispatch then jumps from
+case 5 into case 2's retry and the `slti` tree flips (`bnez` vs `beqz`).
+
+Fix: inline the `ret < 2` / `ret == 2` / `F12D18_80024EC0` tails at every
+site (duplicate the small blocks). GCC still cross-jumps the *identical*
+`ret < 2 → (ret==0 ? return : end)` sequences into one shared block, so you
+keep a single handle without the bad merge — and the sites that need a
+*different* shape (case 5 retry uses an inverted `ret >= 2` tree) stay
+separate. Also avoids `move a0, v0` after `func_8001E6AC` that appears when
+`ret` is live into a multi-predecessor shared label across calls.
+
+`func_8001C0D4` is the pure example (paired with the busy-temp tip above).
