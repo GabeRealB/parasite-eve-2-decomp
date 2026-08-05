@@ -16,7 +16,40 @@ INCLUDE_ASM("main/nonmatchings/F344", func_8001ED20);
 
 INCLUDE_ASM("main/nonmatchings/F344", func_8001EDC8);
 
-INCLUDE_ASM("main/nonmatchings/F344", func_8001EED8);
+s16 func_8001EED8(u8* arg0)
+{
+    s32        i;
+    GStruct24* base;
+    s32        one;
+    s32        ret;
+
+    i    = 0;
+    base = D_8006D4F0;
+    one  = 1;
+    while (1) {
+        if (base[i & 0xFFFF].field_0 == one) {
+            if (base[i & 0xFFFF].field_E == arg0[0]) {
+                if (base[i & 0xFFFF].field_C == 0) {
+                    if (base[i & 0xFFFF].field_1E != 0) {
+                        ret = i << 0x10;
+                        return ret >> 0x10;
+                    }
+                }
+                if (base[i & 0xFFFF].field_C == arg0[1]) {
+                    if (base[i & 0xFFFF].field_1E != 0) {
+                        ret = i << 0x10;
+                        return ret >> 0x10;
+                    }
+                }
+            }
+        }
+        i = i + 1;
+        if ((u32)(i & 0xFFFF) >= 0xFU) {
+            break;
+        }
+    }
+    return -1;
+}
 
 INCLUDE_ASM("main/nonmatchings/F344", func_8001EF9C);
 
