@@ -149,7 +149,55 @@ INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002EEA0);
 
 INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002F020);
 
-INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002F18C);
+u8* func_8002F18C(u8* arg0, u32 arg1)
+{
+    typedef struct {
+        u8 data[10];
+    } Bytes10;
+    typedef struct {
+        u8 data[2];
+    } Bytes2;
+
+    register u8* dest asm("a3");
+    register u32 place asm("a2");
+    register u32 digit asm("v1");
+    u32          temp;
+    u8*          ret;
+    u32          cmp;
+
+    place = 0x5F5E100;
+    if (arg1 > 0x3B9AC9FEU) {
+        *(Bytes10*)arg0 = *(Bytes10*)D_800138CC;
+        return arg0;
+    }
+    cmp = arg1 < place;
+    if (arg1 == 0) {
+        *(Bytes2*)arg0 = *(Bytes2*)D_800138C8;
+        return arg0;
+    }
+    dest = arg0;
+    if (cmp) {
+        do {
+            place /= 10;
+        } while (arg1 < place);
+    }
+    if (place != 0) {
+        do {
+            digit  = arg1 / place;
+            *dest  = digit;
+            temp   = *dest & 0xFF;
+            digit  = temp * place;
+            place /= 10;
+            *dest  = temp + 0x30;
+            dest++;
+            arg1 -= digit;
+        } while (place != 0);
+    }
+    *dest = 0;
+    ret   = arg0;
+    asm("" : "+r"(ret));
+    return ret;
+}
 
 u8* func_8002F2A4(u8* arg0, s32 arg1)
 {

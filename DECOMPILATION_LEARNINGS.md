@@ -4729,6 +4729,47 @@ after the raw store, inline-asm zero-path with `D_800138C8`) but:
   (unsigned keeps `arg0` in `$a0`, so `place`/`dest` are `$a2`/`$a3`).
 - Zero-path pins differ: `src` in `$t2`, loads into `$a3`/`$t0`.
 
+## Unsigned decimal itoa: keep raw digit store via reload-style mask
+
+Unsigned decimal itoa (`func_8002F18C`) stores the raw quotient then overwrites
+it with ASCII, interleaved with `place /= 10` (magic `0xCCCCCCCD` multu):
+
+```
+mflo  v1            /* digit */
+nop
+nop
+multu a2, t0        /* start place/10 */
+mfhi  t5
+sb    v1, 0(a3)     /* raw digit — must stay */
+andi  v0, v1, 0xff
+mult  v0, a2
+srl   a2, t5, 3
+addiu v0, v0, 0x30
+sb    v0, 0(a3)     /* ASCII */
+```
+
+Unlike the hex siblings, there is no `if (temp >= 10)` branch to keep the first
+store alive. Plain `*dest = digit; temp = digit & 0xFF; *dest = temp + '0'`
+DSE-eliminates the raw store. `volatile` keeps it but schedules it too late
+(after `addiu +0x30`). Dummy if/else with identical arms keeps the store but
+pulls `mflo` of the product too early.
+
+Match with a memory-style mask that still CSEs to the register form:
+
+```c
+*dest = digit;
+temp  = *dest & 0xFF;   /* keeps sb; compiles as andi, not lbu */
+digit = temp * place;
+place /= 10;
+*dest = temp + 0x30;
+```
+
+Also hoist `cmp = arg1 < place` *before* the zero check so `sltu` lands in the
+delay slot of `bnez arg1` (result discarded on the zero path, reused after).
+Clamp overflow with a 10-byte `u8[10]` struct assign of `"999999999"`; zero path
+is a 2-byte `u8[2]` assign of `"0"` — both emit the unaligned lwl/lwr/lb
+sequence without register pins. Needs `--expand-div` (`1E6C4.c`).
+
 ## Loop-invariant QImode constants: `s8` temp + widen via `s32`
 
 When a loop repeatedly stores a small constant into a byte field
