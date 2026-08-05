@@ -8,7 +8,31 @@
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002B834);
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002BA9C);
+void func_8002BA9C(s32 r, s32 g, s32 b, s32 mode)
+{
+    TILE*     p;
+    DR_TPAGE* dr;
+    s8        yoff;
+
+    p          = (TILE*)D_80071190;
+    D_80071190 = (DR_TPAGE*)(p + 1);
+    setlen(p, 3);
+    setcode(p, 0x62);
+    p->x0 = -0xA0;
+    p->r0 = r;
+    p->g0 = g;
+    p->b0 = b;
+    yoff  = Display_State.unknown_109[0];
+    p->w  = 0x140;
+    p->h  = 0xF0;
+    p->y0 = -0x78 - yoff;
+    addPrim(D_800710A0 - 0x10, p);
+
+    dr         = (DR_TPAGE*)D_80071190;
+    D_80071190 = dr + 1;
+    setDrawTPage(dr, 0, 1, (mode & 3) << 5);
+    addPrim(D_800710A0 - 0x10, dr);
+}
 
 void func_8002BB9C(void)
 {
