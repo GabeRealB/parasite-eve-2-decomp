@@ -60,7 +60,55 @@ INCLUDE_ASM("main/nonmatchings/34E98", func_80046830);
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80046B34);
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80046DEC);
+/// Overlay of GStruct30 / UiObject at the layout halfwords that func_80046DEC
+/// loads as signed (field_1C / field_1E are written with potentially negative
+/// values by func_80049348; this function needs lh, not lhu).
+typedef struct {
+    /* 0x00 */ u8  pad0[0x14];
+    /* 0x14 */ u16 field_14;
+    /* 0x16 */ u8  pad16[6];
+    /* 0x1C */ s16 field_1C;
+    /* 0x1E */ s16 field_1E;
+    /* 0x20 */ u16 field_20;
+    /* 0x22 */ u16 field_22;
+} GStruct30SignedLayout;
+
+void func_80046DEC(UiList* arg0, GStruct30* arg1, s32 arg2)
+{
+    TILE*                           p;
+    s32                             y;
+    s32                             x1;
+    s32                             width;
+    s32                             h;
+    register u32                    color asm("t4");
+    register GStruct30SignedLayout* a1 asm("t0");
+    u16                             f14;
+
+    a1    = (GStruct30SignedLayout*)arg1;
+    color = 0x1741F;
+    asm("" : "+r"(color), "+r"(a1));
+    f14          = a1->field_14;
+    h            = arg0->field_7;
+    x1           = a1->field_1C;
+    a1->field_14 = f14 + 1;
+    asm("" ::: "memory");
+    width = a1->field_1E - x1;
+    if ((width - 1) >= 2) {
+        p          = (TILE*)D_80071190;
+        D_80071190 = (DR_TPAGE*)(p + 1);
+        p->x0      = a1->field_20 + x1 + 1;
+        y          = a1->field_22;
+        p->w       = width - 2;
+        p->h       = h - 1;
+        setlen(p, 3);
+        *(u32*)&p->r0 = color;
+        setcode(p, 0x60);
+        arg2  = arg2 - h;
+        p->y0 = y + arg2 + 1;
+        addPrim(D_800710A0 + (s16)a1->field_14 + 1, p);
+    }
+    a1->field_14 = (u16)(a1->field_14 - 1);
+}
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80046EEC);
 

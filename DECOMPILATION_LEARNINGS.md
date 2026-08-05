@@ -7248,3 +7248,79 @@ and chain the pair through the field itself (`p->lo = -(w >> 1); p->hi = p->lo
 + w`) so `negu` stays in `$v0` rather than a separate temp in `$v1`.
 
 `func_80049348` is the pure example (factored tail ~81%, duplicated arms → 100%).
+
+## Force early `lui`/`ori` of a late-used constant
+
+When the target completes a multi-instruction constant (`lui tN,hi` /
+`ori tN,tN,lo`) before any field loads, but your build leaves the `ori` as the
+branch delay-slot filler (and puts a later body instruction after the branch),
+the constant is too free to schedule. Pin it and emit an empty asm that takes
+it as an I/O operand so the full materialization finishes before subsequent
+loads (`func_80046DEC`):
+
+```c
+register u32 color asm("t4");
+register Arg* a1 asm("t0");
+
+a1    = arg1;
+color = 0x1741F;
+asm("" : "+r"(color), "+r"(a1));
+/* only now may field loads begin */
+f14 = a1->field_14;
+```
+
+Pinning the object pointer in the same asm also locks the target's early
+`move t0,a1` register choice when that is the only remaining mismatch.
+
+## Memory clobber to stop a later field load hoisting past a store
+
+Two distinct fields of the same object have no alias conflict, so GCC will
+happily load `field_1E` *before* storing `field_14 + 1` even when the target
+does the store first and reuses `$v0` for the subsequent `lh field_1E` (with a
+load-delay `nop`). A memory clobber between the store and the next load
+restores the target order:
+
+```c
+a1->field_14 = f14 + 1;
+asm("" ::: "memory");
+width = a1->field_1E - x1; /* lh into $v0, nop, subu */
+```
+
+## Signed layout overlay when the canonical struct is `u16` for other matches
+
+`GStruct30.field_1C` / `field_1E` are `u16` so functions like `func_80049348`
+emit `lhu`. A sibling draw helper that needs `lh` for the same offsets must not
+flip the canonical type (that breaks the other matches). Use a local overlay
+with `s16` at those offsets and cast once:
+
+```c
+typedef struct {
+    u8  pad0[0x14];
+    u16 field_14;
+    u8  pad16[6];
+    s16 field_1C;
+    s16 field_1E;
+    u16 field_20;
+    u16 field_22;
+} GStruct30SignedLayout;
+
+a1 = (GStruct30SignedLayout*)arg1;
+x1 = a1->field_1C; /* lh */
+```
+
+## Preload `y` and subtract height into `arg2` for TILE y0 delay-slot form
+
+For a TILE whose `y0 = base_y + arg2 - h + 1`, the target often does
+`subu a2,a2,t3` in the early-out branch delay slot, then later
+`addu v1,v1,a2; addiu v1,v1,1`. Mirror `func_800491AC`'s `y = field_22` preload
+and write the adjust as an assignment on `arg2` inside the body:
+
+```c
+y = a1->field_22;
+...
+arg2  = arg2 - h;       /* fills bnez delay slot */
+p->y0 = y + arg2 + 1;   /* addu + addiu, no separate subu of h */
+```
+
+`func_80046DEC` is the pure example (together with the color-pin / memory-clobber
+tips above).

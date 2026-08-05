@@ -410,14 +410,17 @@ STATIC_ASSERT_SIZEOF(GStruct24, 0x28);
 /// D_80061284, D_800612AC, D_80067654; size 0x24).
 /// field_0 is a function-table pointer; field_4 / field_5 are base indices
 /// (func_80049C00 seeds both from context); field_5 is also subtracted when
-/// computing field_9; field_9 / field_A / field_10 are list cursor / flag /
-/// selection index used by func_80036A70 / func_80036C04 / func_80037068 /
+/// computing field_9; field_6 / field_7 are signed layout sizes (func_80046DEC
+/// uses field_7 as TILE height); field_9 / field_A / field_10 are list cursor /
+/// flag / selection index used by func_80036A70 / func_80036C04 / func_80037068 /
 /// func_800489A0 / func_8004917C.
 typedef struct _UiList {
     /* 0x00 */ byte unknown_0[0x4];
     /* 0x04 */ u8   field_4;
     /* 0x05 */ u8   field_5;
-    /* 0x06 */ byte unknown_6[0x3];
+    /* 0x06 */ s8   field_6;
+    /* 0x07 */ s8   field_7;
+    /* 0x08 */ byte unknown_8;
     /* 0x09 */ u8   field_9;
     /* 0x0A */ u8   field_A;
     /* 0x0B */ byte unknown_B[0x5];
