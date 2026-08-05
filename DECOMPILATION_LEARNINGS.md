@@ -5510,3 +5510,43 @@ default:
 (reuse the cast reg) instead of `slt v0,v1,v0`.
 
 `func_80053BF4` case 5 is the pure example.
+
+## Force multiply-before-base for `base + index * size`
+
+When the target computes a scaled index into `$sN` *before* materialising the
+array base (`addiu a0, s1, off` then `addu a0, sN, a0`), writing
+`&ptr->arr[i]` alone often yields the opposite order (`addiu a0, sN, off` /
+`addu a0, a0, s1`) or schedules the base addiu too early (before the multiply).
+
+Fix: assign the scaled index to a local *before* materialising the base pointer,
+even if the local is not read afterward. GCC still emits the multiply early and
+CSEs it into the later array access:
+
+```c
+drawBase = ds->field_48;
+PutDrawEnv(&drawBase[buf]);
+stride = buf * 0x14;          /* emit s0*0x14 into $s2 first */
+dispBase = ds->field_20;      /* then addiu a0, s1, 0x20 */
+PutDispEnv(&dispBase[buf]);   /* then addu a0, s2, a0 */
+/* later DrawOTag(D_80070EE8[buf].field_10) reuses $s2 */
+```
+
+`func_80027498` needs this for `PutDispEnv(&Display_State.field_20[buf])`
+(DISPENV and GStruct35 are both 0x14). Without the dead `stride` store the
+`addiu a0,s1,0x20` lands either too early (right after `PutDrawEnv`) or as
+`addiu a0,s2,0x20` / `addu a0,a0,s1`.
+
+## `s8` field loads as `lb`; `volatile u8` forces re-load across arms
+
+`Display_State.field_1e` is compared with `bnez` after an `lb`. Declaring it
+`u8` emits `lbu` and can also let a nearby volatile store fill the branch delay
+slot. Use `s8` when the target has plain `lb`.
+
+`Display_State.field_108` is written by main-line code and read by the VSync
+callback `func_80027498`. Marking it `volatile u8` forces a second load for
+`if (f == 0) … else if (f == 1)` (target reloads into `$v1` rather than CSE'ing
+the first `lbu`). Same idea as `D_8006EC30` / `D_80070E38`.
+
+`D_80070F64` (countdown next to `Display_State`) is also VSync-shared: without
+`volatile`, `D_80070F64 -= 1` fills the following `bnez` delay slot; the target
+has `sw` then `nop`.

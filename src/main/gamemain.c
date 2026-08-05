@@ -89,7 +89,50 @@ void func_8002731C(s32 arg0)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/gamemain", func_80027498);
+void func_80027498(void)
+{
+    s32           temp_s4;
+    s32           temp_s0;
+    s32           stride; // Forces s0*0x14 before (ds+0x20); required for match.
+    DisplayState* ds;
+    DRAWENV*      drawBase;
+    DISPENV*      dispBase;
+
+    temp_s4 = VSync(1);
+    if ((s32)D_8005EC70 >= 0) {
+        if (((temp_s4 & 0xFFFF) + D_8005EC78) > (D_8005EC6C >> 1)) {
+            ds = &Display_State;
+            if (ds->field_108 == 0) {
+                temp_s0  = D_8005EC70;
+                drawBase = ds->field_48;
+                PutDrawEnv(&drawBase[temp_s0]);
+                stride   = temp_s0 * 0x14;
+                dispBase = ds->field_20;
+                PutDispEnv(&dispBase[temp_s0]);
+                if (ds->field_100 != 0) {
+                    func_80027F48(temp_s0);
+                }
+                func_80020058();
+                if (ds->field_104 == 0) {
+                    DrawOTag(D_80070EE8[temp_s0].field_10);
+                }
+                D_8005EC70 = -1;
+            } else if (ds->field_108 == 1) {
+                func_8002731C(D_8005EC70);
+                D_8005EC70 = -1;
+            }
+        }
+    }
+    D_80070F64 -= 1;
+    if (Display_State.field_1e == 0) {
+        Display_State.field_0 += 1;
+    }
+    Display_State.field_c += 1;
+    func_80057564();
+    func_8004D008();
+    func_8002C1D8();
+    D_8005EC74 = VSync(1) - (temp_s4 & 0xFFFF);
+}
 
 INCLUDE_ASM("main/nonmatchings/gamemain", func_8002764C);
 

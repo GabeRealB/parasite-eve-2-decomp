@@ -66,6 +66,7 @@ extern void func_8002BBC8(void);
 extern void func_8002BE0C(Task* arg0);
 extern void func_8002BFD4(void);
 extern void func_8002C028(Task* arg0);
+extern void func_8002C1D8(void);
 // Pad_* → main/pad.h; Task_* → main/task.h
 extern TaskFuncTable5 D_800134BC;
 extern TaskFuncTable3 D_800134D0;
@@ -186,6 +187,7 @@ extern s32 func_8004ACAC(s32 arg0);
 
 // 3D458.c
 extern void       func_8004CFE8(void);
+extern void       func_8004D008(void);
 extern void       F3D458_ResetHeap(void);
 extern void*      F3D458_Malloc(size_t);
 extern void       F3D458_Free(void* ptr);
@@ -444,6 +446,8 @@ extern u32          D_8005EC64;
 extern s32          D_8005EC68;
 extern s32          D_8005EC6C;
 extern volatile u32 D_8005EC70;
+extern s32          D_8005EC74;
+extern s32          D_8005EC78;
 // Task_DescBanks → main/task.h
 extern char         D_80013B64[]; // "Select"
 extern s8           D_800138C8[]; // "0"
@@ -542,6 +546,8 @@ extern u_long      D5F414_OrderingTables[2 * C5F414_OTAG_ENTRIES];
 extern volatile u8 D_80070E38;
 extern u8*         D_80070EE0; // primitive buffer cursor
 extern GStruct35   D_80070EE8[2];
+// VSync countdown; written/read by func_80027498 (VSync callback).
+extern volatile s32 D_80070F64;
 // Display_State → main/display.h
 extern u_long*   D_800710A0; // current OT base
 extern GStruct5  D_800710A8;
