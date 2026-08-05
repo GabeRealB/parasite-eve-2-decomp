@@ -36,7 +36,81 @@ void func_8004DEBC(s32 arg0)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004DF10);
+void func_8004DF10(void)
+{
+    GStruct48 sp10;
+    s32*      ptr;
+    s32       i;
+    s8        sVoiceIdx;
+    u32       spuAddr;
+
+    spuAddr = 0x7B440;
+    SpuSetTransferStartAddr(spuAddr);
+    SpuWrite(&D_80068184, 0x30U);
+    SpuIsTransferCompleted(1);
+
+    ptr             = (s32*)&D648E0_8007E518;
+    i               = 0;
+    D648E0_8007EBA8 = 0;
+    D648E0_8007EBAC = 0;
+    D648E0_8007EBB0 = 0;
+    do {
+        *ptr = 0;
+        i++;
+        ptr++;
+    } while ((u32)i < 0x19FU);
+
+    ptr = (s32*)&D648E0_8007E338;
+    i   = 0;
+    do {
+        *ptr = 0;
+        i++;
+        ptr++;
+    } while ((u32)i < 0x75U);
+
+    i = 0;
+    do {
+        sVoiceIdx = i;
+        func_8004E5C4(sVoiceIdx, &sp10);
+
+        {
+            SpuVoiceAttr* attr = sp10.field_4;
+            attr->loop_addr    = spuAddr;
+            attr->addr         = spuAddr;
+        }
+        {
+            SpuVoiceAttr* attr = sp10.field_4;
+            attr->volume.right = 0;
+            attr->volume.left  = 0;
+        }
+        {
+            SpuVoiceAttr* attr  = sp10.field_4;
+            attr->volmode.right = 0;
+            attr->volmode.left  = 0;
+        }
+        {
+            SpuVoiceAttr* attr = sp10.field_4;
+            attr->adsr1        = 0x80FF;
+        }
+        {
+            SpuVoiceAttr* attr = sp10.field_4;
+            attr->adsr2        = 0xFFE0;
+        }
+        {
+            SpuVoiceAttr* attr = sp10.field_4;
+            attr->mask         = 0x7008FU;
+        }
+        {
+            SpuVoiceAttr* attr = sp10.field_4;
+            attr->voice        = 1 << i;
+        }
+
+        func_8004EAA0(sVoiceIdx);
+        i++;
+    } while (i < 0x18);
+
+    func_8004E5A0(2, 0x10, 2);
+}
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E060);
 

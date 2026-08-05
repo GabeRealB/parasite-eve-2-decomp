@@ -835,13 +835,13 @@ STATIC_ASSERT_SIZEOF(GStruct44, 0x14);
 /// Buffer with a 16-bit sum / ones-complement pair at the head and a payload
 /// starting at offset 4. Written by `Mc_WriteBlockChecksum`, verified by `Mc_VerifyBlockChecksum`.
 /// Out-parameter for `func_8004E5C4` (voice slot lookup/alloc).
-/// field_0 is the voice index; field_4 points at 16 words of voice data.
+/// field_0 is the voice index; field_4 points at the voice's SpuVoiceAttr.
 typedef struct _GStruct48 {
-    /* 0x0 */ s8   field_0;
-    /* 0x1 */ s8   field_1;
-    /* 0x2 */ s8   field_2;
-    /* 0x3 */ s8   field_3;
-    /* 0x4 */ s32* field_4;
+    /* 0x0 */ s8            field_0;
+    /* 0x1 */ s8            field_1;
+    /* 0x2 */ s8            field_2;
+    /* 0x3 */ s8            field_3;
+    /* 0x4 */ SpuVoiceAttr* field_4;
 } GStruct48;
 STATIC_ASSERT_SIZEOF(GStruct48, 0x8);
 

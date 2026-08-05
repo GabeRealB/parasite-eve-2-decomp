@@ -307,7 +307,7 @@ void func_80057930(s8 arg0, s32* arg1)
 
     func_8004E560(arg0, 0, 0);
     func_8004E5C4(arg0, &sp10);
-    dest = sp10.field_4;
+    dest = (s32*)sp10.field_4;
     i    = 0;
     do {
         *dest = *arg1;

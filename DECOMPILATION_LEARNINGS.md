@@ -6271,3 +6271,32 @@ extra callee-saved for a separate SVECTOR pointer. Computing the out-arg as
 `head - 8` (not `block + 0x10`) matches the target's `addiu a1, a1, -8` from the
 loaded head. Colors go in MATRIX **columns** (`m[0/1/2][id] = component << 4`);
 directions go in MATRIX **rows** (`m[id][0/1/2] = -dir`).
+
+## Nested blocks force pointer reloads between store groups
+
+When the target reloads a stack-resident pointer between *pairs* of stores
+(e.g. `lw v0, 0x14(sp)` then two `sw`/`sh`, then another `lw`), a single
+function-scope temp produces one load for the whole sequence, and writing
+through the field every time reloads *before every store*.
+
+Use a nested block per group so the local dies after the pair:
+
+```c
+{
+    SpuVoiceAttr* attr = sp10.field_4;
+    attr->loop_addr = spuAddr;
+    attr->addr      = spuAddr;
+}
+{
+    SpuVoiceAttr* attr = sp10.field_4;
+    attr->volume.right = 0;
+    attr->volume.left  = 0;
+}
+/* …one block per target load group… */
+```
+
+Keep large constants (e.g. `0x7008FU` for a `mask` field) as *literals* at the
+store site, not loop-invariant locals — otherwise GCC pins them in a callee-
+saved reg (`s3`) instead of interleaving `lui`/`ori` into `$a1` delay slots.
+
+`func_8004DF10` is the pure example (voice-attr init after `func_8004E5C4`).

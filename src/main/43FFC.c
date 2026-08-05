@@ -957,10 +957,10 @@ s32 func_800563B4(GStruct54* arg0)
                     status = func_8004E6A4(node->field_0);
                     if (status != 0) {
                         func_8004E5C4(node->field_0, &sp10);
-                        temp                                 = ((SpuVoiceAttr*)sp10.field_4)->adsr2;
-                        temp                                 = (temp & 0xFFE0) | 5;
-                        ((SpuVoiceAttr*)sp10.field_4)->adsr2 = temp;
-                        ((SpuVoiceAttr*)sp10.field_4)->mask |= SPU_VOICE_ADSR_ADSR2;
+                        temp                = sp10.field_4->adsr2;
+                        temp                = (temp & 0xFFE0) | 5;
+                        sp10.field_4->adsr2 = temp;
+                        sp10.field_4->mask |= SPU_VOICE_ADSR_ADSR2;
                         if (status != 2) {
                             func_8004E71C(node->field_0);
                         }
