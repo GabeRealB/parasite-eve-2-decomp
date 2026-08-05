@@ -115,6 +115,16 @@ typedef struct _McBufferSlot {
 } McBufferSlot;
 STATIC_ASSERT_SIZEOF(McBufferSlot, 0xC);
 
+/// Memcard state-machine handler: (Task*, McWork*).
+typedef void (*McStateFunc)(Task* task, McWork* work);
+
+/// Fixed-size table of McStateFunc callbacks. Copied onto the stack by
+/// func_800359A4 so the call uses a local jump table (44 entries, 0xB0 bytes).
+typedef struct {
+    McStateFunc funcs[44];
+} McStateFuncTable44;
+STATIC_ASSERT_SIZEOF(McStateFuncTable44, 0xB0);
+
 // =============================================================================
 // Functions — src/main/mc.c (matched helpers; state handlers also live here)
 // =============================================================================
@@ -122,6 +132,8 @@ STATIC_ASSERT_SIZEOF(McBufferSlot, 0xC);
 void func_800319E4(Task* task, McWork* work);
 void Mc_StateCreateFile(Task* task, McWork* work);
 void Mc_StateFormat(Task* task, McWork* work);
+void func_80034B38(Task* task, McWork* work);
+void func_800359A4(Task* task);
 u16* Mc_EncodeAsciiGlyphs(s8* src, u16* dst);
 void Mc_InitFileName(void);
 void Mc_CopyFileName(s32 direction);
@@ -156,5 +168,11 @@ extern McPromptPair Mc_PromptTable[];
 extern McSaveData   Mc_SaveData;
 /// "Memory Card" string passed to func_80048E38 by Mc_DrawPrompt.
 extern char D_8001398C[];
+/// Jump table of 44 McStateFunc handlers used by func_800359A4.
+extern McStateFuncTable44 D_800139AC;
+/// Global McWork instance used by the memcard state dispatcher.
+extern McWork D_80071730;
+/// Stores the result of rand() after each dispatcher tick.
+extern s32 D_80073C08;
 
 #endif // MC_H

@@ -2,6 +2,7 @@
 #include "main/mc.h"
 
 #include <psyq/libmcrd.h>
+#include <psyq/rand.h>
 
 #include "main/game.h"
 #include "main/mem.h"
@@ -861,7 +862,7 @@ void func_80034A40(Task* arg0, McWork* arg1)
     }
 }
 
-void func_80034B38(Task* arg0)
+void func_80034B38(Task* arg0, McWork* arg1)
 {
     if (arg0->field_2a != 0) {
         Task_Kill(arg0);
@@ -1256,7 +1257,29 @@ void func_80035960(Task* arg0, McWork* arg1)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/mc", func_800359A4);
+void func_800359A4(Task* arg0)
+{
+    McStateFuncTable44 sp;
+    McWork*            work;
+    s32                state;
+
+    sp    = D_800139AC;
+    work  = &D_80071730;
+    state = arg0->field_30;
+    if (state < 0) {
+        func_80034B38(arg0, work);
+        return;
+    }
+    sp.funcs[state](arg0, work);
+    if (work->field_4 >= 0xB5) {
+        if (work->field_18 != 0) {
+            Mem_Free((void*)work->field_18);
+            work->field_18 = 0;
+        }
+        arg0->field_30 = 0x18;
+    }
+    D_80073C08 = rand();
+}
 
 void func_80035A94(Task* arg0, McWork* arg1)
 {
