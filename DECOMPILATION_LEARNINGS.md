@@ -5729,3 +5729,48 @@ entry->cmd = p->field_50.cmd;   /* second load now materializes */
 `entry->param0`. `func_8001D760` (commit `field_50` into the ring) is the pure
 example; pair with `(s16)writeIdx` when the return needs `sll`/`sra 16`
 sign-extend rather than Enqueue's `andi …, 0xffff` zero-extend.
+
+## Empty `asm volatile("")` blocks delay-slot fill of independent ops after abs
+
+After an abs-style `bgez`/`negu` sequence, GCC 2.8.1 with `-fdelayed-branch`
+happily pulls the next independent instruction into the branch delay slot:
+
+```
+bgez  v0, join
+ li    v1, 0x7F     /* filled from after the join */
+negu  v0, v0
+join:
+subu  v1, v1, v0
+```
+
+The original often leaves a `nop` instead and keeps the `li` after the join.
+The same thing happens for a second abs when a load of one multiplicand sits
+just before the branch and the `mult` is available after the join — the
+compiler fills the delay with `mult` (and emits a second `mult` after `negu`
+for the negative path) while the target wants `nop` + a single shared `mult`.
+
+An empty statement-asm is a scheduling barrier that stops both fills:
+
+```c
+register s32 temp_v0 asm("v0");
+s32 temp_v1;
+
+temp_v0 = arg1;
+if (temp_v0 < 0) {
+    temp_v0 = -temp_v0;
+}
+asm volatile("");
+temp_v1 = 0x7F - temp_v0;
+temp_v0 = ptr->field_2;
+if (temp_v1 < 0) {
+    temp_v1 = -temp_v1;
+}
+asm volatile("");
+temp_v0 *= temp_v1;
+temp_v1 = temp_v0 / 127;
+```
+
+Pinning the abs/product temporary to `$v0` (as above) is usually also required
+so the following signed-division magic and clamp keep `$v0`/`$v1` the way the
+target does; without the pin, scale and product drift into `$a0` and the
+`mfhi`/`slti` register choices diverge. `func_800564C4` is the pure example.

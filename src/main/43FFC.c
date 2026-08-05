@@ -933,7 +933,37 @@ s32 func_800563B4(GStruct54* arg0)
     return count;
 }
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_800564C4);
+void func_800564C4(s8 arg0, s8 arg1, GStruct43* arg2, GStruct55* arg3, s16* arg4)
+{
+    register s32 temp_v0 asm("v0");
+    s32          temp_v1;
+
+    if (arg2->field_0 >= 0) {
+        temp_v0 = arg1;
+        if (temp_v0 < 0) {
+            temp_v0 = -temp_v0;
+        }
+        asm volatile("");
+        temp_v1 = 0x7F - temp_v0;
+        temp_v0 = arg2->field_2;
+        if (temp_v1 < 0) {
+            temp_v1 = -temp_v1;
+        }
+        asm volatile("");
+        temp_v0 *= temp_v1;
+        temp_v1  = temp_v0 / 127;
+        if (temp_v1 < 0x80) {
+            temp_v0 = temp_v1;
+            if (temp_v1 < 0) {
+                temp_v0 = 0;
+            }
+        } else {
+            temp_v0 = 0x7F;
+        }
+        func_8004D35C(arg4, (s16)((s8)arg2->field_3 + (arg0 * 3)),
+                      func_8004D298(arg3, D_80068E78[temp_v0]));
+    }
+}
 
 void func_800565B8(GStruct43* arg0, s16 arg1, u32 arg2, GStruct41* arg3)
 {

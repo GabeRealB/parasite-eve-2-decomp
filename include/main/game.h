@@ -553,7 +553,9 @@ STATIC_ASSERT_SIZEOF(GStruct43Fx, 0x24);
 /// field_34/field_38/field_3C are parent/prev/next list links (func_80056068 free).
 struct _GStruct43 {
     /* 0x00 */ s8         field_0;
-    /* 0x01 */ u8         unknown_01[0x3];
+    /* 0x01 */ u8         field_1;
+    /* 0x02 */ s8         field_2;
+    /* 0x03 */ u8         field_3;
     /* 0x04 */ s32        field_4;
     /* 0x08 */ s16        field_8;
     /* 0x0A */ u8         unknown_0A[0x6];
