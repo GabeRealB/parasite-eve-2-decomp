@@ -5976,3 +5976,25 @@ func(..., x - base_x, y - base_y, ...);
 
 Inlining the `+ 1` into the call expression is enough to invite the rewrite.
 `func_80048E38`.
+
+## Materialize long-lived pointers before early-return guards
+
+When a function early-outs on a flag but still needs a global address for the
+whole body (e.g. `&Fs_CdSector` used after several `jal`s), assign that pointer
+*before* the early-return checks. The target prologue then does:
+
+```
+sw    s4, 0x20(sp)
+lui   s4, %hi(Fs_CdSector)
+... setup other s-regs ...
+lbu   v0, flag(s3)
+bnez  v0, early_out
+ addiu s1, s4, %lo(Fs_CdSector)   /* delay */
+```
+
+Assigning the pointer only after the guards leaves `%hi` later, parks the raw
+`arg0` in `$s2`, and puts other bases in `$s0` — a register shuffle that looks
+like a large diff even when the body is otherwise identical.
+
+`func_800572FC` needs `sector = &Fs_CdSector` first, then the
+`D_80082780.field_B` / `D_80082758.field_1` guards, then `arg = arg0 & 0xFF`.

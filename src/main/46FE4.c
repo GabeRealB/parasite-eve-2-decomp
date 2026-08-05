@@ -53,7 +53,71 @@ INCLUDE_ASM("main/nonmatchings/46FE4", func_80056B28);
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_80056E38);
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_800572FC);
+void func_800572FC(s32 arg0)
+{
+    s32                 arg;
+    s32                 pos;
+    s32                 ret;
+    GStruct34*          state;
+    s32                 spuIdx;
+    volatile GStruct44* stream;
+    volatile GStruct39* cdState;
+    FsSector*           sector;
+    volatile GStruct18* audio;
+
+    sector = &Fs_CdSector;
+    stream = &D_80082780;
+    if (stream->field_B != 0) {
+        return;
+    }
+    cdState = &D_80082758;
+    if (cdState->field_1 != 0) {
+        return;
+    }
+    arg = arg0 & 0xFF;
+    if (arg != 1) {
+        stream->field_B = 2;
+        return;
+    }
+    CdGetSector(sector, 3);
+    pos = CdPosToInt((CdlLOC*)sector);
+    if (cdState->field_8 != pos) {
+        cdState->field_1 = 0xFF;
+        stream->field_B  = arg;
+        return;
+    }
+    CdGetSector(sector, 0x200);
+    audio = &D_800827A0;
+    if (audio->field_4 == cdState->field_8) {
+        state           = &D_800820F0;
+        state->field_0  = 0x10;
+        state->field_26 = 0;
+        state->field_1  = 0;
+        state->field_3  = 0;
+        state->field_10 = 0x7C0;
+        state->field_2  = 4;
+        state->field_C  = sector->words[1];
+        state->field_28 = sector->bytes[0];
+        spuIdx          = sector->words[2];
+        if (spuIdx != 0) {
+            SpuSetTransferStartAddr(D_80068B2C[spuIdx]);
+        }
+        if (func_80052B30(&sector->bytes[0x40]) == 7) {
+            stream->field_B = 3;
+            return;
+        }
+        state->field_10 = 0x800;
+    } else {
+        ret = func_80052B30(sector);
+        if (ret == 5) {
+            cdState->field_1 = arg;
+            CdReadyCallback(0);
+        } else if (ret == 7) {
+            stream->field_B = 4;
+        }
+    }
+    D_80082758.field_8 += 1;
+}
 
 void func_800574BC(void)
 {

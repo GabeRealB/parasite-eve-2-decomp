@@ -350,6 +350,7 @@ extern u8   D_80068A80[];
 extern u8   D_80068AF0[];
 extern s32  D_80068B1C;
 extern s16  D_80068B28[];
+extern s32  D_80068B2C[];
 extern s32  (*D_80068B34[])(void);
 extern u16  D_80068BB8[];
 extern u16  D_80068C78[];

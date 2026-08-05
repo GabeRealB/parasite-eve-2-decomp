@@ -582,6 +582,9 @@ STATIC_ASSERT_SIZEOF(GStruct43, 0x40);
 
 /// State block at D_800820F0; field_3 is also D_800820F3.
 /// field_14/field_18 cleared by func_800537FC; field_10 sized by func_8005363C.
+/// field_26/field_28 set by the CD ready path in func_800572FC.
+/// Bytes at 0x1C.. are filled from a sector payload by func_80052B30.
+/// Named BSS symbols D_80082120+ begin immediately after this 0x30-byte block.
 typedef struct _GStruct34 {
     /* 0x00 */ u8    field_0;
     /* 0x01 */ u8    field_1;
@@ -593,8 +596,12 @@ typedef struct _GStruct34 {
     /* 0x10 */ s32   field_10;
     /* 0x14 */ s32   field_14;
     /* 0x18 */ s32   field_18;
+    /* 0x1C */ byte  unknown_1C[0xA];
+    /* 0x26 */ s16   field_26;
+    /* 0x28 */ u8    field_28;
+    /* 0x29 */ byte  unknown_29[0x7];
 } GStruct34;
-STATIC_ASSERT_SIZEOF(GStruct34, 0x1C);
+STATIC_ASSERT_SIZEOF(GStruct34, 0x30);
 
 /// Per-buffer OT context (D_80070EE8[2]). Indexed by display buffer (stride 0x14).
 /// field_4 is OT start; field_10 is the last tag (passed to DrawOTag).
