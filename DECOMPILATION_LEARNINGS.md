@@ -6151,3 +6151,34 @@ halfword pairs; individual halfword assigns usually do not.
 `coord.t[]` / `flg` use `off($a2)` while the matrix body stays on `$v0`
 (including `sw zero, -4($v0)` for `flg`). Naming a separate base symbol
 (`&D_80070E90`) reloads with a fresh `lui` and breaks the match.
+
+## Store stack-derived field before unrelated prim color word
+
+When a TILE (or similar) sets both `p->h = argN - 1` (5th+ stack arg) and
+`*(u32*)&p->r0 = color` (6th stack arg), writing color first often schedules
+`sw color` *before* `lw argN, 0x10(sp)`. The target typically wants:
+
+```
+lw    v0, 0x10(sp)     /* argN */
+lui   a1, 0xff00       /* addPrim mask fills load delay */
+sw    t3, 4(a0)        /* color */
+addiu v0, v0, -1
+sh    v0, 0xe(a0)      /* h */
+```
+
+Write `h` *before* color in the C source — GCC still emits color before the
+`sh` of `h`, but the stack load of argN moves earlier into the load-delay
+slot of the mask:
+
+```c
+p->w = arg3 - 1;
+p->h = arg4 - 1;           /* forces lw of stack arg early */
+*(u32*)&p->r0 = color;     /* scheduled after that lw */
+setlen(p, 3);
+```
+
+`func_800491AC` also needs `register u32 color asm("t3")` so the 6th arg
+lands in `$t3` (without the pin, `$t2`/`$t3` for arg1/arg5 swap). Pair with
+Psy-Q `addPrim` / `setlen` / `setcode` (see above) and
+`addPrim(D_800710A0 + (s16)obj->field_14 + 1, p)` when the target uses `lh`
+on a `u16` OT index and OT slot `field_14 + 1`.

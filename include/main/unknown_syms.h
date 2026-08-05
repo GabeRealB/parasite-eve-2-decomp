@@ -171,6 +171,7 @@ extern void  func_80047C40(GStruct30* arg0, s32 arg1, s32 arg2, char* arg3, s32 
 extern void  func_80048E38(GStruct30* arg0, char* arg1);
 extern void  func_80048F88(GStruct30* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
 extern void  func_8004917C(UiList* arg0, s32 arg1);
+extern void  func_800491AC(GStruct30* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5);
 extern void  func_80049288(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5);
 extern void  func_800492B8(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5);
 extern void  func_800457F8(GStruct30* arg0);

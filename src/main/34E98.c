@@ -283,7 +283,28 @@ void func_8004917C(UiList* arg0, s32 arg1)
     arg0->field_A |= 2;
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_800491AC);
+void func_800491AC(GStruct30* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5)
+{
+    TILE*        p;
+    s32          y;
+    register u32 color asm("t3");
+
+    color = arg5;
+
+    if ((color != 0) && (arg3 >= 2)) {
+        p             = (TILE*)D_80071190;
+        D_80071190    = (DR_TPAGE*)(p + 1);
+        p->x0         = arg0->field_20 + arg1 + 1;
+        y             = arg0->field_22;
+        p->w          = arg3 - 1;
+        p->h          = arg4 - 1;
+        *(u32*)&p->r0 = color;
+        setlen(p, 3);
+        p->y0 = y + arg2 + 1;
+        setcode(p, 0x60);
+        addPrim(D_800710A0 + (s16)arg0->field_14 + 1, p);
+    }
+}
 
 void func_80049288(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5)
 {
