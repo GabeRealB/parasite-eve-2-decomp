@@ -20,7 +20,9 @@ STATIC_ASSERT_SIZEOF(McPromptPair, 0x8);
 /// Second argument to memcard/save state handlers in mc.c (e.g. func_80035AD4,
 /// Mc_ResetWork, func_80035FD8). Larger object; only fields used so far are named.
 /// field_10/field_14 are MemCardSync cmds/rslt outs.
-/// field_18 is a source buffer pointer for Mc_WriteDataChecksum when mode != 0.
+/// field_18 is a source buffer pointer for Mc_WriteDataChecksum when mode != 0
+/// and the adrs for MemCardWriteData. field_1C is the sector/offset (shifted
+/// left by 7 for MemCardWriteData ofs); field_20 is the byte count.
 /// field_30 is a 15-slot memcard directory buffer (DIRENTRY-sized, 0x28 each)
 /// filled by MemCardGetDirentry; field_288 is the entry count used to bound
 /// field_A14 walks (Mc_StateOpenNext / func_800367CC). field_A14 indexes the
@@ -35,7 +37,8 @@ typedef struct _McWork {
     /* 0x010 */ s32  field_10;
     /* 0x014 */ s32  field_14;
     /* 0x018 */ s32  field_18;
-    /* 0x01C */ byte unknown_1C[0x8];
+    /* 0x01C */ s32  field_1C;
+    /* 0x020 */ s32  field_20;
     /* 0x024 */ s32  field_24;
     /* 0x028 */ s32  field_28;
     /* 0x02C */ s32  field_2C;
