@@ -147,6 +147,16 @@ jr    ra
 `func_8004CC58` does the same. Marking it `volatile` keeps stores out of
 `jal` delay slots (target has `nop` after `D_800680C0 = 0`).
 
+`D_8006EC30` / `D_80070E38` are the same shape for the draw path: main-line
+`func_8003DFB0` writes them (copies of `Display_State.field_100` /
+`field_103`) and the VSync callback `func_80027498` → `func_8002731C` reads
+them. Without `volatile`:
+
+- successive `if (D_8006EC30 == …)` arms CSE the load (target reloads via a
+  `%hi` kept in `$v1` from the earlier branch delay slot);
+- `(s8)D_80070E38 < 0x10` collapses to a single `lb` instead of
+  `lbu` + `sll 24` + `sra 24`.
+
 ## Hold a global's address in a local pointer
 
 When a function touches the same global struct across several calls, the target

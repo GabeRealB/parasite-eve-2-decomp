@@ -57,7 +57,37 @@ void func_800271D4(void)
     Mem_Set(D_800626A8, 0, 0x1C);
 }
 
-INCLUDE_ASM("main/nonmatchings/gamemain", func_8002731C);
+void func_80027F48(s32 arg0);
+void func_80020058(void);
+
+void func_8002731C(s32 arg0)
+{
+    s32 mode;
+    u8  saved;
+
+    mode = D_80070E38 & 0xF;
+    if (mode != 2) {
+        PutDrawEnv(&Display_State.field_48[arg0]);
+        PutDispEnv(&Display_State.field_20[arg0]);
+        if (mode == 0) {
+            if (D_8006EC30 != 0) {
+                func_80027F48(arg0);
+                saved                  = Display_State.field_1f;
+                Display_State.field_1f = arg0;
+                func_80020058();
+                Display_State.field_1f = saved;
+            }
+            DrawOTag(D_80070EE8[Display_State.field_114].field_10);
+        } else if (D_8006EC30 == 2) {
+            func_80027F48(arg0);
+        } else if (D_8006EC30 == 3) {
+            func_800149E8(D4F564_8005ED64->field_7, D4F564_8005ED64->field_6, arg0);
+        }
+        if ((s8)D_80070E38 < 0x10) {
+            DrawOTag(D_8007A0E8[arg0].tag);
+        }
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/gamemain", func_80027498);
 

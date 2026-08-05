@@ -515,9 +515,13 @@ extern s16          D_8006EBF2;
 extern volatile s32 D_8006EBF4;
 
 // 5F414
-extern u_long    D5F414_OrderingTables[2 * C5F414_OTAG_ENTRIES];
-extern u8*       D_80070EE0; // primitive buffer cursor
-extern GStruct35 D_80070EE8[2];
+// Snapshot of Display_State.field_100 / field_103 taken before a draw; read from
+// the VSync callback path (func_80027498 → func_8002731C), so volatile.
+extern volatile u8 D_8006EC30;
+extern u_long      D5F414_OrderingTables[2 * C5F414_OTAG_ENTRIES];
+extern volatile u8 D_80070E38;
+extern u8*         D_80070EE0; // primitive buffer cursor
+extern GStruct35   D_80070EE8[2];
 // Display_State → main/display.h
 extern u_long*   D_800710A0; // current OT base
 extern GStruct5  D_800710A8;
