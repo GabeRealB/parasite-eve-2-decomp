@@ -257,7 +257,53 @@ void func_80053FA0(s32 arg0)
     func_800517B4(var_a0);
 }
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80053FF4);
+s32 func_80053FF4(u32 arg0)
+{
+    s32        i;
+    s8         slot;
+    GStruct31* obj;
+    GStruct42* bank;
+    GStruct75* entry;
+    s8*        map;
+    GStruct42* banks;
+    s32        id;
+
+    *(volatile s32*)&D_80068A78 = 0xFF;
+    func_8004E5A0(1, 0x12, 6);
+    i = 0;
+    func_80055CE0();
+    func_80054608(1);
+    func_8005454C(1, 0x80000000);
+
+    map   = D_800680AC;
+    banks = D_8007E0D8;
+    entry = D_80068A60;
+loop:
+    slot          = *(s8*)(entry->field_0 + (s32)map);
+    obj           = func_800561C0(slot);
+    id            = entry->field_2;
+    bank          = (GStruct42*)(((s32)slot << 5) + (s32)banks);
+    obj->field_4  = bank;
+    obj->field_8  = id;
+    bank->field_8 = entry->field_2;
+    i++;
+    ((GStruct42*)obj->field_4)->field_1C = F3D458_Malloc(entry->field_4);
+    ((GStruct42*)obj->field_4)->field_0 =
+        ((GStruct42*)obj->field_4)->field_1C;
+    ((GStruct42*)obj->field_4)->field_4 =
+        ((GStruct42*)obj->field_4)->field_1C;
+    ((GStruct42*)obj->field_4)->field_10 =
+        ((GStruct42*)obj->field_4)->field_1C;
+    obj->field_0 = F3D458_Malloc(entry->field_6);
+    obj->field_C = (void*)entry->field_8;
+    entry++;
+    if (i < 2) {
+        goto loop;
+    }
+
+    *(volatile s32*)&D_80068A78 = 0;
+    return -1;
+}
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_8005414C);
 

@@ -6052,3 +6052,40 @@ order is `== 0x1B`, then `< 0x1C`, then `!= 0x11`. Keep the switch key in an
 
 `func_80021C0C` is the pure example (FS load-table select by
 `D5B498_8006ACB8.field_2` × `func_8004ACAC(0x7A)`).
+
+## Independent `entry++` + mid-loop `i++`: prefer `goto` over re-index / `do`
+
+When a loop both (a) bumps a counter mid-body (often into a `jal` delay) and
+(b) advances a struct pointer only at the bottom (branch delay of `i < N`),
+with fields of `entry` still read *after* `i++`:
+
+```c
+/* BAD ~92%: re-index snapshots entry into $s0 and early-increments $s2 */
+do {
+    entry = &table[i];
+    /* ... uses of entry ... */
+    i++;
+    /* more uses of entry */
+} while (i < 2);
+
+/* BAD ~88%: do/while entry++ often strength-reduces a second IV at +8 */
+do {
+    /* ... */
+    entry++;
+} while (i < 2);
+
+/* GOOD 100%: independent IVs; entry++ lands in the bnez delay */
+entry = table;
+i = 0;
+loop:
+    /* ... uses of entry; i++ mid-body fills first jal delay ... */
+    entry++;
+    if (i < 2) {
+        goto loop;
+    }
+```
+
+Pair with `idx + (s32)base` / `(slot << 5) + (s32)banks` for offset-first
+`addu`, and `*(volatile s32*)&flag = …` before a call so the last arg (`li a2`)
+fills the `jal` delay instead of the store (see “volatile blocks delay-slot
+filling”). `func_80053FF4` is the pure example.

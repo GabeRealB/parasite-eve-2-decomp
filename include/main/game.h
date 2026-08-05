@@ -1029,6 +1029,19 @@ typedef struct _GStruct66 {
 } GStruct66;
 STATIC_ASSERT_SIZEOF(GStruct66, 0x18);
 
+/// 0xC-byte init-table entry at D_80068A60 (two entries used by func_80053FF4).
+/// field_0 indexes D_800680AC for a slot id; field_2 is written to GStruct31.field_8
+/// and GStruct42.field_8; field_4/field_6 are F3D458_Malloc sizes; field_8 is stored
+/// to GStruct31.field_C.
+typedef struct _GStruct75 {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+    /* 0x4 */ u16 field_4;
+    /* 0x6 */ u16 field_6;
+    /* 0x8 */ s32 field_8;
+} GStruct75;
+STATIC_ASSERT_SIZEOF(GStruct75, 0xC);
+
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
 
