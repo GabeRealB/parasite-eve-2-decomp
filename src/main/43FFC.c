@@ -305,7 +305,67 @@ loop:
     return -1;
 }
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_8005414C);
+s32 func_8005414C(s32 arg0, s32 arg1, s32 arg2)
+{
+    s32                 orig;
+    GStruct31*          bank;
+    register GStruct45* header asm("a0");
+    GStruct67*          entry;
+    u16                 offset;
+    u32                 index;
+    GStruct16*          temp;
+    GStruct16From4*     mid;
+
+    orig = arg0;
+    if ((arg0 != 0) && (arg0 != 8)) {
+        if (*(volatile s32*)&D_800689E4 != 0xFF) {
+            if ((*(volatile s32*)&D_800689E4 & 0xF000) ==
+                (((u32)arg0 >> 16) & 0xF000)) {
+                return -1;
+            }
+        }
+        arg0  = func_80053F00(arg0);
+        bank  = func_80056104((u32)arg0 >> 16, 0);
+        index = (u32)arg0 & 0xFF;
+        if ((bank == NULL) ||
+            (header = bank->field_0, (index >= header->field_6))) {
+            return -2;
+        }
+        offset =
+            ((GStruct45OffsetView*)((index * 2) + (s32)header))->field_8;
+        if (offset == 0) {
+            return -3;
+        }
+        entry = (GStruct67*)((s32)header + offset);
+        if (*(u16*)&D_800689EC != 0) {
+            if ((entry->field_E & 0x80) != 0) {
+                return -5;
+            }
+        }
+        if (D_80082138[(u32)arg0 >> 28] == 0) {
+            if ((entry->field_E & 1) == 0) {
+                return -4;
+            }
+        }
+        temp = func_800509F4();
+        if (temp != NULL) {
+            temp->field_2 = 6;
+            mid           = (GStruct16From4*)&temp->field_4;
+            mid->field_4  = arg0;
+            temp->field_4 = arg1;
+            mid->field_1  = arg2;
+            mid->field_8  = (s32)bank;
+            mid->field_C  = (s32)entry;
+            func_80050A38(temp);
+            goto ret_orig;
+        }
+        goto ret_neg1;
+    }
+ret_orig:
+    return orig;
+ret_neg1:
+    return -1;
+}
 
 void func_800542D0(s32 arg0, s32 arg1)
 {

@@ -300,7 +300,7 @@ extern s32  func_80053A20(s32 arg0, s32 arg1);
 // Unprototyped: func_8005462C calls with indeterminate a0 (nop in delay slot).
 extern s32        func_80053F00();
 extern void       func_80053FA0(s32 arg0);
-extern void       func_8005414C(s32 arg0, s32 arg1, s32 arg2);
+extern s32        func_8005414C(s32 arg0, s32 arg1, s32 arg2);
 extern void       func_800544B8(s32 arg0, s32 arg1);
 extern void       func_8005454C(s32 arg0, s32 arg1);
 extern void       func_80054608(s8 arg0);

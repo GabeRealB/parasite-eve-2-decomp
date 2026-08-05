@@ -503,13 +503,22 @@ typedef struct {
 /// Header for the bank table blob pointed to by GStruct31.field_0.
 /// field_4 is the bank ID (high halfword remapped by func_80053F00 when the
 /// request high nibble is 0x1); field_6 is the entry count used by func_8005414C.
-/// A u16 offset table follows at 0x8.
+/// A u16 offset table follows at 0x8 (indexed via GStruct45OffsetView).
 typedef struct _GStruct45 {
     /* 0x0 */ u8  unknown_0[4];
     /* 0x4 */ u16 field_4;
     /* 0x6 */ u16 field_6;
 } GStruct45;
 STATIC_ASSERT_SIZEOF(GStruct45, 0x8);
+
+/// Overlay for reading the u16 offset table that follows GStruct45 at +0x8.
+/// Formed as (GStruct45OffsetView*)((index * 2) + (s32)header) so lhu 8(base)
+/// picks offsets[index] (func_8005414C).
+typedef struct _GStruct45OffsetView {
+    /* 0x0 */ u8  pad[8];
+    /* 0x8 */ u16 field_8;
+} GStruct45OffsetView;
+STATIC_ASSERT_SIZEOF(GStruct45OffsetView, 0xA);
 
 /// 16-byte slot in D_80082148[16] (BSS size 0x100). Indexed by func_800561C0
 /// and related helpers in 43FFC.c / 410B0.c.

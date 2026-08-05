@@ -6517,3 +6517,46 @@ entry = &p->entries[(s8)p->field_3];
 ```
 
 `func_80057D3C` is the pure example (D_800828F0.entries queue push).
+
+## Dual `goto` return labels for `beqz` + `j`/`li` fallthrough layout
+
+When the target ends with:
+
+```
+beqz  v0, fail        # null → li -1
+ move a0, v0
+/* success body */
+j     epilogue
+ move v0, s3          # return saved orig
+fail:
+li    v0, -1
+epilogue:
+```
+
+and early exits also jump to the `j epilogue; move v0,s3` pair, a plain
+`if (p != NULL) { work; } else { return -1; } return orig;` often inverts to
+`bnez` (large success block becomes the branch target). Assigning
+`orig = -1` instead of `return -1` restores `beqz` but then emits
+`li s3,-1; move v0,s3` instead of `li v0,-1`.
+
+Fix: two trailing labels, with success and the early-exit fallthrough sharing
+the orig path, and the null path an explicit goto to the -1 path:
+
+```c
+temp = func_800509F4();
+if (temp != NULL) {
+    /* setup … */
+    goto ret_orig;
+}
+goto ret_neg1;
+ret_orig:
+return orig;
+ret_neg1:
+return -1;
+```
+
+GCC 2.8.1 lays this out as fallthrough setup → `j`/`move v0,s3` → `li v0,-1`
+→ epilogue, with `beqz` to the `li`. Early `return orig` from the outer
+`if (arg0 == 0)` path merges into `ret_orig`.
+
+`func_8005414C` is the pure example.
