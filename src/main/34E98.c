@@ -463,7 +463,53 @@ void func_80049AF0(GStruct60* arg0, UiObject* arg1)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80049C00);
+void func_80049C00(Task* arg0)
+{
+    UiObject*  obj;
+    GStruct73* ctx;
+    UiList*    menu;
+    char*      text;
+    u8         base;
+    s16        status;
+    Task*      parent;
+    Task*      child;
+
+    obj           = (UiObject*)arg0->field_20;
+    ctx           = (GStruct73*)arg0->field_34;
+    menu          = &D_80067654;
+    obj->field_2E = 0;
+    if (arg0->field_30 == 0) {
+        base          = ctx->field_0;
+        menu->field_5 = base;
+        menu->field_4 = base;
+        func_80046830(menu, (GStruct30*)obj);
+        menu->field_A   = 1;
+        arg0->field_30 += 1;
+    }
+    text = ctx->field_8;
+    if (text != NULL) {
+        func_80047F40((GStruct20*)obj, text);
+    }
+    func_80046EEC(menu, obj, 0);
+    if (obj->field_0 == 1) {
+        status = obj->field_2E;
+        if ((status == 6) || (status == -1)) {
+            ctx->field_2 = obj->field_2C;
+            parent       = obj->field_28;
+            child        = parent->field_c;
+            if (child != NULL) {
+                do {
+                    func_80048838((UiObject*)child->field_20, child);
+                    child = parent->field_c;
+                } while (child != NULL);
+            }
+            if (obj->field_8 != 3) {
+                Task_DetachFromParent(parent);
+                obj->field_8 = 3;
+            }
+        }
+    }
+}
 
 void func_80049D34(s32 arg0)
 {

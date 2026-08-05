@@ -353,13 +353,15 @@ typedef struct _GStruct24 {
 STATIC_ASSERT_SIZEOF(GStruct24, 0x28);
 
 /// UI list/menu object (data symbols D_8006116C, D_80061194, D_8006125C,
-/// D_80061284, D_800612AC; size 0x24).
-/// field_0 is a function-table pointer; field_5 is a base index subtracted when
+/// D_80061284, D_800612AC, D_80067654; size 0x24).
+/// field_0 is a function-table pointer; field_4 / field_5 are base indices
+/// (func_80049C00 seeds both from context); field_5 is also subtracted when
 /// computing field_9; field_9 / field_A / field_10 are list cursor / flag /
 /// selection index used by func_80036A70 / func_80036C04 / func_80037068 /
 /// func_800489A0 / func_8004917C.
 typedef struct _UiList {
-    /* 0x00 */ byte unknown_0[0x5];
+    /* 0x00 */ byte unknown_0[0x4];
+    /* 0x04 */ u8   field_4;
     /* 0x05 */ u8   field_5;
     /* 0x06 */ byte unknown_6[0x3];
     /* 0x09 */ u8   field_9;
@@ -935,6 +937,18 @@ typedef struct _GStruct70 {
     /* 0x08 */ byte       unknown_8[4];
     /* 0x0C */ u8         field_C;
 } GStruct70;
+
+/// Context at Task::field_34 for the func_80049C00 UI path.
+/// field_0 is a base index copied into UiList field_4/field_5; field_2 receives
+/// the selected index from UiObject::field_2C on confirm/cancel; field_8 is an
+/// optional string passed to func_80047F40.
+typedef struct _GStruct73 {
+    /* 0x00 */ u8    field_0;
+    /* 0x01 */ byte  pad_1;
+    /* 0x02 */ s16   field_2;
+    /* 0x04 */ byte  pad_4[4];
+    /* 0x08 */ char* field_8;
+} GStruct73;
 
 /// 0x18-byte voice-slot lookup result filled by func_80054D58 and consumed by
 /// func_800558E8 / func_80055EF8. field_0 is the chosen slot index (or error);

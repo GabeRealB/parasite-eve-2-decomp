@@ -485,6 +485,7 @@ extern u8           D_800630B0[];
 extern s32          D_8006763C[];
 extern s32          D_80067648;
 extern s32          D_8006764C;
+extern UiList       D_80067654;
 extern GStruct29*   D_80067694;
 extern u8           D_800680A4;
 extern s8           D_800680AC[];
