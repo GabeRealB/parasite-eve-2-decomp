@@ -1761,4 +1761,15 @@ void func_800368DC(Task* arg0, McWork* arg1)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/mc", func_80036968);
+void func_80036968(Task* arg0)
+{
+    McStateFuncTable26 sp;
+    McWork*            work;
+
+    sp   = D_80013ACC;
+    work = &D_80071730;
+    sp.funcs[arg0->field_30](arg0, work);
+    if (work->field_4 >= 0xB5) {
+        arg0->field_30 = 6;
+    }
+}

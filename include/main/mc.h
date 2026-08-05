@@ -125,6 +125,13 @@ typedef struct {
 } McStateFuncTable44;
 STATIC_ASSERT_SIZEOF(McStateFuncTable44, 0xB0);
 
+/// Fixed-size table of McStateFunc callbacks. Copied onto the stack by
+/// func_80036968 so the call uses a local jump table (26 entries, 0x68 bytes).
+typedef struct {
+    McStateFunc funcs[26];
+} McStateFuncTable26;
+STATIC_ASSERT_SIZEOF(McStateFuncTable26, 0x68);
+
 // =============================================================================
 // Functions — src/main/mc.c (matched helpers; state handlers also live here)
 // =============================================================================
@@ -152,6 +159,7 @@ void Mc_ResetWork(Task* task, McWork* work);
 void Mc_StateOpenSelected(Task* task, McWork* work);
 void Mc_StateOpenNext(Task* task, McWork* work);
 void Mc_StateCloseReturn(Task* task, McWork* work);
+void func_80036968(Task* task);
 
 // =============================================================================
 // Globals
@@ -170,6 +178,8 @@ extern McSaveData   Mc_SaveData;
 extern char D_8001398C[];
 /// Jump table of 44 McStateFunc handlers used by func_800359A4.
 extern McStateFuncTable44 D_800139AC;
+/// Jump table of 26 McStateFunc handlers used by func_80036968.
+extern McStateFuncTable26 D_80013ACC;
 /// Global McWork instance used by the memcard state dispatcher.
 extern McWork D_80071730;
 /// Stores the result of rand() after each dispatcher tick.
