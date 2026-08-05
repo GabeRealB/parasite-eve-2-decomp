@@ -3,6 +3,8 @@
 #include "main/mem.h"
 #include "main/unknown_syms.h"
 
+void func_800498D4(Task* arg0);
+
 void func_80044698(void)
 {
 }
@@ -125,7 +127,44 @@ INCLUDE_ASM("main/nonmatchings/34E98", func_80048390);
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80048560);
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_800486F0);
+UiObject* func_800486F0(UiObjectDesc* arg0, s32 arg1, s32 arg2, s32 arg3, UiObject* arg4)
+{
+    TaskDesc  desc;
+    Task*     task;
+    UiObject* obj;
+    s32       field_8;
+
+    obj           = NULL;
+    desc.flags    = arg0->field_10;
+    desc.field_2  = arg0->field_12;
+    field_8       = arg0->field_18;
+    desc.callback = func_800498D4;
+    desc.field_8  = field_8;
+    task          = Task_SpawnFromTable(&desc, (s32)obj, arg1, (s32)obj);
+    if (task != NULL) {
+        obj = (UiObject*)Mem_Calloc(0x30, (s32)obj);
+        if (obj != NULL) {
+            task->field_20 = obj;
+            task->field_18 = func_800488B8;
+            obj->field_28  = task;
+            obj->field_0   = arg2;
+            obj->field_4   = arg0->field_0;
+            obj->field_C   = arg0->field_4;
+            obj->field_E   = arg0->field_6;
+            obj->field_10  = arg0->field_8;
+            obj->field_12  = arg0->field_A;
+            obj->field_14  = arg0->field_C & 0xFFFC;
+            obj->field_24  = arg0->field_14;
+            obj->field_16  = arg3;
+            if (arg4 != NULL) {
+                func_8002D14C(arg4->field_28, task);
+            }
+        } else {
+            Task_Kill(task);
+        }
+    }
+    return obj;
+}
 
 void func_80048838(UiObject* arg0, Task* arg1)
 {

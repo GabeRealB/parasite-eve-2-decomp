@@ -303,30 +303,56 @@ typedef struct _GStruct20 {
 STATIC_ASSERT_SIZEOF(GStruct20, 0x24);
 
 /// Object at Task::field_20 used by func_80048838 / Mc_HideChildUi /
-/// Mc_DrawPrompt. field_0 is a status flag; field_8 is a mode (5 = skip draw in
-/// func_8002FDCC; set to 3 when torn down); field_14 is a halfword counter used
-/// as the text draw priority/order; field_1C is a position halfword (+2 when
-/// passed to func_8002FDCC); field_20/field_22 are base x/y for relative text
-/// placement; field_28 is a parent/context pointer (has field_c for the
-/// recursive walk in func_80048838). field_2C / field_2E are halfwords polled by
-/// teardown state handlers (e.g. func_8002BD24 waits until field_2E == -1 before
-/// cleaning up).
+/// Mc_DrawPrompt / func_800486F0. Shares the GStruct30 layout through offset
+/// 0x24 (handlers cast field_20 to GStruct30*). field_0 is a status flag;
+/// field_4 is copied from UiObjectDesc::field_0 at spawn; field_8 is a mode
+/// (5 = skip draw in func_8002FDCC; set to 3 when torn down); field_C..field_12
+/// are layout halfwords (RECT-like); field_14 is a halfword counter used as the
+/// text draw priority/order; field_16 is a signed timer/counter; field_1C is a
+/// position halfword (+2 when passed to func_8002FDCC); field_20/field_22 are
+/// base x/y for relative text placement; field_24 is a callback copied from the
+/// descriptor; field_28 is the owning Task*; field_2C / field_2E are halfwords
+/// polled by teardown state handlers (e.g. func_8002BD24 waits until
+/// field_2E == -1 before cleaning up).
 typedef struct _UiObject {
     /* 0x00 */ s32   field_0;
-    /* 0x04 */ byte  unknown_4[0x4];
+    /* 0x04 */ s32   field_4;
     /* 0x08 */ s32   field_8;
-    /* 0x0C */ byte  unknown_C[0x8];
+    /* 0x0C */ u16   field_C;
+    /* 0x0E */ u16   field_E;
+    /* 0x10 */ u16   field_10;
+    /* 0x12 */ u16   field_12;
     /* 0x14 */ u16   field_14;
-    /* 0x16 */ byte  unknown_16[0x6];
+    /* 0x16 */ s16   field_16;
+    /* 0x18 */ byte  unknown_18[0x4];
     /* 0x1C */ s16   field_1C;
     /* 0x1E */ s16   unknown_1E;
     /* 0x20 */ u16   field_20;
     /* 0x22 */ u16   field_22;
-    /* 0x24 */ byte  unknown_24[0x4];
+    /* 0x24 */ s32   field_24;
     /* 0x28 */ Task* field_28;
     /* 0x2C */ s16   field_2C;
     /* 0x2E */ s16   field_2E;
 } UiObject;
+STATIC_ASSERT_SIZEOF(UiObject, 0x30);
+
+/// Template/descriptor consumed by func_800486F0 to spawn a UiObject + Task.
+/// field_10/field_12/field_18 seed a stack TaskDesc; field_0 and field_4..field_C
+/// / field_14 are copied onto the allocated UiObject.
+typedef struct _UiObjectDesc {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ u16 field_4;
+    /* 0x06 */ u16 field_6;
+    /* 0x08 */ u16 field_8;
+    /* 0x0A */ u16 field_A;
+    /* 0x0C */ u16 field_C;
+    /* 0x0E */ u16 field_E;
+    /* 0x10 */ u16 field_10;
+    /* 0x12 */ u16 field_12;
+    /* 0x14 */ s32 field_14;
+    /* 0x18 */ s32 field_18;
+} UiObjectDesc;
+STATIC_ASSERT_SIZEOF(UiObjectDesc, 0x1C);
 
 /// 8-byte slot at GStruct22::field_484 (16 entries, indexed by opcode low nibble).
 /// Seeded as the word 0x407F4000 by func_800528BC (field_0..field_3 little-endian);

@@ -81,9 +81,9 @@ STATIC_ASSERT_SIZEOF(Task, 0x48);
 /// Descriptor used to spawn a task. Indexed via `Task_DescBanks[bank][type]`.
 typedef struct _TaskDesc {
     u16      flags;
-    byte     unknown_2[0x2];
+    u16      field_2;
     TaskFunc callback; // per-frame / state-machine entry
-    byte     unknown_8[0x4];
+    s32      field_8;
 } TaskDesc;
 STATIC_ASSERT_SIZEOF(TaskDesc, 0xc);
 

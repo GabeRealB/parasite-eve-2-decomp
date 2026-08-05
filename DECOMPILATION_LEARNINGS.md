@@ -6597,3 +6597,56 @@ j   common
 ```
 
 `func_800322B0` is the pure example — ~98% with `next`, 100% with per-case stores.
+
+## Capture TaskDesc tail field before assigning the callback
+
+When building a stack `TaskDesc` whose first two halfwords come from a source
+struct and whose `callback` is a function address, assign the trailing word
+(`field_8`) into a local **before** writing `callback`:
+
+```c
+TaskDesc desc;
+s32      field_8;
+
+desc.flags   = src->field_10;
+desc.field_2 = src->field_12;
+field_8      = src->field_18;       /* load first */
+desc.callback = SomeFunc;
+desc.field_8  = field_8;
+task = Task_SpawnFromTable(&desc, ...);
+```
+
+Without the temp, GCC 2.8.1 hoists `lui %hi(SomeFunc)` ahead of the second
+halfword load/store, uses `$v1` for that halfword, and puts the `field_8` load
+in `$v0` after the callback `sw`. The target wants both halfword copies to
+finish (reusing `$v0`), then `lui`/`lw $v1,field_8`/`addiu`/`sw callback` with
+`sw field_8` in the `jal` delay slot.
+
+`volatile TaskDesc` restores halfword order but blocks the delay-slot store.
+The local-temp form matches both.
+
+`func_800486F0` is the pure example.
+
+## Reuse `obj = NULL` as the zero argument source
+
+When the target seeds `$s0` with `move s0,zero` and reuses it for several
+call args (`move a1,s0` / `move a3,s0`) before overwriting `$s0` with an
+allocation result, hold the eventual return pointer at NULL and cast it:
+
+```c
+UiObject* obj;
+
+obj = NULL;
+task = Task_SpawnFromTable(&desc, (s32)obj, arg1, (s32)obj);
+if (task != NULL) {
+    obj = (UiObject*)Mem_Calloc(0x30, (s32)obj);
+    ...
+}
+return obj;
+```
+
+Literal `0` often becomes `move aN,zero` instead of `move aN,s0`, which also
+shifts later register assignment. Early `return` paths that need `v0 = 0`
+then reuse `move v0,s0` for free.
+
+`func_800486F0` is the pure example.
