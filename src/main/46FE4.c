@@ -455,7 +455,52 @@ void func_80057D24(void)
     D_800827A0.field_1 = 1;
 }
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_80057D3C);
+s32 func_80057D3C(GStruct32Entry* arg0)
+{
+    u8                       saved;
+    s32                      field2;
+    s32                      next;
+    u32                      flags;
+    s32                      temp;
+    volatile GStruct32Entry* entry;
+    volatile GStruct32*      p;
+
+    p                  = &D_800828F0;
+    saved              = D_800828F0.field_0;
+    D_800828F0.field_0 = 1;
+
+    field2 = (s8)p->field_2;
+    next   = (s8)p->field_3;
+    next   = next + 1;
+    if (next >= 4) {
+        next = 0;
+    }
+
+    if (next == field2) {
+        D_800828F0.field_0 = saved;
+        return 0;
+    }
+
+    entry              = &D_800828F0.entries[(s8)p->field_3];
+    entry->field_8     = arg0->field_8;
+    entry->field_4     = arg0->field_4;
+    temp               = arg0->field_C;
+    flags              = entry->field_0;
+    flags              = flags | 1;
+    entry->field_C     = temp;
+    temp               = ~4;
+    flags              = flags & temp;
+    flags              = flags & ~8;
+    flags              = flags & ~0x1FE0;
+    temp               = arg0->field_10;
+    flags              = flags | 2;
+    entry->field_0     = flags;
+    entry->field_10    = temp;
+    field2             = (s8)p->field_3;
+    p->field_3         = next;
+    D_800828F0.field_0 = saved;
+    return field2 + 1;
+}
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_80057E1C);
 

@@ -272,8 +272,11 @@ STATIC_ASSERT_SIZEOF(GStruct74, 0x80);
 
 /// One slot in D_800828F0.entries (stride 0x14). field_0 holds status flags.
 typedef struct _GStruct32Entry {
-    /* 0x00 */ u32  field_0;
-    /* 0x04 */ byte unknown_4[0x10];
+    /* 0x00 */ u32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s32 field_10;
 } GStruct32Entry;
 STATIC_ASSERT_SIZEOF(GStruct32Entry, 0x14);
 

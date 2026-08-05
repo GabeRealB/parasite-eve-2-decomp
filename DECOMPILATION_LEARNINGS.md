@@ -6462,3 +6462,58 @@ cursor += 0x3C;
 
 `func_800510D4` is the pure example (GStruct36 status driver over D_8007F300).
 
+
+## Reuse a temp through field copy and `&= ~const` masks
+
+When the target interleaves a field store with a multi-step flag update:
+
+```
+lw  flags, 0(entry)
+lw  temp,  field_C(arg)
+ori flags, 1
+sw  temp,  field_C(entry)   /* store between ori and first and */
+li  temp, -5
+and flags, temp
+li  temp, -9
+and ...
+lw  temp,  field_10(arg)
+ori flags, 2
+sw  flags, 0(entry)
+sw  temp,  field_10(entry)
+```
+
+writing `flags &= ~4` (or a single combined mask) lets CSE schedule the
+`li -5` early and delay the field_C store until after all the ands. Force the
+interleaving by routing the first mask through the same temp used for the
+field_C value:
+
+```c
+temp = arg0->field_C;
+flags = entry->field_0;
+flags = flags | 1;
+entry->field_C = temp;
+temp = ~4;                 /* reuses temp; emits li + and, not a combined mask */
+flags = flags & temp;
+flags = flags & ~8;
+flags = flags & ~0x1FE0;
+temp = arg0->field_10;
+flags = flags | 2;
+entry->field_0 = flags;
+entry->field_10 = temp;
+```
+
+`temp = ~4` (or `temp = -5`) is required for the first mask only — later
+`& ~8` / `& ~0x1FE0` can be written directly once temp is free for field_10.
+
+Also index the ring buffer via the global name, not a local pointer, when the
+target builds `idx*stride` first then `addiu base, p, offsetof(entries)`:
+
+```c
+/* Right: multiply first, then base = p+8 */
+entry = &D_800828F0.entries[(s8)p->field_3];
+
+/* Wrong fold: (idx*20 + 8) + p */
+entry = &p->entries[(s8)p->field_3];
+```
+
+`func_80057D3C` is the pure example (D_800828F0.entries queue push).
