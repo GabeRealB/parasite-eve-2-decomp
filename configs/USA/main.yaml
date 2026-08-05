@@ -89,7 +89,7 @@ segments:
       - [0x3d20, .rodata, mem] # TODO
       - [0x3d44, .rodata, "1E6C4"] # jtbl from func_8002DECC
       - [0x3e1c, rodata, "1E6C4_1"] # remaining jtbls/strings for unmatched 1E6C4 funcs
-      - [0x40d8, rodata, "201E0"] # TODO
+      - [0x40d8, .rodata, "201E0"] # jtbl from func_8002F9E0
 
       - [0x418c, rodata, "20CAC"] # TODO
       # Jump tables still used by unmatched assembly functions in mc.c.

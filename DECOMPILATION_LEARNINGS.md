@@ -7762,3 +7762,46 @@ DecDCTout(*p, size);
 Without `asm("s1")` on `base`, the empty asm alone matched the body but
 swapped `$s0`/`$s1` between `D_8005EAEE` (`%hi` only) and `D_8006AC48`
 (full address). `func_8001F6B8` is the pure example.
+
+## Snapshot compare operand so a post-load `arg++` fills the `bne` delay
+
+When the target does:
+
+```
+lbu   v0, 1(p)
+nop
+bne   v0, K, merge
+ addiu a1, a1, 1   /* delay: always */
+addiu a1, a1, 1    /* taken only */
+/* taken-only work */
+merge:
+```
+
+writing the always-increment *after* the `if` often lets GCC speculate the
+taken path's address math into the delay slot instead (`addiu v0, p, N` /
+`sw`), leaving both `addiu a1` after the branch (~99%):
+
+```c
+/* BAD — addiu v0,p,2 lands in bne delay */
+if (p[1] == K) {
+    arg1 += 1;
+    *arg0 = p + 2;
+}
+arg1 += 1;
+```
+
+Snapshot the loaded byte, then increment *before* the `if`. The compare uses
+the temp so the first `arg1++` is independent of the branch and becomes the
+delay-slot fill; the second stays on the taken path:
+
+```c
+/* GOOD */
+next = p[1];
+arg1 += 1;
+if (next == K) {
+    arg1 += 1;
+    *arg0 = p + 2;
+}
+```
+
+`func_8002F9E0` needs this for the `\r` / `\r\n` line-break arm.

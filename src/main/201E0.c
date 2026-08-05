@@ -6,7 +6,80 @@
 #include "main/mem.h"
 #include "main/unknown_syms.h"
 
-INCLUDE_ASM("main/nonmatchings/201E0", func_8002F9E0);
+s32 func_8002F9E0(u8** arg0, u8* arg1)
+{
+    s32 ret;
+    u8* src;
+    u8* p;
+    u8  c;
+    u8  next;
+
+    ret = 0;
+    do {
+        src = *arg0;
+        c   = *src;
+        if (c == 0x5C) {
+            *arg0 = src + 1;
+            switch (src[1]) {
+                case 'Z':
+                case 'z':
+                    *arg1++ = 0;
+                    ret     = -1;
+                    (*arg0)++;
+                    break;
+                case 'N':
+                case 'n':
+                    *arg1++ = 0;
+                    ret     = 1;
+                    *arg0  += ret;
+                    break;
+                case 0x5C:
+                    *arg1 = **arg0;
+                    arg1 += 1;
+                    (*arg0)++;
+                    break;
+                default:
+                    *arg1++ = 0x5C;
+                    *arg1   = **arg0;
+                    arg1   += 1;
+                    (*arg0)++;
+                    break;
+            }
+        } else if (c == 0) {
+            *arg1++ = 0;
+            ret     = -1;
+            (*arg0)++;
+        } else if (c == 0xA) {
+            *arg1++ = 0;
+            ret     = 1;
+            *arg0  += ret;
+        } else if (c == 0xD) {
+            *arg1 = 0;
+            p     = *arg0;
+            *arg0 = p + 1;
+            next  = p[1];
+            arg1 += 1;
+            if (next == 0xA) {
+                arg1 += 1;
+                *arg0 = p + 2;
+            }
+            ret = 1;
+        } else if (((u8)(c + 0x7F) < 0x1FU) || ((u8)(c + 0x20) < 0x1DU)) {
+            *arg1 = c;
+            p     = *arg0;
+            *arg0 = p + 1;
+            arg1 += 1;
+            *arg1 = p[1];
+            arg1 += 1;
+            (*arg0)++;
+        } else {
+            *arg1 = c;
+            arg1 += 1;
+            (*arg0)++;
+        }
+    } while (ret == 0);
+    return ret;
+}
 
 s32 func_8002FB84(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
 {
