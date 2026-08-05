@@ -781,7 +781,35 @@ s32 func_80055DAC(s32 arg0)
     return -1;
 }
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80055DFC);
+void func_80055DFC(s8 arg0)
+{
+    GStruct54* p;
+    s32        i;
+    GStruct43* node;
+    GStruct43* temp;
+    s8         vol;
+
+    for (i = 0; i < 8; i++) {
+        p = &D_80082248[i];
+        if ((p->field_F != 1) || (D_80082749 == 0)) {
+            temp = p->field_40;
+            if (temp != NULL) {
+                node = temp;
+                do {
+                    node->field_2 = (arg0 * p->field_4C->field_5 * node->field_A) / 16129;
+                    node          = node->field_3C;
+                } while (node != NULL);
+                p->field_E = 0;
+            }
+            p->field_E = 1;
+        }
+    }
+    vol = arg0;
+    if (vol < 0) {
+        vol = 0;
+    }
+    D_80082748 = vol;
+}
 
 s8 func_80055EE8(void)
 {

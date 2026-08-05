@@ -601,7 +601,8 @@ struct _GStruct43 {
     /* 0x03 */ u8         field_3;
     /* 0x04 */ s32        field_4;
     /* 0x08 */ s16        field_8;
-    /* 0x0A */ u8         unknown_0A[0x6];
+    /* 0x0A */ u8         field_A;
+    /* 0x0B */ u8         unknown_0B[0x5];
     /* 0x10 */ s8         field_10;
     /* 0x11 */ s8         field_11;
     /* 0x12 */ s8         field_12;
@@ -921,10 +922,15 @@ typedef struct _GStruct52 {
 STATIC_ASSERT_SIZEOF(GStruct52, 0x4);
 
 /// Descriptor pointed to by GStruct16From4::field_C and passed to func_800558E8.
-/// field_7 is a candidate-count threshold; field_8 is a preference key for
-/// func_80055EF8; field_C/field_E are halfword IDs matched by func_80054D58.
+/// field_5 is a volume scale (0-127) used by func_80055DFC / func_80055078;
+/// field_6 is a pitch bias; field_7 is a candidate-count threshold; field_8 is a
+/// preference key for func_80055EF8; field_C/field_E are halfword IDs matched by
+/// func_80054D58. Also the type of GStruct54::field_4C voice-param blocks
+/// (field_E bit1 gates the D_80082749 volume override).
 typedef struct _GStruct67 {
-    /* 0x00 */ u8  pad_0[7];
+    /* 0x00 */ u8  pad_0[5];
+    /* 0x05 */ u8  field_5;
+    /* 0x06 */ u8  field_6;
     /* 0x07 */ u8  field_7;
     /* 0x08 */ s16 field_8;
     /* 0x0A */ u8  pad_A[2];
@@ -939,6 +945,7 @@ STATIC_ASSERT_SIZEOF(GStruct67, 0x10);
 /// (current/target/step) updated by func_80055A9C and func_80055B70 respectively.
 /// field_40 is the head of a GStruct43 voice list (cleared/walked by func_80055F70);
 /// field_44/field_48 hold init params; field_F is bit1 of GStruct67::field_E.
+/// field_4C is a voice-param block (volume scale at field_5) walked with field_40.
 /// field_50 is a volume interpolator driven by func_800559BC via func_8004D200.
 typedef struct _GStruct54 {
     /* 0x00 */ s32        field_0;
@@ -947,7 +954,7 @@ typedef struct _GStruct54 {
     /* 0x0C */ s8         field_C;
     /* 0x0D */ s8         field_D;
     /* 0x0E */ s8         field_E;
-    /* 0x0F */ u8         field_F;
+    /* 0x0F */ s8         field_F;
     /* 0x10 */ u8         field_10;
     /* 0x11 */ u8         field_11;
     /* 0x12 */ s8         field_12;
@@ -960,7 +967,7 @@ typedef struct _GStruct54 {
     /* 0x40 */ GStruct43* field_40;
     /* 0x44 */ s32        field_44;
     /* 0x48 */ GStruct67* field_48;
-    /* 0x4C */ u8         pad_4C[0x4];
+    /* 0x4C */ GStruct67* field_4C;
     /* 0x50 */ GStruct55  field_50;
 } GStruct54;
 STATIC_ASSERT_SIZEOF(GStruct54, 0x60);

@@ -6694,3 +6694,22 @@ Pair with `register u_long **base asm("v1")` when a later double-buffer base
 `lui v0; addiu v1,v0`.
 
 `func_8001F854` is the pure example.
+
+## Dual 7-bit volume product divides by 16129 (127×127)
+
+SPU voice volume scaling multiplies a master level (`s8`, often 0..0x7F) by two
+`u8` scales (bank/voice params) and divides by `127 * 127` (= `16129` =
+`0x3F01`). GCC 2.8.1 emits the signed magic multiply `0x82061029` with
+`mfhi` / `addu` / `sra 13` / sign correction — write the natural division:
+
+```c
+node->field_2 = (master * params->field_5 * node->field_A) / 16129;
+```
+
+Do not hand-write the magic constant. `func_80055DFC` (and the same sequence in
+`func_80055078`) is the reference. Related layout notes:
+
+- `GStruct54::field_4C` is a `GStruct67*` voice-param block (`field_5` scale).
+- `GStruct43::field_A` is the per-voice `u8` scale; `field_2` stores the result.
+- Null-check `field_40` via a temp then assign the walk pointer so the target
+  keeps `lw v0,0x40; beqz v0; move a1,v0` (see earlier "temp then cur" entry).
