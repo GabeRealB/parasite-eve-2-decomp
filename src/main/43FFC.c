@@ -684,7 +684,38 @@ s8 func_80055EE8(void)
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80055EF8);
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80055F70);
+void func_80055F70(s32 arg0, s8 arg1, s8 arg2, s32 arg3, s32 arg4, GStruct67* arg5)
+{
+    GStruct54* p;
+    GStruct43* node;
+    GStruct67* desc;
+    u16        flags;
+
+    desc = arg5;
+    p    = &D_80082248[arg0];
+    node = p->field_40;
+    if (node != NULL) {
+        do {
+            func_8004E71C(node->field_0);
+            node->field_8 = 0;
+            func_8004E580(node->field_0);
+            F3E48C_8004E660(node->field_0);
+            node->field_0 = 0;
+            node          = node->field_3C;
+        } while (node != NULL);
+    }
+    p->field_16 = 1;
+    p->field_40 = NULL;
+    p->field_44 = arg4;
+    p->field_0  = arg3;
+    p->field_4  = 0;
+    p->field_10 = arg1;
+    p->field_13 = arg2;
+    p->field_17 = 0;
+    flags       = desc->field_E;
+    p->field_48 = arg5;
+    p->field_F  = (flags >> 1) & 1;
+}
 
 void func_80056068(GStruct43* arg0)
 {

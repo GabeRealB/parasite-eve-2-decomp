@@ -5550,3 +5550,40 @@ the first `lbu`). Same idea as `D_8006EC30` / `D_80070E38`.
 `D_80070F64` (countdown next to `Display_State`) is also VSync-shared: without
 `volatile`, `D_80070F64 -= 1` fills the following `bnez` delay slot; the target
 has `sw` then `nop`.
+
+## Early source assignment of a stack arg schedules late store
+
+When the target loads a stack parameter early (`lw v0, 0x40(sp)` right after an
+unrelated store frees `$v0`) but stores it later after several independent field
+writes, writing the assignment in late source order keeps the load late too
+(with a load-delay `nop`):
+
+```
+/* Late load — mismatches */
+p->field_0 = arg3;
+p->field_4 = 0;
+p->field_10 = arg1;
+p->field_13 = arg2;
+p->field_17 = 0;
+p->field_44 = arg4;   /* lw then nop then sw */
+```
+
+Assign the stack-arg field *first* among that block. GCC 2.8.1 still emits the
+`sw` last (after the independent stores fill the load delay) but hoists the
+`lw` to right after the preceding free of `$v0`:
+
+```c
+p->field_16 = 1;
+p->field_40 = NULL;
+p->field_44 = arg4;   /* load early; store after the next few sw/sb */
+p->field_0 = arg3;
+p->field_4 = 0;
+p->field_10 = arg1;
+p->field_13 = arg2;
+p->field_17 = 0;
+```
+
+`func_80055F70` is the pure example. Pair with a second live copy of a later
+pointer arg (`desc = arg5; … p->field_48 = arg5; flags = desc->field_E`) when
+the target holds the same pointer in two callee-saved regs for interleaved
+`lhu` / `sw`.

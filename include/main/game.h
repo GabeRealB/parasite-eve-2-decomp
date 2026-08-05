@@ -839,25 +839,46 @@ typedef struct _GStruct52 {
 } GStruct52;
 STATIC_ASSERT_SIZEOF(GStruct52, 0x4);
 
+/// Descriptor pointed to by GStruct16From4::field_C and passed to func_800558E8.
+/// field_7 is a candidate-count threshold; field_8 is a preference key for
+/// func_80055EF8; field_C/field_E are halfword IDs matched by func_80054D58.
+typedef struct _GStruct67 {
+    /* 0x00 */ u8  pad_0[7];
+    /* 0x07 */ u8  field_7;
+    /* 0x08 */ s16 field_8;
+    /* 0x0A */ u8  pad_A[2];
+    /* 0x0C */ u16 field_C;
+    /* 0x0E */ u16 field_E;
+} GStruct67;
+STATIC_ASSERT_SIZEOF(GStruct67, 0x10);
+
 /// 0x60-byte slot in D_80082248[8]. field_0 is an ID looked up by
 /// func_80055DAC; field_16 holds status flags (mask 0xA3 selects active entries).
 /// field_E is a dirty flag; field_10/11/12 and field_13/14/15 are paired ramps
 /// (current/target/step) updated by func_80055A9C and func_80055B70 respectively.
+/// field_40 is the head of a GStruct43 voice list (cleared/walked by func_80055F70);
+/// field_44/field_48 hold init params; field_F is bit1 of GStruct67::field_E.
 /// field_50 is a volume interpolator driven by func_800559BC via func_8004D200.
 typedef struct _GStruct54 {
-    /* 0x00 */ s32       field_0;
-    /* 0x04 */ u8        pad_4[0xA];
-    /* 0x0E */ s8        field_E;
-    /* 0x0F */ u8        pad_F;
-    /* 0x10 */ u8        field_10;
-    /* 0x11 */ u8        field_11;
-    /* 0x12 */ s8        field_12;
-    /* 0x13 */ u8        field_13;
-    /* 0x14 */ u8        field_14;
-    /* 0x15 */ s8        field_15;
-    /* 0x16 */ u8        field_16;
-    /* 0x17 */ u8        pad_17[0x39];
-    /* 0x50 */ GStruct55 field_50;
+    /* 0x00 */ s32        field_0;
+    /* 0x04 */ s32        field_4;
+    /* 0x08 */ u8         pad_8[0x6];
+    /* 0x0E */ s8         field_E;
+    /* 0x0F */ u8         field_F;
+    /* 0x10 */ u8         field_10;
+    /* 0x11 */ u8         field_11;
+    /* 0x12 */ s8         field_12;
+    /* 0x13 */ u8         field_13;
+    /* 0x14 */ u8         field_14;
+    /* 0x15 */ s8         field_15;
+    /* 0x16 */ u8         field_16;
+    /* 0x17 */ u8         field_17;
+    /* 0x18 */ u8         pad_18[0x28];
+    /* 0x40 */ GStruct43* field_40;
+    /* 0x44 */ s32        field_44;
+    /* 0x48 */ GStruct67* field_48;
+    /* 0x4C */ u8         pad_4C[0x4];
+    /* 0x50 */ GStruct55  field_50;
 } GStruct54;
 STATIC_ASSERT_SIZEOF(GStruct54, 0x60);
 
@@ -969,19 +990,6 @@ typedef struct _GStruct66 {
     /* 0x14 */ s32 field_14;
 } GStruct66;
 STATIC_ASSERT_SIZEOF(GStruct66, 0x18);
-
-/// Descriptor pointed to by GStruct16From4::field_C and passed to func_800558E8.
-/// field_7 is a candidate-count threshold; field_8 is a preference key for
-/// func_80055EF8; field_C/field_E are halfword IDs matched by func_80054D58.
-typedef struct _GStruct67 {
-    /* 0x00 */ u8  pad_0[7];
-    /* 0x07 */ u8  field_7;
-    /* 0x08 */ s16 field_8;
-    /* 0x0A */ u8  pad_A[2];
-    /* 0x0C */ u16 field_C;
-    /* 0x0E */ u16 field_E;
-} GStruct67;
-STATIC_ASSERT_SIZEOF(GStruct67, 0x10);
 
 /// Pointer to the start of the game heap.
 extern u8* GHeap;
