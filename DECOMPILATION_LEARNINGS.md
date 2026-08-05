@@ -7611,3 +7611,46 @@ do_work:
 
 Pairs with the early busy-path `if (flag != 0) return 1;` (which still puts
 `li v0, 1` in the `bnez` delay slot). `func_8001CDF0` is the pure example.
+
+## Keep signed-div dividend live for early `sra` before `mfhi`
+
+Signed division by a constant (e.g. `/ 8191` → magic `0x80040021`) expands to
+either:
+
+```
+# early sign (target for func_800529D8)
+sra  v0, a1, 31
+mfhi v1
+addu v1, v1, a1
+sra  v1, v1, 12
+subu v1, v1, v0
+```
+
+or
+
+```
+# late sign (reuses dividend reg after last use)
+mfhi v1
+addu v0, v1, a1
+sra  v0, v0, 12
+sra  a1, a1, 31
+subu v0, v0, a1
+```
+
+The late form appears when the dividend dies at the `addu` (sign can clobber
+it). Force the early form by keeping the product live past the division:
+
+```c
+prod  = scale * pitchBend;
+key   = (s8)*(volatile u8*)&slot->field_2 & 0xFFFF; /* may fill mult delay */
+pitch = prod / 8191;
+asm volatile("" :: "r"(prod)); /* dividend still live → separate sign reg */
+slot->field_8 = pitch;
+```
+
+Also pin the scale/`<< 8` temporary with `register s32 scale asm("a1")` when
+the target loads the scale with `lbu a1, …` and keeps the product in `$a1`
+through `mflo a1`. Pair with `register GStruct* note asm("a3")` when the
+target does `move a3, v0` in a `bltz` delay and later `lbu a2,4(a3); lbu a3,5(a3)`.
+
+`func_800529D8` is the pure example.

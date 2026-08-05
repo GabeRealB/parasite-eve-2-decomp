@@ -899,7 +899,51 @@ u8* func_800529BC(s32 arg0, u8* arg1, GStruct22* arg2)
     return arg1 + 2;
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_800529D8);
+u8* func_800529D8(s32 arg0, u8* arg1, GStruct36* arg2)
+{
+    GStruct48           sp10;
+    register s32        channel asm("s4");
+    s32                 i;
+    s32                 offset;
+    s16                 pitchBend;
+    GStruct36VoiceSlot* slot;
+    register GStruct41* note asm("a3");
+    register s32        scale asm("a1");
+    s32                 prod;
+    s16                 pitch;
+    SpuVoiceAttr*       attr;
+    s32                 key;
+
+    channel                          = arg0 & 0xF;
+    i                                = 0;
+    offset                           = 0x504;
+    pitchBend                        = (arg1[1] | (arg1[2] << 7)) - 0x2000;
+    arg2->field_484[channel].field_6 = pitchBend;
+    do {
+        slot = (GStruct36VoiceSlot*)((u8*)arg2 + offset);
+        if (slot->field_1 == channel) {
+            func_8004E5C4(slot->field_0, &sp10);
+            note = func_8004EA60(arg2->field_40, slot->field_6, slot->field_7);
+            if (pitchBend >= 0) {
+                scale = note->field_B << 8;
+            } else {
+                scale = note->field_A << 8;
+            }
+            prod  = scale * pitchBend;
+            key   = (s8) * (volatile u8*)&slot->field_2 & 0xFFFF;
+            pitch = prod / 8191;
+            asm volatile("" ::"r"(prod));
+            slot->field_8 = pitch;
+            attr          = sp10.field_4;
+            attr->pitch =
+                func_8004E9D8(key, pitch, note->field_4, note->field_5);
+            attr->mask |= SPU_VOICE_PITCH;
+        }
+        i      += 1;
+        offset += 0xC;
+    } while (i < 0x12);
+    return arg1 + 3;
+}
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80052B30);
 
