@@ -203,7 +203,9 @@ typedef struct _CdCmdQueue {
     u16        field_200;
     u16        field_202;
     u16        field_204;
-    byte       unknown_206[0x8];
+    byte       unknown_206[0x4];
+    s16        field_20A;
+    byte       unknown_20C[0x2];
     s16        field_20E;
     byte       unknown_210[0x2];
     u16        field_212;

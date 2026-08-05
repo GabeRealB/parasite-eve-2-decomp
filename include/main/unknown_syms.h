@@ -353,9 +353,14 @@ extern void func_8005BBB0(s32 arg0);
 
 // F344.c
 extern u16        D_8005EAEC;
+extern s32        D_8006AC08;
 extern u16        D_8006AC0C;
+extern u16        D_8006AC0E;
+extern u16        D_8006AC10;
 extern u16        D_8006AC12;
 extern u16        D_8006AC14;
+extern u16        D_8006AC16;
+extern u16        D_8006AC18;
 extern u16        D_8006AC1A;
 extern s16        D_8006AC1E;
 extern s16        D_8006AC28;
@@ -363,7 +368,9 @@ extern u16        D_8006AC3C;
 extern u_short*   D_8006AC38;
 extern u_long*    D_8006AC50[];
 extern u16        D_8006AC58;
+extern u16        D_8006AC5A;
 extern u_long*    D_8006AC68;
+extern u16        D_8006AC6C;
 extern s32        func_8001F2FC(s32 arg0);
 extern void       func_8001F854(void);
 extern void       func_80020298(s16 arg0);

@@ -12,7 +12,26 @@
 
 INCLUDE_ASM("main/nonmatchings/F344", func_8001EB44);
 
-INCLUDE_ASM("main/nonmatchings/F344", func_8001ED20);
+void func_8001ED20(u32 arg0)
+{
+    GStruct24* base;
+    GStruct24* entry;
+
+    CdCmd_Queue.field_20A = 0;
+    base                  = D_8006D4F0;
+    D_8006AC12            = 0;
+    entry                 = &base[arg0 & 0xFFFF];
+    D_8006AC08            = entry->field_4;
+    D_8006AC0C            = entry->field_1A;
+    D_8006AC5A            = entry->field_12;
+    D_8006AC6C            = entry->field_14;
+    D_8006AC0E            = entry->field_16;
+    D_8006AC10            = entry->field_18;
+    D_8006AC16            = entry->field_1C;
+    D_8006AC14            = entry->field_22;
+    D_8006AC58            = entry->field_24;
+    D_8006AC18            = entry->field_26;
+}
 
 INCLUDE_ASM("main/nonmatchings/F344", func_8001EDC8);
 
