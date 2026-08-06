@@ -5,8 +5,6 @@
 #include "main/mem.h"
 #include "main/unknown_syms.h"
 
-void func_80021D8C(u8* arg0);
-
 s32 func_8002169C(s32 arg0)
 {
     TILE*        p;
@@ -234,58 +232,6 @@ void func_80021B28(u8* arg0)
     }
 }
 
-/* Absolute copies of still-asm jump tables between matched jtbls. */
-const s32 jtbl_80013188[48] = {
-    0x80021DDC,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80021E04,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80021E4C,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80021EB4,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80021FC0,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80021F1C,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80021F78,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x80022028,
-    0x00000000,
-};
-
 void func_80021C0C(u8* arg0)
 {
     s32 temp_v1;
@@ -377,7 +323,191 @@ case_def_5:
     *arg0           = 0x20;
 }
 
-INCLUDE_ASM("main/nonmatchings/11E9C", func_80021D8C);
+void func_80021D8C(u8* arg0)
+{
+    s32 temp_v1;
+    s32 val;
+
+    temp_v1 = func_8004ACAC(0x7A);
+    switch (D5B498_8006ACB8.field_2) {
+        case 1:
+            D5B498_8006ACB0 = D_80062AB4;
+            D5B498_8006ACAC = D_80062AD4;
+            *arg0           = 3;
+            break;
+        case 6:
+            val = temp_v1 & 0xFFFF;
+            if (val == 4) {
+                goto case_6_4;
+            }
+            if (val == 5) {
+                goto case_6_5;
+            }
+        case_6_4:
+            D5B498_8006ACB0 = D_80062EA0;
+            *arg0           = 0x10;
+            return;
+        case_6_5:
+            D5B498_8006ACB0 = D_80062EA0;
+            *arg0           = 0x17;
+            return;
+        case 16:
+            val = temp_v1 & 0xFFFF;
+            if (val == 5) {
+                goto case_16_5;
+            }
+            if (val < 6) {
+                goto case_16_def;
+            }
+            if (val == 6) {
+                goto case_16_6;
+            }
+        case_16_def:
+            D5B498_8006ACB0 = D_80062EEC;
+            *arg0           = 0x11;
+            return;
+        case_16_5:
+            D5B498_8006ACB0 = D_80062EEC;
+            *arg0           = 0x18;
+            return;
+        case_16_6:
+            D5B498_8006ACB0 = D_80062EEC;
+            *arg0           = 0x24;
+            return;
+        case 20:
+            val = temp_v1 & 0xFFFF;
+            if (val == 5) {
+                goto case_20_5;
+            }
+            if (val < 6) {
+                goto case_20_def;
+            }
+            if (val == 6) {
+                goto case_20_6;
+            }
+        case_20_def:
+            D5B498_8006ACB0 = D_80062EEC;
+            *arg0           = 0x28;
+            return;
+        case_20_5:
+            D5B498_8006ACB0 = D_80062EEC;
+            *arg0           = 0x1F;
+            return;
+        case_20_6:
+            D5B498_8006ACB0 = D_80062EEC;
+            *arg0           = 0x26;
+            return;
+        case 36:
+            if (D5B498_8006ACC0 == 0) {
+                D5B498_8006ACB0 = D_80062C20;
+                D5B498_8006ACAC = D_80062C40;
+                *arg0           = 3;
+            } else {
+                D5B498_8006ACB0 = D_80062C94;
+                D5B498_8006ACAC = D_80062CB4;
+                *arg0           = 3;
+            }
+            break;
+        case 41:
+            val = temp_v1 & 0xFFFF;
+            if (val == 4) {
+                goto case_41_4;
+            }
+            if (val == 5) {
+                goto case_41_5;
+            }
+        case_41_4:
+            D5B498_8006ACB0 = D_80062F34;
+            *arg0           = 0x12;
+            return;
+        case_41_5:
+            D5B498_8006ACB0 = D_80062F34;
+            *arg0           = 0x19;
+            return;
+        case 31:
+            val = temp_v1 & 0xFFFF;
+            if (val == 5) {
+                goto case_31_5;
+            }
+            if (val < 6) {
+                goto case_31_def;
+            }
+            if (val == 6) {
+                goto case_31_6;
+            }
+        case_31_def:
+            D5B498_8006ACB0 = D_80062FD0;
+            *arg0           = 0x15;
+            return;
+        case_31_5:
+            D5B498_8006ACB0 = D_80062FD0;
+            *arg0           = 0x1C;
+            return;
+        case_31_6:
+            D5B498_8006ACB0 = D_80062FD0;
+            *arg0           = 0x25;
+            return;
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 7:
+        case 8:
+        case 9:
+        case 10:
+        case 11:
+        case 12:
+        case 13:
+        case 14:
+        case 15:
+        case 17:
+        case 18:
+        case 19:
+        case 21:
+        case 22:
+        case 23:
+        case 24:
+        case 25:
+        case 26:
+        case 27:
+        case 28:
+        case 29:
+        case 30:
+        case 32:
+        case 33:
+        case 34:
+        case 35:
+        case 37:
+        case 38:
+        case 39:
+        case 40:
+        case 42:
+        case 43:
+        case 44:
+        case 45:
+        case 46:
+        case 47:
+        default:
+            val = temp_v1 & 0xFFFF;
+            if (val == 4) {
+                goto case_def_4;
+            }
+            if (val == 5) {
+                goto case_def_5;
+            }
+        case_def_4:
+            D5B498_8006ACB0 = D_80063018;
+            *arg0           = 0x16;
+            return;
+        case_def_5:
+            D5B498_8006ACB0 = D_80063018;
+            *arg0           = 0x1D;
+            return;
+    }
+}
+
+/* Pad after 47-entry jtbl for func_80021D8C (original had trailing .word 0). */
+static const s32 s_jtbl_pad_21D8C = 0;
 
 void func_8002207C(void)
 {
