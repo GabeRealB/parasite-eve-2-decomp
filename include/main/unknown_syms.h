@@ -108,6 +108,9 @@ extern void  func_801011D0(s32* arg0, s32 arg1, s32 arg2, void* arg3);
 // 1E6C4.c
 extern void func_8002DEC4(void);
 extern s32  func_8002DECC(GStruct38* arg0, u8* arg1, u8* arg2);
+// Dual SPRT glyph draw: code 0x66 (clut 0x7FFD, colored) + 0x67 (clut 0x7FFE)
+// linked at OT[field_4] and OT[field_4+1] respectively.
+extern void func_8002E010(GStruct38* arg0, GStruct68* arg1, s32 arg2);
 // Dual SPRT glyph draw: code 0x64 (clut 0x7FFD, colored) + 0x67 (clut 0x7FFF)
 // linked at OT[field_4] and OT[field_4+1] respectively.
 extern void func_8002E188(GStruct38* arg0, GStruct68* arg1, s32 arg2);
