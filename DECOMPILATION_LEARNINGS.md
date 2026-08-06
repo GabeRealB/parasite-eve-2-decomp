@@ -10068,3 +10068,50 @@ Do **not** mark the destination `volatile MATRIX*` on this path — volatile
 blocks the `j` delay-slot fill that stores `m[2][2] = cos`. The else path still
 wants `volatile` plus the dual `asm("v0")`/`asm("v1")` move/reload pattern
 documented under RotMatrixX scratch blocks.
+
+## RotMatrixZ: early cos in `$v1`, and barrier before sin/cos reloads
+
+Y-axis `func_8003C98C` loads **sin** early into `$v1` so it pairs with
+`li v0,ONE` and is stored after the zero/ONE block. Z-axis `func_8003CB80`
+does the same shape but with **cos** — the flag≠0 path ends with
+`m[2][2]=ONE` / `m[1][1]=cos` in the `j` delay, so:
+
+```c
+arg0->m[1][0] = p->sin_val; /* own lhu + nop + sh before the pair */
+cos_u = p->cos_val;         /* register u16 cos_u asm("v1") */
+arg0->m[1][2] = 0;
+arg0->m[2][0] = 0;
+arg0->m[2][1] = 0;
+arg0->m[2][2] = ONE;
+arg0->m[1][1] = cos_u;
+```
+
+Using `p->cos_val` only on the final store reloads cos *after* ONE and puts
+the sin store into the `li`/zero schedule (wrong).
+
+Else path needs `m[2][2]=ONE` **before** reloading sin/cos from the scratch
+block. A volatile store alone does not stop GCC 2.8.1 from hoisting the
+non-volatile `block->sin_val` / `block->cos_val` loads above it — insert a
+compiler memory barrier:
+
+```c
+vmat->m[2][2] = ONE;
+__asm__ volatile("" ::: "memory");
+sin_u = block->sin_val;
+cos2  = block->cos_val; /* asm("a0") */
+```
+
+Z-axis also inverts the Y-axis move/negu split: copy sin to `$v1`, negate the
+**original** in `$v0`, store `-sin` then `+copy`:
+
+```c
+register u16 sin_u asm("v0");
+register s16 copy asm("v1");
+copy = sin_u;
+__asm__ volatile("" : "+r"(copy) : "r"(sin_u));
+vmat->m[0][1] = -sin_u; /* negu of original */
+vmat->m[1][0] = copy;
+vmat->m[1][1] = cos2;
+```
+
+`func_8003CB80` is the pure example (Z-axis; X sibling is `func_8003C788`).

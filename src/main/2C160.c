@@ -226,7 +226,67 @@ void func_8003C98C(MATRIX* arg0, s32 angle, s32 flag)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/2C160", func_8003CB80);
+void func_8003CB80(MATRIX* arg0, s32 angle, s32 flag)
+{
+    u8*         head;
+    ScratchMat* block;
+    ScratchMat* p;
+    s16         cos;
+
+    head                          = *(u8**)G_SCRATCH_HEAD;
+    block                         = (ScratchMat*)(head - 0x24);
+    *(ScratchMat**)G_SCRATCH_HEAD = block;
+    p                             = block;
+
+    p->sin_val = rsin(angle);
+    cos        = rcos(angle);
+    p->cos_val = cos;
+
+    if (flag != 0) {
+        register u16 cos_u asm("v1");
+        s16          t;
+
+        arg0->m[0][0] = cos;
+        t             = p->sin_val;
+        arg0->m[0][2] = 0;
+        arg0->m[0][1] = -t;
+        arg0->m[1][0] = p->sin_val;
+        cos_u         = p->cos_val;
+        arg0->m[1][2] = 0;
+        arg0->m[2][0] = 0;
+        arg0->m[2][1] = 0;
+        arg0->m[2][2] = ONE;
+        arg0->m[1][1] = cos_u;
+    } else {
+        register u16     sin_u asm("v0");
+        register s16     copy asm("v1");
+        register u16     cos2 asm("a0");
+        volatile MATRIX* vmat;
+
+        *(s16*)(head - 0x24) = cos;
+        vmat                 = &block->mat;
+        vmat->m[2][2]        = ONE;
+        __asm__ volatile("" ::: "memory");
+        sin_u         = block->sin_val;
+        cos2          = block->cos_val;
+        vmat->m[0][2] = 0;
+        vmat->m[1][2] = 0;
+        vmat->m[2][0] = 0;
+        vmat->m[2][1] = 0;
+        copy          = sin_u;
+        __asm__ volatile("" : "+r"(copy) : "r"(sin_u));
+        vmat->m[0][1] = -sin_u;
+        vmat->m[1][0] = copy;
+        vmat->m[1][1] = cos2;
+
+        gte_MulMatrix0_real(arg0, p, arg0);
+    }
+
+    {
+        void** scratch = (void**)G_SCRATCH_HEAD;
+        *scratch       = (u8*)*scratch + 0x24;
+    }
+}
 
 void func_8003CD78(VECTOR* light, SVECTOR* out)
 {
