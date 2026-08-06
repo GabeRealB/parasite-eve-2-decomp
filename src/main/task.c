@@ -5,7 +5,89 @@
 #include "main/mem.h"
 #include "main/unknown_syms.h"
 
-INCLUDE_ASM("main/nonmatchings/task", Task_SpawnFromDesc);
+Task* Task_SpawnFromDesc(TaskDesc* desc, s32 arg1, s32 arg2, TaskNode* list)
+{
+    Task*          task;
+    s32            type;
+    s32            flags_a2;
+    void*          extra;
+    u16            flags;
+    s32            temp;
+    u8             flags_lo;
+    s32            priority;
+    register Task* curr asm("a3");
+
+    task = Mem_Calloc(0x48, 0);
+    if (task == NULL) {
+        return NULL;
+    }
+
+    flags = desc->flags;
+    type  = flags & 0xFF;
+    if (type == 1) {
+        goto case1;
+    }
+    extra = NULL;
+    if (type < 2) {
+        goto merge;
+    }
+    if (type == 2) {
+        goto case2;
+    }
+    goto merge;
+
+case1:
+    temp     = flags & 0x100;
+    flags_a2 = (u32)temp > 0;
+    if (D_8005ED8C != 0) {
+        flags_a2 |= 2;
+    }
+    extra = func_80099170(task, desc->field_8, flags_a2);
+    goto merge;
+
+case2:
+    extra = func_80099098(task);
+
+merge:
+    if (((u8)desc->flags == 0) || (extra != NULL)) {
+        task->field_14 = desc->callback;
+        priority       = *(u8*)&desc->field_2;
+        task->field_18 = Task_Kill;
+        task->field_29 = priority;
+        flags_lo       = (u8)desc->flags;
+        task->field_2c = extra;
+        task->field_34 = arg1;
+        task->field_20 = (void*)arg2;
+        task->field_8  = NULL;
+        task->field_c  = NULL;
+        task->field_10 = task;
+        task->field_28 = flags_lo;
+        curr           = list->next;
+        if (curr != NULL) {
+            priority &= 0xFF;
+        loop:
+            if ((u32)priority >= (u8)curr->field_29) {
+                curr = curr->node.next;
+                if (curr != NULL) {
+                    goto loop;
+                }
+            }
+        }
+        if (curr != NULL) {
+            curr = (Task*)&curr->node.prev;
+        } else {
+            curr = (Task*)&list->prev;
+        }
+        task->node.next           = (*(TaskNode**)curr)->next;
+        (*(TaskNode**)curr)->next = task;
+        task->node.prev           = *(TaskNode**)curr;
+        *(TaskNode**)curr         = &task->node;
+    } else {
+        Mem_Free(task);
+        task = NULL;
+    }
+    return task;
+}
 
 INCLUDE_ASM("main/nonmatchings/task", Task_Kill);
 

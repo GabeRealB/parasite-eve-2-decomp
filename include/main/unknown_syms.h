@@ -89,13 +89,16 @@ extern void*          func_8002D22C(s32 arg0);
 extern void           func_8002D6EC(Task* arg0);
 
 // Dynamically loaded (BSS region)
-extern void func_80097AC0(GStruct35* arg0);
-extern void func_8009850C(GStruct35* arg0);
-extern void func_800991DC(void* arg0);
-extern void func_80099214(void* arg0);
-extern void func_80099290(void* arg0);
-extern void func_800E1A6C(void* arg0);
-extern void func_801011D0(s32* arg0, s32 arg1, s32 arg2, void* arg3);
+extern void  func_80097AC0(GStruct35* arg0);
+extern void  func_8009850C(GStruct35* arg0);
+extern void* func_80099098(Task* task);
+extern void* func_80099170(Task* task, s32 arg1, s32 arg2);
+extern void  func_800991DC(void* arg0);
+extern void  func_80099214(void* arg0);
+extern void  func_80099290(void* arg0);
+extern s32   D_8005ED8C;
+extern void  func_800E1A6C(void* arg0);
+extern void  func_801011D0(s32* arg0, s32 arg1, s32 arg2, void* arg3);
 
 // 1E6C4.c
 extern void func_8002DEC4(void);

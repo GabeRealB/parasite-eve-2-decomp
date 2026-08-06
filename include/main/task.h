@@ -79,6 +79,10 @@ typedef struct _Task {
 STATIC_ASSERT_SIZEOF(Task, 0x48);
 
 /// Descriptor used to spawn a task. Indexed via `Task_DescBanks[bank][type]`.
+///
+/// `flags` low byte is the spawn type (0 = bare, 1 = func_80099170, 2 =
+/// func_80099098). Bit 0x100 is an extra arg to type-1 setup. Low byte of
+/// `field_2` is the list priority (`Task::field_29`); lower values run earlier.
 typedef struct _TaskDesc {
     u16      flags;
     u16      field_2;

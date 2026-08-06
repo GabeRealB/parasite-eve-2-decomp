@@ -8000,3 +8000,85 @@ still strength-reduces to `move a1, base` / `addiu a1, a1, 0x28` under `-O2`,
 but schedules the walker init *after* both `blez`s so the hoisted `li a1,1`
 survives. Do not pin `i` to `$a0` here — that blocks the SR into `$a1`.
 `func_800312DC` is the pure example.
+
+## Goto dispatch for `beq`-to-handler type switches
+
+When the target does positive equality tests that jump *to* handlers laid out
+as case1 then case2 then merge (`beq type,1,case1` / `beq type,2,case2` /
+`j merge`), an `if (type == 1) {…} else if (type == 2) {…}` chain emits the
+inverse (`bne` past an inlined body) and puts case2 before case1.
+
+Write explicit gotos so the case bodies appear in target order:
+
+```c
+if (type == 1) {
+    goto case1;
+}
+extra = NULL;
+if (type < 2) {
+    goto merge;
+}
+if (type == 2) {
+    goto case2;
+}
+goto merge;
+
+case1:
+    /* … */
+    goto merge;
+case2:
+    /* … */
+merge:
+```
+
+`Task_SpawnFromDesc` is the pure example (flags low byte 0 / 1 / 2).
+
+## Booleanize `(x & mask)` with `(u32)temp > 0` for `andi` + `sltu`
+
+`(flags & 0x100) != 0` often becomes `srl` / `andi 1`. To get:
+
+```
+andi  v0, a0, 0x100
+sltu  a2, zero, v0
+```
+
+capture the mask result and compare unsigned against zero:
+
+```c
+temp = flags & 0x100;
+flags_a2 = (u32)temp > 0;
+```
+
+## Keep `u16` fields that other TUs store with `sh`
+
+Narrowing `TaskDesc::field_2` from `u16` to `u8` made `Task_SpawnFromDesc`
+emit `lbu`, but broke already-matched `func_800486F0` (`desc.field_2 =
+arg0->field_12` became `lbu`/`sb` instead of `lhu`/`sh`). Keep the wider type
+and force the byte load where needed:
+
+```c
+priority = *(u8*)&desc->field_2; /* lbu, not lhu */
+```
+
+## Reuse walk pointer as insert slot via `&node.prev`
+
+Target list insertion reuses one register: after walking to the insert point
+it does `bnez curr, join` / `addiu curr, curr, 4` / `addiu curr, list, 4`, then
+treats that register as `TaskNode**`. Pin the walker and convert in place:
+
+```c
+register Task* curr asm("a3");
+/* … walk by field_29 … */
+if (curr != NULL) {
+    curr = (Task*)&curr->node.prev;
+} else {
+    curr = (Task*)&list->prev;
+}
+task->node.next = (*(TaskNode**)curr)->next;
+(*(TaskNode**)curr)->next = task;
+task->node.prev = *(TaskNode**)curr;
+*(TaskNode**)curr = &task->node;
+```
+
+A separate `TaskNode** insert` usually allocates a second register and drops
+the delay-slot `+4` form. `Task_SpawnFromDesc` is the example.
