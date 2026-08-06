@@ -1010,7 +1010,75 @@ void func_8005842C(void)
     D_800828F0.field_0 = saved;
 }
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_8005854C);
+void func_80058748(void);
+
+void func_8005854C(void)
+{
+    GStruct32Entry      entry;
+    volatile GStruct19* p;
+    s32                 flag;
+    s16                 arg0;
+    s16                 idx;
+    u32                 flags;
+    GStruct32Entry*     e;
+    u8                  saved;
+    u8                  t;
+    s32                 dead;
+    register s32        rem_tmp asm("a0");
+    register s32        temp asm("v0");
+
+    p = &D_80082818;
+    if (p->unknown_0[2] & 1) {
+        dead                    = p->field_20;
+        t                       = p->unknown_0[2];
+        t                       = t & 0xFE;
+        p->unknown_0[2]         = t;
+        t                       = D_80082818.unknown_0[0];
+        t                       = t & 0xFE;
+        D_80082818.unknown_0[0] = t;
+        p->unknown_0[2]         = p->unknown_0[2] & 0xFD;
+        D_80082818.unknown_0[0] = D_80082818.unknown_0[0] & 0xDF;
+        flag                    = (D_80082818.unknown_0[0] >> 4) & 1;
+        if (flag == 1) {
+            func_8004E71C((s8)p->unknown_4E[2]);
+            func_8004E71C((s8)p->unknown_4E[3]);
+            D_80082818.unknown_0[0] = D_80082818.unknown_0[0] & 0xEF;
+            if (p->field_10 != NULL) {
+                p->field_10((flag << (s8)p->unknown_4E[2]) | (flag << (s8)p->unknown_4E[3]));
+            }
+        }
+        SpuSetIRQ(0);
+        SpuSetIRQCallback(0);
+        if (D_80082818.field_6 != 0) {
+            arg0  = D_80082818.field_6;
+            saved = D_800828F0.field_0;
+            if (arg0 != 0) {
+                idx   = arg0 - 1;
+                e     = (GStruct32Entry*)&D_800828F0.entries[idx];
+                flags = e->field_0;
+                if (flags & 1) {
+                    e->field_0 = (flags & ~1) | 4;
+                }
+                D_800828F0.field_0 = saved;
+            }
+            D_80082818.field_6 = 0;
+        }
+        rem_tmp = (s32)&entry;
+        asm("" : "+r"(rem_tmp));
+        do {
+            temp = (s32)func_80059EE0;
+        } while (0);
+        entry.field_8           = temp;
+        temp                    = (s32)func_80058748;
+        p                       = &D_80082818;
+        entry.field_C           = temp;
+        entry.field_4           = p->field_30;
+        D_80082818.unknown_0[0] = D_80082818.unknown_0[0] & 0xFB;
+        entry.field_10          = (s32)func_8005BA8C;
+        p->field_6              = func_80057D3C((GStruct32Entry*)rem_tmp);
+        p->unknown_0[3]         = 2;
+    }
+}
 
 void func_80058748(void)
 {

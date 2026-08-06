@@ -2560,6 +2560,38 @@ instead of reusing `$v0`.
 
 `func_800588D8` is the example.
 
+## `0xFE` byte clear vs `~1` word mask: CSE to `li -2`
+
+`x & 0xFE` on a zero-extended byte and `flags & ~1` on a word are the same
+SImode constant (`-2` / `0xFFFFFFFE`). When both appear in one function, GCC
+CSE's them into a single `li reg,-2` plus `and`, replacing the target's
+`andi …,0xfe`.
+
+Symptom: target has `lbu` / `nop` / `andi v0,v0,0xfe` early and
+`li v0,-2` / `and` only for a later `flags & ~1`; your build uses `li`/`and`
+for both.
+
+Fix: force the byte clear through a `u8` temporary so the mask stays an
+`andi` immediate, while leaving `(flags & ~1) | 4` alone for the `li -2`
+form:
+
+```c
+u8 t;
+
+t = p->unknown_0[2];
+t = t & 0xFE;
+p->unknown_0[2] = t;
+/* ... */
+e->field_0 = (flags & ~1) | 4; /* still li -2; and */
+```
+
+`t = p->field & 0xFE; p->field = t` (load into temp, mask into temp, store)
+can put the `lbu` in `$a1`; the split `t = field; t = t & 0xFE; field = t`
+keeps `lbu`/`andi` on `$v0`.
+
+`func_8005854C` is the pure example (pairs with the `D_800828F0` entry flag
+update used by `func_8005842C`).
+
 ## Non-volatile store reordered past volatile field stores
 
 A bare `global = 0` on a non-volatile `s16` can be scheduled *after* later
