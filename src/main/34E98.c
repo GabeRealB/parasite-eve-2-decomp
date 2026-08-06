@@ -5,6 +5,7 @@
 
 void func_800498D4(Task* arg0);
 void func_800492EC(void* arg0, RECT* arg1, RECT* arg2);
+void func_80044C34(GStruct30* arg0, RECT* arg1, RECT* arg2, s32 arg3);
 
 void func_80044698(void)
 {
@@ -411,7 +412,72 @@ void func_80047F40(GStruct30* arg0, char* arg1)
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_800480A0);
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80048390);
+void func_80048390(RECT* arg0, s32 arg1, s32 arg2, char* arg3)
+{
+    GStruct30  sp18;
+    s32        pad[2];
+    RECT       sp48;
+    RECT       sp50;
+    GStruct30* self;
+    RECT*      r;
+    s32        var_a2;
+    s32        color;
+    s32        x;
+    s32        y;
+    s32        two;
+    s16        temp_t0;
+    s16        temp_t1;
+
+    two           = 2;
+    sp18.field_8  = two;
+    sp18.field_14 = arg1 - 3;
+    sp18.field_4  = arg2;
+    temp_t0       = arg0->x + two;
+    sp48.x        = temp_t0;
+    temp_t1       = arg0->y + two;
+    sp48.y        = temp_t1;
+    sp48.w        = ((arg0->w + arg0->x) - temp_t0) - 1;
+    sp48.h        = ((arg0->h + arg0->y) - temp_t1) - 1;
+    func_80044C34(&sp18, arg0, &sp48, 0);
+    if (arg3 != NULL) {
+        color = 0x707060;
+        self  = &sp18;
+        r     = &sp50;
+        switch (self->field_8) {
+            case 1:
+                var_a2 = 9 - self->field_16;
+                if (var_a2 <= 0) {
+                    var_a2 = 1;
+                }
+                func_80045A3C(self, r, var_a2, 0);
+                break;
+            case 2:
+                goto block_default;
+            case 3:
+            case 4:
+                var_a2 = 9 - self->field_16;
+                if ((u32)(var_a2 - 1) >= 8U) {
+                    var_a2 = 1;
+                }
+                func_80045A3C(self, r, var_a2, 1);
+                break;
+            default:
+            block_default:
+                r->x = self->field_C.x;
+                r->y = self->field_C.y;
+                r->w = self->field_C.w;
+                r->h = self->field_C.h;
+                break;
+        }
+        x              = sp50.x;
+        y              = sp50.y;
+        x              = x + 1;
+        y              = y + 1;
+        self->field_14 = (u16)(self->field_14 - 1);
+        func_80047C40(self, x - (s16)self->field_20, y - (s16)self->field_22, arg3, color);
+        self->field_14 = (u16)(self->field_14 + 1);
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80048560);
 
