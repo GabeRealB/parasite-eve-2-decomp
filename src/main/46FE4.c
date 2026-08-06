@@ -5,7 +5,123 @@
 
 #include "main/unknown_syms.h"
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_800567E4);
+s32 func_800567E4(void)
+{
+    volatile GStruct4*  p;
+    volatile GStruct56* audio;
+    GStruct76*          setup;
+    CdlLOC*             loc;
+    s32                 acc;
+    register s32        i asm("s2");
+    s32                 voice;
+    s32                 status;
+    s16                 half;
+    s32                 two;
+    s32                 temp;
+    register s32        next asm("v0");
+    void*               sector;
+
+    setup = &D_800827C4;
+    switch (D_80082798.field_0) {
+        case 4:
+            D_80082780.field_10 = 0;
+            acc                 = 0;
+            i                   = 0x16;
+            do {
+                voice = (s8)i;
+                temp  = acc + ((s32 (*)(s32))func_8004E6A4)(voice);
+                acc   = temp;
+                asm("" : "+r"(temp));
+                status = (s8)temp;
+                if (status != 0) {
+                    func_8004E71C(voice);
+                }
+                next = i + 1;
+                i    = next;
+                asm("" : "+r"(next));
+            } while ((s8)next < 0x18);
+            if (status != 0) {
+                break;
+            }
+            D_80082798.field_0 = 1;
+            /* fallthrough */
+        case 1:
+            p = &D_80082798;
+            if (p->field_5 == 1) {
+                p->field_2         = 4;
+                D_80082798.field_0 = 3;
+                break;
+            }
+            audio = (volatile GStruct56*)&D_800827A0;
+            loc   = (CdlLOC*)&audio->field_10;
+            CdIntToPos(audio->field_C, loc);
+            if (D_8008277C != 0) {
+                half = 0;
+            } else {
+                half = audio->field_2;
+            }
+            two             = 2;
+            setup->field_1B = -1;
+            setup->field_1A = -1;
+            setup->field_18 = half;
+            setup->field_1C = two;
+            sector          = &Fs_CdSector;
+            setup->field_8  = sector;
+            setup->field_4  = audio->field_8;
+            setup->field_0  = CdPosToInt(loc);
+            setup->field_C  = func_80057D24;
+            setup->field_10 = 0;
+            setup->field_14 = 0;
+            audio->field_1  = 0;
+            func_80057FAC(setup);
+            D_80082798.field_0 = two;
+            break;
+        case 2:
+            if (D_800827A0.field_1 != 0) {
+                p = &D_80082798;
+                if (p->field_5 == 1) {
+                    p->field_2 = 4;
+                }
+                D_80082798.field_0 = 3;
+                D_800827A0.field_1 = 0;
+            }
+            break;
+        case 0:
+        case 3:
+            break;
+    }
+    return 1;
+}
+
+/* Alignment pad after func_800567E4's 5-entry jump table, then absolute copies
+ * of jtbl_800141DC / jtbl_80014204 for still-asm func_80056B28 / func_80056E38. */
+static const s32 s_jtbl_pad_567E4  = 0;
+const s32        jtbl_800141DC[10] = {
+    0x80056BA4,
+    0x80056DFC,
+    0x80056C40,
+    0x80056DFC,
+    0x80056B70,
+    0x80056BF0,
+    0x80056DFC,
+    0x80056C9C,
+    0x80056D58,
+    0x80056D7C,
+};
+const s32 jtbl_80014204[12] = {
+    0x80056E80,
+    0x80056EF4,
+    0x80056F90,
+    0x80056FD0,
+    0x80057018,
+    0x80057088,
+    0x800570E0,
+    0x8005713C,
+    0x80057210,
+    0x800572D8,
+    0x800571D8,
+    0x00000000,
+};
 
 s32 func_800569D4(void)
 {

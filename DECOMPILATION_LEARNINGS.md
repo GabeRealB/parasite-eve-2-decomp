@@ -8766,3 +8766,65 @@ entry->field_0 &= ~4;
 
 `func_8004DC8C` is the pure template for control flow; `func_80057E1C` adds the
 `field_0` lock check and the no-arg `field_C` callback.
+
+## Sign-extend loop counter via `next` in `$v0` + empty asm barrier
+
+When the target does:
+
+```
+addiu  v0, s2, 1
+move   s2, v0
+sll    v0, v0, 24
+sra    v0, v0, 24
+slti   v0, v0, N
+bnez   v0, loop
+ sll   v0, s2, 24   /* delay: prep next (s8)i */
+```
+
+a plain `do { …; i++; } while ((s8)i < N)` either strength-reduces the counter
+to `lui sN, 0xXX00` form or emits `sll v0, s2` after the move (CSE substitutes
+`i` for the equal `next`).
+
+Match with a named next temp pinned to `$v0`, `i` pinned to `$s2`, and an
+empty asm barrier so CSE cannot fold `next` into `i` for the cast:
+
+```c
+register s32 i asm("s2");
+register s32 next asm("v0");
+
+i = 0x16;
+do {
+    voice = (s8)i;
+    /* … */
+    next = i + 1;
+    i = next;
+    asm("" : "+r"(next));
+} while ((s8)next < 0x18);
+```
+
+The same barrier after `acc = temp` forces `sll v0, v0` for `(s8)temp` when
+`temp` still shares `$v0` with the `addu` result:
+
+```c
+temp = acc + func(voice);
+acc = temp;
+asm("" : "+r"(temp));
+status = (s8)temp;
+```
+
+`func_800567E4` is the pure example (voice poll over slots 0x16..0x17).
+
+## Cast a `u8`-returning helper through an `s32` function pointer
+
+When the target uses a `u8` return with a bare `addu`/`move` and no `andi 0xff`,
+but the real prototype is `u8 foo(...)`, a direct call inserts the zero-extend
+`andi`. Call through an `s32` function-pointer cast so the front end treats the
+return as SImode:
+
+```c
+temp = acc + ((s32 (*)(s32))func_8004E6A4)(voice);
+```
+
+Safe only when the callee already returns a clean low byte (e.g. via `lbu`).
+Do not change the shared `u8` declaration — other matched callers may depend on
+the `andi`. `func_800567E4` needs this for `func_8004E6A4`.

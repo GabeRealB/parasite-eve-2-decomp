@@ -926,6 +926,24 @@ typedef struct _GStruct44 {
 } GStruct44;
 STATIC_ASSERT_SIZEOF(GStruct44, 0x14);
 
+/// BSS object D_800827C4 (size 0x20). CD/SPU stream setup block for
+/// func_800567E4 / func_80057FAC: sector position, buffer, callbacks, and
+/// voice indices.
+typedef struct _GStruct76 {
+    /* 0x00 */ s32   field_0;
+    /* 0x04 */ s32   field_4;
+    /* 0x08 */ void* field_8;
+    /* 0x0C */ void  (*field_C)(void);
+    /* 0x10 */ s32   field_10;
+    /* 0x14 */ s32   field_14;
+    /* 0x18 */ s16   field_18;
+    /* 0x1A */ s8    field_1A;
+    /* 0x1B */ s8    field_1B;
+    /* 0x1C */ u8    field_1C;
+    /* 0x1D */ u8    pad_1D[3];
+} GStruct76;
+STATIC_ASSERT_SIZEOF(GStruct76, 0x20);
+
 /// Buffer with a 16-bit sum / ones-complement pair at the head and a payload
 /// starting at offset 4. Written by `Mc_WriteBlockChecksum`, verified by `Mc_VerifyBlockChecksum`.
 /// Out-parameter for `func_8004E5C4` (voice slot lookup/alloc).
