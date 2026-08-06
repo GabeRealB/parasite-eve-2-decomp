@@ -75,7 +75,8 @@ segments:
       # then CEFC (+ pad for D0E8) + absolute still-asm D0E8 + DB84 tables.
       - [0x3764, .rodata, cdcmd]
       - [0x3818, o, libcd/type, .rdata]
-      - [0x3838, rodata, F344] # TODO
+      - [0x3838, .rodata, F344] # jtbl from func_8001EB44 (7 entries)
+      - [0x3854, rodata, F344_1] # .word 0 pad + jtbl_80013058 (unmatched funcs)
       - [0x3880, o, libcd/c_011, .rdata]
       - [0x38a0, .rodata, "11E9C"] # jtbls: 21A20, 21B28 + abs(21D8C) + 2207C + abs(2226C)
       - [0x3a74, rodata, fs] # Fs_* strings / jump tables

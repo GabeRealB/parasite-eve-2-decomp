@@ -8828,3 +8828,24 @@ temp = acc + ((s32 (*)(s32))func_8004E6A4)(voice);
 Safe only when the callee already returns a clean low byte (e.g. via `lbu`).
 Do not change the shared `u8` declaration — other matched callers may depend on
 the `andi`. `func_800567E4` needs this for `func_8004E6A4`.
+
+## Jump-table mult: load order vs `mult` operand order
+
+When a `u16 * u16` product shares one operand with a later scaled use
+(e.g. `h * 0x30` after `w * h`), the plain expression forms are coupled:
+
+- `D_w * D_h` → correct `mult a2, a1` (w in `$a2`, h in `$a1`) but loads h first
+- `D_h * D_w` → perfect load interleave with `D_8006AC48` setup, but `mult a1, a2`
+
+Target often wants **both** the load interleave of the second form **and**
+`mult a2, a1`. Force h live early without putting it on the left of the mult:
+
+```c
+u16 h = D_h;
+s32 stride = h * 0x30;   /* materialises hi(h) first, keeps h in $a1 */
+temp = D_w * h;          /* mult a2, a1; lhu w before lhu h */
+/* … buffer setup using mult delay … */
+ptr = base + stride;     /* reuses $a1 for the * 0x30 shift pattern */
+```
+
+`func_8001EB44` case 0 is the pure example (MDEC buffer layout).

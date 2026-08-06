@@ -11,7 +11,68 @@
 #include "main/mem.h"
 #include "main/unknown_syms.h"
 
-INCLUDE_ASM("main/nonmatchings/F344", func_8001EB44);
+void func_8001EB44(u8* arg0)
+{
+    s32     temp_lo;
+    u16*    temp_v1;
+    u16*    temp_v1_2;
+    u_long* temp_v1_3;
+    u_long* temp_v1_4;
+    s32     temp_lo_2;
+    u16*    temp_v1_5;
+
+    D_8006AC5C            = 0;
+    D_8006AC3C            = 1;
+    CdCmd_Queue.field_24A = 0;
+    CdCmd_Queue.field_22C = 0;
+    D_8006AC24            = 0x20;
+    D_8006AC38            = D_8005C36C;
+    D_8006AC60            = (u16*)((u8*)D_8005C36C + 0x11000);
+    D_8006AC64            = D_8006AC40;
+
+    switch ((s8)(arg0[3] + 1)) {
+        case 0:
+            D_8006AC24 = 0x28;
+            D_8006AC38 = (u_short*)D_8006AC40;
+            temp_v1    = (D_8006AC60 = (u16*)((u8*)D_8006AC40 + 0x11000));
+            {
+                u16 h         = D_8006AC6C;
+                s32 stride    = h * 0x30;
+                temp_lo       = D_8006AC5A * h;
+                D_8006AC48[1] = (u_long*)(temp_v1_2 = (u16*)((u8*)temp_v1 + 0x14000));
+                D_8006AC48[0] = (u_long*)temp_v1_2;
+                D_8006AC50[0] = (temp_v1_3 = (u_long*)((u8*)temp_v1_2 + stride));
+                D_8006AC50[1] = (temp_v1_4 = (u_long*)((u8*)temp_v1_3 + temp_lo));
+                D_8006AC44    = (u8*)temp_v1_4 + temp_lo;
+            }
+            return;
+        case 1: {
+            u_long** p50;
+            u_long** p48;
+            void*    base;
+
+            temp_lo_2 = D_8006AC5A * D_8006AC6C;
+            p50       = D_8006AC50;
+            temp_v1_5 = (u16*)((u8*)D_8006AC60 + 0x10000);
+            base      = D_8006AC40;
+            p48       = D_8006AC48;
+            p50[0]    = (u_long*)temp_v1_5;
+            p48[0]    = (u_long*)base;
+            p50[1]    = (u_long*)((u8*)temp_v1_5 + temp_lo_2);
+            p48[1]    = (u_long*)((u8*)base + (temp_lo_2 * 2));
+            return;
+        }
+        case 2:
+            func_80179988(arg0);
+            return;
+        case 3:
+            func_80179954(arg0);
+            return;
+        case 6:
+            func_801799BC(arg0);
+            return;
+    }
+}
 
 void func_8001ED20(u32 arg0)
 {

@@ -231,7 +231,8 @@ typedef struct _CdCmdQueue {
     u16        field_226; // sub-state for func_8001E57C disk recovery
     u16        field_228;
     u16        field_22A; // DecDCTin mode for func_800405E0
-    byte       unknown_22C[0x8];
+    s16        field_22C;
+    byte       unknown_22E[0x6];
     s16        field_234;
     s16        field_236;
     byte       unknown_238[0x6];
