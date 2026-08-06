@@ -481,7 +481,57 @@ void func_80048964(GStruct30* arg0, void* arg1)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_800489A0);
+void func_800489A0(UiList* arg0, GStruct20* arg1)
+{
+    RECT       sp;
+    GStruct30* a1;
+    s16        temp_v0;
+    u8         temp_a2;
+    s8         temp_v1;
+    s32        temp_v1_2;
+    s32        height;
+
+    a1             = (GStruct30*)arg1;
+    arg0->field_17 = 0;
+    sp.x           = a1->field_20 + a1->field_1C;
+    sp.y           = a1->field_22 + a1->field_18;
+    sp.w           = a1->field_1E - a1->field_1C;
+    temp_v0        = a1->field_1A - a1->field_18;
+    height         = temp_v0;
+    sp.h           = temp_v0;
+    height         = height - arg0->field_17;
+    if (arg0->field_7 == 0) {
+        arg0->field_7 = 0xA;
+    }
+    temp_a2 = arg0->field_4;
+    temp_v1 = arg0->field_7;
+    if (height >= (temp_a2 * temp_v1)) {
+        arg0->field_5 = temp_a2;
+    } else {
+        arg0->field_5 = height / temp_v1;
+        if ((s8)arg0->field_5 <= 0) {
+            arg0->field_5 = 1;
+        }
+    }
+    temp_v1_2 = arg0->field_4;
+    if (arg0->field_10 >= temp_v1_2) {
+        arg0->field_10 = temp_v1_2 - 1;
+        asm("" ::: "memory");
+        temp_v1_2 = arg0->field_4;
+    }
+    if ((s8)arg0->field_5 >= temp_v1_2) {
+        arg0->field_9 = 0;
+    }
+    arg0->field_A                   = 0;
+    *(volatile s16*)&arg0->field_14 = 0;
+    arg0->field_16                  = 0;
+    *(volatile s32*)&arg0->field_C  = 0;
+    if (D_80072313 != 0) {
+        arg0->field_10 = 0;
+        arg0->field_9  = 0;
+    }
+    asm("" : : "m"(sp));
+}
 
 void func_80048AEC(UiList* arg0, s32 arg1)
 {

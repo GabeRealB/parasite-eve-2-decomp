@@ -636,7 +636,9 @@ extern s8 D_8007218B;
 // Alias of Mc_SaveData.field_1a9 (offset 0x1A9); loaded with lb in audio setup.
 extern s8 D_80072311;
 // Alias of Mc_SaveData.field_1aa (offset 0x1AA).
-extern u8        D_80072312;
+extern u8 D_80072312;
+// Alias of Mc_SaveData.field_1ab (offset 0x1AB); loaded with lb in func_800489A0.
+extern s8        D_80072313;
 extern u8        D_800733F0[2][0x6C];
 extern u8        D_800734C8[2][0xB0];
 extern u8        D_80073628[2][0x24];

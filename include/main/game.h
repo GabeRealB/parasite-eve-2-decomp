@@ -413,9 +413,10 @@ STATIC_ASSERT_SIZEOF(GStruct24, 0x28);
 /// computing field_9; field_6 / field_7 are signed layout sizes (func_80046DEC
 /// uses field_7 as TILE height); field_9 / field_A / field_10 are list cursor /
 /// flag / selection index used by func_80036A70 / func_80036C04 / func_80037068 /
-/// func_800489A0 / func_8004917C; field_17 is a signed layout adjust subtracted
-/// from the child height when computing visible rows (func_80048AEC /
-/// func_80048C30; the latter also writes field_17 from its third argument).
+/// func_800489A0 / func_8004917C; field_C / field_14 / field_16 are cleared by
+/// func_800489A0; field_17 is a signed layout adjust subtracted from the child
+/// height when computing visible rows (func_80048AEC / func_80048C30; the latter
+/// also writes field_17 from its third argument).
 typedef struct _UiList {
     /* 0x00 */ byte unknown_0[0x4];
     /* 0x04 */ u8   field_4;
@@ -425,9 +426,11 @@ typedef struct _UiList {
     /* 0x08 */ byte unknown_8;
     /* 0x09 */ u8   field_9;
     /* 0x0A */ u8   field_A;
-    /* 0x0B */ byte unknown_B[0x5];
+    /* 0x0B */ byte unknown_B;
+    /* 0x0C */ s32  field_C;
     /* 0x10 */ s32  field_10;
-    /* 0x14 */ byte unknown_14[0x3];
+    /* 0x14 */ s16  field_14;
+    /* 0x16 */ s8   field_16;
     /* 0x17 */ s8   field_17;
     /* 0x18 */ byte unknown_18[0xC];
 } UiList;

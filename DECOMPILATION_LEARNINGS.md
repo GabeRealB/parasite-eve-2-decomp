@@ -8363,3 +8363,38 @@ asm("s1")`, `register u8* head asm("v1")`, `register SVECTOR* sv1 asm("a0")`
 match the target's three live pointers. Writing the transpose into
 `volatile MATRIX* dest` forces all stores before `*scratch += 0x20`, which
 needs the load-delay `nop` after `lw` of the head.
+
+## Volatile field stores keep zero-init order before a global load
+
+When the target zeros several struct fields then loads a BSS flag:
+
+```
+sb   zero, field_A(a0)
+sh   zero, field_14(a0)
+sb   zero, field_16(a0)
+sw   zero, field_C(a0)
+lb   v0, %lo(D_flag)(v0)   /* lui %hi was in prior bnez delay */
+nop
+beqz v0, ...
+```
+
+plain stores get reordered around the load — halfword/word zeros slip into the
+`lb` load-delay and the `beqz` delay slot (~96%). A full `asm("" ::: "memory")`
+barrier before the load restores store order but also delays the `lui %hi`,
+leaving a `nop` in the `bnez` delay (~98%).
+
+Fix: mark only the stores that were being delayed as volatile:
+
+```c
+arg0->field_A = 0;
+*(volatile s16*)&arg0->field_14 = 0;
+arg0->field_16 = 0;
+*(volatile s32*)&arg0->field_C = 0;
+if (D_flag != 0) {
+    /* ... */
+}
+```
+
+Volatile stores cannot move past the subsequent non-volatile load, so order
+matches, while the `lui %hi(D_flag)` still fills the earlier branch delay.
+`func_800489A0` is the pure example (UiList tail zero-init + `D_80072313`).
