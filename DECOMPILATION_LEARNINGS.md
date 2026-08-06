@@ -8849,3 +8849,48 @@ ptr = base + stride;     /* reuses $a1 for the * 0x30 shift pattern */
 ```
 
 `func_8001EB44` case 0 is the pure example (MDEC buffer layout).
+
+## Stack pad between packed s32 and RECT (0x10 / 0x18 locals)
+
+When the target has an s32 at `sp+0x10` (often a packed return reloaded with
+`lhu` of both halves) and a `RECT` at `sp+0x18`, separate locals reverse the
+order or pack tightly. Force the gap with an explicit stack struct:
+
+```c
+struct {
+    union {
+        s32 as32;
+        struct { u16 w; u16 h; } hw;
+    } dims;
+    s32  pad;   /* unused; keeps RECT at +8 */
+    RECT rect;
+} sp;
+
+sp.dims.as32 = func_that_returns_wh();
+/* … */
+func(..., sp.dims.hw.w + t, sp.dims.hw.h + u);
+```
+
+The union gives `lhu` of each half; a plain `s32` with `((u16*)&dims)[i]` often
+changes call-arg scheduling. `func_80048560` is the pure example.
+
+## Temps for `arg + K` before `mem + (arg + K)` call args
+
+Target sequence for call setup:
+
+```
+lhu  v0, mem
+addiu a1, s1, K
+addu  a1, v0, a1
+```
+
+A direct `mem + (arg + K)` reassociates to `(mem + K) + arg` (`addiu` on the
+loaded halfword). Assign the s-reg addend first:
+
+```c
+t = arg2 + 5;
+u = arg3 + 1;
+func(arg0, dims.hw.w + t, dims.hw.h + u);
+```
+
+`func_80048560` is the pure example (text size padding into `func_800466E4`).

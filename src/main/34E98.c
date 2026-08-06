@@ -666,7 +666,47 @@ void func_80048390(RECT* arg0, s32 arg1, s32 arg2, char* arg3)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80048560);
+void func_80048560(GStruct30* arg0, u8* arg1, s32 arg2, s32 arg3)
+{
+    struct {
+        union {
+            s32 as32;
+            struct {
+                u16 w;
+                u16 h;
+            } hw;
+        } dims;
+        s32  pad;
+        RECT rect;
+    } sp;
+    s32 t;
+    s32 u;
+
+    sp.dims.as32 = func_8002FD08(arg1);
+    func_800492EC(arg0, &arg0->field_C, &sp.rect);
+    if ((arg0->field_4 & 0xF) == 2) {
+        sp.rect.y += 9;
+        sp.rect.h -= 0xB;
+        sp.rect.x += 2;
+        sp.rect.w -= 4;
+    } else {
+        sp.rect.y += 2;
+        sp.rect.h -= 4;
+        sp.rect.x += 2;
+        sp.rect.w -= 4;
+    }
+    arg0->field_1C = -(sp.rect.w >> 1);
+    arg0->field_1E = arg0->field_1C + sp.rect.w;
+    arg0->field_18 = -(sp.rect.h >> 1);
+    arg0->field_1A = arg0->field_18 + sp.rect.h;
+    arg0->field_20 = sp.rect.x - arg0->field_1C;
+    arg0->field_22 = sp.rect.y - arg0->field_18;
+    t              = arg2 + 5;
+    u              = arg3 + 1;
+    func_800466E4(arg0, sp.dims.hw.w + t, sp.dims.hw.h + u);
+    arg0->field_C.x = -(arg0->field_C.w / 2);
+    arg0->field_C.y = -(arg0->field_C.h / 2) - 0x14;
+}
 
 UiObject* func_800486F0(UiObjectDesc* arg0, s32 arg1, s32 arg2, s32 arg3, UiObject* arg4)
 {
@@ -1031,12 +1071,12 @@ void func_80049024(GStruct30* arg0, GStruct30* arg1, GStruct30* arg2)
     }
 }
 
-void func_800490A4(void* arg0, void* arg1)
+void func_800490A4(GStruct30* arg0, u8* arg1)
 {
     func_80048560(arg0, arg1, 0, 0);
 }
 
-void func_800490C8(void* arg0, void* arg1)
+void func_800490C8(GStruct30* arg0, u8* arg1)
 {
     func_80048560(arg0, arg1, 0x20, 0);
 }

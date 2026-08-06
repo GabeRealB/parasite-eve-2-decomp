@@ -177,7 +177,7 @@ extern UiObject* func_800486F0(UiObjectDesc* arg0, s32 arg1, s32 arg2, s32 arg3,
                                UiObject* arg4);
 extern void      func_80046B34(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5, s32 arg6);
 extern void      func_80046EEC(void* arg0, void* arg1, s32 arg2);
-extern void      func_80048560(void* arg0, void* arg1, s32 arg2, s32 arg3);
+extern void      func_80048560(GStruct30* arg0, u8* arg1, s32 arg2, s32 arg3);
 extern void      func_80048838(UiObject* arg0, Task* arg1);
 extern void      func_800488B8(Task* arg0);
 extern void      func_800488F8(Task* arg0);
