@@ -7504,6 +7504,14 @@ ot[(s16)idx + 1] = (ot[(s16)idx + 1] & mask_hi) | ((u32)p & mask);
 Assign `ot` before `mask_hi` so the `lui %hi(D_800710A0)` precedes
 `lui a1,0xFF00`. `func_80049980` is the pure example.
 
+Do **not** also pin an earlier mid-function temporary to `asm("a1")` (e.g. a
+live `y = field_22` that the target keeps in `$a1` across a branch). Pinning
+both forces the early value elsewhere and emits `lui a1,0xFF00` too early.
+Leave the early temp unpinned: with `mask_hi` reserved for the epilogue, GCC
+still naturally places the live-across-branch value in free `$a1`, and the late
+`mask_hi` assignment keeps the correct `lui` schedule. `func_80046508` is the
+example (shares the dual-use OT pattern with `func_80049980`).
+
 ## Oversize prim advance via a larger sibling type
 
 When the buffer cursor advances by more bytes than `sizeof` the prim being

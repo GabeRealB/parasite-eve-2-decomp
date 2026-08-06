@@ -277,7 +277,99 @@ void func_800463B4(GStruct30* arg0, s32 arg1, s32 arg2)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80046508);
+void func_80046508(UiList* arg0, GStruct30* arg1, s32 arg2)
+{
+    POLY_G3*         p;
+    s16              x;
+    s32              y;
+    u32              mask;
+    register u32     mask_hi asm("a1");
+    register u_long* ot asm("a2");
+    s32              y0;
+    u16              t;
+
+    p          = (POLY_G3*)D_80071190;
+    D_80071190 = (DR_TPAGE*)(p + 1);
+    setPolyG3(p);
+
+    x     = arg1->field_C.x + arg1->field_C.w - 5;
+    p->x2 = x;
+    p->x1 = x;
+    p->x0 = x;
+
+    y     = arg1->field_22;
+    p->y2 = y;
+    p->y1 = y;
+    p->y0 = y;
+
+    if (arg2 == 0) {
+        y     = y + arg1->field_18;
+        p->y0 = y;
+        if (arg1->field_0 == 1) {
+            register s32 tmp asm("v0");
+
+            tmp   = (((u32)Display_State.field_c >> 3) & 3) - 3;
+            tmp   = y - tmp;
+            p->y0 = tmp;
+        }
+        p->y0 = p->y0 + arg0->field_17;
+        p->x1 = p->x1 - 4;
+        t     = p->y0 + 5;
+        p->x2 = p->x2 + 5;
+        p->y2 = t;
+        p->y1 = t;
+    } else {
+        {
+            register s32 f1a asm("v1");
+            register s32 tmp asm("v0");
+
+            f1a = arg1->field_1A;
+            tmp = y + 2;
+            y0  = f1a + tmp;
+        }
+        p->y0 = y0;
+        if (arg1->field_0 == 1) {
+            register s32 tmp asm("v0");
+            register s32 c asm("v1");
+
+            c     = 0xFFFD;
+            tmp   = ((u32)Display_State.field_c >> 3) & 3;
+            tmp   = tmp + c;
+            tmp   = y0 + tmp;
+            p->y0 = tmp;
+        }
+        {
+            register u16 tv0 asm("v0");
+            register u16 tv1 asm("v1");
+
+            tv0   = p->x1;
+            tv1   = ((volatile POLY_G3*)p)->y0;
+            tv0   = tv0 - 3;
+            p->x1 = tv0;
+            tv0   = p->x2;
+            tv1   = tv1 - 4;
+            p->y2 = tv1;
+            p->y1 = tv1;
+            p->x2 = tv0 + 4;
+        }
+    }
+
+    mask    = 0xFFFFFF;
+    p->r0   = 0x9F;
+    p->g0   = 0x7F;
+    p->b0   = 0xBF;
+    p->r2   = 0xDF;
+    p->r1   = 0xDF;
+    p->g2   = 0xCF;
+    p->g1   = 0xCF;
+    p->b2   = 0xFF;
+    p->b1   = 0xFF;
+    ot      = D_800710A0;
+    mask_hi = 0xFF000000;
+    p->tag  = (p->tag & mask_hi) | (ot[(s16)arg1->field_14 + 1] & mask);
+    ot[(s16)arg1->field_14 + 1] =
+        (ot[(s16)arg1->field_14 + 1] & mask_hi) | ((u32)p & mask);
+}
 
 void func_800466E4(GStruct30* arg0, s32 arg1, s32 arg2)
 {
