@@ -8697,3 +8697,43 @@ Scratch-object matching can still report 100% when only the I-type immediate
 differs if the scoreer is too loose; always confirm with
 `./tools/build-and-verify.sh` (`build/USA/out/SLUS_010.42: OK`).
 `func_80042838` is the pure example (also `1C034.c` / `11E9C.c` use `-0x10`).
+
+## Dual-scope `RECT*` for early `$a1` vs late `$s1` (same address)
+
+When one stack RECT is both (1) the destination of a switch that must put
+`&sp10` in `$a1` early (delay-slot of the first branch, copy via `sh …,0(a1)`,
+and the `jal` second arg with no extra `move`) and (2) a nullable pointer that
+must live in `$s1` for a later `if (p != NULL)` after more calls, a **single**
+live `RECT* r = &sp10` across the whole function pins the address in `$s1` from
+the start (extra `move a1,s1`, stores to `0(s1)`, wrong prologue order).
+
+Split into two scopes so the early binding dies before the late one is born:
+
+```c
+{
+    RECT* arg1 = &sp10;
+    switch (mode) {
+    case 1:  func_A(obj, arg1, …); goto after;
+    case 3:
+    case 4:  func_A(obj, arg1, …); goto after;
+    }
+    arg1->x = …; /* default copy — uses a1, not s1 */
+}
+after:
+{
+    RECT* arg1 = &sp10; /* separate lifetime → s1, scheduled into bne delay */
+    func_B(obj, &obj->rect, &sp20);
+    /* layout math … */
+    if (arg1 != NULL) {
+        func_B(obj, arg1, &sp18);
+    }
+    func_C(obj, &sp10, &sp18, 0);
+}
+```
+
+Do **not** also name a long-lived `RECT* arg2 = &sp18`: that steals `$s2` and
+changes the `bne` delay from `addiu s1,sp,0x10` to `addiu s2,sp,0x18`. Pass
+`&sp18` directly so each use is a fresh `addiu a2,sp,0x18`.
+
+`func_80045D24` is the pure example (same shape as inlined `func_80049478` +
+`func_80049348` + `func_800454E4`).
