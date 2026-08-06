@@ -5,7 +5,84 @@
 #include "main/unknown_syms.h"
 #include "psyq/libpress.h"
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8003EA44);
+void func_8003EA44(void)
+{
+    GStruct17* p;
+    s32        temp;
+    s32        product;
+    s32        otIdx;
+    s32        yoff;
+    u8         max;
+    u8         val;
+    TILE*      tile;
+    DR_TPAGE*  dr;
+    u_long*    ot;
+
+    p = D_80062698;
+    if ((s8)p->field_19 & 0x80) {
+        p->field_19 = p->field_19 & 0x7F;
+        return;
+    }
+
+    if ((s8)Display_State.field_103 != 2) {
+        temp = (s8)p->field_18;
+        if (temp != 0) {
+            product = temp * Display_State.field_10a;
+            temp    = p->field_17;
+            temp    = temp + product;
+            if (temp <= 0) {
+                p->field_17          = 0;
+                D_80062698->field_18 = 0;
+            } else {
+                max = p->field_1a;
+                if (temp >= (s32)max) {
+                    p->field_17          = max;
+                    D_80062698->field_18 = 0;
+                } else {
+                    p->field_17 = (u8)temp;
+                }
+            }
+        }
+    }
+
+    if (D_80062698->field_17 != 0) {
+        otIdx = 0;
+        if (D_80062698->field_19 & 2) {
+            otIdx = 0x3FF;
+            if (D_80062698->field_13 == 0) {
+                otIdx = 0x3F;
+            }
+        }
+
+        tile       = (TILE*)D_80071190;
+        D_80071190 = (DR_TPAGE*)(tile + 1);
+        yoff       = Display_State.field_109;
+        setlen(tile, 3);
+        setcode(tile, 0x62);
+        tile->x0 = -0xA0;
+        tile->y0 = -0x78 - yoff;
+        tile->w  = 0x140;
+        tile->h  = 0xF0;
+        val      = D_80062698->field_17;
+        tile->b0 = val;
+        tile->g0 = val;
+        tile->r0 = val;
+
+        dr         = (DR_TPAGE*)D_80071190;
+        D_80071190 = dr + 1;
+        if (!(D_80062698->field_19 & 1)) {
+            setlen(dr, 1);
+            dr->code[0] = 0xE1000240;
+        } else {
+            setlen(dr, 1);
+            dr->code[0] = 0xE1000220;
+        }
+
+        ot = (u_long*)((otIdx << 2) + (s32)D_800710A0);
+        addPrim(ot, tile);
+        addPrim(ot, dr);
+    }
+}
 
 s32 func_8003EC44(Task* arg0)
 {

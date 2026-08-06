@@ -10115,3 +10115,75 @@ vmat->m[1][1] = cos2;
 ```
 
 `func_8003CB80` is the pure example (Z-axis; X sibling is `func_8003C788`).
+
+## Duplicate `setlen` in both branches for delayed-slot tpage if/else
+
+When building a `DR_TPAGE` whose GPU command is chosen by a flag, writing:
+
+```c
+setlen(dr, 1);
+if (!(flag)) {
+    dr->code[0] = 0xE1000240;
+} else {
+    dr->code[0] = 0xE1000220;
+}
+```
+
+puts `setlen` *before* the `bnez`/`lui`/`j`/`ori` tpage select. The target often
+wants `setlen` *after* the select (with `li v0,1; sb` between the join and the
+`sw` of the command). Duplicating `setlen` into both arms forces that order
+while still CSE'ing the `li`/`sb` after the join:
+
+```c
+if (!(flag)) {
+    setlen(dr, 1);
+    dr->code[0] = 0xE1000240;
+} else {
+    setlen(dr, 1);
+    dr->code[0] = 0xE1000220;
+}
+```
+
+Also: a shared `tpage` temporary tends to hoist `lui ...,0xe100` and break the
+`j`/`ori` delay-slot form; assigning the full constant in each branch avoids
+that. `func_8003EA44` is the pure example.
+
+## OT index: `(idx << 2) + (s32)base` vs `base + idx`
+
+`D_800710A0 + otIdx` (pointer arithmetic) and
+`(u_long*)((otIdx << 2) + (s32)D_800710A0)` are equivalent, but the second form
+matches the target's register/schedule for dual `addPrim`:
+
+```
+lui  a1, 0xff / ori     /* 0xFFFFFF mask */
+lui  v0, %hi(D_800710A0)
+sll  a0, a2, 2          /* idx in a2 → offset in a0 */
+lui  a2, 0xff00
+lw   v0, %lo(D_800710A0)(v0)
+...
+addu a0, a0, v0
+```
+
+The pointer form often loads the base early into another register and swaps
+which of `$a0`/`$a1` holds the mask vs the OT entry. Prefer the shift-then-add
+cast when the dual-`addPrim` tail refuses to match.
+
+## Split mult into product temp for `lbu` into multiplicand reg
+
+```
+mult  v1, v0
+lbu   v1, field(a0)   /* reuse multiplicand reg */
+mflo  t1
+addu  v1, v1, t1
+```
+
+`temp = field + temp * scale` often loads `field` into `$v0` instead. Split so
+the multiplicand register is clearly dead before the load:
+
+```c
+product = temp * scale;
+temp    = field;
+temp    = temp + product;
+```
+
+`func_8003EA44` needs this for the fade-step update.
