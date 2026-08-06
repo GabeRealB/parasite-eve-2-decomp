@@ -743,6 +743,33 @@ extern u8 D_8009E274;
 extern u8 D_8009E4A0;
 extern u8 D_8009E770;
 extern u8 D_8009EAA4;
+extern u8 D_8009EB84;
+extern u8 D_8009EC1C;
+extern u8 D_8009ECC0;
+extern u8 D_8009ED28;
+extern u8 D_8009ED90;
+extern u8 D_8009EE28;
+extern u8 D_8009EECC;
+extern u8 D_8009EF64;
+extern u8 D_8009EFFC;
+extern u8 D_8009F0A0;
+extern u8 D_8009F144;
+extern u8 D_8009F1DC;
+extern u8 D_8009F280;
+extern u8 D_8009F360;
+extern u8 D_8009F3F8;
+extern u8 D_8009F49C;
+extern u8 D_8009F504;
+extern u8 D_8009F56C;
+extern u8 D_8009F670;
+extern u8 D_8009F708;
+extern u8 D_8009F824;
+extern u8 D_8009F8C8;
+extern u8 D_8009F970;
+extern u8 D_8009FA24;
+extern u8 D_8009FB28;
+extern u8 D_8009FC44;
+extern u8 D_8009FC90;
 extern u8 D_80136224;
 extern u8 D_80136500;
 extern u8 D_8013685C;
@@ -753,6 +780,26 @@ extern u8 D_801375F8;
 extern u8 D_801379B4;
 extern u8 D_80138004;
 extern u8 D_801386EC;
+
+/// 0x88-byte scratch workspace allocated from G_SCRATCH_HEAD for func_800410F0.
+typedef struct {
+    /* 0x00 */ u8*        field_0;
+    /* 0x04 */ u8*        field_4;
+    /* 0x08 */ s32        field_8;
+    /* 0x0C */ s32        field_C;
+    /* 0x10 */ byte       pad_10[0x8];
+    /* 0x18 */ s32        field_18;
+    /* 0x1C */ s32        field_1C;
+    /* 0x20 */ u32        field_20;
+    /* 0x24 */ byte       pad_24[0x4C];
+    /* 0x70 */ s16        field_70;
+    /* 0x72 */ s16        field_72;
+    /* 0x74 */ byte       pad_74[0xC];
+    /* 0x80 */ GStruct27* field_80;
+    /* 0x84 */ byte       pad_84[0x4];
+} ScratchModelBlock;
+
+typedef u32* (*ModelStreamHandler)(ScratchModelBlock* ws, s32 arg1, u32* stream);
 
 void func_800409D0(GStruct33* arg0)
 {
@@ -985,7 +1032,194 @@ void func_800409D0(GStruct33* arg0)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_800410F0);
+void func_800410F0(GStruct27* arg0)
+{
+    ScratchModelBlock* ws;
+    GStruct33*         src;
+    u32*               stream;
+    u32                id;
+    void*              handler;
+    s32                flag;
+    void*              buf;
+    u32                hi;
+
+    flag = 0;
+    {
+        register void**             scratch asm("a0");
+        register ScratchModelBlock* head asm("v1");
+        void*                       tmp;
+
+        scratch  = (void**)G_SCRATCH_HEAD;
+        src      = arg0->field_10;
+        tmp      = *scratch;
+        stream   = src->field_20;
+        hi       = *(u32*)&D4F564_8005ED64->field_4;
+        head     = (ScratchModelBlock*)((u8*)tmp - 0x88);
+        hi      &= 0xFFFF0000;
+        *scratch = head;
+        if ((hi == 0x020F0000) || (hi == 0x02100000)) {
+            flag = 1;
+        }
+        ws = head;
+    }
+
+    ws->field_80 = arg0;
+    buf          = arg0->field_18;
+    ws->field_0  = buf;
+    if (arg0->field_14 != 0) {
+        ws->field_0 = (u8*)buf + arg0->field_16;
+    }
+    ws->field_4     = ws->field_0;
+    ws->field_0     = (u8*)ws->field_0 + src->field_8;
+    arg0->field_14 ^= 1;
+    ws->field_8     = arg0->field_10->field_14;
+    ws->field_C     = arg0->field_10->field_18;
+    ws->field_70    = (s8)arg0->field_24;
+    ws->field_72    = (s8)arg0->field_25 << 6;
+    goto read_id;
+
+    for (;;) {
+        switch (id) {
+            case 0x4038:
+                handler = &D_8009F670;
+                if (flag != 0) {
+                    handler = &D_8009F56C;
+                }
+                break;
+            case 0x38:
+            case 0x3A:
+            case 0x8038:
+            case 0x10038:
+            case 0x1003A:
+            case 0x20038:
+                handler = &D_8009ED90;
+                break;
+            case 0x4078:
+                handler = &D_8009F824;
+                if (flag != 0) {
+                    handler = &D_8009F708;
+                }
+                break;
+            case 0x78:
+            case 0x7A:
+            case 0x8078:
+            case 0x10078:
+            case 0x20078:
+                handler = &D_8009EE28;
+                break;
+            case 0x31:
+            case 0x39:
+            case 0x3B:
+            case 0x131:
+            case 0x8039:
+                handler = &D_8009EB84;
+                break;
+            case 0x71:
+            case 0x79:
+            case 0x7B:
+            case 0x171:
+            case 0x8079:
+                handler = &D_8009EC1C;
+                break;
+            case 0x4039:
+                handler = &D_8009F8C8;
+                if (flag != 0) {
+                    handler = &D_8009FA24;
+                }
+                break;
+            case 0x4079:
+                handler = &D_8009F970;
+                if (flag != 0) {
+                    handler = &D_8009FB28;
+                }
+                break;
+            case 0x18:
+            case 0x1A:
+                handler = &D_8009F144;
+                break;
+            case 0x58:
+            case 0x5A:
+                handler = &D_8009F1DC;
+                break;
+            case 0x1C:
+            case 0x1E:
+                handler = &D_8009F360;
+                break;
+            case 0x5C:
+            case 0x5E:
+                handler = &D_8009F3F8;
+                break;
+            case 0x30:
+                handler = &D_8009EECC;
+                break;
+            case 0x130:
+                handler = &D_8009EF64;
+                break;
+            case 0x70:
+                handler = &D_8009EFFC;
+                break;
+            case 0x170:
+                handler = &D_8009F0A0;
+                break;
+            case 0x156:
+                handler = &D_8009F280;
+                break;
+            case 4:
+                handler = &D_8009F504;
+                break;
+            case 0x44:
+                handler = &D_8009F49C;
+                break;
+            case 5:
+                handler = &D_8009ED28;
+                break;
+            case 0x45:
+                handler = &D_8009ECC0;
+                break;
+            case 0x40:
+            case 0x60:
+            case 0x160:
+            case 0x4040:
+            case 0x4060:
+            case 0x4160:
+                handler = &D_8009FC44;
+                break;
+            default:
+                handler = &D_800105AC;
+                break;
+            case 0:
+            case 0x20:
+            case 0x120:
+            case 0x4000:
+            case 0x4020:
+            case 0x4120:
+                handler = &D_8009FC90;
+                break;
+        }
+
+        ws->field_20 = *stream;
+        stream      += 2;
+        ws->field_18 = ((u16*)stream)[0];
+        ws->field_1C = ((u16*)stream)[1];
+        stream       = (u32*)((u8*)stream + 4);
+        stream       = ((ModelStreamHandler)handler)(ws, 0, stream);
+        id           = *stream;
+
+        while (1) {
+            if (id != -2U) {
+                break;
+            }
+            stream++;
+        read_id:
+            id = *stream;
+            if (id == -1U) {
+                goto done;
+            }
+        }
+    }
+done:
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x88;
+}
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_80041700);
 

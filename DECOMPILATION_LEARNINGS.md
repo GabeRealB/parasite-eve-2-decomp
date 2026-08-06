@@ -9395,3 +9395,55 @@ folderId = ((u8)arg1 * 100) + (u8)arg2;
 ```
 
 `func_80023748` (`D_8006ADE2` after the `D_8006D4F0` clear loop).
+
+## Two-phase scratch alloc: unpinned load, then `register … asm("v1")` adjust
+
+When the target does:
+
+```
+lw   t0, 0x10(a3)     /* src = arg->field_10  first */
+lw   v1, 0(a0)        /* head = *G_SCRATCH_HEAD */
+…                     /* lo-load of a global, etc. */
+addiu v1, v1, -0x88   /* head stays in $v1 */
+sw   v1, 0(a0)
+…                     /* flag test with || */
+move s0, v1           /* delay of bne  */
+li   s1, 1
+move s0, v1           /* set-flag path */
+```
+
+pinning both `scratch` to `$a0` and `head` to `$v1` *and* writing
+`head = *scratch` schedules the `*scratch` load before the `field_10` load
+(`lw v1` then `lw t0`) — register pressure on `$v1` wins the schedule.
+
+Fix: load the head into an **unpinned** temporary first, then assign the
+adjusted pointer into the pinned `v1` register:
+
+```c
+{
+    register void**             scratch asm("a0");
+    register ScratchModelBlock* head asm("v1");
+    void*                       tmp;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    src      = arg0->field_10;          /* lw t0 first */
+    tmp      = *scratch;                /* unpinned load */
+    stream   = src->field_20;
+    hi       = *(u32*)&g->field_4;
+    head     = (ScratchModelBlock*)((u8*)tmp - 0x88); /* addiu v1, … */
+    hi      &= 0xFFFF0000;
+    *scratch = head;
+    if ((hi == 0x020F0000) || (hi == 0x02100000)) {
+        flag = 1;
+    }
+    ws = head; /* dual move s0,v1 from the || codegen */
+}
+```
+
+Split `hi = load; hi &= 0xFFFF0000` (do not pin `hi` to `$a1` while computing
+the mask) so the target emits `lw a1,4(v0)` / `lui v0,0xffff` / `and a1,a1,v0`
+rather than preloading the mask into `$a1`. Free the scratch pointer after the
+block and rematerialize the restore with a bare
+`*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x88`.
+
+`func_800410F0` is the pure example.
