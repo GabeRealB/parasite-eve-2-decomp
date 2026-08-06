@@ -163,11 +163,14 @@ STATIC_ASSERT_SIZEOF(GStruct71, 0x988);
 
 /// Object pointed to by Task::field_2c; field_8 is a s32* cleared by
 /// func_8003EE68 after optional func_801011D0 / func_800E1A6C setup.
+/// field_C flag bits are OR'd with 0x80 in Task_Kill (type-1 deferred kill).
 typedef struct _GStruct72 {
     /* 0x0 */ byte pad_0[0x8];
     /* 0x8 */ s32* field_8;
+    /* 0xC */ u16  field_C;
+    /* 0xE */ byte pad_E[0x2];
 } GStruct72;
-STATIC_ASSERT_SIZEOF(GStruct72, 0xC);
+STATIC_ASSERT_SIZEOF(GStruct72, 0x10);
 
 /// 0x1C-byte slot allocated from D_8007EBF0 (see func_800509F4 / func_80050A38).
 /// Overlay of `GStruct16` starting at offset 0x4 (`field_4` / `field_8`).

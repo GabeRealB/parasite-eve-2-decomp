@@ -9255,3 +9255,55 @@ Pinning `half` to `$a0` coalesces the bias into `$a0` (`addu a0,v1,v0`
 instead of `addu v0,v1,v0`). Leaving `half` unpinned after the explicit
 `/2` + subtract form yields the retail chain. `func_800463B4` is the pure
 example (SPRT_8 cursor + DR_TPAGE, OT index 4).
+
+## Scoped `register asm` pins for multi-section functions
+
+When a large function has independent phases (e.g. parent-unlink, then a
+later free path) that both want the same hard register (`$v1`), a function-
+scope pin collides: the early pin keeps the register "live" and the later
+phase spills to `$s0`/`$s2`.
+
+Symptom: early section matches only with a pin; applying that pin shifts the
+late section off `$v1` (and often flips `bnez`/`beqz` shapes around
+`Task_ActiveList` save/restore).
+
+Fix: scope the pin to a compound block that ends before the later phase, and
+re-pin (or reuse) `$v1` in a second block for the late phase:
+
+```c
+{
+    register Task* p asm("v1");
+    register Task* n asm("a0");
+    p = arg0->field_8;
+    /* ... parent detach using p/n ... */
+}
+
+/* ... middle of function ... */
+
+{
+    register s32 t asm("v1");
+    t = arg0->field_28;
+    if (t == 1) { /* immediate free cases */ }
+}
+```
+
+`Task_Kill` is the pure example: parent detach needs `$v1`/`$a0`, and the
+immediate-free path reuses `$v1` for the type byte and `%hi(Task_ActiveList)`.
+
+## `if (ptr == NULL)` vs `!= NULL` for `bnez` delay-slot stores
+
+When the target does:
+
+```
+bnez  a0, has_next
+ sw    v0, ActiveList(v1)   /* delay: always runs */
+j     cont
+ addiu v0, v0, 4            /* null path */
+has_next:
+addiu v0, a0, 4
+```
+
+writing the C test as `if (next != NULL) { non-null } else { null }` often
+emits `beqz` with the arms swapped. Flipping to `if (next == NULL) { null }
+else { non-null }` produces the retail `bnez` layout with the store in the
+branch delay slot. Same logical code; only the branch polarity matches.

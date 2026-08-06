@@ -95,6 +95,7 @@ extern void* func_80099098(Task* task);
 extern void* func_80099170(Task* task, s32 arg1, s32 arg2);
 extern void  func_800991DC(void* arg0);
 extern void  func_80099214(void* arg0);
+extern void  func_80099258(void* arg0);
 extern void  func_80099290(void* arg0);
 extern s32   D_8005ED8C;
 extern void  func_800E1A6C(void* arg0);

@@ -89,7 +89,162 @@ merge:
     return task;
 }
 
-INCLUDE_ASM("main/nonmatchings/task", Task_Kill);
+void Task_Kill(Task* arg0)
+{
+    Task*      start;
+    Task*      cur;
+    Task*      temp;
+    Task*      next;
+    TaskNode*  saved;
+    TaskNode** pp;
+    TaskNode*  prev;
+    void*      extra;
+    s32        type;
+
+    temp = arg0->field_c;
+    if (temp != NULL) {
+        start = temp;
+        cur   = start;
+        do {
+            cur->field_8 = NULL;
+            cur->field_18(cur);
+            cur = cur->field_10;
+        } while (cur != start);
+    }
+
+    {
+        register Task* p asm("v1");
+        register Task* n asm("a0");
+
+        p = arg0->field_8;
+        if (p != NULL) {
+            n = arg0->field_10;
+            if (n == arg0) {
+                p->field_c = NULL;
+            } else {
+                if (p->field_c == arg0) {
+                    p->field_c = n;
+                }
+                cur = arg0;
+                if (arg0->field_10 != arg0) {
+                    do {
+                        cur = cur->field_10;
+                    } while (cur->field_10 != arg0);
+                }
+                cur->field_10 = arg0->field_10;
+            }
+        }
+    }
+
+    if (arg0->field_1C != NULL) {
+        Mem_Free(arg0->field_1C);
+    }
+
+    if (Display_State.field_123 == 0) {
+        type = arg0->field_28;
+        if (type == 1) {
+            goto case1;
+        }
+        if (type < 2) {
+            goto def_case;
+        }
+        if (type == 2) {
+            goto case2;
+        }
+        goto def_case;
+
+    case1:
+        ((GStruct72*)arg0->field_2c)->field_C |= 0x80;
+        arg0->field_2a                         = 2;
+        arg0->field_14                         = func_8002D6EC;
+        arg0->field_30                         = 0;
+        arg0->field_18                         = (TaskFunc)func_8002DEC4;
+        return;
+
+    case2:
+        func_80099258(arg0->field_2c);
+        arg0->field_2a = 1;
+        arg0->field_14 = (TaskFunc)func_8002DEC4;
+        arg0->field_18 = (TaskFunc)func_8002DEC4;
+        arg0->field_2a--;
+        if (arg0->field_2a != 0) {
+            return;
+        }
+        if (arg0->field_28 == 1) {
+            goto cu1;
+        }
+        if (arg0->field_28 != type) {
+            goto cu_def;
+        }
+        goto cu2;
+
+    def_case:
+        arg0->field_2a = 1;
+        arg0->field_14 = (TaskFunc)func_8002DEC4;
+        arg0->field_18 = (TaskFunc)func_8002DEC4;
+        arg0->field_2a--;
+        if (arg0->field_2a != 0) {
+            return;
+        }
+        if (arg0->field_28 == 1) {
+            goto cu1;
+        }
+        if (arg0->field_28 == 2) {
+            goto cu2;
+        }
+        goto cu_def;
+
+    cu1:
+        extra = arg0->field_2c;
+        func_800991DC(extra);
+        func_80099214(extra);
+        goto cu_def;
+
+    cu2:
+        func_80099290(arg0->field_2c);
+
+    cu_def:
+        arg0->field_28 = 0xFF;
+        return;
+    }
+
+    {
+        register s32 t asm("v1");
+
+        t = arg0->field_28;
+        if (t == 1) {
+            goto imm1;
+        }
+        if (t == 2) {
+            goto imm2;
+        }
+    }
+    goto imm_unlink;
+
+imm1:
+    func_800991DC(arg0->field_2c);
+    func_80099214(arg0->field_2c);
+    goto imm_unlink;
+
+imm2:
+    func_80099258(arg0->field_2c);
+    func_80099290(arg0->field_2c);
+
+imm_unlink:
+    saved           = Task_ActiveList;
+    next            = arg0->node.next;
+    Task_ActiveList = &Task_DefaultList;
+    if (next == NULL) {
+        pp = &Task_DefaultList.prev;
+    } else {
+        pp = &next->node.prev;
+    }
+    prev       = arg0->node.prev;
+    *pp        = prev;
+    prev->next = arg0->node.next;
+    Mem_Free(arg0);
+    Task_ActiveList = saved;
+}
 
 Task* Task_SpawnFromTable(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
