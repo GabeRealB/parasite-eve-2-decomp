@@ -8581,3 +8581,47 @@ rect.w = w;
 
 That frees `$t6` for the early `move t6,a0`. `func_8002169C` is the pure
 example (fade-up sibling of `func_8002191C`).
+
+## `do { x = (s32)SomeFunc; } while (0)` delays the following store
+
+When materializing a function pointer into `$v0` (`lui`/`addiu`) and then
+storing it to a stack struct field, GCC often fuses the store immediately after
+`addiu`, leaving no room for independent loads that the target schedules into
+that gap (`lbu` of a flag, `lui` of another global's hi half).
+
+Wrapping only the address materialization in a no-op loop is a scheduling
+barrier:
+
+```c
+do {
+    temp = (s32)func_80059EE0;
+} while (0);
+rem = p->unknown_0[2];   /* lbu can now sit between addiu and sw */
+entry.field_8 = temp;
+```
+
+Without the wrapper the store wins the schedule; with it, the compiler emits
+the independent loads first. `func_80058748` is the pure example (else-arm
+callback install next to `func_80058320`).
+
+## Reserve `$a0` with `register … asm("a0")` so address-hi keeps `$a2`
+
+When `$a1` is pinned (e.g. a live dividend across two `div`s), GCC often
+recolors the split-address hi of a global from `$a2` to `$a0`. That breaks
+later `%lo(sym)(a2)` accesses and steals `$a0` from the rem path's unsigned
+halfword.
+
+Pin a rem temporary to `$a0` for the whole function even if it is only written
+on one arm:
+
+```c
+register s32 rem_tmp asm("a0");
+register s32 field18 asm("a1");
+/* … */
+rem_tmp = (u16)p->field_40 - (field18 % p->field_40) + 1;
+```
+
+The hard pin keeps `$a0` reserved so the global's hi stays in `$a2`. On the
+else arm, reassign `rem_tmp = (s32)&entry` just before the call so `&entry`
+does not hoist to the top of the block. Needs `--expand-div` when the target
+has the full trap sequence (`46FE4.c` / `func_80058748`).

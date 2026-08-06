@@ -581,7 +581,57 @@ void func_8005842C(void)
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_8005854C);
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_80058748);
+void func_80058748(void)
+{
+    GStruct32Entry      entry;
+    volatile GStruct19* p;
+    register s32        rem_tmp asm("a0");
+    register s32        field18 asm("a1");
+    register s32        temp asm("v0");
+    register s32        rem asm("v1");
+    register s32        quot asm("a3");
+
+    p          = &D_80082818;
+    field18    = p->field_18;
+    temp       = field18 / p->field_40;
+    p->field_6 = 0;
+    quot       = temp + 1;
+
+    if ((D_80082818.unknown_0[0] >> 2) & 1) {
+        p->unknown_0[3] = 1;
+        p->unknown_0[1] = p->unknown_0[1] | 1;
+        p->unknown_0[2] = p->unknown_0[2] & 0xFD;
+        if (p->field_1C & 1) {
+            p->unknown_0[4] = 0;
+        } else {
+            rem_tmp                 = (u16)p->field_40;
+            rem                     = field18 % p->field_40;
+            rem_tmp                 = rem_tmp - rem;
+            rem_tmp                 = rem_tmp + 1;
+            p->unknown_0[4]         = rem_tmp;
+            D_80082818.unknown_0[0] = D_80082818.unknown_0[0] | 0x20;
+        }
+        func_800588D8();
+    } else {
+        do {
+            temp = (s32)func_80059EE0;
+        } while (0);
+        rem             = p->unknown_0[2];
+        entry.field_8   = temp;
+        temp            = (s32)func_80058748;
+        rem             = rem & 0xFD;
+        p->unknown_0[2] = rem;
+        entry.field_C   = temp;
+        D_80068B63      = D_80068B63 + 1;
+        temp            = (s32)func_8005BA8C;
+        rem             = p->field_30;
+        entry.field_10  = temp;
+        p->field_20     = quot;
+        rem_tmp         = (s32)&entry;
+        entry.field_4   = rem;
+        p->field_6      = func_80057D3C((GStruct32Entry*)rem_tmp);
+    }
+}
 
 void func_800588D8(void)
 {
