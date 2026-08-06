@@ -108,7 +108,36 @@ end:
 
 INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002E010);
 
-INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002E188);
+void func_8002E188(GStruct38* arg0, GStruct68* arg1, s32 arg2)
+{
+    SPRT* p;
+    SPRT* p2;
+    s32   temp;
+
+    p             = (SPRT*)D_80071190;
+    D_80071190    = (DR_TPAGE*)(p + 1);
+    *(s32*)&p->r0 = arg2;
+    setlen(p, 4);
+    setcode(p, 0x64);
+
+    p2         = (SPRT*)D_80071190;
+    D_80071190 = (DR_TPAGE*)(p2 + 1);
+    setlen(p2, 4);
+    setcode(p2, 0x67);
+
+    p2->x0 = p->x0 = arg0->field_0 + (s8)arg1->off_x;
+    p2->y0 = p->y0 = (arg0->field_2 - arg1->h) + (s8)arg1->off_y;
+    p2->u0 = p->u0 = arg1->u;
+    p2->v0 = p->v0 = arg1->v + arg0->field_F;
+    p2->w = p->w = arg1->w + 1;
+    temp         = arg1->h;
+    p2->h = p->h = temp + 1;
+    p2->clut     = 0x7FFF;
+    p->clut      = 0x7FFD;
+
+    addPrim(D_800710A0 + arg0->field_4 + 1, p2);
+    addPrim(D_800710A0 + arg0->field_4, p);
+}
 
 INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002E300);
 
