@@ -745,7 +745,107 @@ void func_80051AF0(GStruct36* arg0)
     } while (i < 0x12);
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80051BB0);
+void func_80051BB0(GStruct36* arg0, GStruct36Entry* arg1)
+{
+    u8                       sp10;
+    register GStruct36Entry* entry asm("s0");
+    MidiHandler*             table;
+    u32                      temp;
+    s32                      quot;
+    s32                      ticks;
+    s32                      rem_factor;
+    u8                       status;
+    u32                      hi;
+    s32                      status_arg;
+    s32                      delta;
+    MidiHandler              handler;
+    u8*                      cursor;
+
+    entry = arg1;
+    temp  = entry->field_38 + (arg0->field_4 + arg0->field_5) * arg0->field_34;
+    if (Display_State.field_124 == 1) {
+        quot = temp / 6000U;
+    } else {
+        quot = temp / 3600U;
+    }
+    if (Display_State.field_124 == 1) {
+        rem_factor = (temp / 6000U) * 0x177;
+        goto rem_join;
+    } else {
+        goto rem_else;
+    }
+
+early_exit:
+    entry->field_0  = 0;
+    entry->field_38 = 0;
+    arg0->field_0   = 4;
+    return;
+
+rem_else:
+    rem_factor = (temp / 3600U) * 0xE1;
+rem_join: {
+    register s32 scaled asm("v0");
+    register s32 rem asm("v1");
+    scaled          = rem_factor * 0x10;
+    rem             = temp - scaled;
+    ticks           = quot;
+    entry->field_38 = rem;
+}
+    arg0->field_38 += ticks;
+    if (arg0->field_1 == 0x4F) {
+        arg0->field_C = 0xFFFF;
+    }
+    if (ticks < entry->field_34) {
+        goto end;
+    }
+    table  = D_800689C4;
+    ticks -= entry->field_34;
+loop_outer:
+    entry->field_34 = 0;
+loop_inner:
+    status = *entry->field_2C;
+    hi     = status & 0xF0;
+    if (status & 0x80) {
+        entry->field_3 = 0;
+        if (hi != 0xF0) {
+            entry->field_2 = status & 0xF;
+        }
+        status_arg      = status & 0xFF;
+        handler         = *(MidiHandler*)(((hi >> 2) + (s32)table) - 0x20);
+        entry->field_2C = handler(status_arg, entry->field_2C, arg0, entry);
+    } else {
+        entry->field_2C =
+            (*(MidiHandler*)((u8*)table + 4))((entry->field_3 = 1, entry->field_2 | 0x90),
+                                              entry->field_2C - 1, arg0, entry);
+    }
+    if (entry->field_5 != 0) {
+        goto end;
+    }
+    cursor = entry->field_2C;
+    if (cursor == NULL) {
+        goto early_exit;
+    }
+    entry->field_34  = func_8005287C(cursor, &sp10);
+    entry->field_2C += sp10;
+    delta            = entry->field_34;
+    if (delta == 0) {
+        goto loop_inner;
+    }
+    {
+        register s32 d asm("v1");
+        s32          less;
+        d      = delta;
+        less   = ticks < d;
+        ticks -= d;
+        if (less) {
+            ticks += d;
+        } else {
+            goto loop_outer;
+        }
+    }
+end:
+    entry->field_34 -= ticks;
+}
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80051DF4);
 

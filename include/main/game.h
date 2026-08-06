@@ -726,8 +726,11 @@ STATIC_ASSERT_SIZEOF(GStruct35, 0x14);
 /// field_0 / field_1 / field_4 are NRPN/RPN state used by the MIDI CC handler
 /// (func_80052488). field_6 / field_7 and field_8[] form a loop stack for the
 /// 0xF5/0xF6 meta opcodes (func_800526A4); field_8[8] is also the track data
-/// pointer resolved by func_80051A2C (absolute offset 0x74). field_30 is a
-/// saved event cursor for looped CC 0x63.
+/// pointer resolved by func_80051A2C (absolute offset 0x74). field_2C is the
+/// current track cursor advanced by the MIDI event driver (func_80051BB0).
+/// field_30 is a saved event cursor for looped CC 0x63. field_34 is the
+/// remaining delta-time for the next event; field_38 is a fractional tick
+/// accumulator (mod 6000/3600 per Display_State.field_124).
 typedef struct _GStruct36Entry {
     /* 0x00 */ u8  field_0;
     /* 0x01 */ u8  field_1;
@@ -738,9 +741,10 @@ typedef struct _GStruct36Entry {
     /* 0x06 */ u8  field_6;
     /* 0x07 */ s8  field_7;
     /* 0x08 */ u8* field_8[9];
-    /* 0x2C */ u8  unknown_2C[4];
+    /* 0x2C */ u8* field_2C;
     /* 0x30 */ u8* field_30;
-    /* 0x34 */ u8  unknown_34[8];
+    /* 0x34 */ s32 field_34;
+    /* 0x38 */ s32 field_38;
 } GStruct36Entry;
 STATIC_ASSERT_SIZEOF(GStruct36Entry, 0x3C);
 
@@ -778,6 +782,8 @@ STATIC_ASSERT_SIZEOF(GStruct55, 0x10);
 /// field_4/field_5 are copied from field_6/field_7 by the per-frame driver.
 /// field_8 is a scaled volume; field_C is a sentinel (0xFFFF when cleared).
 /// field_10 is a data pointer; field_14 is the volume interpolator.
+/// field_34 is a tempo/rate scale used by func_80051BB0 with field_4+field_5;
+/// field_38 is accumulated song ticks advanced by that driver.
 /// field_484 is a 16-entry opcode table (same layout as GStruct22::field_484);
 /// func_800528BC seeds each entry with 0x407F4000 / 0.
 /// voiceSlots holds up to 18 active SPU voice indices (field_0 = -1 when free).
@@ -797,7 +803,9 @@ typedef struct _GStruct36 {
     /* 0x0C */ s32                 field_C;
     /* 0x10 */ void*               field_10;
     /* 0x14 */ GStruct55           field_14;
-    /* 0x24 */ u8                  unknown_24[0x18];
+    /* 0x24 */ u8                  unknown_24[0x10];
+    /* 0x34 */ s32                 field_34;
+    /* 0x38 */ s32                 field_38;
     /* 0x3C */ s32                 field_3C;
     /* 0x40 */ GStruct42*          field_40;
     /* 0x44 */ u8                  unknown_44[0x8];

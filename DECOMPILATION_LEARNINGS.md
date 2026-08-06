@@ -10322,3 +10322,122 @@ comma form evaluates the full-width mask for the call while the dummy `char`
 store reshuffles the scheduler. A second local pointer alias (`new_var = ds`)
 used on one call site can also be required to keep the register set stable.
 `func_8003DB48` is the pure example.
+
+## Dual magic-division + remainder for NTSC/PAL frame scaling
+
+When the target does two separate `multu` sequences gated on
+`Display_State.field_124 == 1` (NTSC → `/ 6000`, PAL → `/ 3600`) — first for the
+quotient, then again for remainder reconstruction — write two separate `if`
+blocks rather than combining `/` and `%` in one:
+
+```c
+if (Display_State.field_124 == 1) {
+    quot = temp / 6000U;
+} else {
+    quot = temp / 3600U;
+}
+if (Display_State.field_124 == 1) {
+    rem_factor = (temp / 6000U) * 0x177; /* 375; common *16 → 6000 */
+} else {
+    rem_factor = (temp / 3600U) * 0xE1;  /* 225; common *16 → 3600 */
+}
+```
+
+The remainder join does `sll 4` once after both arms (`* 0x10`). Force the
+scaled product into `$v0` and the remainder into `$v1` with dual pins so the
+join matches `sll v0; subu v1, a0, v0; move s1, a1; sw v1`:
+
+```c
+{
+    register s32 scaled asm("v0");
+    register s32 rem asm("v1");
+    scaled = rem_factor * 0x10;
+    rem = temp - scaled;
+    ticks = quot;
+    p->field_38 = rem;
+}
+```
+
+`func_80051BB0` is the pure example.
+
+## Place an orphan early-exit block between if/else arms
+
+When the target parks a cold return block *between* the then-arm's `j join` and
+the else-arm of a dual `field_124` (or similar) branch, force that layout with
+an explicit goto through the else label:
+
+```c
+if (flag == 1) {
+    rem_factor = /* then */;
+    goto rem_join;
+} else {
+    goto rem_else;
+}
+
+early_exit:
+    /* orphan return — only reached by later goto early_exit */
+    p->field_0 = 0;
+    return;
+
+rem_else:
+    rem_factor = /* else */;
+rem_join:
+    /* ... */
+```
+
+GCC fills the then/else gap with the jump-only early_exit block. A plain
+`if/else` without the intermediate label leaves the return at the end of the
+function. `func_80051BB0` is the pure example.
+
+## Delay-slot subtract with restore: compare-first via a `less` flag
+
+When the target has:
+
+```
+move  v1, a0
+slt   v0, s1, v1
+beqz  v0, loop      /* ticks >= delta */
+ subu s1, s1, v1    /* delay: always subtract */
+addu  s1, s1, v1    /* fallthrough: restore original ticks */
+/* end */
+```
+
+a plain `if (ticks >= d) { ticks -= d; goto loop; }` either reuses an earlier
+`subu` (branch to it with `nop` delay) or emits `bnez end; j loop; subu`. Force
+the restore form by comparing *before* the subtract, storing the result, then
+undoing on the less-than path:
+
+```c
+{
+    register s32 d asm("v1");
+    s32 less;
+    d = delta;
+    less = ticks < d;
+    ticks -= d;
+    if (less) {
+        ticks += d;
+    } else {
+        goto loop_outer;
+    }
+}
+/* fallthrough to end with original ticks */
+```
+
+`func_80051BB0` is the pure example.
+
+## Comma in call arg forces field store before callee materialization
+
+When the target does `li v0, 1; sb v0, field; lw v0, handler; jalr v0` on one
+arm of a MIDI/status dispatch, pre-loading the handler into a temp schedules
+the `li` into `$v1` (handler owns `$v0`). Inline the handler load as the callee
+expression and put the field store in a comma on the first argument:
+
+```c
+p->field_2C = (*(Handler*)((u8*)table + 4))(
+    (p->field_3 = 1, p->field_2 | 0x90),
+    p->field_2C - 1, parent, p);
+```
+
+Arg evaluation keeps `lbu`/`lw` of the call operands interleaved correctly and
+the `li v0,1; sb; lw handler` order matches. `func_80051BB0` is the pure
+example (else / running-status arm).
