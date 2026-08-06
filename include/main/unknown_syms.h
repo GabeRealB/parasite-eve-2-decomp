@@ -334,6 +334,7 @@ extern void       func_800544B8(s32 arg0, s32 arg1);
 extern void       func_8005454C(s32 arg0, s32 arg1);
 extern void       func_80054608(s8 arg0);
 extern s32        func_8005462C(void);
+extern void       func_80054658(void);
 extern void       func_8005468C(void);
 extern void       func_800546C0(void);
 extern void       func_800546F4(s32 arg0, u16 arg1);
@@ -504,6 +505,13 @@ extern s32          D_8005EC6C;
 extern volatile u32 D_8005EC70;
 extern s32          D_8005EC74;
 extern s32          D_8005EC78;
+// Display/CD busy flags shared with the VSync path (func_8002764C / func_8002785C).
+extern volatile s32 D_8005EC80;
+// Immediate-mode TILE / DR_TPAGE scratch for the "now loading" overlay.
+extern TILE     D_8006EC18;
+extern DR_TPAGE D_8006EC28;
+// "NOW LOADING" (or similar) string drawn by func_8002764C.
+extern u8 D_80013404[];
 // Task_DescBanks → main/task.h
 extern char         D_80013B64[]; // "Select"
 extern s8           D_800138BC[]; // "99999999"

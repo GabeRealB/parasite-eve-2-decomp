@@ -8647,3 +8647,35 @@ p = sp50;
 
 `func_8002FEE0` needed `$s4` (obj) saved before `$s3` (x); early `obj = arg0`
 kept putting `$s3` first, while the late assign matched the target prologue.
+
+## Volatile flags: force reload + delay-slot `lui`
+
+Shared flag words (e.g. `D_8005EC80`) that the target reloads from a kept
+`%hi` base in `$a0` will CSE into a single load if the global is non-volatile:
+the value stays in a register, the second access becomes `andi` of that reg,
+and the address never lands in `$a0`. Mark the flag `volatile` so each access
+reloads; GCC then keeps `%hi(flag)` in `$a0` across the early checks.
+
+Related scheduling: when the same constant `1` is needed both as a shift
+amount for `flags |= 1 << arg` and as a later live value (`setlen`, compares,
+stores), write the shift with a literal first and assign the named temp after:
+
+```c
+D_8005EC80 |= 1 << arg0; /* volatile load address can fill prior bnez delay */
+one = 1;                 /* li s2,1 then CSE into the shift as sllv …,s2 */
+tile = &D_8006EC18;
+/* … setlen(dr, one); … if (arg0 == one) … */
+```
+
+`one = 1; flags |= one << arg0` puts `li s2,1` in the branch delay instead of
+the `lui` the target wants. `func_8002764C` is the pure example.
+
+## `(s16)` cast on `u16` fields that the target loads with `lh`
+
+A field typed `u16` in the header may still be loaded with `lh` (signed) in
+the original code. Writing `field != 0` emits `lhu`; cast to force the signed
+load:
+
+```c
+if ((s16)CdCmd_Queue.field_244 != 0 && !(flags & 8)) { … }
+```

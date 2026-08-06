@@ -7,7 +7,9 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 
+#include "main/fs.h"
 #include "main/game.h"
+#include "main/gpuext.h"
 #include "main/mem.h"
 #include "main/unknown_syms.h"
 
@@ -146,7 +148,76 @@ void func_80027498(void)
     D_8005EC74 = VSync(1) - (temp_s4 & 0xFFFF);
 }
 
-INCLUDE_ASM("main/nonmatchings/gamemain", func_8002764C);
+void func_8002764C(s32 arg0)
+{
+    GStruct38     sp10;
+    s32           skip;
+    s32           one;
+    s32           buf;
+    s32           stride;
+    TILE*         tile;
+    DR_TPAGE*     dr;
+    DisplayState* ds;
+    DRAWENV*      drawBase;
+    DISPENV*      dispBase;
+    s8            yoff;
+
+    if (!(D_8005EC80 & ~1)) {
+        skip = 0;
+        if (((s16)CdCmd_Queue.field_244 != 0) && !(D_8005EC80 & 8)) {
+            skip = 1;
+        } else if ((Display_State.field_108 == 1) && ((s8)Display_State.field_103 == 2)) {
+            skip = 1;
+        } else if (Fs_CdOpStatus != 0xFF) {
+            skip = 1;
+        } else if (GpuExt_IsDisplayEnabled() == 0) {
+            skip = 1;
+        }
+        if (skip == 0) {
+            D_8005EC80 |= 1 << arg0;
+            one         = 1;
+            tile        = &D_8006EC18;
+            dr          = &D_8006EC28;
+            if (arg0 == one) {
+                func_80054658();
+            }
+            setlen(dr, one);
+            dr->code[0] = 0xE1000600;
+            DrawPrim(dr);
+
+            tile->x0         = -0xA0;
+            tile->w          = 0x140;
+            tile->h          = 0xF0;
+            *(s32*)&tile->r0 = 0;
+            setlen(tile, 3);
+            ds = &Display_State;
+            setcode(tile, 0x62);
+            yoff     = ds->field_109;
+            tile->y0 = -0x78 - yoff;
+            DrawPrim(tile);
+
+            sp10.field_0 = 0;
+            sp10.field_4 = 4;
+            sp10.field_8 = 0x37A78;
+            sp10.field_C = 4;
+            sp10.field_D = one;
+            sp10.field_E = 0x10;
+            sp10.field_2 = 6 - ds->field_109;
+            func_8002E53C(&sp10, D_80013404);
+
+            buf      = ds->field_1f ^ 1;
+            drawBase = ds->field_48;
+            PutDrawEnv(&drawBase[buf]);
+            stride   = buf * 0x14;
+            dispBase = ds->field_20;
+            PutDispEnv(&dispBase[buf]);
+
+            EnterCriticalSection();
+            D_8005EC70 = -1;
+            ExitCriticalSection();
+        }
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/gamemain", func_8002785C);
 
