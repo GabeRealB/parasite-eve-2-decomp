@@ -8398,3 +8398,27 @@ if (D_flag != 0) {
 Volatile stores cannot move past the subsequent non-volatile load, so order
 matches, while the `lui %hi(D_flag)` still fills the earlier branch delay.
 `func_800489A0` is the pure example (UiList tail zero-init + `D_80072313`).
+
+## RECT field store order changes LoadImage arg scheduling
+
+When preparing a stack `RECT` then calling `LoadImage(&rect, global_ptr)`, the
+order of the `rect.x` / `rect.w` stores after `rect.y` changes whether cc1 emits:
+
+```
+lui  v0, %hi(global_ptr)
+addiu a0, sp, rect
+lw   a1, %lo(global_ptr)(v0)
+```
+
+or the swapped `addiu a0` / `lui` order (99.4% near-miss that never matches).
+
+```c
+rect.y = y;
+rect.x = 0;       /* before w */
+rect.w = 0x140;
+rect.h = 0xF0 - field;
+LoadImage(&rect, D4CB64_ImgBuffers);
+```
+
+`rect.w` then `rect.x` produces `addiu` first. `func_80027F48` is the pure
+example — only that swap separated 99.4% from 100%.

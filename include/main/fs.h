@@ -224,7 +224,8 @@ typedef struct _CdCmdQueue {
     u16        field_214;
     byte       unknown_216[0x4];
     s16        field_21A;
-    byte       unknown_21C[0x6];
+    u16        field_21C; // image transfer mode for func_80027F48 (0 / 1)
+    byte       unknown_21E[0x4];
     s16        field_222;
     u16        field_224;
     u16        field_226; // sub-state for func_8001E57C disk recovery

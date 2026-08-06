@@ -31,7 +31,7 @@ typedef struct _DisplayState {
     u16     field_106;
     // Written by main, read by the VSync callback (func_80027498).
     volatile u8 field_108;
-    byte        unknown_109[0x1];
+    s8          field_109; // VRAM Y offset for image transfer (func_80027F48)
     u8          field_10a;
     u8          field_10b;
     byte        unknown_10c[0x1];

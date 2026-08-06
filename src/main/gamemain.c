@@ -208,7 +208,63 @@ void func_80027E7C(void)
     m->m[2][2]         = one;
 }
 
-INCLUDE_ASM("main/nonmatchings/gamemain", func_80027F48);
+void func_80027F48(s32 arg0)
+{
+    RECT rect;
+    s32  var_s0;
+    s32  var_s1;
+    s32  temp_v1;
+    s32  field;
+    s8   yoff;
+
+    if (CdCmd_Queue.field_21C == 0) {
+        if (Display_State.field_109 >= 0) {
+            if (arg0 != 0) {
+                rect.y = Display_State.field_109 + 0x110;
+            } else {
+                rect.y = Display_State.field_109;
+            }
+            rect.x = 0;
+            rect.w = 0x140;
+            rect.h = 0xF0 - Display_State.field_109;
+            LoadImage(&rect, (u_long*)D4CB64_ImgBuffers);
+            return;
+        }
+        if (arg0 == 0) {
+            rect.y = 0;
+        } else {
+            rect.y = 0x110;
+        }
+        rect.x = 0;
+        rect.w = 0x140;
+        yoff   = Display_State.field_109;
+        rect.h = yoff + 0xF0;
+        LoadImage(&rect, (u_long*)((u8*)D4CB64_ImgBuffers + ((-yoff) * 0x280)));
+        return;
+    }
+    var_s1 = 0;
+    if (CdCmd_Queue.field_21C == 1) {
+        arg0  *= 0x110;
+        rect.w = 0x10;
+        field  = Display_State.field_109;
+        rect.y = arg0;
+        rect.h = 0xF0;
+        if (field > 0) {
+            rect.h -= field;
+            rect.y  = arg0 + field;
+        } else if (field < 0) {
+            var_s1 = (-field) * 0x20;
+            rect.h = field + 0xF0;
+        }
+        var_s0 = 0;
+        do {
+            temp_v1 = var_s0 & 0xFFFF;
+            rect.x  = temp_v1 * 0x10;
+            LoadImage(&rect, (u_long*)((u8*)D4CB64_ImgBuffers + (temp_v1 * 0x1E00) + var_s1));
+            var_s0++;
+        } while ((u32)(var_s0 & 0xFFFF) < 0x14U);
+    }
+}
 
 void func_800280F4(s32 arg0)
 {

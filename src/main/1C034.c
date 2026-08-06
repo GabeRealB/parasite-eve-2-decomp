@@ -22,7 +22,7 @@ void func_8002BA9C(s32 r, s32 g, s32 b, s32 mode)
     p->r0 = r;
     p->g0 = g;
     p->b0 = b;
-    yoff  = Display_State.unknown_109[0];
+    yoff  = Display_State.field_109;
     p->w  = 0x140;
     p->h  = 0xF0;
     p->y0 = -0x78 - yoff;
