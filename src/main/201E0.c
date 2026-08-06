@@ -237,7 +237,81 @@ void func_8002FEAC(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, v
     func_8002FDCC(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
 }
 
-INCLUDE_ASM("main/nonmatchings/201E0", func_8002FEE0);
+s32 func_8002FEE0(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6,
+                  s32 arg7, s32 arg8)
+{
+    u8                  sp10[0x40];
+    GStruct38           sp50[2];
+    u8*                 cur;
+    s32                 temp;
+    s32                 four;
+    register UiObject*  obj asm("s4");
+    register s32        x asm("s3");
+    register s32        y asm("s1");
+    register s32        result asm("s7");
+    register s32        rem asm("s2");
+    register GStruct38* p asm("s0");
+    register u8*        buf asm("s5");
+    register s32        ret asm("s6");
+    register u8*        a0tmp asm("a0");
+    register s32        a1tmp asm("a1");
+
+    x      = arg1;
+    y      = arg2;
+    result = 1;
+    rem    = arg7;
+    a1tmp  = arg8;
+    a0tmp  = arg3;
+    cur    = a0tmp;
+
+    if ((a1tmp & 0xF) != 0) {
+        rem += result;
+        y   -= a1tmp & 0xF;
+    }
+    a1tmp >>= 4;
+    if (a1tmp != 0) {
+        cur = func_8002F528(a0tmp, a1tmp);
+    }
+    obj  = arg0;
+    p    = sp50;
+    buf  = sp10;
+    four = 4;
+
+    do {
+        ret = func_8002F9E0(&cur, sp10);
+        if (obj != NULL) {
+            if (obj->field_8 != 5) {
+                sp50[0].field_0 = obj->field_20 + x;
+                sp50[0].field_2 = (obj->field_22 + y) - 3;
+                temp            = (s16)obj->field_14;
+                sp50[0].field_8 = arg4;
+                sp50[0].field_4 = temp + 1;
+                p->field_C      = 4;
+                sp50[0].field_D = (u8)arg6;
+                sp50[0].field_E = (u8)arg5;
+                func_8002E53C(p, buf);
+            }
+        } else {
+            sp50[1].field_0 = x;
+            sp50[1].field_2 = y;
+            p[1].field_4    = four;
+            sp50[1].field_8 = arg4;
+            p[1].field_C    = four;
+            sp50[1].field_D = (u8)arg6;
+            sp50[1].field_E = (u8)arg5;
+            func_8002E53C(&sp50[1], buf);
+        }
+        rem -= 1;
+        if (rem <= 0) {
+            result = 0;
+            break;
+        }
+        x  = arg1;
+        y += 0xF;
+    } while (ret != -1);
+
+    return result;
+}
 
 void func_80030074(void)
 {

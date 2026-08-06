@@ -8625,3 +8625,25 @@ The hard pin keeps `$a0` reserved so the global's hi stays in `$a2`. On the
 else arm, reassign `rem_tmp = (s32)&entry` just before the call so `&entry`
 does not hoist to the top of the block. Needs `--expand-div` when the target
 has the full trap sequence (`46FE4.c` / `func_80058748`).
+
+## Late `register … asm("sN")` assignment for prologue save order
+
+When several callee-saved registers must be initialized from arguments early,
+GCC 2.8.1 often saves/moves them in register-number order (e.g. `$s3` before
+`$s4`) even if the C assignments are written the other way. Assigning the
+higher-numbered register *late* (after the arg8 / a0–a1 setup that clobbers
+argument registers) can force its prologue `sw`/`move` pair to the *front* of
+the function, matching a target that leads with that register:
+
+```c
+register UiObject* obj asm("s4");
+register s32 x asm("s3");
+/* … */
+x = arg1;          /* and y, result, rem, a1=arg8, a0=arg3 … */
+/* bit-ops / optional call that use a0/a1 */
+obj = arg0;        /* late assign → prologue still does sw s4; move s4,a0 first */
+p = sp50;
+```
+
+`func_8002FEE0` needed `$s4` (obj) saved before `$s3` (x); early `obj = arg0`
+kept putting `$s3` first, while the late assign matched the target prologue.

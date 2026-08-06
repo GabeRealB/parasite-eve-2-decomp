@@ -105,6 +105,8 @@ extern void func_8002DEC4(void);
 extern s32  func_8002DECC(GStruct38* arg0, u8* arg1, u8* arg2);
 extern void func_8002E53C(GStruct38* arg0, u8* arg1);
 extern void func_8002EDFC(GStruct38* arg0, u8* arg1);
+// Skip arg1 newline/escape-delimited lines starting at arg0; returns advanced pointer.
+extern u8*  func_8002F528(u8* arg0, s32 arg1);
 extern void func_8002F5E4(GStruct38* arg0, GStruct68* arg1, s32 arg2);
 extern void func_8002F69C(GStruct38* arg0, GStruct68* arg1, s32 arg2);
 extern void func_8002F798(GStruct38* arg0, GStruct68* arg1);
@@ -135,9 +137,13 @@ extern s32 func_8002FB84(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4,
                          s32 arg6);
 extern s32 func_8002FCBC(u8* arg0);
 // Multi-line text measure: packed (height<<16)|maxWidth, 0xF pixels per line.
-extern s32  func_8002FD08(u8* arg0);
-extern s32  func_8002FDCC(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5,
-                          s32 arg6);
+extern s32 func_8002FD08(u8* arg0);
+extern s32 func_8002FDCC(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5,
+                         s32 arg6);
+// Multi-line text draw with line limit (arg7) and scroll offset (arg8).
+// Returns 1 if all text drawn within limit, 0 if truncated.
+extern s32  func_8002FEE0(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5,
+                          s32 arg6, s32 arg7, s32 arg8);
 extern void func_80030074(void);
 // Builds a memcard save filename into arg0 (prefix + arg1 char + 7 random)
 extern void func_800300EC(u8* arg0, s32 arg1);
