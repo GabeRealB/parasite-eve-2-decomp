@@ -954,7 +954,75 @@ end:
     entry->field_34 -= ticks;
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80051DF4);
+void func_80051DF4(GStruct36* arg0)
+{
+    GStruct48                sp10;
+    s16                      sp18[2];
+    register GStruct36*      obj asm("s4");
+    GStruct55*               interp;
+    s32                      volume;
+    s32                      i;
+    GStruct36VoiceSlot*      slot;
+    register GStruct22Entry* entry asm("t0");
+    s32                      product;
+    u32                      vol;
+    register s32             channel asm("t0");
+    register s32             temp asm("v0");
+    register s32             scale asm("v1");
+    s8                       voice;
+    s32                      one;
+    register s32             f3 asm("v0");
+
+    obj    = arg0;
+    interp = &obj->field_14;
+    if (obj->field_1 == 0x4F) {
+        if (D_80082120 == 5) {
+            volume = func_80179BE4((u16)obj->field_8, D_80082136, interp);
+            goto after_volume;
+        }
+    }
+    if (obj->field_1 == 0x5A) {
+        temp  = func_800517F8() & 0xFF;
+        scale = (D_80068A4A * 3) << 5;
+    } else {
+        temp  = func_800517F8();
+        scale = (u16)obj->field_8;
+        temp &= 0xFF;
+    }
+    volume = func_8004D298(interp, (u32)(temp * scale) / 127U);
+after_volume:
+    i    = 0;
+    slot = obj->voiceSlots;
+    one  = 1;
+    do {
+        voice = slot->field_0;
+        if (voice >= 0) {
+            channel = (u8)slot->field_1;
+            if (obj->field_C & (one << channel)) {
+                entry   = &obj->field_484[channel];
+                product = entry->field_1 * entry->field_2 * D_80068E78[slot->field_3];
+                product = product / 2080641;
+                vol     = (u32)(volume * slot->field_4 * product) / 16129U;
+                f3      = entry->field_3;
+                f3     -= 0x40;
+                func_8004D35C(sp18, slot->field_5 + f3, vol);
+                func_8004E5C4(voice, &sp10);
+                if ((D_800820E9 == one) && (obj->field_1 != 0x5A)) {
+                    sp10.field_4->volume.left  = 0;
+                    sp10.field_4->volume.right = 0;
+                } else {
+                    sp10.field_4->volume.left  = sp18[0];
+                    sp10.field_4->volume.right = sp18[1];
+                }
+                sp10.field_4->volmode.left  = 0;
+                sp10.field_4->volmode.right = 0;
+                sp10.field_4->mask         |= 0xF;
+            }
+        }
+        i++;
+        slot++;
+    } while (i < 0x12);
+}
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_800520A8);
 

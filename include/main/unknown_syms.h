@@ -464,6 +464,8 @@ extern u16        D_8006AC6C;
 extern void       func_80179954(void* arg0);
 extern void       func_80179988(void* arg0);
 extern void       func_801799BC(void* arg0);
+/// Overlay helper used by func_80051DF4 when field_1 == 0x4F and D_80082120 == 5.
+extern s32        func_80179BE4(u16 arg0, u8 arg1, GStruct55* arg2);
 extern void       func_8001EB44(u8* arg0);
 extern s32        StCdIntrFlag;
 extern s32        func_8001EF9C(s32 arg0, s32 arg1);
@@ -763,6 +765,8 @@ extern u8                 D_8007F8E0[0x2800];
 extern u8                 D_8007E0F8[];
 extern u8                 D_8007E158;
 extern u8                 D_8007E258;
+/// Volume scale byte used by func_80051DF4 when GStruct36::field_1 == 0x5A.
+extern u8                 D_80068A4A;
 extern u8                 D_80068A54[];
 extern GStruct75          D_80068A60[];
 extern s32                D_80068A78;

@@ -752,12 +752,16 @@ STATIC_ASSERT_SIZEOF(GStruct36Entry, 0x3C);
 /// field_0 is the voice index (negative when free); iterated by func_80051AF0.
 /// field_0 / field_1 are set to -1 when the slot is cleared (func_80051964).
 /// field_1 / field_2 match opcode nibble / param in func_800528F8.
+/// field_3 indexes D_80068E78 for velocity scaling (func_80051DF4).
+/// field_4 is a signed per-note volume scale; field_5 is a signed pan offset.
 /// field_6 / field_7 index the bank note via func_8004EA60; field_8 is scaled pitch.
 typedef struct _GStruct36VoiceSlot {
     /* 0x0 */ s8  field_0;
     /* 0x1 */ s8  field_1;
     /* 0x2 */ s8  field_2;
-    /* 0x3 */ u8  unknown_3[0x3];
+    /* 0x3 */ u8  field_3;
+    /* 0x4 */ s8  field_4;
+    /* 0x5 */ s8  field_5;
     /* 0x6 */ u8  field_6;
     /* 0x7 */ u8  field_7;
     /* 0x8 */ s16 field_8;

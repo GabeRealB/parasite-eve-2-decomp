@@ -10485,3 +10485,43 @@ obj->field_34 = (d0 << 8) | d1; /* sll; or — no andi */
 ```
 
 `func_80050E3C` is the pure example (MIDI division word after field_6/4/7/5).
+
+## Dual-lived `register … asm` pins for channel→entry and temp→pan
+
+When the target reuses `$t0` first as a channel index (`lbu t0; sllv …, t0;
+sll t0, 3; addiu t0, 0x484; addu t0, obj, t0`) and later as the entry pointer,
+pin both names to the same register with non-overlapping live ranges:
+
+```c
+register s32 channel asm("t0");
+register GStruct22Entry* entry asm("t0");
+
+channel = (u8)slot->field_1; /* lbu, not lb — cast the s8 field */
+if (obj->field_C & (one << channel)) {
+    entry = &obj->field_484[channel]; /* overwrites t0 in place */
+    ...
+}
+```
+
+The `(u8)` cast on an `s8` channel field is required for `lbu`; a plain
+`s32 channel = slot->field_1` emits `lb`.
+
+The same dual-live pattern applies to `$v0`: pin an early multiply operand
+(`temp`) and a later pan temporary (`f3 = entry->field_3; f3 -= 0x40`) both to
+`asm("v0")`. They must not be live at the same time.
+
+For the pan offset, prefer the two-step form so GCC emits `addiu …, -0x40`
+instead of `ori …, 0xffc0; addu` (the latter appears when
+`(u8_field - 0x40)` is folded into an `s16` cast of the full expression):
+
+```c
+register s32 f3 asm("v0");
+f3  = entry->field_3;
+f3 -= 0x40;
+func_8004D35C(sp18, slot->field_5 + f3, vol);
+```
+
+Pair with `register s32 temp asm("v0"); register s32 scale asm("v1");` for the
+shared `(temp * scale) / 127U` path so the join `mult` is `mult v0, v1`.
+Use unsigned division (`/ 127U`, `/ 16129U`) when the target has `multu` magic.
+`func_80051DF4` is the pure example.
