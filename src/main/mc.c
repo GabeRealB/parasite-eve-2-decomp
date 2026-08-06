@@ -2,6 +2,7 @@
 #include "main/mc.h"
 
 #include <psyq/libmcrd.h>
+#include <psyq/memory.h>
 #include <psyq/rand.h>
 
 #include "main/game.h"
@@ -691,7 +692,97 @@ void func_800328FC(Task* arg0, McWork* arg1)
 
 INCLUDE_ASM("main/nonmatchings/mc", func_80032AB0);
 
-INCLUDE_ASM("main/nonmatchings/mc", func_80032D54);
+void func_80032D54(Task* arg0, McWork* arg1)
+{
+    s32           ret;
+    u32           status;
+    s32           idx;
+    s32           i;
+    s32           ch;
+    s32           one;
+    s16           sum;
+    s16           tmp;
+    s32           limit;
+    s32           slotIdx;
+    u8*           ptr1;
+    u8*           ptr0;
+    u8*           src;
+    s16*          dst;
+    UiObject*     obj;
+    McPromptPair* entry;
+    McPromptPair* base;
+
+    status = arg1->field_14;
+    if (status < 4U) {
+        if (status == 0) {
+            slotIdx = 8 - arg1->field_24;
+            if (slotIdx == 0) {
+                sum   = 0;
+                limit = 0x200;
+                asm volatile("" : "=r"(slotIdx) : "0"(0));
+                dst             = (s16*)&arg1->field_A1C;
+                src             = (u8*)arg1->field_18;
+                arg1->field_A1C = 0;
+                *(u16*)&dst[1]  = 0xFFFF;
+                do {
+                    slotIdx += 1;
+                    tmp      = (s8)*src;
+                    sum      = sum + tmp;
+                    src     += 1;
+                } while (slotIdx < limit);
+                dst[0] = sum;
+                dst[1] = ~sum;
+            } else {
+                {
+                    register McBufferSlot* slots asm("v0");
+                    register s32           size asm("a2");
+                    register void*         dest asm("a0");
+
+                    slots = Mc_BufferSlots;
+                    size  = slots[slotIdx].field_4;
+                    dest  = slots[slotIdx].field_0;
+                    memcpy(dest, (void*)arg1->field_18, size << 1);
+                }
+            }
+            arg1->field_1C += Mc_BufferSlots[8 - arg1->field_24].field_8;
+            arg0->field_30  = 0xE;
+        } else {
+            goto pad;
+        }
+    } else {
+    pad:
+        ptr1 = Mc_FileName;
+        ptr0 = Mc_FileNameBuf;
+        i    = 0;
+        ch   = 0x5F;
+        do {
+            if (i >= 0xC) {
+                *ptr0 = ch;
+                *ptr1 = ch;
+            }
+            ptr1++;
+            i++;
+            ptr0++;
+        } while (i < 0x14);
+        *ptr0          = 0;
+        *ptr1          = 0;
+        arg0->field_30 = 6;
+    }
+
+    one = 1;
+    Mem_Free((void*)arg1->field_18);
+    arg1->field_18 = 0;
+
+    obj           = arg0->field_20;
+    idx           = arg1->field_8;
+    ret           = func_80048E10(obj, 1);
+    obj->field_2E = 0;
+    func_80048E38(obj, D_8001398C);
+    base  = Mc_PromptTable;
+    entry = &base[idx];
+    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
+    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
+}
 
 void func_80032F5C(GStruct60* arg0, UiObject* arg1)
 {

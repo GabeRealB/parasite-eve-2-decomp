@@ -9606,3 +9606,56 @@ if (disp == g->field_24) { ... }
 `jtbl_HEX_HEX`. This project's splat labels are `jtbl_80013EB0` (one hex).
 Extend the pattern to `jtbl_[0-9A-Fa-f]+(?:_[0-9A-Fa-f]+)?` so scratch scoring
 does not treat the target name vs `.rodata` as a real diff.
+
+## Force `move reg, zero` after a proven-zero branch
+
+When a variable is computed, branched on as zero, then re-used as a loop
+counter that the target re-zeros with `move a0, zero`, plain `slotIdx = 0;` is
+CSE'd away (the compiler already knows it is zero).
+
+```c
+slotIdx = 8 - p->field_24;
+if (slotIdx == 0) {
+    slotIdx = 0; /* eliminated — no move */
+    do { slotIdx += 1; ... } while (slotIdx < limit);
+}
+```
+
+Defeat CSE with an output-constrained empty asm that rewrites the register:
+
+```c
+if (slotIdx == 0) {
+    asm volatile("" : "=r"(slotIdx) : "0"(0)); /* emits move a0, zero */
+    do { slotIdx += 1; ... } while (slotIdx < limit);
+}
+```
+
+`func_80032D54` needs this so the checksum loop counter stays in `$a0` with an
+explicit zeroing instruction matching the target.
+
+## `register asm` for memcpy arg load order
+
+When the target loads `size` into `$a2` before `dest` into `$a0` from the same
+struct base (then `sll a2, a2, 1` in the `jal` delay slot), unconstrained C
+often loads dest first. Pin the registers:
+
+```c
+{
+    register McBufferSlot* slots asm("v0");
+    register s32           size asm("a2");
+    register void*         dest asm("a0");
+
+    slots = Mc_BufferSlots;
+    size  = slots[idx].field_4;
+    dest  = slots[idx].field_0;
+    memcpy(dest, src, size << 1);
+}
+```
+
+Scoping the constraints inside a compound statement keeps them from disturbing
+register colouring on the sibling branch (e.g. a checksum loop that also wants
+`$a2` for the running sum). Pin the table base to `$v0` when the target places
+`lui %hi(table)` in the `bnez` delay slot and finishes with
+`addiu v0, v0, %lo(table)` on the memcpy path.
+
+`func_80032D54` is the pure example.
