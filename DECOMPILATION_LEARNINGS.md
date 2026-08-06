@@ -9866,3 +9866,53 @@ vmat->m[2][2] = cos2;
 `volatile` on the destination matrix prevents the stores from being reordered
 around the move. `func_8003C4F0` is the pure example (RotMatrixX-shaped block
 on the scratch arena, then `gte_MulMatrix0_real`).
+
+## Reuse unused `arg1` as an early `$a1` address temp
+
+When the second parameter is discarded and a global base is needed later via
+`lhu …, off(a1)` after a switch (so `$a1` is still the prologue value on that
+case entry), reassign the parameter at the top of the function:
+
+```c
+void func(void* arg0, void* arg1)
+{
+    arg1 = &CdCmd_Queue; /* materialises into $a1 before the switch */
+    …
+    case 3:
+        if (((CdCmdQueue*)arg1)->field_22E != 0) /* lhu v0, 0x22e(a1) */
+```
+
+A separate `CdCmdQueue* q = &CdCmd_Queue` local that is live across calls is
+coloured into `$s0` instead and produces `lhu v0, 0x22e(s0)`. Absolute
+`CdCmd_Queue.field_X` is still correct for stores that the target emits with
+`%hi(CdCmd_Queue+off)`.
+
+## Split call results: dying temp vs join-live `ret`
+
+Two returns from the same callee where the first is only used in an immediate
+conditional store (stays in `$v0`) and the second is produced in one branch of
+an if/else then consumed after the join (needs `$s2`) must be different
+variables:
+
+```c
+s32 ret;  /* join-live → $s2; also forces arg0 into $s3 */
+s32 temp; /* dies right after the store → $v0 */
+
+temp = func(…);
+if (flag >= 0) {
+    flag = temp; /* sh v0, … — no move */
+}
+…
+if (secondary != NULL) {
+    ret = func(…); /* move s2, v0 */
+} else {
+    other = -1;
+}
+if (other >= 0) {
+    other = ret; /* sh s2, … */
+}
+```
+
+Sharing one `ret` for both calls pulls the first result out of `$v0` into a
+saved reg and shrinks the stack (no `$s3`). `func_8002226C` is the pure
+example.

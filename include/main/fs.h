@@ -249,7 +249,7 @@ typedef struct _CdCmdQueue {
     u16        field_228;
     u16        field_22A; // DecDCTin mode for func_800405E0
     u16        field_22C;
-    byte       unknown_22E[0x2];
+    u16        field_22E;
     u16        field_230;
     u16        field_232;
     s16        field_234;
@@ -447,6 +447,13 @@ extern u8    D_8006C4C8[0xC];
 extern s16   D5B498_8006AC98;
 extern u16   D5B498_8006AC9A;
 extern u16   D5B498_8006AC9C;
+extern u8    D_8006AC9E;
+extern u8    D_8006AC9F;
+extern s16   D_8006ACA0;
+extern s16   D_8006ACA2;
+extern s16   D_8006ACA4;
+extern s16   D_8006ACA6;
+extern s16   D_8006ACA8;
 extern void* D5B498_8006ACAC;
 extern void* D5B498_8006ACB0;
 // Fade/clear color; written as halfword, often re-read as byte for TILE RGB.

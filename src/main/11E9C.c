@@ -584,15 +584,92 @@ void func_8002207C(void)
     D5B498_8006AC98 = CdCmd_Enqueue(0x21, sp10, sp18);
 }
 
-/* Alignment pad after the 5-entry func_8002207C jump table, then an
- * absolute copy of jtbl_80013260 for still-asm func_8002226C. */
+/* Alignment pad after the 5-entry func_8002207C jump table. */
 static const s32 s_jtbl_pad_2207C = 0;
-const s32        jtbl_80013260[5] = {
-    0x800222C4,
-    0x80022314,
-    0x8002233C,
-    0x80022444,
-    0x80022490,
-};
 
-INCLUDE_ASM("main/nonmatchings/11E9C", func_8002226C);
+void func_8002226C(void* arg0, void* arg1)
+{
+    void* secondary;
+    s32   ret;
+    s32   temp;
+
+    arg1      = &CdCmd_Queue;
+    secondary = NULL;
+    switch (*(s16*)&D5B498_8006AC9C) {
+        case 0:
+            D_8006ACA0 = 0;
+            D_8006AC9F = 0;
+            D_8006AC9E = 0;
+            D_8006ACA4 = 0;
+            D_8006ACA2 = 0;
+            D_8006ACA8 = 0;
+            D_8006ACA6 = 0;
+            func_80021808();
+            D5B498_8006AC9C++;
+            /* fallthrough */
+        case 1:
+            if ((func_8002191C(0x10) & 0xFFFF) != 0) {
+                D5B498_8006AC9C++;
+            }
+            break;
+        case 2:
+            if (D_8006ACA6 < 0) {
+                D_8006ACA2 = 1;
+            }
+            temp = func_80043310(arg0, &D_8006AC9E, &D_8006ACA2, 0);
+            if (D_8006ACA6 >= 0) {
+                D_8006ACA6 = temp;
+            }
+            if (D_8006ACA0 >= 0x3D) {
+                if (D_8006ACA8 < 0) {
+                    D_8006ACA4 = 1;
+                }
+                if (secondary != NULL) {
+                    ret = func_80043310(secondary, &D_8006AC9F, &D_8006ACA4, 0);
+                } else {
+                    D_8006ACA8 = -1;
+                }
+                if (D_8006ACA8 >= 0) {
+                    D_8006ACA8 = ret;
+                } else {
+                    goto check_done;
+                }
+            } else {
+                D_8006ACA0++;
+            }
+            if (D_8006ACA8 >= 0) {
+                break;
+            }
+        check_done:
+            if (D_8006ACA6 >= 0) {
+                break;
+            }
+            D_8006ACA0 = 0;
+            D5B498_8006AC9C++;
+            break;
+        case 3:
+            if (D_8006ACA0 >= 0x3C) {
+                if (((CdCmdQueue*)arg1)->field_22E != 0) {
+                    goto draw;
+                }
+                D_8006ACB4 = 0;
+                D5B498_8006AC9C++;
+            } else {
+                D_8006ACA0++;
+            }
+            goto draw;
+        case 4:
+            if ((func_8002169C(0x10) & 0xFFFF) != 0) {
+                D5B498_8006AC9A       = 0;
+                CdCmd_Queue.field_224 = 0;
+            }
+        draw:
+            D_8006ACA4 = 1;
+            D_8006ACA2 = 1;
+            func_80043310(arg0, &D_8006AC9E, &D_8006ACA2, 0);
+            if (secondary != NULL) {
+                func_80043310(secondary, &D_8006AC9F, &D_8006ACA4, 0);
+            }
+            break;
+    }
+}
