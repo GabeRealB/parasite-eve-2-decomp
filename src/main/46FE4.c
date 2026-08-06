@@ -502,7 +502,45 @@ s32 func_80057D3C(GStruct32Entry* arg0)
     return field2 + 1;
 }
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_80057E1C);
+void func_80057E1C(void)
+{
+    volatile GStruct32* p;
+    GStruct32Entry*     entry;
+    u32                 flags;
+
+    p = &D_800828F0;
+    if (p->field_0 == 0 && p->field_3 != p->field_2) {
+        entry = (GStruct32Entry*)&D_800828F0.entries[(s8)p->field_2];
+        flags = entry->field_0;
+        if (flags & 1) {
+            if (((s32 (*)(GStruct32Entry*))entry->field_8)(entry) != 0) {
+                if (entry->field_C != 0) {
+                    ((void (*)(void))entry->field_C)();
+                }
+                entry->field_0 &= ~1;
+                entry->field_0 &= ~4;
+                p->field_2      = p->field_2 + 1;
+                if ((s8)p->field_2 >= 4) {
+                    p->field_2 = 0;
+                }
+            }
+        } else if (((flags >> 2) & 1) && !((flags >> 1) & 1)) {
+            if (entry->field_10 != 0) {
+                ((void (*)(GStruct32Entry*))entry->field_10)(entry);
+            }
+            if (!((entry->field_0 >> 3) & 1)) {
+                goto advance;
+            }
+        } else {
+        advance:
+            entry->field_0    &= ~4;
+            D_800828F0.field_2 = D_800828F0.field_2 + 1;
+            if ((s8)D_800828F0.field_2 >= 4) {
+                D_800828F0.field_2 = 0;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_80057FAC);
 

@@ -8737,3 +8737,32 @@ changes the `bne` delay from `addiu s1,sp,0x10` to `addiu s2,sp,0x18`. Pass
 
 `func_80045D24` is the pure example (same shape as inlined `func_80049478` +
 `func_80049348` + `func_800454E4`).
+
+## Ring-buffer queue drain: non-volatile entry + split index advances
+
+`func_80057E1C` (and the sibling `func_8004DC8C`) process one slot of a 4-entry
+callback ring. Two matching details that look like style nits but are required:
+
+1. **Non-volatile entry pointer.** The queue object itself is `volatile`
+   (`D_800828F0`), but the current slot must be taken as a plain
+   `GStruct32Entry*`:
+
+```c
+entry = (GStruct32Entry*)&D_800828F0.entries[(s8)p->field_2];
+entry->field_0 &= ~1;
+entry->field_0 &= ~4;
+```
+
+   With a `volatile GStruct32Entry*`, each `&=` becomes its own load/store (or
+   a temp lands in the wrong register). Non-volatile gives the target's
+   `lw` / `li -2` / `and` / `li -5` / `and` / `sw` chain in `$v0`/`$v1`.
+
+2. **Do not share the "advance index" block across arms.** The bit-0 path
+   advances through the base already in `$s1` (`p->field_2 = …`). The bit-2
+   path reloads the global (`lui`/`addiu` of `D_800828F0`) and writes
+   `D_800828F0.field_2`. Sharing one advance via `goto` from both arms merges
+   them onto `$s1` and shrinks the function. Duplicate the increment/wrap
+   literally, once via `p` and once via the global name.
+
+`func_8004DC8C` is the pure template for control flow; `func_80057E1C` adds the
+`field_0` lock check and the no-arg `field_C` callback.
