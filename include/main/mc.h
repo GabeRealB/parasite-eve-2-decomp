@@ -144,6 +144,7 @@ STATIC_ASSERT_SIZEOF(McStateFuncTable26, 0x68);
 // Functions — src/main/mc.c (matched helpers; state handlers also live here)
 // =============================================================================
 
+void func_800317DC(Task* task, McWork* work);
 void func_800319E4(Task* task, McWork* work);
 void Mc_StateCreateFile(Task* task, McWork* work);
 void func_80031C5C(Task* task, McWork* work);

@@ -8,7 +8,103 @@
 #include "main/mem.h"
 #include "main/unknown_syms.h"
 
-INCLUDE_ASM("main/nonmatchings/mc", func_800317DC);
+void func_800317DC(Task* arg0, McWork* arg1)
+{
+    s32           ret;
+    u32           status;
+    s32           idx;
+    s32           one;
+    s32           ch;
+    s32           i;
+    u8*           ptr1;
+    u8*           ptr0;
+    UiObject*     obj;
+    McPromptPair* entry;
+    McPromptPair* base;
+
+    status = arg1->field_14;
+    switch (status) {
+        case 0: {
+            s32           flags;
+            u32           i0;
+            register u32  j asm("a1");
+            s32           size;
+            u8*           src;
+            u8*           dest;
+            McBufferSlot* slots;
+
+            arg1->field_24 = 9;
+            flags          = 0;
+            i0             = flags;
+            slots          = Mc_BufferSlots;
+            do {
+                src  = (u8*)slots[8 - i0].field_0;
+                size = slots[8 - i0].field_4;
+                j    = 0;
+                dest = src + size;
+                if (size != 0) {
+                    do {
+                        if (*src != *dest) {
+                            flags |= 1;
+                        }
+                        j    += 1;
+                        src  += 1;
+                        dest += 1;
+                    } while (j < (u32)size);
+                }
+                i0    += 1;
+                flags *= 2;
+            } while (i0 < 8U);
+            flags         |= 0x103;
+            arg1->field_2C = 1;
+            arg1->field_28 = flags;
+            arg0->field_30 = 0x1F;
+            break;
+        }
+        case 3:
+            ptr1 = Mc_FileName;
+            ptr0 = Mc_FileNameBuf;
+            i    = 0;
+            ch   = 0x5F;
+            do {
+                if (i >= 0xC) {
+                    *ptr0 = ch;
+                    *ptr1 = ch;
+                }
+                ptr1++;
+                i++;
+                ptr0++;
+            } while (i < 0x14);
+            *ptr0          = 0;
+            *ptr1          = 0;
+            arg1->field_24 = 9;
+            arg1->field_28 = -1;
+            arg1->field_2C = 1;
+            arg0->field_30 = 0x1F;
+            break;
+        case 1:
+            arg0->field_30 = 0x14;
+            break;
+        case 4:
+            arg0->field_30 = 0x15;
+            break;
+        case 2:
+        default:
+            arg0->field_30 = 0x18;
+            break;
+    }
+
+    obj           = arg0->field_20;
+    idx           = arg1->field_8;
+    ret           = func_80048E10(obj, 1);
+    obj->field_2E = 0;
+    func_80048E38(obj, D_8001398C);
+    one   = 1;
+    base  = Mc_PromptTable;
+    entry = &base[idx];
+    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
+    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
+}
 
 void func_800319E4(Task* arg0, McWork* arg1)
 {
