@@ -7890,3 +7890,43 @@ Without the `f20`/`next` pins, GCC advances the cursor in `$v0` first and
 hoists `li v0,0x50`, losing the `lhu`/`addiu` interleave. Without `arg2 = 0x68`,
 `$a2` is rematerialized at the U stores. `func_80047A0C` is the pure example
 (sibling `func_80047B24` is the same shape with different UV constants).
+
+## `lhu` / `li 0xFFFF` / `andi …,0xFFFF` with dual empty-asm barrier
+
+When the target does:
+
+```
+lhu   a1, 8(s0)
+li    v0, 0xffff
+andi  v1, a1, 0xffff
+bne   v1, v0, success
+ srl  v1, v1, 0xc
+```
+
+a plain `temp = index & 0xFFFF` after `lhu` is deleted (zero-extend is already
+proven), leaving `move v1,a1`. An `asm("" : "+r"(index))` alone restores the
+`andi` but freezes scheduling so you get `lhu; nop; andi; li` instead of
+`lhu; li; andi`.
+
+Fix: keep both the index and the compare constant live across one empty asm,
+with the `li` written *after* the load in source order:
+
+```c
+register u32 index asm("a1");
+register u32 temp asm("v1");
+s32 mask;
+
+index = bank->field_8;
+mask  = 0xFFFF;
+asm("" : "+r"(index), "+r"(mask));
+temp = index & 0xFFFF;
+if (temp != mask) {
+    goto success;
+}
+success:
+temp >>= 12; /* fills the bne delay as srl v1,v1,0xc */
+```
+
+Pinning `index` to `$a1` and `temp` to `$v1` keeps the `andi v1,a1,0xffff` /
+`srl v1` chain; `mask` in a GPR supplies the `li v0,0xffff` for the compare.
+`func_80052F80` is the pure example (bank id check before `D_800680AC` lookup).

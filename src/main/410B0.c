@@ -947,7 +947,79 @@ u8* func_800529D8(s32 arg0, u8* arg1, GStruct36* arg2)
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_80052B30);
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80052F80);
+s32 func_80052F80(GStruct34* arg0)
+{
+    GStruct42*   bank;
+    GStruct31*   obj;
+    register u32 index asm("a1");
+    register u32 temp asm("v1");
+    register s32 slot asm("v0");
+    register s32 a asm("a0");
+    s32          i;
+    GStruct41*   entry;
+    GStruct41*   raw;
+    s32          base;
+    s32          end;
+    s32          neg;
+    s32          id;
+    s32          mask;
+
+    bank = (GStruct42*)arg0->field_18;
+    if (D_800689E8 == 0) {
+        index = bank->field_8;
+        mask  = 0xFFFF;
+        asm("" : "+r"(index), "+r"(mask));
+        temp = index & 0xFFFF;
+        if (temp != mask) {
+            goto success;
+        }
+    }
+fail:
+    D_800689E4 = 0xFF;
+    return -1;
+
+success:
+    temp >>= 12;
+    slot   = D_800680AC[temp];
+    neg    = -1;
+    if (slot == neg) {
+        goto fail;
+    }
+    a    = slot;
+    temp = index & 0xF000;
+    if (temp == 0x4000) {
+        a = a + (D_80082122 + neg);
+    }
+    obj = func_800561C0((s8)a);
+    if (obj == NULL) {
+        goto fail;
+    }
+    id           = bank->field_8;
+    obj->field_4 = bank;
+    obj->field_8 = id;
+    obj->field_0 = (GStruct45*)arg0->field_14;
+    obj->field_C = (void*)bank->field_18;
+    i            = arg0->field_24;
+    base         = ((volatile GStruct42*)bank)->field_18;
+    raw          = ((volatile GStruct42*)bank)->field_4;
+    i            = i - 1;
+    if (i != neg) {
+        end   = -1;
+        entry = raw;
+        do {
+            i               -= 1;
+            entry->field_10 += base;
+            entry++;
+        } while (i != end);
+    }
+    func_8004D19C((GStruct42*)obj->field_4);
+    D_800689E4     = 0xFF;
+    arg0->field_18 = 0;
+    arg0->field_14 = 0;
+    D_8008212C     = D_80082122;
+    D_80082121     = D_80082135;
+    return 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_800530DC);
 
