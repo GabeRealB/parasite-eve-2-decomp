@@ -4,6 +4,7 @@
 #include "main/unknown_syms.h"
 
 void func_800498D4(Task* arg0);
+void func_800492EC(void* arg0, RECT* arg1, RECT* arg2);
 
 void func_80044698(void)
 {
@@ -54,7 +55,35 @@ INCLUDE_ASM("main/nonmatchings/34E98", func_800463B4);
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80046508);
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_800466E4);
+void func_800466E4(GStruct30* arg0, s32 arg1, s32 arg2)
+{
+    RECT sp10;
+
+    if (arg1 > 0) {
+        arg0->field_C.w = (arg0->field_C.w - (arg0->field_1E - arg0->field_1C)) + arg1;
+    }
+    if (arg2 > 0) {
+        arg0->field_C.h = (arg0->field_C.h - (arg0->field_1A - arg0->field_18)) + arg2;
+    }
+    func_800492EC(arg0, &arg0->field_C, &sp10);
+    if ((arg0->field_4 & 0xF) == 2) {
+        sp10.y += 9;
+        sp10.h -= 0xB;
+        sp10.x += 2;
+        sp10.w -= 4;
+    } else {
+        sp10.y += 2;
+        sp10.h -= 4;
+        sp10.x += 2;
+        sp10.w -= 4;
+    }
+    arg0->field_1C = -(sp10.w >> 1);
+    arg0->field_1E = arg0->field_1C + sp10.w;
+    arg0->field_18 = -(sp10.h >> 1);
+    arg0->field_1A = arg0->field_18 + sp10.h;
+    arg0->field_20 = sp10.x - arg0->field_1C;
+    arg0->field_22 = sp10.y - arg0->field_18;
+}
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80046830);
 
