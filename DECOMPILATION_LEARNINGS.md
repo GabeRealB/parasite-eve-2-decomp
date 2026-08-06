@@ -8234,3 +8234,43 @@ if (temp) {
 The wider temp prefers `$v0` and leaves `$v1` for the pointer. Same family as
 the `s16 ret` tip (narrow vs wide forcing different REG_EQUAL modes), just the
 other direction. `func_8001CA70` case 8 / `field_190` is the pure example.
+
+## Empty memory clobber forces `sw ra` before the first delayed branch
+
+When the target opens with a complete prologue (`sw s0` / `move s0,a0` /
+`sw ra`) and then a value-select branch:
+
+```
+sw    ra,0x14(sp)
+bltz  a1, label
+ li   v0,0x2d        /* delay: default */
+li    v0,0x2b        /* fall-through overwrite */
+label:
+sb    v0,0(s0)
+```
+
+writing the default into a local first often lets `-fdelayed-branch` park
+`sw ra` in the `bltz` delay slot and leave `li v0,0x2d` *before* the branch
+(~98.75% with otherwise identical body).
+
+An empty memory clobber at the top of the body freezes the prologue stores
+before any delayed-branch fill can steal them:
+
+```c
+s32 sign;
+
+asm("" ::: "memory");
+sign = 0x2D;
+if (arg1 >= 0) {
+    sign = 0x2B;
+}
+*arg0 = sign;
+```
+
+The body is otherwise the signed counterpart of `func_8002F020` (leading
+`+`/`-`, digits written at `arg0 + 1`, negatives hand off to
+`func_8002F020(arg0 + 2, -arg1)`). `func_8002EEA0` is the pure example.
+
+Note: TUs that need `--expand-div` (e.g. `1E6C4.c`) must pass that flag in the
+scratch `build.sh` as well, or local scores omit the `break` checks and look
+worse than the real project match.

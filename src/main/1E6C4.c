@@ -145,7 +145,69 @@ void func_8002EDFC(GStruct38* arg0, u8* arg1)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002EEA0);
+u8* func_8002F020(u8* arg0, s32 arg1);
+
+u8* func_8002EEA0(u8* arg0, s32 arg1)
+{
+    typedef struct {
+        u8 data[9];
+    } Bytes9;
+    typedef struct {
+        u8 data[2];
+    } Bytes2;
+
+    u8* dest;
+    u8* start;
+    s32 place;
+    s32 digit;
+    s32 temp;
+    s32 cmp;
+    s32 sign;
+
+    asm("" ::: "memory");
+    sign = 0x2D;
+    if (arg1 >= 0) {
+        sign = 0x2B;
+    }
+    *arg0 = sign;
+
+    place = 0x989680;
+    start = arg0 + 1;
+    if (arg1 < 0) {
+        arg0[1] = 0x2D;
+        func_8002F020(arg0 + 2, -arg1);
+        return arg0;
+    }
+    if (arg1 > 0x5F5E0FF) {
+        *(Bytes9*)(arg0 + 1) = *(Bytes9*)D_800138BC;
+        return arg0;
+    }
+    cmp = arg1 < place;
+    if (arg1 == 0) {
+        *(Bytes2*)(arg0 + 1) = *(Bytes2*)D_800138C8;
+        return arg0;
+    }
+    dest = start;
+    if (cmp) {
+        do {
+            place /= 10;
+        } while (arg1 < place);
+    }
+    if (place > 0) {
+        do {
+            digit  = arg1 / place;
+            *dest  = digit;
+            temp   = *dest & 0xFF;
+            digit  = temp * place;
+            place /= 10;
+            *dest  = temp + 0x30;
+            dest++;
+            arg1 -= digit;
+        } while (place > 0);
+    }
+    *dest = 0;
+    return arg0;
+}
 
 u8* func_8002F020(u8* arg0, s32 arg1)
 {
