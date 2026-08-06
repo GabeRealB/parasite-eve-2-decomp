@@ -750,7 +750,95 @@ void func_8003FE9C(Task* arg0)
     func_8003EA44();
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8003FF14);
+void func_8003FF14(u8* arg0)
+{
+    u16         i;
+    u16         found;
+    s16         type;
+    s16         neg;
+    s32         key;
+    s32         offset;
+    CdCmdQueue* p;
+    void*       base;
+
+    p     = &CdCmd_Queue;
+    i     = 0;
+    found = 0;
+    key   = *arg0;
+loop:
+    if (key == p->field_58[i].field_32) {
+        goto matched;
+    }
+    i++;
+    if (i < 5) {
+        goto loop;
+    }
+done:
+    if ((found & 0xFFFF) != 0) {
+        if (p->field_218 == 0) {
+            goto success;
+        }
+    }
+    p->field_200 = 1;
+    p->field_1FE = 0;
+    neg          = -1;
+    p->field_202 = neg;
+    return;
+
+matched:
+    found = 1;
+    goto done;
+
+success:
+    D_8007A368 = &p->field_58[i];
+    type       = D_8007A368->field_34;
+    switch (type) {
+        case 0:
+            base = p->field_184;
+            goto store_base;
+        case 1:
+            D_8007A364 = (u8*)D_8005C36C;
+            if (p->field_190->field_1A == 1) {
+                D_8007A364 = (u8*)D_8005C36C + 0x11000;
+            }
+            if (p->field_190->field_3 == 2) {
+                D_8007A364 = D_8007A364 + p->field_190->field_1E;
+            }
+            D4F564_8005ED64->field_7C = 0;
+            break;
+        case 2:
+            D_8007A364 = (u8*)D_8005C370;
+            if (p->field_190->field_1A == 2) {
+                D_8007A364 = (u8*)D_8005C370 + 0x11000;
+            }
+            if (p->field_190->field_3 == 3) {
+                D_8007A364 = D_8007A364 + p->field_190->field_1E;
+            }
+            D4F564_8005ED64->field_7E = 0;
+            break;
+        case 3:
+            D_8007A364 = (u8*)D_8005C374;
+            if (p->field_190->field_1A == 3) {
+                D_8007A364 = (u8*)D_8005C374 + 0x11000;
+            }
+            if (p->field_190->field_3 == 4) {
+                D_8007A364 = D_8007A364 + p->field_190->field_1E;
+            }
+            D4F564_8005ED64->field_80 = 0;
+            break;
+        case 4:
+            base = p->field_198;
+        store_base:
+            D_8007A364 = base;
+            break;
+    }
+    offset       = D_8007A368->field_0;
+    D_8007A35C   = 0;
+    p->field_200 = 1;
+    p->field_1FE = 0;
+    p->field_202 = 0;
+    D_8007A360   = D_8007A364 + offset;
+}
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_8004017C);
 

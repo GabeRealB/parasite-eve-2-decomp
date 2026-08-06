@@ -184,87 +184,99 @@ typedef struct _CdCmd190 {
 } CdCmd190;
 STATIC_ASSERT_SIZEOF(CdCmd190, 0x20);
 
+/// Per-slot decode entry at `CdCmdQueue.field_58` (5 entries, stride 0x3C).
+/// Used by `func_8003FF14` to map a stream id to a base buffer + byte offset.
+typedef struct _CdCmd58Entry {
+    /* 0x00 */ s32  field_0;  // byte offset added to the resolved base buffer
+    /* 0x04 */ byte pad_4[0x2E];
+    /* 0x32 */ s16  field_32; // stream id matched against GStruct14.field_4
+    /* 0x34 */ s16  field_34; // buffer-select kind (0..4) for the switch in func_8003FF14
+    /* 0x36 */ byte pad_36[0x6];
+} CdCmd58Entry;
+STATIC_ASSERT_SIZEOF(CdCmd58Entry, 0x3C);
+
 /// Global CD / asset load command queue (`CdCmd_Queue`).
 typedef struct _CdCmdQueue {
-    CdCmdEntry entries[8];
-    CdCmdEntry field_40;
-    s32        field_48; // last CD position from CdPosToInt
-    s8         field_4c;
-    byte       unknown_4d[0x3];
-    CdCmdEntry field_50;  // replace-slot used by CdCmd_EnqueueReplace (cmd at 0x54)
-    byte       unknown_58[0x12C];
-    void*      field_184; // 0x184 — aux buffer (malloc of field_188)
-    s32        field_188; // 0x188 — size for field_184 malloc
-    u16*       field_18C; // 0x18C — VLC / DCT table buffer
-    CdCmd190*  field_190; // 0x190
-    byte       unknown_194[0x8];
-    void*      field_19C; // 0x19C — copy of field_1A4
-    byte       unknown_1A0[0x4];
-    void*      field_1A4; // 0x1A4 — secondary image/stream buffer
-    byte       unknown_1A8[0x20];
-    u16        writeIdx;  // 0x1C8 — next free slot (enqueue)
-    u16        readIdx;   // 0x1CA — slot being executed
-    byte       unknown_1cc[0x4];
-    u16        step;      // 0x1D0 — sub-state of current command
-    u16        field_1d2;
-    u16        field_1d4;
-    u16        field_1D6; // state for func_8001DF34
-    byte       unknown_1d8[0x6];
-    u16        field_1DE; // state for func_8001E2D4
-    u16        field_1E0;
-    u16        field_1E2;
-    u16        field_1E4;
-    u16        field_1E6;
-    u16        field_1E8;
-    u16        field_1EA;
-    u16        field_1EC; // MDEC out strip active (cleared by DecDCTout callback)
-    byte       unknown_1EE[0x4];
-    u16        field_1F2;
-    u16        field_1F4;
-    u16        field_1F6;
-    byte       unknown_1F8[0x2];
-    u16        field_1FA;
-    u16        field_1fc;
-    u8         field_1FE; // load status (0xFF = idle/done in several paths)
-    u8         field_1FF;
-    u16        field_200;
-    u16        field_202;
-    u16        field_204;
-    byte       unknown_206[0x4];
-    u16        field_20A;
-    byte       unknown_20C[0x2];
-    s16        field_20E;
-    byte       unknown_210[0x2];
-    u16        field_212;
-    u16        field_214;
-    u16        field_216; // 0x216 — non-zero enables buffer setup in func_8001BB7C
-    byte       unknown_218[0x2];
-    s16        field_21A;
-    u16        field_21C; // image transfer mode for func_80027F48 (0 / 1)
-    u16        field_21E; // 0x21E — DecDCTvlcBuild done flag
-    byte       unknown_220[0x2];
-    s16        field_222;
-    u16        field_224;
-    u16        field_226; // sub-state for func_8001E57C disk recovery
-    u16        field_228;
-    u16        field_22A; // DecDCTin mode for func_800405E0
-    u16        field_22C;
-    u16        field_22E;
-    u16        field_230;
-    u16        field_232;
-    s16        field_234;
-    s16        field_236;
-    s16        field_238; // 0x238 — non-zero clears field_18C in func_8001BB7C
-    byte       unknown_23A[0x4];
-    s16        field_23E; // MoveImage vs ClearImage path for func_800405E0
-    byte       unknown_240[0x2];
-    s16        field_242;
-    u16        field_244;
-    u16        field_246;
-    u16        field_248;
-    u16        field_24A;
-    byte       unknown_24C[0x6];
-    s16        busy; // 0x252 — non-zero while a blocking load is active
+    CdCmdEntry   entries[8];
+    CdCmdEntry   field_40;
+    s32          field_48; // last CD position from CdPosToInt
+    s8           field_4c;
+    byte         unknown_4d[0x3];
+    CdCmdEntry   field_50;    // replace-slot used by CdCmd_EnqueueReplace (cmd at 0x54)
+    CdCmd58Entry field_58[5]; // 0x58..0x183 — stream decode slot table
+    void*        field_184;   // 0x184 — aux buffer (malloc of field_188)
+    s32          field_188;   // 0x188 — size for field_184 malloc
+    u16*         field_18C;   // 0x18C — VLC / DCT table buffer
+    CdCmd190*    field_190;   // 0x190
+    void*        field_194;   // 0x194
+    void*        field_198;   // 0x198 — base buffer for field_58 kind 4
+    void*        field_19C;   // 0x19C — copy of field_1A4
+    byte         unknown_1A0[0x4];
+    void*        field_1A4;   // 0x1A4 — secondary image/stream buffer
+    byte         unknown_1A8[0x20];
+    u16          writeIdx;    // 0x1C8 — next free slot (enqueue)
+    u16          readIdx;     // 0x1CA — slot being executed
+    byte         unknown_1cc[0x4];
+    u16          step;        // 0x1D0 — sub-state of current command
+    u16          field_1d2;
+    u16          field_1d4;
+    u16          field_1D6; // state for func_8001DF34
+    byte         unknown_1d8[0x6];
+    u16          field_1DE; // state for func_8001E2D4
+    u16          field_1E0;
+    u16          field_1E2;
+    u16          field_1E4;
+    u16          field_1E6;
+    u16          field_1E8;
+    u16          field_1EA;
+    u16          field_1EC; // MDEC out strip active (cleared by DecDCTout callback)
+    byte         unknown_1EE[0x4];
+    u16          field_1F2;
+    u16          field_1F4;
+    u16          field_1F6;
+    byte         unknown_1F8[0x2];
+    u16          field_1FA;
+    u16          field_1fc;
+    u8           field_1FE; // load status (0xFF = idle/done in several paths)
+    u8           field_1FF;
+    u16          field_200;
+    u16          field_202;
+    u16          field_204;
+    byte         unknown_206[0x4];
+    u16          field_20A;
+    byte         unknown_20C[0x2];
+    s16          field_20E;
+    byte         unknown_210[0x2];
+    u16          field_212;
+    u16          field_214;
+    u16          field_216; // 0x216 — non-zero enables buffer setup in func_8001BB7C
+    u16          field_218; // 0x218 — non-zero blocks func_8003FF14 success path
+    s16          field_21A;
+    u16          field_21C; // image transfer mode for func_80027F48 (0 / 1)
+    u16          field_21E; // 0x21E — DecDCTvlcBuild done flag
+    byte         unknown_220[0x2];
+    s16          field_222;
+    u16          field_224;
+    u16          field_226; // sub-state for func_8001E57C disk recovery
+    u16          field_228;
+    u16          field_22A; // DecDCTin mode for func_800405E0
+    u16          field_22C;
+    u16          field_22E;
+    u16          field_230;
+    u16          field_232;
+    s16          field_234;
+    s16          field_236;
+    s16          field_238; // 0x238 — non-zero clears field_18C in func_8001BB7C
+    byte         unknown_23A[0x4];
+    s16          field_23E; // MoveImage vs ClearImage path for func_800405E0
+    byte         unknown_240[0x2];
+    s16          field_242;
+    u16          field_244;
+    u16          field_246;
+    u16          field_248;
+    u16          field_24A;
+    byte         unknown_24C[0x6];
+    s16          busy; // 0x252 — non-zero while a blocking load is active
 } CdCmdQueue;
 STATIC_ASSERT_SIZEOF(CdCmdQueue, 0x254);
 

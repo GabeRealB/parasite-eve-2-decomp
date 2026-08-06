@@ -10525,3 +10525,24 @@ Pair with `register s32 temp asm("v0"); register s32 scale asm("v1");` for the
 shared `(temp * scale) / 127U` path so the join `mult` is `mult v0, v1`.
 Use unsigned division (`/ 127U`, `/ 16129U`) when the target has `multu` magic.
 `func_80051DF4` is the pure example.
+
+## `s16` temp for `field = -1` on a `u16` field
+
+Assigning `-1` directly to a `u16` field makes GCC 2.8.1 emit
+`ori v0, zero, 0xFFFF` (unsigned 65535). The target often wants
+`addiu v0, zero, -1` instead — a one-byte difference that fails the
+checksum while the rest of the function is perfect.
+
+Hold `-1` in an `s16` temporary, then store:
+
+```c
+s16 neg;
+
+neg          = -1;   /* addiu v0, zero, -1 */
+p->field_202 = neg;  /* sh v0, field */
+```
+
+Changing the field type to `s16` also works in isolation but can break
+already-matched functions that load the same field as `lhu` / cast through
+`(s16)`. Prefer the temporary when the field type must stay `u16`.
+`func_8003FF14` is the pure example.
