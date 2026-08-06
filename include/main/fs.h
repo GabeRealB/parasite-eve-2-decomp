@@ -323,6 +323,10 @@ void Fs_ScanIsoDirectory(s32 mode);
 /// `retryNonzero` disables timeout aborts when non-zero.
 s32 func_800246B0(FsImageChunk* img, u8 retryNonzero);
 
+/// Copy a terminated FsWorkEntry list into D5B498_8006ACE8 and set up
+/// Fs_ImageRect / load state for the following image transfer.
+void func_800248B4(FsWorkEntry* arg0);
+
 /// Look up a packed file id and start a CD load (unmatched).
 void Fs_LoadFile(u8* req, s32 a1, s32 a2, s32 a3);
 

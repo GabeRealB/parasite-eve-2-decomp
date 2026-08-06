@@ -407,7 +407,77 @@ s32 func_800246B0(FsImageChunk* arg0, u8 arg1)
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/fs", func_800248B4);
+void func_800248B4(FsWorkEntry* arg0)
+{
+    register FsWorkEntry* base asm("t0");
+    register s32          term asm("t1");
+    register u32          ace_hi asm("a3");
+    FsWorkEntry*          src;
+    FsWorkEntry*          dst;
+    u32*                  mid;
+
+    src  = arg0;
+    term = 0xFFFF;
+    /* Keep %hi(D5B498_8006ACE8) in $a3 across the copy loop so later
+       field_0 loads can use lhu %lo(a3) (GCC will not CSE this itself). */
+    __asm__(
+        "lui %0, %%hi(D5B498_8006ACE8)\n\t"
+        "addiu %1, %0, %%lo(D5B498_8006ACE8)"
+        : "=&r"(ace_hi), "=r"(base));
+    dst = base;
+    mid = &arg0->field_4;
+
+loop:
+    dst->field_0 = src->field_0;
+    dst->field_2 = ((u16*)mid)[-1];
+    dst->field_4 = *mid;
+    if (dst->field_0 != term) {
+        mid += 2;
+        src += 1;
+        dst += 1;
+        goto loop;
+    }
+
+    if ((base->field_2 >= 0x100U) || (Fs_ChunkMode == 2)) {
+        s32  t;
+        s32  c;
+        s16* px;
+        px = &Fs_ImageRect.x;
+        __asm__("lhu %0, %%lo(D5B498_8006ACE8)(%1)" : "=r"(t) : "r"(ace_hi));
+        c   = (s8)D5B498_8006C233 * 64;
+        *px = t + c;
+    } else {
+        register s32  t asm("v1");
+        register s16* px asm("v0");
+        px = &Fs_ImageRect.x;
+        __asm__("lhu %0, %%lo(D5B498_8006ACE8)(%1)" : "=r"(t) : "r"(ace_hi));
+        *px = t;
+    }
+
+    if (Fs_ChunkMode == 2) {
+        Fs_ImageRect.y = D5B498_8006ACE8[0].field_2 + 0x80;
+    } else {
+        Fs_ImageRect.y = D5B498_8006ACE8[0].field_2;
+    }
+
+    Fs_ImageRect.w  = 0x40;
+    Fs_ImageRect.h  = 0x20;
+    D5B498_8006ACD4 = 0x100;
+
+    D5B498_8006C22C = (u8*)arg0 + D5B498_8006ACE8[0].field_4;
+
+    if (D5B498_8006ACE8[1].field_0 == 0xFFFF) {
+        if (D5B498_8006ACE8[1].field_2 == D5B498_8006ACE8[1].field_0) {
+            D5B498_8006ACD4 = 0x40;
+        } else if (D5B498_8006ACE8[1].field_2 & 0x8000) {
+            D5B498_8006ACD4 = D5B498_8006ACE8[1].field_2 & 0x7FFF;
+        }
+    }
+
+    D5B498_8006ADE1                  = 1;
+    D5B498_8006ADE0                  = 1;
+    D5B498_8006D4E0[D5B498_8006ADF4] = 0;
+}
 
 INCLUDE_ASM("main/nonmatchings/fs", func_80024A28);
 

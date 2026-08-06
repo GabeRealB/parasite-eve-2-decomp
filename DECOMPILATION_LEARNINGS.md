@@ -8490,3 +8490,41 @@ block->vz = t_vz >> t_sh2;
 
 Without the first barrier, `lw a0,0x10` wins the schedule. Without the second,
 both `srav` reuse `a0`. `func_8003CD78` is the pure example.
+
+## Keep `%hi(global)` live for post-loop `lhu %lo` loads
+
+When a function forms `&global` before a loop, uses a walking pointer inside the
+loop, then loads `global.field` after the loop, the target often keeps
+`%hi(global)` in a register (`$a3`) across the loop:
+
+```
+lui   a3, %hi(G)
+addiu t0, a3, %lo(G)   /* base pointer; a3 still holds hi */
+move  a0, t0           /* walking copy */
+/* loop uses a0 only */
+lhu   v1, %lo(G)(a3)   /* post-loop field load via kept hi */
+```
+
+GCC 2.8.1 with `-msplit-addresses` will *not* CSE the hi across a multi-iteration
+loop when the full address is assigned to a hard-pinned register
+(`register … asm("t0")` forces `lui t0; addiu t0,t0`). Without the pin, the full
+address lands in `$a3` and later field loads re-`lui`.
+
+Fix: form the address with non-volatile asm so `$a3` holds hi and `$t0` holds
+the full pointer, then load fields via the same hi:
+
+```c
+register FsWorkEntry* base asm("t0");
+register u32 ace_hi asm("a3");
+
+__asm__(
+    "lui %0, %%hi(D5B498_8006ACE8)\n\t"
+    "addiu %1, %0, %%lo(D5B498_8006ACE8)"
+    : "=&r"(ace_hi), "=r"(base));
+/* … loop on a walking copy of base … */
+__asm__("lhu %0, %%lo(D5B498_8006ACE8)(%1)" : "=r"(t) : "r"(ace_hi));
+```
+
+Also: `s8_global * 64` (or `(s8)u8_global * 64`) emits `lb; sll 6`, while
+`s8_global << 6` emits `lbu; sll 24; sra 18`. Prefer multiply for signed-byte
+scale factors. `func_800248B4` is the pure example.
