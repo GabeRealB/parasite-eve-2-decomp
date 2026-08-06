@@ -2,8 +2,6 @@
 
 #include "main/unknown_syms.h"
 
-INCLUDE_ASM("main/nonmatchings/2B704", func_8003AF04);
-
 // Layout matches PsyQ GsF_LIGHT (libgs.h is avoided: it redeclares GsClearOt).
 typedef struct {
     /* 0x00 */ s32 vx;
@@ -22,7 +20,7 @@ typedef struct {
 extern void   func_8003CD78(VECTOR* light, SVECTOR* out);
 extern MATRIX GsLIGHTWSMATRIX;
 
-void func_8003B140(s32 id, FlatLight* light, MATRIX* dirMtx, MATRIX* colorMtx)
+static __inline__ void setLightToMatrices(s32 id, FlatLight* light, MATRIX* dirMtx, MATRIX* colorMtx)
 {
     void**             scratch;
     ScratchLightBlock* block;
@@ -45,7 +43,47 @@ void func_8003B140(s32 id, FlatLight* light, MATRIX* dirMtx, MATRIX* colorMtx)
     *scratch = (u8*)*scratch + 0x18;
 }
 
-static __inline__ void setLightToMatrices(s32 id, FlatLight* light, MATRIX* dirMtx, MATRIX* colorMtx)
+void func_8003AF04(void)
+{
+    FlatLight light0;
+    FlatLight light1;
+    FlatLight light2;
+    s32       c100;
+    s32       c20;
+
+    c100 = 0x64;
+    c20  = 0x14;
+
+    light0.vx = c100;
+    light0.vy = c100;
+    light0.vz = c100;
+    light0.r  = 0xD0;
+    light0.g  = 0xD0;
+    light0.b  = 0xD0;
+    setLightToMatrices(0, &light0, &GsLIGHTWSMATRIX, &D_80074080);
+
+    light1.vy = -0x32;
+    light1.vz = -0x64;
+    light1.vx = c20;
+    light1.r  = 0x80;
+    light1.g  = 0x80;
+    light1.b  = 0x80;
+    setLightToMatrices(1, &light1, &GsLIGHTWSMATRIX, &D_80074080);
+
+    light2.vx = -0x14;
+    light2.vy = c20;
+    light2.vz = c100;
+    light2.r  = 0x60;
+    light2.g  = 0x60;
+    light2.b  = 0x60;
+    setLightToMatrices(2, &light2, &GsLIGHTWSMATRIX, &D_80074080);
+
+    D_80074080.t[0] = 0x40;
+    D_80074080.t[1] = 0x40;
+    D_80074080.t[2] = 0x40;
+}
+
+void func_8003B140(s32 id, FlatLight* light, MATRIX* dirMtx, MATRIX* colorMtx)
 {
     void**             scratch;
     ScratchLightBlock* block;
