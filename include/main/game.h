@@ -808,7 +808,8 @@ typedef struct _GStruct36 {
     /* 0x38 */ s32                 field_38;
     /* 0x3C */ s32                 field_3C;
     /* 0x40 */ GStruct42*          field_40;
-    /* 0x44 */ u8                  unknown_44[0x8];
+    /* 0x44 */ void*               field_44;
+    /* 0x48 */ void*               field_48;
     /* 0x4C */ GStruct36Entry      entries[1];
     /* 0x88 */ u8                  unknown_88[0x484 - 0x88];
     /* 0x484 */ GStruct22Entry     field_484[16];

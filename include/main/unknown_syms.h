@@ -295,7 +295,7 @@ extern void        func_80050A38(GStruct16* arg0);
 extern void        func_80050A90(GStruct16* arg0);
 extern void        func_80050AB4(GStruct16* arg0);
 extern void        func_80050AE0(GStruct16* arg0);
-extern void        func_80050E3C(u8 arg0, u16 arg1);
+extern s32         func_80050E3C(u8 arg0, u16 arg1);
 extern void        func_80050B0C(GStruct16* arg0);
 extern void        func_80050B30(GStruct16* arg0);
 extern void        func_80050B54(GStruct16* arg0);

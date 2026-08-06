@@ -10441,3 +10441,47 @@ p->field_2C = (*(Handler*)((u8*)table + 4))(
 Arg evaluation keeps `lbu`/`lw` of the call operands interleaved correctly and
 the `li v0,1; sb; lw handler` order matches. `func_80051BB0` is the pure
 example (else / running-status arm).
+
+## Mid-struct `s32*` at the last field for negative offsets
+
+When the target bases a loop on the *last* field of a struct element
+(`addiu s0, a1, 0x38` for `GStruct36Entry::field_38`) and stores earlier
+fields with negative offsets (`sw -0x10(s0)`, `sw -0xc(s0)`, `sw -0x4(s0)`),
+a typed overlay starting at that field cannot express the earlier members
+(C fields only grow forward). Plain `GStruct36Entry*` access often rebases on
+a mid field instead (e.g. `field_2C` at `a1+0x2c`).
+
+Fix: take `s32* p = &entry->field_38` (pin to `s0` if needed) and access
+via word offsets:
+
+```c
+register s32* p asm("s0");
+p = &entries->field_38;
+((u8**)p)[-4] = trackPtr; /* field_8[8] at -0x10 */
+((u8**)p)[-3] = trackPtr; /* field_2C at -0xC */
+p[-1] = delta;            /* field_34 at -0x4 */
+*p = 0xE0F;               /* field_38 */
+p += 15;                  /* next entry, +0x3C */
+```
+
+Pair with `register GStruct36Entry* entries asm("a1")` so the clear loop keeps
+`a1 = entries` and `addiu s0, a1, 0x38` matches. `func_80050E3C` is the pure
+example.
+
+## `s32` temps for scheduled `lbu` without extra `andi`
+
+When the target loads two bytes (`lbu v0` / `lbu v1`) early, interleaves other
+stores (`sb` of flags), then does `sll v0, 8; or v0, v1`, capturing the loads
+in `u8` locals re-introduces `andi ..., 0xff` before the shift. Use `s32`
+temps so the `lbu` zero-extends into a full register and the later shift/or
+need no mask:
+
+```c
+s32 d0, d1;
+d0 = data[0xC];
+d1 = data[0xD];
+/* sb flags... */
+obj->field_34 = (d0 << 8) | d1; /* sll; or — no andi */
+```
+
+`func_80050E3C` is the pure example (MIDI division word after field_6/4/7/5).
