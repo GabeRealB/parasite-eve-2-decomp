@@ -54,7 +54,7 @@ extern void func_80010024(void);
 
 // 16494.c
 extern void func_80025C94(u8 status, u8* result);
-extern void func_80025DD8(void);
+extern s32  func_80025DD8(u32* arg0);
 extern void F16494_ResetSpuAttr(void);
 extern void func_800260B0(s32 arg0);
 extern u8   func_80026138(void);
@@ -628,6 +628,7 @@ extern GStruct42 D_8007E0D8[];
 
 // Stream slot table living next to FS bss (F344); not pure FS API.
 extern GStruct24    D_8006D4F0[15];
+extern u16          D_8006EBB8;
 extern s8           D_8006EBBA;
 extern s16          D_8006EBF2;
 extern volatile s32 D_8006EBF4;

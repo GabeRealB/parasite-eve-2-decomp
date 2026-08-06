@@ -48,7 +48,78 @@ void func_80025C94(u8 status, u8* result)
     CdReadyCallback(NULL);
 }
 
-INCLUDE_ASM("main/nonmatchings/16494", func_80025DD8);
+s32 func_80025DD8(u32* arg0)
+{
+    struct {
+        u8     result[8];
+        s8     mode;
+        u8     pad[7];
+        CdlLOC loc;
+    } sp;
+    s32 sync;
+    u32 flags;
+    u32 temp;
+    s16 counter;
+
+    flags = *arg0;
+    if ((flags >> 1) & 1) {
+        temp  = flags & ~2;
+        temp  = temp & ~0xFF0;
+        *arg0 = temp | 0x10;
+    }
+
+    switch ((*arg0 >> 4) & 0xFF) {
+        case 1:
+            if (CdControlB(CdlNop, NULL, sp.result) == 0) {
+                return 0;
+            }
+            if (sp.result[0] & CdlStatShellOpen) {
+                return 0;
+            }
+            if (sp.result[0] & CdlStatStandby) {
+                *arg0 = (*arg0 & ~0xFF0) | 0x20;
+                case 2:
+                    if (CdControlB(CdlGetTN, NULL, sp.result) != 0) {
+                        *arg0 = (*arg0 & ~0xFF0) | 0x40;
+                        case 3:
+                            sync = CdSync(1, sp.result);
+                            if (sync == CdlDiskError) {
+                                *arg0 = (*arg0 & ~0xFF0) | 0x20;
+                            } else if (sync == CdlComplete) {
+                                *arg0 = (*arg0 & ~0xFF0) | 0x40;
+                                case 4:
+                                    CdIntToPos(0, &sp.loc);
+                                    if (CdControl(CdlSeekL, (u8*)&sp.loc, sp.result) != 0) {
+                                        *arg0 = (*arg0 & ~0xFF0) | 0x50;
+                                        case 5:
+                                            sync = CdSync(1, sp.result);
+                                            if ((sync == CdlDiskError) && (sp.result[0] & CdlStatError) &&
+                                                (sp.result[1] & 0x40)) {
+                                                *arg0 = (*arg0 & ~0xFF0) | 0x10;
+                                            } else if (sync != CdlComplete) {
+                                                *arg0 = (*arg0 & ~0xFF0) | 0x60;
+                                                case 6:
+                                                    sp.mode = -0x60;
+                                                    if (CdControl(CdlSetmode, (u8*)&sp.mode, NULL) != 0) {
+                                                        D_8006EBB8 = 0;
+                                                        *arg0      = (*arg0 & ~0xFF0) | 0x70;
+                                                    }
+                                            }
+                                    }
+                            }
+                    }
+            }
+            break;
+        case 7:
+            counter    = D_8006EBB8 + 1;
+            D_8006EBB8 = counter;
+            if (counter >= 4) {
+                return 1;
+            }
+            break;
+    }
+    return 0;
+}
 
 void F16494_ResetSpuAttr(void)
 {
@@ -117,7 +188,7 @@ void func_80026178(void)
 {
     struct {
         s32  pad[2];
-        void (*unk8)(void);
+        s32  (*unk8)(u32*);
         void (*unkC)(void);
         s32  (*unk10)(void);
     } sp;

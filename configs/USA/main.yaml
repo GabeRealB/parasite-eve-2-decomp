@@ -80,7 +80,7 @@ segments:
       - [0x3880, o, libcd/c_011, .rdata]
       - [0x38a0, .rodata, "11E9C"] # jtbls: 21A20, 21B28 + abs(21D8C) + 2207C + abs(2226C)
       - [0x3a74, rodata, fs] # Fs_* strings / jump tables
-      - [0x3b58, rodata, "16494"] # TODO
+      - [0x3b58, .rodata, "16494"] # jtbl from func_80025DD8
       - [0x3b74, o, libspu/s_sca, .rdata]
       - [0x3bb4, o, libspu/spu, .rdata]
       - [0x3c04, rodata, gamemain] # GameMain / display setup
