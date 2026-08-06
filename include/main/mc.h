@@ -190,6 +190,8 @@ extern McPromptPair Mc_PromptTable[];
 extern McSaveData   Mc_SaveData;
 /// "Memory Card" string passed to func_80048E38 by Mc_DrawPrompt.
 extern char D_8001398C[];
+/// "*" wildcard passed to MemCardGetDirentry by func_80031118.
+extern char D_80013A5C[];
 /// Jump table of 44 McStateFunc handlers used by func_800359A4.
 extern McStateFuncTable44 D_800139AC;
 /// Jump table of 26 McStateFunc handlers used by func_80036968.

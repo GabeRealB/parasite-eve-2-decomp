@@ -9035,3 +9035,138 @@ do {
 ```
 
 `func_800144F8` is the pure example.
+
+## McWork direntry walk from McWork base (size@0x48, head@0x50)
+
+When the target walks directory entries with:
+
+```
+move  t0, s1          /* McWork* */
+lw    v0, 0x48(t0)    /* DIRENTRY.size */
+lw    a0, 0x50(t0)    /* DIRENTRY.head */
+...
+addiu t0, t0, 0x28
+```
+
+do **not** start a `struct DIRENTRY*` at `field_30` (that emits `lw …,0x18/0x20`).
+Use an overlay whose fields sit at the McWork-relative offsets and advance by
+`sizeof(struct DIRENTRY)`:
+
+```c
+typedef struct {
+    u8  _pad[0x48];
+    s32 size;
+    s32 _pad4C;
+    s32 head;
+} McDirWalk;
+
+register McDirWalk* walk asm("t0");
+walk = (McDirWalk*)arg1;
+size = walk->size;
+head = walk->head;
+walk = (McDirWalk*)((u8*)walk + sizeof(struct DIRENTRY));
+```
+
+## field_A24 fill: `p = (u8*)work + i; p[0xA24] = val`
+
+Target init of the block map wants:
+
+```
+li    v1, -1
+li    a3, 0xe
+addu  v0, s1, a3
+sb    v1, 0xa24(v0)
+addiu a3, a3, -1
+bgez  a3, loop
+ addiu v0, v0, -1
+```
+
+`&work->field_A24[i]` folds the base (`addiu v0, s1, 0xa32; sb v1, 0(v0)`). Use:
+
+```c
+register s32 i asm("a3");
+register s32 val asm("v1");
+register u8* p asm("v0");
+val = -1;
+i = 0xE;
+p = (u8*)arg1 + i;
+do {
+    p[0xA24] = val;
+    i -= 1;
+    p -= 1;
+} while (i >= 0);
+```
+
+Keep `val` as `s32 -1` (not `0xFF`) so the `li` is `addiu …, -1`. Reuse `i` as
+the later `MemCardGetDirentry(…, max=0xF)` so `$a3` is reloaded right after the
+loop.
+
+## Ceil blocks + head/64: early `headAdj = head` between size bias and sra
+
+Target schedules:
+
+```
+bgez  v0, pos          /* size */
+ move v1, v0
+addiu v1, v0, 0x1fff
+move  a2, a0           /* headAdj = head — before sra/andi */
+sra   v1, v1, 0xd
+andi  v0, v0, 0x1fff
+sltu  v0, zero, v0
+bgez  a0, head_pos
+ addu a1, v1, v0       /* blocks */
+addiu a2, a0, 0x3f
+sra   a0, a2, 0x6
+addiu a0, a0, -1       /* start = head/64 - 1 */
+```
+
+Pin size/head/temps and assign `headAdj = head` immediately after the size
+bias, then `sizeAdj >>= 13` before the `andi`:
+
+```c
+register s32 size asm("v0");
+register s32 head asm("a0");
+register s32 sizeAdj asm("v1");
+register s32 headAdj asm("a2");
+register s32 blocks asm("a1");
+register s32 start asm("a0");
+
+sizeAdj = size;
+if (size < 0) sizeAdj = size + 0x1FFF;
+headAdj = head;
+sizeAdj = sizeAdj >> 13;
+blocks = sizeAdj + ((size & 0x1FFF) != 0);
+if (head < 0) headAdj = head + 0x3F;
+start = (headAdj >> 6) - 1;
+```
+
+## Loop epilogue: `new28c`/`n` temps put `sw field_28C` in the branch delay
+
+Target end-of-iteration:
+
+```
+addiu t0, t0, 0x28
+addiu a3, a3, 1
+lw    v0, 0x28c(s1)
+lw    v1, 0x288(s1)
+addu  v0, v0, a1
+slt   v1, a3, v1
+bnez  v1, loop
+ sw   v0, 0x28c(s1)
+```
+
+A plain `field_28C += blocks; } while (i < field_288)` stores early and leaves
+`walk++` in the delay. Force the store last via temps pinned to `$v0`/`$v1`:
+
+```c
+register s32 new28c asm("v0");
+register s32 n asm("v1");
+walk = (McDirWalk*)((u8*)walk + sizeof(struct DIRENTRY));
+i += 1;
+new28c = arg1->field_28C + blocks;
+n = arg1->field_288;
+arg1->field_28C = new28c;
+} while (i < n);
+```
+
+`func_80031118` is the pure example (memcard free-block map).

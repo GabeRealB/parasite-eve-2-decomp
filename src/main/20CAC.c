@@ -168,7 +168,107 @@ s32 func_8003092C(Task* arg0, s32 arg1, s32 arg2)
 
 INCLUDE_ASM("main/nonmatchings/20CAC", func_80030AB0);
 
-INCLUDE_ASM("main/nonmatchings/20CAC", func_80031118);
+/* Overlay: DIRENTRY.size/head at McWork+0x48/0x50 when walk starts at McWork. */
+typedef struct {
+    u8  _pad[0x48];
+    s32 size;
+    s32 _pad4C;
+    s32 head;
+} McDirWalk;
+
+void func_80031118(Task* arg0, McWork* arg1)
+{
+    s32                 ret;
+    s32                 one;
+    s32                 j;
+    UiObject*           obj;
+    McPromptPair*       prompt;
+    McPromptPair*       base;
+    s32                 idx;
+    register s32        i asm("a3");
+    register McDirWalk* walk asm("t0");
+    register s32        val asm("v1");
+    register u8*        p asm("v0");
+    register s32        fill asm("t1");
+    register s32        size asm("v0");
+    register s32        head asm("a0");
+    register s32        headAdj asm("a2");
+    register s32        sizeAdj asm("v1");
+    register s32        blocks asm("a1");
+    register s32        start asm("a0");
+    register s32        new28c asm("v0");
+    register s32        n asm("v1");
+
+    arg1->field_4 -= 1;
+    if (arg1->field_4 == 0) {
+        arg1->field_288 = 0;
+        val             = -1;
+        i               = 0xE;
+        p               = (u8*)arg1 + i;
+        do {
+            p[0xA24] = val;
+            i       -= 1;
+            p       -= 1;
+        } while (i >= 0);
+
+        i = 0xF;
+        MemCardGetDirentry(
+            arg1->field_C, D_80013A5C, (struct DIRENTRY*)arg1->field_30, &arg1->field_288, 0,
+            i);
+
+        arg1->field_28C = 0;
+        if (arg1->field_288 != 0) {
+            i = 0;
+            if (arg1->field_288 > 0) {
+                fill = -2;
+                walk = (McDirWalk*)arg1;
+                do {
+                    size = walk->size;
+                    head = walk->head;
+
+                    sizeAdj = size;
+                    if (size < 0) {
+                        sizeAdj = size + 0x1FFF;
+                    }
+                    headAdj = head;
+                    sizeAdj = sizeAdj >> 13;
+                    blocks  = sizeAdj + ((size & 0x1FFF) != 0);
+
+                    if (head < 0) {
+                        headAdj = head + 0x3F;
+                    }
+                    start = (headAdj >> 6) - 1;
+
+                    j = 0;
+                    if (blocks > 0) {
+                        do {
+                            arg1->field_A24[start + j] = fill;
+                            j                         += 1;
+                        } while (j < blocks);
+                    }
+
+                    walk            = (McDirWalk*)((u8*)walk + sizeof(struct DIRENTRY));
+                    i              += 1;
+                    new28c          = arg1->field_28C + blocks;
+                    n               = arg1->field_288;
+                    arg1->field_28C = new28c;
+                } while (i < n);
+            }
+        }
+        arg0->field_30 += 1;
+    }
+
+    obj           = arg0->field_20;
+    idx           = arg1->field_8;
+    ret           = func_80048E10(obj, 1);
+    obj->field_2E = 0;
+    func_80048E38(obj, D_8001398C);
+    one    = 1;
+    base   = Mc_PromptTable;
+    prompt = &base[idx];
+    func_8002FDCC(obj, obj->field_1C + 2, -2, prompt->field_0, ret, one, 0);
+    func_8002FDCC(obj, obj->field_1C + 2, 0xF, prompt->field_4, ret, one, 0);
+}
 
 void func_800312DC(Task* arg0, McWork* arg1)
 {
