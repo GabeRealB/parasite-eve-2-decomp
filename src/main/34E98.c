@@ -18,7 +18,49 @@ INCLUDE_ASM("main/nonmatchings/34E98", func_80044C34);
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_800454E4);
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_800457F8);
+void func_800457F8(GStruct30* arg0)
+{
+    RECT     sp10;
+    RECT     sp18;
+    DR_AREA* p;
+
+    func_800492EC(arg0, &arg0->field_C, &sp18);
+    if ((arg0->field_4 & 0xF) == 2) {
+        sp18.y += 9;
+        sp18.h -= 0xB;
+        sp18.x += 2;
+        sp18.w -= 4;
+    } else {
+        sp18.y += 2;
+        sp18.h -= 4;
+        sp18.x += 2;
+        sp18.w -= 4;
+    }
+    arg0->field_1C = -(sp18.w >> 1);
+    arg0->field_1E = arg0->field_1C + sp18.w;
+    arg0->field_18 = -(sp18.h >> 1);
+    arg0->field_1A = arg0->field_18 + sp18.h;
+    arg0->field_20 = sp18.x - arg0->field_1C;
+    arg0->field_22 = sp18.y - arg0->field_18;
+
+    p          = (DR_AREA*)D_80071190;
+    D_80071190 = (DR_TPAGE*)(p + 1);
+    sp10.x     = 0;
+    sp10.w     = 0;
+    sp10.h     = 0;
+    sp10.y     = Display_State.field_1f * 0x110;
+    SetDrawArea(p, &sp10);
+    addPrim(D_800710A0 + (s16)arg0->field_14 + 3, p);
+
+    p          = (DR_AREA*)D_80071190;
+    D_80071190 = (DR_TPAGE*)(p + 1);
+    sp10.x     = 0;
+    sp10.w     = 0x140;
+    sp10.h     = 0xF0;
+    sp10.y     = Display_State.field_1f * 0x110;
+    SetDrawArea(p, &sp10);
+    addPrim(D_800710A0 + (s16)arg0->field_14, p);
+}
 
 void func_80045A3C(GStruct30* arg0, RECT* arg1, s32 arg2, s32 arg3)
 {
