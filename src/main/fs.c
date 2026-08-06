@@ -207,7 +207,80 @@ void func_80023748(s32 arg0, s32 arg1, s32 arg2)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/fs", func_8002397C);
+void func_8002397C(s32 arg0, s32 arg1, s32 arg2)
+{
+    s32          i;
+    s32          j;
+    s32          folderId;
+    FsCdfFile*   files;
+    s32*         table;
+    FsCdfFile*   file;
+    s32          offset;
+    FsCdfFolder* folder;
+    FsCdfStream* streams;
+    FsCdfStream* stream;
+    GStruct24*   destBase;
+    s32          k;
+    u8*          src;
+    u8*          dst;
+
+    i        = 0;
+    folderId = ((u8)arg1 * 100) + (u8)arg2;
+    for (; (u16)i < Fs_FolderTableLen; i++) {
+        if (folderId == Fs_FolderTable[i & 0xFFFF].id) {
+            break;
+        }
+    }
+
+    files = (FsCdfFile*)&Fs_CdSector;
+    j     = 0;
+    table = D_8006C158;
+    {
+        FsCdfFolder* sp = Fs_FolderTable;
+        folder          = sp + (i & 0xFFFF);
+    }
+loop_files:
+    file   = (FsCdfFile*)(((j & 0xFFFF) << 3) + (s32)files);
+    offset = file->offset;
+    j     += 1;
+    if (offset != 0) {
+        table[file->id] = offset + folder->offset;
+        goto loop_files;
+    }
+
+    i        = 0;
+    folderId = ((u8)arg1 * 100) + 1;
+    streams  = (FsCdfStream*)(Fs_CdSector.bytes + 0x514);
+    for (; (u16)i < Fs_FolderTableLen; i++) {
+        if (folderId == Fs_FolderTable[i & 0xFFFF].id) {
+            break;
+        }
+    }
+
+    j = 0;
+    {
+        FsCdfFolder* sp = Fs_FolderTable;
+        files           = (FsCdfFile*)(sp + (i & 0xFFFF));
+    }
+    {
+        s32* sp = Fs_StageCdfSectors;
+        table   = sp + (u8)arg0;
+    }
+    destBase = D_8006D4F0;
+loop_streams:
+    stream = (FsCdfStream*)(((j & 0xFFFF) * 0x28) + (s32)streams);
+    if (*(s32*)&stream->data.movie.field_c != 0) {
+        src = (u8*)stream;
+        asm("");
+        dst             = (u8*)(((j & 0xFFFF) * 0x28) + (s32)destBase);
+        stream->offset += files->offset + *table;
+        for (k = 0; (u16)k < 0x28; k++) {
+            dst[k & 0xFFFF] = src[k & 0xFFFF];
+        }
+        j += 1;
+        goto loop_streams;
+    }
+}
 
 #ifndef NON_MATCHING
 INCLUDE_ASM("main/nonmatchings/fs", Fs_InitStage0TablesCb);

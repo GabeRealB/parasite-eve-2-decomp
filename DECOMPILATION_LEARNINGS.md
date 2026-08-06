@@ -10201,3 +10201,61 @@ wrong registers (or vice versa).
 Fix: give the second loop its own counter/sum/pointer locals and pin each set
 independently. `func_80032AB0` is the pure example — block-checksum walk then
 first-byte sum over `Mc_BufferSlots[1..8]`.
+
+## Reuse a pointer var across phases to force shared hard registers
+
+When two sequential phases need the same hard register for different logical
+pointers (e.g. file-list base in phase 1 and stream-folder base in phase 2 both
+in `$t2`), reusing one C variable across both phases forces the shared colouring:
+
+```c
+FsCdfFile* files = (FsCdfFile*)&Fs_CdSector;
+/* phase 1: walk files[j] */
+...
+/* phase 2: reuse the same local for the stream-side folder entry */
+files = (FsCdfFile*)(Fs_FolderTable + (i & 0xFFFF));
+stream->offset += files->offset + stage;
+```
+
+Separate `files` / `folder2` locals often colour differently and shift every
+`$tN` assignment. `func_8002397C` needs this so phase-1 file base and phase-2
+stream folder share `$t2`.
+
+## Index-first cast for `addu rd, index, base`
+
+`ptr + i` / `&ptr[i]` with the base already in a `$tN` often emits
+`addu v1, tN, v0` (base first). The target sometimes wants
+`addu v0, v0, tN` (index first, result reuses the index reg). Force that shape
+with a cast that puts the scaled index on the left:
+
+```c
+/* Wrong operand order when files is in $t2: addu v1, t2, v0 */
+file = files + (j & 0xFFFF);
+file = &files[j & 0xFFFF];
+
+/* Right: addu v0, v0, t2 */
+file = (FsCdfFile*)(((j & 0xFFFF) << 3) + (s32)files);
+```
+
+Same for stream stride `* 0x28`. `func_8002397C` needs both forms.
+
+## `asm("")` after a move that must own the next `beqz` delay slot
+
+When the body starts with `src = (u8*)stream` (a pure `move a2, a0`) but the
+delay slot of the preceding `beqz` fills with a later independent init
+(`move a1, zero` for `k = 0`, or a loop-invariant `addu` for `dst`), insert an
+empty asm barrier immediately after the move:
+
+```c
+if (stream->field_C != 0) {
+    src = (u8*)stream;
+    asm("");
+    dst = (u8*)(destBase + (j & 0xFFFF));
+    /* offset update, then for (k = 0; ...) copy */
+}
+```
+
+The barrier pins `src` before later independent inits, so the delay-slot filler
+takes `move a2, a0`. Without it, `k = 0` or the `dst` `addu` wins the slot.
+`func_8002397C` is the pure example (also uses the project’s existing `asm("")`
+pattern from `func_80023748`).

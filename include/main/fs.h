@@ -372,6 +372,11 @@ void Fs_LoadFile(u8* req, s32 a1, s32 a2, s32 a3);
 /// Look up folder `arg1*100+arg2` under stage `arg0` and start a CD read of
 /// that folder into `Fs_CdSector` (cmd-queue load path).
 void func_80023748(s32 arg0, s32 arg1, s32 arg2);
+
+/// After a folder sector is in `Fs_CdSector`: resolve file-list offsets into
+/// `D_8006C158` for folder `arg1*100+arg2`, then copy stream descriptors from
+/// sector+0x514 into `D_8006D4F0` for folder `arg1*100+1`, adjusting offsets
+/// by the folder base and `Fs_StageCdfSectors[arg0]`.
 void func_8002397C(s32 arg0, s32 arg1, s32 arg2);
 
 /// Boot path: scan ISO, parse HED, load initial CDF file (file id 1).
@@ -432,6 +437,10 @@ extern FsCdfFolder    Fs_FolderTable[50];
 extern u16            Fs_FolderTableLen;
 extern s32            Fs_StageCdfSectors[FS_CDF_STAGE_COUNT];
 extern FsCdfStream    Fs_Streams[0xa];
+
+/// Absolute sector offsets for folder-local file ids (indexed by file id).
+/// Filled by `func_8002397C` from the folder file list in `Fs_CdSector`.
+extern s32 D_8006C158[0x33];
 
 // Buffers / media
 extern FsSector      Fs_CdSector;
