@@ -9307,3 +9307,47 @@ writing the C test as `if (next != NULL) { non-null } else { null }` often
 emits `beqz` with the arms swapped. Flipping to `if (next == NULL) { null }
 else { non-null }` produces the retail `bnez` layout with the store in the
 branch delay slot. Same logical code; only the branch polarity matches.
+
+## `s8` flag vs `s32` call arg: prevent CSE of `li a0,K`
+
+When the target keeps a small constant K in `$s1` across a call for byte
+stores (`sb s1, field`) *and* also emits a fresh `li a0,K` for the call
+argument (not `move a0,s1`), hold K in an `s8` (QImode) local:
+
+```c
+s8 one;
+
+one = 1;
+p->field_4C = one;     /* sb s1, ... */
+func_X(1);             /* li a0, 1 — SImode cannot CSE from QImode s1 */
+q->field_10b = one;    /* sb s1, ... after the call */
+```
+
+An `s32 one = 1` produces `move a0,s1` instead. Pair with
+`register s32 saved asm("s1")` on a non-overlapping path that needs the same
+register for a saved global (e.g. `lb s1, D_xxx` / `sb s1, D_xxx`) so
+`CdCmdQueue* p` can claim `$s0`.
+
+`func_8002B834` is the pure example.
+
+## Nested block for clear-loop regalloc (`a0`=ptr, `v1`=i)
+
+A function-scope `u8* ptr; u32 i; for (...)` clear of `GStruct14` often
+allocates `i` to `$a0` and the pointer to `$v1` when other locals are live.
+Wrapping the clear in a nested block with its own `clearPtr`/`clearI` restores
+the `func_8002BB9C` pattern (`a0`=ptr, `v1`=counter) used by simple clears:
+
+```c
+{
+    u8* clearPtr;
+    u32 clearI;
+
+    clearPtr = (u8*)D4F564_8005ED64;
+    for (clearI = 0; clearI < sizeof(GStruct14); clearI++) {
+        *clearPtr++ = 0;
+    }
+}
+```
+
+Use function-scope `ptr`/`i` when the target wants the inverse allocation
+(e.g. after `a0` was already zeroed as the counter, as in `func_8002BC0C`).

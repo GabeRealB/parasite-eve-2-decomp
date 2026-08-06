@@ -6,7 +6,100 @@
 #include "main/mem.h"
 #include "main/unknown_syms.h"
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002B834);
+void func_8002B834(Task* arg0)
+{
+    CdCmdQueue*   p;
+    register s32  saved asm("s1");
+    s8            one;
+    u8*           ptr;
+    u32           i;
+    DisplayState* ds;
+
+    p = &CdCmd_Queue;
+    if (arg0->field_34 == 2) {
+        if (arg0->field_30 == 0) {
+            Pad_SetCooldown(0);
+            if (Display_State.field_12c == 0) {
+                Display_State.field_12c = 1;
+            }
+            if (Display_State.field_12c < 0x10) {
+                func_80094B90(Display_State.field_12c - 1);
+            }
+            arg0->field_30 = arg0->field_30 + 1;
+        }
+        if (func_8001D344() != 0) {
+            if (Display_State.field_10e == 0) {
+                Display_State.field_10e = 1;
+            }
+            func_8009407C();
+            {
+                u8* clearPtr;
+                u32 clearI;
+
+                clearPtr = (u8*)D4F564_8005ED64;
+                for (clearI = 0; clearI < sizeof(GStruct14); clearI++) {
+                    *clearPtr++ = 0;
+                }
+            }
+            ds                        = &Display_State;
+            ds->field_101             = 0;
+            ds->field_12e             = 0;
+            one                       = 1;
+            D4F564_8005ED64->field_4C = one;
+            D4F564_8005ED64->field_80 = 0;
+            func_80053FA0(1);
+            ds->field_101 = 0;
+            ds->field_10b = one;
+            Task_Kill(arg0);
+            Task_ResetDefaultList();
+            func_80028718();
+            Mem_Init();
+            Task_Spawn(0, 9, 0, 0);
+        }
+    } else {
+        Display_State.field_12c = 0;
+        Pad_SetCooldown(0);
+        if (arg0->field_34 == 0) {
+            saved = D_80072189;
+            ptr   = (u8*)D4F564_8005ED64;
+            for (i = 0; i < sizeof(GStruct14); i++) {
+                *ptr++ = 0;
+            }
+            Display_State.field_101 = 0;
+            Display_State.field_12e = 1;
+            p->field_248            = 1;
+            p->field_244            = 1;
+            D_800710A8.field_4      = 1;
+            func_800303AC();
+            do {
+                D_80072189 = saved;
+            } while (0);
+            arg0->field_30 = arg0->field_30 + 1;
+        } else {
+            {
+                u8* clearPtr;
+                u32 clearI;
+
+                clearPtr = (u8*)D4F564_8005ED64;
+                for (clearI = 0; clearI < sizeof(GStruct14); clearI++) {
+                    *clearPtr++ = 0;
+                }
+            }
+            Display_State.field_12e   = 1;
+            Display_State.field_101   = 0;
+            p->field_248              = 1;
+            p->field_244              = 1;
+            D_800710A8.field_4        = 1;
+            D4F564_8005ED64->field_4C = 1;
+        }
+        Display_State.field_10b = 1;
+        Task_Kill(arg0);
+        Task_ResetDefaultList();
+        func_80028718();
+        Mem_Init();
+        Task_Spawn(0, 9, 0, 0);
+    }
+}
 
 void func_8002BA9C(s32 r, s32 g, s32 b, s32 mode)
 {

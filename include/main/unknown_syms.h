@@ -68,7 +68,10 @@ extern s32  func_800262A8(void);
 // gamemain.c APIs → main/gamemain.h
 
 // 1C034.c — game-flow state handlers
+extern void func_8002B834(Task* arg0);
 extern void func_8002BA9C(s32 r, s32 g, s32 b, s32 mode);
+extern void func_80094B90(s32 arg0);
+extern void func_8009407C(void);
 extern void func_8002BB9C(void);
 extern void func_8002BBC8(void);
 extern void func_8002BE0C(Task* arg0);
