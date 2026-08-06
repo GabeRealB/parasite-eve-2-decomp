@@ -84,6 +84,8 @@ extern void func_8002C1D8(void);
 // Pad_* → main/pad.h; Task_* → main/task.h
 extern TaskFuncTable5 D_800134BC;
 extern TaskFuncTable3 D_800134D0;
+extern u16            D_80013E88[]; // display width table
+extern u16            D_80013E94[]; // display height table
 extern TaskFuncTable6 D_80013E98;
 extern TaskFuncTable3 D_80013EDC;
 extern GBytes4        D_80013F18;
@@ -696,6 +698,7 @@ extern DR_TPAGE* D_80071190; // primitive buffer cursor
 // 61F10
 // Immediate-mode SPRT scratch used by func_8002F5E4 (DrawPrim path).
 extern SPRT D_80071710;
+extern s8   D_8007272B;
 extern s8   D_8007272D;
 // Mc_SaveData → main/mc.h
 // Alias of Mc_SaveData.field_4 (offset 0x4).

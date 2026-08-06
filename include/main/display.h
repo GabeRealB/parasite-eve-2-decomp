@@ -17,7 +17,9 @@ typedef struct _DisplayState {
     s32     field_c;
     s32     field_10;
     s32     field_14;
-    byte    unknown_18[0x5];
+    u16     field_18; // display width (from D_80013E88)
+    u16     field_1a; // display height (from D_80013E94)
+    u8      field_1c; // interlace enable
     s8      field_1d;
     s8      field_1e;
     u8      field_1f;

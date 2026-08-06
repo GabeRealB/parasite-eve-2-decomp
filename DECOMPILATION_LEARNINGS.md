@@ -10294,3 +10294,31 @@ The barrier pins `src` before later independent inits, so the delay-slot filler
 takes `move a2, a0`. Without it, `k = 0` or the `dst` `addu` wins the slot.
 `func_8002397C` is the pure example (also uses the project’s existing `asm("")`
 pattern from `func_80023748`).
+
+## Late `andi s0, src, 0xFFFF` in call arg setup
+
+When the target schedules `andi s0, sN, 0xffff` *after* `a0`/`a1`/`a2` setup
+for a call (just before `move a3, s0`), a plain
+
+```c
+temp_s0 = temp_s5 & 0xFFFF;
+SetDefDrawEnv(p, 0, 0, temp_s0, h);
+```
+
+with `u32 temp_s0` hoists the `andi` *before* the `addiu a0`. Declaring
+`temp_s0` as `char` and writing the width as a comma expression forces the late
+schedule while still emitting `andi …, 0xffff` for the actual argument:
+
+```c
+char temp_s0;
+
+SetDefDrawEnv(p, 0, 0, (temp_s0 = temp_s5, temp_s5 & 0xFFFF), h);
+/* later args reuse the same expression so CSE keeps $s0: */
+SetDefDispEnv(q, 0, y, temp_s5 & 0xFFFF, h);
+```
+
+`temp_s0 = temp_s5 & 0xFFFF` alone on a `char` becomes `andi …, 0xff`. The
+comma form evaluates the full-width mask for the call while the dummy `char`
+store reshuffles the scheduler. A second local pointer alias (`new_var = ds`)
+used on one call site can also be required to keep the register set stable.
+`func_8003DB48` is the pure example.
