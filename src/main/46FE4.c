@@ -93,35 +93,10 @@ s32 func_800567E4(void)
     return 1;
 }
 
-/* Alignment pad after func_800567E4's 5-entry jump table, then absolute copies
- * of jtbl_800141DC / jtbl_80014204 for still-asm func_80056B28 / func_80056E38. */
-static const s32 s_jtbl_pad_567E4  = 0;
-const s32        jtbl_800141DC[10] = {
-    0x80056BA4,
-    0x80056DFC,
-    0x80056C40,
-    0x80056DFC,
-    0x80056B70,
-    0x80056BF0,
-    0x80056DFC,
-    0x80056C9C,
-    0x80056D58,
-    0x80056D7C,
-};
-const s32 jtbl_80014204[12] = {
-    0x80056E80,
-    0x80056EF4,
-    0x80056F90,
-    0x80056FD0,
-    0x80057018,
-    0x80057088,
-    0x800570E0,
-    0x8005713C,
-    0x80057210,
-    0x800572D8,
-    0x800571D8,
-    0x00000000,
-};
+/* Alignment pad after func_800567E4's 5-entry jump table. jtbl_80014204 for
+ * still-asm func_80056E38 is placed after func_80056B28 so the compiler-generated
+ * table for that function lands at 0x800141DC. */
+static const s32 s_jtbl_pad_567E4 = 0;
 
 s32 func_800569D4(void)
 {
@@ -165,7 +140,149 @@ s32 func_800569D4(void)
     return ret;
 }
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_80056B28);
+typedef struct {
+    /* 0x0 */ u8 pad[2];
+    /* 0x2 */ u8 field_2;
+    /* 0x3 */ u8 field_3;
+} SectorHdr;
+
+void func_80057C74(s32 arg0);
+
+s32 func_80056B28(void)
+{
+    u8                  phase;
+    register SectorHdr* hdr asm("a2");
+    volatile GStruct44* stream;
+    s32                 status;
+    register s32        tmp asm("a0");
+    s32                 val;
+    register s32        ptr asm("v1");
+    u8                  idx;
+    volatile GStruct18* audio;
+    volatile GStruct39* cd;
+
+    phase = D_80082798.field_3;
+    hdr   = (SectorHdr*)D_80082750;
+
+    switch (phase) {
+        case 5:
+        do_setloc:
+            D_80082780.field_0 = 0;
+            D_80082798.field_3 = 1;
+            CdControlF(CdlSetloc, D_800827B0);
+            break;
+        case 1:
+            stream = &D_80082780;
+            if (stream->field_0 < 0x259) {
+                if (CdSync(1, NULL) == CdlDiskError) {
+                    CdFlush();
+                    goto do_setloc;
+                }
+                D_80082798.field_3 = 6;
+                    /* fallthrough */
+                case 6:
+                    D_80082798.field_3 = 3;
+                    CdReadyCallback(func_80057C74);
+                    D_80082780.field_0 = 0;
+                    D_80082770         = 0;
+                    D_80082780.field_A = 0;
+                    CdControlF(CdlReadN, NULL);
+                    break;
+            }
+            goto timeout;
+        case 3:
+            if (CdSync(1, NULL) == CdlDiskError) {
+                D_80082798.field_3 = 6;
+                CdFlush();
+                CdReadyCallback(NULL);
+            } else {
+                D_80082798.field_3 = 8;
+                D_80082780.field_4 = 0;
+            }
+            break;
+        case 8:
+            stream = &D_80082780;
+            if ((u8)stream->field_A != 0) {
+                stream->field_8 = D_80082798.field_3;
+                stream->field_9 = 2;
+                goto error;
+            }
+            if (stream->field_0 < 0x259) {
+                if (D_80082770 != 0) {
+                    audio          = &D_800827A0;
+                    idx            = hdr->field_3;
+                    val            = D_80068B18[idx];
+                    ptr            = D_80082750;
+                    audio->field_8 = val;
+                    cd             = &D_80082758;
+                    idx            = hdr->field_2;
+                    cd->field_C    = (u16*)(ptr + (idx * 4));
+                    CdReadyCallback(NULL);
+                    D_80082798.field_3 = 9;
+                        /* fallthrough */
+                    case 9:
+                        CdControlF(CdlPause, NULL);
+                        D_80082780.field_0 = 0;
+                        D_80082798.field_3 = 0xA;
+                        /* fallthrough */
+                    case 10:
+                        stream = &D_80082780;
+                        if (stream->field_0 < 0x259) {
+                            goto do_cdsync;
+                        }
+                } else {
+                    break;
+                }
+            }
+        timeout:
+            stream->field_8 = D_80082798.field_3;
+            stream->field_9 = 1;
+            goto error;
+        do_cdsync:
+            status = CdSync(1, NULL);
+            if (status == CdlComplete) {
+                goto set_state_4;
+            }
+            if (status < 3) {
+                break;
+            }
+            if (status != CdlDiskError) {
+                break;
+            }
+            CdFlush();
+        set_state_4:
+            D_80082798.field_3 = 4;
+            break;
+        default:
+            break;
+    }
+
+    tmp                = D_80082780.field_0;
+    tmp                = tmp + 1;
+    D_80082780.field_0 = tmp;
+    return 5;
+
+error:
+    D_80082798.field_3 = 0x80;
+    return 0;
+}
+
+/* Absolute jump table for still-asm func_80056E38. Placed after func_80056B28 so
+ * that function's compiler-generated jtbl occupies 0x800141DC. */
+const s32 jtbl_80014204[12] = {
+    0x80056E80,
+    0x80056EF4,
+    0x80056F90,
+    0x80056FD0,
+    0x80057018,
+    0x80057088,
+    0x800570E0,
+    0x8005713C,
+    0x80057210,
+    0x800572D8,
+    0x800571D8,
+    0x00000000,
+};
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_80056E38);
 

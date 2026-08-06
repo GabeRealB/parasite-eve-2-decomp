@@ -9659,3 +9659,60 @@ register colouring on the sibling branch (e.g. a checksum loop that also wants
 `addiu v0, v0, %lo(table)` on the memcpy path.
 
 `func_80032D54` is the pure example.
+
+## Place absolute jtbl consts after the C function that owns the preceding slot
+
+When a `.rodata` segment mixes compiler-generated jump tables with absolute
+`const s32 jtbl_…[]` copies for still-asm neighbours, emission order follows
+compile order through the TU: a switch's table is emitted while that function
+is compiled, and later `const` data lands after it.
+
+Symptom: after matching function A you remove its absolute `jtbl_A`, but the
+still-asm neighbour's absolute `jtbl_B` (still declared earlier in the source)
+shifts up into A's slot and the checksum fails even though A's body matches.
+
+Fix: declare the remaining absolute table *after* the newly matched function in
+the `.c` file so A's compiler table occupies the old absolute slot:
+
+```c
+/* pad after previous matched switch */
+static const s32 s_jtbl_pad = 0;
+
+s32 func_A(void) { switch (…) { … } }  /* jtbl lands here */
+
+/* absolute copy for still-asm func_B */
+const s32 jtbl_B[] = { 0x800xxxxx, … };
+
+INCLUDE_ASM(…, func_B);
+```
+
+`func_80056B28` / `jtbl_80014204` (still-asm `func_80056E38`) is the example.
+
+## Early `hdr` load + `register asm` pins for multi-use sector pointer
+
+A volatile buffer pointer loaded once at function entry (`hdr = (T*)D_xxx`) and
+reused for field reads, with a second volatile reload of `D_xxx` for base+index
+addressing, needs:
+
+1. Read the switch discriminator *before* the buffer load so `lbu` /
+   `lw D_xxx` interleave and the table index stays in `$a0`.
+2. Pin `hdr` to `$a2`, the second base to `$v1`, and the final
+   `counter += 1` temp to `$a0` when the shared epilogue uses that colouring.
+3. Prefer `table[idx]` (array form) over `*(s32*)((s32)table + (idx << 2))` once
+   the pins are in place — the array form colouring matches the target.
+
+```c
+phase = state->field_3;
+hdr   = (SectorHdr*)D_80082750; /* fills lbu delay; pin hdr to a2 */
+switch (phase) {
+case 8:
+    idx = hdr->field_3;
+    val = D_80068B18[idx];
+    ptr = D_80082750;           /* pin ptr to v1 */
+    audio->field_8 = val;
+    …
+}
+tmp = counter; tmp = tmp + 1; counter = tmp; /* pin tmp to a0 */
+```
+
+`func_80056B28` is the pure example.
