@@ -8422,3 +8422,71 @@ LoadImage(&rect, D4CB64_ImgBuffers);
 
 `rect.w` then `rect.x` produces `addiu` first. `func_80027F48` is the pure
 example — only that swap separated 99.4% from 100%.
+
+## GTE LZC: compute store address after the latency nops
+
+`gte_Lzc(val, ptr)` expands to `mtc2; nop; nop; swc2`. The ROM often folds the
+destination address math into the GTE latency window instead:
+
+```
+lw    t1, 0(a0)
+nop
+mtc2  t1, $30
+nop
+nop
+addiu v0, a1, -8   /* address formed here */
+swc2  $31, 0(v0)
+```
+
+Pre-computing `p = head - 8` before `gte_ldlzc` schedules the `addiu` too early.
+Split the macro and form the pointer between the nops and the store:
+
+```c
+gte_ldlzc(vec->vx);
+gte_nop();
+gte_nop();
+p_min = (s32*)(head - 8);
+gte_stlzc(p_min);
+```
+
+`func_8003CD78` is the pure example (three LZC passes over a scratch VECTOR).
+
+## Empty asm barriers: load order + dual shift registers
+
+When the target does:
+
+```
+lw   v0, 4(a2)      /* load A first */
+lw   a0, 0x10(a2)   /* then shift amount */
+lw   v1, 8(a2)
+move a1, a0         /* copy shift for second srav */
+srav v0, v0, a0
+srav v1, v1, a1
+```
+
+two GCC 2.8.1 habits fight the match:
+
+1. It reorders independent loads (shift before A).
+2. CSE collapses the second shift amount into the same register, dropping `move`.
+
+Pin the temps with `register … asm("…")`, then insert empty volatile asm to
+fix load order and keep the copy live:
+
+```c
+register s32 t_vy asm("v0");
+register s32 t_sh asm("a0");
+register s32 t_vz asm("v1");
+register s32 t_sh2 asm("a1");
+
+t_vy = block->vy;
+__asm__ volatile("" :: "r"(t_vy));   /* force vy load first */
+t_sh = block->lzc_min;
+t_vz = block->vz;
+t_sh2 = t_sh;
+__asm__ volatile("" : "+r"(t_sh2));  /* keep move a1,a0; block CSE */
+block->vy = t_vy >> t_sh;
+block->vz = t_vz >> t_sh2;
+```
+
+Without the first barrier, `lw a0,0x10` wins the schedule. Without the second,
+both `srav` reuse `a0`. `func_8003CD78` is the pure example.

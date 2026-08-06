@@ -19,7 +19,7 @@ typedef struct {
     SVECTOR dir;
 } ScratchLightBlock;
 
-extern void   func_8003CD78(FlatLight* light, SVECTOR* out);
+extern void   func_8003CD78(VECTOR* light, SVECTOR* out);
 extern MATRIX GsLIGHTWSMATRIX;
 
 void func_8003B140(s32 id, FlatLight* light, MATRIX* dirMtx, MATRIX* colorMtx)
@@ -32,7 +32,7 @@ void func_8003B140(s32 id, FlatLight* light, MATRIX* dirMtx, MATRIX* colorMtx)
     head     = *scratch;
     block    = (ScratchLightBlock*)((u8*)head - 0x18);
     *scratch = block;
-    func_8003CD78(light, (SVECTOR*)((u8*)head - 8));
+    func_8003CD78((VECTOR*)light, (SVECTOR*)((u8*)head - 8));
 
     dirMtx->m[id][0] = -block->dir.vx;
     dirMtx->m[id][1] = -block->dir.vy;
@@ -55,7 +55,7 @@ static __inline__ void setLightToMatrices(s32 id, FlatLight* light, MATRIX* dirM
     head     = *scratch;
     block    = (ScratchLightBlock*)((u8*)head - 0x18);
     *scratch = block;
-    func_8003CD78(light, (SVECTOR*)((u8*)head - 8));
+    func_8003CD78((VECTOR*)light, (SVECTOR*)((u8*)head - 8));
 
     dirMtx->m[id][0] = -block->dir.vx;
     dirMtx->m[id][1] = -block->dir.vy;
