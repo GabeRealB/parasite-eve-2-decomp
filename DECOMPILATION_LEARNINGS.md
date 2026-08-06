@@ -9491,3 +9491,35 @@ Without the pins, GCC still dual-loads but elides `andi` before `sb`. Without
 `volatile`, it collapses to one `lw` + `move`. `func_8005B3B4` (CD init state
 machine, sibling of `func_80025DD8`) is the pure example — also needs
 `GStruct19.field_56` as `u16` for the case-7 retry counter.
+
+## Entry pointer in `$a0` for load-then-store of a `u8` field
+
+When the target does:
+
+```
+addu  a0, s0, v0     /* entry = base + idx*stride */
+lbu   v1, 4(a0)      /* cmd = entry->cmd */
+li    a1, 0x61
+bne   v1, a1, else
+...
+sb    a1, 4(a0)      /* entry->cmd = 0x61 */
+```
+
+keep the entry pointer and compare the field *through* it. Loading the field
+into a named local first recolors the pointer into `$v1` and the value into
+`$a0`:
+
+```c
+/* wrong — pointer ends up in $v1, value in $a0 */
+cmd = entry->cmd;
+if (cmd == 0x61) { ... }
+else if (cmd == 0x62) { entry->cmd = 0x61; }
+
+/* right — pointer stays in $a0, value in $v1 */
+if (entry->cmd == 0x61) { ... }
+else if (entry->cmd == 0x62) { entry->cmd = 0x61; }
+```
+
+GCC CSEs the two `entry->cmd` loads into one `lbu` either way; only the
+register assignment differs. `func_8001BE60` is the pure example (cmds 0x61 /
+0x62 on `CdCmdEntry`).

@@ -455,6 +455,7 @@ extern void       func_80020388(void);
 extern s16        func_8001EDC8(u8* arg0, s32 arg1, s32 arg2);
 extern s16        func_8001EED8(u8* arg0);
 extern u32        func_8001F180(u32);
+extern s32        func_8001FAE0(s32 arg0, s32 arg1);
 extern GStruct24* func_80020278(u32 arg0);
 extern u16        func_80020414(u32 arg0);
 extern void       func_8002043C(u32 arg0);

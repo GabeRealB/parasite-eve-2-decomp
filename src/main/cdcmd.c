@@ -11,7 +11,103 @@
 
 INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001BB7C);
 
-INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001BE60);
+void func_8001BE60(void)
+{
+    CdCmdQueue* state;
+    CdCmdQueue* p;
+    CdCmdEntry* entry;
+    s16         ret;
+    s32         idB0;
+    s32         cmd;
+    s32         busy;
+
+    state = &CdCmd_Queue;
+    idB0  = *(volatile u8*)&state->entries[state->readIdx].idB0;
+    cmd   = state->entries[state->readIdx].cmd;
+    idB0  = (s8)idB0;
+    if (cmd == 0) {
+        return;
+    }
+    if (cmd < 0) {
+        return;
+    }
+    if (cmd >= 0x63) {
+        return;
+    }
+    if (cmd < 0x61) {
+        return;
+    }
+    switch (state->step) {
+        case 0:
+            if (state->busy == 0) {
+                state->busy             = 1;
+                Display_State.field_130 = 0xFF;
+            }
+            ret = func_8001E6AC(0, 0);
+            if (ret != 1) {
+                if (ret < 2) {
+                    if (ret == 0) {
+                        return;
+                    }
+                    goto end_check;
+                }
+                if (ret != 2) {
+                    goto end_check;
+                }
+                CdFlush();
+            }
+            entry = &state->entries[state->readIdx];
+            if (entry->cmd == 0x61) {
+                D_8005EAEC = 0;
+                D_8005EAEE = 0;
+            } else if (entry->cmd == 0x62) {
+                entry->cmd = 0x61;
+            }
+            if ((s16)func_8001F180(idB0 & 0xFFFF) != 0) {
+                p                = &CdCmd_Queue;
+                busy             = p->busy;
+                state->field_1FA = 1;
+                state->field_1F4 = 1;
+                if (busy != 0) {
+                    p->busy                 = 0;
+                    Display_State.field_130 = 0;
+                }
+                p->step      = 0;
+                p->field_1fc = 0;
+                p->field_222 = 0;
+                p->field_242 = 0;
+                if (p->readIdx != p->writeIdx) {
+                    p->entries[p->readIdx].cmd = 0;
+                    p->readIdx                 = p->readIdx + 1;
+                    p->readIdx                 = p->readIdx % 8;
+                }
+                goto end_check;
+            }
+            state->field_1E8 = 1;
+            func_8001FAE0(0, ((u16)state->field_1EA - 1) * 0xA);
+            state->step = state->step + 1;
+            /* fallthrough */
+        case 1:
+        end_check:
+            if ((s16)func_8001FAE0(0, ((u16)state->field_1EA - 1) * 0xA) != 0) {
+                p = &CdCmd_Queue;
+                if (p->busy != 0) {
+                    p->busy                 = 0;
+                    Display_State.field_130 = 0;
+                }
+                p->step      = 0;
+                p->field_1fc = 0;
+                p->field_222 = 0;
+                p->field_242 = 0;
+                if (p->readIdx != p->writeIdx) {
+                    p->entries[p->readIdx].cmd = 0;
+                    p->readIdx                 = p->readIdx + 1;
+                    p->readIdx                 = p->readIdx % 8;
+                }
+            }
+            return;
+    }
+}
 
 void func_8001C0D4(void)
 {
