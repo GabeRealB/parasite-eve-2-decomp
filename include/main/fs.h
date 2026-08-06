@@ -169,13 +169,20 @@ STATIC_ASSERT_SIZEOF(CdCmdEntry, 0x8);
 
 /// Stream/load descriptor pointed to by `CdCmdQueue.field_190`.
 typedef struct _CdCmd190 {
-    /* 0x00 */ byte unknown_0[0x4];
+    /* 0x00 */ u8   field_0;
+    /* 0x01 */ u8   field_1;
+    /* 0x02 */ u8   field_2;
+    /* 0x03 */ u8   field_3; // buffer slot select for func_8001BB7C
     /* 0x04 */ s32  field_4;
     /* 0x08 */ byte unknown_8[0xC];
     /* 0x14 */ u16  field_14;
     /* 0x16 */ u16  field_16;
+    /* 0x18 */ byte unknown_18[0x2];
+    /* 0x1A */ u16  field_1A; // VLC table slot (0=malloc, 1..3=shared buffers)
+    /* 0x1C */ byte unknown_1C[0x2];
+    /* 0x1E */ u16  field_1E; // malloc size when field_3 == 1
 } CdCmd190;
-STATIC_ASSERT_SIZEOF(CdCmd190, 0x18);
+STATIC_ASSERT_SIZEOF(CdCmd190, 0x20);
 
 /// Global CD / asset load command queue (`CdCmd_Queue`).
 typedef struct _CdCmdQueue {
@@ -185,9 +192,16 @@ typedef struct _CdCmdQueue {
     s8         field_4c;
     byte       unknown_4d[0x3];
     CdCmdEntry field_50;  // replace-slot used by CdCmd_EnqueueReplace (cmd at 0x54)
-    byte       unknown_58[0x138];
+    byte       unknown_58[0x12C];
+    void*      field_184; // 0x184 — aux buffer (malloc of field_188)
+    s32        field_188; // 0x188 — size for field_184 malloc
+    u16*       field_18C; // 0x18C — VLC / DCT table buffer
     CdCmd190*  field_190; // 0x190
-    byte       unknown_194[0x34];
+    byte       unknown_194[0x8];
+    void*      field_19C; // 0x19C — copy of field_1A4
+    byte       unknown_1A0[0x4];
+    void*      field_1A4; // 0x1A4 — secondary image/stream buffer
+    byte       unknown_1A8[0x20];
     u16        writeIdx;  // 0x1C8 — next free slot (enqueue)
     u16        readIdx;   // 0x1CA — slot being executed
     byte       unknown_1cc[0x4];
@@ -222,10 +236,12 @@ typedef struct _CdCmdQueue {
     byte       unknown_210[0x2];
     u16        field_212;
     u16        field_214;
-    byte       unknown_216[0x4];
+    u16        field_216; // 0x216 — non-zero enables buffer setup in func_8001BB7C
+    byte       unknown_218[0x2];
     s16        field_21A;
     u16        field_21C; // image transfer mode for func_80027F48 (0 / 1)
-    byte       unknown_21E[0x4];
+    u16        field_21E; // 0x21E — DecDCTvlcBuild done flag
+    byte       unknown_220[0x2];
     s16        field_222;
     u16        field_224;
     u16        field_226; // sub-state for func_8001E57C disk recovery
@@ -235,7 +251,8 @@ typedef struct _CdCmdQueue {
     byte       unknown_22E[0x6];
     s16        field_234;
     s16        field_236;
-    byte       unknown_238[0x6];
+    s16        field_238; // 0x238 — non-zero clears field_18C in func_8001BB7C
+    byte       unknown_23A[0x4];
     s16        field_23E; // MoveImage vs ClearImage path for func_800405E0
     byte       unknown_240[0x2];
     s16        field_242;

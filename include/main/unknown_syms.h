@@ -24,26 +24,26 @@ extern void func_80010398(void);
 extern s32 func_8001E2D4(void);
 extern s32 func_8001E6AC(s32 arg0, s32 arg1);
 // cdcmd.c (CdCmd_* → main/fs.h)
-extern void func_8001BB7C(void);
-extern void func_8001BE60(void);
-extern void func_8001C0D4(void);
-extern void func_8001C620(void);
-extern s32  func_8001C970(void);
-extern void func_8001CA70(void);
-extern u16  func_8001CDF0(void);
-extern void func_8001CEFC(void);
-extern u16  func_8001D0E8(void);
-extern u16  func_8001D344(void);
-extern u16  func_8001D37C(s16 arg0);
-extern void func_8001D39C(void);
-extern void func_8001D498(void);
-extern void func_8001D534(u16 arg0, u16 arg1, u16 arg2);
-extern void func_8001D588(void);
-extern void func_8001D628(void);
-extern void func_8001D6B8(void);
-extern u16  func_8001D82C(void);
-extern void func_8001D990(s32 cmd, u8* paramA, u8* paramB);
-extern void func_8001DB84(void);
+extern void* func_8001BB7C(void);
+extern void  func_8001BE60(void);
+extern void  func_8001C0D4(void);
+extern void  func_8001C620(void);
+extern s32   func_8001C970(void);
+extern void  func_8001CA70(void);
+extern u16   func_8001CDF0(void);
+extern void  func_8001CEFC(void);
+extern u16   func_8001D0E8(void);
+extern u16   func_8001D344(void);
+extern u16   func_8001D37C(s16 arg0);
+extern void  func_8001D39C(void);
+extern void  func_8001D498(void);
+extern void  func_8001D534(u16 arg0, u16 arg1, u16 arg2);
+extern void  func_8001D588(void);
+extern void  func_8001D628(void);
+extern void  func_8001D6B8(void);
+extern u16   func_8001D82C(void);
+extern void  func_8001D990(s32 cmd, u8* paramA, u8* paramB);
+extern void  func_8001DB84(void);
 
 // 11E9C.c
 extern void func_8002207C(void);
@@ -605,6 +605,9 @@ extern s32        D_8005ED78;
 extern u16        D_8005ED8A;
 
 extern u16* D_8005C36C;
+extern u16* D_8005C370;
+extern u16* D_8005C374;
+extern s32* D_8005DCB4[];
 
 extern s16 func_80020394(void* arg0);
 

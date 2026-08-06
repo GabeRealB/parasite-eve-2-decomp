@@ -9523,3 +9523,44 @@ else if (entry->cmd == 0x62) { entry->cmd = 0x61; }
 GCC CSEs the two `entry->cmd` loads into one `lbu` either way; only the
 register assignment differs. `func_8001BE60` is the pure example (cmds 0x61 /
 0x62 on `CdCmdEntry`).
+
+## Dual `global = Mem_Malloc(...)` arms share one `jal` and pin `%hi` in `$s0`
+
+When the target zeros a global, then either allocates a fixed size or looks up a
+size and allocates, and reuses `$s0` for `%hi(global)` from the zero through
+the post-malloc store:
+
+```
+lui   s0, %hi(D_xxx)
+sw    zero, %lo(D_xxx)(s0)
+...
+jal   Mem_Malloc          /* shared site */
+sw    v0, %lo(D_xxx)(s0)  /* reuses s0 — no second lui */
+lui   v0, %hi(D_xxx)
+lw    v0, %lo(D_xxx)(v0)  /* return reloads with a fresh lui */
+```
+
+Write **two** `global = Mem_Malloc(...)` statements in separate `if` / `else if`
+arms rather than a `goto` shared tail or a `doAlloc` flag:
+
+```c
+/* Matches: two arms, one jal, lui s0 at zeroing */
+D_xxx = NULL;
+if (cond) {
+    D_xxx = Mem_Malloc(0x4B000, 1);
+} else if (setup() < 0) {
+    return NULL;
+} else {
+    size = lookup();
+    if (size != 0) {
+        D_xxx = Mem_Malloc(size, 1);
+    }
+}
+return D_xxx;
+```
+
+GCC 2.8.1 merges the two call sites into one `jal` (the fixed-size arm jumps
+with `a0` already set). A single shared site via `goto do_malloc` or a flag
+keeps the control flow but reloads `%hi` into `$v0`/`$v1` after the call
+instead of pinning it in `$s0` from the zeroing store. `func_8001BB7C` /
+`D_8006AC00` is the pure example.

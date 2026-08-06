@@ -133,7 +133,7 @@ typedef struct _GStruct14 {
     u8    field_74;
     byte  unknown_75[0x7];
     s16   field_7C;
-    byte  unknown_7E[0x2];
+    s16   field_7E;
     s16   field_80;
     byte  unknown_82[0xBA];
 } GStruct14;

@@ -5,11 +5,99 @@
 #include <psyq/libcd.h>
 
 #include "main/game.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/unknown_syms.h"
 #include "psyq/libpress.h"
 
-INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001BB7C);
+void* func_8001BB7C(void)
+{
+    CdCmdQueue* p;
+    u16         slot;
+    u8          kind;
+    s32*        sizeRow;
+    s32         size;
+
+    p = &CdCmd_Queue;
+    if (p->field_216 != 0) {
+        if (p->field_238 == 0) {
+            slot = p->field_190->field_1A;
+            switch (slot) {
+                case 0:
+                    p->field_18C = Mem_Malloc(0x11000, 1);
+                    break;
+                case 1:
+                    D4F564_8005ED64->field_7C = 0;
+                    p->field_18C              = D_8005C36C;
+                    break;
+                case 2:
+                    D4F564_8005ED64->field_7E = 0;
+                    p->field_18C              = D_8005C370;
+                    break;
+                case 3:
+                    D4F564_8005ED64->field_80 = 0;
+                    p->field_18C              = D_8005C374;
+                    break;
+            }
+            if (p->field_21E == 0) {
+                DecDCTvlcBuild(p->field_18C);
+                p->field_21E = 1;
+            }
+        } else {
+            p->field_18C = NULL;
+        }
+
+        p->field_1A4 = NULL;
+        kind         = p->field_190->field_3;
+        switch (kind) {
+            case 1:
+                p->field_1A4 = Mem_Malloc(p->field_190->field_1E, 1);
+                break;
+            case 2:
+                D4F564_8005ED64->field_7C = 0;
+                p->field_1A4              = D_8005C36C;
+                if (p->field_190->field_1A == 1) {
+                    p->field_1A4 = (u8*)D_8005C36C + 0x11000;
+                }
+                break;
+            case 3:
+                D4F564_8005ED64->field_7E = 0;
+                p->field_1A4              = D_8005C370;
+                if (p->field_190->field_1A == 2) {
+                    p->field_1A4 = (u8*)D_8005C370 + 0x11000;
+                }
+                break;
+            case 4:
+                D4F564_8005ED64->field_80 = 0;
+                p->field_1A4              = D_8005C374;
+                if (p->field_190->field_1A == 3) {
+                    p->field_1A4 = (u8*)D_8005C374 + 0x11000;
+                }
+                break;
+        }
+
+        p->field_19C = p->field_1A4;
+        if (p->field_188 != 0) {
+            p->field_184 = Mem_Malloc(p->field_188, 1);
+        }
+    }
+
+    D_8006AC00 = NULL;
+    if (D4F564_8005ED64->field_7 == 0) {
+        D_8006AC00 = Mem_Malloc(0x4B000, 1);
+    } else if (func_8001EDC8(&D4F564_8005ED64->field_4, 0, 0) < 0) {
+        return NULL;
+    } else {
+        sizeRow = D_8005DCB4[Mc_SaveData.field_7];
+        if (sizeRow != NULL) {
+            size = sizeRow[Mc_SaveData.field_6];
+            if (size != 0) {
+                D_8006AC00 = Mem_Malloc(size, 1);
+            }
+        }
+    }
+    return D_8006AC00;
+}
 
 void func_8001BE60(void)
 {
