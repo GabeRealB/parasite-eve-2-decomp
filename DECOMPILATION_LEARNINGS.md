@@ -8274,3 +8274,48 @@ The body is otherwise the signed counterpart of `func_8002F020` (leading
 Note: TUs that need `--expand-div` (e.g. `1E6C4.c`) must pass that flag in the
 scratch `build.sh` as well, or local scores omit the `break` checks and look
 worse than the real project match.
+
+## POLY color-before-y and `fourth = f22 - 7` for call args
+
+UI text-draw helpers that emit a `POLY_F4` then call a bar/underline routine
+(e.g. `func_80047C40` → `func_80047A0C`) need two scheduling tricks:
+
+**1. Store the solid color before the y-coords.** Target after the text call:
+
+```
+lui  a3, 0x2 / ori a3, 0x1002   /* color in $a3 */
+lui  a2, 0xff / lui a1, %hi(cursor)
+...
+sw   a3, 4(p)                   /* *(s32*)&p->r0 = 0x21002 */
+```
+
+Writing `*(s32*)&p->r0 = 0x21002` *after* `p->y3 = y + 7` puts the constant
+in `$a1` and forces `%hi(D_80071190)` into `$v1`, which then reorders the
+cursor advance and the final call's field loads. Store color first:
+
+```c
+*(s32*)&p->r0 = 0x21002;
+p->y3 = y + 7;
+p->y2 = y + 7;
+setcode(p, 0x28);
+setlen(p, 5);
+```
+
+**2. Split `y - (f22 - 7)` so CSE cannot fold it with poly `y + 7`.** The
+inline form `y - ((s16)p->field_22 - 7)` rewrites to `(y + 7) - field_22`,
+keeps `y+7` live in `$t0`, and breaks the poly block. Load both fields, then
+a dedicated temp:
+
+```c
+t20    = (s16)self->field_20;
+f22    = (s16)self->field_22;
+fourth = f22 - 7;
+func_bar(self, x - t20, endX - t20, y - fourth);
+```
+
+That yields `lh` field_20 / field_22, `addiu a3, a3, -7`, `subu a3, s1, a3`
+with the poly's `y+7` dying in `$v0` after the two `sh`s.
+
+Pinning `self` in `$s3` and the OT index in `$s0` via `register ... asm("s3")`
+/ `asm("s0")` may still be required so one-step `x = arg1 + field_20` does
+not swap `$s2`/`$s3` with the saved `arg0`.

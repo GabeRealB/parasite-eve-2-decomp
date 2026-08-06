@@ -216,7 +216,60 @@ void func_80047B24(GStruct30* arg0, s32 arg1, s32 arg2, s32 arg3)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80047C40);
+void func_80047C40(GStruct30* arg0, s32 arg1, s32 arg2, char* arg3, s32 arg4)
+{
+    GStruct38           sp10;
+    POLY_F4*            p;
+    s32                 x;
+    s32                 y;
+    s32                 textX;
+    s32                 color;
+    s32                 t20;
+    s32                 tmp0;
+    s32                 tmp1;
+    s32                 f22;
+    s32                 fourth;
+    register s32        otIdx asm("s0");
+    register GStruct30* self asm("s3");
+
+    self         = arg0;
+    color        = arg4;
+    otIdx        = (s16)self->field_14;
+    tmp0         = (s16)self->field_20;
+    tmp1         = (s16)self->field_22;
+    sp10.field_C = 5;
+    sp10.field_D = 0;
+    sp10.field_E = 0;
+    x            = arg1 + tmp0;
+    y            = arg2 + tmp1;
+    sp10.field_0 = x + 2;
+    sp10.field_2 = y + 5;
+    otIdx        = otIdx + 1;
+    sp10.field_4 = otIdx;
+    sp10.field_8 = color;
+    func_8002E53C(&sp10, (u8*)arg3);
+
+    p             = (POLY_F4*)D_80071190;
+    p->x2         = x;
+    p->x0         = x;
+    textX         = (u16)sp10.field_0;
+    D_80071190    = (DR_TPAGE*)((POLY_FT4*)p + 1);
+    *(s32*)&p->r0 = 0x21002;
+    p->y3         = y + 7;
+    p->y2         = y + 7;
+    setcode(p, 0x28);
+    setlen(p, 5);
+    p->y1 = y;
+    p->y0 = y;
+    p->x3 = textX;
+    p->x1 = textX + 3;
+    addPrim(D_800710A0 + otIdx, p);
+
+    t20    = (s16)self->field_20;
+    f22    = (s16)self->field_22;
+    fourth = f22 - 7;
+    func_80047A0C(self, x - t20, (s16)sp10.field_0 - t20, y - fourth);
+}
 
 void func_80047D90(GStruct30* arg0, char* arg1)
 {
