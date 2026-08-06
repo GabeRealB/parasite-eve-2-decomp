@@ -9986,3 +9986,85 @@ before the call:
 
 Plain `func_800300EC(Mc_FileName, saved->field_2C)` keeps the swapped order.
 `func_800314D0` is the pure example.
+
+## Dual block pointers reuse angle `$s0` for scratch field access
+
+RotMatrix-style helpers that take `(MATRIX* m, s32 angle, s32 flag)` allocate a
+scratch block, call `rsin`/`rcos(angle)`, then never need `angle` again. The
+target keeps the block in both `$s2` (from `head - size`) *and* `$s0` (reusing
+the dead angle register):
+
+```
+move  a0, s0        /* angle still in s0 */
+move  s0, s2        /* s0 = block */
+jal   rcos
+ sh   v0, 0x20(s0)  /* store sin via s0 */
+```
+
+A single `block` variable stays in `$s2` and leaves `$s0` idle after the calls.
+Force the split with an early alias used for the sin/cos stores and later GTE
+column 0:
+
+```c
+block = (ScratchMat*)(head - 0x24);
+*(ScratchMat**)G_SCRATCH_HEAD = block;
+p = block;                          /* early: dies into s0 after angle */
+
+p->sin_val = rsin(angle);
+cos        = rcos(angle);
+p->cos_val = cos;
+/* if-path / gte_ldclmv use p; else-path matrix build uses block */
+gte_MulMatrix0_real(arg0, p, arg0);
+```
+
+`func_8003C98C` is the pure example (Y-axis rotate; siblings X/Z match the same
+shape).
+
+## Separate scratch-head temps: `lui v0` prologue vs `lui v1` free
+
+When the target loads `G_SCRATCH_HEAD` into `$v0` only for the prologue
+(`lw s4,0(v0)` / `sw block,0(v0)`) and reloads it into `$v1` at free
+(`lw v0,0(v1)` / `addiu` / `sw`), a single live `void** scratch` variable is
+coloured into `$v1` for *both* sites (~99.8%).
+
+Split the accesses so the prologue has no named address temp that must also
+serve the free path:
+
+```c
+head = *(u8**)G_SCRATCH_HEAD;              /* address in v0 */
+block = (ScratchMat*)(head - 0x24);
+*(ScratchMat**)G_SCRATCH_HEAD = block;
+
+/* … body … */
+
+{
+    void** scratch = (void**)G_SCRATCH_HEAD; /* address in v1, value in v0 */
+    *scratch = (u8*)*scratch + 0x24;
+}
+```
+
+## Load-then-zero fills the sin-reload delay before `negu`
+
+For the flag≠0 path that stores `-sin` into `m[2][0]`, the target reloads sin
+and fills the load-delay with an unrelated zero store:
+
+```
+lhu  v0, sin(s0)
+sh   zero, m[2][1]
+negu v0, v0
+sh   v0, m[2][0]
+```
+
+Writing `m[2][1] = 0` *before* starting the reload produces `sh` / `lhu` / `nop`
+/ `negu` instead. Capture the reload first:
+
+```c
+t = p->sin_val;
+arg0->m[2][1] = 0;
+arg0->m[2][0] = -t;
+```
+
+Do **not** mark the destination `volatile MATRIX*` on this path — volatile
+blocks the `j` delay-slot fill that stores `m[2][2] = cos`. The else path still
+wants `volatile` plus the dual `asm("v0")`/`asm("v1")` move/reload pattern
+documented under RotMatrixX scratch blocks.
