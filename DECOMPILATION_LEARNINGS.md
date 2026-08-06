@@ -8159,3 +8159,36 @@ child = task->field_c; /* lw a0, 0xc(s6) again */
 `func_80032578` is the pure example. Pair with `register s32 syncResult
 asm("s1")` so `flag->field_0 = syncResult` emits `sw s1,0(s0)` instead of
 substituting a live `li`/constant register after `syncResult == one`.
+
+## `volatile u16*` blocks strength-reduction of mid-struct halfwords
+
+When a loop walks with two induction pointers at `field_0` and `field_1` of a
+4-byte record, and the target loads the following halfword as `lhu 1(p1)` /
+`sh 1(p1)`:
+
+```
+addiu a1, base, 0x10   /* field_0 */
+addiu a2, base, 0x11   /* field_1 */
+lhu   v0, 1(a2)        /* field_2 */
+sh    v0, 1(a2)
+```
+
+plain `*(u16*)(p1 + 1)` is strength-reduced into a *third* IV at `base+2`
+(`addiu v1, base, 0x12` / `lhu 0(v1)` / `addiu v1, v1, 4`). That also scrambles
+register assignment for the rest of the function.
+
+Fix: mark the halfword access volatile so GCC cannot SR the address:
+
+```c
+half = *(volatile u16*)(p1 + 1) - 1;
+*(volatile u16*)(p1 + 1) = half;
+if ((half << 16) == 0) { /* sll; bnez zero-check on the low half */
+    *p0 = 0;
+}
+```
+
+Do **not** use a packed `{u8; u16}` view of `field_1`/`field_2` — GCC 2.8.1
+emits byte-wise loads/stores for the "unaligned" u16. Pair with
+`pad = arg0` plus a short-lived `register void** scratch asm("a0")` block so
+`$a0` holds `G_SCRATCH_HEAD` for the alloc and is free to reuse as the second
+bank's `field_1` pointer. `func_8002C090` is the pure example.

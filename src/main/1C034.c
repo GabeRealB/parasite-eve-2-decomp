@@ -197,7 +197,86 @@ void func_8002C028(Task* arg0)
     sp.funcs[arg0->field_30](arg0);
 }
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002C090);
+void func_8002C090(PadState* arg0)
+{
+    PadState*    pad;
+    register u8* temp asm("t0");
+    s32          i;
+    register u8* p0 asm("a1");
+    register u8* p1 asm("a2");
+    s32          half;
+    u8           val;
+    u8           one;
+
+    pad = arg0;
+    {
+        register void** scratch asm("a0");
+        register void*  head asm("v1");
+        register void*  alloc asm("v0");
+
+        scratch         = (void**)G_SCRATCH_HEAD;
+        p0              = &pad->field_10[0][0].field_0;
+        i               = 0;
+        one             = 1;
+        head            = *scratch;
+        p1              = &pad->field_10[0][0].field_1;
+        alloc           = (u8*)head - 4;
+        temp            = alloc;
+        *scratch        = alloc;
+        temp[1]         = 0;
+        ((u8*)head)[-4] = 0;
+    }
+
+    do {
+        if (*p0 != 0) {
+            half                     = *(volatile u16*)(p1 + 1) - 1;
+            *(volatile u16*)(p1 + 1) = half;
+            if ((half << 16) == 0) {
+                *p0 = 0;
+            }
+            if (*p1 != 0) {
+                *temp = one;
+            }
+        }
+        i  += 1;
+        p1 += 4;
+        p0 += 4;
+    } while (i < 8);
+
+    {
+        register u8* p1b asm("a0");
+
+        p0  = &pad->field_10[1][0].field_0;
+        i   = 0;
+        p1b = &pad->field_10[1][0].field_1;
+        do {
+            if (*p0 != 0) {
+                half                      = *(volatile u16*)(p1b + 1) - 1;
+                *(volatile u16*)(p1b + 1) = half;
+                if ((half << 16) == 0) {
+                    *p0 = 0;
+                }
+                val = *p1b;
+                if (temp[1] < val) {
+                    temp[1] = val;
+                }
+            }
+            i   += 1;
+            p1b += 4;
+            p0  += 4;
+        } while (i < 8);
+    }
+
+    if (D_80072189 == 0) {
+        pad->field_5A = temp[0];
+        pad->field_5B = temp[1];
+    } else {
+        pad->field_5A = 0;
+        pad->field_5B = 0;
+    }
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 4;
+}
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002C1D8);
 
