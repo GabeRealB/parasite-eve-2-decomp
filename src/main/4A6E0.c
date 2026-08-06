@@ -10,7 +10,83 @@ INCLUDE_ASM("main/nonmatchings/4A6E0", func_80059EE0);
 
 INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005A94C);
 
-INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005B3B4);
+s32 func_8005B3B4(u32* arg0)
+{
+    struct {
+        u8     result[8];
+        s8     mode;
+        u8     pad[7];
+        CdlLOC loc;
+    } sp;
+    s32          sync;
+    u32          flags;
+    u32          temp;
+    register u32 a asm("v0");
+    register u32 b asm("v1");
+
+    flags = *arg0;
+    if ((flags >> 1) & 1) {
+        temp  = flags & ~2;
+        temp  = temp & ~0xFF0;
+        *arg0 = temp | 0x10;
+    }
+
+    a          = *(volatile u32*)arg0;
+    b          = *(volatile u32*)arg0;
+    a          = (a >> 4) & 0xFF;
+    b          = (b >> 4) & 0xFF;
+    D_80068B66 = a;
+    switch (b) {
+        case 1:
+            if (CdControlB(CdlNop, NULL, sp.result) == 0) {
+                return 0;
+            }
+            if (sp.result[0] & CdlStatShellOpen) {
+                return 0;
+            }
+            if (sp.result[0] & CdlStatStandby) {
+                *arg0 = (*arg0 & ~0xFF0) | 0x20;
+                case 2:
+                    if (CdControl(CdlGetTN, NULL, sp.result) != 0) {
+                        *arg0 = (*arg0 & ~0xFF0) | 0x40;
+                        case 3:
+                            sync = CdSync(1, sp.result);
+                            if (sync == CdlDiskError) {
+                                *arg0 = (*arg0 & ~0xFF0) | 0x20;
+                            } else if (sync == CdlComplete) {
+                                *arg0 = (*arg0 & ~0xFF0) | 0x40;
+                                case 4:
+                                    CdIntToPos(0, &sp.loc);
+                                    if (CdControl(CdlSeekL, (u8*)&sp.loc, sp.result) != 0) {
+                                        *arg0 = (*arg0 & ~0xFF0) | 0x50;
+                                        case 5:
+                                            sync = CdSync(1, sp.result);
+                                            if ((sync == CdlDiskError) && (sp.result[0] & CdlStatError) &&
+                                                (sp.result[1] & 0x40)) {
+                                                *arg0 = (*arg0 & ~0xFF0) | 0x10;
+                                            } else if (sync == CdlComplete) {
+                                                *arg0 = (*arg0 & ~0xFF0) | 0x60;
+                                                case 6:
+                                                    sp.mode = -0x60;
+                                                    if (CdControl(CdlSetmode, (u8*)&sp.mode, NULL) != 0) {
+                                                        *arg0               = (*arg0 & ~0xFF0) | 0x70;
+                                                        D_80082818.field_56 = 0;
+                                                    }
+                                            }
+                                    }
+                            }
+                    }
+            }
+            break;
+        case 7:
+            D_80082818.field_56 = D_80082818.field_56 + 1;
+            if (D_80082818.field_56 >= 4) {
+                return 1;
+            }
+            break;
+    }
+    return 0;
+}
 
 void func_8005B648(CdlCB arg0)
 {

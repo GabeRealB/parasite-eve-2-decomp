@@ -262,7 +262,7 @@ typedef struct _GStruct19 {
     /* 0x4E */ byte unknown_4E[0x5];
     /* 0x53 */ u8   field_53;
     /* 0x54 */ u16  field_54;
-    /* 0x56 */ byte unknown_56[0x2];
+    /* 0x56 */ u16  field_56;
 } GStruct19;
 STATIC_ASSERT_SIZEOF(GStruct19, 0x58);
 

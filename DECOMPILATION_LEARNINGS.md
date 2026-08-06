@@ -9447,3 +9447,47 @@ block and rematerialize the restore with a bare
 `*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x88`.
 
 `func_800410F0` is the pure example.
+
+## Dual `lw` + dual `andi 0xFF` for store + switch of the same expression
+
+When the target loads `*arg0` twice into `$v0`/`$v1`, applies `srl`/`andi 0xFF`
+to both, stores one byte to a global, then switches on the other:
+
+```
+lui  a0, %hi(D_flag)
+lw   v0, 0(s1)
+lw   v1, 0(s1)
+srl  v0, v0, 4
+andi v0, v0, 0xFF
+srl  v1, v1, 4
+andi v1, v1, 0xFF
+addiu v1, v1, -1
+sb   v0, %lo(D_flag)(a0)
+sltiu v0, v1, N
+```
+
+Plain `D_flag = (*arg0 >> 4) & 0xFF; switch ((*arg0 >> 4) & 0xFF)` CSEs to one
+load and drops the store-path `andi` (sb only needs the low byte). Two plain
+temps also CSE.
+
+Force the dual load with volatile reads, and pin both results so the store-path
+`andi` stays live:
+
+```c
+register u32 a asm("v0");
+register u32 b asm("v1");
+
+a = *(volatile u32*)arg0;
+b = *(volatile u32*)arg0;
+a = (a >> 4) & 0xFF;
+b = (b >> 4) & 0xFF;
+D_flag = a;
+switch (b) {
+    /* ... */
+}
+```
+
+Without the pins, GCC still dual-loads but elides `andi` before `sb`. Without
+`volatile`, it collapses to one `lw` + `move`. `func_8005B3B4` (CD init state
+machine, sibling of `func_80025DD8`) is the pure example — also needs
+`GStruct19.field_56` as `u16` for the case-7 retry counter.
