@@ -8894,3 +8894,78 @@ func(arg0, dims.hw.w + t, dims.hw.h + u);
 ```
 
 `func_80048560` is the pure example (text size padding into `func_800466E4`).
+
+## Force `bne` (not `xor`/`sltiu`) for u16 equality into a u16 temp
+
+When materializing queue-idle style checks:
+
+```c
+if (field_4c != 0) {
+    ret = 0;
+} else if (writeIdx != readIdx) {
+    ret = 0;
+} else {
+    ret = 1;
+}
+if (ret == 0) return 0;
+```
+
+`-O2` often collapses the equality arm into `xor`/`sltiu`. The target wants:
+
+```
+bnez field_4c, check
+ move v0, zero
+lhu  v1, writeIdx
+lhu  v0, readIdx
+bne  v1, v0, check
+ move v0, zero
+li   v0, 1
+check:
+andi v0, v0, 0xffff
+beqz v0, ret0
+```
+
+Fix: assign the success constant through a wider temporary that is also the
+function's default return:
+
+```c
+unsigned int new_var;
+...
+new_var = 1;
+ret = new_var;
+...
+return new_var; /* default return-1 paths */
+```
+
+`func_8001D0E8` is the pure example. Plain `ret = 1` stuck at xor/sltiu.
+
+## `do{}while(0)` + `register … asm` for shared enqueue register map
+
+A shared enqueue body that needs:
+
+```
+lui  a1, %hi(Q) / addiu a1, a1, %lo(Q)   /* not lui v0; addiu a1, v0 */
+li   v0, cmd
+lhu  v1, writeIdx(a1)
+...
+addu v1, v1, a1   /* index + base, not base + index */
+```
+
+often needs both:
+
+1. Wrap the whole case-0 path (including the shared label) in `do { ... } while (0);`
+   so the delay-slot `li v0, cmd` and shared body pick the right hard regs.
+2. Pin the key locals when the natural coloring still flips:
+   `register CdCmdQueue* q asm("a1");`
+   `register s32 cmd asm("v0");`
+   `register CdCmdEntry* entry asm("v1");`
+   `register u8* paramA asm("a0");`
+3. For `addu dst, index, base` (index-first): compute
+   `t = idx; t = t * 8; t = t + (u32)base; entry = (CdCmdEntry*)t;`
+   rather than `&base->entries[idx]`.
+
+Also: use `(&Global)->field` (not a local `q = &Global`) on a later path when
+the target reloads the global into `$a0` while `$a0` already holds another
+address in a delay slot.
+
+`func_8001D0E8` needs all of the above together.

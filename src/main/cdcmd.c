@@ -679,22 +679,106 @@ void func_8001CEFC(void)
     }
 }
 
-/* Alignment pad after the 9-entry func_8001CEFC jump table, then an
- * absolute copy of jtbl_80012FCC for still-asm func_8001D0E8. */
-static const s32 s_jtbl_pad_CEFC  = 0;
-const s32        jtbl_80012FCC[9] = {
-    0x8001D29C,
-    0x8001D29C,
-    0x8001D29C,
-    0x8001D29C,
-    0x8001D29C,
-    0x8001D29C,
-    0x8001D130,
-    0x8001D130,
-    0x8001D29C,
-};
+/* Alignment pad after the 9-entry func_8001CEFC jump table. */
+static const s32 s_jtbl_pad_CEFC = 0;
 
-INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001D0E8);
+u16 func_8001D0E8(void)
+{
+    unsigned int         new_var;
+    CdCmdQueue*          p;
+    register CdCmdQueue* q asm("a1");
+    register CdCmdEntry* entry asm("v1");
+    register u8*         a1buf asm("a0");
+    u8*                  a2buf;
+    u8                   sp10[4];
+    u16                  ret;
+    u32                  cmdHi;
+    register s32         cmd asm("v0");
+    u32                  t;
+
+    p = &CdCmd_Queue;
+    switch (p->field_40.cmd >> 4) {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+            break;
+        case 6:
+        case 7:
+            switch (p->field_1d2) {
+                case 0:
+                    do {
+                        sp10[3] = p->field_40.param0;
+                        sp10[2] = p->field_40.param1;
+                        sp10[0] = p->field_40.param2;
+                        cmdHi   = p->field_40.cmd >> 4;
+                        if (cmdHi == 6) {
+                            q   = &CdCmd_Queue;
+                            cmd = 0x62;
+                            goto do_enqueue;
+                        }
+                        if (cmdHi != 7) {
+                            goto after_enqueue;
+                        }
+                        q   = &CdCmd_Queue;
+                        cmd = 0x73;
+                    do_enqueue:
+                        a1buf         = sp10;
+                        t             = q->writeIdx;
+                        t             = t * 8;
+                        t             = t + (u32)q;
+                        entry         = (CdCmdEntry*)t;
+                        entry->cmd    = cmd;
+                        entry->param0 = a1buf[3];
+                        entry->param1 = a1buf[2];
+                        entry->param2 = a1buf[0];
+                        a2buf         = (u8*)&p->field_40;
+                        entry->idB0   = a2buf[0];
+                        entry->idB1   = a2buf[1];
+                        entry->idB2   = a2buf[2];
+                        entry->idB3   = a2buf[3];
+                        q->writeIdx   = q->writeIdx + 1;
+                        q->writeIdx   = q->writeIdx % 8;
+                    after_enqueue:
+                        p->field_1d2 = p->field_1d2 + 1;
+                        return 0;
+                    } while (0);
+                case 1:
+                    if (p->field_1FA != 0) {
+                        goto do_clear;
+                    }
+                    if ((&CdCmd_Queue)->field_4c != 0) {
+                        ret = 0;
+                        goto check_ret;
+                    }
+                    if ((&CdCmd_Queue)->writeIdx != (&CdCmd_Queue)->readIdx) {
+                        ret = 0;
+                        goto check_ret;
+                    }
+                    new_var = 1;
+                    ret     = new_var;
+                check_ret:
+                    if (ret == 0) {
+                        goto return0;
+                    }
+                do_clear:
+                    Mem_Set(&p->field_40, 0, 0x10);
+                    p->field_1d2 = 0;
+                    goto return1;
+                return0:
+                    return 0;
+                default:
+                    break;
+            }
+            break;
+        case 8:
+            break;
+    }
+return1:
+    return new_var;
+}
 
 s32 CdCmd_Enqueue(s32 cmd, u8* paramA, u8* paramB)
 {
