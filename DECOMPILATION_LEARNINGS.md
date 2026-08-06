@@ -1138,11 +1138,18 @@ For GTE *commands*, emit the real COP2 word:
 ```c
 /* mvmva sf=0, mx=0 (rot), v=0 (V0), cv=3 (none), lm=0 → 0x4A406012 */
 #define gte_rtv0sf0() __asm__ volatile("nop; nop; .word 0x4A406012")
+
+/* mvmva sf=1, mx=0 (rot), v=3 (IR), cv=3 (none), lm=0 → RTIR */
+#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
 ```
 
 `func_8003D000` is the template: `gte_ldsvrtrow0` + `gte_ldv0` + custom
 command + `gte_stlvnl0`. Standard `gte_rtv0` is `mvmva 1,0,0,3,0`
 (`0x4A486012`); the sf=0 variant drops the 12-bit shift (`0x4A406012`).
+
+`gte_MulMatrix0` from `gtemac.h` is fine if `gte_rtir` is swapped for
+`gte_rtir_real` — load/store helpers (`gte_SetRotMatrix`, `gte_ldclmv`,
+`gte_stclmv`) already emit real MIPS. `func_8003C4F0` is the template.
 
 ## Large sparse switches: case order and shared handlers
 
@@ -9784,3 +9791,46 @@ CdIntToPos(audio->field_4, (CdlLOC*)&audio->field_10);
 ```
 
 `func_80056E38` is the pure example.
+
+## Force `move v0,v1` + reload: dual `asm("v0")` temps with empty barrier
+
+When the target builds a small matrix block like:
+
+```
+lhu  v0, cos
+lhu  v1, sin
+sh   v0, m[1][1]
+move v0, v1          /* copy sin into v0 for later negu */
+sh   v1, m[1][2]     /* store still from v1 */
+lhu  v1, cos         /* reload — v0 is now sin */
+negu v0, v0
+sh   v0, m[2][1]
+sh   v1, m[2][2]
+```
+
+CSE will happily `negu v1,v1` in place and reuse the live cos in `v0`,
+skipping both the `move` and the reload. Pin two pairs that share registers
+and insert an empty asm so the store keeps reading the sin register:
+
+```c
+register u16 cos_u asm("v0");
+register u16 sin_u asm("v1");
+register s16 neg_s asm("v0"); /* reuses v0 after cos is stored */
+register u16 cos2 asm("v1");  /* reuses v1 after sin is stored */
+volatile MATRIX* vmat = &block->mat;
+
+cos_u = block->cos_val;
+sin_u = block->sin_val;
+/* … zero the other entries … */
+vmat->m[1][1] = cos_u;
+neg_s = sin_u;
+__asm__ volatile("" : "+r"(neg_s) : "r"(sin_u)); /* keep sin_u live for sh v1 */
+vmat->m[1][2] = sin_u;
+cos2 = block->cos_val;
+vmat->m[2][1] = -neg_s;
+vmat->m[2][2] = cos2;
+```
+
+`volatile` on the destination matrix prevents the stores from being reordered
+around the move. `func_8003C4F0` is the pure example (RotMatrixX-shaped block
+on the scratch arena, then `gte_MulMatrix0_real`).
