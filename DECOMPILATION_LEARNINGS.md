@@ -10187,3 +10187,17 @@ temp    = temp + product;
 ```
 
 `func_8003EA44` needs this for the fade-step update.
+
+## Separate vars when two loops need different register sets
+
+When a function has two sequential loops over the same data but the target
+assigns different hard registers to the counter/sum/pointer in each loop
+(e.g. first loop: `t1`/`a2`/`a3`; second: `a0`/`a1`/`v1`), reusing one set of
+locals forces a single colouring and cannot match both.
+
+Symptom: first loop matches after pins, second loop has the right shape but
+wrong registers (or vice versa).
+
+Fix: give the second loop its own counter/sum/pointer locals and pin each set
+independently. `func_80032AB0` is the pure example — block-checksum walk then
+first-byte sum over `Mc_BufferSlots[1..8]`.

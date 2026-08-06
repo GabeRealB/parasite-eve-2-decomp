@@ -154,6 +154,7 @@ void Mc_StateFormat(Task* task, McWork* work);
 void func_80032578(Task* task, McWork* work);
 void func_800327A4(Task* task, McWork* work);
 void func_800328FC(Task* task, McWork* work);
+void func_80032AB0(Task* task, McWork* work);
 void func_80032D54(Task* task, McWork* work);
 void func_80034B38(Task* task, McWork* work);
 void func_800359A4(Task* task);

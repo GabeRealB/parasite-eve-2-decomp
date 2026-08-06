@@ -690,7 +690,116 @@ void func_800328FC(Task* arg0, McWork* arg1)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/mc", func_80032AB0);
+void func_80032AB0(Task* arg0, McWork* arg1)
+{
+    McChecksumBlock*       temp;
+    register McBufferSlot* p asm("a3");
+    McBufferSlot*          base;
+    s16                    sum;
+    u32                    count;
+    register u32           i asm("t1");
+    register u32           j asm("a0");
+    u8*                    ptr;
+    s32                    flag;
+    register s32           slotSum asm("a1");
+    register u32           i2 asm("a0");
+    register McBufferSlot* p2 asm("v1");
+    s32                    size;
+    void*                  mem;
+    s32                    ret;
+    s32                    one;
+    UiObject*              obj;
+    McPromptPair*          entry;
+    McPromptPair*          promptBase;
+
+    if (arg1->field_24 == 0) {
+        flag = 1;
+        i    = 1;
+        base = Mc_BufferSlots;
+        p    = base + 1;
+        do {
+            sum   = 0;
+            j     = 0;
+            temp  = p->field_0;
+            count = p->field_4;
+            ptr   = temp->field_4;
+            count = count - 4;
+            if (count != 0) {
+                do {
+                    j   += 1;
+                    sum += (s8)*ptr;
+                    ptr += 1;
+                } while (j < count);
+            }
+            if ((u16)temp->field_0 != (sum & 0xFFFF)) {
+                flag = 0;
+            }
+            i += 1;
+            p += 1;
+        } while (i < 9U);
+
+        if (flag != 0) {
+            i2      = 1;
+            slotSum = 0;
+            base    = Mc_BufferSlots;
+            p2      = base + 1;
+            do {
+                slotSum += *(u8*)p2->field_0;
+                p2      += 1;
+                i2      += 1;
+            } while (i2 < 9);
+            {
+                register u32 chk asm("v1");
+                register u32 masked asm("v0");
+                chk    = D_80072AA8;
+                masked = slotSum & 0xFFFF;
+                if (chk != masked) {
+                    goto fail;
+                }
+            }
+            func_8002BFD4();
+            Display_State.field_101 = 1;
+            arg0->field_30          = 3;
+        } else {
+        fail:
+            func_800303AC();
+            arg0->field_30 = 0x19;
+        }
+    } else if (arg1->field_28 & 1) {
+        size           = Mc_BufferSlots[9 - arg1->field_24].field_4;
+        size         <<= 1;
+        size          -= 1;
+        size           = (u32)size >> 7;
+        size          += 1;
+        size         <<= 7;
+        arg1->field_20 = size;
+        mem            = Mem_Malloc(size, 0);
+        arg1->field_18 = (s32)mem;
+        if (mem != 0) {
+            arg1->field_4  = 0;
+            arg0->field_30 = arg0->field_30 + 1;
+            arg1->field_24 = arg1->field_24 - 1;
+            arg1->field_28 = (u32)arg1->field_28 >> 1;
+        } else {
+            arg1->field_4 = arg1->field_4 + 1;
+        }
+    } else {
+        arg1->field_1C = arg1->field_1C + Mc_BufferSlots[9 - arg1->field_24].field_8;
+        arg1->field_24 = arg1->field_24 - 1;
+        arg1->field_28 = (u32)arg1->field_28 >> 1;
+    }
+
+    arg1->field_8 = 5;
+    obj           = arg0->field_20;
+    ret           = func_80048E10(obj, 1);
+    obj->field_2E = 0;
+    func_80048E38(obj, D_8001398C);
+    one        = 1;
+    promptBase = Mc_PromptTable;
+    entry      = &promptBase[5];
+    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
+    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
+}
 
 void func_80032D54(Task* arg0, McWork* arg1)
 {
