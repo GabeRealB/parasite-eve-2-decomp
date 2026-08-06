@@ -561,7 +561,60 @@ void func_8005488C(void)
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80054938);
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80054D58);
+void func_80054D58(GStruct66* arg0, u16 arg1, s32 arg2, u16 arg3)
+{
+    s8         i;
+    GStruct54* p;
+    u16        temp;
+    s32        score;
+
+    arg0->field_0  = -1;
+    arg0->field_10 = -1;
+    arg0->field_5  = -1;
+    arg0->field_14 = -1;
+    arg0->field_6  = -1;
+    arg0->field_4  = -1;
+    arg0->field_3  = -1;
+    arg0->field_1  = -1;
+    arg0->field_2  = -1;
+    arg0->field_8  = arg1;
+    arg0->field_C  = 0xFFFF;
+    arg0->field_7  = 0;
+
+    for (i = 0; i < 8; i++) {
+        p = &D_80082248[i];
+        if (p->field_16 == 0) {
+            arg0->field_3 = i;
+        } else if (p->field_16 != 4) {
+            temp = p->field_4C->field_C;
+            if (temp < (u32)arg0->field_8) {
+                arg0->field_8 = temp;
+                arg0->field_4 = i;
+            } else if (arg0->field_8 == temp) {
+                if ((arg0->field_5 == -1) || (arg0->field_10 < p->field_4)) {
+                    score          = p->field_4;
+                    arg0->field_5  = i;
+                    arg0->field_10 = score;
+                }
+            }
+            if (((p->field_0 & 0xFFFF00FF) == (arg2 & 0xFFFF00FF)) ||
+                (((temp = p->field_4C->field_E) & 0x10) && (arg3 == temp))) {
+                arg0->field_1 = i;
+                if ((arg0->field_2 == -1) || (arg0->field_C > p->field_4)) {
+                    score         = p->field_4;
+                    arg0->field_2 = i;
+                    arg0->field_C = score;
+                }
+                arg0->field_7 += 1;
+                if ((arg0->field_6 == -1) || (arg0->field_14 < p->field_4)) {
+                    score          = p->field_4;
+                    arg0->field_6  = i;
+                    arg0->field_14 = score;
+                }
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80054F1C);
 

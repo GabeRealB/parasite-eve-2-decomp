@@ -9716,3 +9716,32 @@ tmp = counter; tmp = tmp + 1; counter = tmp; /* pin tmp to a0 */
 ```
 
 `func_80056B28` is the pure example.
+
+## Flip comparison operators to control load order of slt operands
+
+When the target does:
+
+```
+lw  v1, field_C(a0)
+lw  v0, field_4(t0)
+slt v0, v0, v1        /* field_4 < field_C */
+```
+
+writing `p->field_4 < arg0->field_C` often loads `field_4` first. The equivalent
+`arg0->field_C > p->field_4` evaluates the left operand first and produces the
+target load order while still emitting `slt v0, v0, v1`.
+
+```c
+/* wrong load order: field_4 then field_C */
+if (arg0->field_2 == -1 || p->field_4 < arg0->field_C)
+
+/* correct: field_C then field_4 */
+if (arg0->field_2 == -1 || arg0->field_C > p->field_4)
+```
+
+Pulling `field_C` into a temporary *before* the `field_2 == -1` test is too
+aggressive — it fills the `lb` delay slot and shortens the function. Keep the
+compare inline and only flip the operator.
+
+`func_80054D58` is the pure example (also: stash `score = p->field_4` before
+paired `sb`/`sw` so the target gets `lw; sb; sw` rather than `sb; lw; nop; sw`).
