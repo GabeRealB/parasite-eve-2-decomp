@@ -691,8 +691,10 @@ STATIC_ASSERT_SIZEOF(GStruct35, 0x14);
 /// Track/channel entry inside GStruct36 (stride 0x3C). field_5 is a per-entry flag
 /// written by func_80051AB8; absolute offset of first entry's field_5 is 0x51.
 /// field_0 / field_1 / field_4 are NRPN/RPN state used by the MIDI CC handler
-/// (func_80052488). field_28 is a data pointer resolved by func_80051A2C
-/// (absolute offset 0x74). field_30 is a saved event cursor for looped CC 0x63.
+/// (func_80052488). field_6 / field_7 and field_8[] form a loop stack for the
+/// 0xF5/0xF6 meta opcodes (func_800526A4); field_8[8] is also the track data
+/// pointer resolved by func_80051A2C (absolute offset 0x74). field_30 is a
+/// saved event cursor for looped CC 0x63.
 typedef struct _GStruct36Entry {
     /* 0x00 */ u8  field_0;
     /* 0x01 */ u8  field_1;
@@ -700,8 +702,9 @@ typedef struct _GStruct36Entry {
     /* 0x03 */ u8  field_3;
     /* 0x04 */ u8  field_4;
     /* 0x05 */ u8  field_5;
-    /* 0x06 */ u8  unknown_06[0x22];
-    /* 0x28 */ u8* field_28;
+    /* 0x06 */ u8  field_6;
+    /* 0x07 */ s8  field_7;
+    /* 0x08 */ u8* field_8[9];
     /* 0x2C */ u8  unknown_2C[4];
     /* 0x30 */ u8* field_30;
     /* 0x34 */ u8  unknown_34[8];

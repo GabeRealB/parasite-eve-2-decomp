@@ -697,7 +697,7 @@ void* func_80051A2C(GStruct36* arg0, s32 arg1, u8* arg2)
     idx = arg1 & 0xFF;
     if (idx != 0) {
         idx  = idx - 1;
-        arg2 = arg0->entries[idx].field_28;
+        arg2 = arg0->entries[idx].field_8[8];
         offset =
             (arg2[-4] << 24) | (arg2[-3] << 16) | (arg2[-2] << 8) | arg2[-1];
         return arg2 + offset + 8;
@@ -836,7 +836,111 @@ u8* func_80052488(s32 arg0, u8* arg1, GStruct36* arg2, GStruct36Entry* arg3)
     return arg1 + 3;
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_800526A4);
+u8* func_800526A4(s32 arg0, u8* arg1, GStruct36* arg2, GStruct36Entry* arg3)
+{
+    u8  sp0;
+    s32 var_a0;
+    u8* var_a1;
+    u8* var_a2;
+    u8* var_t0;
+    u8  temp_v1;
+    s8  temp_v0;
+
+    var_t0 = arg1;
+    switch (*var_t0) {
+        case 0xF0:
+            temp_v1 = *var_t0;
+            var_t0 += 1;
+            if (temp_v1 != 0xF7) {
+                do {
+                } while (*var_t0++ != 0xF7);
+            }
+            goto f7_body;
+        case 0xF5:
+            if (arg3->field_7 < 9) {
+                arg3->field_6                = 1;
+                arg3->field_8[arg3->field_7] = var_t0 + 3;
+                arg3->field_7                = (u8)arg3->field_7 + 1;
+                var_t0 =
+                    var_t0 + ((s16)((var_t0[1] << 8) | var_t0[2]) + 3);
+            } else {
+                var_t0 = NULL;
+            }
+            break;
+        case 0xF6:
+            if (arg3->field_7 < 0) {
+                arg3->field_6 = 0;
+                var_t0        = NULL;
+            } else {
+                temp_v0       = (u8)arg3->field_7 - 1;
+                arg3->field_7 = temp_v0;
+                var_t0        = arg3->field_8[temp_v0];
+            }
+            break;
+        case 0xF7:
+            goto f7_body;
+        case 0xFF:
+            var_t0 += 1;
+            temp_v1 = *var_t0;
+            if (temp_v1 == 0x2F) {
+                goto eot;
+            }
+            var_a1 = var_t0 + 1;
+            if (temp_v1 == 0x51) {
+                goto tempo;
+            }
+            goto vlq;
+        eot:
+            arg3->field_5 = 1;
+        f7_body:
+            var_t0 += 1;
+            break;
+        tempo: {
+            u32 tempo_val;
+            tempo_val     = var_t0[2] << 16;
+            tempo_val    |= var_t0[3] << 8;
+            tempo_val    |= var_t0[4];
+            var_t0       += 5;
+            arg2->field_7 = 0;
+            arg2->field_6 = 0x3938700U / tempo_val;
+        } break;
+        vlq:
+            var_a2  = &sp0;
+            var_a0  = 0;
+            *var_a2 = 0;
+            do {
+                var_a0 <<= 7;
+                var_a0  |= *var_a1 & 0x7F;
+                *var_a2  = *var_a2 + 1;
+            } while (*var_a1++ & 0x80);
+            {
+                register s32 n asm("v0");
+                n      = sp0;
+                n      = n + 1;
+                n      = var_a0 + n;
+                var_t0 = var_t0 + n;
+            }
+            break;
+        default:
+            var_t0 = NULL;
+            break;
+    }
+    return var_t0;
+}
+
+/* Absolute copy of jtbl_800140A4 for still-asm func_80052B30. Placed after
+ * func_800526A4's compiler-generated jtbl so the still-asm table keeps its
+ * VMA until that function is matched. */
+const s32 jtbl_800140A4[8] = {
+    0x80052B80,
+    0x80052CB8,
+    0x80052CF4,
+    0x80052D64,
+    0x80052DE0,
+    0x80052F58,
+    0x80052E90,
+    0x00000000,
+};
 
 s32 func_8005287C(u8* arg0, u8* arg1)
 {
