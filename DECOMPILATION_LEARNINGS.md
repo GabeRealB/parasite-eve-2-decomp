@@ -157,6 +157,43 @@ them. Without `volatile`:
 - `(s8)D_80070E38 < 0x10` collapses to a single `lb` instead of
   `lbu` + `sll 24` + `sra 24`.
 
+**Writer/reader conflict on the same global.** The reader (`func_8002731C`)
+needs `D_8006EC30` volatile, but the writer (`func_8003DFB0`) must put the
+store in the `jal ExitCriticalSection` / `jal func_8002731C` delay slot.
+Keep the global `volatile` and store through a non-volatile lvalue:
+
+```c
+*(u8*)&D_8006EC30 = temp->field_100; /* fills jal delay slot */
+ExitCriticalSection();
+```
+
+`D_8005EC74` / `D_8005EC78` are the same VSync-shared pair on the lag path
+(`func_80027498` writes `D_8005EC74` and reads `D_8005EC78`; `func_8003DFB0`
+does the inverse). Mark both `volatile` so the draw path reloads `D_8005EC74`
+twice and keeps `D_8005EC78 = 0` *outside* the following `jal VSync` delay
+slot.
+
+## Interleave an independent load with `*org = CONST`
+
+When the target builds a wide constant (`lui`/`ori` of `0xFFFFFF`) around a
+pointer store and also needs an unrelated global for a later multiply, stage
+the accesses so GCC fills the `lw org` delay with the global load:
+
+```c
+org  = ot[i].org;
+size = D_8007A0E4;           /* load fills the org-load delay; claims $a0 */
+*org = C5F414_OTAG_END_PRIM; /* 0xFFFFFF stays in $a1 */
+size /= 2;                   /* signed /2 after the store */
+saved      = D_800710A0;
+D_800710A0 = ot[i].org;      /* second load of org — do not reuse `org` */
+D_80071190 = base + i * size;
+```
+
+Putting `saved = D_800710A0` immediately after `*org = …` steals the delay
+slot for `%hi(D_800710A0)` and parks the constant in `$a0` instead. Computing
+`D_8007A0E4 / 2` in one expression before the store also mis-orders the
+divide relative to the store. `func_8003DFB0` is the pure example.
+
 ## Hold a global's address in a local pointer
 
 When a function touches the same global struct across several calls, the target

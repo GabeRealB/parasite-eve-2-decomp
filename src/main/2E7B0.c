@@ -1,9 +1,72 @@
 #include "common.h"
 
 #include "main/game.h"
+#include "main/gamemain.h"
 #include "main/unknown_syms.h"
 
-INCLUDE_ASM("main/nonmatchings/2E7B0", func_8003DFB0);
+#include <psyq/libetc.h>
+
+s32 func_8003DFB0(s32 arg0, s32 arg1)
+{
+    DisplayState* temp;
+    GStruct50*    ot;
+    u_long*       saved;
+    u_long*       org;
+    s32           size;
+    s32           neg1;
+
+    temp = &Display_State;
+    if (temp->field_106 == 0) {
+        temp->field_118 ^= 1;
+    }
+    if ((s8)temp->field_103 != 2) {
+        temp->field_1f = (u8)temp->field_118;
+    }
+    ot = D_8007A0E8;
+    GsClearOt(0, 0, &ot[temp->field_118]);
+    org        = ot[temp->field_118].org;
+    size       = D_8007A0E4;
+    *org       = C5F414_OTAG_END_PRIM;
+    size      /= 2;
+    saved      = D_800710A0;
+    D_800710A0 = ot[temp->field_118].org;
+    D_80071190 = (DR_TPAGE*)((s32)D_8007A0E0 + temp->field_118 * size);
+    Task_ExecList(&D_8007A110);
+    func_80014C2C();
+    if (temp->field_106 == 0) {
+        DrawSync(0);
+    }
+    if (((VSync(1) - arg1) & 0x7FFF) < D_8005EC6C) {
+        EnterCriticalSection();
+        temp->field_108   = 1;
+        D_8005EC70        = temp->field_118;
+        D_80070E38        = temp->field_103;
+        *(u8*)&D_8006EC30 = temp->field_100;
+        ExitCriticalSection();
+        VSync(D_8005EC68);
+        neg1 = -1;
+        if (D_8005EC70 != neg1) {
+            D_8005EC78 = 0;
+            arg1       = VSync(1) & 0x7FFF;
+            func_8002731C(temp->field_118);
+            D_8005EC70 = neg1;
+        } else {
+            D_8005EC78 = D_8005EC74;
+            arg1       = -D_8005EC74;
+        }
+    } else {
+        D_8005EC78        = 0;
+        arg1              = VSync(1) & 0x7FFF;
+        temp->field_108   = 1;
+        D_8005EC70        = -2;
+        D_80070E38        = temp->field_103;
+        *(u8*)&D_8006EC30 = temp->field_100;
+        func_8002731C(temp->field_118);
+        D_8005EC70 = -1;
+    }
+    D_800710A0 = saved;
+    return arg1;
+}
 
 Task* func_8003E210(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {

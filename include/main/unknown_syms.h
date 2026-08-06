@@ -514,8 +514,10 @@ extern u32          D_8005EC64;
 extern s32          D_8005EC68;
 extern s32          D_8005EC6C;
 extern volatile u32 D_8005EC70;
-extern s32          D_8005EC74;
-extern s32          D_8005EC78;
+// Written by the VSync callback (func_80027498); read by the draw path (func_8003DFB0).
+extern volatile s32 D_8005EC74;
+// Cleared/set by the draw path; read by the VSync callback for lag accounting.
+extern volatile s32 D_8005EC78;
 // Display/CD busy flags shared with the VSync path (func_8002764C / func_8002785C).
 extern volatile s32 D_8005EC80;
 // Immediate-mode TILE / DR_TPAGE scratch for the "now loading" overlay.
