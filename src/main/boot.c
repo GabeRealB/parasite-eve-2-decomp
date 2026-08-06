@@ -11,7 +11,48 @@
 
 #include "main/unknown_syms.h"
 
-INCLUDE_ASM("main/nonmatchings/boot", func_800144F8);
+void func_800144F8(s32 arg0, s32 arg1)
+{
+    F04CF8_ImageSlot* entries;
+    F04CF8_ImageSlot* slot;
+    s32               i;
+    u32               t;
+    size_t*           p88;
+    size_t*           p90;
+    int*              p98;
+    size_t            temp;
+
+    entries = D_8005C37C[arg0];
+    if ((Display_State.field_12a == 0) || (arg0 == 0)) {
+        D_800691F4         = (u8*)0x80179950;
+        D_800691F8         = 0x836B0;
+        D_80068F88         = 0x80179950;
+        GActiveAuxHeap     = (u8*)0x80189950;
+        GActiveAuxHeapSize = 0x4D6B0;
+    } else {
+        t                  = arg1 * 8;
+        t                 += (u32)entries;
+        slot               = (F04CF8_ImageSlot*)t;
+        D_800691F4         = (u8*)slot->field_0;
+        D_800691F8         = slot->field_4 + 0x26000;
+        D_80068F88         = (size_t)slot->field_0;
+        GActiveAuxHeap     = (u8*)(D_80068F88 + 0x10000);
+        GActiveAuxHeapSize = slot->field_4 - 0x10000;
+    }
+    i            = 0;
+    D_80068F90   = 0x10000;
+    GAuxHeap     = GActiveAuxHeap;
+    GAuxHeapSize = D_800691F8 - 0x10000;
+    do {
+        *(u8*)((D_80068F90 - (i & 0xFF)) + D_80068F88 - 1) = 0;
+        i                                                 += 1;
+    } while ((u32)(i & 0xFF) < 0xAU);
+    p98  = &D_80068F98;
+    p88  = &D_80068F88;
+    p90  = &D_80068F90;
+    temp = *p90 - 0xA;
+    *p98 = *p88 + temp;
+}
 
 void Boot_LoadInitialFile(Task* task)
 {

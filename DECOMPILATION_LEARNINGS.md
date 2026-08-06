@@ -8969,3 +8969,69 @@ the target reloads the global into `$a0` while `$a0` already holds another
 address in a delay slot.
 
 `func_8001D0E8` needs all of the above together.
+
+## Triple address-of for same-page BSS `lui` order
+
+When the target ends with three same-`%hi` BSS symbols in a fixed lui order:
+
+```
+lui  a0, %hi(D_dst)
+lui  v1, %hi(D_a)
+lui  v0, %hi(D_b)
+lw   v0, %lo(D_b)(v0)
+lw   v1, %lo(D_a)(v1)
+addiu v0, v0, -K
+addu v1, v1, v0
+jr   ra
+ sw  v1, %lo(D_dst)(a0)
+```
+
+a direct `D_dst = D_a + (D_b - K)` or `p = &D_dst; *p = D_a + (D_b - K)`
+almost always permutes the middle two luis (or folds the `-K` onto the wrong
+load). Taking addresses of all three first forces the target order:
+
+```c
+int*    pDst;
+size_t* pA;
+size_t* pB;
+size_t  temp;
+
+pDst = &D_dst;
+pA   = &D_a;
+pB   = &D_b;
+temp = *pB - K;
+*pDst = *pA + temp;
+```
+
+`func_800144F8` is the pure example (`D_80068F98 = D_80068F88 + (D_80068F90 - 0xA)`).
+
+## Zero-tail loop: single index, `i & 0xFF`, increment at bottom
+
+A 10-byte zero of `base[size - 1 - i]` that needs:
+
+```
+andi  a0, a1, 0xff
+addiu a1, a1, 1
+lw    v0, size
+lw    v1, base
+subu  v0, v0, a0
+addu  v0, v0, v1
+sb    zero, -1(v0)
+andi  v0, a1, 0xff
+sltiu v0, v0, 0xa
+bnez  v0, loop
+ andi a0, a1, 0xff
+```
+
+matches with a single `s32 i` and the mask at the use site — **not** a separate
+`j = i & 0xFF` local (that steals `$a1` for `j` and puts the counter in `$a2`):
+
+```c
+i = 0;
+do {
+    *(u8*)((size - (i & 0xFF)) + base - 1) = 0;
+    i += 1;
+} while ((u32)(i & 0xFF) < 0xAU);
+```
+
+`func_800144F8` is the pure example.
