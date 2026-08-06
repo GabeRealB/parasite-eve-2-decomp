@@ -8528,3 +8528,56 @@ __asm__("lhu %0, %%lo(D5B498_8006ACE8)(%1)" : "=r"(t) : "r"(ace_hi));
 Also: `s8_global * 64` (or `(s8)u8_global * 64`) emits `lb; sll 6`, while
 `s8_global << 6` emits `lbu; sll 24; sra 18`. Prefer multiply for signed-byte
 scale factors. `func_800248B4` is the pure example.
+
+## Fade step: non-volatile `lh` + volatile `lhu` + dual temps
+
+`D_8006ACB4` is `volatile s16`. Plain `D_8006ACB4 < 0x101` emits
+`lhu` + `sll 16` / `sra 16` / `slti`, not `lh`. To get target `lh` for the
+compare and `lhu` for the add:
+
+```c
+s16 cur  = *(s16*)&D_8006ACB4; /* lh */
+u16 next = D_8006ACB4;         /* lhu (volatile) */
+if (cur < 0x101) {
+    D_8006ACB4 = next + arg0;
+    ret = 0;
+} else {
+    /* ClearImage both buffers; field_100 = 0 */
+    ret = 1;
+}
+return ret;
+```
+
+Preloading both temps before the `if` schedules `sw` (finish `addPrim`) /
+`lhu` / `beqz` / delay-slot `addu` correctly. Early returns on both arms invert
+to `bnez` with the long path as fall-through.
+
+## Shared `ret` + `register … asm("v0")` for dual-return fade
+
+With the preload pattern above, a shared `s32 ret` keeps `beqz` polarity but
+parks the return in `$v1` (`move v1,zero` in the `j` delay slot;
+`li v1,1` + `move v0,v1` after `lw ra`). Pin the result:
+
+```c
+register s32 ret asm("v0");
+```
+
+so the delay slot is `move v0,zero` and the done path is `li v0,1` /
+`lui v1,%hi(Display_State)` / `sb zero,field_100`.
+
+## Pin width constant to `$t7` when `arg0` should land in `$t6`
+
+Fullscreen fade helpers hoist `0x140` / `0xF0` into temps used for both the
+TILE and the stack `RECT`. If GCC assigns `arg0` → `$t7` and `0x140` → `$t6`
+(only mismatch left at ~99.7%), pin the width:
+
+```c
+register s32 w asm("t7");
+w = 0x140;
+p->w = w;
+/* … */
+rect.w = w;
+```
+
+That frees `$t6` for the early `move t6,a0`. `func_8002169C` is the pure
+example (fade-up sibling of `func_8002191C`).

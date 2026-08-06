@@ -7,7 +7,55 @@
 
 void func_80021D8C(u8* arg0);
 
-INCLUDE_ASM("main/nonmatchings/11E9C", func_8002169C);
+s32 func_8002169C(s32 arg0)
+{
+    TILE*        p;
+    DR_TPAGE*    dr;
+    u8           color;
+    RECT         rect;
+    s16          cur;
+    u16          next;
+    register s32 ret asm("v0");
+    register s32 w asm("t7");
+
+    w          = 0x140;
+    color      = *(volatile u8*)&D_8006ACB4;
+    p          = (TILE*)D_80070EE0;
+    D_80070EE0 = (u8*)(p + 1);
+    setlen(p, 3);
+    setcode(p, 0x62);
+    p->r0 = color;
+    p->g0 = color;
+    p->b0 = color;
+    p->x0 = -0xA0;
+    p->y0 = -0x78;
+    p->w  = w;
+    p->h  = 0xF0;
+    addPrim(D_800710A0 - 0x10, p);
+
+    dr         = (DR_TPAGE*)D_80070EE0;
+    D_80070EE0 = (u8*)(dr + 1);
+    setDrawTPage(dr, 0, 1, 0x40);
+    addPrim(D_800710A0 - 0x10, dr);
+
+    cur  = *(s16*)&D_8006ACB4;
+    next = D_8006ACB4;
+    if (cur < 0x101) {
+        D_8006ACB4 = next + arg0;
+        ret        = 0;
+    } else {
+        rect.y = 0;
+        rect.x = 0;
+        rect.w = w;
+        rect.h = 0xF0;
+        ClearImage(&rect, 0, 0, 0);
+        rect.y = 0x110;
+        ClearImage(&rect, 0, 0, 0);
+        Display_State.field_100 = 0;
+        ret                     = 1;
+    }
+    return ret;
+}
 
 void func_80021808(void)
 {
