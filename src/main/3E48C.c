@@ -149,7 +149,79 @@ void func_8004DF10(void)
     func_8004E5A0(2, 0x10, 2);
 }
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E060);
+s32 func_8004E060(s16* arg0, s32 arg1, s32 arg2)
+{
+    GStruct26* entry;
+    s32        maxField4;
+    s32        bestPriority;
+    s32        i;
+    s32        j;
+    s8         bestVoice;
+    u8         voice;
+    u8         field64;
+    u32        fieldAc;
+    s32        field4;
+    s32        (*callback)(s32);
+    s32        cbArg;
+    GStruct9*  base;
+
+    maxField4    = 0;
+    bestPriority = arg2;
+    bestVoice    = -1;
+    i            = 0;
+    base         = &D648E0_8007E338;
+
+    if (arg1 > 0) {
+        do {
+            entry = &D_8007EB98[*arg0];
+            voice = *(u8*)entry;
+            j     = 0;
+            if (entry->field_2 > 0) {
+                do {
+                    if (base->field_94[(s8)voice] == 0) {
+                        field64 = base->field_64[(s8)voice];
+                        if ((field64 == 0) || (field64 == 3)) {
+                            base->field_ac[(s8)voice] = arg2;
+                            base->field_94[(s8)voice] = 1;
+                            base->field_4[(s8)voice]  = 0;
+                            return (s8)voice;
+                        }
+                    } else {
+                        fieldAc = base->field_ac[(s8)voice];
+                        if (fieldAc < (u32)bestPriority) {
+                            bestPriority = fieldAc;
+                            bestVoice    = voice;
+                        } else if (bestPriority == (s32)fieldAc) {
+                            field4 = base->field_4[(s8)voice];
+                            if (maxField4 < field4) {
+                                maxField4 = field4;
+                                bestVoice = voice;
+                            }
+                        }
+                    }
+                    j++;
+                    voice++;
+                } while (j < entry->field_2);
+            }
+            i++;
+            arg0++;
+        } while (i < arg1);
+    }
+
+    if (bestVoice >= 0) {
+        callback = (s32 (*)(s32))base->field_10c[bestVoice];
+        if (callback != NULL) {
+            cbArg = base->field_16c[bestVoice];
+            if (cbArg != 0) {
+                callback(cbArg);
+            }
+        }
+        base->field_ac[bestVoice] = arg2;
+        base->field_4[bestVoice]  = 0;
+        base->field_64[bestVoice] = 1;
+    }
+    return bestVoice;
+}
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E200);
 

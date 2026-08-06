@@ -77,7 +77,7 @@ typedef struct _GStruct9 {
     u32 field_4[24];
     u8  field_64[24];
     u8  field_7c[24];
-    u8  field_94[24];
+    s8  field_94[24];
     u32 field_ac[24];
     u32 field_10c[24];
     u32 field_16c[24];
