@@ -601,23 +601,41 @@ typedef struct _GStruct57 {
 } GStruct57;
 STATIC_ASSERT_SIZEOF(GStruct57, 0x48);
 
+/// "oneE" (0x45656E6F) pitch-envelope chunk pointed at by GStruct43Fx.field_20.
+/// Consumed by the state machine in func_80055678.
+typedef struct _GStruct43OneE {
+    /* 0x00 */ s32 magic;
+    /* 0x04 */ s16 field_4;
+    /* 0x06 */ s16 field_6;
+    /* 0x08 */ s16 field_8;
+    /* 0x0A */ u16 field_A;
+    /* 0x0C */ s16 field_C;
+    /* 0x0E */ u16 field_E;
+    /* 0x10 */ s16 field_10;
+    /* 0x12 */ s16 field_12;
+    /* 0x14 */ s16 field_14;
+    /* 0x16 */ s16 field_16;
+} GStruct43OneE;
+STATIC_ASSERT_SIZEOF(GStruct43OneE, 0x18);
+
 /// FX/envelope sub-block embedded at GStruct43 + 0x10 (func_800565B8 / func_80055678).
 /// field_0 is an active flag; field_1 is the state-machine index; field_2 is a
 /// secondary gate; field_20 points at the current "oneE" (0x45656E6F) chunk.
 typedef struct _GStruct43Fx {
-    /* 0x00 */ s8   field_0;
-    /* 0x01 */ s8   field_1;
-    /* 0x02 */ s8   field_2;
-    /* 0x03 */ u8   pad_3;
-    /* 0x04 */ s32  field_4;
-    /* 0x08 */ s16  field_8;
-    /* 0x0A */ s16  field_A;
-    /* 0x0C */ s16  field_C;
-    /* 0x0E */ u8   pad_E[0x6];
-    /* 0x14 */ s32  field_14;
-    /* 0x18 */ s32  field_18;
-    /* 0x1C */ s32  field_1C;
-    /* 0x20 */ s32* field_20;
+    /* 0x00 */ s8             field_0;
+    /* 0x01 */ s8             field_1;
+    /* 0x02 */ s8             field_2;
+    /* 0x03 */ u8             pad_3;
+    /* 0x04 */ s32            field_4;
+    /* 0x08 */ s16            field_8;
+    /* 0x0A */ s16            field_A;
+    /* 0x0C */ u16            field_C;
+    /* 0x0E */ s16            field_E;
+    /* 0x10 */ s32            field_10;
+    /* 0x14 */ s32            field_14;
+    /* 0x18 */ s32            field_18;
+    /* 0x1C */ s32            field_1C;
+    /* 0x20 */ GStruct43OneE* field_20;
 } GStruct43Fx;
 STATIC_ASSERT_SIZEOF(GStruct43Fx, 0x24);
 

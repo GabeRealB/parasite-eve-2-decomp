@@ -620,7 +620,133 @@ INCLUDE_ASM("main/nonmatchings/43FFC", func_80054F1C);
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80055078);
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80055678);
+/* Absolute copy of jtbl_80014168 for still-asm func_800546F4. Placed after
+ * func_80053BF4's compiler-generated jtbls so the still-asm table keeps its
+ * VMA until that function is matched. */
+const s32 jtbl_80014168[16] = {
+    0x8005484C,
+    0x8005480C,
+    0x80054850,
+    0x80054840,
+    0x80054850,
+    0x80054850,
+    0x80054850,
+    0x80054840,
+    0x80054850,
+    0x80054850,
+    0x80054850,
+    0x80054850,
+    0x80054850,
+    0x80054850,
+    0x80054850,
+    0x80054840,
+};
+
+void func_80055678(GStruct43* arg0)
+{
+    GStruct48      sp10;
+    GStruct43Fx*   fx;
+    GStruct43OneE* chunk;
+    s32            pitch;
+    s32            temp;
+    s32            rate;
+    s32            new_var;
+    s32            new_var2;
+    SpuVoiceAttr*  attr;
+    s32            t;
+
+    fx    = (GStruct43Fx*)&arg0->field_10;
+    chunk = fx->field_20;
+
+    if (fx->field_2 == 1) {
+        fx->field_1 = 5;
+        temp        = (fx->field_10 - chunk->field_14) * chunk->field_16;
+        rate        = (u16)chunk->field_16;
+        if (temp > 0) {
+            rate = -rate;
+        }
+        fx->field_E = rate;
+        asm volatile("" ::: "memory");
+        t            = fx->field_10;
+        fx->field_C  = 0;
+        fx->field_2  = 2;
+        fx->field_1C = t;
+    }
+
+    switch (fx->field_1) {
+        case 0:
+            if ((s32)fx->field_C < chunk->field_4) {
+                fx->field_C = fx->field_C + 1;
+                break;
+            }
+            fx->field_1  = 1;
+            fx->field_C  = 0;
+            fx->field_14 = 0;
+            fx->field_10 = 0;
+        case 1:
+            pitch = (fx->field_4 << 1) + fx->field_14;
+            if (fx->field_C < chunk->field_A) {
+                s32 v;
+                fx->field_C  = fx->field_C + 1;
+                v            = (new_var = fx->field_14);
+                fx->field_14 = (v = v + chunk->field_8);
+                fx->field_10 = v;
+                goto apply;
+            }
+            fx->field_1 = 2;
+            fx->field_C = 0;
+        case 2:
+            pitch = (fx->field_4 << 1) + chunk->field_6;
+            if ((s32)fx->field_C < chunk->field_C) {
+                fx->field_C = fx->field_C + 1;
+                goto apply;
+            }
+            fx->field_1  = 3;
+            fx->field_18 = chunk->field_6;
+            rate         = chunk->field_6;
+            fx->field_C  = 0;
+            fx->field_10 = rate;
+        case 3:
+            pitch = (fx->field_4 << 1) + fx->field_18;
+            if (fx->field_C < chunk->field_E) {
+                s32 v;
+                fx->field_C  = fx->field_C + 1;
+                v            = (new_var2 = fx->field_18);
+                fx->field_18 = (v = v + chunk->field_10);
+                fx->field_10 = v;
+                goto apply;
+            }
+            fx->field_1 = 4;
+        case 4:
+            pitch = (fx->field_4 << 1) + chunk->field_12;
+            goto apply;
+        case 5:
+            temp = (fx->field_10 - chunk->field_14) * chunk->field_16;
+            if (temp >= 0) {
+                fx->field_1 = 6;
+            } else {
+                s32 v;
+                v            = fx->field_1C + (s16)fx->field_E;
+                fx->field_1C = v;
+                fx->field_10 = v;
+            }
+            pitch = (fx->field_4 << 1) + fx->field_1C;
+            goto apply;
+        case 6:
+            pitch = (fx->field_4 << 1) + chunk->field_14;
+            goto apply;
+        default:
+            break;
+    }
+    return;
+
+apply:
+    func_8004E5C4(arg0->field_0, &sp10);
+    attr = sp10.field_4;
+    attr->pitch =
+        func_8004E9D8((pitch >> 8) & 0xFFFF, pitch & 0xFF, (u16)fx->field_8, (u16)fx->field_A);
+    attr->mask |= SPU_VOICE_PITCH;
+}
 
 s32 func_800558E8(s32 arg0, s8 arg1, s8 arg2, s32 arg3, GStruct67* arg4)
 {
@@ -1154,11 +1280,11 @@ void func_800564C4(s8 arg0, s8 arg1, GStruct43* arg2, GStruct55* arg3, s16* arg4
 
 void func_800565B8(GStruct43* arg0, s16 arg1, u32 arg2, GStruct41* arg3)
 {
-    GStruct43Fx* p;
-    u8*          base;
-    s32*         chunk;
-    s32          magic;
-    s16          temp;
+    GStruct43Fx*   p;
+    u8*            base;
+    GStruct43OneE* chunk;
+    s32            magic;
+    s16            temp;
 
     p = (GStruct43Fx*)&arg0->field_10;
     if (arg1 == -1) {
@@ -1170,9 +1296,9 @@ void func_800565B8(GStruct43* arg0, s16 arg1, u32 arg2, GStruct41* arg3)
         return;
     }
     base        = *arg0->field_34->field_44;
-    chunk       = (s32*)&base[arg1];
+    chunk       = (GStruct43OneE*)&base[arg1];
     p->field_20 = chunk;
-    magic       = *chunk;
+    magic       = chunk->magic;
     if (magic == 0x45656E6F) {
         arg0->field_10 = 1;
         p->field_1     = 0;
