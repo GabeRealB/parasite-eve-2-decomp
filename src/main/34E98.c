@@ -239,7 +239,43 @@ after_fill: {
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80046124);
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_800463B4);
+void func_800463B4(GStruct30* arg0, s32 arg1, s32 arg2)
+{
+    SPRT_8*      p;
+    DR_TPAGE*    dr;
+    s32          n;
+    s32          y;
+    register s32 row asm("v1");
+    s32          half;
+    register s32 t asm("v0");
+
+    n = (u32)Display_State.field_c >> 3;
+    if (arg0->field_0 != 0) {
+        p          = (SPRT_8*)D_80071190;
+        D_80071190 = (DR_TPAGE*)(p + 1);
+        p->x0      = arg0->field_20 + arg1 - 8;
+        y          = arg0->field_22;
+        p->clut    = 0x3C0A;
+        setlen(p, 3);
+        setcode(p, 0x75);
+        p->y0 = y + arg2 - 2;
+        arg2  = n / 3;
+        row   = arg2;
+        arg2  = n - row * 3;
+        half  = row / 2;
+        half  = row - half * 2;
+        asm("" : "+r"(half), "+r"(arg2));
+        t     = arg2 * 8 - 0x18;
+        p->u0 = t;
+        t     = half * 8 + 0x30;
+        p->v0 = t;
+        addPrim(D_800710A0 + 4, p);
+        dr         = D_80071190;
+        D_80071190 = dr + 1;
+        setDrawTPage(dr, 0, 1, 0x1E);
+        addPrim(D_800710A0 + 4, dr);
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80046508);
 

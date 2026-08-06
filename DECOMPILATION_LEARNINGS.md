@@ -9170,3 +9170,51 @@ arg1->field_28C = new28c;
 ```
 
 `func_80031118` is the pure example (memcard free-block map).
+
+## Reuse `arg2` as `/3` quotient + explicit `%2` for SPRT UV frame index
+
+When animating an 8x8 sprite UV from a frame counter `n = (u32)field >> 3`
+with `u = (n % 3) * 8 - base_u` and `v = ((n / 3) % 2) * 8 + base_v`, the
+target often:
+
+1. Keeps `arg2` live through the y-position add, then **reassigns**
+   `arg2 = n / 3` so the quotient lands in `$a2` (`subu a2, hi, sign`).
+2. Copies the quotient to `$v1` (`move v1, a2`) before overwriting `$a2`
+   with the remainder (`arg2 = n - row * 3`).
+3. Expands signed `% 2` as two steps so `$a0` gets the result while `$v0`
+   holds the bias intermediate:
+   ```
+   srl  v0, v1, 31
+   addu v0, v1, v0
+   sra  a0, v0, 1      /* half = row / 2 */
+   sll  v0, a0, 1
+   subu a0, v1, v0     /* half = row - half * 2 */
+   ```
+4. Scales/stores `u0` through `$v0` *before* scaling `v0` from `$a0`.
+
+A plain `row = n / 3; p->u0 = (n % 3) * 8 - K; p->v0 = (row % 2) * 8 + B`
+stalls around ~91%: quotient in `$v1`, early `u0` store, and `%2` folded
+into the `v0` scale chain.
+
+```c
+register s32 row asm("v1");
+register s32 t asm("v0");
+s32 half;
+
+/* ... y uses arg2, then: */
+arg2 = n / 3;
+row  = arg2;           /* move v1, a2 */
+arg2 = n - row * 3;    /* rem back into a2 */
+half = row / 2;
+half = row - half * 2; /* %2 with v0 scratch, half in a0 (unpinned) */
+asm("" : "+r"(half), "+r"(arg2)); /* keep both live before stores */
+t     = arg2 * 8 - 0x18;
+p->u0 = t;
+t     = half * 8 + 0x30;
+p->v0 = t;
+```
+
+Pinning `half` to `$a0` coalesces the bias into `$a0` (`addu a0,v1,v0`
+instead of `addu v0,v1,v0`). Leaving `half` unpinned after the explicit
+`/2` + subtract form yields the retail chain. `func_800463B4` is the pure
+example (SPRT_8 cursor + DR_TPAGE, OT index 4).
