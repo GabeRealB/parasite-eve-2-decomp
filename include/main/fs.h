@@ -260,6 +260,24 @@ typedef struct _FsWorkEntry {
 } FsWorkEntry;
 STATIC_ASSERT_SIZEOF(FsWorkEntry, 0x8);
 
+/// Per-folder slot cleared by `func_80023748` (50 entries, parallel to
+/// `Fs_FolderTable`). Only the first byte is written by the init path.
+typedef struct _FsFolderSlot {
+    u8 field_0;
+    u8 unknown_1[7];
+} FsFolderSlot;
+STATIC_ASSERT_SIZEOF(FsFolderSlot, 0x8);
+
+/// Small FS control block cleared at the start of `func_80023748`.
+typedef struct _FsUnkADE8 {
+    u16 field_0;
+    u16 field_2;
+    u16 field_4;
+    u16 pad_6;
+    u32 field_8;
+} FsUnkADE8;
+STATIC_ASSERT_SIZEOF(FsUnkADE8, 0xC);
+
 /// Compact image/load params stored during FS setup (`D5B498_8006ACB8`).
 typedef struct _FsLoadParams {
     byte unknown_0[0x2];
@@ -331,7 +349,8 @@ void func_800248B4(FsWorkEntry* arg0);
 /// Look up a packed file id and start a CD load (unmatched).
 void Fs_LoadFile(u8* req, s32 a1, s32 a2, s32 a3);
 
-/// CD load helpers used by the cmd-queue case-2 path (unmatched).
+/// Look up folder `arg1*100+arg2` under stage `arg0` and start a CD read of
+/// that folder into `Fs_CdSector` (cmd-queue load path).
 void func_80023748(s32 arg0, s32 arg1, s32 arg2);
 void func_8002397C(s32 arg0, s32 arg1, s32 arg2);
 
@@ -419,7 +438,10 @@ extern u16          D5B498_8006ACD4;
 extern FsWorkEntry  D5B498_8006ACE8[0x1F];
 extern u8           D5B498_8006ADE0;
 extern u8           D5B498_8006ADE1;
+extern u8           D_8006ADE2;
+extern FsUnkADE8    D_8006ADE8;
 extern u8           D5B498_8006ADF4;
+extern FsFolderSlot D_8006C338[50];
 extern u8*          D5B498_8006C22C;
 extern u8           D5B498_8006C233;
 extern u8           D5B498_8006C234;

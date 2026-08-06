@@ -9351,3 +9351,47 @@ the `func_8002BB9C` pattern (`a0`=ptr, `v1`=counter) used by simple clears:
 
 Use function-scope `ptr`/`i` when the target wants the inverse allocation
 (e.g. after `a0` was already zeroed as the counter, as in `func_8002BC0C`).
+
+## Variable-bound search: plain `for` emits `beqz len`, not outer `if`
+
+When `i` is already 0, a search over a `u16` length:
+
+```c
+for (; (u16)i < Fs_FolderTableLen; i++) {
+    if (key == table[i & 0xFFFF].id) {
+        break;
+    }
+}
+```
+
+compiles to `lhu v1, len; beqz v1, done` then a bottom-tested loop — the
+initial `0 < len` collapses to `beqz`. Wrapping the same loop in
+`if (Fs_FolderTableLen != 0) { for (...) }` inserts an *extra* `sltu`/`beqz`
+pair (or peels a `do`/`while` into a first-element special case). Prefer the
+plain `for` when the target has a single `beqz` on the length.
+
+`func_80023748` is the pure example (folder-table lookup).
+
+## `asm("")` after `i = 0` before an unrelated global store
+
+After a clear loop leaves `i` non-zero, the target often does:
+
+```
+move  s0, zero          /* i = 0 */
+lui   v0, %hi(D_flag)
+andi  v1, a1, 0xff      /* start of a later expression */
+sb    zero, %lo(D_flag)(v0)
+```
+
+Writing `i = 0; D_flag = 0; expr = (u8)arg1 * ...;` reorders to
+`lui` then `move s0, zero`. An empty `asm("");` between the two stores pins
+the `move` first (same barrier as other schedule pins in this file):
+
+```c
+i = 0;
+asm("");
+D_flag = 0;
+folderId = ((u8)arg1 * 100) + (u8)arg2;
+```
+
+`func_80023748` (`D_8006ADE2` after the `D_8006D4F0` clear loop).

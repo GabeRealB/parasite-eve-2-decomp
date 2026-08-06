@@ -144,7 +144,68 @@ void Fs_SelectStage(s32 stageIdx)
     Fs_VBlank = VSync(-1);
 }
 
-INCLUDE_ASM("main/nonmatchings/fs", func_80023748);
+void func_80023748(s32 arg0, s32 arg1, s32 arg2)
+{
+    CdlLOC loc[2];
+    s32    i;
+    s32    folderId;
+    s32    sector;
+    u8*    dest;
+
+    D_8006ADE8.field_0 = 0;
+    D_8006ADE8.field_2 = 0;
+    D_8006ADE8.field_4 = 0;
+    D_8006ADE8.field_8 = 0;
+    Fs_ChunkMode       = 0;
+    D5B498_8006ADF4    = 0;
+
+    for (i = 0; (u16)i < 0x32; i++) {
+        D_8006C338[i & 0xFFFF].field_0 = 0;
+    }
+
+    for (i = 0; (u16)i < 0xF; i++) {
+        D_8006D4F0[i & 0xFFFF].field_4 = 0;
+    }
+
+    i = 0;
+    asm("");
+    D_8006ADE2 = 0;
+    folderId   = ((u8)arg1 * 100) + (u8)arg2;
+
+    for (; (u16)i < Fs_FolderTableLen; i++) {
+        if (folderId == Fs_FolderTable[i & 0xFFFF].id) {
+            break;
+        }
+    }
+
+    Fs_VBlank = VSync(-1);
+
+    sector = Fs_FolderTable[i & 0xFFFF].offset + Fs_StageCdfSectors[(u8)arg0];
+    dest   = (u8*)&Fs_CdSector;
+
+    if (CdSync(1, NULL) == CdlDiskError) {
+        Fs_WaitDiskReset(1);
+    }
+
+    Fs_CdOpStatus     = 0;
+    Fs_ChunkEndFlag   = -1;
+    Fs_LoadPhase      = 0;
+    Fs_ReqSector      = sector;
+    Fs_ChunkEndSector = sector;
+    Fs_ChunkWritePtr  = dest;
+    Fs_VBlank         = VSync(-1);
+
+    if (Fs_SeekSector == sector) {
+        CdControlF(CdlReadN, NULL);
+        CdReadyCallback(F12D18_8002563C);
+        Fs_SeekSector = 0;
+    } else {
+        CdIntToPos(sector, loc);
+        CdControlF(CdlReadN, &loc[0].minute);
+        CdSyncCallback(F12D18_8002563C);
+        Fs_SeekSector = 0;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/fs", func_8002397C);
 
