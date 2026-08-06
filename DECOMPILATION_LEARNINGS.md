@@ -8679,3 +8679,21 @@ load:
 ```c
 if ((s16)CdCmd_Queue.field_244 != 0 && !(flags & 8)) { … }
 ```
+
+## OT addPrim offsets: elements, not bytes
+
+`D_800710A0` is `u_long*`. Asm immediates on loads/stores are *bytes*, so a
+target `lw v0, -0x40(a2)` is one OT entry stride of `0x10` words:
+
+```c
+/* WRONG — scales by sizeof(u_long) → -0x100 bytes */
+addPrim(D_800710A0 - 0x40, p);
+
+/* RIGHT — matches lw/sw -0x40(reg) */
+addPrim(D_800710A0 - 0x10, p);
+```
+
+Scratch-object matching can still report 100% when only the I-type immediate
+differs if the scoreer is too loose; always confirm with
+`./tools/build-and-verify.sh` (`build/USA/out/SLUS_010.42: OK`).
+`func_80042838` is the pure example (also `1C034.c` / `11E9C.c` use `-0x10`).

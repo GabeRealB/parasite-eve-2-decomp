@@ -71,7 +71,53 @@ void func_80042364(s32 arg0, s32 arg1, s32 arg2)
 
 INCLUDE_ASM("main/nonmatchings/32B64", func_80042500);
 
-INCLUDE_ASM("main/nonmatchings/32B64", func_80042838);
+void func_80042838(void)
+{
+    SPRT*     p;
+    DR_TPAGE* dr;
+    u8        mode;
+
+    p          = (SPRT*)D_80071190;
+    D_80071190 = (DR_TPAGE*)(p + 1);
+    setlen(p, 4);
+    setcode(p, 0x67);
+    p->clut = GetClut(0, 0xFF);
+
+    mode = D_8007A392;
+    switch (mode) {
+        case 0:
+            p->w  = 0x9F;
+            p->h  = 0x10;
+            p->x0 = -0x50;
+            p->u0 = 0;
+            p->v0 = 0;
+            p->y0 = 0x32;
+            break;
+        case 1:
+            p->v0 = 0x10;
+            p->w  = 0x9F;
+            p->h  = 0x10;
+            p->x0 = -0x50;
+            p->u0 = 0;
+            p->y0 = 0x32;
+            break;
+        case 2:
+            p->v0 = 0x20;
+            p->w  = 0x68;
+            p->h  = 0x10;
+            p->x0 = -0x32;
+            p->u0 = 0;
+            p->y0 = 0x32;
+            break;
+    }
+
+    addPrim(D_800710A0 - 0x10, p);
+
+    dr         = (DR_TPAGE*)D_80071190;
+    D_80071190 = dr + 1;
+    setDrawTPage(dr, 0, 0, 0xF);
+    addPrim(D_800710A0 - 0x10, dr);
+}
 
 void func_800429C8(s32 arg0)
 {

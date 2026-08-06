@@ -164,6 +164,7 @@ extern void func_800330D8(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 // 32B64.c
 extern void func_80042364(s32 arg0, s32 arg1, s32 arg2);
 extern s32  func_80042500(void);
+extern void func_80042838(void);
 extern void func_800429C8(s32 arg0);
 
 // overlay / high-address
@@ -606,6 +607,7 @@ extern s32       D_8007A358;
 extern u16       D_8007A35C;
 extern u16       D_8007A35E;
 extern void*     D_8007A360;
+extern u8        D_8007A392;
 extern u8        D_8007A394;
 extern s16       D_8007A396;
 extern u8        D_8007A398;
