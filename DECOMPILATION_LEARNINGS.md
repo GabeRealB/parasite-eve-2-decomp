@@ -10124,6 +10124,33 @@ vmat->m[1][1] = cos2;
 
 `func_8003CB80` is the pure example (Z-axis; X sibling is `func_8003C788`).
 
+## RotMatrixX: dual cos loads via `volatile ScratchMat*`
+
+X-axis else path (flag==0) needs two back-to-back `lhu` of the same
+`cos_val` into `$v0` and `$a0` before storing `m[1][1]`:
+
+```
+lhu  v0, cos(s2)
+lhu  a0, cos(s2)
+sh   v0, m[1][1](s2)
+```
+
+Plain `cos_u = block->cos_val; cos2 = block->cos_val;` CSEs the second load
+into `move a0,v0` (+nop) and breaks the match. Force both loads with a
+volatile view of the scratch block:
+
+```c
+volatile ScratchMat* vblock = block;
+cos_u = vblock->cos_val; /* asm("v0") */
+cos2  = vblock->cos_val; /* asm("a0") */
+vmat->m[1][1] = cos_u;
+/* zeros + m[2][2] = cos2; then sin move/negu as on Z-axis */
+```
+
+Flag≠0 path is non-volatile and uses load-then-zero before `-sin` into
+`m[1][2]` (same delay-fill as Y-axis `m[2][0]`). `func_8003C788` is the pure
+example (X-axis; siblings `func_8003C98C` Y / `func_8003CB80` Z).
+
 ## Duplicate `setlen` in both branches for delayed-slot tpage if/else
 
 When building a `DR_TPAGE` whose GPU command is chosen by a flag, writing:

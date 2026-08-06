@@ -163,7 +163,70 @@ void func_8003C768(MATRIX* arg0, volatile SVECTOR* arg1)
     arg1->vz = t6;
 }
 
-INCLUDE_ASM("main/nonmatchings/2C160", func_8003C788);
+void func_8003C788(MATRIX* arg0, s32 angle, s32 flag)
+{
+    u8*         head;
+    ScratchMat* block;
+    ScratchMat* p;
+    s16         cos;
+
+    head                          = *(u8**)G_SCRATCH_HEAD;
+    block                         = (ScratchMat*)(head - 0x24);
+    *(ScratchMat**)G_SCRATCH_HEAD = block;
+    p                             = block;
+
+    p->sin_val = rsin(angle);
+    cos        = rcos(angle);
+    p->cos_val = cos;
+
+    if (flag != 0) {
+        register u16 cos_u asm("v0");
+        s16          t;
+
+        arg0->m[0][0] = ONE;
+        arg0->m[0][1] = 0;
+        arg0->m[0][2] = 0;
+        arg0->m[1][0] = 0;
+        cos_u         = p->cos_val;
+        arg0->m[1][1] = cos_u;
+        t             = p->sin_val;
+        arg0->m[2][0] = 0;
+        arg0->m[1][2] = -t;
+        arg0->m[2][1] = p->sin_val;
+        arg0->m[2][2] = p->cos_val;
+    } else {
+        register u16         cos_u asm("v0");
+        register u16         cos2 asm("a0");
+        register u16         sin_u asm("v0");
+        register s16         copy asm("v1");
+        volatile MATRIX*     vmat;
+        volatile ScratchMat* vblock;
+
+        *(s16*)(head - 0x24) = ONE;
+        vmat                 = &block->mat;
+        vblock               = block;
+        cos_u                = vblock->cos_val;
+        cos2                 = vblock->cos_val;
+        vmat->m[1][1]        = cos_u;
+        sin_u                = block->sin_val;
+        vmat->m[0][1]        = 0;
+        vmat->m[0][2]        = 0;
+        vmat->m[1][0]        = 0;
+        vmat->m[2][0]        = 0;
+        vmat->m[2][2]        = cos2;
+        copy                 = sin_u;
+        __asm__ volatile("" : "+r"(copy) : "r"(sin_u));
+        vmat->m[1][2] = -sin_u;
+        vmat->m[2][1] = copy;
+
+        gte_MulMatrix0_real(arg0, p, arg0);
+    }
+
+    {
+        void** scratch = (void**)G_SCRATCH_HEAD;
+        *scratch       = (u8*)*scratch + 0x24;
+    }
+}
 
 void func_8003C98C(MATRIX* arg0, s32 angle, s32 flag)
 {
