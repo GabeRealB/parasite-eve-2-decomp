@@ -230,13 +230,16 @@ typedef struct _CdCmdQueue {
     u16        field_224;
     u16        field_226; // sub-state for func_8001E57C disk recovery
     u16        field_228;
-    byte       unknown_22a[0xA];
+    u16        field_22A; // DecDCTin mode for func_800405E0
+    byte       unknown_22C[0x8];
     s16        field_234;
     s16        field_236;
-    byte       unknown_238[0xA];
+    byte       unknown_238[0x6];
+    s16        field_23E; // MoveImage vs ClearImage path for func_800405E0
+    byte       unknown_240[0x2];
     s16        field_242;
     u16        field_244;
-    byte       unknown_246[0x2];
+    u16        field_246;
     u16        field_248;
     u16        field_24A;
     byte       unknown_24C[0x6];

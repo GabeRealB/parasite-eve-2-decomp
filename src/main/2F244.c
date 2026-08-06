@@ -567,7 +567,75 @@ INCLUDE_ASM("main/nonmatchings/2F244", func_8003FF14);
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_8004017C);
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_800405E0);
+void func_80040904(void);
+
+void func_800405E0(void)
+{
+    RECT          rect;
+    s32           i;
+    s32           temp;
+    CdCmdQueue*   p;
+    CdCmdQueue*   q;
+    DisplayState* d;
+
+    p = &CdCmd_Queue;
+    switch ((s16)p->field_202) {
+        case 0:
+            func_80041E4C();
+            p->field_1EC = 1;
+            DecDCTReset(0);
+            DecDCTvlcSize2(0);
+            DecDCTvlc2((u_long*)D_8007A360, (u_long*)GActiveAuxHeap,
+                       (u_short*)((u8*)D4CB64_ImgBuffers + 0x8800));
+            D_8007A35E = 1;
+            DecDCToutCallback(func_80040904);
+            DecDCTin((u_long*)GActiveAuxHeap, p->field_22A);
+            p->field_22A = 0;
+            DecDCTout((u_long*)D4CB64_ImgBuffers, 0x780);
+            p->field_202 += 1;
+            /* fallthrough */
+        case 1:
+            i = 0;
+            if (p->field_1EC == 0) {
+                rect.w = 0x10;
+                rect.h = 0xF0;
+                rect.y = (Display_State.field_1f ^ 1) * 0x110;
+                do {
+                    temp   = i & 0xFFFF;
+                    rect.x = temp * 0x10;
+                    LoadImage(&rect, (u_long*)((u8*)D4CB64_ImgBuffers + (temp * 0x1E00)));
+                    i++;
+                } while ((u32)(i & 0xFFFF) < 0x14U);
+                rect.w = 0x140;
+                rect.x = 0;
+                rect.h = 0xF0;
+                d      = &Display_State;
+                rect.y = (d->field_1f ^ 1) * 0x110;
+                StoreImage(&rect, (u_long*)D4CB64_ImgBuffers);
+                if (p->field_23E != 0) {
+                    rect.x = 0;
+                    rect.w = 0x1E0;
+                    rect.h = 0xF0;
+                    rect.y = d->field_1f * 0x110;
+                    MoveImage(&rect, 0, (d->field_1f ^ 1) * 0x110);
+                    p->field_23E = 0;
+                } else {
+                    ClearImage(&rect, 0, 0, 0);
+                }
+                p->field_21C = 0;
+                q            = &CdCmd_Queue;
+                if ((s8)Display_State.field_122 == 0) {
+                    func_80041EB4();
+                }
+                q->field_1FE = 0xFF;
+                q->field_200 = 0;
+                D_8007A35C   = 0;
+                q->field_202 = 0;
+                q->field_246 = 0;
+            }
+            return;
+    }
+}
 
 void func_80040820(void)
 {
