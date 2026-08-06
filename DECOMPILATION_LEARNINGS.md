@@ -9916,3 +9916,46 @@ if (other >= 0) {
 Sharing one `ret` for both calls pulls the first result out of `$v0` into a
 saved reg and shrinks the stack (no `$s3`). `func_8002226C` is the pure
 example.
+
+## Shared kill tail: fall out of outer `if` instead of `goto` from both arms
+
+When a shared epilogue label sits *after* an outer `if (ptr != NULL) { ... }`
+and two inner paths both need that epilogue, writing an explicit `goto epilogue`
+from *both* arms often lets GCC invert the first arm so it falls through into
+the label (eliminating a `j`). The target may keep:
+
+```
+bne  field, 1, not_one
+# is_one body
+j    epilogue
+ lui ...
+not_one:
+# ...
+# fall into epilogue by leaving the outer if
+epilogue:
+```
+
+Match by giving only the "early" arm an explicit `goto`, and letting the other
+arm fall out of the outer `if` (no `goto`):
+
+```c
+if (temp != NULL) {
+    /* ... */
+    if (field == 1) {
+        do_work();
+        goto epilogue; /* only this arm jumps */
+    }
+    if (other_ cond == 0) {
+        /* early return — never reaches epilogue */
+        return;
+    }
+    /* fall out of outer if into epilogue */
+}
+epilogue:
+    cleanup();
+```
+
+`func_80042B00` is the pure example (`field_1 == 1` → `func_8005132C` then
+shared `D_80062734 = 0xFF; Task_Kill`). Explicit `goto epilogue` on the
+`func_800514F8 != 0` path inverted the `field_1` branch to `beq` with the
+bodies swapped.

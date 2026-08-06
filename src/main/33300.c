@@ -1,9 +1,81 @@
 #include "common.h"
 
 #include "main/game.h"
+#include "main/mem.h"
 #include "main/unknown_syms.h"
 
-INCLUDE_ASM("main/nonmatchings/33300", func_80042B00);
+void func_80042B00(Task* arg0)
+{
+    u8         temp_s4;
+    u8         temp_s1;
+    GStruct63* temp_v0;
+    u8         temp_a0;
+    s32        ret;
+    s32        field34;
+
+    temp_s4 = D_80062764[D4F564_8005ED64->field_7 - 1];
+    temp_v0 = Mem_Calloc(8, 0);
+    if (temp_v0 != NULL) {
+        arg0->field_1C = temp_v0;
+        if (D_80062737 != 0) {
+            func_8005132C(0, 1);
+            D_80062737 = 0;
+        }
+        temp_a0    = D4F564_8005ED64->field_7;
+        ret        = func_80053BF4(temp_a0, D_8007272D, D_8006276C[temp_a0 - 1]);
+        field34    = arg0->field_34;
+        D_80062738 = ret;
+        D_8007A398 = 0;
+        if (field34 == 2) {
+            s32      f7;
+            GPairU8* p;
+            u16      v;
+            f7               = D4F564_8005ED64->field_7;
+            D_8007A398       = 0xFF;
+            p                = D_80062750[f7 - 1];
+            v                = D_80062735;
+            D_8007A39A       = 0x12C;
+            temp_v0->field_0 = v;
+            temp_v0->field_4 = p;
+        } else {
+            temp_v0->field_4 = D_8006273C[D4F564_8005ED64->field_7 - 1];
+            temp_v0->field_0 =
+                D_80062738 + (D4F564_8005ED64->field_6 * (temp_s4 & 0xFF));
+            if ((*((D4F564_8005ED64->field_6 * (temp_s4 & 0xFF) * 2) +
+                   (u8*)temp_v0->field_4) != 0x80) &&
+                (D_80062736 != 0)) {
+                func_800542D0(0x60010001, 0x1E);
+                D_80062736 = 0;
+            }
+        }
+        temp_s1 = *((temp_v0->field_0 * 2) + (u8*)temp_v0->field_4);
+        if (temp_s1 == 0xFF) {
+            func_8005132C(D_80062739, D_8007A39C);
+            D_80062734 = temp_s1;
+            Task_Kill(arg0);
+            return;
+        }
+        D_80062734 = 0;
+        if (func_80051560(*((temp_v0->field_0 * 2) + (u8*)temp_v0->field_4)) == 1) {
+            if ((D_80062739 != 0) && (func_800514F8(D_80062739) != 0)) {
+                func_8005132C(D_80062739, (D_8007A39C + 1) & 0xFFFF);
+            }
+            arg0->field_30 = arg0->field_30 + 1;
+            return;
+        }
+        if (((temp_v0->field_0 * 2) + (u8*)temp_v0->field_4)[1] == 1) {
+            func_8005132C(D_80062739, (D_8007A39C + 1) & 0xFFFF);
+            goto block_20;
+        }
+        if (func_800514F8(D_80062739) == 0) {
+            arg0->field_30 = arg0->field_30 + 2;
+            return;
+        }
+    }
+block_20:
+    D_80062734 = 0xFF;
+    Task_Kill(arg0);
+}
 
 void func_80042DF8(Task* arg0)
 {

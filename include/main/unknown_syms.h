@@ -282,6 +282,7 @@ extern GStruct16* func_800509F4(void);
 extern s32        func_800512BC(s32 arg0, s32 arg1);
 extern s32        func_8005132C(s32 arg0, s32 arg1);
 extern s32        func_800514F8(s32 arg0);
+extern s32        func_80051560(u8 arg0);
 extern void       func_80050A38(GStruct16* arg0);
 extern void       func_80050A90(GStruct16* arg0);
 extern void       func_80050AB4(GStruct16* arg0);
@@ -413,6 +414,7 @@ extern u16  D_80068D78[];
 extern u16  D_80068E78[];
 
 // 43FFC.c
+extern s32  func_80053BF4(s32 arg0, s32 arg1, s32 arg2);
 extern void func_800542D0(s32 arg0, s32 arg1);
 
 // 4A6E0.c
@@ -562,12 +564,15 @@ extern TaskDesc     D_8006269C;
 extern void*        D_800626A8;
 extern u8           D_800626E8;
 extern u8           D_80062734;
+extern u8           D_80062735;
 extern u8           D_80062736;
 extern u8           D_80062737;
 extern u8           D_80062738;
 extern u8           D_80062739;
 extern GPairU8*     D_8006273C[];
+extern GPairU8*     D_80062750[];
 extern u8           D_80062764[];
+extern u8           D_8006276C[];
 extern u8           D_80062934[];
 extern u8           D_80062954[];
 extern u8           D_800629B0[];
@@ -655,6 +660,7 @@ extern u8        D_8007A394;
 extern s16       D_8007A396;
 extern u8        D_8007A398;
 extern s16       D_8007A39A;
+extern u16       D_8007A39C;
 extern u8        D_8007E0CC;
 extern s32       D_8007E0D4;
 extern GStruct42 D_8007E0D8[];
@@ -688,6 +694,7 @@ extern DR_TPAGE* D_80071190; // primitive buffer cursor
 // 61F10
 // Immediate-mode SPRT scratch used by func_8002F5E4 (DrawPrim path).
 extern SPRT D_80071710;
+extern s8   D_8007272D;
 // Mc_SaveData → main/mc.h
 // Alias of Mc_SaveData.field_4 (offset 0x4).
 extern u8 D_8007216C;
