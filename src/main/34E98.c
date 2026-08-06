@@ -111,7 +111,69 @@ after_fill: {
 }
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80045F24);
+void func_80045F24(GStruct30* arg0)
+{
+    RECT sp10;
+    RECT sp18;
+    RECT sp20;
+    s32  var_a2;
+
+    {
+        RECT* arg1;
+
+        arg1 = &sp10;
+        switch (arg0->field_8) {
+            case 1:
+                var_a2 = 9 - arg0->field_16;
+                if (var_a2 <= 0) {
+                    var_a2 = 1;
+                }
+                func_80045A3C(arg0, arg1, var_a2, 0);
+                goto after_fill;
+            case 2:
+                break;
+            case 3:
+            case 4:
+                var_a2 = 9 - arg0->field_16;
+                if ((u32)(var_a2 - 1) >= 8U) {
+                    var_a2 = 1;
+                }
+                func_80045A3C(arg0, arg1, var_a2, 1);
+                goto after_fill;
+        }
+        arg1->x = arg0->field_C.x;
+        arg1->y = arg0->field_C.y;
+        arg1->w = arg0->field_C.w;
+        arg1->h = arg0->field_C.h;
+    }
+after_fill: {
+    RECT* arg1;
+
+    arg1 = &sp10;
+    func_800492EC(arg0, &arg0->field_C, &sp20);
+    if ((arg0->field_4 & 0xF) == 2) {
+        sp20.y += 9;
+        sp20.h -= 0xB;
+        sp20.x += 2;
+        sp20.w -= 4;
+    } else {
+        sp20.y += 2;
+        sp20.h -= 4;
+        sp20.x += 2;
+        sp20.w -= 4;
+    }
+    arg0->field_1C = -(sp20.w >> 1);
+    arg0->field_1E = arg0->field_1C + sp20.w;
+    arg0->field_18 = -(sp20.h >> 1);
+    arg0->field_1A = arg0->field_18 + sp20.h;
+    arg0->field_20 = sp20.x - arg0->field_1C;
+    arg0->field_22 = sp20.y - arg0->field_18;
+    if (arg1 != NULL) {
+        func_800492EC(arg0, arg1, &sp18);
+    }
+    func_800454E4(arg0, &sp10, &sp18, 1);
+}
+}
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80046124);
 
