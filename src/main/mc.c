@@ -342,7 +342,100 @@ void Mc_StateFormat(Task* arg0, McWork* arg1)
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-INCLUDE_ASM("main/nonmatchings/mc", func_80032578);
+void func_80032578(Task* arg0, McWork* arg1)
+{
+    register Task*     task asm("s6");
+    register s32       one asm("s5");
+    register UiObject* saved asm("s3");
+    register s32       syncResult asm("s1");
+    McWork*            work;
+    s32                ret;
+    s32                i;
+    s32                next;
+    Task*              child;
+    UiObject*          obj;
+    UiObject*          childObj;
+    UiObject*          flag;
+    u8*                src;
+    u8*                dst;
+    McPromptPair*      entry;
+    McPromptPair*      base;
+
+    task          = arg0;
+    work          = arg1;
+    one           = 1;
+    saved         = task->field_20;
+    work->field_8 = 0x16;
+    obj           = task->field_20;
+    ret           = func_80048E10(obj, 1);
+    obj->field_2E = 0;
+    func_80048E38(obj, D_8001398C);
+    base  = Mc_PromptTable;
+    entry = &base[0x16];
+    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
+    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
+
+    syncResult = MemCardSync(one, (long*)&work->field_10, (long*)&work->field_14);
+    if (syncResult != -1) {
+        if (syncResult == one) {
+            if (work->field_14 != 0) {
+                {
+                    register Task* ch asm("v1");
+                    ch             = task->field_c;
+                    task->field_30 = 7;
+                    if (ch != NULL) {
+                        childObj          = ch->field_20;
+                        flag              = task->field_20;
+                        childObj->field_0 = 0;
+                        func_80048838(childObj, childObj->field_28);
+                        flag->field_0 = syncResult;
+                    }
+                }
+            } else {
+                goto block_6;
+            }
+        } else {
+            goto block_6;
+        }
+    } else {
+        MemCardExist(work->field_C);
+    block_6:
+        child = task->field_c;
+        if (child == NULL) {
+            if (func_800486F0(D_80061200, (s32)work, 1, 2, saved) != 0) {
+                do {
+                    D_80061170 = work->field_288;
+                } while (0);
+                saved->field_2C = 0;
+                saved->field_0  = 0;
+            }
+        } else {
+            childObj = child->field_20;
+            if (childObj->field_2E == 6) {
+                saved->field_2C   = childObj->field_2C;
+                childObj->field_0 = 0;
+                func_80048838(childObj, childObj->field_28);
+                saved->field_0 = 1;
+                if (saved->field_2C >= 0) {
+                    src = (u8*)work->field_30[saved->field_2C];
+                    dst = Mc_FileName;
+                    i   = 0;
+                    do {
+                        *dst = *src;
+                        src += 1;
+                        i   += 1;
+                        dst += 1;
+                    } while (i < 0x14);
+                    next = 0xC;
+                    *dst = 0;
+                } else {
+                    next = 3;
+                }
+                task->field_30 = next;
+            }
+        }
+    }
+}
 
 const McStateFuncTable26 D_80013ACC = { {
     (McStateFunc)0x80035A94,

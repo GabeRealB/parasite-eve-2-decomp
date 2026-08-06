@@ -8122,3 +8122,40 @@ task->node.prev = *(TaskNode**)curr;
 
 A separate `TaskNode** insert` usually allocates a second register and drops
 the delay-slot `+4` form. `Task_SpawnFromDesc` is the example.
+
+## Nested `register Task* ch asm("v1")` to stop `a0` coalesce on child→obj
+
+When the target loads a child task into `$v1` then its `field_20` into `$a0`:
+
+```
+lw   v1, 0xc(s6)
+beqz v1, end
+ sw  v0, 0x30(s6)
+lw   a0, 0x20(v1)
+```
+
+a single function-scope `Task* child` is often coalesced into `$a0`
+(`lw a0,0xc; lw a0,0x20(a0)`). Pinning `child` with `asm("v1")` for the whole
+function then forces the *other* child load (later in the same function) into
+`$v1` as well.
+
+Fix: scope the pin to only the early path via a nested block so the later
+reload can still use `$a0`:
+
+```c
+if (work->field_14 != 0) {
+    register Task* ch asm("v1");
+    ch = task->field_c;
+    task->field_30 = 7;
+    if (ch != NULL) {
+        childObj = ch->field_20; /* lw a0, 0x20(v1) */
+        ...
+    }
+}
+/* later: */
+child = task->field_c; /* lw a0, 0xc(s6) again */
+```
+
+`func_80032578` is the pure example. Pair with `register s32 syncResult
+asm("s1")` so `flag->field_0 = syncResult` emits `sw s1,0(s0)` instead of
+substituting a live `li`/constant register after `syncResult == one`.
