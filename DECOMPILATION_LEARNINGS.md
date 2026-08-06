@@ -8319,3 +8319,47 @@ with the poly's `y+7` dying in `$v0` after the two `sh`s.
 Pinning `self` in `$s3` and the OT index in `$s0` via `register ... asm("s3")`
 / `asm("s0")` may still be required so one-step `x = arg1 + field_20` does
 not swap `$s2`/`$s3` with the saved `arg0`.
+
+## GTE outer product (SV) + destroy head base across a call
+
+`func_8003CEC4` builds a normal matrix from two SVECTORs via GTE outer product
+on the scratch arena, then transposes into the output. Matching pieces:
+
+**1. Real `op12` opcode.** `gte_op12()` from `inline_c.h` is a DMPSX placeholder.
+Use the real COP2 word (same pattern as `gte_rtv0sf0`):
+
+```c
+#define gte_op12_real() __asm__ volatile("nop; nop; .word 0x4B78000C")
+/* then: gte_ldopv1SV(v0); gte_ldopv2SV(v1); gte_op12_real(); gte_stsv(out); */
+```
+
+Load/store helpers `gte_ldopv1SV` / `gte_ldopv2SV` / `gte_stsv` match as-is.
+
+**2. Overwrite the head pointer so `mat` cannot be recomputed after a call.**
+Allocate `mat = head - 0x20`, then later `head = head - 0x1A` for the second
+temp SVECTOR. If the original `head` stays live, GCC rebuilds `mat` as
+`head - 0x20` after `MatrixNormal_2` (`lhu t4, -0x20(sN)` plus an extra s-reg
+for the head). Updating `head` in place destroys that base and keeps `mat` in
+`$s0` across the call:
+
+```c
+mat      = (MATRIX*)(head - 0x20);
+/* … */
+head     = head - 0x1A;   /* reuses v1; original head is gone */
+*scratch = mat;
+gte_ldopv1SV(head);
+/* … */
+MatrixNormal_2(mat, mat);
+t4 = mat->m[0][0];        /* lhu t4, 0(s0) — not -0x20(head) */
+```
+
+**3. Unaligned 8-byte arg copy at `head - 0x1A`.** That offset is only
+halfword-aligned, so assign through `GBytes8` (already in `game.h`) for
+`lwl`/`lwr`/`swl`/`swr`. Halfword fields of the other SVECTOR use a `u16 tmp`
+so loads stay `lhu`.
+
+**4. Pins + `volatile` dest for prologue and free.** `register void** scratch
+asm("s1")`, `register u8* head asm("v1")`, `register SVECTOR* sv1 asm("a0")`
+match the target's three live pointers. Writing the transpose into
+`volatile MATRIX* dest` forces all stores before `*scratch += 0x20`, which
+needs the load-delay `nop` after `lw` of the head.
