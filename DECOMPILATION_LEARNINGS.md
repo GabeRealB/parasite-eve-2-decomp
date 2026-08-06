@@ -7930,3 +7930,73 @@ temp >>= 12; /* fills the bne delay as srl v1,v1,0xc */
 Pinning `index` to `$a1` and `temp` to `$v1` keeps the `andi v1,a1,0xffff` /
 `srl v1` chain; `mask` in a GPR supplies the `li v0,0xffff` for the compare.
 `func_80052F80` is the pure example (bank id check before `D_800680AC` lookup).
+
+## Signed `/ 64` map store: pin dividend adj to `$v1`, shift result to `$v0`
+
+Target for `map[x / 64] = i` (signed):
+
+```
+lw    v0, 0x50(a1)
+nop
+bgez  v0, pos
+ move v1, v0
+addiu v1, v0, 0x3f
+sra   v0, v1, 0x6
+addu  v0, v0, base
+sb    a0, 0xa23(v0)
+```
+
+A plain `x / 64` or unpinned temps often folds the adjust into `$v0` (`nop` in
+the `bgez` delay, `addiu v0,v0,0x3f; sra v0,v0,0x6`) or keeps the shift in
+`$v1` (`sra v1,v1,0x6`). Fix with two pins inside the loop scope only:
+
+```c
+{
+    register s32 adj asm("v1");
+    register s32 sh asm("v0");
+    s32 raw;
+
+    raw = entry->head; /* or equivalent load */
+    adj = raw;
+    if (raw < 0) {
+        adj = raw + 0x3F;
+    }
+    sh = adj >> 6;
+    ((u8*)work)[sh + 0xA23] = (u8)i;
+}
+```
+
+`func_800312DC` is the pure example (DIRENTRY.head / 64 → block map at 0xA23).
+
+## Indexed multiply form can SR and still leave `$a1` free for a later `li a1,1`
+
+A post-loop `func(..., 1)` often wants:
+
+```
+blez  n, after
+ li   a1, 1          /* delay: 1 ready if the loop is skipped */
+blez  n, after
+ move a0, zero       /* i = 0 */
+move  a1, base       /* walker */
+/* ... loop clobbers a1 ... */
+li    a1, 1          /* restore for the call */
+```
+
+An explicit walker in the `for` init (`for (i = 0, p = base; ...)`) tends to
+emit `move a1, base` *between* the two `blez`s, killing the delay-slot `li a1,1`.
+Writing the body as an index multiply instead:
+
+```c
+if (n > 0) {
+    for (i = 0; i < n; i++) {
+        raw = *(s32*)((u8*)base + i * 0x28 + 0x50);
+        /* ... */
+    }
+}
+func(obj, 1);
+```
+
+still strength-reduces to `move a1, base` / `addiu a1, a1, 0x28` under `-O2`,
+but schedules the walker init *after* both `blez`s so the hoisted `li a1,1`
+survives. Do not pin `i` to `$a0` here — that blocks the SR into `$a1`.
+`func_800312DC` is the pure example.

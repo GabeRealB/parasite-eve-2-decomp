@@ -25,13 +25,18 @@ STATIC_ASSERT_SIZEOF(McPromptPair, 0x8);
 /// left by 7 for MemCardWriteData ofs); field_20 is the byte count.
 /// field_30 is a 15-slot memcard directory buffer (DIRENTRY-sized, 0x28 each)
 /// filled by MemCardGetDirentry; field_288 is the entry count used to bound
-/// field_A14 walks (Mc_StateOpenNext / func_800367CC). field_290 is cleared
-/// when a non-empty directory listing is obtained (func_80036488). field_294
-/// is a 15-slot array of 0x80-byte read buffers indexed by field_A14
+/// field_A14 walks (Mc_StateOpenNext / func_800367CC). field_28C is free-block
+/// count (updated as field_28C - field_288 after a directory listing in
+/// func_800312DC). field_290 is the Mc_FileName match index (or 0); cleared when
+/// a non-empty directory listing is obtained (func_80036488). field_294 is a
+/// 15-slot array of 0x80-byte read buffers indexed by field_A14
 /// (MemCardReadData adrs in func_800366BC, ofs 0x200, size 0x80). field_A14
 /// indexes the selected slot for MemCardOpen / field_294 reads.
 /// field_A1C/field_A1E are a sum / ones-complement checksum pair over 0x200
 /// signed bytes of that buffer (written by Mc_WriteDataChecksum).
+/// Bytes at 0xA23+ form a block→direntry map written by func_800312DC
+/// (index = DIRENTRY.head / 64); field_A20 is a separate word flag (Mc_ResetWork
+/// / func_80035A94) whose high byte is the first map slot.
 typedef struct _McWork {
     /* 0x000 */ s32           field_0;
     /* 0x004 */ s32           field_4;
@@ -47,7 +52,7 @@ typedef struct _McWork {
     /* 0x02C */ s32           field_2C;
     /* 0x030 */ char          field_30[15][0x28];
     /* 0x288 */ s32           field_288;
-    /* 0x28C */ byte          unknown_28C[0x4];
+    /* 0x28C */ s32           field_28C;
     /* 0x290 */ s32           field_290;
     /* 0x294 */ unsigned long field_294[15][0x20];
     /* 0xA14 */ s32           field_A14;
@@ -55,6 +60,7 @@ typedef struct _McWork {
     /* 0xA1C */ u16           field_A1C;
     /* 0xA1E */ u16           field_A1E;
     /* 0xA20 */ s32           field_A20;
+    /* 0xA24 */ u8            field_A24[0x10];
 } McWork;
 
 /// BSS object Mc_SaveData. Large; only fields used so far are named.
