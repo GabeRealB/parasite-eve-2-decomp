@@ -161,7 +161,60 @@ void func_80047A0C(GStruct30* arg0, s32 arg1, s32 arg2, s32 arg3)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80047B24);
+void func_80047B24(GStruct30* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    POLY_FT4* p;
+    s16       temp;
+    s32       y;
+
+    if (arg1 < arg2) {
+        register s32 xoff asm("v1");
+        register s32 left asm("v1");
+        s32          base;
+
+        xoff  = arg3;
+        p     = (POLY_FT4*)D_80071190;
+        base  = arg0->field_20 + xoff;
+        left  = base - 3;
+        temp  = base + 5;
+        p->x2 = left;
+        p->x0 = left;
+        p->x3 = temp;
+        p->x1 = temp;
+        {
+            register u16 f22 asm("v0");
+            register s32 next asm("v1");
+            register s32 ur asm("v1");
+            register s32 ul asm("a2");
+
+            f22        = arg0->field_22;
+            next       = (s32)(p + 1);
+            D_80071190 = (DR_TPAGE*)next;
+            ur         = 0x77;
+            ul         = 0x70;
+            temp       = f22 + arg1;
+            p->y1      = temp;
+            p->y0      = temp;
+            y          = arg0->field_22;
+            p->v0      = 0x50;
+            p->v1      = 0x50;
+            p->v2      = 0x57;
+            p->v3      = 0x57;
+            p->tpage   = 0x1E;
+            p->clut    = 0x3C03;
+            setlen(p, 9);
+            p->u1 = ur;
+            p->u3 = ur;
+            p->u0 = ul;
+            p->u2 = ul;
+            setcode(p, 0x2D);
+        }
+        y     = y + arg2;
+        p->y3 = y;
+        p->y2 = y;
+        addPrim(D_800710A0 + (s16)arg0->field_14 + 2, p);
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80047C40);
 

@@ -7888,8 +7888,48 @@ p->x0 = temp;
 
 Without the `f20`/`next` pins, GCC advances the cursor in `$v0` first and
 hoists `li v0,0x50`, losing the `lhu`/`addiu` interleave. Without `arg2 = 0x68`,
-`$a2` is rematerialized at the U stores. `func_80047A0C` is the pure example
-(sibling `func_80047B24` is the same shape with different UV constants).
+`$a2` is rematerialized at the U stores. `func_80047A0C` is the pure example.
+
+`func_80047B24` is the vertical sibling (Y from arg1..arg2, X from
+`field_20+arg3±offsets`) and cannot reassign `arg2` — both arg1 and arg2 are
+still live for the Y edges, so the compiler saves them to `$t1`/`$t2` and the
+U constant must land in the now-free `$a2` via an explicit pin. Also pin the
+X offset through `$v1` so `$a1` stays free for the `D_80071190` hi/lo pair
+(natural allocation otherwise puts arg3 in `$a1` and the cursor hi in `$a2`,
+pushing `0x70` to a late `li v0`):
+
+```c
+if (arg1 < arg2) {
+    register s32 xoff asm("v1");
+    register s32 left asm("v1");
+    s32          base;   /* s32 avoids sll/sra sign-extend on left = base-3 */
+
+    xoff = arg3;         /* delay-slot move v1,a3 */
+    p    = (POLY_FT4*)D_80071190;
+    base = arg0->field_20 + xoff;
+    left = base - 3;
+    temp = base + 5;
+    /* … */
+    {
+        register u16 f22 asm("v0");
+        register s32 next asm("v1");
+        register s32 ur asm("v1");
+        register s32 ul asm("a2");
+
+        f22 = arg0->field_22;
+        next = (s32)(p + 1);
+        D_80071190 = (DR_TPAGE*)next;
+        ur = 0x77;
+        ul = 0x70;       /* early li a2,0x70 (reg free after t2 save) */
+        /* … p->u0 = ul; p->u2 = ul; … */
+    }
+    y = y + arg2;        /* original arg2 still in $t2 */
+}
+```
+
+Pinning `ul asm("a2")` at function scope (or before the `t0/t1/t2` saves are
+decided) shifts the t-regs and steals `$a3` from the addPrim mask — keep the
+`a2` pin inside the block that also pins `f22`/`next`/`ur`.
 
 ## `lhu` / `li 0xFFFF` / `andi …,0xFFFF` with dual empty-asm barrier
 
