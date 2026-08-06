@@ -71,8 +71,8 @@ segments:
       - [0x34e4, o, libpress/libpress, .rdata]
       - [0x3534, o, libc2/prnt, .rdata]
       - [0x3754, o, libc2/puts, .rdata]
-      # Jump tables for cdcmd.c: compiler-generated C0D4 table, absolute copy
-      # of still-asm CA70 table, then CEFC (+ pad for D0E8) + DB84 tables.
+      # Jump tables for cdcmd.c: compiler-generated C0D4 + CA70 tables,
+      # then CEFC (+ pad for D0E8) + absolute still-asm D0E8 + DB84 tables.
       - [0x3764, .rodata, cdcmd]
       - [0x3818, o, libcd/type, .rdata]
       - [0x3838, rodata, F344] # TODO

@@ -8192,3 +8192,45 @@ emits byte-wise loads/stores for the "unaligned" u16. Pair with
 `pad = arg0` plus a short-lived `register void** scratch asm("a0")` block so
 `$a0` holds `G_SCRATCH_HEAD` for the alloc and is free to reuse as the second
 bank's `field_1` pointer. `func_8002C090` is the pure example.
+
+## Separate cleanup tails: early `return` + distinct base pointers
+
+When two arms of a function both clear `busy` / dequeue a queue slot but the
+target keeps them as *separate* instruction sequences (one base in `$a0`, the
+other reloads `$s0`), a shared local pointer plus `break` lets GCC cross-jump
+the identical tails into one block. That collapses the first cleanup onto the
+second's register and drops a chunk of code.
+
+Force both copies to stay:
+
+1. End the first cleanup with `return` (not `break` into a shared epilogue
+   path that the second arm also falls into).
+2. Use a *fresh* local for the first cleanup's base (`q = &CdCmd_Queue` after
+   `Mem_Set`) while the second arm reassigns the original `p` /
+   `$s0` (`p = &CdCmd_Queue` at the cleanup label).
+
+`func_8001CA70` is the example — cases 3/4/6/7 clean up via `$a0`, case 8 via
+`$s0`.
+
+## `s32` temp for halfword so the pointer stays in `$v1`
+
+After a compare that leaves both `$v0` and `$v1` free, a `u16 temp =
+ptr->field` assignment tends to put the pointer in `$v0` and the halfword in
+`$v1`. The target often wants the opposite (`lw v1, ptr` / `lhu v0, field`).
+
+Hold the halfword in an `s32` temporary (and keep an explicit pointer local):
+
+```c
+CdCmd190* info;
+s32       temp;
+
+info = p->field_190;
+temp = info->field_14;
+if (temp) {
+    func(info->field_4 + temp);
+}
+```
+
+The wider temp prefers `$v0` and leaves `$v1` for the pointer. Same family as
+the `s16 ret` tip (narrow vs wide forcing different REG_EQUAL modes), just the
+other direction. `func_8001CA70` case 8 / `field_190` is the pure example.

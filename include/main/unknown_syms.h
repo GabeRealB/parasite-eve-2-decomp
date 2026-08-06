@@ -486,6 +486,7 @@ extern s32   func_80053F60(s32* arg0);
 extern s32   func_80053FF4(u32);
 extern s16   func_800AF89C(u16 arg0, u16 arg1, u16 arg2, s32 arg3);
 extern void  func_800AFA44(void);
+extern void  func_800B0034(u16 arg0);
 extern void  func_800B00C4(void);
 extern void  func_8017D6D4(void);
 extern void  func_801D4B64(Task* arg0);
@@ -630,6 +631,8 @@ extern SPRT D_80071710;
 // Mc_SaveData → main/mc.h
 // Alias of Mc_SaveData.field_21 (offset 0x21).
 extern s8 D_80072189;
+// Alias of Mc_SaveData byte at offset 0x23 (lb in func_8001CA70).
+extern s8 D_8007218B;
 // Alias of Mc_SaveData.field_1a9 (offset 0x1A9); loaded with lb in audio setup.
 extern s8 D_80072311;
 // Alias of Mc_SaveData.field_1aa (offset 0x1AA).

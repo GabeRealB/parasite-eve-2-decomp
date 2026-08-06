@@ -167,6 +167,16 @@ typedef struct _CdCmdEntry {
 } CdCmdEntry;
 STATIC_ASSERT_SIZEOF(CdCmdEntry, 0x8);
 
+/// Stream/load descriptor pointed to by `CdCmdQueue.field_190`.
+typedef struct _CdCmd190 {
+    /* 0x00 */ byte unknown_0[0x4];
+    /* 0x04 */ s32  field_4;
+    /* 0x08 */ byte unknown_8[0xC];
+    /* 0x14 */ u16  field_14;
+    /* 0x16 */ u16  field_16;
+} CdCmd190;
+STATIC_ASSERT_SIZEOF(CdCmd190, 0x18);
+
 /// Global CD / asset load command queue (`CdCmd_Queue`).
 typedef struct _CdCmdQueue {
     CdCmdEntry entries[8];
@@ -174,12 +184,14 @@ typedef struct _CdCmdQueue {
     s32        field_48; // last CD position from CdPosToInt
     s8         field_4c;
     byte       unknown_4d[0x3];
-    CdCmdEntry field_50; // replace-slot used by CdCmd_EnqueueReplace (cmd at 0x54)
-    byte       unknown_58[0x170];
-    u16        writeIdx; // 0x1C8 — next free slot (enqueue)
-    u16        readIdx;  // 0x1CA — slot being executed
+    CdCmdEntry field_50;  // replace-slot used by CdCmd_EnqueueReplace (cmd at 0x54)
+    byte       unknown_58[0x138];
+    CdCmd190*  field_190; // 0x190
+    byte       unknown_194[0x34];
+    u16        writeIdx;  // 0x1C8 — next free slot (enqueue)
+    u16        readIdx;   // 0x1CA — slot being executed
     byte       unknown_1cc[0x4];
-    u16        step;     // 0x1D0 — sub-state of current command
+    u16        step;      // 0x1D0 — sub-state of current command
     u16        field_1d2;
     u16        field_1d4;
     u16        field_1D6; // state for func_8001DF34

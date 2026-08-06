@@ -251,20 +251,6 @@ end_check:
     }
 }
 
-/* Absolute copy of jtbl_80012F7C for still-asm func_8001CA70. */
-const s32 jtbl_80012F7C[10] = {
-    0x8001CABC,
-    0x8001CABC,
-    0x8001CABC,
-    0x8001CAC4,
-    0x8001CAC4,
-    0x8001CDDC,
-    0x8001CAC4,
-    0x8001CAC4,
-    0x8001CC44,
-    0x00000000,
-};
-
 void func_8001C620(void)
 {
     CdCmdQueue* state;
@@ -432,7 +418,147 @@ s32 func_8001C970(void)
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001CA70);
+void func_8001CA70(void)
+{
+    CdCmdQueue* p;
+    CdCmdQueue* q;
+    u16*        statePtr;
+    u16         ret;
+    s32         temp;
+    CdCmd190*   info;
+
+    p = &CdCmd_Queue;
+    switch (p->field_40.cmd >> 4) {
+        case 0:
+        case 1:
+        case 2:
+            p->field_4c = 0;
+            return;
+        case 3:
+        case 4:
+        case 6:
+        case 7:
+            if (p->field_242 != 0) {
+                if ((p->field_40.cmd >> 4) == 7) {
+                    func_8017D6D4();
+                    return;
+                }
+                func_8001BE60();
+                return;
+            }
+            statePtr = &p->field_1fc;
+            switch (*statePtr) {
+                case 0:
+                    if (D_8006AC58 != 0) {
+                        func_80026148();
+                        p->field_1fc = p->field_1fc + 1;
+                    } else {
+                        p->field_1fc = 2;
+                        goto case_2;
+                    }
+                    /* fallthrough */
+                case 1:
+                    if (func_800262A8() == 0) {
+                        *statePtr = *statePtr + 1;
+                    }
+                    func_8001BE60();
+                    ret = 0;
+                    break;
+                case 2:
+                case_2:
+                    if ((s16)func_8001F2FC(1)) {
+                        ret = 1;
+                    } else {
+                        func_8001BE60();
+                        ret = 0;
+                    }
+                    break;
+                default:
+                    ret = 0;
+                    break;
+            }
+            if (ret != 0) {
+                p->field_1E6 = 0;
+                Mem_Set(&p->field_40, 0, 0x10);
+                q = &CdCmd_Queue;
+                if (q->busy != 0) {
+                    q->busy                 = 0;
+                    Display_State.field_130 = 0;
+                }
+                q->step      = 0;
+                q->field_1fc = 0;
+                q->field_222 = 0;
+                q->field_242 = 0;
+                if (q->readIdx != q->writeIdx) {
+                    q->entries[q->readIdx].cmd = 0;
+                    q->readIdx                 = q->readIdx + 1;
+                    q->readIdx                 = q->readIdx % 8;
+                }
+            }
+            return;
+        case 8:
+            if (p->field_242 != 0) {
+                func_800AFA44();
+                return;
+            }
+            if ((u16)p->field_20E != 0) {
+                switch (p->field_1fc) {
+                    case 0:
+                        if (D_8007218B != 0) {
+                            func_8005414C(0, 0, 0);
+                        }
+                        func_80056700();
+                        p->field_1fc = p->field_1fc + 1;
+                        return;
+                    case 1:
+                        if (D_80082798.field_2 == 4) {
+                            info = p->field_190;
+                            temp = info->field_14;
+                            if (temp) {
+                                func_800578E4(info->field_4 + temp);
+                                p->field_1fc = p->field_1fc + 1;
+                                return;
+                            }
+                            goto case8_cleanup;
+                        }
+                        return;
+                    case 2:
+                        if (D_80082798.field_4 == 0xA) {
+                            goto case8_cleanup;
+                        }
+                        return;
+                    default:
+                        return;
+                }
+            } else {
+            case8_cleanup:
+                p = &CdCmd_Queue;
+                Mem_Set(&p->field_40, 0, 0x10);
+                p->field_50.cmd = 0;
+                p->field_244    = 0;
+                p->field_20E    = 0;
+                func_800B0034(p->field_190->field_16);
+                func_800B00C4();
+                if (p->busy != 0) {
+                    p->busy                 = 0;
+                    Display_State.field_130 = 0;
+                }
+                p->step      = 0;
+                p->field_1fc = 0;
+                p->field_222 = 0;
+                p->field_242 = 0;
+                if (p->readIdx != p->writeIdx) {
+                    p->entries[p->readIdx].cmd = 0;
+                    p->readIdx                 = p->readIdx + 1;
+                    p->readIdx                 = p->readIdx % 8;
+                }
+            }
+            return;
+        case 5:
+        default:
+            return;
+    }
+}
 
 u16 func_8001CDF0(void)
 {
