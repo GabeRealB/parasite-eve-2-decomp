@@ -7,7 +7,7 @@
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_8003EA44);
 
-s32 func_8003EC44(void)
+s32 func_8003EC44(Task* arg0)
 {
     RECT rect;
     s32  temp_v1;
@@ -147,7 +147,117 @@ block_end:
     return ret;
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8003F034);
+void func_8003FD58(Task* arg0);
+
+void func_8003F034(Task* arg0)
+{
+    u32        flags;
+    s32        state;
+    GStruct14* ed;
+    GStruct17* g;
+    s32        flag;
+    s32        f11;
+    s32        disp;
+
+    flags = D_80062698->field_1c;
+    if (flags & 0x40000000) {
+        Pad_SetCooldown(0);
+        D_80062698->field_15 = 0;
+        state                = D_80062698->field_28;
+        switch (state) {
+            case 0:
+                D_80062698->field_24     = Display_State.field_118;
+                D4F564_8005ED64->field_4 = D_80062698->field_20;
+                D_80062698->field_C      = 0;
+                Display_State.field_103  = 2;
+                func_800144F8(D4F564_8005ED64->field_7, D4F564_8005ED64->field_6);
+                if (!(D_80062698->field_1c & 0x10000000)) {
+                    ((Task*)func_8002D22C(1))->field_34 = (u8)D4F564_8005ED64->field_4;
+                    ResetGraph(1);
+                    F179D4_ClearOTag(0);
+                    F179D4_ClearOTag(1);
+                    Mem_InitAux();
+                    D_8007216C = D4F564_8005ED64->field_4;
+                    Pad_SetCooldown(0);
+                    func_800A8DC0(2);
+                    D4F564_8005ED64->field_4D = 0;
+                    Task_Spawn(0, 0x1E, 2, 0);
+                } else {
+                    func_80041EB4();
+                    D4F564_8005ED64->field_4D = 1;
+                }
+                D_80062698->field_28 = D_80062698->field_28 + 1;
+                break;
+            case 1:
+                ed   = D4F564_8005ED64;
+                flag = ed->field_4D;
+                if (flag == 1) {
+                    disp = Display_State.field_118;
+                    g    = D_80062698;
+                    if (disp == g->field_24) {
+                        f11          = g->field_11;
+                        ed->field_4D = 0;
+                        if (f11 == 0) {
+                            arg0->field_2a       = flag;
+                            D_80062698->field_28 = D_80062698->field_28 + 2;
+                        } else {
+                            D_80062698->field_28 = D_80062698->field_28 + 1;
+                        }
+                    }
+                    func_8001CDF0();
+                }
+                break;
+            case 2:
+                Display_State.field_114 = Display_State.field_118;
+                func_8003F450(0);
+                D_80062698->field_19    = D_80062698->field_19 | 0x80;
+                Display_State.field_103 = Display_State.field_103 | 0x10;
+                arg0->field_2a          = 3;
+                D_80062698->field_28    = D_80062698->field_28 + 1;
+                break;
+            case 3:
+                Display_State.field_103 = 2;
+                arg0->field_2a          = arg0->field_2a - 1;
+                if (arg0->field_2a == 0) {
+                    func_80041E4C();
+                    func_8001490C(D4F564_8005ED64->field_7, D4F564_8005ED64->field_6,
+                                  Display_State.field_118, 0x10000);
+                    Mem_InitAux();
+                    D_80062698->field_12 = 0;
+                    if ((s32)D_80062698->field_1c < 0) {
+                        Pad_ClearCooldown(0);
+                        arg0->field_30 = arg0->field_30 + 1;
+                        func_8003FD58(arg0);
+                        return;
+                    }
+                    D_80062698->field_28 = D_80062698->field_28 + 1;
+                }
+                break;
+            case 4:
+                Display_State.field_103 = 1;
+                Display_State.field_100 = 3;
+                D_80062698->field_28    = D_80062698->field_28 + 1;
+                break;
+            case 5:
+                Pad_ClearCooldown(0);
+                D_80062698->field_1c = D_80062698->field_1c & 0xBFFFFFFF;
+                break;
+        }
+    } else if (flags & 0x08000000) {
+        func_8003EC44(arg0);
+    } else if ((s32)flags < 0) {
+        arg0->field_30 = arg0->field_30 + 1;
+        func_8003FD58(arg0);
+    } else if (flags & 0x20000000) {
+        func_8001490C(D4F564_8005ED64->field_7, D4F564_8005ED64->field_6, Display_State.field_118,
+                      0x10000);
+        D_80062698->field_1c = D_80062698->field_1c & 0xDFFFFFFF;
+    }
+
+    if (D_80062698->field_C == 4) {
+        func_8003F450(0);
+    }
+}
 
 void func_8003F450(s32 arg0)
 {

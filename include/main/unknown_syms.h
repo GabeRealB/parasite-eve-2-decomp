@@ -94,6 +94,7 @@ extern void           func_8002D6EC(Task* arg0);
 // Dynamically loaded (BSS region)
 extern void  func_80097AC0(GStruct35* arg0);
 extern void  func_8009850C(GStruct35* arg0);
+extern void  func_800A8DC0(s32 arg0);
 extern void* func_80099098(Task* task);
 extern void* func_80099170(Task* task, s32 arg1, s32 arg2);
 extern void  func_800991DC(void* arg0);
@@ -667,6 +668,8 @@ extern DR_TPAGE* D_80071190; // primitive buffer cursor
 // Immediate-mode SPRT scratch used by func_8002F5E4 (DrawPrim path).
 extern SPRT D_80071710;
 // Mc_SaveData → main/mc.h
+// Alias of Mc_SaveData.field_4 (offset 0x4).
+extern u8 D_8007216C;
 // Alias of Mc_SaveData.field_21 (offset 0x21).
 extern s8 D_80072189;
 // Alias of Mc_SaveData byte at offset 0x23 (lb in func_8001CA70).

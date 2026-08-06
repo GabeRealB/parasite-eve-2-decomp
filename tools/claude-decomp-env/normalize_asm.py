@@ -7,8 +7,8 @@ import sys
 
 def normalize_jumptable_references(line: str) -> str:
     """Normalize jump table references to .rodata for consistent comparison"""
-    # Pattern to match jump table references like jtbl_8009DDA8_9E9A8
-    jtbl_pattern = r"jtbl_[0-9A-Fa-f]+_[0-9A-Fa-f]+"
+    # Pattern to match jump table references like jtbl_8009DDA8_9E9A8 or jtbl_80013EB0
+    jtbl_pattern = r"jtbl_[0-9A-Fa-f]+(?:_[0-9A-Fa-f]+)?"
 
     # Replace jump table references with .rodata
     normalized = re.sub(jtbl_pattern, ".rodata", line)

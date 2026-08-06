@@ -9564,3 +9564,45 @@ with `a0` already set). A single shared site via `goto do_malloc` or a flag
 keeps the control flow but reloads `%hi` into `$v0`/`$v1` after the call
 instead of pinning it in `$s0` from the zeroing store. `func_8001BB7C` /
 `D_8006AC00` is the pure example.
+
+## Preload switch-case locals to control delay-slot fill and `lui` order
+
+When a case compares two globals then branches on a field of the second, and the
+target puts an independent store in the `bnez` delay slot:
+
+```
+lbu   v0, field_11(g)
+nop
+bnez  v0, else
+ sb   zero, field_4D(ed)   /* delay: always runs for both arms */
+```
+
+write the store *after* an explicit load of the branch condition into an `s32`
+temp (not `u8` — that inserts `andi v0,v0,0xff` before the branch):
+
+```c
+f11 = g->field_11;          /* s32 */
+ed->field_4D = 0;
+if (f11 == 0) {
+    arg0->field_2a = flag;  /* flag also s32 from earlier lbu */
+    ...
+}
+```
+
+Same case: to get `lui %hi(Display_State+0x118)` *before* `lui %hi(D_80062698)`,
+preload the display field into a temp before materialising the other global:
+
+```c
+disp = Display_State.field_118;
+g    = D_80062698;
+if (disp == g->field_24) { ... }
+```
+
+`func_8003F034` case 1 is the pure example.
+
+## Scratch jtbl normalize accepts single-address names
+
+`tools/claude-decomp-env/normalize_asm.py` (and `dist.py`) only rewrote
+`jtbl_HEX_HEX`. This project's splat labels are `jtbl_80013EB0` (one hex).
+Extend the pattern to `jtbl_[0-9A-Fa-f]+(?:_[0-9A-Fa-f]+)?` so scratch scoring
+does not treat the target name vs `.rodata` as a real diff.
