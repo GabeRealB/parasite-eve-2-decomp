@@ -214,11 +214,12 @@ typedef struct _CdCmdQueue {
     u16        field_1E0;
     u16        field_1E2;
     u16        field_1E4;
-    s16        field_1E6;
+    u16        field_1E6;
     u16        field_1E8;
-    s16        field_1EA;
+    u16        field_1EA;
     u16        field_1EC; // MDEC out strip active (cleared by DecDCTout callback)
-    byte       unknown_1EE[0x6];
+    byte       unknown_1EE[0x4];
+    u16        field_1F2;
     u16        field_1F4;
     u16        field_1F6;
     byte       unknown_1F8[0x2];
@@ -230,7 +231,7 @@ typedef struct _CdCmdQueue {
     u16        field_202;
     u16        field_204;
     byte       unknown_206[0x4];
-    s16        field_20A;
+    u16        field_20A;
     byte       unknown_20C[0x2];
     s16        field_20E;
     byte       unknown_210[0x2];
@@ -247,8 +248,10 @@ typedef struct _CdCmdQueue {
     u16        field_226; // sub-state for func_8001E57C disk recovery
     u16        field_228;
     u16        field_22A; // DecDCTin mode for func_800405E0
-    s16        field_22C;
-    byte       unknown_22E[0x6];
+    u16        field_22C;
+    byte       unknown_22E[0x2];
+    u16        field_230;
+    u16        field_232;
     s16        field_234;
     s16        field_236;
     s16        field_238; // 0x238 — non-zero clears field_18C in func_8001BB7C
