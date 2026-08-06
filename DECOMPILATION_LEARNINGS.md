@@ -7848,3 +7848,45 @@ entry->field_0 = (entry->field_0 & flags) | ((ret & 1) * 8);
 ```
 
 `func_8004DC8C` is the pure example.
+
+## Reuse arg regs for fixed UV constants; pin f20/next for prim cursor order
+
+When a POLY_FT4 setup reuses `$a1`/`$a2` for fixed U coordinates after their last
+use as real arguments (target: `li a1,0x6F` right after the `D_80071190` update,
+`li a2,0x68` right after `field_20 + arg2`), separate locals for those constants
+usually rematerialize as late `li v0,K`. Two tricks together match:
+
+1. **Reassign the argument** after its last real use (`arg2 = 0x68`) so the
+   constant stays in `$a2` through the U stores.
+2. **Pin the mid-section temps** so `field_20` reloads into `$v0` *before* the
+   prim-cursor advance, and the advance uses `$v1` — the same interleaving as
+   the target between the first X pair and `li a1,0x6F`:
+
+```c
+p->x2 = temp;
+p->x0 = temp;
+{
+    register u16 f20 asm("v0");
+    register s32 next asm("v1");
+    register s32 ur asm("a1");
+
+    f20  = arg0->field_20;          /* lhu into $v0 before cursor update */
+    next = (s32)(p + 1);
+    D_80071190 = (DR_TPAGE*)next; /* addiu/sw via $v1; frees $a1 */
+    ur   = 0x6F;                    /* li a1,0x6F */
+    temp = f20 + arg2;
+    arg2 = 0x68;                    /* li a2,0x68 — reuses arg reg */
+    p->x3 = temp;
+    p->x1 = temp;
+    /* … UV setup … */
+    p->u1 = ur;
+    p->u3 = ur;
+    p->u0 = arg2;
+    p->u2 = arg2;
+}
+```
+
+Without the `f20`/`next` pins, GCC advances the cursor in `$v0` first and
+hoists `li v0,0x50`, losing the `lhu`/`addiu` interleave. Without `arg2 = 0x68`,
+`$a2` is rematerialized at the U stores. `func_80047A0C` is the pure example
+(sibling `func_80047B24` is the same shape with different UV constants).
