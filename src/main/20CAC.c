@@ -353,4 +353,163 @@ void func_800312DC(Task* arg0, McWork* arg1)
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
 }
 
-INCLUDE_ASM("main/nonmatchings/20CAC", func_800314D0);
+void func_800314D0(Task* arg0, McWork* arg1)
+{
+    UiObject*     saved;
+    UiObject*     obj;
+    UiObject*     childObj;
+    UiObject*     flag;
+    Task*         child;
+    McPromptPair* entry;
+    McPromptPair* base;
+    s32           ret;
+    s32           one;
+    s32           syncResult;
+
+    one           = 1;
+    saved         = arg0->field_20;
+    arg1->field_8 = 0x16;
+    obj           = arg0->field_20;
+    ret           = func_80048E10(obj, 1);
+    obj->field_2E = 0;
+    func_80048E38(obj, D_8001398C);
+    base  = Mc_PromptTable;
+    entry = &base[0x16];
+    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
+    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
+
+    child = arg0->field_c;
+    if (child == NULL) {
+        if (func_800486F0(D_8006121C, (s32)arg1, 1, 2, saved) != 0) {
+            {
+                UiList*     menu;
+                register u8 t asm("a2");
+
+                menu          = &D_80061194;
+                t             = arg1->field_288;
+                menu->field_4 = t;
+                if (arg1->field_288 < (0xF - arg1->field_28C)) {
+                    {
+                        register u8 sum asm("v0");
+                        sum           = t + one;
+                        menu->field_4 = sum;
+                    }
+                }
+                menu->field_10  = arg1->field_290;
+                saved->field_2C = 0;
+                saved->field_0  = 0;
+            }
+        }
+    } else {
+        childObj = child->field_20;
+        if (childObj->field_2E == 6) {
+            saved->field_2C   = childObj->field_2C;
+            childObj->field_0 = 0;
+            func_80048838(childObj, childObj->field_28);
+            saved->field_0 = one;
+            if (saved->field_2C >= 0) {
+                if (saved->field_2C < arg1->field_288) {
+                    {
+                        u8*          src;
+                        u8*          name;
+                        register s32 matchCount asm("t0");
+                        register u8* walk asm("a2");
+                        u8*          dst;
+                        register s32 i asm("v1");
+                        s32          j;
+
+                        src        = (u8*)arg1->field_30[saved->field_2C];
+                        name       = Mc_FileName;
+                        matchCount = 0x14;
+                        walk       = name;
+                        dst        = Mc_FileNameBuf;
+                        i          = 0;
+                        do {
+                            {
+                                register u8 ch asm("v0");
+                                ch    = *walk;
+                                walk += 1;
+                                i    += 1;
+                                *dst  = ch;
+                            }
+                            dst += 1;
+                        } while (i < 0x15);
+                        j = 0;
+                        do {
+                            {
+                                register u8 ch asm("v1");
+                                register u8 n asm("v0");
+                                ch = *src;
+                                n  = *name;
+                                if (n == ch) {
+                                    matchCount -= 1;
+                                }
+                                *name = ch;
+                            }
+                            name += 1;
+                            j    += 1;
+                            src  += 1;
+                        } while (j < 0x14);
+                        *name = 0;
+                        if (matchCount != 0) {
+                            arg1->field_28 = -1;
+                        }
+                    }
+                } else {
+                    {
+                        u8*          name;
+                        u8*          dst;
+                        register s32 i asm("v1");
+
+                        name = Mc_FileName;
+                        dst  = Mc_FileNameBuf;
+                        i    = 0;
+                        do {
+                            {
+                                register u8 ch asm("v0");
+                                ch    = *name;
+                                name += 1;
+                                i    += 1;
+                                *dst  = ch;
+                            }
+                            dst += 1;
+                        } while (i < 0x15);
+                    }
+                    {
+                        register u8* fn asm("a0");
+                        fn = Mc_FileName;
+                        func_800300EC(fn, saved->field_2C);
+                    }
+                }
+                arg1->field_8  = 1;
+                arg0->field_30 = 5;
+                return;
+            }
+            arg0->field_30 = 0x29;
+            return;
+        }
+    }
+
+    syncResult = MemCardSync(1, (long*)&arg1->field_10, (long*)&arg1->field_14);
+    if (syncResult != -1) {
+        if (syncResult == 1) {
+            if (arg1->field_14 != 0) {
+                {
+                    register Task* ch asm("v1");
+
+                    ch             = arg0->field_c;
+                    arg0->field_30 = 2;
+                    if (ch != NULL) {
+                        childObj          = ch->field_20;
+                        flag              = arg0->field_20;
+                        childObj->field_0 = 0;
+                        func_80048838(childObj, childObj->field_28);
+                        flag->field_0 = syncResult;
+                    }
+                }
+            }
+        }
+    } else {
+        MemCardExist(arg1->field_C);
+    }
+}

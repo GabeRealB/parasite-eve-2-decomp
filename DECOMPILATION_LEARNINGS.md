@@ -9959,3 +9959,30 @@ epilogue:
 shared `D_80062734 = 0xFF; Task_Kill`). Explicit `goto epilogue` on the
 `func_800514F8 != 0` path inverted the `field_1` branch to `beq` with the
 bodies swapped.
+
+## Force `lui a0` before `lh a1` for global+halfword call args
+
+When a call is `func(GlobalSym, p->halfword)` and the preceding loop leaves
+`$a0`/`$a1` dirty, GCC often schedules `lh a1, …` *before* `lui a0, %hi(GlobalSym)`,
+while the target wants:
+
+```
+lui   a0, %hi(GlobalSym)
+lh    a1, off(sN)
+jal   func
+ addiu a0, a0, %lo(GlobalSym)
+```
+
+Pin a short-lived pointer to `$a0` and assign the global into it immediately
+before the call:
+
+```c
+{
+    register u8* fn asm("a0");
+    fn = Mc_FileName;
+    func_800300EC(fn, saved->field_2C);
+}
+```
+
+Plain `func_800300EC(Mc_FileName, saved->field_2C)` keeps the swapped order.
+`func_800314D0` is the pure example.
