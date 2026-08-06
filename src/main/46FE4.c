@@ -93,9 +93,8 @@ s32 func_800567E4(void)
     return 1;
 }
 
-/* Alignment pad after func_800567E4's 5-entry jump table. jtbl_80014204 for
- * still-asm func_80056E38 is placed after func_80056B28 so the compiler-generated
- * table for that function lands at 0x800141DC. */
+/* Alignment pad after func_800567E4's 5-entry jump table so func_80056B28's
+ * compiler-generated jtbl lands at 0x800141DC. */
 static const s32 s_jtbl_pad_567E4 = 0;
 
 s32 func_800569D4(void)
@@ -147,6 +146,7 @@ typedef struct {
 } SectorHdr;
 
 void func_80057C74(s32 arg0);
+void func_800572FC(s32 arg0);
 
 s32 func_80056B28(void)
 {
@@ -267,24 +267,184 @@ error:
     return 0;
 }
 
-/* Absolute jump table for still-asm func_80056E38. Placed after func_80056B28 so
- * that function's compiler-generated jtbl occupies 0x800141DC. */
-const s32 jtbl_80014204[12] = {
-    0x80056E80,
-    0x80056EF4,
-    0x80056F90,
-    0x80056FD0,
-    0x80057018,
-    0x80057088,
-    0x800570E0,
-    0x8005713C,
-    0x80057210,
-    0x800572D8,
-    0x800571D8,
-    0x00000000,
-};
+s32 func_80056E38(void)
+{
+    volatile GStruct61* voices;
+    volatile GStruct44* stream;
+    volatile GStruct44* p;
+    volatile GStruct56* audio;
+    volatile GStruct39* cd;
+    s32                 status;
+    u8                  mode;
+    s32                 ret;
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_80056E38);
+    switch (D_80082798.field_4) {
+        case 1:
+            voices = (volatile GStruct61*)&D_800827A0;
+            func_8004E71C(voices->field_3E);
+            func_8004E71C(voices->field_3F);
+            if (func_8005BB4C() != 0) {
+                break;
+            }
+        do_setmode:
+            D_80082798.field_4 = 2;
+            D_80082780.field_0 = 0;
+            mode               = CdlModeSpeed | CdlModeSize1;
+            CdControlF(CdlSetmode, &mode);
+            break;
+        case 2:
+            stream = &D_80082780;
+            if (stream->field_0 < 0x259) {
+                goto case2_sync;
+            }
+            stream->field_8 = D_80082798.field_4;
+            stream->field_9 = 1;
+            goto error;
+        case2_sync:
+            status = CdSync(1, NULL);
+            if (status == CdlComplete) {
+                goto case2_ok;
+            }
+            if (status < 3) {
+                break;
+            }
+            if (status != CdlDiskError) {
+                break;
+            }
+            CdFlush();
+            goto do_setmode;
+        case2_ok:
+            stream->field_C    = 5;
+            D_80082798.field_4 = 3;
+            break;
+        case 3:
+            D_80082780.field_C = D_80082780.field_C - 1;
+            if (D_80082780.field_C >= 0) {
+                break;
+            }
+            D_80082798.field_4 = 4;
+            break;
+        case 4:
+        do_setloc:
+            D_80082780.field_0 = 0;
+            D_80082758.field_8 = ((volatile GStruct56*)&D_800827A0)->field_4;
+            audio              = (volatile GStruct56*)&D_800827A0;
+            CdIntToPos(audio->field_4, (CdlLOC*)&audio->field_10);
+            D_80082798.field_4 = 5;
+            CdControlF(CdlSetloc, (u8*)&audio->field_10);
+            break;
+        case 5:
+            p = &D_80082780;
+            if (p->field_0 < 0x259) {
+                status = CdSync(1, NULL);
+                if (status == CdlComplete) {
+                    goto case5_ok;
+                }
+                if (status < 3) {
+                    break;
+                }
+                if (status != CdlDiskError) {
+                    break;
+                }
+                CdFlush();
+                goto do_setloc;
+            case5_ok:
+                D_80082798.field_4 = 6;
+                break;
+            }
+            goto timeout;
+        case 6:
+            D_80082798.field_4 = 7;
+            D_80082758.field_1 = 0;
+            D_80082780.field_B = 0;
+            D_80082780.field_0 = 0;
+            SpuSetTransferStartAddr(D_80082758.field_10);
+            CdReadyCallback(func_800572FC);
+            CdControlF(CdlReadN, NULL);
+            break;
+        case 7:
+            if (CdSync(1, NULL) == CdlDiskError) {
+                D_80082798.field_4 = 6;
+                CdFlush();
+                CdReadyCallback(NULL);
+            } else {
+                D_80082798.field_4 = 8;
+                D_80082780.field_4 = 0;
+            }
+            break;
+        case 8:
+            p = &D_80082780;
+            if (p->field_B != 0) {
+                p->field_8 = D_80082798.field_4;
+                p->field_9 = 2;
+                goto error;
+            }
+            if (D_80082780.field_0 < 0x259) {
+                if (p->field_4 < 0x259) {
+                    cd = &D_80082758;
+                    if (cd->field_1 == 0) {
+                        goto case8_inc;
+                    }
+                    if (cd->field_1 == 1) {
+                        goto do_pause;
+                    }
+                    goto error;
+                case8_inc:
+                    p->field_4 = p->field_4 + 1;
+                    break;
+                }
+                goto timeout;
+            }
+            goto timeout;
+        case 11:
+        do_pause:
+            CdReadyCallback(NULL);
+            D_80082780.field_0 = 0;
+            D_80082798.field_4 = 9;
+            CdControlF(CdlPause, NULL);
+            break;
+        case 9:
+            status = CdSync(1, NULL);
+            if (status == CdlComplete) {
+                goto case9_ok;
+            }
+            if (status < 3) {
+                goto case9_check;
+            }
+            if (status != CdlDiskError) {
+                goto case9_check2;
+            }
+            CdFlush();
+            goto do_pause;
+        case9_ok:
+            ret                = 0;
+            D_80082798.field_4 = 0xA;
+            D_80082798.field_2 = 4;
+            return ret;
+        case9_check:
+            p = &D_80082780;
+        case9_check2:
+            p = &D_80082780;
+            if (p->field_0 < 0x259) {
+                break;
+            }
+        timeout:
+            p->field_8 = D_80082798.field_4;
+            p->field_9 = 1;
+        error:
+            CdReadyCallback(NULL);
+            CdFlush();
+            CdControlF(CdlPause, NULL);
+            D_80082798.field_4 = 1;
+            goto do_setmode;
+        case 10:
+        default:
+            break;
+    }
+
+    D_80082780.field_0 = D_80082780.field_0 + 1;
+    return 6;
+}
 
 void func_800572FC(s32 arg0)
 {

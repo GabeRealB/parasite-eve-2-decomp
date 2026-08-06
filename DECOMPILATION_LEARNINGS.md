@@ -9745,3 +9745,42 @@ compare inline and only flip the operator.
 
 `func_80054D58` is the pure example (also: stash `score = p->field_4` before
 paired `sb`/`sw` so the target gets `lw; sb; sw` rather than `sb; lw; nop; sw`).
+
+## Separate stream pointers so timeout shares `$v1` while case-2 keeps `$s0`
+
+A CD state machine with a shared timeout tail that stores `field_8`/`field_9`
+through `$v1`, while an earlier case (live across `CdSync`) holds the same
+object in `$s0` for an *inlined* copy of those stores, will merge both into
+one `$s0` sequence if they share a single C variable.
+
+Use two pointers:
+
+```c
+volatile GStruct44* stream; /* case 2: coloured $s0, inlines field_8/9 then goto error */
+volatile GStruct44* p;      /* case 5/8/9 + timeout: coloured $v1, shared tail */
+
+case 2:
+    stream = &D_80082780;
+    if (stream->field_0 < 0x259) goto sync;
+    stream->field_8 = phase;
+    stream->field_9 = 1;
+    goto error;
+/* ... */
+timeout:
+    p->field_8 = phase;  /* no re-load of &D_80082780 — callers set p/$v1 */
+    p->field_9 = 1;
+error:
+    ...
+```
+
+Also force early `D_80082758` addressing before the `audio` pointer is built by
+writing the cross-struct store with a cast, then assigning `audio`:
+
+```c
+D_80082780.field_0 = 0;
+D_80082758.field_8 = ((volatile GStruct56*)&D_800827A0)->field_4;
+audio = (volatile GStruct56*)&D_800827A0;
+CdIntToPos(audio->field_4, (CdlLOC*)&audio->field_10);
+```
+
+`func_80056E38` is the pure example.
