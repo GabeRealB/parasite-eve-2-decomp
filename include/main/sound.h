@@ -678,6 +678,7 @@ u8*            Midi_KeyOffChannel(s32 arg0, u8* arg1, MidiSong* arg2);
 u8*            Midi_SetProgram(s32 arg0, u8* arg1, MidiOpcodeCtx* arg2);
 u8*            Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* arg2);
 s32            SndLoad_ProcessSector(s32* arg0);
+s32            SndLoad_Complete(SndLoadState* arg0);
 s32            SndBank_SetupFromLoad(SndLoadState* arg0);
 void           SndLoad_FromSectorMode8(void* arg0);
 void           SndLoad_BeginFromBuffer(u8 arg0, void* arg1);

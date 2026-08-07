@@ -7,7 +7,6 @@ func_80042500 32 98.536
 AudioTick_Insert 54 97.38
 func_8004DE18 97 86.6
 Spu_GetVoiceRef 58 97.82
-func_800530DC 130 97.906
 SndVoice_KeyOffMatching 39 97.15
 func_80055EF8 45 86.069
 func_80020058 58 98.131

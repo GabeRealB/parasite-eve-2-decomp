@@ -11686,3 +11686,25 @@ Then expand the TU's `.rodata` segment start earlier in `main.yaml` and drop the
 hand-extracted `rodata, name_N` sibling that held the old jtbl + blob. Non-const
 definitions go to `.data` and break the layout. `SndLoad_ResolveSpuAddr` + `D_80014124` +
 `TaskIdMap_RemapIndex` is the pure example.
+
+## Volatile load-status flags keep `%hi` in `$a0` across reloads
+
+Shared status words reloaded twice in a prologue (e.g. `D_800689E8`) CSE into
+one load when non-volatile, and the address often lands in `$a1`. Mark them
+`volatile` so each access reloads and GCC keeps `%hi` in `$a0` after
+`move sN,a0` frees the argument register — same pattern as `D_8005EC80` in
+`GameMain_ShowLoading`.
+
+Do **not** hard-pin the state pointer to `$s3` with `register … asm("s3")` while
+also pinning `$s2/$s1/$s0`: that steals `$a0` from the flag address. Leave the
+`SndLoadState*` unpinned and pin only bank/ret/index so arg naturally colours
+`$s3` and the flag hi stays in `$a0`.
+
+## Fail-path `j` / `move v0,s1` vs shared epilogue
+
+When several paths merge on `field_14 = 0; field_18 = 0; return`, the fail path
+needs `j epilogue; move v0,s1` while the free path after `F3D458_Free` must not
+fall through a `block_ret: v0 = s1` that GCC would merge away. Force the free
+exit with tab-noreorder `j label; move $2,s1`, land with a unique asm label, and
+clear `field_14` via `*(volatile s32*)&p->field_14 = 0` so the store is not
+stolen into an earlier delay slot. `SndLoad_Complete` is the pure example.

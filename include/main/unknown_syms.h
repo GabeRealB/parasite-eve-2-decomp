@@ -132,17 +132,16 @@ typedef u8* (*MidiHandler)(s32, u8*, MidiSong*, MidiTrack*);
 /// Entries: note-off, note-on, poly-AT, CC, program, pressure, pitch-bend, meta.
 extern MidiHandler D_800689C4[];
 extern u8*         func_80052488(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3);
-extern s32         func_800530DC(SndLoadState* arg0);
 
 // SndScript / SndVoice (src/main/sndscript.c)
-extern s32 D_800689E4;
-extern s32 D_800689E8;
-extern s16 D_800689EC;
-extern u8  D_800689F0[];
-extern s8  D_80082748;
-extern s8  D_80082749;
-extern s8  D_8008274A;
-extern s8  D_8008274B;
+extern volatile s32 D_800689E4;
+extern volatile s32 D_800689E8;
+extern s16          D_800689EC;
+extern u8           D_800689F0[];
+extern s8           D_80082748;
+extern s8           D_80082749;
+extern s8           D_8008274A;
+extern s8           D_8008274B;
 // Unprototyped: SndVoice_HasActiveId calls with indeterminate a0 (nop in delay slot).
 extern s8 func_80055EF8(SndVoicePick* arg0, s16 arg1);
 
