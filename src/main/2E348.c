@@ -101,7 +101,7 @@ void func_8003DB48(s32 arg0)
     Display_State.field_20[0].isinter = var_s7;
     if (!(arg0 & 0x8000)) {
         func_80027E7C();
-        func_8003AF04();
+        Gpu_InitDefaultLights();
     }
 }
 

@@ -54,13 +54,13 @@ void func_80036B2C(DialogPrompt* arg0, UiObject* arg1)
     func_800330D8(arg1, temp, temp2, 0, arg0->field_1A + 7);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
-            func_8005414C(0x16, 0, 0);
+            SndEvt_EnqueueType6(0x16, 0, 0);
             arg1->field_2E = 6;
             var_v0         = (s8)(u8)arg0->field_8;
             goto block_5;
         }
         if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
-            func_8005414C(0x3B, 0, 0);
+            SndEvt_EnqueueType6(0x3B, 0, 0);
             arg1->field_2E = 6;
             var_v0         = -1;
         block_5:
@@ -132,11 +132,11 @@ void func_80036D98(DialogPrompt* arg0, UiObject* arg1)
     temp = arg0->field_C;
     if (temp == 1) {
         if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
-            func_8005414C(0x16, 0, 0);
+            SndEvt_EnqueueType6(0x16, 0, 0);
             arg1->field_2E = 6;
             arg1->field_2C = temp;
         } else if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
-            func_8005414C(0x15, 0, 0);
+            SndEvt_EnqueueType6(0x15, 0, 0);
             arg0->field_B  = temp;
             arg0->field_22 = 0x41;
         }
@@ -151,7 +151,7 @@ void func_80036E78(DialogPrompt* arg0, UiObject* arg1)
     temp = arg0->field_C;
     if (temp == 1) {
         if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
-            func_8005414C(0x16, 0, 0);
+            SndEvt_EnqueueType6(0x16, 0, 0);
             arg1->field_2E = 6;
             arg1->field_2C = temp;
         }
@@ -166,7 +166,7 @@ void func_80036F18(DialogPrompt* arg0, UiObject* arg1)
     temp = arg0->field_C;
     if (temp == 1) {
         if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
-            func_8005414C(0x3B, 0, 0);
+            SndEvt_EnqueueType6(0x3B, 0, 0);
             arg1->field_2E = 6;
             arg1->field_2C = temp;
         }
@@ -178,7 +178,7 @@ void func_80036FB8(DialogPrompt* arg0, UiObject* arg1)
     func_8002FDCC(arg1, arg0->field_18, arg0->field_1A, D_80060A58, arg0->field_1C, 1, 0);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, D_8005ED70 | D_8005ED74) != 0) {
-            func_8005414C(0x3B, 0, 0);
+            SndEvt_EnqueueType6(0x3B, 0, 0);
             arg1->field_2E = 6;
             arg1->field_2C = -1;
         }

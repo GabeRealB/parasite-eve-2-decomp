@@ -6,10 +6,9 @@
 #include "main/game.h"
 #include "main/fs.h"
 
-s16 func_8001E57C(void);
 s16 E734_CDIsShellOpenBitSet(void);
 
-s32 func_8001DF34(u8* loc)
+s32 CdCmd_SeekL(u8* loc)
 {
     CdCmdQueue* state;
     CdCmdQueue* p;
@@ -45,7 +44,7 @@ s32 func_8001DF34(u8* loc)
                             goto join1;
                     }
                 case 1:
-                    if (func_8001E57C() != 0) {
+                    if (CdCmd_RecoverDisk() != 0) {
                         state->field_228 = 0;
                         temp             = 2;
                         goto join1;
@@ -96,7 +95,7 @@ s32 func_8001DF34(u8* loc)
                             goto join2;
                     }
                 case 1:
-                    if (func_8001E57C() != 0) {
+                    if (CdCmd_RecoverDisk() != 0) {
                         p->field_228 = 0;
                         temp         = 2;
                         goto join2;
@@ -146,7 +145,7 @@ s32 func_8001DF34(u8* loc)
                             goto join3;
                     }
                 case 1:
-                    if (func_8001E57C() != 0) {
+                    if (CdCmd_RecoverDisk() != 0) {
                         p->field_228 = 0;
                         temp         = 2;
                         goto join3;
@@ -184,7 +183,7 @@ s32 func_8001DF34(u8* loc)
     }
 }
 
-s32 func_8001E2D4(void)
+s32 CdCmd_PausePoll(void)
 {
     CdCmdQueue* state;
     CdCmdQueue* p;
@@ -218,7 +217,7 @@ s32 func_8001E2D4(void)
                             goto join1;
                     }
                 case 1:
-                    if (func_8001E57C() != 0) {
+                    if (CdCmd_RecoverDisk() != 0) {
                         state->field_228 = 0;
                         temp             = 2;
                         goto join1;
@@ -270,7 +269,7 @@ s32 func_8001E2D4(void)
                             goto join2;
                     }
                 case 1:
-                    if (func_8001E57C() != 0) {
+                    if (CdCmd_RecoverDisk() != 0) {
                         p->field_228 = 0;
                         temp         = 2;
                         goto join2;
@@ -319,7 +318,7 @@ s32 func_8001E2D4(void)
     }
 }
 
-s16 func_8001E57C(void)
+s16 CdCmd_RecoverDisk(void)
 {
     u8          mode[8];
     u8          result[8];
@@ -371,7 +370,7 @@ s16 func_8001E57C(void)
     return 0;
 }
 
-s32 func_8001E6AC(s32 arg0, s32 arg1)
+s32 CdCmd_PollStatus(s32 arg0, s32 arg1)
 {
     CdCmdQueue* state;
     s32         status;
@@ -406,7 +405,7 @@ s32 func_8001E6AC(s32 arg0, s32 arg1)
             }
             break;
         case 1:
-            if (func_8001E57C() != 0) {
+            if (CdCmd_RecoverDisk() != 0) {
                 state->field_228 = 0;
                 return 2;
             }

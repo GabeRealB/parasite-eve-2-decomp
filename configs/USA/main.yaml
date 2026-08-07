@@ -75,7 +75,7 @@ segments:
       # then CEFC (+ pad for D0E8) + absolute still-asm D0E8 + DB84 tables.
       - [0x3764, .rodata, cdcmd]
       - [0x3818, o, libcd/type, .rdata]
-      - [0x3838, .rodata, stream] # jtbl from func_8001EB44 (7 entries)
+      - [0x3838, .rodata, stream] # jtbl from Mdec_SetupBuffers (7 entries)
       - [0x3854, rodata, stream_1] # .word 0 pad + jtbl_80013058 (unmatched funcs)
       - [0x3880, o, libcd/c_011, .rdata]
       - [0x38a0, .rodata, "11E9C"] # jtbls: 21A20, 21B28, 21D8C + 2207C + abs(2226C)
@@ -116,8 +116,8 @@ segments:
       # jtbls from func_80053BF4 + absolute jtbl_80014168 (func_800546F4 still
       # asm) + jtbl from func_80055678
       - [0x4930, .rodata, "sndscript"]
-      # jtbl_800141C4 (func_800567E4) + jtbl from func_80056B28 +
-      # jtbl from func_80056E38 + jtbl from func_80057BC8
+      # jtbl_800141C4 (func_800567E4) + jtbl from CdAudio_DriveSeek +
+      # jtbl from CdAudio_DriveRead + jtbl from CdAudio_DrivePhase1
       - [0x49c4, .rodata, "cdaudio"]
       # Jump tables still used by unmatched assembly functions in 4A6E0.c.
       - [0x4a48, rodata, "cdstream_1"] # jtbl_80014248 (func_80059EE0 still asm)

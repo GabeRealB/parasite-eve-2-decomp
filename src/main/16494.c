@@ -156,9 +156,9 @@ void func_800260B0(s32 arg0)
 
     D_8006EBBA = arg0 & 1;
     flag       = D_8006EBBA;
-    func_800517B4(func_800517F8() & 0xFF);
+    Midi_SetMasterVolume(Midi_GetMasterVolume() & 0xFF);
     flag = (u8)flag;
-    func_80055DFC(func_80055EE8());
+    SndVoice_ApplyMasterVolume(func_80055EE8());
     CdStream_SetLinkedPitch(flag ^ 1);
     if (flag == 0) {
         atv.val0 = 0x5A;
@@ -217,7 +217,7 @@ s32 func_800261F4(void)
     return (Fs_SpuAttr.cd.volume.left / 256) & 0x7F;
 }
 
-void func_80026218(u16 arg0)
+void CdVol_ApplyFromTable(u16 arg0)
 {
     if (arg0 >= 0x28) {
         arg0 = 0;

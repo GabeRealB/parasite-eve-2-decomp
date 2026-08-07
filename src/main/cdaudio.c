@@ -94,11 +94,11 @@ s32 func_800567E4(void)
     return 1;
 }
 
-/* Alignment pad after func_800567E4's 5-entry jump table so func_80056B28's
+/* Alignment pad after func_800567E4's 5-entry jump table so CdAudio_DriveSeek's
  * compiler-generated jtbl lands at 0x800141DC. */
 static const s32 s_jtbl_pad_567E4 = 0;
 
-s32 func_800569D4(void)
+s32 CdAudio_DrivePhase0(void)
 {
     volatile CdAudioPhase*  p;
     s16                     ret;
@@ -146,10 +146,10 @@ typedef struct {
     /* 0x3 */ u8 field_3;
 } SectorHdr;
 
-void func_80057C74(s32 arg0);
-void func_800572FC(s32 arg0);
+void CdAudio_ReadyCallback(s32 arg0);
+void CdAudio_FeedSector(s32 arg0);
 
-s32 func_80056B28(void)
+s32 CdAudio_DriveSeek(void)
 {
     u8                   phase;
     register SectorHdr*  hdr asm("a2");
@@ -183,7 +183,7 @@ s32 func_80056B28(void)
                     /* fallthrough */
                 case 6:
                     CdAudio_Phase.field_3 = 3;
-                    CdReadyCallback(func_80057C74);
+                    CdReadyCallback(CdAudio_ReadyCallback);
                     CdAudio_Ctl.field_0 = 0;
                     D_80082770          = 0;
                     CdAudio_Ctl.field_A = 0;
@@ -268,7 +268,7 @@ error:
     return 0;
 }
 
-s32 func_80056E38(void)
+s32 CdAudio_DriveRead(void)
 {
     volatile CdAudioVoices* voices;
     volatile CdAudioCtl*    stream;
@@ -360,7 +360,7 @@ s32 func_80056E38(void)
             CdAudio_Ctl.field_B   = 0;
             CdAudio_Ctl.field_0   = 0;
             SpuSetTransferStartAddr(CdAudio_Tbl.field_10);
-            CdReadyCallback(func_800572FC);
+            CdReadyCallback(CdAudio_FeedSector);
             CdControlF(CdlReadN, NULL);
             break;
         case 7:
@@ -447,7 +447,7 @@ s32 func_80056E38(void)
     return 6;
 }
 
-void func_800572FC(s32 arg0)
+void CdAudio_FeedSector(s32 arg0)
 {
     s32                  arg;
     s32                  pos;
@@ -513,7 +513,7 @@ void func_800572FC(s32 arg0)
     CdAudio_Tbl.field_8 += 1;
 }
 
-void func_800574BC(void)
+void CdAudio_Init(void)
 {
     u32  i;
     s32* p;
@@ -540,12 +540,12 @@ void func_800574BC(void)
     func_800260B0(1);
 }
 
-u8 func_80057554(void)
+u8 CdAudio_GetState(void)
 {
     return CdAudio_Loc.field_0;
 }
 
-void func_80057564(void)
+void CdAudio_Tick(void)
 {
     if ((CdAudio_Loc.field_4 != 0) && (CdAudio_Loc.field_0 != 0)) {
         CdAudio_Loc.field_0 = D_80068B34[CdAudio_Loc.field_0 & 7]();
@@ -553,7 +553,7 @@ void func_80057564(void)
     }
 }
 
-s32 func_800575D8(s32 arg0)
+s32 CdAudio_Reset(s32 arg0)
 {
     volatile CdAudioCtl* p;
 
@@ -568,7 +568,7 @@ s32 func_800575D8(s32 arg0)
     return 0;
 }
 
-s32 func_80057618(void)
+s32 CdAudio_SetupStream(void)
 {
     u8                     mode;
     s32                    mem;
@@ -597,7 +597,7 @@ s32 func_800576BC(s32 arg0)
 
     temp_s0 = arg0 & 0xFF;
     if (temp_s0 != 0) {
-        func_80057A88(CdAudio_Loc.field_4 + func_80057A1C((arg0 - 1) & 0xFF));
+        func_80057A88(CdAudio_Loc.field_4 + CdAudio_LoadSectorEntry((arg0 - 1) & 0xFF));
     }
     return temp_s0;
 }
@@ -619,8 +619,8 @@ s32 func_80057724(void)
         ret = 1;
     } else {
         temp = CdAudio_TblEntries + CdAudio_Tbl.field_2;
-        func_80057A1C((temp[1].field_3 - temp->field_3 - 1) & 0xFF);
-        func_80057B24(0x20);
+        CdAudio_LoadSectorEntry((temp[1].field_3 - temp->field_3 - 1) & 0xFF);
+        CdAudio_StartVolumeRamp(0x20);
         ret = 0;
     }
     return ret;
@@ -631,13 +631,13 @@ s32 func_800577AC(s32 arg0, s32 arg1)
     if (CdStream_IsBusy() != 0) {
         return -1;
     }
-    func_80057824(arg0);
+    CdAudio_ResetKeepBuffer(arg0);
     CdAudio_Loc.field_2 = D_80068A80[arg1 & 0xFF] << 7;
-    func_800542D0(0x80000000, 0);
+    SndEvt_EnqueueType7(0x80000000, 0);
     return func_80057894(arg0);
 }
 
-s32 func_80057824(s32 arg0)
+s32 CdAudio_ResetKeepBuffer(s32 arg0)
 {
     volatile CdAudioCtl*   p;
     volatile CdAudioLoc*   r;
@@ -719,7 +719,7 @@ void func_800579A0(s8* arg0, s8* arg1)
     F3E48C_DisableVoice(*arg1);
 }
 
-s32 func_80057A1C(s32 arg0)
+s32 CdAudio_LoadSectorEntry(s32 arg0)
 {
     u32  temp_v0;
     u16* table;
@@ -764,7 +764,7 @@ s32 func_80057ACC(void)
     return ret;
 }
 
-void func_80057B24(s32 arg0)
+void CdAudio_StartVolumeRamp(s32 arg0)
 {
     LinInterp*             p;
     volatile CdAudioLocEx* parent;
@@ -791,7 +791,7 @@ s32 func_80057BC0(void)
     return 0;
 }
 
-s32 func_80057BC8(void)
+s32 CdAudio_DrivePhase1(void)
 {
     s16 ret;
 
@@ -817,7 +817,7 @@ s32 func_80057BC8(void)
     return ret;
 }
 
-void func_80057C74(s32 arg0)
+void CdAudio_ReadyCallback(s32 arg0)
 {
     s32                  temp;
     s32                  pos;

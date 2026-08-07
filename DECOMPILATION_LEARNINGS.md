@@ -65,13 +65,13 @@ case 3:
 return ret; /* promotes to s32 at the return */
 ```
 
-`func_800569D4` is the pure example. Leaving `ret` as `s32` stuck at ~96% with
+`CdAudio_DrivePhase0` is the pure example. Leaving `ret` as `s32` stuck at ~96% with
 an otherwise identical switch.
 
 Same fix for jump-table index shifts: `s32 ret = 2` is CSE'd into the
 `index << 2` as `sllv v1,v1,s0` (shift amount is already in `$s0`), while the
 target wants `sll v1,v1,0x2`. An `s16 ret` keeps the HImode register out of
-SImode shift-amount CSE. `func_80057BC8` is the pure example — otherwise a
+SImode shift-amount CSE. `CdAudio_DrivePhase1` is the pure example — otherwise a
 100% body with only the `sll`/`sllv` line wrong.
 
 ## Compute else-only address temps so they fill the `bne` delay slot in `$v0`
@@ -102,7 +102,7 @@ if (interp->field_0 == interp->field_4) {
 }
 ```
 
-`func_800569D4` needs this (together with the `s16 ret` tip above) for the
+`CdAudio_DrivePhase0` needs this (together with the `s16 ret` tip above) for the
 `LinInterp_CdStream` / `CdAudio_Loc` pair linked by CdAudioLocEx.
 
 ## `volatile` blocks delay-slot filling
@@ -113,8 +113,8 @@ obviously have filled, the global involved is probably `volatile` — most often
 because it is shared with an interrupt or VSync callback.
 
 Corollary: this is a useful signal *about the game*, not just a matching trick.
-`D_8005EC70` is written by the VSync callback `func_80027498` and read by the
-main loop `func_8002785C`, so `volatile` is semantically correct there.
+`D_8005EC70` is written by the VSync callback `Display_VSyncCallback` and read by the
+main loop `GameMain_Loop`, so `volatile` is semantically correct there.
 
 Inverse check: if the target *does* fill the slot with a store, that variable is
 **not** volatile — don't add the qualifier to fix something else.
@@ -149,7 +149,7 @@ jr    ra
 
 `D_8006EC30` / `D_80070E38` are the same shape for the draw path: main-line
 `func_8003DFB0` writes them (copies of `Display_State.field_100` /
-`field_103`) and the VSync callback `func_80027498` → `func_8002731C` reads
+`field_103`) and the VSync callback `Display_VSyncCallback` → `Display_FlipDraw` reads
 them. Without `volatile`:
 
 - successive `if (D_8006EC30 == …)` arms CSE the load (target reloads via a
@@ -157,9 +157,9 @@ them. Without `volatile`:
 - `(s8)D_80070E38 < 0x10` collapses to a single `lb` instead of
   `lbu` + `sll 24` + `sra 24`.
 
-**Writer/reader conflict on the same global.** The reader (`func_8002731C`)
+**Writer/reader conflict on the same global.** The reader (`Display_FlipDraw`)
 needs `D_8006EC30` volatile, but the writer (`func_8003DFB0`) must put the
-store in the `jal ExitCriticalSection` / `jal func_8002731C` delay slot.
+store in the `jal ExitCriticalSection` / `jal Display_FlipDraw` delay slot.
 Keep the global `volatile` and store through a non-volatile lvalue:
 
 ```c
@@ -168,7 +168,7 @@ ExitCriticalSection();
 ```
 
 `D_8005EC74` / `D_8005EC78` are the same VSync-shared pair on the lag path
-(`func_80027498` writes `D_8005EC74` and reads `D_8005EC78`; `func_8003DFB0`
+(`Display_VSyncCallback` writes `D_8005EC74` and reads `D_8005EC78`; `func_8003DFB0`
 does the inverse). Mark both `volatile` so the draw path reloads `D_8005EC74`
 twice and keeps `D_8005EC78 = 0` *outside* the following `jal VSync` delay
 slot.
@@ -347,7 +347,7 @@ base = SndBank_Slots;
 p = &base[(s8)arg0];
 ```
 
-`func_800561EC` needs this form so `F3D458_Free` can take `p->field_0` with the
+`SndBankSlot_Free` needs this form so `F3D458_Free` can take `p->field_0` with the
 base already in `$v0` before the stride multiply lands in `$s0`.
 
 ## `~x != 0` for `nor` + `sltu` (not `x != -1`)
@@ -364,7 +364,7 @@ semantically `x != -1`, but `x != -1` often compiles to a different compare
 sequence. `func_8005462C` is a one-liner that only matches with the `~` form:
 
 ```c
-return ~func_80055DAC(func_80053F00()) != 0;
+return ~SndVoice_FindById(func_80053F00()) != 0;
 ```
 
 ## Store-then-reload for prologue scheduling
@@ -759,9 +759,9 @@ Fix: take a local pointer to a typed overlay of the struct starting at offset
 
 ```c
 SndEvtFrom4* mid = (SndEvtFrom4*)&arg0->field_4;
-temp = func_80055DAC(mid->field_4); /* was arg0->field_8 */
+temp = SndVoice_FindById(mid->field_4); /* was arg0->field_8 */
 if (temp >= 0) {
-    func_80055B70(temp, mid->field_1); /* was arg0->field_5 */
+    SndVoice_SetVolumeRamp(temp, mid->field_1); /* was arg0->field_5 */
 }
 ```
 
@@ -827,7 +827,7 @@ return ret;         /* becomes: li v0, 3; jr ra; nop */
 
 Also prefer a local pointer (`p = &global`) so the base lands in `$v1` and gets
 overwritten by later field loads — matching the target's register reuse.
-`func_8001D4F0` needs this pattern.
+`CdCmd_GetOverlayStatus` needs this pattern.
 
 ## `u16 x = arg0` for early `move v0,a0` + prologue `sw ra`
 
@@ -1062,7 +1062,7 @@ default:
 return 0;
 ```
 
-`func_8001E6AC` needs this so the shell-open path can delay-slot-fill
+`CdCmd_PollStatus` needs this so the shell-open path can delay-slot-fill
 `andi a1, s1, 0xFFFF` from the not-open fall-through instead of preloading
 `v0 = 0`.
 
@@ -1080,7 +1080,7 @@ beqz v0, ...
 Declare (or cast) the callee as returning `s16`, not `bool`/`s32`. A `bool`
 definition still matches the callee body for 0/1 results, but call sites then
 lose the `sll`. `E734_CDIsShellOpenBitSet` was retyped from `bool` to `s16` so
-`func_8001E6AC` (and other CD helpers that already had the `sll` in target asm)
+`CdCmd_PollStatus` (and other CD helpers that already had the `sll` in target asm)
 match at the call site.
 
 ## Two-case switch may drop the `slti` range check
@@ -1155,7 +1155,7 @@ if ((s8)arg0 >= 0) {
 }
 ```
 
-`func_800517B4` needs this so both stores share one `lui v1, %hi(D_8007F2F0)`.
+`Midi_SetMasterVolume` needs this so both stores share one `lui v1, %hi(D_8007F2F0)`.
 
 ## One-iteration `for (i = 0; i <= 0; i++)` + array stride
 
@@ -1294,7 +1294,7 @@ instruction and shifting every later label. `SndVoice_Alloc` only matches with
 the `s32` + `(s8)` form.
 
 Note also that `SndBank_Slots` is walked two ways: as `SndBankSlot[16]` (stride
-`0x10`, via `SndBankSlot_Get` / `func_800561EC`) and as `SndVoice` slots
+`0x10`, via `SndBankSlot_Get` / `SndBankSlot_Free`) and as `SndVoice` slots
 (stride `0x40`, via `SndVoice_Alloc`). Cast the base rather than changing
 `SndBankSlot`.
 
@@ -1471,13 +1471,13 @@ stores — GCC still lowers `% 8` to `& 7`, but only after materializing the
 truncated u16 value of the first assignment:
 
 ```c
-D_8006AC04 = index + 1;
-D_8006AC04 = D_8006AC04 % 8;  /* not &= 7, not (index+1)&7 */
+CdCmd_EntryIter = index + 1;
+CdCmd_EntryIter = CdCmd_EntryIter % 8;  /* not &= 7, not (index+1)&7 */
 ```
 
-`func_8001D898` (8-entry queue walk of `CdCmd_Queue.entries`) is a pure example.
+`CdCmd_NextEntry` (8-entry queue walk of `CdCmd_Queue.entries`) is a pure example.
 The same double-store shape appears on `field_1c8` / `field_1ca` updates in the
-nearby ring producers (e.g. `func_8001D760`).
+nearby ring producers (e.g. `CdCmd_CommitReplace`).
 
 ## `s8` globals load with `lb`, not `lbu`
 
@@ -1496,7 +1496,7 @@ extern s8 D_800820E9;
 if (D_800820E9 != 0)      /* emits lb */
 ```
 
-`func_800518E0` / `func_80051DF4` both `lb` `D_800820E9`; stores remain `sb`
+`func_800518E0` / `Midi_UpdateVoiceVolumes` both `lb` `D_800820E9`; stores remain `sb`
 either way.
 
 ## `u8` temp for `srl` bit tests on `byte` fields
@@ -1662,7 +1662,7 @@ typedef struct {
 } GameOt; /* STATIC_ASSERT_SIZEOF(..., 0x14) */
 ```
 
-Init pattern (see `func_8003E6E4`): hold `GameOt* ot = Gpu_OrderingTables`, write
+Init pattern (see `Gpu_InitOtSmall`): hold `GameOt* ot = Gpu_OrderingTables`, write
 `length`/`org` for both slots, with the second `org` as `tags + (1 << length)`.
 OT tag storage of `0x200` bytes is two buffers of `0x100` (`u_long[0x80]`).
 
@@ -1677,7 +1677,7 @@ GsClearOt(0, 0, &ot[temp->field_118]);
 D_800710A0 = ot[temp->field_118].org;
 ```
 
-`func_8003E904` is the reference: sets both `Gpu_OrderingTables` slots to depth `0xA`
+`Gpu_InitOt` is the reference: sets both `Gpu_OrderingTables` slots to depth `0xA`
 with `D5F414_OrderingTables` / `+ C5F414_OTAG_ENTRIES`, clears the active buffer
 (`Display_State.field_118`), then points `D_800710A0` at the OT base.
 
@@ -1835,8 +1835,8 @@ state->field_1ca = state->field_1ca % 8;
 
 `% 8` on a u16 forces the zero-extend `andi 0xffff` before `andi 7`. Writing
 `x & 7` (or `(x + 1) & 7`) combines into a single `andi 7` and drops one store.
-`func_8001D898` (`D_8006AC04 = index + 1; D_8006AC04 = D_8006AC04 % 8;`) is the
-matched precedent; `func_8001C620` needs the same form for `field_1ca`.
+`CdCmd_NextEntry` (`CdCmd_EntryIter = index + 1; CdCmd_EntryIter = CdCmd_EntryIter % 8;`) is the
+matched precedent; `CdCmd_HandleMount` needs the same form for `field_1ca`.
 
 Same rule applies to **loop indices** that index `entries[i]` each iteration. A
 u16 walk of the ring:
@@ -1857,7 +1857,7 @@ needs `% 8` on both the initial wrap and the loop step. Using `i = (i + 1) & 7`
 lets GCC fold the zero-extend into the address calc (`sll` in the branch delay
 slot, pointer in `$a1` instead of `$a0`) and breaks the
 `andi v0, v1, 0xffff` / `addiu v1, v1, 1` / `sll v0, v0, 3` shape.
-`func_8001D424` is the pure example.
+`CdCmd_DropPending` is the pure example.
 
 ## Route a `volatile u8` load through an existing `s32` temp for s-reg order
 
@@ -1874,7 +1874,7 @@ field5 = (s8)field5;
 ```
 
 The volatile load still yields `lbu` + `sll 24` / `sra 24` (not `lb`), and
-`field5` lands in `$s3`. `func_8001C620` needs this for the case-0x54 prologue.
+`field5` lands in `$s3`. `CdCmd_HandleMount` needs this for the case-0x54 prologue.
 
 ## Force `addu v0, v0, s0` (scaled-index + base) for `entries[i]`
 
@@ -1897,7 +1897,7 @@ t += (u32)state;
 ((CdCmdEntry*)t)->field_4 = 0;
 ```
 
-`func_8001C620` cleanup needs this; prefer struct indexing when the operand
+`CdCmd_HandleMount` cleanup needs this; prefer struct indexing when the operand
 order already matches.
 
 ## if/else ret assignment vs pre-set ret for delay-slot returns
@@ -2068,7 +2068,7 @@ do {
 return -1;
 ```
 
-`func_80055DAC` is the pure example. Signed `i` + `do`/`while` also produces
+`SndVoice_FindById` is the pure example. Signed `i` + `do`/`while` also produces
 the target's `slti`/`bnez` count-up form.
 
 ## Cast away `volatile` for switch delay-slot constant CSE
@@ -2183,7 +2183,7 @@ parent->field_0 = 3;   /* sb …, -0x14(s0) */
 `volatile` on the parent pointer forces `addiu v0, s0, -0x14` + `lhu a1, 2(v0)`
 instead of a folded `lhu a1, -0x12(s0)`.
 
-`func_80057B24` is the pure example (`LinInterp_CdStream` / `CdAudio_Loc`).
+`CdAudio_StartVolumeRamp` is the pure example (`LinInterp_CdStream` / `CdAudio_Loc`).
 
 ## Pre-advance a walk pointer before the loop bound check
 
@@ -2488,7 +2488,7 @@ L_ret0:
 later `field = one` stores. Falling case3 into `L_ret0` avoids an extra
 `move v0, zero` / `j` before the shared epilogue path.
 
-`func_8001E2D4` is the full example (two copies of the CdSync status machine
+`CdCmd_PausePoll` is the full example (two copies of the CdSync status machine
 plus this final switch).
 
 ## Dual `func(0)` / `func(1)` calls vs a computed argument
@@ -2741,7 +2741,7 @@ Use a `volatile` cast on the store when the target keeps `sb` *before* the
 following `bnez` (delay slot holds the next `lui`, not the store). The project
 already uses `register … asm("reg")` elsewhere (`func_8005287C`, heap init).
 
-`func_8005454C` is the pure example: dual-purpose `flag` (loop fill value vs
+`SndBank_SetEnableFlags` is the pure example: dual-purpose `flag` (loop fill value vs
 bank-table base) needs `asm("v1")` for the address load form.
 
 ## if/else field stores reuse `$v0` for large constants better than a temp addend
@@ -2873,7 +2873,7 @@ if (state->field_4 != pos) {  /* beq v1,v0 — field in v1, pos in v0 */
 }
 ```
 
-`func_80057C74` is the example. Also mark interrupt-shared flags like
+`CdAudio_ReadyCallback` is the example. Also mark interrupt-shared flags like
 `D_80082770` (written by a `CdReadyCallback`, polled on the main path)
 `volatile` so the post-call store stays out of a `j` delay slot.
 
@@ -3036,7 +3036,7 @@ if (f12a == 1) {
 Display_State.field_106 = 0; /* separate lui after calls; delay-slot-friendly */
 ```
 
-`func_8001F2FC` is the pure example (`D_8006AC14` vs `Display_State.field_12a`).
+`CdCmd_StopMdec` is the pure example (`D_8006AC14` vs `Display_State.field_12a`).
 
 ## Equality comparison operand order controls `beq` register order
 
@@ -3049,7 +3049,7 @@ Target often has `beq a0, v0` after `lbu v0, field(ptr)` (loaded value in
 if (arg0 == (&Midi_Song)[i].field_1) {
 ```
 
-`func_800514F8` needed this (99.6% → 100%).
+`Midi_IsBusy` needed this (99.6% → 100%).
 
 ## Long-lived step in `$v1`: avoid intermediate field temps
 
@@ -3337,7 +3337,7 @@ t = (s8)t;                       /* sll; sra */
 ```
 
 Same pattern as `C37C.c`'s `status = *(volatile u8*)&entry->param0` followed by
-`field5 = (s8)field5`. `func_80055B70` needs this for `SndScript.field_13`.
+`field5 = (s8)field5`. `SndVoice_SetVolumeRamp` needs this for `SndScript.field_13`.
 
 ## Three-way sign with `<= 0` outer for `bgtz` fall-through
 
@@ -3366,7 +3366,7 @@ p->dirty = 1;
 
 `if (diff <= 0)` (not `if (diff > 0)` first) makes the positive arm the `bgtz`
 branch target and the negative arm fall through after `bgez` fails — matching
-the `bgtz` / `bgez` / shared-zero label shape of `func_80055B70` / `func_80055A9C`.
+the `bgtz` / `bgez` / shared-zero label shape of `SndVoice_SetVolumeRamp` / `func_80055A9C`.
 
 ## Booleanize `(x & mask)` via `== mask`, not `!= 0`
 
@@ -3401,7 +3401,7 @@ if (temp != 0) {
 }
 ```
 
-`func_8001E57C` case 1 is the example (`CdlStatShellOpen == 0x10`).
+`CdCmd_RecoverDisk` case 1 is the example (`CdlStatShellOpen == 0x10`).
 
 ## Reassign call result to force `li`/`bne` equality tests
 
@@ -3421,7 +3421,7 @@ if (temp != 0) {
 }
 ```
 
-`func_8001E57C` case 0 is the example.
+`CdCmd_RecoverDisk` case 0 is the example.
 
 ## Place loop-invariant table load inside the `if` to order `andi` before `lui`
 
@@ -3458,7 +3458,7 @@ Do **not** fix this by early `arg0 &= 0xFF` on an `s32` parameter: that gets the
 equality branch (and the matching reload of `field_1` on the `arg0 == 0` path).
 Keeping `u8` params and moving the table assignment is what preserves both.
 
-`func_80051744` is the pure example. Pair with the one-iteration
+`Midi_SetVolumeScale` is the pure example. Pair with the one-iteration
 `for (i = 0; i <= 0; i++)` + `MidiSong` array pattern for `Midi_Song`.
 
 ## Stack-struct pointer: RMW via temp forces `lw v1` then `lw a0`
@@ -3503,7 +3503,7 @@ slot = arg0->voiceSlots;
 do { ...; i++; slot++; } while (i < 0x12);
 ```
 
-`func_80051AF0` is the pure example.
+`Midi_KeyOffVoices` is the pure example.
 
 ## Call-arg width: wrong prototype gives `lb` instead of `lw`
 
@@ -3714,7 +3714,7 @@ DecDCTvlcSize2(DecDCTBufSize(frame) / 2 + 2);
 
 Pair with a separate `DecDCTvlcSize2(0)` on the other branch (rather than a
 shared `size` phi) so the zero path still fills the `bnez` delay with
-`move a0,zero` and both paths share no local. `func_8001F990` is the example.
+`move a0,zero` and both paths share no local. `Mdec_DecodeFrame` is the example.
 
 ## Reload a global (not the local pointer) to fill a branch delay with `lui`
 
@@ -3749,7 +3749,7 @@ return 0;
 ```
 
 Pair with early `return 1` / `return 0` (not a `ret` phi) so the `bnez` delay
-holds `li v0,1` and the call path ends in `move v0,zero`. `func_80056700` is
+holds `li v0,1` and the call path ends in `move v0,zero`. `CdAudio_Begin` is
 the pure example.
 
 ## Prefer Psy-Q GPU macros for OT prim insertion
@@ -4256,7 +4256,7 @@ for (i = 0; i <= 0; i++) {
 
 GCC still walks with `addiu s0, s0, 0x5DC` and fills the post-call `j` delay
 with that step, but emits a one-shot `addiu a0, s0, 0x14` for the call.
-`func_800515C0` is the pure example.
+`Midi_StartFadeOut` is the pure example.
 
 ## `field <<= 16` reloads; `field = saved << 16` CSE's into a callee-saved
 
@@ -4537,7 +4537,7 @@ func_80055A9C(idx, (s8)p->field_4, (s8)mid->field_1); /* lb, not lbu */
 
 Bare `p->field_4` with an `s8` formal also yields `lb`, but then the callee
 mismatches. Prefer `s32` formals + `(s8)` at the few call sites. `func_80055A9C`
-/ `func_80050C30` are the pure example (sibling `func_80055B70` already takes
+/ `func_80050C30` are the pure example (sibling `SndVoice_SetVolumeRamp` already takes
 `s32` and its caller correctly uses `lbu`).
 
 ## Early load into a temp forces prior store before zero-fills
@@ -4782,14 +4782,14 @@ Fix without matching the middle function yet:
 ```c
 static const s32 s_jtbl_pad = 0;
 const s32 jtbl_80012FCC[9] = {
-    0x8001D29C, /* absolute targets of still-asm func_8001D0E8 */
+    0x8001D29C, /* absolute targets of still-asm CdCmd_EnqueueFollowUp */
     /* ... */
 };
 ```
 
 Remove the pad and absolute table when the middle function is matched (its
-compiler-generated jtbl will occupy the slot naturally). `func_8001CEFC` is the
-example (pad for `jtbl_80012FCC` / `func_8001D0E8`).
+compiler-generated jtbl will occupy the slot naturally). `CdCmd_ProcessPhase2` is the
+example (pad for `jtbl_80012FCC` / `CdCmd_EnqueueFollowUp`).
 
 ## Hex digit loop: `asm("")` after the raw-digit store
 
@@ -5037,7 +5037,7 @@ slot = (MidiNoteSlot*)(offset + (s32)obj);
 slot = ((MidiSong*)slot)->voiceSlots; /* addiu a1, a1, 0x504 */
 ```
 
-`func_80051964` is the pure example (voice-slot clear loop). Pair with the
+`Midi_InitSlot` is the pure example (voice-slot clear loop). Pair with the
 `offset + (s32)base` integer cast (see “Force `addu rd, offset, base`”) so the
 `addu` operands stay offset-first.
 
@@ -5387,7 +5387,7 @@ loop:
     }
 ```
 
-`func_8001EDC8` is the pure example (search of `Stream_Slots`, mask of `arg1`
+`Stream_FindSlot` is the pure example (search of `Stream_Slots`, mask of `arg1`
 against `field_10`).
 
 ## Place `return -1` after shared match labels
@@ -5495,7 +5495,7 @@ The compiler still emits `addiu $s0, $s0, 0x60` for the walk, but no longer
 CSEs `&p->field_50` into a second live pointer. Operand order `arg0 == p->field_0`
 also matters for `beq $s4, $v1` vs the swapped form.
 
-`func_800559BC` is the pure example. Closely related: `func_8005166C` avoids the
+`SndVoice_FadeMatching` is the pure example. Closely related: `Midi_FadeVolume` avoids the
 trap because its status byte sits at offset 0 (free relative to the base) and
 the interpolator is only `+0x14`.
 
@@ -5786,7 +5786,7 @@ PutDispEnv(&dispBase[buf]);   /* then addu a0, s2, a0 */
 /* later DrawOTag(Gpu_OtBuffers[buf].field_10) reuses $s2 */
 ```
 
-`func_80027498` needs this for `PutDispEnv(&Display_State.field_20[buf])`
+`Display_VSyncCallback` needs this for `PutDispEnv(&Display_State.field_20[buf])`
 (DISPENV and GpuOtBuf are both 0x14). Without the dead `stride` store the
 `addiu a0,s1,0x20` lands either too early (right after `PutDrawEnv`) or as
 `addiu a0,s2,0x20` / `addu a0,a0,s1`.
@@ -5798,7 +5798,7 @@ PutDispEnv(&dispBase[buf]);   /* then addu a0, s2, a0 */
 slot. Use `s8` when the target has plain `lb`.
 
 `Display_State.field_108` is written by main-line code and read by the VSync
-callback `func_80027498`. Marking it `volatile u8` forces a second load for
+callback `Display_VSyncCallback`. Marking it `volatile u8` forces a second load for
 `if (f == 0) … else if (f == 1)` (target reloads into `$v1` rather than CSE'ing
 the first `lbu`). Same idea as `D_8006EC30` / `D_80070E38`.
 
@@ -5981,7 +5981,7 @@ entry->cmd = p->field_50.cmd;   /* second load now materializes */
 ```
 
 (The cast can sit on either access.) Same shape already used in `cdcmd.c` for
-`entry->param0`. `func_8001D760` (commit `field_50` into the ring) is the pure
+`entry->param0`. `CdCmd_CommitReplace` (commit `field_50` into the ring) is the pure
 example; pair with `(s16)writeIdx` when the return needs `sll`/`sra 16`
 sign-extend rather than Enqueue's `andi …, 0xffff` zero-extend.
 
@@ -6217,7 +6217,7 @@ return 0;
 A bare `if (p->field_20E != 0)` emits `lh` and often inverts branch polarity
 (`beqz` with the non-zero body as fall-through). Prefer the positive `!= 0`
 test first so GCC emits `bnez` with the zero-return as the fall-through
-epilogue. `func_8001C970` (`CdCmd_Queue.field_20E`).
+epilogue. `CdCmd_ActivatePhase1` (`CdCmd_Queue.field_20E`).
 
 ## Short-lived stack `RECT*` stays in `$a1` for switch stores + callee arg
 
@@ -6271,7 +6271,7 @@ Assigning the pointer only after the guards leaves `%hi` later, parks the raw
 `arg0` in `$s2`, and puts other bases in `$s0` — a register shuffle that looks
 like a large diff even when the body is otherwise identical.
 
-`func_800572FC` needs `sector = &Fs_CdSector` first, then the
+`CdAudio_FeedSector` needs `sector = &Fs_CdSector` first, then the
 `CdAudio_Ctl.field_B` / `CdAudio_Tbl.field_1` guards, then `arg = arg0 & 0xFF`.
 
 ## `volatile` struct pointer preserves independent field load order
@@ -6735,7 +6735,7 @@ cursor += 0x3C;
 } while (++j < (s32)obj->field_3);
 ```
 
-`func_800510D4` is the pure example (MidiSong status driver over Midi_Song).
+`Midi_Tick` is the pure example (MidiSong status driver over Midi_Song).
 
 
 ## Reuse a temp through field copy and `&= ~const` masks
@@ -6834,7 +6834,7 @@ GCC 2.8.1 lays this out as fallthrough setup → `j`/`move v0,s3` → `li v0,-1`
 → epilogue, with `beqz` to the `li`. Early `return orig` from the outer
 `if (arg0 == 0)` path merges into `ret_orig`.
 
-`func_8005414C` is the pure example.
+`SndEvt_EnqueueType6` is the pure example.
 
 ## Switch case stores of `field_30` vs a shared `next` temp
 
@@ -6960,7 +6960,7 @@ Pair with `register u_long **base asm("v1")` when a later double-buffer base
 (`D_8006AC48`) must also be `lui v1; addiu v1,v1,%lo` rather than
 `lui v0; addiu v1,v0`.
 
-`func_8001F854` is the pure example.
+`Mdec_KickStrip` is the pure example.
 
 ## Dual 7-bit volume product divides by 16129 (127×127)
 
@@ -6973,7 +6973,7 @@ SPU voice volume scaling multiplies a master level (`s8`, often 0..0x7F) by two
 node->field_2 = (master * params->field_5 * node->field_A) / 16129;
 ```
 
-Do not hand-write the magic constant. `func_80055DFC` (and the same sequence in
+Do not hand-write the magic constant. `SndVoice_ApplyMasterVolume` (and the same sequence in
 `SndScript_Exec`) is the reference. Related layout notes:
 
 - `SndScript::field_4C` is a `SndVoiceParams*` voice-param block (`field_5` scale).
@@ -7111,7 +7111,7 @@ p->b0 = color;
 
 Writing `p = D_80070EE0` first swaps the two `lui`s (~99.7% near-match). The
 `*(volatile u8*)&` cast is required for the post-`sh` `lbu`; a plain
-`(u8)D_8006ACB4` may keep the value in a register. `func_80021808` is the pure
+`(u8)D_8006ACB4` may keep the value in a register. `Fade_StartWhite` is the pure
 example (fullscreen white TILE at OT slot `-0x10` plus `setDrawTPage(..., 0, 1, 0x40)`).
 
 ## Scoped `register asm` pin for delay-slot `move a0,v1` after `lb`
@@ -7230,7 +7230,7 @@ p = &CdCmd_Queue;
 }
 ```
 
-`func_8001C0D4` is the pure example. The two bases (`s0` for `state`, `a0` for
+`CdCmd_HandleFileLoad` is the pure example. The two bases (`s0` for `state`, `a0` for
 the reloaded `p`) are required so `field_222` and `busy` use different
 addressing.
 
@@ -7253,7 +7253,7 @@ if (sync == diskErr) {
 ```
 
 Each site reloads `li v1, 5` after the `jal`, matching the ROM. Same idea as
-other `asm("" : "+r"(...))` REG_EQUAL kills; `func_8001C0D4` is the pure
+other `asm("" : "+r"(...))` REG_EQUAL kills; `CdCmd_HandleFileLoad` is the pure
 CdSync example.
 
 ## Two near-identical status switches: fully inline the shared tails
@@ -7268,10 +7268,10 @@ site (duplicate the small blocks). GCC still cross-jumps the *identical*
 `ret < 2 → (ret==0 ? return : end)` sequences into one shared block, so you
 keep a single handle without the bad merge — and the sites that need a
 *different* shape (case 5 retry uses an inverted `ret >= 2` tree) stay
-separate. Also avoids `move a0, v0` after `func_8001E6AC` that appears when
+separate. Also avoids `move a0, v0` after `CdCmd_PollStatus` that appears when
 `ret` is live into a multi-predecessor shared label across calls.
 
-`func_8001C0D4` is the pure example (paired with the busy-temp tip above).
+`CdCmd_HandleFileLoad` is the pure example (paired with the busy-temp tip above).
 
 ## Reuse one pointer across Task* → field_20 → UiObject* for `$a0`/`lw a0,0x20(a0)`
 
@@ -7801,7 +7801,7 @@ do_work:
 ```
 
 Pairs with the early busy-path `if (flag != 0) return 1;` (which still puts
-`li v0, 1` in the `bnez` delay slot). `func_8001CDF0` is the pure example.
+`li v0, 1` in the `bnez` delay slot). `CdCmd_ActivatePhase2` is the pure example.
 
 ## Keep signed-div dividend live for early `sra` before `mfhi`
 
@@ -7862,7 +7862,7 @@ index = (new_val & mask) - 1;
 p = &base[t & mask]; /* keeps andi after lhu / xori */
 ```
 
-`func_8001F6B8` needs this so `xori` (flip) and `andi`/`sll`/`addu` (pointer)
+`Mdec_UploadSlice` needs this so `xori` (flip) and `andi`/`sll`/`addu` (pointer)
 share the same `lhu` of `D_8005EAEE`.
 
 ## Pin callee-saved reg + empty asm for store-in-delay-slot schedules
@@ -7894,7 +7894,7 @@ DecDCTout(*p, size);
 
 Without `asm("s1")` on `base`, the empty asm alone matched the body but
 swapped `$s0`/`$s1` between `D_8005EAEE` (`%hi` only) and `D_8006AC48`
-(full address). `func_8001F6B8` is the pure example.
+(full address). `Mdec_UploadSlice` is the pure example.
 
 ## Snapshot compare operand so a post-load `arg++` fills the `bne` delay
 
@@ -8342,7 +8342,7 @@ Force both copies to stay:
    `Mem_Set`) while the second arm reassigns the original `p` /
    `$s0` (`p = &CdCmd_Queue` at the cleanup label).
 
-`func_8001CA70` is the example — cases 3/4/6/7 clean up via `$a0`, case 8 via
+`CdCmd_ProcessPhase1` is the example — cases 3/4/6/7 clean up via `$a0`, case 8 via
 `$s0`.
 
 ## `s32` temp for halfword so the pointer stays in `$v1`
@@ -8366,7 +8366,7 @@ if (temp) {
 
 The wider temp prefers `$v0` and leaves `$v1` for the pointer. Same family as
 the `s16 ret` tip (narrow vs wide forcing different REG_EQUAL modes), just the
-other direction. `func_8001CA70` case 8 / `field_190` is the pure example.
+other direction. `CdCmd_ProcessPhase1` case 8 / `field_190` is the pure example.
 
 ## Empty memory clobber forces `sw ra` before the first delayed branch
 
@@ -8553,7 +8553,7 @@ rect.h = 0xF0 - field;
 LoadImage(&rect, D4CB64_ImgBuffers);
 ```
 
-`rect.w` then `rect.x` produces `addiu` first. `func_80027F48` is the pure
+`rect.w` then `rect.x` produces `addiu` first. `Display_LoadImageStrips` is the pure
 example — only that swap separated 99.4% from 100%.
 
 ## GTE LZC: compute store address after the latency nops
@@ -8712,8 +8712,8 @@ p->w = w;
 rect.w = w;
 ```
 
-That frees `$t6` for the early `move t6,a0`. `func_8002169C` is the pure
-example (fade-up sibling of `func_8002191C`).
+That frees `$t6` for the early `move t6,a0`. `Fade_StepIn` is the pure
+example (fade-up sibling of `Fade_StepOut`).
 
 ## `do { x = (s32)SomeFunc; } while (0)` delays the following store
 
@@ -8981,7 +8981,7 @@ temp = D_w * h;          /* mult a2, a1; lhu w before lhu h */
 ptr = base + stride;     /* reuses $a1 for the * 0x30 shift pattern */
 ```
 
-`func_8001EB44` case 0 is the pure example (MDEC buffer layout).
+`Mdec_SetupBuffers` case 0 is the pure example (MDEC buffer layout).
 
 ## Stack pad between packed s32 and RECT (0x10 / 0x18 locals)
 
@@ -9070,7 +9070,7 @@ ret = new_var;
 return new_var; /* default return-1 paths */
 ```
 
-`func_8001D0E8` is the pure example. Plain `ret = 1` stuck at xor/sltiu.
+`CdCmd_EnqueueFollowUp` is the pure example. Plain `ret = 1` stuck at xor/sltiu.
 
 ## `do{}while(0)` + `register … asm` for shared enqueue register map
 
@@ -9101,7 +9101,7 @@ Also: use `(&Global)->field` (not a local `q = &Global`) on a later path when
 the target reloads the global into `$a0` while `$a0` already holds another
 address in a delay slot.
 
-`func_8001D0E8` needs all of the above together.
+`CdCmd_EnqueueFollowUp` needs all of the above together.
 
 ## Triple address-of for same-page BSS `lui` order
 
@@ -9617,7 +9617,7 @@ else if (entry->cmd == 0x62) { entry->cmd = 0x61; }
 ```
 
 GCC CSEs the two `entry->cmd` loads into one `lbu` either way; only the
-register assignment differs. `func_8001BE60` is the pure example (cmds 0x61 /
+register assignment differs. `CdCmd_HandleStreamDecode` is the pure example (cmds 0x61 /
 0x62 on `CdCmdEntry`).
 
 ## Dual `global = Mem_Malloc(...)` arms share one `jal` and pin `%hi` in `$s0`
@@ -9658,7 +9658,7 @@ return D_xxx;
 GCC 2.8.1 merges the two call sites into one `jal` (the fixed-size arm jumps
 with `a0` already set). A single shared site via `goto do_malloc` or a flag
 keeps the control flow but reloads `%hi` into `$v0`/`$v1` after the call
-instead of pinning it in `$s0` from the zeroing store. `func_8001BB7C` /
+instead of pinning it in `$s0` from the zeroing store. `CdCmd_SetupMdecBuffers` /
 `D_8006AC00` is the pure example.
 
 ## Preload switch-case locals to control delay-slot fill and `lui` order
@@ -9782,7 +9782,7 @@ const s32 jtbl_B[] = { 0x800xxxxx, … };
 INCLUDE_ASM(…, func_B);
 ```
 
-`func_80056B28` / `jtbl_80014204` (still-asm `func_80056E38`) is the example.
+`CdAudio_DriveSeek` / `jtbl_80014204` (still-asm `CdAudio_DriveRead`) is the example.
 
 ## Early `hdr` load + `register asm` pins for multi-use sector pointer
 
@@ -9811,7 +9811,7 @@ case 8:
 tmp = counter; tmp = tmp + 1; counter = tmp; /* pin tmp to a0 */
 ```
 
-`func_80056B28` is the pure example.
+`CdAudio_DriveSeek` is the pure example.
 
 ## Flip comparison operators to control load order of slt operands
 
@@ -9839,7 +9839,7 @@ Pulling `field_C` into a temporary *before* the `field_2 == -1` test is too
 aggressive — it fills the `lb` delay slot and shortens the function. Keep the
 compare inline and only flip the operator.
 
-`func_80054D58` is the pure example (also: stash `score = p->field_4` before
+`SndVoice_ScanCandidates` is the pure example (also: stash `score = p->field_4` before
 paired `sb`/`sw` so the target gets `lw; sb; sw` rather than `sb; lw; nop; sw`).
 
 ## Separate stream pointers so timeout shares `$v1` while case-2 keeps `$s0`
@@ -9879,7 +9879,7 @@ audio = (volatile CdAudioLocEx*)&CdAudio_Loc;
 CdIntToPos(audio->field_4, (CdlLOC*)&audio->field_10);
 ```
 
-`func_80056E38` is the pure example.
+`CdAudio_DriveRead` is the pure example.
 
 ## Force `move v0,v1` + reload: dual `asm("v0")` temps with empty barrier
 
@@ -10014,7 +10014,7 @@ epilogue:
 
 `Task_AllocIdMap` is the pure example (`field_1 == 1` → `func_8005132C` then
 shared `D_80062734 = 0xFF; Task_Kill`). Explicit `goto epilogue` on the
-`func_800514F8 != 0` path inverted the `field_1` branch to `beq` with the
+`Midi_IsBusy != 0` path inverted the `field_1` branch to `beq` with the
 bodies swapped.
 
 ## Force `lui a0` before `lh a1` for global+halfword call args
@@ -10573,7 +10573,7 @@ func_8004D35C(sp18, slot->field_5 + f3, vol);
 Pair with `register s32 temp asm("v0"); register s32 scale asm("v1");` for the
 shared `(temp * scale) / 127U` path so the join `mult` is `mult v0, v1`.
 Use unsigned division (`/ 127U`, `/ 16129U`) when the target has `multu` magic.
-`func_80051DF4` is the pure example.
+`Midi_UpdateVoiceVolumes` is the pure example.
 
 ## `s16` temp for `field = -1` on a `u16` field
 
@@ -10667,7 +10667,7 @@ tmp = 2;
 p->field_16 = tmp; /* QI store of SI temp — no hoist */
 ```
 
-`func_80054938` is the pure example (SndScript_Slots state machine, field_16 cases
+`SndVoice_DriveSlots` is the pure example (SndScript_Slots state machine, field_16 cases
 1/2/4/8/0x10/0x20/0x80).
 
 ## `*(volatile u8*)&field` forces lbu+sll24+sra24 sign-extend
@@ -10699,7 +10699,7 @@ if (step > 0) {
 }
 ```
 
-`func_80054938` field_13/15 envelope uses this with `register s32 temp asm("v0")`.
+`SndVoice_DriveSlots` field_13/15 envelope uses this with `register s32 temp asm("v0")`.
 
 ## Force both ALU ops before either store with `+r` barriers
 
@@ -10842,7 +10842,7 @@ offset += 0x5C;
 } while (i <= 0); /* blez delay: addiu offset */
 ```
 
-`func_8002C5A4` is the pure example. Pair with two-phase scratch alloc
+`Pad_UpdatePort0` is the pure example. Pair with two-phase scratch alloc
 (`register void* tmp asm("v0")` then `register PadScratch* scratch asm("s1")`)
 for `lw v0; addiu v0,-N; move s1,v0; sw s1`.
 
@@ -10871,7 +10871,7 @@ follow-up test are real memory ops:
 ```
 
 Do **not** mark the whole `PadState*` volatile — that turns `lh field_54` into
-`lhu` + sign-extend. `func_8002C5A4` is the pure example.
+`lhu` + sign-extend. `Pad_UpdatePort0` is the pure example.
 
 ## Volatile store before `jal` (no delay-slot fill)
 
@@ -10953,7 +10953,7 @@ RTIR via `gte_ldclmv` + `gte_rtir_real` (`0x4A49E012`) + `gte_stclmv` three time
 
 ## Local OT pointer for `D_800710A0` so `%hi` stays temporary
 
-`func_8002785C` (and similar dual-buffer main loops) must both:
+`GameMain_Loop` (and similar dual-buffer main loops) must both:
 1. pin `Gpu_OtBuffers` as **two** regs (`s8` = `%hi`, `s7` = full via `addiu s7,s8,%lo`) for `func_8003DFB0` (`addiu a0,s8,%lo`) and `DrawOTag` (`addu v0,stride,s7`);
 2. use `%hi(D_800710A0)` only temporarily in `$s0` around `ClearOTagR`, not as a function-wide pin.
 
@@ -11339,7 +11339,7 @@ Column targets use `head - 0x42` (col1) and `head - 0x40` (col2), same
   duration, add `Display_State.field_124 == 1 ? 0x9999 : 0x10000` and return 0;
   on success subtract `duration << 16` and return 1 (caller loops while nonzero).
 - Volume: `(scale * field_4C->field_5 * voice->field_A) / 16129` (127²), same
-  as `func_80055DFC`.
+  as `SndVoice_ApplyMasterVolume`.
 
 ## `a3` prim pointer → `t0` copy frees `a3` for the `0xFFFFFF` mask
 

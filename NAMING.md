@@ -25,6 +25,13 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 |---|---|---|---|
 | `Fs_` | CD filesystem, STAGE*.CDF / STAGE0.HED | `src/main/fs.c` | `include/main/fs.h` |
 | `CdCmd_` | CD load command ring buffer | `src/main/cdcmd.c` | `include/main/fs.h` |
+| `Fade_` | Fullscreen semi-trans TILE fade | `src/main/11E9C.c` | — |
+| `Mdec_` | MDEC/STR strip decode | `src/main/stream.c` | — |
+| `Midi_` | Song block / MIDI sequencer | `src/main/sndevt.c` | types in `game.h` |
+| `SndVoice_` / `SndBank` / `SndBankSlot_` | SFX voice slots + bank table | `src/main/sndscript.c` | types in `game.h` |
+| `CdVol_` | CD-DA volume table apply | `src/main/16494.c` | — |
+| `CdAudio_` | CD-driven audio player (expanded) | `src/main/cdaudio.c` | types in `game.h` |
+| `Gpu_` | OT / light / graph reset helpers | `src/main/otutil.c`, `tmd.c` | — |
 | `Boot_` | Cold-boot / title path | `src/main/boot.c` | `include/main/boot.h` |
 | `Mem_` / `GHeap` | Heaps | `src/main/mem.c` | `include/main/mem.h` |
 | `Task_` | Cooperative task list / spawn / kill | `src/main/task.c` | `include/main/task.h` |

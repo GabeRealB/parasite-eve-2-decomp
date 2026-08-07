@@ -2123,7 +2123,7 @@ void func_80049A8C(Task* arg0)
     UiPanel* temp_s0;
 
     temp_s0 = arg0->field_20;
-    if (func_8001D344() != 0) {
+    if (CdCmd_IsIdle() != 0) {
         func_801D4B64(arg0);
         return;
     }

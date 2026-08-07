@@ -122,7 +122,7 @@ L_case2:
     if (a0->field_2a < 0x5A) {
         a0->field_2a = a0->field_2a + 1;
     }
-    if (func_8001D344() == 0) {
+    if (CdCmd_IsIdle() == 0) {
         return;
     }
     if (a0->field_2a < 0x5A) {
@@ -161,14 +161,14 @@ L_case4:
 
 void F04CF8_800148A0(void)
 {
-    func_80056700();
+    CdAudio_Begin();
     while (CdAudio_Phase.field_2 != 4) {
     }
 }
 
 void F04CF8_800148EC(void)
 {
-    func_800574BC();
+    CdAudio_Init();
 }
 
 void func_8001490C(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -233,7 +233,7 @@ void F04CF8_80014A50(void)
     CdInit();
     param[0] = CdlModeSpeed;
     CdControlB(CdlSetmode, param, NULL);
-    func_800574BC();
+    CdAudio_Init();
     CdCmd_ClearQueue();
 }
 
@@ -280,7 +280,7 @@ void func_80014B38(Task* arg0)
             arg0->field_30 = arg0->field_30 + 1;
             return;
         case 1:
-            if (func_8001D344() != 0) {
+            if (CdCmd_IsIdle() != 0) {
                 SetDispMask(1);
                 func_800144F8(0, 0);
                 Task_SpawnFromTable((TaskDesc*)&D_80094C8C, 0, 0, 0);
@@ -293,7 +293,7 @@ void func_80014B38(Task* arg0)
 
 void func_80014C2C(void)
 {
-    func_8001DB84();
+    CdCmd_Dispatch();
 }
 
 bool Fs_StageCdfIsAvailable(u32 stageIdx)

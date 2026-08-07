@@ -27,7 +27,7 @@ void func_8002B834(Task* arg0)
             }
             arg0->field_30 = arg0->field_30 + 1;
         }
-        if (func_8001D344() != 0) {
+        if (CdCmd_IsIdle() != 0) {
             if (Display_State.field_10e == 0) {
                 Display_State.field_10e = 1;
             }
@@ -275,7 +275,7 @@ void func_8002BFD4(void)
 
 void func_8002BFE0(Task* arg0)
 {
-    if (func_8001D344() != 0) {
+    if (CdCmd_IsIdle() != 0) {
         Task_Spawn(0, 0x11, 1, 0);
         Task_Kill(arg0);
     }
@@ -373,7 +373,7 @@ void func_8002C090(PadState* arg0)
 
 INCLUDE_ASM("main/nonmatchings/gameflow", func_8002C1D8);
 
-void func_8002C5A4(void)
+void Pad_UpdatePort0(void)
 {
     s32                  i;
     s32                  offset;

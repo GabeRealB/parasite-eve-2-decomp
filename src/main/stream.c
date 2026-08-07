@@ -11,7 +11,7 @@
 #include "main/mem.h"
 #include "main/unknown_syms.h"
 
-void func_8001EB44(u8* arg0)
+void Mdec_SetupBuffers(u8* arg0)
 {
     s32     temp_lo;
     u16*    temp_v1;
@@ -74,7 +74,7 @@ void func_8001EB44(u8* arg0)
     }
 }
 
-void func_8001ED20(u32 arg0)
+void Stream_InitFromSlot(u32 arg0)
 {
     StreamSlot* base;
     StreamSlot* entry;
@@ -95,7 +95,7 @@ void func_8001ED20(u32 arg0)
     D_8006AC18            = entry->field_26;
 }
 
-s16 func_8001EDC8(u8* arg0, s32 arg1, s32 arg2)
+s16 Stream_FindSlot(u8* arg0, s32 arg1, s32 arg2)
 {
     s32         i;
     s32         found;
@@ -159,7 +159,7 @@ ret_neg:
     return -1;
 }
 
-s16 func_8001EED8(u8* arg0)
+s16 Stream_FindSlotByKey(u8* arg0)
 {
     s32         i;
     StreamSlot* base;
@@ -238,8 +238,8 @@ s32 func_8001EF9C(s32 arg0, s32 arg1)
         }
         func_80041EB4();
         if (Display_State.field_12a == 1) {
-            func_8001D39C();
-            func_8001D498();
+            CdCmd_BuildVlcIfStream();
+            CdCmd_SelectMdecBuffer();
         }
         D_8006AC28 = D_8006AC28 + 1;
         if (arg1 & 0xFFFF) {
@@ -259,7 +259,7 @@ s32 func_8001EF9C(s32 arg0, s32 arg1)
         }
         goto ret_one;
     }
-    if (func_8001D344() & 0xFFFF) {
+    if (CdCmd_IsIdle() & 0xFFFF) {
         p->field_244 = 0;
         D_8006AC28   = D_8006AC28 + 1;
         return 1;
@@ -274,14 +274,14 @@ ret_zero:
 
 INCLUDE_ASM("main/nonmatchings/stream", func_8001F180);
 
-s32 func_8001F2FC(s32 arg0)
+s32 CdCmd_StopMdec(s32 arg0)
 {
     RECT        rect;
     s32         ac14;
     s32         f12a;
     CdCmdQueue* p;
 
-    if (func_8001E2D4() & 0xFFFF) {
+    if (CdCmd_PausePoll() & 0xFFFF) {
         p = &CdCmd_Queue;
         DecDCToutCallback(0);
         DecDCTReset(0);
@@ -324,7 +324,7 @@ s32 func_8001F2FC(s32 arg0)
 
 INCLUDE_ASM("main/nonmatchings/stream", func_8001F430);
 
-void func_8001F6B8(void)
+void Mdec_UploadSlice(void)
 {
     RECT              rect;
     s32               index;
@@ -388,7 +388,7 @@ void func_8001F6B8(void)
     func_8001F430();
 }
 
-void func_8001F854(void)
+void Mdec_KickStrip(void)
 {
     CdCmdQueue*       p;
     s32               size;
@@ -421,7 +421,7 @@ void func_8001F854(void)
     D_8005EAEC  ^= 1;
 }
 
-void func_8001F990(void)
+void Mdec_DecodeFrame(void)
 {
     StHEADER*   header;
     CdCmdQueue* p;
@@ -429,7 +429,7 @@ void func_8001F990(void)
     p = &CdCmd_Queue;
     if (D_8006AC1A != 0) {
         if (DecDCTvlc2(NULL, NULL, D_8006AC38) == 0) {
-            func_8001F854();
+            Mdec_KickStrip();
         }
         return;
     }
@@ -439,7 +439,7 @@ void func_8001F990(void)
     }
 
     if (header->frameCount >= (u32)D_8006AC0C) {
-        func_80026218(0);
+        CdVol_ApplyFromTable(0);
         p->field_1F6 = 1;
         p->field_1E4 = 4;
     }
@@ -452,7 +452,7 @@ void func_8001F990(void)
     }
 
     if (DecDCTvlc2(D_8006AC68, D_8006AC50[D_8005EAEC], D_8006AC38) == 0) {
-        func_8001F854();
+        Mdec_KickStrip();
     } else {
         D_8006AC1A = 1;
     }
@@ -477,7 +477,7 @@ void func_80020298(s16 arg0)
     CdCmdQueue* p;
 
     p = &CdCmd_Queue;
-    func_80041E4C();
+    Gpu_ResetGraphAndOt();
     Mem_SetActiveAuxHeap(0);
     Mem_InitAux();
     if (Display_State.field_12a == 0) {
@@ -506,7 +506,7 @@ void func_80020388(void)
     D_8006AC28 = 0;
 }
 
-s16 func_80020394(void* arg0)
+s16 Stream_HasActiveLowId(void* arg0)
 {
     s32 i;
     s32 result;

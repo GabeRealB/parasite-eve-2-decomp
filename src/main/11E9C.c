@@ -5,7 +5,7 @@
 #include "main/mem.h"
 #include "main/unknown_syms.h"
 
-s32 func_8002169C(s32 arg0)
+s32 Fade_StepIn(s32 arg0)
 {
     TILE*        p;
     DR_TPAGE*    dr;
@@ -55,7 +55,7 @@ s32 func_8002169C(s32 arg0)
     return ret;
 }
 
-void func_80021808(void)
+void Fade_StartWhite(void)
 {
     TILE*     p;
     DR_TPAGE* dr;
@@ -85,7 +85,7 @@ void func_80021808(void)
     addPrim(D_800710A0 - 0x10, dr);
 }
 
-s32 func_8002191C(s32 arg0)
+s32 Fade_StepOut(s32 arg0)
 {
     TILE*     p;
     DR_TPAGE* dr;
@@ -604,11 +604,11 @@ void func_8002226C(void* arg0, void* arg1)
             D_8006ACA2 = 0;
             D_8006ACA8 = 0;
             D_8006ACA6 = 0;
-            func_80021808();
+            Fade_StartWhite();
             D5B498_8006AC9C++;
             /* fallthrough */
         case 1:
-            if ((func_8002191C(0x10) & 0xFFFF) != 0) {
+            if ((Fade_StepOut(0x10) & 0xFFFF) != 0) {
                 D5B498_8006AC9C++;
             }
             break;
@@ -659,7 +659,7 @@ void func_8002226C(void* arg0, void* arg1)
             }
             goto draw;
         case 4:
-            if ((func_8002169C(0x10) & 0xFFFF) != 0) {
+            if ((Fade_StepIn(0x10) & 0xFFFF) != 0) {
                 D5B498_8006AC9A       = 0;
                 CdCmd_Queue.field_224 = 0;
             }

@@ -10,7 +10,7 @@
 #include "main/unknown_syms.h"
 #include "psyq/libpress.h"
 
-void* func_8001BB7C(void)
+void* CdCmd_SetupMdecBuffers(void)
 {
     CdCmdQueue* p;
     u16         slot;
@@ -85,7 +85,7 @@ void* func_8001BB7C(void)
     D_8006AC00 = NULL;
     if (Game_Session->field_7 == 0) {
         D_8006AC00 = Mem_Malloc(0x4B000, 1);
-    } else if (func_8001EDC8(&Game_Session->field_4, 0, 0) < 0) {
+    } else if (Stream_FindSlot(&Game_Session->field_4, 0, 0) < 0) {
         return NULL;
     } else {
         sizeRow = D_8005DCB4[Mc_SaveData.field_7];
@@ -99,7 +99,7 @@ void* func_8001BB7C(void)
     return D_8006AC00;
 }
 
-void func_8001BE60(void)
+void CdCmd_HandleStreamDecode(void)
 {
     CdCmdQueue* state;
     CdCmdQueue* p;
@@ -131,7 +131,7 @@ void func_8001BE60(void)
                 state->busy             = 1;
                 Display_State.field_130 = 0xFF;
             }
-            ret = func_8001E6AC(0, 0);
+            ret = CdCmd_PollStatus(0, 0);
             if (ret != 1) {
                 if (ret < 2) {
                     if (ret == 0) {
@@ -197,7 +197,7 @@ void func_8001BE60(void)
     }
 }
 
-void func_8001C0D4(void)
+void CdCmd_HandleFileLoad(void)
 {
     CdCmdQueue* state;
     CdCmdQueue* p;
@@ -224,7 +224,7 @@ void func_8001C0D4(void)
                     Display_State.field_130 = 0xFF;
                 }
             }
-            ret = func_8001E6AC(0, 0);
+            ret = CdCmd_PollStatus(0, 0);
             if (ret != 1) {
                 if (ret < 2) {
                     if (ret == 0) {
@@ -272,7 +272,7 @@ void func_8001C0D4(void)
             status = Fs_CdOpStatus;
             switch (status) {
                 case 0x80:
-                    ret = func_8001E6AC(0, 0);
+                    ret = CdCmd_PollStatus(0, 0);
                     if (ret != 1) {
                         if (ret < 2) {
                             if (ret == 0) {
@@ -301,7 +301,7 @@ void func_8001C0D4(void)
                 case 0x10:
                 case 0x20:
                 case 0x40:
-                    ret = func_8001E6AC(0, 0);
+                    ret = CdCmd_PollStatus(0, 0);
                     if (ret != 1) {
                         if (ret < 2) {
                             if (ret == 0) {
@@ -320,7 +320,7 @@ void func_8001C0D4(void)
             goto end_check;
         }
         case 3:
-            ret = func_8001E6AC(0, 0);
+            ret = CdCmd_PollStatus(0, 0);
             if (ret != 1) {
                 if (ret < 2) {
                     if (ret == 0) {
@@ -362,7 +362,7 @@ void func_8001C0D4(void)
             status = Fs_CdOpStatus;
             switch (status) {
                 case 0x80:
-                    ret = func_8001E6AC(0, 0);
+                    ret = CdCmd_PollStatus(0, 0);
                     if (ret != 1) {
                         if (ret < 2) {
                             if (ret == 0) {
@@ -408,7 +408,7 @@ void func_8001C0D4(void)
                 case 0x10:
                 case 0x20:
                 case 0x40:
-                    ret = func_8001E6AC(0, 0);
+                    ret = CdCmd_PollStatus(0, 0);
                     if (ret == 1) {
                         F12D18_80024EC0();
                         goto end_check;
@@ -435,7 +435,7 @@ end_check:
     }
 }
 
-void func_8001C620(void)
+void CdCmd_HandleMount(void)
 {
     CdCmdQueue* state;
     s32         cmd;
@@ -476,7 +476,7 @@ void func_8001C620(void)
                     status = Fs_CdOpStatus;
                     switch (status) {
                         case 0x80:
-                            ret = func_8001E6AC(0, 0);
+                            ret = CdCmd_PollStatus(0, 0);
                             if (ret != step) {
                                 if (ret < 2) {
                                     return;
@@ -501,7 +501,7 @@ void func_8001C620(void)
                         case 0x10:
                         case 0x20:
                         case 0x40:
-                            ret = func_8001E6AC(0, 0);
+                            ret = CdCmd_PollStatus(0, 0);
                             if (ret != 1) {
                                 if (ret < 2) {
                                     return;
@@ -516,7 +516,7 @@ void func_8001C620(void)
                     }
                     return;
                 case 2:
-                    ret = func_8001E6AC(0, 0);
+                    ret = CdCmd_PollStatus(0, 0);
                     if (ret != 1) {
                         if (ret < 2) {
                             return;
@@ -558,7 +558,7 @@ void func_8001C620(void)
             if (status != 0x80) {
                 return;
             }
-            ret = func_8001E6AC(0, 0);
+            ret = CdCmd_PollStatus(0, 0);
             if (ret != 1) {
                 if (ret < 2) {
                     return;
@@ -576,7 +576,7 @@ void func_8001C620(void)
     }
 }
 
-s32 func_8001C970(void)
+s32 CdCmd_ActivatePhase1(void)
 {
     CdCmdQueue* p;
     u8          cmd;
@@ -602,7 +602,7 @@ s32 func_8001C970(void)
     return 0;
 }
 
-void func_8001CA70(void)
+void CdCmd_ProcessPhase1(void)
 {
     CdCmdQueue* p;
     CdCmdQueue* q;
@@ -627,7 +627,7 @@ void func_8001CA70(void)
                     func_8017D6D4();
                     return;
                 }
-                func_8001BE60();
+                CdCmd_HandleStreamDecode();
                 return;
             }
             statePtr = &p->field_1fc;
@@ -645,15 +645,15 @@ void func_8001CA70(void)
                     if (func_800262A8() == 0) {
                         *statePtr = *statePtr + 1;
                     }
-                    func_8001BE60();
+                    CdCmd_HandleStreamDecode();
                     ret = 0;
                     break;
                 case 2:
                 case_2:
-                    if ((s16)func_8001F2FC(1)) {
+                    if ((s16)CdCmd_StopMdec(1)) {
                         ret = 1;
                     } else {
-                        func_8001BE60();
+                        CdCmd_HandleStreamDecode();
                         ret = 0;
                     }
                     break;
@@ -689,9 +689,9 @@ void func_8001CA70(void)
                 switch (p->field_1fc) {
                     case 0:
                         if (D_8007218B != 0) {
-                            func_8005414C(0, 0, 0);
+                            SndEvt_EnqueueType6(0, 0, 0);
                         }
-                        func_80056700();
+                        CdAudio_Begin();
                         p->field_1fc = p->field_1fc + 1;
                         return;
                     case 1:
@@ -744,7 +744,7 @@ void func_8001CA70(void)
     }
 }
 
-u16 func_8001CDF0(void)
+u16 CdCmd_ActivatePhase2(void)
 {
     CdCmdQueue* p;
     u8          cmd;
@@ -773,7 +773,7 @@ do_work:
     return 1;
 }
 
-void func_8001CEFC(void)
+void CdCmd_ProcessPhase2(void)
 {
     CdCmdQueue* p;
     CdCmdQueue* p2;
@@ -798,7 +798,7 @@ void func_8001CEFC(void)
                 if ((p->field_40.cmd >> 4) == 7) {
                     func_8017D6D4();
                 } else {
-                    func_8001BE60();
+                    CdCmd_HandleStreamDecode();
                 }
                 break;
             }
@@ -817,15 +817,15 @@ void func_8001CEFC(void)
                     if (func_800262A8() == 0) {
                         *statePtr = *statePtr + 1;
                     }
-                    func_8001BE60();
+                    CdCmd_HandleStreamDecode();
                     ret = 0;
                     break;
                 case 2:
                 case_2:
-                    if ((s16)func_8001F2FC(1)) {
+                    if ((s16)CdCmd_StopMdec(1)) {
                         ret = 1;
                     } else {
-                        func_8001BE60();
+                        CdCmd_HandleStreamDecode();
                         ret = 0;
                     }
                     break;
@@ -863,10 +863,10 @@ void func_8001CEFC(void)
     }
 }
 
-/* Alignment pad after the 9-entry func_8001CEFC jump table. */
+/* Alignment pad after the 9-entry CdCmd_ProcessPhase2 jump table. */
 static const s32 s_jtbl_pad_CEFC = 0;
 
-u16 func_8001D0E8(void)
+u16 CdCmd_EnqueueFollowUp(void)
 {
     unsigned int         new_var;
     CdCmdQueue*          p;
@@ -989,7 +989,7 @@ s32 CdCmd_Enqueue(s32 cmd, u8* paramA, u8* paramB)
     return writeIdx;
 }
 
-u16 func_8001D344(void)
+u16 CdCmd_IsIdle(void)
 {
     CdCmdQueue* p;
 
@@ -1000,15 +1000,15 @@ u16 func_8001D344(void)
     return p->writeIdx == p->readIdx;
 }
 
-u16 func_8001D37C(s16 arg0)
+u16 CdCmd_IsSlotEmpty(s16 arg0)
 {
     return CdCmd_Queue.entries[arg0].cmd == 0;
 }
 
-void func_8001D39C(void)
+void CdCmd_BuildVlcIfStream(void)
 {
     CdCmd_Queue.field_1EA = 1;
-    if (func_80020394(&Game_Session->field_4) != 0) {
+    if (Stream_HasActiveLowId(&Game_Session->field_4) != 0) {
         DecDCTvlcBuild(D_8005C36C);
         Game_Session->field_7C = 0;
     }
@@ -1019,7 +1019,7 @@ void CdCmd_ClearQueue(void)
     Mem_Set(&CdCmd_Queue, 0, sizeof(CdCmd_Queue));
 }
 
-s32 func_8001D424(void)
+s32 CdCmd_DropPending(void)
 {
     CdCmdQueue* p;
     u16         i;
@@ -1046,18 +1046,18 @@ s32 func_8001D424(void)
     return 0;
 }
 
-void func_8001D498(void)
+void CdCmd_SelectMdecBuffer(void)
 {
     CdCmdQueue* p;
 
     p = &CdCmd_Queue;
-    if (func_8001EDC8(&Game_Session->field_4, 0, 0) >= 0) {
+    if (Stream_FindSlot(&Game_Session->field_4, 0, 0) >= 0) {
         D_8006AC40 = D_8006AC00;
     }
     p->field_1E6 = 0;
 }
 
-s32 func_8001D4F0(void)
+s32 CdCmd_GetOverlayStatus(void)
 {
     CdCmdQueue* p;
     s32         ret;
@@ -1073,7 +1073,7 @@ s32 func_8001D4F0(void)
     return ret;
 }
 
-s16 func_8001D524(void)
+s16 CdCmd_GetStreamMode(void)
 {
     return CdCmd_Queue.field_20E;
 }
@@ -1092,10 +1092,10 @@ void func_8001D580(void)
 {
 }
 
-void func_8001D588(void)
+void CdCmd_CancelReplaceAndActivate(void)
 {
     CdCmd_Queue.field_50.cmd = 0;
-    func_8001C970();
+    CdCmd_ActivatePhase1();
     func_800B00C4();
 }
 
@@ -1111,7 +1111,7 @@ void func_8001D5C4(void)
 {
 }
 
-void func_8001D5CC(void)
+void CdCmd_EnqueueOverlay81(void)
 {
     CdCmdQueue* p;
     u8          sp10;
@@ -1126,7 +1126,7 @@ void func_8001D5CC(void)
     }
 }
 
-void func_8001D628(void)
+void CdCmd_EnqueueReplaceOverlay81(void)
 {
     CdCmdQueue* p;
     u8          sp10;
@@ -1138,7 +1138,7 @@ void func_8001D628(void)
     }
 }
 
-void func_8001D66C(void)
+void CdCmd_EnqueueOverlay82(void)
 {
     CdCmdQueue* p;
     u8          sp10;
@@ -1151,7 +1151,7 @@ void func_8001D66C(void)
     }
 }
 
-void func_8001D6B8(void)
+void CdCmd_EnqueueReplaceOverlay82(void)
 {
     CdCmdQueue* p;
     u8          sp10;
@@ -1180,7 +1180,7 @@ void CdCmd_EnqueueReplace(s32 cmd, u8* paramA, u8* paramB)
     entry->idB3   = paramB[3];
 }
 
-s32 func_8001D760(void)
+s32 CdCmd_CommitReplace(void)
 {
     CdCmdQueue* p;
     CdCmdEntry* entry;
@@ -1223,24 +1223,24 @@ s32 func_8001D760(void)
 
 INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001D82C);
 
-CdCmdEntry* func_8001D898(void)
+CdCmdEntry* CdCmd_NextEntry(void)
 {
     CdCmdQueue* p;
     s32         index;
     CdCmdEntry* entry;
 
     p     = &CdCmd_Queue;
-    index = D_8006AC04;
+    index = CdCmd_EntryIter;
     entry = &p->entries[index];
     if (index == p->writeIdx) {
         return NULL;
     }
-    D_8006AC04 = index + 1;
-    D_8006AC04 = D_8006AC04 % 8;
+    CdCmd_EntryIter = index + 1;
+    CdCmd_EntryIter = CdCmd_EntryIter % 8;
     return entry;
 }
 
-void func_8001D8DC(void)
+void CdCmd_SetBusy(void)
 {
     if (CdCmd_Queue.busy == 0) {
         CdCmd_Queue.busy        = 1;
@@ -1248,7 +1248,7 @@ void func_8001D8DC(void)
     }
 }
 
-void func_8001D90C(void)
+void CdCmd_ClearBusy(void)
 {
     if (CdCmd_Queue.busy != 0) {
         CdCmd_Queue.busy        = 0;
@@ -1256,7 +1256,7 @@ void func_8001D90C(void)
     }
 }
 
-void func_8001D934(void)
+void CdCmd_ResetRing(void)
 {
     CdCmdQueue* state;
 
@@ -1269,12 +1269,12 @@ void func_8001D934(void)
     state->field_1d2 = 0;
 }
 
-void func_8001D97C(void)
+void CdCmd_ResetEntryIter(void)
 {
-    D_8006AC04 = CdCmd_Queue.readIdx;
+    CdCmd_EntryIter = CdCmd_Queue.readIdx;
 }
 
-void func_8001D990(s32 cmd, u8* paramA, u8* paramB)
+void CdCmd_EnqueueUnlessStream(s32 cmd, u8* paramA, u8* paramB)
 {
     CdCmdQueue* p;
     CdCmdEntry* entry;
@@ -1300,7 +1300,7 @@ void func_8001D990(s32 cmd, u8* paramA, u8* paramB)
     }
 }
 
-void func_8001DA48(void)
+void CdCmd_AdvanceRead(void)
 {
     CdCmdQueue* state;
 
@@ -1320,7 +1320,7 @@ void func_8001DA48(void)
     }
 }
 
-void func_8001DAB8(void)
+void CdCmd_LoadActiveEntry(void)
 {
     CdCmdQueue* p;
 
@@ -1335,7 +1335,7 @@ void func_8001DAB8(void)
     p->field_40.idB3   = p->entries[p->readIdx].idB3;
 }
 
-void func_8001DB84(void)
+void CdCmd_Dispatch(void)
 {
     CdCmdQueue* state; // The indirection is required.
 
@@ -1347,16 +1347,16 @@ void func_8001DB84(void)
                     case 0:
                         break;
                     case 2:
-                        func_8001C0D4();
+                        CdCmd_HandleFileLoad();
                         break;
                     case 6:
-                        func_8001BE60();
+                        CdCmd_HandleStreamDecode();
                         break;
                     case 7:
                         func_8017D6D4();
                         break;
                     case 5:
-                        func_8001C620();
+                        CdCmd_HandleMount();
                         break;
                     case 8:
                         func_800AFA44();
@@ -1365,10 +1365,10 @@ void func_8001DB84(void)
             }
             break;
         case 1:
-            func_8001CA70();
+            CdCmd_ProcessPhase1();
             break;
         case 2:
-            func_8001CEFC();
+            CdCmd_ProcessPhase2();
             break;
     }
 

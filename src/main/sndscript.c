@@ -10,19 +10,19 @@ void func_800537FC(s32 arg0, s32 arg1)
     s32 temp_v1;
 
     D_8008274C = 0;
-    func_800566A4();
+    SndVoice_ClearActive();
     arg0 = arg0 & 0xFF;
     func_800546C0();
-    func_800542D0(0x50000000, 1);
-    func_800542D0(0x10000000, 1);
-    func_800542D0(0xFF0D, 1);
-    func_800542D0(0x20000000, 1);
-    func_800542D0(0xE0000000, 1);
+    SndEvt_EnqueueType7(0x50000000, 1);
+    SndEvt_EnqueueType7(0x10000000, 1);
+    SndEvt_EnqueueType7(0xFF0D, 1);
+    SndEvt_EnqueueType7(0x20000000, 1);
+    SndEvt_EnqueueType7(0xE0000000, 1);
     arg1       = arg1 & 0xFF;
     D_80082120 = arg0;
     D_80082136 = arg1;
-    func_800561EC(1);
-    func_800561EC(7);
+    SndBankSlot_Free(1);
+    SndBankSlot_Free(7);
 
     var_v1 = 0;
     if (arg1 == 5) {
@@ -52,7 +52,7 @@ block_done:
     switch (temp_v1) {
         case 0:
             Snd_FreeBank((SndBank*)&D_8007E158);
-            func_800561EC(4);
+            SndBankSlot_Free(4);
         case 1:
             D_80082122 = 0;
             break;
@@ -69,12 +69,12 @@ block_done:
     Snd_FreeBank((SndBank*)var_s0);
     Snd_FreeBank((SndBank*)(var_s0 + 0xC0));
     Snd_FreeBank((SndBank*)(var_s0 + 0x80));
-    func_800561EC(5);
+    SndBankSlot_Free(5);
     Snd_FreeBank((SndBank*)(var_s0 + 0xA0));
-    func_800561EC(6);
+    SndBankSlot_Free(6);
     Snd_FreeBank((SndBank*)(var_s0 + 0x40));
-    func_800561EC(3);
-    func_8005454C(1, 0x40000000);
+    SndBankSlot_Free(3);
+    SndBank_SetEnableFlags(1, 0x40000000);
 }
 
 INCLUDE_ASM("main/nonmatchings/sndscript", func_80053A20);
@@ -199,8 +199,8 @@ void func_80053E48(void)
 
 void func_80053E68(void)
 {
-    func_8004D460(func_800510D4, 0, 0x4800, 0);
-    func_8004D460(func_80054938, 0, 0x8800, 0);
+    func_8004D460(Midi_Tick, 0, 0x4800, 0);
+    func_8004D460(SndVoice_DriveSlots, 0, 0x8800, 0);
     D_80082130 = 0x3D010;
     D_80082128 = 0x63810;
     D_80082124 = D_80082128;
@@ -247,14 +247,14 @@ void func_80053FA0(s32 arg0)
 
     if (arg0 == 0) {
         D_800689EC = 0;
-        func_80055DFC(0x7F);
+        SndVoice_ApplyMasterVolume(0x7F);
         var_a0 = 0x40;
     } else {
         D_800689EC = 1;
-        func_80055DFC(0x28);
+        SndVoice_ApplyMasterVolume(0x28);
         var_a0 = 0;
     }
-    func_800517B4(var_a0);
+    Midi_SetMasterVolume(var_a0);
 }
 
 s32 func_80053FF4(u32 arg0)
@@ -271,9 +271,9 @@ s32 func_80053FF4(u32 arg0)
     *(volatile s32*)&D_80068A78 = 0xFF;
     Spu_SetVoiceRange(1, 0x12, 6);
     i = 0;
-    func_80055CE0();
+    SndVoice_Init();
     func_80054608(1);
-    func_8005454C(1, 0x80000000);
+    SndBank_SetEnableFlags(1, 0x80000000);
 
     map   = D_800680AC;
     banks = Snd_Banks;
@@ -305,7 +305,7 @@ loop:
     return -1;
 }
 
-s32 func_8005414C(s32 arg0, s32 arg1, s32 arg2)
+s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
 {
     s32                  orig;
     SndBankSlot*         bank;
@@ -367,7 +367,7 @@ ret_neg1:
     return -1;
 }
 
-void func_800542D0(s32 arg0, s32 arg1)
+void SndEvt_EnqueueType7(s32 arg0, s32 arg1)
 {
     SndEvt*      temp;
     SndEvtFrom4* mid;
@@ -398,7 +398,7 @@ void func_80054334(s32 arg0)
     }
 }
 
-void func_800543AC(s32 arg0)
+void SndEvt_EnqueueType9(s32 arg0)
 {
     SndEvt*      temp;
     SndEvtFrom4* mid;
@@ -414,7 +414,7 @@ void func_800543AC(s32 arg0)
     }
 }
 
-void func_80054424(s32 arg0, s32 arg1, s32 arg2)
+void SndEvt_EnqueueTypeA(s32 arg0, s32 arg1, s32 arg2)
 {
     SndEvt*      temp;
     SndEvtFrom4* mid;
@@ -432,7 +432,7 @@ void func_80054424(s32 arg0, s32 arg1, s32 arg2)
     }
 }
 
-void func_800544B8(s32 arg0, s32 arg1)
+void SndEvt_EnqueueTypeB(s32 arg0, s32 arg1)
 {
     SndEvt*      temp;
     SndEvtFrom4* mid;
@@ -452,7 +452,7 @@ void func_800544B8(s32 arg0, s32 arg1)
     }
 }
 
-void func_8005454C(s32 arg0, s32 arg1)
+void SndBank_SetEnableFlags(s32 arg0, s32 arg1)
 {
     u8*          ptr;
     register s32 flag asm("v1");
@@ -495,7 +495,7 @@ void func_80054608(s8 arg0)
 
 s32 func_8005462C(void)
 {
-    return ~func_80055DAC(func_80053F00()) != 0;
+    return ~SndVoice_FindById(func_80053F00()) != 0;
 }
 
 void func_80054658(void)
@@ -509,7 +509,7 @@ void func_80054658(void)
     }
 }
 
-void func_8005468C(void)
+void SndEvt_EnqueueTypeE(void)
 {
     SndEvt* temp;
 
@@ -556,10 +556,10 @@ void func_8005488C(void)
             D_8008274A = 0;
         }
     }
-    func_80055DFC(var_a0);
+    SndVoice_ApplyMasterVolume(var_a0);
 }
 
-s32 func_80054938(void)
+s32 SndVoice_DriveSlots(void)
 {
     SpuVoiceRef   sp18;
     s16           sp20[2];
@@ -806,7 +806,7 @@ s32 func_80054938(void)
     return 0;
 }
 
-void func_80054D58(SndVoicePick* arg0, u16 arg1, s32 arg2, u16 arg3)
+void SndVoice_ScanCandidates(SndVoicePick* arg0, u16 arg1, s32 arg2, u16 arg3)
 {
     s8         i;
     SndScript* p;
@@ -861,7 +861,7 @@ void func_80054D58(SndVoicePick* arg0, u16 arg1, s32 arg2, u16 arg3)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/sndscript", func_80054F1C);
+INCLUDE_ASM("main/nonmatchings/sndscript", SndVoice_KeyOffMatching);
 
 INCLUDE_ASM("main/nonmatchings/sndscript", SndScript_Exec);
 
@@ -993,11 +993,11 @@ apply:
     attr->mask |= SPU_VOICE_PITCH;
 }
 
-s32 func_800558E8(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndVoiceParams* arg4)
+s32 SndVoice_AllocSlot(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndVoiceParams* arg4)
 {
     SndVoicePick sp18;
 
-    func_80054D58(&sp18, arg4->field_C, arg0, arg4->field_E);
+    SndVoice_ScanCandidates(&sp18, arg4->field_C, arg0, arg4->field_E);
     if ((sp18.field_7 < arg4->field_7) && (sp18.field_3 != -1)) {
         sp18.field_0 = sp18.field_3;
     } else {
@@ -1009,7 +1009,7 @@ s32 func_800558E8(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndVoiceParams* arg4)
     return sp18.field_0;
 }
 
-void func_800559BC(s32 arg0, s32 arg1)
+void SndVoice_FadeMatching(s32 arg0, s32 arg1)
 {
     s32        i;
     SndScript* p;
@@ -1070,11 +1070,11 @@ void func_80055A9C(s32 arg0, s32 arg1, s32 arg2)
     } else {
         arg1 = 0x7F - arg1;
     }
-    func_80055B70(arg0, arg1);
+    SndVoice_SetVolumeRamp(arg0, arg1);
     p->field_E = 1;
 }
 
-void func_80055B70(s32 arg0, s32 arg1)
+void SndVoice_SetVolumeRamp(s32 arg0, s32 arg1)
 {
     SndScript*   p;
     register s32 val asm("a0");
@@ -1141,7 +1141,7 @@ void func_80055C8C(void)
     }
 }
 
-void func_80055CE0(void)
+void SndVoice_Init(void)
 {
     u32  i;
     s32* ptr;
@@ -1172,7 +1172,7 @@ void func_80055CE0(void)
 
     D_8008274A = 0;
     D_80082749 = 0;
-    func_80055DFC(0x7F);
+    SndVoice_ApplyMasterVolume(0x7F);
     func_80055D78(1);
 }
 
@@ -1188,7 +1188,7 @@ void func_80055D78(s8 arg0)
     }
 }
 
-s32 func_80055DAC(s32 arg0)
+s32 SndVoice_FindById(s32 arg0)
 {
     s32        i;
     SndScript* p;
@@ -1205,7 +1205,7 @@ s32 func_80055DAC(s32 arg0)
     return -1;
 }
 
-void func_80055DFC(s8 arg0)
+void SndVoice_ApplyMasterVolume(s8 arg0)
 {
     SndScript* p;
     s32        i;
@@ -1365,7 +1365,7 @@ SndBankSlot* SndBankSlot_Get(s32 arg0)
     return NULL;
 }
 
-void func_800561EC(s32 arg0)
+void SndBankSlot_Free(s32 arg0)
 {
     SndBankSlot* temp_s0;
     SndBankSlot* base;
@@ -1575,7 +1575,7 @@ s32 func_8005664C(u8* arg0, s16 arg1, SndOneAOut* arg2)
     return -1;
 }
 
-void func_800566A4(void)
+void SndVoice_ClearActive(void)
 {
     s32        i;
     s32        mask;
@@ -1603,7 +1603,7 @@ void func_800566A4(void)
     } while (i < 8);
 }
 
-s32 func_80056700(void)
+s32 CdAudio_Begin(void)
 {
     volatile CdAudioPhase* p;
 
@@ -1630,6 +1630,6 @@ s32 func_80056700(void)
     if (CdAudio_Phase.field_2 != 0) {
         return 1;
     }
-    func_80057B24(0x20);
+    CdAudio_StartVolumeRamp(0x20);
     return 0;
 }

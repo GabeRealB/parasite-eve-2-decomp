@@ -48,7 +48,7 @@ s32 func_8003DFB0(s32 arg0, s32 arg1)
         if (D_8005EC70 != neg1) {
             D_8005EC78 = 0;
             arg1       = VSync(1) & 0x7FFF;
-            func_8002731C(temp->field_118);
+            Display_FlipDraw(temp->field_118);
             D_8005EC70 = neg1;
         } else {
             D_8005EC78 = D_8005EC74;
@@ -61,7 +61,7 @@ s32 func_8003DFB0(s32 arg0, s32 arg1)
         D_8005EC70        = -2;
         D_80070E38        = temp->field_103;
         *(u8*)&D_8006EC30 = temp->field_100;
-        func_8002731C(temp->field_118);
+        Display_FlipDraw(temp->field_118);
         D_8005EC70 = -1;
     }
     D_800710A0 = saved;
@@ -235,7 +235,7 @@ default_case:
     return Display_State.field_1d;
 }
 
-void func_8003E6E4(void)
+void Gpu_InitOtSmall(void)
 {
     GameOt* ot;
 
@@ -306,7 +306,7 @@ void func_8003E854(void)
     temp->field_103 = 0;
 }
 
-void func_8003E904(void)
+void Gpu_InitOt(void)
 {
     GameOt*       ot;
     DisplayState* temp;

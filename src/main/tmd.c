@@ -116,13 +116,13 @@ case0:
     Stage_Ctx->field_28     = Stage_Ctx->field_28 + 1;
     goto end;
 case1:
-    if (func_8001D344() & 0xFFFF) {
+    if (CdCmd_IsIdle() & 0xFFFF) {
         CdCmd_Enqueue(0x21, Stage_Ctx->field_2C, Stage_Ctx->field_34);
         Stage_Ctx->field_28 = Stage_Ctx->field_28 + 1;
     }
     goto end;
 case2:
-    if ((func_8001D344() & 0xFFFF) && (Display_State.field_118 != Stage_Ctx->field_24)) {
+    if ((CdCmd_IsIdle() & 0xFFFF) && (Display_State.field_118 != Stage_Ctx->field_24)) {
         func_8001490C(Game_Session->field_7, Game_Session->field_6, Display_State.field_118, 0x10000);
         Mem_InitAux();
         rect.x = 0;
@@ -205,7 +205,7 @@ Task* func_8003EE68(void)
 
 block_default:
     ed = (GameSessionFrom4*)&Game_Session->field_4;
-    func_80041E4C();
+    Gpu_ResetGraphAndOt();
     func_8001490C(ed->field_3, ed->field_2, Display_State.field_1f, 0x10000);
     if (Stage_Ctx->field_C == 0x100) {
         func_8003F5A4();
@@ -284,7 +284,7 @@ void func_8003F034(Task* arg0)
                             Stage_Ctx->field_28 = Stage_Ctx->field_28 + 1;
                         }
                     }
-                    func_8001CDF0();
+                    CdCmd_ActivatePhase2();
                 }
                 break;
             case 2:
@@ -299,7 +299,7 @@ void func_8003F034(Task* arg0)
                 Display_State.field_103 = 2;
                 arg0->field_2a          = arg0->field_2a - 1;
                 if (arg0->field_2a == 0) {
-                    func_80041E4C();
+                    Gpu_ResetGraphAndOt();
                     func_8001490C(Game_Session->field_7, Game_Session->field_6,
                                   Display_State.field_118, 0x10000);
                     Mem_InitAux();
@@ -455,7 +455,7 @@ void func_8003F690(void)
 {
     DisplayState* temp;
 
-    func_8003E6E4();
+    Gpu_InitOtSmall();
     temp            = &Display_State;
     temp->field_1e  = 1;
     temp->field_103 = 2;
@@ -560,7 +560,7 @@ s32 func_8003F944(void)
 void func_8003F964(void)
 {
     if (Stage_Ctx->field_13 == 0) {
-        func_8003E904();
+        Gpu_InitOt();
         Stage_Ctx->field_13 = 1;
     }
 }
@@ -684,7 +684,7 @@ void func_8003FC6C(void)
 void func_8003FC8C(Task* arg0)
 {
     Pad_SetCooldown(0);
-    if (func_8001CDF0() != 0) {
+    if (CdCmd_ActivatePhase2() != 0) {
         arg0->field_30 += 1;
     } else {
         Pad_States[0].field_A = 1;
@@ -735,7 +735,7 @@ void func_8003FE00(Task* arg0)
 
 void func_8003FE40(Task* arg0)
 {
-    if (func_8001D0E8() != 0) {
+    if (CdCmd_EnqueueFollowUp() != 0) {
         Display_State.field_1e  = 0;
         Display_State.field_10d = 0;
         Display_State.field_100 = 1;
@@ -859,7 +859,7 @@ void func_800405E0(void)
     p = &CdCmd_Queue;
     switch ((s16)p->field_202) {
         case 0:
-            func_80041E4C();
+            Gpu_ResetGraphAndOt();
             p->field_1EC = 1;
             DecDCTReset(0);
             DecDCTvlcSize2(0);
@@ -1784,7 +1784,7 @@ void func_80041DF4(Task* arg0)
     sp.funcs[arg0->field_30](arg0);
 }
 
-void func_80041E4C(void)
+void Gpu_ResetGraphAndOt(void)
 {
     TmdObject* node;
 
@@ -1807,7 +1807,7 @@ void func_80041EB4(void)
 
     node = Tmd_List.next;
     Mem_InitAux();
-    func_8001BB7C();
+    CdCmd_SetupMdecBuffers();
     while (node != NULL) {
         if (node->field_18 == NULL) {
             if (!(node->field_C & 4)) {

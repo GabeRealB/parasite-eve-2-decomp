@@ -44,7 +44,7 @@ void F12D18_800225D4(void)
         case 0:
             break;
         case 1:
-            if (func_8001D37C(D5B498_8006AC98)) {
+            if (CdCmd_IsSlotEmpty(D5B498_8006AC98)) {
                 D5B498_8006AC9A = 2;
                 D5B498_8006AC9C = 0;
             }

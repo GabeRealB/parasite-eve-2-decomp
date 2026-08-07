@@ -21,11 +21,11 @@ STATIC_ASSERT_SIZEOF(PadEvent, 0x4);
 /// 0xFF by Pad_Init (pad status halfword); field_3 is set to 1 there.
 /// field_4 / field_6 / field_8 are pad button masks (see Pad_CheckSpecialCombo /
 /// Pad_CheckButtons); field_A is a cooldown counter (Pad_SetCooldown /
-/// func_8002C5A4). field_B is an auto-repeat timer for face/d-pad bits
-/// (func_8002C5A4). field_2 is a ring index into field_10 banks
+/// Pad_UpdatePort0). field_B is an auto-repeat timer for face/d-pad bits
+/// (Pad_UpdatePort0). field_2 is a ring index into field_10 banks
 /// (func_8002C8E4). field_10 holds two banks of 8 pad-event entries at 0x10
 /// and 0x30. field_50..field_56 are analog stick related (cleared/read by
-/// func_8002C5A4 when field_0 == 0x73). field_5A / field_5B are cleared
+/// Pad_UpdatePort0 when field_0 == 0x73). field_5A / field_5B are cleared
 /// during pad init.
 typedef struct _PadState {
     /* 0x00 */ s16      field_0;
@@ -48,7 +48,7 @@ typedef struct _PadState {
 } PadState;
 STATIC_ASSERT_SIZEOF(PadState, 0x5C);
 
-/// 6-byte scratch block allocated from G_SCRATCH_HEAD by func_8002C5A4.
+/// 6-byte scratch block allocated from G_SCRATCH_HEAD by Pad_UpdatePort0.
 /// rawLo/rawHi hold PadRawPort.field_3/field_2 (little-endian halfword),
 /// inverted into buttons; prevButtons is the previous frame's field_4.
 typedef struct _PadScratch {
@@ -88,7 +88,7 @@ void Pad_ClearCooldown(s32 port);
 s32  Pad_ReadButtonsInv(s32 port);
 void Pad_ClearEvents(s32 port);
 s32  Pad_CheckSpecialCombo(void);
-void func_8002C5A4(void);
+void Pad_UpdatePort0(void);
 
 // =============================================================================
 // Globals

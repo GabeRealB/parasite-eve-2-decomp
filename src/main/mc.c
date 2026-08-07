@@ -1092,13 +1092,13 @@ void func_80032F5C(DialogPrompt* arg0, UiObject* arg1)
     func_800330D8(s0, s2, s1->field_8, 0, s1->field_1A + 7);
     if (s1->field_C == 1) {
         if ((var_s3 != 0) && (Pad_CheckButtons(0, 1, D_8005ED70) != 0)) {
-            func_8005414C(0x16, 0, 0);
+            SndEvt_EnqueueType6(0x16, 0, 0);
             s0->field_2E = 6;
             var_v0       = (s8)(u8)s1->field_8;
             goto block_5;
         }
         if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
-            func_8005414C(0x3B, 0, 0);
+            SndEvt_EnqueueType6(0x3B, 0, 0);
             s0->field_2E = 6;
             var_v0       = -1;
         block_5:

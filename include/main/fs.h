@@ -172,7 +172,7 @@ typedef struct _CdCmd190 {
     /* 0x00 */ u8   field_0;
     /* 0x01 */ u8   field_1;
     /* 0x02 */ u8   field_2;
-    /* 0x03 */ u8   field_3; // buffer slot select for func_8001BB7C
+    /* 0x03 */ u8   field_3; // buffer slot select for CdCmd_SetupMdecBuffers
     /* 0x04 */ s32  field_4;
     /* 0x08 */ byte unknown_8[0xC];
     /* 0x14 */ u16  field_14;
@@ -220,7 +220,7 @@ typedef struct _CdCmdQueue {
     void*        field_194;   // 0x194
     void*        field_198;   // 0x198 — base buffer for field_58 kind 4
     u32*         field_19C;   // 0x19C — copy of field_1A4; timing table cursor
-    u32          field_1A0;   // 0x1A0 — timing accumulator (func_8002785C)
+    u32          field_1A0;   // 0x1A0 — timing accumulator (GameMain_Loop)
     void*        field_1A4;   // 0x1A4 — secondary image/stream buffer
     byte         unknown_1A8[0x20];
     u16          writeIdx;    // 0x1C8 — next free slot (enqueue)
@@ -229,9 +229,9 @@ typedef struct _CdCmdQueue {
     u16          step;        // 0x1D0 — sub-state of current command
     u16          field_1d2;
     u16          field_1d4;
-    u16          field_1D6; // state for func_8001DF34
+    u16          field_1D6; // state for CdCmd_SeekL
     byte         unknown_1d8[0x6];
-    u16          field_1DE; // state for func_8001E2D4
+    u16          field_1DE; // state for CdCmd_PausePoll
     u16          field_1E0;
     u16          field_1E2;
     u16          field_1E4;
@@ -258,15 +258,15 @@ typedef struct _CdCmdQueue {
     byte         unknown_210[0x2];
     u16          field_212;
     u16          field_214;
-    u16          field_216; // 0x216 — non-zero enables buffer setup in func_8001BB7C
+    u16          field_216; // 0x216 — non-zero enables buffer setup in CdCmd_SetupMdecBuffers
     u16          field_218; // 0x218 — non-zero blocks func_8003FF14 success path
     s16          field_21A;
-    u16          field_21C; // image transfer mode for func_80027F48 (0 / 1)
+    u16          field_21C; // image transfer mode for Display_LoadImageStrips (0 / 1)
     u16          field_21E; // 0x21E — DecDCTvlcBuild done flag
     byte         unknown_220[0x2];
     s16          field_222;
     u16          field_224;
-    u16          field_226; // sub-state for func_8001E57C disk recovery
+    u16          field_226; // sub-state for CdCmd_RecoverDisk disk recovery
     u16          field_228;
     u16          field_22A; // DecDCTin mode for func_800405E0
     u16          field_22C;
@@ -275,10 +275,10 @@ typedef struct _CdCmdQueue {
     u16          field_232;
     s16          field_234;
     s16          field_236;
-    s16          field_238; // 0x238 — non-zero clears field_18C in func_8001BB7C
+    s16          field_238; // 0x238 — non-zero clears field_18C in CdCmd_SetupMdecBuffers
     byte         unknown_23A[0x4];
     s16          field_23E; // MoveImage vs ClearImage path for func_800405E0
-    s16          field_240; // non-zero enables CD timing wait (func_8002785C)
+    s16          field_240; // non-zero enables CD timing wait (GameMain_Loop)
     s16          field_242;
     u16          field_244;
     u16          field_246;
@@ -352,9 +352,47 @@ struct _Task;
 // Functions — CD command queue
 // =============================================================================
 
-s32  CdCmd_Enqueue(s32 cmd, u8* paramA, u8* paramB);
-void CdCmd_EnqueueReplace(s32 cmd, u8* paramA, u8* paramB);
-void CdCmd_ClearQueue(void);
+s32         CdCmd_Enqueue(s32 cmd, u8* paramA, u8* paramB);
+void        CdCmd_EnqueueReplace(s32 cmd, u8* paramA, u8* paramB);
+void        CdCmd_ClearQueue(void);
+s32         CdCmd_CommitReplace(void);
+s32         CdCmd_DropPending(void);
+u16         CdCmd_IsIdle(void);
+u16         CdCmd_IsSlotEmpty(s16 slot);
+s16         CdCmd_GetStreamMode(void);
+void        CdCmd_SetBusy(void);
+void        CdCmd_ClearBusy(void);
+void        CdCmd_ResetRing(void);
+void        CdCmd_ResetEntryIter(void);
+CdCmdEntry* CdCmd_NextEntry(void);
+void        CdCmd_LoadActiveEntry(void);
+void        CdCmd_EnqueueUnlessStream(s32 cmd, u8* paramA, u8* paramB);
+void        CdCmd_AdvanceRead(void);
+void        CdCmd_Dispatch(void);
+s32         CdCmd_ActivatePhase1(void);
+u16         CdCmd_ActivatePhase2(void);
+void        CdCmd_ProcessPhase1(void);
+void        CdCmd_ProcessPhase2(void);
+void        CdCmd_HandleFileLoad(void);
+void        CdCmd_HandleMount(void);
+void        CdCmd_HandleStreamDecode(void);
+u16         CdCmd_EnqueueFollowUp(void);
+s32         CdCmd_SeekL(u8* loc);
+s32         CdCmd_PausePoll(void);
+s16         CdCmd_RecoverDisk(void);
+s32         CdCmd_PollStatus(s32 arg0, s32 arg1);
+s32         CdCmd_StopMdec(s32 clearFb);
+s32         CdCmd_GetOverlayStatus(void);
+void        CdCmd_EnqueueOverlay81(void);
+void        CdCmd_EnqueueReplaceOverlay81(void);
+void        CdCmd_EnqueueOverlay82(void);
+void        CdCmd_EnqueueReplaceOverlay82(void);
+void        CdCmd_CancelReplaceAndActivate(void);
+void*       CdCmd_SetupMdecBuffers(void);
+void        CdCmd_BuildVlcIfStream(void);
+void        CdCmd_SelectMdecBuffer(void);
+
+extern u16 CdCmd_EntryIter;
 
 // =============================================================================
 // Functions — filesystem / CD (src/main/fs.c)

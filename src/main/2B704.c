@@ -43,7 +43,7 @@ static __inline__ void setLightToMatrices(s32 id, FlatLight* light, MATRIX* dirM
     *scratch = (u8*)*scratch + 0x18;
 }
 
-void func_8003AF04(void)
+void Gpu_InitDefaultLights(void)
 {
     FlatLight light0;
     FlatLight light1;

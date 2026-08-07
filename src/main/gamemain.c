@@ -63,7 +63,7 @@ void func_800271D4(void)
     func_8004CFE8();
     func_80053FA0(0);
     F04CF8_800148EC();
-    VSyncCallback(func_80027498);
+    VSyncCallback(Display_VSyncCallback);
 
     flag                   = 1;
     Display_State.field_1f = flag;
@@ -71,10 +71,10 @@ void func_800271D4(void)
     Mem_Set(Pad_RemapState, 0, 0x1C);
 }
 
-void func_80027F48(s32 arg0);
+void Display_LoadImageStrips(s32 arg0);
 void func_80020058(void);
 
-void func_8002731C(s32 arg0)
+void Display_FlipDraw(s32 arg0)
 {
     s32 mode;
     u8  saved;
@@ -85,7 +85,7 @@ void func_8002731C(s32 arg0)
         PutDispEnv(&Display_State.field_20[arg0]);
         if (mode == 0) {
             if (D_8006EC30 != 0) {
-                func_80027F48(arg0);
+                Display_LoadImageStrips(arg0);
                 saved                  = Display_State.field_1f;
                 Display_State.field_1f = arg0;
                 func_80020058();
@@ -93,7 +93,7 @@ void func_8002731C(s32 arg0)
             }
             DrawOTag(Gpu_OtBuffers[Display_State.field_114].field_10);
         } else if (D_8006EC30 == 2) {
-            func_80027F48(arg0);
+            Display_LoadImageStrips(arg0);
         } else if (D_8006EC30 == 3) {
             func_800149E8(Game_Session->field_7, Game_Session->field_6, arg0);
         }
@@ -103,7 +103,7 @@ void func_8002731C(s32 arg0)
     }
 }
 
-void func_80027498(void)
+void Display_VSyncCallback(void)
 {
     s32           temp_s4;
     s32           temp_s0;
@@ -124,7 +124,7 @@ void func_80027498(void)
                 dispBase = ds->field_20;
                 PutDispEnv(&dispBase[temp_s0]);
                 if (ds->field_100 != 0) {
-                    func_80027F48(temp_s0);
+                    Display_LoadImageStrips(temp_s0);
                 }
                 func_80020058();
                 if (ds->field_104 == 0) {
@@ -132,7 +132,7 @@ void func_80027498(void)
                 }
                 D_8005EC70 = -1;
             } else if (ds->field_108 == 1) {
-                func_8002731C(D_8005EC70);
+                Display_FlipDraw(D_8005EC70);
                 D_8005EC70 = -1;
             }
         }
@@ -142,7 +142,7 @@ void func_80027498(void)
         Display_State.field_0 += 1;
     }
     Display_State.field_c += 1;
-    func_80057564();
+    CdAudio_Tick();
     func_8004D008();
     func_8002C1D8();
     D_8005EC74 = VSync(1) - (temp_s4 & 0xFFFF);
@@ -219,7 +219,7 @@ void func_8002764C(s32 arg0)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/gamemain", func_8002785C);
+INCLUDE_ASM("main/nonmatchings/gamemain", GameMain_Loop);
 
 void func_80027E7C(void)
 {
@@ -279,7 +279,7 @@ void func_80027E7C(void)
     m->m[2][2]         = one;
 }
 
-void func_80027F48(s32 arg0)
+void Display_LoadImageStrips(s32 arg0)
 {
     RECT rect;
     s32  var_s0;
@@ -391,7 +391,7 @@ void func_800281D4(void)
     otCtx[1].field_10 = ot + 2 * C5F414_OTAG_ENTRIES - 1;
     func_80028290();
     func_80027E7C();
-    func_8003AF04();
+    Gpu_InitDefaultLights();
     Display_State.field_100 = 0;
 }
 
@@ -409,7 +409,7 @@ void func_800282D8(s32 arg0)
     PutDrawEnv(&Display_State.field_48[arg0]);
     PutDispEnv(&Display_State.field_20[arg0]);
     if (Display_State.field_100 != 0) {
-        func_80027F48(arg0);
+        Display_LoadImageStrips(arg0);
     }
     func_80020058();
     if (Display_State.field_104 == 0) {
@@ -430,7 +430,7 @@ void GameMain(void)
     Mem_Set(&Wip_SysFlags, 0, sizeof(Wip_SysFlags));
     D_8005EC64 = 0;
     func_800271D4();
-    func_8002785C();
+    GameMain_Loop();
 }
 
 u32 func_80028404(void)

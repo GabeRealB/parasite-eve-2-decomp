@@ -120,22 +120,22 @@ void func_80050AB4(SndEvt* arg0)
 
 void func_80050AE0(SndEvt* arg0)
 {
-    func_800515C0(arg0->field_4, arg0->field_6);
+    Midi_StartFadeOut(arg0->field_4, arg0->field_6);
 }
 
 void func_80050B0C(SndEvt* arg0)
 {
-    func_8005166C(arg0->field_4, 1);
+    Midi_FadeVolume(arg0->field_4, 1);
 }
 
 void func_80050B30(SndEvt* arg0)
 {
-    func_8005166C(arg0->field_4, 0);
+    Midi_FadeVolume(arg0->field_4, 0);
 }
 
 void func_80050B54(SndEvt* arg0)
 {
-    func_80051744(arg0->field_4, arg0->field_5);
+    Midi_SetVolumeScale(arg0->field_4, arg0->field_5);
 }
 
 void func_80050B80(SndEvt* arg0)
@@ -143,7 +143,7 @@ void func_80050B80(SndEvt* arg0)
     SndEvtFrom4* temp;
 
     temp = (SndEvtFrom4*)&arg0->field_4;
-    func_800558E8(temp->field_4, arg0->field_4, temp->field_1, temp->field_8, (SndVoiceParams*)temp->field_C);
+    SndVoice_AllocSlot(temp->field_4, arg0->field_4, temp->field_1, temp->field_8, (SndVoiceParams*)temp->field_C);
 }
 
 void func_80050BBC(SndEvt* arg0)
@@ -156,12 +156,12 @@ void func_80050BBC(SndEvt* arg0)
 
 void func_80050BE8(SndEvt* arg0)
 {
-    func_800559BC(arg0->field_8, 1);
+    SndVoice_FadeMatching(arg0->field_8, 1);
 }
 
 void func_80050C0C(SndEvt* arg0)
 {
-    func_800559BC(arg0->field_8, 0);
+    SndVoice_FadeMatching(arg0->field_8, 0);
 }
 
 void func_80050C30(SndEvt* arg0)
@@ -170,7 +170,7 @@ void func_80050C30(SndEvt* arg0)
     SndEvtFrom4* temp_s0;
 
     temp_s0 = (SndEvtFrom4*)&arg0->field_4;
-    temp_v0 = func_80055DAC(temp_s0->field_4);
+    temp_v0 = SndVoice_FindById(temp_s0->field_4);
     if (temp_v0 >= 0) {
         func_80055A9C(temp_v0, (s8)arg0->field_4, (s8)temp_s0->field_1);
     }
@@ -182,9 +182,9 @@ void func_80050C80(SndEvt* arg0)
     SndEvtFrom4* temp_s0;
 
     temp_s0 = (SndEvtFrom4*)&arg0->field_4;
-    temp_v0 = func_80055DAC(temp_s0->field_4);
+    temp_v0 = SndVoice_FindById(temp_s0->field_4);
     if (temp_v0 >= 0) {
-        func_80055B70(temp_v0, temp_s0->field_1);
+        SndVoice_SetVolumeRamp(temp_v0, temp_s0->field_1);
     }
 }
 
@@ -200,7 +200,7 @@ void func_80050CE0(void)
 
 void func_80050D00(void)
 {
-    func_80054F1C();
+    SndVoice_KeyOffMatching();
 }
 
 s32 func_80050D20(u32 arg0)
@@ -210,7 +210,7 @@ s32 func_80050D20(u32 arg0)
     SndBank*  bank;
 
     for (i = 0; i <= 0; i++) {
-        func_80051964(i & 0xFF);
+        Midi_InitSlot(i & 0xFF);
     }
     D_8007F2F0 = 0x40;
     D_800820E9 = 0;
@@ -344,7 +344,7 @@ s32 func_80050E3C(u8 arg0, u16 arg1)
     return -5;
 }
 
-s32 func_800510D4(void)
+s32 Midi_Tick(void)
 {
     MidiSong*    obj;
     s32          i;
@@ -434,7 +434,7 @@ case_2:
 
 case_4:
     func_80051AB8(obj);
-    func_80051AF0(obj);
+    Midi_KeyOffVoices(obj);
     obj->field_0 = 0;
     goto end_switch;
 
@@ -451,7 +451,7 @@ case_10:
 
 end_switch:
     if (obj->field_C != 0) {
-        func_80051DF4(obj);
+        Midi_UpdateVoiceVolumes(obj);
         obj->field_C = 0;
     }
     i   += 1;
@@ -499,7 +499,7 @@ s32 func_8005132C(s32 arg0, s32 arg1)
     return 0;
 }
 
-s32 func_800513A0(s32 arg0)
+s32 SndEvt_EnqueueType3(s32 arg0)
 {
     SndEvt* temp;
 
@@ -558,7 +558,7 @@ s32 func_80051460(s32 arg0, s32 arg1)
     return 0;
 }
 
-s32 func_800514F8(s32 arg0)
+s32 Midi_IsBusy(s32 arg0)
 {
     s32 i;
 
@@ -594,7 +594,7 @@ s32 func_80051560(u8 arg0)
     return 1;
 }
 
-void func_800515C0(u8 arg0, u16 arg1)
+void Midi_StartFadeOut(u8 arg0, u16 arg1)
 {
     s32       i;
     MidiSong* ptr;
@@ -612,7 +612,7 @@ void func_800515C0(u8 arg0, u16 arg1)
     }
 }
 
-void func_8005166C(u8 arg0, s32 arg1)
+void Midi_FadeVolume(u8 arg0, s32 arg1)
 {
     s32       i;
     MidiSong* ptr;
@@ -635,7 +635,7 @@ void func_8005166C(u8 arg0, s32 arg1)
     }
 }
 
-void func_80051744(u8 arg0, u8 arg1)
+void Midi_SetVolumeScale(u8 arg0, u8 arg1)
 {
     s32       i;
     u8*       table;
@@ -654,7 +654,7 @@ void func_80051744(u8 arg0, u8 arg1)
     }
 }
 
-void func_800517B4(s32 arg0)
+void Midi_SetMasterVolume(s32 arg0)
 {
     s32 i;
     s32 val;
@@ -674,7 +674,7 @@ void func_800517B4(s32 arg0)
     }
 }
 
-s32 func_800517F8(void)
+s32 Midi_GetMasterVolume(void)
 {
     return D_8007F2F0;
 }
@@ -751,7 +751,7 @@ void func_800518E0(void)
     }
 }
 
-void func_80051964(s32 arg0)
+void Midi_InitSlot(s32 arg0)
 {
     MidiSong*     obj;
     s32*          p;
@@ -823,7 +823,7 @@ void func_80051AB8(MidiSong* arg0)
     }
 }
 
-void func_80051AF0(MidiSong* arg0)
+void Midi_KeyOffVoices(MidiSong* arg0)
 {
     s32           i;
     MidiNoteSlot* slot;
@@ -954,7 +954,7 @@ end:
     entry->field_34 -= ticks;
 }
 
-void func_80051DF4(MidiSong* arg0)
+void Midi_UpdateVoiceVolumes(MidiSong* arg0)
 {
     SpuVoiceRef              sp10;
     s16                      sp18[2];
@@ -982,10 +982,10 @@ void func_80051DF4(MidiSong* arg0)
         }
     }
     if (obj->field_1 == 0x5A) {
-        temp  = func_800517F8() & 0xFF;
+        temp  = Midi_GetMasterVolume() & 0xFF;
         scale = (D_80068A4A * 3) << 5;
     } else {
-        temp  = func_800517F8();
+        temp  = Midi_GetMasterVolume();
         scale = (u16)obj->field_8;
         temp &= 0xFF;
     }
@@ -1802,6 +1802,6 @@ s32 func_8005368C(s16 arg0, s32 arg1)
             }
             break;
     }
-    func_800561EC((s8)slot);
+    SndBankSlot_Free((s8)slot);
     return 0;
 }

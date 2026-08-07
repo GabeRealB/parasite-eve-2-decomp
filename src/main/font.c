@@ -44,7 +44,7 @@ void Task_AllocIdMap(Task* arg0)
             if ((*((Game_Session->field_6 * (temp_s4 & 0xFF) * 2) +
                    (u8*)temp_v0->field_4) != 0x80) &&
                 (D_80062736 != 0)) {
-                func_800542D0(0x60010001, 0x1E);
+                SndEvt_EnqueueType7(0x60010001, 0x1E);
                 D_80062736 = 0;
             }
         }
@@ -57,7 +57,7 @@ void Task_AllocIdMap(Task* arg0)
         }
         D_80062734 = 0;
         if (func_80051560(*((temp_v0->field_0 * 2) + (u8*)temp_v0->field_4)) == 1) {
-            if ((D_80062739 != 0) && (func_800514F8(D_80062739) != 0)) {
+            if ((D_80062739 != 0) && (Midi_IsBusy(D_80062739) != 0)) {
                 func_8005132C(D_80062739, (D_8007A39C + 1) & 0xFFFF);
             }
             arg0->field_30 = arg0->field_30 + 1;
@@ -67,7 +67,7 @@ void Task_AllocIdMap(Task* arg0)
             func_8005132C(D_80062739, (D_8007A39C + 1) & 0xFFFF);
             goto block_20;
         }
-        if (func_800514F8(D_80062739) == 0) {
+        if (Midi_IsBusy(D_80062739) == 0) {
             arg0->field_30 = arg0->field_30 + 2;
             return;
         }
@@ -87,7 +87,7 @@ void func_80042DF8(Task* arg0)
     u8                flag;
 
     temp = arg0->field_1C;
-    if (func_800514F8(D_80062739) == 0) {
+    if (Midi_IsBusy(D_80062739) == 0) {
         param1[3] = 0;
         param1[2] = 4;
         entry     = (GPairU8*)((temp->field_0 << 1) + (u32)temp->field_4);
@@ -130,7 +130,7 @@ void func_80042F54(Task* arg0)
     u8         type;
 
     temp = arg0->field_1C;
-    if (func_8001D344() != 0) {
+    if (CdCmd_IsIdle() != 0) {
         entry = (GPairU8*)((temp->field_0 << 1) + (u32)temp->field_4);
         type  = entry->field_1;
         if (type != 3) {
@@ -186,7 +186,7 @@ void func_800430E4(s32 arg0)
     temp    = ((D_80062738 + product) & 0xFFFF) * 2;
     entry   = (GPairU8*)(temp + (s32)D_8006273C[idx]);
     if (entry->field_0 != 0xFF) {
-        if (func_800514F8(entry->field_0) != 0) {
+        if (Midi_IsBusy(entry->field_0) != 0) {
             func_8005132C(entry->field_0, (arg0 + 1) & 0xFFFF);
         }
     }
@@ -202,7 +202,7 @@ void func_80043198(Task* arg0)
 
 void func_800431FC(Task* arg0)
 {
-    if (func_8001D344() != 0) {
+    if (CdCmd_IsIdle() != 0) {
         D_80062734 = 0xFF;
         Task_Kill(arg0);
     }
@@ -223,11 +223,11 @@ void func_8004323C(void)
     if (base[product * 2] == 0x80) {
         if (func_8004ACAC(0x108) == 1) {
             one = 1;
-            func_800542D0(0x60010000 | one, 0x1E);
+            SndEvt_EnqueueType7(0x60010000 | one, 0x1E);
             D_80062736 = 0;
         } else if (D_80062736 == 0) {
             one = 1;
-            func_8005414C(0x60010001, 0, 0);
+            SndEvt_EnqueueType6(0x60010001, 0, 0);
             D_80062736 = one;
         }
     }

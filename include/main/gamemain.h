@@ -12,8 +12,8 @@ void GameMain(void);
 
 void F179D4_ClearOTag(s16 tableIdx);
 void func_800271D4(void);
-void func_8002731C(s32 arg0);
-void func_80027498(void);
+void Display_FlipDraw(s32 arg0);
+void Display_VSyncCallback(void);
 void func_8002764C(s32 arg0);
 void func_80027E7C(void);
 void func_800280F4(s32 arg0);

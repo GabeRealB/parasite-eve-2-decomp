@@ -127,7 +127,7 @@ typedef struct _GameSession {
     byte  unknown_0[0x2];
     u8    field_2;
     byte  unknown_3;
-    byte  field_4; // address taken by func_8001D39C
+    byte  field_4; // address taken by CdCmd_BuildVlcIfStream
     byte  unknown_5;
     u8    field_6;
     u8    field_7;
@@ -453,7 +453,7 @@ typedef struct _MidiOpcodeCtx {
 } MidiOpcodeCtx;
 
 /// Element of BSS array Stream_Slots (15 entries, total 0x258).
-/// Fields inferred from F344.c accessors (func_8001ED20, func_8001EED8, etc.).
+/// Fields inferred from F344.c accessors (Stream_InitFromSlot, Stream_FindSlotByKey, etc.).
 typedef struct _StreamSlot {
     /* 0x00 */ s16  field_0;
     /* 0x02 */ byte unknown_2[0x2];
@@ -614,7 +614,7 @@ typedef struct {
 
 /// Header for the bank table blob pointed to by SndBankSlot.field_0.
 /// field_4 is the bank ID (high halfword remapped by func_80053F00 when the
-/// request high nibble is 0x1); field_6 is the entry count used by func_8005414C.
+/// request high nibble is 0x1); field_6 is the entry count used by SndEvt_EnqueueType6.
 /// A u16 offset table follows at 0x8 (indexed via SndBankHdrOff).
 typedef struct _SndBankHdr {
     /* 0x0 */ u8  unknown_0[4];
@@ -625,7 +625,7 @@ STATIC_ASSERT_SIZEOF(SndBankHdr, 0x8);
 
 /// Overlay for reading the u16 offset table that follows SndBankHdr at +0x8.
 /// Formed as (SndBankHdrOff*)((index * 2) + (s32)header) so lhu 8(base)
-/// picks offsets[index] (func_8005414C).
+/// picks offsets[index] (SndEvt_EnqueueType6).
 typedef struct _SndBankHdrOff {
     /* 0x0 */ u8  pad[8];
     /* 0x8 */ u16 field_8;
@@ -739,7 +739,7 @@ typedef struct _SndBankPayload {
 
 /// State block at SndLoad_State; field_3 is also D_800820F3.
 /// field_14/field_18 cleared by func_800537FC; field_10 sized by func_8005363C.
-/// field_26/field_28 set by the CD ready path in func_800572FC.
+/// field_26/field_28 set by the CD ready path in CdAudio_FeedSector.
 /// field_1C..field_2C are filled as five words from a sector by func_80052B30
 /// (overlay of SndBankPayload at +0x1C: field_20/22/23/24 == payload field_4/6/7/8).
 /// Named BSS symbols D_80082120+ begin immediately after this 0x30-byte block.
@@ -806,10 +806,10 @@ typedef struct _MidiTrack {
 STATIC_ASSERT_SIZEOF(MidiTrack, 0x3C);
 
 /// Active SPU voice slot inside MidiSong (stride 0xC, 18 slots at 0x504).
-/// field_0 is the voice index (negative when free); iterated by func_80051AF0.
-/// field_0 / field_1 are set to -1 when the slot is cleared (func_80051964).
+/// field_0 is the voice index (negative when free); iterated by Midi_KeyOffVoices.
+/// field_0 / field_1 are set to -1 when the slot is cleared (Midi_InitSlot).
 /// field_1 / field_2 match opcode nibble / param in func_800528F8.
-/// field_3 indexes D_80068E78 for velocity scaling (func_80051DF4).
+/// field_3 indexes D_80068E78 for velocity scaling (Midi_UpdateVoiceVolumes).
 /// field_4 is a signed per-note volume scale; field_5 is a signed pan offset.
 /// field_6 / field_7 index the bank note via Snd_GetNote; field_8 is scaled pitch.
 /// field_A is a reverb/enable flag halfword written by the note-on handler.
@@ -968,7 +968,7 @@ typedef struct _TextStream {
 STATIC_ASSERT_SIZEOF(TextStream, 0x20);
 
 /// BSS object CdAudio_Tbl (size 0x18). CD/audio stream state for 46FE4.c.
-/// field_C is a base pointer into a halfword table; func_80057A1C indexes it
+/// field_C is a base pointer into a halfword table; CdAudio_LoadSectorEntry indexes it
 /// with ((packed >> 14) & 0x3FC) / 2 (4-byte stride, low halfword of each slot).
 typedef struct _CdAudioTbl {
     /* 0x00 */ u8   field_0;
@@ -977,7 +977,7 @@ typedef struct _CdAudioTbl {
     /* 0x03 */ u8   pad_3;
     /* 0x04 */ s32  field_4;
     /* 0x08 */ s32  field_8;
-    /* 0x0C */ u16* field_C;  // halfword table base (func_80057A1C)
+    /* 0x0C */ u16* field_C;  // halfword table base (CdAudio_LoadSectorEntry)
     /* 0x10 */ s32  field_10; // transfer / SpuWrite param
     /* 0x14 */ s32  field_14;
 } CdAudioTbl;
@@ -1140,11 +1140,11 @@ typedef struct _CdAudioTblEntry {
 } CdAudioTblEntry;
 STATIC_ASSERT_SIZEOF(CdAudioTblEntry, 0x4);
 
-/// Descriptor pointed to by SndEvtFrom4::field_C and passed to func_800558E8.
-/// field_5 is a volume scale (0-127) used by func_80055DFC / SndScript_Exec;
+/// Descriptor pointed to by SndEvtFrom4::field_C and passed to SndVoice_AllocSlot.
+/// field_5 is a volume scale (0-127) used by SndVoice_ApplyMasterVolume / SndScript_Exec;
 /// field_6 is a pitch bias; field_7 is a candidate-count threshold; field_8 is a
 /// preference key for func_80055EF8; field_C/field_E are halfword IDs matched by
-/// func_80054D58. Also the type of SndScript::field_4C voice-param blocks
+/// SndVoice_ScanCandidates. Also the type of SndScript::field_4C voice-param blocks
 /// (field_E bit1 gates the D_80082749 volume override).
 typedef struct _SndVoiceParams {
     /* 0x00 */ u8  pad_0[5];
@@ -1198,16 +1198,16 @@ typedef struct _SndScriptCmd {
 STATIC_ASSERT_SIZEOF(SndScriptCmd, 0x8);
 
 /// 0x60-byte slot in SndScript_Slots[8]. field_0 is an ID looked up by
-/// func_80055DAC; field_16 holds status flags (mask 0xA3 selects active entries).
+/// SndVoice_FindById; field_16 holds status flags (mask 0xA3 selects active entries).
 /// field_E is a dirty flag; field_10/11/12 and field_13/14/15 are paired ramps
-/// (current/target/step) updated by func_80055A9C and func_80055B70 respectively.
+/// (current/target/step) updated by func_80055A9C and SndVoice_SetVolumeRamp respectively.
 /// field_17/field_18/field_20 are a loop stack (depth, remaining counts, restart
 /// positions) used by Loop/endL in SndScript_Exec.
 /// field_40 is the head of a SndVoice voice list (cleared/walked by SndScript_Play);
 /// field_44 is a SndScriptCtx* script base; field_48 is the current script cursor;
 /// field_F is bit1 of SndVoiceParams::field_E.
 /// field_4C is a voice-param block (volume scale at field_5) walked with field_40.
-/// field_50 is a volume interpolator driven by func_800559BC via LinInterp_Setup.
+/// field_50 is a volume interpolator driven by SndVoice_FadeMatching via LinInterp_Setup.
 typedef struct _SndScript {
     /* 0x00 */ s32             field_0;
     /* 0x04 */ s32             field_4;
@@ -1248,7 +1248,7 @@ typedef struct _CdAudioLocEx {
 STATIC_ASSERT_SIZEOF(CdAudioLocEx, 0x14);
 
 /// Extended view of the CdAudio_Loc BSS block for SPU voice indices at +0x3E/+0x3F
-/// (used by func_800569D4 / func_80056E38). The zero-init in func_800574BC covers
+/// (used by CdAudio_DrivePhase0 / CdAudio_DriveRead). The zero-init in CdAudio_Init covers
 /// 0x44 bytes from CdAudio_Loc, so these offsets sit inside that block.
 typedef struct _CdAudioVoices {
     /* 0x00 */ u8 pad[0x3E];
@@ -1323,8 +1323,8 @@ typedef struct _SelectMenuCtx {
     /* 0x08 */ char* field_8;
 } SelectMenuCtx;
 
-/// 0x18-byte voice-slot lookup result filled by func_80054D58 and consumed by
-/// func_800558E8 / func_80055EF8. field_0 is the chosen slot index (or error);
+/// 0x18-byte voice-slot lookup result filled by SndVoice_ScanCandidates and consumed by
+/// SndVoice_AllocSlot / func_80055EF8. field_0 is the chosen slot index (or error);
 /// field_1..field_6 are candidate slot indices (-1 = empty); field_7 is the
 /// candidate count; field_8/C/10/14 hold ranking scores / IDs.
 typedef struct _SndVoicePick {
