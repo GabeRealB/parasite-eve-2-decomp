@@ -132,7 +132,7 @@ typedef u8* (*MidiHandler)(s32, u8*, MidiSong*, MidiTrack*);
 /// Entries: note-off, note-on, poly-AT, CC, program, pressure, pitch-bend, meta.
 extern MidiHandler D_800689C4[];
 extern u8*         func_80052488(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3);
-extern void        func_800530DC(SndLoadState* arg0);
+extern s32         func_800530DC(SndLoadState* arg0);
 
 // SndScript / SndVoice (src/main/sndscript.c)
 extern s32 D_800689E4;
