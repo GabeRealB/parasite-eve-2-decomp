@@ -86,4 +86,31 @@ void Mem_SetActiveAuxHeap(bool aux0);
 /// (Mem_ConfigureAuxHeap lives in main/boot.h — implemented in boot.c.)
 void Mem_AllocAuxWithImages(s16 flags);
 
+// =============================================================================
+// Globals — primary / aux heaps
+// =============================================================================
+
+/// Pointer to the start of the game heap.
+extern u8* GHeap;
+
+/// Pointer to the auxilary heap.
+extern u8* GAuxHeap;
+
+/// Length in bytes of the heap pointed to by `GAuxHeap`.
+extern size_t GAuxHeapSize;
+
+extern size_t D_80068F88;
+
+/// Pointer to the active auxilary heap.
+extern u8* GActiveAuxHeap;
+
+extern size_t D_80068F90;
+
+/// Length in bytes of the heap pointed to by `GActiveAuxHeap`.
+extern size_t GActiveAuxHeapSize;
+
+extern int    D_80068F98;
+extern u8*    D_800691F4;
+extern size_t D_800691F8;
+
 #endif // MEM_H

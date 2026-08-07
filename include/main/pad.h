@@ -91,11 +91,24 @@ s32  Pad_CheckSpecialCombo(void);
 void Pad_UpdatePort0(void);
 
 // =============================================================================
+// Types — pad remap (GameMain_Init zeros Pad_RemapState)
+// =============================================================================
+
+/// 0x1C-byte block; field_8 remaps pad input (Pad_UpdatePort0).
+typedef struct _PadRemapState {
+    /* 0x00 */ byte unknown_0[0x8];
+    /* 0x08 */ s8   field_8;
+    /* 0x09 */ byte unknown_9[0x13];
+} PadRemapState;
+STATIC_ASSERT_SIZEOF(PadRemapState, 0x1C);
+
+// =============================================================================
 // Globals
 // =============================================================================
 
 extern volatile PadState Pad_States[2];
 extern PadRawPort        Pad_RawPorts[2];
+extern PadRemapState*    Pad_RemapState;
 /// Cleared by Tmd_InitLists during system init.
 extern s32 D_80071210;
 

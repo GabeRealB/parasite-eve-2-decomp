@@ -48,14 +48,23 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 | `GpuExt_` | GPU helpers | `src/main/gpuext.c` | `include/main/gpuext.h` |
 | `GameFlow` | Pre-pad/task game-flow handlers | `src/main/gameflow.c` | — |
 | `CdStream_` / `CdReady_` | CD→SPU MTS stream | `src/main/cdstream.c` | `include/main/cdstream.h` |
-| `Tmd_` / `Stage_` | TMD models + stage flow | `src/main/tmd.c` | `include/main/tmd.h` / `game.h` (`StageCtx`) |
+| `Tmd_` / `Stage_` | TMD models + stage flow | `src/main/tmd.c` | `include/main/tmd.h` / `stage.h` |
 | `Stream_` | Stream channel slots | `src/main/stream.c` | `include/main/stream.h` |
 | `Game_` | Main session object | globals | `GameSession`, `Game_Session` |
 | `Wip` / `Wip_` | Weak-evidence placeholders | `wipsyscfg.c`, etc. | rename when proven |
 
 `Wip*` types and `Wip_*` globals are provisional: keep them only until a better role name is proven. Prefer replacing a `Wip` name over inventing a second provisional alias.
 
-`include/main/game.h` keeps session/stage helpers (`GameSession`, `StageCtx`, `GBytes*`) and includes the module type headers for compatibility. Prefer including the specific module header (`sound.h`, `ui.h`, `text.h`, …) when you only need that subsystem.
+`include/main/game.h` is an include aggregator (macros + module headers) for TUs that historically only pulled this file. Types live in module headers:
+
+| Header | Types |
+|---|---|
+| `session.h` | `GameSession`, `GameActor*`, `GBytes*` |
+| `stage.h` | `StageCtx` |
+| `wipsys.h` | `WipSysFlags`, `WipSysConfig` |
+| `sound.h` / `ui.h` / `text.h` / … | subsystem types |
+
+Prefer including the specific module header when you only need that subsystem.
 
 ## FS file-id encoding
 
