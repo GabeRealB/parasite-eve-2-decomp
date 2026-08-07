@@ -29,4 +29,18 @@ typedef struct _StreamSlot {
 } StreamSlot;
 STATIC_ASSERT_SIZEOF(StreamSlot, 0x28);
 
+// --- APIs (from unknown_syms) ---
+void        Mdec_SetupBuffers(u8* arg0);
+s32         Stream_RestoreAfterLoad(s32 arg0, s32 arg1);
+void        Mdec_UploadSlice(void);
+void        Mdec_KickStrip(void);
+void        Stream_ResetRestoreState(void);
+s16         Stream_FindSlot(u8* arg0, s32 arg1, s32 arg2);
+s16         Stream_FindSlotByKey(u8* arg0);
+StreamSlot* Stream_GetSlot(u32 arg0);
+u16         Stream_GetSlotField1A(u32 arg0);
+void        Stream_KickDecode(u32 arg0);
+void        Mdec_DecodeToVram(void);
+s16         Stream_HasActiveLowId(void* arg0);
+
 #endif // STREAM_H

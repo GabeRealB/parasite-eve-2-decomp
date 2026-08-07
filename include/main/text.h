@@ -3,6 +3,9 @@
 
 #include "common.h"
 
+#include "main/task.h"
+#include "main/ui.h"
+
 // Types — font / text draw
 
 /// Text-measure / draw-request block passed to Text_MeasureAndCenter / func_8002E53C.
@@ -86,5 +89,26 @@ typedef struct _TextStream {
     /* 0x1E */ s16        field_1E;
 } TextStream;
 STATIC_ASSERT_SIZEOF(TextStream, 0x20);
+
+// --- APIs (from unknown_syms) ---
+s32  TextStream_Draw(TextStream* arg0, u8* arg1, s16* arg2, s32 arg3);
+s32  Text_MeasureGlyphWidth(TextDrawReq* arg0, u8* arg1, u8* arg2);
+void Text_DrawGlyphDualSprtA(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
+void Text_DrawGlyphDualSprt(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
+void Text_DrawGlyphDualSprtTpage(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
+void Text_MeasureAndCenter(TextDrawReq* arg0, u8* arg1);
+u8*  Text_SkipLines(u8* arg0, s32 arg1);
+void Text_DrawGlyphImmediate(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
+void Text_DrawGlyphQueued(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
+void Text_DrawGlyphOt(TextDrawReq* arg0, FontGlyph* arg1);
+void Text_BootTask(Task* arg0);
+s32  Text_ParseLine(u8** arg0, u8* arg1);
+s32  Text_DrawMultiLine(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
+s32  Text_MeasureWidth(u8* arg0);
+s32  Text_MeasureMultiLine(u8* arg0);
+s32  Text_DrawPrompt(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
+s32  Text_DrawMultiLineScroll(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6, s32 arg7, s32 arg8);
+void Text_LoadClutImages(void);
+void Prim_DrawLoadingSprt(void);
 
 #endif // TEXT_H

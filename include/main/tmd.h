@@ -49,4 +49,9 @@ extern TmdListHead Tmd_List;
 /// Second list head initialized alongside Tmd_List by Tmd_InitLists.
 extern TmdListHead Tmd_ListAlt;
 
+// --- APIs (from unknown_syms) ---
+void Tmd_ProcessStream(TmdObject* arg0);
+void Tmd_SetupDraw(TmdObject* arg0);
+void Tmd_AllocMissingBuffers(void);
+
 #endif // TMD_H

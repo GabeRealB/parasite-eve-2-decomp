@@ -81,4 +81,20 @@ typedef struct _CdAudioVoices {
 } CdAudioVoices;
 STATIC_ASSERT_SIZEOF(CdAudioVoices, 0x40);
 
+// --- APIs (from unknown_syms) ---
+s32  CdAudio_Begin(void);
+void CdAudio_Init(void);
+u8   CdAudio_GetState(void);
+void CdAudio_Tick(void);
+s32  CdAudio_StartTrack(s32 arg0, s32 arg1);
+s32  CdAudio_ResetKeepBuffer(s32 arg0);
+s32  CdAudio_StoreIfNonNull(s32 arg0);
+s32  CdAudio_JumpToSector(s32 arg0);
+void CdAudio_SetLocBase(s32 arg0);
+void CdAudio_AllocVoices(s8* arg0, s8* arg1);
+s32  CdAudio_SeekAbs(s32 arg0);
+void CdAudio_StartVolumeRamp(s32 arg0);
+void CdAudio_JumpWithPitch(s32 arg0, s32 arg1);
+void CdAudio_SetLocFlag(void);
+
 #endif // CDAUDIO_H

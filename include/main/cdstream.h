@@ -147,4 +147,8 @@ void CdStream_ConfigureSpuIrq(s32 enable, u32 irqAddr);
 
 // Globals in unknown_syms.h: CdStream_State, CdStream_Channels, CdReady_Queue, CdStream_Params
 
+// --- APIs (from unknown_syms) ---
+void CdStream_Drive(void);
+void CdStream_ReadyMts(s32 arg0, u8* arg1);
+
 #endif // CDSTREAM_H

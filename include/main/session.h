@@ -94,4 +94,8 @@ STATIC_ASSERT_SIZEOF(GameActorExt, 0x10);
 /// Active game session object (data segment / BSS pointer).
 extern GameSession* Game_Session;
 
+// --- APIs (from unknown_syms) ---
+void Game_ClearSession(void);
+void Game_ClearEd68(void);
+
 #endif // SESSION_H

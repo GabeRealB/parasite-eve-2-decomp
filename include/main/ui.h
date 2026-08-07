@@ -207,4 +207,46 @@ typedef struct _SelectMenuCtx {
     /* 0x08 */ char* field_8;
 } SelectMenuCtx;
 
+// --- APIs (from unknown_syms) ---
+UiObject* Ui_SpawnTextBlock(TextBlockDesc* arg0);
+UiObject* Ui_SpawnFromDesc(UiObjectDesc* arg0, s32 arg1, s32 arg2, s32 arg3, UiObject* arg4);
+void      Ui_SizeFromText(UiPanel* arg0, u8* arg1, s32 arg2, s32 arg3);
+void      Ui_TeardownTree(UiObject* arg0, Task* arg1);
+void      Ui_FreeAndKill(Task* arg0);
+void      Ui_SetState4(Task* arg0);
+void      Ui_DrawTextColored(UiPanel* arg0, char* arg1);
+void      Ui_DrawText(UiPanel* arg0, char* arg1);
+void      Ui_ClampAnimOrClose(UiPanel* arg0, s32 arg1, s32 arg2);
+void      Ui_StartCloseAnim(UiPanel* arg0, void* arg1);
+void      Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2);
+void      Ui_LayoutListPanel(UiList* arg0, UiPanel* arg1);
+void      Ui_InitList(UiList* arg0, UiMiniObj* arg1);
+void      Ui_ComputeVisibleRows(UiList* arg0, s32 arg1);
+void      Ui_UpdateListNoAnim(void* arg0, void* arg1);
+void      Ui_ComputeVisibleRowsEx(UiList* arg0, UiPanel* arg1, s32 arg2);
+void      Ui_SmoothCursor(UiMiniObj* arg0, s32 arg1, s32 arg2);
+s32       Ui_LookupTable(void* arg0, s32 arg1);
+void      Ui_DrawHBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
+void      Ui_DrawVBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
+void      Ui_DrawTextUnderline(UiPanel* arg0, s32 arg1, s32 arg2, char* arg3, s32 arg4);
+void      Ui_DrawTitle(UiPanel* arg0, char* arg1);
+void      Ui_DrawTextAtLayout(UiPanel* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
+void      Ui_SetListScrollFlag(UiList* arg0, s32 arg1);
+void      Ui_AllocTile(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5);
+void      Ui_DrawListHighlight(UiList* arg0, UiPanel* arg1, s32 arg2);
+void      Ui_LayoutWithMode0(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5);
+void      Ui_LayoutWithMode1(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5);
+void      Ui_SetupClip(UiPanel* arg0);
+void      Ui_ScaleRect(UiPanel* arg0, RECT* arg1, s32 arg2, s32 arg3);
+void      Ui_LayoutAndClip(UiPanel* arg0);
+void      Ui_LayoutAndDraw(UiPanel* arg0);
+void      Ui_LayoutAndDrawAlt(UiPanel* arg0);
+void      Ui_ComputeAnimRect(UiPanel* arg0, RECT* arg1);
+void      Ui_AnimOpenStep(UiPanel* arg0, void* arg1);
+void      Ui_DrawAndCallback(UiPanel* arg0, void* arg1);
+void      Ui_LayoutDrawAndCallback(UiPanel* arg0, void* arg1);
+void      Ui_TickAnimCounter(UiPanel* arg0, void* arg1);
+void      Ui_ClipAndCallback(UiPanel* arg0, void* arg1);
+void      Ui_WaitCdThenOverlay(Task* arg0);
+
 #endif // UI_H

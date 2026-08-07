@@ -27,12 +27,14 @@
 #include "main/cdaudio.h"
 #include "main/cdstream.h"
 #include "main/stream.h"
-#include "main/text.h"
 #include "main/ui.h"
+#include "main/text.h"
 #include "main/tmd.h"
 #include "main/fs.h"
 #include "main/session.h"
 #include "main/stage.h"
 #include "main/wipsys.h"
+#include "main/gameflow.h"
+#include "main/gameflag.h"
 
 #endif // GAME_H

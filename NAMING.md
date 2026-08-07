@@ -46,7 +46,8 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 | `Display_` | Dual DISPENV/DRAWENV + system flags | used from `gamemain.c` etc. | `include/main/display.h` |
 | `GameMain` | Entry after `main` | `src/main/gamemain.c` | `include/main/gamemain.h` |
 | `GpuExt_` | GPU helpers | `src/main/gpuext.c` | `include/main/gpuext.h` |
-| `GameFlow` | Pre-pad/task game-flow handlers | `src/main/gameflow.c` | — |
+| `GameFlow` / `Fade_` | Pre-pad/task game-flow handlers | `src/main/gameflow.c` | `include/main/gameflow.h` |
+| `GameFlag_` | Packed 4-bit flag nibble table | `src/main/3B458.c` | `include/main/gameflag.h` |
 | `CdStream_` / `CdReady_` | CD→SPU MTS stream | `src/main/cdstream.c` | `include/main/cdstream.h` |
 | `Tmd_` / `Stage_` | TMD models + stage flow | `src/main/tmd.c` | `include/main/tmd.h` / `stage.h` |
 | `Stream_` | Stream channel slots | `src/main/stream.c` | `include/main/stream.h` |

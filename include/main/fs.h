@@ -581,4 +581,7 @@ extern s16          D5B498_8006EBF0;
 #define FS_ERROR_SOFT 0x0
 #define FS_ERROR_HARD 0x2
 
+// --- APIs (from unknown_syms) ---
+void F16494_ResetSpuAttr(void);
+
 #endif

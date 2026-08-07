@@ -130,4 +130,7 @@ extern TaskDesc* Task_DescBanks[];
 extern TaskNode* Task_ActiveList;
 extern TaskNode  Task_DefaultList;
 
+// --- APIs (from unknown_syms) ---
+s32 TaskIdMap_RemapIndex(s32 arg0, s32 arg1, s32 arg2);
+
 #endif // TASK_H

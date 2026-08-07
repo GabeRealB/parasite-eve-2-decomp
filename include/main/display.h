@@ -6,6 +6,8 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
+#include "main/task.h"
+
 // =============================================================================
 // Types — dual DISPENV/DRAWENV + system flags
 // =============================================================================
@@ -95,5 +97,18 @@ void GsClearOt(unsigned short offset, unsigned short point, GameOt* otp);
 
 /// Dual-buffer display / system state (bss @ 0x80070F68).
 extern DisplayState Display_State;
+
+// --- APIs (from unknown_syms) ---
+void  Display_SetMode(s32 arg0);
+void  Display_SetAutoClear(s32 arg0, s32 arg1, s32 arg2);
+void  Display_ClampField126(s8 arg0);
+void  Gpu_InitOtSmall(void);
+Task* Display_SpawnFromMode(void);
+void  Display_FlipOtAndDispatch(s32 arg0);
+void  Display_InvertFramebufferGray(void);
+s32   Display_SetFadeRate(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void  Display_SetFadeMax(u8 arg0);
+s32   Display_InitModeObj(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
+void  Gpu_ResetGraphAndOt(void);
 
 #endif // DISPLAY_H

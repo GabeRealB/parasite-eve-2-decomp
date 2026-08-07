@@ -43,4 +43,7 @@ STATIC_ASSERT_SIZEOF(StageCtx, 0x38);
 /// Active stage/flow context pointer.
 extern StageCtx* Stage_Ctx;
 
+// --- APIs (from unknown_syms) ---
+void Stage_InitOtAndSpawn(void);
+
 #endif // STAGE_H
