@@ -11032,3 +11032,38 @@ target wants `lhu` but the field type is signed `short`.
 `func_80046830` is the pure example. Pair with signed field overlays when the
 same function also needs `lb`/`lh` on counts/layout halfwords stored as `u8`/`u16`
 in the shared struct.
+
+## Force `li` into `beqz` delay ahead of `lui %hi(global)`
+
+When a block starts with a screen-size constant then a prim-buffer load:
+
+```
+beqz  s3, skip
+ li    v0, 0x140          /* delay — must be the constant */
+lui   a2, %hi(D_80071190)
+sh    v0, …               /* store the constant */
+…
+lw    s0, %lo(D_80071190)(a2)
+```
+
+plain statement order (`tw = 0x140; p = D_80071190; sp.w = tw`) often lets the
+scheduler put `lui` in the delay slot instead. Pre-branch assigns sink; nested
+blocks that finish the store before mentioning the global put `li` in the delay
+but then emit `sh` before `lui`.
+
+Materialize the constant, pin it with an empty asm constraint, then use it:
+
+```c
+s32 tw;
+tw = 0x140;
+asm volatile("" : "+r"(tw));
+sp.w = tw;
+sp.h = 0xF0;
+p = (DR_AREA*)D_80071190;
+```
+
+The `+r` barrier forces `li` to complete before any following `lui`, so delay-slot
+fill prefers the constant and the remaining schedule is `lui` / `sh` / …
+
+Pair with `register DR_AREA* p asm("s0")` when the same function's `addPrim`
+tails need `and s0, s0, a0` (mask in `$a0`). `func_800454E4` is the pure example.

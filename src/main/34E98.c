@@ -16,7 +16,75 @@ INCLUDE_ASM("main/nonmatchings/34E98", func_800446A0);
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80044C34);
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_800454E4);
+void func_800454E4(GStruct30* arg0, RECT* arg1, RECT* arg2, s32 arg3)
+{
+    RECT              sp10;
+    RECT              sp18;
+    POLY_F4*          poly;
+    DR_TPAGE*         dr;
+    s16               temp;
+    u16               x;
+    u16               y;
+    u16               t;
+    register DR_AREA* p asm("s0");
+
+    if (arg0->field_4 >= 0) {
+        if (arg3 != 0) {
+            p          = (DR_AREA*)D_80071190;
+            D_80071190 = (DR_TPAGE*)(p + 1);
+            sp10.x     = arg2->x + 0xA0;
+            temp       = arg2->y + 0x78;
+            sp10.y     = temp;
+            sp10.w     = arg2->w;
+            sp10.h     = arg2->h;
+            sp10.y     = temp + (Display_State.field_1f * 0x110);
+            SetDrawArea(p, &sp10);
+            addPrim(D_800710A0 + (s16)arg0->field_14 + 3, p);
+        }
+        func_80044C34(arg0, arg1, arg2, arg3);
+        if (arg3 != 0) {
+            s32 tw;
+            tw = 0x140;
+            asm volatile("" : "+r"(tw));
+            sp18.w     = tw;
+            sp18.h     = 0xF0;
+            p          = (DR_AREA*)D_80071190;
+            D_80071190 = (DR_TPAGE*)(p + 1);
+            sp18.x     = 0;
+            sp18.y     = Display_State.field_1f * 0x110;
+            SetDrawArea(p, &sp18);
+            addPrim(D_800710A0 + (s16)arg0->field_14 + 1, p);
+        }
+        if (arg0->field_4 & 0x10000) {
+            poly       = (POLY_F4*)D_80071190;
+            D_80071190 = (DR_TPAGE*)(poly + 1);
+            setlen(poly, 5);
+            setcode(poly, 0x2A);
+            poly->b0 = 0;
+            poly->g0 = 0;
+            poly->r0 = 0;
+            x        = arg2->x;
+            poly->x2 = x;
+            poly->x0 = x;
+            t        = arg2->x + arg2->w;
+            poly->x3 = t;
+            poly->x1 = t;
+            y        = arg2->y;
+            poly->y1 = y;
+            poly->y0 = y;
+            t        = arg2->y + arg2->h;
+            poly->y3 = t;
+            poly->y2 = t;
+            addPrim(D_800710A0 + (s16)arg0->field_14, poly);
+
+            dr         = D_80071190;
+            D_80071190 = dr + 1;
+            setlen(dr, 1);
+            dr->code[0] = 0xE1000200;
+            addPrim(D_800710A0 + (s16)arg0->field_14, dr);
+        }
+    }
+}
 
 void func_800457F8(GStruct30* arg0)
 {
