@@ -219,8 +219,8 @@ typedef struct _CdCmdQueue {
     CdCmd190*    field_190;   // 0x190
     void*        field_194;   // 0x194
     void*        field_198;   // 0x198 — base buffer for field_58 kind 4
-    void*        field_19C;   // 0x19C — copy of field_1A4
-    byte         unknown_1A0[0x4];
+    u32*         field_19C;   // 0x19C — copy of field_1A4; timing table cursor
+    u32          field_1A0;   // 0x1A0 — timing accumulator (func_8002785C)
     void*        field_1A4;   // 0x1A4 — secondary image/stream buffer
     byte         unknown_1A8[0x20];
     u16          writeIdx;    // 0x1C8 — next free slot (enqueue)
@@ -278,7 +278,7 @@ typedef struct _CdCmdQueue {
     s16          field_238; // 0x238 — non-zero clears field_18C in func_8001BB7C
     byte         unknown_23A[0x4];
     s16          field_23E; // MoveImage vs ClearImage path for func_800405E0
-    byte         unknown_240[0x2];
+    s16          field_240; // non-zero enables CD timing wait (func_8002785C)
     s16          field_242;
     u16          field_244;
     u16          field_246;

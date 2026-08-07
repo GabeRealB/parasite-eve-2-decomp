@@ -10950,3 +10950,41 @@ scratch (same `t4/t5/t6` halfword pattern as `func_8003C6D8`), `gte_SetRotMatrix
 on `arg0->field_1C` (light dir, often `GsLIGHTWSMATRIX`), and in-place column
 RTIR via `gte_ldclmv` + `gte_rtir_real` (`0x4A49E012`) + `gte_stclmv` three times
 (same real-opcode rule as other GTE command macros).
+
+## Local OT pointer for `D_800710A0` so `%hi` stays temporary
+
+`func_8002785C` (and similar dual-buffer main loops) must both:
+1. pin `D_80070EE8` as **two** regs (`s8` = `%hi`, `s7` = full via `addiu s7,s8,%lo`) for `func_8003DFB0` (`addiu a0,s8,%lo`) and `DrawOTag` (`addu v0,stride,s7`);
+2. use `%hi(D_800710A0)` only temporarily in `$s0` around `ClearOTagR`, not as a function-wide pin.
+
+Writing only through the global:
+
+```c
+D_800710A0 = ot;
+ClearOTagR(D_800710A0, n);
+*D_800710A0 = END;
+D_800710A0 += 0x20;
+```
+
+makes GCC hoist `lui sN,%hi(D_800710A0)` into the prologue and steal the reg that
+should hold `D_80070EE8`'s full address.
+
+Fix: pass a **local** into `ClearOTagR`, then reload from the global for the
+end-prim write so the `%hi` is only live in that block:
+
+```c
+{
+    u_long* ot = D5F414_OrderingTables + flip * C5F414_OTAG_ENTRIES;
+    D_800710A0 = ot;
+    ClearOTagR(ot, C5F414_OTAG_ENTRIES);
+}
+{
+    u_long* p = D_800710A0;
+    *p = C5F414_OTAG_END_PRIM;
+    D_800710A0 = p + 0x20;
+}
+```
+
+Also keep the buffer index used for OT setup (`flip = field_114 ^ 1`) in a
+short-lived temp so it can live in `$a1` until `ClearOTagR`'s second arg
+clobbers it — do **not** reuse that variable for the later `PutDrawEnv` index.

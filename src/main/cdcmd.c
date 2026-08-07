@@ -76,7 +76,7 @@ void* func_8001BB7C(void)
                 break;
         }
 
-        p->field_19C = p->field_1A4;
+        p->field_19C = (u32*)p->field_1A4;
         if (p->field_188 != 0) {
             p->field_184 = Mem_Malloc(p->field_188, 1);
         }

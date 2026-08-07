@@ -58,7 +58,7 @@ typedef struct _DisplayState {
     u16         field_12a;
     u16         field_12c;
     u8          field_12e;
-    byte        unknown_12f[0x1];
+    u8          field_12f;
     u8          field_130;
     byte        unknown_131[0x7];
 } DisplayState;
