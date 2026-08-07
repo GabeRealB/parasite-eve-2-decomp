@@ -8,13 +8,13 @@
 
 void func_80025C94(u8 status, u8* result)
 {
-    GStruct34* state;
-    CdlLOC     loc[3];
-    void*      buf;
-    s32        ret;
-    u8         errCount;
+    SndLoadState* state;
+    CdlLOC        loc[3];
+    void*         buf;
+    s32           ret;
+    u8            errCount;
 
-    state          = &D_800820F0;
+    state          = &SndLoad_State;
     state->field_3 = 0;
     if (status != CdlDiskError) {
         CdGetSector(loc, 3);

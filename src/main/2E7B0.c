@@ -176,7 +176,7 @@ void func_8003E560(void)
     *ot        = C5F414_OTAG_END_PRIM;
     D_800710A0 = ot + 0x20;
     func_800AC688();
-    func_8009850C(&D_80070EE8[temp->field_114]);
+    func_8009850C(&Gpu_OtBuffers[temp->field_114]);
     D_800710A0      = saved;
     temp->field_103 = 0;
 }
@@ -301,7 +301,7 @@ void func_8003E854(void)
     F179D4_ClearOTag(temp->field_114);
     D_800710A0 = D_800710A0 + 0x20;
     Task_ExecListFiltered(&Task_DefaultList, 0x62);
-    func_80097AC0(&D_80070EE8[temp->field_114]);
+    func_80097AC0(&Gpu_OtBuffers[temp->field_114]);
     D_800710A0      = saved;
     temp->field_103 = 0;
 }

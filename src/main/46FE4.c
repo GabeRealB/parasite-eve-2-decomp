@@ -102,7 +102,7 @@ s32 func_800569D4(void)
 {
     volatile GStruct4*  p;
     s16                 ret;
-    GStruct55*          interp;
+    LinInterp*          interp;
     volatile GStruct56* parent;
     volatile GStruct61* voices;
 
@@ -111,17 +111,17 @@ s32 func_800569D4(void)
 
     switch (p->field_2) {
         case 1:
-            interp     = &D_800827B4;
+            interp     = &LinInterp_CdStream;
             p->field_1 = 4;
-            func_8004D2EC(interp);
-            if (D_800827B4.field_0 == interp->field_4) {
+            LinInterp_Step(interp);
+            if (LinInterp_CdStream.field_0 == interp->field_4) {
                 interp->field_E = 0;
                 CdStream_SetPitch(0);
                 CdStream_Stop();
                 p->field_2 = 2;
             } else {
                 parent = (volatile GStruct56*)interp - 1;
-                CdStream_SetPitch((s16)func_8004D298(interp, parent->field_2));
+                CdStream_SetPitch((s16)LinInterp_Apply(interp, parent->field_2));
             }
             break;
         case 2:
@@ -452,7 +452,7 @@ void func_800572FC(s32 arg0)
     s32                 arg;
     s32                 pos;
     s32                 ret;
-    GStruct34*          state;
+    SndLoadState*       state;
     s32                 spuIdx;
     volatile GStruct44* stream;
     volatile GStruct39* cdState;
@@ -483,7 +483,7 @@ void func_800572FC(s32 arg0)
     CdGetSector(sector, 0x200);
     audio = &D_800827A0;
     if (audio->field_4 == cdState->field_8) {
-        state           = &D_800820F0;
+        state           = &SndLoad_State;
         state->field_0  = 0x10;
         state->field_26 = 0;
         state->field_1  = 0;
@@ -766,13 +766,13 @@ s32 func_80057ACC(void)
 
 void func_80057B24(s32 arg0)
 {
-    GStruct55*          p;
+    LinInterp*          p;
     volatile GStruct56* parent;
 
-    p      = &D_800827B4;
+    p      = &LinInterp_CdStream;
     parent = (volatile GStruct56*)p;
     parent = parent - 1;
-    func_8004D200(p, (parent->field_2 >> 7) & 0xFF, 0, arg0);
+    LinInterp_Setup(p, (parent->field_2 >> 7) & 0xFF, 0, arg0);
     D_80082798.field_1 = 4;
     D_80082798.field_2 = 1;
     parent->field_0    = 3;

@@ -2130,14 +2130,14 @@ void func_80049A8C(Task* arg0)
     temp_s0->field_16 += Display_State.field_10a;
 }
 
-void func_80049AF0(GStruct60* arg0, UiObject* arg1)
+void func_80049AF0(DialogPrompt* arg0, UiObject* arg1)
 {
-    GStruct70* temp_s3;
-    GStruct69* var_a3;
-    s32        var_v0;
-    s16        temp;
+    DialogListCtx* temp_s3;
+    DialogOption*  var_a3;
+    s32            var_v0;
+    s16            temp;
 
-    temp_s3 = (GStruct70*)arg1->field_28->field_34;
+    temp_s3 = (DialogListCtx*)arg1->field_28->field_34;
     var_v0  = arg0->field_8;
     var_a3  = temp_s3->field_4;
     if (var_v0 > 0) {
@@ -2163,17 +2163,17 @@ void func_80049AF0(GStruct60* arg0, UiObject* arg1)
 
 void func_80049C00(Task* arg0)
 {
-    UiObject*  obj;
-    GStruct73* ctx;
-    UiList*    menu;
-    char*      text;
-    u8         base;
-    s16        status;
-    Task*      parent;
-    Task*      child;
+    UiObject*      obj;
+    SelectMenuCtx* ctx;
+    UiList*        menu;
+    char*          text;
+    u8             base;
+    s16            status;
+    Task*          parent;
+    Task*          child;
 
     obj           = (UiObject*)arg0->field_20;
-    ctx           = (GStruct73*)arg0->field_34;
+    ctx           = (SelectMenuCtx*)arg0->field_34;
     menu          = &D_80067654;
     obj->field_2E = 0;
     if (arg0->field_30 == 0) {

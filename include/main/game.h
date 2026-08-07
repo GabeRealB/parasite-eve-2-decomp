@@ -616,50 +616,50 @@ typedef struct {
     GFunc30 funcs[6];
 } GFunc30Table6;
 
-/// Header for the bank table blob pointed to by GStruct31.field_0.
+/// Header for the bank table blob pointed to by SndBankSlot.field_0.
 /// field_4 is the bank ID (high halfword remapped by func_80053F00 when the
 /// request high nibble is 0x1); field_6 is the entry count used by func_8005414C.
-/// A u16 offset table follows at 0x8 (indexed via GStruct45OffsetView).
-typedef struct _GStruct45 {
+/// A u16 offset table follows at 0x8 (indexed via SndBankHdrOff).
+typedef struct _SndBankHdr {
     /* 0x0 */ u8  unknown_0[4];
     /* 0x4 */ u16 field_4;
     /* 0x6 */ u16 field_6;
-} GStruct45;
-STATIC_ASSERT_SIZEOF(GStruct45, 0x8);
+} SndBankHdr;
+STATIC_ASSERT_SIZEOF(SndBankHdr, 0x8);
 
-/// Overlay for reading the u16 offset table that follows GStruct45 at +0x8.
-/// Formed as (GStruct45OffsetView*)((index * 2) + (s32)header) so lhu 8(base)
+/// Overlay for reading the u16 offset table that follows SndBankHdr at +0x8.
+/// Formed as (SndBankHdrOff*)((index * 2) + (s32)header) so lhu 8(base)
 /// picks offsets[index] (func_8005414C).
-typedef struct _GStruct45OffsetView {
+typedef struct _SndBankHdrOff {
     /* 0x0 */ u8  pad[8];
     /* 0x8 */ u16 field_8;
-} GStruct45OffsetView;
-STATIC_ASSERT_SIZEOF(GStruct45OffsetView, 0xA);
+} SndBankHdrOff;
+STATIC_ASSERT_SIZEOF(SndBankHdrOff, 0xA);
 
-/// 16-byte slot in D_80082148[16] (BSS size 0x100). Indexed by func_800561C0
+/// 16-byte slot in SndBank_Slots[16] (BSS size 0x100). Indexed by SndBankSlot_Get
 /// and related helpers in 43FFC.c / 410B0.c.
-typedef struct _GStruct31 {
-    /* 0x0 */ GStruct45* field_0;
-    /* 0x4 */ void*      field_4;
-    /* 0x8 */ s32        field_8;
-    /* 0xC */ void*      field_C;
-} GStruct31;
-STATIC_ASSERT_SIZEOF(GStruct31, 0x10);
+typedef struct _SndBankSlot {
+    /* 0x0 */ SndBankHdr* field_0;
+    /* 0x4 */ void*       field_4;
+    /* 0x8 */ s32         field_8;
+    /* 0xC */ void*       field_C;
+} SndBankSlot;
+STATIC_ASSERT_SIZEOF(SndBankSlot, 0x10);
 
-/// Owner of a doubly-linked GStruct43 voice list (head at field_40).
-/// Insert: func_800562B4; unlink: func_80056068; walk: func_800563B4.
+/// Owner of a doubly-linked SndVoice voice list (head at field_40).
+/// Insert: SndVoice_Attach; unlink: SndVoice_Detach; walk: SndScript_TickVoices.
 /// field_44 is a pointer to the raw oneE/script buffer base (func_800565B8).
-typedef struct _GStruct43 GStruct43;
-typedef struct _GStruct57 {
-    /* 0x00 */ u8         unknown_0[0x40];
-    /* 0x40 */ GStruct43* field_40;
-    /* 0x44 */ u8**       field_44;
-} GStruct57;
-STATIC_ASSERT_SIZEOF(GStruct57, 0x48);
+typedef struct _SndVoice SndVoice;
+typedef struct _SndVoiceOwner {
+    /* 0x00 */ u8        unknown_0[0x40];
+    /* 0x40 */ SndVoice* field_40;
+    /* 0x44 */ u8**      field_44;
+} SndVoiceOwner;
+STATIC_ASSERT_SIZEOF(SndVoiceOwner, 0x48);
 
-/// "oneE" (0x45656E6F) pitch-envelope chunk pointed at by GStruct43Fx.field_20.
+/// "oneE" (0x45656E6F) pitch-envelope chunk pointed at by SndVoiceFx.field_20.
 /// Consumed by the state machine in func_80055678.
-typedef struct _GStruct43OneE {
+typedef struct _SndOneE {
     /* 0x00 */ s32 magic;
     /* 0x04 */ s16 field_4;
     /* 0x06 */ s16 field_6;
@@ -671,83 +671,83 @@ typedef struct _GStruct43OneE {
     /* 0x12 */ s16 field_12;
     /* 0x14 */ s16 field_14;
     /* 0x16 */ s16 field_16;
-} GStruct43OneE;
-STATIC_ASSERT_SIZEOF(GStruct43OneE, 0x18);
+} SndOneE;
+STATIC_ASSERT_SIZEOF(SndOneE, 0x18);
 
-/// FX/envelope sub-block embedded at GStruct43 + 0x10 (func_800565B8 / func_80055678).
+/// FX/envelope sub-block embedded at SndVoice + 0x10 (func_800565B8 / func_80055678).
 /// field_0 is an active flag; field_1 is the state-machine index; field_2 is a
 /// secondary gate; field_20 points at the current "oneE" (0x45656E6F) chunk.
-typedef struct _GStruct43Fx {
+typedef struct _SndVoiceFx {
+    /* 0x00 */ s8       field_0;
+    /* 0x01 */ s8       field_1;
+    /* 0x02 */ s8       field_2;
+    /* 0x03 */ u8       pad_3;
+    /* 0x04 */ s32      field_4;
+    /* 0x08 */ s16      field_8;
+    /* 0x0A */ s16      field_A;
+    /* 0x0C */ u16      field_C;
+    /* 0x0E */ s16      field_E;
+    /* 0x10 */ s32      field_10;
+    /* 0x14 */ s32      field_14;
+    /* 0x18 */ s32      field_18;
+    /* 0x1C */ s32      field_1C;
+    /* 0x20 */ SndOneE* field_20;
+} SndVoiceFx;
+STATIC_ASSERT_SIZEOF(SndVoiceFx, 0x24);
+
+/// Voice/FX object carved from SndBank_Slots with stride 0x40 (SndVoice_Alloc).
+/// field_0 is the SPU voice index; field_4 is a countdown/timer (SndVoice_Tick).
+/// field_10/field_12 gate FX processing (aliases of fx.field_0 / fx.field_2).
+/// field_34/field_38/field_3C are parent/prev/next list links (SndVoice_Detach free).
+struct _SndVoice {
     /* 0x00 */ s8             field_0;
-    /* 0x01 */ s8             field_1;
+    /* 0x01 */ u8             field_1;
     /* 0x02 */ s8             field_2;
-    /* 0x03 */ u8             pad_3;
+    /* 0x03 */ u8             field_3;
     /* 0x04 */ s32            field_4;
     /* 0x08 */ s16            field_8;
-    /* 0x0A */ s16            field_A;
-    /* 0x0C */ u16            field_C;
-    /* 0x0E */ s16            field_E;
-    /* 0x10 */ s32            field_10;
+    /* 0x0A */ u8             field_A;
+    /* 0x0B */ u8             pad_0B;
+    /* 0x0C */ void*          field_C; // current oneV/script command (SndScript_Exec)
+    /* 0x10 */ s8             field_10;
+    /* 0x11 */ s8             field_11;
+    /* 0x12 */ s8             field_12;
+    /* 0x13 */ u8             unknown_13;
     /* 0x14 */ s32            field_14;
-    /* 0x18 */ s32            field_18;
-    /* 0x1C */ s32            field_1C;
-    /* 0x20 */ GStruct43OneE* field_20;
-} GStruct43Fx;
-STATIC_ASSERT_SIZEOF(GStruct43Fx, 0x24);
-
-/// Voice/FX object carved from D_80082148 with stride 0x40 (func_80056240).
-/// field_0 is the SPU voice index; field_4 is a countdown/timer (func_80056308).
-/// field_10/field_12 gate FX processing (aliases of fx.field_0 / fx.field_2).
-/// field_34/field_38/field_3C are parent/prev/next list links (func_80056068 free).
-struct _GStruct43 {
-    /* 0x00 */ s8         field_0;
-    /* 0x01 */ u8         field_1;
-    /* 0x02 */ s8         field_2;
-    /* 0x03 */ u8         field_3;
-    /* 0x04 */ s32        field_4;
-    /* 0x08 */ s16        field_8;
-    /* 0x0A */ u8         field_A;
-    /* 0x0B */ u8         pad_0B;
-    /* 0x0C */ void*      field_C; // current oneV/script command (func_80055078)
-    /* 0x10 */ s8         field_10;
-    /* 0x11 */ s8         field_11;
-    /* 0x12 */ s8         field_12;
-    /* 0x13 */ u8         unknown_13;
-    /* 0x14 */ s32        field_14;
-    /* 0x18 */ s16        field_18;
-    /* 0x1A */ s16        field_1A;
-    /* 0x1C */ s16        field_1C;
-    /* 0x1E */ u8         unknown_1E[0x6];
-    /* 0x24 */ s32        field_24;
-    /* 0x28 */ s32        field_28;
-    /* 0x2C */ s32        field_2C;
-    /* 0x30 */ s32*       field_30;
-    /* 0x34 */ GStruct57* field_34;
-    /* 0x38 */ GStruct43* field_38;
-    /* 0x3C */ GStruct43* field_3C;
+    /* 0x18 */ s16            field_18;
+    /* 0x1A */ s16            field_1A;
+    /* 0x1C */ s16            field_1C;
+    /* 0x1E */ u8             unknown_1E[0x6];
+    /* 0x24 */ s32            field_24;
+    /* 0x28 */ s32            field_28;
+    /* 0x2C */ s32            field_2C;
+    /* 0x30 */ s32*           field_30;
+    /* 0x34 */ SndVoiceOwner* field_34;
+    /* 0x38 */ SndVoice*      field_38;
+    /* 0x3C */ SndVoice*      field_3C;
 };
-STATIC_ASSERT_SIZEOF(GStruct43, 0x40);
+STATIC_ASSERT_SIZEOF(SndVoice, 0x40);
 
-/// Overlay of GStruct34 at +0x1C (sector payload header for sound-bank setup).
+/// Overlay of SndLoadState at +0x1C (sector payload header for sound-bank setup).
 /// Passed to Snd_AllocBank; filled from a CD sector by func_80052B30.
 /// field_4 high nibble indexes D_800680AC / selects bank type; field_7 is the
 /// SndBankGroup count and field_8 is the SndNote entry count used to size
 /// the SndBank heap block (groups*4 + entries*0x14 + groups*2).
-typedef struct _GStruct34Payload {
+typedef struct _SndBankPayload {
     /* 0x0 */ u8  pad_0[4];
     /* 0x4 */ u16 field_4;
     /* 0x6 */ u8  field_6;
     /* 0x7 */ u8  field_7;
     /* 0x8 */ u8  field_8;
-} GStruct34Payload;
+} SndBankPayload;
 
-/// State block at D_800820F0; field_3 is also D_800820F3.
+/// State block at SndLoad_State; field_3 is also D_800820F3.
 /// field_14/field_18 cleared by func_800537FC; field_10 sized by func_8005363C.
 /// field_26/field_28 set by the CD ready path in func_800572FC.
 /// field_1C..field_2C are filled as five words from a sector by func_80052B30
-/// (overlay of GStruct34Payload at +0x1C: field_20/22/23/24 == payload field_4/6/7/8).
+/// (overlay of SndBankPayload at +0x1C: field_20/22/23/24 == payload field_4/6/7/8).
 /// Named BSS symbols D_80082120+ begin immediately after this 0x30-byte block.
-typedef struct _GStruct34 {
+typedef struct _SndLoadState {
     /* 0x00 */ u8    field_0;
     /* 0x01 */ u8    field_1;
     /* 0x02 */ u8    field_2;
@@ -769,30 +769,30 @@ typedef struct _GStruct34 {
     /* 0x29 */ u8    field_29;
     /* 0x2A */ u16   field_2A;
     /* 0x2C */ s32   field_2C;
-} GStruct34;
-STATIC_ASSERT_SIZEOF(GStruct34, 0x30);
+} SndLoadState;
+STATIC_ASSERT_SIZEOF(SndLoadState, 0x30);
 
-/// Per-buffer OT context (D_80070EE8[2]). Indexed by display buffer (stride 0x14).
+/// Per-buffer OT context (Gpu_OtBuffers[2]). Indexed by display buffer (stride 0x14).
 /// field_4 is OT start; field_10 is the last tag (passed to DrawOTag).
-typedef struct _GStruct35 {
+typedef struct _GpuOtBuf {
     /* 0x00 */ s32     field_0;
     /* 0x04 */ u_long* field_4;
     /* 0x08 */ u8      unknown_08[0x8];
     /* 0x10 */ u_long* field_10;
-} GStruct35;
-STATIC_ASSERT_SIZEOF(GStruct35, 0x14);
+} GpuOtBuf;
+STATIC_ASSERT_SIZEOF(GpuOtBuf, 0x14);
 
-/// Track/channel entry inside GStruct36 (stride 0x3C). field_5 is a per-entry flag
+/// Track/channel entry inside MidiSong (stride 0x3C). field_5 is a per-entry flag
 /// written by func_80051AB8; absolute offset of first entry's field_5 is 0x51.
 /// field_0 / field_1 / field_4 are NRPN/RPN state used by the MIDI CC handler
 /// (func_80052488). field_6 / field_7 and field_8[] form a loop stack for the
 /// 0xF5/0xF6 meta opcodes (func_800526A4); field_8[8] is also the track data
 /// pointer resolved by func_80051A2C (absolute offset 0x74). field_2C is the
-/// current track cursor advanced by the MIDI event driver (func_80051BB0).
+/// current track cursor advanced by the MIDI event driver (Midi_DriveTrack).
 /// field_30 is a saved event cursor for looped CC 0x63. field_34 is the
 /// remaining delta-time for the next event; field_38 is a fractional tick
 /// accumulator (mod 6000/3600 per Display_State.field_124).
-typedef struct _GStruct36Entry {
+typedef struct _MidiTrack {
     /* 0x00 */ u8  field_0;
     /* 0x01 */ u8  field_1;
     /* 0x02 */ u8  field_2;
@@ -806,10 +806,10 @@ typedef struct _GStruct36Entry {
     /* 0x30 */ u8* field_30;
     /* 0x34 */ s32 field_34;
     /* 0x38 */ s32 field_38;
-} GStruct36Entry;
-STATIC_ASSERT_SIZEOF(GStruct36Entry, 0x3C);
+} MidiTrack;
+STATIC_ASSERT_SIZEOF(MidiTrack, 0x3C);
 
-/// Active SPU voice slot inside GStruct36 (stride 0xC, 18 slots at 0x504).
+/// Active SPU voice slot inside MidiSong (stride 0xC, 18 slots at 0x504).
 /// field_0 is the voice index (negative when free); iterated by func_80051AF0.
 /// field_0 / field_1 are set to -1 when the slot is cleared (func_80051964).
 /// field_1 / field_2 match opcode nibble / param in func_800528F8.
@@ -817,7 +817,7 @@ STATIC_ASSERT_SIZEOF(GStruct36Entry, 0x3C);
 /// field_4 is a signed per-note volume scale; field_5 is a signed pan offset.
 /// field_6 / field_7 index the bank note via Snd_GetNote; field_8 is scaled pitch.
 /// field_A is a reverb/enable flag halfword written by the note-on handler.
-typedef struct _GStruct36VoiceSlot {
+typedef struct _MidiNoteSlot {
     /* 0x0 */ s8  field_0;
     /* 0x1 */ s8  field_1;
     /* 0x2 */ s8  field_2;
@@ -828,27 +828,27 @@ typedef struct _GStruct36VoiceSlot {
     /* 0x7 */ u8  field_7;
     /* 0x8 */ s16 field_8;
     /* 0xA */ s16 field_A;
-} GStruct36VoiceSlot;
-STATIC_ASSERT_SIZEOF(GStruct36VoiceSlot, 0xC);
+} MidiNoteSlot;
+STATIC_ASSERT_SIZEOF(MidiNoteSlot, 0xC);
 
-/// 0x10-byte linear interpolator state used by func_8004D200 / func_8004D298 /
-/// func_8004D2EC. Embedded at GStruct36::field_14; BSS object D_800827B4 sits
+/// 0x10-byte linear interpolator state used by LinInterp_Setup / LinInterp_Apply /
+/// LinInterp_Step. Embedded at MidiSong::field_14; BSS object LinInterp_CdStream sits
 /// 0x14 bytes after D_800827A0.
-typedef struct _GStruct55 {
+typedef struct _LinInterp {
     /* 0x0 */ s32 field_0;
     /* 0x4 */ s32 field_4;
     /* 0x8 */ s32 field_8;
     /* 0xC */ s16 field_C;
     /* 0xE */ s16 field_E;
-} GStruct55;
-STATIC_ASSERT_SIZEOF(GStruct55, 0x10);
+} LinInterp;
+STATIC_ASSERT_SIZEOF(LinInterp, 0x10);
 
-/// State block at D_8007F300 (logical stride 0x5DC; BSS allocation 0x5E0).
+/// State block at Midi_Song (logical stride 0x5DC; BSS allocation 0x5E0).
 /// field_0 is status; field_3 is the number of track entries starting at 0x4C.
 /// field_4/field_5 are copied from field_6/field_7 by the per-frame driver.
 /// field_8 is a scaled volume; field_C is a sentinel (0xFFFF when cleared).
 /// field_10 is a data pointer; field_14 is the volume interpolator.
-/// field_34 is a tempo/rate scale used by func_80051BB0 with field_4+field_5;
+/// field_34 is a tempo/rate scale used by Midi_DriveTrack with field_4+field_5;
 /// field_38 is accumulated song ticks advanced by that driver.
 /// field_484 is a 16-entry opcode table (same layout as GStruct22::field_484);
 /// func_800528BC seeds each entry with 0x407F4000 / 0.
@@ -857,33 +857,33 @@ typedef struct _SndBank      SndBank;
 typedef struct _SndNote      SndNote;
 typedef struct _SndBankGroup SndBankGroup;
 
-typedef struct _GStruct36 {
-    /* 0x00 */ u8                  field_0;
-    /* 0x01 */ u8                  field_1;
-    /* 0x02 */ u8                  field_2;
-    /* 0x03 */ u8                  field_3;
-    /* 0x04 */ u8                  field_4;
-    /* 0x05 */ u8                  field_5;
-    /* 0x06 */ u8                  field_6;
-    /* 0x07 */ u8                  field_7;
-    /* 0x08 */ s16                 field_8;
-    /* 0x0A */ s16                 field_A;
-    /* 0x0C */ s32                 field_C;
-    /* 0x10 */ void*               field_10;
-    /* 0x14 */ GStruct55           field_14;
-    /* 0x24 */ u8                  unknown_24[0x10];
-    /* 0x34 */ s32                 field_34;
-    /* 0x38 */ s32                 field_38;
-    /* 0x3C */ s32                 field_3C;
-    /* 0x40 */ SndBank*            field_40;
-    /* 0x44 */ SndBankGroup*       field_44;
-    /* 0x48 */ SndNote*            field_48;
-    /* 0x4C */ GStruct36Entry      entries[1];
-    /* 0x88 */ u8                  unknown_88[0x484 - 0x88];
-    /* 0x484 */ GStruct22Entry     field_484[16];
-    /* 0x504 */ GStruct36VoiceSlot voiceSlots[0x12];
-} GStruct36;
-STATIC_ASSERT_SIZEOF(GStruct36, 0x5DC);
+typedef struct _MidiSong {
+    /* 0x00 */ u8              field_0;
+    /* 0x01 */ u8              field_1;
+    /* 0x02 */ u8              field_2;
+    /* 0x03 */ u8              field_3;
+    /* 0x04 */ u8              field_4;
+    /* 0x05 */ u8              field_5;
+    /* 0x06 */ u8              field_6;
+    /* 0x07 */ u8              field_7;
+    /* 0x08 */ s16             field_8;
+    /* 0x0A */ s16             field_A;
+    /* 0x0C */ s32             field_C;
+    /* 0x10 */ void*           field_10;
+    /* 0x14 */ LinInterp       field_14;
+    /* 0x24 */ u8              unknown_24[0x10];
+    /* 0x34 */ s32             field_34;
+    /* 0x38 */ s32             field_38;
+    /* 0x3C */ s32             field_3C;
+    /* 0x40 */ SndBank*        field_40;
+    /* 0x44 */ SndBankGroup*   field_44;
+    /* 0x48 */ SndNote*        field_48;
+    /* 0x4C */ MidiTrack       entries[1];
+    /* 0x88 */ u8              unknown_88[0x484 - 0x88];
+    /* 0x484 */ GStruct22Entry field_484[16];
+    /* 0x504 */ MidiNoteSlot   voiceSlots[0x12];
+} MidiSong;
+STATIC_ASSERT_SIZEOF(MidiSong, 0x5DC);
 
 /// Text-measure / draw-request block passed to func_8002EDFC / func_8002E53C.
 /// field_0/field_2 = x/y (or accumulate measured width); field_4 = OT priority;
@@ -1146,12 +1146,12 @@ typedef struct _GStruct52 {
 STATIC_ASSERT_SIZEOF(GStruct52, 0x4);
 
 /// Descriptor pointed to by GStruct16From4::field_C and passed to func_800558E8.
-/// field_5 is a volume scale (0-127) used by func_80055DFC / func_80055078;
+/// field_5 is a volume scale (0-127) used by func_80055DFC / SndScript_Exec;
 /// field_6 is a pitch bias; field_7 is a candidate-count threshold; field_8 is a
 /// preference key for func_80055EF8; field_C/field_E are halfword IDs matched by
-/// func_80054D58. Also the type of GStruct54::field_4C voice-param blocks
+/// func_80054D58. Also the type of SndScript::field_4C voice-param blocks
 /// (field_E bit1 gates the D_80082749 volume override).
-typedef struct _GStruct67 {
+typedef struct _SndVoiceParams {
     /* 0x00 */ u8  pad_0[5];
     /* 0x05 */ u8  field_5;
     /* 0x06 */ u8  field_6;
@@ -1160,21 +1160,21 @@ typedef struct _GStruct67 {
     /* 0x0A */ u8  pad_A[2];
     /* 0x0C */ u16 field_C;
     /* 0x0E */ u16 field_E;
-} GStruct67;
-STATIC_ASSERT_SIZEOF(GStruct67, 0x10);
+} SndVoiceParams;
+STATIC_ASSERT_SIZEOF(SndVoiceParams, 0x10);
 
-/// Context pointed to by GStruct54::field_44 (set from func_80055F70 arg4).
+/// Context pointed to by SndScript::field_44 (set from SndScript_Play arg4).
 /// field_0 is the raw script/data base used for oneC offset tables and oneA
 /// lookups; field_4 is the default sound bank when a oneV command has bank id 0.
-typedef struct _GStruct54Ctx {
+typedef struct _SndScriptCtx {
     /* 0x0 */ u8*      field_0;
     /* 0x4 */ SndBank* field_4;
-} GStruct54Ctx;
-STATIC_ASSERT_SIZEOF(GStruct54Ctx, 0x8);
+} SndScriptCtx;
+STATIC_ASSERT_SIZEOF(SndScriptCtx, 0x8);
 
-/// "oneV" (0x56656E6F) voice-on script command consumed by func_80055078.
+/// "oneV" (0x56656E6F) voice-on script command consumed by SndScript_Exec.
 /// Also the 0x18-byte payload after a "oneC" (0x43656E6F) command.
-typedef struct _GStructScriptOneV {
+typedef struct _SndOneV {
     /* 0x00 */ s32 magic;
     /* 0x04 */ u16 field_4;  // bank id for Snd_FindBank (0 = use ctx bank)
     /* 0x06 */ u8  field_6;  // note group for Snd_GetNote
@@ -1185,62 +1185,62 @@ typedef struct _GStructScriptOneV {
     /* 0x0D */ s8  field_D;  // volume scale (<0 → use SndNote::field_3)
     /* 0x0E */ s8  field_E;  // reverb gate vs D_8008274B
     /* 0x0F */ u8  pad_F;
-    /* 0x10 */ u16 field_10; // voice-alloc priority for func_80056240
+    /* 0x10 */ u16 field_10; // voice-alloc priority for SndVoice_Alloc
     /* 0x12 */ s16 field_12; // oneA offset for func_8005664C
     /* 0x14 */ u16 field_14; // base pitch
     /* 0x16 */ s16 field_16; // oneE offset for func_800565B8 (-1 disables)
-} GStructScriptOneV;
-STATIC_ASSERT_SIZEOF(GStructScriptOneV, 0x18);
+} SndOneV;
+STATIC_ASSERT_SIZEOF(SndOneV, 0x18);
 
 /// "Loop" (0x706F6F4C) / "Wait" (0x74696157) / "endL" (0x4C646E65) script cmds.
 /// Loop: field_4 = repeat count, field_6 = min wait; Wait: field_4 as s32 duration.
-typedef struct _GStructScriptCmd {
+typedef struct _SndScriptCmd {
     /* 0x0 */ s32 magic;
     /* 0x4 */ u8  field_4;
     /* 0x5 */ u8  pad_5;
     /* 0x6 */ u16 field_6;
-} GStructScriptCmd;
-STATIC_ASSERT_SIZEOF(GStructScriptCmd, 0x8);
+} SndScriptCmd;
+STATIC_ASSERT_SIZEOF(SndScriptCmd, 0x8);
 
-/// 0x60-byte slot in D_80082248[8]. field_0 is an ID looked up by
+/// 0x60-byte slot in SndScript_Slots[8]. field_0 is an ID looked up by
 /// func_80055DAC; field_16 holds status flags (mask 0xA3 selects active entries).
 /// field_E is a dirty flag; field_10/11/12 and field_13/14/15 are paired ramps
 /// (current/target/step) updated by func_80055A9C and func_80055B70 respectively.
 /// field_17/field_18/field_20 are a loop stack (depth, remaining counts, restart
-/// positions) used by Loop/endL in func_80055078.
-/// field_40 is the head of a GStruct43 voice list (cleared/walked by func_80055F70);
-/// field_44 is a GStruct54Ctx* script base; field_48 is the current script cursor;
-/// field_F is bit1 of GStruct67::field_E.
+/// positions) used by Loop/endL in SndScript_Exec.
+/// field_40 is the head of a SndVoice voice list (cleared/walked by SndScript_Play);
+/// field_44 is a SndScriptCtx* script base; field_48 is the current script cursor;
+/// field_F is bit1 of SndVoiceParams::field_E.
 /// field_4C is a voice-param block (volume scale at field_5) walked with field_40.
-/// field_50 is a volume interpolator driven by func_800559BC via func_8004D200.
-typedef struct _GStruct54 {
-    /* 0x00 */ s32               field_0;
-    /* 0x04 */ s32               field_4;
-    /* 0x08 */ s32               field_8;
-    /* 0x0C */ s8                field_C;
-    /* 0x0D */ s8                field_D;
-    /* 0x0E */ s8                field_E;
-    /* 0x0F */ s8                field_F;
-    /* 0x10 */ u8                field_10;
-    /* 0x11 */ u8                field_11;
-    /* 0x12 */ s8                field_12;
-    /* 0x13 */ u8                field_13;
-    /* 0x14 */ u8                field_14;
-    /* 0x15 */ s8                field_15;
-    /* 0x16 */ u8                field_16;
-    /* 0x17 */ u8                field_17;
-    /* 0x18 */ u8                field_18[8];
-    /* 0x20 */ GStructScriptCmd* field_20[8];
-    /* 0x40 */ GStruct43*        field_40;
-    /* 0x44 */ GStruct54Ctx*     field_44;
-    /* 0x48 */ GStructScriptCmd* field_48;
-    /* 0x4C */ GStruct67*        field_4C;
-    /* 0x50 */ GStruct55         field_50;
-} GStruct54;
-STATIC_ASSERT_SIZEOF(GStruct54, 0x60);
+/// field_50 is a volume interpolator driven by func_800559BC via LinInterp_Setup.
+typedef struct _SndScript {
+    /* 0x00 */ s32             field_0;
+    /* 0x04 */ s32             field_4;
+    /* 0x08 */ s32             field_8;
+    /* 0x0C */ s8              field_C;
+    /* 0x0D */ s8              field_D;
+    /* 0x0E */ s8              field_E;
+    /* 0x0F */ s8              field_F;
+    /* 0x10 */ u8              field_10;
+    /* 0x11 */ u8              field_11;
+    /* 0x12 */ s8              field_12;
+    /* 0x13 */ u8              field_13;
+    /* 0x14 */ u8              field_14;
+    /* 0x15 */ s8              field_15;
+    /* 0x16 */ u8              field_16;
+    /* 0x17 */ u8              field_17;
+    /* 0x18 */ u8              field_18[8];
+    /* 0x20 */ SndScriptCmd*   field_20[8];
+    /* 0x40 */ SndVoice*       field_40;
+    /* 0x44 */ SndScriptCtx*   field_44;
+    /* 0x48 */ SndScriptCmd*   field_48;
+    /* 0x4C */ SndVoiceParams* field_4C;
+    /* 0x50 */ LinInterp       field_50;
+} SndScript;
+STATIC_ASSERT_SIZEOF(SndScript, 0x60);
 
 /// BSS block covering D_800827A0 (0x10) + D_800827B0 (0x4). Immediately precedes
-/// D_800827B4; used when codegen holds &D_800827B4 and reaches back 0x14 bytes.
+/// LinInterp_CdStream; used when codegen holds &LinInterp_CdStream and reaches back 0x14 bytes.
 typedef struct _GStruct56 {
     /* 0x00 */ u8  field_0;
     /* 0x01 */ u8  field_1;
@@ -1264,20 +1264,20 @@ STATIC_ASSERT_SIZEOF(GStruct61, 0x40);
 
 /// "oneA" (0x41656E6F) tagged chunk header read by func_8005664C.
 /// Located at a signed byte offset into a raw buffer.
-typedef struct _GStruct58 {
+typedef struct _SndOneA {
     /* 0x0 */ s32 field_0;
     /* 0x4 */ u16 field_4;
     /* 0x6 */ u16 field_6;
-} GStruct58;
-STATIC_ASSERT_SIZEOF(GStruct58, 0x8);
+} SndOneA;
+STATIC_ASSERT_SIZEOF(SndOneA, 0x8);
 
-/// Destination for func_8005664C: receives halfwords from a GStruct58 chunk.
-typedef struct _GStruct59 {
+/// Destination for func_8005664C: receives halfwords from a SndOneA chunk.
+typedef struct _SndOneAOut {
     /* 0x00 */ u8  pad_00[0x3A];
     /* 0x3A */ u16 field_3A;
     /* 0x3C */ u16 field_3C;
-} GStruct59;
-STATIC_ASSERT_SIZEOF(GStruct59, 0x3E);
+} SndOneAOut;
+STATIC_ASSERT_SIZEOF(SndOneAOut, 0x3E);
 
 /// Dialog / prompt descriptor used by 21FDC.c handlers (e.g. func_80036E78,
 /// func_80036D98, func_80036B2C). field_8 is a signed menu/option index passed
@@ -1285,7 +1285,7 @@ STATIC_ASSERT_SIZEOF(GStruct59, 0x3E);
 /// path; field_C is a selection/confirm flag (1 = confirm); field_18/field_1A
 /// are position halfwords; field_1C is data passed through to func_8002FDCC;
 /// field_22 is a state halfword set with the alternate confirm path.
-typedef struct _GStruct60 {
+typedef struct _DialogPrompt {
     /* 0x00 */ byte unknown_0[0x8];
     /* 0x08 */ s8   field_8;
     /* 0x09 */ byte unknown_9[0x2];
@@ -1297,42 +1297,42 @@ typedef struct _GStruct60 {
     /* 0x1C */ s32  field_1C;
     /* 0x20 */ byte unknown_20[0x2];
     /* 0x22 */ s16  field_22;
-} GStruct60;
+} DialogPrompt;
 
-/// Linked text option node walked by func_80049AF0 (index via GStruct60::field_8).
+/// Linked text option node walked by func_80049AF0 (index via DialogPrompt::field_8).
 /// field_0 is the string passed to func_8002FDCC; field_4 is the next node.
-typedef struct _GStruct69 {
-    /* 0x0 */ u8*                field_0;
-    /* 0x4 */ struct _GStruct69* field_4;
-} GStruct69;
-STATIC_ASSERT_SIZEOF(GStruct69, 0x8);
+typedef struct _DialogOption {
+    /* 0x0 */ u8*                   field_0;
+    /* 0x4 */ struct _DialogOption* field_4;
+} DialogOption;
+STATIC_ASSERT_SIZEOF(DialogOption, 0x8);
 
 /// Context at Task::field_34 for the func_80049AF0 dialog path.
-/// field_4 is the head of a GStruct69 list; field_C bit0 gates cancel input.
-typedef struct _GStruct70 {
-    /* 0x00 */ byte       unknown_0[4];
-    /* 0x04 */ GStruct69* field_4;
-    /* 0x08 */ byte       unknown_8[4];
-    /* 0x0C */ u8         field_C;
-} GStruct70;
+/// field_4 is the head of a DialogOption list; field_C bit0 gates cancel input.
+typedef struct _DialogListCtx {
+    /* 0x00 */ byte          unknown_0[4];
+    /* 0x04 */ DialogOption* field_4;
+    /* 0x08 */ byte          unknown_8[4];
+    /* 0x0C */ u8            field_C;
+} DialogListCtx;
 
 /// Context at Task::field_34 for the func_80049C00 UI path.
 /// field_0 is a base index copied into UiList field_4/field_5; field_2 receives
 /// the selected index from UiObject::field_2C on confirm/cancel; field_8 is an
 /// optional string passed to func_80047F40.
-typedef struct _GStruct73 {
+typedef struct _SelectMenuCtx {
     /* 0x00 */ u8    field_0;
     /* 0x01 */ byte  pad_1;
     /* 0x02 */ s16   field_2;
     /* 0x04 */ byte  pad_4[4];
     /* 0x08 */ char* field_8;
-} GStruct73;
+} SelectMenuCtx;
 
 /// 0x18-byte voice-slot lookup result filled by func_80054D58 and consumed by
 /// func_800558E8 / func_80055EF8. field_0 is the chosen slot index (or error);
 /// field_1..field_6 are candidate slot indices (-1 = empty); field_7 is the
 /// candidate count; field_8/C/10/14 hold ranking scores / IDs.
-typedef struct _GStruct66 {
+typedef struct _SndVoicePick {
     /* 0x00 */ s8  field_0;
     /* 0x01 */ s8  field_1;
     /* 0x02 */ s8  field_2;
@@ -1345,13 +1345,13 @@ typedef struct _GStruct66 {
     /* 0x0C */ s32 field_C;
     /* 0x10 */ s32 field_10;
     /* 0x14 */ s32 field_14;
-} GStruct66;
-STATIC_ASSERT_SIZEOF(GStruct66, 0x18);
+} SndVoicePick;
+STATIC_ASSERT_SIZEOF(SndVoicePick, 0x18);
 
 /// 0xC-byte init-table entry at D_80068A60 (two entries used by func_80053FF4).
-/// field_0 indexes D_800680AC for a slot id; field_2 is written to GStruct31.field_8
+/// field_0 indexes D_800680AC for a slot id; field_2 is written to SndBankSlot.field_8
 /// and SndBank.field_8; field_4/field_6 are F3D458_Malloc sizes; field_8 is stored
-/// to GStruct31.field_C.
+/// to SndBankSlot.field_C.
 typedef struct _GStruct75 {
     /* 0x0 */ u16 field_0;
     /* 0x2 */ u16 field_2;

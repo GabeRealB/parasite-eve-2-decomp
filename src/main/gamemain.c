@@ -91,7 +91,7 @@ void func_8002731C(s32 arg0)
                 func_80020058();
                 Display_State.field_1f = saved;
             }
-            DrawOTag(D_80070EE8[Display_State.field_114].field_10);
+            DrawOTag(Gpu_OtBuffers[Display_State.field_114].field_10);
         } else if (D_8006EC30 == 2) {
             func_80027F48(arg0);
         } else if (D_8006EC30 == 3) {
@@ -128,7 +128,7 @@ void func_80027498(void)
                 }
                 func_80020058();
                 if (ds->field_104 == 0) {
-                    DrawOTag(D_80070EE8[temp_s0].field_10);
+                    DrawOTag(Gpu_OtBuffers[temp_s0].field_10);
                 }
                 D_8005EC70 = -1;
             } else if (ds->field_108 == 1) {
@@ -363,10 +363,10 @@ void F179D4_ClearOTag(s16 tableIdx)
 
 void func_800281D4(void)
 {
-    RECT       rect;
-    GStruct35* otCtx;
-    u_long*    ot;
-    s32        depth;
+    RECT      rect;
+    GpuOtBuf* otCtx;
+    u_long*   ot;
+    s32       depth;
 
     if (D_8005EC64 == 1) {
         ResetGraph(0);
@@ -380,7 +380,7 @@ void func_800281D4(void)
     DrawSync(0);
     InitGeom();
 
-    otCtx             = D_80070EE8;
+    otCtx             = Gpu_OtBuffers;
     depth             = 0xA;
     otCtx->field_0    = depth;
     ot                = D5F414_OrderingTables;
@@ -413,7 +413,7 @@ void func_800282D8(s32 arg0)
     }
     func_80020058();
     if (Display_State.field_104 == 0) {
-        DrawOTag(D_80070EE8[arg0].field_10);
+        DrawOTag(Gpu_OtBuffers[arg0].field_10);
     }
 }
 

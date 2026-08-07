@@ -103,7 +103,7 @@ end:
     D_800680C0 = 1;
 }
 
-SndBank* Snd_AllocBank(GStruct34Payload* arg0)
+SndBank* Snd_AllocBank(SndBankPayload* arg0)
 {
     u16      type;
     s8       temp;
@@ -293,7 +293,7 @@ void Snd_BuildGroupIndex(SndBank* arg0)
     }
 }
 
-void func_8004D200(GStruct55* arg0, s32 arg1, s32 arg2, s32 arg3)
+void LinInterp_Setup(LinInterp* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     s32 temp;
     s32 limit;
@@ -329,7 +329,7 @@ setup:
     arg0->field_E = 1;
 }
 
-s32 func_8004D298(GStruct55* arg0, s32 arg1)
+s32 LinInterp_Apply(LinInterp* arg0, s32 arg1)
 {
     s32 var_a1;
 
@@ -343,7 +343,7 @@ s32 func_8004D298(GStruct55* arg0, s32 arg1)
     return var_a1;
 }
 
-void func_8004D2EC(GStruct55* arg0)
+void LinInterp_Step(LinInterp* arg0)
 {
     s32 step = arg0->field_8;
 

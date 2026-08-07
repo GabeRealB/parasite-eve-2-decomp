@@ -143,7 +143,7 @@ void func_80050B80(GStruct16* arg0)
     GStruct16From4* temp;
 
     temp = (GStruct16From4*)&arg0->field_4;
-    func_800558E8(temp->field_4, arg0->field_4, temp->field_1, temp->field_8, (GStruct67*)temp->field_C);
+    func_800558E8(temp->field_4, arg0->field_4, temp->field_1, temp->field_8, (SndVoiceParams*)temp->field_C);
 }
 
 void func_80050BBC(GStruct16* arg0)
@@ -205,9 +205,9 @@ void func_80050D00(void)
 
 s32 func_80050D20(u32 arg0)
 {
-    s32        i;
-    GStruct36* state;
-    SndBank*   bank;
+    s32       i;
+    MidiSong* state;
+    SndBank*  bank;
 
     for (i = 0; i <= 0; i++) {
         func_80051964(i & 0xFF);
@@ -217,7 +217,7 @@ s32 func_80050D20(u32 arg0)
     D_800820E0 = 0;
     D_800820E4 = 0;
     func_8004E5A0(0, 0, 0x10);
-    state           = (GStruct36*)func_80051808(0xFF);
+    state           = (MidiSong*)func_80051808(0xFF);
     state->field_1  = 0xFF;
     state->field_A  = 0x10;
     state->field_10 = D_8007F8E0;
@@ -238,7 +238,7 @@ s32 func_80050D20(u32 arg0)
 s32 func_80050E3C(u8 arg0, u16 arg1)
 {
     s32        i;
-    GStruct36* obj;
+    MidiSong*  obj;
     u8*        data;
     u32        magic;
     s32*       clearPtr;
@@ -250,11 +250,11 @@ s32 func_80050E3C(u8 arg0, u16 arg1)
     u8*        cur;
     s32        d0;
     s32        d1;
-    GStruct55* interp;
+    LinInterp* interp;
 
     i = 0;
     do {
-        obj = &D_8007F300 + i;
+        obj = &Midi_Song + i;
         if (obj->field_1 != 0xFF) {
             if ((obj->field_1 == arg0) && (obj->field_0 == 0)) {
                 func_800528BC((s32*)obj->field_484);
@@ -265,8 +265,8 @@ s32 func_80050E3C(u8 arg0, u16 arg1)
                 }
 
                 {
-                    register GStruct36Entry* entries asm("a1");
-                    u32                      j;
+                    register MidiTrack* entries asm("a1");
+                    u32                 j;
 
                     entries      = obj->entries;
                     obj->field_2 = data[9];
@@ -314,7 +314,7 @@ s32 func_80050E3C(u8 arg0, u16 arg1)
                     obj->field_34 = (d0 << 8) | d1;
                     table         = D_800689F0;
                     obj->field_8  = (table[obj->field_1] * 3) << 5;
-                    func_8004D200(interp, 0, D_8007F2F0, arg1);
+                    LinInterp_Setup(interp, 0, D_8007F2F0, arg1);
 
                     if (arg1 != 0) {
                         obj->field_0 = 0x40;
@@ -346,7 +346,7 @@ s32 func_80050E3C(u8 arg0, u16 arg1)
 
 s32 func_800510D4(void)
 {
-    GStruct36*   obj;
+    MidiSong*    obj;
     s32          i;
     register s32 j asm("s2");
     register s32 off asm("s3");
@@ -360,7 +360,7 @@ s32 func_800510D4(void)
     eight = 8;
     two   = 2;
     ffff  = 0xFFFF;
-    obj   = &D_8007F300;
+    obj   = &Midi_Song;
 
 loop:
     if (obj->field_1 == 0xFF) {
@@ -413,7 +413,7 @@ case_40_80:
     goto case_4;
 
 case_8:
-    func_8004D2EC(&obj->field_14);
+    LinInterp_Step(&obj->field_14);
     obj->field_C = ffff;
 case_2:
     j = 0;
@@ -422,7 +422,7 @@ case_2:
         cursor = (u8*)obj;
         do {
             if (cursor[0x51] == 0) {
-                func_80051BB0(obj, (GStruct36Entry*)((u8*)obj + off));
+                Midi_DriveTrack(obj, (MidiTrack*)((u8*)obj + off));
             }
             off    += 0x3C;
             cursor += 0x3C;
@@ -567,8 +567,8 @@ s32 func_800514F8(s32 arg0)
         return 0;
     }
     for (i = 0; i <= 0; i++) {
-        if ((arg0 == (&D_8007F300)[i].field_1) || (arg0 == 0)) {
-            if ((&D_8007F300)[i].field_0 & 0xCA) {
+        if ((arg0 == (&Midi_Song)[i].field_1) || (arg0 == 0)) {
+            if ((&Midi_Song)[i].field_0 & 0xCA) {
                 return 1;
             }
         }
@@ -587,7 +587,7 @@ s32 func_80051560(u8 arg0)
         return 1;
     }
     for (i = 0; i <= 0; i++) {
-        if ((&D_8007F300)[i].field_1 == arg0) {
+        if ((&Midi_Song)[i].field_1 == arg0) {
             return 0;
         }
     }
@@ -596,15 +596,15 @@ s32 func_80051560(u8 arg0)
 
 void func_800515C0(u8 arg0, u16 arg1)
 {
-    s32        i;
-    GStruct36* ptr;
+    s32       i;
+    MidiSong* ptr;
 
     for (i = 0; i <= 0; i++) {
-        ptr = &D_8007F300 + i;
+        ptr = &Midi_Song + i;
         if ((arg0 == ptr->field_1) || (arg0 == 0)) {
             if (ptr->field_0 == 2) {
                 ptr->field_0 = 0x80;
-                func_8004D200(&ptr->field_14, D_8007F2F0, 0, arg1);
+                LinInterp_Setup(&ptr->field_14, D_8007F2F0, 0, arg1);
             } else {
                 ptr->field_0 = 4;
             }
@@ -614,21 +614,21 @@ void func_800515C0(u8 arg0, u16 arg1)
 
 void func_8005166C(u8 arg0, s32 arg1)
 {
-    s32        i;
-    GStruct36* ptr;
+    s32       i;
+    MidiSong* ptr;
 
     for (i = 0; i <= 0; i++) {
-        ptr = &D_8007F300 + i;
+        ptr = &Midi_Song + i;
         if ((arg0 == ptr->field_1) || (arg0 == 0)) {
             if (arg1 == 0) {
                 if (ptr->field_0 == 8) {
                     ptr->field_0 = 0x10;
-                    func_8004D200(&ptr->field_14, 0, D_8007F2F0, 8);
+                    LinInterp_Setup(&ptr->field_14, 0, D_8007F2F0, 8);
                 }
             } else {
                 if (ptr->field_0 & 0x12) {
                     ptr->field_0 = 8;
-                    func_8004D200(&ptr->field_14, D_8007F2F0, 0, 8);
+                    LinInterp_Setup(&ptr->field_14, D_8007F2F0, 0, 8);
                 }
             }
         }
@@ -637,13 +637,13 @@ void func_8005166C(u8 arg0, s32 arg1)
 
 void func_80051744(u8 arg0, u8 arg1)
 {
-    s32        i;
-    u8*        table;
-    GStruct36* arr;
-    s32        product;
+    s32       i;
+    u8*       table;
+    MidiSong* arr;
+    s32       product;
 
     i   = 0;
-    arr = &D_8007F300;
+    arr = &Midi_Song;
     for (; i <= 0; i++) {
         if ((arg0 == arr[i].field_1) || (arg0 == 0)) {
             table          = D_800689F0;
@@ -670,7 +670,7 @@ void func_800517B4(s32 arg0)
     i   = 0;
     val = 0xFFFF;
     for (; i <= 0; i++) {
-        (&D_8007F300)[i].field_C = val;
+        (&Midi_Song)[i].field_C = val;
     }
 }
 
@@ -681,11 +681,11 @@ s32 func_800517F8(void)
 
 u8* func_80051808(s32 arg0)
 {
-    if (D_8007F300.field_0 != 0) {
-        func_80051AB8(&D_8007F300);
-        D_8007F300.field_0 = 4;
+    if (Midi_Song.field_0 != 0) {
+        func_80051AB8(&Midi_Song);
+        Midi_Song.field_0 = 4;
     }
-    return (u8*)&D_8007F300;
+    return (u8*)&Midi_Song;
 }
 
 void* func_80051850(s32 arg0, s32 arg1)
@@ -753,17 +753,17 @@ void func_800518E0(void)
 
 void func_80051964(s32 arg0)
 {
-    GStruct36*          obj;
-    s32*                p;
-    u32                 i;
-    s32                 offset;
-    u32                 k;
-    GStruct36VoiceSlot* slot;
-    s32*                q;
-    s8                  freemark;
+    MidiSong*     obj;
+    s32*          p;
+    u32           i;
+    s32           offset;
+    u32           k;
+    MidiNoteSlot* slot;
+    s32*          q;
+    s8            freemark;
 
     arg0 &= 0xFF;
-    obj   = &(&D_8007F300)[arg0];
+    obj   = &(&Midi_Song)[arg0];
 
     p = (s32*)obj;
     i = 0;
@@ -773,15 +773,15 @@ void func_80051964(s32 arg0)
         p++;
     } while (i < 0x177U);
 
-    func_8004D200(&obj->field_14, 0, 0, 0);
+    LinInterp_Setup(&obj->field_14, 0, 0, 0);
     func_800528BC((s32*)obj->field_484);
 
     i        = 0;
     freemark = -1;
     offset   = 0;
     do {
-        slot = (GStruct36VoiceSlot*)(offset + (s32)obj);
-        slot = ((GStruct36*)slot)->voiceSlots;
+        slot = (MidiNoteSlot*)(offset + (s32)obj);
+        slot = ((MidiSong*)slot)->voiceSlots;
         q    = (s32*)slot;
         k    = 0;
         do {
@@ -796,7 +796,7 @@ void func_80051964(s32 arg0)
     } while ((s32)i < 0x12);
 }
 
-void* func_80051A2C(GStruct36* arg0, s32 arg1, u8* arg2)
+void* func_80051A2C(MidiSong* arg0, s32 arg1, u8* arg2)
 {
     register s32 idx asm("v1");
     u32          offset;
@@ -814,7 +814,7 @@ void* func_80051A2C(GStruct36* arg0, s32 arg1, u8* arg2)
     return (void*)(offset + 0x10);
 }
 
-void func_80051AB8(GStruct36* arg0)
+void func_80051AB8(MidiSong* arg0)
 {
     s32 i;
 
@@ -823,13 +823,13 @@ void func_80051AB8(GStruct36* arg0)
     }
 }
 
-void func_80051AF0(GStruct36* arg0)
+void func_80051AF0(MidiSong* arg0)
 {
-    s32                 i;
-    GStruct36VoiceSlot* slot;
-    u8                  status;
-    SpuVoiceRef         sp10;
-    u16                 temp;
+    s32           i;
+    MidiNoteSlot* slot;
+    u8            status;
+    SpuVoiceRef   sp10;
+    u16           temp;
 
     i    = 0;
     slot = arg0->voiceSlots;
@@ -852,21 +852,21 @@ void func_80051AF0(GStruct36* arg0)
     } while (i < 0x12);
 }
 
-void func_80051BB0(GStruct36* arg0, GStruct36Entry* arg1)
+void Midi_DriveTrack(MidiSong* arg0, MidiTrack* arg1)
 {
-    u8                       sp10;
-    register GStruct36Entry* entry asm("s0");
-    MidiHandler*             table;
-    u32                      temp;
-    s32                      quot;
-    s32                      ticks;
-    s32                      rem_factor;
-    u8                       status;
-    u32                      hi;
-    s32                      status_arg;
-    s32                      delta;
-    MidiHandler              handler;
-    u8*                      cursor;
+    u8                  sp10;
+    register MidiTrack* entry asm("s0");
+    MidiHandler*        table;
+    u32                 temp;
+    s32                 quot;
+    s32                 ticks;
+    s32                 rem_factor;
+    u8                  status;
+    u32                 hi;
+    s32                 status_arg;
+    s32                 delta;
+    MidiHandler         handler;
+    u8*                 cursor;
 
     entry = arg1;
     temp  = entry->field_38 + (arg0->field_4 + arg0->field_5) * arg0->field_34;
@@ -954,15 +954,15 @@ end:
     entry->field_34 -= ticks;
 }
 
-void func_80051DF4(GStruct36* arg0)
+void func_80051DF4(MidiSong* arg0)
 {
     SpuVoiceRef              sp10;
     s16                      sp18[2];
-    register GStruct36*      obj asm("s4");
-    GStruct55*               interp;
+    register MidiSong*       obj asm("s4");
+    LinInterp*               interp;
     s32                      volume;
     s32                      i;
-    GStruct36VoiceSlot*      slot;
+    MidiNoteSlot*            slot;
     register GStruct22Entry* entry asm("t0");
     s32                      product;
     u32                      vol;
@@ -989,7 +989,7 @@ void func_80051DF4(GStruct36* arg0)
         scale = (u16)obj->field_8;
         temp &= 0xFF;
     }
-    volume = func_8004D298(interp, (u32)(temp * scale) / 127U);
+    volume = LinInterp_Apply(interp, (u32)(temp * scale) / 127U);
 after_volume:
     i    = 0;
     slot = obj->voiceSlots;
@@ -1026,7 +1026,7 @@ after_volume:
 
 INCLUDE_ASM("main/nonmatchings/410B0", func_800520A8);
 
-u8* func_80052488(s32 arg0, u8* arg1, GStruct36* arg2, GStruct36Entry* arg3)
+u8* func_80052488(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3)
 {
     u8  channel;
     u8  ctrl;
@@ -1111,7 +1111,7 @@ u8* func_80052488(s32 arg0, u8* arg1, GStruct36* arg2, GStruct36Entry* arg3)
     return arg1 + 3;
 }
 
-u8* func_800526A4(s32 arg0, u8* arg1, GStruct36* arg2, GStruct36Entry* arg3)
+u8* func_800526A4(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3)
 {
     u8  sp0;
     s32 var_a0;
@@ -1234,7 +1234,7 @@ s32 func_800528F0(s32 arg0, s32 arg1)
     return arg1 + 1;
 }
 
-u8* func_800528F8(s32 arg0, u8* arg1, GStruct36* arg2)
+u8* func_800528F8(s32 arg0, u8* arg1, MidiSong* arg2)
 {
     s32 i;
     u8  t;
@@ -1264,20 +1264,20 @@ u8* func_800529BC(s32 arg0, u8* arg1, GStruct22* arg2)
     return arg1 + 2;
 }
 
-u8* func_800529D8(s32 arg0, u8* arg1, GStruct36* arg2)
+u8* func_800529D8(s32 arg0, u8* arg1, MidiSong* arg2)
 {
-    SpuVoiceRef         sp10;
-    register s32        channel asm("s4");
-    s32                 i;
-    s32                 offset;
-    s16                 pitchBend;
-    GStruct36VoiceSlot* slot;
-    register SndNote*   note asm("a3");
-    register s32        scale asm("a1");
-    s32                 prod;
-    s16                 pitch;
-    SpuVoiceAttr*       attr;
-    s32                 key;
+    SpuVoiceRef       sp10;
+    register s32      channel asm("s4");
+    s32               i;
+    s32               offset;
+    s16               pitchBend;
+    MidiNoteSlot*     slot;
+    register SndNote* note asm("a3");
+    register s32      scale asm("a1");
+    s32               prod;
+    s16               pitch;
+    SpuVoiceAttr*     attr;
+    s32               key;
 
     channel                          = arg0 & 0xF;
     i                                = 0;
@@ -1285,7 +1285,7 @@ u8* func_800529D8(s32 arg0, u8* arg1, GStruct36* arg2)
     pitchBend                        = (arg1[1] | (arg1[2] << 7)) - 0x2000;
     arg2->field_484[channel].field_6 = pitchBend;
     do {
-        slot = (GStruct36VoiceSlot*)((u8*)arg2 + offset);
+        slot = (MidiNoteSlot*)((u8*)arg2 + offset);
         if (slot->field_1 == channel) {
             Spu_GetVoiceRef(slot->field_0, &sp10);
             note = Snd_GetNote(arg2->field_40, slot->field_6, slot->field_7);
@@ -1312,18 +1312,18 @@ u8* func_800529D8(s32 arg0, u8* arg1, GStruct36* arg2)
 
 s32 func_80052B30(s32* arg0)
 {
-    GStruct34* state;
-    s32*       src;
-    u32        i;
-    s32*       dst;
-    s32        nibble;
-    s32        count;
-    s32        aligned;
-    void*      mem;
-    s32        len;
-    s32        spuAddr;
+    SndLoadState* state;
+    s32*          src;
+    u32           i;
+    s32*          dst;
+    s32           nibble;
+    s32           count;
+    s32           aligned;
+    void*         mem;
+    s32           len;
+    s32           spuAddr;
 
-    state = &D_800820F0;
+    state = &SndLoad_State;
     switch (state->field_2) {
         case 0:
             src = arg0;
@@ -1356,7 +1356,7 @@ s32 func_80052B30(s32* arg0)
             }
             {
                 s32 tmp;
-                tmp             = (s32)Snd_AllocBank((GStruct34Payload*)&state->field_1C);
+                tmp             = (s32)Snd_AllocBank((SndBankPayload*)&state->field_1C);
                 state->field_18 = tmp;
                 if (tmp == 0) {
                     state->field_2 = 6;
@@ -1491,10 +1491,10 @@ s32 func_80052B30(s32* arg0)
     return state->field_2;
 }
 
-s32 func_80052F80(GStruct34* arg0)
+s32 func_80052F80(SndLoadState* arg0)
 {
     SndBank*     bank;
-    GStruct31*   obj;
+    SndBankSlot* obj;
     register u32 index asm("a1");
     register u32 temp asm("v1");
     register s32 slot asm("v0");
@@ -1534,14 +1534,14 @@ success:
     if (temp == 0x4000) {
         a = a + (D_80082122 + neg);
     }
-    obj = func_800561C0((s8)a);
+    obj = SndBankSlot_Get((s8)a);
     if (obj == NULL) {
         goto fail;
     }
     id           = bank->field_8;
     obj->field_4 = bank;
     obj->field_8 = id;
-    obj->field_0 = (GStruct45*)arg0->field_14;
+    obj->field_0 = (SndBankHdr*)arg0->field_14;
     obj->field_C = (void*)bank->field_18;
     i            = arg0->field_24;
     base         = ((volatile SndBank*)bank)->field_18;
@@ -1582,11 +1582,11 @@ void func_80053280(u8 arg0, void* arg1)
 
 void func_800532CC(void)
 {
-    GStruct34* temp;
+    SndLoadState* temp;
 
     D_80082122 = D_8008212C;
     D_80082135 = D_80082121;
-    temp       = &D_800820F0;
+    temp       = &SndLoad_State;
     if (temp->field_2 != 6) {
         temp->field_2 = 8;
         F3D458_Free((void*)temp->field_14);
@@ -1598,13 +1598,13 @@ void func_800532CC(void)
 
 s32 func_8005333C(void* arg0)
 {
-    GStruct34* temp_s1;
-    s32        temp_s0;
+    SndLoadState* temp_s1;
+    s32           temp_s0;
 
     if (D_80068A78 != 0) {
         return -1;
     }
-    temp_s1 = &D_800820F0;
+    temp_s1 = &SndLoad_State;
     if (temp_s1->field_3 != 0) {
         temp_s1->field_10 = 0x800;
     } else {
@@ -1647,16 +1647,16 @@ s32 func_80053414(void* arg0)
     return temp;
 }
 
-s32 func_80053448(GStruct34* arg0)
+s32 func_80053448(SndLoadState* arg0)
 {
-    SndBank*   bank;
-    GStruct36* state;
-    u16        index;
-    s32        i;
-    s32*       ptr;
-    s32        base;
-    s32        temp;
-    s32        end;
+    SndBank*  bank;
+    MidiSong* state;
+    u16       index;
+    s32       i;
+    s32*      ptr;
+    s32       base;
+    s32       temp;
+    s32       end;
 
     bank = (SndBank*)arg0->field_18;
     if (D_800689E8 == 0) {
@@ -1670,7 +1670,7 @@ s32 func_80053448(GStruct34* arg0)
 
 success:
     index          &= 0xFF;
-    state           = (GStruct36*)func_80051808(index);
+    state           = (MidiSong*)func_80051808(index);
     state->field_1  = index;
     state->field_A  = (arg0->field_2A + 3) & 0xFFFC;
     temp            = arg0->field_14;
@@ -1742,11 +1742,11 @@ s32 func_800535F0(s32 arg0, s32 arg1, s32 arg2)
 
 void func_8005363C(s32 arg0, void* arg1)
 {
-    GStruct34* temp;
-    s32        size;
+    SndLoadState* temp;
+    s32           size;
 
     D_800689E8 = 0;
-    temp       = &D_800820F0;
+    temp       = &SndLoad_State;
     if (arg0 == 8) {
         size          = 0x800;
         temp->field_0 = arg0;

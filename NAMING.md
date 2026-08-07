@@ -35,7 +35,10 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 | `Spu_` | SPU voice/reverb helpers | `src/main/3E48C.c`, `3D458.c` | `SpuReverbConfig`, `SpuVoiceState`, `SpuLVoiceTable`, `SpuVoiceRef` |
 | `AsyncCb_` | Generic async callback ring | `src/main/3E48C.c` | `AsyncCbQueue` / `AsyncCbEntry` |
 | `Font_` / `TextStream_` / `Prim_` | Font glyphs + text stream + SPRT/TILE draw | `src/main/33300.c`, `1E6C4.c` | `FontGlyph`, `GlyphUvwh`, `TextStream`, `PrimDrawParams`, `TextDrawReq` |
-| `Gpu_` | GPU ordering tables | `src/main/2E7B0.c`, `gamemain.c` | `GameOt`, `Gpu_OrderingTables` |
+| `Gpu_` | GPU ordering tables | `src/main/2E7B0.c`, `gamemain.c` | `GameOt`, `Gpu_OrderingTables`, `GpuOtBuf` |
+| `SndScript_` / `SndVoice_` | Scripted SFX player + voice list | `src/main/43FFC.c` | `SndScript`, `SndVoice`, `SndOneV`, … |
+| `Midi_` | Sequenced song player | `src/main/410B0.c` | `MidiSong`, `MidiTrack`, `MidiNoteSlot` |
+| `LinInterp_` | 16-bit linear volume/value ramp | `src/main/3D458.c` | `LinInterp` |
 
 `include/main/game.h` is the shared kitchen-sink of still-generic types (`GStruct*`, UI helpers). It includes the module headers above for compatibility. Prefer including the specific module header when you only need that API.
 
@@ -81,5 +84,6 @@ Bulk renames live in:
 - `tools/rename_task_mc_pad_syms.py` — Task / Pad / Mc / Display
 - `tools/rename_cdstream_syms.py` — CdStream / CdReady / MtsSector types + APIs
 - `tools/rename_snd_font_syms.py` — Snd / Spu / AsyncCb / Font / TextStream / Prim / GameOt
+- `tools/rename_sndscript_midi_syms.py` — SndScript / SndVoice / Midi / LinInterp / dialog UI types
 
 Idempotent only if old names are already gone. Extend the map rather than hand-editing hundreds of `.s` files.

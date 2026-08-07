@@ -366,12 +366,12 @@ void func_8003F450(s32 arg0)
             break;
         case 2:
             func_800AC688();
-            func_8009850C(&D_80070EE8[temp->field_114]);
+            func_8009850C(&Gpu_OtBuffers[temp->field_114]);
             break;
         case 1:
             Task_ExecListFiltered(&Task_DefaultList, 0x62);
             func_800AC688();
-            func_80097AC0(&D_80070EE8[temp->field_114]);
+            func_80097AC0(&Gpu_OtBuffers[temp->field_114]);
             break;
     }
     D_800710A0 = saved;

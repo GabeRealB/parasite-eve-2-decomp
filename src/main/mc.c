@@ -1047,21 +1047,21 @@ void func_80032D54(Task* arg0, McWork* arg1)
     func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
 }
 
-void func_80032F5C(GStruct60* arg0, UiObject* arg1)
+void func_80032F5C(DialogPrompt* arg0, UiObject* arg1)
 {
-    register GStruct60* s1 asm("s1");
-    register UiObject*  s0 asm("s0");
-    register s32        s2 asm("s2");
-    s16                 var_v0;
-    s32                 ok;
-    s32                 var_s3;
-    McSaveData*         temp_a2;
-    register s16        sum asm("v1");
-    s32                 i;
-    s32                 limit;
-    s32                 tmp;
-    s32                 off;
-    volatile u8*        ptr;
+    register DialogPrompt* s1 asm("s1");
+    register UiObject*     s0 asm("s0");
+    register s32           s2 asm("s2");
+    s16                    var_v0;
+    s32                    ok;
+    s32                    var_s3;
+    McSaveData*            temp_a2;
+    register s16           sum asm("v1");
+    s32                    i;
+    s32                    limit;
+    s32                    tmp;
+    s32                    off;
+    volatile u8*           ptr;
 
     s1 = arg0;
     s0 = arg1;

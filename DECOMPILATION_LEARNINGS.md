@@ -103,7 +103,7 @@ if (interp->field_0 == interp->field_4) {
 ```
 
 `func_800569D4` needs this (together with the `s16 ret` tip above) for the
-`D_800827B4` / `D_800827A0` pair linked by GStruct56.
+`LinInterp_CdStream` / `D_800827A0` pair linked by GStruct56.
 
 ## `volatile` blocks delay-slot filling
 
@@ -261,15 +261,15 @@ local pointer before the constant. Reversing those two lines swaps the
 instructions and costs a near-match:
 
 ```c
-/* Matches: lui of D_80070EE8, then li a1,0xA */
-otCtx = D_80070EE8;
+/* Matches: lui of Gpu_OtBuffers, then li a1,0xA */
+otCtx = Gpu_OtBuffers;
 depth = 0xA;
 otCtx->field_0 = depth;
 /* ... otCtx[1].field_0 = depth reuses a1 */
 
 /* Mismatches: li first, then lui */
 depth = 0xA;
-otCtx = D_80070EE8;
+otCtx = Gpu_OtBuffers;
 otCtx->field_0 = depth;
 ```
 
@@ -339,11 +339,11 @@ the array to a local pointer, then index through that:
 
 ```c
 /* Wrong schedule: sll/sra index, then lui/addiu base */
-p = &D_80082148[(s8)arg0];
+p = &SndBank_Slots[(s8)arg0];
 
 /* Right schedule: lui/addiu base, then sll/sra index */
-GStruct31* base;
-base = D_80082148;
+SndBankSlot* base;
+base = SndBank_Slots;
 p = &base[(s8)arg0];
 ```
 
@@ -1159,7 +1159,7 @@ if ((s8)arg0 >= 0) {
 
 ## One-iteration `for (i = 0; i <= 0; i++)` + array stride
 
-Several audio helpers walk `D_8007F300` with stride `0x5DC` and loop condition
+Several audio helpers walk `Midi_Song` with stride `0x5DC` and loop condition
 `blez` after `i++` from zero — i.e. exactly one iteration. A pointer `++` do/while
 often becomes a countdown (`addiu -1` / `bgez`). Array indexing matches:
 
@@ -1167,11 +1167,11 @@ often becomes a countdown (`addiu -1` / `bgez`). Array indexing matches:
 i = 0;
 val = 0xFFFF;
 for (; i <= 0; i++) {
-    (&D_8007F300)[i].field_C = val;
+    (&Midi_Song)[i].field_C = val;
 }
 ```
 
-The element type must be size `0x5DC` (logical stride). BSS for `D_8007F300` is
+The element type must be size `0x5DC` (logical stride). BSS for `Midi_Song` is
 still `0x5E0` (4 bytes of tail padding after the logical block).
 
 ## GTE inline macros: real COP2 opcodes, not DMPSX encodings
@@ -1290,13 +1290,13 @@ bar(idx, ...);
 
 A plain `s8 idx = foo(...);` keeps a copy of the raw return (`move v1,v0`)
 and stores/`sb`s that copy instead of the sign-extended register, adding an
-instruction and shifting every later label. `func_80056240` only matches with
+instruction and shifting every later label. `SndVoice_Alloc` only matches with
 the `s32` + `(s8)` form.
 
-Note also that `D_80082148` is walked two ways: as `GStruct31[16]` (stride
-`0x10`, via `func_800561C0` / `func_800561EC`) and as `GStruct43` slots
-(stride `0x40`, via `func_80056240`). Cast the base rather than changing
-`GStruct31`.
+Note also that `SndBank_Slots` is walked two ways: as `SndBankSlot[16]` (stride
+`0x10`, via `SndBankSlot_Get` / `func_800561EC`) and as `SndVoice` slots
+(stride `0x40`, via `SndVoice_Alloc`). Cast the base rather than changing
+`SndBankSlot`.
 
 ## Two-step table index for early `lw` into `$a0`
 
@@ -2057,7 +2057,7 @@ pointer, `$v1` = index). Initialize the counter first:
 
 ```c
 i = 0;
-p = D_80082248;
+p = SndScript_Slots;
 do {
     if ((p->field_16 & mask) && (p->field_0 == arg0)) {
         return i;
@@ -2172,18 +2172,18 @@ derive the parent pointer from the later one with a typed step-back. Split the
 cast and the arithmetic so the pointer-arithmetic linter stays quiet:
 
 ```c
-/* D_800827A0..D_800827B0 is 0x14 bytes immediately before D_800827B4 */
-p = &D_800827B4;
+/* D_800827A0..D_800827B0 is 0x14 bytes immediately before LinInterp_CdStream */
+p = &LinInterp_CdStream;
 parent = (volatile GStruct56*)p;
 parent = parent - 1;   /* sizeof(GStruct56) == 0x14 */
-func_8004D200(p, (parent->field_2 >> 7) & 0xFF, 0, arg0);
+LinInterp_Setup(p, (parent->field_2 >> 7) & 0xFF, 0, arg0);
 parent->field_0 = 3;   /* sb …, -0x14(s0) */
 ```
 
 `volatile` on the parent pointer forces `addiu v0, s0, -0x14` + `lhu a1, 2(v0)`
 instead of a folded `lhu a1, -0x12(s0)`.
 
-`func_80057B24` is the pure example (`D_800827B4` / `D_800827A0`).
+`func_80057B24` is the pure example (`LinInterp_CdStream` / `D_800827A0`).
 
 ## Pre-advance a walk pointer before the loop bound check
 
@@ -2288,25 +2288,25 @@ var = (var * scale) / 65535;
 var = (s32)((u32)(var * scale) / 65535);
 ```
 
-`func_8004D298` is the pure example (GStruct55 linear interpolator scale).
+`LinInterp_Apply` is the pure example (LinInterp linear interpolator scale).
 
 
-## GStruct43 voice list (owner GStruct57)
+## SndVoice voice list (owner SndVoiceOwner)
 
-`func_800562B4` inserts a `GStruct43` at the head of a doubly-linked list owned
-by `GStruct57`:
+`SndVoice_Attach` inserts a `SndVoice` at the head of a doubly-linked list owned
+by `SndVoiceOwner`:
 
 | Offset | Role |
 |--------|------|
-| owner `+0x40` | list head (`GStruct43*`) |
-| node `+0x34` | parent owner (`GStruct57*`) |
+| owner `+0x40` | list head (`SndVoice*`) |
+| node `+0x34` | parent owner (`SndVoiceOwner*`) |
 | node `+0x38` | prev |
 | node `+0x3C` | next |
 
 Insert-at-head: if head exists, rewire `new->next = old`, `old->prev = new`,
 `new->prev = NULL`, `owner->head = new`, `new->parent = owner`. If owner is
-NULL, only clear the node's three link fields. Pair with `func_80056068`
-(unlink/free) and `func_800563B4` (walk via `+0x3C`).
+NULL, only clear the node's three link fields. Pair with `SndVoice_Detach`
+(unlink/free) and `SndScript_TickVoices` (walk via `+0x3C`).
 
 ## Local jump table via struct assignment of function pointers
 
@@ -2771,7 +2771,7 @@ if (flag == 1) {
 }
 ```
 
-`func_80056308` is the pure example (`field_4 += 0xFFFF6667` vs `0xFFFF0000`
+`SndVoice_Tick` is the pure example (`field_4 += 0xFFFF6667` vs `0xFFFF0000`
 gated on `Display_State.field_124 == 1`).
 
 ## `s16` accumulator forces `sll/sra 16` on each add
@@ -3046,7 +3046,7 @@ Target often has `beq a0, v0` after `lbu v0, field(ptr)` (loaded value in
 
 ```c
 /* target: beq a0, v0 after lbu v0, 1(v1) */
-if (arg0 == (&D_8007F300)[i].field_1) {
+if (arg0 == (&Midi_Song)[i].field_1) {
 ```
 
 `func_800514F8` needed this (99.6% → 100%).
@@ -3099,7 +3099,7 @@ Branch polarity for the decreasing arm: write `if (end + step >= cur) clamp;
 else subtract` so fall-through is clamp and `bnez` targets subtract (matches
 `sltu`/`bnez`). Inverting to `<` swaps the arms.
 
-`func_8004D2EC` is the pure example (GStruct55 linear interpolator tick).
+`LinInterp_Step` is the pure example (LinInterp linear interpolator tick).
 
 ## Empty switch case as binary-search pivot to shared default
 
@@ -3246,7 +3246,7 @@ build has `div` then immediate `mflo` (and the rest of the function shifts by
 Fix: enable `--expand-div` for the translation unit in `ninja_config.py`
 (`EXPANDIVFLAG`), and use the same flag in the scratch `build.sh`. Power-of-two
 divides that become shifts do not need this. Known TUs: `2F244.c`
-(`func_80040904`), `3D458.c` (`func_8004D200`).
+(`func_80040904`), `3D458.c` (`LinInterp_Setup`).
 
 ## Keep the `- 1` outside the div assignment for schedule
 
@@ -3337,7 +3337,7 @@ t = (s8)t;                       /* sll; sra */
 ```
 
 Same pattern as `C37C.c`'s `status = *(volatile u8*)&entry->param0` followed by
-`field5 = (s8)field5`. `func_80055B70` needs this for `GStruct54.field_13`.
+`field5 = (s8)field5`. `func_80055B70` needs this for `SndScript.field_13`.
 
 ## Three-way sign with `<= 0` outer for `bgtz` fall-through
 
@@ -3442,7 +3442,7 @@ Assigning the table *inside* the conditional that first uses `arg0` still lets
 
 ```c
 i   = 0;
-arr = &D_8007F300;
+arr = &Midi_Song;
 for (; i <= 0; i++) {
     if ((arg0 == arr[i].field_1) || (arg0 == 0)) {
         table = D_800689F0; /* hoisted after andi a0 */
@@ -3459,7 +3459,7 @@ equality branch (and the matching reload of `field_1` on the `arg0 == 0` path).
 Keeping `u8` params and moving the table assignment is what preserves both.
 
 `func_80051744` is the pure example. Pair with the one-iteration
-`for (i = 0; i <= 0; i++)` + `GStruct36` array pattern for `D_8007F300`.
+`for (i = 0; i <= 0; i++)` + `MidiSong` array pattern for `Midi_Song`.
 
 ## Stack-struct pointer: RMW via temp forces `lw v1` then `lw a0`
 
@@ -4242,11 +4242,11 @@ Fix: recompute the element pointer from the index each iteration, with no
 
 ```c
 for (i = 0; i <= 0; i++) {
-    ptr = &D_8007F300 + i; /* not ptr++ */
+    ptr = &Midi_Song + i; /* not ptr++ */
     if ((id == ptr->field_1) || (id == 0)) {
         if (ptr->field_0 == 2) {
             ptr->field_0 = 0x80;
-            func_8004D200(&ptr->field_14, vol, 0, fade);
+            LinInterp_Setup(&ptr->field_14, vol, 0, fade);
         } else {
             ptr->field_0 = 4;
         }
@@ -4477,7 +4477,7 @@ path that builds a big-endian u32 then adds the base, write
 `addu v0, v0, a2` (offset first).
 
 `func_80051A2C` is the pure example (track data pointer resolve from
-`GStruct36` / `field_10`).
+`MidiSong` / `field_10`).
 
 ## Force `move aN, s0` for a known-zero live return value
 
@@ -4576,7 +4576,7 @@ p->field_d = 0;
 p->field_y = temp;
 ```
 
-`func_800565B8` is the pure example (GStruct43Fx init from SndNote bytes).
+`func_800565B8` is the pure example (SndVoiceFx init from SndNote bytes).
 
 ## Overlay pointer at a fixed offset for multi-field base `$tN`
 
@@ -4585,7 +4585,7 @@ as `N(t0)`, take the address of the first field (or cast it to a nested
 struct type) and store through that pointer:
 
 ```c
-GStruct43Fx* p = (GStruct43Fx*)&arg0->field_10;
+SndVoiceFx* p = (SndVoiceFx*)&arg0->field_10;
 p->field_20 = chunk;
 p->field_1 = 0;
 /* ... */
@@ -5033,8 +5033,8 @@ pointer variable twice — first the integer `offset + base`, then the struct
 field that adds the fixed mid-struct offset:
 
 ```c
-slot = (GStruct36VoiceSlot*)(offset + (s32)obj);
-slot = ((GStruct36*)slot)->voiceSlots; /* addiu a1, a1, 0x504 */
+slot = (MidiNoteSlot*)(offset + (s32)obj);
+slot = ((MidiSong*)slot)->voiceSlots; /* addiu a1, a1, 0x504 */
 ```
 
 `func_80051964` is the pure example (voice-slot clear loop). Pair with the
@@ -5159,7 +5159,7 @@ the case that needs the zero-extend. The HImode formal forces a full-width
 copy that delay-slot filling hoists into `$v0`:
 
 ```c
-GStruct31* func_...(u16 arg0, s32 arg1)
+SndBankSlot* func_...(u16 arg0, s32 arg1)
 {
     s32 key;
     /* ... */
@@ -5178,7 +5178,7 @@ GStruct31* func_...(u16 arg0, s32 arg1)
 }
 ```
 
-`func_80056104` is the pure example. A plain `s32` formal never emits the
+`SndBankSlot_Find` is the pure example. A plain `s32` formal never emits the
 leading copy; `u16 key = arg0` alone reorders the `andi` after the table base
 load.
 
@@ -5464,10 +5464,10 @@ When a loop walks a fixed-size struct array and both (a) loads fields near the
 start and (b) takes the address of a mid/high field for a call, writing:
 
 ```c
-GStruct54* p = D_80082248;
+SndScript* p = SndScript_Slots;
 for (i = 0; i < 8; i++, p++) {
     if (p->field_0 == arg0) {
-        func_8004D200(&p->field_50, ...);
+        LinInterp_Setup(&p->field_50, ...);
     }
 }
 ```
@@ -5481,11 +5481,11 @@ Re-deriving the element from the index each time keeps a single base IV:
 
 ```c
 for (i = 0; i < 8; i++) {
-    p = &D_80082248[i];
+    p = &SndScript_Slots[i];
     if ((arg0 == p->field_0) || ((p->field_0 & 0xF0000000) == arg0)) {
         if (p->field_16 == 8) {
             p->field_16 = 0x10;
-            func_8004D200(&p->field_50, 0, (u8)D_80082748, 8);
+            LinInterp_Setup(&p->field_50, 0, (u8)D_80082748, 8);
         }
     }
 }
@@ -5783,11 +5783,11 @@ PutDrawEnv(&drawBase[buf]);
 stride = buf * 0x14;          /* emit s0*0x14 into $s2 first */
 dispBase = ds->field_20;      /* then addiu a0, s1, 0x20 */
 PutDispEnv(&dispBase[buf]);   /* then addu a0, s2, a0 */
-/* later DrawOTag(D_80070EE8[buf].field_10) reuses $s2 */
+/* later DrawOTag(Gpu_OtBuffers[buf].field_10) reuses $s2 */
 ```
 
 `func_80027498` needs this for `PutDispEnv(&Display_State.field_20[buf])`
-(DISPENV and GStruct35 are both 0x14). Without the dead `stride` store the
+(DISPENV and GpuOtBuf are both 0x14). Without the dead `stride` store the
 `addiu a0,s1,0x20` lands either too early (right after `PutDrawEnv`) or as
 `addiu a0,s2,0x20` / `addu a0,a0,s1`.
 
@@ -5838,7 +5838,7 @@ p->field_13 = arg2;
 p->field_17 = 0;
 ```
 
-`func_80055F70` is the pure example. Pair with a second live copy of a later
+`SndScript_Play` is the pure example. Pair with a second live copy of a later
 pointer arg (`desc = arg5; … p->field_48 = arg5; flags = desc->field_E`) when
 the target holds the same pointer in two callee-saved regs for interleaved
 `lhu` / `sw`.
@@ -6625,7 +6625,7 @@ while the target wants the arg copies first, then `sw s3` / `li s3, 1`.
 An empty constraint after the copies blocks that hoist:
 
 ```c
-register GStruct60* s1 asm("s1");
+register DialogPrompt* s1 asm("s1");
 register UiObject*  s0 asm("s0");
 register s32        s2 asm("s2");
 
@@ -6735,7 +6735,7 @@ cursor += 0x3C;
 } while (++j < (s32)obj->field_3);
 ```
 
-`func_800510D4` is the pure example (GStruct36 status driver over D_8007F300).
+`func_800510D4` is the pure example (MidiSong status driver over Midi_Song).
 
 
 ## Reuse a temp through field copy and `&= ~const` masks
@@ -6974,10 +6974,10 @@ node->field_2 = (master * params->field_5 * node->field_A) / 16129;
 ```
 
 Do not hand-write the magic constant. `func_80055DFC` (and the same sequence in
-`func_80055078`) is the reference. Related layout notes:
+`SndScript_Exec`) is the reference. Related layout notes:
 
-- `GStruct54::field_4C` is a `GStruct67*` voice-param block (`field_5` scale).
-- `GStruct43::field_A` is the per-voice `u8` scale; `field_2` stores the result.
+- `SndScript::field_4C` is a `SndVoiceParams*` voice-param block (`field_5` scale).
+- `SndVoice::field_A` is the per-voice `u8` scale; `field_2` stores the result.
 - Null-check `field_40` via a temp then assign the walk pointer so the target
   keeps `lw v0,0x40; beqz v0; move a1,v0` (see earlier "temp then cur" entry).
 
@@ -10407,7 +10407,7 @@ join matches `sll v0; subu v1, a0, v0; move s1, a1; sw v1`:
 }
 ```
 
-`func_80051BB0` is the pure example.
+`Midi_DriveTrack` is the pure example.
 
 ## Place an orphan early-exit block between if/else arms
 
@@ -10436,7 +10436,7 @@ rem_join:
 
 GCC fills the then/else gap with the jump-only early_exit block. A plain
 `if/else` without the intermediate label leaves the return at the end of the
-function. `func_80051BB0` is the pure example.
+function. `Midi_DriveTrack` is the pure example.
 
 ## Delay-slot subtract with restore: compare-first via a `less` flag
 
@@ -10472,7 +10472,7 @@ undoing on the less-than path:
 /* fallthrough to end with original ticks */
 ```
 
-`func_80051BB0` is the pure example.
+`Midi_DriveTrack` is the pure example.
 
 ## Comma in call arg forces field store before callee materialization
 
@@ -10488,16 +10488,16 @@ p->field_2C = (*(Handler*)((u8*)table + 4))(
 ```
 
 Arg evaluation keeps `lbu`/`lw` of the call operands interleaved correctly and
-the `li v0,1; sb; lw handler` order matches. `func_80051BB0` is the pure
+the `li v0,1; sb; lw handler` order matches. `Midi_DriveTrack` is the pure
 example (else / running-status arm).
 
 ## Mid-struct `s32*` at the last field for negative offsets
 
 When the target bases a loop on the *last* field of a struct element
-(`addiu s0, a1, 0x38` for `GStruct36Entry::field_38`) and stores earlier
+(`addiu s0, a1, 0x38` for `MidiTrack::field_38`) and stores earlier
 fields with negative offsets (`sw -0x10(s0)`, `sw -0xc(s0)`, `sw -0x4(s0)`),
 a typed overlay starting at that field cannot express the earlier members
-(C fields only grow forward). Plain `GStruct36Entry*` access often rebases on
+(C fields only grow forward). Plain `MidiTrack*` access often rebases on
 a mid field instead (e.g. `field_2C` at `a1+0x2c`).
 
 Fix: take `s32* p = &entry->field_38` (pin to `s0` if needed) and access
@@ -10513,7 +10513,7 @@ p[-1] = delta;            /* field_34 at -0x4 */
 p += 15;                  /* next entry, +0x3C */
 ```
 
-Pair with `register GStruct36Entry* entries asm("a1")` so the clear loop keeps
+Pair with `register MidiTrack* entries asm("a1")` so the clear loop keeps
 `a1 = entries` and `addiu s0, a1, 0x38` matches. `func_80050E3C` is the pure
 example.
 
@@ -10667,7 +10667,7 @@ tmp = 2;
 p->field_16 = tmp; /* QI store of SI temp — no hoist */
 ```
 
-`func_80054938` is the pure example (D_80082248 state machine, field_16 cases
+`func_80054938` is the pure example (SndScript_Slots state machine, field_16 cases
 1/2/4/8/0x10/0x20/0x80).
 
 ## `*(volatile u8*)&field` forces lbu+sll24+sra24 sign-extend
@@ -10954,7 +10954,7 @@ RTIR via `gte_ldclmv` + `gte_rtir_real` (`0x4A49E012`) + `gte_stclmv` three time
 ## Local OT pointer for `D_800710A0` so `%hi` stays temporary
 
 `func_8002785C` (and similar dual-buffer main loops) must both:
-1. pin `D_80070EE8` as **two** regs (`s8` = `%hi`, `s7` = full via `addiu s7,s8,%lo`) for `func_8003DFB0` (`addiu a0,s8,%lo`) and `DrawOTag` (`addu v0,stride,s7`);
+1. pin `Gpu_OtBuffers` as **two** regs (`s8` = `%hi`, `s7` = full via `addiu s7,s8,%lo`) for `func_8003DFB0` (`addiu a0,s8,%lo`) and `DrawOTag` (`addu v0,stride,s7`);
 2. use `%hi(D_800710A0)` only temporarily in `$s0` around `ClearOTagR`, not as a function-wide pin.
 
 Writing only through the global:
@@ -10967,7 +10967,7 @@ D_800710A0 += 0x20;
 ```
 
 makes GCC hoist `lui sN,%hi(D_800710A0)` into the prologue and steal the reg that
-should hold `D_80070EE8`'s full address.
+should hold `Gpu_OtBuffers`'s full address.
 
 Fix: pass a **local** into `ClearOTagR`, then reload from the global for the
 end-prim write so the `%hi` is only live in that block:
@@ -11322,16 +11322,16 @@ Two codegen details that stall at ~98% without them:
 Column targets use `head - 0x42` (col1) and `head - 0x40` (col2), same
 `gte_ldsv` / `gte_rtir_real` / `gte_stclmv` pipeline gap pattern as B960.
 
-## GStruct54 script interpreter layout (func_80055078)
+## SndScript script interpreter layout (SndScript_Exec)
 
-`func_80055078` is a fourCC-dispatched music/script stepper over
-`GStruct54::field_48`. Layout notes that unblocked progress toward a match:
+`SndScript_Exec` is a fourCC-dispatched music/script stepper over
+`SndScript::field_48`. Layout notes that unblocked progress toward a match:
 
 - `field_17` / `field_18[8]` / `field_20[8]` are a loop stack (depth, remaining
   counts, restart cursors) for `"Loop"`/`"endL"`. They fill the old `pad_18[0x28]`.
-- `field_44` is a `GStruct54Ctx*` (`u8* data`, `SndBank* bank`), not a bare `s32`.
-- `field_48` is a script cursor (`GStructScriptCmd*`); `"oneV"` payloads are
-  0x18-byte `GStructScriptOneV` records (bank id, note, duration, pan/vol,
+- `field_44` is a `SndScriptCtx*` (`u8* data`, `SndBank* bank`), not a bare `s32`.
+- `field_48` is a script cursor (`SndScriptCmd*`); `"oneV"` payloads are
+  0x18-byte `SndOneV` records (bank id, note, duration, pan/vol,
   reverb gate, pitch, oneA/oneE offsets).
 - `"oneC"` advances the cursor by 0x10, resolves `field_4C` via
   `base[*(u16*)(base + (u8)field_0 * 2 + 8)]`, then falls into `"oneV"`.

@@ -43,7 +43,7 @@ void func_80036A70(Task* arg0)
     }
 }
 
-void func_80036B2C(GStruct60* arg0, UiObject* arg1)
+void func_80036B2C(DialogPrompt* arg0, UiObject* arg1)
 {
     s16 var_v0;
     s32 temp;
@@ -124,7 +124,7 @@ void func_80036CF0(Task* arg0)
     func_800330D8(obj, data, val, 0, 0);
 }
 
-void func_80036D98(GStruct60* arg0, UiObject* arg1)
+void func_80036D98(DialogPrompt* arg0, UiObject* arg1)
 {
     s32 temp;
 
@@ -143,7 +143,7 @@ void func_80036D98(GStruct60* arg0, UiObject* arg1)
     }
 }
 
-void func_80036E78(GStruct60* arg0, UiObject* arg1)
+void func_80036E78(DialogPrompt* arg0, UiObject* arg1)
 {
     s32 temp;
 
@@ -158,7 +158,7 @@ void func_80036E78(GStruct60* arg0, UiObject* arg1)
     }
 }
 
-void func_80036F18(GStruct60* arg0, UiObject* arg1)
+void func_80036F18(DialogPrompt* arg0, UiObject* arg1)
 {
     s32 temp;
 
@@ -173,7 +173,7 @@ void func_80036F18(GStruct60* arg0, UiObject* arg1)
     }
 }
 
-void func_80036FB8(GStruct60* arg0, UiObject* arg1)
+void func_80036FB8(DialogPrompt* arg0, UiObject* arg1)
 {
     func_8002FDCC(arg1, arg0->field_18, arg0->field_1A, D_80060A58, arg0->field_1C, 1, 0);
     if (arg0->field_C == 1) {

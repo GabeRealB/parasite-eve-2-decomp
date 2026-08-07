@@ -62,10 +62,10 @@ block_done:
     }
     var_s0 = D_8007E0F8;
 
-    D_800820F0.field_14 = 0;
-    D_800820F0.field_18 = 0;
-    D_8008212C          = D_80082122;
-    D_80082121          = D_80082135;
+    SndLoad_State.field_14 = 0;
+    SndLoad_State.field_18 = 0;
+    D_8008212C             = D_80082122;
+    D_80082121             = D_80082135;
     Snd_FreeBank((SndBank*)var_s0);
     Snd_FreeBank((SndBank*)(var_s0 + 0xC0));
     Snd_FreeBank((SndBank*)(var_s0 + 0x80));
@@ -215,12 +215,12 @@ void func_80053E68(void)
 s32 func_80053F00(arg0)
 s32 arg0;
 {
-    s32        var_s0;
-    GStruct31* temp_v0;
+    s32          var_s0;
+    SndBankSlot* temp_v0;
 
     var_s0 = arg0;
     if ((var_s0 & 0xF0000000) == 0x10000000) {
-        temp_v0 = func_80056104(0x1000, 1);
+        temp_v0 = SndBankSlot_Find(0x1000, 1);
         if (temp_v0 != NULL) {
             var_s0 = (temp_v0->field_0->field_4 << 0x10) + (var_s0 & 0xFFFF);
         }
@@ -259,14 +259,14 @@ void func_80053FA0(s32 arg0)
 
 s32 func_80053FF4(u32 arg0)
 {
-    s32        i;
-    s8         slot;
-    GStruct31* obj;
-    SndBank*   bank;
-    GStruct75* entry;
-    s8*        map;
-    SndBank*   banks;
-    s32        id;
+    s32          i;
+    s8           slot;
+    SndBankSlot* obj;
+    SndBank*     bank;
+    GStruct75*   entry;
+    s8*          map;
+    SndBank*     banks;
+    s32          id;
 
     *(volatile s32*)&D_80068A78 = 0xFF;
     func_8004E5A0(1, 0x12, 6);
@@ -280,7 +280,7 @@ s32 func_80053FF4(u32 arg0)
     entry = D_80068A60;
 loop:
     slot          = *(s8*)(entry->field_0 + (s32)map);
-    obj           = func_800561C0(slot);
+    obj           = SndBankSlot_Get(slot);
     id            = entry->field_2;
     bank          = (SndBank*)(((s32)slot << 5) + (s32)banks);
     obj->field_4  = bank;
@@ -307,14 +307,14 @@ loop:
 
 s32 func_8005414C(s32 arg0, s32 arg1, s32 arg2)
 {
-    s32                 orig;
-    GStruct31*          bank;
-    register GStruct45* header asm("a0");
-    GStruct67*          entry;
-    u16                 offset;
-    u32                 index;
-    GStruct16*          temp;
-    GStruct16From4*     mid;
+    s32                  orig;
+    SndBankSlot*         bank;
+    register SndBankHdr* header asm("a0");
+    SndVoiceParams*      entry;
+    u16                  offset;
+    u32                  index;
+    GStruct16*           temp;
+    GStruct16From4*      mid;
 
     orig = arg0;
     if ((arg0 != 0) && (arg0 != 8)) {
@@ -325,18 +325,18 @@ s32 func_8005414C(s32 arg0, s32 arg1, s32 arg2)
             }
         }
         arg0  = func_80053F00(arg0);
-        bank  = func_80056104((u32)arg0 >> 16, 0);
+        bank  = SndBankSlot_Find((u32)arg0 >> 16, 0);
         index = (u32)arg0 & 0xFF;
         if ((bank == NULL) ||
             (header = bank->field_0, (index >= header->field_6))) {
             return -2;
         }
         offset =
-            ((GStruct45OffsetView*)((index * 2) + (s32)header))->field_8;
+            ((SndBankHdrOff*)((index * 2) + (s32)header))->field_8;
         if (offset == 0) {
             return -3;
         }
-        entry = (GStruct67*)((s32)header + offset);
+        entry = (SndVoiceParams*)((s32)header + offset);
         if (*(u16*)&D_800689EC != 0) {
             if ((entry->field_E & 0x80) != 0) {
                 return -5;
@@ -564,10 +564,10 @@ s32 func_80054938(void)
     SpuVoiceRef   sp18;
     s16           sp20[2];
     SpuVoiceAttr* voice;
-    GStruct54*    p;
-    GStruct43*    node;
-    GStruct43*    head;
-    GStruct43*    walk;
+    SndScript*    p;
+    SndVoice*     node;
+    SndVoice*     head;
+    SndVoice*     walk;
     s32           i;
     register s32  one asm("s4");
     register s32  four asm("s7");
@@ -590,7 +590,7 @@ s32 func_80054938(void)
     one    = 1;
     offset = i;
     do {
-        p      = (GStruct54*)((u8*)D_80082248 + offset);
+        p      = (SndScript*)((u8*)SndScript_Slots + offset);
         status = p->field_16;
         if (status == four) {
             goto case_4;
@@ -646,13 +646,13 @@ s32 func_80054938(void)
             p->field_16 = four;
             goto case_4;
         }
-        func_8004D2EC(&p->field_50);
+        LinInterp_Step(&p->field_50);
         p->field_E = one;
         /* fallthrough */
     case_2:
         p->field_4 = p->field_4 + 1;
         do {
-        } while (func_80055078(p) != 0);
+        } while (SndScript_Exec(p) != 0);
 
     process_voices:
         head  = p->field_40;
@@ -660,7 +660,7 @@ s32 func_80054938(void)
         if (head != NULL) {
             node = head;
             do {
-                func_80056308(node);
+                SndVoice_Tick(node);
                 step   = p->field_12;
                 count += 1;
                 if (step != 0) {
@@ -741,13 +741,13 @@ s32 func_80054938(void)
         goto loop_inc;
 
     case_8:
-        func_8004D2EC(&p->field_50);
+        LinInterp_Step(&p->field_50);
         p->field_E = one;
         goto process_voices;
 
     case_10:
         p->field_E = one;
-        func_8004D2EC(&p->field_50);
+        LinInterp_Step(&p->field_50);
         if (p->field_50.field_0 != p->field_50.field_4) {
             goto process_voices;
         }
@@ -757,7 +757,7 @@ s32 func_80054938(void)
 
     case_4:
         p->field_D = one;
-        if (func_800563B4(p) != 0) {
+        if (SndScript_TickVoices(p) != 0) {
             p->field_16 = 0x20;
             goto next;
         }
@@ -806,10 +806,10 @@ s32 func_80054938(void)
     return 0;
 }
 
-void func_80054D58(GStruct66* arg0, u16 arg1, s32 arg2, u16 arg3)
+void func_80054D58(SndVoicePick* arg0, u16 arg1, s32 arg2, u16 arg3)
 {
     s8         i;
-    GStruct54* p;
+    SndScript* p;
     u16        temp;
     s32        score;
 
@@ -827,7 +827,7 @@ void func_80054D58(GStruct66* arg0, u16 arg1, s32 arg2, u16 arg3)
     arg0->field_7  = 0;
 
     for (i = 0; i < 8; i++) {
-        p = &D_80082248[i];
+        p = &SndScript_Slots[i];
         if (p->field_16 == 0) {
             arg0->field_3 = i;
         } else if (p->field_16 != 4) {
@@ -863,7 +863,7 @@ void func_80054D58(GStruct66* arg0, u16 arg1, s32 arg2, u16 arg3)
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80054F1C);
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80055078);
+INCLUDE_ASM("main/nonmatchings/43FFC", SndScript_Exec);
 
 /* Absolute copy of jtbl_80014168 for still-asm func_800546F4. Placed after
  * func_80053BF4's compiler-generated jtbls so the still-asm table keeps its
@@ -887,20 +887,20 @@ const s32 jtbl_80014168[16] = {
     0x80054840,
 };
 
-void func_80055678(GStruct43* arg0)
+void func_80055678(SndVoice* arg0)
 {
-    SpuVoiceRef    sp10;
-    GStruct43Fx*   fx;
-    GStruct43OneE* chunk;
-    s32            pitch;
-    s32            temp;
-    s32            rate;
-    s32            new_var;
-    s32            new_var2;
-    SpuVoiceAttr*  attr;
-    s32            t;
+    SpuVoiceRef   sp10;
+    SndVoiceFx*   fx;
+    SndOneE*      chunk;
+    s32           pitch;
+    s32           temp;
+    s32           rate;
+    s32           new_var;
+    s32           new_var2;
+    SpuVoiceAttr* attr;
+    s32           t;
 
-    fx    = (GStruct43Fx*)&arg0->field_10;
+    fx    = (SndVoiceFx*)&arg0->field_10;
     chunk = fx->field_20;
 
     if (fx->field_2 == 1) {
@@ -993,9 +993,9 @@ apply:
     attr->mask |= SPU_VOICE_PITCH;
 }
 
-s32 func_800558E8(s32 arg0, s8 arg1, s8 arg2, s32 arg3, GStruct67* arg4)
+s32 func_800558E8(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndVoiceParams* arg4)
 {
-    GStruct66 sp18;
+    SndVoicePick sp18;
 
     func_80054D58(&sp18, arg4->field_C, arg0, arg4->field_E);
     if ((sp18.field_7 < arg4->field_7) && (sp18.field_3 != -1)) {
@@ -1004,7 +1004,7 @@ s32 func_800558E8(s32 arg0, s8 arg1, s8 arg2, s32 arg3, GStruct67* arg4)
         sp18.field_0 = func_80055EF8(&sp18, arg4->field_8);
     }
     if (sp18.field_0 >= 0) {
-        func_80055F70(sp18.field_0, arg1, arg2, arg0, arg3, arg4);
+        SndScript_Play(sp18.field_0, arg1, arg2, arg0, arg3, arg4);
     }
     return sp18.field_0;
 }
@@ -1012,20 +1012,20 @@ s32 func_800558E8(s32 arg0, s8 arg1, s8 arg2, s32 arg3, GStruct67* arg4)
 void func_800559BC(s32 arg0, s32 arg1)
 {
     s32        i;
-    GStruct54* p;
+    SndScript* p;
 
     for (i = 0; i < 8; i++) {
-        p = &D_80082248[i];
+        p = &SndScript_Slots[i];
         if ((arg0 == p->field_0) || ((p->field_0 & 0xF0000000) == arg0)) {
             if (arg1 == 0) {
                 if (p->field_16 == 8) {
                     p->field_16 = 0x10;
-                    func_8004D200(&p->field_50, 0, (u8)D_80082748, 8);
+                    LinInterp_Setup(&p->field_50, 0, (u8)D_80082748, 8);
                 }
             } else {
                 if (p->field_16 & 0x22) {
                     p->field_16 = 8;
-                    func_8004D200(&p->field_50, (u8)D_80082748, 0, 8);
+                    LinInterp_Setup(&p->field_50, (u8)D_80082748, 0, 8);
                 }
             }
         }
@@ -1034,11 +1034,11 @@ void func_800559BC(s32 arg0, s32 arg1)
 
 void func_80055A9C(s32 arg0, s32 arg1, s32 arg2)
 {
-    GStruct54* p;
+    SndScript* p;
     s32        t;
 
     arg0       &= 7;
-    p           = &D_80082248[arg0];
+    p           = &SndScript_Slots[arg0];
     t           = *(volatile u8*)&p->field_10;
     t           = arg1 - t;
     p->field_12 = t;
@@ -1076,11 +1076,11 @@ void func_80055A9C(s32 arg0, s32 arg1, s32 arg2)
 
 void func_80055B70(s32 arg0, s32 arg1)
 {
-    GStruct54*   p;
+    SndScript*   p;
     register s32 val asm("a0");
     register s32 t asm("v0");
 
-    p      = &D_80082248[arg0 & 7];
+    p      = &SndScript_Slots[arg0 & 7];
     t      = *(volatile u8*)&p->field_13;
     arg1   = (~arg1) & 0x7F;
     val    = arg1;
@@ -1146,7 +1146,7 @@ void func_80055CE0(void)
     u32  i;
     s32* ptr;
 
-    ptr = (s32*)D_80082248;
+    ptr = (s32*)SndScript_Slots;
     i   = 0;
     do {
         *ptr = 0;
@@ -1154,7 +1154,7 @@ void func_80055CE0(void)
         ptr++;
     } while (i < 0xC0U);
 
-    ptr = (s32*)D_80082148;
+    ptr = (s32*)SndBank_Slots;
     i   = 0;
     do {
         *ptr = 0;
@@ -1191,10 +1191,10 @@ void func_80055D78(s8 arg0)
 s32 func_80055DAC(s32 arg0)
 {
     s32        i;
-    GStruct54* p;
+    SndScript* p;
 
     i = 0;
-    p = D_80082248;
+    p = SndScript_Slots;
     do {
         if ((p->field_16 & 0xA3) && (p->field_0 == arg0)) {
             return i;
@@ -1207,14 +1207,14 @@ s32 func_80055DAC(s32 arg0)
 
 void func_80055DFC(s8 arg0)
 {
-    GStruct54* p;
+    SndScript* p;
     s32        i;
-    GStruct43* node;
-    GStruct43* temp;
+    SndVoice*  node;
+    SndVoice*  temp;
     s8         vol;
 
     for (i = 0; i < 8; i++) {
-        p = &D_80082248[i];
+        p = &SndScript_Slots[i];
         if ((p->field_F != 1) || (D_80082749 == 0)) {
             temp = p->field_40;
             if (temp != NULL) {
@@ -1242,15 +1242,15 @@ s8 func_80055EE8(void)
 
 INCLUDE_ASM("main/nonmatchings/43FFC", func_80055EF8);
 
-void func_80055F70(s32 arg0, s8 arg1, s8 arg2, s32 arg3, s32 arg4, GStruct67* arg5)
+void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, s32 arg4, SndVoiceParams* arg5)
 {
-    GStruct54* p;
-    GStruct43* node;
-    GStruct67* desc;
-    u16        flags;
+    SndScript*      p;
+    SndVoice*       node;
+    SndVoiceParams* desc;
+    u16             flags;
 
     desc = arg5;
-    p    = &D_80082248[arg0];
+    p    = &SndScript_Slots[arg0];
     node = p->field_40;
     if (node != NULL) {
         do {
@@ -1264,21 +1264,21 @@ void func_80055F70(s32 arg0, s8 arg1, s8 arg2, s32 arg3, s32 arg4, GStruct67* ar
     }
     p->field_16 = 1;
     p->field_40 = NULL;
-    p->field_44 = (GStruct54Ctx*)arg4;
+    p->field_44 = (SndScriptCtx*)arg4;
     p->field_0  = arg3;
     p->field_4  = 0;
     p->field_10 = arg1;
     p->field_13 = arg2;
     p->field_17 = 0;
     flags       = desc->field_E;
-    p->field_48 = (GStructScriptCmd*)arg5;
+    p->field_48 = (SndScriptCmd*)arg5;
     p->field_F  = (flags >> 1) & 1;
 }
 
-void func_80056068(GStruct43* arg0)
+void SndVoice_Detach(SndVoice* arg0)
 {
-    GStruct43* temp_v0;
-    GStruct43* temp_v1;
+    SndVoice* temp_v0;
+    SndVoice* temp_v1;
 
     if (arg0 != NULL) {
         temp_v0       = arg0->field_38;
@@ -1287,14 +1287,14 @@ void func_80056068(GStruct43* arg0)
         if (temp_v0 == NULL) {
             temp_v1 = arg0->field_3C;
             if (temp_v1 == NULL) {
-                temp_v0 = (GStruct43*)arg0->field_34;
+                temp_v0 = (SndVoice*)arg0->field_34;
                 if (temp_v0 != NULL) {
-                    ((GStruct57*)temp_v0)->field_40 = NULL;
+                    ((SndVoiceOwner*)temp_v0)->field_40 = NULL;
                 }
             } else {
-                temp_v0 = (GStruct43*)arg0->field_34;
+                temp_v0 = (SndVoice*)arg0->field_34;
                 if (temp_v0 != NULL) {
-                    ((GStruct57*)temp_v0)->field_40 = temp_v1;
+                    ((SndVoiceOwner*)temp_v0)->field_40 = temp_v1;
                 }
                 temp_v0           = arg0->field_3C;
                 temp_v0->field_38 = NULL;
@@ -1315,18 +1315,18 @@ void func_80056068(GStruct43* arg0)
     }
 }
 
-GStruct31* func_80056104(u16 arg0, s32 arg1)
+SndBankSlot* SndBankSlot_Find(u16 arg0, s32 arg1)
 {
-    s32        i;
-    GStruct31* slot;
-    SndBank*   bank;
-    s32        key;
+    s32          i;
+    SndBankSlot* slot;
+    SndBank*     bank;
+    s32          key;
 
     switch (arg1) {
         case 0:
             i    = 0;
             key  = arg0;
-            slot = D_80082148;
+            slot = SndBank_Slots;
             do {
                 bank = (SndBank*)slot->field_4;
                 if (bank != NULL) {
@@ -1341,7 +1341,7 @@ GStruct31* func_80056104(u16 arg0, s32 arg1)
         case 1:
             i    = 0;
             key  = arg0 & 0xF000;
-            slot = D_80082148;
+            slot = SndBank_Slots;
             do {
                 bank = (SndBank*)slot->field_4;
                 if (bank != NULL) {
@@ -1357,21 +1357,21 @@ GStruct31* func_80056104(u16 arg0, s32 arg1)
     return NULL;
 }
 
-GStruct31* func_800561C0(s32 arg0)
+SndBankSlot* SndBankSlot_Get(s32 arg0)
 {
     if ((u8)arg0 < 0x10) {
-        return &D_80082148[(s8)arg0];
+        return &SndBank_Slots[(s8)arg0];
     }
     return NULL;
 }
 
 void func_800561EC(s32 arg0)
 {
-    GStruct31* temp_s0;
-    GStruct31* base;
+    SndBankSlot* temp_s0;
+    SndBankSlot* base;
 
     if ((u8)arg0 < 0x10) {
-        base    = D_80082148;
+        base    = SndBank_Slots;
         temp_s0 = &base[(s8)arg0];
         F3D458_Free(temp_s0->field_0);
         temp_s0->field_8 = -1;
@@ -1379,25 +1379,25 @@ void func_800561EC(s32 arg0)
     }
 }
 
-GStruct43* func_80056240(s32 arg0)
+SndVoice* SndVoice_Alloc(s32 arg0)
 {
-    s32        voiceIdx;
-    GStruct43* ptr;
+    s32       voiceIdx;
+    SndVoice* ptr;
 
     voiceIdx = (s8)func_8004E060(D_80068A7C, 2, arg0 & 0xFFFF);
     if (voiceIdx < 0) {
         return NULL;
     }
-    ptr          = (GStruct43*)D_80082148 + voiceIdx;
+    ptr          = (SndVoice*)SndBank_Slots + voiceIdx;
     ptr->field_0 = voiceIdx;
-    func_8004E560(voiceIdx, (s32)func_80056068, (s32)ptr);
+    func_8004E560(voiceIdx, (s32)SndVoice_Detach, (s32)ptr);
     ptr->field_8 = 1;
     return ptr;
 }
 
-void func_800562B4(GStruct57* arg0, GStruct43* arg1)
+void SndVoice_Attach(SndVoiceOwner* arg0, SndVoice* arg1)
 {
-    GStruct43* temp_v0;
+    SndVoice* temp_v0;
 
     if (arg0 != NULL) {
         temp_v0 = arg0->field_40;
@@ -1420,7 +1420,7 @@ void func_800562B4(GStruct57* arg0, GStruct43* arg1)
     arg1->field_34 = NULL;
 }
 
-s32 func_80056308(GStruct43* arg0)
+s32 SndVoice_Tick(SndVoice* arg0)
 {
     s32 temp;
 
@@ -1450,11 +1450,11 @@ s32 func_80056308(GStruct43* arg0)
     return 0;
 }
 
-s32 func_800563B4(GStruct54* arg0)
+s32 SndScript_TickVoices(SndScript* arg0)
 {
     SpuVoiceRef sp10;
-    GStruct43*  node;
-    GStruct43*  head;
+    SndVoice*   node;
+    SndVoice*   head;
     s32         count;
     u8          status;
     u16         temp;
@@ -1491,7 +1491,7 @@ s32 func_800563B4(GStruct54* arg0)
     return count;
 }
 
-void func_800564C4(s8 arg0, s8 arg1, GStruct43* arg2, GStruct55* arg3, s16* arg4)
+void func_800564C4(s8 arg0, s8 arg1, SndVoice* arg2, LinInterp* arg3, s16* arg4)
 {
     register s32 temp_v0 asm("v0");
     s32          temp_v1;
@@ -1519,19 +1519,19 @@ void func_800564C4(s8 arg0, s8 arg1, GStruct43* arg2, GStruct55* arg3, s16* arg4
             temp_v0 = 0x7F;
         }
         func_8004D35C(arg4, (s16)((s8)arg2->field_3 + (arg0 * 3)),
-                      func_8004D298(arg3, D_80068E78[temp_v0]));
+                      LinInterp_Apply(arg3, D_80068E78[temp_v0]));
     }
 }
 
-void func_800565B8(GStruct43* arg0, s16 arg1, u32 arg2, SndNote* arg3)
+void func_800565B8(SndVoice* arg0, s16 arg1, u32 arg2, SndNote* arg3)
 {
-    GStruct43Fx*   p;
-    u8*            base;
-    GStruct43OneE* chunk;
-    s32            magic;
-    s16            temp;
+    SndVoiceFx* p;
+    u8*         base;
+    SndOneE*    chunk;
+    s32         magic;
+    s16         temp;
 
-    p = (GStruct43Fx*)&arg0->field_10;
+    p = (SndVoiceFx*)&arg0->field_10;
     if (arg1 == -1) {
         arg0->field_10 = 0;
         return;
@@ -1541,7 +1541,7 @@ void func_800565B8(GStruct43* arg0, s16 arg1, u32 arg2, SndNote* arg3)
         return;
     }
     base        = *arg0->field_34->field_44;
-    chunk       = (GStruct43OneE*)&base[arg1];
+    chunk       = (SndOneE*)&base[arg1];
     p->field_20 = chunk;
     magic       = chunk->magic;
     if (magic == 0x45656E6F) {
@@ -1559,12 +1559,12 @@ void func_800565B8(GStruct43* arg0, s16 arg1, u32 arg2, SndNote* arg3)
     }
 }
 
-s32 func_8005664C(u8* arg0, s16 arg1, GStruct59* arg2)
+s32 func_8005664C(u8* arg0, s16 arg1, SndOneAOut* arg2)
 {
-    GStruct58* chunk;
+    SndOneA* chunk;
 
     if (arg1 != -1) {
-        chunk = (GStruct58*)&arg0[arg1];
+        chunk = (SndOneA*)&arg0[arg1];
         if (chunk->field_0 == 0x41656E6F) {
             arg2->field_3A = chunk->field_4;
             arg2->field_3C = chunk->field_6;
@@ -1582,7 +1582,7 @@ void func_800566A4(void)
     s32        c600;
     s32        c500;
     s32        c100;
-    GStruct54* p;
+    SndScript* p;
     s32        temp;
 
     i    = 0;
@@ -1590,7 +1590,7 @@ void func_800566A4(void)
     c600 = 0x60000000;
     c500 = 0x50000000;
     c100 = 0x10000000;
-    p    = D_80082248;
+    p    = SndScript_Slots;
     do {
         temp = p->field_0 & mask;
         if (temp != c600) {
