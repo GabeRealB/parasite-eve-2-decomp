@@ -172,7 +172,133 @@ INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002E300);
 
 INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002E53C);
 
-INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002EB94);
+u8* func_8002EB94(u8* arg0, s32 arg1)
+{
+    typedef struct {
+        u8 data[10];
+    } Bytes10;
+    typedef struct {
+        u8 data[2];
+    } Bytes2;
+
+    u8* dest;
+    u8* ret;
+    u8* ptr;
+    u32 place;
+    s32 minutes;
+    u32 mins_work;
+    u32 quot;
+    u32 digit;
+    u32 temp;
+    s32 i;
+    s32 tmp;
+    s32 lt10;
+
+    ptr = arg0;
+    asm("" : "+r"(ptr));
+    if ((u32)(arg1 & 0xFFFF) > 0xEA5FU) {
+        arg1 = 0xEA5F;
+        ret  = ptr;
+    } else {
+        ret = ptr;
+    }
+    arg1 = arg1 & 0xFFFF;
+
+    place     = 0x5F5E100;
+    quot      = (u32)arg1 / 60;
+    minutes   = quot & 0xFFFF;
+    mins_work = minutes;
+    arg1      = arg1 - quot * 60;
+    arg1      = arg1 & 0xFFFF;
+
+    if ((u32)minutes > 0x3B9AC9FEU) {
+        *(Bytes10*)ret = *(Bytes10*)D_800138CC;
+    } else if (minutes == 0) {
+        *(Bytes2*)ret = *(Bytes2*)D_800138C8;
+    } else {
+        dest = ret;
+        if ((u32)minutes < place) {
+            do {
+                place /= 10;
+            } while (mins_work < place);
+        }
+        if (place != 0) {
+            do {
+                digit  = mins_work / place;
+                *dest  = digit;
+                temp   = *dest & 0xFF;
+                digit  = temp * place;
+                place /= 10;
+                *dest  = temp + 0x30;
+                dest++;
+                mins_work -= digit;
+            } while (place != 0);
+        }
+        *dest = 0;
+    }
+
+    if (minutes < 0x64) {
+        goto check_lt10;
+    }
+    ptr += 3;
+    goto after_off;
+check_lt10:
+    lt10 = minutes < 0xA;
+    if (lt10 != 0) {
+        goto plus1;
+    }
+    ptr += 2;
+    goto after_off;
+plus1:
+    ptr += 1;
+after_off:
+    *ptr = 0x3A;
+    ptr += 1;
+
+    place = 1;
+    i     = place;
+    do {
+        tmp   = place * 5;
+        place = tmp * 2;
+    } while (--i > 0);
+    i = ((tmp * 8) + place) * 2 - 1;
+    if ((u32)i < (u32)arg1) {
+        arg1 = i;
+    }
+    dest = ptr;
+    if ((u32)arg1 < place) {
+        {
+            u32 mag;
+            mag = 0xCCCCCCCD;
+            i   = 0x30;
+            asm volatile("" : "+r"(mag), "+r"(i));
+            do {
+                asm volatile(
+                    "multu %0, %2\n\t"
+                    "sb %3, 0(%1)\n\t"
+                    "mfhi $12\n\t"
+                    "srl %0, $12, 3"
+                    : "+r"(place)
+                    : "r"(dest), "r"(mag), "r"(i));
+                dest += 1;
+            } while ((u32)arg1 < place);
+        }
+    }
+    if (place != 0) {
+        do {
+            digit  = (u32)arg1 / place;
+            *dest  = digit;
+            temp   = *dest & 0xFF;
+            digit  = temp * place;
+            place /= 10;
+            *dest  = temp + 0x30;
+            dest  += 1;
+            arg1  -= digit;
+        } while (place != 0);
+    }
+    *dest = 0;
+    return ret;
+}
 
 void func_8002EDFC(GStruct38* arg0, u8* arg1)
 {

@@ -10546,3 +10546,48 @@ Changing the field type to `s16` also works in isolation but can break
 already-matched functions that load the same field as `lhu` / cast through
 `(s16)`. Prefer the temporary when the field type must stay `u16`.
 `func_8003FF14` is the pure example.
+
+## Zero-pad itoa: force magic-before-`'0'` load order
+
+Seconds zero-padding (`func_8002EB94`) needs setup:
+
+```
+lui  a3, 0xcccc
+ori  a3, a3, 0xcccd   /* magic for place/10 */
+li   v1, 0x30         /* '0' */
+multu a2, a3
+sb   v1, 0(a0)        /* store interleaved with mult latency */
+mfhi t4
+srl  a2, t4, 3
+```
+
+Plain C with `i = 0x30; do { *dest = i; place /= 10; ...}` gets the right
+registers (`v1` / `a3`) but schedules `li` *before* `lui` (~99.6%). Emitting
+the magic first via a separate variable then a barrier:
+
+```c
+u32 mag = 0xCCCCCCCD;
+i = 0x30;
+asm volatile("" : "+r"(mag), "+r"(i));
+```
+
+preserves load order, but `place /= 10` no longer CSEs with `mag` and reloads
+the constant. Match the mult/store interleave and keep `mfhi` in `$t4` ($12)
+with a short asm body (no clobber list — a `t4` clobber recolors the whole
+function):
+
+```c
+do {
+    asm volatile(
+        "multu %0, %2\n\t"
+        "sb %3, 0(%1)\n\t"
+        "mfhi $12\n\t"
+        "srl %0, $12, 3"
+        : "+r"(place)
+        : "r"(dest), "r"(mag), "r"(i));
+    dest += 1; /* fills the bnez delay slot */
+} while ((u32)arg1 < place);
+```
+
+`func_8002EB94` is the pure example (minutes:seconds time string, same
+unsigned-decimal digit loop as `func_8002F18C` for the minutes half).
