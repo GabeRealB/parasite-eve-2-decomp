@@ -119,6 +119,9 @@ extern void func_8002E010(GStruct38* arg0, GStruct68* arg1, s32 arg2);
 // Dual SPRT glyph draw: code 0x64 (clut 0x7FFD, colored) + 0x67 (clut 0x7FFF)
 // linked at OT[field_4] and OT[field_4+1] respectively.
 extern void func_8002E188(GStruct38* arg0, GStruct68* arg1, s32 arg2);
+// Dual SPRT glyph draw with DR_TPAGE: code 0x64 (clut 0x7FFD) + tpage 0xE100023F
+// + code 0x67 (clut 0x7FFF) + tpage 0xE100025F, all linked at OT[field_4].
+extern void func_8002E300(GStruct38* arg0, GStruct68* arg1, s32 arg2);
 extern void func_8002E53C(GStruct38* arg0, u8* arg1);
 extern void func_8002EDFC(GStruct38* arg0, u8* arg1);
 // Skip arg1 newline/escape-delimited lines starting at arg0; returns advanced pointer.

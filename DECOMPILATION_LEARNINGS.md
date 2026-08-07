@@ -10736,3 +10736,32 @@ sp.field_4 = arg0->field_14[glyphIdx].u + ...;
 ```
 
 `func_80043310` needs this for its 4-byte glyph table indexing.
+
+## Reuse one `DR_TPAGE*` for sequential tpage prims
+
+When a function allocates and inserts two (or more) `DR_TPAGE` primitives in
+sequence — e.g. after each of two SPRTs — declare a **single** `DR_TPAGE* dr`
+and reassign it for each block rather than `dr` / `dr2`:
+
+```c
+addPrim(ot, p);
+dr         = D_80071190;
+D_80071190 = dr + 1;
+setlen(dr, 1);
+dr->code[0] = 0xE100023F;
+addPrim(ot, dr);
+
+addPrim(ot, p2);
+dr         = D_80071190;
+D_80071190 = dr + 1;
+setlen(dr, 1);
+dr->code[0] = 0xE100025F;
+addPrim(ot, dr);
+```
+
+Two live pointers force extra registers and scramble constant hoisting
+(`0xE100023F` early into `$t6`, `0xFFFFFF` into freed `$a2`, `0xFF000000` after
+the second SPRT alloc). One reused `dr` matches the target's `$t7` reuse and
+~100% schedule. Prefer raw `setlen` + `dr->code[0] = 0xE1000xxx` over
+`setDrawTPage` when the target stores the full GPU word as a constant (same
+pattern as `func_8003EA44` / `func_8002E300`).
