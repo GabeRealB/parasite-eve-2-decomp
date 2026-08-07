@@ -777,6 +777,7 @@ STATIC_ASSERT_SIZEOF(GStruct36Entry, 0x3C);
 /// field_3 indexes D_80068E78 for velocity scaling (func_80051DF4).
 /// field_4 is a signed per-note volume scale; field_5 is a signed pan offset.
 /// field_6 / field_7 index the bank note via func_8004EA60; field_8 is scaled pitch.
+/// field_A is a reverb/enable flag halfword written by the note-on handler.
 typedef struct _GStruct36VoiceSlot {
     /* 0x0 */ s8  field_0;
     /* 0x1 */ s8  field_1;
@@ -787,7 +788,7 @@ typedef struct _GStruct36VoiceSlot {
     /* 0x6 */ u8  field_6;
     /* 0x7 */ u8  field_7;
     /* 0x8 */ s16 field_8;
-    /* 0xA */ u8  unknown_A[0x2];
+    /* 0xA */ s16 field_A;
 } GStruct36VoiceSlot;
 STATIC_ASSERT_SIZEOF(GStruct36VoiceSlot, 0xC);
 
@@ -813,7 +814,9 @@ STATIC_ASSERT_SIZEOF(GStruct55, 0x10);
 /// field_484 is a 16-entry opcode table (same layout as GStruct22::field_484);
 /// func_800528BC seeds each entry with 0x407F4000 / 0.
 /// voiceSlots holds up to 18 active SPU voice indices (field_0 = -1 when free).
-typedef struct _GStruct42 GStruct42;
+typedef struct _GStruct42      GStruct42;
+typedef struct _GStruct41      GStruct41;
+typedef struct _GStruct42Group GStruct42Group;
 
 typedef struct _GStruct36 {
     /* 0x00 */ u8                  field_0;
@@ -834,8 +837,8 @@ typedef struct _GStruct36 {
     /* 0x38 */ s32                 field_38;
     /* 0x3C */ s32                 field_3C;
     /* 0x40 */ GStruct42*          field_40;
-    /* 0x44 */ void*               field_44;
-    /* 0x48 */ void*               field_48;
+    /* 0x44 */ GStruct42Group*     field_44;
+    /* 0x48 */ GStruct41*          field_48;
     /* 0x4C */ GStruct36Entry      entries[1];
     /* 0x88 */ u8                  unknown_88[0x484 - 0x88];
     /* 0x484 */ GStruct22Entry     field_484[16];
@@ -967,28 +970,38 @@ typedef struct _GStruct40 {
 STATIC_ASSERT_SIZEOF(GStruct40, 0x80);
 
 /// 0x14-byte sound/note entry indexed by func_8004EA60.
-/// Callers read field_1/field_3/field_4/field_5/field_A/field_B/field_10.
-typedef struct _GStruct41 {
-    /* 0x00 */ u8   field_0;
-    /* 0x01 */ u8   field_1;
-    /* 0x02 */ u8   pad_2;
-    /* 0x03 */ u8   field_3;
-    /* 0x04 */ u8   field_4;
-    /* 0x05 */ u8   field_5;
-    /* 0x06 */ byte unknown_6[0x4];
-    /* 0x0A */ u8   field_A;
-    /* 0x0B */ u8   field_B;
-    /* 0x0C */ byte unknown_C[0x4];
-    /* 0x10 */ s32  field_10;
-} GStruct41;
+/// field_0 selects reverb enable (1) vs disable; field_1 is pan base.
+/// field_3 is a volume scale; field_4/field_5 are root-key args for pitch.
+/// field_6 is voice-alloc priority; field_8/field_9 are MIDI key range.
+/// field_A/field_B are pitch-bend ranges; field_C/field_E are ADSR words;
+/// field_10 is the SPU waveform address.
+struct _GStruct41 {
+    /* 0x00 */ u8  field_0;
+    /* 0x01 */ u8  field_1;
+    /* 0x02 */ u8  pad_2;
+    /* 0x03 */ u8  field_3;
+    /* 0x04 */ u8  field_4;
+    /* 0x05 */ u8  field_5;
+    /* 0x06 */ u16 field_6;
+    /* 0x08 */ u8  field_8;
+    /* 0x09 */ u8  field_9;
+    /* 0x0A */ u8  field_A;
+    /* 0x0B */ u8  field_B;
+    /* 0x0C */ u16 field_C;
+    /* 0x0E */ u16 field_E;
+    /* 0x10 */ s32 field_10;
+};
 STATIC_ASSERT_SIZEOF(GStruct41, 0x14);
 
 /// 4-byte group header at the start of a GStruct42 heap block (field_0).
 /// field_0 is the group size; func_8004D19C prefix-sums these into field_10.
-typedef struct _GStruct42Group {
+/// field_2 is a volume scale; field_3 is a pan base (note-on handler).
+struct _GStruct42Group {
     /* 0x0 */ u8 field_0;
-    /* 0x1 */ u8 pad[3];
-} GStruct42Group;
+    /* 0x1 */ u8 pad_1;
+    /* 0x2 */ u8 field_2;
+    /* 0x3 */ u8 field_3;
+};
 STATIC_ASSERT_SIZEOF(GStruct42Group, 0x4);
 
 /// Sound bank header used by func_8004EA60 (and D_8007E0D8 entries, stride 0x20).
