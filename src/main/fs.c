@@ -5,12 +5,14 @@
 #include <psyq/libetc.h>
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/strings.h>
 
 #include "main/unknown_syms.h"
 #include "main/mem.h"
 #include "main/fs.h"
 #include "main/display.h"
 #include "main/game.h"
+#include "main/wipsys.h"
 
 void F12D18_80022518(void)
 {
@@ -823,7 +825,287 @@ on_error:
     F12D18_800256F4(FS_ERROR_SOFT);
 }
 
-INCLUDE_ASM("main/nonmatchings/fs", Fs_ScanIsoDirectory);
+/* ISO directory name suffixes / special files (must sit in .rodata before ScanIso jtbl). */
+const char D_800132F4[] = ".CDF";
+const char D_800132FC[] = ".STR";
+const char D_80013304[] = "STAGE0.HED";
+const char D_80013310[] = "INIT.BS";
+
+void Fs_ScanIsoDirectory(s32 mode)
+{
+    CdlLOC       loc[2];
+    register u8* entry asm("s0");
+    u8*          dest;
+    s32          initBsSector;
+    s32          initBsCount;
+    s32          sector;
+    s32          done;
+    s32          i;
+    s32          hasDot;
+    u8*          namePtr;
+    u8           idx;
+    s32          c;
+    s32          phase;
+    s32          endSec;
+    u8*          p;
+
+    initBsSector = 0;
+    initBsCount  = initBsSector;
+
+    SetMem(2);
+
+restart:
+    dest = (u8*)&Fs_CdSector;
+    {
+        s32 sync;
+        sync   = CdSync(1, NULL);
+        sector = 0x16;
+        if (sync == CdlDiskError) {
+            Fs_WaitDiskReset(true);
+        }
+    }
+
+    Fs_CdOpStatus     = 0;
+    Fs_ChunkEndFlag   = 0xFF;
+    Fs_LoadPhase      = 0;
+    Fs_ReqSector      = sector;
+    Fs_ChunkEndSector = sector;
+    Fs_ChunkWritePtr  = dest;
+    Fs_VBlank         = VSync(-1);
+
+    if (Fs_SeekSector == sector) {
+        CdControlF(CdlReadN, NULL);
+        CdReadyCallback(F12D18_8002563C);
+        Fs_SeekSector = 0;
+    } else {
+        CdIntToPos(sector, loc);
+        CdControlF(CdlReadN, (u8*)loc);
+        CdSyncCallback(F12D18_8002563C);
+        Fs_SeekSector = 0;
+    }
+
+    if (Fs_CdOpStatus != 0xFF) {
+        do {
+            if (Fs_CdOpStatus == 0x80) {
+                Fs_ClearDiskError();
+                goto restart;
+            }
+            VSync(0);
+        } while (Fs_CdOpStatus != 0xFF);
+    }
+
+    entry = (u8*)&Fs_CdSector;
+    if (entry[0] != 0x30 || entry[1] != 0) {
+        {
+            s32 sync;
+            sync   = CdSync(1, NULL);
+            sector = 0x14;
+            if (sync == CdlDiskError) {
+                Fs_WaitDiskReset(true);
+            }
+        }
+
+        Fs_CdOpStatus     = 0;
+        Fs_ChunkEndFlag   = 0xFF;
+        Fs_LoadPhase      = 0;
+        Fs_ReqSector      = sector;
+        Fs_ChunkEndSector = sector;
+        Fs_ChunkWritePtr  = entry;
+        Fs_VBlank         = VSync(-1);
+
+        if (Fs_SeekSector == sector) {
+            CdControlF(CdlReadN, NULL);
+            CdReadyCallback(F12D18_8002563C);
+            Fs_SeekSector = 0;
+        } else {
+            CdIntToPos(sector, loc);
+            CdControlF(CdlReadN, (u8*)loc);
+            CdSyncCallback(F12D18_8002563C);
+            Fs_SeekSector = 0;
+        }
+
+        if (Fs_CdOpStatus != 0xFF) {
+            if (1) {
+                do {
+                    if (Fs_CdOpStatus == 0x80) {
+                        Fs_ClearDiskError();
+                        goto restart;
+                    }
+                    VSync(0);
+                } while (Fs_CdOpStatus != 0xFF);
+            }
+        }
+    }
+
+    idx = 0;
+    do {
+        Fs_StageCdfSectors[idx] = 0;
+        idx++;
+    } while (idx < 6);
+
+    {
+        register s32 hi asm("v0");
+        __asm__ volatile(
+            "lui %0, %%hi(Fs_CdSector)\n\t"
+            "addiu %1, %0, %%lo(Fs_CdSector)"
+            : "=&r"(hi), "=r"(entry));
+    }
+    done                      = 0;
+    D_8006AC30.field_4        = 0;
+    Wip_SysFlags.unknown_0[0] = 0;
+    D_8006AC30.sector         = 0;
+    Fs_Stage0HedSector        = 0;
+
+    while ((done & 0xFF) == 0) {
+        switch (entry[0]) {
+            case 0x38:
+            case 0x3A:
+            case 0x3C:
+            case 0x3E:
+                i      = 0;
+                hasDot = 0;
+                while (1) {
+                    c = entry[0x21 + (i & 0xFF)];
+                    if (c == 0x2E) {
+                        hasDot = 1;
+                        break;
+                    }
+                    if (c == 0) {
+                        break;
+                    }
+                    i++;
+                }
+                if ((hasDot & 0xFF) != 0) {
+                    {
+                        s32   nameIdx;
+                        char* s;
+                        s       = D_800132F4;
+                        nameIdx = i & 0xFF;
+                        asm volatile("" : "+r"(s), "+r"(nameIdx));
+                        namePtr = (entry + 0x21) + nameIdx;
+                        if (strncmp(s, (char*)namePtr, 4) == 0) {
+                            u8 stageNum;
+                            stageNum = entry[0x20 + nameIdx] - 0x30;
+                            Fs_StageCdfSectors[stageNum & 0xFF] =
+                                *(u16*)(entry + 2) + (*(u16*)(entry + 4) << 16);
+                        } else if (strncmp(D_800132FC, (char*)namePtr, 4) == 0) {
+                            D_8006AC30.sector =
+                                *(u16*)(entry + 2) + (*(u16*)(entry + 4) << 16);
+                        } else if (strncmp(D_80013304, (char*)(entry + 0x21), 0xA) == 0) {
+                            Fs_Stage0HedSector =
+                                *(u16*)(entry + 2) + (*(u16*)(entry + 4) << 16);
+                        } else if (strncmp(D_80013310, (char*)(entry + 0x21), 7) == 0) {
+                            initBsCount = 0x10;
+                            initBsSector =
+                                *(u16*)(entry + 2) + (*(u16*)(entry + 4) << initBsCount);
+                        }
+                    }
+                }
+            case 0x30:
+            case 0x32:
+            case 0x34:
+            case 0x36:
+                entry += entry[0];
+                break;
+            default:
+                done = 1;
+                break;
+        }
+    }
+
+    if (Fs_StageCdfSectors[1] != 0 || Fs_StageCdfSectors[2] != 0) {
+        Wip_SysFlags.unknown_0[0] = 1;
+    }
+    if (Fs_StageCdfSectors[4] != 0 || Fs_StageCdfSectors[5] != 0) {
+        Wip_SysFlags.unknown_0[0] = 2;
+    }
+
+    Fs_ClearDiskError();
+
+    if ((mode & 0xFF) != 0) {
+        if (initBsSector != 0) {
+            Fs_ChunkMode    = 0;
+            D_8006ADF8      = 0;
+            D5B498_8006EA1A = 0;
+            D5B498_8006EBB0 = 0;
+            D5B498_8006D850 = NULL;
+            D5B498_8006D748 = 0;
+            D5B498_8006D858 = 1;
+            {
+                u8** slot;
+                slot  = &D_8006C4D4;
+                p     = (u8*)&Fs_CdSector;
+                *slot = p + 0x800;
+            }
+            CdCmd_RequestVlcRebuild();
+
+            {
+                s32          sync2;
+                register s32 endSecR asm("s1");
+                phase   = 5;
+                sync2   = CdSync(1, NULL);
+                endSecR = initBsSector + initBsCount;
+                if (sync2 == phase) {
+                    Fs_WaitDiskReset(true);
+                }
+
+                Fs_CdOpStatus     = 0;
+                Fs_ChunkEndFlag   = 0xFF;
+                Fs_LoadPhase      = phase;
+                Fs_ReqSector      = initBsSector;
+                Fs_ChunkEndSector = endSecR;
+                Fs_ChunkWritePtr  = 0;
+                Fs_VBlank         = VSync(-1);
+            }
+
+            if (Fs_SeekSector == initBsSector) {
+                CdControlF(CdlReadN, NULL);
+                CdReadyCallback(F12D18_8002563C);
+                Fs_SeekSector = 0;
+            } else {
+                CdIntToPos(initBsSector, loc);
+                CdControlF(CdlReadN, (u8*)loc);
+                CdSyncCallback(F12D18_8002563C);
+                Fs_SeekSector = 0;
+            }
+
+            if (Fs_CdOpStatus != 0xFF) {
+                do {
+                    do {
+                        if (Fs_CdOpStatus != 0x80) {
+                            VSync(0);
+                        } else {
+                            if (CdSync(1, NULL) != 5) {
+                                goto restart;
+                            }
+                            Fs_WaitDiskReset(true);
+                            goto restart;
+                        }
+                    } while (0);
+                } while (Fs_CdOpStatus != 0xFF);
+            }
+            Fs_ClearDiskError();
+        }
+    }
+
+    if (Fs_Stage0HedSector != 0) {
+        Fs_CdOpStatus       = 0;
+        Fs_FileTableLen     = 0;
+        Fs_FileTableCat2Len = 0;
+        Fs_FileTableCat4Len = 0;
+        Fs_FileTableCat1Len = 0;
+        Fs_FileTableCat3Len = 0;
+        Fs_ReqSector        = Fs_Stage0HedSector;
+        CdIntToPos(Fs_Stage0HedSector, loc);
+        CdControlF(CdlReadN, (u8*)loc);
+        CdReadyCallback(Fs_InitStage0TablesCb);
+        Fs_VBlank = VSync(-1);
+    } else if ((mode & 0xFF) != 0) {
+        goto restart;
+    } else {
+        Wip_SysFlags.unknown_0[0] = 0;
+    }
+}
 
 s32 Fs_LoadImageChunk(FsImageChunk* arg0, u8 arg1)
 {

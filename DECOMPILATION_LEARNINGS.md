@@ -11532,3 +11532,40 @@ the next attempt:
    `%lo(sym+N)` form (`lbu`/`sb` with folded reloc). Separate byte symbols or
    non-volatile struct fields; array index often emits `addiu` base + offset.
 
+
+## Pinned `s0` entry after a clear loop: force `lui v0; addiu s0,v0`
+
+When `register u8* entry asm("s0")` is reassigned after a short clear loop that
+joins both wait paths, GCC often emits the pinned form:
+
+```
+lui   s0, %hi(Fs_CdSector)
+addiu s0, s0, %lo(Fs_CdSector)
+```
+
+The target rematerialises through `$v0` (same shape as `SndScript_StopMatching`):
+
+```
+lui   v0, %hi(Fs_CdSector)
+addiu s0, v0, %lo(Fs_CdSector)
+```
+
+Force it:
+
+```c
+register u8* entry asm("s0");
+/* ... clear loop ... */
+{
+    register s32 hi asm("v0");
+    __asm__ volatile(
+        "lui %0, %%hi(Fs_CdSector)\n\t"
+        "addiu %1, %0, %%lo(Fs_CdSector)"
+        : "=&r"(hi), "=r"(entry));
+}
+```
+
+`Fs_ScanIsoDirectory` is the pure example (99.978% → 100%). Pair with
+`const char` ISO name strings declared just above the function so they land in
+`.rodata` *between* earlier jtbls and this function's jtbl (non-`const` arrays
+go to `.data` and shift the whole image).
+
