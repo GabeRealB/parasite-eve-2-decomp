@@ -15,7 +15,6 @@ func_80053A20 42 99.043
 func_80020058 58 98.131
 Fs_LoadImageStrip 22 91.134
 func_8004E200 30 98.748
-Fs_ProcessChunkData 30 99.478
 func_8001F430 45 98.761
 func_8002C1D8 28 97.222
 Fs_ProcessChunkHeader 20 80.353

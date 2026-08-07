@@ -11182,6 +11182,47 @@ Same pattern for cases 1–3. Using `FsCdfFile*` here silently switches to
 
 `Fs_InitStage0TablesCb` is the pure example (99.703% → 100% on this alone).
 
+## Fresh `lui` for a late store when `%hi` is live in `$s0`
+
+When an earlier block pins `%hi(global)` in `$s0` (several `lw`/`sw %lo(s0)`),
+a later store to the same global often reuses `$s0` and omits the fresh
+`lui $v0, %hi(global)` the target puts before `j` with `sw` in the delay:
+
+```
+lw   v1, 8(a0)
+lui  v0, %hi(Fs_ChunkWritePtr)   /* rematerialize */
+j    ret0
+sw   v1, %lo(Fs_ChunkWritePtr)(v0)
+```
+
+Killing `$s0` only shifts the CSE into `$s1`/`$s2`/…. Pure C cannot force `$v0`.
+
+Fix: rematerialize and store with a **tab**-`noreorder` asm block (maspsx only
+treats `.set\tnoreorder` as noreorder — a space leaves reorder mode and inserts
+`nop` after `j`), jumping to the shared `ret0` label:
+
+```c
+{
+    register u8* val asm("v1");
+    val = (u8*)blk->field_8;
+    __asm__ volatile(
+        ".set\tnoreorder\n\t"
+        "lui $2, %%hi(Fs_ChunkWritePtr)\n\t"
+        "j %1\n\t"
+        "sw %0, %%lo(Fs_ChunkWritePtr)($2)\n\t"
+        ".set\treorder"
+        :
+        : "r"(val), "i"(&&ret0)
+        : "v0", "memory");
+}
+ret0:
+    return 0;
+```
+
+`Fs_ProcessChunkData` case 4 is the pure example (99.478% → 100% on this alone).
+
+
+
 ## Case-4 early exit: known-zero `sector` must not merge with `return 0`
 
 When a branch leaves `sector` still at its prologue value of 0, writing

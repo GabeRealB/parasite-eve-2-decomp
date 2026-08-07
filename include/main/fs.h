@@ -422,6 +422,7 @@ void Fs_ScanIsoDirectory(s32 mode);
 
 /// Load an image chunk into VRAM (BreakDraw / LoadImage2 path).
 /// `retryNonzero` disables timeout aborts when non-zero.
+s32 Fs_LoadImageStrip(s32 arg0);
 s32 Fs_LoadImageChunk(FsImageChunk* img, u8 retryNonzero);
 
 /// Copy a terminated FsWorkEntry list into D5B498_8006ACE8 and set up
@@ -562,6 +563,11 @@ extern u8           D5B498_8006ADE0;
 extern u8           D5B498_8006ADE1;
 extern u8           D_8006ADE2;
 extern FsUnkADE8    D_8006ADE8;
+extern s32          D_8006D868;
+extern s32          D_8006D864;
+extern s32          D_8006D860;
+extern u8           D_8006CCD8[];
+extern s32          D_8006ADF8;
 extern u8           D5B498_8006ADF4;
 extern FsFolderSlot D_8006C338[50];
 extern u8*          D5B498_8006C22C;

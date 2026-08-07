@@ -273,7 +273,194 @@ end:
 
 INCLUDE_ASM("main/nonmatchings/fs", Fs_ProcessChunkHeader);
 
-INCLUDE_ASM("main/nonmatchings/fs", Fs_ProcessChunkData);
+u8 Fs_ProcessChunkData(void)
+{
+    s32          status;
+    s32          result;
+    s32          endFlag;
+    s32*         offsets;
+    register s32 ff asm("a0");
+
+    switch (Fs_LoadPhase) {
+        case 0:
+            CdGetSector(Fs_ChunkWritePtr, 0x200);
+            Fs_ChunkWritePtr += 0x800;
+            if ((u32)Fs_ReqSector < (u32)Fs_ChunkEndSector) {
+                goto ret0;
+            }
+
+        check_end_flag:
+            endFlag = Fs_ChunkEndFlag;
+            if (endFlag == 0xFF) {
+                goto set_phase_done;
+            }
+            goto clear_streaming;
+
+        case 1:
+            CdGetSector(Fs_CdSector.bytes, 0x200);
+            D5B498_8006C22C = Fs_CdSector.bytes;
+            func_80010024();
+            if (D5B498_8006D748 == 0xFFFF) {
+                goto soft_error;
+            }
+            if (D5B498_8006D748 == 0) {
+                if ((u32)Fs_ReqSector < (u32)Fs_ChunkEndSector) {
+                    goto ret0;
+                }
+            }
+            switch (D5B498_8006ADF4 - 1) {
+                case 0:
+                    D_8006D860 = Fs_ChunkWritePtr - (u8*)D_8005C36C;
+                    goto check_end_flag;
+                case 1:
+                    D_8006D864 = Fs_ChunkWritePtr - (u8*)D_8005C370;
+                    goto check_end_flag;
+                case 2:
+                case 7:
+                    D_8006D868 = Fs_ChunkWritePtr - (u8*)D_8005C374;
+                    goto check_end_flag;
+                case 3:
+                    offsets    = &D_8006D860;
+                    offsets[1] = -1;
+                    D_8006D860 = Fs_ChunkWritePtr - (u8*)D_8005C36C;
+                    goto check_end_flag;
+                case 4: {
+                    register s32* p asm("a1");
+                    p          = &D_8006D860;
+                    p[1]       = -1;
+                    p[2]       = -1;
+                    D_8006D860 = Fs_ChunkWritePtr - (u8*)D_8005C36C;
+                    goto check_end_flag;
+                }
+                case 5:
+                case 6:
+                    goto check_end_flag;
+            }
+            goto check_end_flag;
+
+        case 2:
+            CdGetSector(Fs_CdSector.bytes, 0x200);
+            status = Fs_LoadImageStrip(0) & 0xFF;
+            ff     = 0xFF;
+            if (status == ff) {
+                goto hard_error;
+            }
+            if (status == 0x7F) {
+                goto soft_error;
+            }
+            if (status != 1) {
+                if ((u32)Fs_ReqSector < (u32)Fs_ChunkEndSector) {
+                    goto ret0;
+                }
+            }
+        check_end_a0:
+            endFlag = Fs_ChunkEndFlag;
+            if (endFlag == ff) {
+                goto set_phase_done;
+            }
+            goto clear_streaming;
+
+        case 3:
+            CdGetSector(D_8006CCD8, 0x200);
+            status = Fs_LoadImageChunk((FsImageChunk*)(D_8006CCD8 - 0x7F0), 0) & 0xFF;
+            ff     = 0xFF;
+            if (status != ff) {
+                goto case3_ok;
+            }
+        hard_error:
+            Fs_ReqSector -= 1;
+            F12D18_800256F4(2);
+            goto ret0;
+        case3_ok:
+            if (status == 0x7F) {
+                goto soft_error;
+            }
+            goto check_end_a0;
+
+        case 4:
+            CdGetSector(Fs_ChunkWritePtr, 0x200);
+            Fs_ChunkWritePtr += 0x800;
+            if ((u32)Fs_ReqSector >= (u32)Fs_ChunkEndSector) {
+                endFlag = Fs_ChunkEndFlag;
+                if (endFlag == 0xFF) {
+                    goto set_phase_done;
+                }
+                Fs_Streaming = 0;
+            }
+            if (D_8006ADE8.field_0 == 0) {
+                goto ret0;
+            }
+            D_8006ADE8.field_2 += 1;
+            if (D_8006ADE8.field_4 != D_8006ADE8.field_2) {
+                goto ret0;
+            }
+            {
+                register u8* val asm("v1");
+                val = (u8*)D_8006ADE8.field_8;
+                __asm__ volatile(
+                    ".set\tnoreorder\n\t"
+                    "lui $2, %%hi(Fs_ChunkWritePtr)\n\t"
+                    "j %1\n\t"
+                    "sw %0, %%lo(Fs_ChunkWritePtr)($2)\n\t"
+                    ".set\treorder"
+                    :
+                    : "r"(val), "i"(&&ret0)
+                    : "v0", "memory");
+            }
+
+        case 5:
+            if (Fs_ChunkMode != 3) {
+                CdGetSector((u8*)D4CB64_ImgBuffers + D_8006ADF8, 0x200);
+                D_8006ADF8 += 0x800;
+            }
+            if ((u32)Fs_ReqSector < (u32)Fs_ChunkEndSector) {
+                goto ret0;
+            }
+            if (Fs_ChunkMode == 3) {
+                goto check_end_flag;
+            }
+            Mdec_BeginDecode(D4CB64_ImgBuffers);
+            goto check_end_flag;
+
+        case 6:
+            CdGetSector(Fs_CdSector.bytes, 0x200);
+            result = SndLoad_FeedSector(Fs_CdSector.bytes);
+            if (result != 5) {
+                goto case6_not5;
+            }
+            endFlag = Fs_ChunkEndFlag;
+            if (endFlag != 0xFF) {
+                goto clear_streaming;
+            }
+        set_phase_done:
+            Fs_LoadPhase = endFlag;
+            return 1;
+
+        case6_not5:
+            if (result != -1) {
+                goto ret0;
+            }
+        soft_error:
+            F12D18_800256F4(0);
+            goto ret0;
+
+        default:
+            if (Fs_ChunkEndSector != Fs_ReqSector) {
+                goto ret0;
+            }
+            endFlag = Fs_ChunkEndFlag;
+            if (endFlag != 0xFF) {
+                goto clear_streaming;
+            }
+            return 1;
+    }
+
+clear_streaming:
+    Fs_Streaming = 0;
+
+ret0:
+    return 0;
+}
 
 void Fs_SelectStage(s32 stageIdx)
 {
