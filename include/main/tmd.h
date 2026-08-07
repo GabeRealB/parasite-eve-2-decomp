@@ -16,6 +16,7 @@ typedef struct _TmdSource {
     /* 0x1C */ byte unknown_1C[0x4];
     /* 0x20 */ u32* field_20; // [id, handler_slot, dims, data…] stream
 } TmdSource;
+
 /// Node in the Tmd_List linked list (2F244.c TMD/model objects).
 typedef struct _TmdObject {
     /* 0x00 */ struct _TmdObject* next;
@@ -36,6 +37,7 @@ typedef struct _TmdObject {
     /* 0x30 */ s32                field_30;
 } TmdObject;
 STATIC_ASSERT_SIZEOF(TmdObject, 0x34);
+
 /// Sentinel list head for TmdObject (and similar) intrusive lists.
 /// Same layout as TaskNode: next is the first element, prev is the last
 /// (or &self when the list is empty). Initialized by Tmd_InitLists.
@@ -44,6 +46,7 @@ typedef struct _TmdListHead {
     /* 0x04 */ struct _TmdListHead* prev;
 } TmdListHead;
 STATIC_ASSERT_SIZEOF(TmdListHead, 0x8);
+
 /// Head of the TmdObject linked list used by 2F244.c TMD/model helpers.
 extern TmdListHead Tmd_List;
 /// Second list head initialized alongside Tmd_List by Tmd_InitLists.

@@ -19,6 +19,7 @@ typedef struct _UiMiniObj {
     /* 0x22 */ s16  field_22;
 } UiMiniObj;
 STATIC_ASSERT_SIZEOF(UiMiniObj, 0x24);
+
 /// Object at Task::field_20 used by Ui_TeardownTree / Mc_HideChildUi /
 /// Mc_DrawPrompt / Ui_SpawnFromDesc. Shares the UiPanel layout through offset
 /// 0x24 (handlers cast field_20 to UiPanel*). field_0 is a status flag;
@@ -55,6 +56,7 @@ typedef struct _UiObject {
     /* 0x2E */ s16   field_2E; // teardown / choice (-1 wait, 6 confirm)
 } UiObject;
 STATIC_ASSERT_SIZEOF(UiObject, 0x30);
+
 /// Template/descriptor consumed by Ui_SpawnFromDesc to spawn a UiObject + Task.
 typedef struct _UiObjectDesc {
     /* 0x00 */ s32 field_0; // → UiObject.field_4
@@ -70,11 +72,13 @@ typedef struct _UiObjectDesc {
     /* 0x18 */ s32 field_18; // → TaskDesc seed
 } UiObjectDesc;
 STATIC_ASSERT_SIZEOF(UiObjectDesc, 0x1C);
+
 /// Singly-linked text line node used by TextBlockDesc / Ui_SpawnTextBlock.
 typedef struct TextLineNode {
     /* 0x0 */ u8*                  text;
     /* 0x4 */ struct TextLineNode* next;
 } TextLineNode;
+
 /// Multi-line text block descriptor consumed by Ui_SpawnTextBlock to spawn a
 /// sized UiObject. field_0 is the line count; field_2 is cleared on return;
 /// field_4 is the head of a TextLineNode list; field_8 selects layout mode
@@ -86,6 +90,7 @@ typedef struct TextBlockDesc {
     /* 0x8 */ s32           field_8;
 } TextBlockDesc;
 STATIC_ASSERT_SIZEOF(TextBlockDesc, 0xC);
+
 /// UI list/menu object (data symbols D_8006116C, D_80061194, D_8006125C,
 /// D_80061284, D_800612AC, D_80067654; size 0x24).
 /// field_0 is a function-table pointer; field_4 / field_5 are base indices
@@ -115,22 +120,26 @@ typedef struct _UiList {
     /* 0x18 */ byte unknown_18[0xC];
 } UiList;
 STATIC_ASSERT_SIZEOF(UiList, 0x24);
+
 /// WIP: Task::field_34 context for D_8006121C select-menu (McMenu_SelectListAlt).
 /// Only field_290 is used so far (seeds UiList cursor).
 typedef struct _WipSelectMenuExt {
     /* 0x000 */ byte unknown_0[0x290];
     /* 0x290 */ s32  field_290;
 } WipSelectMenuExt;
+
 /// WIP: nested object reached via WipUiHolder::field_28 (Ui_SetHolderParam writes field_34).
 typedef struct _WipUiChild {
     /* 0x00 */ byte unknown_0[0x34];
     /* 0x34 */ s32  field_34;
 } WipUiChild;
+
 /// WIP: UI holder pointer Wip_UiHolder; field_28 → WipUiChild.
 typedef struct _WipUiHolder {
     /* 0x00 */ byte        unknown_0[0x28];
     /* 0x28 */ WipUiChild* field_28;
 } WipUiHolder;
+
 /// Object used by 34E98.c handlers (e.g. Ui_AnimOpenStep / D_80013F2C table).
 /// field_4 low nibble selects layout padding (Ui_InsetLayout); high nibble of the
 /// low byte selects a fill mode (Ui_ScaleRect). field_8 is a small integer
@@ -154,13 +163,16 @@ typedef struct _UiPanel {
     /* 0x22 */ u16  field_22;
     /* 0x24 */ void (*field_24)(void*); // handler callback
 } UiPanel;
+
 /// Callback for UiPanel state handlers (e.g. entries in D_80013F2C).
 typedef void (*UiPanelFunc)(UiPanel* arg0, void* arg1);
+
 /// Fixed-size table of UiPanelFunc callbacks. Copied onto the stack by
 /// Ui_DispatchObjectState so the call uses a local jump table.
 typedef struct {
     UiPanelFunc funcs[6];
 } UiPanelFuncTable6;
+
 /// Dialog / prompt descriptor used by 21FDC.c handlers (e.g. McMenu_ConfirmDialogAlt,
 /// McMenu_ConfirmDialog, McMenu_ConfirmWithRender). field_8 is a signed menu/option index passed
 /// to rendering helpers; field_B is a flag written on the alternate confirm
@@ -180,6 +192,7 @@ typedef struct _DialogPrompt {
     /* 0x20 */ byte unknown_20[0x2];
     /* 0x22 */ s16  field_22;
 } DialogPrompt;
+
 /// Linked text option node walked by Ui_DrawDialogLine (index via DialogPrompt::field_8).
 /// field_0 is the string passed to Text_DrawPrompt; field_4 is the next node.
 typedef struct _DialogOption {
@@ -187,6 +200,7 @@ typedef struct _DialogOption {
     /* 0x4 */ struct _DialogOption* field_4;
 } DialogOption;
 STATIC_ASSERT_SIZEOF(DialogOption, 0x8);
+
 /// Context at Task::field_34 for the Ui_DrawDialogLine dialog path.
 /// field_4 is the head of a DialogOption list; field_C bit0 gates cancel input.
 typedef struct _DialogListCtx {
@@ -195,6 +209,7 @@ typedef struct _DialogListCtx {
     /* 0x08 */ byte          unknown_8[4];
     /* 0x0C */ u8            field_C;
 } DialogListCtx;
+
 /// Context at Task::field_34 for the Ui_ListTaskCallback UI path.
 /// field_0 is a base index copied into UiList field_4/field_5; field_2 receives
 /// the selected index from UiObject::field_2C on confirm/cancel; field_8 is an

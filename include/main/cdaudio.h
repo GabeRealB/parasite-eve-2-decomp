@@ -15,6 +15,7 @@ typedef struct _CdAudioPhase {
     /* 0x5 */ u8 field_5; // control / abort flag
 } CdAudioPhase;
 STATIC_ASSERT_SIZEOF(CdAudioPhase, 0x6);
+
 /// BSS object CdAudio_Loc (size 0x10). Sector / pitch state for CD audio player.
 typedef struct _CdAudioLoc {
     /* 0x0 */ u8  field_0; // status
@@ -25,6 +26,7 @@ typedef struct _CdAudioLoc {
     /* 0xC */ s32 field_C; // sector position
 } CdAudioLoc;
 STATIC_ASSERT_SIZEOF(CdAudioLoc, 0x10);
+
 /// BSS object CdAudio_Tbl (size 0x18). CD/audio stream state for 46FE4.c.
 /// field_C is a base pointer into a halfword table; CdAudio_LoadSectorEntry indexes it
 /// with ((packed >> 14) & 0x3FC) / 2 (4-byte stride, low halfword of each slot).
@@ -40,6 +42,7 @@ typedef struct _CdAudioTbl {
     /* 0x14 */ s32  field_14;
 } CdAudioTbl;
 STATIC_ASSERT_SIZEOF(CdAudioTbl, 0x18);
+
 /// BSS object CdAudio_Ctl (size 0x14). CD stream control for 46FE4.c.
 typedef struct _CdAudioCtl {
     /* 0x00 */ s32 field_0;  // busy / retry counter
@@ -52,6 +55,7 @@ typedef struct _CdAudioCtl {
     /* 0x10 */ s32 field_10; // control flag
 } CdAudioCtl;
 STATIC_ASSERT_SIZEOF(CdAudioCtl, 0x14);
+
 /// 4-byte entry pointed to by CdAudio_TblEntries (see CdAudio_PrepareNextEntry).
 /// Indexed by CdAudio_Tbl.field_2; field_3 is compared across adjacent entries.
 typedef struct _CdAudioTblEntry {
@@ -59,6 +63,7 @@ typedef struct _CdAudioTblEntry {
     /* 0x3 */ u8 field_3; // compared across adjacent entries for span
 } CdAudioTblEntry;
 STATIC_ASSERT_SIZEOF(CdAudioTblEntry, 0x4);
+
 /// BSS block covering CdAudio_Loc (0x10) + D_800827B0 (0x4). Immediately precedes
 /// LinInterp_CdStream; used when codegen holds &LinInterp_CdStream and reaches back 0x14 bytes.
 typedef struct _CdAudioLocEx {
@@ -71,6 +76,7 @@ typedef struct _CdAudioLocEx {
     /* 0x10 */ s32 field_10;
 } CdAudioLocEx;
 STATIC_ASSERT_SIZEOF(CdAudioLocEx, 0x14);
+
 /// Extended view of the CdAudio_Loc BSS block for SPU voice indices at +0x3E/+0x3F
 /// (used by CdAudio_DrivePhase0 / CdAudio_DriveRead). The zero-init in CdAudio_Init covers
 /// 0x44 bytes from CdAudio_Loc, so these offsets sit inside that block.

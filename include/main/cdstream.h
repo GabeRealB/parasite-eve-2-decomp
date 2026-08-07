@@ -17,6 +17,7 @@ typedef struct _MtsSector {
     /* 0x0E */ u8  field_E;
     /* 0x0F */ s8  field_F;
 } MtsSector;
+
 /// BSS object CdStream_State (size 0x58). CD/SPU stream runtime state.
 typedef struct _CdStreamState {
     /* 0x00 */ u8         flags0; // bit0 busy, bit1 voice-on, bit3 IRQ, bit4 voices alloc, bit6 stop
@@ -56,6 +57,7 @@ typedef struct _CdStreamState {
     /* 0x56 */ u16        settleCounter; // disc init settle ticks
 } CdStreamState;
 STATIC_ASSERT_SIZEOF(CdStreamState, 0x58);
+
 /// One half of CdStream_Channels (stride 0x40). Dual L/R audio channel state.
 /// Immediately follows CdStream_State in BSS (CdStream_Start treats it as
 /// (CdStreamChannel*)(&CdStream_State + 1)).
@@ -77,11 +79,13 @@ typedef struct _CdStreamChannel {
     /* 0x3E */ byte pad_3E[2];
 } CdStreamChannel;
 STATIC_ASSERT_SIZEOF(CdStreamChannel, 0x40);
+
 /// BSS object CdStream_Channels (size 0x80). Two CdStreamChannel channels at +0x00 / +0x40.
 typedef struct _CdStreamChannels {
     /* 0x00 */ CdStreamChannel ch[2];
 } CdStreamChannels;
 STATIC_ASSERT_SIZEOF(CdStreamChannels, 0x80);
+
 /// One slot in CdReady_Queue.entries (stride 0x14).
 /// flags: bit0 active, bit1 armed, bit2 cancel/pending, bit3 result.
 typedef struct _CdReadyEntry {
@@ -92,6 +96,7 @@ typedef struct _CdReadyEntry {
     /* 0x10 */ s32 errorFn; // void (*)(CdReadyEntry*) on cancel path
 } CdReadyEntry;
 STATIC_ASSERT_SIZEOF(CdReadyEntry, 0x14);
+
 /// BSS object CdReady_Queue (size 0x58). Ring of CD ready work items + callback state.
 typedef struct _CdReadyQueue {
     /* 0x00 */ u8           locked;            // re-entrancy guard
@@ -102,6 +107,7 @@ typedef struct _CdReadyQueue {
     /* 0x08 */ CdReadyEntry entries[4];
 } CdReadyQueue;
 STATIC_ASSERT_SIZEOF(CdReadyQueue, 0x58);
+
 /// BSS object CdStream_Params (size 0x20). CD/SPU stream setup block for
 /// func_800567E4 / CdStream_Start: sector position, buffer, callbacks, and
 /// voice indices.

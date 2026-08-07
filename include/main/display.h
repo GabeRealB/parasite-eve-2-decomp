@@ -77,6 +77,7 @@ typedef struct _GpuOtBuf {
     /* 0x10 */ u_long* field_10;
 } GpuOtBuf;
 STATIC_ASSERT_SIZEOF(GpuOtBuf, 0x14);
+
 /// Double-buffered ordering-table descriptor (same layout as PsyQ GsOT).
 /// Used by Gpu_OrderingTables and passed to GsClearOt.
 typedef struct _GameOt {

@@ -15,6 +15,7 @@ typedef struct _SpuReverbConfig {
     SpuReverbAttr attr;
 } SpuReverbConfig;
 STATIC_ASSERT_SIZEOF(SpuReverbConfig, 0x24);
+
 /// Per-frame audio callback list node (AudioTick_List sentinel + chain).
 typedef struct _AudioTickNode {
     /* 0x00 */ s32 field_0;  // poll: s32 (*)(s32) — return -1 to remove
@@ -25,6 +26,7 @@ typedef struct _AudioTickNode {
     /* 0x14 */ s32 field_14; // next link
 } AudioTickNode;
 STATIC_ASSERT_SIZEOF(AudioTickNode, 0x18);
+
 /// Per-voice SPU runtime (Spu_VoiceState). 24 voices.
 typedef struct _SpuVoiceState {
     /* 0x000 */ u32 reverbVoiceStatus;
@@ -39,12 +41,14 @@ typedef struct _SpuVoiceState {
     /* 0x1D0 */ u32 field_1d0;     // key-on related mask
 } SpuVoiceState;
 STATIC_ASSERT_SIZEOF(SpuVoiceState, 0x1D4);
+
 typedef struct _SpuLVoiceTable {
     /* 0x000 */ s16           count;         // active attr count
     /* 0x002 */ SpuLVoiceAttr attrs[24];
     /* 0x664 */ u8            field_664[24]; // per-voice flags
 } SpuLVoiceTable;
 STATIC_ASSERT_SIZEOF(SpuLVoiceTable, 0x67C);
+
 /// 0x1C-byte slot allocated from SndEvt_Pool (see SndEvt_Alloc / SndEvt_Enqueue).
 /// Overlay of `SndEvt` starting at offset 0x4 (`field_4` / `field_8`).
 /// Used when the compiler keeps `arg + 4` in a callee-saved register.
@@ -58,6 +62,7 @@ typedef struct _SndEvtFrom4 {
     /* 0xC */ s32 field_C; // often SndVoiceParams*
 } SndEvtFrom4;
 STATIC_ASSERT_SIZEOF(SndEvtFrom4, 0x10);
+
 /// Deferred sound/MIDI event message (SndEvt_Pool, 0x40 slots).
 typedef struct _SndEvt {
     /* 0x00 */ s16             field_0; // allocated (0 free, 1 in use)
@@ -72,6 +77,7 @@ typedef struct _SndEvt {
     /* 0x18 */ struct _SndEvt* field_18; // queue next
 } SndEvt;
 STATIC_ASSERT_SIZEOF(SndEvt, 0x1C);
+
 /// 8-byte slot at MidiOpcodeCtx::field_484 (16 entries, indexed by opcode low nibble).
 /// Seeded as the word 0x407F4000 by Midi_InitChannelTable (field_0..field_3 little-endian);
 /// field_0 is tested as a flag byte (lbu); field_4 is a byte written by handlers.
@@ -85,18 +91,21 @@ typedef struct _MidiOpcodeSlot {
     /* 0x6 */ s16 field_6;
 } MidiOpcodeSlot;
 STATIC_ASSERT_SIZEOF(MidiOpcodeSlot, 0x8);
+
 /// Large context object used by 410B0.c opcode handlers (e.g. Midi_SetProgram).
 /// Only fields used so far are named; size is incomplete.
 typedef struct _MidiOpcodeCtx {
     /* 0x000 */ byte           unknown_0[0x484];
     /* 0x484 */ MidiOpcodeSlot field_484[16];
 } MidiOpcodeCtx;
+
 /// 4-byte entry at Spu_VoiceRanges (see Spu_SetVoiceRange).
 typedef struct _SpuVoiceRange {
     /* 0x0 */ s16 field_0; // first voice index
     /* 0x2 */ s16 field_2; // count of voices in range
 } SpuVoiceRange;
 STATIC_ASSERT_SIZEOF(SpuVoiceRange, 0x4);
+
 /// Header for the bank table blob pointed to by SndBankSlot.field_0.
 /// field_4 is the bank ID (high halfword remapped by SndBank_RemapId when the
 /// request high nibble is 0x1); field_6 is the entry count used by SndEvt_EnqueueType6.
@@ -107,6 +116,7 @@ typedef struct _SndBankHdr {
     /* 0x6 */ u16 field_6;
 } SndBankHdr;
 STATIC_ASSERT_SIZEOF(SndBankHdr, 0x8);
+
 /// Overlay for reading the u16 offset table that follows SndBankHdr at +0x8.
 /// Formed as (SndBankHdrOff*)((index * 2) + (s32)header) so lhu 8(base)
 /// picks offsets[index] (SndEvt_EnqueueType6).
@@ -115,6 +125,7 @@ typedef struct _SndBankHdrOff {
     /* 0x8 */ u16 field_8;
 } SndBankHdrOff;
 STATIC_ASSERT_SIZEOF(SndBankHdrOff, 0xA);
+
 /// 16-byte slot in SndBank_Slots[16] (BSS size 0x100). Indexed by SndBankSlot_Get
 /// and related helpers in 43FFC.c / 410B0.c.
 typedef struct _SndBankSlot {
@@ -124,16 +135,19 @@ typedef struct _SndBankSlot {
     /* 0xC */ void*       field_C;
 } SndBankSlot;
 STATIC_ASSERT_SIZEOF(SndBankSlot, 0x10);
+
 /// Owner of a doubly-linked SndVoice voice list (head at field_40).
 /// Insert: SndVoice_Attach; unlink: SndVoice_Detach; walk: SndScript_TickVoices.
 /// field_44 is a pointer to the raw oneE/script buffer base (SndVoice_SetupEnvelope).
 typedef struct _SndVoice SndVoice;
+
 typedef struct _SndVoiceOwner {
     /* 0x00 */ u8        unknown_0[0x40];
     /* 0x40 */ SndVoice* field_40;
     /* 0x44 */ u8**      field_44;
 } SndVoiceOwner;
 STATIC_ASSERT_SIZEOF(SndVoiceOwner, 0x48);
+
 /// "oneE" (0x45656E6F) pitch-envelope chunk pointed at by SndVoiceFx.field_20.
 /// Consumed by the state machine in SndVoice_TickEnvelope.
 typedef struct _SndOneE {
@@ -150,6 +164,7 @@ typedef struct _SndOneE {
     /* 0x16 */ s16 field_16;
 } SndOneE;
 STATIC_ASSERT_SIZEOF(SndOneE, 0x18);
+
 /// FX/envelope sub-block embedded at SndVoice + 0x10 (SndVoice_SetupEnvelope / SndVoice_TickEnvelope).
 /// field_0 is an active flag; field_1 is the state-machine index; field_2 is a
 /// secondary gate; field_20 points at the current "oneE" (0x45656E6F) chunk.
@@ -170,6 +185,7 @@ typedef struct _SndVoiceFx {
     /* 0x20 */ SndOneE* field_20;
 } SndVoiceFx;
 STATIC_ASSERT_SIZEOF(SndVoiceFx, 0x24);
+
 /// Voice/FX object carved from SndBank_Slots with stride 0x40 (SndVoice_Alloc).
 /// field_0 is the SPU voice index; field_4 is a countdown/timer (SndVoice_Tick).
 /// field_10/field_12 gate FX processing (aliases of fx.field_0 / fx.field_2).
@@ -202,6 +218,7 @@ struct _SndVoice {
     /* 0x3C */ SndVoice*      field_3C;
 };
 STATIC_ASSERT_SIZEOF(SndVoice, 0x40);
+
 /// Overlay of SndLoadState at +0x1C (sector payload header for sound-bank setup).
 /// Passed to Snd_AllocBank; filled from a CD sector by SndLoad_ProcessSector.
 /// field_4 high nibble indexes D_800680AC / selects bank type; field_7 is the
@@ -214,6 +231,7 @@ typedef struct _SndBankPayload {
     /* 0x7 */ u8  field_7;
     /* 0x8 */ u8  field_8;
 } SndBankPayload;
+
 /// State block at SndLoad_State; field_3 is also D_800820F3.
 /// field_14/field_18 cleared by Snd_InitFromStage; field_10 sized by SndLoad_Init.
 /// field_26/field_28 set by the CD ready path in CdAudio_FeedSector.
@@ -244,6 +262,7 @@ typedef struct _SndLoadState {
     /* 0x2C */ s32   field_2C;
 } SndLoadState;
 STATIC_ASSERT_SIZEOF(SndLoadState, 0x30);
+
 /// Track/channel entry inside MidiSong (stride 0x3C). field_5 is a per-entry flag
 /// written by Midi_ResetTrackFlags; absolute offset of first entry's field_5 is 0x51.
 /// field_0 / field_1 / field_4 are NRPN/RPN state used by the MIDI CC handler
@@ -270,6 +289,7 @@ typedef struct _MidiTrack {
     /* 0x38 */ s32 field_38;
 } MidiTrack;
 STATIC_ASSERT_SIZEOF(MidiTrack, 0x3C);
+
 /// Active SPU voice slot inside MidiSong (stride 0xC, 18 slots at 0x504).
 /// field_0 is the voice index (negative when free); iterated by Midi_KeyOffVoices.
 /// field_0 / field_1 are set to -1 when the slot is cleared (Midi_InitSlot).
@@ -291,6 +311,7 @@ typedef struct _MidiNoteSlot {
     /* 0xA */ s16 field_A;
 } MidiNoteSlot;
 STATIC_ASSERT_SIZEOF(MidiNoteSlot, 0xC);
+
 /// 0x10-byte linear interpolator state used by LinInterp_Setup / LinInterp_Apply /
 /// LinInterp_Step. Embedded at MidiSong::field_14; BSS object LinInterp_CdStream sits
 /// 0x14 bytes after CdAudio_Loc.
@@ -302,6 +323,7 @@ typedef struct _LinInterp {
     /* 0xE */ s16 field_E;
 } LinInterp;
 STATIC_ASSERT_SIZEOF(LinInterp, 0x10);
+
 /// State block at Midi_Song (logical stride 0x5DC; BSS allocation 0x5E0).
 /// field_0 is status; field_3 is the number of track entries starting at 0x4C.
 /// field_4/field_5 are copied from field_6/field_7 by the per-frame driver.
@@ -342,6 +364,7 @@ typedef struct _MidiSong {
     /* 0x504 */ MidiNoteSlot   voiceSlots[0x12];
 } MidiSong;
 STATIC_ASSERT_SIZEOF(MidiSong, 0x5DC);
+
 /// 0x14-byte sound/note entry indexed by Snd_GetNote.
 /// field_0 reverb enable; field_1 pan; field_3 volume; field_4/5 root-key pitch;
 /// field_6 priority; field_8/9 MIDI key range; field_A/B bend ranges;
@@ -363,6 +386,7 @@ struct _SndNote {
     /* 0x10 */ s32 field_10; // waveAddr
 };
 STATIC_ASSERT_SIZEOF(SndNote, 0x14);
+
 /// 4-byte group header at the start of a SndBank heap block.
 /// field_0 = group size (prefix-summed into SndBank::field_10);
 /// field_2 volume; field_3 pan.
@@ -373,6 +397,7 @@ struct _SndBankGroup {
     /* 0x3 */ u8 field_3; // pan
 };
 STATIC_ASSERT_SIZEOF(SndBankGroup, 0x4);
+
 /// Sound bank header used by Snd_GetNote (and Snd_Banks entries, stride 0x20).
 /// field_0 = SndBankGroup*; field_4 = SndNote*; field_8 = bank id (0xFxxx free);
 /// field_B = group count; field_10 = u16* group index table; field_1C = heap.
@@ -390,6 +415,7 @@ struct _SndBank {
     /* 0x1C */ void*         field_1C; // heap
 };
 STATIC_ASSERT_SIZEOF(SndBank, 0x20);
+
 /// Buffer with a 16-bit sum / ones-complement pair at the head and a payload
 /// starting at offset 4. Written by `Mc_WriteBlockChecksum`, verified by `Mc_VerifyBlockChecksum`.
 /// Out-parameter for `Spu_GetVoiceRef` (voice slot lookup/alloc).
@@ -402,6 +428,7 @@ typedef struct _SpuVoiceRef {
     /* 0x4 */ SpuVoiceAttr* field_4; // attr
 } SpuVoiceRef;
 STATIC_ASSERT_SIZEOF(SpuVoiceRef, 0x8);
+
 /// Callback-queue slot used by AsyncCb_Queue.entries / AsyncCb_Entries (stride 0x14).
 /// field_0 flags: bit0 active, bit1 arm, bit2 pending, bit3 result.
 typedef struct _AsyncCbEntry {
@@ -412,6 +439,7 @@ typedef struct _AsyncCbEntry {
     /* 0x10 */ s32  (*field_10)(struct _AsyncCbEntry*); // errorFn
 } AsyncCbEntry;
 STATIC_ASSERT_SIZEOF(AsyncCbEntry, 0x14);
+
 /// Ring buffer of 4 AsyncCbEntry callback slots (AsyncCb_Queue, size 0x54).
 /// field_0 = readIdx; field_1 = writeIdx. AsyncCb_Entries aliases entries[0].
 typedef struct _AsyncCbQueue {
@@ -421,6 +449,7 @@ typedef struct _AsyncCbQueue {
     /* 0x04 */ AsyncCbEntry entries[4];
 } AsyncCbQueue;
 STATIC_ASSERT_SIZEOF(AsyncCbQueue, 0x54);
+
 /// Descriptor pointed to by SndEvtFrom4::field_C and passed to SndVoice_AllocSlot.
 /// field_5 is a volume scale (0-127) used by SndVoice_ApplyMasterVolume / SndScript_Exec;
 /// field_6 is a pitch bias; field_7 is a candidate-count threshold; field_8 is a
@@ -438,6 +467,7 @@ typedef struct _SndVoiceParams {
     /* 0x0E */ u16 field_E;
 } SndVoiceParams;
 STATIC_ASSERT_SIZEOF(SndVoiceParams, 0x10);
+
 /// Context pointed to by SndScript::field_44 (set from SndScript_Play arg4).
 /// field_0 is the raw script/data base used for oneC offset tables and oneA
 /// lookups; field_4 is the default sound bank when a oneV command has bank id 0.
@@ -446,6 +476,7 @@ typedef struct _SndScriptCtx {
     /* 0x4 */ SndBank* field_4;
 } SndScriptCtx;
 STATIC_ASSERT_SIZEOF(SndScriptCtx, 0x8);
+
 /// "oneV" (0x56656E6F) voice-on script command consumed by SndScript_Exec.
 /// Also the 0x18-byte payload after a "oneC" (0x43656E6F) command.
 typedef struct _SndOneV {
@@ -465,6 +496,7 @@ typedef struct _SndOneV {
     /* 0x16 */ s16 field_16; // oneE offset for SndVoice_SetupEnvelope (-1 disables)
 } SndOneV;
 STATIC_ASSERT_SIZEOF(SndOneV, 0x18);
+
 /// "Loop" (0x706F6F4C) / "Wait" (0x74696157) / "endL" (0x4C646E65) script cmds.
 /// Loop: field_4 = repeat count, field_6 = min wait; Wait: field_4 as s32 duration.
 typedef struct _SndScriptCmd {
@@ -474,6 +506,7 @@ typedef struct _SndScriptCmd {
     /* 0x6 */ u16 field_6;
 } SndScriptCmd;
 STATIC_ASSERT_SIZEOF(SndScriptCmd, 0x8);
+
 /// 0x60-byte slot in SndScript_Slots[8]. field_0 is an ID looked up by
 /// SndVoice_FindById; field_16 holds status flags (mask 0xA3 selects active entries).
 /// field_E is a dirty flag; field_10/11/12 and field_13/14/15 are paired ramps
@@ -510,6 +543,7 @@ typedef struct _SndScript {
     /* 0x50 */ LinInterp       field_50;
 } SndScript;
 STATIC_ASSERT_SIZEOF(SndScript, 0x60);
+
 /// "oneA" (0x41656E6F) tagged chunk header read by SndScript_FindOneA.
 /// Located at a signed byte offset into a raw buffer.
 typedef struct _SndOneA {
@@ -518,6 +552,7 @@ typedef struct _SndOneA {
     /* 0x6 */ u16 field_6;
 } SndOneA;
 STATIC_ASSERT_SIZEOF(SndOneA, 0x8);
+
 /// Destination for SndScript_FindOneA: receives halfwords from a SndOneA chunk.
 typedef struct _SndOneAOut {
     /* 0x00 */ u8  pad_00[0x3A];
@@ -525,6 +560,7 @@ typedef struct _SndOneAOut {
     /* 0x3C */ u16 field_3C;
 } SndOneAOut;
 STATIC_ASSERT_SIZEOF(SndOneAOut, 0x3E);
+
 /// 0x18-byte voice-slot lookup result filled by SndVoice_ScanCandidates and consumed by
 /// SndVoice_AllocSlot / func_80055EF8. field_0 is the chosen slot index (or error);
 /// field_1..field_6 are candidate slot indices (-1 = empty); field_7 is the
@@ -544,6 +580,7 @@ typedef struct _SndVoicePick {
     /* 0x14 */ s32 field_14;
 } SndVoicePick;
 STATIC_ASSERT_SIZEOF(SndVoicePick, 0x18);
+
 /// 0xC-byte init-table entry at Snd_BankInitTable (two entries used by Snd_InitBanks).
 /// field_0 indexes D_800680AC for a slot id; field_2 is written to SndBankSlot.field_8
 /// and SndBank.field_8; field_4/field_6 are F3D458_Malloc sizes; field_8 is stored

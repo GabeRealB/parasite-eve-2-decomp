@@ -23,6 +23,7 @@ typedef struct _TextDrawReq {
     /* 0x0F */ u8  field_F; // vBias
 } TextDrawReq;
 STATIC_ASSERT_SIZEOF(TextDrawReq, 0x10);
+
 /// Per-glyph metrics in the font tables (Font_Glyphs0 / Font_Glyphs1 / Font_Glyphs2).
 /// off_x / off_y are stored as bytes but used as signed offsets when drawing.
 typedef struct _FontGlyph {
@@ -39,6 +40,7 @@ typedef struct _FontGlyph {
     /* 0xA */ u8 pad_A[2];
 } FontGlyph;
 STATIC_ASSERT_SIZEOF(FontGlyph, 0xC);
+
 /// Draw params for Prim_DrawSprt (SPRT) / Prim_DrawTile (TILE).
 /// field_0/2 = x/y; field_4/6 = u/v (SPRT); field_8/A = w/h (inclusive, decremented
 /// when written); field_C/D/E = RGB; field_10 = 0 shade-tex / nonzero semi-trans.
@@ -58,6 +60,7 @@ typedef struct _PrimDrawParams {
     /* 0x10 */ s16 field_10; // shadeMode
 } PrimDrawParams;
 STATIC_ASSERT_SIZEOF(PrimDrawParams, 0x12);
+
 /// 4-byte glyph UVWH entry used by TextStream_Draw (tables like D_800627E0).
 /// Distinct from FontGlyph (0xC full font metrics).
 typedef struct _GlyphUvwh {
@@ -67,6 +70,7 @@ typedef struct _GlyphUvwh {
     /* 0x3 */ u8 h;
 } GlyphUvwh;
 STATIC_ASSERT_SIZEOF(GlyphUvwh, 0x4);
+
 /// Text stream / font draw object (e.g. D_800630B0).
 /// field_0/2 = x/y; field_4/6 = tpage xy (u base = field_4 & 0x3F);
 /// field_8/A = clut xy; field_C = per-char delay; field_E = stream cursor;
