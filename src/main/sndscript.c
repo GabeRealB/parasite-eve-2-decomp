@@ -531,7 +531,7 @@ void SndEvt_EnqueueTypeF(void)
     }
 }
 
-s32 func_800546F4(s32 arg0, s32 arg1)
+s32 SndScript_StopMatching(s32 arg0, s32 arg1)
 {
     s32 i;
 

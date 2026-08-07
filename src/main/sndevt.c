@@ -151,7 +151,7 @@ void SndEvt_HandleType7(SndEvt* arg0)
     SndEvtFrom4* temp;
 
     temp = (SndEvtFrom4*)&arg0->field_4;
-    func_800546F4(temp->field_4, temp->field_2);
+    SndScript_StopMatching(temp->field_4, temp->field_2);
 }
 
 void SndEvt_HandleFadeMatchingOn(SndEvt* arg0)

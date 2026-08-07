@@ -11246,7 +11246,7 @@ register SndScript* p asm("v1");
 }
 ```
 
-`func_800546F4` is the pure example. Pair with unpinned locals for the mask /
+`SndScript_StopMatching` is the pure example. Pair with unpinned locals for the mask /
 status constants so the case-2 `beq` can still put `lui %hi(D_80082748)` in its
 delay slot.
 

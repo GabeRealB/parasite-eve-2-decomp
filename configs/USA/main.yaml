@@ -132,8 +132,7 @@ segments:
       - [0x4864, .rodata, "sndevt"]
       # jtbl_800140E8 (func_80053A20 still asm) + D_80014124 limits table.
       - [0x48e8, rodata, "sndscript_1"]
-      # jtbls from TaskIdMap_RemapIndex + absolute jtbl_80014168 (func_800546F4 still
-      # asm) + jtbl from SndVoice_TickEnvelope
+      # jtbls from TaskIdMap_RemapIndex + SndScript_StopMatching + SndVoice_TickEnvelope
       - [0x4930, .rodata, "sndscript"]
       # jtbl_800141C4 (func_800567E4) + jtbl from CdAudio_DriveSeek +
       # jtbl from CdAudio_DriveRead + jtbl from CdAudio_DrivePhase1

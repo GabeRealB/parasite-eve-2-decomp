@@ -704,6 +704,7 @@ s32            SndVoice_AllocSlot(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndVoice
 void           SndVoice_ScanCandidates(SndVoicePick* arg0, u16 arg1, s32 arg2, u16 arg3);
 void           SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, s32 arg4, SndVoiceParams* arg5);
 s32            SndVoice_Tick(SndVoice* arg0);
+s32            SndScript_StopMatching(s32 arg0, s32 arg1);
 void           SndVoice_FadeMatching(s32 arg0, s32 arg1);
 void           SndVoice_SetPanRamp(s32 arg0, s32 arg1, s32 arg2);
 void           SndVoice_SetVolumeRamp(s32 arg0, s32 arg1);
