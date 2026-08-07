@@ -57,7 +57,7 @@ void AsyncCb_Reset(void)
     } while (i < 0x15U);
 }
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004DE18);
+INCLUDE_ASM("main/nonmatchings/spu", func_8004DE18);
 
 void AsyncCb_Cancel(s32 arg0)
 {
@@ -223,7 +223,7 @@ s32 func_8004E060(s16* arg0, s32 arg1, s32 arg2)
     return bestVoice;
 }
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E200);
+INCLUDE_ASM("main/nonmatchings/spu", func_8004E200);
 
 void F3E48C_8004E44C(void)
 {
@@ -318,7 +318,7 @@ s32 Spu_SetVoiceRange(s32 idx, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/3E48C", Spu_GetVoiceRef);
+INCLUDE_ASM("main/nonmatchings/spu", Spu_GetVoiceRef);
 
 s32 F3E48C_8004E660(u32 voiceIdx)
 {

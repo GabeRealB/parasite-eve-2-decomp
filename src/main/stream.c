@@ -272,7 +272,7 @@ ret_zero:
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/F344", func_8001F180);
+INCLUDE_ASM("main/nonmatchings/stream", func_8001F180);
 
 s32 func_8001F2FC(s32 arg0)
 {
@@ -322,7 +322,7 @@ s32 func_8001F2FC(s32 arg0)
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/F344", func_8001F430);
+INCLUDE_ASM("main/nonmatchings/stream", func_8001F430);
 
 void func_8001F6B8(void)
 {
@@ -462,9 +462,9 @@ void func_8001F990(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/F344", func_8001FAE0);
+INCLUDE_ASM("main/nonmatchings/stream", func_8001FAE0);
 
-INCLUDE_ASM("main/nonmatchings/F344", func_80020058);
+INCLUDE_ASM("main/nonmatchings/stream", func_80020058);
 
 StreamSlot* Stream_GetSlot(u32 arg0)
 {

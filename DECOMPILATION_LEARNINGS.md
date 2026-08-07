@@ -3245,8 +3245,8 @@ build has `div` then immediate `mflo` (and the rest of the function shifts by
 
 Fix: enable `--expand-div` for the translation unit in `ninja_config.py`
 (`EXPANDIVFLAG`), and use the same flag in the scratch `build.sh`. Power-of-two
-divides that become shifts do not need this. Known TUs: `2F244.c`
-(`func_80040904`), `3D458.c` (`LinInterp_Setup`).
+divides that become shifts do not need this. Known TUs: `tmd.c`
+(`func_80040904`), `sndbank.c` (`LinInterp_Setup`).
 
 ## Keep the `- 1` outside the div assignment for schedule
 
@@ -4841,7 +4841,7 @@ asm volatile(
 ```
 
 `func_8002F3A0` is the pure example. Power-of-two / no-div TUs do not need
-`--expand-div`; this one does (`1E6C4.c`).
+`--expand-div`; this one does (`textdraw.c`).
 
 Signed hex sibling `func_8002F2A4` reuses the same digit-loop tricks (`asm("")`
 after the raw store, inline-asm zero-path with `D_800138C8`) but:
@@ -4893,7 +4893,7 @@ Also hoist `cmp = arg1 < place` *before* the zero check so `sltu` lands in the
 delay slot of `bnez arg1` (result discarded on the zero path, reused after).
 Clamp overflow with a 10-byte `u8[10]` struct assign of `"999999999"`; zero path
 is a 2-byte `u8[2]` assign of `"0"` — both emit the unaligned lwl/lwr/lb
-sequence without register pins. Needs `--expand-div` (`1E6C4.c`).
+sequence without register pins. Needs `--expand-div` (`textdraw.c`).
 
 ## Signed decimal itoa: do **not** pin `place`/`dest`/`digit`
 
@@ -4910,7 +4910,7 @@ Signed sibling `func_8002F020` (same shape as unsigned `func_8002F18C`, plus a
 - The empty `if (!arg0) {}` delay-slot trick is **not** needed once pins are
   gone — the overflow `beqz` fills with `lui %hi(D_800138BC)` on its own.
 
-`func_8002F020` is the pure example. Needs `--expand-div` (`1E6C4.c`).
+`func_8002F020` is the pure example. Needs `--expand-div` (`textdraw.c`).
 
 ## Loop-invariant QImode constants: `s8` temp + widen via `s32`
 
@@ -7643,7 +7643,7 @@ the first `lbu`; prefer `s32 temp = arg0->field_4`.
 
 ASPSX expands `div` into the `bnez`/`break 7`/`break 6` trap sequence. Enable
 `--expand-div` in `ninja_config.py` for any TU whose target contains those
-traps (now includes `34E98.c` alongside `2F244` / `3D458` / `1E6C4`).
+traps (now includes `ui.c` alongside `tmd` / `sndbank` / `textdraw`).
 Scratch-env `build.sh` does not pass this flag by default — use a local
 wrapper or expect a score gap of only the missing trap block.
 
@@ -8404,7 +8404,7 @@ The body is otherwise the signed counterpart of `func_8002F020` (leading
 `+`/`-`, digits written at `arg0 + 1`, negatives hand off to
 `func_8002F020(arg0 + 2, -arg1)`). `func_8002EEA0` is the pure example.
 
-Note: TUs that need `--expand-div` (e.g. `1E6C4.c`) must pass that flag in the
+Note: TUs that need `--expand-div` (e.g. `textdraw.c`) must pass that flag in the
 scratch `build.sh` as well, or local scores omit the `break` checks and look
 worse than the real project match.
 
@@ -8757,7 +8757,7 @@ rem_tmp = (u16)p->field_40 - (field18 % p->field_40) + 1;
 The hard pin keeps `$a0` reserved so the global's hi stays in `$a2`. On the
 else arm, reassign `rem_tmp = (s32)&entry` just before the call so `&entry`
 does not hoist to the top of the block. Needs `--expand-div` when the target
-has the full trap sequence (`46FE4.c` / `func_80058748`).
+has the full trap sequence (`cdaudio.c` / `func_80058748`).
 
 ## Late `register … asm("sN")` assignment for prologue save order
 
@@ -11413,7 +11413,7 @@ Large (~0xA68) CD ready callback (`CdStream_*` / `CdReady_*` subsystem).
 Infrastructure landed; full match still open (~84% best). Key requirements for
 the next attempt:
 
-1. **`--expand-div` on the `4A6E0.c` TU** (already in `ninja_config.py`). Target
+1. **`--expand-div` on the `cdstream.c` TU** (already in `ninja_config.py`). Target
    has the full signed `div` trap sequence (`break 7` / `break 6`); bare `div`
    from GCC will not match without maspsx expansion.
 

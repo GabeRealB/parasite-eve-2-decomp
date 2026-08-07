@@ -6,9 +6,9 @@
 
 #include "main/unknown_syms.h"
 
-INCLUDE_ASM("main/nonmatchings/4A6E0", func_80059EE0);
+INCLUDE_ASM("main/nonmatchings/cdstream", func_80059EE0);
 
-INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005A94C);
+INCLUDE_ASM("main/nonmatchings/cdstream", func_8005A94C);
 
 s32 CdStream_InitDisc(u32* arg0)
 {

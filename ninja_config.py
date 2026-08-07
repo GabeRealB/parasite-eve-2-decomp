@@ -319,9 +319,9 @@ def ninja_setup_list_add_source(
 
     maspxVersion = "2.77"
     # ASPSX expands signed/unsigned div/rem into trap sequences; enable for TUs
-    # that contain matching division (e.g. 2F244's DecDCTout strip callback).
+    # that contain matching division (e.g. tmd/sndbank/… TUs that need maspsx --expand-div).
     expand_div = ""
-    if re.search(r"(2F244|3D458|1E6C4|34E98|410B0|46FE4|4A6E0)\.c$", source_path):
+    if re.search(r"(tmd|sndbank|textdraw|ui|sndevt|cdaudio|cdstream)\.c$", source_path):
         expand_div = "--expand-div"
     if re.search("^src.main.*", source_path):
         ninja_file.build(

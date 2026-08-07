@@ -399,7 +399,7 @@ void func_8004D35C(s16* arg0, s16 arg1, s32 arg2)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/3D458", func_8004D460);
+INCLUDE_ASM("main/nonmatchings/sndbank", func_8004D460);
 
 void F3D458_ResetHeap(void)
 {

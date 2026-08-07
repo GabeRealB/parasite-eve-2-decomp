@@ -1319,8 +1319,8 @@ void func_800588D8(void)
     CdStream_State.flags0 = CdStream_State.flags0 | 1;
 }
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_8005896C);
+INCLUDE_ASM("main/nonmatchings/cdaudio", func_8005896C);
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_80058ED4);
+INCLUDE_ASM("main/nonmatchings/cdaudio", func_80058ED4);
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_80059348);
+INCLUDE_ASM("main/nonmatchings/cdaudio", func_80059348);

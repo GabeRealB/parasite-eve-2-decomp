@@ -211,7 +211,7 @@ void func_8002E300(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     addPrim(D_800710A0 + arg0->field_4, dr);
 }
 
-INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002E53C);
+INCLUDE_ASM("main/nonmatchings/textdraw", func_8002E53C);
 
 u8* func_8002EB94(u8* arg0, s32 arg1)
 {
@@ -651,7 +651,7 @@ u8* func_8002F3A0(u8* arg0, u32 arg1)
     return ret;
 }
 
-INCLUDE_ASM("main/nonmatchings/1E6C4", func_8002F44C);
+INCLUDE_ASM("main/nonmatchings/textdraw", func_8002F44C);
 
 u8* func_8002F528(u8* arg0, s32 arg1)
 {

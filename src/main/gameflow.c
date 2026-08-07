@@ -371,7 +371,7 @@ void func_8002C090(PadState* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 4;
 }
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002C1D8);
+INCLUDE_ASM("main/nonmatchings/gameflow", func_8002C1D8);
 
 void func_8002C5A4(void)
 {

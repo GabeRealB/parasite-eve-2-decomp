@@ -77,7 +77,7 @@ block_done:
     func_8005454C(1, 0x40000000);
 }
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80053A20);
+INCLUDE_ASM("main/nonmatchings/sndscript", func_80053A20);
 
 s32 func_80053BF4(s32 arg0, s32 arg1, s32 arg2)
 {
@@ -531,7 +531,7 @@ void func_800546C0(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_800546F4);
+INCLUDE_ASM("main/nonmatchings/sndscript", func_800546F4);
 
 void func_8005488C(void)
 {
@@ -861,9 +861,9 @@ void func_80054D58(SndVoicePick* arg0, u16 arg1, s32 arg2, u16 arg3)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80054F1C);
+INCLUDE_ASM("main/nonmatchings/sndscript", func_80054F1C);
 
-INCLUDE_ASM("main/nonmatchings/43FFC", SndScript_Exec);
+INCLUDE_ASM("main/nonmatchings/sndscript", SndScript_Exec);
 
 /* Absolute copy of jtbl_80014168 for still-asm func_800546F4. Placed after
  * func_80053BF4's compiler-generated jtbls so the still-asm table keeps its
@@ -1240,7 +1240,7 @@ s8 func_80055EE8(void)
     return D_80082748;
 }
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80055EF8);
+INCLUDE_ASM("main/nonmatchings/sndscript", func_80055EF8);
 
 void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, s32 arg4, SndVoiceParams* arg5)
 {

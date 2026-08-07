@@ -23,34 +23,33 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 
 | Prefix | Area | Source / splat unit | Header |
 |---|---|---|---|
-| `Fs_` | CD filesystem, STAGE*.CDF / STAGE0.HED | `src/main/fs.c` (+ `fs` rodata/bss) | `include/main/fs.h` |
+| `Fs_` | CD filesystem, STAGE*.CDF / STAGE0.HED | `src/main/fs.c` | `include/main/fs.h` |
 | `CdCmd_` | CD load command ring buffer | `src/main/cdcmd.c` | `include/main/fs.h` |
-| `Boot_` | Cold-boot / title path | `src/main/boot.c`, `boot_loadbuf` data | `include/main/boot.h` (+ `Boot_LoadInitialFile` in `fs.h`) |
+| `Boot_` | Cold-boot / title path | `src/main/boot.c` | `include/main/boot.h` |
 | `Mem_` / `GHeap` | Heaps | `src/main/mem.c` | `include/main/mem.h` |
 | `Task_` | Cooperative task list / spawn / kill | `src/main/task.c` | `include/main/task.h` |
-| `Pad_` | Controller state / button polls | `src/main/pad.c`, `src/main/padutil.c` | `include/main/pad.h` |
-| `Mc_` | Memory-card save/load helpers | `src/main/mc.c`, `src/main/mcmenu.c` | `include/main/mc.h` |
+| `Pad_` | Controller state / button polls | `src/main/pad.c`, `padutil.c` | `include/main/pad.h` |
+| `Mc_` | Memory-card save/load helpers | `src/main/mc.c`, `mcmenu.c` | `include/main/mc.h` |
 | `Display_` | Dual DISPENV/DRAWENV + system flags | used from `gamemain.c` etc. | `include/main/display.h` |
 | `GameMain` | Entry after `main` | `src/main/gamemain.c` | `include/main/gamemain.h` |
 | `GpuExt_` | GPU helpers | `src/main/gpuext.c` | `include/main/gpuext.h` |
-| `CdStream_` / `CdReady_` | CD→SPU MTS audio stream + ready work queue | `src/main/46FE4.c`, `src/main/4A6E0.c` | `include/main/cdstream.h` (types still in `game.h`) |
-| `Snd_` | Sound banks / notes | `src/main/3D458.c`, `3E48C.c`, `43FFC.c` | types in `game.h` (`SndBank`, `SndNote`, …) |
-| `Spu_` | SPU voice/reverb helpers | `src/main/3E48C.c`, `3D458.c` | `SpuReverbConfig`, `SpuVoiceState`, `SpuLVoiceTable`, `SpuVoiceRef` |
-| `AsyncCb_` | Generic async callback ring | `src/main/3E48C.c` | `AsyncCbQueue` / `AsyncCbEntry` |
-| `Font_` / `TextStream_` / `Prim_` | Font glyphs + text stream + SPRT/TILE draw | `src/main/33300.c`, `1E6C4.c` | `FontGlyph`, `GlyphUvwh`, `TextStream`, `PrimDrawParams`, `TextDrawReq` |
-| `Gpu_` | GPU ordering tables | `src/main/2E7B0.c`, `gamemain.c` | `GameOt`, `Gpu_OrderingTables`, `GpuOtBuf` |
-| `SndScript_` / `SndVoice_` | Scripted SFX player + voice list | `src/main/43FFC.c` | `SndScript`, `SndVoice`, `SndOneV`, … |
-| `Midi_` | Sequenced song player | `src/main/410B0.c` | `MidiSong`, `MidiTrack`, `MidiNoteSlot` |
-| `LinInterp_` | 16-bit linear volume/value ramp | `src/main/3D458.c` | `LinInterp` |
-| `SndEvt_` | Deferred sound/MIDI event message queue | `src/main/410B0.c` | `SndEvt`, `SndEvt_Pool` |
-| `UiPanel` / `UiPanelFunc` | UI layout/draw panel (34E98 handlers) | `src/main/34E98.c` | types in `game.h` |
-| `Tmd_` | TMD model list / buffers | `src/main/2F244.c`, `pad.c` | `TmdObject`, `Tmd_List` |
+| `GameFlow` | Pre-pad/task game-flow handlers | `src/main/gameflow.c` (was `1C034`) | — |
+| `CdStream_` / `CdReady_` | CD→SPU MTS stream | `src/main/cdstream.c` (was `4A6E0`) | `include/main/cdstream.h` |
+| `CdAudio_` | CD-driven audio player | `src/main/cdaudio.c` (was `46FE4`) | types in `game.h` |
+| `Snd_` / `SndBank` | Sound banks / notes / heap | `src/main/sndbank.c` (was `3D458`) | types in `game.h` |
+| `Spu_` / `AsyncCb_` | SPU voices + async callback ring | `src/main/spu.c` (was `3E48C`) | types in `game.h` |
+| `SndScript_` / `SndVoice_` | Scripted SFX player | `src/main/sndscript.c` (was `43FFC`) | types in `game.h` |
+| `SndEvt_` / `Midi_` | Event queue + MIDI song | `src/main/sndevt.c` (was `410B0`) | types in `game.h` |
+| `LinInterp_` / `AudioTick_` | Volume ramp + frame tick list | `src/main/sndbank.c` | types in `game.h` |
+| `Font_` / `TextStream_` / `Prim_` | Glyph stream + SPRT/TILE | `src/main/font.c` (was `33300`) | types in `game.h` |
+| — | Dual-SPRT text draw | `src/main/textdraw.c` (was `1E6C4`) | types in `game.h` |
+| — | Multi-line text helpers | `src/main/textutil.c` (was `201E0`) | types in `game.h` |
+| `UiPanel` / UI | UI layout/draw | `src/main/ui.c` (was `34E98`) | types in `game.h` |
+| `Tmd_` / `Stage_` | TMD models + stage flow | `src/main/tmd.c` (was `2F244`) | types in `game.h` |
+| `Stream_` | Stream channel slots | `src/main/stream.c` (was `F344`) | types in `game.h` |
+| `Gpu_` / OT | Ordering-table helpers | `src/main/otutil.c` (was `2E7B0`) | types in `game.h` |
 | `Game_` | Main session object | globals | `GameSession`, `Game_Session` |
-| `CdAudio_` | CD-driven audio player phase/loc/ctl (46FE4) | `src/main/46FE4.c` | `CdAudioPhase`, `CdAudioLoc`, … |
-| `AudioTick_` | Per-frame audio callback list | `src/main/3D458.c` | `AudioTickNode`, `AudioTick_List` |
-| `Stream_` | F344 stream channel slots | `src/main/F344.c` | `StreamSlot`, `Stream_Slots` |
-| `Stage_` | Stage/flow context | `src/main/2F244.c` | `StageCtx`, `Stage_Ctx` |
-| `Wip` / `Wip_` | Placeholder names with weak evidence | various | `WipSysFlags`, `Wip_SysConfig`, … — rename when proven |
+| `Wip` / `Wip_` | Weak-evidence placeholders | `wipsyscfg.c`, etc. | rename when proven |
 
 `Wip*` types and `Wip_*` globals are provisional: keep them only until a better role name is proven. Prefer replacing a `Wip` name over inventing a second provisional alias.
 

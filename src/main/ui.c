@@ -230,7 +230,7 @@ end:
     return;
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80044C34);
+INCLUDE_ASM("main/nonmatchings/ui", func_80044C34);
 
 void func_800454E4(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
 {
@@ -905,7 +905,7 @@ void func_80046830(UiList* arg0_, UiPanel* arg1_)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80046B34);
+INCLUDE_ASM("main/nonmatchings/ui", func_80046B34);
 
 /// Overlay of UiPanel / UiObject at the layout halfwords that func_80046DEC
 /// loads as signed (field_1C / field_1E are written with potentially negative
@@ -957,7 +957,7 @@ void func_80046DEC(UiList* arg0, UiPanel* arg1, s32 arg2)
     a1->field_14 = (u16)(a1->field_14 - 1);
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80046EEC);
+INCLUDE_ASM("main/nonmatchings/ui", func_80046EEC);
 
 void func_80047A0C(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
 {

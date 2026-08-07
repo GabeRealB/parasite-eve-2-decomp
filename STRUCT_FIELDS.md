@@ -241,7 +241,7 @@ See named members (`flags`, `sectorPos`, `pollFn`, `doneFn`, `errorFn`, ring ind
 |-----|--------|------|
 | 0x08 | `magic` | High 3 bytes `"MTS"`, low byte channel count |
 
-### `CdAudioPhase` (0x6) — phase machine in `46FE4.c`
+### `CdAudioPhase` (0x6) — phase machine in `cdaudio.c`
 | Off | Member | Role |
 |-----|--------|------|
 | 0x0 | `field_0` | Primary phase (`switch` driver) |
@@ -510,7 +510,7 @@ Sparse: `field_17C`/`field_930` addresses for overlay setup; `field_C` kill flag
 
 ---
 
-## Stream (F344)
+## Stream (stream)
 
 ### `StreamSlot` (0x28)
 | Off | Member | Role |
@@ -524,7 +524,7 @@ Sparse: `field_17C`/`field_930` addresses for overlay setup; `field_C` kill flag
 
 ## WIP (provisional)
 
-### `WipSysFlags` — `field_4` soft-reset flag; `field_6` boot/F344 gate  
+### `WipSysFlags` — `field_4` soft-reset flag; `field_6` boot + stream TU gate  
 ### `WipSysConfig` — four s16s init 100; `field_40[0x40]` 0xFF fill  
 ### `WipUiHolder` / `WipUiChild` — `field_28` → child; `field_34` written by UI  
 ### `WipSelectMenuExt` — `field_290` seeds `UiList` cursor  

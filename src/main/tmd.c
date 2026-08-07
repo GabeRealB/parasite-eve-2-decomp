@@ -843,7 +843,7 @@ success:
     D_8007A360   = D_8007A364 + offset;
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_8004017C);
+INCLUDE_ASM("main/nonmatchings/tmd", func_8004017C);
 
 void func_80040904(void);
 
@@ -1517,7 +1517,7 @@ done:
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x88;
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", Tmd_Create);
+INCLUDE_ASM("main/nonmatchings/tmd", Tmd_Create);
 
 void func_800418C0(TmdObject* arg0)
 {

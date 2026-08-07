@@ -1024,7 +1024,7 @@ after_volume:
     } while (i < 0x12);
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_800520A8);
+INCLUDE_ASM("main/nonmatchings/sndevt", func_800520A8);
 
 u8* func_80052488(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3)
 {
@@ -1565,7 +1565,7 @@ success:
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_800530DC);
+INCLUDE_ASM("main/nonmatchings/sndevt", func_800530DC);
 
 void func_8005325C(void* arg0)
 {
