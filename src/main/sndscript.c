@@ -865,27 +865,8 @@ INCLUDE_ASM("main/nonmatchings/sndscript", SndVoice_KeyOffMatching);
 
 INCLUDE_ASM("main/nonmatchings/sndscript", SndScript_Exec);
 
-/* Absolute copy of jtbl_80014168 for still-asm func_800546F4. Placed after
- * TaskIdMap_RemapIndex's compiler-generated jtbls so the still-asm table keeps its
- * VMA until that function is matched. */
-const s32 jtbl_80014168[16] = {
-    0x8005484C,
-    0x8005480C,
-    0x80054850,
-    0x80054840,
-    0x80054850,
-    0x80054850,
-    0x80054850,
-    0x80054840,
-    0x80054850,
-    0x80054850,
-    0x80054850,
-    0x80054850,
-    0x80054850,
-    0x80054850,
-    0x80054850,
-    0x80054840,
-};
+/* jtbl_80014168 for still-asm func_800546F4 is migrated into its INCLUDE_ASM
+ * (migrate_rodata_to_functions). */
 
 void SndVoice_TickEnvelope(SndVoice* arg0)
 {
