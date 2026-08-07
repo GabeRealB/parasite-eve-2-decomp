@@ -71,13 +71,13 @@ void func_80036B2C(DialogPrompt* arg0, UiObject* arg1)
 
 void func_80036C04(Task* arg0)
 {
-    UiMiniObj* obj;
-    UiList*    menu;
-    GStruct64* ctx;
-    s32        temp;
+    UiMiniObj*        obj;
+    UiList*           menu;
+    WipSelectMenuExt* ctx;
+    s32               temp;
 
     obj  = arg0->field_20;
-    ctx  = (GStruct64*)arg0->field_34;
+    ctx  = (WipSelectMenuExt*)arg0->field_34;
     menu = &D_80061194;
     func_80047F40((UiPanel*)obj, D_80013B64);
     if (arg0->field_30 == 0) {

@@ -37,13 +37,15 @@ typedef struct _CdAudioPhase {
 } CdAudioPhase;
 STATIC_ASSERT_SIZEOF(CdAudioPhase, 0x6);
 
-typedef struct _GStruct5 {
+/// WIP: boot/gamemain flag block (Wip_SysFlags). field_4 set on soft-reset paths;
+/// field_6 polled/cleared in boot and F344. Role not fully proven.
+typedef struct _WipSysFlags {
     byte unknown_0[0x4];
     s16  field_4;
     s16  field_6;
     byte unknown_8[0x18];
-} GStruct5;
-STATIC_ASSERT_SIZEOF(GStruct5, 0x20);
+} WipSysFlags;
+STATIC_ASSERT_SIZEOF(WipSysFlags, 0x20);
 
 typedef struct _HeapBlockHeader {
     u32                      size;
@@ -112,11 +114,11 @@ typedef struct _GBytes8 {
 } GBytes8;
 
 /// Overlay of objects with an 8-byte field at offset 0x4 (GameSession, McSaveData).
-typedef struct _GStructOverlayAt4 {
+typedef struct _SessionBytesAt4 {
     byte    pad[4];
     GBytes8 field_4;
-} GStructOverlayAt4;
-STATIC_ASSERT_SIZEOF(GStructOverlayAt4, 0xC);
+} SessionBytesAt4;
+STATIC_ASSERT_SIZEOF(SessionBytesAt4, 0xC);
 
 typedef struct _GameSession {
     byte  unknown_0[0x2];
@@ -501,12 +503,12 @@ typedef struct _UiList {
 } UiList;
 STATIC_ASSERT_SIZEOF(UiList, 0x24);
 
-/// Context pointed to by Task::field_34 in the D_8006121C select-menu path
-/// (func_80036C04). Only field_290 is named so far.
-typedef struct _GStruct64 {
+/// WIP: Task::field_34 context for D_8006121C select-menu (func_80036C04).
+/// Only field_290 is used so far (seeds UiList cursor).
+typedef struct _WipSelectMenuExt {
     /* 0x000 */ byte unknown_0[0x290];
     /* 0x290 */ s32  field_290;
-} GStruct64;
+} WipSelectMenuExt;
 
 /// 4-byte entry at Spu_VoiceRanges (see Spu_SetVoiceRange).
 typedef struct _SpuVoiceRange {
@@ -569,19 +571,17 @@ extern TmdListHead Tmd_List;
 /// Second list head initialized alongside Tmd_List by Tmd_InitLists.
 extern TmdListHead Tmd_ListAlt;
 
-/// Nested object reached via GStruct29::field_28 (see func_80049D34).
-/// Only field_34 is named so far.
-typedef struct _GStruct28 {
+/// WIP: nested object reached via WipUiHolder::field_28 (func_80049D34 writes field_34).
+typedef struct _WipUiChild {
     /* 0x00 */ byte unknown_0[0x34];
     /* 0x34 */ s32  field_34;
-} GStruct28;
+} WipUiChild;
 
-/// Object pointed to by D_80067694. field_28 is a child pointer written by
-/// UI/context setup; func_80049D34 stores through it.
-typedef struct _GStruct29 {
-    /* 0x00 */ byte       unknown_0[0x28];
-    /* 0x28 */ GStruct28* field_28;
-} GStruct29;
+/// WIP: UI holder pointer Wip_UiHolder; field_28 → WipUiChild.
+typedef struct _WipUiHolder {
+    /* 0x00 */ byte        unknown_0[0x28];
+    /* 0x28 */ WipUiChild* field_28;
+} WipUiHolder;
 
 /// Object used by 34E98.c handlers (e.g. func_80049554 / D_80013F2C table).
 /// field_4 low nibble selects layout padding (func_80049348); high nibble of the
@@ -987,10 +987,9 @@ typedef struct _CdAudioTbl {
 } CdAudioTbl;
 STATIC_ASSERT_SIZEOF(CdAudioTbl, 0x18);
 
-/// BSS object D_80073B88 (size 0x80). Initialized by func_8004C4D0.
-/// field_18..field_1e are four s16 values set to 100; field_21/field_26 are flags.
-/// field_40 is the upper half filled with 0xFF by func_800301FC.
-typedef struct _GStruct40 {
+/// WIP: BSS Wip_SysConfig (0x80). Init by func_8004C4D0 (four s16s = 100);
+/// field_40 filled 0xFF by func_800301FC. Likely mix/options block — unproven.
+typedef struct _WipSysConfig {
     /* 0x00 */ byte unknown_0[0x8];
     /* 0x08 */ s32  field_8;
     /* 0x0C */ byte unknown_C[0xC];
@@ -1004,8 +1003,8 @@ typedef struct _GStruct40 {
     /* 0x26 */ u8   field_26;
     /* 0x27 */ byte unknown_27[0x19];
     /* 0x40 */ u8   field_40[0x40];
-} GStruct40;
-STATIC_ASSERT_SIZEOF(GStruct40, 0x80);
+} WipSysConfig;
+STATIC_ASSERT_SIZEOF(WipSysConfig, 0x80);
 
 /// 0x14-byte sound/note entry indexed by Snd_GetNote.
 /// field_0 reverb enable; field_1 pan; field_3 volume; field_4/5 root-key pitch;
@@ -1137,13 +1136,13 @@ typedef struct _AsyncCbQueue {
 } AsyncCbQueue;
 STATIC_ASSERT_SIZEOF(AsyncCbQueue, 0x54);
 
-/// 4-byte entry pointed to by D_80082794 (see func_80057724).
+/// 4-byte entry pointed to by CdAudio_TblEntries (see func_80057724).
 /// Indexed by CdAudio_Tbl.field_2; field_3 is compared across adjacent entries.
-typedef struct _GStruct52 {
+typedef struct _CdAudioTblEntry {
     /* 0x0 */ u8 pad[3];
     /* 0x3 */ u8 field_3;
-} GStruct52;
-STATIC_ASSERT_SIZEOF(GStruct52, 0x4);
+} CdAudioTblEntry;
+STATIC_ASSERT_SIZEOF(CdAudioTblEntry, 0x4);
 
 /// Descriptor pointed to by SndEvtFrom4::field_C and passed to func_800558E8.
 /// field_5 is a volume scale (0-127) used by func_80055DFC / SndScript_Exec;
@@ -1348,18 +1347,18 @@ typedef struct _SndVoicePick {
 } SndVoicePick;
 STATIC_ASSERT_SIZEOF(SndVoicePick, 0x18);
 
-/// 0xC-byte init-table entry at D_80068A60 (two entries used by func_80053FF4).
+/// 0xC-byte init-table entry at Snd_BankInitTable (two entries used by func_80053FF4).
 /// field_0 indexes D_800680AC for a slot id; field_2 is written to SndBankSlot.field_8
 /// and SndBank.field_8; field_4/field_6 are F3D458_Malloc sizes; field_8 is stored
 /// to SndBankSlot.field_C.
-typedef struct _GStruct75 {
+typedef struct _SndBankInitEntry {
     /* 0x0 */ u16 field_0;
     /* 0x2 */ u16 field_2;
     /* 0x4 */ u16 field_4;
     /* 0x6 */ u16 field_6;
     /* 0x8 */ s32 field_8;
-} GStruct75;
-STATIC_ASSERT_SIZEOF(GStruct75, 0xC);
+} SndBankInitEntry;
+STATIC_ASSERT_SIZEOF(SndBankInitEntry, 0xC);
 
 /// Pointer to the start of the game heap.
 extern u8* GHeap;

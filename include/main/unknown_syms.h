@@ -596,84 +596,84 @@ extern TaskDesc     D_8006268C;
 extern StageCtx*    Stage_Ctx;
 extern TaskDesc     D_8006269C;
 /// 0x1C-byte block zeroed by GameMain init; field_8 remaps pad input (func_8002C5A4).
-typedef struct _GStruct626A8 {
+typedef struct _PadRemapState {
     /* 0x00 */ byte unknown_0[0x8];
     /* 0x08 */ s8   field_8;
     /* 0x09 */ byte unknown_9[0x13];
-} GStruct626A8;
-/* size 0x1C — see Mem_Set(D_800626A8, 0, 0x1C) */
-extern GStruct626A8* D_800626A8;
-extern u8            D_800626E8;
-extern u8            D_80062734;
-extern u8            D_80062735;
-extern u8            D_80062736;
-extern u8            D_80062737;
-extern u8            D_80062738;
-extern u8            D_80062739;
-extern GPairU8*      D_8006273C[];
-extern GPairU8*      D_80062750[];
-extern u8            D_80062764[];
-extern u8            D_8006276C[];
-extern u8            D_80062934[];
-extern u8            D_80062954[];
-extern u8            D_800629B0[];
-extern u8            D_800629D0[];
-extern u8            D_80062A24[];
-extern u8            D_80062A44[];
-extern u8            D_80062AB4[];
-extern u8            D_80062AD4[];
-extern u8            D_80062B30[];
-extern u8            D_80062B50[];
-extern u8            D_80062BA4[];
-extern u8            D_80062BC4[];
-extern u8            D_80062C20[];
-extern u8            D_80062C40[];
-extern u8            D_80062C94[];
-extern u8            D_80062CB4[];
-extern u8            D_80062D08[];
-extern u8            D_80062DB0[];
-extern u8            D_80062E04[];
-extern u8            D_80062E50[];
-extern u8            D_80062EA0[];
-extern u8            D_80062EEC[];
-extern u8            D_80062F34[];
-extern u8            D_80062F80[];
-extern u8            D_80062FD0[];
-extern u8            D_80063018[];
-extern u8            D_80063068[];
-extern u8            D_800630B0[];
-extern s32           D_8006763C[];
-extern s32           D_80067648;
-extern s32           D_8006764C;
-extern UiList        D_80067654;
-extern UiObjectDesc  D_80067678;
-extern GStruct29*    D_80067694;
-extern u8            D_800680A4;
-extern s8            D_800680AC[];
-extern s8            D_800680BB;
-extern u32           D_800680BC;
-extern u8            D_80068184;
-extern volatile u32  D_800680C0;
-extern volatile s32  D_80068B58;
-extern volatile u8   D_80068B5C;
-extern volatile u8   D_80068B5D;
-extern volatile u8   D_80068B5F;
-extern volatile u8   D_80068B62;
-extern volatile u8   D_80068B63;
-extern volatile u8   D_80068B64;
-extern volatile u8   D_80068B65;
-extern u8            D_80068B66;
-extern volatile s16  D_80068B6A;
-extern void*         D_80068B6C;
-extern s32           D_80068B70;
-extern s32           D_80068B74;
-extern volatile u16  D_80068B78;
-extern CdlLOC        D_800827F8;
-extern void          func_80059EE0(void);
-extern void          func_8005A94C(s32 arg0, u8* arg1);
-extern void          CdStream_FinishQueueEntry(u32* arg0);
-extern s32           func_800AF590(s32 arg0, s32 arg1);
-extern void          func_800B0118(s32 arg0, s32 arg1);
+} PadRemapState;
+/* size 0x1C — see Mem_Set(Pad_RemapState, 0, 0x1C) */
+extern PadRemapState* Pad_RemapState;
+extern u8             D_800626E8;
+extern u8             D_80062734;
+extern u8             D_80062735;
+extern u8             D_80062736;
+extern u8             D_80062737;
+extern u8             D_80062738;
+extern u8             D_80062739;
+extern GPairU8*       D_8006273C[];
+extern GPairU8*       D_80062750[];
+extern u8             D_80062764[];
+extern u8             D_8006276C[];
+extern u8             D_80062934[];
+extern u8             D_80062954[];
+extern u8             D_800629B0[];
+extern u8             D_800629D0[];
+extern u8             D_80062A24[];
+extern u8             D_80062A44[];
+extern u8             D_80062AB4[];
+extern u8             D_80062AD4[];
+extern u8             D_80062B30[];
+extern u8             D_80062B50[];
+extern u8             D_80062BA4[];
+extern u8             D_80062BC4[];
+extern u8             D_80062C20[];
+extern u8             D_80062C40[];
+extern u8             D_80062C94[];
+extern u8             D_80062CB4[];
+extern u8             D_80062D08[];
+extern u8             D_80062DB0[];
+extern u8             D_80062E04[];
+extern u8             D_80062E50[];
+extern u8             D_80062EA0[];
+extern u8             D_80062EEC[];
+extern u8             D_80062F34[];
+extern u8             D_80062F80[];
+extern u8             D_80062FD0[];
+extern u8             D_80063018[];
+extern u8             D_80063068[];
+extern u8             D_800630B0[];
+extern s32            D_8006763C[];
+extern s32            D_80067648;
+extern s32            D_8006764C;
+extern UiList         D_80067654;
+extern UiObjectDesc   D_80067678;
+extern WipUiHolder*   Wip_UiHolder;
+extern u8             D_800680A4;
+extern s8             D_800680AC[];
+extern s8             D_800680BB;
+extern u32            D_800680BC;
+extern u8             D_80068184;
+extern volatile u32   D_800680C0;
+extern volatile s32   D_80068B58;
+extern volatile u8    D_80068B5C;
+extern volatile u8    D_80068B5D;
+extern volatile u8    D_80068B5F;
+extern volatile u8    D_80068B62;
+extern volatile u8    D_80068B63;
+extern volatile u8    D_80068B64;
+extern volatile u8    D_80068B65;
+extern u8             D_80068B66;
+extern volatile s16   D_80068B6A;
+extern void*          D_80068B6C;
+extern s32            D_80068B70;
+extern s32            D_80068B74;
+extern volatile u16   D_80068B78;
+extern CdlLOC         D_800827F8;
+extern void           func_80059EE0(void);
+extern void           func_8005A94C(s32 arg0, u8* arg1);
+extern void           CdStream_FinishQueueEntry(u32* arg0);
+extern s32            func_800AF590(s32 arg0, s32 arg1);
+extern void           func_800B0118(s32 arg0, s32 arg1);
 
 // D4CB64_ImgBuffers + all Fs_* data / D5B498_* FS state → main/fs.h
 
@@ -743,9 +743,9 @@ extern MATRIX   D_80070F14;
 // VSync countdown; written/read by func_80027498 (VSync callback).
 extern volatile s32 D_80070F64;
 // Display_State → main/display.h
-extern u_long*   D_800710A0; // current OT base
-extern GStruct5  D_800710A8;
-extern DR_TPAGE* D_80071190; // primitive buffer cursor
+extern u_long*     D_800710A0; // current OT base
+extern WipSysFlags Wip_SysFlags;
+extern DR_TPAGE*   D_80071190; // primitive buffer cursor
 
 // 61F10
 // Immediate-mode SPRT scratch used by func_8002F5E4 (DrawPrim path).
@@ -764,14 +764,14 @@ extern s8 D_80072311;
 // Alias of Mc_SaveData.field_1aa (offset 0x1AA).
 extern u8 D_80072312;
 // Alias of Mc_SaveData.field_1ab (offset 0x1AB); loaded with lb in func_800489A0.
-extern s8        D_80072313;
-extern u8        D_800733F0[2][0x6C];
-extern u8        D_800734C8[2][0xB0];
-extern u8        D_80073628[2][0x24];
-extern u8        D_80073670[2][0xE4];
-extern u8        D_80073838[2][0xA4];
-extern u8        D_80073980[0x208];
-extern GStruct40 D_80073B88;
+extern s8           D_80072313;
+extern u8           D_800733F0[2][0x6C];
+extern u8           D_800734C8[2][0xB0];
+extern u8           D_80073628[2][0x24];
+extern u8           D_80073670[2][0xE4];
+extern u8           D_80073838[2][0xA4];
+extern u8           D_80073980[0x208];
+extern WipSysConfig Wip_SysConfig;
 
 // 61CC0
 extern GameSession D61CC0_800714C0;
@@ -813,7 +813,7 @@ extern u8               D_8007E258;
 /// Volume scale byte used by func_80051DF4 when MidiSong::field_1 == 0x5A.
 extern u8                     D_80068A4A;
 extern u8                     D_80068A54[];
-extern GStruct75              D_80068A60[];
+extern SndBankInitEntry       Snd_BankInitTable[];
 extern s32                    D_80068A78;
 extern s32                    D_800820E0;
 extern s16                    D_800820E4;
@@ -843,7 +843,7 @@ extern volatile s32           D_80082770;
 extern s32                    D_80082778;
 extern volatile u8            D_8008277C;
 extern volatile CdAudioCtl    CdAudio_Ctl;
-extern GStruct52*             D_80082794;
+extern CdAudioTblEntry*       CdAudio_TblEntries;
 extern volatile CdAudioPhase  CdAudio_Phase;
 extern volatile CdAudioLoc    CdAudio_Loc;
 extern u8                     D_800827B0[];

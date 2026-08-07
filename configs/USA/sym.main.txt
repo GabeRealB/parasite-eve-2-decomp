@@ -2648,7 +2648,7 @@ _spu_RQ                     = 0x8006EC00;
 //--------------------------------------------------------------------
 D5F414_OrderingTables       = 0x8006EC38; // type:u32 size:0x2200
 Display_State               = 0x80070F68; // type:DisplayState size:0x138
-D_800710A8                  = 0x800710A8; // size:0x20
+Wip_SysFlags                  = 0x800710A8; // size:0x20
 
 //--------------------------------------------------------------------
 //--- PA: 0x61918   VA: 0x80071118   subsegment: o, libgs/gs_123
@@ -2755,3 +2755,10 @@ CdAudio_Tbl                 = 0x80082758; // type:CdAudioTbl size:0x18
 CdAudio_Ctl                 = 0x80082780; // type:CdAudioCtl size:0x14
 Stream_Slots                = 0x8006D4F0; // type:StreamSlot size:0x258
 Stage_Ctx                   = 0x80062698;
+
+// Remaining GStruct cleanup (Wip_* = weak evidence)
+Snd_BankInitTable           = 0x80068A60; // type:SndBankInitEntry
+CdAudio_TblEntries          = 0x80082794;
+Pad_RemapState              = 0x800626A8;
+Wip_SysConfig               = 0x80073B88; // type:WipSysConfig size:0x80
+Wip_UiHolder                = 0x80067694;

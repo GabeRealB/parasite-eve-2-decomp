@@ -68,7 +68,7 @@ void func_800271D4(void)
     flag                   = 1;
     Display_State.field_1f = flag;
     func_8003DB48(0x1010);
-    Mem_Set(D_800626A8, 0, 0x1C);
+    Mem_Set(Pad_RemapState, 0, 0x1C);
 }
 
 void func_80027F48(s32 arg0);
@@ -427,7 +427,7 @@ void GameMain(void)
     Mc_InitLib();
     Pad_Init();
     F04CF8_80014A50();
-    Mem_Set(&D_800710A8, 0, sizeof(D_800710A8));
+    Mem_Set(&Wip_SysFlags, 0, sizeof(Wip_SysFlags));
     D_8005EC64 = 0;
     func_800271D4();
     func_8002785C();

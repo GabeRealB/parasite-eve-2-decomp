@@ -1591,9 +1591,9 @@ typedef struct { u8 data[8]; } GBytes8;
 typedef struct {
     byte    pad[4];
     GBytes8 field_4;
-} GStructOverlayAt4;
+} SessionBytesAt4;
 
-((GStructOverlayAt4*)dst)->field_4 = ((GStructOverlayAt4*)src)->field_4;
+((SessionBytesAt4*)dst)->field_4 = ((SessionBytesAt4*)src)->field_4;
 ```
 
 `func_8002BF10` is the pure example (`Game_Session` ← `Mc_SaveData`).

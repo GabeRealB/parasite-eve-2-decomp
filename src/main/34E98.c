@@ -793,22 +793,22 @@ typedef struct {
     /* 0x1E */ s16  field_1E;
     /* 0x20 */ u16  field_20;
     /* 0x22 */ u16  field_22;
-} GStruct30SignedLayoutFull;
+} UiPanelSignedLayoutFull;
 
 void func_80046830(UiList* arg0_, UiPanel* arg1_)
 {
-    UiListSignedRows*          arg0;
-    GStruct30SignedLayoutFull* arg1;
-    RECT                       sp10;
-    s16                        temp_v0;
-    u8                         temp_a2_u8;
-    s8                         temp_v1;
-    s32                        temp_v1_2;
-    s32                        height;
-    s32                        temp_a2;
+    UiListSignedRows*        arg0;
+    UiPanelSignedLayoutFull* arg1;
+    RECT                     sp10;
+    s16                      temp_v0;
+    u8                       temp_a2_u8;
+    s8                       temp_v1;
+    s32                      temp_v1_2;
+    s32                      height;
+    s32                      temp_a2;
 
     arg0 = (UiListSignedRows*)arg0_;
-    arg1 = (GStruct30SignedLayoutFull*)arg1_;
+    arg1 = (UiPanelSignedLayoutFull*)arg1_;
 
     if (arg0->field_5 == 0) {
         arg0->field_5 = arg0->field_4;
@@ -918,20 +918,20 @@ typedef struct {
     /* 0x1E */ s16 field_1E;
     /* 0x20 */ u16 field_20;
     /* 0x22 */ u16 field_22;
-} GStruct30SignedLayout;
+} UiPanelSignedLayout;
 
 void func_80046DEC(UiList* arg0, UiPanel* arg1, s32 arg2)
 {
-    TILE*                           p;
-    s32                             y;
-    s32                             x1;
-    s32                             width;
-    s32                             h;
-    register u32                    color asm("t4");
-    register GStruct30SignedLayout* a1 asm("t0");
-    u16                             f14;
+    TILE*                         p;
+    s32                           y;
+    s32                           x1;
+    s32                           width;
+    s32                           h;
+    register u32                  color asm("t4");
+    register UiPanelSignedLayout* a1 asm("t0");
+    u16                           f14;
 
-    a1    = (GStruct30SignedLayout*)arg1;
+    a1    = (UiPanelSignedLayout*)arg1;
     color = 0x1741F;
     asm("" : "+r"(color), "+r"(a1));
     f14          = a1->field_14;
@@ -2211,14 +2211,14 @@ void func_80049C00(Task* arg0)
 
 void func_80049D34(s32 arg0)
 {
-    if (D_80067694 != NULL) {
-        D_80067694->field_28->field_34 = arg0;
+    if (Wip_UiHolder != NULL) {
+        Wip_UiHolder->field_28->field_34 = arg0;
     }
 }
 
 void func_80049D5C(s32 arg0)
 {
-    if (D_80067694 != NULL) {
-        D_80067694->field_28->field_34 = arg0;
+    if (Wip_UiHolder != NULL) {
+        Wip_UiHolder->field_28->field_34 = arg0;
     }
 }

@@ -69,7 +69,7 @@ void func_8002B834(Task* arg0)
             Display_State.field_12e = 1;
             p->field_248            = 1;
             p->field_244            = 1;
-            D_800710A8.field_4      = 1;
+            Wip_SysFlags.field_4    = 1;
             func_800303AC();
             do {
                 D_80072189 = saved;
@@ -89,7 +89,7 @@ void func_8002B834(Task* arg0)
             Display_State.field_101 = 0;
             p->field_248            = 1;
             p->field_244            = 1;
-            D_800710A8.field_4      = 1;
+            Wip_SysFlags.field_4    = 1;
             Game_Session->field_4C  = 1;
         }
         Display_State.field_10b = 1;
@@ -164,7 +164,7 @@ void func_8002BC0C(Task* arg0)
     Display_State.field_12e = 1;
     p->field_248            = 1;
     p->field_244            = 1;
-    D_800710A8.field_4      = 1;
+    Wip_SysFlags.field_4    = 1;
     func_800303AC();
     do {
         D_80072189 = saved;
@@ -243,8 +243,8 @@ void func_8002BEA8(Task* arg0)
 
 void func_8002BF10(Task* arg0)
 {
-    ((GStructOverlayAt4*)Game_Session)->field_4 =
-        ((GStructOverlayAt4*)&Mc_SaveData)->field_4;
+    ((SessionBytesAt4*)Game_Session)->field_4 =
+        ((SessionBytesAt4*)&Mc_SaveData)->field_4;
     D_8007A394     = 0;
     arg0->field_30 = arg0->field_30 + 1;
 }
@@ -421,13 +421,13 @@ void func_8002C5A4(void)
             }
 
             if (i == 0) {
-                if (D_800626A8->field_8 != 0) {
+                if (Pad_RemapState->field_8 != 0) {
                     if (ds->field_1e == 0) {
                         pad->field_52 = 0;
                         pad->field_50 = 0;
                         pad->field_56 = 0;
                         pad->field_54 = 0;
-                        func_8009FD74(D_800626A8->field_8, scratch);
+                        func_8009FD74(Pad_RemapState->field_8, scratch);
                     }
                 }
             }

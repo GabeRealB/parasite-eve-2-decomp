@@ -609,8 +609,8 @@ s32 func_80057704(void)
 
 s32 func_80057724(void)
 {
-    GStruct52* temp;
-    s32        ret;
+    CdAudioTblEntry* temp;
+    s32              ret;
 
     if (CdAudio_Phase.field_0 != 3) {
         return -1;
@@ -618,7 +618,7 @@ s32 func_80057724(void)
     if (CdAudio_Phase.field_2 != 0) {
         ret = 1;
     } else {
-        temp = D_80082794 + CdAudio_Tbl.field_2;
+        temp = CdAudio_TblEntries + CdAudio_Tbl.field_2;
         func_80057A1C((temp[1].field_3 - temp->field_3 - 1) & 0xFF);
         func_80057B24(0x20);
         ret = 0;

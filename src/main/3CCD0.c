@@ -5,12 +5,12 @@
 
 void func_8004C4D0(void)
 {
-    D_80073B88.field_1a = 0x64;
-    D_80073B88.field_18 = 0x64;
-    D_80073B88.field_1e = 0x64;
-    D_80073B88.field_1c = 0x64;
-    D_80073B88.field_21 = 2;
-    D_80073B88.field_8  = 0;
-    D_80073B88.field_20 = 0;
-    D_80073B88.field_26 = 4;
+    Wip_SysConfig.field_1a = 0x64;
+    Wip_SysConfig.field_18 = 0x64;
+    Wip_SysConfig.field_1e = 0x64;
+    Wip_SysConfig.field_1c = 0x64;
+    Wip_SysConfig.field_21 = 2;
+    Wip_SysConfig.field_8  = 0;
+    Wip_SysConfig.field_20 = 0;
+    Wip_SysConfig.field_26 = 4;
 }

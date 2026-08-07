@@ -773,8 +773,8 @@ void func_8002F890(Task* arg0)
     s16       temp;
 
     if (arg0->field_30 == 0) {
-        D_80067694 = NULL;
-        obj        = func_800486F0(D_800608F4, 1, 1, 2, 0);
+        Wip_UiHolder = NULL;
+        obj          = func_800486F0(D_800608F4, 1, 1, 2, 0);
         if (obj != NULL) {
             arg0->field_20 = obj;
             arg0->field_30 = arg0->field_30 + 1;

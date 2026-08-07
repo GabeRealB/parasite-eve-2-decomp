@@ -364,8 +364,8 @@ void func_800301FC(void)
     s32         two;
     s32         idx;
 
-    Mem_Set(&D_80073B88, 0, 0x40);
-    Mem_Set(D_80073B88.field_40, 0xFF, 0x40);
+    Mem_Set(&Wip_SysConfig, 0, 0x40);
+    Mem_Set(Wip_SysConfig.field_40, 0xFF, 0x40);
     Mem_Set(D_80073980, 0, 0x100);
     Mem_Set(&D_80073980[0x100], 0xFF, 0x100);
 
@@ -399,8 +399,8 @@ void func_800301FC(void)
     p->field_5C5 = two;
     p->field_22  = one;
     func_8004C4D0();
-    idx                         = p->field_22 - 1;
-    (&D_80073B88)[idx].field_21 = two;
+    idx                            = p->field_22 - 1;
+    (&Wip_SysConfig)[idx].field_21 = two;
 }
 
 void func_800303AC(void)

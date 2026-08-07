@@ -259,14 +259,14 @@ void func_80053FA0(s32 arg0)
 
 s32 func_80053FF4(u32 arg0)
 {
-    s32          i;
-    s8           slot;
-    SndBankSlot* obj;
-    SndBank*     bank;
-    GStruct75*   entry;
-    s8*          map;
-    SndBank*     banks;
-    s32          id;
+    s32               i;
+    s8                slot;
+    SndBankSlot*      obj;
+    SndBank*          bank;
+    SndBankInitEntry* entry;
+    s8*               map;
+    SndBank*          banks;
+    s32               id;
 
     *(volatile s32*)&D_80068A78 = 0xFF;
     Spu_SetVoiceRange(1, 0x12, 6);
@@ -277,7 +277,7 @@ s32 func_80053FF4(u32 arg0)
 
     map   = D_800680AC;
     banks = Snd_Banks;
-    entry = D_80068A60;
+    entry = Snd_BankInitTable;
 loop:
     slot          = *(s8*)(entry->field_0 + (s32)map);
     obj           = SndBankSlot_Get(slot);

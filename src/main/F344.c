@@ -287,13 +287,13 @@ s32 func_8001F2FC(s32 arg0)
         DecDCTReset(0);
         StClearRing();
         StUnSetRing();
-        ac14               = D_8006AC14;
-        D_800710A8.field_6 = 0;
-        p->field_24A       = 0;
-        p->field_1FA       = 0;
-        p->field_1F4       = 0;
-        p->field_1E2       = 0;
-        p->field_1E4       = 0;
+        ac14                 = D_8006AC14;
+        Wip_SysFlags.field_6 = 0;
+        p->field_24A         = 0;
+        p->field_1FA         = 0;
+        p->field_1F4         = 0;
+        p->field_1E2         = 0;
+        p->field_1E4         = 0;
         if (ac14 != 0) {
             f12a = Display_State.field_12a;
             if (f12a == 1) {

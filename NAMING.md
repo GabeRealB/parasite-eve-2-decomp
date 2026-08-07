@@ -47,6 +47,9 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 | `AudioTick_` | Per-frame audio callback list | `src/main/3D458.c` | `AudioTickNode`, `AudioTick_List` |
 | `Stream_` | F344 stream channel slots | `src/main/F344.c` | `StreamSlot`, `Stream_Slots` |
 | `Stage_` | Stage/flow context | `src/main/2F244.c` | `StageCtx`, `Stage_Ctx` |
+| `Wip` / `Wip_` | Placeholder names with weak evidence | various | `WipSysFlags`, `Wip_SysConfig`, … — rename when proven |
+
+`Wip*` types and `Wip_*` globals are provisional: keep them only until a better role name is proven. Prefer replacing a `Wip` name over inventing a second provisional alias.
 
 `include/main/game.h` is the shared kitchen-sink of still-generic types (`GStruct*`, UI helpers). It includes the module headers above for compatibility. Prefer including the specific module header when you only need that API.
 
@@ -95,5 +98,6 @@ Bulk renames live in:
 - `tools/rename_sndscript_midi_syms.py` — SndScript / SndVoice / Midi / LinInterp / dialog UI types
 - `tools/rename_evtuipanel_tmd_syms.py` — SndEvt / UiPanel / Tmd / TaskIdMap / GameSession
 - `tools/rename_cdaudio_tick_syms.py` — CdAudio / AudioTick / SpuVoiceRange / StreamSlot / StageCtx
+- `tools/rename_remaining_wip_syms.py` — last GStruct leftovers (+ Wip* provisional names)
 
 Idempotent only if old names are already gone. Extend the map rather than hand-editing hundreds of `.s` files.

@@ -244,11 +244,11 @@ void F04CF8_80014A98(s32 mode)
     CdFlush();
     VSync(3);
     CdControlB(CdlPause, NULL, NULL);
-    if (D_800710A8.field_6 != 0) {
+    if (Wip_SysFlags.field_6 != 0) {
         DecDCTReset(0);
         StClearRing();
         StUnSetRing();
-        D_800710A8.field_6 = 0;
+        Wip_SysFlags.field_6 = 0;
     }
     CdReset(mode);
     ctrlParam[0] = CdlModeSpeed;
