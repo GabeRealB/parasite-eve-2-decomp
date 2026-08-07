@@ -12,7 +12,7 @@ void func_80036A1C(void)
     char pad[0x10];
 }
 
-void func_80036A2C(void* arg0, GStruct20* arg1)
+void func_80036A2C(void* arg0, UiMiniObj* arg1)
 {
     func_80048C10(arg0, arg1);
     if (arg1->field_0 == 1) {
@@ -22,7 +22,7 @@ void func_80036A2C(void* arg0, GStruct20* arg1)
 
 void func_80036A70(Task* arg0)
 {
-    GStruct20* obj;
+    UiMiniObj* obj;
     UiList*    menu;
 
     obj  = arg0->field_20;
@@ -71,7 +71,7 @@ void func_80036B2C(DialogPrompt* arg0, UiObject* arg1)
 
 void func_80036C04(Task* arg0)
 {
-    GStruct20* obj;
+    UiMiniObj* obj;
     UiList*    menu;
     GStruct64* ctx;
     s32        temp;

@@ -43,7 +43,7 @@ setup_events:
     F3E48C_ConfigSpuReverb(3);
     func_8004DF10();
     Snd_ClearBanks();
-    F3D458_8004D88C();
+    AudioTick_Reset();
     func_80053E68();
     func_80053FF4(0);
     func_80050D20(0);
@@ -193,7 +193,7 @@ void func_8004D008(void)
         D_800680C0 = 0;
         func_8004E200();
         SndEvt_Process();
-        func_8004D8BC();
+        AudioTick_Process();
         F3E48C_8004E44C();
         D_800680BC += 1;
         if (Display_State.field_124 == 1) {
@@ -596,34 +596,34 @@ s32 func_8004D820(void)
     }
     D_800680C0 = 0;
     func_8004E200();
-    func_8004D8BC();
+    AudioTick_Process();
     F3E48C_8004E44C();
     D_800680C0  = 1;
     D_800680BC += 1;
     return 0;
 }
 
-void F3D458_8004D88C(void)
+void AudioTick_Reset(void)
 {
-    D648E0_8007E0B0.field_0  = 0;
-    D648E0_8007E0B0.field_4  = 0;
-    D648E0_8007E0B0.field_8  = 0;
-    D648E0_8007E0B0.field_c  = 0;
-    D648E0_8007E0B0.field_14 = NULL;
-    D648E0_8007E0B0.field_10 = 0;
-    D648E0_8007E0C8          = 1;
+    AudioTick_List.field_0  = 0;
+    AudioTick_List.field_4  = 0;
+    AudioTick_List.field_8  = 0;
+    AudioTick_List.field_c  = 0;
+    AudioTick_List.field_14 = NULL;
+    AudioTick_List.field_10 = 0;
+    AudioTick_Enabled       = 1;
 }
 
-void func_8004D8BC(void)
+void AudioTick_Process(void)
 {
-    GStruct8* head;
-    GStruct8* node;
-    s32       (*callback)(s32);
+    AudioTickNode* head;
+    AudioTickNode* node;
+    s32            (*callback)(s32);
 
-    head = &D648E0_8007E0B0;
-    if (D648E0_8007E0C8 != 0) {
+    head = &AudioTick_List;
+    if (AudioTick_Enabled != 0) {
         if (head != NULL) {
-            node = (GStruct8*)head->field_14;
+            node = (AudioTickNode*)head->field_14;
             while (1) {
                 if (node == NULL) {
                     break;
@@ -631,26 +631,26 @@ void func_8004D8BC(void)
                 callback = (s32 (*)(s32))node->field_0;
                 if (callback != NULL) {
                     if (callback(node->field_c) == -1) {
-                        node = func_8004D94C(node);
+                        node = AudioTick_Remove(node);
                         continue;
                     }
                 }
-                node = (GStruct8*)node->field_14;
+                node = (AudioTickNode*)node->field_14;
             }
         }
     }
 }
 
-GStruct8* func_8004D94C(GStruct8* arg0)
+AudioTickNode* AudioTick_Remove(AudioTickNode* arg0)
 {
-    void      (*callback)(void);
-    GStruct8* head;
-    GStruct8* prev;
-    GStruct8* curr;
+    void           (*callback)(void);
+    AudioTickNode* head;
+    AudioTickNode* prev;
+    AudioTickNode* curr;
 
-    head            = &D648E0_8007E0B0;
-    callback        = (void (*)(void))arg0->field_4;
-    D648E0_8007E0C8 = 0;
+    head              = &AudioTick_List;
+    callback          = (void (*)(void))arg0->field_4;
+    AudioTick_Enabled = 0;
     if (callback != NULL) {
         callback();
     }
@@ -658,18 +658,18 @@ GStruct8* func_8004D94C(GStruct8* arg0)
     prev = head;
     if (prev->field_14 != 0) {
         do {
-            curr = (GStruct8*)prev->field_14;
+            curr = (AudioTickNode*)prev->field_14;
             if ((u16)curr->field_8 == (u16)arg0->field_8) {
                 prev->field_14 = arg0->field_14;
                 if (arg0->field_14 != 0) {
-                    ((GStruct8*)arg0->field_14)->field_10 = (s32)prev;
+                    ((AudioTickNode*)arg0->field_14)->field_10 = (s32)prev;
                 }
-                D648E0_8007E0C8 = 1;
-                return (GStruct8*)prev->field_14;
+                AudioTick_Enabled = 1;
+                return (AudioTickNode*)prev->field_14;
             }
             prev = curr;
         } while (prev->field_14 != 0);
     }
-    D648E0_8007E0C8 = 1;
+    AudioTick_Enabled = 1;
     return NULL;
 }

@@ -162,7 +162,7 @@ L_case4:
 void F04CF8_800148A0(void)
 {
     func_80056700();
-    while (D_80082798.field_2 != 4) {
+    while (CdAudio_Phase.field_2 != 4) {
     }
 }
 

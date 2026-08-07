@@ -8,26 +8,26 @@
 
 s32 func_800567E4(void)
 {
-    volatile GStruct4*  p;
-    volatile GStruct56* audio;
-    CdStreamParams*     setup;
-    CdlLOC*             loc;
-    s32                 acc;
-    register s32        i asm("s2");
-    s32                 voice;
-    s32                 status;
-    s16                 half;
-    s32                 two;
-    s32                 temp;
-    register s32        next asm("v0");
-    void*               sector;
+    volatile CdAudioPhase* p;
+    volatile CdAudioLocEx* audio;
+    CdStreamParams*        setup;
+    CdlLOC*                loc;
+    s32                    acc;
+    register s32           i asm("s2");
+    s32                    voice;
+    s32                    status;
+    s16                    half;
+    s32                    two;
+    s32                    temp;
+    register s32           next asm("v0");
+    void*                  sector;
 
     setup = &CdStream_Params;
-    switch (D_80082798.field_0) {
+    switch (CdAudio_Phase.field_0) {
         case 4:
-            D_80082780.field_10 = 0;
-            acc                 = 0;
-            i                   = 0x16;
+            CdAudio_Ctl.field_10 = 0;
+            acc                  = 0;
+            i                    = 0x16;
             do {
                 voice = (s8)i;
                 temp  = acc + ((s32 (*)(s32))func_8004E6A4)(voice);
@@ -44,16 +44,16 @@ s32 func_800567E4(void)
             if (status != 0) {
                 break;
             }
-            D_80082798.field_0 = 1;
+            CdAudio_Phase.field_0 = 1;
             /* fallthrough */
         case 1:
-            p = &D_80082798;
+            p = &CdAudio_Phase;
             if (p->field_5 == 1) {
-                p->field_2         = 4;
-                D_80082798.field_0 = 3;
+                p->field_2            = 4;
+                CdAudio_Phase.field_0 = 3;
                 break;
             }
-            audio = (volatile GStruct56*)&D_800827A0;
+            audio = (volatile CdAudioLocEx*)&CdAudio_Loc;
             loc   = (CdlLOC*)&audio->field_10;
             CdIntToPos(audio->field_C, loc);
             if (D_8008277C != 0) {
@@ -75,16 +75,16 @@ s32 func_800567E4(void)
             setup->voiceFreeCb = 0;
             audio->field_1     = 0;
             CdStream_Start(setup);
-            D_80082798.field_0 = two;
+            CdAudio_Phase.field_0 = two;
             break;
         case 2:
-            if (D_800827A0.field_1 != 0) {
-                p = &D_80082798;
+            if (CdAudio_Loc.field_1 != 0) {
+                p = &CdAudio_Phase;
                 if (p->field_5 == 1) {
                     p->field_2 = 4;
                 }
-                D_80082798.field_0 = 3;
-                D_800827A0.field_1 = 0;
+                CdAudio_Phase.field_0 = 3;
+                CdAudio_Loc.field_1   = 0;
             }
             break;
         case 0:
@@ -100,13 +100,13 @@ static const s32 s_jtbl_pad_567E4 = 0;
 
 s32 func_800569D4(void)
 {
-    volatile GStruct4*  p;
-    s16                 ret;
-    LinInterp*          interp;
-    volatile GStruct56* parent;
-    volatile GStruct61* voices;
+    volatile CdAudioPhase*  p;
+    s16                     ret;
+    LinInterp*              interp;
+    volatile CdAudioLocEx*  parent;
+    volatile CdAudioVoices* voices;
 
-    p   = &D_80082798;
+    p   = &CdAudio_Phase;
     ret = 3;
 
     switch (p->field_2) {
@@ -120,20 +120,20 @@ s32 func_800569D4(void)
                 CdStream_Stop();
                 p->field_2 = 2;
             } else {
-                parent = (volatile GStruct56*)interp - 1;
+                parent = (volatile CdAudioLocEx*)interp - 1;
                 CdStream_SetPitch((s16)LinInterp_Apply(interp, parent->field_2));
             }
             break;
         case 2:
-            voices = (volatile GStruct61*)&D_800827A0;
+            voices = (volatile CdAudioVoices*)&CdAudio_Loc;
             func_8004E71C(voices->field_3E);
             func_8004E71C(voices->field_3F);
             p->field_2 = 3;
             /* fallthrough */
         case 3:
             if (CdStream_IsBusy() == 0) {
-                D_80082798.field_2 = 4;
-                ret                = 0;
+                CdAudio_Phase.field_2 = 4;
+                ret                   = 0;
             }
             break;
     }
@@ -151,83 +151,83 @@ void func_800572FC(s32 arg0);
 
 s32 func_80056B28(void)
 {
-    u8                  phase;
-    register SectorHdr* hdr asm("a2");
-    volatile GStruct44* stream;
-    s32                 status;
-    register s32        tmp asm("a0");
-    s32                 val;
-    register s32        ptr asm("v1");
-    u8                  idx;
-    volatile GStruct18* audio;
-    volatile GStruct39* cd;
+    u8                   phase;
+    register SectorHdr*  hdr asm("a2");
+    volatile CdAudioCtl* stream;
+    s32                  status;
+    register s32         tmp asm("a0");
+    s32                  val;
+    register s32         ptr asm("v1");
+    u8                   idx;
+    volatile CdAudioLoc* audio;
+    volatile CdAudioTbl* cd;
 
-    phase = D_80082798.field_3;
+    phase = CdAudio_Phase.field_3;
     hdr   = (SectorHdr*)D_80082750;
 
     switch (phase) {
         case 5:
         do_setloc:
-            D_80082780.field_0 = 0;
-            D_80082798.field_3 = 1;
+            CdAudio_Ctl.field_0   = 0;
+            CdAudio_Phase.field_3 = 1;
             CdControlF(CdlSetloc, D_800827B0);
             break;
         case 1:
-            stream = &D_80082780;
+            stream = &CdAudio_Ctl;
             if (stream->field_0 < 0x259) {
                 if (CdSync(1, NULL) == CdlDiskError) {
                     CdFlush();
                     goto do_setloc;
                 }
-                D_80082798.field_3 = 6;
+                CdAudio_Phase.field_3 = 6;
                     /* fallthrough */
                 case 6:
-                    D_80082798.field_3 = 3;
+                    CdAudio_Phase.field_3 = 3;
                     CdReadyCallback(func_80057C74);
-                    D_80082780.field_0 = 0;
-                    D_80082770         = 0;
-                    D_80082780.field_A = 0;
+                    CdAudio_Ctl.field_0 = 0;
+                    D_80082770          = 0;
+                    CdAudio_Ctl.field_A = 0;
                     CdControlF(CdlReadN, NULL);
                     break;
             }
             goto timeout;
         case 3:
             if (CdSync(1, NULL) == CdlDiskError) {
-                D_80082798.field_3 = 6;
+                CdAudio_Phase.field_3 = 6;
                 CdFlush();
                 CdReadyCallback(NULL);
             } else {
-                D_80082798.field_3 = 8;
-                D_80082780.field_4 = 0;
+                CdAudio_Phase.field_3 = 8;
+                CdAudio_Ctl.field_4   = 0;
             }
             break;
         case 8:
-            stream = &D_80082780;
+            stream = &CdAudio_Ctl;
             if ((u8)stream->field_A != 0) {
-                stream->field_8 = D_80082798.field_3;
+                stream->field_8 = CdAudio_Phase.field_3;
                 stream->field_9 = 2;
                 goto error;
             }
             if (stream->field_0 < 0x259) {
                 if (D_80082770 != 0) {
-                    audio          = &D_800827A0;
+                    audio          = &CdAudio_Loc;
                     idx            = hdr->field_3;
                     val            = D_80068B18[idx];
                     ptr            = D_80082750;
                     audio->field_8 = val;
-                    cd             = &D_80082758;
+                    cd             = &CdAudio_Tbl;
                     idx            = hdr->field_2;
                     cd->field_C    = (u16*)(ptr + (idx * 4));
                     CdReadyCallback(NULL);
-                    D_80082798.field_3 = 9;
+                    CdAudio_Phase.field_3 = 9;
                         /* fallthrough */
                     case 9:
                         CdControlF(CdlPause, NULL);
-                        D_80082780.field_0 = 0;
-                        D_80082798.field_3 = 0xA;
+                        CdAudio_Ctl.field_0   = 0;
+                        CdAudio_Phase.field_3 = 0xA;
                         /* fallthrough */
                     case 10:
-                        stream = &D_80082780;
+                        stream = &CdAudio_Ctl;
                         if (stream->field_0 < 0x259) {
                             goto do_cdsync;
                         }
@@ -236,7 +236,7 @@ s32 func_80056B28(void)
                 }
             }
         timeout:
-            stream->field_8 = D_80082798.field_3;
+            stream->field_8 = CdAudio_Phase.field_3;
             stream->field_9 = 1;
             goto error;
         do_cdsync:
@@ -252,53 +252,53 @@ s32 func_80056B28(void)
             }
             CdFlush();
         set_state_4:
-            D_80082798.field_3 = 4;
+            CdAudio_Phase.field_3 = 4;
             break;
         default:
             break;
     }
 
-    tmp                = D_80082780.field_0;
-    tmp                = tmp + 1;
-    D_80082780.field_0 = tmp;
+    tmp                 = CdAudio_Ctl.field_0;
+    tmp                 = tmp + 1;
+    CdAudio_Ctl.field_0 = tmp;
     return 5;
 
 error:
-    D_80082798.field_3 = 0x80;
+    CdAudio_Phase.field_3 = 0x80;
     return 0;
 }
 
 s32 func_80056E38(void)
 {
-    volatile GStruct61* voices;
-    volatile GStruct44* stream;
-    volatile GStruct44* p;
-    volatile GStruct56* audio;
-    volatile GStruct39* cd;
-    s32                 status;
-    u8                  mode;
-    s32                 ret;
+    volatile CdAudioVoices* voices;
+    volatile CdAudioCtl*    stream;
+    volatile CdAudioCtl*    p;
+    volatile CdAudioLocEx*  audio;
+    volatile CdAudioTbl*    cd;
+    s32                     status;
+    u8                      mode;
+    s32                     ret;
 
-    switch (D_80082798.field_4) {
+    switch (CdAudio_Phase.field_4) {
         case 1:
-            voices = (volatile GStruct61*)&D_800827A0;
+            voices = (volatile CdAudioVoices*)&CdAudio_Loc;
             func_8004E71C(voices->field_3E);
             func_8004E71C(voices->field_3F);
             if (CdStream_IsBusy() != 0) {
                 break;
             }
         do_setmode:
-            D_80082798.field_4 = 2;
-            D_80082780.field_0 = 0;
-            mode               = CdlModeSpeed | CdlModeSize1;
+            CdAudio_Phase.field_4 = 2;
+            CdAudio_Ctl.field_0   = 0;
+            mode                  = CdlModeSpeed | CdlModeSize1;
             CdControlF(CdlSetmode, &mode);
             break;
         case 2:
-            stream = &D_80082780;
+            stream = &CdAudio_Ctl;
             if (stream->field_0 < 0x259) {
                 goto case2_sync;
             }
-            stream->field_8 = D_80082798.field_4;
+            stream->field_8 = CdAudio_Phase.field_4;
             stream->field_9 = 1;
             goto error;
         case2_sync:
@@ -315,27 +315,27 @@ s32 func_80056E38(void)
             CdFlush();
             goto do_setmode;
         case2_ok:
-            stream->field_C    = 5;
-            D_80082798.field_4 = 3;
+            stream->field_C       = 5;
+            CdAudio_Phase.field_4 = 3;
             break;
         case 3:
-            D_80082780.field_C = D_80082780.field_C - 1;
-            if (D_80082780.field_C >= 0) {
+            CdAudio_Ctl.field_C = CdAudio_Ctl.field_C - 1;
+            if (CdAudio_Ctl.field_C >= 0) {
                 break;
             }
-            D_80082798.field_4 = 4;
+            CdAudio_Phase.field_4 = 4;
             break;
         case 4:
         do_setloc:
-            D_80082780.field_0 = 0;
-            D_80082758.field_8 = ((volatile GStruct56*)&D_800827A0)->field_4;
-            audio              = (volatile GStruct56*)&D_800827A0;
+            CdAudio_Ctl.field_0 = 0;
+            CdAudio_Tbl.field_8 = ((volatile CdAudioLocEx*)&CdAudio_Loc)->field_4;
+            audio               = (volatile CdAudioLocEx*)&CdAudio_Loc;
             CdIntToPos(audio->field_4, (CdlLOC*)&audio->field_10);
-            D_80082798.field_4 = 5;
+            CdAudio_Phase.field_4 = 5;
             CdControlF(CdlSetloc, (u8*)&audio->field_10);
             break;
         case 5:
-            p = &D_80082780;
+            p = &CdAudio_Ctl;
             if (p->field_0 < 0x259) {
                 status = CdSync(1, NULL);
                 if (status == CdlComplete) {
@@ -350,39 +350,39 @@ s32 func_80056E38(void)
                 CdFlush();
                 goto do_setloc;
             case5_ok:
-                D_80082798.field_4 = 6;
+                CdAudio_Phase.field_4 = 6;
                 break;
             }
             goto timeout;
         case 6:
-            D_80082798.field_4 = 7;
-            D_80082758.field_1 = 0;
-            D_80082780.field_B = 0;
-            D_80082780.field_0 = 0;
-            SpuSetTransferStartAddr(D_80082758.field_10);
+            CdAudio_Phase.field_4 = 7;
+            CdAudio_Tbl.field_1   = 0;
+            CdAudio_Ctl.field_B   = 0;
+            CdAudio_Ctl.field_0   = 0;
+            SpuSetTransferStartAddr(CdAudio_Tbl.field_10);
             CdReadyCallback(func_800572FC);
             CdControlF(CdlReadN, NULL);
             break;
         case 7:
             if (CdSync(1, NULL) == CdlDiskError) {
-                D_80082798.field_4 = 6;
+                CdAudio_Phase.field_4 = 6;
                 CdFlush();
                 CdReadyCallback(NULL);
             } else {
-                D_80082798.field_4 = 8;
-                D_80082780.field_4 = 0;
+                CdAudio_Phase.field_4 = 8;
+                CdAudio_Ctl.field_4   = 0;
             }
             break;
         case 8:
-            p = &D_80082780;
+            p = &CdAudio_Ctl;
             if (p->field_B != 0) {
-                p->field_8 = D_80082798.field_4;
+                p->field_8 = CdAudio_Phase.field_4;
                 p->field_9 = 2;
                 goto error;
             }
-            if (D_80082780.field_0 < 0x259) {
+            if (CdAudio_Ctl.field_0 < 0x259) {
                 if (p->field_4 < 0x259) {
-                    cd = &D_80082758;
+                    cd = &CdAudio_Tbl;
                     if (cd->field_1 == 0) {
                         goto case8_inc;
                     }
@@ -400,8 +400,8 @@ s32 func_80056E38(void)
         case 11:
         do_pause:
             CdReadyCallback(NULL);
-            D_80082780.field_0 = 0;
-            D_80082798.field_4 = 9;
+            CdAudio_Ctl.field_0   = 0;
+            CdAudio_Phase.field_4 = 9;
             CdControlF(CdlPause, NULL);
             break;
         case 9:
@@ -418,53 +418,53 @@ s32 func_80056E38(void)
             CdFlush();
             goto do_pause;
         case9_ok:
-            ret                = 0;
-            D_80082798.field_4 = 0xA;
-            D_80082798.field_2 = 4;
+            ret                   = 0;
+            CdAudio_Phase.field_4 = 0xA;
+            CdAudio_Phase.field_2 = 4;
             return ret;
         case9_check:
-            p = &D_80082780;
+            p = &CdAudio_Ctl;
         case9_check2:
-            p = &D_80082780;
+            p = &CdAudio_Ctl;
             if (p->field_0 < 0x259) {
                 break;
             }
         timeout:
-            p->field_8 = D_80082798.field_4;
+            p->field_8 = CdAudio_Phase.field_4;
             p->field_9 = 1;
         error:
             CdReadyCallback(NULL);
             CdFlush();
             CdControlF(CdlPause, NULL);
-            D_80082798.field_4 = 1;
+            CdAudio_Phase.field_4 = 1;
             goto do_setmode;
         case 10:
         default:
             break;
     }
 
-    D_80082780.field_0 = D_80082780.field_0 + 1;
+    CdAudio_Ctl.field_0 = CdAudio_Ctl.field_0 + 1;
     return 6;
 }
 
 void func_800572FC(s32 arg0)
 {
-    s32                 arg;
-    s32                 pos;
-    s32                 ret;
-    SndLoadState*       state;
-    s32                 spuIdx;
-    volatile GStruct44* stream;
-    volatile GStruct39* cdState;
-    FsSector*           sector;
-    volatile GStruct18* audio;
+    s32                  arg;
+    s32                  pos;
+    s32                  ret;
+    SndLoadState*        state;
+    s32                  spuIdx;
+    volatile CdAudioCtl* stream;
+    volatile CdAudioTbl* cdState;
+    FsSector*            sector;
+    volatile CdAudioLoc* audio;
 
     sector = &Fs_CdSector;
-    stream = &D_80082780;
+    stream = &CdAudio_Ctl;
     if (stream->field_B != 0) {
         return;
     }
-    cdState = &D_80082758;
+    cdState = &CdAudio_Tbl;
     if (cdState->field_1 != 0) {
         return;
     }
@@ -481,7 +481,7 @@ void func_800572FC(s32 arg0)
         return;
     }
     CdGetSector(sector, 0x200);
-    audio = &D_800827A0;
+    audio = &CdAudio_Loc;
     if (audio->field_4 == cdState->field_8) {
         state           = &SndLoad_State;
         state->field_0  = 0x10;
@@ -510,7 +510,7 @@ void func_800572FC(s32 arg0)
             stream->field_B = 4;
         }
     }
-    D_80082758.field_8 += 1;
+    CdAudio_Tbl.field_8 += 1;
 }
 
 void func_800574BC(void)
@@ -518,75 +518,75 @@ void func_800574BC(void)
     u32  i;
     s32* p;
 
-    p = (s32*)&D_80082798;
+    p = (s32*)&CdAudio_Phase;
     i = 0;
     do {
         i++;
         *p = 0;
     } while (i < 2U);
 
-    p = (s32*)&D_800827A0;
+    p = (s32*)&CdAudio_Loc;
     i = 0;
     do {
         i++;
         *p = 0;
     } while (i < 0x11U);
 
-    D_8008277C         = 0;
-    D_80082750         = 0;
-    D_800827A0.field_8 = 0x51010;
-    func_8004E5A0(3, 0x16, 2);
+    D_8008277C          = 0;
+    D_80082750          = 0;
+    CdAudio_Loc.field_8 = 0x51010;
+    Spu_SetVoiceRange(3, 0x16, 2);
     CdStream_Reset();
     func_800260B0(1);
 }
 
 u8 func_80057554(void)
 {
-    return D_800827A0.field_0;
+    return CdAudio_Loc.field_0;
 }
 
 void func_80057564(void)
 {
-    if ((D_800827A0.field_4 != 0) && (D_800827A0.field_0 != 0)) {
-        D_800827A0.field_0 = D_80068B34[D_800827A0.field_0 & 7]();
+    if ((CdAudio_Loc.field_4 != 0) && (CdAudio_Loc.field_0 != 0)) {
+        CdAudio_Loc.field_0 = D_80068B34[CdAudio_Loc.field_0 & 7]();
         func_80059348();
     }
 }
 
 s32 func_800575D8(s32 arg0)
 {
-    volatile GStruct44* p;
+    volatile CdAudioCtl* p;
 
-    D_800827E4         = 0;
-    D_80082754         = 0;
-    p                  = &D_80082780;
-    p->field_C         = 0;
-    p->field_8         = 0;
-    p->field_9         = 0;
-    D_800827A0.field_4 = arg0;
-    D_80082750         = 0;
+    D_800827E4          = 0;
+    D_80082754          = 0;
+    p                   = &CdAudio_Ctl;
+    p->field_C          = 0;
+    p->field_8          = 0;
+    p->field_9          = 0;
+    CdAudio_Loc.field_4 = arg0;
+    D_80082750          = 0;
     return 0;
 }
 
 s32 func_80057618(void)
 {
-    u8                  mode;
-    s32                 mem;
-    s32                 buf;
-    volatile GStruct56* p;
+    u8                     mode;
+    s32                    mem;
+    s32                    buf;
+    volatile CdAudioLocEx* p;
 
-    D_80082798.field_3 = 5;
-    p                  = (volatile GStruct56*)&D_800827A0;
+    CdAudio_Phase.field_3 = 5;
+    p                     = (volatile CdAudioLocEx*)&CdAudio_Loc;
     CdIntToPos(p->field_4, (CdlLOC*)&p->field_10);
     buf = D_80082750;
     if (buf != 0) {
         F3D458_Free((void*)buf);
     }
-    mem                = (s32)F3D458_Malloc(0x800);
-    D_80082750         = mem;
-    D_80082778         = mem + 4;
-    D_800827A0.field_0 = 5;
-    mode               = CdlModeSpeed | CdlModeSize1;
+    mem                 = (s32)F3D458_Malloc(0x800);
+    D_80082750          = mem;
+    D_80082778          = mem + 4;
+    CdAudio_Loc.field_0 = 5;
+    mode                = CdlModeSpeed | CdlModeSize1;
     CdControlB(CdlSetmode, &mode, NULL);
     return 0;
 }
@@ -597,7 +597,7 @@ s32 func_800576BC(s32 arg0)
 
     temp_s0 = arg0 & 0xFF;
     if (temp_s0 != 0) {
-        func_80057A88(D_800827A0.field_4 + func_80057A1C((arg0 - 1) & 0xFF));
+        func_80057A88(CdAudio_Loc.field_4 + func_80057A1C((arg0 - 1) & 0xFF));
     }
     return temp_s0;
 }
@@ -612,13 +612,13 @@ s32 func_80057724(void)
     GStruct52* temp;
     s32        ret;
 
-    if (D_80082798.field_0 != 3) {
+    if (CdAudio_Phase.field_0 != 3) {
         return -1;
     }
-    if (D_80082798.field_2 != 0) {
+    if (CdAudio_Phase.field_2 != 0) {
         ret = 1;
     } else {
-        temp = D_80082794 + D_80082758.field_2;
+        temp = D_80082794 + CdAudio_Tbl.field_2;
         func_80057A1C((temp[1].field_3 - temp->field_3 - 1) & 0xFF);
         func_80057B24(0x20);
         ret = 0;
@@ -632,32 +632,32 @@ s32 func_800577AC(s32 arg0, s32 arg1)
         return -1;
     }
     func_80057824(arg0);
-    D_800827A0.field_2 = D_80068A80[arg1 & 0xFF] << 7;
+    CdAudio_Loc.field_2 = D_80068A80[arg1 & 0xFF] << 7;
     func_800542D0(0x80000000, 0);
     return func_80057894(arg0);
 }
 
 s32 func_80057824(s32 arg0)
 {
-    volatile GStruct44* p;
-    volatile GStruct18* r;
-    volatile GStruct4*  q;
-    s32                 field4;
+    volatile CdAudioCtl*   p;
+    volatile CdAudioLoc*   r;
+    volatile CdAudioPhase* q;
+    s32                    field4;
 
     D_800827E4 = 0;
-    r          = &D_800827A0;
+    r          = &CdAudio_Loc;
     field4     = r->field_4;
     D_80082754 = 0;
     if (field4 == 0) {
         r->field_4 = arg0;
     }
-    p           = &D_80082780;
+    p           = &CdAudio_Ctl;
     p->field_C  = 0;
     p->field_8  = 0;
     p->field_9  = 0;
     p->field_10 = 1;
     r->field_8  = D_80068B1C;
-    q           = &D_80082798;
+    q           = &CdAudio_Phase;
     q->field_2  = 0;
     q->field_0  = 0;
     q->field_1  = 0;
@@ -690,7 +690,7 @@ s32 func_800578E4(s32 arg0)
 
 void func_8005791C(s32 arg0)
 {
-    D_800827A0.field_4 = arg0;
+    CdAudio_Loc.field_4 = arg0;
 }
 
 void func_80057930(s8 arg0, s32* arg1)
@@ -724,11 +724,11 @@ s32 func_80057A1C(s32 arg0)
     u32  temp_v0;
     u16* table;
 
-    temp_v0            = ((u32*)D_80082778)[D_80082754 + (arg0 & 0xFF)];
-    D_800827A0.field_2 = (temp_v0 >> 17) & 0x3F80;
-    D_80082758.field_0 = temp_v0 >> 31;
-    table              = D_80082758.field_C;
-    D_80082758.field_4 = table[((temp_v0 >> 14) & 0x3FC) / 2];
+    temp_v0             = ((u32*)D_80082778)[D_80082754 + (arg0 & 0xFF)];
+    CdAudio_Loc.field_2 = (temp_v0 >> 17) & 0x3F80;
+    CdAudio_Tbl.field_0 = temp_v0 >> 31;
+    table               = CdAudio_Tbl.field_C;
+    CdAudio_Tbl.field_4 = table[((temp_v0 >> 14) & 0x3FC) / 2];
     return temp_v0 & 0xFFFF;
 }
 
@@ -736,54 +736,54 @@ s32 func_80057A88(s32 arg0)
 {
     s32 temp_v0;
 
-    temp_v0 = D_80082798.field_1;
+    temp_v0 = CdAudio_Phase.field_1;
     if ((temp_v0 == 4) || (temp_v0 == 0)) {
-        D_800827A0.field_C = arg0;
-        D_800827A0.field_0 = 1;
-        D_80082798.field_0 = 4;
+        CdAudio_Loc.field_C   = arg0;
+        CdAudio_Loc.field_0   = 1;
+        CdAudio_Phase.field_0 = 4;
     }
     return 0;
 }
 
 s32 func_80057ACC(void)
 {
-    volatile GStruct4* p;
-    s32                ret;
+    volatile CdAudioPhase* p;
+    s32                    ret;
 
-    p = &D_80082798;
+    p = &CdAudio_Phase;
     if (p->field_0 != 3) {
         ret        = -1;
         p->field_1 = 4;
         p->field_2 = 1;
     } else {
-        ret                = 0;
-        p->field_2         = 0;
-        p->field_1         = 1;
-        D_800827A0.field_0 = 2;
+        ret                 = 0;
+        p->field_2          = 0;
+        p->field_1          = 1;
+        CdAudio_Loc.field_0 = 2;
     }
     return ret;
 }
 
 void func_80057B24(s32 arg0)
 {
-    LinInterp*          p;
-    volatile GStruct56* parent;
+    LinInterp*             p;
+    volatile CdAudioLocEx* parent;
 
     p      = &LinInterp_CdStream;
-    parent = (volatile GStruct56*)p;
+    parent = (volatile CdAudioLocEx*)p;
     parent = parent - 1;
     LinInterp_Setup(p, (parent->field_2 >> 7) & 0xFF, 0, arg0);
-    D_80082798.field_1 = 4;
-    D_80082798.field_2 = 1;
-    parent->field_0    = 3;
+    CdAudio_Phase.field_1 = 4;
+    CdAudio_Phase.field_2 = 1;
+    parent->field_0       = 3;
 }
 
 void func_80057B88(s32 arg0, s32 arg1)
 {
-    D_800827A0.field_4  = arg0;
-    D_80082758.field_10 = arg1;
-    D_80082798.field_4  = 1;
-    D_800827A0.field_0  = 6;
+    CdAudio_Loc.field_4   = arg0;
+    CdAudio_Tbl.field_10  = arg1;
+    CdAudio_Phase.field_4 = 1;
+    CdAudio_Loc.field_0   = 6;
 }
 
 s32 func_80057BC0(void)
@@ -796,19 +796,19 @@ s32 func_80057BC8(void)
     s16 ret;
 
     ret = 2;
-    switch (D_80082798.field_1) {
+    switch (CdAudio_Phase.field_1) {
         case 0:
             break;
         case 1:
         case 2:
             CdStream_ArmSpuIrq();
-            D_80082798.field_1 = 3;
+            CdAudio_Phase.field_1 = 3;
             break;
         case 3:
             if (CdStream_IsBusy() == 0) {
-                ret                = 3;
-                D_80082798.field_1 = 4;
-                D_80082798.field_2 = 2;
+                ret                   = 3;
+                CdAudio_Phase.field_1 = 4;
+                CdAudio_Phase.field_2 = 2;
             }
             break;
         case 4:
@@ -819,10 +819,10 @@ s32 func_80057BC8(void)
 
 void func_80057C74(s32 arg0)
 {
-    s32                 temp;
-    s32                 pos;
-    FsSector*           sector;
-    volatile GStruct18* state;
+    s32                  temp;
+    s32                  pos;
+    FsSector*            sector;
+    volatile CdAudioLoc* state;
 
     if (D_80082770 != 0) {
         return;
@@ -832,21 +832,21 @@ void func_80057C74(s32 arg0)
     if (temp == 1) {
         sector = &Fs_CdSector;
         CdGetSector(sector, 3);
-        state = &D_800827A0;
+        state = &CdAudio_Loc;
         pos   = CdPosToInt((CdlLOC*)sector);
         if (state->field_4 != pos) {
-            D_80082780.field_A = -2;
+            CdAudio_Ctl.field_A = -2;
         }
         CdGetSector((void*)D_80082750, 0x200);
         D_80082770 = temp;
     } else {
-        D_80082780.field_A = -1;
+        CdAudio_Ctl.field_A = -1;
     }
 }
 
 void func_80057D24(void)
 {
-    D_800827A0.field_1 = 1;
+    CdAudio_Loc.field_1 = 1;
 }
 
 s32 CdReady_Enqueue(CdReadyEntry* arg0)

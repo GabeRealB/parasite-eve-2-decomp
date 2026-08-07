@@ -1535,7 +1535,7 @@ void func_80048964(UiPanel* arg0, void* arg1)
     }
 }
 
-void func_800489A0(UiList* arg0, GStruct20* arg1)
+void func_800489A0(UiList* arg0, UiMiniObj* arg1)
 {
     RECT     sp;
     UiPanel* a1;
@@ -1678,7 +1678,7 @@ void func_80048C30(UiList* arg0, UiPanel* arg1, s32 arg2)
     asm("" : : "m"(sp));
 }
 
-void func_80048D58(GStruct20* arg0, s32 arg1, s32 arg2)
+void func_80048D58(UiMiniObj* arg0, s32 arg1, s32 arg2)
 {
     s32 i;
     s32 targetX;

@@ -269,7 +269,7 @@ s32 func_80053FF4(u32 arg0)
     s32          id;
 
     *(volatile s32*)&D_80068A78 = 0xFF;
-    func_8004E5A0(1, 0x12, 6);
+    Spu_SetVoiceRange(1, 0x12, 6);
     i = 0;
     func_80055CE0();
     func_80054608(1);
@@ -1605,12 +1605,12 @@ void func_800566A4(void)
 
 s32 func_80056700(void)
 {
-    volatile GStruct4* p;
+    volatile CdAudioPhase* p;
 
-    p          = &D_80082798;
+    p          = &CdAudio_Phase;
     p->field_5 = 1;
-    if (D_80082780.field_10 == 1) {
-        D_80082780.field_10 = 0;
+    if (CdAudio_Ctl.field_10 == 1) {
+        CdAudio_Ctl.field_10 = 0;
         return -3;
     }
     if ((p->field_1 == 0) || (p->field_1 == 4)) {
@@ -1621,13 +1621,13 @@ s32 func_80056700(void)
         p->field_5 = 1;
         return -1;
     }
-    if (D_800827A0.field_0 == 6) {
+    if (CdAudio_Loc.field_0 == 6) {
         if (p->field_4 != 0) {
             p->field_4 = 0xB;
             return -2;
         }
     }
-    if (D_80082798.field_2 != 0) {
+    if (CdAudio_Phase.field_2 != 0) {
         return 1;
     }
     func_80057B24(0x20);

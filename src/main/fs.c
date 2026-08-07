@@ -332,7 +332,7 @@ void func_80023748(s32 arg0, s32 arg1, s32 arg2)
     }
 
     for (i = 0; (u16)i < 0xF; i++) {
-        D_8006D4F0[i & 0xFFFF].field_4 = 0;
+        Stream_Slots[i & 0xFFFF].field_4 = 0;
     }
 
     i = 0;
@@ -387,7 +387,7 @@ void func_8002397C(s32 arg0, s32 arg1, s32 arg2)
     FsCdfFolder* folder;
     FsCdfStream* streams;
     FsCdfStream* stream;
-    GStruct24*   destBase;
+    StreamSlot*  destBase;
     s32          k;
     u8*          src;
     u8*          dst;
@@ -434,7 +434,7 @@ loop_files:
         s32* sp = Fs_StageCdfSectors;
         table   = sp + (u8)arg0;
     }
-    destBase = D_8006D4F0;
+    destBase = Stream_Slots;
 loop_streams:
     stream = (FsCdfStream*)(((j & 0xFFFF) * 0x28) + (s32)streams);
     if (*(s32*)&stream->data.movie.field_c != 0) {

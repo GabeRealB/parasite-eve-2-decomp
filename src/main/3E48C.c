@@ -146,12 +146,12 @@ void func_8004DF10(void)
         i++;
     } while (i < 0x18);
 
-    func_8004E5A0(2, 0x10, 2);
+    Spu_SetVoiceRange(2, 0x10, 2);
 }
 
 s32 func_8004E060(s16* arg0, s32 arg1, s32 arg2)
 {
-    GStruct26*     entry;
+    SpuVoiceRange* entry;
     s32            maxField4;
     s32            bestPriority;
     s32            i;
@@ -173,7 +173,7 @@ s32 func_8004E060(s16* arg0, s32 arg1, s32 arg2)
 
     if (arg1 > 0) {
         do {
-            entry = &D_8007EB98[*arg0];
+            entry = &Spu_VoiceRanges[*arg0];
             voice = *(u8*)entry;
             j     = 0;
             if (entry->field_2 > 0) {
@@ -306,13 +306,13 @@ void func_8004E580(u32 voiceIdx)
     Spu_VoiceState.field_16c[sVoiceIdx] = 0;
 }
 
-s32 func_8004E5A0(s32 idx, s32 arg1, s32 arg2)
+s32 Spu_SetVoiceRange(s32 idx, s32 arg1, s32 arg2)
 {
-    GStruct26* p;
-    s16        sIdx;
+    SpuVoiceRange* p;
+    s16            sIdx;
 
     sIdx       = idx;
-    p          = &D_8007EB98[sIdx];
+    p          = &Spu_VoiceRanges[sIdx];
     p->field_0 = arg1;
     p->field_2 = arg2;
     return 0;

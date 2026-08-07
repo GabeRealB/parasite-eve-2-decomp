@@ -397,7 +397,7 @@ void func_80023748(s32 arg0, s32 arg1, s32 arg2);
 
 /// After a folder sector is in `Fs_CdSector`: resolve file-list offsets into
 /// `D_8006C158` for folder `arg1*100+arg2`, then copy stream descriptors from
-/// sector+0x514 into `D_8006D4F0` for folder `arg1*100+1`, adjusting offsets
+/// sector+0x514 into `Stream_Slots` for folder `arg1*100+1`, adjusting offsets
 /// by the folder base and `Fs_StageCdfSectors[arg0]`.
 void func_8002397C(s32 arg0, s32 arg1, s32 arg2);
 

@@ -216,7 +216,7 @@ s32 func_80050D20(u32 arg0)
     D_800820E9 = 0;
     D_800820E0 = 0;
     D_800820E4 = 0;
-    func_8004E5A0(0, 0, 0x10);
+    Spu_SetVoiceRange(0, 0, 0x10);
     state           = (MidiSong*)func_80051808(0xFF);
     state->field_1  = 0xFF;
     state->field_A  = 0x10;
@@ -963,7 +963,7 @@ void func_80051DF4(MidiSong* arg0)
     s32                      volume;
     s32                      i;
     MidiNoteSlot*            slot;
-    register GStruct22Entry* entry asm("t0");
+    register MidiOpcodeSlot* entry asm("t0");
     s32                      product;
     u32                      vol;
     register s32             channel asm("t0");
@@ -1258,7 +1258,7 @@ u8* func_800528F8(s32 arg0, u8* arg1, MidiSong* arg2)
     return ptr + 2;
 }
 
-u8* func_800529BC(s32 arg0, u8* arg1, GStruct22* arg2)
+u8* func_800529BC(s32 arg0, u8* arg1, MidiOpcodeCtx* arg2)
 {
     arg2->field_484[arg0 & 0xF].field_4 = arg1[1];
     return arg1 + 2;

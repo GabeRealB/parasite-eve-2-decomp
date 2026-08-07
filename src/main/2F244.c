@@ -10,18 +10,18 @@
 
 void func_8003EA44(void)
 {
-    GStruct17* p;
-    s32        temp;
-    s32        product;
-    s32        otIdx;
-    s32        yoff;
-    u8         max;
-    u8         val;
-    TILE*      tile;
-    DR_TPAGE*  dr;
-    u_long*    ot;
+    StageCtx* p;
+    s32       temp;
+    s32       product;
+    s32       otIdx;
+    s32       yoff;
+    u8        max;
+    u8        val;
+    TILE*     tile;
+    DR_TPAGE* dr;
+    u_long*   ot;
 
-    p = D_80062698;
+    p = Stage_Ctx;
     if ((s8)p->field_19 & 0x80) {
         p->field_19 = p->field_19 & 0x7F;
         return;
@@ -34,13 +34,13 @@ void func_8003EA44(void)
             temp    = p->field_17;
             temp    = temp + product;
             if (temp <= 0) {
-                p->field_17          = 0;
-                D_80062698->field_18 = 0;
+                p->field_17         = 0;
+                Stage_Ctx->field_18 = 0;
             } else {
                 max = p->field_1a;
                 if (temp >= (s32)max) {
-                    p->field_17          = max;
-                    D_80062698->field_18 = 0;
+                    p->field_17         = max;
+                    Stage_Ctx->field_18 = 0;
                 } else {
                     p->field_17 = (u8)temp;
                 }
@@ -48,11 +48,11 @@ void func_8003EA44(void)
         }
     }
 
-    if (D_80062698->field_17 != 0) {
+    if (Stage_Ctx->field_17 != 0) {
         otIdx = 0;
-        if (D_80062698->field_19 & 2) {
+        if (Stage_Ctx->field_19 & 2) {
             otIdx = 0x3FF;
-            if (D_80062698->field_13 == 0) {
+            if (Stage_Ctx->field_13 == 0) {
                 otIdx = 0x3F;
             }
         }
@@ -66,14 +66,14 @@ void func_8003EA44(void)
         tile->y0 = -0x78 - yoff;
         tile->w  = 0x140;
         tile->h  = 0xF0;
-        val      = D_80062698->field_17;
+        val      = Stage_Ctx->field_17;
         tile->b0 = val;
         tile->g0 = val;
         tile->r0 = val;
 
         dr         = (DR_TPAGE*)D_80071190;
         D_80071190 = dr + 1;
-        if (!(D_80062698->field_19 & 1)) {
+        if (!(Stage_Ctx->field_19 & 1)) {
             setlen(dr, 1);
             dr->code[0] = 0xE1000240;
         } else {
@@ -92,7 +92,7 @@ s32 func_8003EC44(Task* arg0)
     RECT rect;
     s32  temp_v1;
 
-    temp_v1 = D_80062698->field_28;
+    temp_v1 = Stage_Ctx->field_28;
     if (temp_v1 == 1) {
         goto case1;
     }
@@ -109,20 +109,20 @@ s32 func_8003EC44(Task* arg0)
 
 case0:
     SetDispMask(0);
-    D_80062698->field_24    = Display_State.field_118;
+    Stage_Ctx->field_24     = Display_State.field_118;
     Display_State.field_122 = 1;
     func_800149E8(Game_Session->field_7, Game_Session->field_6, Display_State.field_118);
     Display_State.field_103 = 2;
-    D_80062698->field_28    = D_80062698->field_28 + 1;
+    Stage_Ctx->field_28     = Stage_Ctx->field_28 + 1;
     goto end;
 case1:
     if (func_8001D344() & 0xFFFF) {
-        CdCmd_Enqueue(0x21, D_80062698->field_2C, D_80062698->field_34);
-        D_80062698->field_28 = D_80062698->field_28 + 1;
+        CdCmd_Enqueue(0x21, Stage_Ctx->field_2C, Stage_Ctx->field_34);
+        Stage_Ctx->field_28 = Stage_Ctx->field_28 + 1;
     }
     goto end;
 case2:
-    if ((func_8001D344() & 0xFFFF) && (Display_State.field_118 != D_80062698->field_24)) {
+    if ((func_8001D344() & 0xFFFF) && (Display_State.field_118 != Stage_Ctx->field_24)) {
         func_8001490C(Game_Session->field_7, Game_Session->field_6, Display_State.field_118, 0x10000);
         Mem_InitAux();
         rect.x = 0;
@@ -136,17 +136,17 @@ case2:
         rect.y = Display_State.field_118 * 0x110;
         ClearImage(&rect, 0, 0, 0);
         DrawSync(0);
-        D_80062698->field_12 = 1;
-        D_80062698->field_28 = D_80062698->field_28 + 1;
+        Stage_Ctx->field_12 = 1;
+        Stage_Ctx->field_28 = Stage_Ctx->field_28 + 1;
     }
     goto end;
 case3:
     Display_State.field_103 = 1;
     Display_State.field_100 = 2;
-    D_80062698->field_28    = D_80062698->field_28 + 1;
+    Stage_Ctx->field_28     = Stage_Ctx->field_28 + 1;
 default_case:
     SetDispMask(1);
-    D_80062698->field_1c = D_80062698->field_1c & 0xF7FFFFFF;
+    Stage_Ctx->field_1c = Stage_Ctx->field_1c & 0xF7FFFFFF;
 end:
     return 1;
 }
@@ -161,9 +161,9 @@ Task* func_8003EE68(void)
     GameSessionFrom4* ed;
     s32               flag;
 
-    ret = Task_SpawnFromTable(D_80062698->field_0, 0, D_80062698->field_4, D_80062698->field_8);
+    ret = Task_SpawnFromTable(Stage_Ctx->field_0, 0, Stage_Ctx->field_4, Stage_Ctx->field_8);
     if (ret != NULL) {
-        mode = D_80062698->field_C;
+        mode = Stage_Ctx->field_C;
         if (mode == 4) {
             goto block_case4;
         }
@@ -179,19 +179,19 @@ Task* func_8003EE68(void)
         goto block_default;
 
     block_case4:
-        D_80062698->field_11 = 2;
-        slot                 = func_8002D22C(3);
-        obj                  = (GameActor*)slot->field_1C;
-        flag                 = obj->field_984 & 1;
-        ptr                  = ((GameActorExt*)slot->field_2c)->field_8;
+        Stage_Ctx->field_11 = 2;
+        slot                = func_8002D22C(3);
+        obj                 = (GameActor*)slot->field_1C;
+        flag                = obj->field_984 & 1;
+        ptr                 = ((GameActorExt*)slot->field_2c)->field_8;
         if (flag) {
             func_801011D0(ptr, obj->field_90, 6, &obj->field_930);
         }
         func_800E1A6C(&obj->field_17C);
         *ptr = 0;
     block_case13:
-        D_80062698->field_15 = 1;
-        if (D_80062698->field_C == 3) {
+        Stage_Ctx->field_15 = 1;
+        if (Stage_Ctx->field_C == 3) {
             Display_State.field_103 = 2;
             Display_State.field_100 = 0;
         } else {
@@ -207,7 +207,7 @@ block_default:
     ed = (GameSessionFrom4*)&Game_Session->field_4;
     func_80041E4C();
     func_8001490C(ed->field_3, ed->field_2, Display_State.field_1f, 0x10000);
-    if (D_80062698->field_C == 0x100) {
+    if (Stage_Ctx->field_C == 0x100) {
         func_8003F5A4();
     }
     Mem_InitAux();
@@ -234,24 +234,24 @@ void func_8003F034(Task* arg0)
     u32          flags;
     s32          state;
     GameSession* ed;
-    GStruct17*   g;
+    StageCtx*    g;
     s32          flag;
     s32          f11;
     s32          disp;
 
-    flags = D_80062698->field_1c;
+    flags = Stage_Ctx->field_1c;
     if (flags & 0x40000000) {
         Pad_SetCooldown(0);
-        D_80062698->field_15 = 0;
-        state                = D_80062698->field_28;
+        Stage_Ctx->field_15 = 0;
+        state               = Stage_Ctx->field_28;
         switch (state) {
             case 0:
-                D_80062698->field_24    = Display_State.field_118;
-                Game_Session->field_4   = D_80062698->field_20;
-                D_80062698->field_C     = 0;
+                Stage_Ctx->field_24     = Display_State.field_118;
+                Game_Session->field_4   = Stage_Ctx->field_20;
+                Stage_Ctx->field_C      = 0;
                 Display_State.field_103 = 2;
                 func_800144F8(Game_Session->field_7, Game_Session->field_6);
-                if (!(D_80062698->field_1c & 0x10000000)) {
+                if (!(Stage_Ctx->field_1c & 0x10000000)) {
                     ((Task*)func_8002D22C(1))->field_34 = (u8)Game_Session->field_4;
                     ResetGraph(1);
                     F179D4_ClearOTag(0);
@@ -266,22 +266,22 @@ void func_8003F034(Task* arg0)
                     func_80041EB4();
                     Game_Session->field_4D = 1;
                 }
-                D_80062698->field_28 = D_80062698->field_28 + 1;
+                Stage_Ctx->field_28 = Stage_Ctx->field_28 + 1;
                 break;
             case 1:
                 ed   = Game_Session;
                 flag = ed->field_4D;
                 if (flag == 1) {
                     disp = Display_State.field_118;
-                    g    = D_80062698;
+                    g    = Stage_Ctx;
                     if (disp == g->field_24) {
                         f11          = g->field_11;
                         ed->field_4D = 0;
                         if (f11 == 0) {
-                            arg0->field_2a       = flag;
-                            D_80062698->field_28 = D_80062698->field_28 + 2;
+                            arg0->field_2a      = flag;
+                            Stage_Ctx->field_28 = Stage_Ctx->field_28 + 2;
                         } else {
-                            D_80062698->field_28 = D_80062698->field_28 + 1;
+                            Stage_Ctx->field_28 = Stage_Ctx->field_28 + 1;
                         }
                     }
                     func_8001CDF0();
@@ -290,10 +290,10 @@ void func_8003F034(Task* arg0)
             case 2:
                 Display_State.field_114 = Display_State.field_118;
                 func_8003F450(0);
-                D_80062698->field_19    = D_80062698->field_19 | 0x80;
+                Stage_Ctx->field_19     = Stage_Ctx->field_19 | 0x80;
                 Display_State.field_103 = Display_State.field_103 | 0x10;
                 arg0->field_2a          = 3;
-                D_80062698->field_28    = D_80062698->field_28 + 1;
+                Stage_Ctx->field_28     = Stage_Ctx->field_28 + 1;
                 break;
             case 3:
                 Display_State.field_103 = 2;
@@ -303,24 +303,24 @@ void func_8003F034(Task* arg0)
                     func_8001490C(Game_Session->field_7, Game_Session->field_6,
                                   Display_State.field_118, 0x10000);
                     Mem_InitAux();
-                    D_80062698->field_12 = 0;
-                    if ((s32)D_80062698->field_1c < 0) {
+                    Stage_Ctx->field_12 = 0;
+                    if ((s32)Stage_Ctx->field_1c < 0) {
                         Pad_ClearCooldown(0);
                         arg0->field_30 = arg0->field_30 + 1;
                         func_8003FD58(arg0);
                         return;
                     }
-                    D_80062698->field_28 = D_80062698->field_28 + 1;
+                    Stage_Ctx->field_28 = Stage_Ctx->field_28 + 1;
                 }
                 break;
             case 4:
                 Display_State.field_103 = 1;
                 Display_State.field_100 = 3;
-                D_80062698->field_28    = D_80062698->field_28 + 1;
+                Stage_Ctx->field_28     = Stage_Ctx->field_28 + 1;
                 break;
             case 5:
                 Pad_ClearCooldown(0);
-                D_80062698->field_1c = D_80062698->field_1c & 0xBFFFFFFF;
+                Stage_Ctx->field_1c = Stage_Ctx->field_1c & 0xBFFFFFFF;
                 break;
         }
     } else if (flags & 0x08000000) {
@@ -331,10 +331,10 @@ void func_8003F034(Task* arg0)
     } else if (flags & 0x20000000) {
         func_8001490C(Game_Session->field_7, Game_Session->field_6, Display_State.field_118,
                       0x10000);
-        D_80062698->field_1c = D_80062698->field_1c & 0xDFFFFFFF;
+        Stage_Ctx->field_1c = Stage_Ctx->field_1c & 0xDFFFFFFF;
     }
 
-    if (D_80062698->field_C == 4) {
+    if (Stage_Ctx->field_C == 4) {
         func_8003F450(0);
     }
 }
@@ -358,7 +358,7 @@ void func_8003F450(s32 arg0)
     D_800710A0      = ot + 0x20;
     temp->field_103 = 0;
     temp->field_1f  = *(u8*)&temp->field_118;
-    mode            = D_80062698->field_11;
+    mode            = Stage_Ctx->field_11;
     switch (mode) {
         case 3:
         case 0x20:
@@ -466,19 +466,19 @@ void func_8003F690(void)
 
 s32 func_8003F6F8(void)
 {
-    D_80062698->field_1c |= 0x80000000;
+    Stage_Ctx->field_1c |= 0x80000000;
     return 0;
 }
 
 s32 func_8003F71C(s32 arg0, s32 arg1)
 {
-    GStruct17* temp;
-    s32        mask;
+    StageCtx* temp;
+    s32       mask;
 
     mask = 0x40000000;
-    if (!(D_80062698->field_1c & mask)) {
+    if (!(Stage_Ctx->field_1c & mask)) {
         Pad_SetCooldown(0);
-        temp            = D_80062698;
+        temp            = Stage_Ctx;
         temp->field_20  = arg0;
         temp->field_24  = 0;
         temp->field_28  = 0;
@@ -490,58 +490,58 @@ s32 func_8003F71C(s32 arg0, s32 arg1)
 
 s32 func_8003F7A8(s32 arg0)
 {
-    GStruct17* temp;
-    s32        mask;
-    s32        ret;
+    StageCtx* temp;
+    s32       mask;
+    s32       ret;
 
     mask = 0x40000000;
     ret  = -1;
-    if (!(D_80062698->field_1c & mask)) {
+    if (!(Stage_Ctx->field_1c & mask)) {
         Pad_SetCooldown(0);
-        temp                  = D_80062698;
-        temp->field_20        = arg0;
-        temp->field_24        = 0;
-        temp->field_28        = 0;
-        temp->field_11        = 7;
-        temp->field_1c       |= mask;
-        ret                   = (u8)Game_Session->field_4;
-        D_80062698->field_1c |= 0x80000000;
+        temp                 = Stage_Ctx;
+        temp->field_20       = arg0;
+        temp->field_24       = 0;
+        temp->field_28       = 0;
+        temp->field_11       = 7;
+        temp->field_1c      |= mask;
+        ret                  = (u8)Game_Session->field_4;
+        Stage_Ctx->field_1c |= 0x80000000;
     }
     return ret;
 }
 
 s32 func_8003F848(void)
 {
-    D_80062698->field_1c |= 0x20000000;
+    Stage_Ctx->field_1c |= 0x20000000;
     return 0;
 }
 
 s32 func_8003F86C(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0) {
-        D_80062698->field_18 = 0x20;
+        Stage_Ctx->field_18 = 0x20;
     } else {
-        D_80062698->field_18 = arg2;
+        Stage_Ctx->field_18 = arg2;
     }
     if (arg0 != 0) {
-        D_80062698->field_18 = -D_80062698->field_18;
+        Stage_Ctx->field_18 = -Stage_Ctx->field_18;
     }
-    D_80062698->field_19 = 0;
+    Stage_Ctx->field_19 = 0;
     if (arg1 != 0) {
-        D_80062698->field_19 |= 1;
+        Stage_Ctx->field_19 |= 1;
     }
     if (arg3 != 0) {
-        D_80062698->field_19 |= 2;
+        Stage_Ctx->field_19 |= 2;
     }
     return 0;
 }
 
 s32 func_8003F900(void)
 {
-    GStruct17* temp;
-    u8         temp_a0;
+    StageCtx* temp;
+    u8        temp_a0;
 
-    temp    = D_80062698;
+    temp    = Stage_Ctx;
     temp_a0 = temp->field_17;
     if (temp_a0 == 0) {
         return 0;
@@ -554,36 +554,36 @@ s32 func_8003F900(void)
 
 s32 func_8003F944(void)
 {
-    return (D_80062698->field_1c & 0x48000000) != 0;
+    return (Stage_Ctx->field_1c & 0x48000000) != 0;
 }
 
 void func_8003F964(void)
 {
-    if (D_80062698->field_13 == 0) {
+    if (Stage_Ctx->field_13 == 0) {
         func_8003E904();
-        D_80062698->field_13 = 1;
+        Stage_Ctx->field_13 = 1;
     }
 }
 
 void func_8003F9AC(void)
 {
-    if (D_80062698->field_14 == 0) {
+    if (Stage_Ctx->field_14 == 0) {
         func_8003E9A4();
-        D_80062698->field_14 = 1;
+        Stage_Ctx->field_14 = 1;
     }
 }
 
 void func_8003F9F4(void)
 {
-    if (D_80062698->field_14 == 1) {
+    if (Stage_Ctx->field_14 == 1) {
         func_8003E9C4();
-        D_80062698->field_14 = 0;
+        Stage_Ctx->field_14 = 0;
     }
 }
 
 void func_8003FA3C(u8 arg0)
 {
-    D_80062698->field_1a = arg0;
+    Stage_Ctx->field_1a = arg0;
 }
 
 void func_8003FA4C(s32 arg0)
@@ -612,11 +612,11 @@ void func_8003FA4C(s32 arg0)
 
 s32 func_8003FB20(void)
 {
-    GStruct17* temp;
-    u32        flags;
-    s32        val;
+    StageCtx* temp;
+    u32       flags;
+    s32       val;
 
-    temp  = D_80062698;
+    temp  = Stage_Ctx;
     flags = temp->field_1c;
     if (!(flags & 0x40000000)) {
         temp->field_1c = flags | 0x50000000;
@@ -631,20 +631,20 @@ s32 func_8003FB20(void)
 
 s32 func_8003FB70(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    GStruct17* temp;
-    u8*        ptr;
-    u32        i;
+    StageCtx* temp;
+    u8*       ptr;
+    u32       i;
 
     if (Display_State.field_10d != 0) {
         return 0;
     }
 
-    ptr = (u8*)D_80062698;
+    ptr = (u8*)Stage_Ctx;
     for (i = 0; i < 0x38U; i++) {
         *ptr++ = 0;
     }
 
-    temp          = D_80062698;
+    temp          = Stage_Ctx;
     temp->field_0 = arg0;
     temp->field_4 = arg1;
     temp->field_8 = arg2;
@@ -654,21 +654,21 @@ s32 func_8003FB70(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
             temp->field_C = 1;
         }
     }
-    D_80062698->field_1a    = 0xFF;
+    Stage_Ctx->field_1a     = 0xFF;
     Display_State.field_10d = 0x81;
     return 0;
 }
 
 u8 func_8003FC18(void)
 {
-    return D_80062698->field_12;
+    return Stage_Ctx->field_12;
 }
 
 void func_8003FC30(u8 arg0)
 {
-    GStruct17* temp;
+    StageCtx* temp;
 
-    temp = D_80062698;
+    temp = Stage_Ctx;
     if (temp->field_15 == 1) {
         temp->field_11 = arg0;
         func_8003F450(0);
@@ -677,8 +677,8 @@ void func_8003FC30(u8 arg0)
 
 void func_8003FC6C(void)
 {
-    D_80062698->field_17 = 0;
-    D_80062698->field_1a = 0xFF;
+    Stage_Ctx->field_17 = 0;
+    Stage_Ctx->field_1a = 0xFF;
 }
 
 void func_8003FC8C(Task* arg0)
@@ -708,7 +708,7 @@ void func_8003FD58(Task* arg0)
     u32 temp_v1;
 
     Display_State.field_103 = 2;
-    temp_v1                 = D_80062698->field_C;
+    temp_v1                 = Stage_Ctx->field_C;
     if (temp_v1 < 5U) {
         if (temp_v1 < 3U) {
             if (temp_v1 != 1) {

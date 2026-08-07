@@ -400,7 +400,7 @@ func_8001F854               = 0x8001F854; // type:func
 func_8001F990               = 0x8001F990; // type:func
 func_8001FAE0               = 0x8001FAE0; // type:func
 func_80020058               = 0x80020058; // type:func
-func_80020278               = 0x80020278; // type:func
+Stream_GetSlot               = 0x80020278; // type:func
 func_80020298               = 0x80020298; // type:func
 func_80020388               = 0x80020388; // type:func
 func_80020394               = 0x80020394; // type:func
@@ -1829,9 +1829,9 @@ F3D458_Malloc               = 0x8004D5D8; // type:func
 F3D458_Free                 = 0x8004D6C8; // type:func
 func_8004D7D4               = 0x8004D7D4; // type:func
 func_8004D820               = 0x8004D820; // type:func
-F3D458_8004D88C             = 0x8004D88C; // type:func
-func_8004D8BC               = 0x8004D8BC; // type:func
-func_8004D94C               = 0x8004D94C; // type:func
+AudioTick_Reset             = 0x8004D88C; // type:func
+AudioTick_Process               = 0x8004D8BC; // type:func
+AudioTick_Remove               = 0x8004D94C; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x3E21C   VA: 0x8004DA1C   subsegment: o, libspu/s_i
@@ -1872,7 +1872,7 @@ func_8004E200               = 0x8004E200; // type:func
 F3E48C_8004E44C             = 0x8004E44C; // type:func
 func_8004E560               = 0x8004E560; // type:func
 func_8004E580               = 0x8004E580; // type:func
-func_8004E5A0               = 0x8004E5A0; // type:func
+Spu_SetVoiceRange               = 0x8004E5A0; // type:func
 Spu_GetVoiceRef               = 0x8004E5C4; // type:func
 F3E48C_8004E660             = 0x8004E660; // type:func
 func_8004E6A4               = 0x8004E6A4; // type:func
@@ -2700,17 +2700,17 @@ _LC                         = 0x800740C0;
 //--------------------------------------------------------------------
 D648E0_HeapStart            = 0x8007A3A0; // type:s32
 D648E0_HeapBuffer           = 0x8007A3B0; // type:u8 size:0x3D00
-D648E0_8007E0B0             = 0x8007E0B0; // type:GStruct8 size:0x18
-D648E0_8007E0C8             = 0x8007E0C8; // type:u32
+AudioTick_List             = 0x8007E0B0; // type:AudioTickNode size:0x18
+AudioTick_Enabled             = 0x8007E0C8; // type:u32
 D648E0_SpuTimerED           = 0x8007E0D0; // type:s32
 Spu_VoiceState             = 0x8007E338; // type:SpuVoiceState size:0x1D4
 Spu_LVoiceTable             = 0x8007E518; // type:SpuLVoiceTable size:0x67C
-D_8007EB98                  = 0x8007EB98; // type:GStruct26
+Spu_VoiceRanges                  = 0x8007EB98; // type:SpuVoiceRange
 D648E0_8007EBA8             = 0x8007EBA8; // type:u32
 D648E0_8007EBAC             = 0x8007EBAC; // type:u32
 D648E0_8007EBB0             = 0x8007EBB0; // type:u32
 D648E0_SpuReverbCfg         = 0x8007EBB8; // type:SpuReverbConfig size:0x24
-D_80082798                  = 0x80082798; // type:GStruct4 size:0x6
+CdAudio_Phase                  = 0x80082798; // type:CdAudioPhase size:0x6
 CdStream_Params             = 0x800827C4; // type:CdStreamParams size:0x20
 CdStream_State              = 0x80082818; // type:CdStreamState size:0x58
 CdStream_Channels           = 0x80082870; // type:CdStreamChannels size:0x80
@@ -2748,3 +2748,10 @@ SndEvt_Lock                 = 0x8007EBE0;
 SndEvt_Handlers             = 0x80068984;
 Tmd_List                    = 0x800711B8; // type:TmdListHead size:0x8
 Tmd_ListAlt                 = 0x800711C0; // type:TmdListHead size:0x8
+
+// CdAudio / AudioTick / Spu range / Stream slot renames
+CdAudio_Loc                 = 0x800827A0; // type:CdAudioLoc
+CdAudio_Tbl                 = 0x80082758; // type:CdAudioTbl size:0x18
+CdAudio_Ctl                 = 0x80082780; // type:CdAudioCtl size:0x14
+Stream_Slots                = 0x8006D4F0; // type:StreamSlot size:0x258
+Stage_Ctx                   = 0x80062698;

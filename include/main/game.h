@@ -27,15 +27,15 @@
 
 // CdCmdEntry / CdCmdQueue live in main/fs.h
 
-typedef struct _GStruct4 {
+typedef struct _CdAudioPhase {
     u8 field_0;
     u8 field_1;
     u8 field_2;
     u8 field_3;
     u8 field_4;
     u8 field_5;
-} GStruct4;
-STATIC_ASSERT_SIZEOF(GStruct4, 0x6);
+} CdAudioPhase;
+STATIC_ASSERT_SIZEOF(CdAudioPhase, 0x6);
 
 typedef struct _GStruct5 {
     byte unknown_0[0x4];
@@ -63,15 +63,15 @@ typedef struct _SpuReverbConfig {
 } SpuReverbConfig;
 STATIC_ASSERT_SIZEOF(SpuReverbConfig, 0x24);
 
-typedef struct _GStruct8 {
+typedef struct _AudioTickNode {
     s32 field_0;
     s32 field_4;
     s16 field_8;
     s32 field_c;
     s32 field_10;
     s32 field_14;
-} GStruct8;
-STATIC_ASSERT_SIZEOF(GStruct8, 0x18);
+} AudioTickNode;
+STATIC_ASSERT_SIZEOF(AudioTickNode, 0x18);
 
 typedef struct _SpuVoiceState {
     u32 reverbVoiceStatus;
@@ -203,8 +203,8 @@ typedef struct _SndEvt {
 } SndEvt;
 STATIC_ASSERT_SIZEOF(SndEvt, 0x1C);
 
-/// Pointed to by D_80062698 (bss object D_8007A320, size 0x38).
-typedef struct _GStruct17 {
+/// Pointed to by Stage_Ctx (bss object D_8007A320, size 0x38).
+typedef struct _StageCtx {
     /* 0x00 */ TaskDesc* field_0;
     /* 0x04 */ s32       field_4;
     /* 0x08 */ s32       field_8;
@@ -227,19 +227,19 @@ typedef struct _GStruct17 {
     /* 0x28 */ s32       field_28;
     /* 0x2C */ u8        field_2C[8];
     /* 0x34 */ u8        field_34[4];
-} GStruct17;
-STATIC_ASSERT_SIZEOF(GStruct17, 0x38);
+} StageCtx;
+STATIC_ASSERT_SIZEOF(StageCtx, 0x38);
 
-/// BSS object D_800827A0 (size 0x10).
-typedef struct _GStruct18 {
+/// BSS object CdAudio_Loc (size 0x10).
+typedef struct _CdAudioLoc {
     u8  field_0;
     u8  field_1;
     u16 field_2;
     s32 field_4;
     s32 field_8;
     s32 field_C;
-} GStruct18;
-STATIC_ASSERT_SIZEOF(GStruct18, 0x10);
+} CdAudioLoc;
+STATIC_ASSERT_SIZEOF(CdAudioLoc, 0x10);
 
 /// Sector payload pointed to by CdStreamState::sector (MTS audio stream sector).
 typedef struct _MtsSector {
@@ -343,15 +343,15 @@ typedef struct _CdReadyQueue {
 STATIC_ASSERT_SIZEOF(CdReadyQueue, 0x58);
 
 /// Object passed to func_80048C10 / func_80048D58 (e.g. via Task::field_20).
-typedef struct _GStruct20 {
+typedef struct _UiMiniObj {
     /* 0x00 */ s32  field_0;
     /* 0x04 */ byte unknown_4[0x18];
     /* 0x1C */ s16  field_1c;
     /* 0x1E */ s16  unknown_1e;
     /* 0x20 */ s16  field_20;
     /* 0x22 */ s16  field_22;
-} GStruct20;
-STATIC_ASSERT_SIZEOF(GStruct20, 0x24);
+} UiMiniObj;
+STATIC_ASSERT_SIZEOF(UiMiniObj, 0x24);
 
 /// Object at Task::field_20 used by func_80048838 / Mc_HideChildUi /
 /// Mc_DrawPrompt / func_800486F0. Shares the UiPanel layout through offset
@@ -426,10 +426,10 @@ typedef struct TextBlockDesc {
 } TextBlockDesc;
 STATIC_ASSERT_SIZEOF(TextBlockDesc, 0xC);
 
-/// 8-byte slot at GStruct22::field_484 (16 entries, indexed by opcode low nibble).
+/// 8-byte slot at MidiOpcodeCtx::field_484 (16 entries, indexed by opcode low nibble).
 /// Seeded as the word 0x407F4000 by func_800528BC (field_0..field_3 little-endian);
 /// field_0 is tested as a flag byte (lbu); field_4 is a byte written by handlers.
-typedef struct _GStruct22Entry {
+typedef struct _MidiOpcodeSlot {
     /* 0x0 */ u8  field_0;
     /* 0x1 */ u8  field_1;
     /* 0x2 */ u8  field_2;
@@ -437,19 +437,19 @@ typedef struct _GStruct22Entry {
     /* 0x4 */ u8  field_4;
     /* 0x5 */ u8  field_5;
     /* 0x6 */ s16 field_6;
-} GStruct22Entry;
-STATIC_ASSERT_SIZEOF(GStruct22Entry, 0x8);
+} MidiOpcodeSlot;
+STATIC_ASSERT_SIZEOF(MidiOpcodeSlot, 0x8);
 
 /// Large context object used by 410B0.c opcode handlers (e.g. func_800529BC).
 /// Only fields used so far are named; size is incomplete.
-typedef struct _GStruct22 {
+typedef struct _MidiOpcodeCtx {
     /* 0x000 */ byte           unknown_0[0x484];
-    /* 0x484 */ GStruct22Entry field_484[16];
-} GStruct22;
+    /* 0x484 */ MidiOpcodeSlot field_484[16];
+} MidiOpcodeCtx;
 
-/// Element of BSS array D_8006D4F0 (15 entries, total 0x258).
+/// Element of BSS array Stream_Slots (15 entries, total 0x258).
 /// Fields inferred from F344.c accessors (func_8001ED20, func_8001EED8, etc.).
-typedef struct _GStruct24 {
+typedef struct _StreamSlot {
     /* 0x00 */ s16  field_0;
     /* 0x02 */ byte unknown_2[0x2];
     /* 0x04 */ s32  field_4;
@@ -468,8 +468,8 @@ typedef struct _GStruct24 {
     /* 0x22 */ u16  field_22;
     /* 0x24 */ u16  field_24;
     /* 0x26 */ u16  field_26;
-} GStruct24;
-STATIC_ASSERT_SIZEOF(GStruct24, 0x28);
+} StreamSlot;
+STATIC_ASSERT_SIZEOF(StreamSlot, 0x28);
 
 /// UI list/menu object (data symbols D_8006116C, D_80061194, D_8006125C,
 /// D_80061284, D_800612AC, D_80067654; size 0x24).
@@ -508,12 +508,12 @@ typedef struct _GStruct64 {
     /* 0x290 */ s32  field_290;
 } GStruct64;
 
-/// 4-byte entry at D_8007EB98 (see func_8004E5A0).
-typedef struct _GStruct26 {
+/// 4-byte entry at Spu_VoiceRanges (see Spu_SetVoiceRange).
+typedef struct _SpuVoiceRange {
     s16 field_0;
     s16 field_2;
-} GStruct26;
-STATIC_ASSERT_SIZEOF(GStruct26, 0x4);
+} SpuVoiceRange;
+STATIC_ASSERT_SIZEOF(SpuVoiceRange, 0x4);
 
 /// Source/model data pointed to by TmdObject::field_10 (see Tmd_Create).
 /// field_0 is a one-shot init flag (func_800409D0 sets it to 1).
@@ -833,7 +833,7 @@ STATIC_ASSERT_SIZEOF(MidiNoteSlot, 0xC);
 
 /// 0x10-byte linear interpolator state used by LinInterp_Setup / LinInterp_Apply /
 /// LinInterp_Step. Embedded at MidiSong::field_14; BSS object LinInterp_CdStream sits
-/// 0x14 bytes after D_800827A0.
+/// 0x14 bytes after CdAudio_Loc.
 typedef struct _LinInterp {
     /* 0x0 */ s32 field_0;
     /* 0x4 */ s32 field_4;
@@ -850,7 +850,7 @@ STATIC_ASSERT_SIZEOF(LinInterp, 0x10);
 /// field_10 is a data pointer; field_14 is the volume interpolator.
 /// field_34 is a tempo/rate scale used by Midi_DriveTrack with field_4+field_5;
 /// field_38 is accumulated song ticks advanced by that driver.
-/// field_484 is a 16-entry opcode table (same layout as GStruct22::field_484);
+/// field_484 is a 16-entry opcode table (same layout as MidiOpcodeCtx::field_484);
 /// func_800528BC seeds each entry with 0x407F4000 / 0.
 /// voiceSlots holds up to 18 active SPU voice indices (field_0 = -1 when free).
 typedef struct _SndBank      SndBank;
@@ -880,7 +880,7 @@ typedef struct _MidiSong {
     /* 0x48 */ SndNote*        field_48;
     /* 0x4C */ MidiTrack       entries[1];
     /* 0x88 */ u8              unknown_88[0x484 - 0x88];
-    /* 0x484 */ GStruct22Entry field_484[16];
+    /* 0x484 */ MidiOpcodeSlot field_484[16];
     /* 0x504 */ MidiNoteSlot   voiceSlots[0x12];
 } MidiSong;
 STATIC_ASSERT_SIZEOF(MidiSong, 0x5DC);
@@ -971,10 +971,10 @@ typedef struct _TextStream {
 } TextStream;
 STATIC_ASSERT_SIZEOF(TextStream, 0x20);
 
-/// BSS object D_80082758 (size 0x18). CD/audio stream state for 46FE4.c.
+/// BSS object CdAudio_Tbl (size 0x18). CD/audio stream state for 46FE4.c.
 /// field_C is a base pointer into a halfword table; func_80057A1C indexes it
 /// with ((packed >> 14) & 0x3FC) / 2 (4-byte stride, low halfword of each slot).
-typedef struct _GStruct39 {
+typedef struct _CdAudioTbl {
     /* 0x00 */ u8   field_0;
     /* 0x01 */ u8   field_1;
     /* 0x02 */ u8   field_2;
@@ -984,8 +984,8 @@ typedef struct _GStruct39 {
     /* 0x0C */ u16* field_C;
     /* 0x10 */ s32  field_10;
     /* 0x14 */ s32  field_14;
-} GStruct39;
-STATIC_ASSERT_SIZEOF(GStruct39, 0x18);
+} CdAudioTbl;
+STATIC_ASSERT_SIZEOF(CdAudioTbl, 0x18);
 
 /// BSS object D_80073B88 (size 0x80). Initialized by func_8004C4D0.
 /// field_18..field_1e are four s16 values set to 100; field_21/field_26 are flags.
@@ -1058,8 +1058,8 @@ struct _SndBank {
 };
 STATIC_ASSERT_SIZEOF(SndBank, 0x20);
 
-/// BSS object D_80082780 (size 0x14). CD stream control for 46FE4.c.
-typedef struct _GStruct44 {
+/// BSS object CdAudio_Ctl (size 0x14). CD stream control for 46FE4.c.
+typedef struct _CdAudioCtl {
     /* 0x00 */ s32 field_0;
     /* 0x04 */ s32 field_4;
     /* 0x08 */ u8  field_8;
@@ -1068,8 +1068,8 @@ typedef struct _GStruct44 {
     /* 0x0B */ u8  field_B;
     /* 0x0C */ s32 field_C;
     /* 0x10 */ s32 field_10;
-} GStruct44;
-STATIC_ASSERT_SIZEOF(GStruct44, 0x14);
+} CdAudioCtl;
+STATIC_ASSERT_SIZEOF(CdAudioCtl, 0x14);
 
 /// BSS object CdStream_Params (size 0x20). CD/SPU stream setup block for
 /// func_800567E4 / CdStream_Start: sector position, buffer, callbacks, and
@@ -1138,7 +1138,7 @@ typedef struct _AsyncCbQueue {
 STATIC_ASSERT_SIZEOF(AsyncCbQueue, 0x54);
 
 /// 4-byte entry pointed to by D_80082794 (see func_80057724).
-/// Indexed by D_80082758.field_2; field_3 is compared across adjacent entries.
+/// Indexed by CdAudio_Tbl.field_2; field_3 is compared across adjacent entries.
 typedef struct _GStruct52 {
     /* 0x0 */ u8 pad[3];
     /* 0x3 */ u8 field_3;
@@ -1239,9 +1239,9 @@ typedef struct _SndScript {
 } SndScript;
 STATIC_ASSERT_SIZEOF(SndScript, 0x60);
 
-/// BSS block covering D_800827A0 (0x10) + D_800827B0 (0x4). Immediately precedes
+/// BSS block covering CdAudio_Loc (0x10) + D_800827B0 (0x4). Immediately precedes
 /// LinInterp_CdStream; used when codegen holds &LinInterp_CdStream and reaches back 0x14 bytes.
-typedef struct _GStruct56 {
+typedef struct _CdAudioLocEx {
     /* 0x00 */ u8  field_0;
     /* 0x01 */ u8  field_1;
     /* 0x02 */ u16 field_2;
@@ -1249,18 +1249,18 @@ typedef struct _GStruct56 {
     /* 0x08 */ s32 field_8;
     /* 0x0C */ s32 field_C;
     /* 0x10 */ s32 field_10;
-} GStruct56;
-STATIC_ASSERT_SIZEOF(GStruct56, 0x14);
+} CdAudioLocEx;
+STATIC_ASSERT_SIZEOF(CdAudioLocEx, 0x14);
 
-/// Extended view of the D_800827A0 BSS block for SPU voice indices at +0x3E/+0x3F
+/// Extended view of the CdAudio_Loc BSS block for SPU voice indices at +0x3E/+0x3F
 /// (used by func_800569D4 / func_80056E38). The zero-init in func_800574BC covers
-/// 0x44 bytes from D_800827A0, so these offsets sit inside that block.
-typedef struct _GStruct61 {
+/// 0x44 bytes from CdAudio_Loc, so these offsets sit inside that block.
+typedef struct _CdAudioVoices {
     /* 0x00 */ u8 pad[0x3E];
     /* 0x3E */ s8 field_3E;
     /* 0x3F */ s8 field_3F;
-} GStruct61;
-STATIC_ASSERT_SIZEOF(GStruct61, 0x40);
+} CdAudioVoices;
+STATIC_ASSERT_SIZEOF(CdAudioVoices, 0x40);
 
 /// "oneA" (0x41656E6F) tagged chunk header read by func_8005664C.
 /// Located at a signed byte offset into a raw buffer.

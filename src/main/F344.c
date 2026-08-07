@@ -76,11 +76,11 @@ void func_8001EB44(u8* arg0)
 
 void func_8001ED20(u32 arg0)
 {
-    GStruct24* base;
-    GStruct24* entry;
+    StreamSlot* base;
+    StreamSlot* entry;
 
     CdCmd_Queue.field_20A = 0;
-    base                  = D_8006D4F0;
+    base                  = Stream_Slots;
     D_8006AC12            = 0;
     entry                 = &base[arg0 & 0xFFFF];
     D_8006AC08            = entry->field_4;
@@ -97,17 +97,17 @@ void func_8001ED20(u32 arg0)
 
 s16 func_8001EDC8(u8* arg0, s32 arg1, s32 arg2)
 {
-    s32        i;
-    s32        found;
-    s32        result;
-    GStruct24* base;
-    s32        one;
-    s32        ret;
+    s32         i;
+    s32         found;
+    s32         result;
+    StreamSlot* base;
+    s32         one;
+    s32         ret;
 
     result = 0;
     i      = result;
     found  = result;
-    base   = D_8006D4F0;
+    base   = Stream_Slots;
     one    = 1;
     arg2  &= 0xFFFF;
 
@@ -161,13 +161,13 @@ ret_neg:
 
 s16 func_8001EED8(u8* arg0)
 {
-    s32        i;
-    GStruct24* base;
-    s32        one;
-    s32        ret;
+    s32         i;
+    StreamSlot* base;
+    s32         one;
+    s32         ret;
 
     i    = 0;
-    base = D_8006D4F0;
+    base = Stream_Slots;
     one  = 1;
     while (1) {
         if (base[i & 0xFFFF].field_0 == one) {
@@ -466,9 +466,9 @@ INCLUDE_ASM("main/nonmatchings/F344", func_8001FAE0);
 
 INCLUDE_ASM("main/nonmatchings/F344", func_80020058);
 
-GStruct24* func_80020278(u32 arg0)
+StreamSlot* Stream_GetSlot(u32 arg0)
 {
-    return &D_8006D4F0[arg0 & 0xFFFF];
+    return &Stream_Slots[arg0 & 0xFFFF];
 }
 
 void func_80020298(s16 arg0)
@@ -514,9 +514,9 @@ s16 func_80020394(void* arg0)
     i      = 0;
     result = 0;
     while (1) {
-        if (D_8006D4F0[i & 0xFFFF].field_0 == 1) {
-            if (D_8006D4F0[i & 0xFFFF].field_E < 0x64U) {
-                if (D_8006D4F0[i & 0xFFFF].field_4 != 0) {
+        if (Stream_Slots[i & 0xFFFF].field_0 == 1) {
+            if (Stream_Slots[i & 0xFFFF].field_E < 0x64U) {
+                if (Stream_Slots[i & 0xFFFF].field_4 != 0) {
                     result = 1;
                     break;
                 }
@@ -532,7 +532,7 @@ s16 func_80020394(void* arg0)
 
 u16 func_80020414(u32 arg0)
 {
-    return D_8006D4F0[arg0 & 0xFFFF].field_1A;
+    return Stream_Slots[arg0 & 0xFFFF].field_1A;
 }
 
 void func_8002043C(u32 arg0)

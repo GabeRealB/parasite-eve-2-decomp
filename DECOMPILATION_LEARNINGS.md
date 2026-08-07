@@ -97,13 +97,13 @@ if (interp->field_0 == interp->field_4) {
     /* equal path — never mentions parent */
     func_X(0);
 } else {
-    parent = (volatile GStruct56*)interp - 1;
+    parent = (volatile CdAudioLocEx*)interp - 1;
     func_Y(parent->field_2);
 }
 ```
 
 `func_800569D4` needs this (together with the `s16 ret` tip above) for the
-`LinInterp_CdStream` / `D_800827A0` pair linked by GStruct56.
+`LinInterp_CdStream` / `CdAudio_Loc` pair linked by CdAudioLocEx.
 
 ## `volatile` blocks delay-slot filling
 
@@ -139,8 +139,8 @@ jr    ra
  nop
 ```
 
-`func_8005791C` (`D_800827A0.field_4 = arg0`) is a pure example — only the
-`volatile GStruct18` form matches.
+`func_8005791C` (`CdAudio_Loc.field_4 = arg0`) is a pure example — only the
+`volatile CdAudioLoc` form matches.
 
 `D_800680C0` is another interrupt-shared flag: the SPU timer callback
 `func_8004D7D4` / `func_8004D820` reads and writes it while main-line
@@ -1031,7 +1031,7 @@ void init_slots(s32* arg0) {
 }
 ```
 
-`func_800528BC` (init of `GStruct22::field_484[16]`) is the pure example.
+`func_800528BC` (init of `MidiOpcodeCtx::field_484[16]`) is the pure example.
 
 ## Shared `return 0` via switch `break` (not early return)
 
@@ -1343,18 +1343,18 @@ path assigns `node = remove(node)` and the other does `node = node->next`),
 write:
 
 ```c
-node = (GStruct8*)head->field_14;
+node = (AudioTickNode*)head->field_14;
 while (1) {
     if (node == NULL) {
         break;
     }
     if (callback != NULL) {
         if (callback(node->field_c) == -1) {
-            node = func_8004D94C(node);
+            node = AudioTick_Remove(node);
             continue;
         }
     }
-    node = (GStruct8*)node->field_14;
+    node = (AudioTickNode*)node->field_14;
 }
 ```
 
@@ -1362,7 +1362,7 @@ Also load `head = &global` *before* the enable-flag check so GCC materializes
 both `%hi/%lo` pairs up front (see "Hold a global's address in a local
 pointer"). Nested `if (flag) { if (head != NULL) { ... } }` rather than
 `flag && head` keeps the second null test in the first's delay-slot region.
-`func_8004D8BC` is the reference.
+`AudioTick_Process` is the reference.
 
 ## K&R definition when a same-TU caller uses indeterminate args
 
@@ -2158,7 +2158,7 @@ Also: if the target loads the byte early but stores it late, hold it in a
 local (`val = (u8)...`) so the load schedules before intervening stores.
 
 `func_8003FB20` is the pure example (`Game_Session->field_4` →
-`D_80062698->field_20`).
+`Stage_Ctx->field_20`).
 
 ## BSS adjacency: hold the later symbol, step back by typed size
 
@@ -2172,10 +2172,10 @@ derive the parent pointer from the later one with a typed step-back. Split the
 cast and the arithmetic so the pointer-arithmetic linter stays quiet:
 
 ```c
-/* D_800827A0..D_800827B0 is 0x14 bytes immediately before LinInterp_CdStream */
+/* CdAudio_Loc..D_800827B0 is 0x14 bytes immediately before LinInterp_CdStream */
 p = &LinInterp_CdStream;
-parent = (volatile GStruct56*)p;
-parent = parent - 1;   /* sizeof(GStruct56) == 0x14 */
+parent = (volatile CdAudioLocEx*)p;
+parent = parent - 1;   /* sizeof(CdAudioLocEx) == 0x14 */
 LinInterp_Setup(p, (parent->field_2 >> 7) & 0xFF, 0, arg0);
 parent->field_0 = 3;   /* sb …, -0x14(s0) */
 ```
@@ -2183,7 +2183,7 @@ parent->field_0 = 3;   /* sb …, -0x14(s0) */
 `volatile` on the parent pointer forces `addiu v0, s0, -0x14` + `lhu a1, 2(v0)`
 instead of a folded `lhu a1, -0x12(s0)`.
 
-`func_80057B24` is the pure example (`LinInterp_CdStream` / `D_800827A0`).
+`func_80057B24` is the pure example (`LinInterp_CdStream` / `CdAudio_Loc`).
 
 ## Pre-advance a walk pointer before the loop bound check
 
@@ -2679,7 +2679,7 @@ but leaves the prologue as pure `lui`/`addiu`/`lbu`/`li`/`beq`:
 ```c
 /* Wrong: li a1,-1 first, delay slot filled with li v0,4 */
 ret = -1;
-p = &D_80082798;
+p = &CdAudio_Phase;
 if (p->field_0 != 3) {
     p->field_1 = 4;
     p->field_2 = 1;
@@ -2690,7 +2690,7 @@ if (p->field_0 != 3) {
 return ret;
 
 /* Right: li a1,-1 in beq delay slot */
-p = &D_80082798;
+p = &CdAudio_Phase;
 if (p->field_0 != 3) {
     ret = -1;          /* lifted into delay slot */
     p->field_1 = 4;
@@ -3626,9 +3626,9 @@ both the `and` and the later `or`:
 s32 mask;
 
 mask = 0x40000000;
-if (!(D_80062698->field_1c & mask)) {
+if (!(Stage_Ctx->field_1c & mask)) {
     Pad_SetCooldown(0);
-    temp = D_80062698;
+    temp = Stage_Ctx;
     temp->field_20 = arg0;
     temp->field_24 = 0;
     temp->field_28 = 0;
@@ -5387,7 +5387,7 @@ loop:
     }
 ```
 
-`func_8001EDC8` is the pure example (search of `D_8006D4F0`, mask of `arg1`
+`func_8001EDC8` is the pure example (search of `Stream_Slots`, mask of `arg1`
 against `field_10`).
 
 ## Place `return -1` after shared match labels
@@ -5856,7 +5856,7 @@ CdStreamChannels* p = &CdStream_Channels;
 volatile CdStreamState* q = (volatile CdStreamState*)p - 1; /* sizeof == gap */
 ```
 
-`sizeof(*q)` must equal the BSS gap. Same pattern as `parent = (GStruct56*)interp - 1`.
+`sizeof(*q)` must equal the BSS gap. Same pattern as `parent = (CdAudioLocEx*)interp - 1`.
 `CdStream_SetPitch` needs this (with `volatile` on `q` so the else path reloads
 `unknown_0[1]` instead of CSEing the bit test).
 
@@ -6088,7 +6088,7 @@ prev = curr;
 } while (prev->next != 0);   /* GOOD */
 ```
 
-`func_8004D94C` is the pure example.
+`AudioTick_Remove` is the pure example.
 
 ## Doubly-linked unlink: re-read `arg->next` after storing it (aliasing)
 
@@ -6119,14 +6119,14 @@ reloads:
 ```c
 prev->field_14 = arg0->field_14;
 if (arg0->field_14 != 0) {
-    ((GStruct8*)arg0->field_14)->field_10 = (s32)prev;
+    ((AudioTickNode*)arg0->field_14)->field_10 = (s32)prev;
 }
-return (GStruct8*)prev->field_14;
+return (AudioTickNode*)prev->field_14;
 ```
 
 Also assign `head = &sentinel` *before* any callback that may clobber
 caller-saved regs — that keeps `&sentinel` in a callee-saved register across
-the call (matches early `addiu s1, ..., %lo(head)`). `func_8004D94C`.
+the call (matches early `addiu s1, ..., %lo(head)`). `AudioTick_Remove`.
 
 ## State-machine dispatch: `goto case0` after the `>= N` arm
 
@@ -6272,7 +6272,7 @@ Assigning the pointer only after the guards leaves `%hi` later, parks the raw
 like a large diff even when the body is otherwise identical.
 
 `func_800572FC` needs `sector = &Fs_CdSector` first, then the
-`D_80082780.field_B` / `D_80082758.field_1` guards, then `arg = arg0 & 0xFF`.
+`CdAudio_Ctl.field_B` / `CdAudio_Tbl.field_1` guards, then `arg = arg0 & 0xFF`.
 
 ## `volatile` struct pointer preserves independent field load order
 
@@ -7342,7 +7342,7 @@ can swap `$s2`/`$s3` between that global and a competing mid-function
 `&Display_State` (~97%).
 
 Match both: keep the if/goto equality dispatch, **and write the shared tail
-inline in every case** (duplicate `D_80062698->field_28++`). GCC CSEs those
+inline in every case** (duplicate `Stage_Ctx->field_28++`). GCC CSEs those
 copies into the dual-entry shared block the target wants (`lw` via `$s2` at the
 head, case0 preloads and jumps mid-block with `sb` in the delay slot):
 
@@ -9490,7 +9490,7 @@ D_flag = 0;
 folderId = ((u8)arg1 * 100) + (u8)arg2;
 ```
 
-`func_80023748` (`D_8006ADE2` after the `D_8006D4F0` clear loop).
+`func_80023748` (`D_8006ADE2` after the `Stream_Slots` clear loop).
 
 ## Two-phase scratch alloc: unpinned load, then `register … asm("v1")` adjust
 
@@ -9685,12 +9685,12 @@ if (f11 == 0) {
 }
 ```
 
-Same case: to get `lui %hi(Display_State+0x118)` *before* `lui %hi(D_80062698)`,
+Same case: to get `lui %hi(Display_State+0x118)` *before* `lui %hi(Stage_Ctx)`,
 preload the display field into a temp before materialising the other global:
 
 ```c
 disp = Display_State.field_118;
-g    = D_80062698;
+g    = Stage_Ctx;
 if (disp == g->field_24) { ... }
 ```
 
@@ -9852,30 +9852,30 @@ one `$s0` sequence if they share a single C variable.
 Use two pointers:
 
 ```c
-volatile GStruct44* stream; /* case 2: coloured $s0, inlines field_8/9 then goto error */
-volatile GStruct44* p;      /* case 5/8/9 + timeout: coloured $v1, shared tail */
+volatile CdAudioCtl* stream; /* case 2: coloured $s0, inlines field_8/9 then goto error */
+volatile CdAudioCtl* p;      /* case 5/8/9 + timeout: coloured $v1, shared tail */
 
 case 2:
-    stream = &D_80082780;
+    stream = &CdAudio_Ctl;
     if (stream->field_0 < 0x259) goto sync;
     stream->field_8 = phase;
     stream->field_9 = 1;
     goto error;
 /* ... */
 timeout:
-    p->field_8 = phase;  /* no re-load of &D_80082780 — callers set p/$v1 */
+    p->field_8 = phase;  /* no re-load of &CdAudio_Ctl — callers set p/$v1 */
     p->field_9 = 1;
 error:
     ...
 ```
 
-Also force early `D_80082758` addressing before the `audio` pointer is built by
+Also force early `CdAudio_Tbl` addressing before the `audio` pointer is built by
 writing the cross-struct store with a cast, then assigning `audio`:
 
 ```c
-D_80082780.field_0 = 0;
-D_80082758.field_8 = ((volatile GStruct56*)&D_800827A0)->field_4;
-audio = (volatile GStruct56*)&D_800827A0;
+CdAudio_Ctl.field_0 = 0;
+CdAudio_Tbl.field_8 = ((volatile CdAudioLocEx*)&CdAudio_Loc)->field_4;
+audio = (volatile CdAudioLocEx*)&CdAudio_Loc;
 CdIntToPos(audio->field_4, (CdlLOC*)&audio->field_10);
 ```
 
@@ -10543,7 +10543,7 @@ pin both names to the same register with non-overlapping live ranges:
 
 ```c
 register s32 channel asm("t0");
-register GStruct22Entry* entry asm("t0");
+register MidiOpcodeSlot* entry asm("t0");
 
 channel = (u8)slot->field_1; /* lbu, not lb — cast the s8 field */
 if (obj->field_C & (one << channel)) {

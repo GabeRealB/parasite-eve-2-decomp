@@ -695,7 +695,7 @@ void func_8001CA70(void)
                         p->field_1fc = p->field_1fc + 1;
                         return;
                     case 1:
-                        if (D_80082798.field_2 == 4) {
+                        if (CdAudio_Phase.field_2 == 4) {
                             info = p->field_190;
                             temp = info->field_14;
                             if (temp) {
@@ -707,7 +707,7 @@ void func_8001CA70(void)
                         }
                         return;
                     case 2:
-                        if (D_80082798.field_4 == 0xA) {
+                        if (CdAudio_Phase.field_4 == 0xA) {
                             goto case8_cleanup;
                         }
                         return;

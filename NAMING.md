@@ -43,6 +43,10 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 | `UiPanel` / `UiPanelFunc` | UI layout/draw panel (34E98 handlers) | `src/main/34E98.c` | types in `game.h` |
 | `Tmd_` | TMD model list / buffers | `src/main/2F244.c`, `pad.c` | `TmdObject`, `Tmd_List` |
 | `Game_` | Main session object | globals | `GameSession`, `Game_Session` |
+| `CdAudio_` | CD-driven audio player phase/loc/ctl (46FE4) | `src/main/46FE4.c` | `CdAudioPhase`, `CdAudioLoc`, … |
+| `AudioTick_` | Per-frame audio callback list | `src/main/3D458.c` | `AudioTickNode`, `AudioTick_List` |
+| `Stream_` | F344 stream channel slots | `src/main/F344.c` | `StreamSlot`, `Stream_Slots` |
+| `Stage_` | Stage/flow context | `src/main/2F244.c` | `StageCtx`, `Stage_Ctx` |
 
 `include/main/game.h` is the shared kitchen-sink of still-generic types (`GStruct*`, UI helpers). It includes the module headers above for compatibility. Prefer including the specific module header when you only need that API.
 
@@ -90,5 +94,6 @@ Bulk renames live in:
 - `tools/rename_snd_font_syms.py` — Snd / Spu / AsyncCb / Font / TextStream / Prim / GameOt
 - `tools/rename_sndscript_midi_syms.py` — SndScript / SndVoice / Midi / LinInterp / dialog UI types
 - `tools/rename_evtuipanel_tmd_syms.py` — SndEvt / UiPanel / Tmd / TaskIdMap / GameSession
+- `tools/rename_cdaudio_tick_syms.py` — CdAudio / AudioTick / SpuVoiceRange / StreamSlot / StageCtx
 
 Idempotent only if old names are already gone. Extend the map rather than hand-editing hundreds of `.s` files.
