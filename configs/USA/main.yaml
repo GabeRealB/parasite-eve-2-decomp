@@ -121,7 +121,7 @@ segments:
       - [0x49c4, .rodata, "46FE4"]
       # Jump tables still used by unmatched assembly functions in 4A6E0.c.
       - [0x4a48, rodata, "4A6E0_1"] # jtbl_80014248 (func_80059EE0 still asm)
-      - [0x4a78, .rodata, "4A6E0"] # jtbls from func_8005B3B4 + func_8005B968
+      - [0x4a78, .rodata, "4A6E0"] # jtbls from CdStream_InitDisc + CdStream_AbortPhase
       - [0x4ad0, o, libspu/s_si, .rdata]
 
       # .text section

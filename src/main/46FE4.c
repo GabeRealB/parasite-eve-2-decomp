@@ -10,7 +10,7 @@ s32 func_800567E4(void)
 {
     volatile GStruct4*  p;
     volatile GStruct56* audio;
-    GStruct76*          setup;
+    CdStreamParams*     setup;
     CdlLOC*             loc;
     s32                 acc;
     register s32        i asm("s2");
@@ -22,7 +22,7 @@ s32 func_800567E4(void)
     register s32        next asm("v0");
     void*               sector;
 
-    setup = &D_800827C4;
+    setup = &CdStream_Params;
     switch (D_80082798.field_0) {
         case 4:
             D_80082780.field_10 = 0;
@@ -61,20 +61,20 @@ s32 func_800567E4(void)
             } else {
                 half = audio->field_2;
             }
-            two             = 2;
-            setup->field_1B = -1;
-            setup->field_1A = -1;
-            setup->field_18 = half;
-            setup->field_1C = two;
-            sector          = &Fs_CdSector;
-            setup->field_8  = sector;
-            setup->field_4  = audio->field_8;
-            setup->field_0  = CdPosToInt(loc);
-            setup->field_C  = func_80057D24;
-            setup->field_10 = 0;
-            setup->field_14 = 0;
-            audio->field_1  = 0;
-            func_80057FAC(setup);
+            two                = 2;
+            setup->voiceR      = -1;
+            setup->voiceL      = -1;
+            setup->pitch       = half;
+            setup->mode        = two;
+            sector             = &Fs_CdSector;
+            setup->sectorBuf   = sector;
+            setup->spuBase     = audio->field_8;
+            setup->startSector = CdPosToInt(loc);
+            setup->doneCb      = func_80057D24;
+            setup->startCb     = 0;
+            setup->voiceFreeCb = 0;
+            audio->field_1     = 0;
+            CdStream_Start(setup);
             D_80082798.field_0 = two;
             break;
         case 2:
@@ -116,12 +116,12 @@ s32 func_800569D4(void)
             func_8004D2EC(interp);
             if (D_800827B4.field_0 == interp->field_4) {
                 interp->field_E = 0;
-                func_8005B84C(0);
-                func_8005842C();
+                CdStream_SetPitch(0);
+                CdStream_Stop();
                 p->field_2 = 2;
             } else {
                 parent = (volatile GStruct56*)interp - 1;
-                func_8005B84C((s16)func_8004D298(interp, parent->field_2));
+                CdStream_SetPitch((s16)func_8004D298(interp, parent->field_2));
             }
             break;
         case 2:
@@ -131,7 +131,7 @@ s32 func_800569D4(void)
             p->field_2 = 3;
             /* fallthrough */
         case 3:
-            if (func_8005BB4C() == 0) {
+            if (CdStream_IsBusy() == 0) {
                 D_80082798.field_2 = 4;
                 ret                = 0;
             }
@@ -284,7 +284,7 @@ s32 func_80056E38(void)
             voices = (volatile GStruct61*)&D_800827A0;
             func_8004E71C(voices->field_3E);
             func_8004E71C(voices->field_3F);
-            if (func_8005BB4C() != 0) {
+            if (CdStream_IsBusy() != 0) {
                 break;
             }
         do_setmode:
@@ -536,7 +536,7 @@ void func_800574BC(void)
     D_80082750         = 0;
     D_800827A0.field_8 = 0x51010;
     func_8004E5A0(3, 0x16, 2);
-    func_8005B6EC();
+    CdStream_Reset();
     func_800260B0(1);
 }
 
@@ -628,7 +628,7 @@ s32 func_80057724(void)
 
 s32 func_800577AC(s32 arg0, s32 arg1)
 {
-    if (func_8005BB4C() != 0) {
+    if (CdStream_IsBusy() != 0) {
         return -1;
     }
     func_80057824(arg0);
@@ -801,11 +801,11 @@ s32 func_80057BC8(void)
             break;
         case 1:
         case 2:
-            func_8005B78C();
+            CdStream_ArmSpuIrq();
             D_80082798.field_1 = 3;
             break;
         case 3:
-            if (func_8005BB4C() == 0) {
+            if (CdStream_IsBusy() == 0) {
                 ret                = 3;
                 D_80082798.field_1 = 4;
                 D_80082798.field_2 = 2;
@@ -849,130 +849,130 @@ void func_80057D24(void)
     D_800827A0.field_1 = 1;
 }
 
-s32 func_80057D3C(GStruct32Entry* arg0)
+s32 CdReady_Enqueue(CdReadyEntry* arg0)
 {
-    u8                       saved;
-    s32                      field2;
-    s32                      next;
-    u32                      flags;
-    s32                      temp;
-    volatile GStruct32Entry* entry;
-    volatile GStruct32*      p;
+    u8                     saved;
+    s32                    field2;
+    s32                    next;
+    u32                    flags;
+    s32                    temp;
+    volatile CdReadyEntry* entry;
+    volatile CdReadyQueue* p;
 
-    p                  = &D_800828F0;
-    saved              = D_800828F0.field_0;
-    D_800828F0.field_0 = 1;
+    p                    = &CdReady_Queue;
+    saved                = CdReady_Queue.locked;
+    CdReady_Queue.locked = 1;
 
-    field2 = (s8)p->field_2;
-    next   = (s8)p->field_3;
+    field2 = (s8)p->readIdx;
+    next   = (s8)p->writeIdx;
     next   = next + 1;
     if (next >= 4) {
         next = 0;
     }
 
     if (next == field2) {
-        D_800828F0.field_0 = saved;
+        CdReady_Queue.locked = saved;
         return 0;
     }
 
-    entry              = &D_800828F0.entries[(s8)p->field_3];
-    entry->field_8     = arg0->field_8;
-    entry->field_4     = arg0->field_4;
-    temp               = arg0->field_C;
-    flags              = entry->field_0;
-    flags              = flags | 1;
-    entry->field_C     = temp;
-    temp               = ~4;
-    flags              = flags & temp;
-    flags              = flags & ~8;
-    flags              = flags & ~0x1FE0;
-    temp               = arg0->field_10;
-    flags              = flags | 2;
-    entry->field_0     = flags;
-    entry->field_10    = temp;
-    field2             = (s8)p->field_3;
-    p->field_3         = next;
-    D_800828F0.field_0 = saved;
+    entry                = &CdReady_Queue.entries[(s8)p->writeIdx];
+    entry->pollFn        = arg0->pollFn;
+    entry->sectorPos     = arg0->sectorPos;
+    temp                 = arg0->doneFn;
+    flags                = entry->flags;
+    flags                = flags | 1;
+    entry->doneFn        = temp;
+    temp                 = ~4;
+    flags                = flags & temp;
+    flags                = flags & ~8;
+    flags                = flags & ~0x1FE0;
+    temp                 = arg0->errorFn;
+    flags                = flags | 2;
+    entry->flags         = flags;
+    entry->errorFn       = temp;
+    field2               = (s8)p->writeIdx;
+    p->writeIdx          = next;
+    CdReady_Queue.locked = saved;
     return field2 + 1;
 }
 
-void func_80057E1C(void)
+void CdReady_Poll(void)
 {
-    volatile GStruct32* p;
-    GStruct32Entry*     entry;
-    u32                 flags;
+    volatile CdReadyQueue* p;
+    CdReadyEntry*          entry;
+    u32                    flags;
 
-    p = &D_800828F0;
-    if (p->field_0 == 0 && p->field_3 != p->field_2) {
-        entry = (GStruct32Entry*)&D_800828F0.entries[(s8)p->field_2];
-        flags = entry->field_0;
+    p = &CdReady_Queue;
+    if (p->locked == 0 && p->writeIdx != p->readIdx) {
+        entry = (CdReadyEntry*)&CdReady_Queue.entries[(s8)p->readIdx];
+        flags = entry->flags;
         if (flags & 1) {
-            if (((s32 (*)(GStruct32Entry*))entry->field_8)(entry) != 0) {
-                if (entry->field_C != 0) {
-                    ((void (*)(void))entry->field_C)();
+            if (((s32 (*)(CdReadyEntry*))entry->pollFn)(entry) != 0) {
+                if (entry->doneFn != 0) {
+                    ((void (*)(void))entry->doneFn)();
                 }
-                entry->field_0 &= ~1;
-                entry->field_0 &= ~4;
-                p->field_2      = p->field_2 + 1;
-                if ((s8)p->field_2 >= 4) {
-                    p->field_2 = 0;
+                entry->flags &= ~1;
+                entry->flags &= ~4;
+                p->readIdx    = p->readIdx + 1;
+                if ((s8)p->readIdx >= 4) {
+                    p->readIdx = 0;
                 }
             }
         } else if (((flags >> 2) & 1) && !((flags >> 1) & 1)) {
-            if (entry->field_10 != 0) {
-                ((void (*)(GStruct32Entry*))entry->field_10)(entry);
+            if (entry->errorFn != 0) {
+                ((void (*)(CdReadyEntry*))entry->errorFn)(entry);
             }
-            if (!((entry->field_0 >> 3) & 1)) {
+            if (!((entry->flags >> 3) & 1)) {
                 goto advance;
             }
         } else {
         advance:
-            entry->field_0    &= ~4;
-            D_800828F0.field_2 = D_800828F0.field_2 + 1;
-            if ((s8)D_800828F0.field_2 >= 4) {
-                D_800828F0.field_2 = 0;
+            entry->flags         &= ~4;
+            CdReady_Queue.readIdx = CdReady_Queue.readIdx + 1;
+            if ((s8)CdReady_Queue.readIdx >= 4) {
+                CdReady_Queue.readIdx = 0;
             }
         }
     }
 }
 
-void func_80058320(void);
+void CdStream_Continue(void);
 
-void func_80057FAC(GStruct76* arg0)
+void CdStream_Start(CdStreamParams* arg0)
 {
-    GStruct32Entry               entry;
-    register volatile GStruct19* p asm("s1");
-    s32                          flag;
-    volatile GStruct19*          ap;
-    volatile GStruct19*          a3;
-    GStruct74Entry*              t0;
-    GStruct74Entry*              ch1;
-    register s32                 sectors asm("a0");
-    s16                          pitch;
-    u8                           saved;
-    s16                          f6;
-    s16                          idx;
-    u32                          flags;
-    GStruct32Entry*              e;
-    s32                          one;
-    s32                          cflags;
-    s16                          vff;
-    s16                          v1fc3;
-    s16                          v1000;
-    s32                          temp;
-    u8                           mode;
-    register s32                 base asm("v1");
+    CdReadyEntry                     entry;
+    register volatile CdStreamState* p asm("s1");
+    s32                              flag;
+    volatile CdStreamState*          ap;
+    volatile CdStreamState*          a3;
+    CdStreamChannel*                 t0;
+    CdStreamChannel*                 ch1;
+    register s32                     sectors asm("a0");
+    s16                              pitch;
+    u8                               saved;
+    s16                              f6;
+    s16                              idx;
+    u32                              flags;
+    CdReadyEntry*                    e;
+    s32                              one;
+    s32                              cflags;
+    s16                              vff;
+    s16                              v1fc3;
+    s16                              v1000;
+    s32                              temp;
+    u8                               mode;
+    register s32                     base asm("v1");
 
-    p           = &D_80082818;
-    p->field_50 = arg0->field_1A;
-    p->field_51 = arg0->field_1B;
-    flag        = ((u8)D_80082818.unknown_0[0] >> 4) & 1;
+    p         = &CdStream_State;
+    p->voiceL = arg0->voiceL;
+    p->voiceR = arg0->voiceR;
+    flag      = ((u8)CdStream_State.flags0 >> 4) & 1;
     if (flag == 1) {
-        func_8004E71C((s8)p->field_50);
-        func_8004E71C((s8)p->field_51);
-        if (arg0->field_14 != 0) {
-            ((void (*)(s32))arg0->field_14)(
-                (flag << (s8)p->field_50) | (flag << (s8)p->field_51));
+        func_8004E71C((s8)p->voiceL);
+        func_8004E71C((s8)p->voiceR);
+        if (arg0->voiceFreeCb != 0) {
+            ((void (*)(s32))arg0->voiceFreeCb)(
+                (flag << (s8)p->voiceL) | (flag << (s8)p->voiceR));
         }
     }
     SpuSetIRQ(0);
@@ -980,111 +980,111 @@ void func_80057FAC(GStruct76* arg0)
     SpuSetTransferCallback(NULL);
     CdSyncCallback(NULL);
 
-    ap                 = &D_80082818;
-    *(s32*)&D_80082818 = 0;
-    if (ap->field_6 != 0) {
-        a3    = (volatile GStruct19*)&D_800828F0;
-        f6    = ap->field_6;
-        saved = D_800828F0.field_0;
+    ap                     = &CdStream_State;
+    *(s32*)&CdStream_State = 0;
+    if (ap->readySlot != 0) {
+        a3    = (volatile CdStreamState*)&CdReady_Queue;
+        f6    = ap->readySlot;
+        saved = CdReady_Queue.locked;
         if (f6 != 0) {
             idx   = f6 - 1;
-            e     = (GStruct32Entry*)&D_800828F0.entries[idx];
-            flags = e->field_0;
+            e     = (CdReadyEntry*)&CdReady_Queue.entries[idx];
+            flags = e->flags;
             if (flags & 1) {
-                e->field_0 = (flags & ~1) | 4;
+                e->flags = (flags & ~1) | 4;
             }
-            D_800828F0.field_0 = saved;
+            CdReady_Queue.locked = saved;
         }
-        D_80082818.field_6 = 0;
+        CdStream_State.readySlot = 0;
     }
 
-    a3               = &D_80082818;
-    a3->field_C      = (void (*)(s32))arg0->field_10;
-    a3->field_10     = (void (*)(s32))arg0->field_14;
-    a3->unknown_0[4] = 0;
-    a3->field_8      = (void (*)(s32))arg0->field_C;
-    a3->field_18     = 0;
-    a3->field_28     = arg0->field_0;
-    a3->field_2C     = arg0->field_0;
-    one              = 1;
-    a3->field_30     = arg0->field_0;
-    a3->field_34     = 0;
-    a3->field_38     = one;
-    base             = arg0->field_4;
-    sectors          = 0x18;
+    a3              = &CdStream_State;
+    a3->startCb     = (void (*)(s32))arg0->startCb;
+    a3->voiceFreeCb = (void (*)(s32))arg0->voiceFreeCb;
+    a3->field_4     = 0;
+    a3->doneCb      = (void (*)(s32))arg0->doneCb;
+    a3->field_18    = 0;
+    a3->startSector = arg0->startSector;
+    a3->field_2C    = arg0->startSector;
+    one             = 1;
+    a3->field_30    = arg0->startSector;
+    a3->field_34    = 0;
+    a3->field_38    = one;
+    base            = arg0->spuBase;
+    sectors         = 0x18;
     {
-        s32 ds       = Display_State.field_124;
-        a3->field_3C = base;
+        s32 ds      = Display_State.field_124;
+        a3->spuBase = base;
         if (ds == one) {
             sectors = 0x14;
         }
     }
-    a3->field_40   = sectors;
-    a3->field_42   = 0x2770;
-    t0             = (GStruct74Entry*)(a3 + 1);
-    a3->field_48   = (GStruct19Sector*)arg0->field_8;
-    a3->field_50   = arg0->field_1A;
-    vff            = 0xFF;
-    a3->field_51   = arg0->field_1B;
-    mode           = arg0->field_1C;
-    v1fc3          = 0x1FC3;
-    v1000          = 0x1000;
-    cflags         = 0x6009F;
-    t0->field_4    = cflags;
-    t0[1].field_4  = cflags;
-    t0->field_C    = 0;
-    t0->field_E    = 0;
-    t0->field_14   = v1000;
-    t0->field_3A   = vff;
-    t0->field_3C   = v1fc3;
-    t0[1].field_C  = 0;
-    t0[1].field_E  = 0;
-    t0[1].field_14 = v1000;
-    a3->field_52   = mode;
-    a3->field_1C   = 0;
-    a3->field_20   = 0;
-    a3->field_54   = 0;
-    t0->field_0    = one << a3->field_50;
-    t0->field_1C   = a3->field_3C;
+    a3->sectorsPerChunk = sectors;
+    a3->ringHalf        = 0x2770;
+    t0                  = (CdStreamChannel*)(a3 + 1);
+    a3->sector          = (MtsSector*)arg0->sectorBuf;
+    a3->voiceL          = arg0->voiceL;
+    vff                 = 0xFF;
+    a3->voiceR          = arg0->voiceR;
+    mode                = arg0->mode;
+    v1fc3               = 0x1FC3;
+    v1000               = 0x1000;
+    cflags              = 0x6009F;
+    t0->attr            = cflags;
+    t0[1].attr          = cflags;
+    t0->field_C         = 0;
+    t0->field_E         = 0;
+    t0->field_14        = v1000;
+    t0->field_3A        = vff;
+    t0->field_3C        = v1fc3;
+    t0[1].field_C       = 0;
+    t0[1].field_E       = 0;
+    t0[1].field_14      = v1000;
+    a3->mode            = mode;
+    a3->field_1C        = 0;
+    a3->field_20        = 0;
+    a3->pending         = 0;
+    t0->voiceMask       = one << a3->voiceL;
+    t0->spuAddr         = a3->spuBase;
     {
         register s32 addr asm("v0");
         register s32 mask asm("v1");
-        addr          = a3->field_3C;
-        mask          = a3->field_51;
-        addr          = addr + 0x10;
-        mask          = one << mask;
-        t0->field_20  = addr;
-        t0[1].field_0 = mask;
+        addr            = a3->spuBase;
+        mask            = a3->voiceR;
+        addr            = addr + 0x10;
+        mask            = one << mask;
+        t0->spuAddr2    = addr;
+        t0[1].voiceMask = mask;
     }
-    temp           = a3->field_3C;
-    temp           = temp + 0x40;
-    temp           = temp + ((s32)((u16)a3->field_42 << 16) >> 15);
-    t0[1].field_1C = temp;
-    temp           = a3->field_3C;
+    temp          = a3->spuBase;
+    temp          = temp + 0x40;
+    temp          = temp + ((s32)((u16)a3->ringHalf << 16) >> 15);
+    t0[1].spuAddr = temp;
+    temp          = a3->spuBase;
     {
-        s32 shift      = (s32)((u16)a3->field_42 << 16) >> 15;
+        s32 shift      = (s32)((u16)a3->ringHalf << 16) >> 15;
         t0[1].field_3A = vff;
         t0[1].field_3C = v1fc3;
         temp           = temp + shift;
     }
     {
-        u8 f53         = a3->field_53;
+        u8 f53         = a3->flags;
         temp           = temp + 0x50;
-        t0[1].field_20 = temp;
+        t0[1].spuAddr2 = temp;
         if (f53 & 2) {
-            ch1          = (GStruct74Entry*)(a3 + 1) + 1;
-            pitch        = (arg0->field_18 * 0xB5) >> 8;
-            ch1->field_A = pitch;
-            ch1->field_8 = pitch;
-            t0->field_A  = pitch;
-            t0->field_8  = pitch;
+            ch1           = (CdStreamChannel*)(a3 + 1) + 1;
+            pitch         = (arg0->pitch * 0xB5) >> 8;
+            ch1->pitchAlt = pitch;
+            ch1->pitch    = pitch;
+            t0->pitchAlt  = pitch;
+            t0->pitch     = pitch;
         } else {
             u16 pitch_u;
-            pitch_u       = *(u16*)&arg0->field_18;
-            t0->field_A   = 0;
-            t0[1].field_8 = 0;
-            t0->field_8   = pitch_u;
-            t0[1].field_A = *(u16*)&arg0->field_18;
+            pitch_u        = *(u16*)&arg0->pitch;
+            t0->pitchAlt   = 0;
+            t0[1].pitch    = 0;
+            t0->pitch      = pitch_u;
+            t0[1].pitchAlt = *(u16*)&arg0->pitch;
         }
     }
 
@@ -1092,231 +1092,231 @@ void func_80057FAC(GStruct76* arg0)
         register s32 rem_tmp asm("a0");
         register s32 temp_v1 asm("v1");
 
-        rem_tmp            = (s32)&entry;
-        entry.field_8      = (s32)func_80059EE0;
-        temp_v1            = arg0->field_0;
-        entry.field_C      = (s32)func_80058320;
-        entry.field_10     = (s32)func_8005BA8C;
-        entry.field_4      = temp_v1;
-        D_80082818.field_6 = func_80057D3C((GStruct32Entry*)rem_tmp);
+        rem_tmp                  = (s32)&entry;
+        entry.pollFn             = (s32)func_80059EE0;
+        temp_v1                  = arg0->startSector;
+        entry.doneFn             = (s32)CdStream_Continue;
+        entry.errorFn            = (s32)CdStream_FinishQueueEntry;
+        entry.sectorPos          = temp_v1;
+        CdStream_State.readySlot = CdReady_Enqueue((CdReadyEntry*)rem_tmp);
     }
-    D_80082818.unknown_0[3] = 2;
-    D_80068B74              = -1;
+    CdStream_State.phase = 2;
+    D_80068B74           = -1;
 }
 
-void func_80058320(void)
+void CdStream_Continue(void)
 {
-    GStruct32Entry      entry;
-    volatile GStruct19* p;
+    CdReadyEntry            entry;
+    volatile CdStreamState* p;
 
-    D_80082818.field_6 = 0;
+    CdStream_State.readySlot = 0;
 
-    if ((D_80082818.unknown_0[0] >> 2) & 1) {
-        if (D_80082818.field_1C == 0) {
-            D_80082818.unknown_0[3] = 1;
-            D_80082818.unknown_0[1] = D_80082818.unknown_0[1] | 1;
-            D_80082818.unknown_0[2] = D_80082818.unknown_0[2] & 0xFD;
-            D_80082818.unknown_0[2] = D_80082818.unknown_0[2] & 0xFB;
-            if (D_80082818.field_8 != NULL) {
-                D_80082818.field_8(1);
+    if ((CdStream_State.flags0 >> 2) & 1) {
+        if (CdStream_State.field_1C == 0) {
+            CdStream_State.phase  = 1;
+            CdStream_State.flags1 = CdStream_State.flags1 | 1;
+            CdStream_State.flags2 = CdStream_State.flags2 & 0xFD;
+            CdStream_State.flags2 = CdStream_State.flags2 & 0xFB;
+            if (CdStream_State.doneCb != NULL) {
+                CdStream_State.doneCb(1);
             }
             return;
         }
     }
 
-    p               = &D_80082818;
-    entry.field_8   = (s32)func_80059EE0;
-    entry.field_C   = (s32)func_80058320;
-    p->unknown_0[2] = p->unknown_0[2] & 0xFD;
-    entry.field_10  = (s32)func_8005BA8C;
-    entry.field_4   = p->field_28;
+    p               = &CdStream_State;
+    entry.pollFn    = (s32)func_80059EE0;
+    entry.doneFn    = (s32)CdStream_Continue;
+    p->flags2       = p->flags2 & 0xFD;
+    entry.errorFn   = (s32)CdStream_FinishQueueEntry;
+    entry.sectorPos = p->startSector;
     D_80068B63      = D_80068B63 + 1;
-    p->field_6      = func_80057D3C(&entry);
+    p->readySlot    = CdReady_Enqueue(&entry);
 }
 
-void func_8005842C(void)
+void CdStream_Stop(void)
 {
-    u8                  saved;
-    u8                  temp;
-    s16                 arg0;
-    s16                 idx;
-    u32                 flags;
-    GStruct32Entry*     entry;
-    volatile GStruct19* p;
+    u8                      saved;
+    u8                      temp;
+    s16                     arg0;
+    s16                     idx;
+    u32                     flags;
+    CdReadyEntry*           entry;
+    volatile CdStreamState* p;
 
-    saved              = D_800828F0.field_0;
-    D_800828F0.field_0 = 1;
+    saved                = CdReady_Queue.locked;
+    CdReady_Queue.locked = 1;
 
-    if (D_80082818.unknown_0[0] & 1) {
-        D_80082818.unknown_0[0] = D_80082818.unknown_0[0] | 0x40;
+    if (CdStream_State.flags0 & 1) {
+        CdStream_State.flags0 = CdStream_State.flags0 | 0x40;
         SpuSetIRQ(0);
         SpuSetIRQCallback(0);
     } else {
-        if (D_80082818.field_6 != 0) {
-            arg0 = D_80082818.field_6;
-            temp = D_800828F0.field_0;
+        if (CdStream_State.readySlot != 0) {
+            arg0 = CdStream_State.readySlot;
+            temp = CdReady_Queue.locked;
             if (arg0 != 0) {
                 idx   = arg0 - 1;
-                entry = (GStruct32Entry*)&D_800828F0.entries[idx];
-                flags = entry->field_0;
+                entry = (CdReadyEntry*)&CdReady_Queue.entries[idx];
+                flags = entry->flags;
                 if (flags & 1) {
-                    entry->field_0 = (flags & ~1) | 4;
+                    entry->flags = (flags & ~1) | 4;
                 }
-                D_800828F0.field_0 = temp;
+                CdReady_Queue.locked = temp;
             }
-            D_80082818.field_6 = 0;
+            CdStream_State.readySlot = 0;
         }
 
-        p = &D_80082818;
-        if ((p->unknown_0[2] >> 3) & 1) {
+        p = &CdStream_State;
+        if ((p->flags2 >> 3) & 1) {
             func_800B0118(0, 0);
-            p->unknown_0[2] = p->unknown_0[2] & 0xF7;
+            p->flags2 = p->flags2 & 0xF7;
         }
     }
 
-    D_800828F0.field_0 = saved;
+    CdReady_Queue.locked = saved;
 }
 
 void func_80058748(void);
 
 void func_8005854C(void)
 {
-    GStruct32Entry      entry;
-    volatile GStruct19* p;
-    s32                 flag;
-    s16                 arg0;
-    s16                 idx;
-    u32                 flags;
-    GStruct32Entry*     e;
-    u8                  saved;
-    u8                  t;
-    s32                 dead;
-    register s32        rem_tmp asm("a0");
-    register s32        temp asm("v0");
+    CdReadyEntry            entry;
+    volatile CdStreamState* p;
+    s32                     flag;
+    s16                     arg0;
+    s16                     idx;
+    u32                     flags;
+    CdReadyEntry*           e;
+    u8                      saved;
+    u8                      t;
+    s32                     dead;
+    register s32            rem_tmp asm("a0");
+    register s32            temp asm("v0");
 
-    p = &D_80082818;
-    if (p->unknown_0[2] & 1) {
-        dead                    = p->field_20;
-        t                       = p->unknown_0[2];
-        t                       = t & 0xFE;
-        p->unknown_0[2]         = t;
-        t                       = D_80082818.unknown_0[0];
-        t                       = t & 0xFE;
-        D_80082818.unknown_0[0] = t;
-        p->unknown_0[2]         = p->unknown_0[2] & 0xFD;
-        D_80082818.unknown_0[0] = D_80082818.unknown_0[0] & 0xDF;
-        flag                    = (D_80082818.unknown_0[0] >> 4) & 1;
+    p = &CdStream_State;
+    if (p->flags2 & 1) {
+        dead                  = p->field_20;
+        t                     = p->flags2;
+        t                     = t & 0xFE;
+        p->flags2             = t;
+        t                     = CdStream_State.flags0;
+        t                     = t & 0xFE;
+        CdStream_State.flags0 = t;
+        p->flags2             = p->flags2 & 0xFD;
+        CdStream_State.flags0 = CdStream_State.flags0 & 0xDF;
+        flag                  = (CdStream_State.flags0 >> 4) & 1;
         if (flag == 1) {
-            func_8004E71C((s8)p->field_50);
-            func_8004E71C((s8)p->field_51);
-            D_80082818.unknown_0[0] = D_80082818.unknown_0[0] & 0xEF;
-            if (p->field_10 != NULL) {
-                p->field_10((flag << (s8)p->field_50) | (flag << (s8)p->field_51));
+            func_8004E71C((s8)p->voiceL);
+            func_8004E71C((s8)p->voiceR);
+            CdStream_State.flags0 = CdStream_State.flags0 & 0xEF;
+            if (p->voiceFreeCb != NULL) {
+                p->voiceFreeCb((flag << (s8)p->voiceL) | (flag << (s8)p->voiceR));
             }
         }
         SpuSetIRQ(0);
         SpuSetIRQCallback(0);
-        if (D_80082818.field_6 != 0) {
-            arg0  = D_80082818.field_6;
-            saved = D_800828F0.field_0;
+        if (CdStream_State.readySlot != 0) {
+            arg0  = CdStream_State.readySlot;
+            saved = CdReady_Queue.locked;
             if (arg0 != 0) {
                 idx   = arg0 - 1;
-                e     = (GStruct32Entry*)&D_800828F0.entries[idx];
-                flags = e->field_0;
+                e     = (CdReadyEntry*)&CdReady_Queue.entries[idx];
+                flags = e->flags;
                 if (flags & 1) {
-                    e->field_0 = (flags & ~1) | 4;
+                    e->flags = (flags & ~1) | 4;
                 }
-                D_800828F0.field_0 = saved;
+                CdReady_Queue.locked = saved;
             }
-            D_80082818.field_6 = 0;
+            CdStream_State.readySlot = 0;
         }
         rem_tmp = (s32)&entry;
         asm("" : "+r"(rem_tmp));
         do {
             temp = (s32)func_80059EE0;
         } while (0);
-        entry.field_8           = temp;
-        temp                    = (s32)func_80058748;
-        p                       = &D_80082818;
-        entry.field_C           = temp;
-        entry.field_4           = p->field_30;
-        D_80082818.unknown_0[0] = D_80082818.unknown_0[0] & 0xFB;
-        entry.field_10          = (s32)func_8005BA8C;
-        p->field_6              = func_80057D3C((GStruct32Entry*)rem_tmp);
-        p->unknown_0[3]         = 2;
+        entry.pollFn          = temp;
+        temp                  = (s32)func_80058748;
+        p                     = &CdStream_State;
+        entry.doneFn          = temp;
+        entry.sectorPos       = p->field_30;
+        CdStream_State.flags0 = CdStream_State.flags0 & 0xFB;
+        entry.errorFn         = (s32)CdStream_FinishQueueEntry;
+        p->readySlot          = CdReady_Enqueue((CdReadyEntry*)rem_tmp);
+        p->phase              = 2;
     }
 }
 
 void func_80058748(void)
 {
-    GStruct32Entry      entry;
-    volatile GStruct19* p;
-    register s32        rem_tmp asm("a0");
-    register s32        field18 asm("a1");
-    register s32        temp asm("v0");
-    register s32        rem asm("v1");
-    register s32        quot asm("a3");
+    CdReadyEntry            entry;
+    volatile CdStreamState* p;
+    register s32            rem_tmp asm("a0");
+    register s32            field18 asm("a1");
+    register s32            temp asm("v0");
+    register s32            rem asm("v1");
+    register s32            quot asm("a3");
 
-    p          = &D_80082818;
-    field18    = p->field_18;
-    temp       = field18 / p->field_40;
-    p->field_6 = 0;
-    quot       = temp + 1;
+    p            = &CdStream_State;
+    field18      = p->field_18;
+    temp         = field18 / p->sectorsPerChunk;
+    p->readySlot = 0;
+    quot         = temp + 1;
 
-    if ((D_80082818.unknown_0[0] >> 2) & 1) {
-        p->unknown_0[3] = 1;
-        p->unknown_0[1] = p->unknown_0[1] | 1;
-        p->unknown_0[2] = p->unknown_0[2] & 0xFD;
+    if ((CdStream_State.flags0 >> 2) & 1) {
+        p->phase  = 1;
+        p->flags1 = p->flags1 | 1;
+        p->flags2 = p->flags2 & 0xFD;
         if (p->field_1C & 1) {
-            p->unknown_0[4] = 0;
+            p->field_4 = 0;
         } else {
-            rem_tmp                 = (u16)p->field_40;
-            rem                     = field18 % p->field_40;
-            rem_tmp                 = rem_tmp - rem;
-            rem_tmp                 = rem_tmp + 1;
-            p->unknown_0[4]         = rem_tmp;
-            D_80082818.unknown_0[0] = D_80082818.unknown_0[0] | 0x20;
+            rem_tmp               = (u16)p->sectorsPerChunk;
+            rem                   = field18 % p->sectorsPerChunk;
+            rem_tmp               = rem_tmp - rem;
+            rem_tmp               = rem_tmp + 1;
+            p->field_4            = rem_tmp;
+            CdStream_State.flags0 = CdStream_State.flags0 | 0x20;
         }
         func_800588D8();
     } else {
         do {
             temp = (s32)func_80059EE0;
         } while (0);
-        rem             = p->unknown_0[2];
-        entry.field_8   = temp;
+        rem             = p->flags2;
+        entry.pollFn    = temp;
         temp            = (s32)func_80058748;
         rem             = rem & 0xFD;
-        p->unknown_0[2] = rem;
-        entry.field_C   = temp;
+        p->flags2       = rem;
+        entry.doneFn    = temp;
         D_80068B63      = D_80068B63 + 1;
-        temp            = (s32)func_8005BA8C;
+        temp            = (s32)CdStream_FinishQueueEntry;
         rem             = p->field_30;
-        entry.field_10  = temp;
+        entry.errorFn   = temp;
         p->field_20     = quot;
         rem_tmp         = (s32)&entry;
-        entry.field_4   = rem;
-        p->field_6      = func_80057D3C((GStruct32Entry*)rem_tmp);
+        entry.sectorPos = rem;
+        p->readySlot    = CdReady_Enqueue((CdReadyEntry*)rem_tmp);
     }
 }
 
 void func_800588D8(void)
 {
-    volatile GStruct19* p;
-    u8                  temp;
+    volatile CdStreamState* p;
+    u8                      temp;
 
     if (D_80068B5C != 0) {
         SpuSetIRQ(0);
         SpuSetIRQCallback(0);
         D_80068B5C = 0;
     }
-    D_80082818.unknown_0[0] = D_80082818.unknown_0[0] & 0xF7;
-    D_80082818.unknown_0[0] = D_80082818.unknown_0[0] & 0xBF;
+    CdStream_State.flags0 = CdStream_State.flags0 & 0xF7;
+    CdStream_State.flags0 = CdStream_State.flags0 & 0xBF;
     func_800B0118(0, 0);
-    p                       = &D_80082818;
-    temp                    = p->unknown_0[2];
-    p->unknown_0[2]         = temp & 0xF7;
-    D_80082808              = 0;
-    D_80082818.unknown_0[0] = D_80082818.unknown_0[0] | 1;
+    p                     = &CdStream_State;
+    temp                  = p->flags2;
+    p->flags2             = temp & 0xF7;
+    D_80082808            = 0;
+    CdStream_State.flags0 = CdStream_State.flags0 | 1;
 }
 
 INCLUDE_ASM("main/nonmatchings/46FE4", func_8005896C);

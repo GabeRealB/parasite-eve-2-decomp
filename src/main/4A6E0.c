@@ -10,7 +10,7 @@ INCLUDE_ASM("main/nonmatchings/4A6E0", func_80059EE0);
 
 INCLUDE_ASM("main/nonmatchings/4A6E0", func_8005A94C);
 
-s32 func_8005B3B4(u32* arg0)
+s32 CdStream_InitDisc(u32* arg0)
 {
     struct {
         u8     result[8];
@@ -69,8 +69,8 @@ s32 func_8005B3B4(u32* arg0)
                                                 case 6:
                                                     sp.mode = -0x60;
                                                     if (CdControl(CdlSetmode, (u8*)&sp.mode, NULL) != 0) {
-                                                        *arg0               = (*arg0 & ~0xFF0) | 0x70;
-                                                        D_80082818.field_56 = 0;
+                                                        *arg0                        = (*arg0 & ~0xFF0) | 0x70;
+                                                        CdStream_State.settleCounter = 0;
                                                     }
                                             }
                                     }
@@ -79,8 +79,8 @@ s32 func_8005B3B4(u32* arg0)
             }
             break;
         case 7:
-            D_80082818.field_56 = D_80082818.field_56 + 1;
-            if (D_80082818.field_56 >= 4) {
+            CdStream_State.settleCounter = CdStream_State.settleCounter + 1;
+            if (CdStream_State.settleCounter >= 4) {
                 return 1;
             }
             break;
@@ -88,42 +88,42 @@ s32 func_8005B3B4(u32* arg0)
     return 0;
 }
 
-void func_8005B648(CdlCB arg0)
+void CdReady_InstallCallback(CdlCB arg0)
 {
-    volatile GStruct32* p;
+    volatile CdReadyQueue* p;
 
-    p = &D_800828F0;
-    if (p->field_1 == 0) {
-        p->field_4 = CdReadyCallback(arg0);
+    p = &CdReady_Queue;
+    if (p->callbackInstalled == 0) {
+        p->prevCallback = CdReadyCallback(arg0);
     } else {
         CdReadyCallback(arg0);
     }
-    D_800828F0.field_1 = 1;
+    CdReady_Queue.callbackInstalled = 1;
 }
 
-void func_8005B6A8(void)
+void CdReady_ClearCallback(void)
 {
-    volatile GStruct32* p;
+    volatile CdReadyQueue* p;
 
-    p = &D_800828F0;
-    if (p->field_1 != 0) {
+    p = &CdReady_Queue;
+    if (p->callbackInstalled != 0) {
         CdReadyCallback(0);
-        p->field_4 = 0;
-        p->field_1 = 0;
+        p->prevCallback      = 0;
+        p->callbackInstalled = 0;
     }
 }
 
-void func_8005B6EC(void)
+void CdStream_Reset(void)
 {
     s32* ptr;
     u32  i;
 
-    ptr = (s32*)&D_800828F0;
+    ptr = (s32*)&CdReady_Queue;
     for (i = 0; i < 0x16; i++) {
         *ptr++ = 0;
     }
 
-    ptr = (s32*)&D_80082818;
+    ptr = (s32*)&CdStream_State;
     for (i = 0; i < 0x36; i++) {
         *ptr++ = 0;
     }
@@ -137,84 +137,84 @@ void func_8005B6EC(void)
     D_80068B5C = 0;
 }
 
-void func_8005B78C(void)
+void CdStream_ArmSpuIrq(void)
 {
-    volatile GStruct19* p;
+    volatile CdStreamState* p;
 
-    D_80082818.unknown_0[0] = D_80082818.unknown_0[0] & 0xFD;
-    D_80082818.unknown_0[0] = D_80082818.unknown_0[0] & 0xF7;
-    p                       = &D_80082818;
-    p->unknown_0[4]         = 1;
-    p->field_18             = 0;
+    CdStream_State.flags0 = CdStream_State.flags0 & 0xFD;
+    CdStream_State.flags0 = CdStream_State.flags0 & 0xF7;
+    p                     = &CdStream_State;
+    p->field_4            = 1;
+    p->field_18           = 0;
     SpuSetIRQ(0);
-    SpuSetIRQCallback(func_8005B830);
-    SpuSetIRQAddr((p->field_3C + p->field_42 + 0x4F) & ~0x3F);
-    D_80082818.unknown_0[0] = D_80082818.unknown_0[0] & 0xBF;
-    D_80082818.unknown_0[0] = D_80082818.unknown_0[0] | 1;
+    SpuSetIRQCallback(CdStream_SpuIrqHandler);
+    SpuSetIRQAddr((p->spuBase + p->ringHalf + 0x4F) & ~0x3F);
+    CdStream_State.flags0 = CdStream_State.flags0 & 0xBF;
+    CdStream_State.flags0 = CdStream_State.flags0 | 1;
 }
 
-void func_8005B830(void)
+void CdStream_SpuIrqHandler(void)
 {
-    D_80082818.unknown_0[0] = D_80082818.unknown_0[0] | 8;
+    CdStream_State.flags0 = CdStream_State.flags0 | 8;
 }
 
-void func_8005B84C(s16 arg0)
+void CdStream_SetPitch(s16 arg0)
 {
-    GStruct74*               p;
-    volatile GStruct19*      q;
-    GStruct74Entry*          ch1b;
-    register GStruct74Entry* ch1 asm("v0");
-    s16                      val;
-    s32                      t0;
-    s32                      t1;
+    CdStreamChannels*         p;
+    volatile CdStreamState*   q;
+    CdStreamChannel*          ch1b;
+    register CdStreamChannel* ch1 asm("v0");
+    s16                       val;
+    s32                       t0;
+    s32                       t1;
 
-    p = &D_80082870;
-    q = (volatile GStruct19*)p - 1;
+    p = &CdStream_Channels;
+    q = (volatile CdStreamState*)p - 1;
 
-    if ((q->unknown_0[0] >> 1) & 1) {
-        if (q->unknown_0[1] & 1) {
-            t0               = p->ch[0].field_4;
-            t1               = p->ch[1].field_4;
-            p->ch[0].field_4 = t0 | 3;
-            p->ch[1].field_4 = t1 | 3;
+    if ((q->flags0 >> 1) & 1) {
+        if (q->flags1 & 1) {
+            t0            = p->ch[0].attr;
+            t1            = p->ch[1].attr;
+            p->ch[0].attr = t0 | 3;
+            p->ch[1].attr = t1 | 3;
         } else {
-            p->ch[1].field_4 = 3;
-            p->ch[0].field_4 = 3;
-            q->unknown_0[1]  = q->unknown_0[1] | 1;
+            p->ch[1].attr = 3;
+            p->ch[0].attr = 3;
+            q->flags1     = q->flags1 | 1;
         }
     }
 
-    if (D_80082818.field_53 & 2) {
-        ch1b             = &p->ch[1];
-        val              = (s16)((arg0 * 0xB5) >> 8);
-        ch1b->field_8    = val;
-        p->ch[0].field_A = val;
-        ch1b->field_A    = val;
-        p->ch[0].field_8 = val;
+    if (CdStream_State.flags & 2) {
+        ch1b              = &p->ch[1];
+        val               = (s16)((arg0 * 0xB5) >> 8);
+        ch1b->pitch       = val;
+        p->ch[0].pitchAlt = val;
+        ch1b->pitchAlt    = val;
+        p->ch[0].pitch    = val;
         return;
     }
-    ch1              = &p->ch[1];
-    ch1->field_A     = arg0;
-    p->ch[0].field_8 = arg0;
-    ch1->field_8     = 0;
-    p->ch[0].field_A = 0;
+    ch1               = &p->ch[1];
+    ch1->pitchAlt     = arg0;
+    p->ch[0].pitch    = arg0;
+    ch1->pitch        = 0;
+    p->ch[0].pitchAlt = 0;
 }
 
 void func_8005B920(s32 arg0)
 {
-    volatile GStruct19* p;
-    u8                  temp;
+    volatile CdStreamState* p;
+    u8                      temp;
 
-    p    = &D_80082818;
-    temp = p->unknown_0[1];
+    p    = &CdStream_State;
+    temp = p->flags1;
     if (temp >> 7) {
-        p->field_14     = arg0;
-        p->unknown_0[1] = p->unknown_0[1] | 8;
-        p->unknown_0[0] = p->unknown_0[0] | 1;
+        p->field_14 = arg0;
+        p->flags1   = p->flags1 | 8;
+        p->flags0   = p->flags0 | 1;
     }
 }
 
-void func_8005B968(u32* arg0)
+void CdStream_AbortPhase(u32* arg0)
 {
     u32 temp_v1;
 
@@ -223,15 +223,15 @@ void func_8005B968(u32* arg0)
         *arg0 = temp_v1 & ~8;
         return;
     }
-    *arg0               = temp_v1 & ~8;
-    D_80082818.field_4C = 0;
+    *arg0                   = temp_v1 & ~8;
+    CdStream_State.field_4C = 0;
     switch ((*arg0 >> 5) & 0xFF) {
         case 6:
         case 7:
-            func_8005B6A8();
+            CdReady_ClearCallback();
             goto shared_flush;
         case 8:
-            func_8005B6A8();
+            CdReady_ClearCallback();
             CdFlush();
             CdControlF(CdlPause, NULL);
             *arg0 = ((*arg0 | 8) & ~0x1FE0) | 0x1C0;
@@ -260,69 +260,69 @@ void func_8005B968(u32* arg0)
     }
 }
 
-void func_8005BA8C(u32* arg0)
+void CdStream_FinishQueueEntry(u32* arg0)
 {
-    func_8005B968(arg0);
-    if (!((*arg0 >> 3) & 1) && (D_80082818.field_8 != NULL)) {
-        D_80082818.field_8(0);
+    CdStream_AbortPhase(arg0);
+    if (!((*arg0 >> 3) & 1) && (CdStream_State.doneCb != NULL)) {
+        CdStream_State.doneCb(0);
     }
 }
 
-void func_8005BAEC(s16 arg0)
+void CdReady_Cancel(s16 arg0)
 {
-    u8              temp;
-    s16             idx;
-    u32             flags;
-    GStruct32Entry* entry;
+    u8            temp;
+    s16           idx;
+    u32           flags;
+    CdReadyEntry* entry;
 
-    temp = D_800828F0.field_0;
+    temp = CdReady_Queue.locked;
     if (arg0 != 0) {
         idx   = arg0 - 1;
-        entry = (GStruct32Entry*)&D_800828F0.entries[idx];
-        flags = entry->field_0;
+        entry = (CdReadyEntry*)&CdReady_Queue.entries[idx];
+        flags = entry->flags;
         if (flags & 1) {
-            entry->field_0 = (flags & ~1) | 4;
+            entry->flags = (flags & ~1) | 4;
         }
-        D_800828F0.field_0 = temp;
+        CdReady_Queue.locked = temp;
     }
 }
 
-s32 func_8005BB4C(void)
+s32 CdStream_IsBusy(void)
 {
-    if (D_80082818.unknown_0[0] & 1) {
+    if (CdStream_State.flags0 & 1) {
         return 1;
     }
-    return (D_800828F0.field_3 != D_800828F0.field_2) ? 1 : (D_80082818.field_54 != 0);
+    return (CdReady_Queue.writeIdx != CdReady_Queue.readIdx) ? 1 : (CdStream_State.pending != 0);
 }
 
-void func_8005BB9C(void)
+void CdStream_ClearReadySlot(void)
 {
-    D_80082818.field_6 = 0;
+    CdStream_State.readySlot = 0;
 }
 
-void func_8005BBB0(s32 arg0)
+void CdStream_SetLinkedPitch(s32 arg0)
 {
     if ((s8)arg0) {
-        D_80082818.field_53 = D_80082818.field_53 | 2;
+        CdStream_State.flags = CdStream_State.flags | 2;
     } else {
-        D_80082818.field_53 = D_80082818.field_53 & 0xFD;
+        CdStream_State.flags = CdStream_State.flags & 0xFD;
     }
 }
 
-void func_8005BBF4(void)
+void CdStream_MarkEnding(void)
 {
-    D_80082818.field_53     = D_80082818.field_53 & 0xFE;
-    D_80082818.unknown_0[1] = D_80082818.unknown_0[1] | 2;
-    D_80082818.field_54     = 0;
+    CdStream_State.flags   = CdStream_State.flags & 0xFE;
+    CdStream_State.flags1  = CdStream_State.flags1 | 2;
+    CdStream_State.pending = 0;
 }
 
-s32 func_8005BC28(void)
+s32 CdStream_Flush(void)
 {
     CdFlush();
     return 0;
 }
 
-void func_8005BC48(s32 arg0, u32 arg1)
+void CdStream_ConfigureSpuIrq(s32 arg0, u32 arg1)
 {
     if (arg0 == 1) {
         if (D_80068B5C != 0) {
@@ -330,7 +330,7 @@ void func_8005BC48(s32 arg0, u32 arg1)
             SpuSetIRQCallback(0);
         }
         D_80068B5C = arg0;
-        SpuSetIRQCallback(func_8005B830);
+        SpuSetIRQCallback(CdStream_SpuIrqHandler);
         SpuSetIRQAddr(arg1);
         SpuSetIRQ(1);
     } else if (D_80068B5C != 0) {

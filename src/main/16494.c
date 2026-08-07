@@ -159,7 +159,7 @@ void func_800260B0(s32 arg0)
     func_800517B4(func_800517F8() & 0xFF);
     flag = (u8)flag;
     func_80055DFC(func_80055EE8());
-    func_8005BBB0(flag ^ 1);
+    CdStream_SetLinkedPitch(flag ^ 1);
     if (flag == 0) {
         atv.val0 = 0x5A;
         atv.val1 = 0x5A;

@@ -231,7 +231,7 @@ reloads it into `$s0` only on the fallthrough path that *does* call, do not
 share one local pointer for both arms. Access the global by name (or return
 early) on the no-call arm, and introduce `p = &global` only after joining the
 call path. A single `p` live across both arms pins `$s0` for the whole function
-and mismatches prologue/early stores (`func_80058320` / `D_80082818`).
+and mismatches prologue/early stores (`CdStream_Continue` / `CdStream_State`).
 
 **Also: capture a dest address before a call that you assign after.** Writing
 `Fs_ChunkWritePtr = (u8*)&Fs_CdSector` after `CdSync` materialises the address
@@ -300,16 +300,16 @@ fresh `lui`/`addiu %lo` for a *post-call* store (instead of `off($s0)`), use the
 local pointer only up through the call and name the global for the later write:
 
 ```c
-volatile GStruct32* p = &D_800828F0;
+volatile CdReadyQueue* p = &CdReady_Queue;
 if (p->field_1 == 0) {
     p->field_4 = CdReadyCallback(arg0); /* uses $s0 */
 } else {
     CdReadyCallback(arg0);
 }
-D_800828F0.field_1 = 1; /* reloads address into $v0 — not $s0 */
+CdReady_Queue.field_1 = 1; /* reloads address into $v0 — not $s0 */
 ```
 
-`func_8005B648` needs this plus `volatile` on the global (base+offset `sb`, not
+`CdReady_InstallCallback` needs this plus `volatile` on the global (base+offset `sb`, not
 `%lo(sym+1)`). Writing `p->field_1 = 1` keeps `$s0` and mismatches.
 
 **Indexed volatile arrays — multiply before base load.** A direct
@@ -1528,7 +1528,7 @@ if (temp >> 7) {
 That produces the clean `lbu` / `srl` / `beqz` sequence. Casting at the use site
 (`if ((u8)p->unknown_0[1] >> 7)`) is not enough — the temporary is required.
 
-`func_8005B920` is a pure example (bit 7 of `D_80082818.unknown_0[1]`).
+`func_8005B920` is a pure example (bit 7 of `CdStream_State.unknown_0[1]`).
 
 
 ## Early-load order among independent `&= ~mask` globals
@@ -1957,7 +1957,7 @@ if (flag & 1) {
 return (a != b) ? 1 : (x != 0);
 ```
 
-`func_8005BB4C` is the pure example. An if/else that assigns into `ret` and
+`CdStream_IsBusy` is the pure example. An if/else that assigns into `ret` and
 returns once can also work, but the ternary is the minimal rewrite.
 
 ## Statement order of independent increments fills load-delay slots
@@ -2596,10 +2596,10 @@ Fix: keep the pre-call clear as a direct field expression (so it stays
 plus a local pointer for the base:
 
 ```c
-D_80082818.unknown_0[0] = D_80082818.unknown_0[0] & 0xF7;
+CdStream_State.unknown_0[0] = CdStream_State.unknown_0[0] & 0xF7;
 /* ... */
 func(...);
-p = &D_80082818;
+p = &CdStream_State;
 temp = p->unknown_0[2];
 p->unknown_0[2] = temp & 0xF7; /* separate andi — mask not CSE'd into $sN */
 ```
@@ -2638,8 +2638,8 @@ e->field_0 = (flags & ~1) | 4; /* still li -2; and */
 can put the `lbu` in `$a1`; the split `t = field; t = t & 0xFE; field = t`
 keeps `lbu`/`andi` on `$v0`.
 
-`func_8005854C` is the pure example (pairs with the `D_800828F0` entry flag
-update used by `func_8005842C`).
+`func_8005854C` is the pure example (pairs with the `CdReady_Queue` entry flag
+update used by `CdStream_Stop`).
 
 ## Non-volatile store reordered past volatile field stores
 
@@ -2659,7 +2659,7 @@ extern volatile s16 D_80082808;
 /* ... */
 p->unknown_0[2] = temp & 0xF7;
 D_80082808 = 0; /* stays here when volatile */
-D_80082818.unknown_0[0] = D_80082818.unknown_0[0] | 1;
+CdStream_State.unknown_0[0] = CdStream_State.unknown_0[0] | 1;
 ```
 
 `func_800588D8` / `D_80082808` is the example.
@@ -2879,8 +2879,8 @@ if (state->field_4 != pos) {  /* beq v1,v0 — field in v1, pos in v0 */
 
 ## Volatile global: index via global name, not a local pointer
 
-For a `volatile` global struct with an embedded array (e.g. `D_800828F0.entries`),
-taking a local `p = &D_800828F0` and then forming `&((T*)((u8*)p + off))[idx]`
+For a `volatile` global struct with an embedded array (e.g. `CdReady_Queue.entries`),
+taking a local `p = &CdReady_Queue` and then forming `&((T*)((u8*)p + off))[idx]`
 (or `p->entries[idx]` through that pointer) often folds the field offset into
 the scaled index:
 
@@ -2902,16 +2902,16 @@ Use the global directly (no local pointer) so the address of the struct is
 shared between the `%lo(sym)` field_0 access and the array base:
 
 ```c
-temp = D_800828F0.field_0; /* lui/addiu + %lo lbu */
+temp = CdReady_Queue.field_0; /* lui/addiu + %lo lbu */
 if (arg0 != 0) {
     idx = arg0 - 1;
-    entry = (GStruct32Entry*)&D_800828F0.entries[idx];
+    entry = (CdReadyEntry*)&CdReady_Queue.entries[idx];
     ...
-    D_800828F0.field_0 = temp;
+    CdReady_Queue.field_0 = temp;
 }
 ```
 
-`func_8005BAEC` is the minimal example. A local `volatile GStruct32* p` was the
+`CdReady_Cancel` is the minimal example. A local `volatile CdReadyQueue* p` was the
 sole difference between a 99% and a 100% match.
 
 ## Early-return `move v0,zero` vs `move a1,zero` with a live sum
@@ -3597,7 +3597,7 @@ D_80068B5C = 0;
 ```
 
 Also match load width to the source type: `lhu` ⇒ `volatile u16` (not `s16`,
-which yields `lh`). `func_8005B6EC` is the pure example.
+which yields `lh`). `CdStream_Reset` is the pure example.
 
 ## Local bitmask for correct s-reg assignment across a call
 
@@ -5845,19 +5845,19 @@ the target holds the same pointer in two callee-saved regs for interleaved
 
 ## Adjacent BSS via typed pointer subtraction
 
-When two BSS symbols are laid out back-to-back (e.g. `D_80082818` size `0x58`,
-then `D_80082870`) and the target forms the earlier address as
+When two BSS symbols are laid out back-to-back (e.g. `CdStream_State` size `0x58`,
+then `CdStream_Channels`) and the target forms the earlier address as
 `addiu a1, a2, -0x58` off the later base (`lbu v0, -0x58(a2)`), do not name both
-globals independently — that reloads `%hi/%lo(D_80082818)`. Anchor on the later
+globals independently — that reloads `%hi/%lo(CdStream_State)`. Anchor on the later
 symbol and step back one typed element:
 
 ```c
-GStruct74* p = &D_80082870;
-volatile GStruct19* q = (volatile GStruct19*)p - 1; /* sizeof == gap */
+CdStreamChannels* p = &CdStream_Channels;
+volatile CdStreamState* q = (volatile CdStreamState*)p - 1; /* sizeof == gap */
 ```
 
 `sizeof(*q)` must equal the BSS gap. Same pattern as `parent = (GStruct56*)interp - 1`.
-`func_8005B84C` needs this (with `volatile` on `q` so the else path reloads
+`CdStream_SetPitch` needs this (with `volatile` on `q` so the else path reloads
 `unknown_0[1]` instead of CSEing the bit test).
 
 ## Else-only `register … asm("v0")` for dual channel pointers
@@ -5884,11 +5884,11 @@ if (flag) {
     /* use ch1b → $a1 */
     return;
 }
-ch1 = &p->ch[1];   /* register GStruct74Entry* ch1 asm("v0"); */
+ch1 = &p->ch[1];   /* register CdStreamChannel* ch1 asm("v0"); */
 ch1->field_A = arg0;
 ```
 
-`func_8005B84C` is the pure example (`D_80082870.ch[0]` / `ch[1]`, stride `0x40`).
+`CdStream_SetPitch` is the pure example (`CdStream_Channels.ch[0]` / `ch[1]`, stride `0x40`).
 
 ## Dual `if (size != 0)` fill loops need a reloaded `cond`
 
@@ -6785,13 +6785,13 @@ target builds `idx*stride` first then `addiu base, p, offsetof(entries)`:
 
 ```c
 /* Right: multiply first, then base = p+8 */
-entry = &D_800828F0.entries[(s8)p->field_3];
+entry = &CdReady_Queue.entries[(s8)p->field_3];
 
 /* Wrong fold: (idx*20 + 8) + p */
 entry = &p->entries[(s8)p->field_3];
 ```
 
-`func_80057D3C` is the pure example (D_800828F0.entries queue push).
+`CdReady_Enqueue` is the pure example (CdReady_Queue.entries queue push).
 
 ## Dual `goto` return labels for `beqz` + `j`/`li` fallthrough layout
 
@@ -8735,7 +8735,7 @@ entry.field_8 = temp;
 
 Without the wrapper the store wins the schedule; with it, the compiler emits
 the independent loads first. `func_80058748` is the pure example (else-arm
-callback install next to `func_80058320`).
+callback install next to `CdStream_Continue`).
 
 ## Reserve `$a0` with `register … asm("a0")` so address-hi keeps `$a2`
 
@@ -8873,31 +8873,31 @@ changes the `bne` delay from `addiu s1,sp,0x10` to `addiu s2,sp,0x18`. Pass
 
 ## Ring-buffer queue drain: non-volatile entry + split index advances
 
-`func_80057E1C` (and the sibling `func_8004DC8C`) process one slot of a 4-entry
+`CdReady_Poll` (and the sibling `func_8004DC8C`) process one slot of a 4-entry
 callback ring. Two matching details that look like style nits but are required:
 
 1. **Non-volatile entry pointer.** The queue object itself is `volatile`
-   (`D_800828F0`), but the current slot must be taken as a plain
-   `GStruct32Entry*`:
+   (`CdReady_Queue`), but the current slot must be taken as a plain
+   `CdReadyEntry*`:
 
 ```c
-entry = (GStruct32Entry*)&D_800828F0.entries[(s8)p->field_2];
+entry = (CdReadyEntry*)&CdReady_Queue.entries[(s8)p->field_2];
 entry->field_0 &= ~1;
 entry->field_0 &= ~4;
 ```
 
-   With a `volatile GStruct32Entry*`, each `&=` becomes its own load/store (or
+   With a `volatile CdReadyEntry*`, each `&=` becomes its own load/store (or
    a temp lands in the wrong register). Non-volatile gives the target's
    `lw` / `li -2` / `and` / `li -5` / `and` / `sw` chain in `$v0`/`$v1`.
 
 2. **Do not share the "advance index" block across arms.** The bit-0 path
    advances through the base already in `$s1` (`p->field_2 = …`). The bit-2
-   path reloads the global (`lui`/`addiu` of `D_800828F0`) and writes
-   `D_800828F0.field_2`. Sharing one advance via `goto` from both arms merges
+   path reloads the global (`lui`/`addiu` of `CdReady_Queue`) and writes
+   `CdReady_Queue.field_2`. Sharing one advance via `goto` from both arms merges
    them onto `$s1` and shrinks the function. Duplicate the increment/wrap
    literally, once via `p` and once via the global name.
 
-`func_8004DC8C` is the pure template for control flow; `func_80057E1C` adds the
+`func_8004DC8C` is the pure template for control flow; `CdReady_Poll` adds the
 `field_0` lock check and the no-arg `field_C` callback.
 
 ## Sign-extend loop counter via `next` in `$v0` + empty asm barrier
@@ -9584,9 +9584,9 @@ switch (b) {
 ```
 
 Without the pins, GCC still dual-loads but elides `andi` before `sb`. Without
-`volatile`, it collapses to one `lw` + `move`. `func_8005B3B4` (CD init state
+`volatile`, it collapses to one `lw` + `move`. `CdStream_InitDisc` (CD init state
 machine, sibling of `func_80025DD8`) is the pure example — also needs
-`GStruct19.field_56` as `u16` for the case-7 retry counter.
+`CdStreamState.field_56` as `u16` for the case-7 retry counter.
 
 ## Entry pointer in `$a0` for load-then-store of a `u8` field
 
@@ -11073,7 +11073,7 @@ tails need `and s0, s0, a0` (mask in `$a0`). `func_800454E4` is the pure example
 When the target does:
 
 ```
-addiu  a3, …, %lo(D_800828F0)
+addiu  a3, …, %lo(CdReady_Queue)
 …
 sll    v1, idx, …          /* idx * stride */
 addiu  v0, a3, 8           /* &entries[0] */
@@ -11082,7 +11082,7 @@ lw     a0, 0(v1)
 ```
 
 writing `e = &p->entries[idx]` with `p` a local that already holds
-`&D_800828F0` often produces the algebraically equal but different form
+`&CdReady_Queue` often produces the algebraically equal but different form
 `addiu v1, scaled, 8; addu v1, v1, a3`.
 
 Using the **global** for the array index keeps the `addiu v0, base, 8` shape
@@ -11090,20 +11090,20 @@ even when a register also holds the same address (e.g. assigned earlier for
 another purpose, then reused after the block):
 
 ```c
-a3 = (volatile GStruct19*)&D_800828F0; /* may be needed for reg color */
+a3 = (volatile CdStreamState*)&CdReady_Queue; /* may be needed for reg color */
 …
-e = (GStruct32Entry*)&D_800828F0.entries[idx]; /* global → addiu v0, base, 8 */
+e = (CdReadyEntry*)&CdReady_Queue.entries[idx]; /* global → addiu v0, base, 8 */
 ```
 
-`func_80057FAC` is the pure example — 99.9% until this one form difference.
+`CdStream_Start` is the pure example — 99.9% until this one form difference.
 
 ## Adjacent BSS: `p + 1` for the next object
 
-When two BSS globals are laid out back-to-back (here `D_80082818` size 0x58,
-then `D_80082870`), the original code often never names the second symbol and
+When two BSS globals are laid out back-to-back (here `CdStream_State` size 0x58,
+then `CdStream_Channels`), the original code often never names the second symbol and
 instead uses `(NextType*)(p + 1)` / `(PrevType*)q - 1`. Prefer that over loading
-`&D_80082870` so codegen keeps a single base plus a fixed offset (`addiu t0,
-a3, 0x58`). See also `func_8005B84C` which walks the other direction.
+`&CdStream_Channels` so codegen keeps a single base plus a fixed offset (`addiu t0,
+a3, 0x58`). See also `CdStream_SetPitch` which walks the other direction.
 
 ## QImode `register asm` compare: `andi v0,tN` vs `andi tN,tN`
 
@@ -11409,21 +11409,22 @@ second `andi` is not constant-folded to `li a0, 1`.
 
 ## `func_8005A94C` (4A6E0 CD/SPU stream callback) notes
 
-Large (~0xA68) CD ready callback. Infrastructure landed; full match still open
-(~84% best). Key requirements for the next attempt:
+Large (~0xA68) CD ready callback (`CdStream_*` / `CdReady_*` subsystem).
+Infrastructure landed; full match still open (~84% best). Key requirements for
+the next attempt:
 
 1. **`--expand-div` on the `4A6E0.c` TU** (already in `ninja_config.py`). Target
    has the full signed `div` trap sequence (`break 7` / `break 6`); bare `div`
    from GCC will not match without maspsx expansion.
 
-2. **Identical dual `SpuWrite` arms** when `(field_4E % field_46) == 1` and the
+2. **Identical dual `SpuWrite` arms** when `(remaining % mtsPeriod) == 1` and the
    two `field_1C & 1` branches are byte-for-byte the same in the ROM. GCC 2.8.1
    cross-jumps them into one block. A slight asymmetry (e.g. `u8* buf = …` on
    only one arm) can force two `jal SpuWrite`s; then re-converge the codegen.
 
-3. **GStruct19 field map** (already in `game.h`): `field_24` SPU addr, `field_44`
-   countdown, `field_46`/`field_47` MTS params, `field_4E` remaining, `field_50`–
-   `field_52` (was `unknown_4E[2..4]`), `field_48` as `GStruct19Sector*`.
+3. **CdStreamState field map** (in `game.h`): `spuAddr`, `countdown`,
+   `mtsPeriod`/`mtsParam`, `remaining`, `voiceL`/`voiceR`/`mode`, `sector` as
+   `MtsSector*`.
 
 4. **Error counters** at `D_80068B5C+1` / `+3` and `D_80068B64+1` want
    `%lo(sym+N)` form (`lbu`/`sb` with folded reloc). Separate byte symbols or

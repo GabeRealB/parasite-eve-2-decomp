@@ -23,6 +23,7 @@
 #include "main/mc.h"
 #include "main/boot.h"
 #include "main/gamemain.h"
+// CdStream types are defined below; APIs in main/cdstream.h.
 
 // CdCmdEntry / CdCmdQueue live in main/fs.h
 
@@ -240,100 +241,106 @@ typedef struct _GStruct18 {
 } GStruct18;
 STATIC_ASSERT_SIZEOF(GStruct18, 0x10);
 
-/// Sector payload pointed to by GStruct19::field_48 (MTS audio stream sector).
-typedef struct _GStruct19Sector {
+/// Sector payload pointed to by CdStreamState::sector (MTS audio stream sector).
+typedef struct _MtsSector {
     /* 0x00 */ s32 field_0;
     /* 0x04 */ s32 field_4;
-    /* 0x08 */ u32 field_8; // high 3 bytes = "MTS", low byte = channel count
+    /* 0x08 */ u32 magic; // high 3 bytes = "MTS", low byte = channel count
     /* 0x0C */ s8  field_C;
     /* 0x0D */ u8  field_D;
     /* 0x0E */ u8  field_E;
     /* 0x0F */ s8  field_F;
-} GStruct19Sector;
+} MtsSector;
 
-/// BSS object D_80082818 (size 0x58). CD/SPU stream runtime state.
-typedef struct _GStruct19 {
-    /* 0x00 */ byte             unknown_0[0x6];
-    /* 0x06 */ s16              field_6;
-    /* 0x08 */ void             (*field_8)(s32);
-    /* 0x0C */ void             (*field_C)(s32);
-    /* 0x10 */ void             (*field_10)(s32);
-    /* 0x14 */ s32              field_14;
-    /* 0x18 */ s32              field_18;
-    /* 0x1C */ s32              field_1C;
-    /* 0x20 */ s32              field_20;
-    /* 0x24 */ s32              field_24;
-    /* 0x28 */ s32              field_28;
-    /* 0x2C */ s32              field_2C;
-    /* 0x30 */ s32              field_30;
-    /* 0x34 */ s32              field_34;
-    /* 0x38 */ s32              field_38;
-    /* 0x3C */ s32              field_3C;
-    /* 0x40 */ s16              field_40;
-    /* 0x42 */ s16              field_42;
-    /* 0x44 */ s16              field_44;
-    /* 0x46 */ s8               field_46;
-    /* 0x47 */ u8               field_47;
-    /* 0x48 */ GStruct19Sector* field_48;
-    /* 0x4C */ s16              field_4C;
-    /* 0x4E */ s16              field_4E;
-    /* 0x50 */ u8               field_50;
-    /* 0x51 */ u8               field_51;
-    /* 0x52 */ s8               field_52;
-    /* 0x53 */ u8               field_53;
-    /* 0x54 */ u16              field_54;
-    /* 0x56 */ u16              field_56;
-} GStruct19;
-STATIC_ASSERT_SIZEOF(GStruct19, 0x58);
+/// BSS object CdStream_State (size 0x58). CD/SPU stream runtime state.
+typedef struct _CdStreamState {
+    /* 0x00 */ u8         flags0; // bit0 busy, bit1 voice-on, bit3 IRQ, bit4 voices alloc, bit6 stop
+    /* 0x01 */ u8         flags1; // bit0 voices started, bit1 ending, bit3 param pending, bit7 enable param
+    /* 0x02 */ u8         flags2; // bit0 continue-arm, bit1/2 stream phase, bit3 XA pause
+    /* 0x03 */ u8         phase;  // 1 = completing, 2 = streaming
+    /* 0x04 */ u8         field_4;
+    /* 0x05 */ u8         pad_5;
+    /* 0x06 */ s16        readySlot; // 1-based CdReady_Queue index, 0 = none
+    /* 0x08 */ void       (*doneCb)(s32);
+    /* 0x0C */ void       (*startCb)(s32);
+    /* 0x10 */ void       (*voiceFreeCb)(s32);
+    /* 0x14 */ s32        field_14;
+    /* 0x18 */ s32        field_18;
+    /* 0x1C */ s32        field_1C;
+    /* 0x20 */ s32        field_20;
+    /* 0x24 */ s32        spuAddr;
+    /* 0x28 */ s32        startSector;
+    /* 0x2C */ s32        field_2C;
+    /* 0x30 */ s32        field_30;
+    /* 0x34 */ s32        field_34;
+    /* 0x38 */ s32        field_38;
+    /* 0x3C */ s32        spuBase;
+    /* 0x40 */ s16        sectorsPerChunk; // 0x18 (NTSC) or 0x14 (PAL)
+    /* 0x42 */ s16        ringHalf;        // 0x2770; half ring used in SPU addr math
+    /* 0x44 */ s16        countdown;
+    /* 0x46 */ s8         mtsPeriod;       // divisor for remaining % period SpuWrite cadence
+    /* 0x47 */ u8         mtsParam;
+    /* 0x48 */ MtsSector* sector;
+    /* 0x4C */ s16        field_4C;
+    /* 0x4E */ s16        remaining;
+    /* 0x50 */ u8         voiceL;
+    /* 0x51 */ u8         voiceR;
+    /* 0x52 */ s8         mode;
+    /* 0x53 */ u8         flags;         // bit1 = linked L/R pitch
+    /* 0x54 */ u16        pending;
+    /* 0x56 */ u16        settleCounter; // disc init settle ticks
+} CdStreamState;
+STATIC_ASSERT_SIZEOF(CdStreamState, 0x58);
 
-/// One half of D_80082870 (stride 0x40). Dual L/R audio channel state.
-/// Immediately follows D_80082818 in BSS (func_80057FAC treats it as
-/// (GStruct74Entry*)(&D_80082818 + 1)).
-typedef struct _GStruct74Entry {
-    /* 0x00 */ s32  field_0;
-    /* 0x04 */ s32  field_4;
-    /* 0x08 */ s16  field_8;
-    /* 0x0A */ s16  field_A;
+/// One half of CdStream_Channels (stride 0x40). Dual L/R audio channel state.
+/// Immediately follows CdStream_State in BSS (CdStream_Start treats it as
+/// (CdStreamChannel*)(&CdStream_State + 1)).
+typedef struct _CdStreamChannel {
+    /* 0x00 */ s32  voiceMask;
+    /* 0x04 */ s32  attr; // Spu voice attribute bitfield (key-on bits etc.)
+    /* 0x08 */ s16  pitch;
+    /* 0x0A */ s16  pitchAlt;
     /* 0x0C */ s16  field_C;
     /* 0x0E */ s16  field_E;
     /* 0x10 */ byte pad_10[4];
-    /* 0x14 */ s16  field_14;
+    /* 0x14 */ s16  field_14; // often 0x1000
     /* 0x16 */ byte pad_16[6];
-    /* 0x1C */ s32  field_1C;
-    /* 0x20 */ s32  field_20;
+    /* 0x1C */ s32  spuAddr;
+    /* 0x20 */ s32  spuAddr2;
     /* 0x24 */ byte pad_24[0x16];
     /* 0x3A */ s16  field_3A;
     /* 0x3C */ s16  field_3C;
     /* 0x3E */ byte pad_3E[2];
-} GStruct74Entry;
-STATIC_ASSERT_SIZEOF(GStruct74Entry, 0x40);
+} CdStreamChannel;
+STATIC_ASSERT_SIZEOF(CdStreamChannel, 0x40);
 
-/// BSS object D_80082870 (size 0x80). Two GStruct74Entry channels at +0x00 / +0x40.
-typedef struct _GStruct74 {
-    /* 0x00 */ GStruct74Entry ch[2];
-} GStruct74;
-STATIC_ASSERT_SIZEOF(GStruct74, 0x80);
+/// BSS object CdStream_Channels (size 0x80). Two CdStreamChannel channels at +0x00 / +0x40.
+typedef struct _CdStreamChannels {
+    /* 0x00 */ CdStreamChannel ch[2];
+} CdStreamChannels;
+STATIC_ASSERT_SIZEOF(CdStreamChannels, 0x80);
 
-/// One slot in D_800828F0.entries (stride 0x14). field_0 holds status flags.
-typedef struct _GStruct32Entry {
-    /* 0x00 */ u32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ s32 field_8;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
-} GStruct32Entry;
-STATIC_ASSERT_SIZEOF(GStruct32Entry, 0x14);
+/// One slot in CdReady_Queue.entries (stride 0x14).
+/// flags: bit0 active, bit1 armed, bit2 cancel/pending, bit3 result.
+typedef struct _CdReadyEntry {
+    /* 0x00 */ u32 flags;
+    /* 0x04 */ s32 sectorPos;
+    /* 0x08 */ s32 pollFn;  // s32 (*)(CdReadyEntry*)
+    /* 0x0C */ s32 doneFn;  // void (*)(void) when complete
+    /* 0x10 */ s32 errorFn; // void (*)(CdReadyEntry*) on cancel path
+} CdReadyEntry;
+STATIC_ASSERT_SIZEOF(CdReadyEntry, 0x14);
 
-/// BSS object D_800828F0 (size 0x58). CD ready-callback install state.
-typedef struct _GStruct32 {
-    /* 0x00 */ u8             field_0;
-    /* 0x01 */ u8             field_1;
-    /* 0x02 */ u8             field_2;
-    /* 0x03 */ u8             field_3;
-    /* 0x04 */ void*          field_4;
-    /* 0x08 */ GStruct32Entry entries[4];
-} GStruct32;
-STATIC_ASSERT_SIZEOF(GStruct32, 0x58);
+/// BSS object CdReady_Queue (size 0x58). Ring of CD ready work items + callback state.
+typedef struct _CdReadyQueue {
+    /* 0x00 */ u8           locked;            // re-entrancy guard
+    /* 0x01 */ u8           callbackInstalled; // CdReadyCallback currently ours
+    /* 0x02 */ u8           readIdx;
+    /* 0x03 */ u8           writeIdx;
+    /* 0x04 */ void*        prevCallback; // previous CdReadyCallback
+    /* 0x08 */ CdReadyEntry entries[4];
+} CdReadyQueue;
+STATIC_ASSERT_SIZEOF(CdReadyQueue, 0x58);
 
 /// Object passed to func_80048C10 / func_80048D58 (e.g. via Task::field_20).
 typedef struct _GStruct20 {
@@ -1070,23 +1077,23 @@ typedef struct _GStruct44 {
 } GStruct44;
 STATIC_ASSERT_SIZEOF(GStruct44, 0x14);
 
-/// BSS object D_800827C4 (size 0x20). CD/SPU stream setup block for
-/// func_800567E4 / func_80057FAC: sector position, buffer, callbacks, and
+/// BSS object CdStream_Params (size 0x20). CD/SPU stream setup block for
+/// func_800567E4 / CdStream_Start: sector position, buffer, callbacks, and
 /// voice indices.
-typedef struct _GStruct76 {
-    /* 0x00 */ s32   field_0;
-    /* 0x04 */ s32   field_4;
-    /* 0x08 */ void* field_8;
-    /* 0x0C */ void  (*field_C)(void);
-    /* 0x10 */ s32   field_10;
-    /* 0x14 */ s32   field_14;
-    /* 0x18 */ s16   field_18;
-    /* 0x1A */ s8    field_1A;
-    /* 0x1B */ s8    field_1B;
-    /* 0x1C */ u8    field_1C;
+typedef struct _CdStreamParams {
+    /* 0x00 */ s32   startSector;
+    /* 0x04 */ s32   spuBase;
+    /* 0x08 */ void* sectorBuf;
+    /* 0x0C */ void  (*doneCb)(void);
+    /* 0x10 */ s32   startCb;     // stored into CdStreamState::startCb
+    /* 0x14 */ s32   voiceFreeCb; // stored into CdStreamState::voiceFreeCb
+    /* 0x18 */ s16   pitch;
+    /* 0x1A */ s8    voiceL;
+    /* 0x1B */ s8    voiceR;
+    /* 0x1C */ u8    mode;
     /* 0x1D */ u8    pad_1D[3];
-} GStruct76;
-STATIC_ASSERT_SIZEOF(GStruct76, 0x20);
+} CdStreamParams;
+STATIC_ASSERT_SIZEOF(CdStreamParams, 0x20);
 
 /// Buffer with a 16-bit sum / ones-complement pair at the head and a payload
 /// starting at offset 4. Written by `Mc_WriteBlockChecksum`, verified by `Mc_VerifyBlockChecksum`.

@@ -2155,11 +2155,11 @@ func_80057BC0               = 0x80057BC0; // type:func
 func_80057BC8               = 0x80057BC8; // type:func
 func_80057C74               = 0x80057C74; // type:func
 func_80057D24               = 0x80057D24; // type:func
-func_80057D3C               = 0x80057D3C; // type:func
-func_80057E1C               = 0x80057E1C; // type:func
-func_80057FAC               = 0x80057FAC; // type:func
-func_80058320               = 0x80058320; // type:func
-func_8005842C               = 0x8005842C; // type:func
+CdReady_Enqueue             = 0x80057D3C; // type:func
+CdReady_Poll                = 0x80057E1C; // type:func
+CdStream_Start              = 0x80057FAC; // type:func
+CdStream_Continue           = 0x80058320; // type:func
+CdStream_Stop               = 0x8005842C; // type:func
 func_8005854C               = 0x8005854C; // type:func
 func_80058748               = 0x80058748; // type:func
 func_800588D8               = 0x800588D8; // type:func
@@ -2170,6 +2170,26 @@ func_80059348               = 0x80059348; // type:func
 //--------------------------------------------------------------------
 //--- PA: 0x4A6E0   VA: 0x80059EE0   subsegment: c, 4A6E0
 //--------------------------------------------------------------------
+func_80059EE0               = 0x80059EE0; // type:func
+func_8005A94C               = 0x8005A94C; // type:func
+CdStream_InitDisc           = 0x8005B3B4; // type:func
+CdReady_InstallCallback     = 0x8005B648; // type:func
+CdReady_ClearCallback       = 0x8005B6A8; // type:func
+CdStream_Reset              = 0x8005B6EC; // type:func
+CdStream_ArmSpuIrq          = 0x8005B78C; // type:func
+CdStream_SpuIrqHandler      = 0x8005B830; // type:func
+CdStream_SetPitch           = 0x8005B84C; // type:func
+func_8005B920               = 0x8005B920; // type:func
+CdStream_AbortPhase         = 0x8005B968; // type:func
+CdStream_FinishQueueEntry   = 0x8005BA8C; // type:func
+CdReady_Cancel              = 0x8005BAEC; // type:func
+CdStream_IsBusy             = 0x8005BB4C; // type:func
+CdStream_ClearReadySlot     = 0x8005BB9C; // type:func
+CdStream_SetLinkedPitch     = 0x8005BBB0; // type:func
+CdStream_MarkEnding         = 0x8005BBF4; // type:func
+CdStream_Flush              = 0x8005BC28; // type:func
+CdStream_ConfigureSpuIrq    = 0x8005BC48; // type:func
+func_8005BCF8               = 0x8005BCF8; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x4C500   VA: 0x8005BD00   subsegment: o, libspu/s_si
@@ -2691,3 +2711,7 @@ D648E0_8007EBAC             = 0x8007EBAC; // type:u32
 D648E0_8007EBB0             = 0x8007EBB0; // type:u32
 D648E0_SpuReverbCfg         = 0x8007EBB8; // type:GStruct7 size:0x24
 D_80082798                  = 0x80082798; // type:GStruct4 size:0x6
+CdStream_Params             = 0x800827C4; // type:CdStreamParams size:0x20
+CdStream_State              = 0x80082818; // type:CdStreamState size:0x58
+CdStream_Channels           = 0x80082870; // type:CdStreamChannels size:0x80
+CdReady_Queue               = 0x800828F0; // type:CdReadyQueue size:0x58

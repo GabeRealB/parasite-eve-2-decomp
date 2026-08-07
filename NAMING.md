@@ -30,6 +30,7 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 | `Display_` | Dual DISPENV/DRAWENV + system flags | used from `gamemain.c` etc. | `include/main/display.h` |
 | `GameMain` | Entry after `main` | `src/main/gamemain.c` | `include/main/gamemain.h` |
 | `GpuExt_` | GPU helpers | `src/main/gpuext.c` | `include/main/gpuext.h` |
+| `CdStream_` / `CdReady_` | CD→SPU MTS audio stream + ready work queue | `src/main/46FE4.c`, `src/main/4A6E0.c` | `include/main/cdstream.h` (types still in `game.h`) |
 
 `include/main/game.h` is the shared kitchen-sink of still-generic types (`GStruct*`, UI helpers). It includes the module headers above for compatibility. Prefer including the specific module header when you only need that API.
 
@@ -73,5 +74,6 @@ Bulk renames live in:
 
 - `tools/rename_fs_syms.py` — FS / CD / boot
 - `tools/rename_task_mc_pad_syms.py` — Task / Pad / Mc / Display
+- `tools/rename_cdstream_syms.py` — CdStream / CdReady / MtsSector types + APIs
 
 Idempotent only if old names are already gone. Extend the map rather than hand-editing hundreds of `.s` files.
