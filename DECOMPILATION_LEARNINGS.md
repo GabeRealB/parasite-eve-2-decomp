@@ -11208,3 +11208,86 @@ When a matched function grows a switch jump table, give C the jtbl range with
 
 Without the pad word owned by the next asm unit, later functions shift and the
 whole checksum fails even if the C text matches.
+
+## Scratch alloc via `v0` temp so store fills the `jal` delay slot
+
+When the target opens a scratch-arena function as:
+
+```
+lw    s3, 0(v1)          # head = *G_SCRATCH_HEAD
+lh    a0, 0(s0)          # first call arg
+addiu v0, s3, -0x34      # p = head - size
+move  s2, v0             # block = p
+jal   rsin
+ sw   v0, 0(v1)          # delay: *G_SCRATCH_HEAD = p
+```
+
+a single `block = head - size; *s = block` coalesces into `addiu s2,...` /
+`sw s2,...` and often puts the scratch address in `$v0` instead of `$v1`.
+
+Force the intermediate in `$v0` and assign both ways:
+
+```c
+void** s = (void**)G_SCRATCH_HEAD;
+u8* head = (u8*)*s;
+register void* p asm("v0");
+ScratchRotXYZ* block;
+
+p = head - 0x34;
+block = p;
+*s = p;
+block->sin_x = rsin(angles->vx); /* sw v0 fills the jal delay */
+```
+
+Reload `G_SCRATCH_HEAD` in a nested block at the end (do **not** keep `s`
+live) so the epilogue re-materialises it in `$v1` rather than pinning a
+callee-saved reg. `func_8003B960` is the pure example.
+
+## Keep a live halfword across GTE with `move` + empty asm (no copy-prop)
+
+When the target reuses a halfword still sitting in `$a2` from earlier loads:
+
+```
+lhu  v0, 0x24(s2)   # new load first
+move v1, a2         # copy of the live cos
+sh   v1, 0x30(s2)
+sh   v0, 0x2c(s2)
+```
+
+plain `block->vec.vz = cos_y` emits `sh a2, ...` (copy-prop kills the move).
+Assign through a pinned temp and barrier both the new load and the copy so
+the scheduler cannot reorder them:
+
+```c
+register u16 cos_y asm("a2"); /* loaded earlier, still live */
+register u16 sy asm("v0");
+register u16 cy asm("v1");
+
+sy = block->sin_y;
+__asm__ volatile("" : "+r"(sy));       /* pin load before move */
+cy = cos_y;
+__asm__ volatile("" : "+r"(cy) : "r"(cos_y));
+block->vec.vz = cy;
+block->vec.vx = sy;
+```
+
+Same family as the sin/cos `negu` barriers on `func_8003C4F0`, but for a
+register-to-register copy rather than a negate. Needed between `gte_rtir_real`
+and `gte_stclmv` when the original interleaves next-vector setup in the GTE
+pipeline gap.
+
+## Euler RotMatrix via `gte_ldsv` columns (not `gte_ldclmv`)
+
+`func_8003B960` builds `RotX * RotY * RotZ` on the scratch pad by:
+
+1. Writing RotX into a scratch `MATRIX`, with the next rotation's column packed
+   as an `SVECTOR` at the end of the block (`gte_ldsv` offsets 0/2/4).
+2. `gte_SetRotMatrix` + `gte_ldsv` + `gte_rtir_real` + prep next column +
+   `gte_stclmv` (matrix column offsets 0/6/12) — twice for RotY (col0, col2;
+   col1 of RotX is already `(0,1,0)`-compatible), then again for RotZ (col0,
+   col1).
+3. `flag != 0`: word-copy the 5 halfword-pairs of the rotation into `out`.
+   `flag == 0`: `gte_MulMatrix0_real(out, block, out)`.
+
+Do **not** feed those temp columns through `gte_ldclmv` — they are contiguous
+`SVECTOR`s, not matrix columns. `gte_ldsv` is the matching load helper.
