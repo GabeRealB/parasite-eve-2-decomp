@@ -11406,3 +11406,26 @@ temp that lives in `$v0` (`color = 0xB0; t = color - val`) so you get
 
 First clamp only: after `t = 1` use `asm("" : "+r"(t)); c = t & 0xFF` so the
 second `andi` is not constant-folded to `li a0, 1`.
+
+## `func_8005A94C` (4A6E0 CD/SPU stream callback) notes
+
+Large (~0xA68) CD ready callback. Infrastructure landed; full match still open
+(~84% best). Key requirements for the next attempt:
+
+1. **`--expand-div` on the `4A6E0.c` TU** (already in `ninja_config.py`). Target
+   has the full signed `div` trap sequence (`break 7` / `break 6`); bare `div`
+   from GCC will not match without maspsx expansion.
+
+2. **Identical dual `SpuWrite` arms** when `(field_4E % field_46) == 1` and the
+   two `field_1C & 1` branches are byte-for-byte the same in the ROM. GCC 2.8.1
+   cross-jumps them into one block. A slight asymmetry (e.g. `u8* buf = …` on
+   only one arm) can force two `jal SpuWrite`s; then re-converge the codegen.
+
+3. **GStruct19 field map** (already in `game.h`): `field_24` SPU addr, `field_44`
+   countdown, `field_46`/`field_47` MTS params, `field_4E` remaining, `field_50`–
+   `field_52` (was `unknown_4E[2..4]`), `field_48` as `GStruct19Sector*`.
+
+4. **Error counters** at `D_80068B5C+1` / `+3` and `D_80068B64+1` want
+   `%lo(sym+N)` form (`lbu`/`sb` with folded reloc). Separate byte symbols or
+   non-volatile struct fields; array index often emits `addiu` base + offset.
+

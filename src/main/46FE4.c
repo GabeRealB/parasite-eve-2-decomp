@@ -963,16 +963,16 @@ void func_80057FAC(GStruct76* arg0)
     u8                           mode;
     register s32                 base asm("v1");
 
-    p                = &D_80082818;
-    p->unknown_4E[2] = arg0->field_1A;
-    p->unknown_4E[3] = arg0->field_1B;
-    flag             = ((u8)D_80082818.unknown_0[0] >> 4) & 1;
+    p           = &D_80082818;
+    p->field_50 = arg0->field_1A;
+    p->field_51 = arg0->field_1B;
+    flag        = ((u8)D_80082818.unknown_0[0] >> 4) & 1;
     if (flag == 1) {
-        func_8004E71C((s8)p->unknown_4E[2]);
-        func_8004E71C((s8)p->unknown_4E[3]);
+        func_8004E71C((s8)p->field_50);
+        func_8004E71C((s8)p->field_51);
         if (arg0->field_14 != 0) {
             ((void (*)(s32))arg0->field_14)(
-                (flag << (s8)p->unknown_4E[2]) | (flag << (s8)p->unknown_4E[3]));
+                (flag << (s8)p->field_50) | (flag << (s8)p->field_51));
         }
     }
     SpuSetIRQ(0);
@@ -1019,38 +1019,38 @@ void func_80057FAC(GStruct76* arg0)
             sectors = 0x14;
         }
     }
-    a3->field_40      = sectors;
-    a3->field_42      = 0x2770;
-    t0                = (GStruct74Entry*)(a3 + 1);
-    a3->field_48      = arg0->field_8;
-    a3->unknown_4E[2] = arg0->field_1A;
-    vff               = 0xFF;
-    a3->unknown_4E[3] = arg0->field_1B;
-    mode              = arg0->field_1C;
-    v1fc3             = 0x1FC3;
-    v1000             = 0x1000;
-    cflags            = 0x6009F;
-    t0->field_4       = cflags;
-    t0[1].field_4     = cflags;
-    t0->field_C       = 0;
-    t0->field_E       = 0;
-    t0->field_14      = v1000;
-    t0->field_3A      = vff;
-    t0->field_3C      = v1fc3;
-    t0[1].field_C     = 0;
-    t0[1].field_E     = 0;
-    t0[1].field_14    = v1000;
-    a3->unknown_4E[4] = mode;
-    a3->field_1C      = 0;
-    a3->field_20      = 0;
-    a3->field_54      = 0;
-    t0->field_0       = one << a3->unknown_4E[2];
-    t0->field_1C      = a3->field_3C;
+    a3->field_40   = sectors;
+    a3->field_42   = 0x2770;
+    t0             = (GStruct74Entry*)(a3 + 1);
+    a3->field_48   = (GStruct19Sector*)arg0->field_8;
+    a3->field_50   = arg0->field_1A;
+    vff            = 0xFF;
+    a3->field_51   = arg0->field_1B;
+    mode           = arg0->field_1C;
+    v1fc3          = 0x1FC3;
+    v1000          = 0x1000;
+    cflags         = 0x6009F;
+    t0->field_4    = cflags;
+    t0[1].field_4  = cflags;
+    t0->field_C    = 0;
+    t0->field_E    = 0;
+    t0->field_14   = v1000;
+    t0->field_3A   = vff;
+    t0->field_3C   = v1fc3;
+    t0[1].field_C  = 0;
+    t0[1].field_E  = 0;
+    t0[1].field_14 = v1000;
+    a3->field_52   = mode;
+    a3->field_1C   = 0;
+    a3->field_20   = 0;
+    a3->field_54   = 0;
+    t0->field_0    = one << a3->field_50;
+    t0->field_1C   = a3->field_3C;
     {
         register s32 addr asm("v0");
         register s32 mask asm("v1");
         addr          = a3->field_3C;
-        mask          = a3->unknown_4E[3];
+        mask          = a3->field_51;
         addr          = addr + 0x10;
         mask          = one << mask;
         t0->field_20  = addr;
@@ -1207,11 +1207,11 @@ void func_8005854C(void)
         D_80082818.unknown_0[0] = D_80082818.unknown_0[0] & 0xDF;
         flag                    = (D_80082818.unknown_0[0] >> 4) & 1;
         if (flag == 1) {
-            func_8004E71C((s8)p->unknown_4E[2]);
-            func_8004E71C((s8)p->unknown_4E[3]);
+            func_8004E71C((s8)p->field_50);
+            func_8004E71C((s8)p->field_51);
             D_80082818.unknown_0[0] = D_80082818.unknown_0[0] & 0xEF;
             if (p->field_10 != NULL) {
-                p->field_10((flag << (s8)p->unknown_4E[2]) | (flag << (s8)p->unknown_4E[3]));
+                p->field_10((flag << (s8)p->field_50) | (flag << (s8)p->field_51));
             }
         }
         SpuSetIRQ(0);

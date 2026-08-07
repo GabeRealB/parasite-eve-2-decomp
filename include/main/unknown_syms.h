@@ -1,6 +1,7 @@
 #ifndef UNKNOWN_SYMS_H
 #define UNKNOWN_SYMS_H
 
+#include <psyq/libcd.h>
 #include <psyq/libspu.h>
 
 #include "common.h"
@@ -643,12 +644,23 @@ extern u8            D_80068184;
 extern volatile u32  D_800680C0;
 extern volatile s32  D_80068B58;
 extern volatile u8   D_80068B5C;
+extern volatile u8   D_80068B5D;
+extern volatile u8   D_80068B5F;
+extern volatile u8   D_80068B62;
 extern volatile u8   D_80068B63;
+extern volatile u8   D_80068B64;
+extern volatile u8   D_80068B65;
 extern u8            D_80068B66;
 extern volatile s16  D_80068B6A;
+extern void*         D_80068B6C;
+extern s32           D_80068B70;
 extern s32           D_80068B74;
+extern volatile u16  D_80068B78;
+extern CdlLOC        D_800827F8;
 extern void          func_80059EE0(void);
+extern void          func_8005A94C(s32 arg0, u8* arg1);
 extern void          func_8005BA8C(u32* arg0);
+extern s32           func_800AF590(s32 arg0, s32 arg1);
 extern void          func_800B0118(s32 arg0, s32 arg1);
 
 // D4CB64_ImgBuffers + all Fs_* data / D5B498_* FS state → main/fs.h

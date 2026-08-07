@@ -240,33 +240,49 @@ typedef struct _GStruct18 {
 } GStruct18;
 STATIC_ASSERT_SIZEOF(GStruct18, 0x10);
 
+/// Sector payload pointed to by GStruct19::field_48 (MTS audio stream sector).
+typedef struct _GStruct19Sector {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ u32 field_8; // high 3 bytes = "MTS", low byte = channel count
+    /* 0x0C */ s8  field_C;
+    /* 0x0D */ u8  field_D;
+    /* 0x0E */ u8  field_E;
+    /* 0x0F */ s8  field_F;
+} GStruct19Sector;
+
 /// BSS object D_80082818 (size 0x58). CD/SPU stream runtime state.
 typedef struct _GStruct19 {
-    /* 0x00 */ byte  unknown_0[0x6];
-    /* 0x06 */ s16   field_6;
-    /* 0x08 */ void  (*field_8)(s32);
-    /* 0x0C */ void  (*field_C)(s32);
-    /* 0x10 */ void  (*field_10)(s32);
-    /* 0x14 */ s32   field_14;
-    /* 0x18 */ s32   field_18;
-    /* 0x1C */ s32   field_1C;
-    /* 0x20 */ s32   field_20;
-    /* 0x24 */ byte  unknown_24[0x4];
-    /* 0x28 */ s32   field_28;
-    /* 0x2C */ s32   field_2C;
-    /* 0x30 */ s32   field_30;
-    /* 0x34 */ s32   field_34;
-    /* 0x38 */ s32   field_38;
-    /* 0x3C */ s32   field_3C;
-    /* 0x40 */ s16   field_40;
-    /* 0x42 */ s16   field_42;
-    /* 0x44 */ byte  unknown_44[0x4];
-    /* 0x48 */ void* field_48;
-    /* 0x4C */ s16   field_4C;
-    /* 0x4E */ byte  unknown_4E[0x5];
-    /* 0x53 */ u8    field_53;
-    /* 0x54 */ u16   field_54;
-    /* 0x56 */ u16   field_56;
+    /* 0x00 */ byte             unknown_0[0x6];
+    /* 0x06 */ s16              field_6;
+    /* 0x08 */ void             (*field_8)(s32);
+    /* 0x0C */ void             (*field_C)(s32);
+    /* 0x10 */ void             (*field_10)(s32);
+    /* 0x14 */ s32              field_14;
+    /* 0x18 */ s32              field_18;
+    /* 0x1C */ s32              field_1C;
+    /* 0x20 */ s32              field_20;
+    /* 0x24 */ s32              field_24;
+    /* 0x28 */ s32              field_28;
+    /* 0x2C */ s32              field_2C;
+    /* 0x30 */ s32              field_30;
+    /* 0x34 */ s32              field_34;
+    /* 0x38 */ s32              field_38;
+    /* 0x3C */ s32              field_3C;
+    /* 0x40 */ s16              field_40;
+    /* 0x42 */ s16              field_42;
+    /* 0x44 */ s16              field_44;
+    /* 0x46 */ s8               field_46;
+    /* 0x47 */ u8               field_47;
+    /* 0x48 */ GStruct19Sector* field_48;
+    /* 0x4C */ s16              field_4C;
+    /* 0x4E */ s16              field_4E;
+    /* 0x50 */ u8               field_50;
+    /* 0x51 */ u8               field_51;
+    /* 0x52 */ s8               field_52;
+    /* 0x53 */ u8               field_53;
+    /* 0x54 */ u16              field_54;
+    /* 0x56 */ u16              field_56;
 } GStruct19;
 STATIC_ASSERT_SIZEOF(GStruct19, 0x58);
 
