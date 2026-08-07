@@ -62,7 +62,7 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 
 `Wip*` types and `Wip_*` globals are provisional: keep them only until a better role name is proven. Prefer replacing a `Wip` name over inventing a second provisional alias.
 
-`include/main/game.h` is an include aggregator (macros + module headers) for TUs that historically only pulled this file. Types live in module headers:
+`include/main/game.h` is an include aggregator (macros + module headers) for **main executable** TUs (`src/main/`) that historically only pulled this file. It is not shared with overlays; stage/file overlays may use a different `src/` / `include/` layout when decompiled. Types for main live in module headers:
 
 | Header | Types |
 |---|---|

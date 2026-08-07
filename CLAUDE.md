@@ -73,7 +73,18 @@ When you see pointer arithmetic patterns like `*(type*)((u8*)ptr + offset)`:
    - Define the element struct with correct size and field offsets
    - Define the container struct with pointer at correct offset
    - Use meaningful names or `field_[Offset]` naming convention
-   - Define the struct in `include/main/unknown_syms.h`
+   - **Define the struct in the matching module header**, not in a kitchen-sink
+     header. Nothing auto-moves types for you.
+     - **Main executable** (`src/main/`, `include/main/`): see `NAMING.md` for
+       the module → header map (e.g. sound in `include/main/sound.h`, UI in
+       `ui.h`, FS/CdCmd in `fs.h`). `include/main/game.h` aggregates main module
+       headers for older main TUs only — it is **not** a global game header.
+     - **Overlays** (stage/file pe2pkg units, not yet decompiled under their own
+       trees): use that overlay’s own `include/` / header layout when it exists;
+       do not dump overlay-only types into `include/main/`.
+   - Use `include/main/unknown_syms.h` only for residual main-executable symbols
+     (`func_800*`, unfiled BSS/data) with no module home yet. Do **not** add new
+     named types or Module_ APIs there.
 
 3. **Verify struct sizes:**
 
@@ -179,6 +190,7 @@ Before declaring a decompilation complete, verify:
 - [ ] All struct field accesses use `->` or `.` operators
 - [ ] No `void*` parameters that should be typed structs
 - [ ] Struct sizes match the assembly access patterns
+- [ ] New types/APIs live in the correct module header (main: not `unknown_syms.h` / not bloating `game.h`; overlays: their own headers)
 - [ ] `./tools/build-and-verify.sh` succeeds
 
 ## Decompilation tips
