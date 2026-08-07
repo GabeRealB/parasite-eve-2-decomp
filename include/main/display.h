@@ -64,6 +64,31 @@ typedef struct _DisplayState {
 } DisplayState;
 STATIC_ASSERT_SIZEOF(DisplayState, 0x138);
 
+// Types — ordering tables
+
+/// Per-buffer OT context (Gpu_OtBuffers[2]). Indexed by display buffer (stride 0x14).
+/// field_4 is OT start; field_10 is the last tag (passed to DrawOTag).
+typedef struct _GpuOtBuf {
+    /* 0x00 */ s32     field_0;
+    /* 0x04 */ u_long* field_4;
+    /* 0x08 */ u8      unknown_08[0x8];
+    /* 0x10 */ u_long* field_10;
+} GpuOtBuf;
+STATIC_ASSERT_SIZEOF(GpuOtBuf, 0x14);
+/// Double-buffered ordering-table descriptor (same layout as PsyQ GsOT).
+/// Used by Gpu_OrderingTables and passed to GsClearOt.
+typedef struct _GameOt {
+    /* 0x00 */ u_long  length;
+    /* 0x04 */ u_long* org;
+    /* 0x08 */ u_long  offset;
+    /* 0x0C */ u_long  point;
+    /* 0x10 */ u_long* tag;
+} GameOt;
+STATIC_ASSERT_SIZEOF(GameOt, 0x14);
+
+/// PsyQ GsClearOt, declared with GameOt* so callers need not include libgs.h.
+void GsClearOt(unsigned short offset, unsigned short point, GameOt* otp);
+
 // =============================================================================
 // Globals
 // =============================================================================

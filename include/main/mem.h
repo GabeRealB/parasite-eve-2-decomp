@@ -3,6 +3,17 @@
 
 #include "common.h"
 
+// Types
+
+typedef struct _HeapBlockHeader {
+    u32                      size;
+    u16                      isAllocated;
+    u16                      magic;
+    struct _HeapBlockHeader* prev;
+    struct _HeapBlockHeader* next;
+} HeapBlockHeader;
+STATIC_ASSERT_SIZEOF(HeapBlockHeader, 0x10);
+
 /// Optimized `memset` function.
 ///
 /// Copies the value `(u8)ch` into the first `count` bytes of `dest`.
