@@ -370,6 +370,24 @@ typedef struct _UiObjectDesc {
 } UiObjectDesc;
 STATIC_ASSERT_SIZEOF(UiObjectDesc, 0x1C);
 
+/// Singly-linked text line node used by TextBlockDesc / func_800480A0.
+typedef struct TextLineNode {
+    /* 0x0 */ u8*                  text;
+    /* 0x4 */ struct TextLineNode* next;
+} TextLineNode;
+
+/// Multi-line text block descriptor consumed by func_800480A0 to spawn a
+/// sized UiObject. field_0 is the line count; field_2 is cleared on return;
+/// field_4 is the head of a TextLineNode list; field_8 selects layout mode
+/// (0 forces UiObject::field_4 = 3).
+typedef struct TextBlockDesc {
+    /* 0x0 */ s16           count;
+    /* 0x2 */ s16           field_2;
+    /* 0x4 */ TextLineNode* lines;
+    /* 0x8 */ s32           field_8;
+} TextBlockDesc;
+STATIC_ASSERT_SIZEOF(TextBlockDesc, 0xC);
+
 /// 8-byte slot at GStruct22::field_484 (16 entries, indexed by opcode low nibble).
 /// Seeded as the word 0x407F4000 by func_800528BC (field_0..field_3 little-endian);
 /// field_0 is tested as a flag byte (lbu); field_4 is a byte written by handlers.

@@ -193,6 +193,7 @@ extern void func_800ACAA8(void); // called from 2F244.c
 extern s32  func_800AD284(void);
 
 // 34E98.c
+extern UiObject* func_800480A0(TextBlockDesc* arg0);
 extern UiObject* func_800486F0(UiObjectDesc* arg0, s32 arg1, s32 arg2, s32 arg3,
                                UiObject* arg4);
 extern void      func_80046B34(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5, s32 arg6);
@@ -631,6 +632,7 @@ extern s32           D_8006763C[];
 extern s32           D_80067648;
 extern s32           D_8006764C;
 extern UiList        D_80067654;
+extern UiObjectDesc  D_80067678;
 extern GStruct29*    D_80067694;
 extern u8            D_800680A4;
 extern s8            D_800680AC[];

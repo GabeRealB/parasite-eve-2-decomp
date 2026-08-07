@@ -801,7 +801,109 @@ void func_80047F40(GStruct30* arg0, char* arg1)
     arg0->field_14 = (u16)(arg0->field_14 + 1);
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_800480A0);
+UiObject* func_800480A0(TextBlockDesc* arg0_)
+{
+    union {
+        TaskDesc desc;
+        RECT     rect;
+    } sp;
+    Task*                   task;
+    UiObject*               obj;
+    UiObject*               result;
+    TextLineNode*           node;
+    s32                     count;
+    s32                     maxWidth;
+    s32                     width;
+    s32                     field_8;
+    s16                     new_var;
+    s32                     cb;
+    register TextBlockDesc* arg0 asm("s4");
+    register s32            dummy asm("s5");
+
+    arg0   = arg0_;
+    result = NULL;
+    asm("" : "+r"(arg0));
+    if (arg0->count > 0) {
+        obj              = NULL;
+        sp.desc.flags    = D_80067678.field_10;
+        sp.desc.field_2  = D_80067678.field_12;
+        field_8          = D_80067678.field_18;
+        sp.desc.callback = func_800498D4;
+        sp.desc.field_8  = field_8;
+        task             = Task_SpawnFromTable(&sp.desc, (s32)obj, (s32)arg0, (s32)obj);
+        dummy            = 1;
+        if (task != NULL) {
+            obj = (UiObject*)Mem_Calloc(0x30, (s32)obj);
+            if (obj != NULL) {
+                task->field_20 = obj;
+                task->field_18 = func_800488B8;
+                obj->field_28  = task;
+                obj->field_0   = dummy;
+                obj->field_4   = D_80067678.field_0;
+                obj->field_C   = D_80067678.field_4;
+                obj->field_E   = D_80067678.field_6;
+                obj->field_10  = D_80067678.field_8;
+                obj->field_12  = D_80067678.field_A;
+                obj->field_14  = D_80067678.field_C & 0xFFFC;
+                cb             = D_80067678.field_14;
+                obj->field_16  = dummy;
+                obj->field_24  = cb;
+            } else {
+                Task_Kill(task);
+            }
+        }
+        result = obj;
+        if (result != NULL) {
+            count    = arg0->count;
+            node     = arg0->lines;
+            maxWidth = 0;
+            dummy    = dummy;
+            if (arg0->field_8 == 0) {
+                result->field_4 = 3;
+            }
+            if (count > 0) {
+                do {
+                    width = func_8002FCBC(node->text);
+                    if (maxWidth < width) {
+                        maxWidth = width;
+                    }
+                    node   = node->next;
+                    count -= 1;
+                } while (count > 0);
+            }
+            func_800492EC(result, (RECT*)&result->field_C, &sp.rect);
+            if ((result->field_4 & 0xF) == 2) {
+                sp.rect.y += 9;
+                sp.rect.h -= 0xB;
+                sp.rect.x += 2;
+                sp.rect.w -= 4;
+            } else {
+                sp.rect.y += 2;
+                sp.rect.h -= 4;
+                sp.rect.x += 2;
+                sp.rect.w -= 4;
+            }
+            result->field_1C = -(sp.rect.w >> 1);
+            result->field_1E = result->field_1C + sp.rect.w;
+            count            = result->field_1E;
+            maxWidth        -= (s16)count - (s16)result->field_1C;
+            result->field_18 = -(sp.rect.h >> 1);
+            result->field_1A = result->field_18 + sp.rect.h;
+            result->field_20 = sp.rect.x - result->field_1C;
+            new_var          = sp.rect.y;
+            result->field_10 = (result->field_10 + maxWidth) + 0xC;
+            result->field_C  = -((s16)result->field_10 / 2);
+            result->field_22 = new_var - (s16)result->field_18;
+            maxWidth         = arg0->count * 0xF;
+            maxWidth        -= (s16)result->field_1A - (s16)result->field_18;
+            result->field_12 = result->field_12 + maxWidth;
+            result->field_E  = -((s16)result->field_12 / 2);
+            asm volatile("" ::"r"(dummy));
+        }
+    }
+    arg0->field_2 = 0;
+    return result;
+}
 
 void func_80048390(RECT* arg0, s32 arg1, s32 arg2, char* arg3)
 {

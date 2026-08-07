@@ -500,6 +500,55 @@ form* with the *wrong register* (`andi v0,t0,0xff` where the target has
 wrong form (`andi t1,t1,0xff`). That means the variable is naturally allocated
 elsewhere and the conflict is upstream — not that the pin is wrong.
 
+## Dummy pin that outlives a short constant (func_800480A0)
+
+When the target holds a small constant K in `$s5` only during early init, then
+reuses a *different* callee-saved (`$s3`) for a later accumulator that would
+otherwise coalesce with K's color, a plain `s32 flag = K` lets CSE put both in
+the same register and steals `$s3` from the `%hi` of a global.
+
+Pin a dummy to the short-lived constant's register and keep it live through the
+second half without using it for real work. That reserves `$s5` for K, forces
+the accumulator into `$s3` (sharing with the dead `%hi`), and leaves the rest of
+the coloring alone:
+
+```c
+register s32 dummy asm("s5");
+...
+dummy = 1; /* before if (task) — also fills beqz delay like the target */
+if (task != NULL) {
+    obj->field_0  = dummy;
+    ...
+    obj->field_16 = dummy;
+}
+...
+if (result != NULL) {
+    maxWidth = 0;      /* lands in $s3, not $s5 */
+    dummy    = dummy;  /* keep dummy live into this block */
+    ...
+    asm volatile("" ::"r"(dummy)); /* and through the end */
+}
+```
+
+Assigning the constant *before* `if (task != NULL)` matches the MIPS delay-slot
+semantics of `beqz task; li s5, 1` (the `li` always runs). An `asm volatile`
+barrier right after `dummy = 1` inside the `if` often inserts a `nop` in the
+delay slot when the variable is hard-pinned — prefer the pre-branch assign.
+
+## Stack-reuse `union` for sequential TaskDesc / RECT
+
+When the target reuses one stack slot as a `TaskDesc` then as a `RECT`, declare:
+
+```c
+union {
+    TaskDesc desc;
+    RECT     rect;
+} sp;
+```
+
+Separate locals (even in nested scopes) often get simultaneous slots under
+GCC 2.8.1 and blow the frame / shift every access.
+
 ## Fixing clusters together, not individually
 
 When a large function is close but not matching, the remaining diff usually
