@@ -11569,3 +11569,40 @@ register u8* entry asm("s0");
 `.rodata` *between* earlier jtbls and this function's jtbl (non-`const` arrays
 go to `.data` and shift the whole image).
 
+
+## `addu dst, base, idx` vs `addu dst, idx, base` for `base + (i*2)`
+
+When the target does:
+
+```
+sll   v0, a0, 1
+addu  v0, v1, v0   /* v0 = entry + idx*2 */
+lh    v0, 0x24(v0)
+```
+
+writing `(idx * 2) + (u8*)entry` often yields the commutative swap
+`addu v0, v0, v1`. Force base-first with temps:
+
+```c
+register s32 base asm("v1");
+register s32 off asm("v0");
+base = (s32)entry;
+off  = idx * 2;
+off  = base + off;          /* addu v0, v1, v0 */
+if (*(s16*)(off + 0x24) != 0) { … }
+```
+
+(`func_8004017C` field_24 / field_2A walks.)
+
+## `u8` store of `-3`: need `li v0, -3` not `0xfd`
+
+`(s8)-3` / bare assign into a `u8` global often becomes `li v0, 0xfd`.
+Match the signed form used for `-8`:
+
+```c
+s32 t;
+t = -3;
+asm volatile("" : "+r"(t));   /* stop fold/hoist if needed */
+D5B498_8006C234 = t;          /* sb of low 8 bits; li stays -3 */
+```
+
