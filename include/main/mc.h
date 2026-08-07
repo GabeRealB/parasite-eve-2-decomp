@@ -36,7 +36,7 @@ STATIC_ASSERT_SIZEOF(McPromptPair, 0x8);
 /// signed bytes of that buffer (written by Mc_WriteDataChecksum).
 /// Bytes at 0xA23+ form a block→direntry map written by Mc_StateListDirectory
 /// (index = DIRENTRY.head / 64); field_A20 is a separate word flag (Mc_ResetWork
-/// / func_80035A94) whose high byte is the first map slot.
+/// / Mc_StateInitWorkDefaults) whose high byte is the first map slot.
 typedef struct _McWork {
     /* 0x000 */ s32           field_0;
     /* 0x004 */ s32           field_4;

@@ -1229,7 +1229,7 @@ void Midi_InitChannelTable(s32* arg0)
     }
 }
 
-s32 func_800528F0(s32 arg0, s32 arg1)
+s32 Midi_IncPtr(s32 arg0, s32 arg1)
 {
     return arg1 + 1;
 }
@@ -1572,7 +1572,7 @@ void SndLoad_FromSectorMode8(void* arg0)
     SndLoad_Init(8, arg0);
 }
 
-void func_80053280(u8 arg0, void* arg1)
+void SndLoad_BeginFromBuffer(u8 arg0, void* arg1)
 {
     D_800820F3 = arg0;
     D_8008212C = D_80082122;

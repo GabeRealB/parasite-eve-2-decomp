@@ -158,7 +158,7 @@ void McMenu_ConfirmDialogAlt(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-void func_80036F18(DialogPrompt* arg0, UiObject* arg1)
+void McMenu_ConfirmYes(DialogPrompt* arg0, UiObject* arg1)
 {
     s32 temp;
 
@@ -173,7 +173,7 @@ void func_80036F18(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-void func_80036FB8(DialogPrompt* arg0, UiObject* arg1)
+void McMenu_ConfirmNo(DialogPrompt* arg0, UiObject* arg1)
 {
     Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, D_80060A58, arg0->field_1C, 1, 0);
     if (arg0->field_C == 1) {

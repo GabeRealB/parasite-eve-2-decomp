@@ -150,7 +150,7 @@ extern void Mc_BuildFileName(u8* arg0, s32 arg1);
 // Image data uploaded to VRAM by Text_LoadClutImages
 extern u_long D_80060910[];
 extern u_long D_800609B0[];
-// Prompt / dialog data tables (see McMenu_ConfirmDialog / McMenu_ConfirmDialogAlt / func_80036F18 / func_80036FB8)
+// Prompt / dialog data tables (see McMenu_ConfirmDialog / McMenu_ConfirmDialogAlt / McMenu_ConfirmYes / McMenu_ConfirmNo)
 extern u8 D_80060A54[];
 extern u8 D_80060A58[];
 extern u8 D_80060A5C[];
@@ -309,7 +309,7 @@ extern void*       SndLoad_AllocBuffer(s32 arg0, s32 arg1, u32 arg2);
 extern s32         SndLoad_LookupMode(s32 arg0, s32 arg1, s32 arg2);
 extern s32         Midi_ReadVlq(u8* arg0, u8* arg1);
 extern void        Midi_InitChannelTable(s32* arg0);
-extern s32         func_800528F0(s32 arg0, s32 arg1);
+extern s32         Midi_IncPtr(s32 arg0, s32 arg1);
 extern u8*         func_80052488(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3);
 extern u8*         Midi_KeyOffChannel(s32 arg0, u8* arg1, MidiSong* arg2);
 extern u8*         Midi_SetProgram(s32 arg0, u8* arg1, MidiOpcodeCtx* arg2);
@@ -318,7 +318,7 @@ extern s32         SndLoad_ProcessSector(s32* arg0);
 extern s32         SndBank_SetupFromLoad(SndLoadState* arg0);
 extern void        func_800530DC(SndLoadState* arg0);
 extern void        SndLoad_FromSectorMode8(void* arg0);
-extern void        func_80053280(u8 arg0, void* arg1);
+extern void        SndLoad_BeginFromBuffer(u8 arg0, void* arg1);
 extern void        SndLoad_Teardown(void);
 extern s32         SndLoad_FeedSector(void* arg0);
 extern s32         SndLoad_FeedSectorOrError(void* arg0);

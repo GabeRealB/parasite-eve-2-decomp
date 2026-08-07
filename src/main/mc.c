@@ -1829,7 +1829,7 @@ void Mc_StateEnterDialog4(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void func_8003477C(Task* arg0, McWork* arg1)
+void Mc_StateWriteFile(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -2074,7 +2074,7 @@ void Mc_StateSyncPrompt13(Task* arg0, McWork* arg1)
     }
 }
 
-void func_80034F2C(Task* arg0, McWork* arg1)
+void Mc_StateEnterPrompt0(Task* arg0, McWork* arg1)
 {
     u8* ptr1;
     u8* ptr0;
@@ -2127,7 +2127,7 @@ void Mc_StatePromptCountdown(Task* arg0, McWork* arg1)
     }
 }
 
-void func_800350B0(Task* arg0, McWork* arg1)
+void Mc_StateDrawPromptTo1F(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -2147,7 +2147,7 @@ void func_800350B0(Task* arg0, McWork* arg1)
     arg0->field_30 = 0x1F;
 }
 
-void func_80035180(Task* arg0, McWork* arg1)
+void Mc_StateCountdownPrompt4(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -2169,7 +2169,7 @@ void func_80035180(Task* arg0, McWork* arg1)
     }
 }
 
-void func_8003527C(Task* arg0, McWork* arg1)
+void Mc_StateDrawPrompt1Advance(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -2353,7 +2353,7 @@ void Mc_StateUiCountdownF(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void func_8003591C(Task* arg0, McWork* arg1)
+void Mc_StateEnterPromptE(Task* arg0, McWork* arg1)
 {
     arg1->field_8 = 0xE;
     arg1->field_4 = 0;
@@ -2395,7 +2395,7 @@ void Mc_DispatchStateTable(Task* arg0)
     D_80073C08 = rand();
 }
 
-void func_80035A94(Task* arg0, McWork* arg1)
+void Mc_StateInitWorkDefaults(Task* arg0, McWork* arg1)
 {
     arg1->field_0           = 0x10;
     arg1->field_8           = 0x8;
