@@ -3,6 +3,7 @@
 #include <psyq/libcd.h>
 #include <psyq/libspu.h>
 
+#include "main/display.h"
 #include "main/unknown_syms.h"
 
 s32 func_800567E4(void)
@@ -935,7 +936,173 @@ void func_80057E1C(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/46FE4", func_80057FAC);
+void func_80058320(void);
+
+void func_80057FAC(GStruct76* arg0)
+{
+    GStruct32Entry               entry;
+    register volatile GStruct19* p asm("s1");
+    s32                          flag;
+    volatile GStruct19*          ap;
+    volatile GStruct19*          a3;
+    GStruct74Entry*              t0;
+    GStruct74Entry*              ch1;
+    register s32                 sectors asm("a0");
+    s16                          pitch;
+    u8                           saved;
+    s16                          f6;
+    s16                          idx;
+    u32                          flags;
+    GStruct32Entry*              e;
+    s32                          one;
+    s32                          cflags;
+    s16                          vff;
+    s16                          v1fc3;
+    s16                          v1000;
+    s32                          temp;
+    u8                           mode;
+    register s32                 base asm("v1");
+
+    p                = &D_80082818;
+    p->unknown_4E[2] = arg0->field_1A;
+    p->unknown_4E[3] = arg0->field_1B;
+    flag             = ((u8)D_80082818.unknown_0[0] >> 4) & 1;
+    if (flag == 1) {
+        func_8004E71C((s8)p->unknown_4E[2]);
+        func_8004E71C((s8)p->unknown_4E[3]);
+        if (arg0->field_14 != 0) {
+            ((void (*)(s32))arg0->field_14)(
+                (flag << (s8)p->unknown_4E[2]) | (flag << (s8)p->unknown_4E[3]));
+        }
+    }
+    SpuSetIRQ(0);
+    SpuSetIRQCallback(NULL);
+    SpuSetTransferCallback(NULL);
+    CdSyncCallback(NULL);
+
+    ap                 = &D_80082818;
+    *(s32*)&D_80082818 = 0;
+    if (ap->field_6 != 0) {
+        a3    = (volatile GStruct19*)&D_800828F0;
+        f6    = ap->field_6;
+        saved = D_800828F0.field_0;
+        if (f6 != 0) {
+            idx   = f6 - 1;
+            e     = (GStruct32Entry*)&D_800828F0.entries[idx];
+            flags = e->field_0;
+            if (flags & 1) {
+                e->field_0 = (flags & ~1) | 4;
+            }
+            D_800828F0.field_0 = saved;
+        }
+        D_80082818.field_6 = 0;
+    }
+
+    a3               = &D_80082818;
+    a3->field_C      = (void (*)(s32))arg0->field_10;
+    a3->field_10     = (void (*)(s32))arg0->field_14;
+    a3->unknown_0[4] = 0;
+    a3->field_8      = (void (*)(s32))arg0->field_C;
+    a3->field_18     = 0;
+    a3->field_28     = arg0->field_0;
+    a3->field_2C     = arg0->field_0;
+    one              = 1;
+    a3->field_30     = arg0->field_0;
+    a3->field_34     = 0;
+    a3->field_38     = one;
+    base             = arg0->field_4;
+    sectors          = 0x18;
+    {
+        s32 ds       = Display_State.field_124;
+        a3->field_3C = base;
+        if (ds == one) {
+            sectors = 0x14;
+        }
+    }
+    a3->field_40      = sectors;
+    a3->field_42      = 0x2770;
+    t0                = (GStruct74Entry*)(a3 + 1);
+    a3->field_48      = arg0->field_8;
+    a3->unknown_4E[2] = arg0->field_1A;
+    vff               = 0xFF;
+    a3->unknown_4E[3] = arg0->field_1B;
+    mode              = arg0->field_1C;
+    v1fc3             = 0x1FC3;
+    v1000             = 0x1000;
+    cflags            = 0x6009F;
+    t0->field_4       = cflags;
+    t0[1].field_4     = cflags;
+    t0->field_C       = 0;
+    t0->field_E       = 0;
+    t0->field_14      = v1000;
+    t0->field_3A      = vff;
+    t0->field_3C      = v1fc3;
+    t0[1].field_C     = 0;
+    t0[1].field_E     = 0;
+    t0[1].field_14    = v1000;
+    a3->unknown_4E[4] = mode;
+    a3->field_1C      = 0;
+    a3->field_20      = 0;
+    a3->field_54      = 0;
+    t0->field_0       = one << a3->unknown_4E[2];
+    t0->field_1C      = a3->field_3C;
+    {
+        register s32 addr asm("v0");
+        register s32 mask asm("v1");
+        addr          = a3->field_3C;
+        mask          = a3->unknown_4E[3];
+        addr          = addr + 0x10;
+        mask          = one << mask;
+        t0->field_20  = addr;
+        t0[1].field_0 = mask;
+    }
+    temp           = a3->field_3C;
+    temp           = temp + 0x40;
+    temp           = temp + ((s32)((u16)a3->field_42 << 16) >> 15);
+    t0[1].field_1C = temp;
+    temp           = a3->field_3C;
+    {
+        s32 shift      = (s32)((u16)a3->field_42 << 16) >> 15;
+        t0[1].field_3A = vff;
+        t0[1].field_3C = v1fc3;
+        temp           = temp + shift;
+    }
+    {
+        u8 f53         = a3->field_53;
+        temp           = temp + 0x50;
+        t0[1].field_20 = temp;
+        if (f53 & 2) {
+            ch1          = (GStruct74Entry*)(a3 + 1) + 1;
+            pitch        = (arg0->field_18 * 0xB5) >> 8;
+            ch1->field_A = pitch;
+            ch1->field_8 = pitch;
+            t0->field_A  = pitch;
+            t0->field_8  = pitch;
+        } else {
+            u16 pitch_u;
+            pitch_u       = *(u16*)&arg0->field_18;
+            t0->field_A   = 0;
+            t0[1].field_8 = 0;
+            t0->field_8   = pitch_u;
+            t0[1].field_A = *(u16*)&arg0->field_18;
+        }
+    }
+
+    {
+        register s32 rem_tmp asm("a0");
+        register s32 temp_v1 asm("v1");
+
+        rem_tmp            = (s32)&entry;
+        entry.field_8      = (s32)func_80059EE0;
+        temp_v1            = arg0->field_0;
+        entry.field_C      = (s32)func_80058320;
+        entry.field_10     = (s32)func_8005BA8C;
+        entry.field_4      = temp_v1;
+        D_80082818.field_6 = func_80057D3C((GStruct32Entry*)rem_tmp);
+    }
+    D_80082818.unknown_0[3] = 2;
+    D_80068B74              = -1;
+}
 
 void func_80058320(void)
 {

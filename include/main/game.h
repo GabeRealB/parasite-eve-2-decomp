@@ -239,41 +239,55 @@ typedef struct _GStruct18 {
 } GStruct18;
 STATIC_ASSERT_SIZEOF(GStruct18, 0x10);
 
-/// BSS object D_80082818 (size 0x58).
+/// BSS object D_80082818 (size 0x58). CD/SPU stream runtime state.
 typedef struct _GStruct19 {
-    /* 0x00 */ byte unknown_0[0x6];
-    /* 0x06 */ s16  field_6;
-    /* 0x08 */ void (*field_8)(s32);
-    /* 0x0C */ void (*field_C)(s32);
-    /* 0x10 */ void (*field_10)(s32);
-    /* 0x14 */ s32  field_14;
-    /* 0x18 */ s32  field_18;
-    /* 0x1C */ s32  field_1C;
-    /* 0x20 */ s32  field_20;
-    /* 0x24 */ byte unknown_24[0x4];
-    /* 0x28 */ s32  field_28;
-    /* 0x2C */ byte unknown_2C[0x4];
-    /* 0x30 */ s32  field_30;
-    /* 0x34 */ byte unknown_34[0x8];
-    /* 0x3C */ s32  field_3C;
-    /* 0x40 */ s16  field_40;
-    /* 0x42 */ s16  field_42;
-    /* 0x44 */ byte unknown_44[0x8];
-    /* 0x4C */ s16  field_4C;
-    /* 0x4E */ byte unknown_4E[0x5];
-    /* 0x53 */ u8   field_53;
-    /* 0x54 */ u16  field_54;
-    /* 0x56 */ u16  field_56;
+    /* 0x00 */ byte  unknown_0[0x6];
+    /* 0x06 */ s16   field_6;
+    /* 0x08 */ void  (*field_8)(s32);
+    /* 0x0C */ void  (*field_C)(s32);
+    /* 0x10 */ void  (*field_10)(s32);
+    /* 0x14 */ s32   field_14;
+    /* 0x18 */ s32   field_18;
+    /* 0x1C */ s32   field_1C;
+    /* 0x20 */ s32   field_20;
+    /* 0x24 */ byte  unknown_24[0x4];
+    /* 0x28 */ s32   field_28;
+    /* 0x2C */ s32   field_2C;
+    /* 0x30 */ s32   field_30;
+    /* 0x34 */ s32   field_34;
+    /* 0x38 */ s32   field_38;
+    /* 0x3C */ s32   field_3C;
+    /* 0x40 */ s16   field_40;
+    /* 0x42 */ s16   field_42;
+    /* 0x44 */ byte  unknown_44[0x4];
+    /* 0x48 */ void* field_48;
+    /* 0x4C */ s16   field_4C;
+    /* 0x4E */ byte  unknown_4E[0x5];
+    /* 0x53 */ u8    field_53;
+    /* 0x54 */ u16   field_54;
+    /* 0x56 */ u16   field_56;
 } GStruct19;
 STATIC_ASSERT_SIZEOF(GStruct19, 0x58);
 
 /// One half of D_80082870 (stride 0x40). Dual L/R audio channel state.
+/// Immediately follows D_80082818 in BSS (func_80057FAC treats it as
+/// (GStruct74Entry*)(&D_80082818 + 1)).
 typedef struct _GStruct74Entry {
-    /* 0x00 */ byte unknown_0[4];
+    /* 0x00 */ s32  field_0;
     /* 0x04 */ s32  field_4;
     /* 0x08 */ s16  field_8;
     /* 0x0A */ s16  field_A;
-    /* 0x0C */ byte unknown_C[0x34];
+    /* 0x0C */ s16  field_C;
+    /* 0x0E */ s16  field_E;
+    /* 0x10 */ byte pad_10[4];
+    /* 0x14 */ s16  field_14;
+    /* 0x16 */ byte pad_16[6];
+    /* 0x1C */ s32  field_1C;
+    /* 0x20 */ s32  field_20;
+    /* 0x24 */ byte pad_24[0x16];
+    /* 0x3A */ s16  field_3A;
+    /* 0x3C */ s16  field_3C;
+    /* 0x3E */ byte pad_3E[2];
 } GStruct74Entry;
 STATIC_ASSERT_SIZEOF(GStruct74Entry, 0x40);
 

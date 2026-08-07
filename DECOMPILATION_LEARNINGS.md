@@ -11067,3 +11067,40 @@ fill prefers the constant and the remaining schedule is `lui` / `sh` / …
 
 Pair with `register DR_AREA* p asm("s0")` when the same function's `addPrim`
 tails need `and s0, s0, a0` (mask in `$a0`). `func_800454E4` is the pure example.
+
+## Global array access for `addiu v0, base, off` form
+
+When the target does:
+
+```
+addiu  a3, …, %lo(D_800828F0)
+…
+sll    v1, idx, …          /* idx * stride */
+addiu  v0, a3, 8           /* &entries[0] */
+addu   v1, v1, v0
+lw     a0, 0(v1)
+```
+
+writing `e = &p->entries[idx]` with `p` a local that already holds
+`&D_800828F0` often produces the algebraically equal but different form
+`addiu v1, scaled, 8; addu v1, v1, a3`.
+
+Using the **global** for the array index keeps the `addiu v0, base, 8` shape
+even when a register also holds the same address (e.g. assigned earlier for
+another purpose, then reused after the block):
+
+```c
+a3 = (volatile GStruct19*)&D_800828F0; /* may be needed for reg color */
+…
+e = (GStruct32Entry*)&D_800828F0.entries[idx]; /* global → addiu v0, base, 8 */
+```
+
+`func_80057FAC` is the pure example — 99.9% until this one form difference.
+
+## Adjacent BSS: `p + 1` for the next object
+
+When two BSS globals are laid out back-to-back (here `D_80082818` size 0x58,
+then `D_80082870`), the original code often never names the second symbol and
+instead uses `(NextType*)(p + 1)` / `(PrevType*)q - 1`. Prefer that over loading
+`&D_80082870` so codegen keeps a single base plus a fixed offset (`addiu t0,
+a3, 0x58`). See also `func_8005B84C` which walks the other direction.

@@ -646,6 +646,7 @@ extern volatile u8   D_80068B5C;
 extern volatile u8   D_80068B63;
 extern u8            D_80068B66;
 extern volatile s16  D_80068B6A;
+extern s32           D_80068B74;
 extern void          func_80059EE0(void);
 extern void          func_8005BA8C(u32* arg0);
 extern void          func_800B0118(s32 arg0, s32 arg1);
