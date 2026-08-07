@@ -12,7 +12,223 @@ void func_80044698(void)
 {
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_800446A0);
+void func_800446A0(RECT* arg0, s32 arg1, s32 arg2)
+{
+    RECT         sp10;
+    POLY_GT4*    p;
+    POLY_GT4*    p2;
+    DR_MODE*     dr;
+    s16          temp;
+    s16          mid;
+    u16          y;
+    register s32 color asm("v0");
+    register s32 color0 asm("v1");
+    register s32 color2 asm("a0");
+    register s32 color3 asm("a1");
+    register s32 val asm("a2");
+    register s32 t asm("a1");
+    register s32 c asm("a0");
+    u8           u;
+    u8           h;
+    s16          sx;
+    u16          ux;
+
+    p  = (POLY_GT4*)D_80071190;
+    p2 = p + 1;
+
+    temp  = arg0->x;
+    p->x2 = temp;
+    p->x0 = temp;
+
+    temp   = arg0->x + arg0->w;
+    p2->x2 = temp;
+    p2->x0 = temp;
+
+    mid    = arg0->w >> 1;
+    p2->x3 = mid;
+    p2->x1 = mid;
+    p->x3  = mid;
+    p->x1  = mid;
+
+    temp   = arg0->y + arg0->h;
+    p->y1  = temp;
+    p->y0  = temp;
+    p2->y1 = temp;
+    p2->y0 = temp;
+
+    y      = arg0->y;
+    p->y3  = y;
+    p->y2  = y;
+    p2->y3 = y;
+    p2->y2 = y;
+
+    {
+        register DR_MODE* r asm("a3");
+        register s32      y0r asm("v1");
+        r          = (DR_MODE*)(p + 2);
+        D_80071190 = (DR_TPAGE*)r;
+        if (p->x0 < p2->x0) {
+            y0r = p->y0;
+            if (p->y2 < y0r) {
+                dr = r;
+                goto body;
+            }
+        }
+        goto end;
+    }
+body:
+    D_80071190 = (DR_TPAGE*)(dr + 1);
+
+    sp10.h = 0xFF;
+    sp10.w = 0xFF;
+    sp10.y = 0;
+    sp10.x = 0;
+    setTexWindow(dr, &sp10);
+    addPrim(D_800710A0 + arg2, dr);
+
+    if ((arg1 & 0xF) == 4) {
+        p->tpage  = 0x1E;
+        p2->tpage = 0x1E;
+        p->clut   = 0x3C84;
+        p2->clut  = 0x3C84;
+    } else {
+        p->tpage  = 0x1E;
+        p2->tpage = 0x1E;
+        p->clut   = 0x3C0F;
+        p2->clut  = 0x3C0F;
+    }
+
+    if (arg1 & 0x10000) {
+        color  = 0x606060;
+        color0 = 0x505050;
+        color2 = 0x808080;
+        color3 = 0x707070;
+        goto store_colors;
+    }
+    if ((arg1 & 0xF) == 4) {
+        color = rsin(Display_State.field_8 << 6) + 0x1000;
+        val   = color >> 7;
+
+        color = 0xB0;
+        t     = color - val;
+        c     = t & 0xFF;
+        if (t <= 0) {
+            t = 1;
+            asm("" : "+r"(t));
+            c = t & 0xFF;
+        }
+        color          = 0x80;
+        t              = color - val;
+        color          = (c << 16) | (c << 8) | c;
+        *(u32*)&p->r1  = color;
+        *(u32*)&p2->r1 = color;
+        if (t <= 0) {
+            t = 1;
+        }
+        c              = t & 0xFF;
+        color          = 0x40;
+        t              = color - val;
+        color          = (c << 16) | (c << 8) | c;
+        *(u32*)&p->r0  = color;
+        *(u32*)&p2->r0 = color;
+        if (t <= 0) {
+            t = 1;
+        }
+        c              = t & 0xFF;
+        color          = 0x30;
+        t              = color - val;
+        color          = (c << 16) | (c << 8) | c;
+        *(u32*)&p->r3  = color;
+        *(u32*)&p2->r3 = color;
+        if (t <= 0) {
+            t = 1;
+        }
+        color          = t & 0xFF;
+        color0         = (color << 16) | (color << 8) | color;
+        *(u32*)&p2->r2 = color0;
+        *(u32*)&p->r2  = color0;
+    } else {
+        color  = 0xA8A8A8;
+        color0 = 0x808080;
+        color2 = 0x404040;
+        color3 = 0x303030;
+    store_colors:
+        *(u32*)&p->r1  = color;
+        *(u32*)&p2->r1 = color;
+        *(u32*)&p->r0  = color0;
+        *(u32*)&p2->r0 = color0;
+        *(u32*)&p->r3  = color2;
+        *(u32*)&p2->r3 = color2;
+        *(u32*)&p2->r2 = color3;
+        *(u32*)&p->r2  = color3;
+    }
+
+    p->v1 = 0;
+    p->v0 = 0;
+    h     = arg0->h;
+    p->v3 = h;
+    p->v2 = h;
+
+    p2->v1 = 0;
+    p2->v0 = 0;
+    h      = arg0->h;
+    p2->v3 = h;
+    p2->v2 = h;
+
+    if (p->x0 < 0) {
+        sx = p2->x0;
+        ux = p2->x0;
+        if (sx < 0) {
+            p->x3 = ux;
+            p->x1 = ux;
+        } else {
+            p->x3 = 0;
+            p->x1 = 0;
+        }
+        setlen(p, 0xC);
+        setcode(p, 0x3C);
+        p->u2 = 0;
+        p->u0 = 0;
+        u     = (u8)p->x1 - (u8)p->x0;
+        p->u3 = u;
+        p->u1 = u;
+        addPrim(D_800710A0 + arg2, p);
+    }
+
+    if (p2->x0 >= 0) {
+        sx = p->x0;
+        ux = p->x0;
+        if (sx >= 0) {
+            p2->x3 = ux;
+            p2->x1 = ux;
+            p2->u3 = 0;
+            p2->u1 = 0;
+        } else {
+            p2->x3 = 0;
+            p2->x1 = 0;
+            u      = p->u1 & 0x1F;
+            p2->u3 = u;
+            p2->u1 = u;
+        }
+        setlen(p2, 0xC);
+        setcode(p2, 0x3C);
+        u      = p2->u1 + ((u8)p2->x0 - (u8)p2->x1);
+        p2->u2 = u;
+        p2->u0 = u;
+        addPrim(D_800710A0 + arg2, p2);
+    }
+
+    dr         = (DR_MODE*)D_80071190;
+    D_80071190 = (DR_TPAGE*)(dr + 1);
+    sp10.x     = 0;
+    sp10.y     = 0;
+    sp10.w     = 0x20;
+    sp10.h     = 0x20;
+    setTexWindow(dr, &sp10);
+    addPrim(D_800710A0 + arg2, dr);
+end:
+    return;
+}
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80044C34);
 

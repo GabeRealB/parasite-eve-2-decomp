@@ -11340,3 +11340,69 @@ Column targets use `head - 0x42` (col1) and `head - 0x40` (col2), same
   on success subtract `duration << 16` and return 1 (caller loops while nonzero).
 - Volume: `(scale * field_4C->field_5 * voice->field_A) / 16129` (127²), same
   as `func_80055DFC`.
+
+## `a3` prim pointer → `t0` copy frees `a3` for the `0xFFFFFF` mask
+
+When `addPrim` follows an early `DR_MODE*` / prim allocation, the target often
+does:
+
+```
+addiu  a3, s0, 0x68      /* allocate prim */
+sw     a3, D_80071190    /* delay of first validity check */
+...
+move   t0, a3            /* delay of second check */
+lui    a3, 0xff          /* reuse a3 as 0x00FFFFFF mask */
+ori    a3, a3, 0xffff
+...
+and    a3, t0, a3        /* prim & 0xFFFFFF for OT link */
+```
+
+Pinning the pointer to `a3` for the whole function blocks the mask reuse and
+yields `and t0, t0, a3` / wrong OT link regs.
+
+Fix: scope the `a3` pin in a nested block, copy to an unpinned `dr`, then
+`goto` the body so `a3` is free again:
+
+```c
+DR_MODE* dr;
+{
+    register DR_MODE* r asm("a3");
+    r = (DR_MODE*)(p + 2);
+    D_80071190 = (DR_TPAGE*)r;
+    if (valid) {
+        dr = r;
+        goto body;
+    }
+    goto end;
+}
+body:
+    setTexWindow(dr, &tw);
+    addPrim(ot, dr); /* a3 free for 0xFFFFFF */
+end:
+    return;
+```
+
+`func_800446A0` is the pure example. Pair with `register s32 y0r asm("v1")` if
+the second validity compare must load the right-hand operand first
+(`lh v1, y0; lh v0, y2; slt v0, v0, v1`).
+
+## Animated RGB clamp: compute next delta before building the colour word
+
+For a chain of `max(K - val, 1)` greyscale colours, the target interleaves:
+
+```
+t = K - val;
+if (t <= 0) t = 1;
+c = t & 0xFF;
+t = NEXT_K - val;          /* next delta BEFORE colour construction */
+color = (c<<16)|(c<<8)|c;
+*rgb = color;              /* sw / bgtz t in delay for the next clamp */
+```
+
+Writing `color = ...; store; t = NEXT_K - val` puts the `li`/`subu` after the
+stores and breaks the `bgtz` delay-slot shape. Also put the constant `K` in a
+temp that lives in `$v0` (`color = 0xB0; t = color - val`) so you get
+`li v0, K; subu a1, v0, a2` rather than `li a1, K; subu a1, a1, a2`.
+
+First clamp only: after `t = 1` use `asm("" : "+r"(t)); c = t & 0xFF` so the
+second `andi` is not constant-folded to `li a0, 1`.
