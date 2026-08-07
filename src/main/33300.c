@@ -233,7 +233,109 @@ void func_8004323C(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/33300", func_80043310);
+void func_800435F8(GStruct65* arg0, u32 arg1, s32 arg2);
+void func_80043718(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+
+s32 func_80043310(GStruct78* arg0, u8* arg1, s16* arg2, s32 arg3)
+{
+    struct {
+        /* 0x00 */ s16 field_0;
+        /* 0x02 */ s16 field_2;
+        /* 0x04 */ s16 field_4;
+        /* 0x06 */ s16 field_6;
+        /* 0x08 */ s16 field_8;
+        /* 0x0A */ s16 field_A;
+        /* 0x0C */ u8  field_C;
+        /* 0x0D */ u8  field_D;
+        /* 0x0E */ u8  field_E;
+        /* 0x0F */ u8  pad_F;
+        /* 0x10 */ s16 field_10;
+        /* 0x12 */ s16 field_12;
+    } sp;
+    s32 ret;
+    s32 i;
+    s32 glyphIdx;
+    u8  ch;
+    s16 tmp6;
+    s16 h;
+    s32 off;
+
+    ret = 0;
+    switch (*arg1) {
+        case 0:
+            arg0->field_E = 0;
+            if (arg0->field_C < 0) {
+                i = 0;
+                if (*arg0->field_10 != 0xFF) {
+                    do {
+                        i++;
+                        arg0->field_E++;
+                    } while (arg0->field_10[i] != 0xFF);
+                }
+                *arg2 = arg0->field_1A;
+            } else {
+                *arg2 = arg0->field_C;
+            }
+            (*arg1)++;
+            break;
+        case 1:
+            sp.field_0  = arg0->field_0;
+            sp.field_2  = arg0->field_2;
+            sp.field_4  = arg0->field_4;
+            tmp6        = arg0->field_6;
+            sp.field_C  = 0x80;
+            sp.field_D  = 0x80;
+            sp.field_E  = 0x80;
+            sp.field_10 = 0;
+            sp.field_12 = 0x1000;
+            sp.field_6  = tmp6;
+            if (arg0->field_10[arg0->field_E - 1] != 0xFF) {
+                for (i = 0; i < arg0->field_E; i++) {
+                    ch = arg0->field_10[i];
+                    if (ch == 0xFE) {
+                        sp.field_0  = arg0->field_0;
+                        sp.field_2 += arg0->field_18;
+                    } else if (ch != 0xFF) {
+                        glyphIdx = ch & 0x7F;
+                        if (((s8)ch >= 0) || (arg3 == 0)) {
+                            off        = glyphIdx * 4;
+                            sp.field_4 = ((GStruct77*)(off + (s32)arg0->field_14))->u +
+                                         (arg0->field_4 & 0x3F);
+                            sp.field_6 = ((GStruct77*)(off + (s32)arg0->field_14))->v +
+                                         (u8)arg0->field_6;
+                            sp.field_8 = ((GStruct77*)(off + (s32)arg0->field_14))->w;
+                            h          = ((GStruct77*)(off + (s32)arg0->field_14))->h;
+                            sp.field_A = h;
+                            if (h != 0) {
+                                func_800435F8((GStruct65*)&sp, arg0->field_8,
+                                              arg0->field_A);
+                            }
+                        }
+                        sp.field_0 +=
+                            ((GStruct77*)((glyphIdx * 4) + (s32)arg0->field_14))->w;
+                    }
+                }
+                func_80043718(1, arg0->field_4, arg0->field_6, 4);
+                *arg2 = *arg2 - 1;
+                if (*arg2 < 0) {
+                    arg0->field_E = arg0->field_E + 1;
+                    if (arg0->field_10[arg0->field_E] == 0xFF) {
+                        ret   = -1;
+                        *arg2 = arg0->field_1A;
+                    } else {
+                        *arg2 = arg0->field_C;
+                    }
+                }
+            } else {
+                (*arg1)++;
+            }
+            break;
+        default:
+            ret = 1;
+            break;
+    }
+    return ret;
+}
 
 void func_800435F8(GStruct65* arg0, u32 arg1, s32 arg2)
 {

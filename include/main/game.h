@@ -875,6 +875,39 @@ typedef struct _GStruct65 {
 } GStruct65;
 STATIC_ASSERT_SIZEOF(GStruct65, 0x12);
 
+/// 4-byte glyph UVWH entry used by func_80043310 (tables like D_800627E0).
+/// Distinct from GStruct68 (0xC full font metrics).
+typedef struct _GStruct77 {
+    /* 0x0 */ u8 u;
+    /* 0x1 */ u8 v;
+    /* 0x2 */ u8 w;
+    /* 0x3 */ u8 h;
+} GStruct77;
+STATIC_ASSERT_SIZEOF(GStruct77, 0x4);
+
+/// Text stream / font draw object (e.g. D_800630B0). field_0/2 are position;
+/// field_4/6 are tpage base (u base is field_4 & 0x3F); field_8/A are clut xy;
+/// field_C is per-char frame delay; field_E is the stream cursor; field_10 is
+/// the char stream (0xFE = newline, 0xFF = end); field_14 is the glyph table;
+/// field_18 is line height; field_1A is the delay reload when a line advances.
+typedef struct _GStruct78 {
+    /* 0x00 */ s16        field_0;
+    /* 0x02 */ s16        field_2;
+    /* 0x04 */ s16        field_4;
+    /* 0x06 */ s16        field_6;
+    /* 0x08 */ s16        field_8;
+    /* 0x0A */ s16        field_A;
+    /* 0x0C */ s16        field_C;
+    /* 0x0E */ s16        field_E;
+    /* 0x10 */ u8*        field_10;
+    /* 0x14 */ GStruct77* field_14;
+    /* 0x18 */ s16        field_18;
+    /* 0x1A */ s16        field_1A;
+    /* 0x1C */ s16        field_1C;
+    /* 0x1E */ s16        field_1E;
+} GStruct78;
+STATIC_ASSERT_SIZEOF(GStruct78, 0x20);
+
 /// BSS object D_80082758 (size 0x18). CD/audio stream state for 46FE4.c.
 /// field_C is a base pointer into a halfword table; func_80057A1C indexes it
 /// with ((packed >> 14) & 0x3FC) / 2 (4-byte stride, low halfword of each slot).

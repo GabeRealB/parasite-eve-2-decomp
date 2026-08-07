@@ -50,7 +50,7 @@ extern void func_8002207C(void);
 extern void func_8002226C(void* arg0, void* arg1);
 
 // 33300.c
-extern s32 func_80043310(void* arg0, u8* arg1, s16* arg2, s32 arg3);
+extern s32 func_80043310(GStruct78* arg0, u8* arg1, s16* arg2, s32 arg3);
 
 // fs.c APIs and Fs_* data → main/fs.h
 extern void func_80010024(void);

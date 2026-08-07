@@ -10710,3 +10710,29 @@ work->field_24 = f24 - 1;
 Without the memory clobber, the else path becomes `move v0, a1` (reuse of the
 function-entry load) instead of a fresh `lw`. Without `asm("v0")`, the load
 lands in `$a0` and the join no longer matches.
+
+## `addu` operand order: `off + base` vs `base + off`
+
+MIPS `addu rd, rs, rt` encodes the two source registers distinctly. Semantically
+`base + off` and `off + base` are identical, but the encodings differ and will
+fail a matching decomp check.
+
+Symptom: 99.9% match with a single-line diff like:
+
+```
+-addu    v1,a0,v1    /* a0=off, v1=base → off + base */
++addu    v1,v1,a0    /* base + off */
+```
+
+Fix: write the C expression so the offset is the left operand of the addition
+before the base pointer is added:
+
+```c
+/* matches addu v1, a0, v1 (off in a0, base in v1) */
+sp.field_4 = ((GStruct77*)(off + (s32)arg0->field_14))->u + ...;
+
+/* typically emits addu v1, v1, a0 */
+sp.field_4 = arg0->field_14[glyphIdx].u + ...;
+```
+
+`func_80043310` needs this for its 4-byte glyph table indexing.
