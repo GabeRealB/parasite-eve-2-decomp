@@ -77,7 +77,7 @@ block_20:
     Task_Kill(arg0);
 }
 
-void func_80042DF8(Task* arg0)
+void Stage_LoadOrCountdownTask(Task* arg0)
 {
     u8                param1[8];
     u8                param2[8];
@@ -123,7 +123,7 @@ void func_80042DF8(Task* arg0)
     }
 }
 
-void func_80042F54(Task* arg0)
+void Stage_ApplyTableEntryWhenIdle(Task* arg0)
 {
     TaskIdMap* temp;
     GPairU8*   entry;
@@ -150,7 +150,7 @@ void func_80042F54(Task* arg0)
     }
 }
 
-void func_80043028(s32 arg0)
+void Stage_RequestFromAreaTable(s32 arg0)
 {
     register GameSession* g asm("v1");
     s32                   idx;
@@ -172,7 +172,7 @@ void func_80043028(s32 arg0)
     }
 }
 
-void func_800430E4(s32 arg0)
+void Stage_RequestMidiFromMap(s32 arg0)
 {
     register GameSession* g asm("v1");
     s32                   idx;
@@ -208,7 +208,7 @@ void Stage_KillWhenIdle(Task* arg0)
     }
 }
 
-void func_8004323C(void)
+void Stage_RequestSpecialFlag(void)
 {
     GameSession* g;
     s32          idx;

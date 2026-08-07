@@ -1428,13 +1428,13 @@ GetClut                     = 0x80042AE0;
 //--- PA: 0x33300   VA: 0x80042B00   subsegment: c, 33300
 //--------------------------------------------------------------------
 Task_AllocIdMap               = 0x80042B00; // type:func
-func_80042DF8               = 0x80042DF8; // type:func
-func_80042F54               = 0x80042F54; // type:func
-func_80043028               = 0x80043028; // type:func
-func_800430E4               = 0x800430E4; // type:func
+Stage_LoadOrCountdownTask               = 0x80042DF8; // type:func
+Stage_ApplyTableEntryWhenIdle               = 0x80042F54; // type:func
+Stage_RequestFromAreaTable               = 0x80043028; // type:func
+Stage_RequestMidiFromMap               = 0x800430E4; // type:func
 Stage_DispatchTaskTable               = 0x80043198; // type:func
 Stage_KillWhenIdle               = 0x800431FC; // type:func
-func_8004323C               = 0x8004323C; // type:func
+Stage_RequestSpecialFlag               = 0x8004323C; // type:func
 TextStream_Draw               = 0x80043310; // type:func
 Prim_DrawSprt               = 0x800435F8; // type:func
 Prim_DrawTPage               = 0x80043718; // type:func

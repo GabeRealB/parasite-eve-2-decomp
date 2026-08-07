@@ -47,7 +47,7 @@ typedef struct _GPairU8 {
 STATIC_ASSERT_SIZEOF(GPairU8, 0x2);
 
 /// Index + pointer into a GPairU8 table. Allocated (Mem_Calloc(8)) and stored
-/// at Task::field_1C by Task_AllocIdMap; read by func_80042F54 / func_80042DF8.
+/// at Task::field_1C by Task_AllocIdMap; read by Stage_ApplyTableEntryWhenIdle / Stage_LoadOrCountdownTask.
 typedef struct _TaskIdMap {
     /* 0x0 */ u16      field_0; // index into field_4
     /* 0x2 */ byte     pad_2[2];

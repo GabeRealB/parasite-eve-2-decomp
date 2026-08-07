@@ -3876,7 +3876,7 @@ entry = (GPairU8*)(temp + (s32)D_8006273C[idx]);
 entry = D_8006273C[idx] + ((D_80062738 + product) & 0xFFFF);
 ```
 
-`func_800430E4` is the pure example. Pair with a `register ... asm("v1")` pin
+`Stage_RequestMidiFromMap` is the pure example. Pair with a `register ... asm("v1")` pin
 on the stage pointer when the target loads `Game_Session` into `$v1` (with
 an argument live in `$s1`) rather than `$a0`.
 
