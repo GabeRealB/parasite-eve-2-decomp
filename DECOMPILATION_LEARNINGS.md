@@ -11606,3 +11606,42 @@ asm volatile("" : "+r"(t));   /* stop fold/hoist if needed */
 D5B498_8006C234 = t;          /* sb of low 8 bits; li stays -3 */
 ```
 
+
+## Force 3-way `%hi` s-reg order: pin + `lui` asm, then `%lo` accesses
+
+When three loop-live globals need a fixed s-reg coloring for split-address
+form (e.g. target `s5=D_8007A368`, `s7=Fs_ChunkMode`, `s6=D5B498_8006C233`)
+but natural allocation rotates them, pin and materialise with one asm block,
+then do every load/store through those his:
+
+```c
+register s32 hi368 asm("s5");
+register s32 hiMode asm("s7");
+register s32 hi233 asm("s6");
+register s32 hi364 asm("s4");
+__asm__ volatile(
+    "lui %0, %%hi(D_8007A368)\n\t"
+    "lui %1, %%hi(Fs_ChunkMode)\n\t"
+    "lui %2, %%hi(D5B498_8006C233)\n\t"
+    "lui %3, %%hi(D_8007A364)"
+    : "=&r"(hi368), "=&r"(hiMode), "=&r"(hi233), "=r"(hi364));
+/* loads: */  __asm__ volatile("lw %0, %%lo(D_8007A368)(%1)" : "=r"(base) : "r"(hi368));
+/* stores with branch-delay `li`: use tab-noreorder */
+__asm__ volatile(
+    ".set\tnoreorder\n\t"
+    "nop\n\t"
+    "beqz %0, 1f\n\t"
+    "li $2, 2\n\t"
+    "sb $2, %%lo(Fs_ChunkMode)(%1)\n\t"
+    "li $2, -8\n\t"
+    "sb $2, %%lo(D5B498_8006C233)(%2)\n\t"
+    "1:\n\t"
+    ".set\treorder"
+    :
+    : "r"(flag), "r"(hiMode), "r"(hi233)
+    : "$2", "memory");
+```
+
+Pin a second quartet for a following loop that reuses the same s-regs with a
+different global set. `func_8004017C` is the pure example (99.84% → 100%).
+
