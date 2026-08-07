@@ -10591,3 +10591,63 @@ do {
 
 `func_8002EB94` is the pure example (minutes:seconds time string, same
 unsigned-decimal digit loop as `func_8002F18C` for the minutes half).
+
+## s32 temp for QImode store of a loop-compared constant
+
+When the same small constant K is both (a) compared every loop iteration
+(`if (status == 2)`) as SImode and (b) stored to a byte field on a rare path
+(`p->field_16 = 2`), CSE unifies them and hoists `li sN,K` into a callee-saved
+register for the whole function. That steals a reg (often pushing another
+constant into `$s8`/`$fp`) and rewrites every use.
+
+```c
+/* Wrong: pins 2 in s7, four ends up in s8 */
+if (status == 2) goto case_2;
+...
+p->field_16 = 2;
+```
+
+Route the *store* through an SImode temporary so the QI store and the SI
+compare no longer share one REG_EQUAL:
+
+```c
+s32 tmp;
+if (status == 2) goto case_2; /* rematerializes li v0,2 each iter */
+...
+tmp = 2;
+p->field_16 = tmp; /* QI store of SI temp — no hoist */
+```
+
+`func_80054938` is the pure example (D_80082248 state machine, field_16 cases
+1/2/4/8/0x10/0x20/0x80).
+
+## `*(volatile u8*)&field` forces lbu+sll24+sra24 sign-extend
+
+A plain `(s8)p->u8_field` often becomes a single `lb`. When the target does
+`lbu` / `sll 24` / `sra 24` instead, load through a volatile byte:
+
+```c
+temp = (s8)(*(volatile u8*)&p->field_13);
+temp = temp + step;
+```
+
+## Save sum before `if (step > 0)` for addu/blez/move order
+
+For a ramp of the form "compute sum, branch on step sign, keep full sum in
+`$a0` while truncating a copy for the compare", assign the saved sum *before*
+the sign test so the scheduler emits `addu; blez; move a0,v0` rather than
+stuffing `addu` into the `blez` delay slot:
+
+```c
+temp = (s8)(*(volatile u8*)&p->field_13);
+temp = temp + step;
+new_val = temp; /* move before blez */
+if (step > 0) {
+    temp <<= 16;
+    temp >>= 16;
+    if ((s8)p->field_14 < temp) { /* clamp */ }
+    else { p->field_13 = new_val; }
+}
+```
+
+`func_80054938` field_13/15 envelope uses this with `register s32 temp asm("v0")`.

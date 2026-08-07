@@ -559,7 +559,252 @@ void func_8005488C(void)
     func_80055DFC(var_a0);
 }
 
-INCLUDE_ASM("main/nonmatchings/43FFC", func_80054938);
+s32 func_80054938(void)
+{
+    GStruct48     sp18;
+    s16           sp20[2];
+    SpuVoiceAttr* voice;
+    GStruct54*    p;
+    GStruct43*    node;
+    GStruct43*    head;
+    GStruct43*    walk;
+    s32           i;
+    register s32  one asm("s4");
+    register s32  four asm("s7");
+    register s32  offset asm("s5");
+    s32           count;
+    s32           new_val;
+    register s32  temp asm("v0");
+    s32           status;
+    s32           tmp;
+    s8            step;
+    u16           right;
+    u32           mask;
+
+    if (D_8008274A != 0) {
+        func_8005488C();
+    }
+
+    i      = 0;
+    four   = 4;
+    one    = 1;
+    offset = i;
+    do {
+        p      = (GStruct54*)((u8*)D_80082248 + offset);
+        status = p->field_16;
+        if (status == four) {
+            goto case_4;
+        }
+        if (status < 5) {
+            if (status == one) {
+                goto case_1;
+            }
+            if (status < 2) {
+                goto next;
+            }
+            if (status == 2) {
+                goto case_2;
+            }
+            offset += 0x60;
+            goto loop_inc;
+        }
+        if (status == 0x10) {
+            goto case_10;
+        }
+        if (status < 0x11) {
+            if (status == 8) {
+                goto case_8;
+            }
+            offset += 0x60;
+            goto loop_inc;
+        }
+        if (status == 0x20) {
+            goto case_20;
+        }
+        if (status == 0x80) {
+            goto case_80;
+        }
+        offset += 0x60;
+        goto loop_inc;
+
+    case_1:
+        p->field_C          = 0;
+        p->field_D          = 0;
+        p->field_8          = 0;
+        p->field_4          = 0;
+        p->field_40         = NULL;
+        tmp                 = 2;
+        p->field_16         = tmp;
+        p->field_50.field_E = 0;
+        p->field_12         = 0;
+        p->field_15         = 0;
+        p->field_E          = 0;
+        goto case_2;
+
+    case_80:
+        if (p->field_50.field_0 == p->field_50.field_4) {
+            p->field_16 = four;
+            goto case_4;
+        }
+        func_8004D2EC(&p->field_50);
+        p->field_E = one;
+        /* fallthrough */
+    case_2:
+        p->field_4 = p->field_4 + 1;
+        do {
+        } while (func_80055078(p) != 0);
+
+    process_voices:
+        head  = p->field_40;
+        count = 0;
+        if (head != NULL) {
+            node = head;
+            do {
+                func_80056308(node);
+                step   = p->field_12;
+                count += 1;
+                if (step != 0) {
+                    new_val = step + ((s8)p->field_10 * 4);
+                    if (step > 0) {
+                        if (((s8)p->field_11 * 4) < new_val) {
+                            p->field_10 = p->field_11;
+                            p->field_12 = 0;
+                        } else {
+                            temp = new_val;
+                            if (temp < 0) {
+                                temp += 3;
+                            }
+                            p->field_10 = temp >> 2;
+                        }
+                    } else if (new_val < ((s8)p->field_11 * 4)) {
+                        p->field_10 = p->field_11;
+                        p->field_12 = 0;
+                    } else {
+                        temp = new_val;
+                        if (temp < 0) {
+                            temp += 3;
+                        }
+                        p->field_10 = temp >> 2;
+                    }
+                    p->field_E = one;
+                }
+                step = p->field_15;
+                if (step != 0) {
+                    temp    = (s8)(*(volatile u8*)&p->field_13);
+                    temp    = temp + step;
+                    new_val = temp;
+                    if (step > 0) {
+                        temp <<= 16;
+                        temp >>= 16;
+                        if ((s8)p->field_14 < temp) {
+                            p->field_13 = (u8)p->field_14;
+                            p->field_15 = 0;
+                        } else {
+                            goto store13;
+                        }
+                    } else {
+                        temp <<= 16;
+                        temp >>= 16;
+                        if (temp < (s8)p->field_14) {
+                            p->field_13 = (u8)p->field_14;
+                            p->field_15 = 0;
+                        } else {
+                        store13:
+                            p->field_13 = new_val;
+                        }
+                    }
+                    p->field_E = one;
+                }
+                if (p->field_E == one) {
+                    func_8004E5C4(node->field_0, &sp18);
+                    voice = sp18.field_4;
+                    func_800564C4((s8)p->field_10, (s8)p->field_13, node, &p->field_50, sp20);
+                    voice->volume.left   = sp20[0];
+                    right                = sp20[1];
+                    mask                 = voice->mask;
+                    voice->volmode.left  = 0;
+                    voice->volmode.right = 0;
+                    voice->mask          = mask | 0xF;
+                    voice->volume.right  = right;
+                }
+                node = node->field_3C;
+            } while (node != NULL);
+            p->field_E = 0;
+        }
+        if (count != 0) {
+            goto next;
+        }
+        if (p->field_D == one) {
+            goto cleanup;
+        }
+        offset += 0x60;
+        goto loop_inc;
+
+    case_8:
+        func_8004D2EC(&p->field_50);
+        p->field_E = one;
+        goto process_voices;
+
+    case_10:
+        p->field_E = one;
+        func_8004D2EC(&p->field_50);
+        if (p->field_50.field_0 != p->field_50.field_4) {
+            goto process_voices;
+        }
+        tmp         = 2;
+        p->field_16 = tmp;
+        goto case_2;
+
+    case_4:
+        p->field_D = one;
+        if (func_800563B4(p) != 0) {
+            p->field_16 = 0x20;
+            goto next;
+        }
+        goto cleanup;
+
+    case_20:
+        head  = p->field_40;
+        count = 0;
+        if (head != NULL) {
+            node = head;
+            do {
+                if (node->field_10 != 0) {
+                    count += 1;
+                    func_80055678(node);
+                }
+                node = node->field_3C;
+            } while (node != NULL);
+        }
+        if (count != 0) {
+            goto next;
+        }
+        if (p->field_D != one) {
+            goto next;
+        }
+
+    cleanup:
+        walk        = p->field_40;
+        p->field_D  = 0;
+        p->field_0  = -1;
+        p->field_16 = 0;
+        if (walk != NULL) {
+            do {
+                walk->field_34 = 0;
+                walk           = walk->field_3C;
+            } while (walk != NULL);
+        }
+        p->field_40         = NULL;
+        p->field_50.field_E = 0;
+
+    next:
+        offset += 0x60;
+
+    loop_inc:
+        i += 1;
+    } while (i < 8);
+    return 0;
+}
 
 void func_80054D58(GStruct66* arg0, u16 arg1, s32 arg2, u16 arg3)
 {

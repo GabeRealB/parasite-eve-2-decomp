@@ -1072,7 +1072,7 @@ STATIC_ASSERT_SIZEOF(GStruct67, 0x10);
 typedef struct _GStruct54 {
     /* 0x00 */ s32        field_0;
     /* 0x04 */ s32        field_4;
-    /* 0x08 */ u8         pad_8[4];
+    /* 0x08 */ s32        field_8;
     /* 0x0C */ s8         field_C;
     /* 0x0D */ s8         field_D;
     /* 0x0E */ s8         field_E;
