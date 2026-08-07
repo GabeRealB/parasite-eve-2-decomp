@@ -320,60 +320,62 @@ s32 Spu_SetVoiceRange(s32 idx, s32 arg1, s32 arg2)
 
 s32 Spu_GetVoiceRef(s8 arg0, SpuVoiceRef* arg1)
 {
-    register s32 ret asm("t2");
+    register s32 v1r asm("v1");
+    register s8* base asm("t1");
+    register s32 idx asm("a3");
+    register s8* slotp asm("t0");
+    register s32 a2r asm("a2");
+    register s32 found asm("t2");
+    register s32 v0r asm("v0");
 
-    /*
-     * Leaf lookup/alloc into Spu_LVoiceTable. Pure C fails to keep $a0 as the
-     * voice id across the prologue (needed for sb into arg1) while also doing
-     * the dual lhu/lh count load and the slot*0x44-0x3C found-path address.
-     * Hand-scheduled body matches target instruction-for-instruction.
-     */
+    /* $a0 stays as voice id for sb; $v1 keeps %hi for dual lhu/lh of count. */
     __asm__ volatile(
-        ".set\tnoreorder\n\t"
-        "lui $3, %%hi(Spu_LVoiceTable)\n\t"
-        "addiu $9, $3, %%lo(Spu_LVoiceTable)\n\t"
-        "sll $2, %1, 24\n\t"
-        "sra $7, $2, 24\n\t"
-        "addu $8, $7, $9\n\t"
-        "lb $6, 1636($8)\n\t"
-        "nop\n\t"
-        "beqz $6, 1f\n\t"
-        "li %0, 1\n\t"
-        "sll $2, $6, 4\n\t"
-        "addu $2, $2, $6\n\t"
-        "sll $2, $2, 2\n\t"
-        "addu $2, $2, $9\n\t"
-        "addiu $2, $2, -60\n\t"
-        "sb %1, 0(%2)\n\t"
-        "j 2f\n\t"
-        "sw $2, 4(%2)\n\t"
-        "1:\n\t"
-        "move %0, $0\n\t"
-        "lhu $2, %%lo(Spu_LVoiceTable)($3)\n\t"
-        "lh $6, %%lo(Spu_LVoiceTable)($3)\n\t"
-        "addiu $2, $2, 1\n\t"
-        "sh $2, %%lo(Spu_LVoiceTable)($3)\n\t"
-        "sll $2, $6, 4\n\t"
-        "addu $2, $2, $6\n\t"
-        "sll $2, $2, 2\n\t"
-        "addu $3, $2, $9\n\t"
-        "sh $7, 4($3)\n\t"
-        "addiu $3, $6, 1\n\t"
-        "addu $2, $2, $9\n\t"
-        "addiu $2, $2, 8\n\t"
-        "sb $3, 1636($8)\n\t"
-        "sb %1, 0(%2)\n\t"
-        "sw $2, 4(%2)\n\t"
-        "sw $0, 4($2)\n\t"
-        "sb $0, 1(%2)\n\t"
-        "sb $0, 3(%2)\n\t"
-        "sb $0, 2(%2)\n\t"
-        "2:\n\t"
-        ".set\treorder"
-        : "=&r"(ret)
-        : "r"(arg0), "r"(arg1)
-        : "$2", "$3", "$6", "$7", "$8", "$9", "memory");
-    return ret;
+        "lui %0, %%hi(Spu_LVoiceTable)\n\t"
+        "addiu %1, %0, %%lo(Spu_LVoiceTable)\n\t"
+        "sll %2, $4, 24\n\t"
+        "sra %3, %2, 24"
+        : "=&r"(v1r), "=&r"(base), "=&r"(v0r), "=r"(idx));
+    slotp = (s8*)(idx + (s32)base);
+    a2r   = (s8)slotp[0x664];
+    found = 1;
+    if (a2r != 0) {
+        v0r           = ((a2r << 4) + a2r) << 2;
+        v0r           = v0r + (s32)base;
+        arg1->field_0 = arg0;
+        arg1->field_4 = (SpuVoiceAttr*)(v0r - 0x3C);
+    } else {
+        __asm__ volatile("move %0, $0" : "=r"(found));
+        __asm__ volatile(
+            "lhu %0, %%lo(Spu_LVoiceTable)(%2)\n\t"
+            "lh  %1, %%lo(Spu_LVoiceTable)(%2)\n\t"
+            "addiu %0, %0, 1\n\t"
+            "sh %0, %%lo(Spu_LVoiceTable)(%2)"
+            : "=&r"(v0r), "=&r"(a2r)
+            : "r"(v1r)
+            : "memory");
+        /* GCC reorders entry vs count+1; keep target's v1/v0 schedule. */
+        __asm__ volatile(
+            ".set\tnoreorder\n\t"
+            "sll %0, %2, 4\n\t"
+            "addu %0, %0, %2\n\t"
+            "sll %0, %0, 2\n\t"
+            "addu %1, %0, %3\n\t"
+            "sh %4, 4(%1)\n\t"
+            "addiu %1, %2, 1\n\t"
+            "addu %0, %0, %3\n\t"
+            "addiu %0, %0, 8\n\t"
+            ".set\treorder"
+            : "=&r"(v0r), "=&r"(v1r)
+            : "r"(a2r), "r"(base), "r"(idx));
+        slotp[0x664]          = v1r;
+        arg1->field_0         = arg0;
+        arg1->field_4         = (SpuVoiceAttr*)v0r;
+        *(s32*)((u8*)v0r + 4) = 0;
+        arg1->field_1         = 0;
+        arg1->field_3         = 0;
+        arg1->field_2         = 0;
+    }
+    return found;
 }
 
 s32 F3E48C_8004E660(u32 voiceIdx)

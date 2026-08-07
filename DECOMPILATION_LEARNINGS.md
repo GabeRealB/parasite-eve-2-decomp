@@ -11718,3 +11718,17 @@ Leaf that looks up or allocates into `Spu_LVoiceTable` (stride `0x44` =
 either renames `$a0` early or turns the second load into `lhu`+`sll`/`sra`.
 A single tab-noreorder block matching the target is the reliable match;
 `field_664` is at decimal offset 1636 (`0x664`).
+
+## Spu_GetVoiceRef hybrid C (not full-function asm)
+
+Most of the leaf is ordinary C with s-reg pins (`t1` base, `a2` slot/count,
+`a3` sign-ext index, `t2` ret, `v0`/`v1` scratch). Three small asm pockets:
+
+1. Prologue: `lui $v1` / `addiu $t1` plus `sll $v0,$4,24` / `sra $a3,$v0,24`
+   so the voice id stays in `$a0` for later `sb` (a C `(s8)` extend renames `$a0`).
+2. Alloc count: `lhu` then `lh` of `Spu_LVoiceTable` via the kept `%hi` in `$v1`.
+3. Alloc tail: noreorder `*0x44` / `sh voiceNum` / `addiu count+1` / attr `+8`
+   — pure C reorders `count+1` ahead of the entry pointer and clobbers `$t1`.
+
+Found path (`slot*0x44 + base - 0x3C`) is pure C. `field_664` is at offset
+`0x664` from the table base via `base + idx`.
