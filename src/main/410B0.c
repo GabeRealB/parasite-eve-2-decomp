@@ -1203,20 +1203,6 @@ u8* func_800526A4(s32 arg0, u8* arg1, GStruct36* arg2, GStruct36Entry* arg3)
     return var_t0;
 }
 
-/* Absolute copy of jtbl_800140A4 for still-asm func_80052B30. Placed after
- * func_800526A4's compiler-generated jtbl so the still-asm table keeps its
- * VMA until that function is matched. */
-const s32 jtbl_800140A4[8] = {
-    0x80052B80,
-    0x80052CB8,
-    0x80052CF4,
-    0x80052D64,
-    0x80052DE0,
-    0x80052F58,
-    0x80052E90,
-    0x00000000,
-};
-
 s32 func_8005287C(u8* arg0, u8* arg1)
 {
     register s32 result asm("a2");
@@ -1324,7 +1310,186 @@ u8* func_800529D8(s32 arg0, u8* arg1, GStruct36* arg2)
     return arg1 + 3;
 }
 
-INCLUDE_ASM("main/nonmatchings/410B0", func_80052B30);
+s32 func_80052B30(s32* arg0)
+{
+    GStruct34* state;
+    s32*       src;
+    u32        i;
+    s32*       dst;
+    s32        nibble;
+    s32        count;
+    s32        aligned;
+    void*      mem;
+    s32        len;
+    s32        spuAddr;
+
+    state = &D_800820F0;
+    switch (state->field_2) {
+        case 0:
+            src = arg0;
+            dst = (s32*)&state->field_1C;
+            i   = 0;
+            do {
+                *dst = *src;
+                src++;
+                i++;
+                dst++;
+            } while (i < 5U);
+
+            nibble = state->field_20 & 0xF000;
+            if ((u32)(nibble - 0x8000) < 0x5001U) {
+                D_800689E8     = 1;
+                state->field_2 = 7;
+                break;
+            }
+            if (nibble == 0x1000) {
+                D_80082128 = 0;
+            }
+            {
+                s32 id;
+                id                          = state->field_20;
+                *(volatile s32*)&D_800689E4 = id;
+                if (func_8005368C(state->field_20, state->field_22) == -1) {
+                    state->field_2 = 6;
+                    break;
+                }
+            }
+            {
+                s32 tmp;
+                tmp             = (s32)func_8004CE28((GStruct34Payload*)&state->field_1C);
+                state->field_18 = tmp;
+                if (tmp == 0) {
+                    state->field_2 = 6;
+                    break;
+                }
+                src = arg0 + 5;
+                dst = ((GStruct42*)tmp)->field_1C;
+            }
+            count = (state->field_24 * 5) + state->field_23;
+            i     = 0;
+            if (count != 0) {
+                do {
+                    *dst = *src;
+                    src++;
+                    i++;
+                    dst++;
+                } while ((s32)i < count);
+            }
+            ((GStruct42*)state->field_18)->field_B  = state->field_23;
+            ((GStruct42*)state->field_18)->field_C  = state->field_24;
+            ((GStruct42*)state->field_18)->field_8  = state->field_20;
+            ((GStruct42*)state->field_18)->field_14 = (void*)state->field_2C;
+            state->field_2                          = 1;
+            break;
+
+        case 1:
+            aligned         = (state->field_2A + 3) & 0xFFFC;
+            state->field_C  = aligned;
+            mem             = func_80053548(state->field_20, state->field_22, aligned);
+            state->field_14 = (s32)mem;
+            if (mem == 0) {
+                state->field_2 = 6;
+                func_8004D0F0((GStruct42*)state->field_18);
+                state->field_18 = 0;
+                break;
+            }
+            state->field_8 = (s32)mem;
+            state->field_2 = 2;
+            /* fallthrough */
+        case 2:
+            len = (u32)state->field_C >> 2;
+            if ((u32)state->field_C < (u32)state->field_10) {
+                state->field_2 = 3;
+            } else {
+                len             = (u32)state->field_10 >> 2;
+                state->field_C -= state->field_10;
+            }
+            src = arg0;
+            dst = (s32*)state->field_8;
+            i   = 0;
+            if (len != 0) {
+                do {
+                    *dst = *src;
+                    src++;
+                    i++;
+                    dst++;
+                } while (i < (u32)len);
+            }
+            state->field_8 += len * 4;
+            break;
+
+        case 3: {
+            s32 size;
+            size                                    = state->field_2C;
+            state->field_C                          = size;
+            ((GStruct42*)state->field_18)->field_18 = func_800535F0(
+                state->field_22, ((GStruct42*)state->field_18)->field_8, size);
+            spuAddr = ((GStruct42*)state->field_18)->field_18;
+        }
+            if (spuAddr == 0) {
+                D_800689E8     = 4;
+                state->field_2 = 6;
+                func_8004D0F0((GStruct42*)state->field_18);
+                state->field_18 = 0;
+                break;
+            }
+            SpuSetTransferStartAddr(spuAddr + (state->field_26 << 6));
+            state->field_2 = 4;
+            /* fallthrough */
+        case 4: {
+            s32 rem;
+            s32 step;
+            rem  = state->field_C;
+            step = state->field_10;
+            if ((u32)step >= (u32)rem) {
+                len            = rem;
+                state->field_2 = 5;
+            } else {
+                len            = step;
+                state->field_C = rem - step;
+            }
+        }
+            if (state->field_3 == 0) {
+                if (SpuIsTransferCompleted(0) == 0) {
+                    if (state->field_0 != 0x10) {
+                        func_8004D0F0((GStruct42*)state->field_18);
+                        state->field_18 = 0;
+                    }
+                    D_800689E8     = 5;
+                    state->field_2 = 7;
+                    break;
+                }
+                SpuWritePartly((u8*)arg0, len);
+            } else {
+                SpuWritePartly((u8*)arg0, len);
+                SpuIsTransferCompleted(1);
+            }
+            break;
+
+        case 5:
+            break;
+
+        case 6:
+            if ((state->field_1 + 1) >= (s32)state->field_28) {
+                D_800689E8 = 6;
+                if ((state->field_20 & 0xF000) == 0x5000) {
+                    if (D_80082128 == 0) {
+                        D_80082124 = 0x63810 - ((state->field_2C + 0x3F) & ~0x3F);
+                    } else {
+                        D_80082124 = D_80082128 - ((state->field_2C + 0x3F) & ~0x3F);
+                    }
+                }
+                if ((state->field_20 & 0xF000) == 0x1000) {
+                    D_80082128 = 0x63810 - ((state->field_2C + 0x3F) & ~0x3F);
+                }
+                state->field_2 = 5;
+            }
+            break;
+    }
+
+    state->field_1 += 1;
+    return state->field_2;
+}
 
 s32 func_80052F80(GStruct34* arg0)
 {

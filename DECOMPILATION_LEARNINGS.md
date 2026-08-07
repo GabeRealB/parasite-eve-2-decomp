@@ -10872,3 +10872,44 @@ follow-up test are real memory ops:
 
 Do **not** mark the whole `PadState*` volatile — that turns `lh field_54` into
 `lhu` + sign-extend. `func_8002C5A4` is the pure example.
+
+## Volatile store before `jal` (no delay-slot fill)
+
+When the target stores a register to memory then `jal` with `nop` in the delay
+slot, a plain store is often pulled into the delay slot:
+
+```
+move  v0, a0
+jal   func
+ sw   v0, %lo(sym)(v1)   /* wrong — target wants this before jal */
+```
+
+Fix: store through a volatile pointer so the store is a real side effect that
+cannot fill the call delay:
+
+```c
+s32 id;
+id = p->field_20; /* lhu */
+*(volatile s32*)&D_800689E4 = id;
+if (func(p->field_20, p->field_22) == -1) { /* still lhu via same load CSE */
+    /* ... */
+}
+```
+
+`func_80052B30` is the pure example (store of bank id before `func_8005368C`).
+
+## Call site without short prototype keeps `lhu` while callee stays `s16`
+
+If the callee is matched as `s16 arg0` (needed for its own register allocation,
+e.g. copy into `$a3`), a visible `s16` prototype at the call site turns
+
+```
+lhu a0, field
+```
+
+into `lh` (or an extra `lhu` + separate path). When the call is compiled *before*
+the definition and *without* a prior prototype, default argument promotions keep
+the argument as a full word and the load stays `lhu`.
+
+Do not change a matched `s16` definition just to fix a caller — drop or avoid the
+early prototype instead. `func_80052B30` → `func_8005368C` is the pure example.

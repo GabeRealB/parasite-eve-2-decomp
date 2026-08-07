@@ -705,7 +705,8 @@ typedef struct _GStruct34Payload {
 /// State block at D_800820F0; field_3 is also D_800820F3.
 /// field_14/field_18 cleared by func_800537FC; field_10 sized by func_8005363C.
 /// field_26/field_28 set by the CD ready path in func_800572FC.
-/// Bytes at 0x1C.. are filled from a sector payload by func_80052B30.
+/// field_1C..field_2C are filled as five words from a sector by func_80052B30
+/// (overlay of GStruct34Payload at +0x1C: field_20/22/23/24 == payload field_4/6/7/8).
 /// Named BSS symbols D_80082120+ begin immediately after this 0x30-byte block.
 typedef struct _GStruct34 {
     /* 0x00 */ u8    field_0;
@@ -718,12 +719,15 @@ typedef struct _GStruct34 {
     /* 0x10 */ s32   field_10;
     /* 0x14 */ s32   field_14;
     /* 0x18 */ s32   field_18;
-    /* 0x1C */ byte  unknown_1C[0x8];
+    /* 0x1C */ u32   field_1C;
+    /* 0x20 */ u16   field_20;
+    /* 0x22 */ u8    field_22;
+    /* 0x23 */ u8    field_23;
     /* 0x24 */ u8    field_24;
-    /* 0x25 */ byte  unknown_25;
-    /* 0x26 */ s16   field_26;
+    /* 0x25 */ u8    field_25;
+    /* 0x26 */ u16   field_26;
     /* 0x28 */ u8    field_28;
-    /* 0x29 */ byte  unknown_29;
+    /* 0x29 */ u8    field_29;
     /* 0x2A */ u16   field_2A;
     /* 0x2C */ s32   field_2C;
 } GStruct34;
@@ -999,7 +1003,8 @@ struct _GStruct42 {
     /* 0x08 */ u16             field_8;
     /* 0x0A */ u8              field_A;
     /* 0x0B */ u8              field_B;
-    /* 0x0C */ byte            unknown_C[0x4];
+    /* 0x0C */ u8              field_C;
+    /* 0x0D */ byte            unknown_D[0x3];
     /* 0x10 */ u16*            field_10;
     /* 0x14 */ void*           field_14;
     /* 0x18 */ s32             field_18;
