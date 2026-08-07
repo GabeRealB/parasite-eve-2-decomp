@@ -10988,3 +10988,47 @@ end-prim write so the `%hi` is only live in that block:
 Also keep the buffer index used for OT setup (`flip = field_114 ^ 1`) in a
 short-lived temp so it can live in `$a1` until `ClearOTagR`'s second arg
 clobbers it — do **not** reuse that variable for the later `PutDrawEnv` index.
+
+## Preload halfword before conditional `+=` for `sh` / `lhu` / `bgez` / `addu` schedule
+
+When the target does:
+
+```
+sh    v0, h(obj)        # unconditional store
+lhu   v0, x(obj)        # load next field into same reg
+bgez  t, skip
+ addu v0, v0, t         # delay: always add
+sh    v0, x(obj)        # store only if t < 0
+```
+
+a plain
+
+```c
+obj->h = obj->h + adj;
+if (t < 0) {
+    obj->x += t;
+}
+```
+
+often schedules `bgez` *before* the `sh` of `h` (filling the delay with that
+store), which then forces a load-delay `nop` before `addu` — wrong order and
+an extra instruction.
+
+Fix: preload `x` into a temporary *after* writing `h` and *before* the branch,
+and write the updated value through that temp:
+
+```c
+obj->h = obj->h + adj;
+xv = *(u16*)&obj->x;   /* lhu when RECT/short fields would otherwise lh */
+if (t < 0) {
+    obj->x = xv + t;
+}
+```
+
+The early `lhu` can fill the slot after `sh h`, and `addu` fills the `bgez`
+delay. Use `*(u16*)&` (or a `u16`/`u32` temp from an unsigned load) when the
+target wants `lhu` but the field type is signed `short`.
+
+`func_80046830` is the pure example. Pair with signed field overlays when the
+same function also needs `lb`/`lh` on counts/layout halfwords stored as `u8`/`u16`
+in the shared struct.

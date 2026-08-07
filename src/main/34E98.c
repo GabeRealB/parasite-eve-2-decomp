@@ -477,7 +477,149 @@ void func_800466E4(GStruct30* arg0, s32 arg1, s32 arg2)
     arg0->field_22 = sp10.y - arg0->field_18;
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80046830);
+/// Signed overlay of UiList so field_5/field_7 load with lb (visible-row counts).
+typedef struct {
+    /* 0x00 */ u8  pad0[4];
+    /* 0x04 */ u8  field_4;
+    /* 0x05 */ s8  field_5;
+    /* 0x06 */ s8  field_6;
+    /* 0x07 */ s8  field_7;
+    /* 0x08 */ u8  pad8;
+    /* 0x09 */ u8  field_9;
+    /* 0x0A */ u8  field_A;
+    /* 0x0B */ u8  padB;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s32 field_10;
+    /* 0x14 */ s16 field_14;
+    /* 0x16 */ s8  field_16;
+    /* 0x17 */ s8  field_17;
+} UiListSignedRows;
+
+/// Signed overlay of GStruct30 layout halfwords (field_18..field_1E can be negative).
+typedef struct {
+    /* 0x00 */ s32  field_0;
+    /* 0x04 */ s32  field_4;
+    /* 0x08 */ s32  field_8;
+    /* 0x0C */ RECT field_C;
+    /* 0x14 */ u16  field_14;
+    /* 0x16 */ s16  field_16;
+    /* 0x18 */ s16  field_18;
+    /* 0x1A */ s16  field_1A;
+    /* 0x1C */ s16  field_1C;
+    /* 0x1E */ s16  field_1E;
+    /* 0x20 */ u16  field_20;
+    /* 0x22 */ u16  field_22;
+} GStruct30SignedLayoutFull;
+
+void func_80046830(UiList* arg0_, GStruct30* arg1_)
+{
+    UiListSignedRows*          arg0;
+    GStruct30SignedLayoutFull* arg1;
+    RECT                       sp10;
+    s16                        temp_v0;
+    u8                         temp_a2_u8;
+    s8                         temp_v1;
+    s32                        temp_v1_2;
+    s32                        height;
+    s32                        temp_a2;
+
+    arg0 = (UiListSignedRows*)arg0_;
+    arg1 = (GStruct30SignedLayoutFull*)arg1_;
+
+    if (arg0->field_5 == 0) {
+        arg0->field_5 = arg0->field_4;
+    } else if (arg0->field_4 < arg0->field_5) {
+        arg0->field_5 = arg0->field_4;
+    }
+
+    {
+        register s32 f5 asm("a1");
+        register s32 f7 asm("v0");
+        register s32 f18 asm("a0");
+        s32          f1a;
+        s32          w;
+        s32          x;
+        u32          xv;
+
+        f5              = arg0->field_5;
+        f7              = arg0->field_7;
+        f5              = f5 * f7;
+        temp_a2         = 0x98;
+        w               = arg1->field_C.w;
+        x               = arg1->field_C.x;
+        f18             = arg1->field_18;
+        temp_a2         = temp_a2 - (x + w);
+        f1a             = arg1->field_1A;
+        f5              = f5 - (f1a - f18);
+        arg1->field_C.h = arg1->field_C.h + f5;
+        xv              = *(u16*)&arg1->field_C.x;
+        if (temp_a2 < 0) {
+            arg1->field_C.x = xv + temp_a2;
+        }
+    }
+    temp_a2 = 0x70 - (arg1->field_C.y + arg1->field_C.h);
+    if (temp_a2 < 0) {
+        arg1->field_C.y += temp_a2;
+    }
+
+    func_800492EC(arg1, &arg1->field_C, &sp10);
+    if ((arg1->field_4 & 0xF) == 2) {
+        sp10.y += 9;
+        sp10.h -= 0xB;
+        sp10.x += 2;
+        sp10.w -= 4;
+    } else {
+        sp10.y += 2;
+        sp10.h -= 4;
+        sp10.x += 2;
+        sp10.w -= 4;
+    }
+    arg1->field_1C = -(sp10.w >> 1);
+    arg1->field_1E = arg1->field_1C + sp10.w;
+    arg1->field_18 = -(sp10.h >> 1);
+    arg1->field_1A = arg1->field_18 + sp10.h;
+    arg1->field_20 = sp10.x - arg1->field_1C;
+    arg1->field_22 = sp10.y - arg1->field_18;
+
+    arg0->field_17 = 0;
+    sp10.x         = arg1->field_20 + arg1->field_1C;
+    sp10.y         = arg1->field_22 + arg1->field_18;
+    sp10.w         = arg1->field_1E - arg1->field_1C;
+    temp_v0        = arg1->field_1A - arg1->field_18;
+    height         = temp_v0;
+    sp10.h         = temp_v0;
+    height         = height - arg0->field_17;
+    if (arg0->field_7 == 0) {
+        arg0->field_7 = 0xA;
+    }
+    temp_a2_u8 = arg0->field_4;
+    temp_v1    = arg0->field_7;
+    if (height >= (temp_a2_u8 * temp_v1)) {
+        arg0->field_5 = temp_a2_u8;
+    } else {
+        arg0->field_5 = height / temp_v1;
+        if (arg0->field_5 <= 0) {
+            arg0->field_5 = 1;
+        }
+    }
+    temp_v1_2 = arg0->field_4;
+    if (arg0->field_10 >= temp_v1_2) {
+        arg0->field_10 = temp_v1_2 - 1;
+        asm("" ::: "memory");
+        temp_v1_2 = arg0->field_4;
+    }
+    if (arg0->field_5 >= temp_v1_2) {
+        arg0->field_9 = 0;
+    }
+    arg0->field_A                   = 0;
+    *(volatile s16*)&arg0->field_14 = 0;
+    arg0->field_16                  = 0;
+    *(volatile s32*)&arg0->field_C  = 0;
+    if (D_80072313 != 0) {
+        arg0->field_10 = 0;
+        arg0->field_9  = 0;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80046B34);
 
