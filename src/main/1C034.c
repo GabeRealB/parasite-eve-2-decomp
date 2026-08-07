@@ -373,4 +373,107 @@ void func_8002C090(PadState* arg0)
 
 INCLUDE_ASM("main/nonmatchings/1C034", func_8002C1D8);
 
-INCLUDE_ASM("main/nonmatchings/1C034", func_8002C5A4);
+void func_8002C5A4(void)
+{
+    s32                  i;
+    s32                  offset;
+    PadRawPort*          raw;
+    DisplayState*        ds;
+    register PadScratch* scratch asm("s1");
+    PadState*            pad;
+    u16                  buttons;
+    u16                  prev;
+    register void**      head asm("v1");
+    register void*       tmp asm("v0");
+
+    head    = (void**)G_SCRATCH_HEAD;
+    i       = 0;
+    ds      = &Display_State;
+    raw     = Pad_RawPorts;
+    offset  = i;
+    tmp     = *head;
+    tmp     = (u8*)tmp - 6;
+    scratch = tmp;
+    *head   = scratch;
+
+    do {
+        pad = (PadState*)((u8*)Pad_States + offset);
+        if (pad->field_A == 0) {
+            scratch->rawHi = raw->field_2;
+            scratch->rawLo = raw->field_3;
+            asm volatile("" : "+r"(raw));
+            buttons          = ~*(u16*)&scratch->rawLo;
+            scratch->buttons = buttons;
+
+            if (pad->field_0 == 0x73) {
+                if (pad->field_54 < -0x800) {
+                    scratch->buttons = buttons | 0x8000;
+                }
+                if (pad->field_54 >= 0x801) {
+                    scratch->buttons = scratch->buttons | 0x2000;
+                }
+                if (pad->field_56 < -0x800) {
+                    scratch->buttons = scratch->buttons | 0x1000;
+                }
+                if (pad->field_56 >= 0x801) {
+                    scratch->buttons = scratch->buttons | 0x4000;
+                }
+            }
+
+            if (i == 0) {
+                if (D_800626A8->field_8 != 0) {
+                    if (ds->field_1e == 0) {
+                        pad->field_52 = 0;
+                        pad->field_50 = 0;
+                        pad->field_56 = 0;
+                        pad->field_54 = 0;
+                        func_8009FD74(D_800626A8->field_8, scratch);
+                    }
+                }
+            }
+
+            prev                 = pad->field_4;
+            buttons              = scratch->buttons;
+            scratch->prevButtons = prev;
+            pad->field_6         = buttons & (buttons ^ prev);
+            pad->field_8         = scratch->prevButtons & (scratch->buttons ^ scratch->prevButtons);
+            pad->field_4         = scratch->buttons;
+
+            if (*(s8*)&D4F564_8005ED64->field_2 != 0) {
+                if ((scratch->prevButtons & 0xF000) == (scratch->buttons & 0xF000)) {
+                    pad->field_B = pad->field_B + ds->field_10a;
+                } else {
+                    pad->field_B = 0;
+                }
+                if (pad->field_B >= 0x1E) {
+                    pad->field_B = 0x16;
+                    pad->field_6 = pad->field_6 | (pad->field_4 & 0xF000);
+                }
+            }
+        } else {
+            {
+                volatile u8* cooldown;
+
+                cooldown     = &pad->field_A;
+                *cooldown    = *cooldown - 1;
+                pad->field_6 = 0;
+                pad->field_8 = 0;
+                pad->field_4 = 0;
+                if (*cooldown == 0) {
+                    scratch->rawHi = raw->field_2;
+                    scratch->rawLo = raw->field_3;
+                    asm volatile("" : "+r"(raw));
+                    buttons          = ~*(u16*)&scratch->rawLo;
+                    scratch->buttons = buttons;
+                    pad->field_4     = buttons;
+                }
+            }
+        }
+        raw++;
+        i++;
+        offset += 0x5C;
+    } while (i <= 0);
+
+    head  = (void**)G_SCRATCH_HEAD;
+    *head = (u8*)*head + 6;
+}

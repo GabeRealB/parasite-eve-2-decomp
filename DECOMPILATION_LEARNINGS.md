@@ -10765,3 +10765,61 @@ the second SPRT alloc). One reused `dr` matches the target's `$t7` reuse and
 ~100% schedule. Prefer raw `setlen` + `dr->code[0] = 0xE1000xxx` over
 `setDrawTPage` when the target stores the full GPU word as a constant (same
 pattern as `func_8003EA44` / `func_8002E300`).
+
+## Empty `asm volatile` after field reads blocks pointer strength-reduction
+
+When a loop walks a struct pointer (`raw++` / `raw += sizeof`) but only touches
+fields at a fixed small offset (e.g. `raw->field_2` / `raw->field_3`), GCC 2.8.1
+strength-reduces the induction variable to `base + offset` and emits
+`lbu -1(s2)` / `lbu 0(s2)` with `addiu s2, base, 3` instead of the target's
+`lbu 2(s2)` / `lbu 3(s2)` from the true base. Pinning `register … asm("s2")`
+keeps the offsets but forces `lui s2; addiu s2,s2` instead of
+`lui v0; addiu s2,v0`.
+
+Fix: after the field reads, insert an empty multi-output asm that claims the
+walker is modified. Place it **after** the loads (so SR of those loads is still
+blocked by the loop-wide `+r`) but **not** at the loop tail (that steals the
+`blez` delay slot from the offset increment):
+
+```c
+scratch->rawHi = raw->field_2;
+scratch->rawLo = raw->field_3;
+asm volatile("" : "+r"(raw)); /* keeps s2 as base; lbu 2(s2)/3(s2) */
+buttons = ~*(u16*)&scratch->rawLo;
+/* … */
+raw++;
+i++;
+offset += 0x5C;
+} while (i <= 0); /* blez delay: addiu offset */
+```
+
+`func_8002C5A4` is the pure example. Pair with two-phase scratch alloc
+(`register void* tmp asm("v0")` then `register PadScratch* scratch asm("s1")`)
+for `lw v0; addiu v0,-N; move s1,v0; sw s1`.
+
+## `volatile u8*` forces cooldown decrement reload (no delay-slot reuse)
+
+When the target does `bnez field_A, else; nop` then inside else
+`lbu / addiu -1 / sb / lbu` (reload for the zero check), a plain
+`pad->field_A = pad->field_A - 1` reuses the compare load in the branch delay
+slot (`bnez; addiu v0,v0,-1`) and skips the reload (`andi` instead of `lbu`).
+
+Fix: access the byte through a volatile pointer so the decrement and the
+follow-up test are real memory ops:
+
+```c
+} else {
+    volatile u8* cooldown;
+    cooldown = &pad->field_A;
+    *cooldown = *cooldown - 1;
+    pad->field_6 = 0;
+    pad->field_8 = 0;
+    pad->field_4 = 0;
+    if (*cooldown == 0) {
+        /* re-sample buttons into pad->field_4 */
+    }
+}
+```
+
+Do **not** mark the whole `PadState*` volatile — that turns `lh field_54` into
+`lhu` + sign-extend. `func_8002C5A4` is the pure example.
