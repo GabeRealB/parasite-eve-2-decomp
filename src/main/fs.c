@@ -605,14 +605,22 @@ sector_start:
                     break;
             }
 
-            if (!isValidCategory) {
-                words = sectorBuffer->words;
-                if (words[(u16)headerOffset] / 100000 != 0) {
-                    i = Fs_FileTableLen;
-                    Fs_FileTableLen++;
-
-                    Fs_FileTable[i].id     = fileId;
-                    Fs_FileTable[i].offset = ((FsCdfFile*)entry)->offset;
+            {
+                register u32 flag asm("v0");
+                flag = isValidCategory;
+                if (!flag) {
+                    register u32        v asm("a2");
+                    register FsCdfFile* tbl asm("v1");
+                    words = sectorBuffer->words;
+                    v     = words[(u16)headerOffset];
+                    if (v / 100000 != 0) {
+                        tbl = Fs_FileTable;
+                        i   = Fs_FileTableLen;
+                        Fs_FileTableLen++;
+                        tbl[i].id = v;
+                        tbl[i].offset =
+                            ((FsCdfFile*)&words[(u16)headerOffset])->offset;
+                    }
                 }
             }
 

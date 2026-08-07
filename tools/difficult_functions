@@ -24,7 +24,7 @@ GameMain_Loop 20 96.510
 func_80046B34 27 86.540
 func_800520A8 25 90.532
 Fs_ScanIsoDirectory 65 99.978
-Fs_InitStage0TablesCb 19 99.703
+Fs_InitStage0TablesCb 40 99.703
 SndScript_Exec 13 86.61
 func_8002E53C 50 98.92
 func_80058ED4 17 98.130
