@@ -172,7 +172,127 @@ void func_8003B960(MATRIX* out, SVECTOR* angles, s32 flag)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/2C160", func_8003BD34);
+void func_8003BD34(MATRIX* out, SVECTOR* angles, s32 flag)
+{
+    void**                  s;
+    u8*                     head;
+    register void*          p asm("v0");
+    ScratchRotXYZ*          block;
+    SVECTOR*                vec;
+    volatile ScratchRotXYZ* vblock;
+    volatile MATRIX*        vmat;
+    register u16            sin_y asm("v1");
+    register u16            cos_x asm("a0");
+    register u16            sin_x asm("a1");
+    register s16            neg asm("v0");
+    register u16            cos_y2 asm("v1");
+    void*                   col1;
+    void*                   col2;
+
+    s     = (void**)G_SCRATCH_HEAD;
+    head  = (u8*)*s;
+    p     = head - 0x34;
+    block = p;
+    *s    = p;
+
+    block->sin_x = rsin(angles->vx);
+    block->sin_y = rsin(angles->vy);
+    block->sin_z = rsin(angles->vz);
+    block->cos_x = rcos(angles->vx);
+    block->cos_y = rcos(angles->vy);
+    block->cos_z = rcos(angles->vz);
+
+    *(s16*)(head - 0x34) = block->cos_y;
+    vblock               = block;
+    {
+        sin_y         = vblock->sin_y;
+        cos_x         = vblock->cos_x;
+        sin_x         = vblock->sin_x;
+        vmat          = &block->mat;
+        vmat->m[0][1] = 0;
+        vmat->m[1][0] = 0;
+        vmat->m[1][1] = ONE;
+        vmat->m[1][2] = 0;
+        vmat->m[2][1] = 0;
+        block->vec.vx = 0;
+        neg           = sin_y;
+        __asm__ volatile("" : "+r"(neg) : "r"(sin_y));
+        vmat->m[0][2] = sin_y;
+        cos_y2        = vblock->cos_y;
+        neg           = -neg;
+        vmat->m[2][0] = neg;
+        block->vec.vy = cos_x;
+        block->vec.vz = sin_x;
+        vmat->m[2][2] = cos_y2;
+    }
+
+    gte_SetRotMatrix(&block->mat);
+    vec = &block->vec;
+
+    gte_ldsv(vec);
+    gte_rtir_real();
+    {
+        register s16 sx asm("v0");
+        register u16 cx asm("v1");
+        sx = sin_x;
+        __asm__ volatile("" : "+r"(sx) : "r"(sin_x));
+        sx            = -sx;
+        cx            = block->cos_x;
+        col1          = (u8*)head - 0x32;
+        block->vec.vx = 0;
+        block->vec.vy = sx;
+        block->vec.vz = cx;
+    }
+    gte_stclmv(col1);
+
+    gte_ldsv(vec);
+    gte_rtir_real();
+    {
+        register u16 cz asm("v0");
+        register u16 sz asm("v1");
+        cz            = block->cos_z;
+        sz            = block->sin_z;
+        col2          = (u8*)head - 0x30;
+        block->vec.vz = 0;
+        block->vec.vx = cz;
+        block->vec.vy = sz;
+    }
+    gte_stclmv(col2);
+
+    gte_SetRotMatrix(&block->mat);
+    gte_ldsv(vec);
+    gte_rtir_real();
+    {
+        register s16 sz asm("v0");
+        register u16 cz asm("v1");
+        sz            = block->sin_z;
+        cz            = block->cos_z;
+        block->vec.vz = 0;
+        sz            = -sz;
+        block->vec.vx = sz;
+        block->vec.vy = cz;
+    }
+    gte_stclmv(&block->mat);
+
+    gte_ldsv(vec);
+    gte_rtir_real();
+    gte_stclmv(col1);
+
+    if (flag != 0) {
+        *(u32*)&out->m[0][0] = *(u32*)(head - 0x34);
+        *(u32*)&out->m[0][2] = *(u32*)&block->mat.m[0][2];
+        *(u32*)&out->m[1][1] = *(u32*)&block->mat.m[1][1];
+        *(u32*)&out->m[2][0] = *(u32*)&block->mat.m[2][0];
+        out->m[2][2]         = block->mat.m[2][2];
+    } else {
+        gte_MulMatrix0_real(out, &block->mat, out);
+    }
+
+    {
+        void** scratch = (void**)G_SCRATCH_HEAD;
+        *scratch       = (u8*)*scratch + 0x34;
+    }
+}
 
 INCLUDE_ASM("main/nonmatchings/2C160", func_8003C110);
 
