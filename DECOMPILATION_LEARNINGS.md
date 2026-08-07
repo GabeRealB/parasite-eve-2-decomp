@@ -10651,3 +10651,62 @@ if (step > 0) {
 ```
 
 `func_80054938` field_13/15 envelope uses this with `register s32 temp asm("v0")`.
+
+## Force both ALU ops before either store with `+r` barriers
+
+When the target does:
+
+```
+lw   v1, field_28(s0)
+addiu v0, v0, -1
+srl  v1, v1, 1
+sw   v0, field_24(s0)
+sw   v1, field_28(s0)
+```
+
+writing the natural
+
+```c
+work->field_24 = f24 - 1;
+work->field_28 = (u32)work->field_28 >> 1;
+```
+
+often schedules `sw field_24` between `addiu` and `srl`. Keep both values in
+registers, finish both ALU ops, then barrier before either store
+(`func_80031F94`):
+
+```c
+register s32 f24 asm("v0");
+register s32 f28 asm("v1");
+f28 = work->field_28;
+f24 = f24 - 1;
+f28 = (u32)f28 >> 1;
+asm volatile("" : "+r"(f24), "+r"(f28));
+work->field_24 = f24;
+work->field_28 = f28;
+```
+
+## Shared join with value loaded on both predecessors into `$v0`
+
+When success does `lw v0, field; j update; nop` and the else path also loads
+the same field into `$v0` before falling through (so `update` only does
+`addiu v0, v0, -1` / stores), give the PHI its own register variable:
+
+```c
+register s32 f24 asm("v0");
+/* success: */
+f24 = work->field_24;
+goto update;
+/* else: */
+tmp = work->field_1C + ...;
+asm("" ::: "memory"); /* defeat CSE of the earlier field_24 in $a1 */
+f24 = work->field_24;
+work->field_1C = tmp;
+update:
+work->field_24 = f24 - 1;
+...
+```
+
+Without the memory clobber, the else path becomes `move v0, a1` (reuse of the
+function-entry load) instead of a fresh `lw`. Without `asm("v0")`, the load
+lands in `$a0` and the join no longer matches.

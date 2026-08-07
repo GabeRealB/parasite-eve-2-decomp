@@ -335,7 +335,161 @@ void func_80031DA4(Task* arg0, McWork* arg1)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/mc", func_80031F94);
+void func_80031F94(Task* arg0, McWork* arg1)
+{
+    register Task*            task asm("s6");
+    register McWork*          work asm("s0");
+    register s32              nine asm("s5");
+    register s32              bufSize asm("s3");
+    register McChecksumBlock* bufPtr asm("s2");
+    register s32              doubled asm("s4");
+    register void*            mem asm("s1");
+    s32                       field24;
+    register s32              f24 asm("v0");
+    s32                       size;
+    s32                       tmp;
+    s32                       ret;
+    s32                       one;
+    UiObject*                 obj;
+    McPromptPair*             entry;
+    McPromptPair*             promptBase;
+
+    work    = arg1;
+    task    = arg0;
+    field24 = work->field_24;
+    if (field24 == 0) {
+        register u32           i0 asm("t0");
+        register u32           j asm("v1");
+        register McBufferSlot* p asm("a3");
+        register McBufferSlot* base asm("v0");
+        u32                    count;
+        u8*                    ptr;
+        u8*                    dest;
+
+        i0   = 1;
+        base = Mc_BufferSlots;
+        p    = base + 1;
+        do {
+            ptr   = (u8*)p->field_0;
+            count = p->field_4;
+            j     = 0;
+            dest  = ptr + count;
+            if (count != 0) {
+                do {
+                    j    += 1;
+                    *dest = *ptr;
+                    ptr  += 1;
+                    dest += 1;
+                } while (j < count);
+            }
+            i0 += 1;
+            p  += 1;
+        } while (i0 < 9U);
+        work->field_A18 = 0x33;
+        task->field_30  = 0x13;
+    } else if (work->field_28 & 1) {
+        nine = 9;
+        {
+            register McBufferSlot* slots asm("a0");
+            slots   = Mc_BufferSlots;
+            bufSize = slots[nine - field24].field_4;
+            bufPtr  = slots[nine - field24].field_0;
+        }
+        doubled        = bufSize * 2;
+        size           = doubled - 1;
+        size           = (u32)size >> 7;
+        size           = size + 1;
+        size           = size << 7;
+        work->field_20 = size;
+        mem            = Mem_Calloc(size, 0);
+        if (mem != 0) {
+            work->field_18 = (s32)mem;
+            if (work->field_24 == nine) {
+                func_80030AB0(work);
+                memcpy(mem, bufPtr, doubled);
+            } else {
+                {
+                    s16              sum;
+                    u8*              src;
+                    u32              ji;
+                    u32              cnt;
+                    McChecksumBlock* blk;
+                    s16              inv;
+
+                    sum = 0;
+                    src = bufPtr->field_4;
+                    ji  = 0;
+                    cnt = bufSize - 4;
+                    blk = bufPtr;
+                    if (cnt != 0) {
+                        do {
+                            ji  += 1;
+                            sum += (s8)*src;
+                            src += 1;
+                        } while (ji < cnt);
+                    }
+                    inv          = ~sum;
+                    blk->field_0 = sum;
+                    blk->field_2 = inv;
+                }
+                if (work->field_24 == 8) {
+                    McChecksumBlock* temp;
+                    McBufferSlot*    bp;
+                    McBufferSlot*    bbase;
+                    s16              next;
+                    s16              sum;
+                    u32              i;
+
+                    sum   = 0;
+                    i     = 1;
+                    bbase = Mc_BufferSlots;
+                    bp    = bbase + 1;
+                    do {
+                        temp = bp->field_0;
+                        bp  += 1;
+                        i   += 1;
+                        next = sum + *(u8*)temp;
+                        sum  = next;
+                    } while (i < 9U);
+                    Mc_SaveData.field_940 = next;
+                    Mc_SaveData.field_942 = ~next;
+                }
+                memcpy(mem, bufPtr, bufSize);
+                memcpy((u8*)mem + bufSize, bufPtr, bufSize);
+            }
+            work->field_4  = 0;
+            task->field_30 = task->field_30 + 1;
+            f24            = work->field_24;
+            goto update;
+        }
+        work->field_4 = work->field_4 + 1;
+    } else {
+        tmp = work->field_1C + Mc_BufferSlots[9 - field24].field_8;
+        asm("" ::: "memory");
+        f24            = work->field_24;
+        work->field_1C = tmp;
+    update: {
+        register s32 f28 asm("v1");
+        f28 = work->field_28;
+        f24 = f24 - 1;
+        f28 = (u32)f28 >> 1;
+        asm volatile("" : "+r"(f24), "+r"(f28));
+        work->field_24 = f24;
+        work->field_28 = f28;
+    }
+    }
+
+    work->field_8 = 4;
+    obj           = task->field_20;
+    ret           = func_80048E10(obj, 1);
+    obj->field_2E = 0;
+    func_80048E38(obj, D_8001398C);
+    one        = 1;
+    promptBase = Mc_PromptTable;
+    entry      = &promptBase[4];
+    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
+    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
+}
 
 void func_800322B0(Task* arg0, McWork* arg1)
 {

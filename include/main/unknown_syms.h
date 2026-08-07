@@ -492,6 +492,7 @@ extern void       func_8002043C(u32 arg0);
 extern void func_8002785C(void);
 extern void func_80028718(void);
 extern void func_800303AC(void);
+extern void func_80030AB0(McWork* work);
 extern s32  func_800304AC(Task* arg0, s32 arg1, s32 arg2);
 extern s32  func_8003062C(Task* arg0, s32 arg1, s32 arg2);
 extern s32  func_800307AC(Task* arg0, s32 arg1, s32 arg2);
