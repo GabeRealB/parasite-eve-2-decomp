@@ -99,7 +99,7 @@ void      Task_Kill(Task* task);
 void      Task_KillChildren(Task* task);
 void      Task_CallExit(Task* task);
 void      Task_DetachFromParent(Task* task);
-void      func_8002D14C(Task* parent, Task* task);
+void      Task_Reparent(Task* parent, Task* task);
 void      Task_InitList(TaskNode* node);
 void      Task_ExecList(TaskNode* node);
 void      Task_ExecDefaultList(TaskNode* node);

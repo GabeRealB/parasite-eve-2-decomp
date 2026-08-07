@@ -36,7 +36,13 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 | `Mem_` / `GHeap` | Heaps | `src/main/mem.c` | `include/main/mem.h` |
 | `Task_` | Cooperative task list / spawn / kill | `src/main/task.c` | `include/main/task.h` |
 | `Pad_` | Controller state / button polls | `src/main/pad.c`, `padutil.c` | `include/main/pad.h` |
-| `Mc_` | Memory-card save/load helpers | `src/main/mc.c`, `mcmenu.c` | `include/main/mc.h` |
+| `Mc_` | Memory-card save/load helpers | `src/main/mc.c`, `mcmenu.c`, `20CAC.c` | `include/main/mc.h` |
+| `Ui_` | UI layout / draw / list chrome | `src/main/ui.c` | types in `game.h` |
+| `Text_` | Text measure / prompt draw | `src/main/ui.c`, `textdraw.c` | — |
+| `Spu_` | SPU voice alloc / key on-off | `src/main/spu.c` | types in `game.h` |
+| `SndLoad_` | CD sector → bank load state | `src/main/sndscript.c` | — |
+| `Prim_` | GPU prim helpers (SPRT/TILE/TPAGE) | `src/main/font.c` | — |
+| `Game_` | Session pointer-slot table | globals / `task.c` | — |
 | `Display_` | Dual DISPENV/DRAWENV + system flags | used from `gamemain.c` etc. | `include/main/display.h` |
 | `GameMain` | Entry after `main` | `src/main/gamemain.c` | `include/main/gamemain.h` |
 | `GpuExt_` | GPU helpers | `src/main/gpuext.c` | `include/main/gpuext.h` |

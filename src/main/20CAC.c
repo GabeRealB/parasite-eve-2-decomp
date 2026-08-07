@@ -9,7 +9,7 @@
 #include "psyq/libmcrd.h"
 #include "psyq/strings.h"
 
-s32 func_800304AC(Task* arg0, s32 arg1, s32 arg2)
+s32 Mc_PromptDialog(Task* arg0, s32 arg1, s32 arg2)
 {
     s32           ret;
     s32           one;
@@ -19,14 +19,14 @@ s32 func_800304AC(Task* arg0, s32 arg1, s32 arg2)
     McPromptPair* base;
 
     obj           = arg0->field_20;
-    ret           = func_80048E10(obj, 1);
+    ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
-    func_80048E38(obj, D_8001398C);
+    Ui_DrawTitle(obj, D_8001398C);
     one   = 1;
     base  = Mc_PromptTable;
     entry = &base[arg1];
-    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
-    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
+    Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
+    Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
 
     p = (UiObject*)arg0->field_c;
     if (p == NULL) {
@@ -48,7 +48,7 @@ s32 func_800304AC(Task* arg0, s32 arg1, s32 arg2)
     return obj->field_2C;
 }
 
-s32 func_8003062C(Task* arg0, s32 arg1, s32 arg2)
+s32 Mc_PromptDialogChoice(Task* arg0, s32 arg1, s32 arg2)
 {
     s32           ret;
     s32           one;
@@ -58,14 +58,14 @@ s32 func_8003062C(Task* arg0, s32 arg1, s32 arg2)
     McPromptPair* base;
 
     obj           = arg0->field_20;
-    ret           = func_80048E10(obj, 1);
+    ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
-    func_80048E38(obj, D_8001398C);
+    Ui_DrawTitle(obj, D_8001398C);
     one   = 1;
     base  = Mc_PromptTable;
     entry = &base[arg1];
-    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
-    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
+    Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
+    Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
 
     p = (UiObject*)arg0->field_c;
     if (p == NULL) {
@@ -87,7 +87,7 @@ s32 func_8003062C(Task* arg0, s32 arg1, s32 arg2)
     return obj->field_2C;
 }
 
-s32 func_800307AC(Task* arg0, s32 arg1, s32 arg2)
+s32 Mc_PromptDialogSpawn(Task* arg0, s32 arg1, s32 arg2)
 {
     s32           ret;
     s32           one;
@@ -97,14 +97,14 @@ s32 func_800307AC(Task* arg0, s32 arg1, s32 arg2)
     McPromptPair* base;
 
     obj           = arg0->field_20;
-    ret           = func_80048E10(obj, 1);
+    ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
-    func_80048E38(obj, D_8001398C);
+    Ui_DrawTitle(obj, D_8001398C);
     one   = 1;
     base  = Mc_PromptTable;
     entry = &base[arg1];
-    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
-    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
+    Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
+    Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
 
     p = (UiObject*)arg0->field_c;
     if (p == NULL) {
@@ -126,7 +126,7 @@ s32 func_800307AC(Task* arg0, s32 arg1, s32 arg2)
     return obj->field_2C;
 }
 
-s32 func_8003092C(Task* arg0, s32 arg1, s32 arg2)
+s32 Mc_PromptDialogFile(Task* arg0, s32 arg1, s32 arg2)
 {
     s32           ret;
     s32           one;
@@ -136,14 +136,14 @@ s32 func_8003092C(Task* arg0, s32 arg1, s32 arg2)
     McPromptPair* base;
 
     obj           = arg0->field_20;
-    ret           = func_80048E10(obj, 1);
+    ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
-    func_80048E38(obj, D_8001398C);
+    Ui_DrawTitle(obj, D_8001398C);
     one   = 1;
     base  = Mc_PromptTable;
     entry = &base[arg1];
-    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
-    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
+    Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
+    Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
 
     p = (UiObject*)arg0->field_c;
     if (p == NULL) {
@@ -260,14 +260,14 @@ void func_80031118(Task* arg0, McWork* arg1)
 
     obj           = arg0->field_20;
     idx           = arg1->field_8;
-    ret           = func_80048E10(obj, 1);
+    ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
-    func_80048E38(obj, D_8001398C);
+    Ui_DrawTitle(obj, D_8001398C);
     one    = 1;
     base   = Mc_PromptTable;
     prompt = &base[idx];
-    func_8002FDCC(obj, obj->field_1C + 2, -2, prompt->field_0, ret, one, 0);
-    func_8002FDCC(obj, obj->field_1C + 2, 0xF, prompt->field_4, ret, one, 0);
+    Text_DrawPrompt(obj, obj->field_1C + 2, -2, prompt->field_0, ret, one, 0);
+    Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, prompt->field_4, ret, one, 0);
 }
 
 void func_800312DC(Task* arg0, McWork* arg1)
@@ -343,14 +343,14 @@ void func_800312DC(Task* arg0, McWork* arg1)
 
     obj           = arg0->field_20;
     idx           = arg1->field_8;
-    ret           = func_80048E10(obj, 1);
+    ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
-    func_80048E38(obj, D_8001398C);
+    Ui_DrawTitle(obj, D_8001398C);
     one   = 1;
     base  = Mc_PromptTable;
     entry = &base[idx];
-    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
-    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
+    Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
+    Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
 }
 
 void func_800314D0(Task* arg0, McWork* arg1)
@@ -370,13 +370,13 @@ void func_800314D0(Task* arg0, McWork* arg1)
     saved         = arg0->field_20;
     arg1->field_8 = 0x16;
     obj           = arg0->field_20;
-    ret           = func_80048E10(obj, 1);
+    ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
-    func_80048E38(obj, D_8001398C);
+    Ui_DrawTitle(obj, D_8001398C);
     base  = Mc_PromptTable;
     entry = &base[0x16];
-    func_8002FDCC(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
-    func_8002FDCC(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
+    Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
+    Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
 
     child = arg0->field_c;
     if (child == NULL) {
@@ -478,7 +478,7 @@ void func_800314D0(Task* arg0, McWork* arg1)
                     {
                         register u8* fn asm("a0");
                         fn = Mc_FileName;
-                        func_800300EC(fn, saved->field_2C);
+                        Mc_BuildFileName(fn, saved->field_2C);
                     }
                 }
                 arg1->field_8  = 1;

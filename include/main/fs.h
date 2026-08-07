@@ -185,19 +185,19 @@ typedef struct _CdCmd190 {
 STATIC_ASSERT_SIZEOF(CdCmd190, 0x20);
 
 /// Per-slot decode entry at `CdCmdQueue.field_58` (5 entries, stride 0x3C).
-/// Used by `func_8003FF14` to map a stream id to a base buffer + byte offset.
+/// Used by `Mdec_ResolveStreamBuffer` to map a stream id to a base buffer + byte offset.
 /// Also holds up to 3 work-list / image-chunk offsets used by `func_8004017C`.
 typedef struct _CdCmd58Entry {
     /* 0x00 */ s32  field_0;     // byte offset added to the resolved base buffer
-    /* 0x04 */ s32  field_4[3];  // FsWorkEntry offsets (func_800248B4 path)
-    /* 0x10 */ s32  field_10[3]; // FsImageChunk offsets (func_800246B0 path)
+    /* 0x04 */ s32  field_4[3];  // FsWorkEntry offsets (Fs_CopyWorkEntries path)
+    /* 0x10 */ s32  field_10[3]; // FsImageChunk offsets (Fs_LoadImageChunk path)
     /* 0x1C */ s32  field_1C;    // memcpy source offset for func_8002D7A8
     /* 0x20 */ byte pad_20[0x4];
     /* 0x24 */ s16  field_24[3]; // non-zero → Fs_ChunkMode=2 / D5B498_8006C233=-8
     /* 0x2A */ s16  field_2A[3]; // non-zero → Fs_ChunkMode=2 / D5B498_8006C234=-3
     /* 0x30 */ byte pad_30[0x2];
     /* 0x32 */ s16  field_32;    // stream id matched against GameSession.field_4
-    /* 0x34 */ s16  field_34;    // buffer-select kind (0..4) for the switch in func_8003FF14
+    /* 0x34 */ s16  field_34;    // buffer-select kind (0..4) for the switch in Mdec_ResolveStreamBuffer
     /* 0x36 */ byte pad_36[0x2];
     /* 0x38 */ u16  field_38;    // memcpy byte count for func_8002D7A8
     /* 0x3A */ byte pad_3A[0x2];
@@ -259,7 +259,7 @@ typedef struct _CdCmdQueue {
     u16          field_212;
     u16          field_214;
     u16          field_216; // 0x216 — non-zero enables buffer setup in CdCmd_SetupMdecBuffers
-    u16          field_218; // 0x218 — non-zero blocks func_8003FF14 success path
+    u16          field_218; // 0x218 — non-zero blocks Mdec_ResolveStreamBuffer success path
     s16          field_21A;
     u16          field_21C; // image transfer mode for Display_LoadImageStrips (0 / 1)
     u16          field_21E; // 0x21E — DecDCTvlcBuild done flag
@@ -268,7 +268,7 @@ typedef struct _CdCmdQueue {
     u16          field_224;
     u16          field_226; // sub-state for CdCmd_RecoverDisk disk recovery
     u16          field_228;
-    u16          field_22A; // DecDCTin mode for func_800405E0
+    u16          field_22A; // DecDCTin mode for Mdec_DecodeToVram
     u16          field_22C;
     u16          field_22E;
     u16          field_230;
@@ -277,7 +277,7 @@ typedef struct _CdCmdQueue {
     s16          field_236;
     s16          field_238; // 0x238 — non-zero clears field_18C in CdCmd_SetupMdecBuffers
     byte         unknown_23A[0x4];
-    s16          field_23E; // MoveImage vs ClearImage path for func_800405E0
+    s16          field_23E; // MoveImage vs ClearImage path for Mdec_DecodeToVram
     s16          field_240; // non-zero enables CD timing wait (GameMain_Loop)
     s16          field_242;
     u16          field_244;
@@ -301,7 +301,7 @@ typedef struct _FsWorkEntry {
 } FsWorkEntry;
 STATIC_ASSERT_SIZEOF(FsWorkEntry, 0x8);
 
-/// Per-folder slot cleared by `func_80023748` (50 entries, parallel to
+/// Per-folder slot cleared by `Fs_PrepareFolderLoad` (50 entries, parallel to
 /// `Fs_FolderTable`). Only the first byte is written by the init path.
 typedef struct _FsFolderSlot {
     u8 field_0;
@@ -309,7 +309,7 @@ typedef struct _FsFolderSlot {
 } FsFolderSlot;
 STATIC_ASSERT_SIZEOF(FsFolderSlot, 0x8);
 
-/// Small FS control block cleared at the start of `func_80023748`.
+/// Small FS control block cleared at the start of `Fs_PrepareFolderLoad`.
 typedef struct _FsUnkADE8 {
     u16 field_0;
     u16 field_2;
@@ -333,7 +333,7 @@ typedef struct _FsImgBuffers {
 } FsImgBuffers;
 STATIC_ASSERT_SIZEOF(FsImgBuffers, 0x25800);
 
-/// On-disk / in-sector image chunk header used by `func_800246B0`.
+/// On-disk / in-sector image chunk header used by `Fs_LoadImageChunk`.
 /// Fields at +4/+6 are height then width (swapped relative to RECT).
 typedef struct _FsImageChunk {
     u16 x;
@@ -419,11 +419,11 @@ void Fs_ScanIsoDirectory(s32 mode);
 
 /// Load an image chunk into VRAM (BreakDraw / LoadImage2 path).
 /// `retryNonzero` disables timeout aborts when non-zero.
-s32 func_800246B0(FsImageChunk* img, u8 retryNonzero);
+s32 Fs_LoadImageChunk(FsImageChunk* img, u8 retryNonzero);
 
 /// Copy a terminated FsWorkEntry list into D5B498_8006ACE8 and set up
 /// Fs_ImageRect / load state for the following image transfer.
-void func_800248B4(FsWorkEntry* arg0);
+void Fs_CopyWorkEntries(FsWorkEntry* arg0);
 
 /// Look up a packed file id and start a CD load.
 /// Returns the resolved absolute sector (low 16 bits), or 0 on failure.
@@ -431,7 +431,7 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3);
 
 /// Look up folder `arg1*100+arg2` under stage `arg0` and start a CD read of
 /// that folder into `Fs_CdSector` (cmd-queue load path).
-void func_80023748(s32 arg0, s32 arg1, s32 arg2);
+void Fs_PrepareFolderLoad(s32 arg0, s32 arg1, s32 arg2);
 
 /// After a folder sector is in `Fs_CdSector`: resolve file-list offsets into
 /// `D_8006C158` for folder `arg1*100+arg2`, then copy stream descriptors from
@@ -452,7 +452,7 @@ void F12D18_80025580(u8 status, u8* result);
 void F12D18_8002563C(u8 status, u8* result);
 void F12D18_800256F4(u8 arg0);
 void F12D18_800257B0(void);
-u8*  func_800257A4(void);
+u8*  Fs_GetChunkPayload(void);
 
 // =============================================================================
 // Globals — CD command queue

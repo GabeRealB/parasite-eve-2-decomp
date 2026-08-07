@@ -491,7 +491,7 @@ See comments in `game.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 |-----|--------|------|
 | 0x2 | `field_2` | Soft state flag |
 | 0x4–7 | `field_4`… | Bytes used by CD/display helpers |
-| 0xC | `field_C[16]` | Pointer table (cleared by `func_8002D780`) |
+| 0xC | `field_C[16]` | Pointer table (cleared by `Game_ClearPtrSlots`) |
 | 0x4C | `field_4C` | Init flag |
 | 0x4E | `field_4E` | Set by `Fs_LoadFile` for category-8 |
 | 0x7C–80 | halfwords | Counters / mode |

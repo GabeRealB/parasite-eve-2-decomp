@@ -799,7 +799,7 @@ void func_8002F890(Task* arg0)
 void func_8002F98C(Task* arg0)
 {
     func_80030074();
-    func_8003DB48(0x1010);
+    Display_SetMode(0x1010);
     func_8002BB9C();
     Task_SpawnFromTable((TaskDesc*)&D_80094C8C, 0, 0, 0);
     Task_Kill(arg0);

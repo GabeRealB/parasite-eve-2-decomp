@@ -8,7 +8,7 @@
 
 INCLUDE_ASM("main/nonmatchings/cdstream", func_80059EE0);
 
-INCLUDE_ASM("main/nonmatchings/cdstream", func_8005A94C);
+INCLUDE_ASM("main/nonmatchings/cdstream", CdStream_ReadyMts);
 
 s32 CdStream_InitDisc(u32* arg0)
 {
@@ -200,7 +200,7 @@ void CdStream_SetPitch(s16 arg0)
     p->ch[0].pitchAlt = 0;
 }
 
-void func_8005B920(s32 arg0)
+void CdStream_SetFlag14(s32 arg0)
 {
     volatile CdStreamState* p;
     u8                      temp;

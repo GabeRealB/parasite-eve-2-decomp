@@ -2,7 +2,7 @@
 
 #include "main/unknown_syms.h"
 
-void func_800537FC(s32 arg0, s32 arg1)
+void Snd_InitFromStage(s32 arg0, s32 arg1)
 {
     u8* var_s0;
     s32 var_a0;
@@ -197,7 +197,7 @@ void func_80053E48(void)
     AsyncCb_Poll();
 }
 
-void func_80053E68(void)
+void Snd_RegisterTickCallbacks(void)
 {
     func_8004D460(Midi_Tick, 0, 0x4800, 0);
     func_8004D460(SndVoice_DriveSlots, 0, 0x8800, 0);
@@ -533,7 +533,7 @@ void func_800546C0(void)
 
 INCLUDE_ASM("main/nonmatchings/sndscript", func_800546F4);
 
-void func_8005488C(void)
+void SndVoice_StepMasterLevel(void)
 {
     s16 var_a0;
     s8  bound;
@@ -582,7 +582,7 @@ s32 SndVoice_DriveSlots(void)
     u32           mask;
 
     if (D_8008274A != 0) {
-        func_8005488C();
+        SndVoice_StepMasterLevel();
     }
 
     i      = 0;
@@ -718,7 +718,7 @@ s32 SndVoice_DriveSlots(void)
                 if (p->field_E == one) {
                     Spu_GetVoiceRef(node->field_0, &sp18);
                     voice = sp18.field_4;
-                    func_800564C4((s8)p->field_10, (s8)p->field_13, node, &p->field_50, sp20);
+                    SndVoice_ScaleVolume((s8)p->field_10, (s8)p->field_13, node, &p->field_50, sp20);
                     voice->volume.left   = sp20[0];
                     right                = sp20[1];
                     mask                 = voice->mask;
@@ -771,7 +771,7 @@ s32 SndVoice_DriveSlots(void)
             do {
                 if (node->field_10 != 0) {
                     count += 1;
-                    func_80055678(node);
+                    SndVoice_TickEnvelope(node);
                 }
                 node = node->field_3C;
             } while (node != NULL);
@@ -887,7 +887,7 @@ const s32 jtbl_80014168[16] = {
     0x80054840,
 };
 
-void func_80055678(SndVoice* arg0)
+void SndVoice_TickEnvelope(SndVoice* arg0)
 {
     SpuVoiceRef   sp10;
     SndVoiceFx*   fx;
@@ -989,7 +989,7 @@ apply:
     Spu_GetVoiceRef(arg0->field_0, &sp10);
     attr = sp10.field_4;
     attr->pitch =
-        func_8004E9D8((pitch >> 8) & 0xFFFF, pitch & 0xFF, (u16)fx->field_8, (u16)fx->field_A);
+        Spu_CalcVolume((pitch >> 8) & 0xFFFF, pitch & 0xFF, (u16)fx->field_8, (u16)fx->field_A);
     attr->mask |= SPU_VOICE_PITCH;
 }
 
@@ -1129,7 +1129,7 @@ void func_80055C00(void)
     }
 }
 
-void func_80055C8C(void)
+void SndVoice_TickRefCount(void)
 {
     if (D_8008274C > 0) {
         D_8008274C -= 1;
@@ -1254,7 +1254,7 @@ void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, s32 arg4, SndVoicePara
     node = p->field_40;
     if (node != NULL) {
         do {
-            func_8004E71C(node->field_0);
+            Spu_KeyOff(node->field_0);
             node->field_8 = 0;
             func_8004E580(node->field_0);
             F3E48C_8004E660(node->field_0);
@@ -1384,13 +1384,13 @@ SndVoice* SndVoice_Alloc(s32 arg0)
     s32       voiceIdx;
     SndVoice* ptr;
 
-    voiceIdx = (s8)func_8004E060(D_80068A7C, 2, arg0 & 0xFFFF);
+    voiceIdx = (s8)Spu_AllocVoice(D_80068A7C, 2, arg0 & 0xFFFF);
     if (voiceIdx < 0) {
         return NULL;
     }
     ptr          = (SndVoice*)SndBank_Slots + voiceIdx;
     ptr->field_0 = voiceIdx;
-    func_8004E560(voiceIdx, (s32)SndVoice_Detach, (s32)ptr);
+    Spu_SetVoiceCallbacks(voiceIdx, (s32)SndVoice_Detach, (s32)ptr);
     ptr->field_8 = 1;
     return ptr;
 }
@@ -1427,7 +1427,7 @@ s32 SndVoice_Tick(SndVoice* arg0)
     temp = arg0->field_4;
     if (temp <= 0) {
         arg0->field_4 = 0;
-        func_8004E71C(arg0->field_0);
+        Spu_KeyOff(arg0->field_0);
         if (arg0->field_10 != 0) {
             if (arg0->field_12 == 0) {
                 arg0->field_12 = 1;
@@ -1444,7 +1444,7 @@ s32 SndVoice_Tick(SndVoice* arg0)
         }
     block_8:
         if (arg0->field_10 != 0) {
-            func_80055678(arg0);
+            SndVoice_TickEnvelope(arg0);
         }
     }
     return 0;
@@ -1466,7 +1466,7 @@ s32 SndScript_TickVoices(SndScript* arg0)
         do {
             if (node->field_0 >= 0) {
                 if (arg0->field_C != 1) {
-                    status = func_8004E6A4(node->field_0);
+                    status = Spu_GetVoiceStatus(node->field_0);
                     if (status != 0) {
                         Spu_GetVoiceRef(node->field_0, &sp10);
                         temp                = sp10.field_4->adsr2;
@@ -1474,11 +1474,11 @@ s32 SndScript_TickVoices(SndScript* arg0)
                         sp10.field_4->adsr2 = temp;
                         sp10.field_4->mask |= SPU_VOICE_ADSR_ADSR2;
                         if (status != 2) {
-                            func_8004E71C(node->field_0);
+                            Spu_KeyOff(node->field_0);
                         }
                     }
                 } else {
-                    func_8004E71C(node->field_0);
+                    Spu_KeyOff(node->field_0);
                 }
                 if (node->field_10 != 0) {
                     count         += 1;
@@ -1491,7 +1491,7 @@ s32 SndScript_TickVoices(SndScript* arg0)
     return count;
 }
 
-void func_800564C4(s8 arg0, s8 arg1, SndVoice* arg2, LinInterp* arg3, s16* arg4)
+void SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* arg2, LinInterp* arg3, s16* arg4)
 {
     register s32 temp_v0 asm("v0");
     s32          temp_v1;
@@ -1523,7 +1523,7 @@ void func_800564C4(s8 arg0, s8 arg1, SndVoice* arg2, LinInterp* arg3, s16* arg4)
     }
 }
 
-void func_800565B8(SndVoice* arg0, s16 arg1, u32 arg2, SndNote* arg3)
+void SndVoice_SetupEnvelope(SndVoice* arg0, s16 arg1, u32 arg2, SndNote* arg3)
 {
     SndVoiceFx* p;
     u8*         base;

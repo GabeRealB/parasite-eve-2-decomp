@@ -138,7 +138,7 @@ s32 func_8002FB84(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 ar
     return 0;
 }
 
-s32 func_8002FCBC(u8* arg0)
+s32 Text_MeasureWidth(u8* arg0)
 {
     TextDrawReq sp10;
 
@@ -153,7 +153,7 @@ s32 func_8002FCBC(u8* arg0)
     return -sp10.field_0;
 }
 
-s32 func_8002FD08(u8* arg0)
+s32 Text_MeasureMultiLine(u8* arg0)
 {
     u8           sp10[0x40];
     TextDrawReq  sp50;
@@ -199,7 +199,7 @@ s32 func_8002FD08(u8* arg0)
     return (height << 16) | maxWidth;
 }
 
-s32 func_8002FDCC(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
+s32 Text_DrawPrompt(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
 {
     TextDrawReq sp10;
     TextDrawReq sp20;
@@ -234,7 +234,7 @@ s32 func_8002FDCC(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 ar
 
 void func_8002FEAC(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5, void* arg6)
 {
-    func_8002FDCC(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+    Text_DrawPrompt(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
 }
 
 s32 func_8002FEE0(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6,
@@ -330,7 +330,7 @@ void func_80030074(void)
     LoadImage(&rect, D_800609B0);
 }
 
-void func_800300EC(u8* arg0, s32 arg1)
+void Mc_BuildFileName(u8* arg0, s32 arg1)
 {
     s32 i;
 
@@ -403,7 +403,7 @@ void func_800301FC(void)
     (&Wip_SysConfig)[idx].field_21 = two;
 }
 
-void func_800303AC(void)
+void Mc_InitBufferSlots(void)
 {
     McBufferSlot*             base;
     register McBufferSlot*    slot asm("t1");

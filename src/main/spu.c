@@ -73,7 +73,7 @@ void AsyncCb_Cancel(s32 arg0)
     }
 }
 
-void func_8004DF10(void)
+void Spu_InitVoices(void)
 {
     SpuVoiceRef sp10;
     s32*        ptr;
@@ -142,14 +142,14 @@ void func_8004DF10(void)
             attr->voice        = 1 << i;
         }
 
-        func_8004EAA0(sVoiceIdx);
+        Spu_KeyOnClearOff(sVoiceIdx);
         i++;
     } while (i < 0x18);
 
     Spu_SetVoiceRange(2, 0x10, 2);
 }
 
-s32 func_8004E060(s16* arg0, s32 arg1, s32 arg2)
+s32 Spu_AllocVoice(s16* arg0, s32 arg1, s32 arg2)
 {
     SpuVoiceRange* entry;
     s32            maxField4;
@@ -290,7 +290,7 @@ void F3E48C_8004E44C(void)
     }
 }
 
-void func_8004E560(u32 voiceIdx, s32 arg1, s32 arg2)
+void Spu_SetVoiceCallbacks(u32 voiceIdx, s32 arg1, s32 arg2)
 {
     s8 sVoiceIdx = (s8)voiceIdx;
 
@@ -333,14 +333,14 @@ s32 F3E48C_8004E660(u32 voiceIdx)
     return 0;
 }
 
-u8 func_8004E6A4(u32 voiceIdx)
+u8 Spu_GetVoiceStatus(u32 voiceIdx)
 {
     s8 sVoiceIdx = (s8)voiceIdx;
 
     return Spu_VoiceState.field_64[sVoiceIdx];
 }
 
-void func_8004E6C4(u32 voiceIdx)
+void Spu_KeyOn(u32 voiceIdx)
 {
     SpuVoiceState* p;
     u32*           pKeyOn;
@@ -357,7 +357,7 @@ void func_8004E6C4(u32 voiceIdx)
     D648E0_8007EBB0      &= channel;
 }
 
-void func_8004E71C(u32 voiceIdx)
+void Spu_KeyOff(u32 voiceIdx)
 {
     u32* pKeyOff;
     u32  channel;
@@ -462,7 +462,7 @@ void F3E48C_ApplyReverbConfig(void)
     D648E0_SpuReverbCfg.attr.mask = 0;
 }
 
-u16 func_8004E9D8(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+u16 Spu_CalcVolume(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     u32  temp;
     u32  hi;
@@ -499,7 +499,7 @@ SndNote* Snd_GetNote(SndBank* arg0, u8 arg1, u8 arg2)
     return NULL;
 }
 
-void func_8004EAA0(u32 voiceIdx)
+void Spu_KeyOnClearOff(u32 voiceIdx)
 {
     SpuVoiceState* p;
     u32*           pKeyOn;
@@ -515,7 +515,7 @@ void func_8004EAA0(u32 voiceIdx)
     D648E0_8007EBB0      &= ~channel;
 }
 
-void func_8004EAF8(u32 voiceIdx)
+void Spu_ArmKeyOn(u32 voiceIdx)
 {
     SpuVoiceState* p;
     u32*           pKeyOn;

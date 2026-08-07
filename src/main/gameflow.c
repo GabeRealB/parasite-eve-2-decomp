@@ -70,7 +70,7 @@ void func_8002B834(Task* arg0)
             p->field_248            = 1;
             p->field_244            = 1;
             Wip_SysFlags.field_4    = 1;
-            func_800303AC();
+            Mc_InitBufferSlots();
             do {
                 D_80072189 = saved;
             } while (0);
@@ -165,7 +165,7 @@ void func_8002BC0C(Task* arg0)
     p->field_248            = 1;
     p->field_244            = 1;
     Wip_SysFlags.field_4    = 1;
-    func_800303AC();
+    Mc_InitBufferSlots();
     do {
         D_80072189 = saved;
     } while (0);
@@ -221,7 +221,7 @@ void func_8002BE0C(Task* arg0)
 {
     if (Display_State.field_101 == 0) {
         Task_Spawn(0, 2, 0, 0);
-        func_8003DB48(0x5010);
+        Display_SetMode(0x5010);
         Task_Kill(arg0);
         return;
     }

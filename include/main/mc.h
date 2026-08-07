@@ -70,7 +70,7 @@ typedef struct _McWork {
 /// Mc_VerifySaveHdrChecksum). field_93C is a save-data checksum halfword
 /// compared by Mc_CompareSaveChecksum. field_940 / field_942 are a sum /
 /// ones-complement pair over the first byte of Mc_BufferSlots[1..8] buffers
-/// (written by func_80033D3C; field_940 is also known as D_80072AA8).
+/// (written by Mc_WriteFirstByteChecksum; field_940 is also known as D_80072AA8).
 typedef struct _McSaveData {
     /* 0x000 */ byte unknown_0[0x4];
     /* 0x004 */ u8   field_4;
@@ -115,7 +115,7 @@ typedef struct _McChecksumBlock {
 
 /// 0xC descriptor for a memcard/save buffer slot in Mc_BufferSlots[9].
 /// field_0 points at a McChecksumBlock-style checksummed buffer; field_4 is its size.
-/// Iterated from index 1..8 by func_80033D88 and related helpers in mc.c.
+/// Iterated from index 1..8 by Mc_VerifyFirstByteChecksum and related helpers in mc.c.
 typedef struct _McBufferSlot {
     /* 0x0 */ McChecksumBlock* field_0;
     /* 0x4 */ s32              field_4;
@@ -144,19 +144,19 @@ STATIC_ASSERT_SIZEOF(McStateFuncTable26, 0x68);
 // Functions — src/main/mc.c (matched helpers; state handlers also live here)
 // =============================================================================
 
-void func_800317DC(Task* task, McWork* work);
-void func_800319E4(Task* task, McWork* work);
+void Mc_StateCompareBuffers(Task* task, McWork* work);
+void Mc_StateOpenRead(Task* task, McWork* work);
 void Mc_StateCreateFile(Task* task, McWork* work);
-void func_80031C5C(Task* task, McWork* work);
-void func_80031DA4(Task* task, McWork* work);
-void func_80031F94(Task* task, McWork* work);
-void func_800322B0(Task* task, McWork* work);
+void Mc_StatePadFileName(Task* task, McWork* work);
+void Mc_StateNameEntry(Task* task, McWork* work);
+void Mc_StateBackupBuffers(Task* task, McWork* work);
+void Mc_StateFreeBuffer(Task* task, McWork* work);
 void Mc_StateFormat(Task* task, McWork* work);
-void func_80032578(Task* task, McWork* work);
-void func_800327A4(Task* task, McWork* work);
-void func_800328FC(Task* task, McWork* work);
-void func_80032AB0(Task* task, McWork* work);
-void func_80032D54(Task* task, McWork* work);
+void Mc_StateSyncFileSelect(Task* task, McWork* work);
+void Mc_StateBlankFileName(Task* task, McWork* work);
+void Mc_StateSyncOpen(Task* task, McWork* work);
+void Mc_StateVerifyFinish(Task* task, McWork* work);
+void Mc_StateFinishWrite(Task* task, McWork* work);
 void func_80034B38(Task* task, McWork* work);
 void func_800359A4(Task* task);
 u16* Mc_EncodeAsciiGlyphs(s8* src, u16* dst);
@@ -192,7 +192,7 @@ extern McBufferSlot Mc_BufferSlots[9];
 extern u8           Mc_DefaultChecksumSrc[];
 extern McPromptPair Mc_PromptTable[];
 extern McSaveData   Mc_SaveData;
-/// "Memory Card" string passed to func_80048E38 by Mc_DrawPrompt.
+/// "Memory Card" string passed to Ui_DrawTitle by Mc_DrawPrompt.
 extern char D_8001398C[];
 /// "*" wildcard passed to MemCardGetDirentry by func_80031118.
 extern char D_80013A5C[];

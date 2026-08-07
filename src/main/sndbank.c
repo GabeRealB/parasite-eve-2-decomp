@@ -41,10 +41,10 @@ setup_events:
     SndEvt_Reset();
     AsyncCb_Reset();
     F3E48C_ConfigSpuReverb(3);
-    func_8004DF10();
+    Spu_InitVoices();
     Snd_ClearBanks();
     AudioTick_Reset();
-    func_80053E68();
+    Snd_RegisterTickCallbacks();
     func_80053FF4(0);
     func_80050D20(0);
 

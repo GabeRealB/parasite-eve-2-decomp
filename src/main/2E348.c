@@ -6,7 +6,7 @@
 
 #include <psyq/libgpu.h>
 
-void func_8003DB48(s32 arg0)
+void Display_SetMode(s32 arg0)
 {
     DisplayState* ds;
     u32           temp_s5;
@@ -124,7 +124,7 @@ void func_8003DE14(s32 arg0, s32 arg1, s32 arg2)
 
 void func_8003DE58(void)
 {
-    func_8003DB48(0x1010);
+    Display_SetMode(0x1010);
 }
 
 void func_8003DE78(s8 arg0)

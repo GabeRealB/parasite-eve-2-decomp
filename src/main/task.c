@@ -318,7 +318,7 @@ void Task_DetachFromParent(Task* arg0)
     arg0->field_8 = NULL;
 }
 
-void func_8002D14C(Task* arg0, Task* arg1)
+void Task_Reparent(Task* arg0, Task* arg1)
 {
     Task* parent;
     Task* next;
@@ -362,12 +362,12 @@ void func_8002D14C(Task* arg0, Task* arg1)
     cur->field_10  = arg1;
 }
 
-void func_8002D214(void* arg0, s32 arg1)
+void Game_SetPtrSlot(void* arg0, s32 arg1)
 {
     Game_Session->field_C[arg1] = arg0;
 }
 
-void* func_8002D22C(s32 arg0)
+void* Game_GetPtrSlot(s32 arg0)
 {
     return Game_Session->field_C[arg0];
 }
@@ -636,7 +636,7 @@ void func_8002D6EC(Task* arg0)
     }
 }
 
-void func_8002D780(void)
+void Game_ClearPtrSlots(void)
 {
     s32 i;
 

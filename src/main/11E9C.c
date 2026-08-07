@@ -61,7 +61,7 @@ void Fade_StartWhite(void)
     DR_TPAGE* dr;
     u8        color;
 
-    func_8003DB48(0xD010);
+    Display_SetMode(0xD010);
     SetDispMask(1);
 
     D_8006ACB4 = 0xFF;

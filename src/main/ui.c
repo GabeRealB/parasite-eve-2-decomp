@@ -6,13 +6,13 @@
 void func_800498D4(Task* arg0);
 void func_800492EC(void* arg0, RECT* arg1, RECT* arg2);
 void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3);
-void func_800454E4(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3);
+void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3);
 
 void func_80044698(void)
 {
 }
 
-void func_800446A0(RECT* arg0, s32 arg1, s32 arg2)
+void Ui_DrawWindowBorder(RECT* arg0, s32 arg1, s32 arg2)
 {
     RECT         sp10;
     POLY_GT4*    p;
@@ -232,7 +232,7 @@ end:
 
 INCLUDE_ASM("main/nonmatchings/ui", func_80044C34);
 
-void func_800454E4(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
+void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
 {
     RECT              sp10;
     RECT              sp18;
@@ -302,7 +302,7 @@ void func_800454E4(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
     }
 }
 
-void func_800457F8(UiPanel* arg0)
+void Ui_SetupClip(UiPanel* arg0)
 {
     RECT     sp10;
     RECT     sp18;
@@ -346,7 +346,7 @@ void func_800457F8(UiPanel* arg0)
     addPrim(D_800710A0 + (s16)arg0->field_14, p);
 }
 
-void func_80045A3C(UiPanel* arg0, RECT* arg1, s32 arg2, s32 arg3)
+void Ui_ScaleRect(UiPanel* arg0, RECT* arg1, s32 arg2, s32 arg3)
 {
     s16 temp;
 
@@ -371,7 +371,7 @@ void func_80045A3C(UiPanel* arg0, RECT* arg1, s32 arg2, s32 arg3)
     }
 }
 
-void func_80045B24(UiPanel* arg0)
+void Ui_LayoutAndClip(UiPanel* arg0)
 {
     RECT sp10;
     RECT sp18;
@@ -388,7 +388,7 @@ void func_80045B24(UiPanel* arg0)
                 if (var_a2 <= 0) {
                     var_a2 = 1;
                 }
-                func_80045A3C(arg0, arg1, var_a2, 0);
+                Ui_ScaleRect(arg0, arg1, var_a2, 0);
                 goto after_fill;
             case 2:
                 break;
@@ -398,7 +398,7 @@ void func_80045B24(UiPanel* arg0)
                 if ((u32)(var_a2 - 1) >= 8U) {
                     var_a2 = 1;
                 }
-                func_80045A3C(arg0, arg1, var_a2, 1);
+                Ui_ScaleRect(arg0, arg1, var_a2, 1);
                 goto after_fill;
         }
         arg1->x = arg0->field_C.x;
@@ -431,11 +431,11 @@ after_fill: {
     if (arg1 != NULL) {
         func_800492EC(arg0, arg1, &sp18);
     }
-    func_800454E4(arg0, &sp10, &sp18, 1);
+    Ui_DrawPanel(arg0, &sp10, &sp18, 1);
 }
 }
 
-void func_80045D24(UiPanel* arg0)
+void Ui_LayoutAndDraw(UiPanel* arg0)
 {
     RECT sp10;
     RECT sp18;
@@ -452,7 +452,7 @@ void func_80045D24(UiPanel* arg0)
                 if (var_a2 <= 0) {
                     var_a2 = 1;
                 }
-                func_80045A3C(arg0, arg1, var_a2, 0);
+                Ui_ScaleRect(arg0, arg1, var_a2, 0);
                 goto after_fill;
             case 2:
                 break;
@@ -462,7 +462,7 @@ void func_80045D24(UiPanel* arg0)
                 if ((u32)(var_a2 - 1) >= 8U) {
                     var_a2 = 1;
                 }
-                func_80045A3C(arg0, arg1, var_a2, 1);
+                Ui_ScaleRect(arg0, arg1, var_a2, 1);
                 goto after_fill;
         }
         arg1->x = arg0->field_C.x;
@@ -495,11 +495,11 @@ after_fill: {
     if (arg1 != NULL) {
         func_800492EC(arg0, arg1, &sp18);
     }
-    func_800454E4(arg0, &sp10, &sp18, 0);
+    Ui_DrawPanel(arg0, &sp10, &sp18, 0);
 }
 }
 
-void func_80045F24(UiPanel* arg0)
+void Ui_LayoutAndDrawAlt(UiPanel* arg0)
 {
     RECT sp10;
     RECT sp18;
@@ -516,7 +516,7 @@ void func_80045F24(UiPanel* arg0)
                 if (var_a2 <= 0) {
                     var_a2 = 1;
                 }
-                func_80045A3C(arg0, arg1, var_a2, 0);
+                Ui_ScaleRect(arg0, arg1, var_a2, 0);
                 goto after_fill;
             case 2:
                 break;
@@ -526,7 +526,7 @@ void func_80045F24(UiPanel* arg0)
                 if ((u32)(var_a2 - 1) >= 8U) {
                     var_a2 = 1;
                 }
-                func_80045A3C(arg0, arg1, var_a2, 1);
+                Ui_ScaleRect(arg0, arg1, var_a2, 1);
                 goto after_fill;
         }
         arg1->x = arg0->field_C.x;
@@ -559,11 +559,11 @@ after_fill: {
     if (arg1 != NULL) {
         func_800492EC(arg0, arg1, &sp18);
     }
-    func_800454E4(arg0, &sp10, &sp18, 1);
+    Ui_DrawPanel(arg0, &sp10, &sp18, 1);
 }
 }
 
-void func_80046124(UiList* arg0, UiPanel* arg1, s32 arg2)
+void Ui_SetListClip(UiList* arg0, UiPanel* arg1, s32 arg2)
 {
     RECT     sp10;
     DR_AREA* p;
@@ -599,7 +599,7 @@ void func_80046124(UiList* arg0, UiPanel* arg1, s32 arg2)
     }
 }
 
-void func_800463B4(UiPanel* arg0, s32 arg1, s32 arg2)
+void Ui_DrawCursor(UiPanel* arg0, s32 arg1, s32 arg2)
 {
     SPRT_8*      p;
     DR_TPAGE*    dr;
@@ -637,7 +637,7 @@ void func_800463B4(UiPanel* arg0, s32 arg1, s32 arg2)
     }
 }
 
-void func_80046508(UiList* arg0, UiPanel* arg1, s32 arg2)
+void Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2)
 {
     POLY_G3*         p;
     s16              x;
@@ -731,7 +731,7 @@ void func_80046508(UiList* arg0, UiPanel* arg1, s32 arg2)
         (ot[(s16)arg1->field_14 + 1] & mask_hi) | ((u32)p & mask);
 }
 
-void func_800466E4(UiPanel* arg0, s32 arg1, s32 arg2)
+void Ui_UpdateLayoutSize(UiPanel* arg0, s32 arg1, s32 arg2)
 {
     RECT sp10;
 
@@ -795,7 +795,7 @@ typedef struct {
     /* 0x22 */ u16  field_22;
 } UiPanelSignedLayoutFull;
 
-void func_80046830(UiList* arg0_, UiPanel* arg1_)
+void Ui_LayoutListPanel(UiList* arg0_, UiPanel* arg1_)
 {
     UiListSignedRows*        arg0;
     UiPanelSignedLayoutFull* arg1;
@@ -907,9 +907,9 @@ void func_80046830(UiList* arg0_, UiPanel* arg1_)
 
 INCLUDE_ASM("main/nonmatchings/ui", func_80046B34);
 
-/// Overlay of UiPanel / UiObject at the layout halfwords that func_80046DEC
+/// Overlay of UiPanel / UiObject at the layout halfwords that Ui_DrawListHighlight
 /// loads as signed (field_1C / field_1E are written with potentially negative
-/// values by func_80049348; this function needs lh, not lhu).
+/// values by Ui_InsetLayout; this function needs lh, not lhu).
 typedef struct {
     /* 0x00 */ u8  pad0[0x14];
     /* 0x14 */ u16 field_14;
@@ -920,7 +920,7 @@ typedef struct {
     /* 0x22 */ u16 field_22;
 } UiPanelSignedLayout;
 
-void func_80046DEC(UiList* arg0, UiPanel* arg1, s32 arg2)
+void Ui_DrawListHighlight(UiList* arg0, UiPanel* arg1, s32 arg2)
 {
     TILE*                         p;
     s32                           y;
@@ -959,7 +959,7 @@ void func_80046DEC(UiList* arg0, UiPanel* arg1, s32 arg2)
 
 INCLUDE_ASM("main/nonmatchings/ui", func_80046EEC);
 
-void func_80047A0C(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
+void Ui_DrawHBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     POLY_FT4* p;
     s16       temp;
@@ -1008,7 +1008,7 @@ void func_80047A0C(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
     }
 }
 
-void func_80047B24(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
+void Ui_DrawVBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     POLY_FT4* p;
     s16       temp;
@@ -1063,7 +1063,7 @@ void func_80047B24(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
     }
 }
 
-void func_80047C40(UiPanel* arg0, s32 arg1, s32 arg2, char* arg3, s32 arg4)
+void Ui_DrawTextUnderline(UiPanel* arg0, s32 arg1, s32 arg2, char* arg3, s32 arg4)
 {
     TextDrawReq       sp10;
     POLY_F4*          p;
@@ -1115,10 +1115,10 @@ void func_80047C40(UiPanel* arg0, s32 arg1, s32 arg2, char* arg3, s32 arg4)
     t20    = (s16)self->field_20;
     f22    = (s16)self->field_22;
     fourth = f22 - 7;
-    func_80047A0C(self, x - t20, (s16)sp10.field_0 - t20, y - fourth);
+    Ui_DrawHBar(self, x - t20, (s16)sp10.field_0 - t20, y - fourth);
 }
 
-void func_80047D90(UiPanel* arg0, char* arg1)
+void Ui_DrawTextColored(UiPanel* arg0, char* arg1)
 {
     RECT     sp18;
     RECT*    r;
@@ -1149,7 +1149,7 @@ void func_80047D90(UiPanel* arg0, char* arg1)
             if (var_a2 <= 0) {
                 var_a2 = 1;
             }
-            func_80045A3C(arg0, r, var_a2, 0);
+            Ui_ScaleRect(arg0, r, var_a2, 0);
             break;
         case 2:
             goto block_default;
@@ -1159,7 +1159,7 @@ void func_80047D90(UiPanel* arg0, char* arg1)
             if ((u32)(var_a2 - 1) >= 8U) {
                 var_a2 = 1;
             }
-            func_80045A3C(arg0, r, var_a2, 1);
+            Ui_ScaleRect(arg0, r, var_a2, 1);
             break;
         default:
         block_default:
@@ -1174,11 +1174,11 @@ void func_80047D90(UiPanel* arg0, char* arg1)
     x              = x + 1;
     y              = y + 1;
     arg0->field_14 = (u16)(arg0->field_14 - 1);
-    func_80047C40(arg0, x - (s16)arg0->field_20, y - (s16)arg0->field_22, arg1, color);
+    Ui_DrawTextUnderline(arg0, x - (s16)arg0->field_20, y - (s16)arg0->field_22, arg1, color);
     arg0->field_14 = (u16)(arg0->field_14 + 1);
 }
 
-void func_80047F40(UiPanel* arg0, char* arg1)
+void Ui_DrawText(UiPanel* arg0, char* arg1)
 {
     RECT  sp18;
     RECT* r;
@@ -1198,7 +1198,7 @@ void func_80047F40(UiPanel* arg0, char* arg1)
             if (var_a2 <= 0) {
                 var_a2 = 1;
             }
-            func_80045A3C(arg0, r, var_a2, 0);
+            Ui_ScaleRect(arg0, r, var_a2, 0);
             break;
         case 2:
             goto block_default;
@@ -1208,7 +1208,7 @@ void func_80047F40(UiPanel* arg0, char* arg1)
             if ((u32)(var_a2 - 1) >= 8U) {
                 var_a2 = 1;
             }
-            func_80045A3C(arg0, r, var_a2, 1);
+            Ui_ScaleRect(arg0, r, var_a2, 1);
             break;
         default:
         block_default:
@@ -1223,7 +1223,7 @@ void func_80047F40(UiPanel* arg0, char* arg1)
     x              = x + 1;
     y              = y + 1;
     arg0->field_14 = (u16)(arg0->field_14 - 1);
-    func_80047C40(arg0, x - (s16)arg0->field_20, y - (s16)arg0->field_22, arg1, color);
+    Ui_DrawTextUnderline(arg0, x - (s16)arg0->field_20, y - (s16)arg0->field_22, arg1, color);
     arg0->field_14 = (u16)(arg0->field_14 + 1);
 }
 
@@ -1289,7 +1289,7 @@ UiObject* func_800480A0(TextBlockDesc* arg0_)
             }
             if (count > 0) {
                 do {
-                    width = func_8002FCBC(node->text);
+                    width = Text_MeasureWidth(node->text);
                     if (maxWidth < width) {
                         maxWidth = width;
                     }
@@ -1368,7 +1368,7 @@ void func_80048390(RECT* arg0, s32 arg1, s32 arg2, char* arg3)
                 if (var_a2 <= 0) {
                     var_a2 = 1;
                 }
-                func_80045A3C(self, r, var_a2, 0);
+                Ui_ScaleRect(self, r, var_a2, 0);
                 break;
             case 2:
                 goto block_default;
@@ -1378,7 +1378,7 @@ void func_80048390(RECT* arg0, s32 arg1, s32 arg2, char* arg3)
                 if ((u32)(var_a2 - 1) >= 8U) {
                     var_a2 = 1;
                 }
-                func_80045A3C(self, r, var_a2, 1);
+                Ui_ScaleRect(self, r, var_a2, 1);
                 break;
             default:
             block_default:
@@ -1393,7 +1393,7 @@ void func_80048390(RECT* arg0, s32 arg1, s32 arg2, char* arg3)
         x              = x + 1;
         y              = y + 1;
         self->field_14 = (u16)(self->field_14 - 1);
-        func_80047C40(self, x - (s16)self->field_20, y - (s16)self->field_22, arg3, color);
+        Ui_DrawTextUnderline(self, x - (s16)self->field_20, y - (s16)self->field_22, arg3, color);
         self->field_14 = (u16)(self->field_14 + 1);
     }
 }
@@ -1414,7 +1414,7 @@ void func_80048560(UiPanel* arg0, u8* arg1, s32 arg2, s32 arg3)
     s32 t;
     s32 u;
 
-    sp.dims.as32 = func_8002FD08(arg1);
+    sp.dims.as32 = Text_MeasureMultiLine(arg1);
     func_800492EC(arg0, &arg0->field_C, &sp.rect);
     if ((arg0->field_4 & 0xF) == 2) {
         sp.rect.y += 9;
@@ -1435,7 +1435,7 @@ void func_80048560(UiPanel* arg0, u8* arg1, s32 arg2, s32 arg3)
     arg0->field_22 = sp.rect.y - arg0->field_18;
     t              = arg2 + 5;
     u              = arg3 + 1;
-    func_800466E4(arg0, sp.dims.hw.w + t, sp.dims.hw.h + u);
+    Ui_UpdateLayoutSize(arg0, sp.dims.hw.w + t, sp.dims.hw.h + u);
     arg0->field_C.x = -(arg0->field_C.w / 2);
     arg0->field_C.y = -(arg0->field_C.h / 2) - 0x14;
 }
@@ -1470,7 +1470,7 @@ UiObject* func_800486F0(UiObjectDesc* arg0, s32 arg1, s32 arg2, s32 arg3, UiObje
             obj->field_24  = arg0->field_14;
             obj->field_16  = arg3;
             if (arg4 != NULL) {
-                func_8002D14C(arg4->field_28, task);
+                Task_Reparent(arg4->field_28, task);
             }
         } else {
             Task_Kill(task);
@@ -1535,7 +1535,7 @@ void func_80048964(UiPanel* arg0, void* arg1)
     }
 }
 
-void func_800489A0(UiList* arg0, UiMiniObj* arg1)
+void Ui_InitList(UiList* arg0, UiMiniObj* arg1)
 {
     RECT     sp;
     UiPanel* a1;
@@ -1704,10 +1704,10 @@ void func_80048D58(UiMiniObj* arg0, s32 arg1, s32 arg2)
     }
     targetX = D_80067648 >> 8;
     targetY = D_8006764C >> 8;
-    func_800463B4(arg0, targetX - arg0->field_20, targetY - arg0->field_22);
+    Ui_DrawCursor(arg0, targetX - arg0->field_20, targetY - arg0->field_22);
 }
 
-s32 func_80048E10(void* arg0, s32 arg1)
+s32 Ui_LookupTable(void* arg0, s32 arg1)
 {
     return D_8006763C[arg1];
 }
@@ -1717,7 +1717,7 @@ s32 func_80048E2C(s32 arg0)
     return (arg0 << 4) - arg0;
 }
 
-void func_80048E38(UiPanel* arg0, char* arg1)
+void Ui_DrawTitle(UiPanel* arg0, char* arg1)
 {
     RECT  sp18;
     RECT* r;
@@ -1734,7 +1734,7 @@ void func_80048E38(UiPanel* arg0, char* arg1)
             if (var_a2 <= 0) {
                 var_a2 = 1;
             }
-            func_80045A3C(arg0, r, var_a2, 0);
+            Ui_ScaleRect(arg0, r, var_a2, 0);
             break;
         case 2:
             goto block_default;
@@ -1744,7 +1744,7 @@ void func_80048E38(UiPanel* arg0, char* arg1)
             if ((u32)(var_a2 - 1) >= 8U) {
                 var_a2 = 1;
             }
-            func_80045A3C(arg0, r, var_a2, 1);
+            Ui_ScaleRect(arg0, r, var_a2, 1);
             break;
         default:
         block_default:
@@ -1759,7 +1759,7 @@ void func_80048E38(UiPanel* arg0, char* arg1)
     x              = x + 1;
     y              = y + 1;
     arg0->field_14 = (u16)(arg0->field_14 - 1);
-    func_80047C40(arg0, x - (s16)arg0->field_20, y - (s16)arg0->field_22, arg1, color);
+    Ui_DrawTextUnderline(arg0, x - (s16)arg0->field_20, y - (s16)arg0->field_22, arg1, color);
     arg0->field_14 = (u16)(arg0->field_14 + 1);
 }
 
@@ -1837,7 +1837,7 @@ void func_8004917C(UiList* arg0, s32 arg1)
     arg0->field_A |= 2;
 }
 
-void func_800491AC(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5)
+void Ui_AllocTile(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5)
 {
     TILE*        p;
     s32          y;
@@ -1878,7 +1878,7 @@ void func_800492EC(void* arg0, RECT* arg1, RECT* arg2)
     arg2->h = (arg1->h + arg1->y) - arg2->y - 1;
 }
 
-void func_80049348(UiPanel* arg0, RECT* arg1, RECT* arg2)
+void Ui_InsetLayout(UiPanel* arg0, RECT* arg1, RECT* arg2)
 {
     RECT sp10;
 
@@ -1905,7 +1905,7 @@ void func_80049348(UiPanel* arg0, RECT* arg1, RECT* arg2)
     }
 }
 
-void func_80049478(UiPanel* arg0, RECT* arg1)
+void Ui_ComputeAnimRect(UiPanel* arg0, RECT* arg1)
 {
     s32 var_a2;
 
@@ -1915,7 +1915,7 @@ void func_80049478(UiPanel* arg0, RECT* arg1)
             if (var_a2 <= 0) {
                 var_a2 = 1;
             }
-            func_80045A3C(arg0, arg1, var_a2, 0);
+            Ui_ScaleRect(arg0, arg1, var_a2, 0);
             return;
         case 2:
             break;
@@ -1925,7 +1925,7 @@ void func_80049478(UiPanel* arg0, RECT* arg1)
             if ((u32)(var_a2 - 1) >= 8U) {
                 var_a2 = 1;
             }
-            func_80045A3C(arg0, arg1, var_a2, 1);
+            Ui_ScaleRect(arg0, arg1, var_a2, 1);
             return;
     }
     arg1->x = arg0->field_C.x;
@@ -1955,7 +1955,7 @@ void func_800495B4(UiPanel* arg0, void* arg1)
 
     temp_s2       = arg0->field_0;
     arg0->field_0 = temp_s2 << 0x10;
-    func_80045B24(arg0);
+    Ui_LayoutAndClip(arg0);
     arg0->field_24(arg1);
     arg0->field_16 -= Display_State.field_10a;
     if (arg0->field_16 <= 0) {
@@ -1971,7 +1971,7 @@ void func_800495B4(UiPanel* arg0, void* arg1)
 
 void func_8004965C(UiPanel* arg0, void* arg1)
 {
-    func_80045D24(arg0);
+    Ui_LayoutAndDraw(arg0);
     arg0->field_24(arg1);
 }
 
@@ -1986,7 +1986,7 @@ void func_8004969C(UiPanel* arg0, void* arg1)
         return;
     }
     arg0->field_0 = 0;
-    func_80045F24(arg0);
+    Ui_LayoutAndDrawAlt(arg0);
     arg0->field_24(arg1);
 }
 
@@ -2005,7 +2005,7 @@ void func_8004972C(UiPanel* arg0, void* arg1)
         return;
     }
     arg0->field_0 <<= 0x10;
-    func_80045F24(arg0);
+    Ui_LayoutAndDrawAlt(arg0);
     arg0->field_24(arg1);
     if (arg0->field_0 == (temp_s1 << 0x10)) {
         arg0->field_0 = temp_s1;
@@ -2022,7 +2022,7 @@ void func_800497F4(UiPanel* arg0, void* arg1)
     temp_s2       = arg0->field_0;
     temp_s0       = temp_s2 << 0x10;
     arg0->field_0 = temp_s0;
-    func_800457F8(arg0);
+    Ui_SetupClip(arg0);
     arg0->field_24(arg1);
     if (arg0->field_0 == temp_s0) {
         arg0->field_0 = temp_s2;
@@ -2146,7 +2146,7 @@ void func_80049AF0(DialogPrompt* arg0, UiObject* arg1)
             var_v0 -= 1;
         } while (var_v0 > 0);
     }
-    func_8002FDCC(arg1, arg0->field_18, arg0->field_1A, var_a3->field_0, arg0->field_1C, 1, 0);
+    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, var_a3->field_0, arg0->field_1C, 1, 0);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
             temp           = 6;
@@ -2180,13 +2180,13 @@ void func_80049C00(Task* arg0)
         base          = ctx->field_0;
         menu->field_5 = base;
         menu->field_4 = base;
-        func_80046830(menu, (UiPanel*)obj);
+        Ui_LayoutListPanel(menu, (UiPanel*)obj);
         menu->field_A   = 1;
         arg0->field_30 += 1;
     }
     text = ctx->field_8;
     if (text != NULL) {
-        func_80047F40((UiPanel*)obj, text);
+        Ui_DrawText((UiPanel*)obj, text);
     }
     func_80046EEC(menu, obj, 0);
     if (obj->field_0 == 1) {

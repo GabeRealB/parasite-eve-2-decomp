@@ -30,12 +30,12 @@ s32 func_800567E4(void)
             i                    = 0x16;
             do {
                 voice = (s8)i;
-                temp  = acc + ((s32 (*)(s32))func_8004E6A4)(voice);
+                temp  = acc + ((s32 (*)(s32))Spu_GetVoiceStatus)(voice);
                 acc   = temp;
                 asm("" : "+r"(temp));
                 status = (s8)temp;
                 if (status != 0) {
-                    func_8004E71C(voice);
+                    Spu_KeyOff(voice);
                 }
                 next = i + 1;
                 i    = next;
@@ -126,8 +126,8 @@ s32 CdAudio_DrivePhase0(void)
             break;
         case 2:
             voices = (volatile CdAudioVoices*)&CdAudio_Loc;
-            func_8004E71C(voices->field_3E);
-            func_8004E71C(voices->field_3F);
+            Spu_KeyOff(voices->field_3E);
+            Spu_KeyOff(voices->field_3F);
             p->field_2 = 3;
             /* fallthrough */
         case 3:
@@ -282,8 +282,8 @@ s32 CdAudio_DriveRead(void)
     switch (CdAudio_Phase.field_4) {
         case 1:
             voices = (volatile CdAudioVoices*)&CdAudio_Loc;
-            func_8004E71C(voices->field_3E);
-            func_8004E71C(voices->field_3F);
+            Spu_KeyOff(voices->field_3E);
+            Spu_KeyOff(voices->field_3F);
             if (CdStream_IsBusy() != 0) {
                 break;
             }
@@ -549,7 +549,7 @@ void CdAudio_Tick(void)
 {
     if ((CdAudio_Loc.field_4 != 0) && (CdAudio_Loc.field_0 != 0)) {
         CdAudio_Loc.field_0 = D_80068B34[CdAudio_Loc.field_0 & 7]();
-        func_80059348();
+        CdStream_Drive();
     }
 }
 
@@ -634,7 +634,7 @@ s32 func_800577AC(s32 arg0, s32 arg1)
     CdAudio_ResetKeepBuffer(arg0);
     CdAudio_Loc.field_2 = D_80068A80[arg1 & 0xFF] << 7;
     SndEvt_EnqueueType7(0x80000000, 0);
-    return func_80057894(arg0);
+    return CdAudio_StoreIfNonNull(arg0);
 }
 
 s32 CdAudio_ResetKeepBuffer(s32 arg0)
@@ -666,7 +666,7 @@ s32 CdAudio_ResetKeepBuffer(s32 arg0)
     return 0;
 }
 
-s32 func_80057894(s32 arg0)
+s32 CdAudio_StoreIfNonNull(s32 arg0)
 {
     if (arg0 != 0) {
         func_80057A88(arg0);
@@ -693,13 +693,13 @@ void func_8005791C(s32 arg0)
     CdAudio_Loc.field_4 = arg0;
 }
 
-void func_80057930(s8 arg0, s32* arg1)
+void CdAudio_CopyVoiceData(s8 arg0, s32* arg1)
 {
     SpuVoiceRef sp10;
     s32*        dest;
     u32         i;
 
-    func_8004E560(arg0, 0, 0);
+    Spu_SetVoiceCallbacks(arg0, 0, 0);
     Spu_GetVoiceRef(arg0, &sp10);
     dest = (s32*)sp10.field_4;
     i    = 0;
@@ -711,10 +711,10 @@ void func_80057930(s8 arg0, s32* arg1)
     } while (i < 0x10U);
 }
 
-void func_800579A0(s8* arg0, s8* arg1)
+void CdAudio_AllocVoices(s8* arg0, s8* arg1)
 {
-    *arg0 = func_8004E060(D_80068B28, 3, 0xFFFF);
-    *arg1 = func_8004E060(D_80068B28, 3, 0xFFFF);
+    *arg0 = Spu_AllocVoice(D_80068B28, 3, 0xFFFF);
+    *arg1 = Spu_AllocVoice(D_80068B28, 3, 0xFFFF);
     F3E48C_DisableVoice(*arg0);
     F3E48C_DisableVoice(*arg1);
 }
@@ -968,8 +968,8 @@ void CdStream_Start(CdStreamParams* arg0)
     p->voiceR = arg0->voiceR;
     flag      = ((u8)CdStream_State.flags0 >> 4) & 1;
     if (flag == 1) {
-        func_8004E71C((s8)p->voiceL);
-        func_8004E71C((s8)p->voiceR);
+        Spu_KeyOff((s8)p->voiceL);
+        Spu_KeyOff((s8)p->voiceR);
         if (arg0->voiceFreeCb != 0) {
             ((void (*)(s32))arg0->voiceFreeCb)(
                 (flag << (s8)p->voiceL) | (flag << (s8)p->voiceR));
@@ -1179,7 +1179,7 @@ void CdStream_Stop(void)
 
 void func_80058748(void);
 
-void func_8005854C(void)
+void CdStream_TeardownVoices(void)
 {
     CdReadyEntry            entry;
     volatile CdStreamState* p;
@@ -1207,8 +1207,8 @@ void func_8005854C(void)
         CdStream_State.flags0 = CdStream_State.flags0 & 0xDF;
         flag                  = (CdStream_State.flags0 >> 4) & 1;
         if (flag == 1) {
-            func_8004E71C((s8)p->voiceL);
-            func_8004E71C((s8)p->voiceR);
+            Spu_KeyOff((s8)p->voiceL);
+            Spu_KeyOff((s8)p->voiceR);
             CdStream_State.flags0 = CdStream_State.flags0 & 0xEF;
             if (p->voiceFreeCb != NULL) {
                 p->voiceFreeCb((flag << (s8)p->voiceL) | (flag << (s8)p->voiceR));
@@ -1277,7 +1277,7 @@ void func_80058748(void)
             p->field_4            = rem_tmp;
             CdStream_State.flags0 = CdStream_State.flags0 | 0x20;
         }
-        func_800588D8();
+        CdStream_CleanupIrq();
     } else {
         do {
             temp = (s32)func_80059EE0;
@@ -1299,7 +1299,7 @@ void func_80058748(void)
     }
 }
 
-void func_800588D8(void)
+void CdStream_CleanupIrq(void)
 {
     volatile CdStreamState* p;
     u8                      temp;
@@ -1323,4 +1323,4 @@ INCLUDE_ASM("main/nonmatchings/cdaudio", func_8005896C);
 
 INCLUDE_ASM("main/nonmatchings/cdaudio", func_80058ED4);
 
-INCLUDE_ASM("main/nonmatchings/cdaudio", func_80059348);
+INCLUDE_ASM("main/nonmatchings/cdaudio", CdStream_Drive);

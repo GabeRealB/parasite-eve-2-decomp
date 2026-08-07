@@ -254,7 +254,7 @@ void CdCmd_HandleFileLoad(void)
             state->step = state->step + 1;
             /* fallthrough */
         case 1:
-            func_80023748(req[3], req[2], req[1]);
+            Fs_PrepareFolderLoad(req[3], req[2], req[1]);
             goto increment_step;
         case 2: {
             s32 sync;

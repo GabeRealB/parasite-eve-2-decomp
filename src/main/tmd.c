@@ -180,7 +180,7 @@ Task* func_8003EE68(void)
 
     block_case4:
         Stage_Ctx->field_11 = 2;
-        slot                = func_8002D22C(3);
+        slot                = Game_GetPtrSlot(3);
         obj                 = (GameActor*)slot->field_1C;
         flag                = obj->field_984 & 1;
         ptr                 = ((GameActorExt*)slot->field_2c)->field_8;
@@ -213,7 +213,7 @@ block_default:
     Mem_InitAux();
     Display_State.field_103 = 1;
     Display_State.field_100 = 3;
-    slot                    = func_8002D22C(3);
+    slot                    = Game_GetPtrSlot(3);
     obj                     = (GameActor*)slot->field_1C;
     flag                    = obj->field_984 & 1;
     ptr                     = ((GameActorExt*)slot->field_2c)->field_8;
@@ -250,9 +250,9 @@ void func_8003F034(Task* arg0)
                 Game_Session->field_4   = Stage_Ctx->field_20;
                 Stage_Ctx->field_C      = 0;
                 Display_State.field_103 = 2;
-                func_800144F8(Game_Session->field_7, Game_Session->field_6);
+                Mem_ConfigureAuxHeap(Game_Session->field_7, Game_Session->field_6);
                 if (!(Stage_Ctx->field_1c & 0x10000000)) {
-                    ((Task*)func_8002D22C(1))->field_34 = (u8)Game_Session->field_4;
+                    ((Task*)Game_GetPtrSlot(1))->field_34 = (u8)Game_Session->field_4;
                     ResetGraph(1);
                     F179D4_ClearOTag(0);
                     F179D4_ClearOTag(1);
@@ -263,7 +263,7 @@ void func_8003F034(Task* arg0)
                     Game_Session->field_4D = 0;
                     Task_Spawn(0, 0x1E, 2, 0);
                 } else {
-                    func_80041EB4();
+                    Tmd_AllocMissingBuffers();
                     Game_Session->field_4D = 1;
                 }
                 Stage_Ctx->field_28 = Stage_Ctx->field_28 + 1;
@@ -717,8 +717,8 @@ void func_8003FD58(Task* arg0)
         }
     } else {
     block_3:
-        func_800144F8(Game_Session->field_7, Game_Session->field_6);
-        func_80041EB4();
+        Mem_ConfigureAuxHeap(Game_Session->field_7, Game_Session->field_6);
+        Tmd_AllocMissingBuffers();
         func_800ACAA8();
     }
     func_80042364(0, 0, 4);
@@ -753,7 +753,7 @@ void func_8003FE9C(Task* arg0)
     func_8003EA44();
 }
 
-void func_8003FF14(u8* arg0)
+void Mdec_ResolveStreamBuffer(u8* arg0)
 {
     u16         i;
     u16         found;
@@ -845,9 +845,9 @@ success:
 
 INCLUDE_ASM("main/nonmatchings/tmd", func_8004017C);
 
-void func_80040904(void);
+void Mdec_StripCallback(void);
 
-void func_800405E0(void)
+void Mdec_DecodeToVram(void)
 {
     RECT          rect;
     s32           i;
@@ -866,7 +866,7 @@ void func_800405E0(void)
             DecDCTvlc2((u_long*)D_8007A360, (u_long*)GActiveAuxHeap,
                        (u_short*)((u8*)D4CB64_ImgBuffers + 0x8800));
             D_8007A35E = 1;
-            DecDCToutCallback(func_80040904);
+            DecDCToutCallback(Mdec_StripCallback);
             DecDCTin((u_long*)GActiveAuxHeap, p->field_22A);
             p->field_22A = 0;
             DecDCTout((u_long*)D4CB64_ImgBuffers, 0x780);
@@ -903,7 +903,7 @@ void func_800405E0(void)
                 p->field_21C = 0;
                 q            = &CdCmd_Queue;
                 if ((s8)Display_State.field_122 == 0) {
-                    func_80041EB4();
+                    Tmd_AllocMissingBuffers();
                 }
                 q->field_1FE = 0xFF;
                 q->field_200 = 0;
@@ -926,7 +926,7 @@ void func_80040820(void)
             p->field_234 = 0;
         }
         if ((p->field_200 != 0) && (p->field_234 == 0)) {
-            func_800405E0();
+            Mdec_DecodeToVram();
         }
     } else if (p->field_200 != 0) {
         func_8004017C();
@@ -951,7 +951,7 @@ void func_800408F4(void)
     CdCmd_Queue.field_234 = 1;
 }
 
-void func_80040904(void)
+void Mdec_StripCallback(void)
 {
     s32         temp;
     CdCmdQueue* p;
@@ -1749,7 +1749,7 @@ void func_80041C50(TmdSource* arg0)
     }
 }
 
-void func_80041D3C(TmdObject* arg0)
+void Tmd_FlagAllNodes(TmdObject* arg0)
 {
     TmdObject* node;
 
@@ -1761,7 +1761,7 @@ void func_80041D3C(TmdObject* arg0)
     arg0->field_30++;
 }
 
-void func_80041D84(TmdObject* arg0)
+void Tmd_FreeNodeBuffers(TmdObject* arg0)
 {
     TmdObject* node;
 
@@ -1800,7 +1800,7 @@ void Gpu_ResetGraphAndOt(void)
     }
 }
 
-void func_80041EB4(void)
+void Tmd_AllocMissingBuffers(void)
 {
     TmdObject* node;
     void*      mem;
@@ -1824,7 +1824,7 @@ void func_80041EB4(void)
     }
 }
 
-void func_80041F58(Task* arg0)
+void Tmd_AllocNodeBuffers(Task* arg0)
 {
     TmdObject* node;
     void*      mem;

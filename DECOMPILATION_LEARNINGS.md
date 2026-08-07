@@ -886,7 +886,7 @@ then emits the shift pair. Related stores that must keep program order around
 that load (e.g. a `vol_a = 0; vol_b = vol_a;` chain just before the cast)
 should also be `volatile`, or the load will sink into the middle of them.
 
-`func_800537FC` needs this on `D_80082135` and the surrounding
+`Snd_InitFromStage` needs this on `D_80082135` and the surrounding
 `D_80082128` / `D_80082124` / `D_80082130` stores.
 
 Halfword analogue: a plain `s16` load is usually `lh`, but the target may want
@@ -1528,7 +1528,7 @@ if (temp >> 7) {
 That produces the clean `lbu` / `srl` / `beqz` sequence. Casting at the use site
 (`if ((u8)p->unknown_0[1] >> 7)`) is not enough — the temporary is required.
 
-`func_8005B920` is a pure example (bit 7 of `CdStream_State.unknown_0[1]`).
+`CdStream_SetFlag14` is a pure example (bit 7 of `CdStream_State.unknown_0[1]`).
 
 
 ## Early-load order among independent `&= ~mask` globals
@@ -1546,9 +1546,9 @@ When a function sets a bit in one global and clears it from two others
    to the `sw` of A:
    - Target has `nor` *after* `sw` of A → write `~channel` twice inline:
      `B &= ~channel; C &= ~channel;`. A shared temp (`inv = ~channel`) moves
-     `nor` too early. (`func_8004E71C`)
+     `nor` too early. (`Spu_KeyOff`)
    - Target has `nor` *before* `sw` of A → assign into the channel temp:
-     `channel = ~channel; B &= channel; C &= channel;`. (`func_8004E6C4`,
+     `channel = ~channel; B &= channel; C &= channel;`. (`Spu_KeyOn`,
      where B is a struct field via the same local pointer as other accesses)
 
 3. **Source order of the two `&=` is not store order.** Writing
@@ -1557,13 +1557,13 @@ When a function sets a bit in one global and clears it from two others
    statements until that symbol is the early one — the final store order still
    ends up matching because of scheduling.
 
-`func_8004E71C` is the pure late-`nor` example: pointer on `D648E0_8007EBB0`,
+`Spu_KeyOff` is the pure late-`nor` example: pointer on `D648E0_8007EBB0`,
 then `D648E0_8007EBA8 &= ~channel` before `D648E0_8007EBAC &= ~channel` so
-that EBAC is the early-loaded `$a2` value. `func_8004E6C4` is the pure
+that EBAC is the early-loaded `$a2` value. `Spu_KeyOn` is the pure
 early-`nor` counterpart: pointer on the `|=` target plus `channel = ~channel`
 before the two clears.
 
-`func_8004EAF8` is late-`nor` with an extra struct-field clear in the middle
+`Spu_ArmKeyOn` is late-`nor` with an extra struct-field clear in the middle
 (`A |= mask; field &= ~mask; B &= ~mask; C &= ~mask`). Same recipe as E71C:
 local pointer on A (`&D648E0_8007EBAC`) and three inline `~channel` uses — not
 `channel = ~channel`. Dropping the pointer alone leaves only `li a1,1`
@@ -1992,7 +1992,7 @@ do {
 } while (i < 9);
 ```
 
-`func_80033D88` is the pure example. Same body with `i` then `p` scores ~94%.
+`Mc_VerifyFirstByteChecksum` is the pure example. Same body with `i` then `p` scores ~94%.
 
 ## Separate s16 next/sum forces a2/v1 accumulator split
 
@@ -2038,8 +2038,8 @@ Mc_SaveData.field_942 = ~next;
 
 Also keep an intermediate `base = Mc_BufferSlots; p = base + 1;` so the address
 forms as `addiu v0, %lo(Mc_BufferSlots)` then `addiu a0, v0, 0xC` rather than a
-folded `%lo(Mc_BufferSlots+0xC)`. `func_80033D3C` is the pure example; its verify
-sibling `func_80033D88` uses a plain `s32 sum` and different scheduling.
+folded `%lo(Mc_BufferSlots+0xC)`. `Mc_WriteFirstByteChecksum` is the pure example; its verify
+sibling `Mc_VerifyFirstByteChecksum` uses a plain `s32 sum` and different scheduling.
 
 ## Statement order picks which local reuses `$a1`
 
@@ -2242,7 +2242,7 @@ Fs_CdErrorCount = errCount + 1;    /* delay-slot store of count */
 CdControlF(CdlPause, NULL);
 ```
 
-`func_80025C94` is the pure example (sector-mismatch soft-error path).
+`Fs_StreamReadyCb` is the pure example (sector-mismatch soft-error path).
 
 ## Two consecutive values: write `== a || == a+1`, not `(u32)(x-a) < 2`
 
@@ -2401,7 +2401,7 @@ while (j < (u32)size) {
 }
 ```
 
-`func_80033E58` is the pure example (`Mc_BufferSlots[1..8]` buffer duplicate).
+`Mc_DuplicateBuffers` is the pure example (`Mc_BufferSlots[1..8]` buffer duplicate).
 
 ## Switch result phi via `temp` + goto join
 
@@ -2607,7 +2607,7 @@ p->unknown_0[2] = temp & 0xF7; /* separate andi — mask not CSE'd into $sN */
 Using the temp form on *both* sides also yields `andi`, but loads into `$a1`
 instead of reusing `$v0`.
 
-`func_800588D8` is the example.
+`CdStream_CleanupIrq` is the example.
 
 ## `0xFE` byte clear vs `~1` word mask: CSE to `li -2`
 
@@ -2638,7 +2638,7 @@ e->field_0 = (flags & ~1) | 4; /* still li -2; and */
 can put the `lbu` in `$a1`; the split `t = field; t = t & 0xFE; field = t`
 keeps `lbu`/`andi` on `$v0`.
 
-`func_8005854C` is the pure example (pairs with the `CdReady_Queue` entry flag
+`CdStream_TeardownVoices` is the pure example (pairs with the `CdReady_Queue` entry flag
 update used by `CdStream_Stop`).
 
 ## Non-volatile store reordered past volatile field stores
@@ -2662,7 +2662,7 @@ D_80082808 = 0; /* stays here when volatile */
 CdStream_State.unknown_0[0] = CdStream_State.unknown_0[0] | 1;
 ```
 
-`func_800588D8` / `D_80082808` is the example.
+`CdStream_CleanupIrq` / `D_80082808` is the example.
 
 ## Default return value belongs in the fall-through branch
 
@@ -2809,13 +2809,13 @@ if (delta > 0) {
 }
 ```
 
-`func_8005488C` is the pure example. `s32 level` with an explicit `(s16)` cast
+`SndVoice_StepMasterLevel` is the pure example. `s32 level` with an explicit `(s16)` cast
 in the compare still scored only ~81% — the cast was deleted.
 
 ## Same global, `lb` in one function and `lbu` in another
 
-`D_80082749` is loaded with `lb` by `func_80055C8C` (`if (D_80082749 != 0)`)
-and with `lbu` (+ `sll/sra 24` sign-extend) by `func_8005488C`. Declaring the
+`D_80082749` is loaded with `lb` by `SndVoice_TickRefCount` (`if (D_80082749 != 0)`)
+and with `lbu` (+ `sll/sra 24` sign-extend) by `SndVoice_StepMasterLevel`. Declaring the
 symbol `s8` matches the first; the second needs an unsigned load:
 
 ```c
@@ -3135,7 +3135,7 @@ case 4:
 *out = p->field_C;
 ```
 
-`func_80049478` is the pure example.
+`Ui_ComputeAnimRect` is the pure example.
 
 ## Dual large constants: call in both if/else arms for shared `lui` + `j`
 
@@ -3179,7 +3179,7 @@ if (flag == 0) {
 ```
 
 Polarity still matters: fall-through must be the `== 0` arm (`bnez` to the
-non-zero constant). `func_80020298` is the pure example.
+non-zero constant). `Mem_AllocAuxWithImages` is the pure example.
 
 ## `ptr = (u8*)&global; ptr += 4` for shared-`%hi` base then offset
 
@@ -3246,7 +3246,7 @@ build has `div` then immediate `mflo` (and the rest of the function shifts by
 Fix: enable `--expand-div` for the translation unit in `ninja_config.py`
 (`EXPANDIVFLAG`), and use the same flag in the scratch `build.sh`. Power-of-two
 divides that become shifts do not need this. Known TUs: `tmd.c`
-(`func_80040904`), `sndbank.c` (`LinInterp_Setup`).
+(`Mdec_StripCallback`), `sndbank.c` (`LinInterp_Setup`).
 
 ## Keep the `- 1` outside the div assignment for schedule
 
@@ -3278,7 +3278,7 @@ bne    v0,v1,else
 ```
 
 Also type strip counters that the target loads with `lhu` as `u16` (not `s16`),
-or you get a second `lh` and sign-extend on the index path. `func_80040904`.
+or you get a second `lh` and sign-extend on the index path. `Mdec_StripCallback`.
 
 ## Pin `val` to `$a0` and abs temp to `$v0` for in-place `$a1` diff
 
@@ -3682,7 +3682,7 @@ count = count - 4;
 count registers. If sum ends up correct in `$a2` but the loop index and count
 are swapped (`$a1`/`$a0`), pin the index: `register u32 j asm("a0")`.
 
-`func_80033CC0` is the pure example (batch write over `Mc_BufferSlots[1..8]`;
+`Mc_WriteSlotChecksums` is the pure example (batch write over `Mc_BufferSlots[1..8]`;
 contrast `Mc_WriteBlockChecksum` which uses `~sum` for a single buffer).
 
 ## Signed `/ 2` chain must land in `$a0` via the call argument
@@ -3770,7 +3770,7 @@ addPrim(D_800710A0 + otz, p);
 ```
 
 `setDrawTPage` → `setlen` + `_get_mode`; `addPrim` → `setaddr`/`getaddr` on
-`P_TAG`. Same pattern as `func_80043718` (which uses `AddPrim` the function
+`P_TAG`. Same pattern as `Prim_DrawTPage` (which uses `AddPrim` the function
 instead of the macro — that one is a real call). `func_80049100` is the pure
 inline-macro example.
 
@@ -3792,7 +3792,7 @@ size = base[idx].field_4;
 ```
 
 Pair with `base = Mc_BufferSlots` kept live (not `Mc_BufferSlots[idx]` alone) so the
-`%lo` address stays in a temp across the loop. `func_80033C40` is the pure
+`%lo` address stays in a temp across the loop. `Mc_CompareBufferHalves` is the pure
 example (reverse walk of `Mc_BufferSlots[8..1]` comparing each buffer to its
 duplicate half).
 
@@ -3843,8 +3843,8 @@ sum += (s8)*ptr;
 ```
 
 an `s32 sum` collapses the cast to a single `lb`. The target often wants the
-longer form (`lbu` / `sll 24` / `sra 24`) that `func_80033CC0` and its verify
-sibling `func_80033DD4` use over `Mc_BufferSlots[1..8]`.
+longer form (`lbu` / `sll 24` / `sra 24`) that `Mc_WriteSlotChecksums` and its verify
+sibling `Mc_VerifySlotChecksums` use over `Mc_BufferSlots[1..8]`.
 
 Declare the accumulator `s16`:
 
@@ -3924,7 +3924,7 @@ p++;
 p[1] = 0;
 ```
 
-`func_800300EC` is the pure example (memcard filename: product-code prefix +
+`Mc_BuildFileName` is the pure example (memcard filename: product-code prefix +
 selector char + 7 random chars + NUL).
 
 ## Dual same-function calls beat `sltiu` for boolean `0`/`1` args
@@ -4066,7 +4066,7 @@ Reuse the lo-index local for the multiply result so the product/`0x3FFF` clamp
 lands in `$v1` (the register that held the second table address) instead of
 `$a0`. Use `u32` temps so `>>` is `srl`, not `sra`.
 
-`func_8004E9D8` is the example (volume-style lookup: `D_80068BB8[hi] *
+`Spu_CalcVolume` is the example (volume-style lookup: `D_80068BB8[hi] *
 D_80068C78[lo] >> 8`, clamp to `0x3FFF`).
 
 ## Early halfword temp so `lh` stays live across intervening stores
@@ -4130,7 +4130,7 @@ a plain sequential write is often reordered so the `lw` fills the slot and the
 pins the store first:
 
 ```c
-func_800303AC();
+Mc_InitBufferSlots();
 do {
     D_80072189 = saved;
 } while (0);
@@ -4445,7 +4445,7 @@ default: arg0->field_30 = 0x18; break;
 }
 ```
 
-`func_800319E4` is the pure example (MemCardOpen status → UI state).
+`Mc_StateOpenRead` is the pure example (MemCardOpen status → UI state).
 
 ## `register s32 idx asm("v1")` for `andi v1,a1,0xff` + delay-slot `-1`
 
@@ -4511,7 +4511,7 @@ have (extension lives inside the callee for `GetTPage` etc.). Declare the
 callee as `s32` and cast to `s16` only where the body needs it:
 
 ```c
-void func_80043718(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+void Prim_DrawTPage(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     /* … */
     GetTPage(0, (s16)arg0, (s16)arg1, (s16)arg2);
@@ -4576,7 +4576,7 @@ p->field_d = 0;
 p->field_y = temp;
 ```
 
-`func_800565B8` is the pure example (SndVoiceFx init from SndNote bytes).
+`SndVoice_SetupEnvelope` is the pure example (SndVoiceFx init from SndNote bytes).
 
 ## Overlay pointer at a fixed offset for multi-field base `$tN`
 
@@ -4757,7 +4757,7 @@ keeps `beqz` but falls through into the draw and branches on `beq` for the
 early return — wrong block order. Only the if/else + continuation shape emits
 `bne` over both the early return and the else into the shared tail.
 
-`func_8002FDCC` is the pure example (two `TextDrawReq` stack slots at `sp+0x10`
+`Text_DrawPrompt` is the pure example (two `TextDrawReq` stack slots at `sp+0x10`
 and `sp+0x20` for the two draw paths).
 
 ## Interleaved jump tables: pad + absolute copy for still-asm neighbors
@@ -4943,7 +4943,7 @@ li v1,4` order.
 An empty `do {} while (0);` inside a nearby `if` can also be required to lock
 that schedule (same role as other `do {} while (0)` notes in this file).
 
-`func_8002FD08` is the pure example (multi-line text measure).
+`Text_MeasureMultiLine` is the pure example (multi-line text measure).
 
 ## Pointer init order swaps callee-saved assignment (`s3`/`s4`)
 
@@ -4968,7 +4968,7 @@ buf = sp10;
 
 (after `p = &sp50` and the zero init of the accumulators) flips `buf` into
 `$s3` and the max-width accumulator into `$s4` without changing semantics.
-`func_8002FD08` needs this together with the `s8`/`s32` constant trick above.
+`Text_MeasureMultiLine` needs this together with the `s8`/`s32` constant trick above.
 
 ## Force `Mem_Set` arg order: `move a1,zero` then `lui a2` then dest load
 
@@ -5225,7 +5225,7 @@ func(obj, targetX - obj->field_20, targetY - obj->field_22);
 ```
 
 `func_80048D58` is the pure example (smooth cursor toward a UI object over
-`Display_State.field_10a` frames, then call `func_800463B4`).
+`Display_State.field_10a` frames, then call `Ui_DrawCursor`).
 
 ## `u8` index + `arr[i]` for large-offset slot walks
 
@@ -5262,7 +5262,7 @@ u8 t = arg0 & 0xF;
 for (i = 0; i < 0x12; i++) {
     if (arg2->voiceSlots[i].field_2 == param &&
         arg2->voiceSlots[i].field_1 == t) {
-        func_8004E71C(arg2->voiceSlots[i].field_0);
+        Spu_KeyOff(arg2->voiceSlots[i].field_0);
     }
 }
 ```
@@ -5716,7 +5716,7 @@ arg1->field_10 = arg0;
 cur->field_10  = arg1;
 ```
 
-`func_8002D14C` is the pure example (reparent: detach then insert into parent's
+`Task_Reparent` is the pure example (reparent: detach then insert into parent's
 circular child list — same unlink shape as `Task_DetachFromParent`).
 
 ## Force a second `(s8)` cast into the same reg (`sll v1; sra v1,v1`)
@@ -5910,7 +5910,7 @@ cond = size;
 if (cond != 0) { /* 0xFF-fill */ }
 ```
 
-`func_800303AC` is the pure example (`Mc_BufferSlots[1..8]` dual fill + checksum).
+`Mc_InitBufferSlots` is the pure example (`Mc_BufferSlots[1..8]` dual fill + checksum).
 
 ## `asm("")` pins independent zero-init after a load
 
@@ -5948,7 +5948,7 @@ sum = sum + tmp;   /* not sum += (s8)*cptr */
 
 `sum += (s8)*cptr` alone gives the shift pair but the wrong `addu` operand
 order; a non-volatile `tmp = (s8)*ptr; sum = sum + tmp` gives the right `addu`
-but collapses to `lb`. Both together match. Used in `func_800303AC` over
+but collapses to `lb`. Both together match. Used in `Mc_InitBufferSlots` over
 `McChecksumBlock` payloads (same loop shape as `Mc_WriteBlockChecksum`).
 
 ## Volatile byte cast forces reload of a just-tested field
@@ -6028,7 +6028,7 @@ temp_v1 = temp_v0 / 127;
 Pinning the abs/product temporary to `$v0` (as above) is usually also required
 so the following signed-division magic and clamp keep `$v0`/`$v1` the way the
 target does; without the pin, scale and product drift into `$a0` and the
-`mfhi`/`slti` register choices diverge. `func_800564C4` is the pure example.
+`mfhi`/`slti` register choices diverge. `SndVoice_ScaleVolume` is the pure example.
 
 ## `u8` ring index: store then compare (not check-then-store)
 
@@ -6197,7 +6197,7 @@ func(x - (s16)arg0->field_20, y - (s16)arg0->field_22);
 ```
 
 Changing the struct field to `s16` would break other matches that expect `lhu`
-(e.g. `func_80048F88` on `UiPanel::field_20`). `func_80048E38`.
+(e.g. `func_80048F88` on `UiPanel::field_20`). `Ui_DrawTitle`.
 
 ## `(u16)` cast on an `s16` field forces `lhu` without changing the struct
 
@@ -6222,7 +6222,7 @@ epilogue. `CdCmd_ActivatePhase1` (`CdCmd_Queue.field_20E`).
 ## Short-lived stack `RECT*` stays in `$a1` for switch stores + callee arg
 
 When a function takes a string in `$a1` (saved to `$s2`), then builds a stack
-`RECT` used both as `func_80045A3C(..., r, ...)` and for field stores in the
+`RECT` used both as `Ui_ScaleRect(..., r, ...)` and for field stores in the
 default arm, a local `RECT *r = &sp18` that dies before the post-switch draw
 call is allocated to `$a1`. GCC then:
 
@@ -6232,7 +6232,7 @@ call is allocated to `$a1`. GCC then:
 
 If the same pointer is also read after a later `jal` (draw uses `r->x`), it
 spills to a callee-saved and the frame grows. Keep draw coords as
-`sp18.x` / `sp18.y` so `r` is switch-only. `func_80048E38`.
+`sp18.x` / `sp18.y` so `r` is switch-only. `Ui_DrawTitle`.
 
 ## Split `x = x + 1` to stop `(x+1)-base` reassociating to `x-(base-1)`
 
@@ -6250,7 +6250,7 @@ func(..., x - base_x, y - base_y, ...);
 ```
 
 Inlining the `+ 1` into the call expression is enough to invite the rewrite.
-`func_80048E38`.
+`Ui_DrawTitle`.
 
 ## Materialize long-lived pointers before early-return guards
 
@@ -6289,7 +6289,7 @@ ptr  = (s32*)((volatile SndBank*)bank)->field_4;
 Plain `base = bank->field_18; ptr = bank->field_4;` is free to swap the loads
 by schedule/urgency (the pointer used sooner after a following branch often
 loads first). The `volatile` cast forces source order without changing the rest
-of the function. `func_80053448` is the pure example (relocate loop setup).
+of the function. `SndBank_FinalizeLoad` is the pure example (relocate loop setup).
 
 ## Shared `var_v0` + epilogue flips global pointer store register order
 
@@ -6452,7 +6452,7 @@ p->h = arg4 - 1;           /* forces lw of stack arg early */
 setlen(p, 3);
 ```
 
-`func_800491AC` also needs `register u32 color asm("t3")` so the 6th arg
+`Ui_AllocTile` also needs `register u32 color asm("t3")` so the 6th arg
 lands in `$t3` (without the pin, `$t2`/`$t3` for arg1/arg5 swap). Pair with
 Psy-Q `addPrim` / `setlen` / `setcode` (see above) and
 `addPrim(D_800710A0 + (s16)obj->field_14 + 1, p)` when the target uses `lh`
@@ -6495,7 +6495,7 @@ if (GetRCnt(timer) >= TIMEOUT) {
 Also: assign `z = NULL` *before* the idle wait so CSE does not replace
 `move a0, zero` with `move a0, s1` when `retry == 0` is proven.
 
-`func_800246B0` is the pure example. Pair with `register ... asm("s0")` /
+`Fs_LoadImageChunk` is the pure example. Pair with `register ... asm("s0")` /
 `asm("s1")` when ot/retry would otherwise swap.
 
 ## Split range-check condition into a temp for `move a1` delay fill
@@ -6605,7 +6605,7 @@ Keep large constants (e.g. `0x7008FU` for a `mask` field) as *literals* at the
 store site, not loop-invariant locals — otherwise GCC pins them in a callee-
 saved reg (`s3`) instead of interleaving `lui`/`ori` into `$a1` delay slots.
 
-`func_8004DF10` is the pure example (voice-attr init after `Spu_GetVoiceRef`).
+`Spu_InitVoices` is the pure example (voice-attr init after `Spu_GetVoiceRef`).
 
 ## Empty asm after pinned arg copies for prologue `li sN` order
 
@@ -6641,7 +6641,7 @@ the pinned arg regs are what force the `move`s to complete first.
 Also pair with `register s32 temp asm("s2")` when a long-lived work pointer
 must occupy `$s2` (otherwise it steals `$s1` and flips the arg colors).
 
-`func_80032F5C` is the pure example (checksum gate + confirm/cancel pad path
+`Mc_StateSaveSlotUi` is the pure example (checksum gate + confirm/cancel pad path
 over `McWork::field_294[slot]`).
 
 ## Force `(idx << k) + C` before base add for `addiu`/`addu` order
@@ -6693,7 +6693,7 @@ arg1->h = temp;
 ```
 
 Also cast `byte` (signed char) through `(u8)` before `>>` so the nibble test
-is `srl`, not `sll`/`sra`. `func_80045A3C`.
+is `srl`, not `sll`/`sra`. `Ui_ScaleRect`.
 
 ## Irregular status switch: if/goto + pinned s-regs + `while (++j < limit)`
 
@@ -6871,7 +6871,7 @@ j   common
  sw v1, field_1C
 ```
 
-`func_800322B0` is the pure example — ~98% with `next`, 100% with per-case stores.
+`Mc_StateFreeBuffer` is the pure example — ~98% with `next`, 100% with per-case stores.
 
 ## Capture TaskDesc tail field before assigning the callback
 
@@ -7037,7 +7037,7 @@ Assign `field_30` in each branch (do **not** funnel through a `next` temp). A
 reorders `sw field_30` past `li a1,1`. Direct stores keep the constant in `$v0`
 and schedule the join `sw` before the prompt setup.
 
-`func_80031C5C` is the pure example (status 0 vs pad-filename path for
+`Mc_StatePadFileName` is the pure example (status 0 vs pad-filename path for
 1..3/default).
 
 ## Dual `lb`/`lbu` + `bltz` clamp to 0x7F
@@ -7068,7 +7068,7 @@ if ((s8)arg1[2] >= 0) {
 
 `if ((s8)x < 0)` inverts the polarity to `bgez` and swaps the store order.
 `func_80052488` (MIDI CC 6 data-entry path) is the pure example; same shape as
-`func_80051460` without the dual load.
+`SndEvt_EnqueueType5` without the dual load.
 
 ## `s32 value = u8; if ((value & 0xFF) == K)` keeps load-delay `andi`
 
@@ -7192,12 +7192,12 @@ work = arg1;
 arg1 = 0; /* kills a1; CSE can put K in a1 and load field_0 from s2 */
 if (work->field_2C == 1) {
     work->field_8 = 0x11;
-    status = func_800307AC(arg0, 0x11, work->field_0);
+    status = Mc_PromptDialogSpawn(arg0, 0x11, work->field_0);
     ...
 }
 ```
 
-`func_80031DA4` is the pure example. Pair with `register Task* task asm("s3")`
+`Mc_StateNameEntry` is the pure example. Pair with `register Task* task asm("s3")`
 (and other pins for later reuse of `$s0`/`$s1`) so the prologue is
 `sw s3; sw s2; move s2,a1` with `move s3,a0` in the first `bne` delay slot.
 
@@ -7312,7 +7312,7 @@ if (p->field_2E == 6) {
 return obj->field_2C;
 ```
 
-`func_8003062C` is the pure example (~97.5% → 100% with only this change).
+`Mc_PromptDialogChoice` is the pure example (~97.5% → 100% with only this change).
 
 ## Dense 0..N switch → equality-chain if/gotos with duplicated tails
 
@@ -7430,7 +7430,7 @@ sra 17; negu`: write `-(w >> 1)` (not `/ 2`, which emits the signed-div bias)
 and chain the pair through the field itself (`p->lo = -(w >> 1); p->hi = p->lo
 + w`) so `negu` stays in `$v0` rather than a separate temp in `$v1`.
 
-`func_80049348` is the pure example (factored tail ~81%, duplicated arms → 100%).
+`Ui_InsetLayout` is the pure example (factored tail ~81%, duplicated arms → 100%).
 
 ## Force early `lui`/`ori` of a late-used constant
 
@@ -7439,7 +7439,7 @@ When the target completes a multi-instruction constant (`lui tN,hi` /
 branch delay-slot filler (and puts a later body instruction after the branch),
 the constant is too free to schedule. Pin it and emit an empty asm that takes
 it as an I/O operand so the full materialization finishes before subsequent
-loads (`func_80046DEC`):
+loads (`Ui_DrawListHighlight`):
 
 ```c
 register u32 color asm("t4");
@@ -7471,7 +7471,7 @@ width = a1->field_1E - x1; /* lh into $v0, nop, subu */
 
 ## Signed layout overlay when the canonical struct is `u16` for other matches
 
-`UiPanel.field_1C` / `field_1E` are `u16` so functions like `func_80049348`
+`UiPanel.field_1C` / `field_1E` are `u16` so functions like `Ui_InsetLayout`
 emit `lhu`. A sibling draw helper that needs `lh` for the same offsets must not
 flip the canonical type (that breaks the other matches). Use a local overlay
 with `s16` at those offsets and cast once:
@@ -7495,7 +7495,7 @@ x1 = a1->field_1C; /* lh */
 
 For a TILE whose `y0 = base_y + arg2 - h + 1`, the target often does
 `subu a2,a2,t3` in the early-out branch delay slot, then later
-`addu v1,v1,a2; addiu v1,v1,1`. Mirror `func_800491AC`'s `y = field_22` preload
+`addu v1,v1,a2; addiu v1,v1,1`. Mirror `Ui_AllocTile`'s `y = field_22` preload
 and write the adjust as an assignment on `arg2` inside the body:
 
 ```c
@@ -7505,7 +7505,7 @@ arg2  = arg2 - h;       /* fills bnez delay slot */
 p->y0 = y + arg2 + 1;   /* addu + addiu, no separate subu of h */
 ```
 
-`func_80046DEC` is the pure example (together with the color-pin / memory-clobber
+`Ui_DrawListHighlight` is the pure example (together with the color-pin / memory-clobber
 tips above).
 
 ## Force halfword reload after a live register holds the same value
@@ -7558,7 +7558,7 @@ live `y = field_22` that the target keeps in `$a1` across a branch). Pinning
 both forces the early value elsewhere and emits `lui a1,0xFF00` too early.
 Leave the early temp unpinned: with `mask_hi` reserved for the epilogue, GCC
 still naturally places the live-across-branch value in free `$a1`, and the late
-`mask_hi` assignment keeps the correct `lui` schedule. `func_80046508` is the
+`mask_hi` assignment keeps the correct `lui` schedule. `Ui_DrawCaret` is the
 example (shares the dual-use OT pattern with `func_80049980`).
 
 ## Oversize prim advance via a larger sibling type
@@ -7691,7 +7691,7 @@ Also for multi-line loops over text (`func_8002F9E0` + `func_8002E53C`):
   (`x = arg1`) so the target's `lw s2, 0xA4(sp)` matches.
 
 `func_8002FB84` is the pure example (multi-line sibling of single-line
-`func_8002FDCC`).
+`Text_DrawPrompt`).
 
 ## Scratch-head 8-byte alloc: pin `v1`/`a3`/`v0` for `move s1,v0`
 
@@ -8021,9 +8021,9 @@ p->x0 = temp;
 
 Without the `f20`/`next` pins, GCC advances the cursor in `$v0` first and
 hoists `li v0,0x50`, losing the `lhu`/`addiu` interleave. Without `arg2 = 0x68`,
-`$a2` is rematerialized at the U stores. `func_80047A0C` is the pure example.
+`$a2` is rematerialized at the U stores. `Ui_DrawHBar` is the pure example.
 
-`func_80047B24` is the vertical sibling (Y from arg1..arg2, X from
+`Ui_DrawVBar` is the vertical sibling (Y from arg1..arg2, X from
 `field_20+arg3±offsets`) and cannot reassign `arg2` — both arg1 and arg2 are
 still live for the Y edges, so the compiler saves them to `$t1`/`$t2` and the
 U constant must land in the now-free `$a2` via an explicit pin. Also pin the
@@ -8102,7 +8102,7 @@ temp >>= 12; /* fills the bne delay as srl v1,v1,0xc */
 
 Pinning `index` to `$a1` and `temp` to `$v1` keeps the `andi v1,a1,0xffff` /
 `srl v1` chain; `mask` in a GPR supplies the `li v0,0xffff` for the compare.
-`func_80052F80` is the pure example (bank id check before `D_800680AC` lookup).
+`SndBank_SetupFromLoad` is the pure example (bank id check before `D_800680AC` lookup).
 
 ## Signed `/ 64` map store: pin dividend adj to `$v1`, shift result to `$v0`
 
@@ -8289,7 +8289,7 @@ if (work->field_14 != 0) {
 child = task->field_c; /* lw a0, 0xc(s6) again */
 ```
 
-`func_80032578` is the pure example. Pair with `register s32 syncResult
+`Mc_StateSyncFileSelect` is the pure example. Pair with `register s32 syncResult
 asm("s1")` so `flag->field_0 = syncResult` emits `sw s1,0(s0)` instead of
 substituting a live `li`/constant register after `syncResult == one`.
 
@@ -8411,7 +8411,7 @@ worse than the real project match.
 ## POLY color-before-y and `fourth = f22 - 7` for call args
 
 UI text-draw helpers that emit a `POLY_F4` then call a bar/underline routine
-(e.g. `func_80047C40` → `func_80047A0C`) need two scheduling tricks:
+(e.g. `Ui_DrawTextUnderline` → `Ui_DrawHBar`) need two scheduling tricks:
 
 **1. Store the solid color before the y-coords.** Target after the text call:
 
@@ -8530,7 +8530,7 @@ if (D_flag != 0) {
 
 Volatile stores cannot move past the subsequent non-volatile load, so order
 matches, while the `lui %hi(D_flag)` still fills the earlier branch delay.
-`func_800489A0` is the pure example (UiList tail zero-init + `D_80072313`).
+`Ui_InitList` is the pure example (UiList tail zero-init + `D_80072313`).
 
 ## RECT field store order changes LoadImage arg scheduling
 
@@ -8660,7 +8660,7 @@ __asm__("lhu %0, %%lo(D5B498_8006ACE8)(%1)" : "=r"(t) : "r"(ace_hi));
 
 Also: `s8_global * 64` (or `(s8)u8_global * 64`) emits `lb; sll 6`, while
 `s8_global << 6` emits `lbu; sll 24; sra 18`. Prefer multiply for signed-byte
-scale factors. `func_800248B4` is the pure example.
+scale factors. `Fs_CopyWorkEntries` is the pure example.
 
 ## Fade step: non-volatile `lh` + volatile `lhu` + dual temps
 
@@ -8868,8 +8868,8 @@ Do **not** also name a long-lived `RECT* arg2 = &sp18`: that steals `$s2` and
 changes the `bne` delay from `addiu s1,sp,0x10` to `addiu s2,sp,0x18`. Pass
 `&sp18` directly so each use is a fresh `addiu a2,sp,0x18`.
 
-`func_80045D24` is the pure example (same shape as inlined `func_80049478` +
-`func_80049348` + `func_800454E4`).
+`Ui_LayoutAndDraw` is the pure example (same shape as inlined `Ui_ComputeAnimRect` +
+`Ui_InsetLayout` + `Ui_DrawPanel`).
 
 ## Ring-buffer queue drain: non-volatile entry + split index advances
 
@@ -8955,12 +8955,12 @@ but the real prototype is `u8 foo(...)`, a direct call inserts the zero-extend
 return as SImode:
 
 ```c
-temp = acc + ((s32 (*)(s32))func_8004E6A4)(voice);
+temp = acc + ((s32 (*)(s32))Spu_GetVoiceStatus)(voice);
 ```
 
 Safe only when the callee already returns a clean low byte (e.g. via `lbu`).
 Do not change the shared `u8` declaration — other matched callers may depend on
-the `andi`. `func_800567E4` needs this for `func_8004E6A4`.
+the `andi`. `func_800567E4` needs this for `Spu_GetVoiceStatus`.
 
 ## Jump-table mult: load order vs `mult` operand order
 
@@ -9026,7 +9026,7 @@ u = arg3 + 1;
 func(arg0, dims.hw.w + t, dims.hw.h + u);
 ```
 
-`func_80048560` is the pure example (text size padding into `func_800466E4`).
+`func_80048560` is the pure example (text size padding into `Ui_UpdateLayoutSize`).
 
 ## Force `bne` (not `xor`/`sltiu`) for u16 equality into a u16 temp
 
@@ -9136,7 +9136,7 @@ temp = *pB - K;
 *pDst = *pA + temp;
 ```
 
-`func_800144F8` is the pure example (`D_80068F98 = D_80068F88 + (D_80068F90 - 0xA)`).
+`Mem_ConfigureAuxHeap` is the pure example (`D_80068F98 = D_80068F88 + (D_80068F90 - 0xA)`).
 
 ## Zero-tail loop: single index, `i & 0xFF`, increment at bottom
 
@@ -9167,7 +9167,7 @@ do {
 } while ((u32)(i & 0xFF) < 0xAU);
 ```
 
-`func_800144F8` is the pure example.
+`Mem_ConfigureAuxHeap` is the pure example.
 
 ## McWork direntry walk from McWork base (size@0x48, head@0x50)
 
@@ -9349,7 +9349,7 @@ p->v0 = t;
 
 Pinning `half` to `$a0` coalesces the bias into `$a0` (`addu a0,v1,v0`
 instead of `addu v0,v1,v0`). Leaving `half` unpinned after the explicit
-`/2` + subtract form yields the retail chain. `func_800463B4` is the pure
+`/2` + subtract form yields the retail chain. `Ui_DrawCursor` is the pure
 example (SPRT_8 cursor + DR_TPAGE, OT index 4).
 
 ## Scoped `register asm` pins for multi-section functions
@@ -9466,7 +9466,7 @@ initial `0 < len` collapses to `beqz`. Wrapping the same loop in
 pair (or peels a `do`/`while` into a first-element special case). Prefer the
 plain `for` when the target has a single `beqz` on the length.
 
-`func_80023748` is the pure example (folder-table lookup).
+`Fs_PrepareFolderLoad` is the pure example (folder-table lookup).
 
 ## `asm("")` after `i = 0` before an unrelated global store
 
@@ -9490,7 +9490,7 @@ D_flag = 0;
 folderId = ((u8)arg1 * 100) + (u8)arg2;
 ```
 
-`func_80023748` (`D_8006ADE2` after the `Stream_Slots` clear loop).
+`Fs_PrepareFolderLoad` (`D_8006ADE2` after the `Stream_Slots` clear loop).
 
 ## Two-phase scratch alloc: unpinned load, then `register … asm("v1")` adjust
 
@@ -9726,7 +9726,7 @@ if (slotIdx == 0) {
 }
 ```
 
-`func_80032D54` needs this so the checksum loop counter stays in `$a0` with an
+`Mc_StateFinishWrite` needs this so the checksum loop counter stays in `$a0` with an
 explicit zeroing instruction matching the target.
 
 ## `register asm` for memcpy arg load order
@@ -9754,7 +9754,7 @@ register colouring on the sibling branch (e.g. a checksum loop that also wants
 `lui %hi(table)` in the `bnez` delay slot and finishes with
 `addiu v0, v0, %lo(table)` on the memcpy path.
 
-`func_80032D54` is the pure example.
+`Mc_StateFinishWrite` is the pure example.
 
 ## Place absolute jtbl consts after the C function that owns the preceding slot
 
@@ -10012,7 +10012,7 @@ epilogue:
     cleanup();
 ```
 
-`Task_AllocIdMap` is the pure example (`field_1 == 1` → `func_8005132C` then
+`Task_AllocIdMap` is the pure example (`field_1 == 1` → `SndEvt_EnqueueType2` then
 shared `D_80062734 = 0xFF; Task_Kill`). Explicit `goto epilogue` on the
 `Midi_IsBusy != 0` path inverted the `field_1` branch to `beq` with the
 bodies swapped.
@@ -10037,11 +10037,11 @@ before the call:
 {
     register u8* fn asm("a0");
     fn = Mc_FileName;
-    func_800300EC(fn, saved->field_2C);
+    Mc_BuildFileName(fn, saved->field_2C);
 }
 ```
 
-Plain `func_800300EC(Mc_FileName, saved->field_2C)` keeps the swapped order.
+Plain `Mc_BuildFileName(Mc_FileName, saved->field_2C)` keeps the swapped order.
 `func_800314D0` is the pure example.
 
 ## Dual block pointers reuse angle `$s0` for scratch field access
@@ -10283,7 +10283,7 @@ Symptom: first loop matches after pins, second loop has the right shape but
 wrong registers (or vice versa).
 
 Fix: give the second loop its own counter/sum/pointer locals and pin each set
-independently. `func_80032AB0` is the pure example — block-checksum walk then
+independently. `Mc_StateVerifyFinish` is the pure example — block-checksum walk then
 first-byte sum over `Mc_BufferSlots[1..8]`.
 
 ## Reuse a pointer var across phases to force shared hard registers
@@ -10342,7 +10342,7 @@ if (stream->field_C != 0) {
 The barrier pins `src` before later independent inits, so the delay-slot filler
 takes `move a2, a0`. Without it, `k = 0` or the `dst` `addu` wins the slot.
 `func_8002397C` is the pure example (also uses the project’s existing `asm("")`
-pattern from `func_80023748`).
+pattern from `Fs_PrepareFolderLoad`).
 
 ## Late `andi s0, src, 0xFFFF` in call arg setup
 
@@ -10370,7 +10370,7 @@ SetDefDispEnv(q, 0, y, temp_s5 & 0xFFFF, h);
 comma form evaluates the full-width mask for the call while the dummy `char`
 store reshuffles the scheduler. A second local pointer alias (`new_var = ds`)
 used on one call site can also be required to keep the register set stable.
-`func_8003DB48` is the pure example.
+`Display_SetMode` is the pure example.
 
 ## Dual magic-division + remainder for NTSC/PAL frame scaling
 
@@ -10594,7 +10594,7 @@ p->field_202 = neg;  /* sh v0, field */
 Changing the field type to `s16` also works in isolation but can break
 already-matched functions that load the same field as `lhu` / cast through
 `(s16)`. Prefer the temporary when the field type must stay `u16`.
-`func_8003FF14` is the pure example.
+`Mdec_ResolveStreamBuffer` is the pure example.
 
 ## Zero-pad itoa: force magic-before-`'0'` load order
 
@@ -10722,7 +10722,7 @@ work->field_28 = (u32)work->field_28 >> 1;
 
 often schedules `sw field_24` between `addiu` and `srl`. Keep both values in
 registers, finish both ALU ops, then barrier before either store
-(`func_80031F94`):
+(`Mc_StateBackupBuffers`):
 
 ```c
 register s32 f24 asm("v0");
@@ -11029,7 +11029,7 @@ The early `lhu` can fill the slot after `sh h`, and `addu` fills the `bgez`
 delay. Use `*(u16*)&` (or a `u16`/`u32` temp from an unsigned load) when the
 target wants `lhu` but the field type is signed `short`.
 
-`func_80046830` is the pure example. Pair with signed field overlays when the
+`Ui_LayoutListPanel` is the pure example. Pair with signed field overlays when the
 same function also needs `lb`/`lh` on counts/layout halfwords stored as `u8`/`u16`
 in the shared struct.
 
@@ -11066,7 +11066,7 @@ The `+r` barrier forces `li` to complete before any following `lui`, so delay-sl
 fill prefers the constant and the remaining schedule is `lui` / `sh` / …
 
 Pair with `register DR_AREA* p asm("s0")` when the same function's `addPrim`
-tails need `and s0, s0, a0` (mask in `$a0`). `func_800454E4` is the pure example.
+tails need `and s0, s0, a0` (mask in `$a0`). `Ui_DrawPanel` is the pure example.
 
 ## Global array access for `addiu v0, base, off` form
 
@@ -11382,7 +11382,7 @@ end:
     return;
 ```
 
-`func_800446A0` is the pure example. Pair with `register s32 y0r asm("v1")` if
+`Ui_DrawWindowBorder` is the pure example. Pair with `register s32 y0r asm("v1")` if
 the second validity compare must load the right-hand operand first
 (`lh v1, y0; lh v0, y2; slt v0, v0, v1`).
 
@@ -11407,7 +11407,7 @@ temp that lives in `$v0` (`color = 0xB0; t = color - val`) so you get
 First clamp only: after `t = 1` use `asm("" : "+r"(t)); c = t & 0xFF` so the
 second `andi` is not constant-folded to `li a0, 1`.
 
-## `func_8005A94C` (4A6E0 CD/SPU stream callback) notes
+## `CdStream_ReadyMts` (4A6E0 CD/SPU stream callback) notes
 
 Large (~0xA68) CD ready callback (`CdStream_*` / `CdReady_*` subsystem).
 Infrastructure landed; full match still open (~84% best). Key requirements for

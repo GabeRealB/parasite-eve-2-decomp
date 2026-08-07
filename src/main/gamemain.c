@@ -36,7 +36,7 @@ void func_800271D4(void)
 
     GameResetScratchHead();
     D_8005EC64++;
-    func_800144F8(0, 0);
+    Mem_ConfigureAuxHeap(0, 0);
     Mem_Init();
     Task_ResetDefaultList();
     Tmd_InitLists();
@@ -67,7 +67,7 @@ void func_800271D4(void)
 
     flag                   = 1;
     Display_State.field_1f = flag;
-    func_8003DB48(0x1010);
+    Display_SetMode(0x1010);
     Mem_Set(Pad_RemapState, 0, 0x1C);
 }
 

@@ -282,7 +282,7 @@ void func_8003E814(void)
     GameSession* temp;
 
     temp = Game_Session;
-    func_800144F8(temp->field_7, temp->field_6);
+    Mem_ConfigureAuxHeap(temp->field_7, temp->field_6);
     Display_State.field_1e  = 0;
     Display_State.field_10d = 0;
 }

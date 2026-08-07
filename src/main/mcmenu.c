@@ -27,9 +27,9 @@ void func_80036A70(Task* arg0)
 
     obj  = arg0->field_20;
     menu = &D_8006116C;
-    func_80047F40((UiPanel*)obj, D_80013B64);
+    Ui_DrawText((UiPanel*)obj, D_80013B64);
     if (arg0->field_30 == 0) {
-        func_800489A0(menu, obj);
+        Ui_InitList(menu, obj);
         menu->field_A  = 1;
         menu->field_10 = 0;
         menu->field_9  = 0;
@@ -79,9 +79,9 @@ void func_80036C04(Task* arg0)
     obj  = arg0->field_20;
     ctx  = (WipSelectMenuExt*)arg0->field_34;
     menu = &D_80061194;
-    func_80047F40((UiPanel*)obj, D_80013B64);
+    Ui_DrawText((UiPanel*)obj, D_80013B64);
     if (arg0->field_30 == 0) {
-        func_800489A0(menu, obj);
+        Ui_InitList(menu, obj);
         menu->field_A  = 1;
         menu->field_10 = ctx->field_290;
         temp           = (u8)menu->field_10 - menu->field_5 + 1;
@@ -114,7 +114,7 @@ void func_80036CF0(Task* arg0)
         arg0->field_34  = data;
     }
     data = arg0->field_34;
-    func_80048E38(obj, D_80013BB4);
+    Ui_DrawTitle(obj, D_80013BB4);
     if (arg0->field_2a == 1) {
         menu = &D_80061194;
     } else {
@@ -128,7 +128,7 @@ void func_80036D98(DialogPrompt* arg0, UiObject* arg1)
 {
     s32 temp;
 
-    func_8002FDCC(arg1, arg0->field_18, arg0->field_1A, D_80060A54, arg0->field_1C, 1, 0);
+    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, D_80060A54, arg0->field_1C, 1, 0);
     temp = arg0->field_C;
     if (temp == 1) {
         if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
@@ -147,7 +147,7 @@ void func_80036E78(DialogPrompt* arg0, UiObject* arg1)
 {
     s32 temp;
 
-    func_8002FDCC(arg1, arg0->field_18, arg0->field_1A, D_80060A64, arg0->field_1C, 1, 0);
+    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, D_80060A64, arg0->field_1C, 1, 0);
     temp = arg0->field_C;
     if (temp == 1) {
         if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
@@ -162,7 +162,7 @@ void func_80036F18(DialogPrompt* arg0, UiObject* arg1)
 {
     s32 temp;
 
-    func_8002FDCC(arg1, arg0->field_18, arg0->field_1A, D_80060A5C, arg0->field_1C, 1, 0);
+    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, D_80060A5C, arg0->field_1C, 1, 0);
     temp = arg0->field_C;
     if (temp == 1) {
         if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
@@ -175,7 +175,7 @@ void func_80036F18(DialogPrompt* arg0, UiObject* arg1)
 
 void func_80036FB8(DialogPrompt* arg0, UiObject* arg1)
 {
-    func_8002FDCC(arg1, arg0->field_18, arg0->field_1A, D_80060A58, arg0->field_1C, 1, 0);
+    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, D_80060A58, arg0->field_1C, 1, 0);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, D_8005ED70 | D_8005ED74) != 0) {
             SndEvt_EnqueueType6(0x3B, 0, 0);
@@ -211,7 +211,7 @@ block_default:
     menu = &D_8006125C;
 block_done:
     if (arg0->field_30 == 0) {
-        func_80046830(menu, obj);
+        Ui_LayoutListPanel(menu, obj);
         obj->field_C.y -= obj->field_C.h / 2;
         if (arg0->field_34 != 3) {
             menu->field_10 = 0;

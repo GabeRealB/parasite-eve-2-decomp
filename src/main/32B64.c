@@ -133,9 +133,9 @@ void func_800429C8(s32 arg0)
     if ((arg0 & 0xFFFF) != 0) {
         D_8007A396 = arg0;
         if (D_80062737 != 0) {
-            func_80051460(D_80062737, (u8)D_8007A396);
+            SndEvt_EnqueueType5(D_80062737, (u8)D_8007A396);
         } else {
-            func_80051460(0, (u8)D_8007A396);
+            SndEvt_EnqueueType5(0, (u8)D_8007A396);
         }
     } else {
         temp       = sp10.data[Mc_SaveData.field_1aa];
@@ -146,9 +146,9 @@ void func_800429C8(s32 arg0)
             func_800518E0();
         }
         if (D_80062737 != 0) {
-            func_80051460(D_80062737, (u8)D_8007A396);
+            SndEvt_EnqueueType5(D_80062737, (u8)D_8007A396);
         } else {
-            func_80051460(0, sp10.data[D_80072312]);
+            SndEvt_EnqueueType5(0, sp10.data[D_80072312]);
         }
     }
 }

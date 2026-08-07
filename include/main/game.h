@@ -132,7 +132,7 @@ typedef struct _GameSession {
     u8    field_6;
     u8    field_7;
     byte  unknown_8[0x4];
-    void* field_C[16]; // 0xC..0x4B; cleared by func_8002D780
+    void* field_C[16]; // 0xC..0x4B; cleared by Game_ClearPtrSlots
     u8    field_4C;
     u8    field_4D;
     u16   field_4E; // set to 1 by Fs_LoadFile for category-8 file ids
@@ -157,7 +157,7 @@ typedef struct _GameSessionFrom4 {
 STATIC_ASSERT_SIZEOF(GameSessionFrom4, 0x4);
 
 /// Large object pointed to by Task::field_1C for the slot-3 game object
-/// (func_8002D22C(3)). Sparse fields used by func_8003EE68.
+/// (Game_GetPtrSlot(3)). Sparse fields used by func_8003EE68.
 typedef struct _GameActor {
     /* 0x000 */ byte pad_0[0x90];
     /* 0x090 */ s32  field_90;
@@ -364,11 +364,11 @@ STATIC_ASSERT_SIZEOF(UiMiniObj, 0x24);
 /// Mc_DrawPrompt / func_800486F0. Shares the UiPanel layout through offset
 /// 0x24 (handlers cast field_20 to UiPanel*). field_0 is a status flag;
 /// field_4 is copied from UiObjectDesc::field_0 at spawn; field_8 is a mode
-/// (5 = skip draw in func_8002FDCC / func_8002FB84; set to 3 when torn down); field_C..field_12
+/// (5 = skip draw in Text_DrawPrompt / func_8002FB84; set to 3 when torn down); field_C..field_12
 /// are layout halfwords (RECT-like); field_14 is a halfword counter used as the
 /// text draw priority/order; field_16 is a signed timer/counter; field_18/field_1A
 /// are layout offsets (shared with UiPanel; used when positioning child UI);
-/// field_1C is a position halfword (+2 when passed to func_8002FDCC); field_1E is
+/// field_1C is a position halfword (+2 when passed to Text_DrawPrompt); field_1E is
 /// an x offset paired with field_20; field_20/field_22 are base x/y for relative
 /// text placement; field_24 is a callback copied from the descriptor; field_28 is
 /// the owning Task*; field_2C / field_2E are halfwords polled by teardown state
@@ -480,11 +480,11 @@ STATIC_ASSERT_SIZEOF(StreamSlot, 0x28);
 /// D_80061284, D_800612AC, D_80067654; size 0x24).
 /// field_0 is a function-table pointer; field_4 / field_5 are base indices
 /// (func_80049C00 seeds both from context); field_5 is also subtracted when
-/// computing field_9; field_6 / field_7 are signed layout sizes (func_80046DEC
+/// computing field_9; field_6 / field_7 are signed layout sizes (Ui_DrawListHighlight
 /// uses field_7 as TILE height); field_9 / field_A / field_10 are list cursor /
 /// flag / selection index used by func_80036A70 / func_80036C04 / func_80037068 /
-/// func_800489A0 / func_8004917C; field_C / field_14 / field_16 are cleared by
-/// func_800489A0; field_17 is a signed layout adjust subtracted from the child
+/// Ui_InitList / func_8004917C; field_C / field_14 / field_16 are cleared by
+/// Ui_InitList; field_17 is a signed layout adjust subtracted from the child
 /// height when computing visible rows (func_80048AEC / func_80048C30; the latter
 /// also writes field_17 from its third argument).
 typedef struct _UiList {
@@ -580,12 +580,12 @@ typedef struct _WipUiHolder {
 } WipUiHolder;
 
 /// Object used by 34E98.c handlers (e.g. func_80049554 / D_80013F2C table).
-/// field_4 low nibble selects layout padding (func_80049348); high nibble of the
-/// low byte selects a fill mode (func_80045A3C). field_8 is a small integer
-/// state; field_C is a source RECT used by layout helpers (func_80049348 /
-/// func_80049478); field_14 is a halfword counter temporarily adjusted around
+/// field_4 low nibble selects layout padding (Ui_InsetLayout); high nibble of the
+/// low byte selects a fill mode (Ui_ScaleRect). field_8 is a small integer
+/// state; field_C is a source RECT used by layout helpers (Ui_InsetLayout /
+/// Ui_ComputeAnimRect); field_14 is a halfword counter temporarily adjusted around
 /// text draw (func_80048F88); field_16 is a signed counter/timer;
-/// field_18..field_22 are layout offsets (func_80049024 / func_80049348);
+/// field_18..field_22 are layout offsets (func_80049024 / Ui_InsetLayout);
 /// field_24 is a callback invoked with the second handler argument.
 typedef struct _UiPanel {
     /* 0x00 */ s32  field_0;
@@ -644,7 +644,7 @@ STATIC_ASSERT_SIZEOF(SndBankSlot, 0x10);
 
 /// Owner of a doubly-linked SndVoice voice list (head at field_40).
 /// Insert: SndVoice_Attach; unlink: SndVoice_Detach; walk: SndScript_TickVoices.
-/// field_44 is a pointer to the raw oneE/script buffer base (func_800565B8).
+/// field_44 is a pointer to the raw oneE/script buffer base (SndVoice_SetupEnvelope).
 typedef struct _SndVoice SndVoice;
 typedef struct _SndVoiceOwner {
     /* 0x00 */ u8        unknown_0[0x40];
@@ -654,7 +654,7 @@ typedef struct _SndVoiceOwner {
 STATIC_ASSERT_SIZEOF(SndVoiceOwner, 0x48);
 
 /// "oneE" (0x45656E6F) pitch-envelope chunk pointed at by SndVoiceFx.field_20.
-/// Consumed by the state machine in func_80055678.
+/// Consumed by the state machine in SndVoice_TickEnvelope.
 typedef struct _SndOneE {
     /* 0x00 */ s32 magic;
     /* 0x04 */ s16 field_4;
@@ -670,7 +670,7 @@ typedef struct _SndOneE {
 } SndOneE;
 STATIC_ASSERT_SIZEOF(SndOneE, 0x18);
 
-/// FX/envelope sub-block embedded at SndVoice + 0x10 (func_800565B8 / func_80055678).
+/// FX/envelope sub-block embedded at SndVoice + 0x10 (SndVoice_SetupEnvelope / SndVoice_TickEnvelope).
 /// field_0 is an active flag; field_1 is the state-machine index; field_2 is a
 /// secondary gate; field_20 points at the current "oneE" (0x45656E6F) chunk.
 typedef struct _SndVoiceFx {
@@ -738,7 +738,7 @@ typedef struct _SndBankPayload {
 } SndBankPayload;
 
 /// State block at SndLoad_State; field_3 is also D_800820F3.
-/// field_14/field_18 cleared by func_800537FC; field_10 sized by func_8005363C.
+/// field_14/field_18 cleared by Snd_InitFromStage; field_10 sized by SndLoad_Init.
 /// field_26/field_28 set by the CD ready path in CdAudio_FeedSector.
 /// field_1C..field_2C are filled as five words from a sector by func_80052B30
 /// (overlay of SndBankPayload at +0x1C: field_20/22/23/24 == payload field_4/6/7/8).
@@ -1183,7 +1183,7 @@ typedef struct _SndOneV {
     /* 0x10 */ u16 field_10; // voice-alloc priority for SndVoice_Alloc
     /* 0x12 */ s16 field_12; // oneA offset for func_8005664C
     /* 0x14 */ u16 field_14; // base pitch
-    /* 0x16 */ s16 field_16; // oneE offset for func_800565B8 (-1 disables)
+    /* 0x16 */ s16 field_16; // oneE offset for SndVoice_SetupEnvelope (-1 disables)
 } SndOneV;
 STATIC_ASSERT_SIZEOF(SndOneV, 0x18);
 
@@ -1278,7 +1278,7 @@ STATIC_ASSERT_SIZEOF(SndOneAOut, 0x3E);
 /// func_80036D98, func_80036B2C). field_8 is a signed menu/option index passed
 /// to rendering helpers; field_B is a flag written on the alternate confirm
 /// path; field_C is a selection/confirm flag (1 = confirm); field_18/field_1A
-/// are position halfwords; field_1C is data passed through to func_8002FDCC;
+/// are position halfwords; field_1C is data passed through to Text_DrawPrompt;
 /// field_22 is a state halfword set with the alternate confirm path.
 typedef struct _DialogPrompt {
     /* 0x00 */ byte unknown_0[0x8];
@@ -1295,7 +1295,7 @@ typedef struct _DialogPrompt {
 } DialogPrompt;
 
 /// Linked text option node walked by func_80049AF0 (index via DialogPrompt::field_8).
-/// field_0 is the string passed to func_8002FDCC; field_4 is the next node.
+/// field_0 is the string passed to Text_DrawPrompt; field_4 is the next node.
 typedef struct _DialogOption {
     /* 0x0 */ u8*                   field_0;
     /* 0x4 */ struct _DialogOption* field_4;
@@ -1314,7 +1314,7 @@ typedef struct _DialogListCtx {
 /// Context at Task::field_34 for the func_80049C00 UI path.
 /// field_0 is a base index copied into UiList field_4/field_5; field_2 receives
 /// the selected index from UiObject::field_2C on confirm/cancel; field_8 is an
-/// optional string passed to func_80047F40.
+/// optional string passed to Ui_DrawText.
 typedef struct _SelectMenuCtx {
     /* 0x00 */ u8    field_0;
     /* 0x01 */ byte  pad_1;

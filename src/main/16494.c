@@ -6,7 +6,7 @@
 
 #include "main/unknown_syms.h"
 
-void func_80025C94(u8 status, u8* result)
+void Fs_StreamReadyCb(u8 status, u8* result)
 {
     SndLoadState* state;
     CdlLOC        loc[3];
@@ -36,7 +36,7 @@ void func_80025C94(u8 status, u8* result)
                 return;
             }
             CdControlF(CdlPause, NULL);
-            func_80053448(state);
+            SndBank_FinalizeLoad(state);
             Fs_CdOpStatus = 0xFF;
             CdReadyCallback(NULL);
             return;

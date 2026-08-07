@@ -36,7 +36,7 @@ extern s32 TextStream_Draw(TextStream* arg0, u8* arg1, s16* arg2, s32 arg3);
 extern void func_80010024(void);
 
 // 16494.c
-extern void func_80025C94(u8 status, u8* result);
+extern void Fs_StreamReadyCb(u8 status, u8* result);
 extern s32  func_80025DD8(u32* arg0);
 extern void F16494_ResetSpuAttr(void);
 extern void func_800260B0(s32 arg0);
@@ -73,8 +73,8 @@ extern GBytes4           D_80013F18;
 extern TaskFuncTable4    D_80013F1C;
 extern UiPanelFuncTable6 D_80013F2C;
 extern GBytes6           D_80014124;
-extern void              func_8002D214(void* arg0, s32 arg1);
-extern void*             func_8002D22C(s32 arg0);
+extern void              Game_SetPtrSlot(void* arg0, s32 arg1);
+extern void*             Game_GetPtrSlot(s32 arg0);
 extern void              func_8002D6EC(Task* arg0);
 
 // Dynamically loaded (BSS region)
@@ -124,7 +124,7 @@ extern u8 D_80060DC8[];
 // 64-byte character table for random memcard filename body
 extern u8 D_80060E08[];
 // sum / ones-complement pair written by Mc_WriteDataChecksum(0, ...); adjacent
-// halfword D_80072AA8 is compared by func_80033D88 (also Mc_SaveData + 0x940)
+// halfword D_80072AA8 is compared by Mc_VerifyFirstByteChecksum (also Mc_SaveData + 0x940)
 extern s16 D_80072AA4;
 extern u16 D_80072AA8;
 
@@ -132,21 +132,21 @@ extern u16 D_80072AA8;
 // Extracts one text line (handles escapes/newlines) from *arg0 into arg1; advances *arg0.
 // Returns -1 at end of string, 1 on newline, other values for control escapes.
 extern s32 func_8002F9E0(u8** arg0, u8* arg1);
-// Multi-line text draw (func_8002FDCC per line, y += 0xF). Skips draw when UiObject.field_8 == 5.
+// Multi-line text draw (Text_DrawPrompt per line, y += 0xF). Skips draw when UiObject.field_8 == 5.
 extern s32 func_8002FB84(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5,
                          s32 arg6);
-extern s32 func_8002FCBC(u8* arg0);
+extern s32 Text_MeasureWidth(u8* arg0);
 // Multi-line text measure: packed (height<<16)|maxWidth, 0xF pixels per line.
-extern s32 func_8002FD08(u8* arg0);
-extern s32 func_8002FDCC(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5,
-                         s32 arg6);
+extern s32 Text_MeasureMultiLine(u8* arg0);
+extern s32 Text_DrawPrompt(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5,
+                           s32 arg6);
 // Multi-line text draw with line limit (arg7) and scroll offset (arg8).
 // Returns 1 if all text drawn within limit, 0 if truncated.
 extern s32  func_8002FEE0(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5,
                           s32 arg6, s32 arg7, s32 arg8);
 extern void func_80030074(void);
 // Builds a memcard save filename into arg0 (prefix + arg1 char + 7 random)
-extern void func_800300EC(u8* arg0, s32 arg1);
+extern void Mc_BuildFileName(u8* arg0, s32 arg1);
 // Image data uploaded to VRAM by func_80030074
 extern u_long D_80060910[];
 extern u_long D_800609B0[];
@@ -155,7 +155,7 @@ extern u8 D_80060A54[];
 extern u8 D_80060A58[];
 extern u8 D_80060A5C[];
 extern u8 D_80060A64[];
-// "File Information" string passed to func_80048E38 by func_80036CF0 (mcmenu)
+// "File Information" string passed to Ui_DrawTitle by func_80036CF0 (mcmenu)
 extern char D_80013BB4[];
 
 // mc.c
@@ -182,34 +182,34 @@ extern void      func_80048560(UiPanel* arg0, u8* arg1, s32 arg2, s32 arg3);
 extern void      func_80048838(UiObject* arg0, Task* arg1);
 extern void      func_800488B8(Task* arg0);
 extern void      func_800488F8(Task* arg0);
-extern void      func_80047D90(UiPanel* arg0, char* arg1);
-extern void      func_80047F40(UiPanel* arg0, char* arg1);
+extern void      Ui_DrawTextColored(UiPanel* arg0, char* arg1);
+extern void      Ui_DrawText(UiPanel* arg0, char* arg1);
 extern void      func_80048904(UiPanel* arg0, s32 arg1, s32 arg2);
 extern void      func_80048964(UiPanel* arg0, void* arg1);
-extern void      func_80046508(UiList* arg0, UiPanel* arg1, s32 arg2);
-extern void      func_80046830(UiList* arg0, UiPanel* arg1);
-extern void      func_800489A0(UiList* arg0, UiMiniObj* arg1);
+extern void      Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2);
+extern void      Ui_LayoutListPanel(UiList* arg0, UiPanel* arg1);
+extern void      Ui_InitList(UiList* arg0, UiMiniObj* arg1);
 extern void      func_80048AEC(UiList* arg0, s32 arg1);
 extern void      func_80048C10(void* arg0, void* arg1);
 extern void      func_80048C30(UiList* arg0, UiPanel* arg1, s32 arg2);
 extern void      func_80048D58(UiMiniObj* arg0, s32 arg1, s32 arg2);
-extern s32       func_80048E10(void* arg0, s32 arg1);
-extern void      func_80047A0C(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
-extern void      func_80047B24(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
-extern void      func_80047C40(UiPanel* arg0, s32 arg1, s32 arg2, char* arg3, s32 arg4);
-extern void      func_80048E38(UiPanel* arg0, char* arg1);
+extern s32       Ui_LookupTable(void* arg0, s32 arg1);
+extern void      Ui_DrawHBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
+extern void      Ui_DrawVBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
+extern void      Ui_DrawTextUnderline(UiPanel* arg0, s32 arg1, s32 arg2, char* arg3, s32 arg4);
+extern void      Ui_DrawTitle(UiPanel* arg0, char* arg1);
 extern void      func_80048F88(UiPanel* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
 extern void      func_8004917C(UiList* arg0, s32 arg1);
-extern void      func_800491AC(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5);
-extern void      func_80046DEC(UiList* arg0, UiPanel* arg1, s32 arg2);
+extern void      Ui_AllocTile(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5);
+extern void      Ui_DrawListHighlight(UiList* arg0, UiPanel* arg1, s32 arg2);
 extern void      func_80049288(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5);
 extern void      func_800492B8(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5);
-extern void      func_800457F8(UiPanel* arg0);
-extern void      func_80045A3C(UiPanel* arg0, RECT* arg1, s32 arg2, s32 arg3);
-extern void      func_80045B24(UiPanel* arg0);
-extern void      func_80045D24(UiPanel* arg0);
-extern void      func_80045F24(UiPanel* arg0);
-extern void      func_80049478(UiPanel* arg0, RECT* arg1);
+extern void      Ui_SetupClip(UiPanel* arg0);
+extern void      Ui_ScaleRect(UiPanel* arg0, RECT* arg1, s32 arg2, s32 arg3);
+extern void      Ui_LayoutAndClip(UiPanel* arg0);
+extern void      Ui_LayoutAndDraw(UiPanel* arg0);
+extern void      Ui_LayoutAndDrawAlt(UiPanel* arg0);
+extern void      Ui_ComputeAnimRect(UiPanel* arg0, RECT* arg1);
 extern void      func_80049554(UiPanel* arg0, void* arg1);
 extern void      func_800495B4(UiPanel* arg0, void* arg1);
 extern void      func_8004965C(UiPanel* arg0, void* arg1);
@@ -243,14 +243,14 @@ extern void           AudioTick_Reset(void);
 extern s16      func_8004DE18(void* arg0);
 extern void     AsyncCb_Cancel(s32 arg0);
 extern void     func_8004E200(void);
-extern s32      func_8004E060(s16* arg0, s32 arg1, s32 arg2);
-extern void     func_8004E560(u32 voiceIdx, s32 arg1, s32 arg2);
+extern s32      Spu_AllocVoice(s16* arg0, s32 arg1, s32 arg2);
+extern void     Spu_SetVoiceCallbacks(u32 voiceIdx, s32 arg1, s32 arg2);
 extern s32      Spu_SetVoiceRange(s32 idx, s32 arg1, s32 arg2);
 extern s32      Spu_GetVoiceRef(s8 arg0, SpuVoiceRef* arg1);
-extern u8       func_8004E6A4(u32 voiceIdx);
+extern u8       Spu_GetVoiceStatus(u32 voiceIdx);
 extern void     func_8004E580(u32 voiceIdx);
-extern void     func_8004E71C(u32 voiceIdx);
-extern u16      func_8004E9D8(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+extern void     Spu_KeyOff(u32 voiceIdx);
+extern u16      Spu_CalcVolume(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 extern SndNote* Snd_GetNote(SndBank* arg0, u8 arg1, u8 arg2);
 extern void     F3E48C_8004E44C(void);
 extern s32      F3E48C_8004E660(u32 voiceIdx);
@@ -272,8 +272,8 @@ typedef u8* (*MidiHandler)(s32, u8*, MidiSong*, MidiTrack*);
 /// Entries: note-off, note-on, poly-AT, CC, program, pressure, pitch-bend, meta.
 extern MidiHandler D_800689C4[];
 extern SndEvt*     SndEvt_Alloc(void);
-extern s32         func_800512BC(s32 arg0, s32 arg1);
-extern s32         func_8005132C(s32 arg0, s32 arg1);
+extern s32         SndEvt_EnqueueType1(s32 arg0, s32 arg1);
+extern s32         SndEvt_EnqueueType2(s32 arg0, s32 arg1);
 extern s32         Midi_IsBusy(s32 arg0);
 extern s32         func_80051560(u8 arg0);
 extern void        SndEvt_Enqueue(SndEvt* arg0);
@@ -294,9 +294,9 @@ extern void        Midi_FadeVolume(u8 arg0, s32 arg1);
 extern void        Midi_SetVolumeScale(u8 arg0, u8 arg1);
 extern void        Midi_SetMasterVolume(s32 arg0);
 extern s32         Midi_GetMasterVolume(void);
-extern u8*         func_80051808(s32 arg0);
-extern void*       func_80051850(s32 arg0, s32 arg1);
-extern s32         func_80051460(s32 arg0, s32 arg1);
+extern u8*         Midi_GetSlot(s32 arg0);
+extern void*       Midi_GetFixedBuffer(s32 arg0, s32 arg1);
+extern s32         SndEvt_EnqueueType5(s32 arg0, s32 arg1);
 extern void        func_80051888(void);
 extern void        func_800518E0(void);
 extern void        Midi_InitSlot(s32 arg0);
@@ -315,15 +315,15 @@ extern u8*         func_800528F8(s32 arg0, u8* arg1, MidiSong* arg2);
 extern u8*         func_800529BC(s32 arg0, u8* arg1, MidiOpcodeCtx* arg2);
 extern u8*         func_800529D8(s32 arg0, u8* arg1, MidiSong* arg2);
 extern s32         func_80052B30(s32* arg0);
-extern s32         func_80052F80(SndLoadState* arg0);
+extern s32         SndBank_SetupFromLoad(SndLoadState* arg0);
 extern void        func_800530DC(SndLoadState* arg0);
-extern void        func_8005325C(void* arg0);
+extern void        SndLoad_FromSectorMode8(void* arg0);
 extern void        func_80053280(u8 arg0, void* arg1);
-extern void        func_800532CC(void);
+extern void        SndLoad_Teardown(void);
 extern s32         func_8005333C(void* arg0);
 extern s32         func_80053414(void* arg0);
-extern s32         func_80053448(SndLoadState* arg0);
-extern void        func_8005363C(s32 arg0, void* arg1);
+extern s32         SndBank_FinalizeLoad(SndLoadState* arg0);
+extern void        SndLoad_Init(s32 arg0, void* arg1);
 
 // 43FFC.c
 extern s32  D_800689E4;
@@ -334,7 +334,7 @@ extern s8   D_80082748;
 extern s8   D_80082749;
 extern s8   D_8008274A;
 extern s8   D_8008274B;
-extern void func_800537FC(s32 arg0, s32 arg1);
+extern void Snd_InitFromStage(s32 arg0, s32 arg1);
 extern s32  func_80053A20(s32 arg0, s32 arg1);
 // Unprototyped: func_8005462C calls with indeterminate a0 (nop in delay slot).
 extern s32          func_80053F00();
@@ -348,10 +348,10 @@ extern void         func_80054658(void);
 extern void         SndEvt_EnqueueTypeE(void);
 extern void         func_800546C0(void);
 extern void         func_800546F4(s32 arg0, u16 arg1);
-extern void         func_8005488C(void);
+extern void         SndVoice_StepMasterLevel(void);
 extern void         SndVoice_KeyOffMatching(void);
 extern s32          SndScript_Exec(SndScript* arg0);
-extern void         func_80055678(SndVoice* arg0);
+extern void         SndVoice_TickEnvelope(SndVoice* arg0);
 extern s32          SndVoice_AllocSlot(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndVoiceParams* arg4);
 extern void         SndVoice_ScanCandidates(SndVoicePick* arg0, u16 arg1, s32 arg2, u16 arg3);
 extern s8           func_80055EF8(SndVoicePick* arg0, s16 arg1);
@@ -361,7 +361,7 @@ extern void         SndVoice_FadeMatching(s32 arg0, s32 arg1);
 extern void         func_80055A9C(s32 arg0, s32 arg1, s32 arg2);
 extern void         SndVoice_SetVolumeRamp(s32 arg0, s32 arg1);
 extern void         func_80055C00(void);
-extern void         func_80055C8C(void);
+extern void         SndVoice_TickRefCount(void);
 extern void         func_80055D78(s8 arg0);
 extern s32          SndVoice_FindById(s32 arg0);
 extern void         SndVoice_ApplyMasterVolume(s8 arg0);
@@ -373,8 +373,8 @@ extern void         SndBankSlot_Free(s32 arg0);
 extern SndVoice*    SndVoice_Alloc(s32 arg0);
 extern void         SndVoice_Attach(SndVoiceOwner* arg0, SndVoice* arg1);
 extern s32          SndScript_TickVoices(SndScript* arg0);
-extern void         func_800564C4(s8 arg0, s8 arg1, SndVoice* arg2, LinInterp* arg3, s16* arg4);
-extern void         func_800565B8(SndVoice* arg0, s16 arg1, u32 arg2, SndNote* arg3);
+extern void         SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* arg2, LinInterp* arg3, s16* arg4);
+extern void         SndVoice_SetupEnvelope(SndVoice* arg0, s16 arg1, u32 arg2, SndNote* arg3);
 extern s32          func_8005664C(u8* arg0, s16 arg1, SndOneAOut* arg2);
 extern void         SndVoice_ClearActive(void);
 extern s32          CdAudio_Begin(void);
@@ -385,10 +385,10 @@ extern u8   CdAudio_GetState(void);
 extern void CdAudio_Tick(void);
 extern s32  func_800577AC(s32 arg0, s32 arg1);
 extern s32  CdAudio_ResetKeepBuffer(s32 arg0);
-extern s32  func_80057894(s32 arg0);
+extern s32  CdAudio_StoreIfNonNull(s32 arg0);
 extern s32  func_800578E4(s32 arg0);
 extern void func_8005791C(s32 arg0);
-extern void func_800579A0(s8* arg0, s8* arg1);
+extern void CdAudio_AllocVoices(s8* arg0, s8* arg1);
 extern s32  func_80057A88(s32 arg0);
 extern void CdAudio_StartVolumeRamp(s32 arg0);
 extern void func_80057B88(s32 arg0, s32 arg1);
@@ -396,7 +396,7 @@ extern s32  func_80057BC0(void);
 extern void func_80057D24(void);
 extern void CdStream_Start(CdStreamParams* arg0);
 extern void CdStream_Stop(void);
-extern void func_80059348(void);
+extern void CdStream_Drive(void);
 extern s16  D_80068A7C[];
 extern u8   D_80068A80[];
 extern u8   D_80068AF0[];
@@ -473,7 +473,7 @@ extern s32         func_8001EF9C(s32 arg0, s32 arg1);
 extern void        func_8001F430(void);
 extern void        Mdec_UploadSlice(void);
 extern void        Mdec_KickStrip(void);
-extern void        func_80020298(s16 arg0);
+extern void        Mem_AllocAuxWithImages(s16 arg0);
 extern void        func_80020388(void);
 extern s16         Stream_FindSlot(u8* arg0, s32 arg1, s32 arg2);
 extern s16         Stream_FindSlotByKey(u8* arg0);
@@ -488,14 +488,14 @@ extern void        func_8002043C(u32 arg0);
 // Pad_Init → main/pad.h
 extern void GameMain_Loop(void);
 extern void Tmd_InitLists(void);
-extern void func_800303AC(void);
+extern void Mc_InitBufferSlots(void);
 extern void func_80030AB0(McWork* work);
-extern s32  func_800304AC(Task* arg0, s32 arg1, s32 arg2);
-extern s32  func_8003062C(Task* arg0, s32 arg1, s32 arg2);
-extern s32  func_800307AC(Task* arg0, s32 arg1, s32 arg2);
-extern s32  func_8003092C(Task* arg0, s32 arg1, s32 arg2);
+extern s32  Mc_PromptDialog(Task* arg0, s32 arg1, s32 arg2);
+extern s32  Mc_PromptDialogChoice(Task* arg0, s32 arg1, s32 arg2);
+extern s32  Mc_PromptDialogSpawn(Task* arg0, s32 arg1, s32 arg2);
+extern s32  Mc_PromptDialogFile(Task* arg0, s32 arg1, s32 arg2);
 // Mc_InitLib → main/mc.h
-extern void  func_8003DB48(s32 arg0);
+extern void  Display_SetMode(s32 arg0);
 extern void  func_8003DE14(s32 arg0, s32 arg1, s32 arg2);
 extern void  func_8003DE78(s8 arg0);
 extern void  Gpu_InitOtSmall(void);
@@ -507,12 +507,12 @@ extern s32   func_8003F86C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 extern void  func_8003FA3C(u8 arg0);
 extern s32   func_8003FB70(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
 extern void  func_8004017C(void);
-extern void  func_800405E0(void);
+extern void  Mdec_DecodeToVram(void);
 extern void  func_80040820(void);
 extern void  func_800410F0(TmdObject* arg0);
 extern void  func_800418C0(TmdObject* arg0);
 extern void  Gpu_ResetGraphAndOt(void);
-extern void  func_80041EB4(void);
+extern void  Tmd_AllocMissingBuffers(void);
 extern void  func_8004C4D0(void);
 extern void  func_8004CC58(s32 arg0);
 extern void  func_8004CFC8(void);
@@ -521,13 +521,13 @@ extern long  func_8004D7D4(void);
 extern void  Snd_ClearBanks(void);
 extern void  AsyncCb_Poll(void);
 extern void  AsyncCb_Reset(void);
-extern void  func_8004DF10(void);
+extern void  Spu_InitVoices(void);
 extern void  func_8004D460(void*, u32, u32, s32*);
 extern void  SndEvt_Reset(void);
 extern s32   func_80050D20(u32);
 extern s32   Midi_Tick(void);
 extern void  func_80053E48(void);
-extern void  func_80053E68(void);
+extern void  Snd_RegisterTickCallbacks(void);
 extern s32   SndVoice_DriveSlots(void);
 extern s32   func_80053F60(s32* arg0);
 extern s32   func_80053FF4(u32);
@@ -648,7 +648,7 @@ extern s32            D_80068B74;
 extern volatile u16   D_80068B78;
 extern CdlLOC         D_800827F8;
 extern void           func_80059EE0(void);
-extern void           func_8005A94C(s32 arg0, u8* arg1);
+extern void           CdStream_ReadyMts(s32 arg0, u8* arg1);
 extern void           CdStream_FinishQueueEntry(u32* arg0);
 extern s32            func_800AF590(s32 arg0, s32 arg1);
 extern void           func_800B0118(s32 arg0, s32 arg1);
@@ -686,7 +686,7 @@ extern s32           D_8007A358;
 extern u16           D_8007A35C;
 extern u16           D_8007A35E;
 extern void*         D_8007A360;
-extern u8*           D_8007A364; // resolved decode base buffer (func_8003FF14)
+extern u8*           D_8007A364; // resolved decode base buffer (Mdec_ResolveStreamBuffer)
 extern CdCmd58Entry* D_8007A368; // matched CdCmd_Queue.field_58 entry
 extern u8            D_8007A392;
 extern u8            D_8007A394;
@@ -740,7 +740,7 @@ extern s8 D_8007218B;
 extern s8 D_80072311;
 // Alias of Mc_SaveData.field_1aa (offset 0x1AA).
 extern u8 D_80072312;
-// Alias of Mc_SaveData.field_1ab (offset 0x1AB); loaded with lb in func_800489A0.
+// Alias of Mc_SaveData.field_1ab (offset 0x1AB); loaded with lb in Ui_InitList.
 extern s8           D_80072313;
 extern u8           D_800733F0[2][0x6C];
 extern u8           D_800734C8[2][0xB0];

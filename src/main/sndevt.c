@@ -195,7 +195,7 @@ void func_80050CC0(void)
 
 void func_80050CE0(void)
 {
-    func_80055C8C();
+    SndVoice_TickRefCount();
 }
 
 void func_80050D00(void)
@@ -217,7 +217,7 @@ s32 func_80050D20(u32 arg0)
     D_800820E0 = 0;
     D_800820E4 = 0;
     Spu_SetVoiceRange(0, 0, 0x10);
-    state           = (MidiSong*)func_80051808(0xFF);
+    state           = (MidiSong*)Midi_GetSlot(0xFF);
     state->field_1  = 0xFF;
     state->field_A  = 0x10;
     state->field_10 = D_8007F8E0;
@@ -463,7 +463,7 @@ end:
     return 0;
 }
 
-s32 func_800512BC(s32 arg0, s32 arg1)
+s32 SndEvt_EnqueueType1(s32 arg0, s32 arg1)
 {
     SndEvt* temp;
 
@@ -481,7 +481,7 @@ s32 func_800512BC(s32 arg0, s32 arg1)
     return 0;
 }
 
-s32 func_8005132C(s32 arg0, s32 arg1)
+s32 SndEvt_EnqueueType2(s32 arg0, s32 arg1)
 {
     SndEvt* temp;
 
@@ -516,7 +516,7 @@ s32 SndEvt_EnqueueType3(s32 arg0)
     return 0;
 }
 
-s32 func_80051400(s32 arg0)
+s32 SndEvt_EnqueueType4(s32 arg0)
 {
     SndEvt* temp;
 
@@ -533,7 +533,7 @@ s32 func_80051400(s32 arg0)
     return 0;
 }
 
-s32 func_80051460(s32 arg0, s32 arg1)
+s32 SndEvt_EnqueueType5(s32 arg0, s32 arg1)
 {
     SndEvt*      temp;
     SndEvtFrom4* mid;
@@ -679,7 +679,7 @@ s32 Midi_GetMasterVolume(void)
     return D_8007F2F0;
 }
 
-u8* func_80051808(s32 arg0)
+u8* Midi_GetSlot(s32 arg0)
 {
     if (Midi_Song.field_0 != 0) {
         func_80051AB8(&Midi_Song);
@@ -688,7 +688,7 @@ u8* func_80051808(s32 arg0)
     return (u8*)&Midi_Song;
 }
 
-void* func_80051850(s32 arg0, s32 arg1)
+void* Midi_GetFixedBuffer(s32 arg0, s32 arg1)
 {
     return D_8007F8E0;
 }
@@ -835,7 +835,7 @@ void Midi_KeyOffVoices(MidiSong* arg0)
     slot = arg0->voiceSlots;
     do {
         if (slot->field_0 >= 0) {
-            status = func_8004E6A4(slot->field_0);
+            status = Spu_GetVoiceStatus(slot->field_0);
             if (status != 0) {
                 Spu_GetVoiceRef(slot->field_0, &sp10);
                 temp                = sp10.field_4->adsr2;
@@ -843,7 +843,7 @@ void Midi_KeyOffVoices(MidiSong* arg0)
                 sp10.field_4->adsr2 = temp;
                 sp10.field_4->mask |= SPU_VOICE_ADSR_ADSR2;
                 if (status != 2) {
-                    func_8004E71C(slot->field_0);
+                    Spu_KeyOff(slot->field_0);
                 }
             }
         }
@@ -1251,7 +1251,7 @@ u8* func_800528F8(s32 arg0, u8* arg1, MidiSong* arg2)
         for (i = 0; i < 0x12; i++) {
             if ((arg2->voiceSlots[i].field_2 == param) &&
                 (arg2->voiceSlots[i].field_1 == t)) {
-                func_8004E71C(arg2->voiceSlots[i].field_0);
+                Spu_KeyOff(arg2->voiceSlots[i].field_0);
             }
         }
     }
@@ -1301,7 +1301,7 @@ u8* func_800529D8(s32 arg0, u8* arg1, MidiSong* arg2)
             slot->field_8 = pitch;
             attr          = sp10.field_4;
             attr->pitch =
-                func_8004E9D8(key, pitch, note->field_4, note->field_5);
+                Spu_CalcVolume(key, pitch, note->field_4, note->field_5);
             attr->mask |= SPU_VOICE_PITCH;
         }
         i      += 1;
@@ -1491,7 +1491,7 @@ s32 func_80052B30(s32* arg0)
     return state->field_2;
 }
 
-s32 func_80052F80(SndLoadState* arg0)
+s32 SndBank_SetupFromLoad(SndLoadState* arg0)
 {
     SndBank*     bank;
     SndBankSlot* obj;
@@ -1567,9 +1567,9 @@ success:
 
 INCLUDE_ASM("main/nonmatchings/sndevt", func_800530DC);
 
-void func_8005325C(void* arg0)
+void SndLoad_FromSectorMode8(void* arg0)
 {
-    func_8005363C(8, arg0);
+    SndLoad_Init(8, arg0);
 }
 
 void func_80053280(u8 arg0, void* arg1)
@@ -1577,10 +1577,10 @@ void func_80053280(u8 arg0, void* arg1)
     D_800820F3 = arg0;
     D_8008212C = D_80082122;
     D_80082121 = D_80082135;
-    func_8005363C(0, arg1);
+    SndLoad_Init(0, arg1);
 }
 
-void func_800532CC(void)
+void SndLoad_Teardown(void)
 {
     SndLoadState* temp;
 
@@ -1647,7 +1647,7 @@ s32 func_80053414(void* arg0)
     return temp;
 }
 
-s32 func_80053448(SndLoadState* arg0)
+s32 SndBank_FinalizeLoad(SndLoadState* arg0)
 {
     SndBank*  bank;
     MidiSong* state;
@@ -1670,7 +1670,7 @@ s32 func_80053448(SndLoadState* arg0)
 
 success:
     index          &= 0xFF;
-    state           = (MidiSong*)func_80051808(index);
+    state           = (MidiSong*)Midi_GetSlot(index);
     state->field_1  = index;
     state->field_A  = (arg0->field_2A + 3) & 0xFFFC;
     temp            = arg0->field_14;
@@ -1703,7 +1703,7 @@ void* func_80053548(s32 arg0, s32 arg1, u32 arg2)
 
     x = arg0;
     if ((arg1 & 0xFF) == 0) {
-        return func_80051850(0, arg2 & 0xFFFF);
+        return Midi_GetFixedBuffer(0, arg2 & 0xFFFF);
     }
     if (D_800680AC[x >> 12] == -1) {
         return 0;
@@ -1740,7 +1740,7 @@ s32 func_800535F0(s32 arg0, s32 arg1, s32 arg2)
     return result;
 }
 
-void func_8005363C(s32 arg0, void* arg1)
+void SndLoad_Init(s32 arg0, void* arg1)
 {
     SndLoadState* temp;
     s32           size;

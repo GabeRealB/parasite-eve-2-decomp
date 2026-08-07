@@ -11,7 +11,7 @@
 
 #include "main/unknown_syms.h"
 
-void func_800144F8(s32 arg0, s32 arg1)
+void Mem_ConfigureAuxHeap(s32 arg0, s32 arg1)
 {
     F04CF8_ImageSlot* entries;
     F04CF8_ImageSlot* slot;
@@ -85,14 +85,14 @@ void Boot_LoadInitialFile(Task* task)
     return;
 
 L_case0:
-    func_8003DB48(0xD010);
+    Display_SetMode(0xD010);
     modeParam[0] = CdlModeSpeed | CdlModeSize1;
     CdControlB(CdlSetmode, modeParam, NULL);
     SetDispMask(0);
     Fs_ScanIsoDirectory(1);
     Display_State.field_100 = 1;
     CdCmd_Enqueue(0x55, NULL, NULL);
-    func_800144F8(0, 0);
+    Mem_ConfigureAuxHeap(0, 0);
     while (queue->field_1FE != 0xFF) {
         func_80040820();
     }
@@ -282,7 +282,7 @@ void func_80014B38(Task* arg0)
         case 1:
             if (CdCmd_IsIdle() != 0) {
                 SetDispMask(1);
-                func_800144F8(0, 0);
+                Mem_ConfigureAuxHeap(0, 0);
                 Task_SpawnFromTable((TaskDesc*)&D_80094C8C, 0, 0, 0);
                 Task_Kill(arg0);
                 Display_State.field_112 = 0;

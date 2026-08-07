@@ -18,7 +18,7 @@ void Task_AllocIdMap(Task* arg0)
     if (temp_v0 != NULL) {
         arg0->field_1C = temp_v0;
         if (D_80062737 != 0) {
-            func_8005132C(0, 1);
+            SndEvt_EnqueueType2(0, 1);
             D_80062737 = 0;
         }
         temp_a0    = Game_Session->field_7;
@@ -50,7 +50,7 @@ void Task_AllocIdMap(Task* arg0)
         }
         temp_s1 = *((temp_v0->field_0 * 2) + (u8*)temp_v0->field_4);
         if (temp_s1 == 0xFF) {
-            func_8005132C(D_80062739, D_8007A39C);
+            SndEvt_EnqueueType2(D_80062739, D_8007A39C);
             D_80062734 = temp_s1;
             Task_Kill(arg0);
             return;
@@ -58,13 +58,13 @@ void Task_AllocIdMap(Task* arg0)
         D_80062734 = 0;
         if (func_80051560(*((temp_v0->field_0 * 2) + (u8*)temp_v0->field_4)) == 1) {
             if ((D_80062739 != 0) && (Midi_IsBusy(D_80062739) != 0)) {
-                func_8005132C(D_80062739, (D_8007A39C + 1) & 0xFFFF);
+                SndEvt_EnqueueType2(D_80062739, (D_8007A39C + 1) & 0xFFFF);
             }
             arg0->field_30 = arg0->field_30 + 1;
             return;
         }
         if (((temp_v0->field_0 * 2) + (u8*)temp_v0->field_4)[1] == 1) {
-            func_8005132C(D_80062739, (D_8007A39C + 1) & 0xFFFF);
+            SndEvt_EnqueueType2(D_80062739, (D_8007A39C + 1) & 0xFFFF);
             goto block_20;
         }
         if (Midi_IsBusy(D_80062739) == 0) {
@@ -114,7 +114,7 @@ void func_80042DF8(Task* arg0)
     if (flag == 0xFF) {
         D_8007A39A = D_8007A39A - 1;
         if (D_8007A39A == 0x3C) {
-            func_8005132C(D_80062739, 1);
+            SndEvt_EnqueueType2(D_80062739, 1);
         }
         if (D_8007A39A <= 0) {
             D_80062734 = flag;
@@ -141,7 +141,7 @@ void func_80042F54(Task* arg0)
                     }
                 }
             }
-            func_800512BC(entry->field_0, 0);
+            SndEvt_EnqueueType1(entry->field_0, 0);
             func_800429C8(0);
         }
         D_80062734 = 0xFF;
@@ -165,7 +165,7 @@ void func_80043028(s32 arg0)
     entry   = (GPairU8*)(temp + (s32)D_8006273C[idx]);
     if (entry->field_0 != 0xFF) {
         if (entry->field_1 != 3) {
-            func_800512BC(entry->field_0, arg0 & 0xFFFF);
+            SndEvt_EnqueueType1(entry->field_0, arg0 & 0xFFFF);
             D_80062739 = entry->field_0;
             func_800429C8(0);
         }
@@ -187,7 +187,7 @@ void func_800430E4(s32 arg0)
     entry   = (GPairU8*)(temp + (s32)D_8006273C[idx]);
     if (entry->field_0 != 0xFF) {
         if (Midi_IsBusy(entry->field_0) != 0) {
-            func_8005132C(entry->field_0, (arg0 + 1) & 0xFFFF);
+            SndEvt_EnqueueType2(entry->field_0, (arg0 + 1) & 0xFFFF);
         }
     }
 }
@@ -234,7 +234,7 @@ void func_8004323C(void)
 }
 
 void Prim_DrawSprt(PrimDrawParams* arg0, u32 arg1, s32 arg2);
-void func_80043718(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void Prim_DrawTPage(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 
 s32 TextStream_Draw(TextStream* arg0, u8* arg1, s16* arg2, s32 arg3)
 {
@@ -315,7 +315,7 @@ s32 TextStream_Draw(TextStream* arg0, u8* arg1, s16* arg2, s32 arg3)
                             ((GlyphUvwh*)((glyphIdx * 4) + (s32)arg0->field_14))->w;
                     }
                 }
-                func_80043718(1, arg0->field_4, arg0->field_6, 4);
+                Prim_DrawTPage(1, arg0->field_4, arg0->field_6, 4);
                 *arg2 = *arg2 - 1;
                 if (*arg2 < 0) {
                     arg0->field_E = arg0->field_E + 1;
@@ -366,7 +366,7 @@ void Prim_DrawSprt(PrimDrawParams* arg0, u32 arg1, s32 arg2)
     AddPrim(D_800710A0 + 4, p);
 }
 
-void func_80043718(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+void Prim_DrawTPage(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     DR_TPAGE* p;
 
@@ -395,7 +395,7 @@ s32 func_8004379C(RECT* arg0, u8* arg1, s16* arg2)
         sp.field_10 = 1;
         Prim_DrawTile(&sp);
         asm("" : "+r"(ret));
-        func_80043718(ret, ret, ret, 5);
+        Prim_DrawTPage(ret, ret, ret, 5);
         *arg2 = *arg2 - 1;
         if (*arg2 <= 0) {
             ret = 1;

@@ -198,7 +198,7 @@ setup_and_load:
                 Fs_SeekToPos(sector);
                 goto end_return;
             case 2:
-                func_800537FC(Game_Session->field_7, Game_Session->field_6);
+                Snd_InitFromStage(Game_Session->field_7, Game_Session->field_6);
                 Fs_ChunkMode = 1;
                 break;
             case 3:
@@ -312,7 +312,7 @@ void Fs_SelectStage(s32 stageIdx)
     Fs_VBlank = VSync(-1);
 }
 
-void func_80023748(s32 arg0, s32 arg1, s32 arg2)
+void Fs_PrepareFolderLoad(s32 arg0, s32 arg1, s32 arg2)
 {
     CdlLOC loc[2];
     s32    i;
@@ -627,7 +627,7 @@ on_error:
 
 INCLUDE_ASM("main/nonmatchings/fs", Fs_ScanIsoDirectory);
 
-s32 func_800246B0(FsImageChunk* arg0, u8 arg1)
+s32 Fs_LoadImageChunk(FsImageChunk* arg0, u8 arg1)
 {
     register u_long* ot asm("s0");
     register s32     retry asm("s1");
@@ -709,7 +709,7 @@ s32 func_800246B0(FsImageChunk* arg0, u8 arg1)
     return 0;
 }
 
-void func_800248B4(FsWorkEntry* arg0)
+void Fs_CopyWorkEntries(FsWorkEntry* arg0)
 {
     register FsWorkEntry* base asm("t0");
     register s32          term asm("t1");
@@ -781,7 +781,7 @@ loop:
     D5B498_8006D4E0[D5B498_8006ADF4] = 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/fs", func_80024A28);
+INCLUDE_ASM("main/nonmatchings/fs", Fs_LoadImageStrip);
 
 void Fs_ClearDiskError(void)
 {
@@ -1075,8 +1075,8 @@ void F12D18_80025580(u8 status, u8* result)
             Fs_Streaming = false;
             CdReadyCallback(Fs_CdReadyCb);
         } else {
-            func_8005325C(&Fs_CdSector);
-            CdReadyCallback(func_80025C94);
+            SndLoad_FromSectorMode8(&Fs_CdSector);
+            CdReadyCallback(Fs_StreamReadyCb);
         }
 
         Fs_VBlank = VSync(-1);
@@ -1120,7 +1120,7 @@ void F12D18_800256F4(u8 arg0)
     if (arg0 == FS_ERROR_HARD) {
         Fs_CdOpStatus = 0x40;
     } else {
-        func_800532CC();
+        SndLoad_Teardown();
         Fs_CdOpStatus = 0x80;
     }
 
@@ -1135,7 +1135,7 @@ void Fs_ContinueDrawing(u_long* ot)
     ContinueDraw(NULL, ot);
 }
 
-u8* func_800257A4(void)
+u8* Fs_GetChunkPayload(void)
 {
     return &Fs_CdSector.bytes[0x10];
 }
@@ -1155,7 +1155,7 @@ void F12D18_800257B0(void)
     Fs_VBlank     = VSync(-1);
     Fs_CdOpStatus = 0x80;
     CdFlush();
-    func_800532CC();
+    SndLoad_Teardown();
     CdReadyCallback(NULL);
     CdSyncCallback(NULL);
     CdControlB(CdlPause, NULL, ctrlResult);

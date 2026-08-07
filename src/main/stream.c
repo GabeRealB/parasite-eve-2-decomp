@@ -232,11 +232,11 @@ s32 func_8001EF9C(s32 arg0, s32 arg1)
             rect.h = 0x100;
             MoveImage2(&rect, 0x140, 0x100);
         }
-        func_800144F8((s32)Game_Session->field_7, (s32)Game_Session->field_6);
+        Mem_ConfigureAuxHeap((s32)Game_Session->field_7, (s32)Game_Session->field_6);
         if ((arg0 & 0xFFFF) == 1) {
             Mem_SetActiveAuxHeap(1);
         }
-        func_80041EB4();
+        Tmd_AllocMissingBuffers();
         if (Display_State.field_12a == 1) {
             CdCmd_BuildVlcIfStream();
             CdCmd_SelectMdecBuffer();
@@ -310,7 +310,7 @@ s32 CdCmd_StopMdec(s32 arg0)
                     rect.y = 0x110;
                     ClearImage(&rect, 0, 0, 0);
                 }
-                func_8003DB48(0xD010);
+                Display_SetMode(0xD010);
             }
             p->field_1E6            = 0;
             Display_State.field_106 = 0;
@@ -471,7 +471,7 @@ StreamSlot* Stream_GetSlot(u32 arg0)
     return &Stream_Slots[arg0 & 0xFFFF];
 }
 
-void func_80020298(s16 arg0)
+void Mem_AllocAuxWithImages(s16 arg0)
 {
     RECT        rect;
     CdCmdQueue* p;

@@ -29,7 +29,7 @@ void F04CF8_80014A50(void);
 void F04CF8_80014A98(s32 mode);
 void func_80014B38(Task* task);
 void func_80014C2C(void);
-void func_800144F8(s32 arg0, s32 arg1);
+void Mem_ConfigureAuxHeap(s32 arg0, s32 arg1);
 
 // =============================================================================
 // Globals
