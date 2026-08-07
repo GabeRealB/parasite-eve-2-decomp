@@ -39,10 +39,10 @@ unknown:
 setup_events:
     F3D458_ResetHeap();
     func_800509B4();
-    func_8004DDF0();
+    AsyncCb_Reset();
     F3E48C_ConfigSpuReverb(3);
     func_8004DF10();
-    func_8004D0A0();
+    Snd_ClearBanks();
     F3D458_8004D88C();
     func_80053E68();
     func_80053FF4(0);
@@ -103,17 +103,17 @@ end:
     D_800680C0 = 1;
 }
 
-GStruct42* func_8004CE28(GStruct34Payload* arg0)
+SndBank* Snd_AllocBank(GStruct34Payload* arg0)
 {
-    u16        type;
-    s8         temp;
-    s32        slot;
-    GStruct42* bank;
-    s32        size;
-    s32        temp_v0;
-    s32        temp_a0;
-    s32        temp_a0_2;
-    s32        shared;
+    u16      type;
+    s8       temp;
+    s32      slot;
+    SndBank* bank;
+    s32      size;
+    s32      temp_v0;
+    s32      temp_a0;
+    s32      temp_a0_2;
+    s32      shared;
 
     type = arg0->field_4 & 0xF000;
     temp = D_800680AC[type >> 12];
@@ -133,14 +133,14 @@ GStruct42* func_8004CE28(GStruct34Payload* arg0)
     if (type == 0xF000) {
         shared = D_8007E0D4;
         if (shared != 0) {
-            bank           = &D_8007E0D8[(s8)slot];
+            bank           = &Snd_Banks[(s8)slot];
             bank->field_1C = (void*)shared;
             goto setup_ptrs;
         }
     }
 
-    bank = &D_8007E0D8[(s8)slot];
-    func_8004D0F0(bank);
+    bank = &Snd_Banks[(s8)slot];
+    Snd_FreeBank(bank);
 
     size = ((arg0->field_8 * 5) + arg0->field_7) * 4 + (arg0->field_7 * 2);
 
@@ -170,9 +170,9 @@ GStruct42* func_8004CE28(GStruct34Payload* arg0)
 
 setup_ptrs:
     temp_a0        = (s32)bank->field_1C;
-    bank->field_0  = (GStruct42Group*)temp_a0;
+    bank->field_0  = (SndBankGroup*)temp_a0;
     temp_a0_2      = temp_a0 + (arg0->field_7 * 4);
-    bank->field_4  = (GStruct41*)temp_a0_2;
+    bank->field_4  = (SndNote*)temp_a0_2;
     bank->field_10 = (u16*)(temp_a0_2 + (arg0->field_8 * 0x14));
     return bank;
 }
@@ -205,14 +205,14 @@ void func_8004D008(void)
     }
 }
 
-void func_8004D0A0(void)
+void Snd_ClearBanks(void)
 {
-    s32        i;
-    s32*       p;
-    GStruct42* ptr;
-    u16        flag;
+    s32      i;
+    s32*     p;
+    SndBank* ptr;
+    u16      flag;
 
-    p = (s32*)D_8007E0D8;
+    p = (s32*)Snd_Banks;
     i = 0;
     do {
         *p = 0;
@@ -222,7 +222,7 @@ void func_8004D0A0(void)
 
     flag = 0xFFFF;
     i    = 0xF;
-    ptr  = D_8007E0D8;
+    ptr  = Snd_Banks;
     ptr += 0xF;
     do {
         ptr->field_8 = flag;
@@ -233,7 +233,7 @@ void func_8004D0A0(void)
     D_8007E0D4 = 0;
 }
 
-void func_8004D0F0(GStruct42* arg0)
+void Snd_FreeBank(SndBank* arg0)
 {
     if ((arg0 != NULL) && ((arg0->field_8 & 0xF000) != 0xF000)) {
         F3D458_Free(arg0->field_1C);
@@ -246,18 +246,18 @@ void func_8004D0F0(GStruct42* arg0)
     }
 }
 
-GStruct42* func_8004D150(u16 arg0)
+SndBank* Snd_FindBank(u16 arg0)
 {
-    s32        i;
-    GStruct42* ptr;
-    s32        id;
+    s32      i;
+    SndBank* ptr;
+    s32      id;
 
     if (arg0 == 0xFFFF) {
         arg0 = 0;
     }
     id = arg0;
 
-    for (i = 0, ptr = D_8007E0D8; i < 0x10; i++, ptr++) {
+    for (i = 0, ptr = Snd_Banks; i < 0x10; i++, ptr++) {
         if (ptr->field_8 == id) {
             return ptr;
         }
@@ -265,12 +265,12 @@ GStruct42* func_8004D150(u16 arg0)
     return NULL;
 }
 
-void func_8004D19C(GStruct42* arg0)
+void Snd_BuildGroupIndex(SndBank* arg0)
 {
-    u16*            table;
-    GStruct42Group* data;
-    s32             i;
-    u8              count;
+    u16*          table;
+    SndBankGroup* data;
+    s32           i;
+    u8            count;
 
     table = arg0->field_10;
     if (table != NULL) {

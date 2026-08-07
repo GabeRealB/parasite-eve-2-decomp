@@ -207,7 +207,7 @@ s32 func_80050D20(u32 arg0)
 {
     s32        i;
     GStruct36* state;
-    GStruct42* bank;
+    SndBank*   bank;
 
     for (i = 0; i <= 0; i++) {
         func_80051964(i & 0xFF);
@@ -222,7 +222,7 @@ s32 func_80050D20(u32 arg0)
     state->field_A  = 0x10;
     state->field_10 = D_8007F8E0;
     do {
-        bank                      = &D_8007E0D8[D_800680BB];
+        bank                      = &Snd_Banks[D_800680BB];
         state->field_40           = bank;
         bank->field_8             = 0xF0FF;
         state->field_40->field_1C = F3D458_Malloc(0x582);
@@ -828,7 +828,7 @@ void func_80051AF0(GStruct36* arg0)
     s32                 i;
     GStruct36VoiceSlot* slot;
     u8                  status;
-    GStruct48           sp10;
+    SpuVoiceRef         sp10;
     u16                 temp;
 
     i    = 0;
@@ -837,7 +837,7 @@ void func_80051AF0(GStruct36* arg0)
         if (slot->field_0 >= 0) {
             status = func_8004E6A4(slot->field_0);
             if (status != 0) {
-                func_8004E5C4(slot->field_0, &sp10);
+                Spu_GetVoiceRef(slot->field_0, &sp10);
                 temp                = sp10.field_4->adsr2;
                 temp                = (temp & 0xFFE0) | 5;
                 sp10.field_4->adsr2 = temp;
@@ -956,7 +956,7 @@ end:
 
 void func_80051DF4(GStruct36* arg0)
 {
-    GStruct48                sp10;
+    SpuVoiceRef              sp10;
     s16                      sp18[2];
     register GStruct36*      obj asm("s4");
     GStruct55*               interp;
@@ -1006,7 +1006,7 @@ after_volume:
                 f3      = entry->field_3;
                 f3     -= 0x40;
                 func_8004D35C(sp18, slot->field_5 + f3, vol);
-                func_8004E5C4(voice, &sp10);
+                Spu_GetVoiceRef(voice, &sp10);
                 if ((D_800820E9 == one) && (obj->field_1 != 0x5A)) {
                     sp10.field_4->volume.left  = 0;
                     sp10.field_4->volume.right = 0;
@@ -1266,13 +1266,13 @@ u8* func_800529BC(s32 arg0, u8* arg1, GStruct22* arg2)
 
 u8* func_800529D8(s32 arg0, u8* arg1, GStruct36* arg2)
 {
-    GStruct48           sp10;
+    SpuVoiceRef         sp10;
     register s32        channel asm("s4");
     s32                 i;
     s32                 offset;
     s16                 pitchBend;
     GStruct36VoiceSlot* slot;
-    register GStruct41* note asm("a3");
+    register SndNote*   note asm("a3");
     register s32        scale asm("a1");
     s32                 prod;
     s16                 pitch;
@@ -1287,8 +1287,8 @@ u8* func_800529D8(s32 arg0, u8* arg1, GStruct36* arg2)
     do {
         slot = (GStruct36VoiceSlot*)((u8*)arg2 + offset);
         if (slot->field_1 == channel) {
-            func_8004E5C4(slot->field_0, &sp10);
-            note = func_8004EA60(arg2->field_40, slot->field_6, slot->field_7);
+            Spu_GetVoiceRef(slot->field_0, &sp10);
+            note = Snd_GetNote(arg2->field_40, slot->field_6, slot->field_7);
             if (pitchBend >= 0) {
                 scale = note->field_B << 8;
             } else {
@@ -1356,14 +1356,14 @@ s32 func_80052B30(s32* arg0)
             }
             {
                 s32 tmp;
-                tmp             = (s32)func_8004CE28((GStruct34Payload*)&state->field_1C);
+                tmp             = (s32)Snd_AllocBank((GStruct34Payload*)&state->field_1C);
                 state->field_18 = tmp;
                 if (tmp == 0) {
                     state->field_2 = 6;
                     break;
                 }
                 src = arg0 + 5;
-                dst = ((GStruct42*)tmp)->field_1C;
+                dst = ((SndBank*)tmp)->field_1C;
             }
             count = (state->field_24 * 5) + state->field_23;
             i     = 0;
@@ -1375,11 +1375,11 @@ s32 func_80052B30(s32* arg0)
                     dst++;
                 } while ((s32)i < count);
             }
-            ((GStruct42*)state->field_18)->field_B  = state->field_23;
-            ((GStruct42*)state->field_18)->field_C  = state->field_24;
-            ((GStruct42*)state->field_18)->field_8  = state->field_20;
-            ((GStruct42*)state->field_18)->field_14 = (void*)state->field_2C;
-            state->field_2                          = 1;
+            ((SndBank*)state->field_18)->field_B  = state->field_23;
+            ((SndBank*)state->field_18)->field_C  = state->field_24;
+            ((SndBank*)state->field_18)->field_8  = state->field_20;
+            ((SndBank*)state->field_18)->field_14 = (void*)state->field_2C;
+            state->field_2                        = 1;
             break;
 
         case 1:
@@ -1389,7 +1389,7 @@ s32 func_80052B30(s32* arg0)
             state->field_14 = (s32)mem;
             if (mem == 0) {
                 state->field_2 = 6;
-                func_8004D0F0((GStruct42*)state->field_18);
+                Snd_FreeBank((SndBank*)state->field_18);
                 state->field_18 = 0;
                 break;
             }
@@ -1420,16 +1420,16 @@ s32 func_80052B30(s32* arg0)
 
         case 3: {
             s32 size;
-            size                                    = state->field_2C;
-            state->field_C                          = size;
-            ((GStruct42*)state->field_18)->field_18 = func_800535F0(
-                state->field_22, ((GStruct42*)state->field_18)->field_8, size);
-            spuAddr = ((GStruct42*)state->field_18)->field_18;
+            size                                  = state->field_2C;
+            state->field_C                        = size;
+            ((SndBank*)state->field_18)->field_18 = func_800535F0(
+                state->field_22, ((SndBank*)state->field_18)->field_8, size);
+            spuAddr = ((SndBank*)state->field_18)->field_18;
         }
             if (spuAddr == 0) {
                 D_800689E8     = 4;
                 state->field_2 = 6;
-                func_8004D0F0((GStruct42*)state->field_18);
+                Snd_FreeBank((SndBank*)state->field_18);
                 state->field_18 = 0;
                 break;
             }
@@ -1452,7 +1452,7 @@ s32 func_80052B30(s32* arg0)
             if (state->field_3 == 0) {
                 if (SpuIsTransferCompleted(0) == 0) {
                     if (state->field_0 != 0x10) {
-                        func_8004D0F0((GStruct42*)state->field_18);
+                        Snd_FreeBank((SndBank*)state->field_18);
                         state->field_18 = 0;
                     }
                     D_800689E8     = 5;
@@ -1493,22 +1493,22 @@ s32 func_80052B30(s32* arg0)
 
 s32 func_80052F80(GStruct34* arg0)
 {
-    GStruct42*   bank;
+    SndBank*     bank;
     GStruct31*   obj;
     register u32 index asm("a1");
     register u32 temp asm("v1");
     register s32 slot asm("v0");
     register s32 a asm("a0");
     s32          i;
-    GStruct41*   entry;
-    GStruct41*   raw;
+    SndNote*     entry;
+    SndNote*     raw;
     s32          base;
     s32          end;
     s32          neg;
     s32          id;
     s32          mask;
 
-    bank = (GStruct42*)arg0->field_18;
+    bank = (SndBank*)arg0->field_18;
     if (D_800689E8 == 0) {
         index = bank->field_8;
         mask  = 0xFFFF;
@@ -1544,8 +1544,8 @@ success:
     obj->field_0 = (GStruct45*)arg0->field_14;
     obj->field_C = (void*)bank->field_18;
     i            = arg0->field_24;
-    base         = ((volatile GStruct42*)bank)->field_18;
-    raw          = ((volatile GStruct42*)bank)->field_4;
+    base         = ((volatile SndBank*)bank)->field_18;
+    raw          = ((volatile SndBank*)bank)->field_4;
     i            = i - 1;
     if (i != neg) {
         end   = -1;
@@ -1556,7 +1556,7 @@ success:
             entry++;
         } while (i != end);
     }
-    func_8004D19C((GStruct42*)obj->field_4);
+    Snd_BuildGroupIndex((SndBank*)obj->field_4);
     D_800689E4     = 0xFF;
     arg0->field_18 = 0;
     arg0->field_14 = 0;
@@ -1591,7 +1591,7 @@ void func_800532CC(void)
         temp->field_2 = 8;
         F3D458_Free((void*)temp->field_14);
         temp->field_14 = 0;
-        func_8004D0F0((GStruct42*)temp->field_18);
+        Snd_FreeBank((SndBank*)temp->field_18);
         temp->field_18 = 0;
     }
 }
@@ -1649,7 +1649,7 @@ s32 func_80053414(void* arg0)
 
 s32 func_80053448(GStruct34* arg0)
 {
-    GStruct42* bank;
+    SndBank*   bank;
     GStruct36* state;
     u16        index;
     s32        i;
@@ -1658,7 +1658,7 @@ s32 func_80053448(GStruct34* arg0)
     s32        temp;
     s32        end;
 
-    bank = (GStruct42*)arg0->field_18;
+    bank = (SndBank*)arg0->field_18;
     if (D_800689E8 == 0) {
         index = bank->field_8;
         if (index != 0xFFFF) {
@@ -1678,8 +1678,8 @@ success:
     state->field_10 = (void*)temp;
     state->field_3C = arg0->field_2C;
     i               = arg0->field_24;
-    base            = ((volatile GStruct42*)bank)->field_18;
-    ptr             = (s32*)((volatile GStruct42*)bank)->field_4;
+    base            = ((volatile SndBank*)bank)->field_18;
+    ptr             = (s32*)((volatile SndBank*)bank)->field_4;
     i               = i - 1;
     if (i != -1) {
         end = -1;
@@ -1690,7 +1690,7 @@ success:
             ptr   = (s32*)((u8*)ptr + 0x14);
         } while (i != end);
     }
-    func_8004D19C(state->field_40);
+    Snd_BuildGroupIndex(state->field_40);
     D_800689E4     = 0xFF;
     arg0->field_18 = 0;
     arg0->field_14 = 0;
@@ -1766,11 +1766,11 @@ void func_8005363C(s32 arg0, void* arg1)
 
 s32 func_8005368C(s16 arg0, s32 arg1)
 {
-    u16        x;
-    u8         slot;
-    s32        i;
-    GStruct42* base;
-    GStruct42* ptr;
+    u16      x;
+    u8       slot;
+    s32      i;
+    SndBank* base;
+    SndBank* ptr;
 
     x = arg0;
     if ((arg1 & 0xFF) == 0) {
@@ -1783,7 +1783,7 @@ s32 func_8005368C(s16 arg0, s32 arg1)
     switch ((u32)(arg0 & 0xF000) >> 12) {
         case 4:
             i    = 4;
-            base = D_8007E0D8;
+            base = Snd_Banks;
             ptr  = base + 4;
             do {
                 if (ptr->field_8 == x) {
@@ -1797,7 +1797,7 @@ s32 func_8005368C(s16 arg0, s32 arg1)
         case 0xF:
             break;
         default:
-            if (D_8007E0D8[(s8)slot].field_8 == (arg0 & 0xFFFF)) {
+            if (Snd_Banks[(s8)slot].field_8 == (arg0 & 0xFFFF)) {
                 return -1;
             }
             break;

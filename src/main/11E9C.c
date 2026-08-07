@@ -616,7 +616,7 @@ void func_8002226C(void* arg0, void* arg1)
             if (D_8006ACA6 < 0) {
                 D_8006ACA2 = 1;
             }
-            temp = func_80043310(arg0, &D_8006AC9E, &D_8006ACA2, 0);
+            temp = TextStream_Draw(arg0, &D_8006AC9E, &D_8006ACA2, 0);
             if (D_8006ACA6 >= 0) {
                 D_8006ACA6 = temp;
             }
@@ -625,7 +625,7 @@ void func_8002226C(void* arg0, void* arg1)
                     D_8006ACA4 = 1;
                 }
                 if (secondary != NULL) {
-                    ret = func_80043310(secondary, &D_8006AC9F, &D_8006ACA4, 0);
+                    ret = TextStream_Draw(secondary, &D_8006AC9F, &D_8006ACA4, 0);
                 } else {
                     D_8006ACA8 = -1;
                 }
@@ -666,9 +666,9 @@ void func_8002226C(void* arg0, void* arg1)
         draw:
             D_8006ACA4 = 1;
             D_8006ACA2 = 1;
-            func_80043310(arg0, &D_8006AC9E, &D_8006ACA2, 0);
+            TextStream_Draw(arg0, &D_8006AC9E, &D_8006ACA2, 0);
             if (secondary != NULL) {
-                func_80043310(secondary, &D_8006AC9F, &D_8006ACA4, 0);
+                TextStream_Draw(secondary, &D_8006AC9F, &D_8006ACA4, 0);
             }
             break;
     }

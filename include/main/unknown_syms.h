@@ -51,7 +51,7 @@ extern void func_8002207C(void);
 extern void func_8002226C(void* arg0, void* arg1);
 
 // 33300.c
-extern s32 func_80043310(GStruct78* arg0, u8* arg1, s16* arg2, s32 arg3);
+extern s32 TextStream_Draw(TextStream* arg0, u8* arg1, s16* arg2, s32 arg3);
 
 // fs.c APIs and Fs_* data → main/fs.h
 extern void func_80010024(void);
@@ -114,29 +114,29 @@ extern void  func_801011D0(s32* arg0, s32 arg1, s32 arg2, void* arg3);
 
 // 1E6C4.c
 extern void func_8002DEC4(void);
-extern s32  func_8002DECC(GStruct38* arg0, u8* arg1, u8* arg2);
+extern s32  func_8002DECC(TextDrawReq* arg0, u8* arg1, u8* arg2);
 // Dual SPRT glyph draw: code 0x66 (clut 0x7FFD, colored) + 0x67 (clut 0x7FFE)
 // linked at OT[field_4] and OT[field_4+1] respectively.
-extern void func_8002E010(GStruct38* arg0, GStruct68* arg1, s32 arg2);
+extern void func_8002E010(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
 // Dual SPRT glyph draw: code 0x64 (clut 0x7FFD, colored) + 0x67 (clut 0x7FFF)
 // linked at OT[field_4] and OT[field_4+1] respectively.
-extern void func_8002E188(GStruct38* arg0, GStruct68* arg1, s32 arg2);
+extern void func_8002E188(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
 // Dual SPRT glyph draw with DR_TPAGE: code 0x64 (clut 0x7FFD) + tpage 0xE100023F
 // + code 0x67 (clut 0x7FFF) + tpage 0xE100025F, all linked at OT[field_4].
-extern void func_8002E300(GStruct38* arg0, GStruct68* arg1, s32 arg2);
-extern void func_8002E53C(GStruct38* arg0, u8* arg1);
-extern void func_8002EDFC(GStruct38* arg0, u8* arg1);
+extern void func_8002E300(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
+extern void func_8002E53C(TextDrawReq* arg0, u8* arg1);
+extern void func_8002EDFC(TextDrawReq* arg0, u8* arg1);
 // Skip arg1 newline/escape-delimited lines starting at arg0; returns advanced pointer.
 extern u8*  func_8002F528(u8* arg0, s32 arg1);
-extern void func_8002F5E4(GStruct38* arg0, GStruct68* arg1, s32 arg2);
-extern void func_8002F69C(GStruct38* arg0, GStruct68* arg1, s32 arg2);
-extern void func_8002F798(GStruct38* arg0, GStruct68* arg1);
+extern void func_8002F5E4(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
+extern void func_8002F69C(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
+extern void func_8002F798(TextDrawReq* arg0, FontGlyph* arg1);
 extern void func_8002F98C(Task* arg0);
 
-// Glyph tables (selected by GStruct38.field_C); entries are GStruct68 (0xC each).
-extern u8 D_8005EFB0[];
-extern u8 D_8005FA30[];
-extern u8 D_800604B0[];
+// Glyph tables (selected by TextDrawReq.field_C); entries are FontGlyph (0xC each).
+extern u8 Font_Glyphs0[];
+extern u8 Font_Glyphs1[];
+extern u8 Font_Glyphs2[];
 
 // Memcard product-code prefix (12 bytes, e.g. "BASLUS-01042")
 extern u8 D_80060DC8[];
@@ -242,47 +242,47 @@ extern void      func_80049A8C(Task* arg0);
 extern s32 func_8004ACAC(s32 arg0);
 
 // 3D458.c
-extern void       func_8004CFE8(void);
-extern void       func_8004D008(void);
-extern GStruct42* func_8004CE28(GStruct34Payload* arg0);
-extern void       F3D458_ResetHeap(void);
-extern void*      F3D458_Malloc(size_t);
-extern void       F3D458_Free(void* ptr);
-extern void       func_8004D0F0(GStruct42* arg0);
-extern GStruct42* func_8004D150(u16 arg0);
-extern void       func_8004D19C(GStruct42* arg0);
-extern void       func_8004D200(GStruct55* arg0, s32 arg1, s32 arg2, s32 arg3);
-extern s32        func_8004D298(GStruct55* arg0, s32 arg1);
-extern void       func_8004D2EC(GStruct55* arg0);
-extern void       func_8004D35C(s16* arg0, s16 arg1, s32 arg2);
-extern s32        func_8004D820(void);
-extern void       func_8004D8BC(void);
-extern GStruct8*  func_8004D94C(GStruct8* arg0);
-extern void       F3D458_8004D88C(void);
+extern void      func_8004CFE8(void);
+extern void      func_8004D008(void);
+extern SndBank*  Snd_AllocBank(GStruct34Payload* arg0);
+extern void      F3D458_ResetHeap(void);
+extern void*     F3D458_Malloc(size_t);
+extern void      F3D458_Free(void* ptr);
+extern void      Snd_FreeBank(SndBank* arg0);
+extern SndBank*  Snd_FindBank(u16 arg0);
+extern void      Snd_BuildGroupIndex(SndBank* arg0);
+extern void      func_8004D200(GStruct55* arg0, s32 arg1, s32 arg2, s32 arg3);
+extern s32       func_8004D298(GStruct55* arg0, s32 arg1);
+extern void      func_8004D2EC(GStruct55* arg0);
+extern void      func_8004D35C(s16* arg0, s16 arg1, s32 arg2);
+extern s32       func_8004D820(void);
+extern void      func_8004D8BC(void);
+extern GStruct8* func_8004D94C(GStruct8* arg0);
+extern void      F3D458_8004D88C(void);
 
 // 3E48C.c
-extern s16        func_8004DE18(void* arg0);
-extern void       func_8004DEBC(s32 arg0);
-extern void       func_8004E200(void);
-extern s32        func_8004E060(s16* arg0, s32 arg1, s32 arg2);
-extern void       func_8004E560(u32 voiceIdx, s32 arg1, s32 arg2);
-extern s32        func_8004E5A0(s32 idx, s32 arg1, s32 arg2);
-extern s32        func_8004E5C4(s8 arg0, GStruct48* arg1);
-extern u8         func_8004E6A4(u32 voiceIdx);
-extern void       func_8004E580(u32 voiceIdx);
-extern void       func_8004E71C(u32 voiceIdx);
-extern u16        func_8004E9D8(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-extern GStruct41* func_8004EA60(GStruct42* arg0, u8 arg1, u8 arg2);
-extern void       F3E48C_8004E44C(void);
-extern s32        F3E48C_8004E660(u32 voiceIdx);
-extern void       F3E48C_QueryReverbVoices(void);
-extern void       F3E48C_ConfigSpuReverb(s32 mode);
-extern void       F3E48C_SetReverbDepth(s16 depth);
-extern void       F3E48C_SetReverbMode(u32 mode);
-extern void       F3E48C_EnableVoice(u32 voiceIdx);
-extern void       F3E48C_DisableVoice(u32 voiceIdx);
-extern bool       F3E48C_ReverbVoiceIsEnabled(u32 voiceIdx);
-extern void       F3E48C_ApplyReverbConfig(void);
+extern s16      func_8004DE18(void* arg0);
+extern void     AsyncCb_Cancel(s32 arg0);
+extern void     func_8004E200(void);
+extern s32      func_8004E060(s16* arg0, s32 arg1, s32 arg2);
+extern void     func_8004E560(u32 voiceIdx, s32 arg1, s32 arg2);
+extern s32      func_8004E5A0(s32 idx, s32 arg1, s32 arg2);
+extern s32      Spu_GetVoiceRef(s8 arg0, SpuVoiceRef* arg1);
+extern u8       func_8004E6A4(u32 voiceIdx);
+extern void     func_8004E580(u32 voiceIdx);
+extern void     func_8004E71C(u32 voiceIdx);
+extern u16      func_8004E9D8(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+extern SndNote* Snd_GetNote(SndBank* arg0, u8 arg1, u8 arg2);
+extern void     F3E48C_8004E44C(void);
+extern s32      F3E48C_8004E660(u32 voiceIdx);
+extern void     F3E48C_QueryReverbVoices(void);
+extern void     F3E48C_ConfigSpuReverb(s32 mode);
+extern void     F3E48C_SetReverbDepth(s16 depth);
+extern void     F3E48C_SetReverbMode(u32 mode);
+extern void     F3E48C_EnableVoice(u32 voiceIdx);
+extern void     F3E48C_DisableVoice(u32 voiceIdx);
+extern bool     F3E48C_ReverbVoiceIsEnabled(u32 voiceIdx);
+extern void     F3E48C_ApplyReverbConfig(void);
 
 // 410B0.c
 extern void func_800508B0(void);
@@ -395,7 +395,7 @@ extern GStruct43* func_80056240(s32 arg0);
 extern void       func_800562B4(GStruct57* arg0, GStruct43* arg1);
 extern s32        func_800563B4(GStruct54* arg0);
 extern void       func_800564C4(s8 arg0, s8 arg1, GStruct43* arg2, GStruct55* arg3, s16* arg4);
-extern void       func_800565B8(GStruct43* arg0, s16 arg1, u32 arg2, GStruct41* arg3);
+extern void       func_800565B8(GStruct43* arg0, s16 arg1, u32 arg2, SndNote* arg3);
 extern s32        func_8005664C(u8* arg0, s16 arg1, GStruct59* arg2);
 extern void       func_800566A4(void);
 extern s32        func_80056700(void);
@@ -540,9 +540,9 @@ extern void  func_8004CC58(s32 arg0);
 extern void  func_8004CFC8(void);
 extern void  F3D458_ResetHeap(void);
 extern long  func_8004D7D4(void);
-extern void  func_8004D0A0(void);
-extern void  func_8004DC8C(void);
-extern void  func_8004DDF0(void);
+extern void  Snd_ClearBanks(void);
+extern void  AsyncCb_Poll(void);
+extern void  AsyncCb_Reset(void);
 extern void  func_8004DF10(void);
 extern void  func_8004D460(void*, u32, u32, s32*);
 extern void  func_800509B4(void);
@@ -719,7 +719,7 @@ extern s16           D_8007A39A;
 extern u16           D_8007A39C;
 extern u8            D_8007E0CC;
 extern s32           D_8007E0D4;
-extern GStruct42     D_8007E0D8[];
+extern SndBank       Snd_Banks[];
 
 // Stream slot table living next to FS bss (F344); not pure FS API.
 extern GStruct24    D_8006D4F0[15];
@@ -784,22 +784,22 @@ extern MATRIX D_80074080;
 extern u8               D_800740E0[0x6000];
 extern void*            D_8007A0E0;
 extern s32              D_8007A0E4;
-extern GStruct50        D_8007A0E8[2];
+extern GameOt           Gpu_OrderingTables[2];
 extern u_long           D_8007A120[0x80];
 extern HeapBlockHeader* D648E0_HeapStart;
 extern u8               D648E0_HeapBuffer[C3D458_HEAP_SIZE];
 extern GStruct8         D648E0_8007E0B0;
 extern u32              D648E0_8007E0C8;
 extern long             D648E0_SpuTimerED;
-extern GStruct51Queue   D_8007E2E0;
-extern GStruct51        D_8007E2E4[];
-extern GStruct9         D648E0_8007E338;
-extern GStruct10        D648E0_8007E518;
+extern AsyncCbQueue     AsyncCb_Queue;
+extern AsyncCbEntry     AsyncCb_Entries[];
+extern SpuVoiceState    Spu_VoiceState;
+extern SpuLVoiceTable   Spu_LVoiceTable;
 extern GStruct26        D_8007EB98[];
 extern u32              D648E0_8007EBA8;
 extern u32              D648E0_8007EBAC;
 extern u32              D648E0_8007EBB0;
-extern GStruct7         D648E0_SpuReverbCfg;
+extern SpuReverbConfig  D648E0_SpuReverbCfg;
 extern s32              D_8007EBE0;
 extern GStruct16*       D_8007EBE4;
 extern GStruct16*       D_8007EBE8;

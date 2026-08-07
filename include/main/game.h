@@ -54,14 +54,14 @@ typedef struct _HeapBlockHeader {
 } HeapBlockHeader;
 STATIC_ASSERT_SIZEOF(HeapBlockHeader, 0x10);
 
-typedef struct _GStruct7 {
+typedef struct _SpuReverbConfig {
     u32           enableVoices;
     u32           disableVoices;
     u32           reverbMode;
     u32           isDirty;
     SpuReverbAttr attr;
-} GStruct7;
-STATIC_ASSERT_SIZEOF(GStruct7, 0x24);
+} SpuReverbConfig;
+STATIC_ASSERT_SIZEOF(SpuReverbConfig, 0x24);
 
 typedef struct _GStruct8 {
     s32 field_0;
@@ -73,7 +73,7 @@ typedef struct _GStruct8 {
 } GStruct8;
 STATIC_ASSERT_SIZEOF(GStruct8, 0x18);
 
-typedef struct _GStruct9 {
+typedef struct _SpuVoiceState {
     u32 reverbVoiceStatus;
     u32 field_4[24];
     u8  field_64[24];
@@ -84,15 +84,15 @@ typedef struct _GStruct9 {
     u32 field_16c[24];
     u32 field_1cc;
     u32 field_1d0;
-} GStruct9;
-STATIC_ASSERT_SIZEOF(GStruct9, 0x1D4);
+} SpuVoiceState;
+STATIC_ASSERT_SIZEOF(SpuVoiceState, 0x1D4);
 
-typedef struct _GStruct10 {
+typedef struct _SpuLVoiceTable {
     s16           count;
     SpuLVoiceAttr attrs[24];
     u8            field_664[24];
-} GStruct10;
-STATIC_ASSERT_SIZEOF(GStruct10, 0x67C);
+} SpuLVoiceTable;
+STATIC_ASSERT_SIZEOF(SpuLVoiceTable, 0x67C);
 
 // FsImgBuffers / FsWorkEntry / FsLoadParams live in main/fs.h
 
@@ -729,10 +729,10 @@ struct _GStruct43 {
 STATIC_ASSERT_SIZEOF(GStruct43, 0x40);
 
 /// Overlay of GStruct34 at +0x1C (sector payload header for sound-bank setup).
-/// Passed to func_8004CE28; filled from a CD sector by func_80052B30.
+/// Passed to Snd_AllocBank; filled from a CD sector by func_80052B30.
 /// field_4 high nibble indexes D_800680AC / selects bank type; field_7 is the
-/// GStruct42Group count and field_8 is the GStruct41 entry count used to size
-/// the GStruct42 heap block (groups*4 + entries*0x14 + groups*2).
+/// SndBankGroup count and field_8 is the SndNote entry count used to size
+/// the SndBank heap block (groups*4 + entries*0x14 + groups*2).
 typedef struct _GStruct34Payload {
     /* 0x0 */ u8  pad_0[4];
     /* 0x4 */ u16 field_4;
@@ -815,7 +815,7 @@ STATIC_ASSERT_SIZEOF(GStruct36Entry, 0x3C);
 /// field_1 / field_2 match opcode nibble / param in func_800528F8.
 /// field_3 indexes D_80068E78 for velocity scaling (func_80051DF4).
 /// field_4 is a signed per-note volume scale; field_5 is a signed pan offset.
-/// field_6 / field_7 index the bank note via func_8004EA60; field_8 is scaled pitch.
+/// field_6 / field_7 index the bank note via Snd_GetNote; field_8 is scaled pitch.
 /// field_A is a reverb/enable flag halfword written by the note-on handler.
 typedef struct _GStruct36VoiceSlot {
     /* 0x0 */ s8  field_0;
@@ -853,9 +853,9 @@ STATIC_ASSERT_SIZEOF(GStruct55, 0x10);
 /// field_484 is a 16-entry opcode table (same layout as GStruct22::field_484);
 /// func_800528BC seeds each entry with 0x407F4000 / 0.
 /// voiceSlots holds up to 18 active SPU voice indices (field_0 = -1 when free).
-typedef struct _GStruct42      GStruct42;
-typedef struct _GStruct41      GStruct41;
-typedef struct _GStruct42Group GStruct42Group;
+typedef struct _SndBank      SndBank;
+typedef struct _SndNote      SndNote;
+typedef struct _SndBankGroup SndBankGroup;
 
 typedef struct _GStruct36 {
     /* 0x00 */ u8                  field_0;
@@ -875,9 +875,9 @@ typedef struct _GStruct36 {
     /* 0x34 */ s32                 field_34;
     /* 0x38 */ s32                 field_38;
     /* 0x3C */ s32                 field_3C;
-    /* 0x40 */ GStruct42*          field_40;
-    /* 0x44 */ GStruct42Group*     field_44;
-    /* 0x48 */ GStruct41*          field_48;
+    /* 0x40 */ SndBank*            field_40;
+    /* 0x44 */ SndBankGroup*       field_44;
+    /* 0x48 */ SndNote*            field_48;
     /* 0x4C */ GStruct36Entry      entries[1];
     /* 0x88 */ u8                  unknown_88[0x484 - 0x88];
     /* 0x484 */ GStruct22Entry     field_484[16];
@@ -886,24 +886,24 @@ typedef struct _GStruct36 {
 STATIC_ASSERT_SIZEOF(GStruct36, 0x5DC);
 
 /// Text-measure / draw-request block passed to func_8002EDFC / func_8002E53C.
-/// field_0 / field_2 are position (or accumulate measured width); field_C selects
-/// the glyph table; field_D selects centering mode (1 = half width, 2 = full);
-/// field_F is added to glyph v when drawing sprites.
-typedef struct _GStruct38 {
-    /* 0x00 */ s16 field_0;
-    /* 0x02 */ s16 field_2;
-    /* 0x04 */ s32 field_4;
+/// field_0/field_2 = x/y (or accumulate measured width); field_4 = OT priority;
+/// field_C selects Font_Glyphs0/1/2; field_D = center mode (1=half, 2=full);
+/// field_F = v bias added when drawing sprites.
+typedef struct _TextDrawReq {
+    /* 0x00 */ s16 field_0; // x
+    /* 0x02 */ s16 field_2; // y
+    /* 0x04 */ s32 field_4; // otIndex
     /* 0x08 */ s32 field_8;
-    /* 0x0C */ s8  field_C;
-    /* 0x0D */ s8  field_D;
+    /* 0x0C */ s8  field_C; // glyphTable
+    /* 0x0D */ s8  field_D; // centerMode
     /* 0x0E */ s8  field_E;
-    /* 0x0F */ u8  field_F;
-} GStruct38;
-STATIC_ASSERT_SIZEOF(GStruct38, 0x10);
+    /* 0x0F */ u8  field_F; // vBias
+} TextDrawReq;
+STATIC_ASSERT_SIZEOF(TextDrawReq, 0x10);
 
-/// Per-glyph metrics in the font tables (D_8005EFB0 / D_8005FA30 / D_800604B0).
+/// Per-glyph metrics in the font tables (Font_Glyphs0 / Font_Glyphs1 / Font_Glyphs2).
 /// off_x / off_y are stored as bytes but used as signed offsets when drawing.
-typedef struct _GStruct68 {
+typedef struct _FontGlyph {
     /* 0x0 */ u8 u;
     /* 0x1 */ u8 v;
     /* 0x2 */ u8 w;
@@ -915,62 +915,61 @@ typedef struct _GStruct68 {
     /* 0x8 */ u8 field_8;
     /* 0x9 */ u8 field_9;
     /* 0xA */ u8 pad_A[2];
-} GStruct68;
-STATIC_ASSERT_SIZEOF(GStruct68, 0xC);
+} FontGlyph;
+STATIC_ASSERT_SIZEOF(FontGlyph, 0xC);
 
-/// Draw params for func_800435F8 (SPRT) / func_80043854 (TILE).
-/// field_0/field_2 are x/y; field_4/field_6 are texture u/v (SPRT only);
-/// field_8/field_A are width/height (inclusive size, decremented when written);
-/// field_C/D/E are RGB; field_10 selects shade-tex (0) vs semi-trans (nonzero).
-typedef struct _GStruct65 {
-    /* 0x00 */ s16 field_0;
-    /* 0x02 */ s16 field_2;
-    /* 0x04 */ u8  field_4;
+/// Draw params for Prim_DrawSprt (SPRT) / Prim_DrawTile (TILE).
+/// field_0/2 = x/y; field_4/6 = u/v (SPRT); field_8/A = w/h (inclusive, decremented
+/// when written); field_C/D/E = RGB; field_10 = 0 shade-tex / nonzero semi-trans.
+typedef struct _PrimDrawParams {
+    /* 0x00 */ s16 field_0;  // x
+    /* 0x02 */ s16 field_2;  // y
+    /* 0x04 */ u8  field_4;  // u
     /* 0x05 */ u8  pad_5;
-    /* 0x06 */ u8  field_6;
+    /* 0x06 */ u8  field_6;  // v
     /* 0x07 */ u8  pad_7;
-    /* 0x08 */ s16 field_8;
-    /* 0x0A */ s16 field_A;
-    /* 0x0C */ u8  field_C;
-    /* 0x0D */ u8  field_D;
-    /* 0x0E */ u8  field_E;
+    /* 0x08 */ s16 field_8;  // w
+    /* 0x0A */ s16 field_A;  // h
+    /* 0x0C */ u8  field_C;  // r
+    /* 0x0D */ u8  field_D;  // g
+    /* 0x0E */ u8  field_E;  // b
     /* 0x0F */ u8  pad_F;
-    /* 0x10 */ s16 field_10;
-} GStruct65;
-STATIC_ASSERT_SIZEOF(GStruct65, 0x12);
+    /* 0x10 */ s16 field_10; // shadeMode
+} PrimDrawParams;
+STATIC_ASSERT_SIZEOF(PrimDrawParams, 0x12);
 
-/// 4-byte glyph UVWH entry used by func_80043310 (tables like D_800627E0).
-/// Distinct from GStruct68 (0xC full font metrics).
-typedef struct _GStruct77 {
+/// 4-byte glyph UVWH entry used by TextStream_Draw (tables like D_800627E0).
+/// Distinct from FontGlyph (0xC full font metrics).
+typedef struct _GlyphUvwh {
     /* 0x0 */ u8 u;
     /* 0x1 */ u8 v;
     /* 0x2 */ u8 w;
     /* 0x3 */ u8 h;
-} GStruct77;
-STATIC_ASSERT_SIZEOF(GStruct77, 0x4);
+} GlyphUvwh;
+STATIC_ASSERT_SIZEOF(GlyphUvwh, 0x4);
 
-/// Text stream / font draw object (e.g. D_800630B0). field_0/2 are position;
-/// field_4/6 are tpage base (u base is field_4 & 0x3F); field_8/A are clut xy;
-/// field_C is per-char frame delay; field_E is the stream cursor; field_10 is
-/// the char stream (0xFE = newline, 0xFF = end); field_14 is the glyph table;
-/// field_18 is line height; field_1A is the delay reload when a line advances.
-typedef struct _GStruct78 {
-    /* 0x00 */ s16        field_0;
-    /* 0x02 */ s16        field_2;
-    /* 0x04 */ s16        field_4;
-    /* 0x06 */ s16        field_6;
-    /* 0x08 */ s16        field_8;
-    /* 0x0A */ s16        field_A;
-    /* 0x0C */ s16        field_C;
-    /* 0x0E */ s16        field_E;
-    /* 0x10 */ u8*        field_10;
-    /* 0x14 */ GStruct77* field_14;
-    /* 0x18 */ s16        field_18;
-    /* 0x1A */ s16        field_1A;
+/// Text stream / font draw object (e.g. D_800630B0).
+/// field_0/2 = x/y; field_4/6 = tpage xy (u base = field_4 & 0x3F);
+/// field_8/A = clut xy; field_C = per-char delay; field_E = stream cursor;
+/// field_10 = char stream (0xFE newline, 0xFF end); field_14 = GlyphUvwh table;
+/// field_18 = line height; field_1A = delay reload on line advance.
+typedef struct _TextStream {
+    /* 0x00 */ s16        field_0;  // x
+    /* 0x02 */ s16        field_2;  // y
+    /* 0x04 */ s16        field_4;  // tpageX
+    /* 0x06 */ s16        field_6;  // tpageY
+    /* 0x08 */ s16        field_8;  // clutX
+    /* 0x0A */ s16        field_A;  // clutY
+    /* 0x0C */ s16        field_C;  // charDelay
+    /* 0x0E */ s16        field_E;  // cursor
+    /* 0x10 */ u8*        field_10; // chars
+    /* 0x14 */ GlyphUvwh* field_14; // glyphs
+    /* 0x18 */ s16        field_18; // lineHeight
+    /* 0x1A */ s16        field_1A; // delayReload
     /* 0x1C */ s16        field_1C;
     /* 0x1E */ s16        field_1E;
-} GStruct78;
-STATIC_ASSERT_SIZEOF(GStruct78, 0x20);
+} TextStream;
+STATIC_ASSERT_SIZEOF(TextStream, 0x20);
 
 /// BSS object D_80082758 (size 0x18). CD/audio stream state for 46FE4.c.
 /// field_C is a base pointer into a halfword table; func_80057A1C indexes it
@@ -1008,61 +1007,56 @@ typedef struct _GStruct40 {
 } GStruct40;
 STATIC_ASSERT_SIZEOF(GStruct40, 0x80);
 
-/// 0x14-byte sound/note entry indexed by func_8004EA60.
-/// field_0 selects reverb enable (1) vs disable; field_1 is pan base.
-/// field_3 is a volume scale; field_4/field_5 are root-key args for pitch.
-/// field_6 is voice-alloc priority; field_8/field_9 are MIDI key range.
-/// field_A/field_B are pitch-bend ranges; field_C/field_E are ADSR words;
-/// field_10 is the SPU waveform address.
-struct _GStruct41 {
-    /* 0x00 */ u8  field_0;
-    /* 0x01 */ u8  field_1;
+/// 0x14-byte sound/note entry indexed by Snd_GetNote.
+/// field_0 reverb enable; field_1 pan; field_3 volume; field_4/5 root-key pitch;
+/// field_6 priority; field_8/9 MIDI key range; field_A/B bend ranges;
+/// field_C/E ADSR; field_10 SPU waveform address.
+struct _SndNote {
+    /* 0x00 */ u8  field_0;  // reverbEnable
+    /* 0x01 */ u8  field_1;  // pan
     /* 0x02 */ u8  pad_2;
-    /* 0x03 */ u8  field_3;
-    /* 0x04 */ u8  field_4;
-    /* 0x05 */ u8  field_5;
-    /* 0x06 */ u16 field_6;
-    /* 0x08 */ u8  field_8;
-    /* 0x09 */ u8  field_9;
-    /* 0x0A */ u8  field_A;
-    /* 0x0B */ u8  field_B;
-    /* 0x0C */ u16 field_C;
-    /* 0x0E */ u16 field_E;
-    /* 0x10 */ s32 field_10;
+    /* 0x03 */ u8  field_3;  // volume
+    /* 0x04 */ u8  field_4;  // rootKey
+    /* 0x05 */ u8  field_5;  // rootFine
+    /* 0x06 */ u16 field_6;  // priority
+    /* 0x08 */ u8  field_8;  // keyMin
+    /* 0x09 */ u8  field_9;  // keyMax
+    /* 0x0A */ u8  field_A;  // bendDown
+    /* 0x0B */ u8  field_B;  // bendUp
+    /* 0x0C */ u16 field_C;  // adsr1
+    /* 0x0E */ u16 field_E;  // adsr2
+    /* 0x10 */ s32 field_10; // waveAddr
 };
-STATIC_ASSERT_SIZEOF(GStruct41, 0x14);
+STATIC_ASSERT_SIZEOF(SndNote, 0x14);
 
-/// 4-byte group header at the start of a GStruct42 heap block (field_0).
-/// field_0 is the group size; func_8004D19C prefix-sums these into field_10.
-/// field_2 is a volume scale; field_3 is a pan base (note-on handler).
-struct _GStruct42Group {
-    /* 0x0 */ u8 field_0;
+/// 4-byte group header at the start of a SndBank heap block.
+/// field_0 = group size (prefix-summed into SndBank::field_10);
+/// field_2 volume; field_3 pan.
+struct _SndBankGroup {
+    /* 0x0 */ u8 field_0; // size
     /* 0x1 */ u8 pad_1;
-    /* 0x2 */ u8 field_2;
-    /* 0x3 */ u8 field_3;
+    /* 0x2 */ u8 field_2; // volume
+    /* 0x3 */ u8 field_3; // pan
 };
-STATIC_ASSERT_SIZEOF(GStruct42Group, 0x4);
+STATIC_ASSERT_SIZEOF(SndBankGroup, 0x4);
 
-/// Sound bank header used by func_8004EA60 (and D_8007E0D8 entries, stride 0x20).
-/// field_0 points at GStruct42Group entries; field_4 is the base of GStruct41
-/// entries; field_10 is a u16 prefix-sum index table built by func_8004D19C.
-/// field_B is the group count. field_8 high nibble 0xF marks the slot free/invalid
-/// (see func_8004D0A0 / func_8004D0F0). field_1C is a heap allocation released by
-/// func_8004D0F0.
-struct _GStruct42 {
-    /* 0x00 */ GStruct42Group* field_0;
-    /* 0x04 */ GStruct41*      field_4;
-    /* 0x08 */ u16             field_8;
-    /* 0x0A */ u8              field_A;
-    /* 0x0B */ u8              field_B;
-    /* 0x0C */ u8              field_C;
-    /* 0x0D */ byte            unknown_D[0x3];
-    /* 0x10 */ u16*            field_10;
-    /* 0x14 */ void*           field_14;
-    /* 0x18 */ s32             field_18;
-    /* 0x1C */ void*           field_1C;
+/// Sound bank header used by Snd_GetNote (and Snd_Banks entries, stride 0x20).
+/// field_0 = SndBankGroup*; field_4 = SndNote*; field_8 = bank id (0xFxxx free);
+/// field_B = group count; field_10 = u16* group index table; field_1C = heap.
+struct _SndBank {
+    /* 0x00 */ SndBankGroup* field_0; // groups
+    /* 0x04 */ SndNote*      field_4; // notes
+    /* 0x08 */ u16           field_8; // bankId
+    /* 0x0A */ u8            field_A;
+    /* 0x0B */ u8            field_B; // groupCount
+    /* 0x0C */ u8            field_C;
+    /* 0x0D */ byte          unknown_D[0x3];
+    /* 0x10 */ u16*          field_10; // groupIndex
+    /* 0x14 */ void*         field_14;
+    /* 0x18 */ s32           field_18;
+    /* 0x1C */ void*         field_1C; // heap
 };
-STATIC_ASSERT_SIZEOF(GStruct42, 0x20);
+STATIC_ASSERT_SIZEOF(SndBank, 0x20);
 
 /// BSS object D_80082780 (size 0x14). CD stream control for 46FE4.c.
 typedef struct _GStruct44 {
@@ -1097,51 +1091,51 @@ STATIC_ASSERT_SIZEOF(CdStreamParams, 0x20);
 
 /// Buffer with a 16-bit sum / ones-complement pair at the head and a payload
 /// starting at offset 4. Written by `Mc_WriteBlockChecksum`, verified by `Mc_VerifyBlockChecksum`.
-/// Out-parameter for `func_8004E5C4` (voice slot lookup/alloc).
-/// field_0 is the voice index; field_4 points at the voice's SpuVoiceAttr.
-typedef struct _GStruct48 {
-    /* 0x0 */ s8            field_0;
+/// Out-parameter for `Spu_GetVoiceRef` (voice slot lookup/alloc).
+/// field_0 = voice index; field_4 = SpuVoiceAttr*.
+typedef struct _SpuVoiceRef {
+    /* 0x0 */ s8            field_0; // voiceIdx
     /* 0x1 */ s8            field_1;
     /* 0x2 */ s8            field_2;
     /* 0x3 */ s8            field_3;
-    /* 0x4 */ SpuVoiceAttr* field_4;
-} GStruct48;
-STATIC_ASSERT_SIZEOF(GStruct48, 0x8);
+    /* 0x4 */ SpuVoiceAttr* field_4; // attr
+} SpuVoiceRef;
+STATIC_ASSERT_SIZEOF(SpuVoiceRef, 0x8);
 
 /// Double-buffered ordering-table descriptor (same layout as PsyQ GsOT).
-/// Used by D_8007A0E8 and passed to GsClearOt.
-typedef struct _GStruct50 {
+/// Used by Gpu_OrderingTables and passed to GsClearOt.
+typedef struct _GameOt {
     /* 0x00 */ u_long  length;
     /* 0x04 */ u_long* org;
     /* 0x08 */ u_long  offset;
     /* 0x0C */ u_long  point;
     /* 0x10 */ u_long* tag;
-} GStruct50;
-STATIC_ASSERT_SIZEOF(GStruct50, 0x14);
+} GameOt;
+STATIC_ASSERT_SIZEOF(GameOt, 0x14);
 
-/// PsyQ GsClearOt, declared with GStruct50* so callers need not include libgs.h.
-void GsClearOt(unsigned short offset, unsigned short point, GStruct50* otp);
+/// PsyQ GsClearOt, declared with GameOt* so callers need not include libgs.h.
+void GsClearOt(unsigned short offset, unsigned short point, GameOt* otp);
 
-/// Callback-queue slot used by D_8007E2E0.entries / D_8007E2E4 (stride 0x14).
-/// field_0 holds status flags (bit0 active, bit1 arm, bit2 pending, bit3 result).
-typedef struct _GStruct51 {
-    /* 0x00 */ s32  field_0;
-    /* 0x04 */ s32  field_4;
-    /* 0x08 */ s32  (*field_8)(struct _GStruct51*);
-    /* 0x0C */ void (*field_C)(struct _GStruct51*);
-    /* 0x10 */ s32  (*field_10)(struct _GStruct51*);
-} GStruct51;
-STATIC_ASSERT_SIZEOF(GStruct51, 0x14);
+/// Callback-queue slot used by AsyncCb_Queue.entries / AsyncCb_Entries (stride 0x14).
+/// field_0 flags: bit0 active, bit1 arm, bit2 pending, bit3 result.
+typedef struct _AsyncCbEntry {
+    /* 0x00 */ s32  field_0;                            // flags
+    /* 0x04 */ s32  field_4;                            // data
+    /* 0x08 */ s32  (*field_8)(struct _AsyncCbEntry*);  // pollFn
+    /* 0x0C */ void (*field_C)(struct _AsyncCbEntry*);  // doneFn
+    /* 0x10 */ s32  (*field_10)(struct _AsyncCbEntry*); // errorFn
+} AsyncCbEntry;
+STATIC_ASSERT_SIZEOF(AsyncCbEntry, 0x14);
 
-/// Ring buffer of 4 GStruct51 callback slots (D_8007E2E0, size 0x54).
-/// field_0 is the read index; field_1 is the write index. D_8007E2E4 aliases entries.
-typedef struct _GStruct51Queue {
-    /* 0x00 */ s8        field_0;
-    /* 0x01 */ s8        field_1;
-    /* 0x02 */ u8        pad_2[2];
-    /* 0x04 */ GStruct51 entries[4];
-} GStruct51Queue;
-STATIC_ASSERT_SIZEOF(GStruct51Queue, 0x54);
+/// Ring buffer of 4 AsyncCbEntry callback slots (AsyncCb_Queue, size 0x54).
+/// field_0 = readIdx; field_1 = writeIdx. AsyncCb_Entries aliases entries[0].
+typedef struct _AsyncCbQueue {
+    /* 0x00 */ s8           field_0; // readIdx
+    /* 0x01 */ s8           field_1; // writeIdx
+    /* 0x02 */ u8           pad_2[2];
+    /* 0x04 */ AsyncCbEntry entries[4];
+} AsyncCbQueue;
+STATIC_ASSERT_SIZEOF(AsyncCbQueue, 0x54);
 
 /// 4-byte entry pointed to by D_80082794 (see func_80057724).
 /// Indexed by D_80082758.field_2; field_3 is compared across adjacent entries.
@@ -1173,8 +1167,8 @@ STATIC_ASSERT_SIZEOF(GStruct67, 0x10);
 /// field_0 is the raw script/data base used for oneC offset tables and oneA
 /// lookups; field_4 is the default sound bank when a oneV command has bank id 0.
 typedef struct _GStruct54Ctx {
-    /* 0x0 */ u8*        field_0;
-    /* 0x4 */ GStruct42* field_4;
+    /* 0x0 */ u8*      field_0;
+    /* 0x4 */ SndBank* field_4;
 } GStruct54Ctx;
 STATIC_ASSERT_SIZEOF(GStruct54Ctx, 0x8);
 
@@ -1182,13 +1176,13 @@ STATIC_ASSERT_SIZEOF(GStruct54Ctx, 0x8);
 /// Also the 0x18-byte payload after a "oneC" (0x43656E6F) command.
 typedef struct _GStructScriptOneV {
     /* 0x00 */ s32 magic;
-    /* 0x04 */ u16 field_4;  // bank id for func_8004D150 (0 = use ctx bank)
-    /* 0x06 */ u8  field_6;  // note group for func_8004EA60
-    /* 0x07 */ u8  field_7;  // note index for func_8004EA60
+    /* 0x04 */ u16 field_4;  // bank id for Snd_FindBank (0 = use ctx bank)
+    /* 0x06 */ u8  field_6;  // note group for Snd_GetNote
+    /* 0x07 */ u8  field_7;  // note index for Snd_GetNote
     /* 0x08 */ u16 field_8;  // duration (high half of field_8 timer units)
     /* 0x0A */ u16 field_A;  // voice countdown (0 → 0x7FFFFFFF)
-    /* 0x0C */ s8  field_C;  // pan bias (<0 → use GStruct41::field_1)
-    /* 0x0D */ s8  field_D;  // volume scale (<0 → use GStruct41::field_3)
+    /* 0x0C */ s8  field_C;  // pan bias (<0 → use SndNote::field_1)
+    /* 0x0D */ s8  field_D;  // volume scale (<0 → use SndNote::field_3)
     /* 0x0E */ s8  field_E;  // reverb gate vs D_8008274B
     /* 0x0F */ u8  pad_F;
     /* 0x10 */ u16 field_10; // voice-alloc priority for func_80056240
@@ -1356,7 +1350,7 @@ STATIC_ASSERT_SIZEOF(GStruct66, 0x18);
 
 /// 0xC-byte init-table entry at D_80068A60 (two entries used by func_80053FF4).
 /// field_0 indexes D_800680AC for a slot id; field_2 is written to GStruct31.field_8
-/// and GStruct42.field_8; field_4/field_6 are F3D458_Malloc sizes; field_8 is stored
+/// and SndBank.field_8; field_4/field_6 are F3D458_Malloc sizes; field_8 is stored
 /// to GStruct31.field_C.
 typedef struct _GStruct75 {
     /* 0x0 */ u16 field_0;

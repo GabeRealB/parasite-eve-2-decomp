@@ -233,10 +233,10 @@ void func_8004323C(void)
     }
 }
 
-void func_800435F8(GStruct65* arg0, u32 arg1, s32 arg2);
+void Prim_DrawSprt(PrimDrawParams* arg0, u32 arg1, s32 arg2);
 void func_80043718(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 
-s32 func_80043310(GStruct78* arg0, u8* arg1, s16* arg2, s32 arg3)
+s32 TextStream_Draw(TextStream* arg0, u8* arg1, s16* arg2, s32 arg3)
 {
     struct {
         /* 0x00 */ s16 field_0;
@@ -299,20 +299,20 @@ s32 func_80043310(GStruct78* arg0, u8* arg1, s16* arg2, s32 arg3)
                         glyphIdx = ch & 0x7F;
                         if (((s8)ch >= 0) || (arg3 == 0)) {
                             off        = glyphIdx * 4;
-                            sp.field_4 = ((GStruct77*)(off + (s32)arg0->field_14))->u +
+                            sp.field_4 = ((GlyphUvwh*)(off + (s32)arg0->field_14))->u +
                                          (arg0->field_4 & 0x3F);
-                            sp.field_6 = ((GStruct77*)(off + (s32)arg0->field_14))->v +
+                            sp.field_6 = ((GlyphUvwh*)(off + (s32)arg0->field_14))->v +
                                          (u8)arg0->field_6;
-                            sp.field_8 = ((GStruct77*)(off + (s32)arg0->field_14))->w;
-                            h          = ((GStruct77*)(off + (s32)arg0->field_14))->h;
+                            sp.field_8 = ((GlyphUvwh*)(off + (s32)arg0->field_14))->w;
+                            h          = ((GlyphUvwh*)(off + (s32)arg0->field_14))->h;
                             sp.field_A = h;
                             if (h != 0) {
-                                func_800435F8((GStruct65*)&sp, arg0->field_8,
+                                Prim_DrawSprt((PrimDrawParams*)&sp, arg0->field_8,
                                               arg0->field_A);
                             }
                         }
                         sp.field_0 +=
-                            ((GStruct77*)((glyphIdx * 4) + (s32)arg0->field_14))->w;
+                            ((GlyphUvwh*)((glyphIdx * 4) + (s32)arg0->field_14))->w;
                     }
                 }
                 func_80043718(1, arg0->field_4, arg0->field_6, 4);
@@ -337,7 +337,7 @@ s32 func_80043310(GStruct78* arg0, u8* arg1, s16* arg2, s32 arg3)
     return ret;
 }
 
-void func_800435F8(GStruct65* arg0, u32 arg1, s32 arg2)
+void Prim_DrawSprt(PrimDrawParams* arg0, u32 arg1, s32 arg2)
 {
     SPRT* p;
     u8    v;
@@ -378,8 +378,8 @@ void func_80043718(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 
 s32 func_8004379C(RECT* arg0, u8* arg1, s16* arg2)
 {
-    GStruct65    sp;
-    register s32 ret asm("s0");
+    PrimDrawParams sp;
+    register s32   ret asm("s0");
 
     ret = 0;
     if (*arg1 != 0) {
@@ -393,7 +393,7 @@ s32 func_8004379C(RECT* arg0, u8* arg1, s16* arg2)
         sp.field_D  = 0;
         sp.field_C  = 0;
         sp.field_10 = 1;
-        func_80043854(&sp);
+        Prim_DrawTile(&sp);
         asm("" : "+r"(ret));
         func_80043718(ret, ret, ret, 5);
         *arg2 = *arg2 - 1;
@@ -404,7 +404,7 @@ s32 func_8004379C(RECT* arg0, u8* arg1, s16* arg2)
     return ret;
 }
 
-void func_80043854(GStruct65* arg0)
+void Prim_DrawTile(PrimDrawParams* arg0)
 {
     TILE* p;
 

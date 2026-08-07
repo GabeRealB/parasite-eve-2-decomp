@@ -9,7 +9,7 @@
 s32 func_8003DFB0(s32 arg0, s32 arg1)
 {
     DisplayState* temp;
-    GStruct50*    ot;
+    GameOt*       ot;
     u_long*       saved;
     u_long*       org;
     s32           size;
@@ -22,7 +22,7 @@ s32 func_8003DFB0(s32 arg0, s32 arg1)
     if ((s8)temp->field_103 != 2) {
         temp->field_1f = (u8)temp->field_118;
     }
-    ot = D_8007A0E8;
+    ot = Gpu_OrderingTables;
     GsClearOt(0, 0, &ot[temp->field_118]);
     org        = ot[temp->field_118].org;
     size       = D_8007A0E4;
@@ -71,14 +71,14 @@ s32 func_8003DFB0(s32 arg0, s32 arg1)
 Task* func_8003E210(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     DisplayState* temp;
-    GStruct50*    ot;
+    GameOt*       ot;
     TaskNode*     saved;
     Task*         ret;
 
     temp = &Display_State;
     ret  = NULL;
     if (temp->field_1e == 0) {
-        ot              = D_8007A0E8;
+        ot              = Gpu_OrderingTables;
         ot->length      = 6;
         ot->org         = D_8007A120;
         ot[1].length    = 6;
@@ -102,14 +102,14 @@ Task* func_8003E210(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 Task* func_8003E324(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     DisplayState* temp;
-    GStruct50*    ot;
+    GameOt*       ot;
     TaskNode*     saved;
     Task*         ret;
 
     temp = &Display_State;
     ret  = NULL;
     if (temp->field_1e == 0) {
-        ot              = D_8007A0E8;
+        ot              = Gpu_OrderingTables;
         ot->length      = 6;
         ot->org         = D_8007A120;
         ot[1].length    = 6;
@@ -237,9 +237,9 @@ default_case:
 
 void func_8003E6E4(void)
 {
-    GStruct50* ot;
+    GameOt* ot;
 
-    ot           = D_8007A0E8;
+    ot           = Gpu_OrderingTables;
     ot->length   = 6;
     ot->org      = D_8007A120;
     ot[1].length = 6;
@@ -308,11 +308,11 @@ void func_8003E854(void)
 
 void func_8003E904(void)
 {
-    GStruct50*    ot;
+    GameOt*       ot;
     DisplayState* temp;
     u_long*       org;
 
-    ot           = D_8007A0E8;
+    ot           = Gpu_OrderingTables;
     ot->length   = 0xA;
     ot->org      = D5F414_OrderingTables;
     ot[1].length = 0xA;

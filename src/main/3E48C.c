@@ -4,51 +4,51 @@
 
 #include "main/unknown_syms.h"
 
-void func_8004DC8C(void)
+void AsyncCb_Poll(void)
 {
-    GStruct51* entry;
-    u32        flags;
-    s32        ret;
-    s32        mask;
-    s8         idx;
-    s8         current;
+    AsyncCbEntry* entry;
+    u32           flags;
+    s32           ret;
+    s32           mask;
+    s8            idx;
+    s8            current;
 
-    current = D_8007E2E0.field_0;
-    if (D_8007E2E0.field_1 != current) {
-        entry = &D_8007E2E0.entries[current];
+    current = AsyncCb_Queue.field_0;
+    if (AsyncCb_Queue.field_1 != current) {
+        entry = &AsyncCb_Queue.entries[current];
         flags = entry->field_0;
         if (flags & 1) {
             if (entry->field_8(entry) != 0) {
                 if (entry->field_C != NULL) {
                     entry->field_C(entry);
                 }
-                entry->field_0    &= ~1;
-                entry->field_0    &= ~4;
-                idx                = (u8)D_8007E2E0.field_0 + 1;
-                D_8007E2E0.field_0 = idx;
+                entry->field_0       &= ~1;
+                entry->field_0       &= ~4;
+                idx                   = (u8)AsyncCb_Queue.field_0 + 1;
+                AsyncCb_Queue.field_0 = idx;
                 if (idx >= 4) {
-                    D_8007E2E0.field_0 = 0;
+                    AsyncCb_Queue.field_0 = 0;
                 }
             }
         } else if (!((flags >> 2) & 1) || ((flags >> 1) & 1) || (entry->field_10 == NULL) ||
                    (ret = entry->field_10(entry), mask = ~8,
                     entry->field_0 = (entry->field_0 & mask) | ((ret & 1) * 8), ((ret & 1) == 0))) {
-            entry->field_0    &= ~4;
-            idx                = (u8)D_8007E2E0.field_0 + 1;
-            D_8007E2E0.field_0 = idx;
+            entry->field_0       &= ~4;
+            idx                   = (u8)AsyncCb_Queue.field_0 + 1;
+            AsyncCb_Queue.field_0 = idx;
             if (idx >= 4) {
-                D_8007E2E0.field_0 = 0;
+                AsyncCb_Queue.field_0 = 0;
             }
         }
     }
 }
 
-void func_8004DDF0(void)
+void AsyncCb_Reset(void)
 {
     u32  i;
     s32* ptr;
 
-    ptr = (s32*)&D_8007E2E0;
+    ptr = (s32*)&AsyncCb_Queue;
     i   = 0;
     do {
         *ptr = 0;
@@ -59,13 +59,13 @@ void func_8004DDF0(void)
 
 INCLUDE_ASM("main/nonmatchings/3E48C", func_8004DE18);
 
-void func_8004DEBC(s32 arg0)
+void AsyncCb_Cancel(s32 arg0)
 {
-    GStruct51* entry;
-    s32        flags;
+    AsyncCbEntry* entry;
+    s32           flags;
 
     if ((arg0 << 0x10) != 0) {
-        entry = &D_8007E2E4[(s16)(arg0 - 1)];
+        entry = &AsyncCb_Entries[(s16)(arg0 - 1)];
         flags = entry->field_0;
         if (flags & 1) {
             entry->field_0 = (flags & ~1) | 4;
@@ -75,18 +75,18 @@ void func_8004DEBC(s32 arg0)
 
 void func_8004DF10(void)
 {
-    GStruct48 sp10;
-    s32*      ptr;
-    s32       i;
-    s8        sVoiceIdx;
-    u32       spuAddr;
+    SpuVoiceRef sp10;
+    s32*        ptr;
+    s32         i;
+    s8          sVoiceIdx;
+    u32         spuAddr;
 
     spuAddr = 0x7B440;
     SpuSetTransferStartAddr(spuAddr);
     SpuWrite(&D_80068184, 0x30U);
     SpuIsTransferCompleted(1);
 
-    ptr             = (s32*)&D648E0_8007E518;
+    ptr             = (s32*)&Spu_LVoiceTable;
     i               = 0;
     D648E0_8007EBA8 = 0;
     D648E0_8007EBAC = 0;
@@ -97,7 +97,7 @@ void func_8004DF10(void)
         ptr++;
     } while ((u32)i < 0x19FU);
 
-    ptr = (s32*)&D648E0_8007E338;
+    ptr = (s32*)&Spu_VoiceState;
     i   = 0;
     do {
         *ptr = 0;
@@ -108,7 +108,7 @@ void func_8004DF10(void)
     i = 0;
     do {
         sVoiceIdx = i;
-        func_8004E5C4(sVoiceIdx, &sp10);
+        Spu_GetVoiceRef(sVoiceIdx, &sp10);
 
         {
             SpuVoiceAttr* attr = sp10.field_4;
@@ -151,25 +151,25 @@ void func_8004DF10(void)
 
 s32 func_8004E060(s16* arg0, s32 arg1, s32 arg2)
 {
-    GStruct26* entry;
-    s32        maxField4;
-    s32        bestPriority;
-    s32        i;
-    s32        j;
-    s8         bestVoice;
-    u8         voice;
-    u8         field64;
-    u32        fieldAc;
-    s32        field4;
-    s32        (*callback)(s32);
-    s32        cbArg;
-    GStruct9*  base;
+    GStruct26*     entry;
+    s32            maxField4;
+    s32            bestPriority;
+    s32            i;
+    s32            j;
+    s8             bestVoice;
+    u8             voice;
+    u8             field64;
+    u32            fieldAc;
+    s32            field4;
+    s32            (*callback)(s32);
+    s32            cbArg;
+    SpuVoiceState* base;
 
     maxField4    = 0;
     bestPriority = arg2;
     bestVoice    = -1;
     i            = 0;
-    base         = &D648E0_8007E338;
+    base         = &Spu_VoiceState;
 
     if (arg1 > 0) {
         do {
@@ -227,9 +227,9 @@ INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E200);
 
 void F3E48C_8004E44C(void)
 {
-    i32        remaining;
-    u8*        current;
-    GStruct10* dataPtr;
+    i32             remaining;
+    u8*             current;
+    SpuLVoiceTable* dataPtr;
 
     if (D648E0_SpuReverbCfg.isDirty) {
         F3E48C_ApplyReverbConfig();
@@ -244,7 +244,7 @@ void F3E48C_8004E44C(void)
 
     // We take a pointer, as otherwise GCC will reload the address
     // when we reset the count to zero below.
-    dataPtr = &D648E0_8007E518;
+    dataPtr = &Spu_LVoiceTable;
     if (dataPtr->count != 0) {
         SpuLSetVoiceAttr(dataPtr->count, dataPtr->attrs);
 
@@ -270,9 +270,9 @@ void F3E48C_8004E44C(void)
         remaining = ARRAY_SIZE(dataPtr->field_664) - 1;
         current   = (u8*)dataPtr + remaining;
         do {
-            current[OFFSET_OF(GStruct10, field_664)] = 0;
-            current                                 -= 1;
-            remaining                               -= 1;
+            current[OFFSET_OF(SpuLVoiceTable, field_664)] = 0;
+            current                                      -= 1;
+            remaining                                    -= 1;
         } while (remaining >= 0);
         dataPtr->count = 0;
     }
@@ -280,13 +280,13 @@ void F3E48C_8004E44C(void)
     if ((D648E0_8007EBA8 | D648E0_8007EBAC) != 0) {
         SpuSetKey(SPU_ON, D648E0_8007EBA8 | D648E0_8007EBAC);
         if (D648E0_8007EBA8 != 0) {
-            D648E0_8007E338.field_1cc |= D648E0_8007EBA8;
-            D648E0_8007E338.field_1cc &= ~D648E0_8007E338.field_1d0;
+            Spu_VoiceState.field_1cc |= D648E0_8007EBA8;
+            Spu_VoiceState.field_1cc &= ~Spu_VoiceState.field_1d0;
         }
 
-        D648E0_8007E338.field_1d0 = 0;
-        D648E0_8007EBA8           = 0;
-        D648E0_8007EBAC           = 0;
+        Spu_VoiceState.field_1d0 = 0;
+        D648E0_8007EBA8          = 0;
+        D648E0_8007EBAC          = 0;
     }
 }
 
@@ -294,16 +294,16 @@ void func_8004E560(u32 voiceIdx, s32 arg1, s32 arg2)
 {
     s8 sVoiceIdx = (s8)voiceIdx;
 
-    D648E0_8007E338.field_10c[sVoiceIdx] = arg1;
-    D648E0_8007E338.field_16c[sVoiceIdx] = arg2;
+    Spu_VoiceState.field_10c[sVoiceIdx] = arg1;
+    Spu_VoiceState.field_16c[sVoiceIdx] = arg2;
 }
 
 void func_8004E580(u32 voiceIdx)
 {
     s8 sVoiceIdx = (s8)voiceIdx;
 
-    D648E0_8007E338.field_10c[sVoiceIdx] = 0;
-    D648E0_8007E338.field_16c[sVoiceIdx] = 0;
+    Spu_VoiceState.field_10c[sVoiceIdx] = 0;
+    Spu_VoiceState.field_16c[sVoiceIdx] = 0;
 }
 
 s32 func_8004E5A0(s32 idx, s32 arg1, s32 arg2)
@@ -318,18 +318,18 @@ s32 func_8004E5A0(s32 idx, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/3E48C", func_8004E5C4);
+INCLUDE_ASM("main/nonmatchings/3E48C", Spu_GetVoiceRef);
 
 s32 F3E48C_8004E660(u32 voiceIdx)
 {
     s8 sVoiceIdx = (s8)voiceIdx;
-    if (sVoiceIdx > (u32)ARRAY_SIZE(D648E0_8007E338.field_94)) {
+    if (sVoiceIdx > (u32)ARRAY_SIZE(Spu_VoiceState.field_94)) {
         return -1;
     }
 
-    D648E0_8007E338.field_94[sVoiceIdx] = 0;
-    D648E0_8007E338.field_ac[sVoiceIdx] = 0;
-    D648E0_8007E338.field_4[sVoiceIdx]  = 0;
+    Spu_VoiceState.field_94[sVoiceIdx] = 0;
+    Spu_VoiceState.field_ac[sVoiceIdx] = 0;
+    Spu_VoiceState.field_4[sVoiceIdx]  = 0;
     return 0;
 }
 
@@ -337,16 +337,16 @@ u8 func_8004E6A4(u32 voiceIdx)
 {
     s8 sVoiceIdx = (s8)voiceIdx;
 
-    return D648E0_8007E338.field_64[sVoiceIdx];
+    return Spu_VoiceState.field_64[sVoiceIdx];
 }
 
 void func_8004E6C4(u32 voiceIdx)
 {
-    GStruct9* p;
-    u32*      pKeyOn;
-    u32       channel;
+    SpuVoiceState* p;
+    u32*           pKeyOn;
+    u32            channel;
 
-    p                     = &D648E0_8007E338;
+    p                     = &Spu_VoiceState;
     pKeyOn                = &D648E0_8007EBA8;
     voiceIdx              = (s8)voiceIdx;
     p->field_7c[voiceIdx] = 5;
@@ -373,7 +373,7 @@ void func_8004E71C(u32 voiceIdx)
 
 void F3E48C_QueryReverbVoices(void)
 {
-    D648E0_8007E338.reverbVoiceStatus = SpuGetReverbVoice();
+    Spu_VoiceState.reverbVoiceStatus = SpuGetReverbVoice();
 }
 
 void F3E48C_ConfigSpuReverb(s32 mode)
@@ -437,7 +437,7 @@ void F3E48C_DisableVoice(u32 voiceIdx)
 
 bool F3E48C_ReverbVoiceIsEnabled(u32 voiceIdx)
 {
-    return ((s32)D648E0_8007E338.reverbVoiceStatus >> voiceIdx) & 1;
+    return ((s32)Spu_VoiceState.reverbVoiceStatus >> voiceIdx) & 1;
 }
 
 void F3E48C_ApplyReverbConfig(void)
@@ -491,7 +491,7 @@ u16 func_8004E9D8(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     return lo;
 }
 
-GStruct41* func_8004EA60(GStruct42* arg0, u8 arg1, u8 arg2)
+SndNote* Snd_GetNote(SndBank* arg0, u8 arg1, u8 arg2)
 {
     if (arg0 != NULL) {
         return &arg0->field_4[arg0->field_10[arg1] + arg2];
@@ -501,11 +501,11 @@ GStruct41* func_8004EA60(GStruct42* arg0, u8 arg1, u8 arg2)
 
 void func_8004EAA0(u32 voiceIdx)
 {
-    GStruct9* p;
-    u32*      pKeyOn;
-    u32       channel;
+    SpuVoiceState* p;
+    u32*           pKeyOn;
+    u32            channel;
 
-    p                     = &D648E0_8007E338;
+    p                     = &Spu_VoiceState;
     pKeyOn                = &D648E0_8007EBA8;
     voiceIdx              = (s8)voiceIdx;
     p->field_7c[voiceIdx] = 5;
@@ -517,11 +517,11 @@ void func_8004EAA0(u32 voiceIdx)
 
 void func_8004EAF8(u32 voiceIdx)
 {
-    GStruct9* p;
-    u32*      pKeyOn;
-    u32       channel;
+    SpuVoiceState* p;
+    u32*           pKeyOn;
+    u32            channel;
 
-    p                     = &D648E0_8007E338;
+    p                     = &Spu_VoiceState;
     pKeyOn                = &D648E0_8007EBAC;
     voiceIdx              = (s8)voiceIdx;
     p->field_7c[voiceIdx] = 5;

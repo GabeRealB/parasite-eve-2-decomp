@@ -695,12 +695,12 @@ void func_8005791C(s32 arg0)
 
 void func_80057930(s8 arg0, s32* arg1)
 {
-    GStruct48 sp10;
-    s32*      dest;
-    u32       i;
+    SpuVoiceRef sp10;
+    s32*        dest;
+    u32         i;
 
     func_8004E560(arg0, 0, 0);
-    func_8004E5C4(arg0, &sp10);
+    Spu_GetVoiceRef(arg0, &sp10);
     dest = (s32*)sp10.field_4;
     i    = 0;
     do {

@@ -83,19 +83,19 @@ s32 func_8002F9E0(u8** arg0, u8* arg1)
 
 s32 func_8002FB84(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
 {
-    u8                  sp10[0x40];
-    GStruct38           sp50[2];
-    u8*                 cur;
-    s32                 temp;
-    register UiObject*  obj asm("s3");
-    register s32        x asm("s2");
-    register s32        y asm("s1");
-    register GStruct38* p asm("s0");
-    register u8*        buf asm("s4");
-    register s32        ret asm("s5");
-    register s32        four asm("s6");
-    register s32        a6 asm("s7");
-    s32                 a5;
+    u8                    sp10[0x40];
+    TextDrawReq           sp50[2];
+    u8*                   cur;
+    s32                   temp;
+    register UiObject*    obj asm("s3");
+    register s32          x asm("s2");
+    register s32          y asm("s1");
+    register TextDrawReq* p asm("s0");
+    register u8*          buf asm("s4");
+    register s32          ret asm("s5");
+    register s32          four asm("s6");
+    register s32          a6 asm("s7");
+    s32                   a5;
 
     a5   = arg5;
     a6   = arg6;
@@ -140,7 +140,7 @@ s32 func_8002FB84(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 ar
 
 s32 func_8002FCBC(u8* arg0)
 {
-    GStruct38 sp10;
+    TextDrawReq sp10;
 
     sp10.field_C = 4;
     sp10.field_0 = 0;
@@ -155,16 +155,16 @@ s32 func_8002FCBC(u8* arg0)
 
 s32 func_8002FD08(u8* arg0)
 {
-    u8         sp10[0x40];
-    GStruct38  sp50;
-    s32        maxWidth;
-    s32        height;
-    GStruct38* p;
-    u8*        buf;
-    u8*        cur;
-    s32        ret;
-    s32        tmp;
-    s8         c;
+    u8           sp10[0x40];
+    TextDrawReq  sp50;
+    s32          maxWidth;
+    s32          height;
+    TextDrawReq* p;
+    u8*          buf;
+    u8*          cur;
+    s32          ret;
+    s32          tmp;
+    s8           c;
 
     maxWidth = 0;
     height   = maxWidth;
@@ -201,9 +201,9 @@ s32 func_8002FD08(u8* arg0)
 
 s32 func_8002FDCC(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
 {
-    GStruct38 sp10;
-    GStruct38 sp20;
-    s32       temp;
+    TextDrawReq sp10;
+    TextDrawReq sp20;
+    s32         temp;
 
     if (arg0 != NULL) {
         if (arg0->field_8 == 5) {
@@ -240,21 +240,21 @@ void func_8002FEAC(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, v
 s32 func_8002FEE0(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6,
                   s32 arg7, s32 arg8)
 {
-    u8                  sp10[0x40];
-    GStruct38           sp50[2];
-    u8*                 cur;
-    s32                 temp;
-    s32                 four;
-    register UiObject*  obj asm("s4");
-    register s32        x asm("s3");
-    register s32        y asm("s1");
-    register s32        result asm("s7");
-    register s32        rem asm("s2");
-    register GStruct38* p asm("s0");
-    register u8*        buf asm("s5");
-    register s32        ret asm("s6");
-    register u8*        a0tmp asm("a0");
-    register s32        a1tmp asm("a1");
+    u8                    sp10[0x40];
+    TextDrawReq           sp50[2];
+    u8*                   cur;
+    s32                   temp;
+    s32                   four;
+    register UiObject*    obj asm("s4");
+    register s32          x asm("s3");
+    register s32          y asm("s1");
+    register s32          result asm("s7");
+    register s32          rem asm("s2");
+    register TextDrawReq* p asm("s0");
+    register u8*          buf asm("s5");
+    register s32          ret asm("s6");
+    register u8*          a0tmp asm("a0");
+    register s32          a1tmp asm("a1");
 
     x      = arg1;
     y      = arg2;

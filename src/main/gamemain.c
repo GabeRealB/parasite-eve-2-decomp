@@ -98,7 +98,7 @@ void func_8002731C(s32 arg0)
             func_800149E8(D4F564_8005ED64->field_7, D4F564_8005ED64->field_6, arg0);
         }
         if ((s8)D_80070E38 < 0x10) {
-            DrawOTag(D_8007A0E8[arg0].tag);
+            DrawOTag(Gpu_OrderingTables[arg0].tag);
         }
     }
 }
@@ -150,7 +150,7 @@ void func_80027498(void)
 
 void func_8002764C(s32 arg0)
 {
-    GStruct38     sp10;
+    TextDrawReq   sp10;
     s32           skip;
     s32           one;
     s32           buf;

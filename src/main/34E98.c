@@ -1065,7 +1065,7 @@ void func_80047B24(GStruct30* arg0, s32 arg1, s32 arg2, s32 arg3)
 
 void func_80047C40(GStruct30* arg0, s32 arg1, s32 arg2, char* arg3, s32 arg4)
 {
-    GStruct38           sp10;
+    TextDrawReq         sp10;
     POLY_F4*            p;
     s32                 x;
     s32                 y;
@@ -1765,8 +1765,8 @@ void func_80048E38(GStruct30* arg0, char* arg1)
 
 void func_80048F88(GStruct30* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
 {
-    GStruct38 sp;
-    s32       temp;
+    TextDrawReq sp;
+    s32         temp;
 
     if (arg0->field_8 == 2) {
         arg0->field_14 = (u16)(arg0->field_14 - 1);

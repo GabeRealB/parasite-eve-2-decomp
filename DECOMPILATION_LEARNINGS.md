@@ -405,13 +405,13 @@ bnez   v0, loop
  addiu a0, a0, 4
 ```
 
-Match with an unsigned counter and a `do`/`while` (`func_8004DDF0`):
+Match with an unsigned counter and a `do`/`while` (`AsyncCb_Reset`):
 
 ```c
 u32 i;
 s32* ptr;
 
-ptr = D_8007E2E0;
+ptr = AsyncCb_Queue;
 i = 0;
 do {
     *ptr = 0;
@@ -640,13 +640,13 @@ Pin the early registers and emit a multi-output empty asm *after* the moves so
 nothing that follows can be scheduled before them (`func_8002DECC`):
 
 ```c
-register GStruct38* ctx asm("t5");
+register TextDrawReq* ctx asm("t5");
 register s32 width asm("t0");
-GStruct68* glyph;
+FontGlyph* glyph;
 
 ctx   = arg0;
 width = 0;
-glyph = (GStruct68*)arg2;
+glyph = (FontGlyph*)arg2;
 asm("" : "+r"(ctx), "+r"(width), "+r"(glyph));
 c = *arg1; /* only now may the load be emitted */
 ```
@@ -1259,7 +1259,7 @@ return NULL;
 
 The inverted early-exit form (`if (arg0 == NULL) return NULL; return ...;`)
 produces `beqz` with the null epilogue at the end of the function — same
-semantics, wrong layout. `func_8004EA60` only matches with the `!= NULL`
+semantics, wrong layout. `Snd_GetNote` only matches with the `!= NULL`
 shape.
 
 ## Sign-extend a call result into `s32`, not `s8`
@@ -1397,13 +1397,13 @@ body). Sparse multi-way selection matches as a `switch` instead:
 /* Target: beqz x, case0 / beq x,5,case5 / default then j continue */
 switch (arg0->field_C) {
 case 0:
-    table = D_8005EFB0;
+    table = Font_Glyphs0;
     break;
 case 5:
-    table = D_800604B0;
+    table = Font_Glyphs2;
     break;
 default:
-    table = D_8005FA30;
+    table = Font_Glyphs1;
     break;
 }
 ```
@@ -1659,25 +1659,25 @@ typedef struct {
     u_long  offset;
     u_long  point;
     u_long* tag;
-} GStruct50; /* STATIC_ASSERT_SIZEOF(..., 0x14) */
+} GameOt; /* STATIC_ASSERT_SIZEOF(..., 0x14) */
 ```
 
-Init pattern (see `func_8003E6E4`): hold `GStruct50* ot = D_8007A0E8`, write
+Init pattern (see `func_8003E6E4`): hold `GameOt* ot = Gpu_OrderingTables`, write
 `length`/`org` for both slots, with the second `org` as `tags + (1 << length)`.
 OT tag storage of `0x200` bytes is two buffers of `0x100` (`u_long[0x80]`).
 
-When calling PsyQ `GsClearOt`, declare it with `GStruct50*` (in `game.h`) rather
+When calling PsyQ `GsClearOt`, declare it with `GameOt*` (in `game.h`) rather
 than including `libgs.h` or casting through `GsOT*`:
 
 ```c
-void GsClearOt(unsigned short offset, unsigned short point, GStruct50* otp);
+void GsClearOt(unsigned short offset, unsigned short point, GameOt* otp);
 /* ... */
 GsClearOt(0, 0, &ot[temp->field_118]);
 *ot[temp->field_118].org = C5F414_OTAG_END_PRIM;
 D_800710A0 = ot[temp->field_118].org;
 ```
 
-`func_8003E904` is the reference: sets both `D_8007A0E8` slots to depth `0xA`
+`func_8003E904` is the reference: sets both `Gpu_OrderingTables` slots to depth `0xA`
 with `D5F414_OrderingTables` / `+ C5F414_OTAG_ENTRIES`, clears the active buffer
 (`Display_State.field_118`), then points `D_800710A0` at the OT base.
 
@@ -1722,7 +1722,7 @@ for (i = 0, ptr = D_arr; i < n; i++, ptr++) {
 }
 ```
 
-`func_8004D150` is the pure example.
+`Snd_FindBank` is the pure example.
 
 ## Hoist compare-constants as `s32` locals *inside* the early-exit `if`
 
@@ -2213,7 +2213,7 @@ The advance is a no-op on the early-return path (local only). Same shape as the
 classic countdown `for (i = n - 2; i != -1; i--)` body; only the hoist of the
 pointer step matters.
 
-`func_8004D19C` is the pure example (u16 prefix table + 4-byte group headers).
+`Snd_BuildGroupIndex` is the pure example (u16 prefix table + 4-byte group headers).
 
 ## Dual-global update: read first to pin `a3`/`a2` order
 
@@ -3464,7 +3464,7 @@ Keeping `u8` params and moving the table assignment is what preserves both.
 ## Stack-struct pointer: RMW via temp forces `lw v1` then `lw a0`
 
 When the target updates two fields of a pointer loaded from a stack struct
-(`GStruct48 sp10`, pointer at `sp+0x14`) as:
+(`SpuVoiceRef sp10`, pointer at `sp+0x14`) as:
 
 ```
 lw   v1, 0x14(sp)
@@ -3487,7 +3487,7 @@ reused). Force the double-reload and the `v1`/`a0` split by:
 ```c
 u16 temp;
 
-func_8004E5C4(idx, &sp10);
+Spu_GetVoiceRef(idx, &sp10);
 temp = ((SpuVoiceAttr*)sp10.field_4)->adsr2;
 temp = (temp & 0xFFE0) | 5;
 ((SpuVoiceAttr*)sp10.field_4)->adsr2 = temp;
@@ -4576,7 +4576,7 @@ p->field_d = 0;
 p->field_y = temp;
 ```
 
-`func_800565B8` is the pure example (GStruct43Fx init from GStruct41 bytes).
+`func_800565B8` is the pure example (GStruct43Fx init from SndNote bytes).
 
 ## Overlay pointer at a fixed offset for multi-field base `$tN`
 
@@ -4757,7 +4757,7 @@ keeps `beqz` but falls through into the draw and branches on `beq` for the
 early return — wrong block order. Only the if/else + continuation shape emits
 `bne` over both the early return and the else into the shared tail.
 
-`func_8002FDCC` is the pure example (two `GStruct38` stack slots at `sp+0x10`
+`func_8002FDCC` is the pure example (two `TextDrawReq` stack slots at `sp+0x10`
 and `sp+0x20` for the two draw paths).
 
 ## Interleaved jump tables: pad + absolute copy for still-asm neighbors
@@ -5641,8 +5641,8 @@ p->v0   = v;
 ```
 
 Also type the CLUT X argument as `u32` (or cast) so `((x) >> 4)` emits `srl`
-rather than `sra`. `func_800435F8` is the pure example (SPRT twin of TILE
-helper `func_80043854`).
+rather than `sra`. `Prim_DrawSprt` is the pure example (SPRT twin of TILE
+helper `Prim_DrawTile`).
 
 ## Force `move v0, tN; sw v0` when CSE wants `sw tN`
 
@@ -6282,8 +6282,8 @@ matter how the C assignments are written, cast the base to `volatile` for those
 reads only:
 
 ```c
-base = ((volatile GStruct42*)bank)->field_18;
-ptr  = (s32*)((volatile GStruct42*)bank)->field_4;
+base = ((volatile SndBank*)bank)->field_18;
+ptr  = (s32*)((volatile SndBank*)bank)->field_4;
 ```
 
 Plain `base = bank->field_18; ptr = bank->field_4;` is free to swap the loads
@@ -6380,7 +6380,7 @@ constant stays with the call:
 ```c
 state->field_10 = buf;
 do {
-    bank            = &D_8007E0D8[D_800680BB];
+    bank            = &Snd_Banks[D_800680BB];
     state->field_40 = bank;
     bank->field_8   = 0xF0FF;
     state->field_40->field_1C = F3D458_Malloc(0x582);
@@ -6520,7 +6520,7 @@ Assigning `img = arg0` only after the if/else often puts `move a1` in the
 
 ## Do not include `libgs.h` for `GsF_LIGHT`
 
-`include/main/game.h` redeclares `GsClearOt` with `GStruct50*` so callers avoid
+`include/main/game.h` redeclares `GsClearOt` with `GameOt*` so callers avoid
 libgs. Including `<psyq/libgs.h>` redeclares `GsClearOt` with `GsOT*` and fails
 with `conflicting types for GsClearOt`.
 
@@ -6605,7 +6605,7 @@ Keep large constants (e.g. `0x7008FU` for a `mask` field) as *literals* at the
 store site, not loop-invariant locals — otherwise GCC pins them in a callee-
 saved reg (`s3`) instead of interleaving `lui`/`ori` into `$a1` delay slots.
 
-`func_8004DF10` is the pure example (voice-attr init after `func_8004E5C4`).
+`func_8004DF10` is the pure example (voice-attr init after `Spu_GetVoiceRef`).
 
 ## Empty asm after pinned arg copies for prologue `li sN` order
 
@@ -7154,7 +7154,7 @@ temp = table[idx];
 bank = &banks[(s8)slot];
 ```
 
-`func_8004CE28` is the pure example.
+`Snd_AllocBank` is the pure example.
 
 ## Kill parameter `$a1` liveness after pin-copy so CSE can reuse it for call args
 
@@ -7647,17 +7647,17 @@ traps (now includes `34E98.c` alongside `2F244` / `3D458` / `1E6C4`).
 Scratch-env `build.sh` does not pass this flag by default — use a local
 wrapper or expect a score gap of only the missing trap block.
 
-## Dual `GStruct38` stack slots via array + mixed `sp[i]` / `p[i]` access
+## Dual `TextDrawReq` stack slots via array + mixed `sp[i]` / `p[i]` access
 
-When the target draws through two adjacent `GStruct38` slots (e.g. `sp+0x50`
+When the target draws through two adjacent `TextDrawReq` slots (e.g. `sp+0x50`
 relative path, `sp+0x60` absolute path) and mixes absolute stack stores
 (`sh …, 0x50(sp)`) with s0-relative ones (`sw s6, 0x14(s0)` / `sb s6, 0x1c(s0)`
 into the second slot), declare them as one array and take a pointer to the
 base:
 
 ```c
-GStruct38 sp50[2];
-register GStruct38* p asm("s0");
+TextDrawReq sp50[2];
+register TextDrawReq* p asm("s0");
 
 p = sp50;
 /* relative path: absolute addressing via sp50[0].field_…, field_C via p */
@@ -7673,7 +7673,7 @@ p[1].field_C = four;   /* sb four, 0x1c(s0) */
 func_8002E53C(&sp50[1], buf);
 ```
 
-Two separate `GStruct38 sp50, sp60` locals usually emit only absolute
+Two separate `TextDrawReq sp50, sp60` locals usually emit only absolute
 addressing for the second slot. Writing everything through `p` alone emits
 only relative `off(s0)`. The split is required.
 
@@ -7980,7 +7980,7 @@ flags = ~8;
 entry->field_0 = (entry->field_0 & flags) | ((ret & 1) * 8);
 ```
 
-`func_8004DC8C` is the pure example.
+`AsyncCb_Poll` is the pure example.
 
 ## Reuse arg regs for fixed UV constants; pin f20/next for prim cursor order
 
@@ -8873,7 +8873,7 @@ changes the `bne` delay from `addiu s1,sp,0x10` to `addiu s2,sp,0x18`. Pass
 
 ## Ring-buffer queue drain: non-volatile entry + split index advances
 
-`CdReady_Poll` (and the sibling `func_8004DC8C`) process one slot of a 4-entry
+`CdReady_Poll` (and the sibling `AsyncCb_Poll`) process one slot of a 4-entry
 callback ring. Two matching details that look like style nits but are required:
 
 1. **Non-volatile entry pointer.** The queue object itself is `volatile`
@@ -8897,7 +8897,7 @@ entry->field_0 &= ~4;
    them onto `$s1` and shrinks the function. Duplicate the increment/wrap
    literally, once via `p` and once via the global name.
 
-`func_8004DC8C` is the pure template for control flow; `CdReady_Poll` adds the
+`AsyncCb_Poll` is the pure template for control flow; `CdReady_Poll` adds the
 `field_0` lock check and the no-arg `field_C` callback.
 
 ## Sign-extend loop counter via `next` in `$v0` + empty asm barrier
@@ -10778,13 +10778,13 @@ before the base pointer is added:
 
 ```c
 /* matches addu v1, a0, v1 (off in a0, base in v1) */
-sp.field_4 = ((GStruct77*)(off + (s32)arg0->field_14))->u + ...;
+sp.field_4 = ((GlyphUvwh*)(off + (s32)arg0->field_14))->u + ...;
 
 /* typically emits addu v1, v1, a0 */
 sp.field_4 = arg0->field_14[glyphIdx].u + ...;
 ```
 
-`func_80043310` needs this for its 4-byte glyph table indexing.
+`TextStream_Draw` needs this for its 4-byte glyph table indexing.
 
 ## Reuse one `DR_TPAGE*` for sequential tpage prims
 
@@ -11329,7 +11329,7 @@ Column targets use `head - 0x42` (col1) and `head - 0x40` (col2), same
 
 - `field_17` / `field_18[8]` / `field_20[8]` are a loop stack (depth, remaining
   counts, restart cursors) for `"Loop"`/`"endL"`. They fill the old `pad_18[0x28]`.
-- `field_44` is a `GStruct54Ctx*` (`u8* data`, `GStruct42* bank`), not a bare `s32`.
+- `field_44` is a `GStruct54Ctx*` (`u8* data`, `SndBank* bank`), not a bare `s32`.
 - `field_48` is a script cursor (`GStructScriptCmd*`); `"oneV"` payloads are
   0x18-byte `GStructScriptOneV` records (bank id, note, duration, pan/vol,
   reverb gate, pitch, oneA/oneE offsets).

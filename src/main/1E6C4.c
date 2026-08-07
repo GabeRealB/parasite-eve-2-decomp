@@ -8,22 +8,22 @@ void func_8002DEC4(void)
 {
 }
 
-s32 func_8002DECC(GStruct38* arg0, u8* arg1, u8* arg2)
+s32 func_8002DECC(TextDrawReq* arg0, u8* arg1, u8* arg2)
 {
-    register GStruct38* ctx asm("t5");
-    register s32        width asm("t0");
-    GStruct68*          glyph;
-    s32                 c;
-    s32                 prev9;
-    s32                 nl;
-    s32                 end_flag;
-    s32                 ch;
-    s32                 bs;
-    s32                 idx;
+    register TextDrawReq* ctx asm("t5");
+    register s32          width asm("t0");
+    FontGlyph*            glyph;
+    s32                   c;
+    s32                   prev9;
+    s32                   nl;
+    s32                   end_flag;
+    s32                   ch;
+    s32                   bs;
+    s32                   idx;
 
     ctx   = arg0;
     width = 0;
-    glyph = (GStruct68*)arg2;
+    glyph = (FontGlyph*)arg2;
     asm("" : "+r"(ctx), "+r"(width), "+r"(glyph));
     c = *arg1;
     if (c == 0) {
@@ -85,7 +85,7 @@ s32 func_8002DECC(GStruct38* arg0, u8* arg1, u8* arg2)
         }
         idx   = *arg1;
         idx  -= 0x20;
-        glyph = (GStruct68*)(arg2 + idx * 0xC);
+        glyph = (FontGlyph*)(arg2 + idx * 0xC);
         ch    = prev9;
         ch   += glyph->field_8;
         ch   += 1;
@@ -106,7 +106,7 @@ end:
     return width - (s8)glyph->field_6;
 }
 
-void func_8002E010(GStruct38* arg0, GStruct68* arg1, s32 arg2)
+void func_8002E010(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
 {
     SPRT* p;
     SPRT* p2;
@@ -137,7 +137,7 @@ void func_8002E010(GStruct38* arg0, GStruct68* arg1, s32 arg2)
     addPrim(D_800710A0 + arg0->field_4, p);
 }
 
-void func_8002E188(GStruct38* arg0, GStruct68* arg1, s32 arg2)
+void func_8002E188(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
 {
     SPRT* p;
     SPRT* p2;
@@ -168,7 +168,7 @@ void func_8002E188(GStruct38* arg0, GStruct68* arg1, s32 arg2)
     addPrim(D_800710A0 + arg0->field_4, p);
 }
 
-void func_8002E300(GStruct38* arg0, GStruct68* arg1, s32 arg2)
+void func_8002E300(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
 {
     SPRT*     p;
     SPRT*     p2;
@@ -341,20 +341,20 @@ after_off:
     return ret;
 }
 
-void func_8002EDFC(GStruct38* arg0, u8* arg1)
+void func_8002EDFC(TextDrawReq* arg0, u8* arg1)
 {
     u8* table;
     s32 width;
 
     switch (arg0->field_C) {
         case 0:
-            table = D_8005EFB0;
+            table = Font_Glyphs0;
             break;
         case 5:
-            table = D_800604B0;
+            table = Font_Glyphs2;
             break;
         default:
-            table = D_8005FA30;
+            table = Font_Glyphs1;
             break;
     }
 
@@ -706,7 +706,7 @@ u8* func_8002F588(u8* dest, u8* src)
     return dest;
 }
 
-void func_8002F5E4(GStruct38* arg0, GStruct68* arg1, s32 arg2)
+void func_8002F5E4(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
 {
     SPRT* p;
     s32   temp;
@@ -726,7 +726,7 @@ void func_8002F5E4(GStruct38* arg0, GStruct68* arg1, s32 arg2)
     DrawPrim(p);
 }
 
-void func_8002F69C(GStruct38* arg0, GStruct68* arg1, s32 arg2)
+void func_8002F69C(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
 {
     SPRT* p;
     s32   temp;
@@ -747,7 +747,7 @@ void func_8002F69C(GStruct38* arg0, GStruct68* arg1, s32 arg2)
     addPrim(D_800710A0 + arg0->field_4, p);
 }
 
-void func_8002F798(GStruct38* arg0, GStruct68* arg1)
+void func_8002F798(TextDrawReq* arg0, FontGlyph* arg1)
 {
     SPRT* p;
     s32   temp;

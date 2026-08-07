@@ -31,6 +31,11 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 | `GameMain` | Entry after `main` | `src/main/gamemain.c` | `include/main/gamemain.h` |
 | `GpuExt_` | GPU helpers | `src/main/gpuext.c` | `include/main/gpuext.h` |
 | `CdStream_` / `CdReady_` | CD→SPU MTS audio stream + ready work queue | `src/main/46FE4.c`, `src/main/4A6E0.c` | `include/main/cdstream.h` (types still in `game.h`) |
+| `Snd_` | Sound banks / notes | `src/main/3D458.c`, `3E48C.c`, `43FFC.c` | types in `game.h` (`SndBank`, `SndNote`, …) |
+| `Spu_` | SPU voice/reverb helpers | `src/main/3E48C.c`, `3D458.c` | `SpuReverbConfig`, `SpuVoiceState`, `SpuLVoiceTable`, `SpuVoiceRef` |
+| `AsyncCb_` | Generic async callback ring | `src/main/3E48C.c` | `AsyncCbQueue` / `AsyncCbEntry` |
+| `Font_` / `TextStream_` / `Prim_` | Font glyphs + text stream + SPRT/TILE draw | `src/main/33300.c`, `1E6C4.c` | `FontGlyph`, `GlyphUvwh`, `TextStream`, `PrimDrawParams`, `TextDrawReq` |
+| `Gpu_` | GPU ordering tables | `src/main/2E7B0.c`, `gamemain.c` | `GameOt`, `Gpu_OrderingTables` |
 
 `include/main/game.h` is the shared kitchen-sink of still-generic types (`GStruct*`, UI helpers). It includes the module headers above for compatibility. Prefer including the specific module header when you only need that API.
 
@@ -75,5 +80,6 @@ Bulk renames live in:
 - `tools/rename_fs_syms.py` — FS / CD / boot
 - `tools/rename_task_mc_pad_syms.py` — Task / Pad / Mc / Display
 - `tools/rename_cdstream_syms.py` — CdStream / CdReady / MtsSector types + APIs
+- `tools/rename_snd_font_syms.py` — Snd / Spu / AsyncCb / Font / TextStream / Prim / GameOt
 
 Idempotent only if old names are already gone. Extend the map rather than hand-editing hundreds of `.s` files.
