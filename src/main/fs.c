@@ -9,6 +9,8 @@
 #include "main/unknown_syms.h"
 #include "main/mem.h"
 #include "main/fs.h"
+#include "main/display.h"
+#include "main/game.h"
 
 void F12D18_80022518(void)
 {
@@ -53,7 +55,173 @@ void F12D18_800225D4(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/fs", Fs_LoadFile);
+s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
+{
+    u8  modeU8;
+    s32 sector;
+    u32 i;
+    u16 len;
+    u32 fileId;
+
+    sector                = 0;
+    D5B498_8006ADF4       = 0;
+    CdCmd_Queue.field_1FE = 0xFF;
+    modeU8                = (u8)mode;
+
+    if (req[3] == 0) {
+        switch (req[2]) {
+            case 0:
+                if (req[1] != 0) {
+                    goto setup_and_load;
+                }
+                if (req[0] == 0) {
+                    Display_State.field_12a = 1;
+                }
+                if (req[0] == 1) {
+                    Display_State.field_12a = 0;
+                }
+                sector = Fs_FileOffsetsCat0[req[0]] + Fs_StageCdfSectors[0];
+                goto setup_and_load;
+
+            case 1:
+                fileId = (req[1] * 100) + req[0];
+                len    = Fs_FileTableCat1Len;
+                i      = 0;
+                if ((u32)sector < (u32)len) {
+                    do {
+                        if (Fs_FileTableCat1[i].id == fileId) {
+                            sector = Fs_FileTableCat1[i].offset + Fs_StageCdfSectors[0];
+                            goto setup_and_load;
+                        }
+                        i++;
+                    } while (i < (u32)len);
+                }
+                goto setup_and_load;
+
+            case 2:
+                fileId = (req[1] * 100) + req[0];
+                len    = Fs_FileTableCat2Len;
+                i      = 0;
+                if ((u32)sector < (u32)len) {
+                    do {
+                        if (Fs_FileTableCat2[i].id == fileId) {
+                            sector = Fs_FileTableCat2[i].offset + Fs_StageCdfSectors[0];
+                            goto setup_and_load;
+                        }
+                        i++;
+                    } while (i < (u32)len);
+                }
+                goto setup_and_load;
+
+            case 3:
+                fileId = (req[1] * 100) + req[0];
+                len    = Fs_FileTableCat3Len;
+                i      = 0;
+                if ((u32)sector < (u32)len) {
+                    do {
+                        if (Fs_FileTableCat3[i].id == fileId) {
+                            sector = Fs_FileTableCat3[i].offset + Fs_StageCdfSectors[0];
+                            goto setup_and_load;
+                        }
+                        i++;
+                    } while (i < (u32)len);
+                }
+                goto setup_and_load;
+
+            case 4:
+                Fs_CdOpStatus = 0xFF;
+                if (req[1] == 1) {
+                    fileId = req[1] * 100 + req[0];
+                    len    = Fs_FileTableCat4Len;
+                    i      = 0;
+                    if ((u32)sector < (u32)len) {
+                        do {
+                            if (Fs_FileTableCat4[i].id == fileId) {
+                                sector = Fs_FileTableCat4[i].offset + Fs_StageCdfSectors[0];
+                                goto after4;
+                            }
+                            i++;
+                        } while (i < (u32)len);
+                    }
+                after4:
+                    if (sector == 0) {
+                        return 0;
+                    }
+                    D5B498_8006ACC8 = 1;
+                    Fs_ChunkMode    = 0;
+                    Fs_ReadSector(sector);
+                }
+                goto end_return;
+
+            case 5:
+                sector = Fs_FileOffsetsCat5[req[0]] + Fs_StageCdfSectors[0];
+                goto setup_and_load;
+
+            case 0x5A:
+                sector = Fs_FileOffsetsCat90[req[0]] + Fs_StageCdfSectors[0];
+                goto setup_and_load;
+
+            default:
+                D5B498_8006ADF4 = req[2] / 10;
+                fileId          = (req[2] * 10000) + (req[1] * 100) + req[0];
+                if ((D5B498_8006ADF4 != 0) && ((len = Fs_FileTableLen) != 0)) {
+                    i = 0;
+                    do {
+                        if (Fs_FileTable[i].id == fileId) {
+                            sector = Fs_FileTable[i].offset + Fs_StageCdfSectors[0];
+                            if (req[2] == 8) {
+                                if ((u32)(req[1] - 1) < 3U) {
+                                    D4F564_8005ED64->field_4E = 1;
+                                }
+                            }
+                            goto setup_and_load;
+                        }
+                        i++;
+                    } while (i < (u32)len);
+                }
+                goto setup_and_load;
+        }
+    } else {
+        sector = D_8006C158[req[0]] + Fs_StageCdfSectors[req[3]];
+    }
+
+setup_and_load:
+    D5B498_8006C234 = a3;
+    D5B498_8006C233 = a2;
+    D5B498_8006ACC8 = 0;
+    if (sector != 0) {
+        switch (modeU8) {
+            case 0:
+                Fs_ChunkMode = 0;
+                break;
+            case 1:
+                Fs_SeekToPos(sector);
+                goto end_return;
+            case 2:
+                func_800537FC(D4F564_8005ED64->field_7, D4F564_8005ED64->field_6);
+                Fs_ChunkMode = 1;
+                break;
+            case 3:
+                Fs_ChunkMode = 2;
+                break;
+            case 4:
+                Fs_ChunkMode = 3;
+                break;
+            case 5:
+                Fs_ChunkMode = 4;
+                break;
+            case 6:
+                Fs_ChunkMode = 5;
+                break;
+            default:
+                Fs_ChunkMode = 0;
+                break;
+        }
+        Fs_ReadSector(sector);
+    }
+end_return:
+    return sector & 0xFFFF;
+}
 
 void Fs_CdReadyCb(u8 status, u8* result)
 {

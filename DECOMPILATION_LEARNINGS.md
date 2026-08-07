@@ -11151,3 +11151,60 @@ if (v / 100000 != 0) {
 
 Assigning `tbl = Fs_FileTable` *before* reading the length also fixes the
 `lui v1,table` / `lui a1,len` order for the generic file table.
+
+## Case-4 early exit: known-zero `sector` must not merge with `return 0`
+
+When a branch leaves `sector` still at its prologue value of 0, writing
+
+```c
+if (req[1] == 1) {
+    /* search… */
+    if (sector == 0) {
+        return 0;                 /* j epilogue; move v0, zero */
+    }
+    /* ACC8 / ChunkMode / ReadSector (may join shared ReadSector) */
+    return sector & 0xFFFF;
+}
+return sector & 0xFFFF;           /* ALSO sector==0 here */
+```
+
+lets GCC CSE both exits into the early `return 0` block. The target instead
+branches the `req[1] != 1` path to the shared `andi v0,s0,0xffff` at the
+function epilogue (same block used after the common `Fs_ReadSector`).
+
+Fix: route every non-failure exit through one shared label, and keep only the
+real failure as `return 0`:
+
+```c
+if (req[1] == 1) {
+    /* search… */
+    if (sector == 0) {
+        return 0;
+    }
+    D5B498_8006ACC8 = 1;
+    Fs_ChunkMode    = 0;
+    Fs_ReadSector(sector);   /* often joins the setup_and_load ReadSector */
+}
+goto end_return;
+/* … */
+end_return:
+    return sector & 0xFFFF;
+```
+
+Using `break` instead of `goto after4` for the table-search hit, or folding
+both exits as bare `return sector & 0xFFFF`, reintroduces the merge (or
+changes regalloc of `req` out of `$t0`).
+
+## Compiler-generated jump tables need yaml `.rodata` ownership + pad
+
+When a matched function grows a switch jump table, give C the jtbl range with
+`.rodata` (leading dot) and leave any trailing pad / later tables as asm
+`rodata`:
+
+```yaml
+- [0x3a74, .rodata, fs]   # 7-entry jtbl from Fs_LoadFile
+- [0x3a90, rodata, fs_1]  # leading .word 0 pad + rest
+```
+
+Without the pad word owned by the next asm unit, later functions shift and the
+whole checksum fails even if the C text matches.

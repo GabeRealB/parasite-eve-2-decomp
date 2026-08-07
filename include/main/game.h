@@ -129,7 +129,8 @@ typedef struct _GStruct14 {
     void* field_C[16]; // 0xC..0x4B; cleared by func_8002D780
     u8    field_4C;
     u8    field_4D;
-    byte  unknown_4E[0x26];
+    u16   field_4E; // set to 1 by Fs_LoadFile for category-8 file ids
+    byte  unknown_50[0x24];
     u8    field_74;
     byte  unknown_75[0x7];
     s16   field_7C;
