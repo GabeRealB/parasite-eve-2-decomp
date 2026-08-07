@@ -179,6 +179,19 @@ void Mc_StateOpenNext(Task* task, McWork* work);
 void Mc_StateCloseReturn(Task* task, McWork* work);
 void Mc_DispatchStateTable26(Task* task);
 
+/// Init Mc_BufferSlots[1..8] dual-bank buffers and related save state.
+void Mc_InitBufferSlots(void);
+/// Build a memcard save filename into `buf` (product code + mode char + random).
+void Mc_BuildFileName(u8* buf, s32 modeCharIdx);
+/// Defaults for the Mc_InitSaveSlotDefaults / D_80073B88 block (wipsyscfg).
+void Mc_InitSaveSlotDefaults(void);
+
+/// Prompt + optional choice dialog (Mc_PromptTable[mode]).
+s32 Mc_PromptDialog(Task* task, s32 mode, s32 arg2);
+s32 Mc_PromptDialogChoice(Task* task, s32 mode, s32 arg2);
+s32 Mc_PromptDialogSpawn(Task* task, s32 mode, s32 arg2);
+s32 Mc_PromptDialogFile(Task* task, s32 mode, s32 arg2);
+
 // =============================================================================
 // Globals
 // =============================================================================

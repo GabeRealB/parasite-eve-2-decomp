@@ -12,6 +12,7 @@ void GameMain(void);
 
 void F179D4_ClearOTag(s16 tableIdx);
 void GameMain_Init(void);
+void GameMain_Loop(void);
 void Display_FlipDraw(s32 arg0);
 void Display_VSyncCallback(void);
 void GameMain_ShowLoading(s32 arg0);

@@ -114,7 +114,13 @@ void      Task_SetActiveList(TaskNode* node);
 void      Task_ResetDefaultList(void);
 void      Task_Unlink(Task* task);
 void      Task_Free(Task* task);
+void      Task_CountdownCallback(Task* task);
 void      Mem_CopyUnaligned(void* src, void* dest, u32 count);
+
+/// Session pointer-slot table on Game_Session (GStruct14::field_C[16]).
+void  Game_SetPtrSlot(void* ptr, s32 index);
+void* Game_GetPtrSlot(s32 index);
+void  Game_ClearPtrSlots(void);
 
 // =============================================================================
 // Globals

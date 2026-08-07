@@ -71,4 +71,8 @@ void Mem_SetActiveHeap(bool auxHeap);
 // TODO: Swaps between two auxilary heaps?
 void Mem_SetActiveAuxHeap(bool aux0);
 
+/// Alloc aux buffer and optionally MoveImage two VRAM strips (src/main/stream.c).
+/// (Mem_ConfigureAuxHeap lives in main/boot.h — implemented in boot.c.)
+void Mem_AllocAuxWithImages(s16 flags);
+
 #endif // MEM_H

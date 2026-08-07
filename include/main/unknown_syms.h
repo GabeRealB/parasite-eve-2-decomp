@@ -1,12 +1,20 @@
 #ifndef UNKNOWN_SYMS_H
 #define UNKNOWN_SYMS_H
 
+// Kitchen-sink declarations for symbols not yet (or not fully) owned by a
+// module header. Prefer main/{fs,mc,task,pad,boot,gamemain,display,cdstream,mem}.h
+// when a symbol has a clear module home — add it there and drop it here.
+//
+// Included transitively by most TUs via this file; game.h provides types and
+// the module headers listed below.
+
 #include <psyq/libcd.h>
 #include <psyq/libspu.h>
 
 #include "common.h"
 #include "main/game.h"
 #include "main/fs.h"
+#include "main/cdstream.h"
 
 #define C3D458_HEAP_SIZE        0x3D00
 #define C3D458_HEAP_START_MAGIC 0xB25A
@@ -15,54 +23,32 @@
 #define C5F414_OTAG_ENTRIES  0x440
 #define C5F414_OTAG_END_PRIM 0xFFFFFF
 
-// boot.c APIs / F04CF8_* → main/boot.h; Boot_LoadInitialFile → main/fs.h
-
 // Scratchpad image unpacker in boot rodata (func_80010398); reads
 // D5B498_8006C22C / Fs_ChunkWritePtr globals, takes no meaningful args.
 extern void func_80010398(void);
 
-// E734.c / cdcmd.c — most CdCmd_* APIs live in main/fs.h
-extern void CdCmd_StartOverlay(u16 arg0, u16 arg1, u16 arg2);
-extern u16  func_8001D82C(void);
+extern u16 func_8001D82C(void);
 
-// 11E9C.c
-extern void Fs_SetupBootLoad(void);
-extern void Fs_BootImageMachine(void* arg0, void* arg1);
-
-// 33300.c
+// font / text stream (src/main/font.c)
 extern s32 TextStream_Draw(TextStream* arg0, u8* arg1, s16* arg2, s32 arg3);
 
-// fs.c APIs and Fs_* data → main/fs.h
 extern void func_80010024(void);
 
-// 16494.c
-extern void Fs_StreamReadyCb(u8 status, u8* result);
-extern s32  Cd_InitStateMachine(u32* arg0);
+// CD volume / mix (src/main/16494.c)
 extern void F16494_ResetSpuAttr(void);
-extern void CdVol_SetMixMode(s32 arg0);
-extern u8   CdVol_GetMixMode(void);
-extern void CdVol_CacheFromSpu(void);
-extern void CdVol_RegisterCallbacks(void);
-extern void CdVol_ClearCallbackSlot(void);
-extern s32  Cd_Flush(void);
-extern void CdVol_ApplyFromTable(u16 arg0);
-extern s32  CdVol_StepDown(void);
 
-// gamemain.c APIs → main/gamemain.h
-
-// 1C034.c — game-flow state handlers
-extern void GameFlow_StateByField34(Task* arg0);
-extern void Fade_DrawOverlay(s32 r, s32 g, s32 b, s32 mode);
-extern void func_80094B90(s32 arg0);
-extern void func_8009407C(void);
-extern void func_8009FD74(s8 arg0, void* arg1);
-extern void Game_ClearSession(void);
-extern void GameFlow_InitSystems(void);
-extern void GameFlow_SpawnMainWhenReady(Task* arg0);
-extern void Game_ClearEd68(void);
-extern void GameFlow_DispatchTable(Task* arg0);
-extern void func_8002C1D8(void);
-// Pad_* → main/pad.h; Task_* → main/task.h
+// gameflow (src/main/gameflow.c)
+extern void              GameFlow_StateByField34(Task* arg0);
+extern void              Fade_DrawOverlay(s32 r, s32 g, s32 b, s32 mode);
+extern void              func_80094B90(s32 arg0);
+extern void              func_8009407C(void);
+extern void              func_8009FD74(s8 arg0, void* arg1);
+extern void              Game_ClearSession(void);
+extern void              GameFlow_InitSystems(void);
+extern void              GameFlow_SpawnMainWhenReady(Task* arg0);
+extern void              Game_ClearEd68(void);
+extern void              GameFlow_DispatchTable(Task* arg0);
+extern void              func_8002C1D8(void);
 extern TaskFuncTable5    D_800134BC;
 extern TaskFuncTable3    D_800134D0;
 extern u16               D_80013E88[]; // display width table
@@ -73,9 +59,6 @@ extern GBytes4           D_80013F18;
 extern TaskFuncTable4    D_80013F1C;
 extern UiPanelFuncTable6 D_80013F2C;
 extern GBytes6           D_80014124;
-extern void              Game_SetPtrSlot(void* arg0, s32 arg1);
-extern void*             Game_GetPtrSlot(s32 arg0);
-extern void              Task_CountdownCallback(Task* arg0);
 
 // Dynamically loaded (BSS region)
 extern void  func_80097AC0(GpuOtBuf* arg0);
@@ -91,7 +74,7 @@ extern s32   D_8005ED8C;
 extern void  func_800E1A6C(void* arg0);
 extern void  func_801011D0(s32* arg0, s32 arg1, s32 arg2, void* arg3);
 
-// 1E6C4.c
+// text draw (src/main/textdraw.c)
 extern void func_8002DEC4(void);
 extern s32  Text_MeasureGlyphWidth(TextDrawReq* arg0, u8* arg1, u8* arg2);
 // Dual SPRT glyph draw: code 0x66 (clut 0x7FFD, colored) + 0x67 (clut 0x7FFE)
@@ -119,8 +102,6 @@ extern u8 Font_Glyphs2[];
 
 // Memcard product-code prefix (12 bytes, e.g. "BASLUS-01042")
 extern u8 D_80060DC8[];
-// Mc_FileName / Mc_Glyphs* / Mc_BufferSlots / Mc_DefaultChecksumSrc / Mc_PromptTable
-// / Mc_SaveData → main/mc.h
 // 64-byte character table for random memcard filename body
 extern u8 D_80060E08[];
 // sum / ones-complement pair written by Mc_WriteDataChecksum(0, ...); adjacent
@@ -128,7 +109,7 @@ extern u8 D_80060E08[];
 extern s16 D_80072AA4;
 extern u16 D_80072AA8;
 
-// 201E0.c
+// text util (src/main/textutil.c)
 // Extracts one text line (handles escapes/newlines) from *arg0 into arg1; advances *arg0.
 // Returns -1 at end of string, 1 on newline, other values for control escapes.
 extern s32 Text_ParseLine(u8** arg0, u8* arg1);
@@ -146,7 +127,6 @@ extern s32  Text_DrawMultiLineScroll(UiObject* arg0, s32 arg1, s32 arg2, u8* arg
                                      s32 arg6, s32 arg7, s32 arg8);
 extern void Text_LoadClutImages(void);
 // Builds a memcard save filename into arg0 (prefix + arg1 char + 7 random)
-extern void Mc_BuildFileName(u8* arg0, s32 arg1);
 // Image data uploaded to VRAM by Text_LoadClutImages
 extern u_long D_80060910[];
 extern u_long D_800609B0[];
@@ -158,11 +138,10 @@ extern u8 D_80060A64[];
 // "File Information" string passed to Ui_DrawTitle by McMenu_FileInformation (mcmenu)
 extern char D_80013BB4[];
 
-// mc.c
+// memcard extras (src/main/mc.c)
 extern void func_800330D8(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-// 32B64.c
-extern void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2);
+// stage load helpers (src/main/32B64.c)
 extern s32  func_80042500(void);
 extern void Prim_DrawLoadingSprt(void);
 extern void Snd_ApplyVolumeTable(s32 arg0);
@@ -172,7 +151,7 @@ extern void func_800AC688(void);
 extern void func_800ACAA8(void); // called from 2F244.c
 extern s32  func_800AD284(void);
 
-// 34E98.c
+// UI (src/main/ui.c)
 extern UiObject* Ui_SpawnTextBlock(TextBlockDesc* arg0);
 extern UiObject* Ui_SpawnFromDesc(UiObjectDesc* arg0, s32 arg1, s32 arg2, s32 arg3,
                                   UiObject* arg4);
@@ -217,10 +196,10 @@ extern void      Ui_TickAnimCounter(UiPanel* arg0, void* arg1);
 extern void      Ui_ClipAndCallback(UiPanel* arg0, void* arg1);
 extern void      Ui_WaitCdThenOverlay(Task* arg0);
 
-// 3B458.c
+// game flags (src/main/3B458.c)
 extern s32 GameFlag_GetNibble(s32 arg0);
 
-// 3D458.c
+// sound bank / audio tick (src/main/sndbank.c)
 extern void           Spu_WaitDma(void);
 extern void           Audio_IrqFrameWork(void);
 extern SndBank*       Snd_AllocBank(SndBankPayload* arg0);
@@ -239,7 +218,7 @@ extern void           AudioTick_Process(void);
 extern AudioTickNode* AudioTick_Remove(AudioTickNode* arg0);
 extern void           AudioTick_Reset(void);
 
-// 3E48C.c
+// SPU voices (src/main/spu.c)
 extern s16      func_8004DE18(void* arg0);
 extern void     AsyncCb_Cancel(s32 arg0);
 extern void     func_8004E200(void);
@@ -263,7 +242,7 @@ extern void     F3E48C_DisableVoice(u32 voiceIdx);
 extern bool     F3E48C_ReverbVoiceIsEnabled(u32 voiceIdx);
 extern void     F3E48C_ApplyReverbConfig(void);
 
-// 410B0.c
+// SndEvt / MIDI (src/main/sndevt.c)
 extern void SndEvt_Process(void);
 extern void (*SndEvt_Handlers[])(SndEvt*);
 /// MIDI status-byte handler used by Midi_DriveTrack / D_800689C4.
@@ -325,7 +304,7 @@ extern s32         SndLoad_FeedSectorOrError(void* arg0);
 extern s32         SndBank_FinalizeLoad(SndLoadState* arg0);
 extern void        SndLoad_Init(s32 arg0, void* arg1);
 
-// 43FFC.c
+// SndScript / SndVoice (src/main/sndscript.c)
 extern s32  D_800689E4;
 extern s32  D_800689E8;
 extern s16  D_800689EC;
@@ -379,7 +358,7 @@ extern s32          SndScript_FindOneA(u8* arg0, s16 arg1, SndOneAOut* arg2);
 extern void         SndVoice_ClearActive(void);
 extern s32          CdAudio_Begin(void);
 
-// 46FE4.c
+// CdAudio (src/main/cdaudio.c)
 extern void CdAudio_Init(void);
 extern u8   CdAudio_GetState(void);
 extern void CdAudio_Tick(void);
@@ -394,8 +373,6 @@ extern void CdAudio_StartVolumeRamp(s32 arg0);
 extern void CdAudio_JumpWithPitch(s32 arg0, s32 arg1);
 extern s32  func_80057BC0(void);
 extern void CdAudio_SetLocFlag(void);
-extern void CdStream_Start(CdStreamParams* arg0);
-extern void CdStream_Stop(void);
 extern void CdStream_Drive(void);
 extern s16  D_80068A7C[];
 extern u8   D_80068A80[];
@@ -410,31 +387,11 @@ extern u16  D_80068C78[];
 extern u16  D_80068D78[];
 extern u16  D_80068E78[];
 
-// 43FFC.c
+// SndScript / SndVoice (src/main/sndscript.c)
 extern s32  TaskIdMap_RemapIndex(s32 arg0, s32 arg1, s32 arg2);
 extern void SndEvt_EnqueueType7(s32 arg0, s32 arg1);
 
-// 4A6E0.c — CdStream_* / CdReady_* public APIs also in main/cdstream.h
-extern void CdStream_Reset(void);
-extern void CdStream_ArmSpuIrq(void);
-extern void CdStream_SpuIrqHandler(void);
-extern void CdStream_SetPitch(s16 arg0);
-extern s32  CdStream_IsBusy(void);
-extern void CdStream_SetLinkedPitch(s32 arg0);
-extern void CdReady_InstallCallback(CdlCB arg0);
-extern void CdReady_ClearCallback(void);
-extern void CdStream_AbortPhase(u32* arg0);
-extern void CdStream_ClearReadySlot(void);
-extern void CdStream_MarkEnding(void);
-extern s32  CdStream_Flush(void);
-extern void CdStream_ConfigureSpuIrq(s32 arg0, u32 arg1);
-extern s32  CdStream_InitDisc(u32* arg0);
-extern s32  CdReady_Enqueue(CdReadyEntry* arg0);
-extern void CdReady_Poll(void);
-extern void CdReady_Cancel(s16 arg0);
-extern void CdStream_Continue(void);
-
-// F344.c
+// stream / MDEC (src/main/stream.c)
 extern u16      D_8005EAEC;
 extern u16      D_8005EAEE;
 extern s32      D_8006AC08;
@@ -473,7 +430,6 @@ extern s32         Stream_RestoreAfterLoad(s32 arg0, s32 arg1);
 extern void        func_8001F430(void);
 extern void        Mdec_UploadSlice(void);
 extern void        Mdec_KickStrip(void);
-extern void        Mem_AllocAuxWithImages(s16 arg0);
 extern void        Stream_ResetRestoreState(void);
 extern s16         Stream_FindSlot(u8* arg0, s32 arg1, s32 arg2);
 extern s16         Stream_FindSlotByKey(u8* arg0);
@@ -484,17 +440,7 @@ extern u16         Stream_GetSlotField1A(u32 arg0);
 extern void        Stream_KickDecode(u32 arg0);
 
 // Other
-// GameMain_Init / GameMain → main/gamemain.h
-// Pad_Init → main/pad.h
-extern void GameMain_Loop(void);
-extern void Tmd_InitLists(void);
-extern void Mc_InitBufferSlots(void);
-extern void func_80030AB0(McWork* work);
-extern s32  Mc_PromptDialog(Task* arg0, s32 arg1, s32 arg2);
-extern s32  Mc_PromptDialogChoice(Task* arg0, s32 arg1, s32 arg2);
-extern s32  Mc_PromptDialogSpawn(Task* arg0, s32 arg1, s32 arg2);
-extern s32  Mc_PromptDialogFile(Task* arg0, s32 arg1, s32 arg2);
-// Mc_InitLib → main/mc.h
+extern void  func_80030AB0(McWork* work);
 extern void  Display_SetMode(s32 arg0);
 extern void  Display_SetAutoClear(s32 arg0, s32 arg1, s32 arg2);
 extern void  Display_ClampField126(s8 arg0);
@@ -508,15 +454,12 @@ extern void  Display_SetFadeMax(u8 arg0);
 extern s32   Display_InitModeObj(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
 extern void  func_8004017C(void);
 extern void  Mdec_DecodeToVram(void);
-extern void  CdCmd_StepVlcRebuild(void);
 extern void  Tmd_ProcessStream(TmdObject* arg0);
 extern void  Tmd_SetupDraw(TmdObject* arg0);
 extern void  Gpu_ResetGraphAndOt(void);
 extern void  Tmd_AllocMissingBuffers(void);
-extern void  Mc_InitSaveSlotDefaults(void);
 extern void  Spu_InitSystem(s32 arg0);
 extern void  Spu_Init(void);
-extern void  F3D458_ResetHeap(void);
 extern long  Spu_TimerCallback(void);
 extern void  Snd_ClearBanks(void);
 extern void  AsyncCb_Poll(void);
@@ -553,8 +496,7 @@ extern volatile s32 D_8005EC80;
 extern TILE     D_8006EC18;
 extern DR_TPAGE D_8006EC28;
 // "NOW LOADING" (or similar) string drawn by GameMain_ShowLoading.
-extern u8 D_80013404[];
-// Task_DescBanks → main/task.h
+extern u8           D_80013404[];
 extern char         D_80013B64[]; // "Select"
 extern s8           D_800138BC[]; // "99999999"
 extern s8           D_800138C8[]; // "0"
@@ -649,11 +591,8 @@ extern volatile u16   D_80068B78;
 extern CdlLOC         D_800827F8;
 extern void           func_80059EE0(void);
 extern void           CdStream_ReadyMts(s32 arg0, u8* arg1);
-extern void           CdStream_FinishQueueEntry(u32* arg0);
 extern s32            func_800AF590(s32 arg0, s32 arg1);
 extern void           func_800B0118(s32 arg0, s32 arg1);
-
-// D4CB64_ImgBuffers + all Fs_* data / D5B498_* FS state → main/fs.h
 
 // 4F564
 extern GameSession* Game_Session;
@@ -673,13 +612,10 @@ extern s16 Stream_HasActiveLowId(void* arg0);
 // 58028
 extern u8 D58028_SpuTimerEnabled;
 
-// .bss
-
 // 5B3FC
 extern void* D_8006AC00;
 extern void* D_8006AC40;
 
-// Task_ActiveList / Task_DefaultList → main/task.h
 extern TaskNode      D_8007A110;
 extern s32           D_8007A118;
 extern s32           D_8007A358;
@@ -719,17 +655,15 @@ extern GpuOtBuf Gpu_OtBuffers[2];
 extern MATRIX   D_80070F14;
 // VSync countdown; written/read by Display_VSyncCallback (VSync callback).
 extern volatile s32 D_80070F64;
-// Display_State → main/display.h
-extern u_long*     D_800710A0; // current OT base
-extern WipSysFlags Wip_SysFlags;
-extern DR_TPAGE*   D_80071190; // primitive buffer cursor
+extern u_long*      D_800710A0; // current OT base
+extern WipSysFlags  Wip_SysFlags;
+extern DR_TPAGE*    D_80071190; // primitive buffer cursor
 
 // 61F10
 // Immediate-mode SPRT scratch used by Text_DrawGlyphImmediate (DrawPrim path).
 extern SPRT D_80071710;
 extern s8   D_8007272B;
 extern s8   D_8007272D;
-// Mc_SaveData → main/mc.h
 // Alias of Mc_SaveData.field_4 (offset 0x4).
 extern u8 D_8007216C;
 // Alias of Mc_SaveData.field_21 (offset 0x21).
@@ -752,7 +686,6 @@ extern WipSysConfig Wip_SysConfig;
 
 // 61CC0
 extern GameSession D61CC0_800714C0;
-// Pad_States → main/pad.h
 
 // 64880
 extern MATRIX D_80074080;

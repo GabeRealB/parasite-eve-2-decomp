@@ -391,6 +391,9 @@ void        CdCmd_CancelReplaceAndActivate(void);
 void*       CdCmd_SetupMdecBuffers(void);
 void        CdCmd_BuildVlcIfStream(void);
 void        CdCmd_SelectMdecBuffer(void);
+void        CdCmd_StartOverlay(u16 arg0, u16 arg1, u16 arg2);
+void        CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2);
+void        CdCmd_StepVlcRebuild(void);
 
 extern u16 CdCmd_EntryIter;
 
@@ -453,6 +456,29 @@ void F12D18_8002563C(u8 status, u8* result);
 void F12D18_800256F4(u8 arg0);
 void F12D18_800257B0(void);
 u8*  Fs_GetChunkPayload(void);
+
+/// Boot-image / CD load setup (src/main/11E9C.c).
+void Fs_SetupBootLoad(void);
+void Fs_BootImageMachine(void* primaryTim, void* secondaryTim);
+
+/// CD ready callback used while streaming bank data (src/main/16494.c).
+void Fs_StreamReadyCb(u8 status, u8* result);
+
+// =============================================================================
+// Functions — CD volume / mix (src/main/16494.c)
+// =============================================================================
+
+void CdVol_SetMixMode(s32 stereo);
+u8   CdVol_GetMixMode(void);
+void CdVol_CacheFromSpu(void);
+void CdVol_RegisterCallbacks(void);
+void CdVol_ClearCallbackSlot(void);
+s32  Cd_Flush(void);
+s32  CdVol_Get(void);
+void CdVol_Set(s32 level /* 0..0x7F */);
+void CdVol_ApplyFromTable(u16 index);
+s32  CdVol_StepDown(void);
+s32  Cd_InitStateMachine(u32* stateFlags);
 
 // =============================================================================
 // Globals — CD command queue

@@ -39,7 +39,7 @@ void CdStream_MarkEnding(void);
 s32  CdStream_Flush(void);
 void CdStream_ConfigureSpuIrq(s32 enable, u32 irqAddr);
 
-// Globals (BSS) — also declared in unknown_syms.h for existing TUs.
+// Globals (BSS) are declared in unknown_syms.h until they gain a typed home:
 //   CdStream_State    @ 0x80082818
 //   CdStream_Channels @ 0x80082870
 //   CdReady_Queue     @ 0x800828F0
