@@ -845,7 +845,7 @@ success:
 
 void Mdec_StripCallback(void);
 
-void func_8004017C(void)
+void Mdec_ProcessDecode(void)
 {
     register s32           temp_s0 asm("s0");
     s32                    temp_v0;
@@ -1191,7 +1191,7 @@ void CdCmd_StepVlcRebuild(void)
             Mdec_DecodeToVram();
         }
     } else if (p->field_200 != 0) {
-        func_8004017C();
+        Mdec_ProcessDecode();
     }
 }
 

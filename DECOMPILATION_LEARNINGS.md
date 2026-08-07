@@ -11592,7 +11592,7 @@ off  = base + off;          /* addu v0, v1, v0 */
 if (*(s16*)(off + 0x24) != 0) { … }
 ```
 
-(`func_8004017C` field_24 / field_2A walks.)
+(`Mdec_ProcessDecode` field_24 / field_2A walks.)
 
 ## `u8` store of `-3`: need `li v0, -3` not `0xfd`
 
@@ -11643,5 +11643,5 @@ __asm__ volatile(
 ```
 
 Pin a second quartet for a following loop that reuses the same s-regs with a
-different global set. `func_8004017C` is the pure example (99.84% → 100%).
+different global set. `Mdec_ProcessDecode` is the pure example (99.84% → 100%).
 

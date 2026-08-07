@@ -186,7 +186,7 @@ STATIC_ASSERT_SIZEOF(CdCmd190, 0x20);
 
 /// Per-slot decode entry at `CdCmdQueue.field_58` (5 entries, stride 0x3C).
 /// Used by `Mdec_ResolveStreamBuffer` to map a stream id to a base buffer + byte offset.
-/// Also holds up to 3 work-list / image-chunk offsets used by `func_8004017C`.
+/// Also holds up to 3 work-list / image-chunk offsets used by `Mdec_ProcessDecode`.
 typedef struct _CdCmd58Entry {
     /* 0x00 */ s32  field_0;     // byte offset added to the resolved base buffer
     /* 0x04 */ s32  field_4[3];  // FsWorkEntry offsets (Fs_CopyWorkEntries path)

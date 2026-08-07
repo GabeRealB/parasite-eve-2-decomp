@@ -41,6 +41,8 @@ StreamSlot* Stream_GetSlot(u32 arg0);
 u16         Stream_GetSlotField1A(u32 arg0);
 void        Stream_KickDecode(u32 arg0);
 void        Mdec_DecodeToVram(void);
-s16         Stream_HasActiveLowId(void* arg0);
+/// field_202 state machine: start DCT, apply work-lists / image chunks, complete.
+void Mdec_ProcessDecode(void);
+s16  Stream_HasActiveLowId(void* arg0);
 
 #endif // STREAM_H

@@ -202,7 +202,6 @@ extern s32  func_8001FAE0(s32 arg0, s32 arg1);
 
 // Other
 extern void func_80030AB0(McWork* work);
-extern void func_8004017C(void);
 extern s16  func_800AF89C(u16 arg0, u16 arg1, u16 arg2, s32 arg3);
 extern void func_800AFA44(void);
 extern void func_800B0034(u16 arg0);
