@@ -486,7 +486,7 @@ u8* Text_ItoaSigned(u8* arg0, s32 arg1)
     return arg0;
 }
 
-u8* func_8002F18C(u8* arg0, u32 arg1)
+u8* Text_ItoaUnsigned(u8* arg0, u32 arg1)
 {
     typedef struct {
         u8 data[10];
@@ -536,7 +536,7 @@ u8* func_8002F18C(u8* arg0, u32 arg1)
     return ret;
 }
 
-u8* func_8002F2A4(u8* arg0, s32 arg1)
+u8* Text_ItoaHexSigned(u8* arg0, s32 arg1)
 {
     register u8* dest asm("a2");
     register s32 place asm("a0");
@@ -548,7 +548,7 @@ u8* func_8002F2A4(u8* arg0, s32 arg1)
     place = 0x10000000;
     if (arg1 < 0) {
         *arg0 = 0x2D;
-        func_8002F2A4(arg0 + 1, -arg1);
+        Text_ItoaHexSigned(arg0 + 1, -arg1);
         return arg0;
     }
     if (arg1 == 0) {
@@ -796,7 +796,7 @@ void Text_UiTaskCallback(Task* arg0)
     }
 }
 
-void func_8002F98C(Task* arg0)
+void Text_BootTask(Task* arg0)
 {
     Text_LoadClutImages();
     Display_SetMode(0x1010);

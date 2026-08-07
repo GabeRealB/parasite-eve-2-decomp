@@ -232,7 +232,7 @@ s32 Text_DrawPrompt(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 
     return sp10.field_0 - (s16)arg0->field_20;
 }
 
-void func_8002FEAC(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5, void* arg6)
+void Text_DrawPromptCompat(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5, void* arg6)
 {
     Text_DrawPrompt(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
 }
@@ -473,6 +473,6 @@ void Mc_InitBufferSlots(void)
     Mc_SaveData.field_1ab = 0;
     Mc_SaveData.field_1a9 = 0;
     Mc_SaveData.field_25  = 0;
-    func_800260B0(1);
+    CdVol_SetMixMode(1);
     Snd_ApplyVolumeTable(0);
 }

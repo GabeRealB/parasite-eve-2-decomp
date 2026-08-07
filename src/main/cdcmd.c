@@ -333,7 +333,7 @@ void CdCmd_HandleFileLoad(void)
                 }
                 CdFlush();
             }
-            func_8002397C(req[3], req[2], req[1]);
+            Fs_BuildFolderTables(req[3], req[2], req[1]);
             state->step = state->step + 1;
             /* fallthrough */
         case 4:
@@ -699,7 +699,7 @@ void CdCmd_ProcessPhase1(void)
                             info = p->field_190;
                             temp = info->field_14;
                             if (temp) {
-                                func_800578E4(info->field_4 + temp);
+                                CdAudio_JumpToSector(info->field_4 + temp);
                                 p->field_1fc = p->field_1fc + 1;
                                 return;
                             }

@@ -26,7 +26,7 @@ void F12D18_8002252C(u8* arg0, s16 arg1)
     D5B498_8006ACC0         = arg1;
 
     Mem_Set(D4CB64_ImgBuffers, 0, sizeof(*D4CB64_ImgBuffers));
-    func_800280F4(1);
+    GameMain_SetFrameTiming(1);
     D5B498_8006AC9A = 0;
 }
 
@@ -375,7 +375,7 @@ void Fs_PrepareFolderLoad(s32 arg0, s32 arg1, s32 arg2)
     }
 }
 
-void func_8002397C(s32 arg0, s32 arg1, s32 arg2)
+void Fs_BuildFolderTables(s32 arg0, s32 arg1, s32 arg2)
 {
     s32          i;
     s32          j;
@@ -1173,7 +1173,7 @@ void Fs_StopCd(void)
     CdControlB(CdlStop, NULL, NULL);
 }
 
-s32 func_80025898(void)
+s32 Fs_GetStageDiskKind(void)
 {
     u8 stage;
 

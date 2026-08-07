@@ -113,12 +113,12 @@ void func_80050AAC(void)
 {
 }
 
-void func_80050AB4(SndEvt* arg0)
+void SndEvt_HandleInitSequence(SndEvt* arg0)
 {
     Midi_InitSequence(arg0->field_4, arg0->field_6);
 }
 
-void func_80050AE0(SndEvt* arg0)
+void SndEvt_HandleStartFadeOut(SndEvt* arg0)
 {
     Midi_StartFadeOut(arg0->field_4, arg0->field_6);
 }
@@ -154,17 +154,17 @@ void SndEvt_HandleType7(SndEvt* arg0)
     func_800546F4(temp->field_4, temp->field_2);
 }
 
-void func_80050BE8(SndEvt* arg0)
+void SndEvt_HandleFadeMatchingOn(SndEvt* arg0)
 {
     SndVoice_FadeMatching(arg0->field_8, 1);
 }
 
-void func_80050C0C(SndEvt* arg0)
+void SndEvt_HandleFadeMatchingOff(SndEvt* arg0)
 {
     SndVoice_FadeMatching(arg0->field_8, 0);
 }
 
-void func_80050C30(SndEvt* arg0)
+void SndEvt_HandlePanRamp(SndEvt* arg0)
 {
     s32          temp_v0;
     SndEvtFrom4* temp_s0;
@@ -188,17 +188,17 @@ void SndEvt_HandleVolumeRamp(SndEvt* arg0)
     }
 }
 
-void func_80050CC0(void)
+void SndEvt_HandleRefCountInc(void)
 {
-    func_80055C00();
+    SndVoice_IncRefCount();
 }
 
-void func_80050CE0(void)
+void SndEvt_HandleRefCountDec(void)
 {
     SndVoice_TickRefCount();
 }
 
-void func_80050D00(void)
+void SndEvt_HandleKeyOffMatching(void)
 {
     SndVoice_KeyOffMatching();
 }
@@ -327,7 +327,7 @@ s32 Midi_InitSequence(u8 arg0, u16 arg1)
                     obj->field_C  = 0xFFFF;
                     obj->field_38 = 0;
                     do {
-                        func_8005185C((s32*)((u8*)obj + offset));
+                        Midi_ClearVoiceEntry((s32*)((u8*)obj + offset));
                         j++;
                         offset += 0xC;
                     } while ((s32)j < 0x12);
@@ -576,7 +576,7 @@ s32 Midi_IsBusy(s32 arg0)
     return 0;
 }
 
-s32 func_80051560(u8 arg0)
+s32 Midi_IsChannelFree(u8 arg0)
 {
     s32 i;
 
@@ -693,7 +693,7 @@ void* Midi_GetFixedBuffer(s32 arg0, s32 arg1)
     return D_8007F8E0;
 }
 
-void func_8005185C(s32* arg0)
+void Midi_ClearVoiceEntry(s32* arg0)
 {
     u32  i;
     s32* ptr;
@@ -1069,7 +1069,7 @@ u8* func_80052488(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3)
             break;
 
         case 0xA:
-            if (func_80026138() & 0xFF) {
+            if (CdVol_GetMixMode() & 0xFF) {
                 arg2->field_484[channel].field_3 = arg1[2];
             } else {
                 arg2->field_484[channel].field_3 = 0x40;

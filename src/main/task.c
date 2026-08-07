@@ -645,7 +645,7 @@ void Game_ClearPtrSlots(void)
     }
 }
 
-void func_8002D7A8(void* src, void* dest, u32 count)
+void Mem_CopyUnaligned(void* src, void* dest, u32 count)
 {
     u32 i;
     u32 alignment;

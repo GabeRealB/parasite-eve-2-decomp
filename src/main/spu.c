@@ -298,7 +298,7 @@ void Spu_SetVoiceCallbacks(u32 voiceIdx, s32 arg1, s32 arg2)
     Spu_VoiceState.field_16c[sVoiceIdx] = arg2;
 }
 
-void func_8004E580(u32 voiceIdx)
+void Spu_ClearVoiceCallbacks(u32 voiceIdx)
 {
     s8 sVoiceIdx = (s8)voiceIdx;
 

@@ -33,7 +33,7 @@ void McMenu_SelectList(Task* arg0)
         menu->field_A  = 1;
         menu->field_10 = 0;
         menu->field_9  = 0;
-        func_8004917C(menu, 1);
+        Ui_SetListScrollFlag(menu, 1);
         arg0->field_30 += 1;
     } else {
         Ui_UpdateListNoAnim(menu, obj);
@@ -89,7 +89,7 @@ void McMenu_SelectListAlt(Task* arg0)
         if ((s8)temp < 0) {
             menu->field_9 = 0;
         }
-        func_8004917C(menu, 1);
+        Ui_SetListScrollFlag(menu, 1);
         arg0->field_30 += 1;
     } else {
         Ui_UpdateListNoAnim(menu, obj);
@@ -219,7 +219,7 @@ block_done:
             menu->field_10 = 1;
         }
         menu->field_9 = 0;
-        func_8004917C(menu, 1);
+        Ui_SetListScrollFlag(menu, 1);
         arg0->field_30 += 1;
     } else {
         Ui_UpdateListNoAnim(menu, obj);

@@ -47,7 +47,7 @@ void GameFlow_StateByField34(Task* arg0)
             one                    = 1;
             Game_Session->field_4C = one;
             Game_Session->field_80 = 0;
-            func_80053FA0(1);
+            Snd_SetMutedVolumes(1);
             ds->field_101 = 0;
             ds->field_10b = one;
             Task_Kill(arg0);
@@ -139,7 +139,7 @@ void Game_ClearSession(void)
     Display_State.field_101 = 0;
 }
 
-void func_8002BBC8(void)
+void GameFlow_InitSystems(void)
 {
     Task_ResetDefaultList();
     Tmd_InitLists();
@@ -176,7 +176,7 @@ void GameFlow_SpawnMenu(Task* arg0)
 {
     void* temp_v0;
 
-    func_800280F4(0);
+    GameMain_SetFrameTiming(0);
     temp_v0        = Ui_SpawnFromDesc(D_800611C8, 0, 1, 0, 0);
     arg0->field_20 = temp_v0;
     if (temp_v0 != 0) {
@@ -197,9 +197,9 @@ void GameFlow_WaitMenuDone(Task* arg0)
         Display_State.field_11e = 0;
         Game_Session->field_2   = 0;
         if (D_80072311 == 1) {
-            func_800260B0(0);
+            CdVol_SetMixMode(0);
         } else {
-            func_800260B0(1);
+            CdVol_SetMixMode(1);
         }
         Snd_ApplyVolumeTable(0);
         arg0->field_2a = 0xC;
@@ -217,7 +217,7 @@ void GameFlow_CountdownAdvance(Task* arg0)
     arg0->field_30 = arg0->field_30 + 1;
 }
 
-void func_8002BE0C(Task* arg0)
+void GameFlow_SpawnMainWhenReady(Task* arg0)
 {
     if (Display_State.field_101 == 0) {
         Task_Spawn(0, 2, 0, 0);
@@ -233,7 +233,7 @@ void func_8002BE0C(Task* arg0)
     Task_Spawn(0, 9, 0, 0);
 }
 
-void func_8002BEA8(Task* arg0)
+void GameFlow_DispatchTable5(Task* arg0)
 {
     TaskFuncTable5 sp;
 
@@ -249,7 +249,7 @@ void GameFlow_CopySaveIds(Task* arg0)
     arg0->field_30 = arg0->field_30 + 1;
 }
 
-void func_8002BF58(Task* arg0)
+void GameFlow_EnqueueDefaultLoad(Task* arg0)
 {
     u8 param1[8];
     u8 param2[8];

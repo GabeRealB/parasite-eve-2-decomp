@@ -12,7 +12,7 @@ void Snd_InitFromStage(s32 arg0, s32 arg1)
     D_8008274C = 0;
     SndVoice_ClearActive();
     arg0 = arg0 & 0xFF;
-    func_800546C0();
+    SndEvt_EnqueueTypeF();
     SndEvt_EnqueueType7(0x50000000, 1);
     SndEvt_EnqueueType7(0x10000000, 1);
     SndEvt_EnqueueType7(0xFF0D, 1);
@@ -43,7 +43,7 @@ void Snd_InitFromStage(s32 arg0, s32 arg1)
         var_a0 = 1;
     }
 block_done:
-    func_80054608(var_a0);
+    SndVoice_SetPriority(var_a0);
     D_80082130 = 0x3D010;
     D_80082128 = 0;
     D_80082124 = D_80082128;
@@ -161,7 +161,7 @@ s32 TaskIdMap_RemapIndex(s32 arg0, s32 arg1, s32 arg2)
     return arg1 & 0xFF;
 }
 
-void func_80053D90(void)
+void Snd_ClearBusy(void)
 {
     Snd_SetBusyFlag(0);
 }
@@ -176,7 +176,7 @@ void Snd_SetBusyFlag(s32 arg0)
     D_80082134 = 1;
 }
 
-void func_80053DF4(s32 arg0)
+void Snd_SetModeFlag(s32 arg0)
 {
     s8 temp;
 
@@ -192,7 +192,7 @@ void func_80053DF4(s32 arg0)
     }
 }
 
-void func_80053E48(void)
+void Snd_PollAsync(void)
 {
     AsyncCb_Poll();
 }
@@ -211,7 +211,7 @@ void Snd_RegisterTickCallbacks(void)
     D_8008274C = 0;
 }
 
-// K&R definition so the no-arg call in func_8005462C stays legal (indeterminate a0).
+// K&R definition so the no-arg call in SndVoice_HasActiveId stays legal (indeterminate a0).
 s32 SndBank_RemapId(arg0)
 s32 arg0;
 {
@@ -241,7 +241,7 @@ s32 Snd_ReverbWarmupCb(s32* arg0)
     return -1;
 }
 
-void func_80053FA0(s32 arg0)
+void Snd_SetMutedVolumes(s32 arg0)
 {
     s32 var_a0;
 
@@ -272,7 +272,7 @@ s32 Snd_InitBanks(u32 arg0)
     Spu_SetVoiceRange(1, 0x12, 6);
     i = 0;
     SndVoice_Init();
-    func_80054608(1);
+    SndVoice_SetPriority(1);
     SndBank_SetEnableFlags(1, 0x80000000);
 
     map   = D_800680AC;
@@ -382,7 +382,7 @@ void SndEvt_EnqueueType7(s32 arg0, s32 arg1)
     }
 }
 
-void func_80054334(s32 arg0)
+void SndEvt_EnqueueType8(s32 arg0)
 {
     SndEvt*      temp;
     SndEvtFrom4* mid;
@@ -488,17 +488,17 @@ void SndBank_SetEnableFlags(s32 arg0, s32 arg1)
     }
 }
 
-void func_80054608(s8 arg0)
+void SndVoice_SetPriority(s8 arg0)
 {
-    func_80055D78(arg0);
+    SndVoice_SetPriorityLevel(arg0);
 }
 
-s32 func_8005462C(void)
+s32 SndVoice_HasActiveId(void)
 {
     return ~SndVoice_FindById(SndBank_RemapId()) != 0;
 }
 
-void func_80054658(void)
+void SndEvt_EnqueueTypeD(void)
 {
     SndEvt* temp;
 
@@ -520,7 +520,7 @@ void SndEvt_EnqueueTypeE(void)
     }
 }
 
-void func_800546C0(void)
+void SndEvt_EnqueueTypeF(void)
 {
     SndEvt* temp;
 
@@ -538,7 +538,7 @@ void SndVoice_StepMasterLevel(void)
     s16 var_a0;
     s8  bound;
 
-    var_a0 = func_80055EE8();
+    var_a0 = SndVoice_GetMasterVolume();
     if (D_8008274A > 0) {
         var_a0 = var_a0 + D_8008274A;
         bound  = *(u8*)&D_80082749;
@@ -1111,7 +1111,7 @@ end:
     p->field_E = 1;
 }
 
-void func_80055C00(void)
+void SndVoice_IncRefCount(void)
 {
     s8 temp;
 
@@ -1119,7 +1119,7 @@ void func_80055C00(void)
     if (D_8008274C == 1) {
         if (D_8008274A == 0) {
             if (D_80082749 == 0) {
-                temp = func_80055EE8();
+                temp = SndVoice_GetMasterVolume();
                 if (temp >= 0x30) {
                     D_80082749 = temp;
                     D_8008274A = -8;
@@ -1173,10 +1173,10 @@ void SndVoice_Init(void)
     D_8008274A = 0;
     D_80082749 = 0;
     SndVoice_ApplyMasterVolume(0x7F);
-    func_80055D78(1);
+    SndVoice_SetPriorityLevel(1);
 }
 
-void func_80055D78(s8 arg0)
+void SndVoice_SetPriorityLevel(s8 arg0)
 {
     if (arg0 < 0) {
         D_8008274B = -1;
@@ -1235,7 +1235,7 @@ void SndVoice_ApplyMasterVolume(s8 arg0)
     D_80082748 = vol;
 }
 
-s8 func_80055EE8(void)
+s8 SndVoice_GetMasterVolume(void)
 {
     return D_80082748;
 }
@@ -1256,7 +1256,7 @@ void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, s32 arg4, SndVoicePara
         do {
             Spu_KeyOff(node->field_0);
             node->field_8 = 0;
-            func_8004E580(node->field_0);
+            Spu_ClearVoiceCallbacks(node->field_0);
             F3E48C_8004E660(node->field_0);
             node->field_0 = 0;
             node          = node->field_3C;

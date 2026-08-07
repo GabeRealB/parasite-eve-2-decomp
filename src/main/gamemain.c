@@ -24,7 +24,7 @@ typedef struct _GsCOORDINATE2 {
 
 extern MATRIX GsWSMATRIX;
 
-void func_800271D4(void)
+void GameMain_Init(void)
 {
     s32 flag; // The indirection is required.
 
@@ -55,13 +55,13 @@ void func_800271D4(void)
     Display_State.field_c   = 0;
     Display_State.field_10  = 0;
     Display_State.field_14  = 0;
-    func_800280F4(0);
+    GameMain_SetFrameTiming(0);
 
     D_8005EC70 = 0;
     F179D4_ClearOTag(0);
     F179D4_ClearOTag(1);
-    func_8004CFE8();
-    func_80053FA0(0);
+    Spu_WaitDma();
+    Snd_SetMutedVolumes(0);
     F04CF8_800148EC();
     VSyncCallback(Display_VSyncCallback);
 
@@ -179,7 +179,7 @@ void GameMain_ShowLoading(s32 arg0)
             tile        = &D_8006EC18;
             dr          = &D_8006EC28;
             if (arg0 == one) {
-                func_80054658();
+                SndEvt_EnqueueTypeD();
             }
             setlen(dr, one);
             dr->code[0] = 0xE1000600;
@@ -337,7 +337,7 @@ void Display_LoadImageStrips(s32 arg0)
     }
 }
 
-void func_800280F4(s32 arg0)
+void GameMain_SetFrameTiming(s32 arg0)
 {
     if (arg0 == 0) {
         Display_State.field_10a = 1;
@@ -423,17 +423,17 @@ void GameMain(void)
     GameResetScratchHead();
     ResetCallback();
     SetVideoMode(MODE_NTSC);
-    func_8004CFC8();
+    Spu_Init();
     Mc_InitLib();
     Pad_Init();
     F04CF8_80014A50();
     Mem_Set(&Wip_SysFlags, 0, sizeof(Wip_SysFlags));
     D_8005EC64 = 0;
-    func_800271D4();
+    GameMain_Init();
     GameMain_Loop();
 }
 
-u32 func_80028404(void)
+u32 GameMain_GetResetCount(void)
 {
     return D_8005EC64;
 }

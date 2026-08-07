@@ -483,7 +483,7 @@ STATIC_ASSERT_SIZEOF(StreamSlot, 0x28);
 /// computing field_9; field_6 / field_7 are signed layout sizes (Ui_DrawListHighlight
 /// uses field_7 as TILE height); field_9 / field_A / field_10 are list cursor /
 /// flag / selection index used by McMenu_SelectList / McMenu_SelectListAlt / McMenu_InitByMode /
-/// Ui_InitList / func_8004917C; field_C / field_14 / field_16 are cleared by
+/// Ui_InitList / Ui_SetListScrollFlag; field_C / field_14 / field_16 are cleared by
 /// Ui_InitList; field_17 is a signed layout adjust subtracted from the child
 /// height when computing visible rows (Ui_ComputeVisibleRows / Ui_ComputeVisibleRowsEx; the latter
 /// also writes field_17 from its third argument).
@@ -567,7 +567,7 @@ extern TmdListHead Tmd_List;
 /// Second list head initialized alongside Tmd_List by Tmd_InitLists.
 extern TmdListHead Tmd_ListAlt;
 
-/// WIP: nested object reached via WipUiHolder::field_28 (func_80049D34 writes field_34).
+/// WIP: nested object reached via WipUiHolder::field_28 (Ui_SetHolderParam writes field_34).
 typedef struct _WipUiChild {
     /* 0x00 */ byte unknown_0[0x34];
     /* 0x34 */ s32  field_34;
@@ -1132,7 +1132,7 @@ typedef struct _AsyncCbQueue {
 } AsyncCbQueue;
 STATIC_ASSERT_SIZEOF(AsyncCbQueue, 0x54);
 
-/// 4-byte entry pointed to by CdAudio_TblEntries (see func_80057724).
+/// 4-byte entry pointed to by CdAudio_TblEntries (see CdAudio_PrepareNextEntry).
 /// Indexed by CdAudio_Tbl.field_2; field_3 is compared across adjacent entries.
 typedef struct _CdAudioTblEntry {
     /* 0x0 */ u8 pad[3];

@@ -134,7 +134,7 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(McStateFuncTable44, 0xB0);
 
 /// Fixed-size table of McStateFunc callbacks. Copied onto the stack by
-/// func_80036968 so the call uses a local jump table (26 entries, 0x68 bytes).
+/// Mc_DispatchStateTable26 so the call uses a local jump table (26 entries, 0x68 bytes).
 typedef struct {
     McStateFunc funcs[26];
 } McStateFuncTable26;
@@ -157,7 +157,7 @@ void Mc_StateBlankFileName(Task* task, McWork* work);
 void Mc_StateSyncOpen(Task* task, McWork* work);
 void Mc_StateVerifyFinish(Task* task, McWork* work);
 void Mc_StateFinishWrite(Task* task, McWork* work);
-void func_80034B38(Task* task, McWork* work);
+void Mc_KillIfCountdown(Task* task, McWork* work);
 void Mc_DispatchStateTable(Task* task);
 u16* Mc_EncodeAsciiGlyphs(s8* src, u16* dst);
 void Mc_InitFileName(void);
@@ -177,7 +177,7 @@ void Mc_ResetWork(Task* task, McWork* work);
 void Mc_StateOpenSelected(Task* task, McWork* work);
 void Mc_StateOpenNext(Task* task, McWork* work);
 void Mc_StateCloseReturn(Task* task, McWork* work);
-void func_80036968(Task* task);
+void Mc_DispatchStateTable26(Task* task);
 
 // =============================================================================
 // Globals
@@ -198,7 +198,7 @@ extern char D_8001398C[];
 extern char D_80013A5C[];
 /// Jump table of 44 McStateFunc handlers used by Mc_DispatchStateTable.
 extern McStateFuncTable44 D_800139AC;
-/// Jump table of 26 McStateFunc handlers used by func_80036968.
+/// Jump table of 26 McStateFunc handlers used by Mc_DispatchStateTable26.
 extern McStateFuncTable26 D_80013ACC;
 /// Global McWork instance used by the memcard state dispatcher.
 extern McWork D_80071730;

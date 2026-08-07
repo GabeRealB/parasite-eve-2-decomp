@@ -5,7 +5,7 @@
 
 #include "main/unknown_syms.h"
 
-void func_8004CC58(s32 arg0)
+void Spu_InitSystem(s32 arg0)
 {
     s32* temp_v0;
 
@@ -177,14 +177,14 @@ setup_ptrs:
     return bank;
 }
 
-void func_8004CFC8(void)
+void Spu_Init(void)
 {
-    func_8004CC58(0);
+    Spu_InitSystem(0);
 }
 
-void func_8004CFE8(void)
+void Spu_WaitDma(void)
 {
-    func_8004CC58(1);
+    Spu_InitSystem(1);
 }
 
 void Audio_IrqFrameWork(void)
@@ -381,7 +381,7 @@ void Spu_ApplyPanVolume(s16* arg0, s16 arg1, s32 arg2)
     left  = (u32)(arg2 * D_80068D78[index]) >> 0xC;
     right = (u32)(arg2 * D_80068D78[0x7E - index]) >> 0xC;
 
-    if (!(func_80026138() & 0xFF)) {
+    if (!(CdVol_GetMixMode() & 0xFF)) {
         right = (u32)((left + right) * D_80068D78[0x3F]) >> 0xC;
         left  = right;
     }

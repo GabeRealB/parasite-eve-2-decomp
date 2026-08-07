@@ -1511,7 +1511,7 @@ void Ui_SetState4(Task* arg0)
     arg0->field_8 = (Task*)4;
 }
 
-void func_80048904(UiPanel* arg0, s32 arg1, s32 arg2)
+void Ui_ClampAnimOrClose(UiPanel* arg0, s32 arg1, s32 arg2)
 {
     s16 temp_v1;
 
@@ -1521,11 +1521,11 @@ void func_80048904(UiPanel* arg0, s32 arg1, s32 arg2)
             arg0->field_16 = (s16)(arg2 + 9);
         }
     } else {
-        func_80048964(arg0, (void*)arg1);
+        Ui_StartCloseAnim(arg0, (void*)arg1);
     }
 }
 
-void func_80048964(UiPanel* arg0, void* arg1)
+void Ui_StartCloseAnim(UiPanel* arg0, void* arg1)
 {
     if (arg0->field_8 != 2) {
         if ((u16)arg0->field_16 >= 0xA) {
@@ -1712,7 +1712,7 @@ s32 Ui_LookupTable(void* arg0, s32 arg1)
     return D_8006763C[arg1];
 }
 
-s32 func_80048E2C(s32 arg0)
+s32 Ui_Scale15(s32 arg0)
 {
     return (arg0 << 4) - arg0;
 }
@@ -1803,12 +1803,12 @@ void Ui_ClampDialogRect(UiPanel* arg0, UiPanel* arg1, UiPanel* arg2)
     }
 }
 
-void func_800490A4(UiPanel* arg0, u8* arg1)
+void Ui_SizeFromTextPlain(UiPanel* arg0, u8* arg1)
 {
     Ui_SizeFromText(arg0, arg1, 0, 0);
 }
 
-void func_800490C8(UiPanel* arg0, u8* arg1)
+void Ui_SizeFromTextWide(UiPanel* arg0, u8* arg1)
 {
     Ui_SizeFromText(arg0, arg1, 0x20, 0);
 }
@@ -1828,7 +1828,7 @@ void Ui_InsertDrawTPage(s32 arg0, s32 arg1)
     addPrim(D_800710A0 + arg0, p);
 }
 
-void func_8004917C(UiList* arg0, s32 arg1)
+void Ui_SetListScrollFlag(UiList* arg0, s32 arg1)
 {
     if (arg1 == 0) {
         arg0->field_A &= 0xFD;
@@ -1975,7 +1975,7 @@ void Ui_LayoutDrawAndCallback(UiPanel* arg0, void* arg1)
     arg0->field_24(arg1);
 }
 
-void func_8004969C(UiPanel* arg0, void* arg1)
+void Ui_TickAnimCounter(UiPanel* arg0, void* arg1)
 {
     if (arg0->field_16 >= 0) {
         arg0->field_16 += Display_State.field_10a;
@@ -1990,7 +1990,7 @@ void func_8004969C(UiPanel* arg0, void* arg1)
     arg0->field_24(arg1);
 }
 
-void func_8004972C(UiPanel* arg0, void* arg1)
+void Ui_AnimCloseStep(UiPanel* arg0, void* arg1)
 {
     s32 temp_s1;
 
@@ -2036,7 +2036,7 @@ void Ui_ClipAndCallback(UiPanel* arg0, void* arg1)
     }
     temp_a0 = arg0->field_16;
     if (((temp_a0 < 0) && (arg0->field_0 == 1)) || (temp_a0 == 9)) {
-        func_80048964(arg0, arg1);
+        Ui_StartCloseAnim(arg0, arg1);
     }
 }
 
@@ -2118,7 +2118,7 @@ void Ui_DrawFlatCaret(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
         (ot[(s16)arg0->field_14 + 1] & mask_hi) | ((u32)p & mask);
 }
 
-void func_80049A8C(Task* arg0)
+void Ui_WaitCdThenOverlay(Task* arg0)
 {
     UiPanel* temp_s0;
 
@@ -2209,14 +2209,14 @@ void Ui_ListTaskCallback(Task* arg0)
     }
 }
 
-void func_80049D34(s32 arg0)
+void Ui_SetHolderParam(s32 arg0)
 {
     if (Wip_UiHolder != NULL) {
         Wip_UiHolder->field_28->field_34 = arg0;
     }
 }
 
-void func_80049D5C(s32 arg0)
+void Ui_SetHolderParamAlt(s32 arg0)
 {
     if (Wip_UiHolder != NULL) {
         Wip_UiHolder->field_28->field_34 = arg0;

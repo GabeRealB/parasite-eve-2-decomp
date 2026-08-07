@@ -291,7 +291,7 @@ void Boot_LoadTask(Task* arg0)
     }
 }
 
-void func_80014C2C(void)
+void Boot_DispatchCdCmd(void)
 {
     CdCmd_Dispatch();
 }

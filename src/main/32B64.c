@@ -126,9 +126,9 @@ void Snd_ApplyVolumeTable(s32 arg0)
 
     sp10 = D_80013F18;
     if (D_80072311 == 0) {
-        func_800260B0(1);
+        CdVol_SetMixMode(1);
     } else {
-        func_800260B0(0);
+        CdVol_SetMixMode(0);
     }
     if ((arg0 & 0xFFFF) != 0) {
         D_8007A396 = arg0;

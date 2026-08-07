@@ -149,7 +149,7 @@ void F16494_ResetSpuAttr(void)
     D5B498_8006EBF0 = 0;
 }
 
-void func_800260B0(s32 arg0)
+void CdVol_SetMixMode(s32 arg0)
 {
     CdlATV atv;
     s32    flag;
@@ -158,7 +158,7 @@ void func_800260B0(s32 arg0)
     flag       = D_8006EBBA;
     Midi_SetMasterVolume(Midi_GetMasterVolume() & 0xFF);
     flag = (u8)flag;
-    SndVoice_ApplyMasterVolume(func_80055EE8());
+    SndVoice_ApplyMasterVolume(SndVoice_GetMasterVolume());
     CdStream_SetLinkedPitch(flag ^ 1);
     if (flag == 0) {
         atv.val0 = 0x5A;
@@ -174,7 +174,7 @@ void func_800260B0(s32 arg0)
     CdMix(&atv);
 }
 
-u8 func_80026138(void)
+u8 CdVol_GetMixMode(void)
 {
     return D_8006EBBA;
 }
@@ -197,7 +197,7 @@ void CdVol_RegisterCallbacks(void)
     ptr      = &D_8006EBF2;
     sp.unk8  = Cd_InitStateMachine;
     sp.unkC  = CdVol_ClearCallbackSlot;
-    sp.unk10 = func_800261D4;
+    sp.unk10 = Cd_Flush;
     *ptr     = func_8004DE18(&sp);
 }
 
@@ -206,13 +206,13 @@ void CdVol_ClearCallbackSlot(void)
     D_8006EBF2 = 0;
 }
 
-s32 func_800261D4(void)
+s32 Cd_Flush(void)
 {
     CdFlush();
     return 0;
 }
 
-s32 func_800261F4(void)
+s32 CdVol_Get(void)
 {
     return (Fs_SpuAttr.cd.volume.left / 256) & 0x7F;
 }

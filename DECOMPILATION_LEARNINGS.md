@@ -139,12 +139,12 @@ jr    ra
  nop
 ```
 
-`func_8005791C` (`CdAudio_Loc.field_4 = arg0`) is a pure example — only the
+`CdAudio_SetLocBase` (`CdAudio_Loc.field_4 = arg0`) is a pure example — only the
 `volatile CdAudioLoc` form matches.
 
 `D_800680C0` is another interrupt-shared flag: the SPU timer callback
 `Spu_TimerCallback` / `Spu_TimerReentryWork` reads and writes it while main-line
-`func_8004CC58` does the same. Marking it `volatile` keeps stores out of
+`Spu_InitSystem` does the same. Marking it `volatile` keeps stores out of
 `jal` delay slots (target has `nop` after `D_800680C0 = 0`).
 
 `D_8006EC30` / `D_80070E38` are the same shape for the draw path: main-line
@@ -219,7 +219,7 @@ sign that a second expression is needed.
 **Inverse — skip the local pointer when all accesses are pre-call.** If every
 read/write of the global happens *before* any `jal`, a bare `Display_State.field`
 name matches fine: GCC loads the address into a temporary (`$v1`) once and
-never needs to reload it. `func_8002BE0C` is an example — it reads
+never needs to reload it. `GameFlow_SpawnMainWhenReady` is an example — it reads
 `field_101`, optionally writes `field_10b`, then only calls other functions.
 A local `DisplayState*` would force a callee-saved register and a larger stack
 frame for no benefit. Use the pointer only when the address is live across
@@ -361,7 +361,7 @@ sltu v0, zero, v0
 
 write `return ~x != 0;` (or the same expression in a larger return). That is
 semantically `x != -1`, but `x != -1` often compiles to a different compare
-sequence. `func_8005462C` is a one-liner that only matches with the `~` form:
+sequence. `SndVoice_HasActiveId` is a one-liner that only matches with the `~` form:
 
 ```c
 return ~SndVoice_FindById(SndBank_RemapId()) != 0;
@@ -379,7 +379,7 @@ D_8006EBBA = flag;
 ```
 
 Force the address load first by writing the expression into the global and
-reloading it for the rest of the function (`func_800260B0`):
+reloading it for the rest of the function (`CdVol_SetMixMode`):
 
 ```c
 /* Matches: lui of D_8006EBBA, then sw $s0 / andi $s0 */
@@ -905,7 +905,7 @@ Use a volatile load through the existing symbol rather than flipping its type
 if (*(volatile s16*)&D_800689EC == 1) { ... }
 ```
 
-`func_80051560` needs this form for `D_800689EC`.
+`Midi_IsChannelFree` needs this form for `D_800689EC`.
 
 ## Reuse formal parameters for live ranges that span early calls
 
@@ -1384,7 +1384,7 @@ s32 arg0;
 ```
 
 Keep the header declaration unprototyped too (`extern s32 SndBank_RemapId();`).
-`func_8005462C` → `SndBank_RemapId` is the reference.
+`SndVoice_HasActiveId` → `SndBank_RemapId` is the reference.
 
 ## `switch` for equality chains that branch *to* case bodies
 
@@ -1929,7 +1929,7 @@ return ret;            /* move v1,zero; move v0,v1 — mismatch */
 
 Bare early `return 1;` / `return 0;` can also fail: the compiler may sink the
 `return 1` path after the work block instead of filling the branch delay slot.
-`func_80057724` is the pure example.
+`CdAudio_PrepareNextEntry` is the pure example.
 
 ## Ternary keeps a second `return 1` from merging with an early exit
 
@@ -2261,7 +2261,7 @@ if (stage == 1 || stage == 2) return 1;
 if (stage == 4 || stage == 5) return 2;
 ```
 
-`func_80025898` needs the equality spelling.
+`Fs_GetStageDiskKind` needs the equality spelling.
 
 ## Unsigned divide by 65535 needs `(u32)` cast
 
@@ -2348,7 +2348,7 @@ void dispatcher(Task* arg0)
 
 The index form then becomes `addiu v1,sp,0x10` / `sll` / `addu v1,v1,v0` /
 `lw v0,0(v1)`. `GameFlow_DispatchTable` is the pure example (3 entries). The same idea
-applies to `D_800134BC` (5 entries) for the sibling dispatcher `func_8002BEA8`.
+applies to `D_800134BC` (5 entries) for the sibling dispatcher `GameFlow_DispatchTable5`.
 
 Two-arg handlers (e.g. `UiPanelFunc` / `D_80013F2C` / `Ui_DispatchObjectState`) use the same
 struct-assignment pattern. When the object that supplies the index is also the
@@ -2702,7 +2702,7 @@ if (p->field_0 != 3) {
 return ret;
 ```
 
-`func_80057ACC` is the example. Pair with `if (x != K)` so the branch is
+`CdAudio_RequestStop` is the example. Pair with `if (x != K)` so the branch is
 `beq` to the else arm and the `!=` arm is fall-through (failure-first layout).
 
 ## `register … asm("v1")` for `lui v1; addiu v1, v1, %lo`
@@ -3639,7 +3639,7 @@ if (!(Stage_Ctx->field_1c & mask)) {
 
 That pins the mask in `$s1` and shifts `arg0`/`arg1` into `$s2`/`$s3` to match
 the target prologue (`move s2,a0` early, `lui s1,0x4000` after the field load,
-`move s3,a1` in the `bnez` delay slot). `func_8003F71C` is the pure example.
+`move s3,a1` in the `bnez` delay slot). `Stage_BeginTransition` is the pure example.
 
 ## Live `0xFFFF` register for ones-complement stores (`subu` not `nor`)
 
@@ -3966,8 +3966,8 @@ if (flag == 0) {
 }
 ```
 
-`Snd_ApplyVolumeTable` (`D_80072311` → `func_800260B0`) is the pure `== 0` example.
-`GameFlow_WaitMenuDone` is the sibling `== 1` form (`func_800260B0(0)` vs `(1)`).
+`Snd_ApplyVolumeTable` (`D_80072311` → `CdVol_SetMixMode`) is the pure `== 0` example.
+`GameFlow_WaitMenuDone` is the sibling `== 1` form (`CdVol_SetMixMode(0)` vs `(1)`).
 
 ## Goto-forced block order for shared-default multi-way branch
 
@@ -4301,7 +4301,7 @@ if (p->field_0 == (temp << 0x10)) {
 ```
 
 Contrast with `Ui_DrawAndCallback`, where the target *does* keep the shifted value in
-an s-reg — there `p->field_0 = temp << 0x10` is correct. `func_8004972C` is the
+an s-reg — there `p->field_0 = temp << 0x10` is correct. `Ui_AnimCloseStep` is the
 reload form; pick based on whether the target reuses a shifted s-reg after the
 call or re-shifts from the original.
 
@@ -4537,7 +4537,7 @@ SndVoice_SetPanRamp(idx, (s8)p->field_4, (s8)mid->field_1); /* lb, not lbu */
 
 Bare `p->field_4` with an `s8` formal also yields `lb`, but then the callee
 mismatches. Prefer `s32` formals + `(s8)` at the few call sites. `SndVoice_SetPanRamp`
-/ `func_80050C30` are the pure example (sibling `SndVoice_SetVolumeRamp` already takes
+/ `SndEvt_HandlePanRamp` are the pure example (sibling `SndVoice_SetVolumeRamp` already takes
 `s32` and its caller correctly uses `lbu`).
 
 ## Early load into a temp forces prior store before zero-fills
@@ -4843,7 +4843,7 @@ asm volatile(
 `Text_ItoaHex` is the pure example. Power-of-two / no-div TUs do not need
 `--expand-div`; this one does (`textdraw.c`).
 
-Signed hex sibling `func_8002F2A4` reuses the same digit-loop tricks (`asm("")`
+Signed hex sibling `Text_ItoaHexSigned` reuses the same digit-loop tricks (`asm("")`
 after the raw store, inline-asm zero-path with `D_800138C8`) but:
 
 - Prefixes `'-'` and recurses on `-arg1` when `arg1 < 0` (return value is the
@@ -4856,7 +4856,7 @@ after the raw store, inline-asm zero-path with `D_800138C8`) but:
 
 ## Unsigned decimal itoa: keep raw digit store via reload-style mask
 
-Unsigned decimal itoa (`func_8002F18C`) stores the raw quotient then overwrites
+Unsigned decimal itoa (`Text_ItoaUnsigned`) stores the raw quotient then overwrites
 it with ASCII, interleaved with `place /= 10` (magic `0xCCCCCCCD` multu):
 
 ```
@@ -4897,7 +4897,7 @@ sequence without register pins. Needs `--expand-div` (`textdraw.c`).
 
 ## Signed decimal itoa: do **not** pin `place`/`dest`/`digit`
 
-Signed sibling `Text_ItoaSigned` (same shape as unsigned `func_8002F18C`, plus a
+Signed sibling `Text_ItoaSigned` (same shape as unsigned `Text_ItoaUnsigned`, plus a
 `'-'` / recurse prefix and signed `slt`/`blez`/`div`) needs natural regalloc:
 
 - Start `place` at `0x989680` (10^7); clamp with a 9-byte copy of `"99999999"`.
@@ -10302,7 +10302,7 @@ stream->offset += files->offset + stage;
 ```
 
 Separate `files` / `folder2` locals often colour differently and shift every
-`$tN` assignment. `func_8002397C` needs this so phase-1 file base and phase-2
+`$tN` assignment. `Fs_BuildFolderTables` needs this so phase-1 file base and phase-2
 stream folder share `$t2`.
 
 ## Index-first cast for `addu rd, index, base`
@@ -10321,7 +10321,7 @@ file = &files[j & 0xFFFF];
 file = (FsCdfFile*)(((j & 0xFFFF) << 3) + (s32)files);
 ```
 
-Same for stream stride `* 0x28`. `func_8002397C` needs both forms.
+Same for stream stride `* 0x28`. `Fs_BuildFolderTables` needs both forms.
 
 ## `asm("")` after a move that must own the next `beqz` delay slot
 
@@ -10341,7 +10341,7 @@ if (stream->field_C != 0) {
 
 The barrier pins `src` before later independent inits, so the delay-slot filler
 takes `move a2, a0`. Without it, `k = 0` or the `dst` `addu` wins the slot.
-`func_8002397C` is the pure example (also uses the project’s existing `asm("")`
+`Fs_BuildFolderTables` is the pure example (also uses the project’s existing `asm("")`
 pattern from `Fs_PrepareFolderLoad`).
 
 ## Late `andi s0, src, 0xFFFF` in call arg setup
@@ -10639,7 +10639,7 @@ do {
 ```
 
 `Text_FormatTime` is the pure example (minutes:seconds time string, same
-unsigned-decimal digit loop as `func_8002F18C` for the minutes half).
+unsigned-decimal digit loop as `Text_ItoaUnsigned` for the minutes half).
 
 ## s32 temp for QImode store of a loop-compared constant
 

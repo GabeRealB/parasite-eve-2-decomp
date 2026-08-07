@@ -451,7 +451,7 @@ void Display_InvertFramebufferGray(void)
     } while (i < 0x4B00);
 }
 
-void func_8003F690(void)
+void Stage_InitOtAndSpawn(void)
 {
     DisplayState* temp;
 
@@ -464,13 +464,13 @@ void func_8003F690(void)
     Task_SpawnFromTable(&D_8006269C, 0, 0, 0);
 }
 
-s32 func_8003F6F8(void)
+s32 Stage_SetEndingFlag(void)
 {
     Stage_Ctx->field_1c |= 0x80000000;
     return 0;
 }
 
-s32 func_8003F71C(s32 arg0, s32 arg1)
+s32 Stage_BeginTransition(s32 arg0, s32 arg1)
 {
     StageCtx* temp;
     s32       mask;
@@ -536,7 +536,7 @@ s32 Display_SetFadeRate(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-s32 func_8003F900(void)
+s32 Stage_GetFadeStatus(void)
 {
     StageCtx* temp;
     u8        temp_a0;
@@ -557,7 +557,7 @@ s32 Display_HasTransitionFlags(void)
     return (Stage_Ctx->field_1c & 0x48000000) != 0;
 }
 
-void func_8003F964(void)
+void Stage_InitOtOnce(void)
 {
     if (Stage_Ctx->field_13 == 0) {
         Gpu_InitOt();
@@ -573,7 +573,7 @@ void Display_InitPrimBufOnce(void)
     }
 }
 
-void func_8003F9F4(void)
+void Stage_ReleasePrimBuf(void)
 {
     if (Stage_Ctx->field_14 == 1) {
         Display_SetPrimBufSmall();
@@ -664,7 +664,7 @@ u8 Display_GetModeByte12(void)
     return Stage_Ctx->field_12;
 }
 
-void func_8003FC30(u8 arg0)
+void Stage_SetModeAndFlip(u8 arg0)
 {
     StageCtx* temp;
 
@@ -675,13 +675,13 @@ void func_8003FC30(u8 arg0)
     }
 }
 
-void func_8003FC6C(void)
+void Stage_ResetFade(void)
 {
     Stage_Ctx->field_17 = 0;
     Stage_Ctx->field_1a = 0xFF;
 }
 
-void func_8003FC8C(Task* arg0)
+void Stage_WaitCdActivate(Task* arg0)
 {
     Pad_SetCooldown(0);
     if (CdCmd_ActivatePhase2() != 0) {
@@ -693,7 +693,7 @@ void func_8003FC8C(Task* arg0)
     }
 }
 
-void func_8003FCF8(Task* arg0)
+void Stage_WaitCdAndSpawn(Task* arg0)
 {
     Pad_SetCooldown(0);
     if (func_8001D82C() != 0) {
@@ -723,17 +723,17 @@ void Display_TaskLoadStep(Task* arg0)
     }
     CdCmd_EnqueueLoadFile(0, 0, 4);
     arg0->field_30 = (s32)(arg0->field_30 + 1);
-    func_8003FE00(arg0);
+    Stage_WaitCdEntry(arg0);
 }
 
-void func_8003FE00(Task* arg0)
+void Stage_WaitCdEntry(Task* arg0)
 {
     if (func_8001D82C() != 0) {
         arg0->field_30 += 1;
     }
 }
 
-void func_8003FE40(Task* arg0)
+void Stage_FinishCdFollowUp(Task* arg0)
 {
     if (CdCmd_EnqueueFollowUp() != 0) {
         Display_State.field_1e  = 0;
@@ -933,7 +933,7 @@ void CdCmd_StepVlcRebuild(void)
     }
 }
 
-void func_800408C0(void* arg0)
+void Mdec_BeginDecode(void* arg0)
 {
     CdCmdQueue* p;
 
@@ -967,7 +967,7 @@ void Mdec_StripCallback(void)
     }
 }
 
-void func_800409B0(Task* arg0)
+void Stage_TaskExit(Task* arg0)
 {
     Task_CallExit(arg0);
 }
@@ -1858,7 +1858,7 @@ void Tmd_DrawFlaggedNodes(TmdObject* node)
     }
 }
 
-void func_80042058(TmdObject* node)
+void Tmd_DrawActiveNodes(TmdObject* node)
 {
     while (node != NULL) {
         if (!(node->field_C & 0x80)) {

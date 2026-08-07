@@ -32,7 +32,7 @@ s32 Display_FrameFlipDraw(s32 arg0, s32 arg1)
     D_800710A0 = ot[temp->field_118].org;
     D_80071190 = (DR_TPAGE*)((s32)D_8007A0E0 + temp->field_118 * size);
     Task_ExecList(&D_8007A110);
-    func_80014C2C();
+    Boot_DispatchCdCmd();
     if (temp->field_106 == 0) {
         DrawSync(0);
     }
@@ -154,7 +154,7 @@ Task* Task_SpawnOnDefaultList(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
     return ret;
 }
 
-void func_8003E540(void)
+void Display_ResetHeapWrapper(void)
 {
     Display_ResetHeapFromSession();
 }
@@ -272,7 +272,7 @@ s32 Display_DispatchModeId(s32 arg0)
                 }
             }
         }
-        func_8003F690();
+        Stage_InitOtAndSpawn();
     }
     return 0;
 }

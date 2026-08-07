@@ -56,7 +56,7 @@ void Task_AllocIdMap(Task* arg0)
             return;
         }
         D_80062734 = 0;
-        if (func_80051560(*((temp_v0->field_0 * 2) + (u8*)temp_v0->field_4)) == 1) {
+        if (Midi_IsChannelFree(*((temp_v0->field_0 * 2) + (u8*)temp_v0->field_4)) == 1) {
             if ((D_80062739 != 0) && (Midi_IsBusy(D_80062739) != 0)) {
                 SndEvt_EnqueueType2(D_80062739, (D_8007A39C + 1) & 0xFFFF);
             }

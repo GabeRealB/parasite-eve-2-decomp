@@ -122,7 +122,7 @@ void Display_SetAutoClear(s32 arg0, s32 arg1, s32 arg2)
     Display_State.field_48[0].b0   = arg2;
 }
 
-void func_8003DE58(void)
+void Display_SetModeDefault(void)
 {
     Display_SetMode(0x1010);
 }

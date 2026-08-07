@@ -191,7 +191,7 @@ typedef struct _CdCmd58Entry {
     /* 0x00 */ s32  field_0;     // byte offset added to the resolved base buffer
     /* 0x04 */ s32  field_4[3];  // FsWorkEntry offsets (Fs_CopyWorkEntries path)
     /* 0x10 */ s32  field_10[3]; // FsImageChunk offsets (Fs_LoadImageChunk path)
-    /* 0x1C */ s32  field_1C;    // memcpy source offset for func_8002D7A8
+    /* 0x1C */ s32  field_1C;    // memcpy source offset for Mem_CopyUnaligned
     /* 0x20 */ byte pad_20[0x4];
     /* 0x24 */ s16  field_24[3]; // non-zero → Fs_ChunkMode=2 / D5B498_8006C233=-8
     /* 0x2A */ s16  field_2A[3]; // non-zero → Fs_ChunkMode=2 / D5B498_8006C234=-3
@@ -199,7 +199,7 @@ typedef struct _CdCmd58Entry {
     /* 0x32 */ s16  field_32;    // stream id matched against GameSession.field_4
     /* 0x34 */ s16  field_34;    // buffer-select kind (0..4) for the switch in Mdec_ResolveStreamBuffer
     /* 0x36 */ byte pad_36[0x2];
-    /* 0x38 */ u16  field_38;    // memcpy byte count for func_8002D7A8
+    /* 0x38 */ u16  field_38;    // memcpy byte count for Mem_CopyUnaligned
     /* 0x3A */ byte pad_3A[0x2];
 } CdCmd58Entry;
 STATIC_ASSERT_SIZEOF(CdCmd58Entry, 0x3C);
@@ -437,7 +437,7 @@ void Fs_PrepareFolderLoad(s32 arg0, s32 arg1, s32 arg2);
 /// `D_8006C158` for folder `arg1*100+arg2`, then copy stream descriptors from
 /// sector+0x514 into `Stream_Slots` for folder `arg1*100+1`, adjusting offsets
 /// by the folder base and `Fs_StageCdfSectors[arg0]`.
-void func_8002397C(s32 arg0, s32 arg1, s32 arg2);
+void Fs_BuildFolderTables(s32 arg0, s32 arg1, s32 arg2);
 
 /// Boot path: scan ISO, parse HED, load initial CDF file (file id 1).
 void Boot_LoadInitialFile(struct _Task* task);
@@ -499,7 +499,7 @@ extern s32            Fs_StageCdfSectors[FS_CDF_STAGE_COUNT];
 extern FsCdfStream    Fs_Streams[0xa];
 
 /// Absolute sector offsets for folder-local file ids (indexed by file id).
-/// Filled by `func_8002397C` from the folder file list in `Fs_CdSector`.
+/// Filled by `Fs_BuildFolderTables` from the folder file list in `Fs_CdSector`.
 extern s32 D_8006C158[0x33];
 
 // Buffers / media

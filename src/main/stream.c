@@ -501,7 +501,7 @@ void Mem_AllocAuxWithImages(s16 arg0)
     p->field_244 = 1;
 }
 
-void func_80020388(void)
+void Stream_ResetRestoreState(void)
 {
     D_8006AC28 = 0;
 }
@@ -530,12 +530,12 @@ s16 Stream_HasActiveLowId(void* arg0)
     return result;
 }
 
-u16 func_80020414(u32 arg0)
+u16 Stream_GetSlotField1A(u32 arg0)
 {
     return Stream_Slots[arg0 & 0xFFFF].field_1A;
 }
 
-void func_8002043C(u32 arg0)
+void Stream_KickDecode(u32 arg0)
 {
     func_8001F180(arg0 & 0xFFFF);
 }
