@@ -1734,7 +1734,7 @@ s32 SndLoad_LookupMode(s32 arg0, s32 arg1, s32 arg2)
             result = 0x1010;
             break;
         case 2:
-            result = func_80053A20(arg2, arg1 & 0xFFFF);
+            result = SndLoad_ResolveSpuAddr(arg2, arg1 & 0xFFFF);
             break;
     }
     return result;

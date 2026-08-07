@@ -83,7 +83,7 @@ typedef struct {
     /* 0x78 */ s32 field_78;
 } SndBankSizeView;
 
-s32 func_80053A20(s32 arg0, s32 arg1)
+s32 SndLoad_ResolveSpuAddr(s32 arg0, s32 arg1)
 {
     s32 temp_a2;
 
@@ -178,7 +178,7 @@ s32 func_80053A20(s32 arg0, s32 arg1)
 }
 
 /* Per-type arg1 limits for TaskIdMap_RemapIndex; sits between this TU's first
- * jtbl (func_80053A20) and TaskIdMap's jtbl at 0x80014130. */
+ * jtbl (SndLoad_ResolveSpuAddr) and TaskIdMap's jtbl at 0x80014130. */
 const GBytes6 D_80014124 = { { 0x00, 0x08, 0x07, 0x0B, 0x0C, 0x0A } };
 
 s32 TaskIdMap_RemapIndex(s32 arg0, s32 arg1, s32 arg2)

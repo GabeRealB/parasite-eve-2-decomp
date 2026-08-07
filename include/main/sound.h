@@ -670,6 +670,7 @@ void           Midi_DriveTrack(MidiSong* arg0, MidiTrack* arg1);
 void           Midi_UpdateVoiceVolumes(MidiSong* arg0);
 void*          SndLoad_AllocBuffer(s32 arg0, s32 arg1, u32 arg2);
 s32            SndLoad_LookupMode(s32 arg0, s32 arg1, s32 arg2);
+s32            SndLoad_ResolveSpuAddr(s32 arg0, s32 arg1);
 s32            Midi_ReadVlq(u8* arg0, u8* arg1);
 void           Midi_InitChannelTable(s32* arg0);
 s32            Midi_IncPtr(s32 arg0, s32 arg1);

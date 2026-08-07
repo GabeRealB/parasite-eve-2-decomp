@@ -11666,7 +11666,7 @@ lw    v0, %lo(g)(v1)  /* reload on non-zero path */
 a pure C ternary / if-else (`v = *p ? *p : K`) leaves a `nop` after `bnez`
 and builds `K` with a non-delay `lui`/`ori` pair. Force the delay-slot form with
 tab-`.set noreorder` asm (same maspsx rule as ProcessChunkData case-4).
-`func_80053A20` case 5 (`D_80082128 ?: 0x63810`) is the pure example.
+`SndLoad_ResolveSpuAddr` case 5 (`D_80082128 ?: 0x63810`) is the pure example.
 
 ## Const data between two compiler jtbls in one TU
 
@@ -11684,5 +11684,5 @@ s32 second_with_jtbl(…) { switch (…) { … } }
 
 Then expand the TU's `.rodata` segment start earlier in `main.yaml` and drop the
 hand-extracted `rodata, name_N` sibling that held the old jtbl + blob. Non-const
-definitions go to `.data` and break the layout. `func_80053A20` + `D_80014124` +
+definitions go to `.data` and break the layout. `SndLoad_ResolveSpuAddr` + `D_80014124` +
 `TaskIdMap_RemapIndex` is the pure example.

@@ -2065,7 +2065,7 @@ SpuWritePartly              = 0x8005376C;
 //--- PA: 0x43FFC   VA: 0x800537FC   subsegment: c, 43FFC
 //--------------------------------------------------------------------
 Snd_InitFromStage               = 0x800537FC; // type:func
-func_80053A20               = 0x80053A20; // type:func
+SndLoad_ResolveSpuAddr               = 0x80053A20; // type:func
 TaskIdMap_RemapIndex               = 0x80053BF4; // type:func
 Snd_ClearBusy               = 0x80053D90; // type:func
 Snd_SetBusyFlag               = 0x80053DB0; // type:func
