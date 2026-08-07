@@ -186,12 +186,21 @@ STATIC_ASSERT_SIZEOF(CdCmd190, 0x20);
 
 /// Per-slot decode entry at `CdCmdQueue.field_58` (5 entries, stride 0x3C).
 /// Used by `func_8003FF14` to map a stream id to a base buffer + byte offset.
+/// Also holds up to 3 work-list / image-chunk offsets used by `func_8004017C`.
 typedef struct _CdCmd58Entry {
-    /* 0x00 */ s32  field_0;  // byte offset added to the resolved base buffer
-    /* 0x04 */ byte pad_4[0x2E];
-    /* 0x32 */ s16  field_32; // stream id matched against GStruct14.field_4
-    /* 0x34 */ s16  field_34; // buffer-select kind (0..4) for the switch in func_8003FF14
-    /* 0x36 */ byte pad_36[0x6];
+    /* 0x00 */ s32  field_0;     // byte offset added to the resolved base buffer
+    /* 0x04 */ s32  field_4[3];  // FsWorkEntry offsets (func_800248B4 path)
+    /* 0x10 */ s32  field_10[3]; // FsImageChunk offsets (func_800246B0 path)
+    /* 0x1C */ s32  field_1C;    // memcpy source offset for func_8002D7A8
+    /* 0x20 */ byte pad_20[0x4];
+    /* 0x24 */ s16  field_24[3]; // non-zero → Fs_ChunkMode=2 / D5B498_8006C233=-8
+    /* 0x2A */ s16  field_2A[3]; // non-zero → Fs_ChunkMode=2 / D5B498_8006C234=-3
+    /* 0x30 */ byte pad_30[0x2];
+    /* 0x32 */ s16  field_32;    // stream id matched against GStruct14.field_4
+    /* 0x34 */ s16  field_34;    // buffer-select kind (0..4) for the switch in func_8003FF14
+    /* 0x36 */ byte pad_36[0x2];
+    /* 0x38 */ u16  field_38;    // memcpy byte count for func_8002D7A8
+    /* 0x3A */ byte pad_3A[0x2];
 } CdCmd58Entry;
 STATIC_ASSERT_SIZEOF(CdCmd58Entry, 0x3C);
 
