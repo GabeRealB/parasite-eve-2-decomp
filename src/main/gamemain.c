@@ -40,7 +40,7 @@ void func_800271D4(void)
     Mem_Init();
     Task_ResetDefaultList();
     Tmd_InitLists();
-    func_800281D4();
+    Gfx_InitGraph();
 
     Mem_Set(&Display_State, 0, sizeof(Display_State));
     Display_State.field_120 = 1;
@@ -95,7 +95,7 @@ void Display_FlipDraw(s32 arg0)
         } else if (D_8006EC30 == 2) {
             Display_LoadImageStrips(arg0);
         } else if (D_8006EC30 == 3) {
-            func_800149E8(Game_Session->field_7, Game_Session->field_6, arg0);
+            Gfx_LoadImageSlot(Game_Session->field_7, Game_Session->field_6, arg0);
         }
         if ((s8)D_80070E38 < 0x10) {
             DrawOTag(Gpu_OrderingTables[arg0].tag);
@@ -143,12 +143,12 @@ void Display_VSyncCallback(void)
     }
     Display_State.field_c += 1;
     CdAudio_Tick();
-    func_8004D008();
+    Audio_IrqFrameWork();
     func_8002C1D8();
     D_8005EC74 = VSync(1) - (temp_s4 & 0xFFFF);
 }
 
-void func_8002764C(s32 arg0)
+void GameMain_ShowLoading(s32 arg0)
 {
     TextDrawReq   sp10;
     s32           skip;
@@ -221,7 +221,7 @@ void func_8002764C(s32 arg0)
 
 INCLUDE_ASM("main/nonmatchings/gamemain", GameMain_Loop);
 
-void func_80027E7C(void)
+void Gfx_InitCoordinateTrees(void)
 {
     MATRIX*        m;
     GsCOORDINATE2* c1;
@@ -361,7 +361,7 @@ void F179D4_ClearOTag(s16 tableIdx)
     *tableStart = C5F414_OTAG_END_PRIM;
 }
 
-void func_800281D4(void)
+void Gfx_InitGraph(void)
 {
     RECT      rect;
     GpuOtBuf* otCtx;
@@ -389,13 +389,13 @@ void func_800281D4(void)
     otCtx[1].field_0  = depth;
     otCtx[1].field_4  = ot + C5F414_OTAG_ENTRIES;
     otCtx[1].field_10 = ot + 2 * C5F414_OTAG_ENTRIES - 1;
-    func_80028290();
-    func_80027E7C();
+    GameMain_SpawnBootTask();
+    Gfx_InitCoordinateTrees();
     Gpu_InitDefaultLights();
     Display_State.field_100 = 0;
 }
 
-void func_80028290(void)
+void GameMain_SpawnBootTask(void)
 {
     if (D_8005EC64 == 1) {
         Task_Spawn(0, 0x1F, 0, 0);
@@ -404,7 +404,7 @@ void func_80028290(void)
     }
 }
 
-void func_800282D8(s32 arg0)
+void Display_PutEnvAndDraw(s32 arg0)
 {
     PutDrawEnv(&Display_State.field_48[arg0]);
     PutDispEnv(&Display_State.field_20[arg0]);

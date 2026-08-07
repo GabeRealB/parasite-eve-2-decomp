@@ -52,15 +52,15 @@ extern s32  func_800262A8(void);
 
 // 1C034.c — game-flow state handlers
 extern void func_8002B834(Task* arg0);
-extern void func_8002BA9C(s32 r, s32 g, s32 b, s32 mode);
+extern void Fade_DrawOverlay(s32 r, s32 g, s32 b, s32 mode);
 extern void func_80094B90(s32 arg0);
 extern void func_8009407C(void);
 extern void func_8009FD74(s8 arg0, void* arg1);
-extern void func_8002BB9C(void);
+extern void Game_ClearSession(void);
 extern void func_8002BBC8(void);
 extern void func_8002BE0C(Task* arg0);
-extern void func_8002BFD4(void);
-extern void func_8002C028(Task* arg0);
+extern void Game_ClearEd68(void);
+extern void GameFlow_DispatchTable(Task* arg0);
 extern void func_8002C1D8(void);
 // Pad_* → main/pad.h; Task_* → main/task.h
 extern TaskFuncTable5    D_800134BC;
@@ -104,9 +104,9 @@ extern void func_8002E188(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
 // + code 0x67 (clut 0x7FFF) + tpage 0xE100025F, all linked at OT[field_4].
 extern void func_8002E300(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
 extern void func_8002E53C(TextDrawReq* arg0, u8* arg1);
-extern void func_8002EDFC(TextDrawReq* arg0, u8* arg1);
+extern void Text_MeasureAndCenter(TextDrawReq* arg0, u8* arg1);
 // Skip arg1 newline/escape-delimited lines starting at arg0; returns advanced pointer.
-extern u8*  func_8002F528(u8* arg0, s32 arg1);
+extern u8*  Text_SkipLines(u8* arg0, s32 arg1);
 extern void func_8002F5E4(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
 extern void func_8002F69C(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2);
 extern void func_8002F798(TextDrawReq* arg0, FontGlyph* arg1);
@@ -131,10 +131,10 @@ extern u16 D_80072AA8;
 // 201E0.c
 // Extracts one text line (handles escapes/newlines) from *arg0 into arg1; advances *arg0.
 // Returns -1 at end of string, 1 on newline, other values for control escapes.
-extern s32 func_8002F9E0(u8** arg0, u8* arg1);
+extern s32 Text_ParseLine(u8** arg0, u8* arg1);
 // Multi-line text draw (Text_DrawPrompt per line, y += 0xF). Skips draw when UiObject.field_8 == 5.
-extern s32 func_8002FB84(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5,
-                         s32 arg6);
+extern s32 Text_DrawMultiLine(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5,
+                              s32 arg6);
 extern s32 Text_MeasureWidth(u8* arg0);
 // Multi-line text measure: packed (height<<16)|maxWidth, 0xF pixels per line.
 extern s32 Text_MeasureMultiLine(u8* arg0);
@@ -142,20 +142,20 @@ extern s32 Text_DrawPrompt(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg
                            s32 arg6);
 // Multi-line text draw with line limit (arg7) and scroll offset (arg8).
 // Returns 1 if all text drawn within limit, 0 if truncated.
-extern s32  func_8002FEE0(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5,
-                          s32 arg6, s32 arg7, s32 arg8);
-extern void func_80030074(void);
+extern s32  Text_DrawMultiLineScroll(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5,
+                                     s32 arg6, s32 arg7, s32 arg8);
+extern void Text_LoadClutImages(void);
 // Builds a memcard save filename into arg0 (prefix + arg1 char + 7 random)
 extern void Mc_BuildFileName(u8* arg0, s32 arg1);
-// Image data uploaded to VRAM by func_80030074
+// Image data uploaded to VRAM by Text_LoadClutImages
 extern u_long D_80060910[];
 extern u_long D_800609B0[];
-// Prompt / dialog data tables (see func_80036D98 / func_80036E78 / func_80036F18 / func_80036FB8)
+// Prompt / dialog data tables (see McMenu_ConfirmDialog / McMenu_ConfirmDialogAlt / func_80036F18 / func_80036FB8)
 extern u8 D_80060A54[];
 extern u8 D_80060A58[];
 extern u8 D_80060A5C[];
 extern u8 D_80060A64[];
-// "File Information" string passed to Ui_DrawTitle by func_80036CF0 (mcmenu)
+// "File Information" string passed to Ui_DrawTitle by McMenu_FileInformation (mcmenu)
 extern char D_80013BB4[];
 
 // mc.c
@@ -165,7 +165,7 @@ extern void func_800330D8(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 extern void func_80042364(s32 arg0, s32 arg1, s32 arg2);
 extern s32  func_80042500(void);
 extern void func_80042838(void);
-extern void func_800429C8(s32 arg0);
+extern void Snd_ApplyVolumeTable(s32 arg0);
 
 // overlay / high-address
 extern void func_800AC688(void);
@@ -190,9 +190,9 @@ extern void      Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2);
 extern void      Ui_LayoutListPanel(UiList* arg0, UiPanel* arg1);
 extern void      Ui_InitList(UiList* arg0, UiMiniObj* arg1);
 extern void      func_80048AEC(UiList* arg0, s32 arg1);
-extern void      func_80048C10(void* arg0, void* arg1);
+extern void      Ui_UpdateListNoAnim(void* arg0, void* arg1);
 extern void      func_80048C30(UiList* arg0, UiPanel* arg1, s32 arg2);
-extern void      func_80048D58(UiMiniObj* arg0, s32 arg1, s32 arg2);
+extern void      Ui_SmoothCursor(UiMiniObj* arg0, s32 arg1, s32 arg2);
 extern s32       Ui_LookupTable(void* arg0, s32 arg1);
 extern void      Ui_DrawHBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 extern void      Ui_DrawVBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -222,7 +222,7 @@ extern s32 func_8004ACAC(s32 arg0);
 
 // 3D458.c
 extern void           func_8004CFE8(void);
-extern void           func_8004D008(void);
+extern void           Audio_IrqFrameWork(void);
 extern SndBank*       Snd_AllocBank(SndBankPayload* arg0);
 extern void           F3D458_ResetHeap(void);
 extern void*          F3D458_Malloc(size_t);
@@ -496,24 +496,24 @@ extern s32  Mc_PromptDialogSpawn(Task* arg0, s32 arg1, s32 arg2);
 extern s32  Mc_PromptDialogFile(Task* arg0, s32 arg1, s32 arg2);
 // Mc_InitLib → main/mc.h
 extern void  Display_SetMode(s32 arg0);
-extern void  func_8003DE14(s32 arg0, s32 arg1, s32 arg2);
+extern void  Display_SetAutoClear(s32 arg0, s32 arg1, s32 arg2);
 extern void  func_8003DE78(s8 arg0);
 extern void  Gpu_InitOtSmall(void);
-extern Task* func_8003EE68(void);
-extern void  func_8003F450(s32 arg0);
-extern void  func_8003F5A4(void);
+extern Task* Display_SpawnFromMode(void);
+extern void  Display_FlipOtAndDispatch(s32 arg0);
+extern void  Display_InvertFramebufferGray(void);
 extern void  func_8003F690(void);
-extern s32   func_8003F86C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-extern void  func_8003FA3C(u8 arg0);
-extern s32   func_8003FB70(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
+extern s32   Display_SetFadeRate(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+extern void  Display_SetFadeMax(u8 arg0);
+extern s32   Display_InitModeObj(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
 extern void  func_8004017C(void);
 extern void  Mdec_DecodeToVram(void);
-extern void  func_80040820(void);
-extern void  func_800410F0(TmdObject* arg0);
-extern void  func_800418C0(TmdObject* arg0);
+extern void  CdCmd_StepVlcRebuild(void);
+extern void  Tmd_ProcessStream(TmdObject* arg0);
+extern void  Tmd_SetupDraw(TmdObject* arg0);
 extern void  Gpu_ResetGraphAndOt(void);
 extern void  Tmd_AllocMissingBuffers(void);
-extern void  func_8004C4D0(void);
+extern void  Mc_InitSaveSlotDefaults(void);
 extern void  func_8004CC58(s32 arg0);
 extern void  func_8004CFC8(void);
 extern void  F3D458_ResetHeap(void);
@@ -547,12 +547,12 @@ extern volatile u32 D_8005EC70;
 extern volatile s32 D_8005EC74;
 // Cleared/set by the draw path; read by the VSync callback for lag accounting.
 extern volatile s32 D_8005EC78;
-// Display/CD busy flags shared with the VSync path (func_8002764C / GameMain_Loop).
+// Display/CD busy flags shared with the VSync path (GameMain_ShowLoading / GameMain_Loop).
 extern volatile s32 D_8005EC80;
 // Immediate-mode TILE / DR_TPAGE scratch for the "now loading" overlay.
 extern TILE     D_8006EC18;
 extern DR_TPAGE D_8006EC28;
-// "NOW LOADING" (or similar) string drawn by func_8002764C.
+// "NOW LOADING" (or similar) string drawn by GameMain_ShowLoading.
 extern u8 D_80013404[];
 // Task_DescBanks → main/task.h
 extern char         D_80013B64[]; // "Select"

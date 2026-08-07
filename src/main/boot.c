@@ -94,7 +94,7 @@ L_case0:
     CdCmd_Enqueue(0x55, NULL, NULL);
     Mem_ConfigureAuxHeap(0, 0);
     while (queue->field_1FE != 0xFF) {
-        func_80040820();
+        CdCmd_StepVlcRebuild();
     }
     param1[3] = 0;
     param1[2] = 0;
@@ -106,7 +106,7 @@ L_case0:
     CdCmd_Enqueue(0x21, param1, param2);
     a0->field_2a = 0xFF;
     fade         = a0->field_2a;
-    func_8002BA9C(fade, fade, fade, 2);
+    Fade_DrawOverlay(fade, fade, fade, 2);
     goto advance;
 
 L_case1:
@@ -149,7 +149,7 @@ advance_inc:
 
 do_fade:
     fade = a0->field_2a;
-    func_8002BA9C(fade, fade, fade, 2);
+    Fade_DrawOverlay(fade, fade, fade, 2);
     return;
 
 L_case4:
@@ -171,7 +171,7 @@ void F04CF8_800148EC(void)
     CdAudio_Init();
 }
 
-void func_8001490C(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+void Gfx_StoreImageSlot(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     RECT              rect;
     F04CF8_ImageSlot* entries;
@@ -209,7 +209,7 @@ void func_8001490C(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     GAuxHeap       = ptr + arg3;
 }
 
-void func_800149E8(s32 arg0, s32 arg1, s32 arg2)
+void Gfx_LoadImageSlot(s32 arg0, s32 arg1, s32 arg2)
 {
     RECT              rect;
     F04CF8_ImageSlot* entries;

@@ -14,13 +14,13 @@ void func_80036A1C(void)
 
 void func_80036A2C(void* arg0, UiMiniObj* arg1)
 {
-    func_80048C10(arg0, arg1);
+    Ui_UpdateListNoAnim(arg0, arg1);
     if (arg1->field_0 == 1) {
-        func_80048D58(arg1, arg1->field_1c + 2, 0);
+        Ui_SmoothCursor(arg1, arg1->field_1c + 2, 0);
     }
 }
 
-void func_80036A70(Task* arg0)
+void McMenu_SelectList(Task* arg0)
 {
     UiMiniObj* obj;
     UiList*    menu;
@@ -36,14 +36,14 @@ void func_80036A70(Task* arg0)
         func_8004917C(menu, 1);
         arg0->field_30 += 1;
     } else {
-        func_80048C10(menu, obj);
+        Ui_UpdateListNoAnim(menu, obj);
         if (obj->field_0 == 1) {
-            func_80048D58(obj, obj->field_1c + 2, 0);
+            Ui_SmoothCursor(obj, obj->field_1c + 2, 0);
         }
     }
 }
 
-void func_80036B2C(DialogPrompt* arg0, UiObject* arg1)
+void McMenu_ConfirmWithRender(DialogPrompt* arg0, UiObject* arg1)
 {
     s16 var_v0;
     s32 temp;
@@ -69,7 +69,7 @@ void func_80036B2C(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-void func_80036C04(Task* arg0)
+void McMenu_SelectListAlt(Task* arg0)
 {
     UiMiniObj*        obj;
     UiList*           menu;
@@ -92,14 +92,14 @@ void func_80036C04(Task* arg0)
         func_8004917C(menu, 1);
         arg0->field_30 += 1;
     } else {
-        func_80048C10(menu, obj);
+        Ui_UpdateListNoAnim(menu, obj);
         if (obj->field_0 == 1) {
-            func_80048D58(obj, obj->field_1c + 2, 0);
+            Ui_SmoothCursor(obj, obj->field_1c + 2, 0);
         }
     }
 }
 
-void func_80036CF0(Task* arg0)
+void McMenu_FileInformation(Task* arg0)
 {
     void*   obj;
     s32     data;
@@ -124,7 +124,7 @@ void func_80036CF0(Task* arg0)
     func_800330D8(obj, data, val, 0, 0);
 }
 
-void func_80036D98(DialogPrompt* arg0, UiObject* arg1)
+void McMenu_ConfirmDialog(DialogPrompt* arg0, UiObject* arg1)
 {
     s32 temp;
 
@@ -143,7 +143,7 @@ void func_80036D98(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-void func_80036E78(DialogPrompt* arg0, UiObject* arg1)
+void McMenu_ConfirmDialogAlt(DialogPrompt* arg0, UiObject* arg1)
 {
     s32 temp;
 
@@ -185,7 +185,7 @@ void func_80036FB8(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-void func_80037068(Task* arg0)
+void McMenu_InitByMode(Task* arg0)
 {
     UiPanel* obj;
     UiList*  menu;
@@ -222,6 +222,6 @@ block_done:
         func_8004917C(menu, 1);
         arg0->field_30 += 1;
     } else {
-        func_80048C10(menu, obj);
+        Ui_UpdateListNoAnim(menu, obj);
     }
 }

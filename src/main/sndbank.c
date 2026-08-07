@@ -187,7 +187,7 @@ void func_8004CFE8(void)
     func_8004CC58(1);
 }
 
-void func_8004D008(void)
+void Audio_IrqFrameWork(void)
 {
     if (D_800680C0 != 0) {
         D_800680C0 = 0;

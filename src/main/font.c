@@ -142,7 +142,7 @@ void func_80042F54(Task* arg0)
                 }
             }
             SndEvt_EnqueueType1(entry->field_0, 0);
-            func_800429C8(0);
+            Snd_ApplyVolumeTable(0);
         }
         D_80062734 = 0xFF;
         D_80062739 = temp->field_4[temp->field_0].field_0;
@@ -167,7 +167,7 @@ void func_80043028(s32 arg0)
         if (entry->field_1 != 3) {
             SndEvt_EnqueueType1(entry->field_0, arg0 & 0xFFFF);
             D_80062739 = entry->field_0;
-            func_800429C8(0);
+            Snd_ApplyVolumeTable(0);
         }
     }
 }

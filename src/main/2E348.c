@@ -100,12 +100,12 @@ void Display_SetMode(s32 arg0)
     Display_State.field_20[1].isinter = var_s7;
     Display_State.field_20[0].isinter = var_s7;
     if (!(arg0 & 0x8000)) {
-        func_80027E7C();
+        Gfx_InitCoordinateTrees();
         Gpu_InitDefaultLights();
     }
 }
 
-void func_8003DE14(s32 arg0, s32 arg1, s32 arg2)
+void Display_SetAutoClear(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg0 < 0) {
         Display_State.field_48[1].isbg = 0;

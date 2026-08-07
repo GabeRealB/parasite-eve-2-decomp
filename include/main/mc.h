@@ -17,20 +17,20 @@ typedef struct _McPromptPair {
 } McPromptPair;
 STATIC_ASSERT_SIZEOF(McPromptPair, 0x8);
 
-/// Second argument to memcard/save state handlers in mc.c (e.g. func_80035AD4,
-/// Mc_ResetWork, func_80035FD8). Larger object; only fields used so far are named.
+/// Second argument to memcard/save state handlers in mc.c (e.g. Mc_StateSetOpenDefaults,
+/// Mc_ResetWork, Mc_StateSyncPrompt3). Larger object; only fields used so far are named.
 /// field_10/field_14 are MemCardSync cmds/rslt outs.
 /// field_18 is a source buffer pointer for Mc_WriteDataChecksum when mode != 0
 /// and the adrs for MemCardWriteData. field_1C is the sector/offset (shifted
 /// left by 7 for MemCardWriteData ofs); field_20 is the byte count.
 /// field_30 is a 15-slot memcard directory buffer (DIRENTRY-sized, 0x28 each)
 /// filled by MemCardGetDirentry; field_288 is the entry count used to bound
-/// field_A14 walks (Mc_StateOpenNext / func_800367CC). field_28C is free-block
+/// field_A14 walks (Mc_StateOpenNext / Mc_StateWalkDirectory). field_28C is free-block
 /// count (updated as field_28C - field_288 after a directory listing in
 /// func_800312DC). field_290 is the Mc_FileName match index (or 0); cleared when
-/// a non-empty directory listing is obtained (func_80036488). field_294 is a
+/// a non-empty directory listing is obtained (Mc_StateGetDirentry). field_294 is a
 /// 15-slot array of 0x80-byte read buffers indexed by field_A14
-/// (MemCardReadData adrs in func_800366BC, ofs 0x200, size 0x80). field_A14
+/// (MemCardReadData adrs in Mc_StateReadSlot, ofs 0x200, size 0x80). field_A14
 /// indexes the selected slot for MemCardOpen / field_294 reads.
 /// field_A1C/field_A1E are a sum / ones-complement checksum pair over 0x200
 /// signed bytes of that buffer (written by Mc_WriteDataChecksum).
@@ -127,7 +127,7 @@ STATIC_ASSERT_SIZEOF(McBufferSlot, 0xC);
 typedef void (*McStateFunc)(Task* task, McWork* work);
 
 /// Fixed-size table of McStateFunc callbacks. Copied onto the stack by
-/// func_800359A4 so the call uses a local jump table (44 entries, 0xB0 bytes).
+/// Mc_DispatchStateTable so the call uses a local jump table (44 entries, 0xB0 bytes).
 typedef struct {
     McStateFunc funcs[44];
 } McStateFuncTable44;
@@ -158,7 +158,7 @@ void Mc_StateSyncOpen(Task* task, McWork* work);
 void Mc_StateVerifyFinish(Task* task, McWork* work);
 void Mc_StateFinishWrite(Task* task, McWork* work);
 void func_80034B38(Task* task, McWork* work);
-void func_800359A4(Task* task);
+void Mc_DispatchStateTable(Task* task);
 u16* Mc_EncodeAsciiGlyphs(s8* src, u16* dst);
 void Mc_InitFileName(void);
 void Mc_CopyFileName(s32 direction);
@@ -196,7 +196,7 @@ extern McSaveData   Mc_SaveData;
 extern char D_8001398C[];
 /// "*" wildcard passed to MemCardGetDirentry by func_80031118.
 extern char D_80013A5C[];
-/// Jump table of 44 McStateFunc handlers used by func_800359A4.
+/// Jump table of 44 McStateFunc handlers used by Mc_DispatchStateTable.
 extern McStateFuncTable44 D_800139AC;
 /// Jump table of 26 McStateFunc handlers used by func_80036968.
 extern McStateFuncTable26 D_80013ACC;

@@ -119,7 +119,7 @@ void func_80042838(void)
     addPrim(D_800710A0 - 0x10, dr);
 }
 
-void func_800429C8(s32 arg0)
+void Snd_ApplyVolumeTable(s32 arg0)
 {
     GBytes4 sp10;
     u8      temp;

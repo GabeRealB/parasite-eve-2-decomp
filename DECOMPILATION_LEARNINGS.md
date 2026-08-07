@@ -273,7 +273,7 @@ otCtx = Gpu_OtBuffers;
 otCtx->field_0 = depth;
 ```
 
-`func_800281D4` is the example — `depth` is shared across both OT buffers.
+`Gfx_InitGraph` is the example — `depth` is shared across both OT buffers.
 
 **Inverse — constant first, then pointer.** When the target does `li aN,K` *then*
 `lui %hi(global)`, assign the constant before the address. A bare
@@ -1408,7 +1408,7 @@ default:
 }
 ```
 
-`func_8002EDFC` is a pure example: two independent `switch`es (glyph table by
+`Text_MeasureAndCenter` is a pure example: two independent `switch`es (glyph table by
 `field_C`, centering by `field_D`) both needed this layout; the equivalent
 `if`/`else if` form scored ~67%.
 
@@ -1596,7 +1596,7 @@ typedef struct {
 ((SessionBytesAt4*)dst)->field_4 = ((SessionBytesAt4*)src)->field_4;
 ```
 
-`func_8002BF10` is the pure example (`Game_Session` ← `Mc_SaveData`).
+`GameFlow_CopySaveIds` is the pure example (`Game_Session` ← `Mc_SaveData`).
 
 ## Big-endian halfword from two `u8` fields (stack `sb`/`sb`/`lhu`)
 
@@ -1769,7 +1769,7 @@ end:
 return arg0;
 ```
 
-`func_8002F528` is the pure example. A plain `do { ... } while (arg1 > 0)` with
+`Text_SkipLines` is the pure example. A plain `do { ... } while (arg1 > 0)` with
 the same locals peels the null check and reintroduces `andi` masks.
 
 ## "Dead" `andi reg, 0xffff` before `jr` is often a u16 return
@@ -2135,7 +2135,7 @@ if (Display_State.field_100 != 0) { ... }
 if (Display_State.field_104 == 0) { ... }
 ```
 
-`func_800282D8` is the pure example.
+`Display_PutEnvAndDraw` is the pure example.
 
 ## `byte` is signed — cast to `u8` for `lbu`
 
@@ -2157,7 +2157,7 @@ cast over changing the struct field type when other code relies on `byte`
 Also: if the target loads the byte early but stores it late, hold it in a
 local (`val = (u8)...`) so the load schedules before intervening stores.
 
-`func_8003FB20` is the pure example (`Game_Session->field_4` →
+`Display_BeginTransition` is the pure example (`Game_Session->field_4` →
 `Stage_Ctx->field_20`).
 
 ## BSS adjacency: hold the later symbol, step back by typed size
@@ -2347,7 +2347,7 @@ void dispatcher(Task* arg0)
 ```
 
 The index form then becomes `addiu v1,sp,0x10` / `sll` / `addu v1,v1,v0` /
-`lw v0,0(v1)`. `func_8002C028` is the pure example (3 entries). The same idea
+`lw v0,0(v1)`. `GameFlow_DispatchTable` is the pure example (3 entries). The same idea
 applies to `D_800134BC` (5 entries) for the sibling dispatcher `func_8002BEA8`.
 
 Two-arg handlers (e.g. `UiPanelFunc` / `D_80013F2C` / `func_800498D4`) use the same
@@ -2530,7 +2530,7 @@ if (flag == 1) {
 ```
 
 Declare the flag as `s8` (not plain `char` / `u8`) so the load is `lb`,
-matching the target. `func_8002BD24` (`D_80072311`) is the example.
+matching the target. `GameFlow_WaitMenuDone` (`D_80072311`) is the example.
 
 ## Dual `return -1` paths: early-exit reuses a preloaded `$v0`
 
@@ -2857,7 +2857,7 @@ store:
 
 Temps for the call that precedes this block may also be required so `a3 = 0`
 is scheduled early and the 5th-arg `sw` fills the `jal` delay slot
-(`func_80036B2C`).
+(`McMenu_ConfirmWithRender`).
 
 ## `beq` register order for call-result vs field compare
 
@@ -3519,7 +3519,7 @@ extern void func_800330D8(void* a0, s32 a1, s8 a2, s32 a3, s32 a4);
 extern void func_800330D8(void* a0, s32 a1, s32 a2, s32 a3, s32 a4);
 ```
 
-`func_80036CF0` is the pure example: the header had `s8` for arg2, but the
+`McMenu_FileInformation` is the pure example: the header had `s8` for arg2, but the
 target always used `lw` of `UiList::field_10`. Callers that pass an `s8`
 local still match after the widen (default argument promotion).
 
@@ -3545,7 +3545,7 @@ val = menu->field_10;
 func_800330D8(obj, data, val, 0, 0);
 ```
 
-`func_80036CF0` is the pure example.
+`McMenu_FileInformation` is the pure example.
 
 ## Advance a global pointer via a local after a store through it
 
@@ -3966,8 +3966,8 @@ if (flag == 0) {
 }
 ```
 
-`func_800429C8` (`D_80072311` → `func_800260B0`) is the pure `== 0` example.
-`func_8002BD24` is the sibling `== 1` form (`func_800260B0(0)` vs `(1)`).
+`Snd_ApplyVolumeTable` (`D_80072311` → `func_800260B0`) is the pure `== 0` example.
+`GameFlow_WaitMenuDone` is the sibling `== 1` form (`func_800260B0(0)` vs `(1)`).
 
 ## Goto-forced block order for shared-default multi-way branch
 
@@ -4017,7 +4017,7 @@ done:
 
 `if (mode >= 3) goto default` is what emits the `slti` / `beqz` pair; do not
 collapse the two default entries into one `else` if that reorders blocks.
-`func_80037068` is the pure example (menu pointer select among three
+`McMenu_InitByMode` is the pure example (menu pointer select among three
 `UiList` data objects).
 
 ## Table index: `offset = 0` then `if (hi) offset = hi << 1`
@@ -4108,7 +4108,7 @@ saved = D_80072189;   /* lb, not lbu */
 D_80072189 = saved;   /* sb */
 ```
 
-`func_8002BC0C` is the pure example.
+`Game_ResetSessionAndBuffers` is the pure example.
 
 ## `do {} while (0)` keeps a post-call store before a later load
 
@@ -4137,7 +4137,7 @@ do {
 arg0->field_30 = arg0->field_30 + 1;
 ```
 
-`func_8002BC0C` is the pure example.
+`Game_ResetSessionAndBuffers` is the pure example.
 
 ## Per-branch stores beat a phi-merged store for load/store ordering
 
@@ -4184,7 +4184,7 @@ if (ok) {
 obj = p->field_20;
 ```
 
-`func_800365B0` is the pure example (with `register asm` pins for `s0`/`s1`/`s2`).
+`Mc_StateOpenDirEntry` is the pure example (with `register asm` pins for `s0`/`s1`/`s2`).
 
 ## `u32` switch discriminator for `sltiu` range split
 
@@ -4219,7 +4219,7 @@ case 1:
 }
 ```
 
-`func_8003F450` is the pure example (`u8 mode` → 97.6%, `u32 mode` → 100%).
+`Display_FlipOtAndDispatch` is the pure example (`u8 mode` → 97.6%, `u32 mode` → 100%).
 
 ## Reassign `ptr = base + i` instead of `ptr++` to avoid mid-struct IV
 
@@ -5111,7 +5111,7 @@ A plain `switch` with empty cases for the non-writing IDs folds those cases
 into default and loses the `sltiu` split. Putting `stream += 2` only after the
 switch (or on every arm with one join) also merges the two `addiu`s.
 
-`func_80041C50` is the pure example (rewrite opcodes `0x38`→`0x4038` /
+`Tmd_RewriteOpcodes` is the pure example (rewrite opcodes `0x38`→`0x4038` /
 `0x78`→`0x4078` while walking a `[id, handler, dims, data…]` stream).
 
 ## Dual terminator constants for outer/inner loops
@@ -5224,7 +5224,7 @@ targetY = gY >> 8;
 func(obj, targetX - obj->field_20, targetY - obj->field_22);
 ```
 
-`func_80048D58` is the pure example (smooth cursor toward a UI object over
+`Ui_SmoothCursor` is the pure example (smooth cursor toward a UI object over
 `Display_State.field_10a` frames, then call `Ui_DrawCursor`).
 
 ## `u8` index + `arr[i]` for large-offset slot walks
@@ -5348,9 +5348,9 @@ D_800691F8   = 0x10000;
 GAuxHeapSize = size;
 ```
 
-`func_8001490C` is the pure example (VRAM `StoreImage` then aux-heap base/size
-setup). Sibling `func_800149E8` is the matching `LoadImage` without heap work;
-note its `arg2` → `rect.y` polarity is the opposite of `func_8001490C`.
+`Gfx_StoreImageSlot` is the pure example (VRAM `StoreImage` then aux-heap base/size
+setup). Sibling `Gfx_LoadImageSlot` is the matching `LoadImage` without heap work;
+note its `arg2` → `rect.y` polarity is the opposite of `Gfx_StoreImageSlot`.
 
 ## Goto-loop vs while: LICM of loop-invariant masks
 
@@ -5566,7 +5566,7 @@ if (flag) {
 }
 ```
 
-That yields `andi v1, v1, 0x1; beqz v1, ...`. `func_8003EE68` needs this on
+That yields `andi v1, v1, 0x1; beqz v1, ...`. `Display_SpawnFromMode` needs this on
 both copies of the slot-3 object setup. A `register u32 flag asm("v1")` pin
 also works but is unnecessary once the assign-then-test form is used.
 
@@ -5604,7 +5604,7 @@ block_default:
 end:
 ```
 
-`func_8003EE68` is the pure example (mode 4 first, then range `< 5`, then 1/3,
+`Display_SpawnFromMode` is the pure example (mode 4 first, then range `< 5`, then 1/3,
 with 4 falling into the 1/3 block).
 
 ## `getClut` between SPRT `u0`/`v0` stores needs a `u8` temp for `v`
@@ -6421,7 +6421,7 @@ m->m[2][2] = one;
 The word stores through `*(s32*)&m->m[r][c]` match the target's packed
 halfword pairs; individual halfword assigns usually do not.
 
-`func_80027E7C` also derives the parent `GsCOORDINATE2*` as
+`Gfx_InitCoordinateTrees` also derives the parent `GsCOORDINATE2*` as
 `(GsCOORDINATE2*)((u8*)m - OFFSET_OF(GsCOORDINATE2, coord))` so `sub` /
 `coord.t[]` / `flg` use `off($a2)` while the matrix body stays on `$v0`
 (including `sw zero, -4($v0)` for `flg`). Naming a separate base symbol
@@ -7382,7 +7382,7 @@ end:
     return 1;
 ```
 
-`func_8003EC44` is the pure example (switch ~96.7%, shared-goto ~97.2%,
+`Display_TransitionLoad` is the pure example (switch ~96.7%, shared-goto ~97.2%,
 duplicated tails + if/gotos → 100%).
 
 ## Duplicate shared RECT/field updates into both `if`/`else` arms
@@ -7677,7 +7677,7 @@ Two separate `TextDrawReq sp50, sp60` locals usually emit only absolute
 addressing for the second slot. Writing everything through `p` alone emits
 only relative `off(s0)`. The split is required.
 
-Also for multi-line loops over text (`func_8002F9E0` + `func_8002E53C`):
+Also for multi-line loops over text (`Text_ParseLine` + `func_8002E53C`):
 
 - Pin long-lived args/temps into `$s0`–`$s7` so the remaining stack arg
   (`arg4`) stays on the stack and is reloaded with `lw t0, 0xB0(sp)` each
@@ -7690,7 +7690,7 @@ Also for multi-line loops over text (`func_8002F9E0` + `func_8002E53C`):
 - Reload the x formal from its home at the end of each iteration
   (`x = arg1`) so the target's `lw s2, 0xA4(sp)` matches.
 
-`func_8002FB84` is the pure example (multi-line sibling of single-line
+`Text_DrawMultiLine` is the pure example (multi-line sibling of single-line
 `Text_DrawPrompt`).
 
 ## Scratch-head 8-byte alloc: pin `v1`/`a3`/`v0` for `move s1,v0`
@@ -7937,7 +7937,7 @@ if (next == K) {
 }
 ```
 
-`func_8002F9E0` needs this for the `\r` / `\r\n` line-break arm.
+`Text_ParseLine` needs this for the `\r` / `\r\n` line-break arm.
 
 ## Separate mask temp vs. in-place `&=` for flag bit clears
 
@@ -8324,7 +8324,7 @@ Do **not** use a packed `{u8; u16}` view of `field_1`/`field_2` — GCC 2.8.1
 emits byte-wise loads/stores for the "unaligned" u16. Pair with
 `pad = arg0` plus a short-lived `register void** scratch asm("a0")` block so
 `$a0` holds `G_SCRATCH_HEAD` for the alloc and is free to reuse as the second
-bank's `field_1` pointer. `func_8002C090` is the pure example.
+bank's `field_1` pointer. `Pad_TickEventBanks` is the pure example.
 
 ## Separate cleanup tails: early `return` + distinct base pointers
 
@@ -8778,7 +8778,7 @@ obj = arg0;        /* late assign → prologue still does sw s4; move s4,a0 firs
 p = sp50;
 ```
 
-`func_8002FEE0` needed `$s4` (obj) saved before `$s3` (x); early `obj = arg0`
+`Text_DrawMultiLineScroll` needed `$s4` (obj) saved before `$s3` (x); early `obj = arg0`
 kept putting `$s3` first, while the late assign matched the target prologue.
 
 ## Volatile flags: force reload + delay-slot `lui`
@@ -8801,7 +8801,7 @@ tile = &D_8006EC18;
 ```
 
 `one = 1; flags |= one << arg0` puts `li s2,1` in the branch delay instead of
-the `lui` the target wants. `func_8002764C` is the pure example.
+the `lui` the target wants. `GameMain_ShowLoading` is the pure example.
 
 ## `(s16)` cast on `u16` fields that the target loads with `lh`
 
@@ -9431,7 +9431,7 @@ register for a saved global (e.g. `lb s1, D_xxx` / `sb s1, D_xxx`) so
 A function-scope `u8* ptr; u32 i; for (...)` clear of `GameSession` often
 allocates `i` to `$a0` and the pointer to `$v1` when other locals are live.
 Wrapping the clear in a nested block with its own `clearPtr`/`clearI` restores
-the `func_8002BB9C` pattern (`a0`=ptr, `v1`=counter) used by simple clears:
+the `Game_ClearSession` pattern (`a0`=ptr, `v1`=counter) used by simple clears:
 
 ```c
 {
@@ -9446,7 +9446,7 @@ the `func_8002BB9C` pattern (`a0`=ptr, `v1`=counter) used by simple clears:
 ```
 
 Use function-scope `ptr`/`i` when the target wants the inverse allocation
-(e.g. after `a0` was already zeroed as the counter, as in `func_8002BC0C`).
+(e.g. after `a0` was already zeroed as the counter, as in `Game_ResetSessionAndBuffers`).
 
 ## Variable-bound search: plain `for` emits `beqz len`, not outer `if`
 
@@ -9542,7 +9542,7 @@ rather than preloading the mask into `$a1`. Free the scratch pointer after the
 block and rematerialize the restore with a bare
 `*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x88`.
 
-`func_800410F0` is the pure example.
+`Tmd_ProcessStream` is the pure example.
 
 ## Dual `lw` + dual `andi 0xFF` for store + switch of the same expression
 
@@ -9694,7 +9694,7 @@ g    = Stage_Ctx;
 if (disp == g->field_24) { ... }
 ```
 
-`func_8003F034` case 1 is the pure example.
+`Display_TransitionTask` case 1 is the pure example.
 
 ## Scratch jtbl normalize accepts single-address names
 
@@ -10230,7 +10230,7 @@ if (!(flag)) {
 
 Also: a shared `tpage` temporary tends to hoist `lui ...,0xe100` and break the
 `j`/`ori` delay-slot form; assigning the full constant in each branch avoids
-that. `func_8003EA44` is the pure example.
+that. `Display_StepFadeOverlay` is the pure example.
 
 ## OT index: `(idx << 2) + (s32)base` vs `base + idx`
 
@@ -10270,7 +10270,7 @@ temp    = field;
 temp    = temp + product;
 ```
 
-`func_8003EA44` needs this for the fade-step update.
+`Display_StepFadeOverlay` needs this for the fade-step update.
 
 ## Separate vars when two loops need different register sets
 
@@ -10813,7 +10813,7 @@ Two live pointers force extra registers and scramble constant hoisting
 the second SPRT alloc). One reused `dr` matches the target's `$t7` reuse and
 ~100% schedule. Prefer raw `setlen` + `dr->code[0] = 0xE1000xxx` over
 `setDrawTPage` when the target stores the full GPU word as a constant (same
-pattern as `func_8003EA44` / `func_8002E300`).
+pattern as `Display_StepFadeOverlay` / `func_8002E300`).
 
 ## Empty `asm volatile` after field reads blocks pointer strength-reduction
 
@@ -10939,11 +10939,11 @@ Making *both* volatile keeps the body order correct but parks `lui` after
 `sw ra` (~99.6%). Making *both* non-volatile moves `lui` early but reorders
 `lbu`/stores. Only the mixed pair matches.
 
-`func_800418C0` is the pure example.
+`Tmd_SetupDraw` is the pure example.
 
 ## Handwritten light setup: SetColorMatrix + ldbkdir + transpose MulMatrix0
 
-`func_800418C0` loads `arg0->field_20` (color MATRIX, often `D_80074080`) with
+`Tmd_SetupDraw` loads `arg0->field_20` (color MATRIX, often `D_80074080`) with
 `gte_SetColorMatrix`, then ambient from `t[]` via `gte_ldbkdir(t[0],t[1],t[2])`
 (not `gte_SetBackColor` — no `<<4`). It then transpose-copies `D_80070F34` into
 scratch (same `t4/t5/t6` halfword pattern as `func_8003C6D8`), `gte_SetRotMatrix`

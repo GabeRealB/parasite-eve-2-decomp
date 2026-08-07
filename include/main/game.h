@@ -101,7 +101,7 @@ STATIC_ASSERT_SIZEOF(SpuLVoiceTable, 0x67C);
 
 // FsImgBuffers / FsWorkEntry / FsLoadParams live in main/fs.h
 
-/// 4-byte block assigned via unaligned lwl/lwr (see func_800429C8).
+/// 4-byte block assigned via unaligned lwl/lwr (see Snd_ApplyVolumeTable).
 typedef struct _GBytes4 {
     u8 data[4];
 } GBytes4;
@@ -111,7 +111,7 @@ typedef struct _GBytes6 {
     u8 data[6];
 } GBytes6;
 
-/// 8-byte block assigned via unaligned lwl/lwr (see func_8002BF10).
+/// 8-byte block assigned via unaligned lwl/lwr (see GameFlow_CopySaveIds).
 typedef struct _GBytes8 {
     u8 data[8];
 } GBytes8;
@@ -157,7 +157,7 @@ typedef struct _GameSessionFrom4 {
 STATIC_ASSERT_SIZEOF(GameSessionFrom4, 0x4);
 
 /// Large object pointed to by Task::field_1C for the slot-3 game object
-/// (Game_GetPtrSlot(3)). Sparse fields used by func_8003EE68.
+/// (Game_GetPtrSlot(3)). Sparse fields used by Display_SpawnFromMode.
 typedef struct _GameActor {
     /* 0x000 */ byte pad_0[0x90];
     /* 0x090 */ s32  field_90;
@@ -171,7 +171,7 @@ typedef struct _GameActor {
 STATIC_ASSERT_SIZEOF(GameActor, 0x988);
 
 /// Object pointed to by Task::field_2c; field_8 is a s32* cleared by
-/// func_8003EE68 after optional func_801011D0 / func_800E1A6C setup.
+/// Display_SpawnFromMode after optional func_801011D0 / func_800E1A6C setup.
 /// field_C flag bits are OR'd with 0x80 in Task_Kill (type-1 deferred kill).
 typedef struct _GameActorExt {
     /* 0x0 */ byte pad_0[0x8];
@@ -349,7 +349,7 @@ typedef struct _CdReadyQueue {
 } CdReadyQueue;
 STATIC_ASSERT_SIZEOF(CdReadyQueue, 0x58);
 
-/// Object passed to func_80048C10 / func_80048D58 (e.g. via Task::field_20).
+/// Object passed to Ui_UpdateListNoAnim / Ui_SmoothCursor (e.g. via Task::field_20).
 typedef struct _UiMiniObj {
     /* 0x00 */ s32  field_0;
     /* 0x04 */ byte unknown_4[0x18];
@@ -364,7 +364,7 @@ STATIC_ASSERT_SIZEOF(UiMiniObj, 0x24);
 /// Mc_DrawPrompt / func_800486F0. Shares the UiPanel layout through offset
 /// 0x24 (handlers cast field_20 to UiPanel*). field_0 is a status flag;
 /// field_4 is copied from UiObjectDesc::field_0 at spawn; field_8 is a mode
-/// (5 = skip draw in Text_DrawPrompt / func_8002FB84; set to 3 when torn down); field_C..field_12
+/// (5 = skip draw in Text_DrawPrompt / Text_DrawMultiLine; set to 3 when torn down); field_C..field_12
 /// are layout halfwords (RECT-like); field_14 is a halfword counter used as the
 /// text draw priority/order; field_16 is a signed timer/counter; field_18/field_1A
 /// are layout offsets (shared with UiPanel; used when positioning child UI);
@@ -372,7 +372,7 @@ STATIC_ASSERT_SIZEOF(UiMiniObj, 0x24);
 /// an x offset paired with field_20; field_20/field_22 are base x/y for relative
 /// text placement; field_24 is a callback copied from the descriptor; field_28 is
 /// the owning Task*; field_2C / field_2E are halfwords polled by teardown state
-/// handlers (e.g. func_8002BD24 waits until field_2E == -1 before cleaning up;
+/// handlers (e.g. GameFlow_WaitMenuDone waits until field_2E == -1 before cleaning up;
 /// dialog pickers set field_2E == 6 when a choice is confirmed).
 typedef struct _UiObject {
     /* 0x00 */ s32   field_0; // status flag
@@ -482,7 +482,7 @@ STATIC_ASSERT_SIZEOF(StreamSlot, 0x28);
 /// (func_80049C00 seeds both from context); field_5 is also subtracted when
 /// computing field_9; field_6 / field_7 are signed layout sizes (Ui_DrawListHighlight
 /// uses field_7 as TILE height); field_9 / field_A / field_10 are list cursor /
-/// flag / selection index used by func_80036A70 / func_80036C04 / func_80037068 /
+/// flag / selection index used by McMenu_SelectList / McMenu_SelectListAlt / McMenu_InitByMode /
 /// Ui_InitList / func_8004917C; field_C / field_14 / field_16 are cleared by
 /// Ui_InitList; field_17 is a signed layout adjust subtracted from the child
 /// height when computing visible rows (func_80048AEC / func_80048C30; the latter
@@ -506,7 +506,7 @@ typedef struct _UiList {
 } UiList;
 STATIC_ASSERT_SIZEOF(UiList, 0x24);
 
-/// WIP: Task::field_34 context for D_8006121C select-menu (func_80036C04).
+/// WIP: Task::field_34 context for D_8006121C select-menu (McMenu_SelectListAlt).
 /// Only field_290 is used so far (seeds UiList cursor).
 typedef struct _WipSelectMenuExt {
     /* 0x000 */ byte unknown_0[0x290];
@@ -881,7 +881,7 @@ typedef struct _MidiSong {
 } MidiSong;
 STATIC_ASSERT_SIZEOF(MidiSong, 0x5DC);
 
-/// Text-measure / draw-request block passed to func_8002EDFC / func_8002E53C.
+/// Text-measure / draw-request block passed to Text_MeasureAndCenter / func_8002E53C.
 /// field_0/field_2 = x/y (or accumulate measured width); field_4 = OT priority;
 /// field_C selects Font_Glyphs0/1/2; field_D = center mode (1=half, 2=full);
 /// field_F = v bias added when drawing sprites.
@@ -983,8 +983,8 @@ typedef struct _CdAudioTbl {
 } CdAudioTbl;
 STATIC_ASSERT_SIZEOF(CdAudioTbl, 0x18);
 
-/// WIP: BSS Wip_SysConfig (0x80). Init by func_8004C4D0 (four s16s = 100);
-/// field_40 filled 0xFF by func_800301FC. Likely mix/options block — unproven.
+/// WIP: BSS Wip_SysConfig (0x80). Init by Mc_InitSaveSlotDefaults (four s16s = 100);
+/// field_40 filled 0xFF by Mc_InitDualBankBuffers. Likely mix/options block — unproven.
 typedef struct _WipSysConfig {
     /* 0x00 */ byte unknown_0[0x8];
     /* 0x08 */ s32  field_8;
@@ -1274,8 +1274,8 @@ typedef struct _SndOneAOut {
 } SndOneAOut;
 STATIC_ASSERT_SIZEOF(SndOneAOut, 0x3E);
 
-/// Dialog / prompt descriptor used by 21FDC.c handlers (e.g. func_80036E78,
-/// func_80036D98, func_80036B2C). field_8 is a signed menu/option index passed
+/// Dialog / prompt descriptor used by 21FDC.c handlers (e.g. McMenu_ConfirmDialogAlt,
+/// McMenu_ConfirmDialog, McMenu_ConfirmWithRender). field_8 is a signed menu/option index passed
 /// to rendering helpers; field_B is a flag written on the alternate confirm
 /// path; field_C is a selection/confirm flag (1 = confirm); field_18/field_1A
 /// are position halfwords; field_1C is data passed through to Text_DrawPrompt;

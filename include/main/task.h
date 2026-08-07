@@ -13,7 +13,7 @@ struct _Task;
 typedef void (*TaskFunc)(struct _Task*);
 
 /// Fixed-size table of `TaskFunc` callbacks. Copied onto the stack by state
-/// dispatchers (e.g. `func_8002C028`) so the call uses a local jump table.
+/// dispatchers (e.g. `GameFlow_DispatchTable`) so the call uses a local jump table.
 typedef struct {
     TaskFunc funcs[3];
 } TaskFuncTable3;

@@ -341,7 +341,7 @@ after_off:
     return ret;
 }
 
-void func_8002EDFC(TextDrawReq* arg0, u8* arg1)
+void Text_MeasureAndCenter(TextDrawReq* arg0, u8* arg1)
 {
     u8* table;
     s32 width;
@@ -653,7 +653,7 @@ u8* func_8002F3A0(u8* arg0, u32 arg1)
 
 INCLUDE_ASM("main/nonmatchings/textdraw", func_8002F44C);
 
-u8* func_8002F528(u8* arg0, s32 arg1)
+u8* Text_SkipLines(u8* arg0, s32 arg1)
 {
     u8 temp;
 
@@ -798,9 +798,9 @@ void func_8002F890(Task* arg0)
 
 void func_8002F98C(Task* arg0)
 {
-    func_80030074();
+    Text_LoadClutImages();
     Display_SetMode(0x1010);
-    func_8002BB9C();
+    Game_ClearSession();
     Task_SpawnFromTable((TaskDesc*)&D_80094C8C, 0, 0, 0);
     Task_Kill(arg0);
 }

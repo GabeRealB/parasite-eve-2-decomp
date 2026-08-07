@@ -1630,7 +1630,7 @@ void func_80048AEC(UiList* arg0, s32 arg1)
     asm("" : : "m"(sp));
 }
 
-void func_80048C10(void* arg0, void* arg1)
+void Ui_UpdateListNoAnim(void* arg0, void* arg1)
 {
     func_80046EEC(arg0, arg1, 0);
 }
@@ -1678,7 +1678,7 @@ void func_80048C30(UiList* arg0, UiPanel* arg1, s32 arg2)
     asm("" : : "m"(sp));
 }
 
-void func_80048D58(UiMiniObj* arg0, s32 arg1, s32 arg2)
+void Ui_SmoothCursor(UiMiniObj* arg0, s32 arg1, s32 arg2)
 {
     s32 i;
     s32 targetX;

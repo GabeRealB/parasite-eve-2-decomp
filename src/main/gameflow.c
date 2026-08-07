@@ -101,7 +101,7 @@ void func_8002B834(Task* arg0)
     }
 }
 
-void func_8002BA9C(s32 r, s32 g, s32 b, s32 mode)
+void Fade_DrawOverlay(s32 r, s32 g, s32 b, s32 mode)
 {
     TILE*     p;
     DR_TPAGE* dr;
@@ -127,7 +127,7 @@ void func_8002BA9C(s32 r, s32 g, s32 b, s32 mode)
     addPrim(D_800710A0 - 0x10, dr);
 }
 
-void func_8002BB9C(void)
+void Game_ClearSession(void)
 {
     u8* ptr;
     u32 i;
@@ -147,7 +147,7 @@ void func_8002BBC8(void)
     Task_Spawn(0, 9, 0, 0);
 }
 
-void func_8002BC0C(Task* arg0)
+void Game_ResetSessionAndBuffers(Task* arg0)
 {
     u8*         ptr;
     u32         i;
@@ -172,7 +172,7 @@ void func_8002BC0C(Task* arg0)
     arg0->field_30 = arg0->field_30 + 1;
 }
 
-void func_8002BCA8(Task* arg0)
+void GameFlow_SpawnMenu(Task* arg0)
 {
     void* temp_v0;
 
@@ -187,7 +187,7 @@ void func_8002BCA8(Task* arg0)
     }
 }
 
-void func_8002BD24(Task* arg0)
+void GameFlow_WaitMenuDone(Task* arg0)
 {
     UiObject* obj;
 
@@ -201,13 +201,13 @@ void func_8002BD24(Task* arg0)
         } else {
             func_800260B0(1);
         }
-        func_800429C8(0);
+        Snd_ApplyVolumeTable(0);
         arg0->field_2a = 0xC;
         arg0->field_30 = arg0->field_30 + 1;
     }
 }
 
-void func_8002BDB8(Task* arg0)
+void GameFlow_CountdownAdvance(Task* arg0)
 {
     arg0->field_2a--;
     if (arg0->field_2a != 0) {
@@ -241,7 +241,7 @@ void func_8002BEA8(Task* arg0)
     sp.funcs[arg0->field_30](arg0);
 }
 
-void func_8002BF10(Task* arg0)
+void GameFlow_CopySaveIds(Task* arg0)
 {
     ((SessionBytesAt4*)Game_Session)->field_4 =
         ((SessionBytesAt4*)&Mc_SaveData)->field_4;
@@ -268,12 +268,12 @@ void func_8002BF58(Task* arg0)
     }
 }
 
-void func_8002BFD4(void)
+void Game_ClearEd68(void)
 {
     D_8005ED68 = 0;
 }
 
-void func_8002BFE0(Task* arg0)
+void GameFlow_SpawnWhenIdle(Task* arg0)
 {
     if (CdCmd_IsIdle() != 0) {
         Task_Spawn(0, 0x11, 1, 0);
@@ -281,7 +281,7 @@ void func_8002BFE0(Task* arg0)
     }
 }
 
-void func_8002C028(Task* arg0)
+void GameFlow_DispatchTable(Task* arg0)
 {
     TaskFuncTable3 sp;
 
@@ -290,7 +290,7 @@ void func_8002C028(Task* arg0)
     sp.funcs[arg0->field_30](arg0);
 }
 
-void func_8002C090(PadState* arg0)
+void Pad_TickEventBanks(PadState* arg0)
 {
     PadState*    pad;
     register u8* temp asm("t0");

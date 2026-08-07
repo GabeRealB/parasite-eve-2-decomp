@@ -8,7 +8,7 @@
 
 #define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
 
-void func_8003EA44(void)
+void Display_StepFadeOverlay(void)
 {
     StageCtx* p;
     s32       temp;
@@ -87,7 +87,7 @@ void func_8003EA44(void)
     }
 }
 
-s32 func_8003EC44(Task* arg0)
+s32 Display_TransitionLoad(Task* arg0)
 {
     RECT rect;
     s32  temp_v1;
@@ -111,7 +111,7 @@ case0:
     SetDispMask(0);
     Stage_Ctx->field_24     = Display_State.field_118;
     Display_State.field_122 = 1;
-    func_800149E8(Game_Session->field_7, Game_Session->field_6, Display_State.field_118);
+    Gfx_LoadImageSlot(Game_Session->field_7, Game_Session->field_6, Display_State.field_118);
     Display_State.field_103 = 2;
     Stage_Ctx->field_28     = Stage_Ctx->field_28 + 1;
     goto end;
@@ -123,7 +123,7 @@ case1:
     goto end;
 case2:
     if ((CdCmd_IsIdle() & 0xFFFF) && (Display_State.field_118 != Stage_Ctx->field_24)) {
-        func_8001490C(Game_Session->field_7, Game_Session->field_6, Display_State.field_118, 0x10000);
+        Gfx_StoreImageSlot(Game_Session->field_7, Game_Session->field_6, Display_State.field_118, 0x10000);
         Mem_InitAux();
         rect.x = 0;
         rect.w = 0x140;
@@ -151,7 +151,7 @@ end:
     return 1;
 }
 
-Task* func_8003EE68(void)
+Task* Display_SpawnFromMode(void)
 {
     Task*             ret;
     u32               mode;
@@ -206,9 +206,9 @@ Task* func_8003EE68(void)
 block_default:
     ed = (GameSessionFrom4*)&Game_Session->field_4;
     Gpu_ResetGraphAndOt();
-    func_8001490C(ed->field_3, ed->field_2, Display_State.field_1f, 0x10000);
+    Gfx_StoreImageSlot(ed->field_3, ed->field_2, Display_State.field_1f, 0x10000);
     if (Stage_Ctx->field_C == 0x100) {
-        func_8003F5A4();
+        Display_InvertFramebufferGray();
     }
     Mem_InitAux();
     Display_State.field_103 = 1;
@@ -229,7 +229,7 @@ block_end:
 
 void func_8003FD58(Task* arg0);
 
-void func_8003F034(Task* arg0)
+void Display_TransitionTask(Task* arg0)
 {
     u32          flags;
     s32          state;
@@ -289,7 +289,7 @@ void func_8003F034(Task* arg0)
                 break;
             case 2:
                 Display_State.field_114 = Display_State.field_118;
-                func_8003F450(0);
+                Display_FlipOtAndDispatch(0);
                 Stage_Ctx->field_19     = Stage_Ctx->field_19 | 0x80;
                 Display_State.field_103 = Display_State.field_103 | 0x10;
                 arg0->field_2a          = 3;
@@ -300,8 +300,8 @@ void func_8003F034(Task* arg0)
                 arg0->field_2a          = arg0->field_2a - 1;
                 if (arg0->field_2a == 0) {
                     Gpu_ResetGraphAndOt();
-                    func_8001490C(Game_Session->field_7, Game_Session->field_6,
-                                  Display_State.field_118, 0x10000);
+                    Gfx_StoreImageSlot(Game_Session->field_7, Game_Session->field_6,
+                                       Display_State.field_118, 0x10000);
                     Mem_InitAux();
                     Stage_Ctx->field_12 = 0;
                     if ((s32)Stage_Ctx->field_1c < 0) {
@@ -324,22 +324,22 @@ void func_8003F034(Task* arg0)
                 break;
         }
     } else if (flags & 0x08000000) {
-        func_8003EC44(arg0);
+        Display_TransitionLoad(arg0);
     } else if ((s32)flags < 0) {
         arg0->field_30 = arg0->field_30 + 1;
         func_8003FD58(arg0);
     } else if (flags & 0x20000000) {
-        func_8001490C(Game_Session->field_7, Game_Session->field_6, Display_State.field_118,
-                      0x10000);
+        Gfx_StoreImageSlot(Game_Session->field_7, Game_Session->field_6, Display_State.field_118,
+                           0x10000);
         Stage_Ctx->field_1c = Stage_Ctx->field_1c & 0xDFFFFFFF;
     }
 
     if (Stage_Ctx->field_C == 4) {
-        func_8003F450(0);
+        Display_FlipOtAndDispatch(0);
     }
 }
 
-void func_8003F450(s32 arg0)
+void Display_FlipOtAndDispatch(s32 arg0)
 {
     DisplayState* temp;
     u_long*       saved;
@@ -377,7 +377,7 @@ void func_8003F450(s32 arg0)
     D_800710A0 = saved;
 }
 
-void func_8003F5A4(void)
+void Display_InvertFramebufferGray(void)
 {
     s32           i;
     u32           maskR;
@@ -510,13 +510,13 @@ s32 func_8003F7A8(s32 arg0)
     return ret;
 }
 
-s32 func_8003F848(void)
+s32 Display_SetFlag20000000(void)
 {
     Stage_Ctx->field_1c |= 0x20000000;
     return 0;
 }
 
-s32 func_8003F86C(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 Display_SetFadeRate(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     if (arg2 == 0) {
         Stage_Ctx->field_18 = 0x20;
@@ -552,7 +552,7 @@ s32 func_8003F900(void)
     return -1;
 }
 
-s32 func_8003F944(void)
+s32 Display_HasTransitionFlags(void)
 {
     return (Stage_Ctx->field_1c & 0x48000000) != 0;
 }
@@ -565,10 +565,10 @@ void func_8003F964(void)
     }
 }
 
-void func_8003F9AC(void)
+void Display_InitPrimBufOnce(void)
 {
     if (Stage_Ctx->field_14 == 0) {
-        func_8003E9A4();
+        Display_SetPrimBufLarge();
         Stage_Ctx->field_14 = 1;
     }
 }
@@ -576,33 +576,33 @@ void func_8003F9AC(void)
 void func_8003F9F4(void)
 {
     if (Stage_Ctx->field_14 == 1) {
-        func_8003E9C4();
+        Display_SetPrimBufSmall();
         Stage_Ctx->field_14 = 0;
     }
 }
 
-void func_8003FA3C(u8 arg0)
+void Display_SetFadeMax(u8 arg0)
 {
     Stage_Ctx->field_1a = arg0;
 }
 
-void func_8003FA4C(s32 arg0)
+void Display_SetDrawMode(s32 arg0)
 {
     switch (arg0) {
         case 0:
             Display_State.field_103 = 1;
             Display_State.field_100 = 0;
-            func_8003DE14(0, 0, 0);
+            Display_SetAutoClear(0, 0, 0);
             return;
         case 1:
             Display_State.field_103 = (u8)arg0;
             Display_State.field_100 = 3;
-            func_8003DE14(-1, 0, 0);
+            Display_SetAutoClear(-1, 0, 0);
             return;
         case 2:
             Display_State.field_103 = 1;
             Display_State.field_100 = 2;
-            func_8003DE14(-1, 0, 0);
+            Display_SetAutoClear(-1, 0, 0);
             return;
         case 3:
             Display_State.field_103 = 2;
@@ -610,7 +610,7 @@ void func_8003FA4C(s32 arg0)
     }
 }
 
-s32 func_8003FB20(void)
+s32 Display_BeginTransition(void)
 {
     StageCtx* temp;
     u32       flags;
@@ -629,7 +629,7 @@ s32 func_8003FB20(void)
     return 0;
 }
 
-s32 func_8003FB70(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 Display_InitModeObj(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     StageCtx* temp;
     u8*       ptr;
@@ -659,7 +659,7 @@ s32 func_8003FB70(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-u8 func_8003FC18(void)
+u8 Display_GetModeByte12(void)
 {
     return Stage_Ctx->field_12;
 }
@@ -671,7 +671,7 @@ void func_8003FC30(u8 arg0)
     temp = Stage_Ctx;
     if (temp->field_15 == 1) {
         temp->field_11 = arg0;
-        func_8003F450(0);
+        Display_FlipOtAndDispatch(0);
     }
 }
 
@@ -688,7 +688,7 @@ void func_8003FC8C(Task* arg0)
         arg0->field_30 += 1;
     } else {
         Pad_States[0].field_A = 1;
-        func_8003EE68();
+        Display_SpawnFromMode();
         arg0->field_30 += 2;
     }
 }
@@ -698,7 +698,7 @@ void func_8003FCF8(Task* arg0)
     Pad_SetCooldown(0);
     if (func_8001D82C() != 0) {
         Pad_States[0].field_A = 1;
-        func_8003EE68();
+        Display_SpawnFromMode();
         arg0->field_30 += 1;
     }
 }
@@ -739,7 +739,7 @@ void func_8003FE40(Task* arg0)
         Display_State.field_1e  = 0;
         Display_State.field_10d = 0;
         Display_State.field_100 = 1;
-        func_8003DE14(-1, 0, 0);
+        Display_SetAutoClear(-1, 0, 0);
         Task_CallExit(arg0);
     }
 }
@@ -750,7 +750,7 @@ void func_8003FE9C(Task* arg0)
 
     sp = D_80013E98;
     sp.funcs[arg0->field_30](arg0);
-    func_8003EA44();
+    Display_StepFadeOverlay();
 }
 
 void Mdec_ResolveStreamBuffer(u8* arg0)
@@ -915,7 +915,7 @@ void Mdec_DecodeToVram(void)
     }
 }
 
-void func_80040820(void)
+void CdCmd_StepVlcRebuild(void)
 {
     CdCmdQueue* p;
 
@@ -946,7 +946,7 @@ void func_800408C0(void* arg0)
     D_8007A358   = 0;
 }
 
-void func_800408F4(void)
+void CdCmd_RequestVlcRebuild(void)
 {
     CdCmd_Queue.field_234 = 1;
 }
@@ -1059,7 +1059,7 @@ extern u8 D_801379B4;
 extern u8 D_80138004;
 extern u8 D_801386EC;
 
-/// 0x88-byte scratch workspace allocated from G_SCRATCH_HEAD for func_800410F0.
+/// 0x88-byte scratch workspace allocated from G_SCRATCH_HEAD for Tmd_ProcessStream.
 typedef struct {
     /* 0x00 */ u8*        field_0;
     /* 0x04 */ u8*        field_4;
@@ -1077,7 +1077,7 @@ typedef struct {
     /* 0x84 */ byte       pad_84[0x4];
 } ScratchModelBlock;
 
-/// 0x98-byte scratch workspace for func_800418C0 (draw path).
+/// 0x98-byte scratch workspace for Tmd_SetupDraw (draw path).
 typedef struct {
     /* 0x00 */ u8*        field_0;
     /* 0x04 */ u8*        field_4;
@@ -1097,7 +1097,7 @@ typedef u32* (*ModelStreamHandler)(ScratchModelBlock* ws, s32 arg1, u32* stream)
 extern MATRIX D_80070F34;
 extern void   func_80010848(ScratchDrawBlock* ws, u32 flags, void* stream, TmdObject* node);
 
-void func_800409D0(TmdSource* arg0)
+void Tmd_InitSourceStream(TmdSource* arg0)
 {
     u32*         stream;
     u32          id;
@@ -1328,7 +1328,7 @@ void func_800409D0(TmdSource* arg0)
     }
 }
 
-void func_800410F0(TmdObject* arg0)
+void Tmd_ProcessStream(TmdObject* arg0)
 {
     ScratchModelBlock* ws;
     TmdSource*         src;
@@ -1519,7 +1519,7 @@ done:
 
 INCLUDE_ASM("main/nonmatchings/tmd", Tmd_Create);
 
-void func_800418C0(TmdObject* arg0)
+void Tmd_SetupDraw(TmdObject* arg0)
 {
     u8                         buf[0x1000];
     void**                     scratch;
@@ -1668,8 +1668,8 @@ s32 Tmd_AllocBuffers(TmdObject* arg0)
         arg0->field_18 = mem;
         if (mem != NULL) {
             arg0->field_14 = 0;
-            func_800410F0(arg0);
-            func_800410F0(arg0);
+            Tmd_ProcessStream(arg0);
+            Tmd_ProcessStream(arg0);
             result = 1;
         }
     }
@@ -1692,7 +1692,7 @@ s32 Tmd_SumBufferBytes(void)
     return result;
 }
 
-void func_80041C50(TmdSource* arg0)
+void Tmd_RewriteOpcodes(TmdSource* arg0)
 {
     u32* stream;
     u32  id;
@@ -1776,7 +1776,7 @@ void Tmd_FreeNodeBuffers(TmdObject* arg0)
     arg0->field_30++;
 }
 
-void func_80041DF4(Task* arg0)
+void Tmd_DispatchTask(Task* arg0)
 {
     TaskFuncTable3 sp;
 
@@ -1815,8 +1815,8 @@ void Tmd_AllocMissingBuffers(void)
                 if (mem != NULL) {
                     node->field_18 = mem;
                     node->field_14 = 0;
-                    func_800410F0(node);
-                    func_800410F0(node);
+                    Tmd_ProcessStream(node);
+                    Tmd_ProcessStream(node);
                 }
             }
         }
@@ -1837,8 +1837,8 @@ void Tmd_AllocNodeBuffers(Task* arg0)
                 node->field_18 = mem;
                 node->field_14 = 0;
                 node->field_C &= ~0x80;
-                func_800410F0(node);
-                func_800410F0(node);
+                Tmd_ProcessStream(node);
+                Tmd_ProcessStream(node);
             }
         }
         node = node->next;
@@ -1846,12 +1846,12 @@ void Tmd_AllocNodeBuffers(Task* arg0)
     Task_Kill(arg0);
 }
 
-void func_80041FF8(TmdObject* node)
+void Tmd_DrawFlaggedNodes(TmdObject* node)
 {
     while (node != NULL) {
         if (node->field_C & 8) {
             if (node->field_18 != NULL) {
-                func_800418C0(node);
+                Tmd_SetupDraw(node);
             }
         }
         node = node->next;
@@ -1863,7 +1863,7 @@ void func_80042058(TmdObject* node)
     while (node != NULL) {
         if (!(node->field_C & 0x80)) {
             if (node->field_18 != NULL) {
-                func_800418C0(node);
+                Tmd_SetupDraw(node);
             }
         }
         node = node->next;

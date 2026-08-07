@@ -431,7 +431,7 @@ void CdCmd_HandleFileLoad(void)
 
 end_check:
     if (state->field_200 != 0) {
-        func_80040820();
+        CdCmd_StepVlcRebuild();
     }
 }
 

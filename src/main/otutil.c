@@ -254,21 +254,21 @@ s32 func_8003E72C(s32 arg0)
         if (arg0 < 0x80) {
             Display_State.field_10d = 0;
             if (arg0 != 0x43) {
-                func_8003FB70(&D_8006268C, arg0, 0, 0);
+                Display_InitModeObj(&D_8006268C, arg0, 0, 0);
             } else {
-                func_8003FB70(&D_8006268C, 0x43, 0, 0);
+                Display_InitModeObj(&D_8006268C, 0x43, 0, 0);
             }
             Display_State.field_10d = arg0;
             if (Display_State.field_12c != 0) {
-                func_8003FA3C(0xFF);
-                func_8003F86C(0, 0, 0x10, 1);
+                Display_SetFadeMax(0xFF);
+                Display_SetFadeRate(0, 0, 0x10, 1);
             } else if (arg0 != 0x42) {
                 if (arg0 == 0x43) {
-                    func_8003FA3C(0xFF);
-                    func_8003F86C(0, 0, 0x20, 1);
+                    Display_SetFadeMax(0xFF);
+                    Display_SetFadeRate(0, 0, 0x20, 1);
                 } else {
-                    func_8003FA3C(0x20);
-                    func_8003F86C(0, 0, 8, 1);
+                    Display_SetFadeMax(0x20);
+                    Display_SetFadeRate(0, 0, 8, 1);
                 }
             }
         }
@@ -324,13 +324,13 @@ void Gpu_InitOt(void)
     D_800710A0 = org;
 }
 
-void func_8003E9A4(void)
+void Display_SetPrimBufLarge(void)
 {
     D_8007A0E4 = 0x10000;
     D_8007A0E0 = (void*)D_80068F88;
 }
 
-void func_8003E9C4(void)
+void Display_SetPrimBufSmall(void)
 {
     D_8007A0E0 = D_800740E0;
     D_8007A0E4 = 0x6000;

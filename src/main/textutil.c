@@ -6,7 +6,7 @@
 #include "main/mem.h"
 #include "main/unknown_syms.h"
 
-s32 func_8002F9E0(u8** arg0, u8* arg1)
+s32 Text_ParseLine(u8** arg0, u8* arg1)
 {
     s32 ret;
     u8* src;
@@ -81,7 +81,7 @@ s32 func_8002F9E0(u8** arg0, u8* arg1)
     return ret;
 }
 
-s32 func_8002FB84(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
+s32 Text_DrawMultiLine(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
 {
     u8                    sp10[0x40];
     TextDrawReq           sp50[2];
@@ -108,7 +108,7 @@ s32 func_8002FB84(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 ar
     cur  = arg3;
 
     do {
-        ret = func_8002F9E0(&cur, sp10);
+        ret = Text_ParseLine(&cur, sp10);
         if (obj != NULL) {
             if (obj->field_8 != 5) {
                 sp50[0].field_0 = obj->field_20 + x;
@@ -149,7 +149,7 @@ s32 Text_MeasureWidth(u8* arg0)
     sp10.field_8 = 0;
     sp10.field_D = 2;
     sp10.field_E = 0;
-    func_8002EDFC(&sp10, arg0);
+    Text_MeasureAndCenter(&sp10, arg0);
     return -sp10.field_0;
 }
 
@@ -173,7 +173,7 @@ s32 Text_MeasureMultiLine(u8* arg0)
     buf      = sp10;
 
     do {
-        ret = func_8002F9E0(&cur, sp10);
+        ret = Text_ParseLine(&cur, sp10);
 
         c            = 4;
         sp50.field_0 = 0;
@@ -185,7 +185,7 @@ s32 Text_MeasureMultiLine(u8* arg0)
         c            = 2;
         p->field_D   = c;
         sp50.field_E = 0;
-        func_8002EDFC(p, buf);
+        Text_MeasureAndCenter(p, buf);
 
         if (maxWidth < -sp50.field_0) {
             do {
@@ -237,8 +237,8 @@ void func_8002FEAC(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, v
     Text_DrawPrompt(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
 }
 
-s32 func_8002FEE0(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6,
-                  s32 arg7, s32 arg8)
+s32 Text_DrawMultiLineScroll(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6,
+                             s32 arg7, s32 arg8)
 {
     u8                    sp10[0x40];
     TextDrawReq           sp50[2];
@@ -270,7 +270,7 @@ s32 func_8002FEE0(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 ar
     }
     a1tmp >>= 4;
     if (a1tmp != 0) {
-        cur = func_8002F528(a0tmp, a1tmp);
+        cur = Text_SkipLines(a0tmp, a1tmp);
     }
     obj  = arg0;
     p    = sp50;
@@ -278,7 +278,7 @@ s32 func_8002FEE0(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 ar
     four = 4;
 
     do {
-        ret = func_8002F9E0(&cur, sp10);
+        ret = Text_ParseLine(&cur, sp10);
         if (obj != NULL) {
             if (obj->field_8 != 5) {
                 sp50[0].field_0 = obj->field_20 + x;
@@ -313,7 +313,7 @@ s32 func_8002FEE0(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 ar
     return result;
 }
 
-void func_80030074(void)
+void Text_LoadClutImages(void)
 {
     RECT rect;
 
@@ -352,7 +352,7 @@ void Mc_BuildFileName(u8* arg0, s32 arg1)
     arg0[1] = 0;
 }
 
-void func_800301FC(void)
+void Mc_InitDualBankBuffers(void)
 {
     u8(*a)[0x6C];
     u8(*b)[0xB0];
@@ -398,7 +398,7 @@ void func_800301FC(void)
     p->field_9   = one;
     p->field_5C5 = two;
     p->field_22  = one;
-    func_8004C4D0();
+    Mc_InitSaveSlotDefaults();
     idx                            = p->field_22 - 1;
     (&Wip_SysConfig)[idx].field_21 = two;
 }
@@ -465,7 +465,7 @@ void Mc_InitBufferSlots(void)
     } while ((u32)slot < (u32)end);
 
     Display_State.field_10e = 1;
-    func_800301FC();
+    Mc_InitDualBankBuffers();
 
     Mc_SaveData.field_21  = 0;
     Mc_SaveData.field_1a8 = 0;
@@ -474,5 +474,5 @@ void Mc_InitBufferSlots(void)
     Mc_SaveData.field_1a9 = 0;
     Mc_SaveData.field_25  = 0;
     func_800260B0(1);
-    func_800429C8(0);
+    Snd_ApplyVolumeTable(0);
 }

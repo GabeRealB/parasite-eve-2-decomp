@@ -3,7 +3,7 @@
 #include "main/game.h"
 #include "main/unknown_syms.h"
 
-void func_8004C4D0(void)
+void Mc_InitSaveSlotDefaults(void)
 {
     Wip_SysConfig.field_1a = 0x64;
     Wip_SysConfig.field_18 = 0x64;
