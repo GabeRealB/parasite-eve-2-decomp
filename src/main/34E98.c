@@ -279,7 +279,41 @@ after_fill: {
 }
 }
 
-INCLUDE_ASM("main/nonmatchings/34E98", func_80046124);
+void func_80046124(UiList* arg0, GStruct30* arg1, s32 arg2)
+{
+    RECT     sp10;
+    DR_AREA* p;
+    s32      i;
+    s16      temp;
+
+    if (arg2 == 0) {
+        for (i = 0; i < 2; i++) {
+            p          = (DR_AREA*)D_80071190;
+            D_80071190 = (DR_TPAGE*)(p + 1);
+            sp10.x     = arg1->field_20 + (arg1->field_1C + 0xA0);
+            temp       = arg1->field_22 + (arg1->field_18 + 0x78) + (Display_State.field_1f * 0x110);
+            sp10.y     = temp;
+            sp10.y     = temp + arg0->field_17;
+            sp10.w     = arg1->field_1E - arg1->field_1C;
+            temp       = ((s16)arg1->field_1A - (s16)arg1->field_18 - arg0->field_17) / arg0->field_7;
+            sp10.h     = temp;
+            sp10.h     = temp * arg0->field_7;
+            SetDrawArea(p, &sp10);
+            addPrim(D_800710A0 + (i + (s16)arg1->field_14) + 1, p);
+        }
+    } else {
+        for (i = 0; i < 2; i++) {
+            p          = (DR_AREA*)D_80071190;
+            D_80071190 = (DR_TPAGE*)(p + 1);
+            sp10.w     = 0x140;
+            sp10.x     = 0;
+            sp10.h     = 0xF0;
+            sp10.y     = Display_State.field_1f * 0x110;
+            SetDrawArea(p, &sp10);
+            addPrim(D_800710A0 + (i + (s16)arg1->field_14) + 1, p);
+        }
+    }
+}
 
 void func_800463B4(GStruct30* arg0, s32 arg1, s32 arg2)
 {
