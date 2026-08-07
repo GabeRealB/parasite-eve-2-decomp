@@ -30,7 +30,7 @@ s32 Mc_PromptDialog(Task* arg0, s32 arg1, s32 arg2)
 
     p = (UiObject*)arg0->field_c;
     if (p == NULL) {
-        p = func_800486F0(D_800612D0, one, one, 2, obj);
+        p = Ui_SpawnFromDesc(D_800612D0, one, one, 2, obj);
         if (p != NULL) {
             p->field_C    = (obj->field_20 + obj->field_1E + 5) - p->field_10;
             p->field_E    = obj->field_22 + obj->field_1A + 8;
@@ -42,7 +42,7 @@ s32 Mc_PromptDialog(Task* arg0, s32 arg1, s32 arg2)
     p = ((Task*)p)->field_20;
     if (p->field_2E == 6) {
         obj->field_2C = p->field_2C;
-        func_80048838(p, p->field_28);
+        Ui_TeardownTree(p, p->field_28);
         obj->field_0 = one;
     }
     return obj->field_2C;
@@ -69,7 +69,7 @@ s32 Mc_PromptDialogChoice(Task* arg0, s32 arg1, s32 arg2)
 
     p = (UiObject*)arg0->field_c;
     if (p == NULL) {
-        p = func_800486F0(D_800612D0, 0, one, 2, obj);
+        p = Ui_SpawnFromDesc(D_800612D0, 0, one, 2, obj);
         if (p != NULL) {
             p->field_C    = (obj->field_20 + obj->field_1E + 5) - p->field_10;
             p->field_E    = obj->field_22 + obj->field_1A + 0x10;
@@ -81,7 +81,7 @@ s32 Mc_PromptDialogChoice(Task* arg0, s32 arg1, s32 arg2)
     p = ((Task*)p)->field_20;
     if (p->field_2E == 6) {
         obj->field_2C = p->field_2C;
-        func_80048838(p, p->field_28);
+        Ui_TeardownTree(p, p->field_28);
         obj->field_0 = one;
     }
     return obj->field_2C;
@@ -108,7 +108,7 @@ s32 Mc_PromptDialogSpawn(Task* arg0, s32 arg1, s32 arg2)
 
     p = (UiObject*)arg0->field_c;
     if (p == NULL) {
-        p = func_800486F0(D_800612D0, 3, one, 2, obj);
+        p = Ui_SpawnFromDesc(D_800612D0, 3, one, 2, obj);
         if (p != NULL) {
             p->field_C    = (obj->field_20 + obj->field_1E + 5) - p->field_10;
             p->field_E    = obj->field_22 + obj->field_1A + 0x10;
@@ -120,7 +120,7 @@ s32 Mc_PromptDialogSpawn(Task* arg0, s32 arg1, s32 arg2)
     p = ((Task*)p)->field_20;
     if (p->field_2E == 6) {
         obj->field_2C = p->field_2C;
-        func_80048838(p, p->field_28);
+        Ui_TeardownTree(p, p->field_28);
         obj->field_0 = one;
     }
     return obj->field_2C;
@@ -147,7 +147,7 @@ s32 Mc_PromptDialogFile(Task* arg0, s32 arg1, s32 arg2)
 
     p = (UiObject*)arg0->field_c;
     if (p == NULL) {
-        p = func_800486F0(D_800612D0, 2, one, 2, obj);
+        p = Ui_SpawnFromDesc(D_800612D0, 2, one, 2, obj);
         if (p != NULL) {
             p->field_12   = 0x12;
             p->field_C    = (obj->field_20 + obj->field_1E + 5) - p->field_10;
@@ -160,7 +160,7 @@ s32 Mc_PromptDialogFile(Task* arg0, s32 arg1, s32 arg2)
     p = ((Task*)p)->field_20;
     if (p->field_2E == 6) {
         obj->field_2C = p->field_2C;
-        func_80048838(p, p->field_28);
+        Ui_TeardownTree(p, p->field_28);
         obj->field_0 = one;
     }
     return obj->field_2C;
@@ -176,7 +176,7 @@ typedef struct {
     s32 head;
 } McDirWalk;
 
-void func_80031118(Task* arg0, McWork* arg1)
+void Mc_StateScanDirFlags(Task* arg0, McWork* arg1)
 {
     s32                 ret;
     s32                 one;
@@ -270,7 +270,7 @@ void func_80031118(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, prompt->field_4, ret, one, 0);
 }
 
-void func_800312DC(Task* arg0, McWork* arg1)
+void Mc_StateListDirectory(Task* arg0, McWork* arg1)
 {
     s32           ret;
     s32           one;
@@ -353,7 +353,7 @@ void func_800312DC(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
 }
 
-void func_800314D0(Task* arg0, McWork* arg1)
+void Mc_StateFileSelect(Task* arg0, McWork* arg1)
 {
     UiObject*     saved;
     UiObject*     obj;
@@ -380,7 +380,7 @@ void func_800314D0(Task* arg0, McWork* arg1)
 
     child = arg0->field_c;
     if (child == NULL) {
-        if (func_800486F0(D_8006121C, (s32)arg1, 1, 2, saved) != 0) {
+        if (Ui_SpawnFromDesc(D_8006121C, (s32)arg1, 1, 2, saved) != 0) {
             {
                 UiList*     menu;
                 register u8 t asm("a2");
@@ -405,7 +405,7 @@ void func_800314D0(Task* arg0, McWork* arg1)
         if (childObj->field_2E == 6) {
             saved->field_2C   = childObj->field_2C;
             childObj->field_0 = 0;
-            func_80048838(childObj, childObj->field_28);
+            Ui_TeardownTree(childObj, childObj->field_28);
             saved->field_0 = one;
             if (saved->field_2C >= 0) {
                 if (saved->field_2C < arg1->field_288) {
@@ -503,7 +503,7 @@ void func_800314D0(Task* arg0, McWork* arg1)
                         childObj          = ch->field_20;
                         flag              = arg0->field_20;
                         childObj->field_0 = 0;
-                        func_80048838(childObj, childObj->field_28);
+                        Ui_TeardownTree(childObj, childObj->field_28);
                         flag->field_0 = syncResult;
                     }
                 }

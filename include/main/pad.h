@@ -8,7 +8,7 @@
 // =============================================================================
 
 /// 4-byte pad event entry in PadState banks at 0x10 / 0x30 (see Pad_ClearEvents,
-/// func_8002C8E4). Cleared as sb/sb/sh of zero.
+/// Pad_PostEvent). Cleared as sb/sb/sh of zero.
 typedef struct _PadEvent {
     /* 0x0 */ u8  field_0;
     /* 0x1 */ u8  field_1;
@@ -23,7 +23,7 @@ STATIC_ASSERT_SIZEOF(PadEvent, 0x4);
 /// Pad_CheckButtons); field_A is a cooldown counter (Pad_SetCooldown /
 /// Pad_UpdatePort0). field_B is an auto-repeat timer for face/d-pad bits
 /// (Pad_UpdatePort0). field_2 is a ring index into field_10 banks
-/// (func_8002C8E4). field_10 holds two banks of 8 pad-event entries at 0x10
+/// (Pad_PostEvent). field_10 holds two banks of 8 pad-event entries at 0x10
 /// and 0x30. field_50..field_56 are analog stick related (cleared/read by
 /// Pad_UpdatePort0 when field_0 == 0x73). field_5A / field_5B are cleared
 /// during pad init.
@@ -82,7 +82,7 @@ void Tmd_InitLists(void);
 // =============================================================================
 
 s32  Pad_CheckButtons(s32 port, s32 mode, s32 mask);
-void func_8002C8E4(s32 port, s32 bank, s32 arg2, s32 arg3);
+void Pad_PostEvent(s32 port, s32 bank, s32 arg2, s32 arg3);
 void Pad_SetCooldown(s32 port);
 void Pad_ClearCooldown(s32 port);
 s32  Pad_ReadButtonsInv(s32 port);

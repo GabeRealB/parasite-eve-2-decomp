@@ -79,7 +79,7 @@ block_done:
 
 INCLUDE_ASM("main/nonmatchings/sndscript", func_80053A20);
 
-s32 func_80053BF4(s32 arg0, s32 arg1, s32 arg2)
+s32 TaskIdMap_RemapIndex(s32 arg0, s32 arg1, s32 arg2)
 {
     GBytes6 sp;
     s32     temp;
@@ -163,10 +163,10 @@ s32 func_80053BF4(s32 arg0, s32 arg1, s32 arg2)
 
 void func_80053D90(void)
 {
-    func_80053DB0(0);
+    Snd_SetBusyFlag(0);
 }
 
-void func_80053DB0(s32 arg0)
+void Snd_SetBusyFlag(s32 arg0)
 {
     if (arg0 == 0) {
         Snd_FreeBank((SndBank*)&D_8007E258);
@@ -199,8 +199,8 @@ void func_80053E48(void)
 
 void Snd_RegisterTickCallbacks(void)
 {
-    func_8004D460(Midi_Tick, 0, 0x4800, 0);
-    func_8004D460(SndVoice_DriveSlots, 0, 0x8800, 0);
+    AudioTick_Insert(Midi_Tick, 0, 0x4800, 0);
+    AudioTick_Insert(SndVoice_DriveSlots, 0, 0x8800, 0);
     D_80082130 = 0x3D010;
     D_80082128 = 0x63810;
     D_80082124 = D_80082128;
@@ -212,7 +212,7 @@ void Snd_RegisterTickCallbacks(void)
 }
 
 // K&R definition so the no-arg call in func_8005462C stays legal (indeterminate a0).
-s32 func_80053F00(arg0)
+s32 SndBank_RemapId(arg0)
 s32 arg0;
 {
     s32          var_s0;
@@ -228,7 +228,7 @@ s32 arg0;
     return var_s0;
 }
 
-s32 func_80053F60(s32* arg0)
+s32 Snd_ReverbWarmupCb(s32* arg0)
 {
     s32 temp;
 
@@ -257,7 +257,7 @@ void func_80053FA0(s32 arg0)
     Midi_SetMasterVolume(var_a0);
 }
 
-s32 func_80053FF4(u32 arg0)
+s32 Snd_InitBanks(u32 arg0)
 {
     s32               i;
     s8                slot;
@@ -324,7 +324,7 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
                 return -1;
             }
         }
-        arg0  = func_80053F00(arg0);
+        arg0  = SndBank_RemapId(arg0);
         bank  = SndBankSlot_Find((u32)arg0 >> 16, 0);
         index = (u32)arg0 & 0xFF;
         if ((bank == NULL) ||
@@ -376,7 +376,7 @@ void SndEvt_EnqueueType7(s32 arg0, s32 arg1)
     if (temp != NULL) {
         temp->field_2 = 7;
         mid           = (SndEvtFrom4*)&temp->field_4;
-        mid->field_4  = func_80053F00(arg0);
+        mid->field_4  = SndBank_RemapId(arg0);
         mid->field_2  = arg1;
         SndEvt_Enqueue(temp);
     }
@@ -392,7 +392,7 @@ void func_80054334(s32 arg0)
         if (temp != NULL) {
             temp->field_2 = 8;
             mid           = (SndEvtFrom4*)&temp->field_4;
-            mid->field_4  = func_80053F00(arg0);
+            mid->field_4  = SndBank_RemapId(arg0);
             SndEvt_Enqueue(temp);
         }
     }
@@ -408,7 +408,7 @@ void SndEvt_EnqueueType9(s32 arg0)
         if (temp != NULL) {
             temp->field_2 = 9;
             mid           = (SndEvtFrom4*)&temp->field_4;
-            mid->field_4  = func_80053F00(arg0);
+            mid->field_4  = SndBank_RemapId(arg0);
             SndEvt_Enqueue(temp);
         }
     }
@@ -424,7 +424,7 @@ void SndEvt_EnqueueTypeA(s32 arg0, s32 arg1, s32 arg2)
         if (temp != NULL) {
             temp->field_2 = 0xA;
             mid           = (SndEvtFrom4*)&temp->field_4;
-            mid->field_4  = func_80053F00(arg0);
+            mid->field_4  = SndBank_RemapId(arg0);
             temp->field_4 = arg1;
             mid->field_1  = arg2;
             SndEvt_Enqueue(temp);
@@ -442,7 +442,7 @@ void SndEvt_EnqueueTypeB(s32 arg0, s32 arg1)
         if (temp != NULL) {
             temp->field_2 = 0xB;
             mid           = (SndEvtFrom4*)&temp->field_4;
-            mid->field_4  = func_80053F00(arg0);
+            mid->field_4  = SndBank_RemapId(arg0);
             mid->field_1  = arg1;
             if ((s8)arg1 < 0) {
                 mid->field_1 = 0x7F;
@@ -479,7 +479,7 @@ void SndBank_SetEnableFlags(s32 arg0, s32 arg1)
                 if (temp != NULL) {
                     temp->field_2 = 7;
                     mid           = (SndEvtFrom4*)&temp->field_4;
-                    mid->field_4  = func_80053F00(0x40000000);
+                    mid->field_4  = SndBank_RemapId(0x40000000);
                     mid->field_2  = 1;
                     SndEvt_Enqueue(temp);
                 }
@@ -495,7 +495,7 @@ void func_80054608(s8 arg0)
 
 s32 func_8005462C(void)
 {
-    return ~SndVoice_FindById(func_80053F00()) != 0;
+    return ~SndVoice_FindById(SndBank_RemapId()) != 0;
 }
 
 void func_80054658(void)
@@ -866,7 +866,7 @@ INCLUDE_ASM("main/nonmatchings/sndscript", SndVoice_KeyOffMatching);
 INCLUDE_ASM("main/nonmatchings/sndscript", SndScript_Exec);
 
 /* Absolute copy of jtbl_80014168 for still-asm func_800546F4. Placed after
- * func_80053BF4's compiler-generated jtbls so the still-asm table keeps its
+ * TaskIdMap_RemapIndex's compiler-generated jtbls so the still-asm table keeps its
  * VMA until that function is matched. */
 const s32 jtbl_80014168[16] = {
     0x8005484C,
@@ -1032,7 +1032,7 @@ void SndVoice_FadeMatching(s32 arg0, s32 arg1)
     }
 }
 
-void func_80055A9C(s32 arg0, s32 arg1, s32 arg2)
+void SndVoice_SetPanRamp(s32 arg0, s32 arg1, s32 arg2)
 {
     SndScript* p;
     s32        t;
@@ -1518,8 +1518,8 @@ void SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* arg2, LinInterp* arg3, s16
         } else {
             temp_v0 = 0x7F;
         }
-        func_8004D35C(arg4, (s16)((s8)arg2->field_3 + (arg0 * 3)),
-                      LinInterp_Apply(arg3, D_80068E78[temp_v0]));
+        Spu_ApplyPanVolume(arg4, (s16)((s8)arg2->field_3 + (arg0 * 3)),
+                           LinInterp_Apply(arg3, D_80068E78[temp_v0]));
     }
 }
 
@@ -1559,7 +1559,7 @@ void SndVoice_SetupEnvelope(SndVoice* arg0, s16 arg1, u32 arg2, SndNote* arg3)
     }
 }
 
-s32 func_8005664C(u8* arg0, s16 arg1, SndOneAOut* arg2)
+s32 SndScript_FindOneA(u8* arg0, s16 arg1, SndOneAOut* arg2)
 {
     SndOneA* chunk;
 

@@ -22,7 +22,7 @@ void Task_AllocIdMap(Task* arg0)
             D_80062737 = 0;
         }
         temp_a0    = Game_Session->field_7;
-        ret        = func_80053BF4(temp_a0, D_8007272D, D_8006276C[temp_a0 - 1]);
+        ret        = TaskIdMap_RemapIndex(temp_a0, D_8007272D, D_8006276C[temp_a0 - 1]);
         field34    = arg0->field_34;
         D_80062738 = ret;
         D_8007A398 = 0;
@@ -192,7 +192,7 @@ void func_800430E4(s32 arg0)
     }
 }
 
-void func_80043198(Task* arg0)
+void Stage_DispatchTaskTable(Task* arg0)
 {
     TaskFuncTable4 sp;
 
@@ -200,7 +200,7 @@ void func_80043198(Task* arg0)
     sp.funcs[arg0->field_30](arg0);
 }
 
-void func_800431FC(Task* arg0)
+void Stage_KillWhenIdle(Task* arg0)
 {
     if (CdCmd_IsIdle() != 0) {
         D_80062734 = 0xFF;
@@ -221,7 +221,7 @@ void func_8004323C(void)
     product = g->field_6 * D_80062764[idx];
     base    = (u8*)D_8006273C[idx];
     if (base[product * 2] == 0x80) {
-        if (func_8004ACAC(0x108) == 1) {
+        if (GameFlag_GetNibble(0x108) == 1) {
             one = 1;
             SndEvt_EnqueueType7(0x60010000 | one, 0x1E);
             D_80062736 = 0;
@@ -376,7 +376,7 @@ void Prim_DrawTPage(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     AddPrim(D_800710A0 + arg3, p);
 }
 
-s32 func_8004379C(RECT* arg0, u8* arg1, s16* arg2)
+s32 Prim_DrawFadeTile(RECT* arg0, u8* arg1, s16* arg2)
 {
     PrimDrawParams sp;
     register s32   ret asm("s0");

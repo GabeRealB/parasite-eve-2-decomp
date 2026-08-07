@@ -634,7 +634,7 @@ void CdCmd_ProcessPhase1(void)
             switch (*statePtr) {
                 case 0:
                     if (D_8006AC58 != 0) {
-                        func_80026148();
+                        CdVol_CacheFromSpu();
                         p->field_1fc = p->field_1fc + 1;
                     } else {
                         p->field_1fc = 2;
@@ -642,7 +642,7 @@ void CdCmd_ProcessPhase1(void)
                     }
                     /* fallthrough */
                 case 1:
-                    if (func_800262A8() == 0) {
+                    if (CdVol_StepDown() == 0) {
                         *statePtr = *statePtr + 1;
                     }
                     CdCmd_HandleStreamDecode();
@@ -806,7 +806,7 @@ void CdCmd_ProcessPhase2(void)
             switch (*statePtr) {
                 case 0:
                     if (D_8006AC58 != 0) {
-                        func_80026148();
+                        CdVol_CacheFromSpu();
                         p->field_1d2 = p->field_1d2 + 1;
                     } else {
                         p->field_1d2 = 2;
@@ -814,7 +814,7 @@ void CdCmd_ProcessPhase2(void)
                     }
                     /* fallthrough */
                 case 1:
-                    if (func_800262A8() == 0) {
+                    if (CdVol_StepDown() == 0) {
                         *statePtr = *statePtr + 1;
                     }
                     CdCmd_HandleStreamDecode();
@@ -1078,7 +1078,7 @@ s16 CdCmd_GetStreamMode(void)
     return CdCmd_Queue.field_20E;
 }
 
-void func_8001D534(u16 arg0, u16 arg1, u16 arg2)
+void CdCmd_StartOverlay(u16 arg0, u16 arg1, u16 arg2)
 {
     CdCmdQueue* p;
 

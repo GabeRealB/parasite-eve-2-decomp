@@ -45,13 +45,13 @@ setup_events:
     Snd_ClearBanks();
     AudioTick_Reset();
     Snd_RegisterTickCallbacks();
-    func_80053FF4(0);
-    func_80050D20(0);
+    Snd_InitBanks(0);
+    Midi_InitSystem(0);
 
     temp_v0  = F3D458_Malloc(4);
     *temp_v0 = 0;
 
-    func_8004D460(&func_80053F60, 0, 0x8801, temp_v0);
+    AudioTick_Insert(&Snd_ReverbWarmupCb, 0, 0x8801, temp_v0);
     if (D58028_SpuTimerEnabled) {
         DisableEvent(D648E0_SpuTimerED);
         CloseEvent(D648E0_SpuTimerED);
@@ -66,14 +66,14 @@ setup_events:
         ResetRCnt(RCntCNT0);
         StartRCnt(RCntCNT0);
         EnterCriticalSection();
-        D648E0_SpuTimerED = OpenEvent(RCntCNT0, EvSpINT, EvMdINTR, func_8004D7D4);
+        D648E0_SpuTimerED = OpenEvent(RCntCNT0, EvSpINT, EvMdINTR, Spu_TimerCallback);
 
         // HACK: What is this? The control flow of this function already
         // looks bad. To add insult to injury, This is the output that we
         // want:
         //
         // jal      OpenEvent
-        // addiu    a3, a3, %lo(func_8004D7D4)
+        // addiu    a3, a3, %lo(Spu_TimerCallback)
         // sw       v0, %lo(DE648E0_SpuTimerED)(s0)
         // jal      ExitCriticalSection
         // nop
@@ -81,7 +81,7 @@ setup_events:
         // And this is the assembly that we get without this line:
         //
         // jal      OpenEvent
-        // addiu    a3, a3, %lo(func_8004D7D4)
+        // addiu    a3, a3, %lo(Spu_TimerCallback)
         // jal      ExitCriticalSection
         // sw       v0, %lo(DE648E0_SpuTimerED)(s0)
         //
@@ -363,7 +363,7 @@ void LinInterp_Step(LinInterp* arg0)
     }
 }
 
-void func_8004D35C(s16* arg0, s16 arg1, s32 arg2)
+void Spu_ApplyPanVolume(s16* arg0, s16 arg1, s32 arg2)
 {
     s16 index;
     u32 left;
@@ -399,7 +399,7 @@ void func_8004D35C(s16* arg0, s16 arg1, s32 arg2)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/sndbank", func_8004D460);
+INCLUDE_ASM("main/nonmatchings/sndbank", AudioTick_Insert);
 
 void F3D458_ResetHeap(void)
 {
@@ -577,19 +577,19 @@ void F3D458_Free(void* ptr)
     header->isAllocated = false;
 }
 
-long func_8004D7D4(void)
+long Spu_TimerCallback(void)
 {
     if (D_800680A4 != 0) {
         D_8007E0CC--;
         if (D_8007E0CC == 0) {
             D_800680A4 = 0;
-            func_8004D820();
+            Spu_TimerReentryWork();
         }
     }
     return 0;
 }
 
-s32 func_8004D820(void)
+s32 Spu_TimerReentryWork(void)
 {
     if (D_800680C0 == 0) {
         return 0;

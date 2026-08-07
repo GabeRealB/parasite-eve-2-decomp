@@ -27,14 +27,14 @@ STATIC_ASSERT_SIZEOF(McPromptPair, 0x8);
 /// filled by MemCardGetDirentry; field_288 is the entry count used to bound
 /// field_A14 walks (Mc_StateOpenNext / Mc_StateWalkDirectory). field_28C is free-block
 /// count (updated as field_28C - field_288 after a directory listing in
-/// func_800312DC). field_290 is the Mc_FileName match index (or 0); cleared when
+/// Mc_StateListDirectory). field_290 is the Mc_FileName match index (or 0); cleared when
 /// a non-empty directory listing is obtained (Mc_StateGetDirentry). field_294 is a
 /// 15-slot array of 0x80-byte read buffers indexed by field_A14
 /// (MemCardReadData adrs in Mc_StateReadSlot, ofs 0x200, size 0x80). field_A14
 /// indexes the selected slot for MemCardOpen / field_294 reads.
 /// field_A1C/field_A1E are a sum / ones-complement checksum pair over 0x200
 /// signed bytes of that buffer (written by Mc_WriteDataChecksum).
-/// Bytes at 0xA23+ form a block→direntry map written by func_800312DC
+/// Bytes at 0xA23+ form a block→direntry map written by Mc_StateListDirectory
 /// (index = DIRENTRY.head / 64); field_A20 is a separate word flag (Mc_ResetWork
 /// / func_80035A94) whose high byte is the first map slot.
 typedef struct _McWork {
@@ -194,7 +194,7 @@ extern McPromptPair Mc_PromptTable[];
 extern McSaveData   Mc_SaveData;
 /// "Memory Card" string passed to Ui_DrawTitle by Mc_DrawPrompt.
 extern char D_8001398C[];
-/// "*" wildcard passed to MemCardGetDirentry by func_80031118.
+/// "*" wildcard passed to MemCardGetDirentry by Mc_StateScanDirFlags.
 extern char D_80013A5C[];
 /// Jump table of 44 McStateFunc handlers used by Mc_DispatchStateTable.
 extern McStateFuncTable44 D_800139AC;

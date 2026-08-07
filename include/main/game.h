@@ -106,7 +106,7 @@ typedef struct _GBytes4 {
     u8 data[4];
 } GBytes4;
 
-/// 6-byte block assigned via unaligned lwl/lwr + lb/sb (see func_80053BF4).
+/// 6-byte block assigned via unaligned lwl/lwr + lb/sb (see TaskIdMap_RemapIndex).
 typedef struct _GBytes6 {
     u8 data[6];
 } GBytes6;
@@ -360,8 +360,8 @@ typedef struct _UiMiniObj {
 } UiMiniObj;
 STATIC_ASSERT_SIZEOF(UiMiniObj, 0x24);
 
-/// Object at Task::field_20 used by func_80048838 / Mc_HideChildUi /
-/// Mc_DrawPrompt / func_800486F0. Shares the UiPanel layout through offset
+/// Object at Task::field_20 used by Ui_TeardownTree / Mc_HideChildUi /
+/// Mc_DrawPrompt / Ui_SpawnFromDesc. Shares the UiPanel layout through offset
 /// 0x24 (handlers cast field_20 to UiPanel*). field_0 is a status flag;
 /// field_4 is copied from UiObjectDesc::field_0 at spawn; field_8 is a mode
 /// (5 = skip draw in Text_DrawPrompt / Text_DrawMultiLine; set to 3 when torn down); field_C..field_12
@@ -397,7 +397,7 @@ typedef struct _UiObject {
 } UiObject;
 STATIC_ASSERT_SIZEOF(UiObject, 0x30);
 
-/// Template/descriptor consumed by func_800486F0 to spawn a UiObject + Task.
+/// Template/descriptor consumed by Ui_SpawnFromDesc to spawn a UiObject + Task.
 typedef struct _UiObjectDesc {
     /* 0x00 */ s32 field_0; // → UiObject.field_4
     /* 0x04 */ u16 field_4; // → layout
@@ -413,13 +413,13 @@ typedef struct _UiObjectDesc {
 } UiObjectDesc;
 STATIC_ASSERT_SIZEOF(UiObjectDesc, 0x1C);
 
-/// Singly-linked text line node used by TextBlockDesc / func_800480A0.
+/// Singly-linked text line node used by TextBlockDesc / Ui_SpawnTextBlock.
 typedef struct TextLineNode {
     /* 0x0 */ u8*                  text;
     /* 0x4 */ struct TextLineNode* next;
 } TextLineNode;
 
-/// Multi-line text block descriptor consumed by func_800480A0 to spawn a
+/// Multi-line text block descriptor consumed by Ui_SpawnTextBlock to spawn a
 /// sized UiObject. field_0 is the line count; field_2 is cleared on return;
 /// field_4 is the head of a TextLineNode list; field_8 selects layout mode
 /// (0 forces UiObject::field_4 = 3).
@@ -432,7 +432,7 @@ typedef struct TextBlockDesc {
 STATIC_ASSERT_SIZEOF(TextBlockDesc, 0xC);
 
 /// 8-byte slot at MidiOpcodeCtx::field_484 (16 entries, indexed by opcode low nibble).
-/// Seeded as the word 0x407F4000 by func_800528BC (field_0..field_3 little-endian);
+/// Seeded as the word 0x407F4000 by Midi_InitChannelTable (field_0..field_3 little-endian);
 /// field_0 is tested as a flag byte (lbu); field_4 is a byte written by handlers.
 typedef struct _MidiOpcodeSlot {
     /* 0x0 */ u8  field_0;
@@ -445,7 +445,7 @@ typedef struct _MidiOpcodeSlot {
 } MidiOpcodeSlot;
 STATIC_ASSERT_SIZEOF(MidiOpcodeSlot, 0x8);
 
-/// Large context object used by 410B0.c opcode handlers (e.g. func_800529BC).
+/// Large context object used by 410B0.c opcode handlers (e.g. Midi_SetProgram).
 /// Only fields used so far are named; size is incomplete.
 typedef struct _MidiOpcodeCtx {
     /* 0x000 */ byte           unknown_0[0x484];
@@ -479,13 +479,13 @@ STATIC_ASSERT_SIZEOF(StreamSlot, 0x28);
 /// UI list/menu object (data symbols D_8006116C, D_80061194, D_8006125C,
 /// D_80061284, D_800612AC, D_80067654; size 0x24).
 /// field_0 is a function-table pointer; field_4 / field_5 are base indices
-/// (func_80049C00 seeds both from context); field_5 is also subtracted when
+/// (Ui_ListTaskCallback seeds both from context); field_5 is also subtracted when
 /// computing field_9; field_6 / field_7 are signed layout sizes (Ui_DrawListHighlight
 /// uses field_7 as TILE height); field_9 / field_A / field_10 are list cursor /
 /// flag / selection index used by McMenu_SelectList / McMenu_SelectListAlt / McMenu_InitByMode /
 /// Ui_InitList / func_8004917C; field_C / field_14 / field_16 are cleared by
 /// Ui_InitList; field_17 is a signed layout adjust subtracted from the child
-/// height when computing visible rows (func_80048AEC / func_80048C30; the latter
+/// height when computing visible rows (Ui_ComputeVisibleRows / Ui_ComputeVisibleRowsEx; the latter
 /// also writes field_17 from its third argument).
 typedef struct _UiList {
     /* 0x00 */ byte unknown_0[0x4]; // often function-table pointer
@@ -579,13 +579,13 @@ typedef struct _WipUiHolder {
     /* 0x28 */ WipUiChild* field_28;
 } WipUiHolder;
 
-/// Object used by 34E98.c handlers (e.g. func_80049554 / D_80013F2C table).
+/// Object used by 34E98.c handlers (e.g. Ui_AnimOpenStep / D_80013F2C table).
 /// field_4 low nibble selects layout padding (Ui_InsetLayout); high nibble of the
 /// low byte selects a fill mode (Ui_ScaleRect). field_8 is a small integer
 /// state; field_C is a source RECT used by layout helpers (Ui_InsetLayout /
 /// Ui_ComputeAnimRect); field_14 is a halfword counter temporarily adjusted around
-/// text draw (func_80048F88); field_16 is a signed counter/timer;
-/// field_18..field_22 are layout offsets (func_80049024 / Ui_InsetLayout);
+/// text draw (Ui_DrawTextAtLayout); field_16 is a signed counter/timer;
+/// field_18..field_22 are layout offsets (Ui_ClampDialogRect / Ui_InsetLayout);
 /// field_24 is a callback invoked with the second handler argument.
 typedef struct _UiPanel {
     /* 0x00 */ s32  field_0;
@@ -607,13 +607,13 @@ typedef struct _UiPanel {
 typedef void (*UiPanelFunc)(UiPanel* arg0, void* arg1);
 
 /// Fixed-size table of UiPanelFunc callbacks. Copied onto the stack by
-/// func_800498D4 so the call uses a local jump table.
+/// Ui_DispatchObjectState so the call uses a local jump table.
 typedef struct {
     UiPanelFunc funcs[6];
 } UiPanelFuncTable6;
 
 /// Header for the bank table blob pointed to by SndBankSlot.field_0.
-/// field_4 is the bank ID (high halfword remapped by func_80053F00 when the
+/// field_4 is the bank ID (high halfword remapped by SndBank_RemapId when the
 /// request high nibble is 0x1); field_6 is the entry count used by SndEvt_EnqueueType6.
 /// A u16 offset table follows at 0x8 (indexed via SndBankHdrOff).
 typedef struct _SndBankHdr {
@@ -725,7 +725,7 @@ struct _SndVoice {
 STATIC_ASSERT_SIZEOF(SndVoice, 0x40);
 
 /// Overlay of SndLoadState at +0x1C (sector payload header for sound-bank setup).
-/// Passed to Snd_AllocBank; filled from a CD sector by func_80052B30.
+/// Passed to Snd_AllocBank; filled from a CD sector by SndLoad_ProcessSector.
 /// field_4 high nibble indexes D_800680AC / selects bank type; field_7 is the
 /// SndBankGroup count and field_8 is the SndNote entry count used to size
 /// the SndBank heap block (groups*4 + entries*0x14 + groups*2).
@@ -740,7 +740,7 @@ typedef struct _SndBankPayload {
 /// State block at SndLoad_State; field_3 is also D_800820F3.
 /// field_14/field_18 cleared by Snd_InitFromStage; field_10 sized by SndLoad_Init.
 /// field_26/field_28 set by the CD ready path in CdAudio_FeedSector.
-/// field_1C..field_2C are filled as five words from a sector by func_80052B30
+/// field_1C..field_2C are filled as five words from a sector by SndLoad_ProcessSector
 /// (overlay of SndBankPayload at +0x1C: field_20/22/23/24 == payload field_4/6/7/8).
 /// Named BSS symbols D_80082120+ begin immediately after this 0x30-byte block.
 typedef struct _SndLoadState {
@@ -779,11 +779,11 @@ typedef struct _GpuOtBuf {
 STATIC_ASSERT_SIZEOF(GpuOtBuf, 0x14);
 
 /// Track/channel entry inside MidiSong (stride 0x3C). field_5 is a per-entry flag
-/// written by func_80051AB8; absolute offset of first entry's field_5 is 0x51.
+/// written by Midi_ResetTrackFlags; absolute offset of first entry's field_5 is 0x51.
 /// field_0 / field_1 / field_4 are NRPN/RPN state used by the MIDI CC handler
 /// (func_80052488). field_6 / field_7 and field_8[] form a loop stack for the
-/// 0xF5/0xF6 meta opcodes (func_800526A4); field_8[8] is also the track data
-/// pointer resolved by func_80051A2C (absolute offset 0x74). field_2C is the
+/// 0xF5/0xF6 meta opcodes (Midi_HandleMetaSysex); field_8[8] is also the track data
+/// pointer resolved by Midi_ResolveTrackData (absolute offset 0x74). field_2C is the
 /// current track cursor advanced by the MIDI event driver (Midi_DriveTrack).
 /// field_30 is a saved event cursor for looped CC 0x63. field_34 is the
 /// remaining delta-time for the next event; field_38 is a fractional tick
@@ -808,7 +808,7 @@ STATIC_ASSERT_SIZEOF(MidiTrack, 0x3C);
 /// Active SPU voice slot inside MidiSong (stride 0xC, 18 slots at 0x504).
 /// field_0 is the voice index (negative when free); iterated by Midi_KeyOffVoices.
 /// field_0 / field_1 are set to -1 when the slot is cleared (Midi_InitSlot).
-/// field_1 / field_2 match opcode nibble / param in func_800528F8.
+/// field_1 / field_2 match opcode nibble / param in Midi_KeyOffChannel.
 /// field_3 indexes D_80068E78 for velocity scaling (Midi_UpdateVoiceVolumes).
 /// field_4 is a signed per-note volume scale; field_5 is a signed pan offset.
 /// field_6 / field_7 index the bank note via Snd_GetNote; field_8 is scaled pitch.
@@ -847,7 +847,7 @@ STATIC_ASSERT_SIZEOF(LinInterp, 0x10);
 /// field_34 is a tempo/rate scale used by Midi_DriveTrack with field_4+field_5;
 /// field_38 is accumulated song ticks advanced by that driver.
 /// field_484 is a 16-entry opcode table (same layout as MidiOpcodeCtx::field_484);
-/// func_800528BC seeds each entry with 0x407F4000 / 0.
+/// Midi_InitChannelTable seeds each entry with 0x407F4000 / 0.
 /// voiceSlots holds up to 18 active SPU voice indices (field_0 = -1 when free).
 typedef struct _SndBank      SndBank;
 typedef struct _SndNote      SndNote;
@@ -1181,7 +1181,7 @@ typedef struct _SndOneV {
     /* 0x0E */ s8  field_E;  // reverb gate vs D_8008274B
     /* 0x0F */ u8  pad_F;
     /* 0x10 */ u16 field_10; // voice-alloc priority for SndVoice_Alloc
-    /* 0x12 */ s16 field_12; // oneA offset for func_8005664C
+    /* 0x12 */ s16 field_12; // oneA offset for SndScript_FindOneA
     /* 0x14 */ u16 field_14; // base pitch
     /* 0x16 */ s16 field_16; // oneE offset for SndVoice_SetupEnvelope (-1 disables)
 } SndOneV;
@@ -1200,7 +1200,7 @@ STATIC_ASSERT_SIZEOF(SndScriptCmd, 0x8);
 /// 0x60-byte slot in SndScript_Slots[8]. field_0 is an ID looked up by
 /// SndVoice_FindById; field_16 holds status flags (mask 0xA3 selects active entries).
 /// field_E is a dirty flag; field_10/11/12 and field_13/14/15 are paired ramps
-/// (current/target/step) updated by func_80055A9C and SndVoice_SetVolumeRamp respectively.
+/// (current/target/step) updated by SndVoice_SetPanRamp and SndVoice_SetVolumeRamp respectively.
 /// field_17/field_18/field_20 are a loop stack (depth, remaining counts, restart
 /// positions) used by Loop/endL in SndScript_Exec.
 /// field_40 is the head of a SndVoice voice list (cleared/walked by SndScript_Play);
@@ -1257,7 +1257,7 @@ typedef struct _CdAudioVoices {
 } CdAudioVoices;
 STATIC_ASSERT_SIZEOF(CdAudioVoices, 0x40);
 
-/// "oneA" (0x41656E6F) tagged chunk header read by func_8005664C.
+/// "oneA" (0x41656E6F) tagged chunk header read by SndScript_FindOneA.
 /// Located at a signed byte offset into a raw buffer.
 typedef struct _SndOneA {
     /* 0x0 */ s32 field_0;
@@ -1266,7 +1266,7 @@ typedef struct _SndOneA {
 } SndOneA;
 STATIC_ASSERT_SIZEOF(SndOneA, 0x8);
 
-/// Destination for func_8005664C: receives halfwords from a SndOneA chunk.
+/// Destination for SndScript_FindOneA: receives halfwords from a SndOneA chunk.
 typedef struct _SndOneAOut {
     /* 0x00 */ u8  pad_00[0x3A];
     /* 0x3A */ u16 field_3A;
@@ -1294,7 +1294,7 @@ typedef struct _DialogPrompt {
     /* 0x22 */ s16  field_22;
 } DialogPrompt;
 
-/// Linked text option node walked by func_80049AF0 (index via DialogPrompt::field_8).
+/// Linked text option node walked by Ui_DrawDialogLine (index via DialogPrompt::field_8).
 /// field_0 is the string passed to Text_DrawPrompt; field_4 is the next node.
 typedef struct _DialogOption {
     /* 0x0 */ u8*                   field_0;
@@ -1302,7 +1302,7 @@ typedef struct _DialogOption {
 } DialogOption;
 STATIC_ASSERT_SIZEOF(DialogOption, 0x8);
 
-/// Context at Task::field_34 for the func_80049AF0 dialog path.
+/// Context at Task::field_34 for the Ui_DrawDialogLine dialog path.
 /// field_4 is the head of a DialogOption list; field_C bit0 gates cancel input.
 typedef struct _DialogListCtx {
     /* 0x00 */ byte          unknown_0[4];
@@ -1311,7 +1311,7 @@ typedef struct _DialogListCtx {
     /* 0x0C */ u8            field_C;
 } DialogListCtx;
 
-/// Context at Task::field_34 for the func_80049C00 UI path.
+/// Context at Task::field_34 for the Ui_ListTaskCallback UI path.
 /// field_0 is a base index copied into UiList field_4/field_5; field_2 receives
 /// the selected index from UiObject::field_2C on confirm/cancel; field_8 is an
 /// optional string passed to Ui_DrawText.
@@ -1343,7 +1343,7 @@ typedef struct _SndVoicePick {
 } SndVoicePick;
 STATIC_ASSERT_SIZEOF(SndVoicePick, 0x18);
 
-/// 0xC-byte init-table entry at Snd_BankInitTable (two entries used by func_80053FF4).
+/// 0xC-byte init-table entry at Snd_BankInitTable (two entries used by Snd_InitBanks).
 /// field_0 indexes D_800680AC for a slot id; field_2 is written to SndBankSlot.field_8
 /// and SndBank.field_8; field_4/field_6 are F3D458_Malloc sizes; field_8 is stored
 /// to SndBankSlot.field_C.

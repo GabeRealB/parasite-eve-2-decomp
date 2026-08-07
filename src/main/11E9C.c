@@ -117,7 +117,7 @@ s32 Fade_StepOut(s32 arg0)
     return val < 0;
 }
 
-void func_80021A20(u8* arg0)
+void Fs_SelectLoadHandlers0(u8* arg0)
 {
     switch (D5B498_8006ACB8.field_2) {
         case 1:
@@ -150,7 +150,7 @@ void func_80021A20(u8* arg0)
             *arg0           = 6;
             break;
         case 19:
-            if (func_8004ACAC(0x7A) == 0) {
+            if (GameFlag_GetNibble(0x7A) == 0) {
                 D5B498_8006ACB0 = D_80062D08;
                 *arg0           = 7;
             } else {
@@ -166,7 +166,7 @@ void func_80021A20(u8* arg0)
     }
 }
 
-void func_80021B28(u8* arg0)
+void Fs_SelectLoadHandlers1(u8* arg0)
 {
     switch (D5B498_8006ACB8.field_2) {
         case 1:
@@ -232,13 +232,13 @@ void func_80021B28(u8* arg0)
     }
 }
 
-void func_80021C0C(u8* arg0)
+void Fs_SelectLoadHandlers2(u8* arg0)
 {
     s32 temp_v1;
     s32 field2;
     s32 val;
 
-    temp_v1 = func_8004ACAC(0x7A);
+    temp_v1 = GameFlag_GetNibble(0x7A);
     field2  = D5B498_8006ACB8.field_2;
 
     if (field2 == 0x1B) {
@@ -323,12 +323,12 @@ case_def_5:
     *arg0           = 0x20;
 }
 
-void func_80021D8C(u8* arg0)
+void Fs_SelectLoadHandlers3(u8* arg0)
 {
     s32 temp_v1;
     s32 val;
 
-    temp_v1 = func_8004ACAC(0x7A);
+    temp_v1 = GameFlag_GetNibble(0x7A);
     switch (D5B498_8006ACB8.field_2) {
         case 1:
             D5B498_8006ACB0 = D_80062AB4;
@@ -506,10 +506,10 @@ void func_80021D8C(u8* arg0)
     }
 }
 
-/* Pad after 47-entry jtbl for func_80021D8C (original had trailing .word 0). */
+/* Pad after 47-entry jtbl for Fs_SelectLoadHandlers3 (original had trailing .word 0). */
 static const s32 s_jtbl_pad_21D8C = 0;
 
-void func_8002207C(void)
+void Fs_SetupBootLoad(void)
 {
     u8    sp10[8];
     u8    sp18[8];
@@ -533,20 +533,20 @@ void func_8002207C(void)
     D5B498_8006ACAC = NULL;
     switch (D5B498_8006ACB8.field_3) {
         case 1:
-            func_80021A20(sp10);
+            Fs_SelectLoadHandlers0(sp10);
             break;
         case 2:
-            func_80021B28(sp10);
+            Fs_SelectLoadHandlers1(sp10);
             break;
         case 3:
-            func_80021C0C(sp10);
+            Fs_SelectLoadHandlers2(sp10);
             break;
         case 4:
-            func_80021D8C(sp10);
+            Fs_SelectLoadHandlers3(sp10);
             break;
         case 5:
         default:
-            func_8004ACAC(0x7A);
+            GameFlag_GetNibble(0x7A);
             field2 = D5B498_8006ACB8.field_2;
             if (field2 == 0x16) {
                 goto case_16;
@@ -584,10 +584,10 @@ void func_8002207C(void)
     D5B498_8006AC98 = CdCmd_Enqueue(0x21, sp10, sp18);
 }
 
-/* Alignment pad after the 5-entry func_8002207C jump table. */
+/* Alignment pad after the 5-entry Fs_SetupBootLoad jump table. */
 static const s32 s_jtbl_pad_2207C = 0;
 
-void func_8002226C(void* arg0, void* arg1)
+void Fs_BootImageMachine(void* arg0, void* arg1)
 {
     void* secondary;
     s32   ret;

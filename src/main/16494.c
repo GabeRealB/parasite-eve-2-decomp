@@ -30,7 +30,7 @@ void Fs_StreamReadyCb(u8 status, u8* result)
         buf           = state->field_4;
         Fs_ReqSector += 1;
         CdGetSector(buf, 0x200);
-        ret = func_80053414(buf);
+        ret = SndLoad_FeedSectorOrError(buf);
         if (ret != -1) {
             if (ret != 5) {
                 return;
@@ -48,7 +48,7 @@ void Fs_StreamReadyCb(u8 status, u8* result)
     CdReadyCallback(NULL);
 }
 
-s32 func_80025DD8(u32* arg0)
+s32 Cd_InitStateMachine(u32* arg0)
 {
     struct {
         u8     result[8];
@@ -179,12 +179,12 @@ u8 func_80026138(void)
     return D_8006EBBA;
 }
 
-void func_80026148(void)
+void CdVol_CacheFromSpu(void)
 {
     D_8006EBF4 = (Fs_SpuAttr.cd.volume.left / 256) & 0x7F;
 }
 
-void func_80026178(void)
+void CdVol_RegisterCallbacks(void)
 {
     struct {
         s32  pad[2];
@@ -195,13 +195,13 @@ void func_80026178(void)
     s16* ptr;
 
     ptr      = &D_8006EBF2;
-    sp.unk8  = func_80025DD8;
-    sp.unkC  = func_800261C8;
+    sp.unk8  = Cd_InitStateMachine;
+    sp.unkC  = CdVol_ClearCallbackSlot;
     sp.unk10 = func_800261D4;
     *ptr     = func_8004DE18(&sp);
 }
 
-void func_800261C8(void)
+void CdVol_ClearCallbackSlot(void)
 {
     D_8006EBF2 = 0;
 }
@@ -223,10 +223,10 @@ void CdVol_ApplyFromTable(u16 arg0)
         arg0 = 0;
     }
     D_8006EBF4 = D_80068AF0[arg0];
-    func_80026268(D_80068AF0[arg0]);
+    CdVol_Set(D_80068AF0[arg0]);
 }
 
-void func_80026268(s32 arg0)
+void CdVol_Set(s32 arg0)
 {
     s16 vol;
 
@@ -237,7 +237,7 @@ void func_80026268(s32 arg0)
     SpuSetCommonAttr(&Fs_SpuAttr);
 }
 
-s32 func_800262A8(void)
+s32 CdVol_StepDown(void)
 {
     s16 vol;
 

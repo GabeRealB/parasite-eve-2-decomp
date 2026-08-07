@@ -28,7 +28,7 @@ s32 Pad_CheckButtons(s32 arg0, s32 arg1, s32 arg2)
     return (val & arg2) != 0;
 }
 
-void func_8002C8E4(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+void Pad_PostEvent(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     PadState* p;
     PadEvent* entries;

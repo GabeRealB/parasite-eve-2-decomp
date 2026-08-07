@@ -44,7 +44,7 @@ Gfx_StoreImageSlot               = 0x8001490C; // type:func
 Gfx_LoadImageSlot               = 0x800149E8; // type:func
 F04CF8_80014A50             = 0x80014A50; // type:func
 F04CF8_80014A98             = 0x80014A98; // type:func
-func_80014B38               = 0x80014B38; // type:func
+Boot_LoadTask               = 0x80014B38; // type:func
 func_80014C2C               = 0x80014C2C; // type:func
 Fs_StageCdfIsAvailable      = 0x80014C4C; // type:func
 
@@ -329,7 +329,7 @@ CdCmd_DropPending               = 0x8001D424; // type:func
 CdCmd_SelectMdecBuffer               = 0x8001D498; // type:func
 CdCmd_GetOverlayStatus               = 0x8001D4F0; // type:func
 CdCmd_GetStreamMode               = 0x8001D524; // type:func
-func_8001D534               = 0x8001D534; // type:func
+CdCmd_StartOverlay               = 0x8001D534; // type:func
 func_8001D580               = 0x8001D580; // type:func
 CdCmd_CancelReplaceAndActivate               = 0x8001D588; // type:func
 func_8001D5B4               = 0x8001D5B4; // type:func
@@ -391,7 +391,7 @@ Mdec_SetupBuffers               = 0x8001EB44; // type:func
 Stream_InitFromSlot               = 0x8001ED20; // type:func
 Stream_FindSlot               = 0x8001EDC8; // type:func
 Stream_FindSlotByKey               = 0x8001EED8; // type:func
-func_8001EF9C               = 0x8001EF9C; // type:func
+Stream_RestoreAfterLoad               = 0x8001EF9C; // type:func
 func_8001F180               = 0x8001F180; // type:func
 CdCmd_StopMdec               = 0x8001F2FC; // type:func
 func_8001F430               = 0x8001F430; // type:func
@@ -460,12 +460,12 @@ DecDCTBufSize               = 0x8002168C;
 Fade_StepIn               = 0x8002169C; // type:func
 Fade_StartWhite               = 0x80021808; // type:func
 Fade_StepOut               = 0x8002191C; // type:func
-func_80021A20               = 0x80021A20; // type:func
-func_80021B28               = 0x80021B28; // type:func
-func_80021C0C               = 0x80021C0C; // type:func
-func_80021D8C               = 0x80021D8C; // type:func
-func_8002207C               = 0x8002207C; // type:func
-func_8002226C               = 0x8002226C; // type:func
+Fs_SelectLoadHandlers0               = 0x80021A20; // type:func
+Fs_SelectLoadHandlers1               = 0x80021B28; // type:func
+Fs_SelectLoadHandlers2               = 0x80021C0C; // type:func
+Fs_SelectLoadHandlers3               = 0x80021D8C; // type:func
+Fs_SetupBootLoad               = 0x8002207C; // type:func
+Fs_BootImageMachine               = 0x8002226C; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x12D18   VA: 0x80022518   subsegment: c, fs
@@ -530,18 +530,18 @@ ResetRCnt                   = 0x80025C5C;
 //--- PA: 0x16494   VA: 0x80025C94   subsegment: c, 16494
 //--------------------------------------------------------------------
 Fs_StreamReadyCb               = 0x80025C94; // type:func
-func_80025DD8               = 0x80025DD8; // type:func
+Cd_InitStateMachine               = 0x80025DD8; // type:func
 F16494_ResetSpuAttr         = 0x8002604C; // type:func
 func_800260B0               = 0x800260B0; // type:func
 func_80026138               = 0x80026138; // type:func
-func_80026148               = 0x80026148; // type:func
-func_80026178               = 0x80026178; // type:func
-func_800261C8               = 0x800261C8; // type:func
+CdVol_CacheFromSpu               = 0x80026148; // type:func
+CdVol_RegisterCallbacks               = 0x80026178; // type:func
+CdVol_ClearCallbackSlot               = 0x800261C8; // type:func
 func_800261D4               = 0x800261D4; // type:func
 func_800261F4               = 0x800261F4; // type:func
 CdVol_ApplyFromTable               = 0x80026218; // type:func
-func_80026268               = 0x80026268; // type:func
-func_800262A8               = 0x800262A8; // type:func
+CdVol_Set               = 0x80026268; // type:func
+CdVol_StepDown               = 0x800262A8; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x16B14   VA: 0x80026314   subsegment: o, libspu/s_sca
@@ -684,7 +684,7 @@ chkRC2wait                  = 0x8002B794;
 //--------------------------------------------------------------------
 //--- PA: 0x1C034   VA: 0x8002B834   subsegment: c, 1C034
 //--------------------------------------------------------------------
-func_8002B834               = 0x8002B834; // type:func
+GameFlow_StateByField34               = 0x8002B834; // type:func
 Fade_DrawOverlay               = 0x8002BA9C; // type:func
 Game_ClearSession               = 0x8002BB9C; // type:func
 func_8002BBC8               = 0x8002BBC8; // type:func
@@ -707,7 +707,7 @@ Pad_UpdatePort0               = 0x8002C5A4; // type:func
 //--- PA: 0x1D068   VA: 0x8002C868   subsegment: c, padutil
 //--------------------------------------------------------------------
 Pad_CheckButtons            = 0x8002C868; // type:func
-func_8002C8E4               = 0x8002C8E4; // type:func
+Pad_PostEvent               = 0x8002C8E4; // type:func
 Pad_SetCooldown             = 0x8002C9B0; // type:func
 Pad_ClearCooldown           = 0x8002C9E0; // type:func
 Pad_ReadButtonsInv          = 0x8002CA0C; // type:func
@@ -741,7 +741,7 @@ Task_Free                   = 0x8002D474; // type:func
 Task_ExecDefaultList        = 0x8002D494; // type:func
 Task_ExecListFiltered       = 0x8002D544; // type:func
 Task_CallExitFiltered       = 0x8002D61C; // type:func
-func_8002D6EC               = 0x8002D6EC; // type:func
+Task_CountdownCallback               = 0x8002D6EC; // type:func
 Game_ClearPtrSlots               = 0x8002D780; // type:func
 func_8002D7A8               = 0x8002D7A8; // type:func
 
@@ -778,25 +778,25 @@ free3                       = 0x8002DD74;
 //--- PA: 0x1E6C4   VA: 0x8002DEC4   subsegment: c, 1E6C4
 //--------------------------------------------------------------------
 func_8002DEC4               = 0x8002DEC4; // type:func
-func_8002DECC               = 0x8002DECC; // type:func
-func_8002E010               = 0x8002E010; // type:func
-func_8002E188               = 0x8002E188; // type:func
-func_8002E300               = 0x8002E300; // type:func
+Text_MeasureGlyphWidth               = 0x8002DECC; // type:func
+Text_DrawGlyphDualSprtA               = 0x8002E010; // type:func
+Text_DrawGlyphDualSprt               = 0x8002E188; // type:func
+Text_DrawGlyphDualSprtTpage               = 0x8002E300; // type:func
 func_8002E53C               = 0x8002E53C; // type:func
-func_8002EB94               = 0x8002EB94; // type:func
+Text_FormatTime               = 0x8002EB94; // type:func
 Text_MeasureAndCenter               = 0x8002EDFC; // type:func
-func_8002EEA0               = 0x8002EEA0; // type:func
-func_8002F020               = 0x8002F020; // type:func
+Text_ItoaSignedPlus               = 0x8002EEA0; // type:func
+Text_ItoaSigned               = 0x8002F020; // type:func
 func_8002F18C               = 0x8002F18C; // type:func
 func_8002F2A4               = 0x8002F2A4; // type:func
-func_8002F3A0               = 0x8002F3A0; // type:func
+Text_ItoaHex               = 0x8002F3A0; // type:func
 func_8002F44C               = 0x8002F44C; // type:func
 Text_SkipLines               = 0x8002F528; // type:func
-func_8002F588               = 0x8002F588; // type:func
-func_8002F5E4               = 0x8002F5E4; // type:func
-func_8002F69C               = 0x8002F69C; // type:func
-func_8002F798               = 0x8002F798; // type:func
-func_8002F890               = 0x8002F890; // type:func
+Text_Strcat               = 0x8002F588; // type:func
+Text_DrawGlyphImmediate               = 0x8002F5E4; // type:func
+Text_DrawGlyphQueued               = 0x8002F69C; // type:func
+Text_DrawGlyphOt               = 0x8002F798; // type:func
+Text_UiTaskCallback               = 0x8002F890; // type:func
 func_8002F98C               = 0x8002F98C; // type:func
 
 //--------------------------------------------------------------------
@@ -822,9 +822,9 @@ Mc_PromptDialogChoice               = 0x8003062C; // type:func
 Mc_PromptDialogSpawn               = 0x800307AC; // type:func
 Mc_PromptDialogFile               = 0x8003092C; // type:func
 func_80030AB0               = 0x80030AB0; // type:func
-func_80031118               = 0x80031118; // type:func
-func_800312DC               = 0x800312DC; // type:func
-func_800314D0               = 0x800314D0; // type:func
+Mc_StateScanDirFlags               = 0x80031118; // type:func
+Mc_StateListDirectory               = 0x800312DC; // type:func
+Mc_StateFileSelect               = 0x800314D0; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x21FDC   VA: 0x800317DC   subsegment: c, mc
@@ -866,33 +866,33 @@ Mc_HideChildUi              = 0x80033F6C; // type:func
 Mc_WriteDataChecksum        = 0x80033FB8; // type:func
 Mc_CompareSaveChecksum      = 0x80034028; // type:func
 Mc_ResetWork                = 0x80034070; // type:func
-func_800340A4               = 0x800340A4; // type:func
-func_8003415C               = 0x8003415C; // type:func
-func_8003429C               = 0x8003429C; // type:func
+Mc_WriteSlotChecksumsEx               = 0x800340A4; // type:func
+Mc_StateAcceptMode1               = 0x8003415C; // type:func
+Mc_StateSyncAdvance               = 0x8003429C; // type:func
 func_800343D0               = 0x800343D0; // type:func
-func_800344B4               = 0x800344B4; // type:func
+Mc_StatePromptChoiceB               = 0x800344B4; // type:func
 func_800345CC               = 0x800345CC; // type:func
-func_800346AC               = 0x800346AC; // type:func
+Mc_StateEnterDialog4               = 0x800346AC; // type:func
 func_8003477C               = 0x8003477C; // type:func
-func_80034894               = 0x80034894; // type:func
-func_80034938               = 0x80034938; // type:func
-func_80034A40               = 0x80034A40; // type:func
+Mc_StatePromptChoiceGeneric               = 0x80034894; // type:func
+Mc_StateWriteData               = 0x80034938; // type:func
+Mc_StateClosePrompt               = 0x80034A40; // type:func
 func_80034B38               = 0x80034B38; // type:func
 func_80034B68               = 0x80034B68; // type:func
-func_80034C54               = 0x80034C54; // type:func
-func_80034D50               = 0x80034D50; // type:func
-func_80034E3C               = 0x80034E3C; // type:func
+Mc_StatePromptChoice9               = 0x80034C54; // type:func
+Mc_StateColdBoot               = 0x80034D50; // type:func
+Mc_StateSyncPrompt13               = 0x80034E3C; // type:func
 func_80034F2C               = 0x80034F2C; // type:func
-func_80034FB4               = 0x80034FB4; // type:func
+Mc_StatePromptCountdown               = 0x80034FB4; // type:func
 func_800350B0               = 0x800350B0; // type:func
 func_80035180               = 0x80035180; // type:func
 func_8003527C               = 0x8003527C; // type:func
 Mc_StateOpenSelected        = 0x80035358; // type:func
-func_80035464               = 0x80035464; // type:func
+Mc_StateReadHeader               = 0x80035464; // type:func
 Mc_StateOpenNext            = 0x80035574; // type:func
-func_80035684               = 0x80035684; // type:func
-func_80035764               = 0x80035764; // type:func
-func_80035844               = 0x80035844; // type:func
+Mc_StateUiCountdown2               = 0x80035684; // type:func
+Mc_StateUiCountdownE               = 0x80035764; // type:func
+Mc_StateUiCountdownF               = 0x80035844; // type:func
 func_8003591C               = 0x8003591C; // type:func
 Mc_StateEnterPromptD               = 0x80035960; // type:func
 Mc_DispatchStateTable               = 0x800359A4; // type:func
@@ -920,7 +920,7 @@ func_80036968               = 0x80036968; // type:func
 //--- PA: 0x2721C   VA: 0x80036A1C   subsegment: c, mcmenu
 //--------------------------------------------------------------------
 func_80036A1C               = 0x80036A1C; // type:func
-func_80036A2C               = 0x80036A2C; // type:func
+McMenu_UpdateListCursor               = 0x80036A2C; // type:func
 McMenu_SelectList               = 0x80036A70; // type:func
 McMenu_ConfirmWithRender               = 0x80036B2C; // type:func
 McMenu_SelectListAlt               = 0x80036C04; // type:func
@@ -1190,9 +1190,9 @@ strncpy                     = 0x8003AE94;
 //--- PA: 0x2B704   VA: 0x8003AF04   subsegment: c, 2B704
 //--------------------------------------------------------------------
 Gpu_InitDefaultLights               = 0x8003AF04; // type:func
-func_8003B140               = 0x8003B140; // type:func
-func_8003B228               = 0x8003B228; // type:func
-func_8003B318               = 0x8003B318; // type:func
+Gfx_SetFlatLight               = 0x8003B140; // type:func
+Gfx_SetDefaultFlatLight               = 0x8003B228; // type:func
+Gfx_SetLightAmbient               = 0x8003B318; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x2BB30   VA: 0x8003B330   subsegment: o, libgs/gs_107
@@ -1212,20 +1212,20 @@ SetColorMatrix              = 0x8003B930;
 //--------------------------------------------------------------------
 //--- PA: 0x2C160   VA: 0x8003B960   subsegment: c, 2C160
 //--------------------------------------------------------------------
-func_8003B960               = 0x8003B960; // type:func
-func_8003BD34               = 0x8003BD34; // type:func
-func_8003C110               = 0x8003C110; // type:func
-func_8003C4F0               = 0x8003C4F0; // type:func
-func_8003C6D8               = 0x8003C6D8; // type:func
-func_8003C728               = 0x8003C728; // type:func
-func_8003C748               = 0x8003C748; // type:func
-func_8003C768               = 0x8003C768; // type:func
-func_8003C788               = 0x8003C788; // type:func
-func_8003C98C               = 0x8003C98C; // type:func
-func_8003CB80               = 0x8003CB80; // type:func
-func_8003CD78               = 0x8003CD78; // type:func
-func_8003CEC4               = 0x8003CEC4; // type:func
-func_8003D000               = 0x8003D000; // type:func
+Gfx_RotMatrixXYZ               = 0x8003B960; // type:func
+Gfx_RotMatrixYXZ               = 0x8003BD34; // type:func
+Gfx_RotMatrixZYX               = 0x8003C110; // type:func
+Gfx_MatrixToEuler               = 0x8003C4F0; // type:func
+Gfx_TransposeRot               = 0x8003C6D8; // type:func
+Gfx_MatrixCol0               = 0x8003C728; // type:func
+Gfx_MatrixCol1               = 0x8003C748; // type:func
+Gfx_MatrixCol2               = 0x8003C768; // type:func
+Gfx_RotMatrixX               = 0x8003C788; // type:func
+Gfx_RotMatrixY               = 0x8003C98C; // type:func
+Gfx_RotMatrixZ               = 0x8003CB80; // type:func
+Gfx_NormalizeLightDir               = 0x8003CD78; // type:func
+Gfx_OrthonormalBasis               = 0x8003CEC4; // type:func
+Gfx_ApplyMatrixNoSf               = 0x8003D000; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x2D838   VA: 0x8003D038   subsegment: o, libgte/geo_00
@@ -1280,7 +1280,7 @@ ratan2                      = 0x8003D9C8;
 Display_SetMode               = 0x8003DB48; // type:func
 Display_SetAutoClear               = 0x8003DE14; // type:func
 func_8003DE58               = 0x8003DE58; // type:func
-func_8003DE78               = 0x8003DE78; // type:func
+Display_ClampField126               = 0x8003DE78; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x2E650   VA: 0x8003DEB0   subsegment: o, libgpu/e03
@@ -1295,20 +1295,20 @@ SetDefDispEnv               = 0x8003DF70;
 //--------------------------------------------------------------------
 //--- PA: 0x2E7B0   VA: 0x8003DFB0   subsegment: c, 2E7B0
 //--------------------------------------------------------------------
-func_8003DFB0               = 0x8003DFB0; // type:func
-func_8003E210               = 0x8003E210; // type:func
-func_8003E324               = 0x8003E324; // type:func
-func_8003E438               = 0x8003E438; // type:func
-func_8003E4BC               = 0x8003E4BC; // type:func
+Display_FrameFlipDraw               = 0x8003DFB0; // type:func
+Display_SpawnWithOtSmall               = 0x8003E210; // type:func
+Display_SpawnWithOt               = 0x8003E324; // type:func
+Task_SpawnOnDefaultListA               = 0x8003E438; // type:func
+Task_SpawnOnDefaultList               = 0x8003E4BC; // type:func
 func_8003E540               = 0x8003E540; // type:func
-func_8003E560               = 0x8003E560; // type:func
-func_8003E610               = 0x8003E610; // type:func
-func_8003E64C               = 0x8003E64C; // type:func
+Display_FlipOt               = 0x8003E560; // type:func
+Display_AcquireRef               = 0x8003E610; // type:func
+Display_ReleaseRef               = 0x8003E64C; // type:func
 func_8003E698               = 0x8003E698; // type:func
 Gpu_InitOtSmall               = 0x8003E6E4; // type:func
-func_8003E72C               = 0x8003E72C; // type:func
-func_8003E814               = 0x8003E814; // type:func
-func_8003E854               = 0x8003E854; // type:func
+Display_DispatchModeId               = 0x8003E72C; // type:func
+Display_ResetHeapFromSession               = 0x8003E814; // type:func
+Display_FlipOtAlt               = 0x8003E854; // type:func
 Gpu_InitOt               = 0x8003E904; // type:func
 Display_SetPrimBufLarge               = 0x8003E9A4; // type:func
 Display_SetPrimBufSmall               = 0x8003E9C4; // type:func
@@ -1330,7 +1330,7 @@ Display_InvertFramebufferGray               = 0x8003F5A4; // type:func
 func_8003F690               = 0x8003F690; // type:func
 func_8003F6F8               = 0x8003F6F8; // type:func
 func_8003F71C               = 0x8003F71C; // type:func
-func_8003F7A8               = 0x8003F7A8; // type:func
+Display_BeginMode7               = 0x8003F7A8; // type:func
 Display_SetFlag20000000               = 0x8003F848; // type:func
 Display_SetFadeRate               = 0x8003F86C; // type:func
 func_8003F900               = 0x8003F900; // type:func
@@ -1347,10 +1347,10 @@ func_8003FC30               = 0x8003FC30; // type:func
 func_8003FC6C               = 0x8003FC6C; // type:func
 func_8003FC8C               = 0x8003FC8C; // type:func
 func_8003FCF8               = 0x8003FCF8; // type:func
-func_8003FD58               = 0x8003FD58; // type:func
+Display_TaskLoadStep               = 0x8003FD58; // type:func
 func_8003FE00               = 0x8003FE00; // type:func
 func_8003FE40               = 0x8003FE40; // type:func
-func_8003FE9C               = 0x8003FE9C; // type:func
+Display_DispatchTaskTable               = 0x8003FE9C; // type:func
 Mdec_ResolveStreamBuffer               = 0x8003FF14; // type:func
 func_8004017C               = 0x8004017C; // type:func
 Mdec_DecodeToVram               = 0x800405E0; // type:func
@@ -1404,7 +1404,7 @@ MargePrim                   = 0x800422B8;
 //--------------------------------------------------------------------
 //--- PA: 0x32AF8   VA: 0x800422F8   subsegment: c, 32AF8
 //--------------------------------------------------------------------
-func_800422F8               = 0x800422F8; // type:func
+Task_KillMaybeSpawn               = 0x800422F8; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x32B44   VA: 0x80042344   subsegment: o, libgpu/p26
@@ -1414,9 +1414,9 @@ SetTile                     = 0x80042344;
 //--------------------------------------------------------------------
 //--- PA: 0x32B64   VA: 0x80042364   subsegment: c, 32B64
 //--------------------------------------------------------------------
-func_80042364               = 0x80042364; // type:func
+CdCmd_EnqueueLoadFile               = 0x80042364; // type:func
 func_80042500               = 0x80042500; // type:func
-func_80042838               = 0x80042838; // type:func
+Prim_DrawLoadingSprt               = 0x80042838; // type:func
 Snd_ApplyVolumeTable               = 0x800429C8; // type:func
 
 //--------------------------------------------------------------------
@@ -1432,13 +1432,13 @@ func_80042DF8               = 0x80042DF8; // type:func
 func_80042F54               = 0x80042F54; // type:func
 func_80043028               = 0x80043028; // type:func
 func_800430E4               = 0x800430E4; // type:func
-func_80043198               = 0x80043198; // type:func
-func_800431FC               = 0x800431FC; // type:func
+Stage_DispatchTaskTable               = 0x80043198; // type:func
+Stage_KillWhenIdle               = 0x800431FC; // type:func
 func_8004323C               = 0x8004323C; // type:func
 TextStream_Draw               = 0x80043310; // type:func
 Prim_DrawSprt               = 0x800435F8; // type:func
 Prim_DrawTPage               = 0x80043718; // type:func
-func_8004379C               = 0x8004379C; // type:func
+Prim_DrawFadeTile               = 0x8004379C; // type:func
 Prim_DrawTile               = 0x80043854; // type:func
 
 //--------------------------------------------------------------------
@@ -1534,48 +1534,48 @@ Ui_DrawVBar               = 0x80047B24; // type:func
 Ui_DrawTextUnderline               = 0x80047C40; // type:func
 Ui_DrawTextColored               = 0x80047D90; // type:func
 Ui_DrawText               = 0x80047F40; // type:func
-func_800480A0               = 0x800480A0; // type:func
-func_80048390               = 0x80048390; // type:func
-func_80048560               = 0x80048560; // type:func
-func_800486F0               = 0x800486F0; // type:func
-func_80048838               = 0x80048838; // type:func
-func_800488B8               = 0x800488B8; // type:func
-func_800488F8               = 0x800488F8; // type:func
+Ui_SpawnTextBlock               = 0x800480A0; // type:func
+Ui_DrawTextInRect               = 0x80048390; // type:func
+Ui_SizeFromText               = 0x80048560; // type:func
+Ui_SpawnFromDesc               = 0x800486F0; // type:func
+Ui_TeardownTree               = 0x80048838; // type:func
+Ui_FreeAndKill               = 0x800488B8; // type:func
+Ui_SetState4               = 0x800488F8; // type:func
 func_80048904               = 0x80048904; // type:func
 func_80048964               = 0x80048964; // type:func
 Ui_InitList               = 0x800489A0; // type:func
-func_80048AEC               = 0x80048AEC; // type:func
+Ui_ComputeVisibleRows               = 0x80048AEC; // type:func
 Ui_UpdateListNoAnim               = 0x80048C10; // type:func
-func_80048C30               = 0x80048C30; // type:func
+Ui_ComputeVisibleRowsEx               = 0x80048C30; // type:func
 Ui_SmoothCursor               = 0x80048D58; // type:func
 Ui_LookupTable               = 0x80048E10; // type:func
 func_80048E2C               = 0x80048E2C; // type:func
 Ui_DrawTitle               = 0x80048E38; // type:func
-func_80048F88               = 0x80048F88; // type:func
-func_80049024               = 0x80049024; // type:func
+Ui_DrawTextAtLayout               = 0x80048F88; // type:func
+Ui_ClampDialogRect               = 0x80049024; // type:func
 func_800490A4               = 0x800490A4; // type:func
 func_800490C8               = 0x800490C8; // type:func
-func_800490EC               = 0x800490EC; // type:func
-func_80049100               = 0x80049100; // type:func
+Ui_IsStateDone               = 0x800490EC; // type:func
+Ui_InsertDrawTPage               = 0x80049100; // type:func
 func_8004917C               = 0x8004917C; // type:func
 Ui_AllocTile               = 0x800491AC; // type:func
-func_80049288               = 0x80049288; // type:func
-func_800492B8               = 0x800492B8; // type:func
-func_800492EC               = 0x800492EC; // type:func
+Ui_LayoutWithMode0               = 0x80049288; // type:func
+Ui_LayoutWithMode1               = 0x800492B8; // type:func
+Ui_InsetRect2               = 0x800492EC; // type:func
 Ui_InsetLayout               = 0x80049348; // type:func
 Ui_ComputeAnimRect               = 0x80049478; // type:func
-func_80049554               = 0x80049554; // type:func
-func_800495B4               = 0x800495B4; // type:func
-func_8004965C               = 0x8004965C; // type:func
+Ui_AnimOpenStep               = 0x80049554; // type:func
+Ui_DrawAndCallback               = 0x800495B4; // type:func
+Ui_LayoutDrawAndCallback               = 0x8004965C; // type:func
 func_8004969C               = 0x8004969C; // type:func
 func_8004972C               = 0x8004972C; // type:func
-func_800497F4               = 0x800497F4; // type:func
-func_800498D4               = 0x800498D4; // type:func
-func_80049950               = 0x80049950; // type:func
-func_80049980               = 0x80049980; // type:func
+Ui_ClipAndCallback               = 0x800497F4; // type:func
+Ui_DispatchObjectState               = 0x800498D4; // type:func
+Ui_GetCursorFixed               = 0x80049950; // type:func
+Ui_DrawFlatCaret               = 0x80049980; // type:func
 func_80049A8C               = 0x80049A8C; // type:func
-func_80049AF0               = 0x80049AF0; // type:func
-func_80049C00               = 0x80049C00; // type:func
+Ui_DrawDialogLine               = 0x80049AF0; // type:func
+Ui_ListTaskCallback               = 0x80049C00; // type:func
 func_80049D34               = 0x80049D34; // type:func
 func_80049D5C               = 0x80049D5C; // type:func
 
@@ -1633,9 +1633,9 @@ PCinit                      = 0x8004AC4C;
 //--------------------------------------------------------------------
 //--- PA: 0x3B458   VA: 0x8004AC58   subsegment: c, 3B458
 //--------------------------------------------------------------------
-func_8004AC58               = 0x8004AC58; // type:func
-func_8004ACAC               = 0x8004ACAC; // type:func
-func_8004ACF0               = 0x8004ACF0; // type:func
+GameFlag_SetNibble               = 0x8004AC58; // type:func
+GameFlag_GetNibble               = 0x8004ACAC; // type:func
+Pad_CheckFlag800               = 0x8004ACF0; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x3B518   VA: 0x8004AD18   subsegment: o, libgpu/p34
@@ -1822,13 +1822,13 @@ Snd_BuildGroupIndex               = 0x8004D19C; // type:func
 LinInterp_Setup               = 0x8004D200; // type:func
 LinInterp_Apply               = 0x8004D298; // type:func
 LinInterp_Step               = 0x8004D2EC; // type:func
-func_8004D35C               = 0x8004D35C; // type:func
-func_8004D460               = 0x8004D460; // type:func
+Spu_ApplyPanVolume               = 0x8004D35C; // type:func
+AudioTick_Insert               = 0x8004D460; // type:func
 F3D458_ResetHeap            = 0x8004D5A8; // type:func
 F3D458_Malloc               = 0x8004D5D8; // type:func
 F3D458_Free                 = 0x8004D6C8; // type:func
-func_8004D7D4               = 0x8004D7D4; // type:func
-func_8004D820               = 0x8004D820; // type:func
+Spu_TimerCallback               = 0x8004D7D4; // type:func
+Spu_TimerReentryWork               = 0x8004D820; // type:func
 AudioTick_Reset             = 0x8004D88C; // type:func
 AudioTick_Process               = 0x8004D8BC; // type:func
 AudioTick_Remove               = 0x8004D94C; // type:func
@@ -1995,20 +1995,20 @@ SndEvt_Free               = 0x80050A90; // type:func
 func_80050AAC               = 0x80050AAC; // type:func
 func_80050AB4               = 0x80050AB4; // type:func
 func_80050AE0               = 0x80050AE0; // type:func
-func_80050B0C               = 0x80050B0C; // type:func
-func_80050B30               = 0x80050B30; // type:func
-func_80050B54               = 0x80050B54; // type:func
-func_80050B80               = 0x80050B80; // type:func
-func_80050BBC               = 0x80050BBC; // type:func
+SndEvt_HandleFadeOn               = 0x80050B0C; // type:func
+SndEvt_HandleFadeOff               = 0x80050B30; // type:func
+SndEvt_HandleSetVolume               = 0x80050B54; // type:func
+SndEvt_HandleAllocVoice               = 0x80050B80; // type:func
+SndEvt_HandleType7               = 0x80050BBC; // type:func
 func_80050BE8               = 0x80050BE8; // type:func
 func_80050C0C               = 0x80050C0C; // type:func
 func_80050C30               = 0x80050C30; // type:func
-func_80050C80               = 0x80050C80; // type:func
+SndEvt_HandleVolumeRamp               = 0x80050C80; // type:func
 func_80050CC0               = 0x80050CC0; // type:func
 func_80050CE0               = 0x80050CE0; // type:func
 func_80050D00               = 0x80050D00; // type:func
-func_80050D20               = 0x80050D20; // type:func
-func_80050E3C               = 0x80050E3C; // type:func
+Midi_InitSystem               = 0x80050D20; // type:func
+Midi_InitSequence               = 0x80050E3C; // type:func
 Midi_Tick               = 0x800510D4; // type:func
 SndEvt_EnqueueType1               = 0x800512BC; // type:func
 SndEvt_EnqueueType2               = 0x8005132C; // type:func
@@ -2025,36 +2025,36 @@ Midi_GetMasterVolume               = 0x800517F8; // type:func
 Midi_GetSlot               = 0x80051808; // type:func
 Midi_GetFixedBuffer               = 0x80051850; // type:func
 func_8005185C               = 0x8005185C; // type:func
-func_80051888               = 0x80051888; // type:func
-func_800518E0               = 0x800518E0; // type:func
+SndEvt_EnqueueType5Pending               = 0x80051888; // type:func
+SndEvt_FlushType5Pending               = 0x800518E0; // type:func
 Midi_InitSlot               = 0x80051964; // type:func
-func_80051A2C               = 0x80051A2C; // type:func
-func_80051AB8               = 0x80051AB8; // type:func
+Midi_ResolveTrackData               = 0x80051A2C; // type:func
+Midi_ResetTrackFlags               = 0x80051AB8; // type:func
 Midi_KeyOffVoices               = 0x80051AF0; // type:func
 Midi_DriveTrack               = 0x80051BB0; // type:func
 Midi_UpdateVoiceVolumes               = 0x80051DF4; // type:func
 func_800520A8               = 0x800520A8; // type:func
 func_80052488               = 0x80052488; // type:func
-func_800526A4               = 0x800526A4; // type:func
-func_8005287C               = 0x8005287C; // type:func
-func_800528BC               = 0x800528BC; // type:func
+Midi_HandleMetaSysex               = 0x800526A4; // type:func
+Midi_ReadVlq               = 0x8005287C; // type:func
+Midi_InitChannelTable               = 0x800528BC; // type:func
 func_800528F0               = 0x800528F0; // type:func
-func_800528F8               = 0x800528F8; // type:func
-func_800529BC               = 0x800529BC; // type:func
-func_800529D8               = 0x800529D8; // type:func
-func_80052B30               = 0x80052B30; // type:func
+Midi_KeyOffChannel               = 0x800528F8; // type:func
+Midi_SetProgram               = 0x800529BC; // type:func
+Midi_PitchBend               = 0x800529D8; // type:func
+SndLoad_ProcessSector               = 0x80052B30; // type:func
 SndBank_SetupFromLoad               = 0x80052F80; // type:func
 func_800530DC               = 0x800530DC; // type:func
 SndLoad_FromSectorMode8               = 0x8005325C; // type:func
 func_80053280               = 0x80053280; // type:func
 SndLoad_Teardown               = 0x800532CC; // type:func
-func_8005333C               = 0x8005333C; // type:func
-func_80053414               = 0x80053414; // type:func
+SndLoad_FeedSector               = 0x8005333C; // type:func
+SndLoad_FeedSectorOrError               = 0x80053414; // type:func
 SndBank_FinalizeLoad               = 0x80053448; // type:func
-func_80053548               = 0x80053548; // type:func
-func_800535F0               = 0x800535F0; // type:func
+SndLoad_AllocBuffer               = 0x80053548; // type:func
+SndLoad_LookupMode               = 0x800535F0; // type:func
 SndLoad_Init               = 0x8005363C; // type:func
-func_8005368C               = 0x8005368C; // type:func
+SndBank_FreeById               = 0x8005368C; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x43F6C   VA: 0x8005376C   subsegment: o, libspu/s_wp
@@ -2066,16 +2066,16 @@ SpuWritePartly              = 0x8005376C;
 //--------------------------------------------------------------------
 Snd_InitFromStage               = 0x800537FC; // type:func
 func_80053A20               = 0x80053A20; // type:func
-func_80053BF4               = 0x80053BF4; // type:func
+TaskIdMap_RemapIndex               = 0x80053BF4; // type:func
 func_80053D90               = 0x80053D90; // type:func
-func_80053DB0               = 0x80053DB0; // type:func
+Snd_SetBusyFlag               = 0x80053DB0; // type:func
 func_80053DF4               = 0x80053DF4; // type:func
 func_80053E48               = 0x80053E48; // type:func
 Snd_RegisterTickCallbacks               = 0x80053E68; // type:func
-func_80053F00               = 0x80053F00; // type:func
-func_80053F60               = 0x80053F60; // type:func
+SndBank_RemapId               = 0x80053F00; // type:func
+Snd_ReverbWarmupCb               = 0x80053F60; // type:func
 func_80053FA0               = 0x80053FA0; // type:func
-func_80053FF4               = 0x80053FF4; // type:func
+Snd_InitBanks               = 0x80053FF4; // type:func
 SndEvt_EnqueueType6               = 0x8005414C; // type:func
 SndEvt_EnqueueType7               = 0x800542D0; // type:func
 func_80054334               = 0x80054334; // type:func
@@ -2097,7 +2097,7 @@ SndScript_Exec               = 0x80055078; // type:func
 SndVoice_TickEnvelope               = 0x80055678; // type:func
 SndVoice_AllocSlot               = 0x800558E8; // type:func
 SndVoice_FadeMatching               = 0x800559BC; // type:func
-func_80055A9C               = 0x80055A9C; // type:func
+SndVoice_SetPanRamp               = 0x80055A9C; // type:func
 SndVoice_SetVolumeRamp               = 0x80055B70; // type:func
 func_80055C00               = 0x80055C00; // type:func
 SndVoice_TickRefCount               = 0x80055C8C; // type:func
@@ -2118,7 +2118,7 @@ SndVoice_Tick               = 0x80056308; // type:func
 SndScript_TickVoices               = 0x800563B4; // type:func
 SndVoice_ScaleVolume               = 0x800564C4; // type:func
 SndVoice_SetupEnvelope               = 0x800565B8; // type:func
-func_8005664C               = 0x8005664C; // type:func
+SndScript_FindOneA               = 0x8005664C; // type:func
 SndVoice_ClearActive               = 0x800566A4; // type:func
 CdAudio_Begin               = 0x80056700; // type:func
 

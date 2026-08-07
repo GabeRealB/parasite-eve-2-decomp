@@ -33,7 +33,7 @@ void F12D18_8002252C(u8* arg0, s16 arg1)
 void F12D18_80022598(void)
 {
     if (D5B498_8006AC9A == 0) {
-        func_8002207C();
+        Fs_SetupBootLoad();
         D5B498_8006AC9A = 1;
     }
 }
@@ -50,7 +50,7 @@ void F12D18_800225D4(void)
             }
             break;
         case 2:
-            func_8002226C(D5B498_8006ACB0, D5B498_8006ACAC);
+            Fs_BootImageMachine(D5B498_8006ACB0, D5B498_8006ACAC);
             break;
     }
 }

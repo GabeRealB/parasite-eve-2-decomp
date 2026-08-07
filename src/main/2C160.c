@@ -62,7 +62,7 @@ typedef struct {
     /* 0x3C */ SVECTOR vec3;
 } ScratchRotZYX; /* 0x44 */
 
-void func_8003B960(MATRIX* out, SVECTOR* angles, s32 flag)
+void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag)
 {
     void**                  s;
     u8*                     head;
@@ -185,7 +185,7 @@ void func_8003B960(MATRIX* out, SVECTOR* angles, s32 flag)
     }
 }
 
-void func_8003BD34(MATRIX* out, SVECTOR* angles, s32 flag)
+void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
 {
     void**                  s;
     u8*                     head;
@@ -307,7 +307,7 @@ void func_8003BD34(MATRIX* out, SVECTOR* angles, s32 flag)
     }
 }
 
-void func_8003C110(MATRIX* out, SVECTOR* angles, s32 flag)
+void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
 {
     void**                  s;
     u8*                     head;
@@ -430,7 +430,7 @@ void func_8003C110(MATRIX* out, SVECTOR* angles, s32 flag)
     }
 }
 
-void func_8003C4F0(MATRIX* arg0, SVECTOR* arg1)
+void Gfx_MatrixToEuler(MATRIX* arg0, SVECTOR* arg1)
 {
     void**      scratch;
     u8*         head;
@@ -479,7 +479,7 @@ void func_8003C4F0(MATRIX* arg0, SVECTOR* arg1)
     *scratch = (u8*)*scratch + 0x30;
 }
 
-void func_8003C6D8(MATRIX* arg0, volatile MATRIX* arg1)
+void Gfx_TransposeRot(MATRIX* arg0, volatile MATRIX* arg1)
 {
     register short t4 asm("t4");
     register short t5 asm("t5");
@@ -507,7 +507,7 @@ void func_8003C6D8(MATRIX* arg0, volatile MATRIX* arg1)
     arg1->m[2][2] = t6;
 }
 
-void func_8003C728(MATRIX* arg0, volatile SVECTOR* arg1)
+void Gfx_MatrixCol0(MATRIX* arg0, volatile SVECTOR* arg1)
 {
     register short t4 asm("t4");
     register short t5 asm("t5");
@@ -521,7 +521,7 @@ void func_8003C728(MATRIX* arg0, volatile SVECTOR* arg1)
     arg1->vz = t6;
 }
 
-void func_8003C748(MATRIX* arg0, volatile SVECTOR* arg1)
+void Gfx_MatrixCol1(MATRIX* arg0, volatile SVECTOR* arg1)
 {
     register short t4 asm("t4");
     register short t5 asm("t5");
@@ -535,7 +535,7 @@ void func_8003C748(MATRIX* arg0, volatile SVECTOR* arg1)
     arg1->vz = t6;
 }
 
-void func_8003C768(MATRIX* arg0, volatile SVECTOR* arg1)
+void Gfx_MatrixCol2(MATRIX* arg0, volatile SVECTOR* arg1)
 {
     register short t4 asm("t4");
     register short t5 asm("t5");
@@ -549,7 +549,7 @@ void func_8003C768(MATRIX* arg0, volatile SVECTOR* arg1)
     arg1->vz = t6;
 }
 
-void func_8003C788(MATRIX* arg0, s32 angle, s32 flag)
+void Gfx_RotMatrixX(MATRIX* arg0, s32 angle, s32 flag)
 {
     u8*         head;
     ScratchMat* block;
@@ -614,7 +614,7 @@ void func_8003C788(MATRIX* arg0, s32 angle, s32 flag)
     }
 }
 
-void func_8003C98C(MATRIX* arg0, s32 angle, s32 flag)
+void Gfx_RotMatrixY(MATRIX* arg0, s32 angle, s32 flag)
 {
     u8*         head;
     ScratchMat* block;
@@ -675,7 +675,7 @@ void func_8003C98C(MATRIX* arg0, s32 angle, s32 flag)
     }
 }
 
-void func_8003CB80(MATRIX* arg0, s32 angle, s32 flag)
+void Gfx_RotMatrixZ(MATRIX* arg0, s32 angle, s32 flag)
 {
     u8*         head;
     ScratchMat* block;
@@ -737,7 +737,7 @@ void func_8003CB80(MATRIX* arg0, s32 angle, s32 flag)
     }
 }
 
-void func_8003CD78(VECTOR* light, SVECTOR* out)
+void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out)
 {
     register void**            scratch asm("s0");
     register u8*               head asm("a1");
@@ -810,7 +810,7 @@ void func_8003CD78(VECTOR* light, SVECTOR* out)
     *scratch = (u8*)*scratch + 0x18;
 }
 
-void func_8003CEC4(MATRIX* out, SVECTOR* arg1, SVECTOR* arg2)
+void Gfx_OrthonormalBasis(MATRIX* out, SVECTOR* arg1, SVECTOR* arg2)
 {
     register void**   scratch asm("s1");
     register u8*      head asm("v1");
@@ -870,7 +870,7 @@ void func_8003CEC4(MATRIX* out, SVECTOR* arg1, SVECTOR* arg2)
     *scratch = (u8*)*scratch + 0x20;
 }
 
-s32 func_8003D000(SVECTOR* arg0, SVECTOR* arg1)
+s32 Gfx_ApplyMatrixNoSf(SVECTOR* arg0, SVECTOR* arg1)
 {
     s32 result;
 

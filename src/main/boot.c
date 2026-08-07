@@ -256,7 +256,7 @@ void F04CF8_80014A98(s32 mode)
     CdCmd_ClearQueue();
 }
 
-void func_80014B38(Task* arg0)
+void Boot_LoadTask(Task* arg0)
 {
     u8  modeParam[8];
     u8  param1[8];

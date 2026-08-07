@@ -12,7 +12,7 @@ void func_80036A1C(void)
     char pad[0x10];
 }
 
-void func_80036A2C(void* arg0, UiMiniObj* arg1)
+void McMenu_UpdateListCursor(void* arg0, UiMiniObj* arg1)
 {
     Ui_UpdateListNoAnim(arg0, arg1);
     if (arg1->field_0 == 1) {

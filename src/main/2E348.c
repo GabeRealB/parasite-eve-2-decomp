@@ -127,7 +127,7 @@ void func_8003DE58(void)
     Display_SetMode(0x1010);
 }
 
-void func_8003DE78(s8 arg0)
+void Display_ClampField126(s8 arg0)
 {
     s8 val;
 

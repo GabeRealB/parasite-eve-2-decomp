@@ -8,7 +8,7 @@ void func_8002DEC4(void)
 {
 }
 
-s32 func_8002DECC(TextDrawReq* arg0, u8* arg1, u8* arg2)
+s32 Text_MeasureGlyphWidth(TextDrawReq* arg0, u8* arg1, u8* arg2)
 {
     register TextDrawReq* ctx asm("t5");
     register s32          width asm("t0");
@@ -106,7 +106,7 @@ end:
     return width - (s8)glyph->field_6;
 }
 
-void func_8002E010(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
+void Text_DrawGlyphDualSprtA(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
 {
     SPRT* p;
     SPRT* p2;
@@ -137,7 +137,7 @@ void func_8002E010(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     addPrim(D_800710A0 + arg0->field_4, p);
 }
 
-void func_8002E188(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
+void Text_DrawGlyphDualSprt(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
 {
     SPRT* p;
     SPRT* p2;
@@ -168,7 +168,7 @@ void func_8002E188(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     addPrim(D_800710A0 + arg0->field_4, p);
 }
 
-void func_8002E300(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
+void Text_DrawGlyphDualSprtTpage(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
 {
     SPRT*     p;
     SPRT*     p2;
@@ -213,7 +213,7 @@ void func_8002E300(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
 
 INCLUDE_ASM("main/nonmatchings/textdraw", func_8002E53C);
 
-u8* func_8002EB94(u8* arg0, s32 arg1)
+u8* Text_FormatTime(u8* arg0, s32 arg1)
 {
     typedef struct {
         u8 data[10];
@@ -360,19 +360,19 @@ void Text_MeasureAndCenter(TextDrawReq* arg0, u8* arg1)
 
     switch (arg0->field_D) {
         case 1:
-            width          = func_8002DECC(arg0, arg1, table);
+            width          = Text_MeasureGlyphWidth(arg0, arg1, table);
             arg0->field_0 -= width >> 1;
             break;
         case 2:
-            width          = func_8002DECC(arg0, arg1, table);
+            width          = Text_MeasureGlyphWidth(arg0, arg1, table);
             arg0->field_0 -= width;
             break;
     }
 }
 
-u8* func_8002F020(u8* arg0, s32 arg1);
+u8* Text_ItoaSigned(u8* arg0, s32 arg1);
 
-u8* func_8002EEA0(u8* arg0, s32 arg1)
+u8* Text_ItoaSignedPlus(u8* arg0, s32 arg1)
 {
     typedef struct {
         u8 data[9];
@@ -400,7 +400,7 @@ u8* func_8002EEA0(u8* arg0, s32 arg1)
     start = arg0 + 1;
     if (arg1 < 0) {
         arg0[1] = 0x2D;
-        func_8002F020(arg0 + 2, -arg1);
+        Text_ItoaSigned(arg0 + 2, -arg1);
         return arg0;
     }
     if (arg1 > 0x5F5E0FF) {
@@ -434,7 +434,7 @@ u8* func_8002EEA0(u8* arg0, s32 arg1)
     return arg0;
 }
 
-u8* func_8002F020(u8* arg0, s32 arg1)
+u8* Text_ItoaSigned(u8* arg0, s32 arg1)
 {
     typedef struct {
         u8 data[9];
@@ -452,7 +452,7 @@ u8* func_8002F020(u8* arg0, s32 arg1)
     place = 0x989680;
     if (arg1 < 0) {
         *arg0 = 0x2D;
-        func_8002F020(arg0 + 1, -arg1);
+        Text_ItoaSigned(arg0 + 1, -arg1);
         return arg0;
     }
     if (arg1 > 0x5F5E0FF) {
@@ -596,7 +596,7 @@ u8* func_8002F2A4(u8* arg0, s32 arg1)
     return ret;
 }
 
-u8* func_8002F3A0(u8* arg0, u32 arg1)
+u8* Text_ItoaHex(u8* arg0, u32 arg1)
 {
     register u8* dest asm("a3");
     register u32 place asm("a2");
@@ -683,7 +683,7 @@ end:
     return arg0;
 }
 
-u8* func_8002F588(u8* dest, u8* src)
+u8* Text_Strcat(u8* dest, u8* src)
 {
     u8 c;
 
@@ -706,7 +706,7 @@ u8* func_8002F588(u8* dest, u8* src)
     return dest;
 }
 
-void func_8002F5E4(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
+void Text_DrawGlyphImmediate(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
 {
     SPRT* p;
     s32   temp;
@@ -726,7 +726,7 @@ void func_8002F5E4(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     DrawPrim(p);
 }
 
-void func_8002F69C(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
+void Text_DrawGlyphQueued(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
 {
     SPRT* p;
     s32   temp;
@@ -747,7 +747,7 @@ void func_8002F69C(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     addPrim(D_800710A0 + arg0->field_4, p);
 }
 
-void func_8002F798(TextDrawReq* arg0, FontGlyph* arg1)
+void Text_DrawGlyphOt(TextDrawReq* arg0, FontGlyph* arg1)
 {
     SPRT* p;
     s32   temp;
@@ -767,14 +767,14 @@ void func_8002F798(TextDrawReq* arg0, FontGlyph* arg1)
     addPrim(D_800710A0 + arg0->field_4, p);
 }
 
-void func_8002F890(Task* arg0)
+void Text_UiTaskCallback(Task* arg0)
 {
     UiObject* obj;
     s16       temp;
 
     if (arg0->field_30 == 0) {
         Wip_UiHolder = NULL;
-        obj          = func_800486F0(D_800608F4, 1, 1, 2, 0);
+        obj          = Ui_SpawnFromDesc(D_800608F4, 1, 1, 2, 0);
         if (obj != NULL) {
             arg0->field_20 = obj;
             arg0->field_30 = arg0->field_30 + 1;
@@ -784,7 +784,7 @@ void func_8002F890(Task* arg0)
         if (obj->field_2E == -1 || obj->field_2E == 6) {
             arg0->field_2a = 0xA;
             arg0->field_30 = arg0->field_30 + 1;
-            func_80048838(obj, obj->field_28);
+            Ui_TeardownTree(obj, obj->field_28);
         }
     } else {
         temp           = arg0->field_2a - Display_State.field_10a;

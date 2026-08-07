@@ -27,7 +27,7 @@ void Gfx_StoreImageSlot(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void Gfx_LoadImageSlot(s32 arg0, s32 arg1, s32 arg2);
 void F04CF8_80014A50(void);
 void F04CF8_80014A98(s32 mode);
-void func_80014B38(Task* task);
+void Boot_LoadTask(Task* task);
 void func_80014C2C(void);
 void Mem_ConfigureAuxHeap(s32 arg0, s32 arg1);
 

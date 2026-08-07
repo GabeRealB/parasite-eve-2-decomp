@@ -227,7 +227,7 @@ block_end:
     return ret;
 }
 
-void func_8003FD58(Task* arg0);
+void Display_TaskLoadStep(Task* arg0);
 
 void Display_TransitionTask(Task* arg0)
 {
@@ -307,7 +307,7 @@ void Display_TransitionTask(Task* arg0)
                     if ((s32)Stage_Ctx->field_1c < 0) {
                         Pad_ClearCooldown(0);
                         arg0->field_30 = arg0->field_30 + 1;
-                        func_8003FD58(arg0);
+                        Display_TaskLoadStep(arg0);
                         return;
                     }
                     Stage_Ctx->field_28 = Stage_Ctx->field_28 + 1;
@@ -327,7 +327,7 @@ void Display_TransitionTask(Task* arg0)
         Display_TransitionLoad(arg0);
     } else if ((s32)flags < 0) {
         arg0->field_30 = arg0->field_30 + 1;
-        func_8003FD58(arg0);
+        Display_TaskLoadStep(arg0);
     } else if (flags & 0x20000000) {
         Gfx_StoreImageSlot(Game_Session->field_7, Game_Session->field_6, Display_State.field_118,
                            0x10000);
@@ -488,7 +488,7 @@ s32 func_8003F71C(s32 arg0, s32 arg1)
     return (u8)Game_Session->field_4;
 }
 
-s32 func_8003F7A8(s32 arg0)
+s32 Display_BeginMode7(s32 arg0)
 {
     StageCtx* temp;
     s32       mask;
@@ -703,7 +703,7 @@ void func_8003FCF8(Task* arg0)
     }
 }
 
-void func_8003FD58(Task* arg0)
+void Display_TaskLoadStep(Task* arg0)
 {
     u32 temp_v1;
 
@@ -721,7 +721,7 @@ void func_8003FD58(Task* arg0)
         Tmd_AllocMissingBuffers();
         func_800ACAA8();
     }
-    func_80042364(0, 0, 4);
+    CdCmd_EnqueueLoadFile(0, 0, 4);
     arg0->field_30 = (s32)(arg0->field_30 + 1);
     func_8003FE00(arg0);
 }
@@ -744,7 +744,7 @@ void func_8003FE40(Task* arg0)
     }
 }
 
-void func_8003FE9C(Task* arg0)
+void Display_DispatchTaskTable(Task* arg0)
 {
     TaskFuncTable6 sp;
 

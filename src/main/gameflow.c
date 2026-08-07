@@ -6,7 +6,7 @@
 #include "main/mem.h"
 #include "main/unknown_syms.h"
 
-void func_8002B834(Task* arg0)
+void GameFlow_StateByField34(Task* arg0)
 {
     CdCmdQueue*   p;
     register s32  saved asm("s1");
@@ -177,7 +177,7 @@ void GameFlow_SpawnMenu(Task* arg0)
     void* temp_v0;
 
     func_800280F4(0);
-    temp_v0        = func_800486F0(D_800611C8, 0, 1, 0, 0);
+    temp_v0        = Ui_SpawnFromDesc(D_800611C8, 0, 1, 0, 0);
     arg0->field_20 = temp_v0;
     if (temp_v0 != 0) {
         Display_State.field_11e = 0xFF;
@@ -193,7 +193,7 @@ void GameFlow_WaitMenuDone(Task* arg0)
 
     obj = arg0->field_20;
     if (obj->field_2E == -1) {
-        func_80048838(obj, obj->field_28);
+        Ui_TeardownTree(obj, obj->field_28);
         Display_State.field_11e = 0;
         Game_Session->field_2   = 0;
         if (D_80072311 == 1) {

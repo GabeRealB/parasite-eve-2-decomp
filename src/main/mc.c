@@ -311,7 +311,7 @@ void Mc_StateNameEntry(Task* arg0, McWork* arg1)
                         obj          = child->field_20;
                         flag         = task->field_20;
                         obj->field_0 = 0;
-                        func_80048838(obj, obj->field_28);
+                        Ui_TeardownTree(obj, obj->field_28);
                         flag->field_0 = syncResult;
                     }
                 }
@@ -638,7 +638,7 @@ void Mc_StateSyncFileSelect(Task* arg0, McWork* arg1)
                         childObj          = ch->field_20;
                         flag              = task->field_20;
                         childObj->field_0 = 0;
-                        func_80048838(childObj, childObj->field_28);
+                        Ui_TeardownTree(childObj, childObj->field_28);
                         flag->field_0 = syncResult;
                     }
                 }
@@ -653,7 +653,7 @@ void Mc_StateSyncFileSelect(Task* arg0, McWork* arg1)
     block_6:
         child = task->field_c;
         if (child == NULL) {
-            if (func_800486F0(D_80061200, (s32)work, 1, 2, saved) != 0) {
+            if (Ui_SpawnFromDesc(D_80061200, (s32)work, 1, 2, saved) != 0) {
                 do {
                     D_80061170 = work->field_288;
                 } while (0);
@@ -665,7 +665,7 @@ void Mc_StateSyncFileSelect(Task* arg0, McWork* arg1)
             if (childObj->field_2E == 6) {
                 saved->field_2C   = childObj->field_2C;
                 childObj->field_0 = 0;
-                func_80048838(childObj, childObj->field_28);
+                Ui_TeardownTree(childObj, childObj->field_28);
                 saved->field_0 = 1;
                 if (saved->field_2C >= 0) {
                     src = (u8*)work->field_30[saved->field_2C];
@@ -1550,7 +1550,7 @@ void Mc_HideChildUi(Task* arg0)
         obj          = child->field_20;
         flag         = arg0->field_20;
         obj->field_0 = 0;
-        func_80048838(obj, obj->field_28);
+        Ui_TeardownTree(obj, obj->field_28);
         flag->field_0 = 1;
     }
 }
@@ -1609,7 +1609,7 @@ void Mc_ResetWork(Task* arg0, McWork* arg1)
     arg0->field_30++;
 }
 
-void func_800340A4(Task* arg0, McWork* arg1)
+void Mc_WriteSlotChecksumsEx(Task* arg0, McWork* arg1)
 {
     McChecksumBlock* temp;
     McBufferSlot*    p;
@@ -1658,7 +1658,7 @@ void func_800340A4(Task* arg0, McWork* arg1)
     }
 }
 
-void func_8003415C(Task* arg0, McWork* arg1)
+void Mc_StateAcceptMode1(Task* arg0, McWork* arg1)
 {
     s32           ret;
     s32           idx;
@@ -1691,7 +1691,7 @@ void func_8003415C(Task* arg0, McWork* arg1)
     }
 }
 
-void func_8003429C(Task* arg0, McWork* arg1)
+void Mc_StateSyncAdvance(Task* arg0, McWork* arg1)
 {
     s32           ret;
     s32           idx;
@@ -1743,7 +1743,7 @@ void func_800343D0(Task* arg0, McWork* arg1)
     arg0->field_30 = arg0->field_30 + 1;
 }
 
-void func_800344B4(Task* arg0, McWork* arg1)
+void Mc_StatePromptChoiceB(Task* arg0, McWork* arg1)
 {
     s32       ret;
     s32       syncResult;
@@ -1779,7 +1779,7 @@ void func_800344B4(Task* arg0, McWork* arg1)
                     obj          = child->field_20;
                     flag         = arg0->field_20;
                     obj->field_0 = 0;
-                    func_80048838(obj, obj->field_28);
+                    Ui_TeardownTree(obj, obj->field_28);
                     flag->field_0 = syncResult;
                 }
             }
@@ -1809,7 +1809,7 @@ void func_800345CC(Task* arg0, McWork* arg1)
     arg0->field_30 = arg0->field_30 + 1;
 }
 
-void func_800346AC(Task* arg0, McWork* arg1)
+void Mc_StateEnterDialog4(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -1855,7 +1855,7 @@ void func_8003477C(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void func_80034894(Task* arg0, McWork* arg1)
+void Mc_StatePromptChoiceGeneric(Task* arg0, McWork* arg1)
 {
     s32 ret;
 
@@ -1880,7 +1880,7 @@ void func_80034894(Task* arg0, McWork* arg1)
     }
 }
 
-void func_80034938(Task* arg0, McWork* arg1)
+void Mc_StateWriteData(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -1905,7 +1905,7 @@ void func_80034938(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void func_80034A40(Task* arg0, McWork* arg1)
+void Mc_StateClosePrompt(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -1965,7 +1965,7 @@ void func_80034B68(Task* arg0, McWork* arg1)
                     obj          = child->field_20;
                     flag         = arg0->field_20;
                     obj->field_0 = 0;
-                    func_80048838(obj, obj->field_28);
+                    Ui_TeardownTree(obj, obj->field_28);
                     flag->field_0 = syncResult;
                 }
                 arg0->field_30 = 2;
@@ -1976,7 +1976,7 @@ void func_80034B68(Task* arg0, McWork* arg1)
     }
 }
 
-void func_80034C54(Task* arg0, McWork* arg1)
+void Mc_StatePromptChoice9(Task* arg0, McWork* arg1)
 {
     s32       ret;
     s32       syncResult;
@@ -2007,7 +2007,7 @@ void func_80034C54(Task* arg0, McWork* arg1)
                     obj          = child->field_20;
                     flag         = arg0->field_20;
                     obj->field_0 = 0;
-                    func_80048838(obj, obj->field_28);
+                    Ui_TeardownTree(obj, obj->field_28);
                     flag->field_0 = syncResult;
                 }
             }
@@ -2017,7 +2017,7 @@ void func_80034C54(Task* arg0, McWork* arg1)
     }
 }
 
-void func_80034D50(Task* arg0, McWork* arg1)
+void Mc_StateColdBoot(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -2037,7 +2037,7 @@ void func_80034D50(Task* arg0, McWork* arg1)
     arg0->field_30 = arg0->field_30 + 1;
 }
 
-void func_80034E3C(Task* arg0, McWork* arg1)
+void Mc_StateSyncPrompt13(Task* arg0, McWork* arg1)
 {
     s32       syncResult;
     s32       rslt;
@@ -2063,7 +2063,7 @@ void func_80034E3C(Task* arg0, McWork* arg1)
                     obj          = child->field_20;
                     flag         = arg0->field_20;
                     obj->field_0 = 0;
-                    func_80048838(obj, obj->field_28);
+                    Ui_TeardownTree(obj, obj->field_28);
                     flag->field_0 = rslt;
                 }
                 arg0->field_30 = 0x14;
@@ -2103,7 +2103,7 @@ void func_80034F2C(Task* arg0, McWork* arg1)
     }
 }
 
-void func_80034FB4(Task* arg0, McWork* arg1)
+void Mc_StatePromptCountdown(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -2224,7 +2224,7 @@ void Mc_StateOpenSelected(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void func_80035464(Task* arg0, McWork* arg1)
+void Mc_StateReadHeader(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -2285,7 +2285,7 @@ void Mc_StateOpenNext(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void func_80035684(Task* arg0, McWork* arg1)
+void Mc_StateUiCountdown2(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -2308,7 +2308,7 @@ void func_80035684(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void func_80035764(Task* arg0, McWork* arg1)
+void Mc_StateUiCountdownE(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -2331,7 +2331,7 @@ void func_80035764(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
 }
 
-void func_80035844(Task* arg0, McWork* arg1)
+void Mc_StateUiCountdownF(Task* arg0, McWork* arg1)
 {
     s32           ret;
     UiObject*     obj;
@@ -2590,7 +2590,7 @@ void Mc_StateSyncPrompt3(Task* arg0, McWork* arg1)
                     obj          = child->field_20;
                     flag         = arg0->field_20;
                     obj->field_0 = 0;
-                    func_80048838(obj, obj->field_28);
+                    Ui_TeardownTree(obj, obj->field_28);
                     flag->field_0 = syncResult;
                 }
                 arg0->field_30 = 7;
@@ -2627,7 +2627,7 @@ void Mc_StateSyncPromptA(Task* arg0, McWork* arg1)
                     obj          = child->field_20;
                     flag         = arg0->field_20;
                     obj->field_0 = 0;
-                    func_80048838(obj, obj->field_28);
+                    Ui_TeardownTree(obj, obj->field_28);
                     flag->field_0 = rslt;
                 }
                 arg0->field_30 = 0xA;

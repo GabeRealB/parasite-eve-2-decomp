@@ -156,7 +156,7 @@ void Task_Kill(Task* arg0)
     case1:
         ((GameActorExt*)arg0->field_2c)->field_C |= 0x80;
         arg0->field_2a                            = 2;
-        arg0->field_14                            = func_8002D6EC;
+        arg0->field_14                            = Task_CountdownCallback;
         arg0->field_30                            = 0;
         arg0->field_18                            = (TaskFunc)func_8002DEC4;
         return;
@@ -610,7 +610,7 @@ end:
     Task_ActiveList = saved;
 }
 
-void func_8002D6EC(Task* arg0)
+void Task_CountdownCallback(Task* arg0)
 {
     void* temp_s0;
 

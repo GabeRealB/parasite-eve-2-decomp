@@ -496,13 +496,13 @@ void CdAudio_FeedSector(s32 arg0)
         if (spuIdx != 0) {
             SpuSetTransferStartAddr(D_80068B2C[spuIdx]);
         }
-        if (func_80052B30(&sector->bytes[0x40]) == 7) {
+        if (SndLoad_ProcessSector(&sector->bytes[0x40]) == 7) {
             stream->field_B = 3;
             return;
         }
         state->field_10 = 0x800;
     } else {
-        ret = func_80052B30(sector);
+        ret = SndLoad_ProcessSector(sector);
         if (ret == 5) {
             cdState->field_1 = arg;
             CdReadyCallback(0);

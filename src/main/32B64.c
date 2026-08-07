@@ -4,7 +4,7 @@
 #include "main/game.h"
 #include "main/unknown_syms.h"
 
-void func_80042364(s32 arg0, s32 arg1, s32 arg2)
+void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2)
 {
     s8              param2[4];
     u8*             param1;
@@ -71,7 +71,7 @@ void func_80042364(s32 arg0, s32 arg1, s32 arg2)
 
 INCLUDE_ASM("main/nonmatchings/32B64", func_80042500);
 
-void func_80042838(void)
+void Prim_DrawLoadingSprt(void)
 {
     SPRT*     p;
     DR_TPAGE* dr;
@@ -141,9 +141,9 @@ void Snd_ApplyVolumeTable(s32 arg0)
         temp       = sp10.data[Mc_SaveData.field_1aa];
         D_8007A396 = temp;
         if ((s8)Mc_SaveData.field_1aa == 3) {
-            func_80051888();
+            SndEvt_EnqueueType5Pending();
         } else {
-            func_800518E0();
+            SndEvt_FlushType5Pending();
         }
         if (D_80062737 != 0) {
             SndEvt_EnqueueType5(D_80062737, (u8)D_8007A396);

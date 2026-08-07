@@ -3,8 +3,8 @@
 #include "main/mem.h"
 #include "main/unknown_syms.h"
 
-void func_800498D4(Task* arg0);
-void func_800492EC(void* arg0, RECT* arg1, RECT* arg2);
+void Ui_DispatchObjectState(Task* arg0);
+void Ui_InsetRect2(void* arg0, RECT* arg1, RECT* arg2);
 void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3);
 void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3);
 
@@ -308,7 +308,7 @@ void Ui_SetupClip(UiPanel* arg0)
     RECT     sp18;
     DR_AREA* p;
 
-    func_800492EC(arg0, &arg0->field_C, &sp18);
+    Ui_InsetRect2(arg0, &arg0->field_C, &sp18);
     if ((arg0->field_4 & 0xF) == 2) {
         sp18.y += 9;
         sp18.h -= 0xB;
@@ -410,7 +410,7 @@ after_fill: {
     RECT* arg1;
 
     arg1 = &sp10;
-    func_800492EC(arg0, &arg0->field_C, &sp20);
+    Ui_InsetRect2(arg0, &arg0->field_C, &sp20);
     if ((arg0->field_4 & 0xF) == 2) {
         sp20.y += 9;
         sp20.h -= 0xB;
@@ -429,7 +429,7 @@ after_fill: {
     arg0->field_20 = sp20.x - arg0->field_1C;
     arg0->field_22 = sp20.y - arg0->field_18;
     if (arg1 != NULL) {
-        func_800492EC(arg0, arg1, &sp18);
+        Ui_InsetRect2(arg0, arg1, &sp18);
     }
     Ui_DrawPanel(arg0, &sp10, &sp18, 1);
 }
@@ -474,7 +474,7 @@ after_fill: {
     RECT* arg1;
 
     arg1 = &sp10;
-    func_800492EC(arg0, &arg0->field_C, &sp20);
+    Ui_InsetRect2(arg0, &arg0->field_C, &sp20);
     if ((arg0->field_4 & 0xF) == 2) {
         sp20.y += 9;
         sp20.h -= 0xB;
@@ -493,7 +493,7 @@ after_fill: {
     arg0->field_20 = sp20.x - arg0->field_1C;
     arg0->field_22 = sp20.y - arg0->field_18;
     if (arg1 != NULL) {
-        func_800492EC(arg0, arg1, &sp18);
+        Ui_InsetRect2(arg0, arg1, &sp18);
     }
     Ui_DrawPanel(arg0, &sp10, &sp18, 0);
 }
@@ -538,7 +538,7 @@ after_fill: {
     RECT* arg1;
 
     arg1 = &sp10;
-    func_800492EC(arg0, &arg0->field_C, &sp20);
+    Ui_InsetRect2(arg0, &arg0->field_C, &sp20);
     if ((arg0->field_4 & 0xF) == 2) {
         sp20.y += 9;
         sp20.h -= 0xB;
@@ -557,7 +557,7 @@ after_fill: {
     arg0->field_20 = sp20.x - arg0->field_1C;
     arg0->field_22 = sp20.y - arg0->field_18;
     if (arg1 != NULL) {
-        func_800492EC(arg0, arg1, &sp18);
+        Ui_InsetRect2(arg0, arg1, &sp18);
     }
     Ui_DrawPanel(arg0, &sp10, &sp18, 1);
 }
@@ -741,7 +741,7 @@ void Ui_UpdateLayoutSize(UiPanel* arg0, s32 arg1, s32 arg2)
     if (arg2 > 0) {
         arg0->field_C.h = (arg0->field_C.h - (arg0->field_1A - arg0->field_18)) + arg2;
     }
-    func_800492EC(arg0, &arg0->field_C, &sp10);
+    Ui_InsetRect2(arg0, &arg0->field_C, &sp10);
     if ((arg0->field_4 & 0xF) == 2) {
         sp10.y += 9;
         sp10.h -= 0xB;
@@ -846,7 +846,7 @@ void Ui_LayoutListPanel(UiList* arg0_, UiPanel* arg1_)
         arg1->field_C.y += temp_a2;
     }
 
-    func_800492EC(arg1, &arg1->field_C, &sp10);
+    Ui_InsetRect2(arg1, &arg1->field_C, &sp10);
     if ((arg1->field_4 & 0xF) == 2) {
         sp10.y += 9;
         sp10.h -= 0xB;
@@ -1227,7 +1227,7 @@ void Ui_DrawText(UiPanel* arg0, char* arg1)
     arg0->field_14 = (u16)(arg0->field_14 + 1);
 }
 
-UiObject* func_800480A0(TextBlockDesc* arg0_)
+UiObject* Ui_SpawnTextBlock(TextBlockDesc* arg0_)
 {
     union {
         TaskDesc desc;
@@ -1254,7 +1254,7 @@ UiObject* func_800480A0(TextBlockDesc* arg0_)
         sp.desc.flags    = D_80067678.field_10;
         sp.desc.field_2  = D_80067678.field_12;
         field_8          = D_80067678.field_18;
-        sp.desc.callback = func_800498D4;
+        sp.desc.callback = Ui_DispatchObjectState;
         sp.desc.field_8  = field_8;
         task             = Task_SpawnFromTable(&sp.desc, (s32)obj, (s32)arg0, (s32)obj);
         dummy            = 1;
@@ -1262,7 +1262,7 @@ UiObject* func_800480A0(TextBlockDesc* arg0_)
             obj = (UiObject*)Mem_Calloc(0x30, (s32)obj);
             if (obj != NULL) {
                 task->field_20 = obj;
-                task->field_18 = func_800488B8;
+                task->field_18 = Ui_FreeAndKill;
                 obj->field_28  = task;
                 obj->field_0   = dummy;
                 obj->field_4   = D_80067678.field_0;
@@ -1297,7 +1297,7 @@ UiObject* func_800480A0(TextBlockDesc* arg0_)
                     count -= 1;
                 } while (count > 0);
             }
-            func_800492EC(result, (RECT*)&result->field_C, &sp.rect);
+            Ui_InsetRect2(result, (RECT*)&result->field_C, &sp.rect);
             if ((result->field_4 & 0xF) == 2) {
                 sp.rect.y += 9;
                 sp.rect.h -= 0xB;
@@ -1331,7 +1331,7 @@ UiObject* func_800480A0(TextBlockDesc* arg0_)
     return result;
 }
 
-void func_80048390(RECT* arg0, s32 arg1, s32 arg2, char* arg3)
+void Ui_DrawTextInRect(RECT* arg0, s32 arg1, s32 arg2, char* arg3)
 {
     UiPanel  sp18;
     s32      pad[2];
@@ -1398,7 +1398,7 @@ void func_80048390(RECT* arg0, s32 arg1, s32 arg2, char* arg3)
     }
 }
 
-void func_80048560(UiPanel* arg0, u8* arg1, s32 arg2, s32 arg3)
+void Ui_SizeFromText(UiPanel* arg0, u8* arg1, s32 arg2, s32 arg3)
 {
     struct {
         union {
@@ -1415,7 +1415,7 @@ void func_80048560(UiPanel* arg0, u8* arg1, s32 arg2, s32 arg3)
     s32 u;
 
     sp.dims.as32 = Text_MeasureMultiLine(arg1);
-    func_800492EC(arg0, &arg0->field_C, &sp.rect);
+    Ui_InsetRect2(arg0, &arg0->field_C, &sp.rect);
     if ((arg0->field_4 & 0xF) == 2) {
         sp.rect.y += 9;
         sp.rect.h -= 0xB;
@@ -1440,7 +1440,7 @@ void func_80048560(UiPanel* arg0, u8* arg1, s32 arg2, s32 arg3)
     arg0->field_C.y = -(arg0->field_C.h / 2) - 0x14;
 }
 
-UiObject* func_800486F0(UiObjectDesc* arg0, s32 arg1, s32 arg2, s32 arg3, UiObject* arg4)
+UiObject* Ui_SpawnFromDesc(UiObjectDesc* arg0, s32 arg1, s32 arg2, s32 arg3, UiObject* arg4)
 {
     TaskDesc  desc;
     Task*     task;
@@ -1451,14 +1451,14 @@ UiObject* func_800486F0(UiObjectDesc* arg0, s32 arg1, s32 arg2, s32 arg3, UiObje
     desc.flags    = arg0->field_10;
     desc.field_2  = arg0->field_12;
     field_8       = arg0->field_18;
-    desc.callback = func_800498D4;
+    desc.callback = Ui_DispatchObjectState;
     desc.field_8  = field_8;
     task          = Task_SpawnFromTable(&desc, (s32)obj, arg1, (s32)obj);
     if (task != NULL) {
         obj = (UiObject*)Mem_Calloc(0x30, (s32)obj);
         if (obj != NULL) {
             task->field_20 = obj;
-            task->field_18 = func_800488B8;
+            task->field_18 = Ui_FreeAndKill;
             obj->field_28  = task;
             obj->field_0   = arg2;
             obj->field_4   = arg0->field_0;
@@ -1479,7 +1479,7 @@ UiObject* func_800486F0(UiObjectDesc* arg0, s32 arg1, s32 arg2, s32 arg3, UiObje
     return obj;
 }
 
-void func_80048838(UiObject* arg0, Task* arg1)
+void Ui_TeardownTree(UiObject* arg0, Task* arg1)
 {
     Task* temp_s0;
     Task* child;
@@ -1488,7 +1488,7 @@ void func_80048838(UiObject* arg0, Task* arg1)
     child   = temp_s0->field_c;
     if (child != NULL) {
         do {
-            func_80048838(child->field_20, child);
+            Ui_TeardownTree(child->field_20, child);
             child = temp_s0->field_c;
         } while (child != NULL);
     }
@@ -1498,7 +1498,7 @@ void func_80048838(UiObject* arg0, Task* arg1)
     }
 }
 
-void func_800488B8(Task* arg0)
+void Ui_FreeAndKill(Task* arg0)
 {
     if (arg0->field_20 != NULL) {
         Mem_Free(arg0->field_20);
@@ -1506,7 +1506,7 @@ void func_800488B8(Task* arg0)
     Task_Kill(arg0);
 }
 
-void func_800488F8(Task* arg0)
+void Ui_SetState4(Task* arg0)
 {
     arg0->field_8 = (Task*)4;
 }
@@ -1587,7 +1587,7 @@ void Ui_InitList(UiList* arg0, UiMiniObj* arg1)
     asm("" : : "m"(sp));
 }
 
-void func_80048AEC(UiList* arg0, s32 arg1)
+void Ui_ComputeVisibleRows(UiList* arg0, s32 arg1)
 {
     RECT     sp;
     UiPanel* a1;
@@ -1635,7 +1635,7 @@ void Ui_UpdateListNoAnim(void* arg0, void* arg1)
     func_80046EEC(arg0, arg1, 0);
 }
 
-void func_80048C30(UiList* arg0, UiPanel* arg1, s32 arg2)
+void Ui_ComputeVisibleRowsEx(UiList* arg0, UiPanel* arg1, s32 arg2)
 {
     RECT sp;
     s16  temp_v0;
@@ -1763,7 +1763,7 @@ void Ui_DrawTitle(UiPanel* arg0, char* arg1)
     arg0->field_14 = (u16)(arg0->field_14 + 1);
 }
 
-void func_80048F88(UiPanel* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
+void Ui_DrawTextAtLayout(UiPanel* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
 {
     TextDrawReq sp;
     s32         temp;
@@ -1783,7 +1783,7 @@ void func_80048F88(UiPanel* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 ar
     }
 }
 
-void func_80049024(UiPanel* arg0, UiPanel* arg1, UiPanel* arg2)
+void Ui_ClampDialogRect(UiPanel* arg0, UiPanel* arg1, UiPanel* arg2)
 {
     s32 temp;
     s32 limit;
@@ -1805,20 +1805,20 @@ void func_80049024(UiPanel* arg0, UiPanel* arg1, UiPanel* arg2)
 
 void func_800490A4(UiPanel* arg0, u8* arg1)
 {
-    func_80048560(arg0, arg1, 0, 0);
+    Ui_SizeFromText(arg0, arg1, 0, 0);
 }
 
 void func_800490C8(UiPanel* arg0, u8* arg1)
 {
-    func_80048560(arg0, arg1, 0x20, 0);
+    Ui_SizeFromText(arg0, arg1, 0x20, 0);
 }
 
-s32 func_800490EC(Task* arg0)
+s32 Ui_IsStateDone(Task* arg0)
 {
     return (s32)arg0->field_8 >= 4;
 }
 
-void func_80049100(s32 arg0, s32 arg1)
+void Ui_InsertDrawTPage(s32 arg0, s32 arg1)
 {
     DR_TPAGE* p;
 
@@ -1860,17 +1860,17 @@ void Ui_AllocTile(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg
     }
 }
 
-void func_80049288(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5)
+void Ui_LayoutWithMode0(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5)
 {
     func_80046B34(arg0, arg1, arg2, arg3, arg4, arg5, 0);
 }
 
-void func_800492B8(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5)
+void Ui_LayoutWithMode1(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5)
 {
     func_80046B34(arg0, arg1, arg2, arg3, arg4, arg5, 1);
 }
 
-void func_800492EC(void* arg0, RECT* arg1, RECT* arg2)
+void Ui_InsetRect2(void* arg0, RECT* arg1, RECT* arg2)
 {
     arg2->x = arg1->x + 2;
     arg2->y = arg1->y + 2;
@@ -1882,7 +1882,7 @@ void Ui_InsetLayout(UiPanel* arg0, RECT* arg1, RECT* arg2)
 {
     RECT sp10;
 
-    func_800492EC(arg0, &arg0->field_C, &sp10);
+    Ui_InsetRect2(arg0, &arg0->field_C, &sp10);
     if ((arg0->field_4 & 0xF) == 2) {
         sp10.y += 9;
         sp10.h -= 0xB;
@@ -1901,7 +1901,7 @@ void Ui_InsetLayout(UiPanel* arg0, RECT* arg1, RECT* arg2)
     arg0->field_20 = sp10.x - arg0->field_1C;
     arg0->field_22 = sp10.y - arg0->field_18;
     if (arg1 != NULL) {
-        func_800492EC(arg0, arg1, arg2);
+        Ui_InsetRect2(arg0, arg1, arg2);
     }
 }
 
@@ -1934,22 +1934,22 @@ void Ui_ComputeAnimRect(UiPanel* arg0, RECT* arg1)
     arg1->h = arg0->field_C.h;
 }
 
-void func_80049554(UiPanel* arg0, void* arg1)
+void Ui_AnimOpenStep(UiPanel* arg0, void* arg1)
 {
     if (arg0->field_16 == 0) {
         arg0->field_16 = 9;
         arg0->field_8 += 1;
-        func_800495B4(arg0, arg1);
+        Ui_DrawAndCallback(arg0, arg1);
     } else {
         if (arg0->field_16 > 0) {
             arg0->field_16 += 9;
         }
         arg0->field_8 = 5;
-        func_800497F4(arg0, arg1);
+        Ui_ClipAndCallback(arg0, arg1);
     }
 }
 
-void func_800495B4(UiPanel* arg0, void* arg1)
+void Ui_DrawAndCallback(UiPanel* arg0, void* arg1)
 {
     s32 temp_s2;
 
@@ -1969,7 +1969,7 @@ void func_800495B4(UiPanel* arg0, void* arg1)
     }
 }
 
-void func_8004965C(UiPanel* arg0, void* arg1)
+void Ui_LayoutDrawAndCallback(UiPanel* arg0, void* arg1)
 {
     Ui_LayoutAndDraw(arg0);
     arg0->field_24(arg1);
@@ -2001,7 +2001,7 @@ void func_8004972C(UiPanel* arg0, void* arg1)
     if ((u16)arg0->field_16 >= 9U) {
         arg0->field_16 = -1;
         arg0->field_8 += 1;
-        func_800497F4(arg0, arg1);
+        Ui_ClipAndCallback(arg0, arg1);
         return;
     }
     arg0->field_0 <<= 0x10;
@@ -2012,7 +2012,7 @@ void func_8004972C(UiPanel* arg0, void* arg1)
     }
 }
 
-void func_800497F4(UiPanel* arg0, void* arg1)
+void Ui_ClipAndCallback(UiPanel* arg0, void* arg1)
 {
     s16 temp_a0;
     s16 temp_v0;
@@ -2040,7 +2040,7 @@ void func_800497F4(UiPanel* arg0, void* arg1)
     }
 }
 
-void func_800498D4(Task* arg0)
+void Ui_DispatchObjectState(Task* arg0)
 {
     UiPanelFuncTable6 sp;
     UiPanel*          temp;
@@ -2050,7 +2050,7 @@ void func_800498D4(Task* arg0)
     sp.funcs[temp->field_8](temp, arg0);
 }
 
-s32 func_80049950(void)
+s32 Ui_GetCursorFixed(void)
 {
     struct {
         s16 unk0;
@@ -2062,7 +2062,7 @@ s32 func_80049950(void)
     return *(s32*)&sp;
 }
 
-void func_80049980(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+void Ui_DrawFlatCaret(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 {
     POLY_F3*      p;
     u16           temp_v0;
@@ -2130,7 +2130,7 @@ void func_80049A8C(Task* arg0)
     temp_s0->field_16 += Display_State.field_10a;
 }
 
-void func_80049AF0(DialogPrompt* arg0, UiObject* arg1)
+void Ui_DrawDialogLine(DialogPrompt* arg0, UiObject* arg1)
 {
     DialogListCtx* temp_s3;
     DialogOption*  var_a3;
@@ -2161,7 +2161,7 @@ void func_80049AF0(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-void func_80049C00(Task* arg0)
+void Ui_ListTaskCallback(Task* arg0)
 {
     UiObject*      obj;
     SelectMenuCtx* ctx;
@@ -2197,7 +2197,7 @@ void func_80049C00(Task* arg0)
             child        = parent->field_c;
             if (child != NULL) {
                 do {
-                    func_80048838((UiObject*)child->field_20, child);
+                    Ui_TeardownTree((UiObject*)child->field_20, child);
                     child = parent->field_c;
                 } while (child != NULL);
             }

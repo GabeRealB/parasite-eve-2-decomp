@@ -6,7 +6,7 @@
 
 #include <psyq/libetc.h>
 
-s32 func_8003DFB0(s32 arg0, s32 arg1)
+s32 Display_FrameFlipDraw(s32 arg0, s32 arg1)
 {
     DisplayState* temp;
     GameOt*       ot;
@@ -68,7 +68,7 @@ s32 func_8003DFB0(s32 arg0, s32 arg1)
     return arg1;
 }
 
-Task* func_8003E210(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     DisplayState* temp;
     GameOt*       ot;
@@ -99,7 +99,7 @@ Task* func_8003E210(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     return ret;
 }
 
-Task* func_8003E324(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
+Task* Display_SpawnWithOt(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     DisplayState* temp;
     GameOt*       ot;
@@ -130,7 +130,7 @@ Task* func_8003E324(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
     return ret;
 }
 
-Task* func_8003E438(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+Task* Task_SpawnOnDefaultListA(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     TaskNode* saved;
     Task*     ret;
@@ -142,7 +142,7 @@ Task* func_8003E438(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     return ret;
 }
 
-Task* func_8003E4BC(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
+Task* Task_SpawnOnDefaultList(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     TaskNode* saved;
     Task*     ret;
@@ -156,10 +156,10 @@ Task* func_8003E4BC(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
 
 void func_8003E540(void)
 {
-    func_8003E814();
+    Display_ResetHeapFromSession();
 }
 
-void func_8003E560(void)
+void Display_FlipOt(void)
 {
     DisplayState* temp;
     u_long*       saved;
@@ -181,7 +181,7 @@ void func_8003E560(void)
     temp->field_103 = 0;
 }
 
-void func_8003E610(void)
+void Display_AcquireRef(void)
 {
     DisplayState* temp;
 
@@ -194,7 +194,7 @@ void func_8003E610(void)
     }
 }
 
-void func_8003E64C(void)
+void Display_ReleaseRef(void)
 {
     DisplayState* temp;
     u8            val;
@@ -248,7 +248,7 @@ void Gpu_InitOtSmall(void)
     D_8007A0E4   = 0x6000;
 }
 
-s32 func_8003E72C(s32 arg0)
+s32 Display_DispatchModeId(s32 arg0)
 {
     if (arg0 >= 0x20) {
         if (arg0 < 0x80) {
@@ -277,7 +277,7 @@ s32 func_8003E72C(s32 arg0)
     return 0;
 }
 
-void func_8003E814(void)
+void Display_ResetHeapFromSession(void)
 {
     GameSession* temp;
 
@@ -287,7 +287,7 @@ void func_8003E814(void)
     Display_State.field_10d = 0;
 }
 
-void func_8003E854(void)
+void Display_FlipOtAlt(void)
 {
     DisplayState* temp;
     u_long*       saved;
