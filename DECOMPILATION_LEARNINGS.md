@@ -11221,6 +11221,37 @@ ret0:
 
 `Fs_ProcessChunkData` case 4 is the pure example (99.478% → 100% on this alone).
 
+## `lui v0,%hi` + `addiu v1,v0,%lo` when `p` is pinned to `$v1`
+
+Pinning `register T* p asm("v1"); p = GlobalArray;` often yields
+`lui v1,%hi; addiu v1,v1,%lo`. The target wants the high half in `$v0`:
+
+```
+lui   v0, %hi(SndScript_Slots)
+addiu v1, v0, %lo(SndScript_Slots)
+```
+
+Force that pair with a short asm (do **not** over-pin path-local constants in
+`$a0`–`$t0` if a later path needs a different delay-slot schedule — heavy pins
+on one arm can change delay fill on the other):
+
+```c
+register SndScript* p asm("v1");
+{
+    register s32 hi asm("v0");
+    __asm__ volatile(
+        "lui %0, %%hi(SndScript_Slots)\n\t"
+        "addiu %1, %0, %%lo(SndScript_Slots)"
+        : "=&r"(hi), "=r"(p));
+}
+```
+
+`func_800546F4` is the pure example. Pair with unpinned locals for the mask /
+status constants so the case-2 `beq` can still put `lui %hi(D_80082748)` in its
+delay slot.
+
+
+
 
 
 ## Case-4 early exit: known-zero `sector` must not merge with `return 0`

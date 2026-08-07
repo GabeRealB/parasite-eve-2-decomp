@@ -145,8 +145,8 @@ extern s8  D_8008274A;
 extern s8  D_8008274B;
 extern s32 func_80053A20(s32 arg0, s32 arg1);
 // Unprototyped: SndVoice_HasActiveId calls with indeterminate a0 (nop in delay slot).
-extern void func_800546F4(s32 arg0, u16 arg1);
-extern s8   func_80055EF8(SndVoicePick* arg0, s16 arg1);
+s32       func_800546F4(s32 arg0, s32 arg1);
+extern s8 func_80055EF8(SndVoicePick* arg0, s16 arg1);
 
 // CdAudio (src/main/cdaudio.c)
 extern s32 func_80057BC0(void);

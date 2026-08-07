@@ -531,7 +531,81 @@ void SndEvt_EnqueueTypeF(void)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/sndscript", func_800546F4);
+s32 func_800546F4(s32 arg0, s32 arg1)
+{
+    s32 i;
+
+    if (!(arg0 & 0xFF)) {
+        register SndScript* p asm("v1");
+        s32                 four;
+        s32                 k60;
+        s32                 k80;
+        s32                 mask;
+        s32                 flag;
+        s32                 hi;
+
+        i    = 0;
+        mask = 0xF0000000;
+        k80  = 0x80000000;
+        k60  = 0x60000000;
+        four = 4;
+        flag = (arg1 == 1);
+        {
+            register s32 hi asm("v0");
+            __asm__ volatile(
+                "lui %0, %%hi(SndScript_Slots)\n\t"
+                "addiu %1, %0, %%lo(SndScript_Slots)"
+                : "=&r"(hi), "=r"(p));
+        }
+        do {
+            hi = p->field_0 & mask;
+            if ((hi == arg0) || ((arg0 == k80) && (hi != k60))) {
+                if ((p->field_16 != four) && (p->field_16 != 0)) {
+                    p->field_C  = flag;
+                    p->field_16 = four;
+                }
+            }
+            i++;
+            p++;
+        } while (i < 8);
+        return -2;
+    } else {
+        register s32 ret asm("v1");
+        SndScript*   p;
+
+        i = 0;
+        do {
+            p = &SndScript_Slots[i];
+            if ((p->field_0 == arg0) || ((p->field_0 | 0xFF00) == arg0)) {
+                switch (p->field_16) {
+                    case 2:
+                        if (arg1 == 0) {
+                            goto set_status_4;
+                        }
+                        if (arg1 == 1) {
+                            p->field_C = arg1;
+                            goto set_status_4;
+                        }
+                        LinInterp_Setup(&p->field_50, (u8)D_80082748, 0, arg1);
+                        p->field_16 = 0x80;
+                        break;
+                    case 4:
+                    case 8:
+                    case 16:
+                    set_status_4:
+                        p->field_16 = 4;
+                        break;
+                    case 1:
+                        p->field_16 = 0;
+                        break;
+                }
+            }
+            ret = i;
+            i   = ret + 1;
+        } while (i < 8);
+        return ret;
+    }
+}
 
 void SndVoice_StepMasterLevel(void)
 {
@@ -864,9 +938,6 @@ void SndVoice_ScanCandidates(SndVoicePick* arg0, u16 arg1, s32 arg2, u16 arg3)
 INCLUDE_ASM("main/nonmatchings/sndscript", SndVoice_KeyOffMatching);
 
 INCLUDE_ASM("main/nonmatchings/sndscript", SndScript_Exec);
-
-/* jtbl_80014168 for still-asm func_800546F4 is migrated into its INCLUDE_ASM
- * (migrate_rodata_to_functions). */
 
 void SndVoice_TickEnvelope(SndVoice* arg0)
 {
