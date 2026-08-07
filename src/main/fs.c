@@ -450,9 +450,6 @@ loop_streams:
     }
 }
 
-#ifndef NON_MATCHING
-INCLUDE_ASM("main/nonmatchings/fs", Fs_InitStage0TablesCb);
-#else
 void Fs_InitStage0TablesCb(u8 status, u8* result)
 {
     CdlLOC currLoc[3];
@@ -557,40 +554,47 @@ sector_start:
                     isValidCategory = true;
                     break;
 
-                case 1:
-                    i = Fs_FileTableCat1Len;
+                case 1: {
+                    register FsCdfFileSmall* tbl asm("v0");
+                    isValidCategory = true;
+                    tbl             = Fs_FileTableCat1;
+                    i               = Fs_FileTableCat1Len;
                     Fs_FileTableCat1Len++;
-
-                    Fs_FileTableCat1[i].id     = fileId - 10000;
-                    Fs_FileTableCat1[i].offset = ((FsCdfFile*)entry)->offset;
-                    isValidCategory            = true;
+                    tbl[i].id     = fileId - 10000;
+                    tbl[i].offset = ((FsCdfFile*)entry)->offset;
                     break;
+                }
 
-                case 2:
-                    i = Fs_FileTableCat2Len;
+                case 2: {
+                    register FsCdfFileSmall* tbl asm("v0");
+                    isValidCategory = true;
+                    tbl             = Fs_FileTableCat2;
+                    i               = Fs_FileTableCat2Len;
                     Fs_FileTableCat2Len++;
-
-                    Fs_FileTableCat2[i].id     = fileId - fileCategory * 10000;
-                    Fs_FileTableCat2[i].offset = ((FsCdfFile*)entry)->offset;
-                    isValidCategory            = true;
+                    tbl[i].id     = fileId - fileCategory * 10000;
+                    tbl[i].offset = ((FsCdfFile*)entry)->offset;
                     break;
+                }
 
-                case 3:
-                    i = Fs_FileTableCat3Len;
+                case 3: {
+                    register FsCdfFileSmall* tbl asm("v0");
+                    isValidCategory = true;
+                    tbl             = Fs_FileTableCat3;
+                    i               = Fs_FileTableCat3Len;
                     Fs_FileTableCat3Len++;
-
-                    Fs_FileTableCat3[i].id     = fileId - 30000;
-                    Fs_FileTableCat3[i].offset = ((FsCdfFile*)entry)->offset;
-                    isValidCategory            = true;
+                    tbl[i].id     = fileId - 30000;
+                    tbl[i].offset = ((FsCdfFile*)entry)->offset;
                     break;
+                }
 
                 case 4: {
-                    i = Fs_FileTableCat4Len;
+                    register FsCdfFileSmall* tbl asm("v0");
+                    isValidCategory = true;
+                    tbl             = Fs_FileTableCat4;
+                    i               = Fs_FileTableCat4Len;
                     Fs_FileTableCat4Len++;
-
-                    Fs_FileTableCat4[i].id     = fileId - fileCategory * 10000;
-                    Fs_FileTableCat4[i].offset = ((FsCdfFile*)entry)->offset;
-                    isValidCategory            = true;
+                    tbl[i].id     = fileId - fileCategory * 10000;
+                    tbl[i].offset = ((FsCdfFile*)entry)->offset;
                     break;
                 }
 
@@ -631,7 +635,6 @@ sector_start:
 on_error:
     F12D18_800256F4(FS_ERROR_SOFT);
 }
-#endif
 
 INCLUDE_ASM("main/nonmatchings/fs", Fs_ScanIsoDirectory);
 

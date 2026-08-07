@@ -11152,6 +11152,36 @@ if (v / 100000 != 0) {
 Assigning `tbl = Fs_FileTable` *before* reading the length also fixes the
 `lui v1,table` / `lui a1,len` order for the generic file table.
 
+## Cat tables: `FsCdfFileSmall*` first, then len (switch delay + lui order)
+
+For the small (u16/u16) category tables, indexing `Fs_FileTableCatN[i]`
+directly after reading the length emits `lui len` *before* `lui table`.
+Target wants table-then-len for cases 1–3, and for case 4 it wants
+`lui v0,%hi(Fs_FileTableCat4)` in the switch-tree delay slot of
+`bnez …, case4` (with only `lui a1,len` left in the case body).
+
+Fix: pin a `FsCdfFileSmall*` (not `FsCdfFile*` — wrong 8-byte stride) in
+`$v0`, assign the flag early, then table then len:
+
+```c
+case 4: {
+    register FsCdfFileSmall* tbl asm("v0");
+    isValidCategory = true;       /* li t1,1 early — helps schedule */
+    tbl = Fs_FileTableCat4;       /* lui order: table before len;
+                                     %hi can fill the case4 delay slot */
+    i   = Fs_FileTableCat4Len;
+    Fs_FileTableCat4Len++;
+    tbl[i].id     = fileId - fileCategory * 10000;
+    tbl[i].offset = ((FsCdfFile*)entry)->offset; /* sector entry is full word */
+    break;
+}
+```
+
+Same pattern for cases 1–3. Using `FsCdfFile*` here silently switches to
+`sll …,0x3` / `sw` and tanks the match even when lui order is right.
+
+`Fs_InitStage0TablesCb` is the pure example (99.703% → 100% on this alone).
+
 ## Case-4 early exit: known-zero `sector` must not merge with `return 0`
 
 When a branch leaves `sector` still at its prologue value of 0, writing
