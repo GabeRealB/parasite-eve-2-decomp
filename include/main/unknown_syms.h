@@ -108,7 +108,7 @@ extern char D_80013BB4[];
 // memcard extras (src/main/mc.c)
 extern void func_800330D8(void* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
-// stage load helpers (src/main/32B64.c)
+// stage load helpers (src/main/loadui.c)
 extern s32 func_80042500(void);
 
 // overlay / high-address

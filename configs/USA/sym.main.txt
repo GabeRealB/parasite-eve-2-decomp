@@ -370,8 +370,8 @@ CdCmd_SeekL               = 0x8001DF34; // type:func
 CdCmd_PausePoll               = 0x8001E2D4; // type:func
 CdCmd_RecoverDisk               = 0x8001E57C; // type:func
 CdCmd_PollStatus               = 0x8001E6AC; // type:func
-E734_CDIsShellOpenBitSet    = 0x8001E7C0; // type:func
-E734_CDCanIssueCommand      = 0x8001E7F0; // type:func
+CdSync_IsShellOpenBitSet    = 0x8001E7C0; // type:func
+CdSync_CanIssueCommand      = 0x8001E7F0; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x0F014   VA: 0x8001E814   subsegment: o, libcd/type

@@ -25,18 +25,24 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 |---|---|---|---|
 | `Fs_` | CD filesystem, STAGE*.CDF / STAGE0.HED | `src/main/fs.c` | `include/main/fs.h` |
 | `CdCmd_` | CD load command ring buffer | `src/main/cdcmd.c` | `include/main/fs.h` |
-| `Fade_` | Fullscreen semi-trans TILE fade | `src/main/11E9C.c` | — |
-| `Mdec_` | MDEC/STR strip decode | `src/main/stream.c` | — |
+| `Fade_` / bootload | Boot-image load + fullscreen fade TILE | `src/main/bootload.c` | `include/main/gameflow.h` (Fade) / `fs.h` |
+| `CdSync_` | CD seek/sync/disk-recovery helpers | `src/main/cdsync.c` | `include/main/fs.h` (CdCmd_*) |
+| `CdVol_` | CD-DA volume table apply | `src/main/cdvol.c` | `include/main/fs.h` |
+| `Mc_` / mcprompt | Memcard prompts + early Mc states | `src/main/mcprompt.c` | `include/main/mc.h` |
+| `Gfx_` / gfxlight / gfxmtx | Flat lights + rotation matrices | `src/main/gfxlight.c`, `gfxmtx.c` | — |
+| `Display_` / displaymode | Display mode / auto-clear setup | `src/main/displaymode.c` | `include/main/display.h` |
+| `Task_` / taskutil | Small task helper near stage tables | `src/main/taskutil.c` | `include/main/task.h` |
+| loadui | Loading SPRT + CD load enqueue | `src/main/loadui.c` | — |
+| `Mdec_` | MDEC/STR strip decode | `src/main/stream.c` | `include/main/stream.h` |
 | `Midi_` | Song block / MIDI sequencer | `src/main/sndevt.c` | `include/main/sound.h` |
 | `SndVoice_` / `SndBank` / `SndBankSlot_` | SFX voice slots + bank table | `src/main/sndscript.c` | `include/main/sound.h` |
-| `CdVol_` | CD-DA volume table apply | `src/main/16494.c` | `include/main/fs.h` |
 | `CdAudio_` | CD-driven audio player | `src/main/cdaudio.c` | `include/main/cdaudio.h` |
 | `Gpu_` | OT / light / graph reset helpers | `src/main/otutil.c`, `tmd.c` | `include/main/display.h` (OT types) |
 | `Boot_` | Cold-boot / title path | `src/main/boot.c` | `include/main/boot.h` |
 | `Mem_` / `GHeap` | Heaps | `src/main/mem.c` | `include/main/mem.h` |
 | `Task_` | Cooperative task list / spawn / kill | `src/main/task.c` | `include/main/task.h` |
 | `Pad_` | Controller state / button polls | `src/main/pad.c`, `padutil.c` | `include/main/pad.h` |
-| `Mc_` | Memory-card save/load helpers | `src/main/mc.c`, `mcmenu.c`, `20CAC.c` | `include/main/mc.h` |
+| `Mc_` | Memory-card save/load helpers | `src/main/mc.c`, `mcmenu.c`, `mcprompt.c` | `include/main/mc.h` |
 | `Ui_` | UI layout / draw / list chrome | `src/main/ui.c` | `include/main/ui.h` |
 | `Text_` / `Font_` / `Prim_` | Text measure / glyph / SPRT helpers | `textdraw.c`, `textutil.c`, `font.c` | `include/main/text.h` |
 | `Spu_` / `AsyncCb_` | SPU voices + async callback ring | `src/main/spu.c` | `include/main/sound.h` |
@@ -47,7 +53,7 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 | `GameMain` | Entry after `main` | `src/main/gamemain.c` | `include/main/gamemain.h` |
 | `GpuExt_` | GPU helpers | `src/main/gpuext.c` | `include/main/gpuext.h` |
 | `GameFlow` / `Fade_` | Pre-pad/task game-flow handlers | `src/main/gameflow.c` | `include/main/gameflow.h` |
-| `GameFlag_` | Packed 4-bit flag nibble table | `src/main/3B458.c` | `include/main/gameflag.h` |
+| `GameFlag_` | Packed 4-bit flag nibble table | `src/main/gameflag.c` | `include/main/gameflag.h` |
 | `CdStream_` / `CdReady_` | CD→SPU MTS stream | `src/main/cdstream.c` | `include/main/cdstream.h` |
 | `Tmd_` / `Stage_` | TMD models + stage flow | `src/main/tmd.c` | `include/main/tmd.h` / `stage.h` |
 | `Stream_` | Stream channel slots | `src/main/stream.c` | `include/main/stream.h` |

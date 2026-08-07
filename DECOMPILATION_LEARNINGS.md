@@ -1079,7 +1079,7 @@ beqz v0, ...
 
 Declare (or cast) the callee as returning `s16`, not `bool`/`s32`. A `bool`
 definition still matches the callee body for 0/1 results, but call sites then
-lose the `sll`. `E734_CDIsShellOpenBitSet` was retyped from `bool` to `s16` so
+lose the `sll`. `CdSync_IsShellOpenBitSet` was retyped from `bool` to `s16` so
 `CdCmd_PollStatus` (and other CD helpers that already had the `sll` in target asm)
 match at the call site.
 
@@ -7757,7 +7757,7 @@ rodata so the C `.rodata` covers just the N words and the next asm segment
 starts at the pad word:
 
 ```yaml
-- [0x46E8, .rodata, 32B64]   # GCC 5-entry jtbl (0x14 bytes)
+- [0x46E8, .rodata, loadui]   # GCC 5-entry jtbl (0x14 bytes)
 - [0x46FC, rodata, 32AF8_1]  # .word 0 pad + still-asm jtbls
 ```
 
@@ -8829,7 +8829,7 @@ addPrim(D_800710A0 - 0x10, p);
 Scratch-object matching can still report 100% when only the I-type immediate
 differs if the scoreer is too loose; always confirm with
 `./tools/build-and-verify.sh` (`build/USA/out/SLUS_010.42: OK`).
-`Prim_DrawLoadingSprt` is the pure example (also `1C034.c` / `11E9C.c` use `-0x10`).
+`Prim_DrawLoadingSprt` is the pure example (also `1C034.c` / `bootload.c` use `-0x10`).
 
 ## Dual-scope `RECT*` for early `$a1` vs late `$s1` (same address)
 

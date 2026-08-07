@@ -6,7 +6,7 @@
 #include "main/game.h"
 #include "main/fs.h"
 
-s16 E734_CDIsShellOpenBitSet(void);
+s16 CdSync_IsShellOpenBitSet(void);
 
 s32 CdCmd_SeekL(u8* loc)
 {
@@ -33,7 +33,7 @@ s32 CdCmd_SeekL(u8* loc)
                             goto set0_1;
                         case CdlDiskError:
                             state->field_1d4 = one;
-                            if (E734_CDIsShellOpenBitSet() != 0) {
+                            if (CdSync_IsShellOpenBitSet() != 0) {
                                 state->field_228 += 1;
                                 goto set0_1;
                             }
@@ -84,7 +84,7 @@ s32 CdCmd_SeekL(u8* loc)
                             goto set0_2;
                         case CdlDiskError:
                             p->field_1d4 = 1;
-                            if (E734_CDIsShellOpenBitSet() != 0) {
+                            if (CdSync_IsShellOpenBitSet() != 0) {
                                 p->field_228 += 1;
                                 goto set0_2;
                             }
@@ -134,7 +134,7 @@ s32 CdCmd_SeekL(u8* loc)
                             goto set0_3;
                         case CdlDiskError:
                             p->field_1d4 = 1;
-                            if (E734_CDIsShellOpenBitSet() != 0) {
+                            if (CdSync_IsShellOpenBitSet() != 0) {
                                 p->field_228 += 1;
                                 goto set0_3;
                             }
@@ -206,7 +206,7 @@ s32 CdCmd_PausePoll(void)
                             goto set0_1;
                         case CdlDiskError:
                             state->field_1d4 = 1;
-                            if (E734_CDIsShellOpenBitSet() != 0) {
+                            if (CdSync_IsShellOpenBitSet() != 0) {
                                 state->field_228 += 1;
                                 goto set0_1;
                             }
@@ -258,7 +258,7 @@ s32 CdCmd_PausePoll(void)
                             goto set0_2;
                         case CdlDiskError:
                             p->field_1d4 = 1;
-                            if (E734_CDIsShellOpenBitSet() != 0) {
+                            if (CdSync_IsShellOpenBitSet() != 0) {
                                 p->field_228 += 1;
                                 goto set0_2;
                             }
@@ -388,7 +388,7 @@ s32 CdCmd_PollStatus(s32 arg0, s32 arg1)
                     return 1;
                 case CdlDiskError:
                     state->field_1d4 = 1;
-                    if (E734_CDIsShellOpenBitSet() != 0) {
+                    if (CdSync_IsShellOpenBitSet() != 0) {
                         state->field_228++;
                         break;
                     }
@@ -416,7 +416,7 @@ s32 CdCmd_PollStatus(s32 arg0, s32 arg1)
     return 0;
 }
 
-s16 E734_CDIsShellOpenBitSet(void)
+s16 CdSync_IsShellOpenBitSet(void)
 {
     s16 tmp;
     u8  result[8];
@@ -427,7 +427,7 @@ s16 E734_CDIsShellOpenBitSet(void)
     return tmp != 0;
 }
 
-bool E734_CDCanIssueCommand(void)
+bool CdSync_CanIssueCommand(void)
 {
     return CdDiskReady(1) == CdlComplete;
 }

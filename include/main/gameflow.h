@@ -5,7 +5,7 @@
 
 #include "main/task.h"
 
-// Functions — game-flow / fade (src/main/gameflow.c, 11E9C fade)
+// Functions — game-flow / fade (src/main/gameflow.c, bootload fade)
 
 // --- APIs (from unknown_syms) ---
 void GameFlow_StateByField34(Task* arg0);

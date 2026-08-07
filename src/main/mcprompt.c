@@ -166,7 +166,7 @@ s32 Mc_PromptDialogFile(Task* arg0, s32 arg1, s32 arg2)
     return obj->field_2C;
 }
 
-INCLUDE_ASM("main/nonmatchings/20CAC", func_80030AB0);
+INCLUDE_ASM("main/nonmatchings/mcprompt", func_80030AB0);
 
 /* Overlay: DIRENTRY.size/head at McWork+0x48/0x50 when walk starts at McWork. */
 typedef struct {

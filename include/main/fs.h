@@ -457,15 +457,15 @@ void F12D18_800256F4(u8 arg0);
 void F12D18_800257B0(void);
 u8*  Fs_GetChunkPayload(void);
 
-/// Boot-image / CD load setup (src/main/11E9C.c).
+/// Boot-image / CD load setup (src/main/bootload.c).
 void Fs_SetupBootLoad(void);
 void Fs_BootImageMachine(void* primaryTim, void* secondaryTim);
 
-/// CD ready callback used while streaming bank data (src/main/16494.c).
+/// CD ready callback used while streaming bank data (src/main/cdvol.c).
 void Fs_StreamReadyCb(u8 status, u8* result);
 
 // =============================================================================
-// Functions — CD volume / mix (src/main/16494.c)
+// Functions — CD volume / mix (src/main/cdvol.c)
 // =============================================================================
 
 void CdVol_SetMixMode(s32 stereo);

@@ -69,7 +69,7 @@ void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
 }
 
-INCLUDE_ASM("main/nonmatchings/32B64", func_80042500);
+INCLUDE_ASM("main/nonmatchings/loadui", func_80042500);
 
 void Prim_DrawLoadingSprt(void)
 {
