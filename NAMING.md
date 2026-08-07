@@ -39,6 +39,10 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 | `SndScript_` / `SndVoice_` | Scripted SFX player + voice list | `src/main/43FFC.c` | `SndScript`, `SndVoice`, `SndOneV`, … |
 | `Midi_` | Sequenced song player | `src/main/410B0.c` | `MidiSong`, `MidiTrack`, `MidiNoteSlot` |
 | `LinInterp_` | 16-bit linear volume/value ramp | `src/main/3D458.c` | `LinInterp` |
+| `SndEvt_` | Deferred sound/MIDI event message queue | `src/main/410B0.c` | `SndEvt`, `SndEvt_Pool` |
+| `UiPanel` / `UiPanelFunc` | UI layout/draw panel (34E98 handlers) | `src/main/34E98.c` | types in `game.h` |
+| `Tmd_` | TMD model list / buffers | `src/main/2F244.c`, `pad.c` | `TmdObject`, `Tmd_List` |
+| `Game_` | Main session object | globals | `GameSession`, `Game_Session` |
 
 `include/main/game.h` is the shared kitchen-sink of still-generic types (`GStruct*`, UI helpers). It includes the module headers above for compatibility. Prefer including the specific module header when you only need that API.
 
@@ -74,7 +78,7 @@ Category tables:
 - Do **not** invent names for unanalyzed `GStructN` / `func_800*` just to “clean up.”
 - Prefer **one rename PR/commit per subsystem** so `sym.main.txt` + `.s` basenames stay consistent.
 - When renaming a `glabel`, also rename `asm/.../nonmatchings|matchings/.../<name>.s` and update `INCLUDE_ASM`.
-- Use **whole-token** renames so `GStruct3` does not clobber `GStruct30`.
+- Use **whole-token** renames so `GStruct3` does not clobber `UiPanel`.
 
 ## Tooling
 
@@ -85,5 +89,6 @@ Bulk renames live in:
 - `tools/rename_cdstream_syms.py` — CdStream / CdReady / MtsSector types + APIs
 - `tools/rename_snd_font_syms.py` — Snd / Spu / AsyncCb / Font / TextStream / Prim / GameOt
 - `tools/rename_sndscript_midi_syms.py` — SndScript / SndVoice / Midi / LinInterp / dialog UI types
+- `tools/rename_evtuipanel_tmd_syms.py` — SndEvt / UiPanel / Tmd / TaskIdMap / GameSession
 
 Idempotent only if old names are already gone. Extend the map rather than hand-editing hundreds of `.s` files.

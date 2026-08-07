@@ -605,7 +605,7 @@ FlushCache                  = 0x80028654;
 //--- PA: 0x18E64   VA: 0x80028644   subsegment: c, pad
 //--------------------------------------------------------------------
 Pad_Init                    = 0x80028664; // type:func
-func_80028718               = 0x80028718; // type:func
+Tmd_InitLists               = 0x80028718; // type:func
 
 //--------------------------------------------------------------------
 //--- PA: 0x18F44   VA: 0x80028744   subsegment: o, libpad/padentry
@@ -1361,11 +1361,11 @@ func_80040904               = 0x80040904; // type:func
 func_800409B0               = 0x800409B0; // type:func
 func_800409D0               = 0x800409D0; // type:func
 func_800410F0               = 0x800410F0; // type:func
-func_80041700               = 0x80041700; // type:func
+Tmd_Create               = 0x80041700; // type:func
 func_800418C0               = 0x800418C0; // type:func
-func_80041B4C               = 0x80041B4C; // type:func
-func_80041B88               = 0x80041B88; // type:func
-func_80041BFC               = 0x80041BFC; // type:func
+Tmd_FreeBuffers               = 0x80041B4C; // type:func
+Tmd_AllocBuffers               = 0x80041B88; // type:func
+Tmd_SumBufferBytes               = 0x80041BFC; // type:func
 func_80041C50               = 0x80041C50; // type:func
 func_80041D3C               = 0x80041D3C; // type:func
 func_80041D84               = 0x80041D84; // type:func
@@ -1427,7 +1427,7 @@ GetClut                     = 0x80042AE0;
 //--------------------------------------------------------------------
 //--- PA: 0x33300   VA: 0x80042B00   subsegment: c, 33300
 //--------------------------------------------------------------------
-func_80042B00               = 0x80042B00; // type:func
+Task_AllocIdMap               = 0x80042B00; // type:func
 func_80042DF8               = 0x80042DF8; // type:func
 func_80042F54               = 0x80042F54; // type:func
 func_80043028               = 0x80043028; // type:func
@@ -1987,11 +1987,11 @@ WaitEvent                   = 0x800508A0;
 //--------------------------------------------------------------------
 //--- PA: 0x410B0   VA: 0x800508B0   subsegment: c, 410B0
 //--------------------------------------------------------------------
-func_800508B0               = 0x800508B0; // type:func
-func_800509B4               = 0x800509B4; // type:func
-func_800509F4               = 0x800509F4; // type:func
-func_80050A38               = 0x80050A38; // type:func
-func_80050A90               = 0x80050A90; // type:func
+SndEvt_Process               = 0x800508B0; // type:func
+SndEvt_Reset               = 0x800509B4; // type:func
+SndEvt_Alloc               = 0x800509F4; // type:func
+SndEvt_Enqueue               = 0x80050A38; // type:func
+SndEvt_Free               = 0x80050A90; // type:func
 func_80050AAC               = 0x80050AAC; // type:func
 func_80050AB4               = 0x80050AB4; // type:func
 func_80050AE0               = 0x80050AE0; // type:func
@@ -2380,7 +2380,7 @@ padIntFunc                  = 0x8005ED34;
 //--------------------------------------------------------------------
 //--- PA: 0x4F564   VA: 0x8005ED64   subsegment: data
 //--------------------------------------------------------------------
-D4F564_8005ED64             = 0x8005ED64; // type:u32
+Game_Session             = 0x8005ED64; // type:u32
 
 //--------------------------------------------------------------------
 //--- PA: 0x4F590   VA: 0x8005ED90   subsegment: o, libapi/i_heap3
@@ -2672,7 +2672,7 @@ _waitTime                   = 0x800714BC;
 //--------------------------------------------------------------------
 //--- PA: 0x61CC0   VA: 0x800714C0   subsegment: bss
 //--------------------------------------------------------------------
-D61CC0_800714C0             = 0x800714C0; // type:GStruct14 size:0x13C
+D61CC0_800714C0             = 0x800714C0; // type:GameSession size:0x13C
 Pad_States                  = 0x80071620; // type:PadState
 Task_ActiveList             = 0x800716D8;
 Task_DefaultList            = 0x800716E0; // type:TaskNode
@@ -2739,3 +2739,12 @@ D_800820F3                  = 0x800820F3; // type:u8
 Midi_Song                   = 0x8007F300; // type:MidiSong
 Gpu_OtBuffers               = 0x80070EE8; // type:GpuOtBuf size:0x28
 LinInterp_CdStream          = 0x800827B4; // type:LinInterp size:0x10
+
+// SndEvt / UiPanel / Tmd / TaskIdMap / GameSession renames
+SndEvt_Pool                 = 0x8007EBF0; // type:SndEvt
+SndEvt_Head                 = 0x8007EBE4;
+SndEvt_Tail                 = 0x8007EBE8;
+SndEvt_Lock                 = 0x8007EBE0;
+SndEvt_Handlers             = 0x80068984;
+Tmd_List                    = 0x800711B8; // type:TmdListHead size:0x8
+Tmd_ListAlt                 = 0x800711C0; // type:TmdListHead size:0x8

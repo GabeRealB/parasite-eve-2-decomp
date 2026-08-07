@@ -281,10 +281,10 @@ otCtx->field_0 = depth;
 with a local:
 
 ```c
-/* Matches: li a1,1 then lui/addiu of D_8007EBF0 */
+/* Matches: li a1,1 then lui/addiu of SndEvt_Pool */
 i = 0;
 flag = 1;
-for (ptr = D_8007EBF0; i < 0x40; i++, ptr++) {
+for (ptr = SndEvt_Pool; i < 0x40; i++, ptr++) {
     if (ptr->field_0 == 0) {
         ptr->field_0 = flag;
         ...
@@ -292,7 +292,7 @@ for (ptr = D_8007EBF0; i < 0x40; i++, ptr++) {
 }
 ```
 
-`func_800509F4` is the example.
+`SndEvt_Alloc` is the example.
 
 **Hybrid — pointer for early accesses, global name after a call.** When the
 target keeps the address in `$s0` for pre-call loads/stores but reloads with a
@@ -755,10 +755,10 @@ vs `s0 = a0 + 4`, `lw 8(s0)` vs `lw 4(s0)`).
 
 Fix: take a local pointer to a typed overlay of the struct starting at offset
 `N`, and access fields through that pointer. `func_80050C80` does this with
-`GStruct16From4` overlaid at `&arg0->field_4`:
+`SndEvtFrom4` overlaid at `&arg0->field_4`:
 
 ```c
-GStruct16From4* mid = (GStruct16From4*)&arg0->field_4;
+SndEvtFrom4* mid = (SndEvtFrom4*)&arg0->field_4;
 temp = func_80055DAC(mid->field_4); /* was arg0->field_8 */
 if (temp >= 0) {
     func_80055B70(temp, mid->field_1); /* was arg0->field_5 */
@@ -1447,7 +1447,7 @@ do {
 } while (next != NULL);      /* folds to `j loop` on the non-null path */
 ```
 
-`func_800508B0` only matches with this shape; `return` in the null arm stuck at
+`SndEvt_Process` only matches with this shape; `return` in the null arm stuck at
 ~94% with inverted `beqz` and a missing `j` to the shared epilogue.
 
 ## Ring-buffer wrap: `x = x + 1; x = x % N` keeps both stores
@@ -1596,7 +1596,7 @@ typedef struct {
 ((GStructOverlayAt4*)dst)->field_4 = ((GStructOverlayAt4*)src)->field_4;
 ```
 
-`func_8002BF10` is the pure example (`D4F564_8005ED64` ← `Mc_SaveData`).
+`func_8002BF10` is the pure example (`Game_Session` ← `Mc_SaveData`).
 
 ## Big-endian halfword from two `u8` fields (stack `sb`/`sb`/`lhu`)
 
@@ -2157,7 +2157,7 @@ cast over changing the struct field type when other code relies on `byte`
 Also: if the target loads the byte early but stores it late, hold it in a
 local (`val = (u8)...`) so the load schedules before intervening stores.
 
-`func_8003FB20` is the pure example (`D4F564_8005ED64->field_4` →
+`func_8003FB20` is the pure example (`Game_Session->field_4` →
 `D_80062698->field_20`).
 
 ## BSS adjacency: hold the later symbol, step back by typed size
@@ -2350,7 +2350,7 @@ The index form then becomes `addiu v1,sp,0x10` / `sll` / `addu v1,v1,v0` /
 `lw v0,0(v1)`. `func_8002C028` is the pure example (3 entries). The same idea
 applies to `D_800134BC` (5 entries) for the sibling dispatcher `func_8002BEA8`.
 
-Two-arg handlers (e.g. `GFunc30` / `D_80013F2C` / `func_800498D4`) use the same
+Two-arg handlers (e.g. `UiPanelFunc` / `D_80013F2C` / `func_800498D4`) use the same
 struct-assignment pattern. When the object that supplies the index is also the
 first call argument, keep it in a temp so both the index and the call share it:
 
@@ -3877,7 +3877,7 @@ entry = D_8006273C[idx] + ((D_80062738 + product) & 0xFFFF);
 ```
 
 `func_800430E4` is the pure example. Pair with a `register ... asm("v1")` pin
-on the stage pointer when the target loads `D4F564_8005ED64` into `$v1` (with
+on the stage pointer when the target loads `Game_Session` into `$v1` (with
 an argument live in `$s1`) rather than `$a0`.
 
 ## Pre-increment store `*++p = f()` fills `jal` delay with the previous store
@@ -6197,7 +6197,7 @@ func(x - (s16)arg0->field_20, y - (s16)arg0->field_22);
 ```
 
 Changing the struct field to `s16` would break other matches that expect `lhu`
-(e.g. `func_80048F88` on `GStruct30::field_20`). `func_80048E38`.
+(e.g. `func_80048F88` on `UiPanel::field_20`). `func_80048E38`.
 
 ## `(u16)` cast on an `s16` field forces `lhu` without changing the struct
 
@@ -6818,7 +6818,7 @@ Fix: two trailing labels, with success and the early-exit fallthrough sharing
 the orig path, and the null path an explicit goto to the -1 path:
 
 ```c
-temp = func_800509F4();
+temp = SndEvt_Alloc();
 if (temp != NULL) {
     /* setup … */
     goto ret_orig;
@@ -7471,7 +7471,7 @@ width = a1->field_1E - x1; /* lh into $v0, nop, subu */
 
 ## Signed layout overlay when the canonical struct is `u16` for other matches
 
-`GStruct30.field_1C` / `field_1E` are `u16` so functions like `func_80049348`
+`UiPanel.field_1C` / `field_1E` are `u16` so functions like `func_80049348`
 emit `lhu`. A sibling draw helper that needs `lh` for the same offsets must not
 flip the canonical type (that breaks the other matches). Use a local overlay
 with `s16` at those offsets and cast once:
@@ -7584,7 +7584,7 @@ pointer type:
 ```c
 void func(UiList* arg0, s32 arg1)
 {
-    GStruct30* a1 = (GStruct30*)arg1;
+    UiPanel* a1 = (UiPanel*)arg1;
     s16 temp;
 
     /* all loads from a1… */
@@ -9428,7 +9428,7 @@ register for a saved global (e.g. `lb s1, D_xxx` / `sb s1, D_xxx`) so
 
 ## Nested block for clear-loop regalloc (`a0`=ptr, `v1`=i)
 
-A function-scope `u8* ptr; u32 i; for (...)` clear of `GStruct14` often
+A function-scope `u8* ptr; u32 i; for (...)` clear of `GameSession` often
 allocates `i` to `$a0` and the pointer to `$v1` when other locals are live.
 Wrapping the clear in a nested block with its own `clearPtr`/`clearI` restores
 the `func_8002BB9C` pattern (`a0`=ptr, `v1`=counter) used by simple clears:
@@ -9438,8 +9438,8 @@ the `func_8002BB9C` pattern (`a0`=ptr, `v1`=counter) used by simple clears:
     u8* clearPtr;
     u32 clearI;
 
-    clearPtr = (u8*)D4F564_8005ED64;
-    for (clearI = 0; clearI < sizeof(GStruct14); clearI++) {
+    clearPtr = (u8*)Game_Session;
+    for (clearI = 0; clearI < sizeof(GameSession); clearI++) {
         *clearPtr++ = 0;
     }
 }
@@ -10012,7 +10012,7 @@ epilogue:
     cleanup();
 ```
 
-`func_80042B00` is the pure example (`field_1 == 1` → `func_8005132C` then
+`Task_AllocIdMap` is the pure example (`field_1 == 1` → `func_8005132C` then
 shared `D_80062734 = 0xFF; Task_Kill`). Explicit `goto epilogue` on the
 `func_800514F8 != 0` path inverted the `field_1` branch to `beq` with the
 bodies swapped.

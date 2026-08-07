@@ -279,9 +279,9 @@ s32 func_8003E72C(s32 arg0)
 
 void func_8003E814(void)
 {
-    GStruct14* temp;
+    GameSession* temp;
 
-    temp = D4F564_8005ED64;
+    temp = Game_Session;
     func_800144F8(temp->field_7, temp->field_6);
     Display_State.field_1e  = 0;
     Display_State.field_10d = 0;

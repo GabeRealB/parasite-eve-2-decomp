@@ -196,7 +196,7 @@ typedef struct _CdCmd58Entry {
     /* 0x24 */ s16  field_24[3]; // non-zero → Fs_ChunkMode=2 / D5B498_8006C233=-8
     /* 0x2A */ s16  field_2A[3]; // non-zero → Fs_ChunkMode=2 / D5B498_8006C234=-3
     /* 0x30 */ byte pad_30[0x2];
-    /* 0x32 */ s16  field_32;    // stream id matched against GStruct14.field_4
+    /* 0x32 */ s16  field_32;    // stream id matched against GameSession.field_4
     /* 0x34 */ s16  field_34;    // buffer-select kind (0..4) for the switch in func_8003FF14
     /* 0x36 */ byte pad_36[0x2];
     /* 0x38 */ u16  field_38;    // memcpy byte count for func_8002D7A8

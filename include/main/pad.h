@@ -74,8 +74,8 @@ STATIC_ASSERT_SIZEOF(PadRawPort, 0x24);
 // =============================================================================
 
 void Pad_Init(void);
-/// Initialise GStruct27 list heads (D_800711B8 / D_800711C0); lives next to pad init.
-void func_80028718(void);
+/// Initialise TmdObject list heads (Tmd_List / Tmd_ListAlt); lives next to pad init.
+void Tmd_InitLists(void);
 
 // =============================================================================
 // Functions — src/main/padutil.c
@@ -96,7 +96,7 @@ void func_8002C5A4(void);
 
 extern volatile PadState Pad_States[2];
 extern PadRawPort        Pad_RawPorts[2];
-/// Cleared by func_80028718 during system init.
+/// Cleared by Tmd_InitLists during system init.
 extern s32 D_80071210;
 
 #endif // PAD_H

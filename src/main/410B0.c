@@ -2,74 +2,74 @@
 
 #include "main/unknown_syms.h"
 
-void func_800508B0(void)
+void SndEvt_Process(void)
 {
-    GStruct16* next;
-    GStruct16* cur;
-    u32        i;
-    s32*       ptr;
+    SndEvt* next;
+    SndEvt* cur;
+    u32     i;
+    s32*    ptr;
 
-    if (D_8007EBE0 == 0) {
+    if (SndEvt_Lock == 0) {
         return;
     }
-    if (D_8007EBE4 == NULL) {
+    if (SndEvt_Head == NULL) {
         return;
     }
 
     do {
-        cur = D_8007EBE4;
+        cur = SndEvt_Head;
         if ((u16)cur->field_2 >= 0x10U) {
-            ptr = (s32*)D_8007EBF0;
+            ptr = (s32*)SndEvt_Pool;
             i   = 0;
             do {
                 *ptr = 0;
                 i++;
                 ptr++;
             } while (i < 0x1C0U);
-            D_8007EBE4 = NULL;
-            D_8007EBE8 = NULL;
-            D_8007EBE0 = 1;
+            SndEvt_Head = NULL;
+            SndEvt_Tail = NULL;
+            SndEvt_Lock = 1;
             return;
         }
-        D_80068984[cur->field_2](cur);
-        cur  = D_8007EBE4;
+        SndEvt_Handlers[cur->field_2](cur);
+        cur  = SndEvt_Head;
         next = cur->field_18;
-        func_80050A90(cur);
+        SndEvt_Free(cur);
         if (next == NULL) {
-            D_8007EBE8 = NULL;
-            D_8007EBE4 = NULL;
+            SndEvt_Tail = NULL;
+            SndEvt_Head = NULL;
             break;
         }
-        D_8007EBE4 = next;
+        SndEvt_Head = next;
     } while (next != NULL);
 }
 
-void func_800509B4(void)
+void SndEvt_Reset(void)
 {
     u32  i;
     s32* ptr;
 
-    ptr = (s32*)D_8007EBF0;
+    ptr = (s32*)SndEvt_Pool;
     i   = 0;
     do {
         *ptr = 0;
         i++;
         ptr++;
     } while (i < 0x1C0U);
-    D_8007EBE4 = NULL;
-    D_8007EBE8 = NULL;
-    D_8007EBE0 = 1;
+    SndEvt_Head = NULL;
+    SndEvt_Tail = NULL;
+    SndEvt_Lock = 1;
 }
 
-GStruct16* func_800509F4(void)
+SndEvt* SndEvt_Alloc(void)
 {
-    s32        i;
-    s32        flag;
-    GStruct16* ptr;
+    s32     i;
+    s32     flag;
+    SndEvt* ptr;
 
     i    = 0;
     flag = 1;
-    for (ptr = D_8007EBF0; i < 0x40; i++, ptr++) {
+    for (ptr = SndEvt_Pool; i < 0x40; i++, ptr++) {
         if (ptr->field_0 == 0) {
             ptr->field_0 = flag;
             ptr->field_2 = 0;
@@ -79,28 +79,28 @@ GStruct16* func_800509F4(void)
     return NULL;
 }
 
-void func_80050A38(GStruct16* arg0)
+void SndEvt_Enqueue(SndEvt* arg0)
 {
-    GStruct16* temp;
+    SndEvt* temp;
 
     if (arg0 != NULL) {
-        D_8007EBE0 = 0;
-        if (D_8007EBE4 == NULL) {
-            D_8007EBE8     = arg0;
-            D_8007EBE4     = arg0;
+        SndEvt_Lock = 0;
+        if (SndEvt_Head == NULL) {
+            SndEvt_Tail    = arg0;
+            SndEvt_Head    = arg0;
             arg0->field_14 = NULL;
         } else {
-            temp           = D_8007EBE8;
-            D_8007EBE8     = arg0;
+            temp           = SndEvt_Tail;
+            SndEvt_Tail    = arg0;
             arg0->field_14 = temp;
             temp->field_18 = arg0;
         }
         arg0->field_18 = NULL;
-        D_8007EBE0     = 1;
+        SndEvt_Lock    = 1;
     }
 }
 
-void func_80050A90(GStruct16* arg0)
+void SndEvt_Free(SndEvt* arg0)
 {
     if (arg0 != NULL) {
         arg0->field_0  = 0;
@@ -113,75 +113,75 @@ void func_80050AAC(void)
 {
 }
 
-void func_80050AB4(GStruct16* arg0)
+void func_80050AB4(SndEvt* arg0)
 {
     func_80050E3C(arg0->field_4, arg0->field_6);
 }
 
-void func_80050AE0(GStruct16* arg0)
+void func_80050AE0(SndEvt* arg0)
 {
     func_800515C0(arg0->field_4, arg0->field_6);
 }
 
-void func_80050B0C(GStruct16* arg0)
+void func_80050B0C(SndEvt* arg0)
 {
     func_8005166C(arg0->field_4, 1);
 }
 
-void func_80050B30(GStruct16* arg0)
+void func_80050B30(SndEvt* arg0)
 {
     func_8005166C(arg0->field_4, 0);
 }
 
-void func_80050B54(GStruct16* arg0)
+void func_80050B54(SndEvt* arg0)
 {
     func_80051744(arg0->field_4, arg0->field_5);
 }
 
-void func_80050B80(GStruct16* arg0)
+void func_80050B80(SndEvt* arg0)
 {
-    GStruct16From4* temp;
+    SndEvtFrom4* temp;
 
-    temp = (GStruct16From4*)&arg0->field_4;
+    temp = (SndEvtFrom4*)&arg0->field_4;
     func_800558E8(temp->field_4, arg0->field_4, temp->field_1, temp->field_8, (SndVoiceParams*)temp->field_C);
 }
 
-void func_80050BBC(GStruct16* arg0)
+void func_80050BBC(SndEvt* arg0)
 {
-    GStruct16From4* temp;
+    SndEvtFrom4* temp;
 
-    temp = (GStruct16From4*)&arg0->field_4;
+    temp = (SndEvtFrom4*)&arg0->field_4;
     func_800546F4(temp->field_4, temp->field_2);
 }
 
-void func_80050BE8(GStruct16* arg0)
+void func_80050BE8(SndEvt* arg0)
 {
     func_800559BC(arg0->field_8, 1);
 }
 
-void func_80050C0C(GStruct16* arg0)
+void func_80050C0C(SndEvt* arg0)
 {
     func_800559BC(arg0->field_8, 0);
 }
 
-void func_80050C30(GStruct16* arg0)
+void func_80050C30(SndEvt* arg0)
 {
-    s32             temp_v0;
-    GStruct16From4* temp_s0;
+    s32          temp_v0;
+    SndEvtFrom4* temp_s0;
 
-    temp_s0 = (GStruct16From4*)&arg0->field_4;
+    temp_s0 = (SndEvtFrom4*)&arg0->field_4;
     temp_v0 = func_80055DAC(temp_s0->field_4);
     if (temp_v0 >= 0) {
         func_80055A9C(temp_v0, (s8)arg0->field_4, (s8)temp_s0->field_1);
     }
 }
 
-void func_80050C80(GStruct16* arg0)
+void func_80050C80(SndEvt* arg0)
 {
-    s32             temp_v0;
-    GStruct16From4* temp_s0;
+    s32          temp_v0;
+    SndEvtFrom4* temp_s0;
 
-    temp_s0 = (GStruct16From4*)&arg0->field_4;
+    temp_s0 = (SndEvtFrom4*)&arg0->field_4;
     temp_v0 = func_80055DAC(temp_s0->field_4);
     if (temp_v0 >= 0) {
         func_80055B70(temp_v0, temp_s0->field_1);
@@ -465,95 +465,95 @@ end:
 
 s32 func_800512BC(s32 arg0, s32 arg1)
 {
-    GStruct16* temp;
+    SndEvt* temp;
 
     if ((arg0 & 0xFF) == 0xFF) {
         return -3;
     }
-    temp = func_800509F4();
+    temp = SndEvt_Alloc();
     if (temp == NULL) {
         return -2;
     }
     temp->field_2 = 1;
     temp->field_4 = arg0;
     temp->field_6 = arg1;
-    func_80050A38(temp);
+    SndEvt_Enqueue(temp);
     return 0;
 }
 
 s32 func_8005132C(s32 arg0, s32 arg1)
 {
-    GStruct16* temp;
+    SndEvt* temp;
 
     if ((arg0 & 0xFF) == 0xFF) {
         return -3;
     }
-    temp = func_800509F4();
+    temp = SndEvt_Alloc();
     if (temp == NULL) {
         return -2;
     }
     temp->field_2 = 2;
     temp->field_4 = arg0;
     temp->field_6 = arg1 & 0xFFFC;
-    func_80050A38(temp);
+    SndEvt_Enqueue(temp);
     return 0;
 }
 
 s32 func_800513A0(s32 arg0)
 {
-    GStruct16* temp;
+    SndEvt* temp;
 
     if ((arg0 & 0xFF) == 0xFF) {
         return -3;
     }
-    temp = func_800509F4();
+    temp = SndEvt_Alloc();
     if (temp == NULL) {
         return -2;
     }
     temp->field_2 = 3;
     temp->field_4 = arg0;
-    func_80050A38(temp);
+    SndEvt_Enqueue(temp);
     return 0;
 }
 
 s32 func_80051400(s32 arg0)
 {
-    GStruct16* temp;
+    SndEvt* temp;
 
     if ((arg0 & 0xFF) == 0xFF) {
         return -3;
     }
-    temp = func_800509F4();
+    temp = SndEvt_Alloc();
     if (temp == NULL) {
         return -2;
     }
     temp->field_2 = 4;
     temp->field_4 = arg0;
-    func_80050A38(temp);
+    SndEvt_Enqueue(temp);
     return 0;
 }
 
 s32 func_80051460(s32 arg0, s32 arg1)
 {
-    GStruct16*      temp;
-    GStruct16From4* mid;
+    SndEvt*      temp;
+    SndEvtFrom4* mid;
 
     if ((arg0 & 0xFF) == 0xFF) {
         return -3;
     }
-    temp = func_800509F4();
+    temp = SndEvt_Alloc();
     if (temp == NULL) {
         return -2;
     }
     temp->field_4 = arg0;
     temp->field_2 = 5;
-    mid           = (GStruct16From4*)&temp->field_4;
+    mid           = (SndEvtFrom4*)&temp->field_4;
     if ((s8)arg1 >= 0) {
         mid->field_1 = arg1;
     } else {
         mid->field_1 = 0x7F;
     }
-    func_80050A38(temp);
+    SndEvt_Enqueue(temp);
     D_800820E8 = mid->field_1;
     return 0;
 }
@@ -711,33 +711,33 @@ void func_8005185C(s32* arg0)
 
 void func_80051888(void)
 {
-    GStruct16*      temp;
-    GStruct16From4* mid;
+    SndEvt*      temp;
+    SndEvtFrom4* mid;
 
     D_800820E9 = 1;
-    temp       = func_800509F4();
+    temp       = SndEvt_Alloc();
     if (temp != NULL) {
-        mid           = (GStruct16From4*)&temp->field_4;
+        mid           = (SndEvtFrom4*)&temp->field_4;
         temp->field_2 = 5;
         temp->field_4 = 0;
         mid->field_1  = 0;
-        func_80050A38(temp);
+        SndEvt_Enqueue(temp);
         D_800820E8 = mid->field_1;
     }
 }
 
 void func_800518E0(void)
 {
-    GStruct16*      temp;
-    GStruct16From4* mid;
-    u8              saved;
+    SndEvt*      temp;
+    SndEvtFrom4* mid;
+    u8           saved;
 
     if (D_800820E9 != 0) {
         saved      = D_800820E8;
         D_800820E9 = 0;
-        temp       = func_800509F4();
+        temp       = SndEvt_Alloc();
         if (temp != NULL) {
-            mid           = (GStruct16From4*)&temp->field_4;
+            mid           = (SndEvtFrom4*)&temp->field_4;
             temp->field_2 = 5;
             temp->field_4 = 0;
             if ((s8)saved >= 0) {
@@ -745,7 +745,7 @@ void func_800518E0(void)
             } else {
                 mid->field_1 = 0x7F;
             }
-            func_80050A38(temp);
+            SndEvt_Enqueue(temp);
             D_800820E8 = mid->field_1;
         }
     }

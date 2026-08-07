@@ -39,7 +39,7 @@ typedef struct _TaskNode {
     struct _TaskNode* prev;
 } TaskNode;
 
-/// 2-byte table entry (id + type). Indexed via GStruct63.
+/// 2-byte table entry (id + type). Indexed via TaskIdMap.
 typedef struct _GPairU8 {
     /* 0x0 */ u8 field_0;
     /* 0x1 */ u8 field_1;
@@ -47,13 +47,13 @@ typedef struct _GPairU8 {
 STATIC_ASSERT_SIZEOF(GPairU8, 0x2);
 
 /// Index + pointer into a GPairU8 table. Allocated (Mem_Calloc(8)) and stored
-/// at Task::field_1C by func_80042B00; read by func_80042F54 / func_80042DF8.
-typedef struct _GStruct63 {
+/// at Task::field_1C by Task_AllocIdMap; read by func_80042F54 / func_80042DF8.
+typedef struct _TaskIdMap {
     /* 0x0 */ u16      field_0; // index into field_4
     /* 0x2 */ byte     pad_2[2];
     /* 0x4 */ GPairU8* field_4;
-} GStruct63;
-STATIC_ASSERT_SIZEOF(GStruct63, 0x8);
+} TaskIdMap;
+STATIC_ASSERT_SIZEOF(TaskIdMap, 0x8);
 
 typedef struct _Task {
     TaskNode      node;
@@ -62,7 +62,7 @@ typedef struct _Task {
     struct _Task* field_10;
     TaskFunc      field_14;
     TaskFunc      field_18;
-    GStruct63*    field_1C;
+    TaskIdMap*    field_1C;
     void*         field_20;
     byte          unknown_24[4];
     u8            field_28;

@@ -36,23 +36,23 @@ void func_8002B834(Task* arg0)
                 u8* clearPtr;
                 u32 clearI;
 
-                clearPtr = (u8*)D4F564_8005ED64;
-                for (clearI = 0; clearI < sizeof(GStruct14); clearI++) {
+                clearPtr = (u8*)Game_Session;
+                for (clearI = 0; clearI < sizeof(GameSession); clearI++) {
                     *clearPtr++ = 0;
                 }
             }
-            ds                        = &Display_State;
-            ds->field_101             = 0;
-            ds->field_12e             = 0;
-            one                       = 1;
-            D4F564_8005ED64->field_4C = one;
-            D4F564_8005ED64->field_80 = 0;
+            ds                     = &Display_State;
+            ds->field_101          = 0;
+            ds->field_12e          = 0;
+            one                    = 1;
+            Game_Session->field_4C = one;
+            Game_Session->field_80 = 0;
             func_80053FA0(1);
             ds->field_101 = 0;
             ds->field_10b = one;
             Task_Kill(arg0);
             Task_ResetDefaultList();
-            func_80028718();
+            Tmd_InitLists();
             Mem_Init();
             Task_Spawn(0, 9, 0, 0);
         }
@@ -61,8 +61,8 @@ void func_8002B834(Task* arg0)
         Pad_SetCooldown(0);
         if (arg0->field_34 == 0) {
             saved = D_80072189;
-            ptr   = (u8*)D4F564_8005ED64;
-            for (i = 0; i < sizeof(GStruct14); i++) {
+            ptr   = (u8*)Game_Session;
+            for (i = 0; i < sizeof(GameSession); i++) {
                 *ptr++ = 0;
             }
             Display_State.field_101 = 0;
@@ -80,22 +80,22 @@ void func_8002B834(Task* arg0)
                 u8* clearPtr;
                 u32 clearI;
 
-                clearPtr = (u8*)D4F564_8005ED64;
-                for (clearI = 0; clearI < sizeof(GStruct14); clearI++) {
+                clearPtr = (u8*)Game_Session;
+                for (clearI = 0; clearI < sizeof(GameSession); clearI++) {
                     *clearPtr++ = 0;
                 }
             }
-            Display_State.field_12e   = 1;
-            Display_State.field_101   = 0;
-            p->field_248              = 1;
-            p->field_244              = 1;
-            D_800710A8.field_4        = 1;
-            D4F564_8005ED64->field_4C = 1;
+            Display_State.field_12e = 1;
+            Display_State.field_101 = 0;
+            p->field_248            = 1;
+            p->field_244            = 1;
+            D_800710A8.field_4      = 1;
+            Game_Session->field_4C  = 1;
         }
         Display_State.field_10b = 1;
         Task_Kill(arg0);
         Task_ResetDefaultList();
-        func_80028718();
+        Tmd_InitLists();
         Mem_Init();
         Task_Spawn(0, 9, 0, 0);
     }
@@ -132,8 +132,8 @@ void func_8002BB9C(void)
     u8* ptr;
     u32 i;
 
-    ptr = (u8*)D4F564_8005ED64;
-    for (i = 0; i < sizeof(GStruct14); i++) {
+    ptr = (u8*)Game_Session;
+    for (i = 0; i < sizeof(GameSession); i++) {
         *ptr++ = 0;
     }
     Display_State.field_101 = 0;
@@ -142,7 +142,7 @@ void func_8002BB9C(void)
 void func_8002BBC8(void)
 {
     Task_ResetDefaultList();
-    func_80028718();
+    Tmd_InitLists();
     Mem_Init();
     Task_Spawn(0, 9, 0, 0);
 }
@@ -156,8 +156,8 @@ void func_8002BC0C(Task* arg0)
 
     p     = &CdCmd_Queue;
     saved = D_80072189;
-    ptr   = (u8*)D4F564_8005ED64;
-    for (i = 0; i < sizeof(GStruct14); i++) {
+    ptr   = (u8*)Game_Session;
+    for (i = 0; i < sizeof(GameSession); i++) {
         *ptr++ = 0;
     }
     Display_State.field_101 = 0;
@@ -180,10 +180,10 @@ void func_8002BCA8(Task* arg0)
     temp_v0        = func_800486F0(D_800611C8, 0, 1, 0, 0);
     arg0->field_20 = temp_v0;
     if (temp_v0 != 0) {
-        Display_State.field_11e  = 0xFF;
-        D4F564_8005ED64->field_2 = 1;
-        arg0->field_2a           = 0x10;
-        arg0->field_30           = arg0->field_30 + 1;
+        Display_State.field_11e = 0xFF;
+        Game_Session->field_2   = 1;
+        arg0->field_2a          = 0x10;
+        arg0->field_30          = arg0->field_30 + 1;
     }
 }
 
@@ -194,8 +194,8 @@ void func_8002BD24(Task* arg0)
     obj = arg0->field_20;
     if (obj->field_2E == -1) {
         func_80048838(obj, obj->field_28);
-        Display_State.field_11e  = 0;
-        D4F564_8005ED64->field_2 = 0;
+        Display_State.field_11e = 0;
+        Game_Session->field_2   = 0;
         if (D_80072311 == 1) {
             func_800260B0(0);
         } else {
@@ -228,7 +228,7 @@ void func_8002BE0C(Task* arg0)
     Display_State.field_10b = 1;
     Task_Kill(arg0);
     Task_ResetDefaultList();
-    func_80028718();
+    Tmd_InitLists();
     Mem_Init();
     Task_Spawn(0, 9, 0, 0);
 }
@@ -243,7 +243,7 @@ void func_8002BEA8(Task* arg0)
 
 void func_8002BF10(Task* arg0)
 {
-    ((GStructOverlayAt4*)D4F564_8005ED64)->field_4 =
+    ((GStructOverlayAt4*)Game_Session)->field_4 =
         ((GStructOverlayAt4*)&Mc_SaveData)->field_4;
     D_8007A394     = 0;
     arg0->field_30 = arg0->field_30 + 1;
@@ -255,7 +255,7 @@ void func_8002BF58(Task* arg0)
     u8 param2[8];
 
     if ((u8)func_80042500() == 0) {
-        F12D18_8002252C(&D4F564_8005ED64->field_4, 0);
+        F12D18_8002252C(&Game_Session->field_4, 0);
         param1[3] = 0;
         param1[2] = 0;
         param1[0] = 0;
@@ -439,7 +439,7 @@ void func_8002C5A4(void)
             pad->field_8         = scratch->prevButtons & (scratch->buttons ^ scratch->prevButtons);
             pad->field_4         = scratch->buttons;
 
-            if (*(s8*)&D4F564_8005ED64->field_2 != 0) {
+            if (*(s8*)&Game_Session->field_2 != 0) {
                 if ((scratch->prevButtons & 0xF000) == (scratch->buttons & 0xF000)) {
                     pad->field_B = pad->field_B + ds->field_10a;
                 } else {

@@ -154,11 +154,11 @@ void Task_Kill(Task* arg0)
         goto def_case;
 
     case1:
-        ((GStruct72*)arg0->field_2c)->field_C |= 0x80;
-        arg0->field_2a                         = 2;
-        arg0->field_14                         = func_8002D6EC;
-        arg0->field_30                         = 0;
-        arg0->field_18                         = (TaskFunc)func_8002DEC4;
+        ((GameActorExt*)arg0->field_2c)->field_C |= 0x80;
+        arg0->field_2a                            = 2;
+        arg0->field_14                            = func_8002D6EC;
+        arg0->field_30                            = 0;
+        arg0->field_18                            = (TaskFunc)func_8002DEC4;
         return;
 
     case2:
@@ -364,12 +364,12 @@ void func_8002D14C(Task* arg0, Task* arg1)
 
 void func_8002D214(void* arg0, s32 arg1)
 {
-    D4F564_8005ED64->field_C[arg1] = arg0;
+    Game_Session->field_C[arg1] = arg0;
 }
 
 void* func_8002D22C(s32 arg0)
 {
-    return D4F564_8005ED64->field_C[arg0];
+    return Game_Session->field_C[arg0];
 }
 
 void Task_InitList(TaskNode* node)
@@ -641,7 +641,7 @@ void func_8002D780(void)
     s32 i;
 
     for (i = 0xF; i >= 0; i--) {
-        D4F564_8005ED64->field_C[i] = NULL;
+        Game_Session->field_C[i] = NULL;
     }
 }
 

@@ -53,11 +53,11 @@ void Pad_Init(void)
     }
 }
 
-void func_80028718(void)
+void Tmd_InitLists(void)
 {
-    D_80071210      = 0;
-    D_800711B8.next = NULL;
-    D_800711B8.prev = &D_800711B8;
-    D_800711C0.next = NULL;
-    D_800711C0.prev = &D_800711C0;
+    D_80071210       = 0;
+    Tmd_List.next    = NULL;
+    Tmd_List.prev    = &Tmd_List;
+    Tmd_ListAlt.next = NULL;
+    Tmd_ListAlt.prev = &Tmd_ListAlt;
 }

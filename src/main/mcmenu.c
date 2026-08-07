@@ -27,7 +27,7 @@ void func_80036A70(Task* arg0)
 
     obj  = arg0->field_20;
     menu = &D_8006116C;
-    func_80047F40((GStruct30*)obj, D_80013B64);
+    func_80047F40((UiPanel*)obj, D_80013B64);
     if (arg0->field_30 == 0) {
         func_800489A0(menu, obj);
         menu->field_A  = 1;
@@ -79,7 +79,7 @@ void func_80036C04(Task* arg0)
     obj  = arg0->field_20;
     ctx  = (GStruct64*)arg0->field_34;
     menu = &D_80061194;
-    func_80047F40((GStruct30*)obj, D_80013B64);
+    func_80047F40((UiPanel*)obj, D_80013B64);
     if (arg0->field_30 == 0) {
         func_800489A0(menu, obj);
         menu->field_A  = 1;
@@ -187,9 +187,9 @@ void func_80036FB8(DialogPrompt* arg0, UiObject* arg1)
 
 void func_80037068(Task* arg0)
 {
-    GStruct30* obj;
-    UiList*    menu;
-    s32        mode;
+    UiPanel* obj;
+    UiList*  menu;
+    s32      mode;
 
     mode = arg0->field_34;
     obj  = arg0->field_20;

@@ -84,19 +84,19 @@ extern void func_8002BFD4(void);
 extern void func_8002C028(Task* arg0);
 extern void func_8002C1D8(void);
 // Pad_* → main/pad.h; Task_* → main/task.h
-extern TaskFuncTable5 D_800134BC;
-extern TaskFuncTable3 D_800134D0;
-extern u16            D_80013E88[]; // display width table
-extern u16            D_80013E94[]; // display height table
-extern TaskFuncTable6 D_80013E98;
-extern TaskFuncTable3 D_80013EDC;
-extern GBytes4        D_80013F18;
-extern TaskFuncTable4 D_80013F1C;
-extern GFunc30Table6  D_80013F2C;
-extern GBytes6        D_80014124;
-extern void           func_8002D214(void* arg0, s32 arg1);
-extern void*          func_8002D22C(s32 arg0);
-extern void           func_8002D6EC(Task* arg0);
+extern TaskFuncTable5    D_800134BC;
+extern TaskFuncTable3    D_800134D0;
+extern u16               D_80013E88[]; // display width table
+extern u16               D_80013E94[]; // display height table
+extern TaskFuncTable6    D_80013E98;
+extern TaskFuncTable3    D_80013EDC;
+extern GBytes4           D_80013F18;
+extern TaskFuncTable4    D_80013F1C;
+extern UiPanelFuncTable6 D_80013F2C;
+extern GBytes6           D_80014124;
+extern void              func_8002D214(void* arg0, s32 arg1);
+extern void*             func_8002D22C(s32 arg0);
+extern void              func_8002D6EC(Task* arg0);
 
 // Dynamically loaded (BSS region)
 extern void  func_80097AC0(GpuOtBuf* arg0);
@@ -199,43 +199,43 @@ extern UiObject* func_800486F0(UiObjectDesc* arg0, s32 arg1, s32 arg2, s32 arg3,
                                UiObject* arg4);
 extern void      func_80046B34(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5, s32 arg6);
 extern void      func_80046EEC(void* arg0, void* arg1, s32 arg2);
-extern void      func_80048560(GStruct30* arg0, u8* arg1, s32 arg2, s32 arg3);
+extern void      func_80048560(UiPanel* arg0, u8* arg1, s32 arg2, s32 arg3);
 extern void      func_80048838(UiObject* arg0, Task* arg1);
 extern void      func_800488B8(Task* arg0);
 extern void      func_800488F8(Task* arg0);
-extern void      func_80047D90(GStruct30* arg0, char* arg1);
-extern void      func_80047F40(GStruct30* arg0, char* arg1);
-extern void      func_80048904(GStruct30* arg0, s32 arg1, s32 arg2);
-extern void      func_80048964(GStruct30* arg0, void* arg1);
-extern void      func_80046508(UiList* arg0, GStruct30* arg1, s32 arg2);
-extern void      func_80046830(UiList* arg0, GStruct30* arg1);
+extern void      func_80047D90(UiPanel* arg0, char* arg1);
+extern void      func_80047F40(UiPanel* arg0, char* arg1);
+extern void      func_80048904(UiPanel* arg0, s32 arg1, s32 arg2);
+extern void      func_80048964(UiPanel* arg0, void* arg1);
+extern void      func_80046508(UiList* arg0, UiPanel* arg1, s32 arg2);
+extern void      func_80046830(UiList* arg0, UiPanel* arg1);
 extern void      func_800489A0(UiList* arg0, GStruct20* arg1);
 extern void      func_80048AEC(UiList* arg0, s32 arg1);
 extern void      func_80048C10(void* arg0, void* arg1);
-extern void      func_80048C30(UiList* arg0, GStruct30* arg1, s32 arg2);
+extern void      func_80048C30(UiList* arg0, UiPanel* arg1, s32 arg2);
 extern void      func_80048D58(GStruct20* arg0, s32 arg1, s32 arg2);
 extern s32       func_80048E10(void* arg0, s32 arg1);
-extern void      func_80047A0C(GStruct30* arg0, s32 arg1, s32 arg2, s32 arg3);
-extern void      func_80047B24(GStruct30* arg0, s32 arg1, s32 arg2, s32 arg3);
-extern void      func_80047C40(GStruct30* arg0, s32 arg1, s32 arg2, char* arg3, s32 arg4);
-extern void      func_80048E38(GStruct30* arg0, char* arg1);
-extern void      func_80048F88(GStruct30* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
+extern void      func_80047A0C(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
+extern void      func_80047B24(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
+extern void      func_80047C40(UiPanel* arg0, s32 arg1, s32 arg2, char* arg3, s32 arg4);
+extern void      func_80048E38(UiPanel* arg0, char* arg1);
+extern void      func_80048F88(UiPanel* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
 extern void      func_8004917C(UiList* arg0, s32 arg1);
-extern void      func_800491AC(GStruct30* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5);
-extern void      func_80046DEC(UiList* arg0, GStruct30* arg1, s32 arg2);
+extern void      func_800491AC(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5);
+extern void      func_80046DEC(UiList* arg0, UiPanel* arg1, s32 arg2);
 extern void      func_80049288(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5);
 extern void      func_800492B8(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5);
-extern void      func_800457F8(GStruct30* arg0);
-extern void      func_80045A3C(GStruct30* arg0, RECT* arg1, s32 arg2, s32 arg3);
-extern void      func_80045B24(GStruct30* arg0);
-extern void      func_80045D24(GStruct30* arg0);
-extern void      func_80045F24(GStruct30* arg0);
-extern void      func_80049478(GStruct30* arg0, RECT* arg1);
-extern void      func_80049554(GStruct30* arg0, void* arg1);
-extern void      func_800495B4(GStruct30* arg0, void* arg1);
-extern void      func_8004965C(GStruct30* arg0, void* arg1);
-extern void      func_8004969C(GStruct30* arg0, void* arg1);
-extern void      func_800497F4(GStruct30* arg0, void* arg1);
+extern void      func_800457F8(UiPanel* arg0);
+extern void      func_80045A3C(UiPanel* arg0, RECT* arg1, s32 arg2, s32 arg3);
+extern void      func_80045B24(UiPanel* arg0);
+extern void      func_80045D24(UiPanel* arg0);
+extern void      func_80045F24(UiPanel* arg0);
+extern void      func_80049478(UiPanel* arg0, RECT* arg1);
+extern void      func_80049554(UiPanel* arg0, void* arg1);
+extern void      func_800495B4(UiPanel* arg0, void* arg1);
+extern void      func_8004965C(UiPanel* arg0, void* arg1);
+extern void      func_8004969C(UiPanel* arg0, void* arg1);
+extern void      func_800497F4(UiPanel* arg0, void* arg1);
 extern void      func_80049A8C(Task* arg0);
 
 // 3B458.c
@@ -285,31 +285,31 @@ extern bool     F3E48C_ReverbVoiceIsEnabled(u32 voiceIdx);
 extern void     F3E48C_ApplyReverbConfig(void);
 
 // 410B0.c
-extern void func_800508B0(void);
-extern void (*D_80068984[])(GStruct16*);
+extern void SndEvt_Process(void);
+extern void (*SndEvt_Handlers[])(SndEvt*);
 /// MIDI status-byte handler used by Midi_DriveTrack / D_800689C4.
 typedef u8* (*MidiHandler)(s32, u8*, MidiSong*, MidiTrack*);
 /// MIDI status-byte dispatch table for Midi_DriveTrack (0x80..0xF0 → index 0..7).
 /// Entries: note-off, note-on, poly-AT, CC, program, pressure, pitch-bend, meta.
 extern MidiHandler D_800689C4[];
-extern GStruct16*  func_800509F4(void);
+extern SndEvt*     SndEvt_Alloc(void);
 extern s32         func_800512BC(s32 arg0, s32 arg1);
 extern s32         func_8005132C(s32 arg0, s32 arg1);
 extern s32         func_800514F8(s32 arg0);
 extern s32         func_80051560(u8 arg0);
-extern void        func_80050A38(GStruct16* arg0);
-extern void        func_80050A90(GStruct16* arg0);
-extern void        func_80050AB4(GStruct16* arg0);
-extern void        func_80050AE0(GStruct16* arg0);
+extern void        SndEvt_Enqueue(SndEvt* arg0);
+extern void        SndEvt_Free(SndEvt* arg0);
+extern void        func_80050AB4(SndEvt* arg0);
+extern void        func_80050AE0(SndEvt* arg0);
 extern s32         func_80050E3C(u8 arg0, u16 arg1);
-extern void        func_80050B0C(GStruct16* arg0);
-extern void        func_80050B30(GStruct16* arg0);
-extern void        func_80050B54(GStruct16* arg0);
-extern void        func_80050B80(GStruct16* arg0);
-extern void        func_80050BBC(GStruct16* arg0);
-extern void        func_80050BE8(GStruct16* arg0);
-extern void        func_80050C0C(GStruct16* arg0);
-extern void        func_80050C30(GStruct16* arg0);
+extern void        func_80050B0C(SndEvt* arg0);
+extern void        func_80050B30(SndEvt* arg0);
+extern void        func_80050B54(SndEvt* arg0);
+extern void        func_80050B80(SndEvt* arg0);
+extern void        func_80050BBC(SndEvt* arg0);
+extern void        func_80050BE8(SndEvt* arg0);
+extern void        func_80050C0C(SndEvt* arg0);
+extern void        func_80050C30(SndEvt* arg0);
 extern void        func_800515C0(u8 arg0, u16 arg1);
 extern void        func_8005166C(u8 arg0, s32 arg1);
 extern void        func_80051744(u8 arg0, u8 arg1);
@@ -509,7 +509,7 @@ extern void       func_8002043C(u32 arg0);
 // func_800271D4 / GameMain → main/gamemain.h
 // Pad_Init → main/pad.h
 extern void func_8002785C(void);
-extern void func_80028718(void);
+extern void Tmd_InitLists(void);
 extern void func_800303AC(void);
 extern void func_80030AB0(McWork* work);
 extern s32  func_800304AC(Task* arg0, s32 arg1, s32 arg2);
@@ -531,8 +531,8 @@ extern s32   func_8003FB70(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
 extern void  func_8004017C(void);
 extern void  func_800405E0(void);
 extern void  func_80040820(void);
-extern void  func_800410F0(GStruct27* arg0);
-extern void  func_800418C0(GStruct27* arg0);
+extern void  func_800410F0(TmdObject* arg0);
+extern void  func_800418C0(TmdObject* arg0);
 extern void  func_80041E4C(void);
 extern void  func_80041EB4(void);
 extern void  func_8004C4D0(void);
@@ -545,7 +545,7 @@ extern void  AsyncCb_Poll(void);
 extern void  AsyncCb_Reset(void);
 extern void  func_8004DF10(void);
 extern void  func_8004D460(void*, u32, u32, s32*);
-extern void  func_800509B4(void);
+extern void  SndEvt_Reset(void);
 extern s32   func_80050D20(u32);
 extern s32   func_800510D4(void);
 extern void  func_80053E48(void);
@@ -678,12 +678,12 @@ extern void          func_800B0118(s32 arg0, s32 arg1);
 // D4CB64_ImgBuffers + all Fs_* data / D5B498_* FS state → main/fs.h
 
 // 4F564
-extern GStruct14* D4F564_8005ED64;
-extern s32        D_8005ED68;
-extern s32        D_8005ED70;
-extern s32        D_8005ED74;
-extern s32        D_8005ED78;
-extern u16        D_8005ED8A;
+extern GameSession* Game_Session;
+extern s32          D_8005ED68;
+extern s32          D_8005ED70;
+extern s32          D_8005ED74;
+extern s32          D_8005ED78;
+extern u16          D_8005ED8A;
 
 extern u16* D_8005C36C;
 extern u16* D_8005C370;
@@ -774,7 +774,7 @@ extern u8        D_80073980[0x208];
 extern GStruct40 D_80073B88;
 
 // 61CC0
-extern GStruct14 D61CC0_800714C0;
+extern GameSession D61CC0_800714C0;
 // Pad_States → main/pad.h
 
 // 64880
@@ -800,10 +800,10 @@ extern u32              D648E0_8007EBA8;
 extern u32              D648E0_8007EBAC;
 extern u32              D648E0_8007EBB0;
 extern SpuReverbConfig  D648E0_SpuReverbCfg;
-extern s32              D_8007EBE0;
-extern GStruct16*       D_8007EBE4;
-extern GStruct16*       D_8007EBE8;
-extern GStruct16        D_8007EBF0[0x40];
+extern s32              SndEvt_Lock;
+extern SndEvt*          SndEvt_Head;
+extern SndEvt*          SndEvt_Tail;
+extern SndEvt           SndEvt_Pool[0x40];
 extern u8               D_8007F2F0;
 extern MidiSong         Midi_Song;
 extern u8               D_8007F8E0[0x2800];

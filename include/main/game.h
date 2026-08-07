@@ -111,14 +111,14 @@ typedef struct _GBytes8 {
     u8 data[8];
 } GBytes8;
 
-/// Overlay of objects with an 8-byte field at offset 0x4 (GStruct14, McSaveData).
+/// Overlay of objects with an 8-byte field at offset 0x4 (GameSession, McSaveData).
 typedef struct _GStructOverlayAt4 {
     byte    pad[4];
     GBytes8 field_4;
 } GStructOverlayAt4;
 STATIC_ASSERT_SIZEOF(GStructOverlayAt4, 0xC);
 
-typedef struct _GStruct14 {
+typedef struct _GameSession {
     byte  unknown_0[0x2];
     u8    field_2;
     byte  unknown_3;
@@ -138,22 +138,22 @@ typedef struct _GStruct14 {
     s16   field_7E;
     s16   field_80;
     byte  unknown_82[0xBA];
-} GStruct14;
-STATIC_ASSERT_SIZEOF(GStruct14, 0x13C);
+} GameSession;
+STATIC_ASSERT_SIZEOF(GameSession, 0x13C);
 
-/// Overlay of `GStruct14` starting at offset 0x4 (`field_4`..`field_7`).
-/// Used when the compiler keeps `&D4F564_8005ED64->field_4` in a register.
-typedef struct _GStruct14From4 {
-    /* 0x0 */ u8 field_0; // GStruct14.field_4
-    /* 0x1 */ u8 field_1; // GStruct14.unknown_5
-    /* 0x2 */ u8 field_2; // GStruct14.field_6
-    /* 0x3 */ u8 field_3; // GStruct14.field_7
-} GStruct14From4;
-STATIC_ASSERT_SIZEOF(GStruct14From4, 0x4);
+/// Overlay of `GameSession` starting at offset 0x4 (`field_4`..`field_7`).
+/// Used when the compiler keeps `&Game_Session->field_4` in a register.
+typedef struct _GameSessionFrom4 {
+    /* 0x0 */ u8 field_0; // GameSession.field_4
+    /* 0x1 */ u8 field_1; // GameSession.unknown_5
+    /* 0x2 */ u8 field_2; // GameSession.field_6
+    /* 0x3 */ u8 field_3; // GameSession.field_7
+} GameSessionFrom4;
+STATIC_ASSERT_SIZEOF(GameSessionFrom4, 0x4);
 
 /// Large object pointed to by Task::field_1C for the slot-3 game object
 /// (func_8002D22C(3)). Sparse fields used by func_8003EE68.
-typedef struct _GStruct71 {
+typedef struct _GameActor {
     /* 0x000 */ byte pad_0[0x90];
     /* 0x090 */ s32  field_90;
     /* 0x094 */ byte pad_94[0xE8];
@@ -162,46 +162,46 @@ typedef struct _GStruct71 {
     /* 0x930 */ byte field_930; // address taken for func_801011D0
     /* 0x931 */ byte pad_931[0x53];
     /* 0x984 */ u8   field_984;
-} GStruct71;
-STATIC_ASSERT_SIZEOF(GStruct71, 0x988);
+} GameActor;
+STATIC_ASSERT_SIZEOF(GameActor, 0x988);
 
 /// Object pointed to by Task::field_2c; field_8 is a s32* cleared by
 /// func_8003EE68 after optional func_801011D0 / func_800E1A6C setup.
 /// field_C flag bits are OR'd with 0x80 in Task_Kill (type-1 deferred kill).
-typedef struct _GStruct72 {
+typedef struct _GameActorExt {
     /* 0x0 */ byte pad_0[0x8];
     /* 0x8 */ s32* field_8;
     /* 0xC */ u16  field_C;
     /* 0xE */ byte pad_E[0x2];
-} GStruct72;
-STATIC_ASSERT_SIZEOF(GStruct72, 0x10);
+} GameActorExt;
+STATIC_ASSERT_SIZEOF(GameActorExt, 0x10);
 
-/// 0x1C-byte slot allocated from D_8007EBF0 (see func_800509F4 / func_80050A38).
-/// Overlay of `GStruct16` starting at offset 0x4 (`field_4` / `field_8`).
+/// 0x1C-byte slot allocated from SndEvt_Pool (see SndEvt_Alloc / SndEvt_Enqueue).
+/// Overlay of `SndEvt` starting at offset 0x4 (`field_4` / `field_8`).
 /// Used when the compiler keeps `arg + 4` in a callee-saved register.
-typedef struct _GStruct16From4 {
+typedef struct _SndEvtFrom4 {
     u8  field_0;
     u8  field_1;
     u16 field_2;
     s32 field_4;
     s32 field_8;
     s32 field_C;
-} GStruct16From4;
-STATIC_ASSERT_SIZEOF(GStruct16From4, 0x10);
+} SndEvtFrom4;
+STATIC_ASSERT_SIZEOF(SndEvtFrom4, 0x10);
 
-typedef struct _GStruct16 {
-    s16                field_0;
-    s16                field_2;
-    u8                 field_4;
-    u8                 field_5;
-    u16                field_6;
-    s32                field_8;
-    s32                field_C;
-    s32                field_10;
-    struct _GStruct16* field_14;
-    struct _GStruct16* field_18;
-} GStruct16;
-STATIC_ASSERT_SIZEOF(GStruct16, 0x1C);
+typedef struct _SndEvt {
+    s16             field_0;
+    s16             field_2;
+    u8              field_4;
+    u8              field_5;
+    u16             field_6;
+    s32             field_8;
+    s32             field_C;
+    s32             field_10;
+    struct _SndEvt* field_14;
+    struct _SndEvt* field_18;
+} SndEvt;
+STATIC_ASSERT_SIZEOF(SndEvt, 0x1C);
 
 /// Pointed to by D_80062698 (bss object D_8007A320, size 0x38).
 typedef struct _GStruct17 {
@@ -354,13 +354,13 @@ typedef struct _GStruct20 {
 STATIC_ASSERT_SIZEOF(GStruct20, 0x24);
 
 /// Object at Task::field_20 used by func_80048838 / Mc_HideChildUi /
-/// Mc_DrawPrompt / func_800486F0. Shares the GStruct30 layout through offset
-/// 0x24 (handlers cast field_20 to GStruct30*). field_0 is a status flag;
+/// Mc_DrawPrompt / func_800486F0. Shares the UiPanel layout through offset
+/// 0x24 (handlers cast field_20 to UiPanel*). field_0 is a status flag;
 /// field_4 is copied from UiObjectDesc::field_0 at spawn; field_8 is a mode
 /// (5 = skip draw in func_8002FDCC / func_8002FB84; set to 3 when torn down); field_C..field_12
 /// are layout halfwords (RECT-like); field_14 is a halfword counter used as the
 /// text draw priority/order; field_16 is a signed timer/counter; field_18/field_1A
-/// are layout offsets (shared with GStruct30; used when positioning child UI);
+/// are layout offsets (shared with UiPanel; used when positioning child UI);
 /// field_1C is a position halfword (+2 when passed to func_8002FDCC); field_1E is
 /// an x offset paired with field_20; field_20/field_22 are base x/y for relative
 /// text placement; field_24 is a callback copied from the descriptor; field_28 is
@@ -515,13 +515,13 @@ typedef struct _GStruct26 {
 } GStruct26;
 STATIC_ASSERT_SIZEOF(GStruct26, 0x4);
 
-/// Source/model data pointed to by GStruct27::field_10 (see func_80041700).
+/// Source/model data pointed to by TmdObject::field_10 (see Tmd_Create).
 /// field_0 is a one-shot init flag (func_800409D0 sets it to 1).
 /// field_4 is used as a byte-count for aux-heap allocations (calloc size * 2).
 /// field_8 is added to the selected half-buffer base in func_800410F0.
 /// field_14 / field_18 are copied into the scratch workspace (ws->field_8/C).
 /// field_20 points at a stream of [id, handler_slot, dims, data...] words.
-typedef struct _GStruct33 {
+typedef struct _TmdSource {
     /* 0x00 */ s32  field_0;
     /* 0x04 */ s32  field_4;
     /* 0x08 */ s32  field_8;
@@ -530,19 +530,19 @@ typedef struct _GStruct33 {
     /* 0x18 */ s32  field_18;
     /* 0x1C */ byte unknown_1C[0x4];
     /* 0x20 */ u32* field_20;
-} GStruct33;
+} TmdSource;
 
-/// Node in the D_800711B8 linked list (2F244.c TMD/model objects).
-/// Header is 0x34 bytes with a variable payload after. Fields from func_80041700
-/// init and related free/alloc helpers (func_80041B4C, func_80041B88, etc.).
-typedef struct _GStruct27 {
-    /* 0x00 */ struct _GStruct27* next;
+/// Node in the Tmd_List linked list (2F244.c TMD/model objects).
+/// Header is 0x34 bytes with a variable payload after. Fields from Tmd_Create
+/// init and related free/alloc helpers (Tmd_FreeBuffers, Tmd_AllocBuffers, etc.).
+typedef struct _TmdObject {
+    /* 0x00 */ struct _TmdObject* next;
     /* 0x04 */ byte               unknown_4[0x4];
     /* 0x08 */ void*              field_8;
     /* 0x0C */ u16                field_C;
     /* 0x0E */ s8                 field_E;
     /* 0x0F */ byte               unknown_F;
-    /* 0x10 */ GStruct33*         field_10;
+    /* 0x10 */ TmdSource*         field_10;
     /* 0x14 */ u16                field_14;
     /* 0x16 */ u16                field_16;
     /* 0x18 */ void*              field_18;
@@ -552,22 +552,22 @@ typedef struct _GStruct27 {
     /* 0x25 */ u8                 field_25;
     /* 0x26 */ byte               unknown_26[0xA];
     /* 0x30 */ s32                field_30;
-} GStruct27;
-STATIC_ASSERT_SIZEOF(GStruct27, 0x34);
+} TmdObject;
+STATIC_ASSERT_SIZEOF(TmdObject, 0x34);
 
-/// Sentinel list head for GStruct27 (and similar) intrusive lists.
+/// Sentinel list head for TmdObject (and similar) intrusive lists.
 /// Same layout as TaskNode: next is the first element, prev is the last
-/// (or &self when the list is empty). Initialized by func_80028718.
-typedef struct _GStruct27Head {
-    /* 0x00 */ GStruct27*             next;
-    /* 0x04 */ struct _GStruct27Head* prev;
-} GStruct27Head;
-STATIC_ASSERT_SIZEOF(GStruct27Head, 0x8);
+/// (or &self when the list is empty). Initialized by Tmd_InitLists.
+typedef struct _TmdListHead {
+    /* 0x00 */ TmdObject*           next;
+    /* 0x04 */ struct _TmdListHead* prev;
+} TmdListHead;
+STATIC_ASSERT_SIZEOF(TmdListHead, 0x8);
 
-/// Head of the GStruct27 linked list used by 2F244.c TMD/model helpers.
-extern GStruct27Head D_800711B8;
-/// Second list head initialized alongside D_800711B8 by func_80028718.
-extern GStruct27Head D_800711C0;
+/// Head of the TmdObject linked list used by 2F244.c TMD/model helpers.
+extern TmdListHead Tmd_List;
+/// Second list head initialized alongside Tmd_List by Tmd_InitLists.
+extern TmdListHead Tmd_ListAlt;
 
 /// Nested object reached via GStruct29::field_28 (see func_80049D34).
 /// Only field_34 is named so far.
@@ -591,7 +591,7 @@ typedef struct _GStruct29 {
 /// text draw (func_80048F88); field_16 is a signed counter/timer;
 /// field_18..field_22 are layout offsets (func_80049024 / func_80049348);
 /// field_24 is a callback invoked with the second handler argument.
-typedef struct _GStruct30 {
+typedef struct _UiPanel {
     /* 0x00 */ s32  field_0;
     /* 0x04 */ s32  field_4;
     /* 0x08 */ s32  field_8;
@@ -605,16 +605,16 @@ typedef struct _GStruct30 {
     /* 0x20 */ u16  field_20;
     /* 0x22 */ u16  field_22;
     /* 0x24 */ void (*field_24)(void*);
-} GStruct30;
+} UiPanel;
 
-/// Callback for GStruct30 state handlers (e.g. entries in D_80013F2C).
-typedef void (*GFunc30)(GStruct30* arg0, void* arg1);
+/// Callback for UiPanel state handlers (e.g. entries in D_80013F2C).
+typedef void (*UiPanelFunc)(UiPanel* arg0, void* arg1);
 
-/// Fixed-size table of GFunc30 callbacks. Copied onto the stack by
+/// Fixed-size table of UiPanelFunc callbacks. Copied onto the stack by
 /// func_800498D4 so the call uses a local jump table.
 typedef struct {
-    GFunc30 funcs[6];
-} GFunc30Table6;
+    UiPanelFunc funcs[6];
+} UiPanelFuncTable6;
 
 /// Header for the bank table blob pointed to by SndBankSlot.field_0.
 /// field_4 is the bank ID (high halfword remapped by func_80053F00 when the
@@ -1145,7 +1145,7 @@ typedef struct _GStruct52 {
 } GStruct52;
 STATIC_ASSERT_SIZEOF(GStruct52, 0x4);
 
-/// Descriptor pointed to by GStruct16From4::field_C and passed to func_800558E8.
+/// Descriptor pointed to by SndEvtFrom4::field_C and passed to func_800558E8.
 /// field_5 is a volume scale (0-127) used by func_80055DFC / SndScript_Exec;
 /// field_6 is a pitch bias; field_7 is a candidate-count threshold; field_8 is a
 /// preference key for func_80055EF8; field_C/field_E are halfword IDs matched by

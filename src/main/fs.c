@@ -171,7 +171,7 @@ s32 Fs_LoadFile(u8* req, s32 mode, s32 a2, s32 a3)
                             sector = Fs_FileTable[i].offset + Fs_StageCdfSectors[0];
                             if (req[2] == 8) {
                                 if ((u32)(req[1] - 1) < 3U) {
-                                    D4F564_8005ED64->field_4E = 1;
+                                    Game_Session->field_4E = 1;
                                 }
                             }
                             goto setup_and_load;
@@ -198,7 +198,7 @@ setup_and_load:
                 Fs_SeekToPos(sector);
                 goto end_return;
             case 2:
-                func_800537FC(D4F564_8005ED64->field_7, D4F564_8005ED64->field_6);
+                func_800537FC(Game_Session->field_7, Game_Session->field_6);
                 Fs_ChunkMode = 1;
                 break;
             case 3:
@@ -1177,7 +1177,7 @@ s32 func_80025898(void)
 {
     u8 stage;
 
-    stage = D4F564_8005ED64->field_7;
+    stage = Game_Session->field_7;
     if (Fs_StageCdfSectors[stage] == 0) {
         if (stage == 1 || stage == 2) {
             return 1;

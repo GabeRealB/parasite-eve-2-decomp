@@ -38,7 +38,7 @@ unknown:
 
 setup_events:
     F3D458_ResetHeap();
-    func_800509B4();
+    SndEvt_Reset();
     AsyncCb_Reset();
     F3E48C_ConfigSpuReverb(3);
     func_8004DF10();
@@ -192,7 +192,7 @@ void func_8004D008(void)
     if (D_800680C0 != 0) {
         D_800680C0 = 0;
         func_8004E200();
-        func_800508B0();
+        SndEvt_Process();
         func_8004D8BC();
         F3E48C_8004E44C();
         D_800680BC += 1;

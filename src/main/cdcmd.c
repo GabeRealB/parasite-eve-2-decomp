@@ -27,16 +27,16 @@ void* func_8001BB7C(void)
                     p->field_18C = Mem_Malloc(0x11000, 1);
                     break;
                 case 1:
-                    D4F564_8005ED64->field_7C = 0;
-                    p->field_18C              = D_8005C36C;
+                    Game_Session->field_7C = 0;
+                    p->field_18C           = D_8005C36C;
                     break;
                 case 2:
-                    D4F564_8005ED64->field_7E = 0;
-                    p->field_18C              = D_8005C370;
+                    Game_Session->field_7E = 0;
+                    p->field_18C           = D_8005C370;
                     break;
                 case 3:
-                    D4F564_8005ED64->field_80 = 0;
-                    p->field_18C              = D_8005C374;
+                    Game_Session->field_80 = 0;
+                    p->field_18C           = D_8005C374;
                     break;
             }
             if (p->field_21E == 0) {
@@ -54,22 +54,22 @@ void* func_8001BB7C(void)
                 p->field_1A4 = Mem_Malloc(p->field_190->field_1E, 1);
                 break;
             case 2:
-                D4F564_8005ED64->field_7C = 0;
-                p->field_1A4              = D_8005C36C;
+                Game_Session->field_7C = 0;
+                p->field_1A4           = D_8005C36C;
                 if (p->field_190->field_1A == 1) {
                     p->field_1A4 = (u8*)D_8005C36C + 0x11000;
                 }
                 break;
             case 3:
-                D4F564_8005ED64->field_7E = 0;
-                p->field_1A4              = D_8005C370;
+                Game_Session->field_7E = 0;
+                p->field_1A4           = D_8005C370;
                 if (p->field_190->field_1A == 2) {
                     p->field_1A4 = (u8*)D_8005C370 + 0x11000;
                 }
                 break;
             case 4:
-                D4F564_8005ED64->field_80 = 0;
-                p->field_1A4              = D_8005C374;
+                Game_Session->field_80 = 0;
+                p->field_1A4           = D_8005C374;
                 if (p->field_190->field_1A == 3) {
                     p->field_1A4 = (u8*)D_8005C374 + 0x11000;
                 }
@@ -83,9 +83,9 @@ void* func_8001BB7C(void)
     }
 
     D_8006AC00 = NULL;
-    if (D4F564_8005ED64->field_7 == 0) {
+    if (Game_Session->field_7 == 0) {
         D_8006AC00 = Mem_Malloc(0x4B000, 1);
-    } else if (func_8001EDC8(&D4F564_8005ED64->field_4, 0, 0) < 0) {
+    } else if (func_8001EDC8(&Game_Session->field_4, 0, 0) < 0) {
         return NULL;
     } else {
         sizeRow = D_8005DCB4[Mc_SaveData.field_7];
@@ -1008,9 +1008,9 @@ u16 func_8001D37C(s16 arg0)
 void func_8001D39C(void)
 {
     CdCmd_Queue.field_1EA = 1;
-    if (func_80020394(&D4F564_8005ED64->field_4) != 0) {
+    if (func_80020394(&Game_Session->field_4) != 0) {
         DecDCTvlcBuild(D_8005C36C);
-        D4F564_8005ED64->field_7C = 0;
+        Game_Session->field_7C = 0;
     }
 }
 
@@ -1051,7 +1051,7 @@ void func_8001D498(void)
     CdCmdQueue* p;
 
     p = &CdCmd_Queue;
-    if (func_8001EDC8(&D4F564_8005ED64->field_4, 0, 0) >= 0) {
+    if (func_8001EDC8(&Game_Session->field_4, 0, 0) >= 0) {
         D_8006AC40 = D_8006AC00;
     }
     p->field_1E6 = 0;

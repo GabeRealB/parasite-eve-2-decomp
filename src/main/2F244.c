@@ -111,7 +111,7 @@ case0:
     SetDispMask(0);
     D_80062698->field_24    = Display_State.field_118;
     Display_State.field_122 = 1;
-    func_800149E8(D4F564_8005ED64->field_7, D4F564_8005ED64->field_6, Display_State.field_118);
+    func_800149E8(Game_Session->field_7, Game_Session->field_6, Display_State.field_118);
     Display_State.field_103 = 2;
     D_80062698->field_28    = D_80062698->field_28 + 1;
     goto end;
@@ -123,7 +123,7 @@ case1:
     goto end;
 case2:
     if ((func_8001D344() & 0xFFFF) && (Display_State.field_118 != D_80062698->field_24)) {
-        func_8001490C(D4F564_8005ED64->field_7, D4F564_8005ED64->field_6, Display_State.field_118, 0x10000);
+        func_8001490C(Game_Session->field_7, Game_Session->field_6, Display_State.field_118, 0x10000);
         Mem_InitAux();
         rect.x = 0;
         rect.w = 0x140;
@@ -153,13 +153,13 @@ end:
 
 Task* func_8003EE68(void)
 {
-    Task*           ret;
-    u32             mode;
-    Task*           slot;
-    GStruct71*      obj;
-    s32*            ptr;
-    GStruct14From4* ed;
-    s32             flag;
+    Task*             ret;
+    u32               mode;
+    Task*             slot;
+    GameActor*        obj;
+    s32*              ptr;
+    GameSessionFrom4* ed;
+    s32               flag;
 
     ret = Task_SpawnFromTable(D_80062698->field_0, 0, D_80062698->field_4, D_80062698->field_8);
     if (ret != NULL) {
@@ -181,9 +181,9 @@ Task* func_8003EE68(void)
     block_case4:
         D_80062698->field_11 = 2;
         slot                 = func_8002D22C(3);
-        obj                  = (GStruct71*)slot->field_1C;
+        obj                  = (GameActor*)slot->field_1C;
         flag                 = obj->field_984 & 1;
-        ptr                  = ((GStruct72*)slot->field_2c)->field_8;
+        ptr                  = ((GameActorExt*)slot->field_2c)->field_8;
         if (flag) {
             func_801011D0(ptr, obj->field_90, 6, &obj->field_930);
         }
@@ -204,7 +204,7 @@ Task* func_8003EE68(void)
     goto block_end;
 
 block_default:
-    ed = (GStruct14From4*)&D4F564_8005ED64->field_4;
+    ed = (GameSessionFrom4*)&Game_Session->field_4;
     func_80041E4C();
     func_8001490C(ed->field_3, ed->field_2, Display_State.field_1f, 0x10000);
     if (D_80062698->field_C == 0x100) {
@@ -214,9 +214,9 @@ block_default:
     Display_State.field_103 = 1;
     Display_State.field_100 = 3;
     slot                    = func_8002D22C(3);
-    obj                     = (GStruct71*)slot->field_1C;
+    obj                     = (GameActor*)slot->field_1C;
     flag                    = obj->field_984 & 1;
-    ptr                     = ((GStruct72*)slot->field_2c)->field_8;
+    ptr                     = ((GameActorExt*)slot->field_2c)->field_8;
     if (flag) {
         func_801011D0(ptr, obj->field_90, 6, &obj->field_930);
     }
@@ -231,13 +231,13 @@ void func_8003FD58(Task* arg0);
 
 void func_8003F034(Task* arg0)
 {
-    u32        flags;
-    s32        state;
-    GStruct14* ed;
-    GStruct17* g;
-    s32        flag;
-    s32        f11;
-    s32        disp;
+    u32          flags;
+    s32          state;
+    GameSession* ed;
+    GStruct17*   g;
+    s32          flag;
+    s32          f11;
+    s32          disp;
 
     flags = D_80062698->field_1c;
     if (flags & 0x40000000) {
@@ -246,30 +246,30 @@ void func_8003F034(Task* arg0)
         state                = D_80062698->field_28;
         switch (state) {
             case 0:
-                D_80062698->field_24     = Display_State.field_118;
-                D4F564_8005ED64->field_4 = D_80062698->field_20;
-                D_80062698->field_C      = 0;
-                Display_State.field_103  = 2;
-                func_800144F8(D4F564_8005ED64->field_7, D4F564_8005ED64->field_6);
+                D_80062698->field_24    = Display_State.field_118;
+                Game_Session->field_4   = D_80062698->field_20;
+                D_80062698->field_C     = 0;
+                Display_State.field_103 = 2;
+                func_800144F8(Game_Session->field_7, Game_Session->field_6);
                 if (!(D_80062698->field_1c & 0x10000000)) {
-                    ((Task*)func_8002D22C(1))->field_34 = (u8)D4F564_8005ED64->field_4;
+                    ((Task*)func_8002D22C(1))->field_34 = (u8)Game_Session->field_4;
                     ResetGraph(1);
                     F179D4_ClearOTag(0);
                     F179D4_ClearOTag(1);
                     Mem_InitAux();
-                    D_8007216C = D4F564_8005ED64->field_4;
+                    D_8007216C = Game_Session->field_4;
                     Pad_SetCooldown(0);
                     func_800A8DC0(2);
-                    D4F564_8005ED64->field_4D = 0;
+                    Game_Session->field_4D = 0;
                     Task_Spawn(0, 0x1E, 2, 0);
                 } else {
                     func_80041EB4();
-                    D4F564_8005ED64->field_4D = 1;
+                    Game_Session->field_4D = 1;
                 }
                 D_80062698->field_28 = D_80062698->field_28 + 1;
                 break;
             case 1:
-                ed   = D4F564_8005ED64;
+                ed   = Game_Session;
                 flag = ed->field_4D;
                 if (flag == 1) {
                     disp = Display_State.field_118;
@@ -300,7 +300,7 @@ void func_8003F034(Task* arg0)
                 arg0->field_2a          = arg0->field_2a - 1;
                 if (arg0->field_2a == 0) {
                     func_80041E4C();
-                    func_8001490C(D4F564_8005ED64->field_7, D4F564_8005ED64->field_6,
+                    func_8001490C(Game_Session->field_7, Game_Session->field_6,
                                   Display_State.field_118, 0x10000);
                     Mem_InitAux();
                     D_80062698->field_12 = 0;
@@ -329,7 +329,7 @@ void func_8003F034(Task* arg0)
         arg0->field_30 = arg0->field_30 + 1;
         func_8003FD58(arg0);
     } else if (flags & 0x20000000) {
-        func_8001490C(D4F564_8005ED64->field_7, D4F564_8005ED64->field_6, Display_State.field_118,
+        func_8001490C(Game_Session->field_7, Game_Session->field_6, Display_State.field_118,
                       0x10000);
         D_80062698->field_1c = D_80062698->field_1c & 0xDFFFFFFF;
     }
@@ -485,7 +485,7 @@ s32 func_8003F71C(s32 arg0, s32 arg1)
         temp->field_11  = arg1;
         temp->field_1c |= mask;
     }
-    return (u8)D4F564_8005ED64->field_4;
+    return (u8)Game_Session->field_4;
 }
 
 s32 func_8003F7A8(s32 arg0)
@@ -504,7 +504,7 @@ s32 func_8003F7A8(s32 arg0)
         temp->field_28        = 0;
         temp->field_11        = 7;
         temp->field_1c       |= mask;
-        ret                   = (u8)D4F564_8005ED64->field_4;
+        ret                   = (u8)Game_Session->field_4;
         D_80062698->field_1c |= 0x80000000;
     }
     return ret;
@@ -620,7 +620,7 @@ s32 func_8003FB20(void)
     flags = temp->field_1c;
     if (!(flags & 0x40000000)) {
         temp->field_1c = flags | 0x50000000;
-        val            = (u8)D4F564_8005ED64->field_4;
+        val            = (u8)Game_Session->field_4;
         temp->field_24 = 0;
         temp->field_28 = 0;
         temp->field_11 = 3;
@@ -650,7 +650,7 @@ s32 func_8003FB70(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
     temp->field_8 = arg2;
     temp->field_C = arg3;
     if (arg3 == 0) {
-        if ((*(u32*)&D4F564_8005ED64->field_4 & 0xFFFF0000) == 0x1050000) {
+        if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x1050000) {
             temp->field_C = 1;
         }
     }
@@ -717,7 +717,7 @@ void func_8003FD58(Task* arg0)
         }
     } else {
     block_3:
-        func_800144F8(D4F564_8005ED64->field_7, D4F564_8005ED64->field_6);
+        func_800144F8(Game_Session->field_7, Game_Session->field_6);
         func_80041EB4();
         func_800ACAA8();
     }
@@ -807,7 +807,7 @@ success:
             if (p->field_190->field_3 == 2) {
                 D_8007A364 = D_8007A364 + p->field_190->field_1E;
             }
-            D4F564_8005ED64->field_7C = 0;
+            Game_Session->field_7C = 0;
             break;
         case 2:
             D_8007A364 = (u8*)D_8005C370;
@@ -817,7 +817,7 @@ success:
             if (p->field_190->field_3 == 3) {
                 D_8007A364 = D_8007A364 + p->field_190->field_1E;
             }
-            D4F564_8005ED64->field_7E = 0;
+            Game_Session->field_7E = 0;
             break;
         case 3:
             D_8007A364 = (u8*)D_8005C374;
@@ -827,7 +827,7 @@ success:
             if (p->field_190->field_3 == 4) {
                 D_8007A364 = D_8007A364 + p->field_190->field_1E;
             }
-            D4F564_8005ED64->field_80 = 0;
+            Game_Session->field_80 = 0;
             break;
         case 4:
             base = p->field_198;
@@ -1073,7 +1073,7 @@ typedef struct {
     /* 0x70 */ s16        field_70;
     /* 0x72 */ s16        field_72;
     /* 0x74 */ byte       pad_74[0xC];
-    /* 0x80 */ GStruct27* field_80;
+    /* 0x80 */ TmdObject* field_80;
     /* 0x84 */ byte       pad_84[0x4];
 } ScratchModelBlock;
 
@@ -1088,16 +1088,16 @@ typedef struct {
     /* 0x18 */ byte       pad_18[0x38];
     /* 0x50 */ MATRIX     mat;
     /* 0x70 */ byte       pad_70[0x10];
-    /* 0x80 */ GStruct27* field_80;
+    /* 0x80 */ TmdObject* field_80;
     /* 0x84 */ s32        field_84;
 } ScratchDrawBlock; /* 0x98 */
 
 typedef u32* (*ModelStreamHandler)(ScratchModelBlock* ws, s32 arg1, u32* stream);
 
 extern MATRIX D_80070F34;
-extern void   func_80010848(ScratchDrawBlock* ws, u32 flags, void* stream, GStruct27* node);
+extern void   func_80010848(ScratchDrawBlock* ws, u32 flags, void* stream, TmdObject* node);
 
-void func_800409D0(GStruct33* arg0)
+void func_800409D0(TmdSource* arg0)
 {
     u32*         stream;
     u32          id;
@@ -1108,7 +1108,7 @@ void func_800409D0(GStruct33* arg0)
 
     stream = arg0->field_20;
     if (arg0->field_0 == 0) {
-        tmp  = *(u32*)&D4F564_8005ED64->field_4;
+        tmp  = *(u32*)&Game_Session->field_4;
         tmp  = (tmp & 0xFFFF0000) ^ 0x02100000;
         flag = tmp < 1;
         goto read_id;
@@ -1328,10 +1328,10 @@ void func_800409D0(GStruct33* arg0)
     }
 }
 
-void func_800410F0(GStruct27* arg0)
+void func_800410F0(TmdObject* arg0)
 {
     ScratchModelBlock* ws;
-    GStruct33*         src;
+    TmdSource*         src;
     u32*               stream;
     u32                id;
     void*              handler;
@@ -1349,7 +1349,7 @@ void func_800410F0(GStruct27* arg0)
         src      = arg0->field_10;
         tmp      = *scratch;
         stream   = src->field_20;
-        hi       = *(u32*)&D4F564_8005ED64->field_4;
+        hi       = *(u32*)&Game_Session->field_4;
         head     = (ScratchModelBlock*)((u8*)tmp - 0x88);
         hi      &= 0xFFFF0000;
         *scratch = head;
@@ -1517,9 +1517,9 @@ done:
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x88;
 }
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_80041700);
+INCLUDE_ASM("main/nonmatchings/2F244", Tmd_Create);
 
-void func_800418C0(GStruct27* arg0)
+void func_800418C0(TmdObject* arg0)
 {
     u8                         buf[0x1000];
     void**                     scratch;
@@ -1537,7 +1537,7 @@ void func_800418C0(GStruct27* arg0)
     scratch = (void**)G_SCRATCH_HEAD;
     {
         register u32        ds_hi asm("v1");
-        register GStruct33* p asm("v0");
+        register TmdSource* p asm("v0");
         register s32        d asm("v0");
 
         __asm__("lui %0, %%hi(Display_State)" : "=r"(ds_hi));
@@ -1562,7 +1562,7 @@ void func_800418C0(GStruct27* arg0)
     ws->field_8     = arg0->field_10->field_14;
     {
         register u_long*    ot asm("a0");
-        register GStruct33* p asm("v1");
+        register TmdSource* p asm("v1");
         register s32        e asm("v0");
         register void*      b asm("v1");
         s32                 field18;
@@ -1649,7 +1649,7 @@ void func_800418C0(GStruct27* arg0)
     *scratch = (u8*)*scratch + 0x98;
 }
 
-void func_80041B4C(GStruct27* arg0)
+void Tmd_FreeBuffers(TmdObject* arg0)
 {
     if (arg0->field_18 != NULL) {
         Mem_Free2(arg0->field_18, 1);
@@ -1657,7 +1657,7 @@ void func_80041B4C(GStruct27* arg0)
     }
 }
 
-s32 func_80041B88(GStruct27* arg0)
+s32 Tmd_AllocBuffers(TmdObject* arg0)
 {
     s32   result;
     void* mem;
@@ -1676,13 +1676,13 @@ s32 func_80041B88(GStruct27* arg0)
     return result;
 }
 
-s32 func_80041BFC(void)
+s32 Tmd_SumBufferBytes(void)
 {
-    GStruct27* node;
+    TmdObject* node;
     s32        result;
 
     result = 0;
-    node   = D_800711B8.next;
+    node   = Tmd_List.next;
     while (node != NULL) {
         if (node->field_18 != NULL) {
             result += node->field_10->field_4 * 2;
@@ -1692,7 +1692,7 @@ s32 func_80041BFC(void)
     return result;
 }
 
-void func_80041C50(GStruct33* arg0)
+void func_80041C50(TmdSource* arg0)
 {
     u32* stream;
     u32  id;
@@ -1749,11 +1749,11 @@ void func_80041C50(GStruct33* arg0)
     }
 }
 
-void func_80041D3C(GStruct27* arg0)
+void func_80041D3C(TmdObject* arg0)
 {
-    GStruct27* node;
+    TmdObject* node;
 
-    node = D_800711B8.next;
+    node = Tmd_List.next;
     while (node != NULL) {
         node->field_C |= 0x80;
         node           = node->next;
@@ -1761,11 +1761,11 @@ void func_80041D3C(GStruct27* arg0)
     arg0->field_30++;
 }
 
-void func_80041D84(GStruct27* arg0)
+void func_80041D84(TmdObject* arg0)
 {
-    GStruct27* node;
+    TmdObject* node;
 
-    node = D_800711B8.next;
+    node = Tmd_List.next;
     while (node != NULL) {
         if (node->field_18 != NULL) {
             Mem_Free2(node->field_18, 1);
@@ -1786,9 +1786,9 @@ void func_80041DF4(Task* arg0)
 
 void func_80041E4C(void)
 {
-    GStruct27* node;
+    TmdObject* node;
 
-    node = D_800711B8.next;
+    node = Tmd_List.next;
     ResetGraph(1);
     F179D4_ClearOTag(0);
     F179D4_ClearOTag(1);
@@ -1802,10 +1802,10 @@ void func_80041E4C(void)
 
 void func_80041EB4(void)
 {
-    GStruct27* node;
+    TmdObject* node;
     void*      mem;
 
-    node = D_800711B8.next;
+    node = Tmd_List.next;
     Mem_InitAux();
     func_8001BB7C();
     while (node != NULL) {
@@ -1826,10 +1826,10 @@ void func_80041EB4(void)
 
 void func_80041F58(Task* arg0)
 {
-    GStruct27* node;
+    TmdObject* node;
     void*      mem;
 
-    node = D_800711B8.next;
+    node = Tmd_List.next;
     while (node != NULL) {
         if (node->field_18 == NULL) {
             mem = Mem_Calloc(node->field_10->field_4 * 2, 1);
@@ -1846,7 +1846,7 @@ void func_80041F58(Task* arg0)
     Task_Kill(arg0);
 }
 
-void func_80041FF8(GStruct27* node)
+void func_80041FF8(TmdObject* node)
 {
     while (node != NULL) {
         if (node->field_C & 8) {
@@ -1858,7 +1858,7 @@ void func_80041FF8(GStruct27* node)
     }
 }
 
-void func_80042058(GStruct27* node)
+void func_80042058(TmdObject* node)
 {
     while (node != NULL) {
         if (!(node->field_C & 0x80)) {

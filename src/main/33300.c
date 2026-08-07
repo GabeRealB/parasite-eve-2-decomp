@@ -4,16 +4,16 @@
 #include "main/mem.h"
 #include "main/unknown_syms.h"
 
-void func_80042B00(Task* arg0)
+void Task_AllocIdMap(Task* arg0)
 {
     u8         temp_s4;
     u8         temp_s1;
-    GStruct63* temp_v0;
+    TaskIdMap* temp_v0;
     u8         temp_a0;
     s32        ret;
     s32        field34;
 
-    temp_s4 = D_80062764[D4F564_8005ED64->field_7 - 1];
+    temp_s4 = D_80062764[Game_Session->field_7 - 1];
     temp_v0 = Mem_Calloc(8, 0);
     if (temp_v0 != NULL) {
         arg0->field_1C = temp_v0;
@@ -21,7 +21,7 @@ void func_80042B00(Task* arg0)
             func_8005132C(0, 1);
             D_80062737 = 0;
         }
-        temp_a0    = D4F564_8005ED64->field_7;
+        temp_a0    = Game_Session->field_7;
         ret        = func_80053BF4(temp_a0, D_8007272D, D_8006276C[temp_a0 - 1]);
         field34    = arg0->field_34;
         D_80062738 = ret;
@@ -30,7 +30,7 @@ void func_80042B00(Task* arg0)
             s32      f7;
             GPairU8* p;
             u16      v;
-            f7               = D4F564_8005ED64->field_7;
+            f7               = Game_Session->field_7;
             D_8007A398       = 0xFF;
             p                = D_80062750[f7 - 1];
             v                = D_80062735;
@@ -38,10 +38,10 @@ void func_80042B00(Task* arg0)
             temp_v0->field_0 = v;
             temp_v0->field_4 = p;
         } else {
-            temp_v0->field_4 = D_8006273C[D4F564_8005ED64->field_7 - 1];
+            temp_v0->field_4 = D_8006273C[Game_Session->field_7 - 1];
             temp_v0->field_0 =
-                D_80062738 + (D4F564_8005ED64->field_6 * (temp_s4 & 0xFF));
-            if ((*((D4F564_8005ED64->field_6 * (temp_s4 & 0xFF) * 2) +
+                D_80062738 + (Game_Session->field_6 * (temp_s4 & 0xFF));
+            if ((*((Game_Session->field_6 * (temp_s4 & 0xFF) * 2) +
                    (u8*)temp_v0->field_4) != 0x80) &&
                 (D_80062736 != 0)) {
                 func_800542D0(0x60010001, 0x1E);
@@ -81,7 +81,7 @@ void func_80042DF8(Task* arg0)
 {
     u8                param1[8];
     u8                param2[8];
-    GStruct63*        temp;
+    TaskIdMap*        temp;
     register GPairU8* entry asm("v0");
     s32               field34;
     u8                flag;
@@ -92,7 +92,7 @@ void func_80042DF8(Task* arg0)
         param1[2] = 4;
         entry     = (GPairU8*)((temp->field_0 << 1) + (u32)temp->field_4);
         param1[0] = entry->field_0;
-        param2[0] = D4F564_8005ED64->field_74;
+        param2[0] = Game_Session->field_74;
         param2[3] = 0;
         param2[2] = 0;
         param2[1] = 0;
@@ -125,7 +125,7 @@ void func_80042DF8(Task* arg0)
 
 void func_80042F54(Task* arg0)
 {
-    GStruct63* temp;
+    TaskIdMap* temp;
     GPairU8*   entry;
     u8         type;
 
@@ -136,7 +136,7 @@ void func_80042F54(Task* arg0)
         if (type != 3) {
             if (type != 2) {
                 if (arg0->field_34 == 0) {
-                    if (D4F564_8005ED64->field_4D != 1) {
+                    if (Game_Session->field_4D != 1) {
                         return;
                     }
                 }
@@ -152,13 +152,13 @@ void func_80042F54(Task* arg0)
 
 void func_80043028(s32 arg0)
 {
-    register GStruct14* g asm("v1");
-    s32                 idx;
-    s32                 product;
-    GPairU8*            entry;
-    s32                 temp;
+    register GameSession* g asm("v1");
+    s32                   idx;
+    s32                   product;
+    GPairU8*              entry;
+    s32                   temp;
 
-    g       = D4F564_8005ED64;
+    g       = Game_Session;
     idx     = g->field_7 - 1;
     product = g->field_6 * D_80062764[idx];
     temp    = ((D_80062738 + product) & 0xFFFF) * 2;
@@ -174,13 +174,13 @@ void func_80043028(s32 arg0)
 
 void func_800430E4(s32 arg0)
 {
-    register GStruct14* g asm("v1");
-    s32                 idx;
-    s32                 product;
-    GPairU8*            entry;
-    s32                 temp;
+    register GameSession* g asm("v1");
+    s32                   idx;
+    s32                   product;
+    GPairU8*              entry;
+    s32                   temp;
 
-    g       = D4F564_8005ED64;
+    g       = Game_Session;
     idx     = g->field_7 - 1;
     product = g->field_6 * D_80062764[idx];
     temp    = ((D_80062738 + product) & 0xFFFF) * 2;
@@ -210,13 +210,13 @@ void func_800431FC(Task* arg0)
 
 void func_8004323C(void)
 {
-    GStruct14* g;
-    s32        idx;
-    s32        product;
-    u8*        base;
-    s32        one;
+    GameSession* g;
+    s32          idx;
+    s32          product;
+    u8*          base;
+    s32          one;
 
-    g       = D4F564_8005ED64;
+    g       = Game_Session;
     idx     = g->field_7 - 1;
     product = g->field_6 * D_80062764[idx];
     base    = (u8*)D_8006273C[idx];

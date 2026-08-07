@@ -196,15 +196,15 @@ s16 func_8001EED8(u8* arg0)
 
 s32 func_8001EF9C(s32 arg0, s32 arg1)
 {
-    RECT        rect;
-    u8          param1[8];
-    u8          param2[8];
-    GStruct14*  g;
-    CdCmdQueue* p;
-    s32         state;
-    u8          f7;
-    u8          f6;
-    u8          f74;
+    RECT         rect;
+    u8           param1[8];
+    u8           param2[8];
+    GameSession* g;
+    CdCmdQueue*  p;
+    s32          state;
+    u8           f7;
+    u8           f6;
+    u8           f74;
 
     p     = &CdCmd_Queue;
     state = D_8006AC28;
@@ -232,7 +232,7 @@ s32 func_8001EF9C(s32 arg0, s32 arg1)
             rect.h = 0x100;
             MoveImage2(&rect, 0x140, 0x100);
         }
-        func_800144F8((s32)D4F564_8005ED64->field_7, (s32)D4F564_8005ED64->field_6);
+        func_800144F8((s32)Game_Session->field_7, (s32)Game_Session->field_6);
         if ((arg0 & 0xFFFF) == 1) {
             Mem_SetActiveAuxHeap(1);
         }
@@ -243,7 +243,7 @@ s32 func_8001EF9C(s32 arg0, s32 arg1)
         }
         D_8006AC28 = D_8006AC28 + 1;
         if (arg1 & 0xFFFF) {
-            g         = D4F564_8005ED64;
+            g         = Game_Session;
             f7        = g->field_7;
             param1[3] = f7;
             f6        = g->field_6;

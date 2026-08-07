@@ -5,8 +5,8 @@
 
 void func_800498D4(Task* arg0);
 void func_800492EC(void* arg0, RECT* arg1, RECT* arg2);
-void func_80044C34(GStruct30* arg0, RECT* arg1, RECT* arg2, s32 arg3);
-void func_800454E4(GStruct30* arg0, RECT* arg1, RECT* arg2, s32 arg3);
+void func_80044C34(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3);
+void func_800454E4(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3);
 
 void func_80044698(void)
 {
@@ -232,7 +232,7 @@ end:
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80044C34);
 
-void func_800454E4(GStruct30* arg0, RECT* arg1, RECT* arg2, s32 arg3)
+void func_800454E4(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
 {
     RECT              sp10;
     RECT              sp18;
@@ -302,7 +302,7 @@ void func_800454E4(GStruct30* arg0, RECT* arg1, RECT* arg2, s32 arg3)
     }
 }
 
-void func_800457F8(GStruct30* arg0)
+void func_800457F8(UiPanel* arg0)
 {
     RECT     sp10;
     RECT     sp18;
@@ -346,7 +346,7 @@ void func_800457F8(GStruct30* arg0)
     addPrim(D_800710A0 + (s16)arg0->field_14, p);
 }
 
-void func_80045A3C(GStruct30* arg0, RECT* arg1, s32 arg2, s32 arg3)
+void func_80045A3C(UiPanel* arg0, RECT* arg1, s32 arg2, s32 arg3)
 {
     s16 temp;
 
@@ -371,7 +371,7 @@ void func_80045A3C(GStruct30* arg0, RECT* arg1, s32 arg2, s32 arg3)
     }
 }
 
-void func_80045B24(GStruct30* arg0)
+void func_80045B24(UiPanel* arg0)
 {
     RECT sp10;
     RECT sp18;
@@ -435,7 +435,7 @@ after_fill: {
 }
 }
 
-void func_80045D24(GStruct30* arg0)
+void func_80045D24(UiPanel* arg0)
 {
     RECT sp10;
     RECT sp18;
@@ -499,7 +499,7 @@ after_fill: {
 }
 }
 
-void func_80045F24(GStruct30* arg0)
+void func_80045F24(UiPanel* arg0)
 {
     RECT sp10;
     RECT sp18;
@@ -563,7 +563,7 @@ after_fill: {
 }
 }
 
-void func_80046124(UiList* arg0, GStruct30* arg1, s32 arg2)
+void func_80046124(UiList* arg0, UiPanel* arg1, s32 arg2)
 {
     RECT     sp10;
     DR_AREA* p;
@@ -599,7 +599,7 @@ void func_80046124(UiList* arg0, GStruct30* arg1, s32 arg2)
     }
 }
 
-void func_800463B4(GStruct30* arg0, s32 arg1, s32 arg2)
+void func_800463B4(UiPanel* arg0, s32 arg1, s32 arg2)
 {
     SPRT_8*      p;
     DR_TPAGE*    dr;
@@ -637,7 +637,7 @@ void func_800463B4(GStruct30* arg0, s32 arg1, s32 arg2)
     }
 }
 
-void func_80046508(UiList* arg0, GStruct30* arg1, s32 arg2)
+void func_80046508(UiList* arg0, UiPanel* arg1, s32 arg2)
 {
     POLY_G3*         p;
     s16              x;
@@ -731,7 +731,7 @@ void func_80046508(UiList* arg0, GStruct30* arg1, s32 arg2)
         (ot[(s16)arg1->field_14 + 1] & mask_hi) | ((u32)p & mask);
 }
 
-void func_800466E4(GStruct30* arg0, s32 arg1, s32 arg2)
+void func_800466E4(UiPanel* arg0, s32 arg1, s32 arg2)
 {
     RECT sp10;
 
@@ -779,7 +779,7 @@ typedef struct {
     /* 0x17 */ s8  field_17;
 } UiListSignedRows;
 
-/// Signed overlay of GStruct30 layout halfwords (field_18..field_1E can be negative).
+/// Signed overlay of UiPanel layout halfwords (field_18..field_1E can be negative).
 typedef struct {
     /* 0x00 */ s32  field_0;
     /* 0x04 */ s32  field_4;
@@ -795,7 +795,7 @@ typedef struct {
     /* 0x22 */ u16  field_22;
 } GStruct30SignedLayoutFull;
 
-void func_80046830(UiList* arg0_, GStruct30* arg1_)
+void func_80046830(UiList* arg0_, UiPanel* arg1_)
 {
     UiListSignedRows*          arg0;
     GStruct30SignedLayoutFull* arg1;
@@ -907,7 +907,7 @@ void func_80046830(UiList* arg0_, GStruct30* arg1_)
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80046B34);
 
-/// Overlay of GStruct30 / UiObject at the layout halfwords that func_80046DEC
+/// Overlay of UiPanel / UiObject at the layout halfwords that func_80046DEC
 /// loads as signed (field_1C / field_1E are written with potentially negative
 /// values by func_80049348; this function needs lh, not lhu).
 typedef struct {
@@ -920,7 +920,7 @@ typedef struct {
     /* 0x22 */ u16 field_22;
 } GStruct30SignedLayout;
 
-void func_80046DEC(UiList* arg0, GStruct30* arg1, s32 arg2)
+void func_80046DEC(UiList* arg0, UiPanel* arg1, s32 arg2)
 {
     TILE*                           p;
     s32                             y;
@@ -959,7 +959,7 @@ void func_80046DEC(UiList* arg0, GStruct30* arg1, s32 arg2)
 
 INCLUDE_ASM("main/nonmatchings/34E98", func_80046EEC);
 
-void func_80047A0C(GStruct30* arg0, s32 arg1, s32 arg2, s32 arg3)
+void func_80047A0C(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     POLY_FT4* p;
     s16       temp;
@@ -1008,7 +1008,7 @@ void func_80047A0C(GStruct30* arg0, s32 arg1, s32 arg2, s32 arg3)
     }
 }
 
-void func_80047B24(GStruct30* arg0, s32 arg1, s32 arg2, s32 arg3)
+void func_80047B24(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     POLY_FT4* p;
     s16       temp;
@@ -1063,21 +1063,21 @@ void func_80047B24(GStruct30* arg0, s32 arg1, s32 arg2, s32 arg3)
     }
 }
 
-void func_80047C40(GStruct30* arg0, s32 arg1, s32 arg2, char* arg3, s32 arg4)
+void func_80047C40(UiPanel* arg0, s32 arg1, s32 arg2, char* arg3, s32 arg4)
 {
-    TextDrawReq         sp10;
-    POLY_F4*            p;
-    s32                 x;
-    s32                 y;
-    s32                 textX;
-    s32                 color;
-    s32                 t20;
-    s32                 tmp0;
-    s32                 tmp1;
-    s32                 f22;
-    s32                 fourth;
-    register s32        otIdx asm("s0");
-    register GStruct30* self asm("s3");
+    TextDrawReq       sp10;
+    POLY_F4*          p;
+    s32               x;
+    s32               y;
+    s32               textX;
+    s32               color;
+    s32               t20;
+    s32               tmp0;
+    s32               tmp1;
+    s32               f22;
+    s32               fourth;
+    register s32      otIdx asm("s0");
+    register UiPanel* self asm("s3");
 
     self         = arg0;
     color        = arg4;
@@ -1118,16 +1118,16 @@ void func_80047C40(GStruct30* arg0, s32 arg1, s32 arg2, char* arg3, s32 arg4)
     func_80047A0C(self, x - t20, (s16)sp10.field_0 - t20, y - fourth);
 }
 
-void func_80047D90(GStruct30* arg0, char* arg1)
+void func_80047D90(UiPanel* arg0, char* arg1)
 {
-    RECT       sp18;
-    RECT*      r;
-    s32        var_a2;
-    s32        color;
-    s32        x;
-    s32        y;
-    Task*      child;
-    GStruct30* related;
+    RECT     sp18;
+    RECT*    r;
+    s32      var_a2;
+    s32      color;
+    s32      x;
+    s32      y;
+    Task*    child;
+    UiPanel* related;
 
     color = 0x505040;
     if (arg0->field_0 == 1) {
@@ -1135,7 +1135,7 @@ void func_80047D90(GStruct30* arg0, char* arg1)
     }
     child = ((UiObject*)arg0)->field_28->field_c;
     if (child != NULL) {
-        related = (GStruct30*)child->field_20;
+        related = (UiPanel*)child->field_20;
         if (related->field_0 == 1) {
             if ((related->field_4 & 0xF) != 2) {
                 color = 0x806020;
@@ -1178,7 +1178,7 @@ void func_80047D90(GStruct30* arg0, char* arg1)
     arg0->field_14 = (u16)(arg0->field_14 + 1);
 }
 
-void func_80047F40(GStruct30* arg0, char* arg1)
+void func_80047F40(UiPanel* arg0, char* arg1)
 {
     RECT  sp18;
     RECT* r;
@@ -1333,19 +1333,19 @@ UiObject* func_800480A0(TextBlockDesc* arg0_)
 
 void func_80048390(RECT* arg0, s32 arg1, s32 arg2, char* arg3)
 {
-    GStruct30  sp18;
-    s32        pad[2];
-    RECT       sp48;
-    RECT       sp50;
-    GStruct30* self;
-    RECT*      r;
-    s32        var_a2;
-    s32        color;
-    s32        x;
-    s32        y;
-    s32        two;
-    s16        temp_t0;
-    s16        temp_t1;
+    UiPanel  sp18;
+    s32      pad[2];
+    RECT     sp48;
+    RECT     sp50;
+    UiPanel* self;
+    RECT*    r;
+    s32      var_a2;
+    s32      color;
+    s32      x;
+    s32      y;
+    s32      two;
+    s16      temp_t0;
+    s16      temp_t1;
 
     two           = 2;
     sp18.field_8  = two;
@@ -1398,7 +1398,7 @@ void func_80048390(RECT* arg0, s32 arg1, s32 arg2, char* arg3)
     }
 }
 
-void func_80048560(GStruct30* arg0, u8* arg1, s32 arg2, s32 arg3)
+void func_80048560(UiPanel* arg0, u8* arg1, s32 arg2, s32 arg3)
 {
     struct {
         union {
@@ -1511,7 +1511,7 @@ void func_800488F8(Task* arg0)
     arg0->field_8 = (Task*)4;
 }
 
-void func_80048904(GStruct30* arg0, s32 arg1, s32 arg2)
+void func_80048904(UiPanel* arg0, s32 arg1, s32 arg2)
 {
     s16 temp_v1;
 
@@ -1525,7 +1525,7 @@ void func_80048904(GStruct30* arg0, s32 arg1, s32 arg2)
     }
 }
 
-void func_80048964(GStruct30* arg0, void* arg1)
+void func_80048964(UiPanel* arg0, void* arg1)
 {
     if (arg0->field_8 != 2) {
         if ((u16)arg0->field_16 >= 0xA) {
@@ -1537,15 +1537,15 @@ void func_80048964(GStruct30* arg0, void* arg1)
 
 void func_800489A0(UiList* arg0, GStruct20* arg1)
 {
-    RECT       sp;
-    GStruct30* a1;
-    s16        temp_v0;
-    u8         temp_a2;
-    s8         temp_v1;
-    s32        temp_v1_2;
-    s32        height;
+    RECT     sp;
+    UiPanel* a1;
+    s16      temp_v0;
+    u8       temp_a2;
+    s8       temp_v1;
+    s32      temp_v1_2;
+    s32      height;
 
-    a1             = (GStruct30*)arg1;
+    a1             = (UiPanel*)arg1;
     arg0->field_17 = 0;
     sp.x           = a1->field_20 + a1->field_1C;
     sp.y           = a1->field_22 + a1->field_18;
@@ -1589,14 +1589,14 @@ void func_800489A0(UiList* arg0, GStruct20* arg1)
 
 void func_80048AEC(UiList* arg0, s32 arg1)
 {
-    RECT       sp;
-    GStruct30* a1;
-    s16        temp_v0;
-    u8         temp_a2;
-    s8         temp_v1;
-    s32        temp_v1_2;
+    RECT     sp;
+    UiPanel* a1;
+    s16      temp_v0;
+    u8       temp_a2;
+    s8       temp_v1;
+    s32      temp_v1_2;
 
-    a1      = (GStruct30*)arg1;
+    a1      = (UiPanel*)arg1;
     sp.x    = a1->field_20 + a1->field_1C;
     sp.y    = a1->field_22 + a1->field_18;
     sp.w    = a1->field_1E - a1->field_1C;
@@ -1635,7 +1635,7 @@ void func_80048C10(void* arg0, void* arg1)
     func_80046EEC(arg0, arg1, 0);
 }
 
-void func_80048C30(UiList* arg0, GStruct30* arg1, s32 arg2)
+void func_80048C30(UiList* arg0, UiPanel* arg1, s32 arg2)
 {
     RECT sp;
     s16  temp_v0;
@@ -1717,7 +1717,7 @@ s32 func_80048E2C(s32 arg0)
     return (arg0 << 4) - arg0;
 }
 
-void func_80048E38(GStruct30* arg0, char* arg1)
+void func_80048E38(UiPanel* arg0, char* arg1)
 {
     RECT  sp18;
     RECT* r;
@@ -1763,7 +1763,7 @@ void func_80048E38(GStruct30* arg0, char* arg1)
     arg0->field_14 = (u16)(arg0->field_14 + 1);
 }
 
-void func_80048F88(GStruct30* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
+void func_80048F88(UiPanel* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6)
 {
     TextDrawReq sp;
     s32         temp;
@@ -1783,7 +1783,7 @@ void func_80048F88(GStruct30* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 
     }
 }
 
-void func_80049024(GStruct30* arg0, GStruct30* arg1, GStruct30* arg2)
+void func_80049024(UiPanel* arg0, UiPanel* arg1, UiPanel* arg2)
 {
     s32 temp;
     s32 limit;
@@ -1803,12 +1803,12 @@ void func_80049024(GStruct30* arg0, GStruct30* arg1, GStruct30* arg2)
     }
 }
 
-void func_800490A4(GStruct30* arg0, u8* arg1)
+void func_800490A4(UiPanel* arg0, u8* arg1)
 {
     func_80048560(arg0, arg1, 0, 0);
 }
 
-void func_800490C8(GStruct30* arg0, u8* arg1)
+void func_800490C8(UiPanel* arg0, u8* arg1)
 {
     func_80048560(arg0, arg1, 0x20, 0);
 }
@@ -1837,7 +1837,7 @@ void func_8004917C(UiList* arg0, s32 arg1)
     arg0->field_A |= 2;
 }
 
-void func_800491AC(GStruct30* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5)
+void func_800491AC(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg5)
 {
     TILE*        p;
     s32          y;
@@ -1878,7 +1878,7 @@ void func_800492EC(void* arg0, RECT* arg1, RECT* arg2)
     arg2->h = (arg1->h + arg1->y) - arg2->y - 1;
 }
 
-void func_80049348(GStruct30* arg0, RECT* arg1, RECT* arg2)
+void func_80049348(UiPanel* arg0, RECT* arg1, RECT* arg2)
 {
     RECT sp10;
 
@@ -1905,7 +1905,7 @@ void func_80049348(GStruct30* arg0, RECT* arg1, RECT* arg2)
     }
 }
 
-void func_80049478(GStruct30* arg0, RECT* arg1)
+void func_80049478(UiPanel* arg0, RECT* arg1)
 {
     s32 var_a2;
 
@@ -1934,7 +1934,7 @@ void func_80049478(GStruct30* arg0, RECT* arg1)
     arg1->h = arg0->field_C.h;
 }
 
-void func_80049554(GStruct30* arg0, void* arg1)
+void func_80049554(UiPanel* arg0, void* arg1)
 {
     if (arg0->field_16 == 0) {
         arg0->field_16 = 9;
@@ -1949,7 +1949,7 @@ void func_80049554(GStruct30* arg0, void* arg1)
     }
 }
 
-void func_800495B4(GStruct30* arg0, void* arg1)
+void func_800495B4(UiPanel* arg0, void* arg1)
 {
     s32 temp_s2;
 
@@ -1969,13 +1969,13 @@ void func_800495B4(GStruct30* arg0, void* arg1)
     }
 }
 
-void func_8004965C(GStruct30* arg0, void* arg1)
+void func_8004965C(UiPanel* arg0, void* arg1)
 {
     func_80045D24(arg0);
     arg0->field_24(arg1);
 }
 
-void func_8004969C(GStruct30* arg0, void* arg1)
+void func_8004969C(UiPanel* arg0, void* arg1)
 {
     if (arg0->field_16 >= 0) {
         arg0->field_16 += Display_State.field_10a;
@@ -1990,7 +1990,7 @@ void func_8004969C(GStruct30* arg0, void* arg1)
     arg0->field_24(arg1);
 }
 
-void func_8004972C(GStruct30* arg0, void* arg1)
+void func_8004972C(UiPanel* arg0, void* arg1)
 {
     s32 temp_s1;
 
@@ -2012,7 +2012,7 @@ void func_8004972C(GStruct30* arg0, void* arg1)
     }
 }
 
-void func_800497F4(GStruct30* arg0, void* arg1)
+void func_800497F4(UiPanel* arg0, void* arg1)
 {
     s16 temp_a0;
     s16 temp_v0;
@@ -2042,8 +2042,8 @@ void func_800497F4(GStruct30* arg0, void* arg1)
 
 void func_800498D4(Task* arg0)
 {
-    GFunc30Table6 sp;
-    GStruct30*    temp;
+    UiPanelFuncTable6 sp;
+    UiPanel*          temp;
 
     sp   = D_80013F2C;
     temp = arg0->field_20;
@@ -2062,7 +2062,7 @@ s32 func_80049950(void)
     return *(s32*)&sp;
 }
 
-void func_80049980(GStruct30* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+void func_80049980(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 {
     POLY_F3*      p;
     u16           temp_v0;
@@ -2120,7 +2120,7 @@ void func_80049980(GStruct30* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 
 void func_80049A8C(Task* arg0)
 {
-    GStruct30* temp_s0;
+    UiPanel* temp_s0;
 
     temp_s0 = arg0->field_20;
     if (func_8001D344() != 0) {
@@ -2180,13 +2180,13 @@ void func_80049C00(Task* arg0)
         base          = ctx->field_0;
         menu->field_5 = base;
         menu->field_4 = base;
-        func_80046830(menu, (GStruct30*)obj);
+        func_80046830(menu, (UiPanel*)obj);
         menu->field_A   = 1;
         arg0->field_30 += 1;
     }
     text = ctx->field_8;
     if (text != NULL) {
-        func_80047F40((GStruct30*)obj, text);
+        func_80047F40((UiPanel*)obj, text);
     }
     func_80046EEC(menu, obj, 0);
     if (obj->field_0 == 1) {

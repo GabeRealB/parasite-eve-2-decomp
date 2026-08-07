@@ -48,10 +48,10 @@ void func_80042364(s32 arg0, s32 arg1, s32 arg2)
                 break;
             case 4:
                 if (D_800626E8 != 0) {
-                    param1[3] = D4F564_8005ED64->field_7;
-                    param1[2] = D4F564_8005ED64->field_6;
+                    param1[3] = Game_Session->field_7;
+                    param1[2] = Game_Session->field_6;
                     param1[0] = func_800AD284();
-                    f74       = D4F564_8005ED64->field_74;
+                    f74       = Game_Session->field_74;
                     param2[1] = 1;
                     param2[3] = 0;
                     param2[2] = 0;
