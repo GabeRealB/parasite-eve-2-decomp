@@ -129,10 +129,8 @@ segments:
       # jtbl_80014064 (Midi_HandleMetaSysex) + absolute jtbl_800140A4 (SndLoad_ProcessSector
       # still asm) + jtbl_800140C4 (SndLoad_FeedSector), all from 410B0.c.
       - [0x4864, .rodata, "sndevt"]
-      # jtbl_800140E8 (func_80053A20 still asm) + D_80014124 limits table.
-      - [0x48e8, rodata, "sndscript_1"]
-      # jtbls from TaskIdMap_RemapIndex + SndScript_StopMatching + SndVoice_TickEnvelope
-      - [0x4930, .rodata, "sndscript"]
+      # jtbl_800140E8 + D_80014124 + TaskIdMap / StopMatching / TickEnvelope jtbls
+      - [0x48e8, .rodata, "sndscript"]
       # jtbl_800141C4 (func_800567E4) + jtbl from CdAudio_DriveSeek +
       # jtbl from CdAudio_DriveRead + jtbl from CdAudio_DrivePhase1
       - [0x49c4, .rodata, "cdaudio"]

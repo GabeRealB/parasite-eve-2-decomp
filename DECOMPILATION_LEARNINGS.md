@@ -11645,3 +11645,44 @@ __asm__ volatile(
 Pin a second quartet for a following loop that reuses the same s-regs with a
 different global set. `Mdec_ProcessDecode` is the pure example (99.84% → 100%).
 
+
+## `bnez` + delay-slot `lui` hi + `j`/`ori` lo (ternary default constant)
+
+When the target does:
+
+```
+lw    v0, %lo(g)(v1)
+nop
+bnez  v0, 1f
+lui   v0, HI        /* delay: start of K = (HI<<16)|LO */
+j     2f
+ori   v0, v0, LO
+1:
+lw    v0, %lo(g)(v1)  /* reload on non-zero path */
+2:
+…
+```
+
+a pure C ternary / if-else (`v = *p ? *p : K`) leaves a `nop` after `bnez`
+and builds `K` with a non-delay `lui`/`ori` pair. Force the delay-slot form with
+tab-`.set noreorder` asm (same maspsx rule as ProcessChunkData case-4).
+`func_80053A20` case 5 (`D_80082128 ?: 0x63810`) is the pure example.
+
+## Const data between two compiler jtbls in one TU
+
+When a small `.rodata` blob (e.g. a limits table) sits *between* two jump
+tables that will both be compiler-generated once their functions are matched,
+declare the blob as `const` **between the two functions** in source order:
+
+```c
+s32 first_with_jtbl(…) { switch (…) { … } }
+
+const GBytes6 D_between = {{…}};  /* lands after first jtbl, before second */
+
+s32 second_with_jtbl(…) { switch (…) { … } }
+```
+
+Then expand the TU's `.rodata` segment start earlier in `main.yaml` and drop the
+hand-extracted `rodata, name_N` sibling that held the old jtbl + blob. Non-const
+definitions go to `.data` and break the layout. `func_80053A20` + `D_80014124` +
+`TaskIdMap_RemapIndex` is the pure example.

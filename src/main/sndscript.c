@@ -77,7 +77,109 @@ block_done:
     SndBank_SetEnableFlags(1, 0x40000000);
 }
 
-INCLUDE_ASM("main/nonmatchings/sndscript", func_80053A20);
+typedef struct {
+    /* 0x00 */ u8  pad[0x74];
+    /* 0x74 */ s32 field_74;
+    /* 0x78 */ s32 field_78;
+} SndBankSizeView;
+
+s32 func_80053A20(s32 arg0, s32 arg1)
+{
+    s32 temp_a2;
+
+    temp_a2 = (arg0 + 0x3F) & ~0x3F;
+    switch ((u32)(arg1 & 0xF000) >> 0xC) {
+        case 0:
+            arg0 = 0x63810;
+            break;
+        case 1:
+            D_80082128 = 0x63810 - temp_a2;
+            arg0       = D_80082128;
+            return arg0;
+        case 3:
+            arg0 = 0x47010;
+            break;
+        case 4:
+            if ((s8)D_80082135 == 1) {
+                D_80082135 = 2;
+                arg0       = 0x3D010;
+                goto set_slot;
+            }
+            if ((s32)(D_80082122 << 0x18) > 0) {
+                if ((s8)D_80082122 < 3) {
+                    arg0 =
+                        ((SndBankSizeView*)(((s32)(D_80082122 << 0x18) >> 0x13) +
+                                            (s32)Snd_Banks))
+                            ->field_78 +
+                        ((SndBankSizeView*)(((s32)(D_80082122 << 0x18) >> 0x13) +
+                                            (s32)Snd_Banks))
+                            ->field_74;
+                    D_80082122 += 1;
+                    goto store_size;
+                }
+            }
+            arg0 = 0;
+            if (D_80082122 != 0) {
+                goto clear_ret;
+            }
+            arg0 = 0x3D010;
+        set_slot:
+            D_80082122 = 1;
+        store_size:
+            D_80082130 = temp_a2 + arg0;
+            return arg0;
+        clear_ret:
+            D_80082130 = 0;
+            break;
+        case 5: {
+            register s32 v asm("v0");
+            register s32 hi asm("v1");
+            register s32 out asm("a0");
+            register s32 al asm("a2");
+
+            al = temp_a2;
+            __asm__ volatile(
+                ".set\tnoreorder\n\t"
+                "lui %1, %%hi(D_80082128)\n\t"
+                "lw %0, %%lo(D_80082128)(%1)\n\t"
+                "nop\n\t"
+                "bnez %0, 1f\n\t"
+                "lui %0, 6\n\t"
+                "j 2f\n\t"
+                "ori %0, %0, 0x3810\n\t"
+                "1:\n\t"
+                "lw %0, %%lo(D_80082128)(%1)\n\t"
+                "2:\n\t"
+                "lui %1, %%hi(D_80082124)\n\t"
+                "subu %0, %0, %3\n\t"
+                "sw %0, %%lo(D_80082124)(%1)\n\t"
+                "lw %2, %%lo(D_80082124)(%1)\n\t"
+                ".set\treorder"
+                : "=&r"(v), "=&r"(hi), "=r"(out)
+                : "r"(al)
+                : "memory");
+            return out;
+        }
+        case 6:
+            arg0 = 0x3D010 - temp_a2;
+            break;
+        case 2:
+        case 7:
+            arg0 = 0x7B010 - temp_a2;
+            break;
+        case 14:
+            arg0 = 0x6F810;
+            break;
+        default:
+            arg0 = 0;
+            break;
+    }
+    return arg0;
+}
+
+/* Per-type arg1 limits for TaskIdMap_RemapIndex; sits between this TU's first
+ * jtbl (func_80053A20) and TaskIdMap's jtbl at 0x80014130. */
+const GBytes6 D_80014124 = { { 0x00, 0x08, 0x07, 0x0B, 0x0C, 0x0A } };
 
 s32 TaskIdMap_RemapIndex(s32 arg0, s32 arg1, s32 arg2)
 {
