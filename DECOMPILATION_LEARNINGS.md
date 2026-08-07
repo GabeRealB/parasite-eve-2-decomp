@@ -11291,3 +11291,22 @@ pipeline gap.
 
 Do **not** feed those temp columns through `gte_ldclmv` — they are contiguous
 `SVECTOR`s, not matrix columns. `gte_ldsv` is the matching load helper.
+
+## GStruct54 script interpreter layout (func_80055078)
+
+`func_80055078` is a fourCC-dispatched music/script stepper over
+`GStruct54::field_48`. Layout notes that unblocked progress toward a match:
+
+- `field_17` / `field_18[8]` / `field_20[8]` are a loop stack (depth, remaining
+  counts, restart cursors) for `"Loop"`/`"endL"`. They fill the old `pad_18[0x28]`.
+- `field_44` is a `GStruct54Ctx*` (`u8* data`, `GStruct42* bank`), not a bare `s32`.
+- `field_48` is a script cursor (`GStructScriptCmd*`); `"oneV"` payloads are
+  0x18-byte `GStructScriptOneV` records (bank id, note, duration, pan/vol,
+  reverb gate, pitch, oneA/oneE offsets).
+- `"oneC"` advances the cursor by 0x10, resolves `field_4C` via
+  `base[*(u16*)(base + (u8)field_0 * 2 + 8)]`, then falls into `"oneV"`.
+- Shared wait-tick path: when high-half of `field_8` is below the command's
+  duration, add `Display_State.field_124 == 1 ? 0x9999 : 0x10000` and return 0;
+  on success subtract `duration << 16` and return 1 (caller loops while nonzero).
+- Volume: `(scale * field_4C->field_5 * voice->field_A) / 16129` (127²), same
+  as `func_80055DFC`.

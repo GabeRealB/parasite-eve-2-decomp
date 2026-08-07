@@ -684,7 +684,8 @@ struct _GStruct43 {
     /* 0x04 */ s32        field_4;
     /* 0x08 */ s16        field_8;
     /* 0x0A */ u8         field_A;
-    /* 0x0B */ u8         unknown_0B[0x5];
+    /* 0x0B */ u8         pad_0B;
+    /* 0x0C */ void*      field_C; // current oneV/script command (func_80055078)
     /* 0x10 */ s8         field_10;
     /* 0x11 */ s8         field_11;
     /* 0x12 */ s8         field_12;
@@ -1145,36 +1146,79 @@ typedef struct _GStruct67 {
 } GStruct67;
 STATIC_ASSERT_SIZEOF(GStruct67, 0x10);
 
+/// Context pointed to by GStruct54::field_44 (set from func_80055F70 arg4).
+/// field_0 is the raw script/data base used for oneC offset tables and oneA
+/// lookups; field_4 is the default sound bank when a oneV command has bank id 0.
+typedef struct _GStruct54Ctx {
+    /* 0x0 */ u8*        field_0;
+    /* 0x4 */ GStruct42* field_4;
+} GStruct54Ctx;
+STATIC_ASSERT_SIZEOF(GStruct54Ctx, 0x8);
+
+/// "oneV" (0x56656E6F) voice-on script command consumed by func_80055078.
+/// Also the 0x18-byte payload after a "oneC" (0x43656E6F) command.
+typedef struct _GStructScriptOneV {
+    /* 0x00 */ s32 magic;
+    /* 0x04 */ u16 field_4;  // bank id for func_8004D150 (0 = use ctx bank)
+    /* 0x06 */ u8  field_6;  // note group for func_8004EA60
+    /* 0x07 */ u8  field_7;  // note index for func_8004EA60
+    /* 0x08 */ u16 field_8;  // duration (high half of field_8 timer units)
+    /* 0x0A */ u16 field_A;  // voice countdown (0 → 0x7FFFFFFF)
+    /* 0x0C */ s8  field_C;  // pan bias (<0 → use GStruct41::field_1)
+    /* 0x0D */ s8  field_D;  // volume scale (<0 → use GStruct41::field_3)
+    /* 0x0E */ s8  field_E;  // reverb gate vs D_8008274B
+    /* 0x0F */ u8  pad_F;
+    /* 0x10 */ u16 field_10; // voice-alloc priority for func_80056240
+    /* 0x12 */ s16 field_12; // oneA offset for func_8005664C
+    /* 0x14 */ u16 field_14; // base pitch
+    /* 0x16 */ s16 field_16; // oneE offset for func_800565B8 (-1 disables)
+} GStructScriptOneV;
+STATIC_ASSERT_SIZEOF(GStructScriptOneV, 0x18);
+
+/// "Loop" (0x706F6F4C) / "Wait" (0x74696157) / "endL" (0x4C646E65) script cmds.
+/// Loop: field_4 = repeat count, field_6 = min wait; Wait: field_4 as s32 duration.
+typedef struct _GStructScriptCmd {
+    /* 0x0 */ s32 magic;
+    /* 0x4 */ u8  field_4;
+    /* 0x5 */ u8  pad_5;
+    /* 0x6 */ u16 field_6;
+} GStructScriptCmd;
+STATIC_ASSERT_SIZEOF(GStructScriptCmd, 0x8);
+
 /// 0x60-byte slot in D_80082248[8]. field_0 is an ID looked up by
 /// func_80055DAC; field_16 holds status flags (mask 0xA3 selects active entries).
 /// field_E is a dirty flag; field_10/11/12 and field_13/14/15 are paired ramps
 /// (current/target/step) updated by func_80055A9C and func_80055B70 respectively.
+/// field_17/field_18/field_20 are a loop stack (depth, remaining counts, restart
+/// positions) used by Loop/endL in func_80055078.
 /// field_40 is the head of a GStruct43 voice list (cleared/walked by func_80055F70);
-/// field_44/field_48 hold init params; field_F is bit1 of GStruct67::field_E.
+/// field_44 is a GStruct54Ctx* script base; field_48 is the current script cursor;
+/// field_F is bit1 of GStruct67::field_E.
 /// field_4C is a voice-param block (volume scale at field_5) walked with field_40.
 /// field_50 is a volume interpolator driven by func_800559BC via func_8004D200.
 typedef struct _GStruct54 {
-    /* 0x00 */ s32        field_0;
-    /* 0x04 */ s32        field_4;
-    /* 0x08 */ s32        field_8;
-    /* 0x0C */ s8         field_C;
-    /* 0x0D */ s8         field_D;
-    /* 0x0E */ s8         field_E;
-    /* 0x0F */ s8         field_F;
-    /* 0x10 */ u8         field_10;
-    /* 0x11 */ u8         field_11;
-    /* 0x12 */ s8         field_12;
-    /* 0x13 */ u8         field_13;
-    /* 0x14 */ u8         field_14;
-    /* 0x15 */ s8         field_15;
-    /* 0x16 */ u8         field_16;
-    /* 0x17 */ u8         field_17;
-    /* 0x18 */ u8         pad_18[0x28];
-    /* 0x40 */ GStruct43* field_40;
-    /* 0x44 */ s32        field_44;
-    /* 0x48 */ GStruct67* field_48;
-    /* 0x4C */ GStruct67* field_4C;
-    /* 0x50 */ GStruct55  field_50;
+    /* 0x00 */ s32               field_0;
+    /* 0x04 */ s32               field_4;
+    /* 0x08 */ s32               field_8;
+    /* 0x0C */ s8                field_C;
+    /* 0x0D */ s8                field_D;
+    /* 0x0E */ s8                field_E;
+    /* 0x0F */ s8                field_F;
+    /* 0x10 */ u8                field_10;
+    /* 0x11 */ u8                field_11;
+    /* 0x12 */ s8                field_12;
+    /* 0x13 */ u8                field_13;
+    /* 0x14 */ u8                field_14;
+    /* 0x15 */ s8                field_15;
+    /* 0x16 */ u8                field_16;
+    /* 0x17 */ u8                field_17;
+    /* 0x18 */ u8                field_18[8];
+    /* 0x20 */ GStructScriptCmd* field_20[8];
+    /* 0x40 */ GStruct43*        field_40;
+    /* 0x44 */ GStruct54Ctx*     field_44;
+    /* 0x48 */ GStructScriptCmd* field_48;
+    /* 0x4C */ GStruct67*        field_4C;
+    /* 0x50 */ GStruct55         field_50;
 } GStruct54;
 STATIC_ASSERT_SIZEOF(GStruct54, 0x60);
 

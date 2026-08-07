@@ -1264,14 +1264,14 @@ void func_80055F70(s32 arg0, s8 arg1, s8 arg2, s32 arg3, s32 arg4, GStruct67* ar
     }
     p->field_16 = 1;
     p->field_40 = NULL;
-    p->field_44 = arg4;
+    p->field_44 = (GStruct54Ctx*)arg4;
     p->field_0  = arg3;
     p->field_4  = 0;
     p->field_10 = arg1;
     p->field_13 = arg2;
     p->field_17 = 0;
     flags       = desc->field_E;
-    p->field_48 = arg5;
+    p->field_48 = (GStructScriptCmd*)arg5;
     p->field_F  = (flags >> 1) & 1;
 }
 
