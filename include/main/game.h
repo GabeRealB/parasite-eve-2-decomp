@@ -27,13 +27,14 @@
 
 // CdCmdEntry / CdCmdQueue live in main/fs.h
 
+/// CD audio player phase machine (CdAudio_Phase). Driven by switches in 46FE4.c.
 typedef struct _CdAudioPhase {
-    u8 field_0;
-    u8 field_1;
-    u8 field_2;
-    u8 field_3;
-    u8 field_4;
-    u8 field_5;
+    /* 0x0 */ u8 field_0; // primary phase
+    /* 0x1 */ u8 field_1; // sub-phase
+    /* 0x2 */ u8 field_2; // sub-phase / gate
+    /* 0x3 */ u8 field_3; // stream sub-phase
+    /* 0x4 */ u8 field_4; // seek / load sub-phase
+    /* 0x5 */ u8 field_5; // control / abort flag
 } CdAudioPhase;
 STATIC_ASSERT_SIZEOF(CdAudioPhase, 0x6);
 
@@ -65,34 +66,36 @@ typedef struct _SpuReverbConfig {
 } SpuReverbConfig;
 STATIC_ASSERT_SIZEOF(SpuReverbConfig, 0x24);
 
+/// Per-frame audio callback list node (AudioTick_List sentinel + chain).
 typedef struct _AudioTickNode {
-    s32 field_0;
-    s32 field_4;
-    s16 field_8;
-    s32 field_c;
-    s32 field_10;
-    s32 field_14;
+    /* 0x00 */ s32 field_0;  // poll: s32 (*)(s32) — return -1 to remove
+    /* 0x04 */ s32 field_4;  // remove callback: void (*)(void)
+    /* 0x08 */ s16 field_8;  // node id (match key)
+    /* 0x0C */ s32 field_c;  // arg to poll
+    /* 0x10 */ s32 field_10; // prev link
+    /* 0x14 */ s32 field_14; // next link
 } AudioTickNode;
 STATIC_ASSERT_SIZEOF(AudioTickNode, 0x18);
 
+/// Per-voice SPU runtime (Spu_VoiceState). 24 voices.
 typedef struct _SpuVoiceState {
-    u32 reverbVoiceStatus;
-    u32 field_4[24];
-    u8  field_64[24];
-    u8  field_7c[24];
-    s8  field_94[24];
-    u32 field_ac[24];
-    u32 field_10c[24];
-    u32 field_16c[24];
-    u32 field_1cc;
-    u32 field_1d0;
+    /* 0x000 */ u32 reverbVoiceStatus;
+    /* 0x004 */ u32 field_4[24];   // age / score for voice steal
+    /* 0x064 */ u8  field_64[24];  // state (0/3 ≈ free-ish)
+    /* 0x07C */ u8  field_7c[24];  // key-on staging (5 on note-on)
+    /* 0x094 */ s8  field_94[24];  // occupied (0 free, 1 busy)
+    /* 0x0AC */ u32 field_ac[24];  // alloc priority
+    /* 0x10C */ u32 field_10c[24]; // cleared on release
+    /* 0x16C */ u32 field_16c[24]; // cleared on release
+    /* 0x1CC */ u32 field_1cc;
+    /* 0x1D0 */ u32 field_1d0;     // key-on related mask
 } SpuVoiceState;
 STATIC_ASSERT_SIZEOF(SpuVoiceState, 0x1D4);
 
 typedef struct _SpuLVoiceTable {
-    s16           count;
-    SpuLVoiceAttr attrs[24];
-    u8            field_664[24];
+    /* 0x000 */ s16           count;         // active attr count
+    /* 0x002 */ SpuLVoiceAttr attrs[24];
+    /* 0x664 */ u8            field_664[24]; // per-voice flags
 } SpuLVoiceTable;
 STATIC_ASSERT_SIZEOF(SpuLVoiceTable, 0x67C);
 
@@ -181,65 +184,67 @@ STATIC_ASSERT_SIZEOF(GameActorExt, 0x10);
 /// 0x1C-byte slot allocated from SndEvt_Pool (see SndEvt_Alloc / SndEvt_Enqueue).
 /// Overlay of `SndEvt` starting at offset 0x4 (`field_4` / `field_8`).
 /// Used when the compiler keeps `arg + 4` in a callee-saved register.
+/// Overlay of SndEvt starting at field_4 (handler payload).
 typedef struct _SndEvtFrom4 {
-    u8  field_0;
-    u8  field_1;
-    u16 field_2;
-    s32 field_4;
-    s32 field_8;
-    s32 field_C;
+    /* 0x0 */ u8  field_0; // SndEvt.field_4
+    /* 0x1 */ u8  field_1; // SndEvt.field_5
+    /* 0x2 */ u16 field_2; // SndEvt.field_6
+    /* 0x4 */ s32 field_4; // payload
+    /* 0x8 */ s32 field_8; // payload
+    /* 0xC */ s32 field_C; // often SndVoiceParams*
 } SndEvtFrom4;
 STATIC_ASSERT_SIZEOF(SndEvtFrom4, 0x10);
 
+/// Deferred sound/MIDI event message (SndEvt_Pool, 0x40 slots).
 typedef struct _SndEvt {
-    s16             field_0;
-    s16             field_2;
-    u8              field_4;
-    u8              field_5;
-    u16             field_6;
-    s32             field_8;
-    s32             field_C;
-    s32             field_10;
-    struct _SndEvt* field_14;
-    struct _SndEvt* field_18;
+    /* 0x00 */ s16             field_0; // allocated (0 free, 1 in use)
+    /* 0x02 */ s16             field_2; // SndEvt_Handlers index
+    /* 0x04 */ u8              field_4; // handler payload
+    /* 0x05 */ u8              field_5;
+    /* 0x06 */ u16             field_6;
+    /* 0x08 */ s32             field_8;
+    /* 0x0C */ s32             field_C;
+    /* 0x10 */ s32             field_10;
+    /* 0x14 */ struct _SndEvt* field_14; // queue prev
+    /* 0x18 */ struct _SndEvt* field_18; // queue next
 } SndEvt;
 STATIC_ASSERT_SIZEOF(SndEvt, 0x1C);
 
-/// Pointed to by Stage_Ctx (bss object D_8007A320, size 0x38).
+/// Stage / flow context (Stage_Ctx → bss D_8007A320, size 0x38).
 typedef struct _StageCtx {
-    /* 0x00 */ TaskDesc* field_0;
-    /* 0x04 */ s32       field_4;
-    /* 0x08 */ s32       field_8;
+    /* 0x00 */ TaskDesc* field_0; // task desc table for spawn
+    /* 0x04 */ s32       field_4; // spawn arg
+    /* 0x08 */ s32       field_8; // spawn arg
     /* 0x0C */ u32       field_C;
     /* 0x10 */ byte      unknown_10;
     /* 0x11 */ u8        field_11;
-    /* 0x12 */ u8        field_12;
+    /* 0x12 */ u8        field_12; // flow gate
     /* 0x13 */ u8        field_13;
     /* 0x14 */ u8        field_14;
     /* 0x15 */ u8        field_15;
     /* 0x16 */ byte      unknown_16;
-    /* 0x17 */ u8        field_17;
+    /* 0x17 */ u8        field_17; // flow gate
     /* 0x18 */ u8        field_18;
-    /* 0x19 */ u8        field_19;
+    /* 0x19 */ u8        field_19; // flag bits (bit0/1)
     /* 0x1A */ u8        field_1a;
     /* 0x1B */ byte      unknown_1b;
-    /* 0x1C */ u32       field_1c;
+    /* 0x1C */ u32       field_1c;    // flag word
     /* 0x20 */ s32       field_20;
-    /* 0x24 */ s32       field_24;
-    /* 0x28 */ s32       field_28;
-    /* 0x2C */ u8        field_2C[8];
-    /* 0x34 */ u8        field_34[4];
+    /* 0x24 */ s32       field_24;    // last Display_State.field_118
+    /* 0x28 */ s32       field_28;    // step counter
+    /* 0x2C */ u8        field_2C[8]; // CDF load param block
+    /* 0x34 */ u8        field_34[4]; // CDF load param block
 } StageCtx;
 STATIC_ASSERT_SIZEOF(StageCtx, 0x38);
 
-/// BSS object CdAudio_Loc (size 0x10).
+/// BSS object CdAudio_Loc (size 0x10). Sector / pitch state for CD audio player.
 typedef struct _CdAudioLoc {
-    u8  field_0;
-    u8  field_1;
-    u16 field_2;
-    s32 field_4;
-    s32 field_8;
-    s32 field_C;
+    /* 0x0 */ u8  field_0; // status
+    /* 0x1 */ u8  field_1; // ready / done flag
+    /* 0x2 */ u16 field_2; // pitch-related
+    /* 0x4 */ s32 field_4; // sector / position
+    /* 0x8 */ s32 field_8; // SPU / buffer param
+    /* 0xC */ s32 field_C; // sector position
 } CdAudioLoc;
 STATIC_ASSERT_SIZEOF(CdAudioLoc, 0x10);
 
@@ -370,43 +375,41 @@ STATIC_ASSERT_SIZEOF(UiMiniObj, 0x24);
 /// handlers (e.g. func_8002BD24 waits until field_2E == -1 before cleaning up;
 /// dialog pickers set field_2E == 6 when a choice is confirmed).
 typedef struct _UiObject {
-    /* 0x00 */ s32   field_0;
-    /* 0x04 */ s32   field_4;
-    /* 0x08 */ s32   field_8;
-    /* 0x0C */ u16   field_C;
+    /* 0x00 */ s32   field_0; // status flag
+    /* 0x04 */ s32   field_4; // from UiObjectDesc::field_0
+    /* 0x08 */ s32   field_8; // mode (5=skip draw, 3=torn down)
+    /* 0x0C */ u16   field_C; // layout (RECT-like)
     /* 0x0E */ u16   field_E;
     /* 0x10 */ u16   field_10;
     /* 0x12 */ u16   field_12;
-    /* 0x14 */ u16   field_14;
-    /* 0x16 */ s16   field_16;
-    /* 0x18 */ u16   field_18;
-    /* 0x1A */ u16   field_1A;
-    /* 0x1C */ s16   field_1C;
-    /* 0x1E */ u16   field_1E;
-    /* 0x20 */ u16   field_20;
-    /* 0x22 */ u16   field_22;
-    /* 0x24 */ s32   field_24;
-    /* 0x28 */ Task* field_28;
-    /* 0x2C */ s16   field_2C;
-    /* 0x2E */ s16   field_2E;
+    /* 0x14 */ u16   field_14; // text draw priority/order
+    /* 0x16 */ s16   field_16; // timer/counter
+    /* 0x18 */ u16   field_18; // layout offset
+    /* 0x1A */ u16   field_1A; // layout offset
+    /* 0x1C */ s16   field_1C; // position (+2 for text draw)
+    /* 0x1E */ u16   field_1E; // x offset with field_20
+    /* 0x20 */ u16   field_20; // base x
+    /* 0x22 */ u16   field_22; // base y
+    /* 0x24 */ s32   field_24; // callback (from desc)
+    /* 0x28 */ Task* field_28; // owning task
+    /* 0x2C */ s16   field_2C; // teardown / choice
+    /* 0x2E */ s16   field_2E; // teardown / choice (-1 wait, 6 confirm)
 } UiObject;
 STATIC_ASSERT_SIZEOF(UiObject, 0x30);
 
 /// Template/descriptor consumed by func_800486F0 to spawn a UiObject + Task.
-/// field_10/field_12/field_18 seed a stack TaskDesc; field_0 and field_4..field_C
-/// / field_14 are copied onto the allocated UiObject.
 typedef struct _UiObjectDesc {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ u16 field_4;
+    /* 0x00 */ s32 field_0; // → UiObject.field_4
+    /* 0x04 */ u16 field_4; // → layout
     /* 0x06 */ u16 field_6;
     /* 0x08 */ u16 field_8;
     /* 0x0A */ u16 field_A;
     /* 0x0C */ u16 field_C;
     /* 0x0E */ u16 field_E;
-    /* 0x10 */ u16 field_10;
-    /* 0x12 */ u16 field_12;
-    /* 0x14 */ s32 field_14;
-    /* 0x18 */ s32 field_18;
+    /* 0x10 */ u16 field_10; // → TaskDesc seed
+    /* 0x12 */ u16 field_12; // → TaskDesc seed
+    /* 0x14 */ s32 field_14; // → UiObject callback-ish
+    /* 0x18 */ s32 field_18; // → TaskDesc seed
 } UiObjectDesc;
 STATIC_ASSERT_SIZEOF(UiObjectDesc, 0x1C);
 
@@ -485,20 +488,20 @@ STATIC_ASSERT_SIZEOF(StreamSlot, 0x28);
 /// height when computing visible rows (func_80048AEC / func_80048C30; the latter
 /// also writes field_17 from its third argument).
 typedef struct _UiList {
-    /* 0x00 */ byte unknown_0[0x4];
-    /* 0x04 */ u8   field_4;
-    /* 0x05 */ u8   field_5;
-    /* 0x06 */ s8   field_6;
-    /* 0x07 */ s8   field_7;
+    /* 0x00 */ byte unknown_0[0x4]; // often function-table pointer
+    /* 0x04 */ u8   field_4;        // base index
+    /* 0x05 */ u8   field_5;        // base index (also used vs field_9)
+    /* 0x06 */ s8   field_6;        // layout size
+    /* 0x07 */ s8   field_7;        // TILE height / row height
     /* 0x08 */ byte unknown_8;
-    /* 0x09 */ u8   field_9;
-    /* 0x0A */ u8   field_A;
+    /* 0x09 */ u8   field_9;        // list cursor (visible offset)
+    /* 0x0A */ u8   field_A;        // flag
     /* 0x0B */ byte unknown_B;
-    /* 0x0C */ s32  field_C;
-    /* 0x10 */ s32  field_10;
-    /* 0x14 */ s16  field_14;
-    /* 0x16 */ s8   field_16;
-    /* 0x17 */ s8   field_17;
+    /* 0x0C */ s32  field_C;        // cleared by list reset
+    /* 0x10 */ s32  field_10;       // selection index
+    /* 0x14 */ s16  field_14;       // cleared by list reset
+    /* 0x16 */ s8   field_16;       // cleared by list reset
+    /* 0x17 */ s8   field_17;       // layout adjust for visible rows
     /* 0x18 */ byte unknown_18[0xC];
 } UiList;
 STATIC_ASSERT_SIZEOF(UiList, 0x24);
@@ -512,31 +515,24 @@ typedef struct _WipSelectMenuExt {
 
 /// 4-byte entry at Spu_VoiceRanges (see Spu_SetVoiceRange).
 typedef struct _SpuVoiceRange {
-    s16 field_0;
-    s16 field_2;
+    /* 0x0 */ s16 field_0; // first voice index
+    /* 0x2 */ s16 field_2; // count of voices in range
 } SpuVoiceRange;
 STATIC_ASSERT_SIZEOF(SpuVoiceRange, 0x4);
 
 /// Source/model data pointed to by TmdObject::field_10 (see Tmd_Create).
-/// field_0 is a one-shot init flag (func_800409D0 sets it to 1).
-/// field_4 is used as a byte-count for aux-heap allocations (calloc size * 2).
-/// field_8 is added to the selected half-buffer base in func_800410F0.
-/// field_14 / field_18 are copied into the scratch workspace (ws->field_8/C).
-/// field_20 points at a stream of [id, handler_slot, dims, data...] words.
 typedef struct _TmdSource {
-    /* 0x00 */ s32  field_0;
-    /* 0x04 */ s32  field_4;
-    /* 0x08 */ s32  field_8;
+    /* 0x00 */ s32  field_0;  // one-shot init flag (set 1)
+    /* 0x04 */ s32  field_4;  // byte count for aux alloc (calloc size * 2)
+    /* 0x08 */ s32  field_8;  // offset into half-buffer base
     /* 0x0C */ byte unknown_C[0x8];
-    /* 0x14 */ s32  field_14;
-    /* 0x18 */ s32  field_18;
+    /* 0x14 */ s32  field_14; // copied to scratch ws
+    /* 0x18 */ s32  field_18; // copied to scratch ws
     /* 0x1C */ byte unknown_1C[0x4];
-    /* 0x20 */ u32* field_20;
+    /* 0x20 */ u32* field_20; // [id, handler_slot, dims, data…] stream
 } TmdSource;
 
 /// Node in the Tmd_List linked list (2F244.c TMD/model objects).
-/// Header is 0x34 bytes with a variable payload after. Fields from Tmd_Create
-/// init and related free/alloc helpers (Tmd_FreeBuffers, Tmd_AllocBuffers, etc.).
 typedef struct _TmdObject {
     /* 0x00 */ struct _TmdObject* next;
     /* 0x04 */ byte               unknown_4[0x4];
@@ -544,10 +540,10 @@ typedef struct _TmdObject {
     /* 0x0C */ u16                field_C;
     /* 0x0E */ s8                 field_E;
     /* 0x0F */ byte               unknown_F;
-    /* 0x10 */ TmdSource*         field_10;
-    /* 0x14 */ u16                field_14;
+    /* 0x10 */ TmdSource*         field_10; // source / model data
+    /* 0x14 */ u16                field_14; // cleared when buffers alloc
     /* 0x16 */ u16                field_16;
-    /* 0x18 */ void*              field_18;
+    /* 0x18 */ void*              field_18; // aux buffer (Tmd_AllocBuffers)
     /* 0x1C */ void*              field_1C;
     /* 0x20 */ void*              field_20;
     /* 0x24 */ u8                 field_24;
@@ -593,18 +589,18 @@ typedef struct _WipUiHolder {
 /// field_24 is a callback invoked with the second handler argument.
 typedef struct _UiPanel {
     /* 0x00 */ s32  field_0;
-    /* 0x04 */ s32  field_4;
-    /* 0x08 */ s32  field_8;
-    /* 0x0C */ RECT field_C;
-    /* 0x14 */ u16  field_14;
-    /* 0x16 */ s16  field_16;
-    /* 0x18 */ u16  field_18;
-    /* 0x1A */ u16  field_1A;
-    /* 0x1C */ u16  field_1C;
-    /* 0x1E */ u16  field_1E;
+    /* 0x04 */ s32  field_4;  // low nibble layout pad; high nibble fill mode
+    /* 0x08 */ s32  field_8;  // small integer state
+    /* 0x0C */ RECT field_C;  // source RECT for layout
+    /* 0x14 */ u16  field_14; // halfword counter (text draw)
+    /* 0x16 */ s16  field_16; // timer/counter
+    /* 0x18 */ u16  field_18; // layout offset
+    /* 0x1A */ u16  field_1A; // layout offset
+    /* 0x1C */ u16  field_1C; // layout (signed in some overlays)
+    /* 0x1E */ u16  field_1E; // layout (signed in some overlays)
     /* 0x20 */ u16  field_20;
     /* 0x22 */ u16  field_22;
-    /* 0x24 */ void (*field_24)(void*);
+    /* 0x24 */ void (*field_24)(void*); // handler callback
 } UiPanel;
 
 /// Callback for UiPanel state handlers (e.g. entries in D_80013F2C).
@@ -977,12 +973,12 @@ STATIC_ASSERT_SIZEOF(TextStream, 0x20);
 typedef struct _CdAudioTbl {
     /* 0x00 */ u8   field_0;
     /* 0x01 */ u8   field_1;
-    /* 0x02 */ u8   field_2;
+    /* 0x02 */ u8   field_2; // index into CdAudio_TblEntries
     /* 0x03 */ u8   pad_3;
     /* 0x04 */ s32  field_4;
     /* 0x08 */ s32  field_8;
-    /* 0x0C */ u16* field_C;
-    /* 0x10 */ s32  field_10;
+    /* 0x0C */ u16* field_C;  // halfword table base (func_80057A1C)
+    /* 0x10 */ s32  field_10; // transfer / SpuWrite param
     /* 0x14 */ s32  field_14;
 } CdAudioTbl;
 STATIC_ASSERT_SIZEOF(CdAudioTbl, 0x18);
@@ -1059,14 +1055,14 @@ STATIC_ASSERT_SIZEOF(SndBank, 0x20);
 
 /// BSS object CdAudio_Ctl (size 0x14). CD stream control for 46FE4.c.
 typedef struct _CdAudioCtl {
-    /* 0x00 */ s32 field_0;
-    /* 0x04 */ s32 field_4;
-    /* 0x08 */ u8  field_8;
+    /* 0x00 */ s32 field_0;  // busy / retry counter
+    /* 0x04 */ s32 field_4;  // secondary counter
+    /* 0x08 */ u8  field_8;  // phase mirror
     /* 0x09 */ u8  field_9;
-    /* 0x0A */ s8  field_A;
+    /* 0x0A */ s8  field_A;  // error code (-1 / -2)
     /* 0x0B */ u8  field_B;
-    /* 0x0C */ s32 field_C;
-    /* 0x10 */ s32 field_10;
+    /* 0x0C */ s32 field_C;  // countdown
+    /* 0x10 */ s32 field_10; // control flag
 } CdAudioCtl;
 STATIC_ASSERT_SIZEOF(CdAudioCtl, 0x14);
 
@@ -1140,7 +1136,7 @@ STATIC_ASSERT_SIZEOF(AsyncCbQueue, 0x54);
 /// Indexed by CdAudio_Tbl.field_2; field_3 is compared across adjacent entries.
 typedef struct _CdAudioTblEntry {
     /* 0x0 */ u8 pad[3];
-    /* 0x3 */ u8 field_3;
+    /* 0x3 */ u8 field_3; // compared across adjacent entries for span
 } CdAudioTblEntry;
 STATIC_ASSERT_SIZEOF(CdAudioTblEntry, 0x4);
 

@@ -1,7 +1,10 @@
 # Naming conventions
 
 This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xxxxx`,
-`GStructN`, `field_XX`). Prefer descriptive names as soon as a symbol’s role is clear.
+`field_XX`). Prefer descriptive names as soon as a symbol’s role is clear.
+
+**Known field roles** (even when the C member is still `field_XX`) are catalogued in
+[`STRUCT_FIELDS.md`](STRUCT_FIELDS.md). Update that file when you prove a new field.
 
 ## Scheme
 

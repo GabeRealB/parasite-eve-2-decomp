@@ -10,57 +10,57 @@
 // Types — dual DISPENV/DRAWENV + system flags
 // =============================================================================
 
+/// Dual DISPENV/DRAWENV + system flags. Known fields: see also STRUCT_FIELDS.md.
 typedef struct _DisplayState {
-    s32     field_0;
-    s32     field_4;
-    s32     field_8;
-    s32     field_c;
-    s32     field_10;
-    s32     field_14;
-    u16     field_18; // display width (from D_80013E88)
-    u16     field_1a; // display height (from D_80013E94)
-    u8      field_1c; // interlace enable
-    s8      field_1d;
-    s8      field_1e;
-    u8      field_1f;
-    DISPENV field_20[2];
-    DRAWENV field_48[2];
-    u8      field_100;
-    u8      field_101;
-    byte    unknown_102[0x1];
-    u8      field_103;
-    u16     field_104;
-    u16     field_106;
-    // Written by main, read by the VSync callback (func_80027498).
-    volatile u8 field_108;
-    s8          field_109; // VRAM Y offset for image transfer (func_80027F48)
-    u8          field_10a;
-    u8          field_10b;
-    byte        unknown_10c[0x1];
-    u8          field_10d;
-    u16         field_10e;
-    byte        unknown_110[0x2];
-    s16         field_112;
-    s32         field_114;
-    s32         field_118;
-    byte        unknown_11c[0x1];
-    u8          field_11d;
-    u8          field_11e;
-    byte        unknown_11f[0x1];
-    s16         field_120;
-    u8          field_122;
-    s8          field_123;
-    u16         field_124;
-    s8          field_126;
-    byte        unknown_127[0x1];
-    u8          field_128; // read by func_800418C0 into the draw scratch block
-    byte        unknown_129[0x1];
-    u16         field_12a;
-    u16         field_12c;
-    u8          field_12e;
-    u8          field_12f;
-    u8          field_130;
-    byte        unknown_131[0x7];
+    /* 0x000 */ s32         field_0;
+    /* 0x004 */ s32         field_4;
+    /* 0x008 */ s32         field_8;
+    /* 0x00C */ s32         field_c;
+    /* 0x010 */ s32         field_10;
+    /* 0x014 */ s32         field_14;
+    /* 0x018 */ u16         field_18; // display width
+    /* 0x01A */ u16         field_1a; // display height
+    /* 0x01C */ u8          field_1c; // interlace enable
+    /* 0x01D */ s8          field_1d;
+    /* 0x01E */ s8          field_1e;
+    /* 0x01F */ u8          field_1f;
+    /* 0x020 */ DISPENV     field_20[2]; // dual display env
+    /* 0x048 */ DRAWENV     field_48[2]; // dual draw env
+    /* 0x100 */ u8          field_100;
+    /* 0x101 */ u8          field_101;
+    /* 0x102 */ byte        unknown_102[0x1];
+    /* 0x103 */ u8          field_103;
+    /* 0x104 */ u16         field_104;
+    /* 0x106 */ u16         field_106;
+    /* 0x108 */ volatile u8 field_108; // written by main, read by VSync cb
+    /* 0x109 */ s8          field_109; // VRAM Y offset for image transfer
+    /* 0x10A */ u8          field_10a;
+    /* 0x10B */ u8          field_10b;
+    /* 0x10C */ byte        unknown_10c[0x1];
+    /* 0x10D */ u8          field_10d;
+    /* 0x10E */ u16         field_10e;
+    /* 0x110 */ byte        unknown_110[0x2];
+    /* 0x112 */ s16         field_112;
+    /* 0x114 */ s32         field_114;
+    /* 0x118 */ s32         field_118; // frame/mode word (stage flow)
+    /* 0x11C */ byte        unknown_11c[0x1];
+    /* 0x11D */ u8          field_11d;
+    /* 0x11E */ u8          field_11e;
+    /* 0x11F */ byte        unknown_11f[0x1];
+    /* 0x120 */ s16         field_120;
+    /* 0x122 */ u8          field_122;
+    /* 0x123 */ s8          field_123; // Task_Kill overlay-teardown gate
+    /* 0x124 */ u16         field_124; // region (1 → PAL / CdStream 0x14 sectors)
+    /* 0x126 */ s8          field_126;
+    /* 0x127 */ byte        unknown_127[0x1];
+    /* 0x128 */ u8          field_128; // into draw scratch (model path)
+    /* 0x129 */ byte        unknown_129[0x1];
+    /* 0x12A */ u16         field_12a;
+    /* 0x12C */ u16         field_12c;
+    /* 0x12E */ u8          field_12e;
+    /* 0x12F */ u8          field_12f;
+    /* 0x130 */ u8          field_130;
+    /* 0x131 */ byte        unknown_131[0x7];
 } DisplayState;
 STATIC_ASSERT_SIZEOF(DisplayState, 0x138);
 
