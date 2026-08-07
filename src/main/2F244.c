@@ -4,6 +4,9 @@
 #include "main/mem.h"
 #include "main/unknown_syms.h"
 #include "psyq/libpress.h"
+#include "psyq/inline_c.h"
+
+#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
 
 void func_8003EA44(void)
 {
@@ -1074,7 +1077,25 @@ typedef struct {
     /* 0x84 */ byte       pad_84[0x4];
 } ScratchModelBlock;
 
+/// 0x98-byte scratch workspace for func_800418C0 (draw path).
+typedef struct {
+    /* 0x00 */ u8*        field_0;
+    /* 0x04 */ u8*        field_4;
+    /* 0x08 */ s32        field_8;
+    /* 0x0C */ s32        field_C;
+    /* 0x10 */ void*      field_10;
+    /* 0x14 */ u_long*    field_14;
+    /* 0x18 */ byte       pad_18[0x38];
+    /* 0x50 */ MATRIX     mat;
+    /* 0x70 */ byte       pad_70[0x10];
+    /* 0x80 */ GStruct27* field_80;
+    /* 0x84 */ s32        field_84;
+} ScratchDrawBlock; /* 0x98 */
+
 typedef u32* (*ModelStreamHandler)(ScratchModelBlock* ws, s32 arg1, u32* stream);
+
+extern MATRIX D_80070F34;
+extern void   func_80010848(ScratchDrawBlock* ws, u32 flags, void* stream, GStruct27* node);
 
 void func_800409D0(GStruct33* arg0)
 {
@@ -1498,7 +1519,135 @@ done:
 
 INCLUDE_ASM("main/nonmatchings/2F244", func_80041700);
 
-INCLUDE_ASM("main/nonmatchings/2F244", func_800418C0);
+void func_800418C0(GStruct27* arg0)
+{
+    u8                         buf[0x1000];
+    void**                     scratch;
+    register void*             tmp asm("t1");
+    register ScratchDrawBlock* ws asm("t0");
+    register void*             stream asm("a2");
+    register MATRIX*           colorMtx asm("t2");
+    register short             t4 asm("t4");
+    register short             t5 asm("t5");
+    register short             t6 asm("t6");
+    register u32               flags asm("a1");
+    void*                      bufptr;
+    s32                        disp;
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    {
+        register u32        ds_hi asm("v1");
+        register GStruct33* p asm("v0");
+        register s32        d asm("v0");
+
+        __asm__("lui %0, %%hi(Display_State)" : "=r"(ds_hi));
+        p      = arg0->field_10;
+        tmp    = *scratch;
+        stream = p->field_20;
+        __asm__ volatile("lbu %0, %%lo(Display_State+0x128)(%1)" : "=r"(d) : "r"(ds_hi));
+        disp         = d;
+        ws           = (ScratchDrawBlock*)((u8*)tmp - 0x98);
+        ws->field_80 = arg0;
+        ws->field_84 = disp;
+    }
+    bufptr      = arg0->field_18;
+    ws->field_0 = bufptr;
+    *scratch    = ws;
+    if (arg0->field_14 != 0) {
+        ws->field_0 = (u8*)bufptr + arg0->field_16;
+    }
+    ws->field_4     = ws->field_0;
+    ws->field_0     = (u8*)ws->field_0 + arg0->field_10->field_8;
+    arg0->field_14 ^= 1;
+    ws->field_8     = arg0->field_10->field_14;
+    {
+        register u_long*    ot asm("a0");
+        register GStruct33* p asm("v1");
+        register s32        e asm("v0");
+        register void*      b asm("v1");
+        s32                 field18;
+
+        __asm__ volatile("" ::: "memory");
+        ot           = D_800710A0;
+        p            = arg0->field_10;
+        field18      = p->field_18;
+        ws->field_14 = ot;
+        ws->field_C  = field18;
+        e            = arg0->field_E;
+        b            = buf;
+        ws->field_10 = b;
+        ws->field_14 = ot + e;
+    }
+
+    colorMtx = (MATRIX*)arg0->field_20;
+    gte_SetColorMatrix(colorMtx);
+    {
+        register MATRIX* m asm("v0");
+        register s32     r asm("t3");
+        register s32     g asm("t7");
+        register s32     b asm("t2");
+        m = colorMtx;
+        r = m->t[0];
+        g = m->t[1];
+        b = m->t[2];
+        gte_ldbkdir(r, g, b);
+    }
+
+    {
+        register MATRIX* m asm("v0");
+        register MATRIX* src asm("t3");
+        register MATRIX* light asm("t7");
+
+        m = (MATRIX*)((u8*)tmp - 0x48);
+        __asm__ volatile("" : "+r"(m));
+        src = &D_80070F34;
+        __asm__ volatile("" : "+r"(src));
+        flags = arg0->field_C;
+        __asm__ volatile("" : "+r"(flags));
+
+        t4         = src->m[0][0];
+        t5         = src->m[1][0];
+        t6         = src->m[2][0];
+        m->m[0][0] = t4;
+        m->m[0][1] = t5;
+        m->m[0][2] = t6;
+
+        t4         = src->m[0][1];
+        t5         = src->m[1][1];
+        t6         = src->m[2][1];
+        m->m[1][0] = t4;
+        m->m[1][1] = t5;
+        m->m[1][2] = t6;
+
+        t4         = src->m[0][2];
+        t5         = src->m[1][2];
+        t6         = src->m[2][2];
+        m->m[2][0] = t4;
+        m->m[2][1] = t5;
+        m->m[2][2] = t6;
+
+        light = (MATRIX*)arg0->field_1C;
+        gte_SetRotMatrix(light);
+
+        gte_ldclmv(m);
+        gte_rtir_real();
+        gte_stclmv(m);
+
+        m = (MATRIX*)((u8*)tmp - 0x46);
+        gte_ldclmv(m);
+        gte_rtir_real();
+        gte_stclmv(m);
+
+        m = (MATRIX*)((u8*)tmp - 0x44);
+        gte_ldclmv(m);
+        gte_rtir_real();
+        gte_stclmv(m);
+    }
+
+    func_80010848(ws, flags, stream, arg0);
+
+    *scratch = (u8*)*scratch + 0x98;
+}
 
 void func_80041B4C(GStruct27* arg0)
 {

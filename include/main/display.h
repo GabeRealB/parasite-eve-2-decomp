@@ -52,7 +52,9 @@ typedef struct _DisplayState {
     s8          field_123;
     u16         field_124;
     s8          field_126;
-    byte        unknown_127[0x3];
+    byte        unknown_127[0x1];
+    u8          field_128; // read by func_800418C0 into the draw scratch block
+    byte        unknown_129[0x1];
     u16         field_12a;
     u16         field_12c;
     u8          field_12e;

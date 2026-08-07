@@ -10913,3 +10913,40 @@ the argument as a full word and the load stays `lhu`.
 
 Do not change a matched `s16` definition just to fix a caller — drop or avoid the
 early prototype instead. `func_80052B30` → `func_8005368C` is the pure example.
+
+## Non-volatile `lui` + volatile `lbu` for early Display_State prologue slot
+
+When the target interleaves `lui %hi(Display_State)` *between* `ori s0, scratch`
+and `sw ra` (prologue gap), a plain C load of the field often either:
+
+1. Emits `lui` late (after `sw ra`), or
+2. Emits both `lui` and `lbu` early, reusing the wrong register for the byte.
+
+Split the access into two asms:
+
+```c
+register u32 ds_hi asm("v1");
+register s32 d asm("v0");
+
+/* Non-volatile: scheduler may place this in the prologue gap before sw ra */
+__asm__("lui %0, %%hi(Display_State)" : "=r"(ds_hi));
+/* ... load field_10 / stream so v0 is free ... */
+/* Volatile: pins the lbu after those loads, into v0 */
+__asm__ volatile("lbu %0, %%lo(Display_State+0x128)(%1)" : "=r"(d) : "r"(ds_hi));
+```
+
+Making *both* volatile keeps the body order correct but parks `lui` after
+`sw ra` (~99.6%). Making *both* non-volatile moves `lui` early but reorders
+`lbu`/stores. Only the mixed pair matches.
+
+`func_800418C0` is the pure example.
+
+## Handwritten light setup: SetColorMatrix + ldbkdir + transpose MulMatrix0
+
+`func_800418C0` loads `arg0->field_20` (color MATRIX, often `D_80074080`) with
+`gte_SetColorMatrix`, then ambient from `t[]` via `gte_ldbkdir(t[0],t[1],t[2])`
+(not `gte_SetBackColor` — no `<<4`). It then transpose-copies `D_80070F34` into
+scratch (same `t4/t5/t6` halfword pattern as `func_8003C6D8`), `gte_SetRotMatrix`
+on `arg0->field_1C` (light dir, often `GsLIGHTWSMATRIX`), and in-place column
+RTIR via `gte_ldclmv` + `gte_rtir_real` (`0x4A49E012`) + `gte_stclmv` three times
+(same real-opcode rule as other GTE command macros).
