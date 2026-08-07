@@ -11708,3 +11708,13 @@ fall through a `block_ret: v0 = s1` that GCC would merge away. Force the free
 exit with tab-noreorder `j label; move $2,s1`, land with a unique asm label, and
 clear `field_14` via `*(volatile s32*)&p->field_14 = 0` so the store is not
 stolen into an earlier delay slot. `SndLoad_Complete` is the pure example.
+
+## Spu_GetVoiceRef: dual `lhu`/`lh` count + keep `$a0` for `sb`
+
+Leaf that looks up or allocates into `Spu_LVoiceTable` (stride `0x44` =
+`sizeof(SpuLVoiceAttr)`). Target keeps the voice id in `$a0` for every
+`sb …,0(a1)` while sign-extending a copy into `$a3` for indexing, and loads
+`count` twice (`lhu` for the +1 store, `lh` for the `*0x44` index). Pure C
+either renames `$a0` early or turns the second load into `lhu`+`sll`/`sra`.
+A single tab-noreorder block matching the target is the reliable match;
+`field_664` is at decimal offset 1636 (`0x664`).

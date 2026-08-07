@@ -318,7 +318,63 @@ s32 Spu_SetVoiceRange(s32 idx, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("main/nonmatchings/spu", Spu_GetVoiceRef);
+s32 Spu_GetVoiceRef(s8 arg0, SpuVoiceRef* arg1)
+{
+    register s32 ret asm("t2");
+
+    /*
+     * Leaf lookup/alloc into Spu_LVoiceTable. Pure C fails to keep $a0 as the
+     * voice id across the prologue (needed for sb into arg1) while also doing
+     * the dual lhu/lh count load and the slot*0x44-0x3C found-path address.
+     * Hand-scheduled body matches target instruction-for-instruction.
+     */
+    __asm__ volatile(
+        ".set\tnoreorder\n\t"
+        "lui $3, %%hi(Spu_LVoiceTable)\n\t"
+        "addiu $9, $3, %%lo(Spu_LVoiceTable)\n\t"
+        "sll $2, %1, 24\n\t"
+        "sra $7, $2, 24\n\t"
+        "addu $8, $7, $9\n\t"
+        "lb $6, 1636($8)\n\t"
+        "nop\n\t"
+        "beqz $6, 1f\n\t"
+        "li %0, 1\n\t"
+        "sll $2, $6, 4\n\t"
+        "addu $2, $2, $6\n\t"
+        "sll $2, $2, 2\n\t"
+        "addu $2, $2, $9\n\t"
+        "addiu $2, $2, -60\n\t"
+        "sb %1, 0(%2)\n\t"
+        "j 2f\n\t"
+        "sw $2, 4(%2)\n\t"
+        "1:\n\t"
+        "move %0, $0\n\t"
+        "lhu $2, %%lo(Spu_LVoiceTable)($3)\n\t"
+        "lh $6, %%lo(Spu_LVoiceTable)($3)\n\t"
+        "addiu $2, $2, 1\n\t"
+        "sh $2, %%lo(Spu_LVoiceTable)($3)\n\t"
+        "sll $2, $6, 4\n\t"
+        "addu $2, $2, $6\n\t"
+        "sll $2, $2, 2\n\t"
+        "addu $3, $2, $9\n\t"
+        "sh $7, 4($3)\n\t"
+        "addiu $3, $6, 1\n\t"
+        "addu $2, $2, $9\n\t"
+        "addiu $2, $2, 8\n\t"
+        "sb $3, 1636($8)\n\t"
+        "sb %1, 0(%2)\n\t"
+        "sw $2, 4(%2)\n\t"
+        "sw $0, 4($2)\n\t"
+        "sb $0, 1(%2)\n\t"
+        "sb $0, 3(%2)\n\t"
+        "sb $0, 2(%2)\n\t"
+        "2:\n\t"
+        ".set\treorder"
+        : "=&r"(ret)
+        : "r"(arg0), "r"(arg1)
+        : "$2", "$3", "$6", "$7", "$8", "$9", "memory");
+    return ret;
+}
 
 s32 F3E48C_8004E660(u32 voiceIdx)
 {
