@@ -11104,3 +11104,50 @@ then `D_80082870`), the original code often never names the second symbol and
 instead uses `(NextType*)(p + 1)` / `(PrevType*)q - 1`. Prefer that over loading
 `&D_80082870` so codegen keeps a single base plus a fixed offset (`addiu t0,
 a3, 0x58`). See also `func_8005B84C` which walks the other direction.
+
+## QImode `register asm` compare: `andi v0,tN` vs `andi tN,tN`
+
+A pinned `register u8 flag asm("t1")` tested as `if (!flag)` often compiles to
+the wrong form `andi t1,t1,0xff; bnez t1` (truncate in place). The target wants
+the zero-extend form `andi v0,t1,0xff; bnez v0`.
+
+Force the extend into `$v0` with an explicit temporary pinned there:
+
+```c
+register u8 flag asm("t1") = 0;
+...
+{
+    register u32 valid asm("v0");
+    valid = flag;
+    if (valid == 0) {
+        /* false path */
+    }
+}
+```
+
+`Fs_InitStage0TablesCb` is the pure example — the rest of the function already
+matched with `flag` in `$t1`, only the compare form was wrong.
+
+## Fallback path: reload entry so `$a3`/`$a2` can be reused
+
+When an earlier `entry`/`entryValue` pair lives in `$t0`/`$a3` and a later
+fallback must re-read the same sector word, reloading into fresh locals (and
+storing the *reloaded* id, not the old `fileId`) lets the allocator put the
+pointer in `$a3` and the value in `$a2` as the target does:
+
+```c
+register u32 v asm("a2");
+words = sectorBuffer->words;
+v = words[(u16)headerOffset];
+if (v / 100000 != 0) {
+    register FsCdfFile* tbl asm("v1");
+    tbl = Fs_FileTable;          /* lui order: table before len */
+    i   = Fs_FileTableLen;
+    Fs_FileTableLen++;
+    tbl[i].id     = v;           /* reloaded, not fileId */
+    tbl[i].offset = ((FsCdfFile*)&words[(u16)headerOffset])->offset;
+}
+```
+
+Assigning `tbl = Fs_FileTable` *before* reading the length also fixes the
+`lui v1,table` / `lui a1,len` order for the generic file table.

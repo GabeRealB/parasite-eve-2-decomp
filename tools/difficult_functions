@@ -24,3 +24,4 @@ func_8002785C 20 96.510
 func_80046B34 27 86.540
 func_800520A8 25 90.532
 Fs_ScanIsoDirectory 65 99.978
+Fs_InitStage0TablesCb 19 99.703
