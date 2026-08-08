@@ -33,6 +33,12 @@ extern TaskDesc D_80094C8C;
 extern s32 D_80094CA4;
 /// Title state flag (halfword after D_80094CA4).
 extern u16 D_80094CA8;
+/// Alias of CdCmd_Queue.field_23E (absolute form matches title overlay).
+extern s16        D_800691DE;
+extern StreamSlot Stream_Slots[15];
+
+void Display_LoadImageStrips(s32 arg0);
+void Display_ResetHeapWrapper(void);
 
 /// Title-screen work block stored at Task::field_1C (Mem_Calloc 0x18).
 typedef struct {
@@ -194,7 +200,138 @@ void func_800947A8(Task* arg0)
     Task_CallExit(arg0);
 }
 
-INCLUDE_ASM("title/nonmatchings/title", func_800947C8);
+void func_800947C8(Task* arg0)
+{
+    u8                     slotParam[4];
+    GBytes8                key;
+    u8                     param1[4];
+    u8                     param2[4];
+    CdCmdQueue*            queue;
+    s16                    slot;
+    register DisplayState* ds asm("s0");
+    register Task*         task asm("s1");
+
+    task  = arg0;
+    queue = &CdCmd_Queue;
+    switch (task->field_30) {
+        case 0:
+            goto L_case0;
+        case 1:
+            goto L_case1;
+        case 2:
+            goto L_case2;
+        case 3:
+            goto L_case3;
+        case 4:
+            goto L_case4;
+        case 5:
+            goto L_case5;
+        case 6:
+            goto L_case6;
+        case 7:
+            goto L_case7;
+    }
+    return;
+
+L_case0:
+    Mem_CopyUnaligned(Fs_Streams, Stream_Slots, 0x190);
+    SetDispMask(0);
+    Mem_AllocAuxWithImages(1);
+    goto advance;
+
+L_case1:
+    key = ((SessionBytesAt4*)Game_Session)->field_4;
+    if (Wip_SysFlags.unknown_0[0] == 2) {
+        key.data[0] = 0x65;
+    } else {
+        key.data[0] = 0x64;
+    }
+    slot = Stream_FindSlot(key.data, 0, 0);
+    {
+        register s32 cmd asm("a0");
+        register s32 zero asm("a1");
+        register u8* p asm("a2");
+        cmd  = 0x61;
+        zero = 0;
+        p    = slotParam;
+        asm("" : "+r"(cmd), "+r"(zero), "+r"(p), "+r"(slot));
+        slotParam[0] = slot;
+        CdCmd_Enqueue(cmd, zero, p);
+    }
+    goto advance;
+
+L_case2:
+    if (queue->field_1FA == 0) {
+        return;
+    }
+    SetDispMask(1);
+    goto advance;
+
+L_case3:
+    if (CdCmd_IsIdle() & 0xFFFF) {
+        goto advance;
+    }
+    if (Pad_CheckFlag800() == 0) {
+        return;
+    }
+    {
+        register s32 mask asm("a0");
+        mask = 0;
+        asm("" : "+r"(mask));
+        D_80094CA8 = 0;
+        SetDispMask(mask);
+    }
+    CdCmd_ActivatePhase1();
+    goto advance;
+
+L_case4:
+    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+        return;
+    }
+    {
+        register s32 cmd asm("a0");
+        u8*          p1;
+        u8*          p2;
+        cmd = 0x21;
+        p1  = param1;
+        p2  = param2;
+        asm("" : "+r"(cmd), "+r"(p1), "+r"(p2));
+        D_800691DE = 1;
+        param1[3]  = 0;
+        param1[2]  = 0;
+        param1[0]  = 2;
+        param2[0]  = 0;
+        param2[1]  = 0;
+        param2[2]  = 0;
+        param2[3]  = 0;
+        CdCmd_Enqueue(cmd, p1, p2);
+    }
+    goto advance;
+
+L_case5:
+    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+        return;
+    }
+    Display_SetMode(0xD010);
+    goto advance;
+
+L_case6:
+    Stream_ResetRestoreState();
+    ds = &Display_State;
+    Display_LoadImageStrips(ds->field_1f);
+    Display_LoadImageStrips(ds->field_1f ^ 1);
+    ds->field_100 = 1;
+advance:
+    task->field_30 = task->field_30 + 1;
+    return;
+
+L_case7:
+    if ((Stream_RestoreAfterLoad(0, 0) & 0xFFFF) == 0) {
+        return;
+    }
+    Task_Kill(task);
+    Display_ResetHeapWrapper();
+}
 
 void func_80094A08(Task* arg0)
 {

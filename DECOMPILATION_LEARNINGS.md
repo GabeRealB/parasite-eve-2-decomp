@@ -12016,9 +12016,67 @@ emits its own, the overlay grows by `4 * ncases` and every later VRAM address
 shifts — function body can be 100% in a scratch while `build/USA/out/title`
 checksum fails.
 
-When decompiling the next header jtable function (`func_800947C8`), drop its
-`.word` block from `header.s` the same way so both jtables land only in
-`title.c.o(.rodata)` in original order (947C8 then 94A08).
+Both `func_800947C8` and `func_80094A08` are now C; their jtables live only in
+`title.c.o(.rodata)` in that order. Drop any remaining hardcoded jtable block
+from `header.s` the same way when the next header-adjacent switch is matched.
+
+## Title state machine: shared `advance` between last fallthrough and exit case
+
+When the target lays out `case N` fallthrough into `field_30++` *before* a later
+case that returns without advancing (e.g. case 6 → advance → case 7 kill), a
+plain `switch` + trailing `field_30++` puts the increment *after* case 7 and
+emits an extra jump. Use gotos like `Boot_LoadInitialFile`:
+
+```c
+switch (task->field_30) {
+case 0: goto L0;
+/* ... */
+case 6: goto L6;
+case 7: goto L7;
+}
+return;
+L0: /* ... */; goto advance;
+/* ... */
+L6: /* ... */;
+advance:
+    task->field_30 = task->field_30 + 1;
+    return;
+L7: /* kill path; no advance */;
+```
+
+`func_800947C8` is the title-overlay example.
+
+## Force arg regs with `asm("aN")` + empty asm so stores fill jal/branch delays
+
+When the target has `move a0, zero` in a `beqz` delay and `sh/sb` in a following
+`jal` delay (or `sb v0` of a prior call's return in a `jal CdCmd_Enqueue` delay),
+plain C often schedules the address `lui` / stack `addiu` into those slots instead.
+
+Pin the call arguments in hard registers and barrier them so setup wins the
+delay slots:
+
+```c
+/* After a successful Pad_CheckFlag800: */
+register s32 mask asm("a0");
+mask = 0;
+asm("" : "+r"(mask));
+D_80094CA8 = 0;       /* sh fills jal delay */
+SetDispMask(mask);    /* beqz delay already has move a0, zero */
+
+/* After Stream_FindSlot: */
+register s32 cmd asm("a0");
+register s32 zero asm("a1");
+register u8* p asm("a2");
+cmd = 0x61; zero = 0; p = slotParam;
+asm("" : "+r"(cmd), "+r"(zero), "+r"(p), "+r"(slot));
+slotParam[0] = slot;  /* sb v0 fills Enqueue delay */
+CdCmd_Enqueue(cmd, zero, p);
+```
+
+Keep the slot temp as `s16` (FindSlot's return type) so the barrier does not
+insert `sll`/`sra` sign-extend. Same pattern for case-4 `CdCmd_Enqueue(0x21, …)`
+arg setup before `D_800691DE = 1` (absolute alias of `CdCmd_Queue.field_23E`).
+`func_800947C8` is the pure example.
 
 ## `s32` temps for preserved `s8` loads (`lb`, not `lbu`)
 

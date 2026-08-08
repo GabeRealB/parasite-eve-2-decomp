@@ -33,7 +33,7 @@ s32 GameFlag_GetNibble(s32 arg0)
     return D_80073980[idx + 4] >> 4;
 }
 
-void Pad_CheckFlag800(void)
+s32 Pad_CheckFlag800(void)
 {
-    Pad_CheckButtons(0, 1, 0x800);
+    return Pad_CheckButtons(0, 1, 0x800);
 }

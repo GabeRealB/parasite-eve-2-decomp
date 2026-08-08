@@ -38,14 +38,6 @@ dlabel D_80093804
     /* 50 80093850 */ .word 0x4E454353
     /* 54 80093854 */ .word 0x64252045
     /* 58 80093858 */ .word 0xE122000A
-    /* 5C 8009385C — jtable for func_800947C8 */
-    .word 0x80094810
-    .word 0x80094840
-    .word 0x800948B4
-    .word 0x800948D4
-    .word 0x80094914
-    .word 0x80094968
-    .word 0x8009498C
-    .word 0x800949CC
-    /* 7C 8009387C — jtable for func_80094A08 is compiler .rodata from title.c */
+    /* 5C 8009385C — jtables for func_800947C8 / func_80094A08 are compiler
+     * .rodata from title.c (in decompile order). */
 enddlabel D_80093800
