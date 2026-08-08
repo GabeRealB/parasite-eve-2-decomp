@@ -13,6 +13,8 @@
 // Package header at load base (entry/callback words + demo strings + jtable).
 // Defined in src/title/header.s (hasm).
 D_80093800 = 0x80093800; // size:0x9C
+// 5-way task dispatch table at D_80093800 + 4 (func_8009472C).
+D_80093804 = 0x80093804; // size:0x14
 
 // Entry / callbacks from the package header (provisional names).
 func_8009389C = 0x8009389C; // type:func

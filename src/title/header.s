@@ -14,6 +14,8 @@
 
 dlabel D_80093800
     /* 0 80093800 */ .word 0x00000005
+    /* 4 80093804 — 5-way task dispatch table for func_8009472C */
+dlabel D_80093804
     /* 4 80093804 */ .word func_8009389C
     /* 8 80093808 */ .word func_8009470C
     /* C 8009380C */ .word func_80093ABC
