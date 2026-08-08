@@ -11,6 +11,9 @@
 
 #include "main/unknown_syms.h"
 
+// Build stamp (must stay in .rodata ahead of Boot_LoadInitialFile jtbl).
+const char Boot_BuildStamp[] = "2000/05/01 19:24 ver2.49";
+
 void Mem_ConfigureAuxHeap(s32 arg0, s32 arg1)
 {
     F04CF8_ImageSlot* entries;

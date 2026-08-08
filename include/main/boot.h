@@ -35,6 +35,9 @@ void Mem_ConfigureAuxHeap(s32 arg0, s32 arg1);
 // Globals
 // =============================================================================
 
+/// Early-image build stamp string @ VA 0x80012750 ("2000/05/01 19:24 ver2.49").
+extern const char Boot_BuildStamp[];
+
 extern F04CF8_ImageSlot* D_8005C37C[];
 
 #endif // BOOT_H
