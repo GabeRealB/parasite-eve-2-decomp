@@ -3,6 +3,9 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+
 // Types — TMD model lists (src/main/tmd.c)
 
 /// Source/model data pointed to by TmdObject::field_10 (see Tmd_Create).
@@ -52,15 +55,64 @@ extern TmdListHead Tmd_List;
 /// Second list head initialized alongside Tmd_List by Tmd_InitLists.
 extern TmdListHead Tmd_ListAlt;
 
+/// 0x88-byte scratch from G_SCRATCH_HEAD for Tmd_ProcessStream (model path).
+typedef struct {
+    /* 0x00 */ u8*        field_0;
+    /* 0x04 */ u8*        field_4;
+    /* 0x08 */ s32        field_8;
+    /* 0x0C */ s32        field_C;
+    /* 0x10 */ byte       pad_10[0x8];
+    /* 0x18 */ s32        field_18;
+    /* 0x1C */ s32        field_1C;
+    /* 0x20 */ u32        field_20;
+    /* 0x24 */ byte       pad_24[0x4C];
+    /* 0x70 */ s16        field_70;
+    /* 0x72 */ s16        field_72;
+    /* 0x74 */ byte       pad_74[0xC];
+    /* 0x80 */ TmdObject* field_80;
+    /* 0x84 */ byte       pad_84[0x4];
+} TmdScratchModelBlock;
+STATIC_ASSERT_SIZEOF(TmdScratchModelBlock, 0x88);
+
+/// 0x98-byte scratch for Tmd_SetupDraw (draw path).
+typedef struct {
+    /* 0x00 */ u8*        field_0;
+    /* 0x04 */ u8*        field_4;
+    /* 0x08 */ s32        field_8;
+    /* 0x0C */ s32        field_C;
+    /* 0x10 */ void*      field_10;
+    /* 0x14 */ u_long*    field_14;
+    /* 0x18 */ byte       pad_18[0x38]; // Dispatch stores 0x18/0x1C/0x20/0x2C/0x30
+    /* 0x50 */ MATRIX     mat;
+    /* 0x70 */ byte       pad_70[0x10];
+    /* 0x80 */ TmdObject* field_80;
+    /* 0x84 */ s32        field_84;
+    /* 0x88 */ byte       pad_88[0x10];
+} TmdScratchDrawBlock;
+STATIC_ASSERT_SIZEOF(TmdScratchDrawBlock, 0x98);
+
+/// Model-path stream command: Tmd_ProcessStream → handler(ws, flags, stream).
+typedef u32* (*TmdModelStreamHandler)(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+/// Draw-path stream command: Tmd_DispatchStream jalr → handler(ws, flags, stream).
+typedef u32* (*TmdDrawStreamHandler)(TmdScratchDrawBlock* ws, s32 flags, u32* stream);
+
 // --- APIs ---
 void Tmd_ProcessStream(TmdObject* arg0);
 void Tmd_SetupDraw(TmdObject* arg0);
 void Tmd_AllocMissingBuffers(void);
 
 /// Early-image handwritten GTE matrix load (src/main/hasm/Tmd_SetupGteMatrices.s).
-/// `scratch` is the Tmd_SetupDraw scratch block (0x98 bytes).
-void Tmd_SetupGteMatrices(void* scratch, u32 flags, void* stream, TmdObject* node);
-/// Early-image handwritten stream walker (src/main/hasm/Tmd_DispatchStream.s).
-void Tmd_DispatchStream(void* scratch, u32 flags, void* stream);
+void Tmd_SetupGteMatrices(TmdScratchDrawBlock* ws, u32 flags, void* stream, TmdObject* node);
+/// Walk stream records and jalr each draw handler until terminator -2.
+u32* Tmd_DispatchStream(TmdScratchDrawBlock* ws, s32 flags, u32* stream);
+
+// Early-image handlers (src/main/hasm/Tmd_StreamHandler_*.s).
+// Same ABI for model and draw scratch (shared offsets 0x18/0x1C/…); declared
+// as model-side type for ProcessStream. Draw path is jalr from hasm only.
+u32* Tmd_StreamHandler_Default(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* Tmd_StreamHandler_Prim32(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* Tmd_StreamHandler_Prim30(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* Tmd_StreamHandler_Prim3A(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* Tmd_StreamHandler_Prim38(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 #endif // TMD_H

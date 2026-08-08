@@ -9,6 +9,9 @@ handwritten assembly (splat `type: hasm`, `hasm_in_src_path: True`).
 |------|-----------|------|------|
 | `Fs_DecompressChunk.s` | `jtbl_Fs_DecompressChunk` + `Fs_DecompressChunk` | `0x80010008` / `0x80010024` | Resume jump table + resumable LZ for FS CD chunks |
 | `Fs_DecompressImage.s` | `Fs_DecompressImage` | `0x80010398` | Non-resumable LZ for image strips → VRAM |
+| `Tmd_StreamHandler_Default.s` | `Tmd_StreamHandler_Default` | `0x800105AC` | Default stream handler (index/stride) |
+| `Tmd_StreamHandler_Prim32.s` | `Prim32` + alabel `Prim30` | `0x800105CC` / `0x800105F4` | GTE prim stream (codes 0x32 / 0x30) |
+| `Tmd_StreamHandler_Prim3A.s` | `Prim3A` + alabel `Prim38` | `0x800106F0` / `0x80010718` | GTE prim stream (codes 0x3A / 0x38) |
 | `Tmd_SetupGteMatrices.s` | `Tmd_SetupGteMatrices` | `0x80010848` | TMD draw: GTE light matrices + transforms |
 | `Tmd_DispatchStream.s` | `Tmd_DispatchStream` | `0x80010A20` | Stream walk + `jalr` handlers (callee of Setup) |
 

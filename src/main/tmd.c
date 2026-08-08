@@ -1234,138 +1234,101 @@ void Stage_TaskExit(Task* arg0)
     Task_CallExit(arg0);
 }
 
-extern u8 D_800105AC;
-extern u8 D_800105F4;
-extern u8 D_80010718;
-extern u8 D_80010A90;
-extern u8 D_80010BF4;
-extern u8 D_80010E1C;
-extern u8 D_80010EF4;
-extern u8 D_80010F08;
-extern u8 D_8001108C;
-extern u8 D_800110A0;
-extern u8 D_800112DC;
-extern u8 D_800113B4;
-extern u8 D_800113E8;
-extern u8 D_800114FC;
-extern u8 D_80011530;
-extern u8 D_80011678;
-extern u8 D_800117BC;
-extern u8 D_80011994;
-extern u8 D_800119A8;
-extern u8 D_80011AF4;
-extern u8 D_80011B08;
-extern u8 D_8001237C;
-extern u8 D_80012520;
-extern u8 D_80099994;
-extern u8 D_80099B94;
-extern u8 D_80099D40;
-extern u8 D_80099FF4;
-extern u8 D_8009A348;
-extern u8 D_8009A57C;
-extern u8 D_8009AF90;
-extern u8 D_8009B2F4;
-extern u8 D_8009B500;
-extern u8 D_8009BD00;
-extern u8 D_8009C024;
-extern u8 D_8009C414;
-extern u8 D_8009CED0;
-extern u8 D_8009D0DC;
-extern u8 D_8009D388;
-extern u8 D_8009D518;
-extern u8 D_8009D718;
-extern u8 D_8009D900;
-extern u8 D_8009DB00;
-extern u8 D_8009DCB8;
-extern u8 D_8009DE48;
-extern u8 D_8009E048;
-extern u8 D_8009E274;
-extern u8 D_8009E4A0;
-extern u8 D_8009E770;
-extern u8 D_8009EAA4;
-extern u8 D_8009EB84;
-extern u8 D_8009EC1C;
-extern u8 D_8009ECC0;
-extern u8 D_8009ED28;
-extern u8 D_8009ED90;
-extern u8 D_8009EE28;
-extern u8 D_8009EECC;
-extern u8 D_8009EF64;
-extern u8 D_8009EFFC;
-extern u8 D_8009F0A0;
-extern u8 D_8009F144;
-extern u8 D_8009F1DC;
-extern u8 D_8009F280;
-extern u8 D_8009F360;
-extern u8 D_8009F3F8;
-extern u8 D_8009F49C;
-extern u8 D_8009F504;
-extern u8 D_8009F56C;
-extern u8 D_8009F670;
-extern u8 D_8009F708;
-extern u8 D_8009F824;
-extern u8 D_8009F8C8;
-extern u8 D_8009F970;
-extern u8 D_8009FA24;
-extern u8 D_8009FB28;
-extern u8 D_8009FC44;
-extern u8 D_8009FC90;
-extern u8 D_80136224;
-extern u8 D_80136500;
-extern u8 D_8013685C;
-extern u8 D_80136C00;
-extern u8 D_8013700C;
-extern u8 D_80137300;
-extern u8 D_801375F8;
-extern u8 D_801379B4;
-extern u8 D_80138004;
-extern u8 D_801386EC;
-
-/// 0x88-byte scratch workspace allocated from G_SCRATCH_HEAD for Tmd_ProcessStream.
-typedef struct {
-    /* 0x00 */ u8*        field_0;
-    /* 0x04 */ u8*        field_4;
-    /* 0x08 */ s32        field_8;
-    /* 0x0C */ s32        field_C;
-    /* 0x10 */ byte       pad_10[0x8];
-    /* 0x18 */ s32        field_18;
-    /* 0x1C */ s32        field_1C;
-    /* 0x20 */ u32        field_20;
-    /* 0x24 */ byte       pad_24[0x4C];
-    /* 0x70 */ s16        field_70;
-    /* 0x72 */ s16        field_72;
-    /* 0x74 */ byte       pad_74[0xC];
-    /* 0x80 */ TmdObject* field_80;
-    /* 0x84 */ byte       pad_84[0x4];
-} ScratchModelBlock;
-
-/// 0x98-byte scratch workspace for Tmd_SetupDraw (draw path).
-typedef struct {
-    /* 0x00 */ u8*        field_0;
-    /* 0x04 */ u8*        field_4;
-    /* 0x08 */ s32        field_8;
-    /* 0x0C */ s32        field_C;
-    /* 0x10 */ void*      field_10;
-    /* 0x14 */ u_long*    field_14;
-    /* 0x18 */ byte       pad_18[0x38];
-    /* 0x50 */ MATRIX     mat;
-    /* 0x70 */ byte       pad_70[0x10];
-    /* 0x80 */ TmdObject* field_80;
-    /* 0x84 */ s32        field_84;
-} ScratchDrawBlock; /* 0x98 */
-
-typedef u32* (*ModelStreamHandler)(ScratchModelBlock* ws, s32 arg1, u32* stream);
+// Undecompiled model stream handlers (same ABI as TmdModelStreamHandler).
+u32* D_80010A90(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80010BF4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80010E1C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80010EF4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80010F08(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8001108C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_800110A0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_800112DC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_800113B4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_800113E8(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_800114FC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80011530(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80011678(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_800117BC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80011994(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_800119A8(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80011AF4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80011B08(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8001237C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80012520(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80099994(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80099B94(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80099D40(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80099FF4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009A348(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009A57C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009AF90(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009B2F4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009B500(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009BD00(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009C024(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009C414(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009CED0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009D0DC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009D388(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009D518(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009D718(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009D900(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009DB00(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009DCB8(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009DE48(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009E048(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009E274(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009E4A0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009E770(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009EAA4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009EB84(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009EC1C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009ECC0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009ED28(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009ED90(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009EE28(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009EECC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009EF64(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009EFFC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009F0A0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009F144(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009F1DC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009F280(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009F360(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009F3F8(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009F49C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009F504(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009F56C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009F670(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009F708(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009F824(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009F8C8(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009F970(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009FA24(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009FB28(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009FC44(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8009FC90(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80136224(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80136500(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8013685C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80136C00(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_8013700C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80137300(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_801375F8(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_801379B4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_80138004(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* D_801386EC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
 extern MATRIX D_80070F34;
 
 void Tmd_InitSourceStream(TmdSource* arg0)
 {
-    u32*         stream;
-    u32          id;
-    u32          dims;
-    void*        handler;
-    s32          flag;
-    register u32 tmp asm("v0");
+    u32*                  stream;
+    u32                   id;
+    u32                   dims;
+    TmdModelStreamHandler handler;
+    s32                   flag;
+    register u32          tmp asm("v0");
 
     stream = arg0->field_20;
     if (arg0->field_0 == 0) {
@@ -1378,188 +1341,188 @@ void Tmd_InitSourceStream(TmdSource* arg0)
             switch (id) {
                 case 0x20:
                 case 0x22:
-                    handler = &D_80010A90;
+                    handler = D_80010A90;
                     break;
                 case 0x60:
                 case 0x62:
-                    handler = &D_80010BF4;
+                    handler = D_80010BF4;
                     break;
                 case 0xC0:
-                    handler = &D_80010E1C;
+                    handler = D_80010E1C;
                     break;
                 case 0xC4:
-                    handler = &D_8009EAA4;
+                    handler = D_8009EAA4;
                     break;
                 case 5:
-                    handler = &D_80099B94;
+                    handler = D_80099B94;
                     break;
                 case 0x45:
-                    handler = &D_80099994;
+                    handler = D_80099994;
                     break;
                 case 0x21:
                 case 0x121:
-                    handler = &D_800105F4;
+                    handler = Tmd_StreamHandler_Prim30;
                     break;
                 case 0x61:
                 case 0x161:
-                    handler = &D_80010718;
+                    handler = Tmd_StreamHandler_Prim38;
                     break;
                 case 0x38:
-                    handler = &D_80010F08;
+                    handler = D_80010F08;
                     break;
                 case 0x8038:
-                    handler = &D_80136224;
+                    handler = D_80136224;
                     break;
                 case 0x10038:
-                    handler = &D_8013700C;
+                    handler = D_8013700C;
                     break;
                 case 0x20038:
-                    handler = &D_801379B4;
+                    handler = D_801379B4;
                     break;
                 case 0x3A:
-                    handler = &D_80010EF4;
+                    handler = D_80010EF4;
                     break;
                 case 0x1003A:
-                    handler = &D_80137300;
+                    handler = D_80137300;
                     break;
                 case 0x78:
-                    handler = &D_800110A0;
+                    handler = D_800110A0;
                     break;
                 case 0x8078:
-                    handler = &D_8013685C;
+                    handler = D_8013685C;
                     break;
                 case 0x10078:
-                    handler = &D_801375F8;
+                    handler = D_801375F8;
                     break;
                 case 0x20078:
-                    handler = &D_80138004;
+                    handler = D_80138004;
                     break;
                 case 0x7A:
-                    handler = &D_8001108C;
+                    handler = D_8001108C;
                     break;
                 case 0xC8:
-                    handler = &D_800112DC;
+                    handler = D_800112DC;
                     break;
                 case 0x40C8:
-                    handler = &D_8009AF90;
+                    handler = D_8009AF90;
                     if (flag != 0) {
-                        handler = &D_8009B2F4;
+                        handler = D_8009B2F4;
                     }
                     break;
                 case 0x200C8:
-                    handler = &D_801386EC;
+                    handler = D_801386EC;
                     break;
                 case 0x31:
                 case 0x39:
                 case 0x131:
-                    handler = &D_800113E8;
+                    handler = D_800113E8;
                     break;
                 case 0x8039:
-                    handler = &D_80136500;
+                    handler = D_80136500;
                     break;
                 case 0x3B:
-                    handler = &D_800113B4;
+                    handler = D_800113B4;
                     break;
                 case 0x71:
                 case 0x79:
                 case 0x171:
-                    handler = &D_80011530;
+                    handler = D_80011530;
                     break;
                 case 0x8079:
-                    handler = &D_80136C00;
+                    handler = D_80136C00;
                     break;
                 case 0x7B:
-                    handler = &D_800114FC;
+                    handler = D_800114FC;
                     break;
                 case 0x4039:
-                    handler = &D_80099D40;
+                    handler = D_80099D40;
                     if (flag != 0) {
-                        handler = &D_8009A348;
+                        handler = D_8009A348;
                     }
                     break;
                 case 0x4079:
-                    handler = &D_80099FF4;
+                    handler = D_80099FF4;
                     if (flag != 0) {
-                        handler = &D_8009A57C;
+                        handler = D_8009A57C;
                     }
                     break;
                 case 0:
-                    handler = &D_80011678;
+                    handler = D_80011678;
                     break;
                 case 0x40:
-                    handler = &D_800117BC;
+                    handler = D_800117BC;
                     break;
                 case 0x18:
-                    handler = &D_800119A8;
+                    handler = D_800119A8;
                     break;
                 case 0x1A:
-                    handler = &D_80011994;
+                    handler = D_80011994;
                     break;
                 case 0x58:
-                    handler = &D_80011AF4;
+                    handler = D_80011AF4;
                     break;
                 case 0x5A:
-                    handler = &D_80011B08;
+                    handler = D_80011B08;
                     break;
                 case 0x4078:
-                    handler = &D_8009C414;
+                    handler = D_8009C414;
                     if (flag != 0) {
-                        handler = &D_8009C024;
+                        handler = D_8009C024;
                     }
                     break;
                 case 0x4038:
-                    handler = &D_8009B500;
+                    handler = D_8009B500;
                     if (flag != 0) {
-                        handler = &D_8009BD00;
+                        handler = D_8009BD00;
                     }
                     break;
                 case 0x120:
-                    handler = &D_8009E048;
+                    handler = D_8009E048;
                     break;
                 case 0x122:
-                    handler = &D_8009E274;
+                    handler = D_8009E274;
                     break;
                 case 0x160:
-                    handler = &D_8009E4A0;
+                    handler = D_8009E4A0;
                     break;
                 case 0x162:
-                    handler = &D_8009E770;
+                    handler = D_8009E770;
                     break;
                 case 0x1C:
-                    handler = &D_8009D388;
+                    handler = D_8009D388;
                     break;
                 case 0x1E:
-                    handler = &D_8009DCB8;
+                    handler = D_8009DCB8;
                     break;
                 case 0x5C:
-                    handler = &D_8009D518;
+                    handler = D_8009D518;
                     break;
                 case 0x5E:
-                    handler = &D_8009DE48;
+                    handler = D_8009DE48;
                     break;
                 case 0x30:
-                    handler = &D_8009CED0;
+                    handler = D_8009CED0;
                     break;
                 case 0x130:
-                    handler = &D_8001237C;
+                    handler = D_8001237C;
                     break;
                 case 0x70:
-                    handler = &D_8009D0DC;
+                    handler = D_8009D0DC;
                     break;
                 case 0x170:
-                    handler = &D_80012520;
+                    handler = D_80012520;
                     break;
                 case 0x156:
-                    handler = &D_8009D718;
+                    handler = D_8009D718;
                     break;
                 case 4:
-                    handler = &D_8009DB00;
+                    handler = D_8009DB00;
                     break;
                 case 0x44:
-                    handler = &D_8009D900;
+                    handler = D_8009D900;
                     break;
                 default:
-                    handler = &D_800105AC;
+                    handler = Tmd_StreamHandler_Default;
                     break;
             }
 
@@ -1591,27 +1554,27 @@ void Tmd_InitSourceStream(TmdSource* arg0)
 
 void Tmd_ProcessStream(TmdObject* arg0)
 {
-    ScratchModelBlock* ws;
-    TmdSource*         src;
-    u32*               stream;
-    u32                id;
-    void*              handler;
-    s32                flag;
-    void*              buf;
-    u32                hi;
+    TmdScratchModelBlock* ws;
+    TmdSource*            src;
+    u32*                  stream;
+    u32                   id;
+    TmdModelStreamHandler handler;
+    s32                   flag;
+    void*                 buf;
+    u32                   hi;
 
     flag = 0;
     {
-        register void**             scratch asm("a0");
-        register ScratchModelBlock* head asm("v1");
-        void*                       tmp;
+        register void**                scratch asm("a0");
+        register TmdScratchModelBlock* head asm("v1");
+        void*                          tmp;
 
         scratch  = (void**)G_SCRATCH_HEAD;
         src      = arg0->field_10;
         tmp      = *scratch;
         stream   = src->field_20;
         hi       = *(u32*)&Game_Session->field_4;
-        head     = (ScratchModelBlock*)((u8*)tmp - 0x88);
+        head     = (TmdScratchModelBlock*)((u8*)tmp - 0x88);
         hi      &= 0xFFFF0000;
         *scratch = head;
         if ((hi == 0x020F0000) || (hi == 0x02100000)) {
@@ -1638,9 +1601,9 @@ void Tmd_ProcessStream(TmdObject* arg0)
     for (;;) {
         switch (id) {
             case 0x4038:
-                handler = &D_8009F670;
+                handler = D_8009F670;
                 if (flag != 0) {
-                    handler = &D_8009F56C;
+                    handler = D_8009F56C;
                 }
                 break;
             case 0x38:
@@ -1649,12 +1612,12 @@ void Tmd_ProcessStream(TmdObject* arg0)
             case 0x10038:
             case 0x1003A:
             case 0x20038:
-                handler = &D_8009ED90;
+                handler = D_8009ED90;
                 break;
             case 0x4078:
-                handler = &D_8009F824;
+                handler = D_8009F824;
                 if (flag != 0) {
-                    handler = &D_8009F708;
+                    handler = D_8009F708;
                 }
                 break;
             case 0x78:
@@ -1662,76 +1625,76 @@ void Tmd_ProcessStream(TmdObject* arg0)
             case 0x8078:
             case 0x10078:
             case 0x20078:
-                handler = &D_8009EE28;
+                handler = D_8009EE28;
                 break;
             case 0x31:
             case 0x39:
             case 0x3B:
             case 0x131:
             case 0x8039:
-                handler = &D_8009EB84;
+                handler = D_8009EB84;
                 break;
             case 0x71:
             case 0x79:
             case 0x7B:
             case 0x171:
             case 0x8079:
-                handler = &D_8009EC1C;
+                handler = D_8009EC1C;
                 break;
             case 0x4039:
-                handler = &D_8009F8C8;
+                handler = D_8009F8C8;
                 if (flag != 0) {
-                    handler = &D_8009FA24;
+                    handler = D_8009FA24;
                 }
                 break;
             case 0x4079:
-                handler = &D_8009F970;
+                handler = D_8009F970;
                 if (flag != 0) {
-                    handler = &D_8009FB28;
+                    handler = D_8009FB28;
                 }
                 break;
             case 0x18:
             case 0x1A:
-                handler = &D_8009F144;
+                handler = D_8009F144;
                 break;
             case 0x58:
             case 0x5A:
-                handler = &D_8009F1DC;
+                handler = D_8009F1DC;
                 break;
             case 0x1C:
             case 0x1E:
-                handler = &D_8009F360;
+                handler = D_8009F360;
                 break;
             case 0x5C:
             case 0x5E:
-                handler = &D_8009F3F8;
+                handler = D_8009F3F8;
                 break;
             case 0x30:
-                handler = &D_8009EECC;
+                handler = D_8009EECC;
                 break;
             case 0x130:
-                handler = &D_8009EF64;
+                handler = D_8009EF64;
                 break;
             case 0x70:
-                handler = &D_8009EFFC;
+                handler = D_8009EFFC;
                 break;
             case 0x170:
-                handler = &D_8009F0A0;
+                handler = D_8009F0A0;
                 break;
             case 0x156:
-                handler = &D_8009F280;
+                handler = D_8009F280;
                 break;
             case 4:
-                handler = &D_8009F504;
+                handler = D_8009F504;
                 break;
             case 0x44:
-                handler = &D_8009F49C;
+                handler = D_8009F49C;
                 break;
             case 5:
-                handler = &D_8009ED28;
+                handler = D_8009ED28;
                 break;
             case 0x45:
-                handler = &D_8009ECC0;
+                handler = D_8009ECC0;
                 break;
             case 0x40:
             case 0x60:
@@ -1739,10 +1702,10 @@ void Tmd_ProcessStream(TmdObject* arg0)
             case 0x4040:
             case 0x4060:
             case 0x4160:
-                handler = &D_8009FC44;
+                handler = D_8009FC44;
                 break;
             default:
-                handler = &D_800105AC;
+                handler = Tmd_StreamHandler_Default;
                 break;
             case 0:
             case 0x20:
@@ -1750,7 +1713,7 @@ void Tmd_ProcessStream(TmdObject* arg0)
             case 0x4000:
             case 0x4020:
             case 0x4120:
-                handler = &D_8009FC90;
+                handler = D_8009FC90;
                 break;
         }
 
@@ -1759,7 +1722,7 @@ void Tmd_ProcessStream(TmdObject* arg0)
         ws->field_18 = ((u16*)stream)[0];
         ws->field_1C = ((u16*)stream)[1];
         stream       = (u32*)((u8*)stream + 4);
-        stream       = ((ModelStreamHandler)handler)(ws, 0, stream);
+        stream       = handler(ws, 0, stream);
         id           = *stream;
 
         while (1) {
@@ -1782,18 +1745,18 @@ INCLUDE_ASM("main/nonmatchings/tmd", Tmd_Create);
 
 void Tmd_SetupDraw(TmdObject* arg0)
 {
-    u8                         buf[0x1000];
-    void**                     scratch;
-    register void*             tmp asm("t1");
-    register ScratchDrawBlock* ws asm("t0");
-    register void*             stream asm("a2");
-    register MATRIX*           colorMtx asm("t2");
-    register short             t4 asm("t4");
-    register short             t5 asm("t5");
-    register short             t6 asm("t6");
-    register u32               flags asm("a1");
-    void*                      bufptr;
-    s32                        disp;
+    u8                            buf[0x1000];
+    void**                        scratch;
+    register void*                tmp asm("t1");
+    register TmdScratchDrawBlock* ws asm("t0");
+    register void*                stream asm("a2");
+    register MATRIX*              colorMtx asm("t2");
+    register short                t4 asm("t4");
+    register short                t5 asm("t5");
+    register short                t6 asm("t6");
+    register u32                  flags asm("a1");
+    void*                         bufptr;
+    s32                           disp;
 
     scratch = (void**)G_SCRATCH_HEAD;
     {
@@ -1807,7 +1770,7 @@ void Tmd_SetupDraw(TmdObject* arg0)
         stream = p->field_20;
         __asm__ volatile("lbu %0, %%lo(Display_State+0x128)(%1)" : "=r"(d) : "r"(ds_hi));
         disp         = d;
-        ws           = (ScratchDrawBlock*)((u8*)tmp - 0x98);
+        ws           = (TmdScratchDrawBlock*)((u8*)tmp - 0x98);
         ws->field_80 = arg0;
         ws->field_84 = disp;
     }

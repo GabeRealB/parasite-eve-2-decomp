@@ -14,6 +14,15 @@ Fs_DecompressChunk          = 0x80010024; // type:func
 Fs_DecompressImage          = 0x80010398; // type:func
 
 //--------------------------------------------------------------------
+//--- PA: 0x00DAC   VA: 0x800105AC   subsegment: hasm, Tmd_StreamHandler_*
+//--------------------------------------------------------------------
+Tmd_StreamHandler_Default   = 0x800105AC; // type:func
+Tmd_StreamHandler_Prim32    = 0x800105CC; // type:func
+Tmd_StreamHandler_Prim30    = 0x800105F4; // type:func  (alabel)
+Tmd_StreamHandler_Prim3A    = 0x800106F0; // type:func
+Tmd_StreamHandler_Prim38    = 0x80010718; // type:func  (alabel)
+
+//--------------------------------------------------------------------
 //--- PA: 0x01048   VA: 0x80010848   subsegment: hasm, Tmd_SetupGteMatrices
 //--------------------------------------------------------------------
 Tmd_SetupGteMatrices        = 0x80010848; // type:func
