@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "main/task.h"
+
 INCLUDE_ASM("title/nonmatchings/title", func_8009389C);
 
 INCLUDE_ASM("title/nonmatchings/title", func_800939C4);
@@ -12,7 +14,10 @@ INCLUDE_ASM("title/nonmatchings/title", func_8009470C);
 
 INCLUDE_ASM("title/nonmatchings/title", func_8009472C);
 
-INCLUDE_ASM("title/nonmatchings/title", func_800947A8);
+void func_800947A8(Task* arg0)
+{
+    Task_CallExit(arg0);
+}
 
 INCLUDE_ASM("title/nonmatchings/title", func_800947C8);
 
