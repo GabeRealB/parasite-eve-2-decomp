@@ -16,8 +16,6 @@ void F179D4_ClearOTag(s16 tableIdx);
 void GameMain_Init(void);
 void GameMain_Loop(void);
 u32  GameMain_GetResetCount(void);
-void Display_FlipDraw(s32 arg0);
-void Display_VSyncCallback(void);
 void GameMain_ShowLoading(s32 arg0);
 /// "PAUSE!" overlay text for GameMain_ShowLoading (@ VA 0x80013404).
 extern const u8 GameMain_PauseText[];

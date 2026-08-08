@@ -801,6 +801,6 @@ void Text_BootTask(Task* arg0)
     Text_LoadClutImages();
     Display_SetMode(0x1010);
     Game_ClearSession();
-    Task_SpawnFromTable((TaskDesc*)&D_80094C8C, 0, 0, 0);
+    Task_SpawnFromTable(Title_TaskDescs, 0, 0, 0);
     Task_Kill(arg0);
 }

@@ -64,7 +64,6 @@ void GameMain_Init(void)
     Mem_Set(Pad_RemapState, 0, 0x1C);
 }
 
-void Display_LoadImageStrips(s32 arg0);
 void func_80020058(void);
 
 void Display_FlipDraw(s32 arg0)

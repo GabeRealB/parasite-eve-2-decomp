@@ -36,5 +36,6 @@
 #include "main/wipsys.h"
 #include "main/gameflow.h"
 #include "main/gameflag.h"
+#include "main/title.h"
 
 #endif // GAME_H

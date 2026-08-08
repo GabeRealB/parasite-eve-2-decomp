@@ -39,6 +39,7 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 | `CdAudio_` | CD-driven audio player | `src/main/cdaudio.c` | `include/main/cdaudio.h` |
 | `Gpu_` | OT / light / graph reset helpers | `src/main/otutil.c`, `tmd.c` | `include/main/display.h` (OT types) |
 | `Boot_` | Cold-boot / title path | `src/main/boot.c` | `include/main/boot.h` |
+| `Title_` | Title / demo / main-menu overlay | `src/title/title.c` | `include/main/title.h` |
 | `Mem_` / `GHeap` | Heaps | `src/main/mem.c` | `include/main/mem.h` |
 | `Task_` | Cooperative task list / spawn / kill | `src/main/task.c` | `include/main/task.h` |
 | `Pad_` | Controller state / button polls | `src/main/pad.c`, `padutil.c` | `include/main/pad.h` |

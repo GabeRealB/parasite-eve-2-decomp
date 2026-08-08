@@ -65,9 +65,9 @@ segments:
     align: 4
     subalign: 4
     subsegments:
-      # Header hasm ordered into leading image region (see src/title/header.s)
-      - { start: 0x0, type: hasm, name: header, linker_section_order: .rodata }
-      # Title / demo / main-menu logic
+      # Package header + demo strings (title_rodata.c); ends before jtables @ 0x5C
+      - [0x0, c, title_rodata]
+      # Logic + switch jtables in .rodata (first symbols in this object → @ 0x5C)
       - [0x9C, c, title]
       # Menu item strings ("New Game", "Load Game", …) + tables
       # Plain `data` (not `.data`): dotted sibling is not linked as its own object.

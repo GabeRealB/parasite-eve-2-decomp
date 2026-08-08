@@ -1,18 +1,20 @@
 #include "common.h"
 
 #include "main/game.h"
-#include "main/task.h"
+#include "main/title.h"
 
 #include <psyq/libgpu.h>
 #include <psyq/memory.h>
 #include <psyq/rand.h>
 #include <psyq/stdio.h>
 
-extern u8           D_80071068;
-extern s8           D_800710A9;
-extern s16          D_800710AC;
-extern u16          D_80071094;
-extern u8           D_80071086;
+// Absolute main-BSS aliases used for title-overlay match (same addrs as
+// Display_State / Wip_SysFlags fields or neighboring flags).
+extern u8           D_80071068; // Display_State.field_100
+extern s8           D_800710A9; // Wip_SysFlags.unknown_0[1]
+extern s16          D_800710AC; // Wip_SysFlags.field_4
+extern u16          D_80071094; // Display_State.field_12c
+extern u8           D_80071086; // Display_State.field_11e
 extern u_long*      D_800710A0;
 extern DR_TPAGE*    D_80071190;
 extern WipUiHolder* Wip_UiHolder;
@@ -24,42 +26,14 @@ extern u8           D_80073670[2][0xE4];
 extern u8           D_80073838[2][0xA4];
 extern u8           D_80073980[0x208];
 extern s32          D_8005ED70;
-
-/// 5-way task dispatch table at package header + 4 (header.s).
-extern TaskFuncTable5 D_80093804;
-/// "####DEMO START\n" style string in header.s
-extern char D_80093818[];
-/// "####DEMO_CARD_RESTORE STAGE %d, SCENE %d\n" in header.s
-extern char D_80093830[];
-/// Task spawn id table for title menu selections (menu.data.s).
-extern s32 D_80094C74[];
-/// TaskDesc table for title/demo spawn (menu.data.s).
-extern TaskDesc D_80094C8C;
-/// Stores the result of rand() after each title dispatcher tick.
-extern s32 D_80094CA4;
-/// Title state flag (halfword after D_80094CA4).
-extern u16 D_80094CA8;
 /// Alias of CdCmd_Queue.field_23E (absolute form matches title overlay).
-extern s16        D_800691DE;
-extern StreamSlot Stream_Slots[15];
-
-void Display_LoadImageStrips(s32 arg0);
-void Display_ResetHeapWrapper(void);
-u32  GameMain_GetResetCount(void);
-
-/// Title-screen work block stored at Task::field_1C (Mem_Calloc 0x18).
-typedef struct {
-    /* 0x00 */ s32 field_0;  // timer / phase counter
-    /* 0x04 */ s32 field_4;  // menu selection index
-    /* 0x08 */ s32 field_8;  // fade TILE enable
-    /* 0x0C */ s32 field_C;  // intro logo fade
-    /* 0x10 */ s32 field_10; // menu fade
-    /* 0x14 */ s32 field_14; // menu entry count
-} TitleWork;                 /* size 0x18 */
+extern s16 D_800691DE;
 
 void func_807246B4(void);
 
-void func_8009389C(Task* arg0)
+/* Package header: title_rodata.c. This TU’s .rodata is only switch jtables. */
+
+void Title_InitTask(Task* arg0)
 {
     register s32  flag asm("s2");
     DisplayState* ds;
@@ -79,29 +53,29 @@ void func_8009389C(Task* arg0)
     }
     work = Mem_Calloc(0x18, 0);
     if (work != NULL) {
-        arg0->field_1C                  = (TaskIdMap*)work;
-        *(volatile s32*)&work->field_14 = 5;
-        *(volatile s32*)&work->field_4  = 2;
-        *(volatile s32*)&work->field_8  = flag;
-        *(volatile s32*)&work->field_0  = 0;
+        arg0->field_1C                        = (TaskIdMap*)work;
+        *(volatile s32*)&work->menuCount      = 5;
+        *(volatile s32*)&work->selection      = 2;
+        *(volatile s32*)&work->fadeTileEnable = flag;
+        *(volatile s32*)&work->timer          = 0;
         if (D_800710A9 != 0) {
-            work->field_4 = 3;
+            work->selection = 3;
         }
         Text_LoadClutImages();
         Display_SetMode(0x9010);
         ds->field_1d  = -1;
-        work->field_0 = -0x10;
+        work->timer   = -0x10;
         ds->field_100 = 1;
         if (ds->field_112 != 0) {
             func_807246B4();
         }
         CdCmd_EnqueueLoadFile(1, 0, 0);
         arg0->field_30 += 2;
-        func_80093ABC(arg0);
+        Title_MenuTask(arg0);
     }
 }
 
-void func_800939C4(s32 y, s32 v, s32 color)
+void Title_DrawSpriteRow(s32 y, s32 v, s32 color)
 {
     SPRT*     p;
     DR_TPAGE* dr;
@@ -129,7 +103,7 @@ void func_800939C4(s32 y, s32 v, s32 color)
     addPrim(D_800710A0, dr);
 }
 
-void func_80093ABC(Task* arg0)
+void Title_MenuTask(Task* arg0)
 {
     register Task*      s4 asm("s4");
     register TitleWork* s3 asm("s3");
@@ -139,11 +113,11 @@ void func_80093ABC(Task* arg0)
     s32                 fade;
     DisplayState*       ds;
 
-    s4          = arg0;
-    s3          = (TitleWork*)s4->field_1C;
-    prev        = s3->field_0;
-    cur         = prev + 1;
-    s3->field_0 = cur;
+    s4        = arg0;
+    s3        = (TitleWork*)s4->field_1C;
+    prev      = s3->timer;
+    cur       = prev + 1;
+    s3->timer = cur;
 
     if (cur < 0x385) {
         goto normal;
@@ -151,7 +125,7 @@ void func_80093ABC(Task* arg0)
     if (cur >= 0x394) {
         goto exit_path;
     }
-    if (s3->field_8 != 0) {
+    if (s3->fadeTileEnable != 0) {
         /* 939C4-like free allocation for constant order; keep prev live as a1 */
         register s32   a1 asm("a1");
         register TILE* a0 asm("a0");
@@ -182,7 +156,7 @@ void func_80093ABC(Task* arg0)
         dr         = D_80071190;
         D_80071190 = dr + 1;
         setlen(dr, 1);
-        /* Split like func_800939C4: lui 0xE100 / ori 0x240, after 0xFFFFFF */
+        /* Split like Title_DrawSpriteRow: lui 0xE100 / ori 0x240, after 0xFFFFFF */
         dr->code[0] = 0xE1000000 | 0x240;
         addPrim(D_800710A0, dr);
     }
@@ -207,7 +181,7 @@ exit_path:
                 a1            = a1 % 3;
                 a1            = a1 + 1;
                 ds->field_12c = a1;
-                printf(D_80093818, a1);
+                printf(Title_DemoStartMsg, a1);
             }
             Task_Spawn(0, 3, 2, 0);
             ds->field_100 = 0;
@@ -218,7 +192,7 @@ exit_path:
     goto end;
 
 normal:
-    if (s3->field_8 != 0) {
+    if (s3->fadeTileEnable != 0) {
         if (cur < 0) {
             TILE*     p;
             DR_TPAGE* dr;
@@ -228,7 +202,7 @@ normal:
             D_80071190 = (DR_TPAGE*)(p + 1);
             setlen(p, 3);
             setcode(p, 0x62);
-            tmp   = s3->field_0;
+            tmp   = s3->timer;
             p->x0 = -0xA0;
             p->y0 = -0x78;
             p->w  = 0x140;
@@ -251,8 +225,8 @@ normal:
         goto intro;
     }
 
-    if (s3->field_10 < 0x80) {
-        s3->field_10 = s3->field_10 + 8;
+    if (s3->menuFade < 0x80) {
+        s3->menuFade = s3->menuFade + 8;
     }
 
     {
@@ -269,87 +243,87 @@ normal:
             register s32 a2 asm("a2");
             a0  = s0;
             a1  = s1;
-            a2  = s3->field_10;
+            a2  = s3->menuFade;
             s1 += 0x10;
             s0 += 0xE;
             asm("" : "+r"(a0), "+r"(a1), "+r"(a2), "+r"(s0), "+r"(s1));
-            func_800939C4(a0, a1, a2);
+            Title_DrawSpriteRow(a0, a1, a2);
             s2 += 1;
         } while (s2 < 3);
     }
 
-    func_800939C4(((s3->field_4 - 2) * 0xE) + 0x38, 0x20, s3->field_10);
+    Title_DrawSpriteRow(((s3->selection - 2) * 0xE) + 0x38, 0x20, s3->menuFade);
 
     {
-        s32 f = s3->field_10;
+        s32 f = s3->menuFade;
         s32 q = f;
         if (q < 0) {
             q += 7;
         }
-        func_800939C4((q >> 3) + 0x40, 0, 0x80 - f);
+        Title_DrawSpriteRow((q >> 3) + 0x40, 0, 0x80 - f);
     }
-    func_800939C4(0x5C, 0x10, 0x80 - s3->field_10);
+    Title_DrawSpriteRow(0x5C, 0x10, 0x80 - s3->menuFade);
 
-    if (s3->field_10 < 0x80) {
+    if (s3->menuFade < 0x80) {
         goto end;
     }
 
     if (Pad_CheckButtons(0, 1, 0x4000) != 0) {
-        s3->field_0 = 0;
-        s3->field_4 = s3->field_4 + 1;
+        s3->timer     = 0;
+        s3->selection = s3->selection + 1;
         SndEvt_EnqueueType6(2, 0, 0);
-        if (s3->field_4 >= s3->field_14) {
-            s3->field_4 = s3->field_4 - s3->field_14;
+        if (s3->selection >= s3->menuCount) {
+            s3->selection = s3->selection - s3->menuCount;
         }
-        if (s3->field_4 == 0) {
-            s3->field_4 = 1;
+        if (s3->selection == 0) {
+            s3->selection = 1;
         }
-        if (s3->field_4 == 1) {
-            s3->field_4 = 2;
+        if (s3->selection == 1) {
+            s3->selection = 2;
         }
         goto end;
     }
 
     if (Pad_CheckButtons(0, 1, 0x1000) != 0) {
-        s3->field_0 = 0;
-        s3->field_4 = s3->field_4 - 1;
+        s3->timer     = 0;
+        s3->selection = s3->selection - 1;
         SndEvt_EnqueueType6(2, 0, 0);
-        if (s3->field_4 == 1) {
-            s3->field_4 = 0;
+        if (s3->selection == 1) {
+            s3->selection = 0;
         }
-        if (s3->field_4 == 0) {
-            s3->field_4 = -1;
+        if (s3->selection == 0) {
+            s3->selection = -1;
         }
-        if (s3->field_4 < 0) {
-            s3->field_4 = s3->field_4 + s3->field_14;
+        if (s3->selection < 0) {
+            s3->selection = s3->selection + s3->menuCount;
         }
         goto end;
     }
 
     if (Pad_CheckButtons(0, 1, D_8005ED70 | 0x800) != 0) {
         SndEvt_EnqueueType6(3, 0, 0);
-        Task_Spawn(0, D_80094C74[s3->field_4], 0, 0);
+        Task_Spawn(0, Title_MenuSpawnIds[s3->selection], 0, 0);
         D_80071068 = 0;
         Task_CallExit(s4);
     }
     goto end;
 
 intro:
-    if (s3->field_C < 0x80) {
-        s3->field_C = s3->field_C + 8;
+    if (s3->logoFade < 0x80) {
+        s3->logoFade = s3->logoFade + 8;
     }
-    fade = s3->field_C;
+    fade = s3->logoFade;
     {
         s32 q = 0x80 - fade;
         if (q < 0) {
             q += 7;
         }
-        func_800939C4(0x40 - (q >> 3), 0, fade);
+        Title_DrawSpriteRow(0x40 - (q >> 3), 0, fade);
     }
-    func_800939C4(0x5C, 0x10, 0x80);
+    Title_DrawSpriteRow(0x5C, 0x10, 0x80);
     if (Pad_CheckButtons(0, 1, D_8005ED70 | 0x800) != 0) {
         SndEvt_EnqueueType6(3, 0, 0);
-        s3->field_0  = 0;
+        s3->timer    = 0;
         s4->field_30 = s4->field_30 + 1;
     }
 end:
@@ -358,7 +332,7 @@ end:
 
 /// Restore demo card / save banks from D_8005C374 (or 0x80600100 when D_80071094 == 0x10).
 /// Preserves Mc_SaveData.field_21 / field_23 across the bulk copy.
-void func_8009407C(void)
+void Title_RestoreDemoCard(void)
 {
     u8* src;
     s32 saveField23;
@@ -374,7 +348,7 @@ void func_8009407C(void)
     if (D_80071094 == 0x10) {
         src = (u8*)0x80600100;
     }
-    printf(D_80093830, Mc_SaveData.field_7, Mc_SaveData.field_6);
+    printf(Title_DemoCardRestoreMsg, Mc_SaveData.field_7, Mc_SaveData.field_6);
 
     memcpy(&Mc_SaveData, src, sizeof(McSaveData));
     src += sizeof(McSaveData);
@@ -407,10 +381,10 @@ void func_8009407C(void)
     if (Fs_StageCdfIsAvailable(Mc_SaveData.field_7) != 1) {
         D_80071086 = 1;
     }
-    printf(D_80093830, Mc_SaveData.field_7, Mc_SaveData.field_6);
+    printf(Title_DemoCardRestoreMsg, Mc_SaveData.field_7, Mc_SaveData.field_6);
 }
 
-void func_8009470C(Task* arg0)
+void Title_FlagAdvanceTask(Task* arg0)
 {
     s32* p = &arg0->field_30;
 
@@ -418,21 +392,21 @@ void func_8009470C(Task* arg0)
     (*p)++;
 }
 
-void func_8009472C(Task* arg0)
+void Title_Dispatch(Task* arg0)
 {
     TaskFuncTable5 sp;
 
-    sp         = D_80093804;
-    D_80094CA4 = rand();
+    sp             = Title_PhaseTable;
+    Title_LastRand = rand();
     sp.funcs[arg0->field_30](arg0);
 }
 
-void func_800947A8(Task* arg0)
+void Title_ExitTask(Task* arg0)
 {
     Task_CallExit(arg0);
 }
 
-void func_800947C8(Task* arg0)
+void Title_DemoStreamTask(Task* arg0)
 {
     u8                     slotParam[4];
     GBytes8                key;
@@ -510,7 +484,7 @@ L_case3:
         register s32 mask asm("a0");
         mask = 0;
         asm("" : "+r"(mask));
-        D_80094CA8 = 0;
+        Title_SkipFadeFlag = 0;
         SetDispMask(mask);
     }
     CdCmd_ActivatePhase1();
@@ -565,7 +539,7 @@ L_case7:
     Display_ResetHeapWrapper();
 }
 
-void func_80094A08(Task* arg0)
+void Title_BootTask(Task* arg0)
 {
     u8             param1[4];
     u8             param2[4];
@@ -576,12 +550,12 @@ void func_80094A08(Task* arg0)
     switch (task->field_30) {
         case 0:
             Display_State.field_100 = 0;
-            D_80094CA8              = 1;
+            Title_SkipFadeFlag      = 1;
             if ((Display_State.field_112 < 0) || (D_800710AC != 0)) {
-                next       = 6;
-                D_80094CA8 = 0;
+                next               = 6;
+                Title_SkipFadeFlag = 0;
             } else {
-                Display_SpawnWithOt(&D_80094C8C, 1, 0, 0);
+                Display_SpawnWithOt(Title_TaskDescs, 1, 0, 0);
                 Display_State.field_103 = 1;
                 next                    = task->field_30 + 1;
             }
@@ -592,7 +566,7 @@ void func_80094A08(Task* arg0)
             task->field_30 = task->field_30 + 1;
             return;
         case 3:
-            if (D_80094CA8 != 0) {
+            if (Title_SkipFadeFlag != 0) {
                 Task_Spawn(0, 2, 0x80000000, 0);
             } else {
                 Task_Spawn(0, 2, 0, 0);
@@ -625,7 +599,7 @@ void func_80094A08(Task* arg0)
     }
 }
 
-void func_80094B90(s32 arg0)
+void Title_EnqueueDemoScene(s32 arg0)
 {
     s8              param2[4];
     u8*             param1;

@@ -53,6 +53,20 @@ Convention: only list fields with evidence. Unlisted `field_*` / `unknown_*` /
 
 ---
 
+## Title overlay (`title.h`)
+
+### `TitleWork` (0x18) — `Task::field_1C` on title menu task
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `timer` | Frame / phase counter (intro window, fade timing) |
+| 0x04 | `selection` | Menu cursor index (spawn id via `Title_MenuSpawnIds`) |
+| 0x08 | `fadeTileEnable` | Non-zero → draw fullscreen fade TILE |
+| 0x0C | `logoFade` | Intro logo alpha ramp 0..0x80 |
+| 0x10 | `menuFade` | Menu chrome alpha ramp 0..0x80 |
+| 0x14 | `menuCount` | Entry count (wrap / skip logic) |
+
+---
+
 ## Display (`display.h`)
 
 ### `DisplayState` (0x138)

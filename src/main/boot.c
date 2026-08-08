@@ -286,7 +286,7 @@ void Boot_LoadTask(Task* arg0)
             if (CdCmd_IsIdle() != 0) {
                 SetDispMask(1);
                 Mem_ConfigureAuxHeap(0, 0);
-                Task_SpawnFromTable((TaskDesc*)&D_80094C8C, 0, 0, 0);
+                Task_SpawnFromTable(Title_TaskDescs, 0, 0, 0);
                 Task_Kill(arg0);
                 Display_State.field_112 = 0;
             }

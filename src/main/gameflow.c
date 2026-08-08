@@ -23,7 +23,7 @@ void GameFlow_StateByField34(Task* arg0)
                 Display_State.field_12c = 1;
             }
             if (Display_State.field_12c < 0x10) {
-                func_80094B90(Display_State.field_12c - 1);
+                Title_EnqueueDemoScene(Display_State.field_12c - 1);
             }
             arg0->field_30 = arg0->field_30 + 1;
         }
@@ -31,7 +31,7 @@ void GameFlow_StateByField34(Task* arg0)
             if (Display_State.field_10e == 0) {
                 Display_State.field_10e = 1;
             }
-            func_8009407C();
+            Title_RestoreDemoCard();
             {
                 u8* clearPtr;
                 u32 clearI;

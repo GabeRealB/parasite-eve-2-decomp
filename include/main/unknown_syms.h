@@ -26,9 +26,7 @@
 
 extern u16 func_8001D82C(void);
 
-// gameflow (src/main/gameflow.c)
-extern void              func_80094B90(s32 arg0);
-extern void              func_8009407C(void);
+// gameflow (src/main/gameflow.c) — Title_* APIs live in main/title.h
 extern void              func_8009FD74(s8 arg0, void* arg1);
 extern void              func_8002C1D8(void);
 extern TaskFuncTable5    D_800134BC;
@@ -339,8 +337,7 @@ extern u8            D_8007E0CC;
 extern s32           D_8007E0D4;
 extern SndBank       Snd_Banks[];
 
-// Stream slot table living next to FS bss (F344); not pure FS API.
-extern StreamSlot   Stream_Slots[15];
+// Stream_Slots lives in main/stream.h.
 extern u16          D_8006EBB8;
 extern s8           D_8006EBBA;
 extern s16          D_8006EBF2;
@@ -469,7 +466,7 @@ extern volatile u16           D_80082810;
 extern volatile CdStreamState CdStream_State;
 extern CdStreamChannels       CdStream_Channels;
 extern volatile CdReadyQueue  CdReady_Queue;
-extern u8                     D_80094C8C[0x2E34];
-extern u8                     D_80725C54[];
+// Title_TaskDescs is declared in main/title.h (overlay TaskDesc table).
+extern u8 D_80725C54[];
 
 #endif // UNKNOWN_SYMS_H

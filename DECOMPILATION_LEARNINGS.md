@@ -8551,7 +8551,7 @@ as volatile (including earlier ones like `field_14` / `field_4`) lets the
 scheduler place `lui` after the last store that still uses `$v0` for a
 constant, while the later zero/flag stores fill the gap before `lb`. Leaving
 any of those stores non-volatile lets it slip into a delay slot and reorders
-the rest. `func_8009389C` (title init) is the pure example.
+the rest. `Title_InitTask` (title init) is the pure example.
 
 ## RECT field store order changes LoadImage arg scheduling
 
@@ -11993,32 +11993,24 @@ CdCmd_Enqueue(0x21, param1, p2);  /* use p2 only at the call */
 Writing through `p2[i]` forces `sb …, N(a2)` and breaks the match. Keep `p2`
 live only as the call argument; store via `param2[]`. Combined with
 `register void** scratch asm("s0")` + free via `*scratch = (u8*)*scratch + 8`
-(s0 kept across the jal). `func_80094B90` (title overlay) is the pure example.
+(s0 kept across the jal). `Title_EnqueueDemoScene` (title overlay) is the pure example.
 
-## Title overlay switch jtables live after header, from compiler `.rodata`
+## Title overlay: header rodata TU + code TU (no jtable align sed)
 
-`src/title/header.s` holds the package header through the last *still-asm*
-function's jump table. When you decompile a switch that used a jtable at the
-end of that header (e.g. `jtbl_8009387C` for `func_80094A08`), remove that
-jtable from `header.s` and let GCC emit it in `title.c.o(.rodata)`.
-
-Linker order is:
+Split so package header and switch jtables are not in the same object:
 
 ```
-header.s.o(.text)   /* package header, shrinks as jtables move out */
-title.c.o(.rodata)  /* compiler jtables, in decompile order */
-title.c.o(.text)
-menu.data.s.o(.data)
+title_rodata.c  /* Title_Header, PhaseTable, demo strings, Title_Padding */
+title.c         /* tasks; .rodata is only GCC switch jtables */
 ```
 
-If you leave the hardcoded absolute jtable in `header.s` *and* the compiler
-emits its own, the overlay grows by `4 * ncases` and every later VRAM address
-shifts — function body can be 100% in a scratch while `build/USA/out/title`
-checksum fails.
+Linker (section_order rodata → text): `title_rodata.o(.rodata)` then
+`title.o(.rodata)` then texts. Jtables are first in `title.o`’s `.rodata`
+(offset 0), so GCC’s `.align 3` is a no-op and they land at 0x5C after the
+0x5C-byte header — no ninja `sed`.
 
-Both `func_800947C8` and `func_80094A08` are now C; their jtables live only in
-`title.c.o(.rodata)` in that order. Drop any remaining hardcoded jtable block
-from `header.s` the same way when the next header-adjacent switch is matched.
+`Title_Padding = 0xE122` must follow `Title_DemoCardRestoreMsg` (retail is not
+zero-pad after the string NUL).
 
 ## Title state machine: shared `advance` between last fallthrough and exit case
 
@@ -12044,7 +12036,7 @@ advance:
 L7: /* kill path; no advance */;
 ```
 
-`func_800947C8` is the title-overlay example.
+`Title_DemoStreamTask` is the title-overlay example.
 
 ## Force arg regs with `asm("aN")` + empty asm so stores fill jal/branch delays
 
@@ -12060,7 +12052,7 @@ delay slots:
 register s32 mask asm("a0");
 mask = 0;
 asm("" : "+r"(mask));
-D_80094CA8 = 0;       /* sh fills jal delay */
+Title_SkipFadeFlag = 0;       /* sh fills jal delay */
 SetDispMask(mask);    /* beqz delay already has move a0, zero */
 
 /* After Stream_FindSlot: */
@@ -12076,7 +12068,7 @@ CdCmd_Enqueue(cmd, zero, p);
 Keep the slot temp as `s16` (FindSlot's return type) so the barrier does not
 insert `sll`/`sra` sign-extend. Same pattern for case-4 `CdCmd_Enqueue(0x21, …)`
 arg setup before `D_800691DE = 1` (absolute alias of `CdCmd_Queue.field_23E`).
-`func_800947C8` is the pure example.
+`Title_DemoStreamTask` is the pure example.
 
 ## `s32` temps for preserved `s8` loads (`lb`, not `lbu`)
 
@@ -12095,7 +12087,7 @@ s32 save = p->field_s8; /* emits lb */
 p->field_s8 = save;     /* sb */
 ```
 
-`func_8009407C` (title demo-card restore) needs this for
+`Title_RestoreDemoCard` (title demo-card restore) needs this for
 `Mc_SaveData.field_21` / `field_23`. The struct fields themselves must also be
 `s8` (see also the `D_80072189` / `D_8007218B` aliases).
 
@@ -12126,9 +12118,9 @@ memcpy(base + ((t - bank) * 8 + bank) * 4, src, 0xE4); /* == bank * 0xE4 */
 ```
 
 Same size, same ops, but the address load is scheduled one insn into the
-multiply. `func_8009407C` is the pure example.
+multiply. `Title_RestoreDemoCard` is the pure example.
 
-## Split `0xE1000000 | tpage` so mask loads before tpage OR (`func_80093ABC`)
+## Split `0xE1000000 | tpage` so mask loads before tpage OR (`Title_MenuTask`)
 
 When a TILE+`DR_TPAGE` block needs target order:
 
@@ -12142,7 +12134,7 @@ that should hold the mask — or it hoists color math and breaks a later
 
 **Fix:** write the GPU command as two operands so CSE/const folding emits
 `lui 0xE100` + `ori tpage` *after* the mask materialization, matching
-`func_800939C4`-style schedules:
+`Title_DrawSpriteRow`-style schedules:
 
 ```c
 setlen(dr, 1);
@@ -12186,7 +12178,7 @@ do {
     s1 += 0x10;
     s0 += 0xE;
     asm("" : "+r"(a0), "+r"(a1), "+r"(a2), "+r"(s0), "+r"(s1));
-    func_800939C4(a0, a1, a2);
+    Title_DrawSpriteRow(a0, a1, a2);
     s2 += 1;
 } while (s2 < 3);
 ```

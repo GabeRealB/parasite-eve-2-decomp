@@ -86,7 +86,7 @@ STATIC_ASSERT_SIZEOF(GpuOtBuf, 0x14);
 /// Dual-buffer display / system state (bss @ 0x80070F68).
 extern DisplayState Display_State;
 
-// --- APIs (from unknown_syms) ---
+// --- APIs ---
 void  Display_SetMode(s32 arg0);
 void  Display_SetAutoClear(s32 arg0, s32 arg1, s32 arg2);
 void  Display_ClampField126(s8 arg0);
@@ -104,5 +104,14 @@ void  Gpu_ResetGraphAndOt(void);
 /// arg2 is unused; GameMain_Loop passes Display_State.field_114 for match.
 s32 Display_FrameFlipDraw(s32 arg0, s32 arg1, s32 arg2);
 s32 Display_DispatchModeId(s32 arg0);
+
+/// Put draw/disp env and optionally transfer framebuffer strips (gamemain.c).
+void Display_FlipDraw(s32 arg0);
+/// VSync callback: timed flip / strip load / audio tick (gamemain.c).
+void Display_VSyncCallback(void);
+/// LoadImage strips from D4CB64_ImgBuffers into the active display buffer.
+void Display_LoadImageStrips(s32 arg0);
+/// Mem heap reset via session (otutil.c wrapper around Display_ResetHeapFromSession).
+void Display_ResetHeapWrapper(void);
 
 #endif // DISPLAY_H

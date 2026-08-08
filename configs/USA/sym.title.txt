@@ -4,19 +4,44 @@
 // Main-executable imports come from configs/USA/sym.main.txt (listed first in
 // title.yaml symbol_addrs_path). Keep only overlay-local names here.
 //
+// Symbols also stubbed in main BSS (Title_RestoreDemoCard, Title_EnqueueDemoScene,
+// Title_TaskDescs) live only in sym.main.txt to avoid splat duplicate-address errors.
+//
 // Note: do not add `// rom:0x...` annotations on main symbols — splat will try
 // to map those into this binary and fail with "no segment rom overlaps symbol".
 
 // ---------------------------------------------------------------------------
-// Overlay-local
+// Overlay package header (src/title/header.s)
 // ---------------------------------------------------------------------------
-// Package header at load base (entry/callback words + demo strings + jtable).
-// Defined in src/title/header.s (hasm).
-D_80093800 = 0x80093800; // size:0x7C
-// 5-way task dispatch table at D_80093800 + 4 (func_8009472C).
-D_80093804 = 0x80093804; // size:0x14
+Title_Header = 0x80093800; // size:0x7C
+// 5-way phase table at Title_Header + 4 (Title_Dispatch).
+Title_PhaseTable = 0x80093804; // size:0x14
+Title_DemoStartMsg = 0x80093818;
+Title_DemoCardRestoreMsg = 0x80093830;
 
-// Entry / callbacks from the package header (provisional names).
-func_8009389C = 0x8009389C; // type:func
-func_80093ABC = 0x80093ABC; // type:func
-func_8009470C = 0x8009470C; // type:func
+// ---------------------------------------------------------------------------
+// Code (src/title/title.c) — main-callable APIs are in sym.main.txt
+// ---------------------------------------------------------------------------
+Title_InitTask = 0x8009389C; // type:func
+Title_DrawSpriteRow = 0x800939C4; // type:func
+Title_MenuTask = 0x80093ABC; // type:func
+Title_FlagAdvanceTask = 0x8009470C; // type:func
+Title_Dispatch = 0x8009472C; // type:func
+Title_ExitTask = 0x800947A8; // type:func
+Title_DemoStreamTask = 0x800947C8; // type:func
+Title_BootTask = 0x80094A08; // type:func
+
+// ---------------------------------------------------------------------------
+// Menu data (asm/USA/title/data/menu.data.s)
+// ---------------------------------------------------------------------------
+Title_StrNewGame = 0x80094C0C;
+Title_StrLoadGame = 0x80094C18;
+Title_StrConfiguration = 0x80094C24;
+Title_StrDebugOption = 0x80094C34;
+Title_StrExtraGame = 0x80094C44;
+Title_StrSurvival = 0x80094C50;
+// Task spawn ids for menu selection indices (New Game / Load / Config / …).
+Title_MenuSpawnIds = 0x80094C74; // size:0x18
+Title_LastRand = 0x80094CA4;
+// When set, Title_BootTask spawns with arg 0x80000000 (skip fade TILE).
+Title_SkipFadeFlag = 0x80094CA8;

@@ -29,7 +29,10 @@ typedef struct _StreamSlot {
 } StreamSlot;
 STATIC_ASSERT_SIZEOF(StreamSlot, 0x28);
 
-// --- APIs (from unknown_syms) ---
+// Globals
+extern StreamSlot Stream_Slots[15];
+
+// --- APIs ---
 void        Mdec_SetupBuffers(u8* arg0);
 s32         Stream_RestoreAfterLoad(s32 arg0, s32 arg1);
 void        Mdec_UploadSlice(void);
