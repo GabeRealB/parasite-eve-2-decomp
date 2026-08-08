@@ -11732,3 +11732,116 @@ Most of the leaf is ordinary C with s-reg pins (`t1` base, `a2` slot/count,
 
 Found path (`slot*0x44 + base - 0x3C`) is pure C. `field_664` is at offset
 `0x664` from the table base via `base + idx`.
+
+## Fs_ProcessChunkHeader: s0=ptr / s1=%hi for CdSector
+
+`Fs_ProcessChunkHeader` prologue must colour `&Fs_CdSector` as:
+
+```
+lui  s1, %hi(Fs_CdSector)
+addiu s0, s1, %lo(Fs_CdSector)
+```
+
+with type later loaded via `lbu v1, %lo(Fs_CdSector)(s1)`. Pin `register FsSector *sec asm("s0")`, zero `register s32 s2 asm("s2")` early, and read type through the absolute `Fs_CdSector.chunk.type` (not `sec->chunk.type`) so GCC keeps the hi half in `$s1`.
+
+Also force loadAddr-before-size with:
+
+```c
+void *loadAddr = sec->chunk.loadAddr;
+asm("");
+Fs_ChunkWritePtr = loadAddr;
+size = sec->chunk.size;
+```
+
+That alone lifted the baseline from ~74% to ~81%.
+
+## Fs_ProcessChunkHeader: finish (100%)
+
+### Prologue without early `sw ra`
+
+Do **not** set `s0`/`s1` with a volatile asm block before `CdGetSector` — that forces
+early `sw ra`. Pure C:
+
+```c
+register s32 s2 asm("s2");
+register FsSector *sec asm("s0");
+s2 = 0;
+sec = &Fs_CdSector; /* lui s1 / addiu s0,s1,%lo */
+CdGetSector(sec->bytes, 0x200);
+```
+
+Keep `$s1` live by later reading the absolute symbol
+`Fs_CdSector.chunk.type` (not `sec->chunk.type`).
+
+### Setup: keep `a1` = `%hi(D_8006C4D4)` across the field_2 update
+
+Post-`CdGetSector` setup matches only if the final
+`sw …, %lo(D_8006C4D4)(a1)` reuses the same `a1` from the opening `lui`.
+Do the bulk in asm that **outputs** `a1`, then interleave type load in C:
+
+```c
+register s32 d4_hi asm("a1");
+/* asm: lui a1, … through endFlag store — do not clobber a1 */
+f2 = sec->chunk.field_2;
+type = Fs_CdSector.chunk.type; /* lbu %lo(s1) between lhu and addu */
+/* addu + sw via d4_hi */
+```
+
+Un-pin `type` from `asm("v1")` — a pinned `type` made GCC use `t0` then
+`move v1,t0`.
+
+### Shared `set_phase_stream` (phase in `$v0`, hi in `$v1`)
+
+```c
+set_phase_ff:
+    __asm__ volatile("li $2, 0xFF" ::: "v0");
+set_phase_stream:
+    __asm__ volatile("sb $2, %%lo(Fs_LoadPhase)($3)" ::: "memory");
+    Fs_Streaming = 1;
+ret0:
+    return 0;
+```
+
+Callers jump with `j set_phase_stream; li $2, <phase>` and must have
+`%hi(Fs_LoadPhase)` already in `$v1` from a prior delay slot.
+
+### Branch delay must carry the hi; do not leave a residual `lui`
+
+When the fallthrough after an always-taken asm jump is phase code, GCC still
+emits a dead `lui` for that “fallthrough”. Prefer:
+
+1. **Explicit noreorder branch** that sets the delay itself:
+
+```c
+__asm__ volatile(
+    ".set noreorder\n\t"
+    "bne %0, %1, %2\n\t"
+    "lui $3, %%hi(Fs_LoadPhase)\n\t"
+    ".set reorder"
+    : : "r"(a), "r"(b), "i"(&&target));
+```
+
+2. Or a **whole loop tail in one asm** so `bnez` + `lui 0x8007` + fall into a
+   shared `j set_phase_stream; li phase` label (case 5). Put the join label on
+   the `j`, **not** on the `lui`, so mode==3 can skip the loop-exit `lui` and
+   reuse the mode-check delay `lui` instead.
+
+### `0x8007` vs `%hi(Fs_LoadPhase)`
+
+`Fs_LoadPhase` / `Fs_Streaming` / `Fs_ChunkEndFlag` all sit under `%hi == 0x8007`.
+ROM `target.o` shows absolute `lui …, 0x8007`; GCC emits `%hi(symbol)`. Same
+encoding after link; for local objdump score, case 5 needs the literal
+`lui $3, 0x8007` in the loop-exit delay.
+
+### Case 1: force double-`lui` delay / EndFlag path
+
+```c
+__asm__ volatile(
+    ".set noreorder\n\t"
+    "bne %0, %1, %2\n\t"
+    "lui $2, %%hi(Fs_LoadPhase)\n\t" /* delay */
+    ".set reorder" : : "r"(status), "r"(one), "i"(&&phase2));
+endFlag = Fs_ChunkEndFlag; /* starts with lui EndFlag — same 0x8007 */
+```
+
+Phase2 then reuses `$2` without a third `lui`.

@@ -304,8 +304,9 @@ STATIC_ASSERT_SIZEOF(FsWorkEntry, 0x8);
 /// Per-folder slot cleared by `Fs_PrepareFolderLoad` (50 entries, parallel to
 /// `Fs_FolderTable`). Only the first byte is written by the init path.
 typedef struct _FsFolderSlot {
-    u8 field_0;
-    u8 unknown_1[7];
+    u8  field_0;
+    u8  pad_1[3];
+    s32 field_4;
 } FsFolderSlot;
 STATIC_ASSERT_SIZEOF(FsFolderSlot, 0x8);
 
