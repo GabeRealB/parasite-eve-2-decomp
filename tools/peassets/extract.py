@@ -1,12 +1,21 @@
 import json
 import logging
 import shutil
+import sys
 from argparse import ArgumentParser, FileType
 from dataclasses import dataclass
 from enum import IntEnum
 from pathlib import Path
 from typing import BinaryIO
 from zlib import crc32
+
+# Allow sibling imports when invoked as `python tools/peassets/extract.py`
+_SCRIPT_DIR = Path(__file__).resolve().parent
+if str(_SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPT_DIR))
+
+from format import validate_sector_len  # noqa: E402
+from lzss import decode_lzss  # noqa: E402
 
 
 @dataclass
@@ -53,8 +62,9 @@ class FileChunkType(IntEnum):
         }[self]
 
     def is_compressed(self) -> bool:
+        # On disc, room packages are LZSS-compressed; other chunk types are raw.
         return {
-            FileChunkType.RoomPkg: False,
+            FileChunkType.RoomPkg: True,
             FileChunkType.Image: False,
             FileChunkType.Clut: False,
             FileChunkType.Cap2: False,
@@ -73,9 +83,9 @@ class FileChunkEndFlag(IntEnum):
 class FileChunkHeader:
     chunk_type: FileChunkType
     end_flag: FileChunkEndFlag
-    unknown1: int
+    sector_len: int  # exclusive end offset in sector buffer; range [0x10, 0x800]
     chunk_size: int
-    unknown2: int
+    unknown2: int  # loadAddr for room_pkg / cap2
 
     def encode(self) -> dict:
         return {
@@ -83,7 +93,7 @@ class FileChunkHeader:
             "end_flag": "continue"
             if self.end_flag == FileChunkEndFlag.Continue
             else "end",
-            "unknown1": f"0x{self.unknown1:X}",
+            "sector_len": f"0x{self.sector_len:X}",
             "chunk_size": f"0x{self.chunk_size:X}",
             "unknown2": f"0x{self.unknown2:X}",
         }
@@ -640,7 +650,9 @@ def parse_file_chunk_header(data: bytes) -> FileChunkHeader | None:
     return FileChunkHeader(
         chunk_type=FileChunkType(chunk_type),
         end_flag=FileChunkEndFlag.from_bytes(data[0x1:0x2], byteorder="little"),
-        unknown1=int.from_bytes(data[0x2:0x4], byteorder="little"),
+        sector_len=validate_sector_len(
+            int.from_bytes(data[0x2:0x4], byteorder="little")
+        ),
         chunk_size=int.from_bytes(data[0x4:0x8], byteorder="little") * 0x800,
         unknown2=int.from_bytes(data[0x8:0xC], byteorder="little"),
     )
@@ -714,120 +726,14 @@ def read_file(data: BinaryIO, offset: int) -> File | None:
     return File(chunks=chunks)
 
 
-def decode_lzss(stream: bytes) -> bytes:
-    # Based on the lzss decoder by md_hyena
-    DICT_SIZE = 256
-    OFFSET_BITS = 8
-    STRING_LEN_BITS = 4
-    LIT_SIZE = 8
-    DICT_COR = 1
-
-    image_size = 0
-    dict = bytearray(DICT_SIZE)
-    output = bytearray()
-
-    buf = 0
-    mask = 0
-    ibcar = 0  # Input buffer carriage
-    dictcar = 0  # Dictionary carriage
-
-    def get_bit(n: int) -> int:
-        x = 0
-        nonlocal mask
-        nonlocal buf
-        nonlocal ibcar
-        nonlocal stream
-        for _ in range(n):
-            if mask == 0:
-                buf = stream[ibcar]
-                ibcar += 1
-                mask = 128
-            x <<= 1
-            if buf & mask != 0:
-                x += 1
-            mask >>= 1
-
-        return x
-
-    def write_to_dict(byte: int):
-        nonlocal dict
-        nonlocal dictcar
-        assert byte < 256
-        dict[dictcar] = byte
-        dictcar = (dictcar + 1) & 0xFF
-
-    def write_to_output(byte: int):
-        nonlocal output
-        nonlocal image_size
-        assert byte < 256
-        output.append(byte)
-        image_size += 1
-
-    def is_eos() -> bool:
-        nonlocal ibcar
-        return len(stream) - 1 == ibcar
-
-    def skip_zeroes() -> bool:
-        if is_eos():
-            return True
-
-        nonlocal stream
-        nonlocal ibcar
-        while stream[ibcar] == 0 and not is_eos():
-            ibcar += 1
-
-        return False
-
-    def unpack():
-        nonlocal dict
-        nonlocal dictcar
-        nonlocal buf
-        nonlocal mask
-
-        for i in range(len(dict)):
-            dict[i] = 0
-        dictcar = 0
-
-        buf = 0
-        mask = 0
-
-        while True:
-            if get_bit(1) != 0:
-                lit = get_bit(LIT_SIZE)
-                write_to_dict(lit)
-                write_to_output(lit)
-            else:
-                offset = get_bit(OFFSET_BITS)
-                if offset == 0:
-                    break
-                length = get_bit(STRING_LEN_BITS)
-
-                if offset != 0:
-                    offset -= DICT_COR
-                else:
-                    offset = 255
-
-                for _ in range(length + 2):
-                    lit = dict[offset]
-                    write_to_dict(lit)
-                    write_to_output(lit)
-                    offset = (offset + 1) & 0xFF
-
-        nonlocal image_size
-        if not skip_zeroes() and not is_eos():
-            image_size -= 1
-            if image_size == 32768:
-                image_size = 0
-
-            if image_size > 0:
-                output.pop()
-            unpack()
-
-    unpack()
-    return bytes(output)
+# Sidecars that only belong in raw/ (metadata, opaque on-disc regions).
+RAW_ONLY_NAMES = frozenset(
+    {"stream_data.bin", "trailer.bin", "raw.bin", "headers.json"}
+)
 
 
 def output_chunk(file_path: Path, chunk: FileChunk, chunk_idx: int):
+    """Write one chunk in on-disc form (never decompress) under the raw tree."""
     chunk_type = chunk.header.chunk_type
     chunk_path = (file_path / f"{chunk_idx}{chunk_type.get_extension()}").absolute()
 
@@ -835,10 +741,7 @@ def output_chunk(file_path: Path, chunk: FileChunk, chunk_idx: int):
         f"Extracting {chunk_type.get_name()}({chunk_type.get_extension()}) to {chunk_path}..."
     )
     with open(chunk_path, "wb") as f:
-        if chunk_type.is_compressed():
-            f.write(decode_lzss(chunk.data))
-        else:
-            f.write(chunk.data)
+        f.write(chunk.data)
 
 
 def output_file(stage_path: Path, entry: FileListEntry, entry_size: int, file: File):
@@ -853,6 +756,37 @@ def output_file(stage_path: Path, entry: FileListEntry, entry_size: int, file: F
     headers = [chunk.header.encode() for chunk in file.chunks]
     with open(file_path / "headers.json", "w") as f:
         json.dump(headers, f, indent=4)
+
+
+def materialize_decoded_tree(raw_root: Path, decoded_root: Path) -> None:
+    """Build decoded/ from raw/: LZSS-decode .pe2pkg, copy other chunk payloads.
+
+    headers.json and stream/trailer sidecars stay raw-only.
+    """
+    logging.info("Materializing decoded assets under %s", decoded_root)
+    decoded_root.mkdir(parents=True, exist_ok=True)
+
+    for path in sorted(raw_root.rglob("*")):
+        if not path.is_file():
+            continue
+        if path.name in RAW_ONLY_NAMES:
+            continue
+
+        rel = path.relative_to(raw_root)
+        dest = decoded_root / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+
+        if path.suffix == ".pe2pkg":
+            logging.info("  decoding %s", rel)
+            dest.write_bytes(decode_lzss(path.read_bytes()))
+        else:
+            # .spk, .pe2img, .bs, …
+            try:
+                if dest.exists() or dest.is_symlink():
+                    dest.unlink()
+                dest.hardlink_to(path)
+            except OSError:
+                shutil.copy2(path, dest)
 
 
 def extract_stage_0(header: BinaryIO, data: BinaryIO, output: Path):
@@ -986,22 +920,18 @@ def extract_stage_n(data: BinaryIO, output: Path):
         folder_offset += entry.folder_size
 
 
-def create_pkg_summary_(path: Path, stage_idx: int, summary: dict):
+def create_pkg_summary_(path: Path, raw_root: Path, summary: dict):
     for entry in path.iterdir():
         if entry.is_dir():
-            create_pkg_summary_(entry, stage_idx, summary)
+            create_pkg_summary_(entry, raw_root, summary)
         elif entry.is_file() and entry.name.endswith(".pe2pkg"):
             pkg_idx = int(entry.stem)
             with (entry.parent / "headers.json").open("r") as f:
                 headers = json.load(f)
                 header = headers[pkg_idx]
 
-            if stage_idx == 0:
-                pkg_name = Path(*Path(entry).parts[-3:])
-            else:
-                pkg_name = Path(*Path(entry).parts[-4:])
-
-            pkg_name = str(pkg_name).replace("\\", "/")
+            # Keys match PKG_LIST: stage0/file0/1.pe2pkg, stage1/101/file0/3.pe2pkg, …
+            pkg_name = str(entry.relative_to(raw_root)).replace("\\", "/")
             ovr_name = PKG_LIST[pkg_name] if pkg_name in PKG_LIST else "<DUPLICATE>"
             chunk_size = header["chunk_size"]
             load_address = header["unknown2"]
@@ -1014,14 +944,15 @@ def create_pkg_summary_(path: Path, stage_idx: int, summary: dict):
 
 def create_pkg_summary(output_path: Path):
     summary = {}
-    create_pkg_summary_(output_path / "stage0", 0, summary)
-    create_pkg_summary_(output_path / "stage1", 1, summary)
-    create_pkg_summary_(output_path / "stage2", 2, summary)
-    create_pkg_summary_(output_path / "stage3", 3, summary)
-    create_pkg_summary_(output_path / "stage4", 4, summary)
-    create_pkg_summary_(output_path / "stage5", 5, summary)
+    raw_root = output_path / "raw"
+    for stage_idx in range(6):
+        stage_path = raw_root / f"stage{stage_idx}"
+        if stage_path.is_dir():
+            create_pkg_summary_(stage_path, raw_root, summary)
 
-    with open(output_path / "OVR" / "map.json", "w") as f:
+    ovr_dir = output_path / "OVR"
+    ovr_dir.mkdir(parents=True, exist_ok=True)
+    with open(ovr_dir / "map.json", "w") as f:
         json.dump(summary, f, indent=4)
 
 
@@ -1054,30 +985,70 @@ def main():
         pass
 
     output_path: Path = args.output
-    extract_stage_0(args.stage0_header, args.stage0_data, output_path / "stage0")
-    extract_stage_n(args.stage1, output_path / "stage1")
-    extract_stage_n(args.stage2, output_path / "stage2")
-    extract_stage_n(args.stage3, output_path / "stage3")
-    extract_stage_n(args.stage4, output_path / "stage4")
-    extract_stage_n(args.stage5, output_path / "stage5")
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    # raw/     — on-disc stage trees (pkgs still LZSS-compressed)
+    # decoded/ — same layout with .pe2pkg LZSS-decoded (edit/rebuild source)
+    # OVR/     — named overlay aliases for the decomp build (from decoded/)
+    raw_dir = output_path / "raw"
+    decoded_dir = output_path / "decoded"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+
+    extract_stage_0(args.stage0_header, args.stage0_data, raw_dir / "stage0")
+    extract_stage_n(args.stage1, raw_dir / "stage1")
+    extract_stage_n(args.stage2, raw_dir / "stage2")
+    extract_stage_n(args.stage3, raw_dir / "stage3")
+    extract_stage_n(args.stage4, raw_dir / "stage4")
+    extract_stage_n(args.stage5, raw_dir / "stage5")
+
+    materialize_decoded_tree(raw_dir, decoded_dir)
 
     logging.info(f"Copying main executable {executable_disk1.name}")
     shutil.copy(f"{executable_disk1.name}", f"{output_path / 'main.exe'}")
 
-    logging.info("Copying/decoding packages")
+    logging.info("Copying decoded packages into OVR/")
     for src, dst in PKG_LIST.items():
-        src_path = output_path / src
+        # PKG_LIST keys are relative to raw/decoded (e.g. stage0/file0/1.pe2pkg)
+        src_path = decoded_dir / src
         dst_path = output_path / "OVR" / dst
         dst_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(src_path, "rb") as f:
-            pkg_data = f.read()
-        pkg_data = decode_lzss(pkg_data)
-
-        with open(dst_path, "wb") as f:
-            f.write(pkg_data)
+        shutil.copy2(src_path, dst_path)
 
     logging.info("Creating package summary")
     create_pkg_summary(output_path)
+
+    # Emit stages.json + iso_disk*.json and trailer/stream sidecars under raw/.
+    # Best-effort: requires the rom/ tree that holds layout.xml next to the CDF paths.
+    try:
+        from write_manifest import write_manifest
+
+        rom_guess = None
+        s0_hdr = Path(args.stage0_header.name).resolve()
+        # .../rom/USA/disk1/STAGE0.HED -> rom/USA
+        if s0_hdr.parent.name.lower().startswith("disk"):
+            rom_guess = s0_hdr.parent.parent
+        if rom_guess is not None and (rom_guess / "disk1" / "layout.xml").exists():
+            logging.info("Writing stages + ISO manifests for %s", output_path)
+            write_manifest(
+                rom_guess,
+                output_path,
+                stage0_hed=Path(args.stage0_header.name),
+                stage0_cdf=Path(args.stage0_data.name),
+                stage_cdfs={
+                    1: Path(args.stage1.name),
+                    2: Path(args.stage2.name),
+                    3: Path(args.stage3.name),
+                    4: Path(args.stage4.name),
+                    5: Path(args.stage5.name),
+                },
+            )
+        else:
+            logging.warning(
+                "Skipping manifest generation (could not locate rom layout.xml near %s)",
+                s0_hdr,
+            )
+    except Exception:
+        logging.exception("Failed to write pack/ISO manifests")
 
     logging.info("All done!")
 
