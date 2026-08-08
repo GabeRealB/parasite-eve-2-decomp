@@ -11899,3 +11899,24 @@ Rules of thumb:
 3. Chain the next `lui` with an input `"r"(t)` so the Display value occupies
    `$v0` first; that preserves the save interleave (`sw s2` between `addiu`
    and `move`) without a volatile barrier (barriers bulk-save the rest).
+
+## Early-image hasm under `src/main/hasm/`
+
+Named handwritten helpers (see `src/main/hasm/README.md`):
+
+| Symbol | Role |
+|--------|------|
+| `Fs_DecompressChunk` (+ jtbl in same `.s`) | Resumable LZ for FS CD chunks |
+| `Fs_DecompressImage` | Non-resumable LZ for image strips |
+| `Tmd_SetupGteMatrices` | TMD draw: GTE light matrices + transforms |
+
+```yaml
+options:
+  hasm_in_src_path: True
+- [0x808, .rodata, hasm/Fs_DecompressChunk]  # sibling → same .s as hasm
+- { start: 0x824, type: hasm, name: hasm/Fs_DecompressChunk, linker_section_order: .rodata }
+```
+
+Jump table + code live in **one** `Fs_DecompressChunk.s` (`.rodata` then
+`.text`), same pattern as matched TUs with embedded jtbls. Stay hasm forever:
+signed `sub`/`addi`, fixed resume PCs, early-image order, hand GTE.

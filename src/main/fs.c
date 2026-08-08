@@ -351,7 +351,7 @@ u8 Fs_ProcessChunkHeader(void)
             D5B498_8006D850 = 0;
             D5B498_8006D748 = 0;
             D5B498_8006C22C = Fs_CdSector.bytes + 0x10;
-            func_80010024();
+            Fs_DecompressChunk();
             {
                 register s32 d748 asm("v1");
                 d748 = D5B498_8006D748;
@@ -775,7 +775,7 @@ u8 Fs_ProcessChunkData(void)
         case 1:
             CdGetSector(Fs_CdSector.bytes, 0x200);
             D5B498_8006C22C = Fs_CdSector.bytes;
-            func_80010024();
+            Fs_DecompressChunk();
             if (D5B498_8006D748 == 0xFFFF) {
                 goto soft_error;
             }
@@ -1633,7 +1633,7 @@ s32 Fs_LoadImageChunk(FsImageChunk* arg0, u8 arg1)
     rect->w          = img->w;
     Fs_ChunkWritePtr = (u8*)D5B498_8006D870;
     rect->h          = img->h;
-    func_80010398();
+    Fs_DecompressImage();
 
     if (D5B498_8006D748 == 0xFFFF) {
         Fs_ContinueDrawing(ot);

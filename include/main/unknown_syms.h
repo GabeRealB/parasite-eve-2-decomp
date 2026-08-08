@@ -24,13 +24,7 @@
 #define C5F414_OTAG_ENTRIES  0x440
 #define C5F414_OTAG_END_PRIM 0xFFFFFF
 
-// Scratchpad image unpacker in boot rodata (func_80010398); reads
-// D5B498_8006C22C / Fs_ChunkWritePtr globals, takes no meaningful args.
-extern void func_80010398(void);
-
 extern u16 func_8001D82C(void);
-
-extern void func_80010024(void);
 
 // gameflow (src/main/gameflow.c)
 extern void              func_80094B90(s32 arg0);

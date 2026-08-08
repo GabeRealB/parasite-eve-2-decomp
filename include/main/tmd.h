@@ -52,9 +52,15 @@ extern TmdListHead Tmd_List;
 /// Second list head initialized alongside Tmd_List by Tmd_InitLists.
 extern TmdListHead Tmd_ListAlt;
 
-// --- APIs (from unknown_syms) ---
+// --- APIs ---
 void Tmd_ProcessStream(TmdObject* arg0);
 void Tmd_SetupDraw(TmdObject* arg0);
 void Tmd_AllocMissingBuffers(void);
+
+/// Early-image handwritten GTE matrix load (src/main/hasm/Tmd_SetupGteMatrices.s).
+/// `scratch` is the Tmd_SetupDraw scratch block (0x98 bytes).
+void Tmd_SetupGteMatrices(void* scratch, u32 flags, void* stream, TmdObject* node);
+/// Early-image handwritten stream walker (src/main/hasm/Tmd_DispatchStream.s).
+void Tmd_DispatchStream(void* scratch, u32 flags, void* stream);
 
 #endif // TMD_H

@@ -1357,7 +1357,6 @@ typedef struct {
 typedef u32* (*ModelStreamHandler)(ScratchModelBlock* ws, s32 arg1, u32* stream);
 
 extern MATRIX D_80070F34;
-extern void   func_80010848(ScratchDrawBlock* ws, u32 flags, void* stream, TmdObject* node);
 
 void Tmd_InitSourceStream(TmdSource* arg0)
 {
@@ -1906,7 +1905,7 @@ void Tmd_SetupDraw(TmdObject* arg0)
         gte_stclmv(m);
     }
 
-    func_80010848(ws, flags, stream, arg0);
+    Tmd_SetupGteMatrices(ws, flags, stream, arg0);
 
     *scratch = (u8*)*scratch + 0x98;
 }

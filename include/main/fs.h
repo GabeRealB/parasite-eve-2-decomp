@@ -406,6 +406,14 @@ extern u16 CdCmd_EntryIter;
 void Fs_CdReadyCb(u8 status, u8* result);
 u8   Fs_ProcessChunkHeader(void);
 u8   Fs_ProcessChunkData(void);
+
+/// Resumable LZ/bit-stream unpack for CD chunk payloads (handwritten hasm).
+/// Uses globals D5B498_8006C22C / Fs_ChunkWritePtr / D5B498_8006D748; may suspend
+/// mid-stream when the sector buffer ends (resume jtbl in same TU).
+void Fs_DecompressChunk(void);
+/// Non-resumable LZ unpack for image strips before LoadImage2 (handwritten hasm).
+void Fs_DecompressImage(void);
+
 void Fs_InitStage0TablesCb(u8 status, u8* result);
 void Fs_InitFolderTable(s32 stageIdx);
 void Fs_SelectStage(s32 stageIdx);

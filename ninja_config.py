@@ -476,7 +476,14 @@ def ninja_build(
 
                 match seg.type:
                     case (
-                        "asm" | "data" | "sdata" | "bss" | "sbss" | "rodata" | "header"
+                        "asm"
+                        | "hasm"  # handwritten permanent asm (same assemble rule as asm)
+                        | "data"
+                        | "sdata"
+                        | "bss"
+                        | "sbss"
+                        | "rodata"
+                        | "header"
                     ):
                         if re.search("^asm.(USA|JAP).main.*", source_path):
                             ninja_file.build(
