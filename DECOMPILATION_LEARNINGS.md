@@ -12127,3 +12127,59 @@ memcpy(base + ((t - bank) * 8 + bank) * 4, src, 0xE4); /* == bank * 0xE4 */
 
 Same size, same ops, but the address load is scheduled one insn into the
 multiply. `func_8009407C` is the pure example.
+
+## Title fade TILE near-match notes (`func_80093ABC`, ~98.7%)
+
+Exit path and menu loop can be 100%. Remaining gap is pure `addPrim` regalloc
+on two TILE+DR_TPAGE blocks (and 3-insn constant-order: target loads
+`0xFFFFFF` before `0xE100xxxx`).
+
+**Exit path (matched):**
+```c
+asm volatile("" ::: "a0");          /* force move a0,s4 in CallExit delay */
+Task_CallExit(s4);
+{
+    register u32 v0 asm("v0");
+    v0 = GameMain_GetResetCount();  /* lui s0 fills this delay */
+    ds = &Display_State;
+    asm("" : "+r"(v0), "+r"(ds));
+    v0 = v0 + 2;
+    ds->field_12c = v0;
+    asm("" : "+r"(v0), "+m"(ds->field_12c)); /* keep first store */
+    {
+        register u32 a1 asm("a1");
+        a1 = (v0 & 0xFFFF) % 3 + 1;  /* subu a1,a1,v0; addiu a1,a1,1 */
+        ds->field_12c = a1;
+        printf(fmt, a1);             /* sh a1 in printf delay */
+    }
+    Task_Spawn(0, 3, 2, 0);
+    ds->field_100 = 0;               /* in jump delay */
+}
+```
+
+**Menu loop (matched):** pin call args and bump counters before the jal so
+`addiu s2,1` fills the delay; exit-branch delay then holds `li a1,0x20` for the
+next `func_800939C4(..., 0x20, ...)`:
+```c
+do {
+    register s32 a0 asm("a0") = s0;
+    register s32 a1 asm("a1") = s1;
+    register s32 a2 asm("a2") = work->field_10;
+    s1 += 0x10;
+    s0 += 0xE;
+    asm("" : "+r"(a0), "+r"(a1), "+r"(a2), "+r"(s0), "+r"(s1));
+    func_800939C4(a0, a1, a2);
+    s2 += 1;
+} while (s2 < 3);
+```
+
+**TILE color (matched without mask pin):**
+```c
+register TILE* a0 asm("a0");
+register s32 a1 asm("a1") = prev; /* prev from prologue lw a1,0(s3) */
+c = a1 * 16; c = c - 0x3831;      /* sll v0,a1,4; addiu v0,-0x3831 */
+a0->b0 = a0->g0 = a0->r0 = c;
+asm("" : "+r"(a1));               /* keep a1 live → shift dest is v0 not a1 */
+```
+Pinning `t1 = 0xFFFFFF` early (to match the beqz delay) consistently breaks this
+color schedule (`sll a1,a1` / early hoist). That is the remaining matching wall.
