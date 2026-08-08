@@ -8,6 +8,8 @@
 extern u8           D_80071068;
 extern s8           D_800710A9;
 extern s16          D_800710AC;
+extern u_long*      D_800710A0;
+extern DR_TPAGE*    D_80071190;
 extern WipUiHolder* Wip_UiHolder;
 
 /// 5-way task dispatch table at package header + 4 (header.s).
@@ -73,7 +75,33 @@ void func_8009389C(Task* arg0)
     }
 }
 
-INCLUDE_ASM("title/nonmatchings/title", func_800939C4);
+void func_800939C4(s32 y, s32 v, s32 color)
+{
+    SPRT*     p;
+    DR_TPAGE* dr;
+    u8        c;
+
+    c             = color;
+    p             = (SPRT*)D_80071190;
+    D_80071190    = (DR_TPAGE*)(p + 1);
+    p->x0         = -0x80;
+    p->w          = 0x100;
+    p->h          = 0x10;
+    p->clut       = 0x3FC0;
+    *(s32*)&p->r0 = (c << 16) | (c << 8) | c;
+    setlen(p, 4);
+    p->u0 = 0;
+    p->v0 = v;
+    setcode(p, 0x66);
+    p->y0 = y;
+    addPrim(D_800710A0, p);
+
+    dr         = D_80071190;
+    D_80071190 = dr + 1;
+    setlen(dr, 1);
+    dr->code[0] = 0xE10002BC;
+    addPrim(D_800710A0, dr);
+}
 
 INCLUDE_ASM("title/nonmatchings/title", func_80093ABC);
 
