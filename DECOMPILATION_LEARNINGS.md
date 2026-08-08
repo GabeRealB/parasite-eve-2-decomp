@@ -8532,6 +8532,27 @@ Volatile stores cannot move past the subsequent non-volatile load, so order
 matches, while the `lui %hi(D_flag)` still fills the earlier branch delay.
 `Ui_InitList` is the pure example (UiList tail zero-init + `D_80072313`).
 
+Same idea when the target wants `lui %hi(flag)` *between* two groups of
+struct stores (not just in a branch delay):
+
+```
+sw   v0, field_4(s0)     /* li 2; sw */
+lui  v0, %hi(D_flag)     /* scheduled here */
+sw   s2, field_8(s0)
+sw   zero, field_0(s0)
+lb   v0, %lo(D_flag)(v0)
+nop
+beqz v0, ...
+```
+
+A full `asm("" ::: "memory")` before the load restores store order but parks
+`lui` with the `lb` (~99%). Marking *every* store that must precede the load
+as volatile (including earlier ones like `field_14` / `field_4`) lets the
+scheduler place `lui` after the last store that still uses `$v0` for a
+constant, while the later zero/flag stores fill the gap before `lb`. Leaving
+any of those stores non-volatile lets it slip into a delay slot and reorders
+the rest. `func_8009389C` (title init) is the pure example.
+
 ## RECT field store order changes LoadImage arg scheduling
 
 When preparing a stack `RECT` then calling `LoadImage(&rect, global_ptr)`, the
