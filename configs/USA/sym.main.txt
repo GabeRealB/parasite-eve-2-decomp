@@ -32,6 +32,30 @@ Tmd_SetupGteMatrices        = 0x80010848; // type:func
 //--------------------------------------------------------------------
 Tmd_DispatchStream          = 0x80010A20; // type:func
 
+//--------------------------------------------------------------------
+//--- PA: 0x01290   VA: 0x80010A90   subsegment: hasm, Tmd_StreamHandlers_Ops
+//--------------------------------------------------------------------
+Tmd_StreamHandler_Op20      = 0x80010A90; // type:func
+Tmd_StreamHandler_Op60      = 0x80010BF4; // type:func
+Tmd_StreamHandler_OpC0      = 0x80010E1C; // type:func
+Tmd_StreamHandler_Op3A      = 0x80010EF4; // type:func  (alabel, ABR entry into Op38)
+Tmd_StreamHandler_Op38      = 0x80010F08; // type:func
+Tmd_StreamHandler_Op7A      = 0x8001108C; // type:func  (alabel, ABR entry into Op78)
+Tmd_StreamHandler_Op78      = 0x800110A0; // type:func
+Tmd_StreamHandler_OpC8      = 0x800112DC; // type:func
+Tmd_StreamHandler_Op3B      = 0x800113B4; // type:func  (alabel, ABR entry into Op39)
+Tmd_StreamHandler_Op39      = 0x800113E8; // type:func
+Tmd_StreamHandler_Op7B      = 0x800114FC; // type:func  (alabel, ABR entry into Op79)
+Tmd_StreamHandler_Op79      = 0x80011530; // type:func
+Tmd_StreamHandler_Op00      = 0x80011678; // type:func
+Tmd_StreamHandler_Op40      = 0x800117BC; // type:func
+Tmd_StreamHandler_Op1A      = 0x80011994; // type:func  (alabel into Op18)
+Tmd_StreamHandler_Op18      = 0x800119A8; // type:func
+Tmd_StreamHandler_Op58      = 0x80011AF4; // type:func  (alabel into Op5A)
+Tmd_StreamHandler_Op5A      = 0x80011B08; // type:func
+Tmd_StreamHandler_Op130     = 0x8001237C; // type:func
+Tmd_StreamHandler_Op170     = 0x80012520; // type:func
+
 //================================================
 //=== .text section (0x004B00-0x04CB2F)
 //================================================

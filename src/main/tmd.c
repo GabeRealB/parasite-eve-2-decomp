@@ -1234,27 +1234,7 @@ void Stage_TaskExit(Task* arg0)
     Task_CallExit(arg0);
 }
 
-// Undecompiled model stream handlers (same ABI as TmdModelStreamHandler).
-u32* D_80010A90(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_80010BF4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_80010E1C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_80010EF4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_80010F08(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8001108C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_800110A0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_800112DC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_800113B4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_800113E8(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_800114FC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_80011530(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_80011678(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_800117BC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_80011994(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_800119A8(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_80011AF4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_80011B08(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8001237C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_80012520(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+// Other model stream handlers (same ABI as TmdModelStreamHandler; not yet in hasm).
 u32* D_80099994(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* D_80099B94(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* D_80099D40(TmdScratchModelBlock* ws, s32 flags, u32* stream);
@@ -1339,14 +1319,14 @@ void Tmd_InitSourceStream(TmdSource* arg0)
             switch (id) {
                 case 0x20:
                 case 0x22:
-                    handler = D_80010A90;
+                    handler = Tmd_StreamHandler_Op20;
                     break;
                 case 0x60:
                 case 0x62:
-                    handler = D_80010BF4;
+                    handler = Tmd_StreamHandler_Op60;
                     break;
                 case 0xC0:
-                    handler = D_80010E1C;
+                    handler = Tmd_StreamHandler_OpC0;
                     break;
                 case 0xC4:
                     handler = D_8009EAA4;
@@ -1366,7 +1346,7 @@ void Tmd_InitSourceStream(TmdSource* arg0)
                     handler = Tmd_StreamHandler_Prim38;
                     break;
                 case 0x38:
-                    handler = D_80010F08;
+                    handler = Tmd_StreamHandler_Op38;
                     break;
                 case 0x8038:
                     handler = D_80136224;
@@ -1378,13 +1358,13 @@ void Tmd_InitSourceStream(TmdSource* arg0)
                     handler = D_801379B4;
                     break;
                 case 0x3A:
-                    handler = D_80010EF4;
+                    handler = Tmd_StreamHandler_Op3A;
                     break;
                 case 0x1003A:
                     handler = D_80137300;
                     break;
                 case 0x78:
-                    handler = D_800110A0;
+                    handler = Tmd_StreamHandler_Op78;
                     break;
                 case 0x8078:
                     handler = D_8013685C;
@@ -1396,10 +1376,10 @@ void Tmd_InitSourceStream(TmdSource* arg0)
                     handler = D_80138004;
                     break;
                 case 0x7A:
-                    handler = D_8001108C;
+                    handler = Tmd_StreamHandler_Op7A;
                     break;
                 case 0xC8:
-                    handler = D_800112DC;
+                    handler = Tmd_StreamHandler_OpC8;
                     break;
                 case 0x40C8:
                     handler = D_8009AF90;
@@ -1413,24 +1393,24 @@ void Tmd_InitSourceStream(TmdSource* arg0)
                 case 0x31:
                 case 0x39:
                 case 0x131:
-                    handler = D_800113E8;
+                    handler = Tmd_StreamHandler_Op39;
                     break;
                 case 0x8039:
                     handler = D_80136500;
                     break;
                 case 0x3B:
-                    handler = D_800113B4;
+                    handler = Tmd_StreamHandler_Op3B;
                     break;
                 case 0x71:
                 case 0x79:
                 case 0x171:
-                    handler = D_80011530;
+                    handler = Tmd_StreamHandler_Op79;
                     break;
                 case 0x8079:
                     handler = D_80136C00;
                     break;
                 case 0x7B:
-                    handler = D_800114FC;
+                    handler = Tmd_StreamHandler_Op7B;
                     break;
                 case 0x4039:
                     handler = D_80099D40;
@@ -1445,22 +1425,22 @@ void Tmd_InitSourceStream(TmdSource* arg0)
                     }
                     break;
                 case 0:
-                    handler = D_80011678;
+                    handler = Tmd_StreamHandler_Op00;
                     break;
                 case 0x40:
-                    handler = D_800117BC;
+                    handler = Tmd_StreamHandler_Op40;
                     break;
                 case 0x18:
-                    handler = D_800119A8;
+                    handler = Tmd_StreamHandler_Op18;
                     break;
                 case 0x1A:
-                    handler = D_80011994;
+                    handler = Tmd_StreamHandler_Op1A;
                     break;
                 case 0x58:
-                    handler = D_80011AF4;
+                    handler = Tmd_StreamHandler_Op58;
                     break;
                 case 0x5A:
-                    handler = D_80011B08;
+                    handler = Tmd_StreamHandler_Op5A;
                     break;
                 case 0x4078:
                     handler = D_8009C414;
@@ -1502,13 +1482,13 @@ void Tmd_InitSourceStream(TmdSource* arg0)
                     handler = D_8009CED0;
                     break;
                 case 0x130:
-                    handler = D_8001237C;
+                    handler = Tmd_StreamHandler_Op130;
                     break;
                 case 0x70:
                     handler = D_8009D0DC;
                     break;
                 case 0x170:
-                    handler = D_80012520;
+                    handler = Tmd_StreamHandler_Op170;
                     break;
                 case 0x156:
                     handler = D_8009D718;
