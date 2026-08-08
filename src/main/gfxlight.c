@@ -2,25 +2,14 @@
 
 #include "main/unknown_syms.h"
 
-// Layout matches PsyQ GsF_LIGHT (libgs.h is avoided: it redeclares GsClearOt).
-typedef struct {
-    /* 0x00 */ s32 vx;
-    /* 0x04 */ s32 vy;
-    /* 0x08 */ s32 vz;
-    /* 0x0C */ u8  r;
-    /* 0x0D */ u8  g;
-    /* 0x0E */ u8  b;
-} FlatLight;
-
 typedef struct {
     u8      pad[0x10];
     SVECTOR dir;
 } ScratchLightBlock;
 
-extern void   Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out);
-extern MATRIX GsLIGHTWSMATRIX;
+extern void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out);
 
-static __inline__ void setLightToMatrices(s32 id, FlatLight* light, MATRIX* dirMtx, MATRIX* colorMtx)
+static __inline__ void setLightToMatrices(s32 id, GsF_LIGHT* light, MATRIX* dirMtx, MATRIX* colorMtx)
 {
     void**             scratch;
     ScratchLightBlock* block;
@@ -45,9 +34,9 @@ static __inline__ void setLightToMatrices(s32 id, FlatLight* light, MATRIX* dirM
 
 void Gpu_InitDefaultLights(void)
 {
-    FlatLight light0;
-    FlatLight light1;
-    FlatLight light2;
+    GsF_LIGHT light0;
+    GsF_LIGHT light1;
+    GsF_LIGHT light2;
     s32       c100;
     s32       c20;
 
@@ -83,7 +72,7 @@ void Gpu_InitDefaultLights(void)
     D_80074080.t[2] = 0x40;
 }
 
-void Gfx_SetFlatLight(s32 id, FlatLight* light, MATRIX* dirMtx, MATRIX* colorMtx)
+void Gfx_SetFlatLight(s32 id, GsF_LIGHT* light, MATRIX* dirMtx, MATRIX* colorMtx)
 {
     void**             scratch;
     ScratchLightBlock* block;
@@ -106,7 +95,7 @@ void Gfx_SetFlatLight(s32 id, FlatLight* light, MATRIX* dirMtx, MATRIX* colorMtx
     *scratch = (u8*)*scratch + 0x18;
 }
 
-void Gfx_SetDefaultFlatLight(s32 id, FlatLight* light)
+void Gfx_SetDefaultFlatLight(s32 id, GsF_LIGHT* light)
 {
     setLightToMatrices(id, light, &GsLIGHTWSMATRIX, &D_80074080);
 }

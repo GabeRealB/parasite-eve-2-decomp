@@ -5,6 +5,7 @@
 
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 #include "main/task.h"
 
@@ -77,20 +78,6 @@ typedef struct _GpuOtBuf {
     /* 0x10 */ u_long* field_10;
 } GpuOtBuf;
 STATIC_ASSERT_SIZEOF(GpuOtBuf, 0x14);
-
-/// Double-buffered ordering-table descriptor (same layout as PsyQ GsOT).
-/// Used by Gpu_OrderingTables and passed to GsClearOt.
-typedef struct _GameOt {
-    /* 0x00 */ u_long  length;
-    /* 0x04 */ u_long* org;
-    /* 0x08 */ u_long  offset;
-    /* 0x0C */ u_long  point;
-    /* 0x10 */ u_long* tag;
-} GameOt;
-STATIC_ASSERT_SIZEOF(GameOt, 0x14);
-
-/// PsyQ GsClearOt, declared with GameOt* so callers need not include libgs.h.
-void GsClearOt(unsigned short offset, unsigned short point, GameOt* otp);
 
 // =============================================================================
 // Globals

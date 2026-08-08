@@ -9,7 +9,7 @@
 s32 Display_FrameFlipDraw(s32 arg0, s32 arg1)
 {
     DisplayState* temp;
-    GameOt*       ot;
+    GsOT*         ot;
     u_long*       saved;
     u_long*       org;
     s32           size;
@@ -71,7 +71,7 @@ s32 Display_FrameFlipDraw(s32 arg0, s32 arg1)
 Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     DisplayState* temp;
-    GameOt*       ot;
+    GsOT*         ot;
     TaskNode*     saved;
     Task*         ret;
 
@@ -102,7 +102,7 @@ Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 Task* Display_SpawnWithOt(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     DisplayState* temp;
-    GameOt*       ot;
+    GsOT*         ot;
     TaskNode*     saved;
     Task*         ret;
 
@@ -237,7 +237,7 @@ default_case:
 
 void Gpu_InitOtSmall(void)
 {
-    GameOt* ot;
+    GsOT* ot;
 
     ot           = Gpu_OrderingTables;
     ot->length   = 6;
@@ -308,7 +308,7 @@ void Display_FlipOtAlt(void)
 
 void Gpu_InitOt(void)
 {
-    GameOt*       ot;
+    GsOT*         ot;
     DisplayState* temp;
     u_long*       org;
 

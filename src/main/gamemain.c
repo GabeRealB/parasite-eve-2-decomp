@@ -17,17 +17,6 @@
 #include "main/task.h"
 #include "main/unknown_syms.h"
 
-typedef struct _GsCOORDINATE2 {
-    unsigned long          flg;
-    MATRIX                 coord;
-    MATRIX                 workm;
-    void*                  param;
-    struct _GsCOORDINATE2* super;
-    struct _GsCOORDINATE2* sub;
-} GsCOORDINATE2;
-
-extern MATRIX GsWSMATRIX;
-
 void GameMain_Init(void)
 {
     s32 flag; // The indirection is required.
