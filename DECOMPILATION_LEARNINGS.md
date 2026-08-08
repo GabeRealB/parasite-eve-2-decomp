@@ -11845,3 +11845,57 @@ endFlag = Fs_ChunkEndFlag; /* starts with lui EndFlag — same 0x8007 */
 ```
 
 Phase2 then reuses `$2` without a third `lui`.
+
+## GameMain_Loop: prologue `lui v0` / `move sN` without breaking body SRA
+
+Target opens with interleaved callee-save + init:
+
+```
+move s3, zero
+lui  v0, %hi(Display_State)
+addiu v0, v0, %lo(Display_State)
+sw   s2, …(sp)
+move s2, v0
+lui  v0, %hi(D_8005EC80)
+sw   s4, …(sp)
+move s4, v0
+sw   s5; lui s5, %hi(D_8005EC70)
+…
+```
+
+Pinning `ds` to `$s2` and assigning `ds = &Display_State` emits `lui s2` /
+`addiu s2` (2 insns short). Forcing `move s2,v0` via
+
+```c
+__asm__("move %0, %1" : "=r"(ds) : "r"(tmp));
+```
+
+matches the prologue but makes `ds` an **opaque asm result**: later stores
+through `nv = ds` stop filling load-delay slots (e.g. `sb field_10d` after
+`lw field_114` becomes `nop`), and the flip/`ClearOTag` block reorders.
+
+**Fix — CSE with a pure C assignment** so GCC still knows `ds == &Display_State`:
+
+```c
+register DisplayState* t asm("v0");
+t = &Display_State;
+ds = &Display_State; /* CSE → move s2,v0; alias-known */
+{
+    register s32 t4 asm("v0");
+    /* "r"(t) keeps Display load in v0 before EC80 hi reuses it */
+    __asm__("lui %0, %%hi(D_8005EC80)" : "=r"(t4) : "r"(t));
+    __asm__("move %0, %1" : "=r"(s4r) : "r"(t4)); /* s4 only holds %hi */
+}
+__asm__("lui %0, %%hi(D_8005EC70)" : "=r"(s5r)); /* direct lui s5 is fine */
+```
+
+Rules of thumb:
+
+1. Long-lived pointer used for many field stores must stay a **pure C**
+   definition of a known global (`ds = &Display_State`), not an asm `move`
+   into a hard reg — otherwise body SRA dies.
+2. `%hi`-only bases (EC80 / EC70) can use asm `move` into the pin; they are
+   only used as `%lo(sym)(reg)` address bases, so opacity is harmless.
+3. Chain the next `lui` with an input `"r"(t)` so the Display value occupies
+   `$v0` first; that preserves the save interleave (`sw s2` between `addiu`
+   and `move`) without a volatile barrier (barriers bulk-save the rest).

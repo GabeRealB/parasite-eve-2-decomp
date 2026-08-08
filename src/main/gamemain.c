@@ -7,10 +7,14 @@
 #include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 
+#include "main/boot.h"
 #include "main/fs.h"
 #include "main/game.h"
 #include "main/gpuext.h"
 #include "main/mem.h"
+#include "main/pad.h"
+#include "main/sound.h"
+#include "main/task.h"
 #include "main/unknown_syms.h"
 
 typedef struct _GsCOORDINATE2 {
@@ -219,7 +223,376 @@ void GameMain_ShowLoading(s32 arg0)
     }
 }
 
-INCLUDE_ASM("main/nonmatchings/gamemain", GameMain_Loop);
+extern s32 Display_FrameFlipDraw(s32 otCtx, s32 timing, s32 flip);
+extern s32 Display_DispatchModeId(s32 arg0);
+
+void GameMain_Loop(void)
+{
+    s32                    s3;
+    register DisplayState* ds asm("s2");
+    register s32           s4r asm("s4");
+    register s32           s5r asm("s5");
+    register s32           neg1 asm("s6");
+    s32                    ot_hi;
+    GpuOtBuf*              otBase;
+    s32                    skip;
+    s32                    flip;
+    s32                    buf;
+    s32                    vs;
+    s32                    stride;
+    CdCmdQueue*            cq;
+    CdCmdQueue*            q;
+    DRAWENV*               drawBase;
+    DISPENV*               dispBase;
+    PadState*              ps;
+    s32                    t;
+    s32                    wt;
+    u_long*                ot_local;
+    u_long*                p;
+    s32                    a0;
+    s32                    d710;
+    s32                    n;
+    u8                     raw;
+
+    s3 = 0;
+    {
+        register DisplayState* t asm("v0");
+        t  = &Display_State;
+        ds = &Display_State; /* CSE: lui/addiu v0 + move s2; pure C alias */
+        {
+            register s32 t4 asm("v0");
+            /* depend on t so Display load completes in v0 first */
+            __asm__("lui %0, %%hi(D_8005EC80)" : "=r"(t4) : "r"(t));
+            __asm__("move %0, %1" : "=r"(s4r) : "r"(t4));
+        }
+    }
+    __asm__("lui %0, %%hi(D_8005EC70)" : "=r"(s5r));
+    neg1 = -1;
+    __asm__("lui %0, %%hi(Gpu_OtBuffers)" : "=r"(ot_hi));
+    {
+        register s32 v asm("v0");
+        v = *(u8*)&ds->field_1f;
+        /* depend on v so addiu cannot hoist above lbu */
+        __asm__ volatile("addiu %0, %1, %%lo(Gpu_OtBuffers)"
+                         : "=r"(otBase)
+                         : "r"(ot_hi), "r"(v));
+        __asm__ volatile("sw $zero, %%lo(D_8005EC80)(%0)" ::"r"(s4r) : "memory");
+        ds->field_114 = v;
+    }
+    /* Force s4r/s5r as the only EC80/EC70 bases for the whole function */
+    __asm__ volatile("" ::"r"(s4r), "r"(s5r));
+
+    {
+        DisplayState* nv = ds;
+        for (;;) {
+            if (nv->field_11e == 1) {
+                goto do_init;
+            }
+            if (nv->field_11e != 0) {
+                goto after_init;
+            }
+            if (nv->field_130 != 0) {
+                goto after_init;
+            }
+            if (nv->field_12e == 0) {
+                goto after_init;
+            }
+            if (Pad_CheckSpecialCombo() == 0) {
+                goto after_init;
+            }
+        do_init:
+            GameMain_Init();
+            __asm__ volatile("sw $zero, %%lo(D_8005EC80)(%0)" ::"r"(s4r) : "memory");
+        after_init:
+            *(u32*)0x1F8003FC = 0x1F8003FC;
+            Pad_UpdatePort0();
+
+            ps = (PadState*)Pad_States;
+            if (ps->field_0 == 0xFF && ps->field_A == 0 && nv->field_12e != 0 &&
+                nv->field_12f == 0 && nv->field_11e == 0) {
+                GameMain_ShowLoading(1);
+            } else {
+                register s32 _e asm("v0");
+                __asm__ volatile("lw %0, %%lo(D_8005EC80)(%1)" : "=r"(_e) : "r"(s4r));
+                if (_e & 2) {
+                    SndEvt_EnqueueTypeE();
+                    __asm__ volatile("lw %0, %%lo(D_8005EC80)(%1)" : "=r"(_e) : "r"(s4r));
+                    {
+                        register s32 m3 asm("v1");
+                        m3  = -3;
+                        _e &= m3;
+                    }
+                    __asm__ volatile("sw %0, %%lo(D_8005EC80)(%1)" ::"r"(_e), "r"(s4r) : "memory");
+                }
+            }
+
+            ((void (*)(s32))Snd_PollAsync)(0);
+
+            {
+                register s32 _e asm("v0");
+                __asm__ volatile("lw %0, %%lo(D_8005EC80)(%1)" : "=r"(_e) : "r"(s4r));
+                if (_e != 0) {
+                    skip = 0;
+                    /* && short-circuit: reload EC80 only when field_244 != 0 */
+                    if ((s16)CdCmd_Queue.field_244 != 0 &&
+                        !(({
+                              register s32 _e2 asm("v0");
+                              __asm__ volatile("lw %0, %%lo(D_8005EC80)(%1)"
+                                               : "=r"(_e2)
+                                               : "r"(s4r));
+                              _e2;
+                          }) &
+                          8)) {
+                        skip = 1;
+                    } else if (nv->field_108 == 1 && (s8)nv->field_103 == 2) {
+                        skip = 1;
+                    } else if (Fs_CdOpStatus != 0xFF) {
+                        skip = 1;
+                    } else if (GpuExt_IsDisplayEnabled() == 0) {
+                        skip = 1;
+                    }
+                    if (skip == 0) {
+                        register s32 a0 asm("a0");
+                        (void)a0;
+                        VSync(0);
+                        s3 = VSync(1) & 0x7FFF;
+                        Boot_DispatchCdCmd();
+                        continue;
+                    }
+                }
+            }
+
+            nv->field_14 += 1;
+            nv->field_10 += 1;
+            if (nv->field_1e != 0) {
+                goto do_flip_draw;
+            }
+
+            if (nv->field_10d != 0) {
+                u8 mode = nv->field_10d;
+                if ((s32)(mode << 24) < 0) {
+                    goto do_dispatch;
+                }
+                if (nv->field_1d >= 0) {
+                do_dispatch:
+                    Display_DispatchModeId(nv->field_10d);
+                }
+            }
+            if (nv->field_1e != 0) {
+            do_flip_draw:
+                __asm__ volatile("addiu %0, %1, %%lo(Gpu_OtBuffers)" : "=r"(a0) : "r"(ot_hi));
+                s3 = Display_FrameFlipDraw(a0, s3, nv->field_114);
+                continue;
+            }
+
+            flip          = nv->field_114 ^ 1;
+            nv->field_10d = 0;
+            cq            = &CdCmd_Queue;
+            nv->field_114 = flip;
+            nv->field_1f  = (u8)nv->field_114;
+            nv->field_8  += 1;
+            if ((u16)cq->field_222 == 0) {
+                t           = nv->field_4 + 1;
+                nv->field_4 = t + (D_8005EC68 >> 1);
+            }
+
+            ot_local = D5F414_OrderingTables + (u32)flip * C5F414_OTAG_ENTRIES;
+            n        = C5F414_OTAG_ENTRIES;
+            /* Keep ot/n live so li a1 lands right after ot setup, before EC68 loads */
+            __asm__ volatile("" : "+r"(ot_local), "+r"(n));
+            {
+                register s32 d710r asm("s0");
+                s32          half;
+                s32          f10;
+                half = D_8005EC68;
+                f10  = nv->field_10;
+                __asm__ volatile("lui %0, %%hi(D_800710A0)" : "=r"(d710r));
+                __asm__ volatile("sw %0, %%lo(D_800710A0)(%1)" ::"r"(ot_local), "r"(d710r)
+                                 : "memory");
+                nv->field_10 = f10 + (half >> 1);
+                ClearOTagR(ot_local, n);
+                d710 = d710r;
+            }
+            {
+                register s32     endp asm("v1");
+                register u_long* pr asm("v0");
+                __asm__ volatile("lui %0, 0xff" : "=r"(endp));
+                __asm__ volatile("lw %0, %%lo(D_800710A0)(%1)" : "=r"(pr) : "r"(d710));
+                __asm__ volatile("ori %0, %0, 0xffff" : "+r"(endp));
+                *pr = (u_long)endp;
+                pr += 0x20;
+                __asm__ volatile("sw %0, %%lo(D_800710A0)(%1)" ::"r"(pr), "r"(d710)
+                                 : "memory");
+            }
+
+            {
+                register s32 idx asm("a0");
+                idx        = nv->field_114;
+                D_80070EE0 = D_800740E0 + (u32)idx * 0x3000;
+                D_80071190 =
+                    (DR_TPAGE*)((u8*)D_80068F88 + (u32)idx * ((u32)D_80068F90 >> 1));
+                /* Callee reloads Task_DefaultList itself; keep idx in $a0. */
+                Task_ExecDefaultList((TaskNode*)idx);
+            }
+
+            if (nv->field_1e != 0) {
+                continue;
+            }
+
+            Boot_DispatchCdCmd();
+
+            {
+                register s32 z asm("a0");
+                z = 0;
+                if ((s16)nv->field_1a == 0x1E0) {
+                    __asm__ volatile("sw %0, %%lo(D_8005EC70)(%1)" ::"r"(neg1), "r"(s5r) : "memory");
+                    VSync(z);
+                    ResetGraph(1);
+                    buf      = nv->field_114;
+                    drawBase = nv->field_48;
+                    PutDrawEnv((DRAWENV*)((s32)(buf * 0x5C) + (s32)drawBase));
+                    stride   = buf * 0x14;
+                    dispBase = nv->field_20;
+                    {
+                        register s32 a0 asm("a0");
+                        a0 = (s32)dispBase;
+                        PutDispEnv((DISPENV*)(stride + a0));
+                    }
+                    if (nv->field_100 != 0) {
+                        Display_LoadImageStrips(buf);
+                    }
+                    func_80020058();
+                    if (nv->field_104 != 0) {
+                        s3 = 0;
+                        continue;
+                    }
+                    DrawOTag(otBase[buf].field_10);
+                    s3 = 0;
+                    continue;
+                }
+            }
+
+            DrawSync(0);
+            {
+                s32 tmp = VSync(1) - s3;
+                q       = cq;
+                {
+                    register s32  a0r asm("a0");
+                    register u32  acc asm("v1");
+                    register u32* cursor asm("v0");
+                    a0r = tmp & 0x7FFF;
+                    if (q->field_240 != 0) {
+                        cursor = q->field_19C;
+                        acc    = (u32)a0r + q->field_1A0;
+                        if (acc < *cursor) {
+                            register s32 w asm("v0");
+                            do {
+                                w = VSync(1);
+                                w = (w - s3) & 0x7FFF;
+                            } while ((u32)w + q->field_1A0 < *q->field_19C);
+                            {
+                                s32 new_var = VSync(1);
+                                a0r         = (new_var - s3) & 0x7FFF;
+                            }
+                            acc = q->field_1A0 + (u32)a0r;
+                        }
+                        q->field_1A0 = acc;
+                        {
+                            register u32* c asm("v1");
+                            register u32* r asm("v0");
+                            c = q->field_19C;
+                            if (*c != 0) {
+                                r            = c + 1;
+                                q->field_19C = r;
+                                if ((s32)c[1] == neg1) {
+                                    r            = c + 2;
+                                    q->field_19C = r;
+                                }
+                            }
+                        }
+                    }
+                    vs = a0r;
+                }
+            }
+
+            {
+                register s32 lim asm("v0");
+                lim = D_8005EC6C;
+                if (vs < lim) {
+                    register s32 vsarg asm("a0");
+                    vsarg         = D_8005EC68;
+                    nv->field_108 = 0;
+                    {
+                        s32 _t = nv->field_114;
+                        __asm__ volatile("sw %0, %%lo(D_8005EC70)(%1)" ::"r"(_t), "r"(s5r)
+                                         : "memory");
+                    }
+                    VSync(vsarg);
+                    {
+                        s32 _t;
+                        __asm__ volatile("lw %0, %%lo(D_8005EC70)(%1)" : "=r"(_t) : "r"(s5r));
+                        if (_t == (u32)neg1) {
+                            D_8005EC78 = D_8005EC74;
+                            s3         = -D_8005EC74;
+                            goto apply_offset;
+                        }
+                    }
+                    a0 = 1;
+                } else {
+                    register s32 one asm("a0");
+                    register s32 m2 asm("v0");
+                    one = 1;
+                    m2  = -2;
+                    __asm__ volatile("" : "+r"(one), "+r"(m2));
+                    nv->field_108 = 0;
+                    __asm__ volatile("sw %0, %%lo(D_8005EC70)(%1)" ::"r"(m2), "r"(s5r) : "memory");
+                    a0 = one;
+                }
+            }
+
+            D_8005EC78 = 0;
+            s3         = VSync(a0) & 0x7FFF;
+            buf        = nv->field_114;
+            drawBase   = nv->field_48;
+            PutDrawEnv((DRAWENV*)((s32)(buf * 0x5C) + (s32)drawBase));
+            stride   = buf * 0x14;
+            dispBase = nv->field_20;
+            {
+                register s32 a0 asm("a0");
+                a0 = (s32)dispBase;
+                PutDispEnv((DISPENV*)(stride + a0));
+            }
+            if (nv->field_100 != 0) {
+                Display_LoadImageStrips(buf);
+            }
+            func_80020058();
+            if (nv->field_104 == 0) {
+                DrawOTag(otBase[buf].field_10);
+            }
+            __asm__ volatile("sw %0, %%lo(D_8005EC70)(%1)" ::"r"(neg1), "r"(s5r) : "memory");
+
+        apply_offset:
+            raw = *(volatile u8*)&nv->field_126;
+            {
+                register s32 v1r asm("v1");
+                register s32 a0r asm("a0");
+                v1r                    = raw << 24;
+                a0r                    = v1r >> 24;
+                v1r                    = a0r;
+                a0r                   += 0x78;
+                v1r                   += 0x188;
+                nv->field_109          = raw;
+                nv->field_48[0].ofs[1] = a0r;
+                nv->field_48[1].ofs[1] = v1r;
+            }
+
+            (void)ot_hi;
+            (void)otBase;
+            (void)s4r;
+            (void)s5r;
+        }
+    }
+}
 
 void Gfx_InitCoordinateTrees(void)
 {
