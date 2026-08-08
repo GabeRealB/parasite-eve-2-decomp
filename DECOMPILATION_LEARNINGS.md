@@ -11994,3 +11994,28 @@ Writing through `p2[i]` forces `sb …, N(a2)` and breaks the match. Keep `p2`
 live only as the call argument; store via `param2[]`. Combined with
 `register void** scratch asm("s0")` + free via `*scratch = (u8*)*scratch + 8`
 (s0 kept across the jal). `func_80094B90` (title overlay) is the pure example.
+
+## Title overlay switch jtables live after header, from compiler `.rodata`
+
+`src/title/header.s` holds the package header through the last *still-asm*
+function's jump table. When you decompile a switch that used a jtable at the
+end of that header (e.g. `jtbl_8009387C` for `func_80094A08`), remove that
+jtable from `header.s` and let GCC emit it in `title.c.o(.rodata)`.
+
+Linker order is:
+
+```
+header.s.o(.text)   /* package header, shrinks as jtables move out */
+title.c.o(.rodata)  /* compiler jtables, in decompile order */
+title.c.o(.text)
+menu.data.s.o(.data)
+```
+
+If you leave the hardcoded absolute jtable in `header.s` *and* the compiler
+emits its own, the overlay grows by `4 * ncases` and every later VRAM address
+shifts — function body can be 100% in a scratch while `build/USA/out/title`
+checksum fails.
+
+When decompiling the next header jtable function (`func_800947C8`), drop its
+`.word` block from `header.s` the same way so both jtables land only in
+`title.c.o(.rodata)` in original order (947C8 then 94A08).

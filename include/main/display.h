@@ -93,6 +93,8 @@ void  Display_ClampField126(s8 arg0);
 void  Gpu_InitOtSmall(void);
 void  Gpu_InitOt(void);
 Task* Display_SpawnFromMode(void);
+Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+Task* Display_SpawnWithOt(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
 void  Display_FlipOtAndDispatch(s32 arg0);
 void  Display_InvertFramebufferGray(void);
 s32   Display_SetFadeRate(s32 arg0, s32 arg1, s32 arg2, s32 arg3);

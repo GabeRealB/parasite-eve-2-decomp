@@ -7,12 +7,17 @@
 
 extern u8           D_80071068;
 extern s8           D_800710A9;
+extern s16          D_800710AC;
 extern WipUiHolder* Wip_UiHolder;
 
 /// 5-way task dispatch table at package header + 4 (header.s).
 extern TaskFuncTable5 D_80093804;
+/// TaskDesc table for title/demo spawn (menu.data.s).
+extern TaskDesc D_80094C8C;
 /// Stores the result of rand() after each title dispatcher tick.
 extern s32 D_80094CA4;
+/// Title state flag (halfword after D_80094CA4).
+extern u16 D_80094CA8;
 
 /// Title-screen work block stored at Task::field_1C (Mem_Calloc 0x18).
 typedef struct {
@@ -98,7 +103,65 @@ void func_800947A8(Task* arg0)
 
 INCLUDE_ASM("title/nonmatchings/title", func_800947C8);
 
-INCLUDE_ASM("title/nonmatchings/title", func_80094A08);
+void func_80094A08(Task* arg0)
+{
+    u8             param1[4];
+    u8             param2[4];
+    s32            next;
+    register Task* task asm("s0");
+
+    task = arg0;
+    switch (task->field_30) {
+        case 0:
+            Display_State.field_100 = 0;
+            D_80094CA8              = 1;
+            if ((Display_State.field_112 < 0) || (D_800710AC != 0)) {
+                next       = 6;
+                D_80094CA8 = 0;
+            } else {
+                Display_SpawnWithOt(&D_80094C8C, 1, 0, 0);
+                Display_State.field_103 = 1;
+                next                    = task->field_30 + 1;
+            }
+            task->field_30 = next;
+            return;
+        case 1:
+        case 2:
+            task->field_30 = task->field_30 + 1;
+            return;
+        case 3:
+            if (D_80094CA8 != 0) {
+                Task_Spawn(0, 2, 0x80000000, 0);
+            } else {
+                Task_Spawn(0, 2, 0, 0);
+            }
+            /* fallthrough */
+        case 4:
+            task->field_30 = task->field_30 + 1;
+            return;
+        case 5:
+            SetDispMask(1);
+            D_800710AC = 1;
+            Task_Kill(task);
+            return;
+        case 6:
+            param1[3] = 0;
+            param1[2] = 0;
+            param1[0] = 2;
+            param2[0] = 0;
+            param2[1] = 0;
+            param2[2] = 0;
+            param2[3] = 0;
+            CdCmd_Enqueue(0x21, param1, param2);
+            task->field_30 = task->field_30 + 1;
+            /* fallthrough */
+        case 7:
+            if (CdCmd_IsIdle() & 0xFFFF) {
+                task->field_30 = 3;
+            }
+            return;
+    }
+}
 
 void func_80094B90(s32 arg0)
 {
