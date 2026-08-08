@@ -3,6 +3,7 @@
 #include "main/game.h"
 #include "main/task.h"
 
+#include <psyq/libgpu.h>
 #include <psyq/memory.h>
 #include <psyq/rand.h>
 #include <psyq/stdio.h>
@@ -22,11 +23,16 @@ extern u8           D_80073628[2][0x24];
 extern u8           D_80073670[2][0xE4];
 extern u8           D_80073838[2][0xA4];
 extern u8           D_80073980[0x208];
+extern s32          D_8005ED70;
 
 /// 5-way task dispatch table at package header + 4 (header.s).
 extern TaskFuncTable5 D_80093804;
+/// "####DEMO START\n" style string in header.s
+extern char D_80093818[];
 /// "####DEMO_CARD_RESTORE STAGE %d, SCENE %d\n" in header.s
 extern char D_80093830[];
+/// Task spawn id table for title menu selections (menu.data.s).
+extern s32 D_80094C74[];
 /// TaskDesc table for title/demo spawn (menu.data.s).
 extern TaskDesc D_80094C8C;
 /// Stores the result of rand() after each title dispatcher tick.
@@ -39,17 +45,18 @@ extern StreamSlot Stream_Slots[15];
 
 void Display_LoadImageStrips(s32 arg0);
 void Display_ResetHeapWrapper(void);
+u32  GameMain_GetResetCount(void);
 
 /// Title-screen work block stored at Task::field_1C (Mem_Calloc 0x18).
 typedef struct {
-    /* 0x00 */ s32  field_0;
-    /* 0x04 */ s32  field_4;
-    /* 0x08 */ s32  field_8;
-    /* 0x0C */ byte pad_C[0x8];
-    /* 0x14 */ s32  field_14;
-} TitleWork; /* size 0x18 */
+    /* 0x00 */ s32 field_0;  // timer / phase counter
+    /* 0x04 */ s32 field_4;  // menu selection index
+    /* 0x08 */ s32 field_8;  // fade TILE enable
+    /* 0x0C */ s32 field_C;  // intro logo fade
+    /* 0x10 */ s32 field_10; // menu fade
+    /* 0x14 */ s32 field_14; // menu entry count
+} TitleWork;                 /* size 0x18 */
 
-void func_80093ABC(Task* arg0);
 void func_807246B4(void);
 
 void func_8009389C(Task* arg0)
@@ -122,7 +129,232 @@ void func_800939C4(s32 y, s32 v, s32 color)
     addPrim(D_800710A0, dr);
 }
 
-INCLUDE_ASM("title/nonmatchings/title", func_80093ABC);
+void func_80093ABC(Task* arg0)
+{
+    register Task*      s4 asm("s4");
+    register TitleWork* s3 asm("s3");
+    s32                 prev;
+    s32                 cur;
+    s32                 color;
+    s32                 fade;
+    DisplayState*       ds;
+
+    s4          = arg0;
+    s3          = (TitleWork*)s4->field_1C;
+    prev        = s3->field_0;
+    cur         = prev + 1;
+    s3->field_0 = cur;
+
+    if (cur < 0x385) {
+        goto normal;
+    }
+    if (cur >= 0x394) {
+        goto exit_path;
+    }
+    if (s3->field_8 != 0) {
+        /* 939C4-like free allocation for constant order; keep prev live as a1 */
+        register s32   a1 asm("a1");
+        register TILE* a0 asm("a0");
+        DR_TPAGE*      dr;
+        s32            c;
+        s32            h;
+
+        a1 = prev; /* pin after prologue so color uses $a1 */
+        h  = 0xF0;
+
+        a0         = (TILE*)D_80071190;
+        D_80071190 = (DR_TPAGE*)(a0 + 1);
+        setlen(a0, 3);
+        setcode(a0, 0x60);
+        c      = a1 * 16;
+        c      = c - 0x3831;
+        a0->b0 = c;
+        a0->g0 = c;
+        a0->r0 = c;
+        asm("" : "+r"(a1));
+        a0->x0 = -0xA0;
+        a0->y0 = -0x78;
+        a0->w  = 0x140;
+        a0->h  = h;
+        setSemiTrans(a0, 1);
+        addPrim(D_800710A0, a0);
+
+        dr         = D_80071190;
+        D_80071190 = dr + 1;
+        setlen(dr, 1);
+        /* Split like func_800939C4: lui 0xE100 / ori 0x240, after 0xFFFFFF */
+        dr->code[0] = 0xE1000000 | 0x240;
+        addPrim(D_800710A0, dr);
+    }
+    goto end;
+
+exit_path:
+    Wip_SysFlags.field_4 = 0;
+    if (Wip_SysFlags.unknown_0[0] == 1) {
+        asm volatile("" ::: "a0");
+        Task_CallExit(s4);
+        {
+            register u32 v0 asm("v0");
+            v0 = GameMain_GetResetCount();
+            ds = &Display_State;
+            asm("" : "+r"(v0), "+r"(ds));
+            v0            = v0 + 2;
+            ds->field_12c = v0;
+            asm("" : "+r"(v0), "+m"(ds->field_12c));
+            {
+                register u32 a1 asm("a1");
+                a1            = v0 & 0xFFFF;
+                a1            = a1 % 3;
+                a1            = a1 + 1;
+                ds->field_12c = a1;
+                printf(D_80093818, a1);
+            }
+            Task_Spawn(0, 3, 2, 0);
+            ds->field_100 = 0;
+        }
+    } else {
+        D_80071086 = 1;
+    }
+    goto end;
+
+normal:
+    if (s3->field_8 != 0) {
+        if (cur < 0) {
+            TILE*     p;
+            DR_TPAGE* dr;
+            s32       tmp;
+
+            p          = (TILE*)D_80071190;
+            D_80071190 = (DR_TPAGE*)(p + 1);
+            setlen(p, 3);
+            setcode(p, 0x62);
+            tmp   = s3->field_0;
+            p->x0 = -0xA0;
+            p->y0 = -0x78;
+            p->w  = 0x140;
+            p->h  = 0xF0;
+            color = ~(tmp << 4);
+            p->b0 = color;
+            p->g0 = color;
+            p->r0 = color;
+            addPrim(D_800710A0, p);
+
+            dr         = D_80071190;
+            D_80071190 = dr + 1;
+            setlen(dr, 1);
+            dr->code[0] = 0xE1000000 | 0x240;
+            addPrim(D_800710A0, dr);
+        }
+    }
+
+    if (s4->field_30 != 3) {
+        goto intro;
+    }
+
+    if (s3->field_10 < 0x80) {
+        s3->field_10 = s3->field_10 + 8;
+    }
+
+    {
+        register s32 s2 asm("s2");
+        register s32 s1 asm("s1");
+        register s32 s0 asm("s0");
+
+        s2 = 0;
+        s1 = 0x30;
+        s0 = 0x38;
+        do {
+            register s32 a0 asm("a0");
+            register s32 a1 asm("a1");
+            register s32 a2 asm("a2");
+            a0  = s0;
+            a1  = s1;
+            a2  = s3->field_10;
+            s1 += 0x10;
+            s0 += 0xE;
+            asm("" : "+r"(a0), "+r"(a1), "+r"(a2), "+r"(s0), "+r"(s1));
+            func_800939C4(a0, a1, a2);
+            s2 += 1;
+        } while (s2 < 3);
+    }
+
+    func_800939C4(((s3->field_4 - 2) * 0xE) + 0x38, 0x20, s3->field_10);
+
+    {
+        s32 f = s3->field_10;
+        s32 q = f;
+        if (q < 0) {
+            q += 7;
+        }
+        func_800939C4((q >> 3) + 0x40, 0, 0x80 - f);
+    }
+    func_800939C4(0x5C, 0x10, 0x80 - s3->field_10);
+
+    if (s3->field_10 < 0x80) {
+        goto end;
+    }
+
+    if (Pad_CheckButtons(0, 1, 0x4000) != 0) {
+        s3->field_0 = 0;
+        s3->field_4 = s3->field_4 + 1;
+        SndEvt_EnqueueType6(2, 0, 0);
+        if (s3->field_4 >= s3->field_14) {
+            s3->field_4 = s3->field_4 - s3->field_14;
+        }
+        if (s3->field_4 == 0) {
+            s3->field_4 = 1;
+        }
+        if (s3->field_4 == 1) {
+            s3->field_4 = 2;
+        }
+        goto end;
+    }
+
+    if (Pad_CheckButtons(0, 1, 0x1000) != 0) {
+        s3->field_0 = 0;
+        s3->field_4 = s3->field_4 - 1;
+        SndEvt_EnqueueType6(2, 0, 0);
+        if (s3->field_4 == 1) {
+            s3->field_4 = 0;
+        }
+        if (s3->field_4 == 0) {
+            s3->field_4 = -1;
+        }
+        if (s3->field_4 < 0) {
+            s3->field_4 = s3->field_4 + s3->field_14;
+        }
+        goto end;
+    }
+
+    if (Pad_CheckButtons(0, 1, D_8005ED70 | 0x800) != 0) {
+        SndEvt_EnqueueType6(3, 0, 0);
+        Task_Spawn(0, D_80094C74[s3->field_4], 0, 0);
+        D_80071068 = 0;
+        Task_CallExit(s4);
+    }
+    goto end;
+
+intro:
+    if (s3->field_C < 0x80) {
+        s3->field_C = s3->field_C + 8;
+    }
+    fade = s3->field_C;
+    {
+        s32 q = 0x80 - fade;
+        if (q < 0) {
+            q += 7;
+        }
+        func_800939C4(0x40 - (q >> 3), 0, fade);
+    }
+    func_800939C4(0x5C, 0x10, 0x80);
+    if (Pad_CheckButtons(0, 1, D_8005ED70 | 0x800) != 0) {
+        SndEvt_EnqueueType6(3, 0, 0);
+        s3->field_0  = 0;
+        s4->field_30 = s4->field_30 + 1;
+    }
+end:
+    return;
+}
 
 /// Restore demo card / save banks from D_8005C374 (or 0x80600100 when D_80071094 == 0x10).
 /// Preserves Mc_SaveData.field_21 / field_23 across the bulk copy.

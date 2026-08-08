@@ -12128,39 +12128,57 @@ memcpy(base + ((t - bank) * 8 + bank) * 4, src, 0xE4); /* == bank * 0xE4 */
 Same size, same ops, but the address load is scheduled one insn into the
 multiply. `func_8009407C` is the pure example.
 
-## Title fade TILE near-match notes (`func_80093ABC`, ~98.7%)
+## Split `0xE1000000 | tpage` so mask loads before tpage OR (`func_80093ABC`)
 
-Exit path and menu loop can be 100%. Remaining gap is pure `addPrim` regalloc
-on two TILE+DR_TPAGE blocks (and 3-insn constant-order: target loads
-`0xFFFFFF` before `0xE100xxxx`).
+When a TILE+`DR_TPAGE` block needs target order:
 
-**Exit path (matched):**
+1. `li` / load `0xFFFFFF` (for `setSemiTrans` / OT mask) **before**
+2. `lui …,0xE100` / `ori …,tpage`
+
+writing a single immediate `dr->code[0] = 0xE1000240` (or any pre-folded
+`0xE1000xxx`) often schedules the tpage constant too early and steals the reg
+that should hold the mask — or it hoists color math and breaks a later
+`sll`/`addiu` color schedule.
+
+**Fix:** write the GPU command as two operands so CSE/const folding emits
+`lui 0xE100` + `ori tpage` *after* the mask materialization, matching
+`func_800939C4`-style schedules:
+
 ```c
-asm volatile("" ::: "a0");          /* force move a0,s4 in CallExit delay */
-Task_CallExit(s4);
-{
-    register u32 v0 asm("v0");
-    v0 = GameMain_GetResetCount();  /* lui s0 fills this delay */
-    ds = &Display_State;
-    asm("" : "+r"(v0), "+r"(ds));
-    v0 = v0 + 2;
-    ds->field_12c = v0;
-    asm("" : "+r"(v0), "+m"(ds->field_12c)); /* keep first store */
-    {
-        register u32 a1 asm("a1");
-        a1 = (v0 & 0xFFFF) % 3 + 1;  /* subu a1,a1,v0; addiu a1,a1,1 */
-        ds->field_12c = a1;
-        printf(fmt, a1);             /* sh a1 in printf delay */
-    }
-    Task_Spawn(0, 3, 2, 0);
-    ds->field_100 = 0;               /* in jump delay */
-}
+setlen(dr, 1);
+dr->code[0] = 0xE1000000 | 0x240; /* not 0xE1000240 as one literal */
+addPrim(D_800710A0, dr);
 ```
 
-**Menu loop (matched):** pin call args and bump counters before the jal so
-`addiu s2,1` fills the delay; exit-branch delay then holds `li a1,0x20` for the
-next `func_800939C4(..., 0x20, ...)`:
+Do **not** pin `t1 = 0xFFFFFF` early to force the mask into a delay slot: that
+consistently wrecks TILE color (`sll a1,a1` / early hoist). Keep the color path
+with a live `a1` pin of `prev` instead:
+
 ```c
+register TILE* a0 asm("a0");
+register s32 a1 asm("a1") = prev; /* prev from prologue lw a1,0(s3) */
+c = a1 * 16; c = c - 0x3831;      /* sll v0,a1,4; addiu v0,-0x3831 */
+a0->b0 = a0->g0 = a0->r0 = c;
+asm("" : "+r"(a1));               /* keep a1 live → shift dest is v0 not a1 */
+```
+
+Related delay-slot / pin patterns used on the same function (exit + menu):
+
+```c
+/* CallExit delay: force move a0,s4 */
+asm volatile("" ::: "a0");
+Task_CallExit(s4);
+
+/* GetResetCount result stays in v0; first field_12c store survives CSE */
+register u32 v0 asm("v0");
+v0 = GameMain_GetResetCount();
+ds = &Display_State;
+asm("" : "+r"(v0), "+r"(ds));
+v0 = v0 + 2;
+ds->field_12c = v0;
+asm("" : "+r"(v0), "+m"(ds->field_12c));
+
+/* Menu loop: bump s0/s1 before jal so addiu s2 fills delay */
 do {
     register s32 a0 asm("a0") = s0;
     register s32 a1 asm("a1") = s1;
@@ -12172,14 +12190,3 @@ do {
     s2 += 1;
 } while (s2 < 3);
 ```
-
-**TILE color (matched without mask pin):**
-```c
-register TILE* a0 asm("a0");
-register s32 a1 asm("a1") = prev; /* prev from prologue lw a1,0(s3) */
-c = a1 * 16; c = c - 0x3831;      /* sll v0,a1,4; addiu v0,-0x3831 */
-a0->b0 = a0->g0 = a0->r0 = c;
-asm("" : "+r"(a1));               /* keep a1 live → shift dest is v0 not a1 */
-```
-Pinning `t1 = 0xFFFFFF` early (to match the beqz delay) consistently breaks this
-color schedule (`sll a1,a1` / early hoist). That is the remaining matching wall.
