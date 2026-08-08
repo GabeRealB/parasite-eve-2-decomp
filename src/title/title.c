@@ -3,17 +3,30 @@
 #include "main/game.h"
 #include "main/task.h"
 
+#include <psyq/memory.h>
 #include <psyq/rand.h>
+#include <psyq/stdio.h>
 
 extern u8           D_80071068;
 extern s8           D_800710A9;
 extern s16          D_800710AC;
+extern u16          D_80071094;
+extern u8           D_80071086;
 extern u_long*      D_800710A0;
 extern DR_TPAGE*    D_80071190;
 extern WipUiHolder* Wip_UiHolder;
+extern u16*         D_8005C374;
+extern u8           D_800733F0[2][0x6C];
+extern u8           D_800734C8[2][0xB0];
+extern u8           D_80073628[2][0x24];
+extern u8           D_80073670[2][0xE4];
+extern u8           D_80073838[2][0xA4];
+extern u8           D_80073980[0x208];
 
 /// 5-way task dispatch table at package header + 4 (header.s).
 extern TaskFuncTable5 D_80093804;
+/// "####DEMO_CARD_RESTORE STAGE %d, SCENE %d\n" in header.s
+extern char D_80093830[];
 /// TaskDesc table for title/demo spawn (menu.data.s).
 extern TaskDesc D_80094C8C;
 /// Stores the result of rand() after each title dispatcher tick.
@@ -105,7 +118,59 @@ void func_800939C4(s32 y, s32 v, s32 color)
 
 INCLUDE_ASM("title/nonmatchings/title", func_80093ABC);
 
-INCLUDE_ASM("title/nonmatchings/title", func_8009407C);
+/// Restore demo card / save banks from D_8005C374 (or 0x80600100 when D_80071094 == 0x10).
+/// Preserves Mc_SaveData.field_21 / field_23 across the bulk copy.
+void func_8009407C(void)
+{
+    u8* src;
+    s32 saveField23;
+    s32 saveField21;
+    s32 bank;
+    s32 t;
+    u8* base;
+
+    src         = (u8*)D_8005C374;
+    bank        = 0;
+    saveField23 = Mc_SaveData.field_23;
+    saveField21 = Mc_SaveData.field_21;
+    if (D_80071094 == 0x10) {
+        src = (u8*)0x80600100;
+    }
+    printf(D_80093830, Mc_SaveData.field_7, Mc_SaveData.field_6);
+
+    memcpy(&Mc_SaveData, src, sizeof(McSaveData));
+    src += sizeof(McSaveData);
+
+    memcpy((u8*)&Wip_SysConfig + bank * 0x40, src, 0x40);
+    src += 0x40;
+
+    memcpy(D_800733F0[bank], src, 0x6C);
+    src += 0x6C;
+
+    memcpy(D_800734C8, src, 0xB0);
+    src += 0xB0;
+
+    memcpy(D_80073628, src, 0x24);
+    src += 0x24;
+
+    /* bank * 0xE4, split so GCC interleaves lui of D_80073670 after first sll */
+    t    = bank * 8;
+    base = (u8*)D_80073670;
+    memcpy(base + ((t - bank) * 8 + bank) * 4, src, 0xE4);
+    src += 0xE4;
+
+    memcpy(D_80073838, src, 0xA4);
+    src += 0xA4;
+
+    memcpy(&D_80073980[bank * 0x100], src, 0x100);
+
+    Mc_SaveData.field_23 = saveField23;
+    Mc_SaveData.field_21 = saveField21;
+    if (Fs_StageCdfIsAvailable(Mc_SaveData.field_7) != 1) {
+        D_80071086 = 1;
+    }
+    printf(D_80093830, Mc_SaveData.field_7, Mc_SaveData.field_6);
+}
 
 void func_8009470C(Task* arg0)
 {

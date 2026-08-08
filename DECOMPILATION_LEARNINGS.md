@@ -12019,3 +12019,53 @@ checksum fails.
 When decompiling the next header jtable function (`func_800947C8`), drop its
 `.word` block from `header.s` the same way so both jtables land only in
 `title.c.o(.rodata)` in original order (947C8 then 94A08).
+
+## `s32` temps for preserved `s8` loads (`lb`, not `lbu`)
+
+When a function loads two `s8` struct fields early, keeps them in saved regs
+across a large body, then stores them back with `sb`, a `s8` temp is not enough:
+
+```c
+s8 save = p->field_s8;  /* still emits lbu — high bits never observed */
+```
+
+Promote through `s32` so the load is a true signed byte load:
+
+```c
+s32 save = p->field_s8; /* emits lb */
+…
+p->field_s8 = save;     /* sb */
+```
+
+`func_8009407C` (title demo-card restore) needs this for
+`Mc_SaveData.field_21` / `field_23`. The struct fields themselves must also be
+`s8` (see also the `D_80072189` / `D_8007218B` aliases).
+
+## Interleave `lui` into a `index * 0xE4` multiply (title `D_80073670`)
+
+Target schedule after a preceding memcpy remainder:
+
+```
+addiu s0, s0, 0x24
+sll   v0, s2, 3          /* start bank*0xE4 */
+lui   v1, %hi(arr)
+addiu v1, v1, %lo(arr)
+subu  v0, v0, s2
+sll   v0, v0, 3
+addu  v0, v0, s2
+sll   v0, v0, 2
+addu  a0, v0, v1
+```
+
+`memcpy(arr[bank], …)` and `memcpy((u8*)arr + bank * 0xE4, …)` put `lui` either
+before the whole multiply or after it. Force the first `sll` then the symbol
+load by splitting:
+
+```c
+s32 t    = bank * 8;
+u8* base = (u8*)D_80073670;
+memcpy(base + ((t - bank) * 8 + bank) * 4, src, 0xE4); /* == bank * 0xE4 */
+```
+
+Same size, same ops, but the address load is scheduled one insn into the
+multiply. `func_8009407C` is the pure example.
