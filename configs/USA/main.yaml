@@ -106,7 +106,7 @@ segments:
       - [0x3b58, .rodata, cdvol] # jtbl from Cd_InitStateMachine
       - [0x3b74, o, libspu/s_sca, .rdata]
       - [0x3bb4, o, libspu/spu, .rdata]
-      - [0x3c04, rodata, gamemain_1] # GameMain / display setup (unmatched residual)
+      - [0x3c04, .rodata, gamemain] # GameMain_PauseText ("PAUSE!")
       - [0x3c0c, o, libgs/gs_123, .rdata]
       - [0x3c9c, o, libpad/padentry, .rdata]
       - [0x3cbc, rodata, gameflow_1] # game-flow jtbls (func_8002C1D8 still unmatched)

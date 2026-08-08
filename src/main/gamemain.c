@@ -141,6 +141,9 @@ void Display_VSyncCallback(void)
     D_8005EC74 = VSync(1) - (temp_s4 & 0xFFFF);
 }
 
+// Drawn by GameMain_ShowLoading (must stay in .rodata for this TU).
+const u8 GameMain_PauseText[] = "PAUSE!";
+
 void GameMain_ShowLoading(s32 arg0)
 {
     TextDrawReq   sp10;
@@ -196,7 +199,7 @@ void GameMain_ShowLoading(s32 arg0)
             sp10.field_D = one;
             sp10.field_E = 0x10;
             sp10.field_2 = 6 - ds->field_109;
-            func_8002E53C(&sp10, D_80013404);
+            func_8002E53C(&sp10, GameMain_PauseText);
 
             buf      = ds->field_1f ^ 1;
             drawBase = ds->field_48;

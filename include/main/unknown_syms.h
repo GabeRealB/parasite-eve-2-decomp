@@ -213,10 +213,8 @@ extern volatile s32 D_8005EC78;
 // Display/CD busy flags shared with the VSync path (GameMain_ShowLoading / GameMain_Loop).
 extern volatile s32 D_8005EC80;
 // Immediate-mode TILE / DR_TPAGE scratch for the "now loading" overlay.
-extern TILE     D_8006EC18;
-extern DR_TPAGE D_8006EC28;
-// "NOW LOADING" (or similar) string drawn by GameMain_ShowLoading.
-extern u8           D_80013404[];
+extern TILE         D_8006EC18;
+extern DR_TPAGE     D_8006EC28;
 extern char         D_80013B64[]; // "Select"
 extern s8           D_800138BC[]; // "99999999"
 extern s8           D_800138C8[]; // "0"
