@@ -11947,3 +11947,29 @@ D_80071068 = 1;
 ```
 
 That restores `lui`/`li`/`sb` then `lw`/`nop`/`addiu`/`jr`/`sw` (delay slot).
+
+## Early `a2` for CdCmd param block, stores via stack slots
+
+When the target sets `addiu a2, sp, 0x10` early (third arg of `CdCmd_Enqueue`)
+but still writes the 4-byte param block with `sb …, 0x1N(sp)` (not `sb …, N(a2)`):
+
+```c
+s8  param2[4];
+u8* p2;
+
+arg0 = arg0 + 0xA;   /* addiu a0, a0, 0xa early */
+p2   = (u8*)param2;  /* addiu a2, sp, 0x10 early */
+
+/* … scratch alloc, Game_Session side effects … */
+
+param2[0] = arg0;    /* sb a0, 0x10(sp) — write through the array */
+param2[3] = 0;
+param2[2] = 0;
+param2[1] = 0;
+CdCmd_Enqueue(0x21, param1, p2);  /* use p2 only at the call */
+```
+
+Writing through `p2[i]` forces `sb …, N(a2)` and breaks the match. Keep `p2`
+live only as the call argument; store via `param2[]`. Combined with
+`register void** scratch asm("s0")` + free via `*scratch = (u8*)*scratch + 8`
+(s0 kept across the jal). `func_80094B90` (title overlay) is the pure example.

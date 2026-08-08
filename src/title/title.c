@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "main/game.h"
 #include "main/task.h"
 
 #include <psyq/rand.h>
@@ -45,4 +46,34 @@ INCLUDE_ASM("title/nonmatchings/title", func_800947C8);
 
 INCLUDE_ASM("title/nonmatchings/title", func_80094A08);
 
-INCLUDE_ASM("title/nonmatchings/title", func_80094B90);
+void func_80094B90(s32 arg0)
+{
+    s8              param2[4];
+    u8*             param1;
+    register void** scratch asm("s0");
+    register void*  head asm("v1");
+    GameSession*    gs;
+    u8*             p2;
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    gs      = Game_Session;
+    arg0    = arg0 + 0xA;
+    p2      = (u8*)param2;
+
+    head     = *scratch;
+    param1   = (u8*)head - 8;
+    *scratch = param1;
+
+    gs->field_80    = 0;
+    param1[3]       = 0;
+    param1[2]       = 0x50;
+    ((u8*)head)[-8] = 0;
+
+    param2[0] = arg0;
+    param2[3] = 0;
+    param2[2] = 0;
+    param2[1] = 0;
+    CdCmd_Enqueue(0x21, param1, p2);
+
+    *scratch = (u8*)*scratch + 8;
+}
