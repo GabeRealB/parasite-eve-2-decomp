@@ -128,7 +128,17 @@ while true; do
     break
   fi
 
-  simplest_func=$(python3 tools/score_functions.py asm/USA/main/nonmatchings/ 2>&1)
+  # Score every overlay under asm/USA/*/nonmatchings (main, title, …)
+  # so the vacuum always picks the global easiest unmatched function.
+  mapfile -t NONMATCHING_DIRS < <(
+    find asm/USA -mindepth 2 -maxdepth 2 -type d -name nonmatchings | sort
+  )
+  if [[ ${#NONMATCHING_DIRS[@]} -eq 0 ]]; then
+    echo "Error: No nonmatchings directories found under asm/USA"
+    break
+  fi
+
+  simplest_func=$(python3 tools/score_functions.py "${NONMATCHING_DIRS[@]}" 2>&1)
   if [[ -z "$simplest_func" ]] || echo "$simplest_func" | grep -qF "Error:"; then
     echo "$simplest_func"
     break

@@ -3,11 +3,12 @@
 Score assembly functions by complexity and find the simplest one to decompile.
 
 Usage:
-    python3 tools/score_functions.py <folder_path>
-    python3 tools/score_functions.py asm/nonmatchings/displaylist
-    python3 tools/score_functions.py --exhaustive asm/
-    python3 tools/score_functions.py --score-func func_800B6544_1E35F4 asm/
-    python3 tools/score_functions.py --min-score 100 --max-score 200 asm/
+    python3 tools/score_functions.py <folder_path> [folder_path ...]
+    python3 tools/score_functions.py asm/USA/main/nonmatchings
+    python3 tools/score_functions.py asm/USA/main/nonmatchings asm/USA/title/nonmatchings
+    python3 tools/score_functions.py --exhaustive asm/USA/main/nonmatchings
+    python3 tools/score_functions.py --score-func func_800B6544_1E35F4 asm/USA/main/nonmatchings
+    python3 tools/score_functions.py --min-score 100 --max-score 200 asm/USA/main/nonmatchings
 """
 
 import sys
@@ -17,7 +18,7 @@ import argparse
 import numpy as np
 from pathlib import Path
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import List, Sequence
 
 
 def decompilation_difficulty_score(instructions, branches, jumps, labels):
@@ -338,30 +339,48 @@ def score_folder(folder_path: str, exhaustive: bool = False) -> List[FunctionSco
         folder_path: Path to the folder to scan
         exhaustive: If True, parse multi-function .s files individually
     """
+    return score_folders([folder_path], exhaustive=exhaustive)
 
-    if not os.path.isdir(folder_path):
-        print(f"Error: '{folder_path}' is not a valid directory", file=sys.stderr)
+
+def score_folders(
+    folder_paths: Sequence[str], exhaustive: bool = False
+) -> List[FunctionScore]:
+    """Score assembly functions across one or more folders (and subdirectories).
+
+    Args:
+        folder_paths: Paths to scan (e.g. all overlay nonmatchings dirs)
+        exhaustive: If True, parse multi-function .s files individually
+    """
+    scores: List[FunctionScore] = []
+    found_any_asm = False
+
+    for folder_path in folder_paths:
+        if not os.path.isdir(folder_path):
+            print(f"Error: '{folder_path}' is not a valid directory", file=sys.stderr)
+            sys.exit(1)
+
+        asm_files = list(Path(folder_path).glob("**/*.s"))
+        if not asm_files:
+            print(
+                f"Warning: No .s files found in '{folder_path}'",
+                file=sys.stderr,
+            )
+            continue
+
+        found_any_asm = True
+        for asm_file in asm_files:
+            if exhaustive:
+                file_scores = parse_multi_function_file(str(asm_file))
+                scores.extend(file_scores)
+            else:
+                score = analyze_function(str(asm_file))
+                if score is not None:  # Skip jump tables / data
+                    scores.append(score)
+
+    if not found_any_asm:
+        paths = ", ".join(f"'{p}'" for p in folder_paths)
+        print(f"Error: No .s files found in {paths}", file=sys.stderr)
         sys.exit(1)
-
-    # Find all .s files recursively
-    asm_files = list(Path(folder_path).glob("**/*.s"))
-
-    if not asm_files:
-        print(f"Error: No .s files found in '{folder_path}'", file=sys.stderr)
-        sys.exit(1)
-
-    # Score each function
-    scores = []
-    for asm_file in asm_files:
-        if exhaustive:
-            # Parse multi-function files
-            file_scores = parse_multi_function_file(str(asm_file))
-            scores.extend(file_scores)
-        else:
-            # Original behavior - one function per file
-            score = analyze_function(str(asm_file))
-            if score is not None:  # Skip jump tables
-                scores.append(score)
 
     # Sort by complexity (lowest first)
     scores.sort(key=lambda s: s.total_score)
@@ -395,15 +414,18 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python3 tools/score_functions.py asm/nonmatchings/displaylist
-  python3 tools/score_functions.py --exhaustive asm/
-  python3 tools/score_functions.py --score-func func_800B6544_1E35F4 asm/
-  python3 tools/score_functions.py --min-score 100 --max-score 200 asm/
-  python3 tools/score_functions.py --exhaustive --min-score 50 asm/
+  python3 tools/score_functions.py asm/USA/main/nonmatchings
+  python3 tools/score_functions.py asm/USA/main/nonmatchings asm/USA/title/nonmatchings
+  python3 tools/score_functions.py --exhaustive asm/USA/main/nonmatchings
+  python3 tools/score_functions.py --score-func func_800B6544_1E35F4 asm/USA/main/nonmatchings
+  python3 tools/score_functions.py --min-score 100 --max-score 200 asm/USA/main/nonmatchings
+  python3 tools/score_functions.py --exhaustive --min-score 50 asm/USA/main/nonmatchings
         """,
     )
     parser.add_argument(
-        "folder_path", help="Path to folder containing .s assembly files"
+        "folder_paths",
+        nargs="+",
+        help="Path(s) to folder(s) containing .s assembly files (e.g. all overlay nonmatchings)",
     )
     parser.add_argument(
         "--exhaustive",
@@ -429,11 +451,13 @@ Examples:
     )
 
     args = parser.parse_args()
+    folder_paths = args.folder_paths
+    paths_display = ", ".join(f"'{p}'" for p in folder_paths)
 
     # If --score-func is specified, search for that specific function
     if args.score_func:
-        scores = score_folder(
-            args.folder_path, exhaustive=True
+        scores = score_folders(
+            folder_paths, exhaustive=True
         )  # Always use exhaustive mode for specific function search
 
         # Find the matching function
@@ -441,7 +465,7 @@ Examples:
 
         if not matching_scores:
             print(
-                f"Error: Function '{args.score_func}' not found in '{args.folder_path}'",
+                f"Error: Function '{args.score_func}' not found in {paths_display}",
                 file=sys.stderr,
             )
             sys.exit(1)
@@ -457,7 +481,7 @@ Examples:
 
         sys.exit(0)
 
-    scores = score_folder(args.folder_path, exhaustive=args.exhaustive)
+    scores = score_folders(folder_paths, exhaustive=args.exhaustive)
 
     # Load difficult functions to exclude (only in non-exhaustive mode)
     difficult_functions = set()
