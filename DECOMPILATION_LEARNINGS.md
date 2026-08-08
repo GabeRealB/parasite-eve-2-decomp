@@ -11920,3 +11920,30 @@ options:
 Jump table + code live in **one** `Fs_DecompressChunk.s` (`.rodata` then
 `.text`), same pattern as matched TUs with embedded jtbls. Stay hasm forever:
 signed `sub`/`addi`, fixed resume PCs, early-image order, hand GTE.
+
+## Global store before struct field RMW (pointer temp)
+
+When the target does a global store first, then load/add/store a struct field
+(`sb` to a BSS flag, then `lw`/`addiu`/`sw` of `task->field_30`), writing the
+obvious C:
+
+```c
+D_80071068 = 1;
+arg0->field_30++;
+```
+
+lets GCC 2.8.1 schedule the field load *before* the global store and delete the
+load-delay `nop`, shrinking the function and shifting every later address.
+
+`volatile` on the global alone does **not** stop that reorder. Take the address
+of the field into a local pointer first so the RMW is a pair of `*p` ops after
+the store:
+
+```c
+s32* p = &arg0->field_30;
+
+D_80071068 = 1;
+(*p)++;
+```
+
+That restores `lui`/`li`/`sb` then `lw`/`nop`/`addiu`/`jr`/`sw` (delay slot).
