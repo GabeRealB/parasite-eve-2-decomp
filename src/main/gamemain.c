@@ -212,9 +212,6 @@ void GameMain_ShowLoading(s32 arg0)
     }
 }
 
-extern s32 Display_FrameFlipDraw(s32 otCtx, s32 timing, s32 flip);
-extern s32 Display_DispatchModeId(s32 arg0);
-
 void GameMain_Loop(void)
 {
     s32                    s3;

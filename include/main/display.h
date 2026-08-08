@@ -91,6 +91,7 @@ void  Display_SetMode(s32 arg0);
 void  Display_SetAutoClear(s32 arg0, s32 arg1, s32 arg2);
 void  Display_ClampField126(s8 arg0);
 void  Gpu_InitOtSmall(void);
+void  Gpu_InitOt(void);
 Task* Display_SpawnFromMode(void);
 void  Display_FlipOtAndDispatch(s32 arg0);
 void  Display_InvertFramebufferGray(void);
@@ -98,5 +99,8 @@ s32   Display_SetFadeRate(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void  Display_SetFadeMax(u8 arg0);
 s32   Display_InitModeObj(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
 void  Gpu_ResetGraphAndOt(void);
+/// arg2 is unused; GameMain_Loop passes Display_State.field_114 for match.
+s32 Display_FrameFlipDraw(s32 arg0, s32 arg1, s32 arg2);
+s32 Display_DispatchModeId(s32 arg0);
 
 #endif // DISPLAY_H

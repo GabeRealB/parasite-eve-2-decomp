@@ -360,6 +360,7 @@ extern MATRIX   D_80070E94;
 extern u8*      D_80070EE0; // primitive buffer cursor
 extern GpuOtBuf Gpu_OtBuffers[2];
 extern MATRIX   D_80070F14;
+extern MATRIX   D_80070F34;
 // VSync countdown; written/read by Display_VSyncCallback (VSync callback).
 extern volatile s32 D_80070F64;
 extern u_long*      D_800710A0; // current OT base

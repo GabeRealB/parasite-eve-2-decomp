@@ -6,7 +6,7 @@
 
 #include <psyq/libetc.h>
 
-s32 Display_FrameFlipDraw(s32 arg0, s32 arg1)
+s32 Display_FrameFlipDraw(s32 arg0, s32 arg1, s32 arg2)
 {
     DisplayState* temp;
     GsOT*         ot;

@@ -1,13 +1,12 @@
 #include "common.h"
 
+#include "main/gamemain.h"
 #include "main/unknown_syms.h"
 
 typedef struct {
     u8      pad[0x10];
     SVECTOR dir;
 } ScratchLightBlock;
-
-extern void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out);
 
 static __inline__ void setLightToMatrices(s32 id, GsF_LIGHT* light, MATRIX* dirMtx, MATRIX* colorMtx)
 {

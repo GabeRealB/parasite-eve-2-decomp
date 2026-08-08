@@ -936,8 +936,6 @@ void CdReady_Poll(void)
     }
 }
 
-void CdStream_Continue(void);
-
 void CdStream_Start(CdStreamParams* arg0)
 {
     CdReadyEntry                     entry;

@@ -1319,8 +1319,6 @@ u32* D_801379B4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* D_80138004(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* D_801386EC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 
-extern MATRIX D_80070F34;
-
 void Tmd_InitSourceStream(TmdSource* arg0)
 {
     u32*                  stream;

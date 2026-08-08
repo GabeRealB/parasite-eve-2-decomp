@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 // =============================================================================
 // Functions — src/main/gamemain.c
 // =============================================================================
@@ -19,5 +21,7 @@ void GameMain_ShowLoading(s32 arg0);
 void Gfx_InitCoordinateTrees(void);
 void GameMain_SetFrameTiming(s32 arg0);
 void Gfx_InitGraph(void);
+/// Normalize light direction for GTE (src/main/gfxmtx.c).
+void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out);
 
 #endif // GAMEMAIN_H
