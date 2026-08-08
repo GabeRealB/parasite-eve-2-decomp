@@ -1,0 +1,2 @@
+// Reloc overrides for the title menu overlay.
+// Add entries here when splat misidentifies a reloc (same format as rel.main.txt).

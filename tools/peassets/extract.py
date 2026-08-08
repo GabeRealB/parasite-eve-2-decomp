@@ -148,7 +148,7 @@ STREAMING_LIST_ENTRY_SIZE = 0x28
 
 PKG_LIST = {
     "stage0/file0/1.pe2pkg": "stage0_001",
-    "stage0/file1/5.pe2pkg": "stage0_002",
+    "stage0/file1/5.pe2pkg": "title",
     "stage0/file100300/3.pe2pkg": "stage0_003",
     "stage0/file100400/3.pe2pkg": "stage0_004",
     "stage0/file100500/3.pe2pkg": "stage0_005",
@@ -870,7 +870,6 @@ def extract_stage_0(header: BinaryIO, data: BinaryIO, output: Path):
     for i, entry in enumerate(streaming_list):
         logging.info(entry)
         # TODO: Extract entry
-        pass
 
     file_list: list[FileListEntry] = []
     header.seek(0x78)

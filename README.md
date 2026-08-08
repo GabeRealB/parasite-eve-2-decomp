@@ -31,7 +31,7 @@ Descriptions are best-effort: source path and load address come from `assets/USA
 | Overlay | Description | Status |
 |---|---|---|
 | `stage0_001` | Battle / combat UI — source `stage0/file0/1.pe2pkg` — load `0x80093800` — 520 KiB | Not started |
-| `stage0_002` | Title / demo / main menu — source `stage0/file1/5.pe2pkg` — load `0x80093800` — 5.2 KiB | Not started |
+| `title` | Title / demo / main menu — source `stage0/file1/5.pe2pkg` — load `0x80093800` — 5.2 KiB | Split (asm only) |
 | `stage0_003` | Stage 0 overlay (file id 100300) — source `stage0/file100300/3.pe2pkg` — load `0x80131E20` — 88.9 KiB | Not started |
 | `stage0_004` | Stage 0 overlay (file id 100400) — source `stage0/file100400/3.pe2pkg` — load `0x80131E20` — 88.2 KiB | Not started |
 | `stage0_005` | Empty placeholder package — source `stage0/file100500/3.pe2pkg` — load `0x80131E20` — 4 B | Not started |

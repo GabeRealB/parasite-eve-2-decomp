@@ -75,7 +75,8 @@ class YamlInfo:
     split_undef_sym: str
 
 
-YAML_EXECUTABLE = ["main.yaml"]
+# Each entry is a splat config under configs/<version>/. main first; overlays after.
+YAML_EXECUTABLE = ["main.yaml", "title.yaml"]
 
 # Directories
 ASSETS_DIR = Path("assets")

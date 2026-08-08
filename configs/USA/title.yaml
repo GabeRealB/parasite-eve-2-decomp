@@ -1,0 +1,77 @@
+# Title / demo / main menu overlay
+# Source: stage0/file1/5.pe2pkg (LZSS → assets/USA/OVR/title)
+# Load address: 0x80093800  size: 0x14AA (5290)
+name: Title Menu Overlay
+sha1: ccc10f4db298c1afea9f184230da4aa42f5beefd
+options:
+  basename: title
+  target_path: assets/USA/OVR/title
+  base_path: ../..
+  platform: psx
+  compiler: GCC
+
+  asm_path: asm/USA/title
+  src_path: src/title
+  build_path: build/USA
+  # Permanent header.s lives under src/ (not wiped by reconfigure).
+  hasm_in_src_path: True
+
+  ld_script_path: linkers/USA/title.ld
+
+  # Flat pe2pkg overlay: no PS-X EXE header. Layout is
+  #   header/rodata (jtbls + strings) → .text → trailing data (menu strings)
+  # so section_order must keep .rodata before .text before .data.
+  migrate_rodata_to_functions: True
+  find_file_boundaries: False
+  pair_rodata_to_text: False
+
+  o_as_suffix: False
+  use_legacy_include_asm: False
+
+  asm_function_macro: glabel
+  asm_jtbl_label_macro: jlabel
+  asm_data_macro: dlabel
+  generate_asm_macros_files: False
+
+  # Binary order: header rodata, code, menu-string data
+  section_order: [".rodata", ".text", ".data", ".sdata", ".sbss", ".bss"]
+  symbol_addrs_path:
+    # Main imports (shared) + overlay-local. Avoid `// rom:` on main symbols.
+    - configs/USA/sym.main.txt
+    - configs/USA/sym.title.txt
+  reloc_addrs_path:
+    - configs/USA/rel.title.txt
+
+  undefined_funcs_auto_path: linkers/USA/undefined_funcs_auto.title.txt
+  undefined_syms_auto_path: linkers/USA/undefined_syms_auto.title.txt
+
+  subalign: 4
+
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+  ld_bss_is_noload: True
+  # File ends at an unaligned size (0x14AA); do not pad sections to align.
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+
+segments:
+  - name: title
+    type: code
+    start: 0x0
+    vram: 0x80093800
+    align: 4
+    subalign: 4
+    subsegments:
+      # Header hasm ordered into leading image region (see src/title/header.s)
+      - { start: 0x0, type: hasm, name: header, linker_section_order: .rodata }
+      # Title / demo / main-menu logic
+      - [0x9C, c, title]
+      # Menu item strings ("New Game", "Load Game", …) + tables
+      # Plain `data` (not `.data`): dotted sibling is not linked as its own object.
+      - [0x140C, data, menu]
+      # Trailing 2 zero bytes past the last word (file size 0x14AA)
+      - [0x14A8, pad]
+  - [0x14AA]
