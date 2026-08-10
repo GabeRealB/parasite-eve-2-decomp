@@ -11,10 +11,10 @@ Example ``stages.json`` (flat stage map; each stage is files *or* folders)::
     {
       "stage0": {
         "files": {
-          "file0": {
-            "0.spk": { "path": "decoded/stage0/file0/0.spk", "type": "music" },
+          "gameplay": {
+            "0.spk": { "path": "decoded/stage0/gameplay/0.spk", "type": "music" },
             "1.pe2pkg": {
-              "path": "decoded/stage0/file0/1.pe2pkg",
+              "path": "decoded/stage0/gameplay/gameplay.pe2pkg",
               "type": "room_pkg",
               "load_address": "0x80093800"
             }
@@ -33,6 +33,8 @@ Example ``stages.json`` (flat stage map; each stage is files *or* folders)::
     }
 
 ``files`` → STAGE0-style HED+CDF. ``folders`` → STAGEn.CDF with folder table.
+File/folder dict keys use friendly names from ``names.NAMES`` when set (else
+``file0`` / ``101``). Chunk keys stay disc-order basenames (``1.pe2pkg``).
 Key order is on-disc order. Trailers / streams / layout still come from ``raw/``.
 """
 
@@ -81,6 +83,12 @@ from format import (  # noqa: E402
     validate_sector_len,
 )
 from lzss import decode_lzss, encode_lzss  # noqa: E402
+from names import (  # noqa: E402
+    disk_file_rel,
+    disk_folder_rel,
+    resolve_file_id,
+    resolve_folder_id,
+)
 
 
 def load_json(path: Path) -> Any:
@@ -280,21 +288,20 @@ def build_file_blob_from_contents(
     return pad_to(bytes(out), align_up(len(out), SECTOR_SIZE))
 
 
-def file_id_from_name(name: str) -> int:
-    """Parse file id from a contents dict key like 'file123'."""
-    if not name.startswith("file"):
-        raise ValueError(f"file name must look like 'file123', got {name!r}")
-    return int(name[4:])
-
-
 def resolve_raw_file_dir(
     contents: dict[str, dict[str, Any]] | list[dict[str, Any]],
     assets_dir: Path,
     *,
     file_name: str,
+    stage: int | None = None,
+    folder_id: int | None = None,
     stage_rel: str | None = None,
 ) -> Path:
-    """Infer raw/stage…/fileN directory for trailers from content paths or name."""
+    """Infer raw/… file directory for trailers from content paths or names.
+
+    Prefer the ``path`` field (already uses friendly names). Fall back to
+    :func:`disk_file_rel` when stage/file ids are known, else legacy stage_rel.
+    """
     items = contents.values() if isinstance(contents, dict) else contents
     for content in items:
         path = content.get("path")
@@ -308,8 +315,15 @@ def resolve_raw_file_dir(
             if rest:
                 return assets_dir / "raw" / Path(*rest)
         if parts and parts[-1] == "raw.bin" and "raw" in parts:
-            # raw/stage0/file40105/raw.bin -> raw/stage0/file40105
+            # raw/stage0/gameplay/raw.bin -> raw/stage0/gameplay
             return assets_dir / Path(*parts[:-1])
+    if stage is not None:
+        try:
+            file_id = resolve_file_id(file_name, stage=stage, folder_id=folder_id)
+        except ValueError:
+            file_id = None
+        if file_id is not None:
+            return assets_dir / "raw" / disk_file_rel(stage, file_id, folder_id)
     if stage_rel is not None:
         return assets_dir / "raw" / stage_rel / file_name
     return assets_dir / "raw" / "stage0" / file_name
@@ -380,15 +394,29 @@ def build_files_stage(
     if not isinstance(files_map, dict):
         raise TypeError(f"{stage_name}.files must be an ordered dict of file_name → chunks")
 
+    stage_index = (
+        parse_int(str(stage_name).replace("stage", ""))
+        if str(stage_name).startswith("stage")
+        else None
+    )
+
+    if stage_index is None:
+        raise ValueError(f"cannot parse stage index from {stage_name!r}")
+
     built_files: list[tuple[int, bytes]] = []
     for file_name, chunks in files_map.items():
-        file_id = file_id_from_name(file_name)
+        file_id = resolve_file_id(file_name, stage=stage_index, folder_id=None)
         if not isinstance(chunks, (dict, list)):
             raise TypeError(
                 f"{stage_name}.files[{file_name!r}] must be a dict of chunk_name → fields"
             )
         raw_dir = resolve_raw_file_dir(
-            chunks, assets_dir, file_name=file_name, stage_rel=stage_name
+            chunks,
+            assets_dir,
+            file_name=file_name,
+            stage=stage_index,
+            folder_id=None,
+            stage_rel=stage_name,
         )
         blob = build_file_blob_from_contents(chunks, assets_dir, raw_file_dir=raw_dir)
         built_files.append((file_id, blob))
@@ -466,15 +494,20 @@ def build_stage_n_folder(
         )
 
     built: list[tuple[int, bytes]] = []
-    stage_rel = f"stage{stage_index}/{folder_id}"
     for file_name, chunks in files_map.items():
-        file_id = file_id_from_name(file_name)
+        file_id = resolve_file_id(
+            file_name, stage=stage_index, folder_id=folder_id
+        )
         if not isinstance(chunks, (dict, list)):
             raise TypeError(
                 f"folder {folder_id}[{file_name!r}] must be a dict of chunk_name → fields"
             )
         raw_dir = resolve_raw_file_dir(
-            chunks, assets_dir, file_name=file_name, stage_rel=stage_rel
+            chunks,
+            assets_dir,
+            file_name=file_name,
+            stage=stage_index,
+            folder_id=folder_id,
         )
         built.append(
             (
@@ -485,7 +518,7 @@ def build_stage_n_folder(
             )
         )
 
-    raw_folder = assets_dir / "raw" / f"stage{stage_index}" / str(folder_id)
+    raw_folder = assets_dir / "raw" / disk_folder_rel(stage_index, folder_id)
     layout_path = raw_folder / "layout.json"
     retail_offsets: dict[int, int] | None = None
     retail_folder_size: int | None = None
@@ -591,7 +624,7 @@ def build_stage_n(
 
     built_folders: list[tuple[int, bytes]] = []
     for folder_key, files_map in folders_map.items():
-        folder_id = parse_int(folder_key)
+        folder_id = resolve_folder_id(str(folder_key), stage=stage_index)
         built_folders.append(
             build_stage_n_folder(folder_id, files_map, assets_dir, stage_index)
         )

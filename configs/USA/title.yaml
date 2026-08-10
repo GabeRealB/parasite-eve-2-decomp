@@ -1,5 +1,5 @@
 # Title / demo / main menu overlay
-# Source: stage0/file1/5.pe2pkg (LZSS → assets/USA/OVR/title)
+# Source: stage0/title/title.pe2pkg (canonical id stage0/file1/5; LZSS → assets/USA/OVR/title)
 # Load address: 0x80093800  size: 0x14AA (5290)
 name: Title Menu Overlay
 sha1: ccc10f4db298c1afea9f184230da4aa42f5beefd

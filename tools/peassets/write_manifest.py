@@ -56,6 +56,13 @@ from format import (  # noqa: E402
     streaming_entry_to_json,
     validate_sector_len,
 )
+from names import (  # noqa: E402
+    chunk_filename,
+    disk_file_rel,
+    disk_folder_rel,
+    stages_file_key,
+    stages_folder_key,
+)
 
 
 def read_chunks_size(data: bytes, offset: int) -> int | None:
@@ -181,16 +188,23 @@ def _dump_streaming_json(path: Path, entries: list[dict[str, Any]]) -> None:
 
 
 def _contents_from_raw_file(
-    assets_dir: Path, *, stage_rel: str, file_id: int
+    assets_dir: Path,
+    *,
+    stage: int,
+    file_id: int,
+    folder_id: int | None = None,
 ) -> dict[str, dict[str, Any]]:
     """Build an ordered contents dict for one file (name → pack fields).
 
-    Keys are asset basenames (``0.spk``, ``1.pe2pkg``, ``raw.bin``); order is
-    on-disc chunk order.
+    Dict keys are always disc-order basenames (``0.spk``, ``1.pe2pkg``, …).
+    ``path`` points at the on-disk location, which may use friendly names from
+    ``names.NAMES`` (e.g. ``decoded/stage0/gameplay/gameplay.pe2pkg``).
+    File/folder keys in stages.json use the same friendly names when set.
     """
-    raw_file_dir = assets_dir / "raw" / stage_rel / f"file{file_id}"
+    disk_rel = disk_file_rel(stage, file_id, folder_id)
+    raw_file_dir = assets_dir / "raw" / disk_rel
     headers_path = raw_file_dir / "headers.json"
-    decoded_file_dir = f"decoded/{stage_rel}/file{file_id}"
+    decoded_file_dir = f"decoded/{disk_rel}"
 
     headers: list[Any] = []
     if headers_path.exists():
@@ -201,7 +215,7 @@ def _contents_from_raw_file(
         if raw_bin.exists():
             return {
                 "raw.bin": {
-                    "path": f"raw/{stage_rel}/file{file_id}/raw.bin",
+                    "path": f"raw/{disk_rel}/raw.bin",
                     "type": "raw",
                 }
             }
@@ -212,9 +226,11 @@ def _contents_from_raw_file(
         chunk_type = resolve_chunk_type(header["chunk_type"])
         ext = chunk_type.get_extension()
         type_id = chunk_type_id(chunk_type)
-        name = f"{idx}{ext}"
+        # stages.json key: stable disc-order name (not the friendly on-disk name)
+        key = f"{idx}{ext}"
+        disk_name = chunk_filename(stage, file_id, idx, ext, folder_id)
         entry: dict[str, Any] = {
-            "path": f"{decoded_file_dir}/{name}",
+            "path": f"{decoded_file_dir}/{disk_name}",
             "type": type_id,
         }
         # sector_len: exclusive end offset in the CD sector buffer (default 0x800).
@@ -227,7 +243,7 @@ def _contents_from_raw_file(
         load_addr = header.get("unknown2", "0x0")
         if type_id in ("room_pkg", "cap2") and int(str(load_addr), 0) != 0:
             entry["load_address"] = load_addr
-        contents[name] = entry
+        contents[key] = entry
     return contents
 
 
@@ -284,7 +300,7 @@ def collect_stage0(
         else:
             span_end = len(cdf)
 
-        raw_file_dir = assets_dir / "raw" / "stage0" / f"file{entry.file_id}"
+        raw_file_dir = assets_dir / "raw" / disk_file_rel(0, entry.file_id, None)
         chunk_size = read_chunks_size(cdf, entry.file_offset)
 
         if chunk_size is None:
@@ -302,8 +318,8 @@ def collect_stage0(
                         raw_file_dir.mkdir(parents=True, exist_ok=True)
                         (raw_file_dir / "trailer.bin").write_bytes(trailer)
 
-        contents_map[f"file{entry.file_id}"] = _contents_from_raw_file(
-            assets_dir, stage_rel="stage0", file_id=entry.file_id
+        contents_map[stages_file_key(0, entry.file_id, None)] = _contents_from_raw_file(
+            assets_dir, stage=0, file_id=entry.file_id, folder_id=None
         )
 
     return {"files": contents_map}
@@ -325,7 +341,7 @@ def collect_stage_n(
 
         root = folder_offset
         folder_size = fl_entry.folder_size
-        raw_folder = assets_dir / "raw" / f"stage{stage_index}" / str(fl_entry.folder_id)
+        raw_folder = assets_dir / "raw" / disk_folder_rel(stage_index, fl_entry.folder_id)
         raw_folder.mkdir(parents=True, exist_ok=True)
 
         file_list = []
@@ -374,6 +390,7 @@ def collect_stage_n(
             {"file_id": e.file_id, "offset": f"0x{e.file_offset:X}"} for e in file_list
         ]
         meta = {
+            "folder_id": fl_entry.folder_id,
             "folder_size": f"0x{folder_size:X}",
             "content_end": f"0x{content_end:X}",
             "files": layout,
@@ -383,10 +400,14 @@ def collect_stage_n(
             f.write("\n")
 
         # Ordered dict: insertion order matches CDF file list.
+        # stages.json file/folder keys use names.NAMES when set.
         folder_files: dict[str, dict[str, dict[str, Any]]] = {}
-        stage_rel = f"stage{stage_index}/{fl_entry.folder_id}"
         for i, entry in enumerate(file_list):
-            raw_file_dir = raw_folder / f"file{entry.file_id}"
+            raw_file_dir = (
+                assets_dir
+                / "raw"
+                / disk_file_rel(stage_index, entry.file_id, fl_entry.folder_id)
+            )
             abs_off = root + entry.file_offset
             next_off = (
                 file_list[i + 1].file_offset
@@ -405,11 +426,16 @@ def collect_stage_n(
                     if trailer:
                         raw_file_dir.mkdir(parents=True, exist_ok=True)
                         (raw_file_dir / "trailer.bin").write_bytes(trailer)
-            folder_files[f"file{entry.file_id}"] = _contents_from_raw_file(
-                assets_dir, stage_rel=stage_rel, file_id=entry.file_id
+            folder_files[
+                stages_file_key(stage_index, entry.file_id, fl_entry.folder_id)
+            ] = _contents_from_raw_file(
+                assets_dir,
+                stage=stage_index,
+                file_id=entry.file_id,
+                folder_id=fl_entry.folder_id,
             )
 
-        folders_map[str(fl_entry.folder_id)] = folder_files
+        folders_map[stages_folder_key(stage_index, fl_entry.folder_id)] = folder_files
         folder_offset += folder_size
 
     return {"folders": folders_map}
