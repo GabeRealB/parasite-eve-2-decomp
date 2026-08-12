@@ -206,7 +206,7 @@ python3 tools/peassets/lzss_roundtrip_report.py --log layout_diff.log
 | `0x1` | Image | `.pe2img` | `Fs_CopyWorkEntries` + `Fs_LoadImageStrip` | Sequential LZSS strips → VRAM |
 | `0x2` | Color lookup table | `.pe2clut` | `Fs_LoadImageChunk` + `Fs_DecompressImage` | 16-byte image header + LZSS → ABGR1555 |
 | `0x4` | Dialogue / cap2 | `.pe2cap2` | (package-like) | Often has load address |
-| `0x5` | Room background | `.bs` | MDEC path | PSX bitstream; **not** PNG-decoded yet |
+| `0x5` | Room background | `.bs` | MDEC path | PSX BS v2 → PNG (320×240) |
 | `0x6` | Music | `.spk` | SPU / SPK loader | |
 | `0x7` | Ascii | `.txt` | | |
 
@@ -425,8 +425,24 @@ the highest-scoring row recovers the real map. Meta JSON notes
 ## 8. Room backgrounds (`.bs`)
 
 - Chunk type `0x5`.
-- PSX MDEC / “BS” bitstream backgrounds.
-- Not yet converted to PNG in this repo; stored as opaque blobs.
+- PSX **BS version 2** MDEC bitstream (same demuxed frame format as STR v2):
+
+  | Offset | Size | Field |
+  |--------|------|--------|
+  | 0 | u16 | `mdec_code_count_div2` |
+  | 2 | u16 | magic `0x3800` |
+  | 4 | u16 | frame quantisation scale |
+  | 6 | u16 | version (`2`) |
+  | 8 | … | VLC bitstream (16-bit LE words, MSB-first after byte-swap) |
+
+- Macroblocks are 16×16, ordered **column-major** (top→bottom, then next
+  column). Each MB is Cr, Cb, Y1, Y2, Y3, Y4 (8×8 blocks). PE2 retail
+  backgrounds are **320×240** (20×15 MBs).
+- Extract: `raw/bs/*.bs` (on-disc) → `bs/*.png` + `*.bs.json` via
+  `tools/peassets/bs_codec.py` / `asset_decode.materialize_bs_asset`.
+- Pack **matching** prefers `raw/bs/` for bit-identity. Hybrid/decoded (or
+  matching with missing raw) re-encodes PNG→BS v2 via `encode_bs_v2` (lossy
+  DCT; uses meta `quant_scale` when present).
 - Often appear with a CLUT and/or image overlay in the same stage file.
 
 ---
@@ -550,7 +566,7 @@ Dependencies: see `requirements.txt` (includes **Pillow** for PNG).
 
 ## 13. Known gaps / open questions
 
-- **`.bs` MDEC** backgrounds: structure not fully documented here; no PNG path yet.
+- **`.bs` BS v2 MDEC** backgrounds: decoded to PNG on extract (see §8).
 - **Exact bpp** is not stored in the image chunk; exporters **guess** (and use a
   sibling CLUT when present). Meta JSON records the choice for re-encode.
 - **Which CLUT row** an 8 bpp texture uses when `h > 1` is not known offline

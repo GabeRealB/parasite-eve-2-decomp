@@ -112,10 +112,11 @@ LZSS_ON_DISC_TYPES = frozenset(
 class PackSource(str, Enum):
     """Pack source mode.
 
-    * **matching** (default) — LZSS on-disc types from ``raw/{type}/`` when
-      present (retail clean payloads); other assets from inflated type dirs.
+    * **matching** (default) — on-disc blobs from ``raw/{type}/`` when present
+      (LZSS types, ``.bs`` backgrounds, etc.); other assets from inflated dirs.
     * **raw** — only ``raw/{type}/`` (on-disc blobs; no re-encode).
-    * **hybrid** / **decoded** — inflated type dirs; re-encode LZSS types.
+    * **hybrid** / **decoded** — inflated type dirs; re-encode LZSS / BS
+      types from PNG (BS re-encode is lossy).
     """
 
     MATCHING = "matching"
@@ -181,15 +182,17 @@ def resolve_content_path(
     already a clean on-disc payload (no LZSS/PNG re-encode).
     """
     needs_lzss = chunk_type in LZSS_ON_DISC_TYPES
+    # Prefer retail raw for LZSS types and BS (re-encode is lossy).
+    prefer_raw = needs_lzss or chunk_type == FileChunkType.RoomBackground
     staged = resolve_path(assets_dir, path_str)
 
     if source == PackSource.RAW:
         raw_path = path_under_raw_type_store(assets_dir, path_str, chunk_type)
         if not raw_path.exists():
             raise FileNotFoundError(f"missing raw content: {raw_path}")
-        return raw_path, needs_lzss
+        return raw_path, True
 
-    if source == PackSource.MATCHING and needs_lzss:
+    if source == PackSource.MATCHING and prefer_raw:
         raw_path = path_under_raw_type_store(assets_dir, path_str, chunk_type)
         if raw_path.exists():
             return raw_path, True
@@ -198,11 +201,12 @@ def resolve_content_path(
             "matching pack: missing raw %s; re-encoding from inflated", raw_path
         )
 
-    # hybrid / decoded / matching non-LZSS / matching LZSS fallback
+    # hybrid / decoded / matching non-LZSS / matching LZSS/BS fallback
     path = staged
     if not path.exists() and chunk_type in (
         FileChunkType.Image,
         FileChunkType.Clut,
+        FileChunkType.RoomBackground,
     ):
         for alt in (path.with_suffix(".png"), path):
             if alt.exists():
@@ -216,6 +220,8 @@ def resolve_content_path(
         return path, False
     if chunk_type in (FileChunkType.Image, FileChunkType.Clut):
         return path, suffix in (".pe2img", ".pe2clut")
+    if chunk_type == FileChunkType.RoomBackground:
+        return path, suffix == ".bs"
     return path, False
 
 
@@ -350,6 +356,14 @@ def prepare_on_disc_payload(
             chunk_size=chunk_size,
         )
 
+    if chunk_type == FileChunkType.RoomBackground:
+        return _prepare_bs_payload(
+            content_path=content_path,
+            decoded_payload=payload,
+            sector_len=sector_len,
+            chunk_size=chunk_size,
+        )
+
     if not payload and content_path is not None:
         raise FileNotFoundError(f"missing payload: {content_path}")
 
@@ -431,6 +445,40 @@ def _prepare_image_payload(
     raise FileNotFoundError(
         f"missing image payload ({content_path})"
     )
+
+
+def _prepare_bs_payload(
+    *,
+    content_path: Path | None,
+    decoded_payload: bytes,
+    sector_len: int,
+    chunk_size: int | None,
+) -> bytes:
+    """PNG (+ meta) or raw ``.bs`` → clean BS payload."""
+    if content_path is not None:
+        suf = content_path.suffix.lower()
+        if suf == ".png":
+            from asset_decode import encode_bs_from_png_path
+
+            encoded = encode_bs_from_png_path(content_path)
+            if encoded is None:
+                raise FileNotFoundError(
+                    f"failed to encode BS from {content_path}"
+                )
+            return ensure_clean_payload(
+                encoded, sector_len=sector_len, chunk_size=chunk_size
+            )
+        if suf == ".bs":
+            return ensure_clean_payload(
+                content_path.read_bytes(),
+                sector_len=sector_len,
+                chunk_size=chunk_size,
+            )
+    if decoded_payload:
+        return ensure_clean_payload(
+            decoded_payload, sector_len=sector_len, chunk_size=chunk_size
+        )
+    raise FileNotFoundError(f"missing BS payload ({content_path})")
 
 
 def build_file_blob_from_contents(

@@ -26,7 +26,7 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 TYPE_DIRS = ("pe2pkg", "pe2img", "pe2clut", "pe2cap2", "bs", "spk", "txt")
-IMAGE_EXTS = {".png", ".pe2img", ".pe2clut"}
+IMAGE_EXTS = {".png", ".pe2img", ".pe2clut", ".bs"}
 TEXT_EXTS = {".txt", ".json", ".md", ".xml", ".cnf"}
 PREVIEW_HEX_BYTES = 512
 PREVIEW_TEXT_CHARS = 200_000
@@ -115,8 +115,13 @@ def prefer_raw_blob(assets_root: Path, path: Path) -> Path:
         return path
     suf = path.suffix.lower()
     stem = path.stem
-    # Already raw pe2
-    if "raw" in path.parts and suf in (".pe2img", ".pe2clut", ".pe2pkg"):
+    # Already raw pe2 / bs
+    if "raw" in path.parts and suf in (
+        ".pe2img",
+        ".pe2clut",
+        ".pe2pkg",
+        ".bs",
+    ):
         return path
     if suf == ".pe2img":
         raw = assets_root / "raw" / "pe2img" / f"{stem}.pe2img"
@@ -124,8 +129,14 @@ def prefer_raw_blob(assets_root: Path, path: Path) -> Path:
     if suf == ".pe2clut":
         raw = assets_root / "raw" / "pe2clut" / f"{stem}.pe2clut"
         return raw if raw.exists() else path
+    if suf == ".bs":
+        raw = assets_root / "raw" / "bs" / f"{stem}.bs"
+        return raw if raw.exists() else path
     if suf == ".png":
-        # pe2img/foo.png or pe2clut/foo.png
+        # pe2img/foo.png, pe2clut/foo.png, or bs/foo.png
+        if "bs" in path.parts or path.parent.name == "bs":
+            raw = assets_root / "raw" / "bs" / f"{stem}.bs"
+            return raw if raw.exists() else path
         if "pe2img" in path.parts or path.parent.name == "pe2img":
             raw = assets_root / "raw" / "pe2img" / f"{stem}.pe2img"
             if raw.exists():
@@ -930,7 +941,37 @@ class AssetViewer(tk.Tk):
                 )
                 return
 
-        if suf == ".png" and kind not in ("image",):
+        if suf == ".bs" or kind in ("bs", "room_background"):
+            self._set_clut_controls_enabled(False)
+            if self._show_bs(path, data):
+                self.preview_nb.select(0)
+                raw_bs = path
+                if path.suffix.lower() == ".png":
+                    cand = self.assets_root / "raw" / "bs" / f"{path.stem}.bs"
+                    if cand.exists():
+                        raw_bs = cand
+                elif "raw" not in path.parts:
+                    cand = self.assets_root / "raw" / "bs" / f"{path.stem}.bs"
+                    if cand.exists():
+                        raw_bs = cand
+                try:
+                    raw_bytes = (
+                        data if raw_bs == path else raw_bs.read_bytes()
+                    )
+                except OSError:
+                    raw_bytes = data
+                self._fill_binary_pair(
+                    defl_data=data if suf == ".png" else raw_bytes,
+                    raw_data=raw_bytes,
+                    defl_path=path,
+                    raw_path=raw_bs,
+                    image_note=True,
+                    defl_label="BS v2 MDEC frame",
+                    short=True,
+                )
+                return
+
+        if suf == ".png" and kind not in ("image", "bs", "room_background"):
             self._set_clut_controls_enabled(False)
             if self._show_png(path):
                 self.preview_nb.select(0)
@@ -997,7 +1038,11 @@ class AssetViewer(tk.Tk):
             type_dir, name = parts[1], parts[-1]
             infl = self.assets_root / type_dir / name
             # png for images
-            if not infl.exists() and Path(name).suffix in (".pe2img", ".pe2clut"):
+            if not infl.exists() and Path(name).suffix in (
+                ".pe2img",
+                ".pe2clut",
+                ".bs",
+            ):
                 infl = self.assets_root / type_dir / f"{Path(name).stem}.png"
             if not infl.exists() and Path(name).suffix == ".pe2pkg":
                 # inflated pe2pkg keeps same name
@@ -1222,6 +1267,38 @@ class AssetViewer(tk.Tk):
         self._pe2img_data = None
         self._set_pil_image(img)
         return True
+
+    def _show_bs(self, path: Path, data: bytes) -> bool:
+        """Preview a BS v2 frame (raw .bs or already-inflated PNG)."""
+        self._pe2img_path = None
+        self._pe2img_data = None
+        if path.suffix.lower() == ".png":
+            return self._show_png(path)
+        try:
+            from asset_decode import render_bs
+        except ImportError as e:
+            self._show_text_message(f"BS decode unavailable: {e}")
+            return False
+        try:
+            # Prefer raw blob if we were pointed at a non-raw path
+            blob = data
+            if path.suffix.lower() != ".bs" or "raw" not in path.parts:
+                cand = self.assets_root / "raw" / "bs" / f"{path.stem}.bs"
+                if cand.exists():
+                    blob = cand.read_bytes()
+            img, info = render_bs(blob)
+            self._set_pil_image(img)
+            self.info_label.configure(
+                text=(
+                    f"{self.info_label.cget('text')}  ·  "
+                    f"BS v2 {info.width}×{info.height} q={info.quant_scale} "
+                    f"mbs={info.macroblocks}"
+                )
+            )
+            return True
+        except Exception as e:
+            self._show_text_message(f"BS decode failed: {e}")
+            return False
 
     def _sibling_cluts_for(self, pe2img_path: Path, item: AssetItem | None) -> list[Path]:
         raw: list[Path] = []

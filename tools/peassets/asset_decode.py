@@ -199,3 +199,93 @@ def materialize_image_asset(src: Path, dest: Path) -> Path:
     else:
         raise ValueError(f"not an image asset: {src}")
     return png_path
+
+
+def render_bs(
+    data: bytes,
+    *,
+    width: int | None = None,
+    height: int | None = None,
+) -> tuple["Image.Image", object]:
+    """Decode BS v2 bytes → RGB image + :class:`bs_codec.BsInfo`."""
+    from bs_codec import decode_bs_v2
+
+    return decode_bs_v2(data, width=width, height=height)
+
+
+def bs_to_png_files(
+    bs_path: Path,
+    png_path: Path,
+    meta_path: Path,
+    *,
+    width: int | None = None,
+    height: int | None = None,
+) -> None:
+    """Materialize ``.bs`` → PNG + meta (extract path)."""
+    from bs_codec import info_to_json_bs
+
+    data = bs_path.read_bytes()
+    img, info = render_bs(data, width=width, height=height)
+    png_path.parent.mkdir(parents=True, exist_ok=True)
+    img.save(png_path, "PNG")
+    meta = info_to_json_bs(info)
+    meta_path.write_text(json.dumps(meta, indent=2) + "\n")
+
+
+def materialize_bs_asset(src: Path, dest: Path) -> Path:
+    """Write PNG (+ meta) for a raw ``.bs``. Returns PNG path."""
+    png_path = dest.with_suffix(".png")
+    # meta next to PNG: stem.bs.json when dest ends in .bs, else stem.json
+    if dest.suffix.lower() == ".bs":
+        meta_path = dest.with_suffix(dest.suffix + ".json")
+    else:
+        meta_path = dest.with_suffix(".json")
+        if meta_path == png_path.with_suffix(".json"):
+            meta_path = png_path.with_name(png_path.stem + ".bs.json")
+    bs_to_png_files(src, png_path, meta_path)
+    return png_path
+
+
+def _bs_meta_candidates(png_path: Path) -> list[Path]:
+    stem = png_path.with_suffix("")
+    return [
+        Path(str(stem) + ".bs.json"),
+        png_path.with_name(png_path.stem + ".bs.json"),
+        png_path.with_suffix(".json"),
+    ]
+
+
+def png_files_to_bs(
+    png_path: Path,
+    meta_path: Path | None = None,
+    *,
+    quant_scale: int | None = None,
+) -> bytes:
+    """PNG (+ optional meta) → BS v2 bytes (lossy re-encode).
+
+    ``quant_scale`` overrides meta when set; otherwise meta ``quant_scale``
+    (default 2) is used.
+    """
+    from bs_codec import encode_bs_v2, info_from_json_bs
+    from PIL import Image
+
+    img = Image.open(png_path).convert("RGB")
+    q = quant_scale if quant_scale is not None else 2
+    if meta_path is not None and meta_path.exists():
+        meta = json.loads(meta_path.read_text(encoding="utf-8"))
+        _w, _h, q_meta = info_from_json_bs(meta)
+        if quant_scale is None:
+            q = q_meta
+    return encode_bs_v2(img, quant_scale=q)
+
+
+def encode_bs_from_png_path(content_path: Path) -> bytes | None:
+    """Encode ``.png`` (+ sibling ``.bs.json`` if present) → BS bytes, or None."""
+    if content_path.suffix.lower() != ".png":
+        return None
+    meta = None
+    for cand in _bs_meta_candidates(content_path):
+        if cand.exists():
+            meta = cand
+            break
+    return png_files_to_bs(content_path, meta)

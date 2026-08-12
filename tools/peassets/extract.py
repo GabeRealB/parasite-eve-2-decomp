@@ -19,6 +19,7 @@ from format import validate_sector_len  # noqa: E402
 from asset_decode import (  # noqa: E402
     decode_ascii_payload,
     decode_pe2pkg_payload,
+    materialize_bs_asset,
     materialize_image_asset,
 )
 from names import (  # noqa: E402
@@ -58,7 +59,7 @@ class FileChunkType(IntEnum):
             FileChunkType.Image: "Image",
             FileChunkType.Clut: "Color lookup table",
             FileChunkType.Cap2: "Dialogue data",
-            FileChunkType.RoomBackground: "PSX MDEX bitstream image",
+            FileChunkType.RoomBackground: "PSX BS v2 MDEC bitstream image",
             FileChunkType.Music: "SPK/MPK music program",
             FileChunkType.Ascii: "Ascii text",
         }[self]
@@ -311,6 +312,8 @@ TYPE_DIR_BY_EXT: dict[str, str] = {
 }
 
 IMAGE_EXTS = frozenset({".pe2img", ".pe2clut"})
+# Types that inflate to PNG under the type store (edit form).
+PNG_INFLATE_EXTS = frozenset({".pe2img", ".pe2clut", ".bs"})
 RAW_ROOT_NAME = "raw"
 
 
@@ -322,8 +325,10 @@ class AssetStore:
         assets/USA/
           raw/pe2pkg/gameplay.pe2pkg  # clean on-disc; NAMES or pe2pkg_N
           raw/pe2img/pe2img_0.pe2img
+          raw/bs/bs_0.bs              # BS v2 MDEC on-disc
           pe2pkg/gameplay.pe2pkg      # LZSS-decoded (from unique raw only)
           pe2img/pe2img_0.png         # + meta (from unique raw only)
+          bs/bs_0.png                 # + meta (from unique raw only)
           stage0/…/trailer.bin        # pack sidecars only
           stages.json                 # pack manifest (paths into type dirs)
 
@@ -384,7 +389,7 @@ class AssetStore:
     @staticmethod
     def _inflated_rel(type_dir: str, stem: str, ext: str) -> str:
         """Relative path of the edit/inflated asset under assets root."""
-        if ext in IMAGE_EXTS:
+        if ext in PNG_INFLATE_EXTS:
             return f"{type_dir}/{stem}.png"
         return f"{type_dir}/{stem}{ext}"
 
@@ -490,7 +495,7 @@ class AssetStore:
         """Build inflated type-store files from unique raw assets only.
 
         * ``.pe2pkg`` — LZSS-decode → ``pe2pkg/{stem}.pe2pkg``
-        * ``.pe2img`` / ``.pe2clut`` — PNG + meta under type dir
+        * ``.pe2img`` / ``.pe2clut`` / ``.bs`` — PNG + meta under type dir
         * ``.txt`` — strip zero pad (text only, no trailing NUL)
         * other — hardlink/copy raw → type dir (same bytes)
 
@@ -560,6 +565,26 @@ class AssetStore:
                     except OSError:
                         fallback.write_bytes(raw_path.read_bytes())
                     # Patch map entries that pointed at .png for this raw
+                    for ent in self.map.values():
+                        if ent.get("raw_path") == raw_rel:
+                            ent["path"] = f"{type_dir}/{stem}{ext}"
+            elif ext == ".bs":
+                logging.info("  decode bs %s → %s", raw_rel, out_rel)
+                try:
+                    materialize_bs_asset(raw_path, out_path.with_suffix(".bs"))
+                except Exception:
+                    logging.exception(
+                        "BS decode failed for %s; copying raw .bs instead",
+                        raw_rel,
+                    )
+                    fallback = self.assets_root / type_dir / f"{stem}{ext}"
+                    fallback.parent.mkdir(parents=True, exist_ok=True)
+                    if fallback.exists() or fallback.is_symlink():
+                        fallback.unlink()
+                    try:
+                        fallback.hardlink_to(raw_path)
+                    except OSError:
+                        fallback.write_bytes(raw_path.read_bytes())
                     for ent in self.map.values():
                         if ent.get("raw_path") == raw_rel:
                             ent["path"] = f"{type_dir}/{stem}{ext}"

@@ -53,7 +53,7 @@ class FileChunkType(IntEnum):
             FileChunkType.Image: "Image",
             FileChunkType.Clut: "Color lookup table",
             FileChunkType.Cap2: "Dialogue data",
-            FileChunkType.RoomBackground: "PSX MDEX bitstream image",
+            FileChunkType.RoomBackground: "PSX BS v2 MDEC bitstream image",
             FileChunkType.Music: "SPK/MPK music program",
             FileChunkType.Ascii: "Ascii text",
         }[self]
