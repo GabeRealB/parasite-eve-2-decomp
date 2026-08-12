@@ -8,14 +8,23 @@ Usage (from repo root)::
 
 Works with full extract (inflated type dirs + ``stages.json``) and
 minimal/raw-only extract (``raw/{type}/`` + optional ``pe2pkg/`` overlays).
+
+**Audio streams** (``audio/*.wav`` + ``raw/audio/*.mts``) show waveform +
+transport (Play/Stop/seek). Playback uses ``ffplay`` when available
+(``ffmpeg`` package), else ``afplay`` / ``aplay`` / ``paplay``.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import shutil
+import subprocess
 import sys
+import time
 import tkinter as tk
+import wave
+from array import array
 from dataclasses import dataclass
 from pathlib import Path
 from tkinter import filedialog, ttk
@@ -27,7 +36,16 @@ if str(SCRIPT_DIR) not in sys.path:
 
 from names import asset_name_key  # noqa: E402
 
-TYPE_DIRS = ("pe2pkg", "pe2img", "pe2clut", "pe2cap2", "bs", "spk", "txt")
+TYPE_DIRS = (
+    "pe2pkg",
+    "pe2img",
+    "pe2clut",
+    "pe2cap2",
+    "bs",
+    "spk",
+    "audio",
+    "txt",
+)
 IMAGE_EXTS = {".png", ".pe2img", ".pe2clut", ".bs"}
 TEXT_EXTS = {".txt", ".json", ".md", ".xml", ".cnf"}
 PREVIEW_HEX_BYTES = 512
@@ -43,6 +61,68 @@ _TYPE_RAW_EXT: dict[str, tuple[str, str]] = {
     "cap2": ("pe2cap2", ".pe2cap2"),
     "room_background": ("bs", ".bs"),
 }
+
+
+def _wav_info(path: Path) -> dict[str, Any]:
+    """Return nchannels, framerate, nframes, duration_sec, sampwidth."""
+    with wave.open(str(path), "rb") as w:
+        nch = w.getnchannels()
+        rate = w.getframerate()
+        nframes = w.getnframes()
+        sw = w.getsampwidth()
+    return {
+        "nchannels": nch,
+        "framerate": rate,
+        "nframes": nframes,
+        "sampwidth": sw,
+        "duration_sec": nframes / rate if rate else 0.0,
+    }
+
+
+def _wav_pcm_mono_preview(path: Path, max_samples: int = 200_000) -> list[int]:
+    """Downmix WAV to mono int samples for waveform drawing (may decimate)."""
+    with wave.open(str(path), "rb") as w:
+        nch = w.getnchannels()
+        nframes = w.getnframes()
+        sw = w.getsampwidth()
+        raw = w.readframes(nframes)
+    if sw != 2:
+        # Only s16 supported for preview
+        return []
+    samples = array("h")
+    samples.frombytes(raw)
+    if nch == 2:
+        mono = [
+            (samples[i] + samples[i + 1]) // 2 for i in range(0, len(samples) - 1, 2)
+        ]
+    elif nch == 1:
+        mono = list(samples)
+    else:
+        mono = [samples[i] for i in range(0, len(samples), nch)]
+    if len(mono) > max_samples:
+        step = len(mono) / max_samples
+        mono = [mono[int(i * step)] for i in range(max_samples)]
+    return mono
+
+
+def _find_audio_player() -> list[str] | None:
+    """Return argv prefix for a background WAV player, or None."""
+    if shutil.which("ffplay"):
+        return [
+            "ffplay",
+            "-nodisp",
+            "-autoexit",
+            "-loglevel",
+            "quiet",
+            "-nostats",
+        ]
+    if shutil.which("afplay"):  # macOS
+        return ["afplay"]
+    if shutil.which("aplay"):  # ALSA
+        return ["aplay", "-q"]
+    if shutil.which("paplay"):  # PulseAudio
+        return ["paplay"]
+    return None
 
 
 @dataclass
@@ -318,37 +398,67 @@ def scan_type_assets(assets_root: Path) -> dict[str, list[AssetItem]]:
         seen_stems: set[str] = set()
 
         if infl_dir.is_dir():
-            for p in sorted(infl_dir.iterdir(), key=asset_name_key):
-                # SPK inflates to directories: spk/{stem}/meta.json + sample_*.wav
-                if type_dir == "spk" and p.is_dir():
-                    meta = p / "meta.json"
-                    if meta.is_file():
-                        seen_stems.add(p.name)
-                        by_type[type_dir].append(
-                            AssetItem(
-                                path=meta,
-                                label=p.name,
-                                kind=type_dir,
-                                source="inflated",
+            # CD audio streams: audio/{stem}.wav + {stem}.json (+ raw/audio/*.mts)
+            if type_dir == "audio":
+                for p in sorted(infl_dir.glob("*.wav"), key=asset_name_key):
+                    if not p.is_file():
+                        continue
+                    seen_stems.add(p.stem)
+                    meta_path = infl_dir / f"{p.stem}.json"
+                    meta: dict[str, Any] | None = None
+                    if meta_path.is_file():
+                        try:
+                            meta = json.loads(
+                                meta_path.read_text(encoding="utf-8")
                             )
+                        except (OSError, json.JSONDecodeError):
+                            meta = None
+                    by_type[type_dir].append(
+                        AssetItem(
+                            path=p,
+                            label=p.stem,
+                            kind=type_dir,
+                            source="inflated",
+                            meta=meta,
                         )
-                    continue
-                if not p.is_file():
-                    continue
-                # Skip sidecar meta next to PNGs in listing primary? keep them.
-                if p.suffix.lower() == ".json" and p.name.endswith(
-                    (".pe2img.json", ".pe2clut.json", ".bs.json")
-                ):
-                    continue
-                seen_stems.add(p.stem)
-                by_type[type_dir].append(
-                    AssetItem(
-                        path=p,
-                        label=p.name,
-                        kind=type_dir,
-                        source="inflated",
                     )
-                )
+                # fall through to raw for stems without WAV
+            else:
+                for p in sorted(infl_dir.iterdir(), key=asset_name_key):
+                    # SPK inflates to directories: spk/{stem}/meta.json + sample_*.wav
+                    if type_dir == "spk" and p.is_dir():
+                        meta = p / "meta.json"
+                        if meta.is_file():
+                            seen_stems.add(p.name)
+                            by_type[type_dir].append(
+                                AssetItem(
+                                    path=meta,
+                                    label=p.name,
+                                    kind=type_dir,
+                                    source="inflated",
+                                )
+                            )
+                        continue
+                    if not p.is_file():
+                        continue
+                    # Skip sidecar meta next to PNGs in listing primary? keep them.
+                    if p.suffix.lower() == ".json" and p.name.endswith(
+                        (".pe2img.json", ".pe2clut.json", ".bs.json")
+                    ):
+                        continue
+                    if type_dir == "audio" and p.suffix.lower() == ".json":
+                        continue  # listed via .wav
+                    if p.name == "streams.json":
+                        continue
+                    seen_stems.add(p.stem)
+                    by_type[type_dir].append(
+                        AssetItem(
+                            path=p,
+                            label=p.name,
+                            kind=type_dir,
+                            source="inflated",
+                        )
+                    )
 
         if raw_dir.is_dir():
             for p in sorted(raw_dir.iterdir(), key=asset_name_key):
@@ -363,6 +473,10 @@ def scan_type_assets(assets_root: Path) -> dict[str, list[AssetItem]]:
                 if (assets_root / type_dir / p.stem).is_dir():
                     continue
                 if (assets_root / type_dir / f"{p.stem}{p.suffix}").exists():
+                    continue
+                if type_dir == "audio" and (
+                    assets_root / type_dir / f"{p.stem}.wav"
+                ).exists():
                     continue
                 by_type[type_dir].append(
                     AssetItem(
@@ -402,6 +516,17 @@ class AssetViewer(tk.Tk):
         self._clut_color_cache: dict[str, list[int] | None] = {}
         self._current_clut_colors: list[int] | None = None
 
+        # Audio player state (WAV / MTS streams)
+        self._audio_proc: subprocess.Popen[Any] | None = None
+        self._audio_path: Path | None = None
+        self._audio_duration: float = 0.0
+        self._audio_started_at: float = 0.0  # time.monotonic when play began
+        self._audio_start_offset: float = 0.0  # seek offset at play start
+        self._audio_tick_after: str | None = None
+        self._audio_player_cmd: list[str] | None = _find_audio_player()
+        self._audio_seeking = False
+
+        self.protocol("WM_DELETE_WINDOW", self._on_close)
         self._build_ui()
         self.reload()
 
@@ -532,6 +657,44 @@ class AssetViewer(tk.Tk):
         self.img_canvas = tk.Canvas(img_frame, bg="#2b2b2b", highlightthickness=0)
         self.img_canvas.pack(fill=tk.BOTH, expand=True)
         self.img_canvas.bind("<Configure>", self._on_canvas_resize)
+
+        # Audio transport (shown for WAV / stream previews)
+        self.audio_bar = ttk.Frame(img_frame)
+        self.audio_bar.pack(side=tk.BOTTOM, fill=tk.X, pady=(4, 0))
+        self._audio_play_btn = ttk.Button(
+            self.audio_bar, text="▶ Play", command=self._audio_play, width=10
+        )
+        self._audio_play_btn.pack(side=tk.LEFT, padx=(0, 4))
+        self._audio_stop_btn = ttk.Button(
+            self.audio_bar, text="■ Stop", command=self._audio_stop, width=10
+        )
+        self._audio_stop_btn.pack(side=tk.LEFT, padx=(0, 8))
+        self._audio_time_var = tk.StringVar(value="0:00 / 0:00")
+        ttk.Label(self.audio_bar, textvariable=self._audio_time_var, width=14).pack(
+            side=tk.LEFT, padx=(0, 8)
+        )
+        self._audio_pos_var = tk.DoubleVar(value=0.0)
+        self._audio_scale = ttk.Scale(
+            self.audio_bar,
+            from_=0.0,
+            to=1.0,
+            orient=tk.HORIZONTAL,
+            variable=self._audio_pos_var,
+            command=self._on_audio_seek_drag,
+        )
+        self._audio_scale.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 8))
+        self._audio_scale.bind("<ButtonPress-1>", self._on_audio_seek_press)
+        self._audio_scale.bind("<ButtonRelease-1>", self._on_audio_seek_release)
+        player = (
+            self._audio_player_cmd[0]
+            if self._audio_player_cmd
+            else "no player (install ffmpeg/ffplay)"
+        )
+        self._audio_backend_lbl = ttk.Label(
+            self.audio_bar, text=player, foreground="#888"
+        )
+        self._audio_backend_lbl.pack(side=tk.RIGHT)
+        self._set_audio_controls_enabled(False)
 
         # Txt/hex (decoded / inflated view) and Raw (on-disc bytes)
         self.text_deflated = self._make_scrolled_text(
@@ -862,6 +1025,8 @@ class AssetViewer(tk.Tk):
         self._show_item(item)
 
     def _clear_preview(self, msg: str = "") -> None:
+        self._audio_stop()
+        self._set_audio_controls_enabled(False)
         self._current_item = None
         self._current_pil = None
         self._photo_ref = None
@@ -872,6 +1037,10 @@ class AssetViewer(tk.Tk):
         self.img_canvas.delete("all")
         self._clear_text_tabs(msg)
         self.info_label.configure(text="")
+
+    def _on_close(self) -> None:
+        self._audio_stop()
+        self.destroy()
 
     def _set_clut_controls_enabled(self, enabled: bool) -> None:
         if enabled:
@@ -885,6 +1054,10 @@ class AssetViewer(tk.Tk):
             self._current_clut_colors = None
 
     def _show_item(self, item: AssetItem) -> None:
+        # Stop previous stream when switching assets (new audio re-enables).
+        self._audio_stop()
+        self._set_audio_controls_enabled(False)
+
         self._current_item = item
         self._current_clut_colors = None
         path = item.path
@@ -906,6 +1079,8 @@ class AssetViewer(tk.Tk):
                 meta_bits.append(f"chunk_size={item.meta['chunk_size']}")
             if item.meta.get("load_addr"):
                 meta_bits.append(f"load={item.meta['load_addr']}")
+            if item.meta.get("duration_sec") is not None and item.kind == "audio":
+                meta_bits.append(f"{item.meta['duration_sec']}s")
         self.info_label.configure(text="  ·  ".join(meta_bits))
         self._status_var.set(str(path))
 
@@ -1023,6 +1198,19 @@ class AssetViewer(tk.Tk):
         ):
             self._set_clut_controls_enabled(False)
             if self._show_spk(path, data):
+                return
+
+        if (
+            suf in (".wav", ".mts")
+            or kind == "audio"
+            or "raw/audio" in str(path).replace("\\", "/")
+            or (
+                path.parent.name == "audio"
+                and path.parent.parent == self.assets_root
+            )
+        ):
+            self._set_clut_controls_enabled(False)
+            if self._show_audio_stream(path, data, item=item):
                 return
 
         # Pair raw/deflated only for non-image types (can read a second file)
@@ -1339,10 +1527,329 @@ class AssetViewer(tk.Tk):
             self._show_text_message(f"BS decode failed: {e}")
             return False
 
+    # -------------------------------------------------------------- audio
+    @staticmethod
+    def _fmt_time(sec: float) -> str:
+        if sec < 0:
+            sec = 0.0
+        m = int(sec) // 60
+        s = int(sec) % 60
+        return f"{m}:{s:02d}"
+
+    def _set_audio_controls_enabled(self, enabled: bool) -> None:
+        state = tk.NORMAL if enabled else tk.DISABLED
+        self._audio_play_btn.configure(state=state)
+        self._audio_stop_btn.configure(state=state)
+        self._audio_scale.configure(state=state)
+        if not enabled:
+            self._audio_pos_var.set(0.0)
+            self._audio_time_var.set("0:00 / 0:00")
+            self._audio_duration = 0.0
+            self._audio_path = None
+
+    def _audio_stop(self) -> None:
+        if self._audio_tick_after is not None:
+            try:
+                self.after_cancel(self._audio_tick_after)
+            except Exception:
+                pass
+            self._audio_tick_after = None
+        if self._audio_proc is not None:
+            try:
+                self._audio_proc.terminate()
+                self._audio_proc.wait(timeout=1.0)
+            except Exception:
+                try:
+                    self._audio_proc.kill()
+                except Exception:
+                    pass
+            self._audio_proc = None
+        # Keep path/duration so Play can restart; only reset position display
+        if self._audio_duration > 0:
+            pos = self._audio_pos_var.get()
+            self._audio_time_var.set(
+                f"{self._fmt_time(pos)} / {self._fmt_time(self._audio_duration)}"
+            )
+
+    def _audio_play(self) -> None:
+        if self._audio_path is None or not self._audio_path.is_file():
+            return
+        if self._audio_player_cmd is None:
+            self._status_var.set(
+                "No audio player found (install ffmpeg for ffplay)"
+            )
+            return
+        start = float(self._audio_pos_var.get() or 0.0)
+        if start >= self._audio_duration - 0.05:
+            start = 0.0
+            self._audio_pos_var.set(0.0)
+        self._audio_stop()
+        cmd = list(self._audio_player_cmd)
+        # Seek support
+        if cmd[0] == "ffplay" and start > 0.05:
+            cmd.extend(["-ss", f"{start:.3f}"])
+        elif cmd[0] == "afplay" and start > 0.05:
+            # afplay has no seek; restart from beginning
+            start = 0.0
+            self._audio_pos_var.set(0.0)
+        cmd.append(str(self._audio_path))
+        try:
+            self._audio_proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        except OSError as e:
+            self._status_var.set(f"Play failed: {e}")
+            self._audio_proc = None
+            return
+        self._audio_started_at = time.monotonic()
+        self._audio_start_offset = start
+        self._audio_tick()
+
+    def _audio_position(self) -> float:
+        if self._audio_proc is None:
+            return float(self._audio_pos_var.get() or 0.0)
+        elapsed = time.monotonic() - self._audio_started_at
+        return min(self._audio_duration, self._audio_start_offset + elapsed)
+
+    def _audio_tick(self) -> None:
+        self._audio_tick_after = None
+        if self._audio_proc is None:
+            return
+        # Process exited?
+        if self._audio_proc.poll() is not None:
+            self._audio_proc = None
+            self._audio_pos_var.set(0.0)
+            self._audio_time_var.set(
+                f"0:00 / {self._fmt_time(self._audio_duration)}"
+            )
+            return
+        if not self._audio_seeking:
+            pos = self._audio_position()
+            self._audio_pos_var.set(pos)
+            self._audio_time_var.set(
+                f"{self._fmt_time(pos)} / {self._fmt_time(self._audio_duration)}"
+            )
+            if pos >= self._audio_duration - 0.05:
+                self._audio_stop()
+                self._audio_pos_var.set(0.0)
+                self._audio_time_var.set(
+                    f"0:00 / {self._fmt_time(self._audio_duration)}"
+                )
+                return
+        self._audio_tick_after = self.after(200, self._audio_tick)
+
+    def _on_audio_seek_press(self, _event: tk.Event | None = None) -> None:
+        self._audio_seeking = True
+
+    def _on_audio_seek_drag(self, _value: str = "") -> None:
+        if self._audio_duration <= 0:
+            return
+        pos = float(self._audio_pos_var.get() or 0.0)
+        self._audio_time_var.set(
+            f"{self._fmt_time(pos)} / {self._fmt_time(self._audio_duration)}"
+        )
+
+    def _on_audio_seek_release(self, _event: tk.Event | None = None) -> None:
+        self._audio_seeking = False
+        was_playing = self._audio_proc is not None
+        if was_playing:
+            self._audio_play()  # restart from new position
+
+    def _draw_waveform(self, pcm: list[int], *, title: str = "") -> bool:
+        """Draw mono PCM waveform into the image canvas via PIL."""
+        if not pcm:
+            return False
+        try:
+            from PIL import Image as PILImage
+        except ImportError:
+            return False
+        w, h = 720, 180
+        img = PILImage.new("RGB", (w, h), (20, 20, 28))
+        step = max(1, len(pcm) // w)
+        mid = h // 2
+        px = img.load()
+        # centre line
+        for x in range(w):
+            px[x, mid] = (40, 40, 52)
+        for x in range(w):
+            i0 = x * step
+            chunk = pcm[i0 : i0 + step] or [0]
+            peak = max(abs(v) for v in chunk)
+            amp = int(peak / 32768.0 * (mid - 4))
+            for y in range(mid - amp, mid + amp + 1):
+                if 0 <= y < h:
+                    px[x, y] = (80, 200, 140)
+        self._set_pil_image(img)
+        return True
+
+    def _show_audio_stream(
+        self, path: Path, data: bytes, *, item: AssetItem | None = None
+    ) -> bool:
+        """Preview MTS CD stream / WAV: meta, waveform, playable transport."""
+        self._pe2img_path = None
+        self._pe2img_data = None
+        self._audio_stop()
+
+        stem = path.stem
+        wav_path: Path | None = None
+        mts_path: Path | None = None
+        meta: dict[str, Any] = dict(item.meta) if item and item.meta else {}
+
+        if path.suffix.lower() == ".wav":
+            wav_path = path
+            cand_mts = self.assets_root / "raw" / "audio" / f"{stem}.mts"
+            if cand_mts.is_file():
+                mts_path = cand_mts
+            meta_file = self.assets_root / "audio" / f"{stem}.json"
+            if meta_file.is_file() and not meta:
+                try:
+                    meta = json.loads(meta_file.read_text(encoding="utf-8"))
+                except (OSError, json.JSONDecodeError):
+                    pass
+        elif path.suffix.lower() == ".mts":
+            mts_path = path
+            cand_wav = self.assets_root / "audio" / f"{stem}.wav"
+            if cand_wav.is_file():
+                wav_path = cand_wav
+            meta_file = self.assets_root / "audio" / f"{stem}.json"
+            if meta_file.is_file():
+                try:
+                    meta = json.loads(meta_file.read_text(encoding="utf-8"))
+                except (OSError, json.JSONDecodeError):
+                    pass
+        else:
+            # Directory or other — try stem.wav
+            cand = self.assets_root / "audio" / f"{stem}.wav"
+            if cand.is_file():
+                wav_path = cand
+
+        lines = [
+            f"CD audio stream  {stem}",
+            f"format=MTS → SPU-ADPCM → WAV @ ~22050 Hz",
+        ]
+        if meta:
+            for key in (
+                "duration_sec",
+                "channels",
+                "period",
+                "chunk_count",
+                "body_sectors",
+                "preamble_sectors",
+                "sample_rate",
+                "disk",
+                "stage",
+                "folder_id",
+                "stream_id",
+            ):
+                if key in meta:
+                    lines.append(f"  {key}={meta[key]}")
+            desc = meta.get("descriptor")
+            if isinstance(desc, dict):
+                lines.append("descriptor:")
+                for k, v in desc.items():
+                    lines.append(f"  {k}: {v}")
+        if wav_path and wav_path.is_file():
+            try:
+                wi = _wav_info(wav_path)
+                lines.append("")
+                lines.append(
+                    f"WAV  {wav_path.name}  "
+                    f"{wi['nchannels']}ch  {wi['framerate']} Hz  "
+                    f"{wi['nframes']} frames  {wi['duration_sec']:.2f}s  "
+                    f"{_fmt_size(wav_path.stat().st_size)}"
+                )
+            except Exception as e:
+                lines.append(f"WAV unreadable: {e}")
+                wi = None
+        else:
+            wi = None
+            lines.append("")
+            lines.append(
+                "No WAV yet — run:  python3 tools/peassets/extract_streams.py "
+                "--rom rom/USA --out assets/USA"
+            )
+        if mts_path and mts_path.is_file():
+            try:
+                lines.append(
+                    f"raw MTS  {mts_path.name}  {_fmt_size(mts_path.stat().st_size)}"
+                )
+            except OSError:
+                lines.append(f"raw MTS  {mts_path.name}")
+
+        text = "\n".join(lines)
+        self._set_text_widget(self.text_deflated, text)
+
+        raw_bits = []
+        if mts_path and mts_path.is_file():
+            try:
+                mts_bytes = (
+                    data if path == mts_path else mts_path.read_bytes()
+                )
+                raw_bits.append(
+                    f"raw {mts_path}\n{len(mts_bytes)} bytes\n\n"
+                    + _hexdump(mts_bytes, 256)
+                )
+            except OSError as e:
+                raw_bits.append(f"raw read failed: {e}")
+        elif wav_path:
+            raw_bits.append(f"(no .mts sibling; showing WAV path)\n{wav_path}")
+        self._set_text_widget(
+            self.text_raw, "\n".join(raw_bits) if raw_bits else ""
+        )
+
+        # Waveform + player
+        if wav_path and wav_path.is_file():
+            try:
+                pcm = _wav_pcm_mono_preview(wav_path)
+                if self._draw_waveform(pcm):
+                    self.preview_nb.select(0)
+                else:
+                    self.preview_nb.select(1)
+            except Exception as e:
+                self._set_text_widget(
+                    self.text_deflated, text + f"\n\n(waveform failed: {e})"
+                )
+                self.preview_nb.select(1)
+
+            dur = wi["duration_sec"] if wi else 0.0
+            if dur <= 0 and meta.get("duration_sec"):
+                try:
+                    dur = float(meta["duration_sec"])
+                except (TypeError, ValueError):
+                    dur = 0.0
+            self._audio_path = wav_path
+            self._audio_duration = dur
+            self._audio_pos_var.set(0.0)
+            self._audio_scale.configure(from_=0.0, to=max(dur, 0.001))
+            self._audio_time_var.set(f"0:00 / {self._fmt_time(dur)}")
+            self._set_audio_controls_enabled(True)
+        else:
+            self._set_audio_controls_enabled(False)
+            self.preview_nb.select(1)
+
+        try:
+            base = self.info_label.cget("text")
+        except Exception:
+            base = ""
+        extra = []
+        if wi:
+            extra.append(f"{wi['duration_sec']:.1f}s")
+            extra.append(f"{wi['nchannels']}ch")
+        if meta.get("period") is not None:
+            extra.append(f"period={meta['period']}")
+        self.info_label.configure(
+            text=(f"{base}  ·  audio stream  " + "  ".join(extra)).strip(" ·")
+        )
+        return True
+
     def _show_spk(self, path: Path, data: bytes) -> bool:
         """Preview SPK bank: metadata text + first sample waveform as PNG."""
         self._pe2img_path = None
         self._pe2img_data = None
+        self._audio_stop()
+        self._set_audio_controls_enabled(False)
         try:
             from spk_codec import extract_samples, is_spk, parse_spk
         except ImportError as e:

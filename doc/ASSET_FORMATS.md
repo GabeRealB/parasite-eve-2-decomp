@@ -508,6 +508,34 @@ Suggested roadmap: (1) structural `hONE` → JSON events, (2) timed events after
   (usually ending in `\Z` or `\Z\r\n`) zero-padded to chunk capacity.
   Inflated `txt/` is the text only (no trailing NUL / zero pad).
 
+### 9.3 CD audio streams (MTS)
+
+Not file chunks — listed in the **streaming list** (`STAGE0.HED` or folder
+`+0x514`, type `2`). Runtime: `CdStream_*` → `SpuWrite` (`cdstream.h`
+`MtsSector`).
+
+| Piece | Notes |
+|-------|--------|
+| Descriptor | `0x28` `FsCdfStream` audio arm; `offset` = start sector (STAGE0: stage-abs; folders: folder-rel); `field_14` often total length in sectors |
+| Payload | Sector stream; every *period* sectors an **MTS** header (`bytes @+8` = `cc 'S''T''M'`, `cc` = channel count) |
+| Channels | Almost always stereo; headers alternate `field_C` 0/1; gaps between chunk pairs are allowed |
+| Samples | SPU-ADPCM from header `+0x10` + continuation sectors; ~22050 Hz |
+
+Extract into the type-store layout (same root as pe2pkg/spk)::
+
+```text
+raw/audio/{stem}.mts     on-disc MTS sector payload
+audio/{stem}.wav         decoded stereo PCM (~22050 Hz)
+audio/{stem}.json        geometry + descriptor
+audio/streams.json       catalog
+```
+
+```bash
+python3 tools/peassets/extract_streams.py --rom rom/USA --out assets/USA
+```
+
+Codec: `tools/peassets/mts_codec.py`.
+
 ---
 
 ## 10. Friendly naming (`names.py`)
@@ -663,6 +691,7 @@ root (inflated). Dedup is by SHA-1 of the **raw** clean payload:
 |---|---|---|
 | pe2pkg | trim_lzss on-disc stream | LZSS-decoded package |
 | pe2img / pe2clut | clean pe2 blob | PNG + `*.pe2img.json` / `*.pe2clut.json` |
+| audio | MTS sector payload (`.mts`) | stereo WAV + JSON (§9.3) |
 | other | clean on-disc payload | hardlink/copy of raw |
 
 Pack sees them via `stages.json` content entries (same path for every
@@ -734,8 +763,9 @@ Dependencies: see `requirements.txt` (includes **Pillow** for PNG).
   (game picks via `getClut(x,y)`). Exporter scores rows and picks the most
   varied; wrong for textures that intentionally use a monochrome row.
 - **Cap2 / dialogue** internals undocumented.
-- **Streaming lists** (movies/audio) are partially parsed; full extract of
-  stream payloads is incomplete.
+- **Streaming movies** (STR/MDEC) still need full payload extract/decode.
+- **Streaming audio (MTS)** is extractable: see §9.3 and
+  `tools/peassets/extract_streams.py` / `mts_codec.py`.
 - Runtime image path has mode-dependent Y adjustments (`Fs_ChunkMode`,
   `D5B498_8006C233/C234`) that do not affect off-line PNG export.
 
