@@ -10,8 +10,11 @@ Works with full extract (inflated type dirs + ``stages.json``) and
 minimal/raw-only extract (``raw/{type}/`` + optional ``pe2pkg/`` overlays).
 
 **Audio streams** (``audio/*.wav`` + ``raw/audio/*.mts``) show waveform +
-transport (Play/Stop/seek). Playback uses ``ffplay`` when available
-(``ffmpeg`` package), else ``afplay`` / ``aplay`` / ``paplay``.
+transport (Play/Stop/seek).
+
+**Movies** (``movie/*.mp4`` + ``*.json``) show meta, a poster frame, and the
+same transport — Play opens **ffplay** with video (lossless H.264 + ALAC).
+Install ``ffmpeg`` for poster extraction and playback.
 """
 
 from __future__ import annotations
@@ -44,6 +47,7 @@ TYPE_DIRS = (
     "bs",
     "spk",
     "audio",
+    "movie",
     "txt",
 )
 IMAGE_EXTS = {".png", ".pe2img", ".pe2clut", ".bs"}
@@ -106,7 +110,7 @@ def _wav_pcm_mono_preview(path: Path, max_samples: int = 200_000) -> list[int]:
 
 
 def _find_audio_player() -> list[str] | None:
-    """Return argv prefix for a background WAV player, or None."""
+    """Return argv prefix for a background WAV (audio-only) player, or None."""
     if shutil.which("ffplay"):
         return [
             "ffplay",
@@ -123,6 +127,103 @@ def _find_audio_player() -> list[str] | None:
     if shutil.which("paplay"):  # PulseAudio
         return ["paplay"]
     return None
+
+
+def _find_video_player() -> list[str] | None:
+    """Return argv prefix for windowed video playback (ffplay preferred)."""
+    if shutil.which("ffplay"):
+        return [
+            "ffplay",
+            "-autoexit",
+            "-loglevel",
+            "quiet",
+            "-nostats",
+            # Slightly larger than native 320×240 for readability
+            "-x",
+            "640",
+            "-y",
+            "480",
+        ]
+    if shutil.which("mpv"):
+        return ["mpv", "--force-window=yes", "--really-quiet"]
+    if shutil.which("vlc"):
+        return ["vlc", "--play-and-exit", "-I", "dummy", "--quiet"]
+    return None
+
+
+def _mp4_poster_pil(mp4: Path, *, at_sec: float = 0.5):
+    """Grab one RGB frame from *mp4* via ffmpeg; return PIL Image or None."""
+    if not shutil.which("ffmpeg") or not mp4.is_file():
+        return None
+    try:
+        from PIL import Image as PILImage
+    except ImportError:
+        return None
+    cmd = [
+        "ffmpeg",
+        "-hide_banner",
+        "-loglevel",
+        "error",
+        "-ss",
+        f"{at_sec:.3f}",
+        "-i",
+        str(mp4),
+        "-frames:v",
+        "1",
+        "-f",
+        "image2pipe",
+        "-vcodec",
+        "png",
+        "pipe:1",
+    ]
+    try:
+        proc = subprocess.run(
+            cmd,
+            capture_output=True,
+            timeout=30,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if proc.returncode != 0 or not proc.stdout:
+        # Retry from t=0 if mid-clip seek failed
+        if at_sec > 0:
+            return _mp4_poster_pil(mp4, at_sec=0.0)
+        return None
+    try:
+        from io import BytesIO
+
+        img = PILImage.open(BytesIO(proc.stdout))
+        img.load()
+        return img.convert("RGB")
+    except Exception:
+        return None
+
+
+def _probe_media_duration(path: Path) -> float | None:
+    """Return duration in seconds via ffprobe, or None."""
+    if not shutil.which("ffprobe") or not path.is_file():
+        return None
+    cmd = [
+        "ffprobe",
+        "-v",
+        "error",
+        "-show_entries",
+        "format=duration",
+        "-of",
+        "default=noprint_wrappers=1:nokey=1",
+        str(path),
+    ]
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if proc.returncode != 0:
+        return None
+    try:
+        return float((proc.stdout or "").strip())
+    except ValueError:
+        return None
 
 
 @dataclass
@@ -423,6 +524,61 @@ def scan_type_assets(assets_root: Path) -> dict[str, list[AssetItem]]:
                         )
                     )
                 # fall through to raw for stems without WAV
+            elif type_dir == "movie":
+                # movie/{stem}.mp4 + {stem}.json (legacy: dir/meta, webp, wav)
+                for p in sorted(infl_dir.glob("*.mp4"), key=asset_name_key):
+                    seen_stems.add(p.stem)
+                    meta: dict[str, Any] | None = None
+                    meta_path = infl_dir / f"{p.stem}.json"
+                    if meta_path.is_file():
+                        try:
+                            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+                        except (OSError, json.JSONDecodeError):
+                            meta = None
+                    by_type[type_dir].append(
+                        AssetItem(
+                            path=p,
+                            label=p.stem,
+                            kind=type_dir,
+                            source="inflated",
+                            meta=meta,
+                        )
+                    )
+                for p in sorted(infl_dir.iterdir(), key=asset_name_key):
+                    if p.is_dir() and (p / "meta.json").is_file() and p.name not in seen_stems:
+                        seen_stems.add(p.name)
+                        meta = None
+                        try:
+                            meta = json.loads(
+                                (p / "meta.json").read_text(encoding="utf-8")
+                            )
+                        except (OSError, json.JSONDecodeError):
+                            meta = None
+                        by_type[type_dir].append(
+                            AssetItem(
+                                path=p / "meta.json",
+                                label=p.name,
+                                kind=type_dir,
+                                source="inflated",
+                                meta=meta,
+                            )
+                        )
+                    elif (
+                        p.is_file()
+                        and p.suffix.lower() in (".webp", ".wav", ".json")
+                        and p.stem not in seen_stems
+                    ):
+                        if p.suffix.lower() == ".json":
+                            continue  # listed via .mp4
+                        seen_stems.add(p.stem)
+                        by_type[type_dir].append(
+                            AssetItem(
+                                path=p,
+                                label=p.stem,
+                                kind=type_dir,
+                                source="inflated",
+                            )
+                        )
             else:
                 for p in sorted(infl_dir.iterdir(), key=asset_name_key):
                     # SPK inflates to directories: spk/{stem}/meta.json + sample_*.wav
@@ -516,7 +672,7 @@ class AssetViewer(tk.Tk):
         self._clut_color_cache: dict[str, list[int] | None] = {}
         self._current_clut_colors: list[int] | None = None
 
-        # Audio player state (WAV / MTS streams)
+        # Media player state (WAV audio streams + movie MP4)
         self._audio_proc: subprocess.Popen[Any] | None = None
         self._audio_path: Path | None = None
         self._audio_duration: float = 0.0
@@ -524,7 +680,9 @@ class AssetViewer(tk.Tk):
         self._audio_start_offset: float = 0.0  # seek offset at play start
         self._audio_tick_after: str | None = None
         self._audio_player_cmd: list[str] | None = _find_audio_player()
+        self._video_player_cmd: list[str] | None = _find_video_player()
         self._audio_seeking = False
+        self._media_is_video = False
 
         self.protocol("WM_DELETE_WINDOW", self._on_close)
         self._build_ui()
@@ -1057,17 +1215,26 @@ class AssetViewer(tk.Tk):
         # Stop previous stream when switching assets (new audio re-enables).
         self._audio_stop()
         self._set_audio_controls_enabled(False)
+        self._media_is_video = False
 
         self._current_item = item
         self._current_clut_colors = None
         path = item.path
+        # Do not load multi‑MB movies into RAM for hex preview.
+        heavy = path.suffix.lower() in (".mp4", ".mkv", ".avi", ".webm", ".mov")
         try:
-            data = path.read_bytes()
+            if heavy:
+                data = b""
+            else:
+                data = path.read_bytes()
         except OSError as e:
             self._clear_preview(f"Cannot read {path}: {e}")
             return
 
-        size = _fmt_size(len(data))
+        try:
+            size = _fmt_size(path.stat().st_size if heavy else len(data))
+        except OSError:
+            size = _fmt_size(len(data))
         rel = path
         try:
             rel = path.relative_to(self.assets_root)
@@ -1081,6 +1248,8 @@ class AssetViewer(tk.Tk):
                 meta_bits.append(f"load={item.meta['load_addr']}")
             if item.meta.get("duration_sec") is not None and item.kind == "audio":
                 meta_bits.append(f"{item.meta['duration_sec']}s")
+            if item.kind == "movie" and item.meta.get("frame_count") is not None:
+                meta_bits.append(f"{item.meta['frame_count']} frames")
         self.info_label.configure(text="  ·  ".join(meta_bits))
         self._status_var.set(str(path))
 
@@ -1211,6 +1380,17 @@ class AssetViewer(tk.Tk):
         ):
             self._set_clut_controls_enabled(False)
             if self._show_audio_stream(path, data, item=item):
+                return
+
+        if (
+            kind == "movie"
+            or suf in (".str", ".webp", ".mp4", ".mkv")
+            or (path.name == "meta.json" and "movie" in path.parts)
+            or (path.suffix.lower() == ".json" and path.parent.name == "movie")
+            or "raw/movie" in str(path).replace("\\", "/")
+        ):
+            self._set_clut_controls_enabled(False)
+            if self._show_movie(path, data, item=item):
                 return
 
         # Pair raw/deflated only for non-image types (can read a second file)
@@ -1541,11 +1721,16 @@ class AssetViewer(tk.Tk):
         self._audio_play_btn.configure(state=state)
         self._audio_stop_btn.configure(state=state)
         self._audio_scale.configure(state=state)
+        if enabled and self._media_is_video:
+            self._audio_play_btn.configure(text="▶ Play movie")
+        else:
+            self._audio_play_btn.configure(text="▶ Play")
         if not enabled:
             self._audio_pos_var.set(0.0)
             self._audio_time_var.set("0:00 / 0:00")
             self._audio_duration = 0.0
             self._audio_path = None
+            self._media_is_video = False
 
     def _audio_stop(self) -> None:
         if self._audio_tick_after is not None:
@@ -1574,22 +1759,41 @@ class AssetViewer(tk.Tk):
     def _audio_play(self) -> None:
         if self._audio_path is None or not self._audio_path.is_file():
             return
-        if self._audio_player_cmd is None:
-            self._status_var.set(
-                "No audio player found (install ffmpeg for ffplay)"
-            )
-            return
+        is_video = self._media_is_video or self._audio_path.suffix.lower() in (
+            ".webp",
+            ".webm",
+            ".mp4",
+            ".avi",
+            ".mkv",
+            ".mov",
+        )
+        if is_video:
+            player = self._video_player_cmd or self._audio_player_cmd
+            if player is None:
+                self._status_var.set(
+                    "No video player found (install ffmpeg/ffplay or mpv/vlc)"
+                )
+                return
+            cmd = list(player)
+        else:
+            if self._audio_player_cmd is None:
+                self._status_var.set(
+                    "No audio player found (install ffmpeg for ffplay)"
+                )
+                return
+            cmd = list(self._audio_player_cmd)
+
         start = float(self._audio_pos_var.get() or 0.0)
         if start >= self._audio_duration - 0.05:
             start = 0.0
             self._audio_pos_var.set(0.0)
         self._audio_stop()
-        cmd = list(self._audio_player_cmd)
-        # Seek support
+
         if cmd[0] == "ffplay" and start > 0.05:
             cmd.extend(["-ss", f"{start:.3f}"])
+        elif cmd[0] == "mpv" and start > 0.05:
+            cmd.extend([f"--start={start:.3f}"])
         elif cmd[0] == "afplay" and start > 0.05:
-            # afplay has no seek; restart from beginning
             start = 0.0
             self._audio_pos_var.set(0.0)
         cmd.append(str(self._audio_path))
@@ -1605,6 +1809,8 @@ class AssetViewer(tk.Tk):
             return
         self._audio_started_at = time.monotonic()
         self._audio_start_offset = start
+        kind = "movie" if is_video else "audio"
+        self._status_var.set(f"Playing {kind}: {self._audio_path.name}")
         self._audio_tick()
 
     def _audio_position(self) -> float:
@@ -1841,6 +2047,194 @@ class AssetViewer(tk.Tk):
             extra.append(f"period={meta['period']}")
         self.info_label.configure(
             text=(f"{base}  ·  audio stream  " + "  ".join(extra)).strip(" ·")
+        )
+        return True
+
+    def _show_movie(
+        self, path: Path, data: bytes, *, item: AssetItem | None = None
+    ) -> bool:
+        """Preview STR movie MP4: meta, poster frame, Play opens video window."""
+        self._pe2img_path = None
+        self._pe2img_data = None
+        self._audio_stop()
+        self._set_audio_controls_enabled(False)
+
+        stem = (
+            path.parent.name
+            if path.name == "meta.json"
+            else path.stem
+        )
+        movie_root = self.assets_root / "movie"
+        movie_dir = movie_root / stem  # legacy frame dump
+        meta: dict[str, Any] = dict(item.meta) if item and item.meta else {}
+        for meta_path in (movie_root / f"{stem}.json", movie_dir / "meta.json"):
+            if meta_path.is_file():
+                try:
+                    loaded = json.loads(meta_path.read_text(encoding="utf-8"))
+                    if not meta:
+                        meta = loaded
+                    else:
+                        # Prefer richer fields from disk
+                        for k, v in loaded.items():
+                            meta.setdefault(k, v)
+                except (OSError, json.JSONDecodeError):
+                    pass
+
+        mp4 = movie_root / f"{stem}.mp4"
+        if path.suffix.lower() in (".mp4", ".mkv", ".mov"):
+            mp4 = path
+
+        lines = [
+            f"STR movie  {stem}",
+            "PSX STR/MDEC → lossless MP4 (H.264 yuv444p crf0 + ALAC when XA)",
+            "Play: ffplay/mpv window (not Windows Media Player)",
+        ]
+        for key in (
+            "frame_count",
+            "width",
+            "height",
+            "version",
+            "fps",
+            "frame_range",
+            "raw_sectors",
+            "disk",
+            "stage",
+            "folder_id",
+            "source",
+            "container",
+            "audio_duration_sec",
+            "audio_sample_rate",
+        ):
+            if key in meta:
+                lines.append(f"  {key}={meta[key]}")
+        if isinstance(meta.get("mp4_encode"), dict):
+            enc = meta["mp4_encode"]
+            lines.append(
+                f"  encode: v={enc.get('video_codec')} "
+                f"pix={enc.get('pix_fmt')} crf={enc.get('crf')} "
+                f"a={enc.get('audio_codec')}"
+            )
+            if enc.get("player_hint"):
+                lines.append(f"  note: {enc['player_hint']}")
+        desc = meta.get("descriptor")
+        if isinstance(desc, dict):
+            lines.append("descriptor:")
+            for k, v in list(desc.items())[:16]:
+                lines.append(f"  {k}: {v}")
+
+        lines.append("")
+        if mp4.is_file():
+            lines.append(f"MP4: {mp4.name}  ({_fmt_size(mp4.stat().st_size)})")
+        else:
+            lines.append(
+                "No MP4 yet — run:\n"
+                "  python3 tools/peassets/extract_movies.py "
+                "--rom rom/USA --out assets/USA -j 16"
+            )
+        if isinstance(meta.get("xa"), dict):
+            xa = meta["xa"]
+            if xa.get("format") == "none":
+                lines.append("XA audio: none (CDF/ISO Form 1 only → silent MP4)")
+            elif xa.get("audio_sectors"):
+                lines.append(
+                    f"XA: {xa.get('audio_sectors')} sectors  "
+                    f"{xa.get('sample_rate')} Hz  {xa.get('duration_sec')}s"
+                )
+        raw_str = self.assets_root / "raw" / "movie" / f"{stem}.str"
+        if raw_str.is_file():
+            lines.append(f"raw STR: {raw_str.name}  ({_fmt_size(raw_str.stat().st_size)})")
+
+        text = "\n".join(lines)
+        self._set_text_widget(self.text_deflated, text)
+
+        if raw_str.is_file():
+            try:
+                raw_bytes = raw_str.read_bytes()[:4096]
+                self._set_text_widget(
+                    self.text_raw,
+                    f"raw {raw_str} (first 4 KiB)\n\n" + _hexdump(raw_bytes, 256),
+                )
+            except OSError as e:
+                self._set_text_widget(self.text_raw, str(e))
+        else:
+            self._set_text_widget(
+                self.text_raw,
+                "(no raw STR; MP4 is the primary inflated asset)",
+            )
+
+        # Poster: ffmpeg frame from MP4, else legacy PNG dump
+        shown = False
+        if mp4.is_file():
+            poster = _mp4_poster_pil(mp4, at_sec=0.5)
+            if poster is not None:
+                self._set_pil_image(poster)
+                self.preview_nb.select(0)
+                shown = True
+        if not shown:
+            frames = (
+                sorted(movie_dir.glob("frame_*.png")) if movie_dir.is_dir() else []
+            )
+            if frames:
+                try:
+                    from PIL import Image as PILImage
+
+                    img = PILImage.open(frames[0])
+                    self._set_pil_image(img.convert("RGB"))
+                    self.preview_nb.select(0)
+                    shown = True
+                except Exception:
+                    shown = False
+        if not shown:
+            self.preview_nb.select(1)
+
+        # Transport bar → Play opens external video window
+        if mp4.is_file() and (self._video_player_cmd or self._audio_player_cmd):
+            n = int(meta.get("frame_count") or 0)
+            fps = float(meta.get("fps") or 15)
+            dur = float(meta.get("audio_duration_sec") or 0)
+            if dur <= 0 and fps > 0 and n:
+                dur = n / fps
+            probed = _probe_media_duration(mp4)
+            if probed and probed > 0:
+                dur = probed
+            self._media_is_video = True
+            self._audio_path = mp4
+            self._audio_duration = dur if dur > 0 else 1.0
+            self._audio_pos_var.set(0.0)
+            self._audio_scale.configure(
+                from_=0.0, to=max(self._audio_duration, 0.001)
+            )
+            self._audio_time_var.set(
+                f"0:00 / {self._fmt_time(self._audio_duration)}"
+            )
+            self._set_audio_controls_enabled(True)
+            backend = (self._video_player_cmd or self._audio_player_cmd or ["?"])[0]
+            self._audio_backend_lbl.configure(text=f"{backend} (video)")
+            self._status_var.set(
+                f"Movie ready — ▶ Play movie  ({mp4.name})"
+            )
+        else:
+            self._set_audio_controls_enabled(False)
+            if not mp4.is_file():
+                self._status_var.set("Movie MP4 missing — re-run extract_movies.py")
+            else:
+                self._status_var.set(
+                    "No video player (install ffmpeg for ffplay, or mpv/vlc)"
+                )
+
+        try:
+            base = self.info_label.cget("text")
+        except Exception:
+            base = ""
+        extra = []
+        if meta.get("frame_count") is not None:
+            extra.append(f"{meta['frame_count']} frames")
+        if meta.get("width") and meta.get("height"):
+            extra.append(f"{meta['width']}×{meta['height']}")
+        if mp4.is_file():
+            extra.append("mp4")
+        self.info_label.configure(
+            text=(f"{base}  ·  movie  " + "  ".join(extra)).strip(" ·")
         )
         return True
 

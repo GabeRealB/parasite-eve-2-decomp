@@ -17,6 +17,7 @@ Implementation references:
 | Images / CLUT | `tools/peassets/image_codec.py`, `src/main/fs.c` |
 | Friendly names | `tools/peassets/names.py` |
 | Runtime FS loader | `src/main/fs.c`, `include/main/fs.h` |
+| **CD streams (MTS audio + STR movie)** | [`STREAM_FORMATS.md`](STREAM_FORMATS.md), `mts_codec.py`, `str_codec.py` |
 
 ---
 
@@ -55,7 +56,9 @@ for hybrid/decoded packs.
 ### STAGE0 (`STAGE0.HED` + `STAGE0.CDF`)
 
 - Flat list of files in HED order (`file_id`, sector-aligned `file_offset`).
-- Streaming list (movies / audio) lives in the HED as well.
+- **Streaming list** (movies / audio): first `3 × 0x28` bytes of the HED —
+  see [`STREAM_FORMATS.md`](STREAM_FORMATS.md).
+- Also: `INTER0.STR` / `INTER1.STR` on the ISO for FMV (not in the CDF).
 - Chunks land in type dirs; pack sidecars under `stage0/<fileName>/`
   (default `file{id}`, or a friendly name from `names.NAMES`).
 
@@ -64,8 +67,8 @@ for hybrid/decoded packs.
 - Leading folder table: up to `0x100` entries of `(folder_id, folder_size)`.
 - Each folder is a sector-aligned block:
   - file list (`0xA2` slots)
-  - streaming list
-  - then file payloads
+  - **streaming list** at folder + `0x514` (`18 × 0x28`)
+  - then file payloads (and often stream data after the last file)
 - Chunks land in type dirs; pack sidecars under `stageN/<folderName>/file…/`.
 
 Folder and file **keys** in `stages.json` use friendly names when set in
@@ -508,33 +511,26 @@ Suggested roadmap: (1) structural `hONE` → JSON events, (2) timed events after
   (usually ending in `\Z` or `\Z\r\n`) zero-padded to chunk capacity.
   Inflated `txt/` is the text only (no trailing NUL / zero pad).
 
-### 9.3 CD audio streams (MTS)
+### 9.3–9.4 CD streams (MTS audio + STR movie)
 
-Not file chunks — listed in the **streaming list** (`STAGE0.HED` or folder
-`+0x514`, type `2`). Runtime: `CdStream_*` → `SpuWrite` (`cdstream.h`
-`MtsSector`).
+Not file chunks — **streaming list** descriptors (`STAGE0.HED` or folder
+`+0x514`) plus CD payloads. Full field tables (what each movie header
+byte means / confidence), disc layout (`INTER0` vs `INTER1`, stage‑3 dual
+descriptors), seek/play path, extract pitfalls:
 
-| Piece | Notes |
-|-------|--------|
-| Descriptor | `0x28` `FsCdfStream` audio arm; `offset` = start sector (STAGE0: stage-abs; folders: folder-rel); `field_14` often total length in sectors |
-| Payload | Sector stream; every *period* sectors an **MTS** header (`bytes @+8` = `cc 'S''T''M'`, `cc` = channel count) |
-| Channels | Almost always stereo; headers alternate `field_C` 0/1; gaps between chunk pairs are allowed |
-| Samples | SPU-ADPCM from header `+0x10` + continuation sectors; ~22050 Hz |
+**→ [`STREAM_FORMATS.md`](STREAM_FORMATS.md)** (§3 movies, §2 audio)
 
-Extract into the type-store layout (same root as pe2pkg/spk)::
-
-```text
-raw/audio/{stem}.mts     on-disc MTS sector payload
-audio/{stem}.wav         decoded stereo PCM (~22050 Hz)
-audio/{stem}.json        geometry + descriptor
-audio/streams.json       catalog
-```
+Quick extract:
 
 ```bash
-python3 tools/peassets/extract_streams.py --rom rom/USA --out assets/USA
+python3 tools/peassets/extract_streams.py --rom rom/USA --out assets/USA   # audio
+python3 tools/peassets/extract_movies.py  --rom rom/USA --out assets/USA -j 16  # movie
 ```
 
-Codec: `tools/peassets/mts_codec.py`.
+```text
+raw/audio/*.mts   audio/*.wav
+raw/movie/*.str   movie/{stem}.mp4  movie/{stem}.json   # lossless H.264 4:4:4 + ALAC (use VLC)
+```
 
 ---
 
@@ -692,6 +688,7 @@ root (inflated). Dedup is by SHA-1 of the **raw** clean payload:
 | pe2pkg | trim_lzss on-disc stream | LZSS-decoded package |
 | pe2img / pe2clut | clean pe2 blob | PNG + `*.pe2img.json` / `*.pe2clut.json` |
 | audio | MTS sector payload (`.mts`) | stereo WAV + JSON (§9.3) |
+| movie | STR 2048-byte sector blob (`.str`) | PNG frames + WebP + meta (§9.4) |
 | other | clean on-disc payload | hardlink/copy of raw |
 
 Pack sees them via `stages.json` content entries (same path for every
@@ -733,8 +730,12 @@ python3 tools/peassets/extract.py ... -o assets/USA
 python3 tools/peassets/extract.py ... -o assets/USA --raw-only
 python3 tools/peassets/extract.py ... -o assets/USA --minimal-inflate
 
-# browse extracted assets (by type or stage tree + preview)
+# browse extracted assets (by type or stage tree + preview; audio/movie playable)
 python3 tools/peassets/viewer.py assets/USA
+
+# CD streams (see STREAM_FORMATS.md)
+python3 tools/peassets/extract_streams.py --rom rom/USA --out assets/USA
+python3 tools/peassets/extract_movies.py  --rom rom/USA --out assets/USA
 
 # pack (default: matching)
 python3 tools/peassets/pack.py \
@@ -763,9 +764,9 @@ Dependencies: see `requirements.txt` (includes **Pillow** for PNG).
   (game picks via `getClut(x,y)`). Exporter scores rows and picks the most
   varied; wrong for textures that intentionally use a monochrome row.
 - **Cap2 / dialogue** internals undocumented.
-- **Streaming movies** (STR/MDEC) still need full payload extract/decode.
-- **Streaming audio (MTS)** is extractable: see §9.3 and
-  `tools/peassets/extract_streams.py` / `mts_codec.py`.
+- **Streaming movies (STR/MDEC)** and **audio (MTS)**: documented in
+  [`STREAM_FORMATS.md`](STREAM_FORMATS.md); extract via `extract_movies.py` /
+  `extract_streams.py`. Movie **XA audio** still not demuxed.
 - Runtime image path has mode-dependent Y adjustments (`Fs_ChunkMode`,
   `D5B498_8006C233/C234`) that do not affect off-line PNG export.
 

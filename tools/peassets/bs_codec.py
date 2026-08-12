@@ -363,6 +363,18 @@ class BitReader:
             v -= 1 << n
         return v
 
+    def peek_bits(self, n: int) -> int:
+        """Look ahead *n* bits without consuming (small *n* only)."""
+        # Save full state
+        pos, cur, left = self._pos, self._cur, self._left
+        try:
+            return self.read_bits(n)
+        finally:
+            self._pos, self._cur, self._left = pos, cur, left
+
+    def skip_bits(self, n: int) -> None:
+        self.read_bits(n)
+
 
 def parse_bs_header(data: bytes) -> BsHeader:
     if len(data) < BS_HEADER_SIZE:
@@ -404,9 +416,73 @@ def _match_ac(br: BitReader) -> tuple[int, int] | None:
     raise ValueError("unknown AC VLC prefix (too long)")
 
 
-def _decode_block_coeffs(br: BitReader, q_scale: int) -> np.ndarray:
-    """Decode one 8×8 block to spatial domain (after IDCT)."""
-    dc = br.read_signed(10)
+# STR / BS version-3 DC Huffman (jPSXdec §2.2.1). Each entry is
+# (bit_string, extra_bits) — extra_bits is the signed differential width.
+# Differential is then ×4 and added to the previous DC of the same channel.
+_V3_CHROMA_DC: list[tuple[str, int]] = [
+    ("11111110", 8),
+    ("1111110", 7),
+    ("111110", 6),
+    ("11110", 5),
+    ("1110", 4),
+    ("110", 3),
+    ("10", 2),
+    ("01", 1),
+    ("00", 0),
+]
+_V3_LUMA_DC: list[tuple[str, int]] = [
+    ("1111110", 8),
+    ("111110", 7),
+    ("11110", 6),
+    ("1110", 5),
+    ("110", 4),
+    ("101", 3),
+    ("01", 2),
+    ("00", 1),
+    ("100", 0),
+]
+
+
+def _v3_read_dc_delta(br: BitReader, table: list[tuple[str, int]]) -> int:
+    """Read one v3 differential DC coefficient (pre-×4, pre-accumulate)."""
+    # Longest-prefix match
+    best: tuple[str, int] | None = None
+    for code, extra in table:
+        n = len(code)
+        if br.peek_bits(n) == int(code, 2):
+            if best is None or n > len(best[0]):
+                best = (code, extra)
+    if best is None:
+        raise ValueError("unknown v3 DC VLC")
+    code, extra = best
+    br.skip_bits(len(code))
+    if extra == 0:
+        return 0
+    # First bit is sign: 0 → negative range, 1 → positive (jPSXdec)
+    sign = br.read_bits(1)
+    if extra == 1:
+        return -1 if sign == 0 else 1
+    mag_bits = extra - 1
+    mag = br.read_bits(mag_bits)
+    if sign == 0:
+        # Negative Differential: -(2^extra/2) .. -(2^(extra-1))
+        return mag - ((1 << extra) - 1)
+    return mag + (1 << (extra - 1))
+
+
+def _decode_block_coeffs(
+    br: BitReader,
+    q_scale: int,
+    *,
+    dc: int | None = None,
+) -> np.ndarray:
+    """Decode one 8×8 block to spatial domain (after IDCT).
+
+    *dc*: if None, read signed 10-bit DC (v2). Otherwise use the provided
+    absolute DC (already scaled for v3).
+    """
+    if dc is None:
+        dc = br.read_signed(10)
     flat = np.zeros(64, dtype=np.float64)
     flat[0] = dc
     i = 0
@@ -434,11 +510,37 @@ def _decode_block_coeffs(br: BitReader, q_scale: int) -> np.ndarray:
     return _psx_idct(dq)
 
 
-def _decode_macroblock(br: BitReader, q_scale: int) -> np.ndarray:
-    """Return 16×16×3 RGB uint8 for one macroblock (Cr, Cb, Y1..Y4)."""
-    cr_b, cb_b, y1, y2, y3, y4 = [
-        _decode_block_coeffs(br, q_scale) for _ in range(6)
-    ]
+def _decode_macroblock(
+    br: BitReader,
+    q_scale: int,
+    *,
+    version: int = 2,
+    dc_prev: list[int] | None = None,
+) -> np.ndarray:
+    """Return 16×16×3 RGB uint8 for one macroblock (Cr, Cb, Y1..Y4).
+
+    *dc_prev*: length-3 list ``[prev_cr, prev_cb, prev_y]`` mutated in place
+    for v3 differential DC; ignored for v2.
+    """
+    if version == 2:
+        blocks = [_decode_block_coeffs(br, q_scale) for _ in range(6)]
+    elif version == 3:
+        if dc_prev is None:
+            dc_prev = [0, 0, 0]
+        blocks = []
+        # Cr, Cb — separate predictors (indices 0, 1)
+        for ch in (0, 1):
+            delta = _v3_read_dc_delta(br, _V3_CHROMA_DC)
+            dc_prev[ch] = dc_prev[ch] + delta * 4
+            blocks.append(_decode_block_coeffs(br, q_scale, dc=dc_prev[ch]))
+        # Y1..Y4 — shared luma predictor (index 2)
+        for _ in range(4):
+            delta = _v3_read_dc_delta(br, _V3_LUMA_DC)
+            dc_prev[2] = dc_prev[2] + delta * 4
+            blocks.append(_decode_block_coeffs(br, q_scale, dc=dc_prev[2]))
+    else:
+        raise ValueError(f"unsupported BS version {version}")
+    cr_b, cb_b, y1, y2, y3, y4 = blocks
     # Upsample chroma to 16×16 and assemble Y
     y = np.empty((16, 16), dtype=np.float64)
     y[0:8, 0:8] = y1
@@ -484,19 +586,27 @@ def decode_bs_v2(
     width: int | None = None,
     height: int | None = None,
 ) -> tuple[Image.Image, BsInfo]:
-    """Decode a BS version-2 frame to an RGB PIL image + info.
+    """Decode a BS version-2 or version-3 frame to RGB + info.
 
-    PE2 backgrounds default to 320×240. If width/height are omitted the
-    decoder uses that default macroblock grid (300 MBs). Pass both to force
-    another size.
+    PE2 room backgrounds are v2 (default 320×240). STR movies may be v2 or v3.
     """
+    return decode_bs_frame(data, width=width, height=height)
+
+
+def decode_bs_frame(
+    data: bytes,
+    *,
+    width: int | None = None,
+    height: int | None = None,
+) -> tuple[Image.Image, BsInfo]:
+    """Decode BS v2/v3 MDEC frame (room ``.bs`` or demuxed STR)."""
     hdr = parse_bs_header(data)
     if hdr.magic != BS_MAGIC:
         raise ValueError(
             f"not a BS frame (magic=0x{hdr.magic:04X}, want 0x3800)"
         )
-    if hdr.version != 2:
-        raise ValueError(f"unsupported BS version {hdr.version} (only v2)")
+    if hdr.version not in (2, 3):
+        raise ValueError(f"unsupported BS version {hdr.version} (want 2 or 3)")
 
     if width is None and height is None:
         width, height = DEFAULT_WIDTH, DEFAULT_HEIGHT
@@ -509,10 +619,15 @@ def decode_bs_v2(
 
     br = BitReader(data, BS_HEADER_SIZE)
     q = hdr.quant_scale
+    dc_prev = [0, 0, 0]  # Cr, Cb, Y for v3
     mbs: list[np.ndarray] = []
     for _ in range(need):
         try:
-            mbs.append(_decode_macroblock(br, q))
+            mbs.append(
+                _decode_macroblock(
+                    br, q, version=hdr.version, dc_prev=dc_prev
+                )
+            )
         except (EOFError, ValueError) as e:
             if not mbs:
                 raise ValueError(f"no macroblocks decoded from BS stream: {e}") from e

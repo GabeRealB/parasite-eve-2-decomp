@@ -19,6 +19,7 @@ import argparse
 import json
 import logging
 import sys
+import traceback
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterator
@@ -42,6 +43,7 @@ from mts_codec import (  # noqa: E402
     find_first_mts_sector,
     probe_mts_stream,
 )
+from parallel_util import default_jobs, run_jobs  # noqa: E402
 
 RAW_AUDIO_DIR = "raw/audio"
 AUDIO_DIR = "audio"
@@ -158,13 +160,13 @@ def _stem_for(ref: AudioStreamRef) -> str:
     )
 
 
-def _span_bytes(ref: AudioStreamRef, cdf: bytes) -> tuple[bytes, int | None]:
+def _span_bytes(
+    cdf: bytes, *, cdf_offset: int, cdf_name: str, desc_sec: int | None
+) -> tuple[bytes, int | None]:
     """Slice raw payload from CDF; return (bytes, descriptor_sectors or None)."""
-    e = ref.entry
-    desc_sec = e.unknown3 if e.unknown3 else None  # field_14
-    off = ref.cdf_offset
+    off = cdf_offset
     if off >= len(cdf):
-        raise ValueError(f"offset 0x{off:X} past end of {ref.cdf_path.name}")
+        raise ValueError(f"offset 0x{off:X} past end of {cdf_name}")
 
     rest = cdf[off:]
     pre = find_first_mts_sector(rest)
@@ -178,6 +180,66 @@ def _span_bytes(ref: AudioStreamRef, cdf: bytes) -> tuple[bytes, int | None]:
     return cdf[off:end], desc_sec
 
 
+# Per-process CDF cache for parallel workers
+_WORKER_CDF_CACHE: dict[str, bytes] = {}
+
+
+def _worker_read_cdf(path: str) -> bytes:
+    data = _WORKER_CDF_CACHE.get(path)
+    if data is None:
+        data = Path(path).read_bytes()
+        _WORKER_CDF_CACHE[path] = data
+    return data
+
+
+def _extract_one_audio_job(job: dict[str, Any]) -> dict[str, Any]:
+    """Process-pool worker: slice one MTS stream and write raw/wav/json."""
+    stem = job["stem"]
+    try:
+        cdf = _worker_read_cdf(job["cdf_path"])
+        raw, desc_sec = _span_bytes(
+            cdf,
+            cdf_offset=job["cdf_offset"],
+            cdf_name=job["cdf_name"],
+            desc_sec=job["desc_sec"],
+        )
+        raw_dir = Path(job["raw_dir"]) if job["raw_dir"] else None
+        audio_dir = Path(job["audio_dir"]) if job["audio_dir"] else None
+        meta = extract_mts_asset(
+            raw,
+            stem=stem,
+            raw_dir=raw_dir,
+            audio_dir=audio_dir,
+            descriptor_sectors=desc_sec,
+            write_raw=job["write_raw"],
+            write_wav=job["write_wav"],
+        )
+        meta["descriptor"] = job["descriptor"]
+        meta["disk"] = job["disk"]
+        meta["stage"] = job["stage"]
+        meta["folder_id"] = job["folder_id"]
+        meta["slot"] = job["slot"]
+        meta["cdf_offset"] = f"0x{job['cdf_offset']:X}"
+        meta["cdf"] = job["cdf_name"]
+        if job["write_wav"] and audio_dir is not None:
+            (audio_dir / f"{stem}.json").write_text(
+                json.dumps(meta, indent=2) + "\n", encoding="utf-8"
+            )
+        return {"ok": True, "meta": meta, "stem": stem}
+    except Exception as ex:
+        return {
+            "ok": False,
+            "stem": stem,
+            "error": str(ex),
+            "traceback": traceback.format_exc(),
+            "disk": job.get("disk"),
+            "stage": job.get("stage"),
+            "folder_id": job.get("folder_id"),
+            "stream_id": job.get("stream_id"),
+            "cdf_offset": f"0x{job.get('cdf_offset', 0):X}",
+        }
+
+
 def extract_all(
     rom_usa: Path,
     assets_root: Path,
@@ -185,6 +247,7 @@ def extract_all(
     write_raw: bool = True,
     write_wav: bool = True,
     limit: int | None = None,
+    jobs: int | None = None,
 ) -> list[dict[str, Any]]:
     """Extract into ``assets_root/raw/audio`` and ``assets_root/audio``."""
     assets_root = Path(assets_root)
@@ -195,43 +258,50 @@ def extract_all(
     if write_wav:
         audio_dir.mkdir(parents=True, exist_ok=True)
 
-    catalog: list[dict[str, Any]] = []
-    cdf_cache: dict[Path, bytes] = {}
-
     refs = list(iter_audio_streams(rom_usa))
     if limit is not None:
         refs = refs[:limit]
 
-    logging.info("Found %d audio stream descriptor(s)", len(refs))
+    n_jobs = default_jobs() if jobs is None else max(1, jobs)
+    logging.info(
+        "Extracting %d audio stream(s) with %d worker(s)", len(refs), n_jobs
+    )
 
+    work: list[dict[str, Any]] = []
     for ref in refs:
-        stem = _stem_for(ref)
-        try:
-            if ref.cdf_path not in cdf_cache:
-                cdf_cache[ref.cdf_path] = ref.cdf_path.read_bytes()
-            cdf = cdf_cache[ref.cdf_path]
-            raw, desc_sec = _span_bytes(ref, cdf)
-            meta = extract_mts_asset(
-                raw,
-                stem=stem,
-                raw_dir=raw_dir if write_raw else None,
-                audio_dir=audio_dir if write_wav else None,
-                descriptor_sectors=desc_sec,
-                write_raw=write_raw,
-                write_wav=write_wav,
-            )
-            meta["descriptor"] = streaming_entry_to_json(ref.entry)
-            meta["disk"] = ref.disk
-            meta["stage"] = ref.stage
-            meta["folder_id"] = ref.folder_id
-            meta["slot"] = ref.slot
-            meta["cdf_offset"] = f"0x{ref.cdf_offset:X}"
-            meta["cdf"] = ref.cdf_path.name
-            # Rewrite meta with full catalog fields
-            if write_wav:
-                (audio_dir / f"{stem}.json").write_text(
-                    json.dumps(meta, indent=2) + "\n", encoding="utf-8"
-                )
+        e = ref.entry
+        work.append(
+            {
+                "stem": _stem_for(ref),
+                "cdf_path": str(ref.cdf_path.resolve()),
+                "cdf_name": ref.cdf_path.name,
+                "cdf_offset": ref.cdf_offset,
+                "desc_sec": e.unknown3 if e.unknown3 else None,
+                "raw_dir": str(raw_dir) if write_raw else None,
+                "audio_dir": str(audio_dir) if write_wav else None,
+                "write_raw": write_raw,
+                "write_wav": write_wav,
+                "descriptor": streaming_entry_to_json(e),
+                "disk": ref.disk,
+                "stage": ref.stage,
+                "folder_id": ref.folder_id,
+                "slot": ref.slot,
+                "stream_id": e.stream_id,
+            }
+        )
+
+    results = run_jobs(_extract_one_audio_job, work, jobs=n_jobs, label_key="stem")
+    by_stem = {r.get("stem"): r for r in results}
+
+    catalog: list[dict[str, Any]] = []
+    for job in work:
+        stem = job["stem"]
+        r = by_stem.get(stem)
+        if r is None:
+            catalog.append({"stem": stem, "error": "missing result"})
+            continue
+        if r.get("ok"):
+            meta = r["meta"]
             catalog.append(meta)
             logging.info(
                 "OK %s  %.1fs  → %s + %s",
@@ -240,17 +310,20 @@ def extract_all(
                 f"{RAW_AUDIO_DIR}/{stem}.mts" if write_raw else "-",
                 f"{AUDIO_DIR}/{stem}.wav" if write_wav else "-",
             )
-        except Exception as ex:
-            logging.exception("FAIL %s: %s", stem, ex)
+        else:
+            if r.get("traceback"):
+                logging.error("FAIL %s:\n%s", stem, r["traceback"])
+            else:
+                logging.error("FAIL %s: %s", stem, r.get("error"))
             catalog.append(
                 {
                     "stem": stem,
-                    "error": str(ex),
-                    "disk": ref.disk,
-                    "stage": ref.stage,
-                    "folder_id": ref.folder_id,
-                    "stream_id": ref.entry.stream_id,
-                    "cdf_offset": f"0x{ref.cdf_offset:X}",
+                    "error": r.get("error", "unknown"),
+                    "disk": r.get("disk", job["disk"]),
+                    "stage": r.get("stage", job["stage"]),
+                    "folder_id": r.get("folder_id", job["folder_id"]),
+                    "stream_id": r.get("stream_id", job["stream_id"]),
+                    "cdf_offset": r.get("cdf_offset", f"0x{job['cdf_offset']:X}"),
                 }
             )
 
@@ -286,6 +359,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--no-raw", action="store_true", help="Skip writing raw/audio/*.mts")
     ap.add_argument("--no-wav", action="store_true", help="Skip WAV decode")
     ap.add_argument("--limit", type=int, default=None, help="Max streams (debug)")
+    ap.add_argument(
+        "-j",
+        "--jobs",
+        type=int,
+        default=None,
+        help="Parallel workers (default: min(cpu_count, 16))",
+    )
     ap.add_argument("-v", "--verbose", action="store_true")
     args = ap.parse_args(argv)
 
@@ -305,6 +385,7 @@ def main(argv: list[str] | None = None) -> int:
         write_raw=not args.no_raw,
         write_wav=not args.no_wav,
         limit=args.limit,
+        jobs=args.jobs,
     )
     return 0
 

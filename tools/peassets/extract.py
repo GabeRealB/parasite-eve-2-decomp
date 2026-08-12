@@ -3,6 +3,7 @@ import json
 import logging
 import shutil
 import sys
+import traceback
 from argparse import ArgumentParser, FileType
 from dataclasses import dataclass
 from enum import IntEnum
@@ -32,6 +33,7 @@ from names import (  # noqa: E402
     lookup,
     validate_names,
 )
+from parallel_util import default_jobs, run_jobs  # noqa: E402
 
 
 @dataclass
@@ -497,7 +499,10 @@ class AssetStore:
         return raw_path, stem, True
 
     def materialize_inflated(
-        self, *, only_pe2pkg_stems: frozenset[str] | set[str] | None = None
+        self,
+        *,
+        only_pe2pkg_stems: frozenset[str] | set[str] | None = None,
+        jobs: int | None = None,
     ) -> int:
         """Build inflated type-store files from unique raw assets only.
 
@@ -511,124 +516,176 @@ class AssetStore:
         stems are inflated (typically :data:`names.REQUIRED_OVERLAY_STEMS`);
         images, ascii, and other types are skipped.
 
+        Decode work is process-pooled (``jobs``, default min(cpu, 16)).
+
         Returns the number of unique assets materialized.
         """
-        if only_pe2pkg_stems is not None:
-            logging.info(
-                "Materializing minimal inflated set: pe2pkg stems %s",
-                sorted(only_pe2pkg_stems),
-            )
-        else:
-            logging.info(
-                "Materializing inflated assets from %d unique raw files",
-                len(self._unique_raw),
-            )
-        count = 0
+        work: list[dict] = []
         for raw_rel, (type_dir, stem, ext) in sorted(
             self._unique_raw.items(), key=lambda kv: asset_name_key(kv[0])
         ):
             if only_pe2pkg_stems is not None:
                 if type_dir != "pe2pkg" or stem not in only_pe2pkg_stems:
                     continue
-            raw_path = self.assets_root / raw_rel
-            if not raw_path.exists():
-                logging.warning("missing raw asset: %s", raw_path)
-                continue
-            out_rel = self._inflated_rel(type_dir, stem, ext)
-            out_path = self.assets_root / out_rel
-            out_path.parent.mkdir(parents=True, exist_ok=True)
+            work.append(
+                {
+                    "assets_root": str(self.assets_root),
+                    "raw_rel": raw_rel,
+                    "type_dir": type_dir,
+                    "stem": stem,
+                    "ext": ext,
+                    "out_rel": self._inflated_rel(type_dir, stem, ext),
+                }
+            )
 
-            if ext == ".pe2pkg":
-                logging.info("  decode %s → %s", raw_rel, out_rel)
-                out_path.write_bytes(decode_pe2pkg_payload(raw_path.read_bytes()))
-            elif ext == ".txt":
-                logging.info("  decode ascii %s → %s", raw_rel, out_rel)
-                out_path.write_bytes(decode_ascii_payload(raw_path.read_bytes()))
-            elif ext in IMAGE_EXTS:
-                logging.info("  decode image %s → %s", raw_rel, out_rel)
-                try:
-                    # materialize writes stem.png + stem{ext}.json next to dest
-                    pe2_dest = out_path.with_suffix(ext)
-                    if pe2_dest != raw_path:
-                        # work from a copy under the type dir so meta names match
-                        if pe2_dest.exists() or pe2_dest.is_symlink():
-                            pe2_dest.unlink()
-                        try:
-                            pe2_dest.hardlink_to(raw_path)
-                        except OSError:
-                            pe2_dest.write_bytes(raw_path.read_bytes())
-                    materialize_image_asset(pe2_dest, pe2_dest)
-                    if pe2_dest.exists() and pe2_dest != out_path:
-                        pe2_dest.unlink()
-                except Exception:
-                    logging.exception(
-                        "image decode failed for %s; copying raw pe2 instead",
-                        raw_rel,
-                    )
-                    # Fall back to raw pe2 under type dir
-                    fallback = self.assets_root / type_dir / f"{stem}{ext}"
-                    fallback.parent.mkdir(parents=True, exist_ok=True)
-                    if fallback.exists() or fallback.is_symlink():
-                        fallback.unlink()
-                    try:
-                        fallback.hardlink_to(raw_path)
-                    except OSError:
-                        fallback.write_bytes(raw_path.read_bytes())
-                    # Patch map entries that pointed at .png for this raw
-                    for ent in self.map.values():
-                        if ent.get("raw_path") == raw_rel:
-                            ent["path"] = f"{type_dir}/{stem}{ext}"
-            elif ext == ".bs":
-                logging.info("  decode bs %s → %s", raw_rel, out_rel)
-                try:
-                    materialize_bs_asset(raw_path, out_path.with_suffix(".bs"))
-                except Exception:
-                    logging.exception(
-                        "BS decode failed for %s; copying raw .bs instead",
-                        raw_rel,
-                    )
-                    fallback = self.assets_root / type_dir / f"{stem}{ext}"
-                    fallback.parent.mkdir(parents=True, exist_ok=True)
-                    if fallback.exists() or fallback.is_symlink():
-                        fallback.unlink()
-                    try:
-                        fallback.hardlink_to(raw_path)
-                    except OSError:
-                        fallback.write_bytes(raw_path.read_bytes())
-                    for ent in self.map.values():
-                        if ent.get("raw_path") == raw_rel:
-                            ent["path"] = f"{type_dir}/{stem}{ext}"
-            elif ext == SPK_INFLATE_EXT:
-                logging.info("  decode spk %s → %s", raw_rel, out_rel)
-                dest_dir = self.assets_root / type_dir / stem
-                try:
-                    materialize_spk_asset(raw_path, dest_dir)
-                except Exception:
-                    logging.exception(
-                        "SPK decode failed for %s; copying raw .spk instead",
-                        raw_rel,
-                    )
-                    fallback = self.assets_root / type_dir / f"{stem}{ext}"
-                    fallback.parent.mkdir(parents=True, exist_ok=True)
-                    if fallback.exists() or fallback.is_symlink():
-                        fallback.unlink()
-                    try:
-                        fallback.hardlink_to(raw_path)
-                    except OSError:
-                        fallback.write_bytes(raw_path.read_bytes())
-                    for ent in self.map.values():
-                        if ent.get("raw_path") == raw_rel:
-                            ent["path"] = f"{type_dir}/{stem}{ext}"
+        if only_pe2pkg_stems is not None:
+            logging.info(
+                "Materializing minimal inflated set: pe2pkg stems %s (%d jobs)",
+                sorted(only_pe2pkg_stems),
+                default_jobs() if jobs is None else max(1, jobs),
+            )
+        else:
+            logging.info(
+                "Materializing inflated assets from %d unique raw files "
+                "(%d worker(s))",
+                len(work),
+                default_jobs() if jobs is None else max(1, jobs),
+            )
+
+        results = run_jobs(
+            _materialize_one_job, work, jobs=jobs, label_key="raw_rel"
+        )
+        count = 0
+        for r in results:
+            raw_rel = r.get("raw_rel")
+            if r.get("ok"):
+                count += 1
+                if r.get("log"):
+                    logging.info("  %s", r["log"])
             else:
-                # Opaque types: inflated form is identical to raw.
-                if out_path.exists() or out_path.is_symlink():
-                    out_path.unlink()
-                try:
-                    out_path.hardlink_to(raw_path)
-                except OSError:
-                    out_path.write_bytes(raw_path.read_bytes())
-            count += 1
+                logging.error(
+                    "  FAIL %s: %s",
+                    raw_rel,
+                    r.get("error", "unknown"),
+                )
+                if r.get("traceback"):
+                    logging.debug("%s", r["traceback"])
+            # Apply path fallback patches from worker (decode → raw copy)
+            override = r.get("path_override")
+            if override and raw_rel:
+                for ent in self.map.values():
+                    if ent.get("raw_path") == raw_rel:
+                        ent["path"] = override
         return count
+
+
+def _materialize_one_job(job: dict) -> dict:
+    """Process-pool worker: inflate one unique raw asset."""
+    assets_root = Path(job["assets_root"])
+    raw_rel = job["raw_rel"]
+    type_dir = job["type_dir"]
+    stem = job["stem"]
+    ext = job["ext"]
+    out_rel = job["out_rel"]
+    raw_path = assets_root / raw_rel
+    out_path = assets_root / out_rel
+
+    if not raw_path.exists():
+        return {
+            "ok": False,
+            "raw_rel": raw_rel,
+            "error": f"missing raw asset: {raw_path}",
+        }
+
+    try:
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        path_override = None
+        log = None
+
+        if ext == ".pe2pkg":
+            log = f"decode {raw_rel} → {out_rel}"
+            out_path.write_bytes(decode_pe2pkg_payload(raw_path.read_bytes()))
+        elif ext == ".txt":
+            log = f"decode ascii {raw_rel} → {out_rel}"
+            out_path.write_bytes(decode_ascii_payload(raw_path.read_bytes()))
+        elif ext in IMAGE_EXTS:
+            log = f"decode image {raw_rel} → {out_rel}"
+            try:
+                pe2_dest = out_path.with_suffix(ext)
+                if pe2_dest != raw_path:
+                    if pe2_dest.exists() or pe2_dest.is_symlink():
+                        pe2_dest.unlink()
+                    try:
+                        pe2_dest.hardlink_to(raw_path)
+                    except OSError:
+                        pe2_dest.write_bytes(raw_path.read_bytes())
+                materialize_image_asset(pe2_dest, pe2_dest)
+                if pe2_dest.exists() and pe2_dest != out_path:
+                    pe2_dest.unlink()
+            except Exception as ex:
+                fallback = assets_root / type_dir / f"{stem}{ext}"
+                fallback.parent.mkdir(parents=True, exist_ok=True)
+                if fallback.exists() or fallback.is_symlink():
+                    fallback.unlink()
+                try:
+                    fallback.hardlink_to(raw_path)
+                except OSError:
+                    fallback.write_bytes(raw_path.read_bytes())
+                path_override = f"{type_dir}/{stem}{ext}"
+                log = f"image decode failed {raw_rel}: {ex}; raw pe2 copied"
+        elif ext == ".bs":
+            log = f"decode bs {raw_rel} → {out_rel}"
+            try:
+                materialize_bs_asset(raw_path, out_path.with_suffix(".bs"))
+            except Exception as ex:
+                fallback = assets_root / type_dir / f"{stem}{ext}"
+                fallback.parent.mkdir(parents=True, exist_ok=True)
+                if fallback.exists() or fallback.is_symlink():
+                    fallback.unlink()
+                try:
+                    fallback.hardlink_to(raw_path)
+                except OSError:
+                    fallback.write_bytes(raw_path.read_bytes())
+                path_override = f"{type_dir}/{stem}{ext}"
+                log = f"BS decode failed {raw_rel}: {ex}; raw .bs copied"
+        elif ext == SPK_INFLATE_EXT:
+            log = f"decode spk {raw_rel} → {out_rel}"
+            dest_dir = assets_root / type_dir / stem
+            try:
+                materialize_spk_asset(raw_path, dest_dir)
+            except Exception as ex:
+                fallback = assets_root / type_dir / f"{stem}{ext}"
+                fallback.parent.mkdir(parents=True, exist_ok=True)
+                if fallback.exists() or fallback.is_symlink():
+                    fallback.unlink()
+                try:
+                    fallback.hardlink_to(raw_path)
+                except OSError:
+                    fallback.write_bytes(raw_path.read_bytes())
+                path_override = f"{type_dir}/{stem}{ext}"
+                log = f"SPK decode failed {raw_rel}: {ex}; raw .spk copied"
+        else:
+            log = f"link {raw_rel} → {out_rel}"
+            if out_path.exists() or out_path.is_symlink():
+                out_path.unlink()
+            try:
+                out_path.hardlink_to(raw_path)
+            except OSError:
+                out_path.write_bytes(raw_path.read_bytes())
+
+        return {
+            "ok": True,
+            "raw_rel": raw_rel,
+            "log": log,
+            "path_override": path_override,
+        }
+    except Exception as ex:
+        return {
+            "ok": False,
+            "raw_rel": raw_rel,
+            "error": str(ex),
+            "traceback": traceback.format_exc(),
+        }
 
     def stats(self) -> dict[str, dict[str, int]]:
         out: dict[str, dict[str, int]] = {}
@@ -890,6 +947,16 @@ def main():
             "Intended for CI / matching builds."
         ),
     )
+    parser.add_argument(
+        "-j",
+        "--jobs",
+        type=int,
+        default=None,
+        help=(
+            "Parallel workers for inflated decode "
+            f"(default: min(cpu_count, 16) = {default_jobs()})"
+        ),
+    )
     args = parser.parse_args()
     if args.raw_only and args.minimal_inflate:
         parser.error("--raw-only and --minimal-inflate are mutually exclusive")
@@ -940,7 +1007,9 @@ def main():
         return
 
     if args.minimal_inflate:
-        n = store.materialize_inflated(only_pe2pkg_stems=REQUIRED_OVERLAY_STEMS)
+        n = store.materialize_inflated(
+            only_pe2pkg_stems=REQUIRED_OVERLAY_STEMS, jobs=args.jobs
+        )
         logging.info(
             "Minimal inflate: materialized %d overlay(s) %s",
             n,
@@ -957,7 +1026,7 @@ def main():
         logging.info("All done! (raw + pe2pkg overlays under %s)", output_path)
         return
 
-    n = store.materialize_inflated()
+    n = store.materialize_inflated(jobs=args.jobs)
     logging.info("Materialized %d inflated assets", n)
 
     # Emit stages.json + iso_disk*.json and pack sidecars under stage*/.
