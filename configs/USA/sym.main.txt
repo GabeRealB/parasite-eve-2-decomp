@@ -2837,6 +2837,7 @@ Title_RestoreDemoCard       = 0x8009407C; // type:func
 Title_EnqueueDemoScene      = 0x80094B90; // type:func
 Title_TaskDescs             = 0x80094C8C; // size:0x18
 
-// Display tables (rodata taskutil_ro)
+// Display tables (taskutil.c .rodata)
 Display_WidthTable          = 0x80013E88; // type:u16
 Display_HeightTable         = 0x80013E94; // type:u16
+D_80013E98                  = 0x80013E98; // size:0x18

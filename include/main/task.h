@@ -126,11 +126,11 @@ extern TaskNode* Task_ActiveList;
 extern TaskNode  Task_DefaultList;
 extern TaskNode  D_8007A110;
 
-extern TaskFuncTable5 D_800134BC;
-extern TaskFuncTable3 D_800134D0;
-extern TaskFuncTable6 D_80013E98;
-extern TaskFuncTable3 D_80013EDC;
-extern TaskFuncTable4 D_80013F1C;
+extern TaskFuncTable5       D_800134BC;
+extern TaskFuncTable3       D_800134D0;
+extern const TaskFuncTable6 D_80013E98;
+extern TaskFuncTable3       D_80013EDC;
+extern TaskFuncTable4       D_80013F1C;
 
 extern TaskDesc D_8006268C;
 extern TaskDesc D_8006269C;

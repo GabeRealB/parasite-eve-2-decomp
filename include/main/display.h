@@ -89,8 +89,8 @@ STATIC_ASSERT_SIZEOF(GpuOtBuf, 0x14);
 /// Dual-buffer display / system state (bss @ 0x80070F68).
 extern DisplayState Display_State;
 
-extern u16 Display_WidthTable[];
-extern u16 Display_HeightTable[];
+extern const u16 Display_WidthTable[];
+extern const u16 Display_HeightTable[];
 
 extern u_long       Gpu_OtTags[2 * GPU_OT_ENTRIES];
 extern GpuOtBuf     Gpu_OtBuffers[2];
@@ -132,5 +132,7 @@ void Display_VSyncCallback(void);
 void Display_LoadImageStrips(s32 arg0);
 /// Mem heap reset via session (otutil.c wrapper around Display_ResetHeapFromSession).
 void Display_ResetHeapWrapper(void);
+void Display_TransitionTask(Task* task);
+void Display_TaskLoadStep(Task* task);
 
 #endif // DISPLAY_H
