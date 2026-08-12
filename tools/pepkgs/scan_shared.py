@@ -6,6 +6,45 @@ from pathlib import Path
 from Levenshtein import distance
 
 
+def _room_pkgs_by_load_addr(stages: dict) -> dict[str, list[tuple[str, str]]]:
+    """load_addr → [(store_name, path), …] unique by path."""
+    out: dict[str, list[tuple[str, str]]] = {}
+    seen: set[str] = set()
+
+    def consider(path: str | None, load_addr: str) -> None:
+        if not path or path in seen:
+            return
+        seen.add(path)
+        stem = Path(path).stem
+        out.setdefault(load_addr, []).append((stem, path))
+
+    for stage in stages.values():
+        if not isinstance(stage, dict):
+            continue
+        files = stage.get("files")
+        if isinstance(files, dict):
+            for chunks in files.values():
+                if not isinstance(chunks, dict):
+                    continue
+                for ent in chunks.values():
+                    if isinstance(ent, dict) and ent.get("type") == "room_pkg":
+                        consider(ent.get("path"), ent.get("load_addr") or "0x0")
+            continue
+        folders = stage.get("folders")
+        if not isinstance(folders, dict):
+            continue
+        for folder_files in folders.values():
+            if not isinstance(folder_files, dict):
+                continue
+            for chunks in folder_files.values():
+                if not isinstance(chunks, dict):
+                    continue
+                for ent in chunks.values():
+                    if isinstance(ent, dict) and ent.get("type") == "room_pkg":
+                        consider(ent.get("path"), ent.get("load_addr") or "0x0")
+    return out
+
+
 def main():
     parser = argparse.ArgumentParser(description="Scans a shared memory map for pkgs")
     parser.add_argument("name", type=str, help="Memory map name")
@@ -13,24 +52,9 @@ def main():
     args = parser.parse_args()
 
     asset_path = args.dir
-    pkg_path = asset_path / "OVR"
-    map_path = pkg_path / "map.json"
-    with open(map_path, "r") as f:
-        map_data = json.load(f)
-
-    address_map = {}
-    for name, entry in map_data.items():
-        ovr_name = entry["ovr_name"]
-        load_address = entry["load_address"]
-        info = {
-            "name": name,
-            "ovr_name": ovr_name,
-        }
-
-        if load_address not in address_map:
-            address_map[load_address] = [info]
-        else:
-            address_map[load_address].append(info)
+    with open(asset_path / "stages.json", "r") as f:
+        stages = json.load(f)
+    by_addr = _room_pkgs_by_load_addr(stages)
 
     memory = shared_memory.SharedMemory(name=args.name, create=False)
     assert memory.buf is not None
@@ -73,24 +97,22 @@ def main():
     print(
         f"\tchunkSize (0x4-0x8): {int.from_bytes(header_data[0x4:0x8], byteorder='little')}"
     )
-    load_address_str = f"0x{int.from_bytes(header_data[0x8:0xC], byteorder='little'):X}"
+    load_addr_str = f"0x{int.from_bytes(header_data[0x8:0xC], byteorder='little'):X}"
     print(
         f"\tloadAddr  (0x8-0xC): 0x{int.from_bytes(header_data[0x8:0xC], byteorder='little'):X}"
     )
 
     candidate_bytes = {}
-    for name, entry in map_data.items():
-        ovr_name = entry["ovr_name"]
-        if "DUPLICATE" in ovr_name:
+    for store_name, rel in by_addr.get(load_addr_str, []):
+        pkg_file = asset_path / rel
+        if not pkg_file.exists():
             continue
-
-        if load_address_str == entry["load_address"]:
-            with open(asset_path / name, "rb") as f:
-                candidate_bytes[ovr_name] = f.read()[:CHUNK_DATA_SIZE]
+        with open(pkg_file, "rb") as f:
+            candidate_bytes[store_name] = f.read()[:CHUNK_DATA_SIZE]
 
     candidate_scores = {}
-    for candidate, candidate_bytes in candidate_bytes.items():
-        score = distance(asset_data, candidate_bytes)
+    for candidate, cand_bytes in candidate_bytes.items():
+        score = distance(asset_data, cand_bytes)
         candidate_scores[candidate] = 1.0 - (score / CHUNK_DATA_SIZE)
 
     candidate_scores = dict(

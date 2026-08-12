@@ -136,7 +136,7 @@ def main() -> int:
     sym_path = ROOT / "configs/USA/sym.title.txt"
     sym_path.write_text(
         """// Symbols for the title / demo / main-menu overlay.
-// Load address 0x80093800. Retail asset: assets/USA/OVR/title.
+// Load address 0x80093800. Retail asset: assets/USA/pe2pkg/title.pe2pkg.
 //
 // Main-executable imports come from configs/USA/sym.main.txt (listed first in
 // title.yaml symbol_addrs_path). Keep only overlay-local names here.

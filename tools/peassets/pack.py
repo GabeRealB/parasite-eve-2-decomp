@@ -3,7 +3,7 @@
 
 Inputs (two separate manifests):
 
-  * ``stages.json`` — each file lists **contents** (decoded assets + pack fields).
+  * ``stages.json`` — each file lists **contents** (asset paths + pack fields).
   * ``iso_diskN.json`` — single-disc ISO layout (one directory_tree).
 
 Example ``stages.json`` (flat stage map; each stage is files *or* folders)::
@@ -12,11 +12,11 @@ Example ``stages.json`` (flat stage map; each stage is files *or* folders)::
       "stage0": {
         "files": {
           "gameplay": {
-            "0.spk": { "path": "decoded/stage0/gameplay/0.spk", "type": "music" },
+            "0.spk": { "path": "spk/spk_0.spk", "type": "music" },
             "1.pe2pkg": {
-              "path": "decoded/stage0/gameplay/gameplay.pe2pkg",
+              "path": "pe2pkg/gameplay.pe2pkg",
               "type": "room_pkg",
-              "load_address": "0x80093800"
+              "load_addr": "0x80093800"
             }
           }
         }
@@ -25,7 +25,7 @@ Example ``stages.json`` (flat stage map; each stage is files *or* folders)::
         "folders": {
           "101": {
             "file0": {
-              "0.spk": { "path": "decoded/stage1/101/file0/0.spk", "type": "music" }
+              "0.spk": { "path": "spk/spk_12.spk", "type": "music" }
             }
           }
         }
@@ -35,7 +35,13 @@ Example ``stages.json`` (flat stage map; each stage is files *or* folders)::
 ``files`` → STAGE0-style HED+CDF. ``folders`` → STAGEn.CDF with folder table.
 File/folder dict keys use friendly names from ``names.NAMES`` when set (else
 ``file0`` / ``101``). Chunk keys stay disc-order basenames (``1.pe2pkg``).
-Key order is on-disc order. Trailers / streams / layout still come from ``raw/``.
+Key order is on-disc order.
+
+Content paths point at the **type store** under the assets root
+(``pe2pkg/``, ``pe2img/*.png``, …) — inflated/editable forms from extract.
+Pack re-encodes LZSS on-disc types (room packages, images, CLUTs) from those
+assets. Pack sidecars (``trailer.bin``, ``layout.json``, …) live under
+``stage0/…`` / ``stageN/…``.
 """
 
 from __future__ import annotations
@@ -46,6 +52,7 @@ import shutil
 import sys
 import xml.etree.ElementTree as ET
 from argparse import ArgumentParser
+from enum import Enum
 from pathlib import Path
 from typing import Any
 
@@ -76,19 +83,45 @@ from format import (  # noqa: E402
     encode_folder_list_entry,
     encode_streaming_list_entry,
     encode_u32,
+    ensure_clean_payload,
+    pack_chunk_payload,
     parse_int,
     resolve_chunk_type,
     resolve_end_flag,
     streaming_entry_from_json,
     validate_sector_len,
 )
-from lzss import decode_lzss, encode_lzss  # noqa: E402
+from lzss import encode_lzss  # noqa: E402
 from names import (  # noqa: E402
     disk_file_rel,
     disk_folder_rel,
     resolve_file_id,
     resolve_folder_id,
 )
+
+# Chunk types stored as LZSS (or LZSS-wrapped) on disc.
+LZSS_ON_DISC_TYPES = frozenset(
+    {
+        FileChunkType.RoomPkg,
+        FileChunkType.Image,
+        FileChunkType.Clut,
+    }
+)
+
+
+class PackSource(str, Enum):
+    """Pack source mode.
+
+    * **matching** (default) — LZSS on-disc types from ``raw/{type}/`` when
+      present (retail clean payloads); other assets from inflated type dirs.
+    * **raw** — only ``raw/{type}/`` (on-disc blobs; no re-encode).
+    * **hybrid** / **decoded** — inflated type dirs; re-encode LZSS types.
+    """
+
+    MATCHING = "matching"
+    RAW = "raw"
+    HYBRID = "hybrid"
+    DECODED = "decoded"
 
 
 def load_json(path: Path) -> Any:
@@ -101,6 +134,89 @@ def resolve_path(base: Path, value: str | Path) -> Path:
     if path.is_absolute():
         return path
     return (base / path).resolve()
+
+
+def path_under_raw_type_store(
+    assets_dir: Path, path_str: str, chunk_type: FileChunkType
+) -> Path:
+    """Map an inflated type-store path to the corresponding ``raw/{type}/`` file.
+
+    ``pe2pkg/gameplay.pe2pkg`` → ``raw/pe2pkg/gameplay.pe2pkg``
+    ``pe2img/foo.png`` → ``raw/pe2img/foo.pe2img``
+    """
+    p = Path(path_str)
+    # Already under raw/
+    if p.parts and p.parts[0] == "raw":
+        return resolve_path(assets_dir, p)
+    type_dir = AssetStore_type_dir(chunk_type)
+    stem = p.stem
+    ext = chunk_type.get_extension()
+    return (assets_dir / "raw" / type_dir / f"{stem}{ext}").resolve()
+
+
+def AssetStore_type_dir(chunk_type: FileChunkType) -> str:
+    """Type directory name for a chunk type (mirrors extract.TYPE_DIR_BY_EXT)."""
+    ext = chunk_type.get_extension()
+    return {
+        ".pe2pkg": "pe2pkg",
+        ".pe2img": "pe2img",
+        ".pe2clut": "pe2clut",
+        ".pe2cap2": "pe2cap2",
+        ".bs": "bs",
+        ".spk": "spk",
+        ".txt": "txt",
+    }.get(ext, ext.lstrip(".") or "bin")
+
+
+def resolve_content_path(
+    assets_dir: Path,
+    path_str: str,
+    *,
+    source: PackSource,
+    chunk_type: FileChunkType,
+) -> tuple[Path, bool]:
+    """Resolve a stages content path.
+
+    Returns ``(path, on_disc_blob)``. When ``on_disc_blob`` is True the file is
+    already a clean on-disc payload (no LZSS/PNG re-encode).
+    """
+    needs_lzss = chunk_type in LZSS_ON_DISC_TYPES
+    staged = resolve_path(assets_dir, path_str)
+
+    if source == PackSource.RAW:
+        raw_path = path_under_raw_type_store(assets_dir, path_str, chunk_type)
+        if not raw_path.exists():
+            raise FileNotFoundError(f"missing raw content: {raw_path}")
+        return raw_path, needs_lzss
+
+    if source == PackSource.MATCHING and needs_lzss:
+        raw_path = path_under_raw_type_store(assets_dir, path_str, chunk_type)
+        if raw_path.exists():
+            return raw_path, True
+        # Fall through to inflated re-encode if raw is missing.
+        logging.warning(
+            "matching pack: missing raw %s; re-encoding from inflated", raw_path
+        )
+
+    # hybrid / decoded / matching non-LZSS / matching LZSS fallback
+    path = staged
+    if not path.exists() and chunk_type in (
+        FileChunkType.Image,
+        FileChunkType.Clut,
+    ):
+        for alt in (path.with_suffix(".png"), path):
+            if alt.exists():
+                path = alt
+                break
+    if not path.exists():
+        raise FileNotFoundError(f"missing content: {path}")
+
+    suffix = path.suffix.lower()
+    if chunk_type == FileChunkType.RoomPkg:
+        return path, False
+    if chunk_type in (FileChunkType.Image, FileChunkType.Clut):
+        return path, suffix in (".pe2img", ".pe2clut")
+    return path, False
 
 
 def pad_to(buf: bytearray | bytes, size: int, fill: int = 0) -> bytes:
@@ -135,7 +251,12 @@ def install_file(src: Path, dst: Path) -> None:
 
 
 def build_chunk_blob(header_json: dict[str, Any], payload: bytes) -> bytes:
-    """Build one chunk: 0x10 header + payload, sector-aligned total size."""
+    """Build one on-disc chunk with per-sector layout honoring sector_len.
+
+    Valid data per sector is ``[0x10, sector_len)`` on the first sector and
+    ``[0, sector_len)`` on continuation sectors; the rest of each 0x800 sector
+    is zero pad (see ``format.pack_chunk_payload``).
+    """
     chunk_type = resolve_chunk_type(header_json["chunk_type"])
     end_flag = resolve_end_flag(header_json["end_flag"])
     sector_len = validate_sector_len(
@@ -143,71 +264,181 @@ def build_chunk_blob(header_json: dict[str, Any], payload: bytes) -> bytes:
             header_json.get("sector_len", header_json.get("unknown1", SECTOR_SIZE))
         )
     )
-    unknown2 = parse_int(
-        header_json.get("unknown2", header_json.get("load_address", 0))
-    )
+    load_addr = parse_int(header_json.get("load_addr", 0))
 
-    total_unpadded = FILE_CHUNK_HEADER_SIZE + len(payload)
-    # Always size from actual payload (edited assets may grow/shrink).
-    chunk_size = align_up(total_unpadded, SECTOR_SIZE)
+    # Prefer retail chunk_size when present so unmodified assets stay exact.
+    retail_size = None
+    if "chunk_size" in header_json:
+        retail_size = parse_int(header_json["chunk_size"])
 
-    payload_padded = pad_to(payload, chunk_size - FILE_CHUNK_HEADER_SIZE)
     header = FileChunkHeader(
         chunk_type=chunk_type,
         end_flag=end_flag,
         sector_len=sector_len,
-        chunk_size=chunk_size,
-        unknown2=unknown2,
+        chunk_size=retail_size or SECTOR_SIZE,  # placeholder; pack recalculates
+        load_addr=load_addr,
     )
-    return encode_file_chunk_header(header) + payload_padded
+    return pack_chunk_payload(header, payload, chunk_size=retail_size)
+
+
+def _content_chunk_sizes(
+    content: dict[str, Any] | None = None,
+) -> tuple[int, int | None]:
+    """Resolve (sector_len, chunk_size) from stages.json content fields."""
+    sector_len = 0x800
+    chunk_size = None
+    if content:
+        if "sector_len" in content:
+            sector_len = parse_int(content["sector_len"])
+        if "chunk_size" in content:
+            chunk_size = parse_int(content["chunk_size"]) or None
+    return sector_len, chunk_size
 
 
 def prepare_on_disc_payload(
-    decoded_payload: bytes,
+    payload: bytes,
     *,
     chunk_type: FileChunkType,
-    raw_payload_path: Path | None,
+    content_path: Path | None = None,
+    content: dict[str, Any] | None = None,
+    on_disc_blob: bool = False,
 ) -> bytes:
-    """Compress decoded payload for disc when needed.
+    """Turn an asset into the on-disc clean chunk payload.
 
-    Prefer the original raw .pe2pkg when the decoded bytes still match a
-    decode of that raw blob (avoids re-encoding noise). Otherwise LZSS-encode.
+    When ``on_disc_blob`` is True, ``payload`` is already clean pe2/raw on-disc
+    data (pass-through pe2 image) — only strip legacy sector pad if needed.
+
+    Otherwise:
+
+    * Room packages: LZSS-encode the inflated package
+    * Images / CLUTs: encode PNG + meta (or pass-through pe2)
+    * Ascii: strip trailing NULs; sector zero-fill restores retail pad
+    * Other types: clean bytes as-is
+
+    Returned payload is always *clean* (no per-sector pad);
+    ``build_chunk_blob`` re-applies ``sector_len`` padding.
     """
-    if chunk_type != FileChunkType.RoomPkg:
-        return decoded_payload
+    sector_len, chunk_size = _content_chunk_sizes(content)
 
-    if raw_payload_path is not None and raw_payload_path.exists():
-        raw_bytes = raw_payload_path.read_bytes()
-        try:
-            if decode_lzss(raw_bytes) == decoded_payload:
-                return raw_bytes
-        except Exception:
-            logging.warning(
-                "failed to decode raw package %s; re-encoding from decoded",
-                raw_payload_path,
+    if on_disc_blob:
+        if not payload and content_path is not None and content_path.exists():
+            payload = content_path.read_bytes()
+        if not payload:
+            raise FileNotFoundError(
+                f"missing on-disc payload ({content_path})"
             )
-    return encode_lzss(decoded_payload)
+        return ensure_clean_payload(
+            payload, sector_len=sector_len, chunk_size=chunk_size
+        )
+
+    if chunk_type == FileChunkType.RoomPkg:
+        if not payload:
+            raise FileNotFoundError(
+                f"room package missing decoded payload ({content_path})"
+            )
+        return encode_lzss(payload)
+
+    # Note: Image/Clut re-encode paths below; CLUT PNG encode uses encode_lzss(kind="clut")
+    # inside image_codec.
+
+    if chunk_type in (FileChunkType.Image, FileChunkType.Clut):
+        return _prepare_image_payload(
+            chunk_type=chunk_type,
+            content_path=content_path,
+            decoded_payload=payload,
+            sector_len=sector_len,
+            chunk_size=chunk_size,
+        )
+
+    if not payload and content_path is not None:
+        raise FileNotFoundError(f"missing payload: {content_path}")
+
+    if chunk_type == FileChunkType.Ascii:
+        # Inflated form is text only; strip any trailing NULs. Sector pack
+        # zero-fills the rest of the clean payload / chunk.
+        end = len(payload)
+        while end > 0 and payload[end - 1] == 0:
+            end -= 1
+        return payload[:end]
+
+    return ensure_clean_payload(
+        payload, sector_len=sector_len, chunk_size=chunk_size
+    )
 
 
-def raw_sidecar_for_content(content_path: Path, assets_dir: Path) -> Path | None:
-    """Map a decoded (or raw) content path to the sibling raw/ payload if any."""
-    try:
-        rel = content_path.resolve().relative_to((assets_dir / "decoded").resolve())
-        return assets_dir / "raw" / rel
-    except ValueError:
-        pass
-    try:
-        rel = content_path.resolve().relative_to((assets_dir / "raw").resolve())
-        return assets_dir / "raw" / rel
-    except ValueError:
+def _image_meta_candidates(
+    content_path: Path, chunk_type: FileChunkType
+) -> list[Path]:
+    stem_meta = content_path.with_suffix("")
+    if chunk_type == FileChunkType.Image:
+        return [
+            Path(str(stem_meta) + ".pe2img.json"),
+            content_path.with_name(content_path.stem + ".pe2img.json"),
+        ]
+    return [
+        Path(str(stem_meta) + ".pe2clut.json"),
+        content_path.with_name(content_path.stem + ".pe2clut.json"),
+    ]
+
+
+def _encode_image_from_png(
+    content_path: Path, chunk_type: FileChunkType
+) -> bytes | None:
+    """Encode PNG + meta to pe2 payload, or None if meta is missing."""
+    if content_path.suffix.lower() != ".png":
         return None
+    # Lazy import: matching/raw packs do not need Pillow.
+    from image_codec import png_files_to_pe2clut, png_files_to_pe2img
+
+    for mp in _image_meta_candidates(content_path, chunk_type):
+        if mp.exists():
+            if chunk_type == FileChunkType.Image:
+                return png_files_to_pe2img(content_path, mp)
+            return png_files_to_pe2clut(content_path, mp)
+    return None
+
+
+def _prepare_image_payload(
+    *,
+    chunk_type: FileChunkType,
+    content_path: Path | None,
+    decoded_payload: bytes,
+    sector_len: int,
+    chunk_size: int | None,
+) -> bytes:
+    """PNG (+ meta) or opaque pe2 bytes → clean pe2 payload."""
+    if content_path is not None:
+        encoded = _encode_image_from_png(content_path, chunk_type)
+        if encoded is not None:
+            return encoded
+        if content_path.suffix.lower() == ".png":
+            candidates = _image_meta_candidates(content_path, chunk_type)
+            raise FileNotFoundError(
+                f"missing image meta for {content_path} (tried {candidates})"
+            )
+        # Recovery: pe2 blob left in the type store when PNG decode failed.
+        if content_path.suffix.lower() in (".pe2img", ".pe2clut"):
+            return ensure_clean_payload(
+                content_path.read_bytes(),
+                sector_len=sector_len,
+                chunk_size=chunk_size,
+            )
+
+    if decoded_payload:
+        return ensure_clean_payload(
+            decoded_payload, sector_len=sector_len, chunk_size=chunk_size
+        )
+    raise FileNotFoundError(
+        f"missing image payload ({content_path})"
+    )
 
 
 def build_file_blob_from_contents(
     contents: dict[str, dict[str, Any]] | list[dict[str, Any]],
     assets_dir: Path,
     *,
-    raw_file_dir: Path | None,
+    file_dir: Path | None,
+    source: PackSource = PackSource.MATCHING,
 ) -> bytes:
     """Build one CDF file from an ordered contents dict (or legacy list)."""
     if isinstance(contents, dict):
@@ -224,7 +455,12 @@ def build_file_blob_from_contents(
     # Opaque non-chunked file
     if len(items) == 1 and items[0][1].get("type") == "raw":
         content = items[0][1]
-        path = resolve_path(assets_dir, content["path"])
+        path_str = content.get("path")
+        if not path_str:
+            raise ValueError("type=raw content missing path")
+        path = resolve_path(assets_dir, path_str)
+        if not path.exists():
+            raise FileNotFoundError(f"missing raw.bin payload: {path}")
         data = path.read_bytes()
         return pad_to(data, align_up(len(data), SECTOR_SIZE)) if data else b""
 
@@ -246,49 +482,60 @@ def build_file_blob_from_contents(
                 )
             )
         )
-        header_json = {
+        header_json: dict[str, Any] = {
             "chunk_type": chunk_type.get_name(),
             "end_flag": end_flag,
             "sector_len": sector_len,
-            "unknown2": content.get(
-                "load_address", content.get("unknown2", "0x0")
-            ),
+            "load_addr": content.get("load_addr", "0x0"),
         }
+        if "chunk_size" in content:
+            header_json["chunk_size"] = content["chunk_size"]
         if "path" in content:
-            payload_path = resolve_path(assets_dir, content["path"])
+            payload_path, on_disc_blob = resolve_content_path(
+                assets_dir,
+                content["path"],
+                source=source,
+                chunk_type=chunk_type,
+            )
         else:
-            # Derive path from name when omitted: decoded/…/fileN/name
-            if raw_file_dir is None:
-                raise ValueError(f"content {name!r} missing path and raw_file_dir")
-            # raw_file_dir is …/raw/stage…/fileN → decoded sibling
-            try:
-                rel = raw_file_dir.resolve().relative_to(
-                    (assets_dir / "raw").resolve()
-                )
-                payload_path = assets_dir / "decoded" / rel / name
-            except ValueError:
-                payload_path = raw_file_dir / name
-        if not payload_path.exists():
-            raise FileNotFoundError(f"missing content payload: {payload_path}")
-        decoded_payload = payload_path.read_bytes()
-        raw_payload = raw_sidecar_for_content(payload_path, assets_dir)
+            # Derive path from name when omitted: file_dir/name
+            if file_dir is None:
+                raise ValueError(f"content {name!r} missing path and file_dir")
+            payload_path = file_dir / name
+            on_disc_blob = False
+            if not payload_path.exists():
+                if chunk_type in (FileChunkType.Image, FileChunkType.Clut):
+                    alt = payload_path.with_suffix(".png")
+                    if alt.exists():
+                        payload_path = alt
+                if not payload_path.exists():
+                    raise FileNotFoundError(
+                        f"missing content payload: {payload_path}"
+                    )
+        # PNG is not the on-disc payload; prepare_on_disc_payload encodes it.
+        if payload_path.suffix.lower() == ".png":
+            file_bytes = b""
+        else:
+            file_bytes = payload_path.read_bytes()
         on_disc = prepare_on_disc_payload(
-            decoded_payload,
+            file_bytes,
             chunk_type=chunk_type,
-            raw_payload_path=raw_payload,
+            content_path=payload_path,
+            content=content if isinstance(content, dict) else None,
+            on_disc_blob=on_disc_blob,
         )
         out.extend(build_chunk_blob(header_json, on_disc))
 
-    # Optional post-chunk trailer lives under raw/ next to the file.
-    if raw_file_dir is not None:
-        trailer_path = raw_file_dir / "trailer.bin"
+    # Optional post-chunk trailer next to the file (raw or decoded per source).
+    if file_dir is not None:
+        trailer_path = file_dir / "trailer.bin"
         if trailer_path.exists():
             out.extend(trailer_path.read_bytes())
 
     return pad_to(bytes(out), align_up(len(out), SECTOR_SIZE))
 
 
-def resolve_raw_file_dir(
+def resolve_file_dir(
     contents: dict[str, dict[str, Any]] | list[dict[str, Any]],
     assets_dir: Path,
     *,
@@ -296,37 +543,24 @@ def resolve_raw_file_dir(
     stage: int | None = None,
     folder_id: int | None = None,
     stage_rel: str | None = None,
+    source: PackSource = PackSource.MATCHING,
 ) -> Path:
-    """Infer raw/… file directory for trailers from content paths or names.
+    """Infer stage-tree directory for trailers / sidecars.
 
-    Prefer the ``path`` field (already uses friendly names). Fall back to
-    :func:`disk_file_rel` when stage/file ids are known, else legacy stage_rel.
+    Sidecars live under ``stage0/…`` / ``stageN/…`` (not type dirs). Prefer
+    :func:`disk_file_rel` when stage/file ids are known.
     """
-    items = contents.values() if isinstance(contents, dict) else contents
-    for content in items:
-        path = content.get("path")
-        if not path:
-            continue
-        p = Path(path)
-        parts = p.parts
-        if "decoded" in parts:
-            idx = parts.index("decoded")
-            rest = parts[idx + 1 : -1]
-            if rest:
-                return assets_dir / "raw" / Path(*rest)
-        if parts and parts[-1] == "raw.bin" and "raw" in parts:
-            # raw/stage0/gameplay/raw.bin -> raw/stage0/gameplay
-            return assets_dir / Path(*parts[:-1])
+    del contents, source  # content paths point at type store, not stage tree
     if stage is not None:
         try:
             file_id = resolve_file_id(file_name, stage=stage, folder_id=folder_id)
         except ValueError:
             file_id = None
         if file_id is not None:
-            return assets_dir / "raw" / disk_file_rel(stage, file_id, folder_id)
+            return assets_dir / disk_file_rel(stage, file_id, folder_id)
     if stage_rel is not None:
-        return assets_dir / "raw" / stage_rel / file_name
-    return assets_dir / "raw" / "stage0" / file_name
+        return assets_dir / stage_rel / file_name
+    return assets_dir / "stage0" / file_name
 
 
 def load_streaming_json(path: Path) -> list[dict[str, Any]]:
@@ -385,10 +619,15 @@ def encode_stage0_hed(
 
 
 def build_files_stage(
-    stage_name: str, stage_spec: dict[str, Any], assets_dir: Path, out_dir: Path
+    stage_name: str,
+    stage_spec: dict[str, Any],
+    assets_dir: Path,
+    out_dir: Path,
+    *,
+    source: PackSource = PackSource.MATCHING,
 ) -> tuple[Path, Path]:
     """Rebuild a flat files stage (STAGE0.HED + STAGE0.CDF style)."""
-    logging.info("Building %s (files → HED+CDF)", stage_name)
+    logging.info("Building %s (files → HED+CDF) source=%s", stage_name, source.value)
 
     files_map = stage_spec.get("files")
     if not isinstance(files_map, dict):
@@ -410,19 +649,22 @@ def build_files_stage(
             raise TypeError(
                 f"{stage_name}.files[{file_name!r}] must be a dict of chunk_name → fields"
             )
-        raw_dir = resolve_raw_file_dir(
+        file_dir = resolve_file_dir(
             chunks,
             assets_dir,
             file_name=file_name,
             stage=stage_index,
             folder_id=None,
             stage_rel=stage_name,
+            source=source,
         )
-        blob = build_file_blob_from_contents(chunks, assets_dir, raw_file_dir=raw_dir)
+        blob = build_file_blob_from_contents(
+            chunks, assets_dir, file_dir=file_dir, source=source
+        )
         built_files.append((file_id, blob))
 
-    raw_stage = assets_dir / "raw" / stage_name
-    layout_path = raw_stage / "layout.json"
+    stage_side = assets_dir / stage_name
+    layout_path = stage_side / "layout.json"
     retail_offsets: dict[int, int] | None = None
     if layout_path.exists():
         retail_offsets = {
@@ -445,11 +687,11 @@ def build_files_stage(
         file_list.append((file_id, offset))
 
     content_end = len(cdf)
-    stream_path = raw_stage / "stream_data.bin"
+    stream_path = stage_side / "stream_data.bin"
     if stream_path.exists():
         cdf.extend(stream_path.read_bytes())
 
-    streaming = load_streaming_json(raw_stage / "streaming.json")
+    streaming = load_streaming_json(stage_side / "streaming.json")
     needs_stream_map = any(
         e.get("offset_folder_space") == "stream"
         or e.get("offset_stage_space") == "stream"
@@ -486,6 +728,8 @@ def build_stage_n_folder(
     files_map: dict[str, Any],
     assets_dir: Path,
     stage_index: int,
+    *,
+    source: PackSource = PackSource.MATCHING,
 ) -> tuple[int, bytes]:
     """Build one STAGE-N folder from an ordered files dict."""
     if not isinstance(files_map, dict):
@@ -502,24 +746,28 @@ def build_stage_n_folder(
             raise TypeError(
                 f"folder {folder_id}[{file_name!r}] must be a dict of chunk_name → fields"
             )
-        raw_dir = resolve_raw_file_dir(
+        file_dir = resolve_file_dir(
             chunks,
             assets_dir,
             file_name=file_name,
             stage=stage_index,
             folder_id=folder_id,
+            source=source,
         )
         built.append(
             (
                 file_id,
                 build_file_blob_from_contents(
-                    chunks, assets_dir, raw_file_dir=raw_dir
+                    chunks,
+                    assets_dir,
+                    file_dir=file_dir,
+                    source=source,
                 ),
             )
         )
 
-    raw_folder = assets_dir / "raw" / disk_folder_rel(stage_index, folder_id)
-    layout_path = raw_folder / "layout.json"
+    folder_side = assets_dir / disk_folder_rel(stage_index, folder_id)
+    layout_path = folder_side / "layout.json"
     retail_offsets: dict[int, int] | None = None
     retail_folder_size: int | None = None
     if layout_path.exists():
@@ -557,7 +805,7 @@ def build_stage_n_folder(
 
     content_end = STAGE_N_FOLDER_HEADER_SIZE + len(body)
 
-    stream_path = raw_folder / "stream_data.bin"
+    stream_path = folder_side / "stream_data.bin"
     if stream_path.exists():
         body.extend(stream_path.read_bytes())
 
@@ -577,7 +825,7 @@ def build_stage_n_folder(
     header.extend(b"\x00" * ((STAGE_N_FILE_LIST_COUNT - len(file_list)) * 8))
     header.extend(encode_u32(0))  # 0x510
 
-    streaming = load_streaming_json(raw_folder / "streaming.json")
+    streaming = load_streaming_json(folder_side / "streaming.json")
     if len(streaming) > STAGE_N_STREAMING_COUNT:
         raise ValueError(
             f"folder {folder_id} has {len(streaming)} stream entries, "
@@ -611,10 +859,15 @@ def build_stage_n_folder(
 
 
 def build_stage_n(
-    stage_index: int, stage_spec: dict[str, Any], assets_dir: Path, out_dir: Path
+    stage_index: int,
+    stage_spec: dict[str, Any],
+    assets_dir: Path,
+    out_dir: Path,
+    *,
+    source: PackSource = PackSource.MATCHING,
 ) -> Path:
     """Rebuild STAGEn.CDF from an ordered folders dict."""
-    logging.info("Building STAGE%d.CDF", stage_index)
+    logging.info("Building STAGE%d.CDF source=%s", stage_index, source.value)
 
     folders_map = stage_spec.get("folders")
     if not isinstance(folders_map, dict):
@@ -626,7 +879,13 @@ def build_stage_n(
     for folder_key, files_map in folders_map.items():
         folder_id = resolve_folder_id(str(folder_key), stage=stage_index)
         built_folders.append(
-            build_stage_n_folder(folder_id, files_map, assets_dir, stage_index)
+            build_stage_n_folder(
+                folder_id,
+                files_map,
+                assets_dir,
+                stage_index,
+                source=source,
+            )
         )
 
     if len(built_folders) > STAGE_N_FOLDER_LIST_COUNT:
@@ -842,7 +1101,11 @@ def materialize_disk_tree(
 
 
 def build_stage_containers(
-    stages_manifest: dict[str, Any], assets_dir: Path, out_dir: Path
+    stages_manifest: dict[str, Any],
+    assets_dir: Path,
+    out_dir: Path,
+    *,
+    source: PackSource = PackSource.MATCHING,
 ) -> dict[str, Path]:
     """Build STAGE*.HED/CDF from a flat stage map into out_dir."""
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -878,7 +1141,11 @@ def build_stage_containers(
 
         if has_files:
             hed, cdf = build_files_stage(
-                str(stage_name), stage_spec, assets_dir, out_dir
+                str(stage_name),
+                stage_spec,
+                assets_dir,
+                out_dir,
+                source=source,
             )
             built["stage0_hed" if stage_name == "stage0" else f"{stage_name}_hed"] = hed
             built["stage0_cdf" if stage_name == "stage0" else f"{stage_name}_cdf"] = cdf
@@ -890,7 +1157,13 @@ def build_stage_containers(
                 built["stage0_cdf"] = cdf
         else:
             stage_index = parse_int(str(stage_name).replace("stage", ""))
-            path = build_stage_n(stage_index, stage_spec, assets_dir, out_dir)
+            path = build_stage_n(
+                stage_index,
+                stage_spec,
+                assets_dir,
+                out_dir,
+                source=source,
+            )
             built[f"stage{stage_index}_cdf"] = path
             built[f"STAGE{stage_index}.CDF"] = path
 
@@ -905,6 +1178,7 @@ def pack(
     *,
     iso_manifest: dict[str, Any] | None = None,
     stage_dir: Path | None = None,
+    source: PackSource = PackSource.MATCHING,
 ):
     """Build HED/CDF from stages.json; optionally materialize one ISO tree.
 
@@ -919,14 +1193,19 @@ def pack(
         Where to write/read built STAGE*.HED/CDF. Defaults to a temporary
         ``.staging`` under ``output_dir`` when materializing a tree, or to
         ``output_dir`` itself when only building containers.
+    source:
+        Asset source mode (``matching`` / ``raw`` / ``hybrid`` / ``decoded``).
     """
     output_dir = output_dir.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
+    logging.info("Pack source mode: %s", source.value)
 
     if iso_manifest is None:
         # Stages only: write containers straight into output_dir.
         containers_dir = stage_dir or output_dir
-        build_stage_containers(stages_manifest, assets_dir, containers_dir)
+        build_stage_containers(
+            stages_manifest, assets_dir, containers_dir, source=source
+        )
         logging.info("Stage containers written to %s", containers_dir)
         return
 
@@ -935,7 +1214,9 @@ def pack(
     if stage_dir is not None:
         containers_dir = stage_dir.resolve()
         if not any(containers_dir.glob("STAGE*")):
-            build_stage_containers(stages_manifest, assets_dir, containers_dir)
+            build_stage_containers(
+                stages_manifest, assets_dir, containers_dir, source=source
+            )
         else:
             logging.info("Reusing stage containers in %s", containers_dir)
         built: dict[str, Path] = {}
@@ -956,7 +1237,9 @@ def pack(
         cleanup_staging = False
     else:
         containers_dir = output_dir / ".staging"
-        built = build_stage_containers(stages_manifest, assets_dir, containers_dir)
+        built = build_stage_containers(
+            stages_manifest, assets_dir, containers_dir, source=source
+        )
         cleanup_staging = True
 
     logging.info("Materializing ISO directory tree %s", output_dir)
@@ -993,7 +1276,7 @@ def main(argv: list[str] | None = None) -> int:
         "--assets",
         "-a",
         type=Path,
-        help="Asset root (raw/stage0/, raw/stage1/, ...). Defaults to stages.json parent",
+        help="Asset root (pe2pkg/, pe2img/, stage0/, …). Defaults to stages.json parent",
     )
     parser.add_argument(
         "--rom",
@@ -1011,6 +1294,17 @@ def main(argv: list[str] | None = None) -> int:
         "-o",
         type=Path,
         help="Output dir: stage containers (no --iso) or one disc tree (with --iso)",
+    )
+    parser.add_argument(
+        "--source",
+        choices=[s.value for s in PackSource],
+        default=PackSource.MATCHING.value,
+        help=(
+            "Asset source mode (default: matching). "
+            "matching = raw/{type}/ LZSS blobs + inflated non-LZSS. "
+            "raw = only raw/{type}/. "
+            "hybrid/decoded = inflated type dirs (re-encode LZSS)."
+        ),
     )
     args = parser.parse_args(argv)
 
@@ -1065,6 +1359,7 @@ def main(argv: list[str] | None = None) -> int:
         output_dir,
         iso_manifest=iso_manifest,
         stage_dir=args.stage_dir.resolve() if args.stage_dir else None,
+        source=PackSource(args.source),
     )
     logging.info("Done.")
     return 0

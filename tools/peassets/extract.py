@@ -18,13 +18,11 @@ if str(_SCRIPT_DIR) not in sys.path:
 from format import validate_sector_len  # noqa: E402
 from lzss import decode_lzss  # noqa: E402
 from names import (  # noqa: E402
-    chunk_filename,
+    REQUIRED_OVERLAY_STEMS,
+    chunk_key,
     chunk_path_key,
     disk_file_rel,
-    disk_folder_rel,
-    ovr_name_for,
-    reverse_file_id,
-    reverse_folder_id,
+    lookup,
     validate_names,
 )
 
@@ -96,7 +94,7 @@ class FileChunkHeader:
     end_flag: FileChunkEndFlag
     sector_len: int  # exclusive end offset in sector buffer; range [0x10, 0x800]
     chunk_size: int
-    unknown2: int  # loadAddr for room_pkg / cap2
+    load_addr: int  # RAM dest for room_pkg / cap2; 0 otherwise
 
     def encode(self) -> dict:
         return {
@@ -106,7 +104,7 @@ class FileChunkHeader:
             else "end",
             "sector_len": f"0x{self.sector_len:X}",
             "chunk_size": f"0x{self.chunk_size:X}",
-            "unknown2": f"0x{self.unknown2:X}",
+            "load_addr": f"0x{self.load_addr:X}",
         }
 
 
@@ -167,9 +165,9 @@ FILE_LIST_ENTRY_SIZE = 0x8
 FILE_CHUNK_HEADER_SIZE = 0x10
 STREAMING_LIST_ENTRY_SIZE = 0x28
 
-# Asset path names live in names.py (NAMES / OVR_NAMES).
-# Canonical keys use disc ids (stage0/file0/1.pe2pkg); on-disk paths use
-# friendly names when set (stage0/gameplay/gameplay.pe2pkg).
+# Asset path names live in names.py (NAMES).
+# Canonical keys use disc ids (stage0/file0/1.pe2pkg); type-store stems use
+# friendly names when set (pe2pkg/gameplay.pe2pkg).
 
 
 def computeChecksum(exe: BinaryIO):
@@ -218,7 +216,7 @@ def parse_file_chunk_header(data: bytes) -> FileChunkHeader | None:
             int.from_bytes(data[0x2:0x4], byteorder="little")
         ),
         chunk_size=int.from_bytes(data[0x4:0x8], byteorder="little") * 0x800,
-        unknown2=int.from_bytes(data[0x8:0xC], byteorder="little"),
+        load_addr=int.from_bytes(data[0x8:0xC], byteorder="little"),
     )
 
 
@@ -265,11 +263,18 @@ def parse_streaming_list_entry(
 
 
 def read_chunk(data: BinaryIO) -> FileChunk | None:
-    header = parse_file_chunk_header(data.read(FILE_CHUNK_HEADER_SIZE))
+    """Read one chunk; ``data`` payload has per-sector pad stripped via sector_len."""
+    from format import unpack_chunk_payload  # local import avoids circular issues
+
+    header_bytes = data.read(FILE_CHUNK_HEADER_SIZE)
+    header = parse_file_chunk_header(header_bytes)
     if header is None:
         return None
-    chunk_data = data.read(header.chunk_size - FILE_CHUNK_HEADER_SIZE)
-    return FileChunk(header=header, data=chunk_data)
+    # Rest of the on-disc chunk (may span many CD sectors).
+    rest = data.read(header.chunk_size - FILE_CHUNK_HEADER_SIZE)
+    full = header_bytes + rest
+    payload = unpack_chunk_payload(full, header.sector_len)
+    return FileChunk(header=header, data=payload)
 
 
 def read_file(data: BinaryIO, offset: int) -> File | None:
@@ -290,127 +295,365 @@ def read_file(data: BinaryIO, offset: int) -> File | None:
     return File(chunks=chunks)
 
 
-# Sidecars that only belong in raw/ (metadata, opaque on-disc regions).
-RAW_ONLY_NAMES = frozenset(
-    {
-        "stream_data.bin",
-        "trailer.bin",
-        "raw.bin",
-        "headers.json",
-        "meta.json",
-        "layout.json",
-        "streaming.json",
-    }
-)
+# Type directory names (under raw/ and at assets root for inflated).
+TYPE_DIR_BY_EXT: dict[str, str] = {
+    ".pe2pkg": "pe2pkg",
+    ".pe2img": "pe2img",
+    ".pe2clut": "pe2clut",
+    ".pe2cap2": "pe2cap2",
+    ".bs": "bs",
+    ".spk": "spk",
+    ".txt": "txt",
+}
+
+IMAGE_EXTS = frozenset({".pe2img", ".pe2clut"})
+RAW_ROOT_NAME = "raw"
+
+
+def decode_ascii_payload(raw: bytes) -> bytes:
+    """Strip full-chunk zero pad (including any trailing NULs).
+
+    Retail ascii clean payloads are CRLF text (usually ending in ``\\\\Z`` or
+    ``\\\\Z\\\\r\\\\n``) zero-filled to the chunk capacity. The inflated form
+    is the text only — no trailing ``0x00``; pack re-adds pad on encode.
+    """
+    end = len(raw)
+    while end > 0 and raw[end - 1] == 0:
+        end -= 1
+    return raw[:end]
+
+
+class AssetStore:
+    """Deduplicated per-type asset store: raw on-disc + inflated edit forms.
+
+    Layout::
+
+        assets/USA/
+          raw/pe2pkg/gameplay.pe2pkg  # clean on-disc; NAMES or pe2pkg_N
+          raw/pe2img/pe2img_0.pe2img
+          pe2pkg/gameplay.pe2pkg      # LZSS-decoded (from unique raw only)
+          pe2img/pe2img_0.png         # + meta (from unique raw only)
+          stage0/…/trailer.bin        # pack sidecars only
+          stages.json                 # pack manifest (paths into type dirs)
+
+    Dedup is by SHA-1 of the **raw** clean payload. Inflated assets are
+    produced once per unique raw file via :meth:`materialize_inflated`.
+    The in-memory :attr:`map` feeds ``stages.json`` during extract; it is not
+    written to disk.
+    """
+
+    def __init__(self, assets_root: Path):
+        self.assets_root = assets_root
+        self.raw_root = assets_root / RAW_ROOT_NAME
+        # type_dir → sha1 → raw-relative path (posix, under assets root)
+        self._by_hash: dict[str, dict[str, str]] = {}
+        # type_dir → next free index for type_N names
+        self._counters: dict[str, int] = {}
+        # type_dir → set of used stems (collision avoid)
+        self._used_names: dict[str, set[str]] = {}
+        # raw_rel → first canonical key that produced this file
+        self._first_canonical: dict[str, str] = {}
+        # unique raw entries to inflate: raw_rel → (type_dir, stem, ext)
+        self._unique_raw: dict[str, tuple[str, str, str]] = {}
+        # canonical chunk path → map entry
+        self.map: dict[str, dict] = {}
+
+    @staticmethod
+    def type_dir_for(ext: str) -> str:
+        ext = ext if ext.startswith(".") else f".{ext}"
+        return TYPE_DIR_BY_EXT.get(ext, ext.lstrip(".") or "bin")
+
+    def _allocate_stem(
+        self,
+        type_dir: str,
+        *,
+        stage: int,
+        file_id: int,
+        chunk_idx: int,
+        folder_id: int | None,
+    ) -> str:
+        used = self._used_names.setdefault(type_dir, set())
+        preferred = lookup(chunk_key(stage, file_id, chunk_idx, folder_id))
+        if preferred is not None:
+            stem = preferred
+            n = 2
+            while stem in used:
+                stem = f"{preferred}_{n}"
+                n += 1
+            used.add(stem)
+            return stem
+        while True:
+            i = self._counters.get(type_dir, 0)
+            self._counters[type_dir] = i + 1
+            stem = f"{type_dir}_{i}"
+            if stem not in used:
+                used.add(stem)
+                return stem
+
+    @staticmethod
+    def _inflated_rel(type_dir: str, stem: str, ext: str) -> str:
+        """Relative path of the edit/inflated asset under assets root."""
+        if ext in IMAGE_EXTS:
+            return f"{type_dir}/{stem}.png"
+        return f"{type_dir}/{stem}{ext}"
+
+    def _map_entry(
+        self,
+        *,
+        type_dir: str,
+        stem: str,
+        ext: str,
+        raw_rel: str,
+        digest: str,
+        duplicate_of: str | None,
+        header: dict,
+    ) -> dict:
+        # Fields used when building stages.json (path + pack metadata).
+        # raw_rel / digest stay for materialize fallbacks and logging.
+        return {
+            "type": type_dir,
+            "name": stem,
+            "raw_path": raw_rel,
+            "path": self._inflated_rel(type_dir, stem, ext),
+            "sha1": digest,
+            "duplicate_of": duplicate_of,
+            "chunk_type": header.get("chunk_type"),
+            "sector_len": header.get("sector_len"),
+            "chunk_size": header.get("chunk_size"),
+            "load_addr": header.get("load_addr"),
+        }
+
+    def put_raw(
+        self,
+        data: bytes,
+        *,
+        ext: str,
+        stage: int,
+        file_id: int,
+        chunk_idx: int,
+        folder_id: int | None,
+        canonical: str,
+        header: dict,
+    ) -> tuple[Path, str, bool]:
+        """Store unique **raw** (clean on-disc) bytes under ``raw/{type}/``.
+
+        Returns ``(raw_path, stem, is_new)``. pe2pkg bodies are ``trim_lzss``'d
+        before hash/store. Duplicates reuse the first raw file.
+        """
+        ext = ext if ext.startswith(".") else f".{ext}"
+        type_dir = self.type_dir_for(ext)
+
+        if ext == ".pe2pkg" and data:
+            from lzss import trim_lzss
+
+            data = trim_lzss(data)
+
+        digest = hashlib.sha1(data).hexdigest()
+        by_hash = self._by_hash.setdefault(type_dir, {})
+
+        if digest in by_hash:
+            raw_rel = by_hash[digest]
+            raw_path = self.assets_root / raw_rel
+            stem = Path(raw_rel).stem
+            first = self._first_canonical.get(raw_rel)
+            self.map[canonical] = self._map_entry(
+                type_dir=type_dir,
+                stem=stem,
+                ext=ext,
+                raw_rel=raw_rel,
+                digest=digest,
+                duplicate_of=first,
+                header=header,
+            )
+            return raw_path, stem, False
+
+        stem = self._allocate_stem(
+            type_dir,
+            stage=stage,
+            file_id=file_id,
+            chunk_idx=chunk_idx,
+            folder_id=folder_id,
+        )
+        raw_rel = f"{RAW_ROOT_NAME}/{type_dir}/{stem}{ext}"
+        raw_path = self.assets_root / raw_rel
+        raw_path.parent.mkdir(parents=True, exist_ok=True)
+        raw_path.write_bytes(data)
+
+        by_hash[digest] = raw_rel
+        self._first_canonical[raw_rel] = canonical
+        self._unique_raw[raw_rel] = (type_dir, stem, ext)
+        self.map[canonical] = self._map_entry(
+            type_dir=type_dir,
+            stem=stem,
+            ext=ext,
+            raw_rel=raw_rel,
+            digest=digest,
+            duplicate_of=None,
+            header=header,
+        )
+        return raw_path, stem, True
+
+    def materialize_inflated(
+        self, *, only_pe2pkg_stems: frozenset[str] | set[str] | None = None
+    ) -> int:
+        """Build inflated type-store files from unique raw assets only.
+
+        * ``.pe2pkg`` — LZSS-decode → ``pe2pkg/{stem}.pe2pkg``
+        * ``.pe2img`` / ``.pe2clut`` — PNG + meta under type dir
+        * ``.txt`` — strip zero pad (text only, no trailing NUL)
+        * other — hardlink/copy raw → type dir (same bytes)
+
+        If ``only_pe2pkg_stems`` is set (minimal / CI mode), only those pe2pkg
+        stems are inflated (typically :data:`names.REQUIRED_OVERLAY_STEMS`);
+        images, ascii, and other types are skipped.
+
+        Returns the number of unique assets materialized.
+        """
+        if only_pe2pkg_stems is not None:
+            logging.info(
+                "Materializing minimal inflated set: pe2pkg stems %s",
+                sorted(only_pe2pkg_stems),
+            )
+        else:
+            logging.info(
+                "Materializing inflated assets from %d unique raw files",
+                len(self._unique_raw),
+            )
+        count = 0
+        for raw_rel, (type_dir, stem, ext) in sorted(self._unique_raw.items()):
+            if only_pe2pkg_stems is not None:
+                if type_dir != "pe2pkg" or stem not in only_pe2pkg_stems:
+                    continue
+            raw_path = self.assets_root / raw_rel
+            if not raw_path.exists():
+                logging.warning("missing raw asset: %s", raw_path)
+                continue
+            out_rel = self._inflated_rel(type_dir, stem, ext)
+            out_path = self.assets_root / out_rel
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+
+            if ext == ".pe2pkg":
+                logging.info("  decode %s → %s", raw_rel, out_rel)
+                out_path.write_bytes(decode_lzss(raw_path.read_bytes()))
+            elif ext == ".txt":
+                logging.info("  decode ascii %s → %s", raw_rel, out_rel)
+                out_path.write_bytes(decode_ascii_payload(raw_path.read_bytes()))
+            elif ext in IMAGE_EXTS:
+                logging.info("  decode image %s → %s", raw_rel, out_rel)
+                try:
+                    from image_codec import materialize_image_asset
+
+                    # materialize writes stem.png + stem{ext}.json next to dest
+                    pe2_dest = out_path.with_suffix(ext)
+                    if pe2_dest != raw_path:
+                        # work from a copy under the type dir so meta names match
+                        if pe2_dest.exists() or pe2_dest.is_symlink():
+                            pe2_dest.unlink()
+                        try:
+                            pe2_dest.hardlink_to(raw_path)
+                        except OSError:
+                            pe2_dest.write_bytes(raw_path.read_bytes())
+                    materialize_image_asset(pe2_dest, pe2_dest)
+                    if pe2_dest.exists() and pe2_dest != out_path:
+                        pe2_dest.unlink()
+                except Exception:
+                    logging.exception(
+                        "image decode failed for %s; copying raw pe2 instead",
+                        raw_rel,
+                    )
+                    # Fall back to raw pe2 under type dir
+                    fallback = self.assets_root / type_dir / f"{stem}{ext}"
+                    fallback.parent.mkdir(parents=True, exist_ok=True)
+                    if fallback.exists() or fallback.is_symlink():
+                        fallback.unlink()
+                    try:
+                        fallback.hardlink_to(raw_path)
+                    except OSError:
+                        fallback.write_bytes(raw_path.read_bytes())
+                    # Patch map entries that pointed at .png for this raw
+                    for ent in self.map.values():
+                        if ent.get("raw_path") == raw_rel:
+                            ent["path"] = f"{type_dir}/{stem}{ext}"
+            else:
+                # Opaque types: inflated form is identical to raw.
+                if out_path.exists() or out_path.is_symlink():
+                    out_path.unlink()
+                try:
+                    out_path.hardlink_to(raw_path)
+                except OSError:
+                    out_path.write_bytes(raw_path.read_bytes())
+            count += 1
+        return count
+
+    def stats(self) -> dict[str, dict[str, int]]:
+        out: dict[str, dict[str, int]] = {}
+        for t, by_hash in self._by_hash.items():
+            refs = sum(1 for e in self.map.values() if e.get("type") == t)
+            out[t] = {"unique": len(by_hash), "refs": refs}
+        return out
 
 
 def output_chunk(
-    file_path: Path,
     chunk: FileChunk,
     chunk_idx: int,
     *,
     stage: int,
     file_id: int,
     folder_id: int | None,
+    store: AssetStore,
 ):
-    """Write one chunk in on-disc form (never decompress) under the raw tree."""
+    """Store one unique raw chunk under ``raw/{type}/``."""
     chunk_type = chunk.header.chunk_type
-    name = chunk_filename(
-        stage, file_id, chunk_idx, chunk_type.get_extension(), folder_id
+    ext = chunk_type.get_extension()
+    canonical = chunk_path_key(stage, file_id, chunk_idx, ext, folder_id)
+    raw_path, _stem, is_new = store.put_raw(
+        chunk.data,
+        ext=ext,
+        stage=stage,
+        file_id=file_id,
+        chunk_idx=chunk_idx,
+        folder_id=folder_id,
+        canonical=canonical,
+        header=chunk.header.encode(),
     )
-    chunk_path = (file_path / name).absolute()
-
+    raw_rel = str(raw_path.relative_to(store.assets_root))
+    first = store.map[canonical].get("duplicate_of")
     logging.info(
-        f"Extracting {chunk_type.get_name()}({chunk_type.get_extension()}) to {chunk_path}..."
+        "  %s %s → %s%s",
+        "raw" if is_new else "dedup",
+        canonical,
+        raw_rel,
+        "" if is_new else f" (of {first})",
     )
-    with open(chunk_path, "wb") as f:
-        f.write(chunk.data)
 
 
 def output_file(
-    stage_root: Path,
     entry: FileListEntry,
-    entry_size: int,
     file: File,
     *,
     stage: int,
     folder_id: int | None = None,
+    store: AssetStore,
 ):
-    """Write one file's chunks under the (possibly named) raw tree path.
-
-    Also writes ``meta.json`` with disc ids so later tools can reverse-map
-    friendly directory names back to ``file_id`` / ``folder_id``.
-    """
+    """Store every chunk of one stage file into the type directories."""
     rel = disk_file_rel(stage, entry.file_id, folder_id)
-    # stage_root is …/raw/stageN — disk_file_rel includes stageN/…
-    file_path = (stage_root.parent / rel).absolute()
     logging.info(
-        "Extracting file %s (id %d) to %s...",
+        "Extracting file %s (id %d)…",
         rel,
         entry.file_id,
-        file_path,
     )
-    file_path.mkdir(parents=True, exist_ok=True)
-
     for idx, chunk in enumerate(file.chunks):
         output_chunk(
-            file_path,
             chunk,
             idx,
             stage=stage,
             file_id=entry.file_id,
             folder_id=folder_id,
+            store=store,
         )
 
-    headers = [chunk.header.encode() for chunk in file.chunks]
-    with open(file_path / "headers.json", "w") as f:
-        json.dump(headers, f, indent=4)
 
-    meta = {
-        "stage": stage,
-        "file_id": entry.file_id,
-        "folder_id": folder_id,
-        "canonical": f"stage{stage}/"
-        + (f"{folder_id}/" if folder_id is not None else "")
-        + f"file{entry.file_id}",
-    }
-    with open(file_path / "meta.json", "w") as f:
-        json.dump(meta, f, indent=2)
-        f.write("\n")
-
-
-def materialize_decoded_tree(raw_root: Path, decoded_root: Path) -> None:
-    """Build decoded/ from raw/: LZSS-decode .pe2pkg, copy other chunk payloads.
-
-    headers.json and stream/trailer sidecars stay raw-only.
-    """
-    logging.info("Materializing decoded assets under %s", decoded_root)
-    decoded_root.mkdir(parents=True, exist_ok=True)
-
-    for path in sorted(raw_root.rglob("*")):
-        if not path.is_file():
-            continue
-        if path.name in RAW_ONLY_NAMES:
-            continue
-
-        rel = path.relative_to(raw_root)
-        dest = decoded_root / rel
-        dest.parent.mkdir(parents=True, exist_ok=True)
-
-        if path.suffix == ".pe2pkg":
-            logging.info("  decoding %s", rel)
-            dest.write_bytes(decode_lzss(path.read_bytes()))
-        else:
-            # .spk, .pe2img, .bs, …
-            try:
-                if dest.exists() or dest.is_symlink():
-                    dest.unlink()
-                dest.hardlink_to(path)
-            except OSError:
-                shutil.copy2(path, dest)
-
-
-def extract_stage_0(header: BinaryIO, data: BinaryIO, output: Path):
+def extract_stage_0(header: BinaryIO, data: BinaryIO, *, store: AssetStore):
     logging.info(f"Extracting stage 0 at {header.name}")
     data.seek(0, 2)
     data_size = data.tell()
@@ -456,8 +699,13 @@ def extract_stage_0(header: BinaryIO, data: BinaryIO, output: Path):
             entry_size = file_list[i + 1].file_offset - entry.file_offset
         else:
             entry_size = data_size - entry.file_offset
+        del entry_size  # size used only for streaming span; chunks drive store
         output_file(
-            output, entry, entry_size, file, stage=0, folder_id=None
+            entry,
+            file,
+            stage=0,
+            folder_id=None,
+            store=store,
         )
 
     end = parse_file_list_entry(header.read(FILE_LIST_ENTRY_SIZE))
@@ -467,25 +715,19 @@ def extract_stage_0(header: BinaryIO, data: BinaryIO, output: Path):
 
 def extract_folder(
     data: BinaryIO,
-    stage_root: Path,
     root_offset: int,
     folder_size: int,
     *,
     stage: int,
     folder_id: int,
+    store: AssetStore,
 ):
-    """Extract one STAGE-N folder into a (possibly named) directory.
-
-    ``stage_root`` is ``…/raw/stageN`` (the stage directory, not the folder).
-    """
-    folder_rel = disk_folder_rel(stage, folder_id)
-    folder_path = (stage_root.parent / folder_rel).absolute()
+    """Extract one STAGE-N folder's chunks into the type store."""
     logging.info(
-        "Extracting folder id %d → %s",
+        "Extracting folder id %d (stage %d)",
         folder_id,
-        folder_path,
+        stage,
     )
-    folder_path.mkdir(parents=True, exist_ok=True)
     data_pos = data.tell()
 
     file_list: list[FileListEntry] = []
@@ -537,21 +779,21 @@ def extract_folder(
 
             if entry_size_opt is None:
                 entry_size_opt = folder_size - entry.file_offset
-            entry_size: int = entry_size_opt
+            entry_size = entry_size_opt
+        del entry_size
 
         output_file(
-            stage_root,
             entry,
-            entry_size,
             file,
             stage=stage,
             folder_id=folder_id,
+            store=store,
         )
 
     data.seek(data_pos)
 
 
-def extract_stage_n(data: BinaryIO, output: Path, *, stage: int):
+def extract_stage_n(data: BinaryIO, *, stage: int, store: AssetStore):
     logging.info(f"Extracting stage at {data.name}")
 
     data.seek(0x0)
@@ -562,150 +804,13 @@ def extract_stage_n(data: BinaryIO, output: Path, *, stage: int):
             continue
         extract_folder(
             data,
-            output,
             folder_offset,
             entry.folder_size,
             stage=stage,
             folder_id=entry.folder_id,
+            store=store,
         )
         folder_offset += entry.folder_size
-
-
-def _resolve_ids_from_file_dir(
-    file_dir: Path, raw_root: Path
-) -> tuple[int, int, int | None] | None:
-    """Return (stage, file_id, folder_id) for a raw file directory.
-
-    Prefers ``meta.json`` written by extract; otherwise parses the relative
-    path with reverse name lookup (``file12`` / decimal folder ids / NAMES).
-    """
-    meta_path = file_dir / "meta.json"
-    if meta_path.exists():
-        meta = json.loads(meta_path.read_text(encoding="utf-8"))
-        stage = int(meta["stage"])
-        file_id = int(meta["file_id"])
-        folder_id = meta.get("folder_id")
-        if folder_id is not None:
-            folder_id = int(folder_id)
-        return stage, file_id, folder_id
-
-    rel = file_dir.relative_to(raw_root)
-    parts = rel.parts  # stageN / [folder] / filedir
-    if len(parts) < 2 or not parts[0].startswith("stage"):
-        return None
-    try:
-        stage = int(parts[0][len("stage") :])
-    except ValueError:
-        return None
-
-    if len(parts) == 2:
-        # stage0/fileOrName
-        file_id = reverse_file_id(stage, parts[1], None)
-        if file_id is None:
-            return None
-        return stage, file_id, None
-
-    if len(parts) == 3:
-        folder_id = reverse_folder_id(stage, parts[1])
-        if folder_id is None:
-            return None
-        file_id = reverse_file_id(stage, parts[2], folder_id)
-        if file_id is None:
-            return None
-        return stage, file_id, folder_id
-
-    return None
-
-
-def create_pkg_summary(output_path: Path) -> dict:
-    """Build OVR/map.json keyed by *canonical* chunk paths.
-
-    Walks every ``raw/**/headers.json`` file directory. Room packages get an
-    ``ovr_name`` (friendly, path-derived, or ``<DUPLICATE>`` when the payload
-    matches an earlier package). ``path`` is the on-disk relative location
-    under decoded/raw (may use friendly names).
-    """
-    summary: dict = {}
-    seen_hash: dict[str, str] = {}
-    ovr_copies: list[tuple[str, str]] = []
-
-    raw_root = output_path / "raw"
-    decoded_root = output_path / "decoded"
-
-    for headers_path in sorted(raw_root.rglob("headers.json")):
-        file_dir = headers_path.parent
-        ids = _resolve_ids_from_file_dir(file_dir, raw_root)
-        if ids is None:
-            logging.warning("cannot resolve disc ids for %s", file_dir)
-            continue
-        stage, file_id, folder_id = ids
-        headers = json.loads(headers_path.read_text(encoding="utf-8"))
-
-        # headers.json is ordered by on-disc chunk index; only RoomPkg rows
-        # produce .pe2pkg files (and OVR aliases).
-        for idx, header in enumerate(headers):
-            chunk_type_name = str(header.get("chunk_type", ""))
-            if not chunk_type_name.startswith("Room package"):
-                continue
-
-            ext = ".pe2pkg"
-            canonical = chunk_path_key(stage, file_id, idx, ext, folder_id)
-            disk_name = chunk_filename(stage, file_id, idx, ext, folder_id)
-            disk_rel = f"{disk_file_rel(stage, file_id, folder_id)}/{disk_name}"
-            pkg_path = file_dir / disk_name
-            if not pkg_path.exists():
-                # Fall back to default index name (unmigrated tree).
-                alt = file_dir / f"{idx}{ext}"
-                if alt.exists():
-                    pkg_path = alt
-                    disk_name = alt.name
-                    disk_rel = (
-                        f"{disk_file_rel(stage, file_id, folder_id)}/{disk_name}"
-                    )
-                else:
-                    logging.warning(
-                        "missing pe2pkg for %s (expected %s)", canonical, pkg_path
-                    )
-                    continue
-
-            payload = pkg_path.read_bytes()
-            digest = hashlib.sha1(payload).hexdigest()
-            ovr = ovr_name_for(stage, file_id, idx, ext, folder_id)
-            if digest in seen_hash:
-                ovr = "<DUPLICATE>"
-            else:
-                seen_hash[digest] = canonical
-                ovr_copies.append((disk_rel, ovr))
-
-            summary[canonical] = {
-                "ovr_name": ovr,
-                "path": disk_rel,
-                "chunk_size": header["chunk_size"],
-                "load_address": header["unknown2"],
-            }
-
-    ovr_dir = output_path / "OVR"
-    ovr_dir.mkdir(parents=True, exist_ok=True)
-    with open(ovr_dir / "map.json", "w") as f:
-        json.dump(summary, f, indent=4)
-        f.write("\n")
-
-    # Materialize OVR aliases from decoded payloads when available.
-    logging.info("Copying decoded packages into OVR/")
-    for disk_rel, ovr in ovr_copies:
-        if ovr == "<DUPLICATE>":
-            continue
-        src = decoded_root / disk_rel
-        if not src.exists():
-            src = raw_root / disk_rel
-        if not src.exists():
-            logging.warning("OVR source missing for %s → %s", disk_rel, ovr)
-            continue
-        dst = ovr_dir / ovr
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(src, dst)
-
-    return summary
 
 
 def main():
@@ -722,7 +827,27 @@ def main():
     parser.add_argument("--stage5", "-s5", type=FileType("rb"))
     parser.add_argument("--output", "-o", type=Path, default=".")
     parser.add_argument("--checksum", "-c", action="store_true")
+    parser.add_argument(
+        "--raw-only",
+        action="store_true",
+        help=(
+            "Write raw/{type}/ only (deduplicated on-disc payloads). "
+            "Skip inflated type dirs, stages/ISO manifests."
+        ),
+    )
+    parser.add_argument(
+        "--minimal-inflate",
+        action="store_true",
+        help=(
+            "After raw extract, inflate only required decomp overlays "
+            f"({', '.join(sorted(REQUIRED_OVERLAY_STEMS))}) under pe2pkg/. "
+            "Skip images/ascii/full inflate and stages/ISO manifests. "
+            "Intended for CI / matching builds."
+        ),
+    )
     args = parser.parse_args()
+    if args.raw_only and args.minimal_inflate:
+        parser.error("--raw-only and --minimal-inflate are mutually exclusive")
 
     executable_disk1: BinaryIO = args.executable_disk1
     executable_disk2: BinaryIO = args.executable_disk2
@@ -740,30 +865,57 @@ def main():
     output_path.mkdir(parents=True, exist_ok=True)
     validate_names()
 
-    # raw/     — on-disc stage trees (pkgs still LZSS-compressed)
-    # decoded/ — same layout with .pe2pkg LZSS-decoded (edit/rebuild source)
-    # OVR/     — named overlay aliases for the decomp build (from decoded/)
-    # Path components use names.NAMES when set (see names.py).
-    raw_dir = output_path / "raw"
-    decoded_dir = output_path / "decoded"
-    raw_dir.mkdir(parents=True, exist_ok=True)
+    # raw/{type}/     — unique clean on-disc payloads (NAMES or type_N)
+    # pe2pkg/ pe2img/… — inflated edit forms (one per unique raw)
+    # stages.json     — pack manifest (paths into inflated type dirs)
+    # stage0/…        — pack sidecars only (trailers, layout, streaming)
+    store = AssetStore(output_path)
 
-    extract_stage_0(args.stage0_header, args.stage0_data, raw_dir / "stage0")
-    extract_stage_n(args.stage1, raw_dir / "stage1", stage=1)
-    extract_stage_n(args.stage2, raw_dir / "stage2", stage=2)
-    extract_stage_n(args.stage3, raw_dir / "stage3", stage=3)
-    extract_stage_n(args.stage4, raw_dir / "stage4", stage=4)
-    extract_stage_n(args.stage5, raw_dir / "stage5", stage=5)
+    extract_stage_0(args.stage0_header, args.stage0_data, store=store)
+    extract_stage_n(args.stage1, stage=1, store=store)
+    extract_stage_n(args.stage2, stage=2, store=store)
+    extract_stage_n(args.stage3, stage=3, store=store)
+    extract_stage_n(args.stage4, stage=4, store=store)
+    extract_stage_n(args.stage5, stage=5, store=store)
 
-    materialize_decoded_tree(raw_dir, decoded_dir)
+    for type_dir, st in sorted(store.stats().items()):
+        logging.info(
+            "  raw/%s: %d unique / %d refs",
+            type_dir,
+            st["unique"],
+            st["refs"],
+        )
 
     logging.info(f"Copying main executable {executable_disk1.name}")
     shutil.copy(f"{executable_disk1.name}", f"{output_path / 'main.exe'}")
 
-    logging.info("Creating package summary + OVR aliases")
-    create_pkg_summary(output_path)
+    if args.raw_only:
+        logging.info("raw-only: skipped inflate, stages/ISO manifests")
+        logging.info("All done! (raw at %s)", store.raw_root)
+        return
 
-    # Emit stages.json + iso_disk*.json and trailer/stream sidecars under raw/.
+    if args.minimal_inflate:
+        n = store.materialize_inflated(only_pe2pkg_stems=REQUIRED_OVERLAY_STEMS)
+        logging.info(
+            "Minimal inflate: materialized %d overlay(s) %s",
+            n,
+            sorted(REQUIRED_OVERLAY_STEMS),
+        )
+        missing = [
+            s
+            for s in sorted(REQUIRED_OVERLAY_STEMS)
+            if not (output_path / "pe2pkg" / f"{s}.pe2pkg").exists()
+        ]
+        if missing:
+            logging.warning("Required overlay(s) not found in store: %s", missing)
+        logging.info("minimal-inflate: skipped stages/ISO manifests")
+        logging.info("All done! (raw + pe2pkg overlays under %s)", output_path)
+        return
+
+    n = store.materialize_inflated()
+    logging.info("Materialized %d inflated assets", n)
+
+    # Emit stages.json + iso_disk*.json and pack sidecars under stage*/.
     # Best-effort: requires the rom/ tree that holds layout.xml next to the CDF paths.
     try:
         from write_manifest import write_manifest
@@ -778,6 +930,7 @@ def main():
             write_manifest(
                 rom_guess,
                 output_path,
+                chunk_map=store.map,
                 stage0_hed=Path(args.stage0_header.name),
                 stage0_cdf=Path(args.stage0_data.name),
                 stage_cdfs={

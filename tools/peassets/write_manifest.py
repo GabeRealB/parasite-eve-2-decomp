@@ -9,11 +9,16 @@ Writes two kinds of JSON under the assets root:
     per disc (identifiers, license, single directory_tree).
     Consumed by ``tools/build_iso.py`` (and by pack when materializing a tree).
 
-Also back-fills data extract.py does not currently emit on its own:
+Also back-fills pack sidecars under the stage tree (``stage0/…``, not type
+dirs — chunks already live in ``pe2pkg/`` / ``pe2img/`` / … via extract):
 
   * per-file trailer.bin (bytes after the last chunk up to the next file)
   * per-file raw.bin for file-list entries that are not chunked
   * per-folder stream_data.bin (post-file stream region in STAGE1..N)
+  * layout.json / streaming.json
+
+Chunk content paths in ``stages.json`` come from the in-memory chunk map
+built by extract (canonical key → store path + pack fields).
 
 Typical usage (also invoked from extract.py)::
 
@@ -57,9 +62,9 @@ from format import (  # noqa: E402
     validate_sector_len,
 )
 from names import (  # noqa: E402
-    chunk_filename,
     disk_file_rel,
     disk_folder_rel,
+    file_key,
     stages_file_key,
     stages_folder_key,
 )
@@ -187,70 +192,91 @@ def _dump_streaming_json(path: Path, entries: list[dict[str, Any]]) -> None:
         f.write("\n")
 
 
-def _contents_from_raw_file(
+def _write_bytes(assets_dir: Path, rel: Path | str, data: bytes) -> None:
+    """Write a binary pack sidecar under the stage tree (``stage0/…``)."""
+    path = assets_dir / Path(rel)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(data)
+
+
+def _write_json(assets_dir: Path, rel: Path | str, obj: Any) -> None:
+    """Write a JSON pack sidecar under the stage tree."""
+    path = assets_dir / Path(rel)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(obj, indent=2) + "\n", encoding="utf-8")
+
+
+def _contents_from_chunk_map(
     assets_dir: Path,
+    chunk_map: dict[str, Any],
     *,
     stage: int,
     file_id: int,
     folder_id: int | None = None,
 ) -> dict[str, dict[str, Any]]:
-    """Build an ordered contents dict for one file (name → pack fields).
+    """Build an ordered contents dict for one file from extract's chunk map.
 
-    Dict keys are always disc-order basenames (``0.spk``, ``1.pe2pkg``, …).
-    ``path`` points at the on-disk location, which may use friendly names from
-    ``names.NAMES`` (e.g. ``decoded/stage0/gameplay/gameplay.pe2pkg``).
-    File/folder keys in stages.json use the same friendly names when set.
+    Dict keys are disc-order basenames (``0.spk``, ``1.pe2pkg``, …).
+    ``path`` points at the inflated type-store file (``pe2pkg/gameplay.pe2pkg``,
+    ``pe2img/foo.png``, …).
     """
-    disk_rel = disk_file_rel(stage, file_id, folder_id)
-    raw_file_dir = assets_dir / "raw" / disk_rel
-    headers_path = raw_file_dir / "headers.json"
-    decoded_file_dir = f"decoded/{disk_rel}"
+    prefix = file_key(stage, file_id, folder_id) + "/"
+    indexed: list[tuple[int, str, dict[str, Any]]] = []
+    for canon, ent in chunk_map.items():
+        if not canon.startswith(prefix):
+            continue
+        rest = canon[len(prefix) :]  # e.g. "1.pe2pkg"
+        if "/" in rest:
+            continue
+        stem_part, _, ext_part = rest.partition(".")
+        if not stem_part.isdigit():
+            continue
+        idx = int(stem_part)
+        ext = f".{ext_part}" if ext_part else ""
+        indexed.append((idx, f"{idx}{ext}", ent))
 
-    headers: list[Any] = []
-    if headers_path.exists():
-        headers = json.loads(headers_path.read_text(encoding="utf-8")) or []
-
-    if not headers:
-        raw_bin = raw_file_dir / "raw.bin"
+    if not indexed:
+        # Opaque non-chunked file written as raw.bin next to the stage path.
+        disk_rel = disk_file_rel(stage, file_id, folder_id)
+        raw_bin = assets_dir / disk_rel / "raw.bin"
         if raw_bin.exists():
             return {
                 "raw.bin": {
-                    "path": f"raw/{disk_rel}/raw.bin",
+                    "path": f"{disk_rel}/raw.bin",
                     "type": "raw",
                 }
             }
         return {}
 
+    indexed.sort(key=lambda t: t[0])
     contents: dict[str, dict[str, Any]] = {}
-    for idx, header in enumerate(headers):
-        chunk_type = resolve_chunk_type(header["chunk_type"])
-        ext = chunk_type.get_extension()
+    for _idx, key, ent in indexed:
+        chunk_type_name = ent.get("chunk_type") or ""
+        chunk_type = resolve_chunk_type(chunk_type_name)
         type_id = chunk_type_id(chunk_type)
-        # stages.json key: stable disc-order name (not the friendly on-disk name)
-        key = f"{idx}{ext}"
-        disk_name = chunk_filename(stage, file_id, idx, ext, folder_id)
         entry: dict[str, Any] = {
-            "path": f"{decoded_file_dir}/{disk_name}",
+            "path": ent["path"],
             "type": type_id,
         }
-        # sector_len: exclusive end offset in the CD sector buffer (default 0x800).
         sector_len = validate_sector_len(
-            int(str(header.get("sector_len", header.get("unknown1", "0x800"))), 0)
+            int(str(ent.get("sector_len", "0x800")), 0)
         )
-        if sector_len != SECTOR_SIZE:
-            entry["sector_len"] = f"0x{sector_len:X}"
-        # load_address: RAM dest; only room packages and Cap2 use it.
-        load_addr = header.get("unknown2", "0x0")
+        entry["sector_len"] = f"0x{sector_len:X}"
+        entry["chunk_size"] = ent.get("chunk_size", "0x0")
+        load_addr = ent.get("load_addr", "0x0")
         if type_id in ("room_pkg", "cap2") and int(str(load_addr), 0) != 0:
-            entry["load_address"] = load_addr
+            entry["load_addr"] = load_addr
         contents[key] = entry
     return contents
 
 
 def collect_stage0(
-    hed_path: Path, cdf_path: Path, assets_dir: Path
+    hed_path: Path,
+    cdf_path: Path,
+    assets_dir: Path,
+    chunk_map: dict[str, Any],
 ) -> dict[str, Any]:
-    """Write raw sidecars; return files as lists of content dicts."""
+    """Write pack sidecars; return files as lists of content dicts."""
     hed = hed_path.read_bytes()
     cdf = cdf_path.read_bytes()
 
@@ -262,10 +288,8 @@ def collect_stage0(
         entry = parse_streaming_list_entry(raw)
         streaming_list.append(streaming_entry_to_json(entry))
 
-    raw_stage0 = assets_dir / "raw" / "stage0"
-    raw_stage0.mkdir(parents=True, exist_ok=True)
     if streaming_list:
-        _dump_streaming_json(raw_stage0 / "streaming.json", streaming_list)
+        _write_json(assets_dir, "stage0/streaming.json", streaming_list)
 
     file_list = []
     for i in range(STAGE0_FILE_LIST_COUNT):
@@ -285,9 +309,7 @@ def collect_stage0(
     layout = [
         {"file_id": e.file_id, "offset": f"0x{e.file_offset:X}"} for e in file_list
     ]
-    with (raw_stage0 / "layout.json").open("w", encoding="utf-8") as f:
-        json.dump(layout, f, indent=2)
-        f.write("\n")
+    _write_json(assets_dir, "stage0/layout.json", layout)
 
     # Ordered dict: insertion order matches HED file list (JSON object order).
     contents_map: dict[str, dict[str, dict[str, Any]]] = {}
@@ -300,14 +322,15 @@ def collect_stage0(
         else:
             span_end = len(cdf)
 
-        raw_file_dir = assets_dir / "raw" / disk_file_rel(0, entry.file_id, None)
+        disk_rel = disk_file_rel(0, entry.file_id, None)
         chunk_size = read_chunks_size(cdf, entry.file_offset)
 
         if chunk_size is None:
             if i == 0 or file_list[i - 1].file_offset != entry.file_offset:
-                raw_file_dir.mkdir(parents=True, exist_ok=True)
-                (raw_file_dir / "raw.bin").write_bytes(
-                    cdf[entry.file_offset : span_end]
+                _write_bytes(
+                    assets_dir,
+                    Path(disk_rel) / "raw.bin",
+                    cdf[entry.file_offset : span_end],
                 )
         else:
             trailer_start = entry.file_offset + chunk_size
@@ -315,20 +338,30 @@ def collect_stage0(
                 if i == 0 or file_list[i - 1].file_offset != entry.file_offset:
                     trailer = cdf[trailer_start:span_end]
                     if trailer:
-                        raw_file_dir.mkdir(parents=True, exist_ok=True)
-                        (raw_file_dir / "trailer.bin").write_bytes(trailer)
+                        _write_bytes(
+                            assets_dir, Path(disk_rel) / "trailer.bin", trailer
+                        )
 
-        contents_map[stages_file_key(0, entry.file_id, None)] = _contents_from_raw_file(
-            assets_dir, stage=0, file_id=entry.file_id, folder_id=None
+        contents_map[stages_file_key(0, entry.file_id, None)] = (
+            _contents_from_chunk_map(
+                assets_dir,
+                chunk_map,
+                stage=0,
+                file_id=entry.file_id,
+                folder_id=None,
+            )
         )
 
     return {"files": contents_map}
 
 
 def collect_stage_n(
-    stage_index: int, cdf_path: Path, assets_dir: Path
+    stage_index: int,
+    cdf_path: Path,
+    assets_dir: Path,
+    chunk_map: dict[str, Any],
 ) -> dict[str, Any]:
-    """Write raw sidecars; return ordered folders dict (id → files dict)."""
+    """Write pack sidecars; return ordered folders dict (id → files dict)."""
     cdf = cdf_path.read_bytes()
     folders_map: dict[str, dict[str, dict[str, dict[str, Any]]]] = {}
 
@@ -341,8 +374,7 @@ def collect_stage_n(
 
         root = folder_offset
         folder_size = fl_entry.folder_size
-        raw_folder = assets_dir / "raw" / disk_folder_rel(stage_index, fl_entry.folder_id)
-        raw_folder.mkdir(parents=True, exist_ok=True)
+        folder_rel = disk_folder_rel(stage_index, fl_entry.folder_id)
 
         file_list = []
         for i in range(STAGE_N_FILE_LIST_COUNT):
@@ -373,11 +405,14 @@ def collect_stage_n(
         if content_end < folder_size:
             stream_bytes = cdf[root + content_end : root + folder_size]
             if stream_bytes and any(stream_bytes):
-                (raw_folder / "stream_data.bin").write_bytes(stream_bytes)
+                _write_bytes(
+                    assets_dir, Path(folder_rel) / "stream_data.bin", stream_bytes
+                )
 
         if streaming_list:
-            _dump_streaming_json(
-                raw_folder / "streaming.json",
+            _write_json(
+                assets_dir,
+                Path(folder_rel) / "streaming.json",
                 [
                     streaming_entry_to_json(
                         e, content_end=content_end, container_size=folder_size
@@ -395,18 +430,14 @@ def collect_stage_n(
             "content_end": f"0x{content_end:X}",
             "files": layout,
         }
-        with (raw_folder / "layout.json").open("w", encoding="utf-8") as f:
-            json.dump(meta, f, indent=2)
-            f.write("\n")
+        _write_json(assets_dir, Path(folder_rel) / "layout.json", meta)
 
         # Ordered dict: insertion order matches CDF file list.
         # stages.json file/folder keys use names.NAMES when set.
         folder_files: dict[str, dict[str, dict[str, Any]]] = {}
         for i, entry in enumerate(file_list):
-            raw_file_dir = (
-                assets_dir
-                / "raw"
-                / disk_file_rel(stage_index, entry.file_id, fl_entry.folder_id)
+            disk_rel = disk_file_rel(
+                stage_index, entry.file_id, fl_entry.folder_id
             )
             abs_off = root + entry.file_offset
             next_off = (
@@ -416,20 +447,25 @@ def collect_stage_n(
             )
             chunk_size = read_chunks_size(cdf, abs_off)
             if chunk_size is None:
-                raw_file_dir.mkdir(parents=True, exist_ok=True)
-                (raw_file_dir / "raw.bin").write_bytes(cdf[abs_off : root + next_off])
+                _write_bytes(
+                    assets_dir,
+                    Path(disk_rel) / "raw.bin",
+                    cdf[abs_off : root + next_off],
+                )
             else:
                 trailer_start = abs_off + chunk_size
                 trailer_end = root + next_off
                 if trailer_start < trailer_end:
                     trailer = cdf[trailer_start:trailer_end]
                     if trailer:
-                        raw_file_dir.mkdir(parents=True, exist_ok=True)
-                        (raw_file_dir / "trailer.bin").write_bytes(trailer)
+                        _write_bytes(
+                            assets_dir, Path(disk_rel) / "trailer.bin", trailer
+                        )
             folder_files[
                 stages_file_key(stage_index, entry.file_id, fl_entry.folder_id)
-            ] = _contents_from_raw_file(
+            ] = _contents_from_chunk_map(
                 assets_dir,
+                chunk_map,
                 stage=stage_index,
                 file_id=entry.file_id,
                 folder_id=fl_entry.folder_id,
@@ -445,6 +481,7 @@ def write_manifest(
     rom_dir: Path,
     assets_dir: Path,
     *,
+    chunk_map: dict[str, Any] | None = None,
     disk1_name: str = "disk1",
     disk2_name: str = "disk2",
     stage0_hed: Path | None = None,
@@ -453,7 +490,12 @@ def write_manifest(
     stages_path: Path | None = None,
     iso_dir: Path | None = None,
 ) -> dict[str, Path]:
-    """Write stages.json + per-disk ISO manifests. Returns paths written."""
+    """Write stages.json + per-disk ISO manifests. Returns paths written.
+
+    ``chunk_map`` is the extract-time map (canonical chunk key → store entry
+    with ``path``, ``chunk_type``, ``sector_len``, …). Pass it from extract;
+    without it, content paths in ``stages.json`` will be empty (sidecars only).
+    """
     rom_dir = rom_dir.resolve()
     assets_dir = assets_dir.resolve()
     assets_dir.mkdir(parents=True, exist_ok=True)
@@ -474,16 +516,26 @@ def write_manifest(
 
     # Flat map: each stage is either { "files": … } or { "folders": … }.
     stages_manifest: dict[str, Any] = {}
+    if not chunk_map:
+        logging.warning(
+            "no chunk_map provided — stages.json content paths will be empty "
+            "(run write_manifest from extract, or pass the extract store map)"
+        )
+        chunk_map = {}
 
     logging.info("Collecting STAGE0 structure from %s", stage0_hed)
-    stages_manifest["stage0"] = collect_stage0(stage0_hed, stage0_cdf, assets_dir)
+    stages_manifest["stage0"] = collect_stage0(
+        stage0_hed, stage0_cdf, assets_dir, chunk_map
+    )
 
     for idx, path in sorted(stage_cdfs.items()):
         if not path.exists():
             logging.warning("missing %s — skipping stage %d", path, idx)
             continue
         logging.info("Collecting STAGE%d structure from %s", idx, path)
-        stages_manifest[f"stage{idx}"] = collect_stage_n(idx, path, assets_dir)
+        stages_manifest[f"stage{idx}"] = collect_stage_n(
+            idx, path, assets_dir, chunk_map
+        )
 
     stages_path = stages_path or (assets_dir / "stages.json")
     dump_json(stages_path, stages_manifest)

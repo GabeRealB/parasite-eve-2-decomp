@@ -2830,7 +2830,7 @@ Wip_UiHolder                = 0x80067694;
 // Vacuum-driven renames (tools/vacuum.log roles)
 CdCmd_EntryIter             = 0x8006AC04; // type:func
 
-// Title overlay stubs (main BSS holes at overlay load addresses; real code in OVR/title)
+// Title overlay stubs (main BSS holes at overlay load addresses; real code in pe2pkg/title)
 Title_RestoreDemoCard       = 0x8009407C; // type:func
 Title_EnqueueDemoScene      = 0x80094B90; // type:func
 Title_TaskDescs             = 0x80094C8C; // size:0x18

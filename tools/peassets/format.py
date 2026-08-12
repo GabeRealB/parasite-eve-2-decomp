@@ -148,7 +148,8 @@ class FileChunkHeader:
     # Loader: D_8006C4D4 = &Fs_CdSector + sector_len.
     sector_len: int
     chunk_size: int  # bytes, includes header
-    unknown2: int  # loadAddr for room_pkg / cap2; 0 otherwise
+    # RAM dest for room_pkg / cap2 (Fs FileChunkHeader.loadAddr); 0 otherwise.
+    load_addr: int
 
     def __post_init__(self) -> None:
         self.sector_len = validate_sector_len(self.sector_len)
@@ -161,7 +162,7 @@ class FileChunkHeader:
             else "end",
             "sector_len": f"0x{self.sector_len:X}",
             "chunk_size": f"0x{self.chunk_size:X}",
-            "unknown2": f"0x{self.unknown2:X}",
+            "load_addr": f"0x{self.load_addr:X}",
         }
 
 
@@ -285,7 +286,7 @@ def parse_file_chunk_header(data: bytes) -> FileChunkHeader | None:
         end_flag=FileChunkEndFlag(int.from_bytes(data[0x1:0x2], "little")),
         sector_len=validate_sector_len(int.from_bytes(data[0x2:0x4], "little")),
         chunk_size=int.from_bytes(data[0x4:0x8], "little") * SECTOR_SIZE,
-        unknown2=int.from_bytes(data[0x8:0xC], "little"),
+        load_addr=int.from_bytes(data[0x8:0xC], "little"),
     )
 
 
@@ -296,9 +297,157 @@ def encode_file_chunk_header(header: FileChunkHeader) -> bytes:
         + encode_u8(int(header.end_flag))
         + encode_u16(sector_len)
         + encode_u32(to_sectors(header.chunk_size))
-        + encode_u32(header.unknown2)
+        + encode_u32(header.load_addr)
         + encode_u32(0)
     )
+
+
+def unpack_chunk_payload(chunk_bytes: bytes, sector_len: int) -> bytes:
+    """Extract contiguous valid payload from an on-disc multi-sector chunk.
+
+    Disc layout (matches the CD loader)::
+
+        sector 0:  [0x10 header][data … sector_len)[pad to 0x800]
+        sector 1+: [data … sector_len)[pad to 0x800]
+
+    ``chunk_bytes`` is the full chunk including the leading 0x10 header.
+    Returns only the concatenated valid data (header stripped, pad stripped).
+
+    When ``sector_len == 0x800`` this is simply ``chunk_bytes[0x10:]``.
+    """
+    sector_len = validate_sector_len(sector_len)
+    if len(chunk_bytes) < FILE_CHUNK_HEADER_SIZE:
+        return b""
+    if len(chunk_bytes) % SECTOR_SIZE != 0:
+        raise ValueError(
+            f"chunk length 0x{len(chunk_bytes):X} is not a multiple of "
+            f"sector size 0x{SECTOR_SIZE:X}"
+        )
+
+    out = bytearray()
+    n_sectors = len(chunk_bytes) // SECTOR_SIZE
+    for i in range(n_sectors):
+        sec = chunk_bytes[i * SECTOR_SIZE : (i + 1) * SECTOR_SIZE]
+        if i == 0:
+            out += sec[FILE_CHUNK_HEADER_SIZE:sector_len]
+        else:
+            out += sec[0:sector_len]
+    return bytes(out)
+
+
+def strip_naive_payload_padding(payload: bytes, sector_len: int) -> bytes:
+    """Recover valid data from a payload extracted as ``chunk_size - 0x10``.
+
+    Older extract stored ``sec0[0x10:0x800] + sec1[0:0x800] + …``, which
+    embeds ``(0x800 - sector_len)`` pad bytes per sector when
+    ``sector_len < 0x800``.
+    """
+    sector_len = validate_sector_len(sector_len)
+    if sector_len >= SECTOR_SIZE:
+        return payload
+
+    first_cap = SECTOR_SIZE - FILE_CHUNK_HEADER_SIZE  # 0x7F0 stored from sec0
+    valid_first = sector_len - FILE_CHUNK_HEADER_SIZE  # 0x4F0 / 0x5F0 / …
+    if len(payload) <= first_cap:
+        return payload[:valid_first]
+
+    out = bytearray(payload[:valid_first])
+    pos = first_cap
+    while pos < len(payload):
+        sec = payload[pos : pos + SECTOR_SIZE]
+        out += sec[:sector_len]
+        pos += SECTOR_SIZE
+    return bytes(out)
+
+
+def expected_clean_payload_size(chunk_size: int, sector_len: int) -> int:
+    """Byte length of valid payload for a chunk with the given disc sizes."""
+    sector_len = validate_sector_len(sector_len)
+    n_sectors = chunk_size // SECTOR_SIZE
+    if n_sectors <= 0:
+        return 0
+    return (sector_len - FILE_CHUNK_HEADER_SIZE) + (n_sectors - 1) * sector_len
+
+
+def ensure_clean_payload(
+    payload: bytes, *, sector_len: int, chunk_size: int | None = None
+) -> bytes:
+    """Return sector-pad-free payload, stripping legacy naive extracts if needed."""
+    sector_len = validate_sector_len(sector_len)
+    if sector_len >= SECTOR_SIZE:
+        return payload
+    if chunk_size is not None:
+        clean_len = expected_clean_payload_size(chunk_size, sector_len)
+        naive_len = chunk_size - FILE_CHUNK_HEADER_SIZE
+        if len(payload) == clean_len:
+            return payload
+        if len(payload) == naive_len:
+            return strip_naive_payload_padding(payload, sector_len)
+    # Heuristic: if longer than a clean single-sector body and looks naive.
+    if len(payload) > (sector_len - FILE_CHUNK_HEADER_SIZE):
+        # Only strip when payload length matches a naive multi-sector size.
+        # naive = 0x7F0 + (n-1)*0x800  for some n
+        first = SECTOR_SIZE - FILE_CHUNK_HEADER_SIZE
+        if len(payload) >= first and (len(payload) - first) % SECTOR_SIZE == 0:
+            return strip_naive_payload_padding(payload, sector_len)
+    return payload
+
+
+def pack_chunk_payload(
+    header: FileChunkHeader, payload: bytes, *, chunk_size: int | None = None
+) -> bytes:
+    """Build on-disc chunk bytes: header + sector-strided payload with padding.
+
+    If ``chunk_size`` is given (retail size), the result is padded out to that
+    many bytes so unmodified assets repack byte-identically.
+    """
+    sector_len = validate_sector_len(header.sector_len)
+    first_cap = sector_len - FILE_CHUNK_HEADER_SIZE
+    cont_cap = sector_len
+
+    if len(payload) <= first_cap:
+        n_sectors = 1
+    else:
+        rem = len(payload) - first_cap
+        n_sectors = 1 + (rem + cont_cap - 1) // cont_cap
+
+    if chunk_size is not None:
+        if chunk_size % SECTOR_SIZE != 0:
+            raise ValueError(f"chunk_size 0x{chunk_size:X} not sector-aligned")
+        n_from_size = chunk_size // SECTOR_SIZE
+        # Retail chunk_size is a *minimum* pad (byte-identical when payload still
+        # fits). Re-encoding from inflated assets may grow the payload; allow expansion.
+        if n_from_size > n_sectors:
+            n_sectors = n_from_size
+
+    out = bytearray()
+    pos = 0
+    hdr_bytes = encode_file_chunk_header(
+        FileChunkHeader(
+            chunk_type=header.chunk_type,
+            end_flag=header.end_flag,
+            sector_len=sector_len,
+            chunk_size=n_sectors * SECTOR_SIZE,
+            load_addr=header.load_addr,
+        )
+    )
+    for i in range(n_sectors):
+        sec = bytearray(SECTOR_SIZE)
+        if i == 0:
+            sec[0:FILE_CHUNK_HEADER_SIZE] = hdr_bytes
+            take = min(first_cap, max(0, len(payload) - pos))
+            if take:
+                sec[FILE_CHUNK_HEADER_SIZE : FILE_CHUNK_HEADER_SIZE + take] = (
+                    payload[pos : pos + take]
+                )
+            pos += take
+        else:
+            take = min(cont_cap, max(0, len(payload) - pos))
+            if take:
+                sec[0:take] = payload[pos : pos + take]
+            pos += take
+        out += sec
+    return bytes(out)
 
 
 def parse_streaming_list_entry(data: bytes) -> StreamingEntry:

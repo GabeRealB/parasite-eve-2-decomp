@@ -11,3 +11,4 @@ watchdog
 levenshtein
 cxxfilt
 toml
+pillow

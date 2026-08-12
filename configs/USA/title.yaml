@@ -1,11 +1,11 @@
 # Title / demo / main menu overlay
-# Source: stage0/title/title.pe2pkg (canonical id stage0/file1/5; LZSS → assets/USA/OVR/title)
+# Source: stage0/file1/5.pe2pkg → assets/USA/pe2pkg/title.pe2pkg (inflated)
 # Load address: 0x80093800  size: 0x14AA (5290)
 name: Title Menu Overlay
 sha1: ccc10f4db298c1afea9f184230da4aa42f5beefd
 options:
   basename: title
-  target_path: assets/USA/OVR/title
+  target_path: assets/USA/pe2pkg/title.pe2pkg
   base_path: ../..
   platform: psx
   compiler: GCC

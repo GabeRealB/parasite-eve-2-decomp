@@ -21,3 +21,6 @@ objdiff.json
 compile_commands.json
 .venv*/
 venv*/
+
+# peassets ladder logs (regenerated each run)
+tools/peassets/logs/

@@ -45,8 +45,9 @@ def find_matches(version_idx: int, raw: bool, pattern: bytes) -> list[Match]:
     if raw:
         iter_dir(asset_path, raw, matches, pattern)
     else:
-        pkgs_path = asset_path / "OVR"
-        iter_dir(pkgs_path, raw, matches, pattern)
+        pkgs_path = asset_path / "pe2pkg"
+        if pkgs_path.is_dir():
+            iter_dir(pkgs_path, raw, matches, pattern)
     return matches
 
 

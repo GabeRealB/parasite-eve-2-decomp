@@ -12,20 +12,24 @@ always use disc IDs so renames stay stable:
 Values are a single path component (no ``/``, no extension for chunks).
 Unset entries keep the default numeric name (``file12``, ``101``, ``3``…).
 
-On-disk layout (raw/ and decoded/) uses the resolved names. ``stages.json``
-uses the same friendly file/folder names when set (else ``file0`` / ``101``).
-Chunk keys stay disc-order basenames (``1.pe2pkg``); content ``path`` fields
-point at the named on-disk location.
+On-disk layout:
 
-Overlay aliases under ``OVR/`` default to a chunk's friendly name when set,
-else a path-derived id (``stage0_file100300_3``). Duplicate pe2pkg payloads
-still map to ``<DUPLICATE>``.
+* **raw/{type}/**: unique *on-disc* clean payloads (dedup by SHA-1). Stem is
+  the chunk's :data:`NAMES` entry when set, else ``{type}_{n}``.
+* **Type store** (``pe2pkg/``, ``pe2img/``, …): *inflated* edit forms produced
+  once per unique raw file (LZSS-decoded packages, PNG images, …).
+* **Stage sidecars** (``stage0/…``, ``stageN/…``): pack-only files
+  (``trailer.bin``, ``layout.json``, ``streaming.json``, …) — no chunk copies.
+
+``stages.json`` uses friendly file/folder names when set (else ``file0`` /
+``101``). Chunk keys stay disc-order basenames (``1.pe2pkg``); content
+``path`` fields point at the inflated type store. Overlays for decomp live
+under ``pe2pkg/`` (e.g. ``pe2pkg/title.pe2pkg``).
 """
 
 from __future__ import annotations
 
 import re
-from pathlib import PurePosixPath
 
 # ---------------------------------------------------------------------------
 # Friendly names — add entries here as assets are identified.
@@ -39,14 +43,16 @@ NAMES: dict[str, str] = {
     "stage0/file1/5": "title",  # title / demo / main menu overlay
 }
 
-# Optional explicit OVR aliases when they should differ from the chunk name.
-# Normally leave empty: chunk name → OVR name.
-OVR_NAMES: dict[str, str] = {
-    # "stage0/file0/1.pe2pkg": "gameplay",
-}
+# pe2pkg store stems the decomp build needs inflated (splat targets, CI).
+# Minimal inflate only materializes these; expand as more overlays are decompiled.
+REQUIRED_OVERLAY_STEMS: frozenset[str] = frozenset(
+    {
+        "gameplay",
+        "title",
+    }
+)
 
 _SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
-_DUPLICATE = "<DUPLICATE>"
 
 
 def _check_component(name: str, *, key: str) -> str:
@@ -215,7 +221,7 @@ def chunk_filename(
 def disk_file_rel(
     stage: int, file_id: int, folder_id: int | None = None
 ) -> str:
-    """Relative path of a file directory under raw/ or decoded/ (posix)."""
+    """Relative path of a file directory for pack sidecars (posix)."""
     parts: list[str] = [_stage_prefix(stage)]
     if folder_id is not None:
         parts.append(folder_dirname(stage, folder_id))
@@ -224,7 +230,7 @@ def disk_file_rel(
 
 
 def disk_folder_rel(stage: int, folder_id: int) -> str:
-    """Relative path of a folder directory under raw/ or decoded/."""
+    """Relative path of a folder directory for pack sidecars."""
     return f"{_stage_prefix(stage)}/{folder_dirname(stage, folder_id)}"
 
 
@@ -235,7 +241,7 @@ def disk_chunk_rel(
     extension: str,
     folder_id: int | None = None,
 ) -> str:
-    """Relative path of a chunk file under raw/ or decoded/."""
+    """Relative path of a chunk file (legacy; prefer type-store paths)."""
     return (
         f"{disk_file_rel(stage, file_id, folder_id)}/"
         f"{chunk_filename(stage, file_id, chunk_idx, extension, folder_id)}"
@@ -275,42 +281,11 @@ def resolve_folder_id(name: str, *, stage: int) -> int:
     return folder_id
 
 
-def default_ovr_name(canonical_chunk_path: str) -> str:
-    """Path-derived OVR alias when no friendly name is set.
-
-    ``stage0/file100300/3.pe2pkg`` → ``stage0_file100300_3``
-    ``stage1/101/file0/3.pe2pkg`` → ``stage1_101_file0_3``
-    """
-    p = PurePosixPath(canonical_chunk_path)
-    stem_path = p.with_suffix("")
-    return "_".join(stem_path.parts)
-
-
-def ovr_name_for(
-    stage: int,
-    file_id: int,
-    chunk_idx: int,
-    extension: str = ".pe2pkg",
-    folder_id: int | None = None,
-) -> str:
-    """Resolved OVR alias for a room package chunk."""
-    canonical = chunk_path_key(stage, file_id, chunk_idx, extension, folder_id)
-    if canonical in OVR_NAMES:
-        return _check_component(OVR_NAMES[canonical], key=f"OVR:{canonical}")
-    # Prefer the chunk's friendly stem when set.
-    named = lookup(chunk_key(stage, file_id, chunk_idx, folder_id))
-    if named is not None:
-        return named
-    return default_ovr_name(canonical)
-
-
 def validate_names() -> None:
     """Raise if NAMES has invalid components or sibling path collisions."""
     # Component syntax
     for key, name in NAMES.items():
         _check_component(name, key=key)
-    for key, name in OVR_NAMES.items():
-        _check_component(name, key=f"OVR:{key}")
 
     # Sibling collisions: two different ids under the same parent → same name
     # Group by parent path of the key.
@@ -330,12 +305,11 @@ validate_names()
 
 __all__ = [
     "NAMES",
-    "OVR_NAMES",
+    "REQUIRED_OVERLAY_STEMS",
     "chunk_filename",
     "chunk_key",
     "chunk_path_key",
     "chunk_stem",
-    "default_ovr_name",
     "disk_chunk_rel",
     "disk_file_rel",
     "disk_folder_rel",
@@ -344,7 +318,6 @@ __all__ = [
     "folder_dirname",
     "folder_key",
     "lookup",
-    "ovr_name_for",
     "resolve_file_id",
     "resolve_folder_id",
     "reverse_chunk_idx",

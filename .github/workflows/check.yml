@@ -36,7 +36,7 @@ jobs:
           cp -r -p /rom/* ./rom/image
 
       - name: Extract ROM
-        run: python3 ./ninja_config.py --iso_extract
+        run: python3 ./ninja_config.py --iso_min
 
       - name: Setup Environment
         run: python3 ./ninja_config.py

@@ -26,7 +26,7 @@ The goal is to recover readable C that, when compiled with a period-correct tool
 <details>
 <summary><strong>Overlays</strong> (448 — all not started)</summary>
 
-Descriptions are best-effort: source path and load address come from `assets/USA/OVR/map.json`. Friendly names live in `tools/peassets/names.py` (`NAMES`); unnamed overlays use path-derived ids (`stage0_file100300_3`). Role text is inferred from known names or stage/room encoding.
+Descriptions are best-effort: source path and load address come from `assets/USA/stages.json` (`room_pkg` entries). Friendly names live in `tools/peassets/names.py` (`NAMES`); unnamed unique overlays use `pe2pkg_N` store stems. Role text is inferred from known names or stage/room encoding.
 
 | Overlay | Description | Status |
 |---|---|---|
@@ -573,7 +573,9 @@ Or use the all-in-one helper (formats sources, reconfigures, builds, and checks)
 | Flag | Meaning |
 |---|---|
 | `-c` / `--clean` | Clean build and permuter outputs |
-| `-iso_e` / `--iso_extract` | Extract files from disc images |
+| `-iso_e` / `--iso_extract` | Extract files from disc images (full inflate) |
+| `-iso_min` / `--iso_extract_minimal` | CI extract: raw + required overlays only (`title`, `gameplay`) |
+| `-iso_raw` / `--iso_extract_raw` | Extract raw/{type}/ only (no inflate) |
 | `-sc` / `--skip_checksum` | Build without the matching checksum step |
 | `-nm` / `--non_matching` | Compile with `-DNON_MATCHING` |
 | `-obj` / `--objdiff_config` | Generate objdiff setup for progress / per-object diffs |

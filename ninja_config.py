@@ -645,8 +645,14 @@ def clean_working_files(clean_build_files: bool, clean_target_files: bool):
         shutil.rmtree(EXPECTED_DIR, ignore_errors=True)
 
 
-def extract_files(version: int):
+def extract_files(
+    version: int, *, raw_only: bool = False, minimal_inflate: bool = False
+):
     print(f"Extracting files for version {GAME_VERSIONS[version].version_name}")
+    if raw_only:
+        print("  (raw-only: raw/{type}/ only; skip inflate/manifests)")
+    elif minimal_inflate:
+        print("  (minimal-inflate: raw + required pe2pkg overlays only)")
 
     target_assets = ASSETS_DIR / GAME_VERSIONS[version].metadata.version_dir
     target_rom = ROM_DIR / GAME_VERSIONS[version].metadata.version_dir
@@ -659,32 +665,35 @@ def extract_files(version: int):
 
     os.system(f"{DUMPSXISO} {dumpsxiso_flags_disk1}")
     os.system(f"{DUMPSXISO} {dumpsxiso_flags_disk2}")
-    subprocess.call(
-        [
-            PYTHON,
-            f"{TOOLS_DIR}/peassets/extract.py",
-            "-exe_d1",
-            f"{target_rom}/disk1/{GAME_VERSIONS[version].metadata.exe_disk1}",
-            "-exe_d2",
-            f"{target_rom}/disk2/{GAME_VERSIONS[version].metadata.exe_disk2}",
-            "-s0_hdr",
-            f"{target_rom}/disk1/STAGE0.HED",
-            "-s0_dat",
-            f"{target_rom}/disk1/STAGE0.CDF",
-            "-s1",
-            f"{target_rom}/disk1/STAGE1.CDF",
-            "-s2",
-            f"{target_rom}/disk1/STAGE2.CDF",
-            "-s3",
-            f"{target_rom}/disk1/STAGE3.CDF",
-            "-s4",
-            f"{target_rom}/disk2/STAGE4.CDF",
-            "-s5",
-            f"{target_rom}/disk2/STAGE5.CDF",
-            "-o",
-            target_assets,
-        ]
-    )
+    cmd = [
+        PYTHON,
+        f"{TOOLS_DIR}/peassets/extract.py",
+        "-exe_d1",
+        f"{target_rom}/disk1/{GAME_VERSIONS[version].metadata.exe_disk1}",
+        "-exe_d2",
+        f"{target_rom}/disk2/{GAME_VERSIONS[version].metadata.exe_disk2}",
+        "-s0_hdr",
+        f"{target_rom}/disk1/STAGE0.HED",
+        "-s0_dat",
+        f"{target_rom}/disk1/STAGE0.CDF",
+        "-s1",
+        f"{target_rom}/disk1/STAGE1.CDF",
+        "-s2",
+        f"{target_rom}/disk1/STAGE2.CDF",
+        "-s3",
+        f"{target_rom}/disk1/STAGE3.CDF",
+        "-s4",
+        f"{target_rom}/disk2/STAGE4.CDF",
+        "-s5",
+        f"{target_rom}/disk2/STAGE5.CDF",
+        "-o",
+        target_assets,
+    ]
+    if raw_only:
+        cmd.append("--raw-only")
+    elif minimal_inflate:
+        cmd.append("--minimal-inflate")
+    subprocess.call(cmd)
 
 
 def main():
@@ -698,7 +707,27 @@ def main():
     parser.add_argument(
         "-iso_e",
         "--iso_extract",
-        help="Extract game files",
+        help="Extract game files (ISO → rom/ + type-store assets)",
+        action="store_true",
+    )
+    parser.add_argument(
+        "-iso_raw",
+        "--iso_extract_raw",
+        help=(
+            "Extract game files: raw/{type}/ only "
+            "(skip inflate, stages/ISO manifests). Implies --iso_extract."
+        ),
+        action="store_true",
+    )
+    parser.add_argument(
+        "-iso_min",
+        "--iso_extract_minimal",
+        help=(
+            "Extract game files for CI/matching: raw/{type}/ plus inflate only "
+            "required decomp overlays (pe2pkg/title, pe2pkg/gameplay). "
+            "Skip images/full inflate and stages/ISO manifests. "
+            "Implies --iso_extract."
+        ),
         action="store_true",
     )
     parser.add_argument(
@@ -750,8 +779,16 @@ def main():
         clean_working_files(False, False)
         return
 
-    if args.iso_extract:
-        extract_files(game_version_option)
+    if args.iso_extract or args.iso_extract_raw or args.iso_extract_minimal:
+        if args.iso_extract_raw and args.iso_extract_minimal:
+            parser.error(
+                "--iso_extract_raw and --iso_extract_minimal are mutually exclusive"
+            )
+        extract_files(
+            game_version_option,
+            raw_only=bool(args.iso_extract_raw),
+            minimal_inflate=bool(args.iso_extract_minimal),
+        )
         return
 
     yamls_paths.extend(YAML_EXECUTABLE)
