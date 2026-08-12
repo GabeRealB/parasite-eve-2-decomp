@@ -289,3 +289,15 @@ def encode_bs_from_png_path(content_path: Path) -> bytes | None:
             meta = cand
             break
     return png_files_to_bs(content_path, meta)
+
+
+def materialize_spk_asset(src: Path, dest_dir: Path) -> Path:
+    """Write SPK bank → ``dest_dir/meta.json`` + ``sample_*.wav``.
+
+    Returns the meta path. Pack still prefers ``raw/spk/`` (no WAV→SPK encoder).
+    """
+    from spk_codec import materialize_spk
+
+    data = src.read_bytes()
+    meta_path, _info = materialize_spk(data, dest_dir, stem=src.stem)
+    return meta_path

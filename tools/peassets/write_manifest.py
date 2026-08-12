@@ -44,6 +44,8 @@ if str(SCRIPT_DIR) not in sys.path:
 from format import (  # noqa: E402
     FILE_CHUNK_HEADER_SIZE,
     FILE_LIST_TERMINATOR,
+    LOAD_ADDR_CHUNK_TYPES,
+    SECTOR_LEN_DEFAULT,
     SECTOR_SIZE,
     STAGE0_FILE_LIST_COUNT,
     STAGE0_STREAMING_COUNT,
@@ -56,12 +58,14 @@ from format import (  # noqa: E402
     parse_file_chunk_header,
     parse_file_list_entry,
     parse_folder_list_entry,
+    parse_load_addr,
+    parse_sector_len,
     parse_streaming_list_entry,
     resolve_chunk_type,
     streaming_entry_to_json,
-    validate_sector_len,
 )
 from names import (  # noqa: E402
+    chunk_filename,
     disk_file_rel,
     disk_folder_rel,
     file_key,
@@ -216,16 +220,16 @@ def _contents_from_chunk_map(
 ) -> dict[str, dict[str, Any]]:
     """Build an ordered contents dict for one file from extract's chunk map.
 
-    Dict keys are disc-order basenames (``0.spk``, ``1.pe2pkg``, …).
-    ``path`` points at the inflated type-store file (``pe2pkg/gameplay.pe2pkg``,
-    ``pe2img/foo.png``, …).
+    Dict keys use :func:`names.chunk_filename` (friendly stem from
+    ``names.NAMES`` when set, else ``{idx}{ext}``). Insertion order follows
+    disc chunk index. ``path`` points at the inflated type-store file.
     """
     prefix = file_key(stage, file_id, folder_id) + "/"
     indexed: list[tuple[int, str, dict[str, Any]]] = []
     for canon, ent in chunk_map.items():
         if not canon.startswith(prefix):
             continue
-        rest = canon[len(prefix) :]  # e.g. "1.pe2pkg"
+        rest = canon[len(prefix) :]  # e.g. "1.pe2pkg" (canonical map key)
         if "/" in rest:
             continue
         stem_part, _, ext_part = rest.partition(".")
@@ -233,7 +237,9 @@ def _contents_from_chunk_map(
             continue
         idx = int(stem_part)
         ext = f".{ext_part}" if ext_part else ""
-        indexed.append((idx, f"{idx}{ext}", ent))
+        # stages.json key: friendly chunk name when NAMES has an entry
+        key = chunk_filename(stage, file_id, idx, ext, folder_id)
+        indexed.append((idx, key, ent))
 
     if not indexed:
         # Opaque non-chunked file written as raw.bin next to the stage path.
@@ -250,7 +256,21 @@ def _contents_from_chunk_map(
 
     indexed.sort(key=lambda t: t[0])
     contents: dict[str, dict[str, Any]] = {}
-    for _idx, key, ent in indexed:
+    used_keys: set[str] = set()
+    for idx, key, ent in indexed:
+        # Disambiguate if two chunks somehow map to the same friendly name
+        final_key = key
+        if final_key in used_keys:
+            stem, _, ext = key.partition(".")
+            n = 2
+            while True:
+                cand = f"{stem}_{n}.{ext}" if ext else f"{stem}_{n}"
+                if cand not in used_keys:
+                    final_key = cand
+                    break
+                n += 1
+        used_keys.add(final_key)
+
         chunk_type_name = ent.get("chunk_type") or ""
         chunk_type = resolve_chunk_type(chunk_type_name)
         type_id = chunk_type_id(chunk_type)
@@ -258,15 +278,23 @@ def _contents_from_chunk_map(
             "path": ent["path"],
             "type": type_id,
         }
-        sector_len = validate_sector_len(
-            int(str(ent.get("sector_len", "0x800")), 0)
-        )
-        entry["sector_len"] = f"0x{sector_len:X}"
-        entry["chunk_size"] = ent.get("chunk_size", "0x0")
-        load_addr = ent.get("load_addr", "0x0")
-        if type_id in ("room_pkg", "cap2") and int(str(load_addr), 0) != 0:
-            entry["load_addr"] = load_addr
-        contents[key] = entry
+        # Default sector_len is 0x800 — only emit when retail differs.
+        # chunk_size is not stored: pack infers it from payload + sector_len.
+        sector_len = parse_sector_len(ent.get("sector_len"))
+        if sector_len != SECTOR_LEN_DEFAULT:
+            entry["sector_len"] = f"0x{sector_len:X}"
+        # load_addr required for pe2pkg / pe2cap2 (always non-zero in retail).
+        if chunk_type in LOAD_ADDR_CHUNK_TYPES:
+            load_addr = parse_load_addr(
+                ent.get("load_addr"), chunk_type=chunk_type
+            )
+            if load_addr == 0:
+                raise ValueError(
+                    f"chunk {final_key!r}: load_addr is required and must be "
+                    f"non-zero for {type_id!r} (got 0 from extract map)"
+                )
+            entry["load_addr"] = f"0x{load_addr:X}"
+        contents[final_key] = entry
     return contents
 
 

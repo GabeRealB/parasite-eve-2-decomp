@@ -6,14 +6,14 @@ Inputs (two separate manifests):
   * ``stages.json`` — each file lists **contents** (asset paths + pack fields).
   * ``iso_diskN.json`` — single-disc ISO layout (one directory_tree).
 
-Example ``stages.json`` (flat stage map; each stage is files *or* folders)::
+Example ``stages.json`` (see ``doc/ASSET_FORMATS.md`` §11 for the full schema)::
 
     {
       "stage0": {
         "files": {
           "gameplay": {
-            "0.spk": { "path": "spk/spk_0.spk", "type": "music" },
-            "1.pe2pkg": {
+            "0.spk": { "path": "spk/spk_0/meta.json", "type": "music" },
+            "gameplay.pe2pkg": {
               "path": "pe2pkg/gameplay.pe2pkg",
               "type": "room_pkg",
               "load_addr": "0x80093800"
@@ -25,7 +25,7 @@ Example ``stages.json`` (flat stage map; each stage is files *or* folders)::
         "folders": {
           "101": {
             "file0": {
-              "0.spk": { "path": "spk/spk_12.spk", "type": "music" }
+              "0.spk": { "path": "spk/spk_12/meta.json", "type": "music" }
             }
           }
         }
@@ -33,9 +33,9 @@ Example ``stages.json`` (flat stage map; each stage is files *or* folders)::
     }
 
 ``files`` → STAGE0-style HED+CDF. ``folders`` → STAGEn.CDF with folder table.
-File/folder dict keys use friendly names from ``names.NAMES`` when set (else
-``file0`` / ``101``). Chunk keys stay disc-order basenames (``1.pe2pkg``).
-Key order is on-disc order.
+File/folder/chunk dict keys use friendly names from ``names.NAMES`` when set
+(else ``file0`` / ``101`` / ``1.pe2pkg``). Key order is on-disc order.
+``end_flag`` / ``chunk_size`` are never in the manifest (inferred at pack).
 
 Content paths point at the **type store** under the assets root
 (``pe2pkg/``, ``pe2img/*.png``, …) — inflated/editable forms from extract.
@@ -88,8 +88,13 @@ from format import (  # noqa: E402
     parse_int,
     resolve_chunk_type,
     resolve_end_flag,
+    LOAD_ADDR_CHUNK_TYPES,
+    chunk_type_id,
+    parse_load_addr,
+    parse_sector_len,
     streaming_entry_from_json,
     validate_sector_len,
+    validate_stages_manifest,
 )
 from lzss import encode_lzss  # noqa: E402
 from names import (  # noqa: E402
@@ -144,14 +149,24 @@ def path_under_raw_type_store(
 
     ``pe2pkg/gameplay.pe2pkg`` → ``raw/pe2pkg/gameplay.pe2pkg``
     ``pe2img/foo.png`` → ``raw/pe2img/foo.pe2img``
+    ``spk/spk_0/meta.json`` → ``raw/spk/spk_0.spk``
     """
     p = Path(path_str)
     # Already under raw/
     if p.parts and p.parts[0] == "raw":
         return resolve_path(assets_dir, p)
     type_dir = AssetStore_type_dir(chunk_type)
-    stem = p.stem
     ext = chunk_type.get_extension()
+    # SPK inflates to ``spk/{stem}/meta.json`` — stem is the parent dir name.
+    if chunk_type == FileChunkType.Music:
+        if p.name == "meta.json" and p.parent.name:
+            stem = p.parent.name
+        elif p.suffix.lower() == ".spk":
+            stem = p.stem
+        else:
+            stem = p.stem
+    else:
+        stem = p.stem
     return (assets_dir / "raw" / type_dir / f"{stem}{ext}").resolve()
 
 
@@ -182,8 +197,11 @@ def resolve_content_path(
     already a clean on-disc payload (no LZSS/PNG re-encode).
     """
     needs_lzss = chunk_type in LZSS_ON_DISC_TYPES
-    # Prefer retail raw for LZSS types and BS (re-encode is lossy).
-    prefer_raw = needs_lzss or chunk_type == FileChunkType.RoomBackground
+    # Prefer retail raw for LZSS, BS (lossy PNG re-encode), and SPK (no WAV→SPK).
+    prefer_raw = needs_lzss or chunk_type in (
+        FileChunkType.RoomBackground,
+        FileChunkType.Music,
+    )
     staged = resolve_path(assets_dir, path_str)
 
     if source == PackSource.RAW:
@@ -199,6 +217,15 @@ def resolve_content_path(
         # Fall through to inflated re-encode if raw is missing.
         logging.warning(
             "matching pack: missing raw %s; re-encoding from inflated", raw_path
+        )
+
+    # Always use raw .spk — no WAV→SPK encoder.
+    if chunk_type == FileChunkType.Music:
+        raw_path = path_under_raw_type_store(assets_dir, path_str, chunk_type)
+        if raw_path.exists():
+            return raw_path, True
+        raise FileNotFoundError(
+            f"missing raw SPK content (WAV→SPK not supported): {raw_path}"
         )
 
     # hybrid / decoded / matching non-LZSS / matching LZSS/BS fallback
@@ -262,43 +289,43 @@ def build_chunk_blob(header_json: dict[str, Any], payload: bytes) -> bytes:
     Valid data per sector is ``[0x10, sector_len)`` on the first sector and
     ``[0, sector_len)`` on continuation sectors; the rest of each 0x800 sector
     is zero pad (see ``format.pack_chunk_payload``).
+
+    ``chunk_size`` is inferred from the clean payload length and ``sector_len``
+    (not read from stages.json).
     """
     chunk_type = resolve_chunk_type(header_json["chunk_type"])
     end_flag = resolve_end_flag(header_json["end_flag"])
-    sector_len = validate_sector_len(
-        parse_int(
-            header_json.get("sector_len", header_json.get("unknown1", SECTOR_SIZE))
+    # Default 0x800 when omitted; range (0x10, 0x800].
+    if "sector_len" in header_json:
+        sector_len = parse_sector_len(header_json["sector_len"])
+    elif "unknown1" in header_json:
+        sector_len = parse_sector_len(header_json["unknown1"])
+    else:
+        sector_len = parse_sector_len(None)
+    try:
+        load_addr = parse_load_addr(
+            header_json.get("load_addr"), chunk_type=chunk_type
         )
-    )
-    load_addr = parse_int(header_json.get("load_addr", 0))
-
-    # Prefer retail chunk_size when present so unmodified assets stay exact.
-    retail_size = None
-    if "chunk_size" in header_json:
-        retail_size = parse_int(header_json["chunk_size"])
+    except (TypeError, ValueError) as e:
+        raise ValueError(f"invalid load_addr: {e}") from e
 
     header = FileChunkHeader(
         chunk_type=chunk_type,
         end_flag=end_flag,
         sector_len=sector_len,
-        chunk_size=retail_size or SECTOR_SIZE,  # placeholder; pack recalculates
+        chunk_size=SECTOR_SIZE,  # placeholder; pack_chunk_payload recalculates
         load_addr=load_addr,
     )
-    return pack_chunk_payload(header, payload, chunk_size=retail_size)
+    return pack_chunk_payload(header, payload)
 
 
-def _content_chunk_sizes(
-    content: dict[str, Any] | None = None,
-) -> tuple[int, int | None]:
-    """Resolve (sector_len, chunk_size) from stages.json content fields."""
-    sector_len = 0x800
-    chunk_size = None
-    if content:
-        if "sector_len" in content:
-            sector_len = parse_int(content["sector_len"])
-        if "chunk_size" in content:
-            chunk_size = parse_int(content["chunk_size"]) or None
-    return sector_len, chunk_size
+def _content_sector_len(content: dict[str, Any] | None = None) -> int:
+    """Resolve sector_len from stages.json content fields.
+
+    May be omitted (default ``0x800``); when present must be in ``(0x10, 0x800]``.
+    ``chunk_size`` is never read — it is inferred at pack time.
+    """
+    return parse_sector_len(content.get("sector_len") if content else None)
 
 
 def prepare_on_disc_payload(
@@ -322,9 +349,10 @@ def prepare_on_disc_payload(
     * Other types: clean bytes as-is
 
     Returned payload is always *clean* (no per-sector pad);
-    ``build_chunk_blob`` re-applies ``sector_len`` padding.
+    ``build_chunk_blob`` re-applies ``sector_len`` padding and infers
+    on-disc ``chunk_size`` from the payload length.
     """
-    sector_len, chunk_size = _content_chunk_sizes(content)
+    sector_len = _content_sector_len(content)
 
     if on_disc_blob:
         if not payload and content_path is not None and content_path.exists():
@@ -333,9 +361,7 @@ def prepare_on_disc_payload(
             raise FileNotFoundError(
                 f"missing on-disc payload ({content_path})"
             )
-        return ensure_clean_payload(
-            payload, sector_len=sector_len, chunk_size=chunk_size
-        )
+        return ensure_clean_payload(payload, sector_len=sector_len)
 
     if chunk_type == FileChunkType.RoomPkg:
         if not payload:
@@ -353,7 +379,6 @@ def prepare_on_disc_payload(
             content_path=content_path,
             decoded_payload=payload,
             sector_len=sector_len,
-            chunk_size=chunk_size,
         )
 
     if chunk_type == FileChunkType.RoomBackground:
@@ -361,7 +386,6 @@ def prepare_on_disc_payload(
             content_path=content_path,
             decoded_payload=payload,
             sector_len=sector_len,
-            chunk_size=chunk_size,
         )
 
     if not payload and content_path is not None:
@@ -375,9 +399,7 @@ def prepare_on_disc_payload(
             end -= 1
         return payload[:end]
 
-    return ensure_clean_payload(
-        payload, sector_len=sector_len, chunk_size=chunk_size
-    )
+    return ensure_clean_payload(payload, sector_len=sector_len)
 
 
 def _image_meta_candidates(
@@ -418,7 +440,6 @@ def _prepare_image_payload(
     content_path: Path | None,
     decoded_payload: bytes,
     sector_len: int,
-    chunk_size: int | None,
 ) -> bytes:
     """PNG (+ meta) or opaque pe2 bytes → clean pe2 payload."""
     if content_path is not None:
@@ -433,14 +454,12 @@ def _prepare_image_payload(
         # Recovery: pe2 blob left in the type store when PNG decode failed.
         if content_path.suffix.lower() in (".pe2img", ".pe2clut"):
             return ensure_clean_payload(
-                content_path.read_bytes(),
-                sector_len=sector_len,
-                chunk_size=chunk_size,
+                content_path.read_bytes(), sector_len=sector_len
             )
 
     if decoded_payload:
         return ensure_clean_payload(
-            decoded_payload, sector_len=sector_len, chunk_size=chunk_size
+            decoded_payload, sector_len=sector_len
         )
     raise FileNotFoundError(
         f"missing image payload ({content_path})"
@@ -452,7 +471,6 @@ def _prepare_bs_payload(
     content_path: Path | None,
     decoded_payload: bytes,
     sector_len: int,
-    chunk_size: int | None,
 ) -> bytes:
     """PNG (+ meta) or raw ``.bs`` → clean BS payload."""
     if content_path is not None:
@@ -465,18 +483,14 @@ def _prepare_bs_payload(
                 raise FileNotFoundError(
                     f"failed to encode BS from {content_path}"
                 )
-            return ensure_clean_payload(
-                encoded, sector_len=sector_len, chunk_size=chunk_size
-            )
+            return ensure_clean_payload(encoded, sector_len=sector_len)
         if suf == ".bs":
             return ensure_clean_payload(
-                content_path.read_bytes(),
-                sector_len=sector_len,
-                chunk_size=chunk_size,
+                content_path.read_bytes(), sector_len=sector_len
             )
     if decoded_payload:
         return ensure_clean_payload(
-            decoded_payload, sector_len=sector_len, chunk_size=chunk_size
+            decoded_payload, sector_len=sector_len
         )
     raise FileNotFoundError(f"missing BS payload ({content_path})")
 
@@ -518,26 +532,41 @@ def build_file_blob_from_contents(
         if ctype == "raw":
             raise ValueError("type=raw cannot be mixed with chunked contents")
         chunk_type = resolve_chunk_type(ctype)
-        # Last chunk is End; earlier chunks Continue (matches on-disc files).
-        end_flag = content.get("end_flag")
-        if end_flag is None:
-            end_flag = "end" if i == len(items) - 1 else "continue"
-        # sector_len: exclusive end offset in the CD sector buffer (default 0x800).
-        sector_len = validate_sector_len(
-            parse_int(
-                content.get(
-                    "sector_len", content.get("unknown1", f"0x{SECTOR_SIZE:X}")
+        # end_flag is inferred: last chunk → End, earlier → Continue.
+        end_flag = "end" if i == len(items) - 1 else "continue"
+        # sector_len: exclusive end in sector buffer; omit in JSON → 0x800.
+        try:
+            sector_len = parse_sector_len(content.get("sector_len"))
+        except (TypeError, ValueError) as e:
+            raise ValueError(
+                f"chunk {name!r}: invalid sector_len {content.get('sector_len')!r}: {e}"
+            ) from e
+        try:
+            # Schema requires load_addr for room_pkg/cap2 (validated earlier too).
+            if (
+                chunk_type in LOAD_ADDR_CHUNK_TYPES
+                and "load_addr" not in content
+            ):
+                raise ValueError(
+                    f"missing required key 'load_addr' for "
+                    f"{chunk_type_id(chunk_type)!r}"
                 )
+            load_addr = parse_load_addr(
+                content.get("load_addr"), chunk_type=chunk_type
             )
-        )
+            if chunk_type in LOAD_ADDR_CHUNK_TYPES and load_addr == 0:
+                raise ValueError(
+                    f"load_addr must be non-zero for "
+                    f"{chunk_type_id(chunk_type)!r}"
+                )
+        except (TypeError, ValueError) as e:
+            raise ValueError(f"chunk {name!r}: invalid load_addr: {e}") from e
         header_json: dict[str, Any] = {
             "chunk_type": chunk_type.get_name(),
             "end_flag": end_flag,
             "sector_len": sector_len,
-            "load_addr": content.get("load_addr", "0x0"),
+            "load_addr": load_addr,
         }
-        if "chunk_size" in content:
-            header_json["chunk_size"] = content["chunk_size"]
         if "path" in content:
             payload_path, on_disc_blob = resolve_content_path(
                 assets_dir,
@@ -1171,6 +1200,8 @@ def build_stage_containers(
             flat[name] = v
         stages_manifest = flat
 
+    validate_stages_manifest(stages_manifest)
+
     for stage_name, stage_spec in stages_manifest.items():
         if not isinstance(stage_spec, dict):
             continue
@@ -1180,12 +1211,7 @@ def build_stage_containers(
 
         has_files = "files" in stage_spec
         has_folders = "folders" in stage_spec
-        if has_files and has_folders:
-            raise ValueError(
-                f"{stage_name} must have either 'files' or 'folders', not both"
-            )
-        if not has_files and not has_folders:
-            raise ValueError(f"{stage_name} needs 'files' or 'folders'")
+        # Structural checks already done by validate_stages_manifest.
 
         if has_files:
             hed, cdf = build_files_stage(

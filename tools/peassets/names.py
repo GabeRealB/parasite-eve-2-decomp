@@ -21,10 +21,11 @@ On-disk layout:
 * **Stage sidecars** (``stage0/…``, ``stageN/…``): pack-only files
   (``trailer.bin``, ``layout.json``, ``streaming.json``, …) — no chunk copies.
 
-``stages.json`` uses friendly file/folder names when set (else ``file0`` /
-``101``). Chunk keys stay disc-order basenames (``1.pe2pkg``); content
-``path`` fields point at the inflated type store. Overlays for decomp live
-under ``pe2pkg/`` (e.g. ``pe2pkg/title.pe2pkg``).
+``stages.json`` uses friendly file/folder/**chunk** names when set in
+:data:`NAMES` (else ``file0`` / ``101`` / ``1.pe2pkg``). Content ``path``
+fields point at the inflated type store. Overlays for decomp live under
+``pe2pkg/`` (e.g. ``pe2pkg/title.pe2pkg``). Chunk dict key order is still
+disc index order.
 """
 
 from __future__ import annotations
@@ -53,6 +54,21 @@ REQUIRED_OVERLAY_STEMS: frozenset[str] = frozenset(
 )
 
 _SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
+
+
+def asset_name_key(path_or_str: object) -> tuple[int, str]:
+    """Sort key for asset basenames: length first, then lexicographic.
+
+    Shorter names sort before longer ones with the same prefix, so
+    ``bs_1`` / ``bs_2`` / … come before ``bs_10`` (pure lexicographic
+    would put ``bs_10`` between ``bs_1`` and ``bs_2``).
+    """
+    name = getattr(path_or_str, "name", None)
+    if name is None:
+        name = str(path_or_str)
+        if "/" in name or "\\" in name:
+            name = name.replace("\\", "/").rsplit("/", 1)[-1]
+    return (len(name), name)
 
 
 def _check_component(name: str, *, key: str) -> str:
@@ -260,6 +276,17 @@ def stages_folder_key(stage: int, folder_id: int) -> str:
     return folder_dirname(stage, folder_id)
 
 
+def stages_chunk_key(
+    stage: int,
+    file_id: int,
+    chunk_idx: int,
+    extension: str,
+    folder_id: int | None = None,
+) -> str:
+    """Key used in stages.json for a chunk (friendly stem when set)."""
+    return chunk_filename(stage, file_id, chunk_idx, extension, folder_id)
+
+
 def resolve_file_id(
     name: str, *, stage: int, folder_id: int | None = None
 ) -> int:
@@ -306,6 +333,7 @@ validate_names()
 __all__ = [
     "NAMES",
     "REQUIRED_OVERLAY_STEMS",
+    "asset_name_key",
     "chunk_filename",
     "chunk_key",
     "chunk_path_key",
@@ -323,6 +351,7 @@ __all__ = [
     "reverse_chunk_idx",
     "reverse_file_id",
     "reverse_folder_id",
+    "stages_chunk_key",
     "stages_file_key",
     "stages_folder_key",
     "validate_names",

@@ -21,9 +21,11 @@ from asset_decode import (  # noqa: E402
     decode_pe2pkg_payload,
     materialize_bs_asset,
     materialize_image_asset,
+    materialize_spk_asset,
 )
 from names import (  # noqa: E402
     REQUIRED_OVERLAY_STEMS,
+    asset_name_key,
     chunk_key,
     chunk_path_key,
     disk_file_rel,
@@ -97,7 +99,7 @@ class FileChunkEndFlag(IntEnum):
 class FileChunkHeader:
     chunk_type: FileChunkType
     end_flag: FileChunkEndFlag
-    sector_len: int  # exclusive end offset in sector buffer; range [0x10, 0x800]
+    sector_len: int  # exclusive end offset in sector buffer; range (0x10, 0x800]
     chunk_size: int
     load_addr: int  # RAM dest for room_pkg / cap2; 0 otherwise
 
@@ -314,6 +316,8 @@ TYPE_DIR_BY_EXT: dict[str, str] = {
 IMAGE_EXTS = frozenset({".pe2img", ".pe2clut"})
 # Types that inflate to PNG under the type store (edit form).
 PNG_INFLATE_EXTS = frozenset({".pe2img", ".pe2clut", ".bs"})
+# Sound banks inflate to a directory of WAV + meta.
+SPK_INFLATE_EXT = ".spk"
 RAW_ROOT_NAME = "raw"
 
 
@@ -391,6 +395,9 @@ class AssetStore:
         """Relative path of the edit/inflated asset under assets root."""
         if ext in PNG_INFLATE_EXTS:
             return f"{type_dir}/{stem}.png"
+        if ext == SPK_INFLATE_EXT:
+            # Directory of meta.json + sample_*.wav
+            return f"{type_dir}/{stem}/meta.json"
         return f"{type_dir}/{stem}{ext}"
 
     def _map_entry(
@@ -496,6 +503,7 @@ class AssetStore:
 
         * ``.pe2pkg`` — LZSS-decode → ``pe2pkg/{stem}.pe2pkg``
         * ``.pe2img`` / ``.pe2clut`` / ``.bs`` — PNG + meta under type dir
+        * ``.spk`` — ``spk/{stem}/meta.json`` + ``sample_*.wav`` (SPU-ADPCM)
         * ``.txt`` — strip zero pad (text only, no trailing NUL)
         * other — hardlink/copy raw → type dir (same bytes)
 
@@ -516,7 +524,9 @@ class AssetStore:
                 len(self._unique_raw),
             )
         count = 0
-        for raw_rel, (type_dir, stem, ext) in sorted(self._unique_raw.items()):
+        for raw_rel, (type_dir, stem, ext) in sorted(
+            self._unique_raw.items(), key=lambda kv: asset_name_key(kv[0])
+        ):
             if only_pe2pkg_stems is not None:
                 if type_dir != "pe2pkg" or stem not in only_pe2pkg_stems:
                     continue
@@ -575,6 +585,27 @@ class AssetStore:
                 except Exception:
                     logging.exception(
                         "BS decode failed for %s; copying raw .bs instead",
+                        raw_rel,
+                    )
+                    fallback = self.assets_root / type_dir / f"{stem}{ext}"
+                    fallback.parent.mkdir(parents=True, exist_ok=True)
+                    if fallback.exists() or fallback.is_symlink():
+                        fallback.unlink()
+                    try:
+                        fallback.hardlink_to(raw_path)
+                    except OSError:
+                        fallback.write_bytes(raw_path.read_bytes())
+                    for ent in self.map.values():
+                        if ent.get("raw_path") == raw_rel:
+                            ent["path"] = f"{type_dir}/{stem}{ext}"
+            elif ext == SPK_INFLATE_EXT:
+                logging.info("  decode spk %s → %s", raw_rel, out_rel)
+                dest_dir = self.assets_root / type_dir / stem
+                try:
+                    materialize_spk_asset(raw_path, dest_dir)
+                except Exception:
+                    logging.exception(
+                        "SPK decode failed for %s; copying raw .spk instead",
                         raw_rel,
                     )
                     fallback = self.assets_root / type_dir / f"{stem}{ext}"

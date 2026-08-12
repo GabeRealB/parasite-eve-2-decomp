@@ -91,11 +91,11 @@ STAGE*.CDF / stage0 file table
         └── chunk N   (end_flag = 0xFF)
 ```
 
-- A **file** may contain one or many chunks back-to-back (`end_flag` chains them).
+- A **file** may contain one or many chunks back-to-back (on-disc `end_flag`
+  chains them; pack sets last chunk → End, others → Continue).
 - Chunk **byte size** on disc is always a multiple of the CD sector size
-  **`0x800`**.
-- `stages.json` / `headers.json` record per-chunk `sector_len`, `chunk_size`,
-  and `load_addr` so repack can restore the retail layout.
+  **`0x800`**. On-disc size is **inferred** from clean payload length and
+  `sector_len` at pack time (not stored in `stages.json`).
 
 ### 3.2 Chunk header (`0x10` bytes)
 
@@ -111,12 +111,10 @@ that chunk (not repeated on continuation sectors):
 | `0x8` | `u32` | `load_addr` | RAM load address for room packages / cap2; else `0` |
 | `0xC` | `u32` | pad | Always `0` |
 
-`headers.json` next to extracted files stores this table in JSON. In
-`stages.json` content entries the same fields appear as hex strings
-(`"sector_len": "0x800"`, `"chunk_size": "0x57800"`, …).
-
-**Note:** `chunk_size` is a **byte** length (e.g. `0x3800` = 7 sectors). Sector
-count is `chunk_size / 0x800`.
+On disc, `chunk_size` is a **byte** length (e.g. `0x3800` = 7 sectors);
+sector count is `chunk_size / 0x800`. Pack computes it from the clean asset
+size and `sector_len` via `format.pack_chunk_payload` — it is **not** a
+`stages.json` field.
 
 ### 3.3 Multi-sector payload layout and `sector_len`
 
@@ -126,8 +124,10 @@ and only treats bytes **below `sector_len`** as valid payload.
 `sector_len` is an **exclusive end offset** inside the sector buffer. It must
 cover the header on sector 0:
 
-- Valid range: **`0x10` … `0x800`** inclusive (`format.SECTOR_LEN_MIN` /
-  `SECTOR_LEN_MAX`).
+- Valid range: **`(0x10, 0x800]`** (`format.parse_sector_len` /
+  `validate_sector_len`).
+- Default when omitted from `stages.json` is **`0x800`**; extract only writes
+  the field when retail differs from that default.
 
 ```text
 Sector 0 of a chunk (first sector only carries the header):
@@ -161,8 +161,8 @@ clean_len = first_cap + (n_sectors - 1) * cont_cap
           = (sector_len - 0x10) + (n_sectors - 1) * sector_len
 ```
 
-where `n_sectors = chunk_size / 0x800` for a retail-sized chunk
-(`format.expected_clean_payload_size`).
+where `n_sectors` is derived from the on-disc blob (extract) or from the
+minimum sectors needed for the clean payload (pack).
 
 Runtime: `D_8006C4D4 = &Fs_CdSector + sector_len` bounds decompress input
 (`src/main/fs.c`).
@@ -172,7 +172,7 @@ Runtime: `D_8006C4D4 = &Fs_CdSector + sector_len` bounds decompress input
 | Direction | Function | Behaviour |
 |-----------|----------|-----------|
 | **Extract** | `unpack_chunk_payload` | Read full multi-sector blob → strip header + pad → inflate → **type store** |
-| **Pack** | `pack_chunk_payload` | Clean payload + header fields → re-stride into sectors with pad |
+| **Pack** | `pack_chunk_payload` | Clean payload + `sector_len` → re-stride into sectors with pad; set header `chunk_size` |
 
 How many sectors a clean payload needs (pack):
 
@@ -181,12 +181,10 @@ if len(payload) <= first_cap:
     n_sectors = 1
 else:
     n_sectors = 1 + ceil( (len(payload) - first_cap) / cont_cap )
+chunk_size = n_sectors * 0x800
 ```
 
-If a retail `chunk_size` is supplied and is **larger** than that minimum, pack
-**pads out** to the retail sector count (byte-identical empty tail sectors). If
-re-encode grows the payload, pack may use **more** sectors than retail
-(`chunk_size` is a floor, not a hard cap).
+If re-encode grows the payload, pack uses **more** sectors than retail as needed.
 
 **Legacy naive extract** stored `sec0[0x10:0x800] + sec1[0:0x800] + …`, which
 embeds pad when `sector_len < 0x800`. Prefer re-extract, or
@@ -207,7 +205,7 @@ python3 tools/peassets/lzss_roundtrip_report.py --log layout_diff.log
 | `0x2` | Color lookup table | `.pe2clut` | `Fs_LoadImageChunk` + `Fs_DecompressImage` | 16-byte image header + LZSS → ABGR1555 |
 | `0x4` | Dialogue / cap2 | `.pe2cap2` | (package-like) | Often has load address |
 | `0x5` | Room background | `.bs` | MDEC path | PSX BS v2 → PNG (320×240) |
-| `0x6` | Music | `.spk` | SPU / SPK loader | |
+| `0x6` | Music | `.spk` | SndLoad / SPU | `hSPK` bank → WAV samples |
 | `0x7` | Ascii | `.txt` | | |
 
 There is no type `0x3` in the tables we use.
@@ -449,13 +447,66 @@ the highest-scoring row recovers the real map. Meta JSON notes
 
 ## 9. Music (`.spk`) and other types
 
-- **`.spk`**: music / SPU program data (type `0x6`).
+### 9.1 SPK sound banks (`.spk`)
+
+- Chunk type `0x6`. Magic **`hSPK`**. Fed to `SndLoad_*` then `SpuWritePartly`.
+- Clean payload layout (see `tools/peassets/spk_codec.py`):
+
+  | Offset | Field |
+  |--------|--------|
+  | 0 | `char[4]` magic `hSPK` |
+  | 4 | `u16` bank_id (high nibble = bank type for `Snd_AllocBank`) |
+  | 6 | `u8` field_22 |
+  | 7 | `u8` group_count |
+  | 8 | `u8` note_count |
+  | 9 | `u8` field_25 |
+  | 0xA | `u16` field_26 (SPU page; usually 0) |
+  | 0xC | `u8` field_28 / field_29 |
+  | 0xE | `u16` prog_size (bytes of program / `hONE` stream) |
+  | 0x10 | `s32` spu_size (SPU-ADPCM pool size) |
+  | 0x14 | group table (`4 × group_count`) + note table (`0x14 × note_count`) |
+  | 0x800 | program (`hONE` / `oneV` / `oneC` / `endC` …) |
+  | `align16(0x800+align4(prog_size))` | SPU-ADPCM sample pool |
+
+- Each `SndNote.waveAddr` is a byte offset into the sample pool (16-byte ADPCM
+  frames, ~22050 Hz mono).
+- Extract: `raw/spk/*.spk` → `spk/{stem}/meta.json` + `sample_XX.wav`.
+- Pack always uses `raw/spk/` (no WAV→SPK encoder).
+
+#### What works today
+
+| Piece | Status |
+|--------|--------|
+| `hSPK` header + group/note tables | Parsed (`spk_codec.parse_spk`) |
+| SPU-ADPCM sample pool → WAV | Working (~22 050 Hz mono) |
+| Extract materialize + viewer meta/waveform | Working |
+| Pack bit-identity | Via `raw/spk/` only |
+
+#### What is still missing (sequence / full audio)
+
+All retail SPK program regions use Square’s **`hONE` SndScript**, not SMF
+MIDI (`MThd` never appears in SPK blobs). The game’s `Midi_InitSequence` path
+expects SMF; SPK playback goes through **`SndScript_Exec`** (`one*` opcodes).
+
+| Gap | Notes |
+|-----|--------|
+| **`hONE` header** | Counts/sizes after magic not fully pinned |
+| **Tagged script stream** | `oneC` / `oneV` / `oneE` / `oneA` / `endC` / `Loop` / `Wait` / `endL` — structs partially in `include/main/sound.h`; need a stream walker |
+| **`SndScript_Exec`** | Still `INCLUDE_ASM` in `src/main/sndscript.c` — authoritative interpreter for timing and opcodes |
+| **Timed event list** | Needs Wait/Loop stack + timebase (script ticks vs frame rate) |
+| **Audio mix / “play the song”** | Needs timed events + pitch (root/fine/`oneV`) + vol/pan + ADSR/`oneE` + polyphony; samples alone are not enough |
+| **WAV → SPK encoder** | Not planned; matching packs use raw |
+| **SMF export** | Optional convenience only — not native format |
+
+Suggested roadmap: (1) structural `hONE` → JSON events, (2) timed events after
+`SndScript_Exec` reverse, (3) naive mixer to a single WAV, (4) closer SPU model.
+
+### 9.2 Other types
+
 - **`.pe2cap2`**: dialogue-related; may carry a RAM load address in `load_addr`.
 - **`.txt`**: ASCII (type `0x7`). On-disc clean payload is CRLF text
   (usually ending in `\Z` or `\Z\r\n`) zero-padded to chunk capacity.
   Inflated `txt/` is the text only (no trailing NUL / zero pad).
-
-These are copied through extract/pack without format-specific decode today.
 
 ---
 
@@ -471,17 +522,137 @@ stage1/101            →  <room name>       (folder)
 
 Rules of thumb:
 
-- Canonical keys always use numeric ids (`stage0/file0/1.pe2pkg`).
-- `stages.json` file/folder keys use friendly names when set; chunk **keys**
-  stay disc-order basenames (`1.pe2pkg`) while `path` may point at
-  `….png` for images.
+- Canonical extract-map keys always use numeric ids (`stage0/file0/1.pe2pkg`).
+- `stages.json` file/folder/**chunk** keys use friendly names when set in
+  `NAMES` (else `file0` / `101` / `1.pe2pkg`). Dict order is still disc order.
 - Type-store stems: chunk `NAMES` when set, else `{type}_{n}` for the
   n-th **unique** asset of that type. Duplicates share the same store path
   in `stages.json`.
 
 ---
 
-## 11. Type store + overlays
+## 11. `stages.json` schema
+
+Pack manifest under the assets root. Validated by
+`format.validate_stages_manifest` at pack time: **only known keys** are
+allowed at each level; unknown keys (e.g. `chunk_size`, `end_flag`) fail.
+
+### 11.1 Top level
+
+```text
+{
+  "stage0": { "files": { … } },
+  "stage1": { "folders": { … } },
+  …
+}
+```
+
+| Rule | Detail |
+|------|--------|
+| Keys | Only `"stageN"` (`stage0` …) |
+| Stage body | Exactly one of `"files"` or `"folders"` (not both, not empty) |
+
+### 11.2 Files stages (`stage0`)
+
+```text
+"stage0": {
+  "files": {
+    "<file_key>": {
+      "<chunk_key>": { …content… },
+      …
+    },
+    …
+  }
+}
+```
+
+- **file_key**: `names.stages_file_key` — friendly name or `file{id}`.
+- **chunk_key**: `names.stages_chunk_key` — friendly stem + ext or `{idx}{ext}`.
+- Object order of files and of chunks = on-disc order.
+
+### 11.3 Folder stages (`stage1`…)
+
+```text
+"stage1": {
+  "folders": {
+    "<folder_key>": {
+      "<file_key>": {
+        "<chunk_key>": { …content… }
+      }
+    }
+  }
+}
+```
+
+- **folder_key**: friendly name or decimal folder id.
+
+### 11.4 Chunk content object
+
+| Key | Required | Allowed on | Notes |
+|-----|----------|------------|--------|
+| `path` | **yes** | all | Relative to assets root (type store) |
+| `type` | **yes** | all | See type table below |
+| `sector_len` | no | all | Omit if `0x800`. Range `(0x10, 0x800]` |
+| `load_addr` | **yes** (non-zero) | **`room_pkg`, `cap2` only** | RAM load address; retail never uses `0` |
+
+**Never in `stages.json`** (inferred or on-disc only):
+
+| Field | How pack handles it |
+|-------|---------------------|
+| `end_flag` | Last chunk in a file → End (`0xFF`); earlier → Continue (`0x01`) |
+| `chunk_size` | `n_sectors × 0x800` from clean payload + `sector_len` |
+
+**`type` values** (and allowed keys):
+
+| `type` | Extension | Keys |
+|--------|-----------|------|
+| `room_pkg` | `.pe2pkg` | `path`, `type`, **`load_addr`**, `sector_len?` |
+| `image` | `.pe2img` / `.png` | `path`, `type`, `sector_len?` |
+| `clut` | `.pe2clut` / `.png` | `path`, `type`, `sector_len?` |
+| `cap2` | `.pe2cap2` | `path`, `type`, **`load_addr`**, `sector_len?` |
+| `room_background` | `.bs` / `.png` | `path`, `type`, `sector_len?` |
+| `music` | `.spk` | `path`, `type`, `sector_len?` |
+| `ascii` | `.txt` | `path`, `type`, `sector_len?` |
+| `raw` | `raw.bin` | `path`, `type` only (non-chunked file) |
+
+Example:
+
+```json
+{
+  "stage0": {
+    "files": {
+      "gameplay": {
+        "0.spk": {
+          "path": "spk/spk_0/meta.json",
+          "type": "music"
+        },
+        "gameplay.pe2pkg": {
+          "path": "pe2pkg/gameplay.pe2pkg",
+          "type": "room_pkg",
+          "load_addr": "0x80093800"
+        }
+      }
+    }
+  },
+  "stage1": {
+    "folders": {
+      "101": {
+        "file0": {
+          "0.bs": {
+            "path": "bs/bs_0.png",
+            "type": "room_background",
+            "sector_len": "0x500"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+---
+
+## 12. Type store + overlays
 
 ### Type directories
 
@@ -495,17 +666,7 @@ root (inflated). Dedup is by SHA-1 of the **raw** clean payload:
 | other | clean on-disc payload | hardlink/copy of raw |
 
 Pack sees them via `stages.json` content entries (same path for every
-duplicate reference):
-
-```json
-"1.pe2pkg": {
-  "path": "pe2pkg/gameplay.pe2pkg",
-  "type": "room_pkg",
-  "sector_len": "0x800",
-  "chunk_size": "0x57800",
-  "load_addr": "0x80093800"
-}
-```
+duplicate reference). See §11 for the full schema.
 
 ### Overlays (pe2pkg store)
 
@@ -519,7 +680,7 @@ in `stages.json` (`type: room_pkg`, `path`, `load_addr`).
 
 ---
 
-## 12. Tooling workflow
+## 13. Tooling workflow
 
 ```text
 Extract:
@@ -564,7 +725,7 @@ Dependencies: see `requirements.txt` (includes **Pillow** for PNG).
 
 ---
 
-## 13. Known gaps / open questions
+## 14. Known gaps / open questions
 
 - **`.bs` BS v2 MDEC** backgrounds: decoded to PNG on extract (see §8).
 - **Exact bpp** is not stored in the image chunk; exporters **guess** (and use a
@@ -580,7 +741,7 @@ Dependencies: see `requirements.txt` (includes **Pillow** for PNG).
 
 ---
 
-## 14. Quick reference — endianness and colour
+## 15. Quick reference — endianness and colour
 
 - All multi-byte integers: **little-endian**.
 - VRAM halfword colours: **ABGR1555**

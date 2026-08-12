@@ -25,6 +25,8 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
+from names import asset_name_key  # noqa: E402
+
 TYPE_DIRS = ("pe2pkg", "pe2img", "pe2clut", "pe2cap2", "bs", "spk", "txt")
 IMAGE_EXTS = {".png", ".pe2img", ".pe2clut", ".bs"}
 TEXT_EXTS = {".txt", ".json", ".md", ".xml", ".cnf"}
@@ -284,7 +286,12 @@ def list_all_cluts(assets_root: Path) -> list[Path]:
     raw = assets_root / "raw" / "pe2clut"
     infl = assets_root / "pe2clut"
     if raw.is_dir():
-        out.extend(sorted(p for p in raw.glob("*.pe2clut") if p.is_file()))
+        out.extend(
+            sorted(
+                (p for p in raw.glob("*.pe2clut") if p.is_file()),
+                key=asset_name_key,
+            )
+        )
     elif infl.is_dir():
         # only pngs — skip, need pe2 for palette load
         pass
@@ -311,12 +318,26 @@ def scan_type_assets(assets_root: Path) -> dict[str, list[AssetItem]]:
         seen_stems: set[str] = set()
 
         if infl_dir.is_dir():
-            for p in sorted(infl_dir.iterdir()):
+            for p in sorted(infl_dir.iterdir(), key=asset_name_key):
+                # SPK inflates to directories: spk/{stem}/meta.json + sample_*.wav
+                if type_dir == "spk" and p.is_dir():
+                    meta = p / "meta.json"
+                    if meta.is_file():
+                        seen_stems.add(p.name)
+                        by_type[type_dir].append(
+                            AssetItem(
+                                path=meta,
+                                label=p.name,
+                                kind=type_dir,
+                                source="inflated",
+                            )
+                        )
+                    continue
                 if not p.is_file():
                     continue
                 # Skip sidecar meta next to PNGs in listing primary? keep them.
                 if p.suffix.lower() == ".json" and p.name.endswith(
-                    (".pe2img.json", ".pe2clut.json")
+                    (".pe2img.json", ".pe2clut.json", ".bs.json")
                 ):
                     continue
                 seen_stems.add(p.stem)
@@ -330,17 +351,18 @@ def scan_type_assets(assets_root: Path) -> dict[str, list[AssetItem]]:
                 )
 
         if raw_dir.is_dir():
-            for p in sorted(raw_dir.iterdir()):
+            for p in sorted(raw_dir.iterdir(), key=asset_name_key):
                 if not p.is_file():
                     continue
                 # Prefer inflated if same stem exists (e.g. pe2img_0.png vs .pe2img)
                 if p.stem in seen_stems:
                     continue
-                # If inflated has .png for this stem, skip raw pe2
-                if any(
-                    (assets_root / type_dir / f"{p.stem}{s}").exists()
-                    for s in (".png", p.suffix)
-                ):
+                # Inflated PNG / SPK dir / same-suffix opaque
+                if (assets_root / type_dir / f"{p.stem}.png").exists():
+                    continue
+                if (assets_root / type_dir / p.stem).is_dir():
+                    continue
+                if (assets_root / type_dir / f"{p.stem}{p.suffix}").exists():
                     continue
                 by_type[type_dir].append(
                     AssetItem(
@@ -690,7 +712,9 @@ class AssetViewer(tk.Tk):
                 values=("",),
             )
             # Fall back: list stage*/ sidecar folders if present
-            for stage_dir in sorted(self.assets_root.glob("stage*")):
+            for stage_dir in sorted(
+                self.assets_root.glob("stage*"), key=asset_name_key
+            ):
                 if stage_dir.is_dir() and stage_dir.name.startswith("stage"):
                     tree.insert(
                         "",
@@ -702,7 +726,7 @@ class AssetViewer(tk.Tk):
 
         filt = self._filter_var.get().strip().lower()
 
-        for stage_name in sorted(self.stages.keys()):
+        for stage_name in sorted(self.stages.keys(), key=asset_name_key):
             stage = self.stages[stage_name]
             if not isinstance(stage, dict):
                 continue
@@ -716,7 +740,9 @@ class AssetViewer(tk.Tk):
                     tree, stage_node, stage["files"], stage_name, None, filt
                 )
             if "folders" in stage and isinstance(stage["folders"], dict):
-                for folder_name, files in stage["folders"].items():
+                for folder_name, files in sorted(
+                    stage["folders"].items(), key=lambda kv: asset_name_key(kv[0])
+                ):
                     if not isinstance(files, dict):
                         continue
                     fid = f"folder:{stage_name}/{folder_name}"
@@ -746,7 +772,9 @@ class AssetViewer(tk.Tk):
         folder: str | None,
         filt: str,
     ) -> None:
-        for file_name, chunks in files.items():
+        for file_name, chunks in sorted(
+            files.items(), key=lambda kv: asset_name_key(kv[0])
+        ):
             if not isinstance(chunks, dict):
                 continue
             prefix = f"{stage_name}/{folder + '/' if folder else ''}{file_name}"
@@ -765,7 +793,9 @@ class AssetViewer(tk.Tk):
                 values=("file",),
                 open=False,
             )
-            for chunk_key, ent in chunks.items():
+            for chunk_key, ent in sorted(
+                chunks.items(), key=lambda kv: asset_name_key(kv[0])
+            ):
                 if not isinstance(ent, dict):
                     continue
                 rel = ent.get("path") or ""
@@ -984,6 +1014,15 @@ class AssetViewer(tk.Tk):
                     defl_label="PNG",
                     short=True,
                 )
+                return
+
+        if (
+            suf == ".spk"
+            or kind in ("spk", "music")
+            or (path.name == "meta.json" and "spk" in path.parts)
+        ):
+            self._set_clut_controls_enabled(False)
+            if self._show_spk(path, data):
                 return
 
         # Pair raw/deflated only for non-image types (can read a second file)
@@ -1299,6 +1338,148 @@ class AssetViewer(tk.Tk):
         except Exception as e:
             self._show_text_message(f"BS decode failed: {e}")
             return False
+
+    def _show_spk(self, path: Path, data: bytes) -> bool:
+        """Preview SPK bank: metadata text + first sample waveform as PNG."""
+        self._pe2img_path = None
+        self._pe2img_data = None
+        try:
+            from spk_codec import extract_samples, is_spk, parse_spk
+        except ImportError as e:
+            self._show_text_message(f"SPK decode unavailable: {e}")
+            return False
+
+        # Resolve raw .spk blob
+        blob = data
+        raw_path = path
+        if path.suffix.lower() != ".spk" or not is_spk(data):
+            stem = path.parent.name if path.name == "meta.json" else path.stem
+            cand = self.assets_root / "raw" / "spk" / f"{stem}.spk"
+            if cand.exists():
+                try:
+                    blob = cand.read_bytes()
+                    raw_path = cand
+                except OSError:
+                    pass
+            elif path.name == "meta.json":
+                # Inflated bank dir — summarise meta + list wavs
+                try:
+                    import json as _json
+
+                    meta = _json.loads(data.decode("utf-8", errors="replace"))
+                except Exception:
+                    meta = {}
+                wavs = sorted(
+                    path.parent.glob("sample_*.wav"), key=asset_name_key
+                )
+                lines = [
+                    f"SPK bank (inflated)  {path.parent.name}",
+                    f"bank_id={meta.get('bank_id')}  notes={meta.get('note_count')}  "
+                    f"samples={len(wavs)}",
+                    "",
+                    "Samples:",
+                ]
+                for w in wavs:
+                    lines.append(f"  {w.name}  ({w.stat().st_size} B)")
+                self._show_text_message("\n".join(lines))
+                self.preview_nb.select(1)
+                return True
+
+        if not is_spk(blob):
+            self._show_text_message("Not a valid hSPK bank")
+            return False
+
+        try:
+            info = parse_spk(blob)
+            samples = extract_samples(blob, info)
+        except Exception as e:
+            self._show_text_message(f"SPK parse failed: {e}")
+            return False
+
+        lines = [
+            f"SPK bank  id=0x{info.bank_id:04X}  type={info.bank_type}",
+            f"groups={len(info.groups)}  notes={len(info.notes)}  "
+            f"unique_samples={len(samples)}",
+            f"prog_size={info.prog_size}  spu_size={info.spu_size}  "
+            f"spu_base=0x{info.spu_base:X}",
+            f"file={info.original_size} B",
+            "",
+            "Notes (wave / keys / vol):",
+        ]
+        for i, n in enumerate(info.notes[:24]):
+            lines.append(
+                f"  [{i:02d}] wave={n.wave_addr:6d}  keys={n.key_min}-{n.key_max}  "
+                f"root={n.root_key}  vol={n.volume}  pan={n.pan}"
+            )
+        if len(info.notes) > 24:
+            lines.append(f"  … +{len(info.notes) - 24} more")
+        lines.append("")
+        lines.append("Samples (PCM @ 22050 Hz):")
+        for i, (addr, pcm) in enumerate(samples[:16]):
+            dur = len(pcm) / 22050.0
+            peak = max((abs(x) for x in pcm), default=0)
+            lines.append(
+                f"  [{i:02d}] wave_addr={addr:6d}  frames={len(pcm):6d}  "
+                f"{dur:.2f}s  peak={peak}"
+            )
+        if len(samples) > 16:
+            lines.append(f"  … +{len(samples) - 16} more")
+
+        text = "\n".join(lines)
+        self._set_text_widget(self.text_deflated, text)
+        self._set_text_widget(
+            self.text_raw,
+            f"raw {raw_path}\n{len(blob)} bytes\n\n" + text[:4000],
+        )
+
+        # Waveform of first non-silent sample as preview image
+        pcm_show = None
+        for _addr, pcm in samples:
+            if pcm and max(abs(x) for x in pcm) > 64:
+                pcm_show = pcm
+                break
+        if pcm_show is None and samples:
+            pcm_show = samples[0][1]
+        if pcm_show:
+            try:
+                from PIL import Image as PILImage
+
+                w, h = 640, 160
+                img = PILImage.new("RGB", (w, h), (20, 20, 28))
+                step = max(1, len(pcm_show) // w)
+                mid = h // 2
+                px = img.load()
+                for x in range(w):
+                    i0 = x * step
+                    chunk = pcm_show[i0 : i0 + step] or [0]
+                    peak = max(abs(v) for v in chunk)
+                    amp = int(peak / 32768.0 * (mid - 2))
+                    for y in range(mid - amp, mid + amp + 1):
+                        if 0 <= y < h:
+                            px[x, y] = (80, 200, 140)
+                self._set_pil_image(img)
+                self.preview_nb.select(0)
+            except Exception as e:
+                self._set_text_widget(
+                    self.text_deflated,
+                    text + f"\n\n(waveform preview failed: {e})",
+                )
+                self.preview_nb.select(1)
+        else:
+            self.preview_nb.select(1)
+
+        try:
+            base = self.info_label.cget("text")
+        except Exception:
+            base = ""
+        self.info_label.configure(
+            text=(
+                f"{base}  ·  "
+                f"SPK 0x{info.bank_id:04X}  {len(info.notes)} notes  "
+                f"{len(samples)} samples"
+            ).strip(" ·")
+        )
+        return True
 
     def _sibling_cluts_for(self, pe2img_path: Path, item: AssetItem | None) -> list[Path]:
         raw: list[Path] = []

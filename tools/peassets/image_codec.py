@@ -624,7 +624,9 @@ def _find_sibling_clut(pe2_path: Path, *, bpp: Bpp = 8) -> list[int] | None:
                 if colors:
                     return colors
         return None
-    cluts = sorted(parent.glob("*.pe2clut"))
+    from names import asset_name_key
+
+    cluts = sorted(parent.glob("*.pe2clut"), key=asset_name_key)
     if not cluts:
         return None
     return _load_clut_colors(cluts[0], bpp=bpp)

@@ -15,8 +15,10 @@ FILE_CHUNK_HEADER_SIZE = 0x10
 STREAMING_LIST_ENTRY_SIZE = 0x28
 
 # sector_len: exclusive end offset within the CD sector buffer.
-# Payload starts after the 0x10-byte header, so valid range is [0x10, 0x800].
-SECTOR_LEN_MIN = FILE_CHUNK_HEADER_SIZE  # 0x10
+# Payload starts after the 0x10-byte header, so valid range is (0x10, 0x800].
+# 0x800 is the default when omitted from stages.json.
+SECTOR_LEN_DEFAULT = SECTOR_SIZE  # 0x800
+SECTOR_LEN_MIN_EXCLUSIVE = FILE_CHUNK_HEADER_SIZE  # 0x10 — must be strictly greater
 SECTOR_LEN_MAX = SECTOR_SIZE  # 0x800
 
 # STAGE0.HED layout
@@ -105,6 +107,15 @@ def chunk_type_id(chunk_type: FileChunkType) -> str:
     return CHUNK_TYPE_IDS[chunk_type]
 
 
+# Only room packages and cap2 dialogue chunks use a non-zero RAM load address.
+LOAD_ADDR_CHUNK_TYPES: frozenset[FileChunkType] = frozenset(
+    {
+        FileChunkType.RoomPkg,
+        FileChunkType.Cap2,
+    }
+)
+
+
 class FileChunkEndFlag(IntEnum):
     Continue = 0x01
     End = 0xFF
@@ -128,16 +139,33 @@ class FileListEntry:
 
 
 def validate_sector_len(sector_len: int) -> int:
-    """Ensure sector_len is a usable exclusive end offset in the sector buffer."""
-    if not isinstance(sector_len, int):
+    """Ensure sector_len is in ``(0x10, 0x800]`` (exclusive end in sector buffer)."""
+    if not isinstance(sector_len, int) or isinstance(sector_len, bool):
         raise TypeError(f"sector_len must be int, got {type(sector_len).__name__}")
-    if sector_len < SECTOR_LEN_MIN or sector_len > SECTOR_LEN_MAX:
+    if sector_len <= SECTOR_LEN_MIN_EXCLUSIVE or sector_len > SECTOR_LEN_MAX:
         raise ValueError(
             f"sector_len 0x{sector_len:X} out of range "
-            f"[0x{SECTOR_LEN_MIN:X}, 0x{SECTOR_LEN_MAX:X}] "
-            f"(must cover the 0x10-byte header and fit in one CD sector)"
+            f"(0x{SECTOR_LEN_MIN_EXCLUSIVE:X}, 0x{SECTOR_LEN_MAX:X}] "
+            f"(exclusive end offset after the 0x10-byte header, ≤ one CD sector)"
         )
     return sector_len
+
+
+def parse_sector_len(value: object | None = None) -> int:
+    """Parse stages/content sector_len; ``None`` / missing → default ``0x800``.
+
+    Accepts int or hex/decimal strings. Validates with :func:`validate_sector_len`.
+    """
+    if value is None:
+        return SECTOR_LEN_DEFAULT
+    if isinstance(value, bool):
+        raise TypeError("sector_len must not be bool")
+    if isinstance(value, int):
+        return validate_sector_len(value)
+    s = str(value).strip()
+    if not s:
+        return SECTOR_LEN_DEFAULT
+    return validate_sector_len(int(s, 0))
 
 
 @dataclass
@@ -153,6 +181,9 @@ class FileChunkHeader:
 
     def __post_init__(self) -> None:
         self.sector_len = validate_sector_len(self.sector_len)
+        self.load_addr = parse_load_addr(
+            self.load_addr, chunk_type=self.chunk_type
+        )
 
     def encode_json(self) -> dict[str, str]:
         return {
@@ -214,6 +245,220 @@ def parse_int(value: Any) -> int:
     if isinstance(value, str):
         return int(value, 0)
     raise TypeError(f"expected int or str, got {type(value).__name__}: {value!r}")
+
+
+def parse_load_addr(
+    value: object | None, *, chunk_type: FileChunkType
+) -> int:
+    """Parse load_addr for a chunk; only room_pkg / cap2 may be non-zero.
+
+    Missing / empty → 0. Non-zero on any other type raises ``ValueError``.
+    """
+    if value is None or value == "":
+        addr = 0
+    else:
+        addr = parse_int(value) & 0xFFFFFFFF
+    if addr != 0 and chunk_type not in LOAD_ADDR_CHUNK_TYPES:
+        raise ValueError(
+            f"load_addr 0x{addr:X} is only valid for room packages "
+            f"(.pe2pkg) and cap2 (.pe2cap2), not {chunk_type_id(chunk_type)!r}"
+        )
+    if chunk_type not in LOAD_ADDR_CHUNK_TYPES:
+        return 0
+    return addr
+
+
+# ---------------------------------------------------------------------------
+# stages.json schema: allowed keys per chunk type
+# ---------------------------------------------------------------------------
+
+# Required for every non-raw chunk entry.
+STAGES_CHUNK_REQUIRED_KEYS: frozenset[str] = frozenset({"path", "type"})
+
+# Optional for every non-raw chunk.
+# end_flag is never in stages.json — pack sets continue/end from chunk order.
+STAGES_CHUNK_COMMON_OPTIONAL_KEYS: frozenset[str] = frozenset({"sector_len"})
+
+# Extra keys required only on specific types (retail always has non-zero load_addr).
+STAGES_CHUNK_TYPE_REQUIRED_KEYS: dict[FileChunkType, frozenset[str]] = {
+    FileChunkType.RoomPkg: frozenset({"load_addr"}),
+    FileChunkType.Cap2: frozenset({"load_addr"}),
+}
+
+# Extra optional keys allowed only on specific types (none currently).
+STAGES_CHUNK_TYPE_EXTRA_KEYS: dict[FileChunkType, frozenset[str]] = {}
+
+# Opaque raw.bin entries (non-chunked files).
+STAGES_RAW_ALLOWED_KEYS: frozenset[str] = frozenset({"path", "type"})
+
+# Stage object may only contain these top-level children.
+STAGES_STAGE_ALLOWED_KEYS: frozenset[str] = frozenset({"files", "folders"})
+
+
+def required_stages_chunk_keys(chunk_type: FileChunkType) -> frozenset[str]:
+    """Keys that must appear on a stages.json content entry for ``chunk_type``."""
+    return STAGES_CHUNK_REQUIRED_KEYS | STAGES_CHUNK_TYPE_REQUIRED_KEYS.get(
+        chunk_type, frozenset()
+    )
+
+
+def allowed_stages_chunk_keys(chunk_type: FileChunkType) -> frozenset[str]:
+    """Keys permitted on a stages.json content entry for ``chunk_type``."""
+    extra = STAGES_CHUNK_TYPE_EXTRA_KEYS.get(chunk_type, frozenset())
+    return (
+        required_stages_chunk_keys(chunk_type)
+        | STAGES_CHUNK_COMMON_OPTIONAL_KEYS
+        | extra
+    )
+
+
+def validate_stages_chunk_entry(
+    content: dict[str, Any], *, where: str
+) -> None:
+    """Validate one chunk (or raw) content dict in stages.json.
+
+    Ensures only known keys are present for the declared type, required
+    fields exist, and type-specific fields (``load_addr``, ``sector_len``)
+    pass their value checks.
+    """
+    if not isinstance(content, dict):
+        raise TypeError(f"{where}: content must be a dict, got {type(content).__name__}")
+
+    keys = set(content.keys())
+    if "type" not in content:
+        raise ValueError(f"{where}: missing required key 'type'")
+
+    type_val = content["type"]
+    if type_val == "raw":
+        unknown = keys - STAGES_RAW_ALLOWED_KEYS
+        if unknown:
+            raise ValueError(
+                f"{where}: unknown key(s) {sorted(unknown)!r} for type 'raw'; "
+                f"allowed {sorted(STAGES_RAW_ALLOWED_KEYS)!r}"
+            )
+        if "path" not in content:
+            raise ValueError(f"{where}: missing required key 'path'")
+        return
+
+    if "path" not in content:
+        raise ValueError(f"{where}: missing required key 'path'")
+
+    try:
+        chunk_type = resolve_chunk_type(type_val)
+    except ValueError as e:
+        raise ValueError(f"{where}: {e}") from e
+
+    allowed = allowed_stages_chunk_keys(chunk_type)
+    unknown = keys - allowed
+    if unknown:
+        raise ValueError(
+            f"{where}: unknown key(s) {sorted(unknown)!r} for type "
+            f"{chunk_type_id(chunk_type)!r}; allowed {sorted(allowed)!r}"
+        )
+
+    required = required_stages_chunk_keys(chunk_type)
+    missing = required - keys
+    if missing:
+        raise ValueError(
+            f"{where}: missing required key(s) {sorted(missing)!r} for type "
+            f"{chunk_type_id(chunk_type)!r}"
+        )
+
+    # Value validation for optional/required fields when present.
+    if "sector_len" in content:
+        try:
+            parse_sector_len(content["sector_len"])
+        except (TypeError, ValueError) as e:
+            raise ValueError(
+                f"{where}: invalid sector_len {content['sector_len']!r}: {e}"
+            ) from e
+    if "load_addr" in content:
+        try:
+            addr = parse_load_addr(content["load_addr"], chunk_type=chunk_type)
+        except (TypeError, ValueError) as e:
+            raise ValueError(
+                f"{where}: invalid load_addr {content['load_addr']!r}: {e}"
+            ) from e
+        if chunk_type in LOAD_ADDR_CHUNK_TYPES and addr == 0:
+            raise ValueError(
+                f"{where}: load_addr is required and must be non-zero for "
+                f"{chunk_type_id(chunk_type)!r}"
+            )
+
+
+def validate_stages_manifest(stages_manifest: dict[str, Any]) -> None:
+    """Validate the full stages.json shape and every chunk entry's keys."""
+    if not isinstance(stages_manifest, dict):
+        raise TypeError(
+            f"stages.json must be an object, got {type(stages_manifest).__name__}"
+        )
+
+    for stage_name, stage_spec in stages_manifest.items():
+        if not str(stage_name).startswith("stage"):
+            raise ValueError(
+                f"unknown top-level key {stage_name!r}; expected 'stageN'"
+            )
+        if not isinstance(stage_spec, dict):
+            raise TypeError(
+                f"{stage_name}: must be an object, got {type(stage_spec).__name__}"
+            )
+        unknown_stage = set(stage_spec.keys()) - STAGES_STAGE_ALLOWED_KEYS
+        if unknown_stage:
+            raise ValueError(
+                f"{stage_name}: unknown key(s) {sorted(unknown_stage)!r}; "
+                f"allowed {sorted(STAGES_STAGE_ALLOWED_KEYS)!r}"
+            )
+        has_files = "files" in stage_spec
+        has_folders = "folders" in stage_spec
+        if has_files and has_folders:
+            raise ValueError(
+                f"{stage_name} must have either 'files' or 'folders', not both"
+            )
+        if not has_files and not has_folders:
+            raise ValueError(f"{stage_name} needs 'files' or 'folders'")
+
+        if has_files:
+            files_map = stage_spec["files"]
+            if not isinstance(files_map, dict):
+                raise TypeError(f"{stage_name}.files must be an object")
+            for file_name, chunks in files_map.items():
+                _validate_stages_file_chunks(
+                    chunks, where=f"{stage_name}.files[{file_name!r}]"
+                )
+        else:
+            folders_map = stage_spec["folders"]
+            if not isinstance(folders_map, dict):
+                raise TypeError(f"{stage_name}.folders must be an object")
+            for folder_name, files_map in folders_map.items():
+                if not isinstance(files_map, dict):
+                    raise TypeError(
+                        f"{stage_name}.folders[{folder_name!r}] must be an object"
+                    )
+                for file_name, chunks in files_map.items():
+                    _validate_stages_file_chunks(
+                        chunks,
+                        where=(
+                            f"{stage_name}.folders[{folder_name!r}]"
+                            f"[{file_name!r}]"
+                        ),
+                    )
+
+
+def _validate_stages_file_chunks(chunks: object, *, where: str) -> None:
+    if not isinstance(chunks, dict):
+        raise TypeError(
+            f"{where}: must be an object of chunk_name → fields, "
+            f"got {type(chunks).__name__}"
+        )
+    for chunk_name, content in chunks.items():
+        if not isinstance(content, dict):
+            raise TypeError(
+                f"{where}[{chunk_name!r}]: must be an object, "
+                f"got {type(content).__name__}"
+            )
+        validate_stages_chunk_entry(
+            content, where=f"{where}[{chunk_name!r}]"
+        )
 
 
 def align_up(value: int, alignment: int = SECTOR_SIZE) -> int:
