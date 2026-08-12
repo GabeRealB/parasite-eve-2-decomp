@@ -8,7 +8,7 @@ options:
   target_path: assets/USA/pe2pkg/title.pe2pkg
   base_path: ../..
   platform: psx
-  compiler: GCC
+  compiler: PSYQ
 
   asm_path: asm/USA/title
   src_path: src/title
@@ -33,12 +33,17 @@ options:
   asm_data_macro: dlabel
   generate_asm_macros_files: False
 
+  # Main-executable imports live outside this binary's VRAM. splat 0.50
+  # rejects those unless they are in the declared global range.
+  global_vram_start: 0x80010000
+  global_vram_end: 0x80200000
+
   # Binary order: header rodata, code, menu-string data
   section_order: [".rodata", ".text", ".data", ".sdata", ".sbss", ".bss"]
   symbol_addrs_path:
-    # Main imports (shared) + overlay-local. Avoid `// rom:` on main symbols.
-    - configs/USA/sym.main.txt
+    # Overlay-local names, plus main-exe imports marked absolute:True.
     - configs/USA/sym.title.txt
+    - configs/USA/sym.title.imports.txt
   reloc_addrs_path:
     - configs/USA/rel.title.txt
 
@@ -64,6 +69,8 @@ segments:
     vram: 0x80093800
     align: 4
     subalign: 4
+    # Overlay is loaded into main BSS (0x80093800).
+    exclusive_ram_id: title
     subsegments:
       # Package header + demo strings (title_rodata.c); ends before jtables @ 0x5C
       - [0x0, c, title_rodata]

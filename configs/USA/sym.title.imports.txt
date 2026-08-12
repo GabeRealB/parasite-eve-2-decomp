@@ -1,0 +1,57 @@
+// Main-executable symbols referenced by the title overlay.
+// splat 0.50: these are not in the title binary, so they must be absolute.
+
+CdCmd_ActivatePhase1 = 0x8001C970; // absolute:True
+CdCmd_Enqueue = 0x8001D2B0; // absolute:True
+CdCmd_EnqueueLoadFile = 0x80042364; // absolute:True
+CdCmd_IsIdle = 0x8001D344; // absolute:True
+CdCmd_Queue = 0x80068FA0; // absolute:True
+Display_LoadImageStrips = 0x80027F48; // absolute:True
+Display_ResetHeapWrapper = 0x8003E540; // absolute:True
+Display_SetMode = 0x8003DB48; // absolute:True
+Display_SpawnWithOt = 0x8003E324; // absolute:True
+Display_State = 0x80070F68; // absolute:True
+Fs_StageCdfIsAvailable = 0x80014C4C; // absolute:True
+Fs_Streams = 0x8006EA20; // absolute:True
+GameMain_GetResetCount = 0x80028404; // absolute:True
+Game_Session = 0x8005ED64; // absolute:True
+Gpu_CurrentOt = 0x800710A0; // absolute:True
+Mc_SaveData = 0x80072168; // absolute:True
+Mem_AllocAuxWithImages = 0x80020298; // absolute:True
+Mem_Calloc = 0x8002D978; // absolute:True
+Mem_CopyUnaligned = 0x8002D7A8; // absolute:True
+Pad_CheckButtons = 0x8002C868; // absolute:True
+Pad_CheckFlag800 = 0x8004ACF0; // absolute:True
+SetDispMask = 0x80017C00; // absolute:True
+SndEvt_EnqueueType6 = 0x8005414C; // absolute:True
+Stream_FindSlot = 0x8001EDC8; // absolute:True
+Stream_ResetRestoreState = 0x80020388; // absolute:True
+Stream_RestoreAfterLoad = 0x8001EF9C; // absolute:True
+Stream_Slots = 0x8006D4F0; // absolute:True
+Task_CallExit = 0x8002D0A4; // absolute:True
+Task_Kill = 0x8002CCB8; // absolute:True
+Task_Spawn = 0x8002CFDC; // absolute:True
+Text_LoadClutImages = 0x80030074; // absolute:True
+Wip_SysConfig = 0x80073B88; // absolute:True
+Wip_SysFlags = 0x800710A8; // absolute:True
+Wip_UiHolder = 0x80067694; // absolute:True
+printf = 0x8001AF3C; // absolute:True
+rand = 0x80037164; // absolute:True
+
+// Title C aliases / overlay-only refs (VRAM == name).
+D_8005C374 = 0x8005C374; // absolute:True
+D_8005ED70 = 0x8005ED70; // absolute:True
+D_800691DE = 0x800691DE; // absolute:True
+D_80071068 = 0x80071068; // absolute:True
+D_80071086 = 0x80071086; // absolute:True
+D_80071094 = 0x80071094; // absolute:True
+D_800710A9 = 0x800710A9; // absolute:True
+D_800710AC = 0x800710AC; // absolute:True
+D_80071190 = 0x80071190; // absolute:True
+D_800733F0 = 0x800733F0; // absolute:True
+D_800734C8 = 0x800734C8; // absolute:True
+D_80073628 = 0x80073628; // absolute:True
+D_80073670 = 0x80073670; // absolute:True
+D_80073838 = 0x80073838; // absolute:True
+D_80073980 = 0x80073980; // absolute:True
+func_807246B4 = 0x807246B4; // absolute:True

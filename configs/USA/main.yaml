@@ -5,7 +5,7 @@ options:
   target_path: assets/USA/main.exe
   base_path: ../..
   platform: psx
-  compiler: GCC
+  compiler: PSYQ
 
   asm_path: asm/USA/main
   src_path: src/main
@@ -33,6 +33,10 @@ options:
   asm_jtbl_label_macro: jlabel
   asm_data_macro: dlabel
   generate_asm_macros_files: False
+
+  # splat 0.41+: CSV of every symbol + referrers at .splat/splat_symbols.csv
+  dump_symbols: True
+  dump_symbols_references: True
 
   section_order: [".rodata", ".text", ".data", ".sdata", ".sbss", ".bss"]
   symbol_addrs_path:
@@ -482,11 +486,14 @@ segments:
       - [0x58ed4, o, libspu/s_rmp2, .data] # _spu_rev_param
       - [0x59184, data, "59184"] # remaining .data (callbacks, etc.)
 
-      # .sbss section
-      - [0x59778, sbss, psyq/libsn/snmain]
+      # .sbss section (8 bytes at $gp). splat 0.50 leaves vram unset unless
+      # given explicitly, then skips writing the empty noload .s.
+      - { start: 0x59778, type: sbss, name: psyq/libsn/snmain, vram: 0x80068F78 }
 
       # .bss section
-      - [0x59780, bss, main] # GAuxHeap..CdCmd_Queue..D_800691F8 (keep as asm for layout)
+      # splat 0.50 needs explicit vram + bss_size on noload splits (vram is
+      # not inferred from the fake rom cursor once the EXE image ends).
+      - { start: 0x59780, type: bss, name: main, vram: 0x80068F80, bss_size: 0x27C } # GAuxHeap..CdCmd_Queue
       - [0x599fc, pad]
       - [0x59a00, o, libcd/bios, .bss] # StMode
       - [0x59a34, pad]
@@ -496,24 +503,24 @@ segments:
       - [0x59a80, o, libgpu/sys, .bss] # _que
       - [0x5b3d0, o, libc2/putchar, .bss]
       - [0x5b3f0, o, libds/dscb, .bss] # GlobalCallback
-      - [0x5b3fc, bss, "5B3FC"] # pre-FS bss (TODO: attribute)
+      - { start: 0x5b3fc, type: bss, name: "5B3FC", vram: 0x8006ABFC, bss_size: 0x74 } # pre-FS bss
       - [0x5b470, o, libcd/c_004, .bss]
       - [0x5b480, o, libcd/c_005, .bss] # StFunc1, StFunc2
       - [0x5b488, o, libcd/c_011, .bss]
-      - [0x5b498, bss, fs] # Fs_* runtime file tables, CD sector buf, streams
+      - { start: 0x5b498, type: bss, name: fs, vram: 0x8006AC98, bss_size: 0x3F68 } # Fs_* tables / sector buf
       - [0x5f400, o, libspu/spu, .bss] # _spu_RQ
-      - [0x5f414, bss, "5F414"] # OT / GPU buffers
+      - { start: 0x5f414, type: bss, name: "5F414", vram: 0x8006EC14, bss_size: 0x2504 } # OT / GPU buffers
       - [0x61918, o, libgs/gs_123, .bss] # GsIDMATRIX, GsWSMATRIX, GsWSMATRIX_ORG, GsIDMATRIX2
       - [0x61998, pad]
       - [0x619a8, o, libgte/patchgte, .bss]
-      - [0x619b8, bss, "619B8"] # game bss (TODO: attribute)
+      - { start: 0x619b8, type: bss, name: "619B8", vram: 0x800711B8, bss_size: 0x60 }
       - [0x61a18, o, libpad/padmain, .bss]
       - [0x61a38, o, libpad/padcmd, .bss]
       - [0x61a48, o, libpad/padportd, .bss]
       - [0x61cb8, o, libpad/waitrc2, .bss]
-      - [0x61cc0, bss, "61CC0"] # game bss (TODO: attribute)
+      - { start: 0x61cc0, type: bss, name: "61CC0", vram: 0x800714C0, bss_size: 0x230 }
       - [0x61ef0, o, libapi/free3, .bss]
-      - [0x61f10, bss, "61F10"] # game bss (TODO: attribute)
+      - { start: 0x61f10, type: bss, name: "61F10", vram: 0x80071710, bss_size: 0x2500 }
       - [0x64410, o, libc2/rand, .bss]
       - [0x64420, o, libcard/patch, .bss]
       - [0x64430, o, libcard/end, .bss]
@@ -525,7 +532,7 @@ segments:
       - [0x64530, o, libmcrd/userfunc, .bss]
       - [0x64580, o, libmcrd/bios, .bss]
       - [0x645c0, o, libmcrd/low, .bss]
-      - [0x64880, bss, "64880"] # game bss (TODO: attribute)
+      - { start: 0x64880, type: bss, name: "64880", vram: 0x80074080, bss_size: 0x20 }
       - [0x648a0, o, libgs/gs_107, .bss] # GsLIGHTWSMATRIX, _LC
-      - [0x648e0, bss, "648E0"] # remaining .bss / heap
+      - { start: 0x648e0, type: bss, name: "648E0", vram: 0x800740E0 } # remaining .bss / heap
   - [0x73148]

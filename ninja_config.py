@@ -350,6 +350,26 @@ def ninja_setup_list_add_source(
         return f"{expected_path}.s.o"
 
 
+def append_title_absolute_imports() -> None:
+    """splat 0.50 will not put absolute main-exe symbols in the title undef scripts.
+
+    Title TUs are C and still need those names at link time (`-T` undef files).
+    """
+    imports = Path("configs/USA/sym.title.imports.txt")
+    dest = Path("linkers/USA/undefined_syms_auto.title.txt")
+    if not imports.is_file() or not dest.is_file():
+        return
+    extra = []
+    for line in imports.read_text(encoding="utf-8").splitlines():
+        m = re.match(r"^(\w+)\s*=\s*(0x[0-9A-Fa-f]+)", line.strip())
+        if m:
+            extra.append(f"{m.group(1)} = {m.group(2)};")
+    if not extra:
+        return
+    text = dest.read_text(encoding="utf-8")
+    dest.write_text(text.rstrip() + "\n" + "\n".join(extra) + "\n", encoding="utf-8")
+
+
 def ninja_build(
     split_entries: list[YamlInfo],
     game_version_idx: int,
@@ -809,6 +829,8 @@ def main():
             disassemble_all=True,
             make_full_disasm_for_code=objdiff_config_option,
         )
+        if yaml == "title.yaml":
+            append_title_absolute_imports()
         splits_yaml_info.append(
             YamlInfo(
                 [split.linker_writer.entries],

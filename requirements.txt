@@ -1,5 +1,5 @@
-splat64[mips]==0.39.1
-spimdisasm
+splat64[mips]==0.50.0
+spimdisasm==1.42.4
 pycparser
 pyelftools
 ninja
