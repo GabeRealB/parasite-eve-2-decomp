@@ -578,6 +578,13 @@ class AssetStore:
                         ent["path"] = override
         return count
 
+    def stats(self) -> dict[str, dict[str, int]]:
+        out: dict[str, dict[str, int]] = {}
+        for t, by_hash in self._by_hash.items():
+            refs = sum(1 for e in self.map.values() if e.get("type") == t)
+            out[t] = {"unique": len(by_hash), "refs": refs}
+        return out
+
 
 def _materialize_one_job(job: dict) -> dict:
     """Process-pool worker: inflate one unique raw asset."""
@@ -686,13 +693,6 @@ def _materialize_one_job(job: dict) -> dict:
             "error": str(ex),
             "traceback": traceback.format_exc(),
         }
-
-    def stats(self) -> dict[str, dict[str, int]]:
-        out: dict[str, dict[str, int]] = {}
-        for t, by_hash in self._by_hash.items():
-            refs = sum(1 for e in self.map.values() if e.get("type") == t)
-            out[t] = {"unique": len(by_hash), "refs": refs}
-        return out
 
 
 def output_chunk(
