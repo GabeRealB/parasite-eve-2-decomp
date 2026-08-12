@@ -16,16 +16,16 @@ const char Boot_BuildStamp[] = "2000/05/01 19:24 ver2.49";
 
 void Mem_ConfigureAuxHeap(s32 arg0, s32 arg1)
 {
-    F04CF8_ImageSlot* entries;
-    F04CF8_ImageSlot* slot;
-    s32               i;
-    u32               t;
-    size_t*           p88;
-    size_t*           p90;
-    int*              p98;
-    size_t            temp;
+    GfxImageSlot* entries;
+    GfxImageSlot* slot;
+    s32           i;
+    u32           t;
+    size_t*       p88;
+    size_t*       p90;
+    int*          p98;
+    size_t        temp;
 
-    entries = D_8005C37C[arg0];
+    entries = Gfx_ImageSlotTables[arg0];
     if ((Display_State.field_12a == 0) || (arg0 == 0)) {
         D_800691F4         = (u8*)0x80179950;
         D_800691F8         = 0x836B0;
@@ -35,12 +35,12 @@ void Mem_ConfigureAuxHeap(s32 arg0, s32 arg1)
     } else {
         t                  = arg1 * 8;
         t                 += (u32)entries;
-        slot               = (F04CF8_ImageSlot*)t;
-        D_800691F4         = (u8*)slot->field_0;
-        D_800691F8         = slot->field_4 + 0x26000;
-        D_80068F88         = (size_t)slot->field_0;
+        slot               = (GfxImageSlot*)t;
+        D_800691F4         = (u8*)slot->pixels;
+        D_800691F8         = slot->size + 0x26000;
+        D_80068F88         = (size_t)slot->pixels;
         GActiveAuxHeap     = (u8*)(D_80068F88 + 0x10000);
-        GActiveAuxHeapSize = slot->field_4 - 0x10000;
+        GActiveAuxHeapSize = slot->size - 0x10000;
     }
     i            = 0;
     D_80068F90   = 0x10000;
@@ -72,7 +72,7 @@ void Boot_LoadInitialFile(Task* task)
 
     a0    = task;
     queue = &CdCmd_Queue;
-    state = a0->field_30;
+    state = a0->state;
     switch (state) {
         case 0:
             goto L_case0;
@@ -107,51 +107,51 @@ L_case0:
     param2[2] = 0;
     param2[3] = 0;
     CdCmd_Enqueue(0x21, param1, param2);
-    a0->field_2a = 0xFF;
-    fade         = a0->field_2a;
+    a0->killCountdown = 0xFF;
+    fade              = a0->killCountdown;
     Fade_DrawOverlay(fade, fade, fade, 2);
     goto advance;
 
 L_case1:
     SetDispMask(1);
-    a0->field_2a -= 8;
-    if (a0->field_2a <= 0) {
-        a0->field_2a = 0;
-        a0->field_30 = a0->field_30 + 1;
+    a0->killCountdown -= 8;
+    if (a0->killCountdown <= 0) {
+        a0->killCountdown = 0;
+        a0->state         = a0->state + 1;
     }
     goto do_fade;
 
 L_case2:
-    if (a0->field_2a < 0x5A) {
-        a0->field_2a = a0->field_2a + 1;
+    if (a0->killCountdown < 0x5A) {
+        a0->killCountdown = a0->killCountdown + 1;
     }
     if (CdCmd_IsIdle() == 0) {
         return;
     }
-    if (a0->field_2a < 0x5A) {
+    if (a0->killCountdown < 0x5A) {
         return;
     }
-    next         = a0->field_30;
-    a0->field_2a = 0;
+    next              = a0->state;
+    a0->killCountdown = 0;
     goto advance_inc;
 
 L_case3:
-    a0->field_2a += 8;
-    if (a0->field_2a < 0x100) {
+    a0->killCountdown += 8;
+    if (a0->killCountdown < 0x100) {
         goto do_fade;
     }
     ch   = 0;
     size = 0x20000;
     asm("" : "+r"(ch), "+r"(size));
-    Mem_Set(D4CB64_ImgBuffers, ch, size | 0x5800);
+    Mem_Set(Fs_ImgBuffers, ch, size | 0x5800);
 advance:
-    next = a0->field_30;
+    next = a0->state;
 advance_inc:
-    a0->field_30 = next + 1;
+    a0->state = next + 1;
     return;
 
 do_fade:
-    fade = a0->field_2a;
+    fade = a0->killCountdown;
     Fade_DrawOverlay(fade, fade, fade, 2);
     return;
 
@@ -162,28 +162,28 @@ L_case4:
     Display_State.field_112 = 0;
 }
 
-void F04CF8_800148A0(void)
+void Boot_WaitCdAudioReady(void)
 {
     CdAudio_Begin();
     while (CdAudio_Phase.field_2 != 4) {
     }
 }
 
-void F04CF8_800148EC(void)
+void Boot_InitCdAudio(void)
 {
     CdAudio_Init();
 }
 
 void Gfx_StoreImageSlot(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
-    RECT              rect;
-    F04CF8_ImageSlot* entries;
-    u8*               ptr;
-    size_t            size;
-    size_t            imgBufSize;
-    size_t*           pSize;
+    RECT          rect;
+    GfxImageSlot* entries;
+    u8*           ptr;
+    size_t        size;
+    size_t        imgBufSize;
+    size_t*       pSize;
 
-    entries = D_8005C37C[arg0];
+    entries = Gfx_ImageSlotTables[arg0];
     rect.x  = 0;
     if (arg2 != 0) {
         rect.y = 0;
@@ -192,7 +192,7 @@ void Gfx_StoreImageSlot(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     }
     rect.w = 0x140;
     rect.h = 0xF0;
-    StoreImage(&rect, entries[arg1].field_0);
+    StoreImage(&rect, entries[arg1].pixels);
     DrawSync(0);
 
     imgBufSize = 0x25800;
@@ -205,7 +205,7 @@ void Gfx_StoreImageSlot(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     D_800691F8   = 0x10000;
     GAuxHeapSize = size;
 
-    ptr            = (u8*)entries[arg1].field_0 + imgBufSize;
+    ptr            = (u8*)entries[arg1].pixels + imgBufSize;
     D_80068F88     = (size_t)ptr;
     GActiveAuxHeap = ptr + arg3;
     D_800691F4     = ptr;
@@ -214,10 +214,10 @@ void Gfx_StoreImageSlot(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 
 void Gfx_LoadImageSlot(s32 arg0, s32 arg1, s32 arg2)
 {
-    RECT              rect;
-    F04CF8_ImageSlot* entries;
+    RECT          rect;
+    GfxImageSlot* entries;
 
-    entries = D_8005C37C[arg0];
+    entries = Gfx_ImageSlotTables[arg0];
     if (arg2 == 0) {
         rect.y = 0;
     } else {
@@ -226,10 +226,10 @@ void Gfx_LoadImageSlot(s32 arg0, s32 arg1, s32 arg2)
     rect.w = 0x140;
     rect.h = 0xF0;
     rect.x = 0;
-    LoadImage(&rect, entries[arg1].field_0);
+    LoadImage(&rect, entries[arg1].pixels);
 }
 
-void F04CF8_80014A50(void)
+void Boot_InitCd(void)
 {
     u8 param[8];
 
@@ -240,7 +240,7 @@ void F04CF8_80014A50(void)
     CdCmd_ClearQueue();
 }
 
-void F04CF8_80014A98(s32 mode)
+void Boot_ResetCd(s32 mode)
 {
     u8 ctrlParam[8];
 
@@ -266,7 +266,7 @@ void Boot_LoadTask(Task* arg0)
     u8  param2[8];
     s32 state;
 
-    state = arg0->field_30;
+    state = arg0->state;
     switch (state) {
         case 0:
             modeParam[0] = CdlModeSpeed | CdlModeSize1;
@@ -280,7 +280,7 @@ void Boot_LoadTask(Task* arg0)
             param2[2] = 0;
             param2[3] = 0;
             CdCmd_Enqueue(0x21, param1, param2);
-            arg0->field_30 = arg0->field_30 + 1;
+            arg0->state = arg0->state + 1;
             return;
         case 1:
             if (CdCmd_IsIdle() != 0) {

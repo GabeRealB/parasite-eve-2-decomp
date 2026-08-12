@@ -293,7 +293,7 @@ STATIC_ASSERT_SIZEOF(CdCmdQueue, 0x254);
 // Runtime FS state helpers (still poorly named internals)
 // =============================================================================
 
-/// 8-byte work entry used by the FS load path (`D5B498_8006ACE8`).
+/// 8-byte work entry used by the FS load path (`Fs_WorkEntries`).
 typedef struct _FsWorkEntry {
     u16 field_0;
     u16 field_2;
@@ -320,7 +320,7 @@ typedef struct _FsUnkADE8 {
 } FsUnkADE8;
 STATIC_ASSERT_SIZEOF(FsUnkADE8, 0xC);
 
-/// Compact image/load params stored during FS setup (`D5B498_8006ACB8`).
+/// Compact image/load params stored during FS setup (`Fs_LoadParams`).
 typedef struct _FsLoadParams {
     byte unknown_0[0x2];
     u8   field_2;
@@ -328,7 +328,7 @@ typedef struct _FsLoadParams {
 } FsLoadParams;
 STATIC_ASSERT_SIZEOF(FsLoadParams, 0x4);
 
-/// Large dual-buffer image area pointed to by `D4CB64_ImgBuffers`.
+/// Large dual-buffer image area pointed to by `Fs_ImgBuffers`.
 typedef struct _FsImgBuffers {
     u32 buffers[20][1920];
 } FsImgBuffers;
@@ -408,7 +408,7 @@ u8   Fs_ProcessChunkHeader(void);
 u8   Fs_ProcessChunkData(void);
 
 /// Resumable LZ/bit-stream unpack for CD chunk payloads (handwritten hasm).
-/// Uses globals D5B498_8006C22C / Fs_ChunkWritePtr / D5B498_8006D748; may suspend
+/// Uses globals Fs_ChunkReadPtr / Fs_ChunkWritePtr / D5B498_8006D748; may suspend
 /// mid-stream when the sector buffer ends (resume jtbl in same TU).
 void Fs_DecompressChunk(void);
 /// Non-resumable LZ unpack for image strips before LoadImage2 (handwritten hasm).
@@ -435,7 +435,7 @@ void Fs_ScanIsoDirectory(s32 mode);
 s32 Fs_LoadImageStrip(s32 arg0);
 s32 Fs_LoadImageChunk(FsImageChunk* img, u8 retryNonzero);
 
-/// Copy a terminated FsWorkEntry list into D5B498_8006ACE8 and set up
+/// Copy a terminated FsWorkEntry list into Fs_WorkEntries and set up
 /// Fs_ImageRect / load state for the following image transfer.
 void Fs_CopyWorkEntries(FsWorkEntry* arg0);
 
@@ -456,16 +456,15 @@ void Fs_BuildFolderTables(s32 arg0, s32 arg1, s32 arg2);
 /// Boot path: scan ISO, parse HED, load initial CDF file (file id 1).
 void Boot_LoadInitialFile(struct _Task* task);
 
-// Still-unknown stubs in fs.c (legacy names until matched).
-void F12D18_80022518(void);
-void F12D18_8002252C(u8* arg0, s16 arg1);
-void F12D18_80022598(void);
-void F12D18_800225D4(void);
-void F12D18_80024EC0(void);
-void F12D18_80025580(u8 status, u8* result);
-void F12D18_8002563C(u8 status, u8* result);
-void F12D18_800256F4(u8 arg0);
-void F12D18_800257B0(void);
+void Fs_ResetBootLoadState(void);
+void Fs_BeginBootLoad(u8* arg0, s16 arg1);
+void Fs_EnsureBootLoadStarted(void);
+void Fs_StepBootImage(void);
+void Fs_RetryReadN(void);
+void Fs_ReadNSyncCb(u8 status, u8* result);
+void Fs_ReadNReadyCb(u8 status, u8* result);
+void Fs_OnCdError(u8 arg0);
+void Fs_CheckReadTimeout(void);
 u8*  Fs_GetChunkPayload(void);
 
 /// Boot-image / CD load setup (src/main/bootload.c).
@@ -545,13 +544,13 @@ extern RECT          Fs_ImageRect;
 extern SpuCommonAttr Fs_SpuAttr;
 
 // Boot load-buffer pointer (data unit `boot_loadbuf`)
-extern FsImgBuffers* D4CB64_ImgBuffers;
+extern FsImgBuffers* Fs_ImgBuffers;
 
 // Still-unlabeled FS bss (same segment; keep address names until understood)
 /// Per-slot image-load status bytes (indexed by `D5B498_8006ADF4`).
 extern u8    D_8006C4C8[0xC];
-extern s16   D5B498_8006AC98;
-extern u16   D5B498_8006AC9A;
+extern s16   Fs_BootLoadSlot;
+extern u16   Fs_BootLoadPhase;
 extern u16   D5B498_8006AC9C;
 extern u8    D_8006AC9E;
 extern u8    D_8006AC9F;
@@ -560,15 +559,15 @@ extern s16   D_8006ACA2;
 extern s16   D_8006ACA4;
 extern s16   D_8006ACA6;
 extern s16   D_8006ACA8;
-extern void* D5B498_8006ACAC;
-extern void* D5B498_8006ACB0;
+extern void* Fs_BootTimSecondary;
+extern void* Fs_BootTimPrimary;
 // Fade/clear color; written as halfword, often re-read as byte for TILE RGB.
 extern volatile s16 D_8006ACB4;
-extern FsLoadParams D5B498_8006ACB8;
+extern FsLoadParams Fs_LoadParams;
 extern s16          D5B498_8006ACC0;
 extern u8           D5B498_8006ACC8;
 extern u16          D5B498_8006ACD4;
-extern FsWorkEntry  D5B498_8006ACE8[0x1F];
+extern FsWorkEntry  Fs_WorkEntries[0x1F];
 extern u8           D5B498_8006ADE0;
 extern u8           D5B498_8006ADE1;
 extern u8           D_8006ADE2;
@@ -587,7 +586,7 @@ typedef struct {
 extern FsStrInfo    D_8006AC30;
 extern u8*          D_8006C4D4;
 extern FsFolderSlot D_8006C338[50];
-extern u8*          D5B498_8006C22C;
+extern u8*          Fs_ChunkReadPtr;
 extern u8           D5B498_8006C233;
 extern u8           D5B498_8006C234;
 extern u8           D5B498_8006D4E0[0x10];
@@ -600,11 +599,11 @@ extern u16          D5B498_8006EA1A;
 extern u16          D5B498_8006EBB0;
 extern s16          D5B498_8006EBF0;
 
-// Args used by F12D18_800256F4
+// Args used by Fs_OnCdError
 #define FS_ERROR_SOFT 0x0
 #define FS_ERROR_HARD 0x2
 
 // --- APIs (from unknown_syms) ---
-void F16494_ResetSpuAttr(void);
+void Spu_ResetCommonAttr(void);
 
 #endif

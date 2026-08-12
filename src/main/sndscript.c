@@ -339,7 +339,7 @@ s32 Snd_ReverbWarmupCb(s32* arg0)
     if (temp < 0x3D) {
         return 0;
     }
-    F3E48C_SetReverbDepth(0x2800);
+    Spu_SetReverbDepth(0x2800);
     return -1;
 }
 
@@ -389,14 +389,14 @@ loop:
     obj->field_8  = id;
     bank->field_8 = entry->field_2;
     i++;
-    ((SndBank*)obj->field_4)->field_1C = F3D458_Malloc(entry->field_4);
+    ((SndBank*)obj->field_4)->field_1C = SndHeap_Malloc(entry->field_4);
     ((SndBank*)obj->field_4)->field_0 =
         ((SndBank*)obj->field_4)->field_1C;
     ((SndBank*)obj->field_4)->field_4 =
         ((SndBank*)obj->field_4)->field_1C;
     ((SndBank*)obj->field_4)->field_10 =
         ((SndBank*)obj->field_4)->field_1C;
-    obj->field_0 = F3D458_Malloc(entry->field_6);
+    obj->field_0 = SndHeap_Malloc(entry->field_6);
     obj->field_C = (void*)entry->field_8;
     entry++;
     if (i < 2) {
@@ -451,13 +451,13 @@ s32 SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2)
         }
         temp = SndEvt_Alloc();
         if (temp != NULL) {
-            temp->field_2 = 6;
-            mid           = (SndEvtFrom4*)&temp->field_4;
-            mid->field_4  = arg0;
-            temp->field_4 = arg1;
-            mid->field_1  = arg2;
-            mid->field_8  = (s32)bank;
-            mid->field_C  = (s32)entry;
+            temp->handlerIdx = 6;
+            mid              = (SndEvtFrom4*)&temp->field_4;
+            mid->field_4     = arg0;
+            temp->field_4    = arg1;
+            mid->field_1     = arg2;
+            mid->field_8     = (s32)bank;
+            mid->field_C     = (s32)entry;
             SndEvt_Enqueue(temp);
             goto ret_orig;
         }
@@ -476,10 +476,10 @@ void SndEvt_EnqueueType7(s32 arg0, s32 arg1)
 
     temp = SndEvt_Alloc();
     if (temp != NULL) {
-        temp->field_2 = 7;
-        mid           = (SndEvtFrom4*)&temp->field_4;
-        mid->field_4  = SndBank_RemapId(arg0);
-        mid->field_2  = arg1;
+        temp->handlerIdx = 7;
+        mid              = (SndEvtFrom4*)&temp->field_4;
+        mid->field_4     = SndBank_RemapId(arg0);
+        mid->field_2     = arg1;
         SndEvt_Enqueue(temp);
     }
 }
@@ -492,9 +492,9 @@ void SndEvt_EnqueueType8(s32 arg0)
     if (D_80082138[(u32)arg0 >> 28] != 0) {
         temp = SndEvt_Alloc();
         if (temp != NULL) {
-            temp->field_2 = 8;
-            mid           = (SndEvtFrom4*)&temp->field_4;
-            mid->field_4  = SndBank_RemapId(arg0);
+            temp->handlerIdx = 8;
+            mid              = (SndEvtFrom4*)&temp->field_4;
+            mid->field_4     = SndBank_RemapId(arg0);
             SndEvt_Enqueue(temp);
         }
     }
@@ -508,9 +508,9 @@ void SndEvt_EnqueueType9(s32 arg0)
     if (D_80082138[(u32)arg0 >> 28] != 0) {
         temp = SndEvt_Alloc();
         if (temp != NULL) {
-            temp->field_2 = 9;
-            mid           = (SndEvtFrom4*)&temp->field_4;
-            mid->field_4  = SndBank_RemapId(arg0);
+            temp->handlerIdx = 9;
+            mid              = (SndEvtFrom4*)&temp->field_4;
+            mid->field_4     = SndBank_RemapId(arg0);
             SndEvt_Enqueue(temp);
         }
     }
@@ -524,11 +524,11 @@ void SndEvt_EnqueueTypeA(s32 arg0, s32 arg1, s32 arg2)
     if (D_80082138[(u32)arg0 >> 28] != 0) {
         temp = SndEvt_Alloc();
         if (temp != NULL) {
-            temp->field_2 = 0xA;
-            mid           = (SndEvtFrom4*)&temp->field_4;
-            mid->field_4  = SndBank_RemapId(arg0);
-            temp->field_4 = arg1;
-            mid->field_1  = arg2;
+            temp->handlerIdx = 0xA;
+            mid              = (SndEvtFrom4*)&temp->field_4;
+            mid->field_4     = SndBank_RemapId(arg0);
+            temp->field_4    = arg1;
+            mid->field_1     = arg2;
             SndEvt_Enqueue(temp);
         }
     }
@@ -542,10 +542,10 @@ void SndEvt_EnqueueTypeB(s32 arg0, s32 arg1)
     if (D_80082138[(u32)arg0 >> 28] != 0) {
         temp = SndEvt_Alloc();
         if (temp != NULL) {
-            temp->field_2 = 0xB;
-            mid           = (SndEvtFrom4*)&temp->field_4;
-            mid->field_4  = SndBank_RemapId(arg0);
-            mid->field_1  = arg1;
+            temp->handlerIdx = 0xB;
+            mid              = (SndEvtFrom4*)&temp->field_4;
+            mid->field_4     = SndBank_RemapId(arg0);
+            mid->field_1     = arg1;
             if ((s8)arg1 < 0) {
                 mid->field_1 = 0x7F;
             }
@@ -579,10 +579,10 @@ void SndBank_SetEnableFlags(s32 arg0, s32 arg1)
             if (arg1 == 0x40000000) {
                 temp = SndEvt_Alloc();
                 if (temp != NULL) {
-                    temp->field_2 = 7;
-                    mid           = (SndEvtFrom4*)&temp->field_4;
-                    mid->field_4  = SndBank_RemapId(0x40000000);
-                    mid->field_2  = 1;
+                    temp->handlerIdx = 7;
+                    mid              = (SndEvtFrom4*)&temp->field_4;
+                    mid->field_4     = SndBank_RemapId(0x40000000);
+                    mid->field_2     = 1;
                     SndEvt_Enqueue(temp);
                 }
             }
@@ -606,7 +606,7 @@ void SndEvt_EnqueueTypeD(void)
 
     temp = SndEvt_Alloc();
     if (temp != NULL) {
-        temp->field_2 = 0xD;
+        temp->handlerIdx = 0xD;
         SndEvt_Enqueue(temp);
     }
 }
@@ -617,7 +617,7 @@ void SndEvt_EnqueueTypeE(void)
 
     temp = SndEvt_Alloc();
     if (temp != NULL) {
-        temp->field_2 = 0xE;
+        temp->handlerIdx = 0xE;
         SndEvt_Enqueue(temp);
     }
 }
@@ -628,7 +628,7 @@ void SndEvt_EnqueueTypeF(void)
 
     temp = SndEvt_Alloc();
     if (temp != NULL) {
-        temp->field_2 = 0xF;
+        temp->handlerIdx = 0xF;
         SndEvt_Enqueue(temp);
     }
 }
@@ -1411,7 +1411,7 @@ void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, s32 arg4, SndVoicePara
             Spu_KeyOff(node->field_0);
             node->field_8 = 0;
             Spu_ClearVoiceCallbacks(node->field_0);
-            F3E48C_8004E660(node->field_0);
+            Spu_ReleaseVoiceSlot(node->field_0);
             node->field_0 = 0;
             node          = node->field_3C;
         } while (node != NULL);
@@ -1527,7 +1527,7 @@ void SndBankSlot_Free(s32 arg0)
     if ((u8)arg0 < 0x10) {
         base    = SndBank_Slots;
         temp_s0 = &base[(s8)arg0];
-        F3D458_Free(temp_s0->field_0);
+        SndHeap_Free(temp_s0->field_0);
         temp_s0->field_8 = -1;
         temp_s0->field_0 = NULL;
     }
@@ -1590,7 +1590,7 @@ s32 SndVoice_Tick(SndVoice* arg0)
         }
     } else {
         if (temp <= 0x7FFFFFFE) {
-            if (Display_State.field_124 == 1) {
+            if (Display_State.region == 1) {
                 arg0->field_4 = temp + 0xFFFF6667;
             } else {
                 arg0->field_4 = temp + 0xFFFF0000;

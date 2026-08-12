@@ -12,7 +12,7 @@
 /// Game entry point. Called by `main`.
 void GameMain(void);
 
-void F179D4_ClearOTag(s16 tableIdx);
+void Gpu_ClearOTag(s16 tableIdx);
 void GameMain_Init(void);
 void GameMain_Loop(void);
 u32  GameMain_GetResetCount(void);

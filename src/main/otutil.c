@@ -17,20 +17,20 @@ s32 Display_FrameFlipDraw(s32 arg0, s32 arg1, s32 arg2)
 
     temp = &Display_State;
     if (temp->field_106 == 0) {
-        temp->field_118 ^= 1;
+        temp->frameMode ^= 1;
     }
     if ((s8)temp->field_103 != 2) {
-        temp->field_1f = (u8)temp->field_118;
+        temp->field_1f = (u8)temp->frameMode;
     }
     ot = Gpu_OrderingTables;
-    GsClearOt(0, 0, &ot[temp->field_118]);
-    org        = ot[temp->field_118].org;
-    size       = D_8007A0E4;
-    *org       = C5F414_OTAG_END_PRIM;
-    size      /= 2;
-    saved      = D_800710A0;
-    D_800710A0 = ot[temp->field_118].org;
-    D_80071190 = (DR_TPAGE*)((s32)D_8007A0E0 + temp->field_118 * size);
+    GsClearOt(0, 0, &ot[temp->frameMode]);
+    org           = ot[temp->frameMode].org;
+    size          = D_8007A0E4;
+    *org          = GPU_OT_END_PRIM;
+    size         /= 2;
+    saved         = Gpu_CurrentOt;
+    Gpu_CurrentOt = ot[temp->frameMode].org;
+    D_80071190    = (DR_TPAGE*)((s32)D_8007A0E0 + temp->frameMode * size);
     Task_ExecList(&D_8007A110);
     Boot_DispatchCdCmd();
     if (temp->field_106 == 0) {
@@ -38,8 +38,8 @@ s32 Display_FrameFlipDraw(s32 arg0, s32 arg1, s32 arg2)
     }
     if (((VSync(1) - arg1) & 0x7FFF) < D_8005EC6C) {
         EnterCriticalSection();
-        temp->field_108   = 1;
-        D_8005EC70        = temp->field_118;
+        temp->vsyncFlag   = 1;
+        D_8005EC70        = temp->frameMode;
         D_80070E38        = temp->field_103;
         *(u8*)&D_8006EC30 = temp->field_100;
         ExitCriticalSection();
@@ -48,7 +48,7 @@ s32 Display_FrameFlipDraw(s32 arg0, s32 arg1, s32 arg2)
         if (D_8005EC70 != neg1) {
             D_8005EC78 = 0;
             arg1       = VSync(1) & 0x7FFF;
-            Display_FlipDraw(temp->field_118);
+            Display_FlipDraw(temp->frameMode);
             D_8005EC70 = neg1;
         } else {
             D_8005EC78 = D_8005EC74;
@@ -57,14 +57,14 @@ s32 Display_FrameFlipDraw(s32 arg0, s32 arg1, s32 arg2)
     } else {
         D_8005EC78        = 0;
         arg1              = VSync(1) & 0x7FFF;
-        temp->field_108   = 1;
+        temp->vsyncFlag   = 1;
         D_8005EC70        = -2;
         D_80070E38        = temp->field_103;
         *(u8*)&D_8006EC30 = temp->field_100;
-        Display_FlipDraw(temp->field_118);
+        Display_FlipDraw(temp->frameMode);
         D_8005EC70 = -1;
     }
-    D_800710A0 = saved;
+    Gpu_CurrentOt = saved;
     return arg1;
 }
 
@@ -85,7 +85,7 @@ Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         ot[1].org       = D_8007A120 + 0x40;
         D_8007A0E0      = D_800740E0;
         D_8007A0E4      = 0x6000;
-        temp->field_118 = temp->field_1f ^ 1;
+        temp->frameMode = temp->field_1f ^ 1;
         saved           = Task_GetActiveList();
         Task_InitList(&D_8007A110);
         ret = Task_Spawn(arg0, arg1, arg2, arg3);
@@ -116,7 +116,7 @@ Task* Display_SpawnWithOt(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
         ot[1].org       = D_8007A120 + 0x40;
         D_8007A0E0      = D_800740E0;
         D_8007A0E4      = 0x6000;
-        temp->field_118 = temp->field_1f ^ 1;
+        temp->frameMode = temp->field_1f ^ 1;
         saved           = Task_GetActiveList();
         Task_InitList(&D_8007A110);
         ret = Task_SpawnFromTable(arg0, arg1, arg2, arg3);
@@ -167,17 +167,17 @@ void Display_FlipOt(void)
     u_long*       ot;
 
     temp            = &Display_State;
-    saved           = D_800710A0;
+    saved           = Gpu_CurrentOt;
     buf             = temp->field_114 ^ 1;
     temp->field_114 = buf;
-    D_800710A0      = D5F414_OrderingTables + buf * C5F414_OTAG_ENTRIES;
-    ClearOTagR(D_800710A0, C5F414_OTAG_ENTRIES);
-    ot         = D_800710A0;
-    *ot        = C5F414_OTAG_END_PRIM;
-    D_800710A0 = ot + 0x20;
+    Gpu_CurrentOt   = Gpu_OtTags + buf * GPU_OT_ENTRIES;
+    ClearOTagR(Gpu_CurrentOt, GPU_OT_ENTRIES);
+    ot            = Gpu_CurrentOt;
+    *ot           = GPU_OT_END_PRIM;
+    Gpu_CurrentOt = ot + 0x20;
     func_800AC688();
     func_8009850C(&Gpu_OtBuffers[temp->field_114]);
-    D_800710A0      = saved;
+    Gpu_CurrentOt   = saved;
     temp->field_103 = 0;
 }
 
@@ -294,15 +294,15 @@ void Display_FlipOtAlt(void)
     s32           buf;
 
     temp            = &Display_State;
-    saved           = D_800710A0;
+    saved           = Gpu_CurrentOt;
     buf             = temp->field_114 ^ 1;
     temp->field_114 = buf;
-    D_800710A0      = D5F414_OrderingTables + buf * C5F414_OTAG_ENTRIES;
-    F179D4_ClearOTag(temp->field_114);
-    D_800710A0 = D_800710A0 + 0x20;
+    Gpu_CurrentOt   = Gpu_OtTags + buf * GPU_OT_ENTRIES;
+    Gpu_ClearOTag(temp->field_114);
+    Gpu_CurrentOt = Gpu_CurrentOt + 0x20;
     Task_ExecListFiltered(&Task_DefaultList, 0x62);
     func_80097AC0(&Gpu_OtBuffers[temp->field_114]);
-    D_800710A0      = saved;
+    Gpu_CurrentOt   = saved;
     temp->field_103 = 0;
 }
 
@@ -314,14 +314,14 @@ void Gpu_InitOt(void)
 
     ot           = Gpu_OrderingTables;
     ot->length   = 0xA;
-    ot->org      = D5F414_OrderingTables;
+    ot->org      = Gpu_OtTags;
     ot[1].length = 0xA;
-    ot[1].org    = D5F414_OrderingTables + C5F414_OTAG_ENTRIES;
+    ot[1].org    = Gpu_OtTags + GPU_OT_ENTRIES;
     temp         = &Display_State;
-    GsClearOt(0, 0, &ot[temp->field_118]);
-    org        = ot[temp->field_118].org;
-    *org       = C5F414_OTAG_END_PRIM;
-    D_800710A0 = org;
+    GsClearOt(0, 0, &ot[temp->frameMode]);
+    org           = ot[temp->frameMode].org;
+    *org          = GPU_OT_END_PRIM;
+    Gpu_CurrentOt = org;
 }
 
 void Display_SetPrimBufLarge(void)

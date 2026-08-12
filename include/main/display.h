@@ -21,22 +21,22 @@ typedef struct _DisplayState {
     /* 0x00C */ s32         field_c;
     /* 0x010 */ s32         field_10;
     /* 0x014 */ s32         field_14;
-    /* 0x018 */ u16         field_18; // display width
-    /* 0x01A */ u16         field_1a; // display height
-    /* 0x01C */ u8          field_1c; // interlace enable
+    /* 0x018 */ u16         width;
+    /* 0x01A */ u16         height;
+    /* 0x01C */ u8          interlace;
     /* 0x01D */ s8          field_1d;
     /* 0x01E */ s8          field_1e;
     /* 0x01F */ u8          field_1f;
-    /* 0x020 */ DISPENV     field_20[2]; // dual display env
-    /* 0x048 */ DRAWENV     field_48[2]; // dual draw env
+    /* 0x020 */ DISPENV     dispEnv[2];
+    /* 0x048 */ DRAWENV     drawEnv[2];
     /* 0x100 */ u8          field_100;
     /* 0x101 */ u8          field_101;
     /* 0x102 */ byte        unknown_102[0x1];
     /* 0x103 */ u8          field_103;
     /* 0x104 */ u16         field_104;
     /* 0x106 */ u16         field_106;
-    /* 0x108 */ volatile u8 field_108; // written by main, read by VSync cb
-    /* 0x109 */ s8          field_109; // VRAM Y offset for image transfer
+    /* 0x108 */ volatile u8 vsyncFlag;
+    /* 0x109 */ s8          vramYOffset;
     /* 0x10A */ u8          field_10a;
     /* 0x10B */ u8          field_10b;
     /* 0x10C */ byte        unknown_10c[0x1];
@@ -45,15 +45,15 @@ typedef struct _DisplayState {
     /* 0x110 */ byte        unknown_110[0x2];
     /* 0x112 */ s16         field_112;
     /* 0x114 */ s32         field_114;
-    /* 0x118 */ s32         field_118; // frame/mode word (stage flow)
+    /* 0x118 */ s32         frameMode;
     /* 0x11C */ byte        unknown_11c[0x1];
     /* 0x11D */ u8          field_11d;
     /* 0x11E */ u8          field_11e;
     /* 0x11F */ byte        unknown_11f[0x1];
     /* 0x120 */ s16         field_120;
     /* 0x122 */ u8          field_122;
-    /* 0x123 */ s8          field_123; // Task_Kill overlay-teardown gate
-    /* 0x124 */ u16         field_124; // region (1 → PAL / CdStream 0x14 sectors)
+    /* 0x123 */ s8          skipTeardown;
+    /* 0x124 */ u16         region;
     /* 0x126 */ s8          field_126;
     /* 0x127 */ byte        unknown_127[0x1];
     /* 0x128 */ u8          field_128; // into draw scratch (model path)
@@ -72,10 +72,10 @@ STATIC_ASSERT_SIZEOF(DisplayState, 0x138);
 /// Per-buffer OT context (Gpu_OtBuffers[2]). Indexed by display buffer (stride 0x14).
 /// field_4 is OT start; field_10 is the last tag (passed to DrawOTag).
 typedef struct _GpuOtBuf {
-    /* 0x00 */ s32     field_0;
-    /* 0x04 */ u_long* field_4;
+    /* 0x00 */ s32     depth;
+    /* 0x04 */ u_long* ot;
     /* 0x08 */ u8      unknown_08[0x8];
-    /* 0x10 */ u_long* field_10;
+    /* 0x10 */ u_long* lastTag;
 } GpuOtBuf;
 STATIC_ASSERT_SIZEOF(GpuOtBuf, 0x14);
 
@@ -109,7 +109,7 @@ s32 Display_DispatchModeId(s32 arg0);
 void Display_FlipDraw(s32 arg0);
 /// VSync callback: timed flip / strip load / audio tick (gamemain.c).
 void Display_VSyncCallback(void);
-/// LoadImage strips from D4CB64_ImgBuffers into the active display buffer.
+/// LoadImage strips from Fs_ImgBuffers into the active display buffer.
 void Display_LoadImageStrips(s32 arg0);
 /// Mem heap reset via session (otutil.c wrapper around Display_ResetHeapFromSession).
 void Display_ResetHeapWrapper(void);

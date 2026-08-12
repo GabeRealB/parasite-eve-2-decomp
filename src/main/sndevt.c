@@ -18,7 +18,7 @@ void SndEvt_Process(void)
 
     do {
         cur = SndEvt_Head;
-        if ((u16)cur->field_2 >= 0x10U) {
+        if ((u16)cur->handlerIdx >= 0x10U) {
             ptr = (s32*)SndEvt_Pool;
             i   = 0;
             do {
@@ -31,9 +31,9 @@ void SndEvt_Process(void)
             SndEvt_Lock = 1;
             return;
         }
-        SndEvt_Handlers[cur->field_2](cur);
+        SndEvt_Handlers[cur->handlerIdx](cur);
         cur  = SndEvt_Head;
-        next = cur->field_18;
+        next = cur->next;
         SndEvt_Free(cur);
         if (next == NULL) {
             SndEvt_Tail = NULL;
@@ -70,9 +70,9 @@ SndEvt* SndEvt_Alloc(void)
     i    = 0;
     flag = 1;
     for (ptr = SndEvt_Pool; i < 0x40; i++, ptr++) {
-        if (ptr->field_0 == 0) {
-            ptr->field_0 = flag;
-            ptr->field_2 = 0;
+        if (ptr->allocated == 0) {
+            ptr->allocated  = flag;
+            ptr->handlerIdx = 0;
             return ptr;
         }
     }
@@ -86,26 +86,26 @@ void SndEvt_Enqueue(SndEvt* arg0)
     if (arg0 != NULL) {
         SndEvt_Lock = 0;
         if (SndEvt_Head == NULL) {
-            SndEvt_Tail    = arg0;
-            SndEvt_Head    = arg0;
-            arg0->field_14 = NULL;
+            SndEvt_Tail = arg0;
+            SndEvt_Head = arg0;
+            arg0->prev  = NULL;
         } else {
-            temp           = SndEvt_Tail;
-            SndEvt_Tail    = arg0;
-            arg0->field_14 = temp;
-            temp->field_18 = arg0;
+            temp        = SndEvt_Tail;
+            SndEvt_Tail = arg0;
+            arg0->prev  = temp;
+            temp->next  = arg0;
         }
-        arg0->field_18 = NULL;
-        SndEvt_Lock    = 1;
+        arg0->next  = NULL;
+        SndEvt_Lock = 1;
     }
 }
 
 void SndEvt_Free(SndEvt* arg0)
 {
     if (arg0 != NULL) {
-        arg0->field_0  = 0;
-        arg0->field_14 = NULL;
-        arg0->field_18 = NULL;
+        arg0->allocated = 0;
+        arg0->prev      = NULL;
+        arg0->next      = NULL;
     }
 }
 
@@ -225,7 +225,7 @@ s32 Midi_InitSystem(u32 arg0)
         bank                      = &Snd_Banks[D_800680BB];
         state->field_40           = bank;
         bank->field_8             = 0xF0FF;
-        state->field_40->field_1C = F3D458_Malloc(0x582);
+        state->field_40->field_1C = SndHeap_Malloc(0x582);
     } while (0);
     state->field_40->field_0  = state->field_40->field_1C;
     state->field_40->field_4  = state->field_40->field_1C;
@@ -474,9 +474,9 @@ s32 SndEvt_EnqueueType1(s32 arg0, s32 arg1)
     if (temp == NULL) {
         return -2;
     }
-    temp->field_2 = 1;
-    temp->field_4 = arg0;
-    temp->field_6 = arg1;
+    temp->handlerIdx = 1;
+    temp->field_4    = arg0;
+    temp->field_6    = arg1;
     SndEvt_Enqueue(temp);
     return 0;
 }
@@ -492,9 +492,9 @@ s32 SndEvt_EnqueueType2(s32 arg0, s32 arg1)
     if (temp == NULL) {
         return -2;
     }
-    temp->field_2 = 2;
-    temp->field_4 = arg0;
-    temp->field_6 = arg1 & 0xFFFC;
+    temp->handlerIdx = 2;
+    temp->field_4    = arg0;
+    temp->field_6    = arg1 & 0xFFFC;
     SndEvt_Enqueue(temp);
     return 0;
 }
@@ -510,8 +510,8 @@ s32 SndEvt_EnqueueType3(s32 arg0)
     if (temp == NULL) {
         return -2;
     }
-    temp->field_2 = 3;
-    temp->field_4 = arg0;
+    temp->handlerIdx = 3;
+    temp->field_4    = arg0;
     SndEvt_Enqueue(temp);
     return 0;
 }
@@ -527,8 +527,8 @@ s32 SndEvt_EnqueueType4(s32 arg0)
     if (temp == NULL) {
         return -2;
     }
-    temp->field_2 = 4;
-    temp->field_4 = arg0;
+    temp->handlerIdx = 4;
+    temp->field_4    = arg0;
     SndEvt_Enqueue(temp);
     return 0;
 }
@@ -545,9 +545,9 @@ s32 SndEvt_EnqueueType5(s32 arg0, s32 arg1)
     if (temp == NULL) {
         return -2;
     }
-    temp->field_4 = arg0;
-    temp->field_2 = 5;
-    mid           = (SndEvtFrom4*)&temp->field_4;
+    temp->field_4    = arg0;
+    temp->handlerIdx = 5;
+    mid              = (SndEvtFrom4*)&temp->field_4;
     if ((s8)arg1 >= 0) {
         mid->field_1 = arg1;
     } else {
@@ -717,10 +717,10 @@ void SndEvt_EnqueueType5Pending(void)
     D_800820E9 = 1;
     temp       = SndEvt_Alloc();
     if (temp != NULL) {
-        mid           = (SndEvtFrom4*)&temp->field_4;
-        temp->field_2 = 5;
-        temp->field_4 = 0;
-        mid->field_1  = 0;
+        mid              = (SndEvtFrom4*)&temp->field_4;
+        temp->handlerIdx = 5;
+        temp->field_4    = 0;
+        mid->field_1     = 0;
         SndEvt_Enqueue(temp);
         D_800820E8 = mid->field_1;
     }
@@ -737,9 +737,9 @@ void SndEvt_FlushType5Pending(void)
         D_800820E9 = 0;
         temp       = SndEvt_Alloc();
         if (temp != NULL) {
-            mid           = (SndEvtFrom4*)&temp->field_4;
-            temp->field_2 = 5;
-            temp->field_4 = 0;
+            mid              = (SndEvtFrom4*)&temp->field_4;
+            temp->handlerIdx = 5;
+            temp->field_4    = 0;
             if ((s8)saved >= 0) {
                 mid->field_1 = saved;
             } else {
@@ -870,12 +870,12 @@ void Midi_DriveTrack(MidiSong* arg0, MidiTrack* arg1)
 
     entry = arg1;
     temp  = entry->field_38 + (arg0->field_4 + arg0->field_5) * arg0->field_34;
-    if (Display_State.field_124 == 1) {
+    if (Display_State.region == 1) {
         quot = temp / 6000U;
     } else {
         quot = temp / 3600U;
     }
-    if (Display_State.field_124 == 1) {
+    if (Display_State.region == 1) {
         rem_factor = (temp / 6000U) * 0x177;
         goto rem_join;
     } else {
@@ -1057,7 +1057,7 @@ u8* func_80052488(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3)
                 if (arg3->field_1 != status) {
                     return arg1 + 3;
                 }
-                F3E48C_SetReverbDepth((s16)(arg1[2] << 8));
+                Spu_SetReverbDepth((s16)(arg1[2] << 8));
                 arg3->field_0 = 0;
                 arg3->field_1 = 0;
             }
@@ -1642,7 +1642,7 @@ block_setup:
         v0r = s1;
         goto block_clear14;
     }
-    F3D458_Free((void*)arg0->field_14);
+    SndHeap_Free((void*)arg0->field_14);
     __asm__ volatile(
         ".set\tnoreorder\n\t"
         "j SndLoad_Complete_clear14\n\t"
@@ -1684,7 +1684,7 @@ void SndLoad_Teardown(void)
     temp       = &SndLoad_State;
     if (temp->field_2 != 6) {
         temp->field_2 = 8;
-        F3D458_Free((void*)temp->field_14);
+        SndHeap_Free((void*)temp->field_14);
         temp->field_14 = 0;
         Snd_FreeBank((SndBank*)temp->field_18);
         temp->field_18 = 0;
@@ -1815,7 +1815,7 @@ void* SndLoad_AllocBuffer(s32 arg0, s32 arg1, u32 arg2)
             }
             break;
     }
-    return F3D458_Malloc(arg2);
+    return SndHeap_Malloc(arg2);
 }
 
 s32 SndLoad_LookupMode(s32 arg0, s32 arg1, s32 arg2)

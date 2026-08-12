@@ -18,12 +18,12 @@ STATIC_ASSERT_SIZEOF(SpuReverbConfig, 0x24);
 
 /// Per-frame audio callback list node (AudioTick_List sentinel + chain).
 typedef struct _AudioTickNode {
-    /* 0x00 */ s32 field_0;  // poll: s32 (*)(s32) — return -1 to remove
-    /* 0x04 */ s32 field_4;  // remove callback: void (*)(void)
-    /* 0x08 */ s16 field_8;  // node id (match key)
-    /* 0x0C */ s32 field_c;  // arg to poll
-    /* 0x10 */ s32 field_10; // prev link
-    /* 0x14 */ s32 field_14; // next link
+    /* 0x00 */ s32 poll;     // s32 (*)(s32) — return -1 to remove
+    /* 0x04 */ s32 onRemove; // void (*)(void)
+    /* 0x08 */ s16 id;
+    /* 0x0C */ s32 arg;
+    /* 0x10 */ s32 prev;
+    /* 0x14 */ s32 next;
 } AudioTickNode;
 STATIC_ASSERT_SIZEOF(AudioTickNode, 0x18);
 
@@ -65,16 +65,16 @@ STATIC_ASSERT_SIZEOF(SndEvtFrom4, 0x10);
 
 /// Deferred sound/MIDI event message (SndEvt_Pool, 0x40 slots).
 typedef struct _SndEvt {
-    /* 0x00 */ s16             field_0; // allocated (0 free, 1 in use)
-    /* 0x02 */ s16             field_2; // SndEvt_Handlers index
-    /* 0x04 */ u8              field_4; // handler payload
+    /* 0x00 */ s16             allocated; // 0 free, 1 in use
+    /* 0x02 */ s16             handlerIdx;
+    /* 0x04 */ u8              field_4;   // handler payload
     /* 0x05 */ u8              field_5;
     /* 0x06 */ u16             field_6;
     /* 0x08 */ s32             field_8;
     /* 0x0C */ s32             field_C;
     /* 0x10 */ s32             field_10;
-    /* 0x14 */ struct _SndEvt* field_14; // queue prev
-    /* 0x18 */ struct _SndEvt* field_18; // queue next
+    /* 0x14 */ struct _SndEvt* prev;
+    /* 0x18 */ struct _SndEvt* next;
 } SndEvt;
 STATIC_ASSERT_SIZEOF(SndEvt, 0x1C);
 
@@ -101,8 +101,8 @@ typedef struct _MidiOpcodeCtx {
 
 /// 4-byte entry at Spu_VoiceRanges (see Spu_SetVoiceRange).
 typedef struct _SpuVoiceRange {
-    /* 0x0 */ s16 field_0; // first voice index
-    /* 0x2 */ s16 field_2; // count of voices in range
+    /* 0x0 */ s16 first;
+    /* 0x2 */ s16 count;
 } SpuVoiceRange;
 STATIC_ASSERT_SIZEOF(SpuVoiceRange, 0x4);
 
@@ -272,7 +272,7 @@ STATIC_ASSERT_SIZEOF(SndLoadState, 0x30);
 /// current track cursor advanced by the MIDI event driver (Midi_DriveTrack).
 /// field_30 is a saved event cursor for looped CC 0x63. field_34 is the
 /// remaining delta-time for the next event; field_38 is a fractional tick
-/// accumulator (mod 6000/3600 per Display_State.field_124).
+/// accumulator (mod 6000/3600 per Display_State.region).
 typedef struct _MidiTrack {
     /* 0x00 */ u8  field_0;
     /* 0x01 */ u8  field_1;
@@ -583,7 +583,7 @@ STATIC_ASSERT_SIZEOF(SndVoicePick, 0x18);
 
 /// 0xC-byte init-table entry at Snd_BankInitTable (two entries used by Snd_InitBanks).
 /// field_0 indexes D_800680AC for a slot id; field_2 is written to SndBankSlot.field_8
-/// and SndBank.field_8; field_4/field_6 are F3D458_Malloc sizes; field_8 is stored
+/// and SndBank.field_8; field_4/field_6 are SndHeap_Malloc sizes; field_8 is stored
 /// to SndBankSlot.field_C.
 typedef struct _SndBankInitEntry {
     /* 0x0 */ u16 field_0;
@@ -599,9 +599,9 @@ void           Snd_ApplyVolumeTable(s32 arg0);
 void           Spu_WaitDma(void);
 void           Audio_IrqFrameWork(void);
 SndBank*       Snd_AllocBank(SndBankPayload* arg0);
-void           F3D458_ResetHeap(void);
-void*          F3D458_Malloc(size_t);
-void           F3D458_Free(void* ptr);
+void           SndHeap_Reset(void);
+void*          SndHeap_Malloc(size_t);
+void           SndHeap_Free(void* ptr);
 void           Snd_FreeBank(SndBank* arg0);
 SndBank*       Snd_FindBank(u16 arg0);
 void           Snd_BuildGroupIndex(SndBank* arg0);
@@ -623,16 +623,16 @@ void           Spu_ClearVoiceCallbacks(u32 voiceIdx);
 void           Spu_KeyOff(u32 voiceIdx);
 u16            Spu_CalcVolume(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 SndNote*       Snd_GetNote(SndBank* arg0, u8 arg1, u8 arg2);
-void           F3E48C_8004E44C(void);
-s32            F3E48C_8004E660(u32 voiceIdx);
-void           F3E48C_QueryReverbVoices(void);
-void           F3E48C_ConfigSpuReverb(s32 mode);
-void           F3E48C_SetReverbDepth(s16 depth);
-void           F3E48C_SetReverbMode(u32 mode);
-void           F3E48C_EnableVoice(u32 voiceIdx);
-void           F3E48C_DisableVoice(u32 voiceIdx);
-bool           F3E48C_ReverbVoiceIsEnabled(u32 voiceIdx);
-void           F3E48C_ApplyReverbConfig(void);
+void           Spu_FlushVoiceUpdates(void);
+s32            Spu_ReleaseVoiceSlot(u32 voiceIdx);
+void           Spu_QueryReverbVoices(void);
+void           Spu_ConfigReverb(s32 mode);
+void           Spu_SetReverbDepth(s16 depth);
+void           Spu_SetReverbMode(u32 mode);
+void           Spu_EnableReverbVoice(u32 voiceIdx);
+void           Spu_DisableReverbVoice(u32 voiceIdx);
+bool           Spu_ReverbVoiceIsEnabled(u32 voiceIdx);
+void           Spu_ApplyReverbConfig(void);
 void           SndEvt_Process(void);
 SndEvt*        SndEvt_Alloc(void);
 s32            SndEvt_EnqueueType1(s32 arg0, s32 arg1);

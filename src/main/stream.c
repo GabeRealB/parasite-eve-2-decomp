@@ -358,7 +358,7 @@ void Mdec_UploadSlice(void)
             }
             y      = D_8006AC10;
             rect.x = x;
-            if (Display_State.field_118 != 0) {
+            if (Display_State.frameMode != 0) {
                 y += 0x110;
             }
             w      = 0x10;

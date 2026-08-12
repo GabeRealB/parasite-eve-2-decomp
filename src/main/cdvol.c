@@ -121,7 +121,7 @@ s32 Cd_InitStateMachine(u32* arg0)
     return 0;
 }
 
-void F16494_ResetSpuAttr(void)
+void Spu_ResetCommonAttr(void)
 {
     // Set all attributes.
     Fs_SpuAttr.mask = 0;

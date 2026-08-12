@@ -102,12 +102,12 @@ SetSp                       = 0x800144E8;
 //--------------------------------------------------------------------
 Mem_ConfigureAuxHeap               = 0x800144F8; // type:func
 Boot_LoadInitialFile        = 0x80014650; // type:func
-F04CF8_800148A0             = 0x800148A0; // type:func
-F04CF8_800148EC             = 0x800148EC; // type:func
+Boot_WaitCdAudioReady             = 0x800148A0; // type:func
+Boot_InitCdAudio             = 0x800148EC; // type:func
 Gfx_StoreImageSlot               = 0x8001490C; // type:func
 Gfx_LoadImageSlot               = 0x800149E8; // type:func
-F04CF8_80014A50             = 0x80014A50; // type:func
-F04CF8_80014A98             = 0x80014A98; // type:func
+Boot_InitCd             = 0x80014A50; // type:func
+Boot_ResetCd             = 0x80014A98; // type:func
 Boot_LoadTask               = 0x80014B38; // type:func
 Boot_DispatchCdCmd               = 0x80014C2C; // type:func
 Fs_StageCdfIsAvailable      = 0x80014C4C; // type:func
@@ -534,10 +534,10 @@ Fs_BootImageMachine               = 0x8002226C; // type:func
 //--------------------------------------------------------------------
 //--- PA: 0x12D18   VA: 0x80022518   subsegment: c, fs
 //--------------------------------------------------------------------
-F12D18_80022518             = 0x80022518; // type:func
-F12D18_8002252C             = 0x8002252C; // type:func
-F12D18_80022598             = 0x80022598; // type:func
-F12D18_800225D4             = 0x800225D4; // type:func
+Fs_ResetBootLoadState             = 0x80022518; // type:func
+Fs_BeginBootLoad             = 0x8002252C; // type:func
+Fs_EnsureBootLoadStarted             = 0x80022598; // type:func
+Fs_StepBootImage             = 0x800225D4; // type:func
 Fs_LoadFile                 = 0x8002265C; // type:func
 Fs_CdReadyCb                = 0x80022BD0; // type:func
 Fs_ProcessChunkHeader       = 0x80022CF0; // type:func
@@ -551,7 +551,7 @@ Fs_LoadImageChunk               = 0x800246B0; // type:func
 Fs_CopyWorkEntries               = 0x800248B4; // type:func
 Fs_LoadImageStrip               = 0x80024A28; // type:func
 Fs_ClearDiskError           = 0x80024DB8; // type:func
-F12D18_80024EC0             = 0x80024EC0; // type:func
+Fs_RetryReadN             = 0x80024EC0; // type:func
 Fs_WaitDiskSwap             = 0x80024FEC; // type:func
 Fs_ReadSectorEx             = 0x80025170; // type:func
 Fs_ReadSector               = 0x8002526C; // type:func
@@ -559,13 +559,13 @@ Fs_WaitDiskReset            = 0x80025338; // type:func
 Fs_SeekToPos                = 0x80025408; // type:func
 Fs_InitFolderTable          = 0x8002548C; // type:func
 Fs_InitStage0Tables         = 0x800254FC; // type:func
-F12D18_80025580             = 0x80025580; // type:func
-F12D18_8002563C             = 0x8002563C; // type:func
+Fs_ReadNSyncCb             = 0x80025580; // type:func
+Fs_ReadNReadyCb             = 0x8002563C; // type:func
 Fs_SeekToPosCb              = 0x800256A8; // type:func
-F12D18_800256F4             = 0x800256F4; // type:func
+Fs_OnCdError             = 0x800256F4; // type:func
 Fs_ContinueDrawing          = 0x8002576C; // type:func
 Fs_GetChunkPayload               = 0x800257A4; // type:func
-F12D18_800257B0             = 0x800257B0; // type:func
+Fs_CheckReadTimeout             = 0x800257B0; // type:func
 Fs_StopCd                   = 0x80025850; // type:func
 Fs_GetStageDiskKind               = 0x80025898; // type:func
 
@@ -595,7 +595,7 @@ ResetRCnt                   = 0x80025C5C;
 //--------------------------------------------------------------------
 Fs_StreamReadyCb               = 0x80025C94; // type:func
 Cd_InitStateMachine               = 0x80025DD8; // type:func
-F16494_ResetSpuAttr         = 0x8002604C; // type:func
+Spu_ResetCommonAttr         = 0x8002604C; // type:func
 CdVol_SetMixMode               = 0x800260B0; // type:func
 CdVol_GetMixMode               = 0x80026138; // type:func
 CdVol_CacheFromSpu               = 0x80026148; // type:func
@@ -638,7 +638,7 @@ GameMain_Loop               = 0x8002785C; // type:func
 Gfx_InitCoordinateTrees               = 0x80027E7C; // type:func
 Display_LoadImageStrips               = 0x80027F48; // type:func
 GameMain_SetFrameTiming               = 0x800280F4; // type:func
-F179D4_ClearOTag            = 0x80028180; // type:func
+Gpu_ClearOTag            = 0x80028180; // type:func
 Gfx_InitGraph               = 0x800281D4; // type:func
 GameMain_SpawnBootTask               = 0x80028290; // type:func
 Display_PutEnvAndDraw               = 0x800282D8; // type:func
@@ -1888,9 +1888,9 @@ LinInterp_Apply               = 0x8004D298; // type:func
 LinInterp_Step               = 0x8004D2EC; // type:func
 Spu_ApplyPanVolume               = 0x8004D35C; // type:func
 AudioTick_Insert               = 0x8004D460; // type:func
-F3D458_ResetHeap            = 0x8004D5A8; // type:func
-F3D458_Malloc               = 0x8004D5D8; // type:func
-F3D458_Free                 = 0x8004D6C8; // type:func
+SndHeap_Reset            = 0x8004D5A8; // type:func
+SndHeap_Malloc               = 0x8004D5D8; // type:func
+SndHeap_Free                 = 0x8004D6C8; // type:func
 Spu_TimerCallback               = 0x8004D7D4; // type:func
 Spu_TimerReentryWork               = 0x8004D820; // type:func
 AudioTick_Reset             = 0x8004D88C; // type:func
@@ -1933,23 +1933,23 @@ AsyncCb_Cancel               = 0x8004DEBC; // type:func
 Spu_InitVoices               = 0x8004DF10; // type:func
 Spu_AllocVoice               = 0x8004E060; // type:func
 func_8004E200               = 0x8004E200; // type:func
-F3E48C_8004E44C             = 0x8004E44C; // type:func
+Spu_FlushVoiceUpdates             = 0x8004E44C; // type:func
 Spu_SetVoiceCallbacks               = 0x8004E560; // type:func
 Spu_ClearVoiceCallbacks               = 0x8004E580; // type:func
 Spu_SetVoiceRange               = 0x8004E5A0; // type:func
 Spu_GetVoiceRef               = 0x8004E5C4; // type:func
-F3E48C_8004E660             = 0x8004E660; // type:func
+Spu_ReleaseVoiceSlot             = 0x8004E660; // type:func
 Spu_GetVoiceStatus               = 0x8004E6A4; // type:func
 Spu_KeyOn               = 0x8004E6C4; // type:func
 Spu_KeyOff               = 0x8004E71C; // type:func
-F3E48C_QueryReverbVoices    = 0x8004E764; // type:func
-F3E48C_ConfigSpuReverb      = 0x8004E788; // type:func
-F3E48C_SetReverbDepth       = 0x8004E814; // type:func
-F3E48C_SetReverbMode        = 0x8004E83C; // type:func
-F3E48C_EnableVoice          = 0x8004E8A8; // type:func
-F3E48C_DisableVoice         = 0x8004E8E4; // type:func
-F3E48C_ReverbVoiceIsEnabled = 0x8004E920; // type:func
-F3E48C_ApplyReverbConfig    = 0x8004E938; // type:func
+Spu_QueryReverbVoices    = 0x8004E764; // type:func
+Spu_ConfigReverb      = 0x8004E788; // type:func
+Spu_SetReverbDepth       = 0x8004E814; // type:func
+Spu_SetReverbMode        = 0x8004E83C; // type:func
+Spu_EnableReverbVoice          = 0x8004E8A8; // type:func
+Spu_DisableReverbVoice         = 0x8004E8E4; // type:func
+Spu_ReverbVoiceIsEnabled = 0x8004E920; // type:func
+Spu_ApplyReverbConfig    = 0x8004E938; // type:func
 Spu_CalcVolume               = 0x8004E9D8; // type:func
 Snd_GetNote               = 0x8004EA60; // type:func
 Spu_KeyOnClearOff               = 0x8004EAA0; // type:func
@@ -2331,7 +2331,8 @@ GHeap                       = 0x8005C360;
 //--------------------------------------------------------------------
 //--- PA: 0x4CB64   VA: 0x8005C364   subsegment: data
 //--------------------------------------------------------------------
-D4CB64_ImgBuffers           = 0x8005C364; // type:u32 size:0x4
+Fs_ImgBuffers           = 0x8005C364; // type:u32 size:0x4
+Gfx_ImageSlotTables     = 0x8005C37C;
 
 //--------------------------------------------------------------------
 //--- PA: 0x4CBD4   VA: 0x8005C3D4   subsegment: o, libetc/intr_vb
@@ -2640,19 +2641,19 @@ StFunc2                     = 0x8006AC84;
 //--------------------------------------------------------------------
 //--- PA: 0x5B498   VA: 0x8006AC98   subsegment: bss
 //--------------------------------------------------------------------
-D5B498_8006AC98             = 0x8006AC98; // type:s16
-D5B498_8006AC9A             = 0x8006AC9A; // type:u16
+Fs_BootLoadSlot             = 0x8006AC98; // type:s16
+Fs_BootLoadPhase             = 0x8006AC9A; // type:u16
 D5B498_8006AC9C             = 0x8006AC9C; // type:u16
-D5B498_8006ACAC             = 0x8006ACAC; // type:u32 size:0x4
-D5B498_8006ACB0             = 0x8006ACB0; // type:u32 size:0x4
-D5B498_8006ACB8             = 0x8006ACB8; // type:GStruct15 size:0x4
+Fs_BootTimSecondary             = 0x8006ACAC; // type:u32 size:0x4
+Fs_BootTimPrimary             = 0x8006ACB0; // type:u32 size:0x4
+Fs_LoadParams             = 0x8006ACB8; // type:GStruct15 size:0x4
 D5B498_8006ACC0             = 0x8006ACC0; // type:s16 size:0x2
 D5B498_8006ACC8             = 0x8006ACC8; // type:u8
 Fs_Stage0HedSector          = 0x8006ACCC; // type:s32
 Fs_SeekSector               = 0x8006ACD0; // type:s32
 D5B498_8006ACD4             = 0x8006ACD4; // type:u16 size:0x2
 Fs_ImageRect                = 0x8006ACD8; // type:RECT size:0x8
-D5B498_8006ACE8             = 0x8006ACE8; // type:GStruct13 size:0xF8
+Fs_WorkEntries             = 0x8006ACE8; // type:GStruct13 size:0xF8
 D5B498_8006ADE0             = 0x8006ADE0; // type:u8
 D5B498_8006ADE1             = 0x8006ADE1; // type:u8
 D_8006ADE2                  = 0x8006ADE2; // type:u8
@@ -2675,7 +2676,7 @@ Fs_FolderTable              = 0x8006BFB8; // type:FsCdfFolder size:0x64
 Fs_FolderTableLen           = 0x8006C148; // type:u16
 Fs_ReqSector                = 0x8006C224; // type:s32
 Fs_CdOpStatus               = 0x8006C228; // type:u8
-D5B498_8006C22C             = 0x8006C22C; // type:u32
+Fs_ChunkReadPtr             = 0x8006C22C; // type:u32
 Fs_LoadPhase                = 0x8006C230; // type:u8
 Fs_Streaming                = 0x8006C231; // type:u8
 Fs_ChunkMode                = 0x8006C232; // type:u8
@@ -2710,8 +2711,9 @@ _spu_RQ                     = 0x8006EC00;
 //--------------------------------------------------------------------
 //--- PA: 0x5F414   VA: 0x8006EC14   subsegment: bss
 //--------------------------------------------------------------------
-D5F414_OrderingTables       = 0x8006EC38; // type:u32 size:0x2200
+Gpu_OtTags       = 0x8006EC38; // type:u32 size:0x2200
 Display_State               = 0x80070F68; // type:DisplayState size:0x138
+Gpu_CurrentOt               = 0x800710A0;
 Wip_SysFlags                  = 0x800710A8; // size:0x20
 
 //--------------------------------------------------------------------
@@ -2762,18 +2764,18 @@ _LC                         = 0x800740C0;
 //--------------------------------------------------------------------
 //--- PA: 0x648E0   VA: 0x800740E0   subsegment: bss
 //--------------------------------------------------------------------
-D648E0_HeapStart            = 0x8007A3A0; // type:s32
-D648E0_HeapBuffer           = 0x8007A3B0; // type:u8 size:0x3D00
+SndHeap_Start            = 0x8007A3A0; // type:s32
+SndHeap_Buffer           = 0x8007A3B0; // type:u8 size:0x3D00
 AudioTick_List             = 0x8007E0B0; // type:AudioTickNode size:0x18
 AudioTick_Enabled             = 0x8007E0C8; // type:u32
 D648E0_SpuTimerED           = 0x8007E0D0; // type:s32
 Spu_VoiceState             = 0x8007E338; // type:SpuVoiceState size:0x1D4
 Spu_LVoiceTable             = 0x8007E518; // type:SpuLVoiceTable size:0x67C
 Spu_VoiceRanges                  = 0x8007EB98; // type:SpuVoiceRange
-D648E0_8007EBA8             = 0x8007EBA8; // type:u32
-D648E0_8007EBAC             = 0x8007EBAC; // type:u32
-D648E0_8007EBB0             = 0x8007EBB0; // type:u32
-D648E0_SpuReverbCfg         = 0x8007EBB8; // type:SpuReverbConfig size:0x24
+Spu_KeyOnMask             = 0x8007EBA8; // type:u32
+Spu_KeyOnMaskExtra             = 0x8007EBAC; // type:u32
+Spu_KeyOffMask             = 0x8007EBB0; // type:u32
+Spu_ReverbCfg         = 0x8007EBB8; // type:SpuReverbConfig size:0x24
 CdAudio_Phase                  = 0x80082798; // type:CdAudioPhase size:0x6
 CdStream_Params             = 0x800827C4; // type:CdStreamParams size:0x20
 CdStream_State              = 0x80082818; // type:CdStreamState size:0x58
@@ -2834,3 +2836,7 @@ CdCmd_EntryIter             = 0x8006AC04; // type:func
 Title_RestoreDemoCard       = 0x8009407C; // type:func
 Title_EnqueueDemoScene      = 0x80094B90; // type:func
 Title_TaskDescs             = 0x80094C8C; // size:0x18
+
+// Display tables (rodata taskutil_ro)
+Display_WidthTable          = 0x80013E88; // type:u16
+Display_HeightTable         = 0x80013E94; // type:u16

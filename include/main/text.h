@@ -9,18 +9,15 @@
 // Types — font / text draw
 
 /// Text-measure / draw-request block passed to Text_MeasureAndCenter / func_8002E53C.
-/// field_0/field_2 = x/y (or accumulate measured width); field_4 = OT priority;
-/// field_C selects Font_Glyphs0/1/2; field_D = center mode (1=half, 2=full);
-/// field_F = v bias added when drawing sprites.
 typedef struct _TextDrawReq {
-    /* 0x00 */ s16 field_0; // x
-    /* 0x02 */ s16 field_2; // y
-    /* 0x04 */ s32 field_4; // otIndex
+    /* 0x00 */ s16 x;
+    /* 0x02 */ s16 y;
+    /* 0x04 */ s32 otIndex;
     /* 0x08 */ s32 field_8;
-    /* 0x0C */ s8  field_C; // glyphTable
-    /* 0x0D */ s8  field_D; // centerMode
+    /* 0x0C */ s8  glyphTable;
+    /* 0x0D */ s8  centerMode;
     /* 0x0E */ s8  field_E;
-    /* 0x0F */ u8  field_F; // vBias
+    /* 0x0F */ u8  vBias;
 } TextDrawReq;
 STATIC_ASSERT_SIZEOF(TextDrawReq, 0x10);
 
@@ -42,22 +39,21 @@ typedef struct _FontGlyph {
 STATIC_ASSERT_SIZEOF(FontGlyph, 0xC);
 
 /// Draw params for Prim_DrawSprt (SPRT) / Prim_DrawTile (TILE).
-/// field_0/2 = x/y; field_4/6 = u/v (SPRT); field_8/A = w/h (inclusive, decremented
-/// when written); field_C/D/E = RGB; field_10 = 0 shade-tex / nonzero semi-trans.
+/// w/h are inclusive and decremented when written to the primitive.
 typedef struct _PrimDrawParams {
-    /* 0x00 */ s16 field_0;  // x
-    /* 0x02 */ s16 field_2;  // y
-    /* 0x04 */ u8  field_4;  // u
+    /* 0x00 */ s16 x;
+    /* 0x02 */ s16 y;
+    /* 0x04 */ u8  u;
     /* 0x05 */ u8  pad_5;
-    /* 0x06 */ u8  field_6;  // v
+    /* 0x06 */ u8  v;
     /* 0x07 */ u8  pad_7;
-    /* 0x08 */ s16 field_8;  // w
-    /* 0x0A */ s16 field_A;  // h
-    /* 0x0C */ u8  field_C;  // r
-    /* 0x0D */ u8  field_D;  // g
-    /* 0x0E */ u8  field_E;  // b
+    /* 0x08 */ s16 w;
+    /* 0x0A */ s16 h;
+    /* 0x0C */ u8  r;
+    /* 0x0D */ u8  g;
+    /* 0x0E */ u8  b;
     /* 0x0F */ u8  pad_F;
-    /* 0x10 */ s16 field_10; // shadeMode
+    /* 0x10 */ s16 shadeMode;
 } PrimDrawParams;
 STATIC_ASSERT_SIZEOF(PrimDrawParams, 0x12);
 
@@ -72,23 +68,20 @@ typedef struct _GlyphUvwh {
 STATIC_ASSERT_SIZEOF(GlyphUvwh, 0x4);
 
 /// Text stream / font draw object (e.g. D_800630B0).
-/// field_0/2 = x/y; field_4/6 = tpage xy (u base = field_4 & 0x3F);
-/// field_8/A = clut xy; field_C = per-char delay; field_E = stream cursor;
-/// field_10 = char stream (0xFE newline, 0xFF end); field_14 = GlyphUvwh table;
-/// field_18 = line height; field_1A = delay reload on line advance.
+/// tpageX low 6 bits are the SPRT u base. chars: 0xFE newline, 0xFF end.
 typedef struct _TextStream {
-    /* 0x00 */ s16        field_0;  // x
-    /* 0x02 */ s16        field_2;  // y
-    /* 0x04 */ s16        field_4;  // tpageX
-    /* 0x06 */ s16        field_6;  // tpageY
-    /* 0x08 */ s16        field_8;  // clutX
-    /* 0x0A */ s16        field_A;  // clutY
-    /* 0x0C */ s16        field_C;  // charDelay
-    /* 0x0E */ s16        field_E;  // cursor
-    /* 0x10 */ u8*        field_10; // chars
-    /* 0x14 */ GlyphUvwh* field_14; // glyphs
-    /* 0x18 */ s16        field_18; // lineHeight
-    /* 0x1A */ s16        field_1A; // delayReload
+    /* 0x00 */ s16        x;
+    /* 0x02 */ s16        y;
+    /* 0x04 */ s16        tpageX;
+    /* 0x06 */ s16        tpageY;
+    /* 0x08 */ s16        clutX;
+    /* 0x0A */ s16        clutY;
+    /* 0x0C */ s16        charDelay;
+    /* 0x0E */ s16        cursor;
+    /* 0x10 */ u8*        chars;
+    /* 0x14 */ GlyphUvwh* glyphs;
+    /* 0x18 */ s16        lineHeight;
+    /* 0x1A */ s16        delayReload;
     /* 0x1C */ s16        field_1C;
     /* 0x1E */ s16        field_1E;
 } TextStream;

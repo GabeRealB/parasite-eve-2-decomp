@@ -268,7 +268,7 @@ void CdCmd_HandleFileLoad(void)
                 CdReadyCallback(NULL);
                 goto wait_reset_step1;
             }
-            F12D18_800257B0();
+            Fs_CheckReadTimeout();
             status = Fs_CdOpStatus;
             switch (status) {
                 case 0x80:
@@ -314,7 +314,7 @@ void CdCmd_HandleFileLoad(void)
                         }
                         CdFlush();
                     }
-                    F12D18_80024EC0();
+                    Fs_RetryReadN();
                     goto end_check;
             }
             goto end_check;
@@ -358,7 +358,7 @@ void CdCmd_HandleFileLoad(void)
                 CdReadyCallback(NULL);
                 goto wait_reset_step4;
             }
-            F12D18_800257B0();
+            Fs_CheckReadTimeout();
             status = Fs_CdOpStatus;
             switch (status) {
                 case 0x80:
@@ -410,7 +410,7 @@ void CdCmd_HandleFileLoad(void)
                 case 0x40:
                     ret = CdCmd_PollStatus(0, 0);
                     if (ret == 1) {
-                        F12D18_80024EC0();
+                        Fs_RetryReadN();
                         goto end_check;
                     }
                     if (ret < 2) {
@@ -421,7 +421,7 @@ void CdCmd_HandleFileLoad(void)
                     }
                     if (ret == 2) {
                         CdFlush();
-                        F12D18_80024EC0();
+                        Fs_RetryReadN();
                     }
                     goto end_check;
             }
@@ -472,7 +472,7 @@ void CdCmd_HandleMount(void)
                         CdReadyCallback(NULL);
                         goto wait_reset_clear_step;
                     }
-                    F12D18_800257B0();
+                    Fs_CheckReadTimeout();
                     status = Fs_CdOpStatus;
                     switch (status) {
                         case 0x80:
@@ -511,7 +511,7 @@ void CdCmd_HandleMount(void)
                                 }
                                 CdFlush();
                             }
-                            F12D18_80024EC0();
+                            Fs_RetryReadN();
                             return;
                     }
                     return;
@@ -1373,6 +1373,6 @@ void CdCmd_Dispatch(void)
     }
 
     if (state->field_224 != 0) {
-        F12D18_800225D4();
+        Fs_StepBootImage();
     }
 }

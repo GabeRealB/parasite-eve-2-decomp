@@ -18,7 +18,7 @@ s32 Mc_PromptDialog(Task* arg0, s32 arg1, s32 arg2)
     McPromptPair* entry;
     McPromptPair* base;
 
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, D_8001398C);
@@ -28,22 +28,22 @@ s32 Mc_PromptDialog(Task* arg0, s32 arg1, s32 arg2)
     Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
 
-    p = (UiObject*)arg0->field_c;
+    p = (UiObject*)arg0->firstChild;
     if (p == NULL) {
         p = Ui_SpawnFromDesc(D_800612D0, one, one, 2, obj);
         if (p != NULL) {
-            p->field_C    = (obj->field_20 + obj->field_1E + 5) - p->field_10;
-            p->field_E    = obj->field_22 + obj->field_1A + 8;
+            p->field_C    = (obj->baseX + obj->field_1E + 5) - p->field_10;
+            p->field_E    = obj->baseY + obj->field_1A + 8;
             obj->field_2C = 0;
-            obj->field_0  = 0;
+            obj->status   = 0;
         }
         return 0;
     }
-    p = ((Task*)p)->field_20;
+    p = ((Task*)p)->spawnArg2;
     if (p->field_2E == 6) {
         obj->field_2C = p->field_2C;
-        Ui_TeardownTree(p, p->field_28);
-        obj->field_0 = one;
+        Ui_TeardownTree(p, p->owner);
+        obj->status = one;
     }
     return obj->field_2C;
 }
@@ -57,7 +57,7 @@ s32 Mc_PromptDialogChoice(Task* arg0, s32 arg1, s32 arg2)
     McPromptPair* entry;
     McPromptPair* base;
 
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, D_8001398C);
@@ -67,22 +67,22 @@ s32 Mc_PromptDialogChoice(Task* arg0, s32 arg1, s32 arg2)
     Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
 
-    p = (UiObject*)arg0->field_c;
+    p = (UiObject*)arg0->firstChild;
     if (p == NULL) {
         p = Ui_SpawnFromDesc(D_800612D0, 0, one, 2, obj);
         if (p != NULL) {
-            p->field_C    = (obj->field_20 + obj->field_1E + 5) - p->field_10;
-            p->field_E    = obj->field_22 + obj->field_1A + 0x10;
+            p->field_C    = (obj->baseX + obj->field_1E + 5) - p->field_10;
+            p->field_E    = obj->baseY + obj->field_1A + 0x10;
             obj->field_2C = 0;
-            obj->field_0  = 0;
+            obj->status   = 0;
         }
         return 0;
     }
-    p = ((Task*)p)->field_20;
+    p = ((Task*)p)->spawnArg2;
     if (p->field_2E == 6) {
         obj->field_2C = p->field_2C;
-        Ui_TeardownTree(p, p->field_28);
-        obj->field_0 = one;
+        Ui_TeardownTree(p, p->owner);
+        obj->status = one;
     }
     return obj->field_2C;
 }
@@ -96,7 +96,7 @@ s32 Mc_PromptDialogSpawn(Task* arg0, s32 arg1, s32 arg2)
     McPromptPair* entry;
     McPromptPair* base;
 
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, D_8001398C);
@@ -106,22 +106,22 @@ s32 Mc_PromptDialogSpawn(Task* arg0, s32 arg1, s32 arg2)
     Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
 
-    p = (UiObject*)arg0->field_c;
+    p = (UiObject*)arg0->firstChild;
     if (p == NULL) {
         p = Ui_SpawnFromDesc(D_800612D0, 3, one, 2, obj);
         if (p != NULL) {
-            p->field_C    = (obj->field_20 + obj->field_1E + 5) - p->field_10;
-            p->field_E    = obj->field_22 + obj->field_1A + 0x10;
+            p->field_C    = (obj->baseX + obj->field_1E + 5) - p->field_10;
+            p->field_E    = obj->baseY + obj->field_1A + 0x10;
             obj->field_2C = 0;
-            obj->field_0  = 0;
+            obj->status   = 0;
         }
         return 0;
     }
-    p = ((Task*)p)->field_20;
+    p = ((Task*)p)->spawnArg2;
     if (p->field_2E == 6) {
         obj->field_2C = p->field_2C;
-        Ui_TeardownTree(p, p->field_28);
-        obj->field_0 = one;
+        Ui_TeardownTree(p, p->owner);
+        obj->status = one;
     }
     return obj->field_2C;
 }
@@ -135,7 +135,7 @@ s32 Mc_PromptDialogFile(Task* arg0, s32 arg1, s32 arg2)
     McPromptPair* entry;
     McPromptPair* base;
 
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, D_8001398C);
@@ -145,23 +145,23 @@ s32 Mc_PromptDialogFile(Task* arg0, s32 arg1, s32 arg2)
     Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
 
-    p = (UiObject*)arg0->field_c;
+    p = (UiObject*)arg0->firstChild;
     if (p == NULL) {
         p = Ui_SpawnFromDesc(D_800612D0, 2, one, 2, obj);
         if (p != NULL) {
             p->field_12   = 0x12;
-            p->field_C    = (obj->field_20 + obj->field_1E + 5) - p->field_10;
-            p->field_E    = obj->field_22 + obj->field_1A + 8;
+            p->field_C    = (obj->baseX + obj->field_1E + 5) - p->field_10;
+            p->field_E    = obj->baseY + obj->field_1A + 8;
             obj->field_2C = 0;
-            obj->field_0  = 0;
+            obj->status   = 0;
         }
         return 0;
     }
-    p = ((Task*)p)->field_20;
+    p = ((Task*)p)->spawnArg2;
     if (p->field_2E == 6) {
         obj->field_2C = p->field_2C;
-        Ui_TeardownTree(p, p->field_28);
-        obj->field_0 = one;
+        Ui_TeardownTree(p, p->owner);
+        obj->status = one;
     }
     return obj->field_2C;
 }
@@ -255,10 +255,10 @@ void Mc_StateScanDirFlags(Task* arg0, McWork* arg1)
                 } while (i < n);
             }
         }
-        arg0->field_30 += 1;
+        arg0->state += 1;
     }
 
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     idx           = arg1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -314,12 +314,12 @@ void Mc_StateListDirectory(Task* arg0, McWork* arg1)
         }
         arg1->field_A14 = 0;
         if (arg1->field_288 > 0) {
-            var_v0 = arg0->field_30 + 1;
+            var_v0 = arg0->state + 1;
         } else {
             var_v0 = 0x26;
         }
     }
-    arg0->field_30 = var_v0;
+    arg0->state = var_v0;
 
     temp_v0_3 = arg1->field_288;
     if (temp_v0_3 > 0) {
@@ -341,7 +341,7 @@ void Mc_StateListDirectory(Task* arg0, McWork* arg1)
         }
     }
 
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     idx           = arg1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -367,9 +367,9 @@ void Mc_StateFileSelect(Task* arg0, McWork* arg1)
     s32           syncResult;
 
     one           = 1;
-    saved         = arg0->field_20;
+    saved         = arg0->spawnArg2;
     arg1->field_8 = 0x16;
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, D_8001398C);
@@ -378,7 +378,7 @@ void Mc_StateFileSelect(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, one, 0);
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, one, 0);
 
-    child = arg0->field_c;
+    child = arg0->firstChild;
     if (child == NULL) {
         if (Ui_SpawnFromDesc(D_8006121C, (s32)arg1, 1, 2, saved) != 0) {
             {
@@ -397,16 +397,16 @@ void Mc_StateFileSelect(Task* arg0, McWork* arg1)
                 }
                 menu->field_10  = arg1->field_290;
                 saved->field_2C = 0;
-                saved->field_0  = 0;
+                saved->status   = 0;
             }
         }
     } else {
-        childObj = child->field_20;
+        childObj = child->spawnArg2;
         if (childObj->field_2E == 6) {
-            saved->field_2C   = childObj->field_2C;
-            childObj->field_0 = 0;
-            Ui_TeardownTree(childObj, childObj->field_28);
-            saved->field_0 = one;
+            saved->field_2C  = childObj->field_2C;
+            childObj->status = 0;
+            Ui_TeardownTree(childObj, childObj->owner);
+            saved->status = one;
             if (saved->field_2C >= 0) {
                 if (saved->field_2C < arg1->field_288) {
                     {
@@ -481,11 +481,11 @@ void Mc_StateFileSelect(Task* arg0, McWork* arg1)
                         Mc_BuildFileName(fn, saved->field_2C);
                     }
                 }
-                arg1->field_8  = 1;
-                arg0->field_30 = 5;
+                arg1->field_8 = 1;
+                arg0->state   = 5;
                 return;
             }
-            arg0->field_30 = 0x29;
+            arg0->state = 0x29;
             return;
         }
     }
@@ -497,14 +497,14 @@ void Mc_StateFileSelect(Task* arg0, McWork* arg1)
                 {
                     register Task* ch asm("v1");
 
-                    ch             = arg0->field_c;
-                    arg0->field_30 = 2;
+                    ch          = arg0->firstChild;
+                    arg0->state = 2;
                     if (ch != NULL) {
-                        childObj          = ch->field_20;
-                        flag              = arg0->field_20;
-                        childObj->field_0 = 0;
-                        Ui_TeardownTree(childObj, childObj->field_28);
-                        flag->field_0 = syncResult;
+                        childObj         = ch->spawnArg2;
+                        flag             = arg0->spawnArg2;
+                        childObj->status = 0;
+                        Ui_TeardownTree(childObj, childObj->owner);
+                        flag->status = syncResult;
                     }
                 }
             }

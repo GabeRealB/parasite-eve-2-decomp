@@ -59,7 +59,7 @@ void Display_StepFadeOverlay(void)
 
         tile       = (TILE*)D_80071190;
         D_80071190 = (DR_TPAGE*)(tile + 1);
-        yoff       = Display_State.field_109;
+        yoff       = Display_State.vramYOffset;
         setlen(tile, 3);
         setcode(tile, 0x62);
         tile->x0 = -0xA0;
@@ -81,7 +81,7 @@ void Display_StepFadeOverlay(void)
             dr->code[0] = 0xE1000220;
         }
 
-        ot = (u_long*)((otIdx << 2) + (s32)D_800710A0);
+        ot = (u_long*)((otIdx << 2) + (s32)Gpu_CurrentOt);
         addPrim(ot, tile);
         addPrim(ot, dr);
     }
@@ -109,9 +109,9 @@ s32 Display_TransitionLoad(Task* arg0)
 
 case0:
     SetDispMask(0);
-    Stage_Ctx->field_24     = Display_State.field_118;
+    Stage_Ctx->field_24     = Display_State.frameMode;
     Display_State.field_122 = 1;
-    Gfx_LoadImageSlot(Game_Session->field_7, Game_Session->field_6, Display_State.field_118);
+    Gfx_LoadImageSlot(Game_Session->field_7, Game_Session->field_6, Display_State.frameMode);
     Display_State.field_103 = 2;
     Stage_Ctx->field_28     = Stage_Ctx->field_28 + 1;
     goto end;
@@ -122,18 +122,18 @@ case1:
     }
     goto end;
 case2:
-    if ((CdCmd_IsIdle() & 0xFFFF) && (Display_State.field_118 != Stage_Ctx->field_24)) {
-        Gfx_StoreImageSlot(Game_Session->field_7, Game_Session->field_6, Display_State.field_118, 0x10000);
+    if ((CdCmd_IsIdle() & 0xFFFF) && (Display_State.frameMode != Stage_Ctx->field_24)) {
+        Gfx_StoreImageSlot(Game_Session->field_7, Game_Session->field_6, Display_State.frameMode, 0x10000);
         Mem_InitAux();
         rect.x = 0;
         rect.w = 0x140;
         rect.h = 0xF0;
-        rect.y = (Display_State.field_118 ^ 1) * 0x110;
+        rect.y = (Display_State.frameMode ^ 1) * 0x110;
         ClearImage(&rect, 0, 0, 0);
         rect.x = 0;
         rect.w = 0x140;
         rect.h = 0xF0;
-        rect.y = Display_State.field_118 * 0x110;
+        rect.y = Display_State.frameMode * 0x110;
         ClearImage(&rect, 0, 0, 0);
         DrawSync(0);
         Stage_Ctx->field_12 = 1;
@@ -181,9 +181,9 @@ Task* Display_SpawnFromMode(void)
     block_case4:
         Stage_Ctx->field_11 = 2;
         slot                = Game_GetPtrSlot(3);
-        obj                 = (GameActor*)slot->field_1C;
+        obj                 = (GameActor*)slot->idMap;
         flag                = obj->field_984 & 1;
-        ptr                 = ((GameActorExt*)slot->field_2c)->field_8;
+        ptr                 = ((GameActorExt*)slot->extra)->field_8;
         if (flag) {
             func_801011D0(ptr, obj->field_90, 6, &obj->field_930);
         }
@@ -214,9 +214,9 @@ block_default:
     Display_State.field_103 = 1;
     Display_State.field_100 = 3;
     slot                    = Game_GetPtrSlot(3);
-    obj                     = (GameActor*)slot->field_1C;
+    obj                     = (GameActor*)slot->idMap;
     flag                    = obj->field_984 & 1;
-    ptr                     = ((GameActorExt*)slot->field_2c)->field_8;
+    ptr                     = ((GameActorExt*)slot->extra)->field_8;
     if (flag) {
         func_801011D0(ptr, obj->field_90, 6, &obj->field_930);
     }
@@ -246,16 +246,16 @@ void Display_TransitionTask(Task* arg0)
         state               = Stage_Ctx->field_28;
         switch (state) {
             case 0:
-                Stage_Ctx->field_24     = Display_State.field_118;
+                Stage_Ctx->field_24     = Display_State.frameMode;
                 Game_Session->field_4   = Stage_Ctx->field_20;
                 Stage_Ctx->field_C      = 0;
                 Display_State.field_103 = 2;
                 Mem_ConfigureAuxHeap(Game_Session->field_7, Game_Session->field_6);
                 if (!(Stage_Ctx->field_1c & 0x10000000)) {
-                    ((Task*)Game_GetPtrSlot(1))->field_34 = (u8)Game_Session->field_4;
+                    ((Task*)Game_GetPtrSlot(1))->spawnArg1 = (u8)Game_Session->field_4;
                     ResetGraph(1);
-                    F179D4_ClearOTag(0);
-                    F179D4_ClearOTag(1);
+                    Gpu_ClearOTag(0);
+                    Gpu_ClearOTag(1);
                     Mem_InitAux();
                     D_8007216C = Game_Session->field_4;
                     Pad_SetCooldown(0);
@@ -272,13 +272,13 @@ void Display_TransitionTask(Task* arg0)
                 ed   = Game_Session;
                 flag = ed->field_4D;
                 if (flag == 1) {
-                    disp = Display_State.field_118;
+                    disp = Display_State.frameMode;
                     g    = Stage_Ctx;
                     if (disp == g->field_24) {
                         f11          = g->field_11;
                         ed->field_4D = 0;
                         if (f11 == 0) {
-                            arg0->field_2a      = flag;
+                            arg0->killCountdown = flag;
                             Stage_Ctx->field_28 = Stage_Ctx->field_28 + 2;
                         } else {
                             Stage_Ctx->field_28 = Stage_Ctx->field_28 + 1;
@@ -288,25 +288,25 @@ void Display_TransitionTask(Task* arg0)
                 }
                 break;
             case 2:
-                Display_State.field_114 = Display_State.field_118;
+                Display_State.field_114 = Display_State.frameMode;
                 Display_FlipOtAndDispatch(0);
                 Stage_Ctx->field_19     = Stage_Ctx->field_19 | 0x80;
                 Display_State.field_103 = Display_State.field_103 | 0x10;
-                arg0->field_2a          = 3;
+                arg0->killCountdown     = 3;
                 Stage_Ctx->field_28     = Stage_Ctx->field_28 + 1;
                 break;
             case 3:
                 Display_State.field_103 = 2;
-                arg0->field_2a          = arg0->field_2a - 1;
-                if (arg0->field_2a == 0) {
+                arg0->killCountdown     = arg0->killCountdown - 1;
+                if (arg0->killCountdown == 0) {
                     Gpu_ResetGraphAndOt();
                     Gfx_StoreImageSlot(Game_Session->field_7, Game_Session->field_6,
-                                       Display_State.field_118, 0x10000);
+                                       Display_State.frameMode, 0x10000);
                     Mem_InitAux();
                     Stage_Ctx->field_12 = 0;
                     if ((s32)Stage_Ctx->field_1c < 0) {
                         Pad_ClearCooldown(0);
-                        arg0->field_30 = arg0->field_30 + 1;
+                        arg0->state = arg0->state + 1;
                         Display_TaskLoadStep(arg0);
                         return;
                     }
@@ -326,10 +326,10 @@ void Display_TransitionTask(Task* arg0)
     } else if (flags & 0x08000000) {
         Display_TransitionLoad(arg0);
     } else if ((s32)flags < 0) {
-        arg0->field_30 = arg0->field_30 + 1;
+        arg0->state = arg0->state + 1;
         Display_TaskLoadStep(arg0);
     } else if (flags & 0x20000000) {
-        Gfx_StoreImageSlot(Game_Session->field_7, Game_Session->field_6, Display_State.field_118,
+        Gfx_StoreImageSlot(Game_Session->field_7, Game_Session->field_6, Display_State.frameMode,
                            0x10000);
         Stage_Ctx->field_1c = Stage_Ctx->field_1c & 0xDFFFFFFF;
     }
@@ -348,16 +348,16 @@ void Display_FlipOtAndDispatch(s32 arg0)
     u32           mode;
 
     temp            = &Display_State;
-    saved           = D_800710A0;
+    saved           = Gpu_CurrentOt;
     buf             = temp->field_114 ^ 1;
     temp->field_114 = buf;
-    D_800710A0      = D5F414_OrderingTables + buf * C5F414_OTAG_ENTRIES;
-    ClearOTagR(D_800710A0, C5F414_OTAG_ENTRIES);
-    ot              = D_800710A0;
-    *ot             = C5F414_OTAG_END_PRIM;
-    D_800710A0      = ot + 0x20;
+    Gpu_CurrentOt   = Gpu_OtTags + buf * GPU_OT_ENTRIES;
+    ClearOTagR(Gpu_CurrentOt, GPU_OT_ENTRIES);
+    ot              = Gpu_CurrentOt;
+    *ot             = GPU_OT_END_PRIM;
+    Gpu_CurrentOt   = ot + 0x20;
     temp->field_103 = 0;
-    temp->field_1f  = *(u8*)&temp->field_118;
+    temp->field_1f  = *(u8*)&temp->frameMode;
     mode            = Stage_Ctx->field_11;
     switch (mode) {
         case 3:
@@ -374,7 +374,7 @@ void Display_FlipOtAndDispatch(s32 arg0)
             func_80097AC0(&Gpu_OtBuffers[temp->field_114]);
             break;
     }
-    D_800710A0 = saved;
+    Gpu_CurrentOt = saved;
 }
 
 void Display_InvertFramebufferGray(void)
@@ -459,7 +459,7 @@ void Stage_InitOtAndSpawn(void)
     temp            = &Display_State;
     temp->field_1e  = 1;
     temp->field_103 = 2;
-    temp->field_118 = temp->field_114 ^ 1;
+    temp->frameMode = temp->field_114 ^ 1;
     Task_InitList(&D_8007A110);
     Task_SpawnFromTable(&D_8006269C, 0, 0, 0);
 }
@@ -685,11 +685,11 @@ void Stage_WaitCdActivate(Task* arg0)
 {
     Pad_SetCooldown(0);
     if (CdCmd_ActivatePhase2() != 0) {
-        arg0->field_30 += 1;
+        arg0->state += 1;
     } else {
-        Pad_States[0].field_A = 1;
+        Pad_States[0].cooldown = 1;
         Display_SpawnFromMode();
-        arg0->field_30 += 2;
+        arg0->state += 2;
     }
 }
 
@@ -697,9 +697,9 @@ void Stage_WaitCdAndSpawn(Task* arg0)
 {
     Pad_SetCooldown(0);
     if (func_8001D82C() != 0) {
-        Pad_States[0].field_A = 1;
+        Pad_States[0].cooldown = 1;
         Display_SpawnFromMode();
-        arg0->field_30 += 1;
+        arg0->state += 1;
     }
 }
 
@@ -722,14 +722,14 @@ void Display_TaskLoadStep(Task* arg0)
         func_800ACAA8();
     }
     CdCmd_EnqueueLoadFile(0, 0, 4);
-    arg0->field_30 = (s32)(arg0->field_30 + 1);
+    arg0->state = (s32)(arg0->state + 1);
     Stage_WaitCdEntry(arg0);
 }
 
 void Stage_WaitCdEntry(Task* arg0)
 {
     if (func_8001D82C() != 0) {
-        arg0->field_30 += 1;
+        arg0->state += 1;
     }
 }
 
@@ -749,7 +749,7 @@ void Display_DispatchTaskTable(Task* arg0)
     TaskFuncTable6 sp;
 
     sp = D_80013E98;
-    sp.funcs[arg0->field_30](arg0);
+    sp.funcs[arg0->state](arg0);
     Display_StepFadeOverlay();
 }
 
@@ -889,9 +889,9 @@ void Mdec_ProcessDecode(void)
             Gpu_ResetGraphAndOt();
             p->field_1EC = 1;
             if (p->field_238 == 1) {
-                DecDCTvlcBuild((u16*)((u8*)D4CB64_ImgBuffers + 0x8800));
+                DecDCTvlcBuild((u16*)((u8*)Fs_ImgBuffers + 0x8800));
                 p->field_234 = 0;
-                p->field_18C = (u16*)((u8*)D4CB64_ImgBuffers + 0x8800);
+                p->field_18C = (u16*)((u8*)Fs_ImgBuffers + 0x8800);
             }
             DecDCTReset(0);
             DecDCTvlcSize2(0);
@@ -901,7 +901,7 @@ void Mdec_ProcessDecode(void)
             DecDCToutCallback(Mdec_StripCallback);
             DecDCTin((u_long*)GActiveAuxHeap, (s32)p->field_22A);
             p->field_22A = 0;
-            DecDCTout((u_long*)D4CB64_ImgBuffers, 0x780);
+            DecDCTout((u_long*)Fs_ImgBuffers, 0x780);
             D_8007A358    = 0;
             p->field_202 += 1;
             /* fallthrough */
@@ -1126,12 +1126,12 @@ void Mdec_DecodeToVram(void)
             DecDCTReset(0);
             DecDCTvlcSize2(0);
             DecDCTvlc2((u_long*)D_8007A360, (u_long*)GActiveAuxHeap,
-                       (u_short*)((u8*)D4CB64_ImgBuffers + 0x8800));
+                       (u_short*)((u8*)Fs_ImgBuffers + 0x8800));
             D_8007A35E = 1;
             DecDCToutCallback(Mdec_StripCallback);
             DecDCTin((u_long*)GActiveAuxHeap, p->field_22A);
             p->field_22A = 0;
-            DecDCTout((u_long*)D4CB64_ImgBuffers, 0x780);
+            DecDCTout((u_long*)Fs_ImgBuffers, 0x780);
             p->field_202 += 1;
             /* fallthrough */
         case 1:
@@ -1143,7 +1143,7 @@ void Mdec_DecodeToVram(void)
                 do {
                     temp   = i & 0xFFFF;
                     rect.x = temp * 0x10;
-                    LoadImage(&rect, (u_long*)((u8*)D4CB64_ImgBuffers + (temp * 0x1E00)));
+                    LoadImage(&rect, (u_long*)((u8*)Fs_ImgBuffers + (temp * 0x1E00)));
                     i++;
                 } while ((u32)(i & 0xFFFF) < 0x14U);
                 rect.w = 0x140;
@@ -1151,7 +1151,7 @@ void Mdec_DecodeToVram(void)
                 rect.h = 0xF0;
                 d      = &Display_State;
                 rect.y = (d->field_1f ^ 1) * 0x110;
-                StoreImage(&rect, (u_long*)D4CB64_ImgBuffers);
+                StoreImage(&rect, (u_long*)Fs_ImgBuffers);
                 if (p->field_23E != 0) {
                     rect.x = 0;
                     rect.w = 0x1E0;
@@ -1184,7 +1184,7 @@ void CdCmd_StepVlcRebuild(void)
     p = &CdCmd_Queue;
     if (p->field_214 == 0) {
         if (p->field_234 != 0) {
-            DecDCTvlcBuild((u16*)((u8*)D4CB64_ImgBuffers + 0x8800));
+            DecDCTvlcBuild((u16*)((u8*)Fs_ImgBuffers + 0x8800));
             p->field_234 = 0;
         }
         if ((p->field_200 != 0) && (p->field_234 == 0)) {
@@ -1225,7 +1225,7 @@ void Mdec_StripCallback(void)
         DecDCToutCallback(0);
     } else {
         D_8007A35C = D_8007A35C + 1;
-        DecDCTout(D4CB64_ImgBuffers->buffers[D_8007A35C], 0x780);
+        DecDCTout(Fs_ImgBuffers->buffers[D_8007A35C], 0x780);
     }
 }
 
@@ -1770,7 +1770,7 @@ void Tmd_SetupDraw(TmdObject* arg0)
         s32                 field18;
 
         __asm__ volatile("" ::: "memory");
-        ot           = D_800710A0;
+        ot           = Gpu_CurrentOt;
         p            = arg0->field_10;
         field18      = p->field_18;
         ws->field_14 = ot;
@@ -1983,7 +1983,7 @@ void Tmd_DispatchTask(Task* arg0)
     TaskFuncTable3 sp;
 
     sp = D_80013EDC;
-    sp.funcs[arg0->field_30](arg0);
+    sp.funcs[arg0->state](arg0);
 }
 
 void Gpu_ResetGraphAndOt(void)
@@ -1992,8 +1992,8 @@ void Gpu_ResetGraphAndOt(void)
 
     node = Tmd_List.next;
     ResetGraph(1);
-    F179D4_ClearOTag(0);
-    F179D4_ClearOTag(1);
+    Gpu_ClearOTag(0);
+    Gpu_ClearOTag(1);
     while (node != NULL) {
         if (node->field_18 != NULL) {
             node->field_18 = NULL;

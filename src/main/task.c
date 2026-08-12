@@ -42,7 +42,7 @@ case1:
     if (D_8005ED8C != 0) {
         flags_a2 |= 2;
     }
-    extra = func_80099170(task, desc->field_8, flags_a2);
+    extra = func_80099170(task, desc->setupArg, flags_a2);
     goto merge;
 
 case2:
@@ -50,23 +50,23 @@ case2:
 
 merge:
     if (((u8)desc->flags == 0) || (extra != NULL)) {
-        task->field_14 = desc->callback;
-        priority       = *(u8*)&desc->field_2;
-        task->field_18 = Task_Kill;
-        task->field_29 = priority;
-        flags_lo       = (u8)desc->flags;
-        task->field_2c = extra;
-        task->field_34 = arg1;
-        task->field_20 = (void*)arg2;
-        task->field_8  = NULL;
-        task->field_c  = NULL;
-        task->field_10 = task;
-        task->field_28 = flags_lo;
-        curr           = list->next;
+        task->callback     = desc->callback;
+        priority           = *(u8*)&desc->priority;
+        task->exitCallback = Task_Kill;
+        task->priority     = priority;
+        flags_lo           = (u8)desc->flags;
+        task->extra        = extra;
+        task->spawnArg1    = arg1;
+        task->spawnArg2    = (void*)arg2;
+        task->parent       = NULL;
+        task->firstChild   = NULL;
+        task->nextSibling  = task;
+        task->spawnType    = flags_lo;
+        curr               = list->next;
         if (curr != NULL) {
             priority &= 0xFF;
         loop:
-            if ((u32)priority >= (u8)curr->field_29) {
+            if ((u32)priority >= (u8)curr->priority) {
                 curr = curr->node.next;
                 if (curr != NULL) {
                     goto loop;
@@ -101,14 +101,14 @@ void Task_Kill(Task* arg0)
     void*      extra;
     s32        type;
 
-    temp = arg0->field_c;
+    temp = arg0->firstChild;
     if (temp != NULL) {
         start = temp;
         cur   = start;
         do {
-            cur->field_8 = NULL;
-            cur->field_18(cur);
-            cur = cur->field_10;
+            cur->parent = NULL;
+            cur->exitCallback(cur);
+            cur = cur->nextSibling;
         } while (cur != start);
     }
 
@@ -116,32 +116,32 @@ void Task_Kill(Task* arg0)
         register Task* p asm("v1");
         register Task* n asm("a0");
 
-        p = arg0->field_8;
+        p = arg0->parent;
         if (p != NULL) {
-            n = arg0->field_10;
+            n = arg0->nextSibling;
             if (n == arg0) {
-                p->field_c = NULL;
+                p->firstChild = NULL;
             } else {
-                if (p->field_c == arg0) {
-                    p->field_c = n;
+                if (p->firstChild == arg0) {
+                    p->firstChild = n;
                 }
                 cur = arg0;
-                if (arg0->field_10 != arg0) {
+                if (arg0->nextSibling != arg0) {
                     do {
-                        cur = cur->field_10;
-                    } while (cur->field_10 != arg0);
+                        cur = cur->nextSibling;
+                    } while (cur->nextSibling != arg0);
                 }
-                cur->field_10 = arg0->field_10;
+                cur->nextSibling = arg0->nextSibling;
             }
         }
     }
 
-    if (arg0->field_1C != NULL) {
-        Mem_Free(arg0->field_1C);
+    if (arg0->idMap != NULL) {
+        Mem_Free(arg0->idMap);
     }
 
-    if (Display_State.field_123 == 0) {
-        type = arg0->field_28;
+    if (Display_State.skipTeardown == 0) {
+        type = arg0->spawnType;
         if (type == 1) {
             goto case1;
         }
@@ -154,64 +154,64 @@ void Task_Kill(Task* arg0)
         goto def_case;
 
     case1:
-        ((GameActorExt*)arg0->field_2c)->field_C |= 0x80;
-        arg0->field_2a                            = 2;
-        arg0->field_14                            = Task_CountdownCallback;
-        arg0->field_30                            = 0;
-        arg0->field_18                            = (TaskFunc)func_8002DEC4;
+        ((GameActorExt*)arg0->extra)->field_C |= 0x80;
+        arg0->killCountdown                    = 2;
+        arg0->callback                         = Task_CountdownCallback;
+        arg0->state                            = 0;
+        arg0->exitCallback                     = (TaskFunc)func_8002DEC4;
         return;
 
     case2:
-        func_80099258(arg0->field_2c);
-        arg0->field_2a = 1;
-        arg0->field_14 = (TaskFunc)func_8002DEC4;
-        arg0->field_18 = (TaskFunc)func_8002DEC4;
-        arg0->field_2a--;
-        if (arg0->field_2a != 0) {
+        func_80099258(arg0->extra);
+        arg0->killCountdown = 1;
+        arg0->callback      = (TaskFunc)func_8002DEC4;
+        arg0->exitCallback  = (TaskFunc)func_8002DEC4;
+        arg0->killCountdown--;
+        if (arg0->killCountdown != 0) {
             return;
         }
-        if (arg0->field_28 == 1) {
+        if (arg0->spawnType == 1) {
             goto cu1;
         }
-        if (arg0->field_28 != type) {
+        if (arg0->spawnType != type) {
             goto cu_def;
         }
         goto cu2;
 
     def_case:
-        arg0->field_2a = 1;
-        arg0->field_14 = (TaskFunc)func_8002DEC4;
-        arg0->field_18 = (TaskFunc)func_8002DEC4;
-        arg0->field_2a--;
-        if (arg0->field_2a != 0) {
+        arg0->killCountdown = 1;
+        arg0->callback      = (TaskFunc)func_8002DEC4;
+        arg0->exitCallback  = (TaskFunc)func_8002DEC4;
+        arg0->killCountdown--;
+        if (arg0->killCountdown != 0) {
             return;
         }
-        if (arg0->field_28 == 1) {
+        if (arg0->spawnType == 1) {
             goto cu1;
         }
-        if (arg0->field_28 == 2) {
+        if (arg0->spawnType == 2) {
             goto cu2;
         }
         goto cu_def;
 
     cu1:
-        extra = arg0->field_2c;
+        extra = arg0->extra;
         func_800991DC(extra);
         func_80099214(extra);
         goto cu_def;
 
     cu2:
-        func_80099290(arg0->field_2c);
+        func_80099290(arg0->extra);
 
     cu_def:
-        arg0->field_28 = 0xFF;
+        arg0->spawnType = 0xFF;
         return;
     }
 
     {
         register s32 t asm("v1");
 
-        t = arg0->field_28;
+        t = arg0->spawnType;
         if (t == 1) {
             goto imm1;
         }
@@ -222,13 +222,13 @@ void Task_Kill(Task* arg0)
     goto imm_unlink;
 
 imm1:
-    func_800991DC(arg0->field_2c);
-    func_80099214(arg0->field_2c);
+    func_800991DC(arg0->extra);
+    func_80099214(arg0->extra);
     goto imm_unlink;
 
 imm2:
-    func_80099258(arg0->field_2c);
-    func_80099290(arg0->field_2c);
+    func_80099258(arg0->extra);
+    func_80099290(arg0->extra);
 
 imm_unlink:
     saved           = Task_ActiveList;
@@ -270,22 +270,22 @@ void Task_KillChildren(Task* arg0)
     Task* cur;
     Task* temp;
 
-    temp = arg0->field_c;
+    temp = arg0->firstChild;
     if (temp != NULL) {
         start = temp;
         cur   = start;
         do {
-            cur->field_8 = NULL;
-            cur->field_18(cur);
-            cur = cur->field_10;
+            cur->parent = NULL;
+            cur->exitCallback(cur);
+            cur = cur->nextSibling;
         } while (cur != start);
     }
-    arg0->field_c = NULL;
+    arg0->firstChild = NULL;
 }
 
 void Task_CallExit(Task* arg0)
 {
-    arg0->field_18(arg0);
+    arg0->exitCallback(arg0);
 }
 
 void Task_DetachFromParent(Task* arg0)
@@ -294,28 +294,28 @@ void Task_DetachFromParent(Task* arg0)
     Task* next;
     Task* cur;
 
-    parent = arg0->field_8;
+    parent = arg0->parent;
     if (parent == NULL) {
         return;
     }
 
-    next = arg0->field_10;
+    next = arg0->nextSibling;
     if (next == arg0) {
-        parent->field_c = NULL;
+        parent->firstChild = NULL;
     } else {
-        if (parent->field_c == arg0) {
-            parent->field_c = next;
+        if (parent->firstChild == arg0) {
+            parent->firstChild = next;
         }
         cur = arg0;
-        if (arg0->field_10 != arg0) {
+        if (arg0->nextSibling != arg0) {
             do {
-                cur = cur->field_10;
-            } while (cur->field_10 != arg0);
+                cur = cur->nextSibling;
+            } while (cur->nextSibling != arg0);
         }
-        cur->field_10  = arg0->field_10;
-        arg0->field_10 = arg0;
+        cur->nextSibling  = arg0->nextSibling;
+        arg0->nextSibling = arg0;
     }
-    arg0->field_8 = NULL;
+    arg0->parent = NULL;
 }
 
 void Task_Reparent(Task* arg0, Task* arg1)
@@ -325,41 +325,41 @@ void Task_Reparent(Task* arg0, Task* arg1)
     Task* cur;
     Task* temp;
 
-    parent = arg1->field_8;
+    parent = arg1->parent;
     if (parent != NULL) {
-        next = arg1->field_10;
+        next = arg1->nextSibling;
         if (next == arg1) {
-            parent->field_c = NULL;
+            parent->firstChild = NULL;
         } else {
-            if (parent->field_c == arg1) {
-                parent->field_c = next;
+            if (parent->firstChild == arg1) {
+                parent->firstChild = next;
             }
             cur = arg1;
-            if (arg1->field_10 != arg1) {
+            if (arg1->nextSibling != arg1) {
                 do {
-                    cur = cur->field_10;
-                } while (cur->field_10 != arg1);
+                    cur = cur->nextSibling;
+                } while (cur->nextSibling != arg1);
             }
-            cur->field_10  = arg1->field_10;
-            arg1->field_10 = arg1;
+            cur->nextSibling  = arg1->nextSibling;
+            arg1->nextSibling = arg1;
         }
-        arg1->field_8 = NULL;
+        arg1->parent = NULL;
     }
-    arg1->field_8 = arg0;
-    temp          = arg0->field_c;
+    arg1->parent = arg0;
+    temp         = arg0->firstChild;
     if (temp == NULL) {
-        arg0->field_c = arg1;
+        arg0->firstChild = arg1;
         return;
     }
     cur  = temp;
     arg0 = temp;
-    if (cur->field_10 != cur) {
+    if (cur->nextSibling != cur) {
         do {
-            cur = cur->field_10;
-        } while (cur->field_10 != arg0);
+            cur = cur->nextSibling;
+        } while (cur->nextSibling != arg0);
     }
-    arg1->field_10 = arg0;
-    cur->field_10  = arg1;
+    arg1->nextSibling = arg0;
+    cur->nextSibling  = arg1;
 }
 
 void Game_SetPtrSlot(void* arg0, s32 arg1)
@@ -390,12 +390,12 @@ void Task_ExecList(TaskNode* node)
     if (curr != NULL) {
         tmp_ptr = &Display_State;
     loop_2:
-        curr->field_14(curr);
+        curr->callback(curr);
         if (tmp_ptr->field_10b == 1) {
             tmp_ptr->field_10b = 0;
             return;
         }
-        if (curr->field_28 == 0xFF) {
+        if (curr->spawnType == 0xFF) {
             next               = curr->node.next;
             tmp_ptr->field_10b = 0;
             Task_Unlink(curr);
@@ -427,21 +427,21 @@ void Task_RequestKill(Task* arg0, s32 arg1)
     Task* cur;
     Task* temp;
 
-    arg0->field_38 = 0xFF;
-    arg0->field_3c = arg1;
-    arg0->field_14 = (TaskFunc)func_8002DEC4;
+    arg0->flags      = 0xFF;
+    arg0->extraState = arg1;
+    arg0->callback   = (TaskFunc)func_8002DEC4;
 
-    temp = arg0->field_c;
+    temp = arg0->firstChild;
     if (temp != NULL) {
         start = temp;
         cur   = start;
         do {
-            cur->field_8 = NULL;
-            cur->field_18(cur);
-            cur = cur->field_10;
+            cur->parent = NULL;
+            cur->exitCallback(cur);
+            cur = cur->nextSibling;
         } while (cur != start);
     }
-    arg0->field_c = NULL;
+    arg0->firstChild = NULL;
 }
 
 s32 Task_PollKill(Task* arg0, s32* arg1)
@@ -449,11 +449,11 @@ s32 Task_PollKill(Task* arg0, s32* arg1)
     s32 result;
 
     result = 0;
-    if (arg0->field_38 == 0xFF) {
+    if (arg0->flags == 0xFF) {
         if (arg1 != NULL) {
-            *arg1 = arg0->field_3c;
+            *arg1 = arg0->extraState;
         }
-        arg0->field_18(arg0);
+        arg0->exitCallback(arg0);
         result = 1;
     }
     return result;
@@ -512,12 +512,12 @@ void Task_ExecDefaultList(TaskNode* node)
     if (curr != NULL) {
         tmp_ptr = &Display_State;
     loop_2:
-        curr->field_14(curr);
+        curr->callback(curr);
         if (tmp_ptr->field_10b == 1) {
             tmp_ptr->field_10b = 0;
             return;
         }
-        if (curr->field_28 == 0xFF) {
+        if (curr->spawnType == 0xFF) {
             next               = curr->node.next;
             tmp_ptr->field_10b = 0;
             Task_Unlink(curr);
@@ -547,14 +547,14 @@ void Task_ExecListFiltered(TaskNode* node, s32 arg1)
         filter  = arg1 & 0xFF;
         tmp_ptr = &Display_State;
     loop_2:
-        if (curr->field_29 == (u8)filter) {
-            curr->field_14(curr);
+        if (curr->priority == (u8)filter) {
+            curr->callback(curr);
         }
         if (tmp_ptr->field_10b == 1) {
             tmp_ptr->field_10b = 0;
             goto end;
         }
-        if (curr->field_28 == 0xFF) {
+        if (curr->spawnType == 0xFF) {
             next               = curr->node.next;
             tmp_ptr->field_10b = 0;
             Task_Unlink(curr);
@@ -586,14 +586,14 @@ void Task_CallExitFiltered(TaskNode* node, s32 arg1)
         filter  = arg1 & 0xFF;
         tmp_ptr = &Display_State;
     loop_2:
-        if (curr->field_29 == (u8)filter) {
+        if (curr->priority == (u8)filter) {
             Task_CallExit(curr);
         }
         if (tmp_ptr->field_10b == 1) {
             tmp_ptr->field_10b = 0;
             goto end;
         }
-        if (curr->field_28 == 0xFF) {
+        if (curr->spawnType == 0xFF) {
             next               = curr->node.next;
             tmp_ptr->field_10b = 0;
             Task_Unlink(curr);
@@ -614,24 +614,24 @@ void Task_CountdownCallback(Task* arg0)
 {
     void* temp_s0;
 
-    arg0->field_2a--;
-    if (arg0->field_2a != 0) {
+    arg0->killCountdown--;
+    if (arg0->killCountdown != 0) {
         return;
     }
 
-    switch (arg0->field_28) {
+    switch (arg0->spawnType) {
         case 1:
-            temp_s0 = arg0->field_2c;
+            temp_s0 = arg0->extra;
             func_800991DC(temp_s0);
             func_80099214(temp_s0);
-            arg0->field_28 = 0xFF;
+            arg0->spawnType = 0xFF;
             break;
         case 2:
-            func_80099290(arg0->field_2c);
-            arg0->field_28 = 0xFF;
+            func_80099290(arg0->extra);
+            arg0->spawnType = 0xFF;
             break;
         default:
-            arg0->field_28 = 0xFF;
+            arg0->spawnType = 0xFF;
             break;
     }
 }

@@ -40,7 +40,8 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 | `Gpu_` | OT / light / graph reset helpers | `src/main/otutil.c`, `tmd.c` | `include/main/display.h` (OT types) |
 | `Boot_` | Cold-boot / title path | `src/main/boot.c` | `include/main/boot.h` |
 | `Title_` | Title / demo / main-menu overlay | `src/title/title.c` | `include/main/title.h` |
-| `Mem_` / `GHeap` | Heaps | `src/main/mem.c` | `include/main/mem.h` |
+| `Mem_` / `GHeap` | Main / aux heaps | `src/main/mem.c` | `include/main/mem.h` |
+| `SndHeap_` | Dedicated 0x3D00 first-fit sound heap | `src/main/sndbank.c` | `include/main/sound.h` |
 | `Task_` | Cooperative task list / spawn / kill | `src/main/task.c` | `include/main/task.h` |
 | `Pad_` | Controller state / button polls | `src/main/pad.c`, `padutil.c` | `include/main/pad.h` |
 | `Mc_` | Memory-card save/load helpers | `src/main/mc.c`, `mcmenu.c`, `mcprompt.c` | `include/main/mc.h` |
@@ -120,5 +121,6 @@ Bulk renames live in:
 - `tools/rename_evtuipanel_tmd_syms.py` — SndEvt / UiPanel / Tmd / TaskIdMap / GameSession
 - `tools/rename_cdaudio_tick_syms.py` — CdAudio / AudioTick / SpuVoiceRange / StreamSlot / StageCtx
 - `tools/rename_remaining_wip_syms.py` — last GStruct leftovers (+ Wip* provisional names)
+- `tools/rename_naming_pass.py` — leftover F-prefix splat names + typed FS/GPU/SPU globals
 
 Idempotent only if old names are already gone. Extend the map rather than hand-editing hundreds of `.s` files.

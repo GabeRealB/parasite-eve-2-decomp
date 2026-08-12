@@ -29,7 +29,7 @@ typedef struct _StageCtx {
     /* 0x1B */ byte      unknown_1b;
     /* 0x1C */ u32       field_1c;    // flag word
     /* 0x20 */ s32       field_20;
-    /* 0x24 */ s32       field_24;    // last Display_State.field_118
+    /* 0x24 */ s32       field_24;    // last Display_State.frameMode
     /* 0x28 */ s32       field_28;    // step counter
     /* 0x2C */ u8        field_2C[8]; // CDF load param block
     /* 0x34 */ u8        field_34[4]; // CDF load param block

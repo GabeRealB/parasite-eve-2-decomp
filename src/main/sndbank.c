@@ -34,13 +34,13 @@ wait_spu_transfer:
 
 unknown:
     D_800680BC = 0;
-    F16494_ResetSpuAttr();
+    Spu_ResetCommonAttr();
 
 setup_events:
-    F3D458_ResetHeap();
+    SndHeap_Reset();
     SndEvt_Reset();
     AsyncCb_Reset();
-    F3E48C_ConfigSpuReverb(3);
+    Spu_ConfigReverb(3);
     Spu_InitVoices();
     Snd_ClearBanks();
     AudioTick_Reset();
@@ -48,7 +48,7 @@ setup_events:
     Snd_InitBanks(0);
     Midi_InitSystem(0);
 
-    temp_v0  = F3D458_Malloc(4);
+    temp_v0  = SndHeap_Malloc(4);
     *temp_v0 = 0;
 
     AudioTick_Insert(&Snd_ReverbWarmupCb, 0, 0x8801, temp_v0);
@@ -59,7 +59,7 @@ setup_events:
         D58028_SpuTimerEnabled = false;
     }
 
-    if (Display_State.field_124 == 1) {
+    if (Display_State.region == 1) {
         D_800680A4 = 0;
         D_8007E0CC = 0;
         SetRCnt(RCntCNT0, 0xffff, RCntMdINTR | RCntMdSC);
@@ -162,7 +162,7 @@ SndBank* Snd_AllocBank(SndBankPayload* arg0)
             break;
     }
 
-    temp_v0        = (s32)F3D458_Malloc(size);
+    temp_v0        = (s32)SndHeap_Malloc(size);
     bank->field_1C = (void*)temp_v0;
     if (temp_v0 == 0) {
         return NULL;
@@ -194,9 +194,9 @@ void Audio_IrqFrameWork(void)
         func_8004E200();
         SndEvt_Process();
         AudioTick_Process();
-        F3E48C_8004E44C();
+        Spu_FlushVoiceUpdates();
         D_800680BC += 1;
-        if (Display_State.field_124 == 1) {
+        if (Display_State.region == 1) {
             D_8007E0CC = 6;
             ResetRCnt(RCntCNT0);
             D_800680A4 = 1;
@@ -236,7 +236,7 @@ void Snd_ClearBanks(void)
 void Snd_FreeBank(SndBank* arg0)
 {
     if ((arg0 != NULL) && ((arg0->field_8 & 0xF000) != 0xF000)) {
-        F3D458_Free(arg0->field_1C);
+        SndHeap_Free(arg0->field_1C);
         arg0->field_1C = NULL;
         arg0->field_0  = NULL;
         arg0->field_4  = NULL;
@@ -401,17 +401,17 @@ void Spu_ApplyPanVolume(s16* arg0, s16 arg1, s32 arg2)
 
 INCLUDE_ASM("main/nonmatchings/sndbank", AudioTick_Insert);
 
-void F3D458_ResetHeap(void)
+void SndHeap_Reset(void)
 {
-    D648E0_HeapStart              = (HeapBlockHeader*)D648E0_HeapBuffer;
-    D648E0_HeapStart->size        = C3D458_HEAP_SIZE;
-    D648E0_HeapStart->magic       = C3D458_HEAP_START_MAGIC;
-    D648E0_HeapStart->isAllocated = false;
-    D648E0_HeapStart->prev        = NULL;
-    D648E0_HeapStart->next        = NULL;
+    SndHeap_Start              = (HeapBlockHeader*)SndHeap_Buffer;
+    SndHeap_Start->size        = SNDHEAP_SIZE;
+    SndHeap_Start->magic       = SNDHEAP_START_MAGIC;
+    SndHeap_Start->isAllocated = false;
+    SndHeap_Start->prev        = NULL;
+    SndHeap_Start->next        = NULL;
 }
 
-void* F3D458_Malloc(size_t size)
+void* SndHeap_Malloc(size_t size)
 {
     // Simple first-fit allocator, using linked lists.
     // The allocator splits up the available space into variable-length blocks.
@@ -428,7 +428,7 @@ void* F3D458_Malloc(size_t size)
 
     // Start the search at the first header.
     maxBlockSize = 0;
-    block        = D648E0_HeapStart;
+    block        = SndHeap_Start;
 
     // Reserve additional space for the header and align to 4 bytes.
     allocSize = (size + sizeof(HeapBlockHeader) + 3) & ~3;
@@ -439,9 +439,9 @@ void* F3D458_Malloc(size_t size)
         // registers in the order `t0`, `t1`, `t2`. Instead the registers
         // must be allocated in the order `t1`, `t2`, `t0`. To achieve this
         // we manually place the constants in the correct registers.
-        size_t          heapStart         = (size_t)&D648E0_HeapBuffer;
-        register size_t heapEnd asm("t1") = heapStart + C3D458_HEAP_SIZE;
-        register size_t magic asm("t2")   = C3D458_HEAP_MAGIC;
+        size_t          heapStart         = (size_t)&SndHeap_Buffer;
+        register size_t heapEnd asm("t1") = heapStart + SNDHEAP_SIZE;
+        register size_t magic asm("t2")   = SNDHEAP_MAGIC;
 
         // Actual loop body.
         do {
@@ -510,7 +510,7 @@ void* F3D458_Malloc(size_t size)
     return NULL;
 }
 
-void F3D458_Free(void* ptr)
+void SndHeap_Free(void* ptr)
 {
     // This is the inverse of the allocation function. Given a pointer, that we
     // assume points to the start of the data region which was returned by the
@@ -528,12 +528,12 @@ void F3D458_Free(void* ptr)
 
     // Safety check: Ensure that the pointer is contained in the heap region.
     // Otherwise we return.
-    heapStart = (size_t)D648E0_HeapBuffer;
+    heapStart = (size_t)SndHeap_Buffer;
     if ((size_t)ptr < heapStart) {
         return;
     }
 
-    heapEnd = heapStart + C3D458_HEAP_SIZE;
+    heapEnd = heapStart + SNDHEAP_SIZE;
     if (heapEnd < (size_t)ptr) {
         return;
     }
@@ -546,7 +546,7 @@ void F3D458_Free(void* ptr)
     // merged on free. Investigate!
     header              = ptr - sizeof(HeapBlockHeader);
     header->isAllocated = false;
-    if (header->magic != C3D458_HEAP_MAGIC && header->magic != C3D458_HEAP_START_MAGIC) {
+    if (header->magic != SNDHEAP_MAGIC && header->magic != SNDHEAP_START_MAGIC) {
         return;
     }
 
@@ -597,7 +597,7 @@ s32 Spu_TimerReentryWork(void)
     D_800680C0 = 0;
     func_8004E200();
     AudioTick_Process();
-    F3E48C_8004E44C();
+    Spu_FlushVoiceUpdates();
     D_800680C0  = 1;
     D_800680BC += 1;
     return 0;
@@ -605,12 +605,12 @@ s32 Spu_TimerReentryWork(void)
 
 void AudioTick_Reset(void)
 {
-    AudioTick_List.field_0  = 0;
-    AudioTick_List.field_4  = 0;
-    AudioTick_List.field_8  = 0;
-    AudioTick_List.field_c  = 0;
-    AudioTick_List.field_14 = NULL;
-    AudioTick_List.field_10 = 0;
+    AudioTick_List.poll     = 0;
+    AudioTick_List.onRemove = 0;
+    AudioTick_List.id       = 0;
+    AudioTick_List.arg      = 0;
+    AudioTick_List.next     = NULL;
+    AudioTick_List.prev     = 0;
     AudioTick_Enabled       = 1;
 }
 
@@ -623,19 +623,19 @@ void AudioTick_Process(void)
     head = &AudioTick_List;
     if (AudioTick_Enabled != 0) {
         if (head != NULL) {
-            node = (AudioTickNode*)head->field_14;
+            node = (AudioTickNode*)head->next;
             while (1) {
                 if (node == NULL) {
                     break;
                 }
-                callback = (s32 (*)(s32))node->field_0;
+                callback = (s32 (*)(s32))node->poll;
                 if (callback != NULL) {
-                    if (callback(node->field_c) == -1) {
+                    if (callback(node->arg) == -1) {
                         node = AudioTick_Remove(node);
                         continue;
                     }
                 }
-                node = (AudioTickNode*)node->field_14;
+                node = (AudioTickNode*)node->next;
             }
         }
     }
@@ -649,26 +649,26 @@ AudioTickNode* AudioTick_Remove(AudioTickNode* arg0)
     AudioTickNode* curr;
 
     head              = &AudioTick_List;
-    callback          = (void (*)(void))arg0->field_4;
+    callback          = (void (*)(void))arg0->onRemove;
     AudioTick_Enabled = 0;
     if (callback != NULL) {
         callback();
     }
 
     prev = head;
-    if (prev->field_14 != 0) {
+    if (prev->next != 0) {
         do {
-            curr = (AudioTickNode*)prev->field_14;
-            if ((u16)curr->field_8 == (u16)arg0->field_8) {
-                prev->field_14 = arg0->field_14;
-                if (arg0->field_14 != 0) {
-                    ((AudioTickNode*)arg0->field_14)->field_10 = (s32)prev;
+            curr = (AudioTickNode*)prev->next;
+            if ((u16)curr->id == (u16)arg0->id) {
+                prev->next = arg0->next;
+                if (arg0->next != 0) {
+                    ((AudioTickNode*)arg0->next)->prev = (s32)prev;
                 }
                 AudioTick_Enabled = 1;
-                return (AudioTickNode*)prev->field_14;
+                return (AudioTickNode*)prev->next;
             }
             prev = curr;
-        } while (prev->field_14 != 0);
+        } while (prev->next != 0);
     }
     AudioTick_Enabled = 1;
     return NULL;

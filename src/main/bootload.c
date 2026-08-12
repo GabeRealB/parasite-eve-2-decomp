@@ -29,12 +29,12 @@ s32 Fade_StepIn(s32 arg0)
     p->y0 = -0x78;
     p->w  = w;
     p->h  = 0xF0;
-    addPrim(D_800710A0 - 0x10, p);
+    addPrim(Gpu_CurrentOt - 0x10, p);
 
     dr         = (DR_TPAGE*)D_80070EE0;
     D_80070EE0 = (u8*)(dr + 1);
     setDrawTPage(dr, 0, 1, 0x40);
-    addPrim(D_800710A0 - 0x10, dr);
+    addPrim(Gpu_CurrentOt - 0x10, dr);
 
     cur  = *(s16*)&D_8006ACB4;
     next = D_8006ACB4;
@@ -77,12 +77,12 @@ void Fade_StartWhite(void)
     p->y0 = -0x78;
     p->w  = 0x140;
     p->h  = 0xF0;
-    addPrim(D_800710A0 - 0x10, p);
+    addPrim(Gpu_CurrentOt - 0x10, p);
 
     dr         = (DR_TPAGE*)D_80070EE0;
     D_80070EE0 = (u8*)(dr + 1);
     setDrawTPage(dr, 0, 1, 0x40);
-    addPrim(D_800710A0 - 0x10, dr);
+    addPrim(Gpu_CurrentOt - 0x10, dr);
 }
 
 s32 Fade_StepOut(s32 arg0)
@@ -105,12 +105,12 @@ s32 Fade_StepOut(s32 arg0)
     p->y0 = -0x78;
     p->w  = 0x140;
     p->h  = 0xF0;
-    addPrim(D_800710A0 - 0x10, p);
+    addPrim(Gpu_CurrentOt - 0x10, p);
 
     dr         = (DR_TPAGE*)D_80070EE0;
     D_80070EE0 = (u8*)(dr + 1);
     setDrawTPage(dr, 0, 1, 0x40);
-    addPrim(D_800710A0 - 0x10, dr);
+    addPrim(Gpu_CurrentOt - 0x10, dr);
 
     val        = D_8006ACB4 - arg0;
     D_8006ACB4 = val;
@@ -119,15 +119,15 @@ s32 Fade_StepOut(s32 arg0)
 
 void Fs_SelectLoadHandlers0(u8* arg0)
 {
-    switch (D5B498_8006ACB8.field_2) {
+    switch (Fs_LoadParams.field_2) {
         case 1:
-            D5B498_8006ACB0 = D_80062DB0;
-            *arg0           = 5;
+            Fs_BootTimPrimary = D_80062DB0;
+            *arg0             = 5;
             break;
         case 5:
-            D5B498_8006ACB0 = D_800629B0;
-            D5B498_8006ACAC = D_800629D0;
-            *arg0           = 3;
+            Fs_BootTimPrimary   = D_800629B0;
+            Fs_BootTimSecondary = D_800629D0;
+            *arg0               = 3;
             break;
         case 2:
         case 3:
@@ -146,50 +146,50 @@ void Fs_SelectLoadHandlers0(u8* arg0)
         case 17:
         case 18:
         default:
-            D5B498_8006ACB0 = D_80062DB0;
-            *arg0           = 6;
+            Fs_BootTimPrimary = D_80062DB0;
+            *arg0             = 6;
             break;
         case 19:
             if (GameFlag_GetNibble(0x7A) == 0) {
-                D5B498_8006ACB0 = D_80062D08;
-                *arg0           = 7;
+                Fs_BootTimPrimary = D_80062D08;
+                *arg0             = 7;
             } else {
-                D5B498_8006ACB0 = D_80062E04;
-                *arg0           = 8;
+                Fs_BootTimPrimary = D_80062E04;
+                *arg0             = 8;
             }
             break;
         case 20:
-            D5B498_8006ACB0 = D_80062934;
-            D5B498_8006ACAC = D_80062954;
-            *arg0           = 3;
+            Fs_BootTimPrimary   = D_80062934;
+            Fs_BootTimSecondary = D_80062954;
+            *arg0               = 3;
             break;
     }
 }
 
 void Fs_SelectLoadHandlers1(u8* arg0)
 {
-    switch (D5B498_8006ACB8.field_2) {
+    switch (Fs_LoadParams.field_2) {
         case 1:
             if (D5B498_8006ACC0 == 0) {
-                D5B498_8006ACB0 = D_80062E50;
-                *arg0           = 0xA;
+                Fs_BootTimPrimary = D_80062E50;
+                *arg0             = 0xA;
             } else {
-                D5B498_8006ACB0 = D_80062A24;
-                D5B498_8006ACAC = D_80062A44;
-                *arg0           = 3;
+                Fs_BootTimPrimary   = D_80062A24;
+                Fs_BootTimSecondary = D_80062A44;
+                *arg0               = 3;
             }
             break;
         case 2:
-            D5B498_8006ACB0 = D_80062E50;
-            *arg0           = 0xA;
+            Fs_BootTimPrimary = D_80062E50;
+            *arg0             = 0xA;
             break;
         case 27:
-            D5B498_8006ACB0 = D_80062E50;
-            *arg0           = 0xB;
+            Fs_BootTimPrimary = D_80062E50;
+            *arg0             = 0xB;
             break;
         case 30:
-            D5B498_8006ACB0 = D_80062E50;
-            *arg0           = 4;
+            Fs_BootTimPrimary = D_80062E50;
+            *arg0             = 4;
             break;
         case 3:
         case 4:
@@ -226,8 +226,8 @@ void Fs_SelectLoadHandlers1(u8* arg0)
         case 37:
         case 38:
         default:
-            D5B498_8006ACB0 = D_80062E50;
-            *arg0           = 0x27;
+            Fs_BootTimPrimary = D_80062E50;
+            *arg0             = 0x27;
             break;
     }
 }
@@ -239,7 +239,7 @@ void Fs_SelectLoadHandlers2(u8* arg0)
     s32 val;
 
     temp_v1 = GameFlag_GetNibble(0x7A);
-    field2  = D5B498_8006ACB8.field_2;
+    field2  = Fs_LoadParams.field_2;
 
     if (field2 == 0x1B) {
         goto case_1B;
@@ -263,16 +263,16 @@ void Fs_SelectLoadHandlers2(u8* arg0)
         goto case_11_5;
     }
 case_11_def:
-    D5B498_8006ACB0 = D_80062E50;
-    *arg0           = 0xC;
+    Fs_BootTimPrimary = D_80062E50;
+    *arg0             = 0xC;
     return;
 case_11_4:
-    D5B498_8006ACB0 = D_80062F80;
-    *arg0           = 0x13;
+    Fs_BootTimPrimary = D_80062F80;
+    *arg0             = 0x13;
     return;
 case_11_5:
-    D5B498_8006ACB0 = D_80062F80;
-    *arg0           = 0x1A;
+    Fs_BootTimPrimary = D_80062F80;
+    *arg0             = 0x1A;
     return;
 
 case_1B:
@@ -287,16 +287,16 @@ case_1B:
         goto case_1B_5;
     }
 case_1B_def:
-    D5B498_8006ACB0 = D_80062E50;
-    *arg0           = 0xD;
+    Fs_BootTimPrimary = D_80062E50;
+    *arg0             = 0xD;
     return;
 case_1B_4:
-    D5B498_8006ACB0 = D_80062F80;
-    *arg0           = 0x14;
+    Fs_BootTimPrimary = D_80062F80;
+    *arg0             = 0x14;
     return;
 case_1B_5:
-    D5B498_8006ACB0 = D_80062F80;
-    *arg0           = field2;
+    Fs_BootTimPrimary = D_80062F80;
+    *arg0             = field2;
     return;
 
 case_default:
@@ -311,16 +311,16 @@ case_default:
         goto case_def_5;
     }
 case_def_def:
-    D5B498_8006ACB0 = D_80062E50;
-    *arg0           = 0xE;
+    Fs_BootTimPrimary = D_80062E50;
+    *arg0             = 0xE;
     return;
 case_def_4:
-    D5B498_8006ACB0 = D_80062F80;
-    *arg0           = 0xF;
+    Fs_BootTimPrimary = D_80062F80;
+    *arg0             = 0xF;
     return;
 case_def_5:
-    D5B498_8006ACB0 = D_80062F80;
-    *arg0           = 0x20;
+    Fs_BootTimPrimary = D_80062F80;
+    *arg0             = 0x20;
 }
 
 void Fs_SelectLoadHandlers3(u8* arg0)
@@ -329,11 +329,11 @@ void Fs_SelectLoadHandlers3(u8* arg0)
     s32 val;
 
     temp_v1 = GameFlag_GetNibble(0x7A);
-    switch (D5B498_8006ACB8.field_2) {
+    switch (Fs_LoadParams.field_2) {
         case 1:
-            D5B498_8006ACB0 = D_80062AB4;
-            D5B498_8006ACAC = D_80062AD4;
-            *arg0           = 3;
+            Fs_BootTimPrimary   = D_80062AB4;
+            Fs_BootTimSecondary = D_80062AD4;
+            *arg0               = 3;
             break;
         case 6:
             val = temp_v1 & 0xFFFF;
@@ -344,12 +344,12 @@ void Fs_SelectLoadHandlers3(u8* arg0)
                 goto case_6_5;
             }
         case_6_4:
-            D5B498_8006ACB0 = D_80062EA0;
-            *arg0           = 0x10;
+            Fs_BootTimPrimary = D_80062EA0;
+            *arg0             = 0x10;
             return;
         case_6_5:
-            D5B498_8006ACB0 = D_80062EA0;
-            *arg0           = 0x17;
+            Fs_BootTimPrimary = D_80062EA0;
+            *arg0             = 0x17;
             return;
         case 16:
             val = temp_v1 & 0xFFFF;
@@ -363,16 +363,16 @@ void Fs_SelectLoadHandlers3(u8* arg0)
                 goto case_16_6;
             }
         case_16_def:
-            D5B498_8006ACB0 = D_80062EEC;
-            *arg0           = 0x11;
+            Fs_BootTimPrimary = D_80062EEC;
+            *arg0             = 0x11;
             return;
         case_16_5:
-            D5B498_8006ACB0 = D_80062EEC;
-            *arg0           = 0x18;
+            Fs_BootTimPrimary = D_80062EEC;
+            *arg0             = 0x18;
             return;
         case_16_6:
-            D5B498_8006ACB0 = D_80062EEC;
-            *arg0           = 0x24;
+            Fs_BootTimPrimary = D_80062EEC;
+            *arg0             = 0x24;
             return;
         case 20:
             val = temp_v1 & 0xFFFF;
@@ -386,26 +386,26 @@ void Fs_SelectLoadHandlers3(u8* arg0)
                 goto case_20_6;
             }
         case_20_def:
-            D5B498_8006ACB0 = D_80062EEC;
-            *arg0           = 0x28;
+            Fs_BootTimPrimary = D_80062EEC;
+            *arg0             = 0x28;
             return;
         case_20_5:
-            D5B498_8006ACB0 = D_80062EEC;
-            *arg0           = 0x1F;
+            Fs_BootTimPrimary = D_80062EEC;
+            *arg0             = 0x1F;
             return;
         case_20_6:
-            D5B498_8006ACB0 = D_80062EEC;
-            *arg0           = 0x26;
+            Fs_BootTimPrimary = D_80062EEC;
+            *arg0             = 0x26;
             return;
         case 36:
             if (D5B498_8006ACC0 == 0) {
-                D5B498_8006ACB0 = D_80062C20;
-                D5B498_8006ACAC = D_80062C40;
-                *arg0           = 3;
+                Fs_BootTimPrimary   = D_80062C20;
+                Fs_BootTimSecondary = D_80062C40;
+                *arg0               = 3;
             } else {
-                D5B498_8006ACB0 = D_80062C94;
-                D5B498_8006ACAC = D_80062CB4;
-                *arg0           = 3;
+                Fs_BootTimPrimary   = D_80062C94;
+                Fs_BootTimSecondary = D_80062CB4;
+                *arg0               = 3;
             }
             break;
         case 41:
@@ -417,12 +417,12 @@ void Fs_SelectLoadHandlers3(u8* arg0)
                 goto case_41_5;
             }
         case_41_4:
-            D5B498_8006ACB0 = D_80062F34;
-            *arg0           = 0x12;
+            Fs_BootTimPrimary = D_80062F34;
+            *arg0             = 0x12;
             return;
         case_41_5:
-            D5B498_8006ACB0 = D_80062F34;
-            *arg0           = 0x19;
+            Fs_BootTimPrimary = D_80062F34;
+            *arg0             = 0x19;
             return;
         case 31:
             val = temp_v1 & 0xFFFF;
@@ -436,16 +436,16 @@ void Fs_SelectLoadHandlers3(u8* arg0)
                 goto case_31_6;
             }
         case_31_def:
-            D5B498_8006ACB0 = D_80062FD0;
-            *arg0           = 0x15;
+            Fs_BootTimPrimary = D_80062FD0;
+            *arg0             = 0x15;
             return;
         case_31_5:
-            D5B498_8006ACB0 = D_80062FD0;
-            *arg0           = 0x1C;
+            Fs_BootTimPrimary = D_80062FD0;
+            *arg0             = 0x1C;
             return;
         case_31_6:
-            D5B498_8006ACB0 = D_80062FD0;
-            *arg0           = 0x25;
+            Fs_BootTimPrimary = D_80062FD0;
+            *arg0             = 0x25;
             return;
         case 2:
         case 3:
@@ -496,12 +496,12 @@ void Fs_SelectLoadHandlers3(u8* arg0)
                 goto case_def_5;
             }
         case_def_4:
-            D5B498_8006ACB0 = D_80063018;
-            *arg0           = 0x16;
+            Fs_BootTimPrimary = D_80063018;
+            *arg0             = 0x16;
             return;
         case_def_5:
-            D5B498_8006ACB0 = D_80063018;
-            *arg0           = 0x1D;
+            Fs_BootTimPrimary = D_80063018;
+            *arg0             = 0x1D;
             return;
     }
 }
@@ -517,7 +517,7 @@ void Fs_SetupBootLoad(void)
     RECT* r;
     s32   field2;
 
-    Mem_Set(D4CB64_ImgBuffers, 0, 0x25800);
+    Mem_Set(Fs_ImgBuffers, 0, 0x25800);
     rect.y = 0;
     rect.x = 0;
     r      = &rect;
@@ -528,10 +528,10 @@ void Fs_SetupBootLoad(void)
     ClearImage(r, 0, 0, 0);
     Display_State.field_100 = 0;
     SetDispMask(0);
-    sp10[3]         = 0;
-    sp10[2]         = 0;
-    D5B498_8006ACAC = NULL;
-    switch (D5B498_8006ACB8.field_3) {
+    sp10[3]             = 0;
+    sp10[2]             = 0;
+    Fs_BootTimSecondary = NULL;
+    switch (Fs_LoadParams.field_3) {
         case 1:
             Fs_SelectLoadHandlers0(sp10);
             break;
@@ -547,7 +547,7 @@ void Fs_SetupBootLoad(void)
         case 5:
         default:
             GameFlag_GetNibble(0x7A);
-            field2 = D5B498_8006ACB8.field_2;
+            field2 = Fs_LoadParams.field_2;
             if (field2 == 0x16) {
                 goto case_16;
             }
@@ -559,29 +559,29 @@ void Fs_SetupBootLoad(void)
             }
         case_default:
             if (D5B498_8006ACC0 == 0) {
-                D5B498_8006ACB0 = D_800630B0;
-                sp10[0]         = 0x23;
+                Fs_BootTimPrimary = D_800630B0;
+                sp10[0]           = 0x23;
             } else {
-                D5B498_8006ACB0 = D_80062BA4;
-                D5B498_8006ACAC = D_80062BC4;
-                sp10[0]         = 3;
+                Fs_BootTimPrimary   = D_80062BA4;
+                Fs_BootTimSecondary = D_80062BC4;
+                sp10[0]             = 3;
             }
             break;
         case_16:
-            D5B498_8006ACB0 = D_80063068;
-            sp10[0]         = 0x1E;
+            Fs_BootTimPrimary = D_80063068;
+            sp10[0]           = 0x1E;
             break;
         case_1a:
-            D5B498_8006ACB0 = D_80062B30;
-            D5B498_8006ACAC = D_80062B50;
-            sp10[0]         = 3;
+            Fs_BootTimPrimary   = D_80062B30;
+            Fs_BootTimSecondary = D_80062B50;
+            sp10[0]             = 3;
             break;
     }
     sp18[0]         = 0;
     sp18[1]         = 0;
     sp18[2]         = 0;
     sp18[3]         = 0;
-    D5B498_8006AC98 = CdCmd_Enqueue(0x21, sp10, sp18);
+    Fs_BootLoadSlot = CdCmd_Enqueue(0x21, sp10, sp18);
 }
 
 /* Alignment pad after the 5-entry Fs_SetupBootLoad jump table. */
@@ -660,7 +660,7 @@ void Fs_BootImageMachine(void* arg0, void* arg1)
             goto draw;
         case 4:
             if ((Fade_StepIn(0x10) & 0xFFFF) != 0) {
-                D5B498_8006AC9A       = 0;
+                Fs_BootLoadPhase      = 0;
                 CdCmd_Queue.field_224 = 0;
             }
         draw:

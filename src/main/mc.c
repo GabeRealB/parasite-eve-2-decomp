@@ -59,7 +59,7 @@ void Mc_StateCompareBuffers(Task* arg0, McWork* arg1)
             flags         |= 0x103;
             arg1->field_2C = 1;
             arg1->field_28 = flags;
-            arg0->field_30 = 0x1F;
+            arg0->state    = 0x1F;
             break;
         }
         case 3:
@@ -81,21 +81,21 @@ void Mc_StateCompareBuffers(Task* arg0, McWork* arg1)
             arg1->field_24 = 9;
             arg1->field_28 = -1;
             arg1->field_2C = 1;
-            arg0->field_30 = 0x1F;
+            arg0->state    = 0x1F;
             break;
         case 1:
-            arg0->field_30 = 0x14;
+            arg0->state = 0x14;
             break;
         case 4:
-            arg0->field_30 = 0x15;
+            arg0->state = 0x15;
             break;
         case 2:
         default:
-            arg0->field_30 = 0x18;
+            arg0->state = 0x18;
             break;
     }
 
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     idx           = arg1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -123,30 +123,30 @@ void Mc_StateOpenRead(Task* arg0, McWork* arg1)
         arg1->field_14 = status;
         switch (status) {
             case 0:
-                arg0->field_30 = 0x1A;
+                arg0->state = 0x1A;
                 break;
             case 1:
-                arg0->field_30 = 0x18;
+                arg0->state = 0x18;
                 break;
             case 2:
-                arg0->field_30 = 0x18;
+                arg0->state = 0x18;
                 break;
             case 3:
-                arg0->field_30 = 0x18;
+                arg0->state = 0x18;
                 break;
             case 4:
-                arg0->field_30 = 0x18;
+                arg0->state = 0x18;
                 break;
             case 5:
-                arg0->field_30 = 0x7;
+                arg0->state = 0x7;
                 break;
             default:
-                arg0->field_30 = 0x18;
+                arg0->state = 0x18;
                 break;
         }
     }
 
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     idx           = arg1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -172,28 +172,28 @@ void Mc_StateCreateFile(Task* arg0, McWork* arg1)
         arg1->field_14 = status;
         switch (status) {
             case 0:
-                arg0->field_30 = 0xA;
+                arg0->state = 0xA;
                 break;
             case 1:
-                arg0->field_30 = 0x14;
+                arg0->state = 0x14;
                 break;
             case 4:
-                arg0->field_30 = 0x15;
+                arg0->state = 0x15;
                 break;
             case 7:
-                arg0->field_30 = 0x19;
+                arg0->state = 0x19;
                 break;
             case 2:
             case 3:
             case 5:
             case 6:
             default:
-                arg0->field_30 = 0x2A;
+                arg0->state = 0x2A;
                 break;
         }
     }
 
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     idx           = arg1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -224,7 +224,7 @@ void Mc_StatePadFileName(Task* arg0, McWork* arg1)
             arg1->field_24 = 9;
             arg1->field_28 = -1;
             arg1->field_2C = 0;
-            arg0->field_30 = 5;
+            arg0->state    = 5;
         } else {
             goto pad;
         }
@@ -243,13 +243,13 @@ void Mc_StatePadFileName(Task* arg0, McWork* arg1)
             i++;
             ptr0++;
         } while (i < 0x14);
-        *ptr0          = 0;
-        *ptr1          = 0;
-        arg0->field_30 = 0x2A;
+        *ptr0       = 0;
+        *ptr1       = 0;
+        arg0->state = 0x2A;
     }
     arg1->field_18 = 0;
 
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     idx           = arg1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -289,7 +289,7 @@ void Mc_StateNameEntry(Task* arg0, McWork* arg1)
             case 1:
                 work->field_4  = 0xE;
                 work->field_1C = 0;
-                task->field_30 = 0x28;
+                task->state    = 0x28;
                 break;
             case -1:
                 src = Mc_FileNameBuf;
@@ -297,22 +297,22 @@ void Mc_StateNameEntry(Task* arg0, McWork* arg1)
                 for (i = 0; i < 0x15; i++) {
                     *dst++ = *src++;
                 }
-                task->field_2a = 0xC;
-                task->field_30 = 0x27;
+                task->killCountdown = 0xC;
+                task->state         = 0x27;
                 break;
         }
         syncResult = MemCardSync(1, (long*)&work->field_10, (long*)&work->field_14);
         if (syncResult != -1) {
             if (syncResult == 1) {
                 if (work->field_14 != 0) {
-                    child          = task->field_c;
-                    task->field_30 = 2;
+                    child       = task->firstChild;
+                    task->state = 2;
                     if (child != NULL) {
-                        obj          = child->field_20;
-                        flag         = task->field_20;
-                        obj->field_0 = 0;
-                        Ui_TeardownTree(obj, obj->field_28);
-                        flag->field_0 = syncResult;
+                        obj         = child->spawnArg2;
+                        flag        = task->spawnArg2;
+                        obj->status = 0;
+                        Ui_TeardownTree(obj, obj->owner);
+                        flag->status = syncResult;
                     }
                 }
             }
@@ -322,8 +322,8 @@ void Mc_StateNameEntry(Task* arg0, McWork* arg1)
     } else {
         work->field_1C = 0;
         work->field_8  = 4;
-        flag           = task->field_20;
-        task->field_30 = 0xF;
+        flag           = task->spawnArg2;
+        task->state    = 0xF;
         idx            = work->field_8;
         ret            = Ui_LookupTable(flag, 1);
         flag->field_2E = 0;
@@ -386,7 +386,7 @@ void Mc_StateBackupBuffers(Task* arg0, McWork* arg1)
             p  += 1;
         } while (i0 < 9U);
         work->field_A18 = 0x33;
-        task->field_30  = 0x13;
+        task->state     = 0x13;
     } else if (work->field_28 & 1) {
         nine = 9;
         {
@@ -457,9 +457,9 @@ void Mc_StateBackupBuffers(Task* arg0, McWork* arg1)
                 memcpy(mem, bufPtr, bufSize);
                 memcpy((u8*)mem + bufSize, bufPtr, bufSize);
             }
-            work->field_4  = 0;
-            task->field_30 = task->field_30 + 1;
-            f24            = work->field_24;
+            work->field_4 = 0;
+            task->state   = task->state + 1;
+            f24           = work->field_24;
             goto update;
         }
         work->field_4 = work->field_4 + 1;
@@ -480,7 +480,7 @@ void Mc_StateBackupBuffers(Task* arg0, McWork* arg1)
     }
 
     work->field_8 = 4;
-    obj           = task->field_20;
+    obj           = task->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, D_8001398C);
@@ -508,11 +508,11 @@ void Mc_StateFreeBuffer(Task* arg0, McWork* arg1)
     switch (status) {
         case 0:
             arg1->field_1C += Mc_BufferSlots[8 - arg1->field_24].field_8;
-            arg0->field_30  = 0xF;
+            arg0->state     = 0xF;
             break;
         case 1:
             MemCardClose();
-            arg0->field_30 = 0x14;
+            arg0->state = 0x14;
             break;
         case 3:
             ptr1 = Mc_FileName;
@@ -531,19 +531,19 @@ void Mc_StateFreeBuffer(Task* arg0, McWork* arg1)
             *ptr0 = 0;
             *ptr1 = 0;
             MemCardClose();
-            arg0->field_30 = 0x2;
+            arg0->state = 0x2;
             break;
         case 2:
         case 4:
         case 5:
         default:
-            arg0->field_30 = 0x2A;
+            arg0->state = 0x2A;
             break;
     }
     Mem_Free((void*)arg1->field_18);
     arg1->field_18 = 0;
 
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     idx           = arg1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -579,10 +579,10 @@ void Mc_StateFormat(Task* arg0, McWork* arg1)
         } else {
             next = 0x14;
         }
-        arg0->field_30 = next;
+        arg0->state = next;
     }
 
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     idx           = arg1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -615,9 +615,9 @@ void Mc_StateSyncFileSelect(Task* arg0, McWork* arg1)
     task          = arg0;
     work          = arg1;
     one           = 1;
-    saved         = task->field_20;
+    saved         = task->spawnArg2;
     work->field_8 = 0x16;
-    obj           = task->field_20;
+    obj           = task->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, D_8001398C);
@@ -632,14 +632,14 @@ void Mc_StateSyncFileSelect(Task* arg0, McWork* arg1)
             if (work->field_14 != 0) {
                 {
                     register Task* ch asm("v1");
-                    ch             = task->field_c;
-                    task->field_30 = 7;
+                    ch          = task->firstChild;
+                    task->state = 7;
                     if (ch != NULL) {
-                        childObj          = ch->field_20;
-                        flag              = task->field_20;
-                        childObj->field_0 = 0;
-                        Ui_TeardownTree(childObj, childObj->field_28);
-                        flag->field_0 = syncResult;
+                        childObj         = ch->spawnArg2;
+                        flag             = task->spawnArg2;
+                        childObj->status = 0;
+                        Ui_TeardownTree(childObj, childObj->owner);
+                        flag->status = syncResult;
                     }
                 }
             } else {
@@ -651,22 +651,22 @@ void Mc_StateSyncFileSelect(Task* arg0, McWork* arg1)
     } else {
         MemCardExist(work->field_C);
     block_6:
-        child = task->field_c;
+        child = task->firstChild;
         if (child == NULL) {
             if (Ui_SpawnFromDesc(D_80061200, (s32)work, 1, 2, saved) != 0) {
                 do {
                     D_80061170 = work->field_288;
                 } while (0);
                 saved->field_2C = 0;
-                saved->field_0  = 0;
+                saved->status   = 0;
             }
         } else {
-            childObj = child->field_20;
+            childObj = child->spawnArg2;
             if (childObj->field_2E == 6) {
-                saved->field_2C   = childObj->field_2C;
-                childObj->field_0 = 0;
-                Ui_TeardownTree(childObj, childObj->field_28);
-                saved->field_0 = 1;
+                saved->field_2C  = childObj->field_2C;
+                childObj->status = 0;
+                Ui_TeardownTree(childObj, childObj->owner);
+                saved->status = 1;
                 if (saved->field_2C >= 0) {
                     src = (u8*)work->field_30[saved->field_2C];
                     dst = Mc_FileName;
@@ -682,7 +682,7 @@ void Mc_StateSyncFileSelect(Task* arg0, McWork* arg1)
                 } else {
                     next = 3;
                 }
-                task->field_30 = next;
+                task->state = next;
             }
         }
     }
@@ -747,23 +747,23 @@ void Mc_StateBlankFileName(Task* arg0, McWork* arg1)
                 i++;
                 ptr0++;
             } while (i < 0x14);
-            *ptr0          = 0;
-            *ptr1          = 0;
-            arg0->field_30 = 0x12;
+            *ptr0       = 0;
+            *ptr1       = 0;
+            arg0->state = 0x12;
             break;
         case 1:
-            arg0->field_30 = 0xA;
+            arg0->state = 0xA;
             break;
         case 4:
-            arg0->field_30 = 0xB;
+            arg0->state = 0xB;
             break;
         case 2:
         default:
-            arg0->field_30 = 0x6;
+            arg0->state = 0x6;
             break;
     }
 
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     idx           = arg1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -789,7 +789,7 @@ void Mc_StateSyncOpen(Task* arg0, McWork* arg1)
 
     a0            = arg0;
     a1            = arg1;
-    obj           = a0->field_20;
+    obj           = a0->spawnArg2;
     idx           = a1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -804,7 +804,7 @@ void Mc_StateSyncOpen(Task* arg0, McWork* arg1)
         if (syncResult == 1) {
             if (a1->field_10 == syncResult) {
                 if (a1->field_14 != 0) {
-                    a0->field_30 = 6;
+                    a0->state = 6;
                 }
             }
             a1->field_4 -= 1;
@@ -816,25 +816,25 @@ void Mc_StateSyncOpen(Task* arg0, McWork* arg1)
                 switch (status) {
                     case 0:
                         a1->field_1C = 0;
-                        a0->field_30 = 0xE;
+                        a0->state    = 0xE;
                         break;
                     case 1:
-                        a0->field_30 = 6;
+                        a0->state = 6;
                         break;
                     case 2:
-                        a0->field_30 = 6;
+                        a0->state = 6;
                         break;
                     case 3:
-                        a0->field_30 = 6;
+                        a0->state = 6;
                         break;
                     case 4:
-                        a0->field_30 = 6;
+                        a0->state = 6;
                         break;
                     case 5:
-                        a0->field_30 = 0xB;
+                        a0->state = 0xB;
                         break;
                     default:
-                        a0->field_30 = 6;
+                        a0->state = 6;
                         break;
                 }
             }
@@ -913,11 +913,11 @@ void Mc_StateVerifyFinish(Task* arg0, McWork* arg1)
             }
             Game_ClearEd68();
             Display_State.field_101 = 1;
-            arg0->field_30          = 3;
+            arg0->state             = 3;
         } else {
         fail:
             Mc_InitBufferSlots();
-            arg0->field_30 = 0x19;
+            arg0->state = 0x19;
         }
     } else if (arg1->field_28 & 1) {
         size           = Mc_BufferSlots[9 - arg1->field_24].field_4;
@@ -931,7 +931,7 @@ void Mc_StateVerifyFinish(Task* arg0, McWork* arg1)
         arg1->field_18 = (s32)mem;
         if (mem != 0) {
             arg1->field_4  = 0;
-            arg0->field_30 = arg0->field_30 + 1;
+            arg0->state    = arg0->state + 1;
             arg1->field_24 = arg1->field_24 - 1;
             arg1->field_28 = (u32)arg1->field_28 >> 1;
         } else {
@@ -944,7 +944,7 @@ void Mc_StateVerifyFinish(Task* arg0, McWork* arg1)
     }
 
     arg1->field_8 = 5;
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, D_8001398C);
@@ -1008,7 +1008,7 @@ void Mc_StateFinishWrite(Task* arg0, McWork* arg1)
                 }
             }
             arg1->field_1C += Mc_BufferSlots[8 - arg1->field_24].field_8;
-            arg0->field_30  = 0xE;
+            arg0->state     = 0xE;
         } else {
             goto pad;
         }
@@ -1027,16 +1027,16 @@ void Mc_StateFinishWrite(Task* arg0, McWork* arg1)
             i++;
             ptr0++;
         } while (i < 0x14);
-        *ptr0          = 0;
-        *ptr1          = 0;
-        arg0->field_30 = 6;
+        *ptr0       = 0;
+        *ptr1       = 0;
+        arg0->state = 6;
     }
 
     one = 1;
     Mem_Free((void*)arg1->field_18);
     arg1->field_18 = 0;
 
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     idx           = arg1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -1068,7 +1068,7 @@ void Mc_StateSaveSlotUi(DialogPrompt* arg0, UiObject* arg1)
     asm("" : "+r"(s0), "+r"(s1));
     var_s3  = 1;
     off     = (s1->field_8 << 7) + 0x294;
-    s2      = s0->field_28->field_34;
+    s2      = s0->owner->spawnArg1;
     temp_a2 = (McSaveData*)(s2 + off);
     sum     = 0;
     if ((u32)(temp_a2->field_12 - 1) >= 0x10U) {
@@ -1529,7 +1529,7 @@ void Mc_DrawPrompt(Task* arg0, s32 arg1)
     McPromptPair* entry;
     McPromptPair* base;
 
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, D_8001398C);
@@ -1545,13 +1545,13 @@ void Mc_HideChildUi(Task* arg0)
     UiObject* obj;
     UiObject* flag;
 
-    child = arg0->field_c;
+    child = arg0->firstChild;
     if (child != NULL) {
-        obj          = child->field_20;
-        flag         = arg0->field_20;
-        obj->field_0 = 0;
-        Ui_TeardownTree(obj, obj->field_28);
-        flag->field_0 = 1;
+        obj         = child->spawnArg2;
+        flag        = arg0->spawnArg2;
+        obj->status = 0;
+        Ui_TeardownTree(obj, obj->owner);
+        flag->status = 1;
     }
 }
 
@@ -1606,7 +1606,7 @@ void Mc_ResetWork(Task* arg0, McWork* arg1)
     arg1->field_C   = 0;
     arg1->field_A18 = 0x34;
     arg1->field_A20 = 0;
-    arg0->field_30++;
+    arg0->state++;
 }
 
 void Mc_WriteSlotChecksumsEx(Task* arg0, McWork* arg1)
@@ -1650,11 +1650,11 @@ void Mc_WriteSlotChecksumsEx(Task* arg0, McWork* arg1)
         temp->field_0 = sum;
     } while (i < 9U);
 
-    if (arg0->field_34 != 0) {
-        arg0->field_2a = 2;
-        arg0->field_30 = 0x27;
+    if (arg0->spawnArg1 != 0) {
+        arg0->killCountdown = 2;
+        arg0->state         = 0x27;
     } else {
-        arg0->field_30 = 0xE;
+        arg0->state = 0xE;
     }
 }
 
@@ -1668,14 +1668,14 @@ void Mc_StateAcceptMode1(Task* arg0, McWork* arg1)
 
     arg1->field_8 = 1;
     if (MemCardAccept(arg1->field_C) != 0) {
-        arg1->field_4  = 0;
-        arg0->field_30 = arg0->field_30 + 1;
+        arg1->field_4 = 0;
+        arg0->state   = arg0->state + 1;
     } else {
         arg1->field_4 = arg1->field_4 + 1;
     }
     arg1->field_4 = arg1->field_4 + 1;
     idx           = arg1->field_8;
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, D_8001398C);
@@ -1700,13 +1700,13 @@ void Mc_StateSyncAdvance(Task* arg0, McWork* arg1)
     McPromptPair* base;
 
     if (MemCardSync(1, (long*)&arg1->field_10, (long*)&arg1->field_14) != 0) {
-        arg1->field_4  = 0;
-        arg0->field_30 = arg0->field_30 + 1;
+        arg1->field_4 = 0;
+        arg0->state   = arg0->state + 1;
     } else {
         arg1->field_4 = arg1->field_4 + 1;
     }
     idx           = arg1->field_8;
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, D_8001398C);
@@ -1731,7 +1731,7 @@ void Mc_StateDrawPromptAdvance(Task* arg0, McWork* arg1)
     McPromptPair* base;
 
     arg1->field_4 = 0xE;
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     idx           = arg1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -1740,7 +1740,7 @@ void Mc_StateDrawPromptAdvance(Task* arg0, McWork* arg1)
     entry = &base[idx];
     Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
-    arg0->field_30 = arg0->field_30 + 1;
+    arg0->state = arg0->state + 1;
 }
 
 void Mc_StatePromptChoiceB(Task* arg0, McWork* arg1)
@@ -1758,7 +1758,7 @@ void Mc_StatePromptChoiceB(Task* arg0, McWork* arg1)
     ret           = Mc_PromptDialogChoice(arg0, 0xB, arg1->field_0);
     if (ret != -1) {
         if (ret == 1) {
-            arg0->field_30 = 8;
+            arg0->state = 8;
         }
     } else {
         src = Mc_FileNameBuf;
@@ -1766,21 +1766,21 @@ void Mc_StatePromptChoiceB(Task* arg0, McWork* arg1)
         for (i = 0; i < 0x15; i++) {
             *dst++ = *src++;
         }
-        arg0->field_2a = 0xC;
-        arg0->field_30 = 0x27;
+        arg0->killCountdown = 0xC;
+        arg0->state         = 0x27;
     }
     syncResult = MemCardSync(1, (long*)&arg1->field_10, (long*)&arg1->field_14);
     if (syncResult != -1) {
         if (syncResult == 1) {
             if (arg1->field_14 != 0) {
-                child          = arg0->field_c;
-                arg0->field_30 = 2;
+                child       = arg0->firstChild;
+                arg0->state = 2;
                 if (child != NULL) {
-                    obj          = child->field_20;
-                    flag         = arg0->field_20;
-                    obj->field_0 = 0;
-                    Ui_TeardownTree(obj, obj->field_28);
-                    flag->field_0 = syncResult;
+                    obj         = child->spawnArg2;
+                    flag        = arg0->spawnArg2;
+                    obj->status = 0;
+                    Ui_TeardownTree(obj, obj->owner);
+                    flag->status = syncResult;
                 }
             }
         }
@@ -1798,7 +1798,7 @@ void Mc_StateDrawPrompt4(Task* arg0, McWork* arg1)
 
     arg1->field_4 = 0xE;
     arg1->field_8 = 4;
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, D_8001398C);
@@ -1806,7 +1806,7 @@ void Mc_StateDrawPrompt4(Task* arg0, McWork* arg1)
     entry = &base[4];
     Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
-    arg0->field_30 = arg0->field_30 + 1;
+    arg0->state = arg0->state + 1;
 }
 
 void Mc_StateEnterDialog4(Task* arg0, McWork* arg1)
@@ -1817,9 +1817,9 @@ void Mc_StateEnterDialog4(Task* arg0, McWork* arg1)
     McPromptPair* base;
 
     arg1->field_4 = 0;
-    arg0->field_30++;
+    arg0->state++;
     arg1->field_8 = 4;
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, D_8001398C);
@@ -1839,13 +1839,13 @@ void Mc_StateWriteFile(Task* arg0, McWork* arg1)
 
     if (MemCardWriteFile(arg1->field_C, Mc_FileName, (unsigned long*)Mc_DefaultChecksumSrc, 0,
                          0x200) != 0) {
-        arg1->field_4  = 0;
-        arg0->field_30 = arg0->field_30 + 1;
+        arg1->field_4 = 0;
+        arg0->state   = arg0->state + 1;
     } else {
         arg1->field_4 = arg1->field_4 + 1;
     }
     idx           = arg1->field_8;
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, D_8001398C);
@@ -1865,11 +1865,11 @@ void Mc_StatePromptChoiceGeneric(Task* arg0, McWork* arg1)
         case 0:
             break;
         case 1:
-            arg0->field_2a = 0xC;
-            arg0->field_30 = 0x27;
+            arg0->killCountdown = 0xC;
+            arg0->state         = 0x27;
             break;
         case -1:
-            arg0->field_30 = 0x13;
+            arg0->state = 0x13;
             break;
     }
     if (arg1->field_0 > 0) {
@@ -1889,13 +1889,13 @@ void Mc_StateWriteData(Task* arg0, McWork* arg1)
     s32           idx;
 
     if (MemCardWriteData((unsigned long*)arg1->field_18, arg1->field_1C << 7, arg1->field_20) != 0) {
-        arg1->field_4  = 0;
-        arg0->field_30 = arg0->field_30 + 1;
+        arg1->field_4 = 0;
+        arg0->state   = arg0->state + 1;
     } else {
         arg1->field_4 = arg1->field_4 + 1;
     }
     idx           = arg1->field_8;
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, D_8001398C);
@@ -1917,7 +1917,7 @@ void Mc_StateClosePrompt(Task* arg0, McWork* arg1)
 
     MemCardClose();
     idx           = arg1->field_8;
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, D_8001398C);
@@ -1925,8 +1925,8 @@ void Mc_StateClosePrompt(Task* arg0, McWork* arg1)
     entry = &base[idx];
     Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
-    arg0->field_30 = 0x1B;
-    flag           = arg0->field_20;
+    arg0->state = 0x1B;
+    flag        = arg0->spawnArg2;
     if (flag != NULL) {
         val            = arg1->field_A18;
         flag->field_2E = -1;
@@ -1936,7 +1936,7 @@ void Mc_StateClosePrompt(Task* arg0, McWork* arg1)
 
 void Mc_KillIfCountdown(Task* arg0, McWork* arg1)
 {
-    if (arg0->field_2a != 0) {
+    if (arg0->killCountdown != 0) {
         Task_Kill(arg0);
     }
 }
@@ -1950,7 +1950,7 @@ void Mc_StateSyncPromptFile3(Task* arg0, McWork* arg1)
 
     arg1->field_8 = 3;
     if (Mc_PromptDialogFile(arg0, 3, arg1->field_0) != 0) {
-        arg0->field_30 = 0x13;
+        arg0->state = 0x13;
         return;
     }
     syncResult = MemCardSync(1, (long*)&arg1->field_10, (long*)&arg1->field_14);
@@ -1960,15 +1960,15 @@ void Mc_StateSyncPromptFile3(Task* arg0, McWork* arg1)
             return;
         case 1:
             if (arg1->field_14 != syncResult) {
-                child = arg0->field_c;
+                child = arg0->firstChild;
                 if (child != NULL) {
-                    obj          = child->field_20;
-                    flag         = arg0->field_20;
-                    obj->field_0 = 0;
-                    Ui_TeardownTree(obj, obj->field_28);
-                    flag->field_0 = syncResult;
+                    obj         = child->spawnArg2;
+                    flag        = arg0->spawnArg2;
+                    obj->status = 0;
+                    Ui_TeardownTree(obj, obj->owner);
+                    flag->status = syncResult;
                 }
-                arg0->field_30 = 2;
+                arg0->state = 2;
             }
             return;
         case 0:
@@ -1990,25 +1990,25 @@ void Mc_StatePromptChoice9(Task* arg0, McWork* arg1)
         case 0:
             break;
         case 1:
-            arg0->field_30 = 0x16;
+            arg0->state = 0x16;
             break;
         case -1:
-            arg0->field_2a = 0xC;
-            arg0->field_30 = 0x29;
+            arg0->killCountdown = 0xC;
+            arg0->state         = 0x29;
             break;
     }
     syncResult = MemCardSync(1, (long*)&arg1->field_10, (long*)&arg1->field_14);
     if (syncResult != -1) {
         if (syncResult == 1) {
             if (arg1->field_14 != 0) {
-                child          = arg0->field_c;
-                arg0->field_30 = 2;
+                child       = arg0->firstChild;
+                arg0->state = 2;
                 if (child != NULL) {
-                    obj          = child->field_20;
-                    flag         = arg0->field_20;
-                    obj->field_0 = 0;
-                    Ui_TeardownTree(obj, obj->field_28);
-                    flag->field_0 = syncResult;
+                    obj         = child->spawnArg2;
+                    flag        = arg0->spawnArg2;
+                    obj->status = 0;
+                    Ui_TeardownTree(obj, obj->owner);
+                    flag->status = syncResult;
                 }
             }
         }
@@ -2025,7 +2025,7 @@ void Mc_StateColdBoot(Task* arg0, McWork* arg1)
     McPromptPair* base;
 
     arg1->field_8 = 6;
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, D_8001398C);
@@ -2033,8 +2033,8 @@ void Mc_StateColdBoot(Task* arg0, McWork* arg1)
     entry = &base[6];
     Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
-    arg1->field_4  = 0xE;
-    arg0->field_30 = arg0->field_30 + 1;
+    arg1->field_4 = 0xE;
+    arg0->state   = arg0->state + 1;
 }
 
 void Mc_StateSyncPrompt13(Task* arg0, McWork* arg1)
@@ -2047,7 +2047,7 @@ void Mc_StateSyncPrompt13(Task* arg0, McWork* arg1)
 
     arg1->field_8 = 0x13;
     if (Mc_PromptDialogFile(arg0, 0x13, arg1->field_0) != 0) {
-        arg0->field_30 = 0x13;
+        arg0->state = 0x13;
         return;
     }
     syncResult = MemCardSync(1, (long*)&arg1->field_10, (long*)&arg1->field_14);
@@ -2058,15 +2058,15 @@ void Mc_StateSyncPrompt13(Task* arg0, McWork* arg1)
         case 1:
             rslt = arg1->field_14;
             if (rslt == syncResult) {
-                child = arg0->field_c;
+                child = arg0->firstChild;
                 if (child != NULL) {
-                    obj          = child->field_20;
-                    flag         = arg0->field_20;
-                    obj->field_0 = 0;
-                    Ui_TeardownTree(obj, obj->field_28);
-                    flag->field_0 = rslt;
+                    obj         = child->spawnArg2;
+                    flag        = arg0->spawnArg2;
+                    obj->status = 0;
+                    Ui_TeardownTree(obj, obj->owner);
+                    flag->status = rslt;
                 }
-                arg0->field_30 = 0x14;
+                arg0->state = 0x14;
             }
             return;
         case 0:
@@ -2097,9 +2097,9 @@ void Mc_StateEnterPrompt0(Task* arg0, McWork* arg1)
             i++;
             ptr0++;
         } while (i < 0x14);
-        *ptr0          = 0;
-        *ptr1          = 0;
-        arg0->field_30 = 0x13;
+        *ptr0       = 0;
+        *ptr1       = 0;
+        arg0->state = 0x13;
     }
 }
 
@@ -2112,7 +2112,7 @@ void Mc_StatePromptCountdown(Task* arg0, McWork* arg1)
     s32           idx;
 
     arg1->field_0 -= 1;
-    obj            = arg0->field_20;
+    obj            = arg0->spawnArg2;
     idx            = arg1->field_8;
     ret            = Ui_LookupTable(obj, 1);
     obj->field_2E  = 0;
@@ -2122,8 +2122,8 @@ void Mc_StatePromptCountdown(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
     if (arg1->field_0 < -0x10) {
-        arg0->field_2a = 0;
-        arg0->field_30 = -1;
+        arg0->killCountdown = 0;
+        arg0->state         = -1;
     }
 }
 
@@ -2136,7 +2136,7 @@ void Mc_StateDrawPromptTo1F(Task* arg0, McWork* arg1)
     s32           idx;
 
     idx           = arg1->field_8;
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, D_8001398C);
@@ -2144,7 +2144,7 @@ void Mc_StateDrawPromptTo1F(Task* arg0, McWork* arg1)
     entry = &base[idx];
     Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
-    arg0->field_30 = 0x1F;
+    arg0->state = 0x1F;
 }
 
 void Mc_StateCountdownPrompt4(Task* arg0, McWork* arg1)
@@ -2155,7 +2155,7 @@ void Mc_StateCountdownPrompt4(Task* arg0, McWork* arg1)
     McPromptPair* base;
 
     arg1->field_8 = 4;
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, D_8001398C);
@@ -2165,7 +2165,7 @@ void Mc_StateCountdownPrompt4(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
     if (arg1->field_4-- <= 0) {
         arg1->field_A18 = 0x33;
-        arg0->field_30  = 0x13;
+        arg0->state     = 0x13;
     }
 }
 
@@ -2178,7 +2178,7 @@ void Mc_StateDrawPrompt1Advance(Task* arg0, McWork* arg1)
 
     arg1->field_4 = 4;
     arg1->field_8 = 1;
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, D_8001398C);
@@ -2186,7 +2186,7 @@ void Mc_StateDrawPrompt1Advance(Task* arg0, McWork* arg1)
     entry = &base[1];
     Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
-    arg0->field_30 = arg0->field_30 + 1;
+    arg0->state = arg0->state + 1;
 }
 
 void Mc_StateOpenSelected(Task* arg0, McWork* arg1)
@@ -2208,12 +2208,12 @@ void Mc_StateOpenSelected(Task* arg0, McWork* arg1)
     openResult   = MemCardOpen(a1->field_C, a1->field_30[openIdx], 1);
     a1->field_14 = openResult;
     if (openResult == 0) {
-        a1->field_4  = 0;
-        a0->field_30 = a0->field_30 + 1;
+        a1->field_4 = 0;
+        a0->state   = a0->state + 1;
     } else {
-        a0->field_30 = 0x18;
+        a0->state = 0x18;
     }
-    obj           = a0->field_20;
+    obj           = a0->spawnArg2;
     modeIdx       = a1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -2233,12 +2233,12 @@ void Mc_StateReadHeader(Task* arg0, McWork* arg1)
     s32           idx;
 
     if (MemCardReadData(arg1->field_294[arg1->field_A14], 0x200, 0x80) != 0) {
-        arg1->field_4  = 0;
-        arg0->field_30 = arg0->field_30 + 1;
+        arg1->field_4 = 0;
+        arg0->state   = arg0->state + 1;
     } else {
         arg1->field_4 = arg1->field_4 + 1;
     }
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     idx           = arg1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -2267,14 +2267,14 @@ void Mc_StateOpenNext(Task* arg0, McWork* arg1)
         temp_v0       = a1->field_A14 + 1;
         a1->field_A14 = temp_v0;
         if (temp_v0 < a1->field_288) {
-            a0->field_30 = 0x22;
+            a0->state = 0x22;
         } else {
-            a0->field_30 = a0->field_30 + 1;
+            a0->state = a0->state + 1;
         }
     } else {
-        a0->field_30 = 0x18;
+        a0->state = 0x18;
     }
-    obj           = a0->field_20;
+    obj           = a0->spawnArg2;
     modeIdx       = a1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -2293,11 +2293,11 @@ void Mc_StateUiCountdown2(Task* arg0, McWork* arg1)
     McPromptPair* base;
     s32           idx;
 
-    arg0->field_2a -= 1;
-    if (arg0->field_2a <= 0) {
-        arg0->field_30 = 2;
+    arg0->killCountdown -= 1;
+    if (arg0->killCountdown <= 0) {
+        arg0->state = 2;
     }
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     idx           = arg1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -2316,11 +2316,11 @@ void Mc_StateUiCountdownE(Task* arg0, McWork* arg1)
     McPromptPair* base;
     s32           idx;
 
-    arg0->field_2a -= 1;
-    if (arg0->field_2a <= 0) {
-        arg0->field_30 = 0xE;
+    arg0->killCountdown -= 1;
+    if (arg0->killCountdown <= 0) {
+        arg0->state = 0xE;
     }
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     idx           = arg1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -2340,10 +2340,10 @@ void Mc_StateUiCountdownF(Task* arg0, McWork* arg1)
 
     arg1->field_4 -= 1;
     if (arg1->field_4 <= 0) {
-        arg0->field_30 = 0xF;
+        arg0->state = 0xF;
     }
     arg1->field_8 = 4;
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, D_8001398C);
@@ -2358,7 +2358,7 @@ void Mc_StateEnterPromptE(Task* arg0, McWork* arg1)
     arg1->field_8 = 0xE;
     arg1->field_4 = 0;
     if (Mc_PromptDialog(arg0, 0xE, 0) != 0) {
-        arg0->field_30 = 0x13;
+        arg0->state = 0x13;
     }
 }
 
@@ -2367,7 +2367,7 @@ void Mc_StateEnterPromptD(Task* arg0, McWork* arg1)
     arg1->field_8 = 0xD;
     arg1->field_4 = 0;
     if (Mc_PromptDialog(arg0, 0xD, 0) != 0) {
-        arg0->field_30 = 0x13;
+        arg0->state = 0x13;
     }
 }
 
@@ -2379,7 +2379,7 @@ void Mc_DispatchStateTable(Task* arg0)
 
     sp    = D_800139AC;
     work  = &D_80071730;
-    state = arg0->field_30;
+    state = arg0->state;
     if (state < 0) {
         Mc_KillIfCountdown(arg0, work);
         return;
@@ -2390,7 +2390,7 @@ void Mc_DispatchStateTable(Task* arg0)
             Mem_Free((void*)work->field_18);
             work->field_18 = 0;
         }
-        arg0->field_30 = 0x18;
+        arg0->state = 0x18;
     }
     D_80073C08 = rand();
 }
@@ -2404,14 +2404,14 @@ void Mc_StateInitWorkDefaults(Task* arg0, McWork* arg1)
     arg1->field_18          = 0;
     arg1->field_C           = 0;
     Display_State.field_101 = 0;
-    arg0->field_30         += 1;
+    arg0->state            += 1;
 }
 
 void Mc_StateSetOpenDefaults(Task* arg0, McWork* arg1)
 {
     arg1->field_24 = 9;
     arg1->field_28 = -1;
-    arg0->field_30 = 7;
+    arg0->state    = 7;
 }
 
 void Mc_StateCountdownPrompt(Task* arg0, McWork* arg1)
@@ -2433,14 +2433,14 @@ void Mc_StateCountdownPrompt(Task* arg0, McWork* arg1)
             case 0:
                 break;
             case 1:
-                arg0->field_30 = 7;
+                arg0->state = 7;
                 break;
             case -1:
-                arg0->field_30 = 3;
+                arg0->state = 3;
                 break;
         }
     } else {
-        obj           = arg0->field_20;
+        obj           = arg0->spawnArg2;
         idx           = arg1->field_8;
         ret           = Ui_LookupTable(obj, 1);
         obj->field_2E = 0;
@@ -2462,7 +2462,7 @@ void Mc_StateCloseReturn(Task* arg0, McWork* arg1)
 
     MemCardClose();
     idx           = arg1->field_8;
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, D_8001398C);
@@ -2470,9 +2470,9 @@ void Mc_StateCloseReturn(Task* arg0, McWork* arg1)
     entry = &base[idx];
     Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
-    arg0->field_30 = 4;
-    if (arg0->field_20 != NULL) {
-        ((UiObject*)arg0->field_20)->field_2E = -1;
+    arg0->state = 4;
+    if (arg0->spawnArg2 != NULL) {
+        ((UiObject*)arg0->spawnArg2)->field_2E = -1;
     }
 }
 
@@ -2485,7 +2485,7 @@ void Mc_StatePromptTimeout(Task* arg0, McWork* arg1)
     s32           idx;
 
     arg1->field_0 -= 1;
-    obj            = arg0->field_20;
+    obj            = arg0->spawnArg2;
     idx            = arg1->field_8;
     ret            = Ui_LookupTable(obj, 1);
     obj->field_2E  = 0;
@@ -2495,14 +2495,14 @@ void Mc_StatePromptTimeout(Task* arg0, McWork* arg1)
     Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
     if (arg1->field_0 < -0x10) {
-        arg0->field_2a = 0;
-        arg0->field_30 = arg0->field_30 + 1;
+        arg0->killCountdown = 0;
+        arg0->state         = arg0->state + 1;
     }
 }
 
 void Mc_KillIfCountdownAlt(Task* arg0)
 {
-    if (arg0->field_2a != 0) {
+    if (arg0->killCountdown != 0) {
         Task_Kill(arg0);
     }
 }
@@ -2530,9 +2530,9 @@ void Mc_StateEnterPromptF(Task* arg0, McWork* arg1)
             i++;
             ptr0++;
         } while (i < 0x14);
-        *ptr0          = 0;
-        *ptr1          = 0;
-        arg0->field_30 = 3;
+        *ptr0       = 0;
+        *ptr1       = 0;
+        arg0->state = 3;
     }
 }
 
@@ -2550,12 +2550,12 @@ void Mc_StateAccept(Task* arg0, McWork* arg1)
     a1          = arg1;
     a1->field_8 = 1;
     if (MemCardAccept(a1->field_C) != 0) {
-        a1->field_4  = 0;
-        a0->field_30 = a0->field_30 + 1;
+        a1->field_4 = 0;
+        a0->state   = a0->state + 1;
     } else {
         a1->field_4 = a1->field_4 + 1;
     }
-    obj           = a0->field_20;
+    obj           = a0->spawnArg2;
     modeIdx       = a1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -2575,7 +2575,7 @@ void Mc_StateSyncPrompt3(Task* arg0, McWork* arg1)
 
     arg1->field_8 = 3;
     if (Mc_PromptDialogFile(arg0, 3, arg1->field_0) != 0) {
-        arg0->field_30 = 3;
+        arg0->state = 3;
         return;
     }
     syncResult = MemCardSync(1, (long*)&arg1->field_10, (long*)&arg1->field_14);
@@ -2585,15 +2585,15 @@ void Mc_StateSyncPrompt3(Task* arg0, McWork* arg1)
             return;
         case 1:
             if (arg1->field_14 != syncResult) {
-                child = arg0->field_c;
+                child = arg0->firstChild;
                 if (child != NULL) {
-                    obj          = child->field_20;
-                    flag         = arg0->field_20;
-                    obj->field_0 = 0;
-                    Ui_TeardownTree(obj, obj->field_28);
-                    flag->field_0 = syncResult;
+                    obj         = child->spawnArg2;
+                    flag        = arg0->spawnArg2;
+                    obj->status = 0;
+                    Ui_TeardownTree(obj, obj->owner);
+                    flag->status = syncResult;
                 }
-                arg0->field_30 = 7;
+                arg0->state = 7;
             }
             return;
         case 0:
@@ -2611,7 +2611,7 @@ void Mc_StateSyncPromptA(Task* arg0, McWork* arg1)
 
     arg1->field_8 = 0xA;
     if (Mc_PromptDialogFile(arg0, 0xA, arg1->field_0) != 0) {
-        arg0->field_30 = 3;
+        arg0->state = 3;
         return;
     }
     syncResult = MemCardSync(1, (long*)&arg1->field_10, (long*)&arg1->field_14);
@@ -2622,15 +2622,15 @@ void Mc_StateSyncPromptA(Task* arg0, McWork* arg1)
         case 1:
             rslt = arg1->field_14;
             if (rslt == syncResult) {
-                child = arg0->field_c;
+                child = arg0->firstChild;
                 if (child != NULL) {
-                    obj          = child->field_20;
-                    flag         = arg0->field_20;
-                    obj->field_0 = 0;
-                    Ui_TeardownTree(obj, obj->field_28);
-                    flag->field_0 = rslt;
+                    obj         = child->spawnArg2;
+                    flag        = arg0->spawnArg2;
+                    obj->status = 0;
+                    Ui_TeardownTree(obj, obj->owner);
+                    flag->status = rslt;
                 }
-                arg0->field_30 = 0xA;
+                arg0->state = 0xA;
             }
             return;
         case 0:
@@ -2647,7 +2647,7 @@ void Mc_StateDrawCurrentPrompt(Task* arg0, McWork* arg1)
     s32           idx;
 
     arg1->field_4 = 4;
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     idx           = arg1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -2656,7 +2656,7 @@ void Mc_StateDrawCurrentPrompt(Task* arg0, McWork* arg1)
     entry = &base[idx];
     Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
-    arg0->field_30 = arg0->field_30 + 1;
+    arg0->state = arg0->state + 1;
 }
 
 void Mc_StateReadData(Task* arg0, McWork* arg1)
@@ -2668,12 +2668,12 @@ void Mc_StateReadData(Task* arg0, McWork* arg1)
     s32           idx;
 
     if (MemCardReadData((unsigned long*)arg1->field_18, arg1->field_1C << 7, arg1->field_20) != 0) {
-        arg1->field_4  = 0;
-        arg0->field_30 = arg0->field_30 + 1;
+        arg1->field_4 = 0;
+        arg0->state   = arg0->state + 1;
     } else {
         arg1->field_4 = arg1->field_4 + 1;
     }
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     idx           = arg1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -2693,7 +2693,7 @@ void Mc_StateDrawPrompt1(Task* arg0, McWork* arg1)
 
     arg1->field_4 = 4;
     arg1->field_8 = 1;
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
     Ui_DrawTitle(obj, D_8001398C);
@@ -2701,7 +2701,7 @@ void Mc_StateDrawPrompt1(Task* arg0, McWork* arg1)
     entry = &base[1];
     Text_DrawPrompt(obj, obj->field_1C + 2, -2, entry->field_0, ret, 1, 0);
     Text_DrawPrompt(obj, obj->field_1C + 2, 0xF, entry->field_4, ret, 1, 0);
-    arg0->field_30 = arg0->field_30 + 1;
+    arg0->state = arg0->state + 1;
 }
 
 void Mc_StateGetDirentry(Task* arg0, McWork* arg1)
@@ -2721,13 +2721,13 @@ void Mc_StateGetDirentry(Task* arg0, McWork* arg1)
         if (arg1->field_288 != 0) {
             arg1->field_290 = 0;
             arg1->field_A14 = 0;
-            arg0->field_30  = arg0->field_30 + 1;
+            arg0->state     = arg0->state + 1;
         } else {
-            arg0->field_30 = 0xB;
+            arg0->state = 0xB;
         }
     }
 
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     idx           = arg1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -2757,12 +2757,12 @@ void Mc_StateOpenDirEntry(Task* arg0, McWork* arg1)
     openResult   = MemCardOpen(a1->field_C, a1->field_30[openIdx], 1);
     a1->field_14 = openResult;
     if (openResult == 0) {
-        a1->field_4  = 0;
-        a0->field_30 = a0->field_30 + 1;
+        a1->field_4 = 0;
+        a0->state   = a0->state + 1;
     } else {
-        a0->field_30 = 6;
+        a0->state = 6;
     }
-    obj           = a0->field_20;
+    obj           = a0->spawnArg2;
     modeIdx       = a1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -2782,12 +2782,12 @@ void Mc_StateReadSlot(Task* arg0, McWork* arg1)
     s32           idx;
 
     if (MemCardReadData(arg1->field_294[arg1->field_A14], 0x200, 0x80) != 0) {
-        arg1->field_4  = 0;
-        arg0->field_30 = arg0->field_30 + 1;
+        arg1->field_4 = 0;
+        arg0->state   = arg0->state + 1;
     } else {
         arg1->field_4 = arg1->field_4 + 1;
     }
-    obj           = arg0->field_20;
+    obj           = arg0->spawnArg2;
     idx           = arg1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -2816,14 +2816,14 @@ void Mc_StateWalkDirectory(Task* arg0, McWork* arg1)
         temp_v0       = a1->field_A14 + 1;
         a1->field_A14 = temp_v0;
         if (temp_v0 < a1->field_288) {
-            a0->field_30 = 0x14;
+            a0->state = 0x14;
         } else {
-            a0->field_30 = a0->field_30 + 1;
+            a0->state = a0->state + 1;
         }
     } else {
-        a0->field_30 = 0x6;
+        a0->state = 0x6;
     }
-    obj           = a0->field_20;
+    obj           = a0->spawnArg2;
     modeIdx       = a1->field_8;
     ret           = Ui_LookupTable(obj, 1);
     obj->field_2E = 0;
@@ -2857,9 +2857,9 @@ void Mc_StateEnterPrompt17(Task* arg0, McWork* arg1)
             i++;
             ptr0++;
         } while (i < 0x14);
-        *ptr0          = 0;
-        *ptr1          = 0;
-        arg0->field_30 = 3;
+        *ptr0       = 0;
+        *ptr1       = 0;
+        arg0->state = 3;
     }
 }
 
@@ -2870,8 +2870,8 @@ void Mc_DispatchStateTable26(Task* arg0)
 
     sp   = D_80013ACC;
     work = &D_80071730;
-    sp.funcs[arg0->field_30](arg0, work);
+    sp.funcs[arg0->state](arg0, work);
     if (work->field_4 >= 0xB5) {
-        arg0->field_30 = 6;
+        arg0->state = 6;
     }
 }

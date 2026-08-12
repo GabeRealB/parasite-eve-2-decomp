@@ -25,16 +25,16 @@ void McMenu_SelectList(Task* arg0)
     UiMiniObj* obj;
     UiList*    menu;
 
-    obj  = arg0->field_20;
+    obj  = arg0->spawnArg2;
     menu = &D_8006116C;
     Ui_DrawText((UiPanel*)obj, D_80013B64);
-    if (arg0->field_30 == 0) {
+    if (arg0->state == 0) {
         Ui_InitList(menu, obj);
         menu->field_A  = 1;
         menu->field_10 = 0;
         menu->field_9  = 0;
         Ui_SetListScrollFlag(menu, 1);
-        arg0->field_30 += 1;
+        arg0->state += 1;
     } else {
         Ui_UpdateListNoAnim(menu, obj);
         if (obj->field_0 == 1) {
@@ -50,7 +50,7 @@ void McMenu_ConfirmWithRender(DialogPrompt* arg0, UiObject* arg1)
     s8  temp2;
 
     temp2 = arg0->field_8;
-    temp  = arg1->field_28->field_34;
+    temp  = arg1->owner->spawnArg1;
     func_800330D8(arg1, temp, temp2, 0, arg0->field_1A + 7);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
@@ -76,11 +76,11 @@ void McMenu_SelectListAlt(Task* arg0)
     WipSelectMenuExt* ctx;
     s32               temp;
 
-    obj  = arg0->field_20;
-    ctx  = (WipSelectMenuExt*)arg0->field_34;
+    obj  = arg0->spawnArg2;
+    ctx  = (WipSelectMenuExt*)arg0->spawnArg1;
     menu = &D_80061194;
     Ui_DrawText((UiPanel*)obj, D_80013B64);
-    if (arg0->field_30 == 0) {
+    if (arg0->state == 0) {
         Ui_InitList(menu, obj);
         menu->field_A  = 1;
         menu->field_10 = ctx->field_290;
@@ -90,7 +90,7 @@ void McMenu_SelectListAlt(Task* arg0)
             menu->field_9 = 0;
         }
         Ui_SetListScrollFlag(menu, 1);
-        arg0->field_30 += 1;
+        arg0->state += 1;
     } else {
         Ui_UpdateListNoAnim(menu, obj);
         if (obj->field_0 == 1) {
@@ -106,16 +106,16 @@ void McMenu_FileInformation(Task* arg0)
     UiList* menu;
     s32     val;
 
-    obj = arg0->field_20;
-    if (arg0->field_30 == 0) {
-        arg0->field_2a  = (u16)arg0->field_34;
-        data            = arg0->field_8->field_34;
-        arg0->field_30 += 1;
-        arg0->field_34  = data;
+    obj = arg0->spawnArg2;
+    if (arg0->state == 0) {
+        arg0->killCountdown = (u16)arg0->spawnArg1;
+        data                = arg0->parent->spawnArg1;
+        arg0->state        += 1;
+        arg0->spawnArg1     = data;
     }
-    data = arg0->field_34;
+    data = arg0->spawnArg1;
     Ui_DrawTitle(obj, D_80013BB4);
-    if (arg0->field_2a == 1) {
+    if (arg0->killCountdown == 1) {
         menu = &D_80061194;
     } else {
         menu = &D_8006116C;
@@ -191,8 +191,8 @@ void McMenu_InitByMode(Task* arg0)
     UiList*  menu;
     s32      mode;
 
-    mode = arg0->field_34;
-    obj  = arg0->field_20;
+    mode = arg0->spawnArg1;
+    obj  = arg0->spawnArg2;
     if (mode == 2) {
         goto block_2;
     }
@@ -210,17 +210,17 @@ block_2:
 block_default:
     menu = &D_8006125C;
 block_done:
-    if (arg0->field_30 == 0) {
+    if (arg0->state == 0) {
         Ui_LayoutListPanel(menu, obj);
         obj->field_C.y -= obj->field_C.h / 2;
-        if (arg0->field_34 != 3) {
+        if (arg0->spawnArg1 != 3) {
             menu->field_10 = 0;
         } else {
             menu->field_10 = 1;
         }
         menu->field_9 = 0;
         Ui_SetListScrollFlag(menu, 1);
-        arg0->field_30 += 1;
+        arg0->state += 1;
     } else {
         Ui_UpdateListNoAnim(menu, obj);
     }

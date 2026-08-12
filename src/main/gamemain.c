@@ -22,9 +22,9 @@ void GameMain_Init(void)
     s32 flag; // The indirection is required.
 
     SetDispMask(0);
-    F04CF8_800148A0();
+    Boot_WaitCdAudioReady();
     ResetCallback();
-    F04CF8_80014A98(1);
+    Boot_ResetCd(1);
     VSync(10);
 
     GameResetScratchHead();
@@ -37,7 +37,7 @@ void GameMain_Init(void)
 
     Mem_Set(&Display_State, 0, sizeof(Display_State));
     Display_State.field_120 = 1;
-    Display_State.field_124 = 0;
+    Display_State.region    = 0;
     Display_State.field_101 = 0;
     Display_State.field_1d  = -1;
     Display_State.field_1e  = 0;
@@ -51,11 +51,11 @@ void GameMain_Init(void)
     GameMain_SetFrameTiming(0);
 
     D_8005EC70 = 0;
-    F179D4_ClearOTag(0);
-    F179D4_ClearOTag(1);
+    Gpu_ClearOTag(0);
+    Gpu_ClearOTag(1);
     Spu_WaitDma();
     Snd_SetMutedVolumes(0);
-    F04CF8_800148EC();
+    Boot_InitCdAudio();
     VSyncCallback(Display_VSyncCallback);
 
     flag                   = 1;
@@ -73,8 +73,8 @@ void Display_FlipDraw(s32 arg0)
 
     mode = D_80070E38 & 0xF;
     if (mode != 2) {
-        PutDrawEnv(&Display_State.field_48[arg0]);
-        PutDispEnv(&Display_State.field_20[arg0]);
+        PutDrawEnv(&Display_State.drawEnv[arg0]);
+        PutDispEnv(&Display_State.dispEnv[arg0]);
         if (mode == 0) {
             if (D_8006EC30 != 0) {
                 Display_LoadImageStrips(arg0);
@@ -83,7 +83,7 @@ void Display_FlipDraw(s32 arg0)
                 func_80020058();
                 Display_State.field_1f = saved;
             }
-            DrawOTag(Gpu_OtBuffers[Display_State.field_114].field_10);
+            DrawOTag(Gpu_OtBuffers[Display_State.field_114].lastTag);
         } else if (D_8006EC30 == 2) {
             Display_LoadImageStrips(arg0);
         } else if (D_8006EC30 == 3) {
@@ -108,22 +108,22 @@ void Display_VSyncCallback(void)
     if ((s32)D_8005EC70 >= 0) {
         if (((temp_s4 & 0xFFFF) + D_8005EC78) > (D_8005EC6C >> 1)) {
             ds = &Display_State;
-            if (ds->field_108 == 0) {
+            if (ds->vsyncFlag == 0) {
                 temp_s0  = D_8005EC70;
-                drawBase = ds->field_48;
+                drawBase = ds->drawEnv;
                 PutDrawEnv(&drawBase[temp_s0]);
                 stride   = temp_s0 * 0x14;
-                dispBase = ds->field_20;
+                dispBase = ds->dispEnv;
                 PutDispEnv(&dispBase[temp_s0]);
                 if (ds->field_100 != 0) {
                     Display_LoadImageStrips(temp_s0);
                 }
                 func_80020058();
                 if (ds->field_104 == 0) {
-                    DrawOTag(Gpu_OtBuffers[temp_s0].field_10);
+                    DrawOTag(Gpu_OtBuffers[temp_s0].lastTag);
                 }
                 D_8005EC70 = -1;
-            } else if (ds->field_108 == 1) {
+            } else if (ds->vsyncFlag == 1) {
                 Display_FlipDraw(D_8005EC70);
                 D_8005EC70 = -1;
             }
@@ -161,7 +161,7 @@ void GameMain_ShowLoading(s32 arg0)
         skip = 0;
         if (((s16)CdCmd_Queue.field_244 != 0) && !(D_8005EC80 & 8)) {
             skip = 1;
-        } else if ((Display_State.field_108 == 1) && ((s8)Display_State.field_103 == 2)) {
+        } else if ((Display_State.vsyncFlag == 1) && ((s8)Display_State.field_103 == 2)) {
             skip = 1;
         } else if (Fs_CdOpStatus != 0xFF) {
             skip = 1;
@@ -187,24 +187,24 @@ void GameMain_ShowLoading(s32 arg0)
             setlen(tile, 3);
             ds = &Display_State;
             setcode(tile, 0x62);
-            yoff     = ds->field_109;
+            yoff     = ds->vramYOffset;
             tile->y0 = -0x78 - yoff;
             DrawPrim(tile);
 
-            sp10.field_0 = 0;
-            sp10.field_4 = 4;
-            sp10.field_8 = 0x37A78;
-            sp10.field_C = 4;
-            sp10.field_D = one;
-            sp10.field_E = 0x10;
-            sp10.field_2 = 6 - ds->field_109;
+            sp10.x          = 0;
+            sp10.otIndex    = 4;
+            sp10.field_8    = 0x37A78;
+            sp10.glyphTable = 4;
+            sp10.centerMode = one;
+            sp10.field_E    = 0x10;
+            sp10.y          = 6 - ds->vramYOffset;
             func_8002E53C(&sp10, GameMain_PauseText);
 
             buf      = ds->field_1f ^ 1;
-            drawBase = ds->field_48;
+            drawBase = ds->drawEnv;
             PutDrawEnv(&drawBase[buf]);
             stride   = buf * 0x14;
-            dispBase = ds->field_20;
+            dispBase = ds->dispEnv;
             PutDispEnv(&dispBase[buf]);
 
             EnterCriticalSection();
@@ -296,7 +296,7 @@ void GameMain_Loop(void)
             Pad_UpdatePort0();
 
             ps = (PadState*)Pad_States;
-            if (ps->field_0 == 0xFF && ps->field_A == 0 && nv->field_12e != 0 &&
+            if (ps->status == 0xFF && ps->cooldown == 0 && nv->field_12e != 0 &&
                 nv->field_12f == 0 && nv->field_11e == 0) {
                 GameMain_ShowLoading(1);
             } else {
@@ -332,7 +332,7 @@ void GameMain_Loop(void)
                           }) &
                           8)) {
                         skip = 1;
-                    } else if (nv->field_108 == 1 && (s8)nv->field_103 == 2) {
+                    } else if (nv->vsyncFlag == 1 && (s8)nv->field_103 == 2) {
                         skip = 1;
                     } else if (Fs_CdOpStatus != 0xFF) {
                         skip = 1;
@@ -384,8 +384,8 @@ void GameMain_Loop(void)
                 nv->field_4 = t + (D_8005EC68 >> 1);
             }
 
-            ot_local = D5F414_OrderingTables + (u32)flip * C5F414_OTAG_ENTRIES;
-            n        = C5F414_OTAG_ENTRIES;
+            ot_local = Gpu_OtTags + (u32)flip * GPU_OT_ENTRIES;
+            n        = GPU_OT_ENTRIES;
             /* Keep ot/n live so li a1 lands right after ot setup, before EC68 loads */
             __asm__ volatile("" : "+r"(ot_local), "+r"(n));
             {
@@ -394,8 +394,8 @@ void GameMain_Loop(void)
                 s32          f10;
                 half = D_8005EC68;
                 f10  = nv->field_10;
-                __asm__ volatile("lui %0, %%hi(D_800710A0)" : "=r"(d710r));
-                __asm__ volatile("sw %0, %%lo(D_800710A0)(%1)" ::"r"(ot_local), "r"(d710r)
+                __asm__ volatile("lui %0, %%hi(Gpu_CurrentOt)" : "=r"(d710r));
+                __asm__ volatile("sw %0, %%lo(Gpu_CurrentOt)(%1)" ::"r"(ot_local), "r"(d710r)
                                  : "memory");
                 nv->field_10 = f10 + (half >> 1);
                 ClearOTagR(ot_local, n);
@@ -405,11 +405,11 @@ void GameMain_Loop(void)
                 register s32     endp asm("v1");
                 register u_long* pr asm("v0");
                 __asm__ volatile("lui %0, 0xff" : "=r"(endp));
-                __asm__ volatile("lw %0, %%lo(D_800710A0)(%1)" : "=r"(pr) : "r"(d710));
+                __asm__ volatile("lw %0, %%lo(Gpu_CurrentOt)(%1)" : "=r"(pr) : "r"(d710));
                 __asm__ volatile("ori %0, %0, 0xffff" : "+r"(endp));
                 *pr = (u_long)endp;
                 pr += 0x20;
-                __asm__ volatile("sw %0, %%lo(D_800710A0)(%1)" ::"r"(pr), "r"(d710)
+                __asm__ volatile("sw %0, %%lo(Gpu_CurrentOt)(%1)" ::"r"(pr), "r"(d710)
                                  : "memory");
             }
 
@@ -432,15 +432,15 @@ void GameMain_Loop(void)
             {
                 register s32 z asm("a0");
                 z = 0;
-                if ((s16)nv->field_1a == 0x1E0) {
+                if ((s16)nv->height == 0x1E0) {
                     __asm__ volatile("sw %0, %%lo(D_8005EC70)(%1)" ::"r"(neg1), "r"(s5r) : "memory");
                     VSync(z);
                     ResetGraph(1);
                     buf      = nv->field_114;
-                    drawBase = nv->field_48;
+                    drawBase = nv->drawEnv;
                     PutDrawEnv((DRAWENV*)((s32)(buf * 0x5C) + (s32)drawBase));
                     stride   = buf * 0x14;
-                    dispBase = nv->field_20;
+                    dispBase = nv->dispEnv;
                     {
                         register s32 a0 asm("a0");
                         a0 = (s32)dispBase;
@@ -454,7 +454,7 @@ void GameMain_Loop(void)
                         s3 = 0;
                         continue;
                     }
-                    DrawOTag(otBase[buf].field_10);
+                    DrawOTag(otBase[buf].lastTag);
                     s3 = 0;
                     continue;
                 }
@@ -509,7 +509,7 @@ void GameMain_Loop(void)
                 if (vs < lim) {
                     register s32 vsarg asm("a0");
                     vsarg         = D_8005EC68;
-                    nv->field_108 = 0;
+                    nv->vsyncFlag = 0;
                     {
                         s32 _t = nv->field_114;
                         __asm__ volatile("sw %0, %%lo(D_8005EC70)(%1)" ::"r"(_t), "r"(s5r)
@@ -532,7 +532,7 @@ void GameMain_Loop(void)
                     one = 1;
                     m2  = -2;
                     __asm__ volatile("" : "+r"(one), "+r"(m2));
-                    nv->field_108 = 0;
+                    nv->vsyncFlag = 0;
                     __asm__ volatile("sw %0, %%lo(D_8005EC70)(%1)" ::"r"(m2), "r"(s5r) : "memory");
                     a0 = one;
                 }
@@ -541,10 +541,10 @@ void GameMain_Loop(void)
             D_8005EC78 = 0;
             s3         = VSync(a0) & 0x7FFF;
             buf        = nv->field_114;
-            drawBase   = nv->field_48;
+            drawBase   = nv->drawEnv;
             PutDrawEnv((DRAWENV*)((s32)(buf * 0x5C) + (s32)drawBase));
             stride   = buf * 0x14;
-            dispBase = nv->field_20;
+            dispBase = nv->dispEnv;
             {
                 register s32 a0 asm("a0");
                 a0 = (s32)dispBase;
@@ -555,7 +555,7 @@ void GameMain_Loop(void)
             }
             func_80020058();
             if (nv->field_104 == 0) {
-                DrawOTag(otBase[buf].field_10);
+                DrawOTag(otBase[buf].lastTag);
             }
             __asm__ volatile("sw %0, %%lo(D_8005EC70)(%1)" ::"r"(neg1), "r"(s5r) : "memory");
 
@@ -564,14 +564,14 @@ void GameMain_Loop(void)
             {
                 register s32 v1r asm("v1");
                 register s32 a0r asm("a0");
-                v1r                    = raw << 24;
-                a0r                    = v1r >> 24;
-                v1r                    = a0r;
-                a0r                   += 0x78;
-                v1r                   += 0x188;
-                nv->field_109          = raw;
-                nv->field_48[0].ofs[1] = a0r;
-                nv->field_48[1].ofs[1] = v1r;
+                v1r                   = raw << 24;
+                a0r                   = v1r >> 24;
+                v1r                   = a0r;
+                a0r                  += 0x78;
+                v1r                  += 0x188;
+                nv->vramYOffset       = raw;
+                nv->drawEnv[0].ofs[1] = a0r;
+                nv->drawEnv[1].ofs[1] = v1r;
             }
 
             (void)ot_hi;
@@ -650,16 +650,16 @@ void Display_LoadImageStrips(s32 arg0)
     s8   yoff;
 
     if (CdCmd_Queue.field_21C == 0) {
-        if (Display_State.field_109 >= 0) {
+        if (Display_State.vramYOffset >= 0) {
             if (arg0 != 0) {
-                rect.y = Display_State.field_109 + 0x110;
+                rect.y = Display_State.vramYOffset + 0x110;
             } else {
-                rect.y = Display_State.field_109;
+                rect.y = Display_State.vramYOffset;
             }
             rect.x = 0;
             rect.w = 0x140;
-            rect.h = 0xF0 - Display_State.field_109;
-            LoadImage(&rect, (u_long*)D4CB64_ImgBuffers);
+            rect.h = 0xF0 - Display_State.vramYOffset;
+            LoadImage(&rect, (u_long*)Fs_ImgBuffers);
             return;
         }
         if (arg0 == 0) {
@@ -669,16 +669,16 @@ void Display_LoadImageStrips(s32 arg0)
         }
         rect.x = 0;
         rect.w = 0x140;
-        yoff   = Display_State.field_109;
+        yoff   = Display_State.vramYOffset;
         rect.h = yoff + 0xF0;
-        LoadImage(&rect, (u_long*)((u8*)D4CB64_ImgBuffers + ((-yoff) * 0x280)));
+        LoadImage(&rect, (u_long*)((u8*)Fs_ImgBuffers + ((-yoff) * 0x280)));
         return;
     }
     var_s1 = 0;
     if (CdCmd_Queue.field_21C == 1) {
         arg0  *= 0x110;
         rect.w = 0x10;
-        field  = Display_State.field_109;
+        field  = Display_State.vramYOffset;
         rect.y = arg0;
         rect.h = 0xF0;
         if (field > 0) {
@@ -692,7 +692,7 @@ void Display_LoadImageStrips(s32 arg0)
         do {
             temp_v1 = var_s0 & 0xFFFF;
             rect.x  = temp_v1 * 0x10;
-            LoadImage(&rect, (u_long*)((u8*)D4CB64_ImgBuffers + (temp_v1 * 0x1E00) + var_s1));
+            LoadImage(&rect, (u_long*)((u8*)Fs_ImgBuffers + (temp_v1 * 0x1E00) + var_s1));
             var_s0++;
         } while ((u32)(var_s0 & 0xFFFF) < 0x14U);
     }
@@ -715,11 +715,11 @@ void GameMain_SetFrameTiming(s32 arg0)
     }
 }
 
-void F179D4_ClearOTag(s16 tableIdx)
+void Gpu_ClearOTag(s16 tableIdx)
 {
-    u_long* tableStart = D5F414_OrderingTables + tableIdx * C5F414_OTAG_ENTRIES;
-    ClearOTagR(tableStart, C5F414_OTAG_ENTRIES);
-    *tableStart = C5F414_OTAG_END_PRIM;
+    u_long* tableStart = Gpu_OtTags + tableIdx * GPU_OT_ENTRIES;
+    ClearOTagR(tableStart, GPU_OT_ENTRIES);
+    *tableStart = GPU_OT_END_PRIM;
 }
 
 void Gfx_InitGraph(void)
@@ -741,15 +741,15 @@ void Gfx_InitGraph(void)
     DrawSync(0);
     InitGeom();
 
-    otCtx             = Gpu_OtBuffers;
-    depth             = 0xA;
-    otCtx->field_0    = depth;
-    ot                = D5F414_OrderingTables;
-    otCtx->field_10   = ot + C5F414_OTAG_ENTRIES - 1;
-    otCtx->field_4    = ot;
-    otCtx[1].field_0  = depth;
-    otCtx[1].field_4  = ot + C5F414_OTAG_ENTRIES;
-    otCtx[1].field_10 = ot + 2 * C5F414_OTAG_ENTRIES - 1;
+    otCtx            = Gpu_OtBuffers;
+    depth            = 0xA;
+    otCtx->depth     = depth;
+    ot               = Gpu_OtTags;
+    otCtx->lastTag   = ot + GPU_OT_ENTRIES - 1;
+    otCtx->ot        = ot;
+    otCtx[1].depth   = depth;
+    otCtx[1].ot      = ot + GPU_OT_ENTRIES;
+    otCtx[1].lastTag = ot + 2 * GPU_OT_ENTRIES - 1;
     GameMain_SpawnBootTask();
     Gfx_InitCoordinateTrees();
     Gpu_InitDefaultLights();
@@ -767,14 +767,14 @@ void GameMain_SpawnBootTask(void)
 
 void Display_PutEnvAndDraw(s32 arg0)
 {
-    PutDrawEnv(&Display_State.field_48[arg0]);
-    PutDispEnv(&Display_State.field_20[arg0]);
+    PutDrawEnv(&Display_State.drawEnv[arg0]);
+    PutDispEnv(&Display_State.dispEnv[arg0]);
     if (Display_State.field_100 != 0) {
         Display_LoadImageStrips(arg0);
     }
     func_80020058();
     if (Display_State.field_104 == 0) {
-        DrawOTag(Gpu_OtBuffers[arg0].field_10);
+        DrawOTag(Gpu_OtBuffers[arg0].lastTag);
     }
 }
 
@@ -787,7 +787,7 @@ void GameMain(void)
     Spu_Init();
     Mc_InitLib();
     Pad_Init();
-    F04CF8_80014A50();
+    Boot_InitCd();
     Mem_Set(&Wip_SysFlags, 0, sizeof(Wip_SysFlags));
     D_8005EC64 = 0;
     GameMain_Init();

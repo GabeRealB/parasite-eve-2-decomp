@@ -1,7 +1,7 @@
 # Known struct fields
 
-Catalog of **proven** field roles. Identifiers stay `field_XX` until a rename is
-safe; this file is the place to look up meaning. Sources: usage in matched C,
+Catalog of **proven** field roles. Members are renamed in C when the role is
+safe; remaining `field_XX` names stay until then. Sources: usage in matched C,
 existing header comments, and `DECOMPILATION_LEARNINGS.md`.
 
 Convention: only list fields with evidence. Unlisted `field_*` / `unknown_*` /
@@ -15,47 +15,47 @@ Convention: only list fields with evidence. Unlisted `field_*` / `unknown_*` /
 | Off | Member | Role |
 |-----|--------|------|
 | 0x00 | `node` | Intrusive list links (`next` / `prev`) |
-| 0x08 | `field_8` | Parent task (NULL if root); children clear this on kill |
-| 0x0C | `field_c` | First child (NULL if none); sibling ring via `field_10` |
-| 0x10 | `field_10` | Next sibling in parent’s child ring (self if only child) |
-| 0x14 | `field_14` | Per-frame callback (`TaskFunc`) |
-| 0x18 | `field_18` | Exit / kill callback (often `Task_Kill`) |
-| 0x1C | `field_1C` | Optional `TaskIdMap*` (freed on kill) |
-| 0x20 | `field_20` | Spawn arg2 — often `UiObject*` / UI context |
-| 0x28 | `field_28` | Spawn type (desc flags low byte: 0 bare, 1/2 overlay) |
-| 0x29 | `field_29` | List priority (lower runs earlier) |
-| 0x2A | `field_2a` | Deferred-kill countdown / state |
-| 0x2C | `field_2c` | Spawn “extra” (`GameActorExt*`, overlay object, …) |
-| 0x30 | `field_30` | Generic state word (handlers / kill path) |
-| 0x34 | `field_34` | Spawn arg1 — menu/ctx pointer, mode, … |
-| 0x38 | `field_38` | Small flag byte |
-| 0x3C | `field_3c` | Extra state word |
+| 0x08 | `parent` | Parent task (NULL if root); children clear this on kill |
+| 0x0C | `firstChild` | First child (NULL if none); sibling ring via `nextSibling` |
+| 0x10 | `nextSibling` | Next sibling in parent’s child ring (self if only child) |
+| 0x14 | `callback` | Per-frame callback (`TaskFunc`) |
+| 0x18 | `exitCallback` | Exit / kill callback (often `Task_Kill`) |
+| 0x1C | `idMap` | Optional `TaskIdMap*` (freed on kill) |
+| 0x20 | `spawnArg2` | Spawn arg2 — often `UiObject*` / UI context |
+| 0x28 | `spawnType` | Spawn type (desc flags low byte: 0 bare, 1/2 overlay) |
+| 0x29 | `priority` | List priority (lower runs earlier) |
+| 0x2A | `killCountdown` | Deferred-kill countdown / state |
+| 0x2C | `extra` | Spawn extra (`GameActorExt*`, overlay object, …) |
+| 0x30 | `state` | Generic state word (handlers / kill path) |
+| 0x34 | `spawnArg1` | Spawn arg1 — menu/ctx pointer, mode, … |
+| 0x38 | `flags` | Small flag byte |
+| 0x3C | `extraState` | Extra state word |
 
 ### `TaskDesc` (0xC)
 | Off | Member | Role |
 |-----|--------|------|
 | 0x0 | `flags` | Low byte spawn type; bit 0x100 type-1 setup arg |
-| 0x2 | `field_2` | Low byte → `Task::field_29` priority |
+| 0x2 | `priority` | Low byte → `Task::priority` |
 | 0x4 | `callback` | Per-frame entry |
-| 0x8 | `field_8` | Extra arg to type-1 setup (`func_80099170`) |
+| 0x8 | `setupArg` | Extra arg to type-1 setup (`func_80099170`) |
 
 ### `TaskIdMap` (0x8)
 | Off | Member | Role |
 |-----|--------|------|
-| 0x0 | `field_0` | Index into `field_4` table |
-| 0x4 | `field_4` | `GPairU8*` id/type table |
+| 0x0 | `index` | Index into `table` |
+| 0x4 | `table` | `TaskIdPair*` id/type table |
 
-### `GPairU8` (0x2)
+### `TaskIdPair` (0x2)
 | Off | Member | Role |
 |-----|--------|------|
-| 0x0 | `field_0` | Id |
-| 0x1 | `field_1` | Type |
+| 0x0 | `id` | Id |
+| 0x1 | `type` | Type |
 
 ---
 
 ## Title overlay (`title.h`)
 
-### `TitleWork` (0x18) — `Task::field_1C` on title menu task
+### `TitleWork` (0x18) — stored in `Task::idMap` slot on title menu task
 | Off | Member | Role |
 |-----|--------|------|
 | 0x00 | `timer` | Frame / phase counter (intro window, fade timing) |
@@ -72,16 +72,16 @@ Convention: only list fields with evidence. Unlisted `field_*` / `unknown_*` /
 ### `DisplayState` (0x138)
 | Off | Member | Role |
 |-----|--------|------|
-| 0x18 | `field_18` | Display width |
-| 0x1A | `field_1a` | Display height |
-| 0x1C | `field_1c` | Interlace enable |
-| 0x20 | `field_20[2]` | Dual `DISPENV` |
-| 0x48 | `field_48[2]` | Dual `DRAWENV` |
-| 0x108 | `field_108` | VSync-facing volatile flag |
-| 0x109 | `field_109` | VRAM Y offset for image transfer |
-| 0x118 | `field_118` | Frame / mode word used by stage flow |
-| 0x123 | `field_123` | Kill-path gate (`Task_Kill` skips overlay teardown if set) |
-| 0x124 | `field_124` | Region / rate select (1 → PAL paths, CdStream sector count) |
+| 0x18 | `width` | Display width |
+| 0x1A | `height` | Display height |
+| 0x1C | `interlace` | Interlace enable |
+| 0x20 | `dispEnv[2]` | Dual `DISPENV` |
+| 0x48 | `drawEnv[2]` | Dual `DRAWENV` |
+| 0x108 | `vsyncFlag` | VSync-facing volatile flag |
+| 0x109 | `vramYOffset` | VRAM Y offset for image transfer |
+| 0x118 | `frameMode` | Frame / mode word used by stage flow |
+| 0x123 | `skipTeardown` | Kill-path gate (`Task_Kill` skips overlay teardown if set) |
+| 0x124 | `region` | Region / rate select (1 → PAL paths, CdStream sector count) |
 | 0x128 | `field_128` | Drawn into scratch by model path |
 
 ---
@@ -91,15 +91,15 @@ Convention: only list fields with evidence. Unlisted `field_*` / `unknown_*` /
 ### `PadState` (0x5C)
 | Off | Member | Role |
 |-----|--------|------|
-| 0x00 | `field_0` | Pad status halfword (`0xFF` init; `0x73` analog path) |
-| 0x02 | `field_2` | Ring index into `field_10` banks |
-| 0x03 | `field_3` | Init flag (set 1 in `Pad_Init`) |
-| 0x04 | `field_4` | Current buttons |
-| 0x06 | `field_6` | Previous / held mask |
-| 0x08 | `field_8` | Triggered / edge mask |
-| 0x0A | `field_A` | Cooldown counter |
-| 0x0B | `field_B` | Auto-repeat timer |
-| 0x10 | `field_10[2][8]` | Two banks of `PadEvent` |
+| 0x00 | `status` | Pad status halfword (`0xFF` init; `0x73` analog path) |
+| 0x02 | `eventIdx` | Ring index into `events` banks |
+| 0x03 | `initialized` | Init flag (set 1 in `Pad_Init`) |
+| 0x04 | `buttons` | Current buttons |
+| 0x06 | `prevButtons` | Previous / held mask |
+| 0x08 | `triggered` | Triggered / edge mask |
+| 0x0A | `cooldown` | Cooldown counter |
+| 0x0B | `autoRepeat` | Auto-repeat timer |
+| 0x10 | `events[2][8]` | Two banks of `PadEvent` |
 | 0x50–0x56 | `field_50`… | Analog stick related |
 | 0x5A/5B | `field_5A/5B` | Cleared at init |
 
@@ -303,12 +303,12 @@ Overlays of `CdAudio_Loc` region: voice indices at +0x3E/+0x3F; sector `CdlLOC` 
 ### `AudioTickNode` (0x18)
 | Off | Member | Role |
 |-----|--------|------|
-| 0x0 | `field_0` | Poll: `s32 (*)(s32 arg)` — returns −1 to remove |
-| 0x4 | `field_4` | Remove callback `void (*)(void)` |
-| 0x8 | `field_8` | Node id (match key for remove) |
-| 0xC | `field_c` | Arg passed to poll |
-| 0x10 | `field_10` | Prev link |
-| 0x14 | `field_14` | Next link |
+| 0x0 | `poll` | `s32 (*)(s32 arg)` — returns −1 to remove |
+| 0x4 | `onRemove` | Remove callback `void (*)(void)` |
+| 0x8 | `id` | Node id (match key for remove) |
+| 0xC | `arg` | Arg passed to poll |
+| 0x10 | `prev` | Prev link |
+| 0x14 | `next` | Next link |
 
 ---
 
@@ -344,8 +344,8 @@ Overlays of `CdAudio_Loc` region: voice indices at +0x3E/+0x3F; sector `CdlLOC` 
 ### `SpuVoiceRange` (0x4)
 | Off | Member | Role |
 |-----|--------|------|
-| 0x0 | `field_0` | First voice index |
-| 0x2 | `field_2` | Count of voices in range |
+| 0x0 | `first` | First voice index |
+| 0x2 | `count` | Count of voices in range |
 
 ### `SpuVoiceRef` (0x8)
 | Off | Member | Role |
@@ -387,7 +387,7 @@ Overlays of `CdAudio_Loc` region: voice indices at +0x3E/+0x3F; sector `CdlLOC` 
 |-----|--------|------|
 | 0x0 | `field_0` | Slot map index into `D_800680AC` |
 | 0x2 | `field_2` | Bank id written to slot/bank |
-| 0x4/6 | `field_4/6` | `F3D458_Malloc` sizes |
+| 0x4/6 | `field_4/6` | `SndHeap_Malloc` sizes |
 | 0x8 | `field_8` | Stored to `SndBankSlot.field_C` |
 
 ### `SndBankSlot` (0x10)
@@ -443,11 +443,11 @@ See detailed comments on each struct in `game.h`.
 ### `SndEvt` (0x1C)
 | Off | Member | Role |
 |-----|--------|------|
-| 0x0 | `field_0` | Allocated flag (0 free, 1 in use) |
-| 0x2 | `field_2` | Handler index into `SndEvt_Handlers` |
+| 0x0 | `allocated` | Allocated flag (0 free, 1 in use) |
+| 0x2 | `handlerIdx` | Handler index into `SndEvt_Handlers` |
 | 0x4–0x10 | `field_4`… | Handler payload (args vary by opcode) |
-| 0x14 | `field_14` | Queue prev |
-| 0x18 | `field_18` | Queue next |
+| 0x14 | `prev` | Queue prev |
+| 0x18 | `next` | Queue next |
 
 ### `SndEvtFrom4`
 Overlay of payload starting at `SndEvt.field_4` (includes `SndVoiceParams*` at +0xC).
@@ -466,17 +466,17 @@ See comments in `game.h` (track cursor, delta time, voice slots, opcode table at
 ### `UiObject` (0x30)
 | Off | Member | Role |
 |-----|--------|------|
-| 0x00 | `field_0` | Status flag |
+| 0x00 | `status` | Status flag |
 | 0x04 | `field_4` | From desc / mode seed |
-| 0x08 | `field_8` | Mode (5 = skip draw; 3 = torn down) |
+| 0x08 | `mode` | Mode (5 = skip draw; 3 = torn down) |
 | 0x0C–12 | `field_C`… | Layout RECT-like halfwords |
-| 0x14 | `field_14` | Text draw priority/order |
-| 0x16 | `field_16` | Timer/counter |
+| 0x14 | `drawOrder` | Text draw priority/order |
+| 0x16 | `timer` | Timer/counter |
 | 0x18/1A | `field_18/1A` | Layout offsets |
 | 0x1C | `field_1C` | Position (+2 for text draw) |
-| 0x1E/20/22 | offsets / base x/y | Placement |
-| 0x24 | `field_24` | Callback |
-| 0x28 | `field_28` | Owning `Task*` |
+| 0x1E/20/22 | `field_1E` / `baseX` / `baseY` | Placement |
+| 0x24 | `callback` | Callback |
+| 0x28 | `owner` | Owning `Task*` |
 | 0x2C/2E | `field_2C/2E` | Teardown / choice state |
 
 ### `UiObjectDesc` / `UiPanel` / `UiList` / `UiMiniObj` / `TextBlockDesc` / `TextLineNode`
@@ -496,7 +496,7 @@ See comments in `game.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 | 0x04/08 | `field_4/8` | Spawn args for `Task_SpawnFromTable` |
 | 0x17/18/19 | flags | Flow gates |
 | 0x1C | `field_1c` | Flag word (bit clears) |
-| 0x24 | `field_24` | Last `Display_State.field_118` |
+| 0x24 | `field_24` | Last `Display_State.frameMode` |
 | 0x28 | `field_28` | Step counter |
 | 0x2C/34 | arrays | CDF load params |
 

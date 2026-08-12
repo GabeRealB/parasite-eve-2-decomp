@@ -16,8 +16,8 @@ void GameFlow_StateByField34(Task* arg0)
     DisplayState* ds;
 
     p = &CdCmd_Queue;
-    if (arg0->field_34 == 2) {
-        if (arg0->field_30 == 0) {
+    if (arg0->spawnArg1 == 2) {
+        if (arg0->state == 0) {
             Pad_SetCooldown(0);
             if (Display_State.field_12c == 0) {
                 Display_State.field_12c = 1;
@@ -25,7 +25,7 @@ void GameFlow_StateByField34(Task* arg0)
             if (Display_State.field_12c < 0x10) {
                 Title_EnqueueDemoScene(Display_State.field_12c - 1);
             }
-            arg0->field_30 = arg0->field_30 + 1;
+            arg0->state = arg0->state + 1;
         }
         if (CdCmd_IsIdle() != 0) {
             if (Display_State.field_10e == 0) {
@@ -59,7 +59,7 @@ void GameFlow_StateByField34(Task* arg0)
     } else {
         Display_State.field_12c = 0;
         Pad_SetCooldown(0);
-        if (arg0->field_34 == 0) {
+        if (arg0->spawnArg1 == 0) {
             saved = D_80072189;
             ptr   = (u8*)Game_Session;
             for (i = 0; i < sizeof(GameSession); i++) {
@@ -74,7 +74,7 @@ void GameFlow_StateByField34(Task* arg0)
             do {
                 D_80072189 = saved;
             } while (0);
-            arg0->field_30 = arg0->field_30 + 1;
+            arg0->state = arg0->state + 1;
         } else {
             {
                 u8* clearPtr;
@@ -115,16 +115,16 @@ void Fade_DrawOverlay(s32 r, s32 g, s32 b, s32 mode)
     p->r0 = r;
     p->g0 = g;
     p->b0 = b;
-    yoff  = Display_State.field_109;
+    yoff  = Display_State.vramYOffset;
     p->w  = 0x140;
     p->h  = 0xF0;
     p->y0 = -0x78 - yoff;
-    addPrim(D_800710A0 - 0x10, p);
+    addPrim(Gpu_CurrentOt - 0x10, p);
 
     dr         = (DR_TPAGE*)D_80071190;
     D_80071190 = dr + 1;
     setDrawTPage(dr, 0, 1, (mode & 3) << 5);
-    addPrim(D_800710A0 - 0x10, dr);
+    addPrim(Gpu_CurrentOt - 0x10, dr);
 }
 
 void Game_ClearSession(void)
@@ -169,7 +169,7 @@ void Game_ResetSessionAndBuffers(Task* arg0)
     do {
         D_80072189 = saved;
     } while (0);
-    arg0->field_30 = arg0->field_30 + 1;
+    arg0->state = arg0->state + 1;
 }
 
 void GameFlow_SpawnMenu(Task* arg0)
@@ -177,13 +177,13 @@ void GameFlow_SpawnMenu(Task* arg0)
     void* temp_v0;
 
     GameMain_SetFrameTiming(0);
-    temp_v0        = Ui_SpawnFromDesc(D_800611C8, 0, 1, 0, 0);
-    arg0->field_20 = temp_v0;
+    temp_v0         = Ui_SpawnFromDesc(D_800611C8, 0, 1, 0, 0);
+    arg0->spawnArg2 = temp_v0;
     if (temp_v0 != 0) {
         Display_State.field_11e = 0xFF;
         Game_Session->field_2   = 1;
-        arg0->field_2a          = 0x10;
-        arg0->field_30          = arg0->field_30 + 1;
+        arg0->killCountdown     = 0x10;
+        arg0->state             = arg0->state + 1;
     }
 }
 
@@ -191,9 +191,9 @@ void GameFlow_WaitMenuDone(Task* arg0)
 {
     UiObject* obj;
 
-    obj = arg0->field_20;
+    obj = arg0->spawnArg2;
     if (obj->field_2E == -1) {
-        Ui_TeardownTree(obj, obj->field_28);
+        Ui_TeardownTree(obj, obj->owner);
         Display_State.field_11e = 0;
         Game_Session->field_2   = 0;
         if (D_80072311 == 1) {
@@ -202,19 +202,19 @@ void GameFlow_WaitMenuDone(Task* arg0)
             CdVol_SetMixMode(1);
         }
         Snd_ApplyVolumeTable(0);
-        arg0->field_2a = 0xC;
-        arg0->field_30 = arg0->field_30 + 1;
+        arg0->killCountdown = 0xC;
+        arg0->state         = arg0->state + 1;
     }
 }
 
 void GameFlow_CountdownAdvance(Task* arg0)
 {
-    arg0->field_2a--;
-    if (arg0->field_2a != 0) {
+    arg0->killCountdown--;
+    if (arg0->killCountdown != 0) {
         return;
     }
     Pad_SetCooldown(0);
-    arg0->field_30 = arg0->field_30 + 1;
+    arg0->state = arg0->state + 1;
 }
 
 void GameFlow_SpawnMainWhenReady(Task* arg0)
@@ -238,15 +238,15 @@ void GameFlow_DispatchTable5(Task* arg0)
     TaskFuncTable5 sp;
 
     sp = D_800134BC;
-    sp.funcs[arg0->field_30](arg0);
+    sp.funcs[arg0->state](arg0);
 }
 
 void GameFlow_CopySaveIds(Task* arg0)
 {
     ((SessionBytesAt4*)Game_Session)->field_4 =
         ((SessionBytesAt4*)&Mc_SaveData)->field_4;
-    D_8007A394     = 0;
-    arg0->field_30 = arg0->field_30 + 1;
+    D_8007A394  = 0;
+    arg0->state = arg0->state + 1;
 }
 
 void GameFlow_EnqueueDefaultLoad(Task* arg0)
@@ -255,7 +255,7 @@ void GameFlow_EnqueueDefaultLoad(Task* arg0)
     u8 param2[8];
 
     if ((u8)func_80042500() == 0) {
-        F12D18_8002252C(&Game_Session->field_4, 0);
+        Fs_BeginBootLoad(&Game_Session->field_4, 0);
         param1[3] = 0;
         param1[2] = 0;
         param1[0] = 0;
@@ -264,7 +264,7 @@ void GameFlow_EnqueueDefaultLoad(Task* arg0)
         param2[2] = 0;
         param2[3] = 0;
         CdCmd_Enqueue(0x21, param1, param2);
-        arg0->field_30 = arg0->field_30 + 1;
+        arg0->state = arg0->state + 1;
     }
 }
 
@@ -287,7 +287,7 @@ void GameFlow_DispatchTable(Task* arg0)
 
     sp = D_800134D0;
     Pad_SetCooldown(0);
-    sp.funcs[arg0->field_30](arg0);
+    sp.funcs[arg0->state](arg0);
 }
 
 void Pad_TickEventBanks(PadState* arg0)
@@ -308,11 +308,11 @@ void Pad_TickEventBanks(PadState* arg0)
         register void*  alloc asm("v0");
 
         scratch         = (void**)G_SCRATCH_HEAD;
-        p0              = &pad->field_10[0][0].field_0;
+        p0              = &pad->events[0][0].field_0;
         i               = 0;
         one             = 1;
         head            = *scratch;
-        p1              = &pad->field_10[0][0].field_1;
+        p1              = &pad->events[0][0].field_1;
         alloc           = (u8*)head - 4;
         temp            = alloc;
         *scratch        = alloc;
@@ -339,9 +339,9 @@ void Pad_TickEventBanks(PadState* arg0)
     {
         register u8* p1b asm("a0");
 
-        p0  = &pad->field_10[1][0].field_0;
+        p0  = &pad->events[1][0].field_0;
         i   = 0;
-        p1b = &pad->field_10[1][0].field_1;
+        p1b = &pad->events[1][0].field_1;
         do {
             if (*p0 != 0) {
                 half                      = *(volatile u16*)(p1b + 1) - 1;
@@ -398,14 +398,14 @@ void Pad_UpdatePort0(void)
 
     do {
         pad = (PadState*)((u8*)Pad_States + offset);
-        if (pad->field_A == 0) {
+        if (pad->cooldown == 0) {
             scratch->rawHi = raw->field_2;
             scratch->rawLo = raw->field_3;
             asm volatile("" : "+r"(raw));
             buttons          = ~*(u16*)&scratch->rawLo;
             scratch->buttons = buttons;
 
-            if (pad->field_0 == 0x73) {
+            if (pad->status == 0x73) {
                 if (pad->field_54 < -0x800) {
                     scratch->buttons = buttons | 0x8000;
                 }
@@ -432,40 +432,40 @@ void Pad_UpdatePort0(void)
                 }
             }
 
-            prev                 = pad->field_4;
+            prev                 = pad->buttons;
             buttons              = scratch->buttons;
             scratch->prevButtons = prev;
-            pad->field_6         = buttons & (buttons ^ prev);
-            pad->field_8         = scratch->prevButtons & (scratch->buttons ^ scratch->prevButtons);
-            pad->field_4         = scratch->buttons;
+            pad->prevButtons     = buttons & (buttons ^ prev);
+            pad->triggered       = scratch->prevButtons & (scratch->buttons ^ scratch->prevButtons);
+            pad->buttons         = scratch->buttons;
 
             if (*(s8*)&Game_Session->field_2 != 0) {
                 if ((scratch->prevButtons & 0xF000) == (scratch->buttons & 0xF000)) {
-                    pad->field_B = pad->field_B + ds->field_10a;
+                    pad->autoRepeat = pad->autoRepeat + ds->field_10a;
                 } else {
-                    pad->field_B = 0;
+                    pad->autoRepeat = 0;
                 }
-                if (pad->field_B >= 0x1E) {
-                    pad->field_B = 0x16;
-                    pad->field_6 = pad->field_6 | (pad->field_4 & 0xF000);
+                if (pad->autoRepeat >= 0x1E) {
+                    pad->autoRepeat  = 0x16;
+                    pad->prevButtons = pad->prevButtons | (pad->buttons & 0xF000);
                 }
             }
         } else {
             {
                 volatile u8* cooldown;
 
-                cooldown     = &pad->field_A;
-                *cooldown    = *cooldown - 1;
-                pad->field_6 = 0;
-                pad->field_8 = 0;
-                pad->field_4 = 0;
+                cooldown         = &pad->cooldown;
+                *cooldown        = *cooldown - 1;
+                pad->prevButtons = 0;
+                pad->triggered   = 0;
+                pad->buttons     = 0;
                 if (*cooldown == 0) {
                     scratch->rawHi = raw->field_2;
                     scratch->rawLo = raw->field_3;
                     asm volatile("" : "+r"(raw));
                     buttons          = ~*(u16*)&scratch->rawLo;
                     scratch->buttons = buttons;
-                    pad->field_4     = buttons;
+                    pad->buttons     = buttons;
                 }
             }
         }

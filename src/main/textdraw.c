@@ -90,7 +90,7 @@ s32 Text_MeasureGlyphWidth(TextDrawReq* arg0, u8* arg1, u8* arg2)
         ch   += glyph->field_8;
         ch   += 1;
         if ((u8)ch >= 3U) {
-            if (ctx->field_C == 5) {
+            if (ctx->glyphTable == 5) {
                 width -= 1;
             } else {
                 width -= 2;
@@ -123,18 +123,18 @@ void Text_DrawGlyphDualSprtA(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     setlen(p2, 4);
     setcode(p2, 0x67);
 
-    p2->x0 = p->x0 = arg0->field_0 + (s8)arg1->off_x;
-    p2->y0 = p->y0 = (arg0->field_2 - arg1->h) + (s8)arg1->off_y;
+    p2->x0 = p->x0 = arg0->x + (s8)arg1->off_x;
+    p2->y0 = p->y0 = (arg0->y - arg1->h) + (s8)arg1->off_y;
     p2->u0 = p->u0 = arg1->u;
-    p2->v0 = p->v0 = arg1->v + arg0->field_F;
+    p2->v0 = p->v0 = arg1->v + arg0->vBias;
     p2->w = p->w = arg1->w + 1;
     temp         = arg1->h;
     p2->h = p->h = temp + 1;
     p2->clut     = 0x7FFE;
     p->clut      = 0x7FFD;
 
-    addPrim(D_800710A0 + arg0->field_4 + 1, p2);
-    addPrim(D_800710A0 + arg0->field_4, p);
+    addPrim(Gpu_CurrentOt + arg0->otIndex + 1, p2);
+    addPrim(Gpu_CurrentOt + arg0->otIndex, p);
 }
 
 void Text_DrawGlyphDualSprt(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
@@ -154,18 +154,18 @@ void Text_DrawGlyphDualSprt(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     setlen(p2, 4);
     setcode(p2, 0x67);
 
-    p2->x0 = p->x0 = arg0->field_0 + (s8)arg1->off_x;
-    p2->y0 = p->y0 = (arg0->field_2 - arg1->h) + (s8)arg1->off_y;
+    p2->x0 = p->x0 = arg0->x + (s8)arg1->off_x;
+    p2->y0 = p->y0 = (arg0->y - arg1->h) + (s8)arg1->off_y;
     p2->u0 = p->u0 = arg1->u;
-    p2->v0 = p->v0 = arg1->v + arg0->field_F;
+    p2->v0 = p->v0 = arg1->v + arg0->vBias;
     p2->w = p->w = arg1->w + 1;
     temp         = arg1->h;
     p2->h = p->h = temp + 1;
     p2->clut     = 0x7FFF;
     p->clut      = 0x7FFD;
 
-    addPrim(D_800710A0 + arg0->field_4 + 1, p2);
-    addPrim(D_800710A0 + arg0->field_4, p);
+    addPrim(Gpu_CurrentOt + arg0->otIndex + 1, p2);
+    addPrim(Gpu_CurrentOt + arg0->otIndex, p);
 }
 
 void Text_DrawGlyphDualSprtTpage(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
@@ -186,29 +186,29 @@ void Text_DrawGlyphDualSprtTpage(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     setlen(p2, 4);
     setcode(p2, 0x67);
 
-    p2->x0 = p->x0 = arg0->field_0 + (s8)arg1->off_x;
-    p2->y0 = p->y0 = (arg0->field_2 - arg1->h) + (s8)arg1->off_y;
+    p2->x0 = p->x0 = arg0->x + (s8)arg1->off_x;
+    p2->y0 = p->y0 = (arg0->y - arg1->h) + (s8)arg1->off_y;
     p2->u0 = p->u0 = arg1->u;
-    p2->v0 = p->v0 = arg1->v + arg0->field_F;
+    p2->v0 = p->v0 = arg1->v + arg0->vBias;
     p2->w = p->w = arg1->w + 1;
     temp         = arg1->h;
     p2->h = p->h = temp + 1;
     p2->clut     = 0x7FFF;
     p->clut      = 0x7FFD;
 
-    addPrim(D_800710A0 + arg0->field_4, p);
+    addPrim(Gpu_CurrentOt + arg0->otIndex, p);
     dr         = D_80071190;
     D_80071190 = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE100023F;
-    addPrim(D_800710A0 + arg0->field_4, dr);
+    addPrim(Gpu_CurrentOt + arg0->otIndex, dr);
 
-    addPrim(D_800710A0 + arg0->field_4, p2);
+    addPrim(Gpu_CurrentOt + arg0->otIndex, p2);
     dr         = D_80071190;
     D_80071190 = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE100025F;
-    addPrim(D_800710A0 + arg0->field_4, dr);
+    addPrim(Gpu_CurrentOt + arg0->otIndex, dr);
 }
 
 INCLUDE_ASM("main/nonmatchings/textdraw", func_8002E53C);
@@ -346,7 +346,7 @@ void Text_MeasureAndCenter(TextDrawReq* arg0, u8* arg1)
     u8* table;
     s32 width;
 
-    switch (arg0->field_C) {
+    switch (arg0->glyphTable) {
         case 0:
             table = Font_Glyphs0;
             break;
@@ -358,14 +358,14 @@ void Text_MeasureAndCenter(TextDrawReq* arg0, u8* arg1)
             break;
     }
 
-    switch (arg0->field_D) {
+    switch (arg0->centerMode) {
         case 1:
-            width          = Text_MeasureGlyphWidth(arg0, arg1, table);
-            arg0->field_0 -= width >> 1;
+            width    = Text_MeasureGlyphWidth(arg0, arg1, table);
+            arg0->x -= width >> 1;
             break;
         case 2:
-            width          = Text_MeasureGlyphWidth(arg0, arg1, table);
-            arg0->field_0 -= width;
+            width    = Text_MeasureGlyphWidth(arg0, arg1, table);
+            arg0->x -= width;
             break;
     }
 }
@@ -715,10 +715,10 @@ void Text_DrawGlyphImmediate(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     setlen(p, 4);
     *(s32*)&p->r0 = arg2;
     setcode(p, 0x64);
-    p->x0   = arg0->field_0 + (s8)arg1->off_x;
-    p->y0   = (arg0->field_2 - arg1->h) + (s8)arg1->off_y;
+    p->x0   = arg0->x + (s8)arg1->off_x;
+    p->y0   = (arg0->y - arg1->h) + (s8)arg1->off_y;
     p->u0   = arg1->u;
-    p->v0   = arg1->v + arg0->field_F;
+    p->v0   = arg1->v + arg0->vBias;
     p->w    = arg1->w + 1;
     temp    = arg1->h;
     p->clut = 0x7FFD;
@@ -736,15 +736,15 @@ void Text_DrawGlyphQueued(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     setlen(p, 4);
     *(s32*)&p->r0 = arg2;
     setcode(p, 0x64);
-    p->x0   = arg0->field_0 + (s8)arg1->off_x;
-    p->y0   = (arg0->field_2 - arg1->h) + (s8)arg1->off_y;
+    p->x0   = arg0->x + (s8)arg1->off_x;
+    p->y0   = (arg0->y - arg1->h) + (s8)arg1->off_y;
     p->u0   = arg1->u;
-    p->v0   = arg1->v + arg0->field_F;
+    p->v0   = arg1->v + arg0->vBias;
     p->w    = arg1->w + 1;
     temp    = arg1->h;
     p->clut = 0x7FFD;
     p->h    = temp + 1;
-    addPrim(D_800710A0 + arg0->field_4, p);
+    addPrim(Gpu_CurrentOt + arg0->otIndex, p);
 }
 
 void Text_DrawGlyphOt(TextDrawReq* arg0, FontGlyph* arg1)
@@ -756,15 +756,15 @@ void Text_DrawGlyphOt(TextDrawReq* arg0, FontGlyph* arg1)
     D_80071190 = (DR_TPAGE*)(p + 1);
     setlen(p, 4);
     setcode(p, 0x67);
-    p->x0   = arg0->field_0 + (s8)arg1->off_x;
-    p->y0   = (arg0->field_2 - arg1->h) + (s8)arg1->off_y;
+    p->x0   = arg0->x + (s8)arg1->off_x;
+    p->y0   = (arg0->y - arg1->h) + (s8)arg1->off_y;
     p->u0   = arg1->u;
-    p->v0   = arg1->v + arg0->field_F;
+    p->v0   = arg1->v + arg0->vBias;
     p->w    = arg1->w + 1;
     temp    = arg1->h;
     p->clut = 0x7FFF;
     p->h    = temp + 1;
-    addPrim(D_800710A0 + arg0->field_4, p);
+    addPrim(Gpu_CurrentOt + arg0->otIndex, p);
 }
 
 void Text_UiTaskCallback(Task* arg0)
@@ -772,23 +772,23 @@ void Text_UiTaskCallback(Task* arg0)
     UiObject* obj;
     s16       temp;
 
-    if (arg0->field_30 == 0) {
+    if (arg0->state == 0) {
         Wip_UiHolder = NULL;
         obj          = Ui_SpawnFromDesc(D_800608F4, 1, 1, 2, 0);
         if (obj != NULL) {
-            arg0->field_20 = obj;
-            arg0->field_30 = arg0->field_30 + 1;
+            arg0->spawnArg2 = obj;
+            arg0->state     = arg0->state + 1;
         }
-    } else if (arg0->field_30 == 1) {
-        obj = arg0->field_20;
+    } else if (arg0->state == 1) {
+        obj = arg0->spawnArg2;
         if (obj->field_2E == -1 || obj->field_2E == 6) {
-            arg0->field_2a = 0xA;
-            arg0->field_30 = arg0->field_30 + 1;
-            Ui_TeardownTree(obj, obj->field_28);
+            arg0->killCountdown = 0xA;
+            arg0->state         = arg0->state + 1;
+            Ui_TeardownTree(obj, obj->owner);
         }
     } else {
-        temp           = arg0->field_2a - Display_State.field_10a;
-        arg0->field_2a = temp;
+        temp                = arg0->killCountdown - Display_State.field_10a;
+        arg0->killCountdown = temp;
         if (temp <= 0) {
             Task_Spawn(0, 2, 0xC, 0);
             Task_CallExit(arg0);

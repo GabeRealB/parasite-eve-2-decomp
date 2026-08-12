@@ -15,7 +15,7 @@ extern s8           D_800710A9; // Wip_SysFlags.unknown_0[1]
 extern s16          D_800710AC; // Wip_SysFlags.field_4
 extern u16          D_80071094; // Display_State.field_12c
 extern u8           D_80071086; // Display_State.field_11e
-extern u_long*      D_800710A0;
+extern u_long*      Gpu_CurrentOt;
 extern DR_TPAGE*    D_80071190;
 extern WipUiHolder* Wip_UiHolder;
 extern u16*         D_8005C374;
@@ -43,17 +43,17 @@ void Title_InitTask(Task* arg0)
     ds            = &Display_State;
     ds->field_100 = 0;
     Wip_UiHolder  = NULL;
-    if (arg0->field_34 < 0) {
-        flag            = 0;
-        arg0->field_34 &= 0x7FFFFFFF;
+    if (arg0->spawnArg1 < 0) {
+        flag             = 0;
+        arg0->spawnArg1 &= 0x7FFFFFFF;
     }
-    if (arg0->field_34 > 0) {
-        arg0->field_34 -= 1;
+    if (arg0->spawnArg1 > 0) {
+        arg0->spawnArg1 -= 1;
         return;
     }
     work = Mem_Calloc(0x18, 0);
     if (work != NULL) {
-        arg0->field_1C                        = (TaskIdMap*)work;
+        arg0->idMap                           = (TaskIdMap*)work;
         *(volatile s32*)&work->menuCount      = 5;
         *(volatile s32*)&work->selection      = 2;
         *(volatile s32*)&work->fadeTileEnable = flag;
@@ -70,7 +70,7 @@ void Title_InitTask(Task* arg0)
             func_807246B4();
         }
         CdCmd_EnqueueLoadFile(1, 0, 0);
-        arg0->field_30 += 2;
+        arg0->state += 2;
         Title_MenuTask(arg0);
     }
 }
@@ -94,13 +94,13 @@ void Title_DrawSpriteRow(s32 y, s32 v, s32 color)
     p->v0 = v;
     setcode(p, 0x66);
     p->y0 = y;
-    addPrim(D_800710A0, p);
+    addPrim(Gpu_CurrentOt, p);
 
     dr         = D_80071190;
     D_80071190 = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE10002BC;
-    addPrim(D_800710A0, dr);
+    addPrim(Gpu_CurrentOt, dr);
 }
 
 void Title_MenuTask(Task* arg0)
@@ -114,7 +114,7 @@ void Title_MenuTask(Task* arg0)
     DisplayState*       ds;
 
     s4        = arg0;
-    s3        = (TitleWork*)s4->field_1C;
+    s3        = (TitleWork*)s4->idMap;
     prev      = s3->timer;
     cur       = prev + 1;
     s3->timer = cur;
@@ -151,14 +151,14 @@ void Title_MenuTask(Task* arg0)
         a0->w  = 0x140;
         a0->h  = h;
         setSemiTrans(a0, 1);
-        addPrim(D_800710A0, a0);
+        addPrim(Gpu_CurrentOt, a0);
 
         dr         = D_80071190;
         D_80071190 = dr + 1;
         setlen(dr, 1);
         /* Split like Title_DrawSpriteRow: lui 0xE100 / ori 0x240, after 0xFFFFFF */
         dr->code[0] = 0xE1000000 | 0x240;
-        addPrim(D_800710A0, dr);
+        addPrim(Gpu_CurrentOt, dr);
     }
     goto end;
 
@@ -211,17 +211,17 @@ normal:
             p->b0 = color;
             p->g0 = color;
             p->r0 = color;
-            addPrim(D_800710A0, p);
+            addPrim(Gpu_CurrentOt, p);
 
             dr         = D_80071190;
             D_80071190 = dr + 1;
             setlen(dr, 1);
             dr->code[0] = 0xE1000000 | 0x240;
-            addPrim(D_800710A0, dr);
+            addPrim(Gpu_CurrentOt, dr);
         }
     }
 
-    if (s4->field_30 != 3) {
+    if (s4->state != 3) {
         goto intro;
     }
 
@@ -323,8 +323,8 @@ intro:
     Title_DrawSpriteRow(0x5C, 0x10, 0x80);
     if (Pad_CheckButtons(0, 1, D_8005ED70 | 0x800) != 0) {
         SndEvt_EnqueueType6(3, 0, 0);
-        s3->timer    = 0;
-        s4->field_30 = s4->field_30 + 1;
+        s3->timer = 0;
+        s4->state = s4->state + 1;
     }
 end:
     return;
@@ -386,7 +386,7 @@ void Title_RestoreDemoCard(void)
 
 void Title_FlagAdvanceTask(Task* arg0)
 {
-    s32* p = &arg0->field_30;
+    s32* p = &arg0->state;
 
     D_80071068 = 1;
     (*p)++;
@@ -398,7 +398,7 @@ void Title_Dispatch(Task* arg0)
 
     sp             = Title_PhaseTable;
     Title_LastRand = rand();
-    sp.funcs[arg0->field_30](arg0);
+    sp.funcs[arg0->state](arg0);
 }
 
 void Title_ExitTask(Task* arg0)
@@ -419,7 +419,7 @@ void Title_DemoStreamTask(Task* arg0)
 
     task  = arg0;
     queue = &CdCmd_Queue;
-    switch (task->field_30) {
+    switch (task->state) {
         case 0:
             goto L_case0;
         case 1:
@@ -528,7 +528,7 @@ L_case6:
     Display_LoadImageStrips(ds->field_1f ^ 1);
     ds->field_100 = 1;
 advance:
-    task->field_30 = task->field_30 + 1;
+    task->state = task->state + 1;
     return;
 
 L_case7:
@@ -547,7 +547,7 @@ void Title_BootTask(Task* arg0)
     register Task* task asm("s0");
 
     task = arg0;
-    switch (task->field_30) {
+    switch (task->state) {
         case 0:
             Display_State.field_100 = 0;
             Title_SkipFadeFlag      = 1;
@@ -557,13 +557,13 @@ void Title_BootTask(Task* arg0)
             } else {
                 Display_SpawnWithOt(Title_TaskDescs, 1, 0, 0);
                 Display_State.field_103 = 1;
-                next                    = task->field_30 + 1;
+                next                    = task->state + 1;
             }
-            task->field_30 = next;
+            task->state = next;
             return;
         case 1:
         case 2:
-            task->field_30 = task->field_30 + 1;
+            task->state = task->state + 1;
             return;
         case 3:
             if (Title_SkipFadeFlag != 0) {
@@ -573,7 +573,7 @@ void Title_BootTask(Task* arg0)
             }
             /* fallthrough */
         case 4:
-            task->field_30 = task->field_30 + 1;
+            task->state = task->state + 1;
             return;
         case 5:
             SetDispMask(1);
@@ -589,11 +589,11 @@ void Title_BootTask(Task* arg0)
             param2[2] = 0;
             param2[3] = 0;
             CdCmd_Enqueue(0x21, param1, param2);
-            task->field_30 = task->field_30 + 1;
+            task->state = task->state + 1;
             /* fallthrough */
         case 7:
             if (CdCmd_IsIdle() & 0xFFFF) {
-                task->field_30 = 3;
+                task->state = 3;
             }
             return;
     }

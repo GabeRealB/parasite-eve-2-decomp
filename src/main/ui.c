@@ -84,7 +84,7 @@ body:
     sp10.y = 0;
     sp10.x = 0;
     setTexWindow(dr, &sp10);
-    addPrim(D_800710A0 + arg2, dr);
+    addPrim(Gpu_CurrentOt + arg2, dr);
 
     if ((arg1 & 0xF) == 4) {
         p->tpage  = 0x1E;
@@ -192,7 +192,7 @@ body:
         u     = (u8)p->x1 - (u8)p->x0;
         p->u3 = u;
         p->u1 = u;
-        addPrim(D_800710A0 + arg2, p);
+        addPrim(Gpu_CurrentOt + arg2, p);
     }
 
     if (p2->x0 >= 0) {
@@ -215,7 +215,7 @@ body:
         u      = p2->u1 + ((u8)p2->x0 - (u8)p2->x1);
         p2->u2 = u;
         p2->u0 = u;
-        addPrim(D_800710A0 + arg2, p2);
+        addPrim(Gpu_CurrentOt + arg2, p2);
     }
 
     dr         = (DR_MODE*)D_80071190;
@@ -225,7 +225,7 @@ body:
     sp10.w     = 0x20;
     sp10.h     = 0x20;
     setTexWindow(dr, &sp10);
-    addPrim(D_800710A0 + arg2, dr);
+    addPrim(Gpu_CurrentOt + arg2, dr);
 end:
     return;
 }
@@ -255,7 +255,7 @@ void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
             sp10.h     = arg2->h;
             sp10.y     = temp + (Display_State.field_1f * 0x110);
             SetDrawArea(p, &sp10);
-            addPrim(D_800710A0 + (s16)arg0->field_14 + 3, p);
+            addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 3, p);
         }
         func_80044C34(arg0, arg1, arg2, arg3);
         if (arg3 != 0) {
@@ -269,7 +269,7 @@ void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
             sp18.x     = 0;
             sp18.y     = Display_State.field_1f * 0x110;
             SetDrawArea(p, &sp18);
-            addPrim(D_800710A0 + (s16)arg0->field_14 + 1, p);
+            addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 1, p);
         }
         if (arg0->field_4 & 0x10000) {
             poly       = (POLY_F4*)D_80071190;
@@ -291,13 +291,13 @@ void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
             t        = arg2->y + arg2->h;
             poly->y3 = t;
             poly->y2 = t;
-            addPrim(D_800710A0 + (s16)arg0->field_14, poly);
+            addPrim(Gpu_CurrentOt + (s16)arg0->field_14, poly);
 
             dr         = D_80071190;
             D_80071190 = dr + 1;
             setlen(dr, 1);
             dr->code[0] = 0xE1000200;
-            addPrim(D_800710A0 + (s16)arg0->field_14, dr);
+            addPrim(Gpu_CurrentOt + (s16)arg0->field_14, dr);
         }
     }
 }
@@ -334,7 +334,7 @@ void Ui_SetupClip(UiPanel* arg0)
     sp10.h     = 0;
     sp10.y     = Display_State.field_1f * 0x110;
     SetDrawArea(p, &sp10);
-    addPrim(D_800710A0 + (s16)arg0->field_14 + 3, p);
+    addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 3, p);
 
     p          = (DR_AREA*)D_80071190;
     D_80071190 = (DR_TPAGE*)(p + 1);
@@ -343,7 +343,7 @@ void Ui_SetupClip(UiPanel* arg0)
     sp10.h     = 0xF0;
     sp10.y     = Display_State.field_1f * 0x110;
     SetDrawArea(p, &sp10);
-    addPrim(D_800710A0 + (s16)arg0->field_14, p);
+    addPrim(Gpu_CurrentOt + (s16)arg0->field_14, p);
 }
 
 void Ui_ScaleRect(UiPanel* arg0, RECT* arg1, s32 arg2, s32 arg3)
@@ -583,7 +583,7 @@ void Ui_SetListClip(UiList* arg0, UiPanel* arg1, s32 arg2)
             sp10.h     = temp;
             sp10.h     = temp * arg0->field_7;
             SetDrawArea(p, &sp10);
-            addPrim(D_800710A0 + (i + (s16)arg1->field_14) + 1, p);
+            addPrim(Gpu_CurrentOt + (i + (s16)arg1->field_14) + 1, p);
         }
     } else {
         for (i = 0; i < 2; i++) {
@@ -594,7 +594,7 @@ void Ui_SetListClip(UiList* arg0, UiPanel* arg1, s32 arg2)
             sp10.h     = 0xF0;
             sp10.y     = Display_State.field_1f * 0x110;
             SetDrawArea(p, &sp10);
-            addPrim(D_800710A0 + (i + (s16)arg1->field_14) + 1, p);
+            addPrim(Gpu_CurrentOt + (i + (s16)arg1->field_14) + 1, p);
         }
     }
 }
@@ -629,11 +629,11 @@ void Ui_DrawCursor(UiPanel* arg0, s32 arg1, s32 arg2)
         p->u0 = t;
         t     = half * 8 + 0x30;
         p->v0 = t;
-        addPrim(D_800710A0 + 4, p);
+        addPrim(Gpu_CurrentOt + 4, p);
         dr         = D_80071190;
         D_80071190 = dr + 1;
         setDrawTPage(dr, 0, 1, 0x1E);
-        addPrim(D_800710A0 + 4, dr);
+        addPrim(Gpu_CurrentOt + 4, dr);
     }
 }
 
@@ -724,7 +724,7 @@ void Ui_DrawCaret(UiList* arg0, UiPanel* arg1, s32 arg2)
     p->g1   = 0xCF;
     p->b2   = 0xFF;
     p->b1   = 0xFF;
-    ot      = D_800710A0;
+    ot      = Gpu_CurrentOt;
     mask_hi = 0xFF000000;
     p->tag  = (p->tag & mask_hi) | (ot[(s16)arg1->field_14 + 1] & mask);
     ot[(s16)arg1->field_14 + 1] =
@@ -952,7 +952,7 @@ void Ui_DrawListHighlight(UiList* arg0, UiPanel* arg1, s32 arg2)
         setcode(p, 0x60);
         arg2  = arg2 - h;
         p->y0 = y + arg2 + 1;
-        addPrim(D_800710A0 + (s16)a1->field_14 + 1, p);
+        addPrim(Gpu_CurrentOt + (s16)a1->field_14 + 1, p);
     }
     a1->field_14 = (u16)(a1->field_14 - 1);
 }
@@ -1004,7 +1004,7 @@ void Ui_DrawHBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
         p->y2 = y;
         p->y1 = temp;
         p->y0 = temp;
-        addPrim(D_800710A0 + (s16)arg0->field_14 + 2, p);
+        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 2, p);
     }
 }
 
@@ -1059,7 +1059,7 @@ void Ui_DrawVBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
         y     = y + arg2;
         p->y3 = y;
         p->y2 = y;
-        addPrim(D_800710A0 + (s16)arg0->field_14 + 2, p);
+        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 2, p);
     }
 }
 
@@ -1079,27 +1079,27 @@ void Ui_DrawTextUnderline(UiPanel* arg0, s32 arg1, s32 arg2, char* arg3, s32 arg
     register s32      otIdx asm("s0");
     register UiPanel* self asm("s3");
 
-    self         = arg0;
-    color        = arg4;
-    otIdx        = (s16)self->field_14;
-    tmp0         = (s16)self->field_20;
-    tmp1         = (s16)self->field_22;
-    sp10.field_C = 5;
-    sp10.field_D = 0;
-    sp10.field_E = 0;
-    x            = arg1 + tmp0;
-    y            = arg2 + tmp1;
-    sp10.field_0 = x + 2;
-    sp10.field_2 = y + 5;
-    otIdx        = otIdx + 1;
-    sp10.field_4 = otIdx;
-    sp10.field_8 = color;
+    self            = arg0;
+    color           = arg4;
+    otIdx           = (s16)self->field_14;
+    tmp0            = (s16)self->field_20;
+    tmp1            = (s16)self->field_22;
+    sp10.glyphTable = 5;
+    sp10.centerMode = 0;
+    sp10.field_E    = 0;
+    x               = arg1 + tmp0;
+    y               = arg2 + tmp1;
+    sp10.x          = x + 2;
+    sp10.y          = y + 5;
+    otIdx           = otIdx + 1;
+    sp10.otIndex    = otIdx;
+    sp10.field_8    = color;
     func_8002E53C(&sp10, (u8*)arg3);
 
     p             = (POLY_F4*)D_80071190;
     p->x2         = x;
     p->x0         = x;
-    textX         = (u16)sp10.field_0;
+    textX         = (u16)sp10.x;
     D_80071190    = (DR_TPAGE*)((POLY_FT4*)p + 1);
     *(s32*)&p->r0 = 0x21002;
     p->y3         = y + 7;
@@ -1110,12 +1110,12 @@ void Ui_DrawTextUnderline(UiPanel* arg0, s32 arg1, s32 arg2, char* arg3, s32 arg
     p->y0 = y;
     p->x3 = textX;
     p->x1 = textX + 3;
-    addPrim(D_800710A0 + otIdx, p);
+    addPrim(Gpu_CurrentOt + otIdx, p);
 
     t20    = (s16)self->field_20;
     f22    = (s16)self->field_22;
     fourth = f22 - 7;
-    Ui_DrawHBar(self, x - t20, (s16)sp10.field_0 - t20, y - fourth);
+    Ui_DrawHBar(self, x - t20, (s16)sp10.x - t20, y - fourth);
 }
 
 void Ui_DrawTextColored(UiPanel* arg0, char* arg1)
@@ -1133,9 +1133,9 @@ void Ui_DrawTextColored(UiPanel* arg0, char* arg1)
     if (arg0->field_0 == 1) {
         color = 0x806020;
     }
-    child = ((UiObject*)arg0)->field_28->field_c;
+    child = ((UiObject*)arg0)->owner->firstChild;
     if (child != NULL) {
-        related = (UiPanel*)child->field_20;
+        related = (UiPanel*)child->spawnArg2;
         if (related->field_0 == 1) {
             if ((related->field_4 & 0xF) != 2) {
                 color = 0x806020;
@@ -1252,28 +1252,28 @@ UiObject* Ui_SpawnTextBlock(TextBlockDesc* arg0_)
     if (arg0->count > 0) {
         obj              = NULL;
         sp.desc.flags    = D_80067678.field_10;
-        sp.desc.field_2  = D_80067678.field_12;
+        sp.desc.priority = D_80067678.field_12;
         field_8          = D_80067678.field_18;
         sp.desc.callback = Ui_DispatchObjectState;
-        sp.desc.field_8  = field_8;
+        sp.desc.setupArg = field_8;
         task             = Task_SpawnFromTable(&sp.desc, (s32)obj, (s32)arg0, (s32)obj);
         dummy            = 1;
         if (task != NULL) {
             obj = (UiObject*)Mem_Calloc(0x30, (s32)obj);
             if (obj != NULL) {
-                task->field_20 = obj;
-                task->field_18 = Ui_FreeAndKill;
-                obj->field_28  = task;
-                obj->field_0   = dummy;
-                obj->field_4   = D_80067678.field_0;
-                obj->field_C   = D_80067678.field_4;
-                obj->field_E   = D_80067678.field_6;
-                obj->field_10  = D_80067678.field_8;
-                obj->field_12  = D_80067678.field_A;
-                obj->field_14  = D_80067678.field_C & 0xFFFC;
-                cb             = D_80067678.field_14;
-                obj->field_16  = dummy;
-                obj->field_24  = cb;
+                task->spawnArg2    = obj;
+                task->exitCallback = Ui_FreeAndKill;
+                obj->owner         = task;
+                obj->status        = dummy;
+                obj->field_4       = D_80067678.field_0;
+                obj->field_C       = D_80067678.field_4;
+                obj->field_E       = D_80067678.field_6;
+                obj->field_10      = D_80067678.field_8;
+                obj->field_12      = D_80067678.field_A;
+                obj->drawOrder     = D_80067678.field_C & 0xFFFC;
+                cb                 = D_80067678.field_14;
+                obj->timer         = dummy;
+                obj->callback      = cb;
             } else {
                 Task_Kill(task);
             }
@@ -1315,11 +1315,11 @@ UiObject* Ui_SpawnTextBlock(TextBlockDesc* arg0_)
             maxWidth        -= (s16)count - (s16)result->field_1C;
             result->field_18 = -(sp.rect.h >> 1);
             result->field_1A = result->field_18 + sp.rect.h;
-            result->field_20 = sp.rect.x - result->field_1C;
+            result->baseX    = sp.rect.x - result->field_1C;
             new_var          = sp.rect.y;
             result->field_10 = (result->field_10 + maxWidth) + 0xC;
             result->field_C  = -((s16)result->field_10 / 2);
-            result->field_22 = new_var - (s16)result->field_18;
+            result->baseY    = new_var - (s16)result->field_18;
             maxWidth         = arg0->count * 0xF;
             maxWidth        -= (s16)result->field_1A - (s16)result->field_18;
             result->field_12 = result->field_12 + maxWidth;
@@ -1449,28 +1449,28 @@ UiObject* Ui_SpawnFromDesc(UiObjectDesc* arg0, s32 arg1, s32 arg2, s32 arg3, UiO
 
     obj           = NULL;
     desc.flags    = arg0->field_10;
-    desc.field_2  = arg0->field_12;
+    desc.priority = arg0->field_12;
     field_8       = arg0->field_18;
     desc.callback = Ui_DispatchObjectState;
-    desc.field_8  = field_8;
+    desc.setupArg = field_8;
     task          = Task_SpawnFromTable(&desc, (s32)obj, arg1, (s32)obj);
     if (task != NULL) {
         obj = (UiObject*)Mem_Calloc(0x30, (s32)obj);
         if (obj != NULL) {
-            task->field_20 = obj;
-            task->field_18 = Ui_FreeAndKill;
-            obj->field_28  = task;
-            obj->field_0   = arg2;
-            obj->field_4   = arg0->field_0;
-            obj->field_C   = arg0->field_4;
-            obj->field_E   = arg0->field_6;
-            obj->field_10  = arg0->field_8;
-            obj->field_12  = arg0->field_A;
-            obj->field_14  = arg0->field_C & 0xFFFC;
-            obj->field_24  = arg0->field_14;
-            obj->field_16  = arg3;
+            task->spawnArg2    = obj;
+            task->exitCallback = Ui_FreeAndKill;
+            obj->owner         = task;
+            obj->status        = arg2;
+            obj->field_4       = arg0->field_0;
+            obj->field_C       = arg0->field_4;
+            obj->field_E       = arg0->field_6;
+            obj->field_10      = arg0->field_8;
+            obj->field_12      = arg0->field_A;
+            obj->drawOrder     = arg0->field_C & 0xFFFC;
+            obj->callback      = arg0->field_14;
+            obj->timer         = arg3;
             if (arg4 != NULL) {
-                Task_Reparent(arg4->field_28, task);
+                Task_Reparent(arg4->owner, task);
             }
         } else {
             Task_Kill(task);
@@ -1484,31 +1484,31 @@ void Ui_TeardownTree(UiObject* arg0, Task* arg1)
     Task* temp_s0;
     Task* child;
 
-    temp_s0 = arg0->field_28;
-    child   = temp_s0->field_c;
+    temp_s0 = arg0->owner;
+    child   = temp_s0->firstChild;
     if (child != NULL) {
         do {
-            Ui_TeardownTree(child->field_20, child);
-            child = temp_s0->field_c;
+            Ui_TeardownTree(child->spawnArg2, child);
+            child = temp_s0->firstChild;
         } while (child != NULL);
     }
-    if (arg0->field_8 != 3) {
+    if (arg0->mode != 3) {
         Task_DetachFromParent(temp_s0);
-        arg0->field_8 = 3;
+        arg0->mode = 3;
     }
 }
 
 void Ui_FreeAndKill(Task* arg0)
 {
-    if (arg0->field_20 != NULL) {
-        Mem_Free(arg0->field_20);
+    if (arg0->spawnArg2 != NULL) {
+        Mem_Free(arg0->spawnArg2);
     }
     Task_Kill(arg0);
 }
 
 void Ui_SetState4(Task* arg0)
 {
-    arg0->field_8 = (Task*)4;
+    arg0->parent = (Task*)4;
 }
 
 void Ui_ClampAnimOrClose(UiPanel* arg0, s32 arg1, s32 arg2)
@@ -1770,13 +1770,13 @@ void Ui_DrawTextAtLayout(UiPanel* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, 
 
     if (arg0->field_8 == 2) {
         arg0->field_14 = (u16)(arg0->field_14 - 1);
-        sp.field_0     = arg0->field_20 + arg1;
-        sp.field_2     = arg0->field_22 + arg2;
+        sp.x           = arg0->field_20 + arg1;
+        sp.y           = arg0->field_22 + arg2;
         temp           = (s16)arg0->field_14;
         sp.field_8     = arg4;
-        sp.field_C     = 0;
-        sp.field_D     = (s8)arg6;
-        sp.field_4     = temp + 1;
+        sp.glyphTable  = 0;
+        sp.centerMode  = (s8)arg6;
+        sp.otIndex     = temp + 1;
         sp.field_E     = (s8)arg5;
         func_8002E53C(&sp, arg3);
         arg0->field_14 = (u16)(arg0->field_14 + 1);
@@ -1815,7 +1815,7 @@ void Ui_SizeFromTextWide(UiPanel* arg0, u8* arg1)
 
 s32 Ui_IsStateDone(Task* arg0)
 {
-    return (s32)arg0->field_8 >= 4;
+    return (s32)arg0->parent >= 4;
 }
 
 void Ui_InsertDrawTPage(s32 arg0, s32 arg1)
@@ -1825,7 +1825,7 @@ void Ui_InsertDrawTPage(s32 arg0, s32 arg1)
     p          = D_80071190;
     D_80071190 = p + 1;
     setDrawTPage(p, 0, 1, 0x1E | ((arg1 & 3) << 5));
-    addPrim(D_800710A0 + arg0, p);
+    addPrim(Gpu_CurrentOt + arg0, p);
 }
 
 void Ui_SetListScrollFlag(UiList* arg0, s32 arg1)
@@ -1856,7 +1856,7 @@ void Ui_AllocTile(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, u32 arg
         setlen(p, 3);
         p->y0 = y + arg2 + 1;
         setcode(p, 0x60);
-        addPrim(D_800710A0 + (s16)arg0->field_14 + 1, p);
+        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 1, p);
     }
 }
 
@@ -2046,7 +2046,7 @@ void Ui_DispatchObjectState(Task* arg0)
     UiPanel*          temp;
 
     sp   = D_80013F2C;
-    temp = arg0->field_20;
+    temp = arg0->spawnArg2;
     sp.funcs[temp->field_8](temp, arg0);
 }
 
@@ -2111,7 +2111,7 @@ void Ui_DrawFlatCaret(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     *(s32*)&p->r0 = arg3 * 2;
     setlen(p, 4);
     setcode(p, 0x20);
-    ot      = D_800710A0;
+    ot      = Gpu_CurrentOt;
     mask_hi = 0xFF000000;
     p->tag  = (p->tag & mask_hi) | (ot[(s16)arg0->field_14 + 1] & mask);
     ot[(s16)arg0->field_14 + 1] =
@@ -2122,7 +2122,7 @@ void Ui_WaitCdThenOverlay(Task* arg0)
 {
     UiPanel* temp_s0;
 
-    temp_s0 = arg0->field_20;
+    temp_s0 = arg0->spawnArg2;
     if (CdCmd_IsIdle() != 0) {
         func_801D4B64(arg0);
         return;
@@ -2137,16 +2137,16 @@ void Ui_DrawDialogLine(DialogPrompt* arg0, UiObject* arg1)
     s32            var_v0;
     s16            temp;
 
-    temp_s3 = (DialogListCtx*)arg1->field_28->field_34;
+    temp_s3 = (DialogListCtx*)arg1->owner->spawnArg1;
     var_v0  = arg0->field_8;
     var_a3  = temp_s3->field_4;
     if (var_v0 > 0) {
         do {
-            var_a3  = var_a3->field_4;
+            var_a3  = var_a3->next;
             var_v0 -= 1;
         } while (var_v0 > 0);
     }
-    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, var_a3->field_0, arg0->field_1C, 1, 0);
+    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, var_a3->text, arg0->field_1C, 1, 0);
     if (arg0->field_C == 1) {
         if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
             temp           = 6;
@@ -2172,38 +2172,38 @@ void Ui_ListTaskCallback(Task* arg0)
     Task*          parent;
     Task*          child;
 
-    obj           = (UiObject*)arg0->field_20;
-    ctx           = (SelectMenuCtx*)arg0->field_34;
+    obj           = (UiObject*)arg0->spawnArg2;
+    ctx           = (SelectMenuCtx*)arg0->spawnArg1;
     menu          = &D_80067654;
     obj->field_2E = 0;
-    if (arg0->field_30 == 0) {
+    if (arg0->state == 0) {
         base          = ctx->field_0;
         menu->field_5 = base;
         menu->field_4 = base;
         Ui_LayoutListPanel(menu, (UiPanel*)obj);
-        menu->field_A   = 1;
-        arg0->field_30 += 1;
+        menu->field_A = 1;
+        arg0->state  += 1;
     }
     text = ctx->field_8;
     if (text != NULL) {
         Ui_DrawText((UiPanel*)obj, text);
     }
     func_80046EEC(menu, obj, 0);
-    if (obj->field_0 == 1) {
+    if (obj->status == 1) {
         status = obj->field_2E;
         if ((status == 6) || (status == -1)) {
             ctx->field_2 = obj->field_2C;
-            parent       = obj->field_28;
-            child        = parent->field_c;
+            parent       = obj->owner;
+            child        = parent->firstChild;
             if (child != NULL) {
                 do {
-                    Ui_TeardownTree((UiObject*)child->field_20, child);
-                    child = parent->field_c;
+                    Ui_TeardownTree((UiObject*)child->spawnArg2, child);
+                    child = parent->firstChild;
                 } while (child != NULL);
             }
-            if (obj->field_8 != 3) {
+            if (obj->mode != 3) {
                 Task_DetachFromParent(parent);
-                obj->field_8 = 3;
+                obj->mode = 3;
             }
         }
     }

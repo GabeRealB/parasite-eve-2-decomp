@@ -9,7 +9,7 @@
 
 // Types — UI layout / dialogs
 
-/// Object passed to Ui_UpdateListNoAnim / Ui_SmoothCursor (e.g. via Task::field_20).
+/// Object passed to Ui_UpdateListNoAnim / Ui_SmoothCursor (e.g. via Task::spawnArg2).
 typedef struct _UiMiniObj {
     /* 0x00 */ s32  field_0;
     /* 0x04 */ byte unknown_4[0x18];
@@ -20,7 +20,7 @@ typedef struct _UiMiniObj {
 } UiMiniObj;
 STATIC_ASSERT_SIZEOF(UiMiniObj, 0x24);
 
-/// Object at Task::field_20 used by Ui_TeardownTree / Mc_HideChildUi /
+/// Object at Task::spawnArg2 used by Ui_TeardownTree / Mc_HideChildUi /
 /// Mc_DrawPrompt / Ui_SpawnFromDesc. Shares the UiPanel layout through offset
 /// 0x24 (handlers cast field_20 to UiPanel*). field_0 is a status flag;
 /// field_4 is copied from UiObjectDesc::field_0 at spawn; field_8 is a mode
@@ -35,23 +35,23 @@ STATIC_ASSERT_SIZEOF(UiMiniObj, 0x24);
 /// handlers (e.g. GameFlow_WaitMenuDone waits until field_2E == -1 before cleaning up;
 /// dialog pickers set field_2E == 6 when a choice is confirmed).
 typedef struct _UiObject {
-    /* 0x00 */ s32   field_0; // status flag
+    /* 0x00 */ s32   status;
     /* 0x04 */ s32   field_4; // from UiObjectDesc::field_0
-    /* 0x08 */ s32   field_8; // mode (5=skip draw, 3=torn down)
+    /* 0x08 */ s32   mode;    // 5=skip draw, 3=torn down
     /* 0x0C */ u16   field_C; // layout (RECT-like)
     /* 0x0E */ u16   field_E;
     /* 0x10 */ u16   field_10;
     /* 0x12 */ u16   field_12;
-    /* 0x14 */ u16   field_14; // text draw priority/order
-    /* 0x16 */ s16   field_16; // timer/counter
+    /* 0x14 */ u16   drawOrder;
+    /* 0x16 */ s16   timer;
     /* 0x18 */ u16   field_18; // layout offset
     /* 0x1A */ u16   field_1A; // layout offset
     /* 0x1C */ s16   field_1C; // position (+2 for text draw)
-    /* 0x1E */ u16   field_1E; // x offset with field_20
-    /* 0x20 */ u16   field_20; // base x
-    /* 0x22 */ u16   field_22; // base y
-    /* 0x24 */ s32   field_24; // callback (from desc)
-    /* 0x28 */ Task* field_28; // owning task
+    /* 0x1E */ u16   field_1E; // x offset with baseX
+    /* 0x20 */ u16   baseX;
+    /* 0x22 */ u16   baseY;
+    /* 0x24 */ s32   callback;
+    /* 0x28 */ Task* owner;
     /* 0x2C */ s16   field_2C; // teardown / choice
     /* 0x2E */ s16   field_2E; // teardown / choice (-1 wait, 6 confirm)
 } UiObject;
@@ -121,7 +121,7 @@ typedef struct _UiList {
 } UiList;
 STATIC_ASSERT_SIZEOF(UiList, 0x24);
 
-/// WIP: Task::field_34 context for D_8006121C select-menu (McMenu_SelectListAlt).
+/// WIP: Task::spawnArg1 context for D_8006121C select-menu (McMenu_SelectListAlt).
 /// Only field_290 is used so far (seeds UiList cursor).
 typedef struct _WipSelectMenuExt {
     /* 0x000 */ byte unknown_0[0x290];
@@ -196,12 +196,12 @@ typedef struct _DialogPrompt {
 /// Linked text option node walked by Ui_DrawDialogLine (index via DialogPrompt::field_8).
 /// field_0 is the string passed to Text_DrawPrompt; field_4 is the next node.
 typedef struct _DialogOption {
-    /* 0x0 */ u8*                   field_0;
-    /* 0x4 */ struct _DialogOption* field_4;
+    /* 0x0 */ u8*                   text;
+    /* 0x4 */ struct _DialogOption* next;
 } DialogOption;
 STATIC_ASSERT_SIZEOF(DialogOption, 0x8);
 
-/// Context at Task::field_34 for the Ui_DrawDialogLine dialog path.
+/// Context at Task::spawnArg1 for the Ui_DrawDialogLine dialog path.
 /// field_4 is the head of a DialogOption list; field_C bit0 gates cancel input.
 typedef struct _DialogListCtx {
     /* 0x00 */ byte          unknown_0[4];
@@ -210,7 +210,7 @@ typedef struct _DialogListCtx {
     /* 0x0C */ u8            field_C;
 } DialogListCtx;
 
-/// Context at Task::field_34 for the Ui_ListTaskCallback UI path.
+/// Context at Task::spawnArg1 for the Ui_ListTaskCallback UI path.
 /// field_0 is a base index copied into UiList field_4/field_5; field_2 receives
 /// the selected index from UiObject::field_2C on confirm/cancel; field_8 is an
 /// optional string passed to Ui_DrawText.

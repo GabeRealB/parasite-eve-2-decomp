@@ -32,10 +32,10 @@ void Pad_Init(void)
         for (i = 0; i < 0x5C; i++) {
             *ptr++ = 0;
         }
-        p->field_5A = 0;
-        p->field_5B = 0;
-        p->field_0  = half;
-        p->field_3  = one;
+        p->field_5A    = 0;
+        p->field_5B    = 0;
+        p->status      = half;
+        p->initialized = one;
         p++;
         offset += 0x5C;
     } while (p < base + 2);

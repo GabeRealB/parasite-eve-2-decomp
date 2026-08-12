@@ -40,41 +40,41 @@ typedef struct _TaskNode {
 } TaskNode;
 
 /// 2-byte table entry (id + type). Indexed via TaskIdMap.
-typedef struct _GPairU8 {
-    /* 0x0 */ u8 field_0; // id
-    /* 0x1 */ u8 field_1; // type
-} GPairU8;
-STATIC_ASSERT_SIZEOF(GPairU8, 0x2);
+typedef struct _TaskIdPair {
+    /* 0x0 */ u8 id;
+    /* 0x1 */ u8 type;
+} TaskIdPair;
+STATIC_ASSERT_SIZEOF(TaskIdPair, 0x2);
 
-/// Index + pointer into a GPairU8 table. Allocated (Mem_Calloc(8)) and stored
-/// at Task::field_1C by Task_AllocIdMap; read by Stage_ApplyTableEntryWhenIdle / Stage_LoadOrCountdownTask.
+/// Index + pointer into a TaskIdPair table. Allocated (Mem_Calloc(8)) and stored
+/// at Task::idMap by Task_AllocIdMap; read by Stage_ApplyTableEntryWhenIdle / Stage_LoadOrCountdownTask.
 typedef struct _TaskIdMap {
-    /* 0x0 */ u16      field_0; // index into field_4
-    /* 0x2 */ byte     pad_2[2];
-    /* 0x4 */ GPairU8* field_4; // id/type table
+    /* 0x0 */ u16         index;
+    /* 0x2 */ byte        pad_2[2];
+    /* 0x4 */ TaskIdPair* table;
 } TaskIdMap;
 STATIC_ASSERT_SIZEOF(TaskIdMap, 0x8);
 
 /// Cooperative task. Field roles: see also `STRUCT_FIELDS.md`.
 typedef struct _Task {
-    /* 0x00 */ TaskNode      node;     // list links
-    /* 0x08 */ struct _Task* field_8;  // parent (NULL if root)
-    /* 0x0C */ struct _Task* field_c;  // first child (NULL if none)
-    /* 0x10 */ struct _Task* field_10; // next sibling (self if only child)
-    /* 0x14 */ TaskFunc      field_14; // per-frame callback
-    /* 0x18 */ TaskFunc      field_18; // exit / kill callback
-    /* 0x1C */ TaskIdMap*    field_1C; // optional id map (freed on kill)
-    /* 0x20 */ void*         field_20; // spawn arg2 (often UiObject*)
+    /* 0x00 */ TaskNode      node;
+    /* 0x08 */ struct _Task* parent;
+    /* 0x0C */ struct _Task* firstChild;
+    /* 0x10 */ struct _Task* nextSibling;
+    /* 0x14 */ TaskFunc      callback;
+    /* 0x18 */ TaskFunc      exitCallback;
+    /* 0x1C */ TaskIdMap*    idMap;
+    /* 0x20 */ void*         spawnArg2;
     /* 0x24 */ byte          unknown_24[4];
-    /* 0x28 */ u8            field_28; // spawn type (desc flags low byte)
-    /* 0x29 */ u8            field_29; // list priority (lower = earlier)
-    /* 0x2A */ s16           field_2a; // deferred-kill countdown
-    /* 0x2C */ void*         field_2c; // spawn "extra" (GameActorExt*, …)
-    /* 0x30 */ s32           field_30; // generic state
-    /* 0x34 */ s32           field_34; // spawn arg1 (menu/ctx/mode)
-    /* 0x38 */ u8            field_38; // small flag
+    /* 0x28 */ u8            spawnType;
+    /* 0x29 */ u8            priority;
+    /* 0x2A */ s16           killCountdown;
+    /* 0x2C */ void*         extra;
+    /* 0x30 */ s32           state;
+    /* 0x34 */ s32           spawnArg1;
+    /* 0x38 */ u8            flags;
     /* 0x39 */ byte          unknown_39[3];
-    /* 0x3C */ s32           field_3c; // extra state
+    /* 0x3C */ s32           extraState;
     /* 0x40 */ byte          unknown_40[8];
 } Task;
 STATIC_ASSERT_SIZEOF(Task, 0x48);
@@ -82,9 +82,9 @@ STATIC_ASSERT_SIZEOF(Task, 0x48);
 /// Descriptor used to spawn a task. Indexed via `Task_DescBanks[bank][type]`.
 typedef struct _TaskDesc {
     /* 0x0 */ u16      flags;    // low byte type 0/1/2; bit 0x100 type-1 setup
-    /* 0x2 */ u16      field_2;  // low byte → Task::field_29 priority
-    /* 0x4 */ TaskFunc callback; // per-frame entry
-    /* 0x8 */ s32      field_8;  // type-1 setup arg
+    /* 0x2 */ u16      priority; // low byte → Task::priority
+    /* 0x4 */ TaskFunc callback;
+    /* 0x8 */ s32      setupArg; // type-1 setup arg
 } TaskDesc;
 STATIC_ASSERT_SIZEOF(TaskDesc, 0xc);
 
@@ -117,7 +117,7 @@ void      Task_Free(Task* task);
 void      Task_CountdownCallback(Task* task);
 void      Mem_CopyUnaligned(void* src, void* dest, u32 count);
 
-/// Session pointer-slot table on Game_Session (GStruct14::field_C[16]).
+/// Session pointer-slot table on Game_Session (field_C[16]).
 void  Game_SetPtrSlot(void* ptr, s32 index);
 void* Game_GetPtrSlot(s32 index);
 void  Game_ClearPtrSlots(void);

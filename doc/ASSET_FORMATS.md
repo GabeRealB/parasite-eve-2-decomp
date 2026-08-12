@@ -291,7 +291,7 @@ Then: sequential LZSS strips (see below)
 
 ### 6.2 Load path (`fs.c`)
 
-1. `Fs_CopyWorkEntries` copies the table into `D5B498_8006ACE8`.
+1. `Fs_CopyWorkEntries` copies the table into `Fs_WorkEntries`.
 2. Sets `Fs_ImageRect = { x: entry0.x, y: entry0.y, w: 0x40, h: 0x20 }`.
 3. Sets remaining height `D5B498_8006ACD4 = 0x100` (unless single-column
    terminator special-cases `0x40` or `term_y & 0x7FFF` when `term_y & 0x8000`).

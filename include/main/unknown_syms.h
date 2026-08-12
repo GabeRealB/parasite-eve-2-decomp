@@ -17,12 +17,12 @@
 #include "main/fs.h"
 #include "main/cdstream.h"
 
-#define C3D458_HEAP_SIZE        0x3D00
-#define C3D458_HEAP_START_MAGIC 0xB25A
-#define C3D458_HEAP_MAGIC       0xA52B
+#define SNDHEAP_SIZE        0x3D00
+#define SNDHEAP_START_MAGIC 0xB25A
+#define SNDHEAP_MAGIC       0xA52B
 
-#define C5F414_OTAG_ENTRIES  0x440
-#define C5F414_OTAG_END_PRIM 0xFFFFFF
+#define GPU_OT_ENTRIES  0x440
+#define GPU_OT_END_PRIM 0xFFFFFF
 
 extern u16 func_8001D82C(void);
 
@@ -31,8 +31,8 @@ extern void              func_8009FD74(s8 arg0, void* arg1);
 extern void              func_8002C1D8(void);
 extern TaskFuncTable5    D_800134BC;
 extern TaskFuncTable3    D_800134D0;
-extern u16               D_80013E88[]; // display width table
-extern u16               D_80013E94[]; // display height table
+extern u16               Display_WidthTable[];  // display width table
+extern u16               Display_HeightTable[]; // display height table
 extern TaskFuncTable6    D_80013E98;
 extern TaskFuncTable3    D_80013EDC;
 extern GBytes4           D_80013F18;
@@ -81,7 +81,7 @@ extern u16 D_80072AA8;
 // text util (src/main/textutil.c)
 // Extracts one text line (handles escapes/newlines) from *arg0 into arg1; advances *arg0.
 // Returns -1 at end of string, 1 on newline, other values for control escapes.
-// Multi-line text draw (Text_DrawPrompt per line, y += 0xF). Skips draw when UiObject.field_8 == 5.
+// Multi-line text draw (Text_DrawPrompt per line, y += 0xF). Skips draw when UiObject.mode == 5.
 // Multi-line text measure: packed (height<<16)|maxWidth, 0xF pixels per line.
 // Multi-line text draw with line limit (arg7) and scroll offset (arg8).
 // Returns 1 if all text drawn within limit, 0 if truncated.
@@ -237,8 +237,8 @@ extern u8           D_80062736;
 extern u8           D_80062737;
 extern u8           D_80062738;
 extern u8           D_80062739;
-extern GPairU8*     D_8006273C[];
-extern GPairU8*     D_80062750[];
+extern TaskIdPair*  D_8006273C[];
+extern TaskIdPair*  D_80062750[];
 extern u8           D_80062764[];
 extern u8           D_8006276C[];
 extern u8           D_80062934[];
@@ -347,7 +347,7 @@ extern volatile s32 D_8006EBF4;
 // Snapshot of Display_State.field_100 / field_103 taken before a draw; read from
 // the VSync callback path (Display_VSyncCallback → Display_FlipDraw), so volatile.
 extern volatile u8 D_8006EC30;
-extern u_long      D5F414_OrderingTables[2 * C5F414_OTAG_ENTRIES];
+extern u_long      Gpu_OtTags[2 * GPU_OT_ENTRIES];
 extern volatile u8 D_80070E38;
 // Identity-matrix storage for GsCOORDINATE2.coord (parent at symbol - 4).
 extern MATRIX   D_80070E44;
@@ -358,8 +358,8 @@ extern MATRIX   D_80070F14;
 extern MATRIX   D_80070F34;
 // VSync countdown; written/read by Display_VSyncCallback (VSync callback).
 extern volatile s32 D_80070F64;
-extern u_long*      D_800710A0; // current OT base
-extern DR_TPAGE*    D_80071190; // primitive buffer cursor
+extern u_long*      Gpu_CurrentOt; // current OT base
+extern DR_TPAGE*    D_80071190;    // primitive buffer cursor
 
 // 61F10
 // Immediate-mode SPRT scratch used by Text_DrawGlyphImmediate (DrawPrim path).
@@ -397,8 +397,8 @@ extern void*            D_8007A0E0;
 extern s32              D_8007A0E4;
 extern GsOT             Gpu_OrderingTables[2];
 extern u_long           D_8007A120[0x80];
-extern HeapBlockHeader* D648E0_HeapStart;
-extern u8               D648E0_HeapBuffer[C3D458_HEAP_SIZE];
+extern HeapBlockHeader* SndHeap_Start;
+extern u8               SndHeap_Buffer[SNDHEAP_SIZE];
 extern AudioTickNode    AudioTick_List;
 extern u32              AudioTick_Enabled;
 extern long             D648E0_SpuTimerED;
@@ -407,10 +407,10 @@ extern AsyncCbEntry     AsyncCb_Entries[];
 extern SpuVoiceState    Spu_VoiceState;
 extern SpuLVoiceTable   Spu_LVoiceTable;
 extern SpuVoiceRange    Spu_VoiceRanges[];
-extern u32              D648E0_8007EBA8;
-extern u32              D648E0_8007EBAC;
-extern u32              D648E0_8007EBB0;
-extern SpuReverbConfig  D648E0_SpuReverbCfg;
+extern u32              Spu_KeyOnMask;
+extern u32              Spu_KeyOnMaskExtra;
+extern u32              Spu_KeyOffMask;
+extern SpuReverbConfig  Spu_ReverbCfg;
 extern s32              SndEvt_Lock;
 extern SndEvt*          SndEvt_Head;
 extern SndEvt*          SndEvt_Tail;

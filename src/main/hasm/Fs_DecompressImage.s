@@ -40,8 +40,8 @@ glabel Fs_DecompressImage
     /* BBC 800103BC 0800E003 */  jr         $ra
     /* BC0 800103C0 00000000 */   nop
   .L800103C4:
-    /* BC4 800103C4 0780083C */  lui        $t0, %hi(D5B498_8006C22C)
-    /* BC8 800103C8 2CC2088D */  lw         $t0, %lo(D5B498_8006C22C)($t0)
+    /* BC4 800103C4 0780083C */  lui        $t0, %hi(Fs_ChunkReadPtr)
+    /* BC8 800103C8 2CC2088D */  lw         $t0, %lo(Fs_ChunkReadPtr)($t0)
     /* BCC 800103CC 0780093C */  lui        $t1, %hi(Fs_ChunkWritePtr)
     /* BD0 800103D0 D8D4298D */  lw         $t1, %lo(Fs_ChunkWritePtr)($t1)
     /* BD4 800103D4 21500000 */  addu       $t2, $zero, $zero

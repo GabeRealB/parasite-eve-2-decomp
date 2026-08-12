@@ -86,11 +86,11 @@ void Spu_InitVoices(void)
     SpuWrite(&D_80068184, 0x30U);
     SpuIsTransferCompleted(1);
 
-    ptr             = (s32*)&Spu_LVoiceTable;
-    i               = 0;
-    D648E0_8007EBA8 = 0;
-    D648E0_8007EBAC = 0;
-    D648E0_8007EBB0 = 0;
+    ptr                = (s32*)&Spu_LVoiceTable;
+    i                  = 0;
+    Spu_KeyOnMask      = 0;
+    Spu_KeyOnMaskExtra = 0;
+    Spu_KeyOffMask     = 0;
     do {
         *ptr = 0;
         i++;
@@ -176,7 +176,7 @@ s32 Spu_AllocVoice(s16* arg0, s32 arg1, s32 arg2)
             entry = &Spu_VoiceRanges[*arg0];
             voice = *(u8*)entry;
             j     = 0;
-            if (entry->field_2 > 0) {
+            if (entry->count > 0) {
                 do {
                     if (base->field_94[(s8)voice] == 0) {
                         field64 = base->field_64[(s8)voice];
@@ -201,7 +201,7 @@ s32 Spu_AllocVoice(s16* arg0, s32 arg1, s32 arg2)
                     }
                     j++;
                     voice++;
-                } while (j < entry->field_2);
+                } while (j < entry->count);
             }
             i++;
             arg0++;
@@ -225,21 +225,21 @@ s32 Spu_AllocVoice(s16* arg0, s32 arg1, s32 arg2)
 
 INCLUDE_ASM("main/nonmatchings/spu", func_8004E200);
 
-void F3E48C_8004E44C(void)
+void Spu_FlushVoiceUpdates(void)
 {
     i32             remaining;
     u8*             current;
     SpuLVoiceTable* dataPtr;
 
-    if (D648E0_SpuReverbCfg.isDirty) {
-        F3E48C_ApplyReverbConfig();
-        D648E0_SpuReverbCfg.isDirty = false;
+    if (Spu_ReverbCfg.isDirty) {
+        Spu_ApplyReverbConfig();
+        Spu_ReverbCfg.isDirty = false;
     }
 
-    D648E0_8007EBB0 |= D648E0_8007EBA8;
-    if (D648E0_8007EBB0 != 0) {
-        SpuSetKey(SPU_OFF, D648E0_8007EBB0);
-        D648E0_8007EBB0 = 0;
+    Spu_KeyOffMask |= Spu_KeyOnMask;
+    if (Spu_KeyOffMask != 0) {
+        SpuSetKey(SPU_OFF, Spu_KeyOffMask);
+        Spu_KeyOffMask = 0;
     }
 
     // We take a pointer, as otherwise GCC will reload the address
@@ -277,16 +277,16 @@ void F3E48C_8004E44C(void)
         dataPtr->count = 0;
     }
 
-    if ((D648E0_8007EBA8 | D648E0_8007EBAC) != 0) {
-        SpuSetKey(SPU_ON, D648E0_8007EBA8 | D648E0_8007EBAC);
-        if (D648E0_8007EBA8 != 0) {
-            Spu_VoiceState.field_1cc |= D648E0_8007EBA8;
+    if ((Spu_KeyOnMask | Spu_KeyOnMaskExtra) != 0) {
+        SpuSetKey(SPU_ON, Spu_KeyOnMask | Spu_KeyOnMaskExtra);
+        if (Spu_KeyOnMask != 0) {
+            Spu_VoiceState.field_1cc |= Spu_KeyOnMask;
             Spu_VoiceState.field_1cc &= ~Spu_VoiceState.field_1d0;
         }
 
         Spu_VoiceState.field_1d0 = 0;
-        D648E0_8007EBA8          = 0;
-        D648E0_8007EBAC          = 0;
+        Spu_KeyOnMask            = 0;
+        Spu_KeyOnMaskExtra       = 0;
     }
 }
 
@@ -311,10 +311,10 @@ s32 Spu_SetVoiceRange(s32 idx, s32 arg1, s32 arg2)
     SpuVoiceRange* p;
     s16            sIdx;
 
-    sIdx       = idx;
-    p          = &Spu_VoiceRanges[sIdx];
-    p->field_0 = arg1;
-    p->field_2 = arg2;
+    sIdx     = idx;
+    p        = &Spu_VoiceRanges[sIdx];
+    p->first = arg1;
+    p->count = arg2;
     return 0;
 }
 
@@ -378,7 +378,7 @@ s32 Spu_GetVoiceRef(s8 arg0, SpuVoiceRef* arg1)
     return found;
 }
 
-s32 F3E48C_8004E660(u32 voiceIdx)
+s32 Spu_ReleaseVoiceSlot(u32 voiceIdx)
 {
     s8 sVoiceIdx = (s8)voiceIdx;
     if (sVoiceIdx > (u32)ARRAY_SIZE(Spu_VoiceState.field_94)) {
@@ -405,14 +405,14 @@ void Spu_KeyOn(u32 voiceIdx)
     u32            channel;
 
     p                     = &Spu_VoiceState;
-    pKeyOn                = &D648E0_8007EBA8;
+    pKeyOn                = &Spu_KeyOnMask;
     voiceIdx              = (s8)voiceIdx;
     p->field_7c[voiceIdx] = 5;
     channel               = SPU_VOICECH(voiceIdx);
     *pKeyOn              |= channel;
     channel               = ~channel;
     p->field_1d0         &= channel;
-    D648E0_8007EBB0      &= channel;
+    Spu_KeyOffMask       &= channel;
 }
 
 void Spu_KeyOff(u32 voiceIdx)
@@ -420,104 +420,104 @@ void Spu_KeyOff(u32 voiceIdx)
     u32* pKeyOff;
     u32  channel;
 
-    pKeyOff  = &D648E0_8007EBB0;
+    pKeyOff  = &Spu_KeyOffMask;
     voiceIdx = (s8)voiceIdx;
 
-    channel          = SPU_VOICECH(voiceIdx);
-    *pKeyOff        |= channel;
-    D648E0_8007EBA8 &= ~channel;
-    D648E0_8007EBAC &= ~channel;
+    channel             = SPU_VOICECH(voiceIdx);
+    *pKeyOff           |= channel;
+    Spu_KeyOnMask      &= ~channel;
+    Spu_KeyOnMaskExtra &= ~channel;
 }
 
-void F3E48C_QueryReverbVoices(void)
+void Spu_QueryReverbVoices(void)
 {
     Spu_VoiceState.reverbVoiceStatus = SpuGetReverbVoice();
 }
 
-void F3E48C_ConfigSpuReverb(s32 mode)
+void Spu_ConfigReverb(s32 mode)
 {
     SpuReserveReverbWorkArea(SPU_ON);
     SpuSetReverbVoice(SPU_OFF, SPU_ALLCH);
     SpuSetReverb(SPU_ON);
 
-    D648E0_SpuReverbCfg.attr.mask = SPU_REV_MODE;
-    D648E0_SpuReverbCfg.attr.mode = mode;
-    SpuSetReverbModeParam(&D648E0_SpuReverbCfg.attr);
+    Spu_ReverbCfg.attr.mask = SPU_REV_MODE;
+    Spu_ReverbCfg.attr.mode = mode;
+    SpuSetReverbModeParam(&Spu_ReverbCfg.attr);
 
-    D648E0_SpuReverbCfg.attr.mask        = SPU_REV_DEPTHR | SPU_REV_DEPTHL;
-    D648E0_SpuReverbCfg.attr.depth.right = 0;
-    D648E0_SpuReverbCfg.attr.depth.left  = 0;
-    SpuSetReverbDepth(&D648E0_SpuReverbCfg.attr);
+    Spu_ReverbCfg.attr.mask        = SPU_REV_DEPTHR | SPU_REV_DEPTHL;
+    Spu_ReverbCfg.attr.depth.right = 0;
+    Spu_ReverbCfg.attr.depth.left  = 0;
+    SpuSetReverbDepth(&Spu_ReverbCfg.attr);
 
-    D648E0_SpuReverbCfg.attr.mask = 0;
+    Spu_ReverbCfg.attr.mask = 0;
 }
 
-void F3E48C_SetReverbDepth(s16 depth)
+void Spu_SetReverbDepth(s16 depth)
 {
-    D648E0_SpuReverbCfg.isDirty          = true;
-    D648E0_SpuReverbCfg.attr.depth.right = depth;
-    D648E0_SpuReverbCfg.attr.depth.left  = depth;
-    D648E0_SpuReverbCfg.attr.mask       |= SPU_REV_DEPTHR | SPU_REV_DEPTHL;
+    Spu_ReverbCfg.isDirty          = true;
+    Spu_ReverbCfg.attr.depth.right = depth;
+    Spu_ReverbCfg.attr.depth.left  = depth;
+    Spu_ReverbCfg.attr.mask       |= SPU_REV_DEPTHR | SPU_REV_DEPTHL;
 }
 
-void F3E48C_SetReverbMode(u32 mode)
+void Spu_SetReverbMode(u32 mode)
 {
-    if (D648E0_SpuReverbCfg.reverbMode != mode && D648E0_SpuReverbCfg.reverbMode != SPU_REV_MODE_OFF) {
-        SpuClearReverbWorkArea(D648E0_SpuReverbCfg.reverbMode);
-        D648E0_SpuReverbCfg.isDirty    = true;
-        D648E0_SpuReverbCfg.attr.mask |= SPU_REV_MODE;
-        D648E0_SpuReverbCfg.attr.mode  = mode;
-        D648E0_SpuReverbCfg.reverbMode = mode;
+    if (Spu_ReverbCfg.reverbMode != mode && Spu_ReverbCfg.reverbMode != SPU_REV_MODE_OFF) {
+        SpuClearReverbWorkArea(Spu_ReverbCfg.reverbMode);
+        Spu_ReverbCfg.isDirty    = true;
+        Spu_ReverbCfg.attr.mask |= SPU_REV_MODE;
+        Spu_ReverbCfg.attr.mode  = mode;
+        Spu_ReverbCfg.reverbMode = mode;
     }
 }
 
-void F3E48C_EnableVoice(u32 voiceIdx)
+void Spu_EnableReverbVoice(u32 voiceIdx)
 {
     u32 channel;
     voiceIdx = (s8)voiceIdx;
 
-    D648E0_SpuReverbCfg.isDirty        = true;
-    channel                            = SPU_VOICECH(voiceIdx);
-    D648E0_SpuReverbCfg.enableVoices  |= channel;
-    D648E0_SpuReverbCfg.disableVoices &= ~channel;
+    Spu_ReverbCfg.isDirty        = true;
+    channel                      = SPU_VOICECH(voiceIdx);
+    Spu_ReverbCfg.enableVoices  |= channel;
+    Spu_ReverbCfg.disableVoices &= ~channel;
 }
 
-void F3E48C_DisableVoice(u32 voiceIdx)
+void Spu_DisableReverbVoice(u32 voiceIdx)
 {
     u32 channel;
     voiceIdx = (s8)voiceIdx;
 
-    D648E0_SpuReverbCfg.isDirty        = true;
-    channel                            = SPU_VOICECH(voiceIdx);
-    D648E0_SpuReverbCfg.disableVoices |= channel;
-    D648E0_SpuReverbCfg.enableVoices  &= ~channel;
+    Spu_ReverbCfg.isDirty        = true;
+    channel                      = SPU_VOICECH(voiceIdx);
+    Spu_ReverbCfg.disableVoices |= channel;
+    Spu_ReverbCfg.enableVoices  &= ~channel;
 }
 
-bool F3E48C_ReverbVoiceIsEnabled(u32 voiceIdx)
+bool Spu_ReverbVoiceIsEnabled(u32 voiceIdx)
 {
     return ((s32)Spu_VoiceState.reverbVoiceStatus >> voiceIdx) & 1;
 }
 
-void F3E48C_ApplyReverbConfig(void)
+void Spu_ApplyReverbConfig(void)
 {
-    if (D648E0_SpuReverbCfg.disableVoices != 0) {
-        SpuSetReverbVoice(SPU_OFF, D648E0_SpuReverbCfg.disableVoices);
-        D648E0_SpuReverbCfg.disableVoices = 0;
+    if (Spu_ReverbCfg.disableVoices != 0) {
+        SpuSetReverbVoice(SPU_OFF, Spu_ReverbCfg.disableVoices);
+        Spu_ReverbCfg.disableVoices = 0;
     }
 
-    if (D648E0_SpuReverbCfg.enableVoices != 0) {
-        SpuSetReverbVoice(SPU_ON, D648E0_SpuReverbCfg.enableVoices);
-        D648E0_SpuReverbCfg.enableVoices = 0;
+    if (Spu_ReverbCfg.enableVoices != 0) {
+        SpuSetReverbVoice(SPU_ON, Spu_ReverbCfg.enableVoices);
+        Spu_ReverbCfg.enableVoices = 0;
     }
 
-    if ((D648E0_SpuReverbCfg.attr.mask & SPU_REV_MODE) != 0) {
-        SpuSetReverbModeParam(&D648E0_SpuReverbCfg.attr);
+    if ((Spu_ReverbCfg.attr.mask & SPU_REV_MODE) != 0) {
+        SpuSetReverbModeParam(&Spu_ReverbCfg.attr);
     }
-    if ((D648E0_SpuReverbCfg.attr.mask & SPU_REV_DEPTHL) != 0) {
-        SpuSetReverbDepth(&D648E0_SpuReverbCfg.attr);
+    if ((Spu_ReverbCfg.attr.mask & SPU_REV_DEPTHL) != 0) {
+        SpuSetReverbDepth(&Spu_ReverbCfg.attr);
     }
 
-    D648E0_SpuReverbCfg.attr.mask = 0;
+    Spu_ReverbCfg.attr.mask = 0;
 }
 
 u16 Spu_CalcVolume(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
@@ -564,13 +564,13 @@ void Spu_KeyOnClearOff(u32 voiceIdx)
     u32            channel;
 
     p                     = &Spu_VoiceState;
-    pKeyOn                = &D648E0_8007EBA8;
+    pKeyOn                = &Spu_KeyOnMask;
     voiceIdx              = (s8)voiceIdx;
     p->field_7c[voiceIdx] = 5;
     channel               = SPU_VOICECH(voiceIdx);
     *pKeyOn              |= channel;
     p->field_1d0         |= channel;
-    D648E0_8007EBB0      &= ~channel;
+    Spu_KeyOffMask       &= ~channel;
 }
 
 void Spu_ArmKeyOn(u32 voiceIdx)
@@ -580,12 +580,12 @@ void Spu_ArmKeyOn(u32 voiceIdx)
     u32            channel;
 
     p                     = &Spu_VoiceState;
-    pKeyOn                = &D648E0_8007EBAC;
+    pKeyOn                = &Spu_KeyOnMaskExtra;
     voiceIdx              = (s8)voiceIdx;
     p->field_7c[voiceIdx] = 5;
     channel               = SPU_VOICECH(voiceIdx);
     *pKeyOn              |= channel;
     p->field_1d0         &= ~channel;
-    D648E0_8007EBA8      &= ~channel;
-    D648E0_8007EBB0      &= ~channel;
+    Spu_KeyOnMask        &= ~channel;
+    Spu_KeyOffMask       &= ~channel;
 }

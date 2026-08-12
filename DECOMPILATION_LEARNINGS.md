@@ -182,15 +182,15 @@ the accesses so GCC fills the `lw org` delay with the global load:
 ```c
 org  = ot[i].org;
 size = D_8007A0E4;           /* load fills the org-load delay; claims $a0 */
-*org = C5F414_OTAG_END_PRIM; /* 0xFFFFFF stays in $a1 */
+*org = GPU_OT_END_PRIM; /* 0xFFFFFF stays in $a1 */
 size /= 2;                   /* signed /2 after the store */
-saved      = D_800710A0;
-D_800710A0 = ot[i].org;      /* second load of org — do not reuse `org` */
+saved      = Gpu_CurrentOt;
+Gpu_CurrentOt = ot[i].org;      /* second load of org — do not reuse `org` */
 D_80071190 = base + i * size;
 ```
 
-Putting `saved = D_800710A0` immediately after `*org = …` steals the delay
-slot for `%hi(D_800710A0)` and parks the constant in `$a0` instead. Computing
+Putting `saved = Gpu_CurrentOt` immediately after `*org = …` steals the delay
+slot for `%hi(Gpu_CurrentOt)` and parks the constant in `$a0` instead. Computing
 `D_8007A0E4 / 2` in one expression before the store also mis-orders the
 divide relative to the store. `Display_FrameFlipDraw` is the pure example.
 
@@ -347,7 +347,7 @@ base = SndBank_Slots;
 p = &base[(s8)arg0];
 ```
 
-`SndBankSlot_Free` needs this form so `F3D458_Free` can take `p->field_0` with the
+`SndBankSlot_Free` needs this form so `SndHeap_Free` can take `p->field_0` with the
 base already in `$v0` before the stride multiply lands in `$s0`.
 
 ## `~x != 0` for `nor` + `sltu` (not `x != -1`)
@@ -1557,15 +1557,15 @@ When a function sets a bit in one global and clears it from two others
    statements until that symbol is the early one — the final store order still
    ends up matching because of scheduling.
 
-`Spu_KeyOff` is the pure late-`nor` example: pointer on `D648E0_8007EBB0`,
-then `D648E0_8007EBA8 &= ~channel` before `D648E0_8007EBAC &= ~channel` so
+`Spu_KeyOff` is the pure late-`nor` example: pointer on `Spu_KeyOffMask`,
+then `Spu_KeyOnMask &= ~channel` before `Spu_KeyOnMaskExtra &= ~channel` so
 that EBAC is the early-loaded `$a2` value. `Spu_KeyOn` is the pure
 early-`nor` counterpart: pointer on the `|=` target plus `channel = ~channel`
 before the two clears.
 
 `Spu_ArmKeyOn` is late-`nor` with an extra struct-field clear in the middle
 (`A |= mask; field &= ~mask; B &= ~mask; C &= ~mask`). Same recipe as E71C:
-local pointer on A (`&D648E0_8007EBAC`) and three inline `~channel` uses — not
+local pointer on A (`&Spu_KeyOnMaskExtra`) and three inline `~channel` uses — not
 `channel = ~channel`. Dropping the pointer alone leaves only `li a1,1`
 mis-scheduled before the `sb`; using `channel = ~channel` with the pointer
 falls back to ~70%.
@@ -1673,13 +1673,13 @@ than including `libgs.h` or casting through `GsOT*`:
 void GsClearOt(unsigned short offset, unsigned short point, GameOt* otp);
 /* ... */
 GsClearOt(0, 0, &ot[temp->field_118]);
-*ot[temp->field_118].org = C5F414_OTAG_END_PRIM;
-D_800710A0 = ot[temp->field_118].org;
+*ot[temp->field_118].org = GPU_OT_END_PRIM;
+Gpu_CurrentOt = ot[temp->field_118].org;
 ```
 
 `Gpu_InitOt` is the reference: sets both `Gpu_OrderingTables` slots to depth `0xA`
-with `D5F414_OrderingTables` / `+ C5F414_OTAG_ENTRIES`, clears the active buffer
-(`Display_State.field_118`), then points `D_800710A0` at the OT base.
+with `Gpu_OtTags` / `+ GPU_OT_ENTRIES`, clears the active buffer
+(`Display_State.field_118`), then points `Gpu_CurrentOt` at the OT base.
 
 ## Delay `i = 0` until after a special-case rewrite of the same constant
 
@@ -3563,9 +3563,9 @@ sw   v0, %lo(global)(s1)
 Target reuses the loaded register for the advance. Capture into a local first:
 
 ```c
-ot = D_800710A0;
-*ot = C5F414_OTAG_END_PRIM;
-D_800710A0 = ot + 0x20; /* addiu reuses ot — no reload */
+ot = Gpu_CurrentOt;
+*ot = GPU_OT_END_PRIM;
+Gpu_CurrentOt = ot + 0x20; /* addiu reuses ot — no reload */
 ```
 
 `Display_FlipOt` is the pure example (double-buffer OT flip).
@@ -3766,7 +3766,7 @@ DR_TPAGE* p;
 p          = D_80071190;
 D_80071190 = p + 1;
 setDrawTPage(p, 0, 1, 0x1E | ((abr & 3) << 5));
-addPrim(D_800710A0 + otz, p);
+addPrim(Gpu_CurrentOt + otz, p);
 ```
 
 `setDrawTPage` → `setlen` + `_get_mode`; `addPrim` → `setaddr`/`getaddr` on
@@ -3870,7 +3870,7 @@ operand order:
 ```c
 /* Matches: sll v0,v0,1 ; addu s0,v0,v1  (offset then base) */
 temp  = ((D_80062738 + product) & 0xFFFF) * 2;
-entry = (GPairU8*)(temp + (s32)D_8006273C[idx]);
+entry = (TaskIdPair*)(temp + (s32)D_8006273C[idx]);
 
 /* Mismatches: addu s0,v1,v0 */
 entry = D_8006273C[idx] + ((D_80062738 + product) & 0xFFFF);
@@ -4985,7 +4985,7 @@ jal   Mem_Set
  ori   a2, a2, LO(size)
 ```
 
-plain `Mem_Set(D4CB64_ImgBuffers, 0, 0x25800)` usually loads the global first
+plain `Mem_Set(Fs_ImgBuffers, 0, 0x25800)` usually loads the global first
 (`lui v0` in the delay slot), then sets `a1`/`a2`. Score sticks at ~99% with
 only that reorder left.
 
@@ -5001,7 +5001,7 @@ Two pieces together fix it:
    ch = 0;
    size = 0x20000; /* high half only — do not write 0x25800 here */
    asm("" : "+r"(ch), "+r"(size));
-   Mem_Set(D4CB64_ImgBuffers, ch, size | 0x5800);
+   Mem_Set(Fs_ImgBuffers, ch, size | 0x5800);
    ```
 2. Without the empty `asm`, CSE folds `ch` back to `$zero` / reorders past the
    load. Without splitting `0x25800` into `0x20000 | 0x5800`, the full constant
@@ -6293,7 +6293,7 @@ of the function. `SndBank_FinalizeLoad` is the pure example (relocate loop setup
 
 ## Shared `var_v0` + epilogue flips global pointer store register order
 
-For multi-way dispatch that ends every arm with `D5B498_8006ACB0 = some_table;
+For multi-way dispatch that ends every arm with `Fs_BootTimPrimary = some_table;
 *arg0 = K`, collecting `K` into a shared `var_v0` and one trailing `*arg0 =
 var_v0` looks like the target's shared `sb v0,0(s0)` epilogue — but it often
 compiles the stores as `lui v1,dest; lui v0,src; sw v0,(v1)` with the wrong
@@ -6305,7 +6305,7 @@ the dest-first store pattern:
 ```c
 /* BAD ~88%: shared phi for *arg0 flips store regs / delay-slot lui */
 case_arm:
-    D5B498_8006ACB0 = D_80062E50;
+    Fs_BootTimPrimary = D_80062E50;
     var_v0 = 0xC;
     goto store;
 ...
@@ -6314,7 +6314,7 @@ store:
 
 /* GOOD 100%: early return; GCC still emits j + li v0,K into the shared sb */
 case_arm:
-    D5B498_8006ACB0 = D_80062E50;
+    Fs_BootTimPrimary = D_80062E50;
     *arg0 = 0xC;
     return;
 ```
@@ -6326,7 +6326,7 @@ order is `== 0x1B`, then `< 0x1C`, then `!= 0x11`. Keep the switch key in an
 `s32` (not `u8`) so the load is plain `lbu` without `andi`/`sltiu`.
 
 `Fs_SelectLoadHandlers2` is the pure example (FS load-table select by
-`D5B498_8006ACB8.field_2` × `GameFlag_GetNibble(0x7A)`).
+`Fs_LoadParams.field_2` × `GameFlag_GetNibble(0x7A)`).
 
 ## Independent `entry++` + mid-loop `i++`: prefer `goto` over re-index / `do`
 
@@ -6369,7 +6369,7 @@ filling”). `Snd_InitBanks` is the pure example.
 
 When the target prepares a constant call argument only after unrelated
 address setup (e.g. `sw field_10` then `lui %hi(slot); li a0, 0x582; lb …`),
-writing `F3D458_Malloc(0x582)` in straight-line code often hoists
+writing `SndHeap_Malloc(0x582)` in straight-line code often hoists
 `li a0, 0x582` immediately after the previous `jal` returns — free `$a0` and
 an independent constant. That early `li` also steals the `lui` of the next
 symbol into `$v1` instead of `$v0`.
@@ -6383,7 +6383,7 @@ do {
     bank            = &Snd_Banks[D_800680BB];
     state->field_40 = bank;
     bank->field_8   = 0xF0FF;
-    state->field_40->field_1C = F3D458_Malloc(0x582);
+    state->field_40->field_1C = SndHeap_Malloc(0x582);
 } while (0);
 state->field_40->field_0 = state->field_40->field_1C;
 /* … */
@@ -6455,7 +6455,7 @@ setlen(p, 3);
 `Ui_AllocTile` also needs `register u32 color asm("t3")` so the 6th arg
 lands in `$t3` (without the pin, `$t2`/`$t3` for arg1/arg5 swap). Pair with
 Psy-Q `addPrim` / `setlen` / `setcode` (see above) and
-`addPrim(D_800710A0 + (s16)obj->field_14 + 1, p)` when the target uses `lh`
+`addPrim(Gpu_CurrentOt + (s16)obj->field_14 + 1, p)` when the target uses `lh`
 on a `u16` OT index and OT slot `field_14 + 1`.
 
 ## Empty `asm volatile` a0 clobber for branch-delay restore
@@ -7106,7 +7106,7 @@ setcode(p, 0x62);                       /* 0x62 = TILE | semi-trans */
 p->r0 = color;
 p->g0 = color;
 p->b0 = color;
-/* x/y/w/h then addPrim(D_800710A0 - 0x10, p); DR_TPAGE with setDrawTPage */
+/* x/y/w/h then addPrim(Gpu_CurrentOt - 0x10, p); DR_TPAGE with setDrawTPage */
 ```
 
 Writing `p = D_80070EE0` first swaps the two `lui`s (~99.7% near-match). The
@@ -7263,7 +7263,7 @@ will cross-merge their `0x10/0x20/0x40` retry bodies when both go through a
 shared `handle_ret` / `flush_or_retry` label. The dispatch then jumps from
 case 5 into case 2's retry and the `slti` tree flips (`bnez` vs `beqz`).
 
-Fix: inline the `ret < 2` / `ret == 2` / `F12D18_80024EC0` tails at every
+Fix: inline the `ret < 2` / `ret == 2` / `Fs_RetryReadN` tails at every
 site (duplicate the small blocks). GCC still cross-jumps the *identical*
 `ret < 2 → (ret==0 ? return : end)` sequences into one shared block, so you
 keep a single handle without the bad merge — and the sites that need a
@@ -7530,9 +7530,9 @@ Manual OT linking that reloads `field_14` twice (equivalent to
 `addPrim(ot + (s16)field_14 + 1, p)`) wants:
 
 ```
-lui  v1, %hi(D_800710A0)
+lui  v1, %hi(Gpu_CurrentOt)
 lui  a1, 0xFF000000
-lw   a2, %lo(D_800710A0)(v1)
+lw   a2, %lo(Gpu_CurrentOt)(v1)
 ```
 
 Without pins, GCC often swaps `$a1`/`$a2` (mask in `$a2`, OT in `$a1`) or
@@ -7544,13 +7544,13 @@ register u32* ot asm("a2");
 
 mask     = 0xFFFFFF;
 /* set color / setlen / setcode first so $a0 holds 0xFFFFFF */
-ot       = D_800710A0;
+ot       = Gpu_CurrentOt;
 mask_hi  = 0xFF000000;
 p->tag   = (p->tag & mask_hi) | (ot[(s16)idx + 1] & mask);
 ot[(s16)idx + 1] = (ot[(s16)idx + 1] & mask_hi) | ((u32)p & mask);
 ```
 
-Assign `ot` before `mask_hi` so the `lui %hi(D_800710A0)` precedes
+Assign `ot` before `mask_hi` so the `lui %hi(Gpu_CurrentOt)` precedes
 `lui a1,0xFF00`. `Ui_DrawFlatCaret` is the pure example.
 
 Do **not** also pin an earlier mid-function temporary to `asm("a1")` (e.g. a
@@ -8571,7 +8571,7 @@ rect.y = y;
 rect.x = 0;       /* before w */
 rect.w = 0x140;
 rect.h = 0xF0 - field;
-LoadImage(&rect, D4CB64_ImgBuffers);
+LoadImage(&rect, Fs_ImgBuffers);
 ```
 
 `rect.w` then `rect.x` produces `addiu` first. `Display_LoadImageStrips` is the pure
@@ -8672,11 +8672,11 @@ register FsWorkEntry* base asm("t0");
 register u32 ace_hi asm("a3");
 
 __asm__(
-    "lui %0, %%hi(D5B498_8006ACE8)\n\t"
-    "addiu %1, %0, %%lo(D5B498_8006ACE8)"
+    "lui %0, %%hi(Fs_WorkEntries)\n\t"
+    "addiu %1, %0, %%lo(Fs_WorkEntries)"
     : "=&r"(ace_hi), "=r"(base));
 /* … loop on a walking copy of base … */
-__asm__("lhu %0, %%lo(D5B498_8006ACE8)(%1)" : "=r"(t) : "r"(ace_hi));
+__asm__("lhu %0, %%lo(Fs_WorkEntries)(%1)" : "=r"(t) : "r"(ace_hi));
 ```
 
 Also: `s8_global * 64` (or `(s8)u8_global * 64`) emits `lb; sll 6`, while
@@ -8836,15 +8836,15 @@ if ((s16)CdCmd_Queue.field_244 != 0 && !(flags & 8)) { … }
 
 ## OT addPrim offsets: elements, not bytes
 
-`D_800710A0` is `u_long*`. Asm immediates on loads/stores are *bytes*, so a
+`Gpu_CurrentOt` is `u_long*`. Asm immediates on loads/stores are *bytes*, so a
 target `lw v0, -0x40(a2)` is one OT entry stride of `0x10` words:
 
 ```c
 /* WRONG — scales by sizeof(u_long) → -0x100 bytes */
-addPrim(D_800710A0 - 0x40, p);
+addPrim(Gpu_CurrentOt - 0x40, p);
 
 /* RIGHT — matches lw/sw -0x40(reg) */
-addPrim(D_800710A0 - 0x10, p);
+addPrim(Gpu_CurrentOt - 0x10, p);
 ```
 
 Scratch-object matching can still report 100% when only the I-type immediate
@@ -10255,16 +10255,16 @@ that. `Display_StepFadeOverlay` is the pure example.
 
 ## OT index: `(idx << 2) + (s32)base` vs `base + idx`
 
-`D_800710A0 + otIdx` (pointer arithmetic) and
-`(u_long*)((otIdx << 2) + (s32)D_800710A0)` are equivalent, but the second form
+`Gpu_CurrentOt + otIdx` (pointer arithmetic) and
+`(u_long*)((otIdx << 2) + (s32)Gpu_CurrentOt)` are equivalent, but the second form
 matches the target's register/schedule for dual `addPrim`:
 
 ```
 lui  a1, 0xff / ori     /* 0xFFFFFF mask */
-lui  v0, %hi(D_800710A0)
+lui  v0, %hi(Gpu_CurrentOt)
 sll  a0, a2, 2          /* idx in a2 → offset in a0 */
 lui  a2, 0xff00
-lw   v0, %lo(D_800710A0)(v0)
+lw   v0, %lo(Gpu_CurrentOt)(v0)
 ...
 addu a0, a0, v0
 ```
@@ -10972,22 +10972,22 @@ on `arg0->field_1C` (light dir, often `GsLIGHTWSMATRIX`), and in-place column
 RTIR via `gte_ldclmv` + `gte_rtir_real` (`0x4A49E012`) + `gte_stclmv` three times
 (same real-opcode rule as other GTE command macros).
 
-## Local OT pointer for `D_800710A0` so `%hi` stays temporary
+## Local OT pointer for `Gpu_CurrentOt` so `%hi` stays temporary
 
 `GameMain_Loop` (and similar dual-buffer main loops) must both:
 1. pin `Gpu_OtBuffers` as **two** regs (`s8` = `%hi`, `s7` = full via `addiu s7,s8,%lo`) for `Display_FrameFlipDraw` (`addiu a0,s8,%lo`) and `DrawOTag` (`addu v0,stride,s7`);
-2. use `%hi(D_800710A0)` only temporarily in `$s0` around `ClearOTagR`, not as a function-wide pin.
+2. use `%hi(Gpu_CurrentOt)` only temporarily in `$s0` around `ClearOTagR`, not as a function-wide pin.
 
 Writing only through the global:
 
 ```c
-D_800710A0 = ot;
-ClearOTagR(D_800710A0, n);
-*D_800710A0 = END;
-D_800710A0 += 0x20;
+Gpu_CurrentOt = ot;
+ClearOTagR(Gpu_CurrentOt, n);
+*Gpu_CurrentOt = END;
+Gpu_CurrentOt += 0x20;
 ```
 
-makes GCC hoist `lui sN,%hi(D_800710A0)` into the prologue and steal the reg that
+makes GCC hoist `lui sN,%hi(Gpu_CurrentOt)` into the prologue and steal the reg that
 should hold `Gpu_OtBuffers`'s full address.
 
 Fix: pass a **local** into `ClearOTagR`, then reload from the global for the
@@ -10995,14 +10995,14 @@ end-prim write so the `%hi` is only live in that block:
 
 ```c
 {
-    u_long* ot = D5F414_OrderingTables + flip * C5F414_OTAG_ENTRIES;
-    D_800710A0 = ot;
-    ClearOTagR(ot, C5F414_OTAG_ENTRIES);
+    u_long* ot = Gpu_OtTags + flip * GPU_OT_ENTRIES;
+    Gpu_CurrentOt = ot;
+    ClearOTagR(ot, GPU_OT_ENTRIES);
 }
 {
-    u_long* p = D_800710A0;
-    *p = C5F414_OTAG_END_PRIM;
-    D_800710A0 = p + 0x20;
+    u_long* p = Gpu_CurrentOt;
+    *p = GPU_OT_END_PRIM;
+    Gpu_CurrentOt = p + 0x20;
 }
 ```
 
@@ -11724,7 +11724,7 @@ also pinning `$s2/$s1/$s0`: that steals `$a0` from the flag address. Leave the
 ## Fail-path `j` / `move v0,s1` vs shared epilogue
 
 When several paths merge on `field_14 = 0; field_18 = 0; return`, the fail path
-needs `j epilogue; move v0,s1` while the free path after `F3D458_Free` must not
+needs `j epilogue; move v0,s1` while the free path after `SndHeap_Free` must not
 fall through a `block_ret: v0 = s1` that GCC would merge away. Force the free
 exit with tab-noreorder `j label; move $2,s1`, land with a unique asm label, and
 clear `field_14` via `*(volatile s32*)&p->field_14 = 0` so the store is not
@@ -12139,7 +12139,7 @@ that should hold the mask — or it hoists color math and breaks a later
 ```c
 setlen(dr, 1);
 dr->code[0] = 0xE1000000 | 0x240; /* not 0xE1000240 as one literal */
-addPrim(D_800710A0, dr);
+addPrim(Gpu_CurrentOt, dr);
 ```
 
 Do **not** pin `t1 = 0xFFFFFF` early to force the mask into a delay slot: that
@@ -12182,3 +12182,13 @@ do {
     s2 += 1;
 } while (s2 < 3);
 ```
+
+## Splat `-c` reverts unnamed data labels
+
+`ninja_config.py -c` re-splits the ROM. Function `glabel`s that live in
+`sym.main.txt` keep their names, but data that was only renamed in `.s` files
+(and never added to the symbol map) comes back as `D_800xxxxx`.
+
+Add the new name to `configs/USA/sym.main.txt` *before* a clean split, or
+re-run the token rename after splat. `INCLUDE_ASM` units are not ninja
+inputs — touch/rebuild the C object after renaming a referenced `.s`.

@@ -580,9 +580,9 @@ s32 CdAudio_SetupStream(void)
     CdIntToPos(p->field_4, (CdlLOC*)&p->field_10);
     buf = D_80082750;
     if (buf != 0) {
-        F3D458_Free((void*)buf);
+        SndHeap_Free((void*)buf);
     }
-    mem                 = (s32)F3D458_Malloc(0x800);
+    mem                 = (s32)SndHeap_Malloc(0x800);
     D_80082750          = mem;
     D_80082778          = mem + 4;
     CdAudio_Loc.field_0 = 5;
@@ -715,8 +715,8 @@ void CdAudio_AllocVoices(s8* arg0, s8* arg1)
 {
     *arg0 = Spu_AllocVoice(D_80068B28, 3, 0xFFFF);
     *arg1 = Spu_AllocVoice(D_80068B28, 3, 0xFFFF);
-    F3E48C_DisableVoice(*arg0);
-    F3E48C_DisableVoice(*arg1);
+    Spu_DisableReverbVoice(*arg0);
+    Spu_DisableReverbVoice(*arg1);
 }
 
 s32 CdAudio_LoadSectorEntry(s32 arg0)
@@ -1011,7 +1011,7 @@ void CdStream_Start(CdStreamParams* arg0)
     base            = arg0->spuBase;
     sectors         = 0x18;
     {
-        s32 ds      = Display_State.field_124;
+        s32 ds      = Display_State.region;
         a3->spuBase = base;
         if (ds == one) {
             sectors = 0x14;

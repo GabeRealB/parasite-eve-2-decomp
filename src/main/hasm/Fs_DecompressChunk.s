@@ -19,7 +19,7 @@
  *   streamed from the CD. Called from Fs_ProcessChunkHeader /
  *   Fs_ProcessChunkData when a compressed chunk is ready.
  *
- *   Input:  D5B498_8006C22C .. D_8006C4D4  (source cursor / limit)
+ *   Input:  Fs_ChunkReadPtr .. D_8006C4D4  (source cursor / limit)
  *   Output: Fs_ChunkWritePtr                 (destination write cursor)
  *   Ring:   256-byte window at scratchpad 0x1F800000 (index D5B498_8006D858)
  *   Status: D5B498_8006D748
@@ -81,8 +81,8 @@ glabel Fs_DecompressChunk
     /* 848 80010048 0800E003 */  jr         $ra
     /* 84C 8001004C 00000000 */   nop
   .L80010050:
-    /* 850 80010050 0780083C */  lui        $t0, %hi(D5B498_8006C22C)
-    /* 854 80010054 2CC2088D */  lw         $t0, %lo(D5B498_8006C22C)($t0)
+    /* 850 80010050 0780083C */  lui        $t0, %hi(Fs_ChunkReadPtr)
+    /* 854 80010054 2CC2088D */  lw         $t0, %lo(Fs_ChunkReadPtr)($t0)
     /* 858 80010058 0780183C */  lui        $t8, %hi(D_8006C4D4)
     /* 85C 8001005C D4C4188F */  lw         $t8, %lo(D_8006C4D4)($t8)
     /* 860 80010060 0780093C */  lui        $t1, %hi(Fs_ChunkWritePtr)
@@ -285,8 +285,8 @@ glabel Fs_DecompressChunk
     /* B40 80010340 0780013C */  lui        $at, %hi(D5B498_8006D748)
     /* B44 80010344 48D724A4 */  sh         $a0, %lo(D5B498_8006D748)($at)
   .L80010348:
-    /* B48 80010348 0780013C */  lui        $at, %hi(D5B498_8006C22C)
-    /* B4C 8001034C 2CC228AC */  sw         $t0, %lo(D5B498_8006C22C)($at)
+    /* B48 80010348 0780013C */  lui        $at, %hi(Fs_ChunkReadPtr)
+    /* B4C 8001034C 2CC228AC */  sw         $t0, %lo(Fs_ChunkReadPtr)($at)
     /* B50 80010350 0780013C */  lui        $at, %hi(Fs_ChunkWritePtr)
     /* B54 80010354 D8D429AC */  sw         $t1, %lo(Fs_ChunkWritePtr)($at)
     /* B58 80010358 0780013C */  lui        $at, %hi(D5B498_8006EBB0)

@@ -62,7 +62,7 @@ typedef struct _GameSessionFrom4 {
 } GameSessionFrom4;
 STATIC_ASSERT_SIZEOF(GameSessionFrom4, 0x4);
 
-/// Large object pointed to by Task::field_1C for the slot-3 game object
+/// Large object pointed to by Task::idMap for the slot-3 game object
 /// (Game_GetPtrSlot(3)). Sparse fields used by Display_SpawnFromMode.
 typedef struct _GameActor {
     /* 0x000 */ byte pad_0[0x90];
@@ -76,7 +76,7 @@ typedef struct _GameActor {
 } GameActor;
 STATIC_ASSERT_SIZEOF(GameActor, 0x988);
 
-/// Object pointed to by Task::field_2c; field_8 is a s32* cleared by
+/// Object pointed to by Task::extra; field_8 is a s32* cleared by
 /// Display_SpawnFromMode after optional func_801011D0 / func_800E1A6C setup.
 /// field_C flag bits are OR'd with 0x80 in Task_Kill (type-1 deferred kill).
 typedef struct _GameActorExt {

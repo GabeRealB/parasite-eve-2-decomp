@@ -17,27 +17,27 @@ typedef struct _PadEvent {
 STATIC_ASSERT_SIZEOF(PadEvent, 0x4);
 
 /// Element of BSS array Pad_States (2 entries, total 0xB8).
-/// Indexed with stride 0x5C (see Pad_SetCooldown). field_0 is initialised to
-/// 0xFF by Pad_Init (pad status halfword); field_3 is set to 1 there.
-/// field_4 / field_6 / field_8 are pad button masks (see Pad_CheckSpecialCombo /
-/// Pad_CheckButtons); field_A is a cooldown counter (Pad_SetCooldown /
-/// Pad_UpdatePort0). field_B is an auto-repeat timer for face/d-pad bits
-/// (Pad_UpdatePort0). field_2 is a ring index into field_10 banks
-/// (Pad_PostEvent). field_10 holds two banks of 8 pad-event entries at 0x10
+/// Indexed with stride 0x5C (see Pad_SetCooldown). status is initialised to
+/// 0xFF by Pad_Init (pad status halfword); initialized is set to 1 there.
+/// buttons / prevButtons / triggered are pad button masks (see Pad_CheckSpecialCombo /
+/// Pad_CheckButtons); cooldown is a counter (Pad_SetCooldown /
+/// Pad_UpdatePort0). autoRepeat is a timer for face/d-pad bits
+/// (Pad_UpdatePort0). eventIdx is a ring index into events banks
+/// (Pad_PostEvent). events holds two banks of 8 pad-event entries at 0x10
 /// and 0x30. field_50..field_56 are analog stick related (cleared/read by
-/// Pad_UpdatePort0 when field_0 == 0x73). field_5A / field_5B are cleared
+/// Pad_UpdatePort0 when status == 0x73). field_5A / field_5B are cleared
 /// during pad init.
 typedef struct _PadState {
-    /* 0x00 */ s16      field_0;
-    /* 0x02 */ u8       field_2;
-    /* 0x03 */ u8       field_3;
-    /* 0x04 */ u16      field_4;
-    /* 0x06 */ u16      field_6;
-    /* 0x08 */ u16      field_8;
-    /* 0x0A */ u8       field_A;
-    /* 0x0B */ u8       field_B;
+    /* 0x00 */ s16      status;
+    /* 0x02 */ u8       eventIdx;
+    /* 0x03 */ u8       initialized;
+    /* 0x04 */ u16      buttons;
+    /* 0x06 */ u16      prevButtons;
+    /* 0x08 */ u16      triggered;
+    /* 0x0A */ u8       cooldown;
+    /* 0x0B */ u8       autoRepeat;
     /* 0x0C */ byte     unknown_C[0x4];
-    /* 0x10 */ PadEvent field_10[2][8];
+    /* 0x10 */ PadEvent events[2][8];
     /* 0x50 */ s16      field_50;
     /* 0x52 */ s16      field_52;
     /* 0x54 */ s16      field_54;

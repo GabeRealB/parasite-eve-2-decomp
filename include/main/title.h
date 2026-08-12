@@ -9,7 +9,7 @@
 // Types — title / demo / main-menu overlay (src/title/title.c)
 // =============================================================================
 
-/// Title-screen work block stored at Task::field_1C (Mem_Calloc 0x18).
+/// Title-screen work block stored at Task::idMap (Mem_Calloc 0x18).
 typedef struct _TitleWork {
     /* 0x00 */ s32 timer;          // frame / phase counter
     /* 0x04 */ s32 selection;      // menu cursor index
@@ -26,7 +26,7 @@ STATIC_ASSERT_SIZEOF(TitleWork, 0x18);
 
 /// Package header base (entry count word + phase table + demo strings).
 extern const u32 Title_Header;
-/// 5-way phase table at Title_Header + 4 (Title_Dispatch indexes by Task::field_30).
+/// 5-way phase table at Title_Header + 4 (Title_Dispatch indexes by Task::state).
 extern const TaskFuncTable5 Title_PhaseTable;
 /// "##########DEMO START\n"
 extern const char Title_DemoStartMsg[];

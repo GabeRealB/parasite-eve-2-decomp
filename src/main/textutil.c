@@ -110,25 +110,25 @@ s32 Text_DrawMultiLine(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s
     do {
         ret = Text_ParseLine(&cur, sp10);
         if (obj != NULL) {
-            if (obj->field_8 != 5) {
-                sp50[0].field_0 = obj->field_20 + x;
-                sp50[0].field_2 = (obj->field_22 + y) - 3;
-                temp            = (s16)obj->field_14;
-                sp50[0].field_8 = arg4;
-                sp50[0].field_4 = temp + 1;
-                p->field_C      = 4;
-                sp50[0].field_D = a6;
-                sp50[0].field_E = a5;
+            if (obj->mode != 5) {
+                sp50[0].x          = obj->baseX + x;
+                sp50[0].y          = (obj->baseY + y) - 3;
+                temp               = (s16)obj->drawOrder;
+                sp50[0].field_8    = arg4;
+                sp50[0].otIndex    = temp + 1;
+                p->glyphTable      = 4;
+                sp50[0].centerMode = a6;
+                sp50[0].field_E    = a5;
                 func_8002E53C(p, buf);
             }
         } else {
-            sp50[1].field_0 = x;
-            sp50[1].field_2 = y;
-            p[1].field_4    = four;
-            sp50[1].field_8 = arg4;
-            p[1].field_C    = four;
-            sp50[1].field_D = a6;
-            sp50[1].field_E = a5;
+            sp50[1].x          = x;
+            sp50[1].y          = y;
+            p[1].otIndex       = four;
+            sp50[1].field_8    = arg4;
+            p[1].glyphTable    = four;
+            sp50[1].centerMode = a6;
+            sp50[1].field_E    = a5;
             func_8002E53C(&sp50[1], buf);
         }
         x  = arg1;
@@ -142,15 +142,15 @@ s32 Text_MeasureWidth(u8* arg0)
 {
     TextDrawReq sp10;
 
-    sp10.field_C = 4;
-    sp10.field_0 = 0;
-    sp10.field_2 = 0;
-    sp10.field_4 = 0;
-    sp10.field_8 = 0;
-    sp10.field_D = 2;
-    sp10.field_E = 0;
+    sp10.glyphTable = 4;
+    sp10.x          = 0;
+    sp10.y          = 0;
+    sp10.otIndex    = 0;
+    sp10.field_8    = 0;
+    sp10.centerMode = 2;
+    sp10.field_E    = 0;
     Text_MeasureAndCenter(&sp10, arg0);
-    return -sp10.field_0;
+    return -sp10.x;
 }
 
 s32 Text_MeasureMultiLine(u8* arg0)
@@ -175,22 +175,22 @@ s32 Text_MeasureMultiLine(u8* arg0)
     do {
         ret = Text_ParseLine(&cur, sp10);
 
-        c            = 4;
-        sp50.field_0 = 0;
-        sp50.field_2 = 0;
-        sp50.field_4 = 0;
-        sp50.field_8 = 0;
-        tmp          = c;
-        p->field_C   = tmp;
-        c            = 2;
-        p->field_D   = c;
-        sp50.field_E = 0;
+        c             = 4;
+        sp50.x        = 0;
+        sp50.y        = 0;
+        sp50.otIndex  = 0;
+        sp50.field_8  = 0;
+        tmp           = c;
+        p->glyphTable = tmp;
+        c             = 2;
+        p->centerMode = c;
+        sp50.field_E  = 0;
         Text_MeasureAndCenter(p, buf);
 
-        if (maxWidth < -sp50.field_0) {
+        if (maxWidth < -sp50.x) {
             do {
             } while (0);
-            maxWidth = -sp50.field_0;
+            maxWidth = -sp50.x;
         }
         height += 0xF;
         cur     = buf;
@@ -206,30 +206,30 @@ s32 Text_DrawPrompt(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 
     s32         temp;
 
     if (arg0 != NULL) {
-        if (arg0->field_8 == 5) {
+        if (arg0->mode == 5) {
             return 0;
         }
     } else {
-        sp20.field_0 = arg1;
-        sp20.field_2 = arg2;
-        sp20.field_4 = 4;
-        sp20.field_8 = arg4;
-        sp20.field_C = 4;
-        sp20.field_D = arg6;
-        sp20.field_E = arg5;
+        sp20.x          = arg1;
+        sp20.y          = arg2;
+        sp20.otIndex    = 4;
+        sp20.field_8    = arg4;
+        sp20.glyphTable = 4;
+        sp20.centerMode = arg6;
+        sp20.field_E    = arg5;
         func_8002E53C(&sp20, arg3);
         return arg1;
     }
-    sp10.field_0 = arg0->field_20 + arg1;
-    sp10.field_2 = (arg0->field_22 + arg2) - 3;
-    temp         = (s16)arg0->field_14;
-    sp10.field_8 = arg4;
-    sp10.field_C = 4;
-    sp10.field_D = arg6;
-    sp10.field_E = arg5;
-    sp10.field_4 = temp + 1;
+    sp10.x          = arg0->baseX + arg1;
+    sp10.y          = (arg0->baseY + arg2) - 3;
+    temp            = (s16)arg0->drawOrder;
+    sp10.field_8    = arg4;
+    sp10.glyphTable = 4;
+    sp10.centerMode = arg6;
+    sp10.field_E    = arg5;
+    sp10.otIndex    = temp + 1;
     func_8002E53C(&sp10, arg3);
-    return sp10.field_0 - (s16)arg0->field_20;
+    return sp10.x - (s16)arg0->baseX;
 }
 
 void Text_DrawPromptCompat(void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5, void* arg6)
@@ -280,25 +280,25 @@ s32 Text_DrawMultiLineScroll(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 a
     do {
         ret = Text_ParseLine(&cur, sp10);
         if (obj != NULL) {
-            if (obj->field_8 != 5) {
-                sp50[0].field_0 = obj->field_20 + x;
-                sp50[0].field_2 = (obj->field_22 + y) - 3;
-                temp            = (s16)obj->field_14;
-                sp50[0].field_8 = arg4;
-                sp50[0].field_4 = temp + 1;
-                p->field_C      = 4;
-                sp50[0].field_D = (u8)arg6;
-                sp50[0].field_E = (u8)arg5;
+            if (obj->mode != 5) {
+                sp50[0].x          = obj->baseX + x;
+                sp50[0].y          = (obj->baseY + y) - 3;
+                temp               = (s16)obj->drawOrder;
+                sp50[0].field_8    = arg4;
+                sp50[0].otIndex    = temp + 1;
+                p->glyphTable      = 4;
+                sp50[0].centerMode = (u8)arg6;
+                sp50[0].field_E    = (u8)arg5;
                 func_8002E53C(p, buf);
             }
         } else {
-            sp50[1].field_0 = x;
-            sp50[1].field_2 = y;
-            p[1].field_4    = four;
-            sp50[1].field_8 = arg4;
-            p[1].field_C    = four;
-            sp50[1].field_D = (u8)arg6;
-            sp50[1].field_E = (u8)arg5;
+            sp50[1].x          = x;
+            sp50[1].y          = y;
+            p[1].otIndex       = four;
+            sp50[1].field_8    = arg4;
+            p[1].glyphTable    = four;
+            sp50[1].centerMode = (u8)arg6;
+            sp50[1].field_E    = (u8)arg5;
             func_8002E53C(&sp50[1], buf);
         }
         rem -= 1;
