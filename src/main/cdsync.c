@@ -3,7 +3,6 @@
 #include <psyq/libcd.h>
 #include <psyq/libetc.h>
 
-#include "main/game.h"
 #include "main/fs.h"
 
 s16 CdSync_IsShellOpenBitSet(void);

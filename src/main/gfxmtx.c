@@ -1,6 +1,8 @@
 #include "common.h"
 
-#include "main/game.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/session.h"
 
 #include <psyq/inline_c.h>
 

@@ -1,15 +1,19 @@
 #include "common.h"
-#include "main/boot.h"
-#include "main/display.h"
-#include "main/fs.h"
-#include "main/mem.h"
-#include "main/task.h"
 
 #include <psyq/libcd.h>
 #include <psyq/libetc.h>
 #include <psyq/libpress.h>
 
-#include "main/unknown_syms.h"
+#include "main/boot.h"
+#include "main/cdaudio.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gameflow.h"
+#include "main/gfx.h"
+#include "main/mem.h"
+#include "main/task.h"
+#include "main/title.h"
+#include "main/wipsys.h"
 
 // Build stamp (must stay in .rodata ahead of Boot_LoadInitialFile jtbl).
 const char Boot_BuildStamp[] = "2000/05/01 19:24 ver2.49";

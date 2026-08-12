@@ -1,10 +1,9 @@
 #include "common.h"
 
 #include <psyq/libapi.h>
-#include <psyq/libcd.h>
-#include <psyq/libspu.h>
 
 #include "main/unknown_syms.h"
+#include "main/cdstream.h"
 
 INCLUDE_ASM("main/nonmatchings/cdstream", func_80059EE0);
 

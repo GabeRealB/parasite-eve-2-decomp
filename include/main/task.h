@@ -115,12 +115,7 @@ void      Task_ResetDefaultList(void);
 void      Task_Unlink(Task* task);
 void      Task_Free(Task* task);
 void      Task_CountdownCallback(Task* task);
-void      Mem_CopyUnaligned(void* src, void* dest, u32 count);
-
-/// Session pointer-slot table on Game_Session (field_C[16]).
-void  Game_SetPtrSlot(void* ptr, s32 index);
-void* Game_GetPtrSlot(s32 index);
-void  Game_ClearPtrSlots(void);
+s32       TaskIdMap_RemapIndex(s32 arg0, s32 arg1, s32 arg2);
 
 // =============================================================================
 // Globals
@@ -129,8 +124,18 @@ void  Game_ClearPtrSlots(void);
 extern TaskDesc* Task_DescBanks[];
 extern TaskNode* Task_ActiveList;
 extern TaskNode  Task_DefaultList;
+extern TaskNode  D_8007A110;
 
-// --- APIs (from unknown_syms) ---
-s32 TaskIdMap_RemapIndex(s32 arg0, s32 arg1, s32 arg2);
+extern TaskFuncTable5 D_800134BC;
+extern TaskFuncTable3 D_800134D0;
+extern TaskFuncTable6 D_80013E98;
+extern TaskFuncTable3 D_80013EDC;
+extern TaskFuncTable4 D_80013F1C;
+
+extern TaskDesc D_8006268C;
+extern TaskDesc D_8006269C;
+
+extern TaskIdPair* D_8006273C[];
+extern TaskIdPair* D_80062750[];
 
 #endif // TASK_H

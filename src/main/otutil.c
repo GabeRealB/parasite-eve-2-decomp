@@ -1,10 +1,11 @@
 #include "common.h"
 
-#include "main/game.h"
-#include "main/gamemain.h"
-#include "main/unknown_syms.h"
-
 #include <psyq/libetc.h>
+
+#include "main/unknown_syms.h"
+#include "main/boot.h"
+#include "main/gamemain.h"
+#include "main/stage.h"
 
 s32 Display_FrameFlipDraw(s32 arg0, s32 arg1, s32 arg2)
 {

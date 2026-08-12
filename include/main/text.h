@@ -107,5 +107,17 @@ s32  Text_DrawPrompt(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32
 s32  Text_DrawMultiLineScroll(UiObject* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6, s32 arg7, s32 arg8);
 void Text_LoadClutImages(void);
 void Prim_DrawLoadingSprt(void);
+void func_8002DEC4(void);
+void func_8002E53C(TextDrawReq* arg0, u8* arg1);
+
+// Glyph tables (selected by TextDrawReq.glyphTable); FontGlyph (0xC each).
+extern u8 Font_Glyphs0[];
+extern u8 Font_Glyphs1[];
+extern u8 Font_Glyphs2[];
+/// Image data uploaded to VRAM by Text_LoadClutImages.
+extern u_long D_80060910[];
+extern u_long D_800609B0[];
+/// Immediate-mode SPRT scratch used by Text_DrawGlyphImmediate.
+extern SPRT D_80071710;
 
 #endif // TEXT_H

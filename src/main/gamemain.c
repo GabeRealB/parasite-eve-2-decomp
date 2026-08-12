@@ -1,21 +1,20 @@
 #include "common.h"
-#include "main/gamemain.h"
-#include "main/display.h"
 
+#include <psyq/libapi.h>
 #include <psyq/libetc.h>
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
 #include <psyq/inline_c.h>
 
-#include "main/boot.h"
-#include "main/fs.h"
-#include "main/game.h"
-#include "main/gpuext.h"
-#include "main/mem.h"
-#include "main/pad.h"
-#include "main/sound.h"
-#include "main/task.h"
 #include "main/unknown_syms.h"
+#include "main/boot.h"
+#include "main/cdaudio.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/gfx.h"
+#include "main/gpuext.h"
+#include "main/pad.h"
+#include "main/text.h"
+#include "main/tmd.h"
+#include "main/wipsys.h"
 
 void GameMain_Init(void)
 {

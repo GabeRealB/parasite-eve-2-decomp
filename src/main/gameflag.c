@@ -1,6 +1,8 @@
 #include "common.h"
 
-#include "main/unknown_syms.h"
+#include "main/gameflag.h"
+#include "main/mc.h"
+#include "main/pad.h"
 
 void GameFlag_SetNibble(s32 arg0, s32 arg1)
 {

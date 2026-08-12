@@ -1,12 +1,23 @@
 #include "common.h"
 
-#include "main/game.h"
-#include "main/title.h"
-
-#include <psyq/libgpu.h>
 #include <psyq/memory.h>
 #include <psyq/rand.h>
 #include <psyq/stdio.h>
+
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/mc.h"
+#include "main/mem.h"
+#include "main/pad.h"
+#include "main/session.h"
+#include "main/sound.h"
+#include "main/stream.h"
+#include "main/task.h"
+#include "main/text.h"
+#include "main/title.h"
+#include "main/ui.h"
+#include "main/wipsys.h"
 
 // Absolute main-BSS aliases used for title-overlay match (same addrs as
 // Display_State / Wip_SysFlags fields or neighboring flags).

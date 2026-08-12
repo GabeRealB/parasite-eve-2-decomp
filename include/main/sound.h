@@ -5,6 +5,12 @@
 
 #include <psyq/libspu.h>
 
+#include "main/mem.h"
+
+#define SNDHEAP_SIZE        0x3D00
+#define SNDHEAP_START_MAGIC 0xB25A
+#define SNDHEAP_MAGIC       0xA52B
+
 // Types — SPU / MIDI / SndEvt / SndScript / bank / AsyncCb
 
 typedef struct _SpuReverbConfig {
@@ -744,5 +750,39 @@ void           Snd_RegisterTickCallbacks(void);
 s32            SndVoice_DriveSlots(void);
 s32            Snd_ReverbWarmupCb(s32* arg0);
 s32            Snd_InitBanks(u32);
+void           Spu_ResetCommonAttr(void);
+
+typedef u8*        (*MidiHandler)(s32, u8*, MidiSong*, MidiTrack*);
+extern MidiHandler D_800689C4[];
+extern void        (*SndEvt_Handlers[])(SndEvt*);
+
+extern HeapBlockHeader* SndHeap_Start;
+extern u8               SndHeap_Buffer[SNDHEAP_SIZE];
+extern AudioTickNode    AudioTick_List;
+extern u32              AudioTick_Enabled;
+extern long             D648E0_SpuTimerED;
+extern AsyncCbQueue     AsyncCb_Queue;
+extern AsyncCbEntry     AsyncCb_Entries[];
+extern SpuVoiceState    Spu_VoiceState;
+extern SpuLVoiceTable   Spu_LVoiceTable;
+extern SpuVoiceRange    Spu_VoiceRanges[];
+extern u32              Spu_KeyOnMask;
+extern u32              Spu_KeyOnMaskExtra;
+extern u32              Spu_KeyOffMask;
+extern SpuReverbConfig  Spu_ReverbCfg;
+extern s32              SndEvt_Lock;
+extern SndEvt*          SndEvt_Head;
+extern SndEvt*          SndEvt_Tail;
+extern SndEvt           SndEvt_Pool[0x40];
+extern MidiSong         Midi_Song;
+extern SndBank          Snd_Banks[];
+extern SndBankSlot      SndBank_Slots[16];
+extern SndScript        SndScript_Slots[8];
+extern SndLoadState     SndLoad_State;
+extern SndBankInitEntry Snd_BankInitTable[];
+extern LinInterp        LinInterp_CdStream;
+extern u8               D_800820F3;
+extern volatile u8      D_80082120;
+extern u8               D58028_SpuTimerEnabled;
 
 #endif // SOUND_H

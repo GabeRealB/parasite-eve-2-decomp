@@ -1,8 +1,8 @@
 #include "common.h"
 
-#include "main/fs.h"
-#include "main/game.h"
 #include "main/unknown_syms.h"
+#include "main/fs.h"
+#include "main/text.h"
 
 void CdCmd_EnqueueLoadFile(s32 arg0, s32 arg1, s32 arg2)
 {

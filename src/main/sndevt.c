@@ -1,6 +1,8 @@
 #include "common.h"
 
 #include "main/unknown_syms.h"
+#include "main/cdaudio.h"
+#include "main/fs.h"
 
 void SndEvt_Process(void)
 {

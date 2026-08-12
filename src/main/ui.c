@@ -1,7 +1,10 @@
 #include "common.h"
 
-#include "main/mem.h"
 #include "main/unknown_syms.h"
+#include "main/fs.h"
+#include "main/pad.h"
+#include "main/text.h"
+#include "main/ui.h"
 
 void Ui_DispatchObjectState(Task* arg0);
 void Ui_InsetRect2(void* arg0, RECT* arg1, RECT* arg2);

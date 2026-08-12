@@ -1,8 +1,9 @@
 #include "common.h"
 
-#include <psyq/libmcrd.h>
-
 #include "main/unknown_syms.h"
+#include "main/text.h"
+#include "main/title.h"
+#include "main/ui.h"
 
 void func_8002DEC4(void)
 {

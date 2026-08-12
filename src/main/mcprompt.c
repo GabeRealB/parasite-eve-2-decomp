@@ -1,9 +1,8 @@
 #include "common.h"
 
-#include "main/game.h"
-#include "main/mc.h"
-#include "main/task.h"
 #include "main/unknown_syms.h"
+#include "main/text.h"
+#include "main/ui.h"
 
 #include "psyq/kernel.h"
 #include "psyq/libmcrd.h"

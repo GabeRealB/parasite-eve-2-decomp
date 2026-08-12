@@ -1,10 +1,9 @@
 #include "common.h"
 
-#include <psyq/libcd.h>
-#include <psyq/libspu.h>
-
-#include "main/display.h"
 #include "main/unknown_syms.h"
+#include "main/cdaudio.h"
+#include "main/cdstream.h"
+#include "main/fs.h"
 
 s32 func_800567E4(void)
 {

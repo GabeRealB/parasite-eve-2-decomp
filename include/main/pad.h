@@ -74,8 +74,8 @@ STATIC_ASSERT_SIZEOF(PadRawPort, 0x24);
 // =============================================================================
 
 void Pad_Init(void);
-/// Initialise TmdObject list heads (Tmd_List / Tmd_ListAlt); lives next to pad init.
-void Tmd_InitLists(void);
+/// Returns Pad_CheckButtons(0, 1, 0x800); non-void so callers can branch on v0.
+s32 Pad_CheckFlag800(void);
 
 // =============================================================================
 // Functions — src/main/padutil.c
@@ -109,7 +109,5 @@ STATIC_ASSERT_SIZEOF(PadRemapState, 0x1C);
 extern volatile PadState Pad_States[2];
 extern PadRawPort        Pad_RawPorts[2];
 extern PadRemapState*    Pad_RemapState;
-/// Cleared by Tmd_InitLists during system init.
-extern s32 D_80071210;
 
 #endif // PAD_H

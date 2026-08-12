@@ -2,9 +2,13 @@
 
 #include <psyq/rand.h>
 
-#include "main/game.h"
+#include "main/display.h"
+#include "main/fs.h"
+#include "main/mc.h"
 #include "main/mem.h"
-#include "main/unknown_syms.h"
+#include "main/sound.h"
+#include "main/text.h"
+#include "main/wipsys.h"
 
 s32 Text_ParseLine(u8** arg0, u8* arg1)
 {

@@ -1,9 +1,7 @@
 #include "common.h"
-#include "main/task.h"
 
-#include "main/game.h"
-#include "main/mem.h"
 #include "main/unknown_syms.h"
+#include "main/text.h"
 
 Task* Task_SpawnFromDesc(TaskDesc* desc, s32 arg1, s32 arg2, TaskNode* list)
 {

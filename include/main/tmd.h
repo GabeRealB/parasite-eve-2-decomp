@@ -54,6 +54,8 @@ STATIC_ASSERT_SIZEOF(TmdListHead, 0x8);
 extern TmdListHead Tmd_List;
 /// Second list head initialized alongside Tmd_List by Tmd_InitLists.
 extern TmdListHead Tmd_ListAlt;
+/// Cleared by Tmd_InitLists during system init.
+extern s32 D_80071210;
 
 /// 0x88-byte scratch from G_SCRATCH_HEAD for Tmd_ProcessStream (model path).
 typedef struct {
@@ -97,6 +99,7 @@ typedef u32* (*TmdModelStreamHandler)(TmdScratchModelBlock* ws, s32 flags, u32* 
 typedef u32* (*TmdDrawStreamHandler)(TmdScratchDrawBlock* ws, s32 flags, u32* stream);
 
 // --- APIs ---
+void Tmd_InitLists(void);
 void Tmd_ProcessStream(TmdObject* arg0);
 void Tmd_SetupDraw(TmdObject* arg0);
 void Tmd_AllocMissingBuffers(void);

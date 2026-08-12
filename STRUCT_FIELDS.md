@@ -203,7 +203,7 @@ See named members in `fs.h` (`type`, `endFlag`, `size`, `loadAddr`, `id`, `offse
 
 ---
 
-## CD→SPU stream (`game.h` / `cdstream.h`)
+## CD→SPU stream (`cdstream.h`)
 
 ### `CdStreamState` (0x58)
 | Off | Member | Role |
@@ -434,7 +434,7 @@ loop stack `field_17`/`field_18`/`field_20`, `field_40` voice list head,
 | 0x38/3C | `field_38/3C` | Prev/next list links |
 
 ### `SndVoiceFx` / `SndOneE` / `SndOneV` / `SndScriptCmd` / `SndVoiceParams` / `SndVoicePick`
-See detailed comments on each struct in `game.h`.
+See detailed comments on each struct in `sound.h`.
 
 ---
 
@@ -457,7 +457,7 @@ Overlay of payload starting at `SndEvt.field_4` (includes `SndVoiceParams*` at +
 ## MIDI
 
 ### `MidiSong` / `MidiTrack` / `MidiNoteSlot` / `MidiOpcodeSlot`
-See comments in `game.h` (track cursor, delta time, voice slots, opcode table at 0x484).
+See comments in `sound.h` (track cursor, delta time, voice slots, opcode table at 0x484).
 
 ---
 
@@ -483,7 +483,7 @@ See comments in `game.h` (track cursor, delta time, voice slots, opcode table at
 See header comments (layout, list cursor, line count, …).
 
 ### `TextDrawReq` / `PrimDrawParams` / `TextStream` / `FontGlyph` / `GlyphUvwh`
-See comments in `game.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
+See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 
 ---
 

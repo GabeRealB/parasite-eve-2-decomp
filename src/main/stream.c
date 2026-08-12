@@ -1,15 +1,12 @@
 #include "common.h"
 
-#include <psyq/libcd.h>
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
 #include <psyq/libpress.h>
 
-#include "main/boot.h"
-#include "main/fs.h"
-#include "main/game.h"
-#include "main/mem.h"
 #include "main/unknown_syms.h"
+#include "main/fs.h"
+#include "main/stream.h"
+#include "main/tmd.h"
+#include "main/wipsys.h"
 
 void Mdec_SetupBuffers(u8* arg0)
 {

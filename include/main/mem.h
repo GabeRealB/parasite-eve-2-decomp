@@ -3,6 +3,13 @@
 
 #include "common.h"
 
+/// Size of the game heap.
+#define G_HEAP_SIZE 0xFF80
+
+/// Scratchpad temporary arena (grows downward from head).
+#define G_SCRATCH_HEAD         PSX_SCRATCH_ADDR(0x3FC)
+#define GameResetScratchHead() *(void**)G_SCRATCH_HEAD = G_SCRATCH_HEAD
+
 // Types
 
 typedef struct _HeapBlockHeader {
@@ -83,8 +90,13 @@ void Mem_SetActiveHeap(bool auxHeap);
 void Mem_SetActiveAuxHeap(bool aux0);
 
 /// Alloc aux buffer and optionally MoveImage two VRAM strips (src/main/stream.c).
-/// (Mem_ConfigureAuxHeap lives in main/boot.h — implemented in boot.c.)
 void Mem_AllocAuxWithImages(s16 flags);
+
+/// Configure the aux heap from a Gfx image-slot table (implemented in boot.c).
+void Mem_ConfigureAuxHeap(s32 arg0, s32 arg1);
+
+/// Byte copy that does not require aligned src/dest (implemented in task.c).
+void Mem_CopyUnaligned(void* src, void* dest, u32 count);
 
 // =============================================================================
 // Globals — primary / aux heaps

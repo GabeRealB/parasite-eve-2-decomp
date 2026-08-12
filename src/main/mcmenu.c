@@ -1,11 +1,11 @@
 #include "common.h"
-#include "main/mc.h"
 
 #include <psyq/libmcrd.h>
 
-#include "main/game.h"
-#include "main/mem.h"
 #include "main/unknown_syms.h"
+#include "main/pad.h"
+#include "main/text.h"
+#include "main/ui.h"
 
 void func_80036A1C(void)
 {

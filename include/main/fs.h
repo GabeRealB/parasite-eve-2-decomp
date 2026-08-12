@@ -346,7 +346,7 @@ typedef struct _FsImageChunk {
 } FsImageChunk;
 STATIC_ASSERT_SIZEOF(FsImageChunk, 0x10);
 
-// Forward decl for boot task callback (full type in game.h).
+// Forward decl for boot task callback (full type in task.h).
 struct _Task;
 
 // =============================================================================
@@ -603,7 +603,42 @@ extern s16          D5B498_8006EBF0;
 #define FS_ERROR_SOFT 0x0
 #define FS_ERROR_HARD 0x2
 
-// --- APIs (from unknown_syms) ---
-void Spu_ResetCommonAttr(void);
+// Boot-image TIM / stream tables selected by Fs_SelectLoadHandlers*
+extern u8 D_80062934[];
+extern u8 D_80062954[];
+extern u8 D_800629B0[];
+extern u8 D_800629D0[];
+extern u8 D_80062A24[];
+extern u8 D_80062A44[];
+extern u8 D_80062AB4[];
+extern u8 D_80062AD4[];
+extern u8 D_80062B30[];
+extern u8 D_80062B50[];
+extern u8 D_80062BA4[];
+extern u8 D_80062BC4[];
+extern u8 D_80062C20[];
+extern u8 D_80062C40[];
+extern u8 D_80062C94[];
+extern u8 D_80062CB4[];
+extern u8 D_80062D08[];
+extern u8 D_80062DB0[];
+extern u8 D_80062E04[];
+extern u8 D_80062E50[];
+extern u8 D_80062EA0[];
+extern u8 D_80062EEC[];
+extern u8 D_80062F34[];
+extern u8 D_80062F80[];
+extern u8 D_80062FD0[];
+extern u8 D_80063018[];
+extern u8 D_80063068[];
+extern u8 D_800630B0[];
+
+/// VLC / MDEC strip bases used by CdCmd_SetupMdecBuffers.
+extern u16*          D_8005C36C;
+extern u16*          D_8005C370;
+extern u16*          D_8005C374;
+extern u8*           D_8007A364; // resolved decode base (Mdec_ResolveStreamBuffer)
+extern CdCmd58Entry* D_8007A368; // matched CdCmd_Queue.field_58 entry
+extern u16           D_8007A35C;
 
 #endif

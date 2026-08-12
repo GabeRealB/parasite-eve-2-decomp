@@ -1,9 +1,10 @@
 #include "common.h"
 
-#include <psyq/libspu.h>
 #include <psyq/libapi.h>
 
 #include "main/unknown_syms.h"
+#include "main/cdaudio.h"
+#include "main/fs.h"
 
 void Spu_InitSystem(s32 arg0)
 {

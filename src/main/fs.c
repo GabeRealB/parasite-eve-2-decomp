@@ -3,17 +3,16 @@
 #include <psyq/libapi.h>
 #include <psyq/libcd.h>
 #include <psyq/libetc.h>
-#include <psyq/libgte.h>
-#include <psyq/libgpu.h>
 #include <psyq/strings.h>
 
-#include "main/unknown_syms.h"
-#include "main/mem.h"
-#include "main/fs.h"
 #include "main/display.h"
-#include "main/game.h"
-#include "main/wipsys.h"
+#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/mem.h"
+#include "main/session.h"
 #include "main/sound.h"
+#include "main/stream.h"
+#include "main/wipsys.h"
 
 void Fs_ResetBootLoadState(void)
 {

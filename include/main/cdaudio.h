@@ -103,4 +103,22 @@ void CdAudio_StartVolumeRamp(s32 arg0);
 void CdAudio_JumpWithPitch(s32 arg0, s32 arg1);
 void CdAudio_SetLocFlag(void);
 
+extern volatile CdAudioTbl   CdAudio_Tbl;
+extern volatile CdAudioCtl   CdAudio_Ctl;
+extern CdAudioTblEntry*      CdAudio_TblEntries;
+extern volatile CdAudioPhase CdAudio_Phase;
+extern volatile CdAudioLoc   CdAudio_Loc;
+extern s16                   D_80068A7C[];
+extern u8                    D_80068A80[];
+extern u8                    D_80068AF0[];
+extern s32                   D_80068B18[];
+extern s32                   D_80068B1C;
+extern s16                   D_80068B28[];
+extern s32                   D_80068B2C[];
+extern s32                   (*D_80068B34[])(void);
+extern u16                   D_80068BB8[];
+extern u16                   D_80068C78[];
+extern u16                   D_80068D78[];
+extern u16                   D_80068E78[];
+
 #endif // CDAUDIO_H

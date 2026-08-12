@@ -86,7 +86,7 @@ RENAMES: list[tuple[str, str]] = [
 # CdCmdQueue / CdCmdEntry member renames (C sources + headers only for safety)
 MEMBER_RENAMES_C: list[tuple[str, str]] = [
     # Applied only in contexts after type renames, via whole-file field_ patterns
-    # on known structs — done separately below for game.h + matched C uses.
+    # on known structs — done separately below for module headers + matched C uses.
 ]
 
 TEXT_EXTS = {".c", ".h", ".s", ".txt", ".md", ".inc", ".yaml", ".yml", ".json"}

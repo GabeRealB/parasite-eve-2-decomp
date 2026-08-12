@@ -4,8 +4,6 @@
 #include <psyq/stdio.h>
 
 #include "main/mem.h"
-#include "main/game.h"
-#include "main/unknown_syms.h"
 
 void Mem_Set(void* dest, u32 ch, u32 count)
 {

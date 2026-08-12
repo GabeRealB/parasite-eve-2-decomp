@@ -2,8 +2,10 @@
 
 #include "main/display.h"
 #include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/gameflow.h"
 #include "main/mem.h"
-#include "main/unknown_syms.h"
+#include "main/text.h"
 
 s32 Fade_StepIn(s32 arg0)
 {

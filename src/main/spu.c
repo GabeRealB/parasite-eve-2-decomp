@@ -1,8 +1,7 @@
 #include "common.h"
 
-#include <psyq/libspu.h>
-
 #include "main/unknown_syms.h"
+#include "main/cdaudio.h"
 
 void AsyncCb_Poll(void)
 {

@@ -1647,7 +1647,7 @@ pointer in `$v0` so the first `lbu` can land in `$v1`.
 
 `libgs.h` cannot be safely pulled into project-wide headers: it depends on
 extra libgs types (and redeclares several GPU primitives) that break GCC 2.8.1
-parse of units that only include `game.h` / `unknown_syms.h`.
+parse of units that only include a few `include/main/` headers.
 
 For double-buffered ordering-table descriptors (size `0x14`, two entries =
 `0x28`), define a local struct with the same layout as `GsOT`:
@@ -1666,7 +1666,7 @@ Init pattern (see `Gpu_InitOtSmall`): hold `GameOt* ot = Gpu_OrderingTables`, wr
 `length`/`org` for both slots, with the second `org` as `tags + (1 << length)`.
 OT tag storage of `0x200` bytes is two buffers of `0x100` (`u_long[0x80]`).
 
-When calling PsyQ `GsClearOt`, declare it with `GameOt*` (in `game.h`) rather
+When calling PsyQ `GsClearOt`, declare it with `GameOt*` (now `GpuOtBuf*` in `display.h`) rather
 than including `libgs.h` or casting through `GsOT*`:
 
 ```c
@@ -6520,9 +6520,9 @@ Assigning `img = arg0` only after the if/else often puts `move a1` in the
 
 ## Do not include `libgs.h` for `GsF_LIGHT`
 
-`include/main/game.h` redeclares `GsClearOt` with `GameOt*` so callers avoid
-libgs. Including `<psyq/libgs.h>` redeclares `GsClearOt` with `GsOT*` and fails
-with `conflicting types for GsClearOt`.
+`include/main/display.h` owns `GpuOtBuf` (the 0x14 OT descriptor). Including
+`<psyq/libgs.h>` in a TU that already has a conflicting `GsClearOt` prototype
+fails with `conflicting types for GsClearOt`.
 
 For flat-light structs (vx/vy/vz + r/g/b at 0xC/0xD/0xE), define a local
 layout-matching type (e.g. `FlatLight`) instead of including libgs.
@@ -8487,7 +8487,7 @@ t4 = mat->m[0][0];        /* lhu t4, 0(s0) — not -0x20(head) */
 ```
 
 **3. Unaligned 8-byte arg copy at `head - 0x1A`.** That offset is only
-halfword-aligned, so assign through `GBytes8` (already in `game.h`) for
+halfword-aligned, so assign through `GBytes8` (already in `session.h`) for
 `lwl`/`lwr`/`swl`/`swr`. Halfword fields of the other SVECTOR use a `u16 tmp`
 so loads stay `lhu`.
 
@@ -11545,7 +11545,7 @@ the next attempt:
    cross-jumps them into one block. A slight asymmetry (e.g. `u8* buf = …` on
    only one arm) can force two `jal SpuWrite`s; then re-converge the codegen.
 
-3. **CdStreamState field map** (in `game.h`): `spuAddr`, `countdown`,
+3. **CdStreamState field map** (in `cdstream.h`): `spuAddr`, `countdown`,
    `mtsPeriod`/`mtsParam`, `remaining`, `voiceL`/`voiceR`/`mode`, `sector` as
    `MtsSector*`.
 

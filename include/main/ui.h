@@ -140,6 +140,21 @@ typedef struct _WipUiHolder {
     /* 0x28 */ WipUiChild* field_28;
 } WipUiHolder;
 
+extern WipUiHolder* Wip_UiHolder;
+extern UiList       D_8006116C;
+extern UiList       D_80061194;
+extern UiList       D_8006125C;
+extern UiList       D_80061284;
+extern UiList       D_800612AC;
+extern UiList       D_80067654;
+extern UiObjectDesc D_800608F4[];
+extern UiObjectDesc D_800611C8[];
+extern UiObjectDesc D_80061200[];
+extern UiObjectDesc D_8006121C[];
+extern UiObjectDesc D_800612D0[];
+extern UiObjectDesc D_80067678;
+extern char         D_80013B64[]; // "Select"
+
 /// Object used by 34E98.c handlers (e.g. Ui_AnimOpenStep / D_80013F2C table).
 /// field_4 low nibble selects layout padding (Ui_InsetLayout); high nibble of the
 /// low byte selects a fill mode (Ui_ScaleRect). field_8 is a small integer
@@ -172,6 +187,8 @@ typedef void (*UiPanelFunc)(UiPanel* arg0, void* arg1);
 typedef struct {
     UiPanelFunc funcs[6];
 } UiPanelFuncTable6;
+
+extern UiPanelFuncTable6 D_80013F2C;
 
 /// Dialog / prompt descriptor used by 21FDC.c handlers (e.g. McMenu_ConfirmDialogAlt,
 /// McMenu_ConfirmDialog, McMenu_ConfirmWithRender). field_8 is a signed menu/option index passed

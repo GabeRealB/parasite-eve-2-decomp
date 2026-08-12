@@ -1,7 +1,7 @@
 #include "common.h"
 
-#include "main/gamemain.h"
-#include "main/unknown_syms.h"
+#include "main/gfx.h"
+#include "main/mem.h"
 
 typedef struct {
     u8      pad[0x10];

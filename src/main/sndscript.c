@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "main/unknown_syms.h"
+#include "main/cdaudio.h"
 
 void Snd_InitFromStage(s32 arg0, s32 arg1)
 {

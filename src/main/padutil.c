@@ -1,9 +1,7 @@
 #include "common.h"
-#include "main/pad.h"
 
-#include "main/game.h"
-#include "main/mem.h"
 #include "main/unknown_syms.h"
+#include "main/pad.h"
 
 s32 Pad_CheckButtons(s32 arg0, s32 arg1, s32 arg2)
 {

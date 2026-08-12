@@ -1,8 +1,9 @@
 #include "common.h"
 
-#include "main/game.h"
-#include "main/mem.h"
 #include "main/unknown_syms.h"
+#include "main/fs.h"
+#include "main/gameflag.h"
+#include "main/text.h"
 
 void Task_AllocIdMap(Task* arg0)
 {

@@ -29,7 +29,7 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 | `CdSync_` | CD seek/sync/disk-recovery helpers | `src/main/cdsync.c` | `include/main/fs.h` (CdCmd_*) |
 | `CdVol_` | CD-DA volume table apply | `src/main/cdvol.c` | `include/main/fs.h` |
 | `Mc_` / mcprompt | Memcard prompts + early Mc states | `src/main/mcprompt.c` | `include/main/mc.h` |
-| `Gfx_` / gfxlight / gfxmtx | Flat lights + rotation matrices | `src/main/gfxlight.c`, `gfxmtx.c` | — |
+| `Gfx_` / gfxlight / gfxmtx | Flat lights + rotation matrices + image slots | `src/main/gfxlight.c`, `gfxmtx.c`, `boot.c` | `include/main/gfx.h` |
 | `Display_` / displaymode | Display mode / auto-clear setup | `src/main/displaymode.c` | `include/main/display.h` |
 | `Task_` / taskutil | Small task helper near stage tables | `src/main/taskutil.c` | `include/main/task.h` |
 | loadui | Loading SPRT + CD load enqueue | `src/main/loadui.c` | — |
@@ -37,7 +37,7 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 | `Midi_` | Song block / MIDI sequencer | `src/main/sndevt.c` | `include/main/sound.h` |
 | `SndVoice_` / `SndBank` / `SndBankSlot_` | SFX voice slots + bank table | `src/main/sndscript.c` | `include/main/sound.h` |
 | `CdAudio_` | CD-driven audio player | `src/main/cdaudio.c` | `include/main/cdaudio.h` |
-| `Gpu_` | OT / light / graph reset helpers | `src/main/otutil.c`, `tmd.c` | `include/main/display.h` (OT types) |
+| `Gpu_` | OT / graph reset helpers | `src/main/otutil.c`, `tmd.c`, `gamemain.c` | `include/main/display.h` |
 | `Boot_` | Cold-boot / title path | `src/main/boot.c` | `include/main/boot.h` |
 | `Title_` | Title / demo / main-menu overlay | `src/title/title.c` | `include/main/title.h` |
 | `Mem_` / `GHeap` | Main / aux heaps | `src/main/mem.c` | `include/main/mem.h` |
@@ -50,7 +50,7 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 | `Spu_` / `AsyncCb_` | SPU voices + async callback ring | `src/main/spu.c` | `include/main/sound.h` |
 | `SndLoad_` / `SndScript_` / `SndEvt_` | Bank load / scripts / event queue | `sndscript.c`, `sndevt.c` | `include/main/sound.h` |
 | `LinInterp_` / `AudioTick_` | Volume ramp + frame tick list | `src/main/sndbank.c` | `include/main/sound.h` |
-| `Game_` | Session pointer-slot table | globals / `task.c` | `include/main/game.h` / `task.h` |
+| `Game_` | Session pointer-slot table | globals / `task.c` | `include/main/session.h` |
 | `Display_` | Dual DISPENV/DRAWENV + system flags | used from `gamemain.c` etc. | `include/main/display.h` |
 | `GameMain` | Entry after `main` | `src/main/gamemain.c` | `include/main/gamemain.h` |
 | `GpuExt_` | GPU helpers | `src/main/gpuext.c` | `include/main/gpuext.h` |
@@ -64,14 +64,15 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 
 `Wip*` types and `Wip_*` globals are provisional: keep them only until a better role name is proven. Prefer replacing a `Wip` name over inventing a second provisional alias.
 
-`include/main/game.h` is an include aggregator (macros + module headers) for **main executable** TUs (`src/main/`) that historically only pulled this file. It is not shared with overlays; stage/file overlays may use a different `src/` / `include/` layout when decompiled. Types for main live in module headers:
+Main-executable types live in module headers under `include/main/` (not a kitchen-sink header). Stage/file overlays may use a different `src/` / `include/` layout when decompiled:
 
 | Header | Types |
 |---|---|
 | `session.h` | `GameSession`, `GameActor*`, `GBytes*` |
 | `stage.h` | `StageCtx` |
 | `wipsys.h` | `WipSysFlags`, `WipSysConfig` |
-| `sound.h` / `ui.h` / `text.h` / … | subsystem types |
+| `gfx.h` | `GfxImageSlot` |
+| `sound.h` / `ui.h` / `text.h` / `display.h` / … | subsystem types |
 
 Prefer including the specific module header when you only need that subsystem.
 

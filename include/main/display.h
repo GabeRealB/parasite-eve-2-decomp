@@ -9,6 +9,9 @@
 
 #include "main/task.h"
 
+#define GPU_OT_ENTRIES  0x440
+#define GPU_OT_END_PRIM 0xFFFFFF
+
 // =============================================================================
 // Types — dual DISPENV/DRAWENV + system flags
 // =============================================================================
@@ -86,7 +89,23 @@ STATIC_ASSERT_SIZEOF(GpuOtBuf, 0x14);
 /// Dual-buffer display / system state (bss @ 0x80070F68).
 extern DisplayState Display_State;
 
+extern u16 Display_WidthTable[];
+extern u16 Display_HeightTable[];
+
+extern u_long       Gpu_OtTags[2 * GPU_OT_ENTRIES];
+extern GpuOtBuf     Gpu_OtBuffers[2];
+extern GsOT         Gpu_OrderingTables[2];
+extern u_long*      Gpu_CurrentOt;
+extern u8*          D_80070EE0; // primitive buffer cursor
+extern DR_TPAGE*    D_80071190; // primitive buffer cursor
+extern volatile u8  D_8006EC30; // snapshot of Display_State.field_100 / field_103
+extern volatile u8  D_80070E38;
+extern volatile s32 D_80070F64; // VSync countdown
+extern s8           D_8007272B;
+extern s8           D_8007272D;
+
 // --- APIs ---
+void  Gpu_ClearOTag(s16 tableIdx);
 void  Display_SetMode(s32 arg0);
 void  Display_SetAutoClear(s32 arg0, s32 arg1, s32 arg2);
 void  Display_ClampField126(s8 arg0);

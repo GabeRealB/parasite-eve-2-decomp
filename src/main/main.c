@@ -1,10 +1,9 @@
 #include "common.h"
-#include "main/gamemain.h"
 
 #include <psyq/libapi.h>
 
-#include "main/game.h"
-#include "main/fs.h"
+#include "main/gamemain.h"
+#include "main/mem.h"
 
 // For some reason, the program starts by modifying its stack pointer and
 // calling the actual entry function of the game. This address does not

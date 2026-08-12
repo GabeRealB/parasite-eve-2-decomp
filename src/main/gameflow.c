@@ -1,10 +1,14 @@
 #include "common.h"
-#include "main/task.h"
-#include "main/pad.h"
 
-#include "main/game.h"
-#include "main/mem.h"
 #include "main/unknown_syms.h"
+#include "main/fs.h"
+#include "main/gameflow.h"
+#include "main/gamemain.h"
+#include "main/pad.h"
+#include "main/title.h"
+#include "main/tmd.h"
+#include "main/ui.h"
+#include "main/wipsys.h"
 
 void GameFlow_StateByField34(Task* arg0)
 {

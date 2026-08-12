@@ -1,6 +1,5 @@
 #include "common.h"
 
-#include "main/game.h"
 #include "main/unknown_syms.h"
 
 void Task_KillMaybeSpawn(Task* arg0)

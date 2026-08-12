@@ -1,7 +1,6 @@
 #include "common.h"
 
-#include "main/game.h"
-#include "main/unknown_syms.h"
+#include "main/wipsys.h"
 
 void Mc_InitSaveSlotDefaults(void)
 {

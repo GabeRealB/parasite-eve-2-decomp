@@ -1,10 +1,7 @@
 #include "common.h"
 
 #include "main/display.h"
-#include "main/gamemain.h"
-#include "main/unknown_syms.h"
-
-#include <psyq/libgpu.h>
+#include "main/gfx.h"
 
 void Display_SetMode(s32 arg0)
 {

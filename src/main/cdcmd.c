@@ -1,13 +1,10 @@
 #include "common.h"
-#include "main/fs.h"
-#include "main/task.h"
 
-#include <psyq/libcd.h>
-
-#include "main/game.h"
-#include "main/mc.h"
-#include "main/mem.h"
 #include "main/unknown_syms.h"
+#include "main/cdaudio.h"
+#include "main/fs.h"
+#include "main/stream.h"
+
 #include "psyq/libpress.h"
 
 void* CdCmd_SetupMdecBuffers(void)

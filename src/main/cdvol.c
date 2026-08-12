@@ -1,10 +1,11 @@
 #include "common.h"
 
-#include <psyq/libcd.h>
 #include <psyq/libetc.h>
-#include <psyq/libspu.h>
 
 #include "main/unknown_syms.h"
+#include "main/cdaudio.h"
+#include "main/cdstream.h"
+#include "main/fs.h"
 
 void Fs_StreamReadyCb(u8 status, u8* result)
 {

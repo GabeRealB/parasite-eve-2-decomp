@@ -77,8 +77,8 @@ When you see pointer arithmetic patterns like `*(type*)((u8*)ptr + offset)`:
      header. Nothing auto-moves types for you.
      - **Main executable** (`src/main/`, `include/main/`): see `NAMING.md` for
        the module → header map (e.g. sound in `include/main/sound.h`, UI in
-       `ui.h`, FS/CdCmd in `fs.h`). `include/main/game.h` aggregates main module
-       headers for older main TUs only — it is **not** a global game header.
+       `ui.h`, FS/CdCmd in `fs.h`). Include the specific module header; do not
+       add a kitchen-sink aggregator.
      - **Overlays** (stage/file pe2pkg units, not yet decompiled under their own
        trees): use that overlay’s own `include/` / header layout when it exists;
        do not dump overlay-only types into `include/main/`.
@@ -190,7 +190,7 @@ Before declaring a decompilation complete, verify:
 - [ ] All struct field accesses use `->` or `.` operators
 - [ ] No `void*` parameters that should be typed structs
 - [ ] Struct sizes match the assembly access patterns
-- [ ] New types/APIs live in the correct module header (main: not `unknown_syms.h` / not bloating `game.h`; overlays: their own headers)
+- [ ] New types/APIs live in the correct module header (main: not `unknown_syms.h`; overlays: their own headers)
 - [ ] `./tools/build-and-verify.sh` succeeds
 
 ## Decompilation tips

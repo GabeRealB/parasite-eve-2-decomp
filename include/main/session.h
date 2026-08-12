@@ -93,9 +93,16 @@ STATIC_ASSERT_SIZEOF(GameActorExt, 0x10);
 
 /// Active game session object (data segment / BSS pointer).
 extern GameSession* Game_Session;
+extern GameSession  D61CC0_800714C0;
 
-// --- APIs (from unknown_syms) ---
-void Game_ClearSession(void);
-void Game_ClearEd68(void);
+/// Session pointer-slot table on Game_Session (field_C[16]).
+void  Game_SetPtrSlot(void* ptr, s32 index);
+void* Game_GetPtrSlot(s32 index);
+void  Game_ClearPtrSlots(void);
+void  Game_ClearSession(void);
+void  Game_ClearEd68(void);
+
+extern s32 D_8005ED68;
+extern s32 D_8005ED8C;
 
 #endif // SESSION_H

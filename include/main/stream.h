@@ -48,4 +48,34 @@ void        Mdec_DecodeToVram(void);
 void Mdec_ProcessDecode(void);
 s16  Stream_HasActiveLowId(void* arg0);
 
+extern u16      D_8005EAEC;
+extern u16      D_8005EAEE;
+extern s32      D_8006AC08;
+extern u16      D_8006AC0C;
+extern u16      D_8006AC0E;
+extern u16      D_8006AC10;
+extern u16      D_8006AC12;
+extern u16      D_8006AC14;
+extern u16      D_8006AC16;
+extern u16      D_8006AC18;
+extern u16      D_8006AC1A;
+extern u16      D_8006AC1C;
+extern u16      D_8006AC1E;
+extern u16      D_8006AC28;
+extern s32      D_8006AC24;
+extern u16      D_8006AC3C;
+extern u_short* D_8006AC38;
+extern void*    D_8006AC40;
+extern void*    D_8006AC44;
+extern u_long*  D_8006AC48[];
+extern u_long*  D_8006AC50[];
+extern u16      D_8006AC58;
+extern u16      D_8006AC5A;
+extern s16      D_8006AC5C;
+extern u16*     D_8006AC60;
+extern void*    D_8006AC64;
+extern u_long*  D_8006AC68;
+extern u16      D_8006AC6C;
+extern s32      StCdIntrFlag;
+
 #endif // STREAM_H

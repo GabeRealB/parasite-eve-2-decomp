@@ -1,13 +1,14 @@
 #include "common.h"
-#include "main/mc.h"
 
 #include <psyq/libmcrd.h>
 #include <psyq/memory.h>
 #include <psyq/rand.h>
 
-#include "main/game.h"
-#include "main/mem.h"
 #include "main/unknown_syms.h"
+#include "main/fs.h"
+#include "main/pad.h"
+#include "main/text.h"
+#include "main/ui.h"
 
 void Mc_StateCompareBuffers(Task* arg0, McWork* arg1)
 {

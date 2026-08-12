@@ -1,8 +1,13 @@
 #include "common.h"
 
-#include "main/game.h"
-#include "main/mem.h"
 #include "main/unknown_syms.h"
+#include "main/fs.h"
+#include "main/gfx.h"
+#include "main/pad.h"
+#include "main/stage.h"
+#include "main/stream.h"
+#include "main/tmd.h"
+
 #include "psyq/libpress.h"
 #include "psyq/inline_c.h"
 

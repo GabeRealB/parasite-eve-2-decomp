@@ -1,10 +1,9 @@
 #include "common.h"
-#include "main/pad.h"
-
-#include "main/game.h"
-#include "main/unknown_syms.h"
 
 #include <psyq/libpad.h>
+
+#include "main/pad.h"
+#include "main/tmd.h"
 
 void Pad_Init(void)
 {
