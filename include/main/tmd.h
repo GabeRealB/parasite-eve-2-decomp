@@ -6,7 +6,7 @@
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 
-// Types — TMD model lists (src/main/tmd.c)
+// Types — TMD model lists (src/main/tmd.c; stage fade/MDEC lives in stage.c)
 
 /// Source/model data pointed to by TmdObject::field_10 (see Tmd_Create).
 typedef struct _TmdSource {
@@ -20,7 +20,7 @@ typedef struct _TmdSource {
     /* 0x20 */ u32* field_20; // [id, handler_slot, dims, data…] stream
 } TmdSource;
 
-/// Node in the Tmd_List linked list (2F244.c TMD/model objects).
+/// Node in the Tmd_List linked list (tmd.c TMD/model objects).
 typedef struct _TmdObject {
     /* 0x00 */ struct _TmdObject* next;
     /* 0x04 */ byte               unknown_4[0x4];
@@ -50,7 +50,7 @@ typedef struct _TmdListHead {
 } TmdListHead;
 STATIC_ASSERT_SIZEOF(TmdListHead, 0x8);
 
-/// Head of the TmdObject linked list used by 2F244.c TMD/model helpers.
+/// Head of the TmdObject linked list used by tmd.c TMD/model helpers.
 extern TmdListHead Tmd_List;
 /// Second list head initialized alongside Tmd_List by Tmd_InitLists.
 extern TmdListHead Tmd_ListAlt;

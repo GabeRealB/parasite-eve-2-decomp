@@ -31,9 +31,10 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 | `Mc_` / mcprompt | Memcard prompts + early Mc states | `src/main/mcprompt.c` | `include/main/mc.h` |
 | `Gfx_` / gfxlight / gfxmtx | Flat lights + rotation matrices + image slots | `src/main/gfxlight.c`, `gfxmtx.c`, `boot.c` | `include/main/gfx.h` |
 | `Display_` / displaymode | Display mode / auto-clear setup | `src/main/displaymode.c` | `include/main/display.h` |
+| `Stage_` / stage | Stage fade / transition / MDEC during load | `src/main/stage.c` | `include/main/stage.h` |
 | `Task_` / taskutil | Small task helper near stage tables | `src/main/taskutil.c` | `include/main/task.h` |
 | loadui | Loading SPRT + CD load enqueue | `src/main/loadui.c` | — |
-| `Mdec_` | MDEC/STR strip decode | `src/main/stream.c` | `include/main/stream.h` |
+| `Mdec_` | MDEC/STR strip decode | `src/main/stream.c`, `stage.c` | `include/main/stream.h` |
 | `Midi_` | Song block / MIDI sequencer | `src/main/sndevt.c` | `include/main/sound.h` |
 | `SndVoice_` / `SndBank` / `SndBankSlot_` | SFX voice slots + bank table | `src/main/sndscript.c` | `include/main/sound.h` |
 | `CdAudio_` | CD-driven audio player | `src/main/cdaudio.c` | `include/main/cdaudio.h` |
@@ -57,7 +58,7 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 | `GameFlow` / `Fade_` | Pre-pad/task game-flow handlers | `src/main/gameflow.c` | `include/main/gameflow.h` |
 | `GameFlag_` | Packed 4-bit flag nibble table | `src/main/gameflag.c` | `include/main/gameflag.h` |
 | `CdStream_` / `CdReady_` | CD→SPU MTS stream | `src/main/cdstream.c` | `include/main/cdstream.h` |
-| `Tmd_` / `Stage_` | TMD models + stage flow | `src/main/tmd.c` | `include/main/tmd.h` / `stage.h` |
+| `Tmd_` | TMD model lists / stream | `src/main/tmd.c` | `include/main/tmd.h` |
 | `Stream_` | Stream channel slots | `src/main/stream.c` | `include/main/stream.h` |
 | `Game_` | Main session object | globals | `GameSession`, `Game_Session` |
 | `Wip` / `Wip_` | Weak-evidence placeholders | `wipsyscfg.c`, etc. | rename when proven |

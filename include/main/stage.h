@@ -6,7 +6,7 @@
 #include "main/task.h"
 
 // =============================================================================
-// Types — stage / area flow context (Stage_Ctx)
+// Types — stage / area flow context (Stage_Ctx; APIs in src/main/stage.c)
 // =============================================================================
 
 /// Stage / flow context (Stage_Ctx → bss D_8007A320, size 0x38).
