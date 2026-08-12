@@ -16,7 +16,11 @@ if str(_SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPT_DIR))
 
 from format import validate_sector_len  # noqa: E402
-from lzss import decode_lzss  # noqa: E402
+from asset_decode import (  # noqa: E402
+    decode_ascii_payload,
+    decode_pe2pkg_payload,
+    materialize_image_asset,
+)
 from names import (  # noqa: E402
     REQUIRED_OVERLAY_STEMS,
     chunk_key,
@@ -310,19 +314,6 @@ IMAGE_EXTS = frozenset({".pe2img", ".pe2clut"})
 RAW_ROOT_NAME = "raw"
 
 
-def decode_ascii_payload(raw: bytes) -> bytes:
-    """Strip full-chunk zero pad (including any trailing NULs).
-
-    Retail ascii clean payloads are CRLF text (usually ending in ``\\\\Z`` or
-    ``\\\\Z\\\\r\\\\n``) zero-filled to the chunk capacity. The inflated form
-    is the text only — no trailing ``0x00``; pack re-adds pad on encode.
-    """
-    end = len(raw)
-    while end > 0 and raw[end - 1] == 0:
-        end -= 1
-    return raw[:end]
-
-
 class AssetStore:
     """Deduplicated per-type asset store: raw on-disc + inflated edit forms.
 
@@ -534,15 +525,13 @@ class AssetStore:
 
             if ext == ".pe2pkg":
                 logging.info("  decode %s → %s", raw_rel, out_rel)
-                out_path.write_bytes(decode_lzss(raw_path.read_bytes()))
+                out_path.write_bytes(decode_pe2pkg_payload(raw_path.read_bytes()))
             elif ext == ".txt":
                 logging.info("  decode ascii %s → %s", raw_rel, out_rel)
                 out_path.write_bytes(decode_ascii_payload(raw_path.read_bytes()))
             elif ext in IMAGE_EXTS:
                 logging.info("  decode image %s → %s", raw_rel, out_rel)
                 try:
-                    from image_codec import materialize_image_asset
-
                     # materialize writes stem.png + stem{ext}.json next to dest
                     pe2_dest = out_path.with_suffix(ext)
                     if pe2_dest != raw_path:

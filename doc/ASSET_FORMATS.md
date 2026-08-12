@@ -11,6 +11,7 @@ Implementation references:
 |---|---|
 | Binary layout constants | `tools/peassets/format.py` |
 | Extract / pack | `tools/peassets/extract.py`, `pack.py` |
+| Shared inflate/decode | `tools/peassets/asset_decode.py` (extract + viewer) |
 | LZSS decode / format | `tools/peassets/lzss.py`, `src/main/hasm/Fs_DecompressChunk.s` |
 | LZSS encode (policies, identity) | `doc/LZSS_ENCODER.md`, `lzss.py` / `lzss_clut.py` / `lzss_cascading.py` |
 | Images / CLUT | `tools/peassets/image_codec.py`, `src/main/fs.c` |
@@ -524,6 +525,10 @@ Commands (from repo root):
 # extract (needs disc paths; see extract.py --help)
 python3 tools/peassets/extract.py ... -o assets/USA
 python3 tools/peassets/extract.py ... -o assets/USA --raw-only
+python3 tools/peassets/extract.py ... -o assets/USA --minimal-inflate
+
+# browse extracted assets (by type or stage tree + preview)
+python3 tools/peassets/viewer.py assets/USA
 
 # pack (default: matching)
 python3 tools/peassets/pack.py \

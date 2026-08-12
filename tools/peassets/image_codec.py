@@ -631,55 +631,17 @@ def _find_sibling_clut(pe2_path: Path, *, bpp: Bpp = 8) -> list[int] | None:
 
 
 def pe2img_to_png_files(pe2_path: Path, png_path: Path, meta_path: Path) -> None:
-    data = pe2_path.read_bytes()
-    sector_len, chunk_size = _header_fields_for_path(pe2_path)
-    # First pass without CLUT to guess bpp from pixel indices.
-    img0, info0 = decode_pe2img(
-        data, sector_len=sector_len, chunk_size=chunk_size, clut=None
-    )
-    clut = _find_sibling_clut(pe2_path, bpp=info0.bpp)
-    if clut is not None:
-        img, info = decode_pe2img(
-            data,
-            sector_len=sector_len,
-            chunk_size=chunk_size,
-            bpp=info0.bpp if info0.bpp in (4, 8) else 8,
-            clut=clut,
-        )
-    else:
-        img, info = img0, info0
-    png_path.parent.mkdir(parents=True, exist_ok=True)
-    img.save(png_path, "PNG")
-    meta = info_to_json_img(info)
-    if sector_len is not None:
-        meta["sector_len"] = f"0x{sector_len:X}"
-    if chunk_size is not None:
-        meta["chunk_size"] = f"0x{chunk_size:X}"
-    if clut is not None:
-        meta["has_clut"] = True
-        meta["clut_note"] = (
-            "Offline guess: one CLUT row chosen for viewing. "
-            "In-game primitives select the row via getClut(x,y)."
-        )
-    meta_path.write_text(json.dumps(meta, indent=2) + "\n")
+    """Materialize pe2img → PNG + meta (delegates to :mod:`asset_decode`)."""
+    from asset_decode import pe2img_to_png_files as _impl
+
+    _impl(pe2_path, png_path, meta_path)
 
 
 def pe2clut_to_png_files(pe2_path: Path, png_path: Path, meta_path: Path) -> None:
-    data = pe2_path.read_bytes()
-    sector_len, chunk_size = _header_fields_for_path(pe2_path)
-    if sector_len is not None:
-        data = ensure_clean_payload(
-            data, sector_len=sector_len, chunk_size=chunk_size
-        )
-    img, info = decode_pe2clut(data)
-    png_path.parent.mkdir(parents=True, exist_ok=True)
-    img.save(png_path, "PNG")
-    meta = info_to_json_clut(info)
-    if sector_len is not None:
-        meta["sector_len"] = f"0x{sector_len:X}"
-    if chunk_size is not None:
-        meta["chunk_size"] = f"0x{chunk_size:X}"
-    meta_path.write_text(json.dumps(meta, indent=2) + "\n")
+    """Materialize pe2clut → PNG + meta (delegates to :mod:`asset_decode`)."""
+    from asset_decode import pe2clut_to_png_files as _impl
+
+    _impl(pe2_path, png_path, meta_path)
 
 
 def png_files_to_pe2img(png_path: Path, meta_path: Path) -> bytes:
@@ -696,13 +658,6 @@ def png_files_to_pe2clut(png_path: Path, meta_path: Path) -> bytes:
 
 def materialize_image_asset(src: Path, dest: Path) -> Path:
     """Write PNG (+ meta) for a raw pe2img/pe2clut. Returns PNG path."""
-    suffix = src.suffix.lower()
-    png_path = dest.with_suffix(".png")
-    meta_path = dest.with_suffix(dest.suffix + ".json")
-    if suffix == ".pe2img":
-        pe2img_to_png_files(src, png_path, meta_path)
-    elif suffix == ".pe2clut":
-        pe2clut_to_png_files(src, png_path, meta_path)
-    else:
-        raise ValueError(f"not an image asset: {src}")
-    return png_path
+    from asset_decode import materialize_image_asset as _impl
+
+    return _impl(src, dest)
