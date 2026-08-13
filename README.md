@@ -1,4 +1,5 @@
 # Parasite Eve 2 Decompilation
+![coverage usa](https://decomp.dev/GabeRealB/parasite-eve-2-decomp.svg?mode=shield&label=Parasite+Eve+II+%28USA%29)
 
 A work-in-progress **matching decompilation** of *Parasite Eve II* for the Sony PlayStation.
 
@@ -21,17 +22,17 @@ The goal is to recover readable C that, when compiled with a period-correct tool
 
 | Component | Status |
 |---|---|
-| **Main executable** (`SLUS_010.42`) | In progress — partially decompiled; matched C rebuilds byte-identically, with remaining functions still in assembly (`INCLUDE_ASM`) |
+| **Main executable** (`SLUS_010.42`) | ![coverage SLUS_010.42](https://decomp.dev/GabeRealB/parasite-eve-2-decomp/SLUS-01042.svg?mode=shield&category=main&label=SLUS_010.42) |
 
 <details>
-<summary><strong>Overlays</strong> (448 — all not started)</summary>
+<summary><strong>Overlays</strong> (448)</summary>
 
 Descriptions are best-effort: source path and load address come from `assets/USA/stages.json` (`room_pkg` entries). Friendly names live in `tools/peassets/names.py` (`NAMES`); unnamed unique overlays use `pe2pkg_N` store stems. Role text is inferred from known names or stage/room encoding.
 
 | Overlay | Description | Status |
 |---|---|---|
-| `gameplay` | Resident in-game overlay (actors/anim, enemies, combat/field, inventory) — source `stage0/gameplay/gameplay.pe2pkg` — load `0x80093800` — 350.0 KiB | Split (asm only) |
-| `title` | Title / demo / main menu — source `stage0/title/title.pe2pkg` — load `0x80093800` — 4.0 KiB | Split |
+| `gameplay` | Resident in-game overlay (actors/anim, enemies, combat/field, inventory) — source `stage0/gameplay/gameplay.pe2pkg` — load `0x80093800` — 350.0 KiB | ![coverage gameplay](https://decomp.dev/GabeRealB/parasite-eve-2-decomp/SLUS-01042.svg?mode=shield&category=gameplay&label=gameplay) |
+| `title` | Title / demo / main menu — source `stage0/title/title.pe2pkg` — load `0x80093800` — 4.0 KiB | ![coverage title](https://decomp.dev/GabeRealB/parasite-eve-2-decomp/SLUS-01042.svg?mode=shield&category=title&label=title) |
 | `stage0_file100300_3` | Stage 0 overlay (id stage0/file100300/3.pe2pkg) — source `stage0/file100300/3.pe2pkg` — load `0x80131E20` — 68.0 KiB | Not started |
 | `stage0_file100400_3` | Stage 0 overlay (id stage0/file100400/3.pe2pkg) — source `stage0/file100400/3.pe2pkg` — load `0x80131E20` — 62.0 KiB | Not started |
 | `stage0_file100500_3` | Stage 0 overlay (id stage0/file100500/3.pe2pkg) — source `stage0/file100500/3.pe2pkg` — load `0x80131E20` — 2.0 KiB | Not started |
