@@ -1,5 +1,8 @@
 #include "common.h"
 
+#include "main/session.h"
+#include "main/task.h"
+
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AF590);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AF89C);
@@ -178,7 +181,10 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B5EE8);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B5F5C);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B5FEC);
+void func_800B5FEC(void)
+{
+    Task_KillChildren(Game_GetPtrSlot(4));
+}
 
 void func_800B6014(void)
 {
