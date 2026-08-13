@@ -64,7 +64,10 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D96C8);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9718);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9788);
+s32 func_800D9788(GpObj38* arg0)
+{
+    return arg0->field_38;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9794);
 

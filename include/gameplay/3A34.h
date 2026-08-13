@@ -23,6 +23,15 @@ typedef struct _GpObj {
     /* 0x1E */ u16            flags;
 } GpObj;
 
+/// Object whose word at 0x38 is returned by `func_800D9788`. Adjacent light
+/// helpers load 0x38/0x3C/0x40 as three s32s and take `&obj->field_38` as a
+/// `VECTOR*`.
+typedef struct _GpObj38 {
+    /* 0x00 */ byte pad_0[0x38];
+    /* 0x38 */ s32  field_38;
+} GpObj38;
+STATIC_ASSERT_SIZEOF(GpObj38, 0x3C);
+
 extern GpObj* D_80115570;
 extern GpObj* D_80115574;
 extern GpObj* D_80115578;
@@ -33,6 +42,7 @@ extern GpObj* D_8011558C;
 extern GpObj* D_80115590;
 extern s32    D_80115424;
 
+s32  func_800D9788(GpObj38* arg0);
 void func_800D9CC8(Task* arg0);
 void func_800D9DFC(void);
 void func_800DAB38(GpLinkNode* node);
