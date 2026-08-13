@@ -1,5 +1,9 @@
 #include "common.h"
 
+#include "main/display.h"
+#include "main/tmd.h"
+#include "main/unknown_syms.h"
+
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9310);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A954C);
@@ -24,7 +28,22 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9980);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A99B4);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A99E0);
+void func_800A99E0(Task* task)
+{
+    DisplayState* ds;
+    s32           flag;
+
+    ds            = &Display_State;
+    flag          = (s8)ds->field_122;
+    ds->field_103 = 2;
+    if (flag == 0) {
+        Gpu_ResetGraphAndOt();
+        Tmd_AllocMissingBuffers();
+    }
+    func_800ACAA8();
+    Task_Kill(task);
+    Display_ResetHeapWrapper();
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9A40);
 

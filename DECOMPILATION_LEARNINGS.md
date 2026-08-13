@@ -12277,3 +12277,23 @@ Task_Kill = 0x8002CCB8; // absolute:True
 
 in `configs/USA/sym.gameplay.imports.txt`. Do not rename every remaining
 overlay `jal` just to match one new C call. `func_800CFD78` is the example.
+
+## `s32 flag = (s8)u8_field` gives `lb` and hoists the next store
+
+A `u8` field compared as signed (`lb` + `bnez`) must not go through an `s8`
+temporary. `s8 flag = field` (or `s8 flag = (s8)field`) is QImode, so the
+compare promotes with `lbu` + `sll 24`. Assign the cast into an `s32`:
+
+```c
+s32 flag;
+
+flag = (s8)ds->field_122;
+ds->field_103 = 2;
+if (flag == 0) {
+    /* calls */
+}
+```
+
+`lb` fills a 32-bit register; the independent store then sits in the `bnez`
+delay slot. Using the `(s8)` cast only in the `if` condition emits `lb` but
+does not hoist the store. `func_800A99E0` is the example.
