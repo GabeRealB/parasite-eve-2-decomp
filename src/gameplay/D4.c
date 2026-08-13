@@ -1,6 +1,9 @@
 #include "common.h"
 
 #include "main/display.h"
+#include "main/mc.h"
+#include "main/pad.h"
+#include "main/session.h"
 #include "main/tmd.h"
 #include "main/unknown_syms.h"
 
@@ -20,7 +23,23 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9730);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A97DC);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A987C);
+void func_800A987C(void)
+{
+    Task*       slot;
+    McSaveData* save;
+
+    slot            = Game_GetPtrSlot(1);
+    save            = &Mc_SaveData;
+    slot->spawnArg1 = save->field_4;
+    ResetGraph(1);
+    Gpu_ClearOTag(0);
+    Gpu_ClearOTag(1);
+    Game_Session->field_4 = save->field_4;
+    Pad_SetCooldown(0);
+    func_800A8DC0(2);
+    Game_Session->field_4D = 0;
+    Task_Spawn(0, 0x1E, 1, 0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A990C);
 
