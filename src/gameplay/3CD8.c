@@ -40,7 +40,10 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3FCC);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3FF0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E4018);
+s32 func_800E4018(void)
+{
+    return 0;
+}
 
 void func_800E4020(void)
 {
