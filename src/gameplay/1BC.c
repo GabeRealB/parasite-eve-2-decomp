@@ -5,6 +5,8 @@
 #include "main/session.h"
 #include "main/task.h"
 
+void func_800B3910(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AF590);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AF89C);
@@ -132,7 +134,10 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B3FA8);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B404C);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B40F4);
+void func_800B40F4(s32 arg0, s32 arg1, s32 arg2)
+{
+    func_800B3910(arg0, arg1, arg2, 0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B4114);
 
