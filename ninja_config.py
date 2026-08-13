@@ -350,6 +350,31 @@ def ninja_setup_list_add_source(
         return f"{expected_path}.s.o"
 
 
+def fix_gameplay_linker_rodata_order() -> None:
+    """Keep func_8010A42C's jtbl between the 3FB8 asm rodata pieces.
+
+    The `.rodata, 3FB8` sibling (jtbl @ 0x4280) can land at the front of the
+    C .rodata group. Linked order must stay rodata_3FB8, 3FB8.c, rodata_3FB8_2.
+    """
+    dest = Path("linkers/USA/gameplay.ld")
+    if not dest.is_file():
+        return
+    text = dest.read_text(encoding="utf-8")
+    right = (
+        "        build/USA/asm/USA/gameplay/data/rodata_3FB8.rodata.s.o(.rodata);\n"
+        "        build/USA/src/gameplay/3FB8.c.o(.rodata);\n"
+        "        build/USA/asm/USA/gameplay/data/rodata_3FB8_2.rodata.s.o(.rodata);\n"
+    )
+    if right in text:
+        return
+    wrong = (
+        "        build/USA/asm/USA/gameplay/data/rodata_3FB8.rodata.s.o(.rodata);\n"
+        "        build/USA/asm/USA/gameplay/data/rodata_3FB8_2.rodata.s.o(.rodata);\n"
+    )
+    if wrong in text:
+        dest.write_text(text.replace(wrong, right, 1), encoding="utf-8")
+
+
 def fix_title_linker_rodata_order() -> None:
     """Keep header rodata before title.c jtables after splat.
 
@@ -873,6 +898,7 @@ def main():
             fix_title_linker_rodata_order()
             append_overlay_absolute_imports("title")
         elif yaml == "gameplay.yaml":
+            fix_gameplay_linker_rodata_order()
             append_overlay_absolute_imports("gameplay")
             fix_overlay_include_asm_paths("gameplay")
         splits_yaml_info.append(

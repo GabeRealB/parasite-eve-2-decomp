@@ -12209,6 +12209,35 @@ do {
 } while (s2 < 3);
 ```
 
+## `u8` switch: `if (kind)` plus dummy `case 0` keeps table index 0
+
+A dense `switch` on a byte whose real cases start at 1 normally subtracts 1
+(`addiu v1,v1,-1` / `sltiu …,0xB`). The target for `func_8010A42C` instead
+does `andi v1,a1,0xFF` / `beqz v1,default` / `sltiu v1,0xC` and indexes a
+12-entry table that still has a default slot at 0.
+
+```c
+kind = arg1; /* u8 */
+if (kind != 0) {
+    switch (kind) {
+    case 0:
+        break;
+    case 1:
+        /* … */
+        break;
+    }
+}
+```
+
+`if (kind != 0)` supplies the `beqz`. Dummy `case 0` stops the min-case
+subtract so the table stays 0-based. Either piece alone is not enough.
+
+Per-case `inner` locals (compound-statement declarations) let `$s0` start as
+`arg0` and be overwritten with `arg0->field` once `arg0` is dead. A single
+function-scope `inner` pins it in `$s0` and shoves `arg0` into `$s1`;
+`register … asm("s0")` on `arg0` keeps that register live and blocks the
+overwrite.
+
 ## Splat `-c` reverts unnamed data labels
 
 `ninja_config.py -c` re-splits the ROM. Function `glabel`s that live in

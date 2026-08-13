@@ -84,6 +84,8 @@ segments:
       - [0x3CD8, rodata, rodata_3CD8]
       - [0x3E9C, rodata, rodata_3E9C]
       - [0x3FB8, rodata, rodata_3FB8]
+      - [0x4280, .rodata, 3FB8] # jtbl from func_8010A42C
+      - [0x42B0, rodata, rodata_3FB8_2] # D_80097AB0
       # Text TUs: first function that uses each group's jtbl (file 0 starts
       # at the first addiu $sp).
       - [0x42C0, c, gameplay] # func_80097AC0

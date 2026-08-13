@@ -73,10 +73,25 @@ typedef struct _GameActor {
     /* 0x17C */ byte field_17C; // address taken for func_800E1A6C
     /* 0x17D */ byte pad_17D[0x7B3];
     /* 0x930 */ byte field_930; // address taken for func_801011D0
-    /* 0x931 */ byte pad_931[0x53];
+    /* 0x931 */ byte pad_931[0x13];
+    /* 0x944 */ s16  field_944;
+    /* 0x946 */ s16  field_946;
+    /* 0x948 */ s16  field_948;
+    /* 0x94A */ s16  field_94A;
+    /* 0x94C */ s16  field_94C;
+    /* 0x94E */ s16  field_94E;
+    /* 0x950 */ s16  field_950;
+    /* 0x952 */ byte pad_952[0x1E];
+    /* 0x970 */ s16  field_970;
+    /* 0x972 */ byte pad_972[0x12];
     /* 0x984 */ u8   field_984;
+    /* 0x985 */ byte pad_985[0x8];
+    /* 0x98D */ u8   field_98D;
+    /* 0x98E */ u8   field_98E;
+    /* 0x98F */ byte pad_98F;
+    /* 0x990 */ u8   field_990;
 } GameActor;
-STATIC_ASSERT_SIZEOF(GameActor, 0x988);
+STATIC_ASSERT_SIZEOF(GameActor, 0x994);
 
 /// Object pointed to by Task::extra; field_8 is a s32* cleared by
 /// Display_SpawnFromMode after optional func_801011D0 / func_800E1A6C setup.

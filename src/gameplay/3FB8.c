@@ -1,5 +1,16 @@
 #include "common.h"
 
+#include "gameplay/3FB8.h"
+#include "main/wipsys.h"
+
+extern WipSysConfig D_80073B88;
+
+s32  func_800B9D80(s32 arg0);
+void func_800EC9C8(void);
+void func_800ECA10(s32 arg0);
+void func_800ECA54(void);
+s32  func_80037164(void);
+
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F75BC);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F77F8);
@@ -358,7 +369,113 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109FC4);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010A1B0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010A42C);
+void func_8010A42C(GpActorWork* arg0, s32 arg1)
+{
+    u8 kind;
+
+    kind = arg1;
+    if (kind != 0) {
+        switch (kind) {
+            case 0:
+                break;
+            case 1: {
+                GameActor* inner;
+
+                inner = arg0->actor;
+                if (func_800B9D80(0x101) != 0) {
+                    return;
+                }
+                D_80073B88.field_25 |= 1;
+                inner->field_944     = 0x258;
+                func_800EC9C8();
+                func_80103B5C(arg0);
+                func_800ECA10(1);
+                break;
+            }
+            case 2: {
+                GameActor* inner;
+
+                inner = arg0->actor;
+                if (func_800B9D80(0x102) != 0) {
+                    return;
+                }
+                D_80073B88.field_25 |= 2;
+                inner->field_946     = 0x258;
+                inner->field_98E     = 0;
+                func_8010B210(arg0);
+                func_800ECA10(2);
+                break;
+            }
+            case 3: {
+                GameActor* inner;
+
+                inner = arg0->actor;
+                if (func_800B9D80(0x104) != 0) {
+                    return;
+                }
+                D_80073B88.field_25 |= 4;
+                inner->field_948     = 0x258;
+                inner->field_98D     = 0;
+                func_800ECA10(4);
+                break;
+            }
+            case 4:
+                func_800ECA10(8);
+                break;
+            case 8: {
+                GameActor* inner;
+
+                inner = arg0->actor;
+                if (func_800B9D80(0x108) != 0) {
+                    return;
+                }
+                D_80073B88.field_25 |= 0x10;
+                inner->field_94A     = 0x258;
+                func_800ECA10(0x10);
+                break;
+            }
+            case 9: {
+                GameActor* inner;
+
+                inner = arg0->actor;
+                if (func_800B9D80(0x110) != 0) {
+                    return;
+                }
+                D_80073B88.field_25 |= 0x20;
+                inner->field_94C     = 0x258;
+                func_800ECA10(0x20);
+                break;
+            }
+            case 10: {
+                GameActor* inner;
+
+                inner = arg0->actor;
+                if (func_800B9D80(0x120) != 0) {
+                    return;
+                }
+                D_80073B88.field_25 |= 0x40;
+                inner->field_94E     = 0x258;
+                inner->field_990     = (func_80037164() & 0x1F) + 0xA;
+                inner->field_970     = 0;
+                func_800ECA10(0x40);
+                break;
+            }
+            case 11: {
+                GameActor* inner;
+
+                inner = arg0->actor;
+                if (func_800B9D80(0x140) != 0) {
+                    return;
+                }
+                D_80073B88.field_25 |= 0x80;
+                inner->field_950     = 0x258;
+                func_800ECA10(0x80);
+                func_800ECA54();
+                break;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010A670);
 

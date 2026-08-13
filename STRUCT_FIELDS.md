@@ -513,6 +513,11 @@ See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 
 ### `GameActor` / `GameActorExt`
 Sparse: `field_17C`/`field_930` addresses for overlay setup; `field_C` kill flag bit 0x80.
+`field_944`..`field_950` / `field_970` are s16 timers written to `0x258` by `func_8010A42C`;
+`field_98D`/`field_98E`/`field_990` are companion bytes (case 10 also stores `rand() & 0x1F + 0xA`).
+
+### `WipSysConfig`
+`field_25` is an OR mask of PE/status bits set by `func_8010A42C` (same bit as the `func_800ECA10` arg).
 
 ### `TmdObject` / `TmdSource`
 | Off | Member | Role |
