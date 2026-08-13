@@ -2,25 +2,26 @@
 
 extern u32 D_8007216C;
 
-void func_80180804(void);
-void func_8017EA68(void);
-void func_80181468(void);
-void func_8017EA90(void);
-void func_8017E9E8(void);
-void func_80181364(void);
-void func_8017EA58(void);
-void func_8017E9F8(void);
-void func_8017EAE0(void);
-void func_8018138C(void);
-void func_8017EA74(void);
-void func_8017EA78(void);
-void func_8017EB2C(void);
-void func_8017EDE8(void);
-void func_8017EAB4(void);
-void func_8017EA64(void);
-void func_8017EC04(void);
-void func_8017EAC4(void);
-void func_8017EA60(void);
+void  func_80180804(void);
+void  func_8017EA68(void);
+void  func_80181468(void);
+void  func_8017EA90(void);
+void  func_8017E9E8(void);
+void  func_80181364(void);
+void  func_8017EA58(void);
+void  func_8017E9F8(void);
+void  func_8017EAE0(void);
+void  func_8018138C(void);
+void  func_8017EA74(void);
+void  func_8017EA78(void);
+void  func_8017EB2C(void);
+void  func_8017EDE8(void);
+void  func_8017EAB4(void);
+void  func_8017EA64(void);
+void  func_8017EC04(void);
+void  func_8017EAC4(void);
+void  func_8017EA60(void);
+void* func_800B8CAC(void* arg0, s32 arg1, s32 arg2);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B7420);
 
@@ -133,7 +134,10 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAC34);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAC8C);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAD08);
+void* func_800BAD08(void* arg0, s32 arg1, s32 arg2)
+{
+    return func_800B8CAC(arg0, arg1, arg2);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAD28);
 
