@@ -2,6 +2,7 @@
 
 #include "gameplay/3A34.h"
 #include "main/session.h"
+#include "main/task.h"
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D5B14);
 
@@ -77,7 +78,10 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9C3C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9C64);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9CC8);
+void func_800D9CC8(Task* arg0)
+{
+    Task_CallExit(arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9CE8);
 

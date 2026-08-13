@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include "main/task.h"
+
 /// Singly-linked node unlinked by `func_800DAB38` / linked by `func_800DABEC`.
 /// `field_6 == 1` means the node is on the `D_80115268` list.
 typedef struct _GpLinkNode {
@@ -31,6 +33,7 @@ extern GpObj* D_8011558C;
 extern GpObj* D_80115590;
 extern s32    D_80115424;
 
+void func_800D9CC8(Task* arg0);
 void func_800DAB38(GpLinkNode* node);
 void func_800DB72C(void);
 void func_800DB900(GpObj* node);

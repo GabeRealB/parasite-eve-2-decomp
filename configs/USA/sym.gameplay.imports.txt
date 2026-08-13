@@ -64,6 +64,7 @@ Task_Spawn = 0x8002CFDC; // absolute:True
 func_8002D03C = 0x8002D03C; // absolute:True
 Task_KillChildren = 0x8002D03C; // absolute:True
 func_8002D0A4 = 0x8002D0A4; // absolute:True
+Task_CallExit = 0x8002D0A4; // absolute:True
 func_8002D14C = 0x8002D14C; // absolute:True
 func_8002D214 = 0x8002D214; // absolute:True
 func_8002D22C = 0x8002D22C; // absolute:True
