@@ -12297,3 +12297,41 @@ if (flag == 0) {
 `lb` fills a 32-bit register; the independent store then sits in the `bnez`
 delay slot. Using the `(s8)` cast only in the `if` condition emits `lb` but
 does not hoist the store. `func_800A99E0` is the example.
+
+## Volatile object pointer pins field loads after a global store
+
+An independent `global = NULL` can sink past later field loads on the same
+object (and into a `beqz` delay slot). Making only the global `volatile` still
+lets GCC hoist `obj->field` before the store.
+
+Fix: load the object through a `volatile` pointer so each field load is a
+volatile access and stays in source order after the global store. Assign a
+non-volatile sibling store *before* the global so it can fill the `lui`
+delay:
+
+```
+lui  v0, %hi(D_cur)
+sw   zero, 0x18(s1)          /* sibling; fills lui delay */
+sw   zero, %lo(D_cur)(v0)
+lw   a0, 0x914(s0)           /* first volatile field load */
+```
+
+```c
+volatile GameActor* inner;
+Task*               task;
+
+inner          = work->actor;
+work->field_18 = NULL; /* must precede the global */
+D_80115760     = NULL; /* declare as T* volatile, not volatile T* */
+task           = inner->field_914;
+if (task != NULL) {
+    Task_Kill(task);
+}
+```
+
+Copy each field into a temp before the call: a volatile `if (inner->field)` /
+`Task_Kill(inner->field)` pair loads twice.
+
+Declare the global as `T* volatile`, not `volatile T*`. The latter makes the
+*pointee* volatile; `g = NULL` is then a non-volatile pointer store and sinks
+into the following `beqz` delay slot. `func_80101408` is the example.

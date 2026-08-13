@@ -64,33 +64,47 @@ typedef struct _GameSessionFrom4 {
 } GameSessionFrom4;
 STATIC_ASSERT_SIZEOF(GameSessionFrom4, 0x4);
 
+struct _Task;
+
 /// Large object pointed to by Task::idMap for the slot-3 game object
 /// (Game_GetPtrSlot(3)). Sparse fields used by Display_SpawnFromMode.
 typedef struct _GameActor {
-    /* 0x000 */ byte pad_0[0x90];
-    /* 0x090 */ s32  field_90;
-    /* 0x094 */ byte pad_94[0xE8];
-    /* 0x17C */ byte field_17C; // address taken for func_800E1A6C
-    /* 0x17D */ byte pad_17D[0x7B3];
-    /* 0x930 */ byte field_930; // address taken for func_801011D0
-    /* 0x931 */ byte pad_931[0x13];
-    /* 0x944 */ s16  field_944;
-    /* 0x946 */ s16  field_946;
-    /* 0x948 */ s16  field_948;
-    /* 0x94A */ s16  field_94A;
-    /* 0x94C */ s16  field_94C;
-    /* 0x94E */ s16  field_94E;
-    /* 0x950 */ s16  field_950;
-    /* 0x952 */ byte pad_952[0x1E];
-    /* 0x970 */ s16  field_970;
-    /* 0x972 */ u8   field_972;
-    /* 0x973 */ byte pad_973[0x11];
-    /* 0x984 */ u8   field_984;
-    /* 0x985 */ byte pad_985[0x8];
-    /* 0x98D */ u8   field_98D;
-    /* 0x98E */ u8   field_98E;
-    /* 0x98F */ byte pad_98F;
-    /* 0x990 */ u8   field_990;
+    /* 0x000 */ byte          pad_0[0x90];
+    /* 0x090 */ s32           field_90;
+    /* 0x094 */ byte          pad_94[0x18];
+    /* 0x0AC */ byte          field_AC[0x20]; // 0x20-byte list node (func_800E1638)
+    /* 0x0CC */ byte          field_CC[0x20];
+    /* 0x0EC */ byte          field_EC[0x20];
+    /* 0x10C */ byte          field_10C[0x20];
+    /* 0x12C */ byte          field_12C[0x20];
+    /* 0x14C */ byte          pad_14C[0x30];
+    /* 0x17C */ byte          field_17C; // address taken for func_800E1A6C
+    /* 0x17D */ byte          pad_17D[0x797];
+    /* 0x914 */ struct _Task* field_914;
+    /* 0x918 */ struct _Task* field_918;
+    /* 0x91C */ struct _Task* field_91C;
+    /* 0x920 */ struct _Task* field_920;
+    /* 0x924 */ struct _Task* field_924;
+    /* 0x928 */ byte          pad_928[0x8];
+    /* 0x930 */ byte          field_930; // address taken for func_801011D0
+    /* 0x931 */ byte          pad_931[0x13];
+    /* 0x944 */ s16           field_944;
+    /* 0x946 */ s16           field_946;
+    /* 0x948 */ s16           field_948;
+    /* 0x94A */ s16           field_94A;
+    /* 0x94C */ s16           field_94C;
+    /* 0x94E */ s16           field_94E;
+    /* 0x950 */ s16           field_950;
+    /* 0x952 */ byte          pad_952[0x1E];
+    /* 0x970 */ s16           field_970;
+    /* 0x972 */ u8            field_972;
+    /* 0x973 */ byte          pad_973[0x11];
+    /* 0x984 */ u8            field_984;
+    /* 0x985 */ byte          pad_985[0x8];
+    /* 0x98D */ u8            field_98D;
+    /* 0x98E */ u8            field_98E;
+    /* 0x98F */ byte          pad_98F;
+    /* 0x990 */ u8            field_990;
 } GameActor;
 STATIC_ASSERT_SIZEOF(GameActor, 0x994);
 

@@ -1,6 +1,8 @@
 #include "common.h"
 
+#include "gameplay/3A34.h"
 #include "gameplay/3FB8.h"
+#include "main/task.h"
 #include "main/wipsys.h"
 
 extern WipSysConfig D_80073B88;
@@ -112,7 +114,41 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010133C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801013FC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80101408);
+void func_80101408(GpActorWork* arg0)
+{
+    volatile GameActor* inner;
+    Task*               task;
+
+    inner          = arg0->actor;
+    arg0->field_18 = NULL;
+    D_80115760     = NULL;
+    task           = inner->field_914;
+    if (task != NULL) {
+        Task_Kill(task);
+    }
+    task = inner->field_918;
+    if (task != NULL) {
+        Task_Kill(task);
+    }
+    task = inner->field_91C;
+    if (task != NULL) {
+        Task_Kill(task);
+    }
+    task = inner->field_920;
+    if (task != NULL) {
+        Task_Kill(task);
+    }
+    task = inner->field_924;
+    if (task != NULL) {
+        Task_Kill(task);
+    }
+    func_800E1638((GpObj*)inner->field_AC);
+    func_800E1638((GpObj*)inner->field_CC);
+    func_800E1638((GpObj*)inner->field_EC);
+    func_800E1638((GpObj*)inner->field_10C);
+    func_800E1638((GpObj*)inner->field_12C);
+    Task_Kill((Task*)arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801014E8);
 

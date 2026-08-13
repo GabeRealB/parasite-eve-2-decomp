@@ -28,6 +28,7 @@ void func_800E0540(GpObj* node);
 void func_800E0608(GpObj* node, s32 mask, s32 match);
 void func_800E06AC(GpObj* node, s32 mask, s32 match);
 void func_800E0B08(void);
+void func_800E1638(GpObj* node);
 void func_8010154C(void);
 
 #endif // GAMEPLAY_3A34_H
