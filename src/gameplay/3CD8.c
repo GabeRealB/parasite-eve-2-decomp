@@ -1,8 +1,11 @@
 #include "common.h"
 
+#include "main/task.h"
+
 void func_800E34D8(s32 arg0, s16 arg1);
 s32  func_800E6CE0(void);
 void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
+void func_800E8A90(Task* task);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E34D8);
 
@@ -196,7 +199,10 @@ void func_800E92BC(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E92C4);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E9308);
+void func_800E9308(Task* task)
+{
+    func_800E8A90(task);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E9328);
 
