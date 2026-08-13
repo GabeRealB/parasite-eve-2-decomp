@@ -32,6 +32,7 @@ typedef struct _GpObj38 {
 } GpObj38;
 STATIC_ASSERT_SIZEOF(GpObj38, 0x3C);
 
+extern u8     D_801153F3;
 extern GpObj* D_80115570;
 extern GpObj* D_80115574;
 extern GpObj* D_80115578;
@@ -46,6 +47,7 @@ s32  func_800D9788(GpObj38* arg0);
 void func_800D9CC8(Task* arg0);
 void func_800D9DFC(void);
 void func_800DAB38(GpLinkNode* node);
+void func_800DB530(s32 arg0);
 void func_800DB72C(void);
 void func_800DB900(GpObj* node);
 void func_800E0414(GpObj* a, GpObj* b);
