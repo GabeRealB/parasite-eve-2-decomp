@@ -12247,3 +12247,18 @@ overwrite.
 Add the new name to `configs/USA/sym.main.txt` *before* a clean split, or
 re-run the token rename after splat. `INCLUDE_ASM` units are not ninja
 inputs — touch/rebuild the C object after renaming a referenced `.s`.
+
+## Overlay: let splat-migrated INCLUDE_ASM jtbls fill the hole
+
+When a new switch is matched in a gameplay overlay TU that already owns a
+later compiler jtbl, expanding the TU's `.rodata` range (yaml `.rodata, 3FB8`
+start moved earlier) makes splat's `migrate_rodata_to_functions` attach the
+intervening still-asm table to that function's `.s`. That include then emits
+`.section .rodata` at the `INCLUDE_ASM` site, which sits in source order
+between the two C switches.
+
+Do **not** also emit a C `const s32 jtbl_XXXXXXXX[]` copy: the included
+`dlabel` and the C symbol collide (`symbol already defined`). Drop the
+absolute copy and let the migrated `.s` own the middle slot until that
+function is matched. `func_80109170` / `jtbl_80097A68` / `func_8010A42C` is
+the example.
