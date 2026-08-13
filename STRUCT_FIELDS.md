@@ -509,6 +509,7 @@ See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 | 0x4C | `field_4C` | Init flag |
 | 0x4E | `field_4E` | Set by `Fs_LoadFile` for category-8 |
 | 0x7C–80 | halfwords | Counters / mode |
+| 0x12C | `field_12C` | u8 flag; 0 runs extra `func_800E06AC` pass in `func_800DB72C` |
 
 ### `GameActor` / `GameActorExt`
 Sparse: `field_17C`/`field_930` addresses for overlay setup; `field_C` kill flag bit 0x80.

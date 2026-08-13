@@ -1,5 +1,8 @@
 #include "common.h"
 
+#include "gameplay/3A34.h"
+#include "main/session.h"
+
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D5B14);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D6170);
@@ -136,7 +139,39 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB630);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB6B4);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB72C);
+void func_800DB72C(void)
+{
+    if (Game_GetPtrSlot(3) != NULL) {
+        func_8010154C();
+        func_800E0540(D_80115570);
+        func_800E0540(D_80115574);
+        func_800E0540(D_80115578);
+        func_800E0540(D_8011557C);
+        func_800E0540(D_80115580);
+        func_800E0540(D_8011558C);
+        func_800E0540(D_80115590);
+        func_800E0414(D_80115570, D_80115578);
+        func_800E0414(D_80115570, D_8011557C);
+        func_800E0414(D_80115570, D_80115580);
+        func_800E0414(D_80115570, D_80115590);
+        func_800DB900(D_80115570);
+        func_800E0414(D_80115574, D_80115578);
+        func_800E0414(D_80115574, D_80115580);
+        func_800E0414(D_80115574, D_80115588);
+        func_800E0414(D_80115578, D_80115580);
+        func_800E0414(D_80115578, D_80115590);
+        func_800DB900(D_80115578);
+        func_800E0414(D_8011557C, D_80115580);
+        func_800E0414(D_80115580, D_80115590);
+        if (D_80115424 != 0) {
+            func_800E0B08();
+        }
+        func_800E0608(D_80115570, 0x9007, 0x9004);
+        if (Game_Session->field_12C == 0) {
+            func_800E06AC(D_80115570, 0xA007, 0xA004);
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB900);
 
