@@ -34,6 +34,7 @@ extern GpObj* D_80115590;
 extern s32    D_80115424;
 
 void func_800D9CC8(Task* arg0);
+void func_800D9DFC(void);
 void func_800DAB38(GpLinkNode* node);
 void func_800DB72C(void);
 void func_800DB900(GpObj* node);

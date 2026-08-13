@@ -222,7 +222,10 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B62D4);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B6358);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B6398);
+void func_800B6398(void)
+{
+    func_800D9DFC();
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B63B8);
 
