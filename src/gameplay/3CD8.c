@@ -216,7 +216,10 @@ void func_800E9348(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E9350);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E9394);
+void func_800E9394(Task* task)
+{
+    func_800E8BB0(task);
+}
 
 void func_800E93B4(Task* task)
 {
