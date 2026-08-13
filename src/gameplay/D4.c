@@ -160,7 +160,11 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD410);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD50C);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD58C);
+void func_800AD58C(Task* task)
+{
+    func_800ACAA8();
+    Task_Kill(task);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD5B8);
 
