@@ -1,5 +1,27 @@
 #include "common.h"
 
+extern u32 D_8007216C;
+
+void func_80180804(void);
+void func_8017EA68(void);
+void func_80181468(void);
+void func_8017EA90(void);
+void func_8017E9E8(void);
+void func_80181364(void);
+void func_8017EA58(void);
+void func_8017E9F8(void);
+void func_8017EAE0(void);
+void func_8018138C(void);
+void func_8017EA74(void);
+void func_8017EA78(void);
+void func_8017EB2C(void);
+void func_8017EDE8(void);
+void func_8017EAB4(void);
+void func_8017EA64(void);
+void func_8017EC04(void);
+void func_8017EAC4(void);
+void func_8017EA60(void);
+
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B7420);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B7930);
@@ -28,7 +50,68 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800B904C);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B91C8);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800B92CC);
+void func_800B92CC(void)
+{
+    switch (D_8007216C & 0xFFFF0000) {
+        case 0x1010000:
+            func_80180804();
+            break;
+        case 0x10F0000:
+            func_8017EA68();
+            break;
+        case 0x1130000:
+            func_80181468();
+            break;
+        case 0x2010000:
+            func_8017EA90();
+            break;
+        case 0x2110000:
+            func_8017E9E8();
+            break;
+        case 0x21B0000:
+            func_80181364();
+            break;
+        case 0x3010000:
+            func_8017E9F8();
+            break;
+        case 0x3110000:
+            func_8017EAE0();
+            break;
+        case 0x31B0000:
+            func_8018138C();
+            break;
+        case 0x4060000:
+            func_8017EA78();
+            break;
+        case 0x4100000:
+            func_8017EB2C();
+            break;
+        case 0x4140000:
+            func_8017EDE8();
+            break;
+        case 0x41F0000:
+            func_8017EAB4();
+            break;
+        case 0x4290000:
+            func_8017EA64();
+            break;
+        case 0x42F0000:
+            func_8017EC04();
+            break;
+        case 0x5160000:
+            func_8017EAC4();
+            break;
+        case 0x51C0000:
+            func_8017EA60();
+            break;
+        case 0x21E0000:
+            func_8017EA58();
+            break;
+        case 0x31E0000:
+            func_8017EA74();
+            break;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B954C);
 
