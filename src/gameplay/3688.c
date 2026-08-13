@@ -1,7 +1,9 @@
 #include "common.h"
 
+#include "main/fs.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/ui.h"
 
 extern u32 D_80114DCC;
 
@@ -10,6 +12,11 @@ void func_8017F2F8(Task* task);
 void func_8017F304(Task* task);
 void func_80181184(Task* task);
 void func_801811A0(Task* task);
+void func_800D02A4(Task* arg0);
+void func_800D0C34(Task* arg0);
+void func_800D0614(Task* arg0);
+void func_800D08D4(Task* arg0);
+void func_800D15D0(Task* arg0);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800BF9FC);
 
@@ -312,7 +319,23 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D1CF8);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D1D5C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D1E28);
+void func_800D1E28(Task* arg0)
+{
+    UiObject* obj;
+
+    obj = arg0->spawnArg2;
+    if (CdCmd_IsIdle() & 0xFFFF) {
+        obj->timer = 1;
+        func_800D02A4(arg0);
+        func_800D0C34(arg0);
+        func_800D0614(arg0);
+        func_800D08D4(arg0);
+        func_800D15D0(arg0);
+        arg0->state = arg0->state + 1;
+    } else {
+        obj->timer = (u16)obj->timer + 1;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D1EB8);
 

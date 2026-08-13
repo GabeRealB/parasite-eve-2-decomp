@@ -20,6 +20,7 @@ func_8001BB7C = 0x8001BB7C; // absolute:True
 func_8001C970 = 0x8001C970; // absolute:True
 func_8001D2B0 = 0x8001D2B0; // absolute:True
 func_8001D344 = 0x8001D344; // absolute:True
+CdCmd_IsIdle = 0x8001D344; // absolute:True
 func_8001D39C = 0x8001D39C; // absolute:True
 func_8001D424 = 0x8001D424; // absolute:True
 func_8001D498 = 0x8001D498; // absolute:True
