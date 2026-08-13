@@ -2,6 +2,8 @@
 
 #include "main/task.h"
 
+extern s32 D_80115660;
+
 void func_800E34D8(s32 arg0, s16 arg1);
 s32  func_800E6CE0(void);
 void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
@@ -104,7 +106,10 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6D60);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6DF4);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6E44);
+void func_800E6E44(s32 arg0)
+{
+    D_80115660 = arg0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6E50);
 
