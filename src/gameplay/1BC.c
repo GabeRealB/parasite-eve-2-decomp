@@ -32,7 +32,15 @@ void func_800B01F0(GpEnemy* enemy, Task* task)
     Task_Kill(task);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0234);
+void func_800B0234(Task* task)
+{
+    GpEnemy* enemy;
+
+    enemy = task->spawnArg2;
+    func_800DAB38(&enemy->node);
+    Mem_Free(enemy);
+    Task_Kill(task);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0278);
 

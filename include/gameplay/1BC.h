@@ -16,5 +16,6 @@ typedef struct _GpEnemy {
 } GpEnemy;
 
 void func_800B01F0(GpEnemy* enemy, Task* task);
+void func_800B0234(Task* task);
 
 #endif // GAMEPLAY_1BC_H
