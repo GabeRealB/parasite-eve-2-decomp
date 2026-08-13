@@ -1,9 +1,9 @@
 // Symbols for the title / demo / main-menu overlay.
 // Load address 0x80093800. Retail asset: assets/USA/pe2pkg/title.pe2pkg.
 //
-// Overlay-local only. splat 0.50 requires segment: (or rom:) on overlay
-// symbols. Main-executable imports are not listed here; title TUs are C
-// and pull those names from headers.
+// Overlay-local names. This yaml is splat'd without main, so these are
+// ordinary (non-overlay) symbols. Main-exe imports live in
+// sym.title.imports.txt (absolute:True).
 //
 // Title_RestoreDemoCard / Title_EnqueueDemoScene / Title_TaskDescs are also
 // named in sym.main.txt (main BSS stubs at the same VRAM).
@@ -11,38 +11,42 @@
 // ---------------------------------------------------------------------------
 // Overlay package header (src/title/title_rodata.c)
 // ---------------------------------------------------------------------------
-Title_Header = 0x80093800; // size:0x4 segment:title
+Title_Header = 0x80093800; // size:0x4
 // 5-way phase table immediately after Title_Header (Title_Dispatch).
-Title_PhaseTable = 0x80093804; // size:0x14 segment:title
-Title_DemoStartMsg = 0x80093818; // segment:title
-Title_DemoCardRestoreMsg = 0x80093830; // segment:title
+Title_PhaseTable = 0x80093804; // size:0x14
+Title_DemoStartMsg = 0x80093818;
+Title_DemoCardRestoreMsg = 0x80093830;
+
+// Switch jtables in title.c .rodata (overlay 0x5C / 0x7C).
+jtbl_8009385C = 0x8009385C; // type:jtbl size:0x20
+jtbl_8009387C = 0x8009387C; // type:jtbl size:0x20
 
 // ---------------------------------------------------------------------------
 // Code (src/title/title.c)
 // ---------------------------------------------------------------------------
-Title_InitTask = 0x8009389C; // type:func segment:title
-Title_DrawSpriteRow = 0x800939C4; // type:func segment:title
-Title_MenuTask = 0x80093ABC; // type:func segment:title
-Title_RestoreDemoCard = 0x8009407C; // type:func segment:title
-Title_FlagAdvanceTask = 0x8009470C; // type:func segment:title
-Title_Dispatch = 0x8009472C; // type:func segment:title
-Title_ExitTask = 0x800947A8; // type:func segment:title
-Title_DemoStreamTask = 0x800947C8; // type:func segment:title
-Title_BootTask = 0x80094A08; // type:func segment:title
-Title_EnqueueDemoScene = 0x80094B90; // type:func segment:title
+Title_InitTask = 0x8009389C; // type:func
+Title_DrawSpriteRow = 0x800939C4; // type:func
+Title_MenuTask = 0x80093ABC; // type:func
+Title_RestoreDemoCard = 0x8009407C; // type:func
+Title_FlagAdvanceTask = 0x8009470C; // type:func
+Title_Dispatch = 0x8009472C; // type:func
+Title_ExitTask = 0x800947A8; // type:func
+Title_DemoStreamTask = 0x800947C8; // type:func
+Title_BootTask = 0x80094A08; // type:func
+Title_EnqueueDemoScene = 0x80094B90; // type:func
 
 // ---------------------------------------------------------------------------
 // Menu data (asm/USA/title/data/menu.data.s)
 // ---------------------------------------------------------------------------
-Title_StrNewGame = 0x80094C0C; // segment:title
-Title_StrLoadGame = 0x80094C18; // segment:title
-Title_StrConfiguration = 0x80094C24; // segment:title
-Title_StrDebugOption = 0x80094C34; // segment:title
-Title_StrExtraGame = 0x80094C44; // segment:title
-Title_StrSurvival = 0x80094C50; // segment:title
+Title_StrNewGame = 0x80094C0C;
+Title_StrLoadGame = 0x80094C18;
+Title_StrConfiguration = 0x80094C24;
+Title_StrDebugOption = 0x80094C34;
+Title_StrExtraGame = 0x80094C44;
+Title_StrSurvival = 0x80094C50;
 // Task spawn ids for menu selection indices (New Game / Load / Config / …).
-Title_MenuSpawnIds = 0x80094C74; // size:0x18 segment:title
-Title_TaskDescs = 0x80094C8C; // size:0x18 segment:title
-Title_LastRand = 0x80094CA4; // segment:title
+Title_MenuSpawnIds = 0x80094C74; // size:0x18
+Title_TaskDescs = 0x80094C8C; // size:0x18
+Title_LastRand = 0x80094CA4;
 // When set, Title_BootTask spawns with arg 0x80000000 (skip fade TILE).
-Title_SkipFadeFlag = 0x80094CA8; // segment:title
+Title_SkipFadeFlag = 0x80094CA8;

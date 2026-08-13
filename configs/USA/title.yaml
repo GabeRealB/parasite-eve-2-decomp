@@ -33,10 +33,11 @@ options:
   asm_data_macro: dlabel
   generate_asm_macros_files: False
 
-  # Main-executable imports live outside this binary's VRAM. splat 0.50
-  # rejects those unless they are in the declared global range.
+  # Main-exe import VRAM (absolute:True). Must end at the overlay load
+  # address so it does not overlap this file's VRAM (now a normal global
+  # segment; see exclusive_ram_id note below).
   global_vram_start: 0x80010000
-  global_vram_end: 0x80200000
+  global_vram_end: 0x80093800
 
   # Binary order: header rodata, code, menu-string data
   section_order: [".rodata", ".text", ".data", ".sdata", ".sbss", ".bss"]
@@ -69,12 +70,18 @@ segments:
     vram: 0x80093800
     align: 4
     subalign: 4
-    # Overlay is loaded into main BSS (0x80093800).
-    exclusive_ram_id: title
+    # Not exclusive_ram_id: this yaml is splat'd alone (not with main).
+    # Tagging it as an overlay leaves splat's default global VROM at
+    # 0x0–0x1000, which overlaps this file; branch labels are then
+    # looked up in the empty global segment and never emitted.
+    # Runtime still loads at 0x80093800 (main BSS).
     subsegments:
-      # Package header + demo strings (title_rodata.c); ends before jtables @ 0x5C
+      # Package header + demo strings (title_rodata.c); 0x0–0x5C
       - [0x0, c, title_rodata]
-      # Logic + switch jtables in .rodata (first symbols in this object → @ 0x5C)
+      # Switch jtables belong to title.c (first symbols in that object's .rodata).
+      # Without this sibling, splat assigns 0x5C–0x9C to title_rodata and objdiff
+      # compares title.c.o against a text-only expected object.
+      - [0x5C, .rodata, title]
       - [0x9C, c, title]
       # Menu item strings ("New Game", "Load Game", …) + tables
       # Plain `data` (not `.data`): dotted sibling is not linked as its own object.

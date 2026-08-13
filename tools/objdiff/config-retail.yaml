@@ -3,6 +3,10 @@ categories:
     name: Main Executable
     paths:
       - main
+  - id: title
+    name: Title Overlay
+    paths:
+      - title
 
 expected_paths:
   ALL: expected/

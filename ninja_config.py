@@ -350,6 +350,28 @@ def ninja_setup_list_add_source(
         return f"{expected_path}.s.o"
 
 
+def fix_title_linker_rodata_order() -> None:
+    """Keep header rodata before title.c jtables after splat.
+
+    The `.rodata, title` sibling (jtables @ 0x5C) makes splat emit
+    `title.c.o(.rodata)` first. Linked order must stay title_rodata then title.
+    """
+    dest = Path("linkers/USA/title.ld")
+    if not dest.is_file():
+        return
+    text = dest.read_text(encoding="utf-8")
+    wrong = (
+        "        build/USA/src/title/title.c.o(.rodata);\n"
+        "        build/USA/src/title/title_rodata.c.o(.rodata);\n"
+    )
+    right = (
+        "        build/USA/src/title/title_rodata.c.o(.rodata);\n"
+        "        build/USA/src/title/title.c.o(.rodata);\n"
+    )
+    if wrong in text:
+        dest.write_text(text.replace(wrong, right, 1), encoding="utf-8")
+
+
 def append_title_absolute_imports() -> None:
     """splat 0.50 will not put absolute main-exe symbols in the title undef scripts.
 
@@ -830,6 +852,7 @@ def main():
             make_full_disasm_for_code=objdiff_config_option,
         )
         if yaml == "title.yaml":
+            fix_title_linker_rodata_order()
             append_title_absolute_imports()
         splits_yaml_info.append(
             YamlInfo(

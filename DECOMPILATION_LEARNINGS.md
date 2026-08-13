@@ -12009,6 +12009,19 @@ Linker (section_order rodata → text): `title_rodata.o(.rodata)` then
 (offset 0), so GCC’s `.align 3` is a no-op and they land at 0x5C after the
 0x5C-byte header — no ninja `sed`.
 
+Give splat the jtables as a `.rodata, title` sibling at 0x5C (so the title
+unit matches `title.c.o`). splat will then emit `title.c.o(.rodata)` first
+in `title.ld` — `fix_title_linker_rodata_order()` swaps it back.
+
+Do **not** tag this overlay `exclusive_ram_id` when it is splat'd alone.
+That leaves splat's default global VROM at `0x0–0x1000`, which overlaps
+the pe2pkg file; `getLabelForOffset` then looks up branch targets in the
+empty global segment and skips emitting `.L8009…:` / uses `func_8009…`
+for same-TU `jal`s. The linked overlay still matches; objdiff does not.
+Treat title as a normal global segment in `title.yaml` and keep main-exe
+imports `absolute:True` (plus `global_vram_*` ending at the load address
+`0x80093800`).
+
 `Title_Padding = 0xE122` must follow `Title_DemoCardRestoreMsg` (retail is not
 zero-pad after the string NUL).
 
