@@ -1,0 +1,473 @@
+#include "common.h"
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F75BC);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F77F8);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F7AD4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F7E28);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F8244);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F8A38);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F91AC);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F9474);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F96B0);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F9FBC);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FA45C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FA7CC);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FAA14);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FAC40);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FB148);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FB67C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FB7E4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FBAB0);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FBEBC);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FC0B4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FC500);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FC6C0);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FC6E0);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FC6F4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FC74C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FC9BC);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FCD00);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FD49C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FDB18);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FE034);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FE41C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FE56C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FEAF8);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FEFA4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FF710);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FFA8C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80100020);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801005D8);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80100784);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80100B78);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80100E40);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80100FCC);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801011D0);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010133C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801013FC);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80101408);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801014E8);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010154C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80101848);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80101A68);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80101F58);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80102348);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80102634);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801029D4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80102D20);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80102F10);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801030CC);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103294);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801034C0);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801036FC);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103804);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103874);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801038F8);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010397C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103A18);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103AC0);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103B1C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103B5C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103B88);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103C74);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103CB4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103D8C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103DD4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103E7C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103F70);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010403C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801040A0);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801041B4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801041FC);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104258);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104364);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801043F4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104490);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104508);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104684);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104838);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104A4C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104AAC);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104B54);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104CAC);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104D68);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104E00);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104F5C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105070);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105190);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801052B8);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801053A0);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801054D8);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801055D4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105690);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105754);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105828);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010583C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105894);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801058BC);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105914);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801059AC);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105A60);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105A8C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105AB0);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105B0C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105B74);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105BC4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105ED4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801060E0);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010615C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801061F0);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106238);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106264);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801062DC);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106350);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801064A4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106518);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106550);
+
+void func_801065A0(void)
+{
+}
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801065A8);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801066DC);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106838);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106A3C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106C6C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010747C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010771C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801078AC);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80107E1C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108084);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108224);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801083A0);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108458);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108568);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801085D0);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108620);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108684);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010870C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108770);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108874);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801088D4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108A0C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108B80);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108BAC);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108BD8);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108CC4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108D68);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108E0C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108E40);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108ED4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108FA0);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108FD4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801090E8);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109138);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109170);
+
+void func_80109208(void)
+{
+}
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109210);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109250);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109290);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109374);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801093DC);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801094D4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801095BC);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109684);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109700);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109720);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109818);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109844);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109A1C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109BB4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109FC4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010A1B0);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010A42C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010A670);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010A854);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010A9D0);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010AA28);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010AAB4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010AB70);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010ABD4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010AC54);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010AD64);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010AE98);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010AF04);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010AF6C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010AFC0);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B010);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B060);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B0C8);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B120);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B210);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B228);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B2A0);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B2D4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B348);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B3F8);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B520);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B590);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B5C0);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B5E4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B5F0);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B610);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B674);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B79C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B9A4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010BAC8);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010BC04);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010BC70);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010BCF4);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010BD88);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010BE5C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010BF7C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010BFCC);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C058);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C098);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C180);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C1FC);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C30C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C46C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C4F0);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C648);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C688);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C6C8);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C708);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C75C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C81C);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C858);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C8F0);
+
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C980);

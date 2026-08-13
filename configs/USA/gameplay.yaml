@@ -1,0 +1,104 @@
+# Resident in-game overlay (actors, combat, inventory, …)
+# Source: stage0/gameplay/gameplay.pe2pkg → assets/USA/pe2pkg/gameplay.pe2pkg
+# Load address: 0x80093800  size: 0x81F69 (532329)
+name: Gameplay Overlay
+sha1: 6bc1c60a5d58025bf670c41a8ab3050a52cf4ac4
+options:
+  basename: gameplay
+  target_path: assets/USA/pe2pkg/gameplay.pe2pkg
+  base_path: ../..
+  platform: psx
+  compiler: PSYQ
+
+  asm_path: asm/USA/gameplay
+  src_path: src/gameplay
+  build_path: build/USA
+  hasm_in_src_path: True
+
+  ld_script_path: linkers/USA/gameplay.ld
+
+  # Flat pe2pkg overlay: no PS-X EXE header. Layout is
+  #   header/rodata → .text → trailing data
+  # so section_order must keep .rodata before .text before .data.
+  migrate_rodata_to_functions: True
+  find_file_boundaries: False
+  pair_rodata_to_text: False
+
+  o_as_suffix: False
+  use_legacy_include_asm: False
+
+  asm_function_macro: glabel
+  asm_jtbl_label_macro: jlabel
+  asm_data_macro: dlabel
+  generate_asm_macros_files: False
+
+  # Main-exe import VRAM (absolute:True). Must end at the overlay load
+  # address so it does not overlap this file's VRAM (splat'd alone, no
+  # exclusive_ram_id — same as title.yaml).
+  global_vram_start: 0x80010000
+  global_vram_end: 0x80093800
+
+  section_order: [".rodata", ".text", ".data", ".sdata", ".sbss", ".bss"]
+  symbol_addrs_path:
+    - configs/USA/sym.gameplay.txt
+    - configs/USA/sym.gameplay.imports.txt
+  reloc_addrs_path:
+    - configs/USA/rel.gameplay.txt
+
+  undefined_funcs_auto_path: linkers/USA/undefined_funcs_auto.gameplay.txt
+  undefined_syms_auto_path: linkers/USA/undefined_syms_auto.gameplay.txt
+
+  subalign: 4
+
+  string_encoding: ASCII
+  data_string_encoding: ASCII
+  rodata_string_guesser_level: 2
+  data_string_guesser_level: 2
+
+  ld_bss_is_noload: True
+  # File ends at an unaligned size (0x81F69); do not pad sections to align.
+  ld_align_section_vram_end: False
+  ld_align_segment_vram_end: False
+
+segments:
+  - name: gameplay
+    type: code
+    start: 0x0
+    vram: 0x80093800
+    align: 4
+    subalign: 4
+    # Not exclusive_ram_id: this yaml is splat'd alone (not with main).
+    # Runtime still loads at 0x80093800 (main BSS), replacing title.
+    subsegments:
+      # Rodata file splits from splat (GCC jtbl 8-align remainder changes).
+      # Names are unique (not shared with the c TUs) so migrate_rodata_to_functions
+      # does not treat these as dotted siblings.
+      - [0x0, rodata, header]
+      - [0xD4, rodata, rodata_D4]
+      - [0x1A8, rodata, rodata_1A8]
+      - [0x1BC, rodata, rodata_1BC]
+      - [0x268, rodata, rodata_268]
+      - [0x4CC, rodata, rodata_4CC]
+      - [0x3688, rodata, rodata_3688]
+      - [0x3A34, rodata, rodata_3A34]
+      - [0x3CD8, rodata, rodata_3CD8]
+      - [0x3E9C, rodata, rodata_3E9C]
+      - [0x3FB8, rodata, rodata_3FB8]
+      # Text TUs: first function that uses each group's jtbl (file 0 starts
+      # at the first addiu $sp).
+      - [0x42C0, c, gameplay] # func_80097AC0
+      - [0x15B10, c, D4] # func_800A9310
+      - [0x1B3A4, c, 1A8] # func_800AEBA4
+      - [0x1BD90, c, 1BC] # func_800AF590
+      - [0x23C20, c, 268] # func_800B7420
+      - [0x28E34, c, 4CC] # func_800BC634
+      - [0x2C1FC, c, 3688] # func_800BF9FC
+      - [0x42314, c, 3A34] # func_800D5B14
+      - [0x4FCD8, c, 3CD8] # func_800E34D8
+      - [0x592A8, c, 3E9C] # func_800ECAA8
+      - [0x63DBC, c, 3FB8] # func_800F75BC
+      # "Item obtained!" / UI strings / tables after last jr ra
+      - [0x79208, data, data]
+      # Trailing 1 zero byte past the last word (file size 0x81F69)
+      - [0x81F68, pad]
+  - [0x81F69]

@@ -30,8 +30,8 @@ Descriptions are best-effort: source path and load address come from `assets/USA
 
 | Overlay | Description | Status |
 |---|---|---|
-| `gameplay` | Resident in-game overlay (actors/anim, enemies, combat/field, inventory) — source `stage0/gameplay/gameplay.pe2pkg` — load `0x80093800` — 350.0 KiB | Not started |
-| `title` | Title / demo / main menu — source `stage0/title/title.pe2pkg` — load `0x80093800` — 4.0 KiB | Split (asm only) |
+| `gameplay` | Resident in-game overlay (actors/anim, enemies, combat/field, inventory) — source `stage0/gameplay/gameplay.pe2pkg` — load `0x80093800` — 350.0 KiB | Split (asm only) |
+| `title` | Title / demo / main menu — source `stage0/title/title.pe2pkg` — load `0x80093800` — 4.0 KiB | Split |
 | `stage0_file100300_3` | Stage 0 overlay (id stage0/file100300/3.pe2pkg) — source `stage0/file100300/3.pe2pkg` — load `0x80131E20` — 68.0 KiB | Not started |
 | `stage0_file100400_3` | Stage 0 overlay (id stage0/file100400/3.pe2pkg) — source `stage0/file100400/3.pe2pkg` — load `0x80131E20` — 62.0 KiB | Not started |
 | `stage0_file100500_3` | Stage 0 overlay (id stage0/file100500/3.pe2pkg) — source `stage0/file100500/3.pe2pkg` — load `0x80131E20` — 2.0 KiB | Not started |

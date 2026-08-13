@@ -1,0 +1,2 @@
+// Reloc overrides for the gameplay overlay.
+// Add entries here when splat misidentifies a reloc (same format as rel.main.txt).

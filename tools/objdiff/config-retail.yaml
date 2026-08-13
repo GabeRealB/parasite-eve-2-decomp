@@ -7,6 +7,10 @@ categories:
     name: Title Overlay
     paths:
       - title
+  - id: gameplay
+    name: Gameplay Overlay
+    paths:
+      - gameplay
 
 expected_paths:
   ALL: expected/

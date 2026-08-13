@@ -12025,6 +12025,19 @@ imports `absolute:True` (plus `global_vram_*` ending at the load address
 `Title_Padding = 0xE122` must follow `Title_DemoCardRestoreMsg` (retail is not
 zero-pad after the string NUL).
 
+## Overlay rodata file splits from jumptable 8-align remainder
+
+On PSX, GCC 8-aligns switch tables inside a TU but does not 8-align the
+section itself. When several original `.c` files are concatenated into one
+splat `rodata` blob, `jtbl.vram - segment.vram` rem 8 changes at each
+original file. Those offsets are splat's yaml split hints.
+
+Pair each rodata chunk with a `c` TU starting at the first function that
+uses that chunk's `jtbl_*`. Keep the `rodata` names distinct from the `c`
+names (`rodata_D4` vs `D4`) while everything is still `INCLUDE_ASM`, or
+splat's `migrate_rodata_to_functions` errors on an undotted same-name
+sibling.
+
 ## Title state machine: shared `advance` between last fallthrough and exit case
 
 When the target lays out `case N` fallthrough into `field_30++` *before* a later

@@ -76,7 +76,7 @@ class YamlInfo:
 
 
 # Each entry is a splat config under configs/<version>/. main first; overlays after.
-YAML_EXECUTABLE = ["main.yaml", "title.yaml"]
+YAML_EXECUTABLE = ["main.yaml", "title.yaml", "gameplay.yaml"]
 
 # Directories
 ASSETS_DIR = Path("assets")
@@ -372,13 +372,13 @@ def fix_title_linker_rodata_order() -> None:
         dest.write_text(text.replace(wrong, right, 1), encoding="utf-8")
 
 
-def append_title_absolute_imports() -> None:
-    """splat 0.50 will not put absolute main-exe symbols in the title undef scripts.
+def append_overlay_absolute_imports(basename: str) -> None:
+    """splat 0.50 will not put absolute main-exe symbols in overlay undef scripts.
 
-    Title TUs are C and still need those names at link time (`-T` undef files).
+    Overlay TUs are C and still need those names at link time (`-T` undef files).
     """
-    imports = Path("configs/USA/sym.title.imports.txt")
-    dest = Path("linkers/USA/undefined_syms_auto.title.txt")
+    imports = Path(f"configs/USA/sym.{basename}.imports.txt")
+    dest = Path(f"linkers/USA/undefined_syms_auto.{basename}.txt")
     if not imports.is_file() or not dest.is_file():
         return
     extra = []
@@ -390,6 +390,24 @@ def append_title_absolute_imports() -> None:
         return
     text = dest.read_text(encoding="utf-8")
     dest.write_text(text.rstrip() + "\n" + "\n".join(extra) + "\n", encoding="utf-8")
+
+
+def append_title_absolute_imports() -> None:
+    append_overlay_absolute_imports("title")
+
+
+def fix_overlay_include_asm_paths(basename: str) -> None:
+    """splat 0.50 emits INCLUDE_ASM(\"asm/USA/...\"). Project macro already
+    prefixes asm/USA/, so strip the extra directory from generated C."""
+    src_dir = Path(f"src/{basename}")
+    if not src_dir.is_dir():
+        return
+    for path in src_dir.glob("*.c"):
+        text = path.read_text(encoding="utf-8")
+        new = text.replace('INCLUDE_ASM("asm/USA/', 'INCLUDE_ASM("')
+        new = new.replace('INCLUDE_RODATA("asm/USA/', 'INCLUDE_RODATA("')
+        if new != text:
+            path.write_text(new, encoding="utf-8")
 
 
 def ninja_build(
@@ -853,7 +871,10 @@ def main():
         )
         if yaml == "title.yaml":
             fix_title_linker_rodata_order()
-            append_title_absolute_imports()
+            append_overlay_absolute_imports("title")
+        elif yaml == "gameplay.yaml":
+            append_overlay_absolute_imports("gameplay")
+            fix_overlay_include_asm_paths("gameplay")
         splits_yaml_info.append(
             YamlInfo(
                 [split.linker_writer.entries],
