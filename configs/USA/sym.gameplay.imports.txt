@@ -260,6 +260,7 @@ D_80068F8C = 0x80068F8C; // absolute:True
 D_80068F90 = 0x80068F90; // absolute:True
 D_80068F94 = 0x80068F94; // absolute:True
 D_80068FA0 = 0x80068FA0; // absolute:True
+CdCmd_Queue = 0x80068FA0; // absolute:True
 D_80069138 = 0x80069138; // absolute:True
 D_8006919A = 0x8006919A; // absolute:True
 D_8006919E = 0x8006919E; // absolute:True

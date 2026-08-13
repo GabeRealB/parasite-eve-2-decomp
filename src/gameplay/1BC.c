@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/1BC.h"
+#include "main/fs.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -21,7 +22,10 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B00C4);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0118);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B015C);
+void func_800B015C(void* arg0)
+{
+    CdCmd_Queue.field_198 = arg0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0168);
 
