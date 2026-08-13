@@ -221,7 +221,10 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0608);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E06AC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E076C);
+s32 func_800E076C(void)
+{
+    return 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0774);
 
