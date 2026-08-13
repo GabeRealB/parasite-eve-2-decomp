@@ -1,5 +1,16 @@
 #include "common.h"
 
+#include "main/session.h"
+#include "main/task.h"
+
+extern u32 D_80114DCC;
+
+void func_8017F41C(Task* task);
+void func_8017F2F8(Task* task);
+void func_8017F304(Task* task);
+void func_80181184(Task* task);
+void func_801811A0(Task* task);
+
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800BF9FC);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C010C);
@@ -246,7 +257,32 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CFBFC);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CFCD4);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CFD78);
+void func_800CFD78(Task* arg0)
+{
+    if (arg0->state == 0) {
+        D_80114DCC = *(u32*)&Game_Session->field_4 & 0xFFFF0000;
+    }
+    switch (D_80114DCC) {
+        case 0x1010000:
+            func_8017F41C(arg0);
+            break;
+        case 0x1020000:
+            func_8017F2F8(arg0);
+            break;
+        case 0x1110000:
+            func_8017F304(arg0);
+            break;
+        case 0x21E0000:
+            func_80181184(arg0);
+            break;
+        case 0x31E0000:
+            func_801811A0(arg0);
+            break;
+        default:
+            Task_Kill(arg0);
+            break;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CFE68);
 

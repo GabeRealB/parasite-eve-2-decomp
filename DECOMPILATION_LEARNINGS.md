@@ -12262,3 +12262,18 @@ Do **not** also emit a C `const s32 jtbl_XXXXXXXX[]` copy: the included
 absolute copy and let the migrated `.s` own the middle slot until that
 function is matched. `func_80109170` / `jtbl_80097A68` / `func_8010A42C` is
 the example.
+
+## Overlay imports keep the old `func_800*` name
+
+Main-exe renames (`func_8002CCB8` → `Task_Kill`) are applied to
+`sym.main.txt` and the title overlay, but gameplay `INCLUDE_ASM` still
+`jal`s the old name. Calling the new name from overlay C needs a second
+import alias, same pattern as `Game_GetPtrSlot` / `func_8002D22C`:
+
+```
+func_8002CCB8 = 0x8002CCB8; // absolute:True
+Task_Kill = 0x8002CCB8; // absolute:True
+```
+
+in `configs/USA/sym.gameplay.imports.txt`. Do not rename every remaining
+overlay `jal` just to match one new C call. `func_800CFD78` is the example.

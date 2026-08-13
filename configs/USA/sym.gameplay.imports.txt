@@ -53,6 +53,7 @@ func_8002C9E0 = 0x8002C9E0; // absolute:True
 func_8002CA0C = 0x8002CA0C; // absolute:True
 func_8002CA54 = 0x8002CA54; // absolute:True
 func_8002CCB8 = 0x8002CCB8; // absolute:True
+Task_Kill = 0x8002CCB8; // absolute:True
 func_8002CFA0 = 0x8002CFA0; // absolute:True
 func_8002CFDC = 0x8002CFDC; // absolute:True
 func_8002D03C = 0x8002D03C; // absolute:True
