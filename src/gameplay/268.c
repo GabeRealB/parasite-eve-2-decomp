@@ -233,7 +233,10 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC0C0);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC164);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC180);
+s32 func_800BC180(u8* arg0)
+{
+    return arg0[1];
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC18C);
 
