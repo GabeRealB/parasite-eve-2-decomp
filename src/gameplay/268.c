@@ -1,5 +1,8 @@
 #include "common.h"
 
+#include "main/session.h"
+#include "main/task.h"
+
 extern u32 D_8007216C;
 
 void  func_80180804(void);
@@ -183,7 +186,10 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB668);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB6FC);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB7B4);
+void func_800BB7B4(Task* arg0)
+{
+    ((GameActorExt*)arg0->extra)->field_C = 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB7C0);
 
