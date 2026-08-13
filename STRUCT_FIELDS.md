@@ -545,6 +545,28 @@ unlinked by `func_800E1638` during actor teardown (`func_80101408`).
 
 ---
 
+## Gameplay overlay (`include/gameplay/`)
+
+### `GpLinkNode` (0x8) — `3A34.h`
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `next` | Singly-linked list (`D_80115268`) |
+| 0x04 | `field_4` | Flag byte (bit 0 cleared on link) |
+| 0x05 | `field_5` | Flag byte (cleared on link/unlink) |
+| 0x06 | `field_6` | 1 = on list; 0 = unlinked |
+
+Embedded at `GpEnemy.node` (+0x10). `func_800DAB38` also clears `GameActor+0x90C` slots that point at the node.
+
+### `GpEnemy` — `1BC.h`
+0x60-byte work object (`Mem_Calloc` in `func_800B0494`). Stored in `Task::spawnArg2`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `task` | Owning `Task*` |
+| 0x10 | `node` | `GpLinkNode` unlinked by `func_800DAB38` |
+
+---
+
 ## WIP (provisional)
 
 ### `WipSysFlags` — `field_4` soft-reset flag; `field_6` boot + stream TU gate  

@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include "gameplay/1BC.h"
+#include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 
@@ -23,7 +25,12 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0168);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B01AC);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B01F0);
+void func_800B01F0(GpEnemy* enemy, Task* task)
+{
+    func_800DAB38(&enemy->node);
+    Mem_Free(enemy);
+    Task_Kill(task);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0234);
 

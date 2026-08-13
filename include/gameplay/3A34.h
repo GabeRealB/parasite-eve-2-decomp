@@ -3,6 +3,16 @@
 
 #include "common.h"
 
+/// Singly-linked node unlinked by `func_800DAB38` / linked by `func_800DABEC`.
+/// `field_6 == 1` means the node is on the `D_80115268` list.
+typedef struct _GpLinkNode {
+    /* 0x00 */ struct _GpLinkNode* next;
+    /* 0x04 */ u8                  field_4;
+    /* 0x05 */ u8                  field_5;
+    /* 0x06 */ u8                  field_6;
+} GpLinkNode;
+STATIC_ASSERT_SIZEOF(GpLinkNode, 0x8);
+
 /// Linked object used as a list head/node by the 3A34 pair/filter helpers.
 /// `next` is at 0x0 and `flags` is at 0x1E; full object size is not known yet.
 typedef struct _GpObj {
@@ -21,6 +31,7 @@ extern GpObj* D_8011558C;
 extern GpObj* D_80115590;
 extern s32    D_80115424;
 
+void func_800DAB38(GpLinkNode* node);
 void func_800DB72C(void);
 void func_800DB900(GpObj* node);
 void func_800E0414(GpObj* a, GpObj* b);
