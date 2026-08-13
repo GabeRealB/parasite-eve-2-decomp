@@ -450,7 +450,10 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801095BC);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109684);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109700);
+void func_80109700(GpActorWork* arg0)
+{
+    func_80103AC0(arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109720);
 
