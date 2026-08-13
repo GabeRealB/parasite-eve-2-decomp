@@ -5,6 +5,7 @@
 #include "main/task.h"
 #include "main/ui.h"
 
+extern s32 D_80114D88;
 extern u32 D_80114DCC;
 
 void func_8017F41C(Task* task);
@@ -185,7 +186,10 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE22C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE294);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE398);
+void func_800CE398(s32 arg0)
+{
+    D_80114D88 = arg0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE3A4);
 
