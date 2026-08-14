@@ -740,7 +740,16 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B520);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B590);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B5C0);
+void func_8010B5C0(Task* arg0)
+{
+    Task*         parent;
+    GameActorExt* extra;
+
+    parent          = arg0->parent;
+    extra           = (GameActorExt*)arg0->extra;
+    extra->field_C  = ((GameActorExt*)parent->extra)->field_C;
+    *extra->field_8 = 0;
+}
 
 void func_8010B5E4(Task* arg0)
 {
