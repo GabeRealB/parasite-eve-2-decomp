@@ -577,6 +577,26 @@ Global at `D_801153F0`. Full object is larger (helpers also use 0x8 / 0xC / 0x10
 | 0x00 | `task` | Owning `Task*` |
 | 0x10 | `node` | `GpLinkNode` unlinked by `func_800DAB38` |
 
+### `GpAnimObj` — `1BC.h`
+Source object for `func_800B3CCC` / `func_800B3F60`. Full size unknown.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x30 | `field_30` | Copied into `GpAnimCtx.field_10` |
+| 0x34 | `field_34` | Address stored as `GpAnimCtx.field_4` (0x50-byte record base) |
+
+### `GpAnimCtx` (0x14) — `1BC.h`
+Context filled by `func_800B3CCC` / `func_800B3F60`. Used as arg0 by the
+`func_800B3448` cluster.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | Pointer table (arg1); copied onto 0x28-byte slots at +0x20 |
+| 0x04 | `field_4` | `&src->field_34`; 0x50-byte records in `func_800B3448` |
+| 0x08 | `field_8` | Pointer (arg3); 0x10-byte stride in `func_800B3448` |
+| 0x0C | `field_C` | 0x28-byte slot array (`func_800B3F60` writes it; `func_800B3CCC` does not) |
+| 0x10 | `field_10` | Copy of `src->field_30` |
+
 ### `GpItemSlot` (0x8) — `268.h`
 Indexed as `D_80072330[idx]` by `func_800BAFE0`. Two (id, count) pairs.
 

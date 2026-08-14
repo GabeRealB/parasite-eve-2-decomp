@@ -155,7 +155,13 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B3910);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B3AA4);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B3CCC);
+void func_800B3CCC(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3)
+{
+    arg0->field_0  = arg1;
+    arg0->field_4  = &arg2->field_34;
+    arg0->field_8  = arg3;
+    arg0->field_10 = arg2->field_30;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B3CE8);
 
