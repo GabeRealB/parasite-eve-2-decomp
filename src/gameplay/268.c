@@ -293,7 +293,13 @@ void func_800BC21C(void)
     D_800739B8 = D_80072174;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC230);
+s16 func_800BC230(void)
+{
+    u16* p;
+
+    p = &D_800739B8;
+    return D_80072174 - *p;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC254);
 
