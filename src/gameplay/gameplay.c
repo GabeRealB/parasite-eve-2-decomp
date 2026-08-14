@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/gameplay.h"
+#include "main/display.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -53,7 +54,10 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009939C);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009988C);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80099958);
+void func_80099958(void)
+{
+    func_8009850C(&Gpu_OtBuffers[Display_State.field_1f]);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80099994);
 
