@@ -59,7 +59,19 @@ void func_800A987C(void)
     Task_Spawn(0, 0x1E, 1, 0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A990C);
+void func_800A990C(s32 arg0)
+{
+    Task* slot;
+
+    slot                  = Game_GetPtrSlot(1);
+    D_8007216C            = arg0;
+    Game_Session->field_4 = arg0;
+    slot->spawnArg1       = (u8)arg0;
+    Pad_SetCooldown(0);
+    func_800A8DC0(1);
+    D_80071068 = 1;
+    Task_Spawn(0, 0x1E, 0, 0);
+}
 
 void func_800A9980(Task* task)
 {
