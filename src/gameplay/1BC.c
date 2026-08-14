@@ -91,7 +91,13 @@ void func_800B0544(GpEnemy* enemy, Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0560);
+void func_800B0560(GpEnemy* enemy, Task* task)
+{
+    enemy->field_C--;
+    if (enemy->field_C == 0) {
+        task->state++;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B058C);
 

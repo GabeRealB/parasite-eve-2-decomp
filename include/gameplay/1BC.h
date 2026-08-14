@@ -48,6 +48,7 @@ void     func_800B01F0(GpEnemy* enemy, Task* task);
 void     func_800B0234(Task* task);
 GpEnemy* func_800B0494(Task* task, GpEnemy* parent);
 void     func_800B0544(GpEnemy* enemy, Task* task);
+void     func_800B0560(GpEnemy* enemy, Task* task);
 void     func_800B3CCC(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3);
 void     func_800B3F60(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, void* arg4);
 void     func_800B57EC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
