@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/gameplay.h"
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -287,7 +288,12 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7CF4);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7D54);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7DB8);
+void func_800A7DB8(s32 arg0)
+{
+    if (!(D_80114C08.field_6 & 1)) {
+        D_80114C08.field_E = arg0;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7DE0);
 

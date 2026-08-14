@@ -1,0 +1,22 @@
+#ifndef GAMEPLAY_GAMEPLAY_H
+#define GAMEPLAY_GAMEPLAY_H
+
+#include "common.h"
+
+/// Global at `D_80114C08`. `field_0` is a u16 loaded by many helpers.
+/// `field_6` is a flags byte (bit 0 gates `func_800A7DB8` writing `field_E`).
+typedef struct _GpStateC08 {
+    /* 0x00 */ u16  field_0;
+    /* 0x02 */ byte pad_2[4];
+    /* 0x06 */ u8   field_6;
+    /* 0x07 */ byte pad_7[7];
+    /* 0x0E */ u8   field_E;
+    /* 0x0F */ byte pad_F;
+} GpStateC08;
+STATIC_ASSERT_SIZEOF(GpStateC08, 0x10);
+
+extern GpStateC08 D_80114C08;
+
+void func_800A7DB8(s32 arg0);
+
+#endif // GAMEPLAY_GAMEPLAY_H
