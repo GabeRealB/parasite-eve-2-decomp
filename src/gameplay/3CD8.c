@@ -11,6 +11,7 @@
 extern WipSysConfig D_80073B88;
 extern TaskDesc     D_8010FAEC[];
 extern s32          D_801155A8;
+extern Task*        D_80115674;
 extern s16          D_80115654;
 extern s16          D_80115656;
 extern s32          D_80115660;
@@ -25,6 +26,7 @@ extern u8           D_80115702;
 s32   func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 Task* func_8002CFA0(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
 void  func_800E34D8(s32 arg0, s16 arg1);
+void  func_800E646C(Task* arg0);
 s32   func_800E6C70(s16 arg0, s16 arg1, s16 arg2);
 s32   func_800E6CF0(void);
 void  func_8003F6F8(void);
@@ -153,7 +155,17 @@ s32 func_800E6CE0(void)
     return D_801155A8 != 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6CF0);
+s32 func_800E6CF0(void)
+{
+    if (D_801155A8 != 0) {
+        if (D_80115674 != NULL) {
+            func_800E646C(D_80115674);
+            return 0;
+        }
+        return -1;
+    }
+    return -1;
+}
 
 s32 func_800E6D3C(void)
 {
