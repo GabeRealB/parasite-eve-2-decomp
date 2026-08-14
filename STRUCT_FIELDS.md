@@ -528,6 +528,7 @@ unlinked by `func_800E1638` during actor teardown (`func_80101408`).
 `field_98D`/`field_98E`/`field_990` are companion bytes (case 10 also stores `rand() & 0x1F + 0xA`).
 
 ### `WipSysConfig`
+`field_24` is a u8 cleared by `func_801053A0`; `func_8010C81C` saves and restores it around that call.
 `field_25` is an OR mask of PE/status bits set by `func_8010A42C` (same bit as the `func_800ECA10` arg).
 
 ### `TmdObject` / `TmdSource`
