@@ -2,7 +2,8 @@
 
 #include "main/mem.h"
 
-extern u8 D_801153F1;
+extern u8  D_801153F1;
+extern s32 D_8010CA28;
 
 void func_800A1634(s32 arg0, s32 arg1);
 s32  func_800A7B20(s32 arg0);
@@ -275,7 +276,10 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7DB8);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7DE0);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7E4C);
+void func_800A7E4C(void)
+{
+    D_8010CA28 = 5;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7E5C);
 
