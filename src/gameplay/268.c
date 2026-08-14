@@ -322,7 +322,13 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC378);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC3F8);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC490);
+void func_800BC490(void)
+{
+    McSaveData* p;
+
+    p                           = &Mc_SaveData;
+    *(GpItemScan*)&p->field_5BC = D_8010D520;
+}
 
 void func_800BC4BC(void)
 {
