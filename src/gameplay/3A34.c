@@ -146,7 +146,10 @@ void func_800DB530(s32 arg0)
     D_801153F3 = arg0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB53C);
+void func_800DB53C(void)
+{
+    D_801153F0.field_6++;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB558);
 

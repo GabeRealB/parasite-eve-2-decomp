@@ -41,7 +41,18 @@ typedef struct _GpObj4C {
 } GpObj4C;
 STATIC_ASSERT_SIZEOF(GpObj4C, 0x4D);
 
-extern u8     D_801153F3;
+/// Global at `D_801153F0`. `field_6` is a u16 refcount incremented by
+/// `func_800DB53C` and decremented by `func_800DB558` / `func_800DB630` /
+/// `func_800DB6B4`. Nearby helpers also touch bytes at 0x0..0x3 and words
+/// at 0x8 / 0xC / 0x10.
+typedef struct _GpStateF0 {
+    /* 0x00 */ byte pad_0[6];
+    /* 0x06 */ u16  field_6;
+} GpStateF0;
+STATIC_ASSERT_SIZEOF(GpStateF0, 0x8);
+
+extern GpStateF0 D_801153F0;
+extern u8        D_801153F3;
 extern GpObj* D_80115570;
 extern GpObj* D_80115574;
 extern GpObj* D_80115578;
@@ -59,6 +70,7 @@ void  func_800DAB38(GpLinkNode* node);
 void* func_800DA2A0(GpActorWork* arg0, VECTOR3* pos, s32 arg2);
 void* func_800DAD54(GpActorWork* arg0);
 void  func_800DB530(s32 arg0);
+void  func_800DB53C(void);
 void  func_800DB72C(void);
 void func_800DB900(GpObj* node);
 void func_800E0414(GpObj* a, GpObj* b);

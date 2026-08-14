@@ -562,6 +562,13 @@ unlinked by `func_800E1638` during actor teardown (`func_80101408`).
 
 Embedded at `GpEnemy.node` (+0x10). `func_800DAB38` also clears `GameActor+0x90C` slots that point at the node.
 
+### `GpStateF0` (0x8+) — `3A34.h`
+Global at `D_801153F0`. Full object is larger (helpers also use 0x8 / 0xC / 0x10).
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x06 | `field_6` | u16 refcount (inc: `func_800DB53C`; dec: `func_800DB558` / `func_800DB630` / `func_800DB6B4`) |
+
 ### `GpEnemy` — `1BC.h`
 0x60-byte work object (`Mem_Calloc` in `func_800B0494`). Stored in `Task::spawnArg2`.
 
