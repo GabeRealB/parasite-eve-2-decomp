@@ -674,6 +674,25 @@ Scan descriptor for `func_800BB6FC`. Built on the stack by `func_800BBEC0`
 | 0x01 | `field_1` | Number of table entries to scan |
 | 0x02 | `field_2` | Table select (1 = `D_80114D70`, 2 = `D_80114C20`, else `D_80072314`) |
 
+### `GpState34` (0x34) — `3CD8.h`
+Allocated by `func_800E8758` (`func_8002D978(0x34)`); stored at `Task::idMap`.
+Dual script interpreter: A uses `field_E`/`field_10`/`field_14`, B uses
+`field_F`/`field_11`/`field_15`. `func_800E92C4` / `func_800E9350` decrement
+the delay counters and advance via `func_800E8A90` / `func_800E8BB0`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | Script table pointer (from `Task::spawnArg2`) |
+| 0x04 | `field_4` | Secondary table pointer |
+| 0x0A | `field_A` | Current command A (low byte = opcode) |
+| 0x0C | `field_C` | Current command B (low byte = opcode) |
+| 0x0E | `field_E` | Script A program counter |
+| 0x0F | `field_F` | Script B program counter |
+| 0x10 | `field_10` | Delay A; `func_800E92C4` decrements |
+| 0x11 | `field_11` | Delay B; `func_800E9350` decrements |
+| 0x14 | `field_14` | Loop counter A |
+| 0x15 | `field_15` | Loop counter B |
+
 ### `GpState1C` (0x1C) — `3CD8.h`
 Allocated by `func_800E9CC8` (`func_8002D978(0x1C)`); pointed to by `D_80115740`.
 Most members are s16. `func_800EA3A0` writes `arg0 + 1` to `field_C`.

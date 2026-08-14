@@ -13,6 +13,30 @@ typedef struct _GpEndWait {
     /* 0x02 */ s8   field_2;
 } GpEndWait;
 
+/// 0x34-byte dual-script state allocated by `func_800E8758` (`func_8002D978(0x34)`)
+/// and stored on the owner task at +0x1C (`Task::idMap`).
+/// `field_10` / `field_11` are delay counters for scripts A / B.
+typedef struct _GpState34 {
+    /* 0x00 */ void* field_0;  // script table (from Task::spawnArg2)
+    /* 0x04 */ void* field_4;  // secondary table
+    /* 0x08 */ s16   field_8;
+    /* 0x0A */ u16   field_A;  // current command (script A)
+    /* 0x0C */ u16   field_C;  // current command (script B)
+    /* 0x0E */ u8    field_E;  // script A PC
+    /* 0x0F */ u8    field_F;  // script B PC
+    /* 0x10 */ u8    field_10; // delay A
+    /* 0x11 */ u8    field_11; // delay B
+    /* 0x12 */ u8    field_12;
+    /* 0x13 */ u8    field_13;
+    /* 0x14 */ u8    field_14; // loop counter A
+    /* 0x15 */ u8    field_15; // loop counter B
+    /* 0x16 */ byte  pad_16[0x12];
+    /* 0x28 */ s32   field_28;
+    /* 0x2C */ s32   field_2C;
+    /* 0x30 */ s32   field_30;
+} GpState34;
+STATIC_ASSERT_SIZEOF(GpState34, 0x34);
+
 /// 0x1C-byte halfword state allocated by `func_800E9CC8` (`func_8002D978(0x1C)`)
 /// and stored in `D_80115740` (also written to the owner task at +0x1C).
 typedef struct _GpState1C {

@@ -375,7 +375,15 @@ void func_800E9348(void)
 {
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E9350);
+void func_800E9350(Task* task)
+{
+    GpState34* state;
+
+    state = (GpState34*)task->idMap;
+    if (--state->field_11 == 0) {
+        func_800E8BB0(task);
+    }
+}
 
 void func_800E9394(Task* task)
 {
