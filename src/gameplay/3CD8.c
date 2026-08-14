@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "main/gameflag.h"
+#include "main/session.h"
 #include "main/task.h"
 
 extern s32 D_801155A8;
@@ -8,6 +9,7 @@ extern s32 D_80115660;
 extern s16 D_80115668;
 extern s8  D_801156B0;
 
+s32  func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800E34D8(s32 arg0, s16 arg1);
 s32  func_800E6CF0(void);
 void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
@@ -30,7 +32,10 @@ void func_800E3B60(s32 arg0)
     func_800E34D8(arg0, 1);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3B80);
+void func_800E3B80(s32 arg0)
+{
+    func_800AC464(Game_GetPtrSlot(3), 0x3F3, arg0, 0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3BBC);
 
