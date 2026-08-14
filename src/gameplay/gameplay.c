@@ -2,6 +2,8 @@
 
 #include "main/mem.h"
 
+extern u8 D_801153F1;
+
 void func_800A1634(s32 arg0, s32 arg1);
 s32  func_800A7B20(s32 arg0);
 void func_800B065C(u8 arg0);
@@ -241,7 +243,10 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7824);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A784C);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A78DC);
+s32 func_800A78DC(void)
+{
+    return D_801153F1 == 0;
+}
 
 void func_800A78EC(void)
 {
