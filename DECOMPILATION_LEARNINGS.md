@@ -12553,3 +12553,30 @@ memset = 0x800420F8; // absolute:True
 next to `func_800420F8` in `configs/USA/sym.gameplay.imports.txt` (same alias
 pattern as `Mem_Free2`). The expected splat overlap warning is harmless.
 `func_800BBEC0` is the example.
+
+## Mutate `arg <<= N` before a call so the shift wins the schedule
+
+When a call packs an incoming register as `(arg << 16) | other`, writing the
+shift in the argument expression lets GCC hoist the other setup first
+(`sw a0, 0x10(sp)` / `lui a0, %hi(desc)`), and the `sll` lands in the middle
+of that sequence.
+
+The target often wants the shift immediately after the prologue `addiu $sp`:
+
+```
+addiu sp, sp, -0x20
+sll   a3, a3, 16
+sw    a0, 0x10(sp)
+```
+
+Assign the shift back onto the incoming argument first so it is already done
+before the call setup:
+
+```c
+arg3 <<= 16;
+Ui_SpawnFromDesc(&desc, arg3 | arg1, one, one, arg0);
+```
+
+A `s32 packed = arg3 << 16` local can also work, but mutating the argument
+keeps the shift in `$a3` (`sll a3, a3, 16` / `or a1, a3, a1`). `func_800D4E40`
+is the example.

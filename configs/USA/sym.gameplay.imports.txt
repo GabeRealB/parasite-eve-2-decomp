@@ -173,6 +173,7 @@ func_80047D90 = 0x80047D90; // absolute:True
 func_80047F40 = 0x80047F40; // absolute:True
 func_80048390 = 0x80048390; // absolute:True
 func_800486F0 = 0x800486F0; // absolute:True
+Ui_SpawnFromDesc = 0x800486F0; // absolute:True
 func_80048838 = 0x80048838; // absolute:True
 func_800488B8 = 0x800488B8; // absolute:True
 func_800488F8 = 0x800488F8; // absolute:True

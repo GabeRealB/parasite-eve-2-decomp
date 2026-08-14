@@ -5,12 +5,13 @@
 #include "main/task.h"
 #include "main/ui.h"
 
-extern s32  D_8010E8F8;
-extern s32  D_80114D88;
-extern u32  D_80114DCC;
-extern u8*  D_80114DD4;
-extern s32  D_80114E88;
-extern char D_8010F8D0[];
+extern s32          D_8010E8F8;
+extern s32          D_80114D88;
+extern u32          D_80114DCC;
+extern u8*          D_80114DD4;
+extern s32          D_80114E88;
+extern char         D_8010F8D0[];
+extern UiObjectDesc D_8010F788;
 
 void  func_8017F41C(Task* task);
 void  func_8017F2F8(Task* task);
@@ -420,7 +421,14 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D4270);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D4D2C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D4E40);
+void func_800D4E40(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    s32 one;
+
+    one    = 1;
+    arg3 <<= 16;
+    Ui_SpawnFromDesc(&D_8010F788, arg3 | arg1, one, one, arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D4E78);
 
