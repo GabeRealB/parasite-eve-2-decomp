@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "main/fs.h"
+#include "main/gamemain.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/text.h"
@@ -423,7 +424,16 @@ void func_800D1E28(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D1EB8);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D1F90);
+void func_800D1F90(Task* arg0)
+{
+    UiObject* obj;
+
+    obj = arg0->spawnArg2;
+    GameMain_SetFrameTiming(1);
+    arg0->killCountdown = 4;
+    obj->timer          = 0;
+    arg0->spawnArg1     = 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D1FD4);
 
