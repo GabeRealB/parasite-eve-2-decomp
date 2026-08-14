@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/1BC.h"
+#include "main/display.h"
 #include "main/fs.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -104,7 +105,19 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0748);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B082C);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B08D8);
+void func_800B08D8(Task* task)
+{
+    s32           out;
+    DisplayState* ds;
+
+    if (Task_PollKill(task->spawnArg2, &out) != 0) {
+        ds                  = &Display_State;
+        task->killCountdown = 0;
+        ds->field_11e       = 1;
+        ds->field_12f       = 0;
+        Task_Kill(task);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0928);
 
