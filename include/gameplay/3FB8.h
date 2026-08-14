@@ -12,6 +12,17 @@ typedef struct _GpActorWork {
     /* 0x1C */ GameActor* actor;
 } GpActorWork;
 
+/// Overlay of `GsCOORDINATE2` at `GameActorExt.field_8`. `flg` is the same
+/// word cleared by `*field_8 = 0`. Offset 0x44 (`param` in libgs) is an s16
+/// flag (`lh`) in `func_8010B590`.
+typedef struct _GpCoordExt {
+    /* 0x00 */ s32  flg;
+    /* 0x04 */ byte pad_4[0x40];
+    /* 0x44 */ s16  field_44;
+    /* 0x46 */ byte pad_46[2];
+} GpCoordExt;
+STATIC_ASSERT_SIZEOF(GpCoordExt, 0x48);
+
 /// Current actor-work pointer; cleared when the work task is torn down.
 extern GpActorWork* volatile D_80115760;
 

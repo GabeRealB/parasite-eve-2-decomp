@@ -890,7 +890,19 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B3F8);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B520);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B590);
+void func_8010B590(Task* arg0)
+{
+    GameActorExt* extra;
+    GpCoordExt*   coord;
+
+    extra = (GameActorExt*)arg0->extra;
+    coord = (GpCoordExt*)extra->field_8;
+    arg0->state++;
+    coord->flg = 0;
+    if (coord->field_44 != 0) {
+        extra->field_C = 0;
+    }
+}
 
 void func_8010B5C0(Task* arg0)
 {
