@@ -5,9 +5,11 @@
 #include "main/mem.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/wipsys.h"
 
-extern u8  D_801153F1;
-extern s32 D_8010CA28;
+extern u8           D_801153F1;
+extern s32          D_8010CA28;
+extern WipSysConfig D_80073B88;
 
 void func_800A1634(s32 arg0, s32 arg1);
 void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -317,7 +319,21 @@ s32 func_800A7F2C(s32 arg0)
     return arg0 - 0x10;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7F34);
+s32 func_800A7F34(s32 arg0)
+{
+    WipSysConfig* p;
+    s32           ret;
+
+    p   = &D_80073B88;
+    ret = 1;
+    if (p->field_1c >= arg0) {
+        p->field_1c -= arg0;
+    } else {
+        p->field_1c = 0;
+        ret         = 0;
+    }
+    return ret;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7F6C);
 
