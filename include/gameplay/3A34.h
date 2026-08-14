@@ -41,12 +41,14 @@ typedef struct _GpObj4C {
 } GpObj4C;
 STATIC_ASSERT_SIZEOF(GpObj4C, 0x4D);
 
-/// Global at `D_801153F0`. `field_6` is a u16 refcount incremented by
-/// `func_800DB53C` and decremented by `func_800DB558` / `func_800DB630` /
-/// `func_800DB6B4`. Nearby helpers also touch bytes at 0x0..0x3 and words
-/// at 0x8 / 0xC / 0x10.
+/// Global at `D_801153F0`. `field_0` is a state byte (1 if first set by
+/// `func_800DB4E0`; 2 when the last `field_6` ref is released). `field_6`
+/// is a u16 refcount incremented by `func_800DB53C` and decremented by
+/// `func_800DB558` / `func_800DB630` / `func_800DB6B4`. Nearby helpers also
+/// touch bytes at 0x1..0x3 and words at 0x8 / 0xC / 0x10.
 typedef struct _GpStateF0 {
-    /* 0x00 */ byte pad_0[6];
+    /* 0x00 */ u8   field_0;
+    /* 0x01 */ byte pad_1[5];
     /* 0x06 */ u16  field_6;
 } GpStateF0;
 STATIC_ASSERT_SIZEOF(GpStateF0, 0x8);
@@ -69,6 +71,7 @@ void  func_800D9DFC(void);
 void  func_800DAB38(GpLinkNode* node);
 void* func_800DA2A0(GpActorWork* arg0, VECTOR3* pos, s32 arg2);
 void* func_800DAD54(GpActorWork* arg0);
+void  func_800DB4E0(void);
 void  func_800DB530(s32 arg0);
 void  func_800DB53C(void);
 void  func_800DB72C(void);

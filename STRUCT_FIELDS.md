@@ -567,6 +567,7 @@ Global at `D_801153F0`. Full object is larger (helpers also use 0x8 / 0xC / 0x10
 
 | Off | Member | Role |
 |-----|--------|------|
+| 0x00 | `field_0` | state byte (set to 1 by `func_800DB4E0` if 0; set to 2 when refcount hits 0 in `func_800DB558`) |
 | 0x06 | `field_6` | u16 refcount (inc: `func_800DB53C`; dec: `func_800DB558` / `func_800DB630` / `func_800DB6B4`) |
 
 ### `GpEnemy` — `1BC.h`
