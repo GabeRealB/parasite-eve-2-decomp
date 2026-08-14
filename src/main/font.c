@@ -209,7 +209,7 @@ void Stage_KillWhenIdle(Task* arg0)
     }
 }
 
-void Stage_RequestSpecialFlag(void)
+void Stage_RequestSpecialFlag(s32 arg0)
 {
     GameSession* g;
     s32          idx;

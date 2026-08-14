@@ -42,7 +42,9 @@ typedef struct _GameSession {
     u8    field_4C;
     u8    field_4D;
     u16   field_4E; // set to 1 by Fs_LoadFile for category-8 file ids
-    byte  unknown_50[0x24];
+    byte  unknown_50[2];
+    s16   field_52;
+    byte  unknown_54[0x20];
     u8    field_74;
     byte  unknown_75[0x7];
     s16   field_7C;

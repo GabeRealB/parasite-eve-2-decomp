@@ -508,6 +508,7 @@ See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 | 0xC | `field_C[16]` | Pointer table (cleared by `Game_ClearPtrSlots`) |
 | 0x4C | `field_4C` | Init flag |
 | 0x4E | `field_4E` | Set by `Fs_LoadFile` for category-8 |
+| 0x52 | `field_52` | s16 cleared by `func_800A9730` when `spawnArg1 == 0` |
 | 0x7C–80 | halfwords | Counters / mode |
 | 0x12C | `field_12C` | u8 flag; 0 runs extra `func_800E06AC` pass in `func_800DB72C` |
 

@@ -6,10 +6,12 @@
 #include "main/mc.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/stage.h"
 #include "main/tmd.h"
 #include "main/unknown_syms.h"
 
 extern u8 D_80071068; // Display_State.field_100
+extern u8 D_8007106B; // Display_State.field_103
 
 void func_800A9730(Task* task);
 s32  func_800ACF8C(void);
@@ -38,7 +40,24 @@ void func_800A966C(Task* task)
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A96A0);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9730);
+void func_800A9730(Task* task)
+{
+    Pad_ClearCooldown(0);
+    if (task->spawnArg1 == 0) {
+        Stage_RequestSpecialFlag(1);
+        Game_Session->field_52 = 0;
+        Task_Kill(task);
+        Display_ResetHeapWrapper();
+    } else {
+        if (task->spawnArg1 == 1) {
+            D_8007106B = 1;
+        }
+        D_80071068 = 2;
+        Task_Spawn(0, 0x17, 0, 0);
+        Game_Session->field_4D = 1;
+        Task_Kill(task);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A97DC);
 
