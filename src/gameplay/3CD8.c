@@ -95,7 +95,10 @@ void func_800E3EB0(s32 arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3EF0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3FAC);
+void func_800E3FAC(s32 arg0, s32 arg1)
+{
+    D_80073980[arg0 / 2 + 4] = arg1;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3FCC);
 
