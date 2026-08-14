@@ -8,6 +8,7 @@
 extern s32  D_8010E8F8;
 extern s32  D_80114D88;
 extern u32  D_80114DCC;
+extern u8*  D_80114DD4;
 extern s32  D_80114E88;
 extern char D_8010F8D0[];
 
@@ -17,6 +18,7 @@ void  func_8017F304(Task* task);
 void  func_80181184(Task* task);
 void  func_801811A0(Task* task);
 void  func_800C05CC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void  func_800CB33C(UiObject* arg0, Task* arg1, s32 arg2);
 void  func_800CC15C(UiObject* arg0, Task* arg1, s32 arg2);
 void  func_800D02A4(Task* arg0);
 void  func_800D0C34(Task* arg0);
@@ -287,7 +289,10 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF88C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF940);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CFA34);
+void func_800CFA34(UiObject* arg0, Task* arg1)
+{
+    func_800CB33C(arg0, arg1, *D_80114DD4);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CFA60);
 
