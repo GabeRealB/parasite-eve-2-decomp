@@ -54,7 +54,10 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A990C);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9980);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A99B4);
+void func_800A99B4(void)
+{
+    Display_SpawnWithOtSmall(0, 0x26, 0, 0);
+}
 
 void func_800A99E0(Task* task)
 {

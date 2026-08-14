@@ -111,6 +111,7 @@ func_8003D9C8 = 0x8003D9C8; // absolute:True
 func_8003DB48 = 0x8003DB48; // absolute:True
 func_8003DE78 = 0x8003DE78; // absolute:True
 func_8003E210 = 0x8003E210; // absolute:True
+Display_SpawnWithOtSmall = 0x8003E210; // absolute:True
 func_8003E438 = 0x8003E438; // absolute:True
 func_8003E4BC = 0x8003E4BC; // absolute:True
 Display_ResetHeapWrapper = 0x8003E540; // absolute:True
