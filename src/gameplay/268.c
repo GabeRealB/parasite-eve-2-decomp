@@ -315,7 +315,22 @@ s16 func_800BC230(void)
     return D_80072174 - *p;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC254);
+s32 func_800BC254(void)
+{
+    s32  ret;
+    u16* p;
+
+    ret = 0;
+    if (func_800BB4BC(0x119) != 0) {
+        p = &D_800739B8;
+        if ((s16)(D_80072174 - *p) >= 2) {
+            func_800BAEC0(0x119);
+            func_800BAE5C(0x11A);
+            ret = 1;
+        }
+    }
+    return ret;
+}
 
 void func_800BC2C4(void)
 {
