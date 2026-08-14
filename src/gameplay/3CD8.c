@@ -39,6 +39,7 @@ void  func_8003F6F8(void);
 void  func_800E8634(s32 arg0, s32 arg1, s32 arg2);
 void  func_800E8A90(Task* task);
 void  func_800E8BB0(Task* task);
+void  func_800EA478(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E34D8);
 
@@ -484,6 +485,10 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EC914);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EC9C8);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800ECA10);
+void func_800ECA10(s32 arg0)
+{
+    D_80115740->field_18 = (u8)arg0;
+    func_800EA478(0x8006000F, 0, (u8)arg0, 0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800ECA54);
