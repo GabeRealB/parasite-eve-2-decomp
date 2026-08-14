@@ -114,7 +114,10 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801011D0);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010133C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801013FC);
+void func_801013FC(Task* arg0)
+{
+    arg0->state = 3;
+}
 
 void func_80101408(GpActorWork* arg0)
 {
