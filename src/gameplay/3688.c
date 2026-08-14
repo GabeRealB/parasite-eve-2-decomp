@@ -3,6 +3,7 @@
 #include "main/fs.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/text.h"
 #include "main/ui.h"
 
 extern s32          D_8010E8F8[5];
@@ -10,6 +11,7 @@ extern s32          D_80114D88;
 extern u32          D_80114DCC;
 extern u8*          D_80114DD4;
 extern s32          D_80114E88;
+extern char         D_8010E494[];
 extern char         D_8010F8D0[];
 extern UiObjectDesc D_8010F788;
 extern UiObject*    D_80067634;
@@ -304,7 +306,19 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF448);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF4EC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF658);
+void func_800CF658(UiPanel* arg0, s32 arg1)
+{
+    s32 width;
+    s32 temp;
+
+    width = Text_MeasureWidth(func_800B8EB0(arg1, 0, 0)) + 0xB;
+    temp  = Text_MeasureWidth(D_8010E494);
+    if (width < temp) {
+        width = temp;
+    }
+    Ui_UpdateLayoutSize(arg0, width + 5, Ui_Scale15(2) + 1);
+    arg0->field_C.x = (-arg0->field_C.w) >> 1;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF6E8);
 
