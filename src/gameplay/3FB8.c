@@ -15,12 +15,14 @@ void func_800ECA54(void);
 s32  func_80037164(void);
 void func_80103AC0(GpActorWork* arg0);
 void func_801041FC(GpActorWork* arg0, s32 arg1);
+s32  func_801055D4(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_80105B0C(GpActorWork* arg0);
 void func_80105ED4(GpActorWork* arg0);
 void func_8010615C(GpActorWork* arg0);
 void func_801065A8(GpActorWork* arg0);
 void func_801066DC(GpActorWork* arg0, s32 arg1);
 void func_8010870C(GpActorWork* arg0, s32 arg1);
+void func_80108770(GpActorWork* arg0, s32 arg1);
 void func_80109290(GpActorWork* arg0);
 void func_801093DC(GpActorWork* arg0);
 void func_80109844(GpActorWork* arg0);
@@ -333,7 +335,14 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801064A4);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106518);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106550);
+void func_80106550(GpActorWork* arg0)
+{
+    if (arg0->actor->field_97D & 4) {
+        func_801055D4(arg0, 0, 0, 0);
+    } else {
+        func_80108770(arg0, 3);
+    }
+}
 
 void func_801065A0(void)
 {

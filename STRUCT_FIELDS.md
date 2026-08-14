@@ -519,6 +519,7 @@ unlinked by `func_800E1638` during actor teardown (`func_80101408`).
 `field_944`..`field_950` / `field_970` are s16 timers written to `0x258` by `func_8010A42C`;
 `field_958` is an s16 mode written to 1 or 3 by `func_80105A8C` (third arg zero / nonzero);
 `field_96C`/`field_96E` are s16s cleared with `field_972` by `func_8010B210` (called from `func_8010A42C` case 2);
+`field_97D` is a flag byte (`lbu`); bit 0x4 selects `func_801055D4` vs `func_80108770` in `func_80106550`;
 `field_98D`/`field_98E`/`field_990` are companion bytes (case 10 also stores `rand() & 0x1F + 0xA`).
 
 ### `WipSysConfig`
