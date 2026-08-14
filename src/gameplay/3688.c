@@ -7,6 +7,7 @@
 
 extern s32  D_80114D88;
 extern u32  D_80114DCC;
+extern s32  D_80114E88;
 extern char D_8010F8D0[];
 
 void  func_8017F41C(Task* task);
@@ -411,7 +412,10 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D4E40);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D4E78);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D4EC0);
+s32 func_800D4EC0(void)
+{
+    return D_80114E88;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D4ED0);
 
