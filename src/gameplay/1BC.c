@@ -10,7 +10,7 @@
 #include "main/tmd.h"
 
 void  func_800B1EFC(Task* arg0);
-void  func_800B3448(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void  func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
 void  func_800B3910(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void  func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 Task* func_8002CFA0(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
@@ -190,7 +190,14 @@ void func_800B3CCC(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3)
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B3CE8);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B3DB4);
+void func_800B3DB4(GpAnimCtx* arg0, GpAnimSlot* arg1)
+{
+    u8 idx;
+
+    idx           = arg1->field_15;
+    arg0->field_C = arg1 - idx;
+    func_800B3448(arg0, idx, 0, 0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B3DF4);
 
@@ -200,7 +207,7 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B3E74);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B3EE8);
 
-void func_800B3F60(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, void* arg4)
+void func_800B3F60(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4)
 {
     arg0->field_0  = arg1;
     arg0->field_4  = &arg2->field_34;
@@ -209,7 +216,7 @@ void func_800B3F60(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, voi
     arg0->field_C  = arg4;
 }
 
-void func_800B3F84(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, void* arg4)
+void func_800B3F84(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4)
 {
     func_800B3F60(arg0, arg1, arg2, arg3, arg4);
 }
@@ -229,7 +236,7 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B4248);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B43E0);
 
-void func_800B4514(s32 arg0, s32 arg1)
+void func_800B4514(GpAnimCtx* arg0, s32 arg1)
 {
     func_800B3448(arg0, arg1, 0, 0);
 }

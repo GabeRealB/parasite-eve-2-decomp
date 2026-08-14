@@ -599,6 +599,14 @@ Source object for `func_800B3CCC` / `func_800B3F60`. Full size unknown.
 | 0x30 | `field_30` | Copied into `GpAnimCtx.field_10` |
 | 0x34 | `field_34` | Address stored as `GpAnimCtx.field_4` (0x50-byte record base) |
 
+### `GpAnimSlot` (0x28) — `1BC.h`
+Element of `GpAnimCtx.field_C`. Initialized by `func_800B3CE8` /
+`func_800B3FA8`; advanced by `func_800B3448`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x15 | `field_15` | This slot's index in the `field_C` array |
+
 ### `GpAnimCtx` (0x14) — `1BC.h`
 Context filled by `func_800B3CCC` / `func_800B3F60`. Used as arg0 by the
 `func_800B3448` cluster.
@@ -608,7 +616,7 @@ Context filled by `func_800B3CCC` / `func_800B3F60`. Used as arg0 by the
 | 0x00 | `field_0` | Pointer table (arg1); copied onto 0x28-byte slots at +0x20 |
 | 0x04 | `field_4` | `&src->field_34`; 0x50-byte records in `func_800B3448` |
 | 0x08 | `field_8` | Pointer (arg3); 0x10-byte stride in `func_800B3448` |
-| 0x0C | `field_C` | 0x28-byte slot array (`func_800B3F60` writes it; `func_800B3CCC` does not) |
+| 0x0C | `field_C` | `GpAnimSlot*` array (`func_800B3F60` writes it; `func_800B3CCC` does not) |
 | 0x10 | `field_10` | Copy of `src->field_30` |
 
 ### `GpItemSlot` (0x8) — `268.h`
