@@ -29,7 +29,7 @@ typedef struct _GpState1C {
     /* 0x14 */ s16 field_14;
     /* 0x16 */ s16 field_16;
     /* 0x18 */ s16 field_18;
-    /* 0x1A */ s16 field_1A;
+    /* 0x1A */ u16 field_1A; // flags (bit 0x100 set by func_800EC868)
 } GpState1C;
 STATIC_ASSERT_SIZEOF(GpState1C, 0x1C);
 
@@ -37,5 +37,6 @@ extern GpState1C* D_80115740;
 
 void func_800EA3A0(s32 arg0);
 void func_800EC7E4(void* arg0, Task* arg1);
+void func_800EC868(void);
 
 #endif // GAMEPLAY_3CD8_H

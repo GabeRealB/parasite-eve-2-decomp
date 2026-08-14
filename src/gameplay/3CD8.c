@@ -411,7 +411,10 @@ void func_800EC824(Task* arg0)
     Task_Kill(arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EC868);
+void func_800EC868(void)
+{
+    D_80115740->field_1A |= 0x100;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EC888);
 

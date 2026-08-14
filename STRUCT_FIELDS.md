@@ -632,7 +632,11 @@ Scan descriptor for `func_800BB6FC`. Built on the stack by `func_800BBEC0`
 
 ### `GpState1C` (0x1C) — `3CD8.h`
 Allocated by `func_800E9CC8` (`func_8002D978(0x1C)`); pointed to by `D_80115740`.
-All members are s16. `func_800EA3A0` writes `arg0 + 1` to `field_C`.
+Most members are s16. `func_800EA3A0` writes `arg0 + 1` to `field_C`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x1A | `field_1A` | u16 flags; `func_800EC868` ORs in `0x100` |
 
 ---
 
