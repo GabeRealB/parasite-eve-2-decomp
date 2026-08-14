@@ -565,6 +565,16 @@ Embedded at `GpEnemy.node` (+0x10). `func_800DAB38` also clears `GameActor+0x90C
 | 0x00 | `task` | Owning `Task*` |
 | 0x10 | `node` | `GpLinkNode` unlinked by `func_800DAB38` |
 
+### `GpItemSlot` (0x8) — `268.h`
+Indexed as `D_80072330[idx]` by `func_800BAFE0`. Two (id, count) pairs.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | Item id (first pair) |
+| 0x01 | `field_1` | Count for `field_0` |
+| 0x02 | `field_2` | Item id (second pair) |
+| 0x03 | `field_3` | Count for `field_2` |
+
 ---
 
 ## WIP (provisional)

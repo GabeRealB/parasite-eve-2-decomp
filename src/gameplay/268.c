@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/268.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/wipsys.h"
@@ -159,7 +160,10 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAF08);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAF5C);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAFE0);
+GpItemSlot* func_800BAFE0(s32 arg0)
+{
+    return &D_80072330[arg0];
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAFF4);
 
