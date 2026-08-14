@@ -517,6 +517,7 @@ Sparse: `field_17C`/`field_930` addresses for overlay setup; `field_C` kill flag
 unlinked by `func_800E1638` during actor teardown (`func_80101408`).
 `field_914`..`field_924` are child `Task*` slots killed (if non-NULL) on that path.
 `field_944`..`field_950` / `field_970` are s16 timers written to `0x258` by `func_8010A42C`;
+`field_958` is an s16 mode written to 1 or 3 by `func_80105A8C` (third arg zero / nonzero);
 `field_98D`/`field_98E`/`field_990` are companion bytes (case 10 also stores `rand() & 0x1F + 0xA`).
 
 ### `WipSysConfig`

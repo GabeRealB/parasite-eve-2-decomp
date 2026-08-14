@@ -12369,3 +12369,34 @@ if (id == 0) {
 GCC CSE's the two calls into one `jal` and materializes `K` directly in `$a0`,
 jumping past `move a0, v0`. `func_800CEB40` is the pure example (`D_8010F8D0`
 empty string + `func_800B8EB0` + `func_80049D34`).
+
+## If/else stores of two constants keep `bnez; nop; j join`
+
+When the target does:
+
+```
+lw    v1, 0x1C(a0)
+bnez  a2, else
+ nop
+j     join
+ li   v0, 1
+else:
+ li   v0, 3
+join:
+ sh   v0, OFF(v1)
+```
+
+a shared temp (`val = cond ? 1 : 3; p->field = val`) lets `-fdelayed-branch`
+park `li v0, 3` in the `bnez` delay slot and drop the `j` (~76%). Store the
+constants in **both** arms instead:
+
+```c
+if (arg2 == 0) {
+    inner->field_958 = 1;
+} else {
+    inner->field_958 = 3;
+}
+```
+
+cc1 emits `bne` in reorder mode followed by a noreorder `j join; li 1`. aspsx
+then inserts the `nop` delay on the `bne`. `func_80105A8C` is the pure example.
