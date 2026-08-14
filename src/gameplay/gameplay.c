@@ -7,22 +7,28 @@
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
-extern u8           D_801153F1;
-extern s32          D_8010CA28;
-extern WipSysConfig D_80073B88;
-extern TmdListHead* D_800711BC;
-extern TmdListHead* D_800711C4;
+extern u8             D_801153F1;
+extern s32            D_8010CA28;
+extern WipSysConfig   D_80073B88;
+extern TmdListHead*   D_800711BC;
+extern TmdListHead*   D_800711C4;
+extern GsCOORDINATE2* D_80114B9C;
 
 void func_800A1634(s32 arg0, s32 arg1);
 void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  func_800A7B20(s32 arg0);
 void func_800B065C(u8 arg0);
+void func_8009939C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80097AC0);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009850C);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80098F58);
+void func_80098F58(GsCOORDINATE2* arg0)
+{
+    D_80114B9C = arg0;
+    func_8009939C(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, 0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80098F98);
 

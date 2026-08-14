@@ -3,6 +3,10 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
 /// Global at `D_80114C08`. `field_0` is a u16 loaded by many helpers.
 /// `field_6` is a flags byte (bit 0 gates `func_800A7DB8` writing `field_E`).
 typedef struct _GpStateC08 {
@@ -17,6 +21,7 @@ STATIC_ASSERT_SIZEOF(GpStateC08, 0x10);
 
 extern GpStateC08 D_80114C08;
 
+void func_80098F58(GsCOORDINATE2* arg0);
 void func_800A7DB8(s32 arg0);
 
 #endif // GAMEPLAY_GAMEPLAY_H

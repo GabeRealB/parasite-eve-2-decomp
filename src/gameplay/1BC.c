@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mem.h"
@@ -11,7 +12,6 @@
 void  func_800B1EFC(Task* arg0);
 void  func_800B3448(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void  func_800B3910(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-void  func_80098F58(GsCOORDINATE2* arg0);
 void  func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 Task* func_8002CFA0(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
 
