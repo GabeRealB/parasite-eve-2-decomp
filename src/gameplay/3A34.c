@@ -108,7 +108,12 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DACAC);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DACF8);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DAD54);
+void* func_800DAD54(GpActorWork* arg0)
+{
+    VECTOR3 pos;
+
+    return func_800DA2A0(arg0, &pos, 0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DAD78);
 

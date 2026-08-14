@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "gameplay/3FB8.h"
 #include "main/task.h"
 
 /// Singly-linked node unlinked by `func_800DAB38` / linked by `func_800DABEC`.
@@ -43,12 +44,14 @@ extern GpObj* D_8011558C;
 extern GpObj* D_80115590;
 extern s32    D_80115424;
 
-s32  func_800D9788(GpObj38* arg0);
-void func_800D9CC8(Task* arg0);
-void func_800D9DFC(void);
-void func_800DAB38(GpLinkNode* node);
-void func_800DB530(s32 arg0);
-void func_800DB72C(void);
+s32   func_800D9788(GpObj38* arg0);
+void  func_800D9CC8(Task* arg0);
+void  func_800D9DFC(void);
+void  func_800DAB38(GpLinkNode* node);
+void* func_800DA2A0(GpActorWork* arg0, VECTOR3* pos, s32 arg2);
+void* func_800DAD54(GpActorWork* arg0);
+void  func_800DB530(s32 arg0);
+void  func_800DB72C(void);
 void func_800DB900(GpObj* node);
 void func_800E0414(GpObj* a, GpObj* b);
 void func_800E0540(GpObj* node);
