@@ -12580,3 +12580,48 @@ Ui_SpawnFromDesc(&desc, arg3 | arg1, one, one, arg0);
 A `s32 packed = arg3 << 16` local can also work, but mutating the argument
 keeps the shift in `$a3` (`sll a3, a3, 16` / `or a1, a3, a1`). `func_800D4E40`
 is the example.
+
+## Same-constant stores to a 5-word global want mid-first order
+
+A leaf that writes the same constant to five consecutive words of a global
+array is *not* the sequential `arr[0]=…; arr[1]=…` form. That emits:
+
+```
+lui  v0, %hi(arr)
+li   v1, -1
+sw   v1, %lo(arr)(v0)
+addiu v0, v0, %lo(arr)
+sw   v1, 4(v0)
+…
+```
+
+The target computes the full address first, parks `-1` in `$v0`, then stores
+offsets `8`, `4`, `%lo(arr)($a0)`, `0xC`, `0x10` (the last one in the `jr`
+delay slot):
+
+```
+lui   a0, %hi(arr)
+addiu v1, a0, %lo(arr)
+li    v0, -1
+sw    v0, 8(v1)
+sw    v0, 4(v1)
+sw    v0, %lo(arr)(a0)
+sw    v0, 0xc(v1)
+jr    ra
+ sw   v0, 0x10(v1)
+```
+
+A pointer temporary plus assignments in that store order is what matches:
+
+```c
+p   = arr;
+val = -1;
+p[2] = val;
+p[1] = val;
+p[0] = val;
+p[3] = val;
+p[4] = val;
+```
+
+A counted `for` loop is not unrolled. `func_800CDEF4` is the example;
+`func_800CCDC8` inlines the same five stores.
