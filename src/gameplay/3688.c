@@ -447,7 +447,14 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D5520);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D5648);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D573C);
+void func_800D573C(Task* arg0)
+{
+    UiObject* obj;
+
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    func_800CB33C(obj, arg0, arg0->spawnArg1);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D5770);
 
