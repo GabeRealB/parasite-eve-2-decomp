@@ -2,8 +2,10 @@
 
 #include "main/session.h"
 #include "main/task.h"
+#include "main/wipsys.h"
 
-extern u32 D_8007216C;
+extern u32          D_8007216C;
+extern WipSysConfig D_80073B88;
 
 void  func_80180804(void);
 void  func_8017EA68(void);
@@ -25,6 +27,7 @@ void  func_8017EC04(void);
 void  func_8017EAC4(void);
 void  func_8017EA60(void);
 void* func_800B8CAC(void* arg0, s32 arg1, s32 arg2);
+void  func_800BAA58(void);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B7420);
 
@@ -258,6 +261,10 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC490);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC4BC);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC4E4);
+void func_800BC4E4(void)
+{
+    D_80073B88.field_26 = 2;
+    func_800BAA58();
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC50C);
