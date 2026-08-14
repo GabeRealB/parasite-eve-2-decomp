@@ -16,6 +16,7 @@
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/sound.h"
+#include "main/tmd.h"
 
 extern u16 func_8001D82C(void);
 
@@ -28,7 +29,7 @@ extern void  func_800A8DC0(s32 arg0);
 extern void* func_80099098(Task* task);
 extern void* func_80099170(Task* task, s32 arg1, s32 arg2);
 extern void  func_800991DC(void* arg0);
-extern void  func_80099214(void* arg0);
+extern void  func_80099214(TmdObject* arg0);
 extern void  func_80099258(void* arg0);
 extern void  func_80099290(void* arg0);
 extern void  func_800E1A6C(void* arg0);

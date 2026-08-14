@@ -72,6 +72,7 @@ func_8002D894 = 0x8002D894; // absolute:True
 func_8002D978 = 0x8002D978; // absolute:True
 Mem_Free = 0x8002DB20; // absolute:True
 func_8002DB4C = 0x8002DB4C; // absolute:True
+Mem_Free2 = 0x8002DB4C; // absolute:True
 func_8002DB90 = 0x8002DB90; // absolute:True
 func_8002DBC0 = 0x8002DBC0; // absolute:True
 func_8002DC08 = 0x8002DC08; // absolute:True

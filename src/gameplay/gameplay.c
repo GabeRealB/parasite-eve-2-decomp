@@ -2,6 +2,7 @@
 
 #include "main/mem.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 extern u8  D_801153F1;
 extern s32 D_8010CA28;
@@ -27,7 +28,14 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80099170);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800991DC);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80099214);
+void func_80099214(TmdObject* arg0)
+{
+    if (arg0->field_18 != NULL) {
+        Mem_Free2(arg0->field_18, 1);
+        arg0->field_18 = NULL;
+    }
+    Mem_Free(arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80099258);
 
