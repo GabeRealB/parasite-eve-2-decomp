@@ -5,6 +5,14 @@
 
 #include "main/task.h"
 
+/// Object stored in `Task::spawnArg2` for `func_800E712C`. `field_2` is a
+/// signed completion flag: when non-zero the task calls `func_8003F6F8`
+/// (`Stage_SetEndingFlag`) and kills itself.
+typedef struct _GpEndWait {
+    /* 0x00 */ byte pad_0[2];
+    /* 0x02 */ s8   field_2;
+} GpEndWait;
+
 /// 0x1C-byte halfword state allocated by `func_800E9CC8` (`func_8002D978(0x1C)`)
 /// and stored in `D_80115740` (also written to the owner task at +0x1C).
 typedef struct _GpState1C {
