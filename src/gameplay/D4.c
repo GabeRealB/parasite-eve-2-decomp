@@ -58,7 +58,15 @@ void func_800A987C(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A990C);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9980);
+void func_800A9980(Task* task)
+{
+    u8 val;
+
+    val                   = *(u8*)&task->spawnArg1;
+    D_8007216C            = val;
+    Game_Session->field_4 = val;
+    Task_Kill(task);
+}
 
 void func_800A99B4(void)
 {
