@@ -63,13 +63,16 @@ typedef struct _GpObj4C {
 STATIC_ASSERT_SIZEOF(GpObj4C, 0x4D);
 
 /// Global at `D_801153F0`. `field_0` is a state byte (1 if first set by
-/// `func_800DB4E0`; 2 when the last `field_6` ref is released). `field_6`
-/// is a u16 refcount incremented by `func_800DB53C` and decremented by
-/// `func_800DB558` / `func_800DB630` / `func_800DB6B4`. Nearby helpers also
-/// touch bytes at 0x1..0x3 and words at 0x8 / 0xC / 0x10.
+/// `func_800DB4E0`; 2 when the last `field_6` ref is released). `field_2`
+/// is a bitset (`func_800DB500` sets bit `arg0 - 1` when `arg0 != 0`).
+/// `field_6` is a u16 refcount incremented by `func_800DB53C` and
+/// decremented by `func_800DB558` / `func_800DB630` / `func_800DB6B4`.
+/// Nearby helpers also touch bytes at 0x1 / 0x3 and words at 0x8 / 0xC / 0x10.
 typedef struct _GpStateF0 {
     /* 0x00 */ u8   field_0;
-    /* 0x01 */ byte pad_1[5];
+    /* 0x01 */ byte pad_1;
+    /* 0x02 */ u8   field_2;
+    /* 0x03 */ byte pad_3[3];
     /* 0x06 */ u16  field_6;
 } GpStateF0;
 STATIC_ASSERT_SIZEOF(GpStateF0, 0x8);

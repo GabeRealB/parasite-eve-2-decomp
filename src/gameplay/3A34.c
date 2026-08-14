@@ -191,7 +191,12 @@ void func_800DB4E0(void)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB500);
+void func_800DB500(s32 arg0)
+{
+    if (arg0 != 0) {
+        D_801153F0.field_2 |= 1 << (arg0 - 1);
+    }
+}
 
 void func_800DB530(s32 arg0)
 {
