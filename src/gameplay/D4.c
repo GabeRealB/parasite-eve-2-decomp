@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mc.h"
@@ -160,7 +161,14 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ABCC8);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ABE68);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ABEF8);
+void func_800ABEF8(s32 arg0)
+{
+    GpFlagBank* bank;
+
+    bank          = D_80060A30[arg0];
+    bank->field_4 = 0;
+    bank->field_8 = 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ABF1C);
 
