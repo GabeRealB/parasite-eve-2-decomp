@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "main/gameflag.h"
 #include "main/task.h"
 
 extern s32 D_80115660;
@@ -14,7 +15,12 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E34D8);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E375C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3B3C);
+void func_800E3B3C(s32 arg0, s32 arg1)
+{
+    if (arg0 != 0) {
+        GameFlag_SetNibble(arg0, arg1);
+    }
+}
 
 void func_800E3B60(s32 arg0)
 {
