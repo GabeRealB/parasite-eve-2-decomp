@@ -590,6 +590,17 @@ to a `GpItemSlot` pair.
 | 0x01 | `field_1` | Item id / `D_80072330` index |
 | 0x02 | `field_2` | Mapped item id written into that pair |
 
+### `GpItemScan` (0x4) — `268.h`
+Scan descriptor for `func_800BB6FC`. Built on the stack by `func_800BBEC0`
+(memset 0, then `field_1 = 0xFF`). Same layout as `Mc_SaveData` at 0x5BC
+(`D_80072724`), which other callers pass as `func_800BB6FC`'s first arg.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | Start index into a 4-byte item table |
+| 0x01 | `field_1` | Number of table entries to scan |
+| 0x02 | `field_2` | Table select (1 = `D_80114D70`, 2 = `D_80114C20`, else `D_80072314`) |
+
 ### `GpState1C` (0x1C) — `3CD8.h`
 Allocated by `func_800E9CC8` (`func_8002D978(0x1C)`); pointed to by `D_80115740`.
 All members are s16. `func_800EA3A0` writes `arg0 + 1` to `field_C`.

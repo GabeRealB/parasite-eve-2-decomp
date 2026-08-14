@@ -146,6 +146,7 @@ func_80041FF8 = 0x80041FF8; // absolute:True
 func_80042058 = 0x80042058; // absolute:True
 func_800420B8 = 0x800420B8; // absolute:True
 func_800420F8 = 0x800420F8; // absolute:True
+memset = 0x800420F8; // absolute:True
 func_80042128 = 0x80042128; // absolute:True
 func_80042288 = 0x80042288; // absolute:True
 func_800422B8 = 0x800422B8; // absolute:True

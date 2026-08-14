@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <psyq/memory.h>
+
 #include "gameplay/268.h"
 #include "main/mc.h"
 #include "main/session.h"
@@ -234,7 +236,14 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBDDC);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBE54);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBEC0);
+s32 func_800BBEC0(s32 arg0)
+{
+    GpItemScan query;
+
+    memset(&query, 0, sizeof(query));
+    query.field_1 = 0xFF;
+    return func_800BB6FC(&query, arg0);
+}
 
 void func_800BBF04(s32 arg0)
 {

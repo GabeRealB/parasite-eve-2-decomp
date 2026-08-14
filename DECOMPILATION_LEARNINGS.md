@@ -12443,3 +12443,20 @@ before the call puts the `lui` too early.
 
 `func_800BC2C4` is the example (`p = &D_800739B8`; `(s16)(D_80072174 - *p) >= 2`).
 The same shape is how `func_800BC230` emits `lui v1,D_800739B8` first as a leaf.
+
+## Gameplay overlay `memset` is imported as `func_800420F8`
+
+`memset` lives at `0x800420F8` in the main exe (`sym.main.txt`). The gameplay
+overlay's splat import is still `func_800420F8`. Scratch-env diffs will report
+`jal memset` vs `jal func_800420F8` even when the body is a 100% match — that
+is only the reloc name.
+
+Fix: call `memset` in C (include `<psyq/memory.h>`) and add
+
+```
+memset = 0x800420F8; // absolute:True
+```
+
+next to `func_800420F8` in `configs/USA/sym.gameplay.imports.txt` (same alias
+pattern as `Mem_Free2`). The expected splat overlap warning is harmless.
+`func_800BBEC0` is the example.

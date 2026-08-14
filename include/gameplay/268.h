@@ -25,10 +25,24 @@ typedef struct _GpItemMap {
 } GpItemMap;
 STATIC_ASSERT_SIZEOF(GpItemMap, 0x4);
 
+/// 4-byte scan descriptor for `func_800BB6FC`. field_0 is the start index
+/// into a 4-byte item table; field_1 is the entry count; field_2 selects
+/// the table (1 / 2 / default). Also the object at `Mc_SaveData.field_5BC`
+/// (`D_80072724`).
+typedef struct _GpItemScan {
+    /* 0x00 */ u8 field_0;
+    /* 0x01 */ u8 field_1;
+    /* 0x02 */ u8 field_2;
+    /* 0x03 */ u8 field_3;
+} GpItemScan;
+STATIC_ASSERT_SIZEOF(GpItemScan, 0x4);
+
 extern GpItemSlot D_80072330[];
 extern GpItemMap  D_8010D2F8[];
 
 GpItemSlot* func_800BAFE0(s32 arg0);
+s32         func_800BB6FC(GpItemScan* arg0, s32 arg1);
 GpItemMap*  func_800BBDC8(s32 arg0);
+s32         func_800BBEC0(s32 arg0);
 
 #endif // GAMEPLAY_268_H
