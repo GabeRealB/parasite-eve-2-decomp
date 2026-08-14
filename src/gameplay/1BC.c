@@ -5,6 +5,7 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 void  func_800B3448(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void  func_800B3910(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -208,7 +209,15 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B57EC);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B584C);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B58D4);
+void func_800B58D4(TmdObject* arg0, s32 arg1, s32 arg2)
+{
+    arg0->field_24 = arg1;
+    arg0->field_25 = arg2;
+    if (arg0->field_18 != NULL) {
+        Tmd_ProcessStream(arg0);
+        Tmd_ProcessStream(arg0);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B5914);
 

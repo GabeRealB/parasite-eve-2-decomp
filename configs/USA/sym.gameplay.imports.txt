@@ -134,6 +134,7 @@ func_8003FC6C = 0x8003FC6C; // absolute:True
 func_8003FF14 = 0x8003FF14; // absolute:True
 func_80040820 = 0x80040820; // absolute:True
 func_800410F0 = 0x800410F0; // absolute:True
+Tmd_ProcessStream = 0x800410F0; // absolute:True
 func_80041700 = 0x80041700; // absolute:True
 func_80041B4C = 0x80041B4C; // absolute:True
 D_80041B88 = 0x80041B88; // absolute:True

@@ -5,6 +5,7 @@
 
 #include "gameplay/3A34.h"
 #include "main/task.h"
+#include "main/tmd.h"
 
 /// 0x60-byte enemy work object allocated by `func_800B0494`
 /// ("new_enemy ---> NULL"). Stored in `Task::spawnArg2`; `task` back-points
@@ -20,5 +21,6 @@ GpEnemy* func_800B01AC(TaskDesc* table, s32 idx, s32 arg2, GpEnemy* parent);
 void     func_800B01F0(GpEnemy* enemy, Task* task);
 void     func_800B0234(Task* task);
 GpEnemy* func_800B0494(Task* task, GpEnemy* parent);
+void     func_800B58D4(TmdObject* arg0, s32 arg1, s32 arg2);
 
 #endif // GAMEPLAY_1BC_H
