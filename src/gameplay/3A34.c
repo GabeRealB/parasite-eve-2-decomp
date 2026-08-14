@@ -53,7 +53,15 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D94B8);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9504);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9550);
+void func_800D9550(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3)
+{
+    MATRIX* m;
+
+    m       = arg0->field_20;
+    m->t[0] = arg1;
+    m->t[1] = arg2;
+    m->t[2] = arg3;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D957C);
 

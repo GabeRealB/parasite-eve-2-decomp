@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "gameplay/3FB8.h"
 #include "main/task.h"
 
@@ -32,6 +34,14 @@ typedef struct _GpSVec3x3 {
     /* 0x0C */ SVECTOR3 field_C;
 } GpSVec3x3;
 STATIC_ASSERT_SIZEOF(GpSVec3x3, 0x12);
+
+/// Object whose pointer at 0x20 is a `MATRIX*` whose translation
+/// `t[0]/t[1]/t[2]` is set by `func_800D9550` from three s16 args.
+typedef struct _GpObj20 {
+    /* 0x00 */ byte    pad_0[0x20];
+    /* 0x20 */ MATRIX* field_20;
+} GpObj20;
+STATIC_ASSERT_SIZEOF(GpObj20, 0x24);
 
 /// Object whose word at 0x38 is returned by `func_800D9788`. Adjacent light
 /// helpers load 0x38/0x3C/0x40 as three s32s and take `&obj->field_38` as a
@@ -86,6 +96,7 @@ extern s32    D_80115424;
 
 s32   func_800D9340(GpObj38* arg0);
 s32   func_800D937C(GpObj38* arg0);
+void  func_800D9550(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3);
 s32   func_800D9788(GpObj38* arg0);
 void  func_800D9C3C(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3);
 void  func_800D9CC8(Task* arg0);

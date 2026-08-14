@@ -582,6 +582,13 @@ Global at `D_801153F0`. Full object is larger (helpers also use 0x8 / 0xC / 0x10
 | 0x00 | `field_0` | state byte (set to 1 by `func_800DB4E0` if 0; set to 2 when refcount hits 0 in `func_800DB558`) |
 | 0x06 | `field_6` | u16 refcount (inc: `func_800DB53C`; dec: `func_800DB558` / `func_800DB630` / `func_800DB6B4`) |
 
+### `GpObj20` (0x24) — `3A34.h`
+Sparse overlay. Full object size is not known yet.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x20 | `field_20` | `MATRIX*` whose `t[0]/t[1]/t[2]` are set by `func_800D9550` |
+
 ### `GpEnemy` — `1BC.h`
 0x60-byte work object (`Mem_Calloc` in `func_800B0494`). Stored in `Task::spawnArg2`.
 
