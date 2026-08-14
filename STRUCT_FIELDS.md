@@ -522,6 +522,8 @@ Sparse: `field_17C`/`field_930` addresses for overlay setup; `field_C` kill flag
 and `func_800B57EC`; `sub` is the parent link, same convention as `Gfx_InitCoordinateTrees`).
 `field_AC`/`field_CC`/`field_EC`/`field_10C`/`field_12C` are 0x20-byte list nodes
 unlinked by `func_800E1638` during actor teardown (`func_80101408`).
+`field_124` is a u32 packed word at +0x18 of the `field_10C` node; `func_80106238`
+replaces bits 14–15 with `(arg1 << 1) | arg2`.
 `field_90C` is a `GpLinkNode*` (same object as `func_800DAB38` unlinks); `func_80103B5C` clears `node->field_5` then nulls the slot.
 `field_914`..`field_924` are child `Task*` slots killed (if non-NULL) on that path.
 `field_944`..`field_950` / `field_970` are s16 timers written to `0x258` by `func_8010A42C`;

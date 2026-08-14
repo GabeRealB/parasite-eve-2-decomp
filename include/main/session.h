@@ -87,7 +87,9 @@ typedef struct _GameActor {
     /* 0x0AC */ byte                field_AC[0x20]; // 0x20-byte list node (func_800E1638)
     /* 0x0CC */ byte                field_CC[0x20];
     /* 0x0EC */ byte                field_EC[0x20];
-    /* 0x10C */ byte                field_10C[0x20];
+    /* 0x10C */ byte                field_10C[0x18]; // 0x20-byte list node; field_124 is +0x18
+    /* 0x124 */ u32                 field_124;
+    /* 0x128 */ byte                pad_128[4];
     /* 0x12C */ byte                field_12C[0x20];
     /* 0x14C */ byte                pad_14C[0x30];
     /* 0x17C */ byte                field_17C; // address taken for func_800E1A6C
