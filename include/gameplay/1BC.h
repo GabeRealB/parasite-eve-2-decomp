@@ -31,8 +31,8 @@ typedef struct _GpAnimObj {
 } GpAnimObj;
 
 /// 0x28-byte animation slot. `field_15` is this slot's index in the
-/// `GpAnimCtx::field_C` array; `func_800B3DB4` / `func_800B3E34` recover
-/// the base as `slot - slot->field_15`.
+/// `GpAnimCtx::field_C` array; `func_800B3DB4` / `func_800B3DF4` /
+/// `func_800B3E34` recover the base as `slot - slot->field_15`.
 typedef struct _GpAnimSlot {
     /* 0x00 */ byte pad_0[0x15];
     /* 0x15 */ u8   field_15;
@@ -61,6 +61,7 @@ void     func_800B0544(GpEnemy* enemy, Task* task);
 void     func_800B0560(GpEnemy* enemy, Task* task);
 void     func_800B3CCC(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3);
 void     func_800B3DB4(GpAnimCtx* arg0, GpAnimSlot* arg1);
+void     func_800B3DF4(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B3E34(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B3F60(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4);
 void     func_800B57EC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
