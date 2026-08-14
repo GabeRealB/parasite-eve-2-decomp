@@ -636,7 +636,7 @@ Most members are s16. `func_800EA3A0` writes `arg0 + 1` to `field_C`.
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x1A | `field_1A` | u16 flags; `func_800EC868` ORs in `0x100` |
+| 0x1A | `field_1A` | u16 flags; `func_800FC6C0` ORs in `0x80`, `func_800EC868` ORs in `0x100` |
 
 ---
 

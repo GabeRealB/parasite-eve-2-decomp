@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "main/task.h"
 #include "main/wipsys.h"
@@ -8,30 +9,30 @@
 extern WipSysConfig D_80073B88;
 extern TaskDesc     D_80113340[];
 
-void func_800B57EC(s32 arg0, s32* arg1);
-s32  func_800B9D80(s32 arg0);
-void func_800EC9C8(void);
-void func_800ECA10(s32 arg0);
-void func_800ECA54(void);
-s32  func_80037164(void);
+void  func_800B57EC(s32 arg0, s32* arg1);
+s32   func_800B9D80(s32 arg0);
+void  func_800EC9C8(void);
+void  func_800ECA10(s32 arg0);
+void  func_800ECA54(void);
+s32   func_80037164(void);
 Task* func_8002CFA0(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
-void func_80103AC0(GpActorWork* arg0);
-void func_801041FC(GpActorWork* arg0, s32 arg1);
-s32  func_801055D4(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_80105B0C(GpActorWork* arg0);
-void func_80105ED4(GpActorWork* arg0);
-void func_8010615C(GpActorWork* arg0);
-void func_801065A8(GpActorWork* arg0);
-void func_801066DC(GpActorWork* arg0, s32 arg1);
-void func_8010870C(GpActorWork* arg0, s32 arg1);
-void func_80108770(GpActorWork* arg0, s32 arg1);
-void func_80109290(GpActorWork* arg0);
-void func_801093DC(GpActorWork* arg0);
-void func_80109844(GpActorWork* arg0);
-void func_80109A1C(GpActorWork* arg0);
-void func_8010ABD4(GpActorWork* arg0);
-void func_8010AC54(GpActorWork* arg0);
-void func_8010AD64(GpActorWork* arg0);
+void  func_80103AC0(GpActorWork* arg0);
+void  func_801041FC(GpActorWork* arg0, s32 arg1);
+s32   func_801055D4(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
+void  func_80105B0C(GpActorWork* arg0);
+void  func_80105ED4(GpActorWork* arg0);
+void  func_8010615C(GpActorWork* arg0);
+void  func_801065A8(GpActorWork* arg0);
+void  func_801066DC(GpActorWork* arg0, s32 arg1);
+void  func_8010870C(GpActorWork* arg0, s32 arg1);
+void  func_80108770(GpActorWork* arg0, s32 arg1);
+void  func_80109290(GpActorWork* arg0);
+void  func_801093DC(GpActorWork* arg0);
+void  func_80109844(GpActorWork* arg0);
+void  func_80109A1C(GpActorWork* arg0);
+void  func_8010ABD4(GpActorWork* arg0);
+void  func_8010AC54(GpActorWork* arg0);
+void  func_8010AD64(GpActorWork* arg0);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F75BC);
 
@@ -75,7 +76,10 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FC0B4);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FC500);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FC6C0);
+void func_800FC6C0(void)
+{
+    D_80115740->field_1A |= 0x80;
+}
 
 void func_800FC6E0(Task* arg0)
 {

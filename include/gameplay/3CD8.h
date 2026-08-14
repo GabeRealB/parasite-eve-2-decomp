@@ -29,7 +29,7 @@ typedef struct _GpState1C {
     /* 0x14 */ s16 field_14;
     /* 0x16 */ s16 field_16;
     /* 0x18 */ s16 field_18;
-    /* 0x1A */ u16 field_1A; // flags (bit 0x100 set by func_800EC868)
+    /* 0x1A */ u16 field_1A; // flags (0x80 by func_800FC6C0, 0x100 by func_800EC868)
 } GpState1C;
 STATIC_ASSERT_SIZEOF(GpState1C, 0x1C);
 
