@@ -15,6 +15,7 @@ void  func_8017F304(Task* task);
 void  func_80181184(Task* task);
 void  func_801811A0(Task* task);
 void  func_800C05CC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void  func_800CC15C(UiObject* arg0, Task* arg1, s32 arg2);
 void  func_800D02A4(Task* arg0);
 void  func_800D0C34(Task* arg0);
 void  func_800D0614(Task* arg0);
@@ -282,7 +283,10 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CFA34);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CFA60);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CFAA8);
+void func_800CFAA8(UiObject* arg0, Task* arg1)
+{
+    func_800CC15C(arg0, arg1, arg1->spawnArg1);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CFACC);
 
