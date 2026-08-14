@@ -565,7 +565,19 @@ void func_80109700(GpActorWork* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109720);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109818);
+void func_80109818(GpActorWork* arg0)
+{
+    GameActor* inner;
+
+    inner            = arg0->actor;
+    inner->field_954 = 0;
+    inner->field_956 = 4;
+    inner->field_958 = 0;
+    inner->field_95A = 0;
+    inner->field_95C = 5;
+    inner->field_95E = 0;
+    inner->field_981 = 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109844);
 

@@ -111,10 +111,12 @@ typedef struct _GameActor {
     /* 0x94C */ s16                 field_94C;
     /* 0x94E */ s16                 field_94E;
     /* 0x950 */ s16                 field_950;
-    /* 0x952 */ byte                pad_952[4];
+    /* 0x952 */ byte                pad_952[2];
+    /* 0x954 */ u16                 field_954;
     /* 0x956 */ u16                 field_956;
     /* 0x958 */ s16                 field_958;
-    /* 0x95A */ byte                pad_95A[4];
+    /* 0x95A */ u16                 field_95A;
+    /* 0x95C */ u16                 field_95C;
     /* 0x95E */ u16                 field_95E;
     /* 0x960 */ byte                pad_960[0xC];
     /* 0x96C */ s16                 field_96C;
@@ -130,7 +132,8 @@ typedef struct _GameActor {
     /* 0x97B */ byte                pad_97B[2];
     /* 0x97D */ u8                  field_97D;
     /* 0x97E */ u8                  field_97E;
-    /* 0x97F */ byte                pad_97F[3];
+    /* 0x97F */ byte                pad_97F[2];
+    /* 0x981 */ u8                  field_981;
     /* 0x982 */ s8                  field_982;
     /* 0x983 */ byte                pad_983;
     /* 0x984 */ u8                  field_984;
