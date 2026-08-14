@@ -123,9 +123,10 @@ typedef struct _GameActor {
 } GameActor;
 STATIC_ASSERT_SIZEOF(GameActor, 0x994);
 
-/// Object pointed to by Task::extra; field_8 is a s32* cleared by
-/// Display_SpawnFromMode after optional func_801011D0 / func_800E1A6C setup.
-/// field_C flag bits are OR'd with 0x80 in Task_Kill (type-1 deferred kill).
+/// Object pointed to by Task::extra; field_8 is a GsCOORDINATE2* (stored as
+/// s32* so Display_SpawnFromMode can clear flg via *ptr = 0) after optional
+/// func_801011D0 / func_800E1A6C setup. field_C flag bits are OR'd with 0x80
+/// in Task_Kill (type-1 deferred kill).
 typedef struct _GameActorExt {
     /* 0x0 */ byte pad_0[0x8];
     /* 0x8 */ s32* field_8;

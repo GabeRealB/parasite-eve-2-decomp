@@ -3,6 +3,10 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
 #include "gameplay/3A34.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -45,6 +49,7 @@ void     func_800B0234(Task* task);
 GpEnemy* func_800B0494(Task* task, GpEnemy* parent);
 void     func_800B0544(GpEnemy* enemy, Task* task);
 void     func_800B3CCC(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3);
+void     func_800B57EC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
 void     func_800B58D4(TmdObject* arg0, s32 arg1, s32 arg2);
 
 #endif // GAMEPLAY_1BC_H

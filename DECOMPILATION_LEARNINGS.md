@@ -350,6 +350,33 @@ p = &base[(s8)arg0];
 `SndBankSlot_Free` needs this form so `SndHeap_Free` can take `p->field_0` with the
 base already in `$v0` before the stride multiply lands in `$s0`.
 
+## Copy `arg1` to a dest local so `arg0` keeps `$s0`
+
+When both pointer parameters are live across calls, GCC 2.8.1 gives `$s0` to
+whichever one is used first (often `arg1`, via `arg1->field`). The target
+usually wants the opposite: `$s0 = arg0`, `$s1 = arg1` (save `$s1` / `move
+s1,a1` first, then save `$s0` / `move s0,a0`).
+
+Copy the second argument into a local and only touch the object through that
+name. Incoming `arg0` is then the first param that needs a callee-saved
+register:
+
+```c
+GsCOORDINATE2* dest;
+
+dest = arg1;
+if (dest->sub != arg0) {
+    func_A(arg0);
+    func_A(dest);
+    dest->sub = arg0; /* also fills the next jal delay slot */
+    func_B(&arg0->workm, &dest->workm, &dest->coord);
+    dest->flg = 0;
+}
+```
+
+`func_800B57EC` is the pure example. Using `arg1` directly swapped `$s0`/`$s1`
+(~89%) even with the rest of the body identical.
+
 ## `~x != 0` for `nor` + `sltu` (not `x != -1`)
 
 When the target does:

@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
@@ -9,7 +10,6 @@
 extern WipSysConfig D_80073B88;
 extern TaskDesc     D_80113340[];
 
-void  func_800B57EC(s32 arg0, s32* arg1);
 s32   func_800B9D80(s32 arg0);
 s32   func_8005414C(s32 arg0, s32 arg1, s32 arg2);
 void  func_800EC9C8(void);
@@ -298,7 +298,7 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801059AC);
 
 s32 func_80105A60(Task* arg0, s32 arg1, s32 arg2)
 {
-    func_800B57EC(arg2, ((GameActorExt*)arg0->extra)->field_8);
+    func_800B57EC((GsCOORDINATE2*)arg2, (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8);
     return 0;
 }
 
