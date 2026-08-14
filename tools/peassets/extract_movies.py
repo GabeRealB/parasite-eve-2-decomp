@@ -10,6 +10,9 @@ Writes under the assets root (default ``assets/USA``)::
 
 Play with VLC/mpv/MPC-HC — not Windows Media Player (no H.264 4:4:4 / ALAC).
 
+Also invoked from extract.py after stage-chunk extract (unless
+``--minimal-inflate`` / ``--skip-streams``).
+
 Usage::
 
     python3 tools/peassets/extract_movies.py --rom rom/USA --out assets/USA -j 16

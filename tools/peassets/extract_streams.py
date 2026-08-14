@@ -8,6 +8,9 @@ Writes under the assets root (default ``assets/USA``)::
     audio/{stem}.json        geometry + descriptor meta
     audio/streams.json       catalog of all streams
 
+Also invoked from extract.py after stage-chunk extract (unless
+``--minimal-inflate`` / ``--skip-streams``).
+
 Usage::
 
     python3 tools/peassets/extract_streams.py --rom rom/USA --out assets/USA

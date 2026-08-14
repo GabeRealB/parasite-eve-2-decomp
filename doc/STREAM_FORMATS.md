@@ -15,8 +15,8 @@ and **seeks the CD** to feed hardware (SPU or MDEC) in real time.
 | Runtime load of descriptors | `src/main/fs.c` (`Fs_BuildFolderTables`, `Fs_InitStage0TablesCb`) |
 | Movie play | `src/main/stream.c` (`Stream_*`, `Mdec_*`), `cdcmd.c` (cmd `0x61`) |
 | Audio play | `src/main/cdaudio.c`, `cdstream.c` (`CdStream_*`, `MtsSector`) |
-| MTS codec / extract | `mts_codec.py`, `extract_streams.py` |
-| STR codec / extract | `str_codec.py`, `extract_movies.py` |
+| MTS codec / extract | `mts_codec.py`, `extract.py` (also `extract_streams.py`) |
+| STR codec / extract | `str_codec.py`, `extract.py` (also `extract_movies.py`) |
 | BS/MDEC frame decode | `bs_codec.py` (v2 + v3 DC) |
 | Viewer | `viewer.py` (type dirs `audio`, `movie`) |
 
@@ -171,6 +171,9 @@ audio/streams.json        catalog
 ```
 
 ```bash
+# included in a full extract.py / --iso_extract run
+python3 tools/peassets/extract.py ... -o assets/USA
+# audio only
 python3 tools/peassets/extract_streams.py --rom rom/USA --out assets/USA
 ```
 
@@ -323,7 +326,7 @@ This is **not** “one descriptor valid on both INTER files,” and it is **not*
 English vs Japanese video on USA. It is **per-disc INTER packing** exposed as
 two table rows.
 
-Extract policy (`extract_movies.py`):
+Extract policy (`extract.py` / `extract_movies.py`):
 
 1. Keep INTER starts only if STR magic and **frame ≤ 1** on that disc’s file  
 2. One owner per `(disk, INTER, sector)` (earlier stage wins shared starts)  
@@ -457,6 +460,9 @@ Encode uses ``ffmpeg`` for **true lossless** (bit-exact vs decoded RGB + PCM):
 ALAC). Use **VLC**, **mpv**, **MPC-HC**, or ``ffplay``.
 
 ```bash
+# included in a full extract.py / --iso_extract run
+python3 tools/peassets/extract.py ... -o assets/USA
+# movies only
 python3 tools/peassets/extract_movies.py --rom rom/USA --out assets/USA -j 16
 # --no-audio  → video-only MP4 for INTER
 # --no-mp4    → skip encode (json/raw only)

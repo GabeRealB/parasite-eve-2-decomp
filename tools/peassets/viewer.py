@@ -1973,7 +1973,8 @@ class AssetViewer(tk.Tk):
             wi = None
             lines.append("")
             lines.append(
-                "No WAV yet — run:  python3 tools/peassets/extract_streams.py "
+                "No WAV yet — re-run extract.py, or:\n"
+                "  python3 tools/peassets/extract_streams.py "
                 "--rom rom/USA --out assets/USA"
             )
         if mts_path and mts_path.is_file():
@@ -2127,7 +2128,7 @@ class AssetViewer(tk.Tk):
             lines.append(f"MP4: {mp4.name}  ({_fmt_size(mp4.stat().st_size)})")
         else:
             lines.append(
-                "No MP4 yet — run:\n"
+                "No MP4 yet — re-run extract.py, or:\n"
                 "  python3 tools/peassets/extract_movies.py "
                 "--rom rom/USA --out assets/USA -j 16"
             )
@@ -2216,7 +2217,9 @@ class AssetViewer(tk.Tk):
         else:
             self._set_audio_controls_enabled(False)
             if not mp4.is_file():
-                self._status_var.set("Movie MP4 missing — re-run extract_movies.py")
+                self._status_var.set(
+                    "Movie MP4 missing — re-run extract.py or extract_movies.py"
+                )
             else:
                 self._status_var.set(
                     "No video player (install ffmpeg for ffplay, or mpv/vlc)"

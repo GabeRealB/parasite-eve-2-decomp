@@ -38,6 +38,8 @@ raw/pe2pkg/ pe2img/ …   deduplicated **on-disc** clean payloads
                          name = names.NAMES stem, else {type}_{n}
 pe2pkg/ pe2img/ …        **inflated** edit forms (one per unique raw)
                          pe2pkg = LZSS-decoded; pe2img/pe2clut = PNG + meta
+raw/audio/ audio/        MTS CD streams (not file chunks)
+raw/movie/ movie/        STR movies from INTER*.STR / STAGE*.CDF
 stage0/ stageN/          pack sidecars only (trailer.bin, layout.json, …)
 stages.json              pack manifest (paths into inflated type dirs)
 ```
@@ -520,11 +522,15 @@ descriptors), seek/play path, extract pitfalls:
 
 **→ [`STREAM_FORMATS.md`](STREAM_FORMATS.md)** (§3 movies, §2 audio)
 
-Quick extract:
+Full `extract.py` (and `ninja_config.py --iso_extract`) writes these after
+stage chunks. `--raw-only` keeps `raw/audio` + `raw/movie` without WAV/MP4;
+`--minimal-inflate` skips streams (CI). Standalone tools still work for a
+re-extract:
 
 ```bash
-python3 tools/peassets/extract_streams.py --rom rom/USA --out assets/USA   # audio
-python3 tools/peassets/extract_movies.py  --rom rom/USA --out assets/USA -j 16  # movie
+python3 tools/peassets/extract.py ... -o assets/USA          # includes streams
+python3 tools/peassets/extract_streams.py --rom rom/USA --out assets/USA   # audio only
+python3 tools/peassets/extract_movies.py  --rom rom/USA --out assets/USA -j 16  # movie only
 ```
 
 ```text
@@ -712,9 +718,12 @@ in `stages.json` (`type: room_pkg`, `path`, `load_addr`).
 Extract:
   STAGE*.CDF  →  raw/{type}/ (unique on-disc payloads)
               →  pe2pkg|pe2img|…/ (inflate unique raw only)
+              →  raw/audio + audio/  (MTS from STAGE*.CDF)
+              →  raw/movie + movie/  (STR from INTER*.STR / CDF)
               →  stage*/ (pack sidecars) + stages.json
-  extract.py --raw-only          →  raw/{type}/ only
-  extract.py --minimal-inflate   →  raw/ + pe2pkg/{title,gameplay} only (CI)
+  extract.py --raw-only          →  raw/{type}/ + raw/audio + raw/movie
+  extract.py --minimal-inflate   →  raw/ + pe2pkg/{title,gameplay} only (CI; no streams)
+  extract.py --skip-streams      →  stage chunks only (no MTS/STR)
 
 Pack:
   matching  raw/{type}/ LZSS + inflated non-LZSS  →  STAGE*
@@ -733,7 +742,7 @@ python3 tools/peassets/extract.py ... -o assets/USA --minimal-inflate
 # browse extracted assets (by type or stage tree + preview; audio/movie playable)
 python3 tools/peassets/viewer.py assets/USA
 
-# CD streams (see STREAM_FORMATS.md)
+# CD streams only (already included in a full extract.py run; see STREAM_FORMATS.md)
 python3 tools/peassets/extract_streams.py --rom rom/USA --out assets/USA
 python3 tools/peassets/extract_movies.py  --rom rom/USA --out assets/USA
 
@@ -765,8 +774,9 @@ Dependencies: see `requirements.txt` (includes **Pillow** for PNG).
   varied; wrong for textures that intentionally use a monochrome row.
 - **Cap2 / dialogue** internals undocumented.
 - **Streaming movies (STR/MDEC)** and **audio (MTS)**: documented in
-  [`STREAM_FORMATS.md`](STREAM_FORMATS.md); extract via `extract_movies.py` /
-  `extract_streams.py`. Movie **XA audio** still not demuxed.
+  [`STREAM_FORMATS.md`](STREAM_FORMATS.md). A full `extract.py` run writes
+  them (or re-run `extract_movies.py` / `extract_streams.py`). INTER movies
+  mux XA as ALAC in the MP4.
 - Runtime image path has mode-dependent Y adjustments (`Fs_ChunkMode`,
   `D5B498_8006C233/C234`) that do not affect off-line PNG export.
 

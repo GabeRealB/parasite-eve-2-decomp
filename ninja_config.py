@@ -735,9 +735,15 @@ def extract_files(
 ):
     print(f"Extracting files for version {GAME_VERSIONS[version].version_name}")
     if raw_only:
-        print("  (raw-only: raw/{type}/ only; skip inflate/manifests)")
+        print(
+            "  (raw-only: raw/{type}/ + raw/audio + raw/movie; "
+            "skip inflate/WAV/MP4/manifests)"
+        )
     elif minimal_inflate:
-        print("  (minimal-inflate: raw + required pe2pkg overlays only)")
+        print(
+            "  (minimal-inflate: raw + required pe2pkg overlays only; "
+            "skip CD streams)"
+        )
 
     target_assets = ASSETS_DIR / GAME_VERSIONS[version].metadata.version_dir
     target_rom = ROM_DIR / GAME_VERSIONS[version].metadata.version_dir
@@ -792,15 +798,18 @@ def main():
     parser.add_argument(
         "-iso_e",
         "--iso_extract",
-        help="Extract game files (ISO → rom/ + type-store assets)",
+        help=(
+            "Extract game files (ISO → rom/ + type-store assets, "
+            "including MTS audio and STR movies)"
+        ),
         action="store_true",
     )
     parser.add_argument(
         "-iso_raw",
         "--iso_extract_raw",
         help=(
-            "Extract game files: raw/{type}/ only "
-            "(skip inflate, stages/ISO manifests). Implies --iso_extract."
+            "Extract game files: raw/{type}/ plus raw/audio and raw/movie "
+            "(skip inflate, WAV/MP4, stages/ISO manifests). Implies --iso_extract."
         ),
         action="store_true",
     )
@@ -810,8 +819,8 @@ def main():
         help=(
             "Extract game files for CI/matching: raw/{type}/ plus inflate only "
             "required decomp overlays (pe2pkg/title, pe2pkg/gameplay). "
-            "Skip images/full inflate and stages/ISO manifests. "
-            "Implies --iso_extract."
+            "Skip images/full inflate, CD audio/movie streams, and "
+            "stages/ISO manifests. Implies --iso_extract."
         ),
         action="store_true",
     )

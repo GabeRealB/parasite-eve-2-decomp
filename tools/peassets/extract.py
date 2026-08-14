@@ -179,6 +179,53 @@ STREAMING_LIST_ENTRY_SIZE = 0x28
 # friendly names when set (pe2pkg/gameplay.pe2pkg).
 
 
+def infer_rom_root(stage0_hed: Path) -> Path | None:
+    """Infer ``rom/USA`` from ``.../disk1/STAGE0.HED`` (parent of ``disk*``)."""
+    hed = Path(stage0_hed).resolve()
+    parent = hed.parent
+    if not parent.name.lower().startswith("disk"):
+        return None
+    rom = parent.parent
+    if (rom / "disk1").is_dir() or (rom / "disk2").is_dir():
+        return rom
+    return None
+
+
+def extract_cd_streams(
+    rom_usa: Path,
+    assets_root: Path,
+    *,
+    write_raw: bool = True,
+    write_decoded: bool = True,
+    jobs: int | None = None,
+) -> None:
+    """Extract MTS audio and STR movies from the dumped ``rom/USA`` tree.
+
+    Streaming-list payloads live in ``STAGE*.CDF`` and ``INTER*.STR``, not in
+    the file-chunk walk. Delegates to :mod:`extract_streams` / :mod:`extract_movies`.
+    """
+    import extract_movies
+    import extract_streams
+
+    logging.info("Extracting CD audio streams from %s", rom_usa)
+    extract_streams.extract_all(
+        rom_usa,
+        assets_root,
+        write_raw=write_raw,
+        write_wav=write_decoded,
+        jobs=jobs,
+    )
+    logging.info("Extracting CD movie streams from %s", rom_usa)
+    extract_movies.extract_all(
+        rom_usa,
+        assets_root,
+        write_raw=write_raw,
+        write_mp4=write_decoded,
+        write_audio=write_decoded,
+        jobs=jobs,
+    )
+
+
 def computeChecksum(exe: BinaryIO):
     exe.seek(0)
     return crc32(exe.read(4096))
@@ -335,6 +382,10 @@ class AssetStore:
           pe2pkg/gameplay.pe2pkg      # LZSS-decoded (from unique raw only)
           pe2img/pe2img_0.png         # + meta (from unique raw only)
           bs/bs_0.png                 # + meta (from unique raw only)
+          raw/audio/*.mts             # MTS CD audio (not a file chunk)
+          audio/*.wav + streams.json
+          raw/movie/*.str             # STR video (INTER*/CDF, not a file chunk)
+          movie/*.mp4 + movies.json
           stage0/…/trailer.bin        # pack sidecars only
           stages.json                 # pack manifest (paths into type dirs)
 
@@ -767,9 +818,10 @@ def extract_stage_0(header: BinaryIO, data: BinaryIO, *, store: AssetStore):
             parse_streaming_list_entry(header.read(STREAMING_LIST_ENTRY_SIZE))
         )
 
-    for i, entry in enumerate(streaming_list):
-        logging.info(entry)
-        # TODO: Extract entry
+    logging.info(
+        "stage 0 streaming list: %d descriptor(s) (payloads extracted later)",
+        len(streaming_list),
+    )
 
     file_list: list[FileListEntry] = []
     header.seek(0x78)
@@ -928,13 +980,23 @@ def main():
     parser.add_argument("--stage4", "-s4", type=FileType("rb"))
     parser.add_argument("--stage5", "-s5", type=FileType("rb"))
     parser.add_argument("--output", "-o", type=Path, default=".")
+    parser.add_argument(
+        "--rom",
+        type=Path,
+        default=None,
+        help=(
+            "ROM tree (rom/USA with disk1/disk2) for MTS/STR stream extract "
+            "and pack manifests. Default: infer from STAGE0.HED parent."
+        ),
+    )
     parser.add_argument("--checksum", "-c", action="store_true")
     parser.add_argument(
         "--raw-only",
         action="store_true",
         help=(
-            "Write raw/{type}/ only (deduplicated on-disc payloads). "
-            "Skip inflated type dirs, stages/ISO manifests."
+            "Write raw/{type}/ only (deduplicated on-disc payloads), "
+            "plus raw/audio/*.mts and raw/movie/*.str. "
+            "Skip inflated type dirs, WAV/MP4 decode, stages/ISO manifests."
         ),
     )
     parser.add_argument(
@@ -943,8 +1005,16 @@ def main():
         help=(
             "After raw extract, inflate only required decomp overlays "
             f"({', '.join(sorted(REQUIRED_OVERLAY_STEMS))}) under pe2pkg/. "
-            "Skip images/ascii/full inflate and stages/ISO manifests. "
-            "Intended for CI / matching builds."
+            "Skip images/ascii/full inflate, CD audio/movie streams, "
+            "and stages/ISO manifests. Intended for CI / matching builds."
+        ),
+    )
+    parser.add_argument(
+        "--skip-streams",
+        action="store_true",
+        help=(
+            "Skip MTS audio and STR movie extract. "
+            "Standalone: extract_streams.py / extract_movies.py."
         ),
     )
     parser.add_argument(
@@ -953,7 +1023,7 @@ def main():
         type=int,
         default=None,
         help=(
-            "Parallel workers for inflated decode "
+            "Parallel workers for inflated decode and CD stream extract "
             f"(default: min(cpu_count, 16) = {default_jobs()})"
         ),
     )
@@ -979,6 +1049,7 @@ def main():
 
     # raw/{type}/     — unique clean on-disc payloads (NAMES or type_N)
     # pe2pkg/ pe2img/… — inflated edit forms (one per unique raw)
+    # raw/audio/ movie/ — MTS + STR streams (from STAGE*.CDF / INTER*.STR)
     # stages.json     — pack manifest (paths into inflated type dirs)
     # stage0/…        — pack sidecars only (trailers, layout, streaming)
     store = AssetStore(output_path)
@@ -989,6 +1060,34 @@ def main():
     extract_stage_n(args.stage3, stage=3, store=store)
     extract_stage_n(args.stage4, stage=4, store=store)
     extract_stage_n(args.stage5, stage=5, store=store)
+
+    rom_root = args.rom
+    if rom_root is not None:
+        rom_root = Path(rom_root)
+    else:
+        rom_root = infer_rom_root(Path(args.stage0_header.name))
+
+    if args.minimal_inflate:
+        logging.info("minimal-inflate: skipped CD audio/movie streams")
+    elif args.skip_streams:
+        logging.info("skip-streams: skipped CD audio/movie streams")
+    elif rom_root is None:
+        logging.warning(
+            "Skipping CD audio/movie extract (could not locate rom/USA near %s; "
+            "pass --rom)",
+            Path(args.stage0_header.name),
+        )
+    else:
+        try:
+            extract_cd_streams(
+                rom_root,
+                output_path,
+                write_raw=True,
+                write_decoded=not args.raw_only,
+                jobs=args.jobs,
+            )
+        except Exception:
+            logging.exception("Failed to extract CD audio/movie streams")
 
     for type_dir, st in sorted(store.stats().items()):
         logging.info(
@@ -1034,15 +1133,12 @@ def main():
     try:
         from write_manifest import write_manifest
 
-        rom_guess = None
         s0_hdr = Path(args.stage0_header.name).resolve()
         # .../rom/USA/disk1/STAGE0.HED -> rom/USA
-        if s0_hdr.parent.name.lower().startswith("disk"):
-            rom_guess = s0_hdr.parent.parent
-        if rom_guess is not None and (rom_guess / "disk1" / "layout.xml").exists():
+        if rom_root is not None and (rom_root / "disk1" / "layout.xml").exists():
             logging.info("Writing stages + ISO manifests for %s", output_path)
             write_manifest(
-                rom_guess,
+                rom_root,
                 output_path,
                 chunk_map=store.map,
                 stage0_hed=Path(args.stage0_header.name),
