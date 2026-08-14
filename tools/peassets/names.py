@@ -26,6 +26,9 @@ On-disk layout:
 fields point at the inflated type store. Overlays for decomp live under
 ``pe2pkg/`` (e.g. ``pe2pkg/title.pe2pkg``). Chunk dict key order is still
 disc index order.
+
+:data:`IMAGE_BPP` overrides pe2img texture depth (4/8/16) for extract and
+the viewer. Same canonical keys as :data:`NAMES`, or a type-store stem.
 """
 
 from __future__ import annotations
@@ -52,6 +55,18 @@ REQUIRED_OVERLAY_STEMS: frozenset[str] = frozenset(
         "title",
     }
 )
+
+# ---------------------------------------------------------------------------
+# pe2img texture depth — not stored on disc; extract/viewer otherwise guess.
+# Keys are the same canonical chunk ids as NAMES, or a type-store stem:
+#
+#   "stage0/file2/2": 8
+#   "pe2img_12": 4
+#
+# Values: 4, 8, or 16. Unset → guess_bpp() as today.
+# ---------------------------------------------------------------------------
+
+IMAGE_BPP: dict[str, int] = {}
 
 _SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 
@@ -124,6 +139,48 @@ def lookup(key: str) -> str | None:
     if name is None:
         return None
     return _check_component(name, key=key)
+
+
+def _image_bpp_keys(ident: str) -> list[str]:
+    """Expand a path / stem / canonical id into IMAGE_BPP lookup keys."""
+    s = ident.replace("\\", "/").strip()
+    keys: list[str] = []
+
+    def add(k: str) -> None:
+        if k and k not in keys:
+            keys.append(k)
+
+    add(s)
+    if s.endswith(".pe2img"):
+        add(s[: -len(".pe2img")])
+    # Non-canonical paths (raw/pe2img/foo.pe2img) also try the basename.
+    if "/" in s and not s.startswith("stage"):
+        leaf = s.rsplit("/", 1)[-1]
+        add(leaf)
+        if leaf.endswith(".pe2img"):
+            add(leaf[: -len(".pe2img")])
+    return keys
+
+
+def lookup_image_bpp(*idents: str | None) -> int | None:
+    """Return configured pe2img bpp (4/8/16) for the first matching ident.
+
+    Accepts canonical chunk keys (``stage0/file2/2``), type-store stems
+    (``pe2img_0``), or paths; ``None`` / empty idents are skipped.
+    """
+    for ident in idents:
+        if not ident:
+            continue
+        for key in _image_bpp_keys(str(ident)):
+            bpp = IMAGE_BPP.get(key)
+            if bpp is None:
+                continue
+            if bpp not in (4, 8, 16):
+                raise ValueError(
+                    f"IMAGE_BPP[{key!r}] must be 4, 8, or 16, got {bpp!r}"
+                )
+            return bpp
+    return None
 
 
 def reverse_folder_id(stage: int, dirname: str) -> int | None:
@@ -327,10 +384,19 @@ def validate_names() -> None:
             )
         by_parent[parent][name] = key
 
+    for key, bpp in IMAGE_BPP.items():
+        if not key or not isinstance(key, str):
+            raise ValueError(f"IMAGE_BPP key must be a non-empty str, got {key!r}")
+        if bpp not in (4, 8, 16):
+            raise ValueError(
+                f"IMAGE_BPP[{key!r}] must be 4, 8, or 16, got {bpp!r}"
+            )
+
 
 validate_names()
 
 __all__ = [
+    "IMAGE_BPP",
     "NAMES",
     "REQUIRED_OVERLAY_STEMS",
     "asset_name_key",
@@ -346,6 +412,7 @@ __all__ = [
     "folder_dirname",
     "folder_key",
     "lookup",
+    "lookup_image_bpp",
     "resolve_file_id",
     "resolve_folder_id",
     "reverse_chunk_idx",

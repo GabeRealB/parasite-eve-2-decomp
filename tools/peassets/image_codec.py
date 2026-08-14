@@ -182,7 +182,11 @@ def iter_lzss_strips(stream: bytes) -> Iterator[bytes]:
 
 
 def guess_bpp(raw_strips: Sequence[bytes], clut: list[int] | None) -> Bpp:
-    """Guess texture depth for PNG export."""
+    """Guess texture depth for PNG export.
+
+    Used only when no explicit ``bpp`` / :data:`names.IMAGE_BPP` override is
+    given. Halfword chroma + unique-count heuristic; not stored on disc.
+    """
     if clut:
         # 16-colour CLUT rows → 4bpp; 256-colour → 8bpp
         if len(clut) <= 16:
@@ -632,11 +636,17 @@ def _find_sibling_clut(pe2_path: Path, *, bpp: Bpp = 8) -> list[int] | None:
     return _load_clut_colors(cluts[0], bpp=bpp)
 
 
-def pe2img_to_png_files(pe2_path: Path, png_path: Path, meta_path: Path) -> None:
+def pe2img_to_png_files(
+    pe2_path: Path,
+    png_path: Path,
+    meta_path: Path,
+    *,
+    bpp: int | None = None,
+) -> None:
     """Materialize pe2img → PNG + meta (delegates to :mod:`asset_decode`)."""
     from asset_decode import pe2img_to_png_files as _impl
 
-    _impl(pe2_path, png_path, meta_path)
+    _impl(pe2_path, png_path, meta_path, bpp=bpp)
 
 
 def pe2clut_to_png_files(pe2_path: Path, png_path: Path, meta_path: Path) -> None:
@@ -658,8 +668,10 @@ def png_files_to_pe2clut(png_path: Path, meta_path: Path) -> bytes:
     return encode_pe2clut(img, info)
 
 
-def materialize_image_asset(src: Path, dest: Path) -> Path:
+def materialize_image_asset(
+    src: Path, dest: Path, *, bpp: int | None = None
+) -> Path:
     """Write PNG (+ meta) for a raw pe2img/pe2clut. Returns PNG path."""
     from asset_decode import materialize_image_asset as _impl
 
-    return _impl(src, dest)
+    return _impl(src, dest, bpp=bpp)

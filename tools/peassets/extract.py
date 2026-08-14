@@ -31,6 +31,7 @@ from names import (  # noqa: E402
     chunk_path_key,
     disk_file_rel,
     lookup,
+    lookup_image_bpp,
     validate_names,
 )
 from parallel_util import default_jobs, run_jobs  # noqa: E402
@@ -578,6 +579,10 @@ class AssetStore:
             if only_pe2pkg_stems is not None:
                 if type_dir != "pe2pkg" or stem not in only_pe2pkg_stems:
                     continue
+            canon = self._first_canonical.get(raw_rel)
+            canon_key = None
+            if canon:
+                canon_key = canon[: -len(ext)] if ext and canon.endswith(ext) else canon
             work.append(
                 {
                     "assets_root": str(self.assets_root),
@@ -586,6 +591,7 @@ class AssetStore:
                     "stem": stem,
                     "ext": ext,
                     "out_rel": self._inflated_rel(type_dir, stem, ext),
+                    "canon_key": canon_key,
                 }
             )
 
@@ -667,7 +673,14 @@ def _materialize_one_job(job: dict) -> dict:
             log = f"decode ascii {raw_rel} → {out_rel}"
             out_path.write_bytes(decode_ascii_payload(raw_path.read_bytes()))
         elif ext in IMAGE_EXTS:
+            bpp = (
+                lookup_image_bpp(job.get("canon_key"), stem)
+                if ext == ".pe2img"
+                else None
+            )
             log = f"decode image {raw_rel} → {out_rel}"
+            if bpp is not None:
+                log += f" (bpp={bpp} override)"
             try:
                 pe2_dest = out_path.with_suffix(ext)
                 if pe2_dest != raw_path:
@@ -677,7 +690,7 @@ def _materialize_one_job(job: dict) -> dict:
                         pe2_dest.hardlink_to(raw_path)
                     except OSError:
                         pe2_dest.write_bytes(raw_path.read_bytes())
-                materialize_image_asset(pe2_dest, pe2_dest)
+                materialize_image_asset(pe2_dest, pe2_dest, bpp=bpp)
                 if pe2_dest.exists() and pe2_dest != out_path:
                     pe2_dest.unlink()
             except Exception as ex:

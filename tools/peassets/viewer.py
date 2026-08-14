@@ -37,7 +37,14 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from names import asset_name_key  # noqa: E402
+from names import (  # noqa: E402
+    asset_name_key,
+    chunk_key,
+    lookup_image_bpp,
+    reverse_chunk_idx,
+    reverse_file_id,
+    reverse_folder_id,
+)
 
 TYPE_DIRS = (
     "pe2pkg",
@@ -461,6 +468,80 @@ def build_image_clut_index(
     return index
 
 
+def build_image_canon_index(
+    stages: dict[str, Any] | None,
+) -> dict[str, list[str]]:
+    """Map image stem / filename / path → canonical chunk keys.
+
+    Canonical form matches :data:`names.NAMES` / :data:`names.IMAGE_BPP`
+    (``stage0/file2/2``, ``stage1/101/file0/1``).
+    """
+    index: dict[str, list[str]] = {}
+    if not stages:
+        return index
+
+    def _add(key: str, canon: str) -> None:
+        existing = index.setdefault(key, [])
+        if canon not in existing:
+            existing.append(canon)
+
+    def _index_file(
+        stage: int,
+        folder_id: int | None,
+        file_name: str,
+        chunks: dict[str, Any],
+    ) -> None:
+        file_id = reverse_file_id(stage, file_name, folder_id)
+        if file_id is None or not isinstance(chunks, dict):
+            return
+        for chunk_name, ent in chunks.items():
+            if not isinstance(ent, dict):
+                continue
+            t = ent.get("type")
+            rel = ent.get("path") or ""
+            is_img = t == "image" or str(rel).endswith(".pe2img") or (
+                str(rel).endswith(".png") and "pe2img" in str(rel).replace("\\", "/")
+            )
+            if not is_img:
+                continue
+            stem = Path(chunk_name).stem
+            idx = reverse_chunk_idx(stage, file_id, stem, folder_id)
+            if idx is None and Path(rel).stem:
+                idx = reverse_chunk_idx(stage, file_id, Path(rel).stem, folder_id)
+            if idx is None:
+                continue
+            canon = chunk_key(stage, file_id, idx, folder_id)
+            _add(stem, canon)
+            _add(Path(chunk_name).name, canon)
+            if rel:
+                _add(rel.replace("\\", "/"), canon)
+                _add(Path(rel).stem, canon)
+                _add(Path(rel).name, canon)
+
+    for stage_name, stage in stages.items():
+        if not isinstance(stage, dict) or not str(stage_name).startswith("stage"):
+            continue
+        try:
+            stage_n = int(str(stage_name)[5:])
+        except ValueError:
+            continue
+        files = stage.get("files")
+        if isinstance(files, dict):
+            for file_name, chunks in files.items():
+                _index_file(stage_n, None, str(file_name), chunks)
+        folders = stage.get("folders")
+        if isinstance(folders, dict):
+            for folder_name, folder_files in folders.items():
+                if not isinstance(folder_files, dict):
+                    continue
+                folder_id = reverse_folder_id(stage_n, str(folder_name))
+                if folder_id is None:
+                    continue
+                for file_name, chunks in folder_files.items():
+                    _index_file(stage_n, folder_id, str(file_name), chunks)
+    return index
+
+
 def list_all_cluts(assets_root: Path) -> list[Path]:
     """All available pe2clut blobs (raw preferred)."""
     out: list[Path] = []
@@ -665,6 +746,8 @@ class AssetViewer(tk.Tk):
         self._filter_after: str | None = None
         # image → sibling CLUTs from stages.json
         self._img_clut_index: dict[str, list[Path]] = {}
+        # image stem/name → canonical chunk keys (for IMAGE_BPP)
+        self._img_canon_index: dict[str, list[str]] = {}
         # current pe2img decode state for CLUT swapping
         self._pe2img_path: Path | None = None
         self._pe2img_data: bytes | None = None
@@ -774,11 +857,24 @@ class AssetViewer(tk.Tk):
         self.preview_nb = ttk.Notebook(right)
         self.preview_nb.pack(fill=tk.BOTH, expand=True)
 
-        # Image canvas + CLUT controls
+        # Image canvas + BPP / CLUT controls
         img_frame = ttk.Frame(self.preview_nb)
         self.preview_nb.add(img_frame, text="Image")
         clut_bar = ttk.Frame(img_frame)
         clut_bar.pack(side=tk.TOP, fill=tk.X, pady=(0, 4))
+        ttk.Label(clut_bar, text="BPP:").pack(side=tk.LEFT)
+        self._bpp_var = tk.StringVar(value="Auto")
+        self._bpp_combo = ttk.Combobox(
+            clut_bar,
+            textvariable=self._bpp_var,
+            values=("Auto", "4", "8", "16"),
+            state="disabled",
+            width=6,
+        )
+        self._bpp_combo.pack(side=tk.LEFT, padx=(4, 10))
+        self._bpp_combo.bind(
+            "<<ComboboxSelected>>", lambda _e: self._on_clut_changed()
+        )
         ttk.Label(clut_bar, text="CLUT:").pack(side=tk.LEFT)
         self._clut_apply = tk.BooleanVar(value=True)
         self._clut_apply_cb = ttk.Checkbutton(
@@ -915,6 +1011,7 @@ class AssetViewer(tk.Tk):
     def reload(self) -> None:
         self.stages = _load_stages(self.assets_root)
         self._img_clut_index = build_image_clut_index(self.assets_root, self.stages)
+        self._img_canon_index = build_image_canon_index(self.stages)
         self._item_map.clear()
         self._populate_type_tree()
         self._populate_stage_tree()
@@ -1204,12 +1301,15 @@ class AssetViewer(tk.Tk):
         if enabled:
             self._clut_combo.configure(state="readonly")
             self._clut_apply_cb.configure(state=tk.NORMAL)
+            self._bpp_combo.configure(state="readonly")
         else:
             self._clut_combo.configure(state="disabled", values=[])
             self._clut_var.set("(none)")
             self._clut_apply_cb.configure(state=tk.DISABLED)
             self._clut_choices = []
             self._current_clut_colors = None
+            self._bpp_combo.configure(state="disabled")
+            self._bpp_var.set("Auto")
 
     def _show_item(self, item: AssetItem) -> None:
         # Stop previous stream when switching assets (new audio re-enables).
@@ -2445,6 +2545,7 @@ class AssetViewer(tk.Tk):
             self._clut_var.set(labels[0])
         self._clut_combo.configure(state="readonly")
         self._clut_apply_cb.configure(state=tk.NORMAL)
+        self._bpp_combo.configure(state="readonly")
 
     def _selected_clut_path(self) -> Path | None:
         label = self._clut_var.get()
@@ -2483,12 +2584,34 @@ class AssetViewer(tk.Tk):
             clut_path=self._selected_clut_path(),
         )
 
+    def _selected_bpp(self) -> int | None:
+        """Manual BPP combo value, or None for Auto."""
+        raw = self._bpp_var.get()
+        if raw in ("4", "8", "16"):
+            return int(raw)
+        return None
+
+    def _auto_bpp_for_current(self) -> int | None:
+        """IMAGE_BPP override for the current pe2img, or None to guess."""
+        idents: list[str] = []
+        if self._pe2img_path is not None:
+            p = self._pe2img_path
+            idents.extend((p.stem, p.name, str(p)))
+        item = self._current_item
+        if item is not None:
+            idents.extend((item.path.stem, item.path.name, item.label))
+        for ident in list(idents):
+            for canon in self._img_canon_index.get(ident, []):
+                idents.append(canon)
+        return lookup_image_bpp(*idents)
+
     def _show_pe2img(
         self, path: Path, data: bytes, *, item: AssetItem
     ) -> bool:
         self._pe2img_path = path
         self._pe2img_data = data
         self._clut_apply.set(True)
+        self._bpp_var.set("Auto")
         self._refresh_clut_list()
         clut_path = self._selected_clut_path()
         return self._decode_pe2img_to_canvas(
@@ -2516,26 +2639,39 @@ class AssetViewer(tk.Tk):
             clut = prefer_raw_blob(self.assets_root, clut_path) if clut_path else None
             if clut is not None and clut.suffix.lower() != ".pe2clut":
                 clut = None
+            manual = self._selected_bpp()
+            if manual is not None:
+                bpp = manual
+                bpp_src = "manual"
+            else:
+                bpp = self._auto_bpp_for_current()
+                bpp_src = "override" if bpp is not None else "guess"
             img, info, colors = render_pe2img(
                 data,
                 apply_clut=bool(apply_clut and clut is not None),
                 clut_path=clut if apply_clut else None,
+                bpp=bpp,
             )
             self._current_clut_colors = colors
+            bpp_note = (
+                f"bpp={info.bpp}"
+                if bpp_src != "guess"
+                else f"bpp≈{info.bpp}"
+            )
+            bpp_note += f" ({bpp_src})"
             if apply_clut and clut is not None and colors is not None:
                 note = (
-                    f"cols={len(info.entries)}  h={info.height}  "
-                    f"clut={clut.name}  {len(colors)} entries  "
-                    f"render_bpp={info.bpp}"
+                    f"{bpp_note}  cols={len(info.entries)}  h={info.height}  "
+                    f"clut={clut.name}  {len(colors)} entries"
                 )
             elif apply_clut and clut is not None:
                 note = (
-                    f"bpp≈{info.bpp}  cols={len(info.entries)}  "
+                    f"{bpp_note}  cols={len(info.entries)}  "
                     f"h={info.height}  clut load failed: {clut.name}"
                 )
             else:
                 note = (
-                    f"bpp≈{info.bpp}  cols={len(info.entries)}  "
+                    f"{bpp_note}  cols={len(info.entries)}  "
                     f"h={info.height}  clut=off"
                 )
         except Exception as e:

@@ -329,6 +329,21 @@ VRAM transfer is always halfword-oriented. Texture depth is separate:
 | 8 | 2 (indices) | Textures / UI with 256-colour CLUT |
 | 4 | 4 (indices) | Fonts / small UI with 16-colour CLUT |
 
+BPP is **not stored** on disc. Extract and the viewer default to `guess_bpp()`
+(halfword chroma + unique-count). Override in `names.py` with the same
+canonical keys as `NAMES`, or a type-store stem:
+
+```python
+IMAGE_BPP = {
+    "stage0/file2/2": 8,   # title menu art
+    "pe2img_12": 4,
+}
+```
+
+The viewer Image tab has a **BPP** combo (`Auto` / `4` / `8` / `16`). Auto
+uses `IMAGE_BPP` when set, else the guess. The chosen depth is written to
+`pe2img/<stem>.pe2img.json` (`bpp`, `bpp_source`: `override` or `guess`).
+
 When a neighbouring `.pe2clut` exists (`N±1` by chunk index), the PNG exporter
 applies it for 4/8 bpp (see §7.4 for multi-row selection). Examples:
 
@@ -558,6 +573,8 @@ Rules of thumb:
 - Type-store stems: chunk `NAMES` when set, else `{type}_{n}` for the
   n-th **unique** asset of that type. Duplicates share the same store path
   in `stages.json`.
+- `IMAGE_BPP` (same file): optional `4` / `8` / `16` for pe2img chunks.
+  Keys are canonical chunk ids or type-store stems. Unset → guess.
 
 ---
 
@@ -767,8 +784,9 @@ Dependencies: see `requirements.txt` (includes **Pillow** for PNG).
 ## 14. Known gaps / open questions
 
 - **`.bs` BS v2 MDEC** backgrounds: decoded to PNG on extract (see §8).
-- **Exact bpp** is not stored in the image chunk; exporters **guess** (and use a
-  sibling CLUT when present). Meta JSON records the choice for re-encode.
+- **Exact bpp** is not stored in the image chunk; exporters **guess** unless
+  `IMAGE_BPP` (in `names.py`) or the viewer BPP combo overrides. Meta JSON
+  records the choice (`bpp` + `bpp_source`) for re-encode.
 - **Which CLUT row** an 8 bpp texture uses when `h > 1` is not known offline
   (game picks via `getClut(x,y)`). Exporter scores rows and picks the most
   varied; wrong for textures that intentionally use a monochrome row.
