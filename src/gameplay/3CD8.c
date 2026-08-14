@@ -3,12 +3,12 @@
 #include "main/gameflag.h"
 #include "main/task.h"
 
+extern s32 D_801155A8;
 extern s32 D_80115660;
 extern s16 D_80115668;
 extern s8  D_801156B0;
 
 void func_800E34D8(s32 arg0, s16 arg1);
-s32  func_800E6CE0(void);
 s32  func_800E6CF0(void);
 void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
 void func_800E8A90(Task* task);
@@ -103,7 +103,10 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6BB8);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6C70);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6CE0);
+s32 func_800E6CE0(void)
+{
+    return D_801155A8 != 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6CF0);
 
