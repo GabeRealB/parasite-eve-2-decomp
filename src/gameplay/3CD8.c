@@ -6,16 +6,18 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/wipsys.h"
 
-extern TaskDesc D_8010FAEC[];
-extern s32      D_801155A8;
-extern s16      D_80115654;
-extern s16      D_80115656;
-extern s32      D_80115660;
-extern s16      D_80115668;
-extern s16      D_80115698;
-extern s16      D_8011569A;
-extern s8       D_801156B0;
+extern WipSysConfig D_80073B88;
+extern TaskDesc     D_8010FAEC[];
+extern s32          D_801155A8;
+extern s16          D_80115654;
+extern s16          D_80115656;
+extern s32          D_80115660;
+extern s16          D_80115668;
+extern s16          D_80115698;
+extern s16          D_8011569A;
+extern s8           D_801156B0;
 
 s32   func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 Task* func_8002CFA0(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
@@ -54,7 +56,14 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3CEC);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3D24);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3D5C);
+void func_800E3D5C(void)
+{
+    WipSysConfig* p;
+
+    p           = &D_80073B88;
+    p->field_18 = p->field_1a;
+    p->field_1c = p->field_1e;
+}
 
 void func_800E3D78(void)
 {
