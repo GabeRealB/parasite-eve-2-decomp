@@ -6,6 +6,7 @@ extern u8  D_801153F1;
 extern s32 D_8010CA28;
 
 void func_800A1634(s32 arg0, s32 arg1);
+void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  func_800A7B20(s32 arg0);
 void func_800B065C(u8 arg0);
 
@@ -240,7 +241,12 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7744);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A77B4);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7824);
+void func_800A7824(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (arg0 == 0) {
+        func_800A4A2C(0, arg1, arg2, 5);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A784C);
 
