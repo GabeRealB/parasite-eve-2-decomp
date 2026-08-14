@@ -1,8 +1,10 @@
 #include "common.h"
 
 #include "gameplay/268.h"
+#include "main/display.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
+#include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/text.h"
@@ -35,6 +37,7 @@ void       func_800D08D4(Task* arg0);
 void       func_800D15D0(Task* arg0);
 void       func_8003F9F4(void);
 void       func_8003F6F8(void);
+void       func_800A96A0(void);
 char*      func_800B8EB0(s32 arg0, s32 arg1, s32 arg2);
 void       func_80049D34(char* arg0, s32 arg1, s32 arg2);
 GpItemRec* func_800D6910(s32 arg0);
@@ -464,7 +467,26 @@ void func_800D1F90(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D1FD4);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D2020);
+void func_800D2020(u8 arg0)
+{
+    RECT rect;
+
+    if ((s8)Display_State.field_122 != 0) {
+        return;
+    }
+
+    rect.x = 0x380;
+    rect.w = 0x80;
+    rect.h = 0x100;
+    rect.y = 0;
+    if (arg0 == 0) {
+        Display_SetDrawMode(0);
+        StoreImage2(&rect, (u_long*)(D_80068F88 + 0xFFFDA800));
+    } else {
+        func_800A96A0();
+        LoadImage2(&rect, (u_long*)(D_80068F88 + 0xFFFDA800));
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D20B8);
 
