@@ -12,7 +12,8 @@
 /// at the owner. `node` is the `func_800DAB38` list entry at +0x10.
 typedef struct _GpEnemy {
     /* 0x00 */ Task*      task;
-    /* 0x04 */ byte       pad_4[0xC];
+    /* 0x04 */ byte       pad_4[0x8];
+    /* 0x0C */ s32        field_C;
     /* 0x10 */ GpLinkNode node;
 } GpEnemy;
 
@@ -42,6 +43,7 @@ GpEnemy* func_800B01AC(TaskDesc* table, s32 idx, s32 arg2, GpEnemy* parent);
 void     func_800B01F0(GpEnemy* enemy, Task* task);
 void     func_800B0234(Task* task);
 GpEnemy* func_800B0494(Task* task, GpEnemy* parent);
+void     func_800B0544(GpEnemy* enemy, Task* task);
 void     func_800B3CCC(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3);
 void     func_800B58D4(TmdObject* arg0, s32 arg1, s32 arg2);
 

@@ -575,6 +575,7 @@ Global at `D_801153F0`. Full object is larger (helpers also use 0x8 / 0xC / 0x10
 | Off | Member | Role |
 |-----|--------|------|
 | 0x00 | `task` | Owning `Task*` |
+| 0x0C | `field_C` | Countdown word; `func_800B0544` sets 0x78, `func_800B0560` decrements and advances `Task::state` at 0 |
 | 0x10 | `node` | `GpLinkNode` unlinked by `func_800DAB38` |
 
 ### `GpAnimObj` — `1BC.h`
