@@ -68,6 +68,15 @@ STATIC_ASSERT_SIZEOF(GameSessionFrom4, 0x4);
 
 struct _Task;
 
+/// 0x28-byte record in `GameActor.field_448`. `field_0` is a flag halfword
+/// (bit 0x100: `func_8010583C`; bits 0x102: `func_80105894`). Count is
+/// `GameActor+0x938` (init 0x13).
+typedef struct _GameActorSlot {
+    /* 0x00 */ u16  field_0;
+    /* 0x02 */ byte pad_2[0x26];
+} GameActorSlot;
+STATIC_ASSERT_SIZEOF(GameActorSlot, 0x28);
+
 /// Large object pointed to by Task::idMap for the slot-3 game object
 /// (Game_GetPtrSlot(3)). Sparse fields used by Display_SpawnFromMode.
 typedef struct _GameActor {
@@ -81,7 +90,9 @@ typedef struct _GameActor {
     /* 0x12C */ byte          field_12C[0x20];
     /* 0x14C */ byte          pad_14C[0x30];
     /* 0x17C */ byte          field_17C; // address taken for func_800E1A6C
-    /* 0x17D */ byte          pad_17D[0x797];
+    /* 0x17D */ byte          pad_17D[0x2CB];
+    /* 0x448 */ GameActorSlot field_448[19];
+    /* 0x740 */ byte          pad_740[0x1D4];
     /* 0x914 */ struct _Task* field_914;
     /* 0x918 */ struct _Task* field_918;
     /* 0x91C */ struct _Task* field_91C;

@@ -514,6 +514,9 @@ See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 
 ### `GameActor` / `GameActorExt`
 Sparse: `field_17C`/`field_930` addresses for overlay setup; `field_C` kill flag bit 0x80.
+`field_448` is a 19-entry table of `GameActorSlot` (0x28 each; flags halfword at +0x00).
+`func_80100B78` stores count `0x13` at `+0x938`; `func_80105894` returns
+`(slot[arg1].field_0 & 0x102) == 0`.
 `GameActorExt.field_8` is a `GsCOORDINATE2*` (`flg` cleared to 0 by `Display_SpawnFromMode`
 and `func_800B57EC`; `sub` is the parent link, same convention as `Gfx_InitCoordinateTrees`).
 `field_AC`/`field_CC`/`field_EC`/`field_10C`/`field_12C` are 0x20-byte list nodes

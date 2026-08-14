@@ -290,7 +290,13 @@ s32 func_80105828(GpActorWork* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010583C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105894);
+s32 func_80105894(GpActorWork* arg0, s32 arg1)
+{
+    GameActor* actor;
+
+    actor = (GameActor*)((arg1 * sizeof(GameActorSlot)) + (s32)arg0->actor);
+    return (actor->field_448[0].field_0 & 0x102) == 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801058BC);
 
