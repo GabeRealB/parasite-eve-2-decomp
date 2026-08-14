@@ -263,7 +263,14 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC06C);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC0C0);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC164);
+void func_800BC164(void)
+{
+    WipSysConfig* p;
+
+    p           = &D_80073B88;
+    p->field_18 = p->field_1a;
+    p->field_1c = p->field_1e;
+}
 
 s32 func_800BC180(u8* arg0)
 {
