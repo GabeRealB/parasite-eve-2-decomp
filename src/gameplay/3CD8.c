@@ -126,7 +126,14 @@ void func_800E4020(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E4028);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E4080);
+void func_800E4080(void)
+{
+    s32 i;
+
+    for (i = 0; i < 0x1F8; i++) {
+        GameFlag_SetNibble(i, 0);
+    }
+}
 
 void func_800E40BC(s32 arg0, s32 arg1)
 {
