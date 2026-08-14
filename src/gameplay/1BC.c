@@ -4,6 +4,7 @@
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -14,8 +15,23 @@ void  func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
 void  func_800B3910(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void  func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 Task* func_8002CFA0(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
+void  func_8017FBD8(void);
 
 extern TaskDesc D_80119218[];
+extern TaskDesc D_801637C8[];
+extern TaskDesc D_8017D9E8[];
+extern TaskDesc D_80180DBC[];
+extern TaskDesc D_801810E4[];
+extern TaskDesc D_80181398[];
+extern TaskDesc D_80181638[];
+extern TaskDesc D_8018186C[];
+extern TaskDesc D_80181B30[];
+extern TaskDesc D_80181B88[];
+extern TaskDesc D_80181F18[];
+extern TaskDesc D_80182D0C[];
+extern TaskDesc D_80182E74[];
+extern TaskDesc D_80182FAC[];
+extern TaskDesc D_8018384C[];
 extern s32      D_8010D208[];
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AF590);
@@ -146,7 +162,57 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B2088);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B2200);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B25B0);
+void func_800B25B0(void)
+{
+    switch (*(u32*)&D_8007216C & 0xFFFF0000) {
+        case 0x51B0000:
+            func_8002CFA0(D_80181F18, 0, 0, 0);
+            break;
+        case 0x50F0000:
+            func_8002CFA0(D_80181398, 0, 0, 0);
+            break;
+        case 0x50E0000:
+            func_8002CFA0(D_80181B30, 0, 0, 0);
+            break;
+        case 0x50D0000:
+            func_8002CFA0(D_8018384C, 0, 0, 0);
+            break;
+        case 0x50C0000:
+            func_8002CFA0(D_801810E4, 1, 0, 0);
+            break;
+        case 0x5070000:
+            func_8002CFA0(D_80180DBC, 0, 0, 0);
+            break;
+        case 0x21E0000:
+            func_8002CFA0(D_80182D0C, 0, 1, 0);
+            break;
+        case 0x31E0000:
+            func_8002CFA0(D_80182E74, 0, 1, 0);
+            break;
+        case 0x4120000:
+            func_8002CFA0(D_80181B88, 0, 0, 0);
+            break;
+        case 0x51F0000:
+            func_8002CFA0(D_8017D9E8, 0, 0, 0);
+            break;
+        case 0x51E0000:
+            func_8002CFA0(D_8018186C, 0, 0, 0);
+            func_8002CFA0(D_8018186C, 1, 0, 0);
+            break;
+        case 0x51D0000:
+            func_8002CFA0(D_80181638, 0, 0, 0);
+            break;
+        case 0x4160000:
+            func_8002CFA0(D_801637C8, 0, 0, 0);
+            break;
+        case 0x4300000:
+            func_8002CFA0(D_80182FAC, 0, 0, 0);
+            break;
+        case 0x1140000:
+            func_8017FBD8();
+            break;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B27C4);
 
