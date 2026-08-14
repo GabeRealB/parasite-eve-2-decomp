@@ -5,22 +5,25 @@
 #include "main/task.h"
 #include "main/ui.h"
 
-extern s32 D_80114D88;
-extern u32 D_80114DCC;
+extern s32  D_80114D88;
+extern u32  D_80114DCC;
+extern char D_8010F8D0[];
 
-void func_8017F41C(Task* task);
-void func_8017F2F8(Task* task);
-void func_8017F304(Task* task);
-void func_80181184(Task* task);
-void func_801811A0(Task* task);
-void func_800C05CC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void func_800D02A4(Task* arg0);
-void func_800D0C34(Task* arg0);
-void func_800D0614(Task* arg0);
-void func_800D08D4(Task* arg0);
-void func_800D15D0(Task* arg0);
-void func_8003F9F4(void);
-void func_8003F6F8(void);
+void  func_8017F41C(Task* task);
+void  func_8017F2F8(Task* task);
+void  func_8017F304(Task* task);
+void  func_80181184(Task* task);
+void  func_801811A0(Task* task);
+void  func_800C05CC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void  func_800D02A4(Task* arg0);
+void  func_800D0C34(Task* arg0);
+void  func_800D0614(Task* arg0);
+void  func_800D08D4(Task* arg0);
+void  func_800D15D0(Task* arg0);
+void  func_8003F9F4(void);
+void  func_8003F6F8(void);
+char* func_800B8EB0(s32 arg0, s32 arg1, s32 arg2);
+void  func_80049D34(char* arg0, s32 arg1, s32 arg2);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800BF9FC);
 
@@ -226,7 +229,14 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CEA00);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CEA88);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CEB40);
+void func_800CEB40(s32 arg0)
+{
+    if (arg0 == 0) {
+        func_80049D34(D_8010F8D0, 0, 0);
+    } else {
+        func_80049D34(func_800B8EB0(arg0, 1, 0), 0, 0);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CEB84);
 

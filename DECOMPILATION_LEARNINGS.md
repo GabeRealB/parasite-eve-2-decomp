@@ -12335,3 +12335,37 @@ Copy each field into a temp before the call: a volatile `if (inner->field)` /
 Declare the global as `T* volatile`, not `volatile T*`. The latter makes the
 *pointee* volatile; `g = NULL` is then a non-volatile pointer store and sinks
 into the following `beqz` delay slot. `func_80101408` is the example.
+
+## Duplicate a call in both branches so a constant address lands in `$a0`
+
+When the target does:
+
+```
+bnez  a0, else
+ lui   a0, %hi(K)     /* empty/default path: address already in $a0 */
+j     call
+ addiu a0, a0, %lo(K)
+else:
+jal   lookup
+ move  a2, zero
+move  a0, v0          /* lookup result → first arg */
+call:
+jal   use
+ move  a1, zero
+```
+
+a shared temp (`str = cond ? K : lookup(...); use(str);`) allocates `str` to
+`$v0` (the lookup return) and emits `lui v0, %hi(K)` plus a jump *onto*
+`move a0, v0`. Write the `use(...)` call in **both** arms instead:
+
+```c
+if (id == 0) {
+    use(K, 0, 0);
+} else {
+    use(lookup(id, 1, 0), 0, 0);
+}
+```
+
+GCC CSE's the two calls into one `jal` and materializes `K` directly in `$a0`,
+jumping past `move a0, v0`. `func_800CEB40` is the pure example (`D_8010F8D0`
+empty string + `func_800B8EB0` + `func_80049D34`).
