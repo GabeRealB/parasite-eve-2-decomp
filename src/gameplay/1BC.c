@@ -12,6 +12,8 @@ void  func_800B3910(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void  func_800B3F60(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 Task* func_8002CFA0(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
 
+extern TaskDesc D_80119218[];
+
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AF590);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AF89C);
@@ -128,7 +130,10 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B28E0);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B2910);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B2968);
+Task* func_800B2968(void)
+{
+    return func_8002CFA0(D_80119218, 0, 0, 0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B2998);
 
