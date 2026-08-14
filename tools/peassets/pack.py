@@ -33,7 +33,7 @@ Example ``stages.json`` (see ``doc/ASSET_FORMATS.md`` §11 for the full schema):
     }
 
 ``files`` → STAGE0-style HED+CDF. ``folders`` → STAGEn.CDF with folder table.
-File/folder/chunk dict keys use friendly names from ``names.NAMES`` when set
+File/folder/chunk dict keys use friendly names from ``asset_db.TREE`` when set
 (else ``file0`` / ``101`` / ``1.pe2pkg``). Key order is on-disc order.
 ``end_flag`` / ``chunk_size`` are never in the manifest (inferred at pack).
 
@@ -97,7 +97,7 @@ from format import (  # noqa: E402
     validate_stages_manifest,
 )
 from lzss import encode_lzss  # noqa: E402
-from names import (  # noqa: E402
+from asset_db import (  # noqa: E402
     disk_file_rel,
     disk_folder_rel,
     resolve_file_id,

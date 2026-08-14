@@ -15,7 +15,7 @@ Implementation references:
 | LZSS decode / format | `tools/peassets/lzss.py`, `src/main/hasm/Fs_DecompressChunk.s` |
 | LZSS encode (policies, identity) | `doc/LZSS_ENCODER.md`, `lzss.py` / `lzss_clut.py` / `lzss_cascading.py` |
 | Images / CLUT | `tools/peassets/image_codec.py`, `src/main/fs.c` |
-| Friendly names | `tools/peassets/names.py` |
+| Asset database | `tools/peassets/asset_db.py`, `asset_data.py` |
 | Runtime FS loader | `src/main/fs.c`, `include/main/fs.h` |
 | **CD streams (MTS audio + STR movie)** | [`STREAM_FORMATS.md`](STREAM_FORMATS.md), `mts_codec.py`, `str_codec.py` |
 
@@ -35,7 +35,7 @@ Tooling layout after extract (`assets/USA/`):
 
 ```text
 raw/pe2pkg/ pe2img/ …   deduplicated **on-disc** clean payloads
-                         name = names.NAMES stem, else {type}_{n}
+                         name = ASSETS id (sha1), else {type}_{n}
 pe2pkg/ pe2img/ …        **inflated** edit forms (one per unique raw)
                          pe2pkg = LZSS-decoded; pe2img/pe2clut = PNG + meta
 raw/audio/ audio/        MTS CD streams (not file chunks)
@@ -62,7 +62,7 @@ for hybrid/decoded packs.
   see [`STREAM_FORMATS.md`](STREAM_FORMATS.md).
 - Also: `INTER0.STR` / `INTER1.STR` on the ISO for FMV (not in the CDF).
 - Chunks land in type dirs; pack sidecars under `stage0/<fileName>/`
-  (default `file{id}`, or a friendly name from `names.NAMES`).
+  (default `file{id}`, or a friendly name from `TREE`).
 
 ### STAGE1–5 (`STAGEn.CDF`)
 
@@ -74,7 +74,7 @@ for hybrid/decoded packs.
 - Chunks land in type dirs; pack sidecars under `stageN/<folderName>/file…/`.
 
 Folder and file **keys** in `stages.json` use friendly names when set in
-`names.py`; otherwise `file12` / decimal folder id. Order is always on-disc
+`TREE`; otherwise `file12` / decimal folder id. Order is always on-disc
 order so pack recovers numeric ids.
 
 ---
@@ -259,7 +259,7 @@ encode). Runtime: `Fs_DecompressChunk.s` (resumable, CD-fed) and
 - Body is one LZSS stream (after sector_len strip).
 - `load_addr` is the RAM load address when non-zero (e.g. title / gameplay
   overlays at `0x80093800`).
-- Unique inflated bodies live under `pe2pkg/` (stem from `NAMES` or
+- Unique inflated bodies live under `pe2pkg/` (stem from `ASSETS` or
   `pe2pkg_N`); decomp overlays use those files directly (e.g.
   `pe2pkg/title.pe2pkg`).
 
@@ -330,18 +330,14 @@ VRAM transfer is always halfword-oriented. Texture depth is separate:
 | 4 | 4 (indices) | Fonts / small UI with 16-colour CLUT |
 
 BPP is **not stored** on disc. Extract and the viewer default to `guess_bpp()`
-(halfword chroma + unique-count). Override in `names.py` with the same
-canonical keys as `NAMES`, or a type-store stem:
+(halfword chroma + unique-count). Override on the unique blob in `ASSETS`:
 
 ```python
-IMAGE_BPP = {
-    "stage0/file2/2": 8,   # title menu art
-    "pe2img_12": 4,
-}
+ASSETS["pe2img_2"]["bpp"] = 8
 ```
 
 The viewer Image tab has a **BPP** combo (`Auto` / `4` / `8` / `16`). Auto
-uses `IMAGE_BPP` when set, else the guess. The chosen depth is written to
+uses `ASSETS[id].bpp` when set, else the guess. The chosen depth is written to
 `pe2img/<stem>.pe2img.json` (`bpp`, `bpp_source`: `override` or `guess`).
 
 When a neighbouring `.pe2clut` exists (`N±1` by chunk index), the PNG exporter
@@ -555,26 +551,40 @@ raw/movie/*.str   movie/{stem}.mp4  movie/{stem}.json   # lossless H.264 4:4:4 +
 
 ---
 
-## 10. Friendly naming (`names.py`)
+## 10. Asset database (`asset_db.py` / `asset_data.py`)
 
-Optional map from **canonical disc ids** to path components:
+Two tables:
+
+* **`ASSETS`** — unique raw blobs. Key is a stable id (type-store stem).
+  Value: `sha1` of the on-disc payload, `type`, and optional attributes
+  (`bpp`, `required`, …).
+* **`TREE`** — STAGE*.CDF file tree keyed by integer disc ids. Chunk
+  leaves are asset ids. Folder/file `name` is an optional path component.
 
 ```text
-stage0/file0          →  gameplay          (file directory)
-stage0/file0/1        →  gameplay          (chunk stem / pe2pkg store name)
-stage1/101            →  <room name>       (folder)
+ASSETS["gameplay"] = {sha1, type: pe2pkg, required: True}
+ASSETS["pe2img_2"] = {sha1, type: pe2img, bpp: 8}
+
+TREE[0]["files"][0] = {name: "gameplay", chunks: {1: "gameplay"}}
+TREE[1]["folders"][101]["files"][0]["chunks"][2] = "pe2img_12"
+```
+
+Regenerate hashes and placement after extract (preserves extra fields and
+names, matched by sha1):
+
+```bash
+python3 tools/peassets/dump_asset_db.py
 ```
 
 Rules of thumb:
 
 - Canonical extract-map keys always use numeric ids (`stage0/file0/1.pe2pkg`).
-- `stages.json` file/folder/**chunk** keys use friendly names when set in
-  `NAMES` (else `file0` / `101` / `1.pe2pkg`). Dict order is still disc order.
-- Type-store stems: chunk `NAMES` when set, else `{type}_{n}` for the
-  n-th **unique** asset of that type. Duplicates share the same store path
-  in `stages.json`.
-- `IMAGE_BPP` (same file): optional `4` / `8` / `16` for pe2img chunks.
-  Keys are canonical chunk ids or type-store stems. Unset → guess.
+- `stages.json` file/folder keys use TREE `name` when set (else `file0` /
+  `101`). Chunk keys stay disc-index based unless the asset id is a
+  friendly (non-`type_N`) name. Dict order is still disc order.
+- Type-store stems are asset ids: sha1 lookup in `ASSETS`, else `{type}_{n}`.
+  Duplicates share the same store path in `stages.json`.
+- pe2img `bpp` lives on the unique blob (`ASSETS[id]["bpp"]`), not the CDF slot.
 
 ---
 
@@ -785,8 +795,8 @@ Dependencies: see `requirements.txt` (includes **Pillow** for PNG).
 
 - **`.bs` BS v2 MDEC** backgrounds: decoded to PNG on extract (see §8).
 - **Exact bpp** is not stored in the image chunk; exporters **guess** unless
-  `IMAGE_BPP` (in `names.py`) or the viewer BPP combo overrides. Meta JSON
-  records the choice (`bpp` + `bpp_source`) for re-encode.
+  `ASSETS[id]["bpp"]` or the viewer BPP combo overrides. Meta JSON records
+  the choice (`bpp` + `bpp_source`) for re-encode.
 - **Which CLUT row** an 8 bpp texture uses when `h > 1` is not known offline
   (game picks via `getClut(x,y)`). Exporter scores rows and picks the most
   varied; wrong for textures that intentionally use a monochrome row.

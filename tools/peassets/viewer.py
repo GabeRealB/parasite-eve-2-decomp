@@ -37,7 +37,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from names import (  # noqa: E402
+from asset_db import (  # noqa: E402
     asset_name_key,
     chunk_key,
     lookup_image_bpp,
@@ -473,7 +473,7 @@ def build_image_canon_index(
 ) -> dict[str, list[str]]:
     """Map image stem / filename / path → canonical chunk keys.
 
-    Canonical form matches :data:`names.NAMES` / :data:`names.IMAGE_BPP`
+    Canonical form matches :data:`asset_db.TREE` / :data:`asset_db.ASSETS`
     (``stage0/file2/2``, ``stage1/101/file0/1``).
     """
     index: dict[str, list[str]] = {}
@@ -746,7 +746,7 @@ class AssetViewer(tk.Tk):
         self._filter_after: str | None = None
         # image → sibling CLUTs from stages.json
         self._img_clut_index: dict[str, list[Path]] = {}
-        # image stem/name → canonical chunk keys (for IMAGE_BPP)
+        # image stem/name → canonical chunk keys (for ASSETS bpp)
         self._img_canon_index: dict[str, list[str]] = {}
         # current pe2img decode state for CLUT swapping
         self._pe2img_path: Path | None = None
@@ -2592,7 +2592,7 @@ class AssetViewer(tk.Tk):
         return None
 
     def _auto_bpp_for_current(self) -> int | None:
-        """IMAGE_BPP override for the current pe2img, or None to guess."""
+        """ASSETS bpp override for the current pe2img, or None to guess."""
         idents: list[str] = []
         if self._pe2img_path is not None:
             p = self._pe2img_path

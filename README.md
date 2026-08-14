@@ -27,7 +27,7 @@ The goal is to recover readable C that, when compiled with a period-correct tool
 <details>
 <summary><strong>Overlays</strong> (448)</summary>
 
-Descriptions are best-effort: source path and load address come from `assets/USA/stages.json` (`room_pkg` entries). Friendly names live in `tools/peassets/names.py` (`NAMES`); unnamed unique overlays use `pe2pkg_N` store stems. Role text is inferred from known names or stage/room encoding.
+Descriptions are best-effort: source path and load address come from `assets/USA/stages.json` (`room_pkg` entries). Friendly names live in `tools/peassets/asset_db.py` (`ASSETS` / `TREE`); unnamed unique overlays use `pe2pkg_N` store stems. Role text is inferred from known names or stage/room encoding.
 
 | Overlay | Description | Status |
 |---|---|---|

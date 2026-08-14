@@ -24,15 +24,17 @@ from asset_decode import (  # noqa: E402
     materialize_image_asset,
     materialize_spk_asset,
 )
-from names import (  # noqa: E402
+from asset_db import (  # noqa: E402
     REQUIRED_OVERLAY_STEMS,
+    asset_id_for_sha1,
     asset_name_key,
     chunk_key,
     chunk_path_key,
     disk_file_rel,
     lookup,
     lookup_image_bpp,
-    validate_names,
+    tree_chunk_asset,
+    validate_asset_db,
 )
 from parallel_util import default_jobs, run_jobs  # noqa: E402
 
@@ -175,9 +177,9 @@ FILE_LIST_ENTRY_SIZE = 0x8
 FILE_CHUNK_HEADER_SIZE = 0x10
 STREAMING_LIST_ENTRY_SIZE = 0x28
 
-# Asset path names live in names.py (NAMES).
-# Canonical keys use disc ids (stage0/file0/1.pe2pkg); type-store stems use
-# friendly names when set (pe2pkg/gameplay.pe2pkg).
+# Asset ids / CDF tree live in asset_db.py (ASSETS + TREE).
+# Canonical keys use disc ids (stage0/file0/1.pe2pkg); type-store stems are
+# asset ids (sha1 lookup, else type_N).
 
 
 def infer_rom_root(stage0_hed: Path) -> Path | None:
@@ -377,7 +379,7 @@ class AssetStore:
     Layout::
 
         assets/USA/
-          raw/pe2pkg/gameplay.pe2pkg  # clean on-disc; NAMES or pe2pkg_N
+          raw/pe2pkg/gameplay.pe2pkg  # clean on-disc; ASSETS id or pe2pkg_N
           raw/pe2img/pe2img_0.pe2img
           raw/bs/bs_0.bs              # BS v2 MDEC on-disc
           pe2pkg/gameplay.pe2pkg      # LZSS-decoded (from unique raw only)
@@ -425,9 +427,14 @@ class AssetStore:
         file_id: int,
         chunk_idx: int,
         folder_id: int | None,
+        digest: str,
     ) -> str:
         used = self._used_names.setdefault(type_dir, set())
-        preferred = lookup(chunk_key(stage, file_id, chunk_idx, folder_id))
+        preferred = asset_id_for_sha1(digest)
+        if preferred is None:
+            preferred = tree_chunk_asset(stage, file_id, chunk_idx, folder_id)
+        if preferred is None:
+            preferred = lookup(chunk_key(stage, file_id, chunk_idx, folder_id))
         if preferred is not None:
             stem = preferred
             n = 2
@@ -530,6 +537,7 @@ class AssetStore:
             file_id=file_id,
             chunk_idx=chunk_idx,
             folder_id=folder_id,
+            digest=digest,
         )
         raw_rel = f"{RAW_ROOT_NAME}/{type_dir}/{stem}{ext}"
         raw_path = self.assets_root / raw_rel
@@ -1058,9 +1066,9 @@ def main():
 
     output_path: Path = args.output
     output_path.mkdir(parents=True, exist_ok=True)
-    validate_names()
+    validate_asset_db()
 
-    # raw/{type}/     — unique clean on-disc payloads (NAMES or type_N)
+    # raw/{type}/     — unique clean on-disc payloads (ASSETS id or type_N)
     # pe2pkg/ pe2img/… — inflated edit forms (one per unique raw)
     # raw/audio/ movie/ — MTS + STR streams (from STAGE*.CDF / INTER*.STR)
     # stages.json     — pack manifest (paths into inflated type dirs)

@@ -64,7 +64,7 @@ from format import (  # noqa: E402
     resolve_chunk_type,
     streaming_entry_to_json,
 )
-from names import (  # noqa: E402
+from asset_db import (  # noqa: E402
     chunk_filename,
     disk_file_rel,
     disk_folder_rel,
@@ -221,7 +221,7 @@ def _contents_from_chunk_map(
     """Build an ordered contents dict for one file from extract's chunk map.
 
     Dict keys use :func:`names.chunk_filename` (friendly stem from
-    ``names.NAMES`` when set, else ``{idx}{ext}``). Insertion order follows
+    ``asset_db.TREE`` / asset id when set, else ``{idx}{ext}``). Insertion order follows
     disc chunk index. ``path`` points at the inflated type-store file.
     """
     prefix = file_key(stage, file_id, folder_id) + "/"
@@ -237,7 +237,7 @@ def _contents_from_chunk_map(
             continue
         idx = int(stem_part)
         ext = f".{ext_part}" if ext_part else ""
-        # stages.json key: friendly chunk name when NAMES has an entry
+        # stages.json key: friendly chunk name when the asset id is not type_N
         key = chunk_filename(stage, file_id, idx, ext, folder_id)
         indexed.append((idx, key, ent))
 
@@ -461,7 +461,7 @@ def collect_stage_n(
         _write_json(assets_dir, Path(folder_rel) / "layout.json", meta)
 
         # Ordered dict: insertion order matches CDF file list.
-        # stages.json file/folder keys use names.NAMES when set.
+        # stages.json file/folder keys use TREE names when set.
         folder_files: dict[str, dict[str, dict[str, Any]]] = {}
         for i, entry in enumerate(file_list):
             disk_rel = disk_file_rel(

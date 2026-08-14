@@ -184,7 +184,7 @@ def iter_lzss_strips(stream: bytes) -> Iterator[bytes]:
 def guess_bpp(raw_strips: Sequence[bytes], clut: list[int] | None) -> Bpp:
     """Guess texture depth for PNG export.
 
-    Used only when no explicit ``bpp`` / :data:`names.IMAGE_BPP` override is
+    Used only when no explicit ``bpp`` / :data:`asset_db.ASSETS` override is
     given. Halfword chroma + unique-count heuristic; not stored on disc.
     """
     if clut:
@@ -628,7 +628,7 @@ def _find_sibling_clut(pe2_path: Path, *, bpp: Bpp = 8) -> list[int] | None:
                 if colors:
                     return colors
         return None
-    from names import asset_name_key
+    from asset_db import asset_name_key
 
     cluts = sorted(parent.glob("*.pe2clut"), key=asset_name_key)
     if not cluts:
