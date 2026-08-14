@@ -30,8 +30,10 @@ typedef struct _GpObj {
 typedef struct _GpObj38 {
     /* 0x00 */ byte pad_0[0x38];
     /* 0x38 */ s32  field_38;
+    /* 0x3C */ s32  field_3C;
+    /* 0x40 */ s32  field_40;
 } GpObj38;
-STATIC_ASSERT_SIZEOF(GpObj38, 0x3C);
+STATIC_ASSERT_SIZEOF(GpObj38, 0x44);
 
 /// Object whose flags byte at 0x4C is OR'd by `func_800E3008`. Nearby
 /// helpers treat 0x4C as a flag field (bits 0x1, 0x2, 0x4).
@@ -73,6 +75,8 @@ extern GpObj* D_8011558C;
 extern GpObj* D_80115590;
 extern s32    D_80115424;
 
+s32   func_800D9340(GpObj38* arg0);
+s32   func_800D937C(GpObj38* arg0);
 s32   func_800D9788(GpObj38* arg0);
 void  func_800D9CC8(Task* arg0);
 void  func_800D9DFC(void);
@@ -82,6 +86,7 @@ void* func_800DAD54(GpActorWork* arg0);
 void  func_800DAF98(void);
 void  func_800DAFD0(void);
 void  func_800DB4E0(void);
+void  func_800DB500(s32 arg0);
 void  func_800DB530(s32 arg0);
 void  func_800DB53C(void);
 void  func_800DB72C(void);

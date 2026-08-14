@@ -11,6 +11,7 @@ extern TaskDesc     D_80113340[];
 
 void  func_800B57EC(s32 arg0, s32* arg1);
 s32   func_800B9D80(s32 arg0);
+s32   func_8005414C(s32 arg0, s32 arg1, s32 arg2);
 void  func_800EC9C8(void);
 void  func_800ECA10(s32 arg0);
 void  func_800ECA54(void);
@@ -338,7 +339,16 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801062DC);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106350);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801064A4);
+void func_801064A4(GpObj38* arg0, s32 arg1, s32 arg2)
+{
+    s32 temp;
+
+    temp = (s8)func_800D937C(arg0);
+    func_8005414C(arg1, temp, (s8)func_800D9340(arg0));
+    if (arg2 == 1) {
+        func_800DB500(1);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106518);
 
