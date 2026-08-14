@@ -116,7 +116,22 @@ void* func_800DAD54(GpActorWork* arg0)
     return func_800DA2A0(arg0, &pos, 0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DAD78);
+void* func_800DAD78(GpActorWork* arg0)
+{
+    VECTOR3  pos;
+    VECTOR3* p;
+    s32      flag;
+
+    p = &pos;
+    if (Pad_CheckButtons(0, 0, 0x8000) != 0) {
+        flag = 1;
+    } else if (Pad_CheckButtons(0, 0, 0x2000) != 0) {
+        flag = -1;
+    } else {
+        flag = 0;
+    }
+    return func_800DA2A0(arg0, p, flag);
+}
 
 void* func_800DADE4(GpActorWork* arg0, VECTOR3* pos)
 {

@@ -12682,3 +12682,28 @@ return func(arg0, pos, flag);
 ```
 
 `func_800DADE4` is the example. `flag = 1` before the first poll scored ~77%.
+
+## Take `&local` into a pointer temp before the first call
+
+When the target computes `&local` in an early `jal` delay slot (`addiu s0,sp,0x10`)
+and keeps it in a callee-saved register until a later call, writing `&local`
+only at the final use lets GCC form the address in that last delay slot and
+drop the extra saved register (0x28 frame vs 0x30). Assign the address first:
+
+```c
+VECTOR3 pos;
+VECTOR3* p;
+
+p = &pos;
+if (Pad_CheckButtons(0, 0, 0x8000) != 0) {
+    flag = 1;
+} else if (Pad_CheckButtons(0, 0, 0x2000) != 0) {
+    flag = -1;
+} else {
+    flag = 0;
+}
+return func(arg0, p, flag);
+```
+
+`func_800DAD78` is the example — the same flag pattern as `func_800DADE4`, but
+with a stack `VECTOR3`. Bare `&pos` at the call scored ~78%.

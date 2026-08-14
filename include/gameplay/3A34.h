@@ -83,6 +83,7 @@ void  func_800D9DFC(void);
 void  func_800DAB38(GpLinkNode* node);
 void* func_800DA2A0(GpActorWork* arg0, VECTOR3* pos, s32 arg2);
 void* func_800DAD54(GpActorWork* arg0);
+void* func_800DAD78(GpActorWork* arg0);
 void* func_800DADE4(GpActorWork* arg0, VECTOR3* pos);
 void  func_800DAF98(void);
 void  func_800DAFD0(void);
