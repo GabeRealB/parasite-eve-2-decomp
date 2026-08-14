@@ -64,7 +64,15 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3E30);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3E64);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3EB0);
+void func_800E3EB0(s32 arg0)
+{
+    Task* slot;
+
+    slot = Game_GetPtrSlot(0xA);
+    if (slot != NULL) {
+        func_800AC464(slot, 0x3F3, arg0, 0);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3EF0);
 
