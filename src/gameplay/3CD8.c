@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/session.h"
@@ -292,7 +293,10 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EA1A8);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EA318);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EA3A0);
+void func_800EA3A0(s32 arg0)
+{
+    D_80115740->field_C = arg0 + 1;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EA3B4);
 

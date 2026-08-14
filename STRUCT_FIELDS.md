@@ -585,6 +585,10 @@ to a `GpItemSlot` pair.
 | 0x01 | `field_1` | Item id / `D_80072330` index |
 | 0x02 | `field_2` | Mapped item id written into that pair |
 
+### `GpState1C` (0x1C) — `3CD8.h`
+Allocated by `func_800E9CC8` (`func_8002D978(0x1C)`); pointed to by `D_80115740`.
+All members are s16. `func_800EA3A0` writes `arg0 + 1` to `field_C`.
+
 ---
 
 ## WIP (provisional)
