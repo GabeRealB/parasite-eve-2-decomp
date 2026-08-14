@@ -32,7 +32,7 @@ from asset_db import (  # noqa: E402
     chunk_path_key,
     disk_file_rel,
     lookup,
-    lookup_image_bpp,
+    lookup_image_bpps,
     tree_chunk_asset,
     validate_asset_db,
 )
@@ -682,7 +682,7 @@ def _materialize_one_job(job: dict) -> dict:
             out_path.write_bytes(decode_ascii_payload(raw_path.read_bytes()))
         elif ext in IMAGE_EXTS:
             bpp = (
-                lookup_image_bpp(job.get("canon_key"), stem)
+                lookup_image_bpps(job.get("canon_key"), stem)
                 if ext == ".pe2img"
                 else None
             )

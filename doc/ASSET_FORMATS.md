@@ -330,15 +330,17 @@ VRAM transfer is always halfword-oriented. Texture depth is separate:
 | 4 | 4 (indices) | Fonts / small UI with 16-colour CLUT |
 
 BPP is **not stored** on disc. Extract and the viewer default to `guess_bpp()`
-(halfword chroma + unique-count). Override on the unique blob in `ASSETS`:
+(halfword chroma + unique-count). Override on the unique blob in `ASSETS`
+(one depth, or one per work-entry column):
 
 ```python
 ASSETS["pe2img_2"]["bpp"] = 8
+ASSETS["pe2img_455"]["bpp"] = [4, 8]  # font column + 8-bit bitmap column
 ```
 
-The viewer Image tab has a **BPP** combo (`Auto` / `4` / `8` / `16`). Auto
-uses `ASSETS[id].bpp` when set, else the guess. The chosen depth is written to
-`pe2img/<stem>.pe2img.json` (`bpp`, `bpp_source`: `override` or `guess`).
+The viewer Image tab has a **BPP** combo per column (`Auto` / `4` / `8` /
+`16`). Auto uses `ASSETS[id].bpp` when set, else the guess. The chosen
+depth is written to `pe2img/<stem>.pe2img.json` (`bpp`, `bpp_source`).
 
 When a neighbouring `.pe2clut` exists (`N±1` by chunk index), the PNG exporter
 applies it for 4/8 bpp (see §7.4 for multi-row selection). Examples:
@@ -584,7 +586,8 @@ Rules of thumb:
   friendly (non-`type_N`) name. Dict order is still disc order.
 - Type-store stems are asset ids: sha1 lookup in `ASSETS`, else `{type}_{n}`.
   Duplicates share the same store path in `stages.json`.
-- pe2img `bpp` lives on the unique blob (`ASSETS[id]["bpp"]`), not the CDF slot.
+- pe2img `bpp` lives on the unique blob (`ASSETS[id]["bpp"]`): an int, or a
+  list of 4/8/16 — one per work-entry column (VRAM page). Not the CDF slot.
 
 ---
 

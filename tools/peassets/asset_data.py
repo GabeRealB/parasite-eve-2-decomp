@@ -2470,42 +2470,42 @@ ASSETS = {
     "pe2img_2": {
         "sha1": "265dfbebeafa8446495f04515607ea05ffaa30f6",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_3": {
         "sha1": "b74465538751adb80ee4804069306f129585106c",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_4": {
         "sha1": "195bbc6bf54e1ad43f58aa097499486b1935ec2c",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_5": {
         "sha1": "ead1d3128ff64d1d4cadc3723a3ffa90fe95add2",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_6": {
         "sha1": "595a735a08dd854894c95a6269def6533b52d08b",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_7": {
         "sha1": "4d34d0b2ad6a3202548d3e3880aaa1063a48fc99",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_8": {
         "sha1": "7ef774a59f634b849c01b16e4b48a2f49f53f25d",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_9": {
         "sha1": "cd04b81c03e2cb7eeaa5758bbfd7e4ba17096e98",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2pkg_0": {"sha1": "e2845b5951488ca2980ecdf0a778e00ac03c9121", "type": "pe2pkg"},
     "pe2pkg_1": {"sha1": "47e82b2474e2871311a481beb02ac67fbeffa83f", "type": "pe2pkg"},
@@ -2600,32 +2600,32 @@ ASSETS = {
     "pe2img_10": {
         "sha1": "9722b11c74e6bb2a707b3afbd40144ec7b3100f1",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_11": {
         "sha1": "c56adfa9e01e9fe8ae95d726f7b4f05c3ead6846",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_12": {
         "sha1": "a475f85da7ce020e04b3ea5b93f5a52ba96bc692",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_13": {
         "sha1": "b27b2b70e25672659629ee739e34866eb1d2f985",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_14": {
         "sha1": "d715dcdb2a9198357caa919f8137104318248642",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_15": {
         "sha1": "ac6c6dbf227c68a2576431832567b886ffc449d8",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_16": {
         "sha1": "e1c242525f4ca2c0eb4d5e7bd901dce7924dfabb",
@@ -2645,22 +2645,22 @@ ASSETS = {
     "pe2img_19": {
         "sha1": "c225e1581436768fdb835c4c2d64e9f766f9a3f2",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_20": {
         "sha1": "3ab0ad2585d3ff209ede0d2a27ee9ab140aa6b8a",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_21": {
         "sha1": "34049fe39e246ac356a6dfcad3a38224cd40166f",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_22": {
         "sha1": "4f133d590448bfe752593b8385b3accab668228a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_23": {
         "sha1": "76025d77dc8e1c651cd624b5797adcda9e3e8108",
@@ -2670,42 +2670,42 @@ ASSETS = {
     "pe2img_24": {
         "sha1": "f788b0886719afb2a9883282496d01e421a63614",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_25": {
         "sha1": "6b3ae70448e7a13b7ce42cc2881f39fc09c0aa1d",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_26": {
         "sha1": "3c3484964979b56edb9d0dbaa84c87697d261f62",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_27": {
         "sha1": "c35c68593db14bf9bb522313c0c36761148af7f1",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_28": {
         "sha1": "d0ba123ce7f142ec1874d8ee52533ef13b2161f3",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_29": {
         "sha1": "fd15cf39294b4adbed239aa4e3b1062ac8100c0a",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_30": {
         "sha1": "703522e81db4e575af786bf5065a161bd60bf4bc",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_31": {
         "sha1": "61f4b513814507d49d32932f2f46ae4f6bb2ba88",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_32": {
         "sha1": "4254a5977e0ccb2ee2db90f95a95f02f397d8b18",
@@ -2715,12 +2715,12 @@ ASSETS = {
     "pe2img_33": {
         "sha1": "d00466f4246ae4327dda027740b6fbec588b753c",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_34": {
         "sha1": "587ccc69acd31494b3bd98d326c86deffaebd549",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_35": {
         "sha1": "cf32411ef1eafa061e92846a4df3211eb2ac265f",
@@ -2730,17 +2730,17 @@ ASSETS = {
     "pe2img_36": {
         "sha1": "3691f6ab867e2026b8805a2d5ab6fa5bcd8efacc",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_37": {
         "sha1": "6930b73d49c83fa8d4bc5c56fb0c613c0653386c",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_38": {
         "sha1": "a0943422f2beb439c01cfb11448e9b346a2fe983",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_39": {
         "sha1": "9a3b9df9e9d62b40355e0aa3081fed16046542f4",
@@ -2750,17 +2750,17 @@ ASSETS = {
     "pe2img_40": {
         "sha1": "f09d3e25efab3fceb5476b256e64c9a719493f0f",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_41": {
         "sha1": "89d8bee67d04c57f54c7ab8009255e8a1581fa35",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_42": {
         "sha1": "36ac1c696b964fbd2787710ee56b0f416ba2a891",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_43": {
         "sha1": "759f115cdab151c987cd532f00dd1ee96b798488",
@@ -2770,17 +2770,17 @@ ASSETS = {
     "pe2img_44": {
         "sha1": "a535d06cb3090389ade20ff71535aaeebd1bb0e4",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_45": {
         "sha1": "f88b40f644be9ead0a9a8f4bf06c3eceebbbdde5",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_46": {
         "sha1": "62ad66e177667ab5075f32e1cc64217e4684701f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_47": {
         "sha1": "7d0d4d9af6f79b3a2a775b36918434ce06f91d8f",
@@ -2795,17 +2795,17 @@ ASSETS = {
     "pe2img_49": {
         "sha1": "8f42917669b42272bbd4f95e00f9e1fc9c3acb38",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_50": {
         "sha1": "0eea66c0faa0c6e2e98ea2d38f052d9a87c9adad",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_51": {
         "sha1": "41bf75d181c65bd4746695336c3ff551ebc43a0f",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_52": {
         "sha1": "609e417fabfd8fd2156168a9d02c44e03e7560a5",
@@ -2815,12 +2815,12 @@ ASSETS = {
     "pe2img_53": {
         "sha1": "b6fb10e9078b6b86f5051052986ce6de2b5301e1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_54": {
         "sha1": "6aaea3d845225c7a3197b0e5767a500d1938d3d9",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_55": {
         "sha1": "5cba59db5dd6b1c802de243c41b747717178b2c6",
@@ -2840,52 +2840,52 @@ ASSETS = {
     "pe2img_58": {
         "sha1": "6edd3c662675e79012f33dea6c1a385a897e2a5f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_59": {
         "sha1": "f4b00f06e5225d13f2e1dadab61f386818ac0956",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_60": {
         "sha1": "848c4c659c5655515a9ec1f1867b80356c10b937",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_61": {
         "sha1": "eba65da9a443b0b6b8d53d102d032c65940c2bfe",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_62": {
         "sha1": "6ba6b88c210296dcc503a6e1c6b8e4dfc0c5dc9c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_63": {
         "sha1": "a3f57e40b7769409b618c7a0fcc178488ee90a48",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_64": {
         "sha1": "12884103e93caaf02c1ddf7abc71dacceeb0357b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_65": {
         "sha1": "a817fa4e5e7ca5bbdd72f3d5c4f52727d25c721f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_66": {
         "sha1": "deeaf0fd660357ce144c93389a4845c1f06d1ed1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_67": {
         "sha1": "4d03282eaa0ff7332cbb4b101c3c258d7c0a2952",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_68": {
         "sha1": "4c55b016ade8bf64bae48e4a0e170c3fd0552147",
@@ -2895,7 +2895,7 @@ ASSETS = {
     "pe2img_69": {
         "sha1": "782d56a781a7454b0ebb849ac91758b5f9767d37",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_70": {
         "sha1": "0e37a0d190551290bfc834d1fed1755947c9768f",
@@ -2905,27 +2905,27 @@ ASSETS = {
     "pe2img_71": {
         "sha1": "bad83a367d176ae73047ace48db3b77d14327b9c",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_72": {
         "sha1": "004adc47a71e18d10bca2abd1d37c2cd6fdc203c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_73": {
         "sha1": "a5f00d2d44fc8037331a998d4cc30d6eee67c3e6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_74": {
         "sha1": "d01c2f440f5f888370a7fbc44014c72370048773",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_75": {
         "sha1": "eb63e6f1b4af7570c2c73d2f9cdf24ad6660d8ff",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_76": {
         "sha1": "5e27a39120f8317c48063e9d00194047886b79bb",
@@ -2935,42 +2935,42 @@ ASSETS = {
     "pe2img_77": {
         "sha1": "15fccc71aec3182363bcca3c574bd20ebbe84ca2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_78": {
         "sha1": "92e14a40bd7a2f464d85978f779488b68c5820b1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_79": {
         "sha1": "a0bac88ab30aac67724b5f032bc3c7acb6f8eee8",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_80": {
         "sha1": "973f0a5eaa0844ccbd88e326774850f2a8a2a15f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_81": {
         "sha1": "31aa2214f0a04974b17b12f95cffcf8de6875ce2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_82": {
         "sha1": "6d02557702cc2abc2bd78b4e8a84418b4a5d5216",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_83": {
         "sha1": "9bb1cfdfb629ef6707147b5cc853e54732766a5e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_84": {
         "sha1": "7e572b59b16a16f299ae18c280f5432a9070873e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_85": {
         "sha1": "05c7ab5f6d2cf5571de3833017214eb4d4b55b55",
@@ -2980,17 +2980,17 @@ ASSETS = {
     "pe2img_86": {
         "sha1": "5333aa87d8794e3c8df6c6f406a5e6eca27439d8",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_87": {
         "sha1": "de88e67c891b98ae3e535ca66ce9a1850bf7b519",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_88": {
         "sha1": "b75e7f575f80ab1c1e8d43723b6edd6b3baf3596",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_89": {
         "sha1": "3f9b97e21c29267f5538f644943ee8a2e0d5ed72",
@@ -3000,7 +3000,7 @@ ASSETS = {
     "pe2img_90": {
         "sha1": "b3962ea123135b9384eef4b35d06b366c107cd09",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_91": {
         "sha1": "1787f229d27ac172a78dde0f542a3bf852088bcc",
@@ -3015,12 +3015,12 @@ ASSETS = {
     "pe2img_93": {
         "sha1": "fc90ebcb26780863791757286bc3dd5f92482978",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_94": {
         "sha1": "0e1ffe56820154f393fc19296d1702adae3ae186",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_95": {
         "sha1": "ae36e0748d916533bc30d1b7e2474dd17046052f",
@@ -3030,22 +3030,22 @@ ASSETS = {
     "pe2img_96": {
         "sha1": "2051b757811972508eb033d5a775a399553c1834",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_97": {
         "sha1": "0387502c5bc12c983c8bacdfd7a9832135a1a1be",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_98": {
         "sha1": "086026b38fdeed70fd540a096d3cb350e3165537",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_99": {
         "sha1": "ba485fffc85024cf50d2f94939ed661a2c303aa9",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2pkg_10": {"sha1": "a6619fa870c5e545235fa1b8174757e06e85c4df", "type": "pe2pkg"},
     "pe2pkg_11": {"sha1": "ea1287165b7995b2f330dab57c48426dbbf854d2", "type": "pe2pkg"},
@@ -3860,27 +3860,27 @@ ASSETS = {
     "pe2img_100": {
         "sha1": "4ff3f2fd8e9d3245666948facb79c18b7d536f3d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_101": {
         "sha1": "c55e071a8b13dfba8d156699ad78dc9f5e5e2206",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_102": {
         "sha1": "d79764094b667fc3711af84a6a47a2500d50ed34",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_103": {
         "sha1": "e3622cacdf66ca22ba8618e91209ce3a0ad4569d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_104": {
         "sha1": "2ec1bb7ea6f366679d2e6442cdddb6ec21db7021",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_105": {
         "sha1": "72a0e168f1c7f0f2bc00c8fd965f18eed6437f76",
@@ -3895,12 +3895,12 @@ ASSETS = {
     "pe2img_107": {
         "sha1": "63f3cdc093c3b63961e59f63d97eaded2a50daa1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_108": {
         "sha1": "d3b0befaabef9ee43169c8cb3de091c2e7809195",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_109": {
         "sha1": "0e9f8a3b2fe06f519824bd82e1a2f46fce4aaa42",
@@ -3910,42 +3910,42 @@ ASSETS = {
     "pe2img_110": {
         "sha1": "7aa636e729760264d961417a03290347462a3004",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_111": {
         "sha1": "5048614aa21e758acf427596a8dc3245446c9d2e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_112": {
         "sha1": "64ee15c941e9c4435fafc05f1ab66ab1ebc0d003",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_113": {
         "sha1": "f3ae4bae192efbefe98717b35f22f884eb46304c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_114": {
         "sha1": "b44a13ecc2daa106b3c5a58694550535a6f6d747",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_115": {
         "sha1": "fd71c04b8d5b26fa4162cea6e4b6c7b17cb4d606",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_116": {
         "sha1": "2e9c66dece98b445ed743d560c5c5d2e1a77c20b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_117": {
         "sha1": "d7a137346dfb304e46a05eeee0a84e0b35f99e62",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_118": {
         "sha1": "2988d82c1e97c0bd6391366bcfe2752559055ee1",
@@ -3955,12 +3955,12 @@ ASSETS = {
     "pe2img_119": {
         "sha1": "8cf8b3f8b211efc67b2827e8e879bb9fde445b12",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_120": {
         "sha1": "66f6e9078d3fe8ab9fc516d801e3ee7751de070f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_121": {
         "sha1": "aa3886c3f746670cb5131030016d491f6483d930",
@@ -3970,17 +3970,17 @@ ASSETS = {
     "pe2img_122": {
         "sha1": "dfbd6b9d217eb73b04fd5fa84e0df7c001db61ca",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_123": {
         "sha1": "63aebef1f92e576389e0031f98c879ebde93d879",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_124": {
         "sha1": "6b78d0c63f72409b83942ea1f088a8fc992aadac",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_125": {
         "sha1": "601f82035eccfc6345f084797d22cefb2e16fbd9",
@@ -3990,42 +3990,42 @@ ASSETS = {
     "pe2img_126": {
         "sha1": "9a5682c6f86072e2dfe6563cc9c35aaf4d560764",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_127": {
         "sha1": "1544acf74527d71d6ef868f6e21c31c38dd1b61d",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_128": {
         "sha1": "7c58aaa7776cadee30dbbd55399390198ec7efdc",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_129": {
         "sha1": "f9a8a9b9b75dbd2ad3f2b5a978fa08a767ea0479",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_130": {
         "sha1": "f56cd4c28e318ffd1f487a821be84f286d5e8eef",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_131": {
         "sha1": "74fed375dbd1431fcc31509d91861d134d7df804",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_132": {
         "sha1": "fa1a34443174db81079551c4c584e7831911b393",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_133": {
         "sha1": "80c79ce0ab69eb331b2907d589427fce68f996de",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_134": {
         "sha1": "658d3bfbb95caaee76730cf0efd8fe4752ced699",
@@ -4055,17 +4055,17 @@ ASSETS = {
     "pe2img_139": {
         "sha1": "6b8e11a2bc13b7270bcf417c89a1ae3066691c19",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_140": {
         "sha1": "5bbb652e0056a44b1e77eaf88a12d3c948730578",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_141": {
         "sha1": "7b5c86c83c0aafac223cc9c369c9e773f94bc2df",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_142": {
         "sha1": "ec0f5488e8824d552a6c48bdc10e823849f48ebc",
@@ -4095,22 +4095,22 @@ ASSETS = {
     "pe2img_147": {
         "sha1": "9a1eacd8ef4384614f3e53351a870f05616aca8e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_148": {
         "sha1": "e9f35622f5fd344a984050bc6181a8c3b1ed12ad",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_149": {
         "sha1": "12d28d5149fc4d2a0b79bfff036e4f76a063f4a9",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_150": {
         "sha1": "efa18ac7e27ae65bd81bfadc68e24f0424f69fc2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_151": {
         "sha1": "89c075c384d735f92df0eb5c5651d4b10ca6a76e",
@@ -4125,12 +4125,12 @@ ASSETS = {
     "pe2img_153": {
         "sha1": "3e7851f9adac45836f409fbff6e40a487d068b36",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_154": {
         "sha1": "e8cd43fece6a96f9b81c2c90f841e5920b26d9c0",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_155": {
         "sha1": "7556a47ad056051fc76102e08e3ecc5c168ddc24",
@@ -4140,12 +4140,12 @@ ASSETS = {
     "pe2img_156": {
         "sha1": "43534b8a9e70ca81d88566a241efa41b1c6c9313",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_157": {
         "sha1": "79598617248751f714ffe3081a132460d86cff05",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_158": {
         "sha1": "44de01694d2a8fd3a9e9ef01a9aceb77f4212447",
@@ -4155,132 +4155,132 @@ ASSETS = {
     "pe2img_159": {
         "sha1": "f9b1c8b1eadcf803da550236b90e3372ac65af8f",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_160": {
         "sha1": "f526c643dbaf8175713733c2a4b2c5dfe183dce8",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_161": {
         "sha1": "161ac20e76eb8f36b46a091126eaafe3a329e23e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_162": {
         "sha1": "e883f32ba4cecc3c0c45758ac9cd124c44ee5528",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_163": {
         "sha1": "d353cad6399289136b36f775a85b5e9c5fcfc443",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_164": {
         "sha1": "9e744ab3f5bd1f12fd31c9fad6b737ecc0bf3331",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_165": {
         "sha1": "cbc6eea0ec7233d6738325acaf729ac0894080f7",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_166": {
         "sha1": "46b2863c44c813815e8a1b4e92de5555160a7e0a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_167": {
         "sha1": "2568ed85aeb6f7aee0e1b3b88596d0452c9dd4f6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_168": {
         "sha1": "be2b1ca23c541204f39070b5fc8129ad2a7d9f57",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_169": {
         "sha1": "c80be47d0a1d32f5ed6a8abbf496266c3908555c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_170": {
         "sha1": "c975fb72051bdfc8184aac6f93969b4e79e3fc82",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_171": {
         "sha1": "607717d6080eb7587375e5efac3267eed40977fa",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_172": {
         "sha1": "b3a0769fe2042bae8e260bf23797d409ce624064",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_173": {
         "sha1": "faaa12ae2a23fb2eca7e0c4dbb8e4e7c1f08dea1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_174": {
         "sha1": "a1894cb6e1258d9b57aae117fe921bf8270ac9b8",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_175": {
         "sha1": "8e8d2a5c56e687c69137530b07b9696c61c2e3e4",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_176": {
         "sha1": "b6546f5cbe9be90475fcc031ac2dff0114d62ae6",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_177": {
         "sha1": "0a56598c36babdffa8271ff6338ca6b5771e4ea6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_178": {
         "sha1": "bd8682a587e79f7b07363b3104ea248b76696ba7",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_179": {
         "sha1": "64948bc1a0f0115a4f1f42afcd9a2f0fb880ae13",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_180": {
         "sha1": "29e93c2d202475b164e7175c91b10be8bdbbc3d3",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_181": {
         "sha1": "806a2e395dd4bb2e0031d3db8a539b034a6c0576",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_182": {
         "sha1": "1ca4e305dfc3a31b0c8c00cc176f7b5ad0d07a42",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_183": {
         "sha1": "04ea29969e886658d7ed60dad7168a6150f595b2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_184": {
         "sha1": "dd52dfd3d66618b4e2da0f3550f4bea1bd87f584",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_185": {
         "sha1": "c62b672729e9a792cc3a6d0cc06ceddb29013ebc",
@@ -4290,112 +4290,112 @@ ASSETS = {
     "pe2img_186": {
         "sha1": "16d4d2546356c78da5c6832d7a7c4f8c683865ba",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_187": {
         "sha1": "a65bdf427cb8c8b12e8d9c9234c0f45b8859729f",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_188": {
         "sha1": "9ad6d87c5d858efd44c1b73c0f3a7906e01ac20e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_189": {
         "sha1": "c4f1bfdd7ce2d335ba350431c5debdf0877d7ee9",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_190": {
         "sha1": "b084d2d5f2a6a88f4f1a00223bacfbc00f6876d2",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_191": {
         "sha1": "6bfd9ad154db234d53b19367f20f680ce917bf44",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_192": {
         "sha1": "202a85f9d57b0c091f03471eea35fab33300d2dc",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_193": {
         "sha1": "907d6d08ec5f9cd7eabb1c1555779683a1fa236d",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_194": {
         "sha1": "f5a0b04f1f024568599cb796b0cf8d5307a86f4f",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_195": {
         "sha1": "b4e5f926d1e27bcbdaf91b85fc8c4ef96620afcc",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_196": {
         "sha1": "632ddaf5ad5e76c91061224f3ec08012232544fd",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_197": {
         "sha1": "edc5d5c84f8b941558de28397a444090ad22796b",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_198": {
         "sha1": "b86967625acfdf6d8cc2230998210e52035487a4",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_199": {
         "sha1": "cc2a01ddd5b32e810e03f657703f80a64f38c596",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_200": {
         "sha1": "f2bc5ab9145117956b2213df76097ab2b2aa379e",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_201": {
         "sha1": "c8350fc67d41d33a9dc244e0ea1e928106c93fdf",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_202": {
         "sha1": "4c68808eebf2aac28305787bb346600bb1e466ec",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_203": {
         "sha1": "15c776c9fc1351aba6a9329b3be5c5e3ab26b97b",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_204": {
         "sha1": "05699b6d136d25d380aab91f8046f14600537405",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_205": {
         "sha1": "cfa2bff6e517ecb70ce4885f7db98381fa8b4bd8",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_206": {
         "sha1": "1caf054fb2971fea6f9f896a6b667a2654c8d722",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_207": {
         "sha1": "8d469690f741c924f8da63c5c4c9b63f9c9f8164",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_208": {
         "sha1": "f0b3b0600b959d4c6026d89118cc8507563d09b0",
@@ -4405,27 +4405,27 @@ ASSETS = {
     "pe2img_209": {
         "sha1": "491d4b82cf59ac5fefc926ceea813c070847998a",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_210": {
         "sha1": "df80e66ff9cd19441469dbeb450f5229fd6b4be9",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_211": {
         "sha1": "e043e14585b93c4bbf962c8d5a8a515c5a0b20b7",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_212": {
         "sha1": "a266eb18ebc85eeb477fda2106711c6e27c31462",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_213": {
         "sha1": "8de5c40e312b871e142303a328240231bd3144dd",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_214": {
         "sha1": "ab5c0f94f0625a9eec65da6f76baa1a0a97ca267",
@@ -4440,22 +4440,22 @@ ASSETS = {
     "pe2img_216": {
         "sha1": "833d890dcdcdd1183253a282063b77fc9797dfb5",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_217": {
         "sha1": "751a95ddd03c5580e9fa5e1f7aa169bd2e22972a",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": [8, 8, 8],
     },
     "pe2img_218": {
         "sha1": "93d7f4da0ea28e7f230f4b2adb8b491da5e1e966",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_219": {
         "sha1": "c11006938812c87bbfaaee1a746701dbc129b15a",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_220": {
         "sha1": "b71bcfbc1990a00ded45d14d5609043ba00655ef",
@@ -4470,7 +4470,7 @@ ASSETS = {
     "pe2img_222": {
         "sha1": "788e398e271d8faa31772d774219331477452ac9",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_223": {
         "sha1": "8f587def2a0108a90874c0c6c908b4834b3df90c",
@@ -4485,7 +4485,7 @@ ASSETS = {
     "pe2img_225": {
         "sha1": "bb930db912821ff1ed889d1e1f2fa8e462f9a27f",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_226": {
         "sha1": "2fc4f3ed999d8bf236b66fc3567d22b8e7c5481e",
@@ -4495,7 +4495,7 @@ ASSETS = {
     "pe2img_227": {
         "sha1": "58f4707f5bb89d7906ed936280f4ed33790f7d9d",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_228": {
         "sha1": "fcb78eb48dff096162870899f2d07fc1ab238759",
@@ -4510,87 +4510,87 @@ ASSETS = {
     "pe2img_230": {
         "sha1": "fb5fd0b04c67cd310335286dbaf81fe307859c4b",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_231": {
         "sha1": "65aeac84469435ca2bd53a6e0d3c82c50a627d6b",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_232": {
         "sha1": "0c5b898d1b74253b0d9e663cfe1f2d83ecb9765c",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_233": {
         "sha1": "6d3b8dcd002dddf9537fb7a22f5c64511a6a5aad",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_234": {
         "sha1": "3c0e4847f13b41d027b6748c84ba916b5dd6b3ac",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_235": {
         "sha1": "be60a73f4f6afa512d41164b0fad6b96bcb73fbb",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_236": {
         "sha1": "b68f73fdef812a2f3268505f93b689901fff2044",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_237": {
         "sha1": "374e63c641d1506b1136ce6be8f2e52556914427",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8, 8],
     },
     "pe2img_238": {
         "sha1": "d7b31250d541a9806e84fd36da1c6644a9b0a365",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_239": {
         "sha1": "dac3100ce5a24613f1805b83c3e6c56c3e88bae8",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_240": {
         "sha1": "fce42cdf1e6d9352880eedc51205251b10684fb1",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": [8, 8],
     },
     "pe2img_241": {
         "sha1": "f02a8cb489907c0a2f324658227082f7164eef0e",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_242": {
         "sha1": "444f69024feff08db58a48916ca62819d993b4e1",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_243": {
         "sha1": "20fda9324b6ebb7d72e4c01dc0e375545dfab8ec",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_244": {
         "sha1": "cac88a65c67965fbf6c3b79113936088db6d3d53",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_245": {
         "sha1": "d9cac39e687af20cfbb9686c10cad9748590f93e",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_246": {
         "sha1": "cdc7cc114ef7ebb4a51413577fd08bfbcda260e0",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": [8, 8],
     },
     "pe2img_247": {
         "sha1": "999260d17d71c6ed7fe81cce6121e5bff9638981",
@@ -4600,22 +4600,22 @@ ASSETS = {
     "pe2img_248": {
         "sha1": "eb4ee0c6746af7178ac3899fe658788d7bcdd316",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_249": {
         "sha1": "900c89c06c8b71189bdedb0a2de780542c48406f",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_250": {
         "sha1": "7393230cffdcfd32f2db49059471144571c4712b",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_251": {
         "sha1": "9cc7cdc6d309230029b9fe810129adcb26db5fcd",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_252": {
         "sha1": "c4b9a0832268d5d549734a007616788254db3ec3",
@@ -4625,132 +4625,132 @@ ASSETS = {
     "pe2img_253": {
         "sha1": "4c3e136a5e9504fffe7433b781360fcd6261ef06",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_254": {
         "sha1": "27b83d351ef64a0c8bed0b9072f652ccb02b461f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_255": {
         "sha1": "a688ff49a0fda56833c901b642db9b495d559020",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_256": {
         "sha1": "c4175c67a267f8387d0f9a6fd96a7ec72878e12b",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_257": {
         "sha1": "1e8ccf9275d5dae9c7bbab09c60a6b06acee1e98",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_258": {
         "sha1": "74a07401484a33561b46704550eb442753558ae2",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_259": {
         "sha1": "dc3bb5578c72c89a656c10e98cc049da68bd7eae",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_260": {
         "sha1": "4e2200fe11dd9c50fc28fb05451c8fe2cd15c89c",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_261": {
         "sha1": "60f87980634d3cec0f47c58482503e040d0aa2e9",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_262": {
         "sha1": "c7ad22fc615a05f42e7b731ecd09383b6d0ee138",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_263": {
         "sha1": "6d1b677c53acb48a7376ff2323554155248deec0",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_264": {
         "sha1": "7eccbc3f301c80c8407dae4d32223ddfd1f7854c",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": [8, 8],
     },
     "pe2img_265": {
         "sha1": "4b51057f49faeae846cf1d6cfe2bf77857e7ab15",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_266": {
         "sha1": "04d83a04288dab6c521fa4690b1761ac45f208c7",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_267": {
         "sha1": "6986b13a15813c51a912db8844377114ae61b2d2",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_268": {
         "sha1": "295d17a566791536b3f9a0c68d7afa55f68a9eb0",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": [8, 8],
     },
     "pe2img_269": {
         "sha1": "3f045d1a035e621b0025644a47a60f2c3fb7ad72",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": [8, 8],
     },
     "pe2img_270": {
         "sha1": "8f26a21c4a35a786f31a30f96502f5b9022aa7c1",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": [8, 8],
     },
     "pe2img_271": {
         "sha1": "ad4daeeed4b3a4d7b93d1a9ccfeb840d4b050a04",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_272": {
         "sha1": "ccf80335ac038783f8cea5057060cc41c92fdcd3",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_273": {
         "sha1": "eb7fef9c65554d09d4175fe5c9edef7b44c09f82",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": [8, 8],
     },
     "pe2img_274": {
         "sha1": "a7dc49a72f1d470da1724f357d11a4baa01b1f82",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": [8, 8],
     },
     "pe2img_275": {
         "sha1": "7f67d6b6a99ebd77f1081f614cb3a95a9ffd36f5",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_276": {
         "sha1": "f45b3f8399678cf4aaeb88c4721bc788850034a8",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_277": {
         "sha1": "02e9f978db1472ee2783d434dcbd1a516298b3a2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_278": {
         "sha1": "99a3b24594b5df76caf843667092cbfc09063ec8",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_279": {
         "sha1": "2f4932892c683d47dde5d105b818d9ff9a2c3cbe",
@@ -4760,17 +4760,17 @@ ASSETS = {
     "pe2img_280": {
         "sha1": "a30efed5547eba03ea0fd813752ba44f792b0b0f",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8, 8],
     },
     "pe2img_281": {
         "sha1": "652c1741c31eb0bb2671d95b96220c1836409803",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8, 8],
     },
     "pe2img_282": {
         "sha1": "43fa8e4cdc34bc1863994a1286c1c9a5bf55709d",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8, 8, 8],
     },
     "pe2img_283": {
         "sha1": "23dd0e8b469473a22840b83298e1d28cf34c5a94",
@@ -4785,17 +4785,17 @@ ASSETS = {
     "pe2img_285": {
         "sha1": "adf6d618668261d0258b86a7f8eb675ac6b6a24a",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8, 8, 8],
     },
     "pe2img_286": {
         "sha1": "e66e769ca49fbd190905b16615e2515ad16118c1",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_287": {
         "sha1": "8fc631fd4929ce84f4e46fb99633bb3d2eefe1d1",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8, 8, 8, 8],
     },
     "pe2img_288": {
         "sha1": "5cf7bec18828c2d4678c53cef3b669f0c8ebeaf1",
@@ -4805,37 +4805,37 @@ ASSETS = {
     "pe2img_289": {
         "sha1": "fc957a8e7bd0312e97379ca4076177225f94abc6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_290": {
         "sha1": "1e702ec2398ad46455841056d103e39a70c2808b",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_291": {
         "sha1": "9e1cdd705d3ff9ebad301c211b732060e1b08508",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_292": {
         "sha1": "27dbbb718218617a6b55a834fed308774a4ce38b",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_293": {
         "sha1": "4fecf8d94772cb3e7d93707d558ca8366fa22046",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_294": {
         "sha1": "1b2547769117dbbab71ef0a7459d579a5e533862",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_295": {
         "sha1": "4244394d816f3a7cd62fea7e4287d40dd3c44520",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_296": {
         "sha1": "366df2ae38a5cc5ec66a5bcf3207a3517a25d5ee",
@@ -4850,17 +4850,17 @@ ASSETS = {
     "pe2img_298": {
         "sha1": "8c97e9522da30044b42babb401e0a1161fff1929",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_299": {
         "sha1": "c15b0e3d2ac50fe2226c5249f10c4f9229573d03",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_300": {
         "sha1": "59dbecbbaf78cd51923c1fcda12ffbb320b37d8f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_301": {
         "sha1": "89c230210f51336227c7dda196122f2b7568f82e",
@@ -4870,37 +4870,37 @@ ASSETS = {
     "pe2img_302": {
         "sha1": "3b124dc62c9c258391c09c756039fc0c08e0b47b",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [4, 4, 4],
     },
     "pe2img_303": {
         "sha1": "97386e6c7707dbf868dedc7e7cd0af6eeb693eb5",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_304": {
         "sha1": "bd48a34fedd24731841d58174f687e2e2191c5b1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_305": {
         "sha1": "1411707eba5ff8615f3f486b5fa1c6005fd0d312",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_306": {
         "sha1": "ce38dc22885049fbab76fc0c8c1c52ead562cc6f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_307": {
         "sha1": "9c8941b80fd599c783b18303ea940e8c20c3eb57",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_308": {
         "sha1": "00b32774e0399e29bffa97366943295c293eef51",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_309": {
         "sha1": "651058b185dd47616e89f29bf0cd3d8e4335107a",
@@ -4910,27 +4910,27 @@ ASSETS = {
     "pe2img_310": {
         "sha1": "c0887787c2a7c396b2b5b43f16828d518216aa75",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_311": {
         "sha1": "744d2b01eacacdd40211e26ebb15a0dd73a4e125",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": [8, 8, 8, 8, 8],
     },
     "pe2img_312": {
         "sha1": "dc2faa043b530d4c27a3021c899927c3cdadb63b",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_313": {
         "sha1": "aae7a72f95487ff555ed8b6dcd5577e636ac14c1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_314": {
         "sha1": "de87ccfef014923076618931664f044e30b92962",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_315": {
         "sha1": "aeb214a4a08e724f2a42604d5157a1a9dc51a3de",
@@ -4940,57 +4940,57 @@ ASSETS = {
     "pe2img_316": {
         "sha1": "90c50424570461440b19c85eb354ec5e20fe3edd",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_317": {
         "sha1": "7b53d2ac87bb99c42553091aeb8754f90723e667",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_318": {
         "sha1": "141e5dcd949de89d0d4ec09d677ac0f0a0699b3c",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_319": {
         "sha1": "d79499a872c4488b4528176f94b638599d414fb5",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_320": {
         "sha1": "757bfecea6389a49873cd305d649c0051d9384a7",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_321": {
         "sha1": "e01791eb47a6617b78c10ff0079430144a3e7119",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_322": {
         "sha1": "6406932f786d63006396aa7d38d070a6c8ea1559",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_323": {
         "sha1": "fd39ad574a8955a7069fd774a936032fa3c2e6e7",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_324": {
         "sha1": "d93435f3497c81fa6c048d86fa47a606730042bf",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_325": {
         "sha1": "ca3383ea9d8fbfedfe51141e97997cc8f1bedda1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_326": {
         "sha1": "c9cc7959faba610fe3b2d1c94b9de23551c2b9ee",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_327": {
         "sha1": "e4ef1c50e83184e08a8817d5c4a5c5002a4d8fe7",
@@ -5005,17 +5005,17 @@ ASSETS = {
     "pe2img_329": {
         "sha1": "87a5562b992863c3184e193b91f1c01beff9633b",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_330": {
         "sha1": "aee85f413feca9ecc33727ae76582e9d5b700129",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_331": {
         "sha1": "a748b90c91fdc6bf290672c7076bcbd192702cb3",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_332": {
         "sha1": "4399074dfb5cc6fd014a250174c617cdfa0ee2c6",
@@ -5025,12 +5025,12 @@ ASSETS = {
     "pe2img_333": {
         "sha1": "7c4d04b85d46f9bc0e547436a61850517164a5b5",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_334": {
         "sha1": "ba4b8d2297ba95aad478b665f5678b21b054f6e9",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_335": {
         "sha1": "ec28cf3ffcc0a0268cd678477ac50b31adc6d769",
@@ -5040,17 +5040,17 @@ ASSETS = {
     "pe2img_336": {
         "sha1": "3c8a292010108ac44edae8088e2b0e801cd8621b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_337": {
         "sha1": "53499d723e4f7ad2e433382c4e6607a4b2d93442",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_338": {
         "sha1": "21c42d0c848706c8c1e6d24d34aa291ba8fd793a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_339": {
         "sha1": "779c1fcc4f80fd0a8b42820245646170a0dcc41c",
@@ -5060,7 +5060,7 @@ ASSETS = {
     "pe2img_340": {
         "sha1": "8f5f9dc6a1ec005a371f7a7b1782a9cfb0940a09",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_341": {
         "sha1": "c5d27aa89e327e33c087cdb9edf729254644dd17",
@@ -5070,27 +5070,27 @@ ASSETS = {
     "pe2img_342": {
         "sha1": "1bb14cf188cb2af7e88110ffec9533f5602207cd",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_343": {
         "sha1": "cb93df1e724a86a7aa8c24205f2894cf1470609f",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_344": {
         "sha1": "a6db9ab1ac9e357ee4f7fd31e010dc18296fef03",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_345": {
         "sha1": "5360b94da1bb881aa13d21ca02fd7a13a0377e73",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_346": {
         "sha1": "2751dd04724884f1175fd9fbb2ef6dcff263d715",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_347": {
         "sha1": "c010a7bb37311faa297b3a192e1d78f47120ca24",
@@ -5100,7 +5100,7 @@ ASSETS = {
     "pe2img_348": {
         "sha1": "b4e9d0b47dec221ea6fa2af6ee6fe80412b6c9b0",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_349": {
         "sha1": "b471aa578bdc5d01b8cfdf154f7a702828ee0232",
@@ -5110,12 +5110,12 @@ ASSETS = {
     "pe2img_350": {
         "sha1": "def6a758e9484bcc1aa2b4ab6a0393826b82a7df",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_351": {
         "sha1": "c2bd811ecf4e9ab5e4722c173f520f84d57c3093",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_352": {
         "sha1": "9a59e0fd256fb6840cf1431891b7b4aa2e53283b",
@@ -5125,17 +5125,17 @@ ASSETS = {
     "pe2img_353": {
         "sha1": "056dc86ae89ea7ed36fb24884a724f1a880bc152",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_354": {
         "sha1": "65e58547a3da3f8ca5c1fc6b5c65aff14dece0b6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_355": {
         "sha1": "cf5de3c67006c17f7a2fd3c975abb311d1d3c7ed",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_356": {
         "sha1": "f0775e7a6d03c317de822c4ee7f55549b9427099",
@@ -5145,37 +5145,37 @@ ASSETS = {
     "pe2img_357": {
         "sha1": "98331001389d4ae9297e836c65e7ef4831f78783",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_358": {
         "sha1": "6deee6bc312b7b5f9cea2e7c01aa784765e5b93a",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_359": {
         "sha1": "c51409652588e4d3d2d5a07c4d7f228ea48da581",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_360": {
         "sha1": "4e8ff1018ec412dcb0547348949670d412628d0f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_361": {
         "sha1": "9d2aa2b84bc28cfac66e802173a357eb05b51ed0",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_362": {
         "sha1": "e4eafff6e28a4c6e5d56188f9b44d0f356c1a0a6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_363": {
         "sha1": "ba255651ab3d77c2840064606aeb3f82c6edd627",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_364": {
         "sha1": "116676fe42f3ea7deb986e1d5e8c2e9c7b79e98a",
@@ -5185,432 +5185,432 @@ ASSETS = {
     "pe2img_365": {
         "sha1": "bcf31c83062597c4b71e4ce33d5ba9c9a4674913",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_366": {
         "sha1": "72f5f7a2131d77d79b1217be00ea068b7d958775",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_367": {
         "sha1": "c2b5040d3e2c1bade290d4b11f3a0e4015130a89",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_368": {
         "sha1": "3ac450f01b20cd4c39318513ddf446c3528f82a2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_369": {
         "sha1": "01f407af4ebf492c4cd9075cbf63586d8df9b21c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_370": {
         "sha1": "b21aaefb038e397576040662e0e22444f8614684",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_371": {
         "sha1": "225c365dcc7255cd49e1f8181386ed7b8b429ebc",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_372": {
         "sha1": "a6f22076a0d3e6c7cfaf146747a9a0dc5805420c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_373": {
         "sha1": "4faaced981ddaeeadb2c005d942cc42028bdb2f6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_374": {
         "sha1": "5db28f46cc823785fc17399cf24a7ecbb476c643",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_375": {
         "sha1": "c384b35d031e077e67afcfa809d74b5a76a9de7e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_376": {
         "sha1": "9e6d1f015977b4269ca94e38ca2f1327ad0674dd",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_377": {
         "sha1": "773a3f5d8df4e88d4dda1a35a3607d711ae7c22e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_378": {
         "sha1": "d0bb0984cce563744c12e1ab974d216e77506b77",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_379": {
         "sha1": "a7a07bd2f650a921718db6263482ad84451586b6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_380": {
         "sha1": "4d9ee6443127c23bcde92e24e77454bc70313e02",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [4, 4],
     },
     "pe2img_381": {
         "sha1": "129f74f632fca77cbcb627f5eeaff9f7cfb02c9b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_382": {
         "sha1": "bfe7ec4b8fcc0760abc9cb82fa3d455435166fe7",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_383": {
         "sha1": "1bbefb9b71ed9db4c3c6d4ff9576c58e543e103d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_384": {
         "sha1": "dbece69fe68eab60de2b3a122a70fed64f403704",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_385": {
         "sha1": "24241cf9ccad9d744399c16bff049997a84a8b18",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_386": {
         "sha1": "821b2de2323beee084953de08c67df5d65944cae",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_387": {
         "sha1": "b08f927645bcafe83381171c37a50a7aeefc3cc0",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_388": {
         "sha1": "1627d81c214e1529698c4ac5c9dda66f3d36a3c2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_389": {
         "sha1": "20873e03ca1b46e08e55db2cc8dcb1693ac56733",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_390": {
         "sha1": "52c493639c3230ffb5c453f154a53a56d197ce4c",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_391": {
         "sha1": "8f7f515abc091e78f39b18dc96d39113e48e6f83",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_392": {
         "sha1": "d075d7e7b047725899af2a73d5020a3738282656",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_393": {
         "sha1": "dd0fbb0c509bf8fefb4f22a9a74b7bf23cfa24bc",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_394": {
         "sha1": "22cb169d6f17af22322d3e4d6b1d0b3549ce3936",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_395": {
         "sha1": "77e96e3fb28e3922db5880f673d483bdafae8bfc",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_396": {
         "sha1": "0e23523de20bcd73896f1fa3fc0cadcde48adbf5",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_397": {
         "sha1": "81531b61bd014c0da1bf9ba4e6cd56d619732f16",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_398": {
         "sha1": "0c98ed388849fb6e19a3f6ccd771fdb0eabcbaf6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_399": {
         "sha1": "226e5b30e8748b9a5456734b9bfa17b4373ee5df",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_400": {
         "sha1": "6cd5626cc6459380edd76f8ef3ad4ec1f577c98c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_401": {
         "sha1": "cd483d17c2ea2be221404a85ca9f0876c6275914",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_402": {
         "sha1": "8f841c672466bce4ed3646a564811a2a36de5169",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_403": {
         "sha1": "380bba46208b767312d8f1a8d2c81e529f84ef4c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_404": {
         "sha1": "12b0158e3689079c9798ab554a17065c1212ce41",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_405": {
         "sha1": "337a4232603dc1a16de339e47b4709f1ea7555aa",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_406": {
         "sha1": "661768e41ae72812dd8abd476ad28a9ae9be0634",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [4, 4],
     },
     "pe2img_407": {
         "sha1": "a8c91263bb8acc38ceed381c25bba5541be2ffad",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_408": {
         "sha1": "d64bfa6f6404b94d9ec733664d0931e06d74c88e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_409": {
         "sha1": "b5cada23d12fb8c52e22efbd6546ebdc9d26ba05",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_410": {
         "sha1": "861e61766365ae89708b7ab8481570c1171d9d3f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_411": {
         "sha1": "3c3824845b8638f7e742459fd69f3acb8a46474b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_412": {
         "sha1": "cb212ad8ea686cde73fdf13de0f42f8f8505ad06",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [4, 4],
     },
     "pe2img_413": {
         "sha1": "2902826784be595dab2bc317de45fb2f86ff048e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_414": {
         "sha1": "3a4252daacbe9c5138fba661eb83e7d62c21b705",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_415": {
         "sha1": "31a87b146c0605fd6a52ddcb5bd62e7492ebbe7a",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_416": {
         "sha1": "d536047d81d6706877295b7dba7f29764d14ec28",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_417": {
         "sha1": "581ff98fc0a2b6c4bbbdbd3a233450d08cd3d39b",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_418": {
         "sha1": "808afc250beb7754f71232ef0286442040ab003d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_419": {
         "sha1": "21e81c8b3b9a073e79154f6aa8046dd3f9baa100",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_420": {
         "sha1": "f9f1c5233ed248c409177484e83329dc6ddaecf0",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_421": {
         "sha1": "0afd0d8091c8715ac6953fc9fc050b82ef161f87",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_422": {
         "sha1": "008859fbf864a2a7cfc9e82a2f54479914cbc679",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_423": {
         "sha1": "dcad22d51969b6c117b848c7b15d5bb133cb812e",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_424": {
         "sha1": "f2319574334ea295baa48fc31b5b5c19e41a7ff8",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_425": {
         "sha1": "b44c7f61713090c56e32152b968f21f30ed113a9",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_426": {
         "sha1": "815a5a96d6f0c01c1c16fc80ff22cc351490fdfe",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_427": {
         "sha1": "8c0ff12d677e3455abddfe8e23dc217042b37f10",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_428": {
         "sha1": "965ee88a7618680d536ef34783afa6edb6864290",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_429": {
         "sha1": "a5c7246bac7c30ac1115bee02ae773674b8218bb",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_430": {
         "sha1": "23990f33c35bfb8d0e83424e788a6cf4b6ecdfb5",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_431": {
         "sha1": "79242a86687b7d076198360707fb1a93c1e9e072",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_432": {
         "sha1": "61b045e8da6f84d638ecd78ff2986ee69a19b301",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_433": {
         "sha1": "a56a4024217f181f3cbf217c2a95aa1251f921f9",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_434": {
         "sha1": "feb8953f06ac4eb91303f1c4f55d4ca6b4ec3d79",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_435": {
         "sha1": "738c942bad182476adc2b44710f712892583bd61",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_436": {
         "sha1": "2e2a1070aeca4d834a99afe1c49aae6b11d1324c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_437": {
         "sha1": "f767fefa594c6da3c18176a21ae86b0f25801d16",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_438": {
         "sha1": "7897aa7e3836395d6303528669a2f3f225c5e5a8",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_439": {
         "sha1": "c2074ca9858204c9f23ba3efab7a01d46cda8157",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_440": {
         "sha1": "3872616fb43268988a556e1967a958da689df885",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_441": {
         "sha1": "5c8e5af0af0b3f53a3bebd73d5928d9773f87d23",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_442": {
         "sha1": "73ff20fba56833dd434c2a78429dfae12ada3d6a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_443": {
         "sha1": "6a547565c205b9d466875d7ed1f8aa1cfd0d458a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_444": {
         "sha1": "15386efcf63ce1ab4a833ce4f66351ca552d0e54",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_445": {
         "sha1": "550708b2b022cf6a8ec3501b2e682ceac1c3c51d",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_446": {
         "sha1": "0d13666bf619dea4a84cfa7d8f0ddff867e75bb5",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_447": {
         "sha1": "6c5e8b3d4276779ab1b3ec6514827c3fa891b792",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_448": {
         "sha1": "15cab501fa30de78eac15f8b6a9bc81cfbf51575",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_449": {
         "sha1": "55759f5e0a8e0c0adafde0b0ae9b68d71b91f6e1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_450": {
         "sha1": "5e7a3f2bea3456de8cd18c3a66f8b56ee10514dd",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_451": {
         "sha1": "86e1d00544e30113c417861f8433bc32bdb04ae3",
@@ -5620,22 +5620,22 @@ ASSETS = {
     "pe2img_452": {
         "sha1": "2e9d1a60ab2141b74fd5cf0a083590d92c390708",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_453": {
         "sha1": "775e4423fe3f30a69ba58fb416db84706b710a54",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_454": {
         "sha1": "bd30c83aaf299464dfe503b32f9cd8923d34eee4",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_455": {
         "sha1": "0c377f40f81e995f257a140dc8f470ccee3d8c60",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [4, 8],
     },
     "pe2img_456": {
         "sha1": "4b7566ec1740893ad5c41d28dee8b56003ed7644",
@@ -5650,22 +5650,22 @@ ASSETS = {
     "pe2img_458": {
         "sha1": "654cf99a95b99f7eadffeb54147309f450c1d036",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_459": {
         "sha1": "8ccf3bfd29c457423fbe9d2272f4e76eedd5a59e",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_460": {
         "sha1": "a750953b680ad38ff8a51b1438c9f9623660c338",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_461": {
         "sha1": "840c617453f38705c00bad7d66c14ffb0a79cacb",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_462": {
         "sha1": "511703b47a621687e9f35f27a4962ebed28aafe6",
@@ -5675,82 +5675,82 @@ ASSETS = {
     "pe2img_463": {
         "sha1": "530b2478a39d6bcba90e152ef9880d6620ddc647",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_464": {
         "sha1": "f04550e859d005fae468689147fc957167f65aa9",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_465": {
         "sha1": "189ae945c6d3d694bcda06f2623faea3da9863a7",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_466": {
         "sha1": "95c8ea8fbdab0da6610c911d07e259cdf063da4a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_467": {
         "sha1": "ca262e11056c2716e1b4886e9fa5e99d194b7396",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_468": {
         "sha1": "2a22b273a2f2e7d15c266c1c8b822d727e89700c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_469": {
         "sha1": "4437015ebe6553739538593bc0c07bb3ed8ad54a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_470": {
         "sha1": "a7756a669d00815bd75c9711b2da3974d87505d8",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_471": {
         "sha1": "eec03d0b7c4a9e7e550b2f0b13e2e14f50c793a2",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_472": {
         "sha1": "137c7555b0b464dbc5031ece82ac15935189b717",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [4, 4],
     },
     "pe2img_473": {
         "sha1": "26278d1b232c40cac33dfdc98f0da3d1000a478b",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_474": {
         "sha1": "a5f4edb6d8c799ecab52164e8f9a2fdde1bd0a29",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_475": {
         "sha1": "65982efc1baf7fe6059a756912aae3dddf6cece6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_476": {
         "sha1": "a3adde6bc651550579e59cf3ed7c85d8cf5c0b03",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_477": {
         "sha1": "620ed20e48a2cdb92fc84304235dd17462fb742b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_478": {
         "sha1": "0ab846bf70342c5e40088473f7a68dc2b7aead6b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_479": {
         "sha1": "b69dd8708430cb5f392d6426e178ce053c0df238",
@@ -5770,72 +5770,72 @@ ASSETS = {
     "pe2img_482": {
         "sha1": "8eed645d44d66b79b6fd1c16e688bc3a04aed7a5",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_483": {
         "sha1": "39566f2c6ebbf2a92cdd79a82b67fee33ef208c0",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_484": {
         "sha1": "5432501f65b44baaa52a8928be65b97d06f31cff",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_485": {
         "sha1": "77ef2932d6c472d1914a38175ebcab5d4c15615c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_486": {
         "sha1": "ea5c88b21e2aff916b0f955295687e5c2270110c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_487": {
         "sha1": "7a334be252c02598cc4efb1b69c6e07191a71a88",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_488": {
         "sha1": "89df95b9c84d37d76e3545ba9b56498f8bdc2b7d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_489": {
         "sha1": "f6bf59cdba3e7079ac25fbddf5de1b94ed8f3b16",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_490": {
         "sha1": "8baeae0128148e771f22610cd478af930d684db7",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_491": {
         "sha1": "33b5a715759f5b4672a666cf93fb89687d7268ed",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_492": {
         "sha1": "6deb2730d22c149d6595e1b5bd22b491e582c67e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_493": {
         "sha1": "04d09f86d359a6559c4b00c8ec56759a4d2ae5da",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_494": {
         "sha1": "f5aa4cb0a608a3d3c042a21726c1f9ce4555dd9a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_495": {
         "sha1": "ecb38b24723f72f2470c3584487026a1441797aa",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_496": {
         "sha1": "b691a0cdabc91439087a0c187efc8b3cc6a14ce5",
@@ -5850,42 +5850,42 @@ ASSETS = {
     "pe2img_498": {
         "sha1": "254d01015483638108872c6d69f6a3b4c0e2e859",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_499": {
         "sha1": "63eeec16266a0f8cf77b9d30bc57cce8a7147874",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_500": {
         "sha1": "4711e6f14e0f1e42a3fd9b1387f5e5b43c096721",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_501": {
         "sha1": "845adc6f31f052cd4d86b89b387a98653c8ddb14",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_502": {
         "sha1": "7b65ab36c3d7c7ac025597173e8ed81d159ed46f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_503": {
         "sha1": "d398137e4cf1334cc1d64e5e8516ad56a7bd6b19",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_504": {
         "sha1": "e5c50c67ca8c2bc9721db17cce3c5e63f1684965",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_505": {
         "sha1": "47dc95dce5852e8a8c91fcbeca62a2a66c1de5f2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_506": {
         "sha1": "ac1307731a926fb2ea109dbca02de0254f6fd689",
@@ -5895,52 +5895,52 @@ ASSETS = {
     "pe2img_507": {
         "sha1": "2c5b7b89d94f604e6d0221febb62f5178c3c5926",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_508": {
         "sha1": "552e63ef79fcc9140c286545e019ac41831c511e",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_509": {
         "sha1": "45574ed9f4f14f9c1f19d7860cccc742e6680713",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_510": {
         "sha1": "b27a6effed330ebcb45cb4730a94f3818299c8ee",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_511": {
         "sha1": "df4eca58c69cc7dc07257e8c4b1df1475845da22",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_512": {
         "sha1": "a5c80471776da8f0f4f1c46d9bbbfeb8e3c9aec4",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_513": {
         "sha1": "0e4060e21c0ba488c0c0d4975fac688bff92601a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_514": {
         "sha1": "3daed9f431ce7204ff64d177aabfc50ed201d63d",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_515": {
         "sha1": "13873ef2308a1552312e965839e6fc8390526226",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_516": {
         "sha1": "83d842bea538262c1f986ca426581827b799b0d4",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_517": {
         "sha1": "54c763df7c6ffe5ec9f26315101af4f5aa405492",
@@ -5950,27 +5950,27 @@ ASSETS = {
     "pe2img_518": {
         "sha1": "1e56accc6c72b74ffae36637fdf45834feb973cf",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_519": {
         "sha1": "cb61a680e7df8702d894ef00582220bce92c9cb8",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_520": {
         "sha1": "047565310c2fbe3bb7cdf4e115091a88824fd818",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_521": {
         "sha1": "55067360563ded4e7089ccfd310e20aafa4eeb1d",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_522": {
         "sha1": "bf113ea197d89d74c7ab0fd726c829936a70845a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_523": {
         "sha1": "44b9d9451f69c62ba2b2f501da557a186aa27da2",
@@ -5980,37 +5980,37 @@ ASSETS = {
     "pe2img_524": {
         "sha1": "96c3d156689b29a19b42d933d092f3fe5e3c631e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_525": {
         "sha1": "2ab6f786c9b6e1f951bc4fb5e1d1aae97c1b8fde",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_526": {
         "sha1": "ad42f33d39131fc6f938f00350c24dcd41196fde",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_527": {
         "sha1": "9c0854bec8057ab871d35ba0bb6184728588431a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [4, 4],
     },
     "pe2img_528": {
         "sha1": "5c47a8e5ad52083575ab7ef2b2079e6d740ced8d",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_529": {
         "sha1": "e5872ece12d9dc9be67b5a2cdc083d8401139dd7",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_530": {
         "sha1": "e83d96265100b4b495fccb470cc9546377c3238c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_531": {
         "sha1": "ab5db1ae3f3f06d315d1ddbd5a5dc2bad3e2cd12",
@@ -6020,22 +6020,22 @@ ASSETS = {
     "pe2img_532": {
         "sha1": "78121006911729965b932b15e2a278a2a38bd910",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_533": {
         "sha1": "beabd45cf5879da99bb6de64d8b4e92b8d98aaf5",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_534": {
         "sha1": "d2498b58697e479c7fefcf7e8e21f47071bd3c8e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_535": {
         "sha1": "d61806751c52b47c8ff71bb899e56261b8a3e303",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_536": {
         "sha1": "c5e59e71148053150210d84f0b9b17ee50e6be88",
@@ -6045,12 +6045,12 @@ ASSETS = {
     "pe2img_537": {
         "sha1": "8c1d6faf92d5aff9923f12b747e3c2376533ec2b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_538": {
         "sha1": "68c149e73718c1d0c8f4c7d06fd44197981c41eb",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_539": {
         "sha1": "e15b4262d2688797040b292563acc19adb6bd4f2",
@@ -6060,7 +6060,7 @@ ASSETS = {
     "pe2img_540": {
         "sha1": "56e682419e7aafb42bd42b8e35b7a9d5c210694b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_541": {
         "sha1": "6906631031f334651a2a944da23ab82c156f1c63",
@@ -6070,7 +6070,7 @@ ASSETS = {
     "pe2img_542": {
         "sha1": "9a49de64e908145d398f64b076b23a819dd3ac02",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_543": {
         "sha1": "1c836c38f0fa24a24fa43c2af360fcee3be65e84",
@@ -6080,32 +6080,32 @@ ASSETS = {
     "pe2img_544": {
         "sha1": "1c910ff3f90482504791cbe3deb044dab352d6ae",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_545": {
         "sha1": "637f47d8b6c8ed78b398f2c6762a8a2f94977ad7",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": [8, 8, 8],
     },
     "pe2img_546": {
         "sha1": "675395c4091fbbefedc0a97e48998fe666906537",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_547": {
         "sha1": "d25c734a597bcdde544f661f0608dbd45f0a3d35",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_548": {
         "sha1": "64d9de67d046128a59e5223914a603248c399345",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_549": {
         "sha1": "1641df69d85082bbf876a1041cce2f3ec61a24cd",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_550": {
         "sha1": "918cba8fa1c6c180533a42b00e925dc66079b9fa",
@@ -6115,127 +6115,127 @@ ASSETS = {
     "pe2img_551": {
         "sha1": "7c71c86a0c6e67194ddac9f53770869f2059bb02",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_552": {
         "sha1": "fceff95092d535d5958359245e795549109087db",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_553": {
         "sha1": "17e77e54be33e9d055a88a9f3f20d44c93aaccb6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_554": {
         "sha1": "79fb7e17e36b7f9d051dee96baddc180e819d2d9",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_555": {
         "sha1": "8238bba592105d883d08e3ca673cdb8732b740d6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_556": {
         "sha1": "8d6688f1ea1a1b4b4e90d226251b247e983930f4",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_557": {
         "sha1": "0b3698e430903fd83633425fced93e411031972c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_558": {
         "sha1": "e7e4aeea2005d36e1effaeb26bce3ba96ee0949f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_559": {
         "sha1": "275aa88f684bd01f72b429b308caf755d9a8fa50",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_560": {
         "sha1": "54ffcaba82ce535c1eb24f8db1456afee09b0699",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_561": {
         "sha1": "1b53196af62a7402f8c4ade30dce88b531a567b0",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_562": {
         "sha1": "d0cfb8f230dd5c5469c20a788e0899d254163687",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_563": {
         "sha1": "f1a012e1241f22bb1fc9f44e8f187239309574b8",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_564": {
         "sha1": "2b9f3bdd255ec4af363cfec4c207cd4fefd30fe7",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_565": {
         "sha1": "63194b2fed84da42f612dfc54054ac99bfd4e5d3",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_566": {
         "sha1": "4a3c20b4f950c749b941ef5b57ecbca80efc5fb4",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_567": {
         "sha1": "b0ebcf2225a3b08dc6ce714d3a73af75cdb67467",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_568": {
         "sha1": "b0ef1df092ef8f089056d7de157af0d1cea96d06",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_569": {
         "sha1": "d6cb1b9add043031c96d26fd9c82b2fe0830a354",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_570": {
         "sha1": "525c6aec6d95572c956f25420b8c0fa1699219bb",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_571": {
         "sha1": "ea0f58dfeadb6dcb8a4158457cce52e539911af1",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_572": {
         "sha1": "e3572f3d5c0d68e298dc6c432ccb7f197d422c8c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_573": {
         "sha1": "1b4d72a940b770e7c783fb5b7e13f3d7c140332d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_574": {
         "sha1": "eaf85a34760d55076e44f1be3fd0e8205f1c8332",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_575": {
         "sha1": "fb10c1ac0472464df7d0024fc28e5cc66639de52",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_576": {
         "sha1": "2cd84cb121805ea6e3d9594768bb49ed11858210",
@@ -6245,12 +6245,12 @@ ASSETS = {
     "pe2img_577": {
         "sha1": "3e240c5a0a21f7ed36ee27e79fa293af197c3566",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_578": {
         "sha1": "92b6b56ca7760db554f89941ca838f4b7f2e20cb",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_579": {
         "sha1": "e9e18a71a1540ab5d38d1f6fc2b90550ba108453",
@@ -6260,97 +6260,97 @@ ASSETS = {
     "pe2img_580": {
         "sha1": "a32a9dc97ef3e3068b2bb97188bc6ce7498f494e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_581": {
         "sha1": "b9da937ad59e30ef98aeaf60b7cc474f04896b2f",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_582": {
         "sha1": "7473928aaa55fbf8c8d034e8657ff30f8e1689fe",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_583": {
         "sha1": "ada9340a4835a7b01fc4488ca3519ffd21124127",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_584": {
         "sha1": "7e419747df96f8ba84600b5bce9b66efeaf91ef8",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_585": {
         "sha1": "8790463b01a782b64d1cf9780277c7b5cacbb2ae",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_586": {
         "sha1": "3e2028841ed7e82766749db0d2a88bc3e889efd8",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_587": {
         "sha1": "da88328261c7b67bea3d8f627cd0e71fa7b117f7",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_588": {
         "sha1": "0bce5f881616d0d1d8ab01a1824989740a91d923",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_589": {
         "sha1": "7fb0ed6aaf98f6120616f5bb53274d5efc287ce1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_590": {
         "sha1": "4981adcf18d460a9e666e4892ac524b5f5bbaff6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_591": {
         "sha1": "05a70a03cd5abb6a83be78f4c76d1cdfa8ab6f07",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_592": {
         "sha1": "bd411b84a9c4f0d561b06ebc96997b89c1753b93",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_593": {
         "sha1": "0a5e585d6d7393cf6093f2da6b7a3bf4c65a3c24",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_594": {
         "sha1": "9956722232ca7ddcbbfa0c0ea7aede32f5901aef",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_595": {
         "sha1": "d38d10509f68459be3f403bf100963e204a62c6f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_596": {
         "sha1": "4d2814bc46a65b303ede5d92f3e67ff3cfd9f783",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_597": {
         "sha1": "e00fa9e041ab5a8a28b43bf2e2b5d72494c67ab2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_598": {
         "sha1": "31570dc8362e2ea40ab515b73d2ba9d43a7c4fb4",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_599": {
         "sha1": "eb7ab0eea892c56ff66255b95c9c15922c62cf71",
@@ -6360,17 +6360,17 @@ ASSETS = {
     "pe2img_600": {
         "sha1": "39bc0414de777e9f68438d1b5248538bb5eff520",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_601": {
         "sha1": "b49498b644f4da490becf86e8ca6bbcab00c98b1",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_602": {
         "sha1": "f4062db67a11edb6f4e79316dc29f612af453963",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_603": {
         "sha1": "cd3dbe9d78ddbf1349b39b3ebf2840d2192b628e",
@@ -6380,17 +6380,17 @@ ASSETS = {
     "pe2img_604": {
         "sha1": "6b11c76449a58e531de5768a9b79897471775a44",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_605": {
         "sha1": "8fec1e6b770f3f948dcc0a1f204fa6ca4ef8886f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_606": {
         "sha1": "843b6faae4a66a3a6c4308c333c79cea7c9072c9",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_607": {
         "sha1": "c20160c3f0c7b7f3204a3d447c4898580dc02711",
@@ -6400,117 +6400,117 @@ ASSETS = {
     "pe2img_608": {
         "sha1": "c62c7fa31736a0fb6f9333672534c0be54adefdc",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_609": {
         "sha1": "ddbb53895fc4700b85b3d4b839910383be9ad59c",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_610": {
         "sha1": "e0e3caeadba4d70e252554ea297b5a1bb5823f8c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_611": {
         "sha1": "d64e4fb38f8bb0b9d170995bbc14d53607f17ac6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_612": {
         "sha1": "9ed696802a4e98304799e50ff29b00c7851692c4",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_613": {
         "sha1": "459838da3d614ea001d4682f5ecf9dc77095f3d4",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_614": {
         "sha1": "1b70dbef65831bc770fa75d00b23ac3a8ba45cce",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_615": {
         "sha1": "723e11aa152065151a3bb2c2749ae0d2bed14751",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_616": {
         "sha1": "75886a90fd1dfa5e5ae95dfd681a4062ed49f363",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_617": {
         "sha1": "4b8dc0031c2ae2c418c0a991951dabb4d30524bc",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_618": {
         "sha1": "a288ae036c19b9e3c4271d110789c397e982b591",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_619": {
         "sha1": "73a12068de3bec2b69185d6fe2d219ae6084dc21",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_620": {
         "sha1": "2a6c2010183d0925b8c481d70394be156e48d182",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_621": {
         "sha1": "5fad8663696fcd3d2cbe5bab1f19e84c3ea1df70",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_622": {
         "sha1": "794242afc1ff86086c8cfdb168f83de5105d06f3",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_623": {
         "sha1": "1fd120800163589e850d1330353eac8639203524",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_624": {
         "sha1": "fa9cdbc2d08fc933aecb2d91c3de26b927fa6271",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_625": {
         "sha1": "75f4a0f10a56401a312e29b5ad574f2d5ed38dbd",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_626": {
         "sha1": "cc24b264219afc4939e11fa910a0bcd46e6397ed",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_627": {
         "sha1": "49ade3492a890ccfce5d58de88b9336cd3de10b8",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_628": {
         "sha1": "7ac38d207d0665ef2a60db09023c2cae0cd37a60",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_629": {
         "sha1": "bcdee0142a6687ebfc32db432645392b88ba75fb",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_630": {
         "sha1": "77a2038a5238d2cb35757fde3dc1767f5c6475c2",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_631": {
         "sha1": "6fa075efdc1f11394115ae01e3800ce0d84a835e",
@@ -6525,17 +6525,17 @@ ASSETS = {
     "pe2img_633": {
         "sha1": "f9f91031b88c2f3990ad1214ff7a2911fa468661",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_634": {
         "sha1": "8ba4938ed93818353118987c4999fed4ce1d0ac4",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_635": {
         "sha1": "c8bcde2dc6d453a7746cf0393b03e0ef99d6c9d1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_636": {
         "sha1": "a80215f78634abbc998da617d11de9d06c8a3858",
@@ -6550,12 +6550,12 @@ ASSETS = {
     "pe2img_638": {
         "sha1": "eec8d9bff96f01615de989e3b57fd450a29c1987",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_639": {
         "sha1": "563e1b175766bbe9177628c3d353bb1372f41b09",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_640": {
         "sha1": "8ac726d3ec77a080be94d19c28fe513e4036c029",
@@ -6565,22 +6565,22 @@ ASSETS = {
     "pe2img_641": {
         "sha1": "cc3960db6092c4658801ab46874a949adaeca3c9",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_642": {
         "sha1": "b4b3625e56396c92dc78aeec6f635a9fb20b30c2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_643": {
         "sha1": "bb357b93da97c4fa125a68cf2234fe63a0b8dd7f",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_644": {
         "sha1": "22828376080b3b4ae001d7fdd6c7569c4f538071",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_645": {
         "sha1": "85a7914f05626726a306574a3a3d4a7b67e42363",
@@ -6590,7 +6590,7 @@ ASSETS = {
     "pe2img_646": {
         "sha1": "f28910735e979ed29d78fdcbe21569d43a86bd9e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_647": {
         "sha1": "f2f1894ef6d812c28a90367a4ab8247485f1d5c5",
@@ -6600,67 +6600,67 @@ ASSETS = {
     "pe2img_648": {
         "sha1": "58eb9b2e7c65202325b7af64047cd8906ed3e254",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_649": {
         "sha1": "e3ac17898b60c288de785337bd5c3b731f665927",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_650": {
         "sha1": "8d4ef5f3650d751d670d625fd1d5d9d7897b00f6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_651": {
         "sha1": "7c9d40830c55016a3163211b7edbab73c3b401bf",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_652": {
         "sha1": "d975f5bbe8e892081a8d95f89cccf0b9351027b3",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_653": {
         "sha1": "8cb801c3c3f1817583974b763b9de611ac857254",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_654": {
         "sha1": "81bd3fae9a6b1e093f2e8f7a5abb119f1d42e734",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_655": {
         "sha1": "1e71c5a7c8ef796caa68c71062e0e511a68465db",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_656": {
         "sha1": "a8ee15dd14ce469ac2ab9d35b111a999c045983e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_657": {
         "sha1": "7f101677764624757a16c3c1a75b10c27f2156d5",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_658": {
         "sha1": "bdb99ae12008f2a981c6f1c7a648b846c5bb58af",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_659": {
         "sha1": "4b5aa7afea9f687adcc23475355c32fb1bd4a732",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_660": {
         "sha1": "121c49d12709d6b9d9e4a954966a230f52bc497f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_661": {
         "sha1": "4d396af9c85ab6bc89c717e7406ce92c654a14ac",
@@ -6670,17 +6670,17 @@ ASSETS = {
     "pe2img_662": {
         "sha1": "0b742fe0dfcf9b934ddb84cc7d486fda8bcafdc6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_663": {
         "sha1": "c7eb2b27845bf9c517c5525d740945c25ba7c0d3",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_664": {
         "sha1": "4d716a8df4d9fa2d7e9d99b2e61e0ebb815c4f71",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_665": {
         "sha1": "9a992a62245a7e06d284e8f41a79c7cc194df4be",
@@ -6690,32 +6690,32 @@ ASSETS = {
     "pe2img_666": {
         "sha1": "59f58ed887edda54499705bee8059f49a686b16f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_667": {
         "sha1": "ec61ff42f2851c22cff9272606ca378ea586220c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_668": {
         "sha1": "cf92c13e523d2d12c7880f51df3b9720d72ca805",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_669": {
         "sha1": "61cea33991546cc2a0f04b456f56b51d97e6a086",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_670": {
         "sha1": "bfc4d89cf4ec24be837d3608116ad8fdb76c083c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_671": {
         "sha1": "c111fe1bebee91b1a1de8c6e06c1432d6a92592f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_672": {
         "sha1": "bece53f7ae5bb7f486fcd0db83c53d60513e0ad1",
@@ -6725,37 +6725,37 @@ ASSETS = {
     "pe2img_673": {
         "sha1": "f74cf5ae52c53ad2e52b1ef9fcdebd069a14bd96",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_674": {
         "sha1": "c964c6c0f9b5a3d24277d93833d900a64a6b0967",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_675": {
         "sha1": "947362946966bb3f63f35543becc4b004bcaddcc",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_676": {
         "sha1": "49894d577a9d60c26e93550de908f04b5dbf57d2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_677": {
         "sha1": "392515c95fdab60bfade0c26050acbdd00175077",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_678": {
         "sha1": "29e3df59e48f2306f00987f4e7a894a6b53a4b3b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_679": {
         "sha1": "a83e52420ec73b8654505c932047bc7a65741b02",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_680": {
         "sha1": "f537bb7fdabc94ab9b63d3c2c5f04dde8d71cf95",
@@ -6765,12 +6765,12 @@ ASSETS = {
     "pe2img_681": {
         "sha1": "68dd48538495400f85f194571b66be469e31533e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_682": {
         "sha1": "88d175e4233173a2d2f18598e20b5b400ae55b38",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_683": {
         "sha1": "5622faa25e640d0647e6a4b13474073630153fd5",
@@ -6790,22 +6790,22 @@ ASSETS = {
     "pe2img_686": {
         "sha1": "c0fb6fd2d68010ca63c03d8b42bc4fd487ca5950",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_687": {
         "sha1": "56cce9befed1fd56380fd615c27a60971b93930b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_688": {
         "sha1": "c92ff2a3974d2556f77fe9db64281b3279420033",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_689": {
         "sha1": "0fc9a26df46857cde91732253fba4f3bb9df9408",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_690": {
         "sha1": "d1386eccf342007a8e9c35ecb9aaf466dbd88af1",
@@ -6815,17 +6815,17 @@ ASSETS = {
     "pe2img_691": {
         "sha1": "fc26ea0681c69a1e8d4a9c5a917248f07ac8063a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_692": {
         "sha1": "7c20bc342529bb36af97c30e13e76fffcbcd1185",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_693": {
         "sha1": "e49bfa2956a4939aaf1b1df071f2252953ec8711",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_694": {
         "sha1": "d14b80197224c5262f8c095e019b7cbea4aa98cb",
@@ -6835,27 +6835,27 @@ ASSETS = {
     "pe2img_695": {
         "sha1": "abb4f327651e9d07d684e5ce9bcd4a012f1d84d0",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_696": {
         "sha1": "f018d5e32baf7fc6623990640377a61c7fff371a",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_697": {
         "sha1": "b46655a4efc77ec4df9499ce9bb974453431680b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_698": {
         "sha1": "f1ef03001cc4addc82204f0941d981af80c829a3",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_699": {
         "sha1": "648dc643c4df2da1924e0f3d5f8c89b3917147d7",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_700": {
         "sha1": "a9e67e2e8c627e2bedcb423897da39699d1d30df",
@@ -6865,17 +6865,17 @@ ASSETS = {
     "pe2img_701": {
         "sha1": "4bd66d23deb7aa23b879a000f89c0530f205e834",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_702": {
         "sha1": "64eb0ed496aa09c0175182df6a31de1ec9a05fb9",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_703": {
         "sha1": "794664c8d33a574538ba2f785df584b9aca73c05",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_704": {
         "sha1": "18b2d23d91e220a25c6d766dbc29456baf53e643",
@@ -6885,7 +6885,7 @@ ASSETS = {
     "pe2img_705": {
         "sha1": "7723de3776cf9c0c0e218fb122e01d86d5d9a88e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_706": {
         "sha1": "a40fd9184421e97c1030062f5013d41b34a33e59",
@@ -6895,12 +6895,12 @@ ASSETS = {
     "pe2img_707": {
         "sha1": "610819014bdb8e85390175a0c9ba62b20d3eadee",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_708": {
         "sha1": "3a2ed411e1599277bf43a925e7f876e34384accf",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_709": {
         "sha1": "f9a17062b32b327f1dab45fe390afd013c8db003",
@@ -6915,12 +6915,12 @@ ASSETS = {
     "pe2img_711": {
         "sha1": "72b1a1d923814a91ac3e3f35b0689b1d32722536",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_712": {
         "sha1": "1c018b858906dcd68b6033894efede27430bb393",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_713": {
         "sha1": "e4346a877bcee3b2c62cd69c183c67f07c2d7bcd",
@@ -6930,67 +6930,67 @@ ASSETS = {
     "pe2img_714": {
         "sha1": "b96e6e61d21fd151aace4def0fb0a834b1a0eae2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_715": {
         "sha1": "e477f0ea71daf8c21d29775b0e9d617f613b1b52",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_716": {
         "sha1": "5d2efe6d22252310a83c2d82d7f9ccc137c7629c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_717": {
         "sha1": "0b090ed8c8b14a91984995da20cdd230d0538f46",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_718": {
         "sha1": "f969b4229c7fae6800ed340f939af4fa77e6f959",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_719": {
         "sha1": "f10a03fb31144ce6a286cdfa28ccc30d5cbd8ad6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_720": {
         "sha1": "265a83a415465038e86359f06e3234eacb2221da",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_721": {
         "sha1": "64d6099503de59b7f7905cfe95de1b5a9782cdd7",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_722": {
         "sha1": "e81f72a7f0f5b9fc6ce719b5bca0d2531b1804d4",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_723": {
         "sha1": "fe27ecc224c39c7a245eb718d9463c8c7eb2ddd3",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_724": {
         "sha1": "7bc2b467533a3cad5965553134f950f3b10a558f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_725": {
         "sha1": "1dde64bd81fab662db3c0f86ea05ceaf8ac3f27c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_726": {
         "sha1": "84658c256020465b23548693f60aad7f8897f6ee",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_727": {
         "sha1": "2e30af77c915bab9163a8b1f9dfd7fdc3cd70971",
@@ -7005,7 +7005,7 @@ ASSETS = {
     "pe2img_729": {
         "sha1": "166303e62a322d1909ee07081b19487650099d1e",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_730": {
         "sha1": "d4ecb013a95a7f98dc40ac2eec560114955dc9bb",
@@ -7015,12 +7015,12 @@ ASSETS = {
     "pe2img_731": {
         "sha1": "9a19930cbb0746021365a6de1fd9887471c04a7c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_732": {
         "sha1": "e98b29b839dbda2d67dfac24bbc14ad4c400de5d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_733": {
         "sha1": "1afeec8d628f5814d121fdeadef691faad5e0d22",
@@ -7040,37 +7040,37 @@ ASSETS = {
     "pe2img_736": {
         "sha1": "227dd0ce89966603c7b0808e399e7efc62527bc5",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_737": {
         "sha1": "2b5f9883d367f24ac56309e1ce3af0111ffa9f15",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_738": {
         "sha1": "f97c72d1ecb2d62e6d69b1cacb6512f1677492ad",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_739": {
         "sha1": "58ca6e91c95311b3277930b034d6bf531f2b4733",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_740": {
         "sha1": "02aa74d1ad9ba0bd6c0758e6bc914a0cd9210973",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_741": {
         "sha1": "0780f800903d92453ba3a8d702b801dd21f1cd9d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_742": {
         "sha1": "9c5e2335ded44a7ed4dad8ad480da1b24489d856",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_743": {
         "sha1": "cc93ec3a327825c1527955ad7c5cd4818ad109db",
@@ -7080,97 +7080,97 @@ ASSETS = {
     "pe2img_744": {
         "sha1": "ad338cc070f0e2639bdc5eeb4fbceba489bc1ab1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_745": {
         "sha1": "c8e066d1b62e682adf94a2bbd8853967df97e192",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_746": {
         "sha1": "f99ab88df3f569be898dec357af8a6484b2e21a8",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_747": {
         "sha1": "7b592d2323c7ccb76efb9686f55dfc1ea76e7b59",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_748": {
         "sha1": "11e4a9d3f6648ca68579793896e1a6b69b5929a1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_749": {
         "sha1": "85b471131fec13cd4f065283b600e7b6dc9c08b4",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_750": {
         "sha1": "6f83594661539b37a041fca331f1069d1f1f8780",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_751": {
         "sha1": "9aeb8ce294b0880927af8cb915a55257d09b656b",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_752": {
         "sha1": "df0444a079d2c4b41299c43d6ed414873c750c4e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_753": {
         "sha1": "f79de9c302fd3fd0e865f3d5382313f4f8c104c6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_754": {
         "sha1": "9cc869ac6d4bf7f44ec23ce9dbde7287e488e4d4",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_755": {
         "sha1": "cd4a1d7ff87e9196ea421ce65f2a935a41e09360",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_756": {
         "sha1": "a7e2495c9a7de974d1aec821440e32dd2beeefe5",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_757": {
         "sha1": "297eb0925609bcfc2d079716d2bf553efbb518b6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_758": {
         "sha1": "1ddac0a530bbe633aada13e4c5d63dc4fcd8fcaa",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_759": {
         "sha1": "4705ffacbbee6b47da067a35c71438e6b4bf5421",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_760": {
         "sha1": "3a052370814e97d7d0e28d996ec4aabf251124a1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_761": {
         "sha1": "7e8d204ad19a6105731d3b38250b768c11d714b3",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_762": {
         "sha1": "35ca35b50b72d01d4c6d21414cdb57b19fc4e754",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_763": {
         "sha1": "6bebc6309cf1ee774d5584a12e28f4e86f7cef0b",
@@ -7180,22 +7180,22 @@ ASSETS = {
     "pe2img_764": {
         "sha1": "73b55665242d03bc4bd69daf5e290d7b05e1d522",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_765": {
         "sha1": "f8603af1f1c6b5fb6a14af08ed3d7a961141dd2e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_766": {
         "sha1": "63bcc0443bbadabc6d23b8a2a60d4b755a65008d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_767": {
         "sha1": "2b9ac77f46a1ef13272aec6d81a59f5c76178151",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_768": {
         "sha1": "e2a8765196f441a7580306340cea2cfef534c646",
@@ -7205,67 +7205,67 @@ ASSETS = {
     "pe2img_769": {
         "sha1": "1672674cd6816ea1ce797d93e06761f6f9894536",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_770": {
         "sha1": "6256b514d3b4b76d6654d426b20c193ec002ff66",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_771": {
         "sha1": "4c6ef7beef712abf97bd16cce7ab6f42efee7a3e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_772": {
         "sha1": "35ac566d1c5342baba62b8f470de8f670b3bd40d",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_773": {
         "sha1": "d6152cfe52ba7e722b88df71a205ceab454935ca",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_774": {
         "sha1": "df6bb128bdea6b57ffcd7ced9fe5a87ac4ee85c2",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_775": {
         "sha1": "32b69a0c3b23dd068c5bc6ca8d018d1178f27dd4",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_776": {
         "sha1": "5795a2d833fe4559b44fb20466519e5bb3c16288",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_777": {
         "sha1": "0972931c27818d2224cbfc54625ad582d3267f67",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_778": {
         "sha1": "ec99dc57fdc8b377499ed3b33a19a4326a1ac40e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_779": {
         "sha1": "610cebd55ed5db10c31b5b64dff5c2854c59e668",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_780": {
         "sha1": "36e9a4e03da2dbc088865bea217dd843df120a67",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_781": {
         "sha1": "f3ce690496854fcb1f34c86f2793dfe1a607cb10",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_782": {
         "sha1": "4c3876c838a2b1f893a086fa691427152d66cb79",
@@ -7275,7 +7275,7 @@ ASSETS = {
     "pe2img_783": {
         "sha1": "05e04c0ae6c2eb0307c9ce56935c405dd14aabfb",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_784": {
         "sha1": "d06841baaeed8968e0a8b1ae76fd234d437dab73",
@@ -7290,7 +7290,7 @@ ASSETS = {
     "pe2img_786": {
         "sha1": "e45d56f51fa5514e80af62782608eb1ff5c71d32",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_787": {
         "sha1": "7c6fe6ba407b06fa2b1e80a440f773828de1b274",
@@ -7300,72 +7300,72 @@ ASSETS = {
     "pe2img_788": {
         "sha1": "de689bcb4becd0cd9b7c22439be6f702c9e9418a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_789": {
         "sha1": "6b73c78a7c7bf1d9647a8e7c240c215ad24685fc",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": [8, 8],
     },
     "pe2img_790": {
         "sha1": "1342efde6a39c59f0cd5c98c4a4cfddd83d60cc7",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_791": {
         "sha1": "be274ea14e65b5497973df032860873f166e5b4e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_792": {
         "sha1": "40b41d56a310f2baab239535904f9ee79730ebdc",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_793": {
         "sha1": "fa762d4246a43c25dede5515b8f13cf74ed062a9",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_794": {
         "sha1": "3d3cb335bf5b632c52c0fd63185075aab70a96b4",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_795": {
         "sha1": "d58b69c01d43439155a827dffc6e9c02e3c30c1a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_796": {
         "sha1": "21a7f6e218d270ed5ec195ca745f1a26b28cb91f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_797": {
         "sha1": "aa449bcfa546ebb6928cd7b1f6555c2095d94ef5",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_798": {
         "sha1": "104d667eeb1ad6332df3ab98977fcaa327e49362",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_799": {
         "sha1": "8193305df2b31f4c9ca80a958532b86bd5b01fce",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_800": {
         "sha1": "0b3dd03c9ec329685355a3fbf17036acc9585ad0",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_801": {
         "sha1": "81ab4e1e777f7315fef95cb30bfe7c40aa48af87",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_802": {
         "sha1": "0254ba96c014ae5ce7145709d009b6d133285961",
@@ -7375,27 +7375,27 @@ ASSETS = {
     "pe2img_803": {
         "sha1": "f62bf8f936c1a71be36578aca68d21c054953c27",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_804": {
         "sha1": "3466986b13f4301989f183c569d6e4d23b6a9fa8",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_805": {
         "sha1": "5ca30cae01b767bb5ad5464d08fac034ca4343fb",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_806": {
         "sha1": "23df7791881081582c4374abeb0427f731b96462",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [4, 8],
     },
     "pe2img_807": {
         "sha1": "fc96fe20e3adee05c5ad7c49bf5ab51a66135559",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_808": {
         "sha1": "94d0ff4df615856acb7a4fa699ca2cf9a785a410",
@@ -7405,27 +7405,27 @@ ASSETS = {
     "pe2img_809": {
         "sha1": "1a569c710f3049454c2f338fe2ae556affc85560",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_810": {
         "sha1": "a9fd61fe7c3db4647c4bb99218d5fc62063ca81c",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_811": {
         "sha1": "193f29da328b8da3ac34133f0ffef7297dfe6278",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_812": {
         "sha1": "916e75d3053dcc56ce0334c90ef653684ecad82c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_813": {
         "sha1": "c1f979e94de64671fb50d54b92b85a82dee53b16",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_814": {
         "sha1": "dda0fa78bb1ecc84063ba564d138cb1ad434efd4",
@@ -7435,57 +7435,57 @@ ASSETS = {
     "pe2img_815": {
         "sha1": "cb6b1f82d68836fa7613df6a4aa0695279a8dbae",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_816": {
         "sha1": "64ecdbb8b5ab0cdadb5bd68cfdd4108206d73a28",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_817": {
         "sha1": "08b942c33892b73375fcb3e7432ef02e9687fc36",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_818": {
         "sha1": "8d8a8c87787870ef88bc0aa798b91bc460e36001",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_819": {
         "sha1": "f2c5b8134268b6511f0756b8ddeee35e73c4fd6b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_820": {
         "sha1": "3b0fc739834cf9b4494bfb01bcf3a7cf91dd3ffb",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_821": {
         "sha1": "6b7c75785a707a3e3f991c8ed7e5e7332714b525",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_822": {
         "sha1": "e974f494b4b161bb168d4886b0da18d9a6e77cad",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_823": {
         "sha1": "e65f3337c0f29bc800d6c43981d6ec829f205a45",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_824": {
         "sha1": "153ebefbb0668dbad53ca8413905ca6ced130d34",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_825": {
         "sha1": "26ff9cfb44a8b163c1a367b075180558caa36f58",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_826": {
         "sha1": "d694d1aa45cce61206716ee654242ca21cda1db3",
@@ -7495,17 +7495,17 @@ ASSETS = {
     "pe2img_827": {
         "sha1": "58390c0239459c0615ace3e920490e7a2eb58ff2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_828": {
         "sha1": "eac950da9a6f54d7195662de7e823cd7a220734b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_829": {
         "sha1": "7cdba2d2a73dd23edc27793484a314d2b1fe0eb9",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_830": {
         "sha1": "f07f7197cdb84bac2dcef0eb95da6875d9205432",
@@ -7515,32 +7515,32 @@ ASSETS = {
     "pe2img_831": {
         "sha1": "e549562c27600fcf2df41299cef42c76411cae3f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_832": {
         "sha1": "67a961107db6b678fd963720f0f22d6e7d49b9c4",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_833": {
         "sha1": "ebb96519e4ecfaf4574fb8e236886060593e6f98",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_834": {
         "sha1": "0d05123af9b3cdd2bd5211cb7d8f9e4d6585422d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_835": {
         "sha1": "9e411df607df572282c5a2c29319b30c00eb6b19",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_836": {
         "sha1": "ce6c33615ad8d35482661a7b5c75edaa5dcf85a9",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_837": {
         "sha1": "0f45e3e67a42362074971e360836ad65053f530e",
@@ -7550,32 +7550,32 @@ ASSETS = {
     "pe2img_838": {
         "sha1": "6b7ff36b9b13e88c69bccf771ad25f5d37abb463",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_839": {
         "sha1": "59cecf383e6c400c41a07ce687ded276ba33916d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_840": {
         "sha1": "c58925ce84656e1775379a13e0374b02df27fc8b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_841": {
         "sha1": "7c0e38a3f5b3a911a40d81b1b34ad9ca70f4a8a5",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_842": {
         "sha1": "033084bc2a698837e1d6bf926633b04ad5c2271b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_843": {
         "sha1": "5003ed85b77ca3fdeb5ac773b4a268c3d75d6534",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_844": {
         "sha1": "e093f61a523af7063cb1f2c22f26961aaaabcb52",
@@ -7590,22 +7590,22 @@ ASSETS = {
     "pe2img_846": {
         "sha1": "39a0b7218b25dc2f61766073075cbeacf0ec36f1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_847": {
         "sha1": "13cef965809b3ac47eae1c8d9c6c8e653700a899",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_848": {
         "sha1": "fe0149df9f6aa78531a180a0c47ed0986f8da8e1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_849": {
         "sha1": "00fb05e48226fb57489cf46c6b3647078de2ac69",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_850": {
         "sha1": "5bb0b7930e0b030875b4db8e378a9334211303b1",
@@ -7615,22 +7615,22 @@ ASSETS = {
     "pe2img_851": {
         "sha1": "5cc13a2753373d5a5369c443e1cd8e0042529a76",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_852": {
         "sha1": "d23fff9c49dd41cfa0b9baef47f6987060d65af3",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_853": {
         "sha1": "e5ee4a9e652d5cab91ba153a7aa93f3b28deb6ed",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_854": {
         "sha1": "d81cf97b683acb149ed10b7f0ff7be75a67d1616",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_855": {
         "sha1": "ece97dd211610c4cb44b0c1ea6ec19e4294948d1",
@@ -7640,42 +7640,42 @@ ASSETS = {
     "pe2img_856": {
         "sha1": "7c5406ff8f202978c4265ef3aaecc3d550dea1ea",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_857": {
         "sha1": "bfd629207d235a2fa177ebe0bee1d3516fc84eed",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_858": {
         "sha1": "b8180b9b9308fdc6713e74a2c0ba80e318504e4b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_859": {
         "sha1": "d00364d63a84a9a2c791aee44fe34600b70639c0",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_860": {
         "sha1": "2b233e205962b71cb042087093a2147d34d5d2dc",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_861": {
         "sha1": "5090802d2a19548fc800e280ff579601907a3c36",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_862": {
         "sha1": "79183797d5f631fdbb508457d998483fdfd8c6c8",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_863": {
         "sha1": "2cd12d1854046ee4b8616545e4f06cd4679f6f1c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_864": {
         "sha1": "13401363a422989ca1a801dca65c12151a4098db",
@@ -7685,42 +7685,42 @@ ASSETS = {
     "pe2img_865": {
         "sha1": "a0370216e0c3a3ec12f68e94782135b2c0566352",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_866": {
         "sha1": "b021cff85ac6f6de983c788e693b2daea11ddde9",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_867": {
         "sha1": "077654f05b49dcd0c37baa45fd6be62441edf628",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_868": {
         "sha1": "6517ce72e352ba85cd4c0e39765c335c4b43b922",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_869": {
         "sha1": "78d36ee2a46375716d2ba6fa7eb0c7de7e6d11fd",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_870": {
         "sha1": "308bde77470aa76d8a5c3d21a04ca4e67bf3c50d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_871": {
         "sha1": "45dea453e1a8de488b8ebd97c6be00d4aa70125d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_872": {
         "sha1": "7be18a81bbc2195366330f21d544881783f3e625",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_873": {
         "sha1": "ff857465db7c5db0a47bf839d71962cae75c5243",
@@ -7730,12 +7730,12 @@ ASSETS = {
     "pe2img_874": {
         "sha1": "615db404ab5c2a34de17bd844f9681b328a585b6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_875": {
         "sha1": "0b494da2cb7604aa530d0bdbd5bb9635f8cc46dd",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_876": {
         "sha1": "b13bc9a0df2f7f249c4c81d8c25b5ffe80e6ed0b",
@@ -7745,17 +7745,17 @@ ASSETS = {
     "pe2img_877": {
         "sha1": "55bd8bbdce8d837e8c295979922d3f5253cb8efd",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_878": {
         "sha1": "2d712d2e794008802e5a734bee338dc292a6e4d4",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_879": {
         "sha1": "3a2db2db07c11553198cf9a82702ec9526cbbbd6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_880": {
         "sha1": "c2b6c0b032d6bdbc46530ac8ce3f3296e26be388",
@@ -7765,22 +7765,22 @@ ASSETS = {
     "pe2img_881": {
         "sha1": "40cfb87c432d50d9ee5b8506a2d6792c3b10c7d5",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_882": {
         "sha1": "996c18eff4ecc16b1439c52804e651e44e74c1a4",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [4, 4],
     },
     "pe2img_883": {
         "sha1": "35ff8ac53dbc30eb9e554e59ea653cd3084ccdf2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_884": {
         "sha1": "228cd69cf968b70c8a1097f2bccf9650c03547fb",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_885": {
         "sha1": "0bf91d63da4e8907fa7aa576ab8c19b09b16739a",
@@ -7790,67 +7790,67 @@ ASSETS = {
     "pe2img_886": {
         "sha1": "4bc35906bcea6b8825e3c382c9ea78a2e779f5ab",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_887": {
         "sha1": "4634d38383380034811b0eba2ba04482f8050b7e",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_888": {
         "sha1": "2837cef45e4b52681c4c279111957e87538513f8",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_889": {
         "sha1": "cfcd14f2542125d7ef1e33b89271a9fe2e6c9764",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_890": {
         "sha1": "d6adbbc1b2653e4e7f7fb027de4d3e0026798f4d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_891": {
         "sha1": "d1cfa18bb53a98c625a514a46f6748cbb40ae2db",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_892": {
         "sha1": "57a4ebb0932caf1a43c45dac930b32f524aee78e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_893": {
         "sha1": "ddc182683d15a3454eb0e1d2b71f72e3fbc549b9",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_894": {
         "sha1": "9c303dd392f1b2945c3e6b969069235ba76b8605",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_895": {
         "sha1": "f01b82198178bee5dfdc477be43e049eeb4cbb3d",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_896": {
         "sha1": "cab02c90cd029ca15d2ce928e6ccfa2f8cc9bc35",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_897": {
         "sha1": "6f4d3fb511404d3070045895a35a29be9d20368d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_898": {
         "sha1": "4ed3a2858b8412374e039e4afda5c9dcdbbf53de",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_899": {
         "sha1": "cc859bd327727ee4422bbcfabcb8707c020641cb",
@@ -7860,27 +7860,27 @@ ASSETS = {
     "pe2img_900": {
         "sha1": "27cc40cf9af592428924197f3d84c87c48d921f4",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_901": {
         "sha1": "33a0d497c8dc5d84ed94683520b294c4ca2aef15",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_902": {
         "sha1": "f92fb244b9b091d91018bf7b4e5a80bd63d7ed4c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_903": {
         "sha1": "d30b4a3256a2b9139927cf169ff7db4182dde1de",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_904": {
         "sha1": "99fb2b2d072ff359c25317c10dd2f5ba9feb776a",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_905": {
         "sha1": "f5a84dbd6f75c6cfb117d0c5eb71ac050a5126a3",
@@ -7895,17 +7895,17 @@ ASSETS = {
     "pe2img_907": {
         "sha1": "ebb3ef6c2431c753d53835dfd221e03bfaabeee3",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_908": {
         "sha1": "b6b93daaa6608a649ce8b809f3872a724196337e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_909": {
         "sha1": "015e542eefad8f00f95e2802ee7f98051a2b607b",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_910": {
         "sha1": "fb14b219fa9a74b3093273c80e7612dbe6ba285a",
@@ -7920,57 +7920,57 @@ ASSETS = {
     "pe2img_912": {
         "sha1": "39e5b6219710d14b8ce7ec27b204bd39db0086cd",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_913": {
         "sha1": "f16965a5491bf0e11c54b03f82c67ccc2ddc9424",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_914": {
         "sha1": "90297bf92d7dd1e8cb7c599a89c2c5941a7863a0",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_915": {
         "sha1": "8a6629c02520a00af89d730cde8b8242f089b2d6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_916": {
         "sha1": "c4ae2edbcd52c2acf3fed4075a64d41992050489",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_917": {
         "sha1": "bd14cdd320b05d5c171ce8ba345128f5c2781c50",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_918": {
         "sha1": "11dd0ee572e737f7e8d0742ff6933bf65b76cdb8",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_919": {
         "sha1": "69c136c80b905cf7a9a07c9c7ee8a67b2d45d037",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_920": {
         "sha1": "08fd2c6fcc64d19083220304ec9985c2b642742e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_921": {
         "sha1": "50ee55e0d07f292193abf7ecf1554a25d3e2c088",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [4, 8],
     },
     "pe2img_922": {
         "sha1": "99a5cad0088f27406f79f6369ef2831bde44cd86",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_923": {
         "sha1": "08fdb99b1eed45fbe722493f212df728b0705c10",
@@ -7985,12 +7985,12 @@ ASSETS = {
     "pe2img_925": {
         "sha1": "4d0cac267afd586f8baa0b0fe6a87230d508f653",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_926": {
         "sha1": "201f0c4ee5940af54c428a10a6867a062852786f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_927": {
         "sha1": "2534c2e2d18bf2ceb68daa474d5f607a0f6c985b",
@@ -8000,32 +8000,32 @@ ASSETS = {
     "pe2img_928": {
         "sha1": "e131ff34bf802b05cf25a5cf659b3aa25e7263bd",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_929": {
         "sha1": "eb6a8e9236af37d710800868a25d0d318f49c7f0",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_930": {
         "sha1": "fd4028bb8f1e49d0a0890d52111c8caaae3d9afd",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_931": {
         "sha1": "9dfacb07667326b55fab5d29b4d4c9a3343baed5",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_932": {
         "sha1": "c1eb1235a541f41fde0e4d4dfd04d84668fa6603",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_933": {
         "sha1": "abd89fa18347df09a34c524b5d6aa8bde528375f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_934": {
         "sha1": "05da87bcb6a1d783c13d14bff3d1e546a2f169c3",
@@ -8040,12 +8040,12 @@ ASSETS = {
     "pe2img_936": {
         "sha1": "445356797fca8b8a0f660f21012043aa0c9ebff7",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_937": {
         "sha1": "e24077d0733a0c24e74e220f198eeb11590ff775",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_938": {
         "sha1": "8c84d2a91df00792dcb9f43ef5c5e546d70af174",
@@ -8055,22 +8055,22 @@ ASSETS = {
     "pe2img_939": {
         "sha1": "d76141f604e6e9f6e5e48b1a7aaca6187d28fc8e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_940": {
         "sha1": "d1a66440d45e61d4e6761b96b937354cf9f74282",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_941": {
         "sha1": "6714c70132eeba94f1fbbbf7a568c1b4196efb02",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_942": {
         "sha1": "fbe282f5f0e80549eb7a1b89bb32308e73e90fb0",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_943": {
         "sha1": "d98512be8fda0ad6f8c10185c1c1b7c9cdbd62c5",
@@ -8090,27 +8090,27 @@ ASSETS = {
     "pe2img_946": {
         "sha1": "972c596229bbead92dbe4c05c9916d3c565aa1a3",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_947": {
         "sha1": "cb46a72eb2fd8f31ac933703d33f76345ef31b72",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_948": {
         "sha1": "c679bad17c4d5514fd22f48fb8b15ad965eacac1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_949": {
         "sha1": "536c377296c2c29cfed082c391ed7519b45941fe",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_950": {
         "sha1": "b182ad2cce75247130438641cc34c1dcb11d1f4b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_951": {
         "sha1": "4541c96df5c1454a9994b6e1d2f55361e3bad018",
@@ -8120,22 +8120,22 @@ ASSETS = {
     "pe2img_952": {
         "sha1": "f2e2e902f654422c7d744bfa938c487e015e8601",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_953": {
         "sha1": "7e29e9709b271714850920b2c265e3f387e9ca4d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_954": {
         "sha1": "4d60398fe2250a9fd144b63b355630b0e0de2219",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_955": {
         "sha1": "eee89a30cccbf48166cac36e9a70157de2dc8be0",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_956": {
         "sha1": "40c4f9d6704bee408bc23a6cabdfac4e7736fa48",
@@ -8145,12 +8145,12 @@ ASSETS = {
     "pe2img_957": {
         "sha1": "9ccb3da799f14250a7a6d804c15aaec5f64a9fb5",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_958": {
         "sha1": "91587dd358773b937bd615f785931494e4454448",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_959": {
         "sha1": "b1d8aaf171026104a0ddc5852d76dcb1b542d8c6",
@@ -8160,42 +8160,42 @@ ASSETS = {
     "pe2img_960": {
         "sha1": "b3f7ba443a841c5a2a7bccbb3dbdaaf9e0a516b0",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_961": {
         "sha1": "5dea825bf6ef44e481e78cf32a5db9fcc4411914",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_962": {
         "sha1": "0d22acbbe01c913d9971dc13b633b6ae088f1d3d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_963": {
         "sha1": "2ff007f831b00aca58712e9bcf8f289f0716a5b0",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_964": {
         "sha1": "2f6aef13891f47cba87aa1169b38e6f8147b3b60",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_965": {
         "sha1": "989553d58463695a34cb7d317d310ed51856cf98",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_966": {
         "sha1": "b4681d6516c1f20e8668cd61ada644fda86325b1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_967": {
         "sha1": "e17e9518c0d76420d05754beb8fd81110b51ed8a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_968": {
         "sha1": "87b750bac7f2dddb182278a4ab9166e4fec51af2",
@@ -8205,82 +8205,82 @@ ASSETS = {
     "pe2img_969": {
         "sha1": "6342b98827dd982a799ec9277be854f71c263d5a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_970": {
         "sha1": "4d5bca5a4852b940946c23da5be4797a913a836d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_971": {
         "sha1": "eaefc11d52874550ea180a9e1990b8b30c55d416",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_972": {
         "sha1": "5b5547ce8e026e9bc3fb5277739740665b84adef",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [16, 16],
     },
     "pe2img_973": {
         "sha1": "dd0036481c4d5b1cad8b10e48c016904122611d6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_974": {
         "sha1": "4fb0f3ff84ee31b5b4754427dc78f4d18c846536",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_975": {
         "sha1": "11fd1b5e0a93636baff809929df8efbbe0c56b78",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_976": {
         "sha1": "b66fd6f7f92fb972276d2e7c3238069aa5729043",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_977": {
         "sha1": "3070706fd1d7e7906fc0b988d8b84e4aeef8e2e0",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_978": {
         "sha1": "61b92d8f27e3ef21d4e5372df1b075dddcb9cc2e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_979": {
         "sha1": "7d5ce73b6ae4276fdd437395b988e93db8d61288",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_980": {
         "sha1": "c525e7d82ca4edd11c59b4a6ea594fffb48fda3e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_981": {
         "sha1": "853d30f800cd3fded68b30e5ffe4f0efcf913f5d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_982": {
         "sha1": "12e22002e26e3542326814c9cb0ef6c868018035",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_983": {
         "sha1": "bdf196779d39268bceb196da1da45d0f8b71cbb6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_984": {
         "sha1": "82f371203924d0fb43b4fbe1c21e41886793a11f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_985": {
         "sha1": "c2920fd32bc04673a222c59f807ad933d989d975",
@@ -8290,7 +8290,7 @@ ASSETS = {
     "pe2img_986": {
         "sha1": "90b031722d164970c137b46a67cb02b844087402",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_987": {
         "sha1": "e52cf4a05f4e58f7d6d5e6d7e456a598703ba1cc",
@@ -8300,37 +8300,37 @@ ASSETS = {
     "pe2img_988": {
         "sha1": "157dd088dbed2ab5e14beeaff935983e093d28b5",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_989": {
         "sha1": "0422a6587cdf431fc1ad9a1039291a4afa4321fc",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_990": {
         "sha1": "3d14994567ec2ab0ad5bb918f6c2525b05b918a2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_991": {
         "sha1": "672828230702d989568a2cdc0f40eb861181fe10",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_992": {
         "sha1": "4eae36bc7540a2a6a66848655e40001bf34280f4",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_993": {
         "sha1": "9de23c05f8192dd1ebb23b8d2c7ccf11637452f5",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_994": {
         "sha1": "d81e67a38e74f5dae3657926b5d9f92f3c5ab1fb",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_995": {
         "sha1": "8a70c31ad97cbb1f80293a7b5ce8919f9de96637",
@@ -8340,22 +8340,22 @@ ASSETS = {
     "pe2img_996": {
         "sha1": "88cbbc9d6dc8ca7e940657a24f669550e8a068f4",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_997": {
         "sha1": "2f5533c6cfd5abf94ea636214ed5bc8c7e9efb53",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_998": {
         "sha1": "6f5d95eb2d380918f25088786d1a6a32298e77c8",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_999": {
         "sha1": "632dbf24c1fd74941dd662e71dbdae22181fd151",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2pkg_100": {
         "sha1": "99c3f52d32bf80d3e3b6b26bec67a9b5cdfd60d8",
@@ -11312,7 +11312,7 @@ ASSETS = {
     "pe2img_1000": {
         "sha1": "fca02b9e4e492f05d8bcb225c94cbb25bf6bce37",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1001": {
         "sha1": "863e28b3b10cf62ffcd58f6710b1762d07886b49",
@@ -11322,12 +11322,12 @@ ASSETS = {
     "pe2img_1002": {
         "sha1": "7643c074ebb381836100c1e6d65bd594e7672e0e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1003": {
         "sha1": "328673bff43b5674df28148121876bac3601ced6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1004": {
         "sha1": "fd10dd44213069e2d09060430fd9ff283e788c2f",
@@ -11337,7 +11337,7 @@ ASSETS = {
     "pe2img_1005": {
         "sha1": "087ffd5adf65ebfbb45fbd4a08498b852d74e9be",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1006": {
         "sha1": "c4ac08a267322360a51347021807d07575908cde",
@@ -11347,37 +11347,37 @@ ASSETS = {
     "pe2img_1007": {
         "sha1": "59f5fd0c803a9d2b9d4446f93e6ca333d2448fe8",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1008": {
         "sha1": "2e024976458acf4cab2778754eb61e95ea5dda38",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1009": {
         "sha1": "8d906f46f34dc7d5deea87673268d934bdb0ec99",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1010": {
         "sha1": "01f21037cf9e99959ce6b0fd238931b603dc3e5f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1011": {
         "sha1": "b5a6f7de39ad871667ebef079dd2325c4c2cd993",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_1012": {
         "sha1": "580f6286e27c87a754d5e2e8d662290d46974cf9",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1013": {
         "sha1": "ccfb38521799ee1f7184dd448d22d728f52c57d6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1014": {
         "sha1": "8f6470365965fe7bcb65525337d67fa1dbc09986",
@@ -11387,7 +11387,7 @@ ASSETS = {
     "pe2img_1015": {
         "sha1": "12fc279a98536810329fce3df23b169c0bc96cfb",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_1016": {
         "sha1": "7c6332b6b51d4f4ec3d86d808b3fa0b954db163f",
@@ -11402,57 +11402,57 @@ ASSETS = {
     "pe2img_1018": {
         "sha1": "d793eda21d5a8933db75b04d8ec95444756da8dd",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1019": {
         "sha1": "83223e12cc2e27a2077477f2519ef01db0602439",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1020": {
         "sha1": "ae3f021067604059fce33686c16d5a4f08b90821",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1021": {
         "sha1": "940a15e37f1f22b89163747c9821962f8f14d665",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1022": {
         "sha1": "4fc9dcdab18f22841f173cbb61b093e82c06a265",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1023": {
         "sha1": "e1763a15a34565fa12fe6b530c805092af440356",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1024": {
         "sha1": "bc01c4314ad69a487e96c7bbd0cbb802327a8b5d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1025": {
         "sha1": "447cb4c807bf3172cb003a4c1e1dd74223fe6ecf",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1026": {
         "sha1": "96b5253924f84ef29d10e75c49ca4ac425ee1014",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1027": {
         "sha1": "449cc0146ecd89cb5c8ac3b6145b6e1a7a0f1206",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1028": {
         "sha1": "3b4b8691a08cb80bf97e159835e0cf84f29bb4a2",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1029": {
         "sha1": "0ef92cae0084458bf55792e5cf7864ac5e273e5a",
@@ -11462,57 +11462,57 @@ ASSETS = {
     "pe2img_1030": {
         "sha1": "480253955e01bc95f1798d3cc4a737f88ae71f95",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1031": {
         "sha1": "40cbf624d327e88cc959518bf8a70eb94622e222",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1032": {
         "sha1": "5262b5e36b5d8f548303142d0f108b79c4a6055c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1033": {
         "sha1": "739f5ddeca747168e93e6937b4f1a675ddb29d92",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1034": {
         "sha1": "7678f8fc5397777fa91235e4af58932532694dba",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1035": {
         "sha1": "f80df224a127ccc0cab6781aa5ef911cb758dc2f",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1036": {
         "sha1": "6f24ae496fbf2a0fedf212f04ee0dd146c845216",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1037": {
         "sha1": "226f51d8fd9e6c3860dfc0169732698008705d54",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1038": {
         "sha1": "5337359aa64988cd3e6402ad3399475b27ffceb8",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1039": {
         "sha1": "0ad527c5eb1433add3dc8bfffa67def3313cbfa2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1040": {
         "sha1": "896563ad48a6a5d743295700667e40ef3c01639f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1041": {
         "sha1": "b324e589c64b6e9881f53075a0ddce71a8135e2a",
@@ -11522,42 +11522,42 @@ ASSETS = {
     "pe2img_1042": {
         "sha1": "70c7e2f0ab65829d34c73ab2e1e26689a5e0248f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1043": {
         "sha1": "e05226ddb5891907aad0b0cde530c2798689078c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1044": {
         "sha1": "66486079d96630f99903a4e50e9dc85e654c9013",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1045": {
         "sha1": "d9bed184d9d0d0e917e6885b3e117e54376d6ce2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1046": {
         "sha1": "8769ae3f1645e53de7148c4148e4da654d154e47",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1047": {
         "sha1": "c14e083211a0701e34101c13c08cb57d4df6a58f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1048": {
         "sha1": "58375604ff0de0a3861dd5b8f41630c71bc2a791",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1049": {
         "sha1": "15699f14a0de99525d5b0989c22341efc4ff7ad7",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1050": {
         "sha1": "b27c303d5d64f80da9cf3b729b09cb8b2ea24918",
@@ -11567,12 +11567,12 @@ ASSETS = {
     "pe2img_1051": {
         "sha1": "3168d551896f904b7001f7f7636b019dc07a6c4f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1052": {
         "sha1": "e4d75dfe02165b11988408debe8796589791da8e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1053": {
         "sha1": "97099ab2c90da98501d7d22ba177d6a4ef9cb1b1",
@@ -11582,17 +11582,17 @@ ASSETS = {
     "pe2img_1054": {
         "sha1": "ec31b34e20c7ae772d15ef2c9f032dac72ba81a1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1055": {
         "sha1": "1d84817eb1d565c43a21e8b99532a3ca47b5fb70",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1056": {
         "sha1": "2765e48b195c1feffe66fee0e169d8c549177ba8",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1057": {
         "sha1": "05731de5a6000f537e4020c32af85e018e6437d6",
@@ -11602,7 +11602,7 @@ ASSETS = {
     "pe2img_1058": {
         "sha1": "5a7739521dd4695baff01ffdc5b21270bf020762",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1059": {
         "sha1": "ff4d321a9961734ce0f3764f4bebcf95314e6b21",
@@ -11617,57 +11617,57 @@ ASSETS = {
     "pe2img_1061": {
         "sha1": "2b51e45ee3df80feba62e201e4d60875ef0575ad",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1062": {
         "sha1": "120563dd58f5ad69606137da41de3d7cba09ec19",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1063": {
         "sha1": "054f23f5d6b0f7c049f94f69a04f37b537ac4a87",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1064": {
         "sha1": "b56b63074f4964d537640bab72b4783815f1a28a",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_1065": {
         "sha1": "ace421fa619a52b982150965963ad2c3086962c1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1066": {
         "sha1": "9168da32c7de3f486348c4e9d4e8bb007364658a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1067": {
         "sha1": "9691da6357d13e9bdeef67f7565f18dbd0fc1fec",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1068": {
         "sha1": "8f79cabf0a4e54c8735ed9d23ae07b869e7df4ec",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1069": {
         "sha1": "7c2b8c4a2510d224ba2e953064a65a4cdf0ec171",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1070": {
         "sha1": "57e1cf26cb9388e74f1d3418af05a5518161e35b",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_1071": {
         "sha1": "8067cddecf1e410ee399d6b3dfe42517c648b7d5",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1072": {
         "sha1": "f6c67bde5933b72d6206f074e99d2bccbe8dde17",
@@ -11687,7 +11687,7 @@ ASSETS = {
     "pe2img_1075": {
         "sha1": "427c6099128b3a5c8b9ee6dd2bac46e128f36735",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1076": {
         "sha1": "14fbbdd2f69a460f18ecc324be0c8186a325bc17",
@@ -11697,7 +11697,7 @@ ASSETS = {
     "pe2img_1077": {
         "sha1": "485b7cebed47da73a59fce52e46c7df51e9e5c85",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [4, 4],
     },
     "pe2img_1078": {
         "sha1": "eefa1284fb75e85ae9b42b0ffcc293c6e581f0be",
@@ -11712,62 +11712,62 @@ ASSETS = {
     "pe2img_1080": {
         "sha1": "8d7405911d1613391430e445802fdab440d0c33a",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1081": {
         "sha1": "1e3b84044dc8e64d698615a6c573874537f27a17",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1082": {
         "sha1": "d353e99a4ee63e6a5ace9cc7973dbd9a29917ebf",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1083": {
         "sha1": "062d21fc2e35f5660541045975a6a4dc80742ed0",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1084": {
         "sha1": "e552bc467aaa7ce828beda01c11e91d28da69a37",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1085": {
         "sha1": "1946eb7780d163ef52fbe670aee005c9384b1ba4",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1086": {
         "sha1": "af6001e2d8aeac1c9d6aff3b8912877092c3564d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1087": {
         "sha1": "b9ba1a98ff05cd941dc8efc6ebe2cd9abacea9b1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1088": {
         "sha1": "a20c912c82da305482aa18f958b1feb4b087c1ee",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1089": {
         "sha1": "b72dfacec48bfe287c479d35712d08ec3102541f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1090": {
         "sha1": "0b108e6eb0ca6e6656e86563476382b603e2a00c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1091": {
         "sha1": "c9a69e35fed8f1e364b998fd0e03b482958fcbc7",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1092": {
         "sha1": "e5dbb817503cd9ad052fce4d9a92f9e471415f94",
@@ -11777,7 +11777,7 @@ ASSETS = {
     "pe2img_1093": {
         "sha1": "679d692d465b4134ff3d2a26e5fa329fa8a71cbb",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1094": {
         "sha1": "66b9dc48449ea5a774bf1266286d87c368b99fff",
@@ -11792,42 +11792,42 @@ ASSETS = {
     "pe2img_1096": {
         "sha1": "648a87fdbdc22d59166394ffd0ce7c0aa956a945",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_1097": {
         "sha1": "2c20638fc592cd9af4d903b37f9f3b898d316fc3",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_1098": {
         "sha1": "70cef1dbb0c5df5e65e5946ecfc32d20a67d2125",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1099": {
         "sha1": "faa19514d23b7cc8493418d2951539b7f7b53c37",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1100": {
         "sha1": "c33eaac90b51aa280add9a7427cb87aad2240e55",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1101": {
         "sha1": "94cd34fb75282af35c3f20832c746c09bbad33a7",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1102": {
         "sha1": "4b1dba3c0178f68d1139ba13b7a2e7b3428d0618",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1103": {
         "sha1": "b95c0bcf45cf6c378266bfae824b40aeb1707415",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1104": {
         "sha1": "1b4e967f3e4d413aeefdedf1e7eeb32cfcf7af65",
@@ -11837,42 +11837,42 @@ ASSETS = {
     "pe2img_1105": {
         "sha1": "5a9d3c5cdc541794306ae64076daaddb08108f50",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1106": {
         "sha1": "ecb3fea006317f1b2a18a9cafe8970efc5c3c57a",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1107": {
         "sha1": "28b50b406de6cb1ce05353bd66505425c4a972f9",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1108": {
         "sha1": "fccc661fb8d34b7fe6e64391221b439fd628f779",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1109": {
         "sha1": "92d6c9f9a6a3df390decf86eb51b751dbf520dce",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1110": {
         "sha1": "5cb34415add6d832acf8110b2c90b4c937504239",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1111": {
         "sha1": "7f62a637d3b2168514045006c8c2070a3c633a82",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1112": {
         "sha1": "52f335ab0afc4aa2fe3d2f816c5bbaa4d3cc4c20",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1113": {
         "sha1": "2bb031ce8b293eed1ea0165879465649758909b0",
@@ -11882,7 +11882,7 @@ ASSETS = {
     "pe2img_1114": {
         "sha1": "92e78a51eb1c5d5ba613f7c7268e10c5dbed5263",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1115": {
         "sha1": "2e1974910d7d2044c403a547430cc6546c959ed8",
@@ -11892,37 +11892,37 @@ ASSETS = {
     "pe2img_1116": {
         "sha1": "12437ad8b498840ebdc074d4bf2363cbba79b420",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [16, 16, 16, 16, 16],
     },
     "pe2img_1117": {
         "sha1": "aa59108b14c1d42eb0eb24958dfd37e289b02525",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1118": {
         "sha1": "22cb60d044dd459dc69a5dadbce2e3ac5c72ce79",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1119": {
         "sha1": "dc8f58d00af238f2233f5a25e2b4bd5467b4ed67",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1120": {
         "sha1": "7e6d1114ab7729a8fdfa94616154daaeccda7bcb",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1121": {
         "sha1": "1a5d7dabd4dc2667c9e3f7aa958a894f79e0eb05",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1122": {
         "sha1": "7bef21e134a0fb5767a645859f7302171d3390bd",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1123": {
         "sha1": "fbe023ee878ff0198bf74f4dd6b538d04fd4f6e0",
@@ -11932,17 +11932,17 @@ ASSETS = {
     "pe2img_1124": {
         "sha1": "a634b11a93754983c05f045451c7800f568572f3",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_1125": {
         "sha1": "d64fd20ca9643a5d7bce5517e5c9ab308f27cb2a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1126": {
         "sha1": "e5ab481fdf1692a577e18a45b3060a29b0135547",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1127": {
         "sha1": "ab6eced4fde12a19e2b9486120e4e0617e09d337",
@@ -11952,72 +11952,72 @@ ASSETS = {
     "pe2img_1128": {
         "sha1": "366f8718c15f5acad8e9329f171fc082de6ed299",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1129": {
         "sha1": "86db785b9245bf1cd88be28410d969a7de67b436",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1130": {
         "sha1": "c4f99b0b2c9aad9aad8f68df8af3010d447ba7b9",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1131": {
         "sha1": "1ceb49acb023ca454115e48af8e12a1bdedccfdc",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1132": {
         "sha1": "f6adff4357e1202ebe50b1ee76a9251849bc94f2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1133": {
         "sha1": "4543e6f24e5fac498eb91318e9d94d4f3cf8a64c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1134": {
         "sha1": "db5496d4eb5cff45b0a01996851c054cb1632473",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1135": {
         "sha1": "d02f6c02b1ec3e2b6c41e0b49c5e4fa7011e5d6a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1136": {
         "sha1": "fb2fd1fad24676ec6c0c82fc4ae32e209e159001",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1137": {
         "sha1": "7c15f2495395f510493aa8e7e11f1342b6d9ef7f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1138": {
         "sha1": "a782a2c3fc7c198ec336db8fe9975d693803d5f5",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1139": {
         "sha1": "4b87bf7320a0848ecb490e97c4f669bdf2b491b4",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1140": {
         "sha1": "bac89e2f20a23ff1cd7dd763a3aa6a2b711b4e62",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1141": {
         "sha1": "c8f0e3805634c7e749ece02e588a04df7e30d14d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1142": {
         "sha1": "3f03c34e61d9b2c997a79dd94e888f5a607c2146",
@@ -12032,7 +12032,7 @@ ASSETS = {
     "pe2img_1144": {
         "sha1": "f94227f7166875eb7db5444b4583fd1fbfa3f792",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1145": {
         "sha1": "ac9507842d550ff8d05fad2534dd2e41692362dc",
@@ -12042,57 +12042,57 @@ ASSETS = {
     "pe2img_1146": {
         "sha1": "793eeedc67b17b0d94a1afd8de1ec652b21322a1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1147": {
         "sha1": "19bdb86fa8b5f9a9c10b367b368282a6acfa9fe2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1148": {
         "sha1": "62a8e9b17671202cba476099226a6db00bd06cd0",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1149": {
         "sha1": "7a80a33143c6bc32c1c53eb6c00d26b33fef3dbd",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1150": {
         "sha1": "3fcc04ce0c17ba924b84e1b82d2abb0fc993c457",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1151": {
         "sha1": "5c2e5b3754d848d290858bc8090c52de392c414d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1152": {
         "sha1": "f4865240a7805d94d903cfe0a818521b68176c3d",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1153": {
         "sha1": "494f9b13557b6d86c32be9000fec5c5efacf9f31",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_1154": {
         "sha1": "bdc9a1de182d7765b9ba7dcaa15198db8d074302",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1155": {
         "sha1": "404ae5276e1b321e6ed4fa0654fb460977a2e333",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1156": {
         "sha1": "282b46f810dbe8b2409e4d3a42280aaa2d22e43a",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1157": {
         "sha1": "f6376b3e0755e3bda0c364873d90dd6c0e240822",
@@ -12102,7 +12102,7 @@ ASSETS = {
     "pe2img_1158": {
         "sha1": "ff44f33f98667db082842adeacb2d42b98de1e7b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1159": {
         "sha1": "16bdd4ac1006f89978b7cf5a70359301ed050bf9",
@@ -12127,7 +12127,7 @@ ASSETS = {
     "pe2img_1163": {
         "sha1": "873fbbc44d8fdc87788f6d4c5d28045fde1e7be2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1164": {
         "sha1": "c72f80341d1e079acd9ad9980645d31f847f3036",
@@ -12137,12 +12137,12 @@ ASSETS = {
     "pe2img_1165": {
         "sha1": "0d8e52c1bc01eab6ddf51ef6a1ee9080fc6bae2f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1166": {
         "sha1": "e578e481abcf721acbc9f1dd54058260f7280488",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_1167": {
         "sha1": "0a6acec60eaadec6af483ee3e65301c3a54daa8c",
@@ -12152,17 +12152,17 @@ ASSETS = {
     "pe2img_1168": {
         "sha1": "8e6a426350840bfa64d49afd4d397b4d90532f3a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1169": {
         "sha1": "4a1c10a5e6eca7ab9ddf319356c1324e93e5a408",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1170": {
         "sha1": "328b32b3d537b10c1517d2fae40e3d8724966639",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1171": {
         "sha1": "f1b9ce0f53ac463d714e80a0971b1575216ed800",
@@ -12172,22 +12172,22 @@ ASSETS = {
     "pe2img_1172": {
         "sha1": "5d9dcd4ee6e0a886cbf40b03181ac2247789b42c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1173": {
         "sha1": "4c873187c35f208c54315f11ba24b3c3e5787df5",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1174": {
         "sha1": "fa305d1ebad4d6b04db0be331d6f03e84e5713cf",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1175": {
         "sha1": "e911558a5cfc6736448089853ee6031742753ad3",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1176": {
         "sha1": "899298fa16c865b63e539de293edb9739532b51f",
@@ -12197,12 +12197,12 @@ ASSETS = {
     "pe2img_1177": {
         "sha1": "03b85f722f042a44d82dd8bb259afc3f79ead077",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1178": {
         "sha1": "c201933a4b043b4e0ba3e8e795ccb86af3814361",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1179": {
         "sha1": "d8d3e33863656b75194196a367d52daf674c2567",
@@ -12217,17 +12217,17 @@ ASSETS = {
     "pe2img_1181": {
         "sha1": "1bba2fee78eb8b98f1329f781a6d60519ecdd8b6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1182": {
         "sha1": "78fd2f6df02a09caed0b3b619fe2a19c7ad49621",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": [8, 8],
     },
     "pe2img_1183": {
         "sha1": "39741a2caab804c060691a812468266c47f84b2e",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_1184": {
         "sha1": "3eae194608d8c0314fe8b1155d21a727f65d2c81",
@@ -12237,22 +12237,22 @@ ASSETS = {
     "pe2img_1185": {
         "sha1": "3145d72027415be134ba0f7c1f8c96470b7416ad",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1186": {
         "sha1": "260153d99244cf2b011d818fc01bca1a8534a454",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1187": {
         "sha1": "46f8138944d88332343bbefc8739a90ce4d67df3",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1188": {
         "sha1": "95b812e8a537b53e28e51af70d924839aae9e8b8",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1189": {
         "sha1": "b09fcc61590e38abf9e432992b9ffd06647dda47",
@@ -12272,7 +12272,7 @@ ASSETS = {
     "pe2img_1192": {
         "sha1": "ac1f5f7e492a6480aad1970c0e3066b769328340",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1193": {
         "sha1": "3ffec22cd7440f3bcf873a2c76b2d7a23e77fd7e",
@@ -12292,32 +12292,32 @@ ASSETS = {
     "pe2img_1196": {
         "sha1": "9b091d762cc5b4ee47ab78c98a918b12ec0dfb71",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": [8, 8],
     },
     "pe2img_1197": {
         "sha1": "7a289a425631282b5b4bdc5660fc60f8760b2356",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1198": {
         "sha1": "23340750144e7d9a4a9fa082e6afceb4f398392f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1199": {
         "sha1": "090bc935b98f199aaa35d8d496f858f775497741",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1200": {
         "sha1": "c4104da291f305842cb2a62d02494e20c51a7c7d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1201": {
         "sha1": "db0e054eaddf9c033e421850d04942ff939be403",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1202": {
         "sha1": "6fea7d17db017ec76041d07ad7f73e7ff9ebc47f",
@@ -12327,7 +12327,7 @@ ASSETS = {
     "pe2img_1203": {
         "sha1": "6eb2a57f92b5562bda2843cd2f2b67887b073f9c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1204": {
         "sha1": "a39a5fb4a27e8581dd44ccee167c98a761ddc7b7",
@@ -12337,22 +12337,22 @@ ASSETS = {
     "pe2img_1205": {
         "sha1": "889de676007e3edd43fbfb5754843b7982434fdf",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1206": {
         "sha1": "245ccd9f85e2dee2faa255274ac608f504bd5a1f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1207": {
         "sha1": "70d7c2e9a8d4ba63dea4df9ef0e8bbfa81621bf5",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1208": {
         "sha1": "388ca4b3a782526261d1880b9fcb361f824c843c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1209": {
         "sha1": "3a91dfedd887f2115c1775f4eba3002d46b11085",
@@ -12362,77 +12362,77 @@ ASSETS = {
     "pe2img_1210": {
         "sha1": "07664aae50a144fab475d4bb2467b81469378bbd",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1211": {
         "sha1": "1a6b1f3c62d105843235f0697c413d18b5cdf249",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1212": {
         "sha1": "5d0145d5859feec8eed81b84d4f80d324e8a0c8b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1213": {
         "sha1": "92a6f0c8484f584ed10a4f7928b8f6f4886c5026",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1214": {
         "sha1": "721cb87c9966a934a188bc666c11ef1ee403ad2a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1215": {
         "sha1": "d2348618911f2bbf632a874c2241252a2512730e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1216": {
         "sha1": "31b0375de41f65cb210dd60edcfe9c5ea7d88d30",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1217": {
         "sha1": "03092ef0ed498efaf4fb9e0811e6c2fe35091483",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1218": {
         "sha1": "e4206dffbd60e3b5c21d46820fb7e7710eeb6fed",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1219": {
         "sha1": "9fea7f207479e24e783d4f071b671c17f928c1de",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1220": {
         "sha1": "6bb498d03645972184a0d64dbeee22f66b7962bf",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1221": {
         "sha1": "92106b226f45fbfce527a4f764f72d06b724f020",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1222": {
         "sha1": "0806a982a126b0e23d77d5eebb9e0ee80e001ffb",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [4, 8],
     },
     "pe2img_1223": {
         "sha1": "13e2c958c9807ea71581f9fb9ba7ff27f0c25888",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1224": {
         "sha1": "60c25296c5363eaed07c7f498b778dfc5238ef5a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1225": {
         "sha1": "139399909ea1e558dae36b6e4ed61ca0297079a5",
@@ -12447,17 +12447,17 @@ ASSETS = {
     "pe2img_1227": {
         "sha1": "f346096d0baf9548999d14bdb2a7ed18a180614b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1228": {
         "sha1": "0690ccf3b96fbd887e40eb2e89bf2d4df0d8c701",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1229": {
         "sha1": "a300455b832331282467898bf3f32a6e333f51b8",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1230": {
         "sha1": "1af58eddaa089073903ff21911229d0956e8ab50",
@@ -12467,62 +12467,62 @@ ASSETS = {
     "pe2img_1231": {
         "sha1": "26f393ce7274aace49b225e5cb5af7bcd1b4bad2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1232": {
         "sha1": "2d0dd8ba59c6b2efc3f23904167ffaf2ae0a1d97",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_1233": {
         "sha1": "e65903a3b76824060d3da1456fc85ccdb15203a8",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1234": {
         "sha1": "c7a41c879b72e1ef2f4f6c769a83416a8f43b108",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1235": {
         "sha1": "bde611ee175a806ad6bca79f6d5f1fee7382b195",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1236": {
         "sha1": "ecc2b4f706a298a1e25a7df01f55c03661e89617",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1237": {
         "sha1": "3e73c0eb8ae9391b336575a5710dfe2d5194bafe",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1238": {
         "sha1": "5883ce2387b8c0e1e1fca185f6def6527adce2ae",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1239": {
         "sha1": "8b7947a99e51074a1ae322def80827575c3f756e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1240": {
         "sha1": "1fa584513e899c9604837c446f5222ce064f2830",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1241": {
         "sha1": "df9c16eb9b50857a7047412c8856152d076c36ec",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1242": {
         "sha1": "215884116168e826bf1cf66341c17191d22a83c2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1243": {
         "sha1": "33feb74e345409a61f20011490e97b0228995ca1",
@@ -12532,27 +12532,27 @@ ASSETS = {
     "pe2img_1244": {
         "sha1": "568ed62ef1cd608c2ba7c4e9a10f6a216f3b2c0e",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1245": {
         "sha1": "02d36c02f2a41cfc99fbbd87551e8480d8864c01",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": [4, 8, 8],
     },
     "pe2img_1246": {
         "sha1": "8cc14a2c952717a925c7e6fa18ab0a92f174a87d",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": [4, 4, 4],
     },
     "pe2img_1247": {
         "sha1": "f03e6e53e6dcd77cd9a7c41d951836077267bc53",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": [4, 4, 4],
     },
     "pe2img_1248": {
         "sha1": "7b5ce1ff00ef9fa81d1de1d6bebc29aec1b9a118",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": [4, 4, 4],
     },
     "pe2img_1249": {
         "sha1": "3dfe160f200c7ea4db07595f989b0382b5e1c825",
@@ -12562,72 +12562,72 @@ ASSETS = {
     "pe2img_1250": {
         "sha1": "d61c14cbc855601de1848585bf7b9c507a0ead17",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": [4, 4, 4],
     },
     "pe2img_1251": {
         "sha1": "d6cd4f50dbc2339095617aebe4687eb1cabcf32f",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": [4, 4, 4],
     },
     "pe2img_1252": {
         "sha1": "50ddeb1c1b2acdbcd2bad46688d8143309e3365e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1253": {
         "sha1": "c9247d564cac487a71122bc9e0f68ffe87aac55e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [4, 4],
     },
     "pe2img_1254": {
         "sha1": "e21fb0f7bfa66ca6e6f53a6bbe935babd0698893",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_1255": {
         "sha1": "4d5059b4d45276bfabbbfc96004b70657169b4db",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1256": {
         "sha1": "6867b4eae966c1f0c137ea8ef141030560f5cbe0",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_1257": {
         "sha1": "cb86ffd142d7bb032d93947aaf8e38a299fd85e6",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_1258": {
         "sha1": "5063cf8d37fee39a38cf2cfe6d8ba078e458e936",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1259": {
         "sha1": "283c03e873bf264a81db8a2fc1a16a74f65f8362",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1260": {
         "sha1": "e78659d78a5247cf3673bd71a20b933eaaf80c30",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1261": {
         "sha1": "5804d81c253d2d6683aca9f90cdcb4bf867c6c25",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1262": {
         "sha1": "e1cbbead5b1b92bcee12cffcfe56dec96a68f581",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1263": {
         "sha1": "4ff12cbacbfdb40aff953d60666b7c39b29d490a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1264": {
         "sha1": "2cf36d3f0d08fe88179447f3881d9aa94c1773f8",
@@ -12637,7 +12637,7 @@ ASSETS = {
     "pe2img_1265": {
         "sha1": "1585cb1350ad2dd29e2c1d00e5bc07f2e0e10b96",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1266": {
         "sha1": "336490f1f387ee5ca8c9fcaf5cbc2f3fa1e24eab",
@@ -12647,7 +12647,7 @@ ASSETS = {
     "pe2img_1267": {
         "sha1": "e7e6a4989e6547dba6d3096395a4f69835780527",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_1268": {
         "sha1": "f21cd7f56b02f0139dbf45d14b7148db8f201dcd",
@@ -12667,22 +12667,22 @@ ASSETS = {
     "pe2img_1271": {
         "sha1": "856b583b758e2eb0599a76feb9ddcad4ff2aaf4f",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1272": {
         "sha1": "5de5d3a4a98af016183ec5827e7c6bf81dd7b90a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1273": {
         "sha1": "878d796df4d09e41673700f6f5d8f9830eb1601f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1274": {
         "sha1": "02fc78cab0709fb548c0d7f60621e9fdfaa53b4e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1275": {
         "sha1": "391742bb0ea51b9bd6cffa3c7368d0da6d079cd5",
@@ -12692,7 +12692,7 @@ ASSETS = {
     "pe2img_1276": {
         "sha1": "7d90a766b77c36097944637f5008084a761026a6",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1277": {
         "sha1": "b1dd06a8e44d3e42fb5a6bfdf44577e8217c5302",
@@ -12702,7 +12702,7 @@ ASSETS = {
     "pe2img_1278": {
         "sha1": "66ad3eabc38134c527db7035d17bc107e231fdab",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1279": {
         "sha1": "2f814246b933d38a90a6e87bdbd6d548ae213d9d",
@@ -12712,22 +12712,22 @@ ASSETS = {
     "pe2img_1280": {
         "sha1": "1e957633132908b73cc34a6ee9d73d2757740e87",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1281": {
         "sha1": "ab51b92aebeb3dd4a5a28158e38f4d2055734626",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1282": {
         "sha1": "1eb478a56f5d571e8b9d89fa475b7e0735378861",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1283": {
         "sha1": "4d69623c0d86c2bf1da3506910c3a54f4ee1bb49",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1284": {
         "sha1": "faeeeca82d33b890ee2f565f7b25b3d843cdc8e2",
@@ -12742,27 +12742,27 @@ ASSETS = {
     "pe2img_1286": {
         "sha1": "345ef48f138886bffac596b6f9c0f58c77cbddcd",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1287": {
         "sha1": "a7fe3ad9345388561009c27d3e996eb2a05228ba",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1288": {
         "sha1": "69da23dcdff89f1bee18e85c0d9acd0ca98d2721",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1289": {
         "sha1": "5eeef1c7262c48a860849522309c9b3381be0641",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1290": {
         "sha1": "852e119c5066f4052e37c01765854090367a563b",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1291": {
         "sha1": "c60e84a9d6888deae48bc7c0574625a181306007",
@@ -12777,42 +12777,42 @@ ASSETS = {
     "pe2img_1293": {
         "sha1": "c3181339d8069f1a8a0f2b033c9b21f3c47fa9b0",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1294": {
         "sha1": "5b452ad9044082580f1c6bf77f2875bf2dbc1446",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1295": {
         "sha1": "ba47f568f0b96c749ee5d9c036829558458c6a9f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1296": {
         "sha1": "dd782ec6c935917285edae352d4081ac07008f2c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1297": {
         "sha1": "5cac43c98199588425925a7262233c811b6c1d7c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1298": {
         "sha1": "bf9dffe8a9d77b5a862087335aa077ba6af58d9b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1299": {
         "sha1": "58da2bbdc5e780813c0af957eea87036ccb74d03",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1300": {
         "sha1": "f84370c2743a7f8e9f32dd95108a8ff87fc09acc",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1301": {
         "sha1": "8e0b4cd3404d31a7a2caa59b3b7cdb461248d95d",
@@ -12822,22 +12822,22 @@ ASSETS = {
     "pe2img_1302": {
         "sha1": "ce42809a831f9530c167726fb93292ba862c59d2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1303": {
         "sha1": "b02fe6cc53903e05339355913be0aea871c81104",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1304": {
         "sha1": "7cc73d3b9d44aa4decff05e18f2986f8dd2a3578",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1305": {
         "sha1": "fb2897e367f14eede644b61c7f0f3f3c9ade6814",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1306": {
         "sha1": "399ed4104e11e4fbf356d1b9f4d3804c5faf8ca0",
@@ -12852,7 +12852,7 @@ ASSETS = {
     "pe2img_1308": {
         "sha1": "0b7d46e8a41b184ca6802907e36e6c91df9697cd",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1309": {
         "sha1": "cf3132c8b72fe42bed194fb689acd1f5938e47ab",
@@ -12862,37 +12862,37 @@ ASSETS = {
     "pe2img_1310": {
         "sha1": "c224e093174d24ea54347f79ffaabed632fe64fb",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1311": {
         "sha1": "6f66b439a29b201bb6af5234bf64e8967048b932",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1312": {
         "sha1": "133467be80c0e06edc9b8114343c0ae8277c416c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1313": {
         "sha1": "76672b3f8f74e8e01ef2089f0e5c71b15b0ef027",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1314": {
         "sha1": "26a4760012d1f147198f1a4a19a1a2c76dfdceb1",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_1315": {
         "sha1": "205d92185b9452f081db3c93ab9f6278f54a731d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1316": {
         "sha1": "391f1070429c02b917fa252d58d8548fc44223ca",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1317": {
         "sha1": "d1f15277772e4c8dce616c8d2dd2249fb7b30608",
@@ -12917,137 +12917,137 @@ ASSETS = {
     "pe2img_1321": {
         "sha1": "e5a1162b7a296710407191a5135c4931e81b12ed",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1322": {
         "sha1": "571fc602445cddb93e6de99cd1dd9fece0f0e465",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1323": {
         "sha1": "5983f13d7752832edb4309f3be7bf4d85ac5e66e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1324": {
         "sha1": "69ac4280f1e8bddf658948e6824e067a02426478",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1325": {
         "sha1": "6bdb49fd0ddaffa16370a74b363e0d564623f5a8",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1326": {
         "sha1": "6dc66438b3de8801d05bae02f30fa46040f60f71",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1327": {
         "sha1": "3df3334b8528601593efb7a0b7094960b85998c8",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_1328": {
         "sha1": "1cf23c091ee8d69b1329f253c4c85d2006f6b260",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1329": {
         "sha1": "8d4677f3dbcf665217acac0e8829c429b0aedbb0",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1330": {
         "sha1": "bbefe6c5a7e701d95b6f2fb86890133ff2fe0a8b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1331": {
         "sha1": "76a2428e6ec85184bd08e7db9145b00bf8dbf5ec",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1332": {
         "sha1": "1e3e5632e16f7aea812fb0a1771f99dc92682300",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1333": {
         "sha1": "1f8a462d12dd516d7cda433ad1ee3ec044540884",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1334": {
         "sha1": "41a68a5db02e93876fb3f1bdc1fe8c4882531067",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1335": {
         "sha1": "c0bffd9e62920c119aaf425e8460b249976003fb",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1336": {
         "sha1": "dd864662657fc9cafeaeb5565a89969b4cef7b32",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1337": {
         "sha1": "c31427b0faf400705cf598cfc7160120fc7ace77",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1338": {
         "sha1": "bf6e28924a9ad9ecac8db6b4c063afb0bc9f0be7",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1339": {
         "sha1": "4f798b461ae5db497d2a3210bec524bc203fefd7",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1340": {
         "sha1": "08f5efc215665254828ef5e5654b912a8746fc17",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1341": {
         "sha1": "716a84a0b813b6fe569165e3afb0010f1e34aee1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1342": {
         "sha1": "9d34de3eca0c98a57dc61f8c3185e1b0effd6366",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1343": {
         "sha1": "70668b902504eabb357ea8ad742b82fb331cb28d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1344": {
         "sha1": "b0ead0648395c6ba0ebbb652043a49b92fd81f33",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1345": {
         "sha1": "24ec6a75a410aedd720ad3d1f0583191fb2cfc74",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1346": {
         "sha1": "964c3d0f63e4688d9ae08ecf2dcbe147b8316dff",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1347": {
         "sha1": "7c590e29518a5e78d95fcacf278738d0c7ea0920",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1348": {
         "sha1": "c69c5e9e9df88f92e85f516cca34b719899568c7",
@@ -13057,7 +13057,7 @@ ASSETS = {
     "pe2img_1349": {
         "sha1": "a4a34c648fd51ee344d3a4c5787e0332c5344602",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1350": {
         "sha1": "8b40ea348b787b0526b7b8f12efc6cebf4016e22",
@@ -13067,7 +13067,7 @@ ASSETS = {
     "pe2img_1351": {
         "sha1": "72bf0c2901f46c0df790f2308739d2af8e4a09af",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1352": {
         "sha1": "244e4410ade6a05672328459d37510bee2c54d2a",
@@ -13077,17 +13077,17 @@ ASSETS = {
     "pe2img_1353": {
         "sha1": "2d0931993d2507ffdff5cf84c12a8feb0b28d194",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1354": {
         "sha1": "d81d3e7d07282f905710622810ab4b2df01d035a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1355": {
         "sha1": "ee548b10136843f31def5f57d25197e1fbe2adb1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1356": {
         "sha1": "c9c0dd9f94d0923a87d98cd5ff2ce9bdca4c616c",
@@ -13097,17 +13097,17 @@ ASSETS = {
     "pe2img_1357": {
         "sha1": "ee31af06f648ad8dda6a1cbe73c497c34928aa94",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1358": {
         "sha1": "541e3de1142328b7d46e556ef8d49309ef1197fa",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1359": {
         "sha1": "7b12dbb1da4b0e7f270ef6f344f8f514b910920c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1360": {
         "sha1": "ed44860b6d4e8593c103ab213870d8511651c376",
@@ -13117,17 +13117,17 @@ ASSETS = {
     "pe2img_1361": {
         "sha1": "51be0c44f36e8959abb6cae6c52af0284238ab31",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1362": {
         "sha1": "92070af112dadedab1817c7cf811db5a48129722",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1363": {
         "sha1": "d5d51ba1a1f4dea5980160d178551ffef36f2a56",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1364": {
         "sha1": "ba1863c5e2aae5d28dd3cb6045674fd3bd5d1993",
@@ -13137,32 +13137,32 @@ ASSETS = {
     "pe2img_1365": {
         "sha1": "7ff9e157b91418a251784b80e3833f6007aa866f",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1366": {
         "sha1": "6c109cbda92ea665b14ec695c4de9016763b415b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1367": {
         "sha1": "e7e2e5b2ed3a5b0d204ed952d003cce6229cd41a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1368": {
         "sha1": "0550c5edc759d6e40944b3adbe56e123efdb3df4",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1369": {
         "sha1": "a47e4b161a2ba4b5ee43d38e7a6100887080decf",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1370": {
         "sha1": "1695d157d5fc0acc5b3578460b9318aa039d9f04",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1371": {
         "sha1": "ffe78abe990856661886893a5511059228a53ef0",
@@ -13172,22 +13172,22 @@ ASSETS = {
     "pe2img_1372": {
         "sha1": "4f86259dd2211c47b0da52238f4fd8238bf50838",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1373": {
         "sha1": "b00f6495d0578c539980ccacf868c40e32220ea1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1374": {
         "sha1": "1a57b8cbd40889dc15bfea06cda7675ad9c3e955",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1375": {
         "sha1": "1860abffaa3d1bfd0d0792b778164ae926300883",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_1376": {
         "sha1": "e400e4c6543dd781ecfe4e7488e36b86c7bb5782",
@@ -13197,7 +13197,7 @@ ASSETS = {
     "pe2img_1377": {
         "sha1": "3181f03cf3b4a6bf225de500e9aa14deeb0e79e1",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1378": {
         "sha1": "8c4b129a9671e558003189c3b8f06b896f566198",
@@ -13212,7 +13212,7 @@ ASSETS = {
     "pe2img_1380": {
         "sha1": "8ca4ad2fe0b75e33d54155c61725456c0979de0c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1381": {
         "sha1": "5fce98728bfa4c25bf81ef56c0717f4331bb7e9e",
@@ -13222,7 +13222,7 @@ ASSETS = {
     "pe2img_1382": {
         "sha1": "3a00db308c30ddf670baaa89b293cbc0e4204d69",
         "type": "pe2img",
-        "bpp": 4,
+        "bpp": 8,
     },
     "pe2img_1383": {
         "sha1": "3e19f2798c9a7fb79abe9ab2ec67b4d3016e24ea",
@@ -13237,12 +13237,12 @@ ASSETS = {
     "pe2img_1385": {
         "sha1": "affbbb526ea2666f113ea5eaf9ca9290255fb22e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1386": {
         "sha1": "2efda1fddffb6ebb2429e183cb2fa747b1603f4b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1387": {
         "sha1": "5049c12790961e6605442abc91722dd035ed999b",
@@ -13252,32 +13252,32 @@ ASSETS = {
     "pe2img_1388": {
         "sha1": "f024fee932fa70845cec0c07b32a2884b53ed294",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1389": {
         "sha1": "84cc9db6abbc119e9a6303bb7385adc57380931b",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1390": {
         "sha1": "d9034623d645380e11a833fa95c570751b4aa41a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [4, 4],
     },
     "pe2img_1391": {
         "sha1": "12b5615dc9a40c83ab682eb24f061f99d66e4756",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1392": {
         "sha1": "4e1dffe65cd0183d5f1e653f81655d4c5d03fd6c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1393": {
         "sha1": "e68276327bec757010b9b58d07f6f6dab9791484",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1394": {
         "sha1": "e7532dc25328c4240ca001e5fc4e78a2139eaa6b",
@@ -13287,17 +13287,17 @@ ASSETS = {
     "pe2img_1395": {
         "sha1": "ca5d7243a2ea93decb815cc80a121d075ca91acb",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1396": {
         "sha1": "708436b50b9eb5ae19b4a535905335610176aa6f",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1397": {
         "sha1": "4ddda7753386b57eae86cc25f9ba1f3e97b868c1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1398": {
         "sha1": "0569d71ef62ee89e64df12ee1b901aa7e4c1b8eb",
@@ -13307,72 +13307,72 @@ ASSETS = {
     "pe2img_1399": {
         "sha1": "08b73f0f3a8ead4714d6721f1686b45b11ba94cd",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1400": {
         "sha1": "eec88a88713339aab5693cb94f7a1851dc39c0f9",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [4, 4],
     },
     "pe2img_1401": {
         "sha1": "fa5c5685269920b411e05e517f2105fc0d5fc666",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1402": {
         "sha1": "4189892f9a77c58336e41ba0726f6e8bdbb8f354",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1403": {
         "sha1": "765f8814477f7ccbfc2d10855e5ebc6b8d072bd1",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1404": {
         "sha1": "073b27a59762c9f1ae1e77922e914db0e6c74fc4",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1405": {
         "sha1": "992cc850a2bbf8724fee2b28b779bc2c208de14d",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1406": {
         "sha1": "99e6b9968cb51d96e2d0e19fd4e9c3d8333b31e4",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1407": {
         "sha1": "21f1208740b8befc6694589dc6960a8fdef8fc57",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1408": {
         "sha1": "49938e1323560537124771b02134e04140b5fe3e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1409": {
         "sha1": "bdb7ad1b4a10757dbc135105d6f5e0a17c78f5b9",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1410": {
         "sha1": "d7835418c161dc08990e15467ce2129d6cbd5a7e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1411": {
         "sha1": "8ec124c27af25f74d129a91bc22d6ec2accc5bd8",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1412": {
         "sha1": "5bcfe910c4572fdfb5a51ab7dd17c08cbfabcf4e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1413": {
         "sha1": "1d28db5203f31c1382566c987492040e81be2a32",
@@ -13382,17 +13382,17 @@ ASSETS = {
     "pe2img_1414": {
         "sha1": "c040f97fb03d52832a637e97a8f326a922845b3a",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1415": {
         "sha1": "85bf3b6c7a28a7ed93cb1b3276c2674e3748f8f8",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1416": {
         "sha1": "6bc5fa6c7417cf25a2629508a9a1bdeb9c936afd",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1417": {
         "sha1": "427f8cf52442e74a2a710e3a9f3f9db56c8a0a52",
@@ -13402,47 +13402,47 @@ ASSETS = {
     "pe2img_1418": {
         "sha1": "cbdcfb5fd95ef333cec048c631037f6e0e42011c",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1419": {
         "sha1": "f69f07ed831ead999ad0630054e81ebf03d43435",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1420": {
         "sha1": "b6ac1bcefe2bd7c2a5f2b3728add51452dcb62d7",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1421": {
         "sha1": "1d9f48c451067fc61ead8666230d6f49c49569e5",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1422": {
         "sha1": "44338af70544b27f4c32ea1eff183bb0fe81d5d2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1423": {
         "sha1": "95c60a9d4147922968124ad9636b7e205fa20748",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1424": {
         "sha1": "6b9993e077a20385a334a100e412cb516d26becb",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1425": {
         "sha1": "e0c6429ef6082d68e8165c9792395e9ed1a48584",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1426": {
         "sha1": "c21d4cbb6f26ba4ec00cf48d2b3e2f517985cb68",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1427": {
         "sha1": "2396e7cc4003b4309d1a85bf40c67a6dcd459bbd",
@@ -13452,32 +13452,32 @@ ASSETS = {
     "pe2img_1428": {
         "sha1": "7b87591d1b3de8f012bce947699e6bd457a2337c",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1429": {
         "sha1": "9f210350ace209051370aff2f45610ef3c102404",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1430": {
         "sha1": "d1a001069a1651a627e3309e86760824d19c3758",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1431": {
         "sha1": "a822653315607e0fea473d8a9e1c6f45de9f5f87",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1432": {
         "sha1": "669981f5b443d5e92b58b0e2351fd158516bda91",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_1433": {
         "sha1": "447192a46d9f30c291e2daa0c3b1048c634df301",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1434": {
         "sha1": "b5ea3bfa614c3d4e7fe99242ebd3dc9012af1886",
@@ -13487,32 +13487,32 @@ ASSETS = {
     "pe2img_1435": {
         "sha1": "1727d6cfdf3a1e39752b1361394432a1ba52381e",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1436": {
         "sha1": "c87b8bf2601fa32fc654ab7121ff477134cac707",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1437": {
         "sha1": "be6946c5bd1511a32f952a2feffce4fdb63977df",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1438": {
         "sha1": "fdfc5c48d4c76c0aa7575b81df3d5ac04639c7e7",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1439": {
         "sha1": "af6fb3b3c9fb7c0b52199e2ea334da5b68c81c7a",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8, 8],
     },
     "pe2img_1440": {
         "sha1": "b94d43ac70c3df9840153c5e92f6678207ed928b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1441": {
         "sha1": "22b7de4f41572d2f79ae62cb77d04a6e8a5e816e",
@@ -13522,17 +13522,17 @@ ASSETS = {
     "pe2img_1442": {
         "sha1": "5554fcd2f79e30dc36476cd421ec7b3a00b0fc4a",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": 4,
     },
     "pe2img_1443": {
         "sha1": "5423874caba47bb707b8fce585f23f7259cbde2c",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1444": {
         "sha1": "acb4a01a01731e2ca74c3213996c4a960040e3c2",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
     "pe2img_1445": {
         "sha1": "2f5e00cf674833f2ff49e4e0895403449b25f75c",
@@ -13552,27 +13552,27 @@ ASSETS = {
     "pe2img_1448": {
         "sha1": "ace19651213c44984accc4be3257984c809ed7ec",
         "type": "pe2img",
-        "bpp": 8,
+        "bpp": [8, 8],
     },
     "pe2img_1449": {
         "sha1": "a9dc2d20870085007442f8560d2393ac47d4e9e7",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 4,
     },
     "pe2img_1450": {
         "sha1": "5178f67de2299f0d8f9e971fb7bdfc3161173c3b",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1451": {
         "sha1": "886476ea826ec6a247599f0779afd4806016b499",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": [8, 8],
     },
     "pe2img_1452": {
         "sha1": "63f5c62c747b880727eefc987b796ef7d7ce66fc",
         "type": "pe2img",
-        "bpp": 16,
+        "bpp": 8,
     },
 }
 

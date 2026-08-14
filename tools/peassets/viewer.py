@@ -40,7 +40,7 @@ if str(SCRIPT_DIR) not in sys.path:
 from asset_db import (  # noqa: E402
     asset_name_key,
     chunk_key,
-    lookup_image_bpp,
+    lookup_image_bpps,
     reverse_chunk_idx,
     reverse_file_id,
     reverse_folder_id,
@@ -863,18 +863,11 @@ class AssetViewer(tk.Tk):
         clut_bar = ttk.Frame(img_frame)
         clut_bar.pack(side=tk.TOP, fill=tk.X, pady=(0, 4))
         ttk.Label(clut_bar, text="BPP:").pack(side=tk.LEFT)
-        self._bpp_var = tk.StringVar(value="Auto")
-        self._bpp_combo = ttk.Combobox(
-            clut_bar,
-            textvariable=self._bpp_var,
-            values=("Auto", "4", "8", "16"),
-            state="disabled",
-            width=6,
-        )
-        self._bpp_combo.pack(side=tk.LEFT, padx=(4, 10))
-        self._bpp_combo.bind(
-            "<<ComboboxSelected>>", lambda _e: self._on_clut_changed()
-        )
+        self._bpp_cols_frame = ttk.Frame(clut_bar)
+        self._bpp_cols_frame.pack(side=tk.LEFT, padx=(4, 10))
+        self._bpp_col_vars: list[tk.StringVar] = []
+        self._bpp_col_xs: list[int] = []
+        self._rebuild_bpp_combos([])
         ttk.Label(clut_bar, text="CLUT:").pack(side=tk.LEFT)
         self._clut_apply = tk.BooleanVar(value=True)
         self._clut_apply_cb = ttk.Checkbutton(
@@ -1301,15 +1294,48 @@ class AssetViewer(tk.Tk):
         if enabled:
             self._clut_combo.configure(state="readonly")
             self._clut_apply_cb.configure(state=tk.NORMAL)
-            self._bpp_combo.configure(state="readonly")
+            self._set_bpp_combos_enabled(True)
         else:
             self._clut_combo.configure(state="disabled", values=[])
             self._clut_var.set("(none)")
             self._clut_apply_cb.configure(state=tk.DISABLED)
             self._clut_choices = []
             self._current_clut_colors = None
-            self._bpp_combo.configure(state="disabled")
-            self._bpp_var.set("Auto")
+            self._set_bpp_combos_enabled(False)
+
+    def _rebuild_bpp_combos(self, xs: list[int]) -> None:
+        """One Auto/4/8/16 combo per work-entry column (VRAM x)."""
+        for child in self._bpp_cols_frame.winfo_children():
+            child.destroy()
+        self._bpp_col_vars = []
+        self._bpp_col_xs = list(xs) if xs else [0]
+        multi = len(self._bpp_col_xs) > 1
+        for i, x in enumerate(self._bpp_col_xs):
+            var = tk.StringVar(value="Auto")
+            self._bpp_col_vars.append(var)
+            cell = ttk.Frame(self._bpp_cols_frame)
+            cell.pack(side=tk.LEFT, padx=(0, 6))
+            if multi:
+                ttk.Label(cell, text=f"c{i}@{x}").pack(side=tk.LEFT, padx=(0, 2))
+            cb = ttk.Combobox(
+                cell,
+                textvariable=var,
+                values=("Auto", "4", "8", "16"),
+                state="disabled",
+                width=6,
+            )
+            cb.pack(side=tk.LEFT)
+            cb.bind("<<ComboboxSelected>>", lambda _e: self._on_clut_changed())
+
+    def _set_bpp_combos_enabled(self, enabled: bool) -> None:
+        state = "readonly" if enabled else "disabled"
+        for cell in self._bpp_cols_frame.winfo_children():
+            for w in cell.winfo_children():
+                if isinstance(w, ttk.Combobox):
+                    w.configure(state=state)
+        if not enabled:
+            for var in self._bpp_col_vars:
+                var.set("Auto")
 
     def _show_item(self, item: AssetItem) -> None:
         # Stop previous stream when switching assets (new audio re-enables).
@@ -2545,7 +2571,7 @@ class AssetViewer(tk.Tk):
             self._clut_var.set(labels[0])
         self._clut_combo.configure(state="readonly")
         self._clut_apply_cb.configure(state=tk.NORMAL)
-        self._bpp_combo.configure(state="readonly")
+        self._set_bpp_combos_enabled(True)
 
     def _selected_clut_path(self) -> Path | None:
         label = self._clut_var.get()
@@ -2584,15 +2610,18 @@ class AssetViewer(tk.Tk):
             clut_path=self._selected_clut_path(),
         )
 
-    def _selected_bpp(self) -> int | None:
-        """Manual BPP combo value, or None for Auto."""
-        raw = self._bpp_var.get()
-        if raw in ("4", "8", "16"):
-            return int(raw)
-        return None
+    def _selected_bpps(self) -> list[int | None]:
+        """Per-column manual BPP (None = Auto)."""
+        out: list[int | None] = []
+        for var in self._bpp_col_vars:
+            raw = var.get()
+            out.append(int(raw) if raw in ("4", "8", "16") else None)
+        return out
 
-    def _auto_bpp_for_current(self) -> int | None:
-        """ASSETS bpp override for the current pe2img, or None to guess."""
+    def _auto_bpps_for_current(self, n_cols: int) -> list[int] | None:
+        """ASSETS bpp list for the current pe2img, or None to guess."""
+        from asset_db import normalize_image_bpp
+
         idents: list[str] = []
         if self._pe2img_path is not None:
             p = self._pe2img_path
@@ -2603,7 +2632,10 @@ class AssetViewer(tk.Tk):
         for ident in list(idents):
             for canon in self._img_canon_index.get(ident, []):
                 idents.append(canon)
-        return lookup_image_bpp(*idents)
+        raw = lookup_image_bpps(*idents)
+        if raw is None:
+            return None
+        return normalize_image_bpp(raw, n_cols)
 
     def _show_pe2img(
         self, path: Path, data: bytes, *, item: AssetItem
@@ -2611,7 +2643,15 @@ class AssetViewer(tk.Tk):
         self._pe2img_path = path
         self._pe2img_data = data
         self._clut_apply.set(True)
-        self._bpp_var.set("Auto")
+        try:
+            from image_codec import parse_work_entries
+
+            entries, _term_y = parse_work_entries(data)
+            xs = [e.x for e in entries] or [0]
+        except Exception:
+            xs = [0]
+        self._rebuild_bpp_combos(xs)
+        self._set_bpp_combos_enabled(True)
         self._refresh_clut_list()
         clut_path = self._selected_clut_path()
         return self._decode_pe2img_to_canvas(
@@ -2639,13 +2679,29 @@ class AssetViewer(tk.Tk):
             clut = prefer_raw_blob(self.assets_root, clut_path) if clut_path else None
             if clut is not None and clut.suffix.lower() != ".pe2clut":
                 clut = None
-            manual = self._selected_bpp()
-            if manual is not None:
-                bpp = manual
-                bpp_src = "manual"
+            n_cols = max(1, len(self._bpp_col_vars) or 1)
+            auto = self._auto_bpps_for_current(n_cols)
+            manual = self._selected_bpps()
+            if len(manual) < n_cols:
+                manual = manual + [None] * (n_cols - len(manual))
+            if all(m is None for m in manual):
+                bpp: int | list[int] | None = auto
+                if auto is None:
+                    bpp_src = "guess"
+                elif len(set(auto)) == 1:
+                    bpp = auto[0]
+                    bpp_src = "override"
+                else:
+                    bpp = auto
+                    bpp_src = "override"
             else:
-                bpp = self._auto_bpp_for_current()
-                bpp_src = "override" if bpp is not None else "guess"
+                fallback = auto or [8] * n_cols
+                merged = [
+                    m if m is not None else fallback[i]
+                    for i, m in enumerate(manual[:n_cols])
+                ]
+                bpp = merged[0] if len(set(merged)) == 1 else merged
+                bpp_src = "manual"
             img, info, colors = render_pe2img(
                 data,
                 apply_clut=bool(apply_clut and clut is not None),
@@ -2653,10 +2709,11 @@ class AssetViewer(tk.Tk):
                 bpp=bpp,
             )
             self._current_clut_colors = colors
+            shown = info.bpp
             bpp_note = (
-                f"bpp={info.bpp}"
+                f"bpp={shown}"
                 if bpp_src != "guess"
-                else f"bpp≈{info.bpp}"
+                else f"bpp≈{shown}"
             )
             bpp_note += f" ({bpp_src})"
             if apply_clut and clut is not None and colors is not None:

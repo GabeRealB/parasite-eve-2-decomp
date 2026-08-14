@@ -4,8 +4,9 @@
 Unique blobs come from ``raw/{type}/`` (SHA-1 of the on-disc payload).
 CDF placement comes from ``stages.json``. Extra ASSETS fields (``bpp``,
 ``required``, …) and TREE folder/file ``name``s are preserved across
-regenerations (matched by sha1 / disc id). pe2img entries without a
-``bpp`` get ``guess_bpp()`` filled in.
+regenerations (matched by sha1 / disc id). pe2img ``bpp`` is an int, or a
+list (one depth per work-entry column). Missing ``bpp`` is filled with
+``guess_bpp()`` for every column.
 
 Usage (from repo root)::
 
@@ -29,6 +30,7 @@ if str(_SCRIPT_DIR) not in sys.path:
 from asset_db import (  # noqa: E402
     REQUIRED_OVERLAY_STEMS,
     asset_name_key,
+    normalize_image_bpp,
     reverse_chunk_idx,
     reverse_file_id,
     reverse_folder_id,
@@ -81,6 +83,30 @@ def _guess_pe2img_bpp(path: Path) -> int:
         if nbytes >= 4096:
             break
     return int(guess_bpp(strips, None))
+
+
+def _pe2img_ncols(path: Path) -> int:
+    entries, _term_y = parse_work_entries(path.read_bytes())
+    return max(1, len(entries))
+
+
+def _pe2img_bpp_field(path: Path, current: object) -> int | list[int]:
+    """Keep an existing bpp (int or list); expand an int across columns.
+
+    Missing values get one ``guess_bpp()`` used for every column.
+    """
+    n_cols = _pe2img_ncols(path)
+    if current is None:
+        vals = normalize_image_bpp(_guess_pe2img_bpp(path), n_cols)
+    else:
+        try:
+            vals = normalize_image_bpp(current, n_cols)
+        except ValueError:
+            vals = normalize_image_bpp(_guess_pe2img_bpp(path), n_cols)
+    assert vals is not None
+    if n_cols == 1:
+        return vals[0]
+    return vals
 
 
 def _asset_id_from_stages_path(rel: str) -> str | None:
@@ -184,8 +210,8 @@ def collect_assets(assets_root: Path, old_assets: dict[str, dict[str, Any]]) -> 
                 rec[k] = v
             if aid in REQUIRED_OVERLAY_STEMS:
                 rec["required"] = True
-            if type_dir == "pe2img" and rec.get("bpp") not in (4, 8, 16):
-                rec["bpp"] = _guess_pe2img_bpp(path)
+            if type_dir == "pe2img":
+                rec["bpp"] = _pe2img_bpp_field(path, rec.get("bpp"))
             out[aid] = rec
     return out
 

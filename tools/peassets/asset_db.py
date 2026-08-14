@@ -4,7 +4,7 @@ Two tables (generated into :mod:`asset_data`, re-exported here):
 
 * :data:`ASSETS` — unique on-disc payloads. Key is a stable id (type-store
   stem). Value is ``sha1`` of the raw file plus optional attributes
-  (``type``, ``bpp``, ``required``, …).
+  (``type``, ``bpp`` as int or per-column list, ``required``, …).
 * :data:`TREE` — the STAGE*.CDF file tree. Integer disc ids; chunk leaves
   are asset ids. Folder/file ``name`` is an optional path component.
 
@@ -268,17 +268,54 @@ def resolve_asset(*idents: str | None) -> tuple[str, dict[str, Any]] | None:
     return None
 
 
+def _valid_bpp_value(bpp: object) -> bool:
+    return bpp in (4, 8, 16)
+
+
+def normalize_image_bpp(bpp: object, n_cols: int | None = None) -> list[int] | None:
+    """Normalize an ASSETS ``bpp`` (int or list).
+
+    If ``n_cols`` is set, pad/truncate to that many columns (last value
+    repeats). ``None`` keeps a single int as ``[v]`` and a list as-is.
+    """
+    if bpp is None:
+        return None
+    vals: list[int]
+    if _valid_bpp_value(bpp):
+        vals = [int(bpp)]
+    elif isinstance(bpp, (list, tuple)) and bpp:
+        vals = []
+        for item in bpp:
+            if not _valid_bpp_value(item):
+                raise ValueError(f"bpp values must be 4, 8, or 16, got {item!r}")
+            vals.append(int(item))
+    else:
+        raise ValueError(f"bpp must be 4, 8, 16, or a list of those, got {bpp!r}")
+    if n_cols is None:
+        return vals
+    n = max(1, n_cols)
+    while len(vals) < n:
+        vals.append(vals[-1])
+    return vals[:n]
+
+
 def lookup_image_bpp(*idents: str | None) -> int | None:
-    """Return configured pe2img bpp (4/8/16) for the first matching ident."""
+    """Return a single configured pe2img bpp (first column if a list)."""
+    bpps = lookup_image_bpps(*idents)
+    if not bpps:
+        return None
+    return bpps[0]
+
+
+def lookup_image_bpps(*idents: str | None) -> list[int] | None:
+    """Return configured pe2img bpp list (one entry, or one per column)."""
     hit = resolve_asset(*idents)
     if hit is None:
         return None
     bpp = hit[1].get("bpp")
     if bpp is None:
         return None
-    if bpp not in (4, 8, 16):
-        raise ValueError(f"ASSETS[{hit[0]!r}] bpp must be 4, 8, or 16, got {bpp!r}")
-    return int(bpp)
+    return normalize_image_bpp(bpp)
 
 
 def reverse_folder_id(stage: int, dirname: str) -> int | None:
@@ -490,8 +527,11 @@ def validate_asset_db() -> None:
             )
         seen_sha1[sha1] = aid
         bpp = rec.get("bpp")
-        if bpp is not None and bpp not in (4, 8, 16):
-            raise ValueError(f"ASSETS[{aid!r}].bpp must be 4, 8, or 16, got {bpp!r}")
+        if bpp is not None:
+            try:
+                normalize_image_bpp(bpp)
+            except ValueError as e:
+                raise ValueError(f"ASSETS[{aid!r}].bpp: {e}") from e
 
     for stage, body in TREE.items():
         if not isinstance(body, dict):
@@ -548,6 +588,8 @@ __all__ = [
     "get_asset",
     "lookup",
     "lookup_image_bpp",
+    "lookup_image_bpps",
+    "normalize_image_bpp",
     "resolve_asset",
     "resolve_file_id",
     "resolve_folder_id",

@@ -48,12 +48,18 @@ def load_clut_palette(clut_path: Path, *, bpp: int = 8) -> list[int] | None:
     return _load_clut_colors(clut_path, bpp=bpp)  # type: ignore[arg-type]
 
 
+def _info_bpps(info: "Pe2ImgInfo", n_cols: int) -> list[int]:
+    from image_codec import expand_bpp
+
+    return expand_bpp(info.bpp, n_cols) or [16]
+
+
 def render_pe2img(
     data: bytes,
     *,
     clut_path: Path | None = None,
     apply_clut: bool = False,
-    bpp: int | None = None,
+    bpp: int | list[int] | None = None,
     sector_len: int | None = None,
     chunk_size: int | None = None,
     pe2_path_for_sibling_guess: Path | None = None,
@@ -63,16 +69,17 @@ def render_pe2img(
     Colourisation rules (extract ``pe2img_to_png_files`` / viewer):
 
     1. Decode without CLUT at ``bpp`` if given, else the ``guess_bpp`` heuristic.
-    2. Explicit ``bpp=16`` stays truecolour (CLUT is not applied).
+       ``bpp`` may be one depth or a list (one per work-entry column).
+    2. If every column is 16-bit, stay truecolour (CLUT is not applied).
     3. If ``apply_clut`` and ``clut_path`` is set → load that palette and
-       re-render at 4 or 8 bpp (honours an explicit 4/8 ``bpp``).
+       re-render 4/8-bit columns (8-bit row if any column is 8-bit).
     4. Else if ``apply_clut`` and ``pe2_path_for_sibling_guess`` is set →
        use the extract-side neighbour-file heuristic.
     5. Else greyscale/truecolour from step 1.
 
     Returns ``(image, info, clut_colors_or_None)``.
     """
-    from image_codec import _find_sibling_clut, decode_pe2img
+    from image_codec import _find_sibling_clut, decode_pe2img, expand_bpp
 
     img0, info0 = decode_pe2img(
         data,
@@ -81,35 +88,28 @@ def render_pe2img(
         chunk_size=chunk_size,
         clut=None,
     )
-    if bpp == 16:
+    n_cols = max(1, len(info0.entries))
+    bpps = expand_bpp(bpp, n_cols) if bpp is not None else _info_bpps(info0, n_cols)
+    if bpps is not None and all(b == 16 for b in bpps):
         return img0, info0, None
 
     colors: list[int] | None = None
-    bpp_use: int | None = bpp
+    pal_bpp = 8 if bpps is not None and 8 in bpps else 4
+    bpp_pass: int | list[int] | None = bpp
+    if bpp_pass is None and bpps is not None:
+        bpp_pass = bpps[0] if len(set(bpps)) == 1 else list(bpps)
 
     if apply_clut and clut_path is not None:
-        bpp_try = (
-            bpp
-            if bpp in (4, 8)
-            else (info0.bpp if info0.bpp in (4, 8) else 8)
-        )
-        colors = load_clut_palette(clut_path, bpp=bpp_try)
-        if colors is None and bpp_try != 4 and bpp not in (4, 8):
+        colors = load_clut_palette(clut_path, bpp=pal_bpp)
+        if colors is None and pal_bpp != 4:
             colors = load_clut_palette(clut_path, bpp=4)
-            bpp_try = 4 if colors else bpp_try
-        if colors:
-            bpp_use = bpp_try
     elif apply_clut and pe2_path_for_sibling_guess is not None:
-        # Extract default: guess a neighbouring .pe2clut next to the raw file.
-        pal_bpp = bpp if bpp in (4, 8) else (info0.bpp if info0.bpp in (4, 8) else 8)
         colors = _find_sibling_clut(pe2_path_for_sibling_guess, bpp=pal_bpp)
-        if colors:
-            bpp_use = pal_bpp
 
-    if colors is not None and bpp_use in (4, 8):
+    if colors is not None and bpps is not None and any(b in (4, 8) for b in bpps):
         img, info = decode_pe2img(
             data,
-            bpp=bpp_use,  # type: ignore[arg-type]
+            bpp=bpp_pass,  # type: ignore[arg-type]
             sector_len=sector_len,
             chunk_size=chunk_size,
             clut=colors,
@@ -140,7 +140,7 @@ def pe2img_to_png_files(
     meta_path: Path,
     *,
     clut_path: Path | None = None,
-    bpp: int | None = None,
+    bpp: int | list[int] | None = None,
 ) -> None:
     """Materialize pe2img → PNG + meta (extract path; optional explicit CLUT)."""
     from image_codec import _header_fields_for_path, info_to_json_img
@@ -159,7 +159,7 @@ def pe2img_to_png_files(
     png_path.parent.mkdir(parents=True, exist_ok=True)
     img.save(png_path, "PNG")
     meta = info_to_json_img(info)
-    meta["bpp_source"] = "override" if bpp in (4, 8, 16) else "guess"
+    meta["bpp_source"] = "override" if bpp is not None else "guess"
     if sector_len is not None:
         meta["sector_len"] = f"0x{sector_len:X}"
     if chunk_size is not None:
@@ -195,7 +195,7 @@ def pe2clut_to_png_files(pe2_path: Path, png_path: Path, meta_path: Path) -> Non
 
 
 def materialize_image_asset(
-    src: Path, dest: Path, *, bpp: int | None = None
+    src: Path, dest: Path, *, bpp: int | list[int] | None = None
 ) -> Path:
     """Write PNG (+ meta) for a raw pe2img/pe2clut. Returns PNG path."""
     suffix = src.suffix.lower()

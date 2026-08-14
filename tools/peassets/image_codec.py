@@ -39,6 +39,28 @@ except ImportError as e:  # pragma: no cover
     ) from e
 
 Bpp = Literal[4, 8, 16]
+BppSpec = Bpp | Sequence[Bpp]
+
+
+def expand_bpp(bpp: BppSpec | None, n_cols: int) -> list[Bpp] | None:
+    """Pad/truncate a bpp spec to ``n_cols`` values."""
+    if bpp is None:
+        return None
+    if isinstance(bpp, (list, tuple)):
+        vals = [int(x) for x in bpp]
+    else:
+        vals = [int(bpp)]
+    if not vals:
+        return None
+    n = max(1, n_cols)
+    while len(vals) < n:
+        vals.append(vals[-1])
+    out: list[Bpp] = []
+    for v in vals[:n]:
+        if v not in (4, 8, 16):
+            raise ValueError(f"bpp must be 4, 8, or 16, got {v!r}")
+        out.append(v)  # type: ignore[arg-type]
+    return out
 
 STRIP_W_HW = 0x40  # Fs_ImageRect.w
 STRIP_H = 0x20  # Fs_ImageRect.h
@@ -59,7 +81,7 @@ class Pe2ImgInfo:
     entries: list[WorkEntry]  # non-terminator columns (VRAM x/y)
     term_y: int
     height: int  # pixels per column
-    bpp: Bpp
+    bpp: Bpp | list[Bpp]
     original_size: int
     stream_start: int  # byte offset of first compressed strip
     clut_colors: list[int] | None = None  # optional ABGR1555 palette
@@ -217,41 +239,49 @@ def guess_bpp(raw_strips: Sequence[bytes], clut: list[int] | None) -> Bpp:
 def render_strips(
     columns: list[tuple[int, list[bytes]]],
     *,
-    bpp: Bpp,
+    bpp: BppSpec,
     clut: list[int] | None,
 ) -> Image.Image:
-    """Assemble columns of strips into an RGBA image."""
-    scale = {16: 1, 8: 2, 4: 4}[bpp]
+    """Assemble columns of strips into an RGBA image.
+
+    ``bpp`` may be one depth for every column or a list (VRAM-x order).
+    Mixed depths are packed left-to-right; each column is
+    ``0x40 * (16/bpp)`` pixels wide.
+    """
     columns = sorted(columns, key=lambda c: c[0])
-    min_x = columns[0][0]
-    max_x = columns[-1][0] + STRIP_W_HW
+    bpps = expand_bpp(bpp, len(columns))
+    if not bpps:
+        raise ValueError("bpp required")
+    scales = [{16: 1, 8: 2, 4: 4}[b] for b in bpps]
     height = max(len(strips) * STRIP_H for _, strips in columns)
-    width = (max_x - min_x) * scale
+    width = sum(STRIP_W_HW * s for s in scales)
     img = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     px = img.load()
 
-    def color(tex: int) -> tuple[int, int, int, int]:
+    def color(tex: int, col_bpp: Bpp) -> tuple[int, int, int, int]:
         if clut is not None and 0 <= tex < len(clut):
             return _abgr1555_to_rgba(clut[tex])
-        g = tex if bpp == 8 else tex * 17
+        g = tex if col_bpp == 8 else tex * 17
         return (g, g, g, 255 if tex else 0)
 
-    for vx, strips in columns:
+    x0 = 0
+    for (_vx, strips), col_bpp, scale in zip(columns, bpps, scales):
         for si, strip in enumerate(strips):
             for row in range(STRIP_H):
                 for hw in range(STRIP_W_HW):
                     i = (row * STRIP_W_HW + hw) * 2
                     val = strip[i] | (strip[i + 1] << 8)
                     y = si * STRIP_H + row
-                    bx = (vx - min_x) * scale + hw * scale
-                    if bpp == 16:
+                    bx = x0 + hw * scale
+                    if col_bpp == 16:
                         px[bx, y] = _abgr1555_to_rgba(val)
-                    elif bpp == 8:
-                        px[bx, y] = color(val & 0xFF)
-                        px[bx + 1, y] = color((val >> 8) & 0xFF)
+                    elif col_bpp == 8:
+                        px[bx, y] = color(val & 0xFF, col_bpp)
+                        px[bx + 1, y] = color((val >> 8) & 0xFF, col_bpp)
                     else:
                         for ti in range(4):
-                            px[bx + ti, y] = color((val >> (ti * 4)) & 0xF)
+                            px[bx + ti, y] = color((val >> (ti * 4)) & 0xF, col_bpp)
+        x0 += STRIP_W_HW * scale
     return img
 
 
@@ -305,7 +335,7 @@ def encode_pe2clut(img: Image.Image, info: Pe2ClutInfo) -> bytes:
 def decode_pe2img(
     data: bytes,
     *,
-    bpp: Bpp | None = None,
+    bpp: BppSpec | None = None,
     sector_len: int | None = None,
     chunk_size: int | None = None,
     clut: list[int] | None = None,
@@ -346,13 +376,17 @@ def decode_pe2img(
 
     if bpp is None:
         bpp = guess_bpp([s for _, ss in columns for s in ss], clut)
+    bpps = expand_bpp(bpp, len(columns))
+    assert bpps is not None
+    stored: Bpp | list[Bpp] = bpps[0] if len(set(bpps)) == 1 else bpps
+    use_clut = clut if any(b < 16 for b in bpps) else None
 
-    img = render_strips(columns, bpp=bpp, clut=clut if bpp < 16 else None)
+    img = render_strips(columns, bpp=bpps, clut=use_clut)
     info = Pe2ImgInfo(
         entries=entries,
         term_y=term_y,
         height=height,
-        bpp=bpp,
+        bpp=stored,
         original_size=len(data),
         stream_start=stream_start,
         clut_colors=clut,
@@ -363,7 +397,9 @@ def decode_pe2img(
 def encode_pe2img(img: Image.Image, info: Pe2ImgInfo) -> bytes:
     """Best-effort PNG → pe2img (literal LZSS). Prefer raw sidecar when packing."""
     # Rebuild sequential strips from the PNG. Column order follows info.entries.
-    bpp = info.bpp
+    # Mixed-column bpp is not re-encoded from PNG (pack prefers raw).
+    bpp_list = expand_bpp(info.bpp, max(1, len(info.entries))) or [16]
+    bpp = bpp_list[0]
     scale = {16: 1, 8: 2, 4: 4}[bpp]
     img = img.convert("RGBA")
     px = img.load()
@@ -444,6 +480,25 @@ def encode_pe2img(img: Image.Image, info: Pe2ImgInfo) -> bytes:
     return blob
 
 
+def _bpp_from_json(raw: object) -> Bpp | list[Bpp]:
+    if isinstance(raw, (list, tuple)):
+        out: list[Bpp] = []
+        for item in raw:
+            v = int(item)
+            if v not in (4, 8, 16):
+                raise ValueError(f"bpp must be 4, 8, or 16, got {v!r}")
+            out.append(v)  # type: ignore[arg-type]
+        if not out:
+            return 16
+        if len(set(out)) == 1:
+            return out[0]
+        return out
+    v = int(raw) if raw is not None else 16
+    if v not in (4, 8, 16):
+        raise ValueError(f"bpp must be 4, 8, or 16, got {v!r}")
+    return v  # type: ignore[return-value]
+
+
 def info_to_json_img(info: Pe2ImgInfo) -> dict[str, Any]:
     return {
         "format": "pe2img",
@@ -467,7 +522,7 @@ def info_from_json_img(data: dict[str, Any]) -> Pe2ImgInfo:
         entries=entries,
         term_y=int(data.get("term_y", 0)),
         height=int(data["height"]),
-        bpp=int(data.get("bpp", 16)),  # type: ignore[arg-type]
+        bpp=_bpp_from_json(data.get("bpp", 16)),
         original_size=int(data.get("original_size", 0)),
         stream_start=int(data.get("stream_start", entries[0].offset if entries else 0)),
     )
@@ -641,7 +696,7 @@ def pe2img_to_png_files(
     png_path: Path,
     meta_path: Path,
     *,
-    bpp: int | None = None,
+    bpp: int | list[int] | None = None,
 ) -> None:
     """Materialize pe2img → PNG + meta (delegates to :mod:`asset_decode`)."""
     from asset_decode import pe2img_to_png_files as _impl
@@ -669,7 +724,7 @@ def png_files_to_pe2clut(png_path: Path, meta_path: Path) -> bytes:
 
 
 def materialize_image_asset(
-    src: Path, dest: Path, *, bpp: int | None = None
+    src: Path, dest: Path, *, bpp: int | list[int] | None = None
 ) -> Path:
     """Write PNG (+ meta) for a raw pe2img/pe2clut. Returns PNG path."""
     from asset_decode import materialize_image_asset as _impl
