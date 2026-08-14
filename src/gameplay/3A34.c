@@ -100,7 +100,10 @@ void func_800D9CC8(Task* arg0)
     Task_CallExit(arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9CE8);
+void func_800D9CE8(GBytes8* arg0)
+{
+    *arg0 = D_8010F9E4;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9D18);
 

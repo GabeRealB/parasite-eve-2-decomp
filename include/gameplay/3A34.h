@@ -80,6 +80,10 @@ STATIC_ASSERT_SIZEOF(GpStateF0, 0x8);
 /// Head of the `GpLinkNode` list walked by `func_800DAB38` / `func_800DABEC`.
 extern GpLinkNode* D_80115268;
 
+/// Default 8-byte record copied by `func_800D9CE8`. Also the fallback
+/// pointer returned by `func_800D957C` when a table lookup fails.
+extern GBytes8 D_8010F9E4;
+
 /// 8.8 fixed-point pair lerped toward projected screen coords by
 /// `func_800D9DFC`. Reset to `0xFFF00000` by `func_800DAFD0`.
 extern s32 D_8010F9EC;
@@ -103,6 +107,7 @@ void  func_800D9550(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3);
 s32   func_800D9788(GpObj38* arg0);
 void  func_800D9C3C(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3);
 void  func_800D9CC8(Task* arg0);
+void  func_800D9CE8(GBytes8* arg0);
 void  func_800D9DFC(void);
 void  func_800DAB38(GpLinkNode* node);
 void* func_800DA2A0(GpActorWork* arg0, VECTOR3* pos, s32 arg2);
