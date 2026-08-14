@@ -5,6 +5,8 @@
 #include "main/wipsys.h"
 
 extern u32          D_8007216C;
+extern u16          D_80072174;
+extern u16          D_800739B8;
 extern WipSysConfig D_80073B88;
 
 void  func_80180804(void);
@@ -243,7 +245,10 @@ s32 func_800BC180(u8* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC18C);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC21C);
+void func_800BC21C(void)
+{
+    D_800739B8 = D_80072174;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC230);
 
