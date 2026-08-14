@@ -70,7 +70,10 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FC500);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FC6C0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FC6E0);
+void func_800FC6E0(Task* arg0)
+{
+    arg0->state = arg0->state + 1;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FC6F4);
 
