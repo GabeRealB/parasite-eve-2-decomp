@@ -10,6 +10,7 @@
 extern u8           D_801153F1;
 extern s32          D_8010CA28;
 extern WipSysConfig D_80073B88;
+extern TmdListHead* D_800711C4;
 
 void func_800A1634(s32 arg0, s32 arg1);
 void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -41,7 +42,22 @@ void func_80099214(TmdObject* arg0)
     Mem_Free(arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80099258);
+void func_80099258(TmdListHead* arg0)
+{
+    TmdListHead*  next;
+    TmdListHead** pp;
+    TmdListHead*  prev;
+
+    next = (TmdListHead*)arg0->next;
+    if (next == NULL) {
+        pp = &D_800711C4;
+    } else {
+        pp = &next->prev;
+    }
+    prev       = arg0->prev;
+    *pp        = prev;
+    prev->next = arg0->next;
+}
 
 void func_80099290(void* arg0)
 {

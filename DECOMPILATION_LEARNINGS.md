@@ -12707,3 +12707,29 @@ return func(arg0, p, flag);
 
 `func_800DAD78` is the example — the same flag pattern as `func_800DADE4`, but
 with a stack `VECTOR3`. Bare `&pos` at the call scored ~78%.
+
+## `if (next == NULL)` keeps the unlink `j` / `nop` delay; `!=` fills it
+
+A doubly-linked unlink that writes either the list-tail global or `next->prev`
+must test **equality with NULL** so GCC inverts to `bnez` and lays out the
+global-address arm as fall-through:
+
+```
+bnez  v0, use_next
+ nop
+lui   v0, %hi(D_xxx)
+j     merge
+ addiu v0, v0, %lo(D_xxx)
+use_next:
+addiu v0, v0, 4
+```
+
+`if (next != NULL) { pp = &next->prev; } else { pp = &D_xxx; }` is the same
+logic but `-fdelayed-branch` parks `addiu v0,v0,4` in the `bnez` delay slot
+and drops the `j`. `Task_Kill`'s inline unlink and `func_80099258` both need
+the `== NULL` form.
+
+The tail must also be a **standalone symbol** (`extern TmdListHead* D_800711C4`,
+then `&D_800711C4`). `&Tmd_ListAlt.prev` CSEs to `Tmd_ListAlt+4` and enables
+the same delay-slot fill even with `== NULL`. Overlay imports already split
+that field off as `D_800711C4`.
