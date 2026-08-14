@@ -6,6 +6,7 @@
 #include "main/wipsys.h"
 
 extern WipSysConfig D_80073B88;
+extern TaskDesc     D_80113340[];
 
 void func_800B57EC(s32 arg0, s32* arg1);
 s32  func_800B9D80(s32 arg0);
@@ -13,6 +14,7 @@ void func_800EC9C8(void);
 void func_800ECA10(s32 arg0);
 void func_800ECA54(void);
 s32  func_80037164(void);
+Task* func_8002CFA0(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
 void func_80103AC0(GpActorWork* arg0);
 void func_801041FC(GpActorWork* arg0, s32 arg1);
 s32  func_801055D4(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -696,7 +698,10 @@ void func_8010B210(GpActorWork* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B228);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B2A0);
+void func_8010B2A0(s32 arg0, s32 arg1)
+{
+    func_8002CFA0(D_80113340, arg0, arg1, 0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B2D4);
 
