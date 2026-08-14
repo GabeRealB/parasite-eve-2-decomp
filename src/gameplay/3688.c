@@ -19,6 +19,8 @@ void func_800D0C34(Task* arg0);
 void func_800D0614(Task* arg0);
 void func_800D08D4(Task* arg0);
 void func_800D15D0(Task* arg0);
+void func_8003F9F4(void);
+void func_8003F6F8(void);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800BF9FC);
 
@@ -180,7 +182,15 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE094);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE188);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE1E0);
+void func_800CE1E0(Task* arg0)
+{
+    arg0->killCountdown--;
+    if (arg0->killCountdown <= 0) {
+        Task_Kill(arg0);
+        func_8003F9F4();
+        func_8003F6F8();
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE22C);
 
