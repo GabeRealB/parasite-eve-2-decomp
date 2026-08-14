@@ -201,7 +201,14 @@ void func_800B3DB4(GpAnimCtx* arg0, GpAnimSlot* arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B3DF4);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B3E34);
+void func_800B3E34(GpAnimCtx* arg0, GpAnimSlot* arg1)
+{
+    u8 idx;
+
+    idx           = arg1->field_15;
+    arg0->field_C = arg1 - idx;
+    func_800B3448(arg0, idx, 0, 0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B3E74);
 
