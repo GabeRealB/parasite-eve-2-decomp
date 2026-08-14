@@ -16,6 +16,7 @@ void  func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 Task* func_8002CFA0(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
 
 extern TaskDesc D_80119218[];
+extern s32      D_8010D208[];
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AF590);
 
@@ -332,7 +333,12 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B6118);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B62D4);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B6358);
+void func_800B6358(Task* task)
+{
+    Game_SetPtrSlot(task, 4);
+    task->field_24 = D_8010D208;
+    task->state++;
+}
 
 void func_800B6398(void)
 {

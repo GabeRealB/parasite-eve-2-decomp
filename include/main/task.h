@@ -65,7 +65,7 @@ typedef struct _Task {
     /* 0x18 */ TaskFunc      exitCallback;
     /* 0x1C */ TaskIdMap*    idMap;
     /* 0x20 */ void*         spawnArg2;
-    /* 0x24 */ byte          unknown_24[4];
+    /* 0x24 */ void*         field_24;
     /* 0x28 */ u8            spawnType;
     /* 0x29 */ u8            priority;
     /* 0x2A */ s16           killCountdown;
