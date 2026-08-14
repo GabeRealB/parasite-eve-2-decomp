@@ -33,6 +33,14 @@ typedef struct _GpObj38 {
 } GpObj38;
 STATIC_ASSERT_SIZEOF(GpObj38, 0x3C);
 
+/// Object whose flags byte at 0x4C is OR'd by `func_800E3008`. Nearby
+/// helpers treat 0x4C as a flag field (bits 0x1, 0x2, 0x4).
+typedef struct _GpObj4C {
+    /* 0x00 */ byte pad_0[0x4C];
+    /* 0x4C */ u8   field_4C;
+} GpObj4C;
+STATIC_ASSERT_SIZEOF(GpObj4C, 0x4D);
+
 extern u8     D_801153F3;
 extern GpObj* D_80115570;
 extern GpObj* D_80115574;
@@ -60,6 +68,7 @@ void func_800E06AC(GpObj* node, s32 mask, s32 match);
 s32  func_800E076C(void);
 void func_800E0B08(void);
 void func_800E1638(GpObj* node);
+void func_800E3008(GpObj4C* arg0);
 void func_8010154C(void);
 
 #endif // GAMEPLAY_3A34_H
