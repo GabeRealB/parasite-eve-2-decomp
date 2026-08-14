@@ -32,7 +32,7 @@ always remaining decoder-compatible:
 * Default policy: greedy longest match in the last 256 *written* bytes;
   multi_max → **newest**; skip unencodable match starts (ring index ``0xFF``).
 * **CLUTs** (``kind="clut"``): delegates to ``lzss_clut.encode_clut``, which
-  tracks retail CLUT identity more closely (posts + BST hybrid).
+  tracks retail CLUT identity more closely (persistent Okumura last-at-max).
 
 It does **not** guarantee byte-identical retail streams for packages or image
 strips. Measure pack layout / round-trip with

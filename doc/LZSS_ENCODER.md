@@ -10,7 +10,8 @@ Production and identity-research encoders for the PE2 LZSS bitstream.
 |--------|------|
 | `lzss.encode_lzss` | **Production / best-effort matching.** Always decoder-compatible. Default: greedy newest multi_max. `kind="clut"` → `lzss_clut.encode_clut`. Used by `pack.py` / `image_codec.py`. |
 | `lzss_cascading.encode_lzss` | **Frozen experiment** toward byte-identical re-encodes (large multi_max / force-lit cascade). Soft-freeze: do not expand casually. |
-| `lzss_clut.encode_clut` | **CLUT identity** policy (posts + BST hybrid); also reached via `encode_lzss(..., kind="clut")`. |
+| `lzss_clut.encode_clut` | **CLUT identity** (greedy + last-at-max if max-cand + prefer-newest gates). |
+| `lzss_bst.PersistentBST` | Persistent first-byte BST used by `encode_clut`. |
 
 Runtime decompressors (same bitstream, different I/O):
 
@@ -63,7 +64,7 @@ Known exact today (bit-identical after `trim_lzss`), **frozen cascade**
 | all-stage pe2clut ≤ 4K | (re-measure after cascade) | |
 | stage0 pe2pkg data ≤ 4K | **46 / 74 (62.2%)** | pure ladder + **file30406/07** exact; climbing: 50146 ~84%, 30300 ~79%, 30200 ~48%, 20600 ~40%, 50119 ~25% — **baseline frozen** |
 | stage0 pe2pkg all sizes | **46 / 315 (14.6%)** | large packages diverge early on multi_max |
-| all-stage pe2clut (full) | **617 / 859** via `lzss_clut` | CLUT-only encoder; cascade ~561/859 |
+| all-stage pe2clut (full) | **617 / 859** via `lzss_clut` | pre-dedup walk; unique-raw now **383 / 420** |
 
 Also: 4-byte stubs; pure ladder pe2pkg (`file30102` / `30400`–`30402` /
 `30503`); large M17 CLUT ladders (~3KB) and offΔ=1 cascade
@@ -108,13 +109,22 @@ singleton cascade patches when possible. Baselines to protect (≤4K): pe2pkg
 
 ## CLUT-only encoder (`lzss_clut.encode_clut`)
 
-General-first policy for `*.pe2clut` (not the package cascade). Production
-entry: `lzss.encode_lzss(data, kind="clut")`.
+Okumura last-at-max policy for `*.pe2clut` (not the package cascade).
+Production entry: `lzss.encode_lzss(data, kind="clut")`.
 
-1. greedy longest match in the last 256 bytes  
-2. force lit at ring write index `0xFF`  
-3. force lit when the **sole** max-length candidate has age ≥ 242  
-4. multi_max → **newest**, then safe post-rules only  
+1. greedy longest match in the last 256 bytes
+2. force lit at ring write index `0xFF`
+3. force lit when the **sole** max-length candidate has age ≥ 242, or
+   `best==2` and age ≥ 240
+4. multi_max → persistent BST **last-at-max** if that ref is a max-cand,
+   else **newest**
+5. prefer newest over last-at-max for zero-FP shapes (newest is L; M17+12
+   vs L; T2 vs old L; end M17+16@1; BST age ≥ 256 or ≥ 248 with nc==2)
+
+Measured exact **383/420** unique-raw. Historical post-rules that built
+up to 313:
+
+4. *(historical)* multi_max → **newest**, then safe post-rules only  
 5. nc==2 L tip vs match tip, `best≤4`, match pl ≥ 3, age gap 2 → L  
 6. long multi_max: young mid of **M16** → oldest **M17** mid with
    `into == best` and age ≥ 96  
@@ -143,21 +153,131 @@ entry: `lzss.encode_lzss(data, kind="clut")`.
     - `MID_TO_L_KEYS` compact 5-tuples; drop dead `M3+1@8→L@12`
     - residual mid→mid/tip only in `MID_REANCHOR_KEYS`
     - unified `TIP_REANCHOR_KEYS` / `L_REANCHOR_KEYS` (tip|mid dest kind)
-18. **Okumura BST last-at-max** (+46/−0 → **617/859**): when multi_max posts
-    leave **newest** as a match **mid** with phrase length `pl < 17`, rebuild
-    an Okumura-style BST over same-first-byte window refs and take the **last**
-    search-path node at max true match length (if among max-cands). Classic
-    first-at-max is useless (~6% multi_max agreement). Raw “any newest mid”
-    over-fires (~−112); almost all exact-stream damage is M17 mids — hence
-    `pl < 17`. Full key-exclude of residual over-fire shapes reaches ~625 but
-    is a sparse catalog; general rule lands first.
+18. **Okumura BST last-at-max** (+46/−0 → **617/859** pre-dedup): when
+    multi_max posts leave **newest** as a match **mid** with `pl < 17`, take
+    the **last** search-path node at max true match length (if among
+    max-cands). Classic first-at-max is useless (~6% multi_max agreement;
+    −106 unique-raw exacts). Raw “any newest mid” over-fires (~−112); almost
+    all exact-stream damage is M17 mids — hence `pl < 17`.
+19. **Persistent BST** (unique-raw **305 → 313/420**, +8/−0): keep the tree
+    across the encode (insert each written byte, delete `pos-256`) instead of
+    rebuilding from the window on every search. Winning flags: **replace-at-F**
+    (classic `InsertNode` swap on an F-byte tie) and **seed the zero ring** at
+    `[-256, -1]` so delete/insert order matches a pre-filled decoder ring.
+    Tree shape from persistent delete ≠ omit-and-rebuild, even when the pick
+    is still a written cand. `insert_unencodable` did not move the +8 set.
+    Pure Okumura-as-finder (no greedy newest / posts) tops out at 247/420
+    even with replace-at-F; lazy matching is −222. Implementation:
+    `lzss_bst.PersistentBST`.
+
+20. **Drop posts, BST if max-cand** (unique-raw **313 → 370/420**, +68/−11):
+    the key tables are net-negative once the persistent tree is the
+    multi_max picker. The −11 were accepted, then partly recovered in (21).
+21. **Prefer-newest zero-FP gates** (370 → 381/420, +11/−0): distilled
+    from the residual ranker’s 34 “retail kept newest” disagree sites.
+    Six predicates, each 0 FP on the 1 703-site disagree set. A GBDT
+    probe still sits at 383/420 and is not landed.
+22. **Sole best==2 age ≥ 240 force-lit** (381 → **383/420**, +2/−0):
+    retail never matches a sole M2 that old (5/0 on the retail path).
+    Broad age≥240 without `best==2` hits retail M3/M4. General lazy
+    match is a large exact drop (−150 / −303).
+
+Not-max (13 retail-path events / 4 first-misses) has no corpus-safe
+rule. Preferring age-2 `M2` over a longer sole is 3/336 on the retail
+path (−89 exact). `best≥14` plus a non-max `M2` is 1/1130 (`pe2clut_197`).
+Stale-sole → shortest leftover match would break 2 already-exact
+streams. Leave these as tree/parse residuals.
+
+Tree-fidelity sweep (vs landed 383): `F=18` −25;
+no replace-at-F −150; insert-before-delete −2; memcmp scoring +0/−0.
+Skipping unencodable ring-`0xFF` nodes is **384 (+2/−1)** (gains `_0` /
+`_181`, loses `_180`). Seed off is the same 180/181 swap without `_0`.
+No flag lifts a chunk of the 23 other_max without a loss. The residue is
+not a missing Okumura toggle.
 
 Ablation: inherited multi_max cascades were net-negative vs newest; sole
-force-lit singles collapsed into (3). Accept new post-rules only if full
-corpus exact does not fall. Measured exact **617/859** (`lzss_cascading`
-~561/859 — CLUT-only **ahead** of frozen cascade by ~56). Residual:
-multi_max misses still ~4k sites. Shared decode / trim / pack stay in
-`lzss.py`.
+force-lit singles collapsed into (3). Posts after a working last-at-max
+tree are also net-negative. Measured exact **383/420** unique-raw
+(`lzss_cascading` 236/420). Residual: 37 streams. Shared decode / trim /
+pack stay in `lzss.py`.
+
+### Retail-path ranker (historical)
+
+Not wired into encode. Walks retail tokens, ranks max-length cands, file
+holdout (~20%). Two models: **blind** (age / tip-mid / into / jf — no BST
+or policy flags) and **full** (adds `is_bst_last` / `is_policy`).
+
+Unique-raw retail-path multi_max:
+
+| | pe2clut | pe2pkg ≤4K |
+|--|--------:|----------:|
+| sites | 16 644 | 5 792 |
+| newest | 89.7% | 46.5% |
+| bst last-at-max | **97.1%** | **79.0%** |
+| current policy | 98.4% | 74.1% |
+| newest+bst oracle | **99.7%** | 86.1% |
+| leave-newest → bst | **97.3%** | 74.0% |
+| residual not in {newest,2nd,bst,policy} | 0.1% | 10.2% |
+| not_max / force_lit share of events | 0.1% / 3.2% | 4.0% / 4.4% |
+| blind GBDT holdout | 89.7% ≈ newest | 51% ≈ newest |
+| full GBDT holdout | 99.7% | 86.3% |
+
+Reading:
+
+1. **CLUTs are Okumura last-at-max plus “stay newest on the M17 ladder.”**
+   `best≥14` newest is already 100%; un-gated BST is *worse* there (96.9%).
+   `best≤4` BST is 97.9% vs newest 56.7%. The `pl<17` gate is that split.
+2. **Blind features cannot recover the tie-break.** Age/shape rankers stick
+   to newest. The original choice is a *search-path* property, which is why
+   age-pair tables overfit.
+3. **Packages share the BST core** (74% of leave-newest is last-at-max) but
+   have a real second policy: not_max, force-lit, and older mid/tip that is
+   not on the search path (~10% residual). Long pkg ties still want newest
+   (95%) not BST (62%).
+4. Full model just copies `is_policy` / `is_bst_last`. It is a probe, not a
+   new encoder.
+
+CLUT stream ceiling (unique-raw 420):
+
+* **383/420** current `encode_clut` (BST if max-cand + prefer-newest + sole M2@240).
+* **381/420** without the sole M2@240 force-lit.
+* **370/420** BST if max-cand, no newest gates.
+* **313/420** previous posts + gated BST.
+* **385/420** streams are *theory-open*: every retail multi_max is in
+  `{newest, bst}`, every force-lit is `0xFF` or sole-stale, no not_max.
+  A perfect newest-vs-BST bit would hit these.
+* **35/420** are theory-blocked: 22 residual multi_max, 9 force-lits that
+  are not `0xFF`/stale, 4 not_max. Newest+BST cannot emit those tokens.
+* When BST ≠ newest, retail is last-at-max except on `best==17` (387/387
+  stay newest — and the BST node is usually *not* a max-cand there).
+
+So 100% CLUT identity is **not** a single remaining gate. 370 is the
+simple Okumura encoder; 385 is the newest+BST oracle; the last 35 need a
+more faithful tree or extra rules (other-lit / not_max / off-path mid).
+Packages are outside this theory.
+
+### Residual ranker (historical)
+
+Retargeted after the 370 landing. Two heads, not wired.
+
+**Head 1 — disagree gate** (BST ∈ max-cands, BST ≠ newest, retail ∈ {newest, BST}):
+
+* 1 703 CLUT sites; retail prefers newest on only **34 (2.0%)**. Always-BST
+  is already 98% site-accurate.
+* Current `encode_clut` first-miss on the 50 inexact: **15 disagree**,
+  35 blocked.
+* A balanced tree over-fires newest (holdout prec 7%) and **drops** exact
+  to 325/420.
+* A GBDT `prefer-newest` gate scores **383/420 (+13/−0)** as a probe
+  (not landed). Distilled zero-FP predicates landed in `encode_clut`
+  at **381/420 (+11/−0)**. Four disagree first-misses remain.
+* Oracle for this head remains 385/420.
+
+**Head 2 — blocked events** (78 retail-path tokens newest+BST cannot emit,
+35 streams): 46 other-max (`T2` / `L` / `M3+1`), 19 other force-lit, 13
+not_max. GBDT test site-acc **53%** (train 98% — overfit). Baselines:
+lit 24%, newest/BST ≈ 0%. Do not wire. Useful as a census: the leftover
+is not one more multi_max gate.
 
 ## Multi_max research findings (historical, offline)
 
@@ -284,4 +404,5 @@ Interpretation:
 | `lzss_identity_report.py` | Frozen cascade bit-identity scores |
 | `lzss.py` | Decode, trim, pack, production encode |
 | `lzss_clut.py` | CLUT identity encoder |
+| `lzss_bst.py` | Persistent Okumura BST for `encode_clut` |
 | `lzss_cascading.py` | Frozen package/CLUT cascade experiment |
