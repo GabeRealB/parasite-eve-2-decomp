@@ -6,7 +6,8 @@
 #include "main/session.h"
 #include "main/task.h"
 
-void func_800B3910(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void  func_800B3910(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+Task* func_8002CFA0(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AF590);
 
@@ -29,7 +30,19 @@ void func_800B015C(void* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0168);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B01AC);
+GpEnemy* func_800B01AC(TaskDesc* table, s32 idx, s32 arg2, GpEnemy* parent)
+{
+    Task*    task;
+    GpEnemy* ret;
+
+    task = func_8002CFA0(table, idx, arg2, 0);
+    if (task != NULL) {
+        ret = func_800B0494(task, parent);
+    } else {
+        ret = NULL;
+    }
+    return ret;
+}
 
 void func_800B01F0(GpEnemy* enemy, Task* task)
 {
