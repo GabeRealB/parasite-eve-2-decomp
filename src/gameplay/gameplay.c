@@ -2,6 +2,7 @@
 
 #include "main/mem.h"
 
+void func_800A1634(s32 arg0, s32 arg1);
 s32  func_800A7B20(s32 arg0);
 void func_800B065C(u8 arg0);
 
@@ -220,7 +221,11 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A74C4);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7508);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7550);
+s32 func_800A7550(void)
+{
+    func_800A1634(1, 0);
+    return 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7574);
 
