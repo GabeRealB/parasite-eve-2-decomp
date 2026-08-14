@@ -12444,6 +12444,39 @@ before the call puts the `lui` too early.
 `func_800BC2C4` is the example (`p = &D_800739B8`; `(s16)(D_80072174 - *p) >= 2`).
 The same shape is how `func_800BC230` emits `lui v1,D_800739B8` first as a leaf.
 
+## Hoist an independent field load so an increment fills the `jal` delay
+
+`ptr->count--; Mem_Free(obj->field); later_use(obj)` looks like the natural
+order, but GCC 2.8.1 then copies `obj` into `$s0` in the `lhu` delay slot,
+stores the decremented count *before* the call, and leaves `nop` in the `jal`
+delay. The target often wants:
+
+```
+sw   s0, ...
+move s0, a0          /* early copy */
+sw   ra, ...
+lhu  v0, 0(v1)
+lw   a0, OFF(s0)     /* field load fills the lhu delay */
+addiu v0, v0, -1
+jal  Mem_Free
+ sh   v0, 0(v1)      /* store in the jal delay */
+```
+
+Assign the later-used field to a local *before* the increment so the scheduler
+treats that load as ready to interleave:
+
+```c
+void* mem;
+
+mem = arg0->spawnArg2;
+D_80115740->field_0--;
+Mem_Free(mem);
+Task_Kill(arg0);
+```
+
+Inlining `Mem_Free(arg0->spawnArg2)` after the decrement is the 83% form.
+`func_800EC824` is the example.
+
 ## Gameplay overlay `memset` is imported as `func_800420F8`
 
 `memset` lives at `0x800420F8` in the main exe (`sym.main.txt`). The gameplay

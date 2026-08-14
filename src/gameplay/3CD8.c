@@ -347,7 +347,15 @@ void func_800EC7E4(void* arg0, Task* arg1)
     Task_Kill(arg1);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EC824);
+void func_800EC824(Task* arg0)
+{
+    void* mem;
+
+    mem = arg0->spawnArg2;
+    D_80115740->field_0--;
+    Mem_Free(mem);
+    Task_Kill(arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EC868);
 
