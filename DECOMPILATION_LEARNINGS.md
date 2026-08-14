@@ -12652,3 +12652,33 @@ if (inner->field_95E != 0) {
 ```
 
 `func_8010ABD4` is the example — it is `func_8010AB70` behind that guard.
+
+## Do not pre-assign a later call argument that is live across an earlier call
+
+If the target sets `$a2` only in branch delay slots after each poll (`li a2,1`
+after the first `jal`, `move a2,zero` after the second), writing the "then"
+value *before* the first call pins it in a callee-saved register:
+
+```
+li    s0,1
+jal   poll
+...
+move  a2,s0
+```
+
+The extra `$s0`/`$s2` save plus a larger frame is a large diff for a small
+logical change. Assign the argument only after each call so it can stay in
+`$a2`:
+
+```c
+if (Pad_CheckButtons(0, 0, 0x8000) != 0) {
+    flag = 1;
+} else if (Pad_CheckButtons(0, 0, 0x2000) != 0) {
+    flag = -1;
+} else {
+    flag = 0;
+}
+return func(arg0, pos, flag);
+```
+
+`func_800DADE4` is the example. `flag = 1` before the first poll scored ~77%.

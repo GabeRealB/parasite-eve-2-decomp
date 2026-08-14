@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/3A34.h"
+#include "main/pad.h"
 #include "main/session.h"
 #include "main/task.h"
 
@@ -117,7 +118,19 @@ void* func_800DAD54(GpActorWork* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DAD78);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DADE4);
+void* func_800DADE4(GpActorWork* arg0, VECTOR3* pos)
+{
+    s32 flag;
+
+    if (Pad_CheckButtons(0, 0, 0x8000) != 0) {
+        flag = 1;
+    } else if (Pad_CheckButtons(0, 0, 0x2000) != 0) {
+        flag = -1;
+    } else {
+        flag = 0;
+    }
+    return func_800DA2A0(arg0, pos, flag);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DAE50);
 
