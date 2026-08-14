@@ -38,12 +38,27 @@ typedef struct _GpItemScan {
 } GpItemScan;
 STATIC_ASSERT_SIZEOF(GpItemScan, 0x4);
 
+/// 4-byte entry in `D_8010D278` / `D_8010E238` (32 entries, item ids
+/// 0x80–0x9F). field_0 is a count (`func_800BB938` / `func_800B6CF0`);
+/// field_1–3 are related item ids (`func_800C942C` / `func_800B904C`).
+/// `D_8010E238` is the first `GpItemSlot` pair (arg1 == 0);
+/// `D_8010D278` is the second.
+typedef struct _GpItemQty {
+    /* 0x00 */ u8 field_0;
+    /* 0x01 */ u8 field_1;
+    /* 0x02 */ u8 field_2;
+    /* 0x03 */ u8 field_3;
+} GpItemQty;
+STATIC_ASSERT_SIZEOF(GpItemQty, 0x4);
+
 /// 4-word (128-bit) flag array at `Mc_SaveData+0x5AC`. Indexed with
 /// `id & 0x7F` (`func_800BAE5C` / `func_800BAEC0` / `func_800BB4BC`).
 extern s32        D_80072714[4];
 extern GpItemSlot D_80072330[];
+extern GpItemQty  D_8010D278[];
 extern GpItemMap  D_8010D2F8[];
 extern GpItemScan D_8010D520;
+extern GpItemQty  D_8010E238[];
 
 void        func_800BAE38(void);
 GpItemSlot* func_800BAFE0(s32 arg0);

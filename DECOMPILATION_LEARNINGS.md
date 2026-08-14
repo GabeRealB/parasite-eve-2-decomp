@@ -12733,3 +12733,44 @@ The tail must also be a **standalone symbol** (`extern TmdListHead* D_800711C4`,
 then `&D_800711C4`). `&Tmd_ListAlt.prev` CSEs to `Tmd_ListAlt+4` and enables
 the same delay-slot fill even with `== NULL`. Overlay imports already split
 that field off as `D_800711C4`.
+
+## Two `arr[i].field` loads CSE into same-reg table select
+
+When the target picks one of two array bases, then does a shared
+`sll` / `addu` / `lbu`:
+
+```
+bnez  a1, else
+ lui   v1, %hi(A)
+j     join
+ addiu v1, v1, %lo(A)
+else:
+lui   v1, %hi(B)
+addiu v1, v1, %lo(B)
+join:
+sll   v0, a0, 2
+addu  v0, v0, v1
+lbu   v1, 0(v0)
+```
+
+A temp `table = cond ? B : A; ret = table[i].field` materialises the address
+as `lui v0; addiu v1, v0` and leaves a `nop` in the `bnez` delay slot.
+
+Two field loads with a separate `ret = 0` CSE into the shared-base form, and
+the `lui v1, %hi(A)` fills the delay slot:
+
+```c
+ret = 0;
+if ((u32)idx < N) {
+    if (sel == 0) {
+        ret = A[idx].field_0;
+    } else {
+        ret = B[idx].field_0;
+    }
+}
+return ret;
+```
+
+`func_800BB938` is the pure example. The `register … asm("v1")` pin also
+forces the same-reg `lui`/`addiu`, but the two-load shape is the source that
+produces it without a hard register.

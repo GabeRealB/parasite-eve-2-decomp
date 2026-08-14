@@ -651,6 +651,17 @@ to a `GpItemSlot` pair.
 | 0x01 | `field_1` | Item id / `D_80072330` index |
 | 0x02 | `field_2` | Mapped item id written into that pair |
 
+### `GpItemQty` (0x4) — `268.h`
+32-entry tables at `D_8010E238` (first `GpItemSlot` pair) and `D_8010D278`
+(second pair), indexed by `itemId - 0x80`. Looked up by `func_800BB938`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | Count written into the matching `GpItemSlot` pair |
+| 0x01 | `field_1` | Related item id (first of three) |
+| 0x02 | `field_2` | Related item id |
+| 0x03 | `field_3` | Related item id |
+
 ### `GpItemScan` (0x4) — `268.h`
 Scan descriptor for `func_800BB6FC`. Built on the stack by `func_800BBEC0`
 (memset 0, then `field_1 = 0xFF`). Same layout as `Mc_SaveData` at 0x5BC

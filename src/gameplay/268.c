@@ -220,7 +220,21 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB838);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB8E8);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB938);
+s32 func_800BB938(s32 arg0, s32 arg1)
+{
+    s32 ret;
+
+    arg0 -= 0x80;
+    ret   = 0;
+    if ((u32)arg0 < 0x20) {
+        if (arg1 == 0) {
+            ret = D_8010E238[arg0].field_0;
+        } else {
+            ret = D_8010D278[arg0].field_0;
+        }
+    }
+    return ret;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB974);
 
