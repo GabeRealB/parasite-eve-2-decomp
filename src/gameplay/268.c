@@ -1,11 +1,11 @@
 #include "common.h"
 
 #include "gameplay/268.h"
+#include "main/mc.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/wipsys.h"
 
-extern u32          D_8007216C;
 extern u16          D_80072174;
 extern u16          D_800739B8;
 extern WipSysConfig D_80073B88;
@@ -62,7 +62,7 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800B91C8);
 
 void func_800B92CC(void)
 {
-    switch (D_8007216C & 0xFFFF0000) {
+    switch (*(u32*)&D_8007216C & 0xFFFF0000) {
         case 0x1010000:
             func_80180804();
             break;
@@ -233,7 +233,15 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBE54);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBEC0);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBF04);
+void func_800BBF04(s32 arg0)
+{
+    McSaveData* p;
+
+    p            = &Mc_SaveData;
+    p->field_5BC = 0;
+    p->field_5BD = arg0;
+    p->field_5BE = 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBF1C);
 

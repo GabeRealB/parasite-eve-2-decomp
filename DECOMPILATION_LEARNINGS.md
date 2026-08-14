@@ -12400,3 +12400,14 @@ if (arg2 == 0) {
 
 cc1 emits `bne` in reorder mode followed by a noreorder `j join; li 1`. aspsx
 then inserts the `nop` delay on the `bne`. `func_80105A8C` is the pure example.
+
+## `mc.h` exports `D_8007216C` as `u8`; 268.c needs a word load of that symbol
+
+`D_8007216C` is `Mc_SaveData.field_4`. `mc.h` declares it `u8` because `stage.c`
+stores a byte (`sb`). `func_800B92CC` needs `lw` of the same symbol so
+`& 0xFFFF0000` sees `field_6`/`field_7`. Including `mc.h` and also writing
+`extern u32 D_8007216C` is a conflicting-types error.
+
+Fix: keep the `mc.h` include and load the overlay as `*(u32*)&D_8007216C`. The
+relocation stays on `D_8007216C` and codegen stays `lw`. Do not switch the
+access to `&Mc_SaveData.field_4` — that rebases the reloc onto `Mc_SaveData`.

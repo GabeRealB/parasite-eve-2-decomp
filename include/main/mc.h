@@ -95,7 +95,11 @@ typedef struct _McSaveData {
     /* 0x1A9 */ u8   field_1a9;
     /* 0x1AA */ u8   field_1aa;
     /* 0x1AB */ u8   field_1ab;
-    /* 0x1AC */ byte unknown_1AC[0x416];
+    /* 0x1AC */ byte unknown_1AC[0x410];
+    /* 0x5BC */ u8   field_5BC; // also D_80072724
+    /* 0x5BD */ u8   field_5BD;
+    /* 0x5BE */ u8   field_5BE;
+    /* 0x5BF */ byte unknown_5BF[0x3];
     /* 0x5C2 */ s8   field_5C2;
     /* 0x5C3 */ byte unknown_5C3[0x2];
     /* 0x5C5 */ u8   field_5C5;
