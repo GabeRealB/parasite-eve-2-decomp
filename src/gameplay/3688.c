@@ -207,7 +207,10 @@ void func_800CE398(s32 arg0)
     D_80114D88 = arg0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE3A4);
+s32 func_800CE3A4(void)
+{
+    return D_80114D88;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE3B4);
 
