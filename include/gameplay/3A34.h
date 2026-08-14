@@ -53,6 +53,14 @@ typedef struct _GpStateF0 {
 } GpStateF0;
 STATIC_ASSERT_SIZEOF(GpStateF0, 0x8);
 
+/// Head of the `GpLinkNode` list walked by `func_800DAB38` / `func_800DABEC`.
+extern GpLinkNode* D_80115268;
+
+/// 8.8 fixed-point pair lerped toward projected screen coords by
+/// `func_800D9DFC`. Reset to `0xFFF00000` by `func_800DAFD0`.
+extern s32 D_8010F9EC;
+extern s32 D_8010F9F0;
+
 extern GpStateF0 D_801153F0;
 extern u8        D_801153F3;
 extern GpObj* D_80115570;
@@ -71,6 +79,8 @@ void  func_800D9DFC(void);
 void  func_800DAB38(GpLinkNode* node);
 void* func_800DA2A0(GpActorWork* arg0, VECTOR3* pos, s32 arg2);
 void* func_800DAD54(GpActorWork* arg0);
+void  func_800DAF98(void);
+void  func_800DAFD0(void);
 void  func_800DB4E0(void);
 void  func_800DB530(s32 arg0);
 void  func_800DB53C(void);
