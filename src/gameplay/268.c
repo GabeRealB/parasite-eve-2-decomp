@@ -31,6 +31,9 @@ void  func_8017EAC4(void);
 void  func_8017EA60(void);
 void* func_800B8CAC(void* arg0, s32 arg1, s32 arg2);
 void  func_800BAA58(void);
+s32   func_800BB4BC(s32 arg0);
+void  func_800BAEC0(s32 arg0);
+void  func_800BAE5C(s32 arg0);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B7420);
 
@@ -269,7 +272,18 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC230);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC254);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC2C4);
+void func_800BC2C4(void)
+{
+    u16* p;
+
+    if (func_800BB4BC(0x119) != 0) {
+        p = &D_800739B8;
+        if ((s16)(D_80072174 - *p) >= 2) {
+            func_800BAEC0(0x119);
+            func_800BAE5C(0x11A);
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC324);
 

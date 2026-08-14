@@ -12411,3 +12411,35 @@ stores a byte (`sb`). `func_800B92CC` needs `lw` of the same symbol so
 Fix: keep the `mc.h` include and load the overlay as `*(u32*)&D_8007216C`. The
 relocation stays on `D_8007216C` and codegen stays `lw`. Do not switch the
 access to `&Mc_SaveData.field_4` — that rebases the reloc onto `Mc_SaveData`.
+
+## Take `&global` so its `lui` is emitted first into `$v1`
+
+`a - b` of two `u16` globals expands left-first:
+
+```
+lui  v0, %hi(a)
+lui  v1, %hi(b)
+lhu  v0, a
+lhu  v1, b
+subu v0, v0, v1
+```
+
+The target sometimes wants the `lui`s swapped (`lui v1,b` then `lui v0,a`) with
+the same loads and `subu`. Assigning `b` to a temp first does emit `b`'s `lui`
+first, but parks the value in `$a0` and uses `subu v0,v0,a0`.
+
+Take the address of `b` instead and subtract through the pointer:
+
+```c
+u16* p;
+p = &b;
+return a - *p;
+```
+
+GCC 2.8.1 folds `*p` back into a `%hi/%lo` load of `b` (no extra `addiu`) but
+materialises `b`'s address first into `$v1`. After a call, do `p = &b` inside
+the `if` body so `lui v1,%hi(b)` fills the `beqz` delay slot; assigning `p`
+before the call puts the `lui` too early.
+
+`func_800BC2C4` is the example (`p = &D_800739B8`; `(s16)(D_80072174 - *p) >= 2`).
+The same shape is how `func_800BC230` emits `lui v1,D_800739B8` first as a leaf.
