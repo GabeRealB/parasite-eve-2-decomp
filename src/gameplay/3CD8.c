@@ -118,7 +118,11 @@ s32 func_800E3FCC(s32 arg0)
     return D_80073980[arg0 / 2 + 4];
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3FF0);
+s32 func_800E3FF0(s32 arg0, s32 arg1, GBytes8* arg2, GBytes8* arg3)
+{
+    *arg3 = *arg2;
+    return 1;
+}
 
 s32 func_800E4018(void)
 {
