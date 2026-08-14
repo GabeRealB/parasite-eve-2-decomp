@@ -12477,6 +12477,39 @@ Task_Kill(arg0);
 Inlining `Mem_Free(arg0->spawnArg2)` after the decrement is the 83% form.
 `func_800EC824` is the example.
 
+## `s32 val = func(); byte_global = val` rematerialises same-`%hi` store
+
+`Display_State` and `D_80071068` (`Display_State.field_100`) share `%hi ==
+0x8007`. Taking `&Display_State` into a local and then writing
+
+```c
+D_80071068 = func_800ACF8C();
+```
+
+lets CSE keep that shared high half in `$s0` across the call (`sw s0` /
+`lui s0,%hi(D_80071068)` in the `jal` delay). The target only saves `$ra` and
+rematerialises after the call:
+
+```
+jal  func_800ACF8C
+nop
+lui  v1, %hi(D_80071068)
+sb   v0, %lo(D_80071068)(v1)
+```
+
+Route the return through an `s32` temporary so the QImode store cannot fold
+into the earlier address:
+
+```c
+s32 val;
+
+val        = func_800ACF8C();
+D_80071068 = val;
+```
+
+A direct assignment or a `u8*` to the global still pins `$s0`.
+`func_800AD65C` is the example.
+
 ## Gameplay overlay `memset` is imported as `func_800420F8`
 
 `memset` lives at `0x800420F8` in the main exe (`sym.main.txt`). The gameplay

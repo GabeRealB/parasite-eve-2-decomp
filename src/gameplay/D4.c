@@ -8,7 +8,10 @@
 #include "main/tmd.h"
 #include "main/unknown_syms.h"
 
+extern u8 D_80071068; // Display_State.field_100
+
 void func_800A9730(Task* task);
+s32  func_800ACF8C(void);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9310);
 
@@ -209,7 +212,19 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD5B8);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD620);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD65C);
+void func_800AD65C(Task* task)
+{
+    DisplayState* ds;
+    s32           val;
+
+    ds = &Display_State;
+    if ((ds->field_1e != 2) && (ds->field_104 == 0)) {
+        func_800AC688();
+    } else {
+        val        = func_800ACF8C();
+        D_80071068 = val;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD6BC);
 
