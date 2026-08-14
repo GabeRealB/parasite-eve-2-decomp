@@ -7,6 +7,7 @@
 
 extern WipSysConfig D_80073B88;
 
+void func_800B57EC(s32 arg0, s32* arg1);
 s32  func_800B9D80(s32 arg0);
 void func_800EC9C8(void);
 void func_800ECA10(s32 arg0);
@@ -283,7 +284,11 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105914);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801059AC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105A60);
+s32 func_80105A60(Task* arg0, s32 arg1, s32 arg2)
+{
+    func_800B57EC(arg2, ((GameActorExt*)arg0->extra)->field_8);
+    return 0;
+}
 
 s32 func_80105A8C(GpActorWork* arg0, s32 arg1, s32 arg2)
 {
