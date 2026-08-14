@@ -38,6 +38,18 @@ typedef struct _GpItemScan {
 } GpItemScan;
 STATIC_ASSERT_SIZEOF(GpItemScan, 0x4);
 
+/// 4-byte row in the item tables selected by `GpItemScan` (`D_80072314` /
+/// `D_80114C20` / `*D_80114D70`). field_0 is the item id looked up by
+/// `func_800D6910`; field_1 is a count compared as signed by
+/// `func_800CF448` / `func_800B91C8`; field_2 is a u16 quantity added by
+/// `func_800BB6FC`.
+typedef struct _GpItemRec {
+    /* 0x00 */ u8  field_0;
+    /* 0x01 */ u8  field_1;
+    /* 0x02 */ u16 field_2;
+} GpItemRec;
+STATIC_ASSERT_SIZEOF(GpItemRec, 0x4);
+
 /// 4-byte entry in `D_8010D278` / `D_8010E238` (32 entries, item ids
 /// 0x80–0x9F). field_0 is a count (`func_800BB938` / `func_800B6CF0`);
 /// field_1–3 are related item ids (`func_800C942C` / `func_800B904C`).
@@ -61,8 +73,11 @@ extern GpItemScan D_8010D520;
 extern GpItemQty  D_8010E238[];
 
 void        func_800BAE38(void);
+void        func_800B91C8(GpItemRec* arg0);
 GpItemSlot* func_800BAFE0(s32 arg0);
+void        func_800BB190(s32 arg0, s32 arg1);
 s32         func_800BB6FC(GpItemScan* arg0, s32 arg1);
+void        func_800BB7C0(s32 arg0, s32 arg1);
 GpItemMap*  func_800BBDC8(s32 arg0);
 s32         func_800BBEC0(s32 arg0);
 

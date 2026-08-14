@@ -1,11 +1,13 @@
 #include "common.h"
 
+#include "gameplay/268.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
+#include "main/wipsys.h"
 
 extern s32          D_8010E8F8[5];
 extern s32          D_80114D88;
@@ -16,24 +18,26 @@ extern char         D_8010E494[];
 extern char         D_8010F8D0[];
 extern UiObjectDesc D_8010F788;
 extern UiObject*    D_80067634;
+extern WipSysConfig D_80073B88;
 
-void  func_8017F41C(Task* task);
-void  func_8017F2F8(Task* task);
-void  func_8017F304(Task* task);
-void  func_80181184(Task* task);
-void  func_801811A0(Task* task);
-void  func_800C05CC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void  func_800CB33C(UiObject* arg0, Task* arg1, s32 arg2);
-void  func_800CC15C(UiObject* arg0, Task* arg1, s32 arg2);
-void  func_800D02A4(Task* arg0);
-void  func_800D0C34(Task* arg0);
-void  func_800D0614(Task* arg0);
-void  func_800D08D4(Task* arg0);
-void  func_800D15D0(Task* arg0);
-void  func_8003F9F4(void);
-void  func_8003F6F8(void);
-char* func_800B8EB0(s32 arg0, s32 arg1, s32 arg2);
-void  func_80049D34(char* arg0, s32 arg1, s32 arg2);
+void       func_8017F41C(Task* task);
+void       func_8017F2F8(Task* task);
+void       func_8017F304(Task* task);
+void       func_80181184(Task* task);
+void       func_801811A0(Task* task);
+void       func_800C05CC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void       func_800CB33C(UiObject* arg0, Task* arg1, s32 arg2);
+void       func_800CC15C(UiObject* arg0, Task* arg1, s32 arg2);
+void       func_800D02A4(Task* arg0);
+void       func_800D0C34(Task* arg0);
+void       func_800D0614(Task* arg0);
+void       func_800D08D4(Task* arg0);
+void       func_800D15D0(Task* arg0);
+void       func_8003F9F4(void);
+void       func_8003F6F8(void);
+char*      func_800B8EB0(s32 arg0, s32 arg1, s32 arg2);
+void       func_80049D34(char* arg0, s32 arg1, s32 arg2);
+GpItemRec* func_800D6910(s32 arg0);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800BF9FC);
 
@@ -303,7 +307,30 @@ void func_800CF330(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF374);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF448);
+void func_800CF448(s32 arg0)
+{
+    WipSysConfig* p;
+    GpItemRec*    rec;
+    GpItemRec*    prev;
+    u8            field21;
+
+    p       = &D_80073B88;
+    rec     = func_800D6910(arg0);
+    field21 = p->field_21;
+    if (field21 != arg0 - 0x7F) {
+        if (field21 != 0) {
+            prev = func_800D6910(field21 + 0x7F);
+            if ((s8)rec->field_1 > 0) {
+                prev->field_1 = rec->field_1;
+            } else {
+                func_800BB190(prev->field_0, 0);
+            }
+        }
+        p->field_21 = arg0 - 0x7F;
+        func_800B91C8(rec);
+        func_800BB7C0(arg0, 1);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF4EC);
 

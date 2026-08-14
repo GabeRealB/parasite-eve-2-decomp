@@ -676,6 +676,16 @@ Scan descriptor for `func_800BB6FC`. Built on the stack by `func_800BBEC0`
 | 0x01 | `field_1` | Number of table entries to scan |
 | 0x02 | `field_2` | Table select (1 = `D_80114D70`, 2 = `D_80114C20`, else `D_80072314`) |
 
+### `GpItemRec` (0x4) — `268.h`
+Row in the item tables selected by `GpItemScan` (`D_80072314` /
+`D_80114C20` / `*D_80114D70`). Returned by `func_800D6910`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | Item id |
+| 0x01 | `field_1` | Count (compared as signed by `func_800CF448` / `func_800B91C8`) |
+| 0x02 | `field_2` | u16 quantity accumulated by `func_800BB6FC` |
+
 ### `GpState34` (0x34) — `3CD8.h`
 Allocated by `func_800E8758` (`func_8002D978(0x34)`); stored at `Task::idMap`.
 Dual script interpreter: A uses `field_E`/`field_10`/`field_14`, B uses
