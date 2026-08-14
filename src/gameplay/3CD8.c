@@ -3,6 +3,7 @@
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
+#include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
 
@@ -332,7 +333,12 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EC47C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EC674);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EC7E4);
+void func_800EC7E4(void* arg0, Task* arg1)
+{
+    D_80115740->field_0--;
+    Mem_Free(arg0);
+    Task_Kill(arg1);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EC824);
 

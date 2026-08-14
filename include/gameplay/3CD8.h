@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include "main/task.h"
+
 /// 0x1C-byte halfword state allocated by `func_800E9CC8` (`func_8002D978(0x1C)`)
 /// and stored in `D_80115740` (also written to the owner task at +0x1C).
 typedef struct _GpState1C {
@@ -26,5 +28,6 @@ STATIC_ASSERT_SIZEOF(GpState1C, 0x1C);
 extern GpState1C* D_80115740;
 
 void func_800EA3A0(s32 arg0);
+void func_800EC7E4(void* arg0, Task* arg1);
 
 #endif // GAMEPLAY_3CD8_H
