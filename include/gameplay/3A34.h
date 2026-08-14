@@ -24,6 +24,15 @@ typedef struct _GpObj {
     /* 0x1E */ u16            flags;
 } GpObj;
 
+/// Three packed `SVECTOR3`s filled by `func_800D9C3C`. Each vector's
+/// components are set to the same s16 argument.
+typedef struct _GpSVec3x3 {
+    /* 0x00 */ SVECTOR3 field_0;
+    /* 0x06 */ SVECTOR3 field_6;
+    /* 0x0C */ SVECTOR3 field_C;
+} GpSVec3x3;
+STATIC_ASSERT_SIZEOF(GpSVec3x3, 0x12);
+
 /// Object whose word at 0x38 is returned by `func_800D9788`. Adjacent light
 /// helpers load 0x38/0x3C/0x40 as three s32s and take `&obj->field_38` as a
 /// `VECTOR*`.
@@ -78,6 +87,7 @@ extern s32    D_80115424;
 s32   func_800D9340(GpObj38* arg0);
 s32   func_800D937C(GpObj38* arg0);
 s32   func_800D9788(GpObj38* arg0);
+void  func_800D9C3C(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3);
 void  func_800D9CC8(Task* arg0);
 void  func_800D9DFC(void);
 void  func_800DAB38(GpLinkNode* node);

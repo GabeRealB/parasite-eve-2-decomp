@@ -78,7 +78,12 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9A30);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9B9C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9C3C);
+void func_800D9C3C(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3)
+{
+    arg0->field_0.vx = arg0->field_0.vy = arg0->field_0.vz = arg1;
+    arg0->field_6.vx = arg0->field_6.vy = arg0->field_6.vz = arg2;
+    arg0->field_C.vx = arg0->field_C.vy = arg0->field_C.vz = arg3;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9C64);
 
