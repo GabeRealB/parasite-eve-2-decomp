@@ -15,6 +15,7 @@ typedef struct _GpEnemy {
     /* 0x10 */ GpLinkNode node;
 } GpEnemy;
 
+GpEnemy* func_800B0168(s32 bank, s32 type, s32 arg2, GpEnemy* parent);
 GpEnemy* func_800B01AC(TaskDesc* table, s32 idx, s32 arg2, GpEnemy* parent);
 void     func_800B01F0(GpEnemy* enemy, Task* task);
 void     func_800B0234(Task* task);

@@ -28,7 +28,19 @@ void func_800B015C(void* arg0)
     CdCmd_Queue.field_198 = arg0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0168);
+GpEnemy* func_800B0168(s32 bank, s32 type, s32 arg2, GpEnemy* parent)
+{
+    Task*    task;
+    GpEnemy* ret;
+
+    task = Task_Spawn(bank, type, arg2, 0);
+    if (task != NULL) {
+        ret = func_800B0494(task, parent);
+    } else {
+        ret = NULL;
+    }
+    return ret;
+}
 
 GpEnemy* func_800B01AC(TaskDesc* table, s32 idx, s32 arg2, GpEnemy* parent)
 {
