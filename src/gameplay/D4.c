@@ -1,11 +1,14 @@
 #include "common.h"
 
 #include "main/display.h"
+#include "main/fs.h"
 #include "main/mc.h"
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/tmd.h"
 #include "main/unknown_syms.h"
+
+void func_800A9730(Task* task);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9310);
 
@@ -13,7 +16,13 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A954C);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A95E0);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9630);
+void func_800A9630(Task* task)
+{
+    if (CdCmd_IsIdle() & 0xFFFF) {
+        task->state = -2;
+        func_800A9730(task);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A966C);
 
