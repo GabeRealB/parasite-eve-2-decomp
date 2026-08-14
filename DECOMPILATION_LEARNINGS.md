@@ -12793,3 +12793,41 @@ return ret;
 `func_800BB938` is the pure example. The `register … asm("v1")` pin also
 forces the same-reg `lui`/`addiu`, but the two-load shape is the source that
 produces it without a hard register.
+
+## `ABS()` / `>=` ternary delays the prologue; `if (x < 0)` does not
+
+A 2D hypot that abs-then-squares each operand and then calls `SquareRoot0`
+(`func_8003B8A0`) wants the prologue parked in the second `mult` latency:
+
+```
+bgez  a0, join0
+ nop
+negu  a0, a0
+join0:
+mult  a0, a0
+mflo  a0
+bgez  a1, join1
+ nop
+negu  a1, a1
+join1:
+mult  a1, a1
+addiu sp, sp, -0x18
+sw    ra, 0x10(sp)
+mflo  a1
+jal   SquareRoot0
+ addu a0, a0, a1
+```
+
+`if (arg0 < 0) arg0 = -arg0;` emits the prologue first and fills the first
+`bgez` delay with `sw ra` (~70–88%, even with an empty `asm volatile("")`
+after each abs). The PSY-Q `ABS()` macro (ternary `(x) >= 0 ? (x) : -(x)`)
+lets the scheduler sink `addiu`/`sw ra` after the second `mult` and leaves
+`nop` in both abs delay slots. `func_80103D8C` is the pure example:
+
+```c
+arg0 = ABS(arg0);
+arg0 = arg0 * arg0;
+arg1 = ABS(arg1);
+arg1 = arg1 * arg1;
+return func_8003B8A0(arg0 + arg1);
+```

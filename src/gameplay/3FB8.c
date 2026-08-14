@@ -7,10 +7,13 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 
+#include <psyq/abs.h>
+
 extern WipSysConfig D_80073B88;
 extern TaskDesc     D_80113340[];
 
 s32   func_800B9D80(s32 arg0);
+s32   func_8003B8A0(s32 arg0);
 s32   func_8005414C(s32 arg0, s32 arg1, s32 arg2);
 void  func_800EC9C8(void);
 void  func_800ECA54(void);
@@ -242,7 +245,14 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103C74);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103CB4);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103D8C);
+s32 func_80103D8C(s32 arg0, s32 arg1)
+{
+    arg0 = ABS(arg0);
+    arg0 = arg0 * arg0;
+    arg1 = ABS(arg1);
+    arg1 = arg1 * arg1;
+    return func_8003B8A0(arg0 + arg1);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103DD4);
 
