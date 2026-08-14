@@ -30,6 +30,25 @@ p->field_1f = flag; /* SImode constant — cse can't fold into the HI reg */
 A cast alone (`p->field_1f = (s32)1;`) does **not** work: the front end folds it
 back to the field's type before RTL is generated.
 
+The same wider temporary is how you *force* CSE the other way: a switch's
+SImode compare constant (`li v0,K` in the first `beqz` delay slot) will not
+reuse itself for a later HImode/QImode store (`p->field = K` rematerializes
+`li v0,K` after the next load). Assign K to an `s32` first, then store that:
+
+```c
+s32 flag;
+
+switch (p->field_95E) { /* lhu; beqz; li v0,1; beq */
+case 0:
+    flag = 1;
+    p->field_95E = flag; /* sh v0 — same reg, nop in the load delay */
+    ...
+}
+```
+
+`func_80109684` is the pure example. A bare `p->field_95E = 1` stuck at ~94%
+with an otherwise identical switch.
+
 ## `s16 ret = K` keeps `slti` while still pinning K in a callee-saved reg
 
 When a function needs the same small constant K both as an early live return

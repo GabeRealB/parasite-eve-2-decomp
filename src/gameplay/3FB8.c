@@ -17,6 +17,7 @@ void  func_800ECA54(void);
 s32   func_80037164(void);
 Task* func_8002CFA0(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
 void  func_801038F8(GpActorWork* arg0, s32 arg1);
+void  func_8010397C(GpActorWork* arg0, s32 arg1, s32 arg2);
 void  func_80103A18(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 void  func_80103AC0(GpActorWork* arg0);
 void  func_801041FC(GpActorWork* arg0, s32 arg1);
@@ -42,6 +43,7 @@ void  func_8010AAB4(GpActorWork* arg0);
 void  func_8010ABD4(GpActorWork* arg0);
 void  func_8010AC54(GpActorWork* arg0);
 void  func_8010AD64(GpActorWork* arg0);
+void  func_8010B120(GpActorWork* arg0);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F75BC);
 
@@ -581,7 +583,28 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801094D4);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801095BC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109684);
+void func_80109684(GpActorWork* arg0)
+{
+    GameActor* inner;
+    s32        mode;
+    s32        flag;
+
+    inner = arg0->actor;
+    switch (inner->field_95E) {
+        case 0:
+            mode             = 0x20;
+            flag             = 1;
+            inner->field_95E = flag;
+            if (inner->field_934 != 0) {
+                mode = 0x21;
+            }
+            func_8010397C(arg0, mode, 1);
+        case 1:
+            func_80103AC0(arg0);
+            break;
+    }
+    func_8010B120(arg0);
+}
 
 void func_80109700(GpActorWork* arg0)
 {
