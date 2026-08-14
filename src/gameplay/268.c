@@ -155,7 +155,16 @@ void* func_800BAD08(void* arg0, s32 arg1, s32 arg2)
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAD28);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAE38);
+void func_800BAE38(void)
+{
+    s32  i;
+    s32* p;
+
+    p = D_80072714;
+    for (i = 3; i >= 0; i--) {
+        *p++ = 0;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAE5C);
 
