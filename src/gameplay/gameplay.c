@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "main/mem.h"
+#include "main/task.h"
 
 extern u8  D_801153F1;
 extern s32 D_8010CA28;
@@ -310,7 +311,10 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8724);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8864);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8A1C);
+s32 func_800A8A1C(s32 arg0)
+{
+    return Task_Spawn(0, 0xF, 0, arg0) != NULL;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8A48);
 
