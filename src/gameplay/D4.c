@@ -24,7 +24,13 @@ void func_800A9630(Task* task)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A966C);
+void func_800A966C(Task* task)
+{
+    if (CdCmd_Queue.field_1FE == 0xFF) {
+        task->state = -1;
+        func_800A9730(task);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A96A0);
 
