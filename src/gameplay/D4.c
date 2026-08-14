@@ -100,7 +100,20 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9C50);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9CBC);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9DF0);
+void func_800A9DF0(Task* task)
+{
+    TmdObject* obj;
+
+    obj = task->extra;
+    if (task->spawnType == 1) {
+        obj->field_24 = 4;
+        obj->field_25 = 6;
+        if (obj->field_18 != NULL) {
+            Tmd_ProcessStream(obj);
+            Tmd_ProcessStream(obj);
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9E44);
 
