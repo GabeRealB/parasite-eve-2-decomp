@@ -575,6 +575,16 @@ Indexed as `D_80072330[idx]` by `func_800BAFE0`. Two (id, count) pairs.
 | 0x02 | `field_2` | Item id (second pair) |
 | 0x03 | `field_3` | Count for `field_2` |
 
+### `GpItemMap` (0x4) — `268.h`
+Indexed as `D_8010D2F8[idx]` by `func_800BBDC8`. 8-entry map from item id
+to a `GpItemSlot` pair.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | Which `GpItemSlot` pair to write (0 = first, else second) |
+| 0x01 | `field_1` | Item id / `D_80072330` index |
+| 0x02 | `field_2` | Mapped item id written into that pair |
+
 ---
 
 ## WIP (provisional)

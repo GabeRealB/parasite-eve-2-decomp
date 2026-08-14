@@ -222,7 +222,10 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBCCC);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBD40);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBDC8);
+GpItemMap* func_800BBDC8(s32 arg0)
+{
+    return &D_8010D2F8[arg0];
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBDDC);
 
