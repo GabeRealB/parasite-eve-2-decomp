@@ -7,6 +7,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+void  func_800B1EFC(Task* arg0);
 void  func_800B3448(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void  func_800B3910(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void  func_800B3F60(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -126,7 +127,12 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B27C4);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B2840);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B28E0);
+void func_800B28E0(Task* task)
+{
+    task->killCountdown = 0x20;
+    task->state++;
+    func_800B1EFC(task);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B2910);
 
