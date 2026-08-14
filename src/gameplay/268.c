@@ -259,7 +259,11 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC3F8);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC490);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC4BC);
+void func_800BC4BC(void)
+{
+    D_80073B88.field_26 = 1;
+    func_800BAA58();
+}
 
 void func_800BC4E4(void)
 {
