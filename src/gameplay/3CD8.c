@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "main/gameflag.h"
+#include "main/mc.h"
 #include "main/session.h"
 #include "main/task.h"
 
@@ -47,7 +48,10 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3D24);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3D5C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3D78);
+void func_800E3D78(void)
+{
+    Mc_SaveData.field_6C8 = Mc_SaveData.field_6CA;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3D8C);
 
