@@ -4,9 +4,11 @@
 #include "main/task.h"
 
 extern s32 D_80115660;
+extern s8  D_801156B0;
 
 void func_800E34D8(s32 arg0, s16 arg1);
 s32  func_800E6CE0(void);
+s32  func_800E6CF0(void);
 void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
 void func_800E8A90(Task* task);
 void func_800E8BB0(Task* task);
@@ -139,7 +141,11 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E72E8);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E731C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E7334);
+s32 func_800E7334(void)
+{
+    D_801156B0 = 0;
+    return func_800E6CF0();
+}
 
 s32 func_800E7358(void)
 {
