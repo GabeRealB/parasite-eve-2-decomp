@@ -249,7 +249,16 @@ void func_800AD58C(Task* task)
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD5B8);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD620);
+void func_800AD620(Task* task)
+{
+    s32 val;
+
+    val = func_800ACF8C();
+    do {
+        D_80071068 = val;
+    } while (0);
+    task->state++;
+}
 
 void func_800AD65C(Task* task)
 {
