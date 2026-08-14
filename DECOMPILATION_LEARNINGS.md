@@ -12625,3 +12625,30 @@ p[4] = val;
 
 A counted `for` loop is not unrolled. `func_800CDEF4` is the example;
 `func_800CCDC8` inlines the same five stores.
+
+## Nested `!= 0` then `== 1` keeps the extra `beqz`
+
+`if (field == 1)` on a `u16` compiles to `lhu; li 1; bne` — the load-delay
+slot is filled with the compare constant. The target sometimes wants:
+
+```
+lhu   v1, field(s0)
+nop
+beqz  v1, done
+li    v0, 1
+bne   v1, v0, done
+nop
+```
+
+That extra zero test is a *separate* compare, not CSE of `== 1`. Write it as
+two nested checks so the first branch only needs the loaded value:
+
+```c
+if (inner->field_95E != 0) {
+    if (inner->field_95E == 1) {
+        /* body */
+    }
+}
+```
+
+`func_8010ABD4` is the example — it is `func_8010AB70` behind that guard.
