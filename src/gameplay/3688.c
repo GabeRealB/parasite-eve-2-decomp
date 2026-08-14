@@ -12,6 +12,7 @@ extern u8*          D_80114DD4;
 extern s32          D_80114E88;
 extern char         D_8010F8D0[];
 extern UiObjectDesc D_8010F788;
+extern UiObject*    D_80067634;
 
 void  func_8017F41C(Task* task);
 void  func_8017F2F8(Task* task);
@@ -284,7 +285,18 @@ s32 func_800CF27C(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF28C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF330);
+void func_800CF330(Task* arg0)
+{
+    UiObject* obj;
+
+    obj = arg0->spawnArg2;
+    if (obj != NULL) {
+        if (D_80067634 == obj) {
+            D_80067634 = NULL;
+        }
+    }
+    Ui_FreeAndKill(arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF374);
 
