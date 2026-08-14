@@ -318,7 +318,13 @@ void func_800B6014(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B601C);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B6094);
+void func_800B6094(Task* task)
+{
+    if (task->spawnArg1 & 1) {
+        task->killCountdown = 0;
+    }
+    task->state++;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B60C0);
 
