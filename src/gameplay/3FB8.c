@@ -215,7 +215,19 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103AC0);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103B1C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103B5C);
+void func_80103B5C(GpActorWork* arg0)
+{
+    GameActor*  inner;
+    GpLinkNode* node;
+
+    inner = arg0->actor;
+    node  = inner->field_90C;
+    if (node != NULL) {
+        node->field_5    = 0;
+        inner->field_90C = NULL;
+    }
+    inner->field_97E = 1;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103B88);
 
