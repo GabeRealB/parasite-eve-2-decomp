@@ -14180,4 +14180,36 @@ correct when the result is loaded into `$v0` and never added to
 (`func_800B5A08`). `func_800B5CE8` is the example that needs the early
 init.
 
+## Index `&base[i]` so the IV is a raw offset, not a pointer
+
+When the target walks a mid-struct array with
+
+```
+li    s2, 0x460          /* first element */
+addu  a1, s1, s2         /* obj + offset */
+...
+addiu s2, s2, 0x28       /* stride */
+```
+
+a running pointer (`slot = (Type*)obj->pad + 1; slot++`) emits
+`addiu sN, obj, 0x460` / `move a1, sN` and often swaps the callee-saved
+regs that hold `obj` vs the walker.
+
+Index the array instead (counter starts at 1 so the first offset is
+`base + stride`):
+
+```c
+i = 1;
+if (i < obj->count) {
+    do {
+        func(ctx, (Slot*)obj->pad_438 + i);
+        i++;
+    } while (i < obj->count);
+}
+```
+
+GCC strength-reduces `i * sizeof(Slot) + 0x438` to a single offset IV
+starting at `0x460`. `func_80105B0C` is the example; sibling `func_80103AC0`
+is the same loop with only the index passed through.
+
 

@@ -128,7 +128,7 @@ typedef struct _GameActor {
     /* 0x17C */ GpRec18             field_17C[18];   // func_800E1A6C / func_801041B4
     /* 0x32C */ byte                pad_32C[0xF8];
     /* 0x424 */ byte                field_424[0x14]; // GpAnimCtx overlay; func_800B4514
-    /* 0x438 */ byte                pad_438[9];
+    /* 0x438 */ byte                pad_438[9];      // GpAnimSlot array base; func_80105B0C
     /* 0x441 */ u8                  field_441;       // slid-actor overlay; see GameActorSlot
     /* 0x442 */ byte                pad_442[6];
     /* 0x448 */ GameActorSlot       field_448[19];

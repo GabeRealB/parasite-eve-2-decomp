@@ -601,7 +601,20 @@ s32 func_80105AB0(GpActorWork* arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105B0C);
+void func_80105B0C(GpActorWork* arg0)
+{
+    GameActor* inner;
+    s32        i;
+
+    inner = arg0->actor;
+    i     = 1;
+    if (i < inner->field_938) {
+        do {
+            func_800B3DF4((GpAnimCtx*)inner->field_424, (GpAnimSlot*)inner->pad_438 + i);
+            i++;
+        } while (i < inner->field_938);
+    }
+}
 
 void func_80105B74(VECTOR3* arg0)
 {
