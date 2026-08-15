@@ -284,7 +284,16 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7320);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A746C);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A74C4);
+s32 func_800A74C4(void)
+{
+    WipSysConfig* p;
+
+    p = &D_80073B88;
+    if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
+        return 0;
+    }
+    return p->field_26 == 4;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7508);
 
