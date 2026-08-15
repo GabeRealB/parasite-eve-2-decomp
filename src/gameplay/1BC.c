@@ -658,7 +658,25 @@ void func_800B60C0(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B6118);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B62D4);
+void func_800B62D4(void)
+{
+    Task*      child;
+    Task*      iter;
+    TmdObject* obj;
+
+    child = ((Task*)Game_GetPtrSlot(4))->firstChild;
+    if (child != NULL) {
+        iter = child;
+        do {
+            if (iter->spawnType == 1) {
+                obj           = iter->extra;
+                obj->field_C |= 4;
+                Tmd_FreeBuffers(obj);
+            }
+            iter = iter->nextSibling;
+        } while (iter != child);
+    }
+}
 
 void func_800B6358(Task* task)
 {

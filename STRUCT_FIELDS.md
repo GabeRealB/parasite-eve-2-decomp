@@ -609,6 +609,7 @@ slot is occupied, else 0, then calls `func_801061F0`.
 ### `TmdObject` / `TmdSource`
 | Off | Member | Role |
 |-----|--------|------|
+| TmdObject.0x0C | `field_C` | Flags; bit 2 (`0x4`) skips buffer (re)alloc (`Tmd_AllocMissingBuffers`) and is set by `func_800B62D4` before `Tmd_FreeBuffers` |
 | TmdObject.0x10 | `field_10` | `TmdSource*` |
 | TmdObject.0x18 | `field_18` | Aux buffer (`Tmd_AllocBuffers`) |
 | TmdObject.0x24 | `field_24` | Stream param; `Tmd_ProcessStream` copies to scratch `field_70` as `s8` |
