@@ -188,9 +188,20 @@ typedef struct _GpSlot70 {
 } GpSlot70;
 STATIC_ASSERT_SIZEOF(GpSlot70, 0xC);
 
+/// Pending flags written by `func_800D5B14` and consumed by `func_800CE294`.
+/// `D_8010F888 == 1` requests `func_800AC464(..., 0x402, ...)`.
+extern s32 D_8010F888;
+
 /// Signed pending item id consumed by `func_800D68C4`. `func_800D5B14`
 /// stores the id, or its negation for the second `GpItemSlot` pair.
+/// `func_800CE294` also consumes it (with `D_8010F890`) via `func_801088D4`.
 extern s32 D_8010F88C;
+
+/// Non-zero when `D_8010F88C` should be applied by `func_800CE294`.
+extern s32 D_8010F890;
+
+/// Pending id consumed by `func_800CE294`; `0x3E` also calls `func_8010A1B0`.
+extern s32 D_8010F894;
 
 /// Head of the `GpLinkNode` list walked by `func_800DAB38` / `func_800DABEC`.
 extern GpLinkNode* D_80115268;

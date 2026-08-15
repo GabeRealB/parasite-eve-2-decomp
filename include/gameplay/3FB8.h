@@ -79,6 +79,7 @@ extern u8 D_80112E2C[][2];
 void func_800FC6C0(void);
 void func_80101408(GpActorWork* arg0);
 void func_801041FC(GpActorWork* arg0, s32 arg1);
+void func_801088D4(GpActorWork* arg0, s32 arg1, s32 arg2);
 void func_80109170(GpActorWork* arg0);
 void func_8010A1B0(s32 arg0, s32 arg1);
 void func_8010A42C(GpActorWork* arg0, s32 arg1);

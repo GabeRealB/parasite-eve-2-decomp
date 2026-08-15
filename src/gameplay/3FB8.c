@@ -55,7 +55,6 @@ void  func_80108684(GpActorWork* arg0);
 void  func_8010870C(GpActorWork* arg0, s32 arg1);
 void  func_80108770(GpActorWork* arg0, s32 arg1);
 void  func_80108874(GpActorWork* arg0);
-void  func_801088D4(GpActorWork* arg0, s32 arg1, s32 arg2);
 void  func_80108E0C(GpActorWork* arg0, GpLinkNode* arg1);
 void  func_80109290(GpActorWork* arg0);
 void  func_80109374(GpActorWork* arg0);

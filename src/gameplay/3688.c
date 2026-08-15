@@ -2,6 +2,7 @@
 
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
+#include "gameplay/3A34.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
@@ -65,6 +66,9 @@ void       func_80049024(UiObject* arg0, UiObject* arg1, UiObject* arg2);
 GpItemRec* func_800D6910(s32 arg0);
 s32        func_8005414C(s32 arg0, s32 arg1, s32 arg2);
 void       func_800C5C2C(s32 arg0, s32 arg1);
+s32        func_800A7508(void);
+s32        func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+void       func_8003E64C(void);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800BF9FC);
 
@@ -295,7 +299,34 @@ void func_800CE1E0(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE22C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE294);
+void func_800CE294(Task* arg0)
+{
+    void* slot;
+
+    slot = Game_GetPtrSlot(3);
+    if ((D_8010F88C != 0) && (D_8010F890 != 0)) {
+        if (func_800A7508() == 0) {
+            D_8010F88C = 0;
+        } else if (D_8010F88C > 0) {
+            func_801088D4(slot, 0, 1);
+        } else {
+            func_801088D4(slot, 1, 1);
+        }
+        D_8010F890 = 0;
+    }
+    if (D_8010F888 == 1) {
+        func_800AC464(slot, 0x402, 0, 0);
+        D_8010F888 = 0;
+    }
+    if (D_8010F894 != 0) {
+        if (D_8010F894 == 0x3E) {
+            func_8010A1B0(0, 0x80);
+        }
+        D_8010F894 = 0;
+    }
+    func_8003E64C();
+    Task_CallExit(arg0);
+}
 
 void func_800CE398(s32 arg0)
 {
