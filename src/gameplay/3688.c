@@ -493,7 +493,32 @@ void func_800D1E28(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D1EB8);
+void func_800D1EB8(Task* arg0)
+{
+    RECT rect;
+
+    if (arg0->spawnArg1 != 0) {
+        return;
+    }
+
+    arg0->killCountdown--;
+    if (arg0->killCountdown == 0) {
+        if ((s8)Display_State.field_122 == 0) {
+            rect.x = 0x380;
+            rect.w = 0x80;
+            rect.y = 0;
+            rect.h = 0x100;
+            func_800A96A0();
+            LoadImage2(&rect, (u_long*)(D_80068F88 + 0xFFFDA800));
+        }
+        arg0->spawnArg1++;
+    } else if (arg0->killCountdown >= 2) {
+        func_800D02A4(arg0);
+        func_800D0C34(arg0);
+        func_800D0614(arg0);
+        func_800D08D4(arg0);
+    }
+}
 
 void func_800D1F90(Task* arg0)
 {
