@@ -264,7 +264,12 @@ void func_80103B5C(GpActorWork* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103B88);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103C74);
+void func_80103C74(GsCOORDINATE2* arg0, VECTOR3* arg1, VECTOR3* arg2)
+{
+    arg2->vx = arg1->vx - arg0->coord.t[0];
+    arg2->vy = arg1->vy - arg0->coord.t[1];
+    arg2->vz = arg1->vz - arg0->coord.t[2];
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103CB4);
 
