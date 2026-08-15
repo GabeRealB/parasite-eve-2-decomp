@@ -49,6 +49,48 @@ case 0:
 `func_80109684` is the pure example. A bare `p->field_95E = 1` stuck at ~94%
 with an otherwise identical switch.
 
+## Write the `== 0` arm first so a sibling store rematerializes the field
+
+When the target reloads a u8 after `beqz` (`lbu field; beqz; lbu field`) and
+uses `bnez` to the non-zero store, the natural
+
+```c
+if (p->field) {
+    item = table[p->field + K].id; /* CSE reuses the first lbu */
+    if (item) {
+        p->out = item + C;
+    } else {
+        p->out = 0;
+    }
+} else {
+    p->out = 0;
+}
+```
+
+folds the two zero stores together: one load, `beqz` to the shared `sb zero`.
+The sibling `p->out = 0` is never in the same block as the second read, so CSE
+keeps the first `lbu`.
+
+Write the empty arm first. That store through `p` kills CSE, the else
+rematerializes the field, and the inner `== 0` / else-value pair emits
+`bnez` to the value store with `sb zero` in the `j` delay slot:
+
+```c
+if (p->field_21 == 0) {
+    p->field_22 = 0;
+} else {
+    item = D_80072330[p->field_21 + 0x7F].field_0; /* second lbu */
+    if (item == 0) {
+        p->field_22 = 0;
+    } else {
+        p->field_22 = item + 0x61;
+    }
+}
+```
+
+`func_800BBF1C` is the example. `if (p->field_21) { ... if (item) ... }` stuck
+at 88% with the load reused and the inner branch inverted.
+
 ## Comma-assign so `li sN,K` lands only on the else path
 
 When K is compared on one side of a short-circuit and later stored from a

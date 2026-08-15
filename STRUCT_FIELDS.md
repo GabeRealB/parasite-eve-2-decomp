@@ -578,7 +578,10 @@ slot 3; `func_80106238` replaces bits 14–15 with `(arg1 << 1) | arg2`.
 
 ### `WipSysConfig`
 `field_21` is a u8 packed into `GameActor.field_124` bits 8–15 by `func_801061F0`.
+It stores selected item id − 0x7F (`func_800CF448`); 0 means none selected.
 `field_22` is a u8 packed into `GameActor.field_124` bits 0–7 by `func_801061F0`.
+`func_800BBF1C` sets it to `D_80072330[field_21 + 0x7F].field_0 + 0x61` when a
+slot is occupied, else 0, then calls `func_801061F0`.
 `field_24` is a u8 cleared by `func_801053A0`; `func_8010C81C` saves and restores it around that call.
 `field_25` is an OR mask of PE/status bits set by `func_8010A42C` (same bit as the `func_800ECA10` arg).
 

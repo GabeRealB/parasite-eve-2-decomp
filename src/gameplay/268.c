@@ -37,6 +37,7 @@ s32   func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
 void  func_800BAEC0(s32 arg0);
 void  func_800BAE5C(s32 arg0);
 s32   func_800BBCCC(GpItemRec* arg0, GpItemScan* arg1, s32* arg2, s32 arg3);
+void  func_801061F0(void);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B7420);
 
@@ -388,7 +389,24 @@ void func_800BBF04(s32 arg0)
     p->field_5BE = 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBF1C);
+void func_800BBF1C(void)
+{
+    WipSysConfig* p;
+    u8            item;
+
+    p = &D_80073B88;
+    if (p->field_21 == 0) {
+        p->field_22 = 0;
+    } else {
+        item = D_80072330[p->field_21 + 0x7F].field_0;
+        if (item == 0) {
+            p->field_22 = 0;
+        } else {
+            p->field_22 = item + 0x61;
+        }
+    }
+    func_801061F0();
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBF84);
 
