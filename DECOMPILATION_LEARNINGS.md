@@ -13481,3 +13481,20 @@ return val != 0;
 Inlining `(1 << (arg0 % 32))` without first assigning `arg0 %= 32` drops
 back to the `srav` form. `func_800BB4BC` is the example.
 
+## Do not hoist the jump-table index object before the struct copy
+
+Dispatchers that copy a function-pointer table onto the stack
+(`sp = D_xxx; sp.funcs[idx](arg0)`) need that copy to be the first
+memory work. Pulling `inner = arg0->actor` (or any other index source)
+above the assignment hoists `lw actor` ahead of the multi-load/store,
+which also swaps the table pointer from `$a3` to `$t0`.
+
+Index through `arg0->actor->field` in the call itself:
+
+```c
+sp = D_800979F8;
+sp.funcs[(u16)arg0->actor->field_96C](arg0);
+```
+
+`func_80108E40` is the example.
+

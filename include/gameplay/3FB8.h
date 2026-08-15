@@ -14,6 +14,13 @@ typedef struct _GpActorWork {
     /* 0x1C */ GameActor* actor;
 } GpActorWork;
 
+typedef void (*GpActorFunc)(GpActorWork* arg0);
+
+/// 4-entry callback table copied onto the stack by `func_80108E40`.
+typedef struct {
+    GpActorFunc funcs[4];
+} GpActorFuncTable4;
+
 /// 0xD4-byte block allocated by `func_8010BAC8` (`Mem_Set` size 0xD4) and
 /// stored at `GameActor.field_910`. `func_8010BF7C` writes `field_C4`.
 typedef struct _GpActorD4 {
@@ -46,6 +53,9 @@ STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 
 /// Current actor-work pointer; cleared when the work task is torn down.
 extern GpActorWork* volatile D_80115760;
+
+/// `field_96C` dispatcher: three slots of `func_80109170`, then `func_80109208`.
+extern GpActorFuncTable4 D_800979F8;
 
 void func_800FC6C0(void);
 void func_80101408(GpActorWork* arg0);

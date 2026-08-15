@@ -24,6 +24,9 @@ s32   func_8010A854(s32 arg0);
 void  func_8003E64C(void);
 s32   func_80037164(void);
 Task* func_8002CFA0(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
+void  func_80101848(GpActorWork* arg0);
+void  func_80101A68(GpActorWork* arg0);
+void  func_80101F58(GpActorWork* arg0);
 void  func_801038F8(GpActorWork* arg0, s32 arg1);
 void  func_8010397C(GpActorWork* arg0, s32 arg1, s32 arg2);
 void  func_80103A18(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -746,7 +749,17 @@ void func_80108E0C(GpActorWork* arg0, GpLinkNode* arg1)
     arg1->field_5 = 1;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108E40);
+void func_80108E40(GpActorWork* arg0)
+{
+    GpActorFuncTable4 sp;
+
+    sp = D_800979F8;
+    sp.funcs[(u16)arg0->actor->field_96C](arg0);
+    func_80101848(arg0);
+    func_80103AC0(arg0);
+    func_80101F58(arg0);
+    func_80101A68(arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108ED4);
 
