@@ -28,7 +28,7 @@ typedef struct _GpItemMap {
 STATIC_ASSERT_SIZEOF(GpItemMap, 0x4);
 
 /// 4-byte scan descriptor for `func_800BB500` / `func_800BB6FC` /
-/// `func_800BB5BC` / `func_800BB610`. field_0 is
+/// `func_800BB5BC` / `func_800BB540` / `func_800BB610`. field_0 is
 /// the start index into a 4-byte item table; field_1 is the entry count;
 /// field_2 selects the table (1 / 2 / default). Also the object at
 /// `Mc_SaveData.field_5BC` (`D_80072724`). `D_8010D520` is a ROM default
@@ -134,6 +134,7 @@ s32         func_800BB418(s32 arg0, s32 arg1);
 s32         func_800BB470(s32 arg0);
 s32         func_800BB4BC(s32 arg0);
 GpItemRec*  func_800BB500(GpItemScan* arg0);
+s32         func_800BB540(GpItemScan* arg0, GpItemRec* arg1);
 GpItemRec*  func_800BB5BC(GpItemScan* arg0, s32 arg1);
 s32         func_800BB610(GpItemScan* arg0, s32 arg1);
 s32         func_800BB6FC(GpItemScan* arg0, s32 arg1);

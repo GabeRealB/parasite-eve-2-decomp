@@ -13890,4 +13890,59 @@ recs    = recs + f6;
 `lhu` + `andi`); neighbouring functions that `lhu` the same halfword can
 overlay it later.
 
+## Pin the loop index, not the switch-selected table
+
+A switch that picks a global table address wants the split form that
+reuses `$v0` as the `%hi` temp and writes the table into `$v1`:
+
+```
+bne   v1, v0, default
+ lui  v0, %hi(D_default)     /* delay: preload default */
+lui   v0, %hi(D_case2)
+j     join
+ addiu v1, v0, %lo(D_case2)
+default:
+addiu v1, v0, %lo(D_default)
+```
+
+That is the same coloring as the sibling leaf (`func_800BB5BC`) that
+has no extra locals. Adding a loop index and a `-1` return value
+steals `$a2` for the table and `$v1` for the index — the instruction
+stream stays identical, only those two registers swap (~98%).
+
+Pinning the table to `$v1` is the wrong pin. It forces
+`lui v1; addiu v1, v1, %lo` and drops the default-table `%hi` from the
+`bne` delay slot (see the `lui v1; addiu v1, v1` entry). Pin the
+competing index instead so the table can still coalesce with the
+switch temp:
+
+```c
+GpItemRec*   table;
+register s32 i asm("a2");
+s32          ret;
+
+switch (scan->field_2) {
+case 2:
+    table = D_case2;
+    break;
+case 1:
+    table = D_indirect;
+    break;
+default:
+    table = D_default;
+    break;
+}
+ret = -1;
+table += scan->field_0;
+for (i = 0; i < scan->field_1; i++) {
+    if (table == rec) {
+        ret = i;
+        break;
+    }
+    table++;
+}
+```
+
+`func_800BB540` is the example.
+
 

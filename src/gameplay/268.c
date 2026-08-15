@@ -285,7 +285,35 @@ GpItemRec* func_800BB500(GpItemScan* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB540);
+s32 func_800BB540(GpItemScan* arg0, GpItemRec* arg1)
+{
+    GpItemRec*   table;
+    register s32 i asm("a2");
+    s32          ret;
+
+    switch (arg0->field_2) {
+        case 2:
+            table = D_80114C20;
+            break;
+        case 1:
+            table = D_80114D70;
+            break;
+        default:
+            table = D_80072314;
+            break;
+    }
+
+    ret    = -1;
+    table += arg0->field_0;
+    for (i = 0; i < arg0->field_1; i++) {
+        if (table == arg1) {
+            ret = i;
+            break;
+        }
+        table++;
+    }
+    return ret;
+}
 
 GpItemRec* func_800BB5BC(GpItemScan* arg0, s32 arg1)
 {
