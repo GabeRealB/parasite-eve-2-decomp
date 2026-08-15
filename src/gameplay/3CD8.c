@@ -325,7 +325,16 @@ done:
     return arg0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6EF4);
+void func_800E6EF4(Task* task)
+{
+    if (task->state > 0) {
+        if (D_801155A8 != 0 && D_8011565A == 0) {
+            D_801155A8 = 0;
+        }
+        Task_Kill(task);
+    }
+    task->state++;
+}
 
 void func_800E6F60(Task* task)
 {
