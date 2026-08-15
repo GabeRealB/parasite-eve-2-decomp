@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include <psyq/rand.h>
 #include <psyq/stdio.h>
 
 #include "gameplay/1BC.h"
@@ -41,6 +42,7 @@ extern TaskDesc D_8018384C[];
 extern s32      D_8010D208[];
 extern char     D_800939F8[];
 extern s32      D_80070F10;
+extern s32      D_80070F60;
 extern u8       D_80071068; // Display_State.field_100
 extern u8       D_800626E8;
 extern s32      D_80114D20;
@@ -55,7 +57,20 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AFF90);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0034);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B00C4);
+void func_800B00C4(void)
+{
+    CdCmdQueue* p;
+
+    p            = &CdCmd_Queue;
+    p->field_1FE = 0xFF;
+    p->field_23A = 1;
+    p->field_214 = 0;
+    p->field_212 = 0;
+    p->field_216 = 0;
+    p->field_240 = 0;
+    D_80070F60   = p->field_1A8;
+    srand(p->field_1AC);
+}
 
 s32 func_800B0118(s32 arg0, s32 arg1)
 {

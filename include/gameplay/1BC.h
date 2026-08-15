@@ -99,6 +99,7 @@ typedef struct _GpAreaKey {
 /// `GameSession.field_7` via `&Game_Session->field_4`).
 extern GpAreaRec* D_8010CBCC[];
 
+void     func_800B00C4(void);
 s32      func_800B0118(s32 arg0, s32 arg1);
 GpEnemy* func_800B0168(s32 bank, s32 type, s32 arg2, GpEnemy* parent);
 GpEnemy* func_800B01AC(TaskDesc* table, s32 idx, s32 arg2, GpEnemy* parent);

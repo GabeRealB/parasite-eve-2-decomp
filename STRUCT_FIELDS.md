@@ -199,6 +199,8 @@ Convention: only list fields with evidence. Unlisted `field_*` / `unknown_*` /
 | 0x48 | `field_48` | Last `CdPosToInt` |
 | 0x58 | `field_58[5]` | Stream decode slots |
 | 0x190 | `field_190` | `CdCmd190*` stream descriptor |
+| 0x1A8 | `field_1A8` | Copied to `D_80070F60` by `func_800B00C4` |
+| 0x1AC | `field_1AC` | `srand` seed restored by `func_800B00C4` |
 
 ### `CdCmd58Entry` / `CdCmd190`
 See inline comments in `fs.h` (buffer offsets, stream id, VLC slots).

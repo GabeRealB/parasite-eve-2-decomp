@@ -222,7 +222,9 @@ typedef struct _CdCmdQueue {
     u32*         field_19C;   // 0x19C — copy of field_1A4; timing table cursor
     u32          field_1A0;   // 0x1A0 — timing accumulator (GameMain_Loop)
     void*        field_1A4;   // 0x1A4 — secondary image/stream buffer
-    byte         unknown_1A8[0x20];
+    s32          field_1A8;   // 0x1A8 — copied to D_80070F60 by func_800B00C4
+    u32          field_1AC;   // 0x1AC — srand seed restored by func_800B00C4
+    byte         unknown_1B0[0x18];
     u16          writeIdx;    // 0x1C8 — next free slot (enqueue)
     u16          readIdx;     // 0x1CA — slot being executed
     byte         unknown_1cc[0x4];
@@ -276,7 +278,8 @@ typedef struct _CdCmdQueue {
     s16          field_234;
     s16          field_236;
     s16          field_238; // 0x238 — non-zero clears field_18C in CdCmd_SetupMdecBuffers
-    byte         unknown_23A[0x4];
+    s16          field_23A; // 0x23A — set to 1 by func_800B00C4
+    byte         unknown_23C[0x2];
     s16          field_23E; // MoveImage vs ClearImage path for Mdec_DecodeToVram
     s16          field_240; // non-zero enables CD timing wait (GameMain_Loop)
     s16          field_242;

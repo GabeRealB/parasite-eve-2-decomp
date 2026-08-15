@@ -104,6 +104,7 @@ func_8002FDCC = 0x8002FDCC; // absolute:True
 Text_DrawPrompt = 0x8002FDCC; // absolute:True
 func_80037164 = 0x80037164; // absolute:True
 func_80037194 = 0x80037194; // absolute:True
+srand = 0x80037194; // absolute:True
 func_8003B8A0 = 0x8003B8A0; // absolute:True
 func_8003B960 = 0x8003B960; // absolute:True
 func_8003C4F0 = 0x8003C4F0; // absolute:True
