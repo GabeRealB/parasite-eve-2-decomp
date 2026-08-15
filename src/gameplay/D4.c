@@ -167,7 +167,21 @@ void func_800A9BE4(void)
     func_800A9310();
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9C50);
+void func_800A9C50(void)
+{
+    u8 param1[8];
+    u8 param2[8];
+
+    CdCmd_Enqueue(0x54, &Game_Session->field_4, NULL);
+    param1[3] = 0;
+    param1[2] = 0x5A;
+    param1[0] = Game_Session->field_7;
+    param2[3] = 0;
+    param2[2] = 0;
+    param2[1] = 0;
+    param2[0] = 0;
+    CdCmd_Enqueue(0x21, param1, param2);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9CBC);
 
