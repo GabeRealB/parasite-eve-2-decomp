@@ -134,6 +134,7 @@ extern GsCOORDINATE2 D_80070F10;
 void func_800E34D8(s32 arg0, s16 arg1);
 void func_800E3B80(s32 arg0);
 void func_800E3BBC(s32 arg0);
+void func_800E40BC(s32 arg0, s32 arg1);
 s32  func_800E6CE0(void);
 
 void func_800EA3A0(s32 arg0);
