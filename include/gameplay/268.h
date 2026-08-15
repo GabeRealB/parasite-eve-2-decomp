@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include "main/session.h"
+
 /// 8-byte inventory slot in `D_80072330`. field_0/field_2 are item ids;
 /// field_1/field_3 are the matching counts (`func_800BAFF4`).
 typedef struct _GpItemSlot {
@@ -73,12 +75,22 @@ typedef struct _GpItemQty {
 } GpItemQty;
 STATIC_ASSERT_SIZEOF(GpItemQty, 0x4);
 
+/// 8-byte entry in `D_8010D230`, indexed by session field_7 /
+/// `GameSessionFrom4.field_3`. field_4 is packed 2-bit flags
+/// (`func_800BB974` / `func_800BB8E8` / `func_800BB470`).
+typedef struct _GpBit2Bank {
+    /* 0x00 */ void* field_0;
+    /* 0x04 */ u32*  field_4;
+} GpBit2Bank;
+STATIC_ASSERT_SIZEOF(GpBit2Bank, 0x8);
+
 /// 4-word (128-bit) flag array at `Mc_SaveData+0x5AC`. Indexed with
 /// `id & 0x7F` (`func_800BAE5C` / `func_800BAEC0` / `func_800BB4BC`).
 extern s32        D_80072714[4];
 extern GpItemRec  D_80072314[];
 extern GpItemSlot D_80072330[];
 extern GpItemScan D_80072724;
+extern GpBit2Bank D_8010D230[];
 extern GpItemQty  D_8010D278[];
 extern GpItemMap  D_8010D2F8[];
 extern GpItemScan D_8010D520;
@@ -100,6 +112,7 @@ GpItemRec*  func_800BB5BC(GpItemScan* arg0, s32 arg1);
 s32         func_800BB610(GpItemScan* arg0, s32 arg1);
 s32         func_800BB6FC(GpItemScan* arg0, s32 arg1);
 void        func_800BB7C0(s32 arg0, s32 arg1);
+s32         func_800BB974(GameSessionFrom4* arg0, s32 arg1);
 GpItemMap*  func_800BBDC8(s32 arg0);
 s32         func_800BBEC0(s32 arg0);
 

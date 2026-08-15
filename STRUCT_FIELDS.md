@@ -823,6 +823,15 @@ Row in the item tables selected by `GpItemScan` (`D_80072314` /
 | 0x01 | `field_1` | Count (compared as signed by `func_800CF448` / `func_800B91C8`) |
 | 0x02 | `field_2` | u16 quantity accumulated by `func_800BB6FC` |
 
+### `GpBit2Bank` (0x8) — `268.h`
+Per-stage table at `D_8010D230`, indexed by `GameSession.field_7` /
+`GameSessionFrom4.field_3`. `func_800BB974` / `func_800BB470` extract a
+2-bit field; `func_800BB8E8` writes one.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x04 | `field_4` | `u32*` packed 2-bit flags (16 fields per word; index `>> 4` / `& 0xF`) |
+
 ### `GpItemObj8` — `4CC.h`
 Object at `Task::spawnArg2` for `func_800BF5CC`. Full size unknown.
 

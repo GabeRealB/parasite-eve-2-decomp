@@ -13481,6 +13481,44 @@ return val != 0;
 Inlining `(1 << (arg0 % 32))` without first assigning `arg0 %= 32` drops
 back to the `srav` form. `func_800BB4BC` is the example.
 
+## Keep `$a0` live so `li v1,K` fills the load-delay of `lw v0,0(v1)`
+
+A 2-bit extract that walks `bank->field_4[idx >> 4]` wants this tail:
+
+```
+lw    v1, 4(v1)
+sll   a1, a1, 1
+addu  v1, v1, v0
+lw    v0, 0(v1)
+li    v1, 3
+sllv  v1, v1, a1
+```
+
+`p = bank->field_4; p += idx >> 4; word = *p` is the right address math
+(`addu v1,v1,v0` needs the pointer pinned in `$v1`), but once `$a0` dies
+after the `lbu` of the bank index, GCC hoists `li a0,K` and uses `$a0`
+for the mask. `bank->field_4[idx]` is worse: it copies the address into
+`$v0` (`addu v0,v0,v1`) so `$v1` is free for an early `li v1,K`.
+
+Pin the pointer and keep the now-unused first argument live across the
+load so K waits for `$v1` and lands in the load delay:
+
+```c
+register u32* p asm("v1");
+
+p = table[arg0->field_3].field_4;
+p += arg1 >> 4;
+shift = (arg1 & 0xF) * 2;
+word = *p;
+asm volatile("" :: "r"(arg0));
+return (word & (3 << shift)) >> shift;
+```
+
+`word` must be a separate statement: folding `*p` into the return lets
+`li a0,K` sneak back in front of the load. `func_800BB974` is the example.
+The sibling `func_800BB470` does not need the barrier — its index is
+already in `$a0`, so the shift keeps that register live.
+
 ## Do not hoist the jump-table index object before the struct copy
 
 Dispatchers that copy a function-pointer table onto the stack
