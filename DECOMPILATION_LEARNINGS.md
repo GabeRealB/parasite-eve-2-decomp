@@ -13061,6 +13061,30 @@ and drops the jump to the epilogue. The if/else `ret` local keeps
 `move v0,zero` on the else path after `j` / `subu`. `func_800E1ACC` is the
 example; the same divide appears in `func_800E1B24`.
 
+## Unread `s32[2]` store keeps `sw` + register `andi`
+
+`val = 1 << arg0` then `(u8)val << 12` is `sllv` / `andi` / `sll` in a
+0x18 frame — the word never hits the stack. The target wants that same
+`andi` (not `lbu`) *plus* `sw v0, 0x10(sp)` and a 0x20 frame.
+
+A scalar, `volatile`, union, or `u8*` cast either drops the store or
+reloads with `lbu`. Store the SImode value into an unread `s32[2]` and
+take the byte from the original register:
+
+```c
+s32 mask[2];
+s32 val;
+s32 tmp;
+
+val = 1 << arg0;
+mask[0] = val;           /* sw — array store is not DSE'd */
+tmp = (u8)val << 12;     /* andi of the register, not lbu */
+```
+
+`s32[1]` is only 4 bytes (0x18 frame). `u8 buf[4]` stores with `sb`.
+Reading `mask[0]` back as `u8` becomes `lbu`. `func_800E1B24` is the
+example.
+
 ## Second pointer before `if` fills `move a3, slot` in the branch delay
 
 When the target computes a slot pointer, then:

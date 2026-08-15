@@ -459,7 +459,23 @@ s32 func_800E1ACC(u8* arg0)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1B24);
+s32 func_800E1B24(s32 arg0)
+{
+    s32 mask[2];
+    s32 val;
+    s32 tmp;
+    s32 ret;
+
+    val     = 1 << arg0;
+    mask[0] = val;
+    tmp     = (u8)val << 12;
+    if (tmp != 0) {
+        ret = cln(tmp) / 2839;
+    } else {
+        ret = 0;
+    }
+    return ret;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1B80);
 
