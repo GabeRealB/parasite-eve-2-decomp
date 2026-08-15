@@ -245,6 +245,7 @@ func_80054334 = 0x80054334; // absolute:True
 func_800543AC = 0x800543AC; // absolute:True
 func_80054424 = 0x80054424; // absolute:True
 func_8005454C = 0x8005454C; // absolute:True
+SndBank_SetEnableFlags = 0x8005454C; // absolute:True
 func_8005462C = 0x8005462C; // absolute:True
 func_80054658 = 0x80054658; // absolute:True
 func_8005468C = 0x8005468C; // absolute:True

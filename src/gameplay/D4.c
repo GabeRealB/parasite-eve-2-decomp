@@ -1,11 +1,14 @@
 #include "common.h"
 
+#include "gameplay/3A34.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/mc.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/stage.h"
 #include "main/tmd.h"
 #include "main/unknown_syms.h"
@@ -266,7 +269,21 @@ void func_800AC008(Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AC058);
+void func_800AC058(Task* task)
+{
+    SndBank_SetEnableFlags(0, 0x40000000);
+    if (Game_Session->field_0 != 0) {
+        Task_Kill(task);
+        return;
+    }
+    if ((task->spawnArg1 & 0x10) == 0) {
+        if (D_801153F0.field_0 == 2) {
+            D_801153F0.field_0 = 3;
+        }
+        func_800A7A64();
+    }
+    task->state++;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AC0F0);
 

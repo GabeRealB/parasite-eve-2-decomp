@@ -511,6 +511,7 @@ See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 ### `GameSession` (0x13C)
 | Off | Member | Role |
 |-----|--------|------|
+| 0x0 | `field_0` | s8 flag; nonzero makes `func_800AC058` kill its task immediately |
 | 0x2 | `field_2` | Soft state flag |
 | 0x4–7 | `field_4`… | Bytes used by CD/display helpers |
 | 0xC | `field_C[16]` | Pointer table (cleared by `Game_ClearPtrSlots`) |

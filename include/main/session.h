@@ -30,7 +30,8 @@ typedef struct _SessionBytesAt4 {
 STATIC_ASSERT_SIZEOF(SessionBytesAt4, 0xC);
 
 typedef struct _GameSession {
-    byte  unknown_0[0x2];
+    s8    field_0;
+    byte  unknown_1;
     u8    field_2;
     byte  unknown_3;
     byte  field_4; // address taken by CdCmd_BuildVlcIfStream
