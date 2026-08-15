@@ -87,10 +87,11 @@ typedef struct _GpObj4C {
 STATIC_ASSERT_SIZEOF(GpObj4C, 0x50);
 
 /// 0x4C list node appended to `D_8010FAB0[index]` by `func_800E1688` and
-/// unlinked by `func_800E1708`. `field_4A` bit 0x20 means the node is on
-/// that list (cleared on unlink, keeping bits 0x87); bit 0x80 marks the
-/// last element of an array walked at +0x4C. Callers also store
-/// `D_80070F10` at +0x8 and OR bit 0x40 into `field_4A`.
+/// unlinked by `func_800E1708`. `func_800E1758` empties the whole list.
+/// `field_4A` bit 0x20 means the node is on that list (cleared on unlink,
+/// keeping bits 0x87); bit 0x80 marks the last element of an array walked
+/// at +0x4C. Callers also store `D_80070F10` at +0x8 and OR bit 0x40 into
+/// `field_4A`.
 typedef struct _GpObj4A {
     /* 0x00 */ struct _GpObj4A* next;
     /* 0x04 */ struct _GpObj4A* prev;
@@ -175,6 +176,10 @@ extern GBytes8 D_8010F9E4;
 extern s32 D_8010F9EC;
 extern s32 D_8010F9F0;
 
+/// Two-entry table of `GpObj4A` list heads. `func_800E1688` appends to
+/// `D_8010FAB0[index]`; `func_800E1758` walks and clears that list.
+extern GpObj4A* D_8010FAB0[2];
+
 /// One-entry table of `GpObj3A` list heads. `func_800E17B4` appends to
 /// `D_8010FAB8[index]`; `func_800E1884` walks and clears that list.
 extern GpObj3A* D_8010FAB8[1];
@@ -240,6 +245,7 @@ s32  func_800E076C(void);
 void func_800E0B08(void);
 void func_800E1638(GpObj* node);
 void func_800E1708(s32 arg0, GpObj4A* arg1);
+void func_800E1758(s32 arg0);
 void func_800E1834(s32 arg0, GpObj3A* arg1);
 void func_800E1884(s32 arg0);
 void func_800E18E0(GpRec18* arg0, s32 arg1);
