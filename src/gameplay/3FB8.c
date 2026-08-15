@@ -43,7 +43,6 @@ s32  func_801055D4(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_80105B0C(GpActorWork* arg0);
 s32  func_80105ED4(GpActorWork* arg0);
 void func_8010615C(GpActorWork* arg0);
-void func_801065A8(GpActorWork* arg0);
 void func_801066DC(GpActorWork* arg0, s32 arg1);
 void func_80107E1C(GpActorWork* arg0);
 void func_80108684(GpActorWork* arg0);
@@ -754,7 +753,29 @@ void func_801065A0(void)
 {
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801065A8);
+void func_801065A8(GpActorWork* arg0)
+{
+    GameActor* inner;
+
+    inner = arg0->actor;
+    func_80109374(arg0);
+    if (inner->field_97D & 1) {
+        inner->field_97C = 1;
+        func_8010870C(arg0, 5);
+    } else if (inner->field_973 != inner->field_974 ||
+               (inner->field_977 != inner->field_978 && inner->field_973 == 1)) {
+        func_801066DC(arg0, 0);
+    } else if (inner->field_973 == 0 && inner->field_975 != inner->field_976) {
+        func_80108620(arg0);
+    } else if ((inner->field_962 & 0xF000) == 0) {
+        if (inner->field_942 < 0x7FFF) {
+            inner->field_942++;
+            if (inner->field_942 == 0x12C) {
+                func_80103A18(arg0, func_80103B1C() + 0x17, 0, 5);
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801066DC);
 
