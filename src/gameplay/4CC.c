@@ -28,7 +28,19 @@ INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BEBE4);
 
 INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BF2C8);
 
-INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BF334);
+s32 func_800BF334(s32 arg0, s32 arg1)
+{
+    s32 ret;
+
+    ret = 0;
+    if (D_8010D838[arg0].field_3 & 1) {
+        ret = arg1 == 1;
+    }
+    if ((D_80114D7C == 0x703) && (arg0 == 0x81) && (D_8007216F == 1)) {
+        ret = 1;
+    }
+    return ret;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BF398);
 
