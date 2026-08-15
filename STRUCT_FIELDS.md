@@ -152,11 +152,13 @@ Convention: only list fields with evidence. Unlisted `field_*` / `unknown_*` /
 | Off | Member | Role |
 |-----|--------|------|
 | 0x4–0x9 | `field_4`… | Header region (checksummed from 0x4, size 0x38) |
+| 0x10 | `field_10` | Init bitmask; bit 0 = global init done (`func_800AB980`). Per-slot bit is `field_7` via the `GameSessionFrom4` overlay |
 | 0x12 | `field_12` | Slot index 1..16 |
 | 0x13 | `field_13` | 1-based index into `D_80113360` (`func_800E3D24`); also `D_8007217B` |
 | 0x5C7 | `field_5C7` | signed addend for the `D_80113360` lookup (`func_800E3D24`); also `D_8007272F` |
 | 0x5C8 | `field_5C8[]` | 32 `McItemSlot`s; `func_800BBE54` clears each and sets `field_2` to 0xFF except index 0x1A |
 | 0x1C/1E | checksum pair | Save header sum / ones-complement |
+| 0x6C8/6CA | `field_6C8/6CA` | Halfword pair; `func_800AB980` inits both to 100 on first visit |
 | 0x6D0 | `field_6D0[]` | 96-word bit flags; `func_800BC06C` tests bit `id` for `id < 0x180` (else returns 1); `func_800BBF84` clears all 96 words |
 | 0x888 | `field_888[]` | 1-based `s32` counters; increment capped at 0x1869E (`func_80106518`) |
 | 0x908 | `field_908[]` | 32 signed addends for item ids 0x60–0x7F (`func_800BC324`) |

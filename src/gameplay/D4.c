@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/268.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
@@ -20,9 +21,11 @@
 void func_800A9310(void);
 void func_800A9730(Task* task);
 void func_800AA548(s32 arg0);
+void func_800AE7AC(void);
 void func_800ACD2C(Task* task);
 s32  func_800ACF8C(void);
 void func_800AD024(void);
+void func_80724748(GameSessionFrom4* arg0);
 
 extern TaskDesc D_80183824[];
 
@@ -269,7 +272,32 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AB5F4);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AB828);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AB980);
+void func_800AB980(GameSessionFrom4* arg0)
+{
+    McSaveData*  save;
+    GpFlagBank** banks;
+    GpFlagBank*  bank;
+
+    banks = D_80060A30;
+    save  = &Mc_SaveData;
+    if ((save->field_10 & 1) == 0) {
+        save->field_10 = 1;
+        func_800E4080();
+        func_800AE7AC();
+        save->field_6CA = 0x64;
+        save->field_6C8 = 0x64;
+        func_800B8014();
+    }
+    if ((((s8)save->field_10 >> arg0->field_3) & 1) == 0) {
+        bank          = banks[arg0->field_3];
+        bank->field_4 = 0;
+        bank->field_8 = 0;
+        func_800BAB64(arg0->field_3);
+        if (Display_State.field_112 != 0) {
+            func_80724748(arg0);
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ABA4C);
 
