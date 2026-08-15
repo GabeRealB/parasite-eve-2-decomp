@@ -170,6 +170,7 @@ void func_800E06AC(GpObj* node, s32 mask, s32 match);
 s32  func_800E076C(void);
 void func_800E0B08(void);
 void func_800E1638(GpObj* node);
+s32  func_800E1ACC(u8* arg0);
 s32  func_800E2C40(GpU16Pair* arg0, s32 arg1);
 void func_800E3008(GpObj4C* arg0);
 void func_8010154C(void);

@@ -210,6 +210,7 @@ func_80049D84 = 0x80049D84; // absolute:True
 func_8004A09C = 0x8004A09C; // absolute:True
 func_8004A98C = 0x8004A98C; // absolute:True
 func_8004AB60 = 0x8004AB60; // absolute:True
+cln = 0x8004AB60; // absolute:True
 GameFlag_SetNibble = 0x8004AC58; // absolute:True
 func_8004ACAC = 0x8004ACAC; // absolute:True
 func_8004ACF0 = 0x8004ACF0; // absolute:True

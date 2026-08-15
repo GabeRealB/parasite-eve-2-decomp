@@ -13023,3 +13023,24 @@ if (p->arr[idx] <= cap) {
 
 `func_80106518` is the example.
 
+## `cln(n << 12) / 2839` is integer log2
+
+`cln` is libgte's 20.12 natural log. `4096 * ln(2) ≈ 2839.13`, so
+`cln(n << 12) / 2839` is integer `log2(n)`. GCC emits magic `0x5C56347B`
+plus `sra 10` for signed `/ 2839`. Zero is special-cased because `ln(0)`
+is undefined:
+
+```c
+val = *arg0 << 12;
+if (val != 0) {
+    ret = cln(val) / 2839;
+} else {
+    ret = 0;
+}
+```
+
+An early `return cln(val) / 2839` fills the `beqz` delay with `move v0,zero`
+and drops the jump to the epilogue. The if/else `ret` local keeps
+`move v0,zero` on the else path after `j` / `subu`. `func_800E1ACC` is the
+example; the same divide appears in `func_800E1B24`.
+
