@@ -97,7 +97,7 @@ STATIC_ASSERT_SIZEOF(McItemScan, 0x4);
 /// Mc_VerifySaveHdrChecksum). field_93C is a save-data checksum halfword
 /// compared by Mc_CompareSaveChecksum. field_940 / field_942 are a sum /
 /// ones-complement pair over the first byte of Mc_BufferSlots[1..8] buffers
-/// (written by Mc_WriteFirstByteChecksum; field_940 is also known as D_80072AA8).
+/// (written by Mc_WriteFirstByteChecksum).
 typedef struct _McSaveData {
     /* 0x000 */ byte       unknown_0[0x4];
     /* 0x004 */ u8         field_4;
@@ -110,21 +110,21 @@ typedef struct _McSaveData {
     /* 0x00C */ u16        field_C;
     /* 0x00E */ byte       unknown_E[0x4];
     /* 0x012 */ u8         field_12;
-    /* 0x013 */ s8         field_13; // also D_8007217B; 1-based index into D_80113360
+    /* 0x013 */ s8         field_13; // 1-based index into D_80113360
     /* 0x014 */ byte       unknown_14[0x8];
     /* 0x01C */ u16        field_1C;
     /* 0x01E */ u16        field_1E;
     /* 0x020 */ byte       unknown_20[0x1];
-    /* 0x021 */ s8         field_21; // also D_80072189; lb in title restore / gameflow
-    /* 0x022 */ s8         field_22; // also D_8007218A; 1-based row for D_80112E2C
-    /* 0x023 */ s8         field_23; // also D_8007218B
+    /* 0x021 */ s8         field_21; // lb in title restore / gameflow
+    /* 0x022 */ s8         field_22; // 1-based row for D_80112E2C
+    /* 0x023 */ s8         field_23;
     /* 0x024 */ byte       unknown_24[0x1];
     /* 0x025 */ u8         field_25;
     /* 0x026 */ byte       unknown_26[0x182];
     /* 0x1A8 */ s8         field_1a8;
-    /* 0x1A9 */ u8         field_1a9;
+    /* 0x1A9 */ s8         field_1a9;
     /* 0x1AA */ u8         field_1aa;
-    /* 0x1AB */ u8         field_1ab;
+    /* 0x1AB */ s8         field_1ab;
     /* 0x1AC */ McItemRec  field_1AC[7];
     /* 0x1C8 */ McItemSlot field_1C8[0x7C];
     /* 0x5A8 */ byte       unknown_5A8[4];
@@ -132,12 +132,13 @@ typedef struct _McSaveData {
     /* 0x5BC */ McItemScan field_5BC;
     /* 0x5C0 */ byte       unknown_5C0[2];
     /* 0x5C2 */ s8         field_5C2;
-    /* 0x5C3 */ byte       unknown_5C3[0x2];
-    /* 0x5C5 */ u8         field_5C5;
+    /* 0x5C3 */ s8         field_5C3;
+    /* 0x5C4 */ byte       unknown_5C4;
+    /* 0x5C5 */ s8         field_5C5;
     /* 0x5C6 */ byte       unknown_5C6[0x1];
-    /* 0x5C7 */ s8         field_5C7; // also D_8007272F; addend for D_80113360 lookup
+    /* 0x5C7 */ s8         field_5C7; // addend for D_80113360 lookup
     /* 0x5C8 */ byte       unknown_5C8[0x100];
-    /* 0x6C8 */ u16        field_6C8; // also D_80072830
+    /* 0x6C8 */ u16        field_6C8;
     /* 0x6CA */ u16        field_6CA;
     /* 0x6CC */ byte       unknown_6CC[4];
     /* 0x6D0 */ s32        field_6D0[0x60]; // bit flags; func_800BC06C tests id < 0x180; func_800BBF84 clears all 96 words
@@ -149,7 +150,7 @@ typedef struct _McSaveData {
     /* 0x92A */ byte       unknown_92A[0x12];
     /* 0x93C */ u16        field_93C;
     /* 0x93E */ byte       unknown_93E[0x2];
-    /* 0x940 */ s16        field_940;
+    /* 0x940 */ u16        field_940;
     /* 0x942 */ s16        field_942;
 } McSaveData;
 STATIC_ASSERT_SIZEOF(McSaveData, 0x944);
@@ -267,19 +268,11 @@ extern McWork D_80071730;
 extern u8 D_80060DC8[];
 /// 64-byte character table for random memcard filename body.
 extern u8   D_80060E08[];
-extern s16  D_80072AA4;
-extern u16  D_80072AA8;
 extern u8   D_80060A54[];
 extern u8   D_80060A58[];
 extern u8   D_80060A5C[];
 extern u8   D_80060A64[];
 extern char D_80013BB4[];
-extern u8   D_8007216C;
-extern s8   D_80072189;
-extern s8   D_8007218B;
-extern s8   D_80072311;
-extern u8   D_80072312;
-extern s8   D_80072313;
 extern u8   D_800733F0[2][0x6C];
 extern u8   D_800734C8[2][0xB0];
 extern u8   D_80073628[2][0x24];

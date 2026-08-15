@@ -10,7 +10,9 @@
 /// WIP: boot/gamemain flag block (Wip_SysFlags). field_4 set on soft-reset paths;
 /// field_6 polled/cleared in boot and stream paths. Role not fully proven.
 typedef struct _WipSysFlags {
-    byte unknown_0[0x4];
+    byte field_0;
+    s8   field_1;
+    byte unknown_2[2];
     s16  field_4;
     s16  field_6;
     byte unknown_8[0x18];

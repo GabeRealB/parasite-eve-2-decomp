@@ -238,7 +238,7 @@ typedef struct _SndBankPayload {
     /* 0x8 */ u8  field_8;
 } SndBankPayload;
 
-/// State block at SndLoad_State; field_3 is also D_800820F3.
+/// State block at SndLoad_State.
 /// field_14/field_18 cleared by Snd_InitFromStage; field_10 sized by SndLoad_Init.
 /// field_26/field_28 set by the CD ready path in CdAudio_FeedSector.
 /// field_1C..field_2C are filled as five words from a sector by SndLoad_ProcessSector
@@ -435,7 +435,7 @@ typedef struct _SpuVoiceRef {
 } SpuVoiceRef;
 STATIC_ASSERT_SIZEOF(SpuVoiceRef, 0x8);
 
-/// Callback-queue slot used by AsyncCb_Queue.entries / AsyncCb_Entries (stride 0x14).
+/// Callback-queue slot used by AsyncCb_Queue.entries (stride 0x14).
 /// field_0 flags: bit0 active, bit1 arm, bit2 pending, bit3 result.
 typedef struct _AsyncCbEntry {
     /* 0x00 */ s32  field_0;                            // flags
@@ -447,7 +447,7 @@ typedef struct _AsyncCbEntry {
 STATIC_ASSERT_SIZEOF(AsyncCbEntry, 0x14);
 
 /// Ring buffer of 4 AsyncCbEntry callback slots (AsyncCb_Queue, size 0x54).
-/// field_0 = readIdx; field_1 = writeIdx. AsyncCb_Entries aliases entries[0].
+/// field_0 = readIdx; field_1 = writeIdx.
 typedef struct _AsyncCbQueue {
     /* 0x00 */ s8           field_0; // readIdx
     /* 0x01 */ s8           field_1; // writeIdx
@@ -762,7 +762,6 @@ extern AudioTickNode    AudioTick_List;
 extern u32              AudioTick_Enabled;
 extern long             D648E0_SpuTimerED;
 extern AsyncCbQueue     AsyncCb_Queue;
-extern AsyncCbEntry     AsyncCb_Entries[];
 extern SpuVoiceState    Spu_VoiceState;
 extern SpuLVoiceTable   Spu_LVoiceTable;
 extern SpuVoiceRange    Spu_VoiceRanges[];
@@ -781,7 +780,6 @@ extern SndScript        SndScript_Slots[8];
 extern SndLoadState     SndLoad_State;
 extern SndBankInitEntry Snd_BankInitTable[];
 extern LinInterp        LinInterp_CdStream;
-extern u8               D_800820F3;
 extern volatile u8      D_80082120;
 extern u8               D58028_SpuTimerEnabled;
 

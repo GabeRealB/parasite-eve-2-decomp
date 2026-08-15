@@ -1671,9 +1671,9 @@ void SndLoad_FromSectorMode8(void* arg0)
 
 void SndLoad_BeginFromBuffer(u8 arg0, void* arg1)
 {
-    D_800820F3 = arg0;
-    D_8008212C = D_80082122;
-    D_80082121 = D_80082135;
+    SndLoad_State.field_3 = arg0;
+    D_8008212C            = D_80082122;
+    D_80082121            = D_80082135;
     SndLoad_Init(0, arg1);
 }
 

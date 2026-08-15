@@ -101,8 +101,6 @@ extern DR_TPAGE*    D_80071190; // primitive buffer cursor
 extern volatile u8  D_8006EC30; // snapshot of Display_State.field_100 / field_103
 extern volatile u8  D_80070E38;
 extern volatile s32 D_80070F64; // VSync countdown
-extern s8           D_8007272B;
-extern s8           D_8007272D;
 
 // --- APIs ---
 void  Gpu_ClearOTag(s16 tableIdx);

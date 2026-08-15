@@ -9,6 +9,7 @@
 #include "main/tmd.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
+#include "main/mc.h"
 
 void GameFlow_StateByField34(Task* arg0)
 {
@@ -64,7 +65,7 @@ void GameFlow_StateByField34(Task* arg0)
         Display_State.field_12c = 0;
         Pad_SetCooldown(0);
         if (arg0->spawnArg1 == 0) {
-            saved = D_80072189;
+            saved = Mc_SaveData.field_21;
             ptr   = (u8*)Game_Session;
             for (i = 0; i < sizeof(GameSession); i++) {
                 *ptr++ = 0;
@@ -76,7 +77,7 @@ void GameFlow_StateByField34(Task* arg0)
             Wip_SysFlags.field_4    = 1;
             Mc_InitBufferSlots();
             do {
-                D_80072189 = saved;
+                Mc_SaveData.field_21 = saved;
             } while (0);
             arg0->state = arg0->state + 1;
         } else {
@@ -159,7 +160,7 @@ void Game_ResetSessionAndBuffers(Task* arg0)
     CdCmdQueue* p;
 
     p     = &CdCmd_Queue;
-    saved = D_80072189;
+    saved = Mc_SaveData.field_21;
     ptr   = (u8*)Game_Session;
     for (i = 0; i < sizeof(GameSession); i++) {
         *ptr++ = 0;
@@ -171,7 +172,7 @@ void Game_ResetSessionAndBuffers(Task* arg0)
     Wip_SysFlags.field_4    = 1;
     Mc_InitBufferSlots();
     do {
-        D_80072189 = saved;
+        Mc_SaveData.field_21 = saved;
     } while (0);
     arg0->state = arg0->state + 1;
 }
@@ -200,7 +201,7 @@ void GameFlow_WaitMenuDone(Task* arg0)
         Ui_TeardownTree(obj, obj->owner);
         Display_State.field_11e = 0;
         Game_Session->field_2   = 0;
-        if (D_80072311 == 1) {
+        if (Mc_SaveData.field_1a9 == 1) {
             CdVol_SetMixMode(0);
         } else {
             CdVol_SetMixMode(1);
@@ -364,7 +365,7 @@ void Pad_TickEventBanks(PadState* arg0)
         } while (i < 8);
     }
 
-    if (D_80072189 == 0) {
+    if (Mc_SaveData.field_21 == 0) {
         pad->field_5A = temp[0];
         pad->field_5B = temp[1];
     } else {

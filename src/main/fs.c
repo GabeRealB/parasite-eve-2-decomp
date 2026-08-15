@@ -1423,11 +1423,11 @@ restart:
             "addiu %1, %0, %%lo(Fs_CdSector)"
             : "=&r"(hi), "=r"(entry));
     }
-    done                      = 0;
-    D_8006AC30.field_4        = 0;
-    Wip_SysFlags.unknown_0[0] = 0;
-    D_8006AC30.sector         = 0;
-    Fs_Stage0HedSector        = 0;
+    done                 = 0;
+    D_8006AC30.field_4   = 0;
+    Wip_SysFlags.field_0 = 0;
+    D_8006AC30.sector    = 0;
+    Fs_Stage0HedSector   = 0;
 
     while ((done & 0xFF) == 0) {
         switch (entry[0]) {
@@ -1487,10 +1487,10 @@ restart:
     }
 
     if (Fs_StageCdfSectors[1] != 0 || Fs_StageCdfSectors[2] != 0) {
-        Wip_SysFlags.unknown_0[0] = 1;
+        Wip_SysFlags.field_0 = 1;
     }
     if (Fs_StageCdfSectors[4] != 0 || Fs_StageCdfSectors[5] != 0) {
-        Wip_SysFlags.unknown_0[0] = 2;
+        Wip_SysFlags.field_0 = 2;
     }
 
     Fs_ClearDiskError();
@@ -1576,7 +1576,7 @@ restart:
     } else if ((mode & 0xFF) != 0) {
         goto restart;
     } else {
-        Wip_SysFlags.unknown_0[0] = 0;
+        Wip_SysFlags.field_0 = 0;
     }
 }
 

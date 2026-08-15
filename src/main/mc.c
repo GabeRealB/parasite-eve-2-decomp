@@ -906,7 +906,7 @@ void Mc_StateVerifyFinish(Task* arg0, McWork* arg1)
             {
                 register u32 chk asm("v1");
                 register u32 masked asm("v0");
-                chk    = D_80072AA8;
+                chk    = Mc_SaveData.field_940;
                 masked = slotSum & 0xFFFF;
                 if (chk != masked) {
                     goto fail;
@@ -1452,7 +1452,7 @@ s32 Mc_VerifyFirstByteChecksum(void)
         p   += 1;
         i   += 1;
     } while (i < 9);
-    return ((u16)D_80072AA8 ^ (sum & 0xFFFF)) == 0;
+    return ((u16)Mc_SaveData.field_940 ^ (sum & 0xFFFF)) == 0;
 }
 
 s32 Mc_VerifySlotChecksums(void)
@@ -1568,7 +1568,7 @@ void Mc_WriteDataChecksum(s32 arg0, McWork* arg1)
     count = 0x200;
     if (arg0 == 0) {
         src = Mc_DefaultChecksumSrc;
-        dst = &D_80072AA4;
+        dst = (s16*)&Mc_SaveData.field_93C;
     } else {
         src = (u8*)arg1->field_18;
         dst = (s16*)&arg1->field_A1C;

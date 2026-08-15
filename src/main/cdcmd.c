@@ -685,7 +685,7 @@ void CdCmd_ProcessPhase1(void)
             if ((u16)p->field_20E != 0) {
                 switch (p->field_1fc) {
                     case 0:
-                        if (D_8007218B != 0) {
+                        if (Mc_SaveData.field_23 != 0) {
                             SndEvt_EnqueueType6(0, 0, 0);
                         }
                         CdAudio_Begin();

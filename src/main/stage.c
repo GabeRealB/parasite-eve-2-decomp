@@ -259,7 +259,7 @@ void Display_TransitionTask(Task* arg0)
                     Gpu_ClearOTag(0);
                     Gpu_ClearOTag(1);
                     Mem_InitAux();
-                    D_8007216C = Game_Session->field_4;
+                    Mc_SaveData.field_4 = Game_Session->field_4;
                     Pad_SetCooldown(0);
                     func_800A8DC0(2);
                     Game_Session->field_4D = 0;

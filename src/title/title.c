@@ -19,13 +19,6 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-// Absolute main-BSS aliases used for title-overlay match (same addrs as
-// Display_State / Wip_SysFlags fields or neighboring flags).
-extern u8           D_80071068; // Display_State.field_100
-extern s8           D_800710A9; // Wip_SysFlags.unknown_0[1]
-extern s16          D_800710AC; // Wip_SysFlags.field_4
-extern u16          D_80071094; // Display_State.field_12c
-extern u8           D_80071086; // Display_State.field_11e
 extern u_long*      Gpu_CurrentOt;
 extern DR_TPAGE*    D_80071190;
 extern WipUiHolder* Wip_UiHolder;
@@ -37,8 +30,6 @@ extern u8           D_80073670[2][0xE4];
 extern u8           D_80073838[2][0xA4];
 extern u8           D_80073980[0x208];
 extern s32          D_8005ED70;
-/// Alias of CdCmd_Queue.field_23E (absolute form matches title overlay).
-extern s16 D_800691DE;
 
 void func_807246B4(void);
 
@@ -69,7 +60,7 @@ void Title_InitTask(Task* arg0)
         *(volatile s32*)&work->selection      = 2;
         *(volatile s32*)&work->fadeTileEnable = flag;
         *(volatile s32*)&work->timer          = 0;
-        if (D_800710A9 != 0) {
+        if (Wip_SysFlags.field_1 != 0) {
             work->selection = 3;
         }
         Text_LoadClutImages();
@@ -175,7 +166,7 @@ void Title_MenuTask(Task* arg0)
 
 exit_path:
     Wip_SysFlags.field_4 = 0;
-    if (Wip_SysFlags.unknown_0[0] == 1) {
+    if (Wip_SysFlags.field_0 == 1) {
         asm volatile("" ::: "a0");
         Task_CallExit(s4);
         {
@@ -198,7 +189,7 @@ exit_path:
             ds->field_100 = 0;
         }
     } else {
-        D_80071086 = 1;
+        Display_State.field_11e = 1;
     }
     goto end;
 
@@ -314,7 +305,7 @@ normal:
     if (Pad_CheckButtons(0, 1, D_8005ED70 | 0x800) != 0) {
         SndEvt_EnqueueType6(3, 0, 0);
         Task_Spawn(0, Title_MenuSpawnIds[s3->selection], 0, 0);
-        D_80071068 = 0;
+        Display_State.field_100 = 0;
         Task_CallExit(s4);
     }
     goto end;
@@ -341,7 +332,8 @@ end:
     return;
 }
 
-/// Restore demo card / save banks from D_8005C374 (or 0x80600100 when D_80071094 == 0x10).
+/// Restore demo card / save banks from D_8005C374 (or 0x80600100 when
+/// Display_State.field_12c == 0x10).
 /// Preserves Mc_SaveData.field_21 / field_23 across the bulk copy.
 void Title_RestoreDemoCard(void)
 {
@@ -356,7 +348,7 @@ void Title_RestoreDemoCard(void)
     bank        = 0;
     saveField23 = Mc_SaveData.field_23;
     saveField21 = Mc_SaveData.field_21;
-    if (D_80071094 == 0x10) {
+    if (Display_State.field_12c == 0x10) {
         src = (u8*)0x80600100;
     }
     printf(Title_DemoCardRestoreMsg, Mc_SaveData.field_7, Mc_SaveData.field_6);
@@ -390,7 +382,7 @@ void Title_RestoreDemoCard(void)
     Mc_SaveData.field_23 = saveField23;
     Mc_SaveData.field_21 = saveField21;
     if (Fs_StageCdfIsAvailable(Mc_SaveData.field_7) != 1) {
-        D_80071086 = 1;
+        Display_State.field_11e = 1;
     }
     printf(Title_DemoCardRestoreMsg, Mc_SaveData.field_7, Mc_SaveData.field_6);
 }
@@ -399,7 +391,7 @@ void Title_FlagAdvanceTask(Task* arg0)
 {
     s32* p = &arg0->state;
 
-    D_80071068 = 1;
+    Display_State.field_100 = 1;
     (*p)++;
 }
 
@@ -458,7 +450,7 @@ L_case0:
 
 L_case1:
     key = ((SessionBytesAt4*)Game_Session)->field_4;
-    if (Wip_SysFlags.unknown_0[0] == 2) {
+    if (Wip_SysFlags.field_0 == 2) {
         key.data[0] = 0x65;
     } else {
         key.data[0] = 0x64;
@@ -513,14 +505,14 @@ L_case4:
         p1  = param1;
         p2  = param2;
         asm("" : "+r"(cmd), "+r"(p1), "+r"(p2));
-        D_800691DE = 1;
-        param1[3]  = 0;
-        param1[2]  = 0;
-        param1[0]  = 2;
-        param2[0]  = 0;
-        param2[1]  = 0;
-        param2[2]  = 0;
-        param2[3]  = 0;
+        CdCmd_Queue.field_23E = 1;
+        param1[3]             = 0;
+        param1[2]             = 0;
+        param1[0]             = 2;
+        param2[0]             = 0;
+        param2[1]             = 0;
+        param2[2]             = 0;
+        param2[3]             = 0;
         CdCmd_Enqueue(cmd, p1, p2);
     }
     goto advance;
@@ -562,7 +554,7 @@ void Title_BootTask(Task* arg0)
         case 0:
             Display_State.field_100 = 0;
             Title_SkipFadeFlag      = 1;
-            if ((Display_State.field_112 < 0) || (D_800710AC != 0)) {
+            if ((Display_State.field_112 < 0) || (Wip_SysFlags.field_4 != 0)) {
                 next               = 6;
                 Title_SkipFadeFlag = 0;
             } else {
@@ -588,7 +580,7 @@ void Title_BootTask(Task* arg0)
             return;
         case 5:
             SetDispMask(1);
-            D_800710AC = 1;
+            Wip_SysFlags.field_4 = 1;
             Task_Kill(task);
             return;
         case 6:

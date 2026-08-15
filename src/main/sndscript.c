@@ -52,7 +52,7 @@ block_done:
     temp_v1 = (s8)D_80082135;
     switch (temp_v1) {
         case 0:
-            Snd_FreeBank((SndBank*)&D_8007E158);
+            Snd_FreeBank(&Snd_Banks[4]);
             SndBankSlot_Free(4);
         case 1:
             D_80082122 = 0;
@@ -61,7 +61,7 @@ block_done:
             D_80082122 = 1;
             break;
     }
-    var_s0 = D_8007E0F8;
+    var_s0 = (u8*)&Snd_Banks[1];
 
     SndLoad_State.field_14 = 0;
     SndLoad_State.field_18 = 0;
@@ -272,7 +272,7 @@ void Snd_ClearBusy(void)
 void Snd_SetBusyFlag(s32 arg0)
 {
     if (arg0 == 0) {
-        Snd_FreeBank((SndBank*)&D_8007E258);
+        Snd_FreeBank(&Snd_Banks[12]);
         D_80082134 = 0;
         return;
     }

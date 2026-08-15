@@ -64,7 +64,7 @@ void AsyncCb_Cancel(s32 arg0)
     s32           flags;
 
     if ((arg0 << 0x10) != 0) {
-        entry = &AsyncCb_Entries[(s16)(arg0 - 1)];
+        entry = &AsyncCb_Queue.entries[(s16)(arg0 - 1)];
         flags = entry->field_0;
         if (flags & 1) {
             entry->field_0 = (flags & ~1) | 4;

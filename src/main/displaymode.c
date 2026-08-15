@@ -2,6 +2,7 @@
 
 #include "main/display.h"
 #include "main/gfx.h"
+#include "main/mc.h"
 
 void Display_SetMode(s32 arg0)
 {
@@ -24,7 +25,7 @@ void Display_SetMode(s32 arg0)
     temp_s4    = Display_HeightTable[arg0 & 0xF];
     ds->width  = temp_s5;
     ds->height = temp_s4;
-    if (D_8007272B != 0) {
+    if (Mc_SaveData.field_5C3 != 0) {
         var_s7 = 1;
     }
     temp_s3       = temp_s4 & 0xFFFF;
