@@ -296,7 +296,16 @@ s32 func_800A74C4(void)
     return p->field_26 == 4;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7508);
+s32 func_800A7508(void)
+{
+    GpStateF0* p;
+
+    p = &D_801153F0;
+    if ((p->field_0 == 1 && p->field_6 != 0) || p->field_1 != 0) {
+        return 1;
+    }
+    return 0;
+}
 
 s32 func_800A7550(void)
 {

@@ -116,8 +116,8 @@ STATIC_ASSERT_SIZEOF(GpObj3A, 0x3C);
 
 /// Global at `D_801153F0`. `field_0` is a state byte (1 if first set by
 /// `func_800DB4E0`; 2 when the last `field_6` ref is released). `field_1`
-/// is an alternate-active flag (`func_800A7CB0` / `func_800A7CF4` /
-/// `func_800A7D54`). `field_2` is a bitset (`func_800DB500` sets bit
+/// is an alternate-active flag (`func_800A7508` / `func_800A7CB0` /
+/// `func_800A7CF4` / `func_800A7D54`). `field_2` is a bitset (`func_800DB500` sets bit
 /// `arg0 - 1` when `arg0 != 0`). `field_6` is a u16 refcount incremented
 /// by `func_800DB53C` and decremented by `func_800DB558` / `func_800DB630`
 /// / `func_800DB6B4`. Nearby helpers also touch the byte at 0x3 and words
