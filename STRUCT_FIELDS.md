@@ -560,6 +560,7 @@ slot 3; `func_80106238` replaces bits 14–15 with `(arg1 << 1) | arg2`.
 `field_97D` is a flag byte (`lbu`); bit 0x4 selects `func_801055D4` vs `func_80108770` in `func_80106550`;
 `field_97E` is a flag byte set to 1 by `func_80103B5C`;
 `field_981` is a u8 counter cleared with the 0x954–0x95E cluster; `func_801041FC` increments it from 0 (`lb`/`lbu`);
+`field_987`/`field_988`/`field_989` and `field_98A`/`field_98B`/`field_98C` are two u8 groups written by command `0x401` (`func_80105AB0`): arg 0 sets them to (1,0,0) and (2,0,0); args 1–3 write the first group as `(arg+1, 0, 0)`; args ≥4 write the second as `(arg-3, 0, 0)` (and `field_98C`);
 `field_98D`/`field_98E`/`field_990` are companion bytes (case 10 also stores `rand() & 0x1F + 0xA`).
 
 ### `GpActorD4`

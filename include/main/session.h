@@ -165,7 +165,13 @@ typedef struct _GameActor {
     /* 0x983 */ byte                pad_983;
     /* 0x984 */ u8                  field_984;
     /* 0x985 */ u8                  field_985;
-    /* 0x986 */ byte                pad_986[0x7];
+    /* 0x986 */ byte                pad_986;
+    /* 0x987 */ u8                  field_987;
+    /* 0x988 */ u8                  field_988;
+    /* 0x989 */ u8                  field_989;
+    /* 0x98A */ u8                  field_98A;
+    /* 0x98B */ u8                  field_98B;
+    /* 0x98C */ u8                  field_98C;
     /* 0x98D */ u8                  field_98D;
     /* 0x98E */ u8                  field_98E;
     /* 0x98F */ byte                pad_98F;
