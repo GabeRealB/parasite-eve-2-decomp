@@ -12,14 +12,15 @@ void func_800E1B80(void);
 void func_800AD6BC(void);
 s32  func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-extern u16 D_80114CD2;
-extern u16 D_80114CD4;
-extern u16 D_80114CD6;
-extern u8  D_80114CD8;
-extern u8  D_80114CD9;
-extern u8  D_80114CDA;
-extern u8  D_80114CDB;
-extern u8  D_80114CF8;
+extern TaskFuncTable3 D_80093950;
+extern u16            D_80114CD2;
+extern u16            D_80114CD4;
+extern u16            D_80114CD6;
+extern u8             D_80114CD8;
+extern u8             D_80114CD9;
+extern u8             D_80114CDA;
+extern u8             D_80114CDB;
+extern u8             D_80114CF8;
 
 INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AEBA4);
 
@@ -58,7 +59,17 @@ s32 func_800AEE28(Task* arg0, GpPosXZ* arg1)
     return ratan2(vec.vx, vec.vz) & 0xFFF;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AEE8C);
+void func_800AEE8C(Task* arg0)
+{
+    TaskFuncTable3 sp;
+    void*          slot;
+
+    slot = Game_GetPtrSlot(3);
+    sp   = D_80093950;
+    if (slot != NULL) {
+        sp.funcs[arg0->state](arg0);
+    }
+}
 
 u8 func_800AEEFC(void)
 {
