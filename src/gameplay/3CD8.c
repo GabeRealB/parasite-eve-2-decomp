@@ -480,7 +480,18 @@ s32 func_800E7358(void)
     return func_800E6CE0();
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E7378);
+s32 func_800E7378(void)
+{
+    if (D_8007218B == 9) {
+        if (D_801156B8 != NULL) {
+            return 0;
+        }
+        D_801156B8 = Task_Spawn(9, 8, 0, 0);
+    } else {
+        Game_Session->field_68 = 1;
+    }
+    return 0;
+}
 
 s32 func_800E73E8(void)
 {
