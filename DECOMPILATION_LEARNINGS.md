@@ -91,6 +91,34 @@ if (p->field_21 == 0) {
 `func_800BBF1C` is the example. `if (p->field_21) { ... if (item) ... }` stuck
 at 88% with the load reused and the inner branch inverted.
 
+## Store `== K` in an `s32` and test `== 0` so the false return is `beqz`
+
+`if (a && b == K) return X; return Y;` becomes two compare-branches
+(`bne` / `li K; bne`). The target instead materializes the combined
+predicate (`move v0,zero` in the first `bne` delay slot, then
+`lbu; xori K; sltiu 1`) and `beqz` to Y.
+
+Assign the `==` to an `s32` so it is a *value*, not a branch, then write
+the false return first:
+
+```c
+s32 cond;
+
+if (word != MAGIC) {
+    cond = 0;
+} else {
+    cond = p->field == 4; /* xori / sltiu, not li/bne */
+}
+if (cond == 0) {
+    return y; /* beqz */
+}
+return x;
+```
+
+`if (cond) { return x; } return y;` flips to `bnez` and swaps the two
+tails. `func_800A746C` is the example; `func_800A74C4` is the same
+predicate returned as the `s32` itself.
+
 ## Comma-assign so `li sN,K` lands only on the else path
 
 When K is compared on one side of a short-circuit and later stored from a

@@ -6,6 +6,7 @@
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gfx.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
@@ -23,6 +24,7 @@ extern Task*          D_80114B90;
 extern GsCOORDINATE2* D_80114B9C;
 extern CVECTOR        D_80114BA4;
 extern CVECTOR        D_80114BA8;
+extern u8             D_80114BF0[];
 extern char           D_80093870[]; // "Item"
 extern s32            D_8005ED70;
 extern s32            D_8005ED74;
@@ -383,7 +385,22 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A70A4);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7320);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A746C);
+u8* func_800A746C(void)
+{
+    WipSysConfig* p;
+    s32           cond;
+
+    p = &Wip_SysConfig;
+    if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
+        cond = 0;
+    } else {
+        cond = p->field_26 == 4;
+    }
+    if (cond == 0) {
+        return Mc_SaveData.unknown_850;
+    }
+    return D_80114BF0;
+}
 
 s32 func_800A74C4(void)
 {
