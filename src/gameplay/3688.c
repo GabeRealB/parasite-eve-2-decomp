@@ -23,6 +23,7 @@ extern s32          D_80114E90;
 extern s32          D_80114E94;
 extern char         D_8010E494[];
 extern char         D_8010F8D0[];
+extern UiObjectDesc D_8010EE6C;
 extern UiObjectDesc D_8010EFA0;
 extern UiObjectDesc D_8010F788;
 extern TaskDesc     D_8010F85C;
@@ -33,6 +34,7 @@ extern TaskDesc     D_80183F84;
 extern TaskDesc     D_801846D0;
 extern TaskDesc     D_8018668C;
 extern TaskDesc     D_801871F0;
+extern s32          D_8005ED70;
 extern UiObject*    D_80067634;
 extern WipSysConfig D_80073B88;
 
@@ -54,6 +56,7 @@ void       func_8003F6F8(void);
 void       func_800A96A0(void);
 char*      func_800B8EB0(s32 arg0, s32 arg1, s32 arg2);
 void       func_80049D34(char* arg0, s32 arg1, s32 arg2);
+void       func_80049024(UiObject* arg0, UiObject* arg1, UiObject* arg2);
 GpItemRec* func_800D6910(s32 arg0);
 s32        func_8005414C(s32 arg0, s32 arg1, s32 arg2);
 
@@ -301,7 +304,26 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CEC5C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CECC0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CEDA0);
+UiObject* func_800CEDA0(UiObject* arg0, UiObject* arg1, u8* arg2, s32 arg3)
+{
+    UiObject* obj;
+    s32       one;
+
+    obj        = NULL;
+    D_80114DD4 = arg2;
+    if (Pad_CheckButtons((s32)obj, 1, D_8005ED70)) {
+        func_8005414C(3, (s32)obj, (s32)obj);
+        one = 1;
+        obj = Ui_SpawnFromDesc(&D_8010EE6C, arg3, one, one, arg1);
+        if (obj != NULL) {
+            func_80049024(obj, arg0, arg1);
+            arg1->status = 0;
+        }
+    } else {
+        func_800CDF18(arg1);
+    }
+    return obj;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CEE5C);
 
