@@ -13618,3 +13618,19 @@ Two other pieces have to stay wide:
 `func_800E1884` is the example (sibling `func_800E1758` is the same shape
 on `GpObj4A` / `D_8010FAB0`).
 
+## Chained `r = g = b` plus the `<= 0` arm first for CVECTOR stores
+
+Separate `c.r = x; c.g = x; c.b = x` stores r first via `%lo` then g, b.
+The target stores b, g, then r as `%lo(symbol)(hi)`. Chained assignment
+evaluates right-to-left and matches:
+
+```c
+D_80114BA4.r = D_80114BA4.g = D_80114BA4.b = arg0;
+```
+
+Write the `<= 0` clamp arm first so the compiler emits `bgtz` to the
+positive path (`slti` in the delay slot) instead of `blez` to the zero
+arm.
+
+`func_8009EA50` is the example.
+

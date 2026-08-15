@@ -20,6 +20,8 @@ extern WipSysConfig   D_80073B88;
 extern TmdListHead*   D_800711BC;
 extern TmdListHead*   D_800711C4;
 extern GsCOORDINATE2* D_80114B9C;
+extern CVECTOR        D_80114BA4;
+extern CVECTOR        D_80114BA8;
 extern char           D_80093870[]; // "Item"
 extern s32            D_8005ED70;
 extern s32            D_8005ED74;
@@ -165,7 +167,23 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009E4A0);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009E770);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009EA50);
+void func_8009EA50(s32 arg0)
+{
+    s32 temp;
+
+    if (arg0 <= 0) {
+        arg0 = 0;
+        temp = 0x80;
+    } else {
+        if (arg0 >= 0x100) {
+            arg0 = 0xFF;
+        }
+        temp = (0xFF - arg0) >> 1;
+    }
+
+    D_80114BA4.r = D_80114BA4.g = D_80114BA4.b = arg0;
+    D_80114BA8.r = D_80114BA8.g = D_80114BA8.b = temp;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009EAA4);
 
