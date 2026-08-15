@@ -333,7 +333,26 @@ void func_800CEB40(s32 arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CEB84);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CEC5C);
+s32 func_800CEC5C(GpItemRec* arg0)
+{
+    WipSysConfig* p;
+    s32           ret;
+    s32           id;
+    s8            count;
+
+    p     = &D_80073B88;
+    ret   = 1;
+    count = arg0->field_1;
+    id    = arg0->field_0;
+    if (count != 0) {
+        ret = 0;
+    } else if (((u32)(id - 0x60) < 0x20U) && (p->field_23 == id - 0x5F)) {
+        ret = 0;
+    } else if (((u32)(id - 0x80) < 0x20U) && (p->field_21 == id - 0x7F)) {
+        ret = 0;
+    }
+    return ret;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CECC0);
 

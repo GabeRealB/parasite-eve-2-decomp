@@ -30,7 +30,7 @@ typedef struct _WipSysConfig {
     /* 0x20 */ u8   field_20;
     /* 0x21 */ u8   field_21; // selected item id - 0x7F (`func_800CF448`)
     /* 0x22 */ u8   field_22; // packed into GameActor.field_124 bits 0-7 (`func_801061F0`)
-    /* 0x23 */ byte unknown_23;
+    /* 0x23 */ u8   field_23; // selected item id - 0x5F (`func_800CEC5C`)
     /* 0x24 */ u8   field_24; // cleared/set by func_80104A4C; cleared by func_801053A0; preserved by func_8010C81C
     /* 0x25 */ u8   field_25;
     /* 0x26 */ u8   field_26;
