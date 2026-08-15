@@ -368,7 +368,21 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801060E0);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010615C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801061F0);
+void func_801061F0(void)
+{
+    WipSysConfig* p;
+    GpActorWork*  work;
+    s32           flag;
+    register s32  f21 asm("a1");
+    s32           f22;
+
+    work                   = Game_GetPtrSlot(3);
+    p                      = &D_80073B88;
+    flag                   = 0x20000;
+    f21                    = p->field_21;
+    f22                    = p->field_22;
+    work->actor->field_124 = (f21 << 8) | (f22 | flag);
+}
 
 void func_80106238(GpActorWork* arg0, s32 arg1, s32 arg2)
 {

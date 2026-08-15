@@ -3335,6 +3335,11 @@ putting the diff in `$a0` and leaving val in `$a1`. That shows up as a clean
 ~95% match with every branch correct but all `sb val` / `bgtz diff` using the
 swapped registers.
 
+Pin width matters: `register u8 x asm("a1")` is ignored (QImode does not
+stick to a hard GPR), so `$a0`/`$a1` stay swapped. `register s32 x asm("a1")`
+with the same assignments matches. `func_801061F0` is the pure example
+(`f21` must live in `$a1` so `0x20000` can take `$a0` after `&D_80073B88`).
+
 Fix with hard-register pins (both need the `register` keyword):
 
 ```c

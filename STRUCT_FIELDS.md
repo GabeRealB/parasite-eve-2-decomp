@@ -524,8 +524,9 @@ and `func_800B57EC`; `sub` is the parent link, same convention as `Gfx_InitCoord
 Offset 0x44 (`param` in libgs) is loaded as an s16 flag by `func_8010B590` (`GpCoordExt`).
 `field_AC`/`field_CC`/`field_EC`/`field_10C`/`field_12C` are 0x20-byte list nodes
 unlinked by `func_800E1638` during actor teardown (`func_80101408`).
-`field_124` is a u32 packed word at +0x18 of the `field_10C` node; `func_80106238`
-replaces bits 14–15 with `(arg1 << 1) | arg2`.
+`field_124` is a u32 packed word at +0x18 of the `field_10C` node;
+`func_801061F0` writes `0x20000 | (WipSysConfig.field_21 << 8) | field_22` from
+slot 3; `func_80106238` replaces bits 14–15 with `(arg1 << 1) | arg2`.
 `field_90C` is a `GpLinkNode*` (same object as `func_800DAB38` unlinks); `func_80103B5C` clears `node->field_5` then nulls the slot.
 `field_914`..`field_924` are child `Task*` slots killed (if non-NULL) on that path.
 `field_944`..`field_950` / `field_970` are s16 timers written to `0x258` by `func_8010A42C`;
@@ -543,6 +544,8 @@ replaces bits 14–15 with `(arg1 << 1) | arg2`.
 `field_98D`/`field_98E`/`field_990` are companion bytes (case 10 also stores `rand() & 0x1F + 0xA`).
 
 ### `WipSysConfig`
+`field_21` is a u8 packed into `GameActor.field_124` bits 8–15 by `func_801061F0`.
+`field_22` is a u8 packed into `GameActor.field_124` bits 0–7 by `func_801061F0`.
 `field_24` is a u8 cleared by `func_801053A0`; `func_8010C81C` saves and restores it around that call.
 `field_25` is an OR mask of PE/status bits set by `func_8010A42C` (same bit as the `func_800ECA10` arg).
 
