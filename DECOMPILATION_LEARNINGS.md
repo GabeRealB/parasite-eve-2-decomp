@@ -14034,4 +14034,41 @@ Writing every matrix word through `m` turns the zero stores into
 
 `func_800A8D5C` is the example.
 
+## Initialized local jump table keeps `sw ra` first
+
+A 2-entry stack dispatcher that materializes function addresses with
+`lui`/`addiu`/`sw` (not a struct copy from a global table) wants:
+
+```
+addiu sp,sp,-0x20
+sw    ra,0x18(sp)
+lui   v0,%hi(func_A)
+addiu v0,v0,%lo(func_A)
+sw    v0,0x10(sp)
+lui   v0,%hi(func_B)
+addiu v0,v0,%lo(func_B)
+sw    v0,0x14(sp)
+lw    v0,0x30(a0)
+sll   v0,v0,2
+addu  v0,sp,v0
+lw    v0,0x10(v0)
+jalr  v0
+```
+
+Element-wise assignment (`funcs[0] = A; funcs[1] = B;`) matches the stores
+but lets the scheduler park `sw ra` after the second `addiu %lo`. An
+initialized local array forces the prologue store first and indexes as
+`lw v0, 0x10(sp+idx)`:
+
+```c
+TaskFunc funcs[2] = { func_A, func_B };
+
+funcs[arg0->state](arg0);
+```
+
+A `TaskFuncTable2` aggregate initializer produces the same code. This is the
+sibling of the global-table struct copy (`sp = D_xxx`) used by
+`GameFlow_DispatchTable`: no `.data` table, so the addresses are built in
+place. `func_800D96C8` is the example.
+
 

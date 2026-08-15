@@ -162,7 +162,12 @@ s32 func_800D9618(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9654);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D96C8);
+void func_800D96C8(Task* arg0)
+{
+    TaskFunc funcs[2] = { func_800D9D18, func_800D8684 };
+
+    funcs[arg0->state](arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9718);
 

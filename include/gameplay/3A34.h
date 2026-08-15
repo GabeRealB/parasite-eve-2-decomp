@@ -259,6 +259,7 @@ extern char D_80097454[];
 
 s32   func_800D68C4(s32 arg0);
 void  func_800D6AA4(Task* arg0);
+void  func_800D8684(Task* arg0);
 void  func_800D930C(GpObj4C* arg0, s32 arg1);
 s32   func_800D9340(GpObj38* arg0);
 s32   func_800D937C(GpObj38* arg0);
@@ -266,7 +267,9 @@ void  func_800D94B8(SVECTOR* arg0);
 void  func_800D9504(SVECTOR* arg0);
 void  func_800D9550(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3);
 s32   func_800D9618(void);
+void  func_800D96C8(Task* arg0);
 s32   func_800D9788(GpObj38* arg0);
+void  func_800D9D18(Task* arg0);
 void  func_800D9C3C(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3);
 void  func_800D9CC8(Task* arg0);
 void  func_800D9CE8(GBytes8* arg0);
