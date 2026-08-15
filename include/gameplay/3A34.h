@@ -80,6 +80,20 @@ typedef struct _GpObj4C {
 } GpObj4C;
 STATIC_ASSERT_SIZEOF(GpObj4C, 0x50);
 
+/// 0x4C list node appended to `D_8010FAB0[index]` by `func_800E1688` and
+/// unlinked by `func_800E1708`. `field_4A` bit 0x20 means the node is on
+/// that list (cleared on unlink, keeping bits 0x87); bit 0x80 marks the
+/// last element of an array walked at +0x4C. Callers also store
+/// `D_80070F10` at +0x8 and OR bit 0x40 into `field_4A`.
+typedef struct _GpObj4A {
+    /* 0x00 */ struct _GpObj4A* next;
+    /* 0x04 */ struct _GpObj4A* prev;
+    /* 0x08 */ byte             pad_8[0x42];
+    /* 0x4A */ u8               field_4A;
+    /* 0x4B */ byte             pad_4B;
+} GpObj4A;
+STATIC_ASSERT_SIZEOF(GpObj4A, 0x4C);
+
 /// Global at `D_801153F0`. `field_0` is a state byte (1 if first set by
 /// `func_800DB4E0`; 2 when the last `field_6` ref is released). `field_1`
 /// is an alternate-active flag (`func_800A7CB0` / `func_800A7CF4` /
@@ -196,6 +210,7 @@ void func_800E06AC(GpObj* node, s32 mask, s32 match);
 s32  func_800E076C(void);
 void func_800E0B08(void);
 void func_800E1638(GpObj* node);
+void func_800E1708(s32 arg0, GpObj4A* arg1);
 void func_800E18E0(GpRec18* arg0, s32 arg1);
 s32  func_800E1ACC(u8* arg0);
 s32  func_800E1B24(s32 arg0);

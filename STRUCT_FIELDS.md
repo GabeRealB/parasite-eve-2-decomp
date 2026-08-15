@@ -646,6 +646,17 @@ Sparse overlay. Full object size is not known yet.
 |-----|--------|------|
 | 0x20 | `field_20` | `MATRIX*` whose `t[0]/t[1]/t[2]` are set by `func_800D9550` |
 
+### `GpObj4A` (0x4C) — `3A34.h`
+Array element linked onto `D_8010FAB0[index]` by `func_800E1688` and unlinked
+by `func_800E1708`. Walked at +0x4C until `field_4A` bit 0x80.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `next` | Intrusive next; NULL-terminated |
+| 0x04 | `prev` | Previous node, or the list-head object when first |
+| 0x08 | (pad) | Pointer slot; insert callers store `D_80070F10` |
+| 0x4A | `field_4A` | Flag byte: 0x20 = on list, 0x40 set after insert, 0x80 = last in array. Unlink keeps bits 0x87 |
+
 ### `GpObj4C` (0x50) — `3A34.h`
 Sparse overlay. Full object size is not known yet.
 
