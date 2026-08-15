@@ -13307,3 +13307,54 @@ need that extend: pass `(s16)u16_index` so the call site keeps
 `sll`/`sra 16` in the `jal` delay (`func_800E704C` / `D_801155AE`).
 `func_800E6EA0` is the example.
 
+## Sparse switch on `x & 0xFFFF0000` needs a signed mask for `slt`
+
+`0xFFFF0000` does not fit in signed 32-bit, so it is unsigned.
+`switch (val & 0xFFFF0000)` is therefore an unsigned switch and GCC 2.8.1
+emits `sltu` for the binary-search compares.
+
+A 7-case sparse switch on stage-id high words wants `slt` (the constants
+are all positive). Use a signed mask so the AND result stays SImode:
+
+```c
+val = *(s32*)&D_8007216C;
+switch (val & ~0xFFFF) { /* not val & 0xFFFF0000 */
+    case 0x1130000:
+        /* ... */
+}
+```
+
+A cast on the switch operand (`switch ((s32)(val & 0xFFFF0000))`) is not
+enough: the unsigned AND is still CSE'd and the compares stay `sltu`, or
+the load is rescheduled next to the AND.
+
+`func_800D4D2C` is the example.
+
+## Volatile load+store pair pins `lw` before an independent `sw zero`
+
+A word load of one global and `other = 0` are independent, so GCC 2.8.1
+hoists the `sw zero` first. The target sometimes wants:
+
+```
+lui  v0, %hi(src)
+lw   v1, %lo(src)(v0)
+lui  v0, %hi(dst)
+sw   zero, %lo(dst)(v0)
+lui  v0, 0xFFFF
+and  v1, v1, v0
+```
+
+A lone volatile load does not stop the non-volatile store from moving
+before it. Mark both accesses volatile so they stay in source order:
+
+```c
+val = *(volatile s32*)&src;
+*(volatile s32*)&dst = 0;
+switch (val & ~0xFFFF) {
+```
+
+`do { val = src; } while (0)` also pins the load first but then parks
+`sw ra` in the prologue instead of the first `beq` delay.
+
+`func_800D4D2C` is the example (`D_8007216C` then `Wip_UiHolder`).
+

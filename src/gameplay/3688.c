@@ -4,6 +4,7 @@
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
+#include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -23,6 +24,13 @@ extern char         D_8010E494[];
 extern char         D_8010F8D0[];
 extern UiObjectDesc D_8010F788;
 extern TaskDesc     D_8010F85C;
+extern TaskDesc     D_80181188;
+extern TaskDesc     D_80181C2C;
+extern TaskDesc     D_801824D0;
+extern TaskDesc     D_80183F84;
+extern TaskDesc     D_801846D0;
+extern TaskDesc     D_8018668C;
+extern TaskDesc     D_801871F0;
 extern UiObject*    D_80067634;
 extern WipSysConfig D_80073B88;
 
@@ -549,7 +557,39 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D4140);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D4270);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D4D2C);
+s32 func_800D4D2C(s32 arg0)
+{
+    s32 val;
+
+    val                           = *(volatile s32*)&D_8007216C;
+    *(volatile s32*)&Wip_UiHolder = 0;
+    switch (val & ~0xFFFF) {
+        case 0x1130000:
+            Display_InitModeObj(&D_8018668C, arg0, 0, 0);
+            break;
+        case 0x21B0000:
+            Display_InitModeObj(&D_80183F84, arg0, 0, 0);
+            break;
+        case 0x31B0000:
+            Display_InitModeObj(&D_801846D0, arg0, 0, 0);
+            break;
+        case 0x3180000:
+            Display_InitModeObj(&D_80181C2C, arg0, 0, 0);
+            break;
+        case 0x40D0000:
+            Display_InitModeObj(&D_801824D0, arg0, 0, 0);
+            break;
+        case 0x4140000:
+            Display_InitModeObj(&D_801871F0, arg0, 0, 0);
+            break;
+        case 0x5040000:
+            Display_InitModeObj(&D_80181188, arg0, 0, 0);
+            break;
+        default:
+            return 0;
+    }
+    return 1;
+}
 
 void func_800D4E40(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
 {

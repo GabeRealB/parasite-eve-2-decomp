@@ -267,6 +267,7 @@ D_80062735 = 0x80062735; // absolute:True
 D_80062774 = 0x80062774; // absolute:True
 D_80067634 = 0x80067634; // absolute:True
 D_80067694 = 0x80067694; // absolute:True
+Wip_UiHolder = 0x80067694; // absolute:True
 D_80068F88 = 0x80068F88; // absolute:True
 D_80068F8C = 0x80068F8C; // absolute:True
 D_80068F90 = 0x80068F90; // absolute:True
