@@ -18,6 +18,8 @@
 void  func_800B1EFC(Task* arg0);
 void  func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
 void  func_800B3910(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void  func_800B6358(Task* task);
+void  func_800B6398(void);
 void  func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 Task* func_8002CFA0(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
 void  func_8017FBD8(void);
@@ -501,7 +503,12 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B5CE8);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B5D44);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B5DB8);
+void func_800B5DB8(Task* arg0)
+{
+    TaskFunc funcs[2] = { func_800B6358, func_800B6398 };
+
+    funcs[arg0->state](arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B5E08);
 
