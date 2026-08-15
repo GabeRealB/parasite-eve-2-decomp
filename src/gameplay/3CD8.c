@@ -706,4 +706,13 @@ void func_800ECA10(s32 arg0)
     func_800EA478(0x8006000F, 0, (u8)arg0, 0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800ECA54);
+void func_800ECA54(void)
+{
+    GpState1C* p;
+
+    p = D_80115740;
+    if (!(p->field_10 & 0x80)) {
+        p->field_12 &= 0xF7FF;
+        func_800EA478(0x8006000E, 0, 0, 0);
+    }
+}
