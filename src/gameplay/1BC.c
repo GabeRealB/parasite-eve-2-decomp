@@ -44,7 +44,6 @@ extern s32      D_8010D208[];
 extern char     D_800939F8[];
 extern s32      D_80070F10;
 extern s32      D_80070F60;
-extern u8       D_80071068; // Display_State.field_100
 extern u8       D_800626E8;
 extern s32      D_80114D20;
 
@@ -207,7 +206,7 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0748);
 void func_800B082C(Task* task)
 {
     if (CdCmd_IsIdle() & 0xFFFF) {
-        D_80071068 = 1;
+        Display_State.field_100 = 1;
         if (Game_Session->field_128 == 0xFF) {
             Task_SpawnFromTable(D_8011922C, 0, 0, 0);
             Task_Kill(task);
@@ -255,7 +254,7 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B2200);
 
 void func_800B25B0(void)
 {
-    switch (*(u32*)&D_8007216C & 0xFFFF0000) {
+    switch (*(u32*)&Mc_SaveData.field_4 & 0xFFFF0000) {
         case 0x51B0000:
             Task_SpawnFromTable(D_80181F18, 0, 0, 0);
             break;

@@ -86,7 +86,7 @@ STATIC_ASSERT_SIZEOF(GpAreaRec, 8);
 
 /// Location key used to index `D_8010CBCC`. Bytes 2/3 select the table and
 /// record; byte 5 indexes a nested table (`func_800B5CE8` / `func_800B5C88`). Same 4-byte
-/// prefix as `GameSessionFrom4` / `D_8007216C`. Full size unknown.
+/// prefix as `GameSessionFrom4` / `Mc_SaveData.field_4`. Full size unknown.
 typedef struct _GpAreaKey {
     /* 0x00 */ u8 field_0;
     /* 0x01 */ u8 field_1;

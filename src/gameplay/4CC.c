@@ -39,7 +39,7 @@ s32 func_800BF334(s32 arg0, s32 arg1)
     if (D_8010D838[arg0].field_3 & 1) {
         ret = arg1 == 1;
     }
-    if ((D_80114D7C == 0x703) && (arg0 == 0x81) && (D_8007216F == 1)) {
+    if ((D_80114D7C == 0x703) && (arg0 == 0x81) && (Mc_SaveData.field_7 == 1)) {
         ret = 1;
     }
     return ret;

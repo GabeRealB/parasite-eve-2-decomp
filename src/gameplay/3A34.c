@@ -3,6 +3,7 @@
 #include "gameplay/268.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "main/display.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
@@ -10,8 +11,8 @@
 #include "main/task.h"
 #include "main/ui.h"
 
-s32 func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
-s32 func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32  func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32  func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D5B14);
@@ -32,7 +33,7 @@ s32 func_800D68C4(s32 arg0)
         val = -val;
     }
     D_8010F88C = 0;
-    return func_800B715C(&D_80072724, arg0, val, -1);
+    return func_800B715C(&Mc_SaveData.field_5BC, arg0, val, -1);
 }
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D6910);
@@ -48,7 +49,7 @@ void func_800D6AA4(Task* arg0)
     s32      y;
 
     panel            = arg0->spawnArg2;
-    panel->field_C.y = 0x1C - D_80071071;
+    panel->field_C.y = 0x1C - Display_State.vramYOffset;
     Ui_InsetLayout(panel, NULL, NULL, 0);
     x = (s16)panel->field_1C;
     y = (s16)panel->field_18;
@@ -94,7 +95,7 @@ s32 func_800D9340(GpObj38* arg0)
 {
     s32 val;
 
-    val = arg0->field_40 - D_80071078;
+    val = arg0->field_40 - Display_State.field_110;
     if (val >= 0x7FFF) {
         val = 0x7FFF;
     }

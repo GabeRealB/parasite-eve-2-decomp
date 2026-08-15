@@ -6,6 +6,7 @@
 #include <psyq/libgte.h>
 
 #include "gameplay/3FB8.h"
+#include "main/display.h"
 #include "main/task.h"
 
 /// Singly-linked node unlinked by `func_800DAB38` / linked by `func_800DABEC`.
@@ -263,12 +264,6 @@ extern GpRec4 D_80114028[];
 
 /// 6-byte records selected by `func_800E2CD4(..., 1)`.
 extern GpRec6 D_80114054[];
-
-/// Screen-offset X (low 16 bits of GTE OFX) imported from `Display_State+0x110`.
-extern u16 D_80071078;
-
-/// VRAM Y offset imported from `Display_State.vramYOffset`.
-extern s8 D_80071071;
 
 /// "Weapon" string drawn by `func_800D6AA4`.
 extern char D_80097454[];

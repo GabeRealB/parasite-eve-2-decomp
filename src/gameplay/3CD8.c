@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
@@ -12,7 +13,6 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 
-extern s16      D_8007107A;
 extern TaskDesc D_8010FAEC[];
 extern s32      D_8010FB90[];
 extern u16      D_80112D68[];
@@ -452,7 +452,7 @@ void func_800E71B0(Task* task)
 
 void func_800E7240(void)
 {
-    if (D_8007107A != 0) {
+    if (Display_State.field_112 != 0) {
         func_80724120();
         func_80724324();
     }
@@ -497,7 +497,7 @@ s32 func_800E7358(void)
 
 s32 func_800E7378(void)
 {
-    if (D_8007218B == 9) {
+    if (Mc_SaveData.field_23 == 9) {
         if (D_801156B8 != NULL) {
             return 0;
         }
@@ -512,7 +512,7 @@ s32 func_800E73E8(void)
 {
     Task* task;
 
-    if (D_8007218B == 9) {
+    if (Mc_SaveData.field_23 == 9) {
         task = D_801156B8;
         if (task != NULL) {
             task->spawnArg1 = 1;
@@ -527,7 +527,7 @@ s32 func_800E73E8(void)
 
 s32 func_800E7434(void)
 {
-    if (D_8007218B == 9) {
+    if (Mc_SaveData.field_23 == 9) {
         if (D_801156B8 == NULL) {
             return 0;
         }

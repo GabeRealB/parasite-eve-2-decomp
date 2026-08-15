@@ -45,19 +45,19 @@ extern s32          D_8005ED70;
 extern UiObject*    D_80067634;
 extern void         (*D_8010D3A0[])(UiObject*, Task*);
 
-void func_8017F41C(Task* task);
-void func_8017F2F8(Task* task);
-void func_8017F304(Task* task);
-void func_80181184(Task* task);
-void func_801811A0(Task* task);
-void func_800C05CC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void func_800CB33C(UiObject* arg0, Task* arg1, s32 arg2);
-void func_800CC15C(UiObject* arg0, Task* arg1, s32 arg2);
-void func_800D02A4(Task* arg0);
-void func_800D0C34(Task* arg0);
-void func_800D0614(Task* arg0);
-void func_800D08D4(Task* arg0);
-void func_800D15D0(Task* arg0);
+void       func_8017F41C(Task* task);
+void       func_8017F2F8(Task* task);
+void       func_8017F304(Task* task);
+void       func_80181184(Task* task);
+void       func_801811A0(Task* task);
+void       func_800C05CC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void       func_800CB33C(UiObject* arg0, Task* arg1, s32 arg2);
+void       func_800CC15C(UiObject* arg0, Task* arg1, s32 arg2);
+void       func_800D02A4(Task* arg0);
+void       func_800D0C34(Task* arg0);
+void       func_800D0614(Task* arg0);
+void       func_800D08D4(Task* arg0);
+void       func_800D15D0(Task* arg0);
 void       func_800D4E40(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_800A96A0(void);
 char*      func_800B8EB0(s32 arg0, s32 arg1, s32 arg2);
@@ -800,7 +800,7 @@ s32 func_800D4D2C(s32 arg0)
 {
     s32 val;
 
-    val                           = *(volatile s32*)&D_8007216C;
+    val                           = *(volatile s32*)&Mc_SaveData.field_4;
     *(volatile s32*)&Wip_UiHolder = 0;
     switch (val & ~0xFFFF) {
         case 0x1130000:

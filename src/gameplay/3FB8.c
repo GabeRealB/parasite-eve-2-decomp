@@ -17,10 +17,6 @@
 #include <psyq/libgte.h>
 #include <psyq/rand.h>
 
-extern u16      D_80071624;
-extern s8       D_80072310;
-extern s8       D_8007272A;
-extern s8       D_80072A91;
 extern TaskDesc D_80113340[];
 extern GpEffArg D_80113358;
 
@@ -545,7 +541,7 @@ s32 func_801059AC(GpActorWork* arg0, s32 arg1, s32 arg2)
 
     actor = arg0->actor;
     ret   = 0;
-    if (D_8007272A == 0) {
+    if (Mc_SaveData.field_5C2 == 0) {
         ret = func_8010A854((s16)func_800E2438(arg2, 0, &out, 0));
         if (ret != 0) {
             func_800AC464(Game_GetPtrSlot(4), 0x7DA, 0, 0x7DE);
@@ -643,8 +639,8 @@ s32 func_801060E0(GpActorWork* arg0)
         mask1 = 8;
         mask2 = 2;
     } else {
-        flags = D_80071624;
-        if (D_80072310 == mode) {
+        flags = ((PadState*)&Pad_States)->buttons;
+        if (Mc_SaveData.field_1a8 == mode) {
             mask1 = 0x80;
             mask2 = 0x10;
         } else {
@@ -791,7 +787,7 @@ void func_80108458(GpActorWork* arg0)
     node             = func_800DAD54(arg0);
     inner->field_973 = 0;
     if ((node != NULL && D_801153F0.field_0 < 2) || (flag = 1, D_801153F0.field_0 == flag) ||
-        D_80072A91 != 0) {
+        Mc_SaveData.field_929 != 0) {
         if (inner->field_95E != 0) {
             func_800DB4E0(1);
             if (inner->field_97C != 0) {
@@ -1007,7 +1003,7 @@ void func_80108FD4(GpActorWork* arg0)
     node             = func_800DAD54(arg0);
     inner->field_973 = 0;
     if ((node != NULL && D_801153F0.field_0 < 2) || (flag = 1, D_801153F0.field_0 == flag) ||
-        D_80072A91 != 0) {
+        Mc_SaveData.field_929 != 0) {
         if (inner->field_95E != 0) {
             func_800DB4E0(1);
             if (inner->field_97C != 0) {

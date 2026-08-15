@@ -8,7 +8,6 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 
-extern u16 D_80072174;
 extern u16 D_800739B8;
 
 void  func_80180804(void);
@@ -68,7 +67,7 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800B91C8);
 
 void func_800B92CC(void)
 {
-    switch (*(u32*)&D_8007216C & 0xFFFF0000) {
+    switch (*(u32*)&Mc_SaveData.field_4 & 0xFFFF0000) {
         case 0x1010000:
             func_80180804();
             break;
@@ -161,7 +160,7 @@ void func_800BAE38(void)
     s32  i;
     s32* p;
 
-    p = D_80072714;
+    p = Mc_SaveData.field_5AC;
     for (i = 3; i >= 0; i--) {
         *p++ = 0;
     }
@@ -173,7 +172,7 @@ void func_800BAEC0(s32 arg0)
 {
     s32* p;
 
-    p     = D_80072714;
+    p     = Mc_SaveData.field_5AC;
     arg0 &= 0x7F;
     p    += arg0 / 32;
     arg0 %= 32;
@@ -189,7 +188,7 @@ s32 func_800BAF08(void)
     s32  word;
     s32  one;
 
-    p     = D_80072714;
+    p     = Mc_SaveData.field_5AC;
     count = 0;
     one   = 1;
     for (i = 3; i >= 0; i--) {
@@ -210,7 +209,7 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAF5C);
 
 GpItemSlot* func_800BAFE0(s32 arg0)
 {
-    return &D_80072330[arg0];
+    return &Mc_SaveData.field_1C8[arg0];
 }
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAFF4);
@@ -243,12 +242,12 @@ s32 func_800BB3C0(s32 arg0, s32 arg1)
     GpItemSlot* alt;
     s32         ret;
 
-    slot = &D_80072330[arg0];
+    slot = &Mc_SaveData.field_1C8[arg0];
     alt  = slot;
     if (arg1 != 0) {
-        ret = func_800B715C(&((GpItemBlock*)D_80072330)->scan, arg0, slot->field_2, -1);
+        ret = func_800B715C(&Mc_SaveData.field_5BC, arg0, slot->field_2, -1);
     } else {
-        ret = func_800B715C(&((GpItemBlock*)D_80072330)->scan, arg0, alt->field_0, -1);
+        ret = func_800B715C(&Mc_SaveData.field_5BC, arg0, alt->field_0, -1);
     }
     return ret;
 }
@@ -259,12 +258,12 @@ s32 func_800BB418(s32 arg0, s32 arg1)
     GpItemSlot* alt;
     s32         ret;
 
-    slot = &D_80072330[arg0];
+    slot = &Mc_SaveData.field_1C8[arg0];
     alt  = slot;
     if (arg1 == 0) {
-        ret = func_800B715C(&((GpItemBlock*)D_80072330)->scan, arg0, slot->field_0, 0);
+        ret = func_800B715C(&Mc_SaveData.field_5BC, arg0, slot->field_0, 0);
     } else {
-        ret = func_800B715C(&((GpItemBlock*)D_80072330)->scan, arg0, alt->field_2, 0);
+        ret = func_800B715C(&Mc_SaveData.field_5BC, arg0, alt->field_2, 0);
     }
     return ret == 0;
 }
@@ -288,7 +287,7 @@ s32 func_800BB4BC(s32 arg0)
     s32* p;
     s32  val;
 
-    p     = D_80072714;
+    p     = Mc_SaveData.field_5AC;
     arg0 &= 0x7F;
     p    += arg0 / 32;
     arg0 %= 32;
@@ -304,7 +303,7 @@ GpItemRec* func_800BB500(GpItemScan* arg0)
         case 1:
             return D_80114D70;
         default:
-            return D_80072314;
+            return Mc_SaveData.field_1AC;
     }
 }
 
@@ -322,7 +321,7 @@ s32 func_800BB540(GpItemScan* arg0, GpItemRec* arg1)
             table = D_80114D70;
             break;
         default:
-            table = D_80072314;
+            table = Mc_SaveData.field_1AC;
             break;
     }
 
@@ -350,7 +349,7 @@ GpItemRec* func_800BB5BC(GpItemScan* arg0, s32 arg1)
             table = D_80114D70;
             break;
         default:
-            table = D_80072314;
+            table = Mc_SaveData.field_1AC;
             break;
     }
     return &table[arg0->field_0 + arg1];
@@ -369,7 +368,7 @@ s32 func_800BB610(GpItemScan* arg0, s32 arg1)
             table = D_80114D70;
             break;
         default:
-            table = D_80072314;
+            table = Mc_SaveData.field_1AC;
             break;
     }
     rec = &table[arg0->field_0 + arg1];
@@ -473,22 +472,26 @@ void func_800BBF04(s32 arg0)
 {
     McSaveData* p;
 
-    p            = &Mc_SaveData;
-    p->field_5BC = 0;
-    p->field_5BD = arg0;
-    p->field_5BE = 0;
+    p                    = &Mc_SaveData;
+    p->field_5BC.field_0 = 0;
+    p->field_5BC.field_1 = arg0;
+    p->field_5BC.field_2 = 0;
 }
 
 void func_800BBF1C(void)
 {
     WipSysConfig* p;
+    GpItemSlot*   slots;
+    s32           idx;
     u8            item;
 
     p = &Wip_SysConfig;
     if (p->field_21 == 0) {
         p->field_22 = 0;
     } else {
-        item = D_80072330[p->field_21 + 0x7F].field_0;
+        slots = Mc_SaveData.field_1C8;
+        idx   = p->field_21 + 0x7F;
+        item  = slots[idx].field_0;
         if (item == 0) {
             p->field_22 = 0;
         } else {
@@ -567,7 +570,7 @@ s32 func_800BC18C(s32 arg0)
 
 void func_800BC21C(void)
 {
-    D_800739B8 = D_80072174;
+    D_800739B8 = Mc_SaveData.field_C;
 }
 
 s16 func_800BC230(void)
@@ -575,7 +578,7 @@ s16 func_800BC230(void)
     u16* p;
 
     p = &D_800739B8;
-    return D_80072174 - *p;
+    return Mc_SaveData.field_C - *p;
 }
 
 s32 func_800BC254(void)
@@ -586,7 +589,7 @@ s32 func_800BC254(void)
     ret = 0;
     if (func_800BB4BC(0x119) != 0) {
         p = &D_800739B8;
-        if ((s16)(D_80072174 - *p) >= 2) {
+        if ((s16)(Mc_SaveData.field_C - *p) >= 2) {
             func_800BAEC0(0x119);
             func_800BAE5C(0x11A);
             ret = 1;
@@ -601,7 +604,7 @@ void func_800BC2C4(void)
 
     if (func_800BB4BC(0x119) != 0) {
         p = &D_800739B8;
-        if ((s16)(D_80072174 - *p) >= 2) {
+        if ((s16)(Mc_SaveData.field_C - *p) >= 2) {
             func_800BAEC0(0x119);
             func_800BAE5C(0x11A);
         }
@@ -636,8 +639,8 @@ void func_800BC490(void)
 {
     McSaveData* p;
 
-    p                           = &Mc_SaveData;
-    *(GpItemScan*)&p->field_5BC = D_8010D520;
+    p            = &Mc_SaveData;
+    p->field_5BC = D_8010D520;
 }
 
 void func_800BC4BC(void)

@@ -63,6 +63,33 @@ typedef struct _McWork {
     /* 0xA24 */ u8            field_A24[0x10];
 } McWork;
 
+/// 4-byte save-inventory row (`Mc_SaveData.field_1AC`).
+typedef struct _McItemRec {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ u16 field_2;
+} McItemRec;
+STATIC_ASSERT_SIZEOF(McItemRec, 0x4);
+
+/// 8-byte save-inventory slot (`Mc_SaveData.field_1C8`).
+typedef struct _McItemSlot {
+    /* 0x0 */ u8   field_0;
+    /* 0x1 */ u8   field_1;
+    /* 0x2 */ u8   field_2;
+    /* 0x3 */ u8   field_3;
+    /* 0x4 */ byte pad_4[4];
+} McItemSlot;
+STATIC_ASSERT_SIZEOF(McItemSlot, 0x8);
+
+/// 4-byte item-table scan descriptor (`Mc_SaveData.field_5BC`).
+typedef struct _McItemScan {
+    /* 0x0 */ u8 field_0;
+    /* 0x1 */ u8 field_1;
+    /* 0x2 */ u8 field_2;
+    /* 0x3 */ u8 field_3;
+} McItemScan;
+STATIC_ASSERT_SIZEOF(McItemScan, 0x4);
+
 /// BSS object Mc_SaveData. Large; only fields used so far are named.
 /// field_12 is a slot/index validated by Mc_VerifySaveHdrChecksum (must be 1..16).
 /// field_1C / field_1E are a sum / ones-complement pair over the 0x38 bytes
@@ -72,53 +99,58 @@ typedef struct _McWork {
 /// ones-complement pair over the first byte of Mc_BufferSlots[1..8] buffers
 /// (written by Mc_WriteFirstByteChecksum; field_940 is also known as D_80072AA8).
 typedef struct _McSaveData {
-    /* 0x000 */ byte unknown_0[0x4];
-    /* 0x004 */ u8   field_4;
-    /* 0x005 */ u8   field_5;
-    /* 0x006 */ u8   field_6;
-    /* 0x007 */ u8   field_7;
-    /* 0x008 */ u8   field_8;
-    /* 0x009 */ u8   field_9;
-    /* 0x00A */ byte unknown_A[0x8];
-    /* 0x012 */ u8   field_12;
-    /* 0x013 */ s8   field_13; // also D_8007217B; 1-based index into D_80113360
-    /* 0x014 */ byte unknown_14[0x8];
-    /* 0x01C */ u16  field_1C;
-    /* 0x01E */ u16  field_1E;
-    /* 0x020 */ byte unknown_20[0x1];
-    /* 0x021 */ s8   field_21; // also D_80072189; lb in title restore / gameflow
-    /* 0x022 */ s8   field_22; // also D_8007218A; 1-based row for D_80112E2C
-    /* 0x023 */ s8   field_23; // also D_8007218B
-    /* 0x024 */ byte unknown_24[0x1];
-    /* 0x025 */ u8   field_25;
-    /* 0x026 */ byte unknown_26[0x182];
-    /* 0x1A8 */ u8   field_1a8;
-    /* 0x1A9 */ u8   field_1a9;
-    /* 0x1AA */ u8   field_1aa;
-    /* 0x1AB */ u8   field_1ab;
-    /* 0x1AC */ byte unknown_1AC[0x410];
-    /* 0x5BC */ u8   field_5BC; // also D_80072724
-    /* 0x5BD */ u8   field_5BD;
-    /* 0x5BE */ u8   field_5BE;
-    /* 0x5BF */ byte unknown_5BF[0x3];
-    /* 0x5C2 */ s8   field_5C2;
-    /* 0x5C3 */ byte unknown_5C3[0x2];
-    /* 0x5C5 */ u8   field_5C5;
-    /* 0x5C6 */ byte unknown_5C6[0x1];
-    /* 0x5C7 */ s8   field_5C7; // also D_8007272F; addend for D_80113360 lookup
-    /* 0x5C8 */ byte unknown_5C8[0x100];
-    /* 0x6C8 */ u16  field_6C8; // also D_80072830
-    /* 0x6CA */ u16  field_6CA;
-    /* 0x6CC */ byte unknown_6CC[4];
-    /* 0x6D0 */ s32  field_6D0[0x60]; // bit flags; func_800BC06C tests id < 0x180; func_800BBF84 clears all 96 words
-    /* 0x850 */ byte unknown_850[0x38];
-    /* 0x888 */ s32  field_888[0x20]; // 1-based counters; cap 0x1869E (func_80106518)
-    /* 0x908 */ s8   field_908[0x20]; // signed addend for item ids 0x60–0x7F (func_800BC324)
-    /* 0x928 */ byte unknown_928[0x14];
-    /* 0x93C */ u16  field_93C;
-    /* 0x93E */ byte unknown_93E[0x2];
-    /* 0x940 */ s16  field_940;
-    /* 0x942 */ s16  field_942;
+    /* 0x000 */ byte       unknown_0[0x4];
+    /* 0x004 */ u8         field_4;
+    /* 0x005 */ u8         field_5;
+    /* 0x006 */ u8         field_6;
+    /* 0x007 */ u8         field_7;
+    /* 0x008 */ u8         field_8;
+    /* 0x009 */ u8         field_9;
+    /* 0x00A */ byte       unknown_A[0x2];
+    /* 0x00C */ u16        field_C;
+    /* 0x00E */ byte       unknown_E[0x4];
+    /* 0x012 */ u8         field_12;
+    /* 0x013 */ s8         field_13; // also D_8007217B; 1-based index into D_80113360
+    /* 0x014 */ byte       unknown_14[0x8];
+    /* 0x01C */ u16        field_1C;
+    /* 0x01E */ u16        field_1E;
+    /* 0x020 */ byte       unknown_20[0x1];
+    /* 0x021 */ s8         field_21; // also D_80072189; lb in title restore / gameflow
+    /* 0x022 */ s8         field_22; // also D_8007218A; 1-based row for D_80112E2C
+    /* 0x023 */ s8         field_23; // also D_8007218B
+    /* 0x024 */ byte       unknown_24[0x1];
+    /* 0x025 */ u8         field_25;
+    /* 0x026 */ byte       unknown_26[0x182];
+    /* 0x1A8 */ s8         field_1a8;
+    /* 0x1A9 */ u8         field_1a9;
+    /* 0x1AA */ u8         field_1aa;
+    /* 0x1AB */ u8         field_1ab;
+    /* 0x1AC */ McItemRec  field_1AC[7];
+    /* 0x1C8 */ McItemSlot field_1C8[0x7C];
+    /* 0x5A8 */ byte       unknown_5A8[4];
+    /* 0x5AC */ s32        field_5AC[4];
+    /* 0x5BC */ McItemScan field_5BC;
+    /* 0x5C0 */ byte       unknown_5C0[2];
+    /* 0x5C2 */ s8         field_5C2;
+    /* 0x5C3 */ byte       unknown_5C3[0x2];
+    /* 0x5C5 */ u8         field_5C5;
+    /* 0x5C6 */ byte       unknown_5C6[0x1];
+    /* 0x5C7 */ s8         field_5C7; // also D_8007272F; addend for D_80113360 lookup
+    /* 0x5C8 */ byte       unknown_5C8[0x100];
+    /* 0x6C8 */ u16        field_6C8; // also D_80072830
+    /* 0x6CA */ u16        field_6CA;
+    /* 0x6CC */ byte       unknown_6CC[4];
+    /* 0x6D0 */ s32        field_6D0[0x60]; // bit flags; func_800BC06C tests id < 0x180; func_800BBF84 clears all 96 words
+    /* 0x850 */ byte       unknown_850[0x38];
+    /* 0x888 */ s32        field_888[0x20]; // 1-based counters; cap 0x1869E (func_80106518)
+    /* 0x908 */ s8         field_908[0x20]; // signed addend for item ids 0x60–0x7F (func_800BC324)
+    /* 0x928 */ byte       unknown_928[0x1];
+    /* 0x929 */ s8         field_929;
+    /* 0x92A */ byte       unknown_92A[0x12];
+    /* 0x93C */ u16        field_93C;
+    /* 0x93E */ byte       unknown_93E[0x2];
+    /* 0x940 */ s16        field_940;
+    /* 0x942 */ s16        field_942;
 } McSaveData;
 STATIC_ASSERT_SIZEOF(McSaveData, 0x944);
 

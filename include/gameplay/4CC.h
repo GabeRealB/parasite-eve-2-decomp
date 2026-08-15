@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "main/mc.h"
 #include "main/task.h"
 
 /// Object at `Task::spawnArg2` for `func_800BF5CC`. `field_8` is the packed
@@ -35,9 +36,6 @@ extern GpItemDesc D_8010D838[];
 /// Item/location halfword copied from `D_80114DDC` by `func_800BCC44`.
 /// `func_800BF334` special-cases the value `0x703`.
 extern u16 D_80114D7C;
-/// Byte 3 of the `D_8007216C` location key (`GameSession.field_7`).
-extern u8 D_8007216F;
-
 s32 func_800BF334(s32 arg0, s32 arg1);
 s32 func_800BF5CC(Task* arg0, s32 arg1, GpItemObj2* arg2);
 

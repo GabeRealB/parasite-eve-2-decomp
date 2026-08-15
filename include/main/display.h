@@ -45,7 +45,7 @@ typedef struct _DisplayState {
     /* 0x10C */ byte        unknown_10c[0x1];
     /* 0x10D */ u8          field_10d;
     /* 0x10E */ u16         field_10e;
-    /* 0x110 */ byte        unknown_110[0x2];
+    /* 0x110 */ u16         field_110;
     /* 0x112 */ s16         field_112;
     /* 0x114 */ s32         field_114;
     /* 0x118 */ s32         frameMode;

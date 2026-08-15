@@ -15,10 +15,7 @@
 
 extern u8             D_801153F1;
 extern s32            D_8010CA28;
-extern u8             D_80071097; // Display_State.field_12f
 extern TaskDesc       D_8010CABC;
-extern TmdListHead*   D_800711BC;
-extern TmdListHead*   D_800711C4;
 extern TmdListHead    D_80114B80;
 extern TmdListHead    D_80114B88;
 extern Task*          D_80114B90;
@@ -73,7 +70,7 @@ void func_800991DC(TmdListHead* arg0)
 
     next = (TmdListHead*)arg0->next;
     if (next == NULL) {
-        pp = &D_800711BC;
+        pp = &Tmd_List.prev;
     } else {
         pp = &next->prev;
     }
@@ -99,7 +96,7 @@ void func_80099258(TmdListHead* arg0)
 
     next = (TmdListHead*)arg0->next;
     if (next == NULL) {
-        pp = &D_800711C4;
+        pp = &Tmd_ListAlt.prev;
     } else {
         pp = &next->prev;
     }
@@ -465,7 +462,7 @@ void func_800A7A64(void)
         if (Game_Session->field_126 == 0) {
             func_8010A1B0(1, 0xFF);
             func_800FC6C0();
-            D_80071097 = 0;
+            Display_State.field_12f = 0;
             Display_InitModeObj(&D_8010CABC, 1, 0, 0x102);
         }
     }

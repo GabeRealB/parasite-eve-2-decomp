@@ -12,10 +12,7 @@
 #include "main/stage.h"
 #include "main/tmd.h"
 #include "main/unknown_syms.h"
-
-extern u8 D_80071068; // Display_State.field_100
-extern u8 D_8007106B; // Display_State.field_103
-extern u8 D_80073BA9;
+#include "main/wipsys.h"
 
 void func_800A9310(void);
 void func_800A9730(Task* task);
@@ -67,9 +64,9 @@ void func_800A9730(Task* task)
         Display_ResetHeapWrapper();
     } else {
         if (task->spawnArg1 == 1) {
-            D_8007106B = 1;
+            Display_State.field_103 = 1;
         }
-        D_80071068 = 2;
+        Display_State.field_100 = 2;
         Task_Spawn(0, 0x17, 0, 0);
         Game_Session->field_4D = 1;
         Task_Kill(task);
@@ -101,12 +98,12 @@ void func_800A990C(s32 arg0)
     Task* slot;
 
     slot                  = Game_GetPtrSlot(1);
-    D_8007216C            = arg0;
+    Mc_SaveData.field_4   = arg0;
     Game_Session->field_4 = arg0;
     slot->spawnArg1       = (u8)arg0;
     Pad_SetCooldown(0);
     func_800A8DC0(1);
-    D_80071068 = 1;
+    Display_State.field_100 = 1;
     Task_Spawn(0, 0x1E, 0, 0);
 }
 
@@ -115,7 +112,7 @@ void func_800A9980(Task* task)
     u8 val;
 
     val                   = *(u8*)&task->spawnArg1;
-    D_8007216C            = val;
+    Mc_SaveData.field_4   = val;
     Game_Session->field_4 = val;
     Task_Kill(task);
 }
@@ -153,7 +150,7 @@ void func_800A9BE4(void)
     u8  val;
     s32 flag;
 
-    val = D_80073BA9;
+    val = Wip_SysConfig.field_21;
     if (val == 0) {
         val = 1;
     }
@@ -359,7 +356,7 @@ void func_800AD620(Task* task)
 
     val = func_800ACF8C();
     do {
-        D_80071068 = val;
+        Display_State.field_100 = val;
     } while (0);
     task->state++;
 }
@@ -373,8 +370,8 @@ void func_800AD65C(Task* task)
     if ((ds->field_1e != 2) && (ds->field_104 == 0)) {
         func_800AC688();
     } else {
-        val        = func_800ACF8C();
-        D_80071068 = val;
+        val                     = func_800ACF8C();
+        Display_State.field_100 = val;
     }
 }
 
