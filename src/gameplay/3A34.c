@@ -854,7 +854,17 @@ s32 func_800E2CD4(s32 arg0, s32 arg1)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E2D3C);
+s32 func_800E2D3C(s32 arg0)
+{
+    s32 ret;
+
+    if ((arg0 & 0x8000) == 0) {
+        ret = D_80113390[arg0 & 0x7F].field_4;
+    } else {
+        ret = D_8011398C[arg0 & 0x7F].field_A;
+    }
+    return ret;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E2D90);
 
