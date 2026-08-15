@@ -821,6 +821,20 @@ Row in the item tables selected by `GpItemScan` (`D_80072314` /
 | 0x01 | `field_1` | Count (compared as signed by `func_800CF448` / `func_800B91C8`) |
 | 0x02 | `field_2` | u16 quantity accumulated by `func_800BB6FC` |
 
+### `GpItemObj8` — `4CC.h`
+Object at `Task::spawnArg2` for `func_800BF5CC`. Full size unknown.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x08 | `field_8` | Packed item id passed to `func_800BB470` |
+
+### `GpItemObj2` — `4CC.h`
+Object stored in `Task::extraState` by `func_800BF5CC`. Full size unknown.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x02 | `field_2` | Set to 1 when `func_800BB470` returns 2 |
+
 ### `GpEvt12` (0xC) — `3CD8.h`
 Current sequence table at `D_801155A8` (`func_800E41F4` stores its first arg
 there). `func_800E6EA0` walks from a start index until `field_8 == -1` or
