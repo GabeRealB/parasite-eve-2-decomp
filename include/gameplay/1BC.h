@@ -73,7 +73,8 @@ STATIC_ASSERT_SIZEOF(GpAnimCtx, 0x14);
 
 /// Object returned by `func_800B5A08` (`GpAreaRec.field_4`). `field_0` is a
 /// signed id compared with `GpAreaKey.field_5`; `field_1` is a flags byte
-/// (bits 0/1/2/4 in nearby 1BC / 1A8 helpers). Full size unknown.
+/// (bits 0/1/2/4 in nearby 1BC / 1A8 helpers; `func_800B59A8` returns bit 1).
+/// Full size unknown.
 typedef struct _GpAreaObj {
     /* 0x00 */ s8 field_0;
     /* 0x01 */ u8 field_1;
@@ -125,6 +126,7 @@ s32*     func_800B4668(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3);
 void     func_800B57EC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
 void     func_800B58D4(TmdObject* arg0, s32 arg1, s32 arg2);
+s32        func_800B59A8(GpAreaKey* arg0);
 GpAreaObj* func_800B5A08(GpAreaKey* arg0);
 GpAreaObj* func_800B5C88(GpAreaKey* arg0);
 GpAreaRec* func_800B5CE8(GpAreaKey* arg0);

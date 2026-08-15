@@ -844,7 +844,7 @@ Object behind `GpAreaRec.field_4`. Full size unknown.
 | Off | Member | Role |
 |-----|--------|------|
 | 0x00 | `field_0` | Signed id; compared with `GpAreaKey.field_5` |
-| 0x01 | `field_1` | Flags (bits 0/1/2/4 in nearby 1BC / 1A8 helpers) |
+| 0x01 | `field_1` | Flags (bits 0/1/2/4 in nearby 1BC / 1A8 helpers; `func_800B59A8` returns bit 1) |
 
 ### `GpAreaRec` (0x8) — `1BC.h`
 Element of tables pointed to by `D_8010CBCC`. Indexed by `GpAreaKey.field_2`.

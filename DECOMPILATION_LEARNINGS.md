@@ -14437,4 +14437,18 @@ actor->field_954 = 0;    /* sh zero, off(v0) */
 `func_8010C180` is the example. A single `inner` reused for both groups stuck
 at 98% with only the reload register wrong.
 
+## `s32 val = field & K; return val != 0` keeps `andi` + `sltu`
+
+`(u8_field & POWER_OF_TWO) != 0` as a single expression is combined into a
+bit extract (`srl` / `andi 1`). So is `(u32)(u8_field & K) > 0` when the AND
+is still in the compare. Assign the mask result to an `s32` first:
+
+```c
+val = obj->field_1 & 2;
+return val != 0; /* andi 2; sltu v0, zero, v0 */
+```
+
+`func_800B59A8` is the example. Same shape as `func_800BB4BC` / `func_800BC06C`
+but needed even for a constant 1-bit mask.
+
 

@@ -484,7 +484,22 @@ void func_800B58D4(TmdObject* arg0, s32 arg1, s32 arg2)
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B5914);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B59A8);
+s32 func_800B59A8(GpAreaKey* arg0)
+{
+    GpAreaRec* rec;
+    GpAreaObj* obj;
+    s32        val;
+
+    rec = D_8010CBCC[arg0->field_3];
+    if (rec != NULL) {
+        obj = rec[arg0->field_2].field_4;
+        if (obj != NULL) {
+            val = obj->field_1 & 2;
+            return val != 0;
+        }
+    }
+    return 0;
+}
 
 GpAreaObj* func_800B5A08(GpAreaKey* arg0)
 {
