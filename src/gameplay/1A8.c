@@ -3,6 +3,7 @@
 #include <psyq/libgte.h>
 
 #include "gameplay/1A8.h"
+#include "gameplay/1BC.h"
 #include "main/session.h"
 #include "main/task.h"
 
@@ -23,7 +24,19 @@ extern u8  D_80114CF8;
 
 INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AEBA4);
 
-INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AED24);
+void func_800AED24(GpAreaKey* arg0)
+{
+    GpAreaRec* rec;
+    GpAreaObj* obj;
+
+    rec = D_8010CBCC[arg0->field_3];
+    if (rec != NULL) {
+        obj = rec[arg0->field_2].field_4;
+        if (obj != NULL) {
+            obj->field_1 &= 0xFB;
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AED80);
 
