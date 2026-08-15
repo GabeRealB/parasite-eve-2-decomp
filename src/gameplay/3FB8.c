@@ -429,7 +429,15 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105AB0);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105B0C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105B74);
+void func_80105B74(VECTOR3* arg0)
+{
+    GameActor* actor;
+
+    actor           = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
+    actor->field_40 = arg0->vx;
+    actor->field_44 = arg0->vy;
+    actor->field_48 = arg0->vz;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105BC4);
 
