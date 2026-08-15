@@ -13666,4 +13666,30 @@ if ((s8)p->field == 0) {
 assignment, not later at the array use (`u16 idx = arg1` is only a
 subreg trunc). `func_801041FC` is the example.
 
+## `if (p == NULL) return 0` so the break block stays after the load
+
+A `for` that `break`s after `rec = cur` places that assignment out of
+line, after the post-loop if. Writing the non-NULL return first inverts
+the test (`bnez` to `lbu`) and parks the load *after* the break block.
+The target wants `beqz` to the epilogue with `lbu` as fall-through
+*before* `j check; move rec, cur`:
+
+```c
+for (; i < count; i++) {
+    if ((s8)cur->field_1 == key) {
+        rec = cur;
+        break;
+    }
+    cur++;
+}
+if (rec == NULL) {
+    return 0;
+}
+return rec->field_0;
+```
+
+A `do { ... } while (i < count)` of the same body inlines the break
+(i++ / i-- / `bne`) and never emits that out-of-line block. `func_800CEA00`
+is the example.
+
 

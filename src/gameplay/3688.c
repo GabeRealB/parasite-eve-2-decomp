@@ -294,7 +294,30 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE894);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE980);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CEA00);
+s32 func_800CEA00(GpItemScan* arg0, s32 arg1)
+{
+    GpItemRec* table;
+    s32        i;
+    s32        count;
+    GpItemRec* rec;
+
+    table = func_800BB500(arg0);
+    i     = 0;
+    rec   = NULL;
+    table = &table[arg0->field_0];
+    count = arg0->field_1;
+    for (; i < count; i++) {
+        if ((s8)table->field_1 == arg1 + 1) {
+            rec = table;
+            break;
+        }
+        table++;
+    }
+    if (rec == NULL) {
+        return 0;
+    }
+    return rec->field_0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CEA88);
 
