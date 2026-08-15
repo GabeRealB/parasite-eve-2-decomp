@@ -157,6 +157,7 @@ Convention: only list fields with evidence. Unlisted `field_*` / `unknown_*` /
 | 0x5C7 | `field_5C7` | signed addend for the `D_80113360` lookup (`func_800E3D24`); also `D_8007272F` |
 | 0x1C/1E | checksum pair | Save header sum / ones-complement |
 | 0x888 | `field_888[]` | 1-based `s32` counters; increment capped at 0x1869E (`func_80106518`) |
+| 0x908 | `field_908[]` | 32 signed addends for item ids 0x60–0x7F (`func_800BC324`) |
 | 0x93C | `field_93C` | Save-data checksum halfword |
 | 0x940/942 | checksum pair | Over first byte of buffer slots 1..8 |
 
@@ -836,6 +837,14 @@ Row in the item tables selected by `GpItemScan` (`D_80072314` /
 | 0x00 | `field_0` | Item id |
 | 0x01 | `field_1` | Count (compared as signed by `func_800CF448` / `func_800B91C8`) |
 | 0x02 | `field_2` | u16 quantity accumulated by `func_800BB6FC` |
+
+### `GpItemAttr` (0x8) — `268.h`
+Indexed as `D_8010DFB8[itemId]` by `func_800BC324`. Item ids 0x60–0x7F
+map onto the 32-entry slice at `D_8010E2B8` (`D_8010DFB8 + 0x60 * 8`).
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x05 | `field_5` | Unsigned base added to `Mc_SaveData.field_908[itemId-0x60]`; result clamped to 10 |
 
 ### `GpBit2Bank` (0x8) — `268.h`
 Per-stage table at `D_8010D230`, indexed by `GameSession.field_7` /

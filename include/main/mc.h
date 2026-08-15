@@ -110,7 +110,8 @@ typedef struct _McSaveData {
     /* 0x6C8 */ u16  field_6C8; // also D_80072830
     /* 0x6CA */ u16  field_6CA;
     /* 0x6CC */ byte unknown_6CC[0x1BC];
-    /* 0x888 */ s32  field_888[0x28]; // 1-based counters; cap 0x1869E (func_80106518)
+    /* 0x888 */ s32  field_888[0x20]; // 1-based counters; cap 0x1869E (func_80106518)
+    /* 0x908 */ s8   field_908[0x20]; // signed addend for item ids 0x60–0x7F (func_800BC324)
     /* 0x928 */ byte unknown_928[0x14];
     /* 0x93C */ u16  field_93C;
     /* 0x93E */ byte unknown_93E[0x2];

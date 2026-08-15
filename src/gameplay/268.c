@@ -482,7 +482,25 @@ void func_800BC2C4(void)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC324);
+s32 func_800BC324(s32 arg0)
+{
+    register s32 ret asm("a1");
+    register s32 idx asm("a2");
+    GpItemAttr*  p;
+
+    idx = arg0 - 0x60;
+    ret = 0;
+    if ((u32)idx < 0x20) {
+        p    = &D_8010DFB8[arg0];
+        ret  = p->field_5;
+        ret += Mc_SaveData.field_908[idx];
+        asm volatile("" ::"r"(idx));
+        if (ret >= 0xB) {
+            ret = 0xA;
+        }
+    }
+    return ret;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC378);
 

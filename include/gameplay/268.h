@@ -84,6 +84,22 @@ typedef struct _GpBit2Bank {
 } GpBit2Bank;
 STATIC_ASSERT_SIZEOF(GpBit2Bank, 0x8);
 
+/// 8-byte item attribute row. `D_8010DFB8` is indexed by raw item id
+/// (`func_800BC324`); ids 0x60–0x7F land in the `D_8010E2B8` slice.
+/// field_5 is the unsigned base added to `Mc_SaveData.field_908[id-0x60]`
+/// and clamped to 10.
+typedef struct _GpItemAttr {
+    /* 0x00 */ u8 field_0;
+    /* 0x01 */ u8 field_1;
+    /* 0x02 */ u8 field_2;
+    /* 0x03 */ u8 field_3;
+    /* 0x04 */ u8 field_4;
+    /* 0x05 */ u8 field_5;
+    /* 0x06 */ u8 field_6;
+    /* 0x07 */ u8 field_7;
+} GpItemAttr;
+STATIC_ASSERT_SIZEOF(GpItemAttr, 0x8);
+
 /// 4-word (128-bit) flag array at `Mc_SaveData+0x5AC`. Indexed with
 /// `id & 0x7F` (`func_800BAE5C` / `func_800BAEC0` / `func_800BB4BC`).
 extern s32        D_80072714[4];
@@ -94,6 +110,7 @@ extern GpBit2Bank D_8010D230[];
 extern GpItemQty  D_8010D278[];
 extern GpItemMap  D_8010D2F8[];
 extern GpItemScan D_8010D520;
+extern GpItemAttr D_8010DFB8[];
 extern GpItemQty  D_8010E238[];
 extern GpItemRec  D_80114C20[];
 extern GpItemRec* D_80114D70;
@@ -115,5 +132,6 @@ void        func_800BB7C0(s32 arg0, s32 arg1);
 s32         func_800BB974(GameSessionFrom4* arg0, s32 arg1);
 GpItemMap*  func_800BBDC8(s32 arg0);
 s32         func_800BBEC0(s32 arg0);
+s32         func_800BC324(s32 arg0);
 
 #endif // GAMEPLAY_268_H

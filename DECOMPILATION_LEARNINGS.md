@@ -13692,4 +13692,40 @@ A `do { ... } while (i < count)` of the same body inlines the break
 (i++ / i-- / `bne`) and never emits that out-of-line block. `func_800CEA00`
 is the example.
 
+## Keep the byte index live so `base + idx` dest is `$v0`, not the index reg
+
+When the target does
+
+```
+lui    v0,%hi(obj)
+addiu  v0,v0,%lo(obj)
+addu   v0,a2,v0      /* tmp = idx + base; idx stays in $a2 */
+lb     v0,OFF(v0)
+```
+
+a dying `idx` is coalesced into the add: `addu a2, a2, v0` / `lb v0, OFF(a2)`.
+Pin `idx` in `$a2` and mention it *after* the indexed load so the add must
+write a new temp (the live `$v0` base):
+
+```c
+register s32 ret asm("a1");
+register s32 idx asm("a2");
+Item*        p;
+
+idx = arg0 - 0x60;
+ret = 0;
+if ((u32)idx < 0x20) {
+    p   = &table[arg0];          /* sll then lui — see "indexed volatile" */
+    ret = p->field_5;
+    ret += save->field_908[idx];
+    asm volatile("" ::"r"(idx)); /* idx still live → addu v0, a2, v0 */
+    if (ret >= 0xB) {
+        ret = 0xA;
+    }
+}
+```
+
+`p = &table[arg0]` (not `table[arg0].field`) is what schedules `sll` before
+the table `lui`. `func_800BC324` is the example.
+
 
