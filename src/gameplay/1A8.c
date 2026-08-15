@@ -142,6 +142,20 @@ void func_800AF41C(void)
     D_80114CD6++;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AF498);
+void func_800AF498(void)
+{
+    GpAreaKey* key;
+    GpAreaRec* rec;
+    GpAreaObj* obj;
+
+    key = (GpAreaKey*)&Game_Session->field_4;
+    rec = D_8010CBCC[key->field_3];
+    if (rec != NULL) {
+        obj = rec[key->field_2].field_4;
+        if (obj != NULL) {
+            obj->field_1 |= 0x4;
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AF500);
