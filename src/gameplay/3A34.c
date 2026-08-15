@@ -10,6 +10,7 @@
 #include "main/ui.h"
 
 s32 func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32 func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 /// Signed overlay of `UiPanel` so `field_18` / `field_1C` load with `lh`.
 typedef struct {
@@ -804,4 +805,52 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E3194);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E31E8);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E337C);
+void func_800E337C(Task* arg0)
+{
+    s32 flags;
+    s32 bit0;
+    s32 mode;
+    s32 flag;
+
+    flag  = 1;
+    flags = arg0->spawnArg1;
+    switch (arg0->state) {
+        case 0:
+            bit0 = flags & 1;
+            if (bit0 != 0) {
+                func_800E3BBC(0);
+                D_801153F4 = flag;
+            }
+            if (flags & 2) {
+                func_800E3B80(0);
+            }
+            if (flags & 4) {
+                mode = 2;
+            } else if (bit0 == 0) {
+                mode = 3;
+            } else {
+                mode = 0;
+            }
+            func_800E34D8((s32)arg0->spawnArg2, mode);
+            arg0->state++;
+            break;
+        case 1:
+            if (func_800E6CE0() == 0) {
+                arg0->state++;
+            }
+            break;
+        case 2:
+            if (flags & 1) {
+                func_800E3BBC(1);
+                D_801153F4 = 0;
+            }
+            if (flags & 2) {
+                func_800E3B80(1);
+            }
+            if (D_80115598 != 0) {
+                func_800AC464(Game_GetPtrSlot(7), 0x13F2, (s32)arg0->spawnArg2 + 0x64, 0);
+            }
+            Task_Kill(arg0);
+            break;
+    }
+}

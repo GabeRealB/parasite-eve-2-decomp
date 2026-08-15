@@ -13973,4 +13973,33 @@ if (mode != 2) {
 `func_801060E0` is the example. `s32` for the later button word also
 avoids a redundant `andi flags, 0xFFFF` before the mask `and`.
 
+## Write the `== 0` arm so a 0-vs-K assign emits `bnez` + `move zero`
+
+A 3-way select that assigns `2`, then `0`, then `K` wants:
+
+```
+bnez  bit4, use
+ li    a1, 2
+bnez  bit0, use
+ move  a1, zero
+li    a1, K
+```
+
+The natural `else if (bit0) { mode = 0; } else { mode = 3; }` is inverted by
+GCC to `beqz bit0` with `li 3` in the delay slot and `move zero` as
+fall-through. Write the zero-test first so the inversion lands on the
+target polarity:
+
+```c
+if (flags & 4) {
+    mode = 2;
+} else if (bit0 == 0) {
+    mode = 3;
+} else {
+    mode = 0;
+}
+```
+
+`func_800E337C` is the example.
+
 

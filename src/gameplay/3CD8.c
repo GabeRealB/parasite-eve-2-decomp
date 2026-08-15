@@ -48,7 +48,6 @@ extern u8           D_80115702;
 
 s32   func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 Task* func_8002CFA0(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
-void  func_800E34D8(s32 arg0, s16 arg1);
 void  func_800E40EC(s32 arg0);
 s32   func_800E41F4(s32 arg0, s16 arg1, s16 arg2);
 void  func_800E44A0(Task* arg0);
@@ -56,7 +55,6 @@ void  func_80724120(void);
 void  func_80724324(void);
 void  func_800E646C(Task* arg0);
 s32   func_800E6C70(s16 arg0, s16 arg1, s16 arg2);
-s32   func_800E6CE0(void);
 s32   func_800E6CF0(void);
 void  func_800E6D60(s32 arg0);
 void  func_800E6E50(void);

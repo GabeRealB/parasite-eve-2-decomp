@@ -211,6 +211,7 @@ extern GpObj3A* D_8010FAB8[1];
 
 extern GpStateF0 D_801153F0;
 extern u8        D_801153F3;
+extern u8        D_801153F4;
 extern GpObj4C* D_8011556C;
 extern GpObj* D_80115570;
 extern GpObj* D_80115574;
@@ -220,6 +221,7 @@ extern GpObj* D_80115580;
 extern GpObj* D_80115588;
 extern GpObj* D_8011558C;
 extern GpObj* D_80115590;
+extern u8     D_80115598;
 extern s32    D_80115424;
 extern s32    D_80115448;
 
@@ -286,6 +288,7 @@ s32  func_800E2438(s32 arg0, s32 arg1, s32* arg2, s32 arg3);
 s32  func_800E2BF8(GpObj50* arg0, s32 arg1);
 s32  func_800E2C40(GpU16Pair* arg0, s32 arg1);
 void func_800E3008(GpObj4C* arg0);
+void func_800E337C(Task* arg0);
 void func_8010154C(void);
 
 #endif // GAMEPLAY_3A34_H

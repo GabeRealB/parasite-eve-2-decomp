@@ -131,6 +131,11 @@ extern GpState1C*    D_80115740;
 extern GpCoord64     D_80114F30[8];
 extern GsCOORDINATE2 D_80070F10;
 
+void func_800E34D8(s32 arg0, s16 arg1);
+void func_800E3B80(s32 arg0);
+void func_800E3BBC(s32 arg0);
+s32  func_800E6CE0(void);
+
 void func_800EA3A0(s32 arg0);
 void func_800EA3B4(void);
 void func_800EA3EC(void);
