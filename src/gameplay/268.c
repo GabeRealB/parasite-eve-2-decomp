@@ -1,11 +1,13 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
 #include <psyq/memory.h>
 
 #include "gameplay/268.h"
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/ui.h"
 #include "main/wipsys.h"
 
 extern u16 D_800739B8;
@@ -36,6 +38,7 @@ void  func_800B6CF0(void);
 void  func_800BAEC0(s32 arg0);
 void  func_800BAE5C(s32 arg0);
 s32   func_800BBCCC(GpItemRec* arg0, GpItemScan* arg1, s32* arg2, s32 arg3);
+void  func_800C1148(UiPanel* arg0, s32 arg1);
 void  func_801061F0(void);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B7420);
@@ -668,7 +671,19 @@ s32 func_800BC324(s32 arg0)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC378);
+void func_800BC378(Task* arg0)
+{
+    UiPanel* panel;
+
+    panel = arg0->spawnArg2;
+    if (arg0->state == 0) {
+        Ui_UpdateLayoutSize(panel, 0xB0, 0x2F);
+        panel->field_C.y = -0xC;
+        panel->field_C.x = -panel->field_C.w / 2;
+        arg0->state++;
+    }
+    func_800C1148(panel, 0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC3F8);
 

@@ -5,6 +5,7 @@
 
 #include "main/mc.h"
 #include "main/session.h"
+#include "main/task.h"
 
 /// Save-inventory slot (`Mc_SaveData.field_1C8`). field_0/field_2 are item ids;
 /// field_1/field_3 are the matching counts (`func_800BAFF4`).
@@ -116,5 +117,6 @@ s32         func_800BBEC0(s32 arg0);
 s32         func_800BC06C(s32 arg0);
 s32         func_800BC18C(s32 arg0);
 s32         func_800BC324(s32 arg0);
+void        func_800BC378(Task* arg0);
 
 #endif // GAMEPLAY_268_H
