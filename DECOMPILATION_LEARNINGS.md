@@ -14247,4 +14247,41 @@ Taking `&base` before the check also hoists `lui`/`addiu` above the divide.
 
 `func_800BC06C` is the example.
 
+## `&table[i]` then `*slot` vs `table[i]` for prologue / `$v0` reuse
+
+`table[i]` lets GCC hoist `lui %hi(table)` into the delay slot of an earlier
+independent load (often a global pointer), which claims `$v1` for the table
+base and forces the first load *after* `addiu $sp`. The target instead wants:
+
+```
+lui  v0, %hi(ptr)
+lw   v0, %lo(ptr)(v0)
+addiu sp,sp,-N          /* delay of the pointer load */
+sw   ra / s1 / s0
+lbu  s0, 0(v0)          /* index */
+lui  v0, %hi(table)     /* reuse $v0 now that the pointer is dead */
+addiu v0, v0, %lo(table)
+sll  v1, s0, 2
+addu v1, v1, v0
+lw   v0, 0(v1)
+```
+
+Take the address of the slot first, then dereference. The address depends on
+the index, so the `lui` cannot move above the `lbu`, and `$v0` is reused for
+the table base:
+
+```c
+void (**slot)(UiObject*, Task*);
+
+id   = *D_80114DD4;
+slot = &D_8010D3A0[id];
+if (*slot != NULL) {
+    ...
+}
+```
+
+`if (D_8010D3A0[id] != NULL)` and `fn = D_8010D3A0[id]; if (fn != NULL)` both
+stuck at ~92% with the table `lui` hoisted and the stack adjust first.
+`func_800CFE68` is the example.
+
 

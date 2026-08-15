@@ -29,6 +29,7 @@ extern char         D_8010E558[];
 extern char         D_8010E55C[];
 extern char         D_8010F8D0[];
 extern UiObjectDesc D_8010EE6C;
+extern UiObjectDesc D_8010EE88;
 extern UiObjectDesc D_8010EFA0;
 extern UiObjectDesc D_8010F788;
 extern TaskDesc     D_8010F85C;
@@ -57,6 +58,7 @@ void       func_800D0C34(Task* arg0);
 void       func_800D0614(Task* arg0);
 void       func_800D08D4(Task* arg0);
 void       func_800D15D0(Task* arg0);
+void       func_800D4E40(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_8003F9F4(void);
 void       func_8003F6F8(void);
 void       func_800A96A0(void);
@@ -626,7 +628,25 @@ void func_800CFD78(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CFE68);
+void func_800CFE68(s32 arg0, UiObject* arg1)
+{
+    u8   id;
+    s32  one;
+    void (**slot)(UiObject*, Task*);
+
+    id   = *D_80114DD4;
+    slot = &D_8010D3A0[id];
+    if (*slot != NULL) {
+        one = 1;
+        if (Ui_SpawnFromDesc(&D_8010EE88, id, one, one, arg1) != NULL) {
+            func_800BB7C0(id, 1);
+        }
+        arg1->status = 0;
+    } else {
+        func_800D4E40(arg1, 0x12, 0, 0);
+        arg1->status = 0;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CFF04);
 
