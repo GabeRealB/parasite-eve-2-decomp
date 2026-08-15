@@ -772,6 +772,15 @@ index is `id & 0x7F`. Sibling accessors `func_800E2D3C` / `func_800E2D90`
 | 0x06 | `field_6` | u16 returned by `func_800E2D90` |
 | 0x08 | `field_8` | u16 returned by `func_800E3194` |
 
+### `GpRec12` (0xC) — `3A34.h`
+4-entry ranked table walked by `func_800D9B9C` from `arg4` toward 0.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | s32 payload stored from `func_800D9B9C` arg2 |
+| 0x04 | `field_4` | s32 descending sort key (`func_800D9B9C` arg1; ignored if <= 0) |
+| 0x08 | `field_8` | s32 payload stored from `func_800D9B9C` arg3 |
+
 ### `GpRec16` (0x10) — `3A34.h`
 Element of `D_8011398C`. Selected when an id's 0x8000 bit is set;
 index is `id & 0x7F`. Sibling accessors `func_800E2D3C` / `func_800E2D90`

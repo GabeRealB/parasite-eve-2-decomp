@@ -77,6 +77,19 @@ typedef struct _GpRec10 {
 } GpRec10;
 STATIC_ASSERT_SIZEOF(GpRec10, 0xA);
 
+/// 12-byte ranked slot inserted by `func_800D9B9C`. That helper walks a
+/// 4-entry table (indices 0..3) from `arg4` toward 0 and keeps slots in
+/// descending `field_4` order. A non-positive key is ignored. When the
+/// new key is larger than slot `arg4`, that slot is copied to `arg4+1`
+/// (if `arg4 < 3`) and the search recurses; otherwise the record is
+/// stored at `arg4+1` when there is room.
+typedef struct _GpRec12 {
+    /* 0x0 */ s32 field_0; // payload from arg2
+    /* 0x4 */ s32 field_4; // descending sort key (arg1)
+    /* 0x8 */ s32 field_8; // payload from arg3
+} GpRec12;
+STATIC_ASSERT_SIZEOF(GpRec12, 0xC);
+
 /// 16-byte table entry at `D_8011398C`. Selected when the id's 0x8000 bit
 /// is set. `func_800E2D3C` / `func_800E2D90` / `func_800E3194` return
 /// `field_A` / `field_C` / `field_E` for index `id & 0x7F`.
@@ -316,6 +329,7 @@ void  func_800D9550(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3);
 s32   func_800D9618(void);
 void  func_800D96C8(Task* arg0);
 s32   func_800D9788(GpObj38* arg0);
+void  func_800D9B9C(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void  func_800D9D18(Task* arg0);
 void  func_800D9C3C(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3);
 void  func_800D9CC8(Task* arg0);

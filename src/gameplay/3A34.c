@@ -175,7 +175,34 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D98C4);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9A30);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9B9C);
+void func_800D9B9C(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+{
+    GpRec12* rec;
+    GpRec12* next;
+
+    if (arg1 <= 0) {
+        return;
+    }
+
+    rec = (GpRec12*)(arg4 * sizeof(*arg0) + (s32)arg0);
+    if (rec->field_4 < arg1) {
+        if (arg4 < 3) {
+            rec[1] = *rec;
+        }
+        if (arg4 > 0) {
+            func_800D9B9C(arg0, arg1, arg2, arg3, arg4 - 1);
+        } else {
+            arg0->field_4 = arg1;
+            arg0->field_0 = arg2;
+            arg0->field_8 = arg3;
+        }
+    } else if (arg4 < 3) {
+        next           = rec + 1;
+        next->field_4  = arg1;
+        rec[1].field_0 = arg2;
+        next->field_8  = arg3;
+    }
+}
 
 void func_800D9C3C(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
