@@ -516,6 +516,7 @@ See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 | 0x52 | `field_52` | s16 cleared by `func_800A9730` when `spawnArg1 == 0` |
 | 0x7C–80 | halfwords | Counters / mode |
 | 0x126 | `field_126` | u8 flag; nonzero skips `func_800A7A64` display-mode init |
+| 0x128 | `field_128` | u8; `0xFF` sentinel (`func_800B0748` / `func_800B082C`) |
 | 0x12C | `field_12C` | u8 flag; 0 runs extra `func_800E06AC` pass in `func_800DB72C` |
 | 0x13B | `field_13B` | u8 flag; cleared by `func_800E8F68` with `Pad_ClearEvents(0)` |
 

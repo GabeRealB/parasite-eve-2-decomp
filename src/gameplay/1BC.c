@@ -10,6 +10,7 @@
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -20,7 +21,9 @@ void  func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 Task* func_8002CFA0(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
 void  func_8017FBD8(void);
 
+extern TaskDesc D_80115D9C[];
 extern TaskDesc D_80119218[];
+extern TaskDesc D_8011922C[];
 extern TaskDesc D_801637C8[];
 extern TaskDesc D_8017D9E8[];
 extern TaskDesc D_80180DBC[];
@@ -38,6 +41,7 @@ extern TaskDesc D_8018384C[];
 extern s32      D_8010D208[];
 extern char     D_800939F8[];
 extern s32      D_80070F10;
+extern u8       D_80071068; // Display_State.field_100
 extern s32      D_80114D20;
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AF590);
@@ -165,7 +169,20 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B06F0);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0748);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B082C);
+void func_800B082C(Task* task)
+{
+    if (CdCmd_IsIdle() & 0xFFFF) {
+        D_80071068 = 1;
+        if (Game_Session->field_128 == 0xFF) {
+            Task_SpawnFromTable(D_8011922C, 0, 0, 0);
+            Task_Kill(task);
+        } else {
+            task->spawnArg2 = Task_SpawnFromTable(D_80115D9C, 0, 0, 0);
+            SndEvt_EnqueueType1(0x62, 0);
+        }
+        task->state++;
+    }
+}
 
 void func_800B08D8(Task* task)
 {

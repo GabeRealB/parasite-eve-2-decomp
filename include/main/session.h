@@ -52,7 +52,9 @@ typedef struct _GameSession {
     s16   field_80;
     byte  unknown_82[0xA4];
     u8    field_126;
-    byte  unknown_127[0x5];
+    byte  unknown_127;
+    u8    field_128; // 0xFF sentinel in func_800B0748 / func_800B082C
+    byte  unknown_129[3];
     u8    field_12C;
     byte  unknown_12D[0xE];
     u8    field_13B;
