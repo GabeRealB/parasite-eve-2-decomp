@@ -61,6 +61,7 @@ void       func_80049D34(char* arg0, s32 arg1, s32 arg2);
 void       func_80049024(UiObject* arg0, UiObject* arg1, UiObject* arg2);
 GpItemRec* func_800D6910(s32 arg0);
 s32        func_8005414C(s32 arg0, s32 arg1, s32 arg2);
+void       func_800C5C2C(s32 arg0, s32 arg1);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800BF9FC);
 
@@ -210,7 +211,34 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CDCAC);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CDDA0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CDE80);
+void func_800CDE80(s32 arg0, s32 arg1)
+{
+    register s32  idx asm("v1");
+    register s32  val asm("t1");
+    register s32* p asm("v1");
+    s32*          table;
+    s32           i;
+    s32           slot;
+
+    table = D_8010E8F8;
+    idx   = arg1 & 0xFF;
+    if (arg0 != table[idx]) {
+        i = 0;
+        do {
+            slot = idx;
+            val  = -1;
+            p    = table;
+        } while (0);
+        for (; i < 3; i++, p++) {
+            if (i == slot) {
+                *p = arg0;
+            } else {
+                *p = val;
+            }
+        }
+        func_800C5C2C(arg0, arg1 & 0xFF);
+    }
+}
 
 void func_800CDEF4(void)
 {
