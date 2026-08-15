@@ -133,6 +133,7 @@ void Display_VSyncCallback(void);
 void Display_LoadImageStrips(s32 arg0);
 /// Mem heap reset via session (otutil.c wrapper around Display_ResetHeapFromSession).
 void Display_ResetHeapWrapper(void);
+void Display_AcquireRef(void);
 void Display_TransitionTask(Task* task);
 void Display_TaskLoadStep(Task* task);
 

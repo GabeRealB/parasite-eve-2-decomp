@@ -124,6 +124,7 @@ Convention: only list fields with evidence. Unlisted `field_*` / `unknown_*` /
 ### `PadRemapState` (0x1C)
 | Off | Member | Role |
 |-----|--------|------|
+| 0x3 | `field_3` | Cleared by `func_800AC164` teardown |
 | 0x8 | `field_8` | Pad input remap mode (nonzero → overlay remap path) |
 
 ---

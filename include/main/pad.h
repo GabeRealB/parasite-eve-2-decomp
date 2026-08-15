@@ -96,7 +96,9 @@ void Pad_UpdatePort0(void);
 
 /// 0x1C-byte block; field_8 remaps pad input (Pad_UpdatePort0).
 typedef struct _PadRemapState {
-    /* 0x00 */ byte unknown_0[0x8];
+    /* 0x00 */ byte unknown_0[0x3];
+    /* 0x03 */ u8   field_3; // cleared by func_800AC164 teardown
+    /* 0x04 */ byte unknown_4[0x4];
     /* 0x08 */ s8   field_8;
     /* 0x09 */ byte unknown_9[0x13];
 } PadRemapState;

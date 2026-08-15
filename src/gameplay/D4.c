@@ -14,7 +14,10 @@ extern u8 D_80071068; // Display_State.field_100
 extern u8 D_8007106B; // Display_State.field_103
 
 void func_800A9730(Task* task);
+void func_800AA548(s32 arg0);
 s32  func_800ACF8C(void);
+
+extern TaskDesc D_80183824[];
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9310);
 
@@ -205,7 +208,29 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AC058);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AC0F0);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AC164);
+void func_800AC164(Task* task)
+{
+    if (CdCmd_Queue.field_224 == 0) {
+        Gpu_ClearOTag(0);
+        Gpu_ClearOTag(1);
+        Pad_RemapState->field_3 = 0;
+        Task_Kill(task);
+        if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x1050000) {
+            func_800AA548(1);
+        } else {
+            func_800AA548(0);
+        }
+        Display_State.field_11d = 0;
+        Display_State.field_1d &= 0x7F;
+        Display_AcquireRef();
+        Task_Spawn(0, 0x21, 0, 0);
+        if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x1050000) {
+            Task_SpawnFromTable(D_80183824, 0, 0, 0);
+            CdCmd_SetupMdecBuffers();
+            CdCmd_SelectMdecBuffer();
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AC25C);
 
