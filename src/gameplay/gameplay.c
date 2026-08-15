@@ -354,7 +354,10 @@ void func_800A7A64(void)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7AE4);
+s32 func_800A7AE4(s32 arg0, s32 arg1)
+{
+    return (arg0 / 3) * 16 + (arg0 % 3) * 4 + arg1 + 0x300;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7B20);
 
