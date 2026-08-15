@@ -18,8 +18,13 @@ extern s32            D_8010CA28;
 extern u8             D_80071097; // Display_State.field_12f
 extern TaskDesc       D_8010CABC;
 extern WipSysConfig   D_80073B88;
+extern TmdListHead    D_800711B8;
 extern TmdListHead*   D_800711BC;
+extern TmdListHead    D_800711C0;
 extern TmdListHead*   D_800711C4;
+extern TmdListHead    D_80114B80;
+extern TmdListHead    D_80114B88;
+extern Task*          D_80114B90;
 extern GsCOORDINATE2* D_80114B9C;
 extern CVECTOR        D_80114BA4;
 extern CVECTOR        D_80114BA8;
@@ -111,7 +116,12 @@ void func_80099290(void* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800992B0);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80099338);
+void func_80099338(void)
+{
+    Task_CallExit(D_80114B90);
+    D_800711B8 = D_80114B80;
+    D_800711C0 = D_80114B88;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009939C);
 
