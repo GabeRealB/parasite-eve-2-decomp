@@ -1881,7 +1881,7 @@ void Ui_InsetRect2(void* arg0, RECT* arg1, RECT* arg2)
     arg2->h = (arg1->h + arg1->y) - arg2->y - 1;
 }
 
-void Ui_InsetLayout(UiPanel* arg0, RECT* arg1, RECT* arg2)
+void Ui_InsetLayout(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
 {
     RECT sp10;
 

@@ -13447,16 +13447,10 @@ A gameplay overlay call of a 3-arg main function can still emit
 `Ui_InsetLayout(panel, NULL, NULL)` — the extra zero is not used by the
 callee, but omitting it drops an instruction and fails the match.
 
-Declare the import locally with the extra parameter and pass `0`. Do not
-widen the real prototype in the main header:
-
-```c
-void func_80049348(Panel* arg0, RECT* arg1, RECT* arg2, s32 arg3);
-
-func_80049348(panel, NULL, NULL, 0); /* Ui_InsetLayout */
-```
-
-`func_800D6AA4` is the example.
+If the callee has no other C callers whose codegen would change, add
+the unused parameter to the real prototype and pass `0`. An unused
+register argument does not change the callee body. `func_800D6AA4` /
+`Ui_InsetLayout(..., 0)` is the example.
 
 ## Non-void callee return occupies `$v0` so the next `li` uses `$v1`
 
