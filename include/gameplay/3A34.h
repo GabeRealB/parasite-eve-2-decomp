@@ -55,12 +55,18 @@ typedef struct _GpObj38 {
 STATIC_ASSERT_SIZEOF(GpObj38, 0x44);
 
 /// Object whose flags byte at 0x4C is OR'd by `func_800E3008`. Nearby
-/// helpers treat 0x4C as a flag field (bits 0x1, 0x2, 0x4).
+/// helpers treat 0x4C as a flag field (bits 0x1, 0x2, 0x4). `field_4E`
+/// packs two 2-bit modes (current in bits 0-1, previous in bits 2-3)
+/// plus a high-nibble flag; `func_800D930C` rotates the current mode
+/// into the previous slot and starts `field_4F` as a 0x10 blend timer.
 typedef struct _GpObj4C {
     /* 0x00 */ byte pad_0[0x4C];
     /* 0x4C */ u8   field_4C;
+    /* 0x4D */ byte pad_4D;
+    /* 0x4E */ u8   field_4E;
+    /* 0x4F */ u8   field_4F;
 } GpObj4C;
-STATIC_ASSERT_SIZEOF(GpObj4C, 0x4D);
+STATIC_ASSERT_SIZEOF(GpObj4C, 0x50);
 
 /// Global at `D_801153F0`. `field_0` is a state byte (1 if first set by
 /// `func_800DB4E0`; 2 when the last `field_6` ref is released). `field_2`
@@ -102,6 +108,7 @@ extern GpObj* D_80115590;
 extern s32    D_80115424;
 extern s32    D_80115448;
 
+void  func_800D930C(GpObj4C* arg0, s32 arg1);
 s32   func_800D9340(GpObj38* arg0);
 s32   func_800D937C(GpObj38* arg0);
 void  func_800D9550(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3);

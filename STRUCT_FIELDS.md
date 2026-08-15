@@ -597,6 +597,15 @@ Sparse overlay. Full object size is not known yet.
 |-----|--------|------|
 | 0x20 | `field_20` | `MATRIX*` whose `t[0]/t[1]/t[2]` are set by `func_800D9550` |
 
+### `GpObj4C` (0x50) — `3A34.h`
+Sparse overlay. Full object size is not known yet.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x4C | `field_4C` | Flag byte; `func_800E3008` ORs bit 0; nearby helpers test bits 0x1 / 0x2 / 0x4 |
+| 0x4E | `field_4E` | Packed modes + flag: bits 0-1 current, bits 2-3 previous, high nibble (incl. 0x80) preserved by `func_800D930C` |
+| 0x4F | `field_4F` | Blend/transition timer; set to 0x10 by `func_800D930C` when the current mode changes |
+
 ### `GpEnemy` — `1BC.h`
 0x60-byte work object (`Mem_Calloc` in `func_800B0494`). Stored in `Task::spawnArg2`.
 

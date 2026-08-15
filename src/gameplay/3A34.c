@@ -43,7 +43,17 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D8EA0);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9138);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D930C);
+void func_800D930C(GpObj4C* arg0, s32 arg1)
+{
+    u8 val;
+
+    val   = arg0->field_4E;
+    arg1 &= 3;
+    if ((val & 3) != arg1) {
+        arg0->field_4E = (val & 0xF0) | ((val & 3) << 2) | arg1;
+        arg0->field_4F = 0x10;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9340);
 
