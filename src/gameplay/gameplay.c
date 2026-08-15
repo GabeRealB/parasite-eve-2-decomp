@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
@@ -29,6 +30,7 @@ extern GsCOORDINATE2  D_80070F10;
 
 void func_800A1634(s32 arg0, s32 arg1);
 void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_800A6F38(GpEnemy* arg0, void* arg1);
 s32  func_800A7B20(s32 arg0);
 void func_800B065C(u8 arg0);
 void func_8009939C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -425,7 +427,34 @@ void func_800A7824(s32 arg0, s32 arg1, s32 arg2)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A784C);
+void func_800A784C(void* arg0)
+{
+    GpLinkNode*  target;
+    GpActorWork* work;
+    GameActor*   actor;
+    GpLinkNode*  node;
+
+    work   = D_80115760[0];
+    target = NULL;
+    if (work != NULL) {
+        actor = work->actor;
+        if (actor != NULL) {
+            target = actor->field_90C;
+        }
+        node = D_80115268;
+        if (node != NULL) {
+            do {
+                if (node == target) {
+                    if (!(node->field_4 & 1)) {
+                        func_800A6F38((GpEnemy*)((u8*)node - OFFSET_OF(GpEnemy, node)), arg0);
+                        return;
+                    }
+                }
+                node = node->next;
+            } while (node != NULL);
+        }
+    }
+}
 
 s32 func_800A78DC(void)
 {

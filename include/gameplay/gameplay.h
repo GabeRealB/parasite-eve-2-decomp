@@ -23,6 +23,7 @@ extern GpStateC08 D_80114C08;
 
 void func_80098F58(GsCOORDINATE2* arg0);
 void func_80098F98(GsCOORDINATE2* arg0, s32 arg1);
+void func_800A784C(void* arg0);
 void func_800A7A64(void);
 void func_800A7DB8(s32 arg0);
 void func_800A8D5C(void);

@@ -204,7 +204,8 @@ extern s32 D_8010F890;
 /// Pending id consumed by `func_800CE294`; `0x3E` also calls `func_8010A1B0`.
 extern s32 D_8010F894;
 
-/// Head of the `GpLinkNode` list walked by `func_800DAB38` / `func_800DABEC`.
+/// Head of the `GpLinkNode` list walked by `func_800DAB38` / `func_800DABEC`
+/// / `func_800A784C`.
 extern GpLinkNode* D_80115268;
 
 /// 32-entry marker/slot table cleared by `func_800DAF98`.
