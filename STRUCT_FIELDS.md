@@ -518,6 +518,7 @@ See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 | 0x4C | `field_4C` | Init flag |
 | 0x4E | `field_4E` | Set by `Fs_LoadFile` for category-8 |
 | 0x52 | `field_52` | s16 cleared by `func_800A9730` when `spawnArg1 == 0` |
+| 0x5F | `field_5F` | u8 flag; nonzero makes `func_800E74EC` skip overlay-wait timer setup |
 | 0x68 | `field_68` | u8 flag; set to 1 by `func_800E7378` and cleared by `func_800E73E8` / `func_800E7434` when `D_8007218B != 9` |
 | 0x7C–80 | halfwords | Counters / mode |
 | 0x126 | `field_126` | u8 flag; nonzero skips `func_800A7A64` display-mode init |

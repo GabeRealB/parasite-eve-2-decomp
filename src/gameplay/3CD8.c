@@ -63,6 +63,7 @@ void  func_800E6E50(void);
 s32   func_800E6EA0(s32 arg0);
 s32   func_800E86FC(s32 arg0);
 void  func_8003F6F8(void);
+void  func_8001D580(void);
 void  func_800E8634(s32 arg0, s32 arg1, s32 arg2);
 void  func_800E8A90(Task* task);
 void  func_800E8BB0(Task* task);
@@ -524,7 +525,24 @@ s32 func_800E7498(s32 arg0, s32 arg1, GpOverlayIds* arg2)
     return 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E74EC);
+s32 func_800E74EC(s32 arg0, s32 arg1, s32 arg2)
+{
+    if (Game_Session->field_5F == 0) {
+        if (D_801156B1 != 0) {
+            func_8001D580();
+            D_801156B0 = 1;
+            D_801156BC = 0;
+        } else {
+            D_801156B0 = 1;
+            if (arg2 == 2) {
+                D_801156BC = 0x1E;
+            } else {
+                D_801156BC = 0;
+            }
+        }
+    }
+    return 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E7570);
 

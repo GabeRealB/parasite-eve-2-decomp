@@ -45,7 +45,9 @@ typedef struct _GameSession {
     u16   field_4E; // set to 1 by Fs_LoadFile for category-8 file ids
     byte  unknown_50[2];
     s16   field_52;
-    byte  unknown_54[0x14];
+    byte  unknown_54[0xB];
+    u8    field_5F; // skip-gate for func_800E74EC overlay-wait setup
+    byte  unknown_60[8];
     u8    field_68; // set/cleared by func_800E7378 / func_800E73E8 / func_800E7434
     byte  unknown_69[0xB];
     u8    field_74;
