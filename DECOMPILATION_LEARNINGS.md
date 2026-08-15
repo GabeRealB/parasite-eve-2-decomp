@@ -14673,4 +14673,31 @@ union {
 `func_800B5E08` uses `field_8.as_u16`; `func_800B5E78` uses `field_8.as_u8`
 and inverts the work-type test (`!= 9` instead of `== 9`).
 
+## Pin a join-crossing `field & 0xFE` load to `$v0`
+
+When both arms load a `u8` field and only the insert arm stores a small
+constant (`field_6 = 1`), local-alloc gives `$v0` to the block-local
+`li 1` and global-alloc puts the crossing load in `$v1`. The shared tail
+then becomes `andi v0, v1, 0xfe` instead of the target's
+`lbu v0` / `li v1, 1` / `andi v0, v0, 0xfe`.
+
+A bare `s32 val` does not flip it. Pin the load:
+
+```c
+register s32 val asm("v0");
+
+if (node->field_6 == 0) {
+    /* append … */
+    val = node->field_4;
+    node->field_6 = 1;
+} else {
+    val = node->field_4;
+}
+node->field_4 = val & 0xFE;
+```
+
+`u8 val` with the same pin does not stick (QImode). `func_800DABEC` is the
+example; the sibling `func_800DACAC` needs no pin because its load and
+`= 1` stay in one block.
+
 

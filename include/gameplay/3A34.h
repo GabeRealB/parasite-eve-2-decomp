@@ -336,6 +336,7 @@ void  func_800D9CC8(Task* arg0);
 void  func_800D9CE8(GBytes8* arg0);
 void  func_800D9DFC(void);
 void  func_800DAB38(GpLinkNode* node);
+void  func_800DABEC(GpLinkNode* node);
 s32   func_800DAC54(GpLinkNode* arg0);
 void  func_800DACAC(GpLinkNode* node);
 void  func_800DACF8(GpLinkNode* node);
