@@ -31,6 +31,7 @@ extern s32          D_8011568C;
 extern s16          D_80115698;
 extern s16          D_8011569A;
 extern u8           D_8011569C;
+extern s32*         D_801156A0;
 extern u8           D_801156A4;
 extern s32          D_801156A8;
 extern s8           D_801156B0;
@@ -44,6 +45,7 @@ s32   func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 Task* func_8002CFA0(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
 void  func_800E34D8(s32 arg0, s16 arg1);
 void  func_800E40EC(s32 arg0);
+s32   func_800E41F4(s32 arg0, s16 arg1, s16 arg2);
 void  func_80724120(void);
 void  func_80724324(void);
 void  func_800E646C(Task* arg0);
@@ -213,7 +215,20 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6AD4);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6BB8);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6C70);
+s32 func_800E6C70(s16 arg0, s16 arg1, s16 arg2)
+{
+    s32 entry;
+
+    if (D_801155A8 != 0) {
+        return 0;
+    }
+
+    entry = D_801156A0[arg0];
+    if (entry == 0) {
+        return 1;
+    }
+    return (s16)func_800E41F4(entry, arg1, arg2);
+}
 
 s32 func_800E6CE0(void)
 {
