@@ -31,12 +31,14 @@ extern CVECTOR        D_80114BA8;
 extern char           D_80093870[]; // "Item"
 extern s32            D_8005ED70;
 extern s32            D_8005ED74;
+extern GsCOORDINATE2  D_80070F10;
 
 void func_800A1634(s32 arg0, s32 arg1);
 void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  func_800A7B20(s32 arg0);
 void func_800B065C(u8 arg0);
 void func_8009939C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_800A82C0(GsCOORDINATE2* arg0, VECTOR* arg1);
 void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80097AC0);
@@ -597,7 +599,29 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8C08);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8C74);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8D5C);
+void func_800A8D5C(void)
+{
+    VECTOR        vec;
+    GsCOORDINATE2 coord;
+    s32           one;
+    MATRIX*       m;
+
+    vec.vx                      = 0;
+    vec.vy                      = 0;
+    vec.vz                      = ONE;
+    one                         = ONE;
+    m                           = &coord.coord;
+    coord.sub                   = &D_80070F10;
+    *(s32*)&coord.coord         = one;
+    *(s32*)&coord.coord.m[0][2] = 0;
+    *(s32*)&m->m[1][1]          = one;
+    *(s32*)&coord.coord.m[2][0] = 0;
+    m->m[2][2]                  = one;
+    coord.coord.t[0]            = 0;
+    coord.coord.t[1]            = 0;
+    coord.coord.t[2]            = 0;
+    func_800A82C0(&coord, &vec);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8DC0);
 

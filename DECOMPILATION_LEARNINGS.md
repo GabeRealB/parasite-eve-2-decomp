@@ -14002,4 +14002,36 @@ if (flags & 4) {
 
 `func_800E337C` is the example.
 
+## Pin `ONE` in `$v0` before a global `lui`, then mix SP / pointer matrix stores
+
+A stack `GsCOORDINATE2` whose `coord` is an identity matrix (same shape as
+`Gfx_InitCoordinateTrees`) needs `li v0,0x1000` *before* `lui` of the parent
+(`D_80070F10`) and a `MATRIX*` in `$v1` used for only two of the stores
+(`sw one, 8(v1)` / `sh one, 0x10(v1)`). The rest stay SP-relative.
+
+`one = ONE` as the first statement is scheduled too late: the parent address
+steals `$v0` and `m = &coord.coord` reuses it. A first *store* of `ONE` that
+belongs in the later store block hoists the `li` without emitting that store
+early:
+
+```c
+vec.vx = 0;
+vec.vy = 0;
+vec.vz = ONE; /* first use of ONE — li v0, then the store waits */
+one    = ONE;
+m      = &coord.coord;
+coord.sub = &D_80070F10;
+*(s32*)&coord.coord         = one; /* sw one, 0x24(sp) */
+*(s32*)&coord.coord.m[0][2] = 0;   /* sw zero, 0x28(sp) */
+*(s32*)&m->m[1][1]          = one; /* sw one, 8(v1) */
+*(s32*)&coord.coord.m[2][0] = 0;   /* sw zero, 0x30(sp) */
+m->m[2][2]                  = one; /* sh one, 0x10(v1) */
+```
+
+Writing every matrix word through `m` turns the zero stores into
+`sw zero, 4/0xC(v1)`. Writing them all through `coord.coord` drops
+`addiu v1, sp, 0x24` and uses `0x2C(sp)` / `0x34(sp)` instead.
+
+`func_800A8D5C` is the example.
+
 
