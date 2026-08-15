@@ -12831,3 +12831,42 @@ arg1 = ABS(arg1);
 arg1 = arg1 * arg1;
 return func_8003B8A0(arg0 + arg1);
 ```
+
+## Two-case switch: put the fall-through case first
+
+A `switch` on two consecutive values plus default normally emits
+`beq == 1, case1` / `beq == 2, case2` / `j default` with case 1 as the first
+body. The target often inverts the last test and falls through into case 2:
+
+```
+beq  v1, v0, case1     /* == 1 */
+li   v0, 2
+bne  v1, v0, default   /* != 2 */
+nop
+/* case 2 */
+j    end
+/* case 1 */
+j    end
+/* default */
+```
+
+List `case 2` before `case 1` in the source so GCC emits that `bne` and the
+body order `[2][1][default]`. Numeric `case 1` first (or an `s32 kind = field`
+temp) goes back to `beq == 2; j default` (~74%). `if` / `else if` inlines the
+`== 1` body with `bne` instead of branching to it.
+
+```c
+switch (arg0->field_2) {
+case 2:
+    table = D_80114C20;
+    break;
+case 1:
+    table = D_80114D70;
+    break;
+default:
+    table = D_80072314;
+    break;
+}
+```
+
+`func_800BB5BC` is the pure example.

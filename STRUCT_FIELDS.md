@@ -678,7 +678,8 @@ Scan descriptor for `func_800BB6FC`. Built on the stack by `func_800BBEC0`
 
 ### `GpItemRec` (0x4) — `268.h`
 Row in the item tables selected by `GpItemScan` (`D_80072314` /
-`D_80114C20` / `*D_80114D70`). Returned by `func_800D6910`.
+`D_80114C20` / `*D_80114D70`). `func_800BB5BC(scan, idx)` returns
+`&table[scan->field_0 + idx]`. Also returned by `func_800D6910`.
 
 | Off | Member | Role |
 |-----|--------|------|

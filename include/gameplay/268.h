@@ -25,11 +25,11 @@ typedef struct _GpItemMap {
 } GpItemMap;
 STATIC_ASSERT_SIZEOF(GpItemMap, 0x4);
 
-/// 4-byte scan descriptor for `func_800BB6FC`. field_0 is the start index
-/// into a 4-byte item table; field_1 is the entry count; field_2 selects
-/// the table (1 / 2 / default). Also the object at `Mc_SaveData.field_5BC`
-/// (`D_80072724`). `D_8010D520` is a ROM default copied there by
-/// `func_800BC490`.
+/// 4-byte scan descriptor for `func_800BB6FC` / `func_800BB5BC`. field_0 is
+/// the start index into a 4-byte item table; field_1 is the entry count;
+/// field_2 selects the table (1 / 2 / default). Also the object at
+/// `Mc_SaveData.field_5BC` (`D_80072724`). `D_8010D520` is a ROM default
+/// copied there by `func_800BC490`.
 typedef struct _GpItemScan {
     /* 0x00 */ u8 field_0;
     /* 0x01 */ u8 field_1;
@@ -66,16 +66,20 @@ STATIC_ASSERT_SIZEOF(GpItemQty, 0x4);
 /// 4-word (128-bit) flag array at `Mc_SaveData+0x5AC`. Indexed with
 /// `id & 0x7F` (`func_800BAE5C` / `func_800BAEC0` / `func_800BB4BC`).
 extern s32        D_80072714[4];
+extern GpItemRec  D_80072314[];
 extern GpItemSlot D_80072330[];
 extern GpItemQty  D_8010D278[];
 extern GpItemMap  D_8010D2F8[];
 extern GpItemScan D_8010D520;
 extern GpItemQty  D_8010E238[];
+extern GpItemRec  D_80114C20[];
+extern GpItemRec* D_80114D70;
 
 void        func_800BAE38(void);
 void        func_800B91C8(GpItemRec* arg0);
 GpItemSlot* func_800BAFE0(s32 arg0);
 void        func_800BB190(s32 arg0, s32 arg1);
+GpItemRec*  func_800BB5BC(GpItemScan* arg0, s32 arg1);
 s32         func_800BB6FC(GpItemScan* arg0, s32 arg1);
 void        func_800BB7C0(s32 arg0, s32 arg1);
 GpItemMap*  func_800BBDC8(s32 arg0);
