@@ -54,6 +54,7 @@ s32  func_800E41F4(s32 arg0, s16 arg1, s16 arg2);
 void func_800E44A0(Task* arg0);
 void func_80724120(void);
 void func_80724324(void);
+void func_80724714(void);
 void func_800E646C(Task* arg0);
 s32  func_800E6C70(s16 arg0, s16 arg1, s16 arg2);
 s32  func_800E6CF0(void);
@@ -278,7 +279,35 @@ void func_800E6D4C(s16 arg0, s16 arg1)
     D_80115656 = arg1;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6D60);
+void func_800E6D60(s32 arg0)
+{
+    s32           i;
+    s32           count;
+    register s32  type3 asm("v0");
+    s32*          out;
+    FsFolderSlot* slot;
+    DisplayState* ds;
+
+    count = 0;
+    i     = count;
+    ds    = &Display_State;
+    for (; i < 50; i++) {
+        out   = &D_8011568C;
+        slot  = &D_8006C338[i];
+        type3 = 3;
+        if (slot->field_0 == type3) {
+            if (count == arg0) {
+                if (ds->field_112 != 0) {
+                    func_80724714();
+                }
+                D_8011568C = slot->field_4;
+                func_800E40EC(D_8011568C);
+                break;
+            }
+            count++;
+        }
+    }
+}
 
 void func_800E6DF4(void)
 {

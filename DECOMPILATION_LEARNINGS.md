@@ -553,6 +553,59 @@ GCC strength-reduces `&arr[i]` to `p++` but keeps the incrementing `i` and
 `slti`. A `while (1) { ...; i++; if (i >= N) break; }` also matches, but
 array indexing is the natural form.
 
+## Hoist `%hi(store_global)` before the array base
+
+When the target sets up two callee-saved addresses as
+
+```
+sw   s1
+lui  s1, %hi(store_global)
+lui  v0, %hi(array)
+sw   s0
+addiu s0, v0, %lo(array)
+```
+
+LICM emits hoists in source order, *after* any explicit pre-loop `p = arr`.
+`p = arr` before the loop therefore always wins and you get `lui s0` first.
+
+Put the store-global first *inside* the loop and form the walker with
+`&arr[i]` (no pre-loop `p = arr`). LICM hoists `&store_global` first — and
+because the actual store still uses the global name, that hoist is the
+split-address `lui s1, %hi` (no `addiu`), then strength-reduces `&arr[i]` to
+the walking `s0`:
+
+```c
+ds = &Display_State;          /* explicit: a3 first */
+for (; i < 50; i++) {
+    out  = &D_8011568C;       /* hoist 1: lui s1, %hi */
+    slot = &D_8006C338[i];    /* hoist 2: lui v0 / addiu s0 */
+    ...
+    D_8011568C = slot->field_4; /* sw %lo(D_8011568C)(s1) */
+}
+```
+
+A real pointer store (`*out = ...`) keeps the `addiu` and becomes `sw 0(s1)`.
+
+## `register s32 k asm("v0"); k = CONST` rematerializes a loop compare
+
+A structured loop that hoists a symbol address will also hoist a small
+compare constant (`li a2, 3` in the prologue, `nop` after `lbu`). The target
+wants `lbu v1, 0(s0)` / `li v0, 3` / `bne v1, v0` so the `li` fills the load
+delay.
+
+Assign the constant to a `v0` register local *after* the load, inside the
+loop. `v0` is clobbered by the loop's calls, so LICM cannot hoist it:
+
+```c
+register s32 type3 asm("v0");
+
+slot  = &arr[i];
+type3 = 3;                    /* li v0, 3 — fills the lbu delay */
+if (slot->field_0 == type3) { /* lbu v1; bne v1, v0 */
+```
+
+A bare `if (slot->field_0 == 3)` still hoists. `func_800E6D60` is the example.
+
 ## Finding which pass causes a mismatch
 
 Rather than guessing at C-level rewrites, dump the RTL and find the pass that
