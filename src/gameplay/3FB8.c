@@ -11,6 +11,7 @@
 #include <psyq/abs.h>
 
 extern s8           D_8007272A;
+extern s8           D_80072A91;
 extern WipSysConfig D_80073B88;
 extern TaskDesc     D_80113340[];
 extern GpEffArg     D_80113358;
@@ -27,6 +28,7 @@ void  func_801038F8(GpActorWork* arg0, s32 arg1);
 void  func_8010397C(GpActorWork* arg0, s32 arg1, s32 arg2);
 void  func_80103A18(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 void  func_80103AC0(GpActorWork* arg0);
+void  func_80103F70(GpActorWork* arg0);
 void  func_801041FC(GpActorWork* arg0, s32 arg1);
 void  func_80104B54(void);
 void  func_80104E00(void);
@@ -701,7 +703,38 @@ void func_80108FA0(GpActorWork* arg0)
     func_80105ED4(arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108FD4);
+void func_80108FD4(GpActorWork* arg0)
+{
+    GameActor*  inner;
+    GpLinkNode* node;
+    s32         flag;
+
+    func_80103F70(arg0);
+    inner            = arg0->actor;
+    node             = func_800DAD54(arg0);
+    inner->field_973 = 0;
+    if ((node != NULL && D_801153F0.field_0 < 2) || (flag = 1, D_801153F0.field_0 == flag) ||
+        D_80072A91 != 0) {
+        if (inner->field_95E != 0) {
+            func_800DB4E0(1);
+            if (inner->field_97C != 0) {
+                inner->field_97C = 0;
+                if (node != NULL) {
+                    func_80108E0C(arg0, node);
+                }
+            }
+            func_80108770(arg0, 3);
+        }
+    } else {
+        func_80109374(arg0);
+        if (inner->field_97D & 2) {
+            inner->field_97C = 0;
+            inner->field_97E = flag;
+            func_80103B5C(arg0);
+            func_80108874(arg0);
+        }
+    }
+}
 
 void func_801090E8(GpActorWork* arg0)
 {

@@ -49,6 +49,31 @@ case 0:
 `func_80109684` is the pure example. A bare `p->field_95E = 1` stuck at ~94%
 with an otherwise identical switch.
 
+## Comma-assign so `li sN,K` lands only on the else path
+
+When K is compared on one side of a short-circuit and later stored from a
+callee-saved on the other side, assigning K at function entry (`s32 flag = 1`)
+pulls `li sN,1` into the prologue and shifts the whole frame.
+
+The target instead does `li s3,1` only after the first `&&` fails, then
+`beq v0,s3` and (on the other branch) `sb s3,field`. A comma operator in the
+later `||` term assigns at that point without evaluating it when the first
+term is already true:
+
+```c
+s32 flag;
+
+if ((node != NULL && state < 2) || (flag = 1, state == flag) || extra) {
+    /* uses K only as the compare; s3 is unset on this path if term 1 won */
+} else {
+    p->field = flag; /* sb s3 */
+}
+```
+
+`func_80108FD4` is the example. A MIPS delay-slot `sb zero,field` on
+`beqz node` also means the clear always runs once the outer flag is set —
+write `p->field = 0` *before* `if (node != NULL)`, not inside it.
+
 ## `s16 ret = K` keeps `slti` while still pinning K in a callee-saved reg
 
 When a function needs the same small constant K both as an early live return

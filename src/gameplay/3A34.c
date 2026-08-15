@@ -277,7 +277,7 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB31C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB3FC);
 
-void func_800DB4E0(void)
+void func_800DB4E0(s32 arg0)
 {
     if (D_801153F0.field_0 == 0) {
         D_801153F0.field_0 = 1;

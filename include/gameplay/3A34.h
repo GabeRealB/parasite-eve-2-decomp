@@ -179,7 +179,7 @@ void* func_800DAD78(GpActorWork* arg0);
 void* func_800DADE4(GpActorWork* arg0, VECTOR3* pos);
 void  func_800DAF98(void);
 void  func_800DAFD0(void);
-void  func_800DB4E0(void);
+void  func_800DB4E0(s32 arg0);
 void  func_800DB500(s32 arg0);
 void  func_800DB530(s32 arg0);
 void  func_800DB53C(void);
