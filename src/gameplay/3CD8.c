@@ -19,7 +19,9 @@ extern u16          D_80112D68[];
 extern u16          D_80113360[];
 extern GpEvt12*     D_801155A8;
 extern u16          D_801155AE;
+extern u8           D_80115670;
 extern Task*        D_80115674;
+extern s16          D_80115678;
 extern u8           D_80115648;
 extern s16          D_80115654;
 extern s16          D_80115656;
@@ -297,7 +299,23 @@ void func_800E6E44(s32 arg0)
     D_80115660 = arg0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6E50);
+void func_800E6E50(void)
+{
+    GpEvt12* p;
+    u8       field4;
+    s32      base;
+    s32      idx;
+
+    idx        = *(s16*)&D_801155AE;
+    base       = (s32)D_801155A8;
+    p          = (GpEvt12*)(idx * sizeof(GpEvt12) + base);
+    field4     = p->field_4;
+    D_80115670 = field4;
+    if (p->field_7 != 0) {
+        D_80115670 = field4 & 0xFE;
+    }
+    D_80115678 = p->field_7;
+}
 
 s32 func_800E6EA0(s32 arg0)
 {

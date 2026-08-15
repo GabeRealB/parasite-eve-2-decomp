@@ -896,7 +896,9 @@ there). `func_800E6EA0` walks from a start index until `field_8 == -1` or
 
 | Off | Member | Role |
 |-----|--------|------|
+| 0x4 | `field_4` | u8 flags copied to `D_80115670` by `func_800E6E50`; bit 0 is cleared when `field_7 != 0` |
 | 0x5 | `field_5` | u8 key compared with `D_80115668` |
+| 0x7 | `field_7` | u8 copied to `D_80115678` (countdown) by `func_800E6E50` |
 | 0x8 | `field_8` | s32; `-1` terminator, else payload/id passed to later sequence helpers |
 
 ### `GpState34` (0x34) — `3CD8.h`

@@ -18,10 +18,10 @@ typedef struct _GpEvt12 {
     /* 0x1 */ u8  field_1;
     /* 0x2 */ u8  field_2;
     /* 0x3 */ u8  field_3;
-    /* 0x4 */ u8  field_4;
+    /* 0x4 */ u8  field_4; // flags copied to D_80115670; bit 0 cleared if field_7
     /* 0x5 */ u8  field_5; // compared with D_80115668
     /* 0x6 */ u8  field_6;
-    /* 0x7 */ u8  field_7;
+    /* 0x7 */ u8  field_7; // copied to D_80115678
     /* 0x8 */ s32 field_8; // -1 terminator, else payload/id
 } GpEvt12;
 STATIC_ASSERT_SIZEOF(GpEvt12, 0xC);
