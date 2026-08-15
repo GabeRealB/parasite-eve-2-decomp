@@ -193,6 +193,7 @@ Ui_DrawText = 0x80047F40; // absolute:True
 func_80048390 = 0x80048390; // absolute:True
 Ui_SpawnFromDesc = 0x800486F0; // absolute:True
 func_80048838 = 0x80048838; // absolute:True
+Ui_TeardownTree = 0x80048838; // absolute:True
 Ui_FreeAndKill = 0x800488B8; // absolute:True
 func_800488F8 = 0x800488F8; // absolute:True
 func_80048904 = 0x80048904; // absolute:True

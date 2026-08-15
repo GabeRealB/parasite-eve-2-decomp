@@ -79,6 +79,8 @@ segments:
       - [0x1BC, rodata, rodata_1BC]
       - [0x268, rodata, rodata_268]
       - [0x4CC, rodata, rodata_4CC]
+      - [0x5C4, .rodata, 4CC] # jtbl from func_800BF398
+      - [0x668, rodata, rodata_4CC_2]
       - [0x3688, rodata, rodata_3688]
       - [0x3A34, rodata, rodata_3A34]
       - [0x3CB4, .rodata, 3A34] # jtbl from func_800E0540
