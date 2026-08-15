@@ -20,6 +20,7 @@ s32   func_800B9D80(s32 arg0);
 s32   func_8003B8A0(s32 arg0);
 s32   func_8005414C(s32 arg0, s32 arg1, s32 arg2);
 s32   func_8010A854(s32 arg0);
+void  func_8003E64C(void);
 void  func_800ECA54(void);
 s32   func_80037164(void);
 Task* func_8002CFA0(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
@@ -1071,7 +1072,25 @@ void func_8010B210(GpActorWork* arg0)
     inner->field_96E = 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B228);
+s32 func_8010B228(s32 arg0)
+{
+    WipSysConfig* p;
+    u16           saved18;
+    u16           saved1c;
+    s32           out;
+    s32           ret;
+
+    p           = &D_80073B88;
+    saved18     = p->field_18;
+    saved1c     = p->field_1c;
+    ret         = func_8010A854((s16)func_800E2438(arg0, 0, &out, 0));
+    p->field_18 = saved18;
+    p->field_1c = saved1c;
+    if (ret != 0) {
+        func_8003E64C();
+    }
+    return ret;
+}
 
 void func_8010B2A0(s32 arg0, s32 arg1)
 {
