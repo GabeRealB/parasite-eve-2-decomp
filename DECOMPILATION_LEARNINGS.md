@@ -14351,4 +14351,37 @@ func(slot, cmd, (s32)sp, 0);
 
 `func_800AF41C` is the example.
 
+## Second local so a post-call pointer reload lands in `$v0`
+
+When the target keeps a pre-call pointer in `$s1`, writes one field through
+it, then reloads the same slot into `$v0` for a following store group:
+
+```
+lw   s1, 0x1C(s0)
+jal  helper
+nop
+li   v0, K
+sb   v0, off(s1)     /* first field — pre-call pointer */
+lw   v0, 0x1C(s0)    /* reload into $v0, not $s1 */
+sh   zero, ...(v0)
+```
+
+reassigning the same local (`inner = arg0->actor`) coalesces the reload into
+`$s1` and every later store uses `off(s1)`. A second local is a different
+pseudo-register, so the allocator parks the reload in `$v0`:
+
+```c
+GameActor* inner;
+GameActor* actor;
+
+inner            = arg0->actor;
+func_8010B210(arg0);
+inner->field_97A = 0x12; /* sb K, off(s1) */
+actor            = arg0->actor; /* lw v0, 0x1C(s0) */
+actor->field_954 = 0;    /* sh zero, off(v0) */
+```
+
+`func_8010C180` is the example. A single `inner` reused for both groups stuck
+at 98% with only the reload register wrong.
+
 
