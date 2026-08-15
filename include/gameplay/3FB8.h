@@ -51,8 +51,10 @@ typedef struct _GpEffArg {
 } GpEffArg;
 STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 
-/// Current actor-work pointer; cleared when the work task is torn down.
-extern GpActorWork* volatile D_80115760;
+/// 2-slot table of current actor-work pointers. Slot 0 is the primary
+/// work (set/cleared by `func_80100B78` / `func_80101408`). Walked as a
+/// pair by `func_800DB0D8`, `func_800DAB38`, and `func_800DAC54`.
+extern GpActorWork* volatile D_80115760[2];
 
 /// `field_96C` dispatcher: three slots of `func_80109170`, then `func_80109208`.
 extern GpActorFuncTable4 D_800979F8;

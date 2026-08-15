@@ -12415,7 +12415,7 @@ Task*               task;
 
 inner          = work->actor;
 work->field_18 = NULL; /* must precede the global */
-D_80115760     = NULL; /* declare as T* volatile, not volatile T* */
+D_80115760[0]  = NULL; /* declare as T* volatile, not volatile T* */
 task           = inner->field_914;
 if (task != NULL) {
     Task_Kill(task);

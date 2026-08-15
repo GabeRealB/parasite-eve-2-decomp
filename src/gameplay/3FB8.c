@@ -165,7 +165,7 @@ void func_80101408(GpActorWork* arg0)
 
     inner          = arg0->actor;
     arg0->field_18 = NULL;
-    D_80115760     = NULL;
+    D_80115760[0]  = NULL;
     task           = inner->field_914;
     if (task != NULL) {
         Task_Kill(task);

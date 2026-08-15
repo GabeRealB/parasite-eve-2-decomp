@@ -267,7 +267,27 @@ void func_800DAFD0(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB004);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB0D8);
+void func_800DB0D8(void)
+{
+    s32                    i;
+    GpActorWork* volatile* p;
+    GpActorWork*           work;
+    GpLinkNode*            node;
+
+    i = 0;
+    p = D_80115760;
+    do {
+        work = *p;
+        if (work != NULL) {
+            node = work->actor->field_90C;
+            if (node != NULL) {
+                node->field_5 = 0;
+            }
+        }
+        i++;
+        p++;
+    } while (i < 2);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB128);
 
