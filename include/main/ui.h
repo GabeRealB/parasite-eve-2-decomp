@@ -195,7 +195,8 @@ extern UiPanelFuncTable6 D_80013F2C;
 /// to rendering helpers; field_B is a flag written on the alternate confirm
 /// path; field_C is a selection/confirm flag (1 = confirm); field_18/field_1A
 /// are position halfwords; field_1C is data passed through to Text_DrawPrompt;
-/// field_22 is a state halfword set with the alternate confirm path.
+/// field_20/field_22 are state halfwords set on confirm (field_22 also on the
+/// alternate confirm path).
 typedef struct _DialogPrompt {
     /* 0x00 */ byte unknown_0[0x8];
     /* 0x08 */ s8   field_8;
@@ -206,7 +207,7 @@ typedef struct _DialogPrompt {
     /* 0x18 */ s16  field_18;
     /* 0x1A */ s16  field_1A;
     /* 0x1C */ s32  field_1C;
-    /* 0x20 */ byte unknown_20[0x2];
+    /* 0x20 */ s16  field_20;
     /* 0x22 */ s16  field_22;
 } DialogPrompt;
 

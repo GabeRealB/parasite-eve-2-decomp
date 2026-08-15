@@ -9,6 +9,7 @@
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
@@ -23,6 +24,7 @@ extern s32          D_80114E8C;
 extern s32          D_80114E90;
 extern s32          D_80114E94;
 extern char         D_8010E494[];
+extern char         D_8010E55C[];
 extern char         D_8010F8D0[];
 extern UiObjectDesc D_8010EE6C;
 extern UiObjectDesc D_8010EFA0;
@@ -539,7 +541,17 @@ void func_800CFAA8(UiObject* arg0, Task* arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CFACC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CFB64);
+void func_800CFB64(DialogPrompt* arg0, UiObject* arg1)
+{
+    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, D_8010E55C, arg0->field_1C, 1, 0);
+    if (arg0->field_C == 1) {
+        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+            SndEvt_EnqueueType6(3, 0, 0);
+            arg0->field_22 = 6;
+            arg0->field_20 = 0x35;
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CFBFC);
 
