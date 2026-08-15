@@ -70,6 +70,19 @@ typedef struct _GpIdRec {
     /* 0x4 */ s32  field_4;
 } GpIdRec;
 
+/// Position + rotation argument for `func_80104D68`. `field_0` / `field_4` /
+/// `field_8` are copied onto `GsCOORDINATE2.coord.t`; `field_10` / `field_12` /
+/// `field_14` are copied onto `GameActor` 0x50 and passed to `RotMatrix`.
+typedef struct _GpXformArg {
+    /* 0x00 */ s32  field_0;
+    /* 0x04 */ s32  field_4;
+    /* 0x08 */ s32  field_8;
+    /* 0x0C */ byte pad_C[4];
+    /* 0x10 */ s16  field_10;
+    /* 0x12 */ s16  field_12;
+    /* 0x14 */ s16  field_14;
+} GpXformArg;
+
 /// 4-byte pad-event template indexed by `func_801041FC`. `field_0` / `field_2`
 /// are passed to `Pad_PostEvent` (`lbu` / `lh`).
 typedef struct _GpPadEvt {

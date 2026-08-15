@@ -465,7 +465,29 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104B54);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104CAC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104D68);
+s32 func_80104D68(Task* arg0, s32 arg1, GpXformArg* arg2)
+{
+    GameActorExt*  extra;
+    GameActor*     actor;
+    GsCOORDINATE2* coord;
+    MATRIX*        mtx;
+
+    extra             = (GameActorExt*)arg0->extra;
+    actor             = (GameActor*)arg0->idMap;
+    coord             = (GsCOORDINATE2*)extra->field_8;
+    coord->coord.t[0] = arg2->field_0;
+    coord->coord.t[1] = arg2->field_4;
+    coord->coord.t[2] = arg2->field_8;
+    actor->field_50   = arg2->field_10;
+    actor->field_52   = arg2->field_12;
+    actor->field_54   = arg2->field_14;
+    mtx               = &coord->coord;
+    RotMatrix((SVECTOR*)&actor->field_50, mtx);
+    MatrixNormal(mtx, mtx);
+    coord->flg = 0;
+    func_80098F58(coord);
+    return 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104E00);
 

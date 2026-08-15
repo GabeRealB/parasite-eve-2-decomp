@@ -541,6 +541,9 @@ Sparse: `field_17C`/`field_930` addresses for overlay setup; `field_C` kill flag
 `field_4 & 0x100100 == 0x100000`).
 `field_40`/`field_44`/`field_48` are three s32s (`VECTOR3` vx/vy/vz) copied from the
 argument of `func_80105B74` onto the slot-3 actor.
+`field_50`/`field_52`/`field_54` are an `SVECTOR` (vx/vy/vz) written by `func_80104D68`
+from its pose argument and passed to `RotMatrix`; `field_52` is also the facing
+angle (`lh`) used by `func_8010BCF4` / `func_80103E7C`.
 `field_424` is a 0x14-byte `GpAnimCtx` overlay; `func_80103AC0` passes it to
 `func_800B4514` for each slot `i = 1 .. field_938-1`.
 `pad_438` is the base of a 0x28-byte `GpAnimSlot` array (same stride as
