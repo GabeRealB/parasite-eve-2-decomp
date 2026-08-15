@@ -4,6 +4,7 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
+#include "main/mc.h"
 #include "main/task.h"
 #include "main/wipsys.h"
 
@@ -1102,7 +1103,19 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010BF7C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010BFCC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C058);
+s32 func_8010C058(void)
+{
+    s32 ret;
+
+    if (((s16)Mc_SaveData.field_6CA >> 1) < (s16)Mc_SaveData.field_6C8) {
+        ret = 0;
+    } else if (((s16)Mc_SaveData.field_6CA >> 2) >= (s16)Mc_SaveData.field_6C8) {
+        ret = 2;
+    } else {
+        ret = 1;
+    }
+    return ret;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C098);
 
