@@ -9,6 +9,7 @@
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/task.h"
+#include "main/sound.h"
 #include "main/wipsys.h"
 
 #include <psyq/abs.h>
@@ -21,52 +22,50 @@ extern WipSysConfig D_80073B88;
 extern TaskDesc     D_80113340[];
 extern GpEffArg     D_80113358;
 
-s32   func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
-s32   func_800B9D80(s32 arg0);
-s32   func_8003B8A0(s32 arg0);
-s32   func_8005414C(s32 arg0, s32 arg1, s32 arg2);
-s32   func_8010A854(s32 arg0);
-void  func_8003E64C(void);
-s32   func_80037164(void);
-Task* func_8002CFA0(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
-void  func_80101848(GpActorWork* arg0);
-void  func_80101A68(GpActorWork* arg0);
-void  func_80101F58(GpActorWork* arg0);
-void  func_80102348(GpActorWork* arg0, s32 arg1);
-void  func_80102634(GpActorWork* arg0);
-void  func_801029D4(GpActorWork* arg0);
-void  func_801038F8(GpActorWork* arg0, s32 arg1);
-void  func_8010397C(GpActorWork* arg0, s32 arg1, s32 arg2);
-void  func_80103A18(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
-void  func_80103AC0(GpActorWork* arg0);
-void  func_80103F70(GpActorWork* arg0);
-void  func_80104B54(void);
-void  func_80104E00(void);
-s32   func_80105070(void);
-void  func_801053A0(void);
-s32   func_801055D4(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
-void  func_80105B0C(GpActorWork* arg0);
-void  func_80105ED4(GpActorWork* arg0);
-void  func_8010615C(GpActorWork* arg0);
-void  func_801065A8(GpActorWork* arg0);
-void  func_801066DC(GpActorWork* arg0, s32 arg1);
-void  func_80107E1C(GpActorWork* arg0);
-void  func_80108684(GpActorWork* arg0);
-void  func_8010870C(GpActorWork* arg0, s32 arg1);
-void  func_80108770(GpActorWork* arg0, s32 arg1);
-void  func_80108874(GpActorWork* arg0);
-void  func_80108E0C(GpActorWork* arg0, GpLinkNode* arg1);
-void  func_80109290(GpActorWork* arg0);
-void  func_80109374(GpActorWork* arg0);
-void  func_801093DC(GpActorWork* arg0);
-void  func_80109844(GpActorWork* arg0);
-void  func_80109A1C(GpActorWork* arg0);
-void  func_8010AAB4(GpActorWork* arg0);
-void  func_8010ABD4(GpActorWork* arg0);
-void  func_8010AC54(GpActorWork* arg0);
-void  func_8010AD64(GpActorWork* arg0);
-void  func_8010B120(GpActorWork* arg0);
-void  func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, GpEffArg* arg3);
+s32  func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32  func_800B9D80(s32 arg0);
+s32  func_8003B8A0(s32 arg0);
+s32  func_8010A854(s32 arg0);
+void func_8003E64C(void);
+s32  func_80037164(void);
+void func_80101848(GpActorWork* arg0);
+void func_80101A68(GpActorWork* arg0);
+void func_80101F58(GpActorWork* arg0);
+void func_80102348(GpActorWork* arg0, s32 arg1);
+void func_80102634(GpActorWork* arg0);
+void func_801029D4(GpActorWork* arg0);
+void func_801038F8(GpActorWork* arg0, s32 arg1);
+void func_8010397C(GpActorWork* arg0, s32 arg1, s32 arg2);
+void func_80103A18(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_80103AC0(GpActorWork* arg0);
+void func_80103F70(GpActorWork* arg0);
+void func_80104B54(void);
+void func_80104E00(void);
+s32  func_80105070(void);
+void func_801053A0(void);
+s32  func_801055D4(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_80105B0C(GpActorWork* arg0);
+void func_80105ED4(GpActorWork* arg0);
+void func_8010615C(GpActorWork* arg0);
+void func_801065A8(GpActorWork* arg0);
+void func_801066DC(GpActorWork* arg0, s32 arg1);
+void func_80107E1C(GpActorWork* arg0);
+void func_80108684(GpActorWork* arg0);
+void func_8010870C(GpActorWork* arg0, s32 arg1);
+void func_80108770(GpActorWork* arg0, s32 arg1);
+void func_80108874(GpActorWork* arg0);
+void func_80108E0C(GpActorWork* arg0, GpLinkNode* arg1);
+void func_80109290(GpActorWork* arg0);
+void func_80109374(GpActorWork* arg0);
+void func_801093DC(GpActorWork* arg0);
+void func_80109844(GpActorWork* arg0);
+void func_80109A1C(GpActorWork* arg0);
+void func_8010AAB4(GpActorWork* arg0);
+void func_8010ABD4(GpActorWork* arg0);
+void func_8010AC54(GpActorWork* arg0);
+void func_8010AD64(GpActorWork* arg0);
+void func_8010B120(GpActorWork* arg0);
+void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, GpEffArg* arg3);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F75BC);
 
@@ -728,7 +727,7 @@ void func_801064A4(GpObj38* arg0, s32 arg1, s32 arg2)
     s32 temp;
 
     temp = (s8)func_800D937C(arg0);
-    func_8005414C(arg1, temp, (s8)func_800D9340(arg0));
+    SndEvt_EnqueueType6(arg1, temp, (s8)func_800D9340(arg0));
     if (arg2 == 1) {
         func_800DB500(1);
     }
@@ -1504,7 +1503,7 @@ s32 func_8010B228(s32 arg0)
 
 void func_8010B2A0(s32 arg0, s32 arg1)
 {
-    func_8002CFA0(D_80113340, arg0, arg1, 0);
+    Task_SpawnFromTable(D_80113340, arg0, arg1, 0);
 }
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B2D4);

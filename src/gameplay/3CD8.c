@@ -48,26 +48,25 @@ extern u8           D_80115700;
 extern u8           D_80115701;
 extern u8           D_80115702;
 
-s32   func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
-Task* func_8002CFA0(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
-void  func_800E40EC(s32 arg0);
-s32   func_800E41F4(s32 arg0, s16 arg1, s16 arg2);
-void  func_800E44A0(Task* arg0);
-void  func_80724120(void);
-void  func_80724324(void);
-void  func_800E646C(Task* arg0);
-s32   func_800E6C70(s16 arg0, s16 arg1, s16 arg2);
-s32   func_800E6CF0(void);
-void  func_800E6D60(s32 arg0);
-void  func_800E6E50(void);
-s32   func_800E6EA0(s32 arg0);
-s32   func_800E86FC(s32 arg0);
-void  func_8003F6F8(void);
-void  func_8001D580(void);
-void  func_800E8634(s32 arg0, s32 arg1, s32 arg2);
-void  func_800E8A90(Task* task);
-void  func_800E8BB0(Task* task);
-void  func_800EA478(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+s32  func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_800E40EC(s32 arg0);
+s32  func_800E41F4(s32 arg0, s16 arg1, s16 arg2);
+void func_800E44A0(Task* arg0);
+void func_80724120(void);
+void func_80724324(void);
+void func_800E646C(Task* arg0);
+s32  func_800E6C70(s16 arg0, s16 arg1, s16 arg2);
+s32  func_800E6CF0(void);
+void func_800E6D60(s32 arg0);
+void func_800E6E50(void);
+s32  func_800E6EA0(s32 arg0);
+s32  func_800E86FC(s32 arg0);
+void func_8003F6F8(void);
+void func_8001D580(void);
+void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
+void func_800E8A90(Task* task);
+void func_800E8BB0(Task* task);
+void func_800EA478(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E34D8);
 
@@ -130,7 +129,7 @@ void func_800E3D78(void)
 void func_800E3D8C(s32 arg0, s32 arg1)
 {
     if (func_800E6CE0() == 0) {
-        func_8002CFA0(D_8010FAEC, 0, arg1, arg0);
+        Task_SpawnFromTable(D_8010FAEC, 0, arg1, arg0);
     }
 }
 
@@ -211,7 +210,7 @@ void func_800E4080(void)
 
 void func_800E40BC(s32 arg0, s32 arg1)
 {
-    func_8002CFA0(D_8010FAEC, 1, arg0, arg1);
+    Task_SpawnFromTable(D_8010FAEC, 1, arg0, arg1);
 }
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E40EC);

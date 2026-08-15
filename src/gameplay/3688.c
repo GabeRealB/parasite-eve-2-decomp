@@ -66,7 +66,6 @@ char*      func_800B8EB0(s32 arg0, s32 arg1, s32 arg2);
 void       func_80049D34(char* arg0, s32 arg1, s32 arg2);
 void       func_80049024(UiObject* arg0, UiObject* arg1, UiObject* arg2);
 GpItemRec* func_800D6910(s32 arg0);
-s32        func_8005414C(s32 arg0, s32 arg1, s32 arg2);
 void       func_800C5C2C(s32 arg0, s32 arg1);
 s32        func_800A7508(void);
 s32        func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -269,7 +268,7 @@ void func_800CDF18(UiObject* arg0)
 
     if (Pad_CheckButtons(0, 1, 0x10) && (D_80114DD4 != NULL) && (*D_80114DD4 != 0)) {
         one = 1;
-        func_8005414C(3, 0, 0);
+        SndEvt_EnqueueType6(3, 0, 0);
         Ui_SpawnFromDesc(&D_8010EFA0, *D_80114DD4, one, one, arg0);
         arg0->status = 0;
     }
@@ -428,7 +427,7 @@ UiObject* func_800CEDA0(UiObject* arg0, UiObject* arg1, u8* arg2, s32 arg3)
     obj        = NULL;
     D_80114DD4 = arg2;
     if (Pad_CheckButtons((s32)obj, 1, D_8005ED70)) {
-        func_8005414C(3, (s32)obj, (s32)obj);
+        SndEvt_EnqueueType6(3, (s32)obj, (s32)obj);
         one = 1;
         obj = Ui_SpawnFromDesc(&D_8010EE6C, arg3, one, one, arg1);
         if (obj != NULL) {

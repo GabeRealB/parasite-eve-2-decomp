@@ -15,14 +15,13 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-void  func_800B1EFC(Task* arg0);
-void  func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
-void  func_800B3910(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-void  func_800B6358(Task* task);
-void  func_800B6398(void);
-void  func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
-Task* func_8002CFA0(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
-void  func_8017FBD8(void);
+void func_800B1EFC(Task* arg0);
+void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_800B3910(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_800B6358(Task* task);
+void func_800B6398(void);
+void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
+void func_8017FBD8(void);
 
 extern TaskDesc D_80115D9C[];
 extern TaskDesc D_80119218[];
@@ -112,7 +111,7 @@ GpEnemy* func_800B01AC(TaskDesc* table, s32 idx, s32 arg2, GpEnemy* parent)
     Task*    task;
     GpEnemy* ret;
 
-    task = func_8002CFA0(table, idx, arg2, 0);
+    task = Task_SpawnFromTable(table, idx, arg2, 0);
     if (task != NULL) {
         ret = func_800B0494(task, parent);
     } else {
@@ -258,47 +257,47 @@ void func_800B25B0(void)
 {
     switch (*(u32*)&D_8007216C & 0xFFFF0000) {
         case 0x51B0000:
-            func_8002CFA0(D_80181F18, 0, 0, 0);
+            Task_SpawnFromTable(D_80181F18, 0, 0, 0);
             break;
         case 0x50F0000:
-            func_8002CFA0(D_80181398, 0, 0, 0);
+            Task_SpawnFromTable(D_80181398, 0, 0, 0);
             break;
         case 0x50E0000:
-            func_8002CFA0(D_80181B30, 0, 0, 0);
+            Task_SpawnFromTable(D_80181B30, 0, 0, 0);
             break;
         case 0x50D0000:
-            func_8002CFA0(D_8018384C, 0, 0, 0);
+            Task_SpawnFromTable(D_8018384C, 0, 0, 0);
             break;
         case 0x50C0000:
-            func_8002CFA0(D_801810E4, 1, 0, 0);
+            Task_SpawnFromTable(D_801810E4, 1, 0, 0);
             break;
         case 0x5070000:
-            func_8002CFA0(D_80180DBC, 0, 0, 0);
+            Task_SpawnFromTable(D_80180DBC, 0, 0, 0);
             break;
         case 0x21E0000:
-            func_8002CFA0(D_80182D0C, 0, 1, 0);
+            Task_SpawnFromTable(D_80182D0C, 0, 1, 0);
             break;
         case 0x31E0000:
-            func_8002CFA0(D_80182E74, 0, 1, 0);
+            Task_SpawnFromTable(D_80182E74, 0, 1, 0);
             break;
         case 0x4120000:
-            func_8002CFA0(D_80181B88, 0, 0, 0);
+            Task_SpawnFromTable(D_80181B88, 0, 0, 0);
             break;
         case 0x51F0000:
-            func_8002CFA0(D_8017D9E8, 0, 0, 0);
+            Task_SpawnFromTable(D_8017D9E8, 0, 0, 0);
             break;
         case 0x51E0000:
-            func_8002CFA0(D_8018186C, 0, 0, 0);
-            func_8002CFA0(D_8018186C, 1, 0, 0);
+            Task_SpawnFromTable(D_8018186C, 0, 0, 0);
+            Task_SpawnFromTable(D_8018186C, 1, 0, 0);
             break;
         case 0x51D0000:
-            func_8002CFA0(D_80181638, 0, 0, 0);
+            Task_SpawnFromTable(D_80181638, 0, 0, 0);
             break;
         case 0x4160000:
-            func_8002CFA0(D_801637C8, 0, 0, 0);
+            Task_SpawnFromTable(D_801637C8, 0, 0, 0);
             break;
         case 0x4300000:
-            func_8002CFA0(D_80182FAC, 0, 0, 0);
+            Task_SpawnFromTable(D_80182FAC, 0, 0, 0);
             break;
         case 0x1140000:
             func_8017FBD8();
@@ -321,7 +320,7 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B2910);
 
 Task* func_800B2968(void)
 {
-    return func_8002CFA0(D_80119218, 0, 0, 0);
+    return Task_SpawnFromTable(D_80119218, 0, 0, 0);
 }
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B2998);

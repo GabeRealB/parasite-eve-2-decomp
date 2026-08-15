@@ -24,7 +24,7 @@ typedef struct {
 } GpUiPanel;
 
 /// Overlay import of `Ui_InsetLayout`; the extra arg matches `$a3 = 0`.
-void func_80049348(GpUiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3);
+void Ui_InsetLayout(GpUiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3);
 void func_800C2140(GpUiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D5B14);
@@ -60,7 +60,7 @@ void func_800D6AA4(Task* arg0)
 
     panel            = arg0->spawnArg2;
     panel->field_C.y = 0x1C - D_80071071;
-    func_80049348(panel, NULL, NULL, 0);
+    Ui_InsetLayout(panel, NULL, NULL, 0);
     func_800C2140(panel, panel->field_1C + 2, panel->field_18 + 0xF, 1);
     Ui_DrawText((UiPanel*)panel, D_80097454);
 }
