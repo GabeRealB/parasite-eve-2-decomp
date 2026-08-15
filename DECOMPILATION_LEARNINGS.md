@@ -13781,4 +13781,45 @@ if (func(item + K, flag) == 1) {
 A bare `func(cfg.field + K, arg1 != 1)` leaves `lui`/`lbu` glued together
 after `sltu` (~98%). `func_801062DC` is the example.
 
+## Pin only the result so `v1`/`a1` swap without unsharing the load tail
+
+A multi-range byte lookup that ends in one shared `lbu` often allocates the
+result to `$a1` and the later index (`arg - 0x60` / `0x80` / `0xA0`) to `$v1`.
+The target wants the opposite: `move v1, zero` / `li v1, 0x1000` / `lbu v1, 0(v0)`
+and `addiu a1, a0, -K`.
+
+Pinning *both* locals (`ret` to `$v1`, `idx` to `$a1`) gets the names right
+but breaks the shared tail: the first range emits its own `lbu` + `j`, and
+the last range does `addu a1, a1, v0` / `lbu v1, 0(a1)` instead of
+`addu v0, a1, v0` / `lbu v1, 0(v0)`.
+
+Pin only the result. The unpinned index then lands in `$a1` and the address
+temp stays in `$v0`, so every range still jumps to one load:
+
+```c
+register s32 ret asm("v1");
+s32          idx;
+
+ret = 0;
+if (arg0 == 0) {
+    ret = 0x1000;
+} else if ((u32)(arg0 - 1) < 0x5F) {
+    ret = table0[arg0];
+} else {
+    idx = arg0 - 0x60;
+    if ((u32)idx < 0x20) {
+        ret = table1[idx];
+    } else {
+        /* idx = arg0 - 0x80 / 0xA0 … same form */
+    }
+}
+if (ret == 0) {
+    ret = arg0 + 0x100;
+}
+return ret;
+```
+
+`func_800BC18C` is the example. The unpinned version is a 98% register swap;
+pinning both drops to ~89%.
+
 

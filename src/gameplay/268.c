@@ -437,7 +437,37 @@ s32 func_800BC180(u8* arg0)
     return arg0[1];
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC18C);
+s32 func_800BC18C(s32 arg0)
+{
+    register s32 ret asm("v1");
+    s32          idx;
+
+    ret = 0;
+    if (arg0 == 0) {
+        ret = 0x1000;
+    } else if ((u32)(arg0 - 1) < 0x5F) {
+        ret = D_80114A40[arg0];
+    } else {
+        idx = arg0 - 0x60;
+        if ((u32)idx < 0x20) {
+            ret = D_80114A88[idx];
+        } else {
+            idx = arg0 - 0x80;
+            if ((u32)idx < 0x20) {
+                ret = D_80114A98[idx];
+            } else {
+                idx = arg0 - 0xA0;
+                if ((u32)idx < 0x20) {
+                    ret = D_80114ABC[idx];
+                }
+            }
+        }
+    }
+    if (ret == 0) {
+        ret = arg0 + 0x100;
+    }
+    return ret;
+}
 
 void func_800BC21C(void)
 {

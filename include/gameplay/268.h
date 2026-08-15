@@ -112,6 +112,15 @@ extern GpItemMap  D_8010D2F8[];
 extern GpItemScan D_8010D520;
 extern GpItemAttr D_8010DFB8[];
 extern GpItemQty  D_8010E238[];
+/// Byte remap of an item id used as a sort/order key (`func_800BC18C` /
+/// `func_800B8588`). Split by item class: 0x01–0x5F → `D_80114A40[id]`,
+/// 0x60–0x7F → `D_80114A88[id-0x60]`, 0x80–0x9F → `D_80114A98[id-0x80]`,
+/// 0xA0–0xBF → `D_80114ABC[id-0xA0]`. A 0 entry (or an id outside those
+/// ranges) falls back to `id + 0x100`; id 0 returns 0x1000.
+extern u8         D_80114A40[];
+extern u8         D_80114A88[];
+extern u8         D_80114A98[];
+extern u8         D_80114ABC[];
 extern GpItemRec  D_80114C20[];
 extern GpItemRec* D_80114D70;
 
@@ -132,6 +141,7 @@ void        func_800BB7C0(s32 arg0, s32 arg1);
 s32         func_800BB974(GameSessionFrom4* arg0, s32 arg1);
 GpItemMap*  func_800BBDC8(s32 arg0);
 s32         func_800BBEC0(s32 arg0);
+s32         func_800BC18C(s32 arg0);
 s32         func_800BC324(s32 arg0);
 
 #endif // GAMEPLAY_268_H
