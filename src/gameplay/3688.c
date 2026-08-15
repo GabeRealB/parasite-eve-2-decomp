@@ -37,6 +37,7 @@ extern TaskDesc     D_801871F0;
 extern s32          D_8005ED70;
 extern UiObject*    D_80067634;
 extern WipSysConfig D_80073B88;
+extern void         (*D_8010D3A0[])(UiObject*, Task*);
 
 void       func_8017F41C(Task* task);
 void       func_8017F2F8(Task* task);
@@ -448,7 +449,17 @@ void func_800CFA34(UiObject* arg0, Task* arg1)
     func_800CB33C(arg0, arg1, *D_80114DD4);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CFA60);
+void func_800CFA60(Task* arg0)
+{
+    void      (*fn)(UiObject*, Task*);
+    UiObject* obj;
+
+    fn  = D_8010D3A0[arg0->spawnArg1];
+    obj = arg0->spawnArg2;
+    if (fn != NULL) {
+        fn(obj, obj->owner);
+    }
+}
 
 void func_800CFAA8(UiObject* arg0, Task* arg1)
 {
