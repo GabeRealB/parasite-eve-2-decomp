@@ -91,12 +91,28 @@ typedef struct _GpStateF0 {
 } GpStateF0;
 STATIC_ASSERT_SIZEOF(GpStateF0, 0x8);
 
+/// 0xC slot in the 32-entry table at `D_80115270`. `func_800DAF98` clears
+/// `field_0` / `field_4` / `field_6`. `func_800DA6E8` binds `field_0` and
+/// bumps `field_4`; `func_800DA7B8` treats `field_6` as a countdown and
+/// stores projected screen XY at 0x8.
+typedef struct _GpSlot70 {
+    /* 0x0 */ void* field_0;
+    /* 0x4 */ s16   field_4;
+    /* 0x6 */ s16   field_6;
+    /* 0x8 */ s16   field_8;
+    /* 0xA */ s16   field_A;
+} GpSlot70;
+STATIC_ASSERT_SIZEOF(GpSlot70, 0xC);
+
 /// Signed pending item id consumed by `func_800D68C4`. `func_800D5B14`
 /// stores the id, or its negation for the second `GpItemSlot` pair.
 extern s32 D_8010F88C;
 
 /// Head of the `GpLinkNode` list walked by `func_800DAB38` / `func_800DABEC`.
 extern GpLinkNode* D_80115268;
+
+/// 32-entry marker/slot table cleared by `func_800DAF98`.
+extern GpSlot70 D_80115270[0x20];
 
 /// Default 8-byte record copied by `func_800D9CE8`. Also the fallback
 /// pointer returned by `func_800D957C` when a table lookup fails.

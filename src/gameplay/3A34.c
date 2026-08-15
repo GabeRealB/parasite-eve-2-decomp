@@ -191,7 +191,21 @@ void* func_800DADE4(GpActorWork* arg0, VECTOR3* pos)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DAE50);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DAF98);
+void func_800DAF98(void)
+{
+    s32       i;
+    GpSlot70* p;
+
+    p = D_80115270;
+    i = 0;
+    do {
+        i++;
+        p->field_0 = NULL;
+        p->field_4 = 0;
+        p->field_6 = 0;
+        p++;
+    } while (i < 0x20);
+}
 
 void func_800DAFD0(void)
 {

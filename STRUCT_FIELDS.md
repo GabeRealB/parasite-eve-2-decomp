@@ -586,6 +586,17 @@ slot 3; `func_80106238` replaces bits 14–15 with `(arg1 << 1) | arg2`.
 
 Embedded at `GpEnemy.node` (+0x10). `func_800DAB38` also clears `GameActor+0x90C` slots that point at the node.
 
+### `GpSlot70` (0xC) — `3A34.h`
+32-entry table at `D_80115270`. `func_800DAF98` zeros `field_0` / `field_4` / `field_6` only.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | Object pointer (NULL = free; `func_800DA7B8` may store 4 as a sentinel) |
+| 0x04 | `field_4` | Signed value (`lh`/`bgez`; incremented by `func_800DA6E8`) |
+| 0x06 | `field_6` | Countdown timer (set to 0x14; decremented by `func_800DA7B8`) |
+| 0x08 | `field_8` | Projected screen X (`swc2 SXY2` / `lh`) |
+| 0x0A | `field_A` | Projected screen Y |
+
 ### `GpStateF0` (0x8+) — `3A34.h`
 Global at `D_801153F0`. Full object is larger (helpers also use 0x8 / 0xC / 0x10).
 
