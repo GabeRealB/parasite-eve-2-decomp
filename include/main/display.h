@@ -117,6 +117,7 @@ void  Display_InvertFramebufferGray(void);
 s32   Display_SetFadeRate(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void  Display_SetFadeMax(u8 arg0);
 void  Display_SetDrawMode(s32 arg0);
+void  Display_InitPrimBufOnce(void);
 s32   Display_InitModeObj(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
 void  Gpu_ResetGraphAndOt(void);
 /// arg2 is unused; GameMain_Loop passes Display_State.field_114 for match.

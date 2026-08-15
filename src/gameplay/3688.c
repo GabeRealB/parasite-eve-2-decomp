@@ -34,6 +34,7 @@ extern UiObjectDesc D_8010EE6C;
 extern UiObjectDesc D_8010EE88;
 extern UiObjectDesc D_8010EFA0;
 extern UiObjectDesc D_8010F788;
+extern UiObjectDesc D_8010F840;
 extern TaskDesc     D_8010F85C;
 extern TaskDesc     D_80181188;
 extern TaskDesc     D_80181C2C;
@@ -851,7 +852,42 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D3D98);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D3FF0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D4140);
+void func_800D4140(Task* arg0)
+{
+    UiObject* obj;
+    s32       one;
+
+    obj = arg0->spawnArg2;
+    if (arg0->state == 0) {
+        one             = 1;
+        obj             = Ui_SpawnFromDesc(&D_8010F840, arg0->spawnArg1, one, one, NULL);
+        arg0->spawnArg2 = obj;
+        if (obj != NULL) {
+            obj->field_C = *(u16*)&D_80114E8C;
+            obj->field_E = *(u16*)&D_80114E90;
+        }
+        Display_InitPrimBufOnce();
+        GameMain_SetFrameTiming(0);
+        Game_Session->field_2 = 1;
+        D_80114E88            = 0;
+        arg0->state           = arg0->state + 1;
+    } else if (arg0->state == 1) {
+        if ((obj->field_2E == -1) || (obj->field_2E == 6)) {
+            Ui_TeardownTree(obj, obj->owner);
+            arg0->killCountdown = 0xA;
+            arg0->state         = 2;
+        }
+    } else {
+        arg0->killCountdown--;
+        if (arg0->killCountdown <= 0) {
+            GameMain_SetFrameTiming(1);
+            Game_Session->field_2 = 0;
+            Task_Kill(arg0);
+            Stage_ReleasePrimBuf();
+            Stage_SetEndingFlag();
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D4270);
 
