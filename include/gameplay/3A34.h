@@ -94,6 +94,20 @@ typedef struct _GpObj4A {
 } GpObj4A;
 STATIC_ASSERT_SIZEOF(GpObj4A, 0x4C);
 
+/// 0x3C list node appended to `D_8010FAB8[index]` by `func_800E17B4` and
+/// unlinked by `func_800E1834`. `field_3A` bit 0x20 means the node is on
+/// that list (cleared on unlink, keeping bits 0x87). Same link/flag layout
+/// as `GpObj4A`, with the flag byte at 0x3A instead of 0x4A. Full object
+/// size is not known yet.
+typedef struct _GpObj3A {
+    /* 0x00 */ struct _GpObj3A* next;
+    /* 0x04 */ struct _GpObj3A* prev;
+    /* 0x08 */ byte             pad_8[0x32];
+    /* 0x3A */ u8               field_3A;
+    /* 0x3B */ byte             pad_3B;
+} GpObj3A;
+STATIC_ASSERT_SIZEOF(GpObj3A, 0x3C);
+
 /// Global at `D_801153F0`. `field_0` is a state byte (1 if first set by
 /// `func_800DB4E0`; 2 when the last `field_6` ref is released). `field_1`
 /// is an alternate-active flag (`func_800A7CB0` / `func_800A7CF4` /
@@ -211,6 +225,7 @@ s32  func_800E076C(void);
 void func_800E0B08(void);
 void func_800E1638(GpObj* node);
 void func_800E1708(s32 arg0, GpObj4A* arg1);
+void func_800E1834(s32 arg0, GpObj3A* arg1);
 void func_800E18E0(GpRec18* arg0, s32 arg1);
 s32  func_800E1ACC(u8* arg0);
 s32  func_800E1B24(s32 arg0);

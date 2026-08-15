@@ -657,6 +657,17 @@ by `func_800E1708`. Walked at +0x4C until `field_4A` bit 0x80.
 | 0x08 | (pad) | Pointer slot; insert callers store `D_80070F10` |
 | 0x4A | `field_4A` | Flag byte: 0x20 = on list, 0x40 set after insert, 0x80 = last in array. Unlink keeps bits 0x87 |
 
+### `GpObj3A` (0x3C) — `3A34.h`
+List node linked onto `D_8010FAB8[index]` by `func_800E17B4` and unlinked
+by `func_800E1834`. Same next/prev/`0x20` flag protocol as `GpObj4A`. Full
+object size is not known yet; 0x3C is the minimum covering known fields.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `next` | Intrusive next; NULL-terminated |
+| 0x04 | `prev` | Previous node, or the list-head object when first |
+| 0x3A | `field_3A` | Flag byte: 0x20 = on list. Unlink keeps bits 0x87 |
+
 ### `GpObj4C` (0x50) — `3A34.h`
 Sparse overlay. Full object size is not known yet.
 
