@@ -51,6 +51,16 @@ extern u8             D_801156F9;
 extern u8             D_80115700;
 extern u8             D_80115701;
 extern u8             D_80115702;
+extern u8             D_80115708;
+extern u8             D_80115709;
+extern s16            D_8011570A;
+extern s16            D_8011570C;
+extern s16            D_8011570E;
+extern s16            D_80115710;
+extern s16            D_80115712;
+extern u8             D_80115714;
+extern s16            D_80115716;
+extern s16            D_80115718;
 
 s32  func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800E40EC(s32 arg0);
@@ -791,7 +801,19 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E9A50);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E9BDC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E9C6C);
+void func_800E9C6C(void)
+{
+    D_80115712 = 0;
+    D_8011570A = 0;
+    D_8011570C = 0;
+    D_8011570E = 0;
+    D_80115710 = 0;
+    D_80115708 = 0;
+    D_80115709 = 0;
+    D_80115714 = 0;
+    D_80115716 = 8;
+    D_80115718 = 4;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E9CC8);
 
