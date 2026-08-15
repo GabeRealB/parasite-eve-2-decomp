@@ -13,6 +13,8 @@
 
 #include <psyq/abs.h>
 
+extern u16          D_80071624;
+extern s8           D_80072310;
 extern s8           D_8007272A;
 extern s8           D_80072A91;
 extern WipSysConfig D_80073B88;
@@ -570,7 +572,38 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105BC4);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105ED4);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801060E0);
+s32 func_801060E0(GpActorWork* arg0)
+{
+    GameActor* actor;
+    u16        mode;
+    s32        flags;
+    s32        mask1;
+    s32        mask2;
+
+    actor = arg0->actor;
+    mode  = actor->field_954;
+    if (mode != 2) {
+        flags = actor->field_962;
+        mask1 = 8;
+        mask2 = 2;
+    } else {
+        flags = D_80071624;
+        if (D_80072310 == mode) {
+            mask1 = 0x80;
+            mask2 = 0x10;
+        } else {
+            mask1 = 8;
+            mask2 = 2;
+        }
+    }
+    actor->field_97F = 0;
+    if (flags & mask1) {
+        actor->field_97F = 1;
+    } else if (flags & mask2) {
+        actor->field_97F = 2;
+    }
+    return actor->field_97F;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010615C);
 

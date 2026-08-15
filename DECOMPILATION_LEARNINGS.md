@@ -13945,4 +13945,32 @@ for (i = 0; i < scan->field_1; i++) {
 
 `func_800BB540` is the example.
 
+## Named u16 local pins an lhu for a later mixed-width compare
+
+A u16 field used both as `!= K` and later as `s8_global == field` must be
+copied into a named `u16` local. CSE of `actor->field` rematerializes the
+`lhu` for the second compare (the s8 load kills it) and parks the first
+load in `$v1` instead of `$a2`.
+
+Symptom: target has one `lhu a2, field` then `bne v1, a2`; your build has
+`lhu v1, field` for the `!= K` and a second `lhu` after `lb` of the global.
+
+```c
+u16 mode;
+s32 flags;
+
+mode = actor->field_954;
+if (mode != 2) {
+    flags = actor->field_962;
+} else {
+    flags = D_80071624;
+    if (D_80072310 == mode) { /* reuse a2; no second lhu */
+        ...
+    }
+}
+```
+
+`func_801060E0` is the example. `s32` for the later button word also
+avoids a redundant `andi flags, 0xFFFF` before the mask `and`.
+
 
