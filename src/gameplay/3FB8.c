@@ -793,7 +793,22 @@ void func_80108CC4(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108D68);
+void func_80108D68(GpActorWork* arg0)
+{
+    GameActor* inner;
+
+    inner = arg0->actor;
+    if (inner->field_93E >= inner->field_934) {
+        inner->field_97A = 0x12;
+        if (inner->field_95E == 0) {
+            func_800AC464(Game_GetPtrSlot(4), 0x7DA, 0, 0x7DE);
+            inner->field_95E = 1;
+        }
+    } else if (inner->field_966 & 0xF0F0) {
+        inner->field_93E++;
+    }
+    func_80103AC0(arg0);
+}
 
 void func_80108E0C(GpActorWork* arg0, GpLinkNode* arg1)
 {
