@@ -63,7 +63,25 @@ void func_80098F98(GsCOORDINATE2* arg0, s32 arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009902C);
+void* func_8009902C(Task* task, TmdSource* src)
+{
+    TmdListHead* node;
+    TmdListHead* last;
+    TmdListHead* list;
+
+    node = (TmdListHead*)Tmd_Create(src, 0);
+    if (node != NULL) {
+        list            = &Tmd_List;
+        last            = list->prev;
+        node->next      = last->next;
+        last->next      = (TmdObject*)node;
+        node->prev      = last;
+        list->prev      = node;
+        task->extra     = node;
+        task->spawnType = 1;
+    }
+    return node;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80099098);
 
