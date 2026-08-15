@@ -37,7 +37,6 @@ s32        func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32        func_800BB4BC(s32 arg0);
 void       func_800BAEC0(s32 arg0);
 void       func_800BAE5C(s32 arg0);
-GpItemRec* func_800BB500(GpItemScan* arg0);
 s32        func_800BBCCC(GpItemRec* arg0, GpItemScan* arg1, s32* arg2, s32 arg3);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B7420);
@@ -242,7 +241,17 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB470);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB4BC);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB500);
+GpItemRec* func_800BB500(GpItemScan* arg0)
+{
+    switch (arg0->field_2) {
+        case 2:
+            return D_80114C20;
+        case 1:
+            return D_80114D70;
+        default:
+            return D_80072314;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB540);
 
