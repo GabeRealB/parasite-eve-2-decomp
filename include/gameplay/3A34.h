@@ -160,6 +160,15 @@ typedef struct _GpObj38 {
 } GpObj38;
 STATIC_ASSERT_SIZEOF(GpObj38, 0x44);
 
+/// Sparse overlay whose signed halfword at 0x40 is added (unsigned-clamped by
+/// `arg2`) into `D_801153F0.field_14` by `func_800E2C78` when
+/// `(arg1 & 0x7F)` is 0x19..0x1B.
+typedef struct _GpObj40 {
+    /* 0x00 */ byte pad_0[0x40];
+    /* 0x40 */ s16  field_40;
+} GpObj40;
+STATIC_ASSERT_SIZEOF(GpObj40, 0x42);
+
 /// Object whose flags byte at 0x4C is OR'd by `func_800E3008`. Nearby
 /// helpers treat 0x4C as a flag field (bits 0x1, 0x2, 0x4). `field_4E`
 /// packs two 2-bit modes (current in bits 0-1, previous in bits 2-3)
@@ -216,7 +225,8 @@ STATIC_ASSERT_SIZEOF(GpObj3A, 0x3C);
 /// (also written as `D_801153F3` by `func_800DB530`). `field_6` is a u16
 /// refcount incremented by `func_800DB53C` and decremented by
 /// `func_800DB558` / `func_800DB630` / `func_800DB6B4`. Nearby helpers
-/// also touch words at 0x8 / 0xC / 0x10.
+/// also touch words at 0x8 / 0xC / 0x10. `func_800E2C78` adds into
+/// `field_14` when `(arg1 & 0x7F)` is 0x19..0x1B.
 typedef struct _GpStateF0 {
     /* 0x00 */ u8   field_0;
     /* 0x01 */ u8   field_1;
@@ -224,8 +234,12 @@ typedef struct _GpStateF0 {
     /* 0x03 */ u8   field_3;
     /* 0x04 */ byte pad_4[2];
     /* 0x06 */ u16  field_6;
+    /* 0x08 */ s32  field_8;
+    /* 0x0C */ s32  field_C;
+    /* 0x10 */ s32  field_10;
+    /* 0x14 */ s32  field_14;
 } GpStateF0;
-STATIC_ASSERT_SIZEOF(GpStateF0, 0x8);
+STATIC_ASSERT_SIZEOF(GpStateF0, 0x18);
 
 /// 0xC slot in the 32-entry table at `D_80115270`. `func_800DAF98` clears
 /// `field_0` / `field_4` / `field_6`. `func_800DA6E8` binds `field_0` and
@@ -394,6 +408,7 @@ s32  func_800E1B24(s32 arg0);
 s32  func_800E2438(s32 arg0, s32 arg1, s32* arg2, s32 arg3);
 s32  func_800E2BF8(GpObj50* arg0, s32 arg1);
 s32  func_800E2C40(GpU16Pair* arg0, s32 arg1);
+void func_800E2C78(GpObj40* arg0, s32 arg1, s32 arg2);
 s32  func_800E2CD4(s32 arg0, s32 arg1);
 s32  func_800E2D3C(s32 arg0);
 s32  func_800E2D90(s32 arg0);

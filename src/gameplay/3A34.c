@@ -898,7 +898,19 @@ s32 func_800E2C40(GpU16Pair* arg0, s32 arg1)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E2C78);
+void func_800E2C78(GpObj40* arg0, s32 arg1, s32 arg2)
+{
+    s32 val;
+
+    if ((u32)((arg1 & 0x7F) - 0x19) < 3U) {
+        val = arg0->field_40;
+        if ((u32)val < (u32)arg2) {
+            D_801153F0.field_14 += val;
+            return;
+        }
+        D_801153F0.field_14 += arg2;
+    }
+}
 
 s32 func_800E2CD4(s32 arg0, s32 arg1)
 {
