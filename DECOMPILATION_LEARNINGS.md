@@ -13376,3 +13376,26 @@ func_80049348(panel, NULL, NULL, 0); /* Ui_InsetLayout */
 
 `func_800D6AA4` is the example.
 
+## Non-void callee return occupies `$v0` so the next `li` uses `$v1`
+
+After `jal`, GCC 2.8.1 treats `$v0` as holding the callee's return even if
+the caller ignores it. The next rematerialized small constant then lands in
+`$v1` (`li v1,K` / `sh v1,...`), and the function's own `return 0` is
+emitted later as `move v0,zero`.
+
+Declaring that same callee `void` frees `$v0` immediately, so you get
+`li v0,K` instead — a one-register miss on an otherwise identical body.
+
+```c
+s32 func_80105070(void); /* actually returns 0; do not declare void */
+
+func_80105070();         /* jal; nop — $v0 still "holds" the return */
+actor->field_956 = 8;    /* li v1,8; sh v1,0x956(s2) */
+return 0;                /* move v0,zero after the restores */
+```
+
+`func_8010C708` is the example. Pair with assigning the callee-saved
+pointer *before* the saved byte (`actor = arg0->actor; saved = p->field_24`)
+so the target's `lw s2` / `lbu s1` order is preserved; declaration order
+still assigns `saved` to `$s1` and `actor` to `$s2`.
+
