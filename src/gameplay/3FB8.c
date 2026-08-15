@@ -18,8 +18,9 @@
 #include <psyq/libgte.h>
 #include <psyq/rand.h>
 
-extern TaskDesc D_80113340[];
-extern GpEffArg D_80113358;
+extern TaskDesc       D_80113340[];
+extern GpEffArg       D_80113358;
+extern TaskFuncTable3 D_800977FC;
 
 s32  func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  func_800B9D80(s32 arg0);
@@ -115,7 +116,13 @@ void func_800FC6E0(Task* arg0)
     arg0->state = arg0->state + 1;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FC6F4);
+void func_800FC6F4(Task* arg0)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_800977FC;
+    sp.funcs[arg0->state](arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FC74C);
 
