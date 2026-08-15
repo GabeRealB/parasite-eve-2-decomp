@@ -66,6 +66,39 @@ typedef struct _GpAnimCtx {
 } GpAnimCtx;
 STATIC_ASSERT_SIZEOF(GpAnimCtx, 0x14);
 
+/// Object returned by `func_800B5A08` (`GpAreaRec.field_4`). `field_0` is a
+/// signed id compared with `GpAreaKey.field_5`; `field_1` is a flags byte
+/// (bits 0/1/2/4 in nearby 1BC / 1A8 helpers). Full size unknown.
+typedef struct _GpAreaObj {
+    /* 0x00 */ s8 field_0;
+    /* 0x01 */ u8 field_1;
+} GpAreaObj;
+
+/// 8-byte record in tables pointed to by `D_8010CBCC`. Indexed by
+/// `GpAreaKey.field_2`. `field_0` is a nested table (`func_800B5C88`);
+/// `field_4` is the object `func_800B5A08` returns.
+typedef struct _GpAreaRec {
+    /* 0x00 */ struct _GpAreaRec* field_0;
+    /* 0x04 */ GpAreaObj*         field_4;
+} GpAreaRec;
+STATIC_ASSERT_SIZEOF(GpAreaRec, 8);
+
+/// Location key used to index `D_8010CBCC`. Bytes 2/3 select the table and
+/// record; byte 5 indexes a nested table (`func_800B5C88`). Same 4-byte
+/// prefix as `GameSessionFrom4` / `D_8007216C`. Full size unknown.
+typedef struct _GpAreaKey {
+    /* 0x00 */ u8 field_0;
+    /* 0x01 */ u8 field_1;
+    /* 0x02 */ u8 field_2;
+    /* 0x03 */ u8 field_3;
+    /* 0x04 */ u8 field_4;
+    /* 0x05 */ u8 field_5;
+} GpAreaKey;
+
+/// Per-area pointer table. Index is `GpAreaKey.field_3` (also
+/// `GameSession.field_7` via `&Game_Session->field_4`).
+extern GpAreaRec* D_8010CBCC[];
+
 s32      func_800B0118(s32 arg0, s32 arg1);
 GpEnemy* func_800B0168(s32 bank, s32 type, s32 arg2, GpEnemy* parent);
 GpEnemy* func_800B01AC(TaskDesc* table, s32 idx, s32 arg2, GpEnemy* parent);
@@ -82,5 +115,6 @@ void     func_800B3F60(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3,
 s32*     func_800B4668(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B57EC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
 void     func_800B58D4(TmdObject* arg0, s32 arg1, s32 arg2);
+GpAreaObj* func_800B5A08(GpAreaKey* arg0);
 
 #endif // GAMEPLAY_1BC_H

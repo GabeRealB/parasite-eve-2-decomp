@@ -699,6 +699,32 @@ Context filled by `func_800B3CCC` / `func_800B3F60`. Used as arg0 by the
 | 0x0C | `field_C` | `GpAnimSlot*` array (`func_800B3F60` writes it; `func_800B3CCC` does not) |
 | 0x10 | `field_10` | Copy of `src->field_30` |
 
+### `GpAreaObj` — `1BC.h`
+Object behind `GpAreaRec.field_4`. Full size unknown.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | Signed id; compared with `GpAreaKey.field_5` |
+| 0x01 | `field_1` | Flags (bits 0/1/2/4 in nearby 1BC / 1A8 helpers) |
+
+### `GpAreaRec` (0x8) — `1BC.h`
+Element of tables pointed to by `D_8010CBCC`. Indexed by `GpAreaKey.field_2`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | Nested `GpAreaRec*` table (`func_800B5C88`) |
+| 0x04 | `field_4` | `GpAreaObj*`; returned by `func_800B5A08` |
+
+### `GpAreaKey` — `1BC.h`
+Location key for `D_8010CBCC`. Same 4-byte prefix as `GameSessionFrom4` /
+`D_8007216C`. Full size unknown.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x02 | `field_2` | Record index (`* 8`) into `D_8010CBCC[field_3]` |
+| 0x03 | `field_3` | Table index into `D_8010CBCC` |
+| 0x05 | `field_5` | Nested-record index (`func_800B5C88`); compared with `GpAreaObj.field_0` |
+
 ### `GpItemSlot` (0x8) — `268.h`
 Indexed as `D_80072330[idx]` by `func_800BAFE0`. Two (id, count) pairs.
 
