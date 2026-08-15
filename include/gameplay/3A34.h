@@ -156,16 +156,19 @@ STATIC_ASSERT_SIZEOF(GpObj3A, 0x3C);
 /// Global at `D_801153F0`. `field_0` is a state byte (1 if first set by
 /// `func_800DB4E0`; 2 when the last `field_6` ref is released). `field_1`
 /// is an alternate-active flag (`func_800A7508` / `func_800A7CB0` /
-/// `func_800A7CF4` / `func_800A7D54`). `field_2` is a bitset (`func_800DB500` sets bit
-/// `arg0 - 1` when `arg0 != 0`). `field_6` is a u16 refcount incremented
-/// by `func_800DB53C` and decremented by `func_800DB558` / `func_800DB630`
-/// / `func_800DB6B4`. Nearby helpers also touch the byte at 0x3 and words
-/// at 0x8 / 0xC / 0x10.
+/// `func_800A7CF4` / `func_800A7D54`); last-ref release sets it to 0x3C.
+/// `field_2` is a bitset (`func_800DB500` sets bit `arg0 - 1` when
+/// `arg0 != 0`). `field_3` is cleared with `field_2` on last-ref release
+/// (also written as `D_801153F3` by `func_800DB530`). `field_6` is a u16
+/// refcount incremented by `func_800DB53C` and decremented by
+/// `func_800DB558` / `func_800DB630` / `func_800DB6B4`. Nearby helpers
+/// also touch words at 0x8 / 0xC / 0x10.
 typedef struct _GpStateF0 {
     /* 0x00 */ u8   field_0;
     /* 0x01 */ u8   field_1;
     /* 0x02 */ u8   field_2;
-    /* 0x03 */ byte pad_3[3];
+    /* 0x03 */ u8   field_3;
+    /* 0x04 */ byte pad_4[2];
     /* 0x06 */ u16  field_6;
 } GpStateF0;
 STATIC_ASSERT_SIZEOF(GpStateF0, 0x8);
@@ -288,6 +291,7 @@ void  func_800DB4E0(s32 arg0);
 void  func_800DB500(s32 arg0);
 void  func_800DB530(s32 arg0);
 void  func_800DB53C(void);
+void  func_800DB6B4(void);
 void  func_800DB72C(void);
 void func_800DB900(GpObj* node);
 void func_800DC528(GpObj* node);

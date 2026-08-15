@@ -523,6 +523,7 @@ See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 | 0x52 | `field_52` | s16 cleared by `func_800A9730` when `spawnArg1 == 0` |
 | 0x5F | `field_5F` | u8 flag; nonzero makes `func_800E74EC` skip overlay-wait timer setup |
 | 0x68 | `field_68` | u8 flag; set to 1 by `func_800E7378` and cleared by `func_800E73E8` / `func_800E7434` when `D_8007218B != 9` |
+| 0x69 | `field_69` | u8 flags; bit 0x2 skips `SndEvt_EnqueueType2(0, 0xB4)` when the last `GpStateF0.field_6` ref is released |
 | 0x7C–80 | halfwords | Counters / mode |
 | 0x126 | `field_126` | u8 flag; nonzero skips `func_800A7A64` display-mode init |
 | 0x128 | `field_128` | u8; `0xFF` sentinel (`func_800B0748` / `func_800B082C`) |
@@ -657,9 +658,10 @@ Global at `D_801153F0`. Full object is larger (helpers also use 0x8 / 0xC / 0x10
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x00 | `field_0` | state byte (set to 1 by `func_800DB4E0` if 0; set to 2 when refcount hits 0 in `func_800DB558`) |
-| 0x01 | `field_1` | alternate-active flag (`lbu`; `func_800A7508` / `func_800A7CB0` / `func_800A7CF4` / `func_800A7D54` OR it with `field_0 == 1 && field_6`) |
-| 0x02 | `field_2` | bitset (`func_800DB500` ORs `1 << (arg0 - 1)` when `arg0 != 0`) |
+| 0x00 | `field_0` | state byte (set to 1 by `func_800DB4E0` if 0; set to 2 when refcount hits 0 in `func_800DB558` / `func_800DB630` / `func_800DB6B4`) |
+| 0x01 | `field_1` | alternate-active flag (`lbu`; `func_800A7508` / `func_800A7CB0` / `func_800A7CF4` / `func_800A7D54` OR it with `field_0 == 1 && field_6`); last-ref release sets 0x3C |
+| 0x02 | `field_2` | bitset (`func_800DB500` ORs `1 << (arg0 - 1)` when `arg0 != 0`); cleared on last-ref release |
+| 0x03 | `field_3` | cleared with `field_2` on last-ref release; also written as `D_801153F3` by `func_800DB530` |
 | 0x06 | `field_6` | u16 refcount (inc: `func_800DB53C`; dec: `func_800DB558` / `func_800DB630` / `func_800DB6B4`) |
 
 ### `GpObj` (0x20 header) — `3A34.h`

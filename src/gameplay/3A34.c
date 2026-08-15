@@ -6,6 +6,7 @@
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/ui.h"
 
@@ -389,7 +390,24 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB558);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB630);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB6B4);
+void func_800DB6B4(void)
+{
+    GpStateF0* p;
+
+    p = &D_801153F0;
+    if (p->field_6 != 0) {
+        p->field_6--;
+        if (p->field_6 == 0) {
+            D_801153F0.field_0 = 2;
+            p->field_2         = 0;
+            p->field_3         = 0;
+            p->field_1         = 0x3C;
+            if (!(Game_Session->field_69 & 2)) {
+                SndEvt_EnqueueType2(0, 0xB4);
+            }
+        }
+    }
+}
 
 void func_800DB72C(void)
 {
