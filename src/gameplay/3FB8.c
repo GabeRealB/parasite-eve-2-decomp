@@ -1711,6 +1711,19 @@ void func_8010C81C(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C858);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C8F0);
+s32 func_8010C8F0(GpActorWork* arg0, s32 arg1, s32 arg2)
+{
+    s32 ret;
+
+    ret = 0;
+    if (Mc_SaveData.field_5C2 == 0) {
+        Mc_SaveData.field_6C8 -= func_800E2438(arg2, 0, 0, 1);
+        if ((s16)Mc_SaveData.field_6C8 <= 0) {
+            func_800AC464(Game_GetPtrSlot(4), 0x7DA, 0, 0x7DE);
+            ret = 1;
+        }
+    }
+    return ret;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C980);
