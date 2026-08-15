@@ -627,10 +627,13 @@ Embedded at `GpEnemy.node` (+0x10). `func_800DAB38` also clears `GameActor+0x90C
 
 ### `GpRec18` (0x18) — `3A34.h`
 Array element cleared by `func_800E18E0` (`Mem_Set` of `count * 0x18`).
+Walked by `func_800E1A1C`, which counts occupied slots whose `field_4`
+high 16 bits match the argument.
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x00 | `field_0` | Last element set to 2 after the wipe (terminator / sentinel) |
+| 0x00 | `field_0` | u16 flags: bit 0x1 = occupied; bit 0x2 = last (`func_800E18E0` writes 2 on the last element) |
+| 0x04 | `field_4` | Packed word; `func_800E1A1C` compares `field_4 & 0xFFFF0000` to its argument |
 
 ### `GpStateF0` (0x8+) — `3A34.h`
 Global at `D_801153F0`. Full object is larger (helpers also use 0x8 / 0xC / 0x10).

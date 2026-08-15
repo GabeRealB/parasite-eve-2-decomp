@@ -554,7 +554,18 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E192C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E19B8);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1A1C);
+s32 func_800E1A1C(GpRec18* arg0, s32 arg1)
+{
+    s32 count;
+
+    count = 0;
+    do {
+        if ((arg0->field_0 & 1) && ((arg0->field_4 & 0xFFFF0000) == arg1)) {
+            count += 1;
+        }
+    } while (!((arg0++)->field_0 & 2));
+    return count;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1A6C);
 
