@@ -39,6 +39,15 @@ typedef struct _GpItemScan {
 } GpItemScan;
 STATIC_ASSERT_SIZEOF(GpItemScan, 0x4);
 
+/// Overlay of `D_80072330` that places `D_80072724` at +0x3F4. Callers that
+/// already have the inventory-slot base in a register pass `&scan` as
+/// `base + 0x3F4` (`func_800BB418`).
+typedef struct _GpItemBlock {
+    /* 0x000 */ byte       pad_0[0x3F4];
+    /* 0x3F4 */ GpItemScan scan;
+} GpItemBlock;
+STATIC_ASSERT_SIZEOF(GpItemBlock, 0x3F8);
+
 /// 4-byte row in the item tables selected by `GpItemScan` (`D_80072314` /
 /// `D_80114C20` / `*D_80114D70`). field_0 is the item id looked up by
 /// `func_800D6910` / returned by `func_800BB610`; field_1 is a count
@@ -82,6 +91,7 @@ void        func_800B91C8(GpItemRec* arg0);
 GpItemSlot* func_800BAFE0(s32 arg0);
 void        func_800BB190(s32 arg0, s32 arg1);
 s32         func_800BB26C(GpItemScan* arg0, s32 arg1);
+s32         func_800BB418(s32 arg0, s32 arg1);
 GpItemRec*  func_800BB5BC(GpItemScan* arg0, s32 arg1);
 s32         func_800BB610(GpItemScan* arg0, s32 arg1);
 s32         func_800BB6FC(GpItemScan* arg0, s32 arg1);

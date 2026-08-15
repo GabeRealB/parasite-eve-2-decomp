@@ -13044,3 +13044,41 @@ and drops the jump to the epilogue. The if/else `ret` local keeps
 `move v0,zero` on the else path after `j` / `subu`. `func_800E1ACC` is the
 example; the same divide appears in `func_800E1B24`.
 
+## Second pointer before `if` fills `move a3, slot` in the branch delay
+
+When the target computes a slot pointer, then:
+
+```
+addu  v1, v1, v0      /* slot = &base[idx] */
+bnez  a1, else
+ move a3, v1          /* copy */
+...
+lbu   a2, 0(v1)       /* if: use original */
+...
+lbu   a2, 2(a3)       /* else: use copy */
+```
+
+a single `slot` used in both arms puts `addu` *in* the delay slot and both
+`lbu`s use `$v1`. Assign a second pointer *before* the `if` and load the
+else-path field through it:
+
+```c
+slot = &D_80072330[arg0];
+alt  = slot;
+if (arg1 == 0) {
+    ret = func(&((GpItemBlock*)D_80072330)->scan, arg0, slot->field_0, 0);
+} else {
+    ret = func(&((GpItemBlock*)D_80072330)->scan, arg0, alt->field_2, 0);
+}
+return ret == 0;
+```
+
+`alt = slot` inside the else is deleted as redundant. `return func(...)` in
+each arm inverts the branch and schedules `sltiu` before `lw ra`. The `ret`
+local plus a call in both arms keeps `bnez` / `lw ra; sltiu` and duplicates
+the `addiu a0, v0, off` / `move a1, a2` setup.
+
+A separate `extern` for the nearby BSS symbol rematerializes `%hi/%lo`. An
+overlay struct on the same base (`GpItemBlock.scan` at +0x3F4) is what
+emits `addiu a0, v0, 0x3F4`. `func_800BB418` is the pure example.
+

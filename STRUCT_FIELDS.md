@@ -696,6 +696,8 @@ to a `GpItemSlot` pair.
 Scan descriptor for `func_800BB6FC`. Built on the stack by `func_800BBEC0`
 (memset 0, then `field_1 = 0xFF`). Same layout as `Mc_SaveData` at 0x5BC
 (`D_80072724`), which other callers pass as `func_800BB6FC`'s first arg.
+`D_80072724` is also `D_80072330 + 0x3F4` (`GpItemBlock.scan`); `func_800BB418`
+passes it that way so the slot base stays in `$v0`.
 
 | Off | Member | Role |
 |-----|--------|------|

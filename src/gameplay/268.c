@@ -33,6 +33,7 @@ void       func_8017EAC4(void);
 void       func_8017EA60(void);
 void*      func_800B8CAC(void* arg0, s32 arg1, s32 arg2);
 void       func_800BAA58(void);
+s32        func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32        func_800BB4BC(s32 arg0);
 void       func_800BAEC0(s32 arg0);
 void       func_800BAE5C(s32 arg0);
@@ -207,7 +208,21 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB2D4);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB3C0);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB418);
+s32 func_800BB418(s32 arg0, s32 arg1)
+{
+    GpItemSlot* slot;
+    GpItemSlot* alt;
+    s32         ret;
+
+    slot = &D_80072330[arg0];
+    alt  = slot;
+    if (arg1 == 0) {
+        ret = func_800B715C(&((GpItemBlock*)D_80072330)->scan, arg0, slot->field_0, 0);
+    } else {
+        ret = func_800B715C(&((GpItemBlock*)D_80072330)->scan, arg0, alt->field_2, 0);
+    }
+    return ret == 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB470);
 
