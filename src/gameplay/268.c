@@ -366,7 +366,25 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB7C0);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB838);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB8E8);
+void func_800BB8E8(s32 arg0, u8 arg1, s32 arg2)
+{
+    register s32  shift asm("a3");
+    register u32  mask asm("t0");
+    register u32* p asm("v1");
+    register u32  nmask asm("a0");
+    register s32  temp asm("v0");
+
+    shift = (arg0 & 0xF) * 2;
+    asm volatile("" ::"r"(shift));
+    temp  = 3;
+    mask  = temp << shift;
+    p     = D_8010D230[arg2].field_4;
+    p    += arg0 >> 4;
+    nmask = ~mask;
+    temp  = *p;
+    mask  = arg1 << shift;
+    *p    = (temp & nmask) | mask;
+}
 
 s32 func_800BB938(s32 arg0, s32 arg1)
 {

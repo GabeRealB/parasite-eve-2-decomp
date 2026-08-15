@@ -13600,6 +13600,35 @@ asm volatile("" ::: "a1");
 return (word & (3 << shift)) >> shift;
 ```
 
+## Barrier the shift so `li v0,K` is not hoisted above `andi`/`sll`
+
+The 2-bit writer wants the mask built *before* the bank pointer, but *after*
+the shift amount:
+
+```
+andi  a3, a0, 0xF
+sll   a3, a3, 1
+li    v0, 3
+sllv  t0, v0, a3
+lui   v0, %hi(table)
+```
+
+Pinning the constant to `$v0` (`register s32 temp asm("v0"); temp = 3;
+mask = temp << shift`) emits the right `li`/`sllv` pair, but the scheduler
+hoists `li v0,3` above the `andi`. A volatile barrier that consumes the
+shift keeps the order:
+
+```c
+shift = (arg0 & 0xF) * 2;
+asm volatile("" :: "r"(shift));
+temp = 3;
+mask = temp << shift;
+```
+
+Reuse `mask` for `val << shift` and put `~mask` in `$a0` after `$a0` has
+been consumed as the word offset (`arg0 >> 4`). `func_800BB8E8` is the
+example.
+
 ## Do not hoist the jump-table index object before the struct copy
 
 Dispatchers that copy a function-pointer table onto the stack
