@@ -548,7 +548,7 @@ unlinked by `func_800E1638` during actor teardown (`func_80101408`).
 `field_124` is a u32 packed word at +0x18 of the `field_10C` node;
 `func_801061F0` writes `0x20000 | (WipSysConfig.field_21 << 8) | field_22` from
 slot 3; `func_80106238` replaces bits 14–15 with `(arg1 << 1) | arg2`.
-`field_90C` is a `GpLinkNode*` (same object as `func_800DAB38` unlinks); `func_80103B5C` clears `node->field_5` then nulls the slot. `func_800DB0D8` walks both `D_80115760[]` slots and clears `field_5` without nulling the pointer. `func_800DACAC` assigns the node onto `D_80115760[0]`'s actor, clearing the previous node's `field_5` and this node's `field_4` bit 0.
+`field_90C` is a `GpLinkNode*` (same object as `func_800DAB38` unlinks); `func_80103B5C` clears `node->field_5` then nulls the slot. `func_800DB0D8` walks both `D_80115760[]` slots and clears `field_5` without nulling the pointer. `func_800DAC54` returns a 2-bit mask of those slots whose `field_90C` equals the given node. `func_800DACAC` assigns the node onto `D_80115760[0]`'s actor, clearing the previous node's `field_5` and this node's `field_4` bit 0.
 `field_910` is a `GpActorD4*` (0xD4-byte block from `func_8010BAC8`); `func_8010BF7C` writes `field_C4` as `arg1 + (arg2 & func_80037164())`.
 `field_914`..`field_924` are child `Task*` slots killed (if non-NULL) on that path.
 `field_944`..`field_950` / `field_970` are s16 timers written to `0x258` by `func_8010A42C`;

@@ -10,6 +10,8 @@
 
 /// Singly-linked node unlinked by `func_800DAB38` / linked by `func_800DABEC`.
 /// `field_6 == 1` means the node is on the `D_80115268` list.
+/// `func_800DAC54` returns a 2-bit mask of `D_80115760[]` slots whose
+/// `actor->field_90C` is this node.
 /// `func_800DACAC` assigns the node to `D_80115760[0]->actor->field_90C`,
 /// clears the previous node's `field_5`, sets this node's `field_5 = 1`,
 /// and clears `field_4` bit 0.
@@ -245,6 +247,7 @@ void  func_800D9CC8(Task* arg0);
 void  func_800D9CE8(GBytes8* arg0);
 void  func_800D9DFC(void);
 void  func_800DAB38(GpLinkNode* node);
+s32   func_800DAC54(GpLinkNode* arg0);
 void  func_800DACAC(GpLinkNode* node);
 void* func_800DA2A0(GpActorWork* arg0, VECTOR3* pos, s32 arg2);
 void* func_800DAD54(GpActorWork* arg0);
