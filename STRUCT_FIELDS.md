@@ -527,6 +527,8 @@ See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 Sparse: `field_17C`/`field_930` addresses for overlay setup; `field_C` kill flag bit 0x80.
 `field_40`/`field_44`/`field_48` are three s32s (`VECTOR3` vx/vy/vz) copied from the
 argument of `func_80105B74` onto the slot-3 actor.
+`field_424` is a 0x14-byte `GpAnimCtx` overlay; `func_80103AC0` passes it to
+`func_800B4514` for each slot `i = 1 .. field_938-1`.
 `field_448` is a 19-entry table of `GameActorSlot` (0x28 each; flags halfword at +0x00).
 `func_80100B78` stores count `0x13` at `field_938`; `func_80105894` returns
 `(slot[arg1].field_0 & 0x102) == 0`.

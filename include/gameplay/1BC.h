@@ -114,6 +114,7 @@ void     func_800B3DB4(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B3DF4(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B3E34(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B3F60(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4);
+void     func_800B4514(GpAnimCtx* arg0, s32 arg1);
 s32*     func_800B4668(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B57EC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
 void     func_800B58D4(TmdObject* arg0, s32 arg1, s32 arg2);
