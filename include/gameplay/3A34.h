@@ -145,18 +145,6 @@ typedef struct _GpSlot70 {
 } GpSlot70;
 STATIC_ASSERT_SIZEOF(GpSlot70, 0xC);
 
-/// 0x18 record wiped by `func_800E18E0`. That helper zeros `count` entries
-/// and writes 2 to the last element's `field_0`. `field_0` bit 0x1 marks an
-/// occupied slot; bit 0x2 marks the last element. `func_800E1A1C` counts
-/// occupied slots whose `field_4` high 16 bits match `arg1`.
-typedef struct _GpRec18 {
-    /* 0x00 */ u16  field_0;
-    /* 0x02 */ byte pad_2[2];
-    /* 0x04 */ s32  field_4;
-    /* 0x08 */ byte pad_8[0x10];
-} GpRec18;
-STATIC_ASSERT_SIZEOF(GpRec18, 0x18);
-
 /// Signed pending item id consumed by `func_800D68C4`. `func_800D5B14`
 /// stores the id, or its negation for the second `GpItemSlot` pair.
 extern s32 D_8010F88C;

@@ -77,6 +77,19 @@ struct _Task;
 struct _GpLinkNode;
 struct _GpActorD4;
 
+/// 0x18 record wiped by `func_800E18E0`. That helper zeros `count` entries
+/// and writes 2 to the last element's `field_0`. `field_0` bit 0x1 marks an
+/// occupied slot; bit 0x2 marks the last element. `func_800E1A1C` counts
+/// occupied slots whose `field_4` high 16 bits match `arg1`. Embedded as
+/// `GameActor.field_17C[18]`; `func_801041B4` tests `field_4` bits 0x100100.
+typedef struct _GpRec18 {
+    /* 0x00 */ u16  field_0;
+    /* 0x02 */ byte pad_2[2];
+    /* 0x04 */ s32  field_4;
+    /* 0x08 */ byte pad_8[0x10];
+} GpRec18;
+STATIC_ASSERT_SIZEOF(GpRec18, 0x18);
+
 /// 0x28-byte record in `GameActor.field_448`. `field_0` is a flag halfword
 /// (bit 0x100: `func_8010583C`; bits 0x102: `func_80105894`). Count is
 /// `GameActor.field_938` (init 0x13). Slid-actor overlay: `func_801058BC`
@@ -105,8 +118,8 @@ typedef struct _GameActor {
     /* 0x128 */ byte                pad_128[4];
     /* 0x12C */ byte                field_12C[0x20];
     /* 0x14C */ byte                pad_14C[0x30];
-    /* 0x17C */ byte                field_17C;       // address taken for func_800E1A6C
-    /* 0x17D */ byte                pad_17D[0x2A7];
+    /* 0x17C */ GpRec18             field_17C[18];   // func_800E1A6C / func_801041B4
+    /* 0x32C */ byte                pad_32C[0xF8];
     /* 0x424 */ byte                field_424[0x14]; // GpAnimCtx overlay; func_800B4514
     /* 0x438 */ byte                pad_438[9];
     /* 0x441 */ u8                  field_441;       // slid-actor overlay; see GameActorSlot

@@ -525,6 +525,9 @@ See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 
 ### `GameActor` / `GameActorExt`
 Sparse: `field_17C`/`field_930` addresses for overlay setup; `field_C` kill flag bit 0x80.
+`field_17C` is an 18-entry `GpRec18` table (`func_800E1A6C` walks it from
+`&field_17C` until `field_0` bit 0x2; `func_801041B4` returns 1 if any
+`field_4 & 0x100100 == 0x100000`).
 `field_40`/`field_44`/`field_48` are three s32s (`VECTOR3` vx/vy/vz) copied from the
 argument of `func_80105B74` onto the slot-3 actor.
 `field_424` is a 0x14-byte `GpAnimCtx` overlay; `func_80103AC0` passes it to
@@ -627,10 +630,11 @@ Embedded at `GpEnemy.node` (+0x10). `func_800DAB38` also clears `GameActor+0x90C
 | 0x08 | `field_8` | Projected screen X (`swc2 SXY2` / `lh`) |
 | 0x0A | `field_A` | Projected screen Y |
 
-### `GpRec18` (0x18) — `3A34.h`
+### `GpRec18` (0x18) — `session.h` (`GameActor.field_17C[18]`)
 Array element cleared by `func_800E18E0` (`Mem_Set` of `count * 0x18`).
 Walked by `func_800E1A1C`, which counts occupied slots whose `field_4`
-high 16 bits match the argument.
+high 16 bits match the argument. `func_801041B4` scans all 18 actor
+slots for `field_4 & 0x100100 == 0x100000`.
 
 | Off | Member | Role |
 |-----|--------|------|
