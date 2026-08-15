@@ -14572,4 +14572,44 @@ register GameActor* actor asm("s2");
 `func_8010BCF4` is the example. The unpinned form stuck at 99% with only those
 two callee-saved registers swapped.
 
+## `*(s32*)&` strips volatile and lets an independent store hoist past earlier ones
+
+A reset that writes translation on one `GsCOORDINATE2` *then* the identity
+word of a different `MATRIX` wants:
+
+```
+lui   a1, %hi(coord)
+addiu v0, a1, %lo(coord)
+li    a0, 0x1000
+lui   v1, %hi(matrix)
+sw    zero, 0x18(v0)     /* t[0] */
+sw    zero, 0x1c(v0)     /* t[1] */
+sw    a0, 0x20(v0)       /* t[2] */
+sw    a0, %lo(matrix)(v1)
+```
+
+`*(s32*)&matrix = one` is not a volatile access, even when `matrix` itself is
+declared `volatile`. sched1 then parks that store next to the just-defined
+`lui v1` and the translation stores slip after it (~95%). Making every
+global `volatile` has the same hole unless the packed word store is also
+volatile, and it additionally knocks the final `flg` store out of the `jr`
+delay slot.
+
+Keep the earlier object on a `volatile` pointer, write the packed identity
+through a volatile cast, and leave the last `flg` target non-volatile:
+
+```c
+volatile GsCOORDINATE2* c1 = &D_80070E90;
+s32 one = ONE;
+
+c1->coord.t[0] = 0;
+c1->coord.t[1] = 0;
+c1->coord.t[2] = one;
+*(volatile s32*)&D_80070E44 = one; /* must stay volatile */
+m = &D_80070E44;
+```
+
+`func_800A8B14` is the example. A bare `*(s32*)&D_80070E44 = one` after the
+`t[]` stores stuck at 95% with only those two stores swapped.
+
 

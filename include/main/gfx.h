@@ -69,8 +69,10 @@ extern GfxImageSlot* Gfx_ImageSlotTables[];
 extern MATRIX D_80074080;
 /// Identity-matrix storage for GsCOORDINATE2.coord (parent at symbol - 4).
 extern MATRIX D_80070E44;
-extern MATRIX D_80070E94;
-extern MATRIX D_80070F14;
-extern MATRIX D_80070F34;
+/// GsCOORDINATE2 whose `.coord` is `D_80070E94`.
+extern GsCOORDINATE2 D_80070E90;
+extern MATRIX        D_80070E94;
+extern MATRIX        D_80070F14;
+extern MATRIX        D_80070F34;
 
 #endif // GFX_H

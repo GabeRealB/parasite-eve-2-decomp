@@ -685,7 +685,36 @@ s32 func_800A8A1C(s32 arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8A48);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8B14);
+void func_800A8B14(void)
+{
+    MATRIX*                 m;
+    volatile GsCOORDINATE2* c1;
+    GsCOORDINATE2*          c2;
+    GsCOORDINATE2*          c3;
+    s32                     one;
+
+    c1             = &D_80070E90;
+    one            = ONE;
+    c1->coord.t[0] = 0;
+    c1->coord.t[1] = 0;
+    c1->coord.t[2] = one;
+
+    *(volatile s32*)&D_80070E44 = one;
+    m                           = &D_80070E44;
+    c2                          = (GsCOORDINATE2*)((u8*)m - OFFSET_OF(GsCOORDINATE2, coord));
+    *(s32*)&m->m[1][1]          = one;
+    m->m[2][2]                  = one;
+
+    c3                 = &D_80070F10;
+    *(s32*)&m->m[0][2] = 0;
+    *(s32*)&m->m[2][0] = 0;
+    c3->coord.t[0]     = 0;
+    c3->coord.t[1]     = 0;
+    c3->coord.t[2]     = 0;
+    c1->flg            = 0;
+    c2->flg            = 0;
+    c3->flg            = 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8B6C);
 
