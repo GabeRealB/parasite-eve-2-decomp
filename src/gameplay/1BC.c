@@ -42,6 +42,7 @@ extern s32      D_8010D208[];
 extern char     D_800939F8[];
 extern s32      D_80070F10;
 extern u8       D_80071068; // Display_State.field_100
+extern u8       D_800626E8;
 extern s32      D_80114D20;
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AF590);
@@ -161,7 +162,25 @@ void func_800B0560(GpEnemy* enemy, Task* task)
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B058C);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B05E8);
+s32 func_800B05E8(s32 arg0)
+{
+    u8 param1[8];
+    u8 param2[8];
+
+    if (CdCmd_IsIdle() & 0xFFFF) {
+        param1[0] = arg0;
+        param1[3] = 0;
+        param1[2] = 5;
+        param2[0] = 1;
+        param2[1] = 1;
+        param2[3] = 0;
+        param2[2] = 0;
+        CdCmd_Enqueue(0x21, param1, param2);
+        D_800626E8 = 1;
+        return 0;
+    }
+    return 0xFF;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B065C);
 

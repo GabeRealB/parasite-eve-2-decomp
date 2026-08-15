@@ -107,6 +107,7 @@ void     func_800B0234(Task* task);
 GpEnemy* func_800B0494(Task* task, GpEnemy* parent);
 void     func_800B0544(GpEnemy* enemy, Task* task);
 void     func_800B0560(GpEnemy* enemy, Task* task);
+s32      func_800B05E8(s32 arg0);
 void     func_800B3CCC(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3);
 void     func_800B3DB4(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B3DF4(GpAnimCtx* arg0, GpAnimSlot* arg1);
