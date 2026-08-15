@@ -740,6 +740,28 @@ Element of `D_80114054`. `func_800E2CD4(idx, 1)` returns `field_0`.
 | 0x02 | `field_2` | u16 companion word (unread by `func_800E2CD4`) |
 | 0x04 | `field_4` | u16 companion word (unread by `func_800E2CD4`) |
 
+### `GpRec10` (0xA) — `3A34.h`
+Element of `D_80113390`. Selected when an id's 0x8000 bit is clear;
+index is `id & 0x7F`. Sibling accessors `func_800E2D3C` / `func_800E2D90`
+/ `func_800E3194` return `field_4` / `field_6` / `field_8`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x04 | `field_4` | u16 returned by `func_800E2D3C` |
+| 0x06 | `field_6` | u16 returned by `func_800E2D90` |
+| 0x08 | `field_8` | u16 returned by `func_800E3194` |
+
+### `GpRec16` (0x10) — `3A34.h`
+Element of `D_8011398C`. Selected when an id's 0x8000 bit is set;
+index is `id & 0x7F`. Sibling accessors `func_800E2D3C` / `func_800E2D90`
+/ `func_800E3194` return `field_A` / `field_C` / `field_E`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x0A | `field_A` | u16 returned by `func_800E2D3C` |
+| 0x0C | `field_C` | u16 returned by `func_800E2D90` |
+| 0x0E | `field_E` | u16 returned by `func_800E3194` |
+
 ### `GpObj4C` (0x50) — `3A34.h`
 Sparse overlay. Full object size is not known yet.
 

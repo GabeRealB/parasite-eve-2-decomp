@@ -65,6 +65,33 @@ typedef struct _GpRec6 {
 } GpRec6;
 STATIC_ASSERT_SIZEOF(GpRec6, 0x6);
 
+/// 10-byte table entry at `D_80113390`. Selected when the id's 0x8000 bit
+/// is clear. `func_800E2D3C` / `func_800E2D90` / `func_800E3194` return
+/// `field_4` / `field_6` / `field_8` for index `id & 0x7F`.
+typedef struct _GpRec10 {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+    /* 0x4 */ u16 field_4;
+    /* 0x6 */ u16 field_6;
+    /* 0x8 */ u16 field_8;
+} GpRec10;
+STATIC_ASSERT_SIZEOF(GpRec10, 0xA);
+
+/// 16-byte table entry at `D_8011398C`. Selected when the id's 0x8000 bit
+/// is set. `func_800E2D3C` / `func_800E2D90` / `func_800E3194` return
+/// `field_A` / `field_C` / `field_E` for index `id & 0x7F`.
+typedef struct _GpRec16 {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+    /* 0x4 */ u16 field_4;
+    /* 0x6 */ u16 field_6;
+    /* 0x8 */ u16 field_8;
+    /* 0xA */ u16 field_A;
+    /* 0xC */ u16 field_C;
+    /* 0xE */ u16 field_E;
+} GpRec16;
+STATIC_ASSERT_SIZEOF(GpRec16, 0x10);
+
 /// Table source pointed to by `GpObj50.field_50`. `field_0` is the
 /// `GpU16Pair` array packed by `func_800E2BF8`. Nearby helpers also
 /// load bytes at +0xB / +0xD of this object.
@@ -266,6 +293,14 @@ extern GpRec4 D_80114028[];
 /// 6-byte records selected by `func_800E2CD4(..., 1)`.
 extern GpRec6 D_80114054[];
 
+/// 10-byte records selected by `func_800E3194` when the id's 0x8000 bit is
+/// clear. Indexed by `id & 0x7F`.
+extern GpRec10 D_80113390[];
+
+/// 16-byte records selected by `func_800E3194` when the id's 0x8000 bit is
+/// set. Indexed by `id & 0x7F`.
+extern GpRec16 D_8011398C[];
+
 /// "Weapon" string drawn by `func_800D6AA4`.
 extern char D_80097454[];
 
@@ -330,6 +365,7 @@ s32  func_800E2BF8(GpObj50* arg0, s32 arg1);
 s32  func_800E2C40(GpU16Pair* arg0, s32 arg1);
 s32  func_800E2CD4(s32 arg0, s32 arg1);
 void func_800E3008(GpObj4C* arg0);
+s32  func_800E3194(s32 arg0);
 void func_800E337C(Task* arg0);
 void func_8010154C(void);
 
