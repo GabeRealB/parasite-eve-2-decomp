@@ -605,6 +605,7 @@ Sparse overlay. Full object size is not known yet.
 | 0x00 | `task` | Owning `Task*` |
 | 0x0C | `field_C` | Countdown word; `func_800B0544` sets 0x78, `func_800B0560` decrements and advances `Task::state` at 0 |
 | 0x10 | `node` | `GpLinkNode` unlinked by `func_800DAB38` |
+| 0x18 | `field_18` | Set to `&D_80070F10` by `func_800B0494` |
 
 ### `GpAnimObj` — `1BC.h`
 Source object for `func_800B3CCC` / `func_800B3F60`. Full size unknown.

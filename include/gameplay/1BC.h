@@ -19,7 +19,10 @@ typedef struct _GpEnemy {
     /* 0x04 */ byte       pad_4[0x8];
     /* 0x0C */ s32        field_C;
     /* 0x10 */ GpLinkNode node;
+    /* 0x18 */ void*      field_18;
+    /* 0x1C */ byte       pad_1C[0x44];
 } GpEnemy;
+STATIC_ASSERT_SIZEOF(GpEnemy, 0x60);
 
 /// Source object for `func_800B3CCC` / `func_800B3F60`. Word at 0x30 is
 /// copied into the dest context; the address of 0x34 is stored as dest

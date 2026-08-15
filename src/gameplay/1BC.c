@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <psyq/stdio.h>
+
 #include "gameplay/1BC.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
@@ -33,6 +35,8 @@ extern TaskDesc D_80182E74[];
 extern TaskDesc D_80182FAC[];
 extern TaskDesc D_8018384C[];
 extern s32      D_8010D208[];
+extern char     D_800939F8[];
+extern s32      D_80070F10;
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AF590);
 
@@ -100,7 +104,28 @@ void func_800B0234(Task* task)
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0278);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0494);
+GpEnemy* func_800B0494(Task* task, GpEnemy* parent)
+{
+    GpEnemy* enemy;
+
+    enemy = Mem_Calloc(0x60, 0);
+    if (enemy == NULL) {
+        printf(D_800939F8);
+        Task_Kill(task);
+        return NULL;
+    }
+
+    task->exitCallback = func_800B0234;
+    task->spawnArg2    = enemy;
+    enemy->task        = task;
+    enemy->field_18    = &D_80070F10;
+    if (parent != NULL) {
+        Task_Reparent(parent->task, task);
+    } else {
+        Task_Reparent(Game_GetPtrSlot(4), enemy->task);
+    }
+    return enemy;
+}
 
 void func_800B0544(GpEnemy* enemy, Task* task)
 {
