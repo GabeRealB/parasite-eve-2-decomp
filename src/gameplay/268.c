@@ -246,7 +246,19 @@ s32 func_800BB418(s32 arg0, s32 arg1)
     return ret == 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB470);
+s32 func_800BB470(s32 arg0)
+{
+    register u32* p asm("v1");
+    u32           word;
+    s32           shift;
+
+    p     = D_8010D230[Game_Session->field_7].field_4;
+    p    += arg0 >> 4;
+    shift = (arg0 & 0xF) * 2;
+    word  = *p;
+    asm volatile("" ::: "a1");
+    return (word & (3 << shift)) >> shift;
+}
 
 s32 func_800BB4BC(s32 arg0)
 {

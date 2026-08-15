@@ -13588,8 +13588,17 @@ return (word & (3 << shift)) >> shift;
 
 `word` must be a separate statement: folding `*p` into the return lets
 `li a0,K` sneak back in front of the load. `func_800BB974` is the example.
-The sibling `func_800BB470` does not need the barrier — its index is
-already in `$a0`, so the shift keeps that register live.
+
+The one-arg sibling `func_800BB470` already keeps `$a0` live (the index is
+shifted in place), so the `:: "r"(arg0)` barrier is not needed. `$a1` is
+free instead, and GCC hoists `li a1,K` at the top. Clobber `$a1` after
+the load so K rematerializes in the now-dead pointer register:
+
+```c
+word = *p;
+asm volatile("" ::: "a1");
+return (word & (3 << shift)) >> shift;
+```
 
 ## Do not hoist the jump-table index object before the struct copy
 
