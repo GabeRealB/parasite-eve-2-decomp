@@ -12,7 +12,9 @@
 
 extern u8 D_80071068; // Display_State.field_100
 extern u8 D_8007106B; // Display_State.field_103
+extern u8 D_80073BA9;
 
+void func_800A9310(void);
 void func_800A9730(Task* task);
 void func_800AA548(s32 arg0);
 s32  func_800ACF8C(void);
@@ -141,7 +143,29 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9A40);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9B3C);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9BE4);
+void func_800A9BE4(void)
+{
+    u8  param1[8];
+    u8  param2[8];
+    u8  val;
+    s32 flag;
+
+    val = D_80073BA9;
+    if (val == 0) {
+        val = 1;
+    }
+    flag      = 1;
+    param1[0] = val;
+    param1[3] = 0;
+    param1[2] = flag;
+    param2[0] = 3;
+    param2[3] = 0;
+    param2[2] = 0;
+    param2[1] = 0;
+    CdCmd_Enqueue(0x21, param1, param2);
+    D_800626E8 = flag;
+    func_800A9310();
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9C50);
 
