@@ -10,6 +10,7 @@
 
 extern WipSysConfig D_80073B88;
 extern TaskDesc     D_8010FAEC[];
+extern s32          D_8010FB90[];
 extern s32          D_801155A8;
 extern Task*        D_80115674;
 extern s16          D_80115654;
@@ -23,6 +24,7 @@ extern s16          D_8011569A;
 extern u8           D_8011569C;
 extern s32          D_801156A8;
 extern s8           D_801156B0;
+extern Task*        D_801156B8;
 extern u8           D_80115700;
 extern u8           D_80115701;
 extern u8           D_80115702;
@@ -260,7 +262,23 @@ void func_800E712C(Task* task)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E71B0);
+void func_800E71B0(Task* task)
+{
+    void* mem;
+
+    mem = Mem_Calloc(4, 0);
+    if (mem == NULL) {
+        Task_Kill(task);
+        return;
+    }
+    func_800E6DF4();
+    D_801156B8     = NULL;
+    task->field_24 = D_8010FB90;
+    Game_SetPtrSlot(task, 6);
+    task->idMap = mem;
+    D_801156B0  = 0;
+    task->state++;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E7240);
 
