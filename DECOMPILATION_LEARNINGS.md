@@ -14140,4 +14140,44 @@ for (i = 3; i >= 0; i--) {
 order. This is the loop counterpart of the single-bit `p += i/32; i %= 32;
 val = *p & (1 << i)` form (`func_800BB4BC`). `func_800BAF08` is the example.
 
+## Init `ret = NULL` so a table pointer stays in `$a1`
+
+A two-level pointer walk that returns either NULL or `&nested[i]` wants:
+
+```
+lw    a1, table[idx]
+beqz  a1, exit
+ move v1, zero
+...
+lw    v1, rec[j].field_0
+beqz  v1, exit
+...
+addu  v1, v1, v0
+jr    ra
+ move v0, v1
+```
+
+Writing the empty arm as `if (rec == NULL) { ret = NULL; } else { ... }`
+lets GCC coalesce `rec` and `ret` onto `$v1`, invert the first test to
+`bnez` + `j`, and drop `$a1` entirely.
+
+Assign the result first so the temps stay distinct and delay-slot filling
+puts the zero in the `beqz` delay:
+
+```c
+rec = table[key->field_3];
+ret = NULL;
+if (rec != NULL) {
+    ret = rec[key->field_2].field_0;
+    if (ret != NULL) {
+        ret = &ret[key->field_5];
+    }
+}
+```
+
+Sibling `if (rec == NULL) ret = NULL; else ret = rec[i].field_4;` is still
+correct when the result is loaded into `$v0` and never added to
+(`func_800B5A08`). `func_800B5CE8` is the example that needs the early
+init.
+
 
