@@ -87,7 +87,7 @@ typedef struct _McSaveData {
     /* 0x01E */ u16  field_1E;
     /* 0x020 */ byte unknown_20[0x1];
     /* 0x021 */ s8   field_21; // also D_80072189; lb in title restore / gameflow
-    /* 0x022 */ s8   field_22;
+    /* 0x022 */ s8   field_22; // also D_8007218A; 1-based row for D_80112E2C
     /* 0x023 */ s8   field_23; // also D_8007218B
     /* 0x024 */ byte unknown_24[0x1];
     /* 0x025 */ u8   field_25;

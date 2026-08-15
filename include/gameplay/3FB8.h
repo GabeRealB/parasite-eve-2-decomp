@@ -72,6 +72,10 @@ extern GpActorFuncTable4 D_800979F8;
 /// Pad-event templates for `func_801041FC` (`D_80112E28[arg1 & 0xFFFF]`).
 extern GpPadEvt D_80112E28[];
 
+/// 2-wide rows of `GsCOORDINATE2` indices. `func_8010403C` indexes
+/// `D_80112E2C[Mc_SaveData.field_22 - 1][arg0]`.
+extern u8 D_80112E2C[][2];
+
 void func_800FC6C0(void);
 void func_80101408(GpActorWork* arg0);
 void func_801041FC(GpActorWork* arg0, s32 arg1);

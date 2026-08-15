@@ -347,7 +347,15 @@ void func_80103F70(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010403C);
+GsCOORDINATE2* func_8010403C(s32 arg0)
+{
+    Task* slot;
+    u8    idx;
+
+    slot = Game_GetPtrSlot(3);
+    idx  = D_80112E2C[Mc_SaveData.field_22 - 1][arg0];
+    return &((GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8)[idx];
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801040A0);
 
