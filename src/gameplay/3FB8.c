@@ -34,6 +34,7 @@ void func_801038F8(GpActorWork* arg0, s32 arg1);
 void func_8010397C(GpActorWork* arg0, s32 arg1, s32 arg2);
 void func_80103A18(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_80103AC0(GpActorWork* arg0);
+s16  func_80103E7C(s16 arg0, s16 arg1);
 void func_80103F70(GpActorWork* arg0);
 void func_80104B54(void);
 void func_80104E00(void);
@@ -1733,7 +1734,26 @@ s32 func_8010BC70(GsCOORDINATE2* arg0)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010BCF4);
+s16 func_8010BCF4(Task* arg0, VECTOR3* arg1)
+{
+    void**              scratch;
+    u8*                 head;
+    VECTOR3*            vec;
+    GameActorExt*       extra;
+    register GameActor* actor asm("s2");
+    s16                 ret;
+
+    extra    = (GameActorExt*)arg0->extra;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    vec      = (VECTOR3*)(head - 0x10);
+    *scratch = vec;
+    actor    = (GameActor*)arg0->idMap;
+    func_80103C74((GsCOORDINATE2*)extra->field_8, arg1, vec);
+    ret      = func_80103E7C(actor->field_52, ratan2(((VECTOR3*)(head - 0x10))->vx, vec->vz));
+    *scratch = (u8*)*scratch + 0x10;
+    return ret;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010BD88);
 

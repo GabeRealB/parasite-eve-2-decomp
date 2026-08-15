@@ -14550,4 +14550,26 @@ coord->sub = parent + 1; /* addiu 0x50 in the jal delay */
 
 `coord->flg = 0` before the `parent =` load stuck at 99% (`func_800F6C2C`).
 
+## Pin the later live-across-call local so sched1 does not swap `$s2`/`$s3`
+
+`-O2` runs `schedule-insns` before local-alloc. A pointer used twice (scratch
+`head`, for `vec = head - 0x10` and later `head[-0x10].vx`) appears first in
+the scheduled RTL and takes `$s2`. A single-use local that still has to live
+across both calls (the `GameActor*` loaded only for `field_52` after `ratan2`)
+is scheduled just before the first `jal` and takes `$s3`.
+
+The target often wants the opposite (`head` in `$s3`, actor in `$s2`) even
+though the load order is the same. Declaration order and assigning the actor
+first do not flip it: combine deletes the early copy, so first appearance is
+still the scheduled load.
+
+Pin the later local:
+
+```c
+register GameActor* actor asm("s2");
+```
+
+`func_8010BCF4` is the example. The unpinned form stuck at 99% with only those
+two callee-saved registers swapped.
+
 
