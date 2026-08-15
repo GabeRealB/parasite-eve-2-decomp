@@ -137,6 +137,7 @@ void func_800E3BBC(s32 arg0);
 void func_800E40BC(s32 arg0, s32 arg1);
 s32  func_800E6CE0(void);
 
+s16  func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1);
 void func_800EA3A0(s32 arg0);
 void func_800EA3B4(void);
 void func_800EA3EC(void);

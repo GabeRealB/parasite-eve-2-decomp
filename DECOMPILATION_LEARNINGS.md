@@ -14535,4 +14535,19 @@ target = (u8)raw - 1;
 `func_800E6D60`) so the per-iteration kind compare rematerializes as `li v0, K`
 instead of a hoisted `li t0, K`.
 
+## Assign the pointer chain first so a later store stays after the loads
+
+When the target walks a pointer (`lw extra; nop; lw field`) and only then
+writes an independent field (`sw zero, flg` / `sw parent+1, sub`), putting
+the store first lets GCC emit it immediately and steal the first load's delay
+slot. Assign the loaded pointer to a temp first:
+
+```c
+parent     = (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8;
+coord->flg = 0;          /* after both loads, not before */
+coord->sub = parent + 1; /* addiu 0x50 in the jal delay */
+```
+
+`coord->flg = 0` before the `parent =` load stuck at 99% (`func_800F6C2C`).
+
 
