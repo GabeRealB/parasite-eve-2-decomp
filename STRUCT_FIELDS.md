@@ -553,6 +553,7 @@ slot 3; `func_80106238` replaces bits 14–15 with `(arg1 << 1) | arg2`.
 `field_95E` is a u16 phase (`lhu`/`sh`); `func_8010ABD4` only runs the `func_8010AB70` body when it is 1;
 `field_960` is a u16 (`sh`) previous `field_956` saved by `func_80109290`;
 `field_962` is a u16 button mask (`lhu`); `func_80109250` maps D-pad up/down (`0x5000` / `0x4000`) onto `field_973` as `+1`/`-1`/`0`;
+`field_966` is a u16 flag word (`lhu`); `func_80104A4C` sets `WipSysConfig.field_24` when bit `0x20` is set and `field_954`/`field_956` are idle;
 `field_96C`/`field_96E` are s16s cleared with `field_972` by `func_8010B210` (called from `func_8010A42C` case 2);
 `func_8010A9D0` compares `field_96C` as `u16` (`lhu`) against 1 and passes `0x10` or `0x11` to `func_80103A18`;
 `field_973`/`field_974` and `field_975`/`field_976` are signed-byte pairs compared by `func_80108568` (first mismatch → `func_80108770(..., 4)`; second mismatch only when `field_973 == 0` → `func_80108684`);
