@@ -15,6 +15,7 @@
 
 extern TaskFuncTable3 D_800974C8;
 extern TaskFuncTable3 D_8009752C;
+extern TaskFuncTable3 D_80097538;
 extern TaskDesc       D_8010FAEC[];
 extern s32            D_8010FB90[];
 extern u16            D_80112D68[];
@@ -637,7 +638,13 @@ s32 func_800E86FC(s32 arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E8758);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E8830);
+void func_800E8830(Task* arg0)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_80097538;
+    sp.funcs[arg0->state](arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E8888);
 
