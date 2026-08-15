@@ -72,7 +72,19 @@ void func_800D930C(GpObj4C* arg0, s32 arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9340);
+s32 func_800D9340(GpObj38* arg0)
+{
+    s32 val;
+
+    val = arg0->field_40 - D_80071078;
+    if (val >= 0x7FFF) {
+        val = 0x7FFF;
+    }
+    if (val < -0x7FFF) {
+        val = -0x7FFF;
+    }
+    return val >> 8;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D937C);
 

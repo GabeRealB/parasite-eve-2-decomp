@@ -146,6 +146,9 @@ extern GpObj* D_80115590;
 extern s32    D_80115424;
 extern s32    D_80115448;
 
+/// Screen-offset X (low 16 bits of GTE OFX) imported from `Display_State+0x110`.
+extern u16 D_80071078;
+
 s32   func_800D68C4(s32 arg0);
 void  func_800D930C(GpObj4C* arg0, s32 arg1);
 s32   func_800D9340(GpObj38* arg0);
