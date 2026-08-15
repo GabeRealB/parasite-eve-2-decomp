@@ -5,6 +5,7 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
+#include "main/display.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/pad.h"
@@ -13,21 +14,19 @@
 #include "main/wipsys.h"
 
 #include <psyq/abs.h>
+#include <psyq/libgte.h>
+#include <psyq/rand.h>
 
-extern u16          D_80071624;
-extern s8           D_80072310;
-extern s8           D_8007272A;
-extern s8           D_80072A91;
-extern WipSysConfig D_80073B88;
-extern TaskDesc     D_80113340[];
-extern GpEffArg     D_80113358;
+extern u16      D_80071624;
+extern s8       D_80072310;
+extern s8       D_8007272A;
+extern s8       D_80072A91;
+extern TaskDesc D_80113340[];
+extern GpEffArg D_80113358;
 
 s32  func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  func_800B9D80(s32 arg0);
-s32  func_8003B8A0(s32 arg0);
 s32  func_8010A854(s32 arg0);
-void func_8003E64C(void);
-s32  func_80037164(void);
 void func_80101848(GpActorWork* arg0);
 void func_80101A68(GpActorWork* arg0);
 void func_80101F58(GpActorWork* arg0);
@@ -261,7 +260,7 @@ s32 func_80103B1C(void)
     s32           temp;
     s32           ret;
 
-    p    = &D_80073B88;
+    p    = &Wip_SysConfig;
     temp = (u16)p->field_1a << 16;
     if ((temp >> 17) < p->field_18) {
         ret = 0;
@@ -305,7 +304,7 @@ s32 func_80103D8C(s32 arg0, s32 arg1)
     arg0 = arg0 * arg0;
     arg1 = ABS(arg1);
     arg1 = arg1 * arg1;
-    return func_8003B8A0(arg0 + arg1);
+    return SquareRoot0(arg0 + arg1);
 }
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103DD4);
@@ -332,7 +331,7 @@ void func_80103F70(GpActorWork* arg0)
         return;
     }
     if ((s8)actor->field_97E == 2) {
-        p = &D_80073B88;
+        p = &Wip_SysConfig;
         if (p->field_21 == 0x17) {
             val = 0x200;
         } else {
@@ -443,7 +442,7 @@ void func_80104A4C(GpActorWork* arg0)
     WipSysConfig* p;
 
     actor       = arg0->actor;
-    p           = &D_80073B88;
+    p           = &Wip_SysConfig;
     p->field_24 = 0;
     if (actor->field_954 != 2) {
         if (actor->field_954 == 0) {
@@ -673,7 +672,7 @@ void func_801061F0(void)
     s32           f22;
 
     work                   = Game_GetPtrSlot(3);
-    p                      = &D_80073B88;
+    p                      = &Wip_SysConfig;
     flag                   = 0x20000;
     f21                    = p->field_21;
     f22                    = p->field_22;
@@ -693,7 +692,7 @@ s32 func_80106264(s32 arg0)
     s32 item;
     s32 ret;
 
-    item = D_80073B88.field_21 + 0x7F;
+    item = Wip_SysConfig.field_21 + 0x7F;
     ret  = 0;
     if (arg0 & 1) {
         ret = func_800B6DA4(item, 0);
@@ -711,7 +710,7 @@ s32 func_801062DC(GpActorWork* arg0, s32 arg1)
     s32 item;
 
     ret  = 0;
-    item = D_80073B88.field_21;
+    item = Wip_SysConfig.field_21;
     flag = arg1 != 1;
     if (func_800BB418(item + 0x7F, flag) == 1) {
         func_801088D4(arg0, flag, ret);
@@ -1201,8 +1200,8 @@ void func_8010A42C(GpActorWork* arg0, s32 arg1)
                 if (func_800B9D80(0x101) != 0) {
                     return;
                 }
-                D_80073B88.field_25 |= 1;
-                inner->field_944     = 0x258;
+                Wip_SysConfig.field_25 |= 1;
+                inner->field_944        = 0x258;
                 func_800EC9C8();
                 func_80103B5C(arg0);
                 func_800ECA10(1);
@@ -1215,9 +1214,9 @@ void func_8010A42C(GpActorWork* arg0, s32 arg1)
                 if (func_800B9D80(0x102) != 0) {
                     return;
                 }
-                D_80073B88.field_25 |= 2;
-                inner->field_946     = 0x258;
-                inner->field_98E     = 0;
+                Wip_SysConfig.field_25 |= 2;
+                inner->field_946        = 0x258;
+                inner->field_98E        = 0;
                 func_8010B210(arg0);
                 func_800ECA10(2);
                 break;
@@ -1229,9 +1228,9 @@ void func_8010A42C(GpActorWork* arg0, s32 arg1)
                 if (func_800B9D80(0x104) != 0) {
                     return;
                 }
-                D_80073B88.field_25 |= 4;
-                inner->field_948     = 0x258;
-                inner->field_98D     = 0;
+                Wip_SysConfig.field_25 |= 4;
+                inner->field_948        = 0x258;
+                inner->field_98D        = 0;
                 func_800ECA10(4);
                 break;
             }
@@ -1245,8 +1244,8 @@ void func_8010A42C(GpActorWork* arg0, s32 arg1)
                 if (func_800B9D80(0x108) != 0) {
                     return;
                 }
-                D_80073B88.field_25 |= 0x10;
-                inner->field_94A     = 0x258;
+                Wip_SysConfig.field_25 |= 0x10;
+                inner->field_94A        = 0x258;
                 func_800ECA10(0x10);
                 break;
             }
@@ -1257,8 +1256,8 @@ void func_8010A42C(GpActorWork* arg0, s32 arg1)
                 if (func_800B9D80(0x110) != 0) {
                     return;
                 }
-                D_80073B88.field_25 |= 0x20;
-                inner->field_94C     = 0x258;
+                Wip_SysConfig.field_25 |= 0x20;
+                inner->field_94C        = 0x258;
                 func_800ECA10(0x20);
                 break;
             }
@@ -1269,10 +1268,10 @@ void func_8010A42C(GpActorWork* arg0, s32 arg1)
                 if (func_800B9D80(0x120) != 0) {
                     return;
                 }
-                D_80073B88.field_25 |= 0x40;
-                inner->field_94E     = 0x258;
-                inner->field_990     = (func_80037164() & 0x1F) + 0xA;
-                inner->field_970     = 0;
+                Wip_SysConfig.field_25 |= 0x40;
+                inner->field_94E        = 0x258;
+                inner->field_990        = (rand() & 0x1F) + 0xA;
+                inner->field_970        = 0;
                 func_800ECA10(0x40);
                 break;
             }
@@ -1283,8 +1282,8 @@ void func_8010A42C(GpActorWork* arg0, s32 arg1)
                 if (func_800B9D80(0x140) != 0) {
                     return;
                 }
-                D_80073B88.field_25 |= 0x80;
-                inner->field_950     = 0x258;
+                Wip_SysConfig.field_25 |= 0x80;
+                inner->field_950        = 0x258;
                 func_800ECA10(0x80);
                 func_800ECA54();
                 break;
@@ -1378,8 +1377,8 @@ void func_8010AE98(GpActorWork* arg0)
     if (func_800B9D80(0x101) != 0) {
         return;
     }
-    D_80073B88.field_25 |= 1;
-    inner->field_944     = 0x258;
+    Wip_SysConfig.field_25 |= 1;
+    inner->field_944        = 0x258;
     func_800EC9C8();
     func_80103B5C(arg0);
     func_800ECA10(1);
@@ -1393,9 +1392,9 @@ void func_8010AF04(GpActorWork* arg0)
     if (func_800B9D80(0x102) != 0) {
         return;
     }
-    D_80073B88.field_25 |= 2;
-    inner->field_946     = 0x258;
-    inner->field_98E     = 0;
+    Wip_SysConfig.field_25 |= 2;
+    inner->field_946        = 0x258;
+    inner->field_98E        = 0;
     func_8010B210(arg0);
     func_800ECA10(2);
 }
@@ -1408,9 +1407,9 @@ void func_8010AF6C(GpActorWork* arg0)
     if (func_800B9D80(0x104) != 0) {
         return;
     }
-    D_80073B88.field_25 |= 4;
-    inner->field_948     = 0x258;
-    inner->field_98D     = 0;
+    Wip_SysConfig.field_25 |= 4;
+    inner->field_948        = 0x258;
+    inner->field_98D        = 0;
     func_800ECA10(4);
 }
 
@@ -1422,8 +1421,8 @@ void func_8010AFC0(GpActorWork* arg0)
     if (func_800B9D80(0x108) != 0) {
         return;
     }
-    D_80073B88.field_25 |= 0x10;
-    inner->field_94A     = 0x258;
+    Wip_SysConfig.field_25 |= 0x10;
+    inner->field_94A        = 0x258;
     func_800ECA10(0x10);
 }
 
@@ -1435,8 +1434,8 @@ void func_8010B010(GpActorWork* arg0)
     if (func_800B9D80(0x110) != 0) {
         return;
     }
-    D_80073B88.field_25 |= 0x20;
-    inner->field_94C     = 0x258;
+    Wip_SysConfig.field_25 |= 0x20;
+    inner->field_94C        = 0x258;
     func_800ECA10(0x20);
 }
 
@@ -1448,10 +1447,10 @@ void func_8010B060(GpActorWork* arg0)
     if (func_800B9D80(0x120) != 0) {
         return;
     }
-    D_80073B88.field_25 |= 0x40;
-    inner->field_94E     = 0x258;
-    inner->field_990     = (func_80037164() & 0x1F) + 0xA;
-    inner->field_970     = 0;
+    Wip_SysConfig.field_25 |= 0x40;
+    inner->field_94E        = 0x258;
+    inner->field_990        = (rand() & 0x1F) + 0xA;
+    inner->field_970        = 0;
     func_800ECA10(0x40);
 }
 
@@ -1463,8 +1462,8 @@ void func_8010B0C8(GpActorWork* arg0)
     if (func_800B9D80(0x140) != 0) {
         return;
     }
-    D_80073B88.field_25 |= 0x80;
-    inner->field_950     = 0x258;
+    Wip_SysConfig.field_25 |= 0x80;
+    inner->field_950        = 0x258;
     func_800ECA10(0x80);
     func_800ECA54();
 }
@@ -1489,14 +1488,14 @@ s32 func_8010B228(s32 arg0)
     s32           out;
     s32           ret;
 
-    p           = &D_80073B88;
+    p           = &Wip_SysConfig;
     saved18     = p->field_18;
     saved1c     = p->field_1c;
     ret         = func_8010A854((s16)func_800E2438(arg0, 0, &out, 0));
     p->field_18 = saved18;
     p->field_1c = saved1c;
     if (ret != 0) {
-        func_8003E64C();
+        Display_ReleaseRef();
     }
     return ret;
 }
@@ -1626,7 +1625,7 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010BE5C);
 
 void func_8010BF7C(GpActorWork* arg0, s32 arg1, s32 arg2)
 {
-    arg0->actor->field_910->field_C4 = arg1 + (arg2 & func_80037164());
+    arg0->actor->field_910->field_C4 = arg1 + (arg2 & rand());
 }
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010BFCC);
@@ -1662,7 +1661,7 @@ s32 func_8010C648(void)
     WipSysConfig* p;
     u8            saved;
 
-    p     = &D_80073B88;
+    p     = &Wip_SysConfig;
     saved = p->field_24;
     func_80104B54();
     p->field_24 = saved;
@@ -1674,7 +1673,7 @@ s32 func_8010C688(void)
     WipSysConfig* p;
     u8            saved;
 
-    p     = &D_80073B88;
+    p     = &Wip_SysConfig;
     saved = p->field_24;
     func_80104E00();
     p->field_24 = saved;
@@ -1686,7 +1685,7 @@ s32 func_8010C6C8(void)
     WipSysConfig* p;
     u8            saved;
 
-    p     = &D_80073B88;
+    p     = &Wip_SysConfig;
     saved = p->field_24;
     func_80105070();
     p->field_24 = saved;
@@ -1699,7 +1698,7 @@ s32 func_8010C708(GpActorWork* arg0)
     u8            saved;
     GameActor*    actor;
 
-    p     = &D_80073B88;
+    p     = &Wip_SysConfig;
     actor = arg0->actor;
     saved = p->field_24;
     func_80105070();
@@ -1715,7 +1714,7 @@ void func_8010C81C(void)
     WipSysConfig* p;
     u8            saved;
 
-    p     = &D_80073B88;
+    p     = &Wip_SysConfig;
     saved = p->field_24;
     func_801053A0();
     p->field_24 = saved;

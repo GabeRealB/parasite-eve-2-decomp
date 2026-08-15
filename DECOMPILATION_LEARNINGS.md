@@ -12398,20 +12398,16 @@ absolute copy and let the migrated `.s` own the middle slot until that
 function is matched. `func_80109170` / `jtbl_80097A68` / `func_8010A42C` is
 the example.
 
-## Overlay imports keep the old `func_800*` name
+## Overlay imports use the same name as main
 
-Main-exe renames (`func_8002CCB8` → `Task_Kill`) are applied to
-`sym.main.txt` and the title overlay, but gameplay `INCLUDE_ASM` still
-`jal`s the old name. Calling the new name from overlay C needs a second
-import alias, same pattern as `Game_GetPtrSlot` / `func_8002D22C`:
-
-```
-func_8002CCB8 = 0x8002CCB8; // absolute:True
-Task_Kill = 0x8002CCB8; // absolute:True
-```
-
-in `configs/USA/sym.gameplay.imports.txt`. Do not rename every remaining
-overlay `jal` just to match one new C call. `func_800CFD78` is the example.
+`configs/USA/sym.gameplay.imports.txt` must use the `sym.main.txt` name
+at that address. splat regenerates overlay ASM from those names; do not
+hand-edit `asm/USA/gameplay` or keep a leftover `func_800*` alias next
+to the renamed import. Overlay C should include the matching main/psyq
+header (or a local prototype with the same name). Keep a *local*
+overlay prototype only when the match needs a different signature
+(dummy extra arg, `void` vs `s32` return) — do not change the main
+header. `func_800CFD78` / `Task_Kill` is the example.
 
 ## `s32 flag = (s8)u8_field` gives `lb` and hoists the next store
 
@@ -12675,22 +12671,12 @@ D_80071068 = val;
 A direct assignment or a `u8*` to the global still pins `$s0`.
 `func_800AD65C` is the example.
 
-## Gameplay overlay `memset` is imported as `func_800420F8`
+## Gameplay overlay `memset` is imported as `memset`
 
-`memset` lives at `0x800420F8` in the main exe (`sym.main.txt`). The gameplay
-overlay's splat import is still `func_800420F8`. Scratch-env diffs will report
-`jal memset` vs `jal func_800420F8` even when the body is a 100% match — that
-is only the reloc name.
-
-Fix: call `memset` in C (include `<psyq/memory.h>`) and add
-
-```
-memset = 0x800420F8; // absolute:True
-```
-
-next to `func_800420F8` in `configs/USA/sym.gameplay.imports.txt` (same alias
-pattern as `Mem_Free2`). The expected splat overlap warning is harmless.
-`func_800BBEC0` is the example.
+`memset` lives at `0x800420F8` in the main exe. Overlay C should call
+`memset` (include `<psyq/memory.h>`) and `sym.gameplay.imports.txt`
+should list that same name at that address. `func_800BBEC0` is the
+example.
 
 ## Mutate `arg <<= N` before a call so the shift wins the schedule
 
@@ -13350,10 +13336,9 @@ Related: `(u16)s32_field` assigned to an `s32` temp is `lhu` + `slti`
 (u16 promotes to signed int). Assigning the same load to a `u16` temp
 adds `andi` + `sltiu`.
 
-Overlay C that calls a renamed main-exe symbol also needs that name in
-`configs/USA/sym.gameplay.imports.txt` (same address as the old
-`func_*`). Without the alias the overlay links with an undefined
-reference even when the object bytes already match.
+Overlay C that calls a main-exe symbol needs that same name in
+`configs/USA/sym.gameplay.imports.txt`. Without it the overlay links
+with an undefined reference even when the object bytes already match.
 
 ## Two-global table walk: `s32` key + `s32` base, then `i * sizeof + base`
 

@@ -199,7 +199,7 @@ void Mc_DispatchStateTable26(Task* task);
 void Mc_InitBufferSlots(void);
 /// Build a memcard save filename into `buf` (product code + mode char + random).
 void Mc_BuildFileName(u8* buf, s32 modeCharIdx);
-/// Defaults for the Mc_InitSaveSlotDefaults / D_80073B88 block (wipsyscfg).
+/// Defaults for the Mc_InitSaveSlotDefaults / Wip_SysConfig block (wipsyscfg).
 void Mc_InitSaveSlotDefaults(void);
 
 /// Prompt + optional choice dialog (Mc_PromptTable[mode]).

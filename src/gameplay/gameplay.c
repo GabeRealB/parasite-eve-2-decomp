@@ -17,10 +17,7 @@ extern u8             D_801153F1;
 extern s32            D_8010CA28;
 extern u8             D_80071097; // Display_State.field_12f
 extern TaskDesc       D_8010CABC;
-extern WipSysConfig   D_80073B88;
-extern TmdListHead    D_800711B8;
 extern TmdListHead*   D_800711BC;
-extern TmdListHead    D_800711C0;
 extern TmdListHead*   D_800711C4;
 extern TmdListHead    D_80114B80;
 extern TmdListHead    D_80114B88;
@@ -121,8 +118,8 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800992B0);
 void func_80099338(void)
 {
     Task_CallExit(D_80114B90);
-    D_800711B8 = D_80114B80;
-    D_800711C0 = D_80114B88;
+    Tmd_List    = D_80114B80;
+    Tmd_ListAlt = D_80114B88;
 }
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009939C);
@@ -390,7 +387,7 @@ s32 func_800A74C4(void)
 {
     WipSysConfig* p;
 
-    p = &D_80073B88;
+    p = &Wip_SysConfig;
     if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
         return 0;
     }
@@ -563,7 +560,7 @@ s32 func_800A7F34(s32 arg0)
     WipSysConfig* p;
     s32           ret;
 
-    p   = &D_80073B88;
+    p   = &Wip_SysConfig;
     ret = 1;
     if (p->field_1c >= arg0) {
         p->field_1c -= arg0;

@@ -49,8 +49,8 @@ typedef struct _GpSpawnArg {
 STATIC_ASSERT_SIZEOF(GpSpawnArg, 4);
 
 /// Object stored in `Task::spawnArg2` for `func_800E712C`. `field_2` is a
-/// signed completion flag: when non-zero the task calls `func_8003F6F8`
-/// (`Stage_SetEndingFlag`) and kills itself.
+/// signed completion flag: when non-zero the task calls `Stage_SetEndingFlag`
+/// and kills itself.
 typedef struct _GpEndWait {
     /* 0x00 */ byte pad_0[2];
     /* 0x02 */ s8   field_2;

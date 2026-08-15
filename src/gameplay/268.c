@@ -8,9 +8,8 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 
-extern u16          D_80072174;
-extern u16          D_800739B8;
-extern WipSysConfig D_80073B88;
+extern u16 D_80072174;
+extern u16 D_800739B8;
 
 void  func_80180804(void);
 void  func_8017EA68(void);
@@ -485,7 +484,7 @@ void func_800BBF1C(void)
     WipSysConfig* p;
     u8            item;
 
-    p = &D_80073B88;
+    p = &Wip_SysConfig;
     if (p->field_21 == 0) {
         p->field_22 = 0;
     } else {
@@ -524,7 +523,7 @@ void func_800BC164(void)
 {
     WipSysConfig* p;
 
-    p           = &D_80073B88;
+    p           = &Wip_SysConfig;
     p->field_18 = p->field_1a;
     p->field_1c = p->field_1e;
 }
@@ -643,13 +642,13 @@ void func_800BC490(void)
 
 void func_800BC4BC(void)
 {
-    D_80073B88.field_26 = 1;
+    Wip_SysConfig.field_26 = 1;
     func_800BAA58();
 }
 
 void func_800BC4E4(void)
 {
-    D_80073B88.field_26 = 2;
+    Wip_SysConfig.field_26 = 2;
     func_800BAA58();
 }
 

@@ -42,34 +42,34 @@ extern TaskDesc     D_8018668C;
 extern TaskDesc     D_801871F0;
 extern s32          D_8005ED70;
 extern UiObject*    D_80067634;
-extern WipSysConfig D_80073B88;
 extern void         (*D_8010D3A0[])(UiObject*, Task*);
 
-void       func_8017F41C(Task* task);
-void       func_8017F2F8(Task* task);
-void       func_8017F304(Task* task);
-void       func_80181184(Task* task);
-void       func_801811A0(Task* task);
-void       func_800C05CC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void       func_800CB33C(UiObject* arg0, Task* arg1, s32 arg2);
-void       func_800CC15C(UiObject* arg0, Task* arg1, s32 arg2);
-void       func_800D02A4(Task* arg0);
-void       func_800D0C34(Task* arg0);
-void       func_800D0614(Task* arg0);
-void       func_800D08D4(Task* arg0);
-void       func_800D15D0(Task* arg0);
-void       func_800D4E40(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
-void       func_8003F9F4(void);
-void       func_8003F6F8(void);
-void       func_800A96A0(void);
-char*      func_800B8EB0(s32 arg0, s32 arg1, s32 arg2);
-void       func_80049D34(char* arg0, s32 arg1, s32 arg2);
-void       func_80049024(UiObject* arg0, UiObject* arg1, UiObject* arg2);
+void func_8017F41C(Task* task);
+void func_8017F2F8(Task* task);
+void func_8017F304(Task* task);
+void func_80181184(Task* task);
+void func_801811A0(Task* task);
+void func_800C05CC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void func_800CB33C(UiObject* arg0, Task* arg1, s32 arg2);
+void func_800CC15C(UiObject* arg0, Task* arg1, s32 arg2);
+void func_800D02A4(Task* arg0);
+void func_800D0C34(Task* arg0);
+void func_800D0614(Task* arg0);
+void func_800D08D4(Task* arg0);
+void func_800D15D0(Task* arg0);
+void func_800D4E40(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
+void Stage_ReleasePrimBuf(void);
+// Overlay match: declared void so $v0 is free (main returns s32).
+void  Stage_SetEndingFlag(void);
+void  func_800A96A0(void);
+char* func_800B8EB0(s32 arg0, s32 arg1, s32 arg2);
+// Overlay match: extra dummy args (main takes one s32).
+void       Ui_SetHolderParam(char* arg0, s32 arg1, s32 arg2);
+void       Ui_ClampDialogRect(UiObject* arg0, UiObject* arg1, UiObject* arg2);
 GpItemRec* func_800D6910(s32 arg0);
 void       func_800C5C2C(s32 arg0, s32 arg1);
 s32        func_800A7508(void);
 s32        func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
-void       func_8003E64C(void);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800BF9FC);
 
@@ -293,8 +293,8 @@ void func_800CE1E0(Task* arg0)
     arg0->killCountdown--;
     if (arg0->killCountdown <= 0) {
         Task_Kill(arg0);
-        func_8003F9F4();
-        func_8003F6F8();
+        Stage_ReleasePrimBuf();
+        Stage_SetEndingFlag();
     }
 }
 
@@ -325,7 +325,7 @@ void func_800CE294(Task* arg0)
         }
         D_8010F894 = 0;
     }
-    func_8003E64C();
+    Display_ReleaseRef();
     Task_CallExit(arg0);
 }
 
@@ -388,9 +388,9 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CEA88);
 void func_800CEB40(s32 arg0)
 {
     if (arg0 == 0) {
-        func_80049D34(D_8010F8D0, 0, 0);
+        Ui_SetHolderParam(D_8010F8D0, 0, 0);
     } else {
-        func_80049D34(func_800B8EB0(arg0, 1, 0), 0, 0);
+        Ui_SetHolderParam(func_800B8EB0(arg0, 1, 0), 0, 0);
     }
 }
 
@@ -403,7 +403,7 @@ s32 func_800CEC5C(GpItemRec* arg0)
     s32           id;
     s8            count;
 
-    p     = &D_80073B88;
+    p     = &Wip_SysConfig;
     ret   = 1;
     count = arg0->field_1;
     id    = arg0->field_0;
@@ -431,7 +431,7 @@ UiObject* func_800CEDA0(UiObject* arg0, UiObject* arg1, u8* arg2, s32 arg3)
         one = 1;
         obj = Ui_SpawnFromDesc(&D_8010EE6C, arg3, one, one, arg1);
         if (obj != NULL) {
-            func_80049024(obj, arg0, arg1);
+            Ui_ClampDialogRect(obj, arg0, arg1);
             arg1->status = 0;
         }
     } else {
@@ -508,7 +508,7 @@ void func_800CF448(s32 arg0)
     GpItemRec*    prev;
     u8            field21;
 
-    p       = &D_80073B88;
+    p       = &Wip_SysConfig;
     rec     = func_800D6910(arg0);
     field21 = p->field_21;
     if (field21 != arg0 - 0x7F) {

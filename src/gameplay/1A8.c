@@ -10,8 +10,6 @@
 void func_800E1B80(void);
 void func_800AD6BC(void);
 s32  func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
-s32  func_8003D5D8(SVECTOR* v0, SVECTOR* v1);
-s32  func_8003D9C8(s32 y, s32 x);
 
 extern u16 D_80114CD2;
 extern u16 D_80114CD4;
@@ -55,8 +53,8 @@ s32 func_800AEE28(Task* arg0, GpPosXZ* arg1)
     vec.vx = arg1->vx - coord->field_18;
     vec.vy = 0;
     vec.vz = arg1->vz - coord->field_20;
-    func_8003D5D8(&vec, &vec);
-    return func_8003D9C8(vec.vx, vec.vz) & 0xFFF;
+    VectorNormalSS(&vec, &vec);
+    return ratan2(vec.vx, vec.vz) & 0xFFF;
 }
 
 INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AEE8C);
