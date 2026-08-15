@@ -527,6 +527,8 @@ Sparse: `field_17C`/`field_930` addresses for overlay setup; `field_C` kill flag
 `(slot[arg1].field_0 & 0x102) == 0`.
 `GameActorExt.field_8` is a `GsCOORDINATE2*` (`flg` cleared to 0 by `Display_SpawnFromMode`
 and `func_800B57EC`; `sub` is the parent link, same convention as `Gfx_InitCoordinateTrees`).
+Offset 0x18 / 0x20 are the low 16 bits of `coord.t[0]` / `coord.t[2]` (world X/Z);
+`func_800AEE28` loads them as `u16` (`GpCoordXZ`).
 Offset 0x44 (`param` in libgs) is loaded as an s16 flag by `func_8010B590` (`GpCoordExt`).
 `field_AC`/`field_CC`/`field_EC`/`field_10C`/`field_12C` are 0x20-byte list nodes
 unlinked by `func_800E1638` during actor teardown (`func_80101408`).
