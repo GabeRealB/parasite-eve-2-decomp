@@ -780,7 +780,21 @@ s32 func_800E2C40(GpU16Pair* arg0, s32 arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E2C78);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E2CD4);
+s32 func_800E2CD4(s32 arg0, s32 arg1)
+{
+    s32 ret;
+
+    ret = 0;
+    switch (arg1) {
+        case 0:
+            ret = D_80114028[(u16)arg0].field_0;
+            break;
+        case 1:
+            ret = D_80114054[(u16)arg0].field_0;
+            break;
+    }
+    return ret;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E2D3C);
 

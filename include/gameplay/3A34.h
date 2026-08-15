@@ -45,6 +45,23 @@ typedef struct _GpU16Pair {
 } GpU16Pair;
 STATIC_ASSERT_SIZEOF(GpU16Pair, 0x4);
 
+/// 4-byte table entry at `D_80114028`. `func_800E2CD4(idx, 0)` returns
+/// `field_0` for index `(u16)idx`.
+typedef struct _GpRec4 {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+} GpRec4;
+STATIC_ASSERT_SIZEOF(GpRec4, 0x4);
+
+/// 6-byte table entry at `D_80114054`. `func_800E2CD4(idx, 1)` returns
+/// `field_0` for index `(u16)idx`.
+typedef struct _GpRec6 {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+    /* 0x4 */ u16 field_4;
+} GpRec6;
+STATIC_ASSERT_SIZEOF(GpRec6, 0x6);
+
 /// Table source pointed to by `GpObj50.field_50`. `field_0` is the
 /// `GpU16Pair` array packed by `func_800E2BF8`. Nearby helpers also
 /// load bytes at +0xB / +0xD of this object.
@@ -225,6 +242,12 @@ extern u8     D_80115598;
 extern s32    D_80115424;
 extern s32    D_80115448;
 
+/// 4-byte records selected by `func_800E2CD4(..., 0)`.
+extern GpRec4 D_80114028[];
+
+/// 6-byte records selected by `func_800E2CD4(..., 1)`.
+extern GpRec6 D_80114054[];
+
 /// Screen-offset X (low 16 bits of GTE OFX) imported from `Display_State+0x110`.
 extern u16 D_80071078;
 
@@ -287,6 +310,7 @@ s32  func_800E1B24(s32 arg0);
 s32  func_800E2438(s32 arg0, s32 arg1, s32* arg2, s32 arg3);
 s32  func_800E2BF8(GpObj50* arg0, s32 arg1);
 s32  func_800E2C40(GpU16Pair* arg0, s32 arg1);
+s32  func_800E2CD4(s32 arg0, s32 arg1);
 void func_800E3008(GpObj4C* arg0);
 void func_800E337C(Task* arg0);
 void func_8010154C(void);

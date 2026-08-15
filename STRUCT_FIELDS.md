@@ -701,6 +701,23 @@ minimum covering known fields.
 | 0x04 | `prev` | Previous node, or the list-head object when first |
 | 0x3A | `field_3A` | Flag byte: 0x20 = on list. Unlink keeps bits 0x87 |
 
+### `GpRec4` (0x4) — `3A34.h`
+Element of `D_80114028`. `func_800E2CD4(idx, 0)` returns `field_0`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | u16 value returned by `func_800E2CD4` for table 0 |
+| 0x02 | `field_2` | u16 companion word (unread by `func_800E2CD4`) |
+
+### `GpRec6` (0x6) — `3A34.h`
+Element of `D_80114054`. `func_800E2CD4(idx, 1)` returns `field_0`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | u16 value returned by `func_800E2CD4` for table 1 |
+| 0x02 | `field_2` | u16 companion word (unread by `func_800E2CD4`) |
+| 0x04 | `field_4` | u16 companion word (unread by `func_800E2CD4`) |
+
 ### `GpObj4C` (0x50) — `3A34.h`
 Sparse overlay. Full object size is not known yet.
 
