@@ -3,6 +3,10 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
+
 #include "main/task.h"
 
 /// Object stored in `Task::spawnArg2` for `func_800E712C`. `field_2` is a
@@ -57,9 +61,22 @@ typedef struct _GpState1C {
 } GpState1C;
 STATIC_ASSERT_SIZEOF(GpState1C, 0x1C);
 
-extern GpState1C* D_80115740;
+/// 0x64-byte world-coord slot. `func_800EA3EC` inits all 8 entries of
+/// `D_80114F30`: `coord.sub` is the parent (`&D_80070F10`) and `field_0`
+/// is a refcount (decremented by `func_800EA3B4`).
+typedef struct _GpCoord64 {
+    /* 0x00 */ s32           field_0;
+    /* 0x04 */ GsCOORDINATE2 coord;
+    /* 0x54 */ byte          pad_54[0x10];
+} GpCoord64;
+STATIC_ASSERT_SIZEOF(GpCoord64, 0x64);
+
+extern GpState1C*    D_80115740;
+extern GpCoord64     D_80114F30[8];
+extern GsCOORDINATE2 D_80070F10;
 
 void func_800EA3A0(s32 arg0);
+void func_800EA3EC(void);
 void func_800EC7E4(void* arg0, Task* arg1);
 void func_800EC868(void);
 void func_800EC9C8(void);

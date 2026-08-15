@@ -726,6 +726,15 @@ Most members are s16. `func_800EA3A0` writes `arg0 + 1` to `field_C`.
 | 0x18 | `field_18` | s16 PE/status bit written by `func_800ECA10` (low byte of arg; same bits as `WipSysConfig.field_25`) |
 | 0x1A | `field_1A` | u16 flags; `func_800FC6C0` ORs in `0x80`, `func_800EC868` ORs in `0x100` |
 
+### `GpCoord64` (0x64) — `3CD8.h`
+Eight-slot table at `D_80114F30`. `func_800EA3EC` inits every slot;
+`func_800EA3B4` decrements `field_0` when non-zero.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | s32 refcount; cleared by `func_800EA3EC`, decremented by `func_800EA3B4` |
+| 0x04 | `coord` | Embedded `GsCOORDINATE2`; `coord.sub` is parented to `&D_80070F10` |
+
 ---
 
 ## WIP (provisional)
