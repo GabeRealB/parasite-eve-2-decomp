@@ -23,7 +23,25 @@ extern TaskDesc D_80183824[];
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9310);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A954C);
+void func_800A954C(Task* task)
+{
+    GameSessionFrom4* sess;
+    u8                param1[8];
+    u8                param2[8];
+
+    sess = (GameSessionFrom4*)&Game_Session->field_4;
+    if (CdCmd_IsIdle() & 0xFFFF) {
+        param1[3] = sess->field_3;
+        param1[2] = sess->field_2;
+        param1[0] = func_800AD284();
+        param2[0] = 1;
+        param2[1] = 0;
+        param2[2] = 0;
+        param2[3] = 0;
+        CdCmd_Enqueue(0x21, param1, param2);
+        task->state++;
+    }
+}
 
 void func_800A95E0(Task* task)
 {
