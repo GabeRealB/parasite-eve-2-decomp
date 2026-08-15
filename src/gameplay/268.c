@@ -32,6 +32,7 @@ void  func_8017EA60(void);
 void* func_800B8CAC(void* arg0, s32 arg1, s32 arg2);
 void  func_800BAA58(void);
 s32   func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
+void  func_800B6CF0(void);
 void  func_800BAEC0(s32 arg0);
 void  func_800BAE5C(s32 arg0);
 s32   func_800BBCCC(GpItemRec* arg0, GpItemScan* arg1, s32* arg2, s32 arg3);
@@ -457,7 +458,26 @@ GpItemMap* func_800BBDC8(s32 arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBDDC);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBE54);
+void func_800BBE54(void)
+{
+    GpItemSlot* p;
+    s32         i;
+
+    p = Mc_SaveData.field_5C8;
+    for (i = 0; i < 0x20; i++) {
+        p->field_0 = 0;
+        p->field_1 = 0;
+        p->field_2 = 0xFF;
+        p->field_3 = 0;
+        if (i == 0x1A) {
+            p->field_2 = 0;
+            p->field_3 = 0;
+        }
+        p->field_4 = 0;
+        p++;
+    }
+    func_800B6CF0();
+}
 
 s32 func_800BBEC0(s32 arg0)
 {

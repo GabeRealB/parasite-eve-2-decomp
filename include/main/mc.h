@@ -71,13 +71,15 @@ typedef struct _McItemRec {
 } McItemRec;
 STATIC_ASSERT_SIZEOF(McItemRec, 0x4);
 
-/// 8-byte save-inventory slot (`Mc_SaveData.field_1C8`).
+/// 8-byte save-inventory slot (`Mc_SaveData.field_1C8` / `field_5C8`).
+/// field_0/field_2 are item ids; field_1/field_3 are the matching counts
+/// (`func_800BAFF4`). field_4 is word-cleared by `func_800BBE54`.
 typedef struct _McItemSlot {
-    /* 0x0 */ u8   field_0;
-    /* 0x1 */ u8   field_1;
-    /* 0x2 */ u8   field_2;
-    /* 0x3 */ u8   field_3;
-    /* 0x4 */ byte pad_4[4];
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ u8  field_2;
+    /* 0x3 */ u8  field_3;
+    /* 0x4 */ s32 field_4;
 } McItemSlot;
 STATIC_ASSERT_SIZEOF(McItemSlot, 0x8);
 
@@ -136,8 +138,8 @@ typedef struct _McSaveData {
     /* 0x5C4 */ byte       unknown_5C4;
     /* 0x5C5 */ s8         field_5C5;
     /* 0x5C6 */ byte       unknown_5C6[0x1];
-    /* 0x5C7 */ s8         field_5C7; // addend for D_80113360 lookup
-    /* 0x5C8 */ byte       unknown_5C8[0x100];
+    /* 0x5C7 */ s8         field_5C7;       // addend for D_80113360 lookup
+    /* 0x5C8 */ McItemSlot field_5C8[0x20]; // inited by func_800BBE54; index 0x1A gets field_2=0
     /* 0x6C8 */ u16        field_6C8;
     /* 0x6CA */ u16        field_6CA;
     /* 0x6CC */ byte       unknown_6CC[4];

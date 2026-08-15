@@ -130,6 +130,7 @@ s32        func_800B59A8(GpAreaKey* arg0);
 GpAreaObj* func_800B5A08(GpAreaKey* arg0);
 GpAreaObj* func_800B5C88(GpAreaKey* arg0);
 GpAreaRec* func_800B5CE8(GpAreaKey* arg0);
+void       func_800B6CF0(void);
 s32        func_800B6DA4(s32 arg0, s32 arg1);
 
 #endif // GAMEPLAY_1BC_H
