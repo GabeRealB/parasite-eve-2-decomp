@@ -13146,3 +13146,30 @@ Pinning both (`task` to `$s1` and `val` to `$s0`) also matches, but only
 `val` is required. `func_800E6F60` is the example. Inverse of "Copy `arg1`
 to a dest local so `arg0` keeps `$s0`".
 
+## `ret += idx` keeps a pointer chain in `$v0`
+
+`return ptr + idx` treats both sides as add operands: GCC loads `idx`
+into `$v0` and leaves the pointer in `$v1`, so the chain is
+
+```
+lw   v1, 0(v0)
+lhu  v0, 2(a1)
+lw   v1, 0(v1)
+sll  v0, v0, 0x2
+addu v0, v1, v0
+```
+
+The target keeps the pointer as the result being built (`lw v0,0(v0)` /
+`lhu v1,2(a1)` / `addu v0,v0,v1`). Assign into the return temp, then add
+in place:
+
+```c
+ret = table[idx]->field_0;
+ret += slot->field_2; /* pointer stays in $v0; idx loads into $v1 */
+return ret;
+```
+
+`func_800B4668` is the example. A sentinel `switch (idx) { case 0x7FFF:
+return NULL; default: ... }` is what emits `beq` to the trailing
+`jr ra; move v0,zero` instead of an inverted `bne` early-out.
+

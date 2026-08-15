@@ -379,7 +379,21 @@ void func_800B4514(GpAnimCtx* arg0, s32 arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B4538);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B4668);
+s32* func_800B4668(GpAnimCtx* arg0, GpAnimSlot* arg1)
+{
+    u16  idx;
+    s32* ret;
+
+    idx = arg1->field_0;
+    switch (idx) {
+        case 0x7FFF:
+            return NULL;
+        default:
+            ret  = arg1->field_20[idx]->field_0;
+            ret += arg1->field_2;
+            return ret;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B46A4);
 

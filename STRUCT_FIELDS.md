@@ -654,13 +654,23 @@ Source object for `func_800B3CCC` / `func_800B3F60`. Full size unknown.
 | 0x30 | `field_30` | Copied into `GpAnimCtx.field_10` |
 | 0x34 | `field_34` | Address stored as `GpAnimCtx.field_4` (0x50-byte record base) |
 
+### `GpAnimSet` — `1BC.h`
+Object behind each pointer in `GpAnimSlot.field_20` / `GpAnimCtx.field_0`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | Base of 4-byte records; `func_800B4668` returns `field_0 + slot->field_2` |
+
 ### `GpAnimSlot` (0x28) — `1BC.h`
 Element of `GpAnimCtx.field_C`. Initialized by `func_800B3CE8` /
 `func_800B3FA8`; advanced by `func_800B3448`.
 
 | Off | Member | Role |
 |-----|--------|------|
+| 0x00 | `field_0` | Set index into `field_20`; `0x7FFF` = inactive (`func_800B4668`) |
+| 0x02 | `field_2` | Record index within `field_20[field_0]->field_0` |
 | 0x15 | `field_15` | This slot's index in the `field_C` array |
+| 0x20 | `field_20` | `GpAnimSet**` table (copy of `GpAnimCtx.field_0`) |
 
 ### `GpAnimCtx` (0x14) — `1BC.h`
 Context filled by `func_800B3CCC` / `func_800B3F60`. Used as arg0 by the

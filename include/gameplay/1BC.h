@@ -33,13 +33,24 @@ typedef struct _GpAnimObj {
     /* 0x34 */ byte  field_34;
 } GpAnimObj;
 
+/// Object behind each pointer in `GpAnimSlot::field_20` (same table as
+/// `GpAnimCtx::field_0`). `field_0` is the base of 4-byte records.
+typedef struct _GpAnimSet {
+    /* 0x00 */ s32* field_0;
+} GpAnimSet;
+
 /// 0x28-byte animation slot. `field_15` is this slot's index in the
 /// `GpAnimCtx::field_C` array; `func_800B3DB4` / `func_800B3DF4` /
 /// `func_800B3E34` recover the base as `slot - slot->field_15`.
+/// `field_0 == 0x7FFF` marks the slot inactive.
 typedef struct _GpAnimSlot {
-    /* 0x00 */ byte pad_0[0x15];
-    /* 0x15 */ u8   field_15;
-    /* 0x16 */ byte pad_16[0x12];
+    /* 0x00 */ u16        field_0;
+    /* 0x02 */ u16        field_2;
+    /* 0x04 */ byte       pad_4[0x11];
+    /* 0x15 */ u8         field_15;
+    /* 0x16 */ byte       pad_16[0xA];
+    /* 0x20 */ GpAnimSet** field_20;
+    /* 0x24 */ byte       pad_24[4];
 } GpAnimSlot;
 STATIC_ASSERT_SIZEOF(GpAnimSlot, 0x28);
 
@@ -68,6 +79,7 @@ void     func_800B3DB4(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B3DF4(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B3E34(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B3F60(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4);
+s32*     func_800B4668(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B57EC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
 void     func_800B58D4(TmdObject* arg0, s32 arg1, s32 arg2);
 
