@@ -14,9 +14,13 @@ extern WipSysConfig D_80073B88;
 extern TaskDesc     D_8010FAEC[];
 extern s32          D_8010FB90[];
 extern s32          D_801155A8;
+extern u16          D_801155AE;
 extern Task*        D_80115674;
+extern u8           D_80115648;
 extern s16          D_80115654;
 extern s16          D_80115656;
+extern u8           D_80115658;
+extern u8           D_80115659;
 extern u8           D_8011565A;
 extern s32          D_80115660;
 extern s16          D_80115668;
@@ -39,6 +43,8 @@ s32   func_800E6C70(s16 arg0, s16 arg1, s16 arg2);
 s32   func_800E6CE0(void);
 s32   func_800E6CF0(void);
 void  func_800E6D60(s32 arg0);
+void  func_800E6E50(void);
+s16   func_800E6EA0(s16 arg0);
 void  func_8003F6F8(void);
 void  func_800E8634(s32 arg0, s32 arg1, s32 arg2);
 void  func_800E8A90(Task* task);
@@ -248,7 +254,15 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6EF4);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6F60);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E704C);
+void func_800E704C(void)
+{
+    D_801155AE++;
+    D_801155AE = func_800E6EA0(D_801155AE);
+    D_80115648 = 0;
+    D_80115658 = 0x1E;
+    D_80115659 = 0xF;
+    func_800E6E50();
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E70AC);
 
