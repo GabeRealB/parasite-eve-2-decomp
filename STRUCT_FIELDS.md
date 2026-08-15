@@ -518,8 +518,8 @@ See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 | 0x2 | `field_2` | Soft state flag |
 | 0x4 | `field_4` | Byte used by CD/display helpers; address taken as a 4-byte location key |
 | 0x5 | `field_5` | u8; 1-based index into `D_8010CB40` / `D_8010CB54` innermost tables (`func_800AEEFC`, `func_800ACEBC`) |
-| 0x6 | `field_6` | u8 room index (1-based for `D_8010CB40`) |
-| 0x7 | `field_7` | u8 stage index (1-based for `D_8010CB40`) |
+| 0x6 | `field_6` | u8 room index (1-based for `D_8010CB40` / `D_8010CB2C`) |
+| 0x7 | `field_7` | u8 stage index (1-based for `D_8010CB40` / `D_8010CB2C`) |
 | 0xC | `field_C[16]` | Pointer table (cleared by `Game_ClearPtrSlots`) |
 | 0x4C | `field_4C` | Init flag |
 | 0x4E | `field_4E` | Set by `Fs_LoadFile` for category-8 |
@@ -646,6 +646,17 @@ for the same block.
 | 0x08 | `field_8` | Cleared by `func_800A7DE0` |
 | 0x0A | `field_A` | s8 (`lb`); `func_800A7DE0` sets `field_3 = 2` when >= 2, then clears it |
 | 0x0E | `field_E` | Written by `func_800A7DB8` when `field_6` bit 0 is clear; cleared by `func_800A7DE0` |
+
+### `GpCb2CRec` (0x24) — `gameplay.h`
+Element of tables pointed to by `D_8010CB2C`. Stage index is
+`GameSession.field_7 - 1`, room index is `GameSession.field_6 - 1`,
+record index is `func_800AD284() - 1`. Passed as `Task_Spawn` type-0xF
+`spawnArg1` (`func_800A8B6C` / `func_800A8DC0`).
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `mtx` | `MATRIX`; rotation copied to `D_80070E44`, translation to `D_80070F28` (`func_800A8724`) |
+| 0x20 | `field_20` | Extra word; `lhu` into `Display_State+0x110`, `lw` into GTE OFC (`func_800A8724`) |
 
 ### `GpLinkNode` (0x8) — `3A34.h`
 | Off | Member | Role |

@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include "main/session.h"
+
 #include <psyq/libgte.h>
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
@@ -30,6 +32,24 @@ STATIC_ASSERT_SIZEOF(GpStateC08, 0x10);
 
 extern GpStateC08 D_80114C08;
 
+/// 0x24-byte camera/view record in tables pointed to by `D_8010CB2C`.
+/// Indexed 1-based by `func_800AD284()`. `mtx` is copied to `D_80070E44` /
+/// `D_80070F28` by `func_800A8724`; `field_20` is loaded as both `lhu` and `lw`.
+typedef struct _GpCb2CRec {
+    /* 0x00 */ MATRIX mtx;
+    /* 0x20 */ u32    field_20;
+} GpCb2CRec;
+STATIC_ASSERT_SIZEOF(GpCb2CRec, 0x24);
+
+/// Per-stage wrapper. `field_0` is an array of `GpCb2CRec*`, indexed by
+/// `GameSession.field_6 - 1` / `GameSessionFrom4.field_2 - 1`.
+typedef struct _GpCb2CTbl {
+    /* 0x0 */ GpCb2CRec** field_0;
+} GpCb2CTbl;
+
+/// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
+extern GpCb2CTbl* D_8010CB2C[];
+
 void func_80098F58(GsCOORDINATE2* arg0);
 void func_80098F98(GsCOORDINATE2* arg0, s32 arg1);
 u8*  func_800A746C(void);
@@ -37,6 +57,7 @@ void func_800A784C(void* arg0);
 void func_800A7A64(void);
 void func_800A7DB8(s32 arg0);
 void func_800A7DE0(void);
+GpCb2CRec* func_800A8C08(GameSessionFrom4* arg0);
 void func_800A8D5C(void);
 
 #endif // GAMEPLAY_GAMEPLAY_H

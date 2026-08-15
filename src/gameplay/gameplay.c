@@ -689,7 +689,17 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8B14);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8B6C);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8C08);
+GpCb2CRec* func_800A8C08(GameSessionFrom4* arg0)
+{
+    GpCb2CTbl* tbl;
+    GpCb2CRec* recs;
+    u8         idx;
+
+    tbl  = D_8010CB2C[arg0->field_3 - 1];
+    recs = tbl->field_0[arg0->field_2 - 1];
+    idx  = func_800AD284();
+    return &recs[idx - 1];
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8C74);
 
