@@ -24,6 +24,25 @@ typedef struct _GpPosXZ {
 } GpPosXZ;
 STATIC_ASSERT_SIZEOF(GpPosXZ, 8);
 
+/// 2-byte record in tables pointed to by `D_8010CB40`. Indexed by
+/// `GameSession.field_5 - 1`. `func_800AEEFC` loads `field_0`; `func_800ACEBC`
+/// loads the same cell as a signed halfword.
+typedef struct _GpCb40Rec {
+    /* 0x0 */ u8 field_0;
+    /* 0x1 */ u8 field_1;
+} GpCb40Rec;
+STATIC_ASSERT_SIZEOF(GpCb40Rec, 2);
+
+/// Per-stage wrapper. `field_0` is an array of `GpCb40Rec*`, indexed by
+/// `GameSession.field_6 - 1`.
+typedef struct _GpCb40Tbl {
+    /* 0x0 */ GpCb40Rec** field_0;
+} GpCb40Tbl;
+
+/// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
+extern GpCb40Tbl* D_8010CB40[];
+
 s32 func_800AEE28(Task* arg0, GpPosXZ* arg1);
+u8  func_800AEEFC(void);
 
 #endif // GAMEPLAY_1A8_H

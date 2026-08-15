@@ -35,7 +35,7 @@ typedef struct _GameSession {
     u8    field_2;
     byte  unknown_3;
     byte  field_4; // address taken by CdCmd_BuildVlcIfStream
-    byte  unknown_5;
+    u8    field_5; // 1-based index into D_8010CB40 innermost table
     u8    field_6;
     u8    field_7;
     byte  unknown_8[0x4];
@@ -70,7 +70,7 @@ STATIC_ASSERT_SIZEOF(GameSession, 0x13C);
 /// Used when the compiler keeps `&Game_Session->field_4` in a register.
 typedef struct _GameSessionFrom4 {
     /* 0x0 */ u8 field_0; // GameSession.field_4
-    /* 0x1 */ u8 field_1; // GameSession.unknown_5
+    /* 0x1 */ u8 field_1; // GameSession.field_5
     /* 0x2 */ u8 field_2; // GameSession.field_6
     /* 0x3 */ u8 field_3; // GameSession.field_7
 } GameSessionFrom4;

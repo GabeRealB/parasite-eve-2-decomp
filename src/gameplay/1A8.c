@@ -48,7 +48,15 @@ s32 func_800AEE28(Task* arg0, GpPosXZ* arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AEE8C);
 
-INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AEEFC);
+u8 func_800AEEFC(void)
+{
+    GameSession* session;
+    GpCb40Tbl*   tbl;
+
+    session = Game_Session;
+    tbl     = D_8010CB40[session->field_7 - 1];
+    return tbl->field_0[session->field_6 - 1][session->field_5 - 1].field_0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AEF4C);
 
