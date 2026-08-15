@@ -7,8 +7,23 @@
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/ui.h"
 
 s32 func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
+
+/// Signed overlay of `UiPanel` so `field_18` / `field_1C` load with `lh`.
+typedef struct {
+    /* 0x00 */ byte pad_0[0xC];
+    /* 0x0C */ RECT field_C;
+    /* 0x14 */ byte pad_14[4];
+    /* 0x18 */ s16  field_18;
+    /* 0x1A */ s16  field_1A;
+    /* 0x1C */ s16  field_1C;
+} GpUiPanel;
+
+/// Overlay import of `Ui_InsetLayout`; the extra arg matches `$a3 = 0`.
+void func_80049348(GpUiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3);
+void func_800C2140(GpUiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D5B14);
 
@@ -37,7 +52,16 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D6994);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D6A24);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D6AA4);
+void func_800D6AA4(Task* arg0)
+{
+    GpUiPanel* panel;
+
+    panel            = arg0->spawnArg2;
+    panel->field_C.y = 0x1C - D_80071071;
+    func_80049348(panel, NULL, NULL, 0);
+    func_800C2140(panel, panel->field_1C + 2, panel->field_18 + 0xF, 1);
+    Ui_DrawText((UiPanel*)panel, D_80097454);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D6B20);
 

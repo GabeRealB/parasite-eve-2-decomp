@@ -13358,3 +13358,21 @@ switch (val & ~0xFFFF) {
 
 `func_800D4D2C` is the example (`D_8007216C` then `Wip_UiHolder`).
 
+## Overlay imports of main functions may pass a dummy extra arg
+
+A gameplay overlay call of a 3-arg main function can still emit
+`move a3, a1` (`$a3 = 0`) before the `jal`. The target did that for
+`Ui_InsetLayout(panel, NULL, NULL)` — the extra zero is not used by the
+callee, but omitting it drops an instruction and fails the match.
+
+Declare the import locally with the extra parameter and pass `0`. Do not
+widen the real prototype in the main header:
+
+```c
+void func_80049348(Panel* arg0, RECT* arg1, RECT* arg2, s32 arg3);
+
+func_80049348(panel, NULL, NULL, 0); /* Ui_InsetLayout */
+```
+
+`func_800D6AA4` is the example.
+

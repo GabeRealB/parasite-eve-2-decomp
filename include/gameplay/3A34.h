@@ -154,7 +154,14 @@ extern s32    D_80115448;
 /// Screen-offset X (low 16 bits of GTE OFX) imported from `Display_State+0x110`.
 extern u16 D_80071078;
 
+/// VRAM Y offset imported from `Display_State.vramYOffset`.
+extern s8 D_80071071;
+
+/// "Weapon" string drawn by `func_800D6AA4`.
+extern char D_80097454[];
+
 s32   func_800D68C4(s32 arg0);
+void  func_800D6AA4(Task* arg0);
 void  func_800D930C(GpObj4C* arg0, s32 arg1);
 s32   func_800D9340(GpObj38* arg0);
 s32   func_800D937C(GpObj38* arg0);
