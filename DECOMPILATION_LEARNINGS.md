@@ -49,6 +49,31 @@ case 0:
 `func_80109684` is the pure example. A bare `p->field_95E = 1` stuck at ~94%
 with an otherwise identical switch.
 
+## Assign the delay-slot default first so `bnez` keeps the `== 0` overwrite
+
+When the target does
+
+```
+lw    v0, field
+nop
+bnez  v0, skip
+li    a2, DEFAULT    /* delay: always */
+li    a2, OTHER      /* only if field == 0 */
+```
+
+an if/else with the nonzero arm first emits the inverted `beqz` + `li OTHER` in
+the delay slot. Assign the default, then overwrite on `== 0`:
+
+```c
+arg2 = 1;
+if (p->field_934 == 0) {
+    arg2 = 6;
+}
+```
+
+`func_801094D4` is the example. `if (p->field_934) { arg2 = 1; } else { arg2 = 6; }`
+stuck at 96% with only that branch flipped.
+
 ## Write the `== 0` arm first so a sibling store rematerializes the field
 
 When the target reloads a u8 after `beqz` (`lbu field; beqz; lbu field`) and
