@@ -67,6 +67,7 @@ GpItemRec* func_800D6910(s32 arg0);
 void       func_800C5C2C(s32 arg0, s32 arg1);
 s32        func_800A7508(void);
 s32        func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+void       func_800D2E04(UiObject* arg0, s32 arg1);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800BF9FC);
 
@@ -340,7 +341,26 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE3B4);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE498);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE4F4);
+void func_800CE4F4(UiObject* arg0, Task* arg1)
+{
+    u8* text;
+    s32 color;
+    s32 one;
+    s32 val;
+
+    val = arg1->spawnArg1;
+    if (val != 0) {
+        if ((u32)val > 0xFFFF) {
+            color = Ui_LookupTable(arg0, 1);
+            one   = 1;
+            Text_DrawPrompt(arg0, arg0->field_1C + 2, (s16)arg0->field_18 + 0xF, (u8*)val, color, one, 0);
+            text = Text_SkipLines((u8*)val, one);
+            Text_DrawPrompt(arg0, arg0->field_1C + 2, (s16)arg0->field_18 + 0x1E, text, color, one, 0);
+        } else if ((u32)(val - 0x300) < 0x100U) {
+            func_800D2E04(arg0, val);
+        }
+    }
+}
 
 void func_800CE5D0(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
