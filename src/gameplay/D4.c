@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
@@ -17,7 +18,9 @@
 void func_800A9310(void);
 void func_800A9730(Task* task);
 void func_800AA548(s32 arg0);
+void func_800ACD2C(Task* task);
 s32  func_800ACF8C(void);
+void func_800AD024(void);
 
 extern TaskDesc D_80183824[];
 
@@ -378,7 +381,19 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD284);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD2E8);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD378);
+void func_800AD378(Task* task)
+{
+    if (task->spawnArg1 != (u8)Game_Session->field_4) {
+        D_80070F10.flg = 0;
+        func_80098F58(&D_80070F10);
+        task->spawnArg1 = (u8)Game_Session->field_4;
+    }
+    if (Game_Session->field_76 != 0) {
+        func_800ACD2C(task);
+        Game_Session->field_76 = 0;
+    }
+    func_800AD024();
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD410);
 

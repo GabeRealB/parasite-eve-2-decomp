@@ -52,7 +52,9 @@ typedef struct _GameSession {
     u8    field_69; // bit 0x2: skip SndEvt_EnqueueType2(0, 0xB4) on last GpStateF0 ref
     byte  unknown_6A[0xA];
     u8    field_74;
-    byte  unknown_75[0x7];
+    byte  unknown_75;
+    s16   field_76; // set: func_800AD378 rebuilds via func_800ACD2C
+    byte  unknown_78[4];
     s16   field_7C;
     s16   field_7E;
     s16   field_80;
