@@ -13536,3 +13536,43 @@ sp.funcs[(u16)arg0->actor->field_96C](arg0);
 
 `func_80108E40` is the example.
 
+## Mid-loop unlink: `goto` resists loop rotation; `s32 mask = ~0x78` keeps `li -0x79`
+
+A walk that clears every node, then stores `next = NULL` only when another
+node follows, compiles as a top-tested loop with a mid-body exit:
+
+```
+beqz  v0, end
+ move v1, v0
+sw    zero, 0(head)
+li    a1, -0x79          /* ~0x78 */
+loop:
+lbu   v0, flags(v1)
+lw    a0, 0(v1)
+sw    zero, 4(v1)
+and   v0, v0, a1
+beqz  a0, end
+ sb   v0, flags(v1)
+sw    zero, 0(v1)
+j     loop
+ move v1, a0
+```
+
+`do { ...; if (next == NULL) break; node->next = NULL; node = next; } while (1)`
+is rotated: the condition lands at the bottom (`bnez`) and the first
+iteration jumps into the middle. An explicit top label plus `goto` keeps
+the `j` / `beqz` shape.
+
+Two other pieces have to stay wide:
+
+- `node->field_3A &= ~0x78` (or `&= 0x87`) on a `u8` folds to `andi 0x87`
+  each iteration. Hold `s32 mask = ~0x78` and AND an `s32 flags` so the
+  constant is hoisted as `li a1, -0x79` / `and`.
+- `node = head->next; if (node != NULL)` allocates the pointer in `$v1`
+  from the first load and fills `beqz` with `li a1`. A separate temp
+  (`temp = head->next; if (temp != NULL) { node = temp; ... }`) forces
+  `lw v0` / `move v1, v0` in the delay slot, then `sw` / `li a1`.
+
+`func_800E1884` is the example (sibling `func_800E1758` is the same shape
+on `GpObj4A` / `D_8010FAB0`).
+

@@ -542,7 +542,34 @@ void func_800E1834(s32 arg0, GpObj3A* arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1884);
+void func_800E1884(s32 arg0)
+{
+    GpObj3A* head;
+    GpObj3A* node;
+    GpObj3A* next;
+    GpObj3A* temp;
+    s32      flags;
+    s32      mask;
+
+    head = D_8010FAB8[arg0];
+    temp = head->next;
+    if (temp != NULL) {
+        node       = temp;
+        head->next = NULL;
+        mask       = ~0x78;
+    loop:
+        flags          = node->field_3A;
+        next           = node->next;
+        node->prev     = NULL;
+        flags         &= mask;
+        node->field_3A = flags;
+        if (next != NULL) {
+            node->next = NULL;
+            node       = next;
+            goto loop;
+        }
+    }
+}
 
 void func_800E18E0(GpRec18* arg0, s32 arg1)
 {

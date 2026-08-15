@@ -677,8 +677,10 @@ by `func_800E1708`. Walked at +0x4C until `field_4A` bit 0x80.
 
 ### `GpObj3A` (0x3C) — `3A34.h`
 List node linked onto `D_8010FAB8[index]` by `func_800E17B4` and unlinked
-by `func_800E1834`. Same next/prev/`0x20` flag protocol as `GpObj4A`. Full
-object size is not known yet; 0x3C is the minimum covering known fields.
+by `func_800E1834`. `func_800E1884` empties the whole list (clears the
+head, then each node's prev / next / `0x20` flag). Same next/prev/`0x20`
+flag protocol as `GpObj4A`. Full object size is not known yet; 0x3C is the
+minimum covering known fields.
 
 | Off | Member | Role |
 |-----|--------|------|
