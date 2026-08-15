@@ -14700,6 +14700,39 @@ union {
 `func_800B5E08` uses `field_8.as_u16`; `func_800B5E78` uses `field_8.as_u8`
 and inverts the work-type test (`!= 9` instead of `== 9`).
 
+## Save `nextSibling` before calling through the iterator
+
+A circular walk that calls a function *on the current node* (`Task_CallExit(arg0)`)
+needs the iterator in `$a0` and the next pointer saved first. Writing
+`arg0 = arg0->nextSibling` after the call makes GCC keep the node in `$s0`
+and only move it into `$a0` in the `jal` delay slot (~83%).
+
+Assign `next` after the `field_A` load (so `lw next` fills the `lhu` delay)
+and reuse `arg0` as the iterator:
+
+```c
+child = arg0->firstChild;
+if (child == NULL) {
+    return 0;
+}
+arg0 = child;
+do {
+    work = (GpWorkObj*)arg0->spawnArg2;
+    type = work->field_A >> 8;
+    next = arg0->nextSibling;
+    if (type == 9) {
+        Task_CallExit(arg0);
+    }
+    arg0 = next;
+} while (arg0 != child);
+return 0;
+```
+
+The early `if (child == NULL) return 0;` is what puts `move v0, zero` at the
+*start* of the shared epilogue. A trailing-only `return 0` after
+`if (child != NULL) { ... }` schedules it after the callee-saved restores
+(~98%). `func_800B5EE8` is the example.
+
 ## Pin a join-crossing `field & 0xFE` load to `$v0`
 
 When both arms load a `u8` field and only the insert arm stores a small

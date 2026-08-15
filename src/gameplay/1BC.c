@@ -631,7 +631,29 @@ s32 func_800B5E78(Task* arg0, Task* arg1, s32 arg2, Task** arg3)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B5EE8);
+s32 func_800B5EE8(Task* arg0)
+{
+    Task*      child;
+    Task*      next;
+    GpWorkObj* work;
+    u32        type;
+
+    child = arg0->firstChild;
+    if (child == NULL) {
+        return 0;
+    }
+    arg0 = child;
+    do {
+        work = (GpWorkObj*)arg0->spawnArg2;
+        type = work->field_A >> 8;
+        next = arg0->nextSibling;
+        if (type == 9) {
+            Task_CallExit(arg0);
+        }
+        arg0 = next;
+    } while (arg0 != child);
+    return 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B5F5C);
 

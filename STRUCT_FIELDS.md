@@ -923,7 +923,7 @@ Overlay of `Task::spawnArg2` for sibling walkers. Full size unknown.
 | Off | Member | Role |
 |-----|--------|------|
 | 0x08 | `field_8` | Id compared with the search key (`as_u16` in `func_800B5E08`, `as_u8` in `func_800B5E78`) |
-| 0x0A | `field_A` | u16; high byte is the work type (`func_800B5E08` matches 9; `func_800B5E78` skips 9) |
+| 0x0A | `field_A` | u16; high byte is the work type (`func_800B5E08` / `func_800B5EE8` match 9; `func_800B5E78` skips 9) |
 
 ### `GpItemSlot` (0x8) — `268.h`
 Indexed as `D_80072330[idx]` by `func_800BAFE0`. Two (id, count) pairs.
