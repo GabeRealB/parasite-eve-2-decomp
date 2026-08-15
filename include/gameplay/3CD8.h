@@ -76,6 +76,7 @@ extern GpCoord64     D_80114F30[8];
 extern GsCOORDINATE2 D_80070F10;
 
 void func_800EA3A0(s32 arg0);
+void func_800EA3B4(void);
 void func_800EA3EC(void);
 void func_800EC7E4(void* arg0, Task* arg1);
 void func_800EC868(void);

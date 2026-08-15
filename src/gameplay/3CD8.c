@@ -471,7 +471,19 @@ void func_800EA3A0(s32 arg0)
     D_80115740->field_C = arg0 + 1;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EA3B4);
+void func_800EA3B4(void)
+{
+    s32        i;
+    GpCoord64* p;
+
+    p = D_80114F30;
+    for (i = 0; i < 8; i++) {
+        if (p->field_0 != 0) {
+            p->field_0--;
+        }
+        p++;
+    }
+}
 
 void func_800EA3EC(void)
 {
