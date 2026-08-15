@@ -274,7 +274,39 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104258);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104364);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801043F4);
+s32 func_801043F4(void)
+{
+    GpActorWork* work;
+    GameActor*   actor;
+    Task*        task;
+
+    work  = Game_GetPtrSlot(3);
+    actor = work->actor;
+    if (!work | !actor) {
+        return 0;
+    }
+
+    task = actor->field_918;
+    if (task != NULL) {
+        Task_Kill(task);
+        actor->field_918 = NULL;
+    }
+
+    task = actor->field_91C;
+    if (task != NULL) {
+        Task_Kill(task);
+        actor->field_91C = NULL;
+    }
+
+    task = actor->field_914;
+    if (task != NULL) {
+        Task_Kill(task);
+        actor->field_914 = NULL;
+    }
+
+    func_800E1638((GpObj*)actor->field_10C);
+    return 1;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104490);
 

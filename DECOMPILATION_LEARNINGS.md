@@ -12934,3 +12934,26 @@ Dropping `raw` and writing `coords = &((GsCOORDINATE2*)extra->field_8)[3]` in
 one go completes `$s0` to the full address and mismatches. `func_8010B520` is
 the pure example.
 
+## Bitwise `|` of two pointer-null tests for `sltiu`/`or`
+
+`if (!a || !b)` (or `a == NULL || b == NULL`) emits two `beqz`s. The target
+for a combined early-out is:
+
+```
+sltiu v0, a, 1
+sltiu v1, b, 1
+or    v0, v0, v1
+bnez  v0, fail
+```
+
+Use bitwise OR so both compares stay live and fold into `sltiu` + `or`:
+
+```c
+if (!work | !actor) {
+    return 0;
+}
+```
+
+`((u32)work < 1) | ((u32)actor < 1)` and `(work == NULL) | (actor == NULL)`
+are equivalent. `func_801043F4` is the pure example.
+
