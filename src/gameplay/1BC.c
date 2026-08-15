@@ -23,29 +23,30 @@ void func_800B6398(void);
 void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 void func_8017FBD8(void);
 
-extern TaskDesc D_80115D9C[];
-extern TaskDesc D_80119218[];
-extern TaskDesc D_8011922C[];
-extern TaskDesc D_801637C8[];
-extern TaskDesc D_8017D9E8[];
-extern TaskDesc D_80180DBC[];
-extern TaskDesc D_801810E4[];
-extern TaskDesc D_80181398[];
-extern TaskDesc D_80181638[];
-extern TaskDesc D_8018186C[];
-extern TaskDesc D_80181B30[];
-extern TaskDesc D_80181B88[];
-extern TaskDesc D_80181F18[];
-extern TaskDesc D_80182D0C[];
-extern TaskDesc D_80182E74[];
-extern TaskDesc D_80182FAC[];
-extern TaskDesc D_8018384C[];
-extern s32      D_8010D208[];
-extern char     D_800939F8[];
-extern s32      D_80070F10;
-extern s32      D_80070F60;
-extern u8       D_800626E8;
-extern s32      D_80114D20;
+extern TaskFuncTable3 D_80093A38;
+extern TaskDesc       D_80115D9C[];
+extern TaskDesc       D_80119218[];
+extern TaskDesc       D_8011922C[];
+extern TaskDesc       D_801637C8[];
+extern TaskDesc       D_8017D9E8[];
+extern TaskDesc       D_80180DBC[];
+extern TaskDesc       D_801810E4[];
+extern TaskDesc       D_80181398[];
+extern TaskDesc       D_80181638[];
+extern TaskDesc       D_8018186C[];
+extern TaskDesc       D_80181B30[];
+extern TaskDesc       D_80181B88[];
+extern TaskDesc       D_80181F18[];
+extern TaskDesc       D_80182D0C[];
+extern TaskDesc       D_80182E74[];
+extern TaskDesc       D_80182FAC[];
+extern TaskDesc       D_8018384C[];
+extern s32            D_8010D208[];
+extern char           D_800939F8[];
+extern s32            D_80070F10;
+extern s32            D_80070F60;
+extern u8             D_800626E8;
+extern s32            D_80114D20;
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AF590);
 
@@ -315,7 +316,13 @@ void func_800B28E0(Task* task)
     func_800B1EFC(task);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B2910);
+void func_800B2910(Task* arg0)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_80093A38;
+    sp.funcs[arg0->state](arg0);
+}
 
 Task* func_800B2968(void)
 {
