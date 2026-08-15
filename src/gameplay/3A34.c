@@ -641,7 +641,27 @@ void func_800E18E0(GpRec18* arg0, s32 arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E192C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E19B8);
+s32 func_800E19B8(GpRec18* arg0, s32 arg1)
+{
+    s32 result;
+    s32 index;
+
+    result = 0;
+    for (index = 1;; index++) {
+        if (arg0->field_0 & 1) {
+            if (arg1 == 0) {
+                return 1;
+            }
+            if (arg0->field_4 == arg1) {
+                result = index;
+            }
+        }
+        if ((arg0++)->field_0 & 2) {
+            break;
+        }
+    }
+    return result;
+}
 
 s32 func_800E1A1C(GpRec18* arg0, s32 arg1)
 {

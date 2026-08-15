@@ -79,9 +79,12 @@ struct _GpActorD4;
 
 /// 0x18 record wiped by `func_800E18E0`. That helper zeros `count` entries
 /// and writes 2 to the last element's `field_0`. `field_0` bit 0x1 marks an
-/// occupied slot; bit 0x2 marks the last element. `func_800E1A1C` counts
-/// occupied slots whose `field_4` high 16 bits match `arg1`. Embedded as
-/// `GameActor.field_17C[18]`; `func_801041B4` tests `field_4` bits 0x100100.
+/// occupied slot; bit 0x2 marks the last element. `func_800E19B8` returns the
+/// 1-based index of the last occupied slot whose `field_4` equals `arg1`,
+/// or 1 as soon as any occupied slot is seen when `arg1` is 0.
+/// `func_800E1A1C` counts occupied slots whose `field_4` high 16 bits match
+/// `arg1`. Embedded as `GameActor.field_17C[18]`; `func_801041B4` tests
+/// `field_4` bits 0x100100.
 typedef struct _GpRec18 {
     /* 0x00 */ u16  field_0;
     /* 0x02 */ byte pad_2[2];
