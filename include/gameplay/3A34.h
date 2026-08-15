@@ -15,6 +15,8 @@
 /// `func_800DACAC` assigns the node to `D_80115760[0]->actor->field_90C`,
 /// clears the previous node's `field_5`, sets this node's `field_5 = 1`,
 /// and clears `field_4` bit 0.
+/// `func_800DACF8` is the inverse: it nulls any `D_80115760[]` slot whose
+/// `field_90C` is this node, clears `field_5`, and sets `field_4` bit 0.
 typedef struct _GpLinkNode {
     /* 0x00 */ struct _GpLinkNode* next;
     /* 0x04 */ u8                  field_4;
@@ -280,6 +282,7 @@ void  func_800D9DFC(void);
 void  func_800DAB38(GpLinkNode* node);
 s32   func_800DAC54(GpLinkNode* arg0);
 void  func_800DACAC(GpLinkNode* node);
+void  func_800DACF8(GpLinkNode* node);
 void* func_800DA2A0(GpActorWork* arg0, VECTOR3* pos, s32 arg2);
 void* func_800DAD54(GpActorWork* arg0);
 void* func_800DAD78(GpActorWork* arg0);

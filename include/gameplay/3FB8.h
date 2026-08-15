@@ -62,8 +62,8 @@ STATIC_ASSERT_SIZEOF(GpPadEvt, 0x4);
 
 /// 2-slot table of current actor-work pointers. Slot 0 is the primary
 /// work (set/cleared by `func_80100B78` / `func_80101408`). Walked as a
-/// pair by `func_800DB0D8`, `func_800DAB38`, and `func_800DAC54`.
-/// `func_800DACAC` assigns `field_90C` on slot 0 only.
+/// pair by `func_800DB0D8`, `func_800DAB38`, `func_800DAC54`, and
+/// `func_800DACF8`. `func_800DACAC` assigns `field_90C` on slot 0 only.
 extern GpActorWork* volatile D_80115760[2];
 
 /// `field_96C` dispatcher: three slots of `func_80109170`, then `func_80109208`.

@@ -264,7 +264,31 @@ void func_800DACAC(GpLinkNode* arg0)
     arg0->field_4 = val & 0xFE;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DACF8);
+void func_800DACF8(GpLinkNode* arg0)
+{
+    s32                    i;
+    GpActorWork* volatile* p;
+    GpActorWork*           work;
+    GameActor*             actor;
+    u8                     val;
+
+    i = 0;
+    p = D_80115760;
+    do {
+        work = *p;
+        if (work != NULL) {
+            actor = work->actor;
+            if (actor->field_90C == arg0) {
+                actor->field_90C = NULL;
+            }
+        }
+        i++;
+        p++;
+    } while (i < 2);
+    val           = arg0->field_4;
+    arg0->field_5 = 0;
+    arg0->field_4 = val | 1;
+}
 
 void* func_800DAD54(GpActorWork* arg0)
 {
