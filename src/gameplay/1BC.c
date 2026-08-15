@@ -577,7 +577,29 @@ void func_800B5DB8(Task* arg0)
     funcs[arg0->state](arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B5E08);
+s32 func_800B5E08(Task* arg0, Task* arg1, s32 arg2, Task** arg3)
+{
+    Task* child;
+    s32   ret;
+
+    *arg3 = NULL;
+    child = arg0->firstChild;
+    ret   = -1;
+    if (child == NULL) {
+        return ret;
+    }
+    arg1 = child;
+    do {
+        arg0 = arg1->spawnArg2;
+        if (((((GpWorkObj*)arg0)->field_A >> 8) == 9) && (((GpWorkObj*)arg0)->field_8 == arg2)) {
+            *arg3 = arg1;
+            ret   = 0;
+            break;
+        }
+        arg1 = arg1->nextSibling;
+    } while (arg1 != child);
+    return ret;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B5E78);
 

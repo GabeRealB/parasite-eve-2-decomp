@@ -14629,4 +14629,30 @@ m = &D_80070E44;
 `func_800A8B14` is the example. A bare `*(s32*)&D_80070E44 = one` after the
 `t[]` stores stuck at 95% with only those two stores swapped.
 
+## Assign the sibling walk onto unused `arg1` and the payload back onto `arg0`
+
+A circular `firstChild` / `nextSibling` search that early-returns `-1` when
+the list is empty wants the iterator in `$a1` and the `spawnArg2` payload
+in `$a0` (`lw a0, 0x20(a1)` then `lhu` off `$a0`). A local `cur` / `obj`
+pair swaps those registers (~99% with only `a0`/`a1` flipped).
+
+`arg1` is otherwise unused, so assign the head to it and reuse `arg0` as
+the payload pointer:
+
+```c
+arg1 = child;
+do {
+    arg0 = arg1->spawnArg2;
+    if (((((GpWorkObj*)arg0)->field_A >> 8) == 9) && (((GpWorkObj*)arg0)->field_8 == arg2)) {
+        *arg3 = arg1;
+        ret   = 0;
+        break;
+    }
+    arg1 = arg1->nextSibling;
+} while (arg1 != child);
+```
+
+`func_800B5E08` is the example. The same early `if (child == NULL) return ret;`
+is what emits `bnez` + `jr` instead of `beqz` to a shared tail.
+
 

@@ -102,6 +102,15 @@ typedef struct _GpAreaKey {
     /* 0x05 */ u8 field_5;
 } GpAreaKey;
 
+/// Overlay of `Task::spawnArg2` for `func_800B5E08`. `field_A` high byte is
+/// the work type (this helper matches 9). `field_8` is the u16 id compared
+/// against the search key. Full size unknown.
+typedef struct _GpWorkObj {
+    /* 0x00 */ byte pad_0[8];
+    /* 0x08 */ u16  field_8;
+    /* 0x0A */ u16  field_A;
+} GpWorkObj;
+
 /// Per-area pointer table. Index is `GpAreaKey.field_3` (also
 /// `GameSession.field_7` via `&Game_Session->field_4`).
 extern GpAreaRec* D_8010CBCC[];
@@ -130,6 +139,7 @@ s32        func_800B59A8(GpAreaKey* arg0);
 GpAreaObj* func_800B5A08(GpAreaKey* arg0);
 GpAreaObj* func_800B5C88(GpAreaKey* arg0);
 GpAreaRec* func_800B5CE8(GpAreaKey* arg0);
+s32        func_800B5E08(Task* arg0, Task* arg1, s32 arg2, Task** arg3);
 void       func_800B6CF0(void);
 s32        func_800B6DA4(s32 arg0, s32 arg1);
 
