@@ -953,8 +953,9 @@ map onto the 32-entry slice at `D_8010E2B8` (`D_8010DFB8 + 0x60 * 8`).
 
 ### `GpBit2Bank` (0x8) — `268.h`
 Per-stage table at `D_8010D230`, indexed by `GameSession.field_7` /
-`GameSessionFrom4.field_3`. `func_800BB974` / `func_800BB470` extract a
-2-bit field; `func_800BB8E8` writes one.
+`GameSessionFrom4.field_3` / `Mc_SaveData.field_7`. `func_800BB974` /
+`func_800BB470` extract a 2-bit field; `func_800BB8E8` / `func_800BAC34`
+write one.
 
 | Off | Member | Role |
 |-----|--------|------|

@@ -13714,6 +13714,23 @@ Reuse `mask` for `val << shift` and put `~mask` in `$a0` after `$a0` has
 been consumed as the word offset (`arg0 >> 4`). `func_800BB8E8` is the
 example.
 
+The two-arg sibling that takes the bank index from a global byte
+(`Mc_SaveData.field_7`) needs that byte assigned to the same `$v0` temp
+*after* the mask, not used as a subscript. `table[global.field].ptr`
+emits `lui table` first; assigning the byte first issues `lui global`
+so the table `lui`/`addiu` and the `sra` of the bit index fill the load
+delay:
+
+```c
+temp = 3;
+mask = temp << shift;
+temp = Mc_SaveData.field_7;
+p = D_8010D230[temp].field_4;
+p += arg0 >> 4;
+```
+
+`func_800BAC34` is the example.
+
 ## Do not hoist the jump-table index object before the struct copy
 
 Dispatchers that copy a function-pointer table onto the stack

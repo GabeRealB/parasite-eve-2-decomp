@@ -148,7 +148,26 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAA58);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAB64);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAC34);
+void func_800BAC34(s32 arg0, u8 arg1)
+{
+    register s32  shift asm("a2");
+    register u32  mask asm("a3");
+    register u32* p asm("v1");
+    register u32  nmask asm("a0");
+    register s32  temp asm("v0");
+
+    shift = (arg0 & 0xF) * 2;
+    asm volatile("" ::"r"(shift));
+    temp  = 3;
+    mask  = temp << shift;
+    temp  = Mc_SaveData.field_7;
+    p     = D_8010D230[temp].field_4;
+    p    += arg0 >> 4;
+    nmask = ~mask;
+    temp  = *p;
+    mask  = arg1 << shift;
+    *p    = (temp & nmask) | mask;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAC8C);
 

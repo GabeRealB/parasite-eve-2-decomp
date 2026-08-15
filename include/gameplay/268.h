@@ -50,8 +50,9 @@ typedef struct _GpItemQty {
 STATIC_ASSERT_SIZEOF(GpItemQty, 0x4);
 
 /// 8-byte entry in `D_8010D230`, indexed by session field_7 /
-/// `GameSessionFrom4.field_3`. field_4 is packed 2-bit flags
-/// (`func_800BB974` / `func_800BB8E8` / `func_800BB470`).
+/// `GameSessionFrom4.field_3` / `Mc_SaveData.field_7`. field_4 is packed
+/// 2-bit flags (`func_800BB974` / `func_800BB8E8` / `func_800BB470` /
+/// `func_800BAC34`).
 typedef struct _GpBit2Bank {
     /* 0x00 */ void* field_0;
     /* 0x04 */ u32*  field_4;
@@ -92,6 +93,7 @@ extern u8         D_80114ABC[];
 extern GpItemRec  D_80114C20[];
 extern GpItemRec* D_80114D70;
 
+void        func_800BAC34(s32 arg0, u8 arg1);
 void        func_800BAE38(void);
 s32         func_800BAF08(void);
 void        func_800B91C8(GpItemRec* arg0);
