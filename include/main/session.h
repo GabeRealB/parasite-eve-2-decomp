@@ -35,7 +35,7 @@ typedef struct _GameSession {
     u8    field_2;
     byte  unknown_3;
     byte  field_4; // address taken by CdCmd_BuildVlcIfStream
-    u8    field_5; // 1-based index into D_8010CB40 innermost table
+    u8    field_5; // 1-based index into D_8010CB40 / D_8010CBA4 innermost tables
     u8    field_6;
     u8    field_7;
     byte  unknown_8[0x4];

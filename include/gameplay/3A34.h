@@ -7,6 +7,7 @@
 
 #include "gameplay/3FB8.h"
 #include "main/display.h"
+#include "main/session.h"
 #include "main/task.h"
 
 /// Singly-linked node unlinked by `func_800DAB38` / linked by `func_800DABEC`.
@@ -120,6 +121,16 @@ typedef struct _GpObj50 {
     /* 0x50 */ GpPairSrc* field_50;
 } GpObj50;
 STATIC_ASSERT_SIZEOF(GpObj50, 0x54);
+
+/// 8-byte record in tables pointed to by `D_8010CBA4`. Indexed 1-based
+/// by `GameSessionFrom4.field_1`. `func_800D9C64` returns the record
+/// (or NULL). `func_800D9654` returns `field_0`. `func_800D957C` walks
+/// `field_4` as a nested 8-byte table, falling back to `D_8010F9E4`.
+typedef struct _GpCbA4Rec {
+    /* 0x0 */ s32   field_0;
+    /* 0x4 */ void* field_4;
+} GpCbA4Rec;
+STATIC_ASSERT_SIZEOF(GpCbA4Rec, 8);
 
 /// Three packed `SVECTOR3`s filled by `func_800D9C3C`. Each vector's
 /// components are set to the same s16 argument.
@@ -251,6 +262,10 @@ extern GpLinkNode* D_80115268;
 /// 32-entry marker/slot table cleared by `func_800DAF98`.
 extern GpSlot70 D_80115270[0x20];
 
+/// Per-stage pointer table. Index is `GameSessionFrom4.field_3 - 1`.
+/// Each entry is an array of `GpCbA4Rec*`, indexed by `field_2 - 1`.
+extern GpCbA4Rec** D_8010CBA4[];
+
 /// Default 8-byte record copied by `func_800D9CE8`. Also the fallback
 /// pointer returned by `func_800D957C` when a table lookup fails.
 extern GBytes8 D_8010F9E4;
@@ -332,6 +347,7 @@ s32   func_800D9788(GpObj38* arg0);
 void  func_800D9B9C(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void  func_800D9D18(Task* arg0);
 void  func_800D9C3C(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3);
+GpCbA4Rec* func_800D9C64(GameSessionFrom4* arg0);
 void  func_800D9CC8(Task* arg0);
 void  func_800D9CE8(GBytes8* arg0);
 void  func_800D9DFC(void);
