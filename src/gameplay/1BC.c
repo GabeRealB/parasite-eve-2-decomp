@@ -24,6 +24,7 @@ void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 void func_8017FBD8(void);
 
 extern TaskFuncTable3 D_80093A38;
+extern TaskFuncTable3 D_80093A5C;
 extern TaskDesc       D_80115D9C[];
 extern TaskDesc       D_80119218[];
 extern TaskDesc       D_8011922C[];
@@ -596,7 +597,13 @@ void func_800B6094(Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B60C0);
+void func_800B60C0(Task* arg0)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_80093A5C;
+    sp.funcs[arg0->state](arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B6118);
 
