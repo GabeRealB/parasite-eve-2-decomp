@@ -5,6 +5,8 @@
 
 #include "main/session.h"
 
+struct _GsCOORDINATE2;
+
 /// Work object whose `actor` pointer sits at 0x1C (same slot as `Task::idMap`).
 typedef struct _GpActorWork {
     /* 0x00 */ byte       pad_0[0x18];
@@ -22,6 +24,16 @@ typedef struct _GpCoordExt {
     /* 0x46 */ byte pad_46[2];
 } GpCoordExt;
 STATIC_ASSERT_SIZEOF(GpCoordExt, 0x48);
+
+/// 8-byte argument record for `func_800FDB18`. `field_0` is a coordinate
+/// (fallback `D_80070F10`); `field_4` / `field_6` are packed into the
+/// `func_800EA478` argument.
+typedef struct _GpEffArg {
+    /* 0x0 */ struct _GsCOORDINATE2* field_0;
+    /* 0x4 */ s16                    field_4;
+    /* 0x6 */ s16                    field_6;
+} GpEffArg;
+STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 
 /// Current actor-work pointer; cleared when the work task is torn down.
 extern GpActorWork* volatile D_80115760;

@@ -12889,3 +12889,43 @@ arg0 |= Game_Session->field_7 << 24;
 `func_800E3E30` is the pure example — otherwise a 99% body with only those two
 ops wrong.
 
+## Assign `&global` before an earlier call so `%hi` lands in `$s0`
+
+When the target does:
+
+```
+jal  earlier_call
+ lui  s0, %hi(Global)
+addiu a3, s0, %lo(Global)
+...
+sw    val, %lo(Global)(s0)
+```
+
+`$s0` holds only `%hi(Global)` (for the offset-0 store) and `$a3` is the full
+address (for other fields and as a call arg). Assigning `p = &Global` *after*
+`earlier_call` puts `%hi` in a caller-saved (`$v1`) and shrinks the frame — the
+live range no longer crosses a call.
+
+Assign the pointer *before* the call so the address is live across it. Keep a
+second local that is a typed view of some other pointer you then index, so `$s0`
+stays as `%hi` rather than being completed to the full address (`addiu s0, s0, %lo`
+/ `sw val, 0(s0)`):
+
+```c
+s32*           raw;
+GsCOORDINATE2* coords;
+GpEffArg*      params;
+
+params          = &D_80113358;          /* before the call — pins $s0 */
+slot            = Game_GetPtrSlot(3);
+raw             = extra->field_8;       /* extra local is required */
+params->field_4 = 0xC0;
+coords          = &((GsCOORDINATE2*)raw)[3];
+params->field_0 = coords;               /* sw %lo(Global)(s0) */
+func_800FDB18(2, coords, 0, params);
+```
+
+Dropping `raw` and writing `coords = &((GsCOORDINATE2*)extra->field_8)[3]` in
+one go completes `$s0` to the full address and mismatches. `func_8010B520` is
+the pure example.
+

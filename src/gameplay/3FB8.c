@@ -11,6 +11,7 @@
 
 extern WipSysConfig D_80073B88;
 extern TaskDesc     D_80113340[];
+extern GpEffArg     D_80113358;
 
 s32   func_800B9D80(s32 arg0);
 s32   func_8003B8A0(s32 arg0);
@@ -47,6 +48,7 @@ void  func_8010ABD4(GpActorWork* arg0);
 void  func_8010AC54(GpActorWork* arg0);
 void  func_8010AD64(GpActorWork* arg0);
 void  func_8010B120(GpActorWork* arg0);
+void  func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, GpEffArg* arg3);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F75BC);
 
@@ -975,7 +977,25 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B348);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B3F8);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B520);
+void func_8010B520(Task* arg0)
+{
+    s32*           raw;
+    Task*          slot;
+    GameActorExt*  extra;
+    GpEffArg*      params;
+    GsCOORDINATE2* coords;
+
+    params          = &D_80113358;
+    slot            = Game_GetPtrSlot(3);
+    extra           = slot->extra;
+    raw             = extra->field_8;
+    params->field_4 = 0xC0;
+    coords          = &((GsCOORDINATE2*)raw)[3];
+    params->field_0 = coords;
+    params->field_6 = (u16)arg0->spawnArg1 + 1;
+    func_800FDB18(2, coords, 0, params);
+    Task_Kill(arg0);
+}
 
 void func_8010B590(Task* arg0)
 {
