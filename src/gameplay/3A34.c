@@ -423,7 +423,18 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E2A24);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E2BF8);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E2C40);
+s32 func_800E2C40(GpU16Pair* arg0, s32 arg1)
+{
+    s32 ret;
+
+    if (arg0 == NULL) {
+        return 0;
+    }
+    ret  = arg0[arg1].field_0 & 0xFFF;
+    ret |= (arg0[arg1].field_2 & 0xF) << 12;
+    ret |= 0x40000;
+    return ret;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E2C78);
 
