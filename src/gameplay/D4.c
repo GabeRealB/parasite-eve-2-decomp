@@ -2,10 +2,12 @@
 
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
+#include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/pad.h"
 #include "main/session.h"
@@ -273,7 +275,21 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ABA4C);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ABCC8);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ABE68);
+void func_800ABE68(GpActorArg* arg0, u16* arg1)
+{
+    McSaveData* save;
+    s32         field;
+
+    save  = &Mc_SaveData;
+    field = save->field_13;
+    if (field != 0) {
+        if (field == 2) {
+            func_8010BAC8(arg0, save->field_13, GameFlag_GetNibble(0x4B), arg1);
+        } else {
+            func_8010BAC8(arg0, field, 0, arg1);
+        }
+    }
+}
 
 void func_800ABEF8(s32 arg0)
 {

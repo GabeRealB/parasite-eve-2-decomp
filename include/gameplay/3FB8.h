@@ -21,6 +21,18 @@ typedef struct {
     GpActorFunc funcs[4];
 } GpActorFuncTable4;
 
+/// 0x10-byte spawn argument for `func_8010BAC8`. `field_0` is copied to
+/// `GameActor.field_52`; `field_4` / `field_8` / `field_C` are copied to the
+/// extra coordinate translation.
+typedef struct _GpActorArg {
+    /* 0x0 */ u16  field_0;
+    /* 0x2 */ byte pad_2[2];
+    /* 0x4 */ s32  field_4;
+    /* 0x8 */ s32  field_8;
+    /* 0xC */ s32  field_C;
+} GpActorArg;
+STATIC_ASSERT_SIZEOF(GpActorArg, 0x10);
+
 /// 0xD4-byte block allocated by `func_8010BAC8` (`Mem_Set` size 0xD4) and
 /// stored at `GameActor.field_910`. `func_8010BF7C` writes `field_C4`.
 typedef struct _GpActorD4 {
@@ -95,5 +107,6 @@ void func_8010A1B0(s32 arg0, s32 arg1);
 void func_8010A42C(GpActorWork* arg0, s32 arg1);
 void func_80103B5C(GpActorWork* arg0);
 void func_8010B210(GpActorWork* arg0);
+void func_8010BAC8(GpActorArg* arg0, u16 arg1, s32 arg2, u16* arg3);
 
 #endif // GAMEPLAY_3FB8_H
