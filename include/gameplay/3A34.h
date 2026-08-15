@@ -67,12 +67,16 @@ STATIC_ASSERT_SIZEOF(GpObj38, 0x44);
 /// packs two 2-bit modes (current in bits 0-1, previous in bits 2-3)
 /// plus a high-nibble flag; `func_800D930C` rotates the current mode
 /// into the previous slot and starts `field_4F` as a 0x10 blend timer.
+/// `next` and signed `field_4B` are the `D_8011556C` list walked by
+/// `func_800E0B08`, which clears a non-zero `field_4B`.
 typedef struct _GpObj4C {
-    /* 0x00 */ byte pad_0[0x4C];
-    /* 0x4C */ u8   field_4C;
-    /* 0x4D */ byte pad_4D;
-    /* 0x4E */ u8   field_4E;
-    /* 0x4F */ u8   field_4F;
+    /* 0x00 */ struct _GpObj4C* next;
+    /* 0x04 */ byte             pad_4[0x47];
+    /* 0x4B */ s8               field_4B;
+    /* 0x4C */ u8               field_4C;
+    /* 0x4D */ byte             pad_4D;
+    /* 0x4E */ u8               field_4E;
+    /* 0x4F */ u8               field_4F;
 } GpObj4C;
 STATIC_ASSERT_SIZEOF(GpObj4C, 0x50);
 
@@ -135,6 +139,7 @@ extern s32 D_8010F9F0;
 
 extern GpStateF0 D_801153F0;
 extern u8        D_801153F3;
+extern GpObj4C* D_8011556C;
 extern GpObj* D_80115570;
 extern GpObj* D_80115574;
 extern GpObj* D_80115578;

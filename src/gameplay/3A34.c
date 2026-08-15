@@ -405,7 +405,16 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E08CC);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0994);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0B08);
+void func_800E0B08(void)
+{
+    GpObj4C* node;
+
+    for (node = D_8011556C; node != NULL; node = node->next) {
+        if (node->field_4B != 0) {
+            node->field_4B = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0B48);
 
