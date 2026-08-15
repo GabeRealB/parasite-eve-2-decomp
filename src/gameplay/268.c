@@ -170,7 +170,16 @@ void func_800BAE38(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAE5C);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAEC0);
+void func_800BAEC0(s32 arg0)
+{
+    s32* p;
+
+    p     = D_80072714;
+    arg0 &= 0x7F;
+    p    += arg0 / 32;
+    arg0 %= 32;
+    *p   &= ~(1 << arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAF08);
 
