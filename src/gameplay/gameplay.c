@@ -4,9 +4,11 @@
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/mem.h"
+#include "main/pad.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
+#include "main/ui.h"
 #include "main/wipsys.h"
 
 extern u8             D_801153F1;
@@ -17,6 +19,9 @@ extern WipSysConfig   D_80073B88;
 extern TmdListHead*   D_800711BC;
 extern TmdListHead*   D_800711C4;
 extern GsCOORDINATE2* D_80114B9C;
+extern char           D_80093870[]; // "Item"
+extern s32            D_8005ED70;
+extern s32            D_8005ED74;
 
 void func_800A1634(s32 arg0, s32 arg1);
 void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -320,7 +325,19 @@ void func_800A78EC(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7918);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A79F8);
+void func_800A79F8(Task* arg0)
+{
+    UiObject* obj;
+
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    Ui_DrawTitle(obj, D_80093870);
+    if (obj->status == 1) {
+        if (Pad_CheckButtons(0, 1, D_8005ED70 | D_8005ED74) != 0) {
+            obj->field_2E = 6;
+        }
+    }
+}
 
 void func_800A7A64(void)
 {

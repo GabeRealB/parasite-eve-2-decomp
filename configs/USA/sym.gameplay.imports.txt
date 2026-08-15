@@ -197,6 +197,7 @@ func_80048E10 = 0x80048E10; // absolute:True
 func_80048E2C = 0x80048E2C; // absolute:True
 Ui_Scale15 = 0x80048E2C; // absolute:True
 func_80048E38 = 0x80048E38; // absolute:True
+Ui_DrawTitle = 0x80048E38; // absolute:True
 func_80049024 = 0x80049024; // absolute:True
 func_800490A4 = 0x800490A4; // absolute:True
 func_800490C8 = 0x800490C8; // absolute:True
