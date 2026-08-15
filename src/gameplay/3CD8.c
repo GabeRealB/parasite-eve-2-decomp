@@ -14,6 +14,7 @@
 #include "main/wipsys.h"
 
 extern TaskFuncTable3 D_800974C8;
+extern TaskFuncTable3 D_8009752C;
 extern TaskDesc       D_8010FAEC[];
 extern s32            D_8010FB90[];
 extern u16            D_80112D68[];
@@ -604,7 +605,13 @@ s32 func_800E74EC(s32 arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E7570);
+void func_800E7570(Task* arg0)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_8009752C;
+    sp.funcs[arg0->state](arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E75C8);
 
