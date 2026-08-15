@@ -23,7 +23,16 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9310);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A954C);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A95E0);
+void func_800A95E0(Task* task)
+{
+    if (CdCmd_Queue.field_1FA != 0) {
+        task->killCountdown++;
+    }
+    if (task->killCountdown >= 3) {
+        task->state = -1;
+        func_800A9730(task);
+    }
+}
 
 void func_800A9630(Task* task)
 {
