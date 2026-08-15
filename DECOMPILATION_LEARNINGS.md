@@ -13758,4 +13758,27 @@ if ((u32)idx < 0x20) {
 `p = &table[arg0]` (not `table[arg0].field`) is what schedules `sll` before
 the table `lui`. `func_800BC324` is the example.
 
+## Load the global first so `lui` precedes `xori`/`sltu` of `!= 1`
+
+`flag = arg != 1` is `xori a1, a1, 1` / `sltu s0, s1, a1`. If the next use
+of a global is only at the call, both `lui %hi` and `lbu %lo` sit after the
+`sltu`. The target often issues the `lui` right after `move s1, zero` and
+keeps the `lbu` after the compare.
+
+Assign the load to a local *before* the compare. The scheduler starts the
+address immediately and fills the gap with the independent xor/sltu:
+
+```c
+ret  = 0;
+item = cfg.field;     /* lui early */
+flag = arg1 != 1;     /* xori + sltu between lui and lbu */
+if (func(item + K, flag) == 1) {
+    other(arg0, flag, ret);
+    ret = 1;
+}
+```
+
+A bare `func(cfg.field + K, arg1 != 1)` leaves `lui`/`lbu` glued together
+after `sltu` (~98%). `func_801062DC` is the example.
+
 

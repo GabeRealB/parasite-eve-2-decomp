@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/1BC.h"
+#include "gameplay/268.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
@@ -48,6 +49,7 @@ void  func_80107E1C(GpActorWork* arg0);
 void  func_80108684(GpActorWork* arg0);
 void  func_8010870C(GpActorWork* arg0, s32 arg1);
 void  func_80108770(GpActorWork* arg0, s32 arg1);
+void  func_801088D4(GpActorWork* arg0, s32 arg1, s32 arg2);
 void  func_80109290(GpActorWork* arg0);
 void  func_80109374(GpActorWork* arg0);
 void  func_801093DC(GpActorWork* arg0);
@@ -598,7 +600,21 @@ void func_80106238(GpActorWork* arg0, s32 arg1, s32 arg2)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106264);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801062DC);
+s32 func_801062DC(GpActorWork* arg0, s32 arg1)
+{
+    s32 ret;
+    s32 flag;
+    s32 item;
+
+    ret  = 0;
+    item = D_80073B88.field_21;
+    flag = arg1 != 1;
+    if (func_800BB418(item + 0x7F, flag) == 1) {
+        func_801088D4(arg0, flag, ret);
+        ret = 1;
+    }
+    return ret;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106350);
 
