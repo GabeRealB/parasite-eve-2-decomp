@@ -107,7 +107,9 @@ typedef struct _GameActor {
     /* 0x930 */ byte                field_930; // address taken for func_801011D0
     /* 0x931 */ byte                pad_931[3];
     /* 0x934 */ s32                 field_934;
-    /* 0x938 */ byte                pad_938[8];
+    /* 0x938 */ byte                pad_938[4];
+    /* 0x93C */ u16                 field_93C;
+    /* 0x93E */ byte                pad_93E[2];
     /* 0x940 */ s16                 field_940;
     /* 0x942 */ byte                pad_942[2];
     /* 0x944 */ s16                 field_944;
