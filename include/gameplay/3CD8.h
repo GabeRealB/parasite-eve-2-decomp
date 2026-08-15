@@ -26,6 +26,15 @@ typedef struct _GpEvt12 {
 } GpEvt12;
 STATIC_ASSERT_SIZEOF(GpEvt12, 0xC);
 
+/// Three overlay ids passed through `func_800E7498` (table cmd 0xFA6)
+/// to `CdCmd_StartOverlay`.
+typedef struct _GpOverlayIds {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+    /* 0x4 */ u16 field_4;
+} GpOverlayIds;
+STATIC_ASSERT_SIZEOF(GpOverlayIds, 6);
+
 /// Packed bytes in `Task::spawnArg1` for `func_800E6F60`.
 /// `field_0` is forwarded as a2 to `func_800AC464`.
 /// `field_1` is copied into `Task::killCountdown` on state 0.

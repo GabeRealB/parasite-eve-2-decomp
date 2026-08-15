@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/mem.h"
@@ -35,6 +36,8 @@ extern s32*         D_801156A0;
 extern u8           D_801156A4;
 extern s32          D_801156A8;
 extern s8           D_801156B0;
+extern s8           D_801156B1;
+extern s32          D_801156B4;
 extern Task*        D_801156B8;
 extern s16          D_801156BC;
 extern u8           D_80115700;
@@ -443,7 +446,15 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E73E8);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E7434);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E7498);
+s32 func_800E7498(s32 arg0, s32 arg1, GpOverlayIds* arg2)
+{
+    if (arg2 != NULL) {
+        CdCmd_StartOverlay(arg2->field_0, arg2->field_2, arg2->field_4);
+    }
+    D_801156B4 = 1;
+    D_801156B1 = arg2 != NULL;
+    return 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E74EC);
 

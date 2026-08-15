@@ -28,6 +28,7 @@ func_8001D424 = 0x8001D424; // absolute:True
 func_8001D498 = 0x8001D498; // absolute:True
 CdCmd_SelectMdecBuffer = 0x8001D498; // absolute:True
 func_8001D534 = 0x8001D534; // absolute:True
+CdCmd_StartOverlay = 0x8001D534; // absolute:True
 func_8001D580 = 0x8001D580; // absolute:True
 func_8001D588 = 0x8001D588; // absolute:True
 func_8001D5C4 = 0x8001D5C4; // absolute:True
