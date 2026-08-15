@@ -14263,4 +14263,35 @@ if (*slot != NULL) {
 stuck at ~92% with the table `lui` hoisted and the stack adjust first.
 `func_800CFE68` is the example.
 
+## Reassign `(u16)arg` after a narrower store so `andi` reuses the arg reg
+
+A u8 store of an s32 parameter (`sb a2, field`) followed by a u16 compare
+(`andi a2, a2, 0xffff; bne a2, v0`) needs the mask to rewrite the same
+register the store just used. Writing
+
+```c
+p->field_u8 = arg;
+if ((u16)arg == 1) {
+    p->field_u16 = arg;
+}
+```
+
+andi's into a fresh dest (`andi v1, a2, 0xffff`) *before* the `sb`, and the
+`sb` slips into the `bne` delay slot. That also kicks `li v0, 2` out of the
+delay slot.
+
+Store first, then narrow the parameter in place:
+
+```c
+p->field_u8 = arg;
+arg = (u16)arg;
+if (arg == 1) {
+    p->field_u16 = arg; /* sh a2 */
+} else {
+    p->field_u16 = 2;   /* li v0, 2 was the bne delay slot */
+}
+```
+
+`func_8010B2D4` is the example.
+
 

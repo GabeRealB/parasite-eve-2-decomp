@@ -1501,7 +1501,26 @@ void func_8010B2A0(s32 arg0, s32 arg1)
     Task_SpawnFromTable(D_80113340, arg0, arg1, 0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B2D4);
+void func_8010B2D4(GpActorWork* arg0, GpIdRec* arg1, s32 arg2)
+{
+    GameActor* inner;
+    s32        out;
+    s32        flag;
+
+    inner = arg0->actor;
+    flag  = inner->field_910 != 0;
+    if ((u16)inner->field_96C == 0) {
+        inner->field_993 = arg2;
+        arg2             = (u16)arg2;
+        if (arg2 == 1) {
+            inner->field_96C = arg2;
+        } else {
+            inner->field_96C = 2;
+        }
+        inner->field_96E = func_800E2438(arg1->field_4, 0, &out, flag);
+        inner->field_972 = out;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B348);
 
