@@ -4,6 +4,7 @@
 #include "main/gameflag.h"
 #include "main/mc.h"
 #include "main/mem.h"
+#include "main/pad.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/wipsys.h"
@@ -364,7 +365,14 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E8D1C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E8E00);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E8F68);
+void func_800E8F68(void)
+{
+    D_80115700              = 1;
+    D_80115701              = 1;
+    D_80115702              = 1;
+    Game_Session->field_13B = 0;
+    Pad_ClearEvents(0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E8FB0);
 

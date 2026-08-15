@@ -55,6 +55,7 @@ Pad_SetCooldown = 0x8002C9B0; // absolute:True
 Pad_ClearCooldown = 0x8002C9E0; // absolute:True
 func_8002CA0C = 0x8002CA0C; // absolute:True
 func_8002CA54 = 0x8002CA54; // absolute:True
+Pad_ClearEvents = 0x8002CA54; // absolute:True
 Task_Kill = 0x8002CCB8; // absolute:True
 func_8002CFA0 = 0x8002CFA0; // absolute:True
 Task_Spawn = 0x8002CFDC; // absolute:True

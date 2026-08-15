@@ -52,7 +52,8 @@ typedef struct _GameSession {
     s16   field_80;
     byte  unknown_82[0xAA];
     u8    field_12C;
-    byte  unknown_12D[0xF];
+    byte  unknown_12D[0xE];
+    u8    field_13B;
 } GameSession;
 STATIC_ASSERT_SIZEOF(GameSession, 0x13C);
 
