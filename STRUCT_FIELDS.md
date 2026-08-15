@@ -516,6 +516,7 @@ See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 | 0x4C | `field_4C` | Init flag |
 | 0x4E | `field_4E` | Set by `Fs_LoadFile` for category-8 |
 | 0x52 | `field_52` | s16 cleared by `func_800A9730` when `spawnArg1 == 0` |
+| 0x68 | `field_68` | u8 flag; set to 1 by `func_800E7378` and cleared by `func_800E73E8` / `func_800E7434` when `D_8007218B != 9` |
 | 0x7C–80 | halfwords | Counters / mode |
 | 0x126 | `field_126` | u8 flag; nonzero skips `func_800A7A64` display-mode init |
 | 0x128 | `field_128` | u8; `0xFF` sentinel (`func_800B0748` / `func_800B082C`) |

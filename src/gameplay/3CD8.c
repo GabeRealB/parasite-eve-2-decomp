@@ -460,7 +460,19 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E7378);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E73E8);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E7434);
+s32 func_800E7434(void)
+{
+    if (D_8007218B == 9) {
+        if (D_801156B8 == NULL) {
+            return 0;
+        }
+        Task_Kill(D_801156B8);
+        D_801156B8 = NULL;
+    } else {
+        Game_Session->field_68 = 0;
+    }
+    return 0;
+}
 
 s32 func_800E7498(s32 arg0, s32 arg1, GpOverlayIds* arg2)
 {
