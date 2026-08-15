@@ -365,6 +365,7 @@ s32  func_800E2BF8(GpObj50* arg0, s32 arg1);
 s32  func_800E2C40(GpU16Pair* arg0, s32 arg1);
 s32  func_800E2CD4(s32 arg0, s32 arg1);
 s32  func_800E2D3C(s32 arg0);
+s32  func_800E2D90(s32 arg0);
 void func_800E3008(GpObj4C* arg0);
 s32  func_800E3194(s32 arg0);
 void func_800E337C(Task* arg0);
