@@ -1,9 +1,12 @@
 #include "common.h"
 
+#include "gameplay/268.h"
 #include "gameplay/3A34.h"
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/task.h"
+
+s32 func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D5B14);
 
@@ -11,7 +14,20 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D6170);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D6334);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D68C4);
+s32 func_800D68C4(s32 arg0)
+{
+    s32 val;
+
+    val = D_8010F88C;
+    if (val <= 0) {
+        if (val >= 0) {
+            return -1;
+        }
+        val = -val;
+    }
+    D_8010F88C = 0;
+    return func_800B715C(&D_80072724, arg0, val, -1);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D6910);
 

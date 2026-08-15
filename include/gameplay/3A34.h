@@ -83,6 +83,10 @@ typedef struct _GpStateF0 {
 } GpStateF0;
 STATIC_ASSERT_SIZEOF(GpStateF0, 0x8);
 
+/// Signed pending item id consumed by `func_800D68C4`. `func_800D5B14`
+/// stores the id, or its negation for the second `GpItemSlot` pair.
+extern s32 D_8010F88C;
+
 /// Head of the `GpLinkNode` list walked by `func_800DAB38` / `func_800DABEC`.
 extern GpLinkNode* D_80115268;
 
@@ -108,6 +112,7 @@ extern GpObj* D_80115590;
 extern s32    D_80115424;
 extern s32    D_80115448;
 
+s32   func_800D68C4(s32 arg0);
 void  func_800D930C(GpObj4C* arg0, s32 arg1);
 s32   func_800D9340(GpObj38* arg0);
 s32   func_800D937C(GpObj38* arg0);

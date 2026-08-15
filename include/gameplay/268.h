@@ -68,6 +68,7 @@ STATIC_ASSERT_SIZEOF(GpItemQty, 0x4);
 extern s32        D_80072714[4];
 extern GpItemRec  D_80072314[];
 extern GpItemSlot D_80072330[];
+extern GpItemScan D_80072724;
 extern GpItemQty  D_8010D278[];
 extern GpItemMap  D_8010D2F8[];
 extern GpItemScan D_8010D520;
