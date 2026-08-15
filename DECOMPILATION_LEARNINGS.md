@@ -13082,3 +13082,25 @@ A separate `extern` for the nearby BSS symbol rematerializes `%hi/%lo`. An
 overlay struct on the same base (`GpItemBlock.scan` at +0x3F4) is what
 emits `addiu a0, v0, 0x3F4`. `func_800BB418` is the pure example.
 
+## Write a dead `||` as one expression, not `if` / `else if`
+
+When a boolean is stored and then only used in a way GCC later deletes
+(`if (cond) return 0; return 0;`), the last operand of `A || B` must stay a
+branch (`bnez` / `li 1` / `move 0`), not `sltu`.
+
+```c
+if ((p->field_0 == 1 && p->field_6 != 0) || p->field_1 != 0) {
+    cond = 1;
+} else {
+    cond = 0;
+}
+if (cond) {
+    return 0;
+}
+return 0;
+```
+
+The equivalent `if (A) cond = 1; else if (B) cond = 1; else cond = 0;` lets
+combine turn the last arm into `sltu v1, zero, v0`. Dropping the `if (cond)`
+lets DCE delete the whole predicate. `func_800A7CB0` is the example.
+

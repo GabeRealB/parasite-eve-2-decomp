@@ -343,7 +343,22 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7B20);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7BBC);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7CB0);
+s32 func_800A7CB0(void)
+{
+    GpStateF0* p;
+    s32        cond;
+
+    p = &D_801153F0;
+    if ((p->field_0 == 1 && p->field_6 != 0) || p->field_1 != 0) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        return 0;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7CF4);
 
