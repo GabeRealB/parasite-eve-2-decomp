@@ -6,6 +6,7 @@
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
+#include "main/gamemain.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -37,6 +38,7 @@ extern TaskDesc D_8018384C[];
 extern s32      D_8010D208[];
 extern char     D_800939F8[];
 extern s32      D_80070F10;
+extern s32      D_80114D20;
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AF590);
 
@@ -50,7 +52,19 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0034);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B00C4);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0118);
+s32 func_800B0118(s32 arg0, s32 arg1)
+{
+    s16 temp;
+
+    temp = arg0;
+    if (temp != 0) {
+        D_80114D20  = temp;
+        D_8005EC80 |= 8;
+    } else {
+        D_8005EC80 &= ~8;
+    }
+    return 0;
+}
 
 void func_800B015C(void* arg0)
 {
