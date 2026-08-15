@@ -631,7 +631,21 @@ void func_80106238(GpActorWork* arg0, s32 arg1, s32 arg2)
     actor->field_124 = (actor->field_124 & 0xFFFF3FFF) | (((arg1 << 1) | arg2) << 14);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106264);
+s32 func_80106264(s32 arg0)
+{
+    s32 item;
+    s32 ret;
+
+    item = D_80073B88.field_21 + 0x7F;
+    ret  = 0;
+    if (arg0 & 1) {
+        ret = func_800B6DA4(item, 0);
+    }
+    if (arg0 & 2) {
+        ret |= func_800B6DA4(item, 0x100) << 16;
+    }
+    return ret;
+}
 
 s32 func_801062DC(GpActorWork* arg0, s32 arg1)
 {

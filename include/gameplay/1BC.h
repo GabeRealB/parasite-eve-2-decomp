@@ -119,5 +119,6 @@ s32*     func_800B4668(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B57EC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
 void     func_800B58D4(TmdObject* arg0, s32 arg1, s32 arg2);
 GpAreaObj* func_800B5A08(GpAreaKey* arg0);
+s32        func_800B6DA4(s32 arg0, s32 arg1);
 
 #endif // GAMEPLAY_1BC_H
