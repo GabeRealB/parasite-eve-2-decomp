@@ -759,11 +759,12 @@ Most members are s16. `func_800EA3A0` writes `arg0 + 1` to `field_C`.
 
 ### `GpCoord64` (0x64) — `3CD8.h`
 Eight-slot table at `D_80114F30`. `func_800EA3EC` inits every slot;
-`func_800EA3B4` decrements `field_0` when non-zero.
+`func_800EA3B4` decrements `field_0` when non-zero. `func_800D9618`
+returns the number of slots whose `field_0` is non-zero.
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x00 | `field_0` | s32 refcount; cleared by `func_800EA3EC`, decremented by `func_800EA3B4` |
+| 0x00 | `field_0` | s32 refcount; cleared by `func_800EA3EC`, decremented by `func_800EA3B4`, counted by `func_800D9618` |
 | 0x04 | `coord` | Embedded `GsCOORDINATE2`; `coord.sub` is parented to `&D_80070F10` |
 
 ---

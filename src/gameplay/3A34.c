@@ -2,6 +2,7 @@
 
 #include "gameplay/268.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
@@ -104,7 +105,19 @@ void func_800D9550(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D957C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9618);
+s32 func_800D9618(void)
+{
+    s32 count;
+    s32 i;
+
+    count = 0;
+    for (i = 0; i < 8; i++) {
+        if (D_80114F30[i].field_0 != 0) {
+            count++;
+        }
+    }
+    return count;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9654);
 

@@ -76,7 +76,8 @@ STATIC_ASSERT_SIZEOF(GpState1C, 0x1C);
 
 /// 0x64-byte world-coord slot. `func_800EA3EC` inits all 8 entries of
 /// `D_80114F30`: `coord.sub` is the parent (`&D_80070F10`) and `field_0`
-/// is a refcount (decremented by `func_800EA3B4`).
+/// is a refcount (decremented by `func_800EA3B4`). `func_800D9618` returns
+/// how many slots currently have a non-zero refcount.
 typedef struct _GpCoord64 {
     /* 0x00 */ s32           field_0;
     /* 0x04 */ GsCOORDINATE2 coord;

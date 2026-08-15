@@ -469,6 +469,23 @@ do {
 `u32` + `< N` produces `sltiu`/`bnez`. Signed `i` or a counting-down `for`
 does not.
 
+When the target is signed `slti`/`bnez` (not `sltiu`) and the body also
+increments a second counter, a pointer `p++` plus `i++` still becomes
+`li N-1; bgez`. Index the typed array instead (`func_800D9618`):
+
+```c
+count = 0;
+for (i = 0; i < 8; i++) {
+    if (D_80114F30[i].field_0 != 0) {
+        count++;
+    }
+}
+```
+
+GCC strength-reduces `&arr[i]` to `p++` but keeps the incrementing `i` and
+`slti`. A `while (1) { ...; i++; if (i >= N) break; }` also matches, but
+array indexing is the natural form.
+
 ## Finding which pass causes a mismatch
 
 Rather than guessing at C-level rewrites, dump the RTL and find the pass that
