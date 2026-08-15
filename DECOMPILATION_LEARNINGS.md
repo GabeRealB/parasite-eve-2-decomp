@@ -13104,3 +13104,28 @@ The equivalent `if (A) cond = 1; else if (B) cond = 1; else cond = 0;` lets
 combine turn the last arm into `sltu v1, zero, v0`. Dropping the `if (cond)`
 lets DCE delete the whole predicate. `func_800A7CB0` is the example.
 
+## Pin a later-used call arg to `$s0` so the `Task*` stays in `$s1`
+
+When the target saves `$s1` first (`sw s1; move s1,a0; sw ra; sw s0`) the
+incoming `Task*` is in `$s1` and a value only loaded later (then passed
+across calls) is in `$s0`. First-use allocation gives `$s0` to the task and
+swaps the two.
+
+Pin the later value; leave the parameter unpinned:
+
+```c
+register s32 val asm("s0");
+
+switch (task->state) {
+case 1:
+    if (task->killCountdown == 0) {
+        val = arg->field_0; /* live across func_800AC464 */
+        ...
+    }
+}
+```
+
+Pinning both (`task` to `$s1` and `val` to `$s0`) also matches, but only
+`val` is required. `func_800E6F60` is the example. Inverse of "Copy `arg1`
+to a dest local so `arg0` keeps `$s0`".
+

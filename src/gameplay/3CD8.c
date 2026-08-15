@@ -47,6 +47,7 @@ s32   func_800E6CF0(void);
 void  func_800E6D60(s32 arg0);
 void  func_800E6E50(void);
 s16   func_800E6EA0(s16 arg0);
+s32   func_800E86FC(s32 arg0);
 void  func_8003F6F8(void);
 void  func_800E8634(s32 arg0, s32 arg1, s32 arg2);
 void  func_800E8A90(Task* task);
@@ -260,7 +261,43 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6EA0);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6EF4);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6F60);
+void func_800E6F60(Task* task)
+{
+    register s32 val asm("s0");
+    GpSpawnArg*  arg;
+    s32          mode;
+    Task*        slot;
+
+    switch (task->state) {
+        case 0:
+            arg                 = (GpSpawnArg*)&task->spawnArg1;
+            task->killCountdown = arg->field_1;
+            task->state++;
+            break;
+        case 1:
+            if (task->killCountdown == 0) {
+                arg  = (GpSpawnArg*)&task->spawnArg1;
+                mode = arg->field_2;
+                val  = arg->field_0;
+                if (mode == 0) {
+                    func_800AC464(Game_GetPtrSlot(3), 0x401, val, 0);
+                } else if (mode == 1) {
+                    slot = Game_GetPtrSlot(0xA);
+                    if (slot != NULL) {
+                        func_800AC464(slot, 0x401, val, 0);
+                    }
+                } else {
+                    slot = (Task*)func_800E86FC(mode - 2);
+                    if (slot != NULL) {
+                        func_800AC464(slot, 0x7E0, val, 0);
+                    }
+                }
+                Task_Kill(task);
+            }
+            task->killCountdown--;
+            break;
+    }
+}
 
 void func_800E704C(void)
 {
