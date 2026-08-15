@@ -456,7 +456,24 @@ GpItemMap* func_800BBDC8(s32 arg0)
     return &D_8010D2F8[arg0];
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBDDC);
+s32 func_800BBDDC(void)
+{
+    s32         found;
+    GpItemScan* scan;
+    s32         i;
+    GpItemMap*  p;
+
+    found = 0;
+    scan  = &Mc_SaveData.field_5BC;
+    for (i = 0, p = D_8010D2F8; i < 8; i++) {
+        if (func_800BB6FC(scan, p->field_1)) {
+            found = 1;
+            break;
+        }
+        p++;
+    }
+    return found;
+}
 
 void func_800BBE54(void)
 {
