@@ -12993,3 +12993,33 @@ if ((temp >> 17) < hp) {
 `(u16)s16_field << 16` is what produces the shared `lhu` / `sll 16` used by
 both `sra 17` and `sra 18`. `func_80103B1C` is the pure example.
 
+## Split-constant `lui v0` before a 1-based index
+
+A leaf that compares `arr[arg0 - 1]` to a >16-bit constant (`0x1869E` →
+`lui` + delayed `ori`) wants:
+
+```
+lui    v0, HIGH
+addiu  a0, a0, -1
+lui    v1, %hi(base)
+addiu  v1, v1, %lo(base)
+```
+
+A bare `arr[arg0 - 1] <= 0x1869E` emits the decrement *after* the address
+`lui`/`addiu` and colours the constant into `$v1`. Assign the cap first and
+materialise the index as its own statement, then pin the cap so the split
+immediate stays in `$v0`:
+
+```c
+register s32 cap asm("v0");
+s32          idx;
+
+cap = 0x1869E;
+idx = arg0 - 1;
+if (p->arr[idx] <= cap) {
+    p->arr[idx]++;
+}
+```
+
+`func_80106518` is the example.
+

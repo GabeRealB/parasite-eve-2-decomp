@@ -459,7 +459,17 @@ void func_801064A4(GpObj38* arg0, s32 arg1, s32 arg2)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106518);
+void func_80106518(s32 arg0)
+{
+    register s32 cap asm("v0");
+    s32          idx;
+
+    cap = 0x1869E;
+    idx = arg0 - 1;
+    if (Mc_SaveData.field_888[idx] <= cap) {
+        Mc_SaveData.field_888[idx]++;
+    }
+}
 
 void func_80106550(GpActorWork* arg0)
 {
