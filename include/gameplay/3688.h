@@ -3,6 +3,22 @@
 
 #include "common.h"
 
+#include "main/task.h"
+
+struct _UiObject;
+
+/// Callback for UiObject + Task state handlers (e.g. entries in `D_80096F7C`).
+typedef void (*UiObjectTaskFunc)(struct _UiObject* arg0, Task* arg1);
+
+/// Fixed-size table of `UiObjectTaskFunc` callbacks. Copied onto the stack by
+/// `func_800CE498` so the call uses a local jump table.
+typedef struct {
+    UiObjectTaskFunc funcs[3];
+} UiObjectTaskFuncTable3;
+
+/// Three-entry dispatcher table: `func_800CE3B4`, `func_800C010C`, `func_800C02A0`.
+extern UiObjectTaskFuncTable3 D_80096F7C;
+
 /// 0xE-byte per-room record in tables pointed to by `D_8010F0F4`.
 /// Indexed by `GameSession.field_7 - 1` then `GameSession.field_6`.
 /// field_0/field_2 are signed coords, field_4/field_6 unsigned extents,

@@ -340,7 +340,13 @@ s32 func_800CE3A4(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE3B4);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE498);
+void func_800CE498(Task* arg0)
+{
+    UiObjectTaskFuncTable3 sp;
+
+    sp = D_80096F7C;
+    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+}
 
 void func_800CE4F4(UiObject* arg0, Task* arg1)
 {
