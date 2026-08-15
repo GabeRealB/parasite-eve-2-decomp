@@ -431,7 +431,18 @@ s32* func_800B4668(GpAnimCtx* arg0, GpAnimSlot* arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B46A4);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B4754);
+void func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3)
+{
+    u16 limit;
+
+    limit = arg1->field_20[arg2]->field_4[arg1->field_15];
+    if (arg3 < limit) {
+        arg3            = limit;
+        arg1->field_10 |= 1;
+    }
+    arg1->field_2 = arg3;
+    arg1->field_0 = arg2;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B47A8);
 
