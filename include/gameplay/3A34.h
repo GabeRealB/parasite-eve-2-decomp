@@ -186,6 +186,14 @@ extern u8 D_80114F18;
 /// Override SVECTOR copied by `func_800D94B8` from its argument.
 extern SVECTOR D_80114F20;
 
+/// Flag set by `func_800D9504` when an override SVECTOR is stored at
+/// `D_80115258`. Cleared when that function is called with NULL, and
+/// also by `func_800D9D18`.
+extern u8 D_80115250;
+
+/// Override SVECTOR copied by `func_800D9504` from its argument.
+extern SVECTOR D_80115258;
+
 /// 8.8 fixed-point pair lerped toward projected screen coords by
 /// `func_800D9DFC`. Reset to `0xFFF00000` by `func_800DAFD0`.
 extern s32 D_8010F9EC;
@@ -228,6 +236,7 @@ void  func_800D930C(GpObj4C* arg0, s32 arg1);
 s32   func_800D9340(GpObj38* arg0);
 s32   func_800D937C(GpObj38* arg0);
 void  func_800D94B8(SVECTOR* arg0);
+void  func_800D9504(SVECTOR* arg0);
 void  func_800D9550(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3);
 s32   func_800D9618(void);
 s32   func_800D9788(GpObj38* arg0);

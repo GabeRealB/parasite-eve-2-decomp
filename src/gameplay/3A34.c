@@ -123,7 +123,15 @@ void func_800D94B8(SVECTOR* arg0)
     D_80114F20 = *arg0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9504);
+void func_800D9504(SVECTOR* arg0)
+{
+    if (arg0 == NULL) {
+        D_80115250 = 0;
+        return;
+    }
+    D_80115250 = 1;
+    D_80115258 = *arg0;
+}
 
 void func_800D9550(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
