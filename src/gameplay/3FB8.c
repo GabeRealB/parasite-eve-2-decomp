@@ -5,6 +5,7 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/mc.h"
 #include "main/mem.h"
@@ -1118,7 +1119,18 @@ void func_80109250(GpActorWork* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109290);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109374);
+void func_80109374(GpActorWork* arg0)
+{
+    GameActor* inner;
+
+    inner = arg0->actor;
+    if ((inner->field_962 & 0x80) && (D_80114C08.field_3 == 0) && (Wip_SysConfig.field_21 != 0) &&
+        (inner->field_991 == 0)) {
+        inner->field_97D = 1;
+    } else {
+        inner->field_97D = 2;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801093DC);
 

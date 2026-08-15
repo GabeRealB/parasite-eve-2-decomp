@@ -574,13 +574,18 @@ slot 3; `func_80106238` replaces bits 14–15 with `(arg1 << 1) | arg2`.
 `func_8010A9D0` compares `field_96C` as `u16` (`lhu`) against 1 and passes `0x10` or `0x11` to `func_80103A18`;
 `field_973`/`field_974` and `field_975`/`field_976` are signed-byte pairs compared by `func_80108568` (first mismatch → `func_80108770(..., 4)`; second mismatch only when `field_973 == 0` → `func_80108684`);
 `field_97C` is a signed flag byte (`lb`/`sb`); `func_80108FD4` / `func_80108458` clear it before `func_80108E0C` or `func_80103B5C`;
-`field_97D` is a flag byte (`lbu`); bit 0x4 selects `func_801055D4` vs `func_80108770` in `func_80106550`;
+`field_97D` is a flag byte (`lbu`/`sb`); `func_80109374` writes 1 when `field_962`
+bit 0x80 is set, `D_80114C08.field_3 == 0`, `Wip_SysConfig.field_21 != 0`, and
+`field_991 == 0`, else 2. Callers test bit 0x1 (`func_801085D0` / `func_801090E8`)
+or bit 0x2 (`func_80108458` / `func_80108FD4`). Bit 0x4 selects `func_801055D4`
+vs `func_80108770` in `func_80106550`;
 `field_97E` is a flag byte set to 1 by `func_80103B5C` / `func_80103F70` (no `field_90C`, or `field_4` bit 0 set). `func_80103F70` compares it as signed (`lb`) against 2 before the `field_21 == 0x17` helpers;
 `field_97F` is a signed result byte (`lb`/`sb`); `func_801060E0` writes 1 / 2 / 0 from button bits (mask 0x8/0x2, or 0x80/0x10 when `field_954` and `D_80072310` are both 2);
 `field_981` is a u8 counter cleared with the 0x954–0x95E cluster; `func_801041FC` increments it from 0 (`lb`/`lbu`);
 `field_983` is a u8 flag byte (`lbu`/`sb`); `func_8010AA28` ORs in `0x18` after `func_80103B5C`;
 `field_987`/`field_988`/`field_989` and `field_98A`/`field_98B`/`field_98C` are two u8 groups written by command `0x401` (`func_80105AB0`): arg 0 sets them to (1,0,0) and (2,0,0); args 1–3 write the first group as `(arg+1, 0, 0)`; args ≥4 write the second as `(arg-3, 0, 0)` (and `field_98C`);
 `field_98D`/`field_98E`/`field_990` are companion bytes (case 10 also stores `rand() & 0x1F + 0xA`).
+`field_991` is a signed flag byte (`lb`); `func_80109374` requires it 0 to write `field_97D = 1`.
 `field_993` is a u8 (`sb`) copy of the third arg of `func_8010B2D4` / `func_8010B348`, written only when `field_96C` is 0.
 
 ### `GpActorD4`
@@ -625,6 +630,17 @@ slot is occupied, else 0, then calls `func_801061F0`.
 ---
 
 ## Gameplay overlay (`include/gameplay/`)
+
+### `GpStateC08` (0x10) — `gameplay.h`
+Global at `D_80114C08`. Splat also emits per-byte labels (`D_80114C0A` / `D_80114C0B` / …)
+for the same block.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | u16 loaded by many helpers |
+| 0x03 | `field_3` | s8 state (`lb`); `func_80109290` compares to -2; `func_80109374` requires 0 |
+| 0x06 | `field_6` | Flags; bit 0 gates `func_800A7DB8` writing `field_E` |
+| 0x0E | `field_E` | Written by `func_800A7DB8` when `field_6` bit 0 is clear |
 
 ### `GpLinkNode` (0x8) — `3A34.h`
 | Off | Member | Role |
