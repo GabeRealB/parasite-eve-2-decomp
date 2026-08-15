@@ -112,6 +112,7 @@ s32         func_800BB6FC(GpItemScan* arg0, s32 arg1);
 void        func_800BB7C0(s32 arg0, s32 arg1);
 void        func_800BB8E8(s32 arg0, u8 arg1, s32 arg2);
 s32         func_800BB974(GameSessionFrom4* arg0, s32 arg1);
+s32         func_800BBD40(s32 arg0);
 GpItemMap*  func_800BBDC8(s32 arg0);
 s32         func_800BBDDC(void);
 void        func_800BBE54(void);

@@ -606,6 +606,33 @@ GCC strength-reduces `&arr[i]` to `p++` but keeps the incrementing `i` and
 `slti`. A `while (1) { ...; i++; if (i >= N) break; }` also matches, but
 array indexing is the natural form.
 
+The same `&arr[i]` form is required when the loop starts at a runtime index
+(`i = arg0`) and the target computes the scaled address *after* the entry
+`slti`/`beqz` (`lui`/`addiu`/`sll`/`addu` in the delay slot). Putting
+`p = &arr[arg0]` in the for-init hoists that multiply *before* the check
+and inserts a dead `li v0,-1` in the `beqz` delay slot.
+
+```c
+/* BAD ~83%: p = &arr[arg0] in the for-init */
+for (i = arg0, p = &D_8010D2F8[arg0]; i < 8; i++) {
+    if (func(scan, p->field_1)) {
+        return i;
+    }
+    p++;
+}
+
+/* GOOD: assign inside the body; GCC still emits p++ */
+for (i = arg0; i < 8; i++) {
+    p = &D_8010D2F8[i];
+    if (func(scan, p->field_1)) {
+        return i;
+    }
+}
+```
+
+`func_800BBD40` is the example. The outer `(u32)arg0 >= 8` early `-1` is a
+separate `sltiu`/`bnez` and must stay outside the loop.
+
 ## Hoist `%hi(store_global)` before the array base
 
 When the target sets up two callee-saved addresses as
