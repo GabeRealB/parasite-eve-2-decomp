@@ -33,6 +33,7 @@ extern s16            D_80114C40;
 
 void func_800A1634(s32 arg0, s32 arg1);
 void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_800A7320(s16* arg0);
 void func_800A6F38(GpEnemy* arg0, void* arg1);
 s32  func_800A7B20(s32 arg0);
 void func_800B065C(u8 arg0);
@@ -472,7 +473,18 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7600);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A76A4);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7744);
+void func_800A7744(Task* arg0)
+{
+    func_800A7320(&arg0->killCountdown);
+    arg0->spawnArg1++;
+    if (arg0->spawnArg1 == 0x40) {
+        if (Game_Session->field_128 == 3) {
+            Display_State.field_104 = 1;
+        }
+        arg0->spawnArg1 = 0;
+        arg0->state++;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A77B4);
 
