@@ -1,14 +1,18 @@
 #include "common.h"
 
+#include "gameplay/3A34.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/mem.h"
+#include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/wipsys.h"
 
 extern u8             D_801153F1;
 extern s32            D_8010CA28;
+extern u8             D_80071097; // Display_State.field_12f
+extern TaskDesc       D_8010CABC;
 extern WipSysConfig   D_80073B88;
 extern TmdListHead*   D_800711BC;
 extern TmdListHead*   D_800711C4;
@@ -318,7 +322,20 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7918);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A79F8);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7A64);
+void func_800A7A64(void)
+{
+    u8 state;
+
+    state = D_801153F0.field_0;
+    if ((state == 1) || (state == 3)) {
+        if (Game_Session->field_126 == 0) {
+            func_8010A1B0(1, 0xFF);
+            func_800FC6C0();
+            D_80071097 = 0;
+            Display_InitModeObj(&D_8010CABC, 1, 0, 0x102);
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7AE4);
 

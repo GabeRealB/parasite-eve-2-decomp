@@ -38,8 +38,10 @@ STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 /// Current actor-work pointer; cleared when the work task is torn down.
 extern GpActorWork* volatile D_80115760;
 
+void func_800FC6C0(void);
 void func_80101408(GpActorWork* arg0);
 void func_80109170(GpActorWork* arg0);
+void func_8010A1B0(s32 arg0, s32 arg1);
 void func_8010A42C(GpActorWork* arg0, s32 arg1);
 void func_80103B5C(GpActorWork* arg0);
 void func_8010B210(GpActorWork* arg0);

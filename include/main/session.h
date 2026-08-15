@@ -50,7 +50,9 @@ typedef struct _GameSession {
     s16   field_7C;
     s16   field_7E;
     s16   field_80;
-    byte  unknown_82[0xAA];
+    byte  unknown_82[0xA4];
+    u8    field_126;
+    byte  unknown_127[0x5];
     u8    field_12C;
     byte  unknown_12D[0xE];
     u8    field_13B;
