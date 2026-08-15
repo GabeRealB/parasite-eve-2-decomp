@@ -6,6 +6,7 @@
 #include "main/gamemain.h"
 #include "main/mc.h"
 #include "main/mem.h"
+#include "main/pad.h"
 #include "main/session.h"
 #include "main/task.h"
 #include "main/text.h"
@@ -22,6 +23,7 @@ extern s32          D_80114E90;
 extern s32          D_80114E94;
 extern char         D_8010E494[];
 extern char         D_8010F8D0[];
+extern UiObjectDesc D_8010EFA0;
 extern UiObjectDesc D_8010F788;
 extern TaskDesc     D_8010F85C;
 extern TaskDesc     D_80181188;
@@ -53,6 +55,7 @@ void       func_800A96A0(void);
 char*      func_800B8EB0(s32 arg0, s32 arg1, s32 arg2);
 void       func_80049D34(char* arg0, s32 arg1, s32 arg2);
 GpItemRec* func_800D6910(s32 arg0);
+s32        func_8005414C(s32 arg0, s32 arg1, s32 arg2);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800BF9FC);
 
@@ -218,7 +221,17 @@ void func_800CDEF4(void)
     p[4] = val;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CDF18);
+void func_800CDF18(UiObject* arg0)
+{
+    s32 one;
+
+    if (Pad_CheckButtons(0, 1, 0x10) && (D_80114DD4 != NULL) && (*D_80114DD4 != 0)) {
+        one = 1;
+        func_8005414C(3, 0, 0);
+        Ui_SpawnFromDesc(&D_8010EFA0, *D_80114DD4, one, one, arg0);
+        arg0->status = 0;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CDFA8);
 
