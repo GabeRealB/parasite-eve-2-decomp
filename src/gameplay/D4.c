@@ -249,7 +249,22 @@ void func_800AC000(void)
 {
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AC008);
+void func_800AC008(Task* task)
+{
+    DisplayState* ds;
+    s32           temp;
+
+    ds            = &Display_State;
+    ds->field_104 = 1;
+    ds->field_1d |= 0x80;
+    temp          = task->spawnArg1 & 0xF;
+    if (temp != 0) {
+        if (temp == 1) {
+            ds->field_100 = 0;
+        }
+    }
+    task->state++;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AC058);
 
