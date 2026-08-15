@@ -16,7 +16,7 @@ extern TaskDesc     D_8010FAEC[];
 extern s32          D_8010FB90[];
 extern u16          D_80112D68[];
 extern u16          D_80113360[];
-extern s32          D_801155A8;
+extern GpEvt12*     D_801155A8;
 extern u16          D_801155AE;
 extern Task*        D_80115674;
 extern u8           D_80115648;
@@ -54,7 +54,7 @@ s32   func_800E6CE0(void);
 s32   func_800E6CF0(void);
 void  func_800E6D60(s32 arg0);
 void  func_800E6E50(void);
-s16   func_800E6EA0(s16 arg0);
+s32   func_800E6EA0(s32 arg0);
 s32   func_800E86FC(s32 arg0);
 void  func_8003F6F8(void);
 void  func_800E8634(s32 arg0, s32 arg1, s32 arg2);
@@ -278,7 +278,30 @@ void func_800E6E44(s32 arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6E50);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6EA0);
+s32 func_800E6EA0(s32 arg0)
+{
+    s32      flag;
+    s32      id;
+    s32      base;
+    GpEvt12* p;
+
+    flag = -1;
+    id   = D_80115668;
+    base = (s32)D_801155A8;
+    p    = (GpEvt12*)(arg0 * sizeof(GpEvt12) + base);
+loop:
+    if (p->field_8 == flag) {
+        goto done;
+    }
+    if (p->field_5 == id) {
+        goto done;
+    }
+    p++;
+    arg0++;
+    goto loop;
+done:
+    return arg0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6EF4);
 
@@ -323,7 +346,7 @@ void func_800E6F60(Task* task)
 void func_800E704C(void)
 {
     D_801155AE++;
-    D_801155AE = func_800E6EA0(D_801155AE);
+    D_801155AE = func_800E6EA0((s16)D_801155AE);
     D_80115648 = 0;
     D_80115658 = 0x1E;
     D_80115659 = 0xF;

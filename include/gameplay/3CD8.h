@@ -9,6 +9,23 @@
 
 #include "main/task.h"
 
+/// 0xC-byte sequence-table record. `D_801155A8` is the current table
+/// (`func_800E41F4` stores its first arg there). `func_800E6EA0` walks
+/// from a start index until `field_8 == -1` (terminator) or `field_5`
+/// equals `D_80115668` (the key `func_800E41F4` saved from its third arg).
+typedef struct _GpEvt12 {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ u8  field_2;
+    /* 0x3 */ u8  field_3;
+    /* 0x4 */ u8  field_4;
+    /* 0x5 */ u8  field_5; // compared with D_80115668
+    /* 0x6 */ u8  field_6;
+    /* 0x7 */ u8  field_7;
+    /* 0x8 */ s32 field_8; // -1 terminator, else payload/id
+} GpEvt12;
+STATIC_ASSERT_SIZEOF(GpEvt12, 0xC);
+
 /// Packed bytes in `Task::spawnArg1` for `func_800E6F60`.
 /// `field_0` is forwarded as a2 to `func_800AC464`.
 /// `field_1` is copied into `Task::killCountdown` on state 0.

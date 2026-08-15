@@ -752,6 +752,16 @@ Row in the item tables selected by `GpItemScan` (`D_80072314` /
 | 0x01 | `field_1` | Count (compared as signed by `func_800CF448` / `func_800B91C8`) |
 | 0x02 | `field_2` | u16 quantity accumulated by `func_800BB6FC` |
 
+### `GpEvt12` (0xC) — `3CD8.h`
+Current sequence table at `D_801155A8` (`func_800E41F4` stores its first arg
+there). `func_800E6EA0` walks from a start index until `field_8 == -1` or
+`field_5` equals `D_80115668` (saved from `func_800E41F4`'s third arg).
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x5 | `field_5` | u8 key compared with `D_80115668` |
+| 0x8 | `field_8` | s32; `-1` terminator, else payload/id passed to later sequence helpers |
+
 ### `GpState34` (0x34) — `3CD8.h`
 Allocated by `func_800E8758` (`func_8002D978(0x34)`); stored at `Task::idMap`.
 Dual script interpreter: A uses `field_E`/`field_10`/`field_14`, B uses

@@ -13258,3 +13258,52 @@ Overlay C that calls a renamed main-exe symbol also needs that name in
 `func_*`). Without the alias the overlay links with an undefined
 reference even when the object bytes already match.
 
+## Two-global table walk: `s32` key + `s32` base, then `i * sizeof + base`
+
+A walk that stops on `entry->term == -1` *or* `entry->key == global` wants:
+
+```
+li    a2,-1
+lui   v0,%hi(key)
+lui   v1,%hi(table)   /* interleaved with the key lui */
+lh    a1,%lo(key)(v0)
+/* i*sizeof, then */ lw v1,%lo(table)(v1)
+addu  v1,v0,v1        /* offset + base */
+```
+
+and an unrotated `lw 8(p)` / `lbu 5(p)` / `j` loop (not a `+8` IV).
+
+`while` / `for (;;)` rotates and strength-reduces a second IV at `+8`
+(`lbu -3(p)`). A `goto` loop keeps the true base (see “Independent
+`entry++` + mid-loop `i++`”).
+
+`p = table + i` (or `i + table`) gives the interleaved `lui`s but
+`addu p, base, offset`. Inlining `(s32)table` in the add gives the
+offset-first `addu` but delays the table `lui` until after the multiply.
+Split it:
+
+```c
+flag = -1;
+id   = key_global;          /* s32 = s16 → lh, not lhu+sll/sra */
+base = (s32)table;
+p    = (T*)(i * sizeof(T) + base);
+loop:
+    if (p->term == flag) {
+        goto done;
+    }
+    if (p->key == id) {
+        goto done;
+    }
+    p++;
+    i++;
+    goto loop;
+done:
+    return i;
+```
+
+The argument/return must be `s32` so GCC does not emit `sll`/`sra 16`
+around the index. Callers compiled against the old `s16` prototype still
+need that extend: pass `(s16)u16_index` so the call site keeps
+`sll`/`sra 16` in the `jal` delay (`func_800E704C` / `D_801155AE`).
+`func_800E6EA0` is the example.
+
