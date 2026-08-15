@@ -5,6 +5,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "main/mc.h"
+#include "main/mem.h"
 #include "main/pad.h"
 #include "main/task.h"
 #include "main/wipsys.h"
@@ -1433,7 +1434,24 @@ void func_8010BC04(GpActorWork* arg0, s16 arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010BC70);
+s32 func_8010BC70(GsCOORDINATE2* arg0)
+{
+    void**        scratch;
+    u8*           head;
+    VECTOR3*      vec;
+    GameActorExt* extra;
+    s32           ret;
+
+    extra    = (GameActorExt*)((Task*)Game_GetPtrSlot(3))->extra;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    vec      = (VECTOR3*)(head - 0x10);
+    *scratch = vec;
+    func_80103C74(arg0, (VECTOR3*)((GsCOORDINATE2*)extra->field_8)->coord.t, vec);
+    ret      = func_80103D8C(((VECTOR3*)(head - 0x10))->vx, vec->vz);
+    *scratch = (u8*)*scratch + 0x10;
+    return ret;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010BCF4);
 
