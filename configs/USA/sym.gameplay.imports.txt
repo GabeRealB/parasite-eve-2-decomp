@@ -222,6 +222,7 @@ func_800537FC = 0x800537FC; // absolute:True
 func_80053DF4 = 0x80053DF4; // absolute:True
 func_8005414C = 0x8005414C; // absolute:True
 func_800542D0 = 0x800542D0; // absolute:True
+SndEvt_EnqueueType7 = 0x800542D0; // absolute:True
 func_80054334 = 0x80054334; // absolute:True
 func_800543AC = 0x800543AC; // absolute:True
 func_80054424 = 0x80054424; // absolute:True

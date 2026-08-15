@@ -6,6 +6,7 @@
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/wipsys.h"
 
@@ -105,7 +106,14 @@ s32 func_800E3E30(s32 arg0)
     return arg0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3E64);
+void func_800E3E64(s32 arg0, s32 arg1)
+{
+    if (arg0 & 0xF000000) {
+        arg0 &= 0xF0FFFFFF;
+        arg0 |= Game_Session->field_7 << 24;
+    }
+    SndEvt_EnqueueType7(arg0, arg1 & 0xFFFF);
+}
 
 void func_800E3EB0(s32 arg0)
 {
