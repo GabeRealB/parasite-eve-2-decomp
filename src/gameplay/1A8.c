@@ -101,7 +101,20 @@ void func_800AF3D0(void)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AF41C);
+void func_800AF41C(void)
+{
+    s32   sp[2];
+    void* slot;
+
+    slot  = Game_GetPtrSlot(3);
+    sp[0] = (D_80114CD2 >> 8) & 1;
+    sp[1] = D_80114CD8 & 0xF;
+    func_800AC464(slot, 0x3EF, (s32)sp, 0);
+    D_80114CDB = 0;
+    D_80114CDA = 0;
+    D_80114CD4 = 0;
+    D_80114CD6++;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AF498);
 

@@ -14321,4 +14321,34 @@ for (;;) {
 as `do … while (!((arg0++)->field_0 & 2))` because it never stores
 `field_0` and the target uses the post-increment form.
 
+## Adjacent stack words must be an array (or struct) to escape together
+
+If the target stores two consecutive words (`sw …, 0x10($sp)` / `sw …, 0x14($sp)`)
+and passes `$sp+0x10` as one pointer, two separate locals will not match.
+The compiler treats the second store as dead (nothing reads that local) and
+DCE's it, then often hoists the first computation above an earlier call.
+
+```c
+s32 a, b;
+a = ...;
+b = ...; /* dead store — compiled away */
+func(..., (s32)&a, 0);
+```
+
+Use an array (or a 2-word struct) so both stores escape through the same
+pointer. Call `Game_GetPtrSlot` (or any earlier call) into a temp first so
+the payload setup stays after that call:
+
+```c
+s32   sp[2];
+void* slot;
+
+slot  = Game_GetPtrSlot(3);
+sp[0] = ...;
+sp[1] = ...;
+func(slot, cmd, (s32)sp, 0);
+```
+
+`func_800AF41C` is the example.
+
 
