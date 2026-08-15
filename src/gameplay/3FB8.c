@@ -226,7 +226,24 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103A18);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103AC0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103B1C);
+s32 func_80103B1C(void)
+{
+    WipSysConfig* p;
+    s32           temp;
+    s32           ret;
+
+    p    = &D_80073B88;
+    temp = (u16)p->field_1a << 16;
+    if ((temp >> 17) < p->field_18) {
+        ret = 0;
+    } else {
+        ret = 1;
+        if ((temp >> 18) >= p->field_18) {
+            ret = 2;
+        }
+    }
+    return ret;
+}
 
 void func_80103B5C(GpActorWork* arg0)
 {

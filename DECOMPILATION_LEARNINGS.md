@@ -12957,3 +12957,24 @@ if (!work | !actor) {
 `((u32)work < 1) | ((u32)actor < 1)` and `(work == NULL) | (actor == NULL)`
 are equivalent. `func_801043F4` is the pure example.
 
+## 3-way band: seed `ret = 1` then overwrite, do not `else if`
+
+A classifier that returns 0 / 1 / 2 from two `slt`s wants the last arm as
+`bnez` + delay `li 1` + fall-through `li 2`. `else if (a < b) ret = 1; else
+ret = 2` inverts that to `beqz` + `li 2` / `li 1`. Seed 1 on the non-zero
+path and overwrite only when the second compare fails:
+
+```c
+if ((temp >> 17) < hp) {
+    ret = 0;
+} else {
+    ret = 1;
+    if ((temp >> 18) >= hp) {
+        ret = 2;
+    }
+}
+```
+
+`(u16)s16_field << 16` is what produces the shared `lhu` / `sll 16` used by
+both `sra 17` and `sra 18`. `func_80103B1C` is the pure example.
+
