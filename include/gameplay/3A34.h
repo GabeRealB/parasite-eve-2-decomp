@@ -32,13 +32,29 @@ typedef struct _GpObj {
 } GpObj;
 STATIC_ASSERT_SIZEOF(GpObj, 0x20);
 
-/// 4-byte table entry packed by `func_800E2C40` as
+/// 4-byte table entry packed by `func_800E2C40` / `func_800E2BF8` as
 /// `(field_0 & 0xFFF) | ((field_2 & 0xF) << 12) | 0x40000`.
 typedef struct _GpU16Pair {
     /* 0x0 */ u16 field_0;
     /* 0x2 */ u16 field_2;
 } GpU16Pair;
 STATIC_ASSERT_SIZEOF(GpU16Pair, 0x4);
+
+/// Table source pointed to by `GpObj50.field_50`. `field_0` is the
+/// `GpU16Pair` array packed by `func_800E2BF8`. Nearby helpers also
+/// load bytes at +0xB / +0xD of this object.
+typedef struct _GpPairSrc {
+    /* 0x00 */ GpU16Pair* field_0;
+} GpPairSrc;
+STATIC_ASSERT_SIZEOF(GpPairSrc, 0x4);
+
+/// Object whose pointer at 0x50 is a `GpPairSrc*` used by `func_800E2BF8`.
+/// Same object family as `GpObj4C` (flags at 0x4C).
+typedef struct _GpObj50 {
+    /* 0x00 */ byte       pad_0[0x50];
+    /* 0x50 */ GpPairSrc* field_50;
+} GpObj50;
+STATIC_ASSERT_SIZEOF(GpObj50, 0x54);
 
 /// Three packed `SVECTOR3`s filled by `func_800D9C3C`. Each vector's
 /// components are set to the same s16 argument.
@@ -241,6 +257,7 @@ s32  func_800E1A1C(GpRec18* arg0, s32 arg1);
 s32  func_800E1ACC(u8* arg0);
 s32  func_800E1B24(s32 arg0);
 s32  func_800E2438(s32 arg0, s32 arg1, s32* arg2, s32 arg3);
+s32  func_800E2BF8(GpObj50* arg0, s32 arg1);
 s32  func_800E2C40(GpU16Pair* arg0, s32 arg1);
 void func_800E3008(GpObj4C* arg0);
 void func_8010154C(void);
