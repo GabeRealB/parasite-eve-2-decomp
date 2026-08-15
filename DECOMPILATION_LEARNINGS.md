@@ -14212,4 +14212,39 @@ GCC strength-reduces `i * sizeof(Slot) + 0x438` to a single offset IV
 starting at `0x460`. `func_80105B0C` is the example; sibling `func_80103AC0`
 is the same loop with only the index passed through.
 
+## Unsigned range-fail early return keeps `sltiu; beqz` fall-through
+
+When the target hoists a signed `/32` `%32` bit mask, then does
+
+```
+sltiu v0, a0, N
+beqz  v0, ret_k
+ lui  v0, %hi(base)    /* delay: address for the in-range load */
+...
+jr    ra
+ sltu v0, zero, v0
+jr    ra
+ li   v0, K
+```
+
+write the out-of-range path as an early return *before* taking the struct
+address:
+
+```c
+word = arg0 / 32;
+bit  = 1 << (arg0 % 32);
+if ((u32)arg0 >= N) {
+    return 1;
+}
+p   = &base;
+val = p->flags[word] & bit;
+return val != 0;
+```
+
+The inverted `if ((u32)arg0 < N) { work; return val != 0; } return 1;` is
+swapped to `bnez` and CSE reuses the shift's `li v1,1` as `move v0,v1`.
+Taking `&base` before the check also hoists `lui`/`addiu` above the divide.
+
+`func_800BC06C` is the example.
+
 

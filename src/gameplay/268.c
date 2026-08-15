@@ -501,7 +501,22 @@ void func_800BBF1C(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBF84);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC06C);
+s32 func_800BC06C(s32 arg0)
+{
+    McSaveData* p;
+    s32         word;
+    s32         bit;
+    s32         val;
+
+    word = arg0 / 32;
+    bit  = 1 << (arg0 % 32);
+    if ((u32)arg0 >= 0x180) {
+        return 1;
+    }
+    p   = &Mc_SaveData;
+    val = p->field_6D0[word] & bit;
+    return val != 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC0C0);
 
