@@ -5,6 +5,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "main/mc.h"
+#include "main/pad.h"
 #include "main/task.h"
 #include "main/wipsys.h"
 
@@ -32,7 +33,6 @@ void  func_8010397C(GpActorWork* arg0, s32 arg1, s32 arg2);
 void  func_80103A18(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 void  func_80103AC0(GpActorWork* arg0);
 void  func_80103F70(GpActorWork* arg0);
-void  func_801041FC(GpActorWork* arg0, s32 arg1);
 void  func_80104B54(void);
 void  func_80104E00(void);
 s32   func_80105070(void);
@@ -324,7 +324,23 @@ s32 func_801041B4(GpActorWork* arg0)
     return 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801041FC);
+void func_801041FC(GpActorWork* arg0, s32 arg1)
+{
+    GameActor* actor;
+    GpPadEvt*  entry;
+    u8         count;
+    s32        idx;
+
+    actor = arg0->actor;
+    count = actor->field_981;
+    if ((s8)actor->field_981 == 0) {
+        idx = arg1 & 0xFFFF;
+        asm("");
+        actor->field_981 = count + 1;
+        entry            = &D_80112E28[idx];
+        Pad_PostEvent(0, 1, entry->field_0, entry->field_2);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104258);
 

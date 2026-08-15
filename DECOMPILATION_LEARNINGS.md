@@ -13634,3 +13634,36 @@ arm.
 
 `func_8009EA50` is the example.
 
+## `asm("")` so `andi` wins the `bnez` delay slot over `addiu`
+
+When a `u8` increment and a `u16` index are both ready after `bnez`
+(`lb` / `lbu` of the counter already hoisted), the first scheduler puts
+`addiu dest, count, 1` first and `-fdelayed-branch` fills the slot with
+it. The target wants the mask instead:
+
+```
+bnez  v0, skip
+ andi  v1, a1, 0xFFFF
+addiu v0, a0, 1
+sll   v1, v1, 2
+sb    v0, field
+```
+
+Assign the index first, then barrier, then increment. `asm("")` stops the
+`addiu` from being pulled above the `andi`, so the filler takes the mask:
+
+```c
+if ((s8)p->field == 0) {
+    idx = arg1 & 0xFFFF;
+    asm("");
+    p->field = count + 1;
+    entry = &table[idx];
+    func(0, 1, entry->field_0, entry->field_2);
+}
+```
+
+`idx` must be `s32` (`arg1 & 0xFFFF`) so the `andi` is emitted at the
+assignment, not later at the array use (`u16 idx = arg1` is only a
+subreg trunc). `func_801041FC` is the example.
+
+

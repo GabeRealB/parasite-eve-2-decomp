@@ -51,6 +51,15 @@ typedef struct _GpEffArg {
 } GpEffArg;
 STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 
+/// 4-byte pad-event template indexed by `func_801041FC`. `field_0` / `field_2`
+/// are passed to `Pad_PostEvent` (`lbu` / `lh`).
+typedef struct _GpPadEvt {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ s16 field_2;
+} GpPadEvt;
+STATIC_ASSERT_SIZEOF(GpPadEvt, 0x4);
+
 /// 2-slot table of current actor-work pointers. Slot 0 is the primary
 /// work (set/cleared by `func_80100B78` / `func_80101408`). Walked as a
 /// pair by `func_800DB0D8`, `func_800DAB38`, and `func_800DAC54`.
@@ -59,8 +68,12 @@ extern GpActorWork* volatile D_80115760[2];
 /// `field_96C` dispatcher: three slots of `func_80109170`, then `func_80109208`.
 extern GpActorFuncTable4 D_800979F8;
 
+/// Pad-event templates for `func_801041FC` (`D_80112E28[arg1 & 0xFFFF]`).
+extern GpPadEvt D_80112E28[];
+
 void func_800FC6C0(void);
 void func_80101408(GpActorWork* arg0);
+void func_801041FC(GpActorWork* arg0, s32 arg1);
 void func_80109170(GpActorWork* arg0);
 void func_8010A1B0(s32 arg0, s32 arg1);
 void func_8010A42C(GpActorWork* arg0, s32 arg1);

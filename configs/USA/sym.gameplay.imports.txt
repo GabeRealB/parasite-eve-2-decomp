@@ -56,6 +56,7 @@ func_80028718 = 0x80028718; // absolute:True
 func_8002BA9C = 0x8002BA9C; // absolute:True
 Pad_CheckButtons = 0x8002C868; // absolute:True
 func_8002C8E4 = 0x8002C8E4; // absolute:True
+Pad_PostEvent = 0x8002C8E4; // absolute:True
 Pad_SetCooldown = 0x8002C9B0; // absolute:True
 Pad_ClearCooldown = 0x8002C9E0; // absolute:True
 func_8002CA0C = 0x8002CA0C; // absolute:True
