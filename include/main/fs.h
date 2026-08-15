@@ -392,6 +392,7 @@ void        CdCmd_EnqueueOverlay81(void);
 void        CdCmd_EnqueueReplaceOverlay81(void);
 void        CdCmd_EnqueueOverlay82(void);
 void        CdCmd_EnqueueReplaceOverlay82(void);
+void        func_8001D580(void);
 void        CdCmd_CancelReplaceAndActivate(void);
 void*       CdCmd_SetupMdecBuffers(void);
 void        CdCmd_BuildVlcIfStream(void);

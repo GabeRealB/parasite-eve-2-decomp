@@ -8,6 +8,7 @@
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/sound.h"
+#include "main/stage.h"
 #include "main/task.h"
 #include "main/wipsys.h"
 
@@ -60,9 +61,6 @@ void func_800E6D60(s32 arg0);
 void func_800E6E50(void);
 s32  func_800E6EA0(s32 arg0);
 s32  func_800E86FC(s32 arg0);
-// Overlay match: declared void so $v0 is free (main returns s32).
-void Stage_SetEndingFlag(void);
-void func_8001D580(void);
 void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
 void func_800E8A90(Task* task);
 void func_800E8BB0(Task* task);

@@ -11,6 +11,7 @@
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/sound.h"
+#include "main/stage.h"
 #include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
@@ -57,15 +58,9 @@ void func_800D0C34(Task* arg0);
 void func_800D0614(Task* arg0);
 void func_800D08D4(Task* arg0);
 void func_800D15D0(Task* arg0);
-void func_800D4E40(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
-void Stage_ReleasePrimBuf(void);
-// Overlay match: declared void so $v0 is free (main returns s32).
-void  Stage_SetEndingFlag(void);
-void  func_800A96A0(void);
-char* func_800B8EB0(s32 arg0, s32 arg1, s32 arg2);
-// Overlay match: extra dummy args (main takes one s32).
-void       Ui_SetHolderParam(char* arg0, s32 arg1, s32 arg2);
-void       Ui_ClampDialogRect(UiObject* arg0, UiObject* arg1, UiObject* arg2);
+void       func_800D4E40(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
+void       func_800A96A0(void);
+char*      func_800B8EB0(s32 arg0, s32 arg1, s32 arg2);
 GpItemRec* func_800D6910(s32 arg0);
 void       func_800C5C2C(s32 arg0, s32 arg1);
 s32        func_800A7508(void);
@@ -388,9 +383,9 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CEA88);
 void func_800CEB40(s32 arg0)
 {
     if (arg0 == 0) {
-        Ui_SetHolderParam(D_8010F8D0, 0, 0);
+        Ui_SetHolderParam((s32)D_8010F8D0, 0, 0);
     } else {
-        Ui_SetHolderParam(func_800B8EB0(arg0, 1, 0), 0, 0);
+        Ui_SetHolderParam((s32)func_800B8EB0(arg0, 1, 0), 0, 0);
     }
 }
 
@@ -431,7 +426,7 @@ UiObject* func_800CEDA0(UiObject* arg0, UiObject* arg1, u8* arg2, s32 arg3)
         one = 1;
         obj = Ui_SpawnFromDesc(&D_8010EE6C, arg3, one, one, arg1);
         if (obj != NULL) {
-            Ui_ClampDialogRect(obj, arg0, arg1);
+            Ui_ClampDialogRect((UiPanel*)obj, (UiPanel*)arg0, (UiPanel*)arg1);
             arg1->status = 0;
         }
     } else {

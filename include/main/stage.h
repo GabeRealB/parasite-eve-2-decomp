@@ -49,6 +49,8 @@ void Stage_WaitCdActivate(Task* task);
 void Stage_WaitCdAndSpawn(Task* task);
 void Stage_WaitCdEntry(Task* task);
 void Stage_FinishCdFollowUp(Task* task);
+s32  Stage_SetEndingFlag(void);
+void Stage_ReleasePrimBuf(void);
 /// Overlay callers pass 1; the argument is unused.
 void Stage_RequestSpecialFlag(s32 arg0);
 
