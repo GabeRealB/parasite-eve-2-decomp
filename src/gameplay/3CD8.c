@@ -93,7 +93,14 @@ void func_800E3D8C(s32 arg0, s32 arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3DD8);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3E30);
+s32 func_800E3E30(s32 arg0)
+{
+    if (arg0 & 0xF000000) {
+        arg0 &= 0xF0FFFFFF;
+        arg0 |= Game_Session->field_7 << 24;
+    }
+    return arg0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3E64);
 

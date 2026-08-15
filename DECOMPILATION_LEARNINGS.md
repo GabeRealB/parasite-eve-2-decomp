@@ -12870,3 +12870,22 @@ default:
 ```
 
 `func_800BB5BC` is the pure example.
+
+## Split `&=` / `|=` so the formal stays in `$a0`
+
+A combined `arg0 = (arg0 & mask) | val` allocates the masked value to a new
+register (`and v1, a0, v1` / `or a0, v1, v0`). The target often mutates the
+incoming formal in place (`and a0, a0, v1` / `or a0, a0, v0`). Split the update:
+
+```c
+/* BAD — masked result lives in $v1, then OR into $a0 */
+arg0 = (arg0 & 0xF0FFFFFF) | (Game_Session->field_7 << 24);
+
+/* GOOD — both ops write $a0 */
+arg0 &= 0xF0FFFFFF;
+arg0 |= Game_Session->field_7 << 24;
+```
+
+`func_800E3E30` is the pure example — otherwise a 99% body with only those two
+ops wrong.
+
