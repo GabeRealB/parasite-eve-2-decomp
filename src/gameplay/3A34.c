@@ -293,7 +293,36 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0308);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0414);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0540);
+void func_800E0540(GpObj* node)
+{
+    u16 flags;
+
+    if (D_80115448 != 0) {
+        for (; node != NULL; node = node->next) {
+            flags = node->flags;
+            if (flags & 0x4000) {
+                switch (flags & 7) {
+                    case 0:
+                        break;
+                    case 1:
+                        func_800DC528(node);
+                        break;
+                    case 2:
+                        break;
+                    case 3:
+                        func_800DDDF8(node);
+                        break;
+                    case 4:
+                        if (node->flags & 0x200) {
+                            func_800DD940(node);
+                        }
+                        func_800DCB80(node);
+                        break;
+                }
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0608);
 

@@ -100,6 +100,7 @@ extern GpObj* D_80115588;
 extern GpObj* D_8011558C;
 extern GpObj* D_80115590;
 extern s32    D_80115424;
+extern s32    D_80115448;
 
 s32   func_800D9340(GpObj38* arg0);
 s32   func_800D937C(GpObj38* arg0);
@@ -122,6 +123,10 @@ void  func_800DB530(s32 arg0);
 void  func_800DB53C(void);
 void  func_800DB72C(void);
 void func_800DB900(GpObj* node);
+void func_800DC528(GpObj* node);
+void func_800DCB80(GpObj* node);
+void func_800DD940(GpObj* node);
+void func_800DDDF8(GpObj* node);
 void func_800E0414(GpObj* a, GpObj* b);
 void func_800E0540(GpObj* node);
 void func_800E0608(GpObj* node, s32 mask, s32 match);
