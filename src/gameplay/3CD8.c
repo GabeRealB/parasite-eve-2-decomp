@@ -594,7 +594,25 @@ void func_800E916C(void)
     D_80115702 = 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E9188);
+Task* func_800E9188(s32 arg0, s32 arg1, s32 arg2)
+{
+    Task*      task;
+    GpState18* mem;
+
+    mem = Mem_Calloc(0x18, 0);
+    if (mem != NULL) {
+        task = Task_Spawn(2, 0xD, 0, 0);
+        if (task != NULL) {
+            task->idMap  = (TaskIdMap*)mem;
+            mem->field_8 = arg2;
+            mem->field_0 = arg0;
+            mem->field_4 = arg1;
+            return task;
+        }
+        Mem_Free(mem);
+    }
+    return NULL;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E9218);
 
