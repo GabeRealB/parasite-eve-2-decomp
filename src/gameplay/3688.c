@@ -240,7 +240,15 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CDFA8);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE094);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE188);
+void func_800CE188(Task* arg0)
+{
+    arg0->killCountdown--;
+    if (arg0->killCountdown <= 0) {
+        GameMain_SetFrameTiming(1);
+        arg0->killCountdown = 1;
+        arg0->state         = arg0->state + 1;
+    }
+}
 
 void func_800CE1E0(Task* arg0)
 {
