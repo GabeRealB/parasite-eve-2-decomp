@@ -567,7 +567,7 @@ slot 3; `func_80106238` replaces bits 14–15 with `(arg1 << 1) | arg2`.
 `field_973`/`field_974` and `field_975`/`field_976` are signed-byte pairs compared by `func_80108568` (first mismatch → `func_80108770(..., 4)`; second mismatch only when `field_973 == 0` → `func_80108684`);
 `field_97C` is a signed flag byte (`lb`/`sb`); `func_80108FD4` / `func_80108458` clear it before `func_80108E0C` or `func_80103B5C`;
 `field_97D` is a flag byte (`lbu`); bit 0x4 selects `func_801055D4` vs `func_80108770` in `func_80106550`;
-`field_97E` is a flag byte set to 1 by `func_80103B5C`;
+`field_97E` is a flag byte set to 1 by `func_80103B5C` / `func_80103F70` (no `field_90C`, or `field_4` bit 0 set). `func_80103F70` compares it as signed (`lb`) against 2 before the `field_21 == 0x17` helpers;
 `field_97F` is a signed result byte (`lb`/`sb`); `func_801060E0` writes 1 / 2 / 0 from button bits (mask 0x8/0x2, or 0x80/0x10 when `field_954` and `D_80072310` are both 2);
 `field_981` is a u8 counter cleared with the 0x954–0x95E cluster; `func_801041FC` increments it from 0 (`lb`/`lbu`);
 `field_983` is a u8 flag byte (`lbu`/`sb`); `func_8010AA28` ORs in `0x18` after `func_80103B5C`;

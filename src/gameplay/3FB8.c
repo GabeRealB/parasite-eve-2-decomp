@@ -32,6 +32,9 @@ Task* func_8002CFA0(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
 void  func_80101848(GpActorWork* arg0);
 void  func_80101A68(GpActorWork* arg0);
 void  func_80101F58(GpActorWork* arg0);
+void  func_80102348(GpActorWork* arg0, s32 arg1);
+void  func_80102634(GpActorWork* arg0);
+void  func_801029D4(GpActorWork* arg0);
 void  func_801038F8(GpActorWork* arg0, s32 arg1);
 void  func_8010397C(GpActorWork* arg0, s32 arg1, s32 arg2);
 void  func_80103A18(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -309,7 +312,40 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103DD4);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103E7C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103F70);
+void func_80103F70(GpActorWork* arg0)
+{
+    GameActor*    actor;
+    GpLinkNode*   node;
+    WipSysConfig* p;
+    s32           val;
+
+    actor = arg0->actor;
+    node  = actor->field_90C;
+    if (node == NULL) {
+        actor->field_97E = 1;
+        return;
+    }
+    if (node->field_4 & 1) {
+        node->field_5    = 0;
+        actor->field_90C = NULL;
+        actor->field_97E = 1;
+        return;
+    }
+    if ((s8)actor->field_97E == 2) {
+        p = &D_80073B88;
+        if (p->field_21 == 0x17) {
+            val = 0x200;
+        } else {
+            val = 0x180;
+        }
+        func_80102348(arg0, val);
+        if (p->field_21 == 0x17) {
+            func_801029D4(arg0);
+        } else {
+            func_80102634(arg0);
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010403C);
 
