@@ -748,6 +748,19 @@ the delay counters and advance via `func_800E8A90` / `func_800E8BB0`.
 | 0x14 | `field_14` | Loop counter A |
 | 0x15 | `field_15` | Loop counter B |
 
+### `GpState18` (0x18) — `3CD8.h`
+Allocated by `func_800E8FB0` / `func_800E9188` (`Mem_Calloc(0x18)`); stored at
+`Task::idMap` of the bank-2 type 0xD task. `func_800E9070` indexes two
+dispatch tables with `field_A` and `field_C`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | s32; first spawn arg (`func_800E8FB0` / `func_800E9188`) |
+| 0x04 | `field_4` | s32; second spawn arg |
+| 0x08 | `field_8` | s16; cleared by `func_800E8FB0`, third arg of `func_800E9188` |
+| 0x0A | `field_A` | u8 dispatch index A (`func_800E9070`) |
+| 0x0C | `field_C` | u8 dispatch index B (`func_800E9070`) |
+
 ### `GpState1C` (0x1C) — `3CD8.h`
 Allocated by `func_800E9CC8` (`func_8002D978(0x1C)`); pointed to by `D_80115740`.
 Most members are s16. `func_800EA3A0` writes `arg0 + 1` to `field_C`.

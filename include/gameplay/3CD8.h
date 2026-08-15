@@ -54,6 +54,22 @@ typedef struct _GpState34 {
 } GpState34;
 STATIC_ASSERT_SIZEOF(GpState34, 0x34);
 
+/// 0x18-byte work block allocated by `func_800E8FB0` / `func_800E9188`
+/// (`Mem_Calloc(0x18)`) and stored at `Task::idMap` for bank-2 type 0xD.
+/// `func_800E8FB0` writes `field_0`/`field_4` from its args and clears
+/// `field_8`; `func_800E9188` writes all three. `func_800E9070` indexes
+/// dispatch tables with `field_A` and `field_C`.
+typedef struct _GpState18 {
+    /* 0x00 */ s32  field_0;
+    /* 0x04 */ s32  field_4;
+    /* 0x08 */ s16  field_8;
+    /* 0x0A */ u8   field_A; // dispatch index A (func_800E9070)
+    /* 0x0B */ u8   field_B;
+    /* 0x0C */ u8   field_C; // dispatch index B (func_800E9070)
+    /* 0x0D */ byte pad_D[0xB];
+} GpState18;
+STATIC_ASSERT_SIZEOF(GpState18, 0x18);
+
 /// 0x1C-byte halfword state allocated by `func_800E9CC8` (`func_8002D978(0x1C)`)
 /// and stored in `D_80115740` (also written to the owner task at +0x1C).
 typedef struct _GpState1C {
