@@ -13822,4 +13822,63 @@ return ret;
 `func_800BC18C` is the example. The unpinned version is a 98% register swap;
 pinning both drops to ~89%.
 
+## Pin table `$v1` + session `$a0` so a two-level lookup hoists both `lui`s
+
+A leaf `table[session->field_7 - 1][session->field_6].byte` wants:
+
+```
+lui   v0,%hi(Game_Session)
+lui   v1,%hi(table)
+lw    a0,%lo(Game_Session)(v0)
+addiu v1,v1,%lo(table)
+lbu   v0,7(a0)
+lbu   a0,6(a0)          /* field_6 overwrites the session pointer */
+/* field_7-1 in $v0, lw table[i] into $v1, then *14 into $v0 */
+addu  v1,v1,v0          /* recs + offset, dest is the pointer */
+lbu   v1,0xC(v1)
+lui   v0,%hi(out)
+sb    v1,%lo(out)(v0)
+jr    ra
+andi  v0,v1,0xff
+```
+
+Without pins GCC loads `Game_Session` first, reuses `$v0` for the table
+address, puts `field_7` in `$v1`, starts `*14` before the `lw`, and
+`addu`s `offset + base` into `$v0`. The store then uses `$v1` for `out`
+and `andi v0, v0, 0xff` — a large register-swap diff of an otherwise
+identical function.
+
+Pin the table to `$v1` and the session pointer to `$a0` so both `lui`s
+issue before the `lw`. Keep the record pointer in `$v1` (`recs = recs +
+f6`, not `recs[f6]`) so the `addu` dest is `$v1`. Load the byte in a
+nested block (`register u8 val asm("v1")`) — `table` / `recs` already
+own `$v1` in the outer scope, and two `asm("v1")` names in one scope
+force the `lbu` into `$v0`:
+
+```c
+register GameSession* session asm("a0");
+register GpMapRec**   table asm("v1");
+register s32          idx asm("v0");
+register u8           f6 asm("a0");
+register GpMapRec*    recs asm("v1");
+
+session = Game_Session;
+table   = D_table;
+idx     = session->field_7 - 1;
+f6      = session->field_6;
+recs    = table[idx];
+recs    = recs + f6;
+{
+    register u8 val asm("v1");
+
+    val = recs->field_C;
+    out = val;
+    return val;
+}
+```
+
+`func_800D1FD4` is the example. `field_C` must be a `u8` (or the load is
+`lhu` + `andi`); neighbouring functions that `lhu` the same halfword can
+overlay it later.
+
 

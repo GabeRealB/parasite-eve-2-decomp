@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/268.h"
+#include "gameplay/3688.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
@@ -608,7 +609,28 @@ void func_800D1F90(Task* arg0)
     arg0->spawnArg1     = 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D1FD4);
+u8 func_800D1FD4(void)
+{
+    register GameSession* session asm("a0");
+    register GpMapRec**   table asm("v1");
+    register s32          idx asm("v0");
+    register u8           f6 asm("a0");
+    register GpMapRec*    recs asm("v1");
+
+    session = Game_Session;
+    table   = D_8010F0F4;
+    idx     = session->field_7 - 1;
+    f6      = session->field_6;
+    recs    = table[idx];
+    recs    = recs + f6;
+    {
+        register u8 val asm("v1");
+
+        val        = recs->field_C;
+        D_80114DF0 = val;
+        return val;
+    }
+}
 
 void func_800D2020(u8 arg0)
 {

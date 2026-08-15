@@ -931,6 +931,20 @@ returns the number of slots whose `field_0` is non-zero.
 | 0x00 | `field_0` | s32 refcount; cleared by `func_800EA3EC`, decremented by `func_800EA3B4`, counted by `func_800D9618` |
 | 0x04 | `coord` | Embedded `GsCOORDINATE2`; `coord.sub` is parented to `&D_80070F10` |
 
+### `GpMapRec` (0xE) — `3688.h`
+Per-room record in tables pointed to by `D_8010F0F4`. Index is
+`GameSession.field_7 - 1` then `GameSession.field_6`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | s16 X coord (`func_800D02A4`) |
+| 0x02 | `field_2` | s16 Y coord (`func_800D02A4`) |
+| 0x04 | `field_4` | u16 X extent (`func_800D02A4`) |
+| 0x06 | `field_6` | u16 Y extent (`func_800D02A4`) |
+| 0x08 | `field_8` | s16 X scale (`func_800D02A4`) |
+| 0x0A | `field_A` | s16 Y scale (`func_800D02A4`) |
+| 0x0C | `field_C` | u8 room id stored in `D_80114DF0` (`func_800D1FD4`); also `lhu` / `0xFFFF` sentinel (`func_800D02A4` / `func_800D1434`) |
+
 ---
 
 ## WIP (provisional)
