@@ -506,7 +506,21 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B5B30);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B5BFC);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B5C88);
+GpAreaObj* func_800B5C88(GpAreaKey* arg0)
+{
+    GpAreaRec* rec;
+    GpAreaObj* ret;
+
+    rec = D_8010CBCC[arg0->field_3];
+    ret = NULL;
+    if (rec != NULL) {
+        rec = rec[arg0->field_2].field_0;
+        if (rec != NULL) {
+            ret = rec[arg0->field_5].field_4;
+        }
+    }
+    return ret;
+}
 
 GpAreaRec* func_800B5CE8(GpAreaKey* arg0)
 {
