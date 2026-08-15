@@ -81,7 +81,8 @@ typedef struct _McSaveData {
     /* 0x009 */ u8   field_9;
     /* 0x00A */ byte unknown_A[0x8];
     /* 0x012 */ u8   field_12;
-    /* 0x013 */ byte unknown_13[0x9];
+    /* 0x013 */ s8   field_13; // also D_8007217B; 1-based index into D_80113360
+    /* 0x014 */ byte unknown_14[0x8];
     /* 0x01C */ u16  field_1C;
     /* 0x01E */ u16  field_1E;
     /* 0x020 */ byte unknown_20[0x1];
@@ -103,7 +104,9 @@ typedef struct _McSaveData {
     /* 0x5C2 */ s8   field_5C2;
     /* 0x5C3 */ byte unknown_5C3[0x2];
     /* 0x5C5 */ u8   field_5C5;
-    /* 0x5C6 */ byte unknown_5C6[0x102];
+    /* 0x5C6 */ byte unknown_5C6[0x1];
+    /* 0x5C7 */ s8   field_5C7; // also D_8007272F; addend for D_80113360 lookup
+    /* 0x5C8 */ byte unknown_5C8[0x100];
     /* 0x6C8 */ u16  field_6C8; // also D_80072830
     /* 0x6CA */ u16  field_6CA;
     /* 0x6CC */ byte unknown_6CC[0x1BC];

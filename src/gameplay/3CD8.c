@@ -14,6 +14,7 @@ extern WipSysConfig D_80073B88;
 extern TaskDesc     D_8010FAEC[];
 extern s32          D_8010FB90[];
 extern u16          D_80112D68[];
+extern u16          D_80113360[];
 extern s32          D_801155A8;
 extern u16          D_801155AE;
 extern Task*        D_80115674;
@@ -82,7 +83,10 @@ void func_800E3CEC(s32* arg0)
     *arg0 = D_80112D68[Mc_SaveData.field_22 - 1] + D_80073B88.field_21;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3D24);
+void func_800E3D24(s32* arg0)
+{
+    *arg0 = D_80113360[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7;
+}
 
 void func_800E3D5C(void)
 {
