@@ -28,7 +28,7 @@ Convention: only list fields with evidence. Unlisted `field_*` / `unknown_*` /
 | 0x2A | `killCountdown` | Deferred-kill countdown / state |
 | 0x2C | `extra` | Spawn extra (`GameActorExt*`, overlay object, …) |
 | 0x30 | `state` | Generic state word (handlers / kill path) |
-| 0x34 | `spawnArg1` | Spawn arg1 — menu/ctx pointer, mode, … |
+| 0x34 | `spawnArg1` | Spawn arg1 — menu/ctx pointer, mode, …; `func_800E73E8` writes 1 here on `D_801156B8` instead of `Task_Kill` |
 | 0x38 | `flags` | Small flag byte |
 | 0x3C | `extraState` | Extra state word |
 

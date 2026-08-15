@@ -12471,6 +12471,36 @@ Declare the global as `T* volatile`, not `volatile T*`. The latter makes the
 *pointee* volatile; `g = NULL` is then a non-volatile pointer store and sinks
 into the following `beqz` delay slot. `func_80101408` is the example.
 
+## `if (ptr != NULL) { work; return 0; }` shares a leaf epilogue
+
+A no-call leaf with `if (mode == K) { if (ptr) … } else { store; } return 0`
+must not start from the empty arm. `if (ptr == NULL) return 0; work; return 0;`
+splits the else-path return (`jr ra` + store in the delay slot, leftover
+`jr ra` for NULL). Dropping the extra `return 0` after `work` inverts to
+`bnez` and puts `li v0,1` in that delay slot.
+
+Write the live arm first with an early return. NULL and else then share one
+`jr ra; move v0,zero`, and the work path can `jr ra` immediately (v0 is
+already 0 from the `beqz` delay slot):
+
+```c
+if (D_8007218B == 9) {
+    task = D_801156B8;
+    if (task != NULL) {
+        task->spawnArg1 = 1;
+        D_801156B8      = NULL;
+        return 0;
+    }
+} else {
+    Game_Session->field_68 = 0;
+}
+return 0;
+```
+
+`func_800E73E8` is the example. The sibling `func_800E7434` can use
+`if (ptr == NULL) return 0; Task_Kill(ptr);` because the call creates a
+stack frame and a shared epilogue.
+
 ## Duplicate a call in both branches so a constant address lands in `$a0`
 
 When the target does:
