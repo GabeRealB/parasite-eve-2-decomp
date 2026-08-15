@@ -27,6 +27,7 @@ extern s32          D_80114E90;
 extern s32          D_80114E94;
 extern char         D_8010E494[];
 extern char         D_8010E550[];
+extern char         D_8010E554[];
 extern char         D_8010E558[];
 extern char         D_8010E55C[];
 extern char         D_8010F8D0[];
@@ -659,7 +660,17 @@ void func_800CFBFC(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CFCD4);
+void func_800CFCD4(DialogPrompt* arg0, UiObject* arg1)
+{
+    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, D_8010E554, arg0->field_1C, 1, 0);
+    if (arg0->field_C == 1) {
+        if (Pad_CheckButtons(0, 1, D_8005ED70 | D_8005ED74) != 0) {
+            SndEvt_EnqueueType6(4, 0, 0);
+            arg0->field_22 = 6;
+            arg0->field_20 = 0x34;
+        }
+    }
+}
 
 void func_800CFD78(Task* arg0)
 {
