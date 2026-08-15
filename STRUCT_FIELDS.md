@@ -889,12 +889,12 @@ Location key for `D_8010CBCC`. Same 4-byte prefix as `GameSessionFrom4` /
 | 0x05 | `field_5` | Nested-record index (`func_800B5C88`); compared with `GpAreaObj.field_0` |
 
 ### `GpWorkObj` — `1BC.h`
-Overlay of `Task::spawnArg2` for `func_800B5E08`. Full size unknown.
+Overlay of `Task::spawnArg2` for sibling walkers. Full size unknown.
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x08 | `field_8` | u16 id compared with the search key |
-| 0x0A | `field_A` | u16; high byte is the work type (`func_800B5E08` matches 9) |
+| 0x08 | `field_8` | Id compared with the search key (`as_u16` in `func_800B5E08`, `as_u8` in `func_800B5E78`) |
+| 0x0A | `field_A` | u16; high byte is the work type (`func_800B5E08` matches 9; `func_800B5E78` skips 9) |
 
 ### `GpItemSlot` (0x8) — `268.h`
 Indexed as `D_80072330[idx]` by `func_800BAFE0`. Two (id, count) pairs.

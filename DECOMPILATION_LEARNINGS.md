@@ -14643,7 +14643,7 @@ the payload pointer:
 arg1 = child;
 do {
     arg0 = arg1->spawnArg2;
-    if (((((GpWorkObj*)arg0)->field_A >> 8) == 9) && (((GpWorkObj*)arg0)->field_8 == arg2)) {
+    if (((((GpWorkObj*)arg0)->field_A >> 8) == 9) && (((GpWorkObj*)arg0)->field_8.as_u16 == arg2)) {
         *arg3 = arg1;
         ret   = 0;
         break;
@@ -14654,5 +14654,23 @@ do {
 
 `func_800B5E08` is the example. The same early `if (child == NULL) return ret;`
 is what emits `bnez` + `jr` instead of `beqz` to a shared tail.
+
+## Same-offset `lhu` vs `lbu` needs a union, not a cast
+
+Two sibling walkers can compare the same id bytes at `+0x8` with different
+load widths (`lhu` vs `lbu`). `(u8)obj->field_8` still emits `lhu` then
+`andi`, and splitting the member into two `u8`s breaks the `lhu` caller.
+
+Put both widths in a union so each access keeps its own load:
+
+```c
+union {
+    u16 as_u16;
+    u8  as_u8;
+} field_8;
+```
+
+`func_800B5E08` uses `field_8.as_u16`; `func_800B5E78` uses `field_8.as_u8`
+and inverts the work-type test (`!= 9` instead of `== 9`).
 
 
