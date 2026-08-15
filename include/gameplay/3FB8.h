@@ -14,6 +14,15 @@ typedef struct _GpActorWork {
     /* 0x1C */ GameActor* actor;
 } GpActorWork;
 
+/// 0xD4-byte block allocated by `func_8010BAC8` (`Mem_Set` size 0xD4) and
+/// stored at `GameActor.field_910`. `func_8010BF7C` writes `field_C4`.
+typedef struct _GpActorD4 {
+    /* 0x00 */ byte pad_0[0xC4];
+    /* 0xC4 */ s16  field_C4;
+    /* 0xC6 */ byte pad_C6[0xE];
+} GpActorD4;
+STATIC_ASSERT_SIZEOF(GpActorD4, 0xD4);
+
 /// Overlay of `GsCOORDINATE2` at `GameActorExt.field_8`. `flg` is the same
 /// word cleared by `*field_8 = 0`. Offset 0x44 (`param` in libgs) is an s16
 /// flag (`lh`) in `func_8010B590`.

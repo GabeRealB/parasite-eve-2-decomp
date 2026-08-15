@@ -73,6 +73,7 @@ STATIC_ASSERT_SIZEOF(GameSessionFrom4, 0x4);
 
 struct _Task;
 struct _GpLinkNode;
+struct _GpActorD4;
 
 /// 0x28-byte record in `GameActor.field_448`. `field_0` is a flag halfword
 /// (bit 0x100: `func_8010583C`; bits 0x102: `func_80105894`). Count is
@@ -106,7 +107,7 @@ typedef struct _GameActor {
     /* 0x448 */ GameActorSlot       field_448[19];
     /* 0x740 */ byte                pad_740[0x1CC];
     /* 0x90C */ struct _GpLinkNode* field_90C;
-    /* 0x910 */ s32                 field_910;
+    /* 0x910 */ struct _GpActorD4*  field_910;
     /* 0x914 */ struct _Task*       field_914;
     /* 0x918 */ struct _Task*       field_918;
     /* 0x91C */ struct _Task*       field_91C;

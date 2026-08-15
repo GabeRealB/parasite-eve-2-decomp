@@ -538,6 +538,7 @@ unlinked by `func_800E1638` during actor teardown (`func_80101408`).
 `func_801061F0` writes `0x20000 | (WipSysConfig.field_21 << 8) | field_22` from
 slot 3; `func_80106238` replaces bits 14–15 with `(arg1 << 1) | arg2`.
 `field_90C` is a `GpLinkNode*` (same object as `func_800DAB38` unlinks); `func_80103B5C` clears `node->field_5` then nulls the slot.
+`field_910` is a `GpActorD4*` (0xD4-byte block from `func_8010BAC8`); `func_8010BF7C` writes `field_C4` as `arg1 + (arg2 & func_80037164())`.
 `field_914`..`field_924` are child `Task*` slots killed (if non-NULL) on that path.
 `field_944`..`field_950` / `field_970` are s16 timers written to `0x258` by `func_8010A42C`;
 `field_954` is a u16 (`lhu`/`sh`) cleared with the 0x954–0x95E cluster (nonzero skips the 0x6A adjust in `func_80109720`);
@@ -552,6 +553,12 @@ slot 3; `func_80106238` replaces bits 14–15 with `(arg1 << 1) | arg2`.
 `field_97E` is a flag byte set to 1 by `func_80103B5C`;
 `field_981` is a u8 counter cleared with the 0x954–0x95E cluster; `func_801041FC` increments it from 0 (`lb`/`lbu`);
 `field_98D`/`field_98E`/`field_990` are companion bytes (case 10 also stores `rand() & 0x1F + 0xA`).
+
+### `GpActorD4`
+0xD4-byte block at `GameActor.field_910`, allocated and `Mem_Set(..., 0xD4)` by `func_8010BAC8`.
+| Off | Member | Role |
+|-----|--------|------|
+| 0xC4 | `field_C4` | s16; `func_8010BF7C` stores `arg1 + (arg2 & rand)` |
 
 ### `WipSysConfig`
 `field_21` is a u8 packed into `GameActor.field_124` bits 8–15 by `func_801061F0`.

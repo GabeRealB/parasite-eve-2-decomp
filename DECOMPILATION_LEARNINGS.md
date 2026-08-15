@@ -13197,3 +13197,22 @@ return ret;
 return NULL; default: ... }` is what emits `beq` to the trailing
 `jr ra; move v0,zero` instead of an inverted `bne` early-out.
 
+## `x & func()` dest register picks `s0`/`s1` for live args
+
+When two args stay live across a call and one of them is a bitwise-AND
+operand with the return value, operand order decides which s-reg holds
+which arg. `func() & arg2` writes the AND into `$v0` and parks `arg2` in
+`$s1` (`arg1` takes `$s0`). `arg2 & func()` writes the AND back onto
+`arg2`'s s-reg (`and s0, s0, v0`) and parks `arg1` in `$s1`:
+
+```c
+/* target: s2=arg0, s1=arg1, s0=arg2; and s0,s0,v0 */
+p->field = arg1 + (arg2 & func_80037164());
+
+/* swapped AND: s2=arg0, s0=arg1, s1=arg2; and v0,v0,s1 */
+p->field = arg1 + (func_80037164() & arg2);
+```
+
+Same schedule either way — only the dest of the `and` and the s-reg
+pairing change. `func_8010BF7C` is the example.
+
