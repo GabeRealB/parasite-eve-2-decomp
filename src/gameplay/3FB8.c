@@ -15,7 +15,6 @@ extern TaskDesc     D_80113340[];
 s32   func_800B9D80(s32 arg0);
 s32   func_8003B8A0(s32 arg0);
 s32   func_8005414C(s32 arg0, s32 arg1, s32 arg2);
-void  func_800EC9C8(void);
 void  func_800ECA54(void);
 s32   func_80037164(void);
 Task* func_8002CFA0(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);

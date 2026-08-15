@@ -48,7 +48,7 @@ typedef struct _GpState1C {
     /* 0x0A */ s16 field_A;
     /* 0x0C */ s16 field_C;
     /* 0x0E */ s16 field_E;
-    /* 0x10 */ s16 field_10;
+    /* 0x10 */ s16 field_10; // flags (bit 0 checked by func_800EC9C8)
     /* 0x12 */ s16 field_12;
     /* 0x14 */ s16 field_14;
     /* 0x16 */ s16 field_16;
@@ -62,6 +62,7 @@ extern GpState1C* D_80115740;
 void func_800EA3A0(s32 arg0);
 void func_800EC7E4(void* arg0, Task* arg1);
 void func_800EC868(void);
+void func_800EC9C8(void);
 void func_800ECA10(s32 arg0);
 
 #endif // GAMEPLAY_3CD8_H

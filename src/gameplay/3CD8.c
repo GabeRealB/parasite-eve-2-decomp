@@ -483,7 +483,12 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EC888);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EC914);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EC9C8);
+void func_800EC9C8(void)
+{
+    if (!(D_80115740->field_10 & 1)) {
+        func_800EA478(0x800600E8, 0, 0, 0);
+    }
+}
 
 void func_800ECA10(s32 arg0)
 {

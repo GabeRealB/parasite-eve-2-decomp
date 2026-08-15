@@ -713,6 +713,7 @@ Most members are s16. `func_800EA3A0` writes `arg0 + 1` to `field_C`.
 
 | Off | Member | Role |
 |-----|--------|------|
+| 0x10 | `field_10` | s16 flags; `func_800EC9C8` tests bit 0 before `func_800EA478(0x800600E8, …)` |
 | 0x18 | `field_18` | s16 PE/status bit written by `func_800ECA10` (low byte of arg; same bits as `WipSysConfig.field_25`) |
 | 0x1A | `field_1A` | u16 flags; `func_800FC6C0` ORs in `0x80`, `func_800EC868` ORs in `0x100` |
 
