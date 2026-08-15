@@ -77,7 +77,8 @@ struct _GpActorD4;
 
 /// 0x28-byte record in `GameActor.field_448`. `field_0` is a flag halfword
 /// (bit 0x100: `func_8010583C`; bits 0x102: `func_80105894`). Count is
-/// `GameActor+0x938` (init 0x13).
+/// `GameActor.field_938` (init 0x13). Slid-actor overlay: `func_801058BC`
+/// stores a clamped 1..0x7F byte at `GameActor.field_441`.
 typedef struct _GameActorSlot {
     /* 0x00 */ u16  field_0;
     /* 0x02 */ byte pad_2[0x26];
@@ -103,7 +104,9 @@ typedef struct _GameActor {
     /* 0x12C */ byte                field_12C[0x20];
     /* 0x14C */ byte                pad_14C[0x30];
     /* 0x17C */ byte                field_17C; // address taken for func_800E1A6C
-    /* 0x17D */ byte                pad_17D[0x2CB];
+    /* 0x17D */ byte                pad_17D[0x2C4];
+    /* 0x441 */ u8                  field_441; // slid-actor overlay; see GameActorSlot
+    /* 0x442 */ byte                pad_442[6];
     /* 0x448 */ GameActorSlot       field_448[19];
     /* 0x740 */ byte                pad_740[0x1CC];
     /* 0x90C */ struct _GpLinkNode* field_90C;
@@ -117,7 +120,8 @@ typedef struct _GameActor {
     /* 0x930 */ byte                field_930; // address taken for func_801011D0
     /* 0x931 */ byte                pad_931[3];
     /* 0x934 */ s32                 field_934;
-    /* 0x938 */ byte                pad_938[4];
+    /* 0x938 */ s16                 field_938; // GameActorSlot count (init 0x13)
+    /* 0x93A */ byte                pad_93A[2];
     /* 0x93C */ u16                 field_93C;
     /* 0x93E */ s16                 field_93E;
     /* 0x940 */ s16                 field_940;
@@ -157,7 +161,8 @@ typedef struct _GameActor {
     /* 0x982 */ s8                  field_982;
     /* 0x983 */ byte                pad_983;
     /* 0x984 */ u8                  field_984;
-    /* 0x985 */ byte                pad_985[0x8];
+    /* 0x985 */ u8                  field_985;
+    /* 0x986 */ byte                pad_986[0x7];
     /* 0x98D */ u8                  field_98D;
     /* 0x98E */ u8                  field_98E;
     /* 0x98F */ byte                pad_98F;

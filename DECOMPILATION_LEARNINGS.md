@@ -13399,3 +13399,35 @@ pointer *before* the saved byte (`actor = arg0->actor; saved = p->field_24`)
 so the target's `lw s2` / `lbu s1` order is preserved; declaration order
 still assigns `saved` to `$s1` and `actor` to `$s2`.
 
+## Keep the `i * sizeof(slot)` overlay inside the loop body
+
+`GameActor` helpers slide the actor pointer by `i * sizeof(GameActorSlot)` and
+then store through a field on that overlay (`func_80105894` / `func_801058BC`).
+A 1-based walk that the target implements as
+
+```
+addiu a0, a1, 0x28     /* actor + 1*slot */
+sb    a2, 0x441(a0)    /* overlay field */
+addiu a0, a0, 0x28
+```
+
+will not come from `slot[i - 1].field_21` — that strength-reduces to base
+offset 0 and store offset `0x469`. Precomputing the first slid pointer
+before the `i < count` test is also wrong: `i = 1` gets hoisted into the
+previous branch delay slot and `i++` moves *before* the store.
+
+Keep the multiply in the store so GCC strength-reduces it *after* `i = 1`
+has filled the `lh count` delay:
+
+```c
+i = 1;
+if (i < actor->field_938) {
+    do {
+        ((GameActor*)((i * sizeof(GameActorSlot)) + (s32)actor))->field_441 = arg2;
+        i++;
+    } while (i < actor->field_938);
+}
+```
+
+`func_801058BC` is the example.
+

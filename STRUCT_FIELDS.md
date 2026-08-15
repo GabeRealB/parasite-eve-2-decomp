@@ -527,8 +527,10 @@ Sparse: `field_17C`/`field_930` addresses for overlay setup; `field_C` kill flag
 `field_40`/`field_44`/`field_48` are three s32s (`VECTOR3` vx/vy/vz) copied from the
 argument of `func_80105B74` onto the slot-3 actor.
 `field_448` is a 19-entry table of `GameActorSlot` (0x28 each; flags halfword at +0x00).
-`func_80100B78` stores count `0x13` at `+0x938`; `func_80105894` returns
+`func_80100B78` stores count `0x13` at `field_938`; `func_80105894` returns
 `(slot[arg1].field_0 & 0x102) == 0`.
+`func_801058BC` clamps `arg2` to 1..0x7F, writes it through the slid-actor overlay
+at `field_441` for `i = 1 .. field_938-1`, then stores the same byte at `field_985`.
 `GameActorExt.field_8` is a `GsCOORDINATE2*` (`flg` cleared to 0 by `Display_SpawnFromMode`
 and `func_800B57EC`; `sub` is the parent link, same convention as `Gfx_InitCoordinateTrees`).
 Offset 0x18 / 0x20 are the low 16 bits of `coord.t[0]` / `coord.t[2]` (world X/Z);

@@ -387,7 +387,27 @@ s32 func_80105894(GpActorWork* arg0, s32 arg1)
     return (actor->field_448[0].field_0 & 0x102) == 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801058BC);
+s32 func_801058BC(GpActorWork* arg0, s32 arg1, s32 arg2)
+{
+    GameActor* actor;
+    s32        i;
+
+    actor = arg0->actor;
+    if (arg2 <= 0) {
+        arg2 = 1;
+    } else if (arg2 >= 0x80) {
+        arg2 = 0x7F;
+    }
+    i = 1;
+    if (i < actor->field_938) {
+        do {
+            ((GameActor*)((i * sizeof(GameActorSlot)) + (s32)actor))->field_441 = arg2;
+            i++;
+        } while (i < actor->field_938);
+    }
+    actor->field_985 = arg2;
+    return 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105914);
 
