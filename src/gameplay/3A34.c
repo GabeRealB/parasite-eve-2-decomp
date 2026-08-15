@@ -113,7 +113,15 @@ s32 func_800D9340(GpObj38* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D937C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D94B8);
+void func_800D94B8(SVECTOR* arg0)
+{
+    if (arg0 == NULL) {
+        D_80114F18 = 0;
+        return;
+    }
+    D_80114F18 = 1;
+    D_80114F20 = *arg0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9504);
 
