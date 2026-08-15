@@ -24,6 +24,18 @@ typedef struct _GpEnemy {
 } GpEnemy;
 STATIC_ASSERT_SIZEOF(GpEnemy, 0x60);
 
+/// Callback for GpEnemy + Task state handlers (entries in `D_80093A10`).
+typedef void (*GpEnemyTaskFunc)(GpEnemy* enemy, Task* task);
+
+/// Fixed-size table of `GpEnemyTaskFunc` callbacks. Copied onto the stack by
+/// `func_800B058C` so the call uses a local jump table.
+typedef struct {
+    GpEnemyTaskFunc funcs[3];
+} GpEnemyTaskFuncTable3;
+
+/// Three-entry dispatcher table: `func_800B0544`, `func_800B0560`, `func_800B01F0`.
+extern GpEnemyTaskFuncTable3 D_80093A10;
+
 /// Source object for `func_800B3CCC` / `func_800B3F60`. Word at 0x30 is
 /// copied into the dest context; the address of 0x34 is stored as dest
 /// `field_4` (base of 0x50-byte records in `func_800B3448`).
@@ -128,6 +140,7 @@ void     func_800B0234(Task* task);
 GpEnemy* func_800B0494(Task* task, GpEnemy* parent);
 void     func_800B0544(GpEnemy* enemy, Task* task);
 void     func_800B0560(GpEnemy* enemy, Task* task);
+void     func_800B058C(Task* arg0);
 s32      func_800B05E8(s32 arg0);
 void     func_800B3CCC(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3);
 void     func_800B3DB4(GpAnimCtx* arg0, GpAnimSlot* arg1);

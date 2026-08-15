@@ -178,7 +178,13 @@ void func_800B0560(GpEnemy* enemy, Task* task)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B058C);
+void func_800B058C(Task* arg0)
+{
+    GpEnemyTaskFuncTable3 sp;
+
+    sp = D_80093A10;
+    sp.funcs[arg0->state](arg0->spawnArg2, arg0);
+}
 
 s32 func_800B05E8(s32 arg0)
 {
