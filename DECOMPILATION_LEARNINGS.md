@@ -14100,4 +14100,44 @@ sibling of the global-table struct copy (`sp = D_xxx`) used by
 `GameFlow_DispatchTable`: no `.data` table, so the addresses are built in
 place. `func_800D96C8` is the example.
 
+## Hoist `one = 1` so a loop bit-test stays `sllv` + `and`
+
+`word & (1 << bit)` inside a 0..31 loop is rewritten as a bit extract:
+
+```
+srav  v0, word, bit
+andi  v0, v0, 0x1
+```
+
+The target instead hoists `li t0, 1` once and reuses it:
+
+```
+sllv  v0, t0, v1
+and   v0, a1, v0
+```
+
+A literal `1` is folded before RTL. Assign it to a local first so the shift
+operand stays a register:
+
+```c
+s32 one;
+
+one = 1;
+for (i = 3; i >= 0; i--) {
+    bit  = 0;
+    word = *p;
+    do {
+        if (word & (one << bit)) {
+            count++;
+        }
+        bit++;
+    } while (bit < 32);
+    p++;
+}
+```
+
+`bit = 0` before `word = *p` matches the target's `move v1, zero` / `lw`
+order. This is the loop counterpart of the single-bit `p += i/32; i %= 32;
+val = *p & (1 << i)` form (`func_800BB4BC`). `func_800BAF08` is the example.
+
 

@@ -102,6 +102,7 @@ STATIC_ASSERT_SIZEOF(GpItemAttr, 0x8);
 
 /// 4-word (128-bit) flag array at `Mc_SaveData+0x5AC`. Indexed with
 /// `id & 0x7F` (`func_800BAE5C` / `func_800BAEC0` / `func_800BB4BC`).
+/// `func_800BAF08` returns the number of bits set across all four words.
 extern s32        D_80072714[4];
 extern GpItemRec  D_80072314[];
 extern GpItemSlot D_80072330[];
@@ -125,6 +126,7 @@ extern GpItemRec  D_80114C20[];
 extern GpItemRec* D_80114D70;
 
 void        func_800BAE38(void);
+s32         func_800BAF08(void);
 void        func_800B91C8(GpItemRec* arg0);
 GpItemSlot* func_800BAFE0(s32 arg0);
 void        func_800BB190(s32 arg0, s32 arg1);

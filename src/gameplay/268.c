@@ -181,7 +181,31 @@ void func_800BAEC0(s32 arg0)
     *p   &= ~(1 << arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAF08);
+s32 func_800BAF08(void)
+{
+    s32  count;
+    s32* p;
+    s32  i;
+    s32  bit;
+    s32  word;
+    s32  one;
+
+    p     = D_80072714;
+    count = 0;
+    one   = 1;
+    for (i = 3; i >= 0; i--) {
+        bit  = 0;
+        word = *p;
+        do {
+            if (word & (one << bit)) {
+                count++;
+            }
+            bit++;
+        } while (bit < 32);
+        p++;
+    }
+    return count;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAF5C);
 
