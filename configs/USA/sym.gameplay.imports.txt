@@ -74,6 +74,7 @@ func_8002D61C = 0x8002D61C; // absolute:True
 func_8002D780 = 0x8002D780; // absolute:True
 func_8002D7A8 = 0x8002D7A8; // absolute:True
 func_8002D894 = 0x8002D894; // absolute:True
+Mem_Set = 0x8002D894; // absolute:True
 func_8002D978 = 0x8002D978; // absolute:True
 Mem_Calloc = 0x8002D978; // absolute:True
 Mem_Free = 0x8002DB20; // absolute:True

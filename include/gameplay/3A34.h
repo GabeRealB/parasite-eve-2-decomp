@@ -104,6 +104,14 @@ typedef struct _GpSlot70 {
 } GpSlot70;
 STATIC_ASSERT_SIZEOF(GpSlot70, 0xC);
 
+/// 0x18 record wiped by `func_800E18E0`. That helper zeros `count` entries
+/// and writes 2 to the last element's `field_0`.
+typedef struct _GpRec18 {
+    /* 0x00 */ s16  field_0;
+    /* 0x02 */ byte pad_2[0x16];
+} GpRec18;
+STATIC_ASSERT_SIZEOF(GpRec18, 0x18);
+
 /// Signed pending item id consumed by `func_800D68C4`. `func_800D5B14`
 /// stores the id, or its negation for the second `GpItemSlot` pair.
 extern s32 D_8010F88C;
@@ -170,6 +178,7 @@ void func_800E06AC(GpObj* node, s32 mask, s32 match);
 s32  func_800E076C(void);
 void func_800E0B08(void);
 void func_800E1638(GpObj* node);
+void func_800E18E0(GpRec18* arg0, s32 arg1);
 s32  func_800E1ACC(u8* arg0);
 s32  func_800E2C40(GpU16Pair* arg0, s32 arg1);
 void func_800E3008(GpObj4C* arg0);

@@ -2,6 +2,7 @@
 
 #include "gameplay/268.h"
 #include "gameplay/3A34.h"
+#include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -405,7 +406,11 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1834);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1884);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E18E0);
+void func_800E18E0(GpRec18* arg0, s32 arg1)
+{
+    Mem_Set(arg0, 0, arg1 * 0x18);
+    arg0[arg1 - 1].field_0 = 2;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E192C);
 

@@ -598,6 +598,13 @@ Embedded at `GpEnemy.node` (+0x10). `func_800DAB38` also clears `GameActor+0x90C
 | 0x08 | `field_8` | Projected screen X (`swc2 SXY2` / `lh`) |
 | 0x0A | `field_A` | Projected screen Y |
 
+### `GpRec18` (0x18) — `3A34.h`
+Array element cleared by `func_800E18E0` (`Mem_Set` of `count * 0x18`).
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | Last element set to 2 after the wipe (terminator / sentinel) |
+
 ### `GpStateF0` (0x8+) — `3A34.h`
 Global at `D_801153F0`. Full object is larger (helpers also use 0x8 / 0xC / 0x10).
 
