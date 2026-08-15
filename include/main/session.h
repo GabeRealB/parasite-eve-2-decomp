@@ -100,7 +100,7 @@ typedef struct _GameActor {
     /* 0x448 */ GameActorSlot       field_448[19];
     /* 0x740 */ byte                pad_740[0x1CC];
     /* 0x90C */ struct _GpLinkNode* field_90C;
-    /* 0x910 */ byte                pad_910[4];
+    /* 0x910 */ s32                 field_910;
     /* 0x914 */ struct _Task*       field_914;
     /* 0x918 */ struct _Task*       field_918;
     /* 0x91C */ struct _Task*       field_91C;

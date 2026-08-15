@@ -10,13 +10,16 @@
 
 #include <psyq/abs.h>
 
+extern s8           D_8007272A;
 extern WipSysConfig D_80073B88;
 extern TaskDesc     D_80113340[];
 extern GpEffArg     D_80113358;
 
+s32   func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32   func_800B9D80(s32 arg0);
 s32   func_8003B8A0(s32 arg0);
 s32   func_8005414C(s32 arg0, s32 arg1, s32 arg2);
+s32   func_8010A854(s32 arg0);
 void  func_800ECA54(void);
 s32   func_80037164(void);
 Task* func_8002CFA0(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
@@ -383,7 +386,24 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801058BC);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105914);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801059AC);
+s32 func_801059AC(GpActorWork* arg0, s32 arg1, s32 arg2)
+{
+    GameActor* actor;
+    s32        ret;
+    s32        out;
+
+    actor = arg0->actor;
+    ret   = 0;
+    if (D_8007272A == 0) {
+        ret = func_8010A854((s16)func_800E2438(arg2, 0, &out, 0));
+        if (ret != 0) {
+            func_800AC464(Game_GetPtrSlot(4), 0x7DA, 0, 0x7DE);
+        } else if (actor->field_910 == 0) {
+            func_8010A42C(arg0, (u8)out);
+        }
+    }
+    return ret;
+}
 
 s32 func_80105A60(Task* arg0, s32 arg1, s32 arg2)
 {
