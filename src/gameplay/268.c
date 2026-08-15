@@ -235,7 +235,25 @@ GpItemRec* func_800BB5BC(GpItemScan* arg0, s32 arg1)
     return &table[arg0->field_0 + arg1];
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB610);
+s32 func_800BB610(GpItemScan* arg0, s32 arg1)
+{
+    GpItemRec* table;
+    GpItemRec* rec;
+
+    switch (arg0->field_2) {
+        case 2:
+            table = D_80114C20;
+            break;
+        case 1:
+            table = D_80114D70;
+            break;
+        default:
+            table = D_80072314;
+            break;
+    }
+    rec = &table[arg0->field_0 + arg1];
+    return rec->field_0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB668);
 

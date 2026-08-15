@@ -12876,6 +12876,21 @@ default:
 
 `func_800BB5BC` is the pure example.
 
+## Second pointer so `addu` dest is `$v0`, not the table reg
+
+After a switch that leaves the table in `$v1`, `return table[i].field_0`
+emits `addu v0, v0, v1` (offset first). Assigning the address back into
+`table` then loading (`table = &table[i]; return table->field_0`) flips
+the dest to `$v1` (`addu v1, v1, v0` / `lbu v0, 0(v1)`). A *second*
+pointer keeps dest `$v0` and base-first operands:
+
+```c
+rec = &table[arg0->field_0 + arg1]; /* addu v0, v1, v0 */
+return rec->field_0;                /* lbu  v0, 0(v0) */
+```
+
+`func_800BB610` is the load-from-row companion of `func_800BB5BC`.
+
 ## Split `&=` / `|=` so the formal stays in `$a0`
 
 A combined `arg0 = (arg0 & mask) | val` allocates the masked value to a new
