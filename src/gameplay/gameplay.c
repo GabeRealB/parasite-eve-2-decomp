@@ -3,6 +3,7 @@
 #include "gameplay/3A34.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
+#include "main/fs.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
@@ -405,7 +406,22 @@ void func_800A7CF4(u8 arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7D54);
+s32 func_800A7D54(void)
+{
+    GpStateF0* p;
+    s32        cond;
+
+    p = &D_801153F0;
+    if ((p->field_0 == 1 && p->field_6 != 0) || p->field_1 != 0) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        return CdCmd_IsIdle() & 0xFFFF;
+    }
+    return 1;
+}
 
 void func_800A7DB8(s32 arg0)
 {
