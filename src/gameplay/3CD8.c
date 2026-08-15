@@ -13,40 +13,41 @@
 #include "main/task.h"
 #include "main/wipsys.h"
 
-extern TaskDesc D_8010FAEC[];
-extern s32      D_8010FB90[];
-extern u16      D_80112D68[];
-extern u16      D_80113360[];
-extern GpEvt12* D_801155A8;
-extern u16      D_801155AE;
-extern u8       D_80115670;
-extern Task*    D_80115674;
-extern s16      D_80115678;
-extern u8       D_80115648;
-extern s16      D_80115654;
-extern s16      D_80115656;
-extern u8       D_80115658;
-extern u8       D_80115659;
-extern u8       D_8011565A;
-extern s32      D_80115660;
-extern s16      D_80115666;
-extern s16      D_80115668;
-extern s32      D_8011568C;
-extern s16      D_80115698;
-extern s16      D_8011569A;
-extern u8       D_8011569C;
-extern s32*     D_801156A0;
-extern u8       D_801156A4;
-extern s32      D_801156A8;
-extern s8       D_801156B0;
-extern s8       D_801156B1;
-extern s32      D_801156B4;
-extern Task*    D_801156B8;
-extern s16      D_801156BC;
-extern u8       D_801156F9;
-extern u8       D_80115700;
-extern u8       D_80115701;
-extern u8       D_80115702;
+extern TaskFuncTable3 D_800974C8;
+extern TaskDesc       D_8010FAEC[];
+extern s32            D_8010FB90[];
+extern u16            D_80112D68[];
+extern u16            D_80113360[];
+extern GpEvt12*       D_801155A8;
+extern u16            D_801155AE;
+extern u8             D_80115670;
+extern Task*          D_80115674;
+extern s16            D_80115678;
+extern u8             D_80115648;
+extern s16            D_80115654;
+extern s16            D_80115656;
+extern u8             D_80115658;
+extern u8             D_80115659;
+extern u8             D_8011565A;
+extern s32            D_80115660;
+extern s16            D_80115666;
+extern s16            D_80115668;
+extern s32            D_8011568C;
+extern s16            D_80115698;
+extern s16            D_8011569A;
+extern u8             D_8011569C;
+extern s32*           D_801156A0;
+extern u8             D_801156A4;
+extern s32            D_801156A8;
+extern s8             D_801156B0;
+extern s8             D_801156B1;
+extern s32            D_801156B4;
+extern Task*          D_801156B8;
+extern s16            D_801156BC;
+extern u8             D_801156F9;
+extern u8             D_80115700;
+extern u8             D_80115701;
+extern u8             D_80115702;
 
 s32  func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800E40EC(s32 arg0);
@@ -196,7 +197,13 @@ void func_800E4020(void)
 {
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E4028);
+void func_800E4028(Task* arg0)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_800974C8;
+    sp.funcs[arg0->state](arg0);
+}
 
 void func_800E4080(void)
 {
