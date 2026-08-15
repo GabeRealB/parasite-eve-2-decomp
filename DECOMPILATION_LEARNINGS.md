@@ -13456,3 +13456,28 @@ if (i < actor->field_938) {
 
 `func_801058BC` is the example.
 
+## Variable-shift bit test: `p += i/32` then `i %= 32` then `val = *p & (1 << i)`
+
+`(flags[i / 32] & (1 << (i % 32))) != 0` is combined into a bit extract:
+
+```
+srav  v0, word, bit
+andi  v0, v0, 0x1
+```
+
+The target instead does `sllv` of `1`, `and`, then `sltu v0, zero, v0`. Keep
+the word pointer in its own register (`p = flags; p += i / 32`, not
+`flags[i / 32]`), overwrite `i` with the remainder, then capture the AND:
+
+```c
+p = flags;
+arg0 &= 0x7F;
+p += arg0 / 32;
+arg0 %= 32;
+val = *p & (1 << arg0);
+return val != 0;
+```
+
+Inlining `(1 << (arg0 % 32))` without first assigning `arg0 %= 32` drops
+back to the `srav` form. `func_800BB4BC` is the example.
+

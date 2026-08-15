@@ -12,32 +12,31 @@ extern u16          D_80072174;
 extern u16          D_800739B8;
 extern WipSysConfig D_80073B88;
 
-void       func_80180804(void);
-void       func_8017EA68(void);
-void       func_80181468(void);
-void       func_8017EA90(void);
-void       func_8017E9E8(void);
-void       func_80181364(void);
-void       func_8017EA58(void);
-void       func_8017E9F8(void);
-void       func_8017EAE0(void);
-void       func_8018138C(void);
-void       func_8017EA74(void);
-void       func_8017EA78(void);
-void       func_8017EB2C(void);
-void       func_8017EDE8(void);
-void       func_8017EAB4(void);
-void       func_8017EA64(void);
-void       func_8017EC04(void);
-void       func_8017EAC4(void);
-void       func_8017EA60(void);
-void*      func_800B8CAC(void* arg0, s32 arg1, s32 arg2);
-void       func_800BAA58(void);
-s32        func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
-s32        func_800BB4BC(s32 arg0);
-void       func_800BAEC0(s32 arg0);
-void       func_800BAE5C(s32 arg0);
-s32        func_800BBCCC(GpItemRec* arg0, GpItemScan* arg1, s32* arg2, s32 arg3);
+void  func_80180804(void);
+void  func_8017EA68(void);
+void  func_80181468(void);
+void  func_8017EA90(void);
+void  func_8017E9E8(void);
+void  func_80181364(void);
+void  func_8017EA58(void);
+void  func_8017E9F8(void);
+void  func_8017EAE0(void);
+void  func_8018138C(void);
+void  func_8017EA74(void);
+void  func_8017EA78(void);
+void  func_8017EB2C(void);
+void  func_8017EDE8(void);
+void  func_8017EAB4(void);
+void  func_8017EA64(void);
+void  func_8017EC04(void);
+void  func_8017EAC4(void);
+void  func_8017EA60(void);
+void* func_800B8CAC(void* arg0, s32 arg1, s32 arg2);
+void  func_800BAA58(void);
+s32   func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
+void  func_800BAEC0(s32 arg0);
+void  func_800BAE5C(s32 arg0);
+s32   func_800BBCCC(GpItemRec* arg0, GpItemScan* arg1, s32* arg2, s32 arg3);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B7420);
 
@@ -239,7 +238,18 @@ s32 func_800BB418(s32 arg0, s32 arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB470);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB4BC);
+s32 func_800BB4BC(s32 arg0)
+{
+    s32* p;
+    s32  val;
+
+    p     = D_80072714;
+    arg0 &= 0x7F;
+    p    += arg0 / 32;
+    arg0 %= 32;
+    val   = *p & (1 << arg0);
+    return val != 0;
+}
 
 GpItemRec* func_800BB500(GpItemScan* arg0)
 {
