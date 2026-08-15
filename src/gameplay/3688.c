@@ -297,7 +297,36 @@ s32 func_800CF27C(void)
     return D_8010E8F8[0];
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF28C);
+void func_800CF28C(DialogPrompt* arg0, UiObject* arg1)
+{
+    register u8* text asm("v0");
+    s8           idx;
+    s32          id;
+
+    idx = arg0->field_8;
+    id  = (u16)arg1->owner->spawnArg1;
+    if ((idx < 2) && (id < 0x100)) {
+        text = func_800B8EB0(id, idx + 1, 1);
+    } else {
+        text = Text_SkipLines(Fs_GetChunkPayload(), arg0->field_8 + 5);
+    }
+    {
+        register s32       color asm("v1");
+        register UiObject* obj asm("a0");
+        register u8*       str asm("a3");
+        register s32       mode asm("v0");
+        s16                x;
+        s16                y;
+
+        color = 0x606060;
+        obj   = arg1;
+        str   = text;
+        x     = arg0->field_18;
+        y     = arg0->field_1A;
+        mode  = 3;
+        Text_DrawPrompt(obj, x, y, str, color, mode, 0);
+    }
+}
 
 void func_800CF330(Task* arg0)
 {

@@ -13216,3 +13216,45 @@ p->field = arg1 + (func_80037164() & arg2);
 Same schedule either way — only the dest of the `and` and the s-reg
 pairing change. `func_8010BF7C` is the example.
 
+## Keep a call result in `$v0` so a wide constant's `lui` fills the jump slot
+
+When an if/else produces a pointer that is then passed to a 7-arg call
+together with a wide constant (`0x606060`) and a small stack arg (`3`),
+GCC often coalesces the pointer with `$a3` at the end of each arm.
+That frees `$v0` for the constant, so you get `j; move a3,v0` and
+`lui v0,0x60` instead of the target's `j; lui v1,0x60` plus a late
+`move a3,v0` / `li v0,3`.
+
+Pin the result in `$v0` so the color materializes in `$v1` (and the
+`lui` can delay-slot-fill the jump). Then copy it to `$a3` in an inner
+block that reuses `$v0` for the small constant:
+
+```c
+register u8* text asm("v0");
+/* if/else assigns text from the two calls */
+{
+    register s32       color asm("v1");
+    register UiObject* obj asm("a0");
+    register u8*       str asm("a3");
+    register s32       mode asm("v0");
+
+    color = 0x606060;
+    obj   = arg1;
+    str   = text; /* move a3, v0 — $v0 now free */
+    mode  = 3;    /* li v0, 3 */
+    Text_DrawPrompt(obj, x, y, str, color, mode, 0);
+}
+```
+
+The inner block is required: `text` and `mode` cannot both be
+`asm("v0")` in the same scope. `func_800CF28C` is the example.
+
+Related: `(u16)s32_field` assigned to an `s32` temp is `lhu` + `slti`
+(u16 promotes to signed int). Assigning the same load to a `u16` temp
+adds `andi` + `sltiu`.
+
+Overlay C that calls a renamed main-exe symbol also needs that name in
+`configs/USA/sym.gameplay.imports.txt` (same address as the old
+`func_*`). Without the alias the overlay links with an undefined
+reference even when the object bytes already match.
+
