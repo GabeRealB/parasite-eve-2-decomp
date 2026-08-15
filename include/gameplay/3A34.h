@@ -19,12 +19,18 @@ typedef struct _GpLinkNode {
 STATIC_ASSERT_SIZEOF(GpLinkNode, 0x8);
 
 /// Linked object used as a list head/node by the 3A34 pair/filter helpers.
-/// `next` is at 0x0 and `flags` is at 0x1E; full object size is not known yet.
+/// `next` is at 0x0, `prev` at 0x4, and `flags` at 0x1E. Bit 0x8 means the
+/// node is on the `D_8010FA8C` list (set by `func_800E15AC`, cleared by
+/// `func_800E1638`, keeping bits 0x7). Embedded as 0x20-byte nodes in
+/// `GameActor` (`field_AC` / `field_CC` / `field_EC` / `field_10C` /
+/// `field_12C`). Full object size is not known for other list users.
 typedef struct _GpObj {
     /* 0x00 */ struct _GpObj* next;
-    /* 0x04 */ byte           pad_4[0x1A];
+    /* 0x04 */ struct _GpObj* prev;
+    /* 0x08 */ byte           pad_8[0x16];
     /* 0x1E */ u16            flags;
 } GpObj;
+STATIC_ASSERT_SIZEOF(GpObj, 0x20);
 
 /// 4-byte table entry packed by `func_800E2C40` as
 /// `(field_0 & 0xFFF) | ((field_2 & 0xF) << 12) | 0x40000`.

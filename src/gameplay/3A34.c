@@ -450,7 +450,27 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1380);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E15AC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1638);
+void func_800E1638(GpObj* node)
+{
+    u16    flags;
+    GpObj* next;
+    GpObj* prev;
+
+    flags = node->flags;
+    if (flags & 0x8) {
+        next        = node->next;
+        node->flags = flags & 0x7;
+        prev        = node->prev;
+        if (next != NULL) {
+            prev->next = next;
+            next->prev = node->prev;
+            node->next = NULL;
+        } else {
+            prev->next = NULL;
+        }
+        node->prev = NULL;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1688);
 

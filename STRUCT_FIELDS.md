@@ -639,6 +639,18 @@ Global at `D_801153F0`. Full object is larger (helpers also use 0x8 / 0xC / 0x10
 | 0x02 | `field_2` | bitset (`func_800DB500` ORs `1 << (arg0 - 1)` when `arg0 != 0`) |
 | 0x06 | `field_6` | u16 refcount (inc: `func_800DB53C`; dec: `func_800DB558` / `func_800DB630` / `func_800DB6B4`) |
 
+### `GpObj` (0x20 header) — `3A34.h`
+Doubly-linked node unlinked by `func_800E1638` and linked onto
+`D_8010FA8C[index]` by `func_800E15AC`. Embedded as 0x20-byte slots in
+`GameActor` (`field_AC` / `field_CC` / `field_EC` / `field_10C` /
+`field_12C`). Other list users may be larger; 0x20 is the header.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `next` | Intrusive next; NULL-terminated |
+| 0x04 | `prev` | Previous node, or the list-head object when first |
+| 0x1E | `flags` | u16 flags: bit 0x8 = on list; bits 0x7 kept on unlink (type / kind) |
+
 ### `GpObj20` (0x24) — `3A34.h`
 Sparse overlay. Full object size is not known yet.
 
