@@ -4,6 +4,7 @@
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
@@ -31,6 +32,7 @@ void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  func_800A7B20(s32 arg0);
 void func_800B065C(u8 arg0);
 void func_8009939C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80097AC0);
 
@@ -42,7 +44,16 @@ void func_80098F58(GsCOORDINATE2* arg0)
     func_8009939C(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, 0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80098F98);
+void func_80098F98(GsCOORDINATE2* arg0, s32 arg1)
+{
+    if (arg0->sub == NULL) {
+        D_80114B9C = arg0;
+        func_8009939C(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, 0);
+        func_800A8864(&D_80070F34, &arg0->workm, &arg0->coord);
+    } else {
+        func_8009939C(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, arg1);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009902C);
 
