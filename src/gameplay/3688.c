@@ -16,9 +16,13 @@ extern s32          D_80114D88;
 extern u32          D_80114DCC;
 extern u8*          D_80114DD4;
 extern s32          D_80114E88;
+extern s32          D_80114E8C;
+extern s32          D_80114E90;
+extern s32          D_80114E94;
 extern char         D_8010E494[];
 extern char         D_8010F8D0[];
 extern UiObjectDesc D_8010F788;
+extern TaskDesc     D_8010F85C;
 extern UiObject*    D_80067634;
 extern WipSysConfig D_80073B88;
 
@@ -527,7 +531,14 @@ void func_800D4E40(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
     Ui_SpawnFromDesc(&D_8010F788, arg3 | arg1, one, one, arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D4E78);
+s32 func_800D4E78(s32 arg0, s32 arg1, s32 arg2)
+{
+    D_80114E94 = arg2;
+    D_80114E8C = arg0;
+    D_80114E90 = arg1;
+    Display_InitModeObj(&D_8010F85C, arg2, 0, 0);
+    return 1;
+}
 
 s32 func_800D4EC0(void)
 {
