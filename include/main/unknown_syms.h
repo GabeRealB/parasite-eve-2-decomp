@@ -32,7 +32,7 @@ extern void  func_800991DC(TmdListHead* arg0);
 extern void  func_80099214(TmdObject* arg0);
 extern void  func_80099258(TmdListHead* arg0);
 extern void  func_80099290(void* arg0);
-extern void  func_800E1A6C(void* arg0);
+extern void  func_800E1A6C(GpRec18* arg0);
 extern void  func_801011D0(s32* arg0, s32 arg1, s32 arg2, void* arg3);
 extern void  func_800AC688(void);
 extern void  func_800ACAA8(void);

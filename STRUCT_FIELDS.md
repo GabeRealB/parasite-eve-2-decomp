@@ -650,13 +650,24 @@ Embedded at `GpEnemy.node` (+0x10). `func_800DAB38` also clears `GameActor+0x90C
 ### `GpRec18` (0x18) — `session.h` (`GameActor.field_17C[18]`)
 Array element cleared by `func_800E18E0` (`Mem_Set` of `count * 0x18`).
 Walked by `func_800E1A1C`, which counts occupied slots whose `field_4`
-high 16 bits match the argument. `func_801041B4` scans all 18 actor
+high 16 bits match the argument. `func_800E1A6C` walks until `field_0`
+bit 0x2 and, for each occupied slot, keeps only that bit and zeros the
+payload fields (not 0xE / 0x16). `func_801041B4` scans all 18 actor
 slots for `field_4 & 0x100100 == 0x100000`.
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x00 | `field_0` | u16 flags: bit 0x1 = occupied; bit 0x2 = last (`func_800E18E0` writes 2 on the last element) |
-| 0x04 | `field_4` | Packed word; `func_800E1A1C` compares `field_4 & 0xFFFF0000` to its argument |
+| 0x00 | `field_0` | u16 flags: bit 0x1 = occupied; bit 0x2 = last (`func_800E18E0` writes 2 on the last element; `func_800E1A6C` does `field_0 &= 2`) |
+| 0x02 | `field_2` | s16; cleared by `func_800E1A6C` |
+| 0x04 | `field_4` | Packed word; `func_800E1A1C` compares `field_4 & 0xFFFF0000` to its argument; cleared by `func_800E1A6C` |
+| 0x08 | `field_8` | s16; cleared by `func_800E1A6C` |
+| 0x0A | `field_A` | s16; cleared by `func_800E1A6C` |
+| 0x0C | `field_C` | s16; cleared by `func_800E1A6C` |
+| 0x0E | `pad_E` | unused by `func_800E1A6C` |
+| 0x10 | `field_10` | s16; cleared by `func_800E1A6C` |
+| 0x12 | `field_12` | s16; cleared by `func_800E1A6C` |
+| 0x14 | `field_14` | s16; cleared by `func_800E1A6C` (GCC hoists `&field_14` as the store base) |
+| 0x16 | `pad_16` | unused by `func_800E1A6C` |
 
 ### `GpStateF0` (0x8+) — `3A34.h`
 Global at `D_801153F0`. Full object is larger (helpers also use 0x8 / 0xC / 0x10).

@@ -739,7 +739,26 @@ s32 func_800E1A1C(GpRec18* arg0, s32 arg1)
     return count;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1A6C);
+void func_800E1A6C(GpRec18* arg0)
+{
+    for (;;) {
+        if (arg0->field_0 & 1) {
+            arg0->field_0 &= 2;
+            arg0->field_2  = 0;
+            arg0->field_4  = 0;
+            arg0->field_8  = 0;
+            arg0->field_A  = 0;
+            arg0->field_C  = 0;
+            arg0->field_10 = 0;
+            arg0->field_12 = 0;
+            arg0->field_14 = 0;
+        }
+        if (arg0->field_0 & 2) {
+            break;
+        }
+        arg0++;
+    }
+}
 
 s32 func_800E1ACC(u8* arg0)
 {

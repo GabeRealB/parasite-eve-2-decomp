@@ -14294,4 +14294,31 @@ if (arg == 1) {
 
 `func_8010B2D4` is the example.
 
+## Sentinel-bit walk: `if (flags & LAST) break; p++` vs `do … while`
+
+When the target ends a table walk with `bnez` to the epilogue and `j`
+back to the head (increment only on the continue path, often in the `j`
+delay slot), a `do { … } while (!((p++)->flags & LAST))` is the wrong
+shape: GCC emits `beqz` to the loop head and strength-reduces a derived
+pointer *before* the flag reload.
+
+Write the terminator as a test-then-advance so the increment is not on
+the break path:
+
+```c
+for (;;) {
+    if (p->field_0 & 1) {
+        /* occupy-bit work; may store back into field_0 */
+    }
+    if (p->field_0 & 2) { /* last-element bit */
+        break;
+    }
+    p++;
+}
+```
+
+`func_800E1A6C` is the example. The sibling `func_800E1A1C` *does* match
+as `do … while (!((arg0++)->field_0 & 2))` because it never stores
+`field_0` and the target uses the post-increment form.
+
 

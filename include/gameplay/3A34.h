@@ -321,6 +321,7 @@ void func_800E1884(s32 arg0);
 void func_800E18E0(GpRec18* arg0, s32 arg1);
 s32  func_800E19B8(GpRec18* arg0, s32 arg1);
 s32  func_800E1A1C(GpRec18* arg0, s32 arg1);
+void func_800E1A6C(GpRec18* arg0);
 s32  func_800E1ACC(u8* arg0);
 s32  func_800E1B24(s32 arg0);
 s32  func_800E2438(s32 arg0, s32 arg1, s32* arg2, s32 arg3);

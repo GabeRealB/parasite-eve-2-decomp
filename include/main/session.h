@@ -87,13 +87,22 @@ struct _GpActorD4;
 /// 1-based index of the last occupied slot whose `field_4` equals `arg1`,
 /// or 1 as soon as any occupied slot is seen when `arg1` is 0.
 /// `func_800E1A1C` counts occupied slots whose `field_4` high 16 bits match
-/// `arg1`. Embedded as `GameActor.field_17C[18]`; `func_801041B4` tests
-/// `field_4` bits 0x100100.
+/// `arg1`. `func_800E1A6C` walks until bit 0x2, and for each occupied slot
+/// keeps only that last-element bit and zeros the payload halfwords / word
+/// (leaving 0xE and 0x16 untouched). Embedded as `GameActor.field_17C[18]`;
+/// `func_801041B4` tests `field_4` bits 0x100100.
 typedef struct _GpRec18 {
     /* 0x00 */ u16  field_0;
-    /* 0x02 */ byte pad_2[2];
+    /* 0x02 */ s16  field_2;
     /* 0x04 */ s32  field_4;
-    /* 0x08 */ byte pad_8[0x10];
+    /* 0x08 */ s16  field_8;
+    /* 0x0A */ s16  field_A;
+    /* 0x0C */ s16  field_C;
+    /* 0x0E */ byte pad_E[2];
+    /* 0x10 */ s16  field_10;
+    /* 0x12 */ s16  field_12;
+    /* 0x14 */ s16  field_14;
+    /* 0x16 */ byte pad_16[2];
 } GpRec18;
 STATIC_ASSERT_SIZEOF(GpRec18, 0x18);
 
