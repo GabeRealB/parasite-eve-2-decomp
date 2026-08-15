@@ -91,7 +91,16 @@ void func_800E3B80(s32 arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3BBC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3C6C);
+void func_800E3C6C(s32 arg0, s32 arg1)
+{
+    s32 out;
+
+    arg0 = (arg0 << 12) | (Game_Session->field_7 << 8) | Game_Session->field_6;
+    func_800AC464(Game_GetPtrSlot(4), 0x7D0, arg0, (s32)&out);
+    if (out != 0) {
+        func_800AC464((Task*)out, 0x7D5, arg1, 0);
+    }
+}
 
 void func_800E3CEC(s32* arg0)
 {
