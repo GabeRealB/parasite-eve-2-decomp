@@ -27,6 +27,7 @@ extern char           D_80093870[]; // "Item"
 extern s32            D_8005ED70;
 extern s32            D_8005ED74;
 extern GsCOORDINATE2  D_80070F10;
+extern s16            D_80114C40;
 
 void func_800A1634(s32 arg0, s32 arg1);
 void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -36,6 +37,8 @@ void func_800B065C(u8 arg0);
 void func_8009939C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800A82C0(GsCOORDINATE2* arg0, VECTOR* arg1);
 void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
+s32  func_800AD284(void);
+void func_800A9730(Task* task);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80097AC0);
 
@@ -652,4 +655,49 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8E8C);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A9010);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A91CC);
+void func_800A91CC(Task* task)
+{
+    CdCmdQueue*   q;
+    s32           i;
+    s32           raw;
+    s32           target;
+    u8            param;
+    register s32  type2 asm("v0");
+    FsFolderSlot* table;
+    FsFolderSlot* slot;
+
+    q = &CdCmd_Queue;
+    if (CdCmd_IsIdle() & 0xFFFF) {
+        Mem_Set(&q->field_40, 0, 0x10);
+        raw    = func_800AD284();
+        i      = 0;
+        table  = D_8006C338;
+        target = (u8)raw - 1;
+        for (; (u8)i < 50; i++) {
+            type2 = 2;
+            if (table[(u8)i].field_0 == type2) {
+                if (target == (u8)i) {
+                    slot = &table[(u8)i];
+                    while (Fs_LoadImageChunk((FsImageChunk*)slot->field_4, 1) & 0xFF) {
+                    }
+                    break;
+                }
+            }
+        }
+        CdCmd_SelectMdecBuffer();
+        if (D_80114C40 >= 0) {
+            task->state++;
+            param = *(u8*)&D_80114C40;
+            CdCmd_EnqueueReplace(0x61, 0, &param);
+            CdCmd_CommitReplace();
+            task->killCountdown = 0;
+        } else {
+            if ((s16)CdCmd_CommitReplace() >= 0) {
+                task->state += 2;
+            } else {
+                task->state = -1;
+                func_800A9730(task);
+            }
+        }
+    }
+}

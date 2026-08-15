@@ -14451,4 +14451,35 @@ return val != 0; /* andi 2; sltu v0, zero, v0 */
 `func_800B59A8` is the example. Same shape as `func_800BB4BC` / `func_800BC06C`
 but needed even for a constant 1-bit mask.
 
+## Assign loop setup before consuming a jal return so it fills `andi` / `addiu`
+
+When the target keeps a call result in `$v0` across independent setup:
+
+```
+jal    func
+nop
+move   a2, zero              /* i = 0 */
+lui/addiu t0, table
+andi   v0, v0, 0xff
+addiu  a3, v0, -1            /* target = (u8)ret - 1 */
+```
+
+`target = (u8)func() - 1` (or assigning the return to a `u8` first) consumes
+`$v0` immediately. Then `i = 0` and the table pointer land *after* the
+`andi`/`addiu` and steal the register that should hold `li v0, K` inside the
+loop.
+
+Keep the raw return in an `s32` and write the independent setup first:
+
+```c
+raw    = func();
+i      = 0;
+table  = D_8006C338;
+target = (u8)raw - 1;
+```
+
+`func_800A91CC` is the example. Pair with `register s32 typeN asm("v0")` (see
+`func_800E6D60`) so the per-iteration kind compare rematerializes as `li v0, K`
+instead of a hoisted `li t0, K`.
+
 
