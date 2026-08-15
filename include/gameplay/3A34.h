@@ -224,8 +224,9 @@ STATIC_ASSERT_SIZEOF(GpObj3A, 0x3C);
 /// `arg0 != 0`). `field_3` is cleared with `field_2` on last-ref release
 /// (also written as `D_801153F3` by `func_800DB530`). `field_6` is a u16
 /// refcount incremented by `func_800DB53C` and decremented by
-/// `func_800DB558` / `func_800DB630` / `func_800DB6B4`. Nearby helpers
-/// also touch words at 0x8 / 0xC / 0x10. `func_800E2C78` adds into
+/// `func_800DB558` / `func_800DB630` / `func_800DB6B4`. Last-ref
+/// release in `func_800DB630` also clears words at 0x8 / 0xC / 0x10.
+/// `func_800E2C78` adds into
 /// `field_14` when `(arg1 & 0x7F)` is 0x19..0x1B.
 typedef struct _GpStateF0 {
     /* 0x00 */ u8   field_0;
@@ -381,6 +382,7 @@ void  func_800DB4E0(s32 arg0);
 void  func_800DB500(s32 arg0);
 void  func_800DB530(s32 arg0);
 void  func_800DB53C(void);
+void  func_800DB630(void);
 void  func_800DB6B4(void);
 void  func_800DB72C(void);
 void func_800DB900(GpObj* node);

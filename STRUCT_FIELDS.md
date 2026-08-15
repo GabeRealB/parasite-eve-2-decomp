@@ -727,9 +727,9 @@ Global at `D_801153F0`. Full object may still be larger.
 | 0x02 | `field_2` | bitset (`func_800DB500` ORs `1 << (arg0 - 1)` when `arg0 != 0`); cleared on last-ref release |
 | 0x03 | `field_3` | cleared with `field_2` on last-ref release; also written as `D_801153F3` by `func_800DB530` |
 | 0x06 | `field_6` | u16 refcount (inc: `func_800DB53C`; dec: `func_800DB558` / `func_800DB630` / `func_800DB6B4`) |
-| 0x08 | `field_8` | s32 word used by nearby unmatched helpers |
-| 0x0C | `field_C` | s32 word used by nearby unmatched helpers |
-| 0x10 | `field_10` | s32 word used by nearby unmatched helpers |
+| 0x08 | `field_8` | s32 word; cleared by `func_800DB630` on last-ref release |
+| 0x0C | `field_C` | s32 word; cleared by `func_800DB630` on last-ref release |
+| 0x10 | `field_10` | s32 word; cleared by `func_800DB630` on last-ref release |
 | 0x14 | `field_14` | s32 accumulator; `func_800E2C78` adds `min_u(arg0->field_40, arg2)` when `(arg1 & 0x7F)` is 0x19..0x1B |
 
 ### `GpObj` (0x20 header) — `3A34.h`
