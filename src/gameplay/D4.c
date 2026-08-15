@@ -70,7 +70,31 @@ void func_800A966C(Task* task)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A96A0);
+void func_800A96A0(void)
+{
+    s32           raw;
+    s32           i;
+    s32           target;
+    register s32  type2 asm("v0");
+    FsFolderSlot* table;
+    FsFolderSlot* slot;
+
+    raw    = func_800AD284();
+    i      = 0;
+    table  = D_8006C338;
+    target = (u8)raw - 1;
+    for (; (u8)i < 50; i++) {
+        type2 = 2;
+        if (table[(u8)i].field_0 == type2) {
+            if (target == (u8)i) {
+                slot = &table[(u8)i];
+                while (Fs_LoadImageChunk((FsImageChunk*)slot->field_4, 1) & 0xFF) {
+                }
+                break;
+            }
+        }
+    }
+}
 
 void func_800A9730(Task* task)
 {
