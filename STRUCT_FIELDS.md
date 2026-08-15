@@ -640,9 +640,12 @@ for the same block.
 | Off | Member | Role |
 |-----|--------|------|
 | 0x00 | `field_0` | u16 loaded by many helpers |
-| 0x03 | `field_3` | s8 state (`lb`); `func_80109290` compares to -2; `func_80109374` requires 0 |
+| 0x03 | `field_3` | s8 state (`lb`); `func_80109290` compares to -2; `func_80109374` requires 0; `func_800A7DE0` writes 2 when `field_A >= 2` |
 | 0x06 | `field_6` | Flags; bit 0 gates `func_800A7DB8` writing `field_E` |
-| 0x0E | `field_E` | Written by `func_800A7DB8` when `field_6` bit 0 is clear |
+| 0x07 | `field_7` | Cleared by `func_800A7DE0` |
+| 0x08 | `field_8` | Cleared by `func_800A7DE0` |
+| 0x0A | `field_A` | s8 (`lb`); `func_800A7DE0` sets `field_3 = 2` when >= 2, then clears it |
+| 0x0E | `field_E` | Written by `func_800A7DB8` when `field_6` bit 0 is clear; cleared by `func_800A7DE0` |
 
 ### `GpLinkNode` (0x8) — `3A34.h`
 | Off | Member | Role |

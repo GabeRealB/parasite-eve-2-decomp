@@ -73,6 +73,9 @@ STATIC_ASSERT_SIZEOF(GpPadEvt, 0x4);
 /// `func_800DACF8`. `func_800DACAC` assigns `field_90C` on slot 0 only.
 extern GpActorWork* volatile D_80115760[2];
 
+/// Flag byte cleared by `func_800A7DE0` / `func_801036FC`.
+extern u8 D_80115768;
+
 /// `field_96C` dispatcher: three slots of `func_80109170`, then `func_80109208`.
 extern GpActorFuncTable4 D_800979F8;
 

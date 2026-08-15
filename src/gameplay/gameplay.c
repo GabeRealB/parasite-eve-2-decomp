@@ -601,7 +601,22 @@ void func_800A7DB8(s32 arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7DE0);
+void func_800A7DE0(void)
+{
+    GpStateC08* p;
+
+    CdCmd_EnqueueLoadFile(0, 0, 4);
+    p = &D_80114C08;
+    if (p->field_A >= 2) {
+        p->field_3 = 2;
+    }
+    p->field_E = 0;
+    p->field_A = 0;
+    D_80115768 = 0;
+    D_801153F4 = 0;
+    p->field_7 = 0;
+    p->field_8 = 0;
+}
 
 void func_800A7E4C(void)
 {
