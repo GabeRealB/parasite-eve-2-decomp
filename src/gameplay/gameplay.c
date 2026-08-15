@@ -85,7 +85,25 @@ void* func_8009902C(Task* task, TmdSource* src)
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80099098);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80099170);
+void* func_80099170(Task* task, TmdSource* src, s32 flags)
+{
+    TmdListHead* node;
+    TmdListHead* last;
+    TmdListHead* list;
+
+    node = (TmdListHead*)Tmd_Create(src, flags);
+    if (node != NULL) {
+        list            = &Tmd_List;
+        last            = list->prev;
+        node->next      = last->next;
+        last->next      = (TmdObject*)node;
+        node->prev      = last;
+        list->prev      = node;
+        task->extra     = node;
+        task->spawnType = 1;
+    }
+    return node;
+}
 
 void func_800991DC(TmdListHead* arg0)
 {

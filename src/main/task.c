@@ -40,7 +40,7 @@ case1:
     if (D_8005ED8C != 0) {
         flags_a2 |= 2;
     }
-    extra = func_80099170(task, desc->setupArg, flags_a2);
+    extra = func_80099170(task, (TmdSource*)desc->setupArg, flags_a2);
     goto merge;
 
 case2:
