@@ -15043,4 +15043,40 @@ hi stays in `$s0` for the whole function (~92%). `func_800D6994` is the
 example; `func_800CE980` is the same search with the scan passed in
 (result stays in `$a3` because there is no leftover hi).
 
+## Load the stream word into a temp so `setlen` stays after the `lw`
+
+A POLY_F4 header loop that writes `setlen` / RGB word / `setcode` will
+schedule the independent `sb` *before* `lw arg2[2]` if the load is an
+operand of the color store:
+
+```c
+setlen(poly, 5);
+*(s32*)&poly->r0 = arg2[2]; /* GCC emits sb 5 first, then the lw */
+setcode(poly, 0x28);
+poly++;
+```
+
+The target uses the load-delay slot for `poly++`:
+
+```
+lw    v0, 8(a2)
+addiu a3, a3, 0x18
+sb    t1, -4(a1)
+sw    v0, -3(a1)
+sb    t0, 0(a1)
+```
+
+Assign the stream word to an `s32` first so the `lw` is a real statement
+the delay-slot filler can pair with `poly++`:
+
+```c
+color = arg2[2];
+setlen(poly, 5);
+*(s32*)&poly->r0 = color;
+setcode(poly, 0x28);
+poly++;
+```
+
+`func_8009F49C` is the example (opcode 0x44 POLY_F4 header init).
+
 
