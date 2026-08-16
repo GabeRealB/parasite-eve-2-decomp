@@ -32,6 +32,7 @@ void func_80724748(GameSessionFrom4* arg0);
 extern TaskDesc       D_80183824[];
 extern TaskFuncTable6 D_800938B4;
 extern TaskFuncTable3 D_80093918;
+extern TaskFuncTable3 D_80093944;
 extern u16            D_80114CD2;
 extern u16            D_80114CD4;
 extern u8             D_80114CD8;
@@ -507,7 +508,17 @@ void func_800AD378(Task* task)
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD410);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD50C);
+void func_800AD50C(Task* task)
+{
+    TaskFuncTable3 funcs;
+
+    funcs = D_80093944;
+    if (Game_Session->field_64 == 0) {
+        funcs.funcs[task->state](task);
+    } else {
+        Display_State.field_100 = 0;
+    }
+}
 
 void func_800AD58C(Task* task)
 {
