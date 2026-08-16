@@ -17,11 +17,14 @@
 #include "main/sound.h"
 #include "main/stream.h"
 #include "main/task.h"
+#include "main/text.h"
 #include "main/tmd.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
 
 extern u8             D_801153F1;
+extern u8             D_8010CA08[]; // "Item obtained!"
+extern u8             D_8010CA18[]; // "Bonus item!!"
 extern s32            D_8010CA28;
 extern TaskDesc       D_8010CABC;
 extern TaskDesc       D_8010D1FC;
@@ -924,7 +927,23 @@ void func_800A78EC(void)
     func_800B065C(func_800A7B20(7) + 0x15);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7918);
+void func_800A7918(Task* arg0)
+{
+    UiObject* obj;
+
+    obj = arg0->spawnArg2;
+    if (arg0->spawnArg1 == 2) {
+        if (arg0->state == 0) {
+            Ui_UpdateLayoutSize((UiPanel*)obj, Text_MeasureWidth(D_8010CA18) + 0xA, 0);
+            obj->field_C -= 0xF;
+            obj->field_E += 9;
+            arg0->state++;
+        }
+        Text_DrawPrompt(obj, obj->field_1C + 6, 7, D_8010CA18, 0x606060, 1, 0);
+    } else {
+        Text_DrawPrompt(obj, obj->field_1C + 6, 7, D_8010CA08, 0x606060, 1, 0);
+    }
+}
 
 void func_800A79F8(Task* arg0)
 {
