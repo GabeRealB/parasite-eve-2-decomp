@@ -172,6 +172,7 @@ s32        func_800B59A8(GpAreaKey* arg0);
 GpAreaObj* func_800B5A08(GpAreaKey* arg0);
 GpAreaObj* func_800B5C88(GpAreaKey* arg0);
 GpAreaRec* func_800B5CE8(GpAreaKey* arg0);
+void       func_800B5D44(GpAreaKey* arg0);
 s32        func_800B5E08(Task* arg0, Task* arg1, s32 arg2, Task** arg3);
 s32        func_800B5E78(Task* arg0, Task* arg1, s32 arg2, Task** arg3);
 s32        func_800B5EE8(Task* arg0);

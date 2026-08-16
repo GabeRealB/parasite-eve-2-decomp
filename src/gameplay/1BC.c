@@ -585,7 +585,23 @@ GpAreaRec* func_800B5CE8(GpAreaKey* arg0)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B5D44);
+void func_800B5D44(GpAreaKey* arg0)
+{
+    u32        key;
+    GpAreaRec* rec;
+    GpAreaObj* obj;
+
+    key = *(u32*)&arg0->field_0 & 0xFFFF0000;
+    rec = D_8010CBCC[arg0->field_3];
+    if (key != 0x3260000) {
+        if (rec != NULL) {
+            obj = rec[arg0->field_2].field_4;
+            if (obj != NULL) {
+                obj->field_1 |= 1;
+            }
+        }
+    }
+}
 
 void func_800B5DB8(Task* arg0)
 {
