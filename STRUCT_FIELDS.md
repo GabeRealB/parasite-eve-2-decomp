@@ -550,6 +550,12 @@ argument of `func_80105B74` onto the slot-3 actor.
 `field_50`/`field_52`/`field_54` are an `SVECTOR` (vx/vy/vz) written by `func_80104D68`
 from its pose argument and passed to `RotMatrix`; `field_52` is also the facing
 angle (`lh`) used by `func_8010BCF4` / `func_80103E7C`.
+`field_58`/`field_5C`/`field_60`/`field_64`/`field_68`/`field_6A`/`field_70` are s16s
+cleared together by `func_8010C46C` / `func_8010C4F0` / `func_8010C75C` (store order
+0x60, 0x58, 0x64, 0x5C, 0x6A, 0x68, 0x70). `field_6A` is the 0x6A adjust skipped
+when `field_954` is nonzero in `func_80109720`.
+`field_12A` is a u16 flags halfword at +0x1E of the `field_10C` list node (`lhu`/`sh`);
+`func_8010C46C` / `func_80106350` AND it with `0x3FFF` (clear bits 14–15).
 `field_424` is a 0x14-byte `GpAnimCtx` overlay; `func_80103AC0` passes it to
 `func_800B4514` for each slot `i = 1 .. field_938-1`. `func_801038F8` does the
 same walk through `func_800B3FA8(..., i, arg1)`, then copies `field_985` onto

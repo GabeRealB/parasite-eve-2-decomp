@@ -136,7 +136,20 @@ typedef struct _GameActor {
     /* 0x050 */ s16                 field_50; // SVECTOR.vx; func_80104D68 / RotMatrix
     /* 0x052 */ s16                 field_52; // facing angle (lh); func_8010BCF4 / func_80103E7C
     /* 0x054 */ s16                 field_54; // SVECTOR.vz; func_80104D68 / RotMatrix
-    /* 0x056 */ byte                pad_56[0x3A];
+    /* 0x056 */ byte                pad_56[2];
+    /* 0x058 */ s16                 field_58;
+    /* 0x05A */ byte                pad_5A[2];
+    /* 0x05C */ s16                 field_5C;
+    /* 0x05E */ byte                pad_5E[2];
+    /* 0x060 */ s16                 field_60;
+    /* 0x062 */ byte                pad_62[2];
+    /* 0x064 */ s16                 field_64;
+    /* 0x066 */ byte                pad_66[2];
+    /* 0x068 */ s16                 field_68;
+    /* 0x06A */ s16                 field_6A;
+    /* 0x06C */ byte                pad_6C[4];
+    /* 0x070 */ s16                 field_70;
+    /* 0x072 */ byte                pad_72[0x1E];
     /* 0x090 */ s32                 field_90;
     /* 0x094 */ byte                pad_94[0x18];
     /* 0x0AC */ byte                field_AC[0x20]; // 0x20-byte list node (func_800E1638)
@@ -144,7 +157,8 @@ typedef struct _GameActor {
     /* 0x0EC */ byte                field_EC[0x20];
     /* 0x10C */ byte                field_10C[0x18]; // 0x20-byte list node; field_124 is +0x18
     /* 0x124 */ u32                 field_124;
-    /* 0x128 */ byte                pad_128[4];
+    /* 0x128 */ byte                pad_128[2];
+    /* 0x12A */ u16                 field_12A;
     /* 0x12C */ byte                field_12C[0x20];
     /* 0x14C */ byte                pad_14C[0x30];
     /* 0x17C */ GpRec18             field_17C[18];   // func_800E1A6C / func_801041B4
