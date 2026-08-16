@@ -518,7 +518,29 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBB54);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBC10);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBCCC);
+s32 func_800BBCCC(GpItemRec* arg0, GpItemScan* arg1, s32* arg2, s32 arg3)
+{
+    s32 i;
+    s32 ret;
+    s32 next;
+
+    i   = *arg2;
+    ret = 0;
+    if (i < arg1->field_0 + arg1->field_1) {
+    loop:
+        if (arg0[i].field_0 == arg3) {
+            ret = arg0[i].field_2;
+        } else {
+            next  = i + 1;
+            *arg2 = next;
+            i     = next;
+            if (i < arg1->field_0 + arg1->field_1) {
+                goto loop;
+            }
+        }
+    }
+    return (s16)ret;
+}
 
 s32 func_800BBD40(s32 arg0)
 {
