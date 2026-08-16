@@ -538,7 +538,29 @@ GpAnimRec* func_800B4668(GpAnimCtx* arg0, GpAnimSlot* arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B46A4);
+void func_800B46A4(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3)
+{
+    GpAnimRec* recs;
+    GpAnimRec* rec;
+
+    recs = arg1->field_20[arg2]->field_0;
+    while ((s8)recs[arg3].field_3 < 0) {
+        rec = (GpAnimRec*)((arg3 << 2) + (s32)recs);
+        if (rec->field_3 < 0xC0) {
+            arg3 = rec->field_0;
+            if (arg3 == arg1->field_6) {
+                arg1->field_10 |= 1;
+            }
+            arg1->field_10 |= 2;
+        } else {
+            arg3            = arg1->field_6;
+            arg1->field_10 |= 1;
+            break;
+        }
+    }
+    arg1->field_6 = arg3;
+    arg1->field_4 = arg2;
+}
 
 void func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3)
 {

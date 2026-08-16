@@ -48,7 +48,8 @@ typedef struct _GpAnimObj {
 /// 4-byte animation record. `func_800B3E74` / `func_800B3EE8` index this by
 /// `GpAnimSlot::field_6` and copy `field_2 << 4` into the slot's
 /// `field_C` / `field_E`. `field_3` is the opcode-like byte tested by
-/// `func_800B3AA4` / stored into `field_B` by `func_800B3FA8`.
+/// `func_800B3AA4` / `func_800B46A4` (signed < 0 continues a `field_0`
+/// chain; `>= 0xC0` aborts) and stored into `field_B` by `func_800B3FA8`.
 typedef struct _GpAnimRec {
     /* 0x00 */ u16 field_0;
     /* 0x02 */ u8  field_2;
@@ -67,12 +68,14 @@ typedef struct _GpAnimSet {
 /// 0x28-byte animation slot. `field_15` is this slot's index in the
 /// `GpAnimCtx::field_C` array; `func_800B3DB4` / `func_800B3DF4` /
 /// `func_800B3E34` recover the base as `slot - slot->field_15`.
-/// `field_0 == 0x7FFF` marks the slot inactive. `field_10` is a flags
-/// word (`func_800B4754` sets bit 0 when clamping `field_2`).
+/// `field_0 == 0x7FFF` marks the slot inactive. `field_0`/`field_2` and
+/// `field_4`/`field_6` are the two (set, frame) pairs. `field_10` is a
+/// flags word (`func_800B4754` sets bit 0 when clamping `field_2`;
+/// `func_800B46A4` sets bit 0/1 while walking `field_3` links).
 typedef struct _GpAnimSlot {
     /* 0x00 */ u16         field_0;
     /* 0x02 */ u16         field_2;
-    /* 0x04 */ byte        pad_4[2];
+    /* 0x04 */ u16         field_4;
     /* 0x06 */ u16         field_6;
     /* 0x08 */ byte        pad_8[4];
     /* 0x0C */ u16         field_C;
@@ -186,6 +189,7 @@ void     func_800B3F84(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3,
 void     func_800B3FA8(GpAnimCtx* arg0, s32 arg1, s32 arg2);
 void     func_800B4514(GpAnimCtx* arg0, s32 arg1);
 GpAnimRec* func_800B4668(GpAnimCtx* arg0, GpAnimSlot* arg1);
+void     func_800B46A4(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3);
 void     func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3);
 void     func_800B47A8(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6,
                        void* arg7);
