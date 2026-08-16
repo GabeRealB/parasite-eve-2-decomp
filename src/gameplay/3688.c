@@ -306,7 +306,13 @@ void func_800CE1E0(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE22C);
+void func_800CE22C(Task* arg0)
+{
+    TaskFuncTable5 sp;
+
+    sp = D_80096E70;
+    sp.funcs[arg0->state](arg0);
+}
 
 void func_800CE294(Task* arg0)
 {

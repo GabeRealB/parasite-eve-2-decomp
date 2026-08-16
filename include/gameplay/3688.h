@@ -16,6 +16,10 @@ typedef struct {
     UiObjectTaskFunc funcs[3];
 } UiObjectTaskFuncTable3;
 
+/// Five-entry dispatcher table: `func_800BF624`, `func_800CDFA8`, `func_800CE094`,
+/// `func_800CE188`, `func_800CE1E0`. Copied onto the stack by `func_800CE22C`.
+extern TaskFuncTable5 D_80096E70;
+
 /// Three-entry dispatcher table: `func_800CE3B4`, `func_800C010C`, `func_800C02A0`.
 extern UiObjectTaskFuncTable3 D_80096F7C;
 
