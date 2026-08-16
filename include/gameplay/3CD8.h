@@ -38,7 +38,10 @@ STATIC_ASSERT_SIZEOF(GpOverlayIds, 6);
 /// 0x14-byte payload copied from `D_8010FB38` by `func_800E3BBC` (arg 0)
 /// and sent as slot-3 msg `0x3E8`. `field_0` is overwritten with
 /// `D_80112D68[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21`
-/// (same value `func_800E3CEC` writes). Nearby `D_8010FB10` /
+/// (same value `func_800E3CEC` writes). `func_800E3EF0` copies the same
+/// record to slot 0xA and overwrites `field_0` with
+/// `D_80113360[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7`
+/// (same value `func_800E3D24` writes). Nearby `D_8010FB10` /
 /// `D_8010FB24` are the same size.
 typedef struct _GpRec14 {
     /* 0x00 */ s32 field_0;
@@ -161,6 +164,7 @@ void func_800E34D8(s32 arg0, s16 arg1);
 void func_800E3B80(s32 arg0);
 void func_800E3BBC(s32 arg0);
 void func_800E3D8C(s32 arg0, s32 arg1);
+void func_800E3EF0(s32 arg0);
 void func_800E4080(void);
 void func_800E40BC(s32 arg0, s32 arg1);
 s32  func_800E6CE0(void);

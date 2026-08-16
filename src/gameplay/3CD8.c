@@ -198,7 +198,22 @@ void func_800E3EB0(s32 arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3EF0);
+void func_800E3EF0(s32 arg0)
+{
+    Task*   slot;
+    GpRec14 sp;
+
+    slot = Game_GetPtrSlot(0xA);
+    if (slot != NULL) {
+        if (arg0 == 0) {
+            sp         = D_8010FB38;
+            sp.field_0 = D_80113360[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7;
+            func_800AC464(slot, 0x3E8, (s32)&sp, 0);
+        } else {
+            func_800AC464(slot, 0x3F1, 0, 0);
+        }
+    }
+}
 
 void func_800E3FAC(s32 arg0, s32 arg1)
 {
