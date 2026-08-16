@@ -3,6 +3,28 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Write the `|=` first so its address takes `$a1`
+
+Two independent stores of different globals fight over `$a0`/`$a1`. A
+load-modify-store (`flags |= mask`) keeps its address live across the
+load, `or`, and store, so it wins `$a0` if it is generated second:
+
+```
+lui  a1, %hi(mode)     /* simple store */
+lui  a0, %hi(flags)    /* |= */
+```
+
+Write the `|=` first. Its address is allocated later and lands in `$a1`,
+and the simple store takes `$a0`:
+
+```c
+D_8011570A |= mask; /* lui a1 */
+D_80115714 = 1;     /* lui a0 */
+```
+
+`func_800E9BDC` case 3 is the example. `D_80115714 = 1; D_8011570A |= mask`
+stuck at 99.3% with only those two addresses swapped.
+
 ## Assign `u16 - K` to an `s32` before the `s16` store
 
 `req.y = arg0->baseY - 3 + arg2` (u16 field, s16 dest) emits

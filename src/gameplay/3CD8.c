@@ -60,7 +60,7 @@ extern u8             D_80115701;
 extern u8             D_80115702;
 extern u8             D_80115708;
 extern u8             D_80115709;
-extern s16            D_8011570A;
+extern u16            D_8011570A;
 extern s16            D_8011570C;
 extern s16            D_8011570E;
 extern s16            D_80115710;
@@ -917,7 +917,26 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E956C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E9A50);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E9BDC);
+void func_800E9BDC(u8 arg0, s32 arg1)
+{
+    switch (arg0) {
+        case 1:
+        case 5:
+            D_80115714  = 0;
+            D_8011570A |= arg1;
+            break;
+        case 3:
+            D_8011570A |= arg1;
+            D_80115714  = 1;
+            break;
+        case 0:
+        case 2:
+            D_80115714  = 0;
+            D_8011570A &= ~arg1;
+        case 4:
+            break;
+    }
+}
 
 void func_800E9C6C(void)
 {

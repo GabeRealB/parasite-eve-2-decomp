@@ -86,6 +86,8 @@ segments:
       - [0x3CB4, .rodata, 3A34] # jtbl from func_800E0540
       - [0x3CC8, rodata, rodata_3A34_2] # D_800974C8
       - [0x3CD8, rodata, rodata_3CD8]
+      - [0x3E60, .rodata, 3CD8] # jtbl from func_800E9BDC
+      - [0x3E78, rodata, rodata_3CD8_2] # D_80097678
       - [0x3E9C, rodata, rodata_3E9C]
       - [0x3FB8, rodata, rodata_3FB8]
       - [0x4058, .rodata, 3FB8] # jtbls: func_80101848 + still-asm mid + func_80109170 + jtbl_80097A68 + func_8010A42C
