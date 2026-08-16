@@ -184,10 +184,16 @@ STATIC_ASSERT_SIZEOF(GpObj40, 0x42);
 /// plus a high-nibble flag; `func_800D930C` rotates the current mode
 /// into the previous slot and starts `field_4F` as a 0x10 blend timer.
 /// `next` and signed `field_4B` are the `D_8011556C` list walked by
-/// `func_800E0B08`, which clears a non-zero `field_4B`.
+/// `func_800E0B08`, which clears a non-zero `field_4B`. The same node
+/// type is the `D_80115554` list walked by `func_800E1B80`: a pending
+/// `field_4B` copies `field_49` into `Mc_SaveData.field_4` when
+/// `field_48` matches `Game_Session->field_4`.
 typedef struct _GpObj4C {
     /* 0x00 */ struct _GpObj4C* next;
-    /* 0x04 */ byte             pad_4[0x47];
+    /* 0x04 */ byte             pad_4[0x44];
+    /* 0x48 */ u8               field_48;
+    /* 0x49 */ u8               field_49;
+    /* 0x4A */ u8               field_4A;
     /* 0x4B */ s8               field_4B;
     /* 0x4C */ u8               field_4C;
     /* 0x4D */ byte             pad_4D;
@@ -326,6 +332,8 @@ extern GpObj3A* D_8010FAB8[1];
 extern GpStateF0 D_801153F0;
 extern u8        D_801153F3;
 extern u8        D_801153F4;
+/// Head of the `GpObj4C` list walked by `func_800E1B80`.
+extern GpObj4C* D_80115554;
 extern GpObj4C* D_8011556C;
 extern GpObj* D_80115570;
 extern GpObj* D_80115574;
@@ -417,6 +425,7 @@ s32  func_800E1A1C(GpRec18* arg0, s32 arg1);
 void func_800E1A6C(GpRec18* arg0);
 s32  func_800E1ACC(u8* arg0);
 s32  func_800E1B24(s32 arg0);
+void func_800E1B80(void);
 s32  func_800E2438(s32 arg0, s32 arg1, s32* arg2, s32 arg3);
 s32  func_800E2BF8(GpObj50* arg0, s32 arg1);
 s32  func_800E2C40(GpU16Pair* arg0, s32 arg1);

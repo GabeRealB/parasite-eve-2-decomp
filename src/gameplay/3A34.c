@@ -874,7 +874,19 @@ s32 func_800E1B24(s32 arg0)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1B80);
+void func_800E1B80(void)
+{
+    GpObj4C* node;
+
+    for (node = D_80115554; node != NULL; node = node->next) {
+        if (node->field_4B != 0) {
+            node->field_4B = 0;
+            if ((u8)Game_Session->field_4 == node->field_48) {
+                Mc_SaveData.field_4 = node->field_49;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1BF0);
 
