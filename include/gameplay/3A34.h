@@ -209,6 +209,18 @@ typedef struct _GpCbA4Rec {
 } GpCbA4Rec;
 STATIC_ASSERT_SIZEOF(GpCbA4Rec, 8);
 
+/// Record in the 8-entry arrays pointed to by `D_8010CBB8`.
+/// `func_800E192C` copies `field_3` into `D_80115428[]`. Nearby helpers
+/// also load `field_1` (`func_800DDDF8`, `func_800DE7CC`) and `field_2`
+/// (`func_80105BC4`). `func_80105ED4` loads a pointer at +0x4.
+typedef struct _GpCbB8Rec {
+    /* 0x0 */ u8 field_0;
+    /* 0x1 */ u8 field_1;
+    /* 0x2 */ u8 field_2;
+    /* 0x3 */ u8 field_3;
+} GpCbB8Rec;
+STATIC_ASSERT_SIZEOF(GpCbB8Rec, 4);
+
 /// Three packed `SVECTOR3`s filled by `func_800D9C3C`. Each vector's
 /// components are set to the same s16 argument.
 typedef struct _GpSVec3x3 {
@@ -423,6 +435,12 @@ extern GpSlot70 D_80115270[0x20];
 /// Each entry is an array of `GpCbA4Rec*`, indexed by `field_2 - 1`.
 extern GpCbA4Rec** D_8010CBA4[];
 
+/// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
+/// Each entry is an array of `GpCbB8Rec**`, indexed by `field_6 - 1`.
+/// Each of those is an 8-entry array of `GpCbB8Rec*` copied into
+/// `D_80115428` by `func_800E192C`.
+extern GpCbB8Rec*** D_8010CBB8[];
+
 /// Default 8-byte record copied by `func_800D9CE8`. Also the fallback
 /// pointer returned by `func_800D957C` when a table lookup fails.
 extern GBytes8 D_8010F9E4;
@@ -491,6 +509,10 @@ extern u8     D_80115598;
 /// Set to 1 by `func_800E1BF0` when a pending `D_8011556C` node is found;
 /// `func_800DB72C` then calls `func_800E0B08` to clear those flags.
 extern s32    D_80115424;
+/// 8-word table filled by `func_800E192C` from the current room's
+/// `D_8010CBB8` records (`field_3`). Indexed by `(id & 7)` in
+/// `func_800E0C10` / `func_800E0FEC`.
+extern s32    D_80115428[8];
 extern s32    D_80115448;
 
 /// 4-byte records selected by `func_800E2CD4(..., 0)`.
@@ -582,6 +604,7 @@ void func_800E17B4(s32 arg0, GpObj3A* arg1);
 void func_800E1834(s32 arg0, GpObj3A* arg1);
 void func_800E1884(s32 arg0);
 void func_800E18E0(GpRec18* arg0, s32 arg1, s32 arg2);
+void func_800E192C(void);
 s32  func_800E19B8(GpRec18* arg0, s32 arg1);
 s32  func_800E1A1C(GpRec18* arg0, s32 arg1);
 void func_800E1A6C(GpRec18* arg0);

@@ -521,8 +521,8 @@ See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 | 0x2 | `field_2` | Soft state flag |
 | 0x4 | `field_4` | Byte used by CD/display helpers; address taken as a 4-byte location key. Also 1-based index into the innermost `D_8010CB54` byte table (`func_800AD284`) |
 | 0x5 | `field_5` | u8; 1-based index into `D_8010CB40` / `D_8010CBA4` innermost tables (`func_800AEEFC`, `func_800ACEBC`, `func_800D9C64`). Second-innermost for `D_8010CB54` |
-| 0x6 | `field_6` | u8 room index (1-based for `D_8010CB40` / `D_8010CB2C` / `D_8010CBA4`) |
-| 0x7 | `field_7` | u8 stage index (1-based for `D_8010CB40` / `D_8010CB2C` / `D_8010CBA4`) |
+| 0x6 | `field_6` | u8 room index (1-based for `D_8010CB40` / `D_8010CB2C` / `D_8010CBA4` / `D_8010CBB8`) |
+| 0x7 | `field_7` | u8 stage index (1-based for `D_8010CB40` / `D_8010CB2C` / `D_8010CBA4` / `D_8010CBB8`) |
 | 0xC | `field_C[16]` | Pointer table (cleared by `Game_ClearPtrSlots`) |
 | 0x4C | `field_4C` | Init flag |
 | 0x4E | `field_4E` | Set by `Fs_LoadFile` for category-8 |
@@ -746,6 +746,20 @@ or NULL if a table pointer is missing.
 |-----|--------|------|
 | 0x00 | `field_0` | Word returned by `func_800D9654` |
 | 0x04 | `field_4` | `GpCbA4Vec*` nested table walked by `func_800D957C` |
+
+### `GpCbB8Rec` (0x4+) — `3A34.h`
+Element of 8-entry pointer arrays selected by `D_8010CBB8`.
+Stage index is `GameSession.field_7 - 1`, room index is
+`field_6 - 1`. `func_800E192C` copies each `field_3` into
+`D_80115428[]`. Full object size is not known yet (`func_80105ED4`
+loads a pointer at +0x4).
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | Unused by `func_800E192C` |
+| 0x01 | `field_1` | Flag; skip when nonzero (`func_800DDDF8`, `func_800DE7CC`) |
+| 0x02 | `field_2` | Flag loaded by `func_80105BC4` |
+| 0x03 | `field_3` | Word copied into `D_80115428[i]` by `func_800E192C` |
 
 ### `GpLinkNode` (0x8) — `3A34.h`
 | Off | Member | Role |

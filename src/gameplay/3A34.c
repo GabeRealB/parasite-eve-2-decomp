@@ -1069,7 +1069,22 @@ void func_800E18E0(GpRec18* arg0, s32 arg1, s32 arg2)
     arg0[arg1 - 1].field_0 = 2;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E192C);
+void func_800E192C(void)
+{
+    s32          i;
+    GameSession* session;
+    GpCbB8Rec**  recs;
+
+    for (i = 7; i >= 0; i--) {
+        D_80115428[i] = 0;
+    }
+
+    session = Game_Session;
+    recs    = D_8010CBB8[session->field_7 - 1][session->field_6 - 1];
+    for (i = 0; i < 8; i++) {
+        D_80115428[i] = recs[i]->field_3;
+    }
+}
 
 s32 func_800E19B8(GpRec18* arg0, s32 arg1)
 {
