@@ -73,7 +73,7 @@ typedef struct _GameSession {
     u8    field_12C;
     byte  unknown_12D[0xC];
     u8    field_139;
-    byte  unknown_13A;
+    u8    field_13A; // cleared by func_800AE45C when D_80114CDC is 0
     u8    field_13B;
 } GameSession;
 STATIC_ASSERT_SIZEOF(GameSession, 0x13C);

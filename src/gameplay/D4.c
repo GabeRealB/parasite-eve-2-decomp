@@ -32,6 +32,14 @@ void func_80724748(GameSessionFrom4* arg0);
 extern TaskDesc       D_80183824[];
 extern TaskFuncTable6 D_800938B4;
 extern TaskFuncTable3 D_80093918;
+extern u16            D_80114CD2;
+extern u16            D_80114CD4;
+extern u8             D_80114CD8;
+extern u8             D_80114CD9;
+extern u8             D_80114CDA;
+extern u8             D_80114CDB;
+extern u8             D_80114CDC;
+extern u8             D_80114CF8;
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9310);
 
@@ -555,7 +563,28 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AE1F0);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AE36C);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AE45C);
+void func_800AE45C(void)
+{
+    if (Game_Session->field_1 == 0) {
+        if (func_800E6CE0() == 0) {
+            if (D_80114CD9 == 0xFF) {
+                func_800AC464(Game_GetPtrSlot(7), 0x13F0, D_80114CD8, 0);
+            } else {
+                func_800E3D8C(D_80114CD8, D_80114CD9);
+            }
+        }
+    }
+    D_80114CF8 = 0;
+    D_80114CD9 = 0;
+    D_80114CD8 = 0;
+    D_80114CD2 = 0;
+    D_80114CDB = 0;
+    D_80114CDA = 0;
+    D_80114CD4 = 0;
+    if (D_80114CDC == 0) {
+        Game_Session->field_13A = 0;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AE53C);
 

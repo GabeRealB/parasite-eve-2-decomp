@@ -516,7 +516,7 @@ See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 | Off | Member | Role |
 |-----|--------|------|
 | 0x0 | `field_0` | s8 flag; nonzero makes `func_800AC058` kill its task immediately |
-| 0x1 | `field_1` | s8 flag; nonzero skips the `func_800E6CE0` / spawn path in `func_800AF0AC` and `func_800AF180` |
+| 0x1 | `field_1` | s8 flag; nonzero skips the `func_800E6CE0` / spawn path in `func_800AF0AC`, `func_800AF180`, and `func_800AE45C` |
 | 0x2 | `field_2` | Soft state flag |
 | 0x4 | `field_4` | Byte used by CD/display helpers; address taken as a 4-byte location key. Also 1-based index into the innermost `D_8010CB54` byte table (`func_800AD284`) |
 | 0x5 | `field_5` | u8; 1-based index into `D_8010CB40` / `D_8010CBA4` innermost tables (`func_800AEEFC`, `func_800ACEBC`, `func_800D9C64`). Second-innermost for `D_8010CB54` |
@@ -539,6 +539,7 @@ See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 | 0x129 | `field_129` | u8; last `CdCmd_Enqueue(0x21)` `param1[0]` written by `func_800B065C` (no-op if unchanged) |
 | 0x12C | `field_12C` | u8 flag; 0 runs extra `func_800E06AC` pass in `func_800DB72C` |
 | 0x139 | `field_139` | u8; `func_800E8888` writes `killCountdown * 2`, or 0 when that task kills itself |
+| 0x13A | `field_13A` | u8; cleared by `func_800AE45C` when `D_80114CDC` is 0 |
 | 0x13B | `field_13B` | u8 flag; cleared by `func_800E8F68` with `Pad_ClearEvents(0)` |
 
 ### `GameActor` / `GameActorExt`
