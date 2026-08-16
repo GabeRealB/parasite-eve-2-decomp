@@ -490,7 +490,52 @@ s32 func_800BB610(GpItemScan* arg0, s32 arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB668);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB6FC);
+s32 func_800BB6FC(GpItemScan* arg0, s32 arg1)
+{
+    GpItemRec*          tmp;
+    register GpItemRec* table asm("a3");
+    GpItemRec*          rec;
+    s32                 i;
+    s32                 acc;
+    s32                 count;
+    s32                 start;
+    s32                 limit;
+    s32                 off;
+
+    if (arg1 >= 0x100) {
+        return func_800BB4BC(arg1);
+    }
+
+    acc = 0;
+    switch (arg0->field_2) {
+        case 2:
+            tmp = D_80114C20;
+            break;
+        case 1:
+            tmp = D_80114D70;
+            break;
+        default:
+            tmp = Mc_SaveData.field_1AC;
+            break;
+    }
+    table = tmp;
+    i     = 0;
+    count = arg0->field_1;
+    start = arg0->field_0;
+    if (count != 0) {
+        limit = count;
+        off   = start << 2;
+        rec   = (GpItemRec*)(off + (s32)table);
+        do {
+            if (rec->field_0 == arg1) {
+                acc += rec->field_2;
+            }
+            i++;
+            rec++;
+        } while (i < limit);
+    }
+    return acc;
+}
 
 void func_800BB7B4(Task* arg0)
 {
