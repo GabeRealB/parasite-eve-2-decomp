@@ -574,11 +574,14 @@ passes `&pad_438[i]` to `func_800B3DF4` for `i = 1 .. field_938-1`.
 (`GpAnimCtx.field_8`).
 `field_93A` is a u16 anim-table index (`sh` / `lhu`); `func_80103874` writes
 `D_80112D68[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21` (same sum as
-`func_800E3BBC` / `func_800E3CEC`). `func_80104CAC` writes `0x7FFF` (same
+`func_800E3BBC` / `func_800E3CEC`). `func_8010BFCC` writes
+`D_80113360[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7` (same sum as
+`func_800E3D24`). `func_80104CAC` writes `0x7FFF` (same
 inactive sentinel as `GpAnimSlot.field_0`) when installing `GpAnimArg.field_0`.
-`field_928` is the pointer at `D_80112D6C[field_93A]`, passed as
+`field_928` is the pointer at `D_80112D6C[field_93A]` (`func_80103874`) or
+`D_80113368[field_93A]` (`func_8010BFCC`), passed as
 `func_800B3F84` arg1 (`GpAnimCtx.field_0`). `func_80104CAC` copies
-`GpAnimArg.field_0` here instead of indexing `D_80112D6C`.
+`GpAnimArg.field_0` here instead of indexing those tables.
 `field_448` is a 19-entry table of `GameActorSlot` (0x28 each; flags halfword at +0x00).
 `func_80100B78` stores count `0x13` at `field_938`; `func_80105894` returns
 `(slot[arg1].field_0 & 0x102) == 0`.

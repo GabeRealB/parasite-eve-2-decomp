@@ -25,6 +25,8 @@ extern TaskFuncTable3 D_800977FC;
 extern u16            D_80112D68[];
 extern void*          D_80112D6C[];
 extern u16            D_80112DF4[];
+extern u16            D_80113360[];
+extern void*          D_80113368[];
 
 s32  func_800B9D80(s32 arg0);
 s32  func_8010A854(s32 arg0);
@@ -2041,7 +2043,18 @@ void func_8010BF7C(GpActorWork* arg0, s32 arg1, s32 arg2)
     arg0->actor->field_910->field_C4 = arg1 + (arg2 & rand());
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010BFCC);
+void func_8010BFCC(GpActorWork* arg0)
+{
+    GameActor* actor;
+    GpAnimObj* extra;
+
+    actor            = arg0->actor;
+    extra            = (GpAnimObj*)arg0->extra;
+    actor->field_93A = D_80113360[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7;
+    actor->field_928 = D_80113368[actor->field_93A];
+    func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
+                  (GpAnimSlot*)actor->pad_438);
+}
 
 s32 func_8010C058(void)
 {
