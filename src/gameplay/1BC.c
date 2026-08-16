@@ -389,7 +389,19 @@ void func_800B27C4(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B2840);
+void func_800B2840(u16* arg0, u16* arg1, s32 arg2, u16* arg3, s32 arg4)
+{
+    s32 i;
+
+    for (i = 0; i < 0x10; i++) {
+        if ((1 << i) & arg4) {
+            func_800B2088(arg0, arg1, arg2, arg3);
+        }
+        arg0++;
+        arg1++;
+        arg3++;
+    }
+}
 
 void func_800B28E0(Task* task)
 {
