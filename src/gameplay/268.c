@@ -497,7 +497,25 @@ void func_800BB7B4(Task* arg0)
     ((GameActorExt*)arg0->extra)->field_C = 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB7C0);
+void func_800BB7C0(s32 arg0, s32 arg1)
+{
+    McSaveData* p;
+    s32         word;
+    s32         bit;
+
+    word = arg0 / 32;
+    bit  = 1 << (arg0 % 32);
+    if ((u32)arg0 >= 0x180) {
+        return;
+    }
+    if (arg1 == 0) {
+        p                   = &Mc_SaveData;
+        p->field_6D0[word] &= ~bit;
+        return;
+    }
+    p                   = &Mc_SaveData;
+    p->field_6D0[word] |= bit;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB838);
 

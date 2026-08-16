@@ -15491,4 +15491,41 @@ if (D_80114CF0 == 0 || SndVoice_HasActiveId(D_80114CF0) == 0) {
 `func_800AE150` is the example. The void call stuck at 99.75% with only the
 load dest different.
 
+## Assign `&global` in each arm so `%lo` rematerializes and `lui` fills `bnez`
+
+A set/clear sibling that shares one `p = &Global` before the `arg == 0`
+test CSEs the address into a later register (`$a3` / `$t0`) and hoists
+`lui` into the range-check `beqz` delay:
+
+```
+beqz  v0, ret        /* range */
+lui   v0, %hi(G)
+bnez  a1, set
+addiu a3, v0, %lo(G) /* CSEd base, reused by both arms */
+```
+
+The target keeps `lui` in the `bnez` delay and rematerializes `addiu %lo`
+in *each* arm (`addiu v0, v0, %lo` then `sll v1; addu; lw  off(v1)`).
+Early-return the range check, write the `== 0` (clear + `return`) arm
+first, and assign `p` separately in both arms:
+
+```c
+word = arg0 / 32;
+bit  = 1 << (arg0 % 32);
+if ((u32)arg0 >= 0x180) {
+    return;
+}
+if (arg1 == 0) {
+    p = &Mc_SaveData;            /* addiu v0, %lo in this arm */
+    p->field_6D0[word] &= ~bit;
+    return;
+}
+p = &Mc_SaveData;                /* addiu v0, %lo rematerialized */
+p->field_6D0[word] |= bit;
+```
+
+A single `p = &Mc_SaveData` before the `arg1` test stuck at 83%
+(`sllv t0` for the mask, CSEd base). Same `p->arr[i]` form as the
+reader (`func_800BC06C`). `func_800BB7C0` is the example.
+
 

@@ -159,7 +159,7 @@ Convention: only list fields with evidence. Unlisted `field_*` / `unknown_*` /
 | 0x5C8 | `field_5C8[]` | 32 `McItemSlot`s; `func_800BBE54` clears each and sets `field_2` to 0xFF except index 0x1A |
 | 0x1C/1E | checksum pair | Save header sum / ones-complement |
 | 0x6C8/6CA | `field_6C8/6CA` | Halfword pair; `func_800AB980` inits both to 100 on first visit |
-| 0x6D0 | `field_6D0[]` | 96-word bit flags; `func_800BC06C` tests bit `id` for `id < 0x180` (else returns 1); `func_800BBF84` clears all 96 words |
+| 0x6D0 | `field_6D0[]` | 96-word bit flags; `func_800BB7C0` sets (`arg1 != 0`) / clears (`arg1 == 0`) bit `id` for `id < 0x180`; `func_800BC06C` tests (else returns 1); `func_800BBF84` clears all 96 words |
 | 0x888 | `field_888[]` | 1-based `s32` counters; increment capped at 0x1869E (`func_80106518`) |
 | 0x908 | `field_908[]` | 32 signed addends for item ids 0x60–0x7F (`func_800BC324`) |
 | 0x93C | `field_93C` | Save-data checksum halfword |

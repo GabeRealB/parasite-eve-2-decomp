@@ -145,7 +145,7 @@ typedef struct _McSaveData {
     /* 0x6C8 */ u16        field_6C8;
     /* 0x6CA */ u16        field_6CA;
     /* 0x6CC */ byte       unknown_6CC[4];
-    /* 0x6D0 */ s32        field_6D0[0x60]; // bit flags; func_800BC06C tests id < 0x180; func_800BBF84 clears all 96 words
+    /* 0x6D0 */ s32        field_6D0[0x60]; // bit flags; func_800BB7C0 sets/clears bit id for id < 0x180; func_800BC06C tests; func_800BBF84 clears all 96 words
     /* 0x850 */ byte       unknown_850[0x38];
     /* 0x888 */ s32        field_888[0x20]; // 1-based counters; cap 0x1869E (func_80106518)
     /* 0x908 */ s8         field_908[0x20]; // signed addend for item ids 0x60–0x7F (func_800BC324)
