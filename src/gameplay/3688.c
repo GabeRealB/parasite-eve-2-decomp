@@ -375,7 +375,23 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CD924);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CDA64);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CDBEC);
+void func_800CDBEC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+{
+    u8          buf[0x20];
+    TextDrawReq req;
+    s32         y;
+
+    req.x          = arg0->baseX + 0x84 + arg1;
+    y              = arg0->baseY - 3;
+    req.y          = y + arg2;
+    req.otIndex    = (s16)arg0->drawOrder + 1;
+    req.field_8    = arg4;
+    req.glyphTable = 5;
+    req.centerMode = 2;
+    req.field_E    = 0;
+    func_8002E53C(&req, Text_ItoaSigned(buf, arg3));
+    Ui_LayoutWithMode0(arg0, (void*)(arg1 + 0x69), (void*)(arg2 - 8), (void*)0x1B, (void*)7, (void*)0x102010);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CDCAC);
 

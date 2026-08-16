@@ -109,6 +109,7 @@ void Text_LoadClutImages(void);
 void Prim_DrawLoadingSprt(void);
 void func_8002DEC4(void);
 void func_8002E53C(TextDrawReq* arg0, u8* arg1);
+u8*  Text_ItoaSigned(u8* arg0, s32 arg1);
 
 // Glyph tables (selected by TextDrawReq.glyphTable); FontGlyph (0xC each).
 extern u8 Font_Glyphs0[];

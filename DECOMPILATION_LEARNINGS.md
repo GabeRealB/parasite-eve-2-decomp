@@ -3,6 +3,27 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Assign `u16 - K` to an `s32` before the `s16` store
+
+`req.y = arg0->baseY - 3 + arg2` (u16 field, s16 dest) emits
+`li v1,0xfffd; addu` — GCC does the add in 16-bit and materializes
+`(u16)-3`. `req.y = arg0->baseY + arg2 - 3` is closer (`addu` then
+`addiu -3`) but still reassociates K onto the sum.
+
+Assign the subtraction to an `s32` first. The 32-bit dest cannot use
+the wrapped constant, so the load stays `lhu; addiu -K` and the later
+`+ arg2` is a separate `addu`:
+
+```c
+s32 y;
+
+y     = arg0->baseY - 3; /* lhu; addiu -3 */
+req.y = y + arg2;        /* addu s2 */
+```
+
+`func_800CDBEC` is the example. A cast alone (`(s32)arg0->baseY - 3`)
+folds away before RTL.
+
 ## Assign `(div + K)` inside the add so K stays on the dividend
 
 `(s8)u8_field << 6` in a larger add emits `lbu; sll 24; sra 18`. Assigned

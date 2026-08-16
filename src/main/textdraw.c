@@ -371,8 +371,6 @@ void Text_MeasureAndCenter(TextDrawReq* arg0, u8* arg1)
     }
 }
 
-u8* Text_ItoaSigned(u8* arg0, s32 arg1);
-
 u8* Text_ItoaSignedPlus(u8* arg0, s32 arg1)
 {
     typedef struct {
