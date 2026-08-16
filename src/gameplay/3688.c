@@ -102,6 +102,7 @@ void  func_800C5C2C(s32 arg0, s32 arg1);
 s32   func_800A7508(void);
 void  func_800D2E04(UiObject* arg0, s32 arg1);
 void  func_800CFE68(s32 arg0, UiObject* arg1);
+void  func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800BF9FC);
 
@@ -1471,4 +1472,27 @@ void func_800D5968(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D5A48);
+void func_800D5A48(Task* arg0)
+{
+    UiObject* obj;
+    s32       flags;
+
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    flags         = 0;
+    if (arg0->state == 0) {
+        if (arg0->spawnArg1 == 0) {
+            Ui_UpdateLayoutSize((UiPanel*)obj, 0x84, 0x64);
+        } else {
+            Ui_UpdateLayoutSize((UiPanel*)obj, 0x84, 0x83);
+        }
+        arg0->state = arg0->state + 1;
+    }
+    if (arg0->spawnArg1 != 0) {
+        flags |= 0x400;
+    }
+    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+        flags |= 0x100;
+    }
+    func_800C7AE8(obj, obj->field_1C + 2, (s16)obj->field_18 + 2, flags);
+}
