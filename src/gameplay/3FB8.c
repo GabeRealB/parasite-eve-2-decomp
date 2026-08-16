@@ -206,7 +206,13 @@ void func_80101408(GpActorWork* arg0)
     Task_Kill((Task*)arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801014E8);
+void func_801014E8(Task* arg0)
+{
+    TaskFuncTable4 sp;
+
+    sp = D_80097848;
+    sp.funcs[arg0->state](arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010154C);
 

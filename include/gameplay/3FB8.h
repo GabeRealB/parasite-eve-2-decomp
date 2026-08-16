@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include "main/session.h"
+#include "main/task.h"
 
 struct _GsCOORDINATE2;
 
@@ -104,6 +105,10 @@ extern GpActorWork* volatile D_80115760[2];
 
 /// Flag byte cleared by `func_800A7DE0` / `func_801036FC`.
 extern u8 D_80115768;
+
+/// Four-entry `Task::state` dispatcher: `func_80100B78`, `func_80100E40`,
+/// `func_801013FC`, `func_80101408`.
+extern TaskFuncTable4 D_80097848;
 
 /// `field_96C` dispatcher: three slots of `func_80109170`, then `func_80109208`.
 extern GpActorFuncTable4 D_800979F8;
