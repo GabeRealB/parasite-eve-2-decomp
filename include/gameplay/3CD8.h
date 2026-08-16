@@ -144,6 +144,7 @@ s32  func_800EA318(s16 arg0, s16 arg1, s16 arg2);
 void func_800EA3A0(s32 arg0);
 void func_800EA3B4(void);
 void func_800EA3EC(void);
+void func_800EA478(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, s32 arg3);
 void func_800EC7E4(void* arg0, Task* arg1);
 void func_800EC868(void);
 void func_800EC9C8(void);

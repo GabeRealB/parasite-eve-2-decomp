@@ -33,7 +33,33 @@ INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F02B4);
 
 INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F1364);
 
-INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F1594);
+void func_800F1594(Task* arg0)
+{
+    GsCOORDINATE2* coord;
+    MATRIX*        m;
+    void*          mem;
+    s32            i;
+    s32            one;
+
+    i                    = 0;
+    one                  = ONE;
+    coord                = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    mem                  = arg0->spawnArg2;
+    m                    = &coord->coord;
+    *(s32*)&coord->coord = one;
+    *(s32*)&m->m[0][2]   = 0;
+    *(s32*)&m->m[1][1]   = one;
+    *(s32*)&m->m[2][0]   = 0;
+    m->m[2][2]           = one;
+    coord->flg           = 0;
+    func_80098F58(coord);
+
+    for (; i < 6; i++) {
+        func_800EA478(0x60036, coord, 9, 0);
+    }
+
+    func_800EC7E4(mem, arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F1638);
 
