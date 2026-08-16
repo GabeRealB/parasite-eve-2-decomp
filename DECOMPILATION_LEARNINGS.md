@@ -16442,4 +16442,38 @@ Pad_PostEvent(0, 1, state->field_4.bytes.as_u8, 1);
 `func_800E9498` is the example. The shift form compiles and is
 semantically identical but cannot match.
 
+## Index the copy (`dest[i] = src[i]`) so `count` wins `$a1`
+
+A word copy whose count is loaded from `arg->count` and whose source
+is `arg->src` (offset 0) fights over `$a1`. `*dest++ = *src++` treats
+`src` as a live pointer and schedules `lw a1, 0(arg)` first, so count
+lands in `$a3` and the loop never emits the target's
+
+```
+move  a1, dest
+move  a0, src
+```
+
+remap. Indexed stores keep `src` as a base, so count takes `$a1` and
+src takes `$a3`:
+
+```c
+src   = arg2->field_0;
+count = arg2->field_4;
+if (count >= 0x21) {
+    return 1;
+}
+dest = ((Blk*)dest)->field_BC;
+for (i = 0; i < arg2->field_4; i++) {
+    dest[i] = src[i];
+}
+```
+
+Assign dest from the table as `s32*` (not the block struct). A
+`Blk* dest = table[i]` load goes to `$v1`; `(s32*)table[i]` reuses
+`$a0` so `dest += 0xBC` is `addiu a0, a0, 0xBC`.
+
+`func_80105914` is the example. The increment form stuck at 93.8%
+with only those two loads (and the two `move`s) swapped.
+
 

@@ -117,6 +117,21 @@ typedef struct _GpAnimArg {
 } GpAnimArg;
 STATIC_ASSERT_SIZEOF(GpAnimArg, 0x14);
 
+/// Animation data pointed to by `D_80112D6C` / `GameActor.field_928`.
+/// `func_80105914` copies up to 0x20 words onto `field_BC`.
+typedef struct _GpAnimBlk {
+    /* 0x00 */ byte pad_0[0xBC];
+    /* 0xBC */ s32  field_BC[0x20];
+} GpAnimBlk;
+
+/// Word-copy argument for `func_80105914`. `field_0` is the source
+/// array; `field_4` is the count (must be < 0x21).
+typedef struct _GpCopyArg {
+    /* 0x0 */ s32* field_0;
+    /* 0x4 */ s32  field_4;
+} GpCopyArg;
+STATIC_ASSERT_SIZEOF(GpCopyArg, 8);
+
 /// Position + rotation argument for `func_80104D68`. `field_0` / `field_4` /
 /// `field_8` are copied onto `GsCOORDINATE2.coord.t`; `field_10` / `field_12` /
 /// `field_14` are copied onto `GameActor` 0x50 and passed to `RotMatrix`.
