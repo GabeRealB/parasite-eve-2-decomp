@@ -15622,6 +15622,43 @@ so `i` is not rematerialized. The scheduler then parks `li s1, 1` in the poll
 `bnez` delay, `li s4, 9` in the `lw actor` delay, and `li s3, 5` in the loop
 `beqz` delay. `func_80101848` is the example.
 
+## Two `&global`s: force `addiu v0, %lo` then `move dest` (not `addiu dest`)
+
+`-msplit-addresses` turns `p = &D_xxx; q = &D_yyy` into `lui dest; addiu dest,
+dest, %lo` (or `lui v0; addiu dest, v0, %lo`). The target sometimes wants the
+full address in `$v0` first, then a copy — typically because the values stay
+live in `$a2`/`$a1` across a later loop:
+
+```
+lui    v0, %hi(D_xxx)
+addiu  v0, v0, %lo(D_xxx)
+move   a2, v0
+lui    v0, %hi(D_yyy)
+addiu  v0, v0, %lo(D_yyy)
+move   a1, v0
+```
+
+Pin the dests to `$a2`/`$a1` and a scratch to `$v0`, assign each address into
+the scratch, then copy. GCC still combines the first pair (`lui a2; addiu a2`)
+unless copy-prop is blocked after each materialization:
+
+```c
+register MATRIX* mtxA asm("a2");
+register MATRIX* mtxB asm("a1");
+register s32     addr asm("v0");
+
+addr = (s32)&D_xxx;
+__asm__ volatile("" : "+r"(addr));
+mtxA = (MATRIX*)addr;
+addr = (s32)&D_yyy;
+__asm__ volatile("" : "+r"(addr));
+mtxB = (MATRIX*)addr;
+```
+
+Keep the later store of a call result (`arg0->spawnArg2 = result`) *after*
+those copies so the result can live in `$v1` (`register s32 result asm("v1")`)
+instead of being stored immediately from `$v0`. `func_800D9D18` is the example.
+
 ## Overlay: still-asm dispatcher tables after expanding `.rodata`
 
 When a new overlay switch moves the TU `.rodata` range earlier, splat migrates

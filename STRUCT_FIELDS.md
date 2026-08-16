@@ -589,6 +589,8 @@ inactive sentinel as `GpAnimSlot.field_0`) when installing `GpAnimArg.field_0`.
 as `GpAnimSlot.field_10` on the `pad_438` overlay).
 `func_801058BC` clamps `arg2` to 1..0x7F, writes it through the slid-actor overlay
 at `field_441` for `i = 1 .. field_938-1`, then stores the same byte at `field_985`.
+`GameActorExt.field_1C` / `field_20` are `MATRIX*` defaults (`D_80114E98` / `D_80114EB8`)
+written by `func_800D9D18` onto the slot-3 extra and onto `field_920`/`field_924` extras.
 `GameActorExt.field_8` is a `GsCOORDINATE2*` (`flg` cleared to 0 by `Display_SpawnFromMode`
 and `func_800B57EC`; `sub` is the parent link, same convention as `Gfx_InitCoordinateTrees`).
 Offset 0x18 / 0x20 are the low 16 bits of `coord.t[0]` / `coord.t[2]` (world X/Z);

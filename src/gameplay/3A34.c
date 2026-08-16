@@ -330,7 +330,49 @@ void func_800D9CE8(GBytes8* arg0)
     *arg0 = D_8010F9E4;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9D18);
+void func_800D9D18(Task* arg0)
+{
+    GpActorWork*     slot;
+    GameActorExt*    extra;
+    GameActor*       actor;
+    register s32     result asm("v1");
+    s32              i;
+    register MATRIX* mtxA asm("a2");
+    register MATRIX* mtxB asm("a1");
+    register s32     addr asm("v0");
+
+    slot  = Game_GetPtrSlot(3);
+    extra = slot->extra;
+    if (slot != NULL) {
+        result = func_800D9654((GameSessionFrom4*)&Game_Session->field_4);
+        i      = 0;
+        if (result == 0) {
+            Task_Kill(arg0);
+            return;
+        }
+        addr = (s32)&D_80114E98;
+        __asm__ volatile("" : "+r"(addr));
+        mtxA = (MATRIX*)addr;
+        addr = (s32)&D_80114EB8;
+        __asm__ volatile("" : "+r"(addr));
+        mtxB            = (MATRIX*)addr;
+        arg0->spawnArg2 = (void*)result;
+        extra->field_1C = mtxA;
+        extra->field_20 = mtxB;
+        actor           = slot->actor;
+        D_80114F18      = 0;
+        D_80115250      = 0;
+        D_80114F28      = 0;
+        do {
+            extra           = (&actor->field_920)[i]->extra;
+            extra->field_1C = mtxA;
+            extra->field_20 = mtxB;
+            i++;
+        } while (i < 2);
+        arg0->state++;
+        func_800D8684(arg0);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9DFC);
 

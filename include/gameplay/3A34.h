@@ -192,10 +192,13 @@ typedef struct _GpSVec3x3 {
 } GpSVec3x3;
 STATIC_ASSERT_SIZEOF(GpSVec3x3, 0x12);
 
-/// Object whose pointer at 0x20 is a `MATRIX*` whose translation
-/// `t[0]/t[1]/t[2]` is set by `func_800D9550` from three s16 args.
+/// Object whose pointers at 0x1C / 0x20 are `MATRIX*`s. `func_800D9550`
+/// writes translation `t[0]/t[1]/t[2]` through `field_20`. `func_800D9D18`
+/// installs the default matrices `D_80114E98` / `D_80114EB8` here (same
+/// overlay as `GameActorExt`).
 typedef struct _GpObj20 {
-    /* 0x00 */ byte    pad_0[0x20];
+    /* 0x00 */ byte    pad_0[0x1C];
+    /* 0x1C */ MATRIX* field_1C;
     /* 0x20 */ MATRIX* field_20;
 } GpObj20;
 STATIC_ASSERT_SIZEOF(GpObj20, 0x24);
@@ -381,6 +384,12 @@ extern GpCbA4Rec** D_8010CBA4[];
 /// pointer returned by `func_800D957C` when a table lookup fails.
 extern GBytes8 D_8010F9E4;
 
+/// Default `MATRIX` installed at `GameActorExt.field_1C` by `func_800D9D18`.
+extern MATRIX D_80114E98;
+
+/// Default `MATRIX` installed at `GameActorExt.field_20` by `func_800D9D18`.
+extern MATRIX D_80114EB8;
+
 /// Flag set by `func_800D94B8` when an override SVECTOR is stored at
 /// `D_80114F20`. Cleared when that function is called with NULL, and
 /// also by `func_800D9D18`.
@@ -388,6 +397,10 @@ extern u8 D_80114F18;
 
 /// Override SVECTOR copied by `func_800D94B8` from its argument.
 extern SVECTOR D_80114F20;
+
+/// Word cleared by `func_800D9D18`. Also written by `func_800A45F0` and
+/// read/cleared by `func_800D8684`.
+extern s32 D_80114F28;
 
 /// Flag set by `func_800D9504` when an override SVECTOR is stored at
 /// `D_80115258`. Cleared when that function is called with NULL, and
