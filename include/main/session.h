@@ -168,7 +168,9 @@ typedef struct _GameActor {
     /* 0x441 */ u8                  field_441;       // slid-actor overlay; see GameActorSlot
     /* 0x442 */ byte                pad_442[6];
     /* 0x448 */ GameActorSlot       field_448[19];
-    /* 0x740 */ byte                pad_740[0x1CC];
+    /* 0x740 */ byte                pad_740[0x68];
+    /* 0x7A8 */ byte                field_7A8; // addr taken as func_800B3F84 arg3
+    /* 0x7A9 */ byte                pad_7A9[0x163];
     /* 0x90C */ struct _GpLinkNode* field_90C;
     /* 0x910 */ struct _GpActorD4*  field_910;
     /* 0x914 */ struct _Task*       field_914;
@@ -176,12 +178,13 @@ typedef struct _GameActor {
     /* 0x91C */ struct _Task*       field_91C;
     /* 0x920 */ struct _Task*       field_920;
     /* 0x924 */ struct _Task*       field_924;
-    /* 0x928 */ byte                pad_928[0x8];
+    /* 0x928 */ void*               field_928; // D_80112D6C[field_93A]; func_800B3F84 arg1
+    /* 0x92C */ byte                pad_92C[4];
     /* 0x930 */ byte                field_930; // address taken for func_801011D0
     /* 0x931 */ byte                pad_931[3];
     /* 0x934 */ s32                 field_934;
     /* 0x938 */ s16                 field_938; // GameActorSlot count (init 0x13)
-    /* 0x93A */ byte                pad_93A[2];
+    /* 0x93A */ u16                 field_93A; // D_80112D68[field_22-1] + field_21
     /* 0x93C */ u16                 field_93C;
     /* 0x93E */ s16                 field_93E;
     /* 0x940 */ s16                 field_940;

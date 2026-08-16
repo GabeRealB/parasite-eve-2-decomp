@@ -15223,6 +15223,35 @@ if (head != NULL) {
 
 `func_800B584C` is the example.
 
+## Index the table through the stored `u16` so `addiu %lo` splits around `sh`
+
+A `u16` written then used as a pointer-table index wants
+
+```
+lui    v1, %hi(table)
+sh     v0, field
+andi   v0, v0, 0xFFFF
+addiu  v1, v1, %lo(table)
+sll    v0, v0, 2
+```
+
+A local `u16 idx` that is stored *and* used as the index keeps `lui`/`addiu`
+as a tight pair *before* the `sh`. Index through the field so the store is a
+hard dependency of the table address:
+
+```c
+/* lui/addiu glued; sh comes after */
+idx = table16[i] + addend;
+p->field = idx;
+p->ptr   = table32[idx];
+
+/* lui, sh, andi, addiu %lo — target schedule */
+p->field = table16[i] + addend;
+p->ptr   = table32[p->field];
+```
+
+`func_80103874` is the example (`D_80112D6C[actor->field_93A]`).
+
 ## Empty `while (x == K) p++` inverts; `while (1)` + `!=` break does not
 
 GCC 2.8.1 `-O2` rotates an empty occupancy scan

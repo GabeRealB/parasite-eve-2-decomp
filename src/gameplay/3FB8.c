@@ -22,6 +22,8 @@
 extern TaskDesc       D_80113340[];
 extern GpEffArg       D_80113358;
 extern TaskFuncTable3 D_800977FC;
+extern u16            D_80112D68[];
+extern void*          D_80112D6C[];
 
 s32  func_800B9D80(s32 arg0);
 s32  func_8010A854(s32 arg0);
@@ -242,7 +244,18 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801036FC);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103804);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103874);
+void func_80103874(GpActorWork* arg0)
+{
+    GameActor* actor;
+    GpAnimObj* extra;
+
+    actor            = arg0->actor;
+    extra            = (GpAnimObj*)arg0->extra;
+    actor->field_93A = D_80112D68[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21;
+    actor->field_928 = D_80112D6C[actor->field_93A];
+    func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
+                  (GpAnimSlot*)actor->pad_438);
+}
 
 void func_801038F8(GpActorWork* arg0, s32 arg1)
 {

@@ -563,6 +563,14 @@ the slid overlay at `field_441`.
 `pad_438` is the base of a 0x28-byte `GpAnimSlot` array (same stride as
 `GameActorSlot`, but starting 0x10 before `field_448`); `func_80105B0C`
 passes `&pad_438[i]` to `func_800B3DF4` for `i = 1 .. field_938-1`.
+`field_7A8` is the address `func_80103874` (and the same-shaped helpers
+`func_801034C0` / `func_8010BFCC` / …) passes as `func_800B3F84` arg3
+(`GpAnimCtx.field_8`).
+`field_93A` is a u16 anim-table index (`sh` / `lhu`); `func_80103874` writes
+`D_80112D68[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21` (same sum as
+`func_800E3BBC` / `func_800E3CEC`).
+`field_928` is the pointer at `D_80112D6C[field_93A]`, passed as
+`func_800B3F84` arg1 (`GpAnimCtx.field_0`).
 `field_448` is a 19-entry table of `GameActorSlot` (0x28 each; flags halfword at +0x00).
 `func_80100B78` stores count `0x13` at `field_938`; `func_80105894` returns
 `(slot[arg1].field_0 & 0x102) == 0`.
