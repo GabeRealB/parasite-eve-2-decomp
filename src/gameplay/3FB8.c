@@ -2779,7 +2779,25 @@ void func_8010C81C(void)
     p->field_24 = saved;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C858);
+s32 func_8010C858(GpActorWork* arg0, s32 arg1, GpCopyArg* arg2)
+{
+    s32* dest;
+    s32* src;
+    s32  i;
+    s32  count;
+
+    dest  = (s32*)D_80113368[D_80113360[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7];
+    src   = arg2->field_0;
+    count = arg2->field_4;
+    if (count >= 0x21) {
+        return 1;
+    }
+    dest = ((GpAnimBlk*)dest)->field_BC;
+    for (i = 0; i < arg2->field_4; i++) {
+        dest[i] = src[i];
+    }
+    return 0;
+}
 
 s32 func_8010C8F0(GpActorWork* arg0, s32 arg1, s32 arg2)
 {
