@@ -1966,7 +1966,37 @@ void func_8010ABD4(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010AC54);
+void func_8010AC54(GpActorWork* arg0)
+{
+    GameActor* inner;
+    GameActor* inner2;
+
+    inner = arg0->actor;
+    if (inner->field_95E == 0) {
+        inner->field_95E = 1;
+        inner->field_934 = 0;
+        inner->field_93E = 0;
+    }
+    if (inner->field_934 == 0) {
+        inner->field_93E++;
+        if (inner->field_93E == 3) {
+            inner2 = arg0->actor;
+            func_8010B210(arg0);
+            inner2->field_97A = 0x12;
+            if (inner2->field_956 != 0) {
+                func_8010870C(arg0, 0xC);
+            } else {
+                func_801066DC(arg0, 0);
+            }
+        } else {
+            inner->field_934 = 5;
+        }
+        func_800EA478(
+            0x600E0, &((GsCOORDINATE2*)arg0->extra->field_8)[4 - inner->field_93E], 0x320, 0);
+    } else {
+        inner->field_934--;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010AD64);
 
