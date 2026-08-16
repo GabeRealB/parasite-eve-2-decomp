@@ -16,6 +16,7 @@
 #include "main/tmd.h"
 
 void func_800B1EFC(Task* arg0);
+void func_800B2088(u16* arg0, u16* arg1, s32 arg2, u16* arg3);
 void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800B3910(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
@@ -320,7 +321,17 @@ void func_800B25B0(void)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B27C4);
+void func_800B27C4(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
+{
+    s32 i;
+
+    for (i = 0; i < 0x10; i++) {
+        func_800B2088(arg0, arg1, arg2, arg3);
+        arg0++;
+        arg1++;
+        arg3++;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B2840);
 
