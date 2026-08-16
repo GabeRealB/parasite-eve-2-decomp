@@ -38,6 +38,7 @@ extern char         D_8010E554[];
 extern char         D_8010E558[];
 extern char         D_8010E55C[];
 extern char         D_8010E58C[];
+extern char         D_8010E59C[];
 extern char         D_8010F8D0[];
 extern char         D_8010F8D4[];
 extern char         D_8010F9C0[];
@@ -1014,7 +1015,20 @@ void func_800CF658(UiPanel* arg0, s32 arg1)
     arg0->field_C.x = (-arg0->field_C.w) >> 1;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF6E8);
+void func_800CF6E8(UiObject* arg0, s32 arg1)
+{
+    u8* text;
+    s32 color;
+    s32 one;
+    s32 x;
+
+    text  = func_800B8EB0(arg1, 0, 0);
+    color = 0x606060;
+    one   = 1;
+    Text_DrawPrompt(arg0, arg0->field_1C + 2, (s16)arg0->field_18 + 0xF, D_8010E494, color, one, 0);
+    x = Text_DrawPrompt(arg0, arg0->field_1C + 2, (s16)arg0->field_18 + 0x1E, text, 0x37A78, one, 0);
+    Text_DrawPrompt(arg0, x, (s16)arg0->field_18 + 0x1E, D_8010E59C, color, one, 0);
+}
 
 void func_800CF7C4(DialogPrompt* arg0, UiObject* arg1)
 {
