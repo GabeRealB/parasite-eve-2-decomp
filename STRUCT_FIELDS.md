@@ -551,7 +551,9 @@ argument of `func_80105B74` onto the slot-3 actor.
 from its pose argument and passed to `RotMatrix`; `field_52` is also the facing
 angle (`lh`) used by `func_8010BCF4` / `func_80103E7C`.
 `field_424` is a 0x14-byte `GpAnimCtx` overlay; `func_80103AC0` passes it to
-`func_800B4514` for each slot `i = 1 .. field_938-1`.
+`func_800B4514` for each slot `i = 1 .. field_938-1`. `func_801038F8` does the
+same walk through `func_800B3FA8(..., i, arg1)`, then copies `field_985` onto
+the slid overlay at `field_441`.
 `pad_438` is the base of a 0x28-byte `GpAnimSlot` array (same stride as
 `GameActorSlot`, but starting 0x10 before `field_448`); `func_80105B0C`
 passes `&pad_438[i]` to `func_800B3DF4` for `i = 1 .. field_938-1`.
