@@ -95,6 +95,7 @@ STATIC_ASSERT_SIZEOF(TaskDesc, 0xc);
 Task*     Task_SpawnFromDesc(TaskDesc* desc, s32 arg1, s32 arg2, TaskNode* list);
 Task*     Task_SpawnFromTable(TaskDesc* table, s32 idx, s32 arg2, s32 arg3);
 Task*     Task_Spawn(s32 bank, s32 type, s32 arg2, s32 arg3);
+Task*     Task_SpawnOnDefaultListA(s32 bank, s32 type, s32 arg2, s32 arg3);
 void      Task_Kill(Task* task);
 void      Task_KillChildren(Task* task);
 void      Task_CallExit(Task* task);

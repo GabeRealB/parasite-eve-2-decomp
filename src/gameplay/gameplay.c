@@ -934,7 +934,27 @@ void func_800A8D5C(void)
     func_800A82C0(&coord, &vec);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8DC0);
+void func_800A8DC0(s32 arg0)
+{
+    GameSessionFrom4* sess;
+    GpCb2CTbl*        tbl;
+    GpCb2CRec*        recs;
+    GpCb2CRec*        rec;
+    u8                idx;
+
+    sess = (GameSessionFrom4*)&Game_Session->field_4;
+    tbl  = D_8010CB2C[sess->field_3 - 1];
+    recs = tbl->field_0[sess->field_2 - 1];
+    idx  = func_800AD284();
+    rec  = (GpCb2CRec*)(idx * sizeof(GpCb2CRec) + (s32)recs);
+    Task_Spawn(0, 0xF, 0, (s32)(rec - 1));
+    if (arg0 == 0) {
+        Task_Spawn(0, 0x17, 0, 0);
+    }
+    if (arg0 == 1) {
+        Task_SpawnOnDefaultListA(0, 0x17, 0, 0);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8E8C);
 

@@ -74,6 +74,7 @@ void func_800A8B14(void);
 void func_800A8B6C(void);
 GpCb2CRec* func_800A8C08(GameSessionFrom4* arg0);
 void func_800A8D5C(void);
+void func_800A8DC0(s32 arg0);
 void func_800A9010(Task* task);
 void func_800A91CC(Task* task);
 
