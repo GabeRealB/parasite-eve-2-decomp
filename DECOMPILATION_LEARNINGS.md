@@ -16027,4 +16027,42 @@ very start.
 Natural C is 88.75% (saves too early). Explicit locals are 99.167%
 (only those two pairs swapped).
 
+## Assign `a - b` before `ABS()` so the negate stays `negu`
+
+`ABS(a - b)` rewrites the negative arm as the swapped subtract `b - a`
+(`subu v0, b, a` in the `bgez` delay / false path). The target instead
+does `subu; bgez; nop; negu`.
+
+Assign the difference first, then abs that temp. `-(temp)` cannot be
+rewritten as an operand swap:
+
+```c
+temp = cur - tgt;
+if (temp < 0) {
+    temp = -temp; /* or temp = ABS(temp); */
+}
+```
+
+`func_80108BD8` is the example. `ABS(cur - tgt)` stuck at ~60% with only
+that subtract flipped.
+
+## Assign `tgt - K` before `cur - wrap` so K stays on `tgt`
+
+`cur - (tgt - 0x1000)` reassociates to `(cur + 0x1000) - tgt`
+(`addiu v0, a0, 0x1000; subu v0, v0, a1`). The target subtracts K from
+`tgt` first (`addiu v0, a1, -0x1000; subu v0, a0, v0`).
+
+Assign the inner subtract to its own temp, then subtract that from
+`cur`. In a short-circuit `||` the two assigns can sit in a comma so
+the wrap is only computed when the first abs misses:
+
+```c
+if (temp < 0x41 || (wrap = tgt - 0x1000, temp = cur - wrap, temp = ABS(temp), temp < 0x41)) {
+    /* snap */
+}
+```
+
+`func_80108BD8` is the example. The reassociated add-then-sub stuck at
+91.8% with only those two instructions different.
+
 

@@ -155,7 +155,9 @@ typedef struct _GameActor {
     /* 0x06A */ s16                 field_6A;
     /* 0x06C */ byte                pad_6C[4];
     /* 0x070 */ s16                 field_70;
-    /* 0x072 */ byte                pad_72[0x1E];
+    /* 0x072 */ byte                pad_72[0x10];
+    /* 0x082 */ s16                 field_82; // target facing angle; func_80108BD8
+    /* 0x084 */ byte                pad_84[0xC];
     /* 0x090 */ s32                 field_90;
     /* 0x094 */ byte                pad_94[0x18];
     /* 0x0AC */ byte                field_AC[0x20]; // 0x20-byte list node (func_800E1638)
