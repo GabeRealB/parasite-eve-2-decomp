@@ -1760,7 +1760,83 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109BB4);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109FC4);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010A1B0);
+void func_8010A1B0(s32 arg0, s32 arg1)
+{
+    GpActorWork* work;
+    GameActor*   inner;
+    s32          mask;
+
+    mask = arg1;
+    if (arg0 == 0) {
+        work = Game_GetPtrSlot(3);
+        if (arg1 & 1) {
+            inner = work->actor;
+            if (func_800B9D80(0x101) == 0) {
+                Wip_SysConfig.field_25 |= 1;
+                inner->field_944        = 0x258;
+                func_800EC9C8();
+                func_80103B5C(work);
+                func_800ECA10(1);
+            }
+        }
+        if (mask & 2) {
+            inner = work->actor;
+            if (func_800B9D80(0x102) == 0) {
+                Wip_SysConfig.field_25 |= 2;
+                inner->field_946        = 0x258;
+                inner->field_98E        = 0;
+                func_8010B210(work);
+                func_800ECA10(2);
+            }
+        }
+        if (mask & 4) {
+            inner = work->actor;
+            if (func_800B9D80(0x104) == 0) {
+                Wip_SysConfig.field_25 |= 4;
+                inner->field_948        = 0x258;
+                inner->field_98D        = 0;
+                func_800ECA10(4);
+            }
+        }
+        if (mask & 0x10) {
+            inner = work->actor;
+            if (func_800B9D80(0x108) == 0) {
+                Wip_SysConfig.field_25 |= 0x10;
+                inner->field_94A        = 0x258;
+                func_800ECA10(0x10);
+            }
+        }
+        if (mask & 0x20) {
+            inner = work->actor;
+            if (func_800B9D80(0x110) == 0) {
+                Wip_SysConfig.field_25 |= 0x20;
+                inner->field_94C        = 0x258;
+                func_800ECA10(0x20);
+            }
+        }
+        if (mask & 0x40) {
+            inner = work->actor;
+            if (func_800B9D80(0x120) == 0) {
+                Wip_SysConfig.field_25 |= 0x40;
+                inner->field_94E        = 0x258;
+                inner->field_990        = (rand() & 0x1F) + 0xA;
+                inner->field_970        = 0;
+                func_800ECA10(0x40);
+            }
+        }
+        if (mask & 0x80) {
+            inner = work->actor;
+            if (func_800B9D80(0x140) == 0) {
+                Wip_SysConfig.field_25 |= 0x80;
+                inner->field_950        = 0x258;
+                func_800ECA10(0x80);
+                func_800ECA54();
+            }
+        }
+    } else {
+        Wip_SysConfig.field_25 &= ~arg1;
+    }
+}
 
 void func_8010A42C(GpActorWork* arg0, s32 arg1)
 {

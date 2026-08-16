@@ -16218,4 +16218,36 @@ if ((range_a && p->sel_a == id - Ka) ||
 dropping the temp but keeping if/else-if reached 98.7% with only the
 register swap and `lbu a0`.
 
+## Use the parameter, not `flags = arg1`, so `~arg1` reads `$s0`
+
+A saved incoming arg (`move s0, a1`) is live on both the call-clobbered
+apply path and the no-call else path. The first bit test sits *after*
+`jal Game_GetPtrSlot`, so it must read the saved copy (`andi v0, s0, 1`).
+The else is `field &= ~arg1` (`nor a0, zero, s0`).
+
+A new local `flags = arg1` copy-propagates back to `$a1` on the else
+path: that arm never calls, so the incoming register is still valid and
+you get `nor a0, zero, a1`. Use `arg1` itself for the first test and the
+else. The extra local is only the copy that must survive `$s0` being
+reused for the actor pointer:
+
+```c
+mask = arg1;          /* move s2, s0 */
+if (arg0 == 0) {
+    work = Game_GetPtrSlot(3);
+    if (arg1 & 1) {   /* andi v0, s0, 1 — a1 is dead after jal */
+        inner = work->actor;
+        ...
+    }
+    if (mask & 2) {   /* later bits — s0 now holds inner */
+        ...
+    }
+} else {
+    Wip_SysConfig.field_25 &= ~arg1; /* nor a0, zero, s0 */
+}
+```
+
+`func_8010A1B0` is the example. `flags = arg1; ... &= ~flags` stuck at
+99.969% with only that `nor` source swapped.
+
 
