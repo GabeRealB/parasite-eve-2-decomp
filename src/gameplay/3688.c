@@ -854,7 +854,51 @@ UiObject* func_800CEDA0(UiObject* arg0, UiObject* arg1, u8* arg2, s32 arg3)
     return obj;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CEE5C);
+void func_800CEE5C(UiObject* arg0)
+{
+    Task*     owner;
+    Task*     child;
+    Task*     next;
+    Task*     head;
+    UiObject* obj;
+    s32       one;
+    s32       mask;
+    s32       flag;
+
+    owner = arg0->owner;
+    head  = owner->firstChild;
+    if (head != NULL) {
+        one   = 1;
+        child = head;
+        mask  = 0xFFFEFFFF;
+        do {
+            obj  = child->spawnArg2;
+            flag = obj->field_2E;
+            next = child->nextSibling;
+            switch (flag) {
+                case -1:
+                    arg0->field_2E = flag;
+                    break;
+                case 6:
+                    Ui_TeardownTree(obj, obj->owner);
+                    arg0->status   = one;
+                    arg0->field_4 &= mask;
+                    break;
+                case 0x23:
+                    Ui_TeardownTree(obj, obj->owner);
+                    arg0->status   = one;
+                    D_80114D8C     = one;
+                    arg0->field_4 &= mask;
+                    break;
+            }
+            head  = owner->firstChild;
+            child = next;
+            if (child == head) {
+                break;
+            }
+        } while (head != NULL);
+    }
+}
 
 void func_800CEF68(DialogPrompt* arg0, UiObject* arg1)
 {

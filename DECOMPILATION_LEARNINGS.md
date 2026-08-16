@@ -16137,4 +16137,46 @@ val = D_8011398C[(a * 3 + b) * 3 + c].field[arg1];
 `func_800D50D4` is the example. `(&rec[idx].field_0)[arg1]` matched in a
 one-function scratch and failed the overlay checksum.
 
+## `head` then `child = head`; write `field &= mask` not a shared `flags` temp
+
+A circular `firstChild` / `nextSibling` walk that the target opens with
+
+```
+lw    v0, 0xC(s3)
+nop
+beqz  v0, end
+li    s4, 1
+move  a1, v0
+lui   s1, 0xFFFE
+ori   s1, s1, 0xFFFF
+```
+
+must not assign the load straight to the iterator. `child = owner->firstChild;
+if (child)` keeps the pointer in `$a1` for both the `beqz` and the loop.
+Load into a separate `head`, then copy after `one = 1`:
+
+```c
+head = owner->firstChild;
+if (head != NULL) {
+    one   = 1;
+    child = head;          /* move a1, v0 */
+    mask  = 0xFFFEFFFF;    /* lui/ori s1 — after the copy so next takes s2 */
+```
+
+Two switch cases that both do `p->status = 1; p->field_4 &= mask` (one also
+stores a global) must be written as `&=`. Routing the mask through a shared
+`flags` temp:
+
+```c
+flags         = p->field_4;
+p->status     = one;
+p->field_4    = flags & mask;
+```
+
+is identical enough that GCC 2.8.1 cross-jumps the `and`/`sw` into one tail
+(`lw v1; j shared; sw status`). The compound `&=` hoists the load before the
+independent stores and keeps a dedicated `lw`/`and`/`sw` per case.
+
+`func_800CEE5C` is the example.
+
 
