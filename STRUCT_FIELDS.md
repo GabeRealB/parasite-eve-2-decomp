@@ -22,7 +22,7 @@ Convention: only list fields with evidence. Unlisted `field_*` / `unknown_*` /
 | 0x18 | `exitCallback` | Exit / kill callback (often `Task_Kill`) |
 | 0x1C | `idMap` | Optional `TaskIdMap*` (freed on kill) |
 | 0x20 | `spawnArg2` | Spawn arg2 — often `UiObject*` / UI context |
-| 0x24 | `field_24` | Pointer to id/handler table (`D_8010D208` via `func_800B6358`, `D_8010FB90` via `func_800E71B0`) |
+| 0x24 | `field_24` | Pointer to `GpMsgEntry` id/handler table (`D_8010D208` via `func_800B6358`, `D_8010FB90` via `func_800E71B0`); walked by `func_800AC464` |
 | 0x28 | `spawnType` | Spawn type (desc flags low byte: 0 bare, 1/2 overlay) |
 | 0x29 | `priority` | List priority (lower runs earlier) |
 | 0x2A | `killCountdown` | Deferred-kill countdown / state |

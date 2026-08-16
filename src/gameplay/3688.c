@@ -3,6 +3,7 @@
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
 #include "gameplay/3A34.h"
+#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
@@ -73,7 +74,6 @@ char*      func_800B8EB0(s32 arg0, s32 arg1, s32 arg2);
 GpItemRec* func_800D6910(s32 arg0);
 void       func_800C5C2C(s32 arg0, s32 arg1);
 s32        func_800A7508(void);
-s32        func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_800D2E04(UiObject* arg0, s32 arg1);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800BF9FC);

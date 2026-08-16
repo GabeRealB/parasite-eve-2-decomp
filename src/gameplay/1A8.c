@@ -6,11 +6,11 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/session.h"
 #include "main/task.h"
 
 void func_800AD6BC(void);
-s32  func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 extern TaskFuncTable3 D_80093950;
 extern u16            D_80114CD2;

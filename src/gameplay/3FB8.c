@@ -5,6 +5,7 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
+#include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/mc.h"
@@ -22,7 +23,6 @@ extern TaskDesc       D_80113340[];
 extern GpEffArg       D_80113358;
 extern TaskFuncTable3 D_800977FC;
 
-s32  func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  func_800B9D80(s32 arg0);
 s32  func_8010A854(s32 arg0);
 void func_80101848(GpActorWork* arg0);

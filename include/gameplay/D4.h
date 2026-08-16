@@ -3,8 +3,22 @@
 
 #include "common.h"
 
+#include "main/task.h"
+
 struct _GameSessionFrom4;
 struct _GpActorArg;
+
+/// 8-byte id/handler record. `Task::field_24` points at a table of these
+/// (`D_8010D208`, `D_8010FB90`, …). `func_800AC464` walks it and calls the
+/// matching handler with the same four arguments. Terminator id is
+/// `0x7FFFFFFF`.
+typedef s32 (*GpMsgHandler)(Task* task, s32 msgId, s32 arg2, s32 arg3);
+
+typedef struct _GpMsgEntry {
+    /* 0x0 */ s32          id;
+    /* 0x4 */ GpMsgHandler handler;
+} GpMsgEntry;
+STATIC_ASSERT_SIZEOF(GpMsgEntry, 8);
 
 /// Per-index flag object pointed to by `D_80060A30`. Words at 0x4 / 0x8 are
 /// bitmasks (ids 1–32 and 33–64) cleared by `func_800ABEF8`.
@@ -31,6 +45,7 @@ extern GpCb54Tbl* D_8010CB54[];
 void func_800AB980(struct _GameSessionFrom4* arg0);
 void func_800ABE68(struct _GpActorArg* arg0, u16* arg1);
 void func_800ABEF8(s32 arg0);
+s32  func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  func_800AD284(void);
 
 #endif // GAMEPLAY_D4_H

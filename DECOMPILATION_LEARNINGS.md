@@ -14983,4 +14983,35 @@ return bytes[sess->field_0 - 1]; /* not session->field_4 — that is `lb` */
 register pair flipped. `session->field_4` matched in a scratch `u8` mock
 and became `lb` against the real `GameSession`.
 
+## Copy the table pointer so the NULL test uses `$v0` and the cursor stays in `$v1`
+
+When the target does
+
+```
+lw    v0, field        /* table = p->field_24 */
+nop
+bnez  v0, body
+ move v1, v0           /* cursor = table */
+j     ret0
+ move v0, zero
+```
+
+a single live pointer (`entry = p->field_24; if (entry == NULL) return 0;`)
+loads straight into `$v1` (`lw v1; bnez v1; nop`). The load has to land in
+`$v0` so the delay-slot `move v1, v0` can fill.
+
+Give the NULL test its own short-lived copy, then assign the long-lived
+cursor afterwards:
+
+```c
+temp = arg0->field_24;
+if (temp == NULL) {
+    return 0;
+}
+entry = temp;
+```
+
+`func_800AC464` is the example. The one-pointer form stuck at 92% with only
+that `lw`/`move` pair missing.
+
 

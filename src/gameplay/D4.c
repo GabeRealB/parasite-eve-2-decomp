@@ -410,7 +410,26 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AC25C);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AC344);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AC464);
+s32 func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    GpMsgEntry* temp;
+    GpMsgEntry* entry;
+
+    temp = arg0->field_24;
+    if (temp == NULL) {
+        return 0;
+    }
+    entry = temp;
+    if (entry->id != arg1) {
+        do {
+            if (entry->id == 0x7FFFFFFF) {
+                return 0;
+            }
+            entry++;
+        } while (entry->id != arg1);
+    }
+    return entry->handler(arg0, arg1, arg2, arg3);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AC4D8);
 

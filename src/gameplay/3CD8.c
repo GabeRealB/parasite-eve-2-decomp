@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -62,7 +63,6 @@ extern u8             D_80115714;
 extern s16            D_80115716;
 extern s16            D_80115718;
 
-s32  func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800E40EC(s32 arg0);
 s32  func_800E41F4(s32 arg0, s16 arg1, s16 arg2);
 void func_800E44A0(Task* arg0);

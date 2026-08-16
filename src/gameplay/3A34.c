@@ -3,6 +3,7 @@
 #include "gameplay/268.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/mem.h"
 #include "main/pad.h"
@@ -12,7 +13,6 @@
 #include "main/ui.h"
 
 s32  func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
-s32  func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D5B14);
