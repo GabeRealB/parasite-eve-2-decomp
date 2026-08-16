@@ -29,7 +29,27 @@ INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BE808);
 
 INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BEBE4);
 
-INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BF2C8);
+void func_800BF2C8(UiObject* arg0, void (*arg1)(UiObject*, Task*))
+{
+    Task* owner;
+    Task* child;
+    Task* next;
+    Task* head;
+
+    owner = arg0->owner;
+    child = owner->firstChild;
+    if (child != NULL) {
+        do {
+            next = child->nextSibling;
+            arg1(child->spawnArg2, child);
+            head  = owner->firstChild;
+            child = next;
+            if (head == NULL) {
+                break;
+            }
+        } while (child != head);
+    }
+}
 
 s32 func_800BF334(s32 arg0, s32 arg1)
 {

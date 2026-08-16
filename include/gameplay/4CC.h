@@ -5,6 +5,7 @@
 
 #include "main/mc.h"
 #include "main/task.h"
+#include "main/ui.h"
 
 /// Object at `Task::spawnArg2` for `func_800BF5CC`. `field_8` is the packed
 /// item id passed to `func_800BB470`.
@@ -36,7 +37,8 @@ extern GpItemDesc D_8010D838[];
 /// Item/location halfword copied from `D_80114DDC` by `func_800BCC44`.
 /// `func_800BF334` special-cases the value `0x703`.
 extern u16 D_80114D7C;
-s32 func_800BF334(s32 arg0, s32 arg1);
-s32 func_800BF5CC(Task* arg0, s32 arg1, GpItemObj2* arg2);
+void func_800BF2C8(UiObject* arg0, void (*arg1)(UiObject*, Task*));
+s32  func_800BF334(s32 arg0, s32 arg1);
+s32  func_800BF5CC(Task* arg0, s32 arg1, GpItemObj2* arg2);
 
 #endif // GAMEPLAY_4CC_H

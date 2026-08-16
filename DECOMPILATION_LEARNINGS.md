@@ -14875,4 +14875,20 @@ case-1 delay) instead of sinking into the `field_1 != 0` arm. Pair with
 `off + (s32)table` and `register s32 off asm("v0")` for `addu v1, v0, v1`
 (see the `off + base` entry). `func_800BAC8C` is the example.
 
+## `jalr` with the iterator left in `$a1` is a 2-arg callback
+
+A child-ring walk that does `jalr` after `lw a0, spawnArg2(a1)` and keeps
+the current `Task*` in `$a1` is `cb(child->spawnArg2, child)`, not a
+1-arg `cb(spawnArg2)`.
+
+A 1-arg call parks the iterator in `$v0` and saves the function pointer
+in the first `beqz` delay slot. Passing `child` as the second argument
+forces it into `$a1` and emits `move s2, a1` / `lw a1, firstChild` up
+front.
+
+Assign `child = next` *before* the reloaded-`firstChild == NULL` break
+so `move a1, s0` fills that `beqz` delay slot. `func_800BF2C8` is the
+helper; `func_800BD2FC` and `func_800BCC44` inline the same walk with
+`func_800BF398` / `func_800BC634`.
+
 
