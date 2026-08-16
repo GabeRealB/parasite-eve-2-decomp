@@ -910,7 +910,21 @@ void func_800E1B80(void)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1BF0);
+s32 func_800E1BF0(u16* arg0, u8* arg1, u8* arg2)
+{
+    GpObj4C* node;
+
+    for (node = D_8011556C; node != NULL; node = node->next) {
+        if (node->field_4B != 0) {
+            D_80115424 = 1;
+            *arg0      = node->field_46;
+            *arg1      = node->field_48;
+            *arg2      = node->field_49;
+            return 1;
+        }
+    }
+    return 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1C58);
 

@@ -852,8 +852,11 @@ Sparse overlay. Full object size is not known yet.
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x00 | `next` | Intrusive list link; `D_8011556C` head walked by `func_800E0B08` |
-| 0x4B | `field_4B` | Signed flag; `func_800E0B08` stores 0 when non-zero |
+| 0x00 | `next` | Intrusive list link; `D_8011556C` head walked by `func_800E0B08` / `func_800E1BF0` |
+| 0x46 | `field_46` | u16 copied to `func_800E1BF0` arg0 when `field_4B` is pending |
+| 0x48 | `field_48` | u8 copied to `func_800E1BF0` arg1; `func_800E1B80` matches it against `Game_Session->field_4` |
+| 0x49 | `field_49` | u8 copied to `func_800E1BF0` arg2; `func_800E1B80` copies it to `Mc_SaveData.field_4` |
+| 0x4B | `field_4B` | Signed pending flag; `func_800E0B08` stores 0 when non-zero; `func_800E1BF0` / `func_800E1B80` consume it |
 | 0x4C | `field_4C` | Flag byte; `func_800E3008` ORs bit 0; nearby helpers test bits 0x1 / 0x2 / 0x4 |
 | 0x4E | `field_4E` | Packed modes + flag: bits 0-1 current, bits 2-3 previous, high nibble (incl. 0x80) preserved by `func_800D930C` |
 | 0x4F | `field_4F` | Blend/transition timer; set to 0x10 by `func_800D930C` when the current mode changes |
