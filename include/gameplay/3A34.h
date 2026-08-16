@@ -417,6 +417,8 @@ extern GpObj3A* D_8010FAB8[1];
 extern GpStateF0 D_801153F0;
 extern u8        D_801153F3;
 extern u8        D_801153F4;
+/// Head of the `GpObj3A` list pointed to by `D_8010FAB8[0]`.
+extern GpObj3A* D_80115550;
 /// Head of the `GpObj4C` list walked by `func_800E1B80`.
 extern GpObj4C* D_80115554;
 extern GpObj4C* D_8011556C;
@@ -425,6 +427,7 @@ extern GpObj* D_80115574;
 extern GpObj* D_80115578;
 extern GpObj* D_8011557C;
 extern GpObj* D_80115580;
+extern GpObj* D_80115584;
 extern GpObj* D_80115588;
 extern GpObj* D_8011558C;
 extern GpObj* D_80115590;
@@ -501,6 +504,7 @@ void func_800DC528(GpObj* node);
 void func_800DCB80(GpObj* node);
 void func_800DD940(GpObj* node);
 void func_800DDDF8(GpObj* node);
+void func_800E0294(void);
 void func_800E0414(GpObj* a, GpObj* b);
 void func_800E0540(GpObj* node);
 void func_800E0608(GpObj* node, s32 mask, s32 match);
