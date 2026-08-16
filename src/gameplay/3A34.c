@@ -11,6 +11,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/tmd.h"
 #include "main/ui.h"
 
 s32  func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -526,7 +527,25 @@ void func_800DB0D8(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB128);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB28C);
+s32 func_800DB28C(GpActorWork* arg0, GpImgRec* arg1, RECT* arg2)
+{
+    s32        ret;
+    TmdObject* extra;
+    s32        x;
+
+    extra = (TmdObject*)arg0->extra;
+    ret   = 0;
+    if (arg1 != NULL) {
+        arg1->rect.x = ((s8)extra->field_24 << 6) + (x = (arg2->x + 1) / 2 + 0x180);
+        arg1->rect.y = arg2->y + 0x100;
+        arg1->rect.w = arg2->w;
+        arg1->rect.h = arg2->h;
+        func_800DB31C(arg1);
+    } else {
+        ret = 1;
+    }
+    return ret;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB31C);
 

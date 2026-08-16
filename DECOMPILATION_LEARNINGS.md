@@ -3,6 +3,25 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Assign `(div + K)` inside the add so K stays on the dividend
+
+`(s8)u8_field << 6` in a larger add emits `lbu; sll 24; sra 18`. Assigned
+to an `s32` temp first, the same cast becomes `lb; sll 6` and the loads
+reorder. And `tpage + ((x + 1) / 2 + K)` reassociates: GCC folds K onto
+the tpage (`addiu v1, K` before the divide) or onto the sum (`addu; addiu
+v1, K`) instead of onto the dividend (`addiu v0, K; addu v1, v0`).
+
+Assign the `(div + K)` term inside the add. That forces `lbu/sll/sra` for
+the tpage and pins K onto the divide result:
+
+```c
+arg1->x = ((s8)extra->field_24 << 6) + (x = (arg2->x + 1) / 2 + 0x180);
+```
+
+`func_800DB28C` is the example. The natural
+`tpage + (x + 1) / 2 + 0x180` stuck at 94% with only the `addiu 0x180`
+moved.
+
 ## Constant CSE across differently-sized stores
 
 If the same small constant is stored to two struct fields of *different* widths,

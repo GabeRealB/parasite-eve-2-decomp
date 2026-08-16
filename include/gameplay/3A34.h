@@ -101,6 +101,19 @@ typedef struct _GpRec12 {
 } GpRec12;
 STATIC_ASSERT_SIZEOF(GpRec12, 0xC);
 
+/// 16-byte VRAM upload record walked by `func_800DB31C`. `field_0 == 0`
+/// uploads `rect` / `data` via `LoadImage`; non-zero ends the walk.
+/// `func_800DB28C` fills `rect` from a source RECT plus the TMD tpage at
+/// `TmdObject.field_24` (`x = tpage * 64 + (src.x + 1) / 2 + 0x180`,
+/// `y = src.y + 0x100`).
+typedef struct _GpImgRec {
+    /* 0x0 */ u16     field_0;
+    /* 0x2 */ u16     pad_2;
+    /* 0x4 */ RECT    rect;
+    /* 0xC */ u_long* data;
+} GpImgRec;
+STATIC_ASSERT_SIZEOF(GpImgRec, 0x10);
+
 /// 16-byte table entry at `D_8011398C`. Selected when the id's 0x8000 bit
 /// is set. `func_800E2D3C` / `func_800E2D90` / `func_800E3194` return
 /// `field_A` / `field_C` / `field_E` for index `id & 0x7F`.
@@ -470,6 +483,8 @@ void* func_800DADE4(GpActorWork* arg0, VECTOR3* pos);
 void  func_800DAF98(void);
 void  func_800DAFD0(void);
 void  func_800DB0D8(void);
+s32   func_800DB28C(GpActorWork* arg0, GpImgRec* arg1, RECT* arg2);
+void  func_800DB31C(GpImgRec* arg0);
 void  func_800DB4E0(s32 arg0);
 void  func_800DB500(s32 arg0);
 void  func_800DB530(s32 arg0);
