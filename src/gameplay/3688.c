@@ -32,12 +32,14 @@ extern char         D_8010E554[];
 extern char         D_8010E558[];
 extern char         D_8010E55C[];
 extern char         D_8010F8D0[];
+extern u8           D_8010F13D;
 extern UiObjectDesc D_8010EAD0;
 extern UiObjectDesc D_8010EB94;
 extern UiObjectDesc D_8010EBCC;
 extern UiObjectDesc D_8010EE6C;
 extern UiObjectDesc D_8010EE88;
 extern UiObjectDesc D_8010EFA0;
+extern UiObjectDesc D_8010F178;
 extern UiObjectDesc D_8010F788;
 extern UiObjectDesc D_8010F840;
 extern TaskDesc     D_8010F85C;
@@ -52,6 +54,7 @@ extern s32          D_8005ED70;
 extern s32          D_8005ED74;
 extern s32          D_8005ED78;
 extern char         D_8009701C[];
+extern char         D_800971D0[];
 extern char         D_80097224[];
 extern UiObject*    D_80067634;
 extern void         (*D_8010D3A0[])(UiObject*, Task*);
@@ -800,7 +803,41 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D1434);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D15D0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D1A20);
+void func_800D1A20(Task* arg0)
+{
+    UiObject* obj;
+    s32       status;
+
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    Ui_DrawText((UiPanel*)obj, D_800971D0);
+    switch (arg0->state) {
+        case 0:
+            CdCmd_EnqueueLoadFile(8, D_8010F13D, 0);
+            arg0->state = arg0->state + 1;
+            break;
+        case 1:
+            if (CdCmd_IsIdle() & 0xFFFF) {
+                Ui_SpawnFromDesc(&D_8010F178, 0, 0, 1, obj);
+                arg0->state = arg0->state + 1;
+            }
+            break;
+        case 2:
+            Text_DrawMultiLine(obj, obj->field_1C + 2, (s16)obj->field_18 + 0x14, Fs_GetChunkPayload(), 0x606060, 1, 0);
+            status = obj->status;
+            if (status == 1) {
+                if (Pad_CheckButtons(0, 1, D_8005ED74 | 0x10) != 0) {
+                    obj->field_2C = status;
+                    obj->field_2E = 6;
+                    SndEvt_EnqueueType6(4, 0, 0);
+                } else if (Pad_CheckButtons(0, 1, D_8005ED78) != 0) {
+                    obj->field_2E = -1;
+                    SndEvt_EnqueueType6(4, 0, 0);
+                }
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D1BAC);
 
