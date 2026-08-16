@@ -12,8 +12,11 @@
 /// Global at `D_80114C08`. `field_0` is a u16 loaded by many helpers.
 /// `field_3` is a signed state byte (`lb`); `func_80109290` compares it to -2
 /// and `func_80109374` requires 0. `field_6` is a flags byte (bit 0 gates
-/// `func_800A7DB8` writing `field_E`). `field_A` is a signed byte (`lb`);
-/// `func_800A7DE0` sets `field_3 = 2` when it is >= 2, then clears it.
+/// `func_800A7DB8` writing `field_E`; bit 1 is cleared by `func_800A7574`).
+/// `field_A` is a signed byte (`lb`); `func_800A7DE0` sets `field_3 = 2`
+/// when it is >= 2, then clears it. `func_800A7574` also zeros `field_A`,
+/// `field_C`..`field_F`, `field_10`/`field_12`/`field_14`, and
+/// `field_16`/`field_17`.
 typedef struct _GpStateC08 {
     /* 0x00 */ u16  field_0;
     /* 0x02 */ byte pad_2;
@@ -24,13 +27,43 @@ typedef struct _GpStateC08 {
     /* 0x08 */ u8   field_8;
     /* 0x09 */ byte pad_9;
     /* 0x0A */ s8   field_A;
-    /* 0x0B */ byte pad_B[3];
+    /* 0x0B */ byte pad_B;
+    /* 0x0C */ s8   field_C;
+    /* 0x0D */ u8   field_D;
     /* 0x0E */ u8   field_E;
-    /* 0x0F */ byte pad_F;
+    /* 0x0F */ u8   field_F;
+    /* 0x10 */ s16  field_10;
+    /* 0x12 */ s16  field_12;
+    /* 0x14 */ s16  field_14;
+    /* 0x16 */ s8   field_16;
+    /* 0x17 */ u8   field_17;
 } GpStateC08;
-STATIC_ASSERT_SIZEOF(GpStateC08, 0x10);
+STATIC_ASSERT_SIZEOF(GpStateC08, 0x18);
 
 extern GpStateC08 D_80114C08;
+
+/// Pair of s32 working copies at `D_80114BE8`. `func_800A7574` (and
+/// `func_800B996C`) sign-extend `Wip_SysConfig.field_18` / `field_1c` into
+/// `field_0` / `field_4`. Splat also emits `D_80114BEC` at +4.
+typedef struct _GpStateBE8 {
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ s32 field_4;
+} GpStateBE8;
+STATIC_ASSERT_SIZEOF(GpStateBE8, 0x8);
+
+extern GpStateBE8 D_80114BE8;
+
+/// +0xC overlay of the 0x30-byte record `func_8009FEDC` allocates with
+/// `Mem_Calloc(0x30, 0)` and stores at `Task::idMap`. `func_800A7574` is
+/// called with that pointer + 0xC; it writes `field_16 = -1` and clears
+/// `field_18`.
+typedef struct _GpIdMapC {
+    /* 0x00 */ byte pad_0[0x16];
+    /* 0x16 */ s8   field_16;
+    /* 0x17 */ byte pad_17;
+    /* 0x18 */ s16  field_18;
+} GpIdMapC;
+STATIC_ASSERT_SIZEOF(GpIdMapC, 0x1A);
 
 /// 4-byte spawn arg at `D_80114BD8`. `func_800A76A4` zeros `field_0` / `field_1`,
 /// writes `GameSession.field_12E` as a signed halfword to `field_2`, then passes
@@ -66,6 +99,7 @@ void func_80098F58(GsCOORDINATE2* arg0);
 void func_80098F98(GsCOORDINATE2* arg0, s32 arg1);
 Task* func_8009988C(GsCOORDINATE2* arg0);
 u8*  func_800A746C(void);
+void func_800A7574(GpIdMapC* arg0);
 s32  func_800A7B20(s32 arg0);
 void func_800A784C(void* arg0);
 void func_800A7A64(void);

@@ -692,7 +692,7 @@ Task overlay: `actor` is `Task::idMap` at 0x1C; `extra` is `Task::extra` at
 0x2C (`GameActorExt*`). `func_8010B120` passes `extra->field_8` to
 `func_800D937C` / `func_800D9340` as a `GpObj38*`.
 
-### `GpStateC08` (0x10) — `gameplay.h`
+### `GpStateC08` (0x18) — `gameplay.h`
 Global at `D_80114C08`. Splat also emits per-byte labels (`D_80114C0A` / `D_80114C0B` / …)
 for the same block.
 
@@ -700,11 +700,36 @@ for the same block.
 |-----|--------|------|
 | 0x00 | `field_0` | u16 loaded by many helpers |
 | 0x03 | `field_3` | s8 state (`lb`); `func_80109290` compares to -2; `func_80109374` requires 0; `func_800A7DE0` writes 2 when `field_A >= 2` |
-| 0x06 | `field_6` | Flags; bit 0 gates `func_800A7DB8` writing `field_E` |
+| 0x06 | `field_6` | Flags; bit 0 gates `func_800A7DB8` writing `field_E`; bit 1 cleared by `func_800A7574` |
 | 0x07 | `field_7` | Cleared by `func_800A7DE0` |
 | 0x08 | `field_8` | Cleared by `func_800A7DE0` |
-| 0x0A | `field_A` | s8 (`lb`); `func_800A7DE0` sets `field_3 = 2` when >= 2, then clears it |
-| 0x0E | `field_E` | Written by `func_800A7DB8` when `field_6` bit 0 is clear; cleared by `func_800A7DE0` |
+| 0x0A | `field_A` | s8 (`lb`); `func_800A7DE0` sets `field_3 = 2` when >= 2, then clears it; cleared by `func_800A7574` |
+| 0x0C | `field_C` | s8 (`lb` as `D_80114C14`); cleared by `func_800A7574` |
+| 0x0D | `field_D` | Cleared by `func_800A7574` |
+| 0x0E | `field_E` | Written by `func_800A7DB8` when `field_6` bit 0 is clear; cleared by `func_800A7DE0` / `func_800A7574` |
+| 0x0F | `field_F` | Cleared by `func_800A7574` |
+| 0x10 | `field_10` | s16 (`lh` as `D_80114C18`); cleared by `func_800A7574` |
+| 0x12 | `field_12` | s16 (`lh` as `D_80114C1A`); cleared by `func_800A7574` |
+| 0x14 | `field_14` | s16; cleared by `func_800A7574` |
+| 0x16 | `field_16` | s8 (`lb`/`sb` as `D_80114C1E`); cleared by `func_800A7574` |
+| 0x17 | `field_17` | Cleared by `func_800A7574` |
+
+### `GpStateBE8` (0x8) — `gameplay.h`
+Global at `D_80114BE8`. Working copies of two `Wip_SysConfig` halfwords.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x0 | `field_0` | s32; sign-extended `Wip_SysConfig.field_18` (`func_800A7574` / `func_800B996C`) |
+| 0x4 | `field_4` | s32; sign-extended `Wip_SysConfig.field_1c` (splat label `D_80114BEC`) |
+
+### `GpIdMapC` (0x1A) — `gameplay.h`
++0xC overlay of the 0x30-byte `Mem_Calloc` record stored at `Task::idMap` by
+`func_8009FEDC`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x16 | `field_16` | s8; set to -1 by `func_800A7574` |
+| 0x18 | `field_18` | s16; cleared by `func_800A7574` |
 
 ### `GpStateBD8` (0x4) — `gameplay.h`
 Global at `D_80114BD8`. Filled by `func_800A76A4` and passed as `Task_Spawn`

@@ -655,7 +655,34 @@ s32 func_800A7550(void)
     return 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7574);
+void func_800A7574(GpIdMapC* arg0)
+{
+    WipSysConfig* cfg;
+    GpStateBE8*   be8;
+    GpStateC08*   p;
+
+    cfg                     = &Wip_SysConfig;
+    be8                     = &D_80114BE8;
+    be8->field_0            = cfg->field_18;
+    be8->field_4            = cfg->field_1c;
+    arg0->field_16          = -1;
+    arg0->field_18          = 0;
+    p                       = &D_80114C08;
+    p->field_10             = 0;
+    p->field_C              = 0;
+    p->field_12             = 0;
+    p->field_D              = 0;
+    p->field_E              = 0;
+    p->field_14             = 0;
+    p->field_F              = 0;
+    p->field_16             = 0;
+    p->field_17             = 0;
+    p->field_A              = 0;
+    Game_Session->field_126 = 0;
+    D_8010CA28              = 0;
+    Display_State.field_12f = 1;
+    p->field_6             &= ~2;
+}
 
 void func_800A7600(void)
 {
