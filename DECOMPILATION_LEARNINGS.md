@@ -15744,4 +15744,27 @@ save->field_14 = cfg->field_8;
 `func_800BB9B8` is the example. The same stores as four bare `s16` fields
 stuck at 90% with only the `addiu`/`%lo` addressing different.
 
+## Keep the `lb` in a temp so the later store is `sb $v1`, not `lbu`
+
+When the target does `lb v1, field; bnez; ...; sb v1, other`, writing
+`other = field` after `if (field == 1)` reloads as `lbu` (or rematerializes
+the constant 1). Capture the signed load once and reuse it for both the
+compare and the store:
+
+```c
+temp = inner->field_973;
+if (temp == 0) {
+    if (inner->field_975 != 0) { /* invert so GCC emits beqz + li 9 */
+        mode = 0xD;
+    } else {
+        mode = 9;
+    }
+} else if (temp == 1) {
+    inner->field_97E = temp; /* sb v1 */
+}
+```
+
+`func_80108770` is the example. `inner->field_97E = inner->field_973` (or
+`= 1`) stuck at 95% with an extra `lbu` and inverted `field_975` polarity.
+
 
