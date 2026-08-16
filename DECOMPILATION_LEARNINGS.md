@@ -15555,4 +15555,38 @@ case 2:
 `func_8009988C` is the example. `if ((GsCOORDINATE2*)extra->field_8 == arg0)`
 stuck at 99.8% with only that load dest different.
 
+## Assign `one = 1` after the first global so LIM emits `lui t4` then `li t3`
+
+A loop that tests `*bits & (one << bit)` needs a named `s32 one` — a literal
+`1 << bit` becomes `srav` / `andi 1`. The remaining mismatch is hoist order
+of that 1 against another loop-invariant global.
+
+`one = 1` *before* the loop emits `li t4, 1` then `lui t3, %hi(G)`. The
+target wants `lui t4, %hi(G)` / `li t3, 1` / `move t2, v0` (the 0xFFFF
+compare CSE). Assign `one` *inside* the loop after the first use of the
+global so LIM sees the `lui` first:
+
+```c
+do {
+    item  = *p;
+    bits  = Mc_SaveData.field_5AC; /* lui t4 hoisted first */
+    one   = 1;                     /* li t3, 1 hoisted second */
+    bit   = item & 0x7F;
+    bits += bit / 32;
+    bit  %= 32;
+    if (*bits & (one << bit)) {
+        /* ... */
+    }
+    p++;
+} while (*p != 0xFFFF);
+```
+
+Do not preload the sentinel either (`end = 0xFFFF` before `if (*p != 0xFFFF)`).
+That pins 0xFFFF in `$t2` too early and lets the first `lhu` clobber `$v0`.
+Leave the literal in both compares so CSE does `li v0, 0xFFFF` / `beq` /
+`move t2, v0`.
+
+`func_800BB668` is the example. Pre-loop `one = 1` stuck at 94% with only
+the `t4`/`t3` swap.
+
 

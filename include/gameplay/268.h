@@ -95,6 +95,9 @@ extern u8         D_80114A40[];
 extern u8         D_80114A88[];
 extern u8         D_80114A98[];
 extern u8         D_80114ABC[];
+/// 0xFFFF-terminated item-id list walked by `func_800BB668`. Each id's
+/// low 7 bits index a collected-item bit in `Mc_SaveData.field_5AC`.
+extern u16        D_80114AE0[];
 extern GpItemRec  D_80114C20[];
 extern GpItemRec* D_80114D70;
 
@@ -117,6 +120,7 @@ GpItemRec*  func_800BB500(GpItemScan* arg0);
 s32         func_800BB540(GpItemScan* arg0, GpItemRec* arg1);
 GpItemRec*  func_800BB5BC(GpItemScan* arg0, s32 arg1);
 s32         func_800BB610(GpItemScan* arg0, s32 arg1);
+s32         func_800BB668(s32 arg0);
 s32         func_800BB6FC(GpItemScan* arg0, s32 arg1);
 void        func_800BB7C0(s32 arg0, s32 arg1);
 void        func_800BB8E8(s32 arg0, u8 arg1, s32 arg2);

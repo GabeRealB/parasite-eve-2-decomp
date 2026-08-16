@@ -488,7 +488,39 @@ s32 func_800BB610(GpItemScan* arg0, s32 arg1)
     return rec->field_0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB668);
+s32 func_800BB668(s32 arg0)
+{
+    u16* p;
+    s32  ret;
+    s32* bits;
+    s32  bit;
+    s32  item;
+    s32  one;
+
+    p   = D_80114AE0;
+    ret = 0;
+    if (*p != 0xFFFF) {
+        do {
+            item  = *p;
+            bits  = Mc_SaveData.field_5AC;
+            one   = 1;
+            bit   = item & 0x7F;
+            bits += bit / 32;
+            bit  %= 32;
+            if (*bits & (one << bit)) {
+                arg0--;
+                p++;
+                if (arg0 >= 0) {
+                    continue;
+                }
+                ret = item;
+                break;
+            }
+            p++;
+        } while (*p != 0xFFFF);
+    }
+    return ret;
+}
 
 s32 func_800BB6FC(GpItemScan* arg0, s32 arg1)
 {
