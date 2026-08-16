@@ -16,6 +16,7 @@ void func_800AD6BC(void);
 
 extern TaskFuncTable3   D_80093950;
 extern GpVoidFuncTable6 D_80093978;
+extern u16              D_80114CD0;
 extern u16              D_80114CD2;
 extern u16              D_80114CD4;
 extern u16              D_80114CD6;
@@ -23,8 +24,14 @@ extern u8               D_80114CD8;
 extern u8               D_80114CD9;
 extern u8               D_80114CDA;
 extern u8               D_80114CDB;
+extern u8               D_80114CDC;
+extern u8               D_80114CDD;
+extern u8               D_80114CDE;
+extern s16              D_80114CE0;
 extern u16              D_80114CF6;
 extern u8               D_80114CF8;
+extern s32              D_80114D00[2];
+extern s16              D_80114D08;
 
 INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AEBA4);
 
@@ -42,7 +49,23 @@ void func_800AED24(GpAreaKey* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AED80);
+void func_800AED80(Task* arg0)
+{
+    D_80114CDE    = 0;
+    D_80114CDD    = 0;
+    D_80114CD2    = 0;
+    D_80114CD0    = 0;
+    D_80114CDC    = 0;
+    D_80114CD8    = 0;
+    D_80114CD9    = 0;
+    D_80114CD6    = 0;
+    D_80114CF8    = 0;
+    D_80114CE0    = 1;
+    D_80114D00[0] = 0;
+    D_80114D00[1] = 0;
+    D_80114D08    = 0xA;
+    arg0->state++;
+}
 
 void func_800AEE00(void)
 {
