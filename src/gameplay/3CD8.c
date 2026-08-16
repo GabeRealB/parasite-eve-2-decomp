@@ -19,6 +19,7 @@ extern TaskFuncTable3 D_8009752C;
 extern TaskFuncTable3 D_80097538;
 extern TaskFuncTable3 D_80097678;
 extern TaskDesc       D_8010FAEC[];
+extern GpRec14        D_8010FB38;
 extern s32            D_8010FB90[];
 extern u16            D_80112D68[];
 extern u16            D_80113360[];
@@ -104,7 +105,18 @@ void func_800E3B80(s32 arg0)
     func_800AC464(Game_GetPtrSlot(3), 0x3F3, arg0, 0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E3BBC);
+void func_800E3BBC(s32 arg0)
+{
+    GpRec14 sp;
+
+    if (arg0 == 0) {
+        sp         = D_8010FB38;
+        sp.field_0 = D_80112D68[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21;
+        func_800AC464(Game_GetPtrSlot(3), 0x3E8, (s32)&sp, 0);
+    } else {
+        func_800AC464(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+    }
+}
 
 void func_800E3C6C(s32 arg0, s32 arg1)
 {

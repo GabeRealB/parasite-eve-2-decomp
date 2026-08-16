@@ -35,6 +35,20 @@ typedef struct _GpOverlayIds {
 } GpOverlayIds;
 STATIC_ASSERT_SIZEOF(GpOverlayIds, 6);
 
+/// 0x14-byte payload copied from `D_8010FB38` by `func_800E3BBC` (arg 0)
+/// and sent as slot-3 msg `0x3E8`. `field_0` is overwritten with
+/// `D_80112D68[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21`
+/// (same value `func_800E3CEC` writes). Nearby `D_8010FB10` /
+/// `D_8010FB24` are the same size.
+typedef struct _GpRec14 {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s32 field_10;
+} GpRec14;
+STATIC_ASSERT_SIZEOF(GpRec14, 0x14);
+
 /// Packed bytes in `Task::spawnArg1` for `func_800E6F60`.
 /// `field_0` is forwarded as a2 to `func_800AC464`.
 /// `field_1` is copied into `Task::killCountdown` on state 0.
