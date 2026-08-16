@@ -66,7 +66,8 @@ typedef struct _GameSession {
     u8    field_126;
     byte  unknown_127;
     u8    field_128; // 0xFF sentinel in func_800B0748 / func_800B082C
-    byte  unknown_129[3];
+    u8    field_129; // last CdCmd 0x21 param[0] written by func_800B065C
+    byte  unknown_12A[2];
     u8    field_12C;
     byte  unknown_12D[0xC];
     u8    field_139;

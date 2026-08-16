@@ -208,7 +208,27 @@ s32 func_800B05E8(s32 arg0)
     return 0xFF;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B065C);
+void func_800B065C(u8 arg0)
+{
+    u8  param1[8];
+    u8  param2[8];
+    s32 flag;
+
+    if (Game_Session->field_129 != arg0) {
+        SndEvt_EnqueueType7(0xE0000000, 8);
+        flag      = 1;
+        param1[3] = 0;
+        param1[2] = 5;
+        param1[0] = arg0;
+        param2[0] = flag;
+        param2[3] = 0;
+        param2[2] = 0;
+        param2[1] = 0;
+        CdCmd_Enqueue(0x21, param1, param2);
+        D_800626E8              = flag;
+        Game_Session->field_129 = arg0;
+    }
+}
 
 void func_800B06F0(Task* arg0)
 {

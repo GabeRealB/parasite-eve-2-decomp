@@ -535,6 +535,7 @@ See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 | 0x7C–80 | halfwords | Counters / mode |
 | 0x126 | `field_126` | u8 flag; nonzero skips `func_800A7A64` display-mode init |
 | 0x128 | `field_128` | u8; `0xFF` sentinel (`func_800B0748` / `func_800B082C`) |
+| 0x129 | `field_129` | u8; last `CdCmd_Enqueue(0x21)` `param1[0]` written by `func_800B065C` (no-op if unchanged) |
 | 0x12C | `field_12C` | u8 flag; 0 runs extra `func_800E06AC` pass in `func_800DB72C` |
 | 0x139 | `field_139` | u8; `func_800E8888` writes `killCountdown * 2`, or 0 when that task kills itself |
 | 0x13B | `field_13B` | u8 flag; cleared by `func_800E8F68` with `Pad_ClearEvents(0)` |
