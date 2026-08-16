@@ -57,8 +57,7 @@ typedef struct _GameSession {
     u8    field_68; // set/cleared by func_800E7378 / func_800E73E8 / func_800E7434
     u8    field_69; // bit 0x2: skip SndEvt_EnqueueType2(0, 0xB4) on last GpStateF0 ref
     byte  unknown_6A[0xA];
-    u8    field_74;
-    byte  unknown_75;
+    u16   field_74; // copied from Display_State.field_10e (func_800AAA68); low byte is CdCmd 0x21 param2[0]
     s16   field_76; // set: func_800AD378 rebuilds via func_800ACD2C
     byte  unknown_78[4];
     s16   field_7C;

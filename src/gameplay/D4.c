@@ -347,7 +347,40 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AA120);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AA548);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AAA68);
+void func_800AAA68(Task* arg0)
+{
+    CdCmdQueue*   queue;
+    DisplayState* ds;
+    u16           one;
+
+    queue = &CdCmd_Queue;
+    Game_ClearPtrSlots();
+    ds            = &Display_State;
+    ds->field_10b = 1;
+    Task_ResetDefaultList();
+    Gpu_ClearOTag(0);
+    Gpu_ClearOTag(1);
+    one = 1;
+    Mem_Init();
+    CdCmd_ActivatePhase1();
+    ((SessionBytesAt4*)Game_Session)->field_4 =
+        ((SessionBytesAt4*)&Mc_SaveData)->field_4;
+    Game_Session->field_74 = ds->field_10e;
+    queue->field_20A       = one;
+    if ((arg0->spawnArg1 & 0xF) == 0) {
+        MoveImage(
+            (RECT*)&Display_State.dispEnv[ds->field_1f ^ 1],
+            ds->dispEnv[ds->field_1f].disp.x,
+            ds->dispEnv[ds->field_1f].disp.y);
+        ds->field_100 = 0;
+        Display_SetMode(0xD010);
+    }
+    Task_Spawn(0, 0x1C, arg0->spawnArg1 & 0xF, 0);
+    ds->field_104    = 0;
+    queue->field_244 = one;
+    queue->field_248 = one;
+    D_8007A394       = 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AABB0);
 

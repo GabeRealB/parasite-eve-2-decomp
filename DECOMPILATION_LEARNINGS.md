@@ -16336,4 +16336,31 @@ vx = SquareRoot0(vx + absz);
 `func_80103DD4` is the example. Unconstrained `absz` stuck at 98.2%
 with `ABS(vz)` in `$a0` and the `vx` reload in `$v0`.
 
+## Index a global array field by name so dest is `base+off` then scale
+
+`ds = &Display_State` plus `MoveImage((RECT*)&ds->dispEnv[i], …)` folds the
+array offset into the scaled index (`addiu a0, scaled, 0x20; addu a0, ds`).
+The target computes the array base first (`addiu v0, ds, 0x20`) and adds
+the scaled index in the `jal` delay slot.
+
+Write dest through the global name and x/y through the local pointer:
+
+```c
+MoveImage(
+    (RECT*)&Display_State.dispEnv[ds->field_1f ^ 1],
+    ds->dispEnv[ds->field_1f].disp.x,
+    ds->dispEnv[ds->field_1f].disp.y);
+```
+
+That also rematerializes `field_1f` between the two `lh`s (`lbu` in the
+`lh a1` delay slot). A local `DISPENV* dest = ds->dispEnv` emits the
+`addiu` base but schedules the reload after both loads.
+
+Keep the `^ 1` as a HImode `u16 one = 1` (used for later `sh`s) so CSE
+cannot turn `xori` into `xor s1`. See "Constant CSE across
+differently-sized stores".
+
+`func_800AAA68` is the example. `&ds->dispEnv[i]` stuck at 97.5% with
+only those three dest instructions different.
+
 
