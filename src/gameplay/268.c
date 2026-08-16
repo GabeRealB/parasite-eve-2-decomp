@@ -792,7 +792,41 @@ void func_800BC378(Task* arg0)
     func_800C1148(panel, 0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC3F8);
+s32 func_800BC3F8(s32 arg0)
+{
+    GpItemScan* scan;
+    GpItemRec*  table;
+    s32         i;
+    s32         ret;
+    s32         count;
+
+    scan = &Mc_SaveData.field_5BC;
+    ret  = 0;
+    switch (scan->field_2) {
+        case 2:
+            table = D_80114C20;
+            break;
+        case 1:
+            table = D_80114D70;
+            break;
+        default:
+            table = Mc_SaveData.field_1AC;
+            break;
+    }
+    i      = 0;
+    table += scan->field_0;
+    count  = scan->field_1;
+    for (; i < count; i++) {
+        if ((s8)table->field_1 > 0) {
+            if (table->field_0 == arg0) {
+                ret = 1;
+                break;
+            }
+        }
+        table++;
+    }
+    return ret;
+}
 
 void func_800BC490(void)
 {

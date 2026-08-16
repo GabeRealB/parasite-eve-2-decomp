@@ -23,18 +23,20 @@ typedef struct _GpItemMap {
 STATIC_ASSERT_SIZEOF(GpItemMap, 0x4);
 
 /// 4-byte scan descriptor for `func_800BB500` / `func_800BB6FC` /
-/// `func_800BB5BC` / `func_800BB540` / `func_800BB610`. field_0 is
-/// the start index into a 4-byte item table; field_1 is the entry count;
-/// field_2 selects the table (1 / 2 / default). Also `Mc_SaveData.field_5BC`.
-/// `D_8010D520` is a ROM default copied there by `func_800BC490`.
+/// `func_800BB5BC` / `func_800BB540` / `func_800BB610` / `func_800BC3F8`.
+/// field_0 is the start index into a 4-byte item table; field_1 is the
+/// entry count; field_2 selects the table (1 / 2 / default). Also
+/// `Mc_SaveData.field_5BC`. `D_8010D520` is a ROM default copied there
+/// by `func_800BC490`.
 typedef McItemScan GpItemScan;
 
 /// 4-byte row in the item tables selected by `GpItemScan`
 /// (`Mc_SaveData.field_1AC` / `D_80114C20` / `*D_80114D70`). field_0 is the
-/// item id looked up by `func_800D6910` / returned by `func_800BB610`;
-/// field_1 is a count compared as signed by `func_800CF448` /
-/// `func_800B91C8` / `func_800D6994` (`== arg0 + 1`); field_2 is a u16
-/// quantity added by `func_800BB6FC`.
+/// item id looked up by `func_800D6910` / returned by `func_800BB610` /
+/// matched by `func_800BC3F8`; field_1 is a count compared as signed by
+/// `func_800CF448` / `func_800B91C8` / `func_800D6994` (`== arg0 + 1`) /
+/// `func_800BC3F8` (`> 0`); field_2 is a u16 quantity added by
+/// `func_800BB6FC`.
 typedef McItemRec GpItemRec;
 
 /// 4-byte entry in `D_8010D278` / `D_8010E238` (32 entries, item ids
@@ -125,5 +127,6 @@ s32         func_800BC06C(s32 arg0);
 s32         func_800BC18C(s32 arg0);
 s32         func_800BC324(s32 arg0);
 void        func_800BC378(Task* arg0);
+s32         func_800BC3F8(s32 arg0);
 
 #endif // GAMEPLAY_268_H
