@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/memory.h>
+#include <psyq/rand.h>
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -31,7 +32,11 @@ extern GsCOORDINATE2* D_80114B9C;
 extern CVECTOR        D_80114BA4;
 extern CVECTOR        D_80114BA8;
 extern u8             D_80114BF0[];
+extern u16            D_80114C02;
+extern s16            D_80114C04;
+extern u8*            D_80114C38;
 extern TaskFuncTable6 D_80093830;
+extern s32            D_80070F60;
 extern char           D_80093870[]; // "Item"
 extern s32            D_8005ED70;
 extern s32            D_8005ED74;
@@ -652,7 +657,28 @@ s32 func_800A7550(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7574);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7600);
+void func_800A7600(void)
+{
+    DisplayState* ds;
+
+    srand(1);
+    D_80070F60            = 0;
+    ds                    = &Display_State;
+    ds->field_8           = 0;
+    Display_State.field_0 = 0;
+    ds->field_4           = 0;
+    ds->field_14          = 0;
+    ds->field_c           = 0;
+    ds->field_10          = 0;
+    if (ds->field_12c == 0x10) {
+        D_80114C38 = (u8*)0x80600E4C;
+    } else {
+        D_80114C38 = (u8*)D_8005C374 + 0xD4C;
+    }
+    D_80114C02              = 0xFFFF;
+    D_80114C04              = 1;
+    Pad_RemapState->field_8 = -1;
+}
 
 void func_800A76A4(Task* arg0)
 {
