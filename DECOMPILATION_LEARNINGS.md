@@ -3,6 +3,32 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Assign `lhs = *p = expr` so the temp stays in `$v0`
+
+`vec = expr; *scratch = vec` computes `expr` straight into the dest
+register (`addiu s1, s0, -K; sw s1, 0(v1)`). The target instead does
+
+```
+addiu v0, s0, -K
+move  s1, v0
+sw    v0, 0(v1)
+```
+
+and, because that temp reuses `$v0`, any earlier value living there
+(e.g. `extra`) must be consumed first (`lw a0, 8(v0)` before the
+`addiu`). The two-statement form never conflicts, so the loads reorder.
+
+Write the store and the dest assignment as one expression. The store
+keeps the value in `$v0` and the dest is a copy:
+
+```c
+vec = *scratch = (ScratchTurn*)(head - 0x14);
+```
+
+`func_8010BD88` is the example. `vec = (ScratchTurn*)(head - 0x14);
+*scratch = vec` stuck at 96% with only those three instructions (and
+the extra/head load order) wrong.
+
 ## Write the `|=` first so its address takes `$a1`
 
 Two independent stores of different globals fight over `$a0`/`$a1`. A

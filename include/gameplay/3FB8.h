@@ -91,6 +91,19 @@ typedef struct _GpIdRec {
     /* 0x4 */ s32  field_4;
 } GpIdRec;
 
+/// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `func_8010BD88`.
+/// `vx`/`vy`/`vz` overlay a `VECTOR3` for `func_80103C74`; `angle` holds
+/// the `ratan2` result and the clamped turn delta applied to
+/// `GameActor.field_52`.
+typedef struct _GpTurnScratch {
+    /* 0x00 */ s32 vx;
+    /* 0x04 */ s32 vy;
+    /* 0x08 */ s32 vz;
+    /* 0x0C */ s32 pad;
+    /* 0x10 */ s32 angle;
+} GpTurnScratch;
+STATIC_ASSERT_SIZEOF(GpTurnScratch, 0x14);
+
 /// 0x14-byte argument for `func_80104CAC`. `field_0` is copied to
 /// `GameActor.field_928`. `field_8 == 0` runs `func_800B3F84` +
 /// `func_801038F8`; otherwise `func_80103A18(..., field_4, 0, field_C)`.

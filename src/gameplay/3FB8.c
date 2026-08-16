@@ -2352,7 +2352,32 @@ s16 func_8010BCF4(Task* arg0, VECTOR3* arg1)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010BD88);
+void func_8010BD88(GpActorWork* arg0, VECTOR3* arg1)
+{
+    void**         scratch;
+    u8*            head;
+    GpTurnScratch* vec;
+    GameActorExt*  extra;
+    GameActor*     actor;
+    s32            val;
+
+    extra   = arg0->extra;
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = *scratch;
+    vec = *scratch = (GpTurnScratch*)(head - 0x14);
+    actor          = arg0->actor;
+    func_80103C74((GsCOORDINATE2*)extra->field_8, arg1, (VECTOR3*)vec);
+    vec->angle = ratan2(((GpTurnScratch*)(head - 0x14))->vx, vec->vz);
+    val        = func_80103E7C(actor->field_52, vec->angle);
+    vec->angle = val;
+    if (val > 0x40) {
+        vec->angle = 0x40;
+    } else if (val < -0x40) {
+        vec->angle = -0x40;
+    }
+    actor->field_52         = (actor->field_52 + vec->angle) & 0xFFF;
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010BE5C);
 
