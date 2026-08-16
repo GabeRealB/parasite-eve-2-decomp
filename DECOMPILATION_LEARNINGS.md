@@ -15940,4 +15940,35 @@ if (arg0->count >= (val * scale) / 100) {
 A plain `s32 scale` (no pin) is not enough: local-alloc still hands the
 `lhu` `$a0`. `func_800E2F7C` is the example.
 
+## Copy `arg2` inside the inner if so `$a2` can hold a table
+
+`if (arg2 != 0)` emits the target prologue (`move a0, a2` then
+`addiu s0, a3, K`). Using `arg2` again in that body keeps `$a2` as a
+second home, so `table = global` lands in `$a3`. Copying `arg2` into a
+function-scope local first fixes the table register but sinks
+`move a0, a2` *after* the flags `addiu`.
+
+Use `arg2` only for the outer predicate, then copy it to a new local
+*inside* the next `if` (before the table load) and use that local from
+there. `$a2` dies in time for `addiu a2, v0, %lo(table)`, and the
+prologue `move a0, a2` stays before the flags add:
+
+```c
+flags = arg3 + 0x10;
+if (arg2 != 0) {
+    if ((obj->status >> 16) == 1 || obj->status == 1) {
+        value = arg2; /* kill $a2 before the table load */
+        tmp   = arg3;
+        asm volatile("" : "+r"(tmp)); /* move a1, a3 in the beq delay */
+        table = D_8010E8F8;           /* addiu a2, %lo */
+        ...
+    }
+}
+```
+
+The `+r` barrier on `tmp` is the existing "delay slot ahead of `lui`"
+trick: without it, `lui %hi(table)` steals the `beq` delay instead of
+`move a1, a3`. `func_800CDDA0` is the example (same 3-slot table loop as
+`func_800CDE80`).
+
 

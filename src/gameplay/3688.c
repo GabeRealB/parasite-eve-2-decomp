@@ -400,7 +400,52 @@ void func_800CDBEC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CDCAC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CDDA0);
+void func_800CDDA0(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3)
+{
+    s32 flags;
+
+    flags = arg3 + 0x10;
+    if (arg2 != 0) {
+        if (((arg1->status >> 16) == 1) || (arg1->status == 1)) {
+            register s32 val asm("t2");
+            s32*         table;
+            s32          i;
+            s32          slot;
+            s32          idx;
+            s32*         p;
+            s32          tmp;
+            s32          value;
+
+            value = arg2;
+            tmp   = arg3;
+            asm volatile("" : "+r"(tmp));
+            table = D_8010E8F8;
+            idx   = tmp & 0xFF;
+            if (value != table[idx]) {
+                i = 0;
+                do {
+                    slot = idx;
+                    val  = -1;
+                    p    = table;
+                } while (0);
+                for (; i < 3; i++, p++) {
+                    if (i == slot) {
+                        *p = value;
+                    } else {
+                        *p = val;
+                    }
+                }
+                func_800C5C2C(value, tmp & 0xFF);
+            }
+        }
+        if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+            flags |= 0x100;
+        }
+    } else {
+        flags |= 0x100;
+    }
+    func_800C7AE8(arg1, arg1->field_1C + 2, (s16)arg1->field_18 + 2, flags);
+}
 
 void func_800CDE80(s32 arg0, s32 arg1)
 {
