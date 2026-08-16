@@ -760,7 +760,28 @@ void func_800B6014(void)
 {
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B601C);
+void func_800B601C(GpAreaKey* arg0)
+{
+    GpAreaRec* rec;
+    GpAreaRec* rec2;
+    GpAreaObj* obj;
+
+    rec           = D_8010CBCC[arg0->field_3];
+    arg0->field_5 = 1;
+    if (rec == NULL) {
+        return;
+    }
+    rec2 = rec[arg0->field_2].field_0;
+    obj  = rec[arg0->field_2].field_4;
+    if (rec2 == NULL) {
+        return;
+    }
+    if (obj->field_0 == 0) {
+        obj->field_0  = 1;
+        obj->field_1 |= 1;
+    }
+    arg0->field_5 = obj->field_0;
+}
 
 void func_800B6094(Task* task)
 {
