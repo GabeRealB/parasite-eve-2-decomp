@@ -15814,4 +15814,51 @@ actor->field_914->spawnArg1 = value;
 `func_80106350` is the example. A shared `task` local stuck at 99.4% with
 only `$a0`/`$a1` swapped on that path and `$a0` on the 0x16 NULL check.
 
+## Rematerialize `arg0` into `$a0` before a store+jal so the store fills the delay
+
+When the target does
+
+```
+bnez  v0, ret
+ move  a0, s0      /* rematerialize arg0 */
+li    v0, 2
+jal   func
+ sb    v0, field(a1)
+```
+
+writing `p->field = 2; func(arg0)` puts `li v0, 2` in the `bnez` delay and
+`move a0, s0` in the `jal` delay. Assign `arg0` to a `register … asm("a0")`
+temp *before* the store. That emits the rematerialize first, so delay-slot
+filling takes `move a0, s0` for the branch and the store for the `jal`:
+
+```c
+register GpActorWork* a asm("a0");
+
+a       = arg0;
+p->field = 2;
+func(a);
+```
+
+`func_801093DC` is the example. The same function also needs the first-half
+actor pointer pinned to `$a1` (`register GameActor* inner asm("a1")`) so
+`arg0` stays in `$a0` for the earlier `jal` (`nop` delay, not `move a0, s0`).
+A later install block can reuse `$a1` for the new node if that pin is scoped
+to the first half (or redeclared in the join block).
+
+Assign `flag = 1` *before* the install `if` so `li v0, 1` fills the `beq`
+delay and CSE cannot keep the new node in `$v0` for the pointer store
+(`sw a1` / rematerialized `li v0, 1` after the `sw`):
+
+```c
+arg1 = next;
+flag = 1;
+if (node != arg1) {
+    if (node != NULL) {
+        node->field_5 = 0;
+    }
+    actor->field_90C = arg1; /* sw a1 — v0 already holds 1 */
+}
+arg1->field_5 = flag;
+```
+
 

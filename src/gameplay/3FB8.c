@@ -1571,7 +1571,52 @@ void func_80109374(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801093DC);
+void func_801093DC(GpActorWork* arg0)
+{
+    register GameActor* inner asm("a1");
+    GpLinkNode*         next;
+    u16                 flags;
+
+    inner = arg0->actor;
+    if (inner->field_90C != NULL) {
+        flags = inner->field_966;
+        if (flags & 0x40) {
+            func_80103B5C(arg0);
+            return;
+        }
+        if (((inner->field_962 & 0x80) && (flags & 0xA000)) || (flags & 0x80)) {
+            next = func_800DAD78(arg0);
+            goto install;
+        }
+    } else if ((inner->field_966 & 0x80) && !(Wip_SysConfig.field_25 & 1)) {
+        register GpActorWork* a asm("a0");
+
+        a                = arg0;
+        inner->field_97E = 2;
+        next             = func_800DAD54(a);
+        goto install;
+    }
+    return;
+
+install: {
+    register GpLinkNode* arg1 asm("a1");
+    register GpLinkNode* node asm("v1");
+    GameActor*           actor;
+    s32                  flag;
+
+    actor = arg0->actor;
+    node  = actor->field_90C;
+    arg1  = next;
+    flag  = 1;
+    if (node != arg1) {
+        if (node != NULL) {
+            node->field_5 = 0;
+        }
+        actor->field_90C = arg1;
+    }
+    arg1->field_5 = flag;
+}
+}
 
 void func_801094D4(GpActorWork* arg0)
 {
