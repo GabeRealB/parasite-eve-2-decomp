@@ -1516,7 +1516,26 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D4ED0);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D4FD0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D50D4);
+s32 func_800D50D4(s32 arg0, s32 arg1)
+{
+    s32 a;
+    s32 b;
+    s32 c;
+    s32 val;
+
+    a   = (arg0 & 0x30) >> 4;
+    b   = (arg0 & 0xC) >> 2;
+    c   = arg0 & 3;
+    val = D_8011398C[(a * 3 + b) * 3 + c].field[arg1];
+    if (arg1 == 0) {
+        if (Mc_SaveData.field_F > 0) {
+            val = (val * 4) / 5;
+        } else if (Mc_SaveData.field_E > 0) {
+            val = (val * 2) / 5;
+        }
+    }
+    return val & 0xFFFF;
+}
 
 void func_800D5178(DialogPrompt* arg0, UiObject* arg1)
 {

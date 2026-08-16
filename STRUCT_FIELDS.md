@@ -152,6 +152,8 @@ Convention: only list fields with evidence. Unlisted `field_*` / `unknown_*` /
 | Off | Member | Role |
 |-----|--------|------|
 | 0x4–0x9 | `field_4`… | Header region (checksummed from 0x4, size 0x38) |
+| 0x0E | `field_E` | Signed scale flag; if > 0 and `func_800D50D4` arg1 is 0, table value is `* 2 / 5` (unless `field_F` applies) |
+| 0x0F | `field_F` | Signed scale flag; if > 0 and `func_800D50D4` arg1 is 0, table value is `* 4 / 5` (takes priority over `field_E`) |
 | 0x10 | `field_10` | Init bitmask; bit 0 = global init done (`func_800AB980`). Per-slot bit is `field_7` via the `GameSessionFrom4` overlay |
 | 0x12 | `field_12` | Slot index 1..16 |
 | 0x13 | `field_13` | 1-based index into `D_80113360` (`func_800E3D24`); also `D_8007217B` |
@@ -985,9 +987,10 @@ index is `id & 0x7F`. Sibling accessors `func_800E2D3C` / `func_800E2D90`
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x0A | `field_A` | u16 returned by `func_800E2D3C` |
-| 0x0C | `field_C` | u16 returned by `func_800E2D90` |
-| 0x0E | `field_E` | u16 returned by `func_800E3194` |
+| 0x00 | `field[8]` | 8 u16s. `func_800D50D4` indexes by arg1 after remapping id as `((id>>4&3)*3 + (id>>2&3))*3 + (id&3)` |
+| 0x0A | `field[5]` | u16 returned by `func_800E2D3C` |
+| 0x0C | `field[6]` | u16 returned by `func_800E2D90` |
+| 0x0E | `field[7]` | u16 returned by `func_800E3194` |
 
 ### `GpObj4C` (0x50) — `3A34.h`
 Sparse overlay. Full object size is not known yet.

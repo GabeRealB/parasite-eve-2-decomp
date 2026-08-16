@@ -116,16 +116,11 @@ STATIC_ASSERT_SIZEOF(GpImgRec, 0x10);
 
 /// 16-byte table entry at `D_8011398C`. Selected when the id's 0x8000 bit
 /// is set. `func_800E2D3C` / `func_800E2D90` / `func_800E3194` return
-/// `field_A` / `field_C` / `field_E` for index `id & 0x7F`.
+/// `field[5]` / `field[6]` / `field[7]` for index `id & 0x7F`.
+/// `func_800D50D4` indexes `field[arg1]` after remapping a packed id as
+/// `((id>>4&3)*3 + (id>>2&3))*3 + (id&3)`.
 typedef struct _GpRec16 {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
-    /* 0x4 */ u16 field_4;
-    /* 0x6 */ u16 field_6;
-    /* 0x8 */ u16 field_8;
-    /* 0xA */ u16 field_A;
-    /* 0xC */ u16 field_C;
-    /* 0xE */ u16 field_E;
+    /* 0x0 */ u16 field[8];
 } GpRec16;
 STATIC_ASSERT_SIZEOF(GpRec16, 0x10);
 

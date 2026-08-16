@@ -1310,7 +1310,7 @@ s32 func_800E2D3C(s32 arg0)
     if ((arg0 & 0x8000) == 0) {
         ret = D_80113390[arg0 & 0x7F].field_4;
     } else {
-        ret = D_8011398C[arg0 & 0x7F].field_A;
+        ret = D_8011398C[arg0 & 0x7F].field[5];
     }
     return ret;
 }
@@ -1322,7 +1322,7 @@ s32 func_800E2D90(s32 arg0)
     if ((arg0 & 0x8000) == 0) {
         ret = D_80113390[arg0 & 0x7F].field_6;
     } else {
-        ret = D_8011398C[arg0 & 0x7F].field_C;
+        ret = D_8011398C[arg0 & 0x7F].field[6];
     }
     return ret;
 }
@@ -1382,7 +1382,7 @@ s32 func_800E3194(s32 arg0)
     if ((arg0 & 0x8000) == 0) {
         ret = D_80113390[arg0 & 0x7F].field_8;
     } else {
-        ret = D_8011398C[arg0 & 0x7F].field_E;
+        ret = D_8011398C[arg0 & 0x7F].field[7];
     }
     return ret;
 }

@@ -110,7 +110,8 @@ typedef struct _McSaveData {
     /* 0x009 */ u8         field_9;
     /* 0x00A */ byte       unknown_A[0x2];
     /* 0x00C */ u16        field_C;
-    /* 0x00E */ byte       unknown_E[0x2];
+    /* 0x00E */ s8         field_E;  // *2/5 scale for D_8011398C[i].field[0] (func_800D50D4)
+    /* 0x00F */ s8         field_F;  // *4/5 scale for D_8011398C[i].field[0] (func_800D50D4)
     /* 0x010 */ u8         field_10; // init bitmask; bit 0 = global init (func_800AB980)
     /* 0x011 */ byte       unknown_11;
     /* 0x012 */ u8         field_12;

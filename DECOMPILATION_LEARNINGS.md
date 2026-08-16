@@ -16119,4 +16119,22 @@ statement form keeps both the shift and the later add on `$s0`.
 `func_800AEBA4` is the example. Shared `table[arg0]` stuck at 97.2% with
 only the raw arm's three-instruction join missing.
 
+## Index `rec[i].field[j]`, not `(&rec[i].field_0)[j]`
+
+A 16-byte record of eight `u16`s accessed as `(&table[idx].field_0)[j]`
+(or via a `(u16(*)[8])` cast) computes the struct index first and loads
+the symbol late (`lui a0` after the `*3` chain, `mfhi a3`). The target
+loads the table base into `$t0` immediately after the bit extracts,
+then `sll a2, a1, 1`.
+
+Declare the record as `u16 field[8]` and write the natural 2D access so
+GCC treats the symbol as the array base:
+
+```c
+val = D_8011398C[(a * 3 + b) * 3 + c].field[arg1];
+```
+
+`func_800D50D4` is the example. `(&rec[idx].field_0)[arg1]` matched in a
+one-function scratch and failed the overlay checksum.
+
 
