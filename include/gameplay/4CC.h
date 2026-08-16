@@ -37,8 +37,11 @@ extern GpItemDesc D_8010D838[];
 /// Item/location halfword copied from `D_80114DDC` by `func_800BCC44`.
 /// `func_800BF334` special-cases the value `0x703`.
 extern u16 D_80114D7C;
+/// UiList used by `func_800BF464`. `field_10` is 1 when `spawnArg1` is 0.
+extern UiList D_8010D6B4;
 void func_800BF2C8(UiObject* arg0, void (*arg1)(UiObject*, Task*));
 s32  func_800BF334(s32 arg0, s32 arg1);
+void func_800BF464(Task* arg0);
 s32  func_800BF5CC(Task* arg0, s32 arg1, GpItemObj2* arg2);
 
 #endif // GAMEPLAY_4CC_H

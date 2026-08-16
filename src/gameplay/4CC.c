@@ -96,7 +96,26 @@ void func_800BF398(UiObject* arg0, Task* arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BF464);
+void func_800BF464(Task* arg0)
+{
+    UiObject* obj;
+    UiList*   menu;
+
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    menu          = &D_8010D6B4;
+    if (arg0->state == 0) {
+        Ui_LayoutListPanel(menu, (UiPanel*)obj);
+        if (arg0->spawnArg1 == 0) {
+            menu->field_10 = 1;
+        } else {
+            menu->field_10 = 0;
+        }
+        menu->field_A = 1;
+        arg0->state  += 1;
+    }
+    Ui_UpdateListNoAnim(menu, obj);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BF4FC);
 
