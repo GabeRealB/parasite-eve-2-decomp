@@ -508,6 +508,7 @@ void func_800E1638(GpObj* node);
 void func_800E1688(s32 arg0, GpObj4A* arg1);
 void func_800E1708(s32 arg0, GpObj4A* arg1);
 void func_800E1758(s32 arg0);
+void func_800E17B4(s32 arg0, GpObj3A* arg1);
 void func_800E1834(s32 arg0, GpObj3A* arg1);
 void func_800E1884(s32 arg0);
 void func_800E18E0(GpRec18* arg0, s32 arg1, s32 arg2);
