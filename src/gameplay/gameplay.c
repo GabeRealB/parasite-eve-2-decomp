@@ -154,7 +154,16 @@ void func_80099290(void* arg0)
     Mem_Free(arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800992B0);
+void func_800992B0(void)
+{
+    D_80114B80       = Tmd_List;
+    D_80114B88       = Tmd_ListAlt;
+    Tmd_List.next    = NULL;
+    Tmd_List.prev    = &Tmd_List;
+    Tmd_ListAlt.next = NULL;
+    Tmd_ListAlt.prev = &Tmd_ListAlt;
+    D_80114B90       = Task_Spawn(0, 0x1A, 0, 0);
+}
 
 void func_80099338(void)
 {
