@@ -618,7 +618,25 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B5A48);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B5B30);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B5BFC);
+void func_800B5BFC(s32 arg0, GpAreaKey* arg1)
+{
+    GpAreaRec* rec;
+    GpAreaObj* obj;
+
+    rec = D_8010CBCC[arg1->field_3];
+    if (rec != NULL) {
+        obj = rec[arg1->field_2].field_4;
+        if (obj != NULL) {
+            if (obj->field_0 == arg1->field_5) {
+                if (arg0 == 0) {
+                    obj->field_1 &= 0xFD;
+                    return;
+                }
+                obj->field_1 |= 2;
+            }
+        }
+    }
+}
 
 GpAreaObj* func_800B5C88(GpAreaKey* arg0)
 {
