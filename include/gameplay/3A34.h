@@ -404,6 +404,7 @@ extern GpRec16 D_8011398C[];
 extern char D_80097454[];
 
 s32        func_800D68C4(s32 arg0);
+GpItemRec* func_800D6910(s32 arg0);
 GpItemRec* func_800D6994(s32 arg0);
 GpItemRec* func_800D6A24(s32 arg0, GpItemScan* arg1);
 void       func_800D6AA4(Task* arg0);
