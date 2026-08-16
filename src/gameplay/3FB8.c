@@ -555,7 +555,33 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104AAC);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104B54);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104CAC);
+s32 func_80104CAC(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
+{
+    GameActor* actor;
+    GpAnimObj* extra;
+    s32        flag;
+
+    actor            = arg0->actor;
+    extra            = (GpAnimObj*)arg0->extra;
+    actor->field_928 = arg2->field_0;
+    actor->field_93A = 0x7FFF;
+    actor->field_985 = 0x10;
+    if (arg2->field_8 == 0) {
+        func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
+                      (GpAnimSlot*)actor->pad_438);
+        func_801038F8(arg0, arg2->field_4);
+    } else {
+        func_80103A18(arg0, arg2->field_4, 0, arg2->field_C);
+    }
+    flag = arg2->field_10;
+    if (flag == 0) {
+        flag = 0x38;
+    } else {
+        flag = 7;
+    }
+    actor->field_983 = flag;
+    return 0;
+}
 
 s32 func_80104D68(Task* arg0, s32 arg1, GpXformArg* arg2)
 {

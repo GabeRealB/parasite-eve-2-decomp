@@ -15361,4 +15361,35 @@ if (!(flags & 0x20)) {
 `func_800E1688` is the example. The empty-first `if (node == NULL)` form
 stuck at 39%.
 
+## Load the predicate into the same `s32` so `li` overwrites `$v0`
+
+The assign-default-then-overwrite-on-`== 0` form matches the `bnez` /
+delay-slot `li DEFAULT` / `li OTHER` shape, but a *fresh* temp keeps the
+`lw` of the predicate in `$v0` and puts the constants in `$v1`:
+
+```
+lw    v0, field
+nop
+bnez  v0, skip
+li    v1, DEFAULT    /* want v0 */
+li    v1, OTHER
+sb    v1, dest
+```
+
+Load the field into that same `s32` first, then overwrite both arms. The
+predicate dies in the delay slot and the `li`s reuse `$v0`:
+
+```c
+flag = arg2->field_10;
+if (flag == 0) {
+    flag = 0x38;
+} else {
+    flag = 7;
+}
+p->field_983 = flag;
+```
+
+`func_80104CAC` is the example. `flag = 7; if (arg2->field_10 == 0) flag = 0x38;`
+stuck at 99.7% with only the register different.
+
 

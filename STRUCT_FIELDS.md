@@ -570,9 +570,11 @@ passes `&pad_438[i]` to `func_800B3DF4` for `i = 1 .. field_938-1`.
 (`GpAnimCtx.field_8`).
 `field_93A` is a u16 anim-table index (`sh` / `lhu`); `func_80103874` writes
 `D_80112D68[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21` (same sum as
-`func_800E3BBC` / `func_800E3CEC`).
+`func_800E3BBC` / `func_800E3CEC`). `func_80104CAC` writes `0x7FFF` (same
+inactive sentinel as `GpAnimSlot.field_0`) when installing `GpAnimArg.field_0`.
 `field_928` is the pointer at `D_80112D6C[field_93A]`, passed as
-`func_800B3F84` arg1 (`GpAnimCtx.field_0`).
+`func_800B3F84` arg1 (`GpAnimCtx.field_0`). `func_80104CAC` copies
+`GpAnimArg.field_0` here instead of indexing `D_80112D6C`.
 `field_448` is a 19-entry table of `GameActorSlot` (0x28 each; flags halfword at +0x00).
 `func_80100B78` stores count `0x13` at `field_938`; `func_80105894` returns
 `(slot[arg1].field_0 & 0x102) == 0`.
@@ -618,6 +620,9 @@ vs `func_80108770` in `func_80106550`;
 `field_97F` is a signed result byte (`lb`/`sb`); `func_801060E0` writes 1 / 2 / 0 from button bits (mask 0x8/0x2, or 0x80/0x10 when `field_954` and `D_80072310` are both 2);
 `field_981` is a u8 counter cleared with the 0x954–0x95E cluster; `func_801041FC` increments it from 0 (`lb`/`lbu`);
 `field_983` is a u8 flag byte (`lbu`/`sb`); `func_8010AA28` ORs in `0x18` after `func_80103B5C`;
+`func_80104CAC` writes 7 or `0x38` from `GpAnimArg.field_10` (nonzero / zero);
+`field_985` is a u8 default copied onto slid `field_441` by `func_801038F8`;
+`func_80104CAC` writes `0x10` before that walk;
 `field_987`/`field_988`/`field_989` and `field_98A`/`field_98B`/`field_98C` are two u8 groups written by command `0x401` (`func_80105AB0`): arg 0 sets them to (1,0,0) and (2,0,0); args 1–3 write the first group as `(arg+1, 0, 0)`; args ≥4 write the second as `(arg-3, 0, 0)` (and `field_98C`);
 `field_98D`/`field_98E`/`field_990` are companion bytes (case 10 also stores `rand() & 0x1F + 0xA`).
 `field_991` is a signed flag byte (`lb`); `func_80109374` requires it 0 to write `field_97D = 1`.

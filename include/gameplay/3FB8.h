@@ -77,6 +77,19 @@ typedef struct _GpIdRec {
     /* 0x4 */ s32  field_4;
 } GpIdRec;
 
+/// 0x14-byte argument for `func_80104CAC`. `field_0` is copied to
+/// `GameActor.field_928`. `field_8 == 0` runs `func_800B3F84` +
+/// `func_801038F8`; otherwise `func_80103A18(..., field_4, 0, field_C)`.
+/// `field_10` selects `field_983` (7 if nonzero, `0x38` if zero).
+typedef struct _GpAnimArg {
+    /* 0x00 */ void* field_0;
+    /* 0x04 */ s32   field_4;
+    /* 0x08 */ s32   field_8;
+    /* 0x0C */ s32   field_C;
+    /* 0x10 */ s32   field_10;
+} GpAnimArg;
+STATIC_ASSERT_SIZEOF(GpAnimArg, 0x14);
+
 /// Position + rotation argument for `func_80104D68`. `field_0` / `field_4` /
 /// `field_8` are copied onto `GsCOORDINATE2.coord.t`; `field_10` / `field_12` /
 /// `field_14` are copied onto `GameActor` 0x50 and passed to `RotMatrix`.
