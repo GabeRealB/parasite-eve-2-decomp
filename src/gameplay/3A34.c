@@ -184,7 +184,17 @@ void func_800D96C8(Task* arg0)
     funcs[arg0->state](arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9718);
+s32 func_800D9718(GpObj44* arg0)
+{
+    s16 val;
+
+    val = arg0->field_44;
+    if (val != 0 && (u8)Game_Session->field_4 != val) {
+        return 0;
+    }
+    arg0->field_4A = 0x1000;
+    return ((arg0->field_50 * 8 + arg0->field_52 * 6 + arg0->field_54 * 2) >> 8) + 0xF00;
+}
 
 s32 func_800D9788(GpObj38* arg0)
 {

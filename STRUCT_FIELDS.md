@@ -768,6 +768,18 @@ Sparse overlay. Full object size is not known yet.
 |-----|--------|------|
 | 0x20 | `field_20` | `MATRIX*` whose `t[0]/t[1]/t[2]` are set by `func_800D9550` |
 
+### `GpObj44` (0x56) — `3A34.h`
+Sparse overlay of the same light object as `GpObj38`. Full object size is
+not known yet; 0x56 is the minimum covering known fields.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x44 | `field_44` | s16 room-id filter (`lh`); 0 = any room. `func_800D9718` compares it to `(u8)Game_Session->field_4` |
+| 0x4A | `field_4A` | s16 GTE IR0 scale; `func_800D9718` writes `0x1000` (ONE). Nearby handwritten light helpers `lh` it into IR0 |
+| 0x50 | `field_50` | s16; first of three color/luminance components (`lh`) |
+| 0x52 | `field_52` | s16; `func_800D9718` weights this by 6 |
+| 0x54 | `field_54` | s16; `func_800D9718` weights this by 2. Return is `((8*50 + 6*52 + 2*54) >> 8) + 0xF00` |
+
 ### `GpObj40` (0x42) — `3A34.h`
 Sparse overlay. Full object size is not known yet.
 

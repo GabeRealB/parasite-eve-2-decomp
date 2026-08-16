@@ -170,6 +170,23 @@ typedef struct _GpObj38 {
 } GpObj38;
 STATIC_ASSERT_SIZEOF(GpObj38, 0x44);
 
+/// Sparse overlay of the same light object as `GpObj38`. `func_800D9718`
+/// treats `field_44` as a room-id filter against `Game_Session->field_4`
+/// (0 = any room), writes `0x1000` (GTE ONE) to `field_4A`, and returns a
+/// weighted `field_50/52/54` luminance. Nearby handwritten light helpers
+/// also `lh` `field_4A` into GTE IR0 and load 0x50 as three halfwords.
+typedef struct _GpObj44 {
+    /* 0x00 */ byte pad_0[0x44];
+    /* 0x44 */ s16  field_44;
+    /* 0x46 */ byte pad_46[4];
+    /* 0x4A */ s16  field_4A;
+    /* 0x4C */ byte pad_4C[4];
+    /* 0x50 */ s16  field_50;
+    /* 0x52 */ s16  field_52;
+    /* 0x54 */ s16  field_54;
+} GpObj44;
+STATIC_ASSERT_SIZEOF(GpObj44, 0x56);
+
 /// Sparse overlay whose signed halfword at 0x40 is added (unsigned-clamped by
 /// `arg2`) into `D_801153F0.field_14` by `func_800E2C78` when
 /// `(arg1 & 0x7F)` is 0x19..0x1B.
@@ -382,6 +399,7 @@ void  func_800D9504(SVECTOR* arg0);
 void  func_800D9550(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3);
 s32   func_800D9618(void);
 void  func_800D96C8(Task* arg0);
+s32   func_800D9718(GpObj44* arg0);
 s32   func_800D9788(GpObj38* arg0);
 void  func_800D9B9C(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void  func_800D9D18(Task* arg0);
