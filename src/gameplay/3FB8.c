@@ -1922,4 +1922,17 @@ s32 func_8010C8F0(GpActorWork* arg0, s32 arg1, s32 arg2)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C980);
+void func_8010C980(void* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3, s32 arg4, s32 arg5)
+{
+    arg1->field_8  = arg0;
+    arg1->field_C  = arg2;
+    arg1->field_10 = 0;
+    arg1->field_12 = 0;
+    arg1->field_14 = 0;
+    arg1->flags    = 1;
+    arg1->field_18 = arg4 | 0x30000;
+    arg1->field_1C = arg5;
+    func_800E15AC(2, arg1);
+    arg1->flags |= 0x8000;
+    func_800E18E0(arg1->field_C, (s16)arg3, 0);
+}

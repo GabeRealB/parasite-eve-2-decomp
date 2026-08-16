@@ -30,13 +30,22 @@ STATIC_ASSERT_SIZEOF(GpLinkNode, 0x8);
 /// Linked object used as a list head/node by the 3A34 pair/filter helpers.
 /// `next` is at 0x0, `prev` at 0x4, and `flags` at 0x1E. Bit 0x8 means the
 /// node is on the `D_8010FA8C` list (set by `func_800E15AC`, cleared by
-/// `func_800E1638`, keeping bits 0x7). Embedded as 0x20-byte nodes in
-/// `GameActor` (`field_AC` / `field_CC` / `field_EC` / `field_10C` /
-/// `field_12C`). Full object size is not known for other list users.
+/// `func_800E1638`, keeping bits 0x7). `func_8010C980` fills `field_8` /
+/// `field_C` / the 0x10 SVECTOR / `field_18` / `field_1C` and ORs `flags`
+/// with 0x8000 after linking. Embedded as 0x20-byte nodes in `GameActor`
+/// (`field_AC` / `field_CC` / `field_EC` / `field_10C` / `field_12C`).
+/// Full object size is not known for other list users.
 typedef struct _GpObj {
     /* 0x00 */ struct _GpObj* next;
     /* 0x04 */ struct _GpObj* prev;
-    /* 0x08 */ byte           pad_8[0x16];
+    /* 0x08 */ void*          field_8;
+    /* 0x0C */ GpRec18*       field_C;
+    /* 0x10 */ s16            field_10;
+    /* 0x12 */ s16            field_12;
+    /* 0x14 */ s16            field_14;
+    /* 0x16 */ byte           pad_16[2];
+    /* 0x18 */ s32            field_18;
+    /* 0x1C */ s16            field_1C;
     /* 0x1E */ u16            flags;
 } GpObj;
 STATIC_ASSERT_SIZEOF(GpObj, 0x20);
@@ -396,12 +405,13 @@ void func_800E0608(GpObj* node, s32 mask, s32 match);
 void func_800E06AC(GpObj* node, s32 mask, s32 match);
 s32  func_800E076C(void);
 void func_800E0B08(void);
+void func_800E15AC(s32 arg0, GpObj* arg1);
 void func_800E1638(GpObj* node);
 void func_800E1708(s32 arg0, GpObj4A* arg1);
 void func_800E1758(s32 arg0);
 void func_800E1834(s32 arg0, GpObj3A* arg1);
 void func_800E1884(s32 arg0);
-void func_800E18E0(GpRec18* arg0, s32 arg1);
+void func_800E18E0(GpRec18* arg0, s32 arg1, s32 arg2);
 s32  func_800E19B8(GpRec18* arg0, s32 arg1);
 s32  func_800E1A1C(GpRec18* arg0, s32 arg1);
 void func_800E1A6C(GpRec18* arg0);

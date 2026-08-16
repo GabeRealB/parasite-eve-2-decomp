@@ -778,7 +778,7 @@ void func_800E1884(s32 arg0)
     }
 }
 
-void func_800E18E0(GpRec18* arg0, s32 arg1)
+void func_800E18E0(GpRec18* arg0, s32 arg1, s32 arg2)
 {
     Mem_Set(arg0, 0, arg1 * 0x18);
     arg0[arg1 - 1].field_0 = 2;
