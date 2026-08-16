@@ -33,7 +33,8 @@ typedef McItemScan GpItemScan;
 /// (`Mc_SaveData.field_1AC` / `D_80114C20` / `*D_80114D70`). field_0 is the
 /// item id looked up by `func_800D6910` / returned by `func_800BB610`;
 /// field_1 is a count compared as signed by `func_800CF448` /
-/// `func_800B91C8`; field_2 is a u16 quantity added by `func_800BB6FC`.
+/// `func_800B91C8` / `func_800D6994` (`== arg0 + 1`); field_2 is a u16
+/// quantity added by `func_800BB6FC`.
 typedef McItemRec GpItemRec;
 
 /// 4-byte entry in `D_8010D278` / `D_8010E238` (32 entries, item ids

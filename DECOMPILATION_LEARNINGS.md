@@ -15014,4 +15014,33 @@ entry = temp;
 `func_800AC464` is the example. The one-pointer form stuck at 92% with only
 that `lw`/`move` pair missing.
 
+## Init a NULL result before a call so it rematerializes into leftover `%hi`
+
+When the target forms `&global.field` with split addresses (`lui s0, %hi`;
+`addiu s1, s0, %lo`), calls a function, then does
+
+```
+lbu  v1, %lo(G+off)(s0)   /* first field via leftover hi */
+move s0, a1               /* rec = 0, reused from i */
+lbu  a2, 1(s1)            /* second field via the pointer */
+```
+
+the result pointer and the leftover hi share `$s0` because their live
+ranges do not overlap. Assign `rec = NULL` *before* the call so the
+constant 0 is rematerialized after the hi is consumed:
+
+```c
+rec   = NULL;
+scan  = &Mc_SaveData.field_5BC;
+table = func_800BB500(scan);
+i     = 0;
+table = &table[scan->field_0];
+count = scan->field_1;
+```
+
+`rec = NULL` after the call CSEs with `i = 0` and lands in `$a3`, so the
+hi stays in `$s0` for the whole function (~92%). `func_800D6994` is the
+example; `func_800CE980` is the same search with the scan passed in
+(result stays in `$a3` because there is no leftover hi).
+
 

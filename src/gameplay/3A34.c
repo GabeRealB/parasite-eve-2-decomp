@@ -38,7 +38,29 @@ s32 func_800D68C4(s32 arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D6910);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D6994);
+GpItemRec* func_800D6994(s32 arg0)
+{
+    GpItemScan* scan;
+    GpItemRec*  table;
+    s32         i;
+    s32         count;
+    GpItemRec*  rec;
+
+    rec   = NULL;
+    scan  = &Mc_SaveData.field_5BC;
+    table = func_800BB500(scan);
+    i     = 0;
+    table = &table[scan->field_0];
+    count = scan->field_1;
+    for (; i < count; i++) {
+        if ((s8)table->field_1 == arg0 + 1) {
+            rec = table;
+            break;
+        }
+        table++;
+    }
+    return rec;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D6A24);
 

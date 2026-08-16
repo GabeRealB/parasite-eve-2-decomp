@@ -5,6 +5,7 @@
 
 #include <psyq/libgte.h>
 
+#include "gameplay/268.h"
 #include "gameplay/3FB8.h"
 #include "main/display.h"
 #include "main/session.h"
@@ -364,8 +365,9 @@ extern GpRec16 D_8011398C[];
 /// "Weapon" string drawn by `func_800D6AA4`.
 extern char D_80097454[];
 
-s32   func_800D68C4(s32 arg0);
-void  func_800D6AA4(Task* arg0);
+s32        func_800D68C4(s32 arg0);
+GpItemRec* func_800D6994(s32 arg0);
+void       func_800D6AA4(Task* arg0);
 void  func_800D8684(Task* arg0);
 void  func_800D930C(GpObj4C* arg0, s32 arg1);
 s32   func_800D9340(GpObj38* arg0);
