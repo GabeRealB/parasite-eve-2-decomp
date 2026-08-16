@@ -193,23 +193,25 @@ extern UiPanelFuncTable6 D_80013F2C;
 /// Dialog / prompt descriptor used by 21FDC.c handlers (e.g. McMenu_ConfirmDialogAlt,
 /// McMenu_ConfirmDialog, McMenu_ConfirmWithRender). field_8 is a signed menu/option index passed
 /// to rendering helpers; field_B is a flag written on the alternate confirm
-/// path; field_C is a selection/confirm flag (1 = confirm); field_18/field_1A
-/// are position halfwords; field_1C is data passed through to Text_DrawPrompt;
-/// field_20/field_22 are state halfwords set on confirm (field_22 also on the
-/// alternate confirm path).
+/// path; field_C is a selection/confirm flag (1 = confirm); field_10 is compared
+/// to field_8 (`func_800CEF68`); field_18/field_1A are position halfwords;
+/// field_1C is data passed through to Text_DrawPrompt; field_20/field_22 are
+/// state halfwords set on confirm (field_22 also on the alternate confirm path).
 typedef struct _DialogPrompt {
     /* 0x00 */ byte unknown_0[0x8];
     /* 0x08 */ s8   field_8;
     /* 0x09 */ byte unknown_9[0x2];
     /* 0x0B */ s8   field_B;
     /* 0x0C */ s32  field_C;
-    /* 0x10 */ byte unknown_10[0x8];
+    /* 0x10 */ s32  field_10;
+    /* 0x14 */ byte unknown_14[0x4];
     /* 0x18 */ s16  field_18;
     /* 0x1A */ s16  field_1A;
     /* 0x1C */ s32  field_1C;
     /* 0x20 */ s16  field_20;
     /* 0x22 */ s16  field_22;
 } DialogPrompt;
+STATIC_ASSERT_SIZEOF(DialogPrompt, 0x24);
 
 /// Linked text option node walked by Ui_DrawDialogLine (index via DialogPrompt::field_8).
 /// field_0 is the string passed to Text_DrawPrompt; field_4 is the next node.

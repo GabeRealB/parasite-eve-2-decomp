@@ -22,6 +22,7 @@
 extern s32          D_8010E8F8[5];
 extern u16          D_80114D84;
 extern s32          D_80114D88;
+extern s32          D_80114D8C;
 extern UiObject*    D_80114D98[];
 extern u32          D_80114DCC;
 extern u8*          D_80114DD4;
@@ -36,7 +37,9 @@ extern char         D_8010E550[];
 extern char         D_8010E554[];
 extern char         D_8010E558[];
 extern char         D_8010E55C[];
+extern char         D_8010E58C[];
 extern char         D_8010F8D0[];
+extern char         D_8010F9C0[];
 extern char         D_8010F19C[];
 extern char         D_8010F1A4[];
 extern char         D_8010F1D0[];
@@ -767,7 +770,34 @@ UiObject* func_800CEDA0(UiObject* arg0, UiObject* arg1, u8* arg2, s32 arg3)
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CEE5C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CEF68);
+void func_800CEF68(DialogPrompt* arg0, UiObject* arg1)
+{
+    s32 status;
+    s32 one;
+
+    one = 1;
+    if (D_80114D8C == one) {
+        arg0->field_1C = Ui_LookupTable(arg1, 2);
+    }
+    Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, D_8010E58C, arg0->field_1C, one, 0);
+    status = arg1->status;
+    if (((status >> 16) == one) || (status == one)) {
+        if (arg0->field_10 == arg0->field_8) {
+            if (D_80114D8C == one) {
+                arg0->field_22 = 0x41;
+                arg0->field_C  = 0;
+            } else {
+                Ui_SetHolderParam((s32)D_8010F9C0, 0, 0);
+            }
+        }
+    }
+    if (arg0->field_C == 1) {
+        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+            SndEvt_EnqueueType6(3, 0, 0);
+            func_800B8588(&Mc_SaveData.field_5BC, 1);
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF090);
 
