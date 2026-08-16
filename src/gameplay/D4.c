@@ -569,7 +569,31 @@ s32 func_800AD284(void)
     return bytes[sess->field_0 - 1];
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD2E8);
+void* func_800AD2E8(void)
+{
+    GameSession*      session;
+    GameSessionFrom4* sess;
+    GpCb54Tbl*        tbl;
+    u8***             mid;
+    u8**              inner;
+    u8*               bytes;
+    u8                idx;
+    GpCb68Tbl*        tbl2;
+    GpCb68Rec**       mid2;
+    GpCb68Rec*        recs;
+
+    session = Game_Session;
+    sess    = (GameSessionFrom4*)&session->field_4;
+    tbl     = D_8010CB54[sess->field_3 - 1];
+    mid     = tbl->field_0;
+    inner   = mid[sess->field_2 - 1];
+    bytes   = inner[sess->field_1 - 1];
+    idx     = bytes[sess->field_0 - 1];
+    tbl2    = D_8010CB68[sess->field_3 - 1];
+    mid2    = tbl2->field_0;
+    recs    = mid2[sess->field_2 - 1];
+    return recs[idx - 1].field_8;
+}
 
 void func_800AD378(Task* task)
 {

@@ -42,6 +42,25 @@ typedef struct _GpCb54Tbl {
 /// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
 extern GpCb54Tbl* D_8010CB54[];
 
+/// 12-byte per-view record in tables pointed to by `D_8010CB68`.
+/// Indexed 1-based by the `D_8010CB54` camera / view byte.
+/// `func_800AD2E8` returns `field_8`.
+typedef struct _GpCb68Rec {
+    /* 0x0 */ void* field_0;
+    /* 0x4 */ void* field_4;
+    /* 0x8 */ void* field_8;
+} GpCb68Rec;
+STATIC_ASSERT_SIZEOF(GpCb68Rec, 0xC);
+
+/// Per-stage wrapper. `field_0` is an array of `GpCb68Rec*`, indexed
+/// 1-based by `GameSession.field_6` / `GameSessionFrom4.field_2`.
+typedef struct _GpCb68Tbl {
+    /* 0x0 */ GpCb68Rec** field_0;
+} GpCb68Tbl;
+
+/// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
+extern GpCb68Tbl* D_8010CB68[];
+
 /// 5-byte table at `D_800938CC`. `func_800A9B3C` copies it to the stack and
 /// indexes it 1-based by `Wip_SysConfig.field_26`; the byte is CdCmd 0x21
 /// param2[0].
@@ -57,7 +76,8 @@ void func_800A9DF0(Task* task);
 void func_800AB980(struct _GameSessionFrom4* arg0);
 void func_800ABE68(struct _GpActorArg* arg0, u16* arg1);
 void func_800ABEF8(s32 arg0);
-s32  func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
-s32  func_800AD284(void);
+s32   func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32   func_800AD284(void);
+void* func_800AD2E8(void);
 
 #endif // GAMEPLAY_D4_H
