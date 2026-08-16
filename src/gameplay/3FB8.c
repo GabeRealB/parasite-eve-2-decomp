@@ -432,7 +432,24 @@ s32 func_801043F4(void)
     return 1;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104490);
+Task* func_80104490(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    Task*          task;
+    GsCOORDINATE2* saved;
+    GameActorExt*  extra;
+
+    saved  = (GsCOORDINATE2*)((GameActorExt*)arg0->actor->field_91C->extra)->field_8;
+    arg2 <<= 2;
+    arg1  += 0x60;
+    task   = Task_Spawn(7, arg2 + arg1, arg3, 0);
+    if (task == NULL) {
+        return NULL;
+    }
+    extra                                 = (GameActorExt*)task->extra;
+    task->parent                          = (Task*)arg0;
+    ((GsCOORDINATE2*)extra->field_8)->sub = saved;
+    return task;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104508);
 
