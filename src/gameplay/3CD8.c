@@ -657,7 +657,31 @@ void func_800E8830(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E8888);
+void func_800E8888(Task* arg0)
+{
+    s16 tmp;
+
+    switch (arg0->state) {
+        case 0:
+            arg0->killCountdown = 0;
+            arg0->spawnArg1     = -1;
+            arg0->state++;
+            break;
+        case 1:
+            arg0->killCountdown = (u16)arg0->killCountdown - (u16)arg0->spawnArg1;
+            if (arg0->killCountdown >= 9) {
+                arg0->killCountdown = 8;
+            }
+            tmp = arg0->killCountdown;
+            if (tmp < 0) {
+                Game_Session->field_139 = 0;
+                Task_Kill(arg0);
+            } else {
+                Game_Session->field_139 = tmp * 2;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E8938);
 
