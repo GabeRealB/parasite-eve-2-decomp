@@ -58,7 +58,25 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AF89C);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AFA44);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AFF90);
+void func_800AFF90(u16 arg0)
+{
+    s32           i;
+    s32           bits;
+    GpSndMaskRec* entry;
+
+    i = 0;
+    if (D_8010D1C4[0].mask != 0) {
+        bits = arg0;
+        do {
+            entry = &D_8010D1C4[(u16)i];
+            if (bits & entry->mask) {
+                SndEvt_EnqueueType7(entry->flags, 0);
+                SndBank_SetEnableFlags(0, entry->flags);
+            }
+            i++;
+        } while (D_8010D1C4[(u16)i].mask != 0);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0034);
 

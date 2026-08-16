@@ -1039,6 +1039,15 @@ Overlay of `Task::spawnArg2` for sibling walkers. Full size unknown.
 | 0x08 | `field_8` | Id compared with the search key (`as_u16` in `func_800B5E08`, `as_u8` in `func_800B5E78`) |
 | 0x0A | `field_A` | u16; high byte is the work type (`func_800B5E08` / `func_800B5EE8` match 9; `func_800B5E78` skips 9) |
 
+### `GpSndMaskRec` (0x8) — `1BC.h`
+Element of the 0-terminated table `D_8010D1C4`. Walked by `func_800AFF90`
+(disable matching banks) and `func_800B0034` (enable matching banks).
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `mask` | Bit tested against the `u16` argument |
+| 0x04 | `flags` | `SndEvt_EnqueueType7` / `SndBank_SetEnableFlags` bank id |
+
 ### `GpItemSlot` (0x8) — `268.h`
 Indexed as `D_80072330[idx]` by `func_800BAFE0`. Two (id, count) pairs.
 

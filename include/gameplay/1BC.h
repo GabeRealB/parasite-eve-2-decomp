@@ -144,10 +144,23 @@ typedef struct _GpWorkObj {
     /* 0x0A */ u16 field_A;
 } GpWorkObj;
 
+/// 8-byte mask/flag record. `D_8010D1C4` is a 0-terminated table of these.
+/// `func_800AFF90` / `func_800B0034` walk it: if `arg0 & mask`, apply `flags`
+/// to `SndEvt_EnqueueType7` / `SndBank_SetEnableFlags`.
+typedef struct _GpSndMaskRec {
+    /* 0x0 */ s32 mask;
+    /* 0x4 */ s32 flags;
+} GpSndMaskRec;
+STATIC_ASSERT_SIZEOF(GpSndMaskRec, 8);
+
 /// Per-area pointer table. Index is `GpAreaKey.field_3` (also
 /// `GameSession.field_7` via `&Game_Session->field_4`).
 extern GpAreaRec* D_8010CBCC[];
 
+/// 0-terminated `GpSndMaskRec` table walked by `func_800AFF90` / `func_800B0034`.
+extern GpSndMaskRec D_8010D1C4[];
+
+void     func_800AFF90(u16 arg0);
 void     func_800B00C4(void);
 s32      func_800B0118(s32 arg0, s32 arg1);
 GpEnemy* func_800B0168(s32 bank, s32 type, s32 arg2, GpEnemy* parent);
