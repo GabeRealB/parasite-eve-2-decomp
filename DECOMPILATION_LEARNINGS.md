@@ -14777,4 +14777,34 @@ result = (arg1 * (arg0 << 1)) / arg2;
 `func_800EA318` is the example. `arg1 * (arg0 * 2)` swapped the operands
 and stuck at 99.7%.
 
+## 1-based record as `Task_Spawn` arg: offset-first, then `ptr - 1`
+
+When the target scales a 1-based `u8` index into `$a3`, adds the saved
+base, then subtracts one element in the `jal` delay slot:
+
+```
+sll    a3, v0, 3
+addu   a3, a3, v0
+sll    a3, a3, 2
+addu   a3, a3, s0
+jal    Task_Spawn
+addiu  a3, a3, -0x24
+```
+
+`&recs[idx - 1]` subtracts first (`addiu a3, a3, -0x24` then
+`addu a3, s0, a3`). `recs + idx - 1` / `&recs[idx] - 1` mutates the base
+(`addu s0, s0, v1` / `addiu a3, s0, -0x24`).
+
+Build the address offset-first, then decrement the typed pointer:
+
+```c
+rec = (GpCb2CRec*)(idx * sizeof(GpCb2CRec) + (s32)recs);
+Task_Spawn(0, 0xF, 0, (s32)(rec - 1));
+```
+
+Same integer form (`idx * sizeof + (s32)recs - sizeof`) also matches.
+Pairs with “Index-first cast for `addu rd, index, base`”. `func_800A8B6C`
+is the example; the sibling `func_800A8C08` can keep `&recs[idx - 1]`
+because that address is a return value, not a call argument.
+
 
