@@ -7,6 +7,7 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/gameflow.h"
 #include "main/session.h"
 #include "main/task.h"
 
@@ -20,6 +21,7 @@ extern u8             D_80114CD8;
 extern u8             D_80114CD9;
 extern u8             D_80114CDA;
 extern u8             D_80114CDB;
+extern u16            D_80114CF6;
 extern u8             D_80114CF8;
 
 INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AEBA4);
@@ -114,7 +116,20 @@ void func_800AF180(void)
     D_80114CD4 = 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AF208);
+void func_800AF208(void)
+{
+    u8 fade;
+
+    if (*(s16*)&D_80114CF6 != 0) {
+        fade = *(u8*)&D_80114CF6;
+        Fade_DrawOverlay(fade, fade, fade, 2);
+        D_80114CF6 += 0x1E;
+        if ((s16)D_80114CF6 >= 0x100) {
+            D_80114CF6 = 0xFF;
+        }
+    }
+    D_80114CD6++;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AF284);
 
