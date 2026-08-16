@@ -48,6 +48,10 @@ extern s8             D_801156B1;
 extern s32            D_801156B4;
 extern Task*          D_801156B8;
 extern s16            D_801156BC;
+extern u8             D_801156C8;
+extern u8             D_801156CA;
+extern u8             D_801156CB;
+extern s32            D_801156F4;
 extern u8             D_801156F9;
 extern u8             D_80115700;
 extern u8             D_80115701;
@@ -647,7 +651,36 @@ s32 func_800E86FC(s32 arg0)
     return out;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E8758);
+void func_800E8758(Task* arg0)
+{
+    GpState34* mem;
+    void*      script;
+
+    mem = Mem_Calloc(0x34, 0);
+    if (mem == NULL) {
+        Task_Kill(arg0);
+        return;
+    }
+    D_801156F9 = 0;
+    D_801156F4 = 0;
+    Display_AcquireRef();
+    script       = arg0->spawnArg2;
+    D_801156A4   = 0;
+    arg0->idMap  = (TaskIdMap*)mem;
+    mem->field_4 = 0;
+    D_801156C8   = 0;
+    mem->field_0 = script;
+    D_801156CA   = 0;
+    if (arg0->spawnArg1 == 0) {
+        func_800AC464(Game_GetPtrSlot(6), 0xFA4, 0, 0);
+    }
+    D_801156CB    = 1;
+    mem->field_2C = 0;
+    mem->field_30 = 0;
+    mem->field_28 = 0;
+    D_8011569C    = 0;
+    arg0->state++;
+}
 
 void func_800E8830(Task* arg0)
 {

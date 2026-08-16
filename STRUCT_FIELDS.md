@@ -1077,7 +1077,7 @@ there). `func_800E6EA0` walks from a start index until `field_8 == -1` or
 | 0x8 | `field_8` | s32; `-1` terminator, else payload/id passed to later sequence helpers |
 
 ### `GpState34` (0x34) — `3CD8.h`
-Allocated by `func_800E8758` (`func_8002D978(0x34)`); stored at `Task::idMap`.
+Allocated by `func_800E8758` (`Mem_Calloc(0x34, 0)`); stored at `Task::idMap`.
 Dual script interpreter: A uses `field_E`/`field_10`/`field_14`, B uses
 `field_F`/`field_11`/`field_15`. `func_800E92C4` / `func_800E9350` decrement
 the delay counters and advance via `func_800E8A90` / `func_800E8BB0`.

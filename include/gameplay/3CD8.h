@@ -56,7 +56,7 @@ typedef struct _GpEndWait {
     /* 0x02 */ s8   field_2;
 } GpEndWait;
 
-/// 0x34-byte dual-script state allocated by `func_800E8758` (`func_8002D978(0x34)`)
+/// 0x34-byte dual-script state allocated by `func_800E8758` (`Mem_Calloc(0x34, 0)`)
 /// and stored on the owner task at +0x1C (`Task::idMap`).
 /// `field_10` / `field_11` are delay counters for scripts A / B.
 typedef struct _GpState34 {
