@@ -996,7 +996,36 @@ s32 func_800E1BF0(u16* arg0, u8* arg1, u8* arg2)
     return 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1C58);
+void func_800E1C58(GpObj54* arg0, void* arg1)
+{
+    GpSlot18*  slot;
+    GpSlot18*  temp;
+    s32        one;
+    GpStateF0* p;
+
+    temp = arg0->field_54;
+    if (temp != NULL) {
+        slot = temp;
+        one  = 1;
+        while (1) {
+            if ((*(s32*)&slot->field_0 & 3) != one) {
+                break;
+            }
+            slot++;
+        }
+        slot->field_4  = arg1;
+        slot->field_2  = 0;
+        slot->field_8  = 0;
+        slot->field_A  = 0;
+        slot->field_C  = 0;
+        slot->field_10 = 0;
+        slot->field_12 = 0;
+        slot->field_14 = 0;
+        slot->field_0 |= 1;
+        p              = &D_801153F0;
+        p->field_5++;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1CD4);
 

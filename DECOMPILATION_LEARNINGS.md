@@ -15204,4 +15204,34 @@ if (head != NULL) {
 
 `func_800B584C` is the example.
 
+## Empty `while (x == K) p++` inverts; `while (1)` + `!=` break does not
+
+GCC 2.8.1 `-O2` rotates an empty occupancy scan
+
+```c
+while ((*(s32*)&slot->field_0 & 3) == one) {
+    slot++;
+}
+```
+
+into a peeled first iteration plus a bottom-tested increment/decrement
+do-while (`addiu` / `beq` / `addiu -size`). The target is a top-tested
+`bne` / `j` with the `addiu` in the jump delay slot.
+
+Write the scan as `while (1)` + `!=` break so the compare stays at the top
+and the increment stays on the back-edge:
+
+```c
+one = 1;
+while (1) {
+    if ((*(s32*)&slot->field_0 & 3) != one) {
+        break;
+    }
+    slot++;
+}
+```
+
+A `for (; cond; slot++)` or `while (cond) slot++;` stuck at ~79% with only
+that loop inverted. `func_800E1C58` is the example.
+
 

@@ -132,6 +132,34 @@ typedef struct _GpObj50 {
 } GpObj50;
 STATIC_ASSERT_SIZEOF(GpObj50, 0x54);
 
+/// 0x18-byte slot in the table at `GpObj54.field_54`. Occupied when the
+/// first word's low 2 bits equal 1. `func_800E1C58` claims the first free
+/// slot: payload in `field_4`, clears `field_2` / `field_8` / `field_A` /
+/// `field_C` / `field_10` / `field_12` / `field_14`, ORs bit 0 into
+/// `field_0`, and increments `D_801153F0.field_5`.
+typedef struct _GpSlot18 {
+    /* 0x00 */ u16   field_0;
+    /* 0x02 */ s16   field_2;
+    /* 0x04 */ void* field_4;
+    /* 0x08 */ s16   field_8;
+    /* 0x0A */ s16   field_A;
+    /* 0x0C */ s16   field_C;
+    /* 0x0E */ s16   field_E;
+    /* 0x10 */ s16   field_10;
+    /* 0x12 */ s16   field_12;
+    /* 0x14 */ s16   field_14;
+    /* 0x16 */ s16   field_16;
+} GpSlot18;
+STATIC_ASSERT_SIZEOF(GpSlot18, 0x18);
+
+/// Sparse overlay whose pointer at 0x54 is a `GpSlot18` table walked by
+/// `func_800E1C58`. Same object family as `GpObj50` / `GpObj4C`.
+typedef struct _GpObj54 {
+    /* 0x00 */ byte      pad_0[0x54];
+    /* 0x54 */ GpSlot18* field_54;
+} GpObj54;
+STATIC_ASSERT_SIZEOF(GpObj54, 0x58);
+
 /// 8-byte record in tables pointed to by `D_8010CBA4`. Indexed 1-based
 /// by `GameSessionFrom4.field_1`. `func_800D9C64` returns the record
 /// (or NULL). `func_800D9654` returns `field_0`. `func_800D957C` walks
@@ -274,7 +302,9 @@ STATIC_ASSERT_SIZEOF(GpObj3A, 0x3C);
 /// `func_800A7CF4` / `func_800A7D54`); last-ref release sets it to 0x3C.
 /// `field_2` is a bitset (`func_800DB500` sets bit `arg0 - 1` when
 /// `arg0 != 0`). `field_3` is cleared with `field_2` on last-ref release
-/// (also written as `D_801153F3` by `func_800DB530`). `field_6` is a u16
+/// (also written as `D_801153F3` by `func_800DB530`). `field_4` is also
+/// `D_801153F4`. `field_5` is a u8 count incremented by `func_800E1C58`
+/// when it claims a `GpSlot18`. `field_6` is a u16
 /// refcount incremented by `func_800DB53C` and decremented by
 /// `func_800DB558` / `func_800DB630` / `func_800DB6B4`. Last-ref
 /// release in `func_800DB630` also clears words at 0x8 / 0xC / 0x10.
@@ -285,7 +315,8 @@ typedef struct _GpStateF0 {
     /* 0x01 */ u8   field_1;
     /* 0x02 */ u8   field_2;
     /* 0x03 */ u8   field_3;
-    /* 0x04 */ byte pad_4[2];
+    /* 0x04 */ u8   field_4;
+    /* 0x05 */ u8   field_5;
     /* 0x06 */ u16  field_6;
     /* 0x08 */ s32  field_8;
     /* 0x0C */ s32  field_C;
@@ -471,6 +502,7 @@ s32  func_800E1ACC(u8* arg0);
 s32  func_800E1B24(s32 arg0);
 void func_800E1B80(void);
 s32  func_800E1BF0(u16* arg0, u8* arg1, u8* arg2);
+void func_800E1C58(GpObj54* arg0, void* arg1);
 s32  func_800E2438(s32 arg0, s32 arg1, s32* arg2, s32 arg3);
 s32  func_800E2BF8(GpObj50* arg0, s32 arg1);
 s32  func_800E2C40(GpU16Pair* arg0, s32 arg1);

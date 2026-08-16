@@ -740,6 +740,8 @@ Global at `D_801153F0`. Full object may still be larger.
 | 0x01 | `field_1` | alternate-active flag (`lbu`; `func_800A7508` / `func_800A7CB0` / `func_800A7CF4` / `func_800A7D54` OR it with `field_0 == 1 && field_6`); last-ref release sets 0x3C |
 | 0x02 | `field_2` | bitset (`func_800DB500` ORs `1 << (arg0 - 1)` when `arg0 != 0`); cleared on last-ref release |
 | 0x03 | `field_3` | cleared with `field_2` on last-ref release; also written as `D_801153F3` by `func_800DB530` |
+| 0x04 | `field_4` | u8; also `D_801153F4` |
+| 0x05 | `field_5` | u8 count of claimed `GpSlot18`s; incremented by `func_800E1C58` |
 | 0x06 | `field_6` | u16 refcount (inc: `func_800DB53C`; dec: `func_800DB558` / `func_800DB630` / `func_800DB6B4`) |
 | 0x08 | `field_8` | s32 word; cleared by `func_800DB630` on last-ref release |
 | 0x0C | `field_C` | s32 word; cleared by `func_800DB630` on last-ref release |
@@ -790,6 +792,29 @@ Sparse overlay. Full object size is not known yet.
 | Off | Member | Role |
 |-----|--------|------|
 | 0x40 | `field_40` | s16; `func_800E2C78` unsigned-clamps it against `arg2` and adds the result to `GpStateF0.field_14` |
+
+### `GpSlot18` (0x18) — `3A34.h`
+Table element pointed to by `GpObj54.field_54`. Occupied when the first
+word's low 2 bits equal 1.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | u16 flags; occupancy is `(first word & 3) == 1`. `func_800E1C58` ORs bit 0 |
+| 0x02 | `field_2` | s16; cleared when the slot is claimed |
+| 0x04 | `field_4` | payload pointer stored by `func_800E1C58` |
+| 0x08 | `field_8` | s16; cleared when claimed |
+| 0x0A | `field_A` | s16; cleared when claimed |
+| 0x0C | `field_C` | s16; cleared when claimed |
+| 0x10 | `field_10` | s16; cleared when claimed |
+| 0x12 | `field_12` | s16; cleared when claimed |
+| 0x14 | `field_14` | s16; cleared when claimed |
+
+### `GpObj54` (0x58) — `3A34.h`
+Sparse overlay. Same object family as `GpObj50` / `GpObj4C`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x54 | `field_54` | `GpSlot18*` table; NULL means `func_800E1C58` is a no-op |
 
 ### `GpObj4A` (0x4C) — `3A34.h`
 Array element linked onto `D_8010FAB0[index]` by `func_800E1688` and unlinked
