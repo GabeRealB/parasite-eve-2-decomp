@@ -176,7 +176,48 @@ void func_80099338(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009939C);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009988C);
+Task* func_8009988C(GsCOORDINATE2* arg0)
+{
+    Task*          task;
+    TmdObject*     extra;
+    GsCOORDINATE2* coord;
+    u32            i;
+    s32            found;
+    u32            count;
+
+    task = Task_GetActiveList()->next;
+    if (task != NULL) {
+        do {
+            found = 0;
+            switch (task->spawnType) {
+                case 1:
+                    extra = task->extra;
+                    count = extra->field_30;
+                    coord = extra->field_8;
+                    for (i = 0; i < count; i++) {
+                        if (coord == arg0) {
+                            found = 1;
+                            break;
+                        }
+                        coord++;
+                    }
+                    break;
+                case 2:
+                    extra = task->extra;
+                    coord = extra->field_8;
+                    if (coord == arg0) {
+                        found = 1;
+                    }
+                    break;
+            }
+            if (found != 0) {
+                break;
+            }
+            task = task->node.next;
+        } while (task != NULL);
+    }
+    return task;
+}
 
 void func_80099958(void)
 {

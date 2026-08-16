@@ -64,6 +64,7 @@ extern GpCb2CTbl* D_8010CB2C[];
 
 void func_80098F58(GsCOORDINATE2* arg0);
 void func_80098F98(GsCOORDINATE2* arg0, s32 arg1);
+Task* func_8009988C(GsCOORDINATE2* arg0);
 u8*  func_800A746C(void);
 void func_800A784C(void* arg0);
 void func_800A7A64(void);

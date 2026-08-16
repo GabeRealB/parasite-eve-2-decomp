@@ -15528,4 +15528,31 @@ A single `p = &Mc_SaveData` before the `arg1` test stuck at 83%
 (`sllv t0` for the mask, CSEd base). Same `p->arr[i]` form as the
 reader (`func_800BC06C`). `func_800BB7C0` is the example.
 
+## Share the pointer temp across switch cases so the load dest stays `$v1`
+
+A sibling `case` that only compares `extra->field` will reuse the extra
+register (`lw v0, field(v0)` / `bne v0, s0`). The target wants the same
+load dest as the case that walks that pointer (`lw v1, field(v0)`).
+
+Assign the field to the **same** pointer temporary the other case already
+uses. That pins the load in `$v1` instead of overwriting `$v0`:
+
+```c
+case 1:
+    extra = task->extra;
+    coord = extra->field_8; /* lw v1, 8(v0) */
+    /* walk coord */
+    break;
+case 2:
+    extra = task->extra;
+    coord = extra->field_8; /* lw v1, 8(v0) — not lw v0 */
+    if (coord == arg0) {
+        found = 1;
+    }
+    break;
+```
+
+`func_8009988C` is the example. `if ((GsCOORDINATE2*)extra->field_8 == arg0)`
+stuck at 99.8% with only that load dest different.
+
 
