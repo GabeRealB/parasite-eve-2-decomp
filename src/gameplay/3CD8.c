@@ -54,6 +54,7 @@ extern u8             D_801156CA;
 extern u8             D_801156CB;
 extern s32            D_801156F4;
 extern u8             D_801156F9;
+extern u8             D_801153F4;
 extern u8             D_80115700;
 extern u8             D_80115701;
 extern u8             D_80115702;
@@ -881,7 +882,19 @@ void func_800E93B4(Task* task)
     func_800E8BB0(task);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E93D4);
+void func_800E93D4(Task* task)
+{
+    if (D_801153F4 == 0 || (Game_Session->field_13B & 0x80)) {
+        if (task->spawnArg1 != 0 && D_80115701 == 0) {
+            task->spawnArg1--;
+            Pad_PostEvent(0, 0, 1, 1);
+            Game_Session->field_13B |= 1;
+        } else {
+            Game_Session->field_13B &= ~1;
+            Task_Kill(task);
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E9498);
 

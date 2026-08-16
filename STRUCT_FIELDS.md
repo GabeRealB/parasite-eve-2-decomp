@@ -544,7 +544,7 @@ See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 | 0x12F | `field_12F` | u8; `func_800AAF70` writes `0x1E` |
 | 0x139 | `field_139` | u8; `func_800E8888` writes `killCountdown * 2`, or 0 when that task kills itself |
 | 0x13A | `field_13A` | u8; cleared by `func_800AE45C` when `D_80114CDC` is 0 |
-| 0x13B | `field_13B` | u8 flag; cleared by `func_800E8F68` with `Pad_ClearEvents(0)` |
+| 0x13B | `field_13B` | u8 flags; cleared by `func_800E8F68` with `Pad_ClearEvents(0)`. Bit 0 is set by `func_800E93D4` while its `spawnArg1` countdown runs and cleared when that task kills itself. Bit 0x80 lets `func_800E93D4` proceed when `D_801153F4` is set. |
 
 ### `GameActor` / `GameActorExt`
 Sparse: `field_17C`/`field_930` addresses for overlay setup; `field_C` kill flag bit 0x80.
