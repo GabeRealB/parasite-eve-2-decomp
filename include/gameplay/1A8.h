@@ -59,6 +59,15 @@ STATIC_ASSERT_SIZEOF(GpSaveLoc, 8);
 
 extern GpSaveLoc D_80114CE8;
 
+/// 6-entry table of no-arg callbacks. Copied onto the stack by
+/// `func_800AEF4C` (`D_80093978`) and the sibling dispatcher
+/// `func_800AEFBC` (`D_80093990`).
+typedef void (*GpVoidFunc)(void);
+
+typedef struct {
+    GpVoidFunc funcs[6];
+} GpVoidFuncTable6;
+
 s32 func_800AEE28(Task* arg0, GpPosXZ* arg1);
 u8  func_800AEEFC(void);
 

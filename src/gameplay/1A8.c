@@ -14,16 +14,17 @@
 
 void func_800AD6BC(void);
 
-extern TaskFuncTable3 D_80093950;
-extern u16            D_80114CD2;
-extern u16            D_80114CD4;
-extern u16            D_80114CD6;
-extern u8             D_80114CD8;
-extern u8             D_80114CD9;
-extern u8             D_80114CDA;
-extern u8             D_80114CDB;
-extern u16            D_80114CF6;
-extern u8             D_80114CF8;
+extern TaskFuncTable3   D_80093950;
+extern GpVoidFuncTable6 D_80093978;
+extern u16              D_80114CD2;
+extern u16              D_80114CD4;
+extern u16              D_80114CD6;
+extern u8               D_80114CD8;
+extern u8               D_80114CD9;
+extern u8               D_80114CDA;
+extern u8               D_80114CDB;
+extern u16              D_80114CF6;
+extern u8               D_80114CF8;
 
 INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AEBA4);
 
@@ -84,7 +85,13 @@ u8 func_800AEEFC(void)
     return tbl->field_0[session->field_6 - 1][session->field_5 - 1].field_0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AEF4C);
+void func_800AEF4C(void)
+{
+    GpVoidFuncTable6 sp;
+
+    sp = D_80093978;
+    sp.funcs[*(s16*)&D_80114CD6]();
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AEFBC);
 
