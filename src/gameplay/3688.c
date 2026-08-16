@@ -117,7 +117,50 @@ void  func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800BF9FC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C010C);
+void func_800C010C(UiObject* arg0, Task* arg1)
+{
+    u8*       text;
+    s32       color;
+    s32       one;
+    s32       val;
+    UiObject* child;
+    s32       flag;
+    u8*       map;
+
+    val = arg1->spawnArg1;
+    map = (u8*)arg1->idMap;
+    if (val != 0) {
+        if ((u32)val > 0xFFFF) {
+            color = Ui_LookupTable(arg0, 1);
+            one   = 1;
+            Text_DrawPrompt(arg0, arg0->field_1C + 2, (s16)arg0->field_18 + 0xF, (u8*)val, color, one, 0);
+            text = Text_SkipLines((u8*)val, one);
+            Text_DrawPrompt(arg0, arg0->field_1C + 2, (s16)arg0->field_18 + 0x1E, text, color, one, 0);
+        } else if ((u32)(val - 0x300) < 0x100U) {
+            func_800D2E04(arg0, val);
+        }
+    }
+    child = (UiObject*)arg1->firstChild;
+    if (child != NULL) {
+        child = ((Task*)child)->spawnArg2;
+        flag  = child->field_2E;
+        if (flag == -1) {
+            arg0->field_2E = flag;
+            Wip_UiHolder   = NULL;
+        } else if (flag == 6) {
+            arg0->field_2C = child->field_2C;
+            Ui_TeardownTree(child, child->owner);
+            Ui_SetState4((Task*)arg0, arg0->owner);
+            arg1->killCountdown = 0x10;
+            *map                = 0;
+            GameMain_SetFrameTiming(0);
+            arg1->state = arg1->state + 1;
+            if (arg0->field_2C == 0x101) {
+                SndEvt_EnqueueType6(4, 0, 0);
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C02A0);
 
