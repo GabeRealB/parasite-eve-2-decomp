@@ -407,7 +407,17 @@ void func_800B3E74(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3)
     arg1->field_C = val;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B3EE8);
+void func_800B3EE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4)
+{
+    GpAnimRec* recs;
+    u16        val;
+
+    recs = arg1->field_20[arg3]->field_0;
+    func_800B3AA4(arg0, arg1, arg2, arg3, arg4, 8);
+    val           = recs[arg1->field_6].field_2 << 4;
+    arg1->field_E = val;
+    arg1->field_C = val;
+}
 
 void func_800B3F60(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4)
 {

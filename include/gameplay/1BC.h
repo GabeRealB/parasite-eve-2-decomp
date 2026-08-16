@@ -45,8 +45,8 @@ typedef struct _GpAnimObj {
     /* 0x34 */ byte  field_34;
 } GpAnimObj;
 
-/// 4-byte animation record. `func_800B3E74` indexes this by
-/// `GpAnimSlot::field_6` and copies `field_2 << 4` into the slot's
+/// 4-byte animation record. `func_800B3E74` / `func_800B3EE8` index this by
+/// `GpAnimSlot::field_6` and copy `field_2 << 4` into the slot's
 /// `field_C` / `field_E`. `field_3` is the opcode-like byte tested by
 /// `func_800B3AA4` / stored into `field_B` by `func_800B3FA8`.
 typedef struct _GpAnimRec {
@@ -162,6 +162,7 @@ void     func_800B3DB4(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B3DF4(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B3E34(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B3E74(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3);
+void     func_800B3EE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4);
 void     func_800B3F60(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4);
 void     func_800B4514(GpAnimCtx* arg0, s32 arg1);
 GpAnimRec* func_800B4668(GpAnimCtx* arg0, GpAnimSlot* arg1);
