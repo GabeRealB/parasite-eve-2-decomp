@@ -19,6 +19,10 @@ typedef struct {
 /// Three-entry dispatcher table: `func_800CE3B4`, `func_800C010C`, `func_800C02A0`.
 extern UiObjectTaskFuncTable3 D_80096F7C;
 
+/// Four-entry dispatcher table: `func_800D1D5C`, `func_800D1E28`, `func_800CFF04`,
+/// `func_800D1EB8`.
+extern TaskFuncTable4 D_800971C0;
+
 /// 0xE-byte per-room record in tables pointed to by `D_8010F0F4`.
 /// Indexed by `GameSession.field_7 - 1` then `GameSession.field_6`.
 /// field_0/field_2 are signed coords, field_4/field_6 unsigned extents,

@@ -780,7 +780,13 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D1A20);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D1BAC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D1CF8);
+void func_800D1CF8(Task* arg0)
+{
+    TaskFuncTable4 sp;
+
+    sp = D_800971C0;
+    sp.funcs[arg0->state](arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D1D5C);
 
