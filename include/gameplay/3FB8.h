@@ -9,9 +9,11 @@ struct _GsCOORDINATE2;
 
 /// Work object whose `actor` pointer sits at 0x1C (same slot as `Task::idMap`).
 typedef struct _GpActorWork {
-    /* 0x00 */ byte       pad_0[0x18];
-    /* 0x18 */ void*      field_18; // Task::exitCallback; cleared before self-kill
-    /* 0x1C */ GameActor* actor;
+    /* 0x00 */ byte          pad_0[0x18];
+    /* 0x18 */ void*         field_18; // Task::exitCallback; cleared before self-kill
+    /* 0x1C */ GameActor*    actor;
+    /* 0x20 */ byte          pad_20[0xC];
+    /* 0x2C */ GameActorExt* extra; // Task::extra
 } GpActorWork;
 
 typedef void (*GpActorFunc)(GpActorWork* arg0);

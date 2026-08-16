@@ -57,6 +57,7 @@ void func_80109374(GpActorWork* arg0);
 void func_801093DC(GpActorWork* arg0);
 void func_80109844(GpActorWork* arg0);
 void func_80109A1C(GpActorWork* arg0);
+void func_80109BB4(GpActorWork* arg0, GpRec18* arg1);
 void func_8010AAB4(GpActorWork* arg0);
 void func_8010ABD4(GpActorWork* arg0);
 void func_8010AC54(GpActorWork* arg0);
@@ -1612,7 +1613,43 @@ void func_8010B0C8(GpActorWork* arg0)
     func_800ECA54();
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B120);
+void func_8010B120(GpActorWork* arg0)
+{
+    GameActor* inner;
+    GameActor* inner2;
+    GpObj38*   obj;
+    s32        mode;
+    s32        snd;
+    s32        temp;
+    s32        temp2;
+
+    inner = arg0->actor;
+    obj   = (GpObj38*)arg0->extra->field_8;
+    if (Mc_SaveData.field_5C2 != 0) {
+        return;
+    }
+    if ((s8)inner->field_97A != 0) {
+        return;
+    }
+    func_80109BB4(arg0, inner->field_17C);
+    if ((u16)inner->field_96C == 0) {
+        return;
+    }
+    inner2 = arg0->actor;
+    func_8010AAB4(arg0);
+    mode = 0x11;
+    if ((u16)inner2->field_96C == 1) {
+        mode = 0x10;
+    }
+    func_80103A18(arg0, mode, 0, 3);
+    temp  = (s8)func_800D937C(obj);
+    temp2 = (s8)func_800D9340(obj);
+    snd   = 7;
+    if ((u16)inner->field_96C == 1) {
+        snd = 6;
+    }
+    SndEvt_EnqueueType6(snd, temp, temp2);
+}
 
 void func_8010B210(GpActorWork* arg0)
 {

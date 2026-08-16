@@ -642,6 +642,11 @@ slot is occupied, else 0, then calls `func_801061F0`.
 
 ## Gameplay overlay (`include/gameplay/`)
 
+### `GpActorWork` — `3FB8.h`
+Task overlay: `actor` is `Task::idMap` at 0x1C; `extra` is `Task::extra` at
+0x2C (`GameActorExt*`). `func_8010B120` passes `extra->field_8` to
+`func_800D937C` / `func_800D9340` as a `GpObj38*`.
+
 ### `GpStateC08` (0x10) — `gameplay.h`
 Global at `D_80114C08`. Splat also emits per-byte labels (`D_80114C0A` / `D_80114C0B` / …)
 for the same block.

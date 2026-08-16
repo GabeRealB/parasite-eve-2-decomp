@@ -14925,4 +14925,39 @@ loses `li a0, 2` CSE into `field = 2`. The goto tree is required.
 
 `func_8010B348` is the example.
 
+## Assign consecutive call results before the branch that uses them
+
+When the target does `jal A` / `jal B` back-to-back and only *then*
+picks a later argument (`li a0,7; bne field,1; li a0,6`), writing the
+branch between the two calls (or leaving B as a call-argument expression)
+lets GCC hoist the compare into the slot after A:
+
+```
+jal    func_A
+...
+li     s0,7
+lhu    v1, field
+bne    v1,sN,skip
+sra    s1,v0,24
+li     s0,6
+jal    func_B
+```
+
+Assign both results first. The branch no longer sits between the jals, so
+B stays next to A and the `6`/`7` select happens after both returns:
+
+```c
+temp  = (s8)func_A(obj);
+temp2 = (s8)func_B(obj);
+snd   = 7;
+if ((u16)p->field == 1) {
+    snd = 6;
+}
+func_C(snd, temp, temp2);
+```
+
+`func_8010B120` is the example. Same pair as `func_801064A4`, but that
+helper takes the first `SndEvt` argument as a parameter so it never has
+this hoist.
+
 
