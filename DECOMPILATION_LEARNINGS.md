@@ -16680,4 +16680,46 @@ pinning them made the first `lw` use `$a0` instead of `$a3`. Assign
 CSE into `$t4`. `func_800BB838` is the example (sibling
 `func_800BAB64` is the same walk with a bank lookup in front).
 
+## Find-or-allocate: `if (found) goto update` inside the miss arm
+
+A table walk that keeps a match in `found`, then on miss scans for a
+free slot and finally mutates the chosen slot, looks like two
+independent `if`s:
+
+```c
+if (found == NULL) {
+    /* allocate */
+}
+if (found != NULL) {
+    found->timer = 0x14;
+    found->val += arg1;
+}
+```
+
+That second `if` rotates the alloc loop (peeled first load, `i` in
+`$t0` instead of `$a2`). The target is `bnez found, update` around
+the alloc scan, then `beqz found, return` into one shared tail.
+
+Write the update as the else of the miss test, and jump to it from
+inside the miss arm when alloc succeeds:
+
+```c
+if (found == NULL) {
+    /* alloc loop */
+    if (found != NULL) {
+        goto update;
+    }
+} else {
+update:
+    found->field_6 = 0x14;
+    found->field_4 += arg1;
+}
+```
+
+`func_800DA6E8` is the example. The follow-up `if (found != NULL)`
+form stuck at 75% with only that control-flow shape different. The
+first search also needs a goto-back loop (not `do`/`while`) so the
+first `lw 0(p)` is not peeled off `&D_80115270` — same anti-peel
+trick as `Text_SkipLines`.
+
 

@@ -403,7 +403,61 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9DFC);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DA2A0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DA6E8);
+void func_800DA6E8(void* arg0, s32 arg1)
+{
+    GpSlot70* found;
+    s32       i;
+    GpSlot70* p;
+
+    found = NULL;
+    i     = 0;
+    p     = D_80115270;
+loop:
+    if (p->field_0 == arg0) {
+        if (arg1 >= 0) {
+            if (p->field_4 >= 0) {
+                found = p;
+                goto done;
+            }
+            p++;
+        } else if (p->field_4 < 0) {
+            found = p;
+            goto done;
+        } else {
+            p++;
+        }
+    } else {
+        p++;
+    }
+    i++;
+    if (i < 0x20) {
+        goto loop;
+    }
+done:
+    if (found == NULL) {
+        i = 0;
+        p = D_80115270;
+    loop2:
+        if (p->field_0 == NULL) {
+            found          = p;
+            p->field_0     = arg0;
+            found->field_4 = 0;
+        } else {
+            i++;
+            p++;
+            if (i < 0x20) {
+                goto loop2;
+            }
+        }
+        if (found != NULL) {
+            goto update;
+        }
+    } else {
+    update:
+        found->field_6  = 0x14;
+        found->field_4 += arg1;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DA7B8);
 
