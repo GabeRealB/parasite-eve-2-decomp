@@ -42,13 +42,20 @@ typedef struct _GpCb54Tbl {
 /// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
 extern GpCb54Tbl* D_8010CB54[];
 
+/// Object pointed to by `GpCb68Rec.field_4`. Full size unknown.
+/// `func_800ACF8C` returns whether `field_2` is zero.
+typedef struct _GpCb68Obj {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+} GpCb68Obj;
+
 /// 12-byte per-view record in tables pointed to by `D_8010CB68`.
 /// Indexed 1-based by the `D_8010CB54` camera / view byte.
-/// `func_800AD2E8` returns `field_8`.
+/// `func_800AD2E8` returns `field_8`. `func_800ACF8C` reads `field_4`.
 typedef struct _GpCb68Rec {
-    /* 0x0 */ void* field_0;
-    /* 0x4 */ void* field_4;
-    /* 0x8 */ void* field_8;
+    /* 0x0 */ void*      field_0;
+    /* 0x4 */ GpCb68Obj* field_4;
+    /* 0x8 */ void*      field_8;
 } GpCb68Rec;
 STATIC_ASSERT_SIZEOF(GpCb68Rec, 0xC);
 
@@ -77,6 +84,7 @@ void func_800AB980(struct _GameSessionFrom4* arg0);
 void func_800ABE68(struct _GpActorArg* arg0, u16* arg1);
 void func_800ABEF8(s32 arg0);
 s32   func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32   func_800ACF8C(void);
 s32   func_800AD284(void);
 void* func_800AD2E8(void);
 

@@ -16476,4 +16476,28 @@ Assign dest from the table as `s32*` (not the block struct). A
 `func_80105914` is the example. The increment form stuck at 93.8%
 with only those two loads (and the two `move`s) swapped.
 
+## Share `i = x - 1` and hoist one array so both tables use `lw 0`
+
+Two external pointer tables indexed by the same `field - 1` fight over
+the subtract. `array[x - 1]` on a global is `addiu -1; sll 2; lw 0`.
+The same index through a hoisted `T** p = array` is `sll 2; lw -4`, so
+the scaled `(x-1)*4` is not CSE'd and a later `p[x - 1]` rematerialises
+the second base.
+
+Assign the decremented index once, add it onto the hoisted pointer
+immediately (keeps `&array[i]` live, load delayed), then index the
+other global with the same `i`:
+
+```c
+tbl68 = D_8010CB68;
+i     = sess->field_3 - 1;
+tbl68 = &tbl68[i];          /* addu a2, v1, a2 */
+tbl   = D_8010CB54[i];      /* addu v1, v1, v0; lw 0(v1) */
+...
+tbl2  = *tbl68;             /* delayed lw 0(a2) */
+```
+
+Direct `D_8010CB68[sess->field_3 - 1]` rematerialises that address
+later (`func_800AD2E8`). `func_800ACF8C` is the example.
+
 

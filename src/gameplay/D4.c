@@ -24,7 +24,6 @@ void func_800A9730(Task* task);
 void func_800AA548(s32 arg0);
 void func_800AE7AC(void);
 void func_800ACD2C(Task* task);
-s32  func_800ACF8C(void);
 void func_800AD024(void);
 void func_800AD620(Task* task);
 void func_800AD65C(Task* task);
@@ -620,7 +619,36 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ACD2C);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ACEBC);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ACF8C);
+s32 func_800ACF8C(void)
+{
+    GameSession*      session;
+    GameSessionFrom4* sess;
+    GpCb68Tbl**       tbl68;
+    s32               i;
+    GpCb54Tbl*        tbl;
+    u8***             mid;
+    u8**              inner;
+    u8*               bytes;
+    u8                idx;
+    GpCb68Tbl*        tbl2;
+    GpCb68Rec**       mid2;
+    GpCb68Rec*        recs;
+
+    session = Game_Session;
+    tbl68   = D_8010CB68;
+    sess    = (GameSessionFrom4*)&session->field_4;
+    i       = sess->field_3 - 1;
+    tbl68   = &tbl68[i];
+    tbl     = D_8010CB54[i];
+    mid     = tbl->field_0;
+    inner   = mid[sess->field_2 - 1];
+    bytes   = inner[sess->field_1 - 1];
+    idx     = bytes[sess->field_0 - 1];
+    tbl2    = *tbl68;
+    mid2    = tbl2->field_0;
+    recs    = mid2[sess->field_2 - 1];
+    return recs[idx - 1].field_4->field_2 == 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD024);
 
