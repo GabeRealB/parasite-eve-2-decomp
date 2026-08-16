@@ -176,7 +176,26 @@ s32 func_800D9618(void)
     return count;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9654);
+s32 func_800D9654(GameSessionFrom4* arg0)
+{
+    GpCbA4Rec** mid;
+    GpCbA4Rec*  rec;
+    s32         result;
+
+    result = 0;
+    mid    = D_8010CBA4[arg0->field_3 - 1];
+    rec    = NULL;
+    if (mid != NULL) {
+        rec = mid[arg0->field_2 - 1];
+        if (rec != NULL) {
+            rec = &rec[arg0->field_1 - 1];
+        }
+    }
+    if (rec != NULL) {
+        result = rec->field_0;
+    }
+    return result;
+}
 
 void func_800D96C8(Task* arg0)
 {

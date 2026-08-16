@@ -414,6 +414,7 @@ void  func_800D94B8(SVECTOR* arg0);
 void  func_800D9504(SVECTOR* arg0);
 void  func_800D9550(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3);
 s32   func_800D9618(void);
+s32   func_800D9654(GameSessionFrom4* arg0);
 void  func_800D96C8(Task* arg0);
 s32   func_800D9718(GpObj44* arg0);
 s32   func_800D9788(GpObj38* arg0);
