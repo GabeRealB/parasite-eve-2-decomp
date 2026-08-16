@@ -31,6 +31,8 @@ extern char         D_8010E554[];
 extern char         D_8010E558[];
 extern char         D_8010E55C[];
 extern char         D_8010F8D0[];
+extern UiObjectDesc D_8010EAD0;
+extern UiObjectDesc D_8010EB94;
 extern UiObjectDesc D_8010EE6C;
 extern UiObjectDesc D_8010EE88;
 extern UiObjectDesc D_8010EFA0;
@@ -339,7 +341,28 @@ s32 func_800CE3A4(void)
     return D_80114D88;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE3B4);
+void func_800CE3B4(UiObject* arg0, Task* arg1)
+{
+    void* mem;
+    s32   scale;
+
+    Wip_UiHolder = (WipUiHolder*)arg0;
+    mem          = Mem_Calloc(4, 0);
+    if (mem != NULL) {
+        arg1->idMap = mem;
+        if (Game_Session->field_66 == 1) {
+            func_800CDEF4();
+            Ui_SpawnFromDesc(&D_8010EB94, 0, 1, 8, arg0);
+            scale = 2;
+        } else {
+            Ui_SpawnFromDesc(&D_8010EAD0, 0, 1, 8, arg0);
+            scale = 1;
+        }
+        Ui_UpdateLayoutSize((UiPanel*)arg0, 0, Ui_Scale15(scale) + 1);
+        arg0->field_E = 0x68 - arg0->field_12;
+        arg1->state   = arg1->state + 1;
+    }
+}
 
 void func_800CE498(Task* arg0)
 {

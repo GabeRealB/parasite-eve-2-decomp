@@ -47,7 +47,9 @@ typedef struct _GameSession {
     s16   field_52;
     byte  unknown_54[0xB];
     u8    field_5F; // skip-gate for func_800E74EC overlay-wait setup
-    byte  unknown_60[8];
+    byte  unknown_60[6];
+    u8    field_66; // 1: func_800CE3B4 uses D_8010EB94 + Ui_Scale15(2)
+    byte  unknown_67;
     u8    field_68; // set/cleared by func_800E7378 / func_800E73E8 / func_800E7434
     u8    field_69; // bit 0x2: skip SndEvt_EnqueueType2(0, 0xB4) on last GpStateF0 ref
     byte  unknown_6A[0xA];
