@@ -2625,6 +2625,25 @@ sp.funcs[temp->field_8](temp, arg0);
 Six entries still multi-load in two groups of three (`lw`/`sw` at 0/4/8 then
 0xC/0x10/0x14).
 
+A store between the copy and the indexed call will steal `$a1` from the
+3-word multi-load (copy becomes `t1`/`a2`/`a3`/`t0`) and sink into the
+`jalr` delay slot, leaving `move a0,s0` as a real instruction. `do { flag = 1; }
+while (0)` pins the store but rematerializes the local table as
+`lw 0x10(sp+idx)` instead of `addiu v1,sp,0x10` / `lw 0(v1)`. A memory clobber
+keeps the `addiu` form but issues it *before* `lw task->state`.
+
+Make both the flag store and the index load volatile so they stay in source
+order; `addiu v1,sp,0x10` then fills the load delay slot:
+
+```c
+*(volatile u8*)&flag = 1;
+sp.funcs[((volatile Task*)task)->state](task);
+```
+
+`func_800AC0F0` is the example (`D_801153F4` + `GameFlow_DispatchTable` shape).
+Do not flip the global to `volatile` just for this — other writers of the same
+byte already match with a plain store.
+
 ## `while (j < n)` vs `if (n) do{}while` for counter/dest reg pair
 
 A byte-copy loop that increments both a counter and a destination pointer can
