@@ -646,7 +646,33 @@ s32 func_800BB974(GameSessionFrom4* arg0, s32 arg1)
     return (word & (3 << shift)) >> shift;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB9B8);
+void func_800BB9B8(void)
+{
+    GpCoordYaw*   coord;
+    WipSysPos*    p;
+    s32           angle;
+    s32           temp;
+    WipSysConfig* cfg;
+    McSaveData*   save;
+
+    coord      = (GpCoordYaw*)((GameActorExt*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    temp       = coord->field_18;
+    p          = &Wip_SysConfig.field_10;
+    p->field_0 = temp;
+    p->field_2 = coord->field_1C;
+    p->field_4 = coord->field_20;
+    angle      = ratan2(coord->field_8, coord->field_14);
+    p->field_6 = angle;
+    if ((s16)angle >= 0x801) {
+        p->field_6 = angle - 0x1000;
+    } else if ((s16)angle < -0x800) {
+        p->field_6 = angle + 0x1000;
+    }
+    cfg            = &Wip_SysConfig;
+    save           = &Mc_SaveData;
+    save->field_14 = cfg->field_8;
+    save->field_18 = cfg->field_C;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBA70);
 

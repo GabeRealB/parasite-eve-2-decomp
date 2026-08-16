@@ -15711,4 +15711,37 @@ the words with inline `.section .rodata` / `.globl` in the C file — a C
 later tables; a hand-written `.s` under `nonmatchings/` is deleted on the next
 `ninja_config.py` splat.
 
+## Nested mid-struct object so `%lo(sym+off)` wins against a later `&sym`
+
+When the target stores a mid-struct halfword block as
+
+```
+lhu    v0, src
+lui    a0, %hi(Global)
+sh     v0, %lo(Global+0x10)(a0)
+lhu    v0, src2
+addiu  s0, a0, %lo(Global+0x10)
+sh     v0, 2(s0)
+```
+
+and later rematerializes `&Global` for other fields, a flat
+`Global.field_10 = x` plus `p = &Global.field_10` CSEs with that later
+`cfg = &Global` and emits `addiu v0, %lo(Global); sh 0x10(v0); addiu s0, v0, 0x10`.
+
+Nest the block as its own struct at that offset. Load the first halfword into
+an `s32` temp, then take the nested address and store through it:
+
+```c
+temp = coord->field_18;          /* lhu v0; lui cannot sneak in first */
+p = &Wip_SysConfig.field_10;     /* nested WipSysPos */
+p->field_0 = temp;               /* sh %lo(Wip_SysConfig+0x10) */
+p->field_2 = coord->field_1C;
+...
+cfg = &Wip_SysConfig;            /* later, separate lui/addiu of the base */
+save->field_14 = cfg->field_8;
+```
+
+`func_800BB9B8` is the example. The same stores as four bare `s16` fields
+stuck at 90% with only the `addiu`/`%lo` addressing different.
+
 

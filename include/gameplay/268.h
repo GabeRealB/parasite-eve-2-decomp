@@ -64,6 +64,24 @@ typedef struct _GpBit2Bank {
 } GpBit2Bank;
 STATIC_ASSERT_SIZEOF(GpBit2Bank, 0x8);
 
+/// Overlay of `GsCOORDINATE2` at `GameActorExt.field_8` used by `func_800BB9B8`.
+/// field_8 / field_14 are `coord.m[0][2]` / `coord.m[2][2]` (`lh` into
+/// `ratan2`); field_18 / field_1C / field_20 are the low 16 bits of
+/// `coord.t[0..2]` (`lhu`).
+typedef struct _GpCoordYaw {
+    /* 0x00 */ byte pad_0[8];
+    /* 0x08 */ s16  field_8;
+    /* 0x0A */ byte pad_A[0xA];
+    /* 0x14 */ s16  field_14;
+    /* 0x16 */ byte pad_16[2];
+    /* 0x18 */ u16  field_18;
+    /* 0x1A */ byte pad_1A[2];
+    /* 0x1C */ u16  field_1C;
+    /* 0x1E */ byte pad_1E[2];
+    /* 0x20 */ u16  field_20;
+} GpCoordYaw;
+STATIC_ASSERT_SIZEOF(GpCoordYaw, 0x22);
+
 /// 8-byte item attribute row. `D_8010DFB8` is indexed by raw item id
 /// (`func_800BC324`); ids 0x60–0x7F land in the `D_8010E2B8` slice.
 /// field_5 is the unsigned base added to `Mc_SaveData.field_908[id-0x60]`

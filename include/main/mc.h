@@ -115,7 +115,8 @@ typedef struct _McSaveData {
     /* 0x011 */ byte       unknown_11;
     /* 0x012 */ u8         field_12;
     /* 0x013 */ s8         field_13; // 1-based index into D_80113360
-    /* 0x014 */ byte       unknown_14[0x8];
+    /* 0x014 */ s32        field_14; // Wip_SysConfig.field_8 (`func_800BB9B8`)
+    /* 0x018 */ s32        field_18; // Wip_SysConfig.field_C (`func_800BB9B8`)
     /* 0x01C */ u16        field_1C;
     /* 0x01E */ u16        field_1E;
     /* 0x020 */ byte       unknown_20[0x1];
