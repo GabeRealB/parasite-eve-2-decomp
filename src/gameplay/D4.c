@@ -219,7 +219,28 @@ void func_800A99E0(Task* task)
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9A40);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9B3C);
+void func_800A9B3C(s32 arg0)
+{
+    u8     param1[8];
+    u8     param2[8];
+    GpTbl5 table;
+
+    table = D_800938CC;
+    if (Mc_SaveData.field_22 != 0) {
+        param1[3] = 0;
+        param1[2] = 1;
+        param1[0] = 0;
+        param2[0] = table.field_0[Wip_SysConfig.field_26 - 1];
+        if ((u8)arg0 == 0) {
+            param2[1] = 0;
+        } else {
+            param2[1] = 5;
+        }
+        param2[2] = 6;
+        param2[3] = 0;
+        CdCmd_Enqueue(0x21, param1, param2);
+    }
+}
 
 void func_800A9BE4(void)
 {

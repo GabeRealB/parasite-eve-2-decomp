@@ -15861,4 +15861,33 @@ if (node != arg1) {
 arg1->field_5 = flag;
 ```
 
+## Overlay header rodata: copy the symbol, do not re-emit a local initializer
+
+A 5-byte `lwl`/`lwr`/`lb` + `swl`/`swr`/`sb` stack copy is struct
+assignment of a `u8[5]` object. A local initializer
+
+```c
+u8 table[5] = { 4, 3, 2, 5, 6 };
+```
+
+matches the body (scratch score ~99.8%) but emits *new* `.rodata` in the
+C TU. On the gameplay overlay that data already lives in
+`header.rodata.s` (`D_800938CC`); extra bytes from `D4.c.o(.rodata)`
+land after the pre-split rodata and shift `.text`.
+
+Type the existing symbol and assign it:
+
+```c
+typedef struct {
+    u8 field_0[5];
+} GpTbl5;
+
+extern GpTbl5 D_800938CC;
+GpTbl5        table;
+
+table = D_800938CC; /* lwl/lwr/lb of D_800938CC */
+```
+
+`func_800A9B3C` is the example.
+
 

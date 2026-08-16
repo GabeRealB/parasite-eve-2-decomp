@@ -42,6 +42,16 @@ typedef struct _GpCb54Tbl {
 /// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
 extern GpCb54Tbl* D_8010CB54[];
 
+/// 5-byte table at `D_800938CC`. `func_800A9B3C` copies it to the stack and
+/// indexes it 1-based by `Wip_SysConfig.field_26`; the byte is CdCmd 0x21
+/// param2[0].
+typedef struct _GpTbl5 {
+    /* 0x0 */ u8 field_0[5];
+} GpTbl5;
+STATIC_ASSERT_SIZEOF(GpTbl5, 5);
+
+extern GpTbl5 D_800938CC;
+
 void func_800A954C(Task* task);
 void func_800A9DF0(Task* task);
 void func_800AB980(struct _GameSessionFrom4* arg0);
