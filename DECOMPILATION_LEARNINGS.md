@@ -14891,4 +14891,38 @@ so `move a1, s0` fills that `beqz` delay slot. `func_800BF2C8` is the
 helper; `func_800BD2FC` and `func_800BCC44` inline the same walk with
 `func_800BF398` / `func_800BC634`.
 
+## Snapshot `(u16)s32` before an early-out so `lhu` fills the load delay
+
+When the target does
+
+```
+lhu   v0, field_a(s0)
+lhu   v1, field_b(a1)
+bnez  v0, skip
+li    a0, 2
+```
+
+and later `lw a0, field_b(a1)` for a call, the 16-bit switch value and the
+32-bit call argument are *separate* accesses. Reading `(u16)arg1->field`
+only inside the `if` (especially after a store to another object) is an
+aliasing barrier: you get `nop; bnez` and a late `lhu`.
+
+Assign the discriminator to a `u32` *before* the early-out. The `lhu`
+schedules next to the other field load; the later `lw` of the same s32
+stays a distinct access.
+
+```c
+kind = (u16)arg1->field_4; /* lhu, hoisted */
+if ((u16)inner->field_96C == 0) {
+    inner->field_993 = arg2; /* sb sits in the first beq delay slot */
+    /* == 2 / < 3 / == 3 / != 4 tree — see "explicit decision tree" */
+    inner->field_96E = func(arg1->field_4, 0); /* lw */
+}
+```
+
+A `switch (kind)` on that temp still pivots at the median (`== 3`) and
+loses `li a0, 2` CSE into `field = 2`. The goto tree is required.
+
+`func_8010B348` is the example.
+
 

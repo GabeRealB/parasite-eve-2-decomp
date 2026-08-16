@@ -65,6 +65,8 @@ STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 
 /// Record whose word at 0x4 is the id `func_8010B2D4` passes to
 /// `func_800E2438` (and `func_8010B348` passes to `func_800E2CD4`).
+/// `func_8010B348` also switches on the low 16 bits (2/4 vs 3) before
+/// that call.
 typedef struct _GpIdRec {
     /* 0x0 */ byte pad_0[4];
     /* 0x4 */ s32  field_4;

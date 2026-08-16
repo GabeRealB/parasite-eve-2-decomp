@@ -1653,7 +1653,48 @@ void func_8010B2D4(GpActorWork* arg0, GpIdRec* arg1, s32 arg2)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B348);
+void func_8010B348(GpActorWork* arg0, GpIdRec* arg1, s32 arg2)
+{
+    GameActor* inner;
+    u32        kind;
+
+    inner = arg0->actor;
+    kind  = (u16)arg1->field_4;
+    if ((u16)inner->field_96C == 0) {
+        inner->field_993 = arg2;
+        if (kind == 2) {
+            goto case24;
+        }
+        if (kind < 3) {
+            goto do_call;
+        }
+        if (kind == 3) {
+            goto case3;
+        }
+        if (kind != 4) {
+            goto do_call;
+        }
+    case24:
+        arg2 = (u16)arg2;
+        if (arg2 == 1) {
+            inner->field_96C = arg2;
+        } else {
+            inner->field_96C = 2;
+        }
+        inner->field_972 = 5;
+        goto do_call;
+    case3:
+        arg2 = (u16)arg2;
+        if (arg2 == 1) {
+            inner->field_96C = arg2;
+        } else {
+            inner->field_96C = 2;
+        }
+        inner->field_972 = 0;
+    do_call:
+        inner->field_96E = func_800E2CD4(arg1->field_4, 0);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B3F8);
 
