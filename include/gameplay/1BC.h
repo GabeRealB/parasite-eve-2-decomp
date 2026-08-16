@@ -193,6 +193,7 @@ void       func_800B56AC(void);
 void       func_800B57EC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
 GpWorkObj* func_800B584C(u16 arg0);
 void       func_800B58D4(TmdObject* arg0, s32 arg1, s32 arg2);
+void       func_800B5914(s32 arg0);
 s32        func_800B59A8(GpAreaKey* arg0);
 GpAreaObj* func_800B5A08(GpAreaKey* arg0);
 void       func_800B5A48(GpAreaKey* arg0, GpAreaObj* arg1);
