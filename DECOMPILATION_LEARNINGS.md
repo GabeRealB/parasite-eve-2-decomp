@@ -15767,4 +15767,30 @@ if (temp == 0) {
 `func_80108770` is the example. `inner->field_97E = inner->field_973` (or
 `= 1`) stuck at 95% with an extra `lbu` and inverted `field_975` polarity.
 
+## Access a pointer field per block so temps stay in `$v1` / `$a1`
+
+A function-scope `Task* task` is coalesced into `$a0` for every
+`field_914` load. The target instead uses a fresh scratch in each arm
+(`$v1` on a NULL-check store, `$a1` when a sibling `s32 value` occupies
+`$a0`, `$v1` again on a read-modify-write).
+
+Write `actor->field_914` at each use. Combined with the usual
+assign-default-then-overwrite (`value = 1; if (p->spawnArg1 == 2) value = 3;`),
+the 1/3 path becomes `lw a1; bne; li a0,1; li a0,3; sw a0,0x34(a1)`:
+
+```c
+if (actor->field_914 != NULL) {
+    actor->field_914->spawnArg1 = -1; /* lw v1; sw v0,0x34(v1) */
+}
+/* ... */
+value = 1;
+if (actor->field_914->spawnArg1 == 2) {
+    value = 3;
+}
+actor->field_914->spawnArg1 = value;
+```
+
+`func_80106350` is the example. A shared `task` local stuck at 99.4% with
+only `$a0`/`$a1` swapped on that path and `$a0` on the 0x16 NULL check.
+
 

@@ -985,7 +985,48 @@ s32 func_801062DC(GpActorWork* arg0, s32 arg1)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106350);
+void func_80106350(GpActorWork* arg0, s32 arg1, s32 arg2)
+{
+    GameActor* actor;
+    s32        value;
+
+    actor = arg0->actor;
+    if (arg1 == 0x16) {
+        if (actor->field_914 != NULL) {
+            actor->field_914->spawnArg1 = -1;
+        }
+        SndEvt_EnqueueType7(0x20160003, 0);
+        SndEvt_EnqueueType7(0x20160004, 0);
+        SndEvt_EnqueueType7(0x20160005, 0);
+    } else if (arg1 == 0x19) {
+        if (actor->field_914 != NULL) {
+            if (func_800B6DA4(0x98, 0x100) != 0) {
+                actor->field_914->spawnArg1 = 1;
+            } else {
+                actor->field_914->spawnArg1 = 0;
+            }
+        }
+    } else if (arg1 == 0x1C) {
+        if (actor->field_914 != NULL) {
+            if (func_800B6DA4(0x9B, 0x100) != 0) {
+                value = 1;
+                if (actor->field_914->spawnArg1 == 2) {
+                    value = 3;
+                }
+                actor->field_914->spawnArg1 = value;
+            } else {
+                actor->field_914->spawnArg1 = (actor->field_914->spawnArg1 == 2) << 2;
+            }
+            if (actor->field_910 == NULL) {
+                SndEvt_EnqueueType7(0x201C0005, 0);
+            } else {
+                SndEvt_EnqueueType7(0x40680002, 0);
+            }
+        }
+    }
+    actor->field_97E  = 1;
+    actor->field_12A &= 0x3FFF;
+}
 
 void func_801064A4(GpObj38* arg0, s32 arg1, s32 arg2)
 {
