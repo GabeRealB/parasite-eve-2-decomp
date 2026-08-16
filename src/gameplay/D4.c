@@ -43,6 +43,7 @@ extern u8             D_80114CDA;
 extern u8             D_80114CDB;
 extern u8             D_80114CDC;
 extern s32            D_80114CF0;
+extern s16            D_80114CF4;
 extern u16            D_80114CF6;
 extern u8             D_80114CF8;
 
@@ -623,7 +624,27 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD6BC);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ADA04);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ADE74);
+void func_800ADE74(void)
+{
+    void* slot;
+    u8    fade;
+
+    slot = Game_GetPtrSlot(3);
+    if (*(s16*)&D_80114CF6 != 0) {
+        fade = *(u8*)&D_80114CF6;
+        Fade_DrawOverlay(fade, fade, fade, 2);
+        D_80114CF6 += 0x1E;
+        if ((s16)D_80114CF6 >= 0x100) {
+            D_80114CF6 = 0xFF;
+        }
+    }
+    if (func_800AC464(slot, 0x3F0, 0, 0) == 0) {
+        if (D_80114CF4 != 0) {
+            D_801153F4 = 1;
+        }
+        D_80114CD6++;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ADF3C);
 
