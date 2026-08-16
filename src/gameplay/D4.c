@@ -33,6 +33,7 @@ void func_80724748(GameSessionFrom4* arg0);
 extern TaskDesc       D_80183824[];
 extern TaskFuncTable6 D_800938B4;
 extern TaskFuncTable3 D_80093918;
+extern TaskFuncTable8 D_80093924;
 extern TaskFuncTable3 D_80093944;
 extern u16            D_80114CD2;
 extern u16            D_80114CD4;
@@ -455,7 +456,25 @@ void func_800AC164(Task* task)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AC25C);
+void func_800AC25C(Task* task)
+{
+    TaskFuncTable8 sp;
+    DisplayState*  ds;
+
+    sp = D_80093924;
+    Pad_SetCooldown(0);
+    ds = &Display_State;
+    if (ds->field_12c != 0) {
+        if (Pad_ReadButtonsInv(0) & 0x800) {
+            if (CdCmd_IsIdle() & 0xFFFF) {
+                Wip_SysFlags.field_4 = 1;
+                ds->field_11e        = 1;
+                return;
+            }
+        }
+    }
+    sp.funcs[task->state](task);
+}
 
 void func_800AC344(Task* task)
 {
