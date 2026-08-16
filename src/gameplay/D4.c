@@ -30,6 +30,7 @@ void func_800AD65C(Task* task);
 void func_80724748(GameSessionFrom4* arg0);
 
 extern TaskDesc       D_80183824[];
+extern TaskFuncTable6 D_800938B4;
 extern TaskFuncTable3 D_80093918;
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9310);
@@ -126,7 +127,18 @@ void func_800A9730(Task* task)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A97DC);
+void func_800A97DC(Task* task)
+{
+    TaskFuncTable6 sp;
+
+    sp = D_800938B4;
+    Pad_SetCooldown(0);
+    if (task->state < 0) {
+        func_800A9730(task);
+    } else {
+        sp.funcs[task->state](task);
+    }
+}
 
 void func_800A987C(void)
 {
