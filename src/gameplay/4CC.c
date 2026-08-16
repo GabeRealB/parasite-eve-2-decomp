@@ -5,6 +5,7 @@
 #include "gameplay/268.h"
 #include "gameplay/4CC.h"
 #include "main/task.h"
+#include "main/text.h"
 #include "main/ui.h"
 
 INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BC634);
@@ -117,7 +118,29 @@ void func_800BF464(Task* arg0)
     Ui_UpdateListNoAnim(menu, obj);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BF4FC);
+void func_800BF4FC(Task* arg0)
+{
+    UiObject* obj;
+    s32       val;
+    s32       color;
+    s32       one;
+    u8*       text;
+
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    if (arg0->state == 0) {
+        Wip_UiHolder = (WipUiHolder*)obj;
+        arg0->state += 1;
+    }
+    val = arg0->spawnArg1;
+    if (val != 0) {
+        color = 0x606060;
+        one   = 1;
+        Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, (u8*)val, color, one, 0);
+        text = Text_SkipLines((u8*)val, one);
+        Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0x1E, text, color, one, 0);
+    }
+}
 
 s32 func_800BF5CC(Task* arg0, s32 arg1, GpItemObj2* arg2)
 {

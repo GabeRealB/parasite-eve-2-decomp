@@ -16250,4 +16250,27 @@ if (arg0 == 0) {
 `func_8010A1B0` is the example. `flags = arg1; ... &= ~flags` stuck at
 99.969% with only that `nor` source swapped.
 
+## Split `spawnArg1` (`s32 val`) from the `Text_SkipLines` result
+
+A two-line prompt (`Text_DrawPrompt` / `Text_SkipLines` / `Text_DrawPrompt`)
+that keeps the string in one `u8* text` — assign from `spawnArg1`, then
+`text = Text_SkipLines(text, one)` — is 98.9% with only `$s2`/`$s3` swapped:
+the `UiObject*` lands in `$s3` and the string in `$s2`. The target wants the
+object in `$s2` and the string in `$s3`.
+
+Keep `spawnArg1` as an `s32 val` used only through the first draw + skip, and
+a separate `u8* text` for the skip result (same shape as `func_800CE4F4`):
+
+```c
+val = arg0->spawnArg1;
+if (val != 0) {
+    Text_DrawPrompt(..., (u8*)val, ...);
+    text = Text_SkipLines((u8*)val, one);
+    Text_DrawPrompt(..., text, ...);
+}
+```
+
+`register UiObject* obj asm("s2")` also matches, but the split temps are
+enough. `func_800BF4FC` is the example.
+
 

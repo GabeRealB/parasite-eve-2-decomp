@@ -51,6 +51,10 @@ extern UiList D_8010D6B4;
 void func_800BF2C8(UiObject* arg0, void (*arg1)(UiObject*, Task*));
 s32  func_800BF334(s32 arg0, s32 arg1);
 void func_800BF464(Task* arg0);
+/// Task callback. `spawnArg2` is the `UiObject`; on first run it is published
+/// as `Wip_UiHolder`. `spawnArg1` is a text pointer; when non-zero, two prompt
+/// lines are drawn at `field_18 + 0xF` / `+ 0x1E` in color `0x606060`.
+void func_800BF4FC(Task* arg0);
 s32  func_800BF5CC(Task* arg0, s32 arg1, GpItemObj2* arg2);
 
 #endif // GAMEPLAY_4CC_H
