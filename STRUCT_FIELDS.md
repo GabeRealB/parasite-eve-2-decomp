@@ -526,6 +526,7 @@ See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 | 0x4C | `field_4C` | Init flag |
 | 0x4E | `field_4E` | Set by `Fs_LoadFile` for category-8 |
 | 0x52 | `field_52` | s16 cleared by `func_800A9730` when `spawnArg1 == 0` |
+| 0x58 | `field_58` | u16 current pad/button mask (`lhu`); `func_80103804` copies it onto `GameActor.field_962` |
 | 0x5F | `field_5F` | u8 flag; nonzero makes `func_800E74EC` skip overlay-wait timer setup |
 | 0x64 | `field_64` | u8 flag; nonzero makes `func_800AD5B8` / `func_800AD50C` skip their state dispatch |
 | 0x66 | `field_66` | u8; 1 makes `func_800CE3B4` spawn `D_8010EB94` and scale with `Ui_Scale15(2)` (else `D_8010EAD0` / scale 1) |
@@ -596,11 +597,14 @@ slot 3; `func_80106238` replaces bits 14–15 with `(arg1 << 1) | arg2`.
 `field_95A`/`field_95C` are u16s in that same cluster (`func_80109818` writes `field_95C = 5`);
 `field_95E` is a u16 phase (`lhu`/`sh`); `func_8010ABD4` only runs the `func_8010AB70` body when it is 1;
 `field_960` is a u16 (`sh`) previous `field_956` saved by `func_80109290`;
-`field_962` is a u16 button mask (`lhu`); `func_80109250` maps D-pad up/down (`0x5000` / `0x4000`) onto `field_973` as `+1`/`-1`/`0`;
-`field_966` is a u16 flag word (`lhu`); `func_80104A4C` sets `WipSysConfig.field_24` when bit `0x20` is set and `field_954`/`field_956` are idle;
+`field_962` is a u16 button mask (`lhu`); `func_80103804` copies `GameSession.field_58` here after saving the previous value to `field_964`; `func_80109250` maps D-pad up/down (`0x5000` / `0x4000`) onto `field_973` as `+1`/`-1`/`0`;
+`field_964` is a u16 previous `field_962`; `func_80103804` writes newly pressed bits to `field_966` (`field_962 & ~field_964`) and released bits to `field_968` (`field_964 & ~field_962`);
+`field_966` is a u16 newly-pressed mask (`lhu`); `func_80104A4C` sets `WipSysConfig.field_24` when bit `0x20` is set and `field_954`/`field_956` are idle;
+`field_968` is a u16 newly-released mask;
 `field_96C`/`field_96E` are s16s cleared with `field_972` by `func_8010B210` (called from `func_8010A42C` case 2);
 `func_8010A9D0` compares `field_96C` as `u16` (`lhu`) against 1 and passes `0x10` or `0x11` to `func_80103A18`;
 `field_973`/`field_974` and `field_975`/`field_976` are signed-byte pairs compared by `func_80108568` (first mismatch → `func_80108770(..., 4)`; second mismatch only when `field_973 == 0` → `func_80108684`);
+`func_80103804` snapshots each pair (`974=973`, `976=975`, `978=977`) before overwriting `field_977` with bit 6 of the new `field_962`;
 `field_97C` is a signed flag byte (`lb`/`sb`); `func_80108FD4` / `func_80108458` clear it before `func_80108E0C` or `func_80103B5C`;
 `field_97D` is a flag byte (`lbu`/`sb`); `func_80109374` writes 1 when `field_962`
 bit 0x80 is set, `D_80114C08.field_3 == 0`, `Wip_SysConfig.field_21 != 0`, and

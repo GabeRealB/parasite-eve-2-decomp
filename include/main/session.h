@@ -45,7 +45,9 @@ typedef struct _GameSession {
     u16   field_4E; // set to 1 by Fs_LoadFile for category-8 file ids
     byte  unknown_50[2];
     s16   field_52;
-    byte  unknown_54[0xB];
+    byte  unknown_54[4];
+    u16   field_58; // current pad mask; func_80103804 copies this onto GameActor.field_962
+    byte  unknown_5A[5];
     u8    field_5F; // skip-gate for func_800E74EC overlay-wait setup
     byte  unknown_60[4];
     u8    field_64; // nonzero: func_800AD5B8 / func_800AD50C skip their state dispatch
@@ -205,9 +207,10 @@ typedef struct _GameActor {
     /* 0x95E */ u16                 field_95E;
     /* 0x960 */ u16                 field_960;
     /* 0x962 */ u16                 field_962;
-    /* 0x964 */ byte                pad_964[2];
+    /* 0x964 */ u16                 field_964; // previous field_962
     /* 0x966 */ u16                 field_966;
-    /* 0x968 */ byte                pad_968[4];
+    /* 0x968 */ u16                 field_968; // released buttons: field_964 & ~field_962
+    /* 0x96A */ byte                pad_96A[2];
     /* 0x96C */ s16                 field_96C;
     /* 0x96E */ s16                 field_96E;
     /* 0x970 */ s16                 field_970;

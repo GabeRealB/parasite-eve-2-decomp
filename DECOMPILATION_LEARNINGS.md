@@ -15282,4 +15282,27 @@ while (1) {
 A `for (; cond; slot++)` or `while (cond) slot++;` stuck at ~79% with only
 that loop inverted. `func_800E1C58` is the example.
 
+## Reload the stored field for later `~` / `& 1`, not the source temp
+
+After `field = src;` a later `field & ~other` / `(field >> K) & 1` must read
+*the field*, not `src`. Keeping `src` in a temp lets CSE skip the `move` that
+copies the value before `and` clobbers it; the extra live register then hoists
+an unrelated byte load and the `& 1` rematerializes as a bare `andi` in the
+wrong slot.
+
+Use the stored field for both bitwise ops, and route the `1` through an `s32`
+temp (same wider-constant rule as the CSE entry above):
+
+```c
+buttons          = session->field_58;
+actor->field_962 = buttons;
+actor->field_966 = actor->field_962 & ~actor->field_964;
+actor->field_968 = actor->field_964 & ~actor->field_962;
+flag             = 1;
+actor->field_977 = (actor->field_962 >> 6) & flag;
+```
+
+`actor->field_966 = buttons & ~actor->field_964` (and a literal `& 1`) stuck
+at 84% with only that register move missing. `func_80103804` is the example.
+
 
