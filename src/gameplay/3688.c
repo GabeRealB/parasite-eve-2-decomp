@@ -72,6 +72,7 @@ extern s32          D_8005ED74;
 extern s32          D_8005ED78;
 extern char         D_8009701C[];
 extern char         D_800971D0[];
+extern char         D_80097200[];
 extern char         D_80097224[];
 extern UiObject*    D_80067634;
 extern void         (*D_8010D3A0[])(UiObject*, Task*);
@@ -1387,7 +1388,28 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D540C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D5520);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D5648);
+void func_800D5648(Task* arg0)
+{
+    UiObject* obj;
+    s32       spawnArg;
+    s32       saved;
+    s32       y;
+    u8*       text;
+
+    obj           = arg0->spawnArg2;
+    spawnArg      = arg0->spawnArg1;
+    saved         = obj->status;
+    obj->field_2E = 0;
+    obj->status   = 1;
+    Ui_DrawText((UiPanel*)obj, D_80097200);
+    obj->status = saved;
+    func_800D3D98(obj, spawnArg, 1);
+    y    = *(s16*)&obj->field_1A;
+    text = func_800B8EB0(spawnArg + 1, 1, 1);
+    Text_DrawPrompt(obj, obj->field_1C + 2, y - 0xF, text, 0x606060, 3, 0);
+    text = func_800B8EB0(spawnArg + 1, 2, 1);
+    Text_DrawPrompt(obj, obj->field_1C + 2, y, text, 0x606060, 3, 0);
+}
 
 void func_800D573C(Task* arg0)
 {
