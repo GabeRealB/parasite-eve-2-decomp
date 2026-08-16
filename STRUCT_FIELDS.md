@@ -527,6 +527,7 @@ See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 | 0x4E | `field_4E` | Set by `Fs_LoadFile` for category-8 |
 | 0x52 | `field_52` | s16 cleared by `func_800A9730` when `spawnArg1 == 0` |
 | 0x5F | `field_5F` | u8 flag; nonzero makes `func_800E74EC` skip overlay-wait timer setup |
+| 0x64 | `field_64` | u8 flag; nonzero makes `func_800AD5B8` / `func_800AD50C` skip their state dispatch |
 | 0x66 | `field_66` | u8; 1 makes `func_800CE3B4` spawn `D_8010EB94` and scale with `Ui_Scale15(2)` (else `D_8010EAD0` / scale 1) |
 | 0x68 | `field_68` | u8 flag; set to 1 by `func_800E7378` and cleared by `func_800E73E8` / `func_800E7434` when `D_8007218B != 9` |
 | 0x69 | `field_69` | u8 flags; bit 0x2 skips `SndEvt_EnqueueType2(0, 0xB4)` when the last `GpStateF0.field_6` ref is released |

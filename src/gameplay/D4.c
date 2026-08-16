@@ -25,6 +25,8 @@ void func_800AE7AC(void);
 void func_800ACD2C(Task* task);
 s32  func_800ACF8C(void);
 void func_800AD024(void);
+void func_800AD620(Task* task);
+void func_800AD65C(Task* task);
 void func_80724748(GameSessionFrom4* arg0);
 
 extern TaskDesc       D_80183824[];
@@ -493,7 +495,14 @@ void func_800AD58C(Task* task)
     Task_Kill(task);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD5B8);
+void func_800AD5B8(Task* task)
+{
+    TaskFunc funcs[2] = { func_800AD620, func_800AD65C };
+
+    if (Game_Session->field_64 == 0) {
+        funcs[task->state](task);
+    }
+}
 
 void func_800AD620(Task* task)
 {
