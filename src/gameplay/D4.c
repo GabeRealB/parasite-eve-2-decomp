@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/268.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -28,6 +29,7 @@ void func_800AD024(void);
 void func_800AD620(Task* task);
 void func_800AD65C(Task* task);
 void func_80724748(GameSessionFrom4* arg0);
+void func_80724E2C(void);
 
 extern TaskDesc       D_80183824[];
 extern TaskFuncTable6 D_800938B4;
@@ -412,9 +414,9 @@ void func_800AB980(GameSessionFrom4* arg0)
         func_800B8014();
     }
     if ((((s8)save->field_10 >> arg0->field_3) & 1) == 0) {
-        bank          = banks[arg0->field_3];
-        bank->field_4 = 0;
-        bank->field_8 = 0;
+        bank             = banks[arg0->field_3];
+        bank->field_4[0] = 0;
+        bank->field_4[1] = 0;
         func_800BAB64(arg0->field_3);
         if (Display_State.field_112 != 0) {
             func_80724748(arg0);
@@ -446,12 +448,44 @@ void func_800ABEF8(s32 arg0)
 {
     GpFlagBank* bank;
 
-    bank          = D_80060A30[arg0];
-    bank->field_4 = 0;
-    bank->field_8 = 0;
+    bank             = D_80060A30[arg0];
+    bank->field_4[0] = 0;
+    bank->field_4[1] = 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ABF1C);
+void func_800ABF1C(GpAreaKey* arg0)
+{
+    McSaveData* save;
+    GpFlagBank* bank;
+    s32         which;
+    s32         bit;
+    s32         mask;
+    s32         flags;
+
+    bank = D_80060A30[arg0->field_3];
+    save = &Mc_SaveData;
+    if ((((s8)save->field_10 >> arg0->field_3) & 1) == 0) {
+        save->field_10 |= 1 << arg0->field_3;
+        if (Display_State.field_112 != 0) {
+            func_80724E2C();
+        }
+    }
+
+    which = 0;
+    if (arg0->field_2 >= 0x21) {
+        which = 1;
+        bit   = arg0->field_2 - 0x21;
+    } else {
+        bit = arg0->field_2 - 1;
+    }
+
+    mask  = 1;
+    flags = bank->field_4[which];
+    if (((mask << bit) & flags) == 0) {
+        bank->field_4[which] = flags | (mask << bit);
+        func_800B5D44(arg0);
+    }
+}
 
 void func_800ABFF8(void)
 {

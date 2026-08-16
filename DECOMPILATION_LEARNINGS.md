@@ -3,6 +3,43 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Assign `mask = 1` before `ptr->arr[i]` so `li v0,1` stays live
+
+`flags = ptr->arr[i]; mask = 1 << bit` (or `1 << bit` inlined after the
+load) uses `$v0` for the scaled index (`sll v0, which, 2`). `which` then
+lands in `$a0`, `li v0,1` happens *after* the load, and `bit` is pushed
+out of `$a2`.
+
+The target instead does
+
+```
+li    v0,1
+sll   v1,v1,2
+addu  a0,ptr,v1
+lw    a1,off(a0)
+sllv  v1,v0,a2
+```
+
+Assign `1` to an `s32` *before* the indexed load. That pins the constant
+in `$v0` across the address calc, so `which` shifts in place in `$v1`
+and `1 << bit` is `sllv v1, v0, a2`. Write the test as
+`(mask << bit) & flags` (not `flags & (mask << bit)`) so the `and` is
+`and v0, v1, a1`:
+
+```c
+s32 mask;
+s32 flags;
+
+mask  = 1;
+flags = bank->field_4[which];
+if (((mask << bit) & flags) == 0) {
+    bank->field_4[which] = flags | (mask << bit);
+}
+```
+
+`func_800ABF1C` is the example. `flags = bank->field_4[which];
+mask = 1 << bit` stuck at 98% with only those registers swapped.
+
 ## Hoist `&Global` into a saved register with a local pointer
 
 A single `Global.field = x` after earlier calls rematerializes the
