@@ -252,7 +252,25 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009EB84);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009EC1C);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009ECC0);
+u32* func_8009ECC0(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+{
+    POLY_F4* poly;
+    s32      color;
+
+    poly = (POLY_F4*)arg0->field_4;
+    if (arg0->field_1C-- > 0) {
+        do {
+            color = arg2[2];
+            setlen(poly, 5);
+            *(s32*)&poly->r0 = color;
+            setcode(poly, 0x28);
+            poly++;
+            arg2 += arg0->field_18;
+        } while (arg0->field_1C-- > 0);
+    }
+    arg0->field_4 = (u8*)poly;
+    return arg2;
+}
 
 u32* func_8009ED28(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
