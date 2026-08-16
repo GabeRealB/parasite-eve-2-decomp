@@ -48,6 +48,8 @@ extern TaskDesc     D_8018668C;
 extern TaskDesc     D_801871F0;
 extern s32          D_8005ED70;
 extern s32          D_8005ED74;
+extern s32          D_8005ED78;
+extern char         D_80097224[];
 extern UiObject*    D_80067634;
 extern void         (*D_8010D3A0[])(UiObject*, Task*);
 
@@ -64,6 +66,7 @@ void       func_800D0C34(Task* arg0);
 void       func_800D0614(Task* arg0);
 void       func_800D08D4(Task* arg0);
 void       func_800D15D0(Task* arg0);
+void       func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2);
 void       func_800D4E40(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_800A96A0(void);
 char*      func_800B8EB0(s32 arg0, s32 arg1, s32 arg2);
@@ -1015,7 +1018,32 @@ void func_800D573C(Task* arg0)
     func_800CB33C(obj, arg0, arg0->spawnArg1);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D5770);
+void func_800D5770(Task* arg0)
+{
+    UiObject* obj;
+    s32       spawnArg;
+    u8*       text;
+
+    obj           = arg0->spawnArg2;
+    spawnArg      = arg0->spawnArg1;
+    obj->field_2E = 0;
+    Ui_DrawText((UiPanel*)obj, D_80097224);
+    if ((spawnArg & 3) == 0) {
+        spawnArg += 1;
+    }
+    func_800D3D98(obj, spawnArg, 0);
+    if (CdCmd_IsIdle() & 0xFFFF) {
+        text = Text_SkipLines(Fs_GetChunkPayload(), 4);
+        Text_DrawMultiLine(obj, obj->field_1C + 2, 0x14, text, 0x606060, 3, 0);
+    }
+    if (obj->status == 1) {
+        if (Pad_CheckButtons(0, 1, D_8005ED70 | D_8005ED74 | 0x10) != 0) {
+            obj->field_2E = 6;
+        } else if (Pad_CheckButtons(0, 1, D_8005ED78) != 0) {
+            obj->field_2E = -1;
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D587C);
 
