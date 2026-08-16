@@ -15997,4 +15997,34 @@ trick: without it, `lui %hi(table)` steals the `beq` delay instead of
 `move a1, a3`. `func_800CDDA0` is the example (same 3-slot table loop as
 `func_800CDE80`).
 
+## Incoming-arg copies use arg order; explicit locals use register order
+
+When `a1`/`a2` live across a call, GCC 2.8.1 saves them in *parameter*
+order (`move s4, a1` then `move s3, a2`) as a prologue batch, before
+later statements. An early `idx = 3` that kills `$a0` does **not** by
+itself delay those saves.
+
+Copying into new locals after the kill *does* delay them to the target
+spot (after `li a0, 3`), but the two moves then emit in *callee-saved
+register* order (`s3` then `s4`):
+
+```c
+other = global;
+idx   = 3;          /* kills $a0; node already saved */
+msk   = mask;       /* want move s4, a1 first */
+mch   = match;      /* want move s3, a2 second */
+slot  = Game_GetPtrSlot(idx);
+```
+
+Pinning both with `register ... asm("s4")` / `asm("s3")` restores source
+order, but then `(u16)match` cannot rewrite `$s3` in place: the target's
+`andi s3, s3, 0xFFFF` in the `beqz` delay slot becomes `andi v1, s3,
+0xFFFF` / `bne v0, v1`. Assigning `s3match = (u16)s3match` after the
+call gets the in-place `andi` back and hoists the `$s3` save to the
+very start.
+
+`func_800E06AC` (sibling of matched `func_800E0608`) is the example.
+Natural C is 88.75% (saves too early). Explicit locals are 99.167%
+(only those two pairs swapped).
+
 
