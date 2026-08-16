@@ -14960,4 +14960,27 @@ func_C(snd, temp, temp2);
 helper takes the first `SndEvt` argument as a parameter so it never has
 this hoist.
 
+## Spill a 3-level table walk into pointer temps so `$v0`/`$v1` stay paired
+
+A wrapper-then-3-level lookup (`tbl->field_0[a-1][b-1][c-1]`) written as
+one expression (or with only `tbl`) inverts `$v0`/`$v1` versus the 2-level
+sibling (`func_800AEEFC`): each `lw` lands in the other register and the
+last `lw` schedules after the final `lbu`.
+
+Assign each pointer level to its own temp. If the last index lives on a
+`byte` (`signed char`) field whose address is also overlaid as `u8`, read
+it through the overlay so the load stays `lbu` (`GameSession.field_4` is
+`byte`; `sess->field_0` is the same byte as `u8`):
+
+```c
+mid   = D_table[sess->field_3 - 1]->field_0;
+inner = mid[sess->field_2 - 1];
+bytes = inner[sess->field_1 - 1];
+return bytes[sess->field_0 - 1]; /* not session->field_4 — that is `lb` */
+```
+
+`func_800AD284` is the example. The one-liner stuck at 88% with only the
+register pair flipped. `session->field_4` matched in a scratch `u8` mock
+and became `lb` against the real `GameSession`.
+
 

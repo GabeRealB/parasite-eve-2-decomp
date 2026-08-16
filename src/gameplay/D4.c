@@ -430,7 +430,23 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ACF8C);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD024);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD284);
+s32 func_800AD284(void)
+{
+    GameSession*      session;
+    GameSessionFrom4* sess;
+    GpCb54Tbl*        tbl;
+    u8***             mid;
+    u8**              inner;
+    u8*               bytes;
+
+    session = Game_Session;
+    sess    = (GameSessionFrom4*)&session->field_4;
+    tbl     = D_8010CB54[sess->field_3 - 1];
+    mid     = tbl->field_0;
+    inner   = mid[sess->field_2 - 1];
+    bytes   = inner[sess->field_1 - 1];
+    return bytes[sess->field_0 - 1];
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD2E8);
 

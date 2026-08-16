@@ -18,8 +18,19 @@ STATIC_ASSERT_SIZEOF(GpFlagBank, 0xC);
 /// Main-executable table of `GpFlagBank*`, indexed by slot / session field_7.
 extern GpFlagBank* D_80060A30[];
 
+/// Per-stage wrapper. `field_0` is a 3-level table of bytes, indexed
+/// 1-based by `GameSession.field_6` / `field_5` / `field_4`.
+/// `func_800AD284` returns the innermost byte (camera / view index).
+typedef struct _GpCb54Tbl {
+    /* 0x0 */ u8*** field_0;
+} GpCb54Tbl;
+
+/// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
+extern GpCb54Tbl* D_8010CB54[];
+
 void func_800AB980(struct _GameSessionFrom4* arg0);
 void func_800ABE68(struct _GpActorArg* arg0, u16* arg1);
 void func_800ABEF8(s32 arg0);
+s32  func_800AD284(void);
 
 #endif // GAMEPLAY_D4_H

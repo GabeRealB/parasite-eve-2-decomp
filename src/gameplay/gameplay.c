@@ -2,6 +2,7 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
@@ -40,7 +41,6 @@ void func_800B065C(u8 arg0);
 void func_8009939C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800A82C0(GsCOORDINATE2* arg0, VECTOR* arg1);
 void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
-s32  func_800AD284(void);
 void func_800A9730(Task* task);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80097AC0);
