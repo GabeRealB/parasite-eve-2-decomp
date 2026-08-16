@@ -4,6 +4,7 @@
 #include <psyq/stdio.h>
 
 #include "gameplay/1BC.h"
+#include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
@@ -785,7 +786,29 @@ s32 func_800B5EE8(Task* arg0)
     return 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B5F5C);
+s32 func_800B5F5C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    Task*      child;
+    Task*      next;
+    GpWorkObj* work;
+    u32        type;
+
+    child = arg0->firstChild;
+    if (child == NULL) {
+        return 0;
+    }
+    arg0 = child;
+    do {
+        work = (GpWorkObj*)arg0->spawnArg2;
+        type = work->field_A >> 8;
+        next = arg0->nextSibling;
+        if (type == 9) {
+            func_800AC464(arg0, arg3, arg2, 0);
+        }
+        arg0 = next;
+    } while (arg0 != child);
+    return 0;
+}
 
 void func_800B5FEC(void)
 {

@@ -131,10 +131,10 @@ typedef struct _GpAreaKey {
 } GpAreaKey;
 
 /// Overlay of `Task::spawnArg2` for sibling walkers. `field_A` high byte is
-/// the work type (`func_800B5E08` / `func_800B5EE8` match 9; `func_800B5E78`
-/// skips 9). `field_8` is the id compared against the search key (`as_u16` /
-/// `as_u8`; `func_800B584C` matches `as_u16` on slot 4's children). Full size
-/// unknown.
+/// the work type (`func_800B5E08` / `func_800B5EE8` / `func_800B5F5C` match 9;
+/// `func_800B5E78` skips 9). `field_8` is the id compared against the search
+/// key (`as_u16` / `as_u8`; `func_800B584C` matches `as_u16` on slot 4's
+/// children). Full size unknown.
 typedef struct _GpWorkObj {
     /* 0x00 */ byte pad_0[8];
     /* 0x08 */ union {
@@ -200,6 +200,7 @@ void       func_800B601C(GpAreaKey* arg0);
 s32        func_800B5E08(Task* arg0, Task* arg1, s32 arg2, Task** arg3);
 s32        func_800B5E78(Task* arg0, Task* arg1, s32 arg2, Task** arg3);
 s32        func_800B5EE8(Task* arg0);
+s32        func_800B5F5C(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_800B62D4(void);
 void       func_800B6CF0(void);
 s32        func_800B6DA4(s32 arg0, s32 arg1);
