@@ -9,6 +9,7 @@
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
+#include "main/gameflow.h"
 #include "main/mc.h"
 #include "main/pad.h"
 #include "main/session.h"
@@ -35,11 +36,14 @@ extern TaskFuncTable3 D_80093918;
 extern TaskFuncTable3 D_80093944;
 extern u16            D_80114CD2;
 extern u16            D_80114CD4;
+extern u16            D_80114CD6;
 extern u8             D_80114CD8;
 extern u8             D_80114CD9;
 extern u8             D_80114CDA;
 extern u8             D_80114CDB;
 extern u8             D_80114CDC;
+extern s32            D_80114CF0;
+extern u16            D_80114CF6;
 extern u8             D_80114CF8;
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9310);
@@ -568,7 +572,22 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ADE74);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ADF3C);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AE150);
+void func_800AE150(void)
+{
+    u8 fade;
+
+    if (*(s16*)&D_80114CF6 != 0) {
+        fade = *(u8*)&D_80114CF6;
+        Fade_DrawOverlay(fade, fade, fade, 2);
+        D_80114CF6 += 0x1E;
+        if ((s16)D_80114CF6 >= 0x100) {
+            D_80114CF6 = 0xFF;
+        }
+    }
+    if (D_80114CF0 == 0 || SndVoice_HasActiveId(D_80114CF0) == 0) {
+        D_80114CD6++;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AE1F0);
 

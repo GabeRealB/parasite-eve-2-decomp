@@ -700,7 +700,7 @@ s32            SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
 void           SndEvt_EnqueueTypeB(s32 arg0, s32 arg1);
 void           SndBank_SetEnableFlags(s32 arg0, s32 arg1);
 void           SndVoice_SetPriority(s8 arg0);
-s32            SndVoice_HasActiveId(void);
+s32            SndVoice_HasActiveId(s32 arg0);
 void           SndEvt_EnqueueTypeD(void);
 void           SndEvt_EnqueueTypeE(void);
 void           SndEvt_EnqueueTypeF(void);

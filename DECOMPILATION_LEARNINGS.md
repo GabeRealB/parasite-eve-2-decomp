@@ -15475,4 +15475,20 @@ child->field_2C = y;  /* sh v1 */
 
 `func_800C32A8` is the example.
 
+## Pass the id into `SndVoice_HasActiveId` so the load targets `$a0`
+
+`SndVoice_HasActiveId` remaps its argument via `SndBank_RemapId` and checks
+for an active voice. A caller that only tests a global then calls
+`SndVoice_HasActiveId()` loads that global into `$v0`. Passing the same
+value as the argument forces `lw a0`:
+
+```c
+if (D_80114CF0 == 0 || SndVoice_HasActiveId(D_80114CF0) == 0) {
+    D_80114CD6++;
+}
+```
+
+`func_800AE150` is the example. The void call stuck at 99.75% with only the
+load dest different.
+
 

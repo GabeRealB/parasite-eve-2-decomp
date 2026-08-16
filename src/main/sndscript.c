@@ -314,7 +314,7 @@ void Snd_RegisterTickCallbacks(void)
     D_8008274C = 0;
 }
 
-// K&R definition so the no-arg call in SndVoice_HasActiveId stays legal (indeterminate a0).
+// K&R definition so a missing argument stays legal (indeterminate a0).
 s32 SndBank_RemapId(arg0)
 s32 arg0;
 {
@@ -596,9 +596,9 @@ void SndVoice_SetPriority(s8 arg0)
     SndVoice_SetPriorityLevel(arg0);
 }
 
-s32 SndVoice_HasActiveId(void)
+s32 SndVoice_HasActiveId(s32 arg0)
 {
-    return ~SndVoice_FindById(SndBank_RemapId()) != 0;
+    return ~SndVoice_FindById(SndBank_RemapId(arg0)) != 0;
 }
 
 void SndEvt_EnqueueTypeD(void)
