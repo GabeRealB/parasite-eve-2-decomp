@@ -42,6 +42,7 @@ extern char         D_8010E58C[];
 extern char         D_8010E59C[];
 extern char         D_8010F8D0[];
 extern char         D_8010F8D4[];
+extern char         D_8010F908[];
 extern char         D_8010F930[];
 extern char         D_8010F9C0[];
 extern char         D_8010F19C[];
@@ -81,6 +82,7 @@ extern s32          D_8005ED70;
 extern s32          D_8005ED74;
 extern s32          D_8005ED78;
 extern char         D_80096FD8[];
+extern char         D_80096FEC[];
 extern char         D_8009701C[];
 extern char         D_800971D0[];
 extern char         D_800971D8[];
@@ -865,7 +867,35 @@ void func_800CE5F0(DialogPrompt* arg0, UiObject* arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE738);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE894);
+void func_800CE894(DialogPrompt* arg0, UiObject* arg1)
+{
+    TextDrawReq req;
+    s32         status;
+    s32         one;
+
+    req.x          = arg1->baseX + (u16)arg0->field_18;
+    req.y          = arg1->baseY + (u16)arg0->field_1A;
+    req.otIndex    = (s16)arg1->drawOrder + 1;
+    req.field_8    = arg0->field_1C;
+    req.glyphTable = 5;
+    req.centerMode = 0;
+    req.field_E    = 0;
+    func_8002E53C(&req, D_80096FEC);
+
+    status = arg1->status;
+    one    = 1;
+    if (((status >> 16) == one) || (status == one)) {
+        if (arg0->field_10 == arg0->field_8) {
+            Ui_SetHolderParam((s32)D_8010F908, 0, 0);
+        }
+    }
+
+    if (arg0->field_C == 1) {
+        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+            arg1->field_2E = -1;
+        }
+    }
+}
 
 GpItemRec* func_800CE980(GpItemScan* arg0, s32 arg1)
 {
