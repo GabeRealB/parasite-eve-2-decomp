@@ -94,6 +94,18 @@ typedef struct _GpState34 {
 } GpState34;
 STATIC_ASSERT_SIZEOF(GpState34, 0x34);
 
+/// 0xC-byte interpolator state allocated by `func_800E8D1C` / `func_800E8E00`
+/// (`Mem_Calloc(0xC, 0)`) and stored at `Task::idMap` for bank-2 type 0xC.
+/// `field_8` is the duration; `field_4` is start<<8; `field_0` is the
+/// per-frame step `((end<<8) - (start<<8)) / duration`.
+typedef struct _GpState0C {
+    /* 0x0 */ s32  field_0; // step
+    /* 0x4 */ s32  field_4; // start << 8
+    /* 0x8 */ s16  field_8; // duration
+    /* 0xA */ byte pad_A[2];
+} GpState0C;
+STATIC_ASSERT_SIZEOF(GpState0C, 0xC);
+
 /// 0x18-byte work block allocated by `func_800E8FB0` / `func_800E9188`
 /// (`Mem_Calloc(0x18)`) and stored at `Task::idMap` for bank-2 type 0xD.
 /// `func_800E8FB0` writes `field_0`/`field_4` from its args and clears
