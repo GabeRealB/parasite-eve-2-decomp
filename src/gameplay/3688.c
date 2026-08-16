@@ -519,7 +519,20 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF090);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF148);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF204);
+s32 func_800CF204(CdCmdEntry* arg0)
+{
+    u8 param1[8];
+    u8 param2[8];
+
+    param1[3] = arg0->param0;
+    param1[2] = arg0->param1;
+    param1[0] = arg0->param2;
+    param2[0] = arg0->idB0;
+    param2[1] = arg0->idB1;
+    param2[2] = arg0->idB2;
+    param2[3] = arg0->idB3;
+    return CdCmd_Enqueue(arg0->cmd, param1, param2);
+}
 
 s32 func_800CF27C(void)
 {
