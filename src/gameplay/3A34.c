@@ -759,7 +759,34 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0FEC);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1380);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E15AC);
+void func_800E15AC(s32 arg0, GpObj* arg1)
+{
+    u16    flags;
+    GpObj* head;
+    GpObj* node;
+    GpObj* temp;
+
+    head  = D_8010FA8C[arg0];
+    flags = arg1->flags;
+    if (!(flags & 0x8)) {
+        if ((flags & 0x7) < 5) {
+            arg1->flags = flags | 0x8;
+            temp        = head->next;
+            if (temp != NULL) {
+                node = temp;
+                while (node->next != NULL) {
+                    node = node->next;
+                }
+                node->next = arg1;
+                arg1->prev = node;
+            } else {
+                head->next = arg1;
+                arg1->prev = head;
+            }
+            arg1->next = NULL;
+        }
+    }
+}
 
 void func_800E1638(GpObj* node)
 {

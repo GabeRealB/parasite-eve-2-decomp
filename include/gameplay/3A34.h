@@ -402,6 +402,10 @@ extern SVECTOR D_80115258;
 extern s32 D_8010F9EC;
 extern s32 D_8010F9F0;
 
+/// Nine-entry table of `GpObj` list heads (`D_80115570` .. `D_80115590`).
+/// `func_800E15AC` appends to `D_8010FA8C[index]`; `func_800E1638` unlinks.
+extern GpObj* D_8010FA8C[9];
+
 /// Two-entry table of `GpObj4A` list heads. `func_800E1688` appends to
 /// `D_8010FAB0[index]`; `func_800E1758` walks and clears that list.
 extern GpObj4A* D_8010FAB0[2];
