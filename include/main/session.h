@@ -121,7 +121,8 @@ typedef struct _GpRec18 {
 STATIC_ASSERT_SIZEOF(GpRec18, 0x18);
 
 /// 0x28-byte record in `GameActor.field_448`. `field_0` is a flag halfword
-/// (bit 0x100: `func_8010583C`; bits 0x102: `func_80105894`). Count is
+/// (bits 0/1: `func_80101848` case 8; bit 0x100: `func_8010583C`;
+/// bits 0x102: `func_80105894`). Count is
 /// `GameActor.field_938` (init 0x13). Slid-actor overlay: `func_801058BC`
 /// stores a clamped 1..0x7F byte at `GameActor.field_441`.
 typedef struct _GameActorSlot {

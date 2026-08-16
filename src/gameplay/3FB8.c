@@ -48,6 +48,8 @@ void func_80104E00(void);
 s32  func_80105070(void);
 void func_801053A0(void);
 s32  func_801055D4(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32  func_8010583C(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32  func_80105894(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_80105B0C(GpActorWork* arg0);
 s32  func_80105ED4(GpActorWork* arg0);
 void func_8010615C(GpActorWork* arg0);
@@ -223,7 +225,88 @@ void func_801014E8(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010154C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80101848);
+void func_80101848(GpActorWork* arg0)
+{
+    GameActor* actor;
+    GpAnimRec* rec;
+    s32        i;
+    s32        anim;
+    s32        extra;
+    u16        flags;
+
+    actor = arg0->actor;
+    rec   = func_800B4668((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->pad_438 + 1);
+    switch (actor->field_95C) {
+        case 0:
+        case 1:
+            break;
+        case 2:
+            if (actor->field_95E != 0) {
+                break;
+            }
+            if (func_8010583C(arg0, 0, 0, 0) != 0) {
+                break;
+            }
+            anim              = 9;
+            extra             = 5;
+            i                 = 1;
+            actor->field_95E += i;
+            actor             = arg0->actor;
+            if (i < actor->field_938) {
+                do {
+                    func_800B47A8((GpAnimCtx*)actor->field_424, i, 0, anim, 0, 0, extra,
+                                  actor->field_928);
+                    ((GameActor*)((i * sizeof(GameActorSlot)) + (s32)actor))->field_441 =
+                        actor->field_985;
+                    i++;
+                } while (i < actor->field_938);
+            }
+            break;
+        case 3:
+            break;
+        case 5:
+            if (rec != NULL) {
+                if (func_80105894(arg0, 1, 0, 0) == 0) {
+                    func_80108770(arg0, 3);
+                }
+            }
+            break;
+        case 4:
+        case 6:
+            if (rec != NULL) {
+                if (func_80105894(arg0, 1, 0, 0) == 0) {
+                    func_801066DC(arg0, 0);
+                }
+            }
+            break;
+        case 7:
+        case 9:
+            if (rec != NULL) {
+                if (func_80105894(arg0, 1, 0, 0) == 0) {
+                    actor->field_95E++;
+                }
+            }
+            break;
+        case 8:
+            if (rec != NULL) {
+                flags = actor->field_448[1].field_0;
+                if ((flags & 1) || (flags & 2)) {
+                    actor->field_95E++;
+                    func_801066DC(arg0, 0);
+                }
+            }
+            break;
+        case 10:
+            if (rec != NULL) {
+                if (func_80105894(arg0, 1, 0, 0) == 0) {
+                    actor->field_95E = 0x3E8;
+                }
+            }
+            break;
+    }
+}
+
+static const s32 s_jtbl_pad = 0;
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80101A68);
 
@@ -636,7 +719,7 @@ s32 func_80105828(GpActorWork* arg0)
     return arg0->actor->field_982;
 }
 
-s32 func_8010583C(GpActorWork* arg0)
+s32 func_8010583C(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     GameActor* actor;
     s32        i;
@@ -653,7 +736,7 @@ s32 func_8010583C(GpActorWork* arg0)
     return ret;
 }
 
-s32 func_80105894(GpActorWork* arg0, s32 arg1)
+s32 func_80105894(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     GameActor* actor;
 
@@ -931,6 +1014,8 @@ void func_801065A8(GpActorWork* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801066DC);
 
+INCLUDE_RODATA("gameplay/nonmatchings/3FB8", D_80097940);
+
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106838);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106A3C);
@@ -1193,6 +1278,18 @@ void func_80108E0C(GpActorWork* arg0, GpLinkNode* arg1)
     }
     arg1->field_5 = 1;
 }
+
+#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
+__asm__(".section .rodata\n"
+        "\t.align 2\n"
+        "\t.globl D_800979F8\n"
+        "D_800979F8:\n"
+        "\t.word func_80109170\n"
+        "\t.word func_80109170\n"
+        "\t.word func_80109170\n"
+        "\t.word func_80109208\n"
+        ".section .text\n");
+#endif
 
 void func_80108E40(GpActorWork* arg0)
 {

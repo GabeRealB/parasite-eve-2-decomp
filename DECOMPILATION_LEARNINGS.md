@@ -15589,4 +15589,49 @@ Leave the literal in both compares so CSE does `li v0, 0xFFFF` / `beq` /
 `func_800BB668` is the example. Pre-loop `one = 1` stuck at 94% with only
 the `t4`/`t3` swap.
 
+## Late `i = 1` needs other loop constants live first
+
+A case that does `i = 1; field += i;` then a `func_800B47A8` walk wants
+`li s1, 1` in the *second* `bnez` delay (after the poll), `addu` with `$s1`,
+and `$s2 = arg0` / `$s0 = actor`. Assigning `i = 1` before the poll makes `i`
+live across the jal — correct registers and `addu`, but `li s1, 1` fills the
+*first* delay slot instead of `move a0, s2`. Assigning `i = 1` only after the
+poll rematerializes `addiu field, 1` and gives `$s0 = arg0`.
+
+Assign the other loop-invariant `s32`s first, then `i`, all after the poll:
+
+```c
+if (func_8010583C(arg0, 0, 0, 0) != 0) {
+    break;
+}
+anim  = 9;
+extra = 5;
+i     = 1;
+actor->field_95E += i;
+actor = arg0->actor;
+if (i < actor->field_938) {
+    do {
+        func_800B47A8(..., anim, ..., extra, ...);
+        i++;
+    } while (i < actor->field_938);
+}
+```
+
+`anim` / `extra` live at the increment force a 5-s-reg coloring (`s4`/`s3`/`s1`)
+so `i` is not rematerialized. The scheduler then parks `li s1, 1` in the poll
+`bnez` delay, `li s4, 9` in the `lw actor` delay, and `li s3, 5` in the loop
+`beqz` delay. `func_80101848` is the example.
+
+## Overlay: still-asm dispatcher tables after expanding `.rodata`
+
+When a new overlay switch moves the TU `.rodata` range earlier, splat migrates
+jtbls and some data tables onto `INCLUDE_ASM` functions. Tables used only by
+already-matched C (e.g. `D_80097940`, `D_800979F8`) land in a standalone
+`nonmatchings/.../D_*.s` or in `matchings/<func>.s`. `INCLUDE_RODATA` the
+splat-owned standalone file. For a table stuck in a `matchings/` dump, emit
+the words with inline `.section .rodata` / `.globl` in the C file — a C
+`GpActorFuncTable` definition is collected to the end of the TU and shifts
+later tables; a hand-written `.s` under `nonmatchings/` is deleted on the next
+`ninja_config.py` splat.
+
 

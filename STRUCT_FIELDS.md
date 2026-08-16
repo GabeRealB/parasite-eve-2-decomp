@@ -584,7 +584,9 @@ inactive sentinel as `GpAnimSlot.field_0`) when installing `GpAnimArg.field_0`.
 `GpAnimArg.field_0` here instead of indexing those tables.
 `field_448` is a 19-entry table of `GameActorSlot` (0x28 each; flags halfword at +0x00).
 `func_80100B78` stores count `0x13` at `field_938`; `func_80105894` returns
-`(slot[arg1].field_0 & 0x102) == 0`.
+`(slot[arg1].field_0 & 0x102) == 0`. `func_80101848` case 8 reads
+`field_448[1].field_0` and continues when bit 0 or bit 1 is set (same halfword
+as `GpAnimSlot.field_10` on the `pad_438` overlay).
 `func_801058BC` clamps `arg2` to 1..0x7F, writes it through the slid-actor overlay
 at `field_441` for `i = 1 .. field_938-1`, then stores the same byte at `field_985`.
 `GameActorExt.field_8` is a `GsCOORDINATE2*` (`flg` cleared to 0 by `Display_SpawnFromMode`
