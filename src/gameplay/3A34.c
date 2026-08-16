@@ -63,7 +63,26 @@ GpItemRec* func_800D6994(s32 arg0)
     return rec;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D6A24);
+GpItemRec* func_800D6A24(s32 arg0, GpItemScan* arg1)
+{
+    GpItemRec* table;
+    s32        i;
+    s32        count;
+    GpItemRec* rec;
+
+    rec   = NULL;
+    table = func_800BB500(arg1);
+    i     = 0;
+    table = &table[arg1->field_0];
+    count = arg1->field_1;
+    for (; i < count; i++) {
+        if (table->field_0 == arg0) {
+            rec = table;
+        }
+        table++;
+    }
+    return rec;
+}
 
 void func_800D6AA4(Task* arg0)
 {
