@@ -91,9 +91,11 @@ void  func_800D0C34(Task* arg0);
 void  func_800D0614(Task* arg0);
 void  func_800D08D4(Task* arg0);
 void  func_800D15D0(Task* arg0);
+void  func_800D131C(void);
 void  func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2);
 void  func_800D4E40(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 void  func_800A96A0(void);
+void  func_800AE9B0(void);
 char* func_800B8EB0(s32 arg0, s32 arg1, s32 arg2);
 void  func_800C5C2C(s32 arg0, s32 arg1);
 s32   func_800A7508(void);
@@ -1081,7 +1083,36 @@ void func_800D1CF8(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D1D5C);
+void func_800D1D5C(Task* arg0)
+{
+    RECT                  rect;
+    register GameSession* session asm("a0");
+    register GpMapRec**   table asm("v1");
+    register s32          idx asm("v0");
+    register u8           f6 asm("a0");
+    register GpMapRec*    recs asm("v1");
+    register u8           val asm("v1");
+
+    if ((s8)Display_State.field_122 == 0) {
+        rect.x = 0x380;
+        rect.w = 0x80;
+        rect.y = 0;
+        rect.h = 0x100;
+        Display_SetDrawMode(0);
+        StoreImage2(&rect, (u_long*)(D_80068F88 + 0xFFFDA800));
+    }
+    func_800AE9B0();
+    session    = Game_Session;
+    table      = D_8010F0F4;
+    idx        = session->field_7 - 1;
+    f6         = session->field_6;
+    recs       = table[idx];
+    recs       = recs + f6;
+    val        = recs->field_C;
+    D_80114DF0 = val;
+    func_800D131C();
+    arg0->state = arg0->state + 1;
+}
 
 void func_800D1E28(Task* arg0)
 {
