@@ -27,6 +27,7 @@ extern s32          D_80114E8C;
 extern s32          D_80114E90;
 extern s32          D_80114E94;
 extern char         D_8010E494[];
+extern char         D_8010E500[];
 extern char         D_8010E550[];
 extern char         D_8010E554[];
 extern char         D_8010E558[];
@@ -80,6 +81,7 @@ char* func_800B8EB0(s32 arg0, s32 arg1, s32 arg2);
 void  func_800C5C2C(s32 arg0, s32 arg1);
 s32   func_800A7508(void);
 void  func_800D2E04(UiObject* arg0, s32 arg1);
+void  func_800CFE68(s32 arg0, UiObject* arg1);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800BF9FC);
 
@@ -654,7 +656,26 @@ void func_800CF658(UiPanel* arg0, s32 arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF6E8);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF7C4);
+void func_800CF7C4(DialogPrompt* arg0, UiObject* arg1)
+{
+    TextDrawReq req;
+
+    req.x          = arg1->baseX + (u16)arg0->field_18;
+    req.y          = arg1->baseY + (u16)arg0->field_1A;
+    req.otIndex    = (s16)arg1->drawOrder + 1;
+    req.field_8    = arg0->field_1C;
+    req.glyphTable = 0;
+    req.centerMode = 0;
+    req.field_E    = 1;
+    func_8002E53C(&req, D_8010E500);
+    if (arg0->field_C == 1) {
+        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+            SndEvt_EnqueueType6(3, 0, 0);
+            func_800CFE68((s32)arg0, arg1);
+            arg0->field_22 = 0x20;
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF88C);
 
