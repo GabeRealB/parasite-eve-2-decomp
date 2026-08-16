@@ -16500,4 +16500,47 @@ tbl2  = *tbl68;             /* delayed lw 0(a2) */
 Direct `D_8010CB68[sess->field_3 - 1]` rematerialises that address
 later (`func_800AD2E8`). `func_800ACF8C` is the example.
 
+## `volatile` walk pointer so a field reloads after `sltiu`
+
+Two reads of the same `u8` on a loop pointer (`table->field_0` for a
+range check, then again for `id - K`) CSE into a spare register. The
+first `lbu` is kept, `-K` fills the `beqz` delay slot, and the extra
+temp steals `$a0` from the pointer so `i` / the bound swap (`$a1`/`$a2`
+vs `$a2`/`$a1`).
+
+The target overwrites `$v0` with the range subtract, reloads, and
+leaves `nop` in the delay slot:
+
+```
+lbu   v0, 0(a0)
+addiu v0, v0, -0x60
+sltiu v0, v0, 0x20
+beqz  v0, skip
+ nop
+lbu   v0, 0(a0)
+lbu   v1, off(s2)
+addiu v0, v0, -0x5F
+```
+
+Mark the walk pointer `volatile`. CSE cannot keep the first `lbu`, and
+`-fdelayed-branch` will not speculate the second volatile load into
+the `beqz` slot. Also use `scan->field_1` directly in the `for`
+condition — a `count = scan->field_1` local takes `$a1` and puts `i`
+in `$a1` instead of `$a2`.
+
+```c
+volatile GpItemRec* table;
+...
+for (; i < scan->field_1; i++) {
+    if (((u32)(table->field_0 - 0x60) < 0x20U) &&
+        (p->field_23 != table->field_0 - 0x5F)) {
+        count++;
+    }
+    table++;
+}
+```
+
+`func_800CF090` is the example. A plain `GpItemRec*` stuck at 92% with
+only the load reused and those two registers swapped.
+
 

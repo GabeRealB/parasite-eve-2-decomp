@@ -1007,7 +1007,29 @@ void func_800CEF68(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF090);
+void func_800CF090(UiList* arg0, UiObject* arg1)
+{
+    WipSysConfig*       p;
+    GpItemScan*         scan;
+    volatile GpItemRec* table;
+    s32                 count;
+    s32                 i;
+
+    count = 0;
+    p     = &Wip_SysConfig;
+    scan  = &Mc_SaveData.field_5BC;
+    table = func_800BB500(scan);
+    i     = 0;
+    table = &table[scan->field_0];
+    for (; i < scan->field_1; i++) {
+        if (((u32)(table->field_0 - 0x60) < 0x20U) && (p->field_23 != table->field_0 - 0x5F)) {
+            count++;
+        }
+        table++;
+    }
+    arg0->field_4 = count;
+    arg0->field_5 = 4;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF148);
 
