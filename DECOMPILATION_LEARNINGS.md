@@ -15682,6 +15682,23 @@ Keep the later store of a call result (`arg0->spawnArg2 = result`) *after*
 those copies so the result can live in `$v1` (`register s32 result asm("v1")`)
 instead of being stored immediately from `$v0`. `func_800D9D18` is the example.
 
+## Store the task pointer before `Mem_Set` so `sw` fills the jal delay slot
+
+`Mem_Set(actor, 0, SIZE); task->idMap = actor;` puts `li a2, SIZE` in the jal
+delay slot and the `sw` after the call. The target has `li a2` before jal and
+`sw` in the delay slot.
+
+Assign the pointer first. The store is independent of the call, so the
+scheduler parks it in the delay slot and leaves the size `li` in the setup:
+
+```c
+task->idMap = (TaskIdMap*)actor;
+Mem_Set(actor, 0, 0x998);
+```
+
+`func_801036FC` is the example. The same `Mem_Set` then assign order used by
+`func_8010BAC8` stuck at 99.1% with only that delay-slot swap.
+
 ## Overlay: still-asm dispatcher tables after expanding `.rodata`
 
 When a new overlay switch moves the TU `.rodata` range earlier, splat migrates

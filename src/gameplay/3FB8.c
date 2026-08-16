@@ -328,7 +328,42 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103294);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801034C0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801036FC);
+Task* func_801036FC(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3)
+{
+    Task*          task;
+    GameActor*     actor;
+    GsCOORDINATE2* coord;
+
+    task = Task_Spawn(7, Wip_SysConfig.field_26 + 3, arg2, (s32)arg3);
+    if (task != NULL) {
+        goto have_task;
+    }
+    return NULL;
+
+have_task:
+    actor = Mem_Calloc(0x998, 0);
+    if (actor != NULL) {
+        goto have_actor;
+    }
+    Task_Kill(task);
+    return NULL;
+
+have_actor:
+    Game_SetPtrSlot(task, 3);
+    task->idMap = (TaskIdMap*)actor;
+    Mem_Set(actor, 0, 0x998);
+    actor->field_93C  = arg3->field_0;
+    actor->field_52   = arg0->field_0;
+    coord             = (GsCOORDINATE2*)((GameActorExt*)task->extra)->field_8;
+    coord->coord.t[0] = arg0->field_4;
+    coord->coord.t[1] = arg0->field_8;
+    coord->coord.t[2] = arg0->field_C;
+    D_80115768        = 0;
+    if (arg3->field_2 != 0) {
+        actor->field_954 = 2;
+    }
+    return task;
+}
 
 void func_80103804(GpActorWork* arg0)
 {
