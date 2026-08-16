@@ -18,6 +18,7 @@
 void func_800B1EFC(Task* arg0);
 void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800B3910(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 void func_800B6358(Task* task);
 void func_800B6398(void);
 void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
@@ -394,7 +395,17 @@ void func_800B3E34(GpAnimCtx* arg0, GpAnimSlot* arg1)
     func_800B3448(arg0, idx, 0, 0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B3E74);
+void func_800B3E74(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3)
+{
+    GpAnimRec* recs;
+    u16        val;
+
+    recs = arg1->field_20[arg3]->field_0;
+    func_800B3AA4(arg0, arg1, arg2, arg3, 0, 8);
+    val           = recs[arg1->field_6].field_2 << 4;
+    arg1->field_E = val;
+    arg1->field_C = val;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B3EE8);
 
@@ -434,10 +445,10 @@ void func_800B4514(GpAnimCtx* arg0, s32 arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B4538);
 
-s32* func_800B4668(GpAnimCtx* arg0, GpAnimSlot* arg1)
+GpAnimRec* func_800B4668(GpAnimCtx* arg0, GpAnimSlot* arg1)
 {
-    u16  idx;
-    s32* ret;
+    u16        idx;
+    GpAnimRec* ret;
 
     idx = arg1->field_0;
     switch (idx) {

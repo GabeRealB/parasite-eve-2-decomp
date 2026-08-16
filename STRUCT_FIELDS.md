@@ -869,12 +869,21 @@ Source object for `func_800B3CCC` / `func_800B3F60`. Full size unknown.
 | 0x30 | `field_30` | Copied into `GpAnimCtx.field_10` |
 | 0x34 | `field_34` | Address stored as `GpAnimCtx.field_4` (0x50-byte record base) |
 
+### `GpAnimRec` (0x4) — `1BC.h`
+Element of the table at `GpAnimSet.field_0`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | Halfword compared with `GpAnimSlot.field_6` in `func_800B3AA4` |
+| 0x02 | `field_2` | Scaled `<< 4` into `GpAnimSlot.field_C` / `field_E` (`func_800B3E74`) |
+| 0x03 | `field_3` | Opcode-like byte (`func_800B3AA4` tests `< 0xC0` / sign; `func_800B3FA8` stores `& 0xF` in `field_B`) |
+
 ### `GpAnimSet` — `1BC.h`
 Object behind each pointer in `GpAnimSlot.field_20` / `GpAnimCtx.field_0`.
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x00 | `field_0` | Base of 4-byte records; `func_800B4668` returns `field_0 + slot->field_2` |
+| 0x00 | `field_0` | `GpAnimRec*` table; `func_800B4668` returns `field_0 + slot->field_2` |
 
 ### `GpAnimSlot` (0x28) — `1BC.h`
 Element of `GpAnimCtx.field_C`. Initialized by `func_800B3CE8` /
@@ -884,6 +893,9 @@ Element of `GpAnimCtx.field_C`. Initialized by `func_800B3CE8` /
 |-----|--------|------|
 | 0x00 | `field_0` | Set index into `field_20`; `0x7FFF` = inactive (`func_800B4668`) |
 | 0x02 | `field_2` | Record index within `field_20[field_0]->field_0` |
+| 0x06 | `field_6` | Index into `field_20[set]->field_0` (`func_800B3E74`) |
+| 0x0C | `field_C` | Timing value; `func_800B3E74` sets `field_2 << 4` |
+| 0x0E | `field_E` | Timing value; `func_800B3E74` sets the same `field_2 << 4` |
 | 0x15 | `field_15` | This slot's index in the `field_C` array |
 | 0x20 | `field_20` | `GpAnimSet**` table (copy of `GpAnimCtx.field_0`) |
 

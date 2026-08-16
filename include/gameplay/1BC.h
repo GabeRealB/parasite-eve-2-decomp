@@ -45,12 +45,23 @@ typedef struct _GpAnimObj {
     /* 0x34 */ byte  field_34;
 } GpAnimObj;
 
+/// 4-byte animation record. `func_800B3E74` indexes this by
+/// `GpAnimSlot::field_6` and copies `field_2 << 4` into the slot's
+/// `field_C` / `field_E`. `field_3` is the opcode-like byte tested by
+/// `func_800B3AA4` / stored into `field_B` by `func_800B3FA8`.
+typedef struct _GpAnimRec {
+    /* 0x00 */ u16 field_0;
+    /* 0x02 */ u8  field_2;
+    /* 0x03 */ u8  field_3;
+} GpAnimRec;
+STATIC_ASSERT_SIZEOF(GpAnimRec, 4);
+
 /// Object behind each pointer in `GpAnimSlot::field_20` (same table as
 /// `GpAnimCtx::field_0`). `field_0` is the base of 4-byte records.
 /// `field_4` is a u16 table indexed by `GpAnimSlot::field_15`.
 typedef struct _GpAnimSet {
-    /* 0x00 */ s32* field_0;
-    /* 0x04 */ u16* field_4;
+    /* 0x00 */ GpAnimRec* field_0;
+    /* 0x04 */ u16*       field_4;
 } GpAnimSet;
 
 /// 0x28-byte animation slot. `field_15` is this slot's index in the
@@ -61,7 +72,11 @@ typedef struct _GpAnimSet {
 typedef struct _GpAnimSlot {
     /* 0x00 */ u16         field_0;
     /* 0x02 */ u16         field_2;
-    /* 0x04 */ byte        pad_4[0xC];
+    /* 0x04 */ byte        pad_4[2];
+    /* 0x06 */ u16         field_6;
+    /* 0x08 */ byte        pad_8[4];
+    /* 0x0C */ u16         field_C;
+    /* 0x0E */ u16         field_E;
     /* 0x10 */ u16         field_10;
     /* 0x12 */ byte        pad_12[3];
     /* 0x15 */ u8          field_15;
@@ -146,9 +161,10 @@ void     func_800B3CCC(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3)
 void     func_800B3DB4(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B3DF4(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B3E34(GpAnimCtx* arg0, GpAnimSlot* arg1);
+void     func_800B3E74(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3);
 void     func_800B3F60(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4);
 void     func_800B4514(GpAnimCtx* arg0, s32 arg1);
-s32*     func_800B4668(GpAnimCtx* arg0, GpAnimSlot* arg1);
+GpAnimRec* func_800B4668(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3);
 void     func_800B57EC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
 void     func_800B58D4(TmdObject* arg0, s32 arg1, s32 arg2);
