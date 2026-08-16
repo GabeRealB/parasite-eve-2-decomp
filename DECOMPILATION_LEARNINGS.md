@@ -15305,4 +15305,40 @@ actor->field_977 = (actor->field_962 >> 6) & flag;
 `actor->field_966 = buttons & ~actor->field_964` (and a literal `& 1`) stuck
 at 84% with only that register move missing. `func_80103804` is the example.
 
+## Hoist the list-head load before the already-linked early-out
+
+`func_800E1688` (and the same-shape `func_800E17B4` / `func_800E15AC`)
+computes `&table[index]` first, then interleaves `lbu flags` with `lw head`.
+Loading the head *inside* the `!(flags & 0x20)` arm delays that work until
+after `bnez` and also inverts the empty-list `beqz`.
+
+Load the head first, then split `head->next` through a temp so the empty
+check is `lw v0` / `beqz` / `move v1, v0` (same temp trick as
+`func_800E1884`). Put the non-empty walk first so `beqz` goes to the
+empty insert:
+
+```c
+head  = D_8010FAB0[arg0];
+flags = arg1->field_4A;
+if (!(flags & 0x20)) {
+    arg1->field_4A = flags | 0x20;
+    temp           = head->next;
+    if (temp != NULL) {
+        node = temp;
+        while (node->next != NULL) {
+            node = node->next;
+        }
+        node->next = arg1;
+        arg1->prev = node;
+    } else {
+        head->next = arg1;
+        arg1->prev = head;
+    }
+    arg1->next = NULL;
+}
+```
+
+`func_800E1688` is the example. The empty-first `if (node == NULL)` form
+stuck at 39%.
+
 

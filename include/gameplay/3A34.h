@@ -505,6 +505,7 @@ s32  func_800E076C(void);
 void func_800E0B08(void);
 void func_800E15AC(s32 arg0, GpObj* arg1);
 void func_800E1638(GpObj* node);
+void func_800E1688(s32 arg0, GpObj4A* arg1);
 void func_800E1708(s32 arg0, GpObj4A* arg1);
 void func_800E1758(s32 arg0);
 void func_800E1834(s32 arg0, GpObj3A* arg1);
