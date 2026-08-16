@@ -413,7 +413,21 @@ void func_801038F8(GpActorWork* arg0, s32 arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010397C);
+void func_8010397C(GpActorWork* arg0, s32 arg1, s32 arg2)
+{
+    GameActor* actor;
+    s32        i;
+
+    actor = arg0->actor;
+    i     = 1;
+    if (i < actor->field_938) {
+        do {
+            func_800B47A8((GpAnimCtx*)actor->field_424, i, 0, arg1, 0, 0, 0, actor->field_928);
+            ((GameActor*)((i * sizeof(GameActorSlot)) + (s32)actor))->field_441 = actor->field_985;
+            i++;
+        } while (i < actor->field_938);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103A18);
 
