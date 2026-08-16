@@ -435,7 +435,41 @@ void func_800AC164(Task* task)
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AC25C);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AC344);
+void func_800AC344(Task* task)
+{
+    CdCmdQueue* queue;
+    u8          fade;
+
+    queue = &CdCmd_Queue;
+    switch (task->state) {
+        case 0:
+            task->killCountdown = 0;
+            task->state++;
+        case 1:
+            Fade_DrawOverlay(0xFF, 0xFF, 0xFF, 2);
+            task->killCountdown++;
+            if (task->killCountdown < 3) {
+                return;
+            }
+            task->killCountdown = 0xFF;
+            task->state++;
+            break;
+        case 2:
+            fade = task->killCountdown;
+            Fade_DrawOverlay(fade, fade, fade, 2);
+            task->killCountdown -= 0x1E;
+            if (task->killCountdown > 0) {
+                return;
+            }
+            if ((s16)queue->field_248 != 0) {
+                queue->field_248 = 0;
+                queue->field_244 = 0;
+            }
+            Display_ReleaseRef();
+            Task_Kill(task);
+            break;
+    }
+}
 
 s32 func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
