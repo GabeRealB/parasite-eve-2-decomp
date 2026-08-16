@@ -47,14 +47,16 @@ STATIC_ASSERT_SIZEOF(GpActorD4, 0xD4);
 
 /// Overlay of `GsCOORDINATE2` at `GameActorExt.field_8`. `flg` is the same
 /// word cleared by `*field_8 = 0`. Offset 0x44 (`param` in libgs) is an s16
-/// flag (`lh`) in `func_8010B590`.
+/// flag (`lh`/`sh`) in `func_8010B590` / `func_80104364`. `sub` is the parent
+/// coordinate pointer (`GsCOORDINATE2.sub` at 0x4C).
 typedef struct _GpCoordExt {
     /* 0x00 */ s32  flg;
     /* 0x04 */ byte pad_4[0x40];
     /* 0x44 */ s16  field_44;
-    /* 0x46 */ byte pad_46[2];
+    /* 0x46 */ byte pad_46[6];
+    /* 0x4C */ s32* sub;
 } GpCoordExt;
-STATIC_ASSERT_SIZEOF(GpCoordExt, 0x48);
+STATIC_ASSERT_SIZEOF(GpCoordExt, 0x50);
 
 /// 8-byte argument record for `func_800FDB18`. `field_0` is a coordinate
 /// (fallback `D_80070F10`); `field_4` / `field_6` are packed into the

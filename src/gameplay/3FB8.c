@@ -24,6 +24,7 @@ extern GpEffArg       D_80113358;
 extern TaskFuncTable3 D_800977FC;
 extern u16            D_80112D68[];
 extern void*          D_80112D6C[];
+extern u16            D_80112DF4[];
 
 s32  func_800B9D80(s32 arg0);
 s32  func_8010A854(s32 arg0);
@@ -447,7 +448,30 @@ void func_801041FC(GpActorWork* arg0, s32 arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104258);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104364);
+Task* func_80104364(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    Task*         task;
+    s32*          saved;
+    GameActorExt* extra;
+    GpCoordExt*   coord;
+    s32           type;
+
+    saved = arg0->extra->field_8;
+    if (arg2 == 0) {
+        return NULL;
+    }
+    type = D_80112DF4[arg1] - 1;
+    task = Task_Spawn(7, type + arg2, arg3, 0);
+    if (task == NULL) {
+        return NULL;
+    }
+    extra           = (GameActorExt*)task->extra;
+    task->parent    = (Task*)arg0;
+    coord           = (GpCoordExt*)extra->field_8;
+    coord->sub      = saved;
+    coord->field_44 = 1;
+    return task;
+}
 
 s32 func_801043F4(void)
 {

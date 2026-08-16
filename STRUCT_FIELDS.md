@@ -583,6 +583,8 @@ and `func_800B57EC`; `sub` is the parent link, same convention as `Gfx_InitCoord
 Offset 0x18 / 0x20 are the low 16 bits of `coord.t[0]` / `coord.t[2]` (world X/Z);
 `func_800AEE28` loads them as `u16` (`GpCoordXZ`).
 Offset 0x44 (`param` in libgs) is loaded as an s16 flag by `func_8010B590` (`GpCoordExt`).
+Offset 0x4C (`sub` in libgs) is the parent `GameActorExt.field_8` pointer written by
+`func_80104364` (with `field_44 = 1`) and `func_80104258` (with `field_44 = 0`).
 `field_AC`/`field_CC`/`field_EC`/`field_10C`/`field_12C` are 0x20-byte list nodes
 unlinked by `func_800E1638` during actor teardown (`func_80101408`).
 `field_124` is a u32 packed word at +0x18 of the `field_10C` node;

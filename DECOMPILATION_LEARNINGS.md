@@ -22,6 +22,26 @@ arg1->x = ((s8)extra->field_24 << 6) + (x = (arg2->x + 1) / 2 + 0x180);
 `tpage + (x + 1) / 2 + 0x180` stuck at 94% with only the `addiu 0x180`
 moved.
 
+## New temp (not the index) so `lhu` targets `$a1`
+
+`table[arg1] + extra - 1` as a `Task_Spawn` argument emits `lhu a1` but
+reassociates to `addu a1, extra; addiu a1, -1`. Assigning
+`arg1 = table[arg1] - 1` pins `-1` on the load (`addiu` then `addu`) but
+uses `$v0` as the load dest because `arg1` is still live as the index.
+
+A *new* `s32` (not the index variable) lets the load overwrite `$a1` after
+the address is computed:
+
+```c
+s32 type;
+
+type = D_80112DF4[arg1] - 1; /* lhu a1; addiu a1, -1 */
+task = Task_Spawn(7, type + arg2, arg3, 0);
+```
+
+`func_80104364` is the example. Reusing `arg1` stuck at 99.7% with only
+`lhu v0` / `addiu a1, v0, -1` different.
+
 ## Constant CSE across differently-sized stores
 
 If the same small constant is stored to two struct fields of *different* widths,
