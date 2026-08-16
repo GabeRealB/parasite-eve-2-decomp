@@ -110,6 +110,10 @@ extern u8 D_80115768;
 /// `func_801013FC`, `func_80101408`.
 extern TaskFuncTable4 D_80097848;
 
+/// Four-entry `Task::state` dispatcher: `func_8010B590`, `func_8010B5C0`,
+/// `func_8010B5E4`, `func_8010B5F0`.
+extern TaskFuncTable4 D_80097AB0;
+
 /// `field_96C` dispatcher: three slots of `func_80109170`, then `func_80109208`.
 extern GpActorFuncTable4 D_800979F8;
 
