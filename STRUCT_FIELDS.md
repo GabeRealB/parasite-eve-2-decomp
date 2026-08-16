@@ -669,8 +669,8 @@ slot is occupied, else 0, then calls `func_801061F0`.
 | TmdObject.0x0C | `field_C` | Flags; bit 2 (`0x4`) skips buffer (re)alloc (`Tmd_AllocMissingBuffers`) and is set by `func_800B62D4` before `Tmd_FreeBuffers` |
 | TmdObject.0x10 | `field_10` | `TmdSource*` |
 | TmdObject.0x18 | `field_18` | Aux buffer (`Tmd_AllocBuffers`) |
-| TmdObject.0x24 | `field_24` | Stream param; `Tmd_ProcessStream` copies to scratch `field_70` as `s8` |
-| TmdObject.0x25 | `field_25` | Stream param; `Tmd_ProcessStream` copies to scratch `field_72` as `(s8)<<6` |
+| TmdObject.0x24 | `field_24` | Tpage addend; `Tmd_ProcessStream` copies to scratch `field_70` as `s8`; `func_8009EB84` adds it to `POLY_GT3.tpage` |
+| TmdObject.0x25 | `field_25` | Clut addend; `Tmd_ProcessStream` copies to scratch `field_72` as `(s8)<<6`; `func_8009EB84` adds it to `POLY_GT3.clut` |
 | TmdSource.0x0 | `field_0` | Init flag |
 | TmdSource.0x4 | `field_4` | Byte count for calloc×2 |
 | TmdSource.0x20 | `field_20` | Command/data stream |
