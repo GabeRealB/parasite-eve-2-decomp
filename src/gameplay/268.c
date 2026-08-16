@@ -4,6 +4,7 @@
 #include <psyq/memory.h>
 
 #include "gameplay/268.h"
+#include "gameplay/4CC.h"
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -731,7 +732,36 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBA70);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBB54);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBC10);
+void func_800BBC10(Task* arg0)
+{
+    GameActorExt* extra;
+
+    extra = arg0->extra;
+    if (arg0->state == 0) {
+        extra->field_C = 8;
+        arg0->state   += 1;
+    }
+    if (arg0->state == 1) {
+        register GpBit2Bank* banks asm("v0");
+        register u32*        p asm("v1");
+        GameSession*         sess;
+        s32                  id;
+        s32                  shift;
+        u32                  word;
+
+        sess  = Game_Session;
+        banks = D_8010D230;
+        id    = ((GpItemObj8*)arg0->spawnArg2)->field_8;
+        p     = banks[sess->field_7].field_4;
+        p    += id >> 4;
+        shift = (id & 0xF) * 2;
+        word  = *p;
+        if (((word & (3 << shift)) >> shift) == 2) {
+            extra->field_C &= 0xFFF7;
+            Task_CallExit(arg0);
+        }
+    }
+}
 
 s32 func_800BBCCC(GpItemRec* arg0, GpItemScan* arg1, s32* arg2, s32 arg3)
 {

@@ -550,6 +550,8 @@ See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 
 ### `GameActor` / `GameActorExt`
 Sparse: `field_17C`/`field_930` addresses for overlay setup; `field_C` kill flag bit 0x80.
+`GameActorExt.field_C` bit 0x8 is written by `func_800BBC10` on first run and
+cleared before `Task_CallExit` when the 2-bit bank value is 2.
 `field_17C` is an 18-entry `GpRec18` table (`func_800E1A6C` walks it from
 `&field_17C` until `field_0` bit 0x2; `func_801041B4` returns 1 if any
 `field_4 & 0x100100 == 0x100000`).

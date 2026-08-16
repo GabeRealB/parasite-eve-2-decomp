@@ -16722,4 +16722,41 @@ first search also needs a goto-back loop (not `do`/`while`) so the
 first `lw 0(p)` is not peeled off `&D_80115270` — same anti-peel
 trick as `Text_SkipLines`.
 
+## Pin the table to `$v0` inside the `if` so session `lui` takes `$v1`
+
+A task callback that inlines a 2-bit bank lookup after `if (state == 1)`
+wants the `bne` delay slot to start the session pointer:
+
+```
+bne   v1, v0, ret
+ lui   v1, %hi(Game_Session)
+lui   v0, %hi(table)
+addiu v0, v0, %lo(table)
+lw    v1, %lo(Game_Session)(v1)
+```
+
+`p = table[Game_Session->field].field_4` evaluates both addresses in
+parallel but puts the session in `$v0` and the table in `$v1`. Assign
+the session first and pin the table to `$v0` so the session load uses
+the dest register (`lui v1` / `lw v1`). Pin `p` to `$v1` so the bank
+pointer stays there and `id >> 4` can reuse `$v0`:
+
+```c
+if (arg0->state == 1) {
+    register GpBit2Bank* banks asm("v0");
+    register u32*        p asm("v1");
+    GameSession*         sess;
+
+    sess  = Game_Session;
+    banks = D_8010D230;
+    p     = banks[sess->field_7].field_4;
+    p    += id >> 4;
+}
+```
+
+Declare the pins *inside* the `if`. Function-scope `asm("v0")` /
+`asm("v1")` steals `$a1` from the task argument (it slides to `$a2`,
+`extra` to `$a3`). `func_800BBC10` is the example. The unpinned
+one-expression form stuck at 98% with only those two registers swapped.
+
 

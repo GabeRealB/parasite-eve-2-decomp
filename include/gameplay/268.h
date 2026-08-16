@@ -168,6 +168,7 @@ void        func_800BB838(GpBit2List* arg0, u32* arg1);
 void        func_800BB8E8(s32 arg0, u8 arg1, s32 arg2);
 s32         func_800BB974(GameSessionFrom4* arg0, s32 arg1);
 void        func_800BB9B8(void);
+void        func_800BBC10(Task* arg0);
 s32         func_800BBD40(s32 arg0);
 GpItemMap*  func_800BBDC8(s32 arg0);
 s32         func_800BBDDC(void);
