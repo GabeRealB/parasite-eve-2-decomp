@@ -783,7 +783,21 @@ void func_800E0540(GpObj* node)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0608);
+void func_800E0608(GpObj* node, s32 mask, s32 match)
+{
+    GpObj4C* other;
+
+    other = D_8011556C;
+    for (; node != NULL; node = node->next) {
+        if ((node->flags & mask) == (u16)match) {
+            for (; other != NULL; other = other->next) {
+                if (other->field_4A & 0x40) {
+                    func_800DEF80(node, other);
+                }
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E06AC);
 

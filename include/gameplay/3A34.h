@@ -517,6 +517,7 @@ void func_800DC528(GpObj* node);
 void func_800DCB80(GpObj* node);
 void func_800DD940(GpObj* node);
 void func_800DDDF8(GpObj* node);
+void func_800DEF80(GpObj* node, GpObj4C* other);
 void func_800E0294(void);
 void func_800E0414(GpObj* a, GpObj* b);
 void func_800E0540(GpObj* node);
