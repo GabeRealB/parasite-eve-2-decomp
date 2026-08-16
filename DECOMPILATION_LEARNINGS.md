@@ -116,6 +116,39 @@ if (p->field_21 == 0) {
 `func_800BBF1C` is the example. `if (p->field_21) { ... if (item) ... }` stuck
 at 88% with the load reused and the inner branch inverted.
 
+## Write the `== 0` early-return first so a sibling `== K` beq's back to it
+
+When two conditions store the same value and return, the combined
+
+```c
+if ((id & FLAG) && ((id & MASK) != K)) {
+    p->out = expr; /* % 10U, etc. */
+} else {
+    p->out = 0;
+}
+```
+
+emits `beqz` on the flag and places the shared `sb zero` after the expr tail.
+
+Write the `== 0` return first, then the `== K` return with the same store.
+GCC merges them: `bnez` skips the first `jr / sb zero`, and `li K; beq` jumps
+back to that store.
+
+```c
+if ((id & 0x8000) == 0) {
+    p->field_5D = 0;
+    return;
+}
+if ((id & 0x3F) == 0x31) {
+    p->field_5D = 0;
+    return;
+}
+p->field_5D = D_80114C08.field_0 % 10U;
+```
+
+`func_800E301C` is the example. The `&&` / else-zero form stuck at 87% with
+only the branch inverted and the zero store at the end.
+
 ## Store `== K` in an `s32` and test `== 0` so the false return is `beqz`
 
 `if (a && b == K) return X; return Y;` becomes two compare-branches

@@ -223,6 +223,22 @@ typedef struct _GpObj4C {
 } GpObj4C;
 STATIC_ASSERT_SIZEOF(GpObj4C, 0x50);
 
+/// Sparse overlay of the same object family as `GpObj4C` (flags at 0x4C).
+/// `func_800E301C` ORs bit 0x2 into `field_4C`, clears `field_58` /
+/// `field_5B`, and writes `field_5D` from `D_80114C08.field_0 % 10` when
+/// the id has the 0x8000 bit and low 6 bits != 0x31.
+typedef struct _GpObj5D {
+    /* 0x00 */ byte pad_0[0x4C];
+    /* 0x4C */ u8   field_4C;
+    /* 0x4D */ byte pad_4D[0xB];
+    /* 0x58 */ u8   field_58;
+    /* 0x59 */ byte pad_59[2];
+    /* 0x5B */ u8   field_5B;
+    /* 0x5C */ byte pad_5C;
+    /* 0x5D */ u8   field_5D;
+} GpObj5D;
+STATIC_ASSERT_SIZEOF(GpObj5D, 0x5E);
+
 /// 0x4C list node appended to `D_8010FAB0[index]` by `func_800E1688` and
 /// unlinked by `func_800E1708`. `func_800E1758` empties the whole list.
 /// `field_4A` bit 0x20 means the node is on that list (cleared on unlink,
@@ -460,6 +476,7 @@ s32  func_800E2CD4(s32 arg0, s32 arg1);
 s32  func_800E2D3C(s32 arg0);
 s32  func_800E2D90(s32 arg0);
 void func_800E3008(GpObj4C* arg0);
+void func_800E301C(GpObj5D* arg0, s32 arg1);
 s32  func_800E3194(s32 arg0);
 void func_800E337C(Task* arg0);
 void func_8010154C(void);

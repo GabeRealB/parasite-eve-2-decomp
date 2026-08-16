@@ -4,6 +4,7 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/mem.h"
 #include "main/pad.h"
@@ -1041,7 +1042,21 @@ void func_800E3008(GpObj4C* arg0)
     arg0->field_4C |= 1;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E301C);
+void func_800E301C(GpObj5D* arg0, s32 arg1)
+{
+    arg0->field_58  = 0;
+    arg0->field_5B  = 0;
+    arg0->field_4C |= 2;
+    if ((arg1 & 0x8000) == 0) {
+        arg0->field_5D = 0;
+        return;
+    }
+    if ((arg1 & 0x3F) == 0x31) {
+        arg0->field_5D = 0;
+        return;
+    }
+    arg0->field_5D = D_80114C08.field_0 % 10U;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E3084);
 
