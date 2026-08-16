@@ -22,6 +22,7 @@ extern s32          D_8010E8F8[5];
 extern s32          D_80114D88;
 extern u32          D_80114DCC;
 extern u8*          D_80114DD4;
+extern u16          D_80114DDC;
 extern s32          D_80114E88;
 extern s32          D_80114E8C;
 extern s32          D_80114E90;
@@ -35,12 +36,15 @@ extern char         D_8010E558[];
 extern char         D_8010E55C[];
 extern char         D_8010F8D0[];
 extern u8           D_8010F13D;
+extern UiObjectDesc D_8010D348;
+extern UiObjectDesc D_8010D6D8;
 extern UiObjectDesc D_8010EAD0;
 extern UiObjectDesc D_8010EB94;
 extern UiObjectDesc D_8010EBCC;
 extern UiObjectDesc D_8010EE6C;
 extern UiObjectDesc D_8010EE88;
 extern UiObjectDesc D_8010EFA0;
+extern UiObjectDesc D_8010F010;
 extern UiObjectDesc D_8010F178;
 extern UiObjectDesc D_8010F788;
 extern UiObjectDesc D_8010F840;
@@ -287,7 +291,36 @@ void func_800CDF18(UiObject* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CDFA8);
+void func_800CDFA8(Task* arg0)
+{
+    UiObjectDesc* desc;
+    UiObject*     obj;
+
+    arg0->killCountdown--;
+    if (arg0->killCountdown <= 0) {
+        switch (D_80114DDC >> 8) {
+            case 0:
+            case 1:
+                desc = &D_8010F010;
+                break;
+            case 8:
+                func_800BB9B8();
+                desc                 = &D_8010D348;
+                Mc_SaveData.field_12 = D_80114DDC;
+                break;
+            default:
+                Display_InitPrimBufOnce();
+                desc = &D_8010D6D8;
+                break;
+        }
+        obj = Ui_SpawnFromDesc(desc, 0, 0, 0, NULL);
+        if (obj != NULL) {
+            arg0->spawnArg1       = (s32)obj;
+            Game_Session->field_2 = 1;
+            arg0->state           = arg0->state + 1;
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE094);
 

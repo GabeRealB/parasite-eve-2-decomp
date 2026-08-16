@@ -34,6 +34,11 @@ typedef struct _GpItemDesc {
 STATIC_ASSERT_SIZEOF(GpItemDesc, 0x8);
 
 extern GpItemDesc D_8010D838[];
+/// Packed item/location halfword. High byte selects a UI path in
+/// `func_800CDFA8` (0/1, 8, or default); low byte is written to
+/// `Mc_SaveData.field_12` on the case-8 path. Copied into `D_80114D7C`
+/// by `func_800BCC44`.
+extern u16 D_80114DDC;
 /// Item/location halfword copied from `D_80114DDC` by `func_800BCC44`.
 /// `func_800BF334` special-cases the value `0x703`.
 extern u16 D_80114D7C;
