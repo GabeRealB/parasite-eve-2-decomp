@@ -195,6 +195,8 @@ GpWorkObj* func_800B584C(u16 arg0);
 void       func_800B58D4(TmdObject* arg0, s32 arg1, s32 arg2);
 s32        func_800B59A8(GpAreaKey* arg0);
 GpAreaObj* func_800B5A08(GpAreaKey* arg0);
+void       func_800B5A48(GpAreaKey* arg0, GpAreaObj* arg1);
+void       func_800B5B30(GpAreaKey* arg0, s32 arg1, s32 arg2);
 void       func_800B5BFC(s32 arg0, GpAreaKey* arg1);
 GpAreaObj* func_800B5C88(GpAreaKey* arg0);
 GpAreaRec* func_800B5CE8(GpAreaKey* arg0);
