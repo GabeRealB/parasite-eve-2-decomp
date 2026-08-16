@@ -225,7 +225,20 @@ void func_800BAE38(void)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAE5C);
+void func_800BAE5C(s32 arg0)
+{
+    s32* p;
+    s32  bit;
+
+    p    = Mc_SaveData.field_5AC;
+    bit  = arg0 & 0x7F;
+    p   += bit / 32;
+    bit %= 32;
+    *p  |= 1 << bit;
+    if ((arg0 & 0x7F) == 0x19) {
+        D_800739B8 = Mc_SaveData.field_C;
+    }
+}
 
 void func_800BAEC0(s32 arg0)
 {
