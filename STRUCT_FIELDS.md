@@ -206,6 +206,7 @@ Convention: only list fields with evidence. Unlisted `field_*` / `unknown_*` /
 | 0x190 | `field_190` | `CdCmd190*` stream descriptor |
 | 0x1A8 | `field_1A8` | Copied to `D_80070F60` by `func_800B00C4` |
 | 0x1AC | `field_1AC` | `srand` seed restored by `func_800B00C4` |
+| 0x210 | `field_210` | u16 flag; `func_800A9010` sets 1 after `Stream_FindSlot` succeeds and `func_800B62D4`, clears it after `func_800B56AC` |
 
 ### `CdCmd58Entry` / `CdCmd190`
 See inline comments in `fs.h` (buffer offsets, stream id, VLC slots).

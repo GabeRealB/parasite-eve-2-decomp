@@ -11,6 +11,7 @@
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/stream.h"
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/ui.h"
@@ -32,6 +33,7 @@ extern s32            D_8005ED70;
 extern s32            D_8005ED74;
 extern GsCOORDINATE2  D_80070F10;
 extern s16            D_80114C40;
+extern DR_STP         D_80114C50;
 
 void func_800A1634(s32 arg0, s32 arg1);
 void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -895,7 +897,58 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8DC0);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8E8C);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A9010);
+void func_800A9010(Task* task)
+{
+    DisplayState*     ds;
+    CdCmdQueue*       q;
+    GameSessionFrom4* sess;
+    u8                param1[8];
+    u8                param2[8];
+
+    sess = (GameSessionFrom4*)&Game_Session->field_4;
+    q    = &CdCmd_Queue;
+    if (task->spawnArg1 != 0) {
+        Display_State.field_103 = 2;
+    }
+    ds = &Display_State;
+    if (ds->field_114 == ds->frameMode) {
+        DrawSync(0);
+        SetDrawStp(&D_80114C50, 0);
+        DrawPrim(&D_80114C50);
+        ds->field_103 = 2;
+        if (q->field_214 != 0) {
+            Mdec_ResolveStreamBuffer(&Game_Session->field_4);
+            task->state = 5;
+        } else {
+            D_80114C40 = Stream_FindSlot(&Game_Session->field_4, 0, 1);
+            if (D_80114C40 >= 0) {
+                func_800B62D4();
+                q->field_210 = 1;
+            } else {
+                if (q->field_210 != 0) {
+                    func_800B56AC();
+                    q->field_210 = 0;
+                }
+            }
+            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+                CdCmd_ActivatePhase1();
+                task->state += 1;
+                func_800A954C(task);
+            } else {
+                param1[3] = sess->field_3;
+                param1[2] = sess->field_2;
+                param1[0] = func_800AD284();
+                param2[0] = 1;
+                param2[1] = 0;
+                param2[2] = 0;
+                param2[3] = 0;
+                CdCmd_Enqueue(0x21, param1, param2);
+                task->state += 2;
+                func_800A91CC(task);
+            }
+        }
+    }
+}
 
 void func_800A91CC(Task* task)
 {

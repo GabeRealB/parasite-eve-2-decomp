@@ -173,6 +173,7 @@ void     func_800B3FA8(GpAnimCtx* arg0, s32 arg1, s32 arg2);
 void     func_800B4514(GpAnimCtx* arg0, s32 arg1);
 GpAnimRec* func_800B4668(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3);
+void       func_800B56AC(void);
 void       func_800B57EC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
 GpWorkObj* func_800B584C(u16 arg0);
 void       func_800B58D4(TmdObject* arg0, s32 arg1, s32 arg2);
@@ -185,6 +186,7 @@ void       func_800B601C(GpAreaKey* arg0);
 s32        func_800B5E08(Task* arg0, Task* arg1, s32 arg2, Task** arg3);
 s32        func_800B5E78(Task* arg0, Task* arg1, s32 arg2, Task** arg3);
 s32        func_800B5EE8(Task* arg0);
+void       func_800B62D4(void);
 void       func_800B6CF0(void);
 s32        func_800B6DA4(s32 arg0, s32 arg1);
 
