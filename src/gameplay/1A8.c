@@ -197,4 +197,20 @@ void func_800AF498(void)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AF500);
+void func_800AF500(s16 arg0, GpAreaFlagRec* arg1)
+{
+    GpAreaRec* rec;
+    GpAreaObj* obj;
+
+    rec = D_8010CBCC[arg0];
+    if (rec != NULL) {
+        for (; arg1->field_0 != 0xFF; arg1++) {
+            if (arg1->field_1 != 0) {
+                obj = rec[arg1->field_0].field_4;
+                if (obj != NULL) {
+                    obj->field_1 |= 0x4;
+                }
+            }
+        }
+    }
+}

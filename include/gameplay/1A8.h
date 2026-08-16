@@ -59,6 +59,15 @@ STATIC_ASSERT_SIZEOF(GpSaveLoc, 8);
 
 extern GpSaveLoc D_80114CE8;
 
+/// 2-byte record in 0xFF-terminated lists walked by `func_800AF500`.
+/// `field_0` indexes `D_8010CBCC[arg0]` (same role as `GpAreaKey.field_2`);
+/// `field_1` is the apply flag (nonzero → `GpAreaObj.field_1 |= 4`).
+typedef struct _GpAreaFlagRec {
+    /* 0x0 */ u8 field_0;
+    /* 0x1 */ u8 field_1;
+} GpAreaFlagRec;
+STATIC_ASSERT_SIZEOF(GpAreaFlagRec, 2);
+
 /// 6-entry table of no-arg callbacks. Copied onto the stack by
 /// `func_800AEF4C` (`D_80093978`) and the sibling dispatcher
 /// `func_800AEFBC` (`D_80093990`).
@@ -68,7 +77,8 @@ typedef struct {
     GpVoidFunc funcs[6];
 } GpVoidFuncTable6;
 
-s32 func_800AEE28(Task* arg0, GpPosXZ* arg1);
-u8  func_800AEEFC(void);
+s32  func_800AEE28(Task* arg0, GpPosXZ* arg1);
+u8   func_800AEEFC(void);
+void func_800AF500(s16 arg0, GpAreaFlagRec* arg1);
 
 #endif // GAMEPLAY_1A8_H
