@@ -726,7 +726,33 @@ void func_80104A4C(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104AAC);
+void func_80104AAC(GpActorWork* arg0)
+{
+    GameActor*    actor;
+    WipSysConfig* p;
+
+    actor             = arg0->actor;
+    p                 = &Wip_SysConfig;
+    actor->field_954  = 2;
+    actor->field_95E  = 0;
+    actor->field_973  = 0;
+    actor->field_975  = 0;
+    p->field_24       = 0;
+    actor->field_97E  = 0;
+    actor->field_60   = 0;
+    actor->field_58   = 0;
+    actor->field_64   = 0;
+    actor->field_5C   = 0;
+    actor->field_6A   = 0;
+    actor->field_68   = 0;
+    actor->field_70   = 0;
+    actor->field_96C  = 0;
+    actor->field_12A &= 0x3FFF;
+    func_80106350(arg0, p->field_21, 0);
+    if (Game_Session->field_1 != 0) {
+        ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104B54);
 
