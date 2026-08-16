@@ -14826,4 +14826,53 @@ Pairs with “Index-first cast for `addu rd, index, base`”. `func_800A8B6C`
 is the example; the sibling `func_800A8C08` can keep `&recs[idx - 1]`
 because that address is a return value, not a call argument.
 
+## Two-phase switch table, then pin, so `lui v0` survives a later `$v1` walk
+
+A switch that picks a global table (`D_case2` / `*D_indirect` / default)
+wants the sibling leaf coloring:
+
+```
+bne   v1, v0, default
+ lui  v0, %hi(D_default)
+lui   v0, %hi(D_case2)
+j     join
+ addiu v1, v0, %lo(D_case2)
+```
+
+Assigning the table directly into `register T* table asm("v1")` rewrites
+that as `lui v1; addiu v1, v1, %lo` and drops the default `%hi` from the
+`bne` delay (see “Pin the loop index, not the switch-selected table”).
+A later byte-offset walk of the same pointer also needs `$v1`, so you
+cannot leave the table unpinned either — GCC then parks it in `$a1`/`$a2`
+and CSE's `addiu v1, table, 2` / `sb -1(v1)` / `sh 0(v1)` for the
+`u8`/`u8`/`u16` zero stores.
+
+Assign the switch through an unpinned temp, then copy into the pinned
+pointer. Copy-coalesce keeps `lui v0; addiu v1, v0, %lo`, and the pin
+keeps the walk on `$v1` with `sb 0` / `sb 1` / `sh 2`:
+
+```c
+GpItemRec*          tmp;
+register GpItemRec* table asm("v1");
+
+switch (scan->field_2) {
+case 2:
+    tmp = D_case2;
+    break;
+case 1:
+    tmp = D_indirect;
+    break;
+default:
+    tmp = D_default;
+    break;
+}
+table = tmp;
+```
+
+Keep the loop index live after the empty-count path (`asm volatile("" ::
+"r"(i))`) so `i = 0` stays at the switch join (`move a1, zero` in the
+case-1 delay) instead of sinking into the `field_1 != 0` arm. Pair with
+`off + (s32)table` and `register s32 off asm("v0")` for `addu v1, v0, v1`
+(see the `off + base` entry). `func_800BAC8C` is the example.
+
 
