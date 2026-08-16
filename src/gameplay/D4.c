@@ -219,7 +219,47 @@ void func_800A99E0(Task* task)
     Display_ResetHeapWrapper();
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9A40);
+void func_800A9A40(s32 arg0)
+{
+    s32           raw;
+    s32           i;
+    s32           target;
+    register s32  type2 asm("v0");
+    FsFolderSlot* table;
+    FsFolderSlot* slot;
+    GameSession*  session;
+    u8            param2[8];
+    u8            param1[8];
+
+    raw    = func_800AD284();
+    i      = 0;
+    table  = D_8006C338;
+    target = (u8)raw - 1;
+    for (; (u8)i < 50; i++) {
+        type2 = 2;
+        if (table[(u8)i].field_0 == type2) {
+            if (target == (u8)i) {
+                slot = &table[(u8)i];
+                while (Fs_LoadImageChunk((FsImageChunk*)slot->field_4, 1) & 0xFF) {
+                }
+                break;
+            }
+        }
+    }
+    session   = Game_Session;
+    param1[3] = session->field_7;
+    param1[2] = session->field_6;
+    param1[0] = func_800AD284();
+    param2[0] = 1;
+    if ((u8)arg0 != 0) {
+        param2[1] = 4;
+    } else {
+        param2[1] = 0;
+    }
+    param2[3] = 0;
+    param2[2] = 0;
+    CdCmd_Enqueue(0x21, param1, param2);
+}
 
 void func_800A9B3C(s32 arg0)
 {
