@@ -8,6 +8,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/gameflow.h"
+#include "main/mc.h"
 #include "main/session.h"
 #include "main/task.h"
 
@@ -131,7 +132,23 @@ void func_800AF208(void)
     D_80114CD6++;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AF284);
+void func_800AF284(void)
+{
+    u8 fade;
+
+    if (*(s16*)&D_80114CF6 != 0) {
+        fade = *(u8*)&D_80114CF6;
+        Fade_DrawOverlay(fade, fade, fade, 2);
+    }
+    Mc_SaveData.field_6 = D_80114CE8.field_0;
+    Mc_SaveData.field_8 = D_80114CE8.field_2;
+    Mc_SaveData.field_5 = D_80114CE8.field_3;
+    Task_Spawn(0, 0x11, 0, 0);
+    D_80114CF8 = 0;
+    D_80114CD9 = 0;
+    D_80114CD8 = 0;
+    D_80114CD2 = 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AF314);
 
