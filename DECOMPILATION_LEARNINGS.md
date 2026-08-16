@@ -16543,4 +16543,25 @@ for (; i < scan->field_1; i++) {
 `func_800CF090` is the example. A plain `GpItemRec*` stuck at 92% with
 only the load reused and those two registers swapped.
 
+## Assign a negative constant to `s32` before storing it to a `u16` field
+
+`obj->field_E = -0x5C` on a `u16` dest converts the constant to
+`0xFFA4` in the front end and emits `ori v0, 0xffa4`. The target
+materializes it as signed (`addiu v0, -0x5c` / `li v0,-0x5c`).
+
+Assign the constant to an `s32` first, then store that. The 32-bit
+temp keeps the signed immediate; `sh` just takes the low 16 bits:
+
+```c
+s32 y;
+
+y            = -0x5C; /* addiu v0, -0x5c */
+obj->field_E = y;     /* sh v0 */
+```
+
+A cast alone (`obj->field_E = (s32)-0x5C`) folds back to the field's
+unsigned type. `func_800CF940` is the example. The bare
+`obj->field_E = -0x5C` stuck at 99.8% with only those two `li`
+encodings different.
+
 
