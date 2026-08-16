@@ -19,7 +19,9 @@
 #include "main/wipsys.h"
 
 extern s32          D_8010E8F8[5];
+extern u16          D_80114D84;
 extern s32          D_80114D88;
+extern UiObject*    D_80114D98[];
 extern u32          D_80114DCC;
 extern u8*          D_80114DD4;
 extern u16          D_80114DDC;
@@ -48,6 +50,7 @@ extern UiObjectDesc D_8010EE6C;
 extern UiObjectDesc D_8010EE88;
 extern UiObjectDesc D_8010EFA0;
 extern UiObjectDesc D_8010EFBC;
+extern UiObjectDesc D_8010EFD8;
 extern UiObjectDesc D_8010F010;
 extern UiObjectDesc D_8010F178;
 extern UiObjectDesc D_8010F788;
@@ -76,6 +79,7 @@ void  func_80181184(Task* task);
 void  func_801811A0(Task* task);
 void  func_800C05CC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void  func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
+void  func_800C2CE8(Task* arg0);
 void  func_800CB33C(UiObject* arg0, Task* arg1, s32 arg2);
 void  func_800CC15C(UiObject* arg0, Task* arg1, s32 arg2);
 void  func_800D02A4(Task* arg0);
@@ -126,7 +130,47 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C2B70);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C2CE8);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C32A8);
+void func_800C32A8(Task* arg0)
+{
+    UiObject*     obj;
+    UiObject*     child;
+    UiObjectDesc* desc;
+    s32           one;
+    s16           y;
+    struct {
+        s16 unk0;
+        s16 unk2;
+    } cursor;
+
+    obj = arg0->spawnArg2;
+    if (arg0->state == 0) {
+        desc          = &D_8010EFD8;
+        one           = 1;
+        D_80114D84    = 0;
+        D_80114D98[0] = Ui_SpawnFromDesc(desc, one, one, one, obj);
+        D_80114D98[1] = Ui_SpawnFromDesc(desc + 1, one, 0, one, obj);
+    }
+    func_800C2CE8(arg0);
+    if ((D_80114D84 == 1) && (Ui_IsStateDone((Task*)obj) == 0)) {
+        Ui_SetState4((Task*)obj, obj->owner);
+    } else if ((D_80114D84 == 0) && (Ui_IsStateDone((Task*)obj) == 1)) {
+        Ui_ClampAnimOrClose((UiPanel*)obj, (s32)obj->owner, 0x10);
+    }
+    if (obj->status == 1) {
+        if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
+            child          = D_80114D98[1];
+            *(s32*)&cursor = Ui_GetCursorFixed();
+            if (cursor.unk2 < (s16)child->field_E) {
+                child = D_80114D98[0];
+            }
+            SndEvt_EnqueueType6(2, 0, 0);
+            obj->status     = 0;
+            y               = cursor.unk2;
+            child->status   = 0x17;
+            child->field_2C = y;
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C3418);
 

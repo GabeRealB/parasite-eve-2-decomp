@@ -15418,4 +15418,61 @@ switch (flag) {
 
 `func_800C7444` is the example. `s16 flag` stuck at 97.3% with `lhu a1` + `li a2,6`.
 
+## `&&` / `else if` so a flag is reloaded and `1` stays in `$v0`
+
+Two related checks on the same halfword flag that the target writes as
+
+```
+lhu  v1, flag
+li   v0, 1
+bne  v1, v0, else
+ lui  v0, %hi(flag)     /* delay: address for the else-if reload */
+jal  pred1
+...
+bnez v0, else
+ lui  v0, %hi(flag)
+... A ...
+j    after
+else:
+lhu  v0, flag
+bnez v0, after
+jal  pred2
+li   v1, 1
+bne  v0, v1, after
+... B ...
+```
+
+must be `if (flag == 1 && pred1 == 0) { A; } else if (flag == 0 && pred2 == 1) { B; }`.
+
+An `if (flag == 1) { if (!pred1) A; } else if (flag == 0) { if (pred2 == 1) B; }`
+CSE's `1` into a callee-saved (`li s0, 1`) and skips the second load. The
+`&&` / `else if` form:
+
+- short-circuits so `pred1` is skipped when `flag != 1`
+- jumps over B after A (the explicit `j after`)
+- still evaluates `flag == 0` when `flag == 1` but `pred1 != 0`, which forces
+  the reload and parks `%hi(flag)` in the first two delay slots
+- rematerializes each `1` in `$v0` / `$v1` instead of `$sN`
+
+`func_800C32A8` is the example. The nested if/else stuck at 88% with only the
+flag block different. `func_800C3CE0` and `func_800C46B4` share the same shape.
+
+## Copy a packed halfword to a temp so `lhu` sits between two stores
+
+`Ui_GetCursorFixed` returns two `s16`s packed in an `s32`. After storing that
+to a local pair, a later `obj->field = pair.hi` emits `li K` first and `lhu`
+after both stores.
+
+Assign the halfword to a temp *between* the two stores so `lhu` fills the
+slot after `sw zero` and before `li K`:
+
+```c
+obj->status = 0;
+y = cursor.unk2;     /* lhu v1, 0x1A(sp) */
+child->status = 0x17; /* li v0, 0x17; sw v0 */
+child->field_2C = y;  /* sh v1 */
+```
+
+`func_800C32A8` is the example.
+
 
