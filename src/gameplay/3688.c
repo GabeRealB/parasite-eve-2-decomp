@@ -49,6 +49,7 @@ extern UiObjectDesc D_8010EB94;
 extern UiObjectDesc D_8010EBCC;
 extern UiObjectDesc D_8010EE6C;
 extern UiObjectDesc D_8010EE88;
+extern UiObjectDesc D_8010EF84;
 extern UiObjectDesc D_8010EFA0;
 extern UiObjectDesc D_8010EFBC;
 extern UiObjectDesc D_8010EFD8;
@@ -783,7 +784,26 @@ void func_800CF330(Task* arg0)
     Ui_FreeAndKill(arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF374);
+void func_800CF374(DialogPrompt* arg0, UiObject* arg1)
+{
+    TextDrawReq req;
+
+    req.x          = arg1->baseX + (u16)arg0->field_18;
+    req.y          = arg1->baseY + (u16)arg0->field_1A;
+    req.otIndex    = (s16)arg1->drawOrder + 1;
+    req.field_8    = arg0->field_1C;
+    req.glyphTable = 0;
+    req.centerMode = 0;
+    req.field_E    = 1;
+    func_8002E53C(&req, D_8010E500);
+    if (arg0->field_C == 1) {
+        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+            SndEvt_EnqueueType6(3, 0, 0);
+            Ui_SpawnFromDesc(&D_8010EF84, 0, 1, 1, arg1);
+            arg1->status = 0;
+        }
+    }
+}
 
 void func_800CF448(s32 arg0)
 {
