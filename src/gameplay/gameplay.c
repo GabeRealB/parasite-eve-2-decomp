@@ -26,6 +26,7 @@ extern GsCOORDINATE2* D_80114B9C;
 extern CVECTOR        D_80114BA4;
 extern CVECTOR        D_80114BA8;
 extern u8             D_80114BF0[];
+extern TaskFuncTable6 D_80093830;
 extern char           D_80093870[]; // "Item"
 extern s32            D_8005ED70;
 extern s32            D_8005ED74;
@@ -557,7 +558,13 @@ void func_800A7744(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A77B4);
+void func_800A77B4(Task* arg0)
+{
+    TaskFuncTable6 sp;
+
+    sp = D_80093830;
+    sp.funcs[arg0->state](arg0);
+}
 
 void func_800A7824(s32 arg0, s32 arg1, s32 arg2)
 {
