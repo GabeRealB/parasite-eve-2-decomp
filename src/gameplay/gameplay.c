@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <psyq/memory.h>
+
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/D4.h"
@@ -11,6 +13,7 @@
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
+#include "main/sound.h"
 #include "main/stream.h"
 #include "main/task.h"
 #include "main/tmd.h"
@@ -20,6 +23,7 @@
 extern u8             D_801153F1;
 extern s32            D_8010CA28;
 extern TaskDesc       D_8010CABC;
+extern TaskDesc       D_8010D1FC;
 extern TmdListHead    D_80114B80;
 extern TmdListHead    D_80114B88;
 extern Task*          D_80114B90;
@@ -495,7 +499,63 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009FEDC);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A0094);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A0504);
+void func_800A0504(Task* arg0)
+{
+    RECT          rect;
+    DisplayState* ds;
+    GameSession*  session;
+    CdCmdQueue*   queue;
+    s32           flag;
+
+    queue = &CdCmd_Queue;
+    func_800A7320(&arg0->killCountdown);
+    arg0->spawnArg1 += 0xA;
+    if (arg0->spawnArg1 < 0x100) {
+        return;
+    }
+    if (Game_Session->field_128 != 3) {
+        SetDispMask(0);
+    }
+    SndEvt_EnqueueType2(0, 8);
+    SndEvt_EnqueueType7(0x80000000, 0x78);
+    SndEvt_EnqueueType7(0x60010001, 0x78);
+    flag            = 0xFF;
+    arg0->spawnArg1 = flag;
+    Pad_SetCooldown(0);
+    Game_ClearPtrSlots();
+    ds            = &Display_State;
+    ds->field_10b = 1;
+    Task_ResetDefaultList();
+    Gpu_ClearOTag(0);
+    Gpu_ClearOTag(1);
+    Mem_Init();
+    CdCmd_ActivatePhase1();
+    session          = Game_Session;
+    queue->field_20A = 1;
+    if (session->field_128 != 3) {
+        rect.w = 0x140;
+        rect.y = 0;
+        rect.x = 0;
+        rect.h = 0x200;
+        ClearImage(&rect, 0, 0, 0);
+        DrawSync(0);
+        ds->field_100 = 0;
+    }
+    memset(&Game_Session->field_4, 0, 8);
+    Mem_ConfigureAuxHeap(0, 0);
+    if (Game_Session->field_128 == flag) {
+        D_80068F90         = 0xB000;
+        GActiveAuxHeapSize = 0x30000;
+        D_80068F88         = (size_t)((u8*)Fs_ImgBuffers - 0x35800);
+        GActiveAuxHeap     = (u8*)Fs_ImgBuffers - 0xA800;
+    }
+    Mem_Init();
+    Mem_InitAux();
+    if (Game_Session->field_128 != flag) {
+        CdCmd_SetupMdecBuffers();
+    }
+    Task_SpawnFromTable(&D_8010D1FC, 0, 0, 0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A0718);
 

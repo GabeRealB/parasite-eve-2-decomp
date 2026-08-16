@@ -15622,6 +15622,29 @@ so `i` is not rematerialized. The scheduler then parks `li s1, 1` in the poll
 `bnez` delay, `li s4, 9` in the `lw actor` delay, and `li s3, 5` in the loop
 `beqz` delay. `func_80101848` is the example.
 
+## Assign `&global` at the top so the address lives in `$sN` from the prologue
+
+A single later store (`CdCmd_Queue.field_20A = 1`) rematerializes
+`lui v1,%hi; sh v0,%lo(global+off)` at the use, so `$s4` is never allocated
+and the stack frame shrinks (`sw ra,0x28` instead of `0x2C`). The target
+computes `&CdCmd_Queue` in the prologue — even on the early-return path that
+never uses it — because the address is live across every jal.
+
+Assign the pointer at the top of the function, before the first call:
+
+```c
+CdCmdQueue* queue;
+
+queue = &CdCmd_Queue;
+func_800A7320(&arg0->killCountdown);
+...
+queue->field_20A = 1;
+```
+
+That forces `sw s4` / `addiu s4,%lo` in the prologue and `sh v0,0x20a(s4)`
+at the store. `func_800A0504` is the example. Bare `CdCmd_Queue.field_20A = 1`
+stuck at 95.6% with only the frame / `$s4` save-restore different.
+
 ## Two `&global`s: force `addiu v0, %lo` then `move dest` (not `addiu dest`)
 
 `-msplit-addresses` turns `p = &D_xxx; q = &D_yyy` into `lui dest; addiu dest,
