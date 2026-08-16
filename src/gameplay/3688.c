@@ -37,6 +37,7 @@ extern char         D_8010E55C[];
 extern char         D_8010F8D0[];
 extern char         D_8010F1A4[];
 extern u8           D_8010F13D;
+extern UiList       D_8010E938;
 extern UiObjectDesc D_8010D348;
 extern UiObjectDesc D_8010D6D8;
 extern UiObjectDesc D_8010EA98;
@@ -151,7 +152,48 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C5F70);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C70F0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C7444);
+void func_800C7444(Task* arg0)
+{
+    UiObject* obj;
+    UiList*   menu;
+    UiObject* child;
+    s32       flag;
+
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    menu          = &D_8010E938;
+    if (arg0->state == 0) {
+        obj->field_10 = 0x60;
+        Ui_LayoutListPanel(menu, (UiPanel*)obj);
+        arg0->state = arg0->state + 1;
+    }
+    Ui_UpdateListNoAnim(menu, obj);
+    if (obj->status == 1) {
+        if (Pad_CheckButtons(0, 1, D_8005ED78) != 0) {
+            obj->field_2E = -1;
+        } else if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
+            SndEvt_EnqueueType6(4, 0, 0);
+            obj->field_2E = 6;
+        }
+    }
+    child = (UiObject*)arg0->firstChild;
+    if (child != NULL) {
+        child = ((Task*)child)->spawnArg2;
+        flag  = child->field_2E;
+        switch (flag) {
+            case -1:
+                obj->field_2E = flag;
+                break;
+            case 6:
+                Ui_TeardownTree(child, child->owner);
+                obj->status = 1;
+                break;
+            case 9:
+                obj->field_2E = 6;
+                break;
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C7590);
 

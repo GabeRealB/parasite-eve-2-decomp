@@ -15392,4 +15392,30 @@ p->field_983 = flag;
 `func_80104CAC` is the example. `flag = 7; if (arg2->field_10 == 0) flag = 0x38;`
 stuck at 99.7% with only the register different.
 
+## `s32` temp for `s16` switch key + store
+
+Switching on an `s16` field and then storing that same value back (`obj->field = child->field`)
+emits `lh` for the signed compare plus a second `lhu` halfword copy. An `s16` temp does
+the same: the switch promotes it to `int` with `lh` and the store reloads with `lhu`.
+
+Assign the field to an `s32` first. One `lh` sign-extends; the store reuses that register
+(`sh v1`). That also frees `$a1`, so the switch-case constant lands in `$a1` (delay slot
+of the null check) and is reused for another arm's store of the same constant.
+
+```c
+s32 flag;
+
+flag = child->field_2E; /* lh v1 */
+switch (flag) {
+    case -1:
+        obj->field_2E = flag; /* sh v1, not a second lhu */
+        break;
+    case 9:
+        obj->field_2E = 6; /* sh a1 — same 6 as the case-6 compare */
+        break;
+}
+```
+
+`func_800C7444` is the example. `s16 flag` stuck at 97.3% with `lhu a1` + `li a2,6`.
+
 
