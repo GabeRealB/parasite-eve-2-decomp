@@ -39,6 +39,7 @@ extern char         D_8010E558[];
 extern char         D_8010E55C[];
 extern char         D_8010E58C[];
 extern char         D_8010F8D0[];
+extern char         D_8010F8D4[];
 extern char         D_8010F9C0[];
 extern char         D_8010F19C[];
 extern char         D_8010F1A4[];
@@ -73,6 +74,7 @@ extern TaskDesc     D_801871F0;
 extern s32          D_8005ED70;
 extern s32          D_8005ED74;
 extern s32          D_8005ED78;
+extern char         D_80096FD8[];
 extern char         D_8009701C[];
 extern char         D_800971D0[];
 extern char         D_80097200[];
@@ -643,7 +645,45 @@ void func_800CE5D0(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
     func_800C05CC(arg0, arg1, arg2, arg3, 0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE5F0);
+void func_800CE5F0(DialogPrompt* arg0, UiObject* arg1)
+{
+    TextDrawReq req;
+    s32         color;
+    s32         status;
+    s32         one;
+
+    color = arg0->field_1C;
+    if (func_800A74C4() != 0) {
+        color = Ui_LookupTable(arg1, 2);
+    } else {
+        status = arg1->status;
+        one    = 1;
+        if (((status >> 16) == one) || (status == one)) {
+            if (arg0->field_10 == arg0->field_8) {
+                Ui_SetHolderParam((s32)D_8010F8D4, 0, 0);
+            }
+        }
+    }
+
+    req.x          = arg1->baseX + (u16)arg0->field_18;
+    req.y          = arg1->baseY + (u16)arg0->field_1A;
+    req.otIndex    = (s16)arg1->drawOrder + 1;
+    req.field_8    = color;
+    req.glyphTable = 5;
+    req.centerMode = 0;
+    req.field_E    = 0;
+    func_8002E53C(&req, D_80096FD8);
+
+    if (arg0->field_C == 1) {
+        if (func_800A74C4() != 0) {
+            arg0->field_22 = 0x41;
+        } else if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+            SndEvt_EnqueueType6(3, 0, 0);
+            arg1->field_2C = 0xC;
+            arg1->field_2E = 6;
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE738);
 
