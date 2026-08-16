@@ -16396,4 +16396,28 @@ case 9:
 `func_800CB188` is the example. Reusing `flag` for both loads stuck at
 97.8% with only the switch registers (and one extra `nop`/`move`) wrong.
 
+## Overlay the mid-byte of a little-endian `s32` so the load is `lbu`
+
+An 8.8 interpolator stored as `s32` (`start << 8`) is posted as its
+integer byte. `(u8)(state->field_4 >> 8)` emits `lw; srl; andi`. The
+target is a single `lbu` at offset +1 of that word (LE byte 1).
+
+Put a union on the word so the mid-byte is a real field. GCC then
+emits `lbu`:
+
+```c
+union {
+    s32 as_s32;
+    struct {
+        u8 pad_4;
+        u8 as_u8; /* (as_s32 >> 8) */
+    } bytes;
+} field_4;
+
+Pad_PostEvent(0, 1, state->field_4.bytes.as_u8, 1);
+```
+
+`func_800E9498` is the example. The shift form compiles and is
+semantically identical but cannot match.
+
 

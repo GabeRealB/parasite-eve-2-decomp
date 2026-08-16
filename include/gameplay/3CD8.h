@@ -99,11 +99,19 @@ STATIC_ASSERT_SIZEOF(GpState34, 0x34);
 
 /// 0xC-byte interpolator state allocated by `func_800E8D1C` / `func_800E8E00`
 /// (`Mem_Calloc(0xC, 0)`) and stored at `Task::idMap` for bank-2 type 0xC.
-/// `field_8` is the duration; `field_4` is start<<8; `field_0` is the
+/// `field_8` is the duration; `field_4.as_s32` is start<<8; `field_0` is the
 /// per-frame step `((end<<8) - (start<<8)) / duration`.
+/// `func_800E9498` posts `field_4.bytes.as_u8` (the 8-bit interpolator,
+/// `as_s32 >> 8` on little-endian) via `Pad_PostEvent`.
 typedef struct _GpState0C {
-    /* 0x0 */ s32  field_0; // step
-    /* 0x4 */ s32  field_4; // start << 8
+    /* 0x0 */ s32 field_0; // step
+    /* 0x4 */ union {
+        s32 as_s32; // start << 8
+        struct {
+            /* 0x4 */ u8 pad_4;
+            /* 0x5 */ u8 as_u8; // (as_s32 >> 8)
+        } bytes;
+    } field_4;
     /* 0x8 */ s16  field_8; // duration
     /* 0xA */ byte pad_A[2];
 } GpState0C;

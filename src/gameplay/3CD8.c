@@ -769,12 +769,12 @@ void func_800E8D1C(s16 arg0, u8 arg1, u8 arg2)
             if (task == NULL) {
                 Mem_Free(mem);
             } else {
-                end          = (arg2 & 0xFF) << 8;
-                start        = (arg1 & 0xFF) << 8;
-                task->idMap  = (TaskIdMap*)mem;
-                mem->field_8 = arg0;
-                mem->field_4 = start;
-                mem->field_0 = (end - start) / arg0;
+                end                 = (arg2 & 0xFF) << 8;
+                start               = (arg1 & 0xFF) << 8;
+                task->idMap         = (TaskIdMap*)mem;
+                mem->field_8        = arg0;
+                mem->field_4.as_s32 = start;
+                mem->field_0        = (end - start) / arg0;
             }
         }
     }
@@ -911,7 +911,23 @@ void func_800E93D4(Task* task)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E9498);
+void func_800E9498(Task* task)
+{
+    GpState0C* state;
+
+    state = (GpState0C*)task->idMap;
+    if (D_801153F4 == 0 || (Game_Session->field_13B & 0x80)) {
+        if (state->field_8 != 0 && D_80115702 == 0) {
+            state->field_8--;
+            Pad_PostEvent(0, 1, state->field_4.bytes.as_u8, 1);
+            state->field_4.as_s32   += state->field_0;
+            Game_Session->field_13B |= 2;
+        } else {
+            Game_Session->field_13B &= ~2;
+            Task_Kill(task);
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E956C);
 
