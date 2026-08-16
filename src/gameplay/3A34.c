@@ -1316,7 +1316,26 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E2DE4);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E2EC4);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E2F7C);
+s32 func_800E2F7C(GpObj5C* arg0)
+{
+    s32          val;
+    s32          ret;
+    register s32 scale asm("v1");
+
+    ret = 0;
+    val = arg0->field_50->field_E;
+    if (!(arg0->field_4C & 4)) {
+        return 1;
+    }
+    if (val == 0) {
+        return 0;
+    }
+    scale = D_80113D28[arg0->field_5C];
+    if (arg0->field_5A >= (val * scale) / 100) {
+        ret = 1;
+    }
+    return ret;
+}
 
 void func_800E3008(GpObj4C* arg0)
 {

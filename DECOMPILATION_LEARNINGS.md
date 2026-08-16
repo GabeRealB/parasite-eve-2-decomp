@@ -15912,4 +15912,32 @@ table = D_800938CC; /* lwl/lwr/lb of D_800938CC */
 
 `func_800A9B3C` is the example.
 
+## Pin the table `lhu` to `$v1` so a live `u8` can keep `$a0`
+
+A value loaded early (`lbu` of a `u8`, used again after two early
+returns) wants `$a0` — the incoming pointer has already been copied to
+`$a1`. Local-alloc runs first and gives `$a0` to the later block-local
+`lhu` of a `u16` table. Global-alloc then sees the `u8` conflict with
+`$a0` and puts it in `$a2`. The instruction stream matches; only the
+registers slide (`lhu a0` / `mult a2,a0` / `mfhi v1` instead of
+`lhu v1` / `mult a0,v1` / `mfhi t0`).
+
+Assign the table load to a `register s32` pinned to `$v1`. That is the
+same register the `%hi/%lo` of the table already uses, so the `lhu`
+overwrites the address after `addu`. `$a0` stays free for the `u8`,
+the product stays in `$v1`, and `mfhi` lands in `$t0`:
+
+```c
+register s32 scale asm("v1");
+
+val   = arg0->src->field_E; /* lbu a0 */
+scale = table[arg0->idx];   /* lhu v1 */
+if (arg0->count >= (val * scale) / 100) {
+    ret = 1;
+}
+```
+
+A plain `s32 scale` (no pin) is not enough: local-alloc still hands the
+`lhu` `$a0`. `func_800E2F7C` is the example.
+
 

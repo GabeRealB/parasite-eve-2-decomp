@@ -131,11 +131,24 @@ STATIC_ASSERT_SIZEOF(GpRec16, 0x10);
 
 /// Table source pointed to by `GpObj50.field_50`. `field_0` is the
 /// `GpU16Pair` array packed by `func_800E2BF8`. Nearby helpers also
-/// load bytes at +0xB / +0xD of this object.
+/// load bytes at +0xB / +0xD / +0xE of this object (`GpPairSrcE`).
 typedef struct _GpPairSrc {
     /* 0x00 */ GpU16Pair* field_0;
 } GpPairSrc;
 STATIC_ASSERT_SIZEOF(GpPairSrc, 0x4);
+
+/// Wider view of the object pointed to by `GpObj50.field_50`.
+/// `func_800E2EC4` loads `field_4`; `func_800E2DE4` loads `field_D`;
+/// `func_800E2F7C` loads `field_E`. Trailing pad keeps 4-byte alignment.
+typedef struct _GpPairSrcE {
+    /* 0x00 */ GpU16Pair* field_0;
+    /* 0x04 */ u16        field_4;
+    /* 0x06 */ byte       pad_6[7];
+    /* 0x0D */ u8         field_D;
+    /* 0x0E */ u8         field_E;
+    /* 0x0F */ byte       pad_F;
+} GpPairSrcE;
+STATIC_ASSERT_SIZEOF(GpPairSrcE, 0x10);
 
 /// Object whose pointer at 0x50 is a `GpPairSrc*` used by `func_800E2BF8`.
 /// Same object family as `GpObj4C` (flags at 0x4C).
@@ -295,6 +308,23 @@ typedef struct _GpObj5D {
     /* 0x5D */ u8   field_5D;
 } GpObj5D;
 STATIC_ASSERT_SIZEOF(GpObj5D, 0x5E);
+
+/// Sparse overlay of the same object family as `GpObj5D` / `GpObj50`.
+/// `func_800E2F7C` tests bit 0x4 of `field_4C` and compares `field_5A`
+/// against `field_50->field_E * D_80113D28[field_5C] / 100`. Trailing
+/// pad keeps pointer alignment; full object size is not known yet.
+typedef struct _GpObj5C {
+    /* 0x00 */ byte        pad_0[0x4C];
+    /* 0x4C */ u8          field_4C;
+    /* 0x4D */ byte        pad_4D[3];
+    /* 0x50 */ GpPairSrcE* field_50;
+    /* 0x54 */ byte        pad_54[6];
+    /* 0x5A */ u8          field_5A;
+    /* 0x5B */ byte        pad_5B;
+    /* 0x5C */ u8          field_5C;
+    /* 0x5D */ byte        pad_5D[3];
+} GpObj5C;
+STATIC_ASSERT_SIZEOF(GpObj5C, 0x60);
 
 /// 0x4C list node appended to `D_8010FAB0[index]` by `func_800E1688` and
 /// unlinked by `func_800E1708`. `func_800E1758` empties the whole list.
@@ -477,6 +507,10 @@ extern GpRec10 D_80113390[];
 /// set. Indexed by `id & 0x7F`.
 extern GpRec16 D_8011398C[];
 
+/// u16 scale table indexed by `GpObj5D.field_5C`. `func_800E2F7C` multiplies
+/// `field_50->field_E` by the selected entry and divides by 100.
+extern u16 D_80113D28[];
+
 /// "Weapon" string drawn by `func_800D6AA4`.
 extern char D_80097454[];
 
@@ -563,6 +597,7 @@ void func_800E2C78(GpObj40* arg0, s32 arg1, s32 arg2);
 s32  func_800E2CD4(s32 arg0, s32 arg1);
 s32  func_800E2D3C(s32 arg0);
 s32  func_800E2D90(s32 arg0);
+s32  func_800E2F7C(GpObj5C* arg0);
 void func_800E3008(GpObj4C* arg0);
 void func_800E301C(GpObj5D* arg0, s32 arg1);
 s32  func_800E3194(s32 arg0);

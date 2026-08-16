@@ -961,6 +961,29 @@ Sparse overlay. Full object size is not known yet.
 | 0x4E | `field_4E` | Packed modes + flag: bits 0-1 current, bits 2-3 previous, high nibble (incl. 0x80) preserved by `func_800D930C` |
 | 0x4F | `field_4F` | Blend/transition timer; set to 0x10 by `func_800D930C` when the current mode changes |
 
+### `GpPairSrcE` (0x10) — `3A34.h`
+Wider view of the object pointed to by `GpObj50.field_50` /
+`GpObj5C.field_50`. Full size is not known yet; 0x10 includes alignment
+pad after `field_E`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | `GpU16Pair*` table packed by `func_800E2BF8` |
+| 0x04 | `field_4` | u16 scale; `func_800E2EC4` multiplies it by `D_80113D38[field_5C]` / 100 |
+| 0x0D | `field_D` | u8; `func_800E2DE4` uses it as a threshold (`<< 12` / 100) |
+| 0x0E | `field_E` | u8; `func_800E2F7C` multiplies it by `D_80113D28[field_5C]` / 100 |
+
+### `GpObj5C` (0x60) — `3A34.h`
+Sparse overlay of the same object family as `GpObj5D` / `GpObj50`.
+Trailing pad keeps pointer alignment; full object size is not known yet.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x4C | `field_4C` | Flag byte; bit 0x4 tested by `func_800E2F7C` |
+| 0x50 | `field_50` | `GpPairSrcE*` source object |
+| 0x5A | `field_5A` | u8 counter compared by `func_800E2F7C` against the scaled `field_50->field_E` |
+| 0x5C | `field_5C` | u8 index into `D_80113D28` |
+
 ### `GpEnemy` — `1BC.h`
 0x60-byte work object (`Mem_Calloc` in `func_800B0494`). Stored in `Task::spawnArg2`.
 
