@@ -28,6 +28,7 @@ extern s32          D_80114E90;
 extern s32          D_80114E94;
 extern char         D_8010E494[];
 extern char         D_8010E500[];
+extern char         D_8010E504[];
 extern char         D_8010E550[];
 extern char         D_8010E554[];
 extern char         D_8010E558[];
@@ -677,7 +678,25 @@ void func_800CF7C4(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF88C);
+void func_800CF88C(DialogPrompt* arg0, UiObject* arg1)
+{
+    TextDrawReq req;
+
+    req.x          = arg1->baseX + (u16)arg0->field_18;
+    req.y          = arg1->baseY + (u16)arg0->field_1A;
+    req.otIndex    = (s16)arg1->drawOrder + 1;
+    req.field_8    = arg0->field_1C;
+    req.glyphTable = 0;
+    req.centerMode = 0;
+    req.field_E    = 1;
+    func_8002E53C(&req, D_8010E504);
+    if (arg0->field_C == 1) {
+        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+            SndEvt_EnqueueType6(3, 0, 0);
+            arg0->field_22 = 0x23;
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF940);
 
