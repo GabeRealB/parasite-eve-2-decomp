@@ -114,6 +114,7 @@ Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 Task* Display_SpawnWithOt(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
 void  Display_FlipOtAndDispatch(s32 arg0);
 void  Display_InvertFramebufferGray(void);
+s32   Display_BeginMode7(s32 arg0);
 s32   Display_SetFadeRate(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void  Display_SetFadeMax(u8 arg0);
 void  Display_SetDrawMode(s32 arg0);

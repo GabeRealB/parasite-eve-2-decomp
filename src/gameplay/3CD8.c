@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <psyq/stdio.h>
+
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/display.h"
@@ -15,6 +17,7 @@
 #include "main/wipsys.h"
 
 extern TaskFuncTable3 D_800974C8;
+extern char           D_8009751C[];
 extern TaskFuncTable3 D_8009752C;
 extern TaskFuncTable3 D_80097538;
 extern TaskFuncTable3 D_80097678;
@@ -29,15 +32,19 @@ extern u8             D_80115670;
 extern Task*          D_80115674;
 extern s16            D_80115678;
 extern u8             D_80115648;
+extern s16            D_8011564A;
 extern s16            D_80115654;
 extern s16            D_80115656;
 extern u8             D_80115658;
 extern u8             D_80115659;
 extern u8             D_8011565A;
+extern u16            D_8011565C;
 extern s32            D_80115660;
 extern s16            D_80115666;
 extern s16            D_80115668;
+extern u8             D_8011566C;
 extern s32            D_8011568C;
+extern u8             D_80115690;
 extern s16            D_80115698;
 extern s16            D_8011569A;
 extern u8             D_8011569C;
@@ -52,7 +59,7 @@ extern s16            D_801156BC;
 extern u8             D_801156C8;
 extern u8             D_801156CA;
 extern u8             D_801156CB;
-extern s32            D_801156F4;
+extern GpOverlayIds*  D_801156F4;
 extern u8             D_801156F9;
 extern u8             D_801153F4;
 extern u8             D_80115700;
@@ -74,6 +81,8 @@ s32  func_800E41F4(s32 arg0, s16 arg1, s16 arg2);
 void func_800E44A0(Task* arg0);
 void func_80724120(void);
 void func_80724324(void);
+void func_807244CC(char* arg0);
+void func_8072455C(s16 arg0, s32 arg1);
 void func_80724714(void);
 void func_800E646C(Task* arg0);
 s32  func_800E6C70(s16 arg0, s16 arg1, s16 arg2);
@@ -272,7 +281,50 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E5578);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E62C0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E646C);
+void func_800E646C(Task* arg0)
+{
+    CdCmdQueue* queue;
+    char        buf[0x20];
+
+    queue = &CdCmd_Queue;
+    if (D_80115666 == 2) {
+        func_800AC464(Game_GetPtrSlot(5), 0xBB8, 0, 0);
+    }
+    if (D_80115666 != 0) {
+        if (Mc_SaveData.field_4 == D_8011566C) {
+            Stage_SetEndingFlag();
+        } else {
+            queue->field_22A = D_8011565C;
+            Display_BeginMode7(D_8011566C);
+        }
+        goto block_11;
+    }
+    if (D_80115690 == 0) {
+        D_801153F4 = 0;
+    }
+    if (Game_Session->field_1 == 0) {
+        Game_Session->field_68 = 0;
+        Mc_SaveData.field_4    = D_8011566C;
+        func_800E3B80(1);
+        func_800E3EB0(1);
+        if (Display_State.field_112 != 0) {
+            func_8072455C(D_8011564A, D_8011566C);
+            goto block_11;
+        }
+    } else {
+    block_11:
+        if (Display_State.field_112 != 0 && D_801156F4 != 0) {
+            sprintf(
+                buf, D_8009751C, D_801156F4->field_0, D_801156F4->field_2,
+                D_801156F4->field_4);
+            func_807244CC(buf);
+        }
+    }
+    D_801155A8 = 0;
+    D_8011565A = 0;
+    D_801156A4 = 0;
+    Task_Kill(arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6608);
 

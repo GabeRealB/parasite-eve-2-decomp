@@ -3,6 +3,28 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Hoist `&Global` into a saved register with a local pointer
+
+A single `Global.field = x` after earlier calls rematerializes the
+address at the store (`lui; sh %lo(Global+off)`). The target instead
+computes `&Global` in the prologue (`addiu s1, %lo(Global)`) and stores
+through that saved register (`sh v0, off(s1)`). Without the hoist, the
+task argument also drops from `$s2` to `$s1` and the frame shrinks.
+
+Assign the address to a local at the top, then store through it:
+
+```c
+CdCmdQueue* queue;
+
+queue = &CdCmd_Queue;
+...
+queue->field_22A = D_8011565C;
+```
+
+`func_800E646C` is the example. The direct
+`CdCmd_Queue.field_22A = D_8011565C` stuck at 93.9% with only that
+address and the extra saved register different.
+
 ## Assign `lhs = *p = expr` so the temp stays in `$v0`
 
 `vec = expr; *scratch = vec` computes `expr` straight into the dest

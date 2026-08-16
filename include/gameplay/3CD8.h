@@ -27,7 +27,8 @@ typedef struct _GpEvt12 {
 STATIC_ASSERT_SIZEOF(GpEvt12, 0xC);
 
 /// Three overlay ids passed through `func_800E7498` (table cmd 0xFA6)
-/// to `CdCmd_StartOverlay`.
+/// to `CdCmd_StartOverlay`. Also the current evs triple held in
+/// `D_801156F4` (`func_800E646C` formats `"evs%d_%d_%d.txt"` from it).
 typedef struct _GpOverlayIds {
     /* 0x0 */ u16 field_0;
     /* 0x2 */ u16 field_2;
