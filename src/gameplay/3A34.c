@@ -201,7 +201,32 @@ void func_800D9550(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3)
     m->t[2] = arg3;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D957C);
+GpCbA4Vec* func_800D957C(GameSessionFrom4* arg0)
+{
+    GpCbA4Rec** mid;
+    GpCbA4Rec*  rec;
+    GpCbA4Vec*  result;
+    GpCbA4Vec*  table;
+
+    mid = D_8010CBA4[arg0->field_3 - 1];
+    rec = NULL;
+    if (mid != NULL) {
+        rec = mid[arg0->field_2 - 1];
+        if (rec != NULL) {
+            rec = &rec[arg0->field_1 - 1];
+        }
+    }
+    result = (GpCbA4Vec*)&D_8010F9E4;
+    if (rec != NULL) {
+        table = rec->field_4;
+        if (table != NULL) {
+            if (table->field_0 >= arg0->field_0) {
+                result = &table[arg0->field_0];
+            }
+        }
+    }
+    return result;
+}
 
 s32 func_800D9618(void)
 {

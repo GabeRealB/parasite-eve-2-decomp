@@ -173,13 +173,26 @@ typedef struct _GpObj54 {
 } GpObj54;
 STATIC_ASSERT_SIZEOF(GpObj54, 0x58);
 
+/// 8-byte nested table entry pointed to by `GpCbA4Rec.field_4`.
+/// Entry 0's `field_0` is the max valid index. `func_800D957C` returns
+/// `&table[GameSessionFrom4.field_0]` when that index is in range,
+/// otherwise `(GpCbA4Vec*)&D_8010F9E4`. `func_800D7A9C` reads
+/// `field_0` / `field_2` / `field_4` as signed XYZ minimums.
+typedef struct _GpCbA4Vec {
+    /* 0x0 */ s16 field_0;
+    /* 0x2 */ s16 field_2;
+    /* 0x4 */ s16 field_4;
+    /* 0x6 */ s16 field_6;
+} GpCbA4Vec;
+STATIC_ASSERT_SIZEOF(GpCbA4Vec, 8);
+
 /// 8-byte record in tables pointed to by `D_8010CBA4`. Indexed 1-based
 /// by `GameSessionFrom4.field_1`. `func_800D9C64` returns the record
 /// (or NULL). `func_800D9654` returns `field_0`. `func_800D957C` walks
-/// `field_4` as a nested 8-byte table, falling back to `D_8010F9E4`.
+/// `field_4` as a nested `GpCbA4Vec` table, falling back to `D_8010F9E4`.
 typedef struct _GpCbA4Rec {
-    /* 0x0 */ s32   field_0;
-    /* 0x4 */ void* field_4;
+    /* 0x0 */ s32        field_0;
+    /* 0x4 */ GpCbA4Vec* field_4;
 } GpCbA4Rec;
 STATIC_ASSERT_SIZEOF(GpCbA4Rec, 8);
 
@@ -479,6 +492,7 @@ s32   func_800D937C(GpObj38* arg0);
 void  func_800D94B8(SVECTOR* arg0);
 void  func_800D9504(SVECTOR* arg0);
 void  func_800D9550(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3);
+GpCbA4Vec* func_800D957C(GameSessionFrom4* arg0);
 s32   func_800D9618(void);
 s32   func_800D9654(GameSessionFrom4* arg0);
 void  func_800D96C8(Task* arg0);

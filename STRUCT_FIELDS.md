@@ -724,6 +724,18 @@ record index is `func_800AD284() - 1`. Passed as `Task_Spawn` type-0xF
 | 0x00 | `mtx` | `MATRIX`; rotation copied to `D_80070E44`, translation to `D_80070F28` (`func_800A8724`) |
 | 0x20 | `field_20` | Extra word; `lhu` into `Display_State+0x110`, `lw` into GTE OFC (`func_800A8724`) |
 
+### `GpCbA4Vec` (0x8) — `3A34.h`
+Nested table entry at `GpCbA4Rec.field_4`. Entry 0's `field_0` is the
+max valid index. `func_800D957C` returns `&table[GameSessionFrom4.field_0]`
+when in range, else the default at `D_8010F9E4`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | Max index (entry 0) / signed X minimum (data entries) |
+| 0x02 | `field_2` | Signed Y minimum (`func_800D7A9C`) |
+| 0x04 | `field_4` | Signed Z minimum (`func_800D7A9C`) |
+| 0x06 | `field_6` | Unused by `func_800D957C` / `func_800D7A9C` |
+
 ### `GpCbA4Rec` (0x8) — `3A34.h`
 Element of tables pointed to by `D_8010CBA4`. Stage index is
 `GameSessionFrom4.field_3 - 1`, room index is `field_2 - 1`,
@@ -733,7 +745,7 @@ or NULL if a table pointer is missing.
 | Off | Member | Role |
 |-----|--------|------|
 | 0x00 | `field_0` | Word returned by `func_800D9654` |
-| 0x04 | `field_4` | Nested 8-byte table walked by `func_800D957C` |
+| 0x04 | `field_4` | `GpCbA4Vec*` nested table walked by `func_800D957C` |
 
 ### `GpLinkNode` (0x8) — `3A34.h`
 | Off | Member | Role |
