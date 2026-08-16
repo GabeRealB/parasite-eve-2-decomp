@@ -16759,4 +16759,55 @@ Declare the pins *inside* the `if`. Function-scope `asm("v0")` /
 `extra` to `$a3`). `func_800BBC10` is the example. The unpinned
 one-expression form stuck at 98% with only those two registers swapped.
 
+## Scratch-head `+r` barrier so `&global` lui fills the load delay
+
+A function that allocates from `G_SCRATCH_HEAD` and also takes
+`&D_global` wants:
+
+```
+lw    t1, 0(v0)          /* head = *G_SCRATCH_HEAD */
+lui   t0, %hi(D_global)  /* delay fill */
+addiu a2, t1, -8
+sw    a2, 0(v0)
+lw    a0, 0x1C(s1)
+nop
+...
+beq   v1, a1, case1
+ addiu a3, t0, %lo(D_global)
+```
+
+Writing `params = &D_global` next to the alloc lets GCC hoist the `lui`
+before `sw ra` and stuff `lw a0` in the scratch-head delay (losing the
+`nop` after the actor load). A memory clobber after the load keeps the
+`lui` in place but materializes `addiu a3` immediately instead of in the
+`beq` delay.
+
+Take the scratch pointer first, then an empty `+r` on that pointer so
+the later `&D_global` cannot hoist past the load. Pin the loaded head to
+`$t1` so `$a1` stays free for the switch's `li 1`:
+
+```c
+register u8* head asm("t1");
+
+scratch = (void**)G_SCRATCH_HEAD;
+__asm__ volatile("" : "+r"(scratch));
+head   = *scratch;
+params = &D_global;
+vec    = (SVECTOR*)(head - 8);
+*scratch = vec;
+```
+
+`func_8010AD64` is the example.
+
+The same function also reloads `arg0->actor` in `case 2` after the
+switch already loaded it into `$a0`. Without a barrier GCC emits
+`move s0, a0`. A memory clobber forces `lw s0, 0x1C(s1)`:
+
+```c
+case 2:
+    asm("" ::: "memory");
+    inner2 = arg0->actor;
+    func_8010B210(arg0);
+```
+
 

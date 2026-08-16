@@ -73,7 +73,7 @@ void func_8010ABD4(GpActorWork* arg0);
 void func_8010AC54(GpActorWork* arg0);
 void func_8010AD64(GpActorWork* arg0);
 void func_8010B120(GpActorWork* arg0);
-void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, GpEffArg* arg3);
+void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F75BC);
 
@@ -2181,7 +2181,58 @@ void func_8010AC54(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010AD64);
+void func_8010AD64(GpActorWork* arg0)
+{
+    void**              scratch;
+    register u8*        head asm("t1");
+    SVECTOR*            vec;
+    register GameActor* inner asm("a0");
+    GameActor*          inner2;
+    GpEffArg*           params;
+    GsCOORDINATE2*      coord;
+    s32                 val;
+    s32                 idx;
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    __asm__ volatile("" : "+r"(scratch));
+    head     = *scratch;
+    params   = &D_80113358;
+    vec      = (SVECTOR*)(head - 8);
+    *scratch = vec;
+    inner    = arg0->actor;
+    switch (inner->field_95E) {
+        case 0:
+            idx                     = (s8)inner->field_993;
+            inner->field_95E        = 1;
+            coord                   = (GsCOORDINATE2*)((GpObj*)inner->field_AC)[idx].field_8;
+            params->field_4         = 0xC0;
+            params->field_6         = 2;
+            D_80113358.field_0      = coord;
+            ((SVECTOR*)head)[-1].vx = 0;
+            val                     = 0;
+            if ((s8)inner->field_993 == 0) {
+                val = -0x190;
+            }
+            vec->vy = val;
+            vec->vz = 0;
+            func_800FDB18(2, D_80113358.field_0, vec, params);
+            break;
+        case 1:
+            break;
+        case 2:
+            asm("" ::: "memory");
+            inner2 = arg0->actor;
+            func_8010B210(arg0);
+            inner2->field_97A = 0x12;
+            if (inner2->field_956 != 0) {
+                func_8010870C(arg0, 0xC);
+            } else {
+                func_801066DC(arg0, 0);
+            }
+            break;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+}
 
 void func_8010AE98(GpActorWork* arg0)
 {

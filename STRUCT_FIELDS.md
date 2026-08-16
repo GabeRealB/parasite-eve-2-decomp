@@ -647,6 +647,7 @@ vs `func_80108770` in `func_80106550`;
 `field_98D`/`field_98E`/`field_990` are companion bytes (case 10 also stores `rand() & 0x1F + 0xA`).
 `field_991` is a signed flag byte (`lb`); `func_80109374` requires it 0 to write `field_97D = 1`.
 `field_993` is a u8 (`sb`) copy of the third arg of `func_8010B2D4` / `func_8010B348`, written only when `field_96C` is 0.
+`func_8010AD64` loads it as `s8` (`lb`) and indexes the 0x20-byte `GpObj` nodes at `field_AC`; `field_8` of that node is the `GsCOORDINATE2*` passed to `func_800FDB18`. When the index is 0 the scratch `SVECTOR.vy` is `-0x190`, else 0.
 `func_8010B348` switches on `(u16)GpIdRec.field_4`: 2/4 write `field_972 = 5`, 3 writes `field_972 = 0`, then stores `func_800E2CD4(field_4, 0)` to `field_96E`.
 
 ### `GpActorD4`

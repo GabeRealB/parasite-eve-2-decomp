@@ -74,7 +74,8 @@ STATIC_ASSERT_SIZEOF(GpCoordExt, 0x50);
 
 /// 8-byte argument record for `func_800FDB18`. `field_0` is a coordinate
 /// (fallback `D_80070F10`); `field_4` / `field_6` are packed into the
-/// `func_800EA478` argument.
+/// `func_800EA478` argument. The third `func_800FDB18` argument is an
+/// `SVECTOR*` (or NULL).
 typedef struct _GpEffArg {
     /* 0x0 */ struct _GsCOORDINATE2* field_0;
     /* 0x4 */ s16                    field_4;
