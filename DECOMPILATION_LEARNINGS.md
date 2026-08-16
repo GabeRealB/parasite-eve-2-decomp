@@ -16065,4 +16065,58 @@ if (temp < 0x41 || (wrap = tgt - 0x1000, temp = cur - wrap, temp = ABS(temp), te
 `func_80108BD8` is the example. The reassociated add-then-sub stuck at
 91.8% with only those two instructions different.
 
+## Pre-scale one switch arm with `<< 16 >> 15` so it skips the shared `sll 1`
+
+A switch that picks a `u16` table and then indexes it wants two
+addressing predecessors that join at `addu s0, s0, v0`:
+
+```
+# already-sext cases
+sll   s0, s0, 1
+# raw s16 case (delay-slot sra)
+sll   s0, s0, 16
+j     join
+ sra  s0, s0, 15
+join:
+addu  s0, s0, v0
+lhu   a0, 0(s0)
+```
+
+`table[arg0]` (or `(s16)arg0 << 1` on every arm) emits `sll 1` for all
+paths, or `sll 16; sra 15` for all paths. Sign-extend into `arg0` on the
+arms that can overwrite `$s0`, then write the raw arm as an in-place
+shift pair and jump past the shared `<<= 1`:
+
+```c
+case already_sext:
+    arg0 = (s16)arg0;
+    if (arg0 >= limit) {
+        goto fail;
+    }
+    table = D_sext;
+    break;
+case raw_s16:
+    if ((s16)arg0 >= limit) {
+        goto fail;
+    }
+    table = D_raw;
+    arg0 <<= 16;
+    arg0 >>= 15; /* (s16)arg0 * 2, in place on $s0 */
+    goto lookup;
+}
+arg0 <<= 1;
+lookup:
+    arg0 += (s32)table; /* addu s0, s0, v0 — not table + arg0 */
+    entry = (u16*)arg0;
+    return GameFlag_GetNibble(*entry & 0x7FF) + (*entry & 0x800);
+```
+
+`(s16)arg0 << 1` uses `$v0`/`$v1` as the shift temp and lands the table
+in the other register (`addiu v1, %lo` / `addu s0, v1, s0`). The two
+statement form keeps both the shift and the later add on `$s0`.
+`*(u16*)((u8*)table + arg0)` is `addu s0, v0, s0`.
+
+`func_800AEBA4` is the example. Shared `table[arg0]` stuck at 97.2% with
+only the raw arm's three-instruction join missing.
+
 

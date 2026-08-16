@@ -7,6 +7,7 @@
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
+#include "main/gameflag.h"
 #include "main/gameflow.h"
 #include "main/mc.h"
 #include "main/session.h"
@@ -32,8 +33,77 @@ extern u16              D_80114CF6;
 extern u8               D_80114CF8;
 extern s32              D_80114D00[2];
 extern s16              D_80114D08;
+extern u16              D_8017A738[];
+extern u16              D_8017A824[];
+extern u16              D_8017A9A0[];
+extern u16              D_8017AA0C[];
+extern u16              D_8017AD88[];
 
-INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AEBA4);
+s16 func_800AEBA4(s32 arg0)
+{
+    u16* table;
+    u16* entry;
+
+    switch (Game_Session->field_7) {
+        case 1:
+            arg0 = (s16)arg0;
+            if (arg0 >= 0xE) {
+                goto fail;
+            }
+            table = D_8017AA0C;
+            break;
+        case 2:
+            arg0 = (s16)arg0;
+            if (arg0 >= 0x1D) {
+                goto fail;
+            }
+            table = D_8017A824;
+            break;
+        case 3:
+            arg0 = (s16)arg0;
+            if (arg0 >= 0x1E) {
+                goto fail;
+            }
+            if (arg0 == 0x1D) {
+                if (GameFlag_GetNibble(0x7F) == 0) {
+                    return 0;
+                }
+                return 0x802;
+            }
+            table = D_8017A738;
+            break;
+        case 4:
+            if ((s16)arg0 >= 0x1E) {
+                goto fail;
+            }
+            if ((s16)arg0 == 0) {
+                if (GameFlag_GetNibble(0x7A) == 6) {
+                    return GameFlag_GetNibble(D_8017AD88[0] & 0x7FF) + 0x800;
+                }
+            }
+            table  = D_8017AD88;
+            arg0 <<= 16;
+            arg0 >>= 15;
+            goto lookup;
+        case 5:
+            arg0 = (s16)arg0;
+            if (arg0 >= 9) {
+                goto fail;
+            }
+            table = D_8017A9A0;
+            break;
+        default:
+            goto fail;
+    }
+
+    arg0 <<= 1;
+lookup:
+    arg0 += (s32)table;
+    entry = (u16*)arg0;
+    return GameFlag_GetNibble(*entry & 0x7FF) + (*entry & 0x800);
+fail:
+    return -1;
+}
 
 void func_800AED24(GpAreaKey* arg0)
 {

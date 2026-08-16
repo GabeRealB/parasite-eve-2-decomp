@@ -75,7 +75,7 @@ segments:
       # does not treat these as dotted siblings.
       - [0x0, rodata, header]
       - [0xD4, rodata, rodata_D4]
-      - [0x1A8, rodata, rodata_1A8]
+      - [0x1A8, .rodata, 1A8] # jtbl from func_800AEBA4
       - [0x1BC, rodata, rodata_1BC]
       - [0x268, rodata, rodata_268]
       - [0x4CC, rodata, rodata_4CC]
