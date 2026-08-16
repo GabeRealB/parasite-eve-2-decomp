@@ -34,6 +34,7 @@ void func_80101F58(GpActorWork* arg0);
 void func_80102348(GpActorWork* arg0, s32 arg1);
 void func_80102634(GpActorWork* arg0);
 void func_801029D4(GpActorWork* arg0);
+void func_80102D20(GpActorWork* arg0, s32 arg1, s32 arg2);
 void func_801038F8(GpActorWork* arg0, s32 arg1);
 void func_8010397C(GpActorWork* arg0, s32 arg1, s32 arg2);
 void func_80103A18(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -2056,7 +2057,34 @@ s32 func_8010C058(void)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C098);
+void func_8010C098(GpActorWork* arg0, s32 arg1)
+{
+    GameActor*  actor;
+    GpLinkNode* node;
+    s32         val;
+
+    actor = arg0->actor;
+    node  = actor->field_90C;
+    if (node == NULL || (node->field_4 & 1)) {
+        actor->field_90C = NULL;
+        actor->field_97E = 1;
+    } else if ((s8)actor->field_97E == 2) {
+        if (arg1 & 1) {
+            val = 0;
+            if (arg1 != 1) {
+                val = 0x380;
+            }
+            func_80102348(arg0, val);
+        }
+        if (arg1 & 2) {
+            if (D_80113388[Mc_SaveData.field_5C7] != 0) {
+                func_80102634(arg0);
+            } else {
+                func_80102D20(arg0, D_80167218[Mc_SaveData.field_5C7], 0x380);
+            }
+        }
+    }
+}
 
 void func_8010C180(GpActorWork* arg0)
 {

@@ -143,6 +143,10 @@ extern u8 D_80112E2C[][2];
 /// to `func_80106350` (`func_8010C46C` / `func_8010C4F0` / `func_8010C75C`).
 extern s16 D_80167218[];
 
+/// u8 table indexed by `Mc_SaveData.field_5C7`. Non-zero selects
+/// `func_80102634`; zero uses `D_80167218` with `func_80102D20`.
+extern u8 D_80113388[];
+
 void func_800FC6C0(void);
 void func_80101408(GpActorWork* arg0);
 void func_801041FC(GpActorWork* arg0, s32 arg1);
