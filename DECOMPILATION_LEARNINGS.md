@@ -14760,4 +14760,21 @@ node->field_4 = val & 0xFE;
 example; the sibling `func_800DACAC` needs no pin because its load and
 `= 1` stay in one block.
 
+## `<< 1` keeps the doubled operand; `* 2` gets reassociated
+
+`(s16)x * ((s16)y * 2)` and `((s16)y * 2) * (s16)x` both reassociate. GCC
+puts the `* 2` on whichever multiply operand it wants, so the fused
+`sll 16; sra 15` lands on the wrong argument.
+
+`<< 1` does not reassociate. The shift stays glued to its operand and
+fuses with that operand's sign-extend:
+
+```c
+/* target: sll v1,a1,16; sra 16; sll v0,a0,16; sra 15; mult v1,v0 */
+result = (arg1 * (arg0 << 1)) / arg2;
+```
+
+`func_800EA318` is the example. `arg1 * (arg0 * 2)` swapped the operands
+and stuck at 99.7%.
+
 

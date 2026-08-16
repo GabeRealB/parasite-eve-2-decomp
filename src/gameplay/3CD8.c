@@ -823,7 +823,21 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EA02C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EA1A8);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EA318);
+s32 func_800EA318(s16 arg0, s16 arg1, s16 arg2)
+{
+    s32 result;
+
+    result = 0;
+    if (arg2 != 0) {
+        result = (arg1 * (arg0 << 1)) / arg2;
+        if (result >= 0x100) {
+            result = 0xFF;
+        } else if (result == 0) {
+            result = -1;
+        }
+    }
+    return result;
+}
 
 void func_800EA3A0(s32 arg0)
 {
