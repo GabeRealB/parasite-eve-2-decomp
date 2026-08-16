@@ -34,6 +34,7 @@ extern char         D_8010E55C[];
 extern char         D_8010F8D0[];
 extern UiObjectDesc D_8010EAD0;
 extern UiObjectDesc D_8010EB94;
+extern UiObjectDesc D_8010EBCC;
 extern UiObjectDesc D_8010EE6C;
 extern UiObjectDesc D_8010EE88;
 extern UiObjectDesc D_8010EFA0;
@@ -50,6 +51,7 @@ extern TaskDesc     D_801871F0;
 extern s32          D_8005ED70;
 extern s32          D_8005ED74;
 extern s32          D_8005ED78;
+extern char         D_8009701C[];
 extern char         D_80097224[];
 extern UiObject*    D_80067634;
 extern void         (*D_8010D3A0[])(UiObject*, Task*);
@@ -60,6 +62,7 @@ void       func_8017F304(Task* task);
 void       func_80181184(Task* task);
 void       func_801811A0(Task* task);
 void       func_800C05CC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void       func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_800CB33C(UiObject* arg0, Task* arg1, s32 arg2);
 void       func_800CC15C(UiObject* arg0, Task* arg1, s32 arg2);
 void       func_800D02A4(Task* arg0);
@@ -454,7 +457,22 @@ s32 func_800CEA00(GpItemScan* arg0, s32 arg1)
     return rec->field_0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CEA88);
+void func_800CEA88(Task* arg0)
+{
+    UiObject*     obj;
+    UiObjectDesc* desc;
+
+    obj = arg0->spawnArg2;
+    if (arg0->state == 0) {
+        desc = &D_8010EBCC;
+        Ui_SpawnFromDesc(desc, 0, 0, 0, obj);
+        Ui_SpawnFromDesc(desc + 1, 0, 0, 0, obj);
+        arg0->state = arg0->state + 1;
+    }
+    obj->field_2E = 0;
+    func_800C2140((UiPanel*)obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, 0);
+    Ui_DrawTitle((UiPanel*)obj, D_8009701C);
+}
 
 void func_800CEB40(s32 arg0)
 {
