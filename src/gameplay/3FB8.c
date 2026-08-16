@@ -61,6 +61,7 @@ void func_80108E0C(GpActorWork* arg0, GpLinkNode* arg1);
 void func_80109290(GpActorWork* arg0);
 void func_80109374(GpActorWork* arg0);
 void func_801093DC(GpActorWork* arg0);
+void func_80109720(GpActorWork* arg0);
 void func_80109844(GpActorWork* arg0);
 void func_80109A1C(GpActorWork* arg0);
 void func_80109BB4(GpActorWork* arg0, GpRec18* arg1);
@@ -948,7 +949,25 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108084);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108224);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801083A0);
+void func_801083A0(GpActorWork* arg0)
+{
+    GameActor*        inner;
+    GpActorFuncTable3 sp;
+
+    sp    = D_80097940;
+    inner = arg0->actor;
+    func_80104A4C(arg0);
+    if (inner->field_940 > 0) {
+        inner->field_940--;
+    }
+    if ((s8)inner->field_97A > 0) {
+        inner->field_97A--;
+    }
+    inner->field_986 = 0;
+    sp.funcs[inner->field_954](arg0);
+    func_80109720(arg0);
+    func_801030CC(arg0);
+}
 
 void func_80108458(GpActorWork* arg0)
 {
