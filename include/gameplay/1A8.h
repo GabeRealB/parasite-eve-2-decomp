@@ -68,6 +68,15 @@ typedef struct _GpAreaFlagRec {
 } GpAreaFlagRec;
 STATIC_ASSERT_SIZEOF(GpAreaFlagRec, 2);
 
+/// 4-byte stack payload for slot-7 msg `0x13EF`. `func_800AF0AC` copies
+/// `D_80114CD2` / `D_80114CD8` / `D_80114CD9` into the three fields.
+typedef struct _GpMsg13EF {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u8  field_2;
+    /* 0x3 */ u8  field_3;
+} GpMsg13EF;
+STATIC_ASSERT_SIZEOF(GpMsg13EF, 4);
+
 /// 0x18-byte stack payload for slot-3 msg `0x3EE`. `func_800AF314` writes
 /// `D_80114CD9 << 4` at `field_12` and zeros `field_10` / `field_14`.
 typedef struct _GpMsg3EE {
