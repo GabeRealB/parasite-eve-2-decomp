@@ -79,7 +79,24 @@ void func_800AFF90(u16 arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0034);
+void func_800B0034(u16 arg0)
+{
+    s32           i;
+    s32           bits;
+    GpSndMaskRec* entry;
+
+    i = 0;
+    if (D_8010D1C4[0].mask != 0) {
+        bits = arg0;
+        do {
+            entry = &D_8010D1C4[(u16)i];
+            if (bits & entry->mask) {
+                SndBank_SetEnableFlags(1, entry->flags);
+            }
+            i++;
+        } while (D_8010D1C4[(u16)i].mask != 0);
+    }
+}
 
 void func_800B00C4(void)
 {
