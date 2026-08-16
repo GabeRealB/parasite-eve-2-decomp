@@ -2841,7 +2841,33 @@ s32 func_8010C708(GpActorWork* arg0)
     return 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C75C);
+s32 func_8010C75C(GpActorWork* arg0, s32 arg1, GpDelayArg* arg2)
+{
+    GameActor* actor;
+
+    actor = arg0->actor;
+    if ((s8)actor->field_97A != 0) {
+        return 1;
+    }
+    actor->field_954  = 2;
+    actor->field_95E  = 0;
+    actor->field_973  = 0;
+    actor->field_975  = 0;
+    actor->field_60   = 0;
+    actor->field_58   = 0;
+    actor->field_64   = 0;
+    actor->field_5C   = 0;
+    actor->field_6A   = 0;
+    actor->field_68   = 0;
+    actor->field_70   = 0;
+    actor->field_96C  = 0;
+    actor->field_12A &= 0x3FFF;
+    func_80106350(arg0, D_80167218[Mc_SaveData.field_5C7], 0);
+    actor->field_956 = 6;
+    actor->field_934 = arg2->field_14;
+    actor->field_93E = 0;
+    return 0;
+}
 
 void func_8010C81C(void)
 {

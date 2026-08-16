@@ -105,6 +105,13 @@ typedef struct _GpTurnScratch {
 } GpTurnScratch;
 STATIC_ASSERT_SIZEOF(GpTurnScratch, 0x14);
 
+/// Argument for `func_8010C75C`. `field_14` is copied onto
+/// `GameActor.field_934` (frame delay); `field_93E` is cleared.
+typedef struct _GpDelayArg {
+    /* 0x00 */ byte pad_0[0x14];
+    /* 0x14 */ s32  field_14;
+} GpDelayArg;
+
 /// 0x14-byte argument for `func_80104CAC`. `field_0` is copied to
 /// `GameActor.field_928`. `field_8 == 0` runs `func_800B3F84` +
 /// `func_801038F8`; otherwise `func_80103A18(..., field_4, 0, field_C)`.
