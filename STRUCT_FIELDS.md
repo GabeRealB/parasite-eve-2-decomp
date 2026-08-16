@@ -538,6 +538,9 @@ See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 | 0x128 | `field_128` | u8; `0xFF` sentinel (`func_800B0748` / `func_800B082C`) |
 | 0x129 | `field_129` | u8; last `CdCmd_Enqueue(0x21)` `param1[0]` written by `func_800B065C` (no-op if unchanged) |
 | 0x12C | `field_12C` | u8 flag; 0 runs extra `func_800E06AC` pass in `func_800DB72C` |
+| 0x12D | `field_12D` | s8 countdown (`lb`/`sb`); `0x7F` sentinel in `func_800A7320` |
+| 0x12E | `field_12E` | u8; `func_800A76A4` copies it as `s8` into `D_80114BD8.field_2` |
+| 0x12F | `field_12F` | u8; `func_800AAF70` writes `0x1E` |
 | 0x139 | `field_139` | u8; `func_800E8888` writes `killCountdown * 2`, or 0 when that task kills itself |
 | 0x13A | `field_13A` | u8; cleared by `func_800AE45C` when `D_80114CDC` is 0 |
 | 0x13B | `field_13B` | u8 flag; cleared by `func_800E8F68` with `Pad_ClearEvents(0)` |
@@ -691,6 +694,16 @@ for the same block.
 | 0x08 | `field_8` | Cleared by `func_800A7DE0` |
 | 0x0A | `field_A` | s8 (`lb`); `func_800A7DE0` sets `field_3 = 2` when >= 2, then clears it |
 | 0x0E | `field_E` | Written by `func_800A7DB8` when `field_6` bit 0 is clear; cleared by `func_800A7DE0` |
+
+### `GpStateBD8` (0x4) — `gameplay.h`
+Global at `D_80114BD8`. Filled by `func_800A76A4` and passed as `Task_Spawn`
+bank 1 type `0x31` `spawnArg2`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x0 | `field_0` | u8; cleared before spawn |
+| 0x1 | `field_1` | u8; cleared before spawn |
+| 0x2 | `field_2` | s16; `(s8)GameSession.field_12E` |
 
 ### `GpCb2CRec` (0x24) — `gameplay.h`
 Element of tables pointed to by `D_8010CB2C`. Stage index is

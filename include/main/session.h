@@ -71,7 +71,10 @@ typedef struct _GameSession {
     u8    field_129; // last CdCmd 0x21 param[0] written by func_800B065C
     byte  unknown_12A[2];
     u8    field_12C;
-    byte  unknown_12D[0xC];
+    s8    field_12D; // lb/sb countdown; 0x7F sentinel in func_800A7320
+    u8    field_12E; // copied as s8 into D_80114BD8.field_2 (func_800A76A4)
+    u8    field_12F;
+    byte  unknown_130[9];
     u8    field_139;
     u8    field_13A; // cleared by func_800AE45C when D_80114CDC is 0
     u8    field_13B;

@@ -552,7 +552,28 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7574);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7600);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A76A4);
+void func_800A76A4(Task* arg0)
+{
+    GameSession* session;
+    GpStateBD8*  p;
+
+    arg0->killCountdown--;
+    if (arg0->killCountdown <= 0) {
+        arg0->killCountdown = 0;
+        func_800A7320(&arg0->killCountdown);
+        session            = Game_Session;
+        D_80114C08.field_3 = 0;
+        if (session->field_128 != 3) {
+            p          = &D_80114BD8;
+            p->field_0 = 0;
+            p->field_1 = 0;
+            p->field_2 = (s8)session->field_12E;
+            Task_Spawn(1, 0x31, 0, (s32)p);
+        }
+        arg0->spawnArg1 = 0;
+        arg0->state++;
+    }
+}
 
 void func_800A7744(Task* arg0)
 {

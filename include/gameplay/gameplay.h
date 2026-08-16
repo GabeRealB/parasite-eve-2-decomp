@@ -32,6 +32,18 @@ STATIC_ASSERT_SIZEOF(GpStateC08, 0x10);
 
 extern GpStateC08 D_80114C08;
 
+/// 4-byte spawn arg at `D_80114BD8`. `func_800A76A4` zeros `field_0` / `field_1`,
+/// writes `GameSession.field_12E` as a signed halfword to `field_2`, then passes
+/// the record to `Task_Spawn(1, 0x31, 0, ...)`.
+typedef struct _GpStateBD8 {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ s16 field_2;
+} GpStateBD8;
+STATIC_ASSERT_SIZEOF(GpStateBD8, 0x4);
+
+extern GpStateBD8 D_80114BD8;
+
 /// 0x24-byte camera/view record in tables pointed to by `D_8010CB2C`.
 /// Indexed 1-based by `func_800AD284()`. `mtx` is copied to `D_80070E44` /
 /// `D_80070F28` by `func_800A8724`; `field_20` is loaded as both `lhu` and `lw`.
