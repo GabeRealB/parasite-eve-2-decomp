@@ -277,7 +277,48 @@ s32 func_800BAF08(void)
     return count;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAF5C);
+s32 func_800BAF5C(GpItemScan* arg0)
+{
+    GpItemRec*          tmp;
+    register GpItemRec* table asm("a3");
+    GpItemRec*          rec;
+    s32                 i;
+    s32                 ret;
+    s32                 count;
+    s32                 start;
+    s32                 limit;
+    s32                 off;
+
+    switch (arg0->field_2) {
+        case 2:
+            tmp = D_80114C20;
+            break;
+        case 1:
+            tmp = D_80114D70;
+            break;
+        default:
+            tmp = Mc_SaveData.field_1AC;
+            break;
+    }
+    table = tmp;
+    i     = 0;
+    count = arg0->field_1;
+    start = arg0->field_0;
+    ret   = i;
+    if (count != 0) {
+        limit = count;
+        off   = start << 2;
+        rec   = (GpItemRec*)(off + (s32)table);
+        do {
+            if (rec->field_0 != 0) {
+                ret++;
+            }
+            i++;
+            rec++;
+        } while (i < limit);
+    }
+    return ret;
+}
 
 GpItemSlot* func_800BAFE0(s32 arg0)
 {

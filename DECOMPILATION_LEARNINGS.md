@@ -14908,6 +14908,27 @@ case-1 delay) instead of sinking into the `field_1 != 0` arm. Pair with
 `off + (s32)table` and `register s32 off asm("v0")` for `addu v1, v0, v1`
 (see the `off + base` entry). `func_800BAC8C` is the example.
 
+## Copy the scan count into a limit so `$v1` can become the walk pointer
+
+When the same table-select switch has more live values (occupied-count plus a
+walk pointer distinct from the base), the base lands in `$a3` and the target
+loads `field_1` into `$v1`, then:
+
+```
+beqz  v1, skip
+ move  a2, a1      /* ret = i */
+move  a0, v1      /* limit = count */
+sll   v0, start, 2
+addu  v1, v0, a3  /* rec = off + table */
+```
+
+`&table[start]` coalesces dest back into `$a3` and keeps the count in `$v1`
+(or `$t0`). Assign `limit = count` *after* `if (count != 0)` so the copy
+frees `$v1` for the walk, and keep `off + (s32)table` so dest is a new `rec`.
+Pin the base with `register GpItemRec* table asm("a3")` via the same
+tmp/switch as `func_800BAC8C`. `ret = i` (or `ret = 0` after `i = 0`) fills
+the `beqz` delay with `move a2, a1`. `func_800BAF5C` is the example.
+
 ## `jalr` with the iterator left in `$a1` is a 2-arg callback
 
 A child-ring walk that does `jalr` after `lw a0, spawnArg2(a1)` and keeps
