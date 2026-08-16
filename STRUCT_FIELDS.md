@@ -1136,11 +1136,13 @@ selects whether the function returns `arg1 == 1` (else 0), before the
 | 0x04 | `field_4` | Pointer (name string in `func_800B8EB0`) |
 
 ### `GpItemObj8` — `4CC.h`
-Object at `Task::spawnArg2` for `func_800BF5CC`. Full size unknown.
+Object at `Task::spawnArg2` for `func_800BF5CC` / `func_800BF624` /
+`func_800CE094`. Full size unknown.
 
 | Off | Member | Role |
 |-----|--------|------|
 | 0x08 | `field_8` | Packed item id passed to `func_800BB470` |
+| 0x0A | `field_A` | Item/location halfword; copied to `D_80114DDC` by `func_800BF624`, cleared on cancel by `func_800CE094` |
 
 ### `GpItemObj2` — `4CC.h`
 Object stored in `Task::extraState` by `func_800BF5CC`. Full size unknown.

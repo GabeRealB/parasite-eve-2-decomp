@@ -3,6 +3,7 @@
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
 #include "gameplay/3A34.h"
+#include "gameplay/4CC.h"
 #include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/fs.h"
@@ -24,7 +25,6 @@ extern s32          D_80114D88;
 extern UiObject*    D_80114D98[];
 extern u32          D_80114DCC;
 extern u8*          D_80114DD4;
-extern u16          D_80114DDC;
 extern s32          D_80114E88;
 extern s32          D_80114E8C;
 extern s32          D_80114E90;
@@ -483,7 +483,38 @@ void func_800CDFA8(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CE094);
+void func_800CE094(Task* arg0)
+{
+    UiObject*   obj;
+    GpItemObj8* work;
+
+    obj  = (UiObject*)arg0->spawnArg1;
+    work = arg0->spawnArg2;
+    switch (obj->field_2E) {
+        case -1:
+            if (obj->field_2C == 0x33) {
+                work->field_A = 0;
+            }
+        case 6:
+            switch (D_80114DDC >> 8) {
+                case 0:
+                case 1:
+                    if (obj->field_2C == 0x33) {
+                        if (func_800BB470(work->field_8) != 3) {
+                            func_800BAC34(work->field_8, 2);
+                        }
+                    }
+                    break;
+            }
+
+            Ui_TeardownTree(obj, obj->owner);
+            Wip_UiHolder          = NULL;
+            Game_Session->field_2 = 0;
+            arg0->killCountdown   = 0xC;
+            arg0->state           = arg0->state + 1;
+            break;
+    }
+}
 
 void func_800CE188(Task* arg0)
 {

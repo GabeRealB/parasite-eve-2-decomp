@@ -7,11 +7,15 @@
 #include "main/task.h"
 #include "main/ui.h"
 
-/// Object at `Task::spawnArg2` for `func_800BF5CC`. `field_8` is the packed
-/// item id passed to `func_800BB470`.
+/// Object at `Task::spawnArg2` for `func_800BF5CC` / `func_800BF624` /
+/// `func_800CE094`. `field_8` is the packed item id passed to `func_800BB470`.
+/// `field_A` is the item/location halfword copied into `D_80114DDC` by
+/// `func_800BF624` and cleared by `func_800CE094` on the cancel path.
 typedef struct _GpItemObj8 {
     /* 0x00 */ byte pad_0[8];
     /* 0x08 */ u8   field_8;
+    /* 0x09 */ byte pad_9;
+    /* 0x0A */ u16  field_A;
 } GpItemObj8;
 
 /// Object stored in `Task::extraState` by `func_800BF5CC`. `field_2` is set
