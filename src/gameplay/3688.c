@@ -809,7 +809,22 @@ void func_800CEB40(s32 arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CEB84);
+s32 func_800CEB84(s32 arg0)
+{
+    s32           ret;
+    WipSysConfig* p;
+
+    ret = 0;
+    p   = &Wip_SysConfig;
+    if ((((u32)(arg0 - 0x80) < 0x20U) && (p->field_21 == arg0 - 0x7F)) ||
+        (((u32)(arg0 - 0x60) < 0x20U) && (p->field_23 == arg0 - 0x5F)) ||
+        (((u32)(arg0 - 0xA0) < 0x20U) && (p->field_21 != 0) &&
+         ((func_800BAFE0(p->field_21 + 0x7F)->field_0 == arg0) ||
+          (func_800BAFE0(p->field_21 + 0x7F)->field_2 == arg0)))) {
+        ret = 1;
+    }
+    return ret;
+}
 
 s32 func_800CEC5C(GpItemRec* arg0)
 {

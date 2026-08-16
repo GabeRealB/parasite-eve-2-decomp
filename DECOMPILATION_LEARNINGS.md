@@ -16179,4 +16179,43 @@ independent stores and keeps a dedicated `lw`/`and`/`sw` per case.
 
 `func_800CEE5C` is the example.
 
+## Combine same-result predicates with `||` so `ret` takes `$s2`
+
+Several range/id checks that all store `ret = 1` look natural as `if` /
+`else if` arms. That form allocates the pointer to `$s2` and `ret` to
+`$s1`, loads the u8 field straight into `$a0` (`lbu a0; beqz a0; jal`),
+and merges the field==0 exit with the range-fail epilogue.
+
+One `||` chain and a single `ret = 1` after it puts `ret` in `$s2` and
+the pointer in `$s1`. CSE of `p->field` then stays in `$v0`:
+
+```
+lbu    v0, field(s1)
+nop
+beqz   v0, ret0
+nop
+move   a0, v0
+jal    lookup
+addiu  a0, a0, K
+```
+
+A named temp (`equipped = p->field; func(equipped + K)`) is born in
+`$a0` and keeps the `$s1`/`$s2` swap.
+
+```c
+ret = 0;
+p   = &Wip_SysConfig;
+if ((range_a && p->sel_a == id - Ka) ||
+    (range_b && p->sel_b == id - Kb) ||
+    (range_c && p->sel_a != 0 &&
+     (lookup(p->sel_a + K)->field_0 == id ||
+      lookup(p->sel_a + K)->field_2 == id))) {
+    ret = 1;
+}
+```
+
+`func_800CEB84` is the example. The if/else-if form stuck at 96.6%;
+dropping the temp but keeping if/else-if reached 98.7% with only the
+register swap and `lbu a0`.
+
 
