@@ -39,6 +39,7 @@ extern char         D_8010F1A4[];
 extern u8           D_8010F13D;
 extern UiObjectDesc D_8010D348;
 extern UiObjectDesc D_8010D6D8;
+extern UiObjectDesc D_8010EA98;
 extern UiObjectDesc D_8010EAD0;
 extern UiObjectDesc D_8010EB94;
 extern UiObjectDesc D_8010EBCC;
@@ -226,7 +227,19 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CD78C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CD814);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CD89C);
+UiObject* func_800CD89C(UiObject* arg0)
+{
+    UiObject* obj;
+
+    obj = Ui_SpawnFromDesc(&D_8010EA98, 3, 1, 2, arg0);
+    if (obj != NULL) {
+        obj->field_C   = (arg0->baseX + arg0->field_1E + 0xA) - obj->field_10;
+        obj->field_E   = arg0->baseY + arg0->field_1A;
+        arg0->field_2C = 0;
+        arg0->status   = 0;
+    }
+    return obj;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CD924);
 
