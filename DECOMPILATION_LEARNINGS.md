@@ -16273,4 +16273,67 @@ if (val != 0) {
 `register UiObject* obj asm("s2")` also matches, but the split temps are
 enough. `func_800BF4FC` is the example.
 
+## Store via `(T*)(head - K)` before assigning `vec`
+
+Scratch allocation that first writes `sw v0, -K(head)` and only then
+`addiu vec, head, -K` is not `vec = (T*)(head - K); vec->field = expr`.
+That computes the pointer first. Write the first field through the
+unadjusted head, then bind `vec`:
+
+```c
+((VECTOR3*)(head - 0x10))->vx = arg0->vx - arg1->vx;
+vec                           = (VECTOR3*)(head - 0x10);
+vec->vy                       = arg0->vy - arg1->vy;
+```
+
+`func_80103DD4` is the example. `vec = (VECTOR3*)(head - 0x10)` first
+stuck with `addiu` before the `vx` store.
+
+## Assign `x = x * x` before `SquareRoot0(x + y)` so `mflo` stays in `$a0`
+
+`SquareRoot0(x * x + y)` builds a fresh temp for the product
+(`mflo a3; addu a0, a3, v1`). Assign the square back into `x` first.
+`mflo` then reuses `x`'s register and the add is in-place in the `jal`
+delay slot:
+
+```
+mult  a0, a0
+mflo  a0
+jal   SquareRoot0
+addu  a0, a0, v1
+```
+
+```c
+vx = vx * vx;
+vx = SquareRoot0(vx + absz);
+```
+
+`func_80103DD4` is the example. The inlined `x * x` stuck at 99.762%
+with only that `mflo` dest swapped.
+
+## Pin an early `ABS` temp to `$v1` so it does not steal `$a0`
+
+A standalone `absz = ABS(vz)` emitted *before* the `SquareRoot0`
+argument is set up takes `$a0` (first free arg register). The later
+reload/ABS/square that should live in `$a0` then lands in `$v0`.
+
+Keep the original `vz` in `$v0` for the store (`bgez v0; move v1, v0`)
+and pin the ABS dest:
+
+```c
+register s32 absz asm("v1");
+register s32 vx asm("a0");
+
+absz = ABS(vz); /* move v1, v0 — vz stays in v0 for the store */
+vec->vz = vz;
+absz = absz * absz;
+vx = ((VECTOR3*)(head - 0x10))->vx; /* lw a0 */
+vx = ABS(vx);
+vx = vx * vx;
+vx = SquareRoot0(vx + absz);
+```
+
+`func_80103DD4` is the example. Unconstrained `absz` stuck at 98.2%
+with `ABS(vz)` in `$a0` and the `vx` reload in `$v0`.
+
 

@@ -499,7 +499,32 @@ s32 func_80103D8C(s32 arg0, s32 arg1)
     return SquareRoot0(arg0 + arg1);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103DD4);
+s32 func_80103DD4(VECTOR3* arg0, VECTOR3* arg1)
+{
+    void**       scratch;
+    u8*          head;
+    VECTOR3*     vec;
+    s32          vz;
+    register s32 absz asm("v1");
+    register s32 vx asm("a0");
+
+    scratch                       = (void**)G_SCRATCH_HEAD;
+    head                          = *scratch;
+    ((VECTOR3*)(head - 0x10))->vx = arg0->vx - arg1->vx;
+    vec                           = (VECTOR3*)(head - 0x10);
+    vec->vy                       = arg0->vy - arg1->vy;
+    vz                            = arg0->vz - arg1->vz;
+    absz                          = ABS(vz);
+    vec->vz                       = vz;
+    absz                          = absz * absz;
+    vx                            = ((VECTOR3*)(head - 0x10))->vx;
+    vx                            = ABS(vx);
+    vx                            = vx * vx;
+    *scratch                      = vec;
+    vx                            = SquareRoot0(vx + absz);
+    *scratch                      = (u8*)*scratch + 0x10;
+    return vx;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103E7C);
 
