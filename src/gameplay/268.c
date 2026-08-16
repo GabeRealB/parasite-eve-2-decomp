@@ -594,7 +594,60 @@ void func_800BB7C0(s32 arg0, s32 arg1)
     p->field_6D0[word] |= bit;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB838);
+void func_800BB838(GpBit2List* arg0, u32* dest)
+{
+    GpBit2List*  table;
+    GpBit2Rec*   rec;
+    register u32 id asm("a0");
+    register u32 word asm("v1");
+    register u32 val asm("a1");
+    register s32 tmp asm("v0");
+    register s32 three asm("t1");
+    register u16 term asm("t3");
+    u16          inner;
+
+    table = arg0;
+    if (table == NULL) {
+        return;
+    }
+    rec = table->field_0;
+    if (rec == (GpBit2Rec*)-1) {
+        return;
+    }
+    term  = 0xFFFF;
+    three = 3;
+    do {
+        if (rec != NULL) {
+            id  = rec->field_0;
+            tmp = id & 0xF;
+            if (id != term) {
+                inner = 0xFFFF;
+                do {
+                    tmp       = tmp * 2;
+                    tmp       = three << tmp;
+                    id        = (u32)(dest + (id >> 4));
+                    word      = *(u32*)id;
+                    word     &= ~tmp;
+                    *(u32*)id = word;
+                    val       = rec->field_6;
+                    tmp       = rec->field_0;
+                    rec++;
+                    val      &= 3;
+                    tmp      &= 0xF;
+                    tmp      *= 2;
+                    tmp       = val << tmp;
+                    word     |= tmp;
+                    *(u32*)id = word;
+                    id        = rec->field_0;
+                    tmp       = id & 0xF;
+                } while (id != inner);
+            }
+        }
+        table++;
+        rec = table->field_0;
+        tmp = -1;
+    } while (rec != (GpBit2Rec*)tmp);
+}
 
 void func_800BB8E8(s32 arg0, u8 arg1, s32 arg2)
 {

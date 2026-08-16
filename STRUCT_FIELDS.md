@@ -1197,14 +1197,32 @@ map onto the 32-entry slice at `D_8010E2B8` (`D_8010DFB8 + 0x60 * 8`).
 |-----|--------|------|
 | 0x05 | `field_5` | Unsigned base added to `Mc_SaveData.field_908[itemId-0x60]`; result clamped to 10 |
 
+### `GpBit2Rec` (0x10) — `268.h`
+0xFFFF-terminated records walked by `func_800BB838` / `func_800BAB64`.
+Each record writes one 2-bit field into a dest bank.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | Packed item id (low 4 bits = nibble index; `>> 4` = word index); 0xFFFF ends the list |
+| 0x06 | `field_6` | Low 2 bits are the value stored into the dest bank |
+
+### `GpBit2List` (0x8) — `268.h`
+Table of record-list pointers walked by `func_800BB838` / `func_800BAB64`.
+`D_8010D230[i].field_0` points at one of these tables.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | `GpBit2Rec*` list (NULL skips; `(GpBit2Rec*)-1` ends the table) |
+
 ### `GpBit2Bank` (0x8) — `268.h`
 Per-stage table at `D_8010D230`, indexed by `GameSession.field_7` /
 `GameSessionFrom4.field_3` / `Mc_SaveData.field_7`. `func_800BB974` /
 `func_800BB470` extract a 2-bit field; `func_800BB8E8` / `func_800BAC34`
-write one.
+write one. `func_800BAB64` applies `field_0`'s record lists into `field_4`.
 
 | Off | Member | Role |
 |-----|--------|------|
+| 0x00 | `field_0` | `GpBit2List*` table of record lists (`func_800BAB64` / `func_800BB838`) |
 | 0x04 | `field_4` | `u32*` packed 2-bit flags (16 fields per word; index `>> 4` / `& 0xF`) |
 
 ### `GpItemDesc` (0x8) — `4CC.h`

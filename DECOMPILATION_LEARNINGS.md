@@ -16564,4 +16564,44 @@ unsigned type. `func_800CF940` is the example. The bare
 `obj->field_E = -0x5C` stuck at 99.8% with only those two `li`
 encodings different.
 
+## Split 0xFFFF sentinels; reuse the id register as the dest pointer
+
+A 2-bit bank writer that walks `-1`-terminated list nodes and
+`0xFFFF`-terminated records wants the mask built *before* the dest
+address, two different `0xFFFF` registers (`$t3` for the first `if`,
+`$t0` for the inner `do`/`while`), and `-1` rematerialized at the
+outer tail (`li v0,-1` / `bne a2,v0`).
+
+Pin the inner temps (`id` in `$a0`, word in `$v1`, field_6 in `$a1`,
+scratch in `$v0`, `3` in `$t1`, first sentinel in `$t3`). After the
+nibble is extracted, overwrite `id` with the dest word pointer so the
+mask `sllv` stays in `$v0` and `$a0` becomes `dest[id >> 4]`:
+
+```c
+register u32 id asm("a0");
+register s32 tmp asm("v0");
+register u16 term asm("t3");
+u16 inner;
+
+term = 0xFFFF;
+if (id != term) {
+    inner = 0xFFFF;
+    do {
+        tmp = tmp * 2;
+        tmp = three << tmp;           /* mask first */
+        id = (u32)(dest + (id >> 4)); /* then dest in $a0 */
+        ...
+        id = rec->field_0;
+        tmp = id & 0xF;
+    } while (id != inner);
+}
+```
+
+Two sentinels are required: CSE of a single `0xFFFF` becomes
+`move t0,t3` in the prologue. Do **not** pin the table/rec pointers —
+pinning them made the first `lw` use `$a0` instead of `$a3`. Assign
+`tmp = -1` at the outer tail so the compare rematerializes instead of
+CSE into `$t4`. `func_800BB838` is the example (sibling
+`func_800BAB64` is the same walk with a bank lookup in front).
+
 

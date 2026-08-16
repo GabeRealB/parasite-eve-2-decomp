@@ -54,13 +54,34 @@ typedef struct _GpItemQty {
 } GpItemQty;
 STATIC_ASSERT_SIZEOF(GpItemQty, 0x4);
 
+/// 16-byte record walked by `func_800BB838` / `func_800BAB64`.
+/// field_0 is a packed item id (0xFFFF terminator); field_6 low 2 bits
+/// are the value written into the dest 2-bit bank.
+typedef struct _GpBit2Rec {
+    /* 0x00 */ u16  field_0;
+    /* 0x02 */ byte pad_2[4];
+    /* 0x06 */ u16  field_6;
+    /* 0x08 */ byte pad_8[8];
+} GpBit2Rec;
+STATIC_ASSERT_SIZEOF(GpBit2Rec, 0x10);
+
+/// 8-byte list node walked by `func_800BB838` / `func_800BAB64`.
+/// field_0 is a `GpBit2Rec` list (NULL skips; `(GpBit2Rec*)-1` ends).
+/// `D_8010D230[i].field_0` points at a table of these.
+typedef struct _GpBit2List {
+    /* 0x00 */ GpBit2Rec* field_0;
+    /* 0x04 */ byte       pad_4[4];
+} GpBit2List;
+STATIC_ASSERT_SIZEOF(GpBit2List, 0x8);
+
 /// 8-byte entry in `D_8010D230`, indexed by session field_7 /
-/// `GameSessionFrom4.field_3` / `Mc_SaveData.field_7`. field_4 is packed
-/// 2-bit flags (`func_800BB974` / `func_800BB8E8` / `func_800BB470` /
-/// `func_800BAC34`).
+/// `GameSessionFrom4.field_3` / `Mc_SaveData.field_7`. field_0 is a
+/// `GpBit2List` table applied by `func_800BAB64` / `func_800BB838`.
+/// field_4 is packed 2-bit flags (`func_800BB974` / `func_800BB8E8` /
+/// `func_800BB470` / `func_800BAC34`).
 typedef struct _GpBit2Bank {
-    /* 0x00 */ void* field_0;
-    /* 0x04 */ u32*  field_4;
+    /* 0x00 */ GpBit2List* field_0;
+    /* 0x04 */ u32*        field_4;
 } GpBit2Bank;
 STATIC_ASSERT_SIZEOF(GpBit2Bank, 0x8);
 
@@ -143,6 +164,7 @@ s32         func_800BB610(GpItemScan* arg0, s32 arg1);
 s32         func_800BB668(s32 arg0);
 s32         func_800BB6FC(GpItemScan* arg0, s32 arg1);
 void        func_800BB7C0(s32 arg0, s32 arg1);
+void        func_800BB838(GpBit2List* arg0, u32* arg1);
 void        func_800BB8E8(s32 arg0, u8 arg1, s32 arg2);
 s32         func_800BB974(GameSessionFrom4* arg0, s32 arg1);
 void        func_800BB9B8(void);
