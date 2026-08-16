@@ -12,7 +12,8 @@
 /// Global at `D_80114C08`. `field_0` is a u16 loaded by many helpers.
 /// `field_3` is a signed state byte (`lb`); `func_80109290` compares it to -2
 /// and `func_80109374` requires 0. `field_6` is a flags byte (bit 0 gates
-/// `func_800A7DB8` writing `field_E`; bit 1 is cleared by `func_800A7574`).
+/// `func_800A7DB8` writing `field_E`; bit 1 is cleared by `func_800A7574`
+/// and forces `func_800A7E5C` to 0 when that function's arg is 0).
 /// `field_A` is a signed byte (`lb`); `func_800A7DE0` sets `field_3 = 2`
 /// when it is >= 2, then clears it. `func_800A7574` also zeros `field_A`,
 /// `field_C`..`field_F`, `field_10`/`field_12`/`field_14`, and
@@ -105,6 +106,7 @@ void func_800A784C(void* arg0);
 void func_800A7A64(void);
 void func_800A7DB8(s32 arg0);
 void func_800A7DE0(void);
+s32  func_800A7E5C(s32 arg0);
 void func_800A8B14(void);
 void func_800A8B6C(void);
 GpCb2CRec* func_800A8C08(GameSessionFrom4* arg0);

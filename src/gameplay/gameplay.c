@@ -947,7 +947,42 @@ void func_800A7E4C(void)
     D_8010CA28 = 5;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7E5C);
+s32 func_800A7E5C(s32 arg0)
+{
+    GpActorWork*  work;
+    GameActor*    actor;
+    WipSysConfig* p;
+    s32           flag;
+
+    flag = 0;
+    work = D_80115760[0];
+    if (work != NULL) {
+        actor = work->actor;
+        p     = &Wip_SysConfig;
+        if (actor->field_954 == 0) {
+            if (actor->field_956 == 0 || actor->field_956 == 2) {
+                if (Game_Session->field_13A == 0) {
+                    if (p->field_24 == 0) {
+                        flag = 1;
+                    }
+                }
+            }
+        }
+    }
+    if (arg0 == 0) {
+        if (D_80114C08.field_6 & 2) {
+            flag = 0;
+        }
+    }
+    if (flag != 0) {
+        if (D_8010CA28 <= 0) {
+            if (D_801153F1 == 0) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
 
 void func_800A7F24(void)
 {
