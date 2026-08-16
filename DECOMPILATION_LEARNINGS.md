@@ -283,6 +283,45 @@ if (p->field_21 == 0) {
 `func_800BBF1C` is the example. `if (p->field_21) { ... if (item) ... }` stuck
 at 88% with the load reused and the inner branch inverted.
 
+## `volatile` copy of `p` so a range check reloads the same u8
+
+When the target does
+
+```
+lbu   v0, off(p)
+addiu v0, v0, -K
+sltiu v0, v0, N
+beqz  v0, zero
+lui   v0, 0x5555
+lbu   a0, off(p)
+```
+
+the second `p->field` is CSE'd into the first load. GCC keeps the original
+byte in `$a0` so the subtract can use `$v0`, and the reload disappears.
+Writing `*out = 0` first does not kill that CSE — the store is through a
+different pointer, not `p`.
+
+Assign `p` to a `volatile` typed copy in the else and read the field
+through that. The qualifier forces both `lbu`s and leaves `p` in `$a0`:
+
+```c
+} else {
+    vp = p;
+    if ((u32)(vp->field_22 - 0xA) < 6U) {
+        *arg0 = ((vp->field_22 - 1) % 3) << 24;
+        if (*arg0 < 0) {
+            *arg0 = 0;
+        }
+    } else {
+        *arg0 = 0;
+    }
+}
+```
+
+A second non-volatile pointer (`q = &Global` in the else) is still CSE'd.
+`func_801095BC` is the example. The plain `p->field_22` pair stuck at 97.8%
+with only that reload missing.
+
 ## Write the `== 0` early-return first so a sibling `== K` beq's back to it
 
 When two conditions store the same value and return, the combined

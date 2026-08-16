@@ -63,6 +63,7 @@ void func_80108E0C(GpActorWork* arg0, GpLinkNode* arg1);
 void func_80109290(GpActorWork* arg0);
 void func_80109374(GpActorWork* arg0);
 void func_801093DC(GpActorWork* arg0);
+void func_801095BC(s32* arg0);
 void func_80109720(GpActorWork* arg0);
 void func_80109844(GpActorWork* arg0);
 void func_80109A1C(GpActorWork* arg0);
@@ -1789,7 +1790,30 @@ void func_801094D4(GpActorWork* arg0)
     func_80103AC0(arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801095BC);
+void func_801095BC(s32* arg0)
+{
+    WipSysConfig*          p;
+    volatile WipSysConfig* vp;
+
+    p = &Wip_SysConfig;
+    if (p->field_21 == 0x1B) {
+        *arg0 = func_800BAFE0(p->field_21 + 0x7F)->field_2 - 0x9F;
+        if (*arg0 < 0) {
+            *arg0 = 0xA;
+        }
+        *arg0 = (*arg0 - 0xA) << 24;
+    } else {
+        vp = p;
+        if ((u32)(vp->field_22 - 0xA) < 6U) {
+            *arg0 = ((vp->field_22 - 1) % 3) << 24;
+            if (*arg0 < 0) {
+                *arg0 = 0;
+            }
+        } else {
+            *arg0 = 0;
+        }
+    }
+}
 
 void func_80109684(GpActorWork* arg0)
 {
