@@ -16363,4 +16363,37 @@ differently-sized stores".
 `func_800AAA68` is the example. `&ds->dispEnv[i]` stuck at 97.5% with
 only those three dest instructions different.
 
+## Separate temps so a later switch can keep the child in `$a0`
+
+A signed halfword loaded for an early compare (`lh a0, field`) pins that
+variable in `$a0`. Reusing the same `s32` for a later `switch (child->field)`
+keeps the second value in `$a0` too, so the child pointer lands in `$v0`
+and the case-6 call emits `move a0, v0` (plus `slti` out of the `beq`
+delay slot).
+
+The target wants the child in `$a0` from the first load (it is the first
+arg of `Ui_TeardownTree`), the compare-constant `6` in `$a1` (also stored
+in case 9), and the switch value in `$v1`.
+
+Use a *new* temp for the first compare so the switch variable is free:
+
+```c
+sel = menu->field_22; /* lh a0 — dies before the child walk */
+if (sel != 0x20) {
+    ...
+}
+child = arg0->firstChild; /* lw a0 */
+flag  = child->field_2E;  /* lh v1 */
+switch (flag) {
+case 6:
+    Ui_TeardownTree(child, child->owner); /* a0 already child */
+    ...
+case 9:
+    obj->field_2E = 6; /* sh a1 */
+}
+```
+
+`func_800CB188` is the example. Reusing `flag` for both loads stuck at
+97.8% with only the switch registers (and one extra `nop`/`move`) wrong.
+
 

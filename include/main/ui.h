@@ -101,7 +101,10 @@ STATIC_ASSERT_SIZEOF(TextBlockDesc, 0xC);
 /// Ui_InitList / Ui_SetListScrollFlag; field_C / field_14 / field_16 are cleared by
 /// Ui_InitList; field_17 is a signed layout adjust subtracted from the child
 /// height when computing visible rows (Ui_ComputeVisibleRows / Ui_ComputeVisibleRowsEx; the latter
-/// also writes field_17 from its third argument).
+/// also writes field_17 from its third argument). field_22 is a selected action
+/// code polled by list-task handlers (`func_800CB188`: 0x20 skips pad input,
+/// 0x23 is copied to UiObject::field_2E; same values DialogPrompt handlers
+/// write to DialogPrompt::field_22).
 typedef struct _UiList {
     /* 0x00 */ byte unknown_0[0x4]; // often function-table pointer
     /* 0x04 */ u8   field_4;        // base index
@@ -117,7 +120,8 @@ typedef struct _UiList {
     /* 0x14 */ s16  field_14;       // cleared by list reset
     /* 0x16 */ s8   field_16;       // cleared by list reset
     /* 0x17 */ s8   field_17;       // layout adjust for visible rows
-    /* 0x18 */ byte unknown_18[0xC];
+    /* 0x18 */ byte unknown_18[0xA];
+    /* 0x22 */ s16  field_22;       // selected action (0x20 skip pad, 0x23 confirm)
 } UiList;
 STATIC_ASSERT_SIZEOF(UiList, 0x24);
 
