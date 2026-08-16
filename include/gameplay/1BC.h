@@ -132,7 +132,8 @@ typedef struct _GpAreaKey {
 /// Overlay of `Task::spawnArg2` for sibling walkers. `field_A` high byte is
 /// the work type (`func_800B5E08` / `func_800B5EE8` match 9; `func_800B5E78`
 /// skips 9). `field_8` is the id compared against the search key (`as_u16` /
-/// `as_u8`). Full size unknown.
+/// `as_u8`; `func_800B584C` matches `as_u16` on slot 4's children). Full size
+/// unknown.
 typedef struct _GpWorkObj {
     /* 0x00 */ byte pad_0[8];
     /* 0x08 */ union {
@@ -168,8 +169,9 @@ void     func_800B3F60(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3,
 void     func_800B4514(GpAnimCtx* arg0, s32 arg1);
 GpAnimRec* func_800B4668(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3);
-void     func_800B57EC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
-void     func_800B58D4(TmdObject* arg0, s32 arg1, s32 arg2);
+void       func_800B57EC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
+GpWorkObj* func_800B584C(u16 arg0);
+void       func_800B58D4(TmdObject* arg0, s32 arg1, s32 arg2);
 s32        func_800B59A8(GpAreaKey* arg0);
 GpAreaObj* func_800B5A08(GpAreaKey* arg0);
 GpAreaObj* func_800B5C88(GpAreaKey* arg0);

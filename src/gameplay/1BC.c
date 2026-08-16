@@ -523,7 +523,33 @@ void func_800B57EC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B584C);
+GpWorkObj* func_800B584C(u16 arg0)
+{
+    Task*      head;
+    Task*      iter;
+    GpWorkObj* work;
+    s32        key;
+
+    work = NULL;
+    head = ((Task*)Game_GetPtrSlot(4))->firstChild;
+    if (head != NULL) {
+        iter = head;
+        work = iter->spawnArg2;
+        key  = arg0;
+        if (work->field_8.as_u16 != key) {
+        loop:
+            iter = iter->nextSibling;
+            work = NULL;
+            if (iter != head) {
+                work = iter->spawnArg2;
+                if (work->field_8.as_u16 != key) {
+                    goto loop;
+                }
+            }
+        }
+    }
+    return work;
+}
 
 void func_800B58D4(TmdObject* arg0, s32 arg1, s32 arg2)
 {

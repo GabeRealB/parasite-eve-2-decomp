@@ -15133,4 +15133,41 @@ poly++;
 
 `func_8009F49C` is the example (opcode 0x44 POLY_F4 header init).
 
+## NULL result before `Game_GetPtrSlot`, `s32` key, goto-if-not-head
+
+A circular `firstChild` / `nextSibling` search that returns the matching
+`spawnArg2` (or NULL) wants the result in `$s0` and the incoming `u16` id in
+`$s1`. Initializing `work = NULL` *after* the child load leaves the result in
+a caller-saved reg and drops the extra save. Assign it before the call so it
+is live across `Game_GetPtrSlot` and pins `$s0`.
+
+`do { advance; if (iter == head) break; load; } while (id != key)` rotates:
+the back-edge becomes `bne iter, head` and the first `iter = head` is CSE'd
+into loads off `$a1`. Keep the id compare as the back-edge with a goto, and
+copy the key into an `s32` after the first `spawnArg2` load so `andi` fills
+the `lhu` delay and `move v1, a1` survives:
+
+```c
+work = NULL;
+head = ((Task*)Game_GetPtrSlot(4))->firstChild;
+if (head != NULL) {
+    iter = head;
+    work = iter->spawnArg2;
+    key  = arg0; /* s32 key — andi after lhu, keeps the iterator copy */
+    if (work->field_8.as_u16 != key) {
+    loop:
+        iter = iter->nextSibling;
+        work = NULL;
+        if (iter != head) {
+            work = iter->spawnArg2;
+            if (work->field_8.as_u16 != key) {
+                goto loop;
+            }
+        }
+    }
+}
+```
+
+`func_800B584C` is the example.
+
 
