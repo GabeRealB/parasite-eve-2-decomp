@@ -13717,6 +13717,40 @@ return val != 0;
 Inlining `(1 << (arg0 % 32))` without first assigning `arg0 %= 32` drops
 back to the `srav` form. `func_800BB4BC` is the example.
 
+## `if (p != NULL) goto body; return NULL` emits `bnez` + `j` epilogue
+
+A shared-epilogue `return NULL` after `Task_Spawn` / `Mem_Calloc` wants:
+
+```
+bnez  s0, body
+li    a0, SIZE     /* delay: first insn of body */
+j     epilogue
+move  v0, zero
+body:
+jal   Mem_Calloc
+```
+
+`if (p == NULL) return NULL;` and `if (p != NULL) { ... } return NULL;`
+both invert to `beqz` into a trailing epilogue. Force the taken branch
+to be the success path and put the zero return *immediately* after the
+test:
+
+```c
+if (p != NULL) {
+    goto body;
+}
+return NULL;
+body:
+    q = Mem_Calloc(SIZE, 0);
+```
+
+The same layout places a shared `Task_Kill` *between* two allocs: jump
+forward over the kill on the first success, jump back on the second
+fail. Nested `if (p != NULL)` without those gotos parks the kill after
+the success path and uses `beqz`.
+
+`func_8010BAC8` is the example.
+
 ## Keep `$a0` live so `li v1,K` fills the load-delay of `lw v0,0(v1)`
 
 A 2-bit extract that walks `bank->field_4[idx >> 4]` wants this tail:

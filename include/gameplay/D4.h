@@ -42,6 +42,7 @@ typedef struct _GpCb54Tbl {
 /// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
 extern GpCb54Tbl* D_8010CB54[];
 
+void func_800A9DF0(Task* task);
 void func_800AB980(struct _GameSessionFrom4* arg0);
 void func_800ABE68(struct _GpActorArg* arg0, u16* arg1);
 void func_800ABEF8(s32 arg0);

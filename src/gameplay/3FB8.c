@@ -1827,7 +1827,53 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B79C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B9A4);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010BAC8);
+Task* func_8010BAC8(GpActorArg* arg0, u16 arg1, s32 arg2, u16* arg3)
+{
+    Task*          task;
+    GameActor*     actor;
+    GpActorD4*     block;
+    GsCOORDINATE2* coord;
+    s32            type;
+
+    if (arg1 == 1) {
+        type = Mc_SaveData.field_5C7 + 0x7F;
+    } else {
+        type = arg1 + 0x82;
+    }
+    task = Task_Spawn(7, type, arg2, (s32)arg3);
+    if (task != NULL) {
+        goto have_task;
+    }
+    return NULL;
+
+have_task:
+    actor = Mem_Calloc(0x998, 0);
+    if (actor != NULL) {
+        goto have_actor;
+    }
+fail:
+    Task_Kill(task);
+    return NULL;
+
+have_actor:
+    block = Mem_Calloc(0xD4, 0);
+    if (block == NULL) {
+        goto fail;
+    }
+    Game_SetPtrSlot(task, 0xA);
+    Mem_Set(actor, 0, 0x998);
+    Mem_Set(block, 0, 0xD4);
+    task->idMap      = (TaskIdMap*)actor;
+    actor->field_910 = block;
+    func_800A9DF0(task);
+    actor->field_93C  = *arg3;
+    actor->field_52   = arg0->field_0;
+    coord             = (GsCOORDINATE2*)((GameActorExt*)task->extra)->field_8;
+    coord->coord.t[0] = arg0->field_4;
+    coord->coord.t[1] = arg0->field_8;
+    coord->coord.t[2] = arg0->field_C;
+    return task;
+}
 
 void func_8010BC04(GpActorWork* arg0, s16 arg1)
 {
