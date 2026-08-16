@@ -247,7 +247,7 @@ void      Ui_SizeFromText(UiPanel* arg0, u8* arg1, s32 arg2, s32 arg3);
 void      Ui_UpdateLayoutSize(UiPanel* arg0, s32 arg1, s32 arg2);
 void      Ui_TeardownTree(UiObject* arg0, Task* arg1);
 void      Ui_FreeAndKill(Task* arg0);
-void      Ui_SetState4(Task* arg0);
+void      Ui_SetState4(Task* arg0, Task* arg1);
 void      Ui_DrawTextColored(UiPanel* arg0, char* arg1);
 void      Ui_DrawText(UiPanel* arg0, char* arg1);
 void      Ui_InsetLayout(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3);

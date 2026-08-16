@@ -1509,7 +1509,7 @@ void Ui_FreeAndKill(Task* arg0)
     Task_Kill(arg0);
 }
 
-void Ui_SetState4(Task* arg0)
+void Ui_SetState4(Task* arg0, Task* arg1)
 {
     arg0->parent = (Task*)4;
 }
