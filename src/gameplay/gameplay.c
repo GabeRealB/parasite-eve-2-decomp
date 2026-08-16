@@ -39,7 +39,6 @@ void func_800A1634(s32 arg0, s32 arg1);
 void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800A7320(s16* arg0);
 void func_800A6F38(GpEnemy* arg0, void* arg1);
-s32  func_800A7B20(s32 arg0);
 void func_8009939C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800A82C0(GsCOORDINATE2* arg0, VECTOR* arg1);
 void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
@@ -721,7 +720,38 @@ s32 func_800A7AE4(s32 arg0, s32 arg1)
     return (arg0 / 3) * 16 + (arg0 % 3) * 4 + arg1 + 0x300;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7B20);
+s32 func_800A7B20(s32 arg0)
+{
+    WipSysConfig* p;
+    s32           cond;
+    s32           ret;
+    u8*           table;
+
+    ret = 1;
+    if (arg0 < 0xC) {
+        p = &Wip_SysConfig;
+        if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
+            cond = 0;
+        } else {
+            cond = p->field_26 == 4;
+        }
+        if (cond == 0) {
+            table = Mc_SaveData.unknown_850;
+        } else {
+            table = D_80114BF0;
+        }
+        ret = table[arg0];
+        if (ret == 0) {
+            ret = 1;
+        }
+        if (p->field_25 & 0x80) {
+            if (ret < 3) {
+                ret++;
+            }
+        }
+    }
+    return ret;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7BBC);
 
