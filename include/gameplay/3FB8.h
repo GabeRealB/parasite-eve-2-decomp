@@ -29,6 +29,11 @@ typedef struct {
     GpActorFunc funcs[4];
 } GpActorFuncTable4;
 
+/// 12-entry callback table copied onto the stack by `func_80108ED4`.
+typedef struct {
+    GpActorFunc funcs[12];
+} GpActorFuncTable12;
+
 /// 0x10-byte spawn argument for `func_8010BAC8` / `func_801036FC`. `field_0`
 /// is copied to `GameActor.field_52`; `field_4` / `field_8` / `field_C` are
 /// copied to the extra coordinate translation.
@@ -185,6 +190,9 @@ extern GpActorFuncTable3 D_80097940;
 
 /// `field_96C` dispatcher: three slots of `func_80109170`, then `func_80109208`.
 extern GpActorFuncTable4 D_800979F8;
+
+/// `field_956` dispatcher copied by `func_80108ED4`.
+extern GpActorFuncTable12 D_80097A08;
 
 /// Pad-event templates for `func_801041FC` (`D_80112E28[arg1 & 0xFFFF]`).
 extern GpPadEvt D_80112E28[];

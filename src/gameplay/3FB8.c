@@ -68,6 +68,7 @@ void func_80109720(GpActorWork* arg0);
 void func_80109844(GpActorWork* arg0);
 void func_80109A1C(GpActorWork* arg0);
 void func_80109BB4(GpActorWork* arg0, GpRec18* arg1);
+void func_8010AA28(GpActorWork* arg0, s32 arg1);
 void func_8010AAB4(GpActorWork* arg0);
 void func_8010ABD4(GpActorWork* arg0);
 void func_8010AC54(GpActorWork* arg0);
@@ -1804,7 +1805,40 @@ void func_80108E40(GpActorWork* arg0)
     func_80101A68(arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108ED4);
+#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
+__asm__(".section .rodata\n"
+        "\t.align 2\n"
+        "\t.globl D_80097A08\n"
+        "D_80097A08:\n"
+        "\t.word func_80108B80\n"
+        "\t.word func_80108BAC\n"
+        "\t.word func_80108BD8\n"
+        "\t.word func_801078AC\n"
+        "\t.word func_80107E1C\n"
+        "\t.word func_801094D4\n"
+        "\t.word func_80108D68\n"
+        "\t.word func_80109684\n"
+        "\t.word func_80108CC4\n"
+        "\t.word func_80109700\n"
+        "\t.word func_80108084\n"
+        "\t.word func_80108224\n"
+        ".section .text\n");
+#endif
+
+void func_80108ED4(GpActorWork* arg0)
+{
+    GameActor*         inner;
+    GpActorFuncTable12 sp;
+
+    sp    = D_80097A08;
+    inner = arg0->actor;
+    sp.funcs[inner->field_956](arg0);
+    func_80101F58(arg0);
+    if (Wip_SysConfig.field_18 <= 0 && inner->field_956 != 0xA) {
+        func_80103874(arg0);
+        func_8010AA28(arg0, 4);
+    }
+}
 
 void func_80108FA0(GpActorWork* arg0)
 {
