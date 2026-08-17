@@ -18899,4 +18899,37 @@ value lives in `$v1` while `$a0` is the call's first argument. Clamping
 in place (`if (idx >= 3) idx = 2`) or using the clamp result directly
 puts the value in `$a2` (~96–98%). `func_80109A1C` is the example.
 
+## Name the signed `s16` compare so `lh` takes `$a0` and the `lhu` copy takes `$a1`
+
+Comparing an `s16` field and then assigning that same field to another
+`s16` emits `lh` (compare) plus `lhu` (halfword copy). Inlining both
+uses swaps the registers:
+
+```
+lh    a1, 0x2e(v0)
+lhu   a0, 0x2e(v0)
+beq   a1, v1, store
+```
+
+The target wants the signed value in `$a0` (the now-dead firstChild /
+`a0` temp) and the unsigned copy in `$a1`:
+
+```
+lh    a0, 0x2e(v0)
+lhu   a1, 0x2e(v0)
+beq   a0, v1, store
+```
+
+Assign the compare to an `s32` local, then reload for the store:
+
+```c
+flag = childObj->field_2E;
+if ((flag == -1) || (flag == 6)) {
+    obj->field_2E = childObj->field_2E;
+}
+```
+
+`func_800D3FF0` is the example. The inlined compare stuck at 99.7%
+with only those two registers swapped.
+
 

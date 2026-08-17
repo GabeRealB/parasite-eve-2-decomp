@@ -70,6 +70,7 @@ extern UiList       D_8010EA30;
 extern u8*          D_8010F544[];
 extern UiList       D_8010F5D0;
 extern UiList       D_8010F5FC;
+extern UiList       D_8010F81C;
 extern UiObjectDesc D_8010D348;
 extern UiObjectDesc D_8010D6D8;
 extern UiObjectDesc D_8010EA98;
@@ -2332,7 +2333,49 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D3660);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D3D98);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D3FF0);
+void func_800D3FF0(Task* arg0)
+{
+    UiObject* obj;
+    UiList*   menu;
+    Task*     child;
+    UiObject* childObj;
+    s32       x;
+    s32       y;
+    s32       flag;
+
+    obj           = arg0->spawnArg2;
+    menu          = &D_8010F81C;
+    obj->field_2E = 0;
+    if (arg0->state == 0) {
+        Ui_LayoutListPanel(menu, (UiPanel*)obj);
+        x = 0x96 - ((s16)obj->field_C + (s16)obj->field_10);
+        y = 0x6E - ((s16)obj->field_E + (s16)obj->field_12);
+        if (x < 0) {
+            obj->field_C += x;
+        }
+        if (y < 0) {
+            obj->field_E += y;
+        }
+        arg0->state = arg0->state + 1;
+    }
+    Ui_UpdateListNoAnim(menu, obj);
+    if (obj->status == 1) {
+        if (Pad_CheckButtons(0, 1, D_8005ED78) != 0) {
+            obj->field_2E = -1;
+        } else if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
+            SndEvt_EnqueueType6(4, 0, 0);
+            obj->field_2E = 6;
+        }
+    }
+    child = arg0->firstChild;
+    if (child != NULL) {
+        childObj = child->spawnArg2;
+        flag     = childObj->field_2E;
+        if ((flag == -1) || (flag == 6)) {
+            obj->field_2E = childObj->field_2E;
+        }
+    }
+}
 
 void func_800D4140(Task* arg0)
 {
