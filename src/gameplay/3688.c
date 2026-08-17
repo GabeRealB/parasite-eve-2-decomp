@@ -71,8 +71,10 @@ extern UiObjectDesc D_8010EFBC;
 extern UiObjectDesc D_8010EFD8;
 extern UiObjectDesc D_8010F010;
 extern UiObjectDesc D_8010F178;
+extern UiObjectDesc D_8010F670;
 extern UiObjectDesc D_8010F6FC;
 extern UiObjectDesc D_8010F788;
+extern UiObjectDesc D_8010F7F8;
 extern UiObjectDesc D_8010F840;
 extern TaskDesc     D_8010F85C;
 extern TaskDesc     D_80181188;
@@ -124,6 +126,8 @@ s32   func_800A7508(void);
 void  func_800D2E04(UiObject* arg0, s32 arg1);
 void  func_800CFE68(s32 arg0, UiObject* arg1);
 void  func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
+void  func_800CD924(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
+void  func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800BF9FC);
 
@@ -1825,7 +1829,56 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D2384);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D2538);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D27E8);
+void func_800D27E8(DialogPrompt* arg0, UiObject* arg1)
+{
+    s32       count;
+    s32       item;
+    s32       idx;
+    s32       slot;
+    s32       off;
+    s32       base;
+    s32       status;
+    s32       one;
+    UiObject* obj;
+
+    idx   = arg1->owner->spawnArg1;
+    slot  = arg0->field_8;
+    count = Mc_SaveData.unknown_850[slot + idx * 3];
+    off   = idx * 16;
+    base  = slot * 4 + 0x300;
+    item  = off + base + count;
+    if (count == 0) {
+        arg0->field_1C = Ui_LookupTable(arg1, 2);
+    }
+    func_800CD924(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 0);
+    if (count != 0) {
+        func_800C2538(arg1, arg0->field_18, arg0->field_1A, count, arg0->field_1C);
+    }
+    status = arg1->status;
+    one    = 1;
+    if (((status >> 16) == one) || (status == one)) {
+        if (arg0->field_10 == arg0->field_8) {
+            Ui_SetHolderParamAlt(item, 0, 0);
+        }
+    }
+    if (arg0->field_C == 1) {
+        func_800CDE80(item, 0);
+        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+            one = 1;
+            obj = Ui_SpawnFromDesc(&D_8010F670, item, one, one, arg1);
+            SndEvt_EnqueueType6(3, 0, 0);
+            if (obj != NULL) {
+                Ui_ClampDialogRect((UiPanel*)obj, (UiPanel*)arg0, (UiPanel*)arg1);
+                arg1->status = 0;
+            }
+        } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
+            SndEvt_EnqueueType6(3, 0, 0);
+            one = 1;
+            Ui_SpawnFromDesc(&D_8010F7F8, item, one, one, arg1);
+            arg1->status = 0;
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D29B0);
 

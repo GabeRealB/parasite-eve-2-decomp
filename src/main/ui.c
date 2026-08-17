@@ -2219,7 +2219,7 @@ void Ui_SetHolderParam(s32 arg0, s32 arg1, s32 arg2)
     }
 }
 
-void Ui_SetHolderParamAlt(s32 arg0)
+void Ui_SetHolderParamAlt(s32 arg0, s32 arg1, s32 arg2)
 {
     if (Wip_UiHolder != NULL) {
         Wip_UiHolder->field_28->field_34 = arg0;

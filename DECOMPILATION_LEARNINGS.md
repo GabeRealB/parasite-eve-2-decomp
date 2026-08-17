@@ -17021,4 +17021,41 @@ if (obj->status == one) {
 `func_800D540C` is the example. The duplicated-body `if` / `else if`
 stuck at 97.1% with only that `move` vs `li`.
 
+## Split `A*N + B*M + K + C` so `K` stays on `B*M`
+
+`item = idx * 16 + slot * 4 + 0x300 + count` folds `0x300` onto
+`count` (`addiu v0, s0, 0x300` after the load). Parentheses
+(`idx * 16 + (slot * 4 + 0x300) + count`) reassociate the other way:
+`0x300` lands on `idx * 16` (`sll v1, 4; addiu v1, 0x300`).
+
+The target does both shifts first, then `addiu a0, a0, 0x300` on the
+*second* scaled term, then adds `count`:
+
+```
+sll    v1, idx, 4
+sll    a0, slot, 2
+addiu  a0, a0, 0x300
+lbu    count, ...
+addu   v1, v1, a0
+addu   item, v1, count
+```
+
+Assign each scaled term to its own `s32` *in that order*. A new temp
+for `slot * 4 + 0x300` (not a write-back to `slot`) keeps `slot` live
+for the earlier indexed load, so `a0` is reused only after the
+address is done:
+
+```c
+s32 off;
+s32 base;
+
+count = table[slot + idx * 3];
+off   = idx * 16;
+base  = slot * 4 + 0x300;
+item  = off + base + count;
+```
+
+`func_800D27E8` is the example. The one-expression form stuck at 98–99%
+with only those three instructions different.
+
 
