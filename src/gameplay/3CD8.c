@@ -20,6 +20,7 @@ extern TaskFuncTable3 D_800974C8;
 extern char           D_8009751C[];
 extern TaskFuncTable3 D_8009752C;
 extern TaskFuncTable3 D_80097538;
+extern TaskFuncTable3 D_8009762C;
 extern TaskFuncTable3 D_80097678;
 extern TaskDesc       D_8010FAEC[];
 extern GpRec14        D_8010FB38;
@@ -925,7 +926,18 @@ Task* func_800E9188(s32 arg0, s32 arg1, s32 arg2)
     return NULL;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E9218);
+void func_800E9218(Task* arg0)
+{
+    TaskFuncTable3 sp;
+
+    sp = D_8009762C;
+    if (D_801153F4 == 0 || (Game_Session->field_13B & 0x80)) {
+        if (D_80115700 != 0) {
+            arg0->state = 2;
+        }
+        sp.funcs[arg0->state](arg0);
+    }
+}
 
 void func_800E92BC(void)
 {
