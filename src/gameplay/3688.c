@@ -76,7 +76,9 @@ extern UiList       D_8010F81C;
 extern UiObjectDesc D_8010D348;
 extern UiObjectDesc D_8010D6D8;
 extern UiObjectDesc D_8010EA98;
+extern UiObjectDesc D_8010EAB4;
 extern UiObjectDesc D_8010EAD0;
+extern UiObjectDesc D_8010F140;
 extern UiObjectDesc D_8010EB08;
 extern UiObjectDesc D_8010EB94;
 extern UiObjectDesc D_8010EBCC;
@@ -221,7 +223,92 @@ void func_800C010C(UiObject* arg0, Task* arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C02A0);
+void func_800C02A0(UiObject* arg0, Task* arg1)
+{
+    u8*           text;
+    s32           color;
+    s32           one;
+    s32           val;
+    s32           flag;
+    s32           scale;
+    s32           height;
+    s32           width;
+    UiObjectDesc* desc;
+
+    val = arg1->spawnArg1;
+    if (val != 0) {
+        if ((u32)val > 0xFFFF) {
+            color = Ui_LookupTable(arg0, 1);
+            one   = 1;
+            Text_DrawPrompt(arg0, arg0->field_1C + 2, (s16)arg0->field_18 + 0xF, (u8*)val, color, one, 0);
+            text = Text_SkipLines((u8*)val, one);
+            Text_DrawPrompt(arg0, arg0->field_1C + 2, (s16)arg0->field_18 + 0x1E, text, color, one, 0);
+        } else if ((u32)(val - 0x300) < 0x100U) {
+            func_800D2E04(arg0, val);
+        }
+    }
+
+    arg1->killCountdown--;
+    if (arg1->killCountdown > 0) {
+        return;
+    }
+
+    switch (arg0->field_2C) {
+        case 5:
+            desc = &D_8010EAB4;
+            Ui_SpawnFromDesc(desc + 5, 0, 1, 8, arg0);
+            Ui_SetHolderParam((s32)D_8010F8D0, 0, 0);
+            Ui_StartCloseAnim((UiPanel*)arg0, arg0->owner);
+            break;
+        case 0x14:
+        case 0x19:
+            Ui_SpawnFromDesc(&D_8010EAB4 + arg0->field_2C, 0, 1, 8, arg0);
+            break;
+        case 0x100:
+            D_80114D88 = 1;
+            Ui_SpawnFromDesc(&D_8010F140, 0, 1, 8, arg0);
+            break;
+        case 0x101:
+            Display_SetDrawMode(1);
+            Ui_SpawnFromDesc(&D_8010EAD0, 0, 1, 8, arg0);
+            Ui_SetHolderParam((s32)D_8010F8D0, 0, 0);
+            Ui_StartCloseAnim((UiPanel*)arg0, arg0->owner);
+            break;
+        case 6:
+        case 0xC:
+            Display_SetDrawMode(1);
+            Ui_SpawnFromDesc(&D_8010EAB4 + arg0->field_2C, 0, 0, 8, arg0);
+            Ui_SetHolderParam((s32)D_8010F8D0, 0, 0);
+            Ui_StartCloseAnim((UiPanel*)arg0, arg0->owner);
+            break;
+        case 0x24:
+        default:
+            Display_SetDrawMode(1);
+            Ui_SpawnFromDesc(&D_8010EAB4 + arg0->field_2C, 0, 1, 8, arg0);
+            Ui_SetHolderParam((s32)D_8010F8D0, 0, 0);
+            Ui_StartCloseAnim((UiPanel*)arg0, arg0->owner);
+            break;
+    }
+
+    arg1->state--;
+
+    flag = arg0->field_2C;
+    if ((flag == 1) || (flag == 0x101)) {
+        scale = 1;
+    } else if (flag != 0xC) {
+        scale = 2;
+    } else {
+        Ui_UpdateLayoutSize((UiPanel*)arg0, 0, Ui_Scale15(2) + 1);
+        width  = arg0->field_12;
+        height = 0x4C;
+        goto store;
+    }
+    Ui_UpdateLayoutSize((UiPanel*)arg0, 0, Ui_Scale15(scale) + 1);
+    width  = arg0->field_12;
+    height = 0x68;
+store:
+    arg0->field_E = height - width;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C05CC);
 
