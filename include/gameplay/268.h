@@ -231,6 +231,7 @@ void        func_800BAC8C(GpItemScan* arg0);
 void        func_800BAE38(void);
 s32         func_800BAF08(void);
 s32         func_800BAF5C(GpItemScan* arg0);
+s32         func_800B904C(GpItemScan* arg0, s32 arg1, s32 arg2);
 void        func_800B91C8(GpItemRec* arg0);
 GpItemSlot* func_800BAFE0(s32 arg0);
 s32         func_800BAFF4(GpItemScan* arg0, s32 arg1);

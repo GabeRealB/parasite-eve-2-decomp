@@ -18662,4 +18662,33 @@ even is `tmp = ABS(val); val = -tmp` so even stays copy-abs
 only that hoist and `mult` operand order different. Needs `--expand-div`
 (scratch `build.sh` and the TU).
 
+## Pin the hot object to `$s1` so a setup pointer can keep `$s0`
+
+GCC 2.8.1 gives lower saved registers to higher spill-cost locals. A
+`UiObject*` used throughout a handler outranks a `UiList*` that is only
+read once, so the object takes `$s0` even if the list is assigned first.
+The target instead keeps the list in `$s0` (later reused as the flags
+word) and the object in `$s1`.
+
+Pin the object, not the list. A `register UiObject* obj asm("s1")` is a
+load (`lw s1, 0x20(s3)`), so it does not change the `lui` temp. Pinning
+the list address instead emits `lui s0, %hi(list)` instead of the
+target's `lui v0; addiu s0, v0, %lo(list)`. A second pin
+`register s32 val asm("s2")` then leaves `&Wip_SysConfig` in `$s4`:
+
+```c
+UiList*            menu;
+register UiObject* obj asm("s1");
+register s32       val asm("s2");
+WipSysConfig*      cfg;
+
+menu = &D_8010E9A4;
+obj  = arg0->spawnArg2;
+cfg  = &Wip_SysConfig;
+```
+
+`func_800C8E10` is the example. Unconstrained allocation stuck at 93%
+with `$s0`/`$s1` swapped; pinning the list address stuck at 97.4% with
+only the prologue `lui` temps different.
+
 

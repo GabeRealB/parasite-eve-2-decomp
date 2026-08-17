@@ -30,6 +30,7 @@ extern s32          D_80114D90;
 extern UiObject*    D_80114D98[];
 extern u32          D_80114DCC;
 extern u8*          D_80114DD4;
+extern s32          D_80114DD8;
 extern s32          D_80114E88;
 extern s32          D_80114E8C;
 extern s32          D_80114E90;
@@ -62,6 +63,7 @@ extern u8           D_8010F13D;
 extern UiList       D_8010E820;
 extern UiList       D_8010E8D4;
 extern UiList       D_8010E938;
+extern UiList       D_8010E9A4;
 extern UiList       D_8010EA30;
 extern u8*          D_8010F544[];
 extern UiList       D_8010F5D0;
@@ -108,6 +110,7 @@ extern char         D_80096FEC[];
 extern char         D_80096FF4[];
 extern char         D_8009701C[];
 extern char         D_8009703C[];
+extern char         D_80097120[];
 extern u8           D_800971A4;
 extern char         D_800971A8[];
 extern char         D_800971D0[];
@@ -151,6 +154,8 @@ s32        func_800A7508(void);
 void       func_800D2E04(UiObject* arg0, s32 arg1);
 void       func_800CFE68(s32 arg0, UiObject* arg1);
 void       func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
+void       func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
+void       func_800C8B40(Task* arg0);
 void       func_800CD924(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 void       func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 GpItemRec* func_800C5188(McItemScan* arg0, s32 arg1, s32 arg2);
@@ -454,7 +459,76 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C8700);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C8B40);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C8E10);
+void func_800C8E10(Task* arg0)
+{
+    UiList*            menu;
+    register UiObject* obj asm("s1");
+    register s32       val asm("s2");
+    WipSysConfig*      cfg;
+    s32                flags;
+    Task*              parent;
+    s32*               table;
+    s32                i;
+    s32                slot;
+    s32                minusOne;
+    s32*               p;
+
+    menu = &D_8010E9A4;
+    obj  = arg0->spawnArg2;
+    cfg  = &Wip_SysConfig;
+    Ui_DrawText((UiPanel*)obj, D_80097120);
+    Ui_DrawHBar((UiPanel*)obj, obj->field_1C, (s16)obj->field_1E, (s16)obj->field_18 + 0x4A);
+    if (arg0->state == 0) {
+        parent     = arg0->parent;
+        D_80114DD8 = -1;
+        Ui_SetState4(parent->spawnArg2, parent);
+        Ui_SpawnFromDesc(&D_8010EC3C, 0, 0, 0x10, obj);
+    }
+    val = func_800B904C(&Mc_SaveData.field_5BC, menu->field_10, 0);
+    if (((obj->status >> 16) == 1) || (obj->status == 1) || (val != cfg->field_21 + 0x7F)) {
+        flags = 0x12;
+        if (val == 0) {
+            flags = 0x112;
+            goto draw;
+        }
+        if (((obj->status >> 16) == 1) || (obj->status == 1)) {
+            table = D_8010E8F8;
+            if (val != table[2]) {
+                i = 0;
+                do {
+                    slot     = 2;
+                    minusOne = -1;
+                    p        = table;
+                } while (0);
+                for (; i < 3; i++, p++) {
+                    if (i == slot) {
+                        *p = val;
+                    } else {
+                        *p = minusOne;
+                    }
+                }
+                func_800C5C2C(val, 2);
+            }
+        }
+    } else {
+        flags = 0x10;
+        if (val == 0) {
+            flags = 0x110;
+            goto draw;
+        }
+    }
+    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+        flags |= 0x100;
+    }
+draw:
+    func_800C7AE8(obj, obj->field_1C + 2, (s16)obj->field_18 + 2, flags);
+    func_800C7DA8(obj, val, 1, 0);
+    func_800C8B40(arg0);
+    obj->field_2C = 0;
+    if (obj->field_2E == 9) {
+        obj->field_2E = 6;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C9010);
 
