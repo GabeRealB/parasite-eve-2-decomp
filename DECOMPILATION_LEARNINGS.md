@@ -3,6 +3,32 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Capture `list->funcs` before writing both vtable slots
+
+`menu->funcs[0] = A; menu->funcs[1] = B;` reloads the function-table
+pointer for the second store (`lw v1, %lo(list)(a1)` twice) and parks
+`%hi(list)` in `$a1`. The target loads the pointer once:
+
+```
+lui   v1,%hi(list)
+addiu s1,v1,%lo(list)
+lw    v1,%lo(list)(v1)
+sw    A,0(v1)
+sw    B,4(v1)
+```
+
+Assign the table to a local first so the second store reuses `$v1` and
+the `lui` stays in `$v1`:
+
+```c
+table    = menu->funcs;
+table[0] = func_A;
+table[1] = func_B;
+```
+
+`func_800D2384` is the example. Direct `menu->funcs[i]` stuck at 98.8%
+with an extra load and the wrong `lui` register.
+
 ## Reuse the extra pointer so `lw v0,8(v0)` feeds the `+ N` delay slot
 
 `bone = (T*)extra->field_8; f(bone + N, ...)` allocates `bone` to `$a0`

@@ -60,6 +60,7 @@ extern UiList       D_8010E938;
 extern UiList       D_8010EA30;
 extern u8*          D_8010F544[];
 extern UiList       D_8010F5D0;
+extern UiList       D_8010F5FC;
 extern UiObjectDesc D_8010D348;
 extern UiObjectDesc D_8010D6D8;
 extern UiObjectDesc D_8010EA98;
@@ -124,7 +125,9 @@ void  func_800D08D4(Task* arg0);
 void  func_800D15D0(Task* arg0);
 void  func_800D131C(void);
 void  func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2);
+void  func_800D2224(DialogPrompt* arg0, UiObject* arg1);
 void  func_800D4E40(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
+void  func_800D5178(DialogPrompt* arg0, UiObject* arg1);
 void  func_800A96A0(void);
 void  func_800AE9B0(void);
 char* func_800B8EB0(s32 arg0, s32 arg1, s32 arg2);
@@ -1928,7 +1931,70 @@ void func_800D20B8(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D2224);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D2384);
+void func_800D2384(Task* arg0)
+{
+    UiObject*       obj;
+    UiList*         menu;
+    Task*           owner;
+    Task*           child;
+    Task*           next;
+    Task*           head;
+    UiObject*       childObj;
+    UiListItemFunc* table;
+    s32             flag;
+    s32             two;
+
+    menu = &D_8010F5FC;
+    obj  = arg0->spawnArg2;
+    if (arg0->state == 0) {
+        table         = menu->funcs;
+        table[0]      = func_800D2224;
+        table[1]      = func_800D5178;
+        two           = 2;
+        menu->field_5 = two;
+        menu->field_4 = two;
+        if ((arg0->spawnArg1 & 3) != 3) {
+            func_800CDE80(arg0->spawnArg1 + 1, 0);
+        }
+    }
+    owner         = obj->owner;
+    obj->field_2E = 0;
+    if (owner->state == 0) {
+        Ui_LayoutListPanel(menu, (UiPanel*)obj);
+        owner->state = owner->state + 1;
+    }
+    Ui_UpdateListNoAnim(menu, obj);
+    if (obj->status == 1) {
+        if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
+            SndEvt_EnqueueType6(4, 0, 0);
+            obj->field_2E = 6;
+        } else if (Pad_CheckButtons(0, 1, D_8005ED78) != 0) {
+            obj->field_2E = -1;
+        }
+    }
+    head = owner->firstChild;
+    if (head != NULL) {
+        child = head;
+        do {
+            childObj = child->spawnArg2;
+            flag     = childObj->field_2E;
+            next     = child->nextSibling;
+            switch (flag) {
+                case 6:
+                    obj->status = 1;
+                    Ui_TeardownTree(childObj, childObj->owner);
+                    break;
+                case 9:
+                    obj->field_2E = 6;
+                    break;
+                case -1:
+                    obj->field_2E = flag;
+                    break;
+            }
+            child = next;
+        } while (child != owner->firstChild);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D2538);
 

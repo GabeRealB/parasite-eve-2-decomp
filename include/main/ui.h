@@ -91,9 +91,13 @@ typedef struct TextBlockDesc {
 } TextBlockDesc;
 STATIC_ASSERT_SIZEOF(TextBlockDesc, 0xC);
 
+/// Per-item callbacks pointed to by UiList::funcs (two entries: draw / confirm).
+typedef void (*UiListItemFunc)(struct _DialogPrompt* arg0, struct _UiObject* arg1);
+
 /// UI list/menu object (data symbols D_8006116C, D_80061194, D_8006125C,
 /// D_80061284, D_800612AC, D_80067654; size 0x24).
-/// field_0 is a function-table pointer; field_4 / field_5 are base indices
+/// funcs is a function-table pointer (`func_800D2384` writes draw/confirm
+/// handlers into the two slots); field_4 / field_5 are base indices
 /// (Ui_ListTaskCallback seeds both from context); field_5 is also subtracted when
 /// computing field_9; field_6 / field_7 are signed layout sizes (Ui_DrawListHighlight
 /// uses field_7 as TILE height); field_9 / field_A / field_10 are list cursor /
@@ -106,22 +110,22 @@ STATIC_ASSERT_SIZEOF(TextBlockDesc, 0xC);
 /// 0x23 is copied to UiObject::field_2E; same values DialogPrompt handlers
 /// write to DialogPrompt::field_22).
 typedef struct _UiList {
-    /* 0x00 */ byte unknown_0[0x4]; // often function-table pointer
-    /* 0x04 */ u8   field_4;        // base index
-    /* 0x05 */ u8   field_5;        // base index (also used vs field_9)
-    /* 0x06 */ s8   field_6;        // layout size
-    /* 0x07 */ s8   field_7;        // TILE height / row height
-    /* 0x08 */ byte unknown_8;
-    /* 0x09 */ u8   field_9;        // list cursor (visible offset)
-    /* 0x0A */ u8   field_A;        // flag
-    /* 0x0B */ byte unknown_B;
-    /* 0x0C */ s32  field_C;        // cleared by list reset
-    /* 0x10 */ s32  field_10;       // selection index
-    /* 0x14 */ s16  field_14;       // cleared by list reset
-    /* 0x16 */ s8   field_16;       // cleared by list reset
-    /* 0x17 */ s8   field_17;       // layout adjust for visible rows
-    /* 0x18 */ byte unknown_18[0xA];
-    /* 0x22 */ s16  field_22;       // selected action (0x20 skip pad, 0x23 confirm)
+    /* 0x00 */ UiListItemFunc* funcs;    // function-table pointer
+    /* 0x04 */ u8              field_4;  // base index
+    /* 0x05 */ u8              field_5;  // base index (also used vs field_9)
+    /* 0x06 */ s8              field_6;  // layout size
+    /* 0x07 */ s8              field_7;  // TILE height / row height
+    /* 0x08 */ byte            unknown_8;
+    /* 0x09 */ u8              field_9;  // list cursor (visible offset)
+    /* 0x0A */ u8              field_A;  // flag
+    /* 0x0B */ byte            unknown_B;
+    /* 0x0C */ s32             field_C;  // cleared by list reset
+    /* 0x10 */ s32             field_10; // selection index
+    /* 0x14 */ s16             field_14; // cleared by list reset
+    /* 0x16 */ s8              field_16; // cleared by list reset
+    /* 0x17 */ s8              field_17; // layout adjust for visible rows
+    /* 0x18 */ byte            unknown_18[0xA];
+    /* 0x22 */ s16             field_22; // selected action (0x20 skip pad, 0x23 confirm)
 } UiList;
 STATIC_ASSERT_SIZEOF(UiList, 0x24);
 
