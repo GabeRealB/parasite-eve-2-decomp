@@ -29,6 +29,7 @@ extern GpRec14        D_8010FB38;
 extern s32            D_8010FB90[];
 extern s32            D_8010FBE0;
 extern s32            D_8010FBE4;
+extern s32            D_8010FBE8;
 extern u16            D_80112D68[];
 extern u16            D_80113360[];
 extern GpEvt12*       D_801155A8;
@@ -64,6 +65,8 @@ extern Task*          D_801156B8;
 extern s16            D_801156BC;
 extern u16            D_801156C0;
 extern u16            D_801156C2;
+extern u16            D_801156C4;
+extern u16            D_801156C6;
 extern u8             D_801156C8;
 extern u8             D_801156C9;
 extern u8             D_801156CA;
@@ -924,7 +927,37 @@ void func_800E8378(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E84B8);
+void func_800E84B8(Task* arg0)
+{
+    GpSndFade* fade;
+    s32        volume;
+
+    fade = arg0->spawnArg2;
+    switch (arg0->state) {
+        case 0:
+            if (fade->field_8 == 0) {
+                SndEvt_EnqueueTypeA(fade->field_0, 0, (s8)fade->field_6);
+                fade->field_4 = fade->field_6;
+                Task_Kill(arg0);
+                D_8010FBE8 = 0;
+            } else {
+                D_801156C6 = 0;
+                D_801156C4 = fade->field_4;
+            }
+            arg0->state++;
+            break;
+        case 1:
+            D_801156C6++;
+            volume = (D_801156C4 * (fade->field_8 - D_801156C6) + fade->field_6 * D_801156C6) / fade->field_8;
+            SndEvt_EnqueueTypeA(fade->field_0, 0, (s8)volume);
+            fade->field_4 = volume;
+            if (D_801156C6 == fade->field_8) {
+                Task_Kill(arg0);
+                D_8010FBE8 = 0;
+            }
+            break;
+    }
+}
 
 void func_800E8614(s32 arg0, s32 arg1)
 {

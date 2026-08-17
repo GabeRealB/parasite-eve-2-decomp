@@ -65,6 +65,21 @@ typedef struct _GpVolFade {
 } GpVolFade;
 STATIC_ASSERT_SIZEOF(GpVolFade, 4);
 
+/// 0xC-byte Type-A sound-param fade at `Task::spawnArg2` for `func_800E84B8`
+/// (bank 9 type 0xE; live instance `D_801156E0`). `field_0` is the sound id
+/// passed to `SndEvt_EnqueueTypeA`. `field_4` is the start/current param
+/// (snapshotted into `D_801156C4`); `field_6` is the target; `field_8` is
+/// the duration in frames (`0` applies `field_6` immediately). Completing
+/// or instant-applying the fade clears `D_8010FBE8`.
+typedef struct _GpSndFade {
+    /* 0x0 */ s32  field_0; // sound id
+    /* 0x4 */ u16  field_4; // start / current param
+    /* 0x6 */ u16  field_6; // target param
+    /* 0x8 */ u16  field_8; // duration
+    /* 0xA */ byte pad_A[2];
+} GpSndFade;
+STATIC_ASSERT_SIZEOF(GpSndFade, 0xC);
+
 /// Packed bytes in `Task::spawnArg1` for `func_800E6F60`.
 /// `field_0` is forwarded as a2 to `func_800AC464`.
 /// `field_1` is copied into `Task::killCountdown` on state 0.

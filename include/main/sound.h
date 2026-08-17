@@ -697,6 +697,7 @@ void           Snd_InitFromStage(s32 arg0, s32 arg1);
 s32            SndBank_RemapId();
 void           Snd_SetMutedVolumes(s32 arg0);
 s32            SndEvt_EnqueueType6(s32 arg0, s32 arg1, s32 arg2);
+void           SndEvt_EnqueueTypeA(s32 arg0, s32 arg1, s32 arg2);
 void           SndEvt_EnqueueTypeB(s32 arg0, s32 arg1);
 void           SndBank_SetEnableFlags(s32 arg0, s32 arg1);
 void           SndVoice_SetPriority(s8 arg0);

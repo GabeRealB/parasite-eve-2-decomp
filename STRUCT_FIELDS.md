@@ -1379,6 +1379,19 @@ counts frames. Completing or instant-applying the fade clears
 | 0x0 | `field_0` | Target volume (`Snd_ApplyVolumeTable`) |
 | 0x2 | `field_2` | Duration in frames; `0` applies `field_0` immediately |
 
+### `GpSndFade` (0xC) — `3CD8.h`
+Type-A sound-param fade at `Task::spawnArg2` for `func_800E84B8` (bank 9
+type 0xE). Live instance is `D_801156E0`, filled by `func_800E75C8`. Start
+param is snapshotted from `field_4` into `D_801156C4`; `D_801156C6` counts
+frames. Completing or instant-applying the fade clears `D_8010FBE8`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x0 | `field_0` | Sound id (`SndEvt_EnqueueTypeA` a0) |
+| 0x4 | `field_4` | Start / current param (updated each frame) |
+| 0x6 | `field_6` | Target param (passed as `s8` to Type A) |
+| 0x8 | `field_8` | Duration in frames; `0` applies `field_6` immediately |
+
 ### `GpScriptCmd` (4) — `3CD8.h`
 One step of the dual script at `GpState34::field_0`. Indexed by the
 script A/B program counters. Low byte of each halfword is the opcode
