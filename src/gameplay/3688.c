@@ -7,6 +7,7 @@
 #include "gameplay/D4.h"
 #include "main/display.h"
 #include "main/fs.h"
+#include "main/gameflag.h"
 #include "main/gamemain.h"
 #include "main/mc.h"
 #include "main/mem.h"
@@ -90,6 +91,7 @@ extern TaskDesc     D_801871F0;
 extern s32          D_8005ED70;
 extern s32          D_8005ED74;
 extern s32          D_8005ED78;
+extern u8           D_800626E8;
 extern char         D_80096FD8[];
 extern char         D_80096FE4[];
 extern char         D_80096FEC[];
@@ -1660,7 +1662,35 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D0C34);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D0F3C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D131C);
+void func_800D131C(void)
+{
+    u8  param1[8];
+    u8  param2[8];
+    s32 room;
+    u8  stage;
+
+    D_80114DF1              = 0;
+    Game_Session->field_129 = 0;
+    if ((Game_Session->field_7 == 4) && ((s8)D_80114DF0 == 6) && (GameFlag_GetNibble(0xB7) == 0)) {
+        D_80114DF1 = 1;
+    }
+    if (Game_Session->field_7 == 5) {
+        room = (s8)D_80114DF0;
+        if ((room == 1) && (GameFlag_GetNibble(0xD9) == room)) {
+            D_80114DF1 = 3;
+        }
+    }
+    param1[2] = 3;
+    param1[3] = 0;
+    param1[0] = D_80114DF0 + D_80114DF1;
+    stage     = Game_Session->field_7;
+    param2[1] = 0;
+    param2[3] = 0;
+    param2[2] = 0;
+    param2[0] = stage;
+    CdCmd_Enqueue(0x21, param1, param2);
+    D_800626E8 = 1;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D1434);
 

@@ -50,6 +50,9 @@ extern GpMapRec* D_8010F0F4[];
 /// Current room id copied from `GpMapRec.field_C` by `func_800D1FD4`.
 extern u8 D_80114DF0;
 
+/// Room-id offset applied by `func_800D131C` (0, or 1 / 3 for two flagged rooms).
+extern u8 D_80114DF1;
+
 u8 func_800D1FD4(void);
 
 #endif // GAMEPLAY_3688_H

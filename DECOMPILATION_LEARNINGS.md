@@ -17832,4 +17832,42 @@ val = val >> 16;
 `func_80103B88` is the example. Unpinned `temp` stuck at 96% with only
 those wrap registers different.
 
+## Load `field` into a temp before independent `param[i] = 0` stores
+
+`param1[0] = a + b; param2[1] = 0; param2[3] = 0; param2[2] = 0;
+param2[0] = session->field` lets the three zero stores float into the
+gap after the `a`/`b` loads and before `addu`. The target instead does
+the add, then `lbu` the field, then the zeros, then the field store in
+the `jal` delay slot:
+
+```
+addu  v0, v0, v1
+sb    v0, 0x10(sp)
+lbu   v0, off(a0)
+li    a0, cmd
+sb    zero, 0x19(sp)
+sb    zero, 0x1b(sp)
+sb    zero, 0x1a(sp)
+jal   CdCmd_Enqueue
+sb    v0, 0x18(sp)
+```
+
+Assign the field to a local *after* the add and *before* the zeros.
+The load becomes its own statement, so it cannot stay glued to the
+final store, and the zeros can no longer slip in front of the add:
+
+```c
+param1[0] = D_80114DF0 + D_80114DF1;
+stage     = Game_Session->field_7;
+param2[1] = 0;
+param2[3] = 0;
+param2[2] = 0;
+param2[0] = stage;
+CdCmd_Enqueue(0x21, param1, param2);
+```
+
+`func_800D131C` is the example. The fused
+`param2[0] = Game_Session->field_7` stuck at 97.4% with only those
+three `sb zero` moved before the `addu`.
+
 
