@@ -84,6 +84,9 @@ extern UiObjectDesc D_8010EB08;
 extern UiObjectDesc D_8010EB94;
 extern UiObjectDesc D_8010EBCC;
 extern UiObjectDesc D_8010EC3C;
+extern UiObjectDesc D_8010ECAC;
+extern UiObjectDesc D_8010ECC8;
+extern UiObjectDesc D_8010ECE4;
 extern UiObjectDesc D_8010ED00;
 extern UiObjectDesc D_8010EE6C;
 extern UiObjectDesc D_8010EE88;
@@ -902,7 +905,53 @@ void func_800CAB40(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CAC88);
+void func_800CAC88(DialogPrompt* arg0, UiObject* arg1)
+{
+    TextDrawReq req;
+    UiObject*   obj;
+    s32         val;
+    s32         one;
+    s32         x;
+    s32         y;
+
+    req.x          = arg1->baseX + (u16)arg0->field_18;
+    req.y          = arg1->baseY + (u16)arg0->field_1A;
+    req.otIndex    = (s16)arg1->drawOrder + 1;
+    req.field_8    = arg0->field_1C;
+    req.glyphTable = 0;
+    req.centerMode = 0;
+    req.field_E    = 1;
+    func_8002E53C(&req, D_8010E528);
+    if (arg0->field_C == 1) {
+        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+            SndEvt_EnqueueType6(3, 0, 0);
+            val = 0;
+            if (D_80114DD4 != NULL) {
+                val = *D_80114DD4;
+            }
+            if (((u32)(val - 0xA0) < 0x20U) || (val == 0)) {
+                one = 1;
+                obj = Ui_SpawnFromDesc(&D_8010ECC8, Wip_SysConfig.field_21 + 0x7F, one, 0x10, arg1);
+            } else if ((u32)(val - 0x80) < 0x20U) {
+                one = 1;
+                obj = Ui_SpawnFromDesc(&D_8010ECE4, 0, one, 0x10, arg1);
+            } else if ((u32)(val - 0x60) < 0x20U) {
+                one = 1;
+                obj = Ui_SpawnFromDesc(&D_8010ECAC, 0, one, 0x10, arg1);
+            } else {
+                return;
+            }
+            if (obj != NULL) {
+                y            = -0x5C;
+                obj->field_E = y;
+                x            = -8;
+                obj->field_C = x;
+            }
+            arg1->status   = 0;
+            arg0->field_22 = 0x20;
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CADFC);
 
