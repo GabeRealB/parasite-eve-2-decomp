@@ -1909,7 +1909,51 @@ void func_800A8DC0(s32 arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8E8C);
+void func_800A8E8C(Task* task)
+{
+    GameSession* sess;
+    McSaveData*  save;
+    CdCmdQueue*  q;
+    s32          loc;
+
+    Game_Session->field_4D = 0;
+    if (task->state == 0) {
+        task->state = 3;
+    }
+    save = &Mc_SaveData;
+    if (task->spawnArg1 != save->field_4) {
+        Game_Session->field_52 = 1;
+    }
+    sess = Game_Session;
+    if (sess->field_52 != 0) {
+        q = &CdCmd_Queue;
+        if ((q->field_214 == 0) || (q->field_218 == 0)) {
+            sess->field_4 = save->field_4;
+            Pad_SetCooldown(0);
+            func_800A8B6C();
+            if (Display_SpawnWithOtSmall(0, 0x1E, 0, 0) != 0) {
+                loc                 = (u8)Game_Session->field_4;
+                task->killCountdown = 2;
+                task->spawnArg1     = loc;
+                if (task->state == 3) {
+                    task->state = 1;
+                }
+            }
+        }
+    }
+    if (task->state == 1) {
+        Display_AcquireRef();
+        task->state += 1;
+    }
+    if (task->state == 2) {
+        task->killCountdown--;
+        if (task->killCountdown == 0) {
+            Display_ReleaseRef();
+            Game_Session->field_4D = 1;
+            task->state            = 3;
+        }
+    }
+}
 
 void func_800A9010(Task* task)
 {

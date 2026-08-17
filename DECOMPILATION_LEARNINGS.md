@@ -19789,4 +19789,45 @@ unpinned.
 
 `func_800C7844` is the example.
 
+## Widen a `u8` load to `s32` before an `s32` store
+
+Copying a `u8` field into an `s32` after an independent immediate store:
+
+```c
+u8 loc = sess->field_4;
+task->killCountdown = 2;
+task->spawnArg1 = loc;
+```
+
+emits `lbu v0` / `andi v0, 0xff` and hoists `li v1, 2` into the previous
+`beqz` delay slot. The target wants the pointer load first (nop in that
+delay), `lbu` into a second register, then the immediate:
+
+```
+beqz  v0, skip
+ nop
+lw    v0, %lo(Game_Session)(s1)
+nop
+lbu   v1, 4(v0)
+li    v0, 2
+sh    v0, 0x2a(s0)
+sw    v1, 0x34(s0)
+```
+
+Give the temp the destination width so the `lbu` is already the `s32`
+value (`v1`) and the constant reuses the now-dead pointer register
+(`v0`). That also blocks the hoist — `v1` is live as the loaded byte.
+
+`GameSession.field_4` is `byte` (signed). Load it as `(u8)` or GCC
+emits `lb` and the overlay will not match even when a stub `u8` field
+did:
+
+```c
+s32 loc = (u8)Game_Session->field_4;
+task->killCountdown = 2;
+task->spawnArg1 = loc;
+```
+
+`func_800A8E8C` is the example.
+
 
