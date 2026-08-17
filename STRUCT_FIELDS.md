@@ -623,9 +623,9 @@ slot 3; `func_80106238` replaces bits 14–15 with `(arg1 << 1) | arg2`.
 `field_958` is an s16 mode written to 1 or 3 by `func_80105A8C` (third arg zero / nonzero);
 `field_95A`/`field_95C` are u16s in that same cluster (`func_80109818` writes `field_95C = 5`);
 `field_934` is an s32 (`lw`/`sw`); `func_8010AC54` treats it as a frame delay (decrement when nonzero; reload 5 after each `field_93E` step); `func_8010C75C` copies `GpDelayArg.field_14` here, writes `field_956 = 6`, and clears `field_93E`;
-`field_93E` is an s16 step (`lhu`/`lh`/`sh`); `func_8010AC54` increments it when the delay expires, inlines the `func_8010AB70` body at 3, and indexes `extra->field_8` as `GsCOORDINATE2[4 - field_93E]` for `func_800EA478(0x600E0, …, 0x320, 0)`;
-`field_95E` is a u16 phase (`lhu`/`sh`); `func_8010ABD4` only runs the `func_8010AB70` body when it is 1; `func_8010AC54` writes 1 on first entry;
-`field_960` is a u16 (`sh`) previous `field_956` saved by `func_80109290`;
+`field_93E` is an s16 step (`lhu`/`lh`/`sh`); `func_8010AC54` increments it when the delay expires, inlines the `func_8010AB70` body at 3, and indexes `extra->field_8` as `GsCOORDINATE2[4 - field_93E]` for `func_800EA478(0x600E0, …, 0x320, 0)`; `func_801088D4` writes `arg2` here (0 / 1 / 2);
+`field_95E` is a u16 phase (`lhu`/`sh`); `func_8010ABD4` only runs the `func_8010AB70` body when it is 1; `func_8010AC54` writes 1 on first entry; `func_801088D4` writes `0x3E8` to abort the item-use path when `D_80112F1C[field_21][0]` is zero;
+`field_960` is a u16 (`sh`) previous `field_956` saved by `func_80109290`; `func_801088D4` writes `arg1` here (item-use flags);
 `field_962` is a u16 button mask (`lhu`); `func_80103804` copies `GameSession.field_58` here after saving the previous value to `field_964`; `func_80109250` maps D-pad up/down (`0x5000` / `0x4000`) onto `field_973` as `+1`/`-1`/`0`;
 `field_964` is a u16 previous `field_962`; `func_80103804` writes newly pressed bits to `field_966` (`field_962 & ~field_964`) and released bits to `field_968` (`field_964 & ~field_962`);
 `field_966` is a u16 newly-pressed mask (`lhu`); `func_80104A4C` sets `WipSysConfig.field_24` when bit `0x20` is set and `field_954`/`field_956` are idle;

@@ -197,6 +197,10 @@ extern u8 D_80112E04[][2];
 /// `D_80112E2C[Mc_SaveData.field_22 - 1][arg0]`.
 extern u8 D_80112E2C[][2];
 
+/// 2-wide rows indexed by `Wip_SysConfig.field_21`. Zero at `[i][0]`
+/// makes `func_801088D4` abort the item-use path (`field_95E = 0x3E8`).
+extern u8 D_80112F1C[][2];
+
 /// Overlay-imported s16 table indexed by `Mc_SaveData.field_5C7` and passed
 /// to `func_80106350` (`func_8010C46C` / `func_8010C4F0` / `func_8010C75C`).
 extern s16 D_80167218[];
@@ -210,6 +214,9 @@ void func_80101408(GpActorWork* arg0);
 void func_801041FC(GpActorWork* arg0, s32 arg1);
 void func_80106350(GpActorWork* arg0, s32 arg1, s32 arg2);
 void func_801088D4(GpActorWork* arg0, s32 arg1, s32 arg2);
+/// Overlay import. `func_801088D4` calls it with `Game_GetPtrSlot(0xA)` when
+/// `Mc_SaveData.field_13 == 1`.
+void func_80166E94(void* arg0, s32 arg1);
 void func_80109170(GpActorWork* arg0);
 void func_8010A1B0(s32 arg0, s32 arg1);
 void func_8010A42C(GpActorWork* arg0, s32 arg1);

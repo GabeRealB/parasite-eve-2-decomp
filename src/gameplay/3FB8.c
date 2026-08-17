@@ -1569,7 +1569,43 @@ void func_80108874(GpActorWork* arg0)
     func_80103B5C(arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801088D4);
+void func_801088D4(GpActorWork* arg0, s32 arg1, s32 arg2)
+{
+    GameActor* inner;
+    s32        mode;
+
+    inner = arg0->actor;
+    if (arg2 == 2) {
+        if (func_80106264(arg1) != 0) {
+            if (D_80112F1C[Wip_SysConfig.field_21][0] == 0) {
+                inner->field_95E = 0x3E8;
+                return;
+            }
+        }
+        inner->field_95C = 0xA;
+        mode             = 0x14;
+        if (Mc_SaveData.field_13 == 1) {
+            func_80166E94(Game_GetPtrSlot(0xA), 0);
+        }
+    } else {
+        if (arg2 == 1) {
+            if (inner->field_954 == 2) {
+                return;
+            }
+        }
+        inner->field_95C = 5;
+        mode             = arg1 + 0xE;
+    }
+    inner->field_956 = 5;
+    inner->field_954 = 0;
+    inner->field_958 = 0;
+    inner->field_95A = 0;
+    inner->field_95E = 0;
+    inner->field_960 = arg1;
+    inner->field_93E = arg2;
+    func_80106350(arg0, Wip_SysConfig.field_21, 0);
+    func_80103A18(arg0, mode, 0, 3);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108A0C);
 
