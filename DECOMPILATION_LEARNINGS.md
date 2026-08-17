@@ -18588,4 +18588,53 @@ do {
 `func_800A7BBC` is the example. The increment-outside / `while (1)`
 shape stuck at 83.3%.
 
+## Reuse the `$v1` temp for `(lo - abs)` so the LCG load can overwrite it
+
+A packed-arg fade/shake that does `abs`, `lo - abs`, `packed >> 8`,
+then `D_80070F60 = D_80070F60 * 5 + 0x71357911` wants
+
+```
+subu  v1, a2, v0
+sra   v0, a0, 8
+mult  v1, v0
+lui   a0, 0x7135
+lw    v1, rng        /* overwrites the subtract */
+...
+mflo  t0
+addu  v0, v0, a0
+srl   v1, v0, 16
+mult  t0, v1
+```
+
+A fresh `scaled = lo - tmp` takes `$a1`/`$t0` and pushes the rng load
+into `$v0`. Assign the subtract into the same `$v1` local that later
+holds `(u32)D_80070F60 >> 16`:
+
+```c
+register s32 tmp asm("v0");
+register s32 hi asm("v1");
+
+tmp    = ABS(arg0->spawnArg1);
+hi     = lo - tmp;
+tmp    = packed >> 8; /* sra v0, a0, 8 — not in-place on packed */
+scaled = hi * tmp;
+D_80070F60 = D_80070F60 * 5 + 0x71357911;
+hi     = (u32)D_80070F60 >> 16;
+hi     = scaled * hi;
+```
+
+`tmp = packed >> 8` is required: `(lo - tmp) * (packed >> 8)` hoists
+`sra a0, a0, 8` into the `lo < spawnArg1` delay slot (killing the
+`lui %hi(D_80070F60)` hoist) and emits `subu v0` / `mult v0, a0`.
+
+Take `val = hi >> 16` before the sign flip. Passing pinned `hi` to
+`Display_ClampField126` (s8) becomes `sll v1, v1, 24; sra a0, v1, 24`.
+The unpinned dest keeps `sll a0, v1, 24`. Odd path is `val = ABS(val)`;
+even is `tmp = ABS(val); val = -tmp` so even stays copy-abs
+(`move v0, v1; negu v0; negu v1, v0`).
+
+`func_800E8938` is the example. A one-liner multiply stuck at 95% with
+only that hoist and `mult` operand order different. Needs `--expand-div`
+(scratch `build.sh` and the TU).
+
 

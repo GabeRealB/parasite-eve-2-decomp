@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include <psyq/abs.h>
 #include <psyq/stdio.h>
 
 #include "gameplay/3CD8.h"
@@ -17,6 +18,7 @@
 #include "main/text.h"
 #include "main/wipsys.h"
 
+extern s32            D_80070F60;
 extern u16            D_8007A396;
 extern TaskFuncTable3 D_800974C8;
 extern char           D_8009751C[];
@@ -1056,7 +1058,50 @@ void func_800E8888(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E8938);
+void func_800E8938(Task* arg0)
+{
+    register s32 tmp asm("v0");
+    register s32 hi asm("v1");
+    s32          packed;
+    s32          lo;
+    s32          scaled;
+    s32          val;
+
+    packed = (s32)arg0->spawnArg2;
+    lo     = packed & 0xFF;
+
+    switch (arg0->state) {
+        case 0:
+            arg0->spawnArg1 = -lo;
+            arg0->state++;
+            break;
+        case 1:
+            if (lo < arg0->spawnArg1) {
+                Display_ClampField126(0);
+                Task_Kill(arg0);
+            } else {
+                tmp        = ABS(arg0->spawnArg1);
+                hi         = lo - tmp;
+                tmp        = packed >> 8;
+                scaled     = hi * tmp;
+                D_80070F60 = D_80070F60 * 5 + 0x71357911;
+                hi         = (u32)D_80070F60 >> 16;
+                hi         = scaled * hi;
+                hi         = hi / lo;
+                val        = hi >> 16;
+                if (arg0->spawnArg1 & 1) {
+                    val = ABS(val);
+                    Display_ClampField126(val);
+                } else {
+                    tmp = ABS(val);
+                    val = -tmp;
+                    Display_ClampField126(val);
+                }
+                arg0->spawnArg1++;
+            }
+            break;
+    }
+}
 
 void func_800E8A90(Task* task)
 {

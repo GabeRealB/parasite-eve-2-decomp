@@ -230,6 +230,12 @@ s16  func_800E69F4(u16* arg0);
 s16  func_800E6AD4(u16* arg0);
 s32  func_800E6CE0(void);
 
+/// Screen-shake task. `spawnArg2` is a packed s32: low byte is the
+/// duration bound (counter runs `-lo` .. `+lo`); `>> 8` is amplitude.
+/// Each frame an LCG (`D_80070F60`) scales the remaining count into
+/// `Display_ClampField126`, flipping sign on `spawnArg1` parity.
+void func_800E8938(Task* arg0);
+
 void func_800E9BDC(u8 arg0, s32 arg1);
 void func_800E9C6C(void);
 s16  func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1);

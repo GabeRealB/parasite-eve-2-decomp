@@ -43,7 +43,7 @@ ENDIAN="-EL"
 MASPX_VERSION="2.77"
 
 CPP_FLAGS="$INCLUDE_FLAGS -D_LANGUAGE_C -DUSE_INCLUDE_ASM -P -MMD -MP -undef -Wall -lang-c -nostdinc"
-MASPSX_FLAGS="--aspsx-version=${MASPX_VERSION} --run-assembler"
+MASPSX_FLAGS="--aspsx-version=${MASPX_VERSION} --run-assembler --expand-div"
 CC_FLAGS="$OPT_FLAGS -mips1 -mcpu=3000 -w -funsigned-char -fpeephole -ffunction-cse -fpcc-struct-return -fcommon -fverbose-asm -msoft-float -mgas -fgnu-linker -quiet -gcoff"
 AS_FLAGS="$ENDIAN $INCLUDE_FLAGS $OPT_FLAGS -march=r3000 -mtune=r3000 -no-pad-sections"
 OBJDUMP_FLAGS="--disassemble-all --reloc --disassemble-zeroes -Mreg-names=32"
