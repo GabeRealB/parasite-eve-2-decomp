@@ -121,6 +121,16 @@ typedef struct _GpItemAttr {
 } GpItemAttr;
 STATIC_ASSERT_SIZEOF(GpItemAttr, 0x8);
 
+/// 4-byte row in `D_8010E3B8`, indexed by item id − 0xA0 (ids ≥ 0xA0).
+/// field_0 is the default count copied to `D_80114DD0` by `func_800BF624`.
+/// field_2 is a max quantity (`func_800B8CAC` / `func_800B63B8`).
+typedef struct _GpItemA0 {
+    /* 0x00 */ u8  field_0;
+    /* 0x01 */ u8  field_1;
+    /* 0x02 */ u16 field_2;
+} GpItemA0;
+STATIC_ASSERT_SIZEOF(GpItemA0, 0x4);
+
 /// 8-byte row in `D_8010D328` (4 entries), indexed by `Mc_SaveData.field_F`.
 /// field_0 is the unsigned base written into `Wip_SysConfig.field_1a`
 /// (`func_800BC0C0`). field_4 is the word added into `Wip_SysConfig.field_1e`
@@ -140,6 +150,7 @@ extern GpStatRow  D_8010D328[];
 extern GpItemAttr D_8010DFB8[];
 extern GpItemQty  D_8010E238[];
 extern GpItemAttr D_8010E2B8[];
+extern GpItemA0   D_8010E3B8[];
 /// Byte remap of an item id used as a sort/order key (`func_800BC18C` /
 /// `func_800B8588`). Split by item class: 0x01–0x5F → `D_80114A40[id]`,
 /// 0x60–0x7F → `D_80114A88[id-0x60]`, 0x80–0x9F → `D_80114A98[id-0x80]`,
@@ -155,6 +166,7 @@ extern u16        D_80114AE0[];
 extern GpItemRec  D_80114C20[];
 extern GpItemRec* D_80114D70;
 
+s32         func_800B7420(s32 arg0);
 s32         func_800B9D80(s32 arg0);
 void        func_800B8014(void);
 void        func_800B8588(GpItemScan* arg0, s32 arg1);

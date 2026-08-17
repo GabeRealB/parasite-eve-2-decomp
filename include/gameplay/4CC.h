@@ -44,6 +44,14 @@ extern GpItemDesc D_8010D838[];
 /// `Mc_SaveData.field_12` on the case-8 path. Copied into `D_80114D7C`
 /// by `func_800BCC44`.
 extern u16 D_80114DDC;
+/// Set to 1 by `func_800BF624` after it publishes `D_80114DDC` /
+/// `D_80114DD0`.
+extern u16 D_80114DC8;
+/// Stack/count halfword published by `func_800BF624`: 1 for item ids
+/// below 0xA0, else `D_8010E3B8[id - 0xA0].field_0`.
+extern u16 D_80114DD0;
+/// Packed item id copied from `GpItemObj8.field_8` by `func_800BF624`.
+extern u16 D_80114DEC;
 /// Item/location halfword copied from `D_80114DDC` by `func_800BCC44`.
 /// `func_800BF334` special-cases the value `0x703`.
 extern u16 D_80114D7C;
@@ -57,5 +65,10 @@ void func_800BF464(Task* arg0);
 /// lines are drawn at `field_18 + 0xF` / `+ 0x1E` in color `0x606060`.
 void func_800BF4FC(Task* arg0);
 s32  func_800BF5CC(Task* arg0, s32 arg1, GpItemObj2* arg2);
+/// First state of the `D_80096E70` dispatcher. Copies `field_8` /
+/// `field_A` into `D_80114DEC` / `D_80114DDC`, remaps owned 0x60–0x7F
+/// items to 0xD and 0x80–0x9F items to 0x3D, then publishes a stack
+/// count in `D_80114DD0`.
+void func_800BF624(Task* arg0);
 
 #endif // GAMEPLAY_4CC_H

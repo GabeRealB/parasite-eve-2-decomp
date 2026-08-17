@@ -17382,4 +17382,50 @@ as `func_800BB6FC` (`off + (s32)table`, `limit = count`). A literal
 `== 0x81` after the switch stuck at 84% with the table in `$v1` and no
 `$t0`.
 
+## Call the just-stored global so the first `jal` CSE's into delay-slot `andi`
+
+A u16 local stored to a global and then passed to a function wants
+
+```
+lhu   a0, field
+sh    a0, Global
+...
+jal   func
+ andi a0, a0, 0xffff
+```
+
+on the first call, but a *reload* (`lhu a0, Global`) on a later call after
+`$a0` has been clobbered. `func(item)` CSE's the compare's zero-extend
+into the first `jal` (`move a0, v1` / `nop`). `func(Global)` CSE's the
+store instead: the first call reuses the live `lhu` and promotes in the
+delay slot; the second call reloads.
+
+A nested block that pins the pointer/`lhu` dest (`asm("v1")` / `asm("a0")`)
+and copies out to an unpinned `u16` is what keeps `item` in `$a0` for the
+compare without pinning it across the `jal`:
+
+```c
+{
+    register Obj* obj asm("v1");
+    register u16  ritem asm("a0");
+
+    obj    = arg0->spawnArg2;
+    ritem  = obj->field_8;
+    Global = ritem;
+    ritem  = obj->field_A;
+    Item   = ritem;
+    item   = ritem;
+}
+if (item < 0xA0) {
+    if ((u16)(item - 0x60) < 0x20U) {
+        if (func(Item) != 0) { /* andi a0, a0, 0xffff */
+            Item = REMAP;
+        }
+    }
+}
+```
+
+`func_800BF624` is the example. `func(item)` stuck at 96% with only that
+delay slot and the compare's `andi` dest different.
+
 

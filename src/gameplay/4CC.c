@@ -4,6 +4,7 @@
 
 #include "gameplay/268.h"
 #include "gameplay/4CC.h"
+#include "main/gamemain.h"
 #include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
@@ -157,6 +158,43 @@ s32 func_800BF5CC(Task* arg0, s32 arg1, GpItemObj2* arg2)
     return 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BF624);
+void func_800BF624(Task* arg0)
+{
+    u16 item;
+    s32 count;
+
+    {
+        register GpItemObj8* obj asm("v1");
+        register u16         ritem asm("a0");
+
+        obj        = arg0->spawnArg2;
+        ritem      = obj->field_8;
+        D_80114DEC = ritem;
+        ritem      = obj->field_A;
+        D_80114DDC = ritem;
+        item       = ritem;
+    }
+    if (item < 0xA0) {
+        if ((u16)(item - 0x60) < 0x20U) {
+            if (func_800B7420(D_80114DDC) != 0) {
+                D_80114DDC = 0xD;
+            }
+        } else if ((u16)(item - 0x80) < 0x20U) {
+            if (func_800B7420(D_80114DDC) != 0) {
+                D_80114DDC = 0x3D;
+            }
+        }
+        D_80114DD0 = 1;
+        D_80114DC8 = 1;
+    } else {
+        count      = D_8010E3B8[D_80114DDC - 0xA0].field_0;
+        D_80114DC8 = 1;
+        D_80114DD0 = count;
+    }
+    GameMain_SetFrameTiming(0);
+    Wip_UiHolder        = NULL;
+    arg0->killCountdown = 1;
+    arg0->state         = arg0->state + 1;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BF738);

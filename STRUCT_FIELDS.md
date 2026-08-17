@@ -1302,8 +1302,16 @@ Object at `Task::spawnArg2` for `func_800BF5CC` / `func_800BF624` /
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x08 | `field_8` | Packed item id passed to `func_800BB470` |
+| 0x08 | `field_8` | Packed item id passed to `func_800BB470`; copied to `D_80114DEC` by `func_800BF624` |
 | 0x0A | `field_A` | Item/location halfword; copied to `D_80114DDC` by `func_800BF624`, cleared on cancel by `func_800CE094` |
+
+### `GpItemA0` (4) — `268.h`
+Row in `D_8010E3B8`, indexed by item id − 0xA0.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | Default stack count; copied to `D_80114DD0` by `func_800BF624` |
+| 0x02 | `field_2` | Max quantity (`func_800B8CAC` / `func_800B63B8`) |
 
 ### `GpItemObj2` — `4CC.h`
 Object stored in `Task::extraState` by `func_800BF5CC`. Full size unknown.
