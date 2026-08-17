@@ -123,6 +123,7 @@ extern char         D_8009701C[];
 extern char         D_8009703C[];
 extern char         D_800970E0[];
 extern char         D_80097120[];
+extern char         D_8009715C[];
 extern u8           D_800971A4;
 extern char         D_800971A8[];
 extern char         D_800971D0[];
@@ -800,7 +801,45 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C9E94);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CA25C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CA634);
+void func_800CA634(Task* arg0)
+{
+    UiObject* obj;
+    u8*       text;
+    s32       color;
+    s32       one;
+    s32       width;
+
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    text          = func_800B8EB0(arg0->spawnArg1, 0, 0);
+    if (arg0->state == 0) {
+        width = Text_MeasureWidth(text) + 0x40;
+        Ui_UpdateLayoutSize((UiPanel*)obj, width, Ui_Scale15(2) + 8);
+        ((UiPanel*)obj)->field_C.x = (-((UiPanel*)obj)->field_C.w) >> 1;
+        arg0->killCountdown        = 0xBC;
+        arg0->state                = arg0->state + 1;
+    } else if (arg0->state == 1) {
+        if (obj->mode == 2) {
+            SndEvt_EnqueueType6(0xA, 0, 0);
+            arg0->state = arg0->state + 1;
+        }
+    }
+    Ui_DrawText((UiPanel*)obj, D_8009715C);
+    color = 0x606060;
+    one   = 1;
+    Text_DrawPrompt(obj, obj->field_1C + 6, 0, D_8010E494, color, one, 0);
+    width = Text_DrawPrompt(obj, obj->field_1C + 6, 0xE, text, 0x37A78, one, 0);
+    Text_DrawPrompt(obj, width, 0xE, D_8010E59C, color, one, 0);
+    arg0->killCountdown--;
+    if (obj->status == one) {
+        if (Pad_CheckButtons(0, one, D_8005ED78) != 0) {
+            obj->field_2E = -1;
+        } else if ((arg0->killCountdown <= 0) || (Pad_CheckButtons(0, one, D_8005ED70 | D_8005ED74) != 0)) {
+            obj->field_2E       = 9;
+            arg0->killCountdown = 0x7FFF;
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CA838);
 
