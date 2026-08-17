@@ -18691,4 +18691,38 @@ cfg  = &Wip_SysConfig;
 with `$s0`/`$s1` swapped; pinning the list address stuck at 97.4% with
 only the prologue `lui` temps different.
 
+## Pin dest + `$v0` shift temp for `x = arg - ((s16)arg >> 2)`
+
+`amount = arg0; if (c) amount = arg0 - ((s16)arg0 >> 2)` copy-propagates.
+GCC keeps one saved register, emits `sll s1,s0,16` / `sra s1,s1,18` /
+`subu s1,s0,s1`, and cannot fill the `beqz` delay slot (`nop`).
+
+The target uses `$s0` as the still-live original, `$v0` as the shift
+temp, and `$s1` as the dest:
+
+```
+beqz  v0, skip
+ sll   v0, s0, 16
+sra   v0, v0, 18
+subu  s1, s0, v0
+```
+
+Pin the dest so it cannot coalesce with `arg0`, and pin an explicit
+shift temp to `$v0`:
+
+```c
+register s32 amount asm("s1");
+register s32 tmp asm("v0");
+
+amount = arg0;
+if (func(0x40000) != 0) {
+    tmp    = (s16)arg0 >> 2;
+    amount = arg0 - tmp;
+}
+```
+
+`func_8010A854` is the example. Unpinned dest stuck at 85% (one saved
+reg, later `$s0`/`$s1`/`$s2` all shifted). Dest pin alone stuck at
+98.7% with only that `nop` + `sll s1`.
+
 

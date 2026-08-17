@@ -2554,7 +2554,49 @@ void func_8010A670(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010A854);
+s32 func_8010A854(s32 arg0)
+{
+    register s32  amount asm("s1");
+    s32           ret;
+    register s32  tmp asm("v0");
+    WipSysConfig* p;
+    Task*         slot;
+    s32*          coords;
+
+    amount = arg0;
+    ret    = 0;
+    if (func_800B9D80(0x40000) != 0) {
+        tmp    = (s16)arg0 >> 2;
+        amount = arg0 - tmp;
+    }
+    if (func_800B9D80(0x800) != 0) {
+        Wip_SysConfig.field_1c += (s16)amount / 5;
+        if (Wip_SysConfig.field_1e < Wip_SysConfig.field_1c) {
+            Wip_SysConfig.field_1c = Wip_SysConfig.field_1e;
+        }
+    }
+    if (func_800B9D80(0x200) != 0) {
+        p = &Wip_SysConfig;
+        if (p->field_18 >= 5 && (s16)amount >= p->field_18) {
+            slot        = Game_GetPtrSlot(3);
+            coords      = ((GameActorExt*)slot->extra)->field_8;
+            p->field_18 = 1;
+            func_800EA478(0x6009C, (GsCOORDINATE2*)coords + 1, 5, 0);
+            return 0;
+        }
+    }
+    Wip_SysConfig.field_18 -= amount;
+    if (Wip_SysConfig.field_18 > 0) {
+        return ret;
+    }
+    if (Game_Session->field_1 != 0) {
+        Wip_SysConfig.field_18 = 1;
+    } else {
+        ret = 1;
+        Display_AcquireRef();
+    }
+    return ret;
+}
 
 void func_8010A9D0(GpActorWork* arg0)
 {
