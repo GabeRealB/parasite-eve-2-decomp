@@ -1727,7 +1727,34 @@ GpCb2CRec* func_800A8C08(GameSessionFrom4* arg0)
     return &recs[idx - 1];
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8C74);
+void func_800A8C74(Task* task)
+{
+    GsCOORDINATE2* c1;
+    MATRIX*        rot;
+    VECTOR3*       trans;
+    GpCb2CRec*     rec;
+
+    rot   = &D_80070E44;
+    trans = &D_80070F28;
+    c1    = &D_80070E90;
+    rec   = task->spawnArg2;
+
+    *(GBytes18*)rot = *(GBytes18*)rec;
+    *trans          = *(VECTOR3*)&rec->mtx.t;
+
+    c1->coord.t[0] = 0;
+    c1->coord.t[1] = 0;
+    c1->coord.t[2] = 0;
+
+    Display_State.field_110 = rec->field_20;
+    gte_SetGeomScreen(rec->field_20);
+    gte_SetGeomOffset(0, 0);
+
+    D_80070E90.flg                                                          = 0;
+    ((GsCOORDINATE2*)((u8*)rot - OFFSET_OF(GsCOORDINATE2, coord)))->flg     = 0;
+    ((GsCOORDINATE2*)((u8*)trans - OFFSET_OF(GsCOORDINATE2, coord.t)))->flg = 0;
+    Task_Kill(task);
+}
 
 void func_800A8D5C(void)
 {
