@@ -3,6 +3,31 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Keep the raw table pointer so it stays in `$a1` until after the NULL check
+
+Loading a per-stage name table and immediately folding it into the
+final string pointer:
+
+```c
+text = D_8010F0B8[stage - 1];
+if (text != NULL) {
+    text = text + (room * 0x20 - 0x20);
+```
+
+assigns that load to `$s2` (stealing `arg0` from `$s2` into `$s3`) and
+emits `addu / addiu -0x20` instead of `addiu -0x20 / addu`. Keep the
+table entry in its own temp so the `lw` stays in `$a1`; index a
+32-byte record with `arr[i - 1]`:
+
+```c
+names = D_8010F0B8[stage - 1];
+if (names != NULL) {
+    text = names[room - 1].text;
+```
+
+`arr[i - 1]` on a 0x20-byte struct is `sll 5` / `addiu -0x20` / `addu`
+in the `bnez state` delay slot. `func_800D1BAC` is the example.
+
 ## Index each table in its `if` arm so `la` lands in `$v1`
 
 Selecting one of two pointer tables and then indexing:

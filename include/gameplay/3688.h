@@ -47,6 +47,17 @@ STATIC_ASSERT_SIZEOF(GpMapRec, 0xE);
 /// Per-stage table of `GpMapRec` arrays. Index is `GameSession.field_7 - 1`.
 extern GpMapRec* D_8010F0F4[];
 
+/// 0x20-byte per-room name string in tables pointed to by `D_8010F0B8`.
+/// Indexed by `GameSession.field_7 - 1` then `GameSession.field_6 - 1`.
+typedef struct _GpMapName {
+    /* 0x00 */ u8 text[0x20];
+} GpMapName;
+STATIC_ASSERT_SIZEOF(GpMapName, 0x20);
+
+/// Per-stage table of `GpMapName` arrays. Index is `GameSession.field_7 - 1`.
+/// A NULL entry skips the name draw (`func_800D1BAC`).
+extern GpMapName* D_8010F0B8[];
+
 /// Current room id copied from `GpMapRec.field_C` by `func_800D1FD4`.
 extern u8 D_80114DF0;
 

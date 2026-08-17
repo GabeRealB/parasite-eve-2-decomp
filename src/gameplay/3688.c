@@ -2460,7 +2460,44 @@ void func_800D1A20(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D1BAC);
+void func_800D1BAC(Task* arg0)
+{
+    TextDrawReq  req;
+    TextDrawReq  req2;
+    GameSession* session;
+    GpMapName*   names;
+    u8*          text;
+    UiObject*    obj;
+    s32          width;
+
+    session = Game_Session;
+    names   = D_8010F0B8[session->field_7 - 1];
+    obj     = arg0->spawnArg2;
+    if (names != NULL) {
+        text = names[session->field_6 - 1].text;
+        if (arg0->state == 0) {
+            req.x          = 0;
+            req.y          = 0;
+            req.otIndex    = (s16)obj->drawOrder + 1;
+            req.field_8    = 0;
+            req.glyphTable = 4;
+            req.centerMode = 2;
+            req.field_E    = 0;
+            Text_MeasureAndCenter(&req, text);
+            width = -req.x + 4;
+            Ui_UpdateLayoutSize((UiPanel*)obj, width, Ui_Scale15(1));
+            arg0->state = arg0->state + 1;
+        }
+        req2.x          = (u16)obj->field_1C + (obj->baseX + 2);
+        req2.y          = (u16)obj->field_18 + (obj->baseY + 0xB);
+        req2.otIndex    = (s16)obj->drawOrder + 1;
+        req2.field_8    = 0x806020;
+        req2.glyphTable = 4;
+        req2.centerMode = 0;
+        req2.field_E    = 1;
+        func_8002E53C(&req2, text);
+    }
+}
 
 void func_800D1CF8(Task* arg0)
 {
