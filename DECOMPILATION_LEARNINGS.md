@@ -18860,4 +18860,43 @@ Declare the two `SVECTOR`s before the local `MATRIX` so they sit at
 instead of taking a fifth saved register. `func_800B0FDC` is the
 example. `vx, vz, vy` stuck at 99.3% with only that `sh zero` early.
 
+## `s16 / 12` clamp: `u16` divide, signed compare, copy back so `$a0` is the call arg
+
+An `s16` field loaded with `lhu`, divided by 12 (`multu` `0xAAAAAAAB` /
+`srl 3`), then clamped to `{0,1,2}` for `func_800FDB18(3, ...)` needs
+three pieces:
+
+```
+andi  v1, v0, 0xffff
+slti  v0, v1, 3
+beqz  v0, skip
+ li   a0, 2
+move  a0, v1
+move  v1, a0
+li    a0, 3
+sll   v0, v1, 1
+```
+
+`(u16)field / 12` into a `u16` emits `sltiu`. Assign the divide to `s32`
+through a `u16` cast so the mask stays and the compare is signed
+`slti`. Then default-assign `2`, overwrite if `< 3`, and copy back into
+the divide temp before the `* 0x60` stores:
+
+```c
+temp = (u16)((u16)inner->field_96E / 12);
+idx  = 2;
+if (temp < 3) {
+    idx = temp;
+}
+temp            = idx;
+params->field_4 = (temp * 0x60) + 0xC0;
+params->field_6 = temp + 1;
+func_800FDB18(3, coords, 0, params);
+```
+
+The copy-back is what yields `move v1, a0` / `li a0, 3` so the clamped
+value lives in `$v1` while `$a0` is the call's first argument. Clamping
+in place (`if (idx >= 3) idx = 2`) or using the clamp result directly
+puts the value in `$a2` (~96–98%). `func_80109A1C` is the example.
+
 

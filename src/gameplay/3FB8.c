@@ -2330,7 +2330,58 @@ void func_80109818(GpActorWork* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109844);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109A1C);
+void func_80109A1C(GpActorWork* arg0)
+{
+    GameActor*     inner;
+    GpEffArg*      params;
+    GsCOORDINATE2* coords;
+    s32            idx;
+    s32            temp;
+
+    inner = arg0->actor;
+    switch (inner->field_95E) {
+        case 0:
+            inner->field_95E = 1;
+            inner->field_934 = 0;
+            inner->field_93E = 0;
+            /* fallthrough */
+        case 1:
+            if (inner->field_934 == 0) {
+                params = &D_80113358;
+                inner->field_93E++;
+                if (inner->field_93E == 3) {
+                    inner->field_95E++;
+                } else {
+                    inner->field_934 = 6;
+                }
+                coords          = &((GsCOORDINATE2*)arg0->extra->field_8)[inner->field_93E + 1];
+                params->field_0 = coords;
+                temp            = (u16)((u16)inner->field_96E / 12);
+                idx             = 2;
+                if (temp < 3) {
+                    idx = temp;
+                }
+                temp            = idx;
+                params->field_4 = (temp * 0x60) + 0xC0;
+                params->field_6 = temp + 1;
+                func_800FDB18(3, coords, 0, params);
+            } else {
+                inner->field_934--;
+            }
+            break;
+        case 2:
+            break;
+        case 3:
+            func_8010B210(arg0);
+            inner->field_97A = 0x12;
+            if (inner->field_956 != 0) {
+                func_8010870C(arg0, 0xC);
+            } else {
+                func_801066DC(arg0, 0);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109BB4);
 
