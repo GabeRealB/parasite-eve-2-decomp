@@ -58,7 +58,6 @@ extern DR_STP         D_80114C50;
 
 void func_800A1634(s32 arg0, s32 arg1);
 void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_800A7320(s16* arg0);
 void func_800A6F38(GpEnemy* arg0, void* arg1);
 void func_8009939C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800A82C0(GsCOORDINATE2* arg0, VECTOR* arg1);
@@ -1086,7 +1085,53 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A6F38);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A70A4);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7320);
+void func_800A7320(s16* arg0)
+{
+    s16*          dest;
+    register s32  three asm("s2");
+    GameSession*  sess;
+    GameSession*  next;
+    WipSysConfig* cfg;
+    s8            type;
+    u8            mode;
+
+    dest  = arg0;
+    cfg   = &Wip_SysConfig;
+    mode  = Game_Session->field_128;
+    three = 3;
+    if (mode == three) {
+        return;
+    }
+    if (mode == 0xFF) {
+        return;
+    }
+    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+        return;
+    }
+    if (*dest != 0) {
+        return;
+    }
+    sess = Game_Session;
+    if (sess->field_12D != 0x7F) {
+        sess->field_12D = (u8)sess->field_12D - 1;
+        next            = Game_Session;
+        if (next->field_12D >= 0) {
+            return;
+        }
+        if (cfg->field_18 <= 0) {
+            SndEvt_EnqueueType6((next->field_0 << 16) | 0x70000001, 0, 0);
+        } else {
+            type = Mc_SaveData.field_13;
+            if (type == 1) {
+                SndEvt_EnqueueType6(((next->field_0 + 0x31) << 16) | 0x70000001, 0, 0);
+            } else if (type == three) {
+                SndEvt_EnqueueType7(0x50000000, 1);
+                SndEvt_EnqueueType6(0x55170008, 0, 0);
+            }
+        }
+    }
+    *dest = 1;
+}
 
 u8* func_800A746C(void)
 {

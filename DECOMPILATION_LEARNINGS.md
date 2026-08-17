@@ -18481,4 +18481,36 @@ req2.y = y2 + yOff;
 
 `func_800CCA48` is the example. Reusing `y` stuck at 99.917%.
 
+## Copy the incoming arg first, pin the hoisted constant to `$s2`
+
+A prologue that needs `$s1` = incoming pointer, `$s2` = hoisted constant,
+`$s3` = `&global` (with `lui v1; addiu s3, v1` after a still-live load in
+`$v0`) is very sensitive to allocation order.
+
+Assign the incoming pointer to a local first so it takes `$s1`. If that
+local is not read until after the first branch, GCC still delays
+`move s1, a0` into the branch delay slot:
+
+```c
+s16*         dest;
+register s32 three asm("s2");
+WipSysConfig* cfg;
+
+dest  = arg0;
+cfg   = &Wip_SysConfig;
+mode  = Game_Session->field_128;
+three = 3;
+if (mode == three) {
+    return;
+}
+```
+
+Pin the constant to `$s2`. Without the pin it steals `$s1` and the incoming
+arg lands in `$s3` (99.5%, only those two swapped). Pinning `&global` to
+`$s3` instead emits `lui s3; addiu s3, s3` and copies `arg0` eagerly
+(93.7%). Leave the global pointer unpinned so the address is computed
+through `$v1` after `Game_Session` occupies `$v0`.
+
+`func_800A7320` is the example.
+
 

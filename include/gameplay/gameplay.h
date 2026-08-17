@@ -131,6 +131,7 @@ void func_80098F58(GsCOORDINATE2* arg0);
 void func_80098F98(GsCOORDINATE2* arg0, s32 arg1);
 Task* func_8009988C(GsCOORDINATE2* arg0);
 u16  func_800A1558(s32 arg0);
+void func_800A7320(s16* arg0);
 u8*  func_800A746C(void);
 s32  func_800A74C4(void);
 void func_800A7574(GpIdMapC* arg0);
