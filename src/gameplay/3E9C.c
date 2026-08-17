@@ -122,7 +122,38 @@ INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F4308);
 
 INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F4D24);
 
-INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F5184);
+void func_800F5184(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    s16            flag;
+
+    mem   = arg0->spawnArg2;
+    flag  = D_80115740->field_4;
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    if (flag < 4) {
+        if (flag < 2) {
+            if (arg0->state == 0) {
+                mem->field_24 = 0x10;
+                mem->field_26 = 0x20;
+                mem->field_28 = D_8011291C[arg0->spawnArg1].field_0;
+                mem->field_2A = D_8011291C[arg0->spawnArg1].field_2;
+                arg0->state++;
+            }
+            func_80098F58(coord);
+            mem->field_24 -= 2;
+            mem->field_26 += mem->field_2A;
+            func_800F52B4(coord, mem->field_26, mem->field_24, mem->field_28);
+            mem->field_22++;
+            if (mem->field_22 < 8) {
+                return;
+            }
+        } else {
+            return;
+        }
+    }
+    func_800EC7E4(mem, arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F52B4);
 
