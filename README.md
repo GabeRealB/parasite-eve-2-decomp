@@ -27,7 +27,7 @@ The goal is to recover readable C that, when compiled with a period-correct tool
 <details>
 <summary><strong>Overlays</strong> (448)</summary>
 
-Descriptions are best-effort: source path and load address come from `assets/USA/stages.json` (`room_pkg` entries). Friendly names live in `tools/peassets/asset_db.py` (`ASSETS` / `TREE`); unnamed unique overlays use `pe2pkg_N` store stems. Role text is inferred from known names or stage/room encoding.
+Descriptions are best-effort: source path and load address come from `assets/USA/stages.json` (`room_pkg` entries). Friendly names live in `tools/peassets/asset_db.py` (`ASSETS` / `TREE`); unnamed unique overlays use `pe2pkg_N` store stems. Role text is inferred from known names or stage/room encoding. RAM slots, room vs actor vs weapon, and where meshes/clips live: [`doc/OVERLAYS.md`](doc/OVERLAYS.md).
 
 | Overlay | Description | Status |
 |---|---|---|
@@ -619,6 +619,9 @@ Related docs:
 - [NAMING.md](NAMING.md) — symbol and module naming conventions
 - [DECOMPILATION_LEARNINGS.md](DECOMPILATION_LEARNINGS.md) — GCC 2.8.1 / matching notes
 - [CLAUDE.md](CLAUDE.md) — contributor / agent workflow notes
+- [doc/ASSET_FORMATS.md](doc/ASSET_FORMATS.md) — STAGE*.CDF chunks, images, LZSS
+- [doc/OVERLAYS.md](doc/OVERLAYS.md) — pe2pkg RAM slots, rooms, models / anim
+- [doc/STREAM_FORMATS.md](doc/STREAM_FORMATS.md) — MTS audio + STR movie
 
 ## Legal
 

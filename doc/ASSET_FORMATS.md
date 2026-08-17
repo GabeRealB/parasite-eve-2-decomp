@@ -18,6 +18,7 @@ Implementation references:
 | Asset database | `tools/peassets/asset_db.py`, `asset_data.py` |
 | Runtime FS loader | `src/main/fs.c`, `include/main/fs.h` |
 | **CD streams (MTS audio + STR movie)** | [`STREAM_FORMATS.md`](STREAM_FORMATS.md), `mts_codec.py`, `str_codec.py` |
+| **Overlays (RAM slots, rooms, models)** | [`OVERLAYS.md`](OVERLAYS.md) |
 
 ---
 
@@ -262,6 +263,11 @@ encode). Runtime: `Fs_DecompressChunk.s` (resumable, CD-fed) and
 - Unique inflated bodies live under `pe2pkg/` (stem from `ASSETS` or
   `pe2pkg_N`); decomp overlays use those files directly (e.g.
   `pe2pkg/title.pe2pkg`).
+
+“Room package” is the on-disc type name. Only stages 1–5 actually use these
+as **per-room** overlays (`0x8017D5C0`). Stage 0 uses the same type for
+gameplay, title, Aya, weapons, actors, maps, and menus — see
+[`OVERLAYS.md`](OVERLAYS.md).
 
 Examples:
 
@@ -735,8 +741,10 @@ duplicate reference). See §11 for the full schema.
 Room packages used by the decomp build live under `pe2pkg/` and are listed
 in `stages.json` (`type: room_pkg`, `path`, `load_addr`).
 
-- Load address is shared for title/gameplay-style packages (`0x80093800`);
-  room overlays typically load higher (e.g. `0x80131E20`, `0x8017D5C0`).
+- Title and gameplay share `0x80093800` (mutually exclusive).
+- Stage 1–5 **room** overlays load at `0x8017D5C0`. Other high addresses
+  (`0x80115770`, `0x8011D1C0`, `0x80131E20`, …) are Aya / weapon / actor
+  slots, not rooms — see [`OVERLAYS.md`](OVERLAYS.md).
 - Splat targets point at the store file (e.g.
   `target_path: assets/USA/pe2pkg/title.pe2pkg`).
 
