@@ -67,6 +67,7 @@ extern UiList       D_8010E8D4;
 extern UiList       D_8010E938;
 extern UiList       D_8010E9A4;
 extern UiList       D_8010EA30;
+extern char         D_8010F528[];
 extern u8*          D_8010F544[];
 extern UiList       D_8010F5D0;
 extern UiList       D_8010F5FC;
@@ -157,6 +158,7 @@ void       func_800CDDA0(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3);
 void       func_800CF148(UiObject* arg0, Task* arg1);
 s32        func_800A7508(void);
 void       func_800D2E04(UiObject* arg0, s32 arg1);
+void       func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 void       func_800CFE68(s32 arg0, UiObject* arg1);
 void       func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -2324,7 +2326,40 @@ void func_800D27E8(DialogPrompt* arg0, UiObject* arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D29B0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D2E04);
+void func_800D2E04(UiObject* arg0, s32 arg1)
+{
+    TextDrawReq req;
+    s16         y;
+    s32         mask;
+    s32         lineY;
+    s32         color;
+    s32         one;
+    u8*         text;
+
+    y     = arg0->field_18;
+    mask  = arg1 & 3;
+    lineY = y + 0xF;
+    text  = func_800B8EB0(arg1, 1, 1);
+    color = 0x606060;
+    one   = 1;
+    Text_DrawPrompt(arg0, arg0->field_1C + 2, lineY, text, color, one, 0);
+    text = func_800B8EB0(arg1, 2, one);
+    Text_DrawPrompt(arg0, arg0->field_1C + 2, y + 0x1E, text, color, one, 0);
+    y     = arg0->field_18;
+    lineY = y + 0xF;
+    Ui_DrawVBar((UiPanel*)arg0, y, (s16)arg0->field_1A, 0x2F);
+    if (mask) {
+        req.x          = arg0->baseX + 0x34;
+        req.y          = (s16)(arg0->baseY - 6) + lineY;
+        req.otIndex    = (s16)arg0->drawOrder + 1;
+        req.field_8    = color;
+        req.glyphTable = 0;
+        req.centerMode = 0;
+        req.field_E    = 1;
+        func_8002E53C(&req, D_8010F528);
+        func_800D3660(arg0, arg1, 0, 0x34, y + 0x1A, 2);
+    }
+}
 
 void func_800D2F68(Task* arg0)
 {

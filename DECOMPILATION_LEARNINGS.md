@@ -19038,4 +19038,31 @@ Assign `save = &Mc_SaveData` only in that path and use `save->field_5C2`
 it still CSEs with the live `field_1C8` pointer. `func_800B6DA4` is the
 example.
 
+## `s16` layout field wins `$s0`; assign mask / lineY before the first call
+
+A reloaded `UiObject` layout halfword that must live in `$s0` (so later
+`y + 0x1A` is `addiu v0, s0, 0x1A`, not an in-place `addiu s0`) needs
+to be `s16`, not `s32`. As `s32` it loses `$s0`/`$s1` to longer-lived
+locals (`mask`, `lineY`) and the incoming `UiObject*` takes `$s2`
+instead of `$s3`.
+
+Assign `mask = arg1 & 3` and `lineY = y + 0xF` *before* the first call
+so they take saved registers. GCC sinks `andi s1, s6, 3` into that
+jal's delay slot and recomputes `lineY` after the `field_18` reload:
+
+```c
+s16 y;
+s32 mask;
+s32 lineY;
+
+y     = arg0->field_18;
+mask  = arg1 & 3;
+lineY = y + 0xF;
+text  = func_800B8EB0(arg1, 1, 1);
+```
+
+`req.y = (s16)(arg0->baseY - 6) + lineY` is `addiu v0, v0, -6` /
+`addu v0, v0, s2`. Without the `s16` cast, `u16 baseY - 6` becomes
+`li v1, 0xFFFA` / `addu`. `func_800D2E04` is the example.
+
 
