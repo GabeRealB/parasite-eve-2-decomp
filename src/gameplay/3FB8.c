@@ -47,6 +47,7 @@ void func_80104E00(void);
 s32  func_80105070(void);
 void func_801053A0(void);
 s32  func_801055D4(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32  func_80105690(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  func_8010583C(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  func_80105894(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_80105B0C(GpActorWork* arg0);
@@ -853,7 +854,36 @@ s32 func_801055D4(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
     return 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105690);
+s32 func_80105690(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    GameActor*    actor;
+    WipSysConfig* p;
+
+    actor             = arg0->actor;
+    p                 = &Wip_SysConfig;
+    actor->field_954  = 2;
+    actor->field_95E  = 0;
+    actor->field_973  = 0;
+    actor->field_975  = 0;
+    p->field_24       = 0;
+    actor->field_97E  = 0;
+    actor->field_60   = 0;
+    actor->field_58   = 0;
+    actor->field_64   = 0;
+    actor->field_5C   = 0;
+    actor->field_6A   = 0;
+    actor->field_68   = 0;
+    actor->field_70   = 0;
+    actor->field_96C  = 0;
+    actor->field_12A &= 0x3FFF;
+    func_80106350(arg0, p->field_21, 0);
+    if (Game_Session->field_1 != 0) {
+        ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
+    }
+    actor->field_956 = 7;
+    actor->field_934 = arg2;
+    return 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105754);
 
