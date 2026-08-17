@@ -420,7 +420,80 @@ s16 func_800E67C8(u16* arg0)
     return (0x140 - width) / 2 - 5;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E68D8);
+s16 func_800E68D8(u16* arg0, s32 arg1)
+{
+    register s32        lineW asm("t1");
+    register s32        selectedW asm("t3");
+    register s32        i asm("t0");
+    register s32        lineIndex asm("t2");
+    register s32        width asm("v1");
+    u16                 code;
+    s32                 shifted;
+    s32                 masked;
+    volatile GlyphUvwh* glyph;
+    register s32        v0tmp asm("v0");
+    GlyphUvwh*          table;
+
+    lineW     = 0;
+    selectedW = lineW;
+    i         = lineW;
+    lineIndex = lineW;
+    code      = arg0[0];
+    shifted   = code << 16;
+    v0tmp     = -1;
+    if (shifted >> 16 != v0tmp) {
+        table = D_8011567C;
+        do {
+            shifted = shifted >> 16;
+            v0tmp   = -2;
+            if (shifted == v0tmp) {
+                if ((s16)lineIndex == arg1) {
+                    selectedW = lineW;
+                }
+                lineW = 0;
+                v0tmp = i + 1;
+                i     = v0tmp;
+                lineIndex++;
+                goto after_inc;
+            }
+            v0tmp = -3;
+            if (shifted == v0tmp) {
+                lineW += 3;
+                goto do_inc;
+            }
+            masked = shifted & 0xFF00;
+            asm volatile("" : "+r"(masked));
+            v0tmp = 0x8400;
+            if (masked == v0tmp) {
+                lineW += 0x10;
+                goto do_inc;
+            }
+            if (shifted >= 0) {
+                v0tmp = i + 1;
+                i     = v0tmp;
+                asm volatile("" : "+r"(v0tmp));
+                glyph = (GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)table);
+                code  = arg0[(s16)v0tmp];
+                lineW = glyph->w + lineW - 1;
+                goto after_load;
+            }
+            if (shifted < 0) {
+            do_inc:
+                v0tmp = i + 1;
+                i     = v0tmp;
+            after_inc:
+                asm volatile("" : "+r"(v0tmp));
+                code = arg0[(s16)v0tmp];
+            }
+        after_load:
+            shifted = code << 16;
+            width   = shifted >> 16;
+            v0tmp   = -1;
+        } while (width != v0tmp);
+    }
+    width = (s16)selectedW;
+    return (0x140 - width) / 2 - 5;
+}
 
 s16 func_800E69F4(u16* arg0)
 {

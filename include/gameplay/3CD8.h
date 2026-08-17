@@ -14,7 +14,7 @@
 /// from a start index until `field_8 == -1` (terminator) or `field_5`
 /// equals `D_80115668` (the key `func_800E41F4` saved from its third arg).
 /// When not -1, `field_8` is a relocated `u16*` text stream walked by
-/// `func_800E6AD4` / `func_800E69F4` / `func_800E67C8` (codes `-1` end,
+/// `func_800E6AD4` / `func_800E69F4` / `func_800E67C8` / `func_800E68D8` (codes `-1` end,
 /// `-2` newline, `-3` skip; else glyph index `& 0x3FF` into `D_8011567C`).
 typedef struct _GpEvt12 {
     /* 0x0 */ u8  field_0;
@@ -226,6 +226,7 @@ void func_800E3EF0(s32 arg0);
 void func_800E4080(void);
 void func_800E40BC(s32 arg0, s32 arg1);
 s16  func_800E67C8(u16* arg0);
+s16  func_800E68D8(u16* arg0, s32 arg1);
 s16  func_800E69F4(u16* arg0);
 s16  func_800E6AD4(u16* arg0);
 s32  func_800E6CE0(void);
