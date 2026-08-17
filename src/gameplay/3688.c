@@ -2095,7 +2095,29 @@ void func_800D5338(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D540C);
+void func_800D540C(UiObject* arg0, Task* arg1, u8* arg2, s32 arg3)
+{
+    s32 one;
+
+    if (arg1->state == 0) {
+        Ui_SizeFromTextPlain((UiPanel*)arg0, arg2);
+        arg1->killCountdown = 0xBC;
+        arg1->state         = arg1->state + 1;
+    }
+
+    one = 1;
+    Text_DrawMultiLine(arg0, arg0->field_1C + 2, (s16)arg0->field_18 + 0xF, arg2, arg3, one, 0);
+
+    arg1->killCountdown--;
+    if (arg0->status == one) {
+        if ((arg1->killCountdown <= 0) || (Pad_CheckButtons(0, one, D_8005ED70 | D_8005ED74) != 0)) {
+            arg0->field_2E      = 6;
+            arg1->killCountdown = 0x7FFF;
+        } else if (Pad_CheckButtons(0, 1, D_8005ED78) != 0) {
+            arg0->field_2E = -1;
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D5520);
 

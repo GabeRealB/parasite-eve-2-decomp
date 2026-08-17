@@ -16993,4 +16993,32 @@ if (node != NULL) {
 stuck at 92.6% with only those registers (and the late `&Tmd_ListAlt`)
 different.
 
+## Join timeout + confirm with `||` so `one` stays in `$s0`
+
+`one = 1` is saved in `$s0` for `Text_DrawMultiLine(..., one, 0)` and
+`status == one`. The first `Pad_CheckButtons(0, one, mask)` should reuse
+that register (`move a1,s0`). Splitting the timeout and confirm into
+separate `if` / `else if` arms with the same body rematerializes the
+constant (`li a1,1`).
+
+Write them as one `||` so `one` stays live into the call:
+
+```c
+one = 1;
+Text_DrawMultiLine(obj, x, y, text, color, one, 0);
+task->killCountdown--;
+if (obj->status == one) {
+    if ((task->killCountdown <= 0) ||
+        (Pad_CheckButtons(0, one, maskA | maskB) != 0)) {
+        obj->field_2E      = 6;
+        task->killCountdown = 0x7FFF;
+    } else if (Pad_CheckButtons(0, 1, maskCancel) != 0) {
+        obj->field_2E = -1;
+    }
+}
+```
+
+`func_800D540C` is the example. The duplicated-body `if` / `else if`
+stuck at 97.1% with only that `move` vs `li`.
+
 
