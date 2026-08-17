@@ -566,7 +566,25 @@ void func_80103C74(GsCOORDINATE2* arg0, VECTOR3* arg1, VECTOR3* arg2)
     arg2->vz = arg1->vz - arg0->coord.t[2];
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103CB4);
+void func_80103CB4(GsCOORDINATE2* arg0, s32 arg1, VECTOR3* arg2, VECTOR3* arg3)
+{
+    void**  scratch;
+    u8*     head;
+    VECTOR* vec;
+
+    scratch                      = (void**)G_SCRATCH_HEAD;
+    head                         = *scratch;
+    vec                          = (VECTOR*)(head - 0x10);
+    *scratch                     = vec;
+    ((VECTOR*)(head - 0x10))->vx = 0;
+    vec->vy                      = -0x600;
+    vec->vz                      = 0;
+    ApplyMatrixLV(&arg0->coord, vec, vec);
+    arg3->vx = arg2->vx - (arg0->coord.t[0] + ((VECTOR*)(head - 0x10))->vx);
+    *scratch = (u8*)*scratch + 0x10;
+    arg3->vy = arg2->vy - (arg0->coord.t[1] + vec->vy);
+    arg3->vz = arg2->vz - (arg0->coord.t[2] + vec->vz);
+}
 
 s32 func_80103D8C(s32 arg0, s32 arg1)
 {
