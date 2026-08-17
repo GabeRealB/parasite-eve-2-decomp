@@ -570,7 +570,29 @@ void func_800B3FA8(GpAnimCtx* arg0, s32 arg1, s32 arg2)
     slot->field_B  = op & 0xF;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B404C);
+void func_800B404C(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+{
+    GpAnimSlot* slot;
+    GpAnimSet** sets;
+    u8          op;
+
+    slot           = &arg0->field_C[arg1];
+    slot->field_9  = 0x10;
+    slot->field_C  = 0;
+    slot->field_0  = arg2;
+    slot->field_2  = 0;
+    slot->field_14 = arg4;
+    slot->field_15 = arg3;
+    slot->field_4  = arg2;
+    sets           = arg0->field_0;
+    slot->field_20 = sets;
+    slot->field_6  = sets[arg2]->field_4[slot->field_15];
+    op             = slot->field_20[slot->field_4]->field_0[slot->field_6].field_3;
+    slot->field_10 = 0;
+    slot->field_16 = 0;
+    slot->field_12 = 0;
+    slot->field_B  = op & 0xF;
+}
 
 void func_800B40F4(s32 arg0, s32 arg1, s32 arg2)
 {

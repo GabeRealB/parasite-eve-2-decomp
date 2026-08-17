@@ -17161,4 +17161,30 @@ if (tmp == 0) {
 97% with only those two `lbu`s merged. The extra live ranges also
 swapped `cmd` / table-pointer coloring (`$v1`/`$a2`) without a pin.
 
+## Index the stored `u8` field so CSE emits `andi v0, arg, 0xff`
+
+After `slot->field_15 = arg3`, `table[(u8)arg3]` (or a `u8` parameter)
+zero-extends in place (`andi a3, a3, 0xff`) and the pointer load takes
+`$v0`. The target instead does
+
+```
+lw    a0, 0(a2)
+andi  v0, a3, 0xff
+lw    a0, 4(a0)
+sll   v0, v0, 1
+```
+
+Index with the field that was just stored. CSE reuses the original
+argument register and the `andi` dest is `$v0`, so the pointer stays in
+`$a0`:
+
+```c
+slot->field_15 = arg3;
+slot->field_6  = sets[arg2]->field_4[slot->field_15];
+```
+
+`func_800B404C` is the example (`func_800B3FA8` already uses
+`field_4[slot->field_15]` for the same reason). The `(u8)arg3` form
+stuck at 98.8% with only those six registers swapped.
+
 

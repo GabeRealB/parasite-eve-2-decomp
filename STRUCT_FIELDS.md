@@ -1112,7 +1112,7 @@ Object behind each pointer in `GpAnimSlot.field_20` / `GpAnimCtx.field_0`.
 
 ### `GpAnimSlot` (0x28) — `1BC.h`
 Element of `GpAnimCtx.field_C`. Initialized by `func_800B3CE8` /
-`func_800B3FA8`; advanced by `func_800B3448`.
+`func_800B3FA8` / `func_800B404C`; advanced by `func_800B3448`.
 
 | Off | Member | Role |
 |-----|--------|------|
@@ -1126,8 +1126,8 @@ Element of `GpAnimCtx.field_C`. Initialized by `func_800B3CE8` /
 | 0x0E | `field_E` | Timing value; `func_800B3E74` sets the same `field_2 << 4` |
 | 0x10 | `field_10` | Flags word; cleared by `func_800B3FA8` |
 | 0x12 | `field_12` | Halfword; cleared by `func_800B3FA8` |
-| 0x14 | `field_14` | Copy of the slot index (`func_800B3FA8` writes `arg1` here and to `field_15`) |
-| 0x15 | `field_15` | This slot's index in the `field_C` array |
+| 0x14 | `field_14` | Slot-index-like byte (`func_800B3FA8` writes `arg1` here and to `field_15`; `func_800B404C` writes `arg4`) |
+| 0x15 | `field_15` | This slot's index in the `field_C` array (`func_800B404C` writes `arg3`) |
 | 0x16 | `field_16` | Byte; cleared by `func_800B3FA8` |
 | 0x20 | `field_20` | `GpAnimSet**` table (copy of `GpAnimCtx.field_0`) |
 

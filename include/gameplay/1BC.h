@@ -74,7 +74,8 @@ typedef struct _GpAnimSet {
 /// `func_800B46A4` sets bit 0/1 while walking `field_3` links).
 /// `func_800B3FA8` writes `field_9 = 0x10`, copies `arg1` to both
 /// `field_14` and `field_15`, and stores `recs[field_6].field_3 & 0xF`
-/// in `field_B`.
+/// in `field_B`. `func_800B404C` is the same init with separate
+/// `field_14` / `field_15` arguments.
 typedef struct _GpAnimSlot {
     /* 0x00 */ u16         field_0;
     /* 0x02 */ u16         field_2;
@@ -196,6 +197,7 @@ void     func_800B3EE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s3
 void     func_800B3F60(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4);
 void     func_800B3F84(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4);
 void     func_800B3FA8(GpAnimCtx* arg0, s32 arg1, s32 arg2);
+void     func_800B404C(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void     func_800B4514(GpAnimCtx* arg0, s32 arg1);
 GpAnimRec* func_800B4668(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B46A4(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3);
