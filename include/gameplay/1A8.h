@@ -42,10 +42,12 @@ typedef struct _GpCb40Tbl {
 /// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
 extern GpCb40Tbl* D_8010CB40[];
 
-/// 8-byte dest-location payload at `D_80114CE8`. `func_800AF284` copies
-/// `field_0` / `field_2` / `field_3` into `Mc_SaveData.field_6` /
-/// `field_8` / `field_5` before `Task_Spawn(0, 0x11, ...)`. Nearby D4
-/// helpers also write `field_4` / `field_5` / `field_6`.
+/// 8-byte dest-location payload at `D_80114CE8`. `func_800AE36C` fills it
+/// (halfword `field_0`/`field_1` from `D_80114CDA`, `field_2` from
+/// `D_80114CDB & 0xF`, `field_3`/`field_4` = 1, `field_5` = 0), posts slot-7
+/// msg `0x13EE`, then copies `field_0` / `field_2` / `field_3` into
+/// `Mc_SaveData.field_6` / `field_8` / `field_5` before `Task_Spawn(0, 0x11,
+/// ...)`. `func_800AF284` does the same copy + spawn.
 typedef struct _GpSaveLoc {
     /* 0x0 */ u8  field_0;
     /* 0x1 */ u8  field_1;

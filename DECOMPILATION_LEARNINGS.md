@@ -14942,6 +14942,33 @@ register GameActor* actor asm("s2");
 `func_8010BCF4` is the example. The unpinned form stuck at 99% with only those
 two callee-saved registers swapped.
 
+## Zero the `$s2` global first so the `$s3` one is restored first
+
+Two globals whose `%hi` must live across calls (`lbu` early, `sb zero` in the
+epilogue) take `$s2` / `$s3` in **C store order**, not load order. The
+epilogue always stores through `$s3` first so it can restore `$s3` before
+`$s2`:
+
+```
+lw    ra, 0x20(sp)
+sb    zero, %lo(A)(s3)
+lw    s3, 0x1C(sp)
+sb    zero, %lo(B)(s2)
+```
+
+`A = 0; B = 0` assigns `A→s2`, `B→s3` and the machine stores are `B` then
+`A`. Swap the C stores so the symbol that should sit in `$s2` is written
+first:
+
+```c
+D_80114CDB = 0; /* $s2 — stored second in the epilogue */
+D_80114CDA = 0; /* $s3 — stored first, then s3 is restored */
+```
+
+`func_800AE36C` is the example. The load-order variant
+`D_80114CDA = 0; D_80114CDB = 0` stuck at 99.5% with only those two
+`%hi` registers swapped.
+
 ## `*(s32*)&` strips volatile and lets an independent store hoist past earlier ones
 
 A reset that writes translation on one `GsCOORDINATE2` *then* the identity

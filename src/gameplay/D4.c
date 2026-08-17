@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
 #include "gameplay/3A34.h"
@@ -44,6 +45,7 @@ extern u8             D_80114CD9;
 extern u8             D_80114CDA;
 extern u8             D_80114CDB;
 extern u8             D_80114CDC;
+extern u8             D_80114CDD;
 extern s32            D_80114CF0;
 extern s16            D_80114CF4;
 extern u16            D_80114CF6;
@@ -845,7 +847,38 @@ void func_800AE150(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AE1F0);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AE36C);
+void func_800AE36C(void)
+{
+    Task*       slot;
+    GpSaveLoc*  loc;
+    McSaveData* save;
+
+    slot = Game_GetPtrSlot(7);
+    loc  = &D_80114CE8;
+
+    /* first two bytes as one halfword (field_1 cleared) */
+    *(u16*)&D_80114CE8 = D_80114CDA;
+    loc->field_2       = D_80114CDB & 0xF;
+    loc->field_4       = 1;
+    loc->field_3       = 1;
+    loc->field_5       = 0;
+    func_800AC464(slot, 0x13EE, (s32)loc, (s32)loc);
+
+    save          = &Mc_SaveData;
+    save->field_6 = D_80114CE8.field_0;
+    save->field_8 = loc->field_2;
+    save->field_5 = loc->field_3;
+    Task_Spawn(0, 0x11, 0, 0);
+
+    D_80114CDB = 0;
+    D_80114CDA = 0;
+    D_80114CF8 = 0;
+    D_80114CD9 = 0;
+    D_80114CD8 = 0;
+    D_80114CD2 = 0;
+    D_80114CD4 = 0;
+    D_80114CDD = 0;
+}
 
 void func_800AE45C(void)
 {
