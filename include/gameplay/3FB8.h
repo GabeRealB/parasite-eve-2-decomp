@@ -167,8 +167,8 @@ typedef struct _GpCountArg {
 } GpCountArg;
 STATIC_ASSERT_SIZEOF(GpCountArg, 8);
 
-/// Argument for `func_8010C75C`. `field_14` is copied onto
-/// `GameActor.field_934` (frame delay); `field_93E` is cleared.
+/// Argument for `func_801054D8` / `func_8010C75C`. `field_14` is copied
+/// onto `GameActor.field_934` (frame delay); `field_93E` is cleared.
 typedef struct _GpDelayArg {
     /* 0x00 */ byte pad_0[0x14];
     /* 0x14 */ s32  field_14;

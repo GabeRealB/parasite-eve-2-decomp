@@ -1023,7 +1023,41 @@ s32 func_801052B8(GpActorWork* arg0, s32 arg1, GpCountArg* arg2)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801053A0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801054D8);
+s32 func_801054D8(GpActorWork* arg0, s32 arg1, GpDelayArg* arg2)
+{
+    GameActor*    actor;
+    WipSysConfig* p;
+
+    actor = arg0->actor;
+    if ((s8)actor->field_97A != 0) {
+        return 1;
+    }
+    p                 = &Wip_SysConfig;
+    actor->field_954  = 2;
+    actor->field_95E  = 0;
+    actor->field_973  = 0;
+    actor->field_975  = 0;
+    p->field_24       = 0;
+    actor->field_97E  = 0;
+    actor->field_60   = 0;
+    actor->field_58   = 0;
+    actor->field_64   = 0;
+    actor->field_5C   = 0;
+    actor->field_6A   = 0;
+    actor->field_68   = 0;
+    actor->field_70   = 0;
+    actor->field_96C  = 0;
+    actor->field_12A &= 0x3FFF;
+    func_80106350(arg0, p->field_21, 0);
+    if (Game_Session->field_1 != 0) {
+        ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
+    }
+    actor->field_956    = 6;
+    D_80114C08.field_6 |= 1;
+    actor->field_934    = arg2->field_14;
+    actor->field_93E    = 0;
+    return 0;
+}
 
 s32 func_801055D4(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
