@@ -17959,4 +17959,34 @@ return *(u16*)off;
 last three instructions using `$v0` instead of `$v1`. `func_800A1558`
 is the example.
 
+## Assign `i = ret` before `if (ret < n)` so it fills the `beqz` delay
+
+A loop that starts at the same 0 already sitting in `$s4` (`ret`) wants
+
+```
+slt   v0, s4, count
+beqz  v0, skip
+ move  s2, s4        /* i = ret */
+lui   s6, %hi(dest)
+sll   v0, start, 2
+```
+
+`if (ret < n) { i = ret; ... }` rematerializes `i = 0` and lets the
+`start << 2` steal the delay slot (`sll v0` / `nop`). Assign `i` *before*
+the compare so the delay-slot filler copies `$s4`:
+
+```c
+asm volatile("" : "+r"(ret)); /* keep ret from folding to 0 */
+i = ret;
+if (ret < src->field_1) {
+    destHi = 0x80110000; /* %hi of dest; must precede rec = table + start */
+    off    = start << 2;
+    rec    = (GpItemRec*)(off + (s32)table);
+```
+
+`&global` as the later call argument hoists `lui %hi` *after* the rec
+address calc (and often reuses the table's `$s5`). Materializing the hi
+as a constant first pins `$s6` and keeps `addiu a1, s6, %lo` in the jal
+delay. `func_800BC50C` is the example.
+
 

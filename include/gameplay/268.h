@@ -187,6 +187,11 @@ extern GpBit2Bank D_8010D230[];
 extern GpItemQty  D_8010D278[];
 extern GpItemMap  D_8010D2F8[];
 extern GpItemScan D_8010D520;
+/// Source item-table scan (`func_800BC50C` / item-move UI). field_0 is the
+/// start index, field_1 the entry count, field_2 the table id.
+extern GpItemScan D_8010D628;
+/// Dest item-table scan immediately after `D_8010D628` (`func_800BC50C`).
+extern GpItemScan D_8010D62C;
 /// Array of `GpItemScan*` (`func_800B7D18` clears `[1]` and `[2]`).
 extern GpItemScan* D_8010D550[];
 /// Scan dest used while `func_800B7D18` copies the current inventory out.
@@ -260,5 +265,6 @@ s32         func_800BC18C(s32 arg0);
 s32         func_800BC324(s32 arg0);
 void        func_800BC378(Task* arg0);
 s32         func_800BC3F8(s32 arg0);
+s32         func_800BC50C(void);
 
 #endif // GAMEPLAY_268_H

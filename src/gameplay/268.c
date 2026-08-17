@@ -1561,4 +1561,54 @@ void func_800BC4E4(void)
     func_800BAA58();
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC50C);
+s32 func_800BC50C(void)
+{
+    register s32         ret asm("s4");
+    register GpItemScan* src asm("s3");
+    register GpItemRec*  table asm("s5");
+    register s32         flag asm("s7");
+    register GpItemRec*  rec asm("s0");
+    register s32         count asm("s1");
+    register s32         i asm("s2");
+    register s32         off asm("v0");
+    register u32         destHi asm("s6");
+    s32                  start;
+
+    src   = &D_8010D628;
+    ret   = 0;
+    table = func_800BB500(src);
+    start = D_8010D628.field_0;
+    count = func_800BAF5C(src + 1);
+    flag  = ret;
+    if (func_800BAF5C(src) <= 0) {
+        return ret;
+    }
+    asm volatile("" : "+r"(ret));
+    i = ret;
+    if (ret < src->field_1) {
+        destHi = 0x80110000; /* %hi(D_8010D62C); must precede the rec address */
+        off    = start << 2;
+        rec    = (GpItemRec*)(off + (s32)table);
+        do {
+            if (rec->field_0 != 0) {
+                if ((u8)(rec->field_0 + 0x60) < 0x20) {
+                    if (func_800D6A24(rec->field_0, (GpItemScan*)(destHi + (s32)(s16)0xD62C)) == 0) {
+                        count++;
+                    }
+                } else {
+                    count++;
+                }
+            }
+            i++;
+            rec++;
+        } while (i < src->field_1);
+    }
+    asm volatile("" ::"r"(table));
+    if (flag != 0) {
+        return ret;
+    }
+    if (D_8010D62C.field_1 >= count) {
+        ret = 1;
+    }
+    return ret;
+}
