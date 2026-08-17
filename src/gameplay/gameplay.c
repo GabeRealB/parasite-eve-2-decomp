@@ -1507,7 +1507,43 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7F6C);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A82C0);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8654);
+void func_800A8654(Task* task)
+{
+    VECTOR*        vec;
+    GsCOORDINATE2* src;
+    GsCOORDINATE2* c1;
+    GsCOORDINATE2* c2;
+    GsCOORDINATE2* c3;
+    TmdObject*     extra;
+    s32            i;
+    s32            j;
+
+    i              = 0;
+    c1             = &D_80070E90;
+    extra          = task->extra;
+    vec            = (VECTOR*)task->idMap;
+    src            = extra->field_8;
+    c1->coord.t[0] = vec->vx;
+    c2             = &D_80070E40;
+    c1->coord.t[1] = vec->vy;
+    c1->coord.t[2] = vec->vz;
+
+    for (; i < 3; i++) {
+        for (j = 0; j < 3; j++) {
+            *(s16*)((i * 6 + j * 2) + (s32)c2->coord.m) = src->coord.m[i][j];
+        }
+    }
+
+    c3             = &D_80070F10;
+    c3->coord.t[0] = src->coord.t[0];
+    c3->coord.t[1] = src->coord.t[1];
+    c3->coord.t[2] = src->coord.t[2];
+
+    D_80070E90.flg = 0;
+    D_80070E40.flg = 0;
+    D_80070F10.flg = 0;
+    Task_Kill(task);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8724);
 

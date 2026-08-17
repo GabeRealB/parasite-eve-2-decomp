@@ -67,6 +67,8 @@ s32  Gfx_ApplyMatrixNoSf(SVECTOR* arg0, SVECTOR* arg1);
 extern GfxImageSlot* Gfx_ImageSlotTables[];
 /// Color/light matrix written by Gfx_SetDefaultFlatLight / Gfx_SetLightAmbient.
 extern MATRIX D_80074080;
+/// GsCOORDINATE2 whose `.coord` is `D_80070E44`.
+extern GsCOORDINATE2 D_80070E40;
 /// Identity-matrix storage for GsCOORDINATE2.coord (parent at symbol - 4).
 extern MATRIX D_80070E44;
 /// GsCOORDINATE2 whose `.coord` is `D_80070E94`.
