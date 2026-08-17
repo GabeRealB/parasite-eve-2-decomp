@@ -17989,4 +17989,35 @@ address calc (and often reuses the table's `$s5`). Materializing the hi
 as a constant first pins `$s6` and keeps `addiu a1, s6, %lo` in the jal
 delay. `func_800BC50C` is the example.
 
+## Extra store before the shared assignment so `sh` merges
+
+Two pad paths both write `obj->field_2E`, and the cancel arm also writes
+`obj->status`. `field_2E = -1` *before* `status = 0` emits the `sh` in
+the else and jumps past the shared store (`j` delay = `sw status`).
+Write `status = 0` first so both arms end on the `field_2E` assignment;
+GCC merges them with the later `field_2E = 6` into one `sh v0, 0x2E`
+(`j` delay = `sw status`).
+
+```c
+if (obj->owner->flags != 0) {
+    obj->field_2E = 6;
+} else {
+    obj->status   = 0;
+    obj->field_2E = -1;
+}
+```
+
+`func_800BDDC4` is the example. The swapped store order stuck at 95.7%
+with a separate `sh` on the -1 path.
+
+## Switch case order: fall-through-to-epilogue last
+
+A switch whose last live case is a `jal` (then the function epilogue)
+must be emitted last. Putting a later simple-store case after it inserts
+`j end; nop` after the call. Source order `-1`, `9`, `6` (store, store,
+teardown+call) matches the target body order.
+
+`func_800BDDC4` is the example. Case order `-1`, `6`, `9` stuck at 95.7%
+with the case-9 `sh` after the teardown `jal`.
+
 

@@ -5,9 +5,13 @@
 #include "gameplay/268.h"
 #include "gameplay/4CC.h"
 #include "main/gamemain.h"
+#include "main/pad.h"
 #include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
+
+extern s32 D_8005ED74;
+extern s32 D_8005ED78;
 
 INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BC634);
 
@@ -23,7 +27,61 @@ INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BDAA8);
 
 INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BDC80);
 
-INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BDDC4);
+void func_800BDDC4(Task* arg0)
+{
+    UiObject* obj;
+    UiList*   menu;
+    UiObject* child;
+    s32       flag;
+    Task*     parent;
+
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    menu          = &D_8010D68C;
+    if (arg0->state == 0) {
+        parent = arg0->parent;
+        if (parent != NULL) {
+            arg0->flags = parent->flags;
+        }
+        if (((s16)obj->field_E + (s16)obj->field_12) >= 0x65) {
+            obj->field_E = 0x64 - obj->field_12;
+        }
+        func_800BDC80(menu, obj);
+        Ui_LayoutListPanel(menu, (UiPanel*)obj);
+        arg0->state = arg0->state + 1;
+    }
+    Ui_UpdateListNoAnim(menu, obj);
+    if (obj->status == 1) {
+        if (Pad_CheckButtons(0, 1, D_8005ED78) != 0) {
+            if (obj->owner->flags != 0) {
+                obj->field_2E = 6;
+            } else {
+                obj->status   = 0;
+                obj->field_2E = -1;
+            }
+        } else if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
+            obj->field_2E = 6;
+        }
+    }
+    child = (UiObject*)arg0->firstChild;
+    if (child != NULL) {
+        child = ((Task*)child)->spawnArg2;
+        flag  = child->field_2E;
+        switch (flag) {
+            case -1:
+                obj->status   = 0;
+                obj->field_2E = flag;
+                break;
+            case 9:
+                obj->field_2E = 6;
+                break;
+            case 6:
+                obj->status = 1;
+                Ui_TeardownTree(child, child->owner);
+                break;
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BDF6C);
 

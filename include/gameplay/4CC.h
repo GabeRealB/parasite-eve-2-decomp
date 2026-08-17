@@ -55,8 +55,18 @@ extern u16 D_80114DEC;
 /// Item/location halfword copied from `D_80114DDC` by `func_800BCC44`.
 /// `func_800BF334` special-cases the value `0x703`.
 extern u16 D_80114D7C;
+/// UiList used by `func_800BDDC4`.
+extern UiList D_8010D68C;
 /// UiList used by `func_800BF464`. `field_10` is 1 when `spawnArg1` is 0.
 extern UiList D_8010D6B4;
+void func_800BDC80(UiList* arg0, UiObject* arg1);
+/// Task callback for the `D_8010D68C` item list. On first run it copies
+/// `parent->flags`, clamps `field_E + field_12` to 0x64, then calls
+/// `func_800BDC80` and `Ui_LayoutListPanel`. Confirm (`D_8005ED78`) is
+/// cancel (`field_2E = -1`) when `owner->flags` is 0, else 6; cancel
+/// (`D_8005ED74`) is 6. Child `field_2E` -1 / 9 / 6 closes, remaps to
+/// 6, or teardowns.
+void func_800BDDC4(Task* arg0);
 void func_800BF2C8(UiObject* arg0, void (*arg1)(UiObject*, Task*));
 s32  func_800BF334(s32 arg0, s32 arg1);
 void func_800BF464(Task* arg0);
