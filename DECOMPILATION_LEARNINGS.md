@@ -3,6 +3,50 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Split two `arg0->actor` reloads so they take `$a3` then `$v0`
+
+Reusing one local for both `actor = arg0->actor` reloads (across
+`func_800B3F84` / `func_801038F8`) merges the live range. GCC then
+parks it in `$t0` because the same name is still live after the first
+call. Overwriting the original saved `actor` puts the second reload in
+`$s0` instead.
+
+The target wants the first reload in `$a3` (it becomes
+`&inner->field_7A8`, the 4th arg) and the second in `$v0` (store-only
+scratch before `func_80103A18`):
+
+```
+lw    a3,0x1c(s1)
+...
+addiu a3,a3,0x7a8
+jal   func_800B3F84
+...
+lw    v0,0x1c(a0)
+sh    zero,0x954(v0)
+```
+
+Use three distinct locals: keep the original actor in a saved register
+for the later `field_914` kill, one local that dies at `func_800B3F84`,
+and a third that exists only for the post-`func_801038F8` stores:
+
+```c
+actor = arg0->actor;
+/* Task_Kill(actor->field_91C); actor->field_91C = NULL; */
+inner            = arg0->actor;
+inner->field_93A = table[idx] + addend;
+inner->field_928 = ptrs[inner->field_93A];
+func_800B3F84(..., &inner->field_7A8, ...);
+func_801038F8(arg0, 1);
+next            = arg0->actor;
+next->field_954 = 0;
+/* ... */
+func_80103A18(arg0, 1, 0, 4);
+/* Task_Kill(actor->field_914); */
+```
+
+`func_8010B674` is the example. One reused reload stuck at 98.8%
+(`$t0`); overwriting `actor` stuck at 99.3% (`$s0` for the stores).
+
 ## Capture `list->funcs` before writing both vtable slots
 
 `menu->funcs[0] = A; menu->funcs[1] = B;` reloads the function-table

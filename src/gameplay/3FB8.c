@@ -3020,7 +3020,45 @@ void func_8010B610(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B674);
+void func_8010B674(GpActorWork* arg0)
+{
+    GameActor* actor;
+    GameActor* inner;
+    GameActor* next;
+    GpAnimObj* extra;
+    Task*      task;
+
+    actor = arg0->actor;
+    task  = actor->field_91C;
+    if (task != NULL) {
+        Task_Kill(task);
+        actor->field_91C = NULL;
+        extra            = (GpAnimObj*)arg0->extra;
+        inner            = arg0->actor;
+        inner->field_93A = D_80113360[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7;
+        inner->field_928 = D_80113368[inner->field_93A];
+        func_800B3F84((GpAnimCtx*)inner->field_424, inner->field_928, extra, &inner->field_7A8,
+                      (GpAnimSlot*)inner->pad_438);
+        func_801038F8(arg0, 1);
+        next            = arg0->actor;
+        next->field_954 = 0;
+        next->field_956 = 0;
+        next->field_958 = 0;
+        next->field_95A = 0;
+        next->field_95C = 0;
+        next->field_95E = 0;
+        next->field_942 = 0;
+        next->field_93E = 0;
+        next->field_973 = 0;
+        next->field_975 = 0;
+        func_80103A18(arg0, 1, 0, 4);
+    }
+    task = actor->field_914;
+    if (task != NULL) {
+        Task_Kill(task);
+        actor->field_914 = NULL;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B79C);
 
