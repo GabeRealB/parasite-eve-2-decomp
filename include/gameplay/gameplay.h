@@ -72,6 +72,19 @@ typedef struct _GpIdMapC {
 } GpIdMapC;
 STATIC_ASSERT_SIZEOF(GpIdMapC, 0x1A);
 
+/// 0x30-byte play-clock work `func_8009FEDC` stores at `Task::idMap`.
+/// `field_0` / `field_4` are `Mc_SaveData.field_C` split into minutes and
+/// seconds. `field_8` snapshots `Display_State.field_4`. `extra` is the
+/// +0xC overlay passed to `func_800A7574`.
+typedef struct _GpIdMap30 {
+    /* 0x00 */ s32     field_0;
+    /* 0x04 */ s32     field_4;
+    /* 0x08 */ s32     field_8;
+    /* 0x0C */ GpIdMapC extra;
+    /* 0x26 */ byte    pad_26[0xA];
+} GpIdMap30;
+STATIC_ASSERT_SIZEOF(GpIdMap30, 0x30);
+
 /// 4-byte spawn arg at `D_80114BD8`. `func_800A76A4` zeros `field_0` / `field_1`,
 /// writes `GameSession.field_12E` as a signed halfword to `field_2`, then passes
 /// the record to `Task_Spawn(1, 0x31, 0, ...)`.
@@ -132,6 +145,7 @@ STATIC_ASSERT_SIZEOF(GpDisp2d, 0x60);
 void func_80098F58(GsCOORDINATE2* arg0);
 void func_80098F98(GsCOORDINATE2* arg0, s32 arg1);
 Task* func_8009988C(GsCOORDINATE2* arg0);
+void func_8009FEDC(Task* task);
 u16  func_800A1558(s32 arg0);
 void func_800A7320(s16* arg0);
 u8*  func_800A746C(void);

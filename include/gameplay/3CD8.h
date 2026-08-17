@@ -269,6 +269,7 @@ s32  func_800E6CE0(void);
 /// Each frame an LCG (`D_80070F60`) scales the remaining count into
 /// `Display_ClampField126`, flipping sign on `spawnArg1` parity.
 void func_800E8938(Task* arg0);
+void func_800E956C(void);
 
 void func_800E9BDC(u8 arg0, s32 arg1);
 void func_800E9C6C(void);

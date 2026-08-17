@@ -55,7 +55,8 @@ typedef struct _GameSession {
     s16   field_52;
     byte  unknown_54[4];
     u16   field_58; // current pad mask; func_80103804 copies this onto GameActor.field_962
-    byte  unknown_5A[5];
+    byte  unknown_5A[4];
+    u8    field_5E; // set to 1 by func_8009FEDC before allocating the play-clock idMap
     u8    field_5F; // skip-gate for func_800E74EC overlay-wait setup
     byte  unknown_60[4];
     u8    field_64; // nonzero: func_800AD5B8 / func_800AD50C skip their state dispatch

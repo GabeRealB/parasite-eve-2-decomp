@@ -126,7 +126,8 @@ Convention: only list fields with evidence. Unlisted `field_*` / `unknown_*` /
 | Off | Member | Role |
 |-----|--------|------|
 | 0x3 | `field_3` | Cleared by `func_800AC164` teardown |
-| 0x8 | `field_8` | Pad input remap mode (nonzero → overlay remap path) |
+| 0x8 | `field_8` | Pad input remap mode (nonzero → overlay remap path). `func_8009FEDC` writes -1 when `Display_State.field_12c != 0` |
+| 0x9 | `field_9` | s8 (`lb`); `func_8009FEDC` calls `func_80715198` when this is 1 and `Display_State.field_12c` is 0 |
 
 ---
 
@@ -153,6 +154,7 @@ Convention: only list fields with evidence. Unlisted `field_*` / `unknown_*` /
 | Off | Member | Role |
 |-----|--------|------|
 | 0x4–0x9 | `field_4`… | Header region (checksummed from 0x4, size 0x38) |
+| 0x0C | `field_C` | u16 play time in seconds (`lhu`). `func_8009FEDC` splits it into minutes (`/ 60`) and seconds (`% 60`) on the play-clock idMap |
 | 0x0E | `field_E` | Signed scale flag; if > 0 and `func_800D50D4` arg1 is 0, table value is `* 2 / 5` (unless `field_F` applies) |
 | 0x0F | `field_F` | Signed scale flag; if > 0 and `func_800D50D4` arg1 is 0, table value is `* 4 / 5` (takes priority over `field_E`). Also indexes `D_8010D328` (`func_800BC0C0`) |
 | 0x26 | `field_26` | Unsigned addend for `Wip_SysConfig.field_1a` (`func_800BC0C0`) |
@@ -535,6 +537,7 @@ read `h + 2` as line height; `func_800E67C8` / `func_800E68D8` read `w`.
 | 0x4E | `field_4E` | Set by `Fs_LoadFile` for category-8 |
 | 0x52 | `field_52` | s16 cleared by `func_800A9730` when `spawnArg1 == 0` |
 | 0x58 | `field_58` | u16 current pad/button mask (`lhu`); `func_80103804` copies it onto `GameActor.field_962` |
+| 0x5E | `field_5E` | u8; set to 1 by `func_8009FEDC` before allocating the play-clock idMap |
 | 0x5F | `field_5F` | u8 flag; nonzero makes `func_800E74EC` skip overlay-wait timer setup |
 | 0x64 | `field_64` | u8 flag; nonzero makes `func_800AD5B8` / `func_800AD50C` skip their state dispatch |
 | 0x66 | `field_66` | u8; 1 makes `func_800CE3B4` spawn `D_8010EB94` and scale with `Ui_Scale15(2)` (else `D_8010EAD0` / scale 1) |
@@ -778,12 +781,22 @@ Global at `D_80114BE8`. Working copies of two `Wip_SysConfig` halfwords.
 
 ### `GpIdMapC` (0x1A) — `gameplay.h`
 +0xC overlay of the 0x30-byte `Mem_Calloc` record stored at `Task::idMap` by
-`func_8009FEDC`.
+`func_8009FEDC`. Nested as `GpIdMap30.extra`.
 
 | Off | Member | Role |
 |-----|--------|------|
 | 0x16 | `field_16` | s8; set to -1 by `func_800A7574` |
 | 0x18 | `field_18` | s16; cleared by `func_800A7574` |
+
+### `GpIdMap30` (0x30) — `gameplay.h`
+Play-clock work allocated by `func_8009FEDC` and stored at `Task::idMap`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | s32 minutes; `Mc_SaveData.field_C / 60` |
+| 0x04 | `field_4` | s32 seconds; `Mc_SaveData.field_C % 60` |
+| 0x08 | `field_8` | s32 snapshot of `Display_State.field_4` |
+| 0x0C | `extra` | `GpIdMapC` overlay passed to `func_800A7574` |
 
 ### `GpStateBD8` (0x4) — `gameplay.h`
 Global at `D_80114BD8`. Filled by `func_800A76A4` and passed as `Task_Spawn`

@@ -41,6 +41,8 @@ typedef struct {
 /// Three-entry dispatcher table: `func_800B0544`, `func_800B0560`, `func_800B01F0`.
 extern GpEnemyTaskFuncTable3 D_80093A10;
 
+void func_800B25B0(void);
+
 /// Source object for `func_800B3CCC` / `func_800B3F60`. Word at 0x30 is
 /// copied into the dest context; the address of 0x34 is stored as dest
 /// `field_4` (base of 0x50-byte records in `func_800B3448`).

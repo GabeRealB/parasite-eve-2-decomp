@@ -13,6 +13,7 @@
 #include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
+#include "main/gamemain.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mem.h"
@@ -66,6 +67,7 @@ void func_8009939C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800A82C0(GsCOORDINATE2* arg0, VECTOR* arg1);
 void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 void func_800A9730(Task* task);
+void func_80715198(void);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80097AC0);
 
@@ -921,7 +923,48 @@ u32* func_8009FD28(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009FD74);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009FEDC);
+void func_8009FEDC(Task* task)
+{
+    GpIdMap30*    rec;
+    DisplayState* ds;
+
+    func_800E956C();
+    Game_Session->field_5E = 1;
+    rec                    = Mem_Calloc(0x30, 0);
+    if (rec == NULL) {
+        Task_Kill(task);
+        return;
+    }
+    func_800A7574(&rec->extra);
+    GameMain_SetFrameTiming(1);
+    task->idMap  = (TaskIdMap*)rec;
+    rec->field_0 = Mc_SaveData.field_C / 60;
+    rec->field_4 = Mc_SaveData.field_C % 60;
+    ds           = &Display_State;
+    rec->field_8 = ds->field_4;
+    func_800B25B0();
+    if (ds->field_12c != 0) {
+        srand(1);
+        ds->field_8           = 0;
+        Display_State.field_0 = 0;
+        D_80070F60            = 0;
+        ds->field_4           = 0;
+        ds->field_14          = 0;
+        ds->field_c           = 0;
+        ds->field_10          = 0;
+        if (ds->field_12c == 0x10) {
+            D_80114C38 = (u8*)0x80600E4C;
+        } else {
+            D_80114C38 = (u8*)D_8005C374 + 0xD4C;
+        }
+        D_80114C02              = 0xFFFF;
+        D_80114C04              = 1;
+        Pad_RemapState->field_8 = -1;
+    } else if (Pad_RemapState->field_9 == 1) {
+        func_80715198();
+    }
+    task->state++;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A0094);
 
