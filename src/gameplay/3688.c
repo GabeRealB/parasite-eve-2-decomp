@@ -166,7 +166,7 @@ void       func_800CFE68(s32 arg0, UiObject* arg1);
 void       func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_800C8B40(Task* arg0);
-void       func_800CD924(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
+void       func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void       func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 GpItemRec* func_800C5188(McItemScan* arg0, s32 arg1, s32 arg2);
 
@@ -878,7 +878,32 @@ UiObject* func_800CD89C(UiObject* arg0)
     return obj;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CD924);
+void func_800CD924(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5)
+{
+    TextDrawReq req;
+    s32         temp;
+    s32         y;
+
+    if (arg0->mode != 5) {
+        req.x          = arg0->baseX + 0x11 + arg1;
+        y              = arg0->baseY - 6;
+        req.y          = y + arg2;
+        req.otIndex    = (s16)arg0->drawOrder + 1;
+        req.field_8    = arg4;
+        req.glyphTable = 0;
+        req.centerMode = 0;
+        req.field_E    = 1;
+        func_8002E53C(&req, func_800B8EB0(arg3, 0, 0));
+        if (arg5 != 0) {
+            func_800C22D8(arg0, arg1, arg2, arg3, arg5);
+        }
+        temp = arg3 - 0xF;
+        if ((u32)temp < 0x24U) {
+            func_800C2538(arg0, arg1, arg2, temp % 3 + 1, arg4);
+        }
+        func_800C05CC(arg0, arg1, arg2, arg3, 0);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CDA64);
 
