@@ -824,7 +824,33 @@ void func_800DB53C(void)
     D_801153F0.field_6++;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB558);
+void func_800DB558(GpObj20E* arg0)
+{
+    GpStateF0*  p;
+    GpStateF0*  q;
+    GpPairSrcE* rec;
+
+    p = &D_801153F0;
+    if (p->field_6 != 0) {
+        p->field_6--;
+        if (p->field_6 == 0) {
+            D_801153F0.field_0 = 2;
+            p->field_2         = 0;
+            p->field_3         = 0;
+            p->field_1         = 0x3C;
+            if (!(Game_Session->field_69 & 2)) {
+                SndEvt_EnqueueType2(0, 0xB4);
+            }
+        }
+        rec = arg0->field_20->field_50;
+        if (rec != NULL) {
+            q            = &D_801153F0;
+            q->field_8  += rec->field_6;
+            q->field_C  += rec->field_8;
+            q->field_10 += rec->field_A;
+        }
+    }
+}
 
 void func_800DB630(void)
 {

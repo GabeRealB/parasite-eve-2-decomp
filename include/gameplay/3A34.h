@@ -133,12 +133,19 @@ typedef struct _GpPairSrc {
 STATIC_ASSERT_SIZEOF(GpPairSrc, 0x4);
 
 /// Wider view of the object pointed to by `GpObj50.field_50`.
-/// `func_800E2EC4` loads `field_4`; `func_800E2DE4` loads `field_D`;
-/// `func_800E2F7C` loads `field_E`. Trailing pad keeps 4-byte alignment.
+/// `func_800E2EC4` loads `field_4`; `func_800DB558` adds `field_6` /
+/// `field_8` / `field_A` into `D_801153F0.field_8` / `field_C` /
+/// `field_10`. Nearby helpers also load bytes at +0xB / +0xD / +0xE
+/// (`func_800E2DE4` loads `field_D`; `func_800E2F7C` loads `field_E`).
+/// Trailing pad keeps 4-byte alignment.
 typedef struct _GpPairSrcE {
     /* 0x00 */ GpU16Pair* field_0;
     /* 0x04 */ u16        field_4;
-    /* 0x06 */ byte       pad_6[7];
+    /* 0x06 */ u16        field_6;
+    /* 0x08 */ u16        field_8;
+    /* 0x0A */ u8         field_A;
+    /* 0x0B */ u8         field_B;
+    /* 0x0C */ byte       pad_C;
     /* 0x0D */ u8         field_D;
     /* 0x0E */ u8         field_E;
     /* 0x0F */ byte       pad_F;
@@ -337,6 +344,16 @@ typedef struct _GpObj5C {
 } GpObj5C;
 STATIC_ASSERT_SIZEOF(GpObj5C, 0x60);
 
+/// Sparse overlay whose pointer at 0x20 is a `GpObj5C*` (same family as
+/// `GpObj50`). `func_800DB558` reads `field_20->field_50` and adds that
+/// `GpPairSrcE`'s `field_6` / `field_8` / `field_A` into
+/// `D_801153F0.field_8` / `field_C` / `field_10`.
+typedef struct _GpObj20E {
+    /* 0x00 */ byte     pad_0[0x20];
+    /* 0x20 */ GpObj5C* field_20;
+} GpObj20E;
+STATIC_ASSERT_SIZEOF(GpObj20E, 0x24);
+
 /// 0x4C list node appended to `D_8010FAB0[index]` by `func_800E1688` and
 /// unlinked by `func_800E1708`. `func_800E1758` empties the whole list.
 /// `field_4A` bit 0x20 means the node is on that list (cleared on unlink,
@@ -396,6 +413,8 @@ STATIC_ASSERT_SIZEOF(GpGridParams, 0x24);
 /// refcount incremented by `func_800DB53C` and decremented by
 /// `func_800DB558` / `func_800DB630` / `func_800DB6B4`. Last-ref
 /// release in `func_800DB630` also clears words at 0x8 / 0xC / 0x10.
+/// `func_800DB558` then adds `arg0->field_20->field_50` `field_6` /
+/// `field_8` / `field_A` into those same words.
 /// `func_800E2C78` adds into
 /// `field_14` when `(arg1 & 0x7F)` is 0x19..0x1B.
 typedef struct _GpStateF0 {
@@ -606,6 +625,7 @@ void  func_800DB4E0(s32 arg0);
 void  func_800DB500(s32 arg0);
 void  func_800DB530(s32 arg0);
 void  func_800DB53C(void);
+void  func_800DB558(GpObj20E* arg0);
 void  func_800DB630(void);
 void  func_800DB6B4(void);
 void  func_800DB72C(void);

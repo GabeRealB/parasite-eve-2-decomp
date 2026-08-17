@@ -62,6 +62,40 @@ queue->field_22A = D_8011565C;
 `CdCmd_Queue.field_22A = D_8011565C` stuck at 93.9% with only that
 address and the extra saved register different.
 
+## Reload `&Global` into a second local so the first pointer can die
+
+A sibling of a short last-ref helper (same `p = &Global` prologue, then
+`Global.field_0 = 2` via the `%hi` register) must let that first pointer
+die before later uses of the same address. Reusing `p` keeps it live
+through the last-ref block, so GCC stores `field_1` early (`li v0,0x3C;
+sb v0,1(a0)` before `lui Game_Session`) and loads `Game_Session` into
+`$v0` instead of `$v1`.
+
+Use a new local for the later stores:
+
+```c
+p = &D_801153F0;
+if (p->field_6 != 0) {
+    p->field_6--;
+    if (p->field_6 == 0) {
+        D_801153F0.field_0 = 2;
+        p->field_2         = 0;
+        p->field_3         = 0;
+        p->field_1         = 0x3C;
+        /* ... */
+    }
+    rec = arg0->field_20->field_50;
+    if (rec != NULL) {
+        q = &D_801153F0;
+        q->field_8 += rec->field_6;
+    }
+}
+```
+
+`func_800DB558` is the example. Reusing `p` for the second half stuck
+at 94.4% with only that last-ref schedule and the `$a0`/`$v1` reload
+different.
+
 ## Assign `lhs = *p = expr` so the temp stays in `$v0`
 
 `vec = expr; *scratch = vec` computes `expr` straight into the dest

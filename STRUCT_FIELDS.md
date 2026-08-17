@@ -884,9 +884,9 @@ Global at `D_801153F0`. Full object may still be larger.
 | 0x04 | `field_4` | u8; also `D_801153F4` |
 | 0x05 | `field_5` | u8 count of claimed `GpSlot18`s; incremented by `func_800E1C58` |
 | 0x06 | `field_6` | u16 refcount (inc: `func_800DB53C`; dec: `func_800DB558` / `func_800DB630` / `func_800DB6B4`) |
-| 0x08 | `field_8` | s32 word; cleared by `func_800DB630` on last-ref release |
-| 0x0C | `field_C` | s32 word; cleared by `func_800DB630` on last-ref release |
-| 0x10 | `field_10` | s32 word; cleared by `func_800DB630` on last-ref release |
+| 0x08 | `field_8` | s32 accumulator; `func_800DB558` adds `arg0->field_20->field_50->field_6`; cleared by `func_800DB630` on last-ref release |
+| 0x0C | `field_C` | s32 accumulator; `func_800DB558` adds `arg0->field_20->field_50->field_8`; cleared by `func_800DB630` on last-ref release |
+| 0x10 | `field_10` | s32 accumulator; `func_800DB558` adds `arg0->field_20->field_50->field_A`; cleared by `func_800DB630` on last-ref release |
 | 0x14 | `field_14` | s32 accumulator; `func_800E2C78` adds `min_u(arg0->field_40, arg2)` when `(arg1 & 0x7F)` is 0x19..0x1B |
 
 ### `GpObj` (0x20 header) — `3A34.h`
@@ -1065,6 +1065,10 @@ pad after `field_E`.
 |-----|--------|------|
 | 0x00 | `field_0` | `GpU16Pair*` table packed by `func_800E2BF8` |
 | 0x04 | `field_4` | u16 scale; `func_800E2EC4` multiplies it by `D_80113D38[field_5C]` / 100 |
+| 0x06 | `field_6` | u16; `func_800DB558` adds it into `D_801153F0.field_8` |
+| 0x08 | `field_8` | u16; `func_800DB558` adds it into `D_801153F0.field_C` |
+| 0x0A | `field_A` | u8; `func_800DB558` adds it into `D_801153F0.field_10` |
+| 0x0B | `field_B` | u8; loaded by nearby pair-source helpers |
 | 0x0D | `field_D` | u8; `func_800E2DE4` uses it as a threshold (`<< 12` / 100) |
 | 0x0E | `field_E` | u8; `func_800E2F7C` multiplies it by `D_80113D28[field_5C]` / 100 |
 
@@ -1079,6 +1083,14 @@ Trailing pad keeps pointer alignment; full object size is not known yet.
 | 0x59 | `field_59` | u8 countdown; `func_800E2EC4` decrements it and reseeds `((D_80070F60 * 5 + 0x71357911) >> 16 & 0xF) + 0x53` on expiry |
 | 0x5A | `field_5A` | u8 counter; incremented by `func_800E2EC4` on `field_59` expiry; compared by `func_800E2F7C` against the scaled `field_50->field_E` |
 | 0x5C | `field_5C` | u8 index into `D_80113D28` / `D_80113D38` |
+
+### `GpObj20E` (0x24) — `3A34.h`
+Sparse overlay. Pointer at 0x20 is a `GpObj5C*` (same family as
+`GpObj50`).
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x20 | `field_20` | `GpObj5C*`; `func_800DB558` loads `field_50` from this object |
 
 ### `GpEnemy` — `1BC.h`
 0x60-byte work object (`Mem_Calloc` in `func_800B0494`). Stored in `Task::spawnArg2`.
