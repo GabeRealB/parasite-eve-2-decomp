@@ -86,6 +86,9 @@ void func_800ABE68(struct _GpActorArg* arg0, u16* arg1);
 void func_800ABEF8(s32 arg0);
 void func_800ABF1C(struct _GpAreaKey* arg0);
 s32   func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// 1-based index of `(u8)arg0` in the current room's `D_8010CB54` byte
+/// list. Length is the `D_8010CB40` cell as an s16. Returns 0 if absent.
+s8    func_800ACEBC(s32 arg0);
 s32   func_800ACF8C(void);
 s32   func_800AD284(void);
 void* func_800AD2E8(void);

@@ -3,6 +3,36 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Zero the s16 loop index before independent table walks so it takes `$t0`
+
+A search loop written as `s16 idx; if (count > 0) { idx = 0; do { ... } }`
+gives the incoming arg `$t0` and the index `$v1`. The target wants the
+opposite: arg saved in `$t1`, `idx` in `$t0`, and `idx++` as the s16 CSE
+`addiu v0, t0, 1` / `move t0, v0` (not `addiu t0, t0, 1`).
+
+Initialize `idx = 0` at function entry, before the table lookups. That
+raises the index's allocation priority so it wins `$t0`. GCC sinks the
+zero into the `blez count` delay slot, so there is no extra instruction:
+
+```c
+s16 idx;
+idx = 0;
+sess  = (GameSessionFrom4*)&Game_Session->field_4;
+limit = *(s16*)&table40[...];
+bytes = table54[...];
+if (limit > 0) {
+    do {
+        if (bytes[idx] == (u8)arg0) {
+            return idx + 1;
+        }
+        idx++;
+    } while (idx < limit);
+}
+```
+
+`func_800ACEBC` is the example. `register s16 idx asm("t0")` got the
+register but rewrote the increment in place and stuck at 96%.
+
 ## 18-byte MATRIX rotation copy: `u8[16]` + trailing `s16`, not `u8[18]`
 
 An 18-byte assignment (MATRIX `m[3][3]`) that the target copies with four

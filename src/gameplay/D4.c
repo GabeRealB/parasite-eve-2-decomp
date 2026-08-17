@@ -653,7 +653,27 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ACAA8);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ACD2C);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ACEBC);
+s8 func_800ACEBC(s32 arg0)
+{
+    s16               idx;
+    GameSessionFrom4* sess;
+    s16               limit;
+    u8*               bytes;
+
+    idx   = 0;
+    sess  = (GameSessionFrom4*)&Game_Session->field_4;
+    limit = *(s16*)&D_8010CB40[sess->field_3 - 1]->field_0[sess->field_2 - 1][sess->field_1 - 1];
+    bytes = D_8010CB54[sess->field_3 - 1]->field_0[sess->field_2 - 1][sess->field_1 - 1];
+    if (limit > 0) {
+        do {
+            if (bytes[idx] == (u8)arg0) {
+                return idx + 1;
+            }
+            idx++;
+        } while (idx < limit);
+    }
+    return 0;
+}
 
 s32 func_800ACF8C(void)
 {
