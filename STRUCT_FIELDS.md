@@ -1146,8 +1146,8 @@ Element of `GpAnimCtx.field_C`. Initialized by `func_800B3CE8` /
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x00 | `field_0` | Set index into `field_20`; `0x7FFF` = inactive (`func_800B4668`) |
-| 0x02 | `field_2` | Record index within `field_20[field_0]->field_0` |
+| 0x00 | `field_0` | Set index into `field_20`; `0x7FFF` = inactive (`func_800B4668`); `func_800B3CE8` remaps 0→1 and takes abs |
+| 0x02 | `field_2` | Record index within `field_20[field_0]->field_0`; `func_800B3CE8` writes the same `field_4[field_15]` value as `field_6` |
 | 0x04 | `field_4` | Second set index; `func_800B3FA8` copies `arg2` here with `field_0` |
 | 0x06 | `field_6` | Index into `field_20[set]->field_0` (`func_800B3E74`); `func_800B3FA8` loads `field_4[field_15]` |
 | 0x09 | `field_9` | Written `0x10` by `func_800B3FA8` / `func_800B3CE8` |
