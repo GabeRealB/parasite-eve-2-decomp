@@ -3,6 +3,62 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Reuse the extra pointer so `lw v0,8(v0)` feeds the `+ N` delay slot
+
+`bone = (T*)extra->field_8; f(bone + N, ...)` allocates `bone` to `$a0`
+(the first-arg dest), so the target's
+
+```
+lw    v0,8(v0)
+...
+jal   f
+addiu a0,v0,off
+```
+
+becomes `lw a0,8(v0); addiu a0,a0,off`. Extra was already in `$v0`; a
+new local is free to coalesce with `$a0`.
+
+Overwrite the same local, then add through that pointer:
+
+```c
+extra = arg0->extra;
+...
+extra = (GameActorExt*)extra->field_8;
+func_801040A0((GsCOORDINATE2*)extra + 4, coord, rot);
+```
+
+`func_8010BE5C` is the example. A separate `bone` stuck at 99.9% with
+only those two registers different.
+
+## Assign `val = ratan2(...) - field` before the wrap helper
+
+`val = wrap(cur, ratan2(...) - facing)` (one call) does `lhu facing`
+and keeps the subtract in `$v0`, so the helper's second arg and the
+later clamp live in `$a0`. The target instead does
+
+```
+lh    v1,facing
+lh    a0,cur
+subu  a1,v0,v1
+sll   a1,a1,16
+jal   wrap
+sra   a1,a1,16
+sll   v0,v0,16
+sra   a1,v0,16
+```
+
+Split it. The s32 difference is a real value (forces `lh`), and
+reusing `val` as the helper's second arg and its result keeps the
+clamp in `$a1`:
+
+```c
+val = ratan2(dx, dz) - actor->field_52;
+val = func_80103E7C(actor->field_6A, val);
+```
+
+`func_8010BE5C` is the example. The fused call stuck at 96.3% with
+`lhu` / `$v0` subtract / clamp in `$a0`.
+
 ## Assign `mask = 1` before `ptr->arr[i]` so `li v0,1` stays live
 
 `flags = ptr->arr[i]; mask = 1 << bit` (or `1 << bit` inlined after the

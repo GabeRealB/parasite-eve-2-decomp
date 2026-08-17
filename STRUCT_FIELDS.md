@@ -571,7 +571,8 @@ toward it by a `func_80103E7C` delta clamped to `[-0x40, 0x40]`.
 `field_58`/`field_5C`/`field_60`/`field_64`/`field_68`/`field_6A`/`field_70` are s16s
 cleared together by `func_8010C46C` / `func_8010C4F0` / `func_8010C75C` (store order
 0x60, 0x58, 0x64, 0x5C, 0x6A, 0x68, 0x70). `field_6A` is the 0x6A adjust skipped
-when `field_954` is nonzero in `func_80109720`.
+when `field_954` is nonzero in `func_80109720`. `func_8010BE5C` turns it toward
+`ratan2(delta) - field_52` (clamped `[-0x20, 0x20]` per frame, `|field_6A| < 0x1A0`).
 `field_12A` is a u16 flags halfword at +0x1E of the `field_10C` list node (`lhu`/`sh`);
 `func_8010C46C` / `func_80106350` AND it with `0x3FFF` (clear bits 14–15).
 `field_424` is a 0x14-byte `GpAnimCtx` overlay; `func_80103AC0` passes it to

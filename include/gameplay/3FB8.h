@@ -121,6 +121,19 @@ typedef struct _GpTurnScratch {
 } GpTurnScratch;
 STATIC_ASSERT_SIZEOF(GpTurnScratch, 0x14);
 
+/// 0x68-byte scratch from `G_SCRATCH_HEAD` used by `func_8010BE5C`.
+/// `vec` overlays a `VECTOR3` for `func_80103C74` / `ratan2`. `rot` is
+/// the zeroed `SVECTOR` passed to `func_801040A0`. The remaining 0x50
+/// bytes are a temp `GsCOORDINATE2` at `head - 0x50`.
+typedef struct _GpAimScratch {
+    /* 0x00 */ VECTOR3  vec;
+    /* 0x0C */ s32      pad_C;
+    /* 0x10 */ SVECTOR3 rot;
+    /* 0x16 */ s16      pad_16;
+    /* 0x18 */ byte     pad_18[0x50];
+} GpAimScratch;
+STATIC_ASSERT_SIZEOF(GpAimScratch, 0x68);
+
 /// Argument for `func_8010C75C`. `field_14` is copied onto
 /// `GameActor.field_934` (frame delay); `field_93E` is cleared.
 typedef struct _GpDelayArg {
