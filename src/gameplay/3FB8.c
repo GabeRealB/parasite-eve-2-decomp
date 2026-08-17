@@ -2201,7 +2201,70 @@ void func_8010A42C(GpActorWork* arg0, s32 arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010A670);
+void func_8010A670(GpActorWork* arg0)
+{
+    GameActor*  inner;
+    GpLinkNode* node;
+    s32         left;
+    s32         right;
+    s32         pad;
+    s32         bits;
+    s32         timer;
+    s32         next;
+    s32         mode;
+    s32         dir;
+
+    inner            = arg0->actor;
+    timer            = inner->field_990 - 1;
+    inner->field_990 = timer;
+    if ((s8)timer == 0) {
+        left             = 0x8000;
+        next             = (rand() & 0x1F) + 0xA;
+        pad              = inner->field_962;
+        inner->field_990 = next;
+        bits             = pad & 0xF000;
+        if (bits == left || bits == (right = 0x2000)) {
+            if (!(inner->field_970 & 0x5000)) {
+                if (rand() & 1) {
+                    dir = 0x4000;
+                } else {
+                    dir = 0x1000;
+                }
+                inner->field_970 = dir;
+            }
+        } else {
+            bits = pad & 0x5000;
+            if (bits) {
+                if (rand() & 4) {
+                    inner->field_970 &= 0xAFFF;
+                } else if (rand() & 1) {
+                    inner->field_970 = left;
+                } else {
+                    inner->field_970 = right;
+                }
+            }
+        }
+        if (D_801153F0.field_0 == 1) {
+            if (inner->field_90C != NULL) {
+                if (rand() & 3) {
+                    func_80103B5C(arg0);
+                }
+            } else {
+                mode = inner->field_956;
+                if (mode == 2 && !(Wip_SysConfig.field_25 & 1) && (rand() & 3)) {
+                    node = func_800DAD54(arg0);
+                    if (node != NULL) {
+                        inner->field_97E = mode;
+                        func_80108E0C(arg0, node);
+                    }
+                }
+            }
+        }
+    }
+    if (Game_Session->field_58 & 0xF000) {
+        inner->field_962 |= inner->field_970;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010A854);
 

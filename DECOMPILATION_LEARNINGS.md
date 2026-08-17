@@ -17260,4 +17260,35 @@ slot  = &Mc_SaveData.field_1C8[arg0]; /* sll; lui v1; addiu; addu a2,v0,v1 */
 `func_800BB0CC` is the example. Pinning `slot` to `$a2` stuck at 99.6%
 with only those three address instructions different.
 
+## Reuse the mask temp so the second `pad & MASK` writes `$v0`
+
+A d-pad word used twice (`bits = pad & 0xF000`, then `else if (pad & 0x5000)`)
+lets GCC and in-place on `pad` (`andi v1, v1, 0x5000` in the `bne` delay).
+The target wants `andi v0, v1, 0x5000` so the following `beqz` reads `$v0`.
+
+Assign the second mask back into the same `s32` that held the first. `bits`
+stays in `$v0` across both compares; `pad` stays in `$v1` for the delay-slot
+andi. A dedicated `next` temp for the timer reload (not the countdown `timer`)
+also keeps `$v0` live through `lhu pad`, so the store fills the load delay:
+
+```c
+next             = (rand() & 0x1F) + 0xA;
+pad              = inner->field_962;
+inner->field_990 = next;          /* lhu v1; sb v0 */
+bits             = pad & 0xF000;  /* andi v0, v1, 0xF000 */
+if (bits == left || bits == (right = 0x2000)) {
+    ...
+} else {
+    bits = pad & 0x5000;          /* andi v0, v1, 0x5000 */
+    if (bits) {
+        ...
+    }
+}
+```
+
+`(s8)timer` after `timer = u8_field - 1` is the zero test as `sll 24; bnez`
+(not `andi 0xff`). Reusing `timer` for `next`, or writing `else if (pad & 0x5000)`
+without the `bits =` assign, stuck at 97% with only that load/store order and
+the andi dest swapped. `func_8010A670` is the example.
+
 
