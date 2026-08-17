@@ -1102,11 +1102,11 @@ Trailing pad keeps pointer alignment; full object size is not known yet.
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x4C | `field_4C` | Flag byte; bit 0x4 tested by `func_800E2F7C` |
+| 0x4C | `field_4C` | Flag byte; `func_800E2DE4` ORs bit 0x4; `func_800E2F7C` tests that bit |
 | 0x50 | `field_50` | `GpPairSrcE*` source object |
-| 0x59 | `field_59` | u8 countdown; `func_800E2EC4` decrements it and reseeds `((D_80070F60 * 5 + 0x71357911) >> 16 & 0xF) + 0x53` on expiry |
-| 0x5A | `field_5A` | u8 counter; incremented by `func_800E2EC4` on `field_59` expiry; compared by `func_800E2F7C` against the scaled `field_50->field_E` |
-| 0x5C | `field_5C` | u8 index into `D_80113D28` / `D_80113D38` |
+| 0x59 | `field_59` | u8 countdown; seeded by `func_800E2DE4` and reseeded by `func_800E2EC4` as `((D_80070F60 * 5 + 0x71357911) >> 16 & 0xF) + 0x53` |
+| 0x5A | `field_5A` | u8 counter; cleared by `func_800E2DE4`; incremented by `func_800E2EC4` on `field_59` expiry; compared by `func_800E2F7C` against the scaled `field_50->field_E` |
+| 0x5C | `field_5C` | u8 index into `D_80113D28` / `D_80113D38`; `func_800E2DE4` writes `D_80114C08.field_0 % 10` when `arg1` has the 0x8000 bit, else 0 |
 
 ### `GpObj5D` (0x60) — `3A34.h`
 Sparse overlay of the same object family as `GpObj4C` / `GpObj50`.

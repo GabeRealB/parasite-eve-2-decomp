@@ -333,6 +333,11 @@ typedef struct _GpObj5D {
 STATIC_ASSERT_SIZEOF(GpObj5D, 0x60);
 
 /// Sparse overlay of the same object family as `GpObj5D` / `GpObj50`.
+/// `func_800E2DE4` rolls `(D_80070F60 * 5 + 0x71357911) >> 16 & 0xFFF`
+/// against `field_50->field_D << 12 / 100`. On a hit it clears
+/// `field_5A`, ORs bit 0x4 into `field_4C`, reseeds `field_59` from
+/// `D_80070F60`, and writes `field_5C` from `D_80114C08.field_0 % 10`
+/// when `arg1` has the 0x8000 bit (else 0).
 /// `func_800E2F7C` tests bit 0x4 of `field_4C` and compares `field_5A`
 /// against `field_50->field_E * D_80113D28[field_5C] / 100`.
 /// `func_800E2EC4` decrements `field_59` and, on expiry, increments
@@ -737,6 +742,7 @@ void func_800E2C78(GpObj40* arg0, s32 arg1, s32 arg2);
 s32  func_800E2CD4(s32 arg0, s32 arg1);
 s32  func_800E2D3C(s32 arg0);
 s32  func_800E2D90(s32 arg0);
+void func_800E2DE4(GpObj5C* arg0, s32 arg1);
 s32  func_800E2EC4(GpObj5C* arg0);
 s32  func_800E2F7C(GpObj5C* arg0);
 void func_800E3008(GpObj4C* arg0);

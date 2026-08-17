@@ -1686,7 +1686,28 @@ s32 func_800E2D90(s32 arg0)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E2DE4);
+void func_800E2DE4(GpObj5C* arg0, s32 arg1)
+{
+    s32 val;
+    s32 limit;
+    s32 rand;
+
+    val        = arg0->field_50->field_D;
+    limit      = (val << 12) / 100;
+    D_80070F60 = D_80070F60 * 5 + 0x71357911;
+    rand       = (u32)D_80070F60 >> 16 & 0xFFF;
+    if (rand < limit) {
+        arg0->field_5A  = 0;
+        arg0->field_4C |= 4;
+        D_80070F60      = D_80070F60 * 5 + 0x71357911;
+        arg0->field_59  = ((u32)D_80070F60 >> 16 & 0xF) + 0x53;
+        if ((arg1 & 0x8000) == 0) {
+            arg0->field_5C = 0;
+            return;
+        }
+        arg0->field_5C = D_80114C08.field_0 % 10U;
+    }
+}
 
 s32 func_800E2EC4(GpObj5C* arg0)
 {
