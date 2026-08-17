@@ -165,7 +165,8 @@ typedef struct _GameActor {
     /* 0x06A */ s16                 field_6A; // aim/look yaw offset; func_8010BE5C
     /* 0x06C */ byte                pad_6C[4];
     /* 0x070 */ s16                 field_70;
-    /* 0x072 */ byte                pad_72[0x10];
+    /* 0x072 */ byte                pad_72[0xE];
+    /* 0x080 */ s16                 field_80; // copied from func_80104F5C arg2
     /* 0x082 */ s16                 field_82; // target facing angle; func_80108BD8
     /* 0x084 */ byte                pad_84[0xC];
     /* 0x090 */ s32                 field_90;

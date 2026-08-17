@@ -572,6 +572,8 @@ argument of `func_80105B74` onto the slot-3 actor.
 `field_50`/`field_52`/`field_54` are an `SVECTOR` (vx/vy/vz) written by `func_80104D68`
 from its pose argument and passed to `RotMatrix`; `field_52` is also the facing
 angle (`lh`) used by `func_8010BCF4` / `func_80103E7C`.
+`field_80` is an s16 sibling of `field_82`. `func_80104F5C` copies the low 16 bits
+of its `GpFacingArg.field_0` here (and `field_4` onto `field_82`).
 `field_82` is an s16 target facing angle. `func_80108BD8` compares it to `field_52`
 (including the `tgt - 0x1000` wrap) and either snaps `field_52` to it or steps
 toward it by a `func_80103E7C` delta clamped to `[-0x40, 0x40]`.

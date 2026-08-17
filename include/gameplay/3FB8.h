@@ -237,6 +237,15 @@ typedef struct _GpAimScratch {
 } GpAimScratch;
 STATIC_ASSERT_SIZEOF(GpAimScratch, 0x68);
 
+/// Argument for `func_80104F5C`. `field_0` (low 16 bits) is copied onto
+/// `GameActor.field_80`; `field_4` is copied onto `GameActor.field_82`.
+/// Nonzero `field_0` selects anim 0x25, else 0x24, via `func_8010397C`.
+typedef struct _GpFacingArg {
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ s16 field_4;
+} GpFacingArg;
+STATIC_ASSERT_SIZEOF(GpFacingArg, 8);
+
 /// Argument for `func_801052B8`. `field_0` is copied onto
 /// `GameActor.field_93E`; `field_4` is copied onto `GameActor.field_934`.
 typedef struct _GpCountArg {
