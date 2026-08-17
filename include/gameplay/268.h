@@ -260,6 +260,7 @@ GpItemMap*  func_800BBDC8(s32 arg0);
 s32         func_800BBDDC(void);
 void        func_800BBE54(void);
 s32         func_800BBEC0(s32 arg0);
+void        func_800BBF84(void);
 s32         func_800BC06C(s32 arg0);
 void        func_800BC0C0(void);
 s32         func_800BC18C(s32 arg0);

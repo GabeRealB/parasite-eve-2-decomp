@@ -1401,7 +1401,40 @@ void func_800BBF1C(void)
     func_801061F0();
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBF84);
+void func_800BBF84(void)
+{
+    McSaveData* p;
+    GpItemDesc* desc;
+    u8*         str;
+    s32         i;
+    s32         count;
+
+    p = &Mc_SaveData;
+    for (i = 0x5F; i >= 0; i--) {
+        p->field_6D0[i] = 0;
+    }
+
+    i = 0;
+    do {
+        count = 3;
+        if (i < 0x100) {
+            desc = &D_8010D838[i];
+        } else {
+            desc = &D_8010D638[i];
+        }
+        str = desc->field_4;
+        while (count > 0) {
+            if (*str == 0 || *str == 0xA) {
+                count--;
+            }
+            str++;
+        }
+        if (*str == 0xA) {
+            func_800BB7C0(i, 1);
+        }
+        i++;
+    } while (i < 0x180);
+}
 
 s32 func_800BC06C(s32 arg0)
 {

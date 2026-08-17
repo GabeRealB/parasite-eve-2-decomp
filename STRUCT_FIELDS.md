@@ -1317,14 +1317,17 @@ write one. `func_800BAB64` applies `field_0`'s record lists into `field_4`.
 | 0x04 | `field_4` | `u32*` packed 2-bit flags (16 fields per word; index `>> 4` / `& 0xF`) |
 
 ### `GpItemDesc` (0x8) — `4CC.h`
-Indexed as `D_8010D838[itemId]` by `func_800BF334`. `field_3` bit 0
-selects whether the function returns `arg1 == 1` (else 0), before the
-`D_80114D7C == 0x703` / item `0x81` / `D_8007216F == 1` override.
+Indexed as `D_8010D838[itemId]` by `func_800BF334`. `func_800BBF84` /
+`func_800B8EB0` select `D_8010D838[id]` when `id < 0x100` and
+`D_8010D638[id]` otherwise (same raw index, different base). `field_3`
+bit 0 selects whether `func_800BF334` returns `arg1 == 1` (else 0),
+before the `D_80114D7C == 0x703` / item `0x81` / `D_8007216F == 1`
+override.
 
 | Off | Member | Role |
 |-----|--------|------|
 | 0x03 | `field_3` | Flags; bit 0 tested by `func_800BF334` |
-| 0x04 | `field_4` | Pointer (name string in `func_800B8EB0`) |
+| 0x04 | `field_4` | Name string; fields separated by NUL or `'\n'`. `func_800BBF84` skips 3 delimiters and sets the item's `field_6D0` bit when the next byte is `'\n'` |
 
 ### `GpItemObj8` — `4CC.h`
 Object at `Task::spawnArg2` for `func_800BF5CC` / `func_800BF624` /

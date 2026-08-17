@@ -26,9 +26,12 @@ typedef struct _GpItemObj2 {
     /* 0x02 */ u8   field_2;
 } GpItemObj2;
 
-/// 8-byte item descriptor in `D_8010D838`, indexed by item id.
+/// 8-byte item descriptor in `D_8010D838` / `D_8010D638`, indexed by item id.
+/// `func_800BBF84` / `func_800B8EB0` use `D_8010D838[id]` when `id < 0x100`
+/// and `D_8010D638[id]` otherwise (same raw index, different base).
 /// `field_3` bit 0 gates the `arg1 == 1` result in `func_800BF334`.
-/// `field_4` is a name/string pointer walked by `func_800B8EB0`.
+/// `field_4` is a name/string pointer walked by `func_800B8EB0` /
+/// `func_800BBF84` (fields separated by NUL or `'\n'`).
 typedef struct _GpItemDesc {
     /* 0x00 */ u8    field_0;
     /* 0x01 */ u8    field_1;
@@ -39,6 +42,8 @@ typedef struct _GpItemDesc {
 STATIC_ASSERT_SIZEOF(GpItemDesc, 0x8);
 
 extern GpItemDesc D_8010D838[];
+/// Second item-descriptor base. Indexed as `D_8010D638[id]` for `id >= 0x100`.
+extern GpItemDesc D_8010D638[];
 /// Packed item/location halfword. High byte selects a UI path in
 /// `func_800CDFA8` (0/1, 8, or default); low byte is written to
 /// `Mc_SaveData.field_12` on the case-8 path. Copied into `D_80114D7C`
