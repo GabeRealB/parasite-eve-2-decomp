@@ -262,8 +262,8 @@ typedef struct _GpDelayArg {
     /* 0x14 */ s32  field_14;
 } GpDelayArg;
 
-/// 0x14-byte argument for `func_80104CAC`. `field_0` is copied to
-/// `GameActor.field_928`. `field_8 == 0` runs `func_800B3F84` +
+/// 0x14-byte argument for `func_80104B54` / `func_80104CAC`. `field_0` is
+/// copied to `GameActor.field_928`. `field_8 == 0` runs `func_800B3F84` +
 /// `func_801038F8`; otherwise `func_80103A18(..., field_4, 0, field_C)`.
 /// `field_10` selects `field_983` (7 if nonzero, `0x38` if zero).
 typedef struct _GpAnimArg {

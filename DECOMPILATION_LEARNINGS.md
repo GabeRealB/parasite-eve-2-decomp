@@ -69,6 +69,12 @@ value to `$t0`/`$t1`. Incoming `a1`/`a2` that must be saved then shift
 stream is otherwise identical. `asm("")` after the store keeps it early but
 does not fix the coloring.
 
+A named temp that matches in a shorter sibling (`flag = arg->field;
+if (flag == 0) flag = 0x38; else flag = 7; dest = flag`) can flip the
+same phi to `$v1` once extra callee-saved regs are live (`s3` for
+`extra` in `func_80104B54`). Writing both constants onto the destination
+field recovers `$v0`.
+
 ```c
 if (arg0->field_C == 1) {
     p->clut = 0x3C09;
