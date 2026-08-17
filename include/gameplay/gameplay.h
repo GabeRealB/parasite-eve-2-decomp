@@ -19,7 +19,8 @@
 /// `field_A` is a signed byte (`lb`); `func_800A7DE0` sets `field_3 = 2`
 /// when it is >= 2, then clears it. `func_800A7574` also zeros `field_A`,
 /// `field_C`..`field_F`, `field_10`/`field_12`/`field_14`, and
-/// `field_16`/`field_17`.
+/// `field_16`/`field_17`. Those two bytes are also the item 4 / item 8
+/// gates in `func_800D6170` (`lb`).
 typedef struct _GpStateC08 {
     /* 0x00 */ u16  field_0;
     /* 0x02 */ byte pad_2;

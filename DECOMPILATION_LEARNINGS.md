@@ -17187,4 +17187,49 @@ slot->field_6  = sets[arg2]->field_4[slot->field_15];
 `field_4[slot->field_15]` for the same reason). The `(u8)arg3` form
 stuck at 98.8% with only those six registers swapped.
 
+## Write switch cases in target body order, not numeric order
+
+GCC 2.8.1 emits `switch` case bodies in **source order**. The jump table
+still indexes by `arg - first`, but the `.rdata` words point at whatever
+label order the bodies were written.
+
+`func_800D6170` has case 8's `lb` immediately after case 4's `lb`, then
+cases 5 / 6-7. Writing `case 8:` after `case 7:` stuck at 95% with the
+case-8 block inserted after 6-7 and the table slots swapped. Moving
+`case 8:` to sit under `case 4:` matched the table and the instruction
+stream.
+
+```c
+case 4:
+    if (D_80114C08.field_16 == 0) {
+        ret = 0;
+    }
+    break;
+case 8: /* body is next in the target, even though 5-7 come later */
+    if ((s8)D_80114C08.field_17 == 0) {
+        ret = 0;
+    }
+    break;
+case 5:
+    ...
+```
+
+## Overlay jtbl: move `.rodata, TU` to the new C table, leave later asm
+
+A gameplay switch whose jump table sits in the middle of an asm rodata
+block cannot just emit another table at the current C `.rodata` cursor
+(that is the *next* already-matched jtbl). Move the yaml
+`[offset, .rodata, TU]` start to this table. Splat then:
+
+- keeps earlier unmatched tables in the preceding `rodata_TU` file
+- migrates later unmatched strings/jtbls onto the `INCLUDE_ASM` functions
+  that reference them
+- leaves a hole for symbols used only by already-matched C
+
+Fill that hole with a `const` in the C file **after** the `INCLUDE_ASM`
+that emits the previous rodata, so `.rdata`/`.rodata` concatenation stays
+packed. `func_800D6170` is the example: yaml `.rodata, 3A34` moved from
+`0x3CB4` to `0x3B3C`, and `D_80097454` is a C `const char[]` after
+`func_800D6334`.
+
 

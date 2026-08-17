@@ -548,9 +548,12 @@ extern GpRec16 D_8011398C[];
 /// `field_50->field_E` by the selected entry and divides by 100.
 extern u16 D_80113D28[];
 
-/// "Weapon" string drawn by `func_800D6AA4`.
-extern char D_80097454[];
+/// "Weapon" string drawn by `func_800D6AA4` (trailing 0x60 byte).
+extern const char D_80097454[];
 
+/// Returns 1 if item `arg0` cannot be used, 0 if it can.
+/// `arg1` supplies `field_2` (capacity) for ammo ids 0xA0–0xBF.
+s32        func_800D6170(s32 arg0, GpItemRec* arg1);
 s32        func_800D68C4(s32 arg0);
 GpItemRec* func_800D6910(s32 arg0);
 GpItemRec* func_800D6994(s32 arg0);

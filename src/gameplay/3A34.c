@@ -13,15 +13,102 @@
 #include "main/task.h"
 #include "main/tmd.h"
 #include "main/ui.h"
+#include "main/wipsys.h"
 
 s32  func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D5B14);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D6170);
+s32 func_800D6170(s32 arg0, GpItemRec* arg1)
+{
+    WipSysConfig* cfg;
+    GpItemScan*   scan;
+    s32           ret;
+    s32           val;
+
+    ret = 1;
+    cfg = &Wip_SysConfig;
+    if (arg0 != 0) {
+        if ((u32)(arg0 - 0x80) < 0x20U) {
+            ret = 0;
+        } else if ((u32)(arg0 - 0xA0) < 0x20U) {
+            scan = &Mc_SaveData.field_5BC;
+            val  = arg1->field_2 - func_800BAFF4(scan, arg0);
+            if (val > 0) {
+                if (func_800B715C(scan, cfg->field_21 + 0x7F, arg0, 0) == 0) {
+                    ret = 0;
+                }
+            }
+        } else if ((u32)(arg0 - 1) < 0x41U) {
+            switch (arg0) {
+                case 1:
+                case 2:
+                case 3:
+                    if (cfg->field_18 < cfg->field_1a) {
+                        ret = 0;
+                    }
+                    break;
+                case 4:
+                    if (D_80114C08.field_16 == 0) {
+                        ret = 0;
+                    }
+                    break;
+                case 8:
+                    if ((s8)D_80114C08.field_17 == 0) {
+                        ret = 0;
+                    }
+                    break;
+                case 5:
+                    if (cfg->field_1c < cfg->field_1e) {
+                        ret = 0;
+                    } else if (cfg->field_18 < cfg->field_1a) {
+                        ret = 0;
+                    }
+                    break;
+                case 6:
+                case 7:
+                    if (cfg->field_1c < cfg->field_1e) {
+                        ret = 0;
+                    }
+                    break;
+                case 0x3A:
+                case 0x3B:
+                case 0x3C:
+                case 0x41:
+                    ret = 0;
+                    break;
+                case 0x3D:
+                    if (cfg->field_1c < cfg->field_1e) {
+                        ret = 0;
+                    } else if (cfg->field_18 < cfg->field_1a) {
+                        ret = 0;
+                    }
+                    break;
+                case 0x3E:
+                    if (func_800B9D80(0x140) == 0) {
+                        ret = 0;
+                    }
+                    break;
+            }
+        }
+    }
+    return ret;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D6334);
+
+/* After Armor/Attachments from func_800D6334 so overlay .rodata stays packed. */
+const char D_80097454[] = {
+    'W',
+    'e',
+    'a',
+    'p',
+    'o',
+    'n',
+    '\0',
+    0x60,
+};
 
 s32 func_800D68C4(s32 arg0)
 {

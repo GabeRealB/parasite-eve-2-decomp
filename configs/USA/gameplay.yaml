@@ -83,7 +83,7 @@ segments:
       - [0x668, rodata, rodata_4CC_2]
       - [0x3688, rodata, rodata_3688]
       - [0x3A34, rodata, rodata_3A34]
-      - [0x3CB4, .rodata, 3A34] # jtbl from func_800E0540
+      - [0x3B3C, .rodata, 3A34] # jtbl from func_800D6170 + mid + func_800E0540
       - [0x3CC8, rodata, rodata_3A34_2] # D_800974C8
       - [0x3CD8, rodata, rodata_3CD8]
       - [0x3E60, .rodata, 3CD8] # jtbl from func_800E9BDC

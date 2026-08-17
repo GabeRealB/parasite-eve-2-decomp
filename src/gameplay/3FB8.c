@@ -28,7 +28,6 @@ extern u16            D_80112DF4[];
 extern u16            D_80113360[];
 extern void*          D_80113368[];
 
-s32  func_800B9D80(s32 arg0);
 s32  func_8010A854(s32 arg0);
 void func_80101848(GpActorWork* arg0);
 void func_80101A68(GpActorWork* arg0);
