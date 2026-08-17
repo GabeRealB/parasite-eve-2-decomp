@@ -30,6 +30,8 @@ void func_800AD024(void);
 void func_800AD410(void* arg0, GpCb68Obj* arg1);
 void func_800AD620(Task* task);
 void func_800AD65C(Task* task);
+void D_8017DA78(s32 arg0, s32 arg1);
+void D_8017EF60(s32 arg0, s32 arg1);
 void func_80724748(GameSessionFrom4* arg0);
 void func_80724E2C(void);
 
@@ -1038,7 +1040,29 @@ void func_800AE45C(void)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AE53C);
+void func_800AE53C(void)
+{
+    void (*fns[2])(s32, s32) = { D_8017DA78, D_8017EF60 };
+
+    if (Game_Session->field_1 != 0) {
+        D_80114CF8 = 0;
+        D_80114CD9 = 0;
+        D_80114CD8 = 0;
+        D_80114CD2 = 0;
+        D_80114CDB = 0;
+        D_80114CDA = 0;
+        D_80114CD4 = 0;
+    } else {
+        fns[(D_80114CD2 >> 8) & 0x7F](D_80114CD8, D_80114CD9);
+        D_80114CF8 = 0;
+        D_80114CD9 = 0;
+        D_80114CD8 = 0;
+        D_80114CD2 = 0;
+        D_80114CDB = 0;
+        D_80114CDA = 0;
+        D_80114CD4 = 0;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AE62C);
 

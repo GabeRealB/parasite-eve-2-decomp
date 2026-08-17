@@ -19372,4 +19372,27 @@ if (iter->spawnType == 1) {
 `func_800B56AC` is the example. The same load inside the `if` stuck at
 97.9% (one extra instruction).
 
+## Local 2-func table: use an initializer so the prologue saves come first
+
+A stack jump table plus callee-saved addresses live across a `jalr` needs
+the `$ra`/`$s*` stores immediately after `addiu $sp`. Separate assignments
+let the scheduler emit the first `lui`/`addiu`/`sw` of the table *before*
+those saves (96% — only the prologue order differs):
+
+```c
+void (*fns[2])(s32, s32);
+fns[0] = D_8017DA78;
+fns[1] = D_8017EF60;
+```
+
+An initializer is a distinct RTL block, so GCC emits the full prologue
+then the two address stores — the same shape as `func_800AD5B8`:
+
+```c
+void (*fns[2])(s32, s32) = { D_8017DA78, D_8017EF60 };
+```
+
+`func_800AE53C` is the example. Index `(u16 >> 8) & 0x7F` is what produces
+`srl 6` / `andi 0x1FC` (plain `>> 8` is `andi 0x3FC`).
+
 
