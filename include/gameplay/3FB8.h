@@ -263,6 +263,7 @@ void func_801088D4(GpActorWork* arg0, s32 arg1, s32 arg2);
 /// `Mc_SaveData.field_13 == 1`.
 void func_80166E94(void* arg0, s32 arg1);
 void func_80109170(GpActorWork* arg0);
+s32  func_80109290(GpActorWork* arg0);
 void func_8010A1B0(s32 arg0, s32 arg1);
 void func_8010A42C(GpActorWork* arg0, s32 arg1);
 void func_80103B5C(GpActorWork* arg0);

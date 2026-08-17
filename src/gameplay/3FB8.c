@@ -61,7 +61,6 @@ void func_8010870C(GpActorWork* arg0, s32 arg1);
 void func_80108770(GpActorWork* arg0, s32 arg1);
 void func_80108874(GpActorWork* arg0);
 void func_80108E0C(GpActorWork* arg0, GpLinkNode* arg1);
-void func_80109290(GpActorWork* arg0);
 void func_80109374(GpActorWork* arg0);
 void func_801093DC(GpActorWork* arg0);
 void func_801095BC(s32* arg0);
@@ -2033,7 +2032,46 @@ void func_80109250(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109290);
+s32 func_80109290(GpActorWork* arg0)
+{
+    GameActor*   inner;
+    u16          prev;
+    u16          tens;
+    s32          ret;
+    register s32 temp asm("v0");
+
+    ret = 0;
+    if (D_80114C08.field_3 == -2) {
+        inner            = arg0->actor;
+        prev             = inner->field_956;
+        inner->field_956 = 6;
+        inner->field_954 = 0;
+        inner->field_958 = 0;
+        inner->field_95A = 0;
+        inner->field_95C = 0;
+        inner->field_95E = 0;
+        inner->field_973 = 0;
+        inner->field_97E = 1;
+        inner->field_960 = prev;
+        temp             = (D_80114C08.field_0 % 100U) / 10U;
+        tens             = temp;
+        if (D_80114C08.field_0 >= 0x259U) {
+            if (tens == 1) {
+                inner->field_93C = 0;
+            } else {
+                inner->field_93C = 1;
+            }
+        } else if (tens == 3) {
+            inner->field_93C = 2;
+        } else if (D_80114C08.field_0 < 0x12CU) {
+            inner->field_93C = 1;
+        } else {
+            inner->field_93C = 0;
+        }
+        ret = 1;
+    }
+    return ret;
+}
 
 void func_80109374(GpActorWork* arg0)
 {

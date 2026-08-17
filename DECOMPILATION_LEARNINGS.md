@@ -18210,4 +18210,53 @@ asm("" :: "r"(max));
 is the example. Assigning `max` before the scratch address stuck at
 97.9% with only those two instruction pairs swapped.
 
+## Pin `div` in `$v0` so `sltiu` cannot hoist into `multu`
+
+`n % 100U / 10U` then `if (n >= K)` are independent, so `-O2` fills the
+`multu` latency with the compare (`sltiu` / `bnez` / `srl` in the delay
+slot). The target finishes the divide first:
+
+```
+multu  v0, v1
+mfhi   t0
+srl    v0, t0, 3
+andi   v1, v0, 0xFFFF
+sltiu  v0, a0, K
+bnez   v0, lt
+li     v0, 3          /* delay: else-arm compare */
+```
+
+`$v0` holds the quotient until the `u16` truncate, so `sltiu` must wait.
+Without that pin, `sltiu` takes `$v0` and the quotient lands in `$v1`.
+
+Assign the divide to `register s32 temp asm("v0")`, then truncate:
+
+```c
+register s32 temp asm("v0");
+u16          tens;
+
+temp = (id % 100U) / 10U;
+tens = temp;
+if (id >= 0x259U) {
+    if (tens == 1) {
+        p->field = 0;
+    } else {
+        p->field = 1;
+    }
+} else if (tens == 3) {
+    p->field = 2;
+} else if (id < 0x12CU) {
+    p->field = 1;
+} else {
+    p->field = 0;
+}
+```
+
+`if (tens == 1)` (zero arm first) is required so the later `< 0x12C`
+case emits `bnez` back to the shared `sh v0`. `if (tens != 1)` first
+stuck at 93% with an extra `j` / `sh v0` and `beqz` to the zero store.
+
+`func_80109290` is the example. A plain `u16 tens = (id % 100U) / 10U`
+stuck at 85.7% with only that schedule and the last branch inverted.
+
 
