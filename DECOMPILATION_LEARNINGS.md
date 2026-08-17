@@ -3,6 +3,34 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Capture the table pointer before `idx + (byte - K)`
+
+`table[arg2 + byte - 2]` reassociates: GCC either folds the subtract into
+the load (`lbu -2(ptr)`) or into the symbol (`%lo(table-2)`). The target
+subtracts from the loaded byte first, then adds into the still-live arg:
+
+```
+lui    v1,%hi(table)
+lui    v0,%hi(global)
+lbu    v0,%lo(global+off)(v0)
+addiu  v1,v1,%lo(table)
+addiu  v0,v0,-2
+addu   a2,a2,v0
+addu   a2,a2,v1
+lbu    v0,0(a2)
+```
+
+Assign the table to a local, then the subtract, then index:
+
+```c
+table = D_80112DFC;
+type  = Wip_SysConfig.field_26 - 2;
+task  = Task_Spawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
+```
+
+`func_80104258` is the example. Inlining the table stuck at 96.8%
+(`lbu -2`) or 97.4% (`%lo(D_80112DFC-2)`).
+
 ## Split two `arg0->actor` reloads so they take `$a3` then `$v0`
 
 Reusing one local for both `actor = arg0->actor` reloads (across

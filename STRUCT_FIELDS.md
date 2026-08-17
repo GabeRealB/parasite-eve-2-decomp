@@ -620,6 +620,9 @@ unlinked by `func_800E1638` during actor teardown (`func_80101408`).
 slot 3; `func_80106238` replaces bits 14–15 with `(arg1 << 1) | arg2`.
 `field_90C` is a `GpLinkNode*` (same object as `func_800DAB38` unlinks); `func_80103B5C` clears `node->field_5` then nulls the slot. `func_800DB0D8` walks both `D_80115760[]` slots and clears `field_5` without nulling the pointer. `func_800DAC54` returns a 2-bit mask of those slots whose `field_90C` equals the given node. `func_800DACAC` assigns the node onto `D_80115760[0]`'s actor, clearing the previous node's `field_5` and this node's `field_4` bit 0. `func_800DACF8` is the inverse: it nulls any `D_80115760[]` slot whose `field_90C` is this node, clears `field_5`, and sets `field_4` bit 0.
 `field_910` is a `GpActorD4*` (0xD4-byte block from `func_8010BAC8`); `func_8010BF7C` writes `field_C4` as `arg1 + (arg2 & func_80037164())`.
+`func_80104258` tests it as a NULL check on the parent actor: non-NULL writes
+`TmdObject.field_24/field_25 = 4/6` on the spawned extra, else `6/0`, then
+runs `Tmd_ProcessStream` twice.
 `field_914`..`field_924` are child `Task*` slots killed (if non-NULL) on that path.
 `field_944`..`field_950` / `field_970` are s16 timers written to `0x258` by `func_8010A42C`;
 `field_954` is a u16 (`lhu`/`sh`) cleared with the 0x954–0x95E cluster (nonzero skips the 0x6A adjust in `func_80109720`);

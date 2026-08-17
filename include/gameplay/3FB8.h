@@ -231,6 +231,10 @@ extern GpActorFuncTable4 D_800979F8;
 /// `field_956` dispatcher copied by `func_80108ED4`.
 extern GpActorFuncTable12 D_80097A08;
 
+/// u8 Task_Spawn type bases. `func_80104258` indexes
+/// `D_80112DFC[arg2 + Wip_SysConfig.field_26 - 2]`.
+extern u8 D_80112DFC[];
+
 /// Pad-event templates for `func_801041FC` (`D_80112E28[arg1 & 0xFFFF]`).
 extern GpPadEvt D_80112E28[];
 

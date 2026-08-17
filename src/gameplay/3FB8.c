@@ -13,6 +13,7 @@
 #include "main/pad.h"
 #include "main/task.h"
 #include "main/sound.h"
+#include "main/tmd.h"
 #include "main/wipsys.h"
 
 #include <psyq/abs.h>
@@ -684,7 +685,42 @@ void func_801041FC(GpActorWork* arg0, s32 arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104258);
+Task* func_80104258(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    Task*         task;
+    GameActor*    actor;
+    GameActorExt* extra;
+    GpCoordExt*   coord;
+    TmdObject*    obj;
+    s32*          saved;
+    u8*           table;
+    s32           type;
+
+    extra = arg0->extra;
+    actor = arg0->actor;
+    saved = (s32*)&((GsCOORDINATE2*)extra->field_8)[D_80112E04[arg2][arg1]];
+    table = D_80112DFC;
+    type  = Wip_SysConfig.field_26 - 2;
+    task  = Task_Spawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
+    if (task == NULL) {
+        return NULL;
+    }
+    task->parent    = (Task*)arg0;
+    coord           = (GpCoordExt*)((GameActorExt*)task->extra)->field_8;
+    coord->sub      = saved;
+    coord->field_44 = 0;
+    obj             = (TmdObject*)task->extra;
+    if (actor->field_910 != NULL) {
+        obj->field_24 = 4;
+        obj->field_25 = 6;
+    } else {
+        obj->field_24 = 6;
+        obj->field_25 = 0;
+    }
+    Tmd_ProcessStream(obj);
+    Tmd_ProcessStream(obj);
+    return task;
+}
 
 Task* func_80104364(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
