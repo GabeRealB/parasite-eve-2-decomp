@@ -730,6 +730,21 @@ Task overlay: `actor` is `Task::idMap` at 0x1C; `extra` is `Task::extra` at
 0x2C (`GameActorExt*`). `func_8010B120` passes `extra->field_8` to
 `func_800D937C` / `func_800D9340` as a `GpObj38*`.
 
+### `GpEffWork` (0x2C) — `3FB8.h`
+`Task::spawnArg2` for `func_800F1A9C` / `func_800F75BC` / `func_800F77F8` /
+`func_800FE41C`. Allocated by `func_800EA478` (`Mem_Calloc(0x2C)`).
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x08 | `field_8` | Parent `GsCOORDINATE2*`; copied to `coord->sub` on first run |
+| 0x10 | `field_10` | 3-halfword overlay passed to `func_800EA478` (`&field_10`) |
+| 0x18/1A/1C | `field_18/1A/1C` | s16 translation; sign-extended into `coord.t[]` |
+| 0x22 | `field_22` | Step counter (`func_800F1A9C` / `func_800FE41C`) |
+| 0x24 | `field_24` | Scale / packed `spawnArg1` lo (`func_800FE41C` copies `GpEffSpawnArg.field_0`) |
+| 0x26 | `field_26` | Target scale / `spawnArg1` hi (`func_800FE41C` copies `GpEffSpawnArg.field_2`) |
+| 0x28 | `field_28` | Size / lifetime (`func_800FE41C` sets `field_26 << 2`) |
+| 0x2A | `field_2A` | Packed draw param for `func_800F7AD4` |
+
 ### `GpStateC08` (0x18) — `gameplay.h`
 Global at `D_80114C08`. Splat also emits per-byte labels (`D_80114C0A` / `D_80114C0B` / …)
 for the same block.

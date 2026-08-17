@@ -151,7 +151,46 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FDB18);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FE034);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FE41C);
+void func_800FE41C(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    s16            flag;
+    s32            temp;
+
+    mem   = arg0->spawnArg2;
+    flag  = D_80115740->field_4;
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    if (flag >= 2) {
+        if (flag < 4) {
+            return;
+        }
+        func_800EC7E4(mem, arg0);
+    } else {
+        if (arg0->state == 0) {
+            coord->sub        = mem->field_8;
+            coord->coord.t[0] = mem->field_18;
+            coord->coord.t[1] = mem->field_1A;
+            coord->coord.t[2] = mem->field_1C;
+            coord->flg        = 0;
+            arg0->state       = 1;
+            mem->field_24     = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0;
+            temp              = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+            mem->field_26     = temp;
+            mem->field_28     = temp << 2;
+        }
+        func_80098F58(coord);
+        if (D_80115740->field_4 != 0) {
+            return;
+        }
+        mem->field_22++;
+        if (mem->field_22 >= mem->field_28) {
+            func_800EC7E4(mem, arg0);
+        } else {
+            func_800EA478(0x60070, coord, (mem->field_24 >> 2) + 0x80021400, (s32)&mem->field_10);
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FE56C);
 

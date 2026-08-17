@@ -114,21 +114,36 @@ typedef struct _GpEffArg {
 } GpEffArg;
 STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 
-/// Work at `Task::spawnArg2` for `func_800F1A9C` / `func_800F75BC` /
-/// `func_800F77F8`. `field_22` is the step counter `func_800F1A9C` passes
-/// to `func_800F1BEC`. `field_24` is the current scale stepped toward
-/// `field_26` (`func_800F75BC`) or the LCG angle (`func_800F1A9C`);
-/// `field_28` is the size faded by the later states; `field_2A` is the
-/// packed parameter passed through to `func_800F7AD4`. Full alloc size
-/// unknown.
+/// 0x2C-byte work at `Task::spawnArg2` for `func_800F1A9C` / `func_800F75BC` /
+/// `func_800F77F8` / `func_800FE41C` (`Mem_Calloc(0x2C)` in `func_800EA478`).
+/// `field_8` is the parent coordinate copied onto `GsCOORDINATE2.sub`.
+/// `field_10` is the 3-halfword overlay `func_800FE41C` passes to
+/// `func_800EA478`. `field_18` / `field_1A` / `field_1C` are sign-extended
+/// into `coord.t[]` on first run. `field_22` is the step counter
+/// `func_800F1A9C` passes to `func_800F1BEC`. `field_24` is the current
+/// scale stepped toward `field_26` (`func_800F75BC`) or the LCG angle
+/// (`func_800F1A9C`); `func_800FE41C` copies `spawnArg1` into `field_24` /
+/// `field_26` and sets `field_28 = field_26 << 2`. `field_2A` is the packed
+/// parameter passed through to `func_800F7AD4`.
 typedef struct _GpEffWork {
-    /* 0x00 */ byte pad_0[0x22];
-    /* 0x22 */ s16  field_22;
-    /* 0x24 */ s16  field_24;
-    /* 0x26 */ s16  field_26;
-    /* 0x28 */ s16  field_28;
-    /* 0x2A */ s16  field_2A;
+    /* 0x00 */ byte                  pad_0[8];
+    /* 0x08 */ struct _GsCOORDINATE2* field_8;
+    /* 0x0C */ byte                  pad_C[4];
+    /* 0x10 */ s16                   field_10;
+    /* 0x12 */ s16                   field_12;
+    /* 0x14 */ s16                   field_14;
+    /* 0x16 */ s16                   pad_16;
+    /* 0x18 */ s16                   field_18;
+    /* 0x1A */ s16                   field_1A;
+    /* 0x1C */ s16                   field_1C;
+    /* 0x1E */ byte                  pad_1E[4];
+    /* 0x22 */ s16                   field_22;
+    /* 0x24 */ s16                   field_24;
+    /* 0x26 */ s16                   field_26;
+    /* 0x28 */ s16                   field_28;
+    /* 0x2A */ s16                   field_2A;
 } GpEffWork;
+STATIC_ASSERT_SIZEOF(GpEffWork, 0x2C);
 
 /// Overlay of `Task::spawnArg1` for `func_800F75BC`. `field_0 & 0xFFF` is
 /// the target scale; `field_2 & 0xF` is the draw parameter. The parent
@@ -331,6 +346,7 @@ extern u8 D_80113388[];
 
 void func_800F75BC(Task* arg0);
 void func_800F7AD4(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
+void func_800FE41C(Task* arg0);
 void func_800FC6C0(void);
 void func_80101408(GpActorWork* arg0);
 void func_801041FC(GpActorWork* arg0, s32 arg1);

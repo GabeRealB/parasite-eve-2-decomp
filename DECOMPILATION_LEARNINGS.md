@@ -19475,4 +19475,48 @@ if (!(p->field_4 & 1)) {
 
 `func_800E9EFC` is the example.
 
+## `s32` dest forces `lh`; duplicate the shared call for kill-before-alt
+
+An `s16` field copied into another `s16` emits `lhu` (no sign extend). The
+same source assigned to an `s32` temp is `lh`, and that temp can then be
+stored and shifted without a second load:
+
+```c
+/* lhu / sh / sll 2 — wrong load */
+mem->field_26 = arg->field_2;
+mem->field_28 = mem->field_26 << 2;
+
+/* lh / sh / sll 2 */
+temp          = arg->field_2;
+mem->field_26 = temp;
+mem->field_28 = temp << 2;
+```
+
+A pause-flag early-out and a lifetime expiry that share a cleanup, with
+the still-alive path doing extra work, want the cleanup *before* the extra
+(`bnez extra; move a0, mem; jal cleanup; extra:`). One cleanup at the
+function tail after `if (alive) { extra; return; }` lays the extra first.
+Write the cleanup in both places so GCC merges them with the desired
+order:
+
+```c
+if (flag >= 2) {
+    if (flag < 4) {
+        return;
+    }
+    cleanup(mem, task);
+} else {
+    /* ... */
+    if (mem->field_22 >= mem->field_28) {
+        cleanup(mem, task);
+    } else {
+        extra(mem);
+    }
+}
+```
+
+`if (flag < 2) { work } else if (flag < 4) return; cleanup;` inlines the
+work (`beqz` over it). `flag >= 2` as the first test is what emits
+`bnez` to the work block. `func_800FE41C` is the example.
+
 
