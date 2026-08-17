@@ -747,6 +747,7 @@ void           SndEvt_Reset(void);
 s32            Midi_InitSystem(u32);
 s32            Midi_Tick(void);
 void           Snd_PollAsync(void);
+void           Snd_SetModeFlag(s32 arg0);
 void           Snd_RegisterTickCallbacks(void);
 s32            SndVoice_DriveSlots(void);
 s32            Snd_ReverbWarmupCb(s32* arg0);

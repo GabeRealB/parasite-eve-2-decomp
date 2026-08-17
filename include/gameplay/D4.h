@@ -104,9 +104,27 @@ STATIC_ASSERT_SIZEOF(GpDirPair, 8);
 
 extern GpDirPair D_801149FC[];
 
+/// 8-byte record in `D_80114198` / `D_801141F0` / `D_80114248`. Indexed by
+/// `GameFlag_GetNibble(0x4B / 0x4C / 0x4D)`. `field_0` is a per-room byte
+/// list, 1-based by `Mc_SaveData.field_6`; `field_4` is the stage id
+/// (`Mc_SaveData.field_7`). `func_800ABCC8` tests the room byte (second
+/// table with `& 0xF`) to choose the `Snd_SetModeFlag` argument.
+/// `func_800ABA4C` uses the same tables to pick `Mc_SaveData.field_13`.
+typedef struct _GpNpcRoomRec {
+    /* 0x0 */ u8*  field_0;
+    /* 0x4 */ u8   field_4;
+    /* 0x5 */ byte pad_5[3];
+} GpNpcRoomRec;
+STATIC_ASSERT_SIZEOF(GpNpcRoomRec, 8);
+
+extern GpNpcRoomRec D_80114198[];
+extern GpNpcRoomRec D_801141F0[];
+extern GpNpcRoomRec D_80114248[];
+
 void func_800A954C(Task* task);
 void func_800A9DF0(Task* task);
 void func_800AB980(struct _GameSessionFrom4* arg0);
+void func_800ABCC8(void);
 void func_800ABE68(struct _GpActorArg* arg0, u16* arg1);
 void func_800ABEF8(s32 arg0);
 void func_800ABF1C(struct _GpAreaKey* arg0);

@@ -429,7 +429,48 @@ void func_800AB980(GameSessionFrom4* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ABA4C);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ABCC8);
+void func_800ABCC8(void)
+{
+    McSaveData* save;
+    u8*         bytes;
+    s32         stage;
+    s32         flag;
+
+    save  = &Mc_SaveData;
+    stage = save->field_7;
+    if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x3200000) {
+        bytes = D_80114198[GameFlag_GetNibble(0x4B)].field_0;
+        if (bytes != NULL) {
+            if (D_80114198[GameFlag_GetNibble(0x4B)].field_4 == stage) {
+                if (bytes[save->field_6 - 1] != 0) {
+                    flag = 1;
+                    goto done;
+                }
+            }
+        }
+        bytes = D_801141F0[GameFlag_GetNibble(0x4C)].field_0;
+        if (bytes != NULL) {
+            if (D_801141F0[GameFlag_GetNibble(0x4C)].field_4 == stage) {
+                if (bytes[Mc_SaveData.field_6 - 1] & 0xF) {
+                    flag = 1;
+                    goto done;
+                }
+            }
+        }
+        bytes = D_80114248[GameFlag_GetNibble(0x4D)].field_0;
+        if (bytes != NULL) {
+            if (D_80114248[GameFlag_GetNibble(0x4D)].field_4 == stage) {
+                if (bytes[Mc_SaveData.field_6 - 1] != 0) {
+                    flag = 1;
+                    goto done;
+                }
+            }
+        }
+    }
+    flag = 0;
+done:
+    Snd_SetModeFlag(flag);
+}
 
 void func_800ABE68(GpActorArg* arg0, u16* arg1)
 {

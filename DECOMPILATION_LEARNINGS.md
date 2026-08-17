@@ -19095,4 +19095,42 @@ that `blez` delay slot as `move a0, zero`. A terminator compare of
 `-1` should be a hoisted local (`flag = -1`) so it lives in `$a2`.
 `func_800E40EC` is the example.
 
+## Index a global table inside the `jal` so fail paths preload `$a0`
+
+A cascade of `table[GetNibble(id)].field` lookups that share one tail
+call must keep the outgoing flag in `$a0` (the same register as the
+nibble ids). Two things fight that:
+
+1. `table = D_xxx; bytes = table[GetNibble(id)].field_0;` assigns the
+   table before the call, so the fail-path delay slot becomes
+   `lui next_table` instead of `li a0, next_id`.
+2. Assigning `flag = 0` before a later `GetNibble` forces `flag` into a
+   saved register (the call clobbers `$a0`).
+
+Index the global directly and only write `flag` on the success goto /
+shared zero tail:
+
+```c
+bytes = D_80114198[GameFlag_GetNibble(0x4B)].field_0;
+if (bytes != NULL) {
+    if (D_80114198[GameFlag_GetNibble(0x4B)].field_4 == stage) {
+        if (bytes[save->field_6 - 1] != 0) {
+            flag = 1;
+            goto done;
+        }
+    }
+}
+/* ...next table... */
+flag = 0;
+done:
+Snd_SetModeFlag(flag);
+```
+
+The table address then lands in the `jal` delay slot (`addiu s1, %lo`)
+and each fail branch preloads the next nibble id. Widen the cached
+compare byte to `s32` (`stage = save->field_7`) so `lbu field_4` /
+`bne v0, s2` does not emit `andi s2, 0xFF`. First `field_6` through
+the `save` pointer, later ones as `Mc_SaveData.field_6` so they
+rematerialize as `lui` / `lbu %lo`. `func_800ABCC8` is the example.
+
 
