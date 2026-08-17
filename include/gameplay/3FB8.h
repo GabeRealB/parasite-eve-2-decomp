@@ -88,6 +88,27 @@ typedef struct _GpEffArg {
 } GpEffArg;
 STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 
+/// Work at `Task::spawnArg2` for `func_800F75BC` / `func_800F77F8`.
+/// `field_24` is the current scale stepped toward `field_26`; `field_28`
+/// is the size faded by the later states; `field_2A` is the packed
+/// parameter passed through to `func_800F7AD4`. Full alloc size unknown.
+typedef struct _GpEffWork {
+    /* 0x00 */ byte pad_0[0x24];
+    /* 0x24 */ s16  field_24;
+    /* 0x26 */ s16  field_26;
+    /* 0x28 */ s16  field_28;
+    /* 0x2A */ s16  field_2A;
+} GpEffWork;
+
+/// Overlay of `Task::spawnArg1` for `func_800F75BC`. `field_0 & 0xFFF` is
+/// the target scale; `field_2 & 0xF` is the draw parameter. The parent
+/// word's `0x20000000` / `0x10000000` bits pick the start state.
+typedef struct _GpEffSpawnArg {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ s16 field_2;
+} GpEffSpawnArg;
+STATIC_ASSERT_SIZEOF(GpEffSpawnArg, 4);
+
 /// Record whose word at 0x4 is the id `func_8010B2D4` passes to
 /// `func_800E2438` (and `func_8010B348` passes to `func_800E2CD4`).
 /// `func_8010B348` also switches on the low 16 bits (2/4 vs 3) before
@@ -278,6 +299,8 @@ extern s16 D_80167218[];
 /// `func_80102634`; zero uses `D_80167218` with `func_80102D20`.
 extern u8 D_80113388[];
 
+void func_800F75BC(Task* arg0);
+void func_800F7AD4(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
 void func_800FC6C0(void);
 void func_80101408(GpActorWork* arg0);
 void func_801041FC(GpActorWork* arg0, s32 arg1);

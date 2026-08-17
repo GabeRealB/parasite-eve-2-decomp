@@ -81,8 +81,6 @@ void func_8010B120(GpActorWork* arg0);
 void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F75BC);
-
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F77F8);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F7AD4);

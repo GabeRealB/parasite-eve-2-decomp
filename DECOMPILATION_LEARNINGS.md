@@ -19171,4 +19171,43 @@ Reload the halfword as `*(u16*)stream` for the depth-table store so it
 takes `$v0` and `>> 3` is `srl`. Reusing the first `idx` local leaves
 it in `$v1` and emits `sra`. `func_8009EAA4` is the example.
 
+## Assign an `s16` to `s32` before `& mask` so the load is `lh`
+
+`dst = spawn->field_2 & 0xF` (field is `s16`) emits `lhu` because the
+mask makes the sign bits dead. The target wants:
+
+```
+lh    v0, 0x36(s2)
+nop
+andi  v0, v0, 0xF
+sh    v0, 0x2A(s0)
+```
+
+Widen to `s32` first so the load must sign-extend, then mask:
+
+```c
+s32 param;
+param         = spawn->field_2;
+mem->field_2A = param & 0xF;
+```
+
+An `s16` temporary still folds into `lhu`. Overlay `Task::spawnArg1` as
+`u16` + `s16` rather than shifting the word (`lw` / `sra 16`).
+`func_800F75BC` is the example.
+
+## First overlay switch: own TU so its jtbl stays at the file-start hole
+
+A 5-case switch in the first function of a gameplay TU emits a 0x14-byte
+jtbl plus a 4-byte pad (`static const s32 s_jtbl_pad = 0`). That table
+lives at the start of the TU's rodata (0x3FB8 here), *before* still-asm
+jtbls. Putting the switch in the existing C file prepends the table onto
+that file's later `.rodata` island and shifts everything after it.
+
+Give the function its own `c` / `.rodata` pair in the overlay yaml
+(`3FB8_75BC` at 0x3FB8 / 0x63DBC) and leave the remainder of the old
+TU starting at the next function. Update
+`fix_gameplay_linker_rodata_order` so splat cannot drop the new object
+from `rodata_3FB8` / `3FB8.c` / `rodata_3FB8_2`. `func_800F75BC` is the
+example.
+
 
