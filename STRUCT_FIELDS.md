@@ -529,9 +529,9 @@ read `h + 2` as line height; `func_800E67C8` / `func_800E68D8` read `w`.
 | 0x1 | `field_1` | s8 flag; nonzero skips the `func_800E6CE0` / spawn path in `func_800AF0AC`, `func_800AF180`, and `func_800AE45C` |
 | 0x2 | `field_2` | Soft state flag |
 | 0x4 | `field_4` | Byte used by CD/display helpers; address taken as a 4-byte location key. Also 1-based index into the innermost `D_8010CB54` byte table (`func_800AD284`). That byte then 1-based-indexes `D_8010CB68` records (`func_800AD2E8` returns `field_8`; `func_800ACF8C` reads `field_4->field_2 == 0`) |
-| 0x5 | `field_5` | u8; 1-based index into `D_8010CB40` / `D_8010CBA4` innermost tables (`func_800AEEFC`, `func_800ACEBC`, `func_800D9C64`). Second-innermost for `D_8010CB54` |
-| 0x6 | `field_6` | u8 room index (1-based for `D_8010CB40` / `D_8010CB2C` / `D_8010CBA4` / `D_8010CBB8` / `D_8010CB54` / `D_8010CB68`) |
-| 0x7 | `field_7` | u8 stage index (1-based for `D_8010CB40` / `D_8010CB2C` / `D_8010CBA4` / `D_8010CBB8` / `D_8010CB54` / `D_8010CB68`) |
+| 0x5 | `field_5` | u8; 1-based index into `D_8010CB40` / `D_8010CBA4` / `D_8010CB7C` innermost tables (`func_800AEEFC`, `func_800ACEBC`, `func_800D9C64`, `func_800ACD2C`). Second-innermost for `D_8010CB54` |
+| 0x6 | `field_6` | u8 room index (1-based for `D_8010CB40` / `D_8010CB2C` / `D_8010CBA4` / `D_8010CBB8` / `D_8010CB54` / `D_8010CB68` / `D_8010CB7C`) |
+| 0x7 | `field_7` | u8 stage index (1-based for `D_8010CB40` / `D_8010CB2C` / `D_8010CBA4` / `D_8010CBB8` / `D_8010CB54` / `D_8010CB68` / `D_8010CB7C`) |
 | 0xC | `field_C[16]` | Pointer table (cleared by `Game_ClearPtrSlots`) |
 | 0x4C | `field_4C` | Init flag |
 | 0x4E | `field_4E` | Set by `Fs_LoadFile` for category-8 |
@@ -808,6 +808,19 @@ bank 1 type `0x31` `spawnArg2`.
 | 0x1 | `field_1` | u8; cleared before spawn |
 | 0x2 | `field_2` | s16; `(s8)GameSession.field_12E` |
 
+### `GpCb7CRec` (0x10) — `D4.h`
+Element of tables pointed to by `D_8010CB7C`. Stage index is
+`GameSession.field_7 - 1`, area index is `GameSession.field_6 - 1`,
+record index is `GameSession.field_5 - 1`. `func_800ACD2C` rebuilds
+the current room's grid params and object lists from this record.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x0 | `field_0` | `GpGridParams*`; parented to `&D_80070F10` and stored in `D_80115448` |
+| 0x4 | `field_4` | `GpObj4A*` array; linked onto `D_8010FAB0[1]` (`func_800E1688(1, …)`) |
+| 0x8 | `field_8` | `GpObj4A*` array; linked onto `D_8010FAB0[0]` (`func_800E1688(0, …)`) |
+| 0xC | `field_C` | `GpObj3A*` array; linked onto `D_8010FAB8[0]` (`func_800E17B4(0, …)`) |
+
 ### `GpCb2CRec` (0x24) — `gameplay.h`
 Element of tables pointed to by `D_8010CB2C`. Stage index is
 `GameSession.field_7 - 1`, room index is `GameSession.field_6 - 1`,
@@ -1032,7 +1045,7 @@ by `func_800E1708`. Walked at +0x4C until `field_4A` bit 0x80.
 |-----|--------|------|
 | 0x00 | `next` | Intrusive next; NULL-terminated |
 | 0x04 | `prev` | Previous node, or the list-head object when first |
-| 0x08 | (pad) | Pointer slot; insert callers store `D_80070F10` |
+| 0x08 | `field_8` | `GsCOORDINATE2*`; `func_800ACD2C` stores `&D_80070F10` |
 | 0x4A | `field_4A` | Flag byte: 0x20 = on list, 0x40 set after insert, 0x80 = last in array. Unlink keeps bits 0x87 |
 
 ### `GpObj3A` (0x3C) — `3A34.h`
@@ -1046,7 +1059,7 @@ minimum covering known fields.
 |-----|--------|------|
 | 0x00 | `next` | Intrusive next; NULL-terminated |
 | 0x04 | `prev` | Previous node, or the list-head object when first |
-| 0x3A | `field_3A` | Flag byte: 0x20 = on list, 0x40 = active (`func_800E0308`). Unlink keeps bits 0x87 |
+| 0x3A | `field_3A` | Flag byte: 0x20 = on list, 0x40 = active (`func_800E0308`), 0x80 = last in array (`func_800ACD2C`). Unlink keeps bits 0x87 |
 
 ### `GpRec4` (0x4) — `3A34.h`
 Element of `D_80114028`. `func_800E2CD4(idx, 0)` returns `field_0`.

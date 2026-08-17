@@ -8,6 +8,9 @@
 struct _GameSessionFrom4;
 struct _GpActorArg;
 struct _GpAreaKey;
+struct _GpGridParams;
+struct _GpObj4A;
+struct _GpObj3A;
 
 /// 8-byte id/handler record. `Task::field_24` points at a table of these
 /// (`D_8010D208`, `D_8010FB90`, …). `func_800AC464` walks it and calls the
@@ -75,6 +78,27 @@ typedef struct _GpCb68Tbl {
 /// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
 extern GpCb68Tbl* D_8010CB68[];
 
+/// 0x10-byte per-room record in tables pointed to by `D_8010CB7C`.
+/// Indexed 1-based by `GameSession.field_5` / `GameSessionFrom4.field_1`.
+/// `func_800ACD2C` parents `field_0` to `&D_80070F10` and links the
+/// `field_4` / `field_8` (`GpObj4A`) and `field_C` (`GpObj3A`) arrays.
+typedef struct _GpCb7CRec {
+    /* 0x0 */ struct _GpGridParams* field_0;
+    /* 0x4 */ struct _GpObj4A*      field_4;
+    /* 0x8 */ struct _GpObj4A*      field_8;
+    /* 0xC */ struct _GpObj3A*      field_C;
+} GpCb7CRec;
+STATIC_ASSERT_SIZEOF(GpCb7CRec, 0x10);
+
+/// Per-stage wrapper. `field_0` is an array of `GpCb7CRec*`, indexed
+/// 1-based by `GameSession.field_6` / `GameSessionFrom4.field_2`.
+typedef struct _GpCb7CTbl {
+    /* 0x0 */ GpCb7CRec** field_0;
+} GpCb7CTbl;
+
+/// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
+extern GpCb7CTbl* D_8010CB7C[];
+
 /// Dual-buffer primitive list heads, indexed by `Display_State.field_1f`.
 extern void* D_8010CAE8[];
 
@@ -130,6 +154,7 @@ void func_800ABEF8(s32 arg0);
 void func_800ABF1C(struct _GpAreaKey* arg0);
 s32   func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 void  func_800AC688(void);
+void  func_800ACD2C(Task* task);
 /// 1-based index of `(u8)arg0` in the current room's `D_8010CB54` byte
 /// list. Length is the `D_8010CB40` cell as an s16. Returns 0 if absent.
 s8    func_800ACEBC(s32 arg0);

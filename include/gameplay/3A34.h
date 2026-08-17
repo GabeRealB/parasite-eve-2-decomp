@@ -377,7 +377,8 @@ STATIC_ASSERT_SIZEOF(GpObj20E, 0x24);
 typedef struct _GpObj4A {
     /* 0x00 */ struct _GpObj4A* next;
     /* 0x04 */ struct _GpObj4A* prev;
-    /* 0x08 */ byte             pad_8[0x42];
+    /* 0x08 */ void*            field_8; // GsCOORDINATE2*; callers store &D_80070F10
+    /* 0x0C */ byte             pad_C[0x3E];
     /* 0x4A */ u8               field_4A;
     /* 0x4B */ byte             pad_4B;
 } GpObj4A;
@@ -387,9 +388,10 @@ STATIC_ASSERT_SIZEOF(GpObj4A, 0x4C);
 /// unlinked by `func_800E1834`. `func_800E1884` empties the whole list.
 /// `field_3A` bit 0x20 means the node is on that list (cleared on unlink,
 /// keeping bits 0x87). Bit 0x40 is the active filter used by
-/// `func_800E0308` before it calls `func_800DFCCC`. Same link/flag layout
-/// as `GpObj4A`, with the flag byte at 0x3A instead of 0x4A. Full object
-/// size is not known yet.
+/// `func_800E0308` before it calls `func_800DFCCC`. Bit 0x80 marks the last
+/// element of an array walked at +0x3C (`func_800ACD2C`). Same link/flag
+/// layout as `GpObj4A`, with the flag byte at 0x3A instead of 0x4A. Full
+/// object size is not known yet.
 typedef struct _GpObj3A {
     /* 0x00 */ struct _GpObj3A* next;
     /* 0x04 */ struct _GpObj3A* prev;

@@ -25,7 +25,6 @@ void func_800A9310(void);
 void func_800A9730(Task* task);
 void func_800AA548(s32 arg0);
 void func_800AE7AC(void);
-void func_800ACD2C(Task* task);
 void func_800AD024(void);
 void func_800AD410(void* arg0, GpCb68Obj* arg1);
 void func_800AD620(Task* task);
@@ -728,7 +727,76 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AC960);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ACAA8);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ACD2C);
+void func_800ACD2C(Task* task)
+{
+    GameSessionFrom4* sess;
+    GpCb7CRec*        recs;
+    GpCb7CRec*        rec;
+    GpGridParams*     grid;
+    GpObj4A*          list1;
+    register GpObj4A* list2 asm("s1");
+    GpObj3A*          list3;
+    GpObj4A*          obj;
+    GpObj3A*          obj3;
+    GsCOORDINATE2*    coord;
+    u8                flags;
+
+    sess = (GameSessionFrom4*)&Game_Session->field_4;
+    func_800A8724();
+    D_80115448 = NULL;
+    func_800E1758(1);
+    func_800E1758(0);
+    func_800E1884(0);
+    recs = D_8010CB7C[sess->field_3 - 1]->field_0[sess->field_2 - 1];
+    if (recs != NULL) {
+        rec   = (GpCb7CRec*)(sess->field_1 * sizeof(GpCb7CRec) + (s32)recs);
+        recs  = rec - 1;
+        grid  = rec[-1].field_0;
+        list1 = recs->field_4;
+        list2 = recs->field_8;
+        list3 = recs->field_C;
+        if (grid != NULL) {
+            grid->field_0 = &D_80070F10;
+            D_80115448    = grid;
+        }
+        if (list1 != NULL) {
+            coord = &D_80070F10;
+            obj   = list1;
+            do {
+                obj->field_8 = coord;
+                func_800E1688(1, obj);
+                flags         = obj->field_4A | 0x40;
+                obj->field_4A = flags;
+                asm volatile("" : "+r"(obj));
+                obj++;
+            } while (!(flags & 0x80));
+        }
+        if (list2 != NULL) {
+            coord = &D_80070F10;
+            obj   = list2;
+            do {
+                obj->field_8 = coord;
+                func_800E1688(0, obj);
+                flags         = obj->field_4A | 0x40;
+                obj->field_4A = flags;
+                asm volatile("" : "+r"(obj));
+                obj++;
+            } while (!(flags & 0x80));
+        }
+        if (list3 != NULL) {
+            obj3 = list3;
+            do {
+                func_800E17B4(0, obj3);
+                flags          = obj3->field_3A | 0x40;
+                obj3->field_3A = flags;
+                asm volatile("" : "+r"(obj3));
+                obj3++;
+            } while (!(flags & 0x80));
+        }
+    }
+    D_80070F10.flg = 0;
+    func_80098F58(&D_80070F10);
+}
 
 s8 func_800ACEBC(s32 arg0)
 {

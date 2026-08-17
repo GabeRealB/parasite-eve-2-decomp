@@ -19519,4 +19519,34 @@ if (flag >= 2) {
 work (`beqz` over it). `flag >= 2` as the first test is what emits
 `bnez` to the work block. `func_800FE41C` is the example.
 
+## 0x10-stride 1-based record: `idx * sizeof + base`, then `rec-1` / `rec[-1]`
+
+A 16-byte table indexed 1-based wants both the pre-decrement pointer
+(`$v0 = base + idx*16`) and `tmp = v0 - 0x10` live at once:
+
+```
+sll    v0, v0, 4
+addu   v0, v0, v1
+addiu  v1, v0, -0x10
+lw     a0, -0x10(v0)
+lw     a1, 4(v1)
+```
+
+`rec = &arr[idx - 1]` (or `arr += idx - 1`) folds to `addiu v0, -0x10`
+*before* the add, then loads from `0(v0)`. `rec = &arr[idx]; x = rec[-1].f`
+keeps only one pointer and loads from `-0x10(v0)` / `-0xC(v0)`. Split the
+address so the first field uses the original pointer and the rest use the
+decremented one:
+
+```c
+rec  = (Rec*)(idx * sizeof(Rec) + (s32)arr); /* index + base → addu v0,v0,v1 */
+arr  = rec - 1;
+grid = rec[-1].field_0; /* lw -0x10(v0) */
+a    = arr->field_4;    /* lw 4(v1) */
+```
+
+`arr + idx` / `&arr[idx]` emits `addu v0, v1, v0` (base + index). The
+`(s32)arr` addend after the scaled index is what swaps the operands.
+`func_800ACD2C` is the example.
+
 
