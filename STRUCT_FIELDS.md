@@ -541,6 +541,7 @@ read `h + 2` as line height; `func_800E67C8` / `func_800E68D8` read `w`.
 | 0x69 | `field_69` | u8 flags; bit 0x2 skips `SndEvt_EnqueueType2(0, 0xB4)` when the last `GpStateF0.field_6` ref is released |
 | 0x76 | `field_76` | s16 flag; nonzero makes `func_800AD378` rebuild via `func_800ACD2C` then clear it |
 | 0x7C–80 | halfwords | Counters / mode |
+| 0x11C | `field_11C` | s16 cache of `Mc_SaveData.field_22` (`lh`/`sh`). `func_800AABB0` refreshes it (and 0x11E from `Wip_SysConfig.field_26`) when either is stale. `func_800B7D18` writes -1 to force that refresh after an inventory rebuild |
 | 0x126 | `field_126` | u8 flag; nonzero skips `func_800A7A64` display-mode init |
 | 0x128 | `field_128` | u8; `0xFF` sentinel (`func_800B0748` / `func_800B082C`) |
 | 0x129 | `field_129` | u8; last `CdCmd_Enqueue(0x21)` `param1[0]` written by `func_800B065C` (no-op if unchanged) |

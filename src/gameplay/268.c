@@ -13,34 +13,34 @@
 
 extern u16 D_800739B8;
 
-void  func_80180804(void);
-void  func_8017EA68(void);
-void  func_80181468(void);
-void  func_8017EA90(void);
-void  func_8017E9E8(void);
-void  func_80181364(void);
-void  func_8017EA58(void);
-void  func_8017E9F8(void);
-void  func_8017EAE0(void);
-void  func_8018138C(void);
-void  func_8017EA74(void);
-void  func_8017EA78(void);
-void  func_8017EB2C(void);
-void  func_8017EDE8(void);
-void  func_8017EAB4(void);
-void  func_8017EA64(void);
-void  func_8017EC04(void);
-void  func_8017EAC4(void);
-void  func_8017EA60(void);
-void* func_800B8CAC(void* arg0, s32 arg1, s32 arg2);
-s32   func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
-void  func_800CF448(s32 arg0);
-void  func_800B6CF0(void);
-void  func_800BAEC0(s32 arg0);
-void  func_800BAE5C(s32 arg0);
-s32   func_800BBCCC(GpItemRec* arg0, GpItemScan* arg1, s32* arg2, s32 arg3);
-void  func_800C1148(UiPanel* arg0, s32 arg1);
-void  func_801061F0(void);
+void       func_80180804(void);
+void       func_8017EA68(void);
+void       func_80181468(void);
+void       func_8017EA90(void);
+void       func_8017E9E8(void);
+void       func_80181364(void);
+void       func_8017EA58(void);
+void       func_8017E9F8(void);
+void       func_8017EAE0(void);
+void       func_8018138C(void);
+void       func_8017EA74(void);
+void       func_8017EA78(void);
+void       func_8017EB2C(void);
+void       func_8017EDE8(void);
+void       func_8017EAB4(void);
+void       func_8017EA64(void);
+void       func_8017EC04(void);
+void       func_8017EAC4(void);
+void       func_8017EA60(void);
+GpItemRec* func_800B8CAC(GpItemScan* arg0, s32 arg1, s32 arg2);
+s32        func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
+void       func_800CF448(s32 arg0);
+void       func_800B6CF0(void);
+void       func_800BAEC0(s32 arg0);
+void       func_800BAE5C(s32 arg0);
+s32        func_800BBCCC(GpItemRec* arg0, GpItemScan* arg1, s32* arg2, s32 arg3);
+void       func_800C1148(UiPanel* arg0, s32 arg1);
+void       func_801061F0(void);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B7420);
 
@@ -48,7 +48,118 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800B7930);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B7A50);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800B7D18);
+void func_800B7D18(void)
+{
+    GpItemScan*   scan;
+    McSaveData*   save;
+    WipSysConfig* cfg;
+    WipSysConfig* cfg2;
+    GpItemRec*    tmp;
+    GpItemRec*    rec;
+    GpItemRec*    added;
+    GpItemScan**  scans;
+    GpItemScan*   dest;
+    GpItemSlot*   slots;
+    s32           i;
+    s32           j;
+    u8            item;
+    s32           three;
+    u16           hp;
+    u16           mp;
+    s32           flag105;
+    s32           flag107;
+
+    scan               = &Mc_SaveData.field_5BC;
+    save               = &Mc_SaveData;
+    save->field_908[5] = 0;
+    save->field_908[0] = 0;
+    cfg                = &Wip_SysConfig;
+    switch (scan->field_2) {
+        case 2:
+            tmp = D_80114C20;
+            break;
+        case 1:
+            tmp = D_80114D70;
+            break;
+        default:
+            tmp = Mc_SaveData.field_1AC;
+            break;
+    }
+    rec  = &tmp[scan->field_0];
+    dest = D_8010D55C;
+    i    = 0;
+    if (scan->field_1 != 0) {
+        do {
+            item = rec->field_0;
+            if (item != 0) {
+                if ((u8)(item + 0x63) < 3) {
+                    func_800BAD08(dest, 0x3D, 1);
+                } else if (item == 0x8A) {
+                    func_800BAD08(dest, 0x3C, 1);
+                } else if (item == 0x65) {
+                    func_800BAD08(dest, 0xD, 1);
+                } else if ((item != 0x81) && (item != 0xA0) && (item != 0x60) &&
+                           (item != 0x40) && (item != 0x92)) {
+                    func_800BAD08(dest, rec->field_0, rec->field_2);
+                }
+            }
+            i++;
+            rec++;
+        } while (i < scan->field_1);
+    }
+    func_800BAC8C(scan);
+    scans = D_8010D550;
+    func_800BAC8C(scans[1]);
+    func_800BAC8C(scans[2]);
+    slots = Mc_SaveData.field_5C8;
+    for (j = 0; j < 0x20; j++) {
+        slots->field_0 = 0;
+        slots->field_1 = 0;
+        slots->field_2 = 0xFF;
+        slots->field_3 = 0;
+        if (j == 0x1A) {
+            slots->field_2 = 0;
+            slots->field_3 = 0;
+        }
+        slots->field_4 = 0;
+        slots++;
+    }
+    three = 3;
+    func_800B6CF0();
+    func_800BAD08(scan, 0x63, 1);
+    Game_Session->field_11C = -1;
+    cfg->field_21           = 0;
+    cfg->field_26           = three;
+    func_800B7A50(0x63);
+    added          = func_800BAD08(scan, 0x40, 1);
+    added->field_1 = 1;
+    added          = func_800BAD08(scan, 2, 1);
+    added->field_1 = 2;
+    added          = func_800BAD08(scan, 0x81, 1);
+    added->field_1 = three;
+    func_800BAD08(scan, 0xA0, 0x64);
+    func_800B715C(scan, 0x81, 0xA0, -1);
+    func_800BAD08(scan, 0x92, 1);
+    cfg2           = &Wip_SysConfig;
+    hp             = cfg2->field_1a;
+    mp             = cfg2->field_1e;
+    cfg2->field_18 = hp;
+    cfg2->field_1c = mp;
+    flag105        = func_800BB4BC(0x105);
+    flag107        = func_800BB4BC(0x107);
+    func_800BAE38();
+    if (flag105 != 0) {
+        func_800BAE5C(0x105);
+    }
+    if (flag107 != 0) {
+        func_800BAE5C(0x107);
+    }
+    func_800BAE5C(0x106);
+    func_800BAE5C(0x10C);
+    func_800BAE5C(0x10B);
+    func_800BAE5C(0x10A);
+    func_800BAE5C(0x109);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B8014);
 
@@ -268,7 +379,7 @@ void func_800BAC8C(GpItemScan* arg0)
     asm volatile("" ::"r"(i));
 }
 
-void* func_800BAD08(void* arg0, s32 arg1, s32 arg2)
+GpItemRec* func_800BAD08(GpItemScan* arg0, s32 arg1, s32 arg2)
 {
     return func_800B8CAC(arg0, arg1, arg2);
 }

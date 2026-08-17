@@ -146,6 +146,10 @@ extern GpBit2Bank D_8010D230[];
 extern GpItemQty  D_8010D278[];
 extern GpItemMap  D_8010D2F8[];
 extern GpItemScan D_8010D520;
+/// Array of `GpItemScan*` (`func_800B7D18` clears `[1]` and `[2]`).
+extern GpItemScan* D_8010D550[];
+/// Scan dest used while `func_800B7D18` copies the current inventory out.
+extern GpItemScan* D_8010D55C;
 extern GpStatRow  D_8010D328[];
 extern GpItemAttr D_8010DFB8[];
 extern GpItemQty  D_8010E238[];
@@ -167,6 +171,9 @@ extern GpItemRec  D_80114C20[];
 extern GpItemRec* D_80114D70;
 
 s32         func_800B7420(s32 arg0);
+void        func_800B7A50(s32 arg0);
+void        func_800B7D18(void);
+GpItemRec*  func_800BAD08(GpItemScan* arg0, s32 arg1, s32 arg2);
 s32         func_800B9D80(s32 arg0);
 void        func_800B8014(void);
 void        func_800B8588(GpItemScan* arg0, s32 arg1);

@@ -63,7 +63,9 @@ typedef struct _GameSession {
     s16   field_7C;
     s16   field_7E;
     s16   field_80;
-    byte  unknown_82[0xA4];
+    byte  unknown_82[0x9A];
+    s16   field_11C; // cached Mc_SaveData.field_22; -1 forces refresh (func_800B7D18 / func_800AABB0)
+    byte  unknown_11E[8];
     u8    field_126;
     byte  unknown_127;
     u8    field_128; // 0xFF sentinel in func_800B0748 / func_800B082C
