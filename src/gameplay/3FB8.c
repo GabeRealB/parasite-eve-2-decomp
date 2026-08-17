@@ -3907,7 +3907,47 @@ void func_8010C46C(GpActorWork* arg0)
     func_80106350(arg0, D_80167218[Mc_SaveData.field_5C7], 0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C4F0);
+s32 func_8010C4F0(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
+{
+    GameActor* actor;
+    GpAnimObj* extra;
+
+    actor             = arg0->actor;
+    extra             = (GpAnimObj*)arg0->extra;
+    actor->field_954  = 2;
+    actor->field_95E  = 0;
+    actor->field_973  = 0;
+    actor->field_975  = 0;
+    actor->field_60   = 0;
+    actor->field_58   = 0;
+    actor->field_64   = 0;
+    actor->field_5C   = 0;
+    actor->field_6A   = 0;
+    actor->field_68   = 0;
+    actor->field_70   = 0;
+    actor->field_96C  = 0;
+    actor->field_12A &= 0x3FFF;
+    func_80106350(arg0, D_80167218[Mc_SaveData.field_5C7], 0);
+    actor->field_956 = 1;
+    if (actor->field_928 != D_80113368[(s32)arg2->field_0]) {
+        actor->field_928 = D_80113368[(s32)arg2->field_0];
+        func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
+                      (GpAnimSlot*)actor->pad_438);
+        actor->field_93A = (u16)arg2->field_0;
+    }
+    actor->field_985 = 0x10;
+    if (arg2->field_8 == 0) {
+        func_801038F8(arg0, arg2->field_4);
+    } else {
+        func_80103A18(arg0, arg2->field_4, 1, arg2->field_C);
+    }
+    if (arg2->field_10 == 0) {
+        actor->field_983 = 0x38;
+    } else {
+        actor->field_983 = 7;
+    }
+    return 0;
+}
 
 s32 func_8010C648(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
 {

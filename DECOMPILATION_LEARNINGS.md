@@ -19874,4 +19874,36 @@ maskHi = 0xFF000000;
 target increment is in-place `addiu t0, t0, 1`, so the pin does not
 rewrite it. `func_800AD410` is the example.
 
+## Repeat a table lookup in the compare and the store so `$v0` holds the value
+
+Comparing a field against `table[idx]` and then writing that same entry
+back wants the address computed first, the field loaded into `$v1`, and
+the table word loaded into `$v0`:
+
+```
+addu  v0, v0, v1
+lw    v1, 0x928(s0)
+lw    v0, 0(v0)
+nop
+beq   v1, v0, skip
+ ...
+sw    v0, 0x928(s0)
+```
+
+A temp (`anim = table[idx]; if (p->field != anim) p->field = anim;`)
+loads the table word first (`lw v1, 0(v0)` / `lw v0, field`), so the
+store source flips to `$v1` and the later `addiu` of a sibling address
+is scheduled before it.
+
+Write the lookup twice:
+
+```c
+if (actor->field_928 != D_80113368[idx]) {
+    actor->field_928 = D_80113368[idx];
+}
+```
+
+GCC CSEs the address and keeps the table value in `$v0`. `func_8010C4F0`
+is the example.
+
 
