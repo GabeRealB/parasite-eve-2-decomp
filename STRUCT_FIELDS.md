@@ -1092,6 +1092,7 @@ pad after `field_E`.
 | 0x08 | `field_8` | u16; `func_800DB558` adds it into `D_801153F0.field_C` |
 | 0x0A | `field_A` | u8; `func_800DB558` adds it into `D_801153F0.field_10` |
 | 0x0B | `field_B` | u8; loaded by nearby pair-source helpers |
+| 0x0C | `field_C` | u8; `func_800E3084` multiplies it by `D_80113D30[field_5D]` / 100 |
 | 0x0D | `field_D` | u8; `func_800E2DE4` uses it as a threshold (`<< 12` / 100) |
 | 0x0E | `field_E` | u8; `func_800E2F7C` multiplies it by `D_80113D28[field_5C]` / 100 |
 
@@ -1106,6 +1107,19 @@ Trailing pad keeps pointer alignment; full object size is not known yet.
 | 0x59 | `field_59` | u8 countdown; `func_800E2EC4` decrements it and reseeds `((D_80070F60 * 5 + 0x71357911) >> 16 & 0xF) + 0x53` on expiry |
 | 0x5A | `field_5A` | u8 counter; incremented by `func_800E2EC4` on `field_59` expiry; compared by `func_800E2F7C` against the scaled `field_50->field_E` |
 | 0x5C | `field_5C` | u8 index into `D_80113D28` / `D_80113D38` |
+
+### `GpObj5D` (0x60) — `3A34.h`
+Sparse overlay of the same object family as `GpObj4C` / `GpObj50`.
+`func_800E301C` initializes `field_58` / `field_5B` / `field_5D`.
+Trailing pad keeps pointer alignment; full object size is not known yet.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x4C | `field_4C` | Flag byte; `func_800E301C` ORs bit 0x2 |
+| 0x50 | `field_50` | `GpPairSrcE*` source object |
+| 0x58 | `field_58` | u8 counter; compared by `func_800E3084` against the scaled `field_50->field_C` |
+| 0x5B | `field_5B` | u8 tick; incremented toward 0x1F while `field_58` is below the limit, decremented to 0 above it |
+| 0x5D | `field_5D` | u8 index into `D_80113D30` |
 
 ### `GpObj20E` (0x24) — `3A34.h`
 Sparse overlay. Pointer at 0x20 is a `GpObj5C*` (same family as

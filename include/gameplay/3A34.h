@@ -137,9 +137,10 @@ STATIC_ASSERT_SIZEOF(GpPairSrc, 0x4);
 /// Wider view of the object pointed to by `GpObj50.field_50`.
 /// `func_800E2EC4` loads `field_4`; `func_800DB558` adds `field_6` /
 /// `field_8` / `field_A` into `D_801153F0.field_8` / `field_C` /
-/// `field_10`. Nearby helpers also load bytes at +0xB / +0xD / +0xE
-/// (`func_800E2DE4` loads `field_D`; `func_800E2F7C` loads `field_E`).
-/// Trailing pad keeps 4-byte alignment.
+/// `field_10`. Nearby helpers also load bytes at +0xB / +0xC / +0xD /
+/// +0xE (`func_800E3084` loads `field_C`; `func_800E2DE4` loads
+/// `field_D`; `func_800E2F7C` loads `field_E`). Trailing pad keeps
+/// 4-byte alignment.
 typedef struct _GpPairSrcE {
     /* 0x00 */ GpU16Pair* field_0;
     /* 0x04 */ u16        field_4;
@@ -147,7 +148,7 @@ typedef struct _GpPairSrcE {
     /* 0x08 */ u16        field_8;
     /* 0x0A */ u8         field_A;
     /* 0x0B */ u8         field_B;
-    /* 0x0C */ byte       pad_C;
+    /* 0x0C */ u8         field_C;
     /* 0x0D */ u8         field_D;
     /* 0x0E */ u8         field_E;
     /* 0x0F */ byte       pad_F;
@@ -312,18 +313,24 @@ STATIC_ASSERT_SIZEOF(GpObj4C, 0x50);
 /// Sparse overlay of the same object family as `GpObj4C` (flags at 0x4C).
 /// `func_800E301C` ORs bit 0x2 into `field_4C`, clears `field_58` /
 /// `field_5B`, and writes `field_5D` from `D_80114C08.field_0 % 10` when
-/// the id has the 0x8000 bit and low 6 bits != 0x31.
+/// the id has the 0x8000 bit and low 6 bits != 0x31. `func_800E3084`
+/// compares `field_58` against `field_50->field_C * D_80113D30[field_5D]
+/// / 100` and ticks `field_5B`. Trailing pad keeps pointer alignment;
+/// full object size is not known yet.
 typedef struct _GpObj5D {
-    /* 0x00 */ byte pad_0[0x4C];
-    /* 0x4C */ u8   field_4C;
-    /* 0x4D */ byte pad_4D[0xB];
-    /* 0x58 */ u8   field_58;
-    /* 0x59 */ byte pad_59[2];
-    /* 0x5B */ u8   field_5B;
-    /* 0x5C */ byte pad_5C;
-    /* 0x5D */ u8   field_5D;
+    /* 0x00 */ byte        pad_0[0x4C];
+    /* 0x4C */ u8          field_4C;
+    /* 0x4D */ byte        pad_4D[3];
+    /* 0x50 */ GpPairSrcE* field_50;
+    /* 0x54 */ byte        pad_54[4];
+    /* 0x58 */ u8          field_58;
+    /* 0x59 */ byte        pad_59[2];
+    /* 0x5B */ u8          field_5B;
+    /* 0x5C */ byte        pad_5C;
+    /* 0x5D */ u8          field_5D;
+    /* 0x5E */ byte        pad_5E[2];
 } GpObj5D;
-STATIC_ASSERT_SIZEOF(GpObj5D, 0x5E);
+STATIC_ASSERT_SIZEOF(GpObj5D, 0x60);
 
 /// Sparse overlay of the same object family as `GpObj5D` / `GpObj50`.
 /// `func_800E2F7C` tests bit 0x4 of `field_4C` and compares `field_5A`
@@ -626,6 +633,10 @@ extern GpRec16 D_8011398C[];
 /// `field_50->field_E` by the selected entry and divides by 100.
 extern u16 D_80113D28[];
 
+/// u16 scale table indexed by `GpObj5D.field_5D`. `func_800E3084` multiplies
+/// `field_50->field_C` by the selected entry and divides by 100.
+extern u16 D_80113D30[];
+
 /// u16 scale table indexed by `GpObj5C.field_5C`. `func_800E2EC4` multiplies
 /// `field_50->field_4` by the selected entry and divides by 100.
 extern u16 D_80113D38[];
@@ -730,6 +741,7 @@ s32  func_800E2EC4(GpObj5C* arg0);
 s32  func_800E2F7C(GpObj5C* arg0);
 void func_800E3008(GpObj4C* arg0);
 void func_800E301C(GpObj5D* arg0, s32 arg1);
+s32  func_800E3084(GpObj5D* arg0);
 s32  func_800E3194(s32 arg0);
 void func_800E337C(Task* arg0);
 void func_8010154C(void);

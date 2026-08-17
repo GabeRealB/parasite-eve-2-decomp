@@ -1752,7 +1752,39 @@ void func_800E301C(GpObj5D* arg0, s32 arg1)
     arg0->field_5D = D_80114C08.field_0 % 10U;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E3084);
+s32 func_800E3084(GpObj5D* arg0)
+{
+    s32 ret;
+    s32 limit;
+    s32 val;
+    s32 scale;
+
+    ret = 0;
+    val = arg0->field_50->field_C;
+    if (val == 0) {
+        return ret;
+    }
+    scale = D_80113D30[arg0->field_5D];
+    limit = (val * scale) / 100;
+    if (arg0->field_58 < limit) {
+        arg0->field_5B++;
+        if (arg0->field_5B >= 0x1F) {
+            arg0->field_58++;
+            if (arg0->field_58 >= limit) {
+                D_80070F60     = D_80070F60 * 5 + 0x71357911;
+                arg0->field_5B = (u32)D_80070F60 >> 16 & 0x3F;
+            } else {
+                arg0->field_5B = 0;
+            }
+        }
+    } else {
+        arg0->field_5B--;
+        if (arg0->field_5B == 0) {
+            ret = 1;
+        }
+    }
+    return ret;
+}
 
 s32 func_800E3194(s32 arg0)
 {
