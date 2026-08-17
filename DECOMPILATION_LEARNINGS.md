@@ -18259,4 +18259,101 @@ stuck at 93% with an extra `j` / `sh v0` and `beqz` to the zero store.
 `func_80109290` is the example. A plain `u16 tens = (id % 100U) / 10U`
 stuck at 85.7% with only that schedule and the last branch inverted.
 
+## Overwrite `shifted` so the signed code lives in `$a1`
+
+A `lhu` text-code loop that compares as `s16` (`sll 16; sra 16`) keeps
+`$a1` as the unshifted value if the body uses `shifted >> 16` each
+time (or a separate `val`). The target does one `sra a1, a1, 16`
+before the loop and again in the back-edge delay slot, then compares
+`$a1` against `-2` / `-3` / `bltz`.
+
+Overwrite the same local at the top of the loop. The latch reconstructs
+`shifted = code << 16` and the delay slot signs it again:
+
+```c
+shifted = code << 16;
+if (shifted >> 16 != -1) {
+    do {
+        shifted = shifted >> 16; /* sra a1, a1, 16 */
+        if (shifted == -2) {
+            /* ... */
+        }
+        code    = arg0[(s16)i];
+        shifted = code << 16;
+    } while (shifted >> 16 != -1);
+}
+```
+
+`func_800E67C8` is the example. A separate `val = shifted >> 16` used
+for both the empty check and the body stuck at ~75% with `lh` + `lhu`.
+
+## Label increment inside `if (x < 0)` so `== K` is not inverted
+
+A chain of `if (code == C) { x += K; goto inc; }` plus a glyph path
+that skips increment makes `== 0x8400` profitable to invert (`beq` to
+a sunk `addiu` just before `inc`). The target keeps
+
+```
+ori   v0, 0x8400
+bne   v1, v0, not_eq
+nop
+j     inc
+addiu t0, t0, 0x10
+```
+
+Put the shared increment *inside* `if (shifted < 0)` and `goto` that
+label from the special cases. The `== K` arm is then a jump into a
+block that is not a merge-with-fall-through tail, so GCC emits `bne` /
+`j` / delay-slot `addiu` instead of `beq` + sink:
+
+```c
+if (masked == 0x8400) {
+    lineW += 0x10;
+    goto do_inc;
+}
+if (shifted >= 0) {
+    /* increment + glyph; skip shared inc */
+    goto after_load;
+}
+if (shifted < 0) {
+do_inc:
+    /* increment + load next */
+}
+after_load:
+    /* loop latch */
+```
+
+`func_800E67C8` is the example. The same gotos with `inc` after the
+`if/else` stuck at 91% with only that `beq` / sunk `addiu`.
+
+## Compare temp in `$v1` before `li v0, -1`
+
+`shifted = code << 16; v0tmp = -1; while (shifted >> 16 != v0tmp)`
+emits `sll a1; li v0, -1; sra v1; bne`. The target signs first:
+
+```
+sll   a1, a2, 16
+sra   v1, a1, 16
+li    v0, -1
+bne   v1, v0, loop
+sra   a1, a1, 16
+```
+
+Assign the compare to a `$v1` temp *before* reloading `-1`. The latch
+still delay-slots `shifted >>= 16` into `$a1`:
+
+```c
+register s32 width asm("v1");
+register s32 v0tmp asm("v0");
+
+shifted = code << 16;
+width   = shifted >> 16;
+v0tmp   = -1;
+} while (width != v0tmp);
+```
+
+A literal `!= -1` hoists `-1` into `$t3`. `func_800E67C8` is the
+example. `v0tmp = -1` before the `sra` stuck at 98.8% with only those
+two instructions swapped.
+
 
