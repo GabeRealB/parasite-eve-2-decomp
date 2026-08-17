@@ -17091,4 +17091,37 @@ slot->field_B  = op & 0xF;
 `func_800B3FA8` is the example. `table[(u8)arg1]` stuck at 99.3% with
 only those five index instructions using `$a1` instead of `$v0`.
 
+## `+r`(index) / `"r"(loaded)` keeps `lbu` before `id -= K`
+
+A store of one byte plus an independent `id -= K` used by a later
+`sltiu` wants the subtract in the load delay:
+
+```
+lbu    v0, field(map)
+addiu  v1, v1, -K
+sb     v0, dest(slot)
+sltiu  v0, v1, bound
+```
+
+`dest = map->field; id -= K; slot->out = dest` (and the same statements
+without a temp) schedules the ALU first: `addiu; lbu; nop; sb`. Volatile
+on the load does not stop that move — `addiu` is not a memory op.
+
+Take the load into a temp, then an empty `+r` on the index with the
+loaded value as an input. The asm cannot move before the load, and the
+subtract cannot move before the asm, but the empty asm emits nothing so
+the subtract still fills the `lbu` delay:
+
+```c
+mapped = map->field_2;
+asm volatile("" : "+r"(id) : "r"(mapped));
+id -= 0x80;
+slot->field_0 = mapped;
+```
+
+`func_800B6CF0` is the example. Pair with `register s32 count asm("a1")`
+so the default `count = 0` stays in `$a1`, and `&arr[i]` each iteration
+(not `p++`) so GCC does not strength-reduce `&p->field_2` into a second
+IV. `off + (s32)base` still supplies `addu a0, v0, base`.
+
 

@@ -4,6 +4,7 @@
 #include <psyq/stdio.h>
 
 #include "gameplay/1BC.h"
+#include "gameplay/268.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
@@ -1019,7 +1020,51 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B6950);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B6B44);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B6CF0);
+void func_800B6CF0(void)
+{
+    s32          i;
+    GpItemSlot*  slots;
+    GpItemQty*   qty0;
+    GpItemQty*   qty1;
+    GpItemMap*   map;
+    GpItemSlot*  slot;
+    GpItemSlot*  alt;
+    s32          id;
+    register s32 count asm("a1");
+    s32          mapped;
+
+    i     = 0;
+    slots = Mc_SaveData.field_1C8;
+    qty0  = D_8010E238;
+    qty1  = D_8010D278;
+    for (i = 0; i < 8; i++) {
+        map  = &D_8010D2F8[i];
+        id   = map->field_1;
+        slot = (GpItemSlot*)((id << 3) + (s32)slots);
+        alt  = slot;
+        if (map->field_0 == 0) {
+            mapped = map->field_2;
+            asm volatile("" : "+r"(id) : "r"(mapped));
+            id           -= 0x80;
+            slot->field_0 = mapped;
+            count         = 0;
+            if ((u32)id < 0x20) {
+                count = qty0[id].field_0;
+            }
+            slot->field_1 = count;
+        } else {
+            mapped = map->field_2;
+            asm volatile("" : "+r"(id) : "r"(mapped));
+            id           -= 0x80;
+            slot->field_2 = mapped;
+            count         = 0;
+            if ((u32)id < 0x20) {
+                count = qty1[id].field_0;
+            }
+            alt->field_3 = count;
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B6DA4);
 
