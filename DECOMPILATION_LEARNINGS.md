@@ -18948,4 +18948,47 @@ Use the real encoding, same pattern as `gte_rtv0_real`:
 `gte_SetTransMatrix` / `gte_ldv0` / RTPS / `gte_stsxy` / `gte_stdp` /
 `gte_stflg` / `gte_stszotz`).
 
+## Add a table-base constant to the pointer, then add the scaled index
+
+`(s32*)((arg0 << 2) + ((s32)slots + 0x4C0))` still folds as
+`sll a0, a0, 2` / `addiu a0, a0, 0x4C0` / `addu s1, a0, a1`. The target
+adds the constant to the live table pointer:
+
+```
+sll    a0,a0,0x2
+addiu  v0,a1,0x4C0
+addu   s1,a0,v0
+```
+
+Name both addends so the `+ 0x4C0` cannot sink into the shifted index:
+
+```c
+off4    = arg0 << 2;
+counts  = (s32*)((s32)slots + 0x4C0);
+counter = (s32*)(off4 + (s32)counts);
+```
+
+Shift `arg0 << 3` *before* mentioning `Mc_SaveData` so that shift takes
+`$v1` and the `lui` of the table can follow it. `func_800B6DA4` is the
+example.
+
+## Take `&Mc_SaveData` only on the later path so it is not CSEd with `+0x1C8`
+
+Two consume paths both touch `Mc_SaveData.field_5C2` / `field_5BC`. If
+both write `Mc_SaveData.field_*` directly, GCC keeps `field_1C8` in
+`$a1` and uses `lb 0x3FA(a1)` / `addiu a0, a1, 0x3F4` for both. The
+later path reloads the object:
+
+```
+lui    v0,%hi(Mc_SaveData)
+addiu  a0,v0,%lo(Mc_SaveData)
+lb     v0,0x5C2(a0)
+addiu  a0,a0,0x5BC
+```
+
+Assign `save = &Mc_SaveData` only in that path and use `save->field_5C2`
+/ `&save->field_5BC`. Leave the first path as `Mc_SaveData.field_*` so
+it still CSEs with the live `field_1C8` pointer. `func_800B6DA4` is the
+example.
+
 

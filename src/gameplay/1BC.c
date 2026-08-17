@@ -1178,7 +1178,66 @@ void func_800B6CF0(void)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B6DA4);
+s32 func_800B6DA4(s32 arg0, s32 arg1)
+{
+    GpItemSlot* slots;
+    GpItemSlot* slot;
+    s32*        counts;
+    s32*        counter;
+    McSaveData* save;
+    s32         off8;
+    s32         off4;
+    s32         count;
+
+    off8    = arg0 << 3;
+    slots   = Mc_SaveData.field_1C8;
+    slot    = (GpItemSlot*)(off8 + (s32)slots);
+    off4    = arg0 << 2;
+    counts  = (s32*)((s32)slots + 0x4C0);
+    counter = (s32*)(off4 + (s32)counts);
+
+    if (arg1 == 1) {
+        if (slot->field_0 != 0) {
+            count = slot->field_1;
+            if (count != 0) {
+                if (Mc_SaveData.field_5C2 == 0) {
+                    slot->field_1 = count - 1;
+                    func_800BB2D4(&Mc_SaveData.field_5BC, slot->field_0, 1);
+                    count = *counter;
+                    if (count <= 0xF423E) {
+                        *counter = count + 1;
+                    }
+                }
+                goto done;
+            }
+        }
+    }
+    if (arg1 == 0x101) {
+        count = slot->field_2;
+        if (count != 0) {
+            if (count != 0xFF) {
+                count = slot->field_3;
+                if (count != 0) {
+                    save = &Mc_SaveData;
+                    if (save->field_5C2 == 0) {
+                        slot->field_3 = count - 1;
+                        func_800BB2D4(&save->field_5BC, slot->field_2, 1);
+                        count = *counter;
+                        if (count <= 0xF423E) {
+                            *counter = count + 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+done:
+    if (!(arg1 & 0x100)) {
+        return slot->field_1;
+    }
+    return slot->field_3;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B6EE0);
 
