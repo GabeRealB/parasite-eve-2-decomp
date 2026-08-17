@@ -3,6 +3,35 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Independent `= 0` store last so it fills a stack-arg load delay
+
+A late `lw` of a stack argument (`arg6 << 4` into two halfwords) wants an
+independent `sb zero` in its load delay slot:
+
+```
+lw    v0, 0x38(sp)
+sb    zero, 0x17(s1)
+sll   v0, v0, 0x4
+sh    v0, 0xe(s1)
+sh    v0, 0xc(s1)
+```
+
+Writing `slot->field_17 = 0` *before* `val = arg6 << 4` lets GCC hoist the
+constant store and leaves `lw / nop / sll`. Write the zero store *after*
+the uses of that stack arg; `-fschedule-insns` lifts `sb zero` into the
+load delay and keeps the two `sh`s together.
+
+```c
+val            = arg6 << 4;
+slot->field_E  = val;
+slot->field_C  = val;
+slot->field_17 = 0;
+```
+
+`func_800B4538` is the example. The same tail is in `func_800B4114` /
+`func_800B47A8`.
+
+
 ## `s16` step in `$a0`, extra copies, sequential clamp for `bgez`
 
 A pad-held increment that later reuses the same register as a decay step

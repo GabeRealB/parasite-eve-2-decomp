@@ -78,7 +78,9 @@ typedef struct _GpAnimSet {
 /// `field_0 == 0x7FFF` marks the slot inactive. `field_0`/`field_2` and
 /// `field_4`/`field_6` are the two (set, frame) pairs. `field_10` is a
 /// flags word (`func_800B4754` sets bit 0 when clamping `field_2`;
-/// `func_800B46A4` sets bit 0/1 while walking `field_3` links).
+/// `func_800B46A4` / `func_800B4538` set bit 0/1 while walking `field_3`
+/// links). `func_800B4538` also clears `field_17` and writes `arg6 << 4`
+/// into `field_C` / `field_E`.
 /// `func_800B3CE8` inits a passed-in slot (set index 0 becomes 1; a
 /// negative set index is negated) and also writes `field_2` from the
 /// same `field_4[field_15]` table as `field_6`. `func_800B3FA8` writes
@@ -102,7 +104,8 @@ typedef struct _GpAnimSlot {
     /* 0x14 */ u8          field_14;
     /* 0x15 */ u8          field_15;
     /* 0x16 */ u8          field_16;
-    /* 0x17 */ byte        pad_17[9];
+    /* 0x17 */ u8          field_17;
+    /* 0x18 */ byte        pad_18[8];
     /* 0x20 */ GpAnimSet** field_20;
     /* 0x24 */ byte        pad_24[4];
 } GpAnimSlot;
@@ -226,6 +229,8 @@ void     func_800B3F84(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3,
 void     func_800B3FA8(GpAnimCtx* arg0, s32 arg1, s32 arg2);
 void     func_800B404C(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void     func_800B4514(GpAnimCtx* arg0, s32 arg1);
+void     func_800B4538(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5,
+                       s32 arg6);
 GpAnimRec* func_800B4668(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void     func_800B46A4(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3);
 void     func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3);
