@@ -18456,4 +18456,29 @@ SndEvt_EnqueueType6(3, 0, 0);
 `func_800CAB40` is the example. The post-call load stuck at 68.6%
 (wrong saved-reg assignment and the `jal` before the `lbu`).
 
+## Use a fresh temp for the last `base + saved` add
+
+Reusing the first `y = baseY - N; req.y = y + yOff` locals for a
+second draw request lets `yOff` die at that add. GCC then coalesces
+the sum into the saved register:
+
+```
+addu   s2,v0,s2
+sh     s2,off(sp)
+```
+
+The target keeps the result in `$v0` (`addu v0,v0,s2; sh v0`) because
+`yOff` is only a source. A distinct local for the second request does
+that:
+
+```c
+y  = obj->baseY - 3;
+req.y  = y + yOff;
+/* ... */
+y2 = obj->baseY - 6;
+req2.y = y2 + yOff;
+```
+
+`func_800CCA48` is the example. Reusing `y` stuck at 99.917%.
+
 

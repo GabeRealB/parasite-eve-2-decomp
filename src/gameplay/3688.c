@@ -1,5 +1,7 @@
 #include "common.h"
 
+#include <psyq/memory.h>
+
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
 #include "gameplay/3A34.h"
@@ -103,8 +105,11 @@ extern u8           D_800626E8;
 extern char         D_80096FD8[];
 extern char         D_80096FE4[];
 extern char         D_80096FEC[];
+extern char         D_80096FF4[];
 extern char         D_8009701C[];
 extern char         D_8009703C[];
+extern u8           D_800971A4;
+extern char         D_800971A8[];
 extern char         D_800971D0[];
 extern char         D_800971D8[];
 extern char         D_800971DC[];
@@ -613,7 +618,60 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CC4F4);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CC6C4);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CCA48);
+void func_800CCA48(Task* arg0)
+{
+    u8          buf[0x20];
+    u8          buf2[0x20];
+    TextDrawReq req;
+    TextDrawReq req2;
+    UiObject*   obj;
+    GpItemScan* scan;
+    s32         cur;
+    s32         cap;
+    s32         color;
+    s32         yOff;
+    s32         x;
+    s32         y;
+    s32         y2;
+
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    if ((D_80114D84 == 1) && (Ui_IsStateDone((Task*)obj) == 0)) {
+        Ui_SetState4((Task*)obj, obj->owner);
+    } else if ((D_80114D84 == 0) && (Ui_IsStateDone((Task*)obj) == 1)) {
+        Ui_ClampAnimOrClose((UiPanel*)obj, (s32)obj->owner, 0x10);
+    }
+    yOff   = (s16)obj->field_18 + 0xD;
+    buf[0] = D_800971A4;
+    memset(&buf[1], 0, 0x1F);
+    color = 0x606060;
+    scan  = &Mc_SaveData.field_5BC;
+    cur   = func_800BAF5C(scan);
+    cap   = func_800BC180((u8*)scan);
+    Text_ItoaUnsigned(buf, cur);
+    Text_Strcat(buf, (u8*)D_80096FF4);
+    Text_ItoaUnsigned(buf2, cap);
+    Text_Strcat(buf, buf2);
+    x              = obj->baseX - 2;
+    req.x          = obj->field_1E + x;
+    y              = obj->baseY - 3;
+    req.y          = y + yOff;
+    req.otIndex    = (s16)obj->drawOrder + 1;
+    req.field_8    = color;
+    req.glyphTable = 0;
+    req.centerMode = 2;
+    req.field_E    = 3;
+    func_8002E53C(&req, buf);
+    req2.x          = (u16)obj->field_1C + (obj->baseX + 2);
+    y2              = obj->baseY - 6;
+    req2.y          = y2 + yOff;
+    req2.otIndex    = (s16)obj->drawOrder + 1;
+    req2.field_8    = color;
+    req2.glyphTable = 5;
+    req2.centerMode = 0;
+    req2.field_E    = 1;
+    func_8002E53C(&req2, (u8*)D_800971A8);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CCC28);
 

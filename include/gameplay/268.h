@@ -263,6 +263,8 @@ s32         func_800BBEC0(s32 arg0);
 void        func_800BBF84(void);
 s32         func_800BC06C(s32 arg0);
 void        func_800BC0C0(void);
+/// Returns `arg0[1]` (e.g. `McItemScan.field_1` capacity).
+s32         func_800BC180(u8* arg0);
 s32         func_800BC18C(s32 arg0);
 s32         func_800BC324(s32 arg0);
 void        func_800BC378(Task* arg0);
