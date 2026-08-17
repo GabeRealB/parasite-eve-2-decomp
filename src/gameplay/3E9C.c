@@ -1,10 +1,14 @@
 #include "common.h"
 
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
 #include "main/session.h"
 #include "main/task.h"
 
+extern s32 D_80070F60;
+
+void func_800F1BEC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
 void func_800F68AC(VECTOR3* arg0, s32 arg1, s32 arg2);
 
 INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800ECAA8);
@@ -63,7 +67,46 @@ void func_800F1594(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F1638);
 
-INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F1A9C);
+void func_800F1A9C(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    s16            flag;
+    s32            i;
+    s32            rng;
+
+    mem   = arg0->spawnArg2;
+    flag  = D_80115740->field_4;
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    if (flag < 2) {
+        func_80098F58(coord);
+        if (arg0->state == 0) {
+            rng           = D_80070F60 * 5 + 0x71357911;
+            mem->field_24 = ((u32)rng >> 16) & 0xFFF;
+            D_80070F60    = rng;
+            if (arg0->spawnArg1 & 0xFFF) {
+                mem->field_26 = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xFFF;
+            } else {
+                mem->field_26 = 0x200;
+            }
+            for (i = 0; i < 6; i++) {
+                func_800EA478(0x600A4, coord, 1, 0);
+            }
+            arg0->state = 1;
+        }
+        func_800F1BEC(coord, mem->field_22, mem->field_26, mem->field_24);
+        if (D_80115740->field_4 != 0) {
+            return;
+        }
+        mem->field_22++;
+        if (mem->field_22 < 4) {
+            return;
+        }
+    } else if (flag < 4) {
+        return;
+    }
+    func_800EC7E4(mem, arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F1BEC);
 

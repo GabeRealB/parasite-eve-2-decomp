@@ -88,12 +88,16 @@ typedef struct _GpEffArg {
 } GpEffArg;
 STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 
-/// Work at `Task::spawnArg2` for `func_800F75BC` / `func_800F77F8`.
-/// `field_24` is the current scale stepped toward `field_26`; `field_28`
-/// is the size faded by the later states; `field_2A` is the packed
-/// parameter passed through to `func_800F7AD4`. Full alloc size unknown.
+/// Work at `Task::spawnArg2` for `func_800F1A9C` / `func_800F75BC` /
+/// `func_800F77F8`. `field_22` is the step counter `func_800F1A9C` passes
+/// to `func_800F1BEC`. `field_24` is the current scale stepped toward
+/// `field_26` (`func_800F75BC`) or the LCG angle (`func_800F1A9C`);
+/// `field_28` is the size faded by the later states; `field_2A` is the
+/// packed parameter passed through to `func_800F7AD4`. Full alloc size
+/// unknown.
 typedef struct _GpEffWork {
-    /* 0x00 */ byte pad_0[0x24];
+    /* 0x00 */ byte pad_0[0x22];
+    /* 0x22 */ s16  field_22;
     /* 0x24 */ s16  field_24;
     /* 0x26 */ s16  field_26;
     /* 0x28 */ s16  field_28;
