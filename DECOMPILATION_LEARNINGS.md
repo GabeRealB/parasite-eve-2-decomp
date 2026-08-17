@@ -17622,4 +17622,31 @@ then one `lw / addiu / sw` of `state`. `func_800A0718` is the example. Write
 the inner `if (!(flags & bit)) { spawn; } else { flag = 0xFF; }` so the
 spawn path is the fall-through (`bnez` to the store).
 
+## Pass the zero `ret` local as a call argument so `move a2, s1`
+
+A helper called with a literal `0` after `ret = 0` emits `move a2, zero`.
+The target instead copies the saved return local:
+
+```
+jal    helper
+move   a2, s1
+```
+
+Pass that local, not a fresh `0`:
+
+```c
+ret = 0;
+if (actor->field_954 != 2) {
+    /* ... */
+    func_80106350(arg0, p->field_21, ret);
+    /* ... */
+} else {
+    ret = 1;
+}
+return ret;
+```
+
+`func_80105754` is the example. `func_80106350(..., 0)` stuck with only
+that delay-slot source different.
+
 
