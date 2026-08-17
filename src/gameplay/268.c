@@ -328,7 +328,38 @@ GpItemSlot* func_800BAFE0(s32 arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAFF4);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB0CC);
+void func_800BB0CC(s32 arg0)
+{
+    GpItemSlot*  slot;
+    register s32 found asm("a3");
+    s32          i;
+    GpItemMap*   p;
+
+    if ((u32)(arg0 - 0x80) >= 0x20) {
+        return;
+    }
+
+    found = 0;
+    slot  = &Mc_SaveData.field_1C8[arg0];
+    for (i = found, p = D_8010D2F8; i < 8; i++, p++) {
+        if (arg0 == p->field_1) {
+            found = 1;
+            break;
+        }
+    }
+
+    if ((found == 0) || (D_8010D2F8[i].field_0 != 0)) {
+        slot->field_0 = 0;
+        slot->field_1 = 0;
+    }
+
+    if ((found == 0) || (D_8010D2F8[i].field_0 != 1)) {
+        if (slot->field_2 != 0xFF) {
+            slot->field_2 = 0;
+        }
+        slot->field_3 = 0;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BB190);
 

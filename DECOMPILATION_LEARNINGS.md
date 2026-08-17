@@ -17232,4 +17232,32 @@ packed. `func_800D6170` is the example: yaml `.rodata, 3A34` moved from
 `0x3CB4` to `0x3B3C`, and `D_80097454` is a C `const char[]` after
 `func_800D6334`.
 
+## Pin the flag, not the pointer, so `&Global[i]` keeps `$v1`
+
+Two equally-lived locals (`slot` and `found`) fight over `$a2`/`$a3`.
+Natural allocation puts `found` in `$a2` and the pointer in `$a3`, with
+the address calc in `$v1`:
+
+```
+sll    v0, a0, 3
+lui    v1, %hi(Mc_SaveData)
+addiu  v1, v1, %lo(Mc_SaveData+0x1C8)
+addu   a3, v0, v1
+```
+
+`register ptr asm("a2")` swaps the coloring but also folds the `lui` /
+`addiu` into `$a2`, so there is no `$v1` temp. Pin the *other* local
+instead. The pointer then falls into `$a2` and keeps the `$v1` sequence:
+
+```c
+register s32 found asm("a3");
+GpItemSlot*  slot;
+
+found = 0;
+slot  = &Mc_SaveData.field_1C8[arg0]; /* sll; lui v1; addiu; addu a2,v0,v1 */
+```
+
+`func_800BB0CC` is the example. Pinning `slot` to `$a2` stuck at 99.6%
+with only those three address instructions different.
+
 
