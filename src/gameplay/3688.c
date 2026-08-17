@@ -45,6 +45,7 @@ extern char         D_8010E554[];
 extern char         D_8010E558[];
 extern char         D_8010E55C[];
 extern char         D_8010E58C[];
+extern char         D_8010E594[];
 extern char         D_8010E59C[];
 extern char         D_8010F8D0[];
 extern char         D_8010F8D4[];
@@ -136,6 +137,9 @@ void       func_80181184(Task* task);
 void       func_801811A0(Task* task);
 void       func_800C05CC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void       func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
+void       func_800CD924(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
+void       func_800CDA64(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
+void       func_800CDBEC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void       func_800C2CE8(Task* arg0);
 void       func_800CADFC(UiList* arg0, UiObject* arg1, s32 arg2, u8* arg3);
 void       func_800CB33C(UiObject* arg0, Task* arg1, s32 arg2);
@@ -287,7 +291,52 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C1960);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C1D18);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C2140);
+void func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    TextDrawReq req;
+    s32         item;
+    s32         color;
+    s32         attach;
+    s32         count;
+
+    item = Wip_SysConfig.field_21;
+    if (item > 0) {
+        item += 0x7F;
+    }
+    color = 0x606060;
+    func_800CD924((UiObject*)arg0, arg1, arg2, item, color, 0);
+    Ui_DrawHBar(arg0, (s16)arg0->field_1C, (s16)arg0->field_1E, (s16)arg0->field_18 + 0x11);
+    arg2          += 7;
+    req.x          = arg0->field_20 + arg1;
+    req.y          = arg0->field_22 + 2 + arg2;
+    req.otIndex    = (s16)arg0->field_14 + 1;
+    req.field_8    = color;
+    req.glyphTable = 5;
+    req.centerMode = 0;
+    req.field_E    = 1;
+    func_8002E53C(&req, D_8010E594);
+    arg2 += 0x13;
+    if (item > 0) {
+        if (item != 0x92) {
+            item   = (s32)func_800BAFE0(item);
+            attach = ((GpItemSlot*)item)->field_0;
+            count  = ((GpItemSlot*)item)->field_1;
+            if (attach != 0) {
+                func_800CDBEC((UiObject*)arg0, arg1, arg2, count, color);
+            }
+            func_800CDA64((UiObject*)arg0, arg1, arg2, attach, color, 0);
+            if (((GpItemSlot*)item)->field_2 != 0xFF) {
+                attach = ((GpItemSlot*)item)->field_2;
+                count  = ((GpItemSlot*)item)->field_3;
+                arg2  += 0x10;
+                if (attach != 0) {
+                    func_800CDBEC((UiObject*)arg0, arg1, arg2, count, color);
+                }
+                func_800CDA64((UiObject*)arg0, arg1, arg2, attach, color, 0);
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C22D8);
 

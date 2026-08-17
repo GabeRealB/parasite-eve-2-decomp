@@ -19315,4 +19315,36 @@ VectorNormal(vec, vec);
 alloc plus the `func_80103E7C` `+r` copy, needed when the scratch block
 is also `$a0` of a later call.
 
+## Reuse the id `$s0` as the lookup pointer; compare the next field first
+
+An item id that later becomes the `func_800BAFE0` result wants to stay
+in `$s0`. A separate `GpItemSlot* slot` takes `$s2` and parks the id
+fields in `$s0`. Assign the pointer back into the same `s32`:
+
+```c
+item   = (s32)func_800BAFE0(item);
+attach = ((GpItemSlot*)item)->field_0;
+```
+
+A second byte compared against a non-zero constant then assigned to the
+same live callee-saved var loads directly into that register (`lbu s2`
+/ `beq` / `nop`). The target compares first so the load sits in `$v1`
+and the copy fills the delay slot:
+
+```
+lbu   v1, 2(s0)
+li    v0, 0xFF
+beq   v1, v0, skip
+ move s2, v1
+```
+
+```c
+if (slot->field_2 != 0xFF) {
+    attach = slot->field_2;
+    count  = slot->field_3;
+}
+```
+
+`func_800C2140` is the example. Assign-then-compare stuck at 97.9%.
+
 
