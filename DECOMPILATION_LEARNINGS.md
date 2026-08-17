@@ -17428,4 +17428,39 @@ if (item < 0xA0) {
 `func_800BF624` is the example. `func(item)` stuck at 96% with only that
 delay slot and the compare's `andi` dest different.
 
+## Volatile `field + K` reloads into dest; pin `v0` + `+r` for `lbu v0; addiu dest, v0, K`
+
+A max-update of a volatile byte (`if (acc < p->h + 2) acc = p->h + 2`)
+forces the second load (good) but combines it as
+
+```
+lbu    a3, 3(v1)
+addiu  a3, a3, 2
+```
+
+when `acc` lives in `$a3`. The target keeps the load in `$v0`:
+
+```
+lbu    v0, 3(v1)
+addiu  a3, v0, 2
+```
+
+Load into a `register s32 tmp asm("v0")`, barrier it, then add:
+
+```c
+volatile GlyphUvwh* glyph;
+
+glyph = (GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)table);
+if (acc < glyph->h + 2) {
+    tmp = glyph->h;
+    asm volatile("" : "+r"(tmp));
+    acc = tmp + 2;
+}
+```
+
+`&table[code & 0x3FF]` flips the `addu` operands (`table + scaled` vs
+`scaled + table`). The integer `idx * sizeof + (s32)table` form matches
+`addu v1, v0, t3`. `func_800E6AD4` is the example; 99.8% with only that
+`lbu` dest wrong.
+
 

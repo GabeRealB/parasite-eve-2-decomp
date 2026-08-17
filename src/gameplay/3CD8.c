@@ -14,6 +14,7 @@
 #include "main/sound.h"
 #include "main/stage.h"
 #include "main/task.h"
+#include "main/text.h"
 #include "main/wipsys.h"
 
 extern TaskFuncTable3 D_800974C8;
@@ -34,6 +35,7 @@ extern u16            D_801155AE;
 extern u8             D_80115670;
 extern Task*          D_80115674;
 extern s16            D_80115678;
+extern GlyphUvwh*     D_8011567C;
 extern u8             D_80115648;
 extern s16            D_8011564A;
 extern s16            D_80115654;
@@ -346,7 +348,57 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E68D8);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E69F4);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6AD4);
+s16 func_800E6AD4(u16* arg0)
+{
+    register s32        lineH asm("a3");
+    register s32        total asm("t0");
+    register s32        i asm("t1");
+    register s32        seenBreak asm("t2");
+    u16                 code;
+    s32                 shifted;
+    register s32        next asm("v1");
+    volatile GlyphUvwh* glyph;
+    register s32        v0tmp asm("v0");
+
+    lineH     = 0;
+    total     = lineH;
+    i         = lineH;
+    code      = arg0[0];
+    shifted   = code << 16;
+    seenBreak = lineH;
+    v0tmp     = -1;
+    if (shifted >> 16 != v0tmp) {
+        do {
+            v0tmp = seenBreak;
+            if (shifted >> 16 == -2) {
+                if (v0tmp != 0) {
+                    if (lineH == 0) {
+                        lineH = 2;
+                    }
+                    total += lineH;
+                } else {
+                    seenBreak = 1;
+                }
+                lineH = 0;
+            } else if (shifted >> 16 != -3) {
+                if (shifted >> 16 >= 0) {
+                    glyph = (GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)D_8011567C);
+                    if (lineH < glyph->h + 2) {
+                        v0tmp = glyph->h;
+                        asm volatile("" : "+r"(v0tmp));
+                        lineH = v0tmp + 2;
+                    }
+                }
+            }
+            next    = i + 1;
+            code    = arg0[(s16)next];
+            i       = next;
+            shifted = code << 16;
+            v0tmp   = -1;
+        } while (shifted >> 16 != v0tmp);
+    }
+    return (s16)(0xD0 - total);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6BB8);
 

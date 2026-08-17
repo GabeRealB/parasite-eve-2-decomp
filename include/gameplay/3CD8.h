@@ -13,6 +13,9 @@
 /// (`func_800E41F4` stores its first arg there). `func_800E6EA0` walks
 /// from a start index until `field_8 == -1` (terminator) or `field_5`
 /// equals `D_80115668` (the key `func_800E41F4` saved from its third arg).
+/// When not -1, `field_8` is a relocated `u16*` text stream walked by
+/// `func_800E6AD4` / `func_800E69F4` / `func_800E67C8` (codes `-1` end,
+/// `-2` newline, `-3` skip; else glyph index `& 0x3FF` into `D_8011567C`).
 typedef struct _GpEvt12 {
     /* 0x0 */ u8  field_0;
     /* 0x1 */ u8  field_1;
@@ -22,7 +25,7 @@ typedef struct _GpEvt12 {
     /* 0x5 */ u8  field_5; // compared with D_80115668
     /* 0x6 */ u8  field_6;
     /* 0x7 */ u8  field_7; // copied to D_80115678
-    /* 0x8 */ s32 field_8; // -1 terminator, else payload/id
+    /* 0x8 */ s32 field_8; // -1 terminator, else relocated u16* text
 } GpEvt12;
 STATIC_ASSERT_SIZEOF(GpEvt12, 0xC);
 
@@ -197,6 +200,7 @@ void func_800E3D8C(s32 arg0, s32 arg1);
 void func_800E3EF0(s32 arg0);
 void func_800E4080(void);
 void func_800E40BC(s32 arg0, s32 arg1);
+s16  func_800E6AD4(u16* arg0);
 s32  func_800E6CE0(void);
 
 void func_800E9BDC(u8 arg0, s32 arg1);

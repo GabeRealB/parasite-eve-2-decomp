@@ -500,6 +500,9 @@ See header comments (layout, list cursor, line count, …).
 
 ### `TextDrawReq` / `PrimDrawParams` / `TextStream` / `FontGlyph` / `GlyphUvwh`
 See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
+Gameplay overlay `D_8011567C` is a `GlyphUvwh*` font table (`func_800E40EC`
+stores the relocated file `field_8` there). `func_800E6AD4` / `func_800E69F4`
+read `h + 2` as line height; `func_800E67C8` / `func_800E68D8` read `w`.
 
 ---
 
@@ -1330,7 +1333,7 @@ there). `func_800E6EA0` walks from a start index until `field_8 == -1` or
 | 0x4 | `field_4` | u8 flags copied to `D_80115670` by `func_800E6E50`; bit 0 is cleared when `field_7 != 0` |
 | 0x5 | `field_5` | u8 key compared with `D_80115668` |
 | 0x7 | `field_7` | u8 copied to `D_80115678` (countdown) by `func_800E6E50` |
-| 0x8 | `field_8` | s32; `-1` terminator, else payload/id passed to later sequence helpers |
+| 0x8 | `field_8` | s32; `-1` terminator, else relocated `u16*` encoded text (`func_800E40EC` adds the file base). `func_800E6AD4` / `func_800E69F4` / `func_800E67C8` walk it: `-1` ends, `-2` is a newline, `-3` is skipped, else glyph index `& 0x3FF` into `D_8011567C` |
 
 ### `GpScriptCmd` (4) — `3CD8.h`
 One step of the dual script at `GpState34::field_0`. Indexed by the
