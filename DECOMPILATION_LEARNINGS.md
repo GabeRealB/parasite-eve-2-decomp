@@ -17649,4 +17649,63 @@ return ret;
 `func_80105754` is the example. `func_80106350(..., 0)` stuck with only
 that delay-slot source different.
 
+## Put a `found:` label between switch cases so the load sits in the gap
+
+A search loop after a 1/2/default table switch wants
+
+```
+case 1:  lw table; j after_qty; move t0, 0
+found:   lhu t0, 2(rec); j after_loop
+default: addiu table, Save+off
+after_qty:
+    move t0, 0
+    /* walk the table */
+    beq  rec->id, item, found
+after_loop:
+```
+
+`if (rec->id == item) { qty = rec->field_2; break; }` (or an `else` after
+`!=`) emits the `lhu` after the loop plus an extra `j after; nop` to skip
+it. GCC 2.8.1 will not move that block into the hole between `case 1` and
+`default`.
+
+A regular label *inside* the switch, between those cases, is the hole:
+
+```c
+switch (scan->field_2) {
+    case 2:
+        tmp = D_80114C20;
+        break;
+    case 1:
+        tmp = D_80114D70;
+        break;
+    found:
+        qty = rec->field_2;
+        goto after_loop;
+    default:
+        tmp = Mc_SaveData.field_1AC;
+        break;
+}
+table = tmp;
+qty   = 0;
+asm volatile("" ::"r"(qty));
+/* ... */
+if (rec->field_0 != item) {
+    i++;
+    rec++;
+    if (i < loop_end) {
+        goto loop;
+    }
+} else {
+    goto found;
+}
+after_loop:
+```
+
+`qty = 0` plus the volatile keeps `move t0, 0` in the case-1 delay slot
+(so that jump skips the join). Without the pin, `qty = 0` sinks into a
+later delay slot and the gap collapses. `func_800BAD28` is the example.
+A loop-local `qty = rec->field_2` stuck at 93% with only that block
+after the loop instead of in the switch.
+
 

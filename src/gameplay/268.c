@@ -449,7 +449,80 @@ GpItemRec* func_800BAD08(GpItemScan* arg0, s32 arg1, s32 arg2)
     return func_800B8CAC(arg0, arg1, arg2);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAD28);
+s32 func_800BAD28(GpItemScan* arg0, GpItemRec* arg1, s32 arg2)
+{
+    GpItemRec*          tmp;
+    register GpItemRec* table asm("v1");
+    register s32        qty asm("t0");
+    register GpItemRec* base asm("t1");
+    s32                 item;
+    GpItemRec*          rec;
+    s32                 i;
+    s32                 count;
+    s32                 end;
+    s32                 loop_end;
+
+    item = arg1->field_0;
+    if (item < 0xA0) {
+        arg1->field_0 = 0;
+        arg1->field_2 = 0;
+        arg1->field_1 = 0;
+    } else {
+        switch (arg0->field_2) {
+            case 2:
+                tmp = D_80114C20;
+                break;
+            case 1:
+                tmp = D_80114D70;
+                break;
+            found:
+                qty = rec->field_2;
+                goto after_loop;
+            default:
+                tmp = Mc_SaveData.field_1AC;
+                break;
+        }
+        table = tmp;
+        qty   = 0;
+        asm volatile("" ::"r"(qty));
+        i     = arg0->field_0;
+        count = arg0->field_1;
+        base  = table;
+        end   = i + count;
+        if (i < end) {
+            loop_end = end;
+            rec      = (GpItemRec*)((i << 2) + (s32)base);
+        loop:
+            if (rec->field_0 != item) {
+                i++;
+                rec++;
+                if (i < loop_end) {
+                    goto loop;
+                }
+            } else {
+                goto found;
+            }
+        }
+    after_loop:
+        if (i != arg0->field_0 + arg0->field_1) {
+            if (arg2 < 0) {
+                arg2 = qty;
+            }
+            arg2 = qty - arg2;
+            if (arg2 < 0) {
+                arg2 = 0;
+            }
+            if (arg2 == 0) {
+                base[i].field_0 = 0;
+                base[i].field_2 = 0;
+                base[i].field_1 = 0;
+            } else {
+                base[i].field_2 = arg2;
+            }
+        }
+    }
+    return 0;
+}
 
 void func_800BAE38(void)
 {
