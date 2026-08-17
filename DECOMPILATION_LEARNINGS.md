@@ -48,6 +48,41 @@ if (ABS(temp) < 0x40) {
 constants swapped. Assigning the clamp to `temp` (already in `$v1`)
 emits `li v1` instead of `li v0`. `func_80109720` is the example.
 
+## `s16` divisor after `s32` `>> 3` and zero-clamp
+
+A scale derived from an `s16` (`sll 16` / `sra 19`) that is then
+clamped `0 → 1` and used as a signed divisor wants the shift in an
+`s32` and the clamped value in an `s16`:
+
+```
+sra   v0, v0, 0x13
+bnez  v0, use
+ move v1, v0
+li    v1, 1
+andi  a0, ..., 0xff
+sll   v0, v1, 0x10
+sra   v0, v0, 0x10
+div   zero, a0, v0
+```
+
+```c
+s16 scale;
+s32 temp;
+
+temp = arg >> 3;
+if (temp == 0) {
+    scale = 1;
+} else {
+    scale = temp;
+}
+end = (byte & 0xFF) / scale;
+```
+
+Keeping `scale` as `s32` (or writing `(s16)s32_scale` after GCC already
+knows the value fits in 16 bits) drops the `sll`/`sra 16` recast, writes
+the shift into `$v1` instead of `$v0`, and swaps saved-arg registers.
+`func_800E8E00` is the example.
+
 
 
 ## Zero the s16 loop index before independent table walks so it takes `$t0`
