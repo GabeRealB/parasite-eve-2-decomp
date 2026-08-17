@@ -1335,6 +1335,17 @@ there). `func_800E6EA0` walks from a start index until `field_8 == -1` or
 | 0x7 | `field_7` | u8 copied to `D_80115678` (countdown) by `func_800E6E50` |
 | 0x8 | `field_8` | s32; `-1` terminator, else relocated `u16*` encoded text (`func_800E40EC` adds the file base). `func_800E6AD4` / `func_800E69F4` / `func_800E67C8` walk it: `-1` ends, `-2` is a newline, `-3` is skipped, else glyph index `& 0x3FF` into `D_8011567C` |
 
+### `GpVolFade` (4) — `3CD8.h`
+Volume-fade payload at `Task::spawnArg2` for `func_800E8378`. Start
+volume is snapshotted from `D_8007A396` into `D_801156C0`; `D_801156C2`
+counts frames. Completing or instant-applying the fade clears
+`D_8010FBE4` (the live fade task).
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x0 | `field_0` | Target volume (`Snd_ApplyVolumeTable`) |
+| 0x2 | `field_2` | Duration in frames; `0` applies `field_0` immediately |
+
 ### `GpScriptCmd` (4) — `3CD8.h`
 One step of the dual script at `GpState34::field_0`. Indexed by the
 script A/B program counters. Low byte of each halfword is the opcode

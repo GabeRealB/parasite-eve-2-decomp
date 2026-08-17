@@ -17,6 +17,7 @@
 #include "main/text.h"
 #include "main/wipsys.h"
 
+extern u16            D_8007A396;
 extern TaskFuncTable3 D_800974C8;
 extern char           D_8009751C[];
 extern TaskFuncTable3 D_8009752C;
@@ -61,6 +62,8 @@ extern s8             D_801156B1;
 extern s32            D_801156B4;
 extern Task*          D_801156B8;
 extern s16            D_801156BC;
+extern u16            D_801156C0;
+extern u16            D_801156C2;
 extern u8             D_801156C8;
 extern u8             D_801156C9;
 extern u8             D_801156CA;
@@ -773,7 +776,35 @@ void func_800E7570(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E75C8);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E8378);
+void func_800E8378(Task* arg0)
+{
+    GpVolFade* fade;
+    s32        volume;
+
+    fade = arg0->spawnArg2;
+    switch (arg0->state) {
+        case 0:
+            if (fade->field_2 == 0) {
+                Snd_ApplyVolumeTable(fade->field_0);
+                Task_Kill(arg0);
+                D_8010FBE4 = 0;
+            } else {
+                D_801156C2 = 0;
+                D_801156C0 = D_8007A396;
+            }
+            arg0->state++;
+            break;
+        case 1:
+            D_801156C2++;
+            volume = (D_801156C0 * (fade->field_2 - D_801156C2) + fade->field_0 * D_801156C2) / fade->field_2;
+            Snd_ApplyVolumeTable(volume & 0xFFFF);
+            if (D_801156C2 == fade->field_2) {
+                Task_Kill(arg0);
+                D_8010FBE4 = 0;
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E84B8);
 

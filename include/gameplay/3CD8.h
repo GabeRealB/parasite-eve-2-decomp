@@ -56,6 +56,15 @@ typedef struct _GpRec14 {
 } GpRec14;
 STATIC_ASSERT_SIZEOF(GpRec14, 0x14);
 
+/// 4-byte volume-fade payload at `Task::spawnArg2` for `func_800E8378`.
+/// `field_0` is the target volume passed to `Snd_ApplyVolumeTable`.
+/// `field_2` is the fade duration in frames (`0` applies immediately).
+typedef struct _GpVolFade {
+    /* 0x0 */ u16 field_0; // target volume
+    /* 0x2 */ u16 field_2; // duration
+} GpVolFade;
+STATIC_ASSERT_SIZEOF(GpVolFade, 4);
+
 /// Packed bytes in `Task::spawnArg1` for `func_800E6F60`.
 /// `field_0` is forwarded as a2 to `func_800AC464`.
 /// `field_1` is copied into `Task::killCountdown` on state 0.
