@@ -3,6 +3,45 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Barrier after scratch alloc so GTE setup cannot fill load-delay nops
+
+A scratch-head alloc followed by `gte_SetRotMatrix(&obj->field->workm)` is
+independent of the alloc. GCC hoists `lw v0, 8(a0)` into the
+`lw v1, 0(scratch)` delay slot and folds the `sw` later:
+
+```
+lw    v1,0(a3)
+lw    v0,8(a0)
+addiu a2,v1,-0x30
+addiu v0,v0,0x24
+sw    a2,0(a3)
+```
+
+The target keeps the alloc sequential (`lw / nop / addiu / sw`) and only
+then loads the matrix pointer (`lw / nop / addiu`):
+
+```
+lw    v1,0(a3)
+nop
+addiu a2,v1,-0x30
+sw    a2,0(a3)
+lw    v0,8(a0)
+nop
+addiu v0,v0,0x24
+```
+
+Store the new scratch pointer, then emit a memory barrier before the GTE
+setup:
+
+```c
+*scratch = vec;
+__asm__ volatile("" ::: "memory");
+gte_SetRotMatrix(&((GsCOORDINATE2*)arg0->field_8)->workm);
+```
+
+`func_800E08CC` is the example. Without the barrier the body still
+matched and only those two delay-slot nops were gone (90.5%).
+
 ## Capture the table pointer before `idx + (byte - K)`
 
 `table[arg2 + byte - 2]` reassociates: GCC either folds the subtract into

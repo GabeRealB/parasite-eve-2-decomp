@@ -914,11 +914,11 @@ Doubly-linked node unlinked by `func_800E1638` and linked onto
 |-----|--------|------|
 | 0x00 | `next` | Intrusive next; NULL-terminated |
 | 0x04 | `prev` | Previous node, or the list-head object when first |
-| 0x08 | `field_8` | Pointer stored by `func_8010C980` (first arg) |
+| 0x08 | `field_8` | `GsCOORDINATE2*` stored by `func_8010C980` (first arg). `func_800E08CC` applies `workm` to the 0x10 SVECTOR and adds `workm.t` |
 | 0x0C | `field_C` | `GpRec18*` table wiped by `func_800E18E0` |
-| 0x10 | `field_10` | s16; cleared with `field_12` / `field_14` by `func_8010C980` |
-| 0x12 | `field_12` | s16 |
-| 0x14 | `field_14` | s16 |
+| 0x10 | `field_10` | s16; SVECTOR.vx (with `field_12` / `field_14`). Cleared by `func_8010C980`; loaded into GTE V0 by `func_800E08CC` |
+| 0x12 | `field_12` | s16; SVECTOR.vy |
+| 0x14 | `field_14` | s16; SVECTOR.vz |
 | 0x18 | `field_18` | s32 flags/mode word (`func_8010C980` ORs `0x30000`) |
 | 0x1C | `field_1C` | s16 stored by `func_8010C980` (last arg) |
 | 0x1E | `flags` | u16 flags: bit 0x8 = on list; bits 0x7 kept on unlink (type / kind); `func_8010C980` sets 1 then ORs 0x8000 |

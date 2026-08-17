@@ -33,7 +33,9 @@ STATIC_ASSERT_SIZEOF(GpLinkNode, 0x8);
 /// node is on the `D_8010FA8C` list (set by `func_800E15AC`, cleared by
 /// `func_800E1638`, keeping bits 0x7). `func_8010C980` fills `field_8` /
 /// `field_C` / the 0x10 SVECTOR / `field_18` / `field_1C` and ORs `flags`
-/// with 0x8000 after linking. Embedded as 0x20-byte nodes in `GameActor`
+/// with 0x8000 after linking. `field_8` is a `GsCOORDINATE2*`; `func_800E08CC`
+/// applies `workm` to the 0x10 SVECTOR and adds `workm.t` into a `VECTOR3`.
+/// Embedded as 0x20-byte nodes in `GameActor`
 /// (`field_AC` / `field_CC` / `field_EC` / `field_10C` / `field_12C`).
 /// Full object size is not known for other list users.
 typedef struct _GpObj {
@@ -668,6 +670,7 @@ void func_800E0540(GpObj* node);
 void func_800E0608(GpObj* node, s32 mask, s32 match);
 void func_800E06AC(GpObj* node, s32 mask, s32 match);
 s32  func_800E076C(void);
+void func_800E08CC(GpObj* arg0, VECTOR3* arg1);
 void func_800E0B08(void);
 void func_800E0B48(VECTOR3* arg0, SVECTOR3* arg1);
 void func_800E15AC(s32 arg0, GpObj* arg1);

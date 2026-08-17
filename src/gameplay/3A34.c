@@ -15,6 +15,10 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
+#include <psyq/inline_c.h>
+
+#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+
 s32  func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 
@@ -1122,7 +1126,26 @@ s32 func_800E076C(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0774);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E08CC);
+void func_800E08CC(GpObj* arg0, VECTOR3* arg1)
+{
+    void**   scratch;
+    u8*      head;
+    VECTOR3* vec;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    vec      = (VECTOR3*)(head - 0x30);
+    *scratch = vec;
+    __asm__ volatile("" ::: "memory");
+    gte_SetRotMatrix(&((GsCOORDINATE2*)arg0->field_8)->workm);
+    gte_ldv0(&arg0->field_10);
+    gte_rtv0_real();
+    gte_stlvnl(vec);
+    arg1->vx = ((GsCOORDINATE2*)arg0->field_8)->workm.t[0] + ((VECTOR3*)(head - 0x30))->vx;
+    arg1->vy = ((GsCOORDINATE2*)arg0->field_8)->workm.t[1] + vec->vy;
+    arg1->vz = ((GsCOORDINATE2*)arg0->field_8)->workm.t[2] + vec->vz;
+    *scratch = (u8*)*scratch + 0x30;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0994);
 
