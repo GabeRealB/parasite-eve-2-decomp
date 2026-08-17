@@ -18046,4 +18046,40 @@ teardown+call) matches the target body order.
 `func_800BDDC4` is the example. Case order `-1`, `6`, `9` stuck at 95.7%
 with the case-9 `sh` after the teardown `jal`.
 
+## Start the dest-arg local at `extra` and reload between the two loads
+
+`extra = slot->extra; raw = extra->field_8; f(..., &((T*)raw)[i], ...)`
+puts extra in `$v1` and `field_8` in `$a1`:
+
+```
+lw    v1,0x2C(s3)
+move  a2,zero
+lw    a1,8(v1)
+```
+
+The target loads extra straight into the call dest, fills that delay
+slot with an independent `lhu`, then overwrites the same register:
+
+```
+move  a2,zero
+lw    a1,0x2C(s3)
+lhu   v1,0x2A(s0)
+lw    a1,8(a1)
+```
+
+Assign `slot->extra` to the pointer that becomes the call argument,
+reload a live field (here `killCountdown`) between the two assigns,
+then overwrite that same local with `field_8`:
+
+```c
+coords = (GsCOORDINATE2*)slot->extra;
+count  = arg0->killCountdown;
+coords = (GsCOORDINATE2*)((GameActorExt*)coords)->field_8;
+coords = &coords[index + 1];
+func_800FDB18(3, coords, 0, params);
+```
+
+`func_8010B3F8` is the example. A separate `extra`/`raw` pair stuck at
+97.4% with only those three loads (and the `field_6` store) reordered.
+
 

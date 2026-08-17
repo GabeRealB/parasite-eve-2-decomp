@@ -2850,7 +2850,47 @@ void func_8010B348(GpActorWork* arg0, GpIdRec* arg1, s32 arg2)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B3F8);
+void func_8010B3F8(Task* arg0)
+{
+    Task*          slot;
+    GpEffArg*      params;
+    GsCOORDINATE2* coords;
+    s32            idx;
+    u16            count;
+    s16            next;
+
+    slot = Game_GetPtrSlot(3);
+    switch (arg0->state) {
+        case 0:
+            arg0->state         = 1;
+            arg0->killCountdown = 0;
+            /* fallthrough */
+        case 1:
+            count = arg0->killCountdown;
+            if ((count & 0xF) == 0) {
+                next                = count + 0x100;
+                params              = &D_80113358;
+                arg0->killCountdown = next;
+                idx                 = arg0->spawnArg1 & 3;
+                if (next >= 0x300) {
+                    Task_Kill(arg0);
+                } else {
+                    arg0->killCountdown = next | 6;
+                }
+                coords          = (GsCOORDINATE2*)slot->extra;
+                count           = arg0->killCountdown;
+                coords          = (GsCOORDINATE2*)((GameActorExt*)coords)->field_8;
+                params->field_4 = (idx * 0x60) + 0xC0;
+                params->field_6 = idx + 1;
+                coords          = &coords[((count & 0xF00) >> 8) + 1];
+                params->field_0 = coords;
+                func_800FDB18(3, coords, 0, params);
+            } else {
+                arg0->killCountdown = count - 1;
+            }
+            break;
+    }
+}
 
 void func_8010B520(Task* arg0)
 {
