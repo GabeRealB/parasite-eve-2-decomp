@@ -3,6 +3,31 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## 18-byte MATRIX rotation copy: `u8[16]` + trailing `s16`, not `u8[18]`
+
+An 18-byte assignment (MATRIX `m[3][3]`) that the target copies with four
+`lwl`/`lwr` pairs plus a final `lh`/`sh` is **not** `u8 data[0x12]`. That
+alignment-1 object emits `lb`/`sb` for the last two bytes.
+
+Give the helper alignment 2 and a halfword tail:
+
+```c
+typedef struct {
+    u8  data[0x10];
+    s16 field_10;
+} GBytes18;
+
+*(GBytes18*)dst = *(GBytes18*)src;
+```
+
+`s16 data[9]` is the same size/alignment and also works, but the mixed
+layout matches the existing `GBytes4`/`GBytes8` "unaligned word chunks +
+remainder" pattern. A word-aligned `MATRIX` assignment uses `lw`/`sw`
+instead of `lwl`/`lwr`.
+
+`func_800A8A48` is the example (rotation to `D_80070E44`, then a separate
+`VECTOR3` assign of `mtx.t` to `D_80070F28`).
+
 ## Barrier after scratch alloc so GTE setup cannot fill load-delay nops
 
 A scratch-head alloc followed by `gte_SetRotMatrix(&obj->field->workm)` is

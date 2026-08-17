@@ -83,6 +83,7 @@ Convention: only list fields with evidence. Unlisted `field_*` / `unknown_*` /
 | 0x118 | `frameMode` | Frame / mode word used by stage flow |
 | 0x123 | `skipTeardown` | Kill-path gate (`Task_Kill` skips overlay teardown if set) |
 | 0x124 | `region` | Region / rate select (1 → PAL paths, CdStream sector count) |
+| 0x110 | `field_110` | Projection plane H; copied from `GpCb2CRec.field_20` (`func_800A8A48`) |
 | 0x128 | `field_128` | Drawn into scratch by model path |
 
 ---
@@ -776,8 +777,8 @@ record index is `func_800AD284() - 1`. Passed as `Task_Spawn` type-0xF
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x00 | `mtx` | `MATRIX`; rotation copied to `D_80070E44`, translation to `D_80070F28` (`func_800A8724`) |
-| 0x20 | `field_20` | Extra word; `lhu` into `Display_State+0x110`, `lw` into GTE OFC (`func_800A8724`) |
+| 0x00 | `mtx` | `MATRIX`; rotation copied to `D_80070E44`, translation to `D_80070F28` (`func_800A8724` / `func_800A8A48`) |
+| 0x20 | `field_20` | Extra word; `lhu` into `Display_State.field_110`, `lw` into GTE H / `gte_SetGeomScreen` (`func_800A8724` / `func_800A8A48`) |
 
 ### `GpDisp2dCoord` (0x50) — `gameplay.h`
 `GsCOORDINATE2` overlay embedded in `GpDisp2d`. `func_80099098` writes an

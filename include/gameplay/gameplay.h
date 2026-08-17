@@ -85,8 +85,10 @@ STATIC_ASSERT_SIZEOF(GpStateBD8, 0x4);
 extern GpStateBD8 D_80114BD8;
 
 /// 0x24-byte camera/view record in tables pointed to by `D_8010CB2C`.
-/// Indexed 1-based by `func_800AD284()`. `mtx` is copied to `D_80070E44` /
-/// `D_80070F28` by `func_800A8724`; `field_20` is loaded as both `lhu` and `lw`.
+/// Indexed 1-based by `func_800AD284()`. `mtx` rotation is copied to
+/// `D_80070E44` and translation to `D_80070F28` by `func_800A8724` /
+/// `func_800A8A48`; `field_20` is `lhu` into `Display_State.field_110` and
+/// `lw` into GTE H (`gte_SetGeomScreen`).
 typedef struct _GpCb2CRec {
     /* 0x00 */ MATRIX mtx;
     /* 0x20 */ u32    field_20;
@@ -143,6 +145,7 @@ void func_800A7DB8(s32 arg0);
 void func_800A7DE0(void);
 s32  func_800A7E5C(s32 arg0);
 void func_800A8654(Task* task);
+void func_800A8A48(GpCb2CRec* arg0);
 void func_800A8B14(void);
 void func_800A8B6C(void);
 GpCb2CRec* func_800A8C08(GameSessionFrom4* arg0);

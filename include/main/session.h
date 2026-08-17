@@ -22,6 +22,14 @@ typedef struct _GBytes8 {
     u8 data[8];
 } GBytes8;
 
+/// 18-byte MATRIX rotation (3x3 s16). Assigned via unaligned lwl/lwr + lh/sh
+/// (see func_800A8A48). The trailing s16 (not u8[2]) keeps the last two bytes
+/// a halfword; a pure u8[18] emits lb/sb instead.
+typedef struct _GBytes18 {
+    u8  data[0x10];
+    s16 field_10;
+} GBytes18;
+
 /// Overlay of objects with an 8-byte field at offset 0x4 (GameSession, McSaveData).
 typedef struct _SessionBytesAt4 {
     byte    pad[4];

@@ -75,6 +75,8 @@ extern MATRIX D_80070E44;
 extern GsCOORDINATE2 D_80070E90;
 extern MATRIX        D_80070E94;
 extern MATRIX        D_80070F14;
-extern MATRIX        D_80070F34;
+/// Translation of `D_80070F14` / `D_80070F10.coord.t`.
+extern VECTOR3 D_80070F28;
+extern MATRIX  D_80070F34;
 
 #endif // GFX_H

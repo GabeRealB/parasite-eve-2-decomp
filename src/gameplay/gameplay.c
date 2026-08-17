@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include <psyq/inline_c.h>
 #include <psyq/memory.h>
 #include <psyq/rand.h>
 #include <psyq/stdio.h>
@@ -1640,7 +1641,31 @@ s32 func_800A8A1C(s32 arg0)
     return Task_Spawn(0, 0xF, 0, arg0) != NULL;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8A48);
+void func_800A8A48(GpCb2CRec* arg0)
+{
+    GsCOORDINATE2* c1;
+    MATRIX*        rot;
+    VECTOR3*       trans;
+
+    rot   = &D_80070E44;
+    trans = &D_80070F28;
+    c1    = &D_80070E90;
+
+    *(GBytes18*)rot = *(GBytes18*)arg0;
+    *trans          = *(VECTOR3*)&arg0->mtx.t;
+
+    c1->coord.t[0] = 0;
+    c1->coord.t[1] = 0;
+    c1->coord.t[2] = 0;
+
+    Display_State.field_110 = arg0->field_20;
+    gte_SetGeomScreen(arg0->field_20);
+    gte_SetGeomOffset(0, 0);
+
+    D_80070E90.flg                                                          = 0;
+    ((GsCOORDINATE2*)((u8*)rot - OFFSET_OF(GsCOORDINATE2, coord)))->flg     = 0;
+    ((GsCOORDINATE2*)((u8*)trans - OFFSET_OF(GsCOORDINATE2, coord.t)))->flg = 0;
+}
 
 void func_800A8B14(void)
 {
