@@ -19240,4 +19240,38 @@ setcode(poly, 0x3E);
 `func_8009F280` is the example. Writing `r3` from `arg2[5]` directly
 stuck at 96.8%.
 
+## Assign-in-`&&` so a later store keeps the compared byte
+
+`if (p->flag == 0) { v = p->id; if (v == 1) { p->hp = v; } }` proves
+`v == 1` and rematerializes the store as `li v0,1; sh v0`. The target
+instead does
+
+```
+lb    v0, flag(a0)
+nop
+bnez  v0, skip
+li    v0, 1
+lb    a1, id(a0)
+nop
+bne   a1, v0, skip
+...
+sh    a1, hp(a0)
+```
+
+Assign the byte *inside* the `&&` so the load stays after the first
+branch and `v` is not replaced by the constant:
+
+```c
+if (save->field_5C2 == 0 && (field13 = save->field_13) == 1) {
+    save->field_6C8 -= actor->field_96E;
+    if ((s16)save->field_6C8 <= 0 && Game_Session->field_1 != 0) {
+        save->field_6C8 = field13; /* sh a1, not li 1 */
+    }
+}
+```
+
+Assigning `field13` before the `if` also avoids the fold but hoists
+`lb id` above the `field_5C2` check. A nested `if` after an inner
+assign folds. `func_8010B9A4` is the example.
+
 

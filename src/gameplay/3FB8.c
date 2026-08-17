@@ -3365,7 +3365,42 @@ void func_8010B674(GpActorWork* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B79C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B9A4);
+void func_8010B9A4(GpActorWork* arg0)
+{
+    GameActor*  actor;
+    McSaveData* save;
+    s32         field13;
+    u16         temp;
+    u16         anim;
+
+    actor            = arg0->actor;
+    actor->field_954 = 1;
+    actor->field_95C = 7;
+    save             = &Mc_SaveData;
+    actor->field_958 = 0;
+    actor->field_95A = 0;
+    actor->field_95E = 0;
+    actor->field_960 = 0;
+    actor->field_973 = 0;
+    actor->field_975 = 0;
+    if (save->field_5C2 == 0 && (field13 = save->field_13) == 1) {
+        temp            = save->field_6C8 - actor->field_96E;
+        save->field_6C8 = temp;
+        if ((s16)temp <= 0 && Game_Session->field_1 != 0) {
+            save->field_6C8 = field13;
+        }
+    }
+    actor->field_12A &= 0x3FFF;
+    if ((s8)actor->field_97E == 2) {
+        actor->field_97E = 1;
+    }
+    func_80106350(arg0, D_80167218[Mc_SaveData.field_5C7], 0);
+    anim = 0x11;
+    if ((u16)actor->field_96C == 1) {
+        anim = 0x10;
+    }
+    func_80103A18(arg0, anim, 0, 3);
+}
 
 Task* func_8010BAC8(GpActorArg* arg0, u16 arg1, s32 arg2, u16* arg3)
 {
