@@ -19210,4 +19210,34 @@ TU starting at the next function. Update
 from `rodata_3FB8` / `3FB8.c` / `rodata_3FB8_2`. `func_800F75BC` is the
 example.
 
+## Capture the next color before `setlen`/`setcode` so they fill that delay
+
+A POLY_GT4 fill that writes `r0`/`r1`/`r2` then `setlen`/`setcode` then
+`r3` lets GCC slide the two `sb`s into `r2`'s load-delay:
+
+```
+lw    v0,0x10(a2)
+sb    t1,-0xb(a1)
+sb    t0,-0x7(a1)
+sw    v0,0xe(a1)
+lw    v0,0x14(a2)
+nop
+sw    v0,0x1a(a1)
+```
+
+The target finishes the `r2` store first (`lw`/`nop`/`sw`) and uses
+`setlen`/`setcode` as the delay for the `r3` load. Pull that next word
+into a temp before the byte stores:
+
+```c
+*(s32*)&poly->r2 = arg2[4];
+color = arg2[5];
+setlen(poly, 12);
+setcode(poly, 0x3E);
+*(s32*)&poly->r3 = color;
+```
+
+`func_8009F280` is the example. Writing `r3` from `arg2[5]` directly
+stuck at 96.8%.
+
 
