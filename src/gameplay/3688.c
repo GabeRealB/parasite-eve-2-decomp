@@ -1788,7 +1788,62 @@ void func_800CF448(s32 arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CF4EC);
+s32 func_800CF4EC(GpItemScan* arg0, s32 arg1, s32 arg2)
+{
+    s32        i;
+    s32        result;
+    s32        item;
+    s32        qty;
+    s32        mode;
+    s32        idx;
+    s32        temp;
+    GpItemQty* table0;
+    GpItemQty* table1;
+
+    result = 0;
+    mode   = D_80114D90;
+    if (mode != 2) {
+        i      = 0;
+        table0 = D_8010E238;
+        idx    = arg2 - 0x80;
+        do {
+            temp = i + idx * 4;
+            item = ((GpItemQty*)(temp + (s32)table0))->field_1;
+            qty  = func_800BB26C(arg0, item);
+            qty -= func_800BAFF4(arg0, item);
+            if (qty > 0) {
+                arg1--;
+                if (arg1 < 0) {
+                    result = item;
+                    break;
+                }
+            }
+            i++;
+        } while (i < 3);
+    }
+    if (mode != 1) {
+        if (arg1 >= 0) {
+            i      = 0;
+            table1 = D_8010D278;
+            idx    = arg2 - 0x80;
+            do {
+                temp = i + idx * 4;
+                item = ((GpItemQty*)(temp + (s32)table1))->field_1;
+                qty  = func_800BB26C(arg0, item);
+                qty -= func_800BAFF4(arg0, item);
+                if (qty > 0) {
+                    arg1--;
+                    if (arg1 < 0) {
+                        result = item;
+                        break;
+                    }
+                }
+                i++;
+            } while (i < 3);
+        }
+    }
+    return result;
+}
 
 void func_800CF658(UiPanel* arg0, s32 arg1)
 {

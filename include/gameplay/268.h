@@ -47,7 +47,8 @@ typedef McItemRec GpItemRec;
 
 /// 4-byte entry in `D_8010D278` / `D_8010E238` (32 entries, item ids
 /// 0x80–0x9F). field_0 is a count (`func_800BB938` / `func_800B6CF0`);
-/// field_1–3 are related item ids (`func_800C942C` / `func_800B904C`).
+/// field_1–3 are related item ids (`func_800C942C` / `func_800B904C` /
+/// `func_800CF4EC`).
 /// `D_8010E238` is the first `GpItemSlot` pair (arg1 == 0);
 /// `D_8010D278` is the second.
 typedef struct _GpItemQty {

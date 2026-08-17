@@ -19395,4 +19395,32 @@ void (*fns[2])(s32, s32) = { D_8017DA78, D_8017EF60 };
 `func_800AE53C` is the example. Index `(u16 >> 8) & 0x7F` is what produces
 `srl 6` / `andi 0x1FC` (plain `>> 8` is `andi 0x3FC`).
 
+## Split `i + idx * 4` so the add is `addu v0, i, off`
+
+A byte walk `table[idx].field_1` at `table + i + (id - K) * 4` wants:
+
+```
+addiu  v0, a2, -K
+sll    s6, v0, 2
+addu   v0, s2, s6    /* i + off, i is first */
+addu   v0, v0, s8    /* + table */
+lbu    s1, 1(v0)
+```
+
+Inlining `i + idx * 4 + (s32)table` emits `addu v0, s6, s2` (off first).
+Naming `off = idx * 4` then `i + off` flips the operands but coalesces
+the subtract into `addiu s6` / `sll s6, s6, 2`. Split the addend:
+
+```c
+idx  = arg2 - 0x80;
+temp = i + idx * 4;
+item = ((GpItemQty*)(temp + (s32)table))->field_1;
+```
+
+Assign the table pointer *before* the subtract so `lui`/`addiu` of the
+symbol precedes `addiu v0, a2, -K`. Use two table locals (one per loop)
+so the second table can reuse the mode register after `mode != 1`.
+
+`func_800CF4EC` is the example.
+
 
