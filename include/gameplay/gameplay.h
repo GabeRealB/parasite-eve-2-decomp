@@ -13,19 +13,22 @@
 
 /// Global at `D_80114C08`. `field_0` is a u16 loaded by many helpers.
 /// `field_3` is a signed state byte (`lb`); `func_80109290` compares it to -2
-/// and `func_80109374` requires 0. `field_6` is a flags byte (bit 0 gates
-/// `func_800A7DB8` writing `field_E`; bit 1 is cleared by `func_800A7574`
-/// and forces `func_800A7E5C` to 0 when that function's arg is 0).
-/// `field_A` is a signed byte (`lb`); `func_800A7DE0` sets `field_3 = 2`
-/// when it is >= 2, then clears it. `func_800A7574` also zeros `field_A`,
-/// `field_C`..`field_F`, `field_10`/`field_12`/`field_14`, and
-/// `field_16`/`field_17`. Those two bytes are also the item 4 / item 8
+/// and `func_80109374` requires 0. `field_5` is a signed category index
+/// (`lb` as splat `D_80114C0D`); `func_800A1558` uses it to pick a
+/// `D_8011398C` row when it is `< 0xC`. `field_6` is a flags byte (bit 0
+/// gates `func_800A7DB8` writing `field_E`; bit 1 is cleared by
+/// `func_800A7574` and forces `func_800A7E5C` to 0 when that function's
+/// arg is 0). `field_A` is a signed byte (`lb`); `func_800A7DE0` sets
+/// `field_3 = 2` when it is >= 2, then clears it. `func_800A7574` also
+/// zeros `field_A`, `field_C`..`field_F`, `field_10`/`field_12`/`field_14`,
+/// and `field_16`/`field_17`. Those two bytes are also the item 4 / item 8
 /// gates in `func_800D6170` (`lb`).
 typedef struct _GpStateC08 {
     /* 0x00 */ u16  field_0;
     /* 0x02 */ byte pad_2;
     /* 0x03 */ s8   field_3;
-    /* 0x04 */ byte pad_4[2];
+    /* 0x04 */ byte pad_4;
+    /* 0x05 */ s8   field_5;
     /* 0x06 */ u8   field_6;
     /* 0x07 */ u8   field_7;
     /* 0x08 */ u8   field_8;
@@ -127,6 +130,7 @@ STATIC_ASSERT_SIZEOF(GpDisp2d, 0x60);
 void func_80098F58(GsCOORDINATE2* arg0);
 void func_80098F98(GsCOORDINATE2* arg0, s32 arg1);
 Task* func_8009988C(GsCOORDINATE2* arg0);
+u16  func_800A1558(s32 arg0);
 u8*  func_800A746C(void);
 s32  func_800A74C4(void);
 void func_800A7574(GpIdMapC* arg0);

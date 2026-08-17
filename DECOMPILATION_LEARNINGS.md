@@ -17870,4 +17870,37 @@ CdCmd_Enqueue(0x21, param1, param2);
 `param2[0] = Game_Session->field_7` stuck at 97.4% with only those
 three `sb zero` moved before the `addu`.
 
+## Accumulate the byte offset in `$v1` so `lhu` is `0(v1)`
+
+`return table[row].field[col]` (or `*(u16*)((u8*)table + off)`)
+computes the row/column term in `$v0` and folds the base onto it
+(`addu v0, t0, v0; lhu v0, 0(v0)`). The target instead does
+
+```
+sll   v1, a3, 1          /* col * 2 */
+sll   v0, a0, 1
+addu  v0, v0, a0
+addu  v0, v0, a1
+sll   v0, v0, 4          /* (row * 3 + rank) * 16 */
+addu  v1, v1, v0
+addu  v1, t0, v1
+lhu   v0, 0(v1)
+```
+
+Pin the running offset in `$v1`, add the scaled index onto it, then
+add the base as `off = (s32)table + off` so the sum stays in `$v1`:
+
+```c
+register s32 off asm("v1");
+
+off = arg0 * 2;
+off += (idx * 3 + ret) * 16;
+off  = (s32)recs + off;
+return *(u16*)off;
+```
+
+`return recs[idx * 3 + ret].field[arg0]` stuck at 99.4% with only those
+last three instructions using `$v0` instead of `$v1`. `func_800A1558`
+is the example.
+
 

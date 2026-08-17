@@ -722,6 +722,7 @@ for the same block.
 |-----|--------|------|
 | 0x00 | `field_0` | u16 loaded by many helpers |
 | 0x03 | `field_3` | s8 state (`lb`); `func_80109290` compares to -2; `func_80109374` requires 0; `func_800A7DE0` writes 2 when `field_A >= 2` |
+| 0x05 | `field_5` | s8 category index (`lb` as splat `D_80114C0D`); `func_800A1558` reads a `D_8011398C` row from it when `< 0xC` |
 | 0x06 | `field_6` | Flags; bit 0 gates `func_800A7DB8` writing `field_E`; bit 1 cleared by `func_800A7574` |
 | 0x07 | `field_7` | Cleared by `func_800A7DE0` |
 | 0x08 | `field_8` | Cleared by `func_800A7DE0` |

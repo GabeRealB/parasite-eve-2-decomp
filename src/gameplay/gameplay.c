@@ -967,7 +967,47 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A087C);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A110C);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A1558);
+u16 func_800A1558(s32 arg0)
+{
+    WipSysConfig* p;
+    s32           cond;
+    s32           ret;
+    u8*           table;
+    s32           idx;
+    GpRec16*      recs;
+    register s32  off asm("v1");
+
+    recs = D_8011398C;
+    idx  = D_80114C08.field_5;
+    if (idx >= 0xC) {
+        ret = 1;
+    } else {
+        p = &Wip_SysConfig;
+        if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
+            cond = 0;
+        } else {
+            cond = p->field_26 == 4;
+        }
+        if (cond == 0) {
+            table = Mc_SaveData.unknown_850;
+        } else {
+            table = D_80114BF0;
+        }
+        ret = table[idx];
+        if (ret == 0) {
+            ret = 1;
+        }
+        if (p->field_25 & 0x80) {
+            if (ret < 3) {
+                ret++;
+            }
+        }
+    }
+    off  = arg0 * 2;
+    off += (D_80114C08.field_5 * 3 + ret) * 16;
+    off  = (s32)recs + off;
+    return *(u16*)off;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A1634);
 
