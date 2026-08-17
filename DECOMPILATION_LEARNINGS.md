@@ -19074,4 +19074,25 @@ text  = func_800B8EB0(arg1, 1, 1);
 `addu v0, v0, s2`. Without the `s16` cast, `u16 baseY - 6` becomes
 `li v1, 0xFFFA` / `addu`. `func_800D2E04` is the example.
 
+## Relocate file offsets by adding the pointer itself, not a `base` local
+
+A CAP-style relocator that does `off += (s32)file` must add the live
+`file` pointer (`$s0` after `strncmp`). A separate `s32 base = (s32)file`
+takes `$a3` and shifts the loop index / count / terminator out of
+`$a0` / `$a1` / `$a2`:
+
+```c
+/* BAD — extra `move a3, s0`, index in $a1 */
+base = (s32)file;
+file->field_8 += base;
+
+/* GOOD — `addu v1, v1, s0` */
+file->field_8 += (s32)file;
+```
+
+Zero the loop index before `if (file->field_8 > 0)` so it sinks into
+that `blez` delay slot as `move a0, zero`. A terminator compare of
+`-1` should be a hoisted local (`flag = -1`) so it lives in `$a2`.
+`func_800E40EC` is the example.
+
 

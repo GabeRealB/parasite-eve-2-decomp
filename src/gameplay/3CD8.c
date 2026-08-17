@@ -2,6 +2,7 @@
 
 #include <psyq/abs.h>
 #include <psyq/stdio.h>
+#include <psyq/strings.h>
 
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
@@ -21,6 +22,7 @@
 extern s32            D_80070F60;
 extern u16            D_8007A396;
 extern TaskFuncTable3 D_800974C8;
+extern char           D_80097514[];
 extern char           D_8009751C[];
 extern TaskFuncTable3 D_8009752C;
 extern TaskFuncTable3 D_80097538;
@@ -97,7 +99,6 @@ extern u8             D_80115714;
 extern s16            D_80115716;
 extern s16            D_80115718;
 
-void func_800E40EC(s32 arg0);
 s32  func_800E41F4(s32 arg0, s16 arg1, s16 arg2);
 void func_800E44A0(Task* arg0);
 void func_80724120(void);
@@ -294,7 +295,59 @@ void func_800E40BC(s32 arg0, s32 arg1)
     Task_SpawnFromTable(D_8010FAEC, 1, arg0, arg1);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E40EC);
+s32 func_800E40EC(GpCapFile* file)
+{
+    s32            i;
+    s32            count;
+    s32            flag;
+    GpEvt12*       rec;
+    s32*           ptr;
+    GpCapEvtTable* evts;
+    GpCapPtrTable* ptrs;
+
+    if (strncmp(file->magic, D_80097514, 3) != 0) {
+        return 0;
+    }
+
+    i = 0;
+    if (file->field_8 > 0) {
+        file->field_8  += (s32)file;
+        file->field_C  += (s32)file;
+        file->field_10 += (s32)file;
+        evts            = (GpCapEvtTable*)file->field_C;
+        rec             = (GpEvt12*)(evts + 1);
+        count           = evts->count;
+        if (count > 0) {
+            flag = -1;
+            do {
+                if (rec->field_8 != flag) {
+                    rec->field_8 += (s32)file;
+                } else {
+                    rec++;
+                }
+                i++;
+                rec++;
+            } while (i < count);
+        }
+        ptrs  = (GpCapPtrTable*)file->field_10;
+        i     = 0;
+        count = ptrs->count;
+        ptr   = (s32*)(ptrs + 1);
+        if (count > 0) {
+            do {
+                if (*ptr != 0) {
+                    *ptr += (s32)file;
+                }
+                i++;
+                ptr++;
+            } while (i < count);
+        }
+    }
+
+    D_8011567C = (GlyphUvwh*)file->field_8;
+    D_801156A0 = (s32*)((GpCapPtrTable*)file->field_10 + 1);
+    return 1;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E41F4);
 
@@ -666,7 +719,7 @@ void func_800E6D60(s32 arg0)
                     func_80724714();
                 }
                 D_8011568C = slot->field_4;
-                func_800E40EC(D_8011568C);
+                func_800E40EC((GpCapFile*)D_8011568C);
                 break;
             }
             count++;
@@ -851,7 +904,7 @@ void func_800E7240(void)
         func_80724324();
     }
     if (D_8011568C != 0) {
-        func_800E40EC(D_8011568C);
+        func_800E40EC((GpCapFile*)D_8011568C);
     }
     if (func_800E6CE0() != 0 && D_801156B0 != 0) {
         D_801156BC++;

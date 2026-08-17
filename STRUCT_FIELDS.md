@@ -502,7 +502,7 @@ See header comments (layout, list cursor, line count, …).
 ### `TextDrawReq` / `PrimDrawParams` / `TextStream` / `FontGlyph` / `GlyphUvwh`
 See comments in `text.h` (x/y, OT, glyph table, SPRT/TILE RGB, stream cursor).
 Gameplay overlay `D_8011567C` is a `GlyphUvwh*` font table (`func_800E40EC`
-stores the relocated file `field_8` there). `func_800E6AD4` / `func_800E69F4`
+stores the relocated CAP file `field_8` there). `func_800E6AD4` / `func_800E69F4`
 read `h + 2` as line height; `func_800E67C8` / `func_800E68D8` read `w`.
 
 ---
@@ -1374,7 +1374,39 @@ there). `func_800E6EA0` walks from a start index until `field_8 == -1` or
 | 0x4 | `field_4` | u8 flags copied to `D_80115670` by `func_800E6E50`; bit 0 is cleared when `field_7 != 0` |
 | 0x5 | `field_5` | u8 key compared with `D_80115668` |
 | 0x7 | `field_7` | u8 copied to `D_80115678` (countdown) by `func_800E6E50` |
-| 0x8 | `field_8` | s32; `-1` terminator, else relocated `u16*` encoded text (`func_800E40EC` adds the file base). `func_800E6AD4` / `func_800E69F4` / `func_800E67C8` walk it: `-1` ends, `-2` is a newline, `-3` is skipped, else glyph index `& 0x3FF` into `D_8011567C` |
+| 0x8 | `field_8` | s32; `-1` terminator, else relocated `u16*` encoded text (`func_800E40EC` adds the file base). During that relocate, `-1` also skips the next record. `func_800E6AD4` / `func_800E69F4` / `func_800E67C8` walk it: `-1` ends, `-2` is a newline, `-3` is skipped, else glyph index `& 0x3FF` into `D_8011567C` |
+
+### `GpCapFile` (0x14) — `3CD8.h`
+In-memory CAP dialogue file (`strncmp` magic `"CAP"`, `D_80097514`).
+Folder-slot type 3 (`D_8006C338[].field_4` → `D_8011568C`) is passed to
+`func_800E40EC`. Offsets are file-relative until that function adds the
+file base (`+= (s32)file`); `field_8 <= 0` skips relocation but still
+publishes the (possibly null) tables.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `magic` | `char[4]`; must match `"CAP"` (3 chars) |
+| 0x04 | `field_4` | unused by `func_800E40EC` |
+| 0x08 | `field_8` | glyph table offset / `GlyphUvwh*` → `D_8011567C` |
+| 0x0C | `field_C` | event table offset / `GpCapEvtTable*` |
+| 0x10 | `field_10` | pointer table offset / `GpCapPtrTable*` |
+
+### `GpCapEvtTable` (0x10) — `3CD8.h`
+Header at `GpCapFile::field_C`. Records are `GpEvt12` starting at `hdr + 1`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `count` | s16 number of event records to relocate |
+| 0x02 | `pad_2` | 0xE unread bytes |
+
+### `GpCapPtrTable` (4) — `3CD8.h`
+Count word at `GpCapFile::field_10`. `func_800E40EC` relocates each
+following nonzero `s32` (file-relative `GpEvt12*`) and stores `hdr + 1`
+in `D_801156A0`. `func_800E6C70` indexes that array.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x0 | `count` | number of pointers after the header |
 
 ### `GpVolFade` (4) — `3CD8.h`
 Volume-fade payload at `Task::spawnArg2` for `func_800E8378`. Start

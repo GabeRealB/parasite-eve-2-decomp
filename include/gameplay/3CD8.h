@@ -29,6 +29,38 @@ typedef struct _GpEvt12 {
 } GpEvt12;
 STATIC_ASSERT_SIZEOF(GpEvt12, 0xC);
 
+/// 0x10-byte header in front of a `GpEvt12` array inside a `GpCapFile`
+/// (`field_C`). `count` is the first halfword; the records start at
+/// `hdr + 1`. `func_800E40EC` relocates each record's `field_8` unless
+/// it is `-1`, in which case it also skips the next record.
+typedef struct _GpCapEvtTable {
+    /* 0x00 */ s16  count;
+    /* 0x02 */ byte pad_2[0xE];
+} GpCapEvtTable;
+STATIC_ASSERT_SIZEOF(GpCapEvtTable, 0x10);
+
+/// Count word in front of the relocated pointer table at `GpCapFile::field_10`.
+/// `func_800E40EC` publishes `hdr + 1` as `D_801156A0`.
+typedef struct _GpCapPtrTable {
+    /* 0x0 */ s32 count;
+} GpCapPtrTable;
+STATIC_ASSERT_SIZEOF(GpCapPtrTable, 4);
+
+/// In-memory CAP dialogue file (`strncmp` magic `"CAP"`). Offsets at
+/// `field_8` / `field_C` / `field_10` are file-relative until
+/// `func_800E40EC` adds the file base. After that, `field_8` is a
+/// `GlyphUvwh*` published as `D_8011567C`, `field_C` is a
+/// `GpCapEvtTable*`, and `field_10` is a `GpCapPtrTable*` whose
+/// entries (nonzero) are relocated `GpEvt12*` values.
+typedef struct _GpCapFile {
+    /* 0x00 */ char magic[4];
+    /* 0x04 */ s32  field_4;
+    /* 0x08 */ s32  field_8;  // glyph table offset / GlyphUvwh*
+    /* 0x0C */ s32  field_C;  // event table offset / GpCapEvtTable*
+    /* 0x10 */ s32  field_10; // pointer table offset / GpCapPtrTable*
+} GpCapFile;
+STATIC_ASSERT_SIZEOF(GpCapFile, 0x14);
+
 /// Three overlay ids passed through `func_800E7498` (table cmd 0xFA6)
 /// to `CdCmd_StartOverlay`. Also the current evs triple held in
 /// `D_801156F4` (`func_800E646C` formats `"evs%d_%d_%d.txt"` from it).
@@ -225,6 +257,7 @@ void func_800E3D8C(s32 arg0, s32 arg1);
 void func_800E3EF0(s32 arg0);
 void func_800E4080(void);
 void func_800E40BC(s32 arg0, s32 arg1);
+s32  func_800E40EC(GpCapFile* file);
 s16  func_800E67C8(u16* arg0);
 s16  func_800E68D8(u16* arg0, s32 arg1);
 s16  func_800E69F4(u16* arg0);
