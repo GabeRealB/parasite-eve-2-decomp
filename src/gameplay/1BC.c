@@ -275,7 +275,40 @@ void func_800B06F0(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0748);
+void func_800B0748(Task* task)
+{
+    s32           i;
+    u8            param1[8];
+    u8            param2[8];
+    FsFolderSlot* table;
+    s32           fileId;
+
+    if (Midi_IsBusy(0) == 0) {
+        Display_State.field_12f = 1;
+        i                       = 0;
+        table                   = D_8006C338;
+        do {
+            table[(u8)i].field_0 = 0;
+            i++;
+        } while ((u8)i < 0x32);
+
+        fileId = 0xA;
+        if (Game_Session->field_128 != 0xFF) {
+            param1[2] = 4;
+            param1[0] = 0x62;
+            param1[3] = 0;
+            param2[0] = 1;
+            param2[3] = 0;
+            param2[2] = 0;
+            param2[1] = 0;
+            CdCmd_Enqueue(0x21, param1, param2);
+            fileId = 9;
+        }
+        CdCmd_EnqueueLoadFile(fileId, 0, 3);
+        Display_State.field_104 = 0;
+        task->state++;
+    }
+}
 
 void func_800B082C(Task* task)
 {
