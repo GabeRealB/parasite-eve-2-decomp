@@ -17058,4 +17058,37 @@ item  = off + base + count;
 `func_800D27E8` is the example. The one-expression form stuck at 98–99%
 with only those three instructions different.
 
+## Index a u16 table with the stored u8, not `(u8)arg`
+
+A function that stores `slot->field = arg` and later indexes
+`table[(u8)arg]` coalesces the truncation into the argument register
+(`andi a1, a1, 0xff; sll a1; addu a1, table; lhu v0, 0(a1)`).
+
+The target CSEs the stored byte as a *new* dest:
+
+```
+andi  v0, a1, 0xff
+sll   v0, v0, 1
+addu  v0, v0, a0
+lhu   v0, 0(v0)
+```
+
+Write `table[slot->field]` (the same u8 just stored from `arg`). CSE
+still emits `andi` from the live argument, but the dest is `$v0`.
+
+Load an independent byte into a temp *before* nearby zero stores so
+those stores fill the `lbu` delay. Writing the zeros first schedules
+them into an earlier load delay instead.
+
+```c
+slot->field_15 = arg1;
+slot->field_6  = sets[arg2]->field_4[slot->field_15];
+op             = recs[slot->field_6].field_3;
+slot->field_10 = 0;
+slot->field_B  = op & 0xF;
+```
+
+`func_800B3FA8` is the example. `table[(u8)arg1]` stuck at 99.3% with
+only those five index instructions using `$a1` instead of `$v0`.
+
 

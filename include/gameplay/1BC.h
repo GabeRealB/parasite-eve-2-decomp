@@ -72,18 +72,26 @@ typedef struct _GpAnimSet {
 /// `field_4`/`field_6` are the two (set, frame) pairs. `field_10` is a
 /// flags word (`func_800B4754` sets bit 0 when clamping `field_2`;
 /// `func_800B46A4` sets bit 0/1 while walking `field_3` links).
+/// `func_800B3FA8` writes `field_9 = 0x10`, copies `arg1` to both
+/// `field_14` and `field_15`, and stores `recs[field_6].field_3 & 0xF`
+/// in `field_B`.
 typedef struct _GpAnimSlot {
     /* 0x00 */ u16         field_0;
     /* 0x02 */ u16         field_2;
     /* 0x04 */ u16         field_4;
     /* 0x06 */ u16         field_6;
-    /* 0x08 */ byte        pad_8[4];
+    /* 0x08 */ byte        pad_8;
+    /* 0x09 */ u8          field_9;
+    /* 0x0A */ byte        pad_A;
+    /* 0x0B */ u8          field_B;
     /* 0x0C */ u16         field_C;
     /* 0x0E */ u16         field_E;
     /* 0x10 */ u16         field_10;
-    /* 0x12 */ byte        pad_12[3];
+    /* 0x12 */ u16         field_12;
+    /* 0x14 */ u8          field_14;
     /* 0x15 */ u8          field_15;
-    /* 0x16 */ byte        pad_16[0xA];
+    /* 0x16 */ u8          field_16;
+    /* 0x17 */ byte        pad_17[9];
     /* 0x20 */ GpAnimSet** field_20;
     /* 0x24 */ byte        pad_24[4];
 } GpAnimSlot;
@@ -93,7 +101,7 @@ STATIC_ASSERT_SIZEOF(GpAnimSlot, 0x28);
 /// `func_800B3F60` (also writes `field_C`). Nearby helpers index
 /// `field_C` as a 0x28-byte slot array and `field_8` at a 0x10 stride.
 typedef struct _GpAnimCtx {
-    /* 0x00 */ void*       field_0;
+    /* 0x00 */ GpAnimSet** field_0;
     /* 0x04 */ void*       field_4;
     /* 0x08 */ void*       field_8;
     /* 0x0C */ GpAnimSlot* field_C;

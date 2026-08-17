@@ -1106,10 +1106,17 @@ Element of `GpAnimCtx.field_C`. Initialized by `func_800B3CE8` /
 |-----|--------|------|
 | 0x00 | `field_0` | Set index into `field_20`; `0x7FFF` = inactive (`func_800B4668`) |
 | 0x02 | `field_2` | Record index within `field_20[field_0]->field_0` |
-| 0x06 | `field_6` | Index into `field_20[set]->field_0` (`func_800B3E74`) |
-| 0x0C | `field_C` | Timing value; `func_800B3E74` sets `field_2 << 4` |
+| 0x04 | `field_4` | Second set index; `func_800B3FA8` copies `arg2` here with `field_0` |
+| 0x06 | `field_6` | Index into `field_20[set]->field_0` (`func_800B3E74`); `func_800B3FA8` loads `field_4[field_15]` |
+| 0x09 | `field_9` | Written `0x10` by `func_800B3FA8` / `func_800B3CE8` |
+| 0x0B | `field_B` | `recs[field_6].field_3 & 0xF` (`func_800B3FA8`) |
+| 0x0C | `field_C` | Timing value; `func_800B3E74` sets `field_2 << 4`; cleared by `func_800B3FA8` |
 | 0x0E | `field_E` | Timing value; `func_800B3E74` sets the same `field_2 << 4` |
+| 0x10 | `field_10` | Flags word; cleared by `func_800B3FA8` |
+| 0x12 | `field_12` | Halfword; cleared by `func_800B3FA8` |
+| 0x14 | `field_14` | Copy of the slot index (`func_800B3FA8` writes `arg1` here and to `field_15`) |
 | 0x15 | `field_15` | This slot's index in the `field_C` array |
+| 0x16 | `field_16` | Byte; cleared by `func_800B3FA8` |
 | 0x20 | `field_20` | `GpAnimSet**` table (copy of `GpAnimCtx.field_0`) |
 
 ### `GpAnimCtx` (0x14) — `1BC.h`
@@ -1118,7 +1125,7 @@ Context filled by `func_800B3CCC` / `func_800B3F60`. Used as arg0 by the
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x00 | `field_0` | Pointer table (arg1); copied onto 0x28-byte slots at +0x20 |
+| 0x00 | `field_0` | `GpAnimSet**` table (arg1); copied onto 0x28-byte slots at +0x20 |
 | 0x04 | `field_4` | `&src->field_34`; 0x50-byte records in `func_800B3448` |
 | 0x08 | `field_8` | Pointer (arg3); 0x10-byte stride in `func_800B3448` |
 | 0x0C | `field_C` | `GpAnimSlot*` array (`func_800B3F60` writes it; `func_800B3CCC` does not) |
