@@ -18,6 +18,8 @@
 s32  func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 
+extern s32 D_80070F60;
+
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D5B14);
 
 s32 func_800D6170(s32 arg0, GpItemRec* arg1)
@@ -1529,7 +1531,27 @@ s32 func_800E2D90(s32 arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E2DE4);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E2EC4);
+s32 func_800E2EC4(GpObj5C* arg0)
+{
+    s32 ret;
+    s32 val;
+    s32 scale;
+
+    ret = 0;
+    arg0->field_59--;
+    if (arg0->field_59 == 0) {
+        arg0->field_5A++;
+        D_80070F60     = D_80070F60 * 5 + 0x71357911;
+        arg0->field_59 = ((u32)D_80070F60 >> 16 & 0xF) + 0x53;
+        val            = arg0->field_50->field_4;
+        scale          = D_80113D38[arg0->field_5C];
+        ret            = (val * scale) / 100;
+        if (ret == 0) {
+            ret = 1;
+        }
+    }
+    return ret;
+}
 
 s32 func_800E2F7C(GpObj5C* arg0)
 {

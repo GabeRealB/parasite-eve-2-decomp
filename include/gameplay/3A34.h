@@ -318,14 +318,18 @@ STATIC_ASSERT_SIZEOF(GpObj5D, 0x5E);
 
 /// Sparse overlay of the same object family as `GpObj5D` / `GpObj50`.
 /// `func_800E2F7C` tests bit 0x4 of `field_4C` and compares `field_5A`
-/// against `field_50->field_E * D_80113D28[field_5C] / 100`. Trailing
-/// pad keeps pointer alignment; full object size is not known yet.
+/// against `field_50->field_E * D_80113D28[field_5C] / 100`.
+/// `func_800E2EC4` decrements `field_59` and, on expiry, increments
+/// `field_5A`, reseeds `field_59` from `D_80070F60`, and returns
+/// `field_50->field_4 * D_80113D38[field_5C] / 100` (or 1 if that is 0).
+/// Trailing pad keeps pointer alignment; full object size is not known yet.
 typedef struct _GpObj5C {
     /* 0x00 */ byte        pad_0[0x4C];
     /* 0x4C */ u8          field_4C;
     /* 0x4D */ byte        pad_4D[3];
     /* 0x50 */ GpPairSrcE* field_50;
-    /* 0x54 */ byte        pad_54[6];
+    /* 0x54 */ byte        pad_54[5];
+    /* 0x59 */ u8          field_59;
     /* 0x5A */ u8          field_5A;
     /* 0x5B */ byte        pad_5B;
     /* 0x5C */ u8          field_5C;
@@ -544,9 +548,13 @@ extern GpRec10 D_80113390[];
 /// set. Indexed by `id & 0x7F`.
 extern GpRec16 D_8011398C[];
 
-/// u16 scale table indexed by `GpObj5D.field_5C`. `func_800E2F7C` multiplies
+/// u16 scale table indexed by `GpObj5C.field_5C`. `func_800E2F7C` multiplies
 /// `field_50->field_E` by the selected entry and divides by 100.
 extern u16 D_80113D28[];
+
+/// u16 scale table indexed by `GpObj5C.field_5C`. `func_800E2EC4` multiplies
+/// `field_50->field_4` by the selected entry and divides by 100.
+extern u16 D_80113D38[];
 
 /// "Weapon" string drawn by `func_800D6AA4` (trailing 0x60 byte).
 extern const char D_80097454[];
@@ -640,6 +648,7 @@ void func_800E2C78(GpObj40* arg0, s32 arg1, s32 arg2);
 s32  func_800E2CD4(s32 arg0, s32 arg1);
 s32  func_800E2D3C(s32 arg0);
 s32  func_800E2D90(s32 arg0);
+s32  func_800E2EC4(GpObj5C* arg0);
 s32  func_800E2F7C(GpObj5C* arg0);
 void func_800E3008(GpObj4C* arg0);
 void func_800E301C(GpObj5D* arg0, s32 arg1);

@@ -1076,8 +1076,9 @@ Trailing pad keeps pointer alignment; full object size is not known yet.
 |-----|--------|------|
 | 0x4C | `field_4C` | Flag byte; bit 0x4 tested by `func_800E2F7C` |
 | 0x50 | `field_50` | `GpPairSrcE*` source object |
-| 0x5A | `field_5A` | u8 counter compared by `func_800E2F7C` against the scaled `field_50->field_E` |
-| 0x5C | `field_5C` | u8 index into `D_80113D28` |
+| 0x59 | `field_59` | u8 countdown; `func_800E2EC4` decrements it and reseeds `((D_80070F60 * 5 + 0x71357911) >> 16 & 0xF) + 0x53` on expiry |
+| 0x5A | `field_5A` | u8 counter; incremented by `func_800E2EC4` on `field_59` expiry; compared by `func_800E2F7C` against the scaled `field_50->field_E` |
+| 0x5C | `field_5C` | u8 index into `D_80113D28` / `D_80113D38` |
 
 ### `GpEnemy` — `1BC.h`
 0x60-byte work object (`Mem_Calloc` in `func_800B0494`). Stored in `Task::spawnArg2`.
