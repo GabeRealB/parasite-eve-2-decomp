@@ -17344,4 +17344,42 @@ after_uv:
 `func_800A63B4` is the example. `if (kind != 1) { … slti … } else { u = 0xA8; }`
 was 98.3% — same tests, but default landed before case 1.
 
+## Assign the loop compare constant before the item-table switch
+
+A scan that compares `rec->field_0 == K` after the usual
+`switch (scan->field_2)` table select wants `li tN, K` in the delay slot
+of the first `beq field_2, 1`. Writing `if (rec->field_0 == 0x81)` (or
+assigning `item = 0x81` after the switch) materializes K later, often
+clobbering the table pointer's register and skipping the shared `i = 0`
+epilogue.
+
+Assign the constant *before* the switch, then compare against that
+local. GCC keeps it live across the table select and plants it in the
+`beq` delay slot:
+
+```c
+item = 0x81;
+switch (scan->field_2) {
+    case 2:
+        tmp = D_80114C20;
+        break;
+    case 1:
+        tmp = D_80114D70;
+        break;
+    default:
+        tmp = Mc_SaveData.field_1AC;
+        break;
+}
+table = tmp;
+...
+if (rec->field_0 == item) {
+    acc += rec->field_2;
+}
+```
+
+`func_800BAA58` is the example. The rest of the loop is the same shape
+as `func_800BB6FC` (`off + (s32)table`, `limit = count`). A literal
+`== 0x81` after the switch stuck at 84% with the table in `$v1` and no
+`$t0`.
+
 

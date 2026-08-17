@@ -158,6 +158,7 @@ extern GpItemRec* D_80114D70;
 s32         func_800B9D80(s32 arg0);
 void        func_800B8014(void);
 void        func_800B8588(GpItemScan* arg0, s32 arg1);
+void        func_800BAA58(void);
 void        func_800BAB64(s32 arg0);
 void        func_800BAC34(s32 arg0, u8 arg1);
 void        func_800BAC8C(GpItemScan* arg0);

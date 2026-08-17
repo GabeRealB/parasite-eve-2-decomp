@@ -33,8 +33,8 @@ void  func_8017EC04(void);
 void  func_8017EAC4(void);
 void  func_8017EA60(void);
 void* func_800B8CAC(void* arg0, s32 arg1, s32 arg2);
-void  func_800BAA58(void);
 s32   func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
+void  func_800CF448(s32 arg0);
 void  func_800B6CF0(void);
 void  func_800BAEC0(s32 arg0);
 void  func_800BAE5C(s32 arg0);
@@ -145,7 +145,67 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800BA538);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BA75C);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAA58);
+void func_800BAA58(void)
+{
+    WipSysConfig*       cfg;
+    GpItemScan*         scan;
+    GpItemRec*          tmp;
+    register GpItemRec* table asm("a1");
+    GpItemRec*          rec;
+    s32                 i;
+    s32                 acc;
+    s32                 count;
+    s32                 start;
+    s32                 limit;
+    s32                 off;
+    s32                 item;
+    GpItemSlot*         slots;
+    u8                  slotItem;
+
+    cfg = &Wip_SysConfig;
+    acc = 0;
+    if (cfg->field_21 == 0) {
+        scan = &Mc_SaveData.field_5BC;
+        item = 0x81;
+        switch (scan->field_2) {
+            case 2:
+                tmp = D_80114C20;
+                break;
+            case 1:
+                tmp = D_80114D70;
+                break;
+            default:
+                tmp = Mc_SaveData.field_1AC;
+                break;
+        }
+        table = tmp;
+        i     = 0;
+        count = scan->field_1;
+        start = scan->field_0;
+        if (count != 0) {
+            limit = count;
+            off   = start << 2;
+            rec   = (GpItemRec*)(off + (s32)table);
+            do {
+                if (rec->field_0 == item) {
+                    acc += rec->field_2;
+                }
+                i++;
+                rec++;
+            } while (i < limit);
+        }
+        if (acc != 0) {
+            func_800CF448(0x81);
+        }
+    }
+    if (cfg->field_21 == 2) {
+        slots    = Mc_SaveData.field_1C8;
+        slotItem = slots[0x81].field_0;
+        if ((slotItem == 0) || (slotItem == 0xA0)) {
+            func_800B715C(&Mc_SaveData.field_5BC, 0x81, 0xA0, -1);
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BAB64);
 
