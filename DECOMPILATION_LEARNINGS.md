@@ -17291,4 +17291,57 @@ if (bits == left || bits == (right = 0x2000)) {
 without the `bits =` assign, stuck at 97% with only that load/store order and
 the andi dest swapped. `func_8010A670` is the example.
 
+## Reconstruct a 2-case switch with a shared (case 1 / default) tail
+
+A `switch (kind)` on `{0, 1, default}` where case 1 and default share
+`p->u0 = u; p->v0 = K` lowers to if-else that tests `== 0` first, or to
+`bne != 1` with the case-1 block *before* the range check. The target is
+the range-check switch form:
+
+```
+li    v0,1
+beq   a2,v0,case1
+slti  v0,a2,2
+beqz  v0,default
+nop
+bnez  a2,default
+# case 0: unique stores, jump over
+j     mid
+li    v0,u_case1
+# default: otIdx = -1; u = u_default
+# mid: sb u0; li v0,K
+```
+
+`if (kind == 1) { u = … }` emits `bne` and plants case 1 above `slti`.
+A clean `switch` does not emit this layout under `-O2`. Spell the
+expansion with gotos so case 1 sits between case 0 and default:
+
+```c
+if (kind == 1) {
+    goto case1;
+}
+if (kind >= 2) {
+    goto default_case;
+}
+if (kind != 0) {
+    goto default_case;
+}
+p->u0 = 0xA0;
+p->v0 = 0x88;
+goto after_uv;
+case1:
+    u = 0xA8;
+    goto store;
+default_case:
+    otIdx = -1;
+    u     = 0xA0;
+store:
+    p->u0 = u;
+    p->v0 = 0x80;
+after_uv:
+```
+
+`func_800A63B4` is the example. `if (kind != 1) { … slti … } else { u = 0xA8; }`
+was 98.3% — same tests, but default landed before case 1.
+
 

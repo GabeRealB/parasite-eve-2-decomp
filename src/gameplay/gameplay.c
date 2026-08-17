@@ -926,7 +926,46 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A5574);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A57B0);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A63B4);
+void func_800A63B4(s32 arg0, s32 arg1, s32 arg2)
+{
+    SPRT_8* p;
+    s32     otIdx;
+    s32     u;
+
+    otIdx      = 0;
+    arg0      -= 6;
+    p          = (SPRT_8*)D_80071190;
+    arg1      -= 8;
+    D_80071190 = (DR_TPAGE*)(p + 1);
+    p->x0      = arg0;
+    p->y0      = arg1;
+    if (arg2 == 1) {
+        goto case1;
+    }
+    if (arg2 >= 2) {
+        goto default_case;
+    }
+    if (arg2 != 0) {
+        goto default_case;
+    }
+    p->u0 = 0xA0;
+    p->v0 = 0x88;
+    goto after_uv;
+case1:
+    u = 0xA8;
+    goto store;
+default_case:
+    otIdx = -1;
+    u     = 0xA0;
+store:
+    p->u0 = u;
+    p->v0 = 0x80;
+after_uv:
+    p->clut = 0x3C0D;
+    setlen(p, 3);
+    setcode(p, 0x77);
+    addPrim(Gpu_CurrentOt + otIdx - 2, p);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A6480);
 
