@@ -57,6 +57,8 @@ extern GsCOORDINATE2  D_80070F10;
 extern s16            D_80114C40;
 extern DR_STP         D_80114C50;
 
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+
 void func_800A1634(s32 arg0, s32 arg1);
 void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800A6F38(GpEnemy* arg0, void* arg1);
@@ -359,7 +361,42 @@ void func_8009EA50(s32 arg0)
     D_80114BA8.r = D_80114BA8.g = D_80114BA8.b = temp;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009EAA4);
+u32* func_8009EAA4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+{
+    TmdScratchModelBlock* ws;
+    s32                   prev;
+    s32                   count;
+    u32                   idx;
+    u16*                  rec;
+
+    ws    = arg0;
+    prev  = -1;
+    count = ws->field_1C;
+    if (count == 0) {
+        return arg2;
+    }
+    __asm__ volatile("" : "+r"(prev));
+    ws->field_1C = count + prev;
+    if (count > 0) {
+        do {
+            rec = (u16*)arg2;
+            idx = rec[0];
+            if (idx != prev) {
+                gte_ldv0((u8*)ws->field_8 + (idx & 0xFFF8));
+                gte_rtps_real();
+                gte_stsz(&ws->field_28);
+                if (ws->field_24 & 0x80000000) {
+                    ws->field_28 |= 0x80000000;
+                }
+                ws->field_10[*(u16*)arg2 >> 3] = ws->field_28;
+            }
+            prev = rec[0];
+            gte_stsxy(ws->field_4 + rec[1]);
+            arg2 += ws->field_18;
+        } while (ws->field_1C-- > 0);
+    }
+    return arg2;
+}
 
 u32* func_8009EB84(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {

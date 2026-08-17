@@ -19133,4 +19133,42 @@ compare byte to `s32` (`stage = save->field_7`) so `lbu field_4` /
 the `save` pointer, later ones as `Mc_SaveData.field_6` so they
 rematerialize as `lui` / `lbu %lo`. `func_800ABCC8` is the example.
 
+## Keep a live `-1` so `count + prev` is `addu`, not `addiu -1`
+
+A vertex-cache loop that seeds `prev = -1` (first-arg `$a0` after
+`ws = arg0`) and later compares the stream halfword against it also
+wants that same register as the decrement:
+
+```
+bnez  v1, cont
+ li    a0, -1
+jr    ra
+ move  v0, a2
+addu  v0, v1, a0
+blez  v1, end
+ sw    v0, 0x1C(a1)
+```
+
+`field_1C = count - 1` or `field_1C--` becomes `addiu v0, v1, -1`.
+`field_1C = count + prev` constant-folds the same way because GCC
+still knows `prev` is `-1` at that point.
+
+Hide the value after the early-out so the add must use the register,
+then compare `u32` halfwords against that live `prev` (no extra
+`andi 0xFFFF`):
+
+```c
+prev  = -1;
+count = ws->field_1C;
+if (count == 0) {
+    return stream;
+}
+__asm__ volatile("" : "+r"(prev));
+ws->field_1C = count + prev;
+```
+
+Reload the halfword as `*(u16*)stream` for the depth-table store so it
+takes `$v0` and `>> 3` is `srl`. Reusing the first `idx` local leaves
+it in `$v1` and emits `sra`. `func_8009EAA4` is the example.
+
 
