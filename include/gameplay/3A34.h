@@ -103,6 +103,18 @@ typedef struct _GpRec12 {
 } GpRec12;
 STATIC_ASSERT_SIZEOF(GpRec12, 0xC);
 
+/// 12-byte location-keyed grant record walked by `func_800DB128`.
+/// `field_0` is `(stage << 24) | (area << 16) | (sub << 8)` from
+/// `GameSessionFrom4.field_3` / `field_2` / `field_5`, or `-1` to end
+/// the list. `items[0..3]` are item ids granted with `func_800BAD08`
+/// when `func_800B7420` is 0; a 0 slot is skipped. `items[3]` also
+/// requires `func_800B9D80(0x80000)`.
+typedef struct _GpGiveRec {
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ u16 items[4];
+} GpGiveRec;
+STATIC_ASSERT_SIZEOF(GpGiveRec, 0xC);
+
 /// 16-byte VRAM upload record walked by `func_800DB31C`. `field_0 == 0`
 /// uploads `rect` / `data` via `LoadImage`; non-zero ends the walk.
 /// `func_800DB28C` fills `rect` from a source RECT plus the TMD tpage at
@@ -583,6 +595,14 @@ extern SVECTOR D_80115258;
 extern s32 D_8010F9EC;
 extern s32 D_8010F9F0;
 
+/// Per-stage `GpGiveRec` lists selected by `func_800DB128` when
+/// `Mc_SaveData.field_F` is 0 or 2. Indexed by `GameSession.field_7`.
+extern GpGiveRec* D_8010F9F4[];
+
+/// Per-stage `GpGiveRec` lists selected by `func_800DB128` when
+/// `Mc_SaveData.field_F` is not 0 or 2. Indexed by `GameSession.field_7`.
+extern GpGiveRec* D_8010FA0C[];
+
 /// Nine-entry table of `GpObj` list heads (`D_80115570` .. `D_80115590`).
 /// `func_800E15AC` appends to `D_8010FA8C[index]`; `func_800E1638` unlinks.
 extern GpObj* D_8010FA8C[9];
@@ -695,6 +715,7 @@ void  func_800DAF98(void);
 void  func_800DAFD0(void);
 s32   func_800DB004(GpPerspSrc* arg0, s32* sxy);
 void  func_800DB0D8(void);
+s32   func_800DB128(GpItemScan* arg0);
 s32   func_800DB28C(GpActorWork* arg0, GpImgRec* arg1, RECT* arg2);
 void  func_800DB31C(GpImgRec* arg0);
 void  func_800DB3FC(void);

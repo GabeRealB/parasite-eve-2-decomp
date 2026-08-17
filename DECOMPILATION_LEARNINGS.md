@@ -3,6 +3,51 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Index each table in its `if` arm so `la` lands in `$v1`
+
+Selecting one of two pointer tables and then indexing:
+
+```c
+if (mode == 0 || mode == 2) {
+    table = D_8010F9F4;
+} else {
+    table = D_8010FA0C;
+}
+rec = table[stage];
+```
+
+emits `lui v0, %hi(...)` / `addiu v1, v0, %lo(...)` and fills the
+`bne` delay slot with the else `lui`. The target wants a nop in that
+delay slot and a same-register `la`:
+
+```
+bne   a1, v0, else
+ nop
+lui   v1, %hi(D_8010F9F4)
+j     join
+ addiu v1, v1, %lo(D_8010F9F4)
+else:
+lui   v1, %hi(D_8010FA0C)
+addiu v1, v1, %lo(D_8010FA0C)
+join:
+sll   v0, a2, 2
+addu  v0, v0, v1
+lw    a1, 0(v0)
+```
+
+Write the index in both arms so the table address is the phi:
+
+```c
+if (mode == 0 || mode == 2) {
+    rec = D_8010F9F4[stage];
+} else {
+    rec = D_8010FA0C[stage];
+}
+```
+
+`register ... asm("v1")` on the table pointer also works but is
+unnecessary. `func_800DB128` is the example.
+
 ## if/else on the same field keeps the phi in `$v0`; a ternary steals `$t0`
 
 Both arms writing the same field (`p->clut = 0x3C09` / `0x3C01`) let GCC emit

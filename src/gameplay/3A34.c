@@ -805,7 +805,55 @@ void func_800DB0D8(void)
     } while (i < 2);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB128);
+s32 func_800DB128(GpItemScan* arg0)
+{
+    GameSessionFrom4* loc;
+    GpGiveRec*        rec;
+    s32               key;
+    s32               ret;
+    s32               i;
+    u16               item;
+    s8                mode;
+    u8                stage;
+    u8                area;
+    u8                sub;
+
+    ret   = 0;
+    loc   = (GameSessionFrom4*)&Game_Session->field_4;
+    stage = loc->field_3;
+    area  = loc->field_2;
+    sub   = loc->field_5;
+    key   = (stage << 24) | (area << 16) | (sub << 8);
+    mode  = Mc_SaveData.field_F;
+    if ((mode == 0) || (mode == 2)) {
+        rec = D_8010F9F4[stage];
+    } else {
+        rec = D_8010FA0C[stage];
+    }
+    if (rec->field_0 != -1) {
+        do {
+            if (rec->field_0 == key) {
+                for (i = 0; i < 4; i++) {
+                    item = rec->items[i];
+                    if (item != 0) {
+                        if ((i != 3) || (func_800B9D80(0x80000) != 0)) {
+                            if (func_800B7420(item) == 0) {
+                                ret = 1;
+                                if (i == 3) {
+                                    ret = 2;
+                                }
+                                func_800BAD08(arg0, item, -1);
+                            }
+                        }
+                    }
+                }
+                return ret;
+            }
+            rec++;
+        } while (rec->field_0 != -1);
+    }
+    return ret;
+}
 
 s32 func_800DB28C(GpActorWork* arg0, GpImgRec* arg1, RECT* arg2)
 {

@@ -46,7 +46,9 @@ typedef struct _GameSession {
     u8    field_5; // 1-based index into D_8010CB40 / D_8010CBA4 / D_8010CB7C innermost tables; D_8010CB54 second level
     u8    field_6;
     u8    field_7;
-    byte  unknown_8[0x4];
+    u8    field_8;
+    u8    field_9;
+    byte  unknown_A[0x2];
     void* field_C[16]; // 0xC..0x4B; cleared by Game_ClearPtrSlots
     u8    field_4C;
     u8    field_4D;
@@ -91,15 +93,18 @@ typedef struct _GameSession {
 } GameSession;
 STATIC_ASSERT_SIZEOF(GameSession, 0x13C);
 
-/// Overlay of `GameSession` starting at offset 0x4 (`field_4`..`field_7`).
+/// Overlay of `GameSession` starting at offset 0x4 (`field_4`..`field_9`).
 /// Used when the compiler keeps `&Game_Session->field_4` in a register.
+/// `func_800DB128` packs `field_3` / `field_2` / `field_5` into a location key.
 typedef struct _GameSessionFrom4 {
     /* 0x0 */ u8 field_0; // GameSession.field_4
     /* 0x1 */ u8 field_1; // GameSession.field_5
     /* 0x2 */ u8 field_2; // GameSession.field_6
     /* 0x3 */ u8 field_3; // GameSession.field_7
+    /* 0x4 */ u8 field_4; // GameSession.field_8
+    /* 0x5 */ u8 field_5; // GameSession.field_9
 } GameSessionFrom4;
-STATIC_ASSERT_SIZEOF(GameSessionFrom4, 0x4);
+STATIC_ASSERT_SIZEOF(GameSessionFrom4, 0x6);
 
 struct _Task;
 struct _GpLinkNode;

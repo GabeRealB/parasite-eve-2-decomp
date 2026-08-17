@@ -531,7 +531,8 @@ read `h + 2` as line height; `func_800E67C8` / `func_800E68D8` read `w`.
 | 0x4 | `field_4` | Byte used by CD/display helpers; address taken as a 4-byte location key. Also 1-based index into the innermost `D_8010CB54` byte table (`func_800AD284`). That byte then 1-based-indexes `D_8010CB68` records (`func_800AD2E8` returns `field_8`; `func_800ACF8C` reads `field_4->field_2 == 0`) |
 | 0x5 | `field_5` | u8; 1-based index into `D_8010CB40` / `D_8010CBA4` / `D_8010CB7C` innermost tables (`func_800AEEFC`, `func_800ACEBC`, `func_800D9C64`, `func_800ACD2C`). Second-innermost for `D_8010CB54` |
 | 0x6 | `field_6` | u8 room index (1-based for `D_8010CB40` / `D_8010CB2C` / `D_8010CBA4` / `D_8010CBB8` / `D_8010CB54` / `D_8010CB68` / `D_8010CB7C`) |
-| 0x7 | `field_7` | u8 stage index (1-based for `D_8010CB40` / `D_8010CB2C` / `D_8010CBA4` / `D_8010CBB8` / `D_8010CB54` / `D_8010CB68` / `D_8010CB7C`) |
+| 0x7 | `field_7` | u8 stage index (1-based for `D_8010CB40` / `D_8010CB2C` / `D_8010CBA4` / `D_8010CBB8` / `D_8010CB54` / `D_8010CB68` / `D_8010CB7C`). `func_800DB128` also uses it as the high byte of a packed location key and as the index into `D_8010F9F4` / `D_8010FA0C` |
+| 0x9 | `field_9` | u8 location sub-index (`lbu`). `func_800DB128` packs it as the low byte of `(field_7 << 24) \| (field_6 << 16) \| (field_9 << 8)` |
 | 0xC | `field_C[16]` | Pointer table (cleared by `Game_ClearPtrSlots`) |
 | 0x4C | `field_4C` | Init flag |
 | 0x4E | `field_4E` | Set by `Fs_LoadFile` for category-8 |
@@ -1099,6 +1100,16 @@ index is `id & 0x7F`. Sibling accessors `func_800E2D3C` / `func_800E2D90`
 | 0x00 | `field_0` | s32 payload stored from `func_800D9B9C` arg2 |
 | 0x04 | `field_4` | s32 descending sort key (`func_800D9B9C` arg1; ignored if <= 0) |
 | 0x08 | `field_8` | s32 payload stored from `func_800D9B9C` arg3 |
+
+### `GpGiveRec` (0xC) — `3A34.h`
+Location-keyed grant record walked by `func_800DB128`. Lists live at
+`D_8010F9F4` (`Mc_SaveData.field_F` 0 or 2) and `D_8010FA0C` (otherwise),
+indexed by `GameSession.field_7`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | s32 packed location key, or `-1` terminator |
+| 0x04 | `items[4]` | u16 item ids; 0 is empty. Slot 3 also requires `func_800B9D80(0x80000)` |
 
 ### `GpRec16` (0x10) — `3A34.h`
 Element of `D_8011398C`. Selected when an id's 0x8000 bit is set;
