@@ -90,6 +90,7 @@ extern UiObjectDesc D_8010EFA0;
 extern UiObjectDesc D_8010EFBC;
 extern UiObjectDesc D_8010EFD8;
 extern UiObjectDesc D_8010F010;
+extern UiObjectDesc D_8010F02C;
 extern UiObjectDesc D_8010F178;
 extern UiObjectDesc D_8010F670;
 extern UiObjectDesc D_8010F6FC;
@@ -151,7 +152,9 @@ void       func_800D4E40(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_800D5178(DialogPrompt* arg0, UiObject* arg1);
 void       func_800A96A0(void);
 void       func_800AE9B0(void);
+s32        func_800B8988(McItemScan* arg0, s32 arg1);
 char*      func_800B8EB0(s32 arg0, s32 arg1, s32 arg2);
+void       func_800BAE5C(s32 arg0);
 void       func_800C58B8(UiList* arg0, UiObject* arg1);
 void       func_800C5C2C(s32 arg0, s32 arg1);
 void       func_800CDDA0(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3);
@@ -754,7 +757,60 @@ void func_800CCA48(Task* arg0)
     func_8002E53C(&req2, (u8*)D_800971A8);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CCC28);
+void func_800CCC28(Task* arg0)
+{
+    UiObject*     obj;
+    UiObject*     spawned;
+    UiObject*     childObj;
+    UiObjectDesc* desc;
+    Task*         head;
+    Task*         child;
+    Task*         next;
+    s32           flag;
+    s32           one;
+
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    if (arg0->state == 0) {
+        desc = &D_8010F02C;
+        Ui_SpawnFromDesc(desc, 0, 0, 1, obj);
+        if (arg0->spawnArg1 != 0) {
+            func_800BAE5C(D_80114DDC);
+            SndEvt_EnqueueType6(3, 0, 0);
+            one     = 1;
+            spawned = Ui_SpawnFromDesc(desc + 3, D_80114DDC | 0x10000, one, one, obj);
+            if (spawned != NULL) {
+                spawned->field_2C = 0x33;
+            }
+        } else if (func_800B8988(&Mc_SaveData.field_5BC, D_80114DDC) != 0) {
+            one = 1;
+            Ui_SpawnFromDesc(desc + 1, 0, one, one, obj);
+        } else {
+            one = 1;
+            Ui_SpawnFromDesc(desc + 2, 0, one, one, obj);
+        }
+        arg0->state = arg0->state + 1;
+    }
+    head = arg0->firstChild;
+    if (head != NULL) {
+        child = head;
+        do {
+            childObj = child->spawnArg2;
+            flag     = childObj->field_2E;
+            next     = child->nextSibling;
+            if (flag != -1) {
+                if (flag == 6) {
+                    obj->status = 1;
+                    Ui_TeardownTree(childObj, childObj->owner);
+                }
+            } else {
+                obj->field_2E = flag;
+                obj->field_2C = childObj->field_2C;
+            }
+            child = next;
+        } while (child != arg0->firstChild);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CCDC8);
 
