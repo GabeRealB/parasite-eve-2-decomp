@@ -34,12 +34,12 @@ STATIC_ASSERT_SIZEOF(WipSysPos, 0x8);
 typedef struct _WipSysConfig {
     /* 0x00 */ byte      unknown_0[0x8];
     /* 0x08 */ s32       field_8;
-    /* 0x0C */ s32       field_C; // copied to Mc_SaveData.field_18 (`func_800BB9B8`)
+    /* 0x0C */ s32       field_C;  // copied to Mc_SaveData.field_18 (`func_800BB9B8`)
     /* 0x10 */ WipSysPos field_10;
-    /* 0x18 */ s16       field_18;
-    /* 0x1A */ s16       field_1a;
+    /* 0x18 */ s16       field_18; // current; clamped down to field_1a (`func_800BC0C0`)
+    /* 0x1A */ s16       field_1a; // max; recomputed by `func_800BC0C0`, clamped to 250
     /* 0x1C */ s16       field_1c;
-    /* 0x1E */ s16       field_1e;
+    /* 0x1E */ s16       field_1e; // max; recomputed by `func_800B7930`, clamped to 250
     /* 0x20 */ u8        field_20;
     /* 0x21 */ u8        field_21; // selected item id - 0x7F (`func_800CF448`)
     /* 0x22 */ u8        field_22; // packed into GameActor.field_124 bits 0-7 (`func_801061F0`)

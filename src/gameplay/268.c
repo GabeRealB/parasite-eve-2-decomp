@@ -912,7 +912,31 @@ s32 func_800BC06C(s32 arg0)
     return val != 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BC0C0);
+void func_800BC0C0(void)
+{
+    WipSysConfig* cfg;
+    McSaveData*   save;
+    GpStatRow*    table;
+    u16           val;
+
+    cfg           = &Wip_SysConfig;
+    table         = D_8010D328;
+    save          = &Mc_SaveData;
+    val           = table[save->field_F].field_0;
+    cfg->field_1a = val;
+    val          += save->field_26;
+    cfg->field_1a = val;
+    if (cfg->field_23 != 0) {
+        val          += D_8010E2B8[cfg->field_23 - 1].field_4;
+        cfg->field_1a = val;
+    }
+    if (cfg->field_1a >= 0xFB) {
+        cfg->field_1a = 0xFA;
+    }
+    if (cfg->field_18 > cfg->field_1a) {
+        cfg->field_18 = cfg->field_1a;
+    }
+}
 
 void func_800BC164(void)
 {

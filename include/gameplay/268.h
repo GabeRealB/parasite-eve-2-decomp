@@ -105,8 +105,10 @@ STATIC_ASSERT_SIZEOF(GpCoordYaw, 0x22);
 
 /// 8-byte item attribute row. `D_8010DFB8` is indexed by raw item id
 /// (`func_800BC324`); ids 0x60–0x7F land in the `D_8010E2B8` slice.
-/// field_5 is the unsigned base added to `Mc_SaveData.field_908[id-0x60]`
-/// and clamped to 10.
+/// field_4 is the unsigned bonus added to `Wip_SysConfig.field_1a` by
+/// `func_800BC0C0` when `Wip_SysConfig.field_23` (item id − 0x5F) is
+/// non-zero. field_5 is the unsigned base added to
+/// `Mc_SaveData.field_908[id-0x60]` and clamped to 10.
 typedef struct _GpItemAttr {
     /* 0x00 */ u8 field_0;
     /* 0x01 */ u8 field_1;
@@ -119,12 +121,25 @@ typedef struct _GpItemAttr {
 } GpItemAttr;
 STATIC_ASSERT_SIZEOF(GpItemAttr, 0x8);
 
+/// 8-byte row in `D_8010D328` (4 entries), indexed by `Mc_SaveData.field_F`.
+/// field_0 is the unsigned base written into `Wip_SysConfig.field_1a`
+/// (`func_800BC0C0`). field_4 is the word added into `Wip_SysConfig.field_1e`
+/// (`func_800B7930`).
+typedef struct _GpStatRow {
+    /* 0x00 */ u16 field_0;
+    /* 0x02 */ byte pad_2[2];
+    /* 0x04 */ s32 field_4;
+} GpStatRow;
+STATIC_ASSERT_SIZEOF(GpStatRow, 0x8);
+
 extern GpBit2Bank D_8010D230[];
 extern GpItemQty  D_8010D278[];
 extern GpItemMap  D_8010D2F8[];
 extern GpItemScan D_8010D520;
+extern GpStatRow  D_8010D328[];
 extern GpItemAttr D_8010DFB8[];
 extern GpItemQty  D_8010E238[];
+extern GpItemAttr D_8010E2B8[];
 /// Byte remap of an item id used as a sort/order key (`func_800BC18C` /
 /// `func_800B8588`). Split by item class: 0x01–0x5F → `D_80114A40[id]`,
 /// 0x60–0x7F → `D_80114A88[id-0x60]`, 0x80–0x9F → `D_80114A98[id-0x80]`,
@@ -175,6 +190,7 @@ s32         func_800BBDDC(void);
 void        func_800BBE54(void);
 s32         func_800BBEC0(s32 arg0);
 s32         func_800BC06C(s32 arg0);
+void        func_800BC0C0(void);
 s32         func_800BC18C(s32 arg0);
 s32         func_800BC324(s32 arg0);
 void        func_800BC378(Task* arg0);

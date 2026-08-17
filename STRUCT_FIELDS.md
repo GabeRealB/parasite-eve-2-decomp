@@ -153,7 +153,8 @@ Convention: only list fields with evidence. Unlisted `field_*` / `unknown_*` /
 |-----|--------|------|
 | 0x4–0x9 | `field_4`… | Header region (checksummed from 0x4, size 0x38) |
 | 0x0E | `field_E` | Signed scale flag; if > 0 and `func_800D50D4` arg1 is 0, table value is `* 2 / 5` (unless `field_F` applies) |
-| 0x0F | `field_F` | Signed scale flag; if > 0 and `func_800D50D4` arg1 is 0, table value is `* 4 / 5` (takes priority over `field_E`) |
+| 0x0F | `field_F` | Signed scale flag; if > 0 and `func_800D50D4` arg1 is 0, table value is `* 4 / 5` (takes priority over `field_E`). Also indexes `D_8010D328` (`func_800BC0C0`) |
+| 0x26 | `field_26` | Unsigned addend for `Wip_SysConfig.field_1a` (`func_800BC0C0`) |
 | 0x10 | `field_10` | Init bitmask; bit 0 = global init done (`func_800AB980`). Per-slot bit is `field_7` via the `GameSessionFrom4` overlay |
 | 0x12 | `field_12` | Slot index 1..16 |
 | 0x13 | `field_13` | 1-based index into `D_80113360` (`func_800E3D24`); also `D_8007217B` |
@@ -665,6 +666,10 @@ It stores selected item id − 0x7F (`func_800CF448`); 0 means none selected.
 slot is occupied, else 0, then calls `func_801061F0`.
 `field_24` is a u8 cleared by `func_801053A0`; `func_8010C81C` saves and restores it around that call.
 `field_25` is an OR mask of PE/status bits set by `func_8010A42C` (same bit as the `func_800ECA10` arg).
+`field_1a` is an s16 max recomputed by `func_800BC0C0` from `D_8010D328[field_F].field_0`
+plus `Mc_SaveData.field_26` plus optional `D_8010E2B8[field_23-1].field_4`, then
+clamped to 250. `field_18` is the matching current; `func_800BC0C0` copies `field_1a`
+down into it when current exceeds the new max.
 
 ### `TmdObject` / `TmdSource`
 | Off | Member | Role |
@@ -1198,7 +1203,16 @@ map onto the 32-entry slice at `D_8010E2B8` (`D_8010DFB8 + 0x60 * 8`).
 
 | Off | Member | Role |
 |-----|--------|------|
+| 0x04 | `field_4` | Unsigned bonus added to `Wip_SysConfig.field_1a` (`func_800BC0C0`) when `field_23` is non-zero |
 | 0x05 | `field_5` | Unsigned base added to `Mc_SaveData.field_908[itemId-0x60]`; result clamped to 10 |
+
+### `GpStatRow` (0x8) — `268.h`
+4-entry table at `D_8010D328`, indexed by `Mc_SaveData.field_F`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | Unsigned base written into `Wip_SysConfig.field_1a` (`func_800BC0C0`) |
+| 0x04 | `field_4` | Word added into `Wip_SysConfig.field_1e` (`func_800B7930`) |
 
 ### `GpBit2Rec` (0x10) — `268.h`
 0xFFFF-terminated records walked by `func_800BB838` / `func_800BAB64`.
