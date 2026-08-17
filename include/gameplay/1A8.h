@@ -88,10 +88,14 @@ typedef struct _GpMsg3EE {
 } GpMsg3EE;
 STATIC_ASSERT_SIZEOF(GpMsg3EE, 0x18);
 
-/// 6-entry table of no-arg callbacks. Copied onto the stack by
-/// `func_800AEF4C` (`D_80093978`) and the sibling dispatcher
-/// `func_800AEFBC` (`D_80093990`).
+/// Tables of no-arg callbacks copied onto the stack by the sibling
+/// dispatchers. `func_800AEF4C` copies the 6-entry `D_80093978`;
+/// `func_800AEFBC` copies the 5-entry `D_80093990`.
 typedef void (*GpVoidFunc)(void);
+
+typedef struct {
+    GpVoidFunc funcs[5];
+} GpVoidFuncTable5;
 
 typedef struct {
     GpVoidFunc funcs[6];

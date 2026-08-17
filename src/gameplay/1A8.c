@@ -17,6 +17,7 @@ void func_800AD6BC(void);
 
 extern TaskFuncTable3   D_80093950;
 extern GpVoidFuncTable6 D_80093978;
+extern GpVoidFuncTable5 D_80093990;
 extern u16              D_80114CD0;
 extern u16              D_80114CD2;
 extern u16              D_80114CD4;
@@ -186,7 +187,21 @@ void func_800AEF4C(void)
     sp.funcs[*(s16*)&D_80114CD6]();
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1A8", func_800AEFBC);
+void func_800AEFBC(void)
+{
+    GpVoidFuncTable5 sp;
+
+    sp = D_80093990;
+    if (D_801153F0.field_0 == 2) {
+        if (D_80114CDE == 1) {
+            D_80114CDD = D_80114CDE;
+        }
+    }
+    if (D_80114CDD != 0) {
+        D_801153F0.field_1 = 0x3C;
+    }
+    sp.funcs[*(s16*)&D_80114CD6]();
+}
 
 void func_800AF070(void)
 {
