@@ -17764,4 +17764,37 @@ addPrim((u_long*)(((((u32)arg2 << Display_State.field_128) >> 2) & 0xFFC)
 `func_800EC914` is the example. The hoisted `ds` form stuck at 87%
 with only those registers and the `addu` operands swapped.
 
+## Overlay `save + i*stride` so two `lbu`s share `$v0` and `$v1`
+
+`save->arr[i*3] > save->arr[i*3 + 1]` computes the address twice.
+GCC copies it (`move v1, v0`), loads the first byte into `$a0`
+(coalesced with the `sltu` dest), and the second from the copy:
+
+```
+addu  v0, idx3, save
+move  v1, v0
+lbu   a0, off(v0)
+lbu   v0, off+1(v1)
+sltu  a0, v0, a0
+```
+
+The target keeps one base in `$v0`, first load in `$v1`, second
+clobbering the base (`lbu v0, off+1(v0)`), then `sltu a0, v0, v1`.
+
+Form a `McSaveData*` overlay at `&save->byte0[i * 3]` and read
+`p->arr[0]` / `p->arr[1]`. The shared pointer pins the base, so the
+first load cannot take `$v0` and lands in `$v1`:
+
+```c
+p    = (McSaveData*)&save->unknown_0[idx * 3];
+slot = p->unknown_850[0] > p->unknown_850[1];
+```
+
+Later accesses must rematerialize through `save` (`save->arr[slot +
+idx * 3]`), not `p`. Reusing `p` folds the address into one `addu`
+and shuffles `save` / `idx*3` out of `$t0` / `$a2`.
+
+`func_800CC41C` is the example. The two-index form stuck at 97.8%
+with only that extra `move` and the first load in `$a0`.
+
 

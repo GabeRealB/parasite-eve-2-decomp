@@ -479,7 +479,35 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CB6FC);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CC15C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CC41C);
+void func_800CC41C(UiObject* arg0, Task* arg1)
+{
+    McSaveData* save;
+    McSaveData* save2;
+    McSaveData* p;
+    s32         idx;
+    s32         slot;
+    s32         temp;
+
+    idx = arg1->spawnArg1 - 0x36;
+    if (arg1->state == 0) {
+        save = &Mc_SaveData;
+        p    = (McSaveData*)&save->unknown_0[idx * 3];
+        slot = p->unknown_850[0] > p->unknown_850[1];
+        if (save->unknown_850[slot + idx * 3] >= 3) {
+            slot = 2;
+            if (save->unknown_850[idx * 3 + 2] >= 3) {
+                slot = (idx * 3 + 2) * 3 + 0x11;
+                goto store;
+            }
+        }
+        save2 = &Mc_SaveData;
+        temp  = slot + idx * 3;
+        slot  = save2->unknown_850[temp] + temp * 3 + 0xF;
+    store:
+        arg1->extraState = slot;
+    }
+    func_800CC15C(arg0, arg1, arg1->extraState);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CC4F4);
 
