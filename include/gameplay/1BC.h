@@ -194,6 +194,7 @@ void     func_800B0560(GpEnemy* enemy, Task* task);
 void     func_800B058C(Task* arg0);
 s32      func_800B05E8(s32 arg0);
 void     func_800B065C(u8 arg0);
+void     func_800B0FDC(MATRIX* arg0, SVECTOR* arg1);
 void     func_800B27C4(u16* arg0, u16* arg1, s32 arg2, u16* arg3);
 void     func_800B2840(u16* arg0, u16* arg1, s32 arg2, u16* arg3, s32 arg4);
 void     func_800B3CCC(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3);

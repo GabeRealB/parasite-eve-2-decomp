@@ -343,7 +343,37 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0928);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0CF4);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0FDC);
+void func_800B0FDC(MATRIX* arg0, SVECTOR* arg1)
+{
+    SVECTOR in;
+    SVECTOR out;
+    MATRIX  mtx;
+    s32     one;
+    s16     len;
+
+    mtx      = *arg0;
+    one      = 0x1000;
+    mtx.t[2] = 0;
+    mtx.t[1] = 0;
+    mtx.t[0] = 0;
+    in.vx    = 0;
+    in.vy    = 0;
+    in.vz    = one;
+    ApplyMatrixSV(&mtx, &in, &out);
+    arg1->vx = -ratan2(out.vy, out.vz);
+    len      = SquareRoot12((out.vz * out.vz + out.vy * out.vy) >> 12);
+    arg1->vy = ratan2(out.vx, len);
+    in.vx    = 0;
+    in.vy    = one;
+    in.vz    = 0;
+    ApplyMatrixSV(&mtx, &in, &out);
+    in.vx = -arg1->vx;
+    in.vy = -arg1->vy;
+    in.vz = 0;
+    RotMatrixZYX(&in, &mtx);
+    ApplyMatrixSV(&mtx, &out, &in);
+    arg1->vz = -ratan2(in.vx, in.vy);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B114C);
 

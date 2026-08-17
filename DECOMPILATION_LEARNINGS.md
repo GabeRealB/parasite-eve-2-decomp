@@ -18826,4 +18826,38 @@ GCC tail-merges the common stores + `jal` into one call. Filling once
 and then calling in both arms still CSEs the fill. `func_800D2224` is
 the example.
 
+## `SVECTOR` fill before `RotMatrixZYX`: write `vx`, `vy`, then `vz = 0`
+
+Building `(-ang->vx, -ang->vy, 0)` and writing `vz` between the two
+negated fields hoists `sh zero` into the first field's load-delay
+(before `negu` of `vx`). The target stores `vz` after the second
+field's `lhu` and the `move a1, mtx`:
+
+```
+lhu   v0, 0(ang)
+addiu a0, sp, in
+negu  v0, v0
+sh    v0, vx(sp)
+lhu   v0, 2(ang)
+move  a1, mtx
+sh    zero, vz(sp)
+negu  v0, v0
+jal   RotMatrixZYX
+ sh   v0, vy(sp)
+```
+
+Assign in that store order so the independent zero cannot float earlier:
+
+```c
+in.vx = -arg1->vx;
+in.vy = -arg1->vy;
+in.vz = 0;
+RotMatrixZYX(&in, &mtx);
+```
+
+Declare the two `SVECTOR`s before the local `MATRIX` so they sit at
+`sp+0x10` / `sp+0x18` and `&in` rematerializes (`addiu rx, sp, 0x10`)
+instead of taking a fifth saved register. `func_800B0FDC` is the
+example. `vx, vz, vy` stuck at 99.3% with only that `sh zero` early.
+
 
