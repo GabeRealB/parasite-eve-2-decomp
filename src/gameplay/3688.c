@@ -316,7 +316,28 @@ store:
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C05CC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C0B98);
+void func_800C0B98(DialogPrompt* arg0, UiObject* arg1, u32 arg2)
+{
+    SPRT* p;
+
+    p          = (SPRT*)D_80071190;
+    D_80071190 = (DR_TPAGE*)(p + 1);
+    p->x0      = (u16)arg0->field_18 + arg1->baseX;
+    p->y0      = (u16)arg0->field_1A + arg1->baseY - 0xF;
+    if (arg0->field_C == 1) {
+        p->clut = 0x3C09;
+    } else {
+        p->clut = 0x3C01;
+    }
+    p->v0 = arg2 >> 8;
+    p->w  = (arg2 >> 16) & 0xFF;
+    p->h  = arg2 >> 24;
+    setlen(p, 4);
+    p->u0 = arg2;
+    setcode(p, 0x65);
+    addPrim(Gpu_CurrentOt + (s16)arg1->drawOrder + 1, p);
+    Ui_InsertDrawTPage((s16)arg1->drawOrder + 1, 0);
+}
 
 void func_800C0CA0(Task* arg0)
 {

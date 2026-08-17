@@ -3,6 +3,37 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## if/else on the same field keeps the phi in `$v0`; a ternary steals `$t0`
+
+Both arms writing the same field (`p->clut = 0x3C09` / `0x3C01`) let GCC emit
+the classic delay-slot default plus override, then one store through `$v0`:
+
+```
+lw    v1, 0xc(a0)
+li    v0, 1
+bne   v1, v0, join
+ li   v0, 0x3c01
+li    v0, 0x3c09
+join:
+sh    v0, 0xe(a3)
+```
+
+A ternary or a named temp (`clut = cond ? 0x3C09 : 0x3C01`) allocates that
+value to `$t0`/`$t1`. Incoming `a1`/`a2` that must be saved then shift
+(`a1→t2`, `a2→t1` instead of `a1→t1`, `a2→t0`), even when the instruction
+stream is otherwise identical. `asm("")` after the store keeps it early but
+does not fix the coloring.
+
+```c
+if (arg0->field_C == 1) {
+    p->clut = 0x3C09;
+} else {
+    p->clut = 0x3C01;
+}
+```
+
+`func_800C0B98` is the example.
+
 ## Independent `= 0` store last so it fills a stack-arg load delay
 
 A late `lw` of a stack argument (`arg6 << 4` into two halfwords) wants an
