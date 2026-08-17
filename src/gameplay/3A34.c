@@ -1093,7 +1093,37 @@ void func_800E0294(void)
     D_80115424 = 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0308);
+s32 func_800E0308(SVECTOR* arg0, SVECTOR* arg1)
+{
+    void**           scratch;
+    register u8*     head asm("v0");
+    register VECTOR* vec asm("s1");
+    GpObj3A*         node;
+    s32              ret;
+
+    ret                          = 0;
+    scratch                      = (void**)G_SCRATCH_HEAD;
+    node                         = D_80115550;
+    head                         = *scratch;
+    ((VECTOR*)(head - 0x10))->vx = arg1->vx - arg0->vx;
+    head                         = head - 0x10;
+    vec                          = (VECTOR*)head;
+    __asm__ volatile("" : "+r"(vec) : "r"(head));
+    vec->vy  = arg1->vy - arg0->vy;
+    *scratch = vec;
+    vec->vz  = arg1->vz - arg0->vz;
+    VectorNormal(vec, vec);
+    for (; node != NULL; node = node->next) {
+        if (node->field_3A & 0x40) {
+            ret = func_800DFCCC(node, arg0, arg1, vec);
+            if (ret == 1) {
+                break;
+            }
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    return ret;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0414);
 

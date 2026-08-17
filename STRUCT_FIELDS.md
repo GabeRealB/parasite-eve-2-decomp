@@ -1014,7 +1014,7 @@ minimum covering known fields.
 |-----|--------|------|
 | 0x00 | `next` | Intrusive next; NULL-terminated |
 | 0x04 | `prev` | Previous node, or the list-head object when first |
-| 0x3A | `field_3A` | Flag byte: 0x20 = on list. Unlink keeps bits 0x87 |
+| 0x3A | `field_3A` | Flag byte: 0x20 = on list, 0x40 = active (`func_800E0308`). Unlink keeps bits 0x87 |
 
 ### `GpRec4` (0x4) — `3A34.h`
 Element of `D_80114028`. `func_800E2CD4(idx, 0)` returns `field_0`.

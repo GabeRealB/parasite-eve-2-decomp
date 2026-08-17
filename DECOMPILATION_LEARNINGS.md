@@ -19274,4 +19274,45 @@ Assigning `field13` before the `if` also avoids the fold but hoists
 `lb id` above the `field_5C2` check. A nested `if` after an inner
 assign folds. `func_8010B9A4` is the example.
 
+## Scratch `head = head - K` then `+r`(vec) so VectorNormal takes `$s1`
+
+A 0x10 scratch `VECTOR` whose first store is `sw v1, -K(head)` and whose
+adjusted pointer later becomes both args of `VectorNormal(vec, vec)`
+wants:
+
+```
+sw    v1,-0x10(v0)
+addiu v0,v0,-0x10
+move  s1,v0
+lh    v0,2(s4)
+lh    v1,2(s3)
+move  a0,s1
+```
+
+Store through `(VECTOR*)(head - K)` then `vec = (VECTOR*)(head - K)`
+computes `addiu s1, v0, -K` first. Reassigning `head = head - K;
+vec = (VECTOR*)head` with `head` pinned to `$v0` emits the `addiu` /
+`move`, but the upcoming `VectorNormal` first-arg copy steals it
+(`move a0, v0` / later `move s1, a0`). Pin `vec` to `$s1` and lock the
+copy before the next field store:
+
+```c
+register u8*     head asm("v0");
+register VECTOR* vec asm("s1");
+
+head = *scratch;
+((VECTOR*)(head - 0x10))->vx = arg1->vx - arg0->vx;
+head                         = head - 0x10;
+vec                          = (VECTOR*)head;
+__asm__ volatile("" : "+r"(vec) : "r"(head));
+vec->vy  = arg1->vy - arg0->vy;
+*scratch = vec;
+vec->vz  = arg1->vz - arg0->vz;
+VectorNormal(vec, vec);
+```
+
+`func_800E0308` is the example. This is the `func_80103DD4` store-first
+alloc plus the `func_80103E7C` `+r` copy, needed when the scratch block
+is also `$a0` of a later call.
+
 

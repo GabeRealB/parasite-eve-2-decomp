@@ -386,8 +386,10 @@ STATIC_ASSERT_SIZEOF(GpObj4A, 0x4C);
 /// 0x3C list node appended to `D_8010FAB8[index]` by `func_800E17B4` and
 /// unlinked by `func_800E1834`. `func_800E1884` empties the whole list.
 /// `field_3A` bit 0x20 means the node is on that list (cleared on unlink,
-/// keeping bits 0x87). Same link/flag layout as `GpObj4A`, with the flag
-/// byte at 0x3A instead of 0x4A. Full object size is not known yet.
+/// keeping bits 0x87). Bit 0x40 is the active filter used by
+/// `func_800E0308` before it calls `func_800DFCCC`. Same link/flag layout
+/// as `GpObj4A`, with the flag byte at 0x3A instead of 0x4A. Full object
+/// size is not known yet.
 typedef struct _GpObj3A {
     /* 0x00 */ struct _GpObj3A* next;
     /* 0x04 */ struct _GpObj3A* prev;
@@ -708,7 +710,9 @@ void func_800DCB80(GpObj* node);
 void func_800DD940(GpObj* node);
 void func_800DDDF8(GpObj* node);
 void func_800DEF80(GpObj* node, GpObj4C* other);
+s32  func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3);
 void func_800E0294(void);
+s32  func_800E0308(SVECTOR* arg0, SVECTOR* arg1);
 void func_800E0414(GpObj* a, GpObj* b);
 void func_800E0540(GpObj* node);
 void func_800E0608(GpObj* node, s32 mask, s32 match);
