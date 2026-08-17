@@ -111,6 +111,7 @@ void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
 void func_800E8A90(Task* task);
 void func_800E8BB0(Task* task);
 void func_800E8CE8(s16 arg0);
+void func_800E8E00(s16 arg0, u8 arg1, u8 arg2, s16 arg3);
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E34D8);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E375C);
@@ -1004,7 +1005,52 @@ void func_800E8A90(Task* task)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E8BB0);
+void func_800E8BB0(Task* task)
+{
+    GpState34*   state;
+    GpScriptCmd* table;
+    GpScriptRec* recs;
+    u16          cmd;
+    s32          opcode;
+    u8           tmp;
+
+    state          = (GpState34*)task->idMap;
+    table          = state->field_0;
+    recs           = state->field_4;
+    cmd            = table[state->field_F].field_2;
+    opcode         = cmd & 0xFF;
+    state->field_C = cmd;
+
+    if (opcode != 0) {
+        if (opcode == 1) {
+            state->field_13 = cmd >> 8;
+            state->field_11 = recs[state->field_13].field_2;
+            func_800E8E00(state->field_11, recs[state->field_13].field_0, recs[state->field_13].field_1, state->field_8);
+            state->field_F++;
+        } else if (opcode == 2) {
+            state->field_11 = cmd >> 8;
+            state->field_F++;
+        } else if (opcode == 3) {
+            tmp = state->field_15;
+            if (tmp == 0) {
+                tmp             = cmd >> 8;
+                state->field_15 = tmp;
+                state->field_F++;
+            } else {
+                tmp--;
+                state->field_15 = tmp;
+                state->field_F++;
+            }
+        } else if (opcode == 4) {
+            if (state->field_15 == 0) {
+                state->field_F++;
+            } else {
+                state->field_F = table[state->field_F].field_2 >> 8;
+            }
+            func_800E8BB0(task);
+        }
+    }
+}
 
 void func_800E8CE8(s16 arg0)
 {
