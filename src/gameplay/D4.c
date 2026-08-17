@@ -27,6 +27,7 @@ void func_800AA548(s32 arg0);
 void func_800AE7AC(void);
 void func_800ACD2C(Task* task);
 void func_800AD024(void);
+void func_800AD410(void* arg0, GpCb68Obj* arg1);
 void func_800AD620(Task* task);
 void func_800AD65C(Task* task);
 void func_80724748(GameSessionFrom4* arg0);
@@ -643,7 +644,40 @@ s32 func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AC4D8);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AC688);
+void func_800AC688(void)
+{
+    GameSessionFrom4* sess;
+    s32               view;
+    DisplayState*     ds;
+    void**            table;
+    GpCb68Tbl*        tbl;
+    GpCb68Rec*        recs;
+    GpCb68Obj*        rec;
+    void*             base;
+
+    sess       = (GameSessionFrom4*)&Game_Session->field_4;
+    view       = func_800AD284();
+    table      = D_8010CAE8;
+    ds         = &Display_State;
+    D_80114CC8 = table[ds->field_1f];
+    tbl        = D_8010CB68[sess->field_3 - 1];
+    recs       = tbl->field_0[sess->field_2 - 1];
+    rec        = recs[(u8)view - 1].field_4;
+    base       = recs[(u8)view - 1].field_0;
+    if (rec->field_2 == 0) {
+        rec++;
+    } else {
+        ds->field_100 = 0;
+    }
+    if (rec->field_0 != 0xFFFF) {
+        do {
+            if (rec->field_5 == 0) {
+                func_800AD410(base, rec);
+            }
+            rec++;
+        } while (rec->field_0 != 0xFFFF);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AC790);
 

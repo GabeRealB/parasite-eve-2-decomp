@@ -43,12 +43,18 @@ typedef struct _GpCb54Tbl {
 /// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
 extern GpCb54Tbl* D_8010CB54[];
 
-/// Object pointed to by `GpCb68Rec.field_4`. Full size unknown.
-/// `func_800ACF8C` returns whether `field_2` is zero.
+/// 8-byte command record. `GpCb68Rec.field_4` points at a 0xFFFF-terminated
+/// list of these. `func_800ACF8C` returns whether `field_2` is zero; when it
+/// is, `func_800AC688` skips the first record, otherwise it clears
+/// `Display_State.field_100`. `field_5` nonzero skips `func_800AD410`.
 typedef struct _GpCb68Obj {
-    /* 0x0 */ u16 field_0;
-    /* 0x2 */ u16 field_2;
+    /* 0x0 */ u16  field_0;
+    /* 0x2 */ u16  field_2;
+    /* 0x4 */ u8   field_4;
+    /* 0x5 */ u8   field_5;
+    /* 0x6 */ byte pad_6[2];
 } GpCb68Obj;
+STATIC_ASSERT_SIZEOF(GpCb68Obj, 8);
 
 /// 12-byte per-view record in tables pointed to by `D_8010CB68`.
 /// Indexed 1-based by the `D_8010CB54` camera / view byte.
@@ -69,6 +75,13 @@ typedef struct _GpCb68Tbl {
 /// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
 extern GpCb68Tbl* D_8010CB68[];
 
+/// Dual-buffer primitive list heads, indexed by `Display_State.field_1f`.
+extern void* D_8010CAE8[];
+
+/// Cursor into the current `D_8010CAE8` list. Set by `func_800AC688`,
+/// advanced by `func_800AD410`.
+extern void* D_80114CC8;
+
 /// 5-byte table at `D_800938CC`. `func_800A9B3C` copies it to the stack and
 /// indexes it 1-based by `Wip_SysConfig.field_26`; the byte is CdCmd 0x21
 /// param2[0].
@@ -86,6 +99,7 @@ void func_800ABE68(struct _GpActorArg* arg0, u16* arg1);
 void func_800ABEF8(s32 arg0);
 void func_800ABF1C(struct _GpAreaKey* arg0);
 s32   func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+void  func_800AC688(void);
 /// 1-based index of `(u8)arg0` in the current room's `D_8010CB54` byte
 /// list. Length is the `D_8010CB40` cell as an s16. Returns 0 if absent.
 s8    func_800ACEBC(s32 arg0);
