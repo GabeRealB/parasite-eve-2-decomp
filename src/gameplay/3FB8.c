@@ -50,7 +50,7 @@ void func_80103F70(GpActorWork* arg0);
 s32  func_80104B54(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2);
 void func_80104E00(void);
 s32  func_80105070(void);
-void func_801053A0(void);
+s32  func_801053A0(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);
 s32  func_801055D4(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  func_80105690(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  func_8010583C(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -1141,7 +1141,45 @@ s32 func_801052B8(GpActorWork* arg0, s32 arg1, GpCountArg* arg2)
     return 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801053A0);
+s32 func_801053A0(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2)
+{
+    GameActor*     actor;
+    GsCOORDINATE2* coord;
+    WipSysConfig*  p;
+
+    actor = arg0->actor;
+    coord = (GsCOORDINATE2*)arg0->extra->field_8;
+    if (arg2->field_12 == 0) {
+        p                 = &Wip_SysConfig;
+        actor->field_954  = 2;
+        actor->field_95E  = 0;
+        actor->field_973  = 0;
+        actor->field_975  = 0;
+        p->field_24       = 0;
+        actor->field_97E  = 0;
+        actor->field_60   = 0;
+        actor->field_58   = 0;
+        actor->field_64   = 0;
+        actor->field_5C   = 0;
+        actor->field_6A   = 0;
+        actor->field_68   = 0;
+        actor->field_70   = 0;
+        actor->field_96C  = 0;
+        actor->field_12A &= 0x3FFF;
+        func_80106350(arg0, p->field_21, 0);
+        if (Game_Session->field_1 != 0) {
+            ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
+        }
+        actor->field_956 = 1;
+        actor->field_982 = 1;
+    }
+    actor->field_983   = arg2->field_10;
+    coord->coord.t[0] += arg2->field_0;
+    coord->coord.t[1] += arg2->field_4;
+    coord->coord.t[2] += arg2->field_8;
+    func_80103B88(arg0, (GpDirArg*)arg2);
+    return func_801041B4(arg0);
+}
 
 s32 func_801054D8(GpActorWork* arg0, s32 arg1, GpDelayArg* arg2)
 {
@@ -4028,14 +4066,14 @@ s32 func_8010C75C(GpActorWork* arg0, s32 arg1, GpDelayArg* arg2)
     return 0;
 }
 
-void func_8010C81C(void)
+void func_8010C81C(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2)
 {
     WipSysConfig* p;
     u8            saved;
 
     p     = &Wip_SysConfig;
     saved = p->field_24;
-    func_801053A0();
+    func_801053A0(arg0, arg1, arg2);
     p->field_24 = saved;
 }
 

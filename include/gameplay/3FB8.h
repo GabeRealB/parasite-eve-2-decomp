@@ -187,6 +187,20 @@ typedef struct _GpDirArg {
     /* 0x10 */ s16  field_10;
 } GpDirArg;
 
+/// Argument for `func_801053A0` / `func_8010C81C`. Same XYZ words as
+/// `GpDirArg` (added onto `GsCOORDINATE2.coord.t` and passed through to
+/// `func_80103B88`). `field_10` is copied to `GameActor.field_983`.
+/// `field_12 == 0` runs the shared actor-state reset.
+typedef struct _GpMoveArg {
+    /* 0x00 */ s32  field_0;
+    /* 0x04 */ s32  field_4;
+    /* 0x08 */ s32  field_8;
+    /* 0x0C */ byte pad_C[4];
+    /* 0x10 */ u8   field_10;
+    /* 0x11 */ byte pad_11;
+    /* 0x12 */ u8   field_12;
+} GpMoveArg;
+
 /// 0x10-byte scratch from `G_SCRATCH_HEAD` used by `func_8010133C`.
 /// `field_0` / `field_4` are the outer/inner loop counters. `field_8` is
 /// a color word (`0x808008`, then `0x37A78`). `field_C` / `field_E` are
@@ -388,6 +402,8 @@ void func_8010A1B0(s32 arg0, s32 arg1);
 void func_8010A42C(GpActorWork* arg0, s32 arg1);
 void func_80103B5C(GpActorWork* arg0);
 s32  func_80103B88(GpActorWork* arg0, GpDirArg* arg1);
+s32  func_801053A0(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);
+void func_8010C81C(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);
 void func_8010B210(GpActorWork* arg0);
 void func_8010C1FC(GpActorWork* arg0, SVECTOR3* arg1, s32 arg2);
 Task* func_801036FC(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3);
