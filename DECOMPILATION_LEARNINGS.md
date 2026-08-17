@@ -19423,4 +19423,45 @@ so the second table can reuse the mode register after `mode != 1`.
 
 `func_800CF4EC` is the example.
 
+## Store then test `p->field` so the OR dest stays in `$v1`
+
+A u8 flag OR'd with bits from a u16, stored, then tested for bit 0 wants
+the computed value in `$v1` and the dest pointer in `$a0`:
+
+```
+lbu   v1, 4(a1)
+andi  v0, v0, 0x100
+or    v1, v1, v0
+sh    v1, 4(a0)
+...
+andi  v1, v1, 1
+bnez  v1, skip
+```
+
+Naming the OR result parks it in `$a0` and pushes the pointer to `$a1`:
+
+```c
+/* BAD — temp takes $a0, p takes $a1; 98.5% with only regs swapped */
+temp = q->field_4 | (p->field_1A & 0x100);
+p->field_4 = temp;
+if (!(temp & 1)) {
+    func();
+}
+```
+
+Store first, then test the field. GCC keeps the halfword in `$v1` for the
+`andi`/`bnez` and leaves `$a0` for `p`. Two bare reads of `p->field_1A`
+(no saved copy) also emit the two `lhu`s with `sh zero` between them:
+
+```c
+p->field_4 = q->field_4 | (p->field_1A & 0x100);
+p->field_E = q->field_4 | (p->field_1A & 0x180);
+p->field_1A = 0;
+if (!(p->field_4 & 1)) {
+    func();
+}
+```
+
+`func_800E9EFC` is the example.
+
 

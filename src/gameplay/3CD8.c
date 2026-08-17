@@ -4,8 +4,11 @@
 #include <psyq/stdio.h>
 #include <psyq/strings.h>
 
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/3FB8.h"
 #include "gameplay/D4.h"
+#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gameflag.h"
@@ -1556,7 +1559,46 @@ void func_800E9C6C(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E9CC8);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E9EFC);
+void func_800E9EFC(void)
+{
+    GpState1C*  p;
+    GpStateF0*  q;
+    GpStateC08* r;
+    s16         temp;
+
+    if (D_80115740->field_0 <= 0) {
+        D_80115740->field_0 = 0;
+    }
+    if (D_80115740->field_2 <= 0) {
+        D_80115740->field_2 = 0;
+    }
+    temp = D_80115740->field_16;
+    if ((temp == 1) && (D_801153F0.field_0 != temp)) {
+        SndEvt_EnqueueType7(0xFF0D, 1);
+        D_80115740->field_2 = 0;
+    }
+    p           = D_80115740;
+    q           = &D_801153F0;
+    p->field_16 = q->field_0;
+    p->field_4  = q->field_4 | (p->field_1A & 0x100);
+    p->field_E  = q->field_4 | (p->field_1A & 0x180);
+    p->field_1A = 0;
+    if (!(p->field_4 & 1)) {
+        func_800EA3B4();
+    }
+    if (D_80115740->field_E >= 4) {
+        r           = &D_80114C08;
+        r->field_10 = 0;
+        r->field_C  = 0;
+        r->field_12 = 0;
+        r->field_D  = 0;
+        r->field_14 = 0;
+        r->field_F  = 0;
+        r->field_16 = 0;
+        r->field_17 = 0;
+        func_8010A1B0(1, 0x80);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EA02C);
 

@@ -272,6 +272,7 @@ void func_800E8938(Task* arg0);
 
 void func_800E9BDC(u8 arg0, s32 arg1);
 void func_800E9C6C(void);
+void func_800E9EFC(void);
 s16  func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1);
 s32  func_800EA318(s16 arg0, s16 arg1, s16 arg2);
 void func_800EA3A0(s32 arg0);
