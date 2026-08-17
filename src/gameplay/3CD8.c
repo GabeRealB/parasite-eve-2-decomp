@@ -24,6 +24,8 @@ extern TaskFuncTable3 D_80097678;
 extern TaskDesc       D_8010FAEC[];
 extern GpRec14        D_8010FB38;
 extern s32            D_8010FB90[];
+extern s32            D_8010FBE0;
+extern s32            D_8010FBE4;
 extern u16            D_80112D68[];
 extern u16            D_80113360[];
 extern GpEvt12*       D_801155A8;
@@ -57,9 +59,17 @@ extern s32            D_801156B4;
 extern Task*          D_801156B8;
 extern s16            D_801156BC;
 extern u8             D_801156C8;
+extern u8             D_801156C9;
 extern u8             D_801156CA;
 extern u8             D_801156CB;
+extern u8             D_801156CC;
+extern u8             D_801156CD;
+extern u8             D_801156CE;
+extern s32            D_801156D0;
+extern s32            D_801156EC;
+extern u8             D_801156F0;
 extern GpOverlayIds*  D_801156F4;
+extern u8             D_801156F8;
 extern u8             D_801156F9;
 extern u8             D_801153F4;
 extern u8             D_80115700;
@@ -718,7 +728,23 @@ void func_800E8614(s32 arg0, s32 arg1)
     func_800E8634(arg0, arg1, 0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E8634);
+void func_800E8634(s32 arg0, s32 arg1, s32 arg2)
+{
+    Game_Session->field_1  = 1;
+    Game_Session->field_5F = 0;
+    D_8010FBE0             = 0;
+    D_8010FBE4             = 0;
+    D_801156D0             = arg2;
+    D_801156C9             = 0;
+    D_801156CC             = 0;
+    D_801156F0             = 5;
+    D_801156CD             = 0;
+    D_801156CE             = 0;
+    D_801156F8             = Mc_SaveData.field_4;
+    D_801156EC             = Wip_SysConfig.field_21;
+    SndEvt_EnqueueType7(0xFF0D, 1);
+    Task_Spawn(9, 7, arg1, arg0);
+}
 
 s32 func_800E86FC(s32 arg0)
 {
