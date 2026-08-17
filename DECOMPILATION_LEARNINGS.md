@@ -19549,4 +19549,104 @@ a    = arr->field_4;    /* lw 4(v1) */
 `(s32)arr` addend after the scaled index is what swaps the operands.
 `func_800ACD2C` is the example.
 
+## Pin jal return + empty `asm("")` so `sb` / `andi` / delay-slot `sb` stay in order
+
+A clamp that the target writes as:
+
+```
+jal    foo
+nop
+lw     v1, field_10(list)
+sb     v0, field_4(list)
+andi   a0, v0, 0xff
+slt    v1, a0, v1
+beqz   v1, skip
+ sb    v0, field_5(list)
+sw     a0, field_10(list)
+```
+
+needs the raw return to stay in `$v0`, the loaded compare operand in `$v1`,
+and the zero-extend in `$a0`. A plain `s32 count = foo()` copies out of
+`$v0` (`move v1, v0`) and then loads `field_10` into `$v0`. Pin the three
+temps:
+
+```c
+register s32 count asm("v0");
+register s32 count8 asm("a0");
+register s32 sel asm("v1");
+
+count         = foo();
+sel           = list->field_10;
+list->field_4 = count;
+asm("");
+list->field_5 = count;
+count8        = count & 0xFF;
+if (count8 < sel) {
+    list->field_10 = count8;
+}
+```
+
+`asm("")` (no memory clobber) keeps `field_4` before the `andi`. Storing
+`field_5` before the compare lets GCC sink it into the `beqz` delay slot
+and leaves the next `jal`'s delay for `move a1, s1`. A `::: "memory"`
+barrier or a volatile `field_4` store empties that delay (`nop`) and
+parks `field_5` in the following `jal` delay instead.
+
+`func_800C7844` is the example.
+
+## Child-walk `beq` chain: compare named constants, not `switch`
+
+A sibling walk that the target opens with
+
+```
+li    s5, -1
+move  v1, v0
+li    s4, 6
+li    s3, 1
+...
+beq   v0, s5, case_m1
+nop
+beq   v0, s4, case_6
+```
+
+assigns `-1` / `6` / `1` in that order only when those locals are *used*
+in the compares, in that order. `switch (flag) { case -1: ... case 6: }`
+still emits the `beq` chain, but rematerializes the cases as `s5=1`,
+`s4=-1`, `s3=6` because the store of `1` after `Ui_TeardownTree` wins
+allocation. Write the dispatch as gotos so the named temps are the
+compare operands:
+
+```c
+minusOne = -1;
+child    = head;
+six      = 6;
+one      = 1;
+do {
+    flag = childObj->field_2E;
+    next = child->nextSibling;
+    if (flag == minusOne) {
+        goto case_m1;
+    }
+    if (flag == six) {
+        goto case_6;
+    }
+    goto loop_cont;
+case_m1:
+    obj->field_2E = flag;
+    goto loop_cont;
+case_6:
+    Ui_TeardownTree(childObj, childObj->owner);
+    obj->status = one;
+loop_cont:
+    ...
+} while (child != head);
+```
+
+Pinning `one` to `$s3` (or `six` to `$s4`) coalesces the now-dead list
+pointer into that same saved reg and rewrites the earlier `lui v0,
+%hi(list)` / `addiu s0, v0, %lo` as `lui s0`. Leave the three constants
+unpinned.
+
+`func_800C7844` is the example.
+
 
