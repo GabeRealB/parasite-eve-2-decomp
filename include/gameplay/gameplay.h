@@ -144,4 +144,20 @@ void func_800A8DC0(s32 arg0);
 void func_800A9010(Task* task);
 void func_800A91CC(Task* task);
 
+/// Overlay of `Task::spawnArg2` for `func_800A0718`. `field_4` is set to 1
+/// on the first run (state 0).
+typedef struct _GpEndWork {
+    /* 0x00 */ byte pad_0[4];
+    /* 0x04 */ s32  field_4;
+} GpEndWork;
+
+/// Two halfwords at `D_8007A39C`. `func_800A0718` zeros both before spawning
+/// the bank-load task. `field_0` is the u16 sound param used by
+/// `Task_AllocIdMap`.
+typedef struct _GpSndParam {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 field_2;
+} GpSndParam;
+STATIC_ASSERT_SIZEOF(GpSndParam, 4);
+
 #endif // GAMEPLAY_GAMEPLAY_H

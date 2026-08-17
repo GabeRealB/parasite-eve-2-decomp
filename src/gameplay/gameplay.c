@@ -4,8 +4,10 @@
 #include <psyq/rand.h>
 #include <psyq/stdio.h>
 
+#include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
+#include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
@@ -16,6 +18,7 @@
 #include "main/pad.h"
 #include "main/session.h"
 #include "main/sound.h"
+#include "main/stage.h"
 #include "main/stream.h"
 #include "main/task.h"
 #include "main/text.h"
@@ -30,6 +33,10 @@ extern s32            D_8010CA28;
 extern TaskDesc       D_8010CABC;
 extern TaskDesc       D_8010D1FC;
 extern TmdListHead    D_80114B80;
+extern s32            D_80114A24;
+extern s32            D_80114A34;
+extern u8             D_80062734;
+extern u16            D_8007A39C;
 extern TmdListHead    D_80114B88;
 extern Task*          D_80114B90;
 extern GsCOORDINATE2* D_80114B9C;
@@ -890,7 +897,49 @@ void func_800A0504(Task* arg0)
     Task_SpawnFromTable(&D_8010D1FC, 0, 0, 0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A0718);
+void func_800A0718(Task* arg0)
+{
+    GameSession* session;
+    GpEndWork*   work;
+    GpSndParam*  pair;
+
+    if (arg0->state == 0) {
+        work                = arg0->spawnArg2;
+        work->field_4       = 1;
+        arg0->killCountdown = 0x1E;
+        if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) == 0x4300000) {
+            arg0->killCountdown = 0x5A;
+        }
+        SndEvt_EnqueueType6(0xB, 0, 0);
+        func_800E8FB0((s32)&D_80114A24, (s32)&D_80114A34);
+        func_800AF498();
+    } else if (arg0->state == 1) {
+        session = Game_Session;
+        if (!(session->field_69 & 1)) {
+            pair          = (GpSndParam*)&D_8007A39C;
+            pair->field_0 = 0;
+            pair->field_2 = 0;
+            if ((session->field_69 & 4) == 0) {
+                Task_SpawnFromTable(&D_80062774, 0, 2, 0);
+            } else {
+                Task_SpawnFromTable(&D_80062774, 0, 3, 0);
+            }
+        } else {
+            D_80062734 = 0xFF;
+        }
+    } else {
+        goto countdown;
+    }
+    arg0->state++;
+countdown:
+    arg0->killCountdown--;
+    if (arg0->killCountdown <= 0) {
+        if (D_80062734 == 0xFF) {
+            Task_Kill(arg0);
+            Stage_SetEndingFlag();
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A087C);
 

@@ -108,6 +108,7 @@ typedef struct {
 s16  func_800AEBA4(s32 arg0);
 s32  func_800AEE28(Task* arg0, GpPosXZ* arg1);
 u8   func_800AEEFC(void);
+void func_800AF498(void);
 void func_800AF500(s16 arg0, GpAreaFlagRec* arg1);
 
 #endif // GAMEPLAY_1A8_H

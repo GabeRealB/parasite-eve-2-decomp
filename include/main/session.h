@@ -55,7 +55,7 @@ typedef struct _GameSession {
     u8    field_66; // 1: func_800CE3B4 uses D_8010EB94 + Ui_Scale15(2)
     byte  unknown_67;
     u8    field_68; // set/cleared by func_800E7378 / func_800E73E8 / func_800E7434
-    u8    field_69; // bit 0x2: skip SndEvt_EnqueueType2(0, 0xB4) on last GpStateF0 ref
+    u8    field_69; // bit 0x1: skip bank-load spawn in func_800A0718; bit 0x2: skip SndEvt_EnqueueType2(0, 0xB4) on last GpStateF0 ref; bit 0x4: spawn arg 3 vs 2
     byte  unknown_6A[0xA];
     u16   field_74; // copied from Display_State.field_10e (func_800AAA68); low byte is CdCmd 0x21 param2[0]
     s16   field_76; // set: func_800AD378 rebuilds via func_800ACD2C

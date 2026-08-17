@@ -17595,4 +17595,31 @@ if (start < end) {
 That is `addu v1, a1, v0; slt; ...; move t0, v1`. `func_800BAFF4` is the
 example.
 
+## Share `state++` with `else { goto epilogue; }` after a 3-way dispatch
+
+A task callback that increments `state` only for 0 and 1, then always runs
+a countdown, wants one shared `state++` block. Incrementing inside each arm
+duplicates the load/add/store; falling through after `if / else if` also
+increments for `state > 1`.
+
+Put the increment after the dispatch and skip it with an explicit else:
+
+```c
+if (arg0->state == 0) {
+    work0();
+} else if (arg0->state == 1) {
+    work1();
+} else {
+    goto countdown;
+}
+arg0->state++;
+countdown:
+    arg0->killCountdown--;
+```
+
+That is `j increment` from state 0, `bne state, 1, countdown` into state 1,
+then one `lw / addiu / sw` of `state`. `func_800A0718` is the example. Write
+the inner `if (!(flags & bit)) { spawn; } else { flag = 0xFF; }` so the
+spawn path is the fall-through (`bnez` to the store).
+
 

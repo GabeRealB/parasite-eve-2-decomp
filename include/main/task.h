@@ -139,6 +139,7 @@ extern TaskFuncTable4       D_80013F1C;
 
 extern TaskDesc D_8006268C;
 extern TaskDesc D_8006269C;
+extern TaskDesc D_80062774;
 
 extern TaskIdPair* D_8006273C[];
 extern TaskIdPair* D_80062750[];
