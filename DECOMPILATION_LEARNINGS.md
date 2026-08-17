@@ -18428,4 +18428,32 @@ A literal `!= -1` hoists `-1` into `$t3`. `func_800E67C8` is the
 example. `v0tmp = -1` before the `sra` stuck at 98.8% with only those
 two instructions swapped.
 
+## Load the later `$s0` byte before the nearby call
+
+`SndEvt(...); val = *ptr;` keeps `val` in `$a1` (not live across the
+call) and parks `arg0`/`arg1` in `$s0`/`$s1`. The target loads first
+so the byte is live across `SndEvt` and lands in `$s0`, pushing the
+incoming args to `$s2`/`$s1`. GCC also sinks the `lbu` into the call
+setup:
+
+```
+move   a1,zero
+lui    v0,%hi(ptr)
+lw     v0,%lo(ptr)(v0)
+nop
+lbu    s0,0(v0)
+jal    SndEvt
+move   a2,a1
+```
+
+Assign the load first:
+
+```c
+val = *D_80114DD4;
+SndEvt_EnqueueType6(3, 0, 0);
+```
+
+`func_800CAB40` is the example. The post-call load stuck at 68.6%
+(wrong saved-reg assignment and the `jal` before the `lbu`).
+
 

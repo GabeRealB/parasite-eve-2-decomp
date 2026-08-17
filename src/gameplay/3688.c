@@ -24,6 +24,7 @@ extern s32          D_8010E8F8[5];
 extern u16          D_80114D84;
 extern s32          D_80114D88;
 extern s32          D_80114D8C;
+extern s32          D_80114D90;
 extern UiObject*    D_80114D98[];
 extern u32          D_80114DCC;
 extern u8*          D_80114DD4;
@@ -34,6 +35,7 @@ extern s32          D_80114E94;
 extern char         D_8010E494[];
 extern char         D_8010E500[];
 extern char         D_8010E504[];
+extern char         D_8010E520[];
 extern char         D_8010E528[];
 extern char         D_8010E550[];
 extern char         D_8010E554[];
@@ -73,6 +75,8 @@ extern UiObjectDesc D_8010EC3C;
 extern UiObjectDesc D_8010ED00;
 extern UiObjectDesc D_8010EE6C;
 extern UiObjectDesc D_8010EE88;
+extern UiObjectDesc D_8010EEDC;
+extern UiObjectDesc D_8010EF14;
 extern UiObjectDesc D_8010EF84;
 extern UiObjectDesc D_8010EFA0;
 extern UiObjectDesc D_8010EFBC;
@@ -110,40 +114,40 @@ extern char         D_80097224[];
 extern UiObject*    D_80067634;
 extern void         (*D_8010D3A0[])(UiObject*, Task*);
 
-void  func_8017F41C(Task* task);
-void  func_8017F2F8(Task* task);
-void  func_8017F304(Task* task);
-void  func_80181184(Task* task);
-void  func_801811A0(Task* task);
-void  func_800C05CC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void  func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
-void  func_800C2CE8(Task* arg0);
-void  func_800CADFC(UiList* arg0, UiObject* arg1, s32 arg2, u8* arg3);
-void  func_800CB33C(UiObject* arg0, Task* arg1, s32 arg2);
-void  func_800CC15C(UiObject* arg0, Task* arg1, s32 arg2);
-void  func_800D02A4(Task* arg0);
-void  func_800D0C34(Task* arg0);
-void  func_800D0614(Task* arg0);
-void  func_800D08D4(Task* arg0);
-void  func_800D15D0(Task* arg0);
-void  func_800D131C(void);
-void  func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2);
-void  func_800D2224(DialogPrompt* arg0, UiObject* arg1);
-void  func_800D4E40(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
-void  func_800D5178(DialogPrompt* arg0, UiObject* arg1);
-void  func_800A96A0(void);
-void  func_800AE9B0(void);
-char* func_800B8EB0(s32 arg0, s32 arg1, s32 arg2);
-void  func_800C58B8(UiList* arg0, UiObject* arg1);
-void  func_800C5C2C(s32 arg0, s32 arg1);
-void  func_800CDDA0(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3);
-void  func_800CF148(UiObject* arg0, Task* arg1);
-s32   func_800A7508(void);
-void  func_800D2E04(UiObject* arg0, s32 arg1);
-void  func_800CFE68(s32 arg0, UiObject* arg1);
-void  func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
-void  func_800CD924(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
-void  func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void       func_8017F41C(Task* task);
+void       func_8017F2F8(Task* task);
+void       func_8017F304(Task* task);
+void       func_80181184(Task* task);
+void       func_801811A0(Task* task);
+void       func_800C05CC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void       func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
+void       func_800C2CE8(Task* arg0);
+void       func_800CADFC(UiList* arg0, UiObject* arg1, s32 arg2, u8* arg3);
+void       func_800CB33C(UiObject* arg0, Task* arg1, s32 arg2);
+void       func_800CC15C(UiObject* arg0, Task* arg1, s32 arg2);
+void       func_800D02A4(Task* arg0);
+void       func_800D0C34(Task* arg0);
+void       func_800D0614(Task* arg0);
+void       func_800D08D4(Task* arg0);
+void       func_800D15D0(Task* arg0);
+void       func_800D131C(void);
+void       func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2);
+void       func_800D2224(DialogPrompt* arg0, UiObject* arg1);
+void       func_800D4E40(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
+void       func_800D5178(DialogPrompt* arg0, UiObject* arg1);
+void       func_800A96A0(void);
+void       func_800AE9B0(void);
+char*      func_800B8EB0(s32 arg0, s32 arg1, s32 arg2);
+void       func_800C58B8(UiList* arg0, UiObject* arg1);
+void       func_800C5C2C(s32 arg0, s32 arg1);
+void       func_800CDDA0(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3);
+void       func_800CF148(UiObject* arg0, Task* arg1);
+s32        func_800A7508(void);
+void       func_800D2E04(UiObject* arg0, s32 arg1);
+void       func_800CFE68(s32 arg0, UiObject* arg1);
+void       func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
+void       func_800CD924(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
+void       func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 GpItemRec* func_800C5188(McItemScan* arg0, s32 arg1, s32 arg2);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800BF9FC);
@@ -465,7 +469,43 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CA634);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CA838);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CAB40);
+void func_800CAB40(DialogPrompt* arg0, UiObject* arg1)
+{
+    TextDrawReq req;
+    UiObject*   obj;
+    s32         val;
+    s32         one;
+
+    req.x          = arg1->baseX + (u16)arg0->field_18;
+    req.y          = arg1->baseY + (u16)arg0->field_1A;
+    req.otIndex    = (s16)arg1->drawOrder + 1;
+    req.field_8    = arg0->field_1C;
+    req.glyphTable = 0;
+    req.centerMode = 0;
+    req.field_E    = 1;
+    func_8002E53C(&req, D_8010E520);
+    if (arg0->field_C == 1) {
+        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+            val = *D_80114DD4;
+            SndEvt_EnqueueType6(3, 0, 0);
+            if ((u32)(val - 0x80) < 0x20U) {
+                D_80114D90 = 0;
+                one        = 1;
+                obj        = Ui_SpawnFromDesc(&D_8010EF14, val, one, one, arg1);
+            } else if ((u32)(val - 0xA0) < 0x20U) {
+                one = 1;
+                obj = Ui_SpawnFromDesc(&D_8010EEDC, val, one, one, arg1);
+            } else {
+                return;
+            }
+            if (obj != NULL) {
+                Ui_ClampDialogRect((UiPanel*)obj, (UiPanel*)arg0, (UiPanel*)arg1);
+            }
+            arg1->status   = 0;
+            arg0->field_22 = 0x20;
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CAC88);
 
