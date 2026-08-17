@@ -136,6 +136,7 @@ u8*  func_800A746C(void);
 s32  func_800A74C4(void);
 void func_800A7574(GpIdMapC* arg0);
 s32  func_800A7B20(s32 arg0);
+s32  func_800A7BBC(s32 arg0, s32 arg1);
 void func_800A784C(void* arg0);
 void func_800A7A64(void);
 void func_800A7DB8(s32 arg0);

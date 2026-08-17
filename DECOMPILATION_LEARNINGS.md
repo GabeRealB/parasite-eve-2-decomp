@@ -18552,4 +18552,40 @@ through `$v1` after `Game_Session` occupies `$v0`.
 
 `func_800A7320` is the example.
 
+## Wrap-around skip is `do { idx++; wrap; } while (empty && !flag)`
+
+A circular walk that steps once, wraps, then skips empty table slots
+needs increment-first do-while. `arg0++; while (1) { wrap; if (ok)
+break; arg0++; }` dropped the continue increment (infinite loop in the
+object) and left nops in the `blez` / `beqz` delay slots. `for (arg0++;
+; arg0++)` did the same.
+
+The target speculatively decrements in the `blez` delay slot, undoes it,
+then increments, and puts `addiu ±1` / undo on the inner `beqz`:
+
+```
+blez  a1, back
+addiu a0,a0,-1
+addiu a0,a0,1
+addiu a0,a0,1
+...
+beqz  v0, loop
+addiu a0,a0,1
+addiu a0,a0,-1
+```
+
+Increment, then wrap, then the combined empty test:
+
+```c
+do {
+    arg0++;
+    if (arg0 >= 0xC) {
+        arg0 = 0;
+    }
+} while (table[arg0] == 0 && save->field_5C2 == 0);
+```
+
+`func_800A7BBC` is the example. The increment-outside / `while (1)`
+shape stuck at 83.3%.
+
 

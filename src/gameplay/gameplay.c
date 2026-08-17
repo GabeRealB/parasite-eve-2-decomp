@@ -1405,7 +1405,48 @@ s32 func_800A7B20(s32 arg0)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7BBC);
+s32 func_800A7BBC(s32 arg0, s32 arg1)
+{
+    WipSysConfig* p;
+    McSaveData*   save;
+    s32           cond;
+    u8*           table;
+
+    p = &Wip_SysConfig;
+    if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
+        cond = 0;
+    } else {
+        cond = p->field_26 == 4;
+    }
+    if (cond == 0) {
+        table = Mc_SaveData.unknown_850;
+    } else {
+        table = D_80114BF0;
+    }
+    if (arg1 != 0) {
+        save = &Mc_SaveData;
+        do {
+            if (arg1 > 0) {
+                do {
+                    arg0++;
+                    if (arg0 >= 0xC) {
+                        arg0 = 0;
+                    }
+                } while (table[arg0] == 0 && save->field_5C2 == 0);
+                arg1--;
+            } else {
+                do {
+                    arg0--;
+                    if (arg0 < 0) {
+                        arg0 += 0xC;
+                    }
+                } while (table[arg0] == 0 && save->field_5C2 == 0);
+                arg1++;
+            }
+        } while (arg1 != 0);
+    }
+    return arg0;
+}
 
 s32 func_800A7CB0(void)
 {
