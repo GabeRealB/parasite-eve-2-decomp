@@ -1066,7 +1066,50 @@ s32 func_800CEC5C(GpItemRec* arg0)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CECC0);
+GpItemRec* func_800CECC0(GpItemScan* arg0, s32 arg1)
+{
+    GpItemRec*    table;
+    s32           i;
+    s32           count;
+    s32           n;
+    GpItemRec*    rec;
+    WipSysConfig* p;
+    register s32  ok asm("a2");
+    s32           id;
+    s32           one;
+
+    table = func_800BB500(arg0);
+    i     = 0;
+    rec   = NULL;
+    table = &table[arg0->field_0];
+    count = arg0->field_1;
+    if (count != 0) {
+        p   = &Wip_SysConfig;
+        one = 1;
+        n   = count;
+        do {
+            ok = 1;
+            id = table->field_0;
+            if ((s8)table->field_1 != 0) {
+                ok = 0;
+            } else if (((u32)(id - 0x60) < 0x20U) && (p->field_23 == id - 0x5F)) {
+                ok = 0;
+            } else if (((u32)(id - 0x80) < 0x20U) && (p->field_21 == id - 0x7F)) {
+                ok = 0;
+            }
+            if (ok == one) {
+                arg1--;
+            }
+            if (arg1 < 0) {
+                rec = table;
+                break;
+            }
+            i++;
+            table++;
+        } while (i < n);
+    }
+    return rec;
+}
 
 UiObject* func_800CEDA0(UiObject* arg0, UiObject* arg1, u8* arg2, s32 arg3)
 {

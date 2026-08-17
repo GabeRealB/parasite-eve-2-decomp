@@ -16810,4 +16810,43 @@ case 2:
     func_8010B210(arg0);
 ```
 
+## Assign `one = 1` before `n = count` so `li` precedes the copy
+
+A scan that loads `count` into `$a0` (`lbu a0, 1(scan)`) and later
+reuses `$a0` for each row's id needs an explicit copy
+(`move t2, a0`). `n = count` at the top of the loop produces that
+copy, but if it is the first statement after `p = &Global` the
+hoisted `1` for `if (ok == 1)` lands *after* the copy:
+
+```
+addiu t1, %lo(Global)
+move  t2, a0
+li    t3, 1
+```
+
+Assign the compare constant first. `one = 1` then `n = count` keeps
+`li t3, 1` ahead of `move t2, a0`, and the loop test uses `$t2`
+while `$a0` is free for `id`:
+
+```c
+if (count != 0) {
+    p   = &Wip_SysConfig;
+    one = 1;   /* li t3, 1 */
+    n   = count; /* move t2, a0 */
+    do {
+        ok = 1;
+        id = table->field_0; /* lbu a0 */
+        ...
+        if (ok == one) {
+            arg1--;
+        }
+        ...
+    } while (i < n);
+}
+```
+
+`func_800CECC0` is the example. `n = count` before `one = 1` stuck at
+98% with only those two instructions swapped, and without `n` the
+count never entered `$a0` at all (`lbu t1` / no `move`).
+
 
