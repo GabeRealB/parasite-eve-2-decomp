@@ -798,7 +798,56 @@ s32 func_800DB28C(GpActorWork* arg0, GpImgRec* arg1, RECT* arg2)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB31C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB3FC);
+void func_800DB3FC(void)
+{
+    GpStateF0*  p;
+    McSaveData* save;
+    u8          val;
+
+    p                  = &D_801153F0;
+    D_801153F0.field_0 = 0;
+    p->field_1         = 0;
+    p->field_2         = 0;
+    p->field_3         = 0;
+    p->field_4         = 0;
+    p->field_5         = 0;
+    p->field_6         = 0;
+    p->field_8         = 0;
+    p->field_C         = 0;
+    p->field_10        = 0;
+    p->field_14        = 0;
+    p->field_18        = 0;
+    p->field_19        = 0;
+    p->field_1A        = 0;
+    p->field_1B        = 0;
+    p->field_1C        = 0;
+    p->field_1D        = 0;
+    p->field_1E        = 0;
+    p->field_1F        = 0;
+    p->field_20        = 0;
+    p->field_21        = 0;
+    p->field_22        = 0;
+    p->field_23        = 0;
+    p->field_24        = 0;
+    p->field_25        = 0;
+    p->field_26        = 0;
+    p->field_27        = 0;
+    p->field_28        = 0;
+    p->field_29        = 0;
+    p->field_2A        = 0;
+    if (func_800A74C4() == 1) {
+        p->field_2B = 0;
+    } else {
+        save        = &Mc_SaveData;
+        val         = (u8)save->field_F;
+        p->field_2B = val;
+        if (val == 0) {
+            if (save->field_E != 0) {
+                p->field_2B = 4;
+            }
+        }
+    }
+}
 
 void func_800DB4E0(s32 arg0)
 {

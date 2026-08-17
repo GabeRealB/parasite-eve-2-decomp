@@ -873,8 +873,9 @@ slots for `field_4 & 0x100100 == 0x100000`.
 | 0x14 | `field_14` | s16; cleared by `func_800E1A6C` (GCC hoists `&field_14` as the store base) |
 | 0x16 | `pad_16` | unused by `func_800E1A6C` |
 
-### `GpStateF0` (0x18) — `3A34.h`
-Global at `D_801153F0`. Full object may still be larger.
+### `GpStateF0` (0x2C) — `3A34.h`
+Global at `D_801153F0`. Full object may still be larger (`D_80115424` is a
+separate symbol at +0x34). `func_800DB3FC` zeros `field_0`..`field_2A`.
 
 | Off | Member | Role |
 |-----|--------|------|
@@ -889,6 +890,8 @@ Global at `D_801153F0`. Full object may still be larger.
 | 0x0C | `field_C` | s32 accumulator; `func_800DB558` adds `arg0->field_20->field_50->field_8`; cleared by `func_800DB630` on last-ref release |
 | 0x10 | `field_10` | s32 accumulator; `func_800DB558` adds `arg0->field_20->field_50->field_A`; cleared by `func_800DB630` on last-ref release |
 | 0x14 | `field_14` | s32 accumulator; `func_800E2C78` adds `min_u(arg0->field_40, arg2)` when `(arg1 & 0x7F)` is 0x19..0x1B |
+| 0x18–0x2A | `field_18`..`field_2A` | unknown u8s; cleared by `func_800DB3FC` |
+| 0x2B | `field_2B` | u8 copy of `Mc_SaveData.field_F`; 4 when `field_F == 0` and `Mc_SaveData.field_E != 0`; 0 when `func_800A74C4() == 1` |
 
 ### `GpObj` (0x20 header) — `3A34.h`
 Doubly-linked node unlinked by `func_800E1638` and linked onto

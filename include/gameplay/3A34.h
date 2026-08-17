@@ -401,7 +401,10 @@ typedef struct _GpGridParams {
 } GpGridParams;
 STATIC_ASSERT_SIZEOF(GpGridParams, 0x24);
 
-/// Global at `D_801153F0`. `field_0` is a state byte (1 if first set by
+/// Global at `D_801153F0`. `func_800DB3FC` zeros the object, then writes
+/// `field_2B` from `Mc_SaveData.field_F` (as `u8`), or 4 when that byte is
+/// 0 and `Mc_SaveData.field_E != 0`. `func_800A74C4() == 1` forces
+/// `field_2B = 0` instead. `field_0` is a state byte (1 if first set by
 /// `func_800DB4E0`; 2 when the last `field_6` ref is released). `field_1`
 /// is an alternate-active flag (`func_800A7508` / `func_800A7CB0` /
 /// `func_800A7CF4` / `func_800A7D54`); last-ref release sets it to 0x3C.
@@ -417,20 +420,43 @@ STATIC_ASSERT_SIZEOF(GpGridParams, 0x24);
 /// `field_8` / `field_A` into those same words.
 /// `func_800E2C78` adds into
 /// `field_14` when `(arg1 & 0x7F)` is 0x19..0x1B.
+/// `field_18`..`field_2A` are unknown bytes cleared by `func_800DB3FC`.
+/// Full object may still be larger than 0x2C (`D_80115424` is a separate
+/// symbol at +0x34).
 typedef struct _GpStateF0 {
-    /* 0x00 */ u8   field_0;
-    /* 0x01 */ u8   field_1;
-    /* 0x02 */ u8   field_2;
-    /* 0x03 */ u8   field_3;
-    /* 0x04 */ u8   field_4;
-    /* 0x05 */ u8   field_5;
-    /* 0x06 */ u16  field_6;
-    /* 0x08 */ s32  field_8;
-    /* 0x0C */ s32  field_C;
-    /* 0x10 */ s32  field_10;
-    /* 0x14 */ s32  field_14;
+    /* 0x00 */ u8  field_0;
+    /* 0x01 */ u8  field_1;
+    /* 0x02 */ u8  field_2;
+    /* 0x03 */ u8  field_3;
+    /* 0x04 */ u8  field_4;
+    /* 0x05 */ u8  field_5;
+    /* 0x06 */ u16 field_6;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s32 field_C;
+    /* 0x10 */ s32 field_10;
+    /* 0x14 */ s32 field_14;
+    /* 0x18 */ u8  field_18;
+    /* 0x19 */ u8  field_19;
+    /* 0x1A */ u8  field_1A;
+    /* 0x1B */ u8  field_1B;
+    /* 0x1C */ u8  field_1C;
+    /* 0x1D */ u8  field_1D;
+    /* 0x1E */ u8  field_1E;
+    /* 0x1F */ u8  field_1F;
+    /* 0x20 */ u8  field_20;
+    /* 0x21 */ u8  field_21;
+    /* 0x22 */ u8  field_22;
+    /* 0x23 */ u8  field_23;
+    /* 0x24 */ u8  field_24;
+    /* 0x25 */ u8  field_25;
+    /* 0x26 */ u8  field_26;
+    /* 0x27 */ u8  field_27;
+    /* 0x28 */ u8  field_28;
+    /* 0x29 */ u8  field_29;
+    /* 0x2A */ u8  field_2A;
+    /* 0x2B */ u8  field_2B;
 } GpStateF0;
-STATIC_ASSERT_SIZEOF(GpStateF0, 0x18);
+STATIC_ASSERT_SIZEOF(GpStateF0, 0x2C);
 
 /// 0xC slot in the 32-entry table at `D_80115270`. `func_800DAF98` clears
 /// `field_0` / `field_4` / `field_6`. `func_800DA6E8` binds `field_0` and
@@ -621,6 +647,7 @@ void  func_800DAFD0(void);
 void  func_800DB0D8(void);
 s32   func_800DB28C(GpActorWork* arg0, GpImgRec* arg1, RECT* arg2);
 void  func_800DB31C(GpImgRec* arg0);
+void  func_800DB3FC(void);
 void  func_800DB4E0(s32 arg0);
 void  func_800DB500(s32 arg0);
 void  func_800DB530(s32 arg0);
