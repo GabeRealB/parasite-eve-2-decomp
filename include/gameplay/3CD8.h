@@ -210,6 +210,7 @@ void func_800E3D8C(s32 arg0, s32 arg1);
 void func_800E3EF0(s32 arg0);
 void func_800E4080(void);
 void func_800E40BC(s32 arg0, s32 arg1);
+s16  func_800E69F4(u16* arg0);
 s16  func_800E6AD4(u16* arg0);
 s32  func_800E6CE0(void);
 

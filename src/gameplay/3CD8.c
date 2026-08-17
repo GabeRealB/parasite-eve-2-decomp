@@ -349,7 +349,57 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E67C8);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E68D8);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E69F4);
+s16 func_800E69F4(u16* arg0)
+{
+    register s32        lineH asm("a3");
+    register s32        total asm("t0");
+    register s32        i asm("t1");
+    u16                 code;
+    s32                 shifted;
+    volatile GlyphUvwh* glyph;
+    register s32        v0tmp asm("v0");
+    GlyphUvwh*          table;
+    s32                 newline;
+    s32                 skip;
+
+    lineH   = 0;
+    total   = lineH;
+    i       = lineH;
+    code    = arg0[0];
+    shifted = code << 16;
+    v0tmp   = -1;
+    if (shifted >> 16 != v0tmp) {
+        newline = -2;
+        skip    = -3;
+        table   = D_8011567C;
+        do {
+            if (shifted >> 16 == newline) {
+                if (lineH == 0) {
+                    lineH = 2;
+                }
+                total += lineH;
+                lineH  = 0;
+            } else if (shifted >> 16 != skip) {
+                if (shifted >> 16 >= 0) {
+                    glyph = (GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)table);
+                    if (lineH < glyph->h + 2) {
+                        v0tmp = glyph->h;
+                        asm volatile("" : "+r"(v0tmp));
+                        lineH = v0tmp + 2;
+                    }
+                }
+            }
+            v0tmp   = i + 1;
+            code    = arg0[(s16)v0tmp];
+            i       = v0tmp;
+            shifted = code << 16;
+        } while (shifted >> 16 != -1);
+    }
+    if ((s16)total == 2) {
+        total = 0;
+    }
+    return total;
+}
 
 s16 func_800E6AD4(u16* arg0)
 {

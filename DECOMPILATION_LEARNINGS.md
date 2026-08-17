@@ -18082,4 +18082,29 @@ func_800FDB18(3, coords, 0, params);
 `func_8010B3F8` is the example. A separate `extra`/`raw` pair stuck at
 97.4% with only those three loads (and the `field_6` store) reordered.
 
+## Assign loop-invariant constants before the hoisted global load
+
+A loop that compares against `-2` / `-3` / `-1` and also reads a global
+table hoists all four. Source assignment order is emit order. Writing
+the table first (`table = D_8011567C; do { if (code == -2) ...`) puts
+`lui/lw` before the `li t5,-2` / `li t4,-3`. Assign the constants first:
+
+```c
+if (shifted >> 16 != -1) {
+    newline = -2;
+    skip    = -3;
+    table   = D_8011567C;
+    do {
+        if (shifted >> 16 == newline) {
+            ...
+        } else if (shifted >> 16 != skip) {
+            ...
+        }
+    } while (shifted >> 16 != -1);
+}
+```
+
+Target wants `li -2; li -3; lui/lw table; li -1`. `func_800E69F4` is the
+example; 97.8% with only those four setup insns swapped.
+
 
