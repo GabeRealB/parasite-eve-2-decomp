@@ -1662,7 +1662,73 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106C6C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010747C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010771C);
+void func_8010771C(GpActorWork* arg0)
+{
+    GameActor* actor;
+    GameActor* inner;
+    s32        mode;
+    s32        temp;
+    s32        flag;
+
+    actor            = arg0->actor;
+    actor->field_973 = 0;
+    if (!(Wip_SysConfig.field_25 & 2)) {
+        actor->field_95E = 1;
+        actor->field_98E = 0;
+    }
+    switch (actor->field_95E) {
+        case 0:
+            flag             = 1;
+            actor->field_95E = flag;
+            actor->field_98E = 0xF;
+        case 1:
+            if (actor->field_966 & 0xF0F0) {
+                actor->field_98E--;
+            }
+            if ((s8)actor->field_98E > 0) {
+                break;
+            }
+            if (actor->field_960 == 0) {
+                func_801066DC(arg0, 0);
+                break;
+            }
+            inner            = arg0->actor;
+            inner->field_954 = 0;
+            inner->field_956 = 2;
+            inner->field_958 = 0;
+            if (inner->field_973 != 0) {
+                temp = 1;
+            } else {
+                temp = 3;
+            }
+            inner->field_95A = temp;
+            inner->field_95C = 0;
+            inner->field_95E = 0;
+            if (Wip_SysConfig.field_25 & 1) {
+                func_80103B5C(arg0);
+                inner->field_97E = 1;
+            } else {
+                inner->field_97E = 2;
+            }
+            temp = inner->field_973;
+            if (temp == 0) {
+                if (inner->field_975 != 0) {
+                    mode = 0xD;
+                } else {
+                    mode = 9;
+                }
+            } else if (temp == 1) {
+                mode             = 0xC;
+                inner->field_958 = 3;
+                inner->field_97E = temp;
+            } else {
+                inner->field_958 = 2;
+                mode             = 0xD;
+            }
+            func_80103A18(arg0, mode, 0, 6);
+            break;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801078AC);
 
