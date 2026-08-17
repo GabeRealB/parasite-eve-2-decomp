@@ -55,12 +55,38 @@ typedef struct _GpActorFlags {
 } GpActorFlags;
 STATIC_ASSERT_SIZEOF(GpActorFlags, 0x4);
 
+/// 0x18-byte record at `GpActorD4.field_88`. `func_8010C1FC` copies `arg1`
+/// into `field_8` / `field_A` / `field_C`, mirrors `field_8` / `field_A`
+/// into `field_0` / `field_2`, stores `arg2` at `field_4`, writes 0x80 to
+/// `field_10` / `field_12`, and points `field_14` at `field_A0`.
+typedef struct _GpActorD4Rec {
+    /* 0x00 */ s16      field_0;
+    /* 0x02 */ s16      field_2;
+    /* 0x04 */ s16      field_4;
+    /* 0x06 */ s16      pad_6;
+    /* 0x08 */ s16      field_8;
+    /* 0x0A */ s16      field_A;
+    /* 0x0C */ s16      field_C;
+    /* 0x0E */ s16      pad_E;
+    /* 0x10 */ s16      field_10;
+    /* 0x12 */ s16      field_12;
+    /* 0x14 */ GpRec18* field_14;
+} GpActorD4Rec;
+STATIC_ASSERT_SIZEOF(GpActorD4Rec, 0x18);
+
 /// 0xD4-byte block allocated by `func_8010BAC8` (`Mem_Set` size 0xD4) and
-/// stored at `GameActor.field_910`. `func_8010BF7C` writes `field_C4`.
+/// stored at `GameActor.field_910`. `func_8010C1FC` copies a `GsCOORDINATE2`
+/// into `field_18`, treats `field_68` as a `GpObj`, fills `field_88`, and
+/// points `field_88.field_14` at `field_A0`. `func_8010BF7C` writes `field_C4`.
 typedef struct _GpActorD4 {
-    /* 0x00 */ byte pad_0[0xC4];
-    /* 0xC4 */ s16  field_C4;
-    /* 0xC6 */ byte pad_C6[0xE];
+    /* 0x00 */ byte         pad_0[0x18];
+    /* 0x18 */ byte         field_18[0x50]; // GsCOORDINATE2
+    /* 0x68 */ byte         field_68[0x20]; // GpObj
+    /* 0x88 */ GpActorD4Rec field_88;
+    /* 0xA0 */ GpRec18      field_A0;
+    /* 0xB8 */ byte         pad_B8[0xC];
+    /* 0xC4 */ s16          field_C4;
+    /* 0xC6 */ byte         pad_C6[0xE];
 } GpActorD4;
 STATIC_ASSERT_SIZEOF(GpActorD4, 0xD4);
 
@@ -320,6 +346,7 @@ void func_8010A42C(GpActorWork* arg0, s32 arg1);
 void func_80103B5C(GpActorWork* arg0);
 s32  func_80103B88(GpActorWork* arg0, GpDirArg* arg1);
 void func_8010B210(GpActorWork* arg0);
+void func_8010C1FC(GpActorWork* arg0, SVECTOR3* arg1, s32 arg2);
 Task* func_801036FC(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3);
 Task* func_8010BAC8(GpActorArg* arg0, u16 arg1, s32 arg2, u16* arg3);
 

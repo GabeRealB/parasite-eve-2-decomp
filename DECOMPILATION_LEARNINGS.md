@@ -105,6 +105,17 @@ instead of `lwl`/`lwr`.
 `func_800A8A48` is the example (rotation to `D_80070E44`, then a separate
 `VECTOR3` assign of `mtx.t` to `D_80070F28`).
 
+## 0x50-byte `GsCOORDINATE2` assign needs word alignment
+
+A 0x50-byte struct copy that the target does as five aligned 16-byte
+`lw`/`sw` chunks (`t1`..`t4`, dest in `$v0`, end `src+0x50` in `$a0`) is
+`*dest = *src` of a word-aligned type (`GsCOORDINATE2`, or `s32 data[0x14]`).
+
+`u8 data[0x50]` has alignment 1, so GCC emits an `or`/`andi 3` check plus
+an `lwl`/`lwr` fallback. Keep the object 4-aligned.
+
+`func_8010C1FC` is the example (`GpActorD4.coord = *extra->field_8`).
+
 ## Barrier after scratch alloc so GTE setup cannot fill load-delay nops
 
 A scratch-head alloc followed by `gte_SetRotMatrix(&obj->field->workm)` is

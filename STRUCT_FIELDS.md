@@ -677,6 +677,10 @@ vs `func_80108770` in `func_80106550`;
 0xD4-byte block at `GameActor.field_910`, allocated and `Mem_Set(..., 0xD4)` by `func_8010BAC8`.
 | Off | Member | Role |
 |-----|--------|------|
+| 0x18 | `field_18` | `GsCOORDINATE2`; `func_8010C1FC` copies `GameActorExt.field_8` here and points the `GpObj` at 0x68 at it |
+| 0x68 | `field_68` | 0x20-byte `GpObj`; `func_8010C1FC` links it via `func_800E15AC(1, …)` and ORs `flags` with 0xC800 |
+| 0x88 | `field_88` | `GpActorD4Rec`; pose / id payload plus `field_14` → `field_A0` |
+| 0xA0 | `field_A0` | `GpRec18` table wiped by `func_800E18E0(..., 1, 0)` |
 | 0xC4 | `field_C4` | s16; `func_8010BF7C` stores `arg1 + (arg2 & rand)` |
 
 ### `WipSysConfig`

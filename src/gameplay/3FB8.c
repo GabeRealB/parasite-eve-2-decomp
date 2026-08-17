@@ -3659,7 +3659,42 @@ void func_8010C180(GpActorWork* arg0)
     func_80103A18(arg0, 1, 0, 4);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C1FC);
+void func_8010C1FC(GpActorWork* arg0, SVECTOR3* arg1, s32 arg2)
+{
+    GsCOORDINATE2* dest;
+    GsCOORDINATE2* src;
+    GpActorD4*     block;
+    GpObj*         obj;
+    GpActorD4Rec*  rec;
+    s16            vz;
+
+    block         = arg0->actor->field_910;
+    src           = (GsCOORDINATE2*)arg0->extra->field_8;
+    obj           = (GpObj*)block->field_68;
+    rec           = &block->field_88;
+    dest          = (GsCOORDINATE2*)block->field_18;
+    *dest         = *src;
+    obj->field_8  = block->field_18;
+    obj->field_14 = -0xA0;
+    obj->field_18 = 0x60000;
+    obj->field_C  = (GpRec18*)rec;
+    obj->field_10 = 0;
+    obj->field_12 = 0;
+    obj->flags    = 3;
+    rec->field_8  = arg1->vx;
+    rec->field_A  = arg1->vy;
+    vz            = arg1->vz;
+    rec->field_4  = arg2;
+    rec->field_0  = rec->field_8;
+    rec->field_12 = 0x80;
+    rec->field_10 = 0x80;
+    rec->field_14 = &block->field_A0;
+    rec->field_C  = vz;
+    rec->field_2  = rec->field_A;
+    func_800E15AC(1, obj);
+    func_800E18E0(rec->field_14, 1, 0);
+    obj->flags |= 0xC800;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C30C);
 
