@@ -3,6 +3,53 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## `s16` step in `$a0`, extra copies, sequential clamp for `bgez`
+
+A pad-held increment that later reuses the same register as a decay step
+needs the step to be `s16` so it lives in `$a0` (now-dead first arg). A
+`s32` step takes `$v1` and spills the saved button mask out of `$v1`.
+
+The decay path `sra`s the s16 field (`lhu` / `sll 16` / `beqz` / `sra 19`)
+then wants two copies plus a third register for the min-step clamp:
+
+```
+sra   v0, v0, 0x13
+move  a0, v0
+move  v1, v0
+...
+bgez  v1, pos
+ li   v0, 0x40
+li    v0, -0x40
+move  a0, v0
+```
+
+Assign the shift to an `s32`, copy it into both the `s16` step and a
+compare temp, then write the clamp through the shift temp — not back
+into the compare temp:
+
+```c
+s16 delta;
+s32 val;
+s32 temp;
+
+val   = actor->field_6A >> 3;
+delta = val;
+temp  = val;
+if (ABS(temp) < 0x40) {
+    val = 0x40;
+    if (temp < 0) {
+        val = -0x40;
+    }
+    delta = val;
+}
+```
+
+`if (temp >= 0) val = 0x40; else val = -0x40` flips to `bltz` with the
+constants swapped. Assigning the clamp to `temp` (already in `$v1`)
+emits `li v1` instead of `li v0`. `func_80109720` is the example.
+
+
+
 ## Zero the s16 loop index before independent table walks so it takes `$t0`
 
 A search loop written as `s16 idx; if (count > 0) { idx = 0; do { ... } }`
