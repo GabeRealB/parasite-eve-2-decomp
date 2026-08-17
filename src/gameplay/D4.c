@@ -26,7 +26,6 @@ void func_800A9730(Task* task);
 void func_800AA548(s32 arg0);
 void func_800AE7AC(void);
 void func_800AD024(void);
-void func_800AD410(void* arg0, GpCb68Obj* arg1);
 void func_800AD620(Task* task);
 void func_800AD65C(Task* task);
 void D_8017DA78(s32 arg0, s32 arg1);
@@ -691,11 +690,11 @@ void func_800AC688(void)
     GameSessionFrom4* sess;
     s32               view;
     DisplayState*     ds;
-    void**            table;
+    GpPrim1C**        table;
     GpCb68Tbl*        tbl;
     GpCb68Rec*        recs;
     GpCb68Obj*        rec;
-    void*             base;
+    GpCb68Elem*       base;
 
     sess       = (GameSessionFrom4*)&Game_Session->field_4;
     view       = func_800AD284();
@@ -911,7 +910,40 @@ void func_800AD378(Task* task)
     func_800AD024();
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD410);
+void func_800AD410(GpCb68Elem* arg0, GpCb68Obj* arg1)
+{
+    register u32  i asm("t0");
+    GpPrim1C*     prim;
+    GpCb68Elem*   elem;
+    DisplayState* ds;
+    u_long*       otBase;
+    u32           mask;
+    u32           maskHi;
+
+    i = 0;
+    if (D_8010CAE8[0] == NULL) {
+        return;
+    }
+    prim = D_80114CC8;
+    elem = arg0 + arg1->field_0;
+    if (arg1->field_2 != 0) {
+        ds     = &Display_State;
+        otBase = Gpu_CurrentOt;
+        mask   = 0xFFFFFF;
+        maskHi = 0xFF000000;
+        do {
+            if (arg1->field_4 == 0) {
+                prim->tag = (prim->tag & maskHi) | (*(u_long*)(((((u32)elem->field_C << ds->field_128) >> 2) & 0xFFC) + (s32)otBase) & mask);
+                *(u_long*)(((((u32)elem->field_C << ds->field_128) >> 2) & 0xFFC) + (s32)otBase) =
+                    (*(u_long*)(((((u32)elem->field_C << ds->field_128) >> 2) & 0xFFC) + (s32)otBase) & maskHi) | ((u32)prim & mask);
+            }
+            prim++;
+            i++;
+            elem++;
+        } while (i < arg1->field_2);
+    }
+    D_80114CC8 = prim;
+}
 
 void func_800AD50C(Task* task)
 {

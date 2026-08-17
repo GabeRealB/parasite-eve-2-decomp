@@ -811,6 +811,42 @@ bank 1 type `0x31` `spawnArg2`.
 | 0x1 | `field_1` | u8; cleared before spawn |
 | 0x2 | `field_2` | s16; `(s8)GameSession.field_12E` |
 
+### `GpCb68Obj` (8) — `D4.h`
+0xFFFF-terminated command list at `GpCb68Rec.field_4`. `func_800AC688`
+walks it; `func_800AD410` consumes one record.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x0 | `field_0` | u16 start index into `GpCb68Rec.field_0` |
+| 0x2 | `field_2` | u16 count of `GpCb68Elem` / `GpPrim1C` slots to process |
+| 0x4 | `field_4` | u8; nonzero skips OT-linking that record's prims |
+| 0x5 | `field_5` | u8; nonzero skips `func_800AD410` entirely |
+
+### `GpCb68Elem` (0x14) — `D4.h`
+Array at `GpCb68Rec.field_0`. `func_800AD410` indexes from
+`GpCb68Obj.field_0` for `field_2` entries.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0xC | `field_C` | u16 OT depth; shifted by `Display_State.field_128` then `>> 2` and `& 0xFFC` |
+
+### `GpCb68Rec` (0xC) — `D4.h`
+Per-view record in tables pointed to by `D_8010CB68`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x0 | `field_0` | `GpCb68Elem*` array (`func_800AD410` arg0) |
+| 0x4 | `field_4` | `GpCb68Obj*` command list |
+| 0x8 | `field_8` | Returned by `func_800AD2E8` |
+
+### `GpPrim1C` (0x1C) — `D4.h`
+Primitive slot in the `D_8010CAE8` dual-buffer lists. `D_80114CC8` is
+the cursor; `func_800AD410` OT-links `tag` and advances one slot.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x0 | `tag` | OT link word (`0xFF000000` length / `0xFFFFFF` address) |
+
 ### `GpCb7CRec` (0x10) — `D4.h`
 Element of tables pointed to by `D_8010CB7C`. Stage index is
 `GameSession.field_7 - 1`, area index is `GameSession.field_6 - 1`,

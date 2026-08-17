@@ -19830,4 +19830,42 @@ task->spawnArg1 = loc;
 
 `func_800A8E8C` is the example.
 
+## OT-link: name the masks and pin the index so `0xFFFFFF` does not steal `$t0`
+
+An addPrim-style OT insert that also walks a sibling array wants this
+preheader order:
+
+```
+la    t4, Display_State
+lw    t2, Gpu_CurrentOt
+lui   t1, 0xFF
+ori   t1, t1, 0xFFFF
+lui   t3, 0xFF00
+addiu a2, a0, 0xC
+```
+
+`addPrim(...)` alone hoists the masks *after* `&elem->field_C` and gives
+the `0xFFFFFF` constant `$t0`. Zeroing the loop index at entry (the
+`func_800ACEBC` trick) is not enough: the constant is referenced more
+often than the index, so it still wins `$t0`.
+
+Assign named `mask = 0xFFFFFF` / `maskHi = 0xFF000000` *before* taking
+the field address, expand the two tag stores with those locals (so they
+stay live), and pin the index:
+
+```c
+register u32 i asm("t0");
+u32          mask;
+u32          maskHi;
+
+i      = 0;
+mask   = 0xFFFFFF;
+maskHi = 0xFF000000;
+/* then z = &elem->field_C, then the loop */
+```
+
+`register ... asm("t0")` is required here — unlike `func_800ACEBC` the
+target increment is in-place `addiu t0, t0, 1`, so the pin does not
+rewrite it. `func_800AD410` is the example.
+
 
