@@ -16895,4 +16895,72 @@ case 1:
 `func_80108224` is the example. Reusing `inner` for both loads stuck at
 99.7% with only `$a1` vs `$s0` on the first pointer.
 
+## Nest `if (x != 0)` so the zero case is a real else, not a delay-slot assign
+
+`if (x == 0) A; else if (x == 1) B; else C` fills the `beqz` delay slot
+with A's assignment and falls through after B (no jump). The target
+instead does
+
+```
+beqz  v1, zero
+li    v0,1
+bne   v1,v0, join
+li    a1,5
+j     join
+li    a1,6
+zero:
+li    a1,1
+```
+
+Nest the nonzero tests so the zero case is the outer else. GCC then
+uses `$v0` for the `== 1` compare (delay slot of `beqz`) and emits the
+jump after B:
+
+```c
+if (x != 0) {
+    if (x == 1) {
+        mode = 6;
+    } else {
+        mode = 5;
+    }
+} else {
+    mode = 1;
+}
+```
+
+`func_801066DC` is the example. The `== 0` / `else if == 1` form (used
+by the similar `func_80108620`) stuck at 81% with the extra jump
+missing and `li a1,1` in the `beqz` delay slot.
+
+## Reassign the compared local to `1` so it stays in `$v1` for later stores
+
+`temp = ptr->s8; if (temp != -1) { ptr->a = 1; ... ptr->b = 1; }`
+recomputes `1` in `$v0` for each store. The target overwrites `temp`
+in the `!= -1` delay slot and reuses that register:
+
+```
+beq   v1,v0, else   /* temp != -1, v0 is -1 */
+li    v1,1
+sh    v1, a(ptr)
+...
+sh    v1, b(ptr)
+```
+
+Assign `temp = 1` after the compare, then store through `temp`. That
+kills the old value, so `li v1,1` fills the delay slot and both stores
+use `$v1`:
+
+```c
+temp = inner->field_973;
+if ((inner->field_962 & 0x40) && (temp != -1)) {
+    temp             = 1;
+    inner->field_95A = temp;
+    ...
+    inner->field_958 = temp;
+}
+```
+
+`func_801066DC` is the example. Two literal `= 1` stores stuck at 81%
+with `$v0` for both the constant and the `Mc_SaveData` address.
+
 

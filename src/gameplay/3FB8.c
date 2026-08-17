@@ -53,7 +53,7 @@ s32  func_80105894(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_80105B0C(GpActorWork* arg0);
 s32  func_80105ED4(GpActorWork* arg0);
 void func_8010615C(GpActorWork* arg0);
-void func_801066DC(GpActorWork* arg0, s32 arg1);
+void func_801066DC(GpActorWork* arg0, s16 arg1);
 void func_80107E1C(GpActorWork* arg0);
 void func_80108684(GpActorWork* arg0);
 void func_8010870C(GpActorWork* arg0, s32 arg1);
@@ -1186,7 +1186,68 @@ void func_801065A8(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801066DC);
+void func_801066DC(GpActorWork* arg0, s16 arg1)
+{
+    GameActor* inner;
+    s32        mode;
+    s32        temp;
+
+    inner            = arg0->actor;
+    temp             = inner->field_973;
+    inner->field_956 = 0;
+    inner->field_95C = 0;
+    if (temp == 0) {
+        if (inner->field_975 != 0) {
+            if (inner->field_975 == 1) {
+                mode = 6;
+            } else {
+                mode = 5;
+            }
+        } else {
+            mode = 1;
+        }
+        inner->field_958 = 0;
+        inner->field_95A = 3;
+    } else if ((inner->field_962 & 0x40) && (temp != -1)) {
+        temp             = 1;
+        inner->field_95A = temp;
+        if (Mc_SaveData.field_25 == 0 && inner->field_991 == 0) {
+            inner->field_958 = 3;
+            mode             = 4;
+        } else {
+            mode             = 2;
+            inner->field_958 = temp;
+            if (inner->field_91C == NULL) {
+                mode = 0x13;
+            }
+        }
+    } else {
+        inner->field_95A = 1;
+        if (inner->field_973 == 1) {
+            if (Mc_SaveData.field_25 != 0 && inner->field_991 == 0) {
+                inner->field_958 = 3;
+                mode             = 4;
+            } else {
+                inner->field_958 = 1;
+                mode             = 2;
+                if (inner->field_91C == NULL) {
+                    mode = 0x13;
+                }
+            }
+        } else {
+            inner->field_958 = 2;
+            mode             = 3;
+        }
+    }
+    inner->field_954 = 0;
+    inner->field_95E = 0;
+    inner->field_942 = 0;
+    if (arg1 != 0) {
+        func_801038F8(arg0, mode);
+    } else {
+        func_80103A18(arg0, mode, 0, 4);
+    }
+}
 
 INCLUDE_RODATA("gameplay/nonmatchings/3FB8", D_80097940);
 
