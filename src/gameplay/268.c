@@ -181,7 +181,55 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800B8EB0);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B904C);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800B91C8);
+void func_800B91C8(GpItemRec* arg0)
+{
+    u8           item;
+    GpItemSlot*  slot;
+    register s32 found asm("a3");
+    s32          i;
+    GpItemMap*   p;
+    s32          inRange;
+
+    if ((s8)arg0->field_1 <= 0) {
+        return;
+    }
+
+    inRange       = (u8)(arg0->field_0 + 0x80) < 0x20;
+    arg0->field_1 = 0;
+    if (!inRange) {
+        return;
+    }
+
+    item = arg0->field_0;
+    if (item == Wip_SysConfig.field_21 + 0x7F) {
+        return;
+    }
+
+    if ((u32)(item - 0x80) >= 0x20) {
+        return;
+    }
+
+    found = 0;
+    slot  = &Mc_SaveData.field_1C8[item];
+    for (i = found, p = D_8010D2F8; i < 8; i++, p++) {
+        if (item == p->field_1) {
+            found = 1;
+            break;
+        }
+    }
+
+    if ((found == 0) || (D_8010D2F8[i].field_0 != 0)) {
+        slot->field_0 = 0;
+        slot->field_1 = 0;
+    }
+
+    if ((found == 0) || (D_8010D2F8[i].field_0 != 1)) {
+        if (slot->field_2 != 0xFF) {
+            slot->field_2 = 0;
+        }
+        slot->field_3 = 0;
+    }
+}
 
 void func_800B92CC(void)
 {
