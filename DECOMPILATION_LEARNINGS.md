@@ -17735,4 +17735,33 @@ later delay slot and the gap collapses. `func_800BAD28` is the example.
 A loop-local `qty = rec->field_2` stuck at 93% with only that block
 after the loop instead of in the switch.
 
+## Write `addPrim` OT as `mask + (s32)Gpu_CurrentOt`, no `&Global` hoist
+
+`addPrim` is a macro that evaluates the OT address twice. A sibling
+`Gpu_CurrentOt + (z >> 4)` becomes a scaled Z when
+`Display_State.field_128` is the shift:
+
+```
+lbu   v0, 0x128(ds)
+sllv  v0, z, v0
+srl   v0, v0, 2
+andi  v0, v0, 0xFFC
+addu  v0, v0, ot
+```
+
+Hoisting `ds = &Display_State` pulls the address into the
+`setSemiTrans` window, so `0xFF000000` lands in `$t0` instead of `$a3`
+and `Gpu_CurrentOt` steals `$a1`. Write `Display_State.field_128`
+directly in the `addPrim` argument. Operand order matters too:
+`(s32)Gpu_CurrentOt + mask` is `addu v0, ot, v0`; the target is
+`addu v0, v0, ot`.
+
+```c
+addPrim((u_long*)(((((u32)arg2 << Display_State.field_128) >> 2) & 0xFFC)
+                  + (s32)Gpu_CurrentOt), p);
+```
+
+`func_800EC914` is the example. The hoisted `ds` form stuck at 87%
+with only those registers and the `addu` operands swapped.
+
 

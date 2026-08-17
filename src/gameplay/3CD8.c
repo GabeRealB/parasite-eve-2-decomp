@@ -1305,7 +1305,17 @@ void func_800EC888(P_TAG* arg0, s32 arg1, s32 arg2)
     addPrim(Gpu_CurrentOt + (arg2 >> 4), p);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EC914);
+void func_800EC914(P_TAG* arg0, s32 arg1, s32 arg2)
+{
+    DR_TPAGE* p;
+
+    setSemiTrans(arg0, 1);
+    p          = D_80071190;
+    D_80071190 = p + 1;
+    p->code[0] = 0xE100020A | ((arg1 & 3) << 5);
+    setlen(p, 1);
+    addPrim((u_long*)(((((u32)arg2 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), p);
+}
 
 void func_800EC9C8(void)
 {
