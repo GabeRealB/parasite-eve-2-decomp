@@ -905,6 +905,18 @@ Doubly-linked node unlinked by `func_800E1638` and linked onto
 | 0x1C | `field_1C` | s16 stored by `func_8010C980` (last arg) |
 | 0x1E | `flags` | u16 flags: bit 0x8 = on list; bits 0x7 kept on unlink (type / kind); `func_8010C980` sets 1 then ORs 0x8000 |
 
+### `GpGridParams` (0x24 overlay) — `3A34.h`
+Sparse overlay pointed to by `D_80115448`. Full object size is not known
+yet; 0x24 is the minimum covering known fields (u16 at 0x20 plus
+alignment pad).
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | Pointer to a coordinate object (`func_800E0774` passes `+0x24` to `ApplyTransposeMatrixLV` and subtracts `+0x18` / `+0x20` from transformed X / Z) |
+| 0x14 | `field_14` | s32 X origin added to world X before dividing by `field_20` |
+| 0x18 | `field_18` | s32 Z origin added to world Z before dividing by `field_20` |
+| 0x20 | `field_20` | u16 cell size; divisor for world-to-grid (`lhu`) |
+
 ### `GpObj20` (0x24) — `3A34.h`
 Sparse overlay. Full object size is not known yet.
 

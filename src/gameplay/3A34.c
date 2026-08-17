@@ -941,7 +941,27 @@ void func_800E0B08(void)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0B48);
+void func_800E0B48(VECTOR3* arg0, SVECTOR3* arg1)
+{
+    s32           val;
+    GpGridParams* p;
+
+    p   = D_80115448;
+    val = arg0->vx + p->field_14;
+    if (val >= 0) {
+        arg1->vx = val / p->field_20;
+    } else {
+        arg1->vx = -1;
+    }
+    p        = D_80115448;
+    arg1->vy = 0;
+    val      = arg0->vz + p->field_18;
+    if (val >= 0) {
+        arg1->vz = val / p->field_20;
+    } else {
+        arg1->vz = -1;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0C10);
 

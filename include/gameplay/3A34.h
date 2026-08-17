@@ -362,6 +362,24 @@ typedef struct _GpObj3A {
 } GpObj3A;
 STATIC_ASSERT_SIZEOF(GpObj3A, 0x3C);
 
+/// Grid conversion params pointed to by `D_80115448`.
+/// `func_800E0B48` writes `out.vx = (pos.vx + field_14) / field_20` (or -1
+/// if that sum is negative), `out.vy = 0`, and
+/// `out.vz = (pos.vz + field_18) / field_20` (or -1). `func_800E0774`
+/// also loads `field_0` (a coordinate object whose +0x24 is passed to
+/// `ApplyTransposeMatrixLV`, and whose +0x18 / +0x20 are subtracted from
+/// the transformed X / Z). Full object size is not known yet.
+typedef struct _GpGridParams {
+    /* 0x00 */ void* field_0;
+    /* 0x04 */ byte  pad_4[0x10];
+    /* 0x14 */ s32   field_14;
+    /* 0x18 */ s32   field_18;
+    /* 0x1C */ byte  pad_1C[4];
+    /* 0x20 */ u16   field_20;
+    /* 0x22 */ byte  pad_22[2];
+} GpGridParams;
+STATIC_ASSERT_SIZEOF(GpGridParams, 0x24);
+
 /// Global at `D_801153F0`. `field_0` is a state byte (1 if first set by
 /// `func_800DB4E0`; 2 when the last `field_6` ref is released). `field_1`
 /// is an alternate-active flag (`func_800A7508` / `func_800A7CB0` /
@@ -508,7 +526,9 @@ extern s32    D_80115424;
 /// `D_8010CBB8` records (`field_3`). Indexed by `(id & 7)` in
 /// `func_800E0C10` / `func_800E0FEC`.
 extern s32    D_80115428[8];
-extern s32    D_80115448;
+/// Grid conversion params used by `func_800E0B48` / `func_800E0774`.
+/// Cleared by `func_800E0294`; `func_800E0540` skips work when this is NULL.
+extern GpGridParams* D_80115448;
 
 /// 4-byte records selected by `func_800E2CD4(..., 0)`.
 extern GpRec4 D_80114028[];
@@ -591,6 +611,7 @@ void func_800E0608(GpObj* node, s32 mask, s32 match);
 void func_800E06AC(GpObj* node, s32 mask, s32 match);
 s32  func_800E076C(void);
 void func_800E0B08(void);
+void func_800E0B48(VECTOR3* arg0, SVECTOR3* arg1);
 void func_800E15AC(s32 arg0, GpObj* arg1);
 void func_800E1638(GpObj* node);
 void func_800E1688(s32 arg0, GpObj4A* arg1);
