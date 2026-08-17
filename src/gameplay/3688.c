@@ -121,6 +121,7 @@ extern char         D_800971D0[];
 extern char         D_800971D8[];
 extern char         D_800971DC[];
 extern char         D_800971E8[];
+extern char         D_800971F8[];
 extern char         D_80097200[];
 extern char         D_80097224[];
 extern UiObject*    D_80067634;
@@ -2325,7 +2326,45 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D29B0);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D2E04);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D2F68);
+void func_800D2F68(Task* arg0)
+{
+    UiObject* obj;
+    s32       one;
+    u8*       text;
+    s32       color;
+
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    Ui_DrawText((UiPanel*)obj, D_800971F8);
+
+    color = 0x606060;
+    text  = D_8010F544[(u16)arg0->spawnArg1];
+
+    if (arg0->state == 0) {
+        Ui_SizeFromTextPlain((UiPanel*)obj, text);
+        arg0->killCountdown = 0xBC;
+        arg0->state         = arg0->state + 1;
+    }
+
+    one = 1;
+    Text_DrawMultiLine(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, text, color, one, 0);
+
+    arg0->killCountdown--;
+    if (obj->status == one) {
+        if ((arg0->killCountdown <= 0) || (Pad_CheckButtons(0, one, D_8005ED70 | D_8005ED74) != 0)) {
+            obj->field_2E       = 6;
+            arg0->killCountdown = 0x7FFF;
+        } else if (Pad_CheckButtons(0, 1, D_8005ED78) != 0) {
+            obj->field_2E = -1;
+        }
+    }
+
+    if ((s16)(arg0->spawnArg1 >> 16) == 0) {
+        if (obj->field_2E == 6) {
+            obj->field_2E = 9;
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D30CC);
 
