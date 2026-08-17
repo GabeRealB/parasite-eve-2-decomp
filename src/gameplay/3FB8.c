@@ -622,7 +622,40 @@ s32 func_80103DD4(VECTOR3* arg0, VECTOR3* arg1)
     return vx;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103E7C);
+s16 func_80103E7C(s16 arg0, s16 arg1)
+{
+    void**          scratch;
+    u8*             head;
+    GpAngleScratch* block;
+    register s32    tmp asm("v0");
+    s32             delta;
+    u16             ret;
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = *scratch;
+    delta   = arg1 - arg0;
+    tmp     = (s32)(head - 0xC);
+    block   = (GpAngleScratch*)tmp;
+    __asm__ volatile("" : "+r"(block) : "r"(tmp));
+    ((GpAngleScratch*)(head - 0xC))->field_0 = delta;
+    delta                                   += 0x1000;
+    block->field_4                           = delta;
+    tmp                                      = ((GpAngleScratch*)(head - 0xC))->field_0;
+    *scratch                                 = block;
+    delta                                    = tmp - 0x1000;
+    block->field_8                           = delta;
+    if (ABS(((GpAngleScratch*)(head - 0xC))->field_0) < ABS(block->field_4) &&
+        ABS(((GpAngleScratch*)(head - 0xC))->field_0) < ABS(delta)) {
+        ret = ((GpAngleScratch*)(head - 0xC))->field_0;
+    } else if (ABS(block->field_4) < ABS(block->field_8)) {
+        ret = block->field_4;
+    } else {
+        ret = block->field_8;
+    }
+    tmp          = (s32)G_SCRATCH_HEAD;
+    *(void**)tmp = (u8*)*(void**)tmp + 0xC;
+    return ret;
+}
 
 void func_80103F70(GpActorWork* arg0)
 {

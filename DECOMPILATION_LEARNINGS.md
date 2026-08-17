@@ -18276,6 +18276,40 @@ so a saved `scratch` local would need another register. `func_8010133C`
 is the example. Direct `s = head - N` stuck at 95.8% with `$a0`/`$a1`
 swapped and no `move`.
 
+## Keep the `$v0` tmp live so a dead `$a0` does not eat `addiu` + `move`
+
+The sibling of the leaf-scratch copy above, when `$a0` is a just-consumed
+`s16` argument rather than the arena pointer. `tmp = head - N; s = tmp`
+is then peepholed to `addiu a0, a2, -N` because `$a0` is free after
+`subu a1, a1, a0`. The target still wants
+
+```
+addiu v0, a2, -N
+move  a0, v0
+sw    …, -N(a2)
+```
+
+Pin `tmp` to `$v0` and force a read of that first value after the copy
+so it is not forwarded away (and so the peephole cannot fold the
+`addiu` into `$a0`). `+r`(s) keeps the `move` before the first field
+store:
+
+```c
+register s32 tmp asm("v0");
+
+tmp   = (s32)(head - 0xC);
+block = (T*)tmp;
+__asm__ volatile("" : "+r"(block) : "r"(tmp));
+((T*)(head - 0xC))->field_0 = delta;
+```
+
+Because `$v0` is reserved, rematerialise the free through `tmp` as well
+(`tmp = (s32)G_SCRATCH_HEAD; *(void**)tmp = (u8*)*(void**)tmp + 0xC`).
+The idiomatic `*(void**)G_SCRATCH_HEAD = …` steals `$a0` for the `lui`
+and breaks the `lhu a0` return. `func_80103E7C` is the example.
+Without the `"r"(tmp)` read the first `tmp = head - N` was deleted
+(98.1%, lone `addiu a0`).
+
 ## Store a field on the first-arg object before the call
 
 `f(obj, ...); obj->field = 0;` cannot put the store in the `jal` delay

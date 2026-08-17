@@ -121,6 +121,17 @@ typedef struct _GpScratch10 {
 } GpScratch10;
 STATIC_ASSERT_SIZEOF(GpScratch10, 0x10);
 
+/// 0xC-byte scratch from `G_SCRATCH_HEAD` used by `func_80103E7C`.
+/// `field_0` / `field_4` / `field_8` are the wrap candidates
+/// `tgt - cur`, `tgt - cur + 0x1000`, and `tgt - cur - 0x1000`.
+/// The function returns the candidate with the smallest absolute value.
+typedef struct _GpAngleScratch {
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ s32 field_4;
+    /* 0x8 */ s32 field_8;
+} GpAngleScratch;
+STATIC_ASSERT_SIZEOF(GpAngleScratch, 0xC);
+
 /// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `func_8010BD88`.
 /// `vx`/`vy`/`vz` overlay a `VECTOR3` for `func_80103C74`; `angle` holds
 /// the `ratan2` result and the clamped turn delta applied to
