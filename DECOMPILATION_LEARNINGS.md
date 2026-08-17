@@ -18107,4 +18107,37 @@ if (shifted >> 16 != -1) {
 Target wants `li -2; li -3; lui/lw table; li -1`. `func_800E69F4` is the
 example; 97.8% with only those four setup insns swapped.
 
+## Leaf scratch alloc: `tmp` then `s = tmp` for `move a0, v0`
+
+A no-call `G_SCRATCH_HEAD` helper that keeps the block pointer in `$a0`
+emits:
+
+```
+lui   a0, 0x1F80
+ori   a0, a0, 0x3FC
+…                 /* color/const hoists into $a1/$a2/$a3/$t0 */
+lw    v1, 0(a0)
+addiu v0, v1, -N
+sw    v0, 0(a0)
+move  a0, v0
+```
+
+`s = (T*)(head - N); *scratch = s;` computes `s` straight into `$a1` (or
+`$a0` if pinned) and skips the move. A short-lived `tmp` plus a copy
+lets the add live in `$v0` while `$a0` is still the arena pointer:
+
+```c
+scratch  = (void**)G_SCRATCH_HEAD;
+color    = 0x808008;          /* named local → $a1 */
+head     = *scratch;
+tmp      = (T*)(head - 0x10);
+*scratch = tmp;
+s        = tmp;               /* move a0, v0 */
+```
+
+Free by rematerialising `*(void**)G_SCRATCH_HEAD` — `$a0` now holds `s`,
+so a saved `scratch` local would need another register. `func_8010133C`
+is the example. Direct `s = head - N` stuck at 95.8% with `$a0`/`$a1`
+swapped and no `move`.
+
 

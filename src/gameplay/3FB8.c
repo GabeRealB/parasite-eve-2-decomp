@@ -175,7 +175,34 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80100FCC);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801011D0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010133C);
+void func_8010133C(void)
+{
+    void**       scratch;
+    u8*          head;
+    GpScratch10* tmp;
+    GpScratch10* s;
+    s32          color;
+
+    scratch    = (void**)G_SCRATCH_HEAD;
+    color      = 0x808008;
+    head       = *scratch;
+    tmp        = (GpScratch10*)(head - 0x10);
+    *scratch   = tmp;
+    s          = tmp;
+    s->field_8 = color;
+    s->field_E = -0x58;
+    for (s->field_0 = 0; s->field_0 < 2; s->field_0++) {
+        s->field_4 = 0;
+        s->field_C = -0x40;
+        for (; s->field_4 < 3; s->field_4++) {
+            s->field_C += 0x40;
+            s->field_E -= 0x50;
+        }
+        s->field_8 = 0x37A78;
+        s->field_E = 8;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+}
 
 void func_801013FC(Task* arg0)
 {

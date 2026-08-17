@@ -108,6 +108,19 @@ typedef struct _GpDirArg {
     /* 0x10 */ s16  field_10;
 } GpDirArg;
 
+/// 0x10-byte scratch from `G_SCRATCH_HEAD` used by `func_8010133C`.
+/// `field_0` / `field_4` are the outer/inner loop counters. `field_8` is
+/// a color word (`0x808008`, then `0x37A78`). `field_C` / `field_E` are
+/// stepped s16 coordinates (`x += 0x40`, `y -= 0x50`).
+typedef struct _GpScratch10 {
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
+    /* 0x08 */ s32 field_8;
+    /* 0x0C */ s16 field_C;
+    /* 0x0E */ s16 field_E;
+} GpScratch10;
+STATIC_ASSERT_SIZEOF(GpScratch10, 0x10);
+
 /// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `func_8010BD88`.
 /// `vx`/`vy`/`vz` overlay a `VECTOR3` for `func_80103C74`; `angle` holds
 /// the `ratan2` result and the clamped turn delta applied to
