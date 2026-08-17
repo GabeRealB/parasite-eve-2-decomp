@@ -696,7 +696,7 @@ down into it when current exceeds the new max.
 ### `TmdObject` / `TmdSource`
 | Off | Member | Role |
 |-----|--------|------|
-| TmdObject.0x0C | `field_C` | Flags; bit 2 (`0x4`) skips buffer (re)alloc (`Tmd_AllocMissingBuffers`) and is set by `func_800B62D4` before `Tmd_FreeBuffers` |
+| TmdObject.0x0C | `field_C` | Flags; bit 2 (`0x4`) skips buffer (re)alloc (`Tmd_AllocMissingBuffers`). `func_800B62D4` sets it before `Tmd_FreeBuffers`; `func_800B56AC` clears it when the matching `GpAreaTmdRec.field_8` is 1 and sets it when that halfword is 0x101 |
 | TmdObject.0x10 | `field_10` | `TmdSource*` |
 | TmdObject.0x18 | `field_18` | Aux buffer (`Tmd_AllocBuffers`) |
 | TmdObject.0x24 | `field_24` | Tpage addend; `Tmd_ProcessStream` copies to scratch `field_70` as `s8`; `func_8009EB84` adds it to `POLY_GT3.tpage` |
@@ -1206,13 +1206,21 @@ Object behind `GpAreaRec.field_4`. Full size unknown.
 | 0x00 | `field_0` | Signed id; compared with `GpAreaKey.field_5` |
 | 0x01 | `field_1` | Flags (bits 0/1/2/4 in nearby 1BC / 1A8 helpers; `func_800B59A8` returns bit 1) |
 
+### `GpAreaTmdRec` (0xC) — `1BC.h`
+0xFF-terminated table at nested `GpAreaRec.field_4`. Walked by `func_800B56AC`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | u16 id; compared with `*GpWorkObj.field_3C`; 0xFF ends the table |
+| 0x08 | `field_8` | `u16*`; 1 clears `TmdObject.field_C` bit 2, 0x101 sets it |
+
 ### `GpAreaRec` (0x8) — `1BC.h`
 Element of tables pointed to by `D_8010CBCC`. Indexed by `GpAreaKey.field_2`.
 
 | Off | Member | Role |
 |-----|--------|------|
 | 0x00 | `field_0` | Nested `GpAreaRec*` table (`func_800B5C88`) |
-| 0x04 | `field_4` | `GpAreaObj*`; returned by `func_800B5A08` |
+| 0x04 | `field_4` | Outer: `GpAreaObj*` (`func_800B5A08`). Nested: `GpAreaTmdRec*` table (`func_800B56AC`) |
 
 ### `GpAreaKey` — `1BC.h`
 Location key for `D_8010CBCC`. Same 4-byte prefix as `GameSessionFrom4` /
@@ -1231,6 +1239,7 @@ Overlay of `Task::spawnArg2` for sibling walkers. Full size unknown.
 |-----|--------|------|
 | 0x08 | `field_8` | Id compared with the search key (`as_u16` in `func_800B5E08`, `as_u8` in `func_800B5E78`) |
 | 0x0A | `field_A` | u16; high byte is the work type (`func_800B5E08` / `func_800B5EE8` match 9; `func_800B5E78` skips 9) |
+| 0x3C | `field_3C` | `u8*`; `func_800B56AC` compares `*field_3C` with `GpAreaTmdRec.field_0` |
 
 ### `GpSndMaskRec` (0x8) — `1BC.h`
 Element of the 0-terminated table `D_8010D1C4`. Walked by `func_800AFF90`

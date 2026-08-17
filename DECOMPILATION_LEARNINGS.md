@@ -19347,4 +19347,29 @@ if (slot->field_2 != 0xFF) {
 
 `func_800C2140` is the example. Assign-then-compare stuck at 97.9%.
 
+## Load `spawnArg2` before the `spawnType` test so it fills the `lbu` delay
+
+A pointer used only inside `if (iter->spawnType == 1)` is rematerialized
+next to its later dereference, leaving a `nop` after `lbu spawnType` and
+an extra `lw` after `key->field_3`. Assign it *before* the flag test so
+the scheduler fills that delay:
+
+```
+lbu   v0, 0x28(a3)    /* spawnType */
+lw    t0, 0x20(a3)    /* spawnArg2 — delay of the lbu */
+bne   v0, t2, skip
+ lui  v0, %hi(Mc_SaveData)
+```
+
+```c
+work = iter->spawnArg2;
+if (iter->spawnType == 1) {
+    /* ... */
+    bytes = work->field_3C;
+}
+```
+
+`func_800B56AC` is the example. The same load inside the `if` stuck at
+97.9% (one extra instruction).
+
 

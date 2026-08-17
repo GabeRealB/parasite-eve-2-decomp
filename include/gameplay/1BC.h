@@ -127,10 +127,22 @@ typedef struct _GpAreaObj {
     /* 0x01 */ u8 field_1;
 } GpAreaObj;
 
+/// 0xC-byte record in the 0xFF-terminated table at nested `GpAreaRec.field_4`
+/// (`func_800B56AC`). `field_0` is compared with the byte at
+/// `GpWorkObj.field_3C`; `field_8` points at a halfword whose value 1 clears
+/// `TmdObject.field_C` bit 2 and 0x101 sets it.
+typedef struct _GpAreaTmdRec {
+    /* 0x00 */ u16  field_0;
+    /* 0x02 */ byte pad_2[6];
+    /* 0x08 */ u16* field_8;
+} GpAreaTmdRec;
+STATIC_ASSERT_SIZEOF(GpAreaTmdRec, 0xC);
+
 /// 8-byte record in tables pointed to by `D_8010CBCC`. Indexed by
 /// `GpAreaKey.field_2`. `field_0` is a nested table (`func_800B5CE8`
 /// returns the entry at `field_5`; `func_800B5C88` returns that entry's
-/// `field_4`). `field_4` is the object `func_800B5A08` returns.
+/// `field_4`, a `GpAreaTmdRec` table). Outer `field_4` is the object
+/// `func_800B5A08` returns.
 typedef struct _GpAreaRec {
     /* 0x00 */ struct _GpAreaRec* field_0;
     /* 0x04 */ GpAreaObj*         field_4;
@@ -154,14 +166,17 @@ typedef struct _GpAreaKey {
 /// the work type (`func_800B5E08` / `func_800B5EE8` / `func_800B5F5C` match 9;
 /// `func_800B5E78` skips 9). `field_8` is the id compared against the search
 /// key (`as_u16` / `as_u8`; `func_800B584C` matches `as_u16` on slot 4's
-/// children). Full size unknown.
+/// children). `field_3C` is a byte pointer compared with `GpAreaTmdRec.field_0`
+/// by `func_800B56AC` on spawnType-1 children of slot 4. Full size unknown.
 typedef struct _GpWorkObj {
     /* 0x00 */ byte pad_0[8];
     /* 0x08 */ union {
         u16 as_u16;
         u8  as_u8;
     } field_8;
-    /* 0x0A */ u16 field_A;
+    /* 0x0A */ u16  field_A;
+    /* 0x0C */ byte pad_C[0x30];
+    /* 0x3C */ u8*  field_3C;
 } GpWorkObj;
 
 /// 8-byte mask/flag record. `D_8010D1C4` is a 0-terminated table of these.

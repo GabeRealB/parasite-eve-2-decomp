@@ -732,7 +732,63 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B4E54);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B51F4);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B56AC);
+void func_800B56AC(void)
+{
+    Task*         head;
+    Task*         iter;
+    GpAreaKey*    key;
+    GpAreaRec*    rec;
+    GpAreaTmdRec* table;
+    GpAreaTmdRec* entry;
+    GpWorkObj*    work;
+    TmdObject*    extra;
+    u8*           bytes;
+    u16           id;
+    u16           flags;
+    u16           limit;
+    u8            idx;
+
+    head = ((Task*)Game_GetPtrSlot(4))->firstChild;
+    if (head != NULL) {
+        iter = head;
+        do {
+            work = iter->spawnArg2;
+            if (iter->spawnType == 1) {
+                key   = (GpAreaKey*)&Mc_SaveData.field_4;
+                idx   = key->field_3;
+                extra = iter->extra;
+                rec   = D_8010CBCC[idx];
+                bytes = work->field_3C;
+                table = NULL;
+                if (rec != NULL) {
+                    rec = rec[key->field_2].field_0;
+                    if (rec != NULL) {
+                        table = (GpAreaTmdRec*)rec[key->field_5].field_4;
+                    }
+                }
+                entry = table;
+                id    = entry->field_0;
+                if (id != 0xFF) {
+                    limit = 0xFF;
+                    do {
+                        if (id == *bytes) {
+                            flags = *entry->field_8;
+                            if (flags == 1) {
+                                extra->field_C &= 0xFFFB;
+                            } else if (flags == 0x101) {
+                                extra->field_C |= 4;
+                            }
+                            break;
+                        }
+                        entry++;
+                        id = entry->field_0;
+                    } while (id != limit);
+                }
+            }
+            iter = iter->nextSibling;
+        } while (iter != head);
+    }
+}
 
 void func_800B57EC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1)
 {
