@@ -92,6 +92,18 @@ STATIC_ASSERT_SIZEOF(GpTbl5, 5);
 
 extern GpTbl5 D_800938CC;
 
+/// 8-byte pair of byte-table pointers at `D_801149FC`. `func_800AE1F0`
+/// indexes by `(D_80114CD8 & 0x70) >> 4`. `D_80114CD2 & 0x100` selects
+/// `field_4` over `field_0`. The byte at `(D_80114CD8 & 0xF) -
+/// GameActor.field_82` is stored into `GameActor.field_930`.
+typedef struct _GpDirPair {
+    /* 0x0 */ u8* field_0;
+    /* 0x4 */ u8* field_4;
+} GpDirPair;
+STATIC_ASSERT_SIZEOF(GpDirPair, 8);
+
+extern GpDirPair D_801149FC[];
+
 void func_800A954C(Task* task);
 void func_800A9DF0(Task* task);
 void func_800AB980(struct _GameSessionFrom4* arg0);

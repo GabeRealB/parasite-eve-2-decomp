@@ -556,6 +556,9 @@ read `h + 2` as line height; `func_800E67C8` / `func_800E68D8` read `w`.
 
 ### `GameActor` / `GameActorExt`
 Sparse: `field_17C`/`field_930` addresses for overlay setup; `field_C` kill flag bit 0x80.
+`field_930` is an s32 (`sw`); `func_800AE1F0` writes a lookup byte from `D_801149FC`
+(or `(D_80114CD8 & 0x70) >> 4`) here. `Display_SpawnFromMode` still takes its address
+for `func_801011D0`.
 `GameActorExt.field_C` bit 0x8 is written by `func_800BBC10` on first run and
 cleared before `Task_CallExit` when the 2-bit bank value is 2.
 `field_17C` is an 18-entry `GpRec18` table (`func_800E1A6C` walks it from

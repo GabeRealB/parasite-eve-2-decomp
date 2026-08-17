@@ -899,7 +899,47 @@ void func_800AE150(void)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AE1F0);
+void func_800AE1F0(void)
+{
+    Task*      slot;
+    GameActor* actor;
+    u8         flags;
+    s32        facing;
+    u8*        row;
+
+    actor = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
+    flags = D_80114CD8;
+    if (flags & 0x80) {
+        facing = actor->field_82;
+        if (D_80114CD2 & 0x100) {
+            row              = D_801149FC[(flags & 0x70) >> 4].field_4;
+            actor->field_930 = row[(flags & 0xF) - facing];
+        } else {
+            row              = D_801149FC[(flags & 0x70) >> 4].field_0;
+            actor->field_930 = row[(flags & 0xF) - facing];
+        }
+    } else {
+        actor->field_930 = (flags & 0x70) >> 4;
+    }
+
+    slot = Game_GetPtrSlot(3);
+    if (func_800AC464(slot, 0x3F0, 0, 0) == 0) {
+        func_800AC464(slot, 0x3F1, 0, 0);
+        D_80114CF8 = 0;
+        D_80114CD9 = 0;
+        D_80114CD8 = 0;
+        D_80114CD2 = 0;
+        D_80114CDB = 0;
+        D_80114CDA = 0;
+        D_80114CD4 = 0;
+        D_80114CDD = 0;
+    } else if (func_800E1BF0(&D_80114CD4, &D_80114CDA, &D_80114CDB)) {
+        if ((u8)D_80114CD4 == 0) {
+            D_801153F4 = 1;
+            D_80114CD6++;
+        }
+    }
+}
 
 void func_800AE36C(void)
 {

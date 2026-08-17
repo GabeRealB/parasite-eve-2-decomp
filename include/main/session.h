@@ -197,8 +197,7 @@ typedef struct _GameActor {
     /* 0x924 */ struct _Task*       field_924;
     /* 0x928 */ void*               field_928; // D_80112D6C[field_93A]; func_800B3F84 arg1
     /* 0x92C */ byte                pad_92C[4];
-    /* 0x930 */ byte                field_930; // address taken for func_801011D0
-    /* 0x931 */ byte                pad_931[3];
+    /* 0x930 */ s32                 field_930; // sw from func_800AE1F0; addr taken by func_801011D0
     /* 0x934 */ s32                 field_934;
     /* 0x938 */ s16                 field_938; // GameActorSlot count (init 0x13)
     /* 0x93A */ u16                 field_93A; // D_80112D68[field_22-1] + field_21
