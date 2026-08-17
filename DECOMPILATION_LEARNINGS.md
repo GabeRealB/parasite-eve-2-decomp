@@ -16963,4 +16963,34 @@ if ((inner->field_962 & 0x40) && (temp != -1)) {
 `func_801066DC` is the example. Two literal `= 1` stores stuck at 81%
 with `$v0` for both the constant and the `Mc_SaveData` address.
 
+## Pin `&node->field` in `$v1` so `$a0` can hold `ONE` then a global
+
+A calloc'd node with an embedded coord at +0x10 needs `&node->coord` live
+in `$v1` across the identity-matrix stores. Without that pin GCC gives the
+pointer `$a0`, `ONE` lands in `$v1`, and `&Global` is delayed until after
+the zero stores (the pointer still occupies `$a0`).
+
+`register Type* coord asm("v1")` assigned *before* the NULL check puts
+`addiu v1, s0, 0x10` in the `beqz` delay slot. `$a0` is then free for
+`li a0, 0x1000` and, once `ONE` is consumed, `lui; addiu a0, %lo(Global)`:
+
+```c
+register GpDisp2dCoord* coord asm("v1");
+
+node  = Mem_Calloc(0x60, 0);
+coord = &node->coord;
+if (node != NULL) {
+    node->field_C = 1;
+    node->field_8 = coord;
+    coord->sub    = &D_80070F10;
+    one           = ONE;
+    ...
+    list = &Tmd_ListAlt;
+}
+```
+
+`func_80099098` is the example. The same body without the register pin
+stuck at 92.6% with only those registers (and the late `&Tmd_ListAlt`)
+different.
+
 

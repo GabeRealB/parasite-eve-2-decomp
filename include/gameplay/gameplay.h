@@ -9,6 +9,8 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "main/tmd.h"
+
 /// Global at `D_80114C08`. `field_0` is a u16 loaded by many helpers.
 /// `field_3` is a signed state byte (`lb`); `func_80109290` compares it to -2
 /// and `func_80109374` requires 0. `field_6` is a flags byte (bit 0 gates
@@ -95,6 +97,31 @@ typedef struct _GpCb2CTbl {
 
 /// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
 extern GpCb2CTbl* D_8010CB2C[];
+
+/// `GsCOORDINATE2` overlay embedded in `GpDisp2d` at +0x10. Same 0x50 layout
+/// as libgs, but offset 0x44 (`param` / first half of `super`) is an `SVECTOR`
+/// of zeros written by `func_80099098`. `sub` is still the parent coordinate
+/// (`&D_80070F10`).
+typedef struct _GpDisp2dCoord {
+    /* 0x00 */ u32            flg;
+    /* 0x04 */ MATRIX         mtx;
+    /* 0x24 */ MATRIX         workm;
+    /* 0x44 */ SVECTOR        rot;
+    /* 0x4C */ GsCOORDINATE2* sub;
+} GpDisp2dCoord;
+STATIC_ASSERT_SIZEOF(GpDisp2dCoord, 0x50);
+
+/// 0x60-byte spawnType-2 extra (`Mem_Calloc` in `func_80099098`, fail string
+/// `"new_disp_2d ----> NULL"`). Linked onto `Tmd_ListAlt`. `field_8` points at
+/// the embedded coord; `field_C` is stored as a word 1.
+typedef struct _GpDisp2d {
+    /* 0x00 */ TmdObject*     next;
+    /* 0x04 */ TmdListHead*   prev;
+    /* 0x08 */ GpDisp2dCoord* field_8;
+    /* 0x0C */ s32            field_C;
+    /* 0x10 */ GpDisp2dCoord  coord;
+} GpDisp2d;
+STATIC_ASSERT_SIZEOF(GpDisp2d, 0x60);
 
 void func_80098F58(GsCOORDINATE2* arg0);
 void func_80098F98(GsCOORDINATE2* arg0, s32 arg1);

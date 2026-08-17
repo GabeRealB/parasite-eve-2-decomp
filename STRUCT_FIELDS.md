@@ -764,6 +764,31 @@ record index is `func_800AD284() - 1`. Passed as `Task_Spawn` type-0xF
 | 0x00 | `mtx` | `MATRIX`; rotation copied to `D_80070E44`, translation to `D_80070F28` (`func_800A8724`) |
 | 0x20 | `field_20` | Extra word; `lhu` into `Display_State+0x110`, `lw` into GTE OFC (`func_800A8724`) |
 
+### `GpDisp2dCoord` (0x50) — `gameplay.h`
+`GsCOORDINATE2` overlay embedded in `GpDisp2d`. `func_80099098` writes an
+identity `mtx`, zeros `rot` as three halfwords at 0x44/0x46/0x48 (libgs
+`param` / first half of `super`), and parents `sub` to `&D_80070F10`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `flg` | Coordinate dirty flag; cleared on init |
+| 0x04 | `mtx` | Local `MATRIX`; identity (diagonal `ONE`) |
+| 0x24 | `workm` | Work matrix (left zero from `Mem_Calloc`) |
+| 0x44 | `rot` | `SVECTOR` overlay of libgs `param`/`super` |
+| 0x4C | `sub` | Parent coordinate (`&D_80070F10`) |
+
+### `GpDisp2d` (0x60) — `gameplay.h`
+spawnType-2 task extra allocated by `func_80099098` (`"new_disp_2d"`).
+Linked onto `Tmd_ListAlt`. Freed by `func_80099290`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `next` | Intrusive `Tmd_ListAlt` next |
+| 0x04 | `prev` | Intrusive `Tmd_ListAlt` prev |
+| 0x08 | `field_8` | Pointer to embedded `coord` |
+| 0x0C | `field_C` | Word flag; set to 1 on create |
+| 0x10 | `coord` | Embedded `GpDisp2dCoord` |
+
 ### `GpCbA4Vec` (0x8) — `3A34.h`
 Nested table entry at `GpCbA4Rec.field_4`. Entry 0's `field_0` is the
 max valid index. `func_800D957C` returns `&table[GameSessionFrom4.field_0]`

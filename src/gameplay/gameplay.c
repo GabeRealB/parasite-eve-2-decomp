@@ -2,6 +2,7 @@
 
 #include <psyq/memory.h>
 #include <psyq/rand.h>
+#include <psyq/stdio.h>
 
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
@@ -40,6 +41,7 @@ extern s16            D_80114C04;
 extern u8*            D_80114C38;
 extern TaskFuncTable6 D_80093830;
 extern s32            D_80070F60;
+extern char           D_80093804[]; // "new_disp_2d ----> NULL\n"
 extern char           D_80093870[]; // "Item"
 extern s32            D_8005ED70;
 extern s32            D_8005ED74;
@@ -97,7 +99,48 @@ void* func_8009902C(Task* task, TmdSource* src)
     return node;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80099098);
+void* func_80099098(Task* task)
+{
+    GpDisp2d*               node;
+    TmdListHead*            last;
+    TmdListHead*            list;
+    MATRIX*                 m;
+    s32                     one;
+    register GpDisp2dCoord* coord asm("v1");
+
+    node  = Mem_Calloc(0x60, 0);
+    coord = &node->coord;
+    if (node != NULL) {
+        node->field_C           = 1;
+        node->field_8           = coord;
+        coord->sub              = &D_80070F10;
+        one                     = ONE;
+        m                       = &node->coord.mtx;
+        *(s32*)&node->coord.mtx = one;
+        *(s32*)&m->m[1][1]      = one;
+        m->m[2][2]              = one;
+        list                    = &Tmd_ListAlt;
+        *(s32*)&m->m[0][2]      = 0;
+        *(s32*)&m->m[2][0]      = 0;
+        coord->mtx.t[2]         = 0;
+        coord->mtx.t[1]         = 0;
+        coord->mtx.t[0]         = 0;
+        coord->rot.vz           = 0;
+        coord->rot.vy           = 0;
+        coord->rot.vx           = 0;
+        coord->flg              = 0;
+        last                    = list->prev;
+        node->next              = last->next;
+        last->next              = (TmdObject*)node;
+        node->prev              = last;
+        list->prev              = (TmdListHead*)node;
+        task->extra             = node;
+        task->spawnType         = 2;
+    } else {
+        printf(D_80093804);
+    }
+    return node;
+}
 
 void* func_80099170(Task* task, TmdSource* src, s32 flags)
 {
