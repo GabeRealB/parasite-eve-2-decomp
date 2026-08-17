@@ -18932,4 +18932,20 @@ if ((flag == -1) || (flag == 6)) {
 `func_800D3FF0` is the example. The inlined compare stuck at 99.7%
 with only those two registers swapped.
 
+## `gte_rtps` is `0x4A180001`, not the DMPSX `.word 0x0000007f`
+
+`gte_rtps()` in `inline_c.h` emits two nops plus the DMPSX placeholder
+`.word 0x0000007f`. maspsx does not expand that token, so the object
+gets `0x0000007f` instead of RTPS.
+
+Use the real encoding, same pattern as `gte_rtv0_real`:
+
+```c
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+```
+
+`func_800DB004` is the example (scratch `SVECTOR` + `gte_SetRotMatrix` /
+`gte_SetTransMatrix` / `gte_ldv0` / RTPS / `gte_stsxy` / `gte_stdp` /
+`gte_stflg` / `gte_stszotz`).
+
 

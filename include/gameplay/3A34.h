@@ -473,6 +473,33 @@ typedef struct _GpSlot70 {
 } GpSlot70;
 STATIC_ASSERT_SIZEOF(GpSlot70, 0xC);
 
+/// Overlay used by `func_800DB004`. `field_8` is a `GsCOORDINATE2*`
+/// (`workm` is loaded as both rotation and translation). `field_C` /
+/// `field_10` / `field_14` are the low halves of a `VECTOR3` at +0xC
+/// (same layout `func_800DAE50` loads as three words).
+typedef struct _GpPerspSrc {
+    /* 0x00 */ byte  pad_0[8];
+    /* 0x08 */ void* field_8;
+    /* 0x0C */ u16   field_C;
+    /* 0x0E */ byte  pad_E[2];
+    /* 0x10 */ u16   field_10;
+    /* 0x12 */ byte  pad_12[2];
+    /* 0x14 */ u16   field_14;
+    /* 0x16 */ byte  pad_16[2];
+} GpPerspSrc;
+STATIC_ASSERT_SIZEOF(GpPerspSrc, 0x18);
+
+/// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `func_800DB004`.
+/// `vec` is the packed `SVECTOR` fed to RTPS. `p` / `flag` / `otz` hold
+/// IR0, FLAG, and `SZ3 >> 2`.
+typedef struct _GpPerspScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     p;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ s32     otz;
+} GpPerspScratch;
+STATIC_ASSERT_SIZEOF(GpPerspScratch, 0x14);
+
 /// Pending flags written by `func_800D5B14` and consumed by `func_800CE294`.
 /// `D_8010F888 == 1` requests `func_800AC464(..., 0x402, ...)`.
 extern s32 D_8010F888;
@@ -646,6 +673,7 @@ void* func_800DAD78(GpActorWork* arg0);
 void* func_800DADE4(GpActorWork* arg0, VECTOR3* pos);
 void  func_800DAF98(void);
 void  func_800DAFD0(void);
+s32   func_800DB004(GpPerspSrc* arg0, s32* sxy);
 void  func_800DB0D8(void);
 s32   func_800DB28C(GpActorWork* arg0, GpImgRec* arg1, RECT* arg2);
 void  func_800DB31C(GpImgRec* arg0);

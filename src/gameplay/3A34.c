@@ -18,6 +18,7 @@
 #include <psyq/inline_c.h>
 
 #define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
 s32  func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -754,7 +755,33 @@ void func_800DAFD0(void)
     D_8010F9EC = 0xFFF00000;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB004);
+s32 func_800DB004(GpPerspSrc* arg0, s32* sxy)
+{
+    void**          scratch;
+    u8*             head;
+    GpPerspScratch* block;
+    s32             ret;
+
+    scratch       = (void**)G_SCRATCH_HEAD;
+    head          = *scratch;
+    block         = (GpPerspScratch*)(head - 0x14);
+    block->vec.vx = arg0->field_C;
+    block->vec.vy = arg0->field_10;
+    *scratch      = block;
+    block->vec.vz = arg0->field_14;
+    __asm__ volatile("" ::: "memory");
+    gte_SetRotMatrix(&((GsCOORDINATE2*)arg0->field_8)->workm);
+    gte_SetTransMatrix(&((GsCOORDINATE2*)arg0->field_8)->workm);
+    gte_ldv0(&block->vec);
+    gte_rtps_real();
+    gte_stsxy(sxy);
+    gte_stdp(&((GpPerspScratch*)(head - 0x14))->p);
+    gte_stflg(&((GpPerspScratch*)(head - 0x14))->flag);
+    gte_stszotz(&((GpPerspScratch*)(head - 0x14))->otz);
+    ret      = block->otz;
+    *scratch = (u8*)*scratch + 0x14;
+    return ret;
+}
 
 void func_800DB0D8(void)
 {
