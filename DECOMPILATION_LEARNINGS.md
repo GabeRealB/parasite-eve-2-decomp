@@ -17463,4 +17463,61 @@ if (acc < glyph->h + 2) {
 `addu v1, v0, t3`. `func_800E6AD4` is the example; 99.8% with only that
 `lbu` dest wrong.
 
+## Pin the return through `$v0` + `+r` so `move v0, src` stays before the restores
+
+A function that accumulates in `$a2` and returns that sum wants
+
+```
+move    v0, a2
+lw      ra, off(sp)
+lw      s1, off(sp)
+lw      s0, off(sp)
+jr      ra
+```
+
+`return count` (and even `register s32 ret asm("v0"); ret = count; return ret`)
+sinks the copy after the restores, because `$a2` / `$v0` are not clobbered by
+those `lw`s:
+
+```
+lw      ra, off(sp)
+lw      s1, off(sp)
+lw      s0, off(sp)
+move    v0, a2
+jr      ra
+```
+
+Assign to a `register s32 ret asm("v0")` and barrier it so the copy is a
+real instruction in the body:
+
+```c
+register s32 ret asm("v0");
+
+ret = count;
+asm volatile("" : "+r"(ret));
+return ret;
+```
+
+`func_800BAFF4` is the example. A bare `return count` stuck at 98.9% with
+only that `move` delayed.
+
+## Split `end` / `limit` so the bound is `addu v1` then `move t0, v1`
+
+A loop bound that is live through the body wants `$t0`, but the
+`start < end` compare wants the add in `$v1`.
+`limit = start + n; if (start < limit)` assigns the add straight to `$t0`.
+Compute the bound, compare, then copy:
+
+```c
+end = start + arg0->field_1;
+if (start < end) {
+    slots = Mc_SaveData.field_1C8;
+    limit = end;
+    /* ... */
+    for (; start < limit; start++, rec++) {
+```
+
+That is `addu v1, a1, v0; slt; ...; move t0, v1`. `func_800BAFF4` is the
+example.
+
 
