@@ -17797,4 +17797,39 @@ and shuffles `save` / `idx*3` out of `$t0` / `$a2`.
 `func_800CC41C` is the example. The two-index form stuck at 97.8%
 with only that extra `move` and the first load in `$a0`.
 
+## Pin the wrap dest so `temp = delta` is `move v1, s0`
+
+`temp = delta; if ((s16)delta >= 0x802) temp = delta - 0x1000` coalesces
+`temp` into `$s0` (`addiu s0, s0, -0x1000`) and the next `(s16)` hoist
+steals the `bnez` delay slot (`sll v0, s0, 16`). The target copies first:
+
+```
+bnez  v0, skip
+move  v1, s0
+addiu v1, s0, -0x1000
+```
+
+Pin `temp` to `$v1`. Then write the later `(s16)temp` as two shifts onto
+a *new* local (`val = temp << 16; val = val >> 16`) so the `sll` dest is
+`$v0` and fills the second wrap's `beqz` delay. `(s16)temp` with the pin
+emits `sll v1, v1, 16; sra v0, v1, 16` instead.
+
+```c
+register s32 temp asm("v1");
+s32          val;
+
+temp = delta;
+if ((s16)delta >= 0x802) {
+    temp = delta - 0x1000;
+}
+if ((s16)temp < -0x800) {
+    temp += 0x1000;
+}
+val = temp << 16;
+val = val >> 16;
+```
+
+`func_80103B88` is the example. Unpinned `temp` stuck at 96% with only
+those wrap registers different.
+
 

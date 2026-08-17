@@ -97,6 +97,17 @@ typedef struct _GpIdRec {
     /* 0x4 */ s32  field_4;
 } GpIdRec;
 
+/// Direction argument for `func_80103B88`. `field_0` / `field_8` are the
+/// X/Z components passed to `ratan2`. `field_10 == 7` selects the
+/// facing-vs-direction update of `GameActor.field_973`.
+typedef struct _GpDirArg {
+    /* 0x00 */ s32  field_0;
+    /* 0x04 */ s32  field_4;
+    /* 0x08 */ s32  field_8;
+    /* 0x0C */ byte pad_C[4];
+    /* 0x10 */ s16  field_10;
+} GpDirArg;
+
 /// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `func_8010BD88`.
 /// `vx`/`vy`/`vz` overlay a `VECTOR3` for `func_80103C74`; `angle` holds
 /// the `ratan2` result and the clamped turn delta applied to
@@ -229,6 +240,7 @@ void func_80109170(GpActorWork* arg0);
 void func_8010A1B0(s32 arg0, s32 arg1);
 void func_8010A42C(GpActorWork* arg0, s32 arg1);
 void func_80103B5C(GpActorWork* arg0);
+s32  func_80103B88(GpActorWork* arg0, GpDirArg* arg1);
 void func_8010B210(GpActorWork* arg0);
 Task* func_801036FC(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3);
 Task* func_8010BAC8(GpActorArg* arg0, u16 arg1, s32 arg2, u16* arg3);

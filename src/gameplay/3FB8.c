@@ -495,7 +495,41 @@ void func_80103B5C(GpActorWork* arg0)
     inner->field_97E = 1;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103B88);
+s32 func_80103B88(GpActorWork* arg0, GpDirArg* arg1)
+{
+    GameActor*     actor;
+    GsCOORDINATE2* coord;
+    s32            delta;
+    register s32   temp asm("v1");
+    s32            val;
+
+    actor = arg0->actor;
+    if (arg1->field_10 == 7) {
+        if ((arg1->field_0 != 0) || (arg1->field_8 != 0)) {
+            coord = (GsCOORDINATE2*)arg0->extra->field_8;
+            delta = ratan2(-coord->coord.m[2][0], coord->coord.m[2][2]);
+            delta = delta - ratan2(arg1->field_0, arg1->field_8);
+            temp  = delta;
+            if ((s16)delta >= 0x802) {
+                temp = delta - 0x1000;
+            }
+            if ((s16)temp < -0x800) {
+                temp += 0x1000;
+            }
+            val = temp << 16;
+            val = val >> 16;
+            if (val < 0) {
+                val = -val;
+            }
+            if (val < 0x400) {
+                actor->field_973 = 1;
+            } else {
+                actor->field_973 = -1;
+            }
+        }
+    }
+    return actor->field_973;
+}
 
 void func_80103C74(GsCOORDINATE2* arg0, VECTOR3* arg1, VECTOR3* arg2)
 {
