@@ -18163,4 +18163,51 @@ Ui_DrawText((UiPanel*)obj, text);
 `func_800C5A5C` is the example. The store-after-call form stuck at
 99.5% with only those two instructions swapped.
 
+## Dead `0xFF` in `$s4` plus `v0` scratch temp, store dest not temp
+
+A scratch-RECT `LoadImage` walk that the target opens with
+
+```
+move  s3, zero
+lui   v1, 0x1F80
+ori   v1, v1, 0x3FC
+sw    s4, 0x20(sp)
+li    s4, 0xFF
+...
+lw    v0, 0(v1)
+addiu s0, s2, 0xC
+addiu v0, v0, -8
+move  s1, v0
+sw    s1, 0(v1)
+```
+
+needs three things together. `done = 0` first so `$s3` is zeroed
+before the scratch address. Then take `G_SCRATCH_HEAD` *before*
+assigning the unused `0xFF`, or `li s4` lands above the `lui`/`ori`.
+The `0xFF` is never read; pin it to `$s4` and mention it after the
+free so the save/restore stays:
+
+```c
+register void* temp asm("v0");
+register s32   max asm("s4");
+
+done    = 0;
+scratch = (void**)G_SCRATCH_HEAD;
+max     = 0xFF;
+head    = *scratch;
+temp    = (u8*)head - 8;
+dest    = temp;
+*scratch = dest; /* sw s1, not sw v0 */
+...
+*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+asm("" :: "r"(max));
+```
+
+`temp = head - 8; dest = temp` keeps the subtract in `$v0` and the
+`move` into the dest s-reg. `*scratch = dest` (not `temp`) is the
+`sw s1`. Walk with `if (rec->field_0 == 0) { copy; LoadImage; } else
+{ done = 1; } rec++;` so work is the `bnez` fall-through. `func_800DB31C`
+is the example. Assigning `max` before the scratch address stuck at
+97.9% with only those two instruction pairs swapped.
+
 

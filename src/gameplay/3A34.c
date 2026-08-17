@@ -796,7 +796,39 @@ s32 func_800DB28C(GpActorWork* arg0, GpImgRec* arg1, RECT* arg2)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DB31C);
+void func_800DB31C(GpImgRec* arg0)
+{
+    void**         scratch;
+    void*          head;
+    register void* temp asm("v0");
+    RECT*          dest;
+    s32            done;
+    register s32   max asm("s4");
+
+    done     = 0;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    max      = 0xFF;
+    head     = *scratch;
+    temp     = (u8*)head - 8;
+    dest     = temp;
+    *scratch = dest;
+
+    do {
+        if (arg0->field_0 == 0) {
+            dest->x = arg0->rect.x;
+            dest->y = arg0->rect.y;
+            dest->w = arg0->rect.w;
+            dest->h = arg0->rect.h;
+            LoadImage(dest, arg0->data);
+        } else {
+            done = 1;
+        }
+        arg0++;
+    } while (done == 0);
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+    asm("" ::"r"(max));
+}
 
 void func_800DB3FC(void)
 {
