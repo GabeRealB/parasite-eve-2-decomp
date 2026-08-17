@@ -16849,4 +16849,50 @@ if (count != 0) {
 98% with only those two instructions swapped, and without `n` the
 count never entered `$a0` at all (`lbu t1` / no `move`).
 
+## Split the pre-call and post-call object pointers
+
+A switch on `obj->field` that also passes `obj` into an early call, then
+reloads the same object after later calls for stores, must use *two*
+locals. One variable is live across the calls, so it is allocated `$s0`
+from the first load:
+
+```
+lw    s0, 0x1c(s2)
+lhu   s1, 0x95e(s0)
+addiu a0, s0, 0x424
+```
+
+The target keeps the first pointer in `$a1` (caller-saved) and only
+loads `$s0` after the calls:
+
+```
+lw    a1, 0x1c(s2)
+lhu   s1, 0x95e(a1)
+addiu a0, a1, 0x424
+...
+jal   func
+...
+lw    s0, 0x1c(s2)
+```
+
+Assign the pre-call uses to one local and reload into a second after
+the calls:
+
+```c
+actor = arg0->actor;
+switch (actor->field_95E) {
+case 1:
+    if (func(actor->ctx, actor->slot + 1) != NULL) {
+        if (func2(...) == 0) {
+            inner = arg0->actor; /* second local → $s0 */
+            inner->field_954 = 0;
+            ...
+        }
+    }
+}
+```
+
+`func_80108224` is the example. Reusing `inner` for both loads stuck at
+99.7% with only `$a1` vs `$s0` on the first pointer.
+
 
