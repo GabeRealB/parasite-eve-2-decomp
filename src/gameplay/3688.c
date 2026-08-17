@@ -58,6 +58,8 @@ extern char         D_8010F19C[];
 extern char         D_8010F1A4[];
 extern char         D_8010F1AC[];
 extern char         D_8010F1B4[];
+extern char         D_8010F1BC[];
+extern char         D_8010F1C4[];
 extern char         D_8010F1D0[];
 extern u8           D_8010F13D;
 extern UiList       D_8010E820;
@@ -90,6 +92,7 @@ extern UiObjectDesc D_8010F178;
 extern UiObjectDesc D_8010F670;
 extern UiObjectDesc D_8010F6FC;
 extern UiObjectDesc D_8010F788;
+extern UiObjectDesc D_8010F7A4;
 extern UiObjectDesc D_8010F7F8;
 extern UiObjectDesc D_8010F840;
 extern TaskDesc     D_8010F85C;
@@ -2155,7 +2158,49 @@ void func_800D20B8(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D2224);
+void func_800D2224(DialogPrompt* arg0, UiObject* arg1)
+{
+    TextDrawReq req;
+    s32         flags;
+    s32         item;
+
+    flags = arg1->owner->spawnArg1;
+    if (flags & 3) {
+        req.x          = arg1->baseX + (u16)arg0->field_18;
+        req.y          = arg1->baseY + (u16)arg0->field_1A;
+        req.otIndex    = (s16)arg1->drawOrder + 1;
+        req.field_8    = arg0->field_1C;
+        req.glyphTable = 0;
+        req.centerMode = 0;
+        req.field_E    = 1;
+        func_8002E53C(&req, D_8010F1C4);
+    } else {
+        req.x          = arg1->baseX + (u16)arg0->field_18;
+        req.y          = arg1->baseY + (u16)arg0->field_1A;
+        req.otIndex    = (s16)arg1->drawOrder + 1;
+        req.field_8    = arg0->field_1C;
+        req.glyphTable = 0;
+        req.centerMode = 0;
+        req.field_E    = 1;
+        func_8002E53C(&req, D_8010F1BC);
+    }
+    if (arg0->field_C == 1) {
+        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+            item = -1;
+            SndEvt_EnqueueType6(3, 0, 0);
+            if ((flags & 3) == 3) {
+                item = 0xD;
+            }
+            if (item >= 0) {
+                func_800D4E40(arg1, item, 0, 0);
+                arg1->status = 0;
+            } else {
+                Ui_SpawnFromDesc(&D_8010F7A4, flags, 1, 0xA, arg1);
+                arg1->status = 0;
+            }
+        }
+    }
+}
 
 void func_800D2384(Task* arg0)
 {

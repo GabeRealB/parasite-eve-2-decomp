@@ -18789,4 +18789,41 @@ if (func(0x40000) != 0) {
 reg, later `$s0`/`$s1`/`$s2` all shifted). Dest pin alone stuck at
 98.7% with only that `nop` + `sll s1`.
 
+## Duplicate TextDrawReq setup + `func_8002E53C` so GCC tail-merges one `jal`
+
+When the target tests a flag first, then fills the same `TextDrawReq`
+in **both** arms (x/y, `lh` drawOrder, string `lui`/`addiu` in `$a1`,
+`addiu a0, sp, req`) and only then joins for `otIndex + 1` / `field_8`
+/ the three `sb`s / one `jal func_8002E53C`, a shared-setup form
+(`text = cond ? A : B;` then one fill + one call) CSEs the x/y stores
+and emits a single fill after the string select (~75%).
+
+Write the **entire** fill and the call in both arms:
+
+```c
+if (flags & 3) {
+    req.x = ...;
+    req.y = ...;
+    req.otIndex = (s16)obj->drawOrder + 1;
+    req.field_8 = prompt->field_1C;
+    req.glyphTable = 0;
+    req.centerMode = 0;
+    req.field_E = 1;
+    func_8002E53C(&req, D_8010F1C4);
+} else {
+    req.x = ...;
+    req.y = ...;
+    req.otIndex = (s16)obj->drawOrder + 1;
+    req.field_8 = prompt->field_1C;
+    req.glyphTable = 0;
+    req.centerMode = 0;
+    req.field_E = 1;
+    func_8002E53C(&req, D_8010F1BC);
+}
+```
+
+GCC tail-merges the common stores + `jal` into one call. Filling once
+and then calling in both arms still CSEs the fill. `func_800D2224` is
+the example.
+
 
