@@ -2026,6 +2026,15 @@ For GTE *commands*, emit the real COP2 word:
 `Gfx_ApplyMatrixNoSf` is the template: `gte_ldsvrtrow0` + `gte_ldv0` + custom
 command + `gte_stlvnl0`. Standard `gte_rtv0` is `mvmva 1,0,0,3,0`
 (`0x4A486012`); the sf=0 variant drops the 12-bit shift (`0x4A406012`).
+`gte_rtv0tr` (add TR) is `mvmva 1,0,0,0,0` (`0x4A480012`). `func_801040A0`
+is the template: `gte_SetRotMatrix` + `gte_SetTransMatrix` + `gte_ldv0` +
+that command + `gte_stlvnl`.
+
+`D_80070F34` is `D_80070F10.workm`. After `func_800A8864(&D_80070F34, ...)`,
+recover the parent as
+`(GsCOORDINATE2*)((u8*)world - OFFSET_OF(GsCOORDINATE2, workm))` so the
+compiler emits `addiu s0, s0, -0x24`. A second `&D_80070F10` symbol load
+does not match.
 
 `gte_MulMatrix0` from `gtemac.h` is fine if `gte_rtir` is swapped for
 `gte_rtir_real` — load/store helpers (`gte_SetRotMatrix`, `gte_ldclmv`,

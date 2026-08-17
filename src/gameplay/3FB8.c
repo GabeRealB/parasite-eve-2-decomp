@@ -8,6 +8,7 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
+#include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/pad.h"
@@ -17,8 +18,11 @@
 #include "main/wipsys.h"
 
 #include <psyq/abs.h>
+#include <psyq/inline_c.h>
 #include <psyq/libgte.h>
 #include <psyq/rand.h>
+
+#define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
 
 extern TaskDesc       D_80113340[];
 extern GpEffArg       D_80113358;
@@ -43,7 +47,6 @@ void func_80103A18(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_80103AC0(GpActorWork* arg0);
 s16  func_80103E7C(s16 arg0, s16 arg1);
 void func_80103F70(GpActorWork* arg0);
-void func_801040A0(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2);
 void func_80104B54(void);
 void func_80104E00(void);
 s32  func_80105070(void);
@@ -75,6 +78,7 @@ void func_8010ABD4(GpActorWork* arg0);
 void func_8010AC54(GpActorWork* arg0);
 void func_8010AD64(GpActorWork* arg0);
 void func_8010B120(GpActorWork* arg0);
+void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F75BC);
@@ -702,7 +706,24 @@ GsCOORDINATE2* func_8010403C(s32 arg0)
     return &((GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8)[idx];
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801040A0);
+void func_801040A0(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2)
+{
+    MATRIX* world;
+
+    arg0->flg = 0;
+    func_80098F58(arg0);
+    arg1->workm = arg0->workm;
+    gte_SetRotMatrix(&arg0->workm);
+    gte_SetTransMatrix(&arg0->workm);
+    gte_ldv0(arg2);
+    gte_rtv0tr_real();
+    gte_stlvnl(arg1->workm.t);
+    world = &D_80070F34;
+    func_800A8864(world, &arg1->workm, &arg1->coord);
+    arg1->sub = (GsCOORDINATE2*)((u8*)world - OFFSET_OF(GsCOORDINATE2, workm));
+    arg1->flg = 0;
+    func_80098F58(arg1);
+}
 
 s32 func_801041B4(GpActorWork* arg0)
 {
