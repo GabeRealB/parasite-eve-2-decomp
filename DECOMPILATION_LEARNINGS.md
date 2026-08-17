@@ -16714,6 +16714,47 @@ pinning them made the first `lw` use `$a0` instead of `$a3`. Assign
 CSE into `$t4`. `func_800BB838` is the example (sibling
 `func_800BAB64` is the same walk with a bank lookup in front).
 
+## Put `&Table` in `$v0` before overwriting it with the compare constant
+
+A bank lookup that must emit
+
+```
+lui   v0, %hi(Table)
+addiu v0, v0, %lo(Table)
+sll   v1, a0, 3
+addu  v1, v1, v0
+li    v0, 3
+lw    a1, 0(v1)
+```
+
+cannot assign the `3` first. `tmp = 3; bank = &Table[arg0]` (or a
+separate `banks` local) hoists `li v0, 3` and turns the scale into
+`sllv v1, a0, v0`, and `&Table` lands in `$a1` instead of `$v0`.
+
+Assign the table address through the same `$v0` temp *before* the
+constant so the address occupies `$v0` during the scale. Then overwrite
+it:
+
+```c
+register s32 tmp asm("v0");
+GpBit2Bank*  bank;
+
+tmp  = (s32)D_8010D230;
+bank = (GpBit2Bank*)tmp + arg0;
+tmp  = 3;
+val  = (u32)bank->field_0; /* keeps the first lw in $a1 */
+dest = bank->field_4;
+if (arg0 == tmp) {
+    return;
+}
+table = (GpBit2List*)val; /* delay-slot move a3, a1 */
+```
+
+`func_800BAB64` is the example. `bank = &D_8010D230[arg0]; tmp = 3`
+stuck at 90–94.5% with only that prologue different. This is the
+inverse of the `mask = 1` before `ptr->arr[i]` rule: here `$v0` must
+hold the *address* first so `3` cannot be reused as the shift.
+
 ## Find-or-allocate: `if (found) goto update` inside the miss arm
 
 A table walk that keeps a match in `found`, then on miss scans for a
