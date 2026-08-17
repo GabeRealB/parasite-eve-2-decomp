@@ -18140,4 +18140,27 @@ so a saved `scratch` local would need another register. `func_8010133C`
 is the example. Direct `s = head - N` stuck at 95.8% with `$a0`/`$a1`
 swapped and no `move`.
 
+## Store a field on the first-arg object before the call
+
+`f(obj, ...); obj->field = 0;` cannot put the store in the `jal` delay
+slot: the callee may alias `obj`, so GCC fills the slot with `move a0`
+and stores after the return. The target wants:
+
+```
+move  a0,s0
+jal   f
+sh    zero,off(s0)
+```
+
+Write the store first. The store is allowed in the delay slot because
+the callee still sees the new value:
+
+```c
+obj->field_2E = 0;
+Ui_DrawText((UiPanel*)obj, text);
+```
+
+`func_800C5A5C` is the example. The store-after-call form stuck at
+99.5% with only those two instructions swapped.
+
 
