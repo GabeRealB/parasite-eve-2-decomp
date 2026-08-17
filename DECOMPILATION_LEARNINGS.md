@@ -17124,4 +17124,41 @@ so the default `count = 0` stays in `$a1`, and `&arr[i]` each iteration
 (not `p++`) so GCC does not strength-reduce `&p->field_2` into a second
 IV. `off + (s32)base` still supplies `addu a0, v0, base`.
 
+## Duplicate the store and increment inside both `if` arms
+
+A loop-counter opcode that then shares `pc++` with the previous case
+wants the `field_E` load *duplicated* in both arms (`lbu` / `j merge` /
+`srl` in the delay slot, sibling `lbu`, then one `sb` of the counter).
+Writing the store and `pc++` *after* the `if` CSEs the load into a
+single `lbu` below the merge:
+
+```
+bnez  v1, shared_load
+ addiu v1, -1
+srl   v1, cmd, 8
+shared_load:
+lbu   v0, pc
+sb    v1, counter
+```
+
+Put the store and increment in *both* arms. Tail-merge keeps one `sb`
+of the counter and the shared `pc++`, but each arm keeps its own `lbu`:
+
+```c
+tmp = p->counter;
+if (tmp == 0) {
+    tmp         = cmd >> 8;
+    p->counter  = tmp;
+    p->pc++;
+} else {
+    tmp--;
+    p->counter = tmp;
+    p->pc++;
+}
+```
+
+`func_800E8A90` case 3 is the example. The shared-after-if form stuck at
+97% with only those two `lbu`s merged. The extra live ranges also
+swapped `cmd` / table-pointer coloring (`$v1`/`$a2`) without a pin.
+
 

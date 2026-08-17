@@ -105,6 +105,7 @@ s32  func_800E86FC(s32 arg0);
 void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
 void func_800E8A90(Task* task);
 void func_800E8BB0(Task* task);
+void func_800E8CE8(s16 arg0);
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E34D8);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E375C);
@@ -758,8 +759,8 @@ s32 func_800E86FC(s32 arg0)
 
 void func_800E8758(Task* arg0)
 {
-    GpState34* mem;
-    void*      script;
+    GpState34*   mem;
+    GpScriptCmd* script;
 
     mem = Mem_Calloc(0x34, 0);
     if (mem == NULL) {
@@ -823,7 +824,52 @@ void func_800E8888(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E8938);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E8A90);
+void func_800E8A90(Task* task)
+{
+    GpState34*   state;
+    GpScriptCmd* table;
+    GpScriptRec* recs;
+    u16          cmd;
+    s32          opcode;
+    u8           tmp;
+
+    state          = (GpState34*)task->idMap;
+    table          = state->field_0;
+    recs           = state->field_4;
+    cmd            = table[state->field_E].field_0;
+    opcode         = cmd & 0xFF;
+    state->field_A = cmd;
+
+    if (opcode != 0) {
+        if (opcode == 1) {
+            state->field_12 = cmd >> 8;
+            state->field_10 = recs[state->field_12].field_2;
+            func_800E8CE8(state->field_10);
+            state->field_E++;
+        } else if (opcode == 2) {
+            state->field_10 = cmd >> 8;
+            state->field_E++;
+        } else if (opcode == 3) {
+            tmp = state->field_14;
+            if (tmp == 0) {
+                tmp             = cmd >> 8;
+                state->field_14 = tmp;
+                state->field_E++;
+            } else {
+                tmp--;
+                state->field_14 = tmp;
+                state->field_E++;
+            }
+        } else if (opcode == 4) {
+            if (state->field_14 == 0) {
+                state->field_E++;
+            } else {
+                state->field_E = table[state->field_E].field_0 >> 8;
+            }
+            func_800E8A90(task);
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E8BB0);
 

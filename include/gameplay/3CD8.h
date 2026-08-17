@@ -74,12 +74,33 @@ typedef struct _GpEndWait {
     /* 0x02 */ s8   field_2;
 } GpEndWait;
 
+/// 4-byte dual-script command. `GpState34::field_0` is an array of these.
+/// Script A reads `field_0`, script B reads `field_2`. Low byte is the opcode
+/// (0 = stop, 1 = timed pad from `field_4`, 2 = set delay, 3 = set/decrement
+/// loop, 4 = loop jump); high byte is the payload.
+typedef struct _GpScriptCmd {
+    /* 0x0 */ u16 field_0; // script A command
+    /* 0x2 */ u16 field_2; // script B command
+} GpScriptCmd;
+STATIC_ASSERT_SIZEOF(GpScriptCmd, 4);
+
+/// 4-byte pad record. `GpState34::field_4` is an array of these, indexed by
+/// the high byte of an opcode-1 command. `field_2` is the delay copied to
+/// `field_10` / `field_11`; `field_0` / `field_1` are start/end for script B.
+typedef struct _GpScriptRec {
+    /* 0x0 */ u8 field_0;
+    /* 0x1 */ u8 field_1;
+    /* 0x2 */ u8 field_2; // delay
+    /* 0x3 */ u8 field_3;
+} GpScriptRec;
+STATIC_ASSERT_SIZEOF(GpScriptRec, 4);
+
 /// 0x34-byte dual-script state allocated by `func_800E8758` (`Mem_Calloc(0x34, 0)`)
 /// and stored on the owner task at +0x1C (`Task::idMap`).
 /// `field_10` / `field_11` are delay counters for scripts A / B.
 typedef struct _GpState34 {
-    /* 0x00 */ void* field_0;  // script table (from Task::spawnArg2)
-    /* 0x04 */ void* field_4;  // secondary table
+    /* 0x00 */ GpScriptCmd* field_0; // script table (from Task::spawnArg2)
+    /* 0x04 */ GpScriptRec* field_4; // secondary pad table
     /* 0x08 */ s16   field_8;
     /* 0x0A */ u16   field_A;  // current command (script A)
     /* 0x0C */ u16   field_C;  // current command (script B)

@@ -1324,6 +1324,28 @@ there). `func_800E6EA0` walks from a start index until `field_8 == -1` or
 | 0x7 | `field_7` | u8 copied to `D_80115678` (countdown) by `func_800E6E50` |
 | 0x8 | `field_8` | s32; `-1` terminator, else payload/id passed to later sequence helpers |
 
+### `GpScriptCmd` (4) — `3CD8.h`
+One step of the dual script at `GpState34::field_0`. Indexed by the
+script A/B program counters. Low byte of each halfword is the opcode
+handled by `func_800E8A90` / `func_800E8BB0`; high byte is the payload.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x0 | `field_0` | Script A command |
+| 0x2 | `field_2` | Script B command |
+
+### `GpScriptRec` (4) — `3CD8.h`
+Pad/interpolator record at `GpState34::field_4`. Opcode 1 indexes this
+table by the command high byte. Script A copies `field_2` into delay A
+and calls `func_800E8CE8`; script B also passes `field_0`/`field_1` to
+`func_800E8E00`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x0 | `field_0` | Start value (script B → `func_800E8E00`) |
+| 0x1 | `field_1` | End value (script B → `func_800E8E00`) |
+| 0x2 | `field_2` | Delay / duration copied to `field_10` / `field_11` |
+
 ### `GpState34` (0x34) — `3CD8.h`
 Allocated by `func_800E8758` (`Mem_Calloc(0x34, 0)`); stored at `Task::idMap`.
 Dual script interpreter: A uses `field_E`/`field_10`/`field_14`, B uses
@@ -1332,16 +1354,23 @@ the delay counters and advance via `func_800E8A90` / `func_800E8BB0`.
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x00 | `field_0` | Script table pointer (from `Task::spawnArg2`) |
-| 0x04 | `field_4` | Secondary table pointer |
+| 0x00 | `field_0` | `GpScriptCmd*` table (from `Task::spawnArg2`); A uses `field_0`, B uses `field_2` |
+| 0x04 | `field_4` | `GpScriptRec*` pad table; opcode 1 indexes it by the command high byte |
 | 0x0A | `field_A` | Current command A (low byte = opcode) |
 | 0x0C | `field_C` | Current command B (low byte = opcode) |
 | 0x0E | `field_E` | Script A program counter |
 | 0x0F | `field_F` | Script B program counter |
 | 0x10 | `field_10` | Delay A; `func_800E92C4` decrements |
 | 0x11 | `field_11` | Delay B; `func_800E9350` decrements |
+| 0x12 | `field_12` | Opcode-1 index A (high byte of the command) |
+| 0x13 | `field_13` | Opcode-1 index B |
 | 0x14 | `field_14` | Loop counter A |
 | 0x15 | `field_15` | Loop counter B |
+
+Opcode (low byte of the current command), shared by `func_800E8A90` (A) and
+`func_800E8BB0` (B): 0 = stop, 1 = timed pad from `field_4`, 2 = set delay from
+the high byte, 3 = set loop counter from the high byte if zero else decrement,
+4 = jump to the high byte if the loop counter is nonzero else step and recurse.
 
 ### `GpState18` (0x18) — `3CD8.h`
 Allocated by `func_800E8FB0` / `func_800E9188` (`Mem_Calloc(0x18)`); stored at
