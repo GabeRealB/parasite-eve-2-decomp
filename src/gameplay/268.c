@@ -3,8 +3,10 @@
 #include <psyq/libgte.h>
 #include <psyq/memory.h>
 
+#include "gameplay/1BC.h"
 #include "gameplay/268.h"
 #include "gameplay/4CC.h"
+#include "main/gfx.h"
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/task.h"
@@ -973,7 +975,33 @@ void func_800BB9B8(void)
     save->field_18 = cfg->field_C;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBA70);
+GpEnemy* func_800BBA70(GpEnemyDesc* arg0, GpEnemyPlace* arg1)
+{
+    GpEnemy*      enemy;
+    Task*         task;
+    GameActorExt* extra;
+    GpCoordPlace* coord;
+
+    enemy = func_800B01AC(&arg0->field_4, 0, arg0->field_0, NULL);
+    if (enemy != NULL) {
+        task = enemy->task;
+        if (task->spawnType != 0) {
+            extra             = (GameActorExt*)task->extra;
+            coord             = (GpCoordPlace*)extra->field_8;
+            enemy->field_8    = arg1->field_0 | (arg1->field_4 << 8);
+            enemy->field_A    = arg1->field_2;
+            coord->coord.t[0] = arg1->field_8;
+            coord->coord.t[1] = arg1->field_A;
+            coord->coord.t[2] = arg1->field_C;
+            coord->field_46   = arg1->field_E;
+            if (coord->field_46 != 0) {
+                Gfx_RotMatrixY(&coord->coord, (s16)arg1->field_E, 1);
+            }
+            coord->flg = 0;
+        }
+    }
+    return enemy;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BBB54);
 

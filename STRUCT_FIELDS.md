@@ -608,6 +608,8 @@ and `func_800B57EC`; `sub` is the parent link, same convention as `Gfx_InitCoord
 Offset 0x18 / 0x20 are the low 16 bits of `coord.t[0]` / `coord.t[2]` (world X/Z);
 `func_800AEE28` loads them as `u16` (`GpCoordXZ`).
 Offset 0x44 (`param` in libgs) is loaded as an s16 flag by `func_8010B590` (`GpCoordExt`).
+Offset 0x46 is a signed yaw halfword written by `func_800BBA70` (`GpCoordPlace`);
+a non-zero value is passed to `Gfx_RotMatrixY` on `&coord`.
 Offset 0x4C (`sub` in libgs) is the parent `GameActorExt.field_8` pointer written by
 `func_80104364` (with `field_44 = 1`) and `func_80104258` (with `field_44 = 0`).
 `field_AC`/`field_CC`/`field_EC`/`field_10C`/`field_12C` are 0x20-byte list nodes
@@ -1102,6 +1104,8 @@ Sparse overlay. Pointer at 0x20 is a `GpObj5C*` (same family as
 | Off | Member | Role |
 |-----|--------|------|
 | 0x00 | `task` | Owning `Task*` |
+| 0x08 | `field_8` | Packed work id; `func_800BBA70` writes `place.field_0 \| (place.field_4 << 8)` (same slot as `GpWorkObj.field_8`) |
+| 0x0A | `field_A` | Work type halfword; `func_800BBA70` copies `GpEnemyPlace.field_2` (same slot as `GpWorkObj.field_A`) |
 | 0x0C | `field_C` | Countdown word; `func_800B0544` sets 0x78, `func_800B0560` decrements and advances `Task::state` at 0 |
 | 0x10 | `node` | `GpLinkNode` unlinked by `func_800DAB38` |
 | 0x18 | `field_18` | Set to `&D_80070F10` by `func_800B0494` |

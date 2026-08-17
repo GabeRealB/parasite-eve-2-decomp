@@ -3,9 +3,13 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/task.h"
+
+struct _GpEnemy;
 
 /// Save-inventory slot (`Mc_SaveData.field_1C8`). field_0/field_2 are item ids;
 /// field_1/field_3 are the matching counts (`func_800BAFF4`).
@@ -84,6 +88,43 @@ typedef struct _GpBit2Bank {
     /* 0x04 */ u32*        field_4;
 } GpBit2Bank;
 STATIC_ASSERT_SIZEOF(GpBit2Bank, 0x8);
+
+/// Spawn header for `func_800BBA70`. `field_0` is `Task_SpawnFromTable`
+/// arg2; `field_4` is the `TaskDesc` table (`func_800B01AC` uses idx 0).
+typedef struct _GpEnemyDesc {
+    /* 0x0 */ u16      field_0;
+    /* 0x2 */ byte     pad_2[2];
+    /* 0x4 */ TaskDesc field_4;
+} GpEnemyDesc;
+STATIC_ASSERT_SIZEOF(GpEnemyDesc, 0x10);
+
+/// Placement record for `func_800BBA70`. `field_0` / `field_4` pack into
+/// `GpEnemy.field_8` as `field_0 | (field_4 << 8)`; `field_2` is copied to
+/// `GpEnemy.field_A`. `field_8` / `field_A` / `field_C` are world X/Y/Z
+/// (`GsCOORDINATE2.coord.t`); `field_E` is the yaw stored at coord +0x46
+/// and passed to `Gfx_RotMatrixY` when non-zero.
+typedef struct _GpEnemyPlace {
+    /* 0x0 */ u16  field_0;
+    /* 0x2 */ u16  field_2;
+    /* 0x4 */ u16  field_4;
+    /* 0x6 */ byte pad_6[2];
+    /* 0x8 */ s16  field_8;
+    /* 0xA */ s16  field_A;
+    /* 0xC */ s16  field_C;
+    /* 0xE */ u16  field_E;
+} GpEnemyPlace;
+STATIC_ASSERT_SIZEOF(GpEnemyPlace, 0x10);
+
+/// Overlay of `GsCOORDINATE2` at `GameActorExt.field_8` used by `func_800BBA70`.
+/// `coord` is `GsCOORDINATE2.coord` (`Gfx_RotMatrixY` / `t[0..2]`); `field_46`
+/// is the yaw halfword next to `param`.
+typedef struct _GpCoordPlace {
+    /* 0x00 */ s32    flg;
+    /* 0x04 */ MATRIX coord;
+    /* 0x24 */ byte   pad_24[0x22];
+    /* 0x46 */ s16    field_46;
+} GpCoordPlace;
+STATIC_ASSERT_SIZEOF(GpCoordPlace, 0x48);
 
 /// Overlay of `GsCOORDINATE2` at `GameActorExt.field_8` used by `func_800BB9B8`.
 /// field_8 / field_14 are `coord.m[0][2]` / `coord.m[2][2]` (`lh` into
@@ -205,6 +246,7 @@ void        func_800BB838(GpBit2List* arg0, u32* arg1);
 void        func_800BB8E8(s32 arg0, u8 arg1, s32 arg2);
 s32         func_800BB974(GameSessionFrom4* arg0, s32 arg1);
 void        func_800BB9B8(void);
+struct _GpEnemy* func_800BBA70(GpEnemyDesc* arg0, GpEnemyPlace* arg1);
 void        func_800BBC10(Task* arg0);
 s32         func_800BBD40(s32 arg0);
 GpItemMap*  func_800BBDC8(s32 arg0);

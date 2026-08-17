@@ -14,9 +14,14 @@
 /// 0x60-byte enemy work object allocated by `func_800B0494`
 /// ("new_enemy ---> NULL"). Stored in `Task::spawnArg2`; `task` back-points
 /// at the owner. `node` is the `func_800DAB38` list entry at +0x10.
+/// `field_8` / `field_A` are the same work-id / type halfwords as
+/// `GpWorkObj` (`func_800BBA70` packs `GpEnemyPlace.field_0` /
+/// `field_4` into `field_8` and copies `field_2` into `field_A`).
 typedef struct _GpEnemy {
     /* 0x00 */ Task*      task;
-    /* 0x04 */ byte       pad_4[0x8];
+    /* 0x04 */ byte       pad_4[4];
+    /* 0x08 */ u16        field_8;
+    /* 0x0A */ u16        field_A;
     /* 0x0C */ s32        field_C;
     /* 0x10 */ GpLinkNode node;
     /* 0x18 */ void*      field_18;
