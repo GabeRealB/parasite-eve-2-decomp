@@ -59,6 +59,7 @@ s32  func_80105894(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_80105B0C(GpActorWork* arg0);
 s32  func_80105ED4(GpActorWork* arg0);
 void func_8010615C(GpActorWork* arg0);
+void func_80100FCC(GpActorWork* arg0, s32 arg1, s32 arg2);
 void func_801066DC(GpActorWork* arg0, s16 arg1);
 void func_80107E1C(GpActorWork* arg0);
 void func_80109210(GpActorWork* arg0);
@@ -709,7 +710,123 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801030CC);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103294);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801034C0);
+inline static Task* spawn_attach(Task* parent, s32 row, s32 item)
+{
+    s32*          saved;
+    Task*         task;
+    GameActorExt* extra;
+    GpCoordExt*   coord;
+    s32           type;
+
+    saved = ((GameActorExt*)parent->extra)->field_8;
+    if (item == 0) {
+        return NULL;
+    }
+    type = D_80112DF4[row] - 1;
+    task = Task_Spawn(7, type + item, 0, 0);
+    if (task == NULL) {
+        return NULL;
+    }
+    extra           = (GameActorExt*)task->extra;
+    task->parent    = parent;
+    coord           = (GpCoordExt*)extra->field_8;
+    coord->sub      = saved;
+    coord->field_44 = 1;
+    return task;
+}
+
+s32 func_801034C0(void)
+{
+    GpActorWork*  work;
+    GameActor*    actor;
+    Task*         parent;
+    Task*         task;
+    WipSysConfig* cfg;
+    s32           kind;
+    s32           id;
+    s32           arg2;
+    GameActorExt* extra;
+    GpCoordExt*   coord;
+    GpEffWork*    eff;
+    GameActor*    inner;
+    GpAnimObj*    anim;
+    register s32  ret asm("v0");
+
+    work  = Game_GetPtrSlot(3);
+    actor = work->actor;
+    if (!work | !actor) {
+        return 0;
+    }
+
+    parent = actor->field_924;
+    if (parent == NULL) {
+        goto join_4C;
+    }
+
+    task             = spawn_attach(parent, Mc_SaveData.field_22, Wip_SysConfig.field_21);
+    actor->field_91C = task;
+    if (task == NULL) {
+        goto join_4C;
+    }
+
+    cfg = &Wip_SysConfig;
+    func_80100FCC(work, cfg->field_21, cfg->field_22);
+    if (actor->field_914 != NULL) {
+        goto join_50;
+    }
+
+    kind  = 0x16;
+    extra = (GameActorExt*)actor->field_91C->extra;
+    id    = cfg->field_21;
+    coord = (GpCoordExt*)extra->field_8;
+    if (id != kind) {
+        goto check_19;
+    }
+    id   = 0x80060024;
+    arg2 = 0;
+    goto do_call;
+
+do_success:
+    actor->field_914 = eff->field_0;
+    Task_Reparent(work, eff->field_0);
+    func_80106350(work, Wip_SysConfig.field_21, 0);
+    goto join_50;
+
+check_19:
+    if (id != 0x19) {
+        goto check_1C;
+    }
+    id = 0x80060029;
+    goto do_call_item;
+
+check_1C:
+    if (id != 0x1C) {
+        goto join_50;
+    }
+    id = 0x8006002A;
+do_call_item:
+    arg2 = cfg->field_21;
+do_call:
+    eff = func_800EA478(id, (GsCOORDINATE2*)coord, arg2, 0);
+    if (eff != NULL) {
+        goto do_success;
+    }
+
+join_4C:
+join_50:
+    actor->field_98F = 0;
+    inner            = work->actor;
+    anim             = (GpAnimObj*)work->extra;
+    inner->field_93A = D_80112D68[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21;
+    inner->field_928 = D_80112D6C[inner->field_93A];
+    func_800B3F84((GpAnimCtx*)inner->field_424, inner->field_928, anim, &inner->field_7A8,
+                  (GpAnimSlot*)inner->pad_438);
+    func_801066DC(work, 1);
+    ret                               = (s32)actor->field_91C;
+    actor->field_983                  = 7;
+    ((GpObj*)actor->field_AC)->flags |= 0x2000;
+    return ret;
+}
 
 Task* func_801036FC(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3)
 {

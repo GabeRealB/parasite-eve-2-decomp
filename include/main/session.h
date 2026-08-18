@@ -273,7 +273,7 @@ typedef struct _GameActor {
     /* 0x98C */ u8                  field_98C;
     /* 0x98D */ u8                  field_98D;
     /* 0x98E */ u8                  field_98E;
-    /* 0x98F */ byte                pad_98F;
+    /* 0x98F */ u8                  field_98F; // cleared by func_801034C0
     /* 0x990 */ u8                  field_990;
     /* 0x991 */ s8                  field_991; // func_80109374 requires 0 to write field_97D = 1
     /* 0x992 */ u8                  field_992; // func_80100E40: func_801011D0 result when field_984 & 1

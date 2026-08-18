@@ -21649,5 +21649,57 @@ if (dx < 0x69) {
 Split `dx = t[n]; dx -= other` so `t[n]` lands in `$v0` first.
 `func_80107E1C` is the example.
 
+## Inlined `return NULL` after `Task_Spawn` keeps `bnez` / `j` / `move a0, 0`
+
+A local
+
+```c
+task = Task_Spawn(...);
+if (task != NULL) {
+    extra = task->extra;
+    ...
+}
+```
+
+becomes `beqz a0, join` and drops the redundant `task = NULL`. The target
+wants the inlined-helper shape:
+
+```
+move    a0, v0
+bnez    a0, setup
+ nop
+j       join
+ move   a0, zero
+```
+
+`inline static` a small helper that `return NULL` on `item == 0` and on
+`Task_Spawn` failure. The inlined `return` is `task = 0; goto join`, and
+the 3rd helper arg (`item`) is allocated to `$t0` because `Task_Spawn`
+needs `$a2`. `func_801034C0` is the example.
+
+## Put the `if (call != NULL)` body in the gap between if/else arms
+
+A shared `func_800EA478` tail with three id constants wants the then-block
+*between* the `0x16` arm and the `0x19` arm, reached by a backward
+`bnez`, plus `j join` / `lui` after the success work:
+
+```
+bne   a0, v1, check_19
+ li   v0, 0x19
+li    a0, 0x80060024
+j     do_call
+ move a2, zero
+# success (only via bnez from after the call)
+...
+j     join
+ lui  v1, %hi(table)
+check_19:
+```
+
+Three separate calls, or a single call with temps, both emit
+`beqz` and place the then-block *after* the jal. Write the layout with
+gotos so the success label sits in that gap and the call's `if (eff !=
+NULL) goto success`. `func_801034C0` is the example.
+
 
 

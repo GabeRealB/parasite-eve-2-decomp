@@ -127,6 +127,8 @@ STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 /// 0x2C-byte work at `Task::spawnArg2` for `func_800F1A9C` / `func_800F5184` /
 /// `func_800F75BC` / `func_800F77F8` / `func_800FB67C` / `func_800FBEBC` /
 /// `func_800FC74C` / `func_800FE41C` (`Mem_Calloc(0x2C)` in `func_800EA478`).
+/// `field_0` is the spawned `Task*` (`func_800EA478` stores it; `func_801034C0`
+/// copies it onto `GameActor.field_914`).
 /// `field_8` is the parent coordinate copied onto `GsCOORDINATE2.sub`.
 /// `field_10` is the 3-halfword overlay `func_800FE41C` passes to
 /// `func_800EA478`; `func_800FBEBC` also zeros `field_10` / `field_14` on
@@ -151,7 +153,8 @@ STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 /// is the packed parameter passed through to `func_800F7AD4`, or the
 /// per-frame `field_26` step.
 typedef struct _GpEffWork {
-    /* 0x00 */ byte                  pad_0[8];
+    /* 0x00 */ struct _Task*          field_0;
+    /* 0x04 */ byte                   pad_4[4];
     /* 0x08 */ struct _GsCOORDINATE2* field_8;
     /* 0x0C */ byte                  pad_C[4];
     /* 0x10 */ s16                   field_10;
@@ -489,6 +492,7 @@ void func_800FE41C(Task* arg0);
 s32  func_801011D0(struct _GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3);
 void func_80101408(GpActorWork* arg0);
 void func_801041FC(GpActorWork* arg0, s32 arg1);
+s32  func_801034C0(void);
 void func_80106350(GpActorWork* arg0, s32 arg1, s32 arg2);
 void func_801088D4(GpActorWork* arg0, s32 arg1, s32 arg2);
 /// Overlay import. `func_801088D4` calls it with `Game_GetPtrSlot(0xA)` when

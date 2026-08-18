@@ -227,7 +227,7 @@ void       func_800A9A40(s32 arg0);
 void       func_800A9BE4(void);
 void       func_800A7E4C(void);
 s32        func_801043F4(void);
-void       func_801034C0(void);
+s32        func_801034C0(void);
 void       func_8010870C(void* arg0, s32 arg1);
 void       func_800E3CEC(s32* arg0);
 
