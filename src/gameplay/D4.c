@@ -844,7 +844,76 @@ s32 func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
     return entry->handler(arg0, arg1, arg2, arg3);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AC4D8);
+void func_800AC4D8(Task* task)
+{
+    GameSessionFrom4* sess;
+    GpCb7CRec*        recs;
+    GpCb7CRec*        rec;
+    GpGridParams*     grid;
+    GpObj4A*          list1;
+    GpObj4A*          list2;
+    GpObj3A*          list3;
+    GpObj4A*          obj;
+    GpObj3A*          obj3;
+    GsCOORDINATE2*    coord;
+    u8                flags;
+    Task*             spawned;
+
+    sess = (GameSessionFrom4*)&Game_Session->field_4;
+    recs = D_8010CB7C[sess->field_3 - 1]->field_0[sess->field_2 - 1];
+    if (recs != NULL) {
+        rec   = (GpCb7CRec*)(sess->field_1 * sizeof(GpCb7CRec) + (s32)recs);
+        recs  = rec - 1;
+        grid  = rec[-1].field_0;
+        list1 = recs->field_4;
+        list2 = recs->field_8;
+        list3 = recs->field_C;
+        if (grid != NULL) {
+            grid->field_0 = &D_80070F10;
+            D_80115448    = grid;
+        }
+        if (list1 != NULL) {
+            coord = &D_80070F10;
+            obj   = list1;
+            do {
+                obj->field_8 = coord;
+                func_800E1688(1, obj);
+                flags         = obj->field_4A | 0x40;
+                obj->field_4A = flags;
+                asm volatile("" : "+r"(obj));
+                obj++;
+            } while (!(flags & 0x80));
+        }
+        if (list2 != NULL) {
+            coord = &D_80070F10;
+            obj   = list2;
+            do {
+                obj->field_8 = coord;
+                func_800E1688(0, obj);
+                flags         = obj->field_4A | 0x40;
+                obj->field_4A = flags;
+                asm volatile("" : "+r"(obj));
+                obj++;
+            } while (!(flags & 0x80));
+        }
+        if (list3 != NULL) {
+            obj3 = list3;
+            do {
+                func_800E17B4(0, obj3);
+                flags          = obj3->field_3A | 0x40;
+                obj3->field_3A = flags;
+                asm volatile("" : "+r"(obj3));
+                obj3++;
+            } while (!(flags & 0x80));
+        }
+    }
+    spawned = Task_Spawn(0, 0x1B, 0, 0);
+    if (spawned != NULL) {
+        Task_Reparent(task, spawned);
+    }
+    Game_Session->field_76 = 0;
+    task->state++;
+}
 
 void func_800AC688(void)
 {

@@ -93,8 +93,8 @@ extern GpCb68Tbl* D_8010CB68[];
 
 /// 0x10-byte per-room record in tables pointed to by `D_8010CB7C`.
 /// Indexed 1-based by `GameSession.field_5` / `GameSessionFrom4.field_1`.
-/// `func_800ACD2C` parents `field_0` to `&D_80070F10` and links the
-/// `field_4` / `field_8` (`GpObj4A`) and `field_C` (`GpObj3A`) arrays.
+/// `func_800ACD2C` / `func_800AC4D8` parent `field_0` to `&D_80070F10` and
+/// link the `field_4` / `field_8` (`GpObj4A`) and `field_C` (`GpObj3A`) arrays.
 typedef struct _GpCb7CRec {
     /* 0x0 */ struct _GpGridParams* field_0;
     /* 0x4 */ struct _GpObj4A*      field_4;
@@ -195,6 +195,9 @@ void func_800ABE68(struct _GpActorArg* arg0, u16* arg1);
 void func_800ABEF8(s32 arg0);
 void func_800ABF1C(struct _GpAreaKey* arg0);
 s32   func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Same room-object link as `func_800ACD2C`, then spawn type 0x1B as a
+/// child, clear `GameSession.field_76`, and increment `task->state`.
+void  func_800AC4D8(Task* task);
 void  func_800AC688(void);
 void  func_800AC960(s32 arg0);
 void  func_800ACD2C(Task* task);
