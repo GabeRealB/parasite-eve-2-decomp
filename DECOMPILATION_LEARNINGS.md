@@ -20282,4 +20282,15 @@ GCC 2.8.1 hoists the terminator into the freed `$a1` instead
 multiply and wrecks the prefix. An early `term = 0xFFFF` takes `$s2`.
 `func_800E31E8` stuck at 94.1% on this allocation.
 
+## Overlay callback tables bundled with a function stay as inline asm
+
+Splat often puts a stack-copied function-pointer table in the same
+`.s` file as the function that copies it (`func_80106838` / `D_8009794C`).
+`INCLUDE_RODATA` of a newly created `nonmatchings/.../D_*.s` looks like
+the `D_80097940` pattern, but configure/splat regenerates that tree and
+deletes the extra file. Emit the table with the same inline
+`.section .rodata` block used for `D_800979F8` (`func_80108E40`). Keep
+any trailing `0` word that sits before the next `.align 3` jump table.
+
+
 

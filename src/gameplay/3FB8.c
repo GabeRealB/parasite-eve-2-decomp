@@ -60,6 +60,10 @@ s32  func_80105ED4(GpActorWork* arg0);
 void func_8010615C(GpActorWork* arg0);
 void func_801066DC(GpActorWork* arg0, s16 arg1);
 void func_80107E1C(GpActorWork* arg0);
+void func_80109210(GpActorWork* arg0);
+void func_80109250(GpActorWork* arg0);
+void func_80109FC4(GpActorWork* arg0);
+void func_8010A670(GpActorWork* arg0);
 void func_80108684(GpActorWork* arg0);
 void func_8010870C(GpActorWork* arg0, s32 arg1);
 void func_80108770(GpActorWork* arg0, s32 arg1);
@@ -1863,7 +1867,79 @@ void func_801066DC(GpActorWork* arg0, s16 arg1)
 
 INCLUDE_RODATA("gameplay/nonmatchings/3FB8", D_80097940);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106838);
+#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
+__asm__(".section .rodata\n"
+        "\t.align 2\n"
+        "\t.globl D_8009794C\n"
+        "D_8009794C:\n"
+        "\t.word func_80108FA0\n"
+        "\t.word func_80108FD4\n"
+        "\t.word func_80106A3C\n"
+        "\t.word func_801090E8\n"
+        "\t.word func_80109138\n"
+        "\t.word func_80106C6C\n"
+        "\t.word func_8010747C\n"
+        "\t.word func_8010771C\n"
+        "\t.word 0x00000000\n"
+        ".section .text\n");
+#endif
+
+void func_80106838(GpActorWork* arg0)
+{
+    GameActor*        actor;
+    GameActor*        inner;
+    WipSysConfig*     p;
+    u16               prev;
+    GpActorFuncTable8 sp;
+
+    sp    = D_8009794C;
+    actor = arg0->actor;
+    if (Wip_SysConfig.field_25 & 0x40) {
+        func_8010A670(arg0);
+    }
+    if (actor->field_97B == 0) {
+        func_80109250(arg0);
+        func_80109210(arg0);
+    } else {
+        actor->field_973 = 0;
+        actor->field_975 = 0;
+    }
+    p = &Wip_SysConfig;
+    if (p->field_25 & 2) {
+        if (actor->field_956 != 7) {
+            actor->field_98E++;
+            if ((s8)actor->field_98E >= 0x5A) {
+                inner            = arg0->actor;
+                prev             = inner->field_956;
+                inner->field_954 = 0;
+                inner->field_956 = 7;
+                inner->field_958 = 0;
+                inner->field_95A = 0;
+                inner->field_95C = 0;
+                inner->field_95E = 0;
+                inner->field_981 = 0;
+                inner->field_973 = 0;
+                inner->field_975 = 0;
+                inner->field_960 = prev;
+                func_80103B5C(arg0);
+                inner->field_12A   &= 0x3FFF;
+                D_80114C08.field_6 |= 1;
+                func_80106350(arg0, p->field_21, 0);
+                func_80103A18(arg0, 0x19, 3, 6);
+            }
+        }
+    }
+    sp.funcs[actor->field_956](arg0);
+    func_80109FC4(arg0);
+    func_8010B120(arg0);
+    func_80101848(arg0);
+    func_80103AC0(arg0);
+    func_80101F58(arg0);
+    func_80101A68(arg0);
+    if (Wip_SysConfig.field_18 <= 0) {
+        func_8010AA28(arg0, 4);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106A3C);
 

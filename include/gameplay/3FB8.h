@@ -24,6 +24,11 @@ typedef struct {
     GpActorFunc funcs[3];
 } GpActorFuncTable3;
 
+/// 8-entry callback table copied onto the stack by `func_80106838`.
+typedef struct {
+    GpActorFunc funcs[8];
+} GpActorFuncTable8;
+
 /// 4-entry callback table copied onto the stack by `func_80108E40`.
 typedef struct {
     GpActorFunc funcs[4];
@@ -377,6 +382,9 @@ extern TaskFuncTable4 D_80097AB0;
 
 /// `field_954` dispatcher: `func_80106838`, `func_80108E40`, `func_80108ED4`.
 extern GpActorFuncTable3 D_80097940;
+
+/// `field_956` dispatcher copied by `func_80106838`.
+extern GpActorFuncTable8 D_8009794C;
 
 /// `field_96C` dispatcher: three slots of `func_80109170`, then `func_80109208`.
 extern GpActorFuncTable4 D_800979F8;
