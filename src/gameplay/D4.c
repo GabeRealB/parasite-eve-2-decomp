@@ -22,7 +22,6 @@
 #include "main/unknown_syms.h"
 #include "main/wipsys.h"
 
-void func_800A9310(void);
 void func_800A9730(Task* task);
 void func_800AA548(s32 arg0);
 void func_800AE7AC(void);
@@ -53,7 +52,114 @@ extern s16            D_80114CF4;
 extern u16            D_80114CF6;
 extern u8             D_80114CF8;
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9310);
+void func_800A9310(void)
+{
+    u8  param1[8];
+    u8  param2[8];
+    u16 item;
+    s32 val;
+    s32 attach;
+    s32 temp;
+    s32 flag;
+
+    item = Wip_SysConfig.field_21;
+    if (item == 0) {
+        return;
+    }
+
+    param1[0] = 0;
+    switch (item) {
+        case 0xB:
+            param1[0] = 1;
+            if (Wip_SysConfig.field_22 == 0xB) {
+                param1[0] = 2;
+            }
+            if (Wip_SysConfig.field_22 == 0xC) {
+                param1[0] = 3;
+            }
+            break;
+        case 0xC:
+            param1[0] = 4;
+            if (Wip_SysConfig.field_22 == 0xB) {
+                param1[0] = 5;
+            }
+            if (Wip_SysConfig.field_22 == 0xC) {
+                param1[0] = 6;
+            }
+            break;
+        case 0xD:
+            param1[0] = 7;
+            if (Wip_SysConfig.field_22 == 0xE) {
+                param1[0] = 8;
+            }
+            if (Wip_SysConfig.field_22 == 0xF) {
+                param1[0] = 9;
+            }
+            break;
+        case 0xE:
+            param1[0] = 0xA;
+            if (Wip_SysConfig.field_22 == 0xE) {
+                param1[0] = 0xB;
+            }
+            if (Wip_SysConfig.field_22 == 0xF) {
+                param1[0] = 0xC;
+            }
+            break;
+        case 0xF:
+            param1[0] = 0xD;
+            val       = Wip_SysConfig.field_22;
+            if (val == 0xE) {
+                param1[0] = val;
+            }
+            if (val == 0xF) {
+                param1[0] = val;
+            }
+            break;
+        case 0x17:
+            param1[0] = 0x13;
+            if (Wip_SysConfig.field_22 == 0xE) {
+                param1[0] = 0x14;
+            }
+            if (Wip_SysConfig.field_22 == 0xF) {
+                param1[0] = 0x15;
+            }
+            break;
+        case 0x1B: {
+            register GpItemSlot* slot asm("a0");
+
+            param1[0] = 0x10;
+            slot      = func_800BAFE0(item + 0x7F);
+            asm volatile("" : "+r"(slot));
+            attach = slot->field_2;
+            if (attach != 0 && attach != 0xFF) {
+                temp = attach;
+                asm volatile("" : "+r"(temp));
+                attach = temp - 0x9F;
+                if (attach == 0xB) {
+                    param1[0] = 0x11;
+                }
+                if (attach == 0xC) {
+                    param1[0] = 0x12;
+                }
+            }
+            break;
+        }
+    }
+
+    if (param1[0] == 0) {
+        return;
+    }
+
+    flag      = 1;
+    param1[3] = 0;
+    param1[2] = flag;
+    param2[0] = 0xA;
+    param2[3] = 0;
+    param2[2] = 0;
+    param2[1] = 0;
+    CdCmd_Enqueue(0x21, param1, param2);
+    D_800626E8 = flag;
+}
 
 void func_800A954C(Task* task)
 {

@@ -184,6 +184,9 @@ typedef struct _GpAreaApplyRec {
 } GpAreaApplyRec;
 STATIC_ASSERT_SIZEOF(GpAreaApplyRec, 4);
 
+/// Maps `Wip_SysConfig.field_21` / `field_22` (and the 0x1B attach id) to a
+/// CdCmd 0x21 payload. No-op when `field_21` is 0 or the mapped byte is 0.
+void func_800A9310(void);
 void func_800A954C(Task* task);
 void func_800A9DF0(Task* task);
 void func_800AB980(struct _GameSessionFrom4* arg0);

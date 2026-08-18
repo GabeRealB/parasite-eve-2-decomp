@@ -21272,5 +21272,47 @@ color = 0x606060;
 
 `func_800CA838` is the example.
 
+## Store the compared byte through an `s32`; pin jal-return + subtract copies
+
+A switch arm that writes a default byte, then overrides it with the same
+loaded value it just compared (`param[0] = field` when `field == 0xE`
+or `0xF`) wants that load in `$v1` and `sb $v1` with no `andi 0xFF`:
+
+```
+li    v0, 0xd
+sb    v0, 0x10(sp)
+lbu   v1, field
+li    v0, 0xe
+bne   v1, v0, next
+ li   v0, 0xf
+sb    v1, 0x10(sp)
+```
+
+A `u8` local for that field emits `andi a0, v1, 0xff` and hoists the
+`lbu` above the default store. Compare the field directly in the other
+arms; only the "store the loaded value" arm needs an `s32` temp.
+
+The same function's `jal` that returns a slot pointer wants
+`move a0, v0` / `lbu v1, 2(a0)` and then `move v0, v1` /
+`addiu v1, v0, -0x9F` after the `== 0xFF` check. GCC otherwise uses
+`lbu 2(v0)` and in-place `addiu v1, v1, -0x9F` in the `beq` delay
+slot. Pin the pointer to `$a0` and force the subtract source through a
+temp:
+
+```c
+register GpItemSlot* slot asm("a0");
+
+slot = func_800BAFE0(item + 0x7F);
+asm volatile("" : "+r"(slot));
+attach = slot->field_2;
+if (attach != 0 && attach != 0xFF) {
+    temp = attach;
+    asm volatile("" : "+r"(temp));
+    attach = temp - 0x9F;
+}
+```
+
+`func_800A9310` is the example.
+
 
 
