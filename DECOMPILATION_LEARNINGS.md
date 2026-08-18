@@ -20852,5 +20852,76 @@ the `field_956 = 6` body of `func_80109290` (without the
 `field_3 == -2` guard); the second is the `field_956 = 7` body inlined
 in `func_80106838`.
 
+## Duplicate the 1/0 call so the flag stays a branch, not `sltu`
+
+`Ui_SetListScrollFlag(menu, (flags & 0x10) != 0)` and a `flag` temp:
+
+```c
+if (flags & 0x10) {
+    flag = 1;
+} else {
+    flag = 0;
+}
+Ui_SetListScrollFlag(menu, flag);
+```
+
+both emit `andi` / `sltu` / one `jal`. The target wants the delay-slot
+default plus override:
+
+```
+andi  v0, v0, 0x10
+beqz  v0, zero
+ move a0, menu
+j     call
+ li   a1, 1
+zero:
+move  a1, zero
+call:
+jal   Ui_SetListScrollFlag
+```
+
+Write the call in both arms. GCC merges them into one `jal` and keeps
+the `li a1, 1` / `move a1, zero` phi.
+
+```c
+if (arg0->spawnArg1 & 0x10) {
+    Ui_SetListScrollFlag(menu, 1);
+} else {
+    Ui_SetListScrollFlag(menu, 0);
+}
+```
+
+`func_800CC4F4` is the example.
+
+## Reuse the `field_22` temp so confirm copies `lh` / `sh` without a reload
+
+`if (menu->field_22 == 6) { obj->field_2E = menu->field_22; }` reloads
+the halfword for the store (`lhu a0` plus `li v1, 6`). The target
+hoists `6` into the status `bne` delay as `li v0, 6`, loads once, and
+stores that register:
+
+```
+bne   v1, v0, skip
+ li   v0, 6
+lh    v1, 0x22(menu)
+nop
+bne   v1, v0, skip
+ nop
+sh    v1, 0x2e(obj)
+```
+
+Keep the load in a temp and assign that temp:
+
+```c
+sel = menu->field_22;
+if (sel == 6) {
+    obj->field_2E = sel;
+    obj->field_2C = menu->field_20;
+}
+```
+
+`func_800CC4F4` is the example. `func_800CB188` already uses this
+`sel = menu->field_22` form.
+
 
 
