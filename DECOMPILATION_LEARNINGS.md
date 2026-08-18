@@ -20923,5 +20923,77 @@ if (sel == 6) {
 `func_800CC4F4` is the example. `func_800CB188` already uses this
 `sel = menu->field_22` form.
 
+## s32 copies of s16 fields keep `lh` for compare-and-step
+
+A signed halfword used both as a compare operand and as the base of
+`±8` wants two `lh`s and then `addiu` from that register:
+
+```
+lh    v1, 0x24(a3)
+lh    v0, 0x26(a3)
+nop
+bne   v1, v0, step
+ slt  v0, v1, v0
+...
+bnez  v0, store
+ addiu v0, v1, 8
+addiu v0, v1, -8
+store:
+sh    v0, 0x24(a3)
+```
+
+`mem->field_24 += 8` / `-= 8` hoists an extra `lhu` and puts dest in
+`$a0`. Copy both s16 fields into `s32` temps first, then write the
+adjusted temp back:
+
+```c
+s32 cur;
+s32 dest;
+
+cur  = mem->field_24;
+dest = mem->field_26;
+if (cur == dest) {
+    /* equal path */
+} else if (cur < dest) {
+    mem->field_24 = cur + 8;
+} else {
+    mem->field_24 = cur - 8;
+}
+```
+
+`func_800EC47C` case 2 is the example.
+
+## A memory barrier after `if (!flag) x = K; goto dest` splits the join
+
+Two identical `if (!(flag)) state = 3; goto apply` tails are
+cross-jumped into one. A blockage after the `if` keeps both copies
+but makes the flag-set path jump to an intermediate `j apply`
+instead of to `apply` itself:
+
+```
+bnez  skip
+ li   v0, 3
+sw    v0, state
+skip:
+j     apply
+ addiu a0, sp, 0x10
+```
+
+The target wants the `bnez` to go straight to `apply` so the delay
+slot can take `addiu a0` and the store sits in the `j apply` delay:
+
+```
+bnez  apply
+ addiu a0, sp, 0x10
+li    v0, 3
+j     apply
+ sw   v0, state
+```
+
+`asm volatile("" ::: "memory")` after the increment (to stop that
+block sharing a later store) is fine. Do not put one between the
+flag `if` and `goto apply`. `func_800EC47C` is the example; the
+two flag checks still want a non-barrier way to stay unmerged.
+
 
 
