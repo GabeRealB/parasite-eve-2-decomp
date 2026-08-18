@@ -39,6 +39,11 @@ typedef struct {
     GpActorFunc funcs[12];
 } GpActorFuncTable12;
 
+/// 33-entry callback table copied onto the stack by `func_8010615C`.
+typedef struct {
+    GpActorFunc funcs[33];
+} GpActorFuncTable33;
+
 /// 0x10-byte spawn argument for `func_8010BAC8` / `func_801036FC`. `field_0`
 /// is copied to `GameActor.field_52`; `field_4` / `field_8` / `field_C` are
 /// copied to the extra coordinate translation.
@@ -379,6 +384,10 @@ extern TaskFuncTable4 D_80097848;
 /// Four-entry `Task::state` dispatcher: `func_8010B590`, `func_8010B5C0`,
 /// `func_8010B5E4`, `func_8010B5F0`.
 extern TaskFuncTable4 D_80097AB0;
+
+/// `Wip_SysConfig.field_21` dispatcher copied by `func_8010615C`. Unused
+/// slots are `func_801065A0`; others are weapon-overlay entry points.
+extern GpActorFuncTable33 D_800978BC;
 
 /// `field_954` dispatcher: `func_80106838`, `func_80108E40`, `func_80108ED4`.
 extern GpActorFuncTable3 D_80097940;

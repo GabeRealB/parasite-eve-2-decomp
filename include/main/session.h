@@ -236,7 +236,7 @@ typedef struct _GameActor {
     /* 0x964 */ u16                 field_964; // previous field_962
     /* 0x966 */ u16                 field_966;
     /* 0x968 */ u16                 field_968; // released buttons: field_964 & ~field_962
-    /* 0x96A */ byte                pad_96A[2];
+    /* 0x96A */ u16                 field_96A; // set to 0xF89A by func_8010615C
     /* 0x96C */ s16                 field_96C;
     /* 0x96E */ s16                 field_96E;
     /* 0x970 */ s16                 field_970;

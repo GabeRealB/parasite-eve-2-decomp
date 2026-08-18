@@ -1641,7 +1641,58 @@ s32 func_801060E0(GpActorWork* arg0)
     return actor->field_97F;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010615C);
+#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
+__asm__(".section .rodata\n"
+        "\t.align 2\n"
+        "\t.globl D_800978BC\n"
+        "D_800978BC:\n"
+        "\t.word func_801065A0\n"
+        "\t.word 0x8011D1D8\n"
+        "\t.word 0x8011D1C4\n"
+        "\t.word 0x8011D1DC\n"
+        "\t.word 0x8011D1D8\n"
+        "\t.word 0x8011DDA0\n"
+        "\t.word func_801065A0\n"
+        "\t.word func_801065A0\n"
+        "\t.word func_801065A0\n"
+        "\t.word 0x8011D1D8\n"
+        "\t.word func_801065A0\n"
+        "\t.word 0x8011D1D4\n"
+        "\t.word 0x8011D1D4\n"
+        "\t.word 0x8011D1DC\n"
+        "\t.word 0x8011D1DC\n"
+        "\t.word 0x8011D1DC\n"
+        "\t.word 0x8011D1C4\n"
+        "\t.word 0x8011D1DC\n"
+        "\t.word func_801065A0\n"
+        "\t.word 0x8011DBFC\n"
+        "\t.word 0x8011D1C4\n"
+        "\t.word 0x8011D1C4\n"
+        "\t.word 0x8011F724\n"
+        "\t.word 0x8011E040\n"
+        "\t.word func_801065A0\n"
+        "\t.word 0x8011E710\n"
+        "\t.word 0x8011DA34\n"
+        "\t.word 0x8011D1EC\n"
+        "\t.word 0x8011E4F8\n"
+        "\t.word 0x8011F5D4\n"
+        "\t.word 0x8011DDA4\n"
+        "\t.word 0x8011DDA4\n"
+        "\t.word 0x8011DDA4\n"
+        ".section .text\n");
+#endif
+
+void func_8010615C(GpActorWork* arg0)
+{
+    GameActor*         actor;
+    GpActorFuncTable33 sp;
+
+    sp               = D_800978BC;
+    actor            = arg0->actor;
+    actor->field_96A = 0xF89A;
+    actor->field_973 = 0;
+    sp.funcs[Wip_SysConfig.field_21](arg0);
+}
 
 void func_801061F0(void)
 {
