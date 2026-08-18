@@ -20169,4 +20169,55 @@ poly->clut  += (s8)tmp << 6;
 `field_0` / `POLY_GT4` siblings (`func_8009F56C`, `func_8009F708`,
 `func_8009FB28`).
 
+## Finish the 2D byte offset before adding the table base
+
+`arr[row][col]` of a 4-byte cell (row stride 16) hoists `row << 4` into a
+saved reg, but then adds the symbol base to `col << 2` first:
+
+```
+sll    v0, col, 2
+addu   v0, v0, s4    /* + &arr */
+addu   v0, s2, v0    /* + row<<4 */
+```
+
+The target wants the integer offset complete, then the base:
+
+```
+sll    v0, col, 2
+addu   v0, v0, s2    /* + row<<4 */
+addu   v0, v0, s4    /* + &arr */
+```
+
+Hoist `rowOff = row << 4`, add `col << 2`, then index the flattened first
+element. `temp >> 2` cancels against the element size so no extra
+`sra`/`sll` appear:
+
+```c
+rowOff = kind << 4;
+temp   = (otherKind << 2) + rowOff;
+rec    = &D_8010FA4C[0][0] + (temp >> 2);
+```
+
+Inlining `arr[row][col]` stuck at 99.8%. `func_800DB900` is the example
+(same addressing in `func_800E0414`).
+
+## Load both pair fields before the swap `if`
+
+A `{u16 handler, u16 swap}` record that picks argument order must load
+both halves before the branch. `if (rec->field_2 == 0) fn(a,b,rec->field_0)`
+reloads `field_0` in each arm (`lhu a2, 0(v1)`). Locals keep one `lhu` of
+each half and reuse `v0` for `andi a2, v0, 0xffff`:
+
+```c
+swap    = rec->field_2;
+handler = rec->field_0;
+if (swap == 0) {
+    D_8010FA38[handler](node, other, handler);
+} else {
+    D_8010FA38[handler](other, node, handler);
+}
+```
+
+`func_800DB900` is the example.
+
 

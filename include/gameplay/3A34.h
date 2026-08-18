@@ -61,6 +61,9 @@ typedef struct _GpU16Pair {
 } GpU16Pair;
 STATIC_ASSERT_SIZEOF(GpU16Pair, 0x4);
 
+/// Pair-dispatch callback from `D_8010FA38`. `kind` is `GpU16Pair.field_0`.
+typedef void (*GpPairFn)(GpObj* a, GpObj* b, s32 kind);
+
 /// 4-byte table entry at `D_80114028`. `func_800E2CD4(idx, 0)` returns
 /// `field_0` for index `(u16)idx`.
 typedef struct _GpRec4 {
@@ -602,6 +605,16 @@ extern GpGiveRec* D_8010F9F4[];
 /// Per-stage `GpGiveRec` lists selected by `func_800DB128` when
 /// `Mc_SaveData.field_F` is not 0 or 2. Indexed by `GameSession.field_7`.
 extern GpGiveRec* D_8010FA0C[];
+
+/// Pair-handler table used by `func_800DB900` / `func_800E0414`.
+/// Indexed by `D_8010FA4C[].field_0` (`func_800E076C` / `func_800DBCAC` /
+/// `func_800DBE7C`).
+extern GpPairFn D_8010FA38[5];
+
+/// 4x4 pair-rule table used by `func_800DB900` / `func_800E0414`.
+/// Rows/cols are `(flags & 7) - 1`. `field_0` selects `D_8010FA38`;
+/// a non-zero `field_2` swaps the two `GpObj` arguments.
+extern GpU16Pair D_8010FA4C[4][4];
 
 /// Nine-entry table of `GpObj` list heads (`D_80115570` .. `D_80115590`).
 /// `func_800E15AC` appends to `D_8010FA8C[index]`; `func_800E1638` unlinks.
