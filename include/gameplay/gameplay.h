@@ -201,6 +201,7 @@ void func_800A7DB8(s32 arg0);
 void func_800A7DE0(void);
 s32  func_800A7E5C(s32 arg0);
 void func_800A8654(Task* task);
+void func_800A8724(void);
 void func_800A8A48(GpCb2CRec* arg0);
 void func_800A8B14(void);
 void func_800A8B6C(void);

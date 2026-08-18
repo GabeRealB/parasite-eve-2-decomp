@@ -1973,7 +1973,44 @@ void func_800A8654(Task* task)
     Task_Kill(task);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8724);
+void func_800A8724(void)
+{
+    GameSessionFrom4* sess;
+    GpCb2CTbl*        tbl;
+    GpCb2CRec*        recs;
+    GpCb2CRec*        rec;
+    GsCOORDINATE2*    c1;
+    MATRIX*           rot;
+    VECTOR3*          trans;
+    u8                idx;
+
+    sess = (GameSessionFrom4*)&Game_Session->field_4;
+    tbl  = D_8010CB2C[sess->field_3 - 1];
+    recs = tbl->field_0[sess->field_2 - 1];
+    idx  = func_800AD284();
+
+    rot   = &D_80070E44;
+    trans = &D_80070F28;
+    c1    = &D_80070E90;
+    rec   = (GpCb2CRec*)(idx * sizeof(GpCb2CRec) + (s32)recs);
+
+    *(GBytes18*)rot = *(GBytes18*)(rec - 1);
+    *trans          = *(VECTOR3*)&(rec - 1)->mtx.t;
+
+    rec--;
+
+    c1->coord.t[0] = 0;
+    c1->coord.t[1] = 0;
+    c1->coord.t[2] = 0;
+
+    Display_State.field_110 = rec->field_20;
+    gte_SetGeomScreen(rec->field_20);
+    gte_SetGeomOffset(0, 0);
+
+    D_80070E90.flg                                                          = 0;
+    ((GsCOORDINATE2*)((u8*)rot - OFFSET_OF(GsCOORDINATE2, coord)))->flg     = 0;
+    ((GsCOORDINATE2*)((u8*)trans - OFFSET_OF(GsCOORDINATE2, coord.t)))->flg = 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8864);
 
