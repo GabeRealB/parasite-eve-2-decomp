@@ -1051,7 +1051,7 @@ alignment pad).
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x00 | `field_0` | Pointer to a coordinate object (`func_800E0774` passes `+0x24` to `ApplyTransposeMatrixLV` and subtracts `+0x18` / `+0x20` from transformed X / Z) |
+| 0x00 | `field_0` | `GsCOORDINATE2*` (`func_800ACD2C` stores `&D_80070F10`). `func_800E0774` applies `workm` via `ApplyTransposeMatrixLV` and subtracts `coord.t[0]` / `coord.t[2]` from transformed X / Z |
 | 0x14 | `field_14` | s32 X origin added to world X before dividing by `field_20` |
 | 0x18 | `field_18` | s32 Z origin added to world Z before dividing by `field_20` |
 | 0x20 | `field_20` | u16 cell size; divisor for world-to-grid (`lhu`) |

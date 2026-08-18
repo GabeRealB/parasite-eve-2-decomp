@@ -1380,7 +1380,35 @@ s32 func_800E076C(void)
     return 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0774);
+void func_800E0774(VECTOR3* arg0, SVECTOR3* arg1)
+{
+    void**        scratch;
+    u8*           head;
+    VECTOR*       vec;
+    GpGridParams* p;
+    s32           val;
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = *scratch;
+    vec = *scratch = (VECTOR*)(head - 0x10);
+    ApplyTransposeMatrixLV(&D_80115448->field_0->workm, (VECTOR*)arg0, vec);
+    p   = D_80115448;
+    val = ((VECTOR*)(head - 0x10))->vx + p->field_14 - p->field_0->coord.t[0];
+    if (val >= 0) {
+        arg1->vx = val / p->field_20;
+    } else {
+        arg1->vx = -1;
+    }
+    p        = D_80115448;
+    arg1->vy = 0;
+    val      = vec->vz + p->field_18 - p->field_0->coord.t[2];
+    if (val >= 0) {
+        arg1->vz = val / p->field_20;
+    } else {
+        arg1->vz = -1;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+}
 
 void func_800E08CC(GpObj* arg0, VECTOR3* arg1)
 {

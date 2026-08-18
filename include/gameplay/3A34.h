@@ -420,17 +420,17 @@ STATIC_ASSERT_SIZEOF(GpObj3A, 0x3C);
 /// `func_800E0B48` writes `out.vx = (pos.vx + field_14) / field_20` (or -1
 /// if that sum is negative), `out.vy = 0`, and
 /// `out.vz = (pos.vz + field_18) / field_20` (or -1). `func_800E0774`
-/// also loads `field_0` (a coordinate object whose +0x24 is passed to
-/// `ApplyTransposeMatrixLV`, and whose +0x18 / +0x20 are subtracted from
-/// the transformed X / Z). Full object size is not known yet.
+/// applies `field_0->workm` with `ApplyTransposeMatrixLV`, then subtracts
+/// `field_0->coord.t[0]` / `t[2]` from the transformed X / Z. Full object
+/// size is not known yet.
 typedef struct _GpGridParams {
-    /* 0x00 */ void* field_0;
-    /* 0x04 */ byte  pad_4[0x10];
-    /* 0x14 */ s32   field_14;
-    /* 0x18 */ s32   field_18;
-    /* 0x1C */ byte  pad_1C[4];
-    /* 0x20 */ u16   field_20;
-    /* 0x22 */ byte  pad_22[2];
+    /* 0x00 */ struct _GsCOORDINATE2* field_0;
+    /* 0x04 */ byte                   pad_4[0x10];
+    /* 0x14 */ s32                    field_14;
+    /* 0x18 */ s32                    field_18;
+    /* 0x1C */ byte                   pad_1C[4];
+    /* 0x20 */ u16                    field_20;
+    /* 0x22 */ byte                   pad_22[2];
 } GpGridParams;
 STATIC_ASSERT_SIZEOF(GpGridParams, 0x24);
 
@@ -768,6 +768,7 @@ void func_800E0540(GpObj* node);
 void func_800E0608(GpObj* node, s32 mask, s32 match);
 void func_800E06AC(GpObj* node, s32 mask, s32 match);
 s32  func_800E076C(void);
+void func_800E0774(VECTOR3* arg0, SVECTOR3* arg1);
 void func_800E08CC(GpObj* arg0, VECTOR3* arg1);
 void func_800E0B08(void);
 void func_800E0B48(VECTOR3* arg0, SVECTOR3* arg1);
