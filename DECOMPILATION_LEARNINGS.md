@@ -20838,5 +20838,19 @@ clobbered `$v0` still need that move, so the target shares one label.
 `goto` the shared return instead of `return dest` on the occupied arm
 so every path hits `move v0, s0`. `func_800B8B00` is the example.
 
+## INCLUDE_ASM can hide a second function after the last `jr ra`
+
+Splat merges the next function into the previous INCLUDE_ASM when that
+next function has no symbol (no `jal` target, no named entry). After
+the first function’s last `jr ra` comes a standard prologue
+(`addiu $sp, $sp, -N`). Match both as separate C functions in source
+order and add the second address to `sym.*.txt` so a later extract
+splits them.
+
+`func_80108A0C` / `func_80108AD4` is the example. The first function is
+the `field_956 = 6` body of `func_80109290` (without the
+`field_3 == -2` guard); the second is the `field_956 = 7` body inlined
+in `func_80106838`.
+
 
 

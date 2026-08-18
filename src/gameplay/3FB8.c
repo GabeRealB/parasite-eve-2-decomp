@@ -2483,7 +2483,64 @@ void func_801088D4(GpActorWork* arg0, s32 arg1, s32 arg2)
     func_80103A18(arg0, mode, 0, 3);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108A0C);
+void func_80108A0C(GpActorWork* arg0)
+{
+    GameActor*   inner;
+    u16          prev;
+    u16          tens;
+    register s32 temp asm("v0");
+
+    inner            = arg0->actor;
+    prev             = inner->field_956;
+    inner->field_956 = 6;
+    inner->field_97E = 1;
+    inner->field_954 = 0;
+    inner->field_958 = 0;
+    inner->field_95A = 0;
+    inner->field_95C = 0;
+    inner->field_95E = 0;
+    inner->field_973 = 0;
+    inner->field_960 = prev;
+    temp             = (D_80114C08.field_0 % 100U) / 10U;
+    tens             = temp;
+    if (D_80114C08.field_0 >= 0x259U) {
+        if (tens == 1) {
+            inner->field_93C = 0;
+        } else {
+            inner->field_93C = 1;
+        }
+    } else if (tens == 3) {
+        inner->field_93C = 2;
+    } else if (D_80114C08.field_0 < 0x12CU) {
+        inner->field_93C = 1;
+    } else {
+        inner->field_93C = 0;
+    }
+}
+
+void func_80108AD4(GpActorWork* arg0)
+{
+    GameActor* inner;
+    u16        prev;
+
+    inner            = arg0->actor;
+    prev             = inner->field_956;
+    inner->field_954 = 0;
+    inner->field_956 = 7;
+    inner->field_958 = 0;
+    inner->field_95A = 0;
+    inner->field_95C = 0;
+    inner->field_95E = 0;
+    inner->field_981 = 0;
+    inner->field_973 = 0;
+    inner->field_975 = 0;
+    inner->field_960 = prev;
+    func_80103B5C(arg0);
+    inner->field_12A   &= 0x3FFF;
+    D_80114C08.field_6 |= 1;
+    func_80106350(arg0, Wip_SysConfig.field_21, 0);
+    func_80103A18(arg0, 0x19, 3, 6);
+}
 
 void func_80108B80(GpActorWork* arg0)
 {
