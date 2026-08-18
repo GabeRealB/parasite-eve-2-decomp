@@ -437,6 +437,7 @@ void func_800F52B4(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
 void func_800F75BC(Task* arg0);
 void func_800F7AD4(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
 void func_800FB67C(Task* arg0);
+void func_800FC500(Task* arg0);
 void func_800FE41C(Task* arg0);
 void func_800FC6C0(void);
 void func_80101408(GpActorWork* arg0);

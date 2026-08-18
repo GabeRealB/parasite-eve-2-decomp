@@ -84,6 +84,7 @@ void func_8010AD64(GpActorWork* arg0);
 void func_8010B120(GpActorWork* arg0);
 void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3);
+void func_800FBAB0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3);
 s32  func_801011D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F77F8);
@@ -169,7 +170,65 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FBEBC);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FC0B4);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FC500);
+void func_800FC500(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* parent;
+    MATRIX*        m;
+    Task*          slot;
+    s16            flag;
+    s32            one;
+    u8             rgb[3];
+
+    mem   = arg0->spawnArg2;
+    flag  = D_80115740->field_4;
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    if (flag != 0) {
+        if (flag >= 4) {
+            func_800EC7E4(mem, arg0);
+        }
+        return;
+    }
+
+    mem->field_22++;
+    if (arg0->state == 0) {
+        D_80115740->field_12 |= 0x800;
+        slot                  = Game_GetPtrSlot(3);
+        parent                = (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8;
+        one                   = ONE;
+        *(s32*)&coord->coord  = one;
+        coord->sub            = parent + 8;
+        m                     = &coord->coord;
+        *(s32*)&m->m[0][2]    = 0;
+        *(s32*)&m->m[1][1]    = one;
+        *(s32*)&m->m[2][0]    = 0;
+        m->m[2][2]            = one;
+        coord->coord.t[0]     = 0;
+        coord->coord.t[1]     = 0;
+        coord->coord.t[2]     = 0;
+        coord->flg            = 0;
+        arg0->state           = 1;
+    }
+
+    func_80098F58(coord);
+    if (D_80115740->field_14 != 0) {
+        rgb[0] = 0xC0;
+        rgb[1] = 0x30;
+        rgb[2] = 0x60;
+        func_800FBAB0(coord, 0x200, 4, rgb);
+        func_800EAEB8(coord, 0x180, rgb);
+        func_800EAEB8(coord, 0x300, rgb);
+        D_80115740->field_14 = 0;
+    }
+
+    if ((Wip_SysConfig.field_25 & 0x80) && (D_80115740->field_12 & 0x800) &&
+        (D_80115740->field_16 == 1)) {
+        return;
+    }
+    D_80115740->field_10 &= ~0x80;
+    func_800EC7E4(mem, arg0);
+}
 
 void func_800FC6C0(void)
 {
