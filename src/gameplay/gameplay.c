@@ -59,7 +59,7 @@ extern DR_STP         D_80114C50;
 
 void func_800A1634(s32 arg0, s32 arg1);
 void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_800A6F38(GpEnemy* arg0, void* arg1);
+void func_800A6A9C(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_8009939C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800A82C0(GsCOORDINATE2* arg0, VECTOR* arg1);
 void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
@@ -1382,7 +1382,48 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A6480);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A6A9C);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A6F38);
+void func_800A6F38(GpEnemy* arg0, GpHudTrack* arg1)
+{
+    void**                 scratch;
+    register u8*           head asm("v0");
+    register GpHudScratch* block asm("s0");
+    s32                    val;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    head     = head - 0x1C;
+    block    = (GpHudScratch*)head;
+    *scratch = head;
+    if (func_800B9D80(0x100000) != 0) {
+        block->field_14 = 0x6A;
+        block->field_16 = -0x35;
+    } else {
+        block->field_14 = 0x6A;
+        block->field_16 = -0x64;
+    }
+    if (arg1->field_0 != arg0) {
+        arg1->field_0 = arg0;
+        arg1->field_4 = block->field_14;
+        arg1->field_4 = block->field_16;
+    } else {
+        block->field_18   = block->field_14 - arg1->field_4;
+        block->field_1A   = block->field_16 - arg1->field_6;
+        block->field_18 >>= 3;
+        block->field_1A >>= 3;
+        block->field_14   = arg1->field_4 + block->field_18;
+        block->field_16   = arg1->field_6 + block->field_1A;
+    }
+    if (arg0->field_50 != NULL) {
+        val = arg0->field_50->field_4;
+        if (arg0->node.field_4 & 8) {
+            val = -1;
+        }
+        func_800A6A9C(block->field_14 - 8, block->field_16, arg0->field_40, val, 1);
+    }
+    arg1->field_4           = block->field_14;
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    arg1->field_6           = block->field_16;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A70A4);
 
@@ -1582,7 +1623,7 @@ void func_800A7824(s32 arg0, s32 arg1, s32 arg2)
     }
 }
 
-void func_800A784C(void* arg0)
+void func_800A784C(GpHudTrack* arg0)
 {
     GpLinkNode*  target;
     GpActorWork* work;

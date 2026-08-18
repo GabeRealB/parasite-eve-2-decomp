@@ -12,6 +12,31 @@
 #include "main/pad.h"
 #include "main/tmd.h"
 
+struct _GpEnemy;
+
+/// 8-byte follow state passed to `func_800A6F38` / `func_800A784C`.
+/// `field_0` is the last `GpEnemy` drawn; `field_4` / `field_6` are the
+/// previous screen X/Y that `func_800A6F38` lerps toward 0x6A, -0x35
+/// (or -0x64 when `func_800B9D80(0x100000)` is 0).
+typedef struct _GpHudTrack {
+    /* 0x0 */ struct _GpEnemy* field_0;
+    /* 0x4 */ s16              field_4;
+    /* 0x6 */ s16              field_6;
+} GpHudTrack;
+STATIC_ASSERT_SIZEOF(GpHudTrack, 8);
+
+/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_800A6F38`.
+/// `field_14` / `field_16` are the current screen X/Y; `field_18` /
+/// `field_1A` hold the signed deltas before and after `>> 3`.
+typedef struct _GpHudScratch {
+    /* 0x00 */ byte pad_0[0x14];
+    /* 0x14 */ s16  field_14;
+    /* 0x16 */ s16  field_16;
+    /* 0x18 */ s16  field_18;
+    /* 0x1A */ s16  field_1A;
+} GpHudScratch;
+STATIC_ASSERT_SIZEOF(GpHudScratch, 0x1C);
+
 /// Global at `D_80114C08`. `field_0` is a u16 loaded by many helpers.
 /// `field_3` is a signed state byte (`lb`); `func_80109290` compares it to -2
 /// and `func_80109374` requires 0. `field_5` is a signed category index
@@ -169,7 +194,8 @@ s32  func_800A74C4(void);
 void func_800A7574(GpIdMapC* arg0);
 s32  func_800A7B20(s32 arg0);
 s32  func_800A7BBC(s32 arg0, s32 arg1);
-void func_800A784C(void* arg0);
+void func_800A6F38(struct _GpEnemy* arg0, GpHudTrack* arg1);
+void func_800A784C(GpHudTrack* arg0);
 void func_800A7A64(void);
 void func_800A7DB8(s32 arg0);
 void func_800A7DE0(void);

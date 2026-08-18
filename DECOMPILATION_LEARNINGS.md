@@ -20995,5 +20995,33 @@ block sharing a later store) is fine. Do not put one between the
 flag `if` and `goto apply`. `func_800EC47C` is the example; the
 two flag checks still want a non-barrier way to stay unmerged.
 
+## Scratch alloc that stores from `$v0` needs a separate head temp
+
+`G_SCRATCH_HEAD` push that the target writes back from `$v0`:
+
+```
+lw    v0, 0(v1)
+addiu v0, v0, -0x1C
+move  s0, v0
+jal   ...
+ sw   v0, 0(v1)
+```
+
+Folding the decrement into the typed block pointer coalesces to
+`addiu s0, v0, -N` / `sw s0`. Keep the raw head in `$v0`, copy it,
+then store the head:
+
+```c
+register u8*   head asm("v0");
+register Type* block asm("s0");
+
+head     = *scratch;
+head     = head - 0x1C;
+block    = (Type*)head;
+*scratch = head;
+```
+
+`func_800A6F38` is the example.
+
 
 

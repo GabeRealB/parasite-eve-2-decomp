@@ -19,17 +19,23 @@
 /// `field_4` into `field_8` and copies `field_2` into `field_A`).
 /// Same object family as `GpObj4C` / `GpObj54`: `func_800A4904` ORs bit
 /// 0x80 into `field_4E` or claims a `field_54` slot via `func_800E1C58`.
+/// `field_40` is the signed value passed to `func_800A6A9C`; `field_50`
+/// is the same `GpPairSrcE*` slot as `GpObj50` / `GpObj5C` / `GpObj5D`.
 typedef struct _GpEnemy {
-    /* 0x00 */ Task*      task;
-    /* 0x04 */ byte       pad_4[4];
-    /* 0x08 */ u16        field_8;
-    /* 0x0A */ u16        field_A;
-    /* 0x0C */ s32        field_C;
-    /* 0x10 */ GpLinkNode node;
-    /* 0x18 */ void*      field_18;
-    /* 0x1C */ byte       pad_1C[0x32];
-    /* 0x4E */ u8         field_4E;
-    /* 0x4F */ byte       pad_4F[0x11];
+    /* 0x00 */ Task*       task;
+    /* 0x04 */ byte        pad_4[4];
+    /* 0x08 */ u16         field_8;
+    /* 0x0A */ u16         field_A;
+    /* 0x0C */ s32         field_C;
+    /* 0x10 */ GpLinkNode  node;
+    /* 0x18 */ void*       field_18;
+    /* 0x1C */ byte        pad_1C[0x24];
+    /* 0x40 */ s16         field_40;
+    /* 0x42 */ byte        pad_42[0xC];
+    /* 0x4E */ u8          field_4E;
+    /* 0x4F */ byte        pad_4F;
+    /* 0x50 */ GpPairSrcE* field_50;
+    /* 0x54 */ byte        pad_54[0xC];
 } GpEnemy;
 STATIC_ASSERT_SIZEOF(GpEnemy, 0x60);
 

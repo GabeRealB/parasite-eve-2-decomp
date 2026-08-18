@@ -1266,6 +1266,9 @@ Sparse overlay. Pointer at 0x20 is a `GpObj5C*` (same family as
 | 0x0C | `field_C` | Countdown word; `func_800B0544` sets 0x78, `func_800B0560` decrements and advances `Task::state` at 0 |
 | 0x10 | `node` | `GpLinkNode` unlinked by `func_800DAB38` |
 | 0x18 | `field_18` | Set to `&D_80070F10` by `func_800B0494` |
+| 0x40 | `field_40` | Signed halfword passed to `func_800A6A9C` by `func_800A6F38` |
+| 0x4E | `field_4E` | Flags; `func_800A4904` ORs bit 0x80 |
+| 0x50 | `field_50` | `GpPairSrcE*`; `func_800A6F38` loads `field_4` (or -1 when `node.field_4` bit 0x8) |
 
 ### `GpAnimObj` — `1BC.h`
 Source object for `func_800B3CCC` / `func_800B3F60`. Full size unknown.
