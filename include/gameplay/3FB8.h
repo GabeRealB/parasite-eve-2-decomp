@@ -348,9 +348,11 @@ typedef struct _GpCopyArg {
 } GpCopyArg;
 STATIC_ASSERT_SIZEOF(GpCopyArg, 8);
 
-/// Position + rotation argument for `func_80104D68`. `field_0` / `field_4` /
-/// `field_8` are copied onto `GsCOORDINATE2.coord.t`; `field_10` / `field_12` /
-/// `field_14` are copied onto `GameActor` 0x50 and passed to `RotMatrix`.
+/// Position + rotation argument for `func_80104D68` / `func_80104E00`.
+/// `field_0` / `field_4` / `field_8` are copied onto `GsCOORDINATE2.coord.t`;
+/// `field_10` / `field_12` / `field_14` are copied onto `GameActor` 0x50 and
+/// passed to `RotMatrix`. `func_80104E00` copies `field_12` onto
+/// `GameActor.field_82` and picks anim 6 or 5 from the `func_80103E7C` delta.
 typedef struct _GpXformArg {
     /* 0x00 */ s32  field_0;
     /* 0x04 */ s32  field_4;
@@ -450,6 +452,7 @@ void func_8010A1B0(s32 arg0, s32 arg1);
 void func_8010A42C(GpActorWork* arg0, s32 arg1);
 void func_80103B5C(GpActorWork* arg0);
 s32  func_80103B88(GpActorWork* arg0, GpDirArg* arg1);
+s32  func_80104E00(GpActorWork* arg0, s32 arg1, GpXformArg* arg2);
 s32  func_80105070(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3);
 s32  func_801053A0(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);
 void func_8010C81C(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);

@@ -48,7 +48,7 @@ void func_80103AC0(GpActorWork* arg0);
 s16  func_80103E7C(s16 arg0, s16 arg1);
 void func_80103F70(GpActorWork* arg0);
 s32  func_80104B54(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2);
-void func_80104E00(void);
+s32  func_80104E00(GpActorWork* arg0, s32 arg1, GpXformArg* arg2);
 s32  func_80105070(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3);
 s32  func_801053A0(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);
 s32  func_801055D4(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -1157,7 +1157,59 @@ s32 func_80104D68(Task* arg0, s32 arg1, GpXformArg* arg2)
     return 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104E00);
+s32 func_80104E00(GpActorWork* arg0, s32 arg1, GpXformArg* arg2)
+{
+    register GameActor* actor asm("s0");
+    register GameActor* inner asm("s1");
+    WipSysConfig*       p;
+    void**              scratch;
+    u8*                 head;
+    s32                 val;
+    s32                 mode;
+    s32                 angle;
+    s32                 flag;
+
+    flag              = 2;
+    scratch           = (void**)G_SCRATCH_HEAD;
+    head              = *scratch;
+    *scratch          = head - 0x10;
+    inner             = arg0->actor;
+    actor             = inner;
+    p                 = &Wip_SysConfig;
+    actor->field_954  = flag;
+    actor->field_95E  = 0;
+    actor->field_973  = 0;
+    actor->field_975  = 0;
+    p->field_24       = 0;
+    actor->field_97E  = 0;
+    actor->field_60   = 0;
+    actor->field_58   = 0;
+    actor->field_64   = 0;
+    actor->field_5C   = 0;
+    actor->field_6A   = 0;
+    actor->field_68   = 0;
+    actor->field_70   = 0;
+    actor->field_96C  = 0;
+    actor->field_12A &= 0x3FFF;
+    func_80106350(arg0, p->field_21, 0);
+    if (Game_Session->field_1 != 0) {
+        ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
+    }
+    inner->field_982     = 1;
+    inner->field_956     = flag;
+    inner->field_983     = 0x38;
+    angle                = (u16)arg2->field_12;
+    inner->field_82      = angle;
+    val                  = func_80103E7C(inner->field_52, angle);
+    *(s32*)(head - 0x10) = val;
+    mode                 = 6;
+    if (val < 0) {
+        mode = 5;
+    }
+    func_8010397C(arg0, mode, 0);
+    *scratch = (u8*)*scratch + 0x10;
+    return 0;
+}
 
 s32 func_80104F5C(GpActorWork* arg0, s32 arg1, GpFacingArg* arg2)
 {
@@ -4299,14 +4351,14 @@ s32 func_8010C648(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
     return 0;
 }
 
-s32 func_8010C688(void)
+s32 func_8010C688(GpActorWork* arg0, s32 arg1, GpXformArg* arg2)
 {
     WipSysConfig* p;
     u8            saved;
 
     p     = &Wip_SysConfig;
     saved = p->field_24;
-    func_80104E00();
+    func_80104E00(arg0, arg1, arg2);
     p->field_24 = saved;
     return 0;
 }
