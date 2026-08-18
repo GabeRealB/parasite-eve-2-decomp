@@ -251,6 +251,24 @@ typedef struct _GpAimScratch {
 } GpAimScratch;
 STATIC_ASSERT_SIZEOF(GpAimScratch, 0x68);
 
+/// Argument for `func_80105070`. `field_0` / `field_4` / `field_8` are
+/// copied onto `GameActor.field_20` / `field_24` / `field_28`.
+typedef struct _GpVecArg {
+    /* 0x0 */ s32 field_0;
+    /* 0x4 */ s32 field_4;
+    /* 0x8 */ s32 field_8;
+} GpVecArg;
+STATIC_ASSERT_SIZEOF(GpVecArg, 0xC);
+
+/// Optional companion for `func_80105070`. `field_0` / `field_4` are copied
+/// onto `GameActor.field_93C` / `field_93E`. NULL zeros both halfwords.
+typedef struct _GpOverrideArg {
+    /* 0x0 */ u16  field_0;
+    /* 0x2 */ byte pad_2[2];
+    /* 0x4 */ u16  field_4;
+} GpOverrideArg;
+STATIC_ASSERT_SIZEOF(GpOverrideArg, 6);
+
 /// Argument for `func_80104F5C`. `field_0` (low 16 bits) is copied onto
 /// `GameActor.field_80`; `field_4` is copied onto `GameActor.field_82`.
 /// Nonzero `field_0` selects anim 0x25, else 0x24, via `func_8010397C`.
@@ -402,6 +420,7 @@ void func_8010A1B0(s32 arg0, s32 arg1);
 void func_8010A42C(GpActorWork* arg0, s32 arg1);
 void func_80103B5C(GpActorWork* arg0);
 s32  func_80103B88(GpActorWork* arg0, GpDirArg* arg1);
+s32  func_80105070(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3);
 s32  func_801053A0(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);
 void func_8010C81C(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);
 void func_8010B210(GpActorWork* arg0);

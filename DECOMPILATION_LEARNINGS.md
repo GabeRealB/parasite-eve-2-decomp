@@ -14374,9 +14374,9 @@ Declaring that same callee `void` frees `$v0` immediately, so you get
 `li v0,K` instead — a one-register miss on an otherwise identical body.
 
 ```c
-s32 func_80105070(void); /* actually returns 0; do not declare void */
+s32 func_80105070(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3);
 
-func_80105070();         /* jal; nop — $v0 still "holds" the return */
+func_80105070(arg0, arg1, arg2, arg3); /* jal; nop — $v0 still "holds" the return */
 actor->field_956 = 8;    /* li v1,8; sh v1,0x956(s2) */
 return 0;                /* move v0,zero after the restores */
 ```

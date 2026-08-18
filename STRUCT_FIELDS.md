@@ -644,6 +644,9 @@ runs `Tmd_ProcessStream` twice.
 `field_914`..`field_924` are child `Task*` slots killed (if non-NULL) on that path.
 `field_944`..`field_950` / `field_970` are s16 timers written to `0x258` by `func_8010A42C`;
 `field_954` is a u16 (`lhu`/`sh`) cleared with the 0x954–0x95E cluster (nonzero skips the 0x6A adjust in `func_80109720`);
+`field_20` / `field_24` / `field_28` are s32s (`lw`/`sw`); `func_80105070` copies
+`GpVecArg.field_0` / `field_4` / `field_8` here. Optional `GpOverrideArg` (NULL zeros
+both) copies `field_0` / `field_4` onto `field_93C` / `field_93E` and sets `field_956 = 4`.
 `field_93C` is a u16 (`lhu`) mode override; `func_80108CC4` passes it to `func_80103A18` when nonzero (else 4);
 `field_958` is an s16 mode written to 1 or 3 by `func_80105A8C` (third arg zero / nonzero);
 `field_95A`/`field_95C` are u16s in that same cluster (`func_80109818` writes `field_95C = 5`);
