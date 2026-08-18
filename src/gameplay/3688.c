@@ -149,6 +149,7 @@ extern char           D_8009703C[];
 extern char           D_800970D8[];
 extern char           D_800970E0[];
 extern char           D_80097120[];
+extern char           D_80097130[];
 extern char           D_80097138[];
 extern char           D_8009715C[];
 extern u8             D_800971A4;
@@ -1417,7 +1418,80 @@ void func_800CA634(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CA838);
+void func_800CA838(Task* arg0)
+{
+    UiObject*     obj;
+    u8*           text;
+    s32           color;
+    s32           one;
+    s32           width;
+    s32           val;
+    s32           other;
+    WipSysConfig* p;
+    GpItemRec*    rec;
+    GpItemRec*    prev;
+    u8            field21;
+
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    if (arg0->state == 0) {
+        val = arg0->spawnArg1;
+        if ((u32)(val - 0x80) < 0x20U) {
+            p       = &Wip_SysConfig;
+            rec     = func_800D6910(val);
+            field21 = p->field_21;
+            if (field21 != val - 0x7F) {
+                if (field21 != 0) {
+                    prev = func_800D6910(field21 + 0x7F);
+                    if ((s8)rec->field_1 > 0) {
+                        prev->field_1 = rec->field_1;
+                    } else {
+                        func_800BB190(prev->field_0, 0);
+                    }
+                }
+                p->field_21 = val - 0x7F;
+                func_800B91C8(rec);
+                func_800BB7C0(val, 1);
+            }
+        } else if ((u32)(val - 0x60) < 0x20U) {
+            func_800B7A50(val);
+        }
+        width = Text_MeasureWidth(func_800B8EB0(arg0->spawnArg1, 0, 0)) + 0xB;
+        other = Text_MeasureWidth(D_8010E494);
+        if (width < other) {
+            width = other;
+        }
+        Ui_UpdateLayoutSize((UiPanel*)obj, width + 5, Ui_Scale15(2) + 1);
+        ((UiPanel*)obj)->field_C.x = (-((UiPanel*)obj)->field_C.w) >> 1;
+        arg0->killCountdown        = 0xBC;
+        arg0->state                = arg0->state + 1;
+    } else if (arg0->state == 1) {
+        if (obj->mode == 2) {
+            if ((u32)(arg0->spawnArg1 - 0x80) < 0x20U) {
+                SndEvt_EnqueueType6(0xA, 0, 0);
+            } else {
+                SndEvt_EnqueueType6(0x16, 0, 0);
+            }
+            arg0->state = arg0->state + 1;
+        }
+    }
+    Ui_DrawText((UiPanel*)obj, D_80097130);
+    text  = func_800B8EB0(arg0->spawnArg1, 0, 0);
+    color = 0x606060;
+    one   = 1;
+    Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, D_8010E494, color, one, 0);
+    width = Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0x1E, text, 0x37A78, one, 0);
+    Text_DrawPrompt(obj, width, (s16)obj->field_18 + 0x1E, D_8010E59C, color, one, 0);
+    arg0->killCountdown--;
+    if (obj->status == one) {
+        if (Pad_CheckButtons(0, one, D_8005ED78) != 0) {
+            obj->field_2E = -1;
+        } else if ((arg0->killCountdown <= 0) || (Pad_CheckButtons(0, one, D_8005ED70 | D_8005ED74) != 0)) {
+            obj->field_2E       = 9;
+            arg0->killCountdown = 0x7FFF;
+        }
+    }
+}
 
 void func_800CAB40(DialogPrompt* arg0, UiObject* arg1)
 {

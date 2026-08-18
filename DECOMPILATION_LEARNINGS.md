@@ -21234,5 +21234,43 @@ A `switch` on 0..3 emits `slti` range checks. An `if`/`else` that assigns
 `apply = 0` in the default arm *before* the compare places that store
 ahead of `bne mask, expected`. `func_800AE62C` is the example.
 
+## Don't reuse a saved-reg local for a `max` temp; nest the early string load
+
+A layout width that is `max(measure(name) + 0xB, measure(label))` wants
+the second measure in `$v1`:
+
+```
+jal   Text_MeasureWidth
+move  v1, v0
+slt   v0, s0, v1
+beqz  v0, skip
+ nop
+move  s0, v1
+```
+
+Reusing the `spawnArg1` local (`val`, already in `$s0`/`$s1` across the
+equip block) for that second width pins the copy to a callee-saved
+register (`move s1, v0`). Give the compare its own short-lived temp.
+
+The same function also calls `func_800B8EB0` once to measure and again
+to draw. Assigning both results to one `text` local makes that variable
+interfere with `rec` (`$s1`) and `&Wip_SysConfig` (`$s2`), so the later
+`color = 0x606060` / `text = func_800B8EB0(...)` pair swaps (`color` in
+`$s1`, `text` in `$s2`). Nest the first call so `text` is only assigned
+on the draw path:
+
+```c
+width = Text_MeasureWidth(func_800B8EB0(arg0->spawnArg1, 0, 0)) + 0xB;
+other = Text_MeasureWidth(D_8010E494);
+if (width < other) {
+    width = other;
+}
+...
+text  = func_800B8EB0(arg0->spawnArg1, 0, 0);
+color = 0x606060;
+```
+
+`func_800CA838` is the example.
+
 
 
