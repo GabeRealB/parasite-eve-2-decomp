@@ -84,6 +84,7 @@ void func_8010AD64(GpActorWork* arg0);
 void func_8010B120(GpActorWork* arg0);
 void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3);
+s32  func_801011D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F77F8);
 
@@ -259,7 +260,49 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80100784);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80100B78);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80100E40);
+void func_80100E40(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GsCOORDINATE2* coord;
+    GpObj*         objs[2];
+    s32            dy;
+    s32            i;
+    s8             bits;
+
+    actor = arg0->actor;
+    coord = (GsCOORDINATE2*)arg0->extra->field_8;
+    if (actor->field_954 != 2 &&
+        (dy = coord->coord.t[1], dy = dy - actor->field_14, dy = ABS(dy), dy >= 0x300)) {
+        coord->coord.t[0] = actor->field_10;
+        coord->coord.t[1] = actor->field_14;
+        coord->coord.t[2] = actor->field_18;
+    } else {
+        actor->field_10 = coord->coord.t[0];
+        actor->field_14 = coord->coord.t[1];
+        actor->field_18 = coord->coord.t[2];
+        if (actor->field_984 & 1) {
+            actor->field_992 = func_801011D0(coord, actor->field_90, 0x12, &actor->field_930);
+        } else {
+            actor->field_992 = 0;
+        }
+    }
+
+    objs[0] = (GpObj*)actor->field_AC;
+    objs[1] = (GpObj*)actor->field_EC;
+    for (i = 0; i < 2; i++) {
+        bits = actor->field_983;
+        if ((bits >> i) & 1) {
+            actor->field_984 |= 1 << i;
+            objs[i]->flags   |= 0x4000;
+        } else if (bits & (8 << i)) {
+            actor->field_984 &= ~(1 << i);
+            objs[i]->flags   &= ~0x4000;
+        }
+    }
+    actor->field_983 = 0;
+    coord->flg       = 0;
+    func_80098F58(coord);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80100FCC);
 

@@ -276,7 +276,7 @@ typedef struct _GameActor {
     /* 0x98F */ byte                pad_98F;
     /* 0x990 */ u8                  field_990;
     /* 0x991 */ s8                  field_991; // func_80109374 requires 0 to write field_97D = 1
-    /* 0x992 */ byte                pad_992;
+    /* 0x992 */ u8                  field_992; // func_80100E40: func_801011D0 result when field_984 & 1
     /* 0x993 */ u8                  field_993;
 } GameActor;
 STATIC_ASSERT_SIZEOF(GameActor, 0x994);

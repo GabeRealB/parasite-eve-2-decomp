@@ -16728,6 +16728,20 @@ if (temp < 0) {
 `func_80108BD8` is the example. `ABS(cur - tgt)` stuck at ~60% with only
 that subtract flipped.
 
+Assigning `temp = a - b` can still swap the two loads
+(`lw v1, a; lw v0, b; subu v0, v1, v0`). The target wants the minuend in
+`$v0` (`lw v0, a; lw v1, b; subu v0, v0, v1`). Store the minuend first,
+then subtract:
+
+```c
+temp = cur;
+temp = temp - tgt;
+temp = ABS(temp);
+```
+
+`func_80100E40` is the example. The one-shot `temp = cur - tgt` was a
+99.8% register swap of those two `lw`s.
+
 ## Assign `tgt - K` before `cur - wrap` so K stays on `tgt`
 
 `cur - (tgt - 0x1000)` reassociates to `(cur + 0x1000) - tgt`
