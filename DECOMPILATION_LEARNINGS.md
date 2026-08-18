@@ -20092,4 +20092,44 @@ mem->field_28 = D_80112C6C[idx & 3];
 
 `func_800FB67C` is the example.
 
+## Two tail calls that differ by one constant: write both, do not phi the arg
+
+A pair of `Ui_LayoutWithMode0(...)` (or any 6-arg helper) that share every
+argument except a late color wants a *single* `jal` with the call setup
+duplicated in each arm:
+
+```
+bnez  s3, work
+ lui   v1, 0x10
+ori   v1, v1, 0x2010
+addiu a2, s2, -0xe
+li    a3, 0xe
+move  v0, a3
+sw    v0, 0x10(sp)
+j     jal
+ sw    v1, 0x14(sp)
+...
+sw    zero, 0x14(sp)
+jal   Ui_LayoutWithMode0
+ nop
+```
+
+A `color` local assigned in both arms (`color = 0x102010` / `color = 0`)
+lets GCC CSE `a2`/`a3`/`0x10(sp)` *after* the join and remaps saved args
+(`arg3` steals `$s1`). Two full calls with an early `return` on the first
+keeps `s0`..`s3 = a0`..`a3` and leaves only the `jal` shared:
+
+```c
+if (arg3 == 0) {
+    Ui_LayoutWithMode0(arg0, (void*)arg1, (void*)(arg2 - 0xE),
+                       (void*)0xE, (void*)0xE, (void*)0x102010);
+    return;
+}
+/* ... work ... */
+Ui_LayoutWithMode0(arg0, (void*)arg1, (void*)(arg2 - 0xE),
+                   (void*)0xE, (void*)0xE, (void*)0);
+```
+
+`func_800CDA64` is the example.
+
 

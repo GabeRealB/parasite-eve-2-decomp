@@ -1332,7 +1332,37 @@ void func_800CD924(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 a
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CDA64);
+void func_800CDA64(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5)
+{
+    TextDrawReq req;
+    s32         temp;
+    s32         y;
+
+    if (arg3 == 0) {
+        Ui_LayoutWithMode0(arg0, (void*)arg1, (void*)(arg2 - 0xE), (void*)0xE, (void*)0xE, (void*)0x102010);
+        return;
+    }
+    if (arg0->mode != 5) {
+        req.x          = arg0->baseX + 0x11 + arg1;
+        y              = arg0->baseY - 6;
+        req.y          = y + arg2;
+        req.otIndex    = (s16)arg0->drawOrder + 1;
+        req.field_8    = arg4;
+        req.glyphTable = 0;
+        req.centerMode = 0;
+        req.field_E    = 1;
+        func_8002E53C(&req, func_800B8EB0(arg3, 0, 0));
+        if (arg5 != 0) {
+            func_800C22D8(arg0, arg1, arg2, arg3, arg5);
+        }
+        temp = arg3 - 0xF;
+        if ((u32)temp < 0x24U) {
+            func_800C2538(arg0, arg1, arg2, temp % 3 + 1, arg4);
+        }
+        func_800C05CC(arg0, arg1, arg2, arg3, 0);
+    }
+    Ui_LayoutWithMode0(arg0, (void*)arg1, (void*)(arg2 - 0xE), (void*)0xE, (void*)0xE, (void*)0);
+}
 
 void func_800CDBEC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 {
