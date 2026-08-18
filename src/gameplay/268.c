@@ -406,7 +406,93 @@ char* func_800B8EB0(s32 arg0, s32 arg1, s32 arg2)
     return str;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800B904C);
+s32 func_800B904C(GpItemScan* arg0, s32 arg1, s32 arg2)
+{
+    GpItemRec*          tmp;
+    GpItemRec*          table;
+    register GpItemRec* rec asm("t1");
+    GpItemRec*          rec2;
+    WipSysConfig*       cfg;
+    GpItemQty*          table0;
+    GpItemQty*          table1;
+    s32                 idx;
+    register s32        i asm("a3");
+    s32                 item;
+    s32                 off;
+    s32                 temp;
+
+    switch (arg0->field_2) {
+        case 2:
+            tmp = D_80114C20;
+            break;
+        case 1:
+            tmp = D_80114D70;
+            break;
+        default:
+            tmp = Mc_SaveData.field_1AC;
+            break;
+    }
+    table = tmp;
+    idx   = arg0->field_0;
+    cfg   = &Wip_SysConfig;
+    if (arg1 >= 0) {
+        table0 = D_8010E238;
+        table1 = D_8010D278;
+        temp   = idx << 2;
+        rec    = (GpItemRec*)(temp + (s32)table);
+        do {
+            if ((u8)(rec->field_0 + 0x80) < 0x20) {
+                rec2 = rec;
+                if (arg2 == 0) {
+                    goto decrement;
+                }
+                i = 0;
+                asm volatile("" ::"r"(i));
+                item = rec->field_0;
+                off  = (item - 0x80) * 4;
+                item = item - 0x7F;
+                do {
+                    temp = i + off;
+                    if (((GpItemQty*)(temp + (s32)table0))->field_1 == arg2) {
+                        if ((s8)rec2->field_1 > 0) {
+                            arg1--;
+                        } else if (cfg->field_21 == item) {
+                            arg1--;
+                        }
+                        break;
+                    }
+                    i++;
+                } while (i < 3);
+
+                i    = 0;
+                item = rec->field_0;
+                rec2 = rec;
+                off  = (item - 0x80) * 4;
+                item = item - 0x7F;
+                do {
+                    temp = i + off;
+                    if (((GpItemQty*)(temp + (s32)table1))->field_1 == arg2) {
+                        if ((s8)rec2->field_1 > 0) {
+                            goto decrement;
+                        }
+                        if (cfg->field_21 != item) {
+                            goto next;
+                        }
+                    decrement:
+                        arg1--;
+                        goto next;
+                    }
+                    i++;
+                } while (i < 3);
+            }
+        next:
+            rec++;
+            idx++;
+        } while (arg1 >= 0);
+    }
+    idx--;
+    return table[idx].field_0;
+}
 
 void func_800B91C8(GpItemRec* arg0)
 {

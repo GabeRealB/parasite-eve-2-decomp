@@ -245,6 +245,9 @@ s32         func_800B8988(GpItemScan* arg0, s32 arg1);
 /// `arg1` when the bit is clear. Ids `>= 0x500` index `D_801D6484`;
 /// `0x300..0x4FF` unpack and recurse.
 char*       func_800B8EB0(s32 arg0, s32 arg1, s32 arg2);
+/// Returns the `arg1`-th matching item id from the table selected by `arg0`.
+/// `0x80..0x9F` ids match when `arg2 == 0`, or when `arg2` is a related id
+/// in `D_8010E238` / `D_8010D278` and the row is stocked or selected.
 s32         func_800B904C(GpItemScan* arg0, s32 arg1, s32 arg2);
 void        func_800B91C8(GpItemRec* arg0);
 GpItemSlot* func_800BAFE0(s32 arg0);

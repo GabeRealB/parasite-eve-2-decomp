@@ -20755,5 +20755,38 @@ Do not also pin `flagId` / `val`: that rewrites the `lbu` temps
 so the copy fills that `beqz field_6` delay slot. `func_800E34D8` is the
 example.
 
+## Force `i = 0` before an independent load so the delay slot stays `nop`
+
+Zeroing a loop index and then loading an unrelated field:
+
+```c
+i    = 0;
+item = rec->field_0;
+off  = (item - 0x80) * 4;
+```
+
+lets `-fschedule-insns` fill the `lbu` delay with `move i, zero`. The target
+wants the zero first and a real load delay:
+
+```
+move  a3, zero
+lbu   v1, 0(t1)
+nop
+addiu v0, v1, -0x80
+```
+
+`rec[i].field_0` does not help — GCC folds `i == 0` and still moves the
+zero. Pin the index after the store so the load cannot sneak in front:
+
+```c
+i = 0;
+asm volatile("" ::"r"(i));
+item = rec->field_0;
+```
+
+Same barrier already used in `func_800BAC8C`. A later copy of the same
+setup can skip it when another independent move (`rec2 = rec`) is
+available to fill that delay. `func_800B904C` is the example.
+
 
 
