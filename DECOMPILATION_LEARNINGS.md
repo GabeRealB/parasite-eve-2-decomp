@@ -21037,5 +21037,26 @@ block    = (Type*)head;
 
 `func_800A6F38` is the example.
 
+## Evaluate an inlined helper's args before its body
+
+`func_800BF334(item, owner->parent->flags)` is written out in
+`func_800BDAA8` (no `jal`). Computing `flags` only inside
+`if (desc->field_3 & 1)` loads `owner` after the bit test, leaves
+`flag` in `$a0`, and inserts nops. Evaluate the second argument
+first so `owner` stays in `$a0` and `parent` / `flags` load before
+the `andi`:
+
+```c
+owner = arg1->owner;
+flags = owner->parent->flags;
+flag  = 0;
+if (D_8010D838[item].field_3 & 1) {
+    flag = flags == 1;
+}
+```
+
+Compare `Mc_SaveData.field_7` to the already-live `selected == 1`
+temp (`$s2`), not a fresh `1`, so the `bne` reuses that register.
+
 
 

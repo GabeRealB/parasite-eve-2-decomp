@@ -70,6 +70,11 @@ extern UiList D_8010D68C;
 /// UiList used by `func_800BF464`. `field_10` is 1 when `spawnArg1` is 0.
 extern UiList D_8010D6B4;
 void func_800BD6DC(DialogPrompt* arg0, UiObject* arg1);
+/// List-item confirm for `D_8010D67C`. Draws `D_8010D588`, then on confirm
+/// looks up the selected inventory row and inlines `func_800BF334` against
+/// `owner->parent->flags`. A true result opens prompt `0x1E`; dest inventory
+/// (`spawnArg1 == 1`) plus an equipped weapon/armor (`field_21+0x7F` /
+/// `field_23+0x5F`) opens prompt `7`; otherwise `field_2E = 0x23`.
 void func_800BDAA8(DialogPrompt* arg0, UiObject* arg1);
 /// Fills `D_8010D67C` and `arg0->field_4` / `field_5` from the selected
 /// inventory row (`D_8010D628[spawnArg1]` / `D_8010D634[spawnArg1].field_10`).

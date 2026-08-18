@@ -66,6 +66,7 @@ extern u8 D_80114DF0;
 extern u8 D_80114DF1;
 
 void func_800CF7C4(DialogPrompt* arg0, UiObject* arg1);
+void func_800D4E40(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 u8   func_800D1FD4(void);
 
 #endif // GAMEPLAY_3688_H

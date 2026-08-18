@@ -7,12 +7,16 @@
 #include "gameplay/4CC.h"
 #include "main/gamemain.h"
 #include "main/pad.h"
+#include "main/sound.h"
 #include "main/task.h"
 #include "main/text.h"
 #include "main/ui.h"
+#include "main/wipsys.h"
 
-extern s32 D_8005ED74;
-extern s32 D_8005ED78;
+extern s32  D_8005ED70;
+extern s32  D_8005ED74;
+extern s32  D_8005ED78;
+extern char D_8010D588[];
 
 INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BC634);
 
@@ -24,7 +28,61 @@ INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BD2FC);
 
 INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BD6DC);
 
-INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BDAA8);
+void func_800BDAA8(DialogPrompt* arg0, UiObject* arg1)
+{
+    TextDrawReq   req;
+    s32           selected;
+    s32           idx;
+    GpItemRec*    rec;
+    s32           item;
+    s32           flag;
+    s32           flags;
+    Task*         owner;
+    WipSysConfig* cfg;
+
+    req.x          = arg1->baseX + (u16)arg0->field_18;
+    req.y          = arg1->baseY + (u16)arg0->field_1A;
+    req.otIndex    = (s16)arg1->drawOrder + 1;
+    req.field_8    = arg0->field_1C;
+    req.glyphTable = 0;
+    req.centerMode = 0;
+    req.field_E    = 1;
+    func_8002E53C(&req, D_8010D588);
+
+    selected = arg0->field_C;
+    if (selected == 1) {
+        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+            idx  = arg1->owner->spawnArg1;
+            rec  = func_800BB5BC(&D_8010D628 + idx, D_8010D634[idx].field_10, 0);
+            item = rec->field_0;
+            SndEvt_EnqueueType6(3, 0, 0);
+
+            owner = arg1->owner;
+            flags = owner->parent->flags;
+            flag  = 0;
+            if (D_8010D838[item].field_3 & 1) {
+                flag = flags == 1;
+            }
+            if ((D_80114D7C == 0x703) && (item == 0x81) && (Mc_SaveData.field_7 == selected)) {
+                flag = 1;
+            }
+            if (flag) {
+                func_800D4E40(arg1, 0x1E, 0, 0);
+                arg1->status = 0;
+            } else if (arg1->owner->spawnArg1 == 1) {
+                cfg = &Wip_SysConfig;
+                if ((item == cfg->field_21 + 0x7F) || (item == cfg->field_23 + 0x5F)) {
+                    func_800D4E40(arg1, 7, 0, 0);
+                    arg1->status = 0;
+                } else {
+                    arg1->field_2E = 0x23;
+                }
+            } else {
+                arg1->field_2E = 0x23;
+            }
+        }
+    }
+}
 
 void func_800BDC80(UiList* arg0, UiObject* arg1)
 {
