@@ -109,7 +109,52 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FAC40);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FB148);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FB67C);
+void func_800FB67C(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    s16            flag;
+    s32            idx;
+    u8             rgb[3];
+    s32            scale;
+    s32            angle;
+
+    mem   = arg0->spawnArg2;
+    flag  = D_80115740->field_E;
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    if (flag != 0) {
+        if (flag >= 4) {
+            func_800EC7E4(mem, arg0);
+        }
+        return;
+    }
+
+    if (arg0->state == 0) {
+        Gfx_RotMatrixZ(&coord->coord, arg0->spawnArg1 & 0xFFF, 0);
+        coord->flg    = 0;
+        mem->field_24 = 0x80;
+        mem->field_26 = 0x100;
+        idx           = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+        mem->field_28 = D_80112C6C[idx & 3];
+        arg0->state   = 1;
+    }
+
+    func_80098F58(coord);
+    rgb[0] = (mem->field_24 * (((u16)mem->field_28 >> 8) & 0xF)) >> 3;
+    rgb[1] = (mem->field_24 * ((u8)mem->field_28 >> 4)) >> 3;
+    rgb[2] = (mem->field_24 * ((u16)mem->field_28 & 0xF)) >> 3;
+    func_800EBF18(coord, mem->field_26, 0x100, rgb);
+
+    angle         = (u16)mem->field_26;
+    scale         = (u16)mem->field_24;
+    angle        += 0x80;
+    scale        -= 8;
+    mem->field_24 = scale;
+    mem->field_26 = angle;
+    if ((s16)scale < 9) {
+        func_800EC7E4(mem, arg0);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FB7E4);
 

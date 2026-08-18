@@ -745,7 +745,8 @@ Task overlay: `actor` is `Task::idMap` at 0x1C; `extra` is `Task::extra` at
 
 ### `GpEffWork` (0x2C) — `3FB8.h`
 `Task::spawnArg2` for `func_800F1A9C` / `func_800F5184` / `func_800F75BC` /
-`func_800F77F8` / `func_800FE41C`. Allocated by `func_800EA478` (`Mem_Calloc(0x2C)`).
+`func_800F77F8` / `func_800FB67C` / `func_800FE41C`. Allocated by
+`func_800EA478` (`Mem_Calloc(0x2C)`).
 
 | Off | Member | Role |
 |-----|--------|------|
@@ -753,9 +754,9 @@ Task overlay: `actor` is `Task::idMap` at 0x1C; `extra` is `Task::extra` at
 | 0x10 | `field_10` | 3-halfword overlay passed to `func_800EA478` (`&field_10`) |
 | 0x18/1A/1C | `field_18/1A/1C` | s16 translation; sign-extended into `coord.t[]` |
 | 0x22 | `field_22` | Step counter (`func_800F1A9C` / `func_800F5184` / `func_800FE41C`) |
-| 0x24 | `field_24` | Scale / packed `spawnArg1` lo / 0x10 decay-by-2 (`func_800F5184`) |
-| 0x26 | `field_26` | Target scale / `spawnArg1` hi / 0x20 plus `field_2A` (`func_800F5184`) |
-| 0x28 | `field_28` | Size / lifetime / `D_8011291C[].field_0` draw param (`func_800F5184`) |
+| 0x24 | `field_24` | Scale / packed `spawnArg1` lo / 0x10 decay-by-2 (`func_800F5184`) / 0x80 decay-by-8 (`func_800FB67C`) |
+| 0x26 | `field_26` | Target scale / `spawnArg1` hi / 0x20 plus `field_2A` (`func_800F5184`) / 0x100 plus 0x80 (`func_800FB67C`) |
+| 0x28 | `field_28` | Size / lifetime / `D_8011291C[].field_0` draw param (`func_800F5184`) / packed RGB from `D_80112C6C` (`func_800FB67C`) |
 | 0x2A | `field_2A` | Packed draw param for `func_800F7AD4`, or `D_8011291C[].field_2` step |
 
 ### `GpPadReplay` (0x4) — `gameplay.h`

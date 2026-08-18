@@ -20068,4 +20068,28 @@ if (rec[1].field == 0xFFFF) {
 
 `func_8009FD74` is the example.
 
+## Assign an `s16` index to `s32` before `& mask` so the load stays `lh`
+
+`s16 idx; table[idx & 3]` (or using the `s16` field directly as the
+index) lets GCC 2.8.1 see that only the low bits matter and emit `lhu`.
+The target still wants a signed load of the halfword:
+
+```
+lh    v0, 0x36(s2)
+andi  v0, v0, 0x3
+sll   v0, v0, 1
+```
+
+Assign the `s16` field to an `s32` first so the conversion needs sign
+extension, then mask:
+
+```c
+s32 idx;
+
+idx           = spawn->field_2; /* lh */
+mem->field_28 = D_80112C6C[idx & 3];
+```
+
+`func_800FB67C` is the example.
+
 
