@@ -753,7 +753,37 @@ u32* func_8009F504(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009F56C);
+u32* func_8009F56C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+{
+    POLY_GT3* poly;
+    s32       tpage;
+    s32       tmp;
+
+    poly = (POLY_GT3*)arg0->field_0;
+    if (arg0->field_1C-- > 0) {
+        do {
+            *(s32*)&poly->u0 = arg2[3];
+            *(s32*)&poly->u1 = arg2[4];
+            *(u16*)&poly->u2 = *(u16*)&arg2[5];
+            poly->tpage     += (s8)arg0->field_80->field_26;
+            tmp              = arg0->field_80->field_27;
+            tpage            = poly->tpage;
+            tpage           |= 0x20;
+            poly->tpage      = tpage;
+            poly->clut      += (s8)tmp << 6;
+            poly++;
+            *(s32*)&poly->u0 = arg2[3];
+            *(s32*)&poly->u1 = arg2[4];
+            *(u16*)&poly->u2 = *(u16*)&arg2[5];
+            poly->tpage     += arg0->field_70;
+            poly->clut      += arg0->field_72;
+            poly++;
+            arg2 += arg0->field_18;
+        } while (arg0->field_1C-- > 0);
+    }
+    arg0->field_0 = (u8*)poly;
+    return arg2;
+}
 
 u32* func_8009F670(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
