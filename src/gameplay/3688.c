@@ -4,10 +4,13 @@
 
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
+#define Display_SetFadeMax Display_SetFadeMax_u8
 #include "gameplay/3A34.h"
 #include "gameplay/4CC.h"
 #include "gameplay/D4.h"
 #include "main/display.h"
+#undef Display_SetFadeMax
+void Display_SetFadeMax(s32 arg0);
 #include "main/fs.h"
 #include "main/gameflag.h"
 #include "main/gamemain.h"
@@ -25,6 +28,9 @@
 extern s32          D_8010E8F8[5];
 extern u16          D_80114D84;
 extern s32          D_80114D88;
+extern s32          D_80114DE0;
+extern s32          D_80114DE4;
+extern s32          D_80114DE8;
 extern s32          D_80114D8C;
 extern s32          D_80114D90;
 extern UiObject*    D_80114D98[];
@@ -83,8 +89,14 @@ extern UiObjectDesc D_8010D348;
 extern UiObjectDesc D_8010D6D8;
 extern UiObjectDesc D_8010EA98;
 extern UiObjectDesc D_8010EAB4;
+extern UiObjectDesc D_8010EEA4;
 extern UiObjectDesc D_8010EAD0;
 extern UiObjectDesc D_8010F140;
+extern UiObjectDesc D_8010F898;
+extern UiObjectDesc D_80184F70;
+extern TaskDesc     D_8010E7E8;
+extern s32          D_8010E7F4;
+extern s16          D_80115716;
 extern UiObjectDesc D_8010EB08;
 extern UiObjectDesc D_8010EB94;
 extern UiObjectDesc D_8010EBCC;
@@ -189,8 +201,298 @@ void       func_800C9654(Task* arg0);
 void       func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void       func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 GpItemRec* func_800C5188(McItemScan* arg0, s32 arg1, s32 arg2);
+s32        Display_SetFlag20000000(void);
+s32        Stage_GetFadeStatus(void);
+void       Stage_InitOtOnce(void);
+void       Stage_ResetFade(void);
+s32        Display_GetModeByte12(void);
+Task*      Task_SpawnOnDefaultList(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3);
+void       func_800CDEF4(void);
+void       func_800BC2C4(void);
+void       func_800BBF1C(void);
+void       func_800A78EC(void);
+void       func_800A9A40(s32 arg0);
+void       func_800A9BE4(void);
+void       func_800A7E4C(void);
+s32        func_801043F4(void);
+void       func_801034C0(void);
+void       func_8010870C(void* arg0, s32 arg1);
+void       func_800E3CEC(s32* arg0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800BF9FC);
+void func_800BF9FC(Task* arg0)
+{
+    switch (arg0->state) {
+        case 0: {
+            WipSysConfig* cfg;
+
+            GameMain_SetFrameTiming(0);
+            D_80114D88 = 0;
+            SndEvt_EnqueueTypeD();
+            func_800CDEF4();
+            D_80067634 = NULL;
+            D_80114DE0 = -1;
+            cfg        = &Wip_SysConfig;
+            D_80114DE8 = cfg->field_21;
+            D_80114DE4 = cfg->field_22;
+            if (cfg->field_21 != 0) {
+                D_80114DE0 = func_800BAFE0(cfg->field_21 + 0x7F)->field_2;
+            }
+            func_800BC2C4();
+            arg0->killCountdown = 1;
+            arg0->state         = 0xA;
+            if ((arg0->spawnArg1 == 0x42) || (arg0->spawnArg1 == 0x44)) {
+                arg0->killCountdown = 2;
+                arg0->state         = 0xF;
+            }
+            return;
+        }
+        case 0xA:
+            if (Stage_GetFadeStatus() != 1) {
+                return;
+            }
+            Display_SetFlag20000000();
+            Stage_ResetFade();
+            arg0->killCountdown = 2;
+            arg0->state        += 5;
+            return;
+        case 0xF:
+            arg0->killCountdown--;
+            if (arg0->killCountdown > 0) {
+                return;
+            }
+            Display_State.field_103 = 2;
+            Stage_InitOtOnce();
+            Display_InitPrimBufOnce();
+            arg0->state += 5;
+            return;
+        case 0x14: {
+            RECT          rect;
+            DisplayState* disp;
+            UiObject*     obj;
+            s32           arg;
+
+            disp            = &Display_State;
+            disp->field_103 = 2;
+            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+                return;
+            }
+            if (disp->frameMode != disp->field_1f) {
+                return;
+            }
+            rect.y = (disp->frameMode ^ 1) * 0x110;
+            rect.w = 0x140;
+            rect.x = 0;
+            rect.h = 0xF0;
+            ClearImage(&rect, 0, 0, 0);
+            DrawSync(0);
+            Mem_InitAux();
+            if (disp->field_12c != 0) {
+                disp->field_11e = 1;
+                break;
+            }
+            arg = arg0->spawnArg1;
+            if (arg == 0x45) {
+                register s32 ca0 asm("a0");
+                register s32 ca1 asm("a1");
+                register s32 ca2 asm("a2");
+
+                ca0 = 1;
+                ca1 = 0;
+                ca2 = ca1;
+                asm("" : "+r"(ca0), "+r"(ca1), "+r"(ca2));
+                Wip_UiHolder = NULL;
+                CdCmd_EnqueueLoadFile(ca0, ca1, ca2);
+            }
+            {
+                register UiObjectDesc* desc asm("a0");
+                register s32           a1 asm("a1");
+                register s32           a2 asm("a2");
+                register s32           a3 asm("a3");
+                s32                    flag;
+
+                if (arg == 0x45) {
+                    desc = &D_8010EEA4;
+                    a1   = 1;
+                    a2   = 1;
+                    a3   = 2;
+                    obj  = Ui_SpawnFromDesc(desc, a1, a2, a3, 0);
+                } else if (arg == 0x44) {
+                    desc = &D_80184F70;
+                    a1   = 0;
+                    a2   = 1;
+                    a3   = a2;
+                    obj  = Ui_SpawnFromDesc(desc, a1, a2, a3, 0);
+                } else if (arg == 0x43) {
+                    desc = &D_8010F140;
+                    a1   = 0;
+                    a2   = 1;
+                    a3   = 8;
+                    obj  = Ui_SpawnFromDesc(desc, a1, a2, a3, 0);
+                } else {
+                    if (arg == 0x42) {
+                        desc = &D_8010F898;
+                        a1   = 0;
+                        a2   = 1;
+                        asm("" : "+r"(a2));
+                        a3   = a2;
+                        flag = a2;
+                    } else {
+                        desc = &D_8010EAB4;
+                        a1   = 0;
+                        a2   = 0;
+                        a3   = 2;
+                        flag = 1;
+                    }
+                    disp->field_122 = flag;
+                    obj             = Ui_SpawnFromDesc(desc, a1, a2, a3, 0);
+                }
+            }
+            if (obj == NULL) {
+                break;
+            }
+            arg0->spawnArg2       = obj;
+            Game_Session->field_2 = 1;
+            if (arg0->spawnArg1 != 0x44) {
+                SndEvt_EnqueueType6(1, 0, 0);
+            }
+            break;
+        }
+        case 0x1E:
+            Display_State.field_103 = 1;
+            arg0->state            += 0xA;
+        case 0x28: {
+            UiObject*    obj;
+            register s32 fade asm("a0");
+
+            obj = arg0->spawnArg2;
+            if ((obj->field_2E != 6) && (obj->field_2E != -1)) {
+                return;
+            }
+            Ui_TeardownTree(obj, obj->owner);
+            if ((arg0->spawnArg1 != 0x44) && (arg0->spawnArg1 != 0x42)) {
+                SndEvt_EnqueueType6(5, 0, 0);
+            }
+            fade = 0xFF;
+            asm("" : "+r"(fade));
+            arg0->killCountdown = 0xC;
+            Display_SetFadeMax(fade);
+            Display_SetFadeRate(0, 0, 0, 1);
+            break;
+        }
+        case 0x32: {
+            DisplayState*      disp;
+            WipSysConfig*      cfg;
+            s32                attach;
+            s32                old;
+            register TaskNode* list asm("s1");
+            register TaskNode* prev asm("s3");
+            register s32       saved asm("s2");
+
+            arg0->killCountdown--;
+            if (arg0->killCountdown > 0) {
+                return;
+            }
+            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+                return;
+            }
+            {
+                DisplayState* d;
+                d = &Display_State;
+                if (d->frameMode != d->field_114) {
+                    return;
+                }
+                d->field_103 = 2;
+                Stage_ReleasePrimBuf();
+            }
+            Mem_ConfigureAuxHeap(Game_Session->field_7, Game_Session->field_6);
+            if (func_800A7508() == 0) {
+                func_800A78EC();
+            }
+            if (D_80114D88 == 1) {
+                func_800A9A40(1);
+            }
+            attach = -1;
+            Mem_InitAux();
+            cfg = &Wip_SysConfig;
+            func_800BBF1C();
+            if (cfg->field_21 != 0) {
+                attach = func_800BAFE0(cfg->field_21 + 0x7F)->field_2;
+            }
+            if ((D_80114DE8 == cfg->field_21) && (D_80114DE4 == cfg->field_22) &&
+                (D_80114DE0 == attach)) {
+                break;
+            }
+            prev = Task_GetActiveList();
+            list = &Task_DefaultList;
+            Task_SetActiveList(list);
+            saved              = cfg->field_21;
+            old                = (u8)D_80114DE8;
+            disp               = &Display_State;
+            disp->skipTeardown = 1;
+            cfg->field_21      = old;
+            func_801043F4();
+            Task_CallExitFiltered(list, 0x52);
+            disp->skipTeardown = 0;
+            cfg->field_21      = saved;
+            Task_SetActiveList(prev);
+            func_800A9BE4();
+            break;
+        }
+        case 0x3C: {
+            WipSysConfig* cfg;
+            register s32  attach asm("a0");
+            TaskNode*     prev;
+            s32*          flag;
+
+            if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+                return;
+            }
+            cfg    = &Wip_SysConfig;
+            attach = -1;
+            if (cfg->field_21 != 0) {
+                attach = func_800BAFE0(cfg->field_21 + 0x7F)->field_2;
+            }
+            if ((D_80114DE8 != cfg->field_21) || (D_80114DE4 != cfg->field_22) ||
+                (D_80114DE0 != attach)) {
+                prev = Task_GetActiveList();
+                Task_SetActiveList(&Task_DefaultList);
+                flag  = &D_8005ED8C;
+                *flag = 1;
+                func_801034C0();
+                if (D_801153F0.field_0 == 1) {
+                    func_8010870C(Game_GetPtrSlot(3), 5);
+                }
+                if (arg0->spawnArg1 == 0x44) {
+                    func_800E3CEC(&D_8010E7F4);
+                    func_800AC464(Game_GetPtrSlot(3), 0x3E8, (s32)&D_8010E7F4, 0);
+                }
+                *flag = 0;
+                Task_SetActiveList(prev);
+            }
+            GameMain_SetFrameTiming(1);
+            Display_State.field_122 = 0;
+            Game_Session->field_2   = 0;
+            Gpu_ResetGraphAndOt();
+            if (Display_GetModeByte12() == 0) {
+                Stage_SetEndingFlag();
+            } else {
+                Display_BeginMode7((u8)Game_Session->field_4);
+            }
+            Task_SpawnOnDefaultListA(1, 0x27, 2, 0);
+            if (Task_SpawnOnDefaultList(&D_8010E7E8, 0, 0, 0) != NULL) {
+                Display_AcquireRef();
+            }
+            D_80115716 = 8;
+            func_800A7E4C();
+            Task_CallExit(arg0);
+            SndEvt_EnqueueTypeE();
+            break;
+        }
+        default:
+            return;
+    }
+    arg0->state += 0xA;
+}
 
 void func_800C010C(UiObject* arg0, Task* arg1)
 {

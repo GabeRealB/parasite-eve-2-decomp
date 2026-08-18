@@ -20617,5 +20617,48 @@ The 0x1C scratch is the 0x18 light block plus `s32 scale` at +0x18.
 stores read `block->dir` (`lhu 0x10(s0)`). Pin `block` to `$s0` so it does
 not swap with the dir-matrix pointer.
 
+## Local `s32` prototype so `Display_SetFadeMax(0xFF)` can fill a delay slot
+
+`display.h` declares `void Display_SetFadeMax(u8 arg0)`. Passing an `s32`
+local then emits `andi a0, a0, 0xff` in the `jal` delay, which steals the
+slot the target uses for `sh killCountdown`. A TU-local `s32` prototype
+(rename the header declaration, then redeclare) lets
+
+```c
+register s32 fade asm("a0");
+fade = 0xFF;
+asm("" : "+r"(fade));
+arg0->killCountdown = 0xC;
+Display_SetFadeMax(fade);
+```
+
+emit `li a0, 0xff` / `li v0, 0xc` / `jal` / `sh v0, 0x2a(s5)`. Do not
+change the main header. `func_800BF9FC` is the example.
+
+## Per-arm 5-arg calls so `sw zero, 0x10(sp)` sinks and stays before `jal`
+
+A single `Ui_SpawnFromDesc(..., 0)` at the join of an if/else chain puts
+`sw zero, 0x10(sp)` in the `jal` delay slot. The target wants that store
+as the first instruction of two skip-join arms *and* as a labeled
+instruction immediately before `jal` / `nop` (so a third arm can jump to
+the store). Write the call in each arm:
+
+```c
+if (arg == 0x45) {
+    obj = Ui_SpawnFromDesc(desc, 1, 1, 2, 0);
+} else if (arg == 0x44) {
+    obj = Ui_SpawnFromDesc(desc, 0, 1, 1, 0);
+} else if (arg == 0x43) {
+    obj = Ui_SpawnFromDesc(desc, 0, 1, 8, 0);
+} else {
+    /* 0x42 / default also set field_122 */
+    obj = Ui_SpawnFromDesc(desc, a1, a2, a3, 0);
+}
+```
+
+GCC 2.8.1 merges the identical `jal`s and sinks the 5th-arg home.
+A `parent` local instead homes to a register (`move v0, zero`) or a
+new stack slot and grows the frame. `func_800BF9FC` is the example.
+
 
 
