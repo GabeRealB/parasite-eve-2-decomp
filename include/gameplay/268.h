@@ -240,6 +240,10 @@ s32         func_800BAF08(void);
 s32         func_800BAF5C(GpItemScan* arg0);
 /// True if `arg1` can be added to the item table selected by `arg0`.
 s32         func_800B8988(GpItemScan* arg0, s32 arg1);
+/// Writes item `arg2` into scan slot `arg1`. Ids `0xA0..0xBF` are added with
+/// `func_800BAD08` first, then an existing stack is moved onto the slot when
+/// it is empty. Other ids overwrite the slot (re-adding the previous item).
+GpItemRec*  func_800B8B00(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// Returns the `arg1`-th text field of item `arg0` (NUL / `\\n` / `\\N`
 /// delimiters). `arg2 == 0` reads `Mc_SaveData.field_6D0` and adds 3 to
 /// `arg1` when the bit is clear. Ids `>= 0x500` index `D_801D6484`;

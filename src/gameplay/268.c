@@ -330,7 +330,87 @@ s32 func_800B8988(GpItemScan* arg0, s32 arg1)
     return used <= capacity;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800B8B00);
+GpItemRec* func_800B8B00(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    GpItemRec*          tmp;
+    register GpItemRec* table asm("s1");
+    GpItemRec*          dest;
+    GpItemRec*          walker;
+    register GpItemRec* rec asm("v1");
+    GpItemRec*          found;
+    GpItemRec*          slot;
+    s32                 i;
+    s32                 start;
+    register s32        idx asm("v1");
+    register s32        field0 asm("v0");
+    s32                 item;
+    s32                 qty;
+
+    switch (arg0->field_2) {
+        case 2:
+            tmp = D_80114C20;
+            break;
+        case 1:
+            tmp = D_80114D70;
+            break;
+        default:
+            tmp = Mc_SaveData.field_1AC;
+            break;
+    }
+    table = tmp;
+    if ((u32)(arg2 - 0xA0) < 0x20U) {
+        dest = func_800BAD08(arg0, arg2, arg3);
+        i    = arg0->field_0;
+        if (((GpItemRec*)(((i + arg1) << 2) + (s32)table))->field_0 != 0) {
+            goto done;
+        }
+        start = i;
+        asm volatile("" ::"r"(start));
+        if (arg0->field_1 == 0) {
+            return dest;
+        }
+        i      = 0;
+        walker = (GpItemRec*)((start << 2) + (s32)table);
+        do {
+            if (walker->field_0 == arg2) {
+                if (i == arg1) {
+                    return dest;
+                }
+                dest           = (GpItemRec*)((s32)table + ((arg0->field_0 + arg1) << 2));
+                dest->field_0  = arg2;
+                found          = walker;
+                slot           = (GpItemRec*)(((arg0->field_0 + arg1) << 2) + (s32)table);
+                slot->field_2  = found->field_2;
+                found->field_0 = 0;
+                table          = found;
+                table->field_2 = 0;
+                goto done;
+            }
+            i++;
+            walker++;
+        } while (i < arg0->field_1);
+        return dest;
+    }
+    field0 = arg0->field_0;
+    idx    = field0 + arg1;
+    field0 = idx << 2;
+    asm volatile("" ::"r"(field0));
+    rec = (GpItemRec*)(field0 + (s32)tmp);
+    if (rec->field_0 == 0) {
+        dest          = rec;
+        dest->field_0 = arg2;
+        dest->field_2 = 1;
+        goto done;
+    }
+    dest          = rec;
+    item          = dest->field_0;
+    qty           = dest->field_2;
+    dest->field_0 = arg2;
+    dest->field_2 = 1;
+    func_800BAD08(arg0, item, qty);
+done:
+    return dest;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B8CAC);
 

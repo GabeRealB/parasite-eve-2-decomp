@@ -20788,5 +20788,55 @@ Same barrier already used in `func_800BAC8C`. A later copy of the same
 setup can skip it when another independent move (`rec2 = rec`) is
 available to fill that delay. `func_800B904C` is the example.
 
+## Do not pin the switch result to `$a0` if the `la` must split through `$v0`
+
+The item-table switch (`D_80114C20` / `D_80114D70` / `Mc_SaveData.field_1AC`)
+wants the default hi in the `bne` delay slot and a split `la`:
+
+```
+bne   field, 2, default
+ lui  v0, %hi(Mc_SaveData)
+lui   v0, %hi(D_80114C20)
+j     join
+ addiu a0, v0, %lo(D_80114C20)
+default:
+addiu a0, v0, %lo(Mc_SaveData+0x1AC)
+```
+
+`register GpItemRec* tmp asm("a0")` fuses each `la` into `lui a0` /
+`addiu a0, a0` and puts the case-2 hi in that delay slot instead. Leave
+`tmp` unconstrained so GCC uses `$v0` as the address builder; `tmp`
+still lands in `$a0` when the else path indexes it after the range
+check. `func_800B8B00` is the example.
+
+## Reassign the running pointer before a field-2 store to kill the IV
+
+A search loop that both walks `walker++` and writes `walker->field_2 = 0`
+lets GCC keep `&walker->field_2` as a second induction variable
+(`addiu a2, a1, 2` / `addiu a2, a2, 4`). The target uses `lhu`/`sh` at
+`2(a1)` only.
+
+Copy the found row onto the table pointer (now dead in that arm) and
+store through the copy:
+
+```c
+found          = walker;
+found->field_0 = 0;
+table          = found;
+table->field_2 = 0;
+```
+
+`found->field_2 = 0` still builds the IV. `func_800B8B00` is the example.
+
+## Occupied-slot `return dest` after a delayed `dest = jal` skips `move v0, s0`
+
+`dest = func(...)` scheduled into a later `bnez` delay slot leaves `$v0`
+holding the return value. `return dest` on that arm then jumps past the
+shared `move v0, s0` (GCC sees `$v0` is still live). Sibling arms that
+clobbered `$v0` still need that move, so the target shares one label.
+
+`goto` the shared return instead of `return dest` on the occupied arm
+so every path hits `move v0, s0`. `func_800B8B00` is the example.
+
 
 
