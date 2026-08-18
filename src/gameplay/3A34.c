@@ -17,11 +17,13 @@
 
 #include <psyq/inline_c.h>
 
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtv0_real()   __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_rtps_real()   __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtirtr_real() __asm__ volatile("nop; nop; .word 0x4A498012")
 
 s32  func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 
 extern s32 D_80070F60;
 
@@ -729,7 +731,84 @@ void* func_800DADE4(GpActorWork* arg0, VECTOR3* pos)
     return func_800DA2A0(arg0, pos, flag);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DAE50);
+/* After D_8009745C from func_800D8684 so overlay .rodata stays packed. */
+const char D_80097460[] = {
+    '#',
+    '#',
+    '#',
+    '#',
+    '#',
+    '#',
+    '#',
+    'g',
+    'e',
+    't',
+    '_',
+    'l',
+    'o',
+    'c',
+    'k',
+    '_',
+    'p',
+    'o',
+    's',
+    ' ',
+    '-',
+    '-',
+    '-',
+    '>',
+    ' ',
+    'N',
+    'U',
+    'L',
+    'L',
+    '!',
+    '!',
+    '!',
+    '\n',
+    '\0',
+    0x8C,
+    0x16,
+};
+
+void func_800DAE50(GpLockPos* arg0, VECTOR3* out)
+{
+    GsCOORDINATE2* world;
+    GsCOORDINATE2* coord;
+    void**         scratch;
+    u8*            head;
+    MATRIX*        mat;
+
+    if (arg0 == NULL) {
+        printf(D_80097460);
+        out->vx = 0;
+        out->vy = 0;
+        out->vz = 0;
+        return;
+    }
+
+    coord = arg0->coord;
+    world = &D_80070F10;
+    if (coord == world) {
+        out->vx = arg0->pos.vx;
+        out->vy = arg0->pos.vy;
+        out->vz = arg0->pos.vz;
+        return;
+    }
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    *scratch = head - 0x28;
+    func_80098F58(coord);
+    mat = (MATRIX*)(head - 0x20);
+    func_800A8864(&world->workm, &coord->workm, mat);
+    gte_SetRotMatrix(mat);
+    gte_SetTransMatrix(mat);
+    gte_ldlvl(&arg0->pos);
+    gte_rtirtr_real();
+    gte_stlvl(out);
+    *scratch = (u8*)*scratch + 0x28;
+}
 
 void func_800DAF98(void)
 {

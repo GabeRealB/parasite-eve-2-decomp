@@ -507,7 +507,7 @@ STATIC_ASSERT_SIZEOF(GpSlot70, 0xC);
 /// Overlay used by `func_800DB004`. `field_8` is a `GsCOORDINATE2*`
 /// (`workm` is loaded as both rotation and translation). `field_C` /
 /// `field_10` / `field_14` are the low halves of a `VECTOR3` at +0xC
-/// (same layout `func_800DAE50` loads as three words).
+/// (same layout `GpLockPos.pos` / `func_800DAE50` loads as three words).
 typedef struct _GpPerspSrc {
     /* 0x00 */ byte  pad_0[8];
     /* 0x08 */ void* field_8;
@@ -519,6 +519,15 @@ typedef struct _GpPerspSrc {
     /* 0x16 */ byte  pad_16[2];
 } GpPerspSrc;
 STATIC_ASSERT_SIZEOF(GpPerspSrc, 0x18);
+
+/// Source for `func_800DAE50` (`get_lock_pos`). `coord` is the world
+/// transform; `pos` is the local `VECTOR3`. Overlays `GpPerspSrc`.
+typedef struct _GpLockPos {
+    /* 0x00 */ byte                   pad_0[8];
+    /* 0x08 */ struct _GsCOORDINATE2* coord;
+    /* 0x0C */ VECTOR3                pos;
+} GpLockPos;
+STATIC_ASSERT_SIZEOF(GpLockPos, 0x18);
 
 /// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `func_800DB004`.
 /// `vec` is the packed `SVECTOR` fed to RTPS. `p` / `flag` / `otz` hold
@@ -686,6 +695,10 @@ extern u16 D_80113D38[];
 /// "Weapon" string drawn by `func_800D6AA4` (trailing 0x60 byte).
 extern const char D_80097454[];
 
+/// "#######get_lock_pos ---> NULL!!!\n" printed by `func_800DAE50`
+/// (trailing 0x8C 0x16 bytes).
+extern const char D_80097460[];
+
 /// Returns 1 if item `arg0` cannot be used, 0 if it can.
 /// `arg1` supplies `field_2` (capacity) for ammo ids 0xA0–0xBF.
 s32        func_800D6170(s32 arg0, GpItemRec* arg1);
@@ -724,6 +737,7 @@ void* func_800DA2A0(GpActorWork* arg0, VECTOR3* pos, s32 arg2);
 void* func_800DAD54(GpActorWork* arg0);
 void* func_800DAD78(GpActorWork* arg0);
 void* func_800DADE4(GpActorWork* arg0, VECTOR3* pos);
+void  func_800DAE50(GpLockPos* arg0, VECTOR3* out);
 void  func_800DAF98(void);
 void  func_800DAFD0(void);
 s32   func_800DB004(GpPerspSrc* arg0, s32* sxy);

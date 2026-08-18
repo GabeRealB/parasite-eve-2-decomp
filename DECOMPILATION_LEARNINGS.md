@@ -20292,5 +20292,33 @@ deletes the extra file. Emit the table with the same inline
 `.section .rodata` block used for `D_800979F8` (`func_80108E40`). Keep
 any trailing `0` word that sits before the next `.align 3` jump table.
 
+## Copy a `VECTOR3` through the parent pointer; load the compared field first
+
+Copying via a sub-pointer (`pos = &arg0->pos; out->vx = pos->vx`)
+emits `addiu v1, s4, 0xC` and then `lw 4(v1)` / `lw 8(v1)`. Field
+access through the original pointer keeps the loads on that register:
+
+```c
+out->vx = arg0->pos.vx;
+out->vy = arg0->pos.vy;
+out->vz = arg0->pos.vz;
+```
+
+When the same object’s pointer field is compared to a global, load
+the field first so `lw` precedes `lui %hi(global)`:
+
+```c
+coord = arg0->coord;
+world = &D_80070F10;
+```
+
+Reversing those two lines swaps the `lw` / `lui`. Keeping `world` also
+makes `&world->workm` `addiu a0, s5, 0x24` instead of a fresh
+`la D_80070F34`. `func_800DAE50` is the example.
+
+A full `MATRIX` applied to a `VECTOR3` is `gte_SetRotMatrix` +
+`gte_SetTransMatrix` + `gte_ldlvl` + `gte_rtirtr_real`
+(`.word 0x4A498012`, MVMVA on IR with TR) + `gte_stlvl`.
+
 
 
