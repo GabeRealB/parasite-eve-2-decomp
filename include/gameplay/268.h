@@ -246,7 +246,8 @@ s32         func_800BB470(s32 arg0);
 s32         func_800BB4BC(s32 arg0);
 GpItemRec*  func_800BB500(GpItemScan* arg0);
 s32         func_800BB540(GpItemScan* arg0, GpItemRec* arg1);
-GpItemRec*  func_800BB5BC(GpItemScan* arg0, s32 arg1);
+/// `arg2` is unused; some callers pass 0 so the `jal` delay slot is `move a2, zero`.
+GpItemRec*  func_800BB5BC(GpItemScan* arg0, s32 arg1, s32 arg2);
 s32         func_800BB610(GpItemScan* arg0, s32 arg1);
 s32         func_800BB668(s32 arg0);
 s32         func_800BB6FC(GpItemScan* arg0, s32 arg1);

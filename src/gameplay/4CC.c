@@ -3,6 +3,7 @@
 #include <psyq/libgte.h>
 
 #include "gameplay/268.h"
+#include "gameplay/3688.h"
 #include "gameplay/4CC.h"
 #include "main/gamemain.h"
 #include "main/pad.h"
@@ -25,7 +26,43 @@ INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BD6DC);
 
 INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BDAA8);
 
-INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BDC80);
+void func_800BDC80(UiList* arg0, UiObject* arg1)
+{
+    GpItemRec*      rec;
+    s32             item;
+    s32             count;
+    s32             idx;
+    UiListItemFunc* table;
+    Task*           owner;
+    GpItemScan*     scan;
+
+    owner = arg1->owner;
+    idx   = owner->spawnArg1;
+    scan  = &D_8010D628 + idx;
+    rec   = func_800BB5BC(scan, D_8010D634[idx].field_10, 0);
+    item  = 0;
+    if (rec != NULL) {
+        item = rec->field_0;
+    }
+    if (item == 0) {
+        D_8010D67C[0] = func_800BDAA8;
+        count         = 1;
+    } else {
+        D_8010D67C[0] = func_800BD6DC;
+        table         = D_8010D67C;
+        count         = 1;
+        if (((u32)(item - 0xA0) >= 0x20U) || (arg1->owner->flags != 0)) {
+            table[1] = func_800BDAA8;
+            count    = 2;
+        }
+        if (((u32)(item - 1) < 3U) || (item == 5) || (item == 6) || (item == 7) || (item == 0x3C) || (item == 0x3D)) {
+            D_8010D67C[count] = func_800CF7C4;
+            count             = count + 1;
+        }
+    }
+    arg0->field_5 = count;
+    arg0->field_4 = count;
+}
 
 void func_800BDDC4(Task* arg0)
 {

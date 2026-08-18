@@ -19931,4 +19931,44 @@ if (actor->field_928 != D_80113368[idx]) {
 GCC CSEs the address and keeps the table value in `$v0`. `func_8010C4F0`
 is the example.
 
+## Dummy `0` on an overlay helper so the `jal` delay slot is `move a2, zero`
+
+A two-argument overlay helper (`func_800BB5BC(scan, idx)`) can still
+need a literal third `0` at one call site so the compiler emits:
+
+```
+addu  a0, a2, a0
+lw    a1, 0x10(v0)
+jal   func_800BB5BC
+ move  a2, zero
+```
+
+Omitting it schedules `addu a0, a2, a0` into the delay slot and drops
+one instruction. Add an unused `s32 arg2` to the real prototype (it
+does not change the callee) and pass `0`. Same rule as overlay imports
+of main (`Ui_InsetLayout`). `func_800BDC80` is the example.
+
+## Store the first vtable slot through the global, then take its address
+
+`table = D_8010D67C; table[0] = A;` writes `sw A, 0(table)`. The target
+stores through `%lo` first, then materializes the address for `table[1]`:
+
+```
+sw    A, %lo(D_8010D67C)(v0)
+addiu v1, v0, %lo(D_8010D67C)
+sw    B, 4(v1)
+```
+
+Write the first slot on the symbol, then assign the local:
+
+```c
+D_8010D67C[0] = func_A;
+table         = D_8010D67C;
+table[1]      = func_B;
+```
+
+`func_800BDC80` is the example. Pair with `count = 1` *before*
+`(u32)(id - 0xA0) >= 0x20 || flags != 0` so `li a1, 1` sits in the
+`sltiu` delay slot.
+
 

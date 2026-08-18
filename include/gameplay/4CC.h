@@ -60,10 +60,19 @@ extern u16 D_80114DEC;
 /// Item/location halfword copied from `D_80114DDC` by `func_800BCC44`.
 /// `func_800BF334` special-cases the value `0x703`.
 extern u16 D_80114D7C;
+/// Pair of inventory UiLists indexed by `Task::spawnArg1` (source / dest).
+/// `field_10` is the selected row passed to `func_800BB5BC`.
+extern UiList D_8010D634[];
+/// Action-button callbacks for `D_8010D68C`, filled by `func_800BDC80`.
+extern UiListItemFunc D_8010D67C[];
 /// UiList used by `func_800BDDC4`.
 extern UiList D_8010D68C;
 /// UiList used by `func_800BF464`. `field_10` is 1 when `spawnArg1` is 0.
 extern UiList D_8010D6B4;
+void func_800BD6DC(DialogPrompt* arg0, UiObject* arg1);
+void func_800BDAA8(DialogPrompt* arg0, UiObject* arg1);
+/// Fills `D_8010D67C` and `arg0->field_4` / `field_5` from the selected
+/// inventory row (`D_8010D628[spawnArg1]` / `D_8010D634[spawnArg1].field_10`).
 void func_800BDC80(UiList* arg0, UiObject* arg1);
 /// Task callback for the `D_8010D68C` item list. On first run it copies
 /// `parent->flags`, clamps `field_E + field_12` to 0x64, then calls

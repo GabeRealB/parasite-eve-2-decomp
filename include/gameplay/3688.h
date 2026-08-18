@@ -4,6 +4,7 @@
 #include "common.h"
 
 #include "main/task.h"
+#include "main/ui.h"
 
 struct _UiObject;
 
@@ -64,6 +65,7 @@ extern u8 D_80114DF0;
 /// Room-id offset applied by `func_800D131C` (0, or 1 / 3 for two flagged rooms).
 extern u8 D_80114DF1;
 
-u8 func_800D1FD4(void);
+void func_800CF7C4(DialogPrompt* arg0, UiObject* arg1);
+u8   func_800D1FD4(void);
 
 #endif // GAMEPLAY_3688_H

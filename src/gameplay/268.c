@@ -981,7 +981,7 @@ s32 func_800BB540(GpItemScan* arg0, GpItemRec* arg1)
     return ret;
 }
 
-GpItemRec* func_800BB5BC(GpItemScan* arg0, s32 arg1)
+GpItemRec* func_800BB5BC(GpItemScan* arg0, s32 arg1, s32 arg2)
 {
     GpItemRec* table;
 
