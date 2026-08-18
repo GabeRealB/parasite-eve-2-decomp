@@ -21564,5 +21564,29 @@ func_80098F58(coord);
 
 `func_800FBEBC` is the example.
 
+## Add a rotated scratch `SVECTOR` through the block, not the GTE pointer
+
+After `gte_ldv0` / `gte_rtv0_real` / `gte_stsv` on `dir = head - 8`, adding
+the source position through that same `dir` pointer emits `lhu -8(head)` /
+`lhu 2(a0)` and delays `move a1, pos` until the last component. Adding
+through the 0x10-byte scratch block keeps `8(s1)` / `0xa(s1)` / `0xc(s1)`
+and lets GCC schedule the `func_800DE7CC` args and preload `pos.vy` /
+`pos.vz` during the `vx` add:
+
+```c
+dir = (SVECTOR*)(head - 8);
+gte_ldv0(dir);
+gte_rtv0_real();
+gte_stsv(dir);
+block->dir.vx += ((GpRayScratch*)(head - 0x10))->pos.vx;
+block->dir.vy += block->pos.vy;
+block->dir.vz += block->pos.vz;
+ret = func_800DE7CC(dir, &block->pos, dir, NULL);
+```
+
+`pos.vx` must be reloaded via `head - 0x10` so the add is `-0x10(v1)`
+(the original scratch head, still live after GTE). `block->pos.vx` is
+`0(s1)` and reshapes the whole add. `func_800EA02C` is the example.
+
 
 

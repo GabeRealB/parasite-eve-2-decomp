@@ -782,6 +782,7 @@ void func_800DC528(GpObj* node);
 void func_800DCB80(GpObj* node);
 void func_800DD940(GpObj* node);
 void func_800DDDF8(GpObj* node);
+s32  func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3);
 void func_800DEF80(GpObj* node, GpObj4C* other);
 s32  func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3);
 void func_800E0294(void);

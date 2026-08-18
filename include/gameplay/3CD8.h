@@ -262,6 +262,16 @@ typedef struct _GpCoord64 {
 } GpCoord64;
 STATIC_ASSERT_SIZEOF(GpCoord64, 0x64);
 
+/// 0x10-byte scratch from `G_SCRATCH_HEAD` used by `func_800EA02C`.
+/// `pos` is the low halves of `GsCOORDINATE2.workm.t`. `dir` starts as
+/// `(0, 0x1000, 0)`, is rotated by `D_80070F34`, then added onto `pos`
+/// and passed to `func_800DE7CC`.
+typedef struct _GpRayScratch {
+    /* 0x0 */ SVECTOR pos;
+    /* 0x8 */ SVECTOR dir;
+} GpRayScratch;
+STATIC_ASSERT_SIZEOF(GpRayScratch, 0x10);
+
 extern GpState1C*    D_80115740;
 extern GpCoord64     D_80114F30[8];
 extern GsCOORDINATE2 D_80070F10;
@@ -295,6 +305,7 @@ void func_800E956C(void);
 void func_800E9BDC(u8 arg0, s32 arg1);
 void func_800E9C6C(void);
 void func_800E9EFC(void);
+s32  func_800EA02C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
 s16  func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1);
 s32  func_800EA318(s16 arg0, s16 arg1, s16 arg2);
 void func_800EA3A0(s32 arg0);
