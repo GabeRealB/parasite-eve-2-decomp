@@ -20220,4 +20220,29 @@ if (swap == 0) {
 
 `func_800DB900` is the example.
 
+## Loop-invariant `0xFFFF` can steal `$a1` from a live location key
+
+A `TaskDesc` walk that compares `setupArg` with a precomputed location
+key (`stage * 10000 + room * 100`) wants that key in `$a1` after the
+table pointer is consumed:
+
+```
+lw    a0, 0(a1)
+move  a1, v1
+move  a2, a0
+...
+bne   v0, a1, next
+...
+lhu   v1, 0(a2)
+ori   v0, zero, 0xFFFF
+```
+
+GCC 2.8.1 hoists the terminator into the freed `$a1` instead
+(`li a1, 0xffff`) and leaves the key in `$v1`. The `lhu` dest and the
+`Game_SetPtrSlot(task, 7)` `a1=7` setup then shift with it.
+
+`register s32 key asm("a1")` reserves `$a1` for the earlier `stage << 2`
+multiply and wrecks the prefix. An early `term = 0xFFFF` takes `$s2`.
+`func_800E31E8` stuck at 94.1% on this allocation.
+
 
