@@ -20542,5 +20542,51 @@ walker = (GpItemRec*)((start2 << 2) + (s32)table2);
 
 `addu a2, v0, a2`. `func_800B8988` is the example.
 
+## Hoist `id << elem_size` and share that temp with the other arm's `$v1`
+
+A two-base table select that wants:
+
+```
+beqz  v0, else
+ sll   v1, a0, 3
+lui   v0, %hi(A)
+j     join
+ addiu v0, v0, %lo(A)
+else:
+lui   v0, %hi(B)
+addiu v0, v0, %lo(B)
+join:
+addu  t0, v1, v0
+```
+
+`desc = &table[arg0]` after the if schedules the `sll` after both `la`s.
+Compute the byte offset *before* the if so delayed-branch parks it in the
+compare, then add the base:
+
+```c
+tmp = arg0 << 3;
+if (arg0 < 0x100) {
+    table = A;
+} else {
+    table = B;
+}
+desc = (GpItemDesc*)(tmp + (s32)table);
+```
+
+If a sibling arm already needs a `$v1` temp (`arg0 & 3`, then later
+`tmp + 0xE`), reuse the **same** variable. A second local lets the
+`(x * 3)` use `$v1` as scratch and pushes the offset into `$a3`.
+
+`(product) + (tmp + K)` written inline folds to `addiu a0, a0, K` /
+`addu a0, a0, v1`. Materialize the addend after the product:
+
+```c
+arg0 = (arg2 * 3 + arg0) * 3;
+val  = tmp + 0xE;
+str  = recurse(arg0 + val, ...);
+```
+
+`addiu v0, v1, 0xe` / `addu a0, a0, v0`. `func_800B8EB0` is the example.
+
 
 

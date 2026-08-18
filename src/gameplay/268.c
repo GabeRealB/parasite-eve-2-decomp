@@ -334,7 +334,77 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800B8B00);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B8CAC);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800B8EB0);
+char* func_800B8EB0(s32 arg0, s32 arg1, s32 arg2)
+{
+    s8*          str;
+    GpItemDesc*  table;
+    GpItemDesc*  desc;
+    s32          bit;
+    s32          val;
+    s8*          prev;
+    register s32 tmp asm("v1");
+
+    if (arg0 >= 0x500) {
+        str = D_801D6484[arg0 - 0x500];
+    } else if (arg0 >= 0x300) {
+        tmp  = arg0 & 3;
+        arg2 = (arg0 & 0xF0) >> 4;
+        arg0 = (arg0 & 0xC) >> 2;
+        if (tmp == 0) {
+            tmp = 1;
+        }
+        arg0 = (arg2 * 3 + arg0) * 3;
+        val  = tmp + 0xE;
+        str  = func_800B8EB0(arg0 + val, arg1, 1);
+    } else {
+        tmp = arg0 << 3;
+        if (arg0 < 0x100) {
+            table = D_8010D838;
+        } else {
+            table = D_8010D638;
+        }
+        desc = (GpItemDesc*)(tmp + (s32)table);
+        if (arg2 == 0) {
+            arg2 = arg0 / 32;
+            bit  = 1 << (arg0 % 32);
+            if ((u32)arg0 >= 0x180) {
+                arg2 = 1;
+            } else {
+                val  = Mc_SaveData.field_6D0[arg2] & bit;
+                arg2 = val != 0;
+            }
+        }
+        str = desc->field_4;
+        if (arg1 >= 3) {
+            arg1 = 0;
+        }
+        if (arg2 == 0) {
+            arg1 += 3;
+        }
+        if (arg1 > 0) {
+            s32 c_nl = 0xA;
+            s32 c_n  = 0x6E;
+            s32 c_bs = 0x5C;
+            s32 c_N  = 0x4E;
+            prev     = str - 1;
+        loop:
+            arg0 = *str;
+            if (arg0 == 0 || arg0 == c_nl) {
+                arg1--;
+            } else if (arg0 == c_n && *prev == c_bs) {
+                arg1--;
+            } else if (arg0 == c_N && *prev == c_bs) {
+                arg1--;
+            }
+            prev++;
+            str++;
+            if (arg1 > 0) {
+                goto loop;
+            }
+        }
+    }
+    return str;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B904C);
 

@@ -218,6 +218,9 @@ extern u8         D_80114ABC[];
 extern u16        D_80114AE0[];
 extern GpItemRec  D_80114C20[];
 extern GpItemRec* D_80114D70;
+/// Overlay string table for item ids `>= 0x500`, indexed by `id - 0x500`
+/// (`func_800B8EB0`).
+extern char*      D_801D6484[];
 
 s32         func_800B7420(s32 arg0);
 void        func_800B7930(void);
@@ -237,6 +240,11 @@ s32         func_800BAF08(void);
 s32         func_800BAF5C(GpItemScan* arg0);
 /// True if `arg1` can be added to the item table selected by `arg0`.
 s32         func_800B8988(GpItemScan* arg0, s32 arg1);
+/// Returns the `arg1`-th text field of item `arg0` (NUL / `\\n` / `\\N`
+/// delimiters). `arg2 == 0` reads `Mc_SaveData.field_6D0` and adds 3 to
+/// `arg1` when the bit is clear. Ids `>= 0x500` index `D_801D6484`;
+/// `0x300..0x4FF` unpack and recurse.
+char*       func_800B8EB0(s32 arg0, s32 arg1, s32 arg2);
 s32         func_800B904C(GpItemScan* arg0, s32 arg1, s32 arg2);
 void        func_800B91C8(GpItemRec* arg0);
 GpItemSlot* func_800BAFE0(s32 arg0);
