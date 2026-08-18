@@ -776,7 +776,42 @@ void func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C22D8);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C2538);
+void func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+{
+    u8          buf[0x20];
+    TextDrawReq req;
+    SPRT*       p;
+    s32         y;
+    s32         textY;
+    s32         color;
+
+    p          = (SPRT*)D_80071190;
+    D_80071190 = (DR_TPAGE*)(p + 1);
+    p->x0      = arg0->baseX + arg1 + 0x6C;
+    y          = arg0->baseY;
+    color      = arg4;
+    p->w       = 8;
+    p->h       = 8;
+    p->u0      = 0xA8;
+    p->v0      = 0x88;
+    p->clut    = 0x3C02;
+    setlen(p, 4);
+    *(u32*)&p->r0 = color;
+    setcode(p, 0x64);
+    p->y0 = y + arg2 - 7;
+    addPrim(Gpu_CurrentOt + (s16)arg0->drawOrder + 1, p);
+    Ui_InsertDrawTPage((s16)arg0->drawOrder + 1, 0);
+
+    req.x          = arg0->baseX + arg1 + 0x7C;
+    textY          = arg0->baseY - 3;
+    req.y          = textY + arg2;
+    req.otIndex    = (s16)arg0->drawOrder + 1;
+    req.field_8    = color;
+    req.glyphTable = 0;
+    req.centerMode = 2;
+    req.field_E    = 3;
+    func_8002E53C(&req, Text_ItoaSigned(buf, arg3));
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C26B8);
 

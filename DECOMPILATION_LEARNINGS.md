@@ -21701,5 +21701,38 @@ Three separate calls, or a single call with temps, both emit
 gotos so the success label sits in that gap and the call's `if (eff !=
 NULL) goto success`. `func_801034C0` is the example.
 
+## Split SPRT `y` from text `y`; copy stack color so it takes `$s2`
+
+A SPRT-then-number drawer that lives all five args across `Ui_InsertDrawTPage`
+wants `$s1 = arg1`, `$s2 = color`, `$s3 = arg2`. Two temps that look harmless
+break that coloring:
+
+Reusing one `y` both before the call (`y = baseY; p->y0 = y + arg2 - 7`) and
+after (`y = baseY - 3; req.y = y + arg2`) makes `y` live across the jal and
+steals `$s1` from `arg1`. Then `arg1`/`arg2` flip to `$s3`/`$s1`.
+
+Using `arg4` directly for `*(u32*)&p->r0` and `req.field_8` assigns
+`$s2 = arg2`, `$s3 = arg4`. Copy the stack color into a named local *after*
+the early `y = baseY` load (and before `arg2` is consumed) so `color` takes
+`$s2` and `arg2` stays in `$s3`:
+
+```c
+p->x0 = arg0->baseX + arg1 + 0x6C;
+y     = arg0->baseY;
+color = arg4;
+/* w/h/uv/clut/setlen */
+*(u32*)&p->r0 = color;
+setcode(p, 0x64);
+p->y0 = y + arg2 - 7;
+/* … call … */
+textY          = arg0->baseY - 3;
+req.y          = textY + arg2;
+req.field_8    = color;
+```
+
+The early `y` load also frees `$v1` after `D_80071190 = p + 1`, which is
+what stores the cursor bump before `p->x0`. `func_800C2538` is the example.
+The `textY = baseY - 3` half is the same pattern as `func_800CDBEC`.
+
 
 
