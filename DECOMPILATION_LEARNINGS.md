@@ -20588,5 +20588,34 @@ str  = recurse(arg0 + val, ...);
 
 `addiu v0, v1, 0xe` / `addu a0, a0, v0`. `func_800B8EB0` is the example.
 
+## `gpf 1` is `0x4B98003D`; IR0 wants `$v0` then `$a2`
+
+aspsx `gpf 1` assembles to `0x4B98003D` (bit 24 set), not the commonly
+cited `0x4A98003D`. `gte_gpf12()` emits a DMPSX placeholder; use a
+handwritten command:
+
+```c
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+```
+
+`func_800D9794` then does `lh field_4A` / `move a2, v0` / `sw v0` /
+`mtc2 a2, $8` / `gte_ldsv` / `gpf 1` / `gte_stsv`. Loading the scale
+straight into a pinned `$a2` drops the copy. Keep two registers:
+
+```c
+register s32 val asm("v0");
+register s32 scale asm("a2");
+
+val          = light->field_4A;
+scale        = val;
+block->scale = val;
+gte_lddp(scale);
+```
+
+The 0x1C scratch is the 0x18 light block plus `s32 scale` at +0x18.
+`Gfx_NormalizeLightDir` and `gte_stsv` take `head - 0xC`; MATRIX row/column
+stores read `block->dir` (`lhu 0x10(s0)`). Pin `block` to `$s0` so it does
+not swap with the dir-matrix pointer.
+
 
 

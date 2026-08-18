@@ -275,8 +275,9 @@ STATIC_ASSERT_SIZEOF(GpObj38, 0x44);
 /// Sparse overlay of the same light object as `GpObj38`. `func_800D9718`
 /// treats `field_44` as a room-id filter against `Game_Session->field_4`
 /// (0 = any room), writes `0x1000` (GTE ONE) to `field_4A`, and returns a
-/// weighted `field_50/52/54` luminance. Nearby handwritten light helpers
-/// also `lh` `field_4A` into GTE IR0 and load 0x50 as three halfwords.
+/// weighted `field_50/52/54` luminance. `func_800D9794` casts to
+/// `GpObj38` for `&field_38` as a `VECTOR*`, loads `field_4A` into GTE
+/// IR0, and `gte_ldsv`s the three halfwords at 0x50.
 typedef struct _GpObj44 {
     /* 0x00 */ byte pad_0[0x44];
     /* 0x44 */ s16  field_44;
@@ -540,6 +541,16 @@ typedef struct _GpPerspScratch {
 } GpPerspScratch;
 STATIC_ASSERT_SIZEOF(GpPerspScratch, 0x14);
 
+/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_800D9794`.
+/// `dir` is the `Gfx_NormalizeLightDir` output (then overwritten by the
+/// GPF-scaled color). `scale` holds `GpObj44.field_4A` loaded into IR0.
+typedef struct _GpLightScratch {
+    /* 0x00 */ byte    pad_0[0x10];
+    /* 0x10 */ SVECTOR dir;
+    /* 0x18 */ s32     scale;
+} GpLightScratch;
+STATIC_ASSERT_SIZEOF(GpLightScratch, 0x1C);
+
 /// Pending flags written by `func_800D5B14` and consumed by `func_800CE294`.
 /// `D_8010F888 == 1` requests `func_800AC464(..., 0x402, ...)`.
 extern s32 D_8010F888;
@@ -720,6 +731,7 @@ s32   func_800D9654(GameSessionFrom4* arg0);
 void  func_800D96C8(Task* arg0);
 s32   func_800D9718(GpObj44* arg0);
 s32   func_800D9788(GpObj38* arg0);
+void  func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
 void  func_800D9B9C(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void  func_800D9D18(Task* arg0);
 void  func_800D9C3C(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3);

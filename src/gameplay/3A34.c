@@ -6,6 +6,7 @@
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/session.h"
@@ -20,6 +21,7 @@
 #define gte_rtv0_real()   __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_rtps_real()   __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_rtirtr_real() __asm__ volatile("nop; nop; .word 0x4A498012")
+#define gte_gpf12_real()  __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 s32  func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -383,7 +385,44 @@ s32 func_800D9788(GpObj38* arg0)
     return arg0->field_38;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9794);
+void func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
+{
+    void**                   scratch;
+    u8*                      head;
+    register GpLightScratch* block asm("s0");
+    SVECTOR*                 dir;
+    MATRIX*                  dirMtx;
+    MATRIX*                  colorMtx;
+    register s32             val asm("v0");
+    register s32             scale asm("a2");
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    block    = (GpLightScratch*)(head - 0x1C);
+    dir      = (SVECTOR*)(head - 0xC);
+    *scratch = block;
+    dirMtx   = arg3->field_1C;
+    colorMtx = arg3->field_20;
+    Gfx_NormalizeLightDir((VECTOR*)&((GpObj38*)arg1)->field_38, dir);
+
+    dirMtx->m[arg0][0] = block->dir.vx;
+    dirMtx->m[arg0][1] = block->dir.vy;
+    dirMtx->m[arg0][2] = block->dir.vz;
+
+    val          = arg1->field_4A;
+    scale        = val;
+    block->scale = val;
+    gte_lddp(scale);
+    gte_ldsv(&arg1->field_50);
+    gte_gpf12_real();
+    gte_stsv(dir);
+
+    colorMtx->m[0][arg0] = block->dir.vx;
+    colorMtx->m[1][arg0] = block->dir.vy;
+    colorMtx->m[2][arg0] = block->dir.vz;
+
+    *scratch = (u8*)*scratch + 0x1C;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D98C4);
 
