@@ -21861,5 +21861,43 @@ func_801040A0(src, (GsCOORDINATE2*)block, (SVECTOR*)(head - 0x14));
 `extra` / `field_8` load delays and puts the last one in the jal delay
 slot. `func_80102F10` is the example.
 
+## Nested `$v0` pin reloads a field used as both `if` and later index
+
+A signed byte that is both an early `if (p->field == 0)` test and a later
+array index wants the skip path to keep `$v0` from the first `lb` and the
+then path to reload just before the join (`lb` after the then-block
+stores, then `lh` of unrelated fields, then `sll` of `$v0`):
+
+```
+lb    v0, 8(s1)
+bnez  v0, join
+ ... clobbers $v0 ...
+lb    v0, 8(s1)
+join:
+lh    a1, 0x18(s1)
+```
+
+A function-scope `register s32 mode asm("v0")` reserves `$v0` for the
+whole function and steals it from a 16-byte prologue struct copy
+(`lui v0, %hi(table)` / `addiu t3, v0, %lo(table)`). Reloading into a
+nested pin *after* the `if` CSEs with the skip path and only emits the
+then-path `lb`:
+
+```c
+if (arg0->field_8 == 0) {
+    /* ... stores that clobber $v0 ... */
+}
+{
+    register s32 mode asm("v0");
+    mode = arg0->field_8;
+    Text_DrawPrompt(..., texts.texts[mode], ...);
+}
+```
+
+The 16-byte stack copy itself is `texts = D_80093DA0` of a 4-pointer
+struct, not element-wise assignment. Pin the later item-walk locals
+(`i` in `$s2`, scan pointer in `$s3`) so they do not swap. `func_800BE808`
+is the example.
+
 
 

@@ -180,7 +180,120 @@ void func_800BDDC4(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BDF6C);
 
-INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BE808);
+void func_800BE808(DialogPrompt* arg0, UiObject* arg1)
+{
+    GpPromptTexts        texts;
+    s32                  one;
+    register s32         i asm("s2");
+    register GpItemScan* scan asm("s3");
+    GpItemRec*           rec;
+    GpItemSlot*          slot;
+    s32                  attach;
+
+    texts = D_80093DA0;
+    if (arg0->field_8 == 0) {
+        if (arg1->owner->spawnArg1 == 0) {
+            arg0->field_1C = Ui_LookupTable(arg1, 2);
+            if (arg0->field_C == 1) {
+                arg0->field_B  = 1;
+                arg0->field_22 = 0x41;
+                arg0->field_C  = 0;
+            }
+        }
+    }
+    {
+        register s32 mode asm("v0");
+
+        mode = arg0->field_8;
+        one  = 1;
+        Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, texts.texts[mode], arg0->field_1C, one, 0);
+    }
+
+    if (arg0->field_C == one) {
+        if (arg0->field_8 == 2) {
+            if (arg0->field_22 == 0x21) {
+                arg0->field_22 = 0;
+                return;
+            }
+        }
+        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+            switch (arg0->field_8) {
+                case 0:
+                    SndEvt_EnqueueType6(3, 0, 0);
+                    arg1->field_2E = 0x26;
+                    break;
+                case 1:
+                    SndEvt_EnqueueType6(3, 0, 0);
+                    arg1->field_2E = 6;
+                    break;
+                case 2:
+                    SndEvt_EnqueueType6(4, 0, 0);
+                    scan = &Mc_SaveData.field_5BC;
+                    rec  = func_800BB500(scan);
+                    i    = 0;
+                    rec  = &rec[scan->field_0];
+                    if (scan->field_1 != 0) {
+                        do {
+                            if ((u8)(rec->field_0 + 0x80) < 0x20) {
+                                slot   = func_800BAFE0(rec->field_0);
+                                attach = slot->field_0;
+                                if ((attach != 0) && (attach != 0xB9)) {
+                                    if (func_800BB6FC(scan, attach) == 0) {
+                                        slot->field_1 = 0;
+                                    }
+                                }
+                                attach = slot->field_2;
+                                if ((attach != 0) && (attach != 0xFF) && (attach != 0xB5) && (attach != 0xBB) &&
+                                    (attach != 0xBD) && (attach != 0xBE)) {
+                                    if (func_800BB6FC(scan, attach) == 0) {
+                                        slot->field_3 = 0;
+                                    }
+                                }
+                            }
+                            i++;
+                            rec++;
+                        } while (i < scan->field_1);
+                    }
+                    arg1->field_2E = 0x27;
+                    break;
+            }
+        } else if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
+            SndEvt_EnqueueType6(4, 0, 0);
+            if (arg0->field_10 == 2) {
+                scan = &Mc_SaveData.field_5BC;
+                rec  = func_800BB500(scan);
+                i    = 0;
+                rec  = &rec[scan->field_0];
+                if (scan->field_1 != 0) {
+                    do {
+                        if ((u8)(rec->field_0 + 0x80) < 0x20) {
+                            slot   = func_800BAFE0(rec->field_0);
+                            attach = slot->field_0;
+                            if ((attach != 0) && (attach != 0xB9)) {
+                                if (func_800BB6FC(scan, attach) == 0) {
+                                    slot->field_1 = 0;
+                                }
+                            }
+                            attach = slot->field_2;
+                            if ((attach != 0) && (attach != 0xFF) && (attach != 0xB5) && (attach != 0xBB) &&
+                                (attach != 0xBD) && (attach != 0xBE)) {
+                                if (func_800BB6FC(scan, attach) == 0) {
+                                    slot->field_3 = 0;
+                                }
+                            }
+                        }
+                        i++;
+                        rec++;
+                    } while (i < scan->field_1);
+                }
+                arg1->field_2E = 0x27;
+            } else {
+                arg0->field_22 = 0x21;
+                arg0->field_10 = 2;
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BEBE4);
 

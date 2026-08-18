@@ -41,6 +41,14 @@ typedef struct _GpItemDesc {
 } GpItemDesc;
 STATIC_ASSERT_SIZEOF(GpItemDesc, 0x8);
 
+/// 4 prompt strings copied onto the stack by `func_800BE808` and indexed
+/// by `DialogPrompt::field_8`: All / Select / Discard / End
+/// (`D_8010D610` / `D_8010D614` / `D_8010D620` / `D_8010D61C`).
+typedef struct {
+    u8* texts[4];
+} GpPromptTexts;
+STATIC_ASSERT_SIZEOF(GpPromptTexts, 0x10);
+
 extern GpItemDesc D_8010D838[];
 /// Second item-descriptor base. Indexed as `D_8010D638[id]` for `id >= 0x100`.
 extern GpItemDesc D_8010D638[];
@@ -69,6 +77,7 @@ extern UiListItemFunc D_8010D67C[];
 extern UiList D_8010D68C;
 /// UiList used by `func_800BF464`. `field_10` is 1 when `spawnArg1` is 0.
 extern UiList D_8010D6B4;
+extern GpPromptTexts D_80093DA0;
 void func_800BD6DC(DialogPrompt* arg0, UiObject* arg1);
 /// List-item confirm for `D_8010D67C`. Draws `D_8010D588`, then on confirm
 /// looks up the selected inventory row and inlines `func_800BF334` against
@@ -86,6 +95,13 @@ void func_800BDC80(UiList* arg0, UiObject* arg1);
 /// (`D_8005ED74`) is 6. Child `field_2E` -1 / 9 / 6 closes, remaps to
 /// 6, or teardowns.
 void func_800BDDC4(Task* arg0);
+/// List-item callback for All / Select / Discard / End. Draws
+/// `D_80093DA0[field_8]`. Confirm: All → `field_2E = 0x26`, Select → 6,
+/// Discard strips 0x80–0x9F attachments missing from
+/// `Mc_SaveData.field_5BC` and sets `field_2E = 0x27`. Cancel once sets
+/// `field_10 = 2` / `field_22 = 0x21`; a second cancel does the discard
+/// strip.
+void func_800BE808(DialogPrompt* arg0, UiObject* arg1);
 void func_800BF2C8(UiObject* arg0, void (*arg1)(UiObject*, Task*));
 s32  func_800BF334(s32 arg0, s32 arg1);
 void func_800BF464(Task* arg0);
