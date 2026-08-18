@@ -20556,6 +20556,33 @@ walker = (GpItemRec*)((start2 << 2) + (s32)table2);
 
 `addu a2, v0, a2`. `func_800B8988` is the example.
 
+The quantity-aware sibling (`func_800B87F4`) is the same two walks plus a
+live `arg2`, so every temp shifts one register (`table` `$t0`→`$t1`,
+`occupied` `$a2`→`$a3`, `used` `$t1`→`$t2`). After the second table
+select, `if (arg2 < 0) arg2 = D_8010E3B8[id-0xA0].field_0` parks the
+`lui` in the `bgez` delay. The stack check wants
+
+```
+slt   v1, cap, qty+arg2
+bnez  v1, out
+ li   found, 2
+j     out
+ li   found, 1
+```
+
+`if (cap < qty + arg2) found = 2; else found = 1;` inverts to `beqz` /
+`li 1` / `j` / `li 2`. Assign the delay-slot default first:
+
+```c
+found = 2;
+if (cap->field_2 >= walker->field_2 + arg2) {
+    found = 1;
+}
+```
+
+`func_800B8988` keeps the inverted `sltu` / `beqz` / `li 2` / `j` / `li 1`
+because it is `if (walker < cap) found = 1; else found = 2`.
+
 ## Hoist `id << elem_size` and share that temp with the other arm's `$v1`
 
 A two-base table select that wants:

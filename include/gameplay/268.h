@@ -240,6 +240,12 @@ void        func_800BAC8C(GpItemScan* arg0);
 void        func_800BAE38(void);
 s32         func_800BAF08(void);
 s32         func_800BAF5C(GpItemScan* arg0);
+/// True if `arg2` of item `arg1` can be added to the item table selected
+/// by `arg0`. Ids `>= 0x100` always succeed. Ids `0xA0..0xFF` stack onto
+/// an existing row when `qty + arg2` fits `D_8010E3B8[id-0xA0].field_2`;
+/// `arg2 < 0` uses that row's `field_0` as the addend. Other ids need a
+/// free slot.
+s32         func_800B87F4(GpItemScan* arg0, s32 arg1, s32 arg2);
 /// True if `arg1` can be added to the item table selected by `arg0`.
 s32         func_800B8988(GpItemScan* arg0, s32 arg1);
 /// Writes item `arg2` into scan slot `arg1`. Ids `0xA0..0xBF` are added with

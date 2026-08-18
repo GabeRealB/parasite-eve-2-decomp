@@ -230,7 +230,109 @@ INCLUDE_ASM("gameplay/nonmatchings/268", func_800B83F0);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B8588);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800B87F4);
+s32 func_800B87F4(GpItemScan* arg0, s32 arg1, s32 arg2)
+{
+    GpItemRec*          tmp;
+    register GpItemRec* table asm("t1");
+    GpItemRec*          rec;
+    register s32        i asm("t0");
+    s32                 occupied;
+    s32                 count;
+    s32                 start;
+    s32                 limit;
+    s32                 used;
+    s32                 found;
+    GpItemRec*          table2;
+    GpItemRec*          walker;
+    s32                 count2;
+    s32                 start2;
+    GpItemA0*           p;
+    s32                 idx;
+    GpItemA0*           cap;
+    s32                 capacity;
+
+    switch (arg0->field_2) {
+        case 2:
+            tmp = D_80114C20;
+            break;
+        case 1:
+            tmp = D_80114D70;
+            break;
+        default:
+            tmp = Mc_SaveData.field_1AC;
+            break;
+    }
+    table    = tmp;
+    i        = 0;
+    count    = arg0->field_1;
+    start    = arg0->field_0;
+    occupied = i;
+    if (count != 0) {
+        limit = count;
+        rec   = (GpItemRec*)((start << 2) + (s32)table);
+        do {
+            if (rec->field_0 != 0) {
+                occupied++;
+            }
+            i++;
+            rec++;
+        } while (i < limit);
+    }
+
+    capacity = arg0->field_1;
+    used     = occupied;
+    if (arg1 >= 0x100) {
+        return 1;
+    }
+
+    if (arg1 >= 0xA0) {
+        found  = 0;
+        start2 = arg0->field_0;
+        switch (arg0->field_2) {
+            case 2:
+                table2 = D_80114C20;
+                break;
+            case 1:
+                table2 = D_80114D70;
+                break;
+            default:
+                table2 = Mc_SaveData.field_1AC;
+                break;
+        }
+        if (arg2 < 0) {
+            arg2 = D_8010E3B8[arg1 - 0xA0].field_0;
+        }
+        i      = 0;
+        count2 = arg0->field_1;
+        if (count2 != 0) {
+            p      = D_8010E3B8;
+            idx    = arg1 - 0xA0;
+            cap    = (GpItemA0*)((idx << 2) + (s32)p);
+            walker = (GpItemRec*)((start2 << 2) + (s32)table2);
+            do {
+                if (walker->field_0 == arg1) {
+                    found = 2;
+                    if (cap->field_2 >= walker->field_2 + arg2) {
+                        found = 1;
+                    }
+                    break;
+                }
+                i++;
+                walker++;
+            } while (i < count2);
+        }
+
+        if (found == 0) {
+            used++;
+        }
+        if (found == 2) {
+            return 0;
+        }
+    } else {
+        used++;
+    }
+    return used <= capacity;
+}
 
 s32 func_800B8988(GpItemScan* arg0, s32 arg1)
 {
