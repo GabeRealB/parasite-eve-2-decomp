@@ -1727,7 +1727,37 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EBF18);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EC47C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EC674);
+void func_800EC674(Task* arg0)
+{
+    GpState1C* p;
+    GpEffWork* mem;
+    u16        color;
+    u8         rgb[3];
+
+    p   = D_80115740;
+    mem = arg0->spawnArg2;
+    if (p->field_18 != arg0->spawnArg1) {
+        p->field_0--;
+        Mem_Free(mem);
+        Task_Kill(arg0);
+        return;
+    }
+
+    mem->field_24 += 0x180;
+    mem->field_26  = rsin(mem->field_24) >> 5;
+    if (arg0->spawnArg1 != 0) {
+        color  = D_80111EC0[(cln(arg0->spawnArg1 << 12) / 2839) & 7];
+        rgb[0] = (mem->field_26 * ((color >> 8) & 0xF)) >> 3;
+        rgb[1] = (mem->field_26 * ((color >> 4) & 0xF)) >> 3;
+        rgb[2] = (mem->field_26 * (color & 0xF)) >> 3;
+        func_800EA858(rgb, color >> 12);
+    }
+    if (mem->field_24 >= 0x700) {
+        D_80115740->field_0--;
+        Mem_Free(mem);
+        Task_Kill(arg0);
+    }
+}
 
 void func_800EC7E4(void* arg0, Task* arg1)
 {
