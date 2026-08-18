@@ -204,6 +204,7 @@ extern GpAreaRec* D_8010CBCC[];
 /// 0-terminated `GpSndMaskRec` table walked by `func_800AFF90` / `func_800B0034`.
 extern GpSndMaskRec D_8010D1C4[];
 
+s16      func_800AF89C(u16 arg0, u16 arg1, u16 arg2, u16 arg3);
 void     func_800AFF90(u16 arg0);
 void     func_800B0034(u16 arg0);
 void     func_800B00C4(void);

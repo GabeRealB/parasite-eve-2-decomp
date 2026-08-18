@@ -14,6 +14,7 @@
 #include "main/mem.h"
 #include "main/session.h"
 #include "main/sound.h"
+#include "main/stream.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -52,11 +53,78 @@ extern char           D_800939F8[];
 extern s32            D_80070F10;
 extern s32            D_80070F60;
 extern u8             D_800626E8;
+extern u16            D_80114D14;
 extern s32            D_80114D20;
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AF590);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AF89C);
+s16 func_800AF89C(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
+{
+    CdCmdQueue*  p;
+    StreamSlot*  slot;
+    u16          count;
+    register s32 i asm("s2");
+    register s32 found asm("t1");
+    s32          temp;
+
+    p = &CdCmd_Queue;
+    if (arg0 == 0) {
+        slot  = (StreamSlot*)Fs_Streams;
+        count = 0xA;
+    } else {
+        slot  = Stream_Slots;
+        count = 0xF;
+    }
+
+    i     = 0;
+    found = i;
+    for (; (u16)i < count; i++, slot++) {
+        if (slot->field_0 == 2) {
+            if (slot->field_4 != 0) {
+                if (slot->field_C == arg0) {
+                    if (slot->field_E == arg1) {
+                        if (slot->field_10 == arg2) {
+                            if (slot->field_12 == arg3) {
+                                found = 1;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    {
+        register u32 valid asm("v0");
+        valid = found & 0xFFFF;
+        if (valid == 0) {
+            return -1;
+        }
+    }
+
+    Mem_Set(p->field_58, 0, 0x12C);
+    p->field_190 = (CdCmd190*)slot;
+    p->field_216 = 1;
+    temp         = slot->field_8;
+    if (temp != 0) {
+        p->field_188 = temp;
+    } else {
+        p->field_188 = 0;
+    }
+    p->field_23A = 0;
+    p->field_21E = 0;
+    p->field_218 = 0;
+    p->field_21C = 0;
+    D_80114D14   = 0;
+    p->field_238 = slot->field_18;
+    p->field_1A8 = D_80070F60;
+    p->field_1AC = rand();
+    D_80070F60   = 0;
+    srand(1);
+    D_80114D20 = 0xFFFF;
+    return i;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AFA44);
 

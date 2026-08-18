@@ -43,7 +43,7 @@ extern void  func_80179988(void* arg0);
 extern void  func_801799BC(void* arg0);
 extern s32   func_80179BE4(u16 arg0, u8 arg1, LinInterp* arg2);
 extern void  func_80030AB0(McWork* work);
-extern s16   func_800AF89C(u16 arg0, u16 arg1, u16 arg2, s32 arg3);
+extern s16   func_800AF89C(u16 arg0, u16 arg1, u16 arg2, u16 arg3);
 extern void  func_800AFA44(void);
 extern void  func_800B0034(u16 arg0);
 extern void  func_800B00C4(void);

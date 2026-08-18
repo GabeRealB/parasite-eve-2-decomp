@@ -11,7 +11,7 @@ typedef struct _StreamSlot {
     /* 0x00 */ s16  field_0;
     /* 0x02 */ byte unknown_2[0x2];
     /* 0x04 */ s32  field_4;
-    /* 0x08 */ byte unknown_8[0x4];
+    /* 0x08 */ s32  field_8;
     /* 0x0C */ u16  field_C;
     /* 0x0E */ u16  field_E;
     /* 0x10 */ u16  field_10;

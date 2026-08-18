@@ -729,8 +729,9 @@ down into it when current exceeds the new max.
 ### `StreamSlot` (0x28)
 | Off | Member | Role |
 |-----|--------|------|
-| 0x0 | `field_0` | Status (1 = active in polls) |
+| 0x0 | `field_0` | Status (1 = active in polls; 2 = overlay/search match in `func_800AF89C`) |
 | 0x4 | `field_4` | Nonzero → active work |
+| 0x8 | `field_8` | Copied into `CdCmdQueue.field_188` (malloc size) by `func_800AF89C` |
 | 0xE | `field_E` | Counter (compared to 0x64) |
 | 0x1A | `field_1A` | Returned by accessors |
 
