@@ -19971,4 +19971,34 @@ table[1]      = func_B;
 `(u32)(id - 0xA0) >= 0x20 || flags != 0` so `li a1, 1` sits in the
 `sltiu` delay slot.
 
+## Two typed pointers so `container_of` stays in `$v1` and copies to `$t0`
+
+A list node recovered with `container_of` and then used both for a field
+access and as `$a0` to a later `jal` wants:
+
+```
+beq   flags, 1, skip
+ addiu v1, s0, -0x10
+bnez  arg, calc
+ move  t0, v1
+lbu   v0, 0x4e(v1)
+```
+
+One pointer (`obj = container_of(...); obj->field |= 0x80;` plus
+`func(obj, ...)`) allocates the address straight to `$t0` and leaves a
+`nop` in the `beq` delay slot. Keep two typed views of the same object
+so GCC emits the subtract into `$v1` and the copy into `$t0`:
+
+```c
+enemy = (GpEnemy*)((u8*)node - OFFSET_OF(GpEnemy, node));
+obj54 = (GpObj54*)enemy;
+if (arg0 == 0) {
+    enemy->field_4E |= 0x80;
+} else {
+    func_800E1C58(obj54, payload);
+}
+```
+
+`func_800A4904` is the example.
+
 

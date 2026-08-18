@@ -1134,7 +1134,31 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A3AF0);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A45F0);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A4904);
+void func_800A4904(s32 arg0)
+{
+    GpLinkNode* node;
+    GpEnemy*    enemy;
+    GpObj54*    obj54;
+    u16         val;
+    s32         idx;
+
+    for (node = D_80115268; node != NULL; node = node->next) {
+        if ((*(s32*)&node->field_4 & 5) != 1) {
+            enemy = (GpEnemy*)((u8*)node - OFFSET_OF(GpEnemy, node));
+            obj54 = (GpObj54*)enemy;
+            if (arg0 == 0) {
+                enemy->field_4E |= 0x80;
+            } else {
+                val  = D_80114C08.field_0;
+                idx  = (val / 100U - 1) * 9;
+                idx += ((val % 100U) / 10U - 1) * 3;
+                idx += val % 10U;
+                idx += 0x28000;
+                func_800E1C58(obj54, (void*)idx);
+            }
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A4A2C);
 

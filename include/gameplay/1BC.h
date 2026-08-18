@@ -17,6 +17,8 @@
 /// `field_8` / `field_A` are the same work-id / type halfwords as
 /// `GpWorkObj` (`func_800BBA70` packs `GpEnemyPlace.field_0` /
 /// `field_4` into `field_8` and copies `field_2` into `field_A`).
+/// Same object family as `GpObj4C` / `GpObj54`: `func_800A4904` ORs bit
+/// 0x80 into `field_4E` or claims a `field_54` slot via `func_800E1C58`.
 typedef struct _GpEnemy {
     /* 0x00 */ Task*      task;
     /* 0x04 */ byte       pad_4[4];
@@ -25,7 +27,9 @@ typedef struct _GpEnemy {
     /* 0x0C */ s32        field_C;
     /* 0x10 */ GpLinkNode node;
     /* 0x18 */ void*      field_18;
-    /* 0x1C */ byte       pad_1C[0x44];
+    /* 0x1C */ byte       pad_1C[0x32];
+    /* 0x4E */ u8         field_4E;
+    /* 0x4F */ byte       pad_4F[0x11];
 } GpEnemy;
 STATIC_ASSERT_SIZEOF(GpEnemy, 0x60);
 
