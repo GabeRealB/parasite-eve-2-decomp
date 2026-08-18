@@ -20456,5 +20456,48 @@ loop. `register s32 start asm("a1")` plus `asm volatile("" :: "r"(start))`
 after the do-while keeps the copy; `register s32 base asm("a3")` keeps
 the increment on `$a3`. `func_800B7930` is the example.
 
+## Keep `id + 0x80` as a live s32 so it does not CSE with `id - 0x80`
+
+A wrap test written next to the usual 32-wide range check:
+
+```c
+if ((u8)(id + 0x80) < 0x20) {
+    if ((u32)(id - 0x80) < 0x20U) {
+```
+
+is one `lbu` of a 0–255 id. GCC then proves `id + 128` and `id - 128`
+are the same modulo 256 and emits a single `addiu -0x80`, reused for
+both the `andi 0xFF` wrap and the later `sltiu 0x20`. The target wants
+both adds:
+
+```
+beqz  s0, skip
+ addiu v0, s0, 0x80
+andi  v0, v0, 0xFF
+sltiu v0, v0, 0x20
+...
+addiu v0, s0, -0x80
+sltiu v0, v0, 0x20
+```
+
+Assign the sum to an `s32` and keep that 32-bit value live with an
+empty asm. The full-width `+ 0x80` is no longer equivalent to
+`- 0x80`, so both `addiu`s survive. `register … asm("s3")` on the
+inlined “is equipped” flag then restores `$s1`/`$s2`/`$s3`:
+
+```c
+s32 wrap;
+
+wrap = id + 0x80;
+asm volatile("" ::"r"(wrap));
+if ((u8)wrap < 0x20) {
+    equipped = 0;
+    if ((u32)(id - 0x80) < 0x20U) {
+```
+
+`func_800C5188` is the example. The same wrap vs range pair is in
+`func_800B91C8`, which avoids the CSE by reloading `field_0` after a
+store instead.
+
 
 

@@ -524,7 +524,50 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C41A4);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C46B4);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C5188);
+GpItemRec* func_800C5188(McItemScan* arg0, s32 arg1, s32 arg2)
+{
+    GpItemRec*    table;
+    s32           i;
+    GpItemRec*    rec;
+    register s32  equipped asm("s3");
+    WipSysConfig* p;
+    s32           id;
+    s32           wrap;
+
+    table = func_800BB500(arg0);
+    rec   = NULL;
+    table = &table[arg0->field_0];
+    for (i = 0; i < arg0->field_1; i++, table++) {
+        id = table->field_0;
+        if ((D_8010D838[id].field_3 & 4) || (id == 0)) {
+            continue;
+        }
+        wrap = id + 0x80;
+        asm volatile("" ::"r"(wrap));
+        if ((u8)wrap < 0x20) {
+            p        = &Wip_SysConfig;
+            equipped = 0;
+            if (((u32)(id - 0x80) < 0x20U) && (p->field_21 == id - 0x7F)) {
+                equipped = 1;
+            } else if (((u32)(id - 0x60) < 0x20U) && (p->field_23 == id - 0x5F)) {
+                equipped = 1;
+            } else if (((u32)(id - 0xA0) < 0x20U) && (p->field_21 != 0) &&
+                       ((func_800BAFE0(p->field_21 + 0x7F)->field_0 == id) ||
+                        (func_800BAFE0(p->field_21 + 0x7F)->field_2 == id))) {
+                equipped = 1;
+            }
+            if (equipped != 0) {
+                continue;
+            }
+        }
+        arg1--;
+        if (arg1 < 0) {
+            rec = table;
+            break;
+        }
+    }
+    return rec;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C5328);
 
