@@ -5,6 +5,7 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
+#include "gameplay/3A34.h"
 #include "gameplay/4CC.h"
 #include "main/gfx.h"
 #include "main/mc.h"
@@ -46,7 +47,63 @@ void       func_801061F0(void);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B7420);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800B7930);
+void func_800B7930(void)
+{
+    WipSysConfig* cfg;
+    McSaveData*   save;
+    GpRec16*      table;
+    GpStatRow*    rows;
+    s8*           levels;
+    s32           acc;
+    s32           i;
+    register s32  base asm("a3");
+    s32           j;
+    s32           count;
+    register s32  start asm("a1");
+    s32           limit;
+    s32           idx;
+
+    cfg    = &Wip_SysConfig;
+    acc    = 0;
+    levels = (s8*)Mc_SaveData.unknown_850;
+    i      = acc;
+    table  = D_8011398C;
+    base   = acc;
+    while (i < 0xC) {
+        count = *levels;
+        if (count > 0) {
+            j = 0;
+            if (j < count) {
+                start = base;
+                limit = count;
+                do {
+                    idx  = start + j;
+                    idx  = idx + 1;
+                    acc += table[idx].field[1];
+                    j++;
+                } while (j < limit);
+            }
+            asm volatile("" ::"r"(start));
+        }
+        levels++;
+        i++;
+        base += 3;
+    }
+    if (cfg->field_23 != 0) {
+        acc += D_8010E2B8[cfg->field_23 - 1].field_6;
+    }
+    rows          = D_8010D328;
+    save          = &Mc_SaveData;
+    acc          += rows[save->field_F].field_4;
+    acc          += save->field_27;
+    cfg->field_1e = acc;
+    if ((s16)acc >= 0xFB) {
+        cfg->field_1e = 0xFA;
+    }
+    if (cfg->field_1c > cfg->field_1e) {
+        cfg->field_1c = cfg->field_1e;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B7A50);
 

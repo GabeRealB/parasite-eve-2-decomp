@@ -20412,5 +20412,49 @@ for (i = 0; i < rec->field_2; ) {
 the `%hi(D_8010CAE8)` reused for the later `D_8010CAE8[0]` NULL check
 stays in `$a2`.
 
+## `j = 0; if (j < n)` after `if (n > 0)` keeps both `blez` checks
+
+A signed count that guards an inner walk wants two `blez $v0` in a row,
+with `j = 0` in the second delay slot and the `start = base` /
+`limit = n` copies after that:
+
+```
+blez  v0, skip
+ nop
+blez  v0, skip
+ move v1, zero
+move  a1, a3
+move  a0, v0
+```
+
+`if (n > 0) { for (j = 0; j < n; j++) }` often puts `j = 0` *before* the
+second `blez` and loads `n` straight into `$a0`. A plain
+`if (n > 0) { do { } while (j < n); }` emits only one `blez`. Split the
+for-loop's peel out so the second compare is `j < n` after `j = 0`:
+
+```c
+if (count > 0) {
+    j = 0;
+    if (j < count) {
+        start = base;
+        limit = count;
+        do {
+            /* … */
+            j++;
+        } while (j < limit);
+    }
+}
+```
+
+Assign `start` / `limit` *inside* the second `if` so they land after both
+`blez`. Use `limit` for the do-while so the continuing `slt` uses `$a0`
+while both initial checks still use `$v0`.
+
+A running `base += 3` after the inner walk will steal the `start` copy
+(`$a1` becomes the incrementing base) unless `start` stays live past the
+loop. `register s32 start asm("a1")` plus `asm volatile("" :: "r"(start))`
+after the do-while keeps the copy; `register s32 base asm("a3")` keeps
+the increment on `$a3`. `func_800B7930` is the example.
+
 
 

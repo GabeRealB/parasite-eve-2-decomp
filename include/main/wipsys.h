@@ -38,7 +38,7 @@ typedef struct _WipSysConfig {
     /* 0x10 */ WipSysPos field_10;
     /* 0x18 */ s16       field_18; // current; clamped down to field_1a (`func_800BC0C0`)
     /* 0x1A */ s16       field_1a; // max; recomputed by `func_800BC0C0`, clamped to 250
-    /* 0x1C */ s16       field_1c;
+    /* 0x1C */ s16       field_1c; // current; clamped down to field_1e (`func_800B7930`)
     /* 0x1E */ s16       field_1e; // max; recomputed by `func_800B7930`, clamped to 250
     /* 0x20 */ u8        field_20;
     /* 0x21 */ u8        field_21; // selected item id - 0x7F (`func_800CF448`)

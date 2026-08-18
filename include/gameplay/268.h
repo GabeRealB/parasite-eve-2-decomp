@@ -150,7 +150,9 @@ STATIC_ASSERT_SIZEOF(GpCoordYaw, 0x22);
 /// field_4 is the unsigned bonus added to `Wip_SysConfig.field_1a` by
 /// `func_800BC0C0` when `Wip_SysConfig.field_23` (item id − 0x5F) is
 /// non-zero. field_5 is the unsigned base added to
-/// `Mc_SaveData.field_908[id-0x60]` and clamped to 10.
+/// `Mc_SaveData.field_908[id-0x60]` and clamped to 10. field_6 is the
+/// unsigned bonus added to `Wip_SysConfig.field_1e` by `func_800B7930`
+/// when `field_23` is non-zero.
 typedef struct _GpItemAttr {
     /* 0x00 */ u8 field_0;
     /* 0x01 */ u8 field_1;
@@ -218,6 +220,7 @@ extern GpItemRec  D_80114C20[];
 extern GpItemRec* D_80114D70;
 
 s32         func_800B7420(s32 arg0);
+void        func_800B7930(void);
 void        func_800B7A50(s32 arg0);
 void        func_800B7D18(void);
 GpItemRec*  func_800BAD08(GpItemScan* arg0, s32 arg1, s32 arg2);
