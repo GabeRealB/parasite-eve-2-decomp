@@ -125,21 +125,23 @@ typedef struct _GpEffArg {
 STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 
 /// 0x2C-byte work at `Task::spawnArg2` for `func_800F1A9C` / `func_800F5184` /
-/// `func_800F75BC` / `func_800F77F8` / `func_800FB67C` / `func_800FE41C`
-/// (`Mem_Calloc(0x2C)` in `func_800EA478`). `field_8` is the parent
-/// coordinate copied onto `GsCOORDINATE2.sub`. `field_10` is the 3-halfword
-/// overlay `func_800FE41C` passes to `func_800EA478`. `field_18` / `field_1A`
-/// / `field_1C` are sign-extended into `coord.t[]` on first run. `field_22`
-/// is the step counter (`func_800F1A9C` / `func_800F5184`). `field_24` is
-/// the current scale stepped toward `field_26` (`func_800F75BC`), the LCG
-/// angle (`func_800F1A9C`), a 0x10 start that decays by 2 (`func_800F5184`),
-/// or a 0x80 start that decays by 8 (`func_800FB67C`). `func_800FE41C`
-/// copies `spawnArg1` into `field_24` / `field_26` and sets
-/// `field_28 = field_26 << 2`. `func_800FB67C` inits `field_26` to 0x100 and
-/// adds 0x80 each frame, and copies `D_80112C6C[field_2 & 3]` into
-/// `field_28`. `func_800F5184` inits `field_26` to 0x20 and adds `field_2A`
-/// each frame. `field_2A` is the packed parameter passed through to
-/// `func_800F7AD4`, or the per-frame `field_26` step.
+/// `func_800F75BC` / `func_800F77F8` / `func_800FB67C` / `func_800FC74C` /
+/// `func_800FE41C` (`Mem_Calloc(0x2C)` in `func_800EA478`). `field_8` is the
+/// parent coordinate copied onto `GsCOORDINATE2.sub`. `field_10` is the
+/// 3-halfword overlay `func_800FE41C` passes to `func_800EA478`. `field_18` /
+/// `field_1A` / `field_1C` are sign-extended into `coord.t[]` on first run.
+/// `field_20` is the spawn-wave count (`func_800FC74C`). `field_22` is the
+/// step counter (`func_800F1A9C` / `func_800F5184` / `func_800FC74C`).
+/// `field_24` is the current scale stepped toward `field_26` (`func_800F75BC`),
+/// the LCG angle (`func_800F1A9C`), a 0x10 start that decays by 2
+/// (`func_800F5184`), a 0x80 start that decays by 8 (`func_800FB67C`), or the
+/// spawn/wait phase flag (`func_800FC74C`). `func_800FE41C` copies `spawnArg1`
+/// into `field_24` / `field_26` and sets `field_28 = field_26 << 2`.
+/// `func_800FB67C` inits `field_26` to 0x100 and adds 0x80 each frame, and
+/// copies `D_80112C6C[field_2 & 3]` into `field_28`. `func_800F5184` inits
+/// `field_26` to 0x20 and adds `field_2A` each frame. `func_800FC74C` uses
+/// `field_26` as the inter-wave wait timer. `field_2A` is the packed parameter
+/// passed through to `func_800F7AD4`, or the per-frame `field_26` step.
 typedef struct _GpEffWork {
     /* 0x00 */ byte                  pad_0[8];
     /* 0x08 */ struct _GsCOORDINATE2* field_8;
@@ -151,7 +153,8 @@ typedef struct _GpEffWork {
     /* 0x18 */ s16                   field_18;
     /* 0x1A */ s16                   field_1A;
     /* 0x1C */ s16                   field_1C;
-    /* 0x1E */ byte                  pad_1E[4];
+    /* 0x1E */ byte                  pad_1E[2];
+    /* 0x20 */ s16                   field_20;
     /* 0x22 */ s16                   field_22;
     /* 0x24 */ s16                   field_24;
     /* 0x26 */ s16                   field_26;
@@ -438,8 +441,9 @@ void func_800F75BC(Task* arg0);
 void func_800F7AD4(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
 void func_800FB67C(Task* arg0);
 void func_800FC500(Task* arg0);
-void func_800FE41C(Task* arg0);
 void func_800FC6C0(void);
+void func_800FC74C(Task* arg0);
+void func_800FE41C(Task* arg0);
 void func_80101408(GpActorWork* arg0);
 void func_801041FC(GpActorWork* arg0, s32 arg1);
 void func_80106350(GpActorWork* arg0, s32 arg1, s32 arg2);

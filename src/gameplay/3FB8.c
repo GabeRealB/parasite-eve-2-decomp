@@ -248,7 +248,70 @@ void func_800FC6F4(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FC74C);
+void func_800FC74C(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    s16            flag;
+    s32            i;
+    s32            temp;
+
+    mem   = arg0->spawnArg2;
+    flag  = D_80115740->field_4;
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    if (flag != 0) {
+        if (flag >= 4) {
+            SndEvt_EnqueueType7(0xFF0D, 1);
+            D_80115740->field_2 = 0;
+            func_800EC7E4(mem, arg0);
+        }
+        return;
+    }
+
+    func_80098F58(coord);
+    switch (arg0->state) {
+        case 0:
+            if (D_80115740->field_2 == 0) {
+                temp = (s8)func_800D937C((GpObj38*)coord);
+                SndEvt_EnqueueType6(0xD, temp, (s8)func_800D9340((GpObj38*)coord));
+            }
+            D_80115740->field_2++;
+            arg0->state = 1;
+            /* fallthrough */
+        case 1:
+            if (arg0->spawnArg1 == 0) {
+                func_800EA478(0x600A6, coord, 1, 0);
+                arg0->state = 2;
+            } else if (mem->field_24 == 0) {
+                for (i = 0; i < 3; i++) {
+                    func_800EA478(0x600A6, coord, arg0->spawnArg1, 0);
+                }
+                mem->field_24++;
+            } else {
+                mem->field_26++;
+                if (mem->field_26 >= 9) {
+                    mem->field_24 = 0;
+                    mem->field_26 = 0;
+                    mem->field_20++;
+                    if (mem->field_20 >= arg0->spawnArg1) {
+                        arg0->state = 2;
+                    }
+                }
+            }
+            break;
+        case 2:
+            mem->field_22++;
+            if (mem->field_22 >= 0x65) {
+                D_80115740->field_2--;
+                if (D_80115740->field_2 <= 0) {
+                    SndEvt_EnqueueType7(0xFF0D, 1);
+                    D_80115740->field_2 = 0;
+                }
+                func_800EC7E4(mem, arg0);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FC9BC);
 
