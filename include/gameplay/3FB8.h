@@ -314,11 +314,13 @@ typedef struct _GpDelayArg {
     /* 0x14 */ s32  field_14;
 } GpDelayArg;
 
-/// 0x14-byte argument for `func_80104B54` / `func_80104CAC` / `func_8010C4F0`.
-/// `func_80104B54` / `func_80104CAC` copy `field_0` to `GameActor.field_928`.
-/// `func_8010C4F0` treats `field_0` as an index into `D_80113368` and only
-/// reinstalls when that pointer differs. `field_8 == 0` runs `func_801038F8`
-/// (plus `func_800B3F84` in `func_80104B54` / `func_80104CAC`); otherwise
+/// 0x14-byte argument for `func_80104508` / `func_80104B54` / `func_80104CAC` /
+/// `func_8010C4F0`. `func_80104B54` / `func_80104CAC` copy `field_0` to
+/// `GameActor.field_928`. `func_80104508` / `func_8010C4F0` treat `field_0` as
+/// an index into `D_80112D6C` / `D_80113368` and only reinstall when that
+/// pointer differs. `field_8 == 0` runs `func_801038F8` (plus `func_800B3F84`
+/// in `func_80104B54` / `func_80104CAC`, and in `func_80104508` /
+/// `func_8010C4F0` only on a table miss); otherwise
 /// `func_80103A18(..., field_4, 0 or 1, field_C)`. `field_10` selects
 /// `field_983` (7 if nonzero, `0x38` if zero).
 typedef struct _GpAnimArg {
