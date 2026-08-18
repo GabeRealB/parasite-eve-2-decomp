@@ -1288,7 +1288,43 @@ s32 func_800E0308(SVECTOR* arg0, SVECTOR* arg1)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0414);
+void func_800E0414(GpObj* a, GpObj* b)
+{
+    GpObj*     other;
+    GpU16Pair* rec;
+    s32        rowOff;
+    s32        temp;
+    u16        flags;
+    u16        handler;
+    u16        swap;
+    u8         kind;
+    u8         otherKind;
+
+    for (; a != NULL; a = a->next) {
+        flags = a->flags;
+        if (flags & 0x8000) {
+            kind  = (a->flags & 7) - 1;
+            other = b;
+            if (other != NULL) {
+                rowOff = kind << 4;
+                for (; other != NULL; other = other->next) {
+                    if (other->flags & 0x8000) {
+                        otherKind = (other->flags & 7) - 1;
+                        temp      = (otherKind << 2) + rowOff;
+                        rec       = &D_8010FA4C[0][0] + (temp >> 2);
+                        swap      = rec->field_2;
+                        handler   = rec->field_0;
+                        if (swap == 0) {
+                            D_8010FA38[handler](a, other, handler);
+                        } else {
+                            D_8010FA38[handler](other, a, handler);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 void func_800E0540(GpObj* node)
 {
