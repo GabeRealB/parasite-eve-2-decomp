@@ -1111,7 +1111,64 @@ s32 func_80104508(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104684);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104838);
+s32 func_80104838(GpActorWork* arg0, s32 arg1, s32 arg2)
+{
+    GameActorExt*  extra;
+    GameActor*     actor;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* next;
+    u16            mode;
+    VECTOR         vec;
+
+    extra = arg0->extra;
+    actor = arg0->actor;
+    coord = (GsCOORDINATE2*)extra->field_8;
+    mode  = actor->field_954;
+    next  = coord + 1;
+    if (mode != 2) {
+        return 1;
+    }
+    if (arg2 != mode) {
+        vec.vx = next->coord.t[0];
+        vec.vy = next->coord.t[1];
+        vec.vz = next->coord.t[2];
+        ApplyMatrixLV(&coord->coord, &vec, &vec);
+        coord->coord.t[0] += vec.vx;
+        coord->coord.t[2] += vec.vz;
+        next->coord.t[0]   = 0;
+        next->coord.t[2]   = 0;
+    }
+    actor->field_10                   = coord->coord.t[0];
+    actor->field_14                   = coord->coord.t[1];
+    actor->field_18                   = coord->coord.t[2];
+    actor->field_93A                  = D_80112D68[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21;
+    actor->field_928                  = D_80112D6C[actor->field_93A];
+    actor->field_985                  = 0x10;
+    actor->field_983                  = 7;
+    ((GpObj*)actor->field_AC)->flags |= 0x2000;
+    if (D_801153F0.field_0 == 1) {
+        func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, (GpAnimObj*)extra, &actor->field_7A8,
+                      (GpAnimSlot*)actor->pad_438);
+        if (arg2 == mode) {
+            func_80108770(arg0, 0);
+        } else {
+            func_8010870C(arg0, 0);
+        }
+        return 0;
+    }
+    if (arg2 == mode) {
+        func_80108874(arg0);
+        return 0;
+    }
+    if (arg2 == 1) {
+        func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, (GpAnimObj*)extra, &actor->field_7A8,
+                      (GpAnimSlot*)actor->pad_438);
+        func_801066DC(arg0, 1);
+    } else {
+        func_801066DC(arg0, 0);
+    }
+    return 0;
+}
 
 void func_80104A4C(GpActorWork* arg0)
 {
