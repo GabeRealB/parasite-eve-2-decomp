@@ -21058,5 +21058,58 @@ if (D_8010D838[item].field_3 & 1) {
 Compare `Mc_SaveData.field_7` to the already-live `selected == 1`
 temp (`$s2`), not a fresh `1`, so the `bne` reuses that register.
 
+## Index the slot table in the loop so `lui` stays in `$a0`
+
+Filling `D_8010E8F8[0] = item` / `[1] = [2] = -1` by taking the
+address first:
+
+```c
+p = D_8010E8F8;
+if (item != p[0]) {
+    for (; i < 3; i++, p++) {
+        if (i == 0) {
+            D_8010E8F8[0] = item;
+        } else {
+            *p = minusOne;
+        }
+    }
+}
+```
+
+CSEs the `%hi` into `$a1` (needed for the later `%lo` store) and
+puts `addiu a0, a1, %lo` in the `beq` delay slot. The target loads
+the global first (`lui a0` / `lw %lo(a0)`), keeps `i = 0` in that
+delay slot, then copies hi and materializes the pointer:
+
+```
+lui    a0, %hi(D_8010E8F8)
+lw     v0, %lo(D_8010E8F8)(a0)
+beq    s0, v0, skip
+ move  v1, zero
+li     a2, -1
+move   a1, a0
+addiu  a0, a1, %lo(D_8010E8F8)
+```
+
+Write the else-stores as `D_8010E8F8[i]` and let GCC strength-reduce.
+The comparison then owns `$a0` for the `lui`, and the copy/`addiu`
+appear after the branch:
+
+```c
+if (item != D_8010E8F8[0]) {
+    i        = 0;
+    minusOne = -1;
+    for (; i < 3; i++) {
+        if (i == 0) {
+            D_8010E8F8[0] = item;
+        } else {
+            D_8010E8F8[i] = minusOne;
+        }
+    }
+}
+```
+
+`func_800C7590` is the example.
+
 
 

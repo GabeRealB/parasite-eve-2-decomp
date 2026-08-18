@@ -1412,7 +1412,7 @@ s32 func_800BB610(GpItemScan* arg0, s32 arg1)
     return rec->field_0;
 }
 
-s32 func_800BB668(s32 arg0)
+s32 func_800BB668(s32 arg0, s32 arg1)
 {
     u16* p;
     s32  ret;

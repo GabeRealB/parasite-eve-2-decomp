@@ -112,6 +112,7 @@ extern UiObjectDesc   D_8010EE6C;
 extern UiObjectDesc   D_8010EE88;
 extern UiObjectDesc   D_8010EEDC;
 extern UiObjectDesc   D_8010EF14;
+extern UiObjectDesc   D_8010EF68;
 extern UiObjectDesc   D_8010EF84;
 extern UiObjectDesc   D_8010EFA0;
 extern UiObjectDesc   D_8010EFBC;
@@ -1021,7 +1022,88 @@ void func_800C7444(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C7590);
+void func_800C7590(DialogPrompt* arg0, UiObject* arg1)
+{
+    TextDrawReq req;
+    s32         item;
+    s32         x;
+    s32         y;
+    s32         color;
+    s32         temp;
+    s32         status;
+    s32         one;
+    s32         flag;
+    s32         i;
+    s32         minusOne;
+    UiObject*   obj;
+    s32         baseY;
+
+    item  = func_800BB668(arg0->field_8, 0);
+    x     = arg0->field_18;
+    y     = arg0->field_1A;
+    color = arg0->field_1C;
+    if (arg1->mode != 5) {
+        req.x          = arg1->baseX + 0x11 + x;
+        baseY          = arg1->baseY - 6;
+        req.y          = baseY + y;
+        req.otIndex    = (s16)arg1->drawOrder + 1;
+        req.field_8    = color;
+        req.glyphTable = 0;
+        req.centerMode = 0;
+        req.field_E    = 1;
+        func_8002E53C(&req, func_800B8EB0(item, 0, 0));
+        temp = item - 0xF;
+        if ((u32)temp < 0x24U) {
+            func_800C2538(arg1, x, y, temp % 3 + 1, color);
+        }
+        func_800C05CC(arg1, x, y, item, 0);
+    }
+
+    status = arg1->status;
+    one    = 1;
+    if (((status >> 16) == one) || (status == one)) {
+        if (arg0->field_10 == arg0->field_8) {
+            if (item != D_8010E8F8[0]) {
+                i        = 0;
+                minusOne = -1;
+                for (; i < 3; i++) {
+                    if (i == 0) {
+                        D_8010E8F8[0] = item;
+                    } else {
+                        D_8010E8F8[i] = minusOne;
+                    }
+                }
+                func_800C5C2C(item, 0);
+            }
+            if (item == 0) {
+                Ui_SetHolderParam((s32)D_8010F8D0, 0, 0);
+            } else {
+                Ui_SetHolderParam((s32)func_800B8EB0(item, 1, 0), 0, 0);
+            }
+        }
+    }
+
+    flag = arg0->field_C;
+    if (flag == 1) {
+        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+            SndEvt_EnqueueType6(3, 0, 0);
+            if (Game_Session->field_66 == flag) {
+                Ui_SpawnFromDesc(&D_8010EF84, 0, 1, 1, arg1);
+                arg1->status = 0;
+            } else {
+                obj = Ui_SpawnFromDesc(&D_8010EF68, item, 1, 1, arg1);
+                if (obj != NULL) {
+                    Ui_ClampDialogRect((UiPanel*)obj, (UiPanel*)arg0, (UiPanel*)arg1);
+                    arg1->status = 0;
+                }
+            }
+        } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
+            SndEvt_EnqueueType6(3, 0, 0);
+            Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
+            arg1->status = 0;
+        }
+    }
+}
 
 void func_800C7844(Task* arg0)
 {
