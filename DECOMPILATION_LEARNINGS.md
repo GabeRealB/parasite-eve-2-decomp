@@ -20703,5 +20703,32 @@ __asm__ volatile("" : "+r"(temp) : "r"(head), "r"(vec));
 the switch's `li a0, 1` (reused as `field_95E = 1`). `func_80109844`
 is the example.
 
+## `gpl 1` is `0x4BA8003E`; keep an `s32` index after `lbu`
+
+aspsx `gpl 1` assembles to `0x4BA8003E` (same bit-24 set as `gpf 1` /
+`0x4B98003D`). `gte_gpl12()` emits a DMPSX placeholder; use a
+handwritten command next to `gte_gpf12_real`:
+
+```c
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#define gte_gpl12_real() __asm__ volatile("nop; nop; .word 0x4BA8003E")
+```
+
+`gte_LoadAverageShort12` is then `gte_lddp` / `gte_ldsv` / `gpf 1` /
+`gte_lddp` / `gte_ldsv` / `gpl 1` / `gte_stsv`. Load/store helpers
+match as-is.
+
+A `u8` temp assigned from an already-`lbu`'d field, then used as an
+array index, emits a redundant `andi rd, rd, 0xff` after the alloc
+store. Hold the index in an `s32` so the `lbu` stands alone:
+
+```c
+s32 idx;
+idx  = slot->field_14; /* lbu */
+dest = &arr[idx];      /* sll / addu, no andi */
+```
+
+`func_800B43E0` is the example.
+
 
 

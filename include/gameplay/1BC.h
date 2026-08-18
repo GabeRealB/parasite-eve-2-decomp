@@ -49,12 +49,32 @@ void func_800B25B0(void);
 
 /// Source object for `func_800B3CCC` / `func_800B3F60`. Word at 0x30 is
 /// copied into the dest context; the address of 0x34 is stored as dest
-/// `field_4` (base of 0x50-byte records in `func_800B3448`).
+/// `field_4` (base of 0x50-byte `GpAnimMtxRec` records in `func_800B3448`
+/// / `func_800B43E0`).
 typedef struct _GpAnimObj {
     /* 0x00 */ byte  pad_0[0x30];
     /* 0x30 */ void* field_30;
     /* 0x34 */ byte  field_34;
 } GpAnimObj;
+
+/// Pose pair used by `func_800B43E0`. Translation is copied into
+/// `GpAnimMtxRec.mtx.t` when `GpAnimSlot.field_B == 1`; rotation is
+/// GPF/GPL-blended with the other pose and fed to `RotMatrix_gte`.
+typedef struct _GpAnimPose {
+    /* 0x00 */ SVECTOR trans;
+    /* 0x08 */ SVECTOR rot;
+} GpAnimPose;
+STATIC_ASSERT_SIZEOF(GpAnimPose, 0x10);
+
+/// 0x50-byte dest record at `GpAnimCtx.field_4`, indexed by
+/// `GpAnimSlot.field_14`. `func_800B43E0` writes `mtx` (rotation at +4,
+/// translation at +0x18) and clears `field_0`.
+typedef struct _GpAnimMtxRec {
+    /* 0x00 */ s32    field_0;
+    /* 0x04 */ MATRIX mtx;
+    /* 0x24 */ byte   pad_24[0x2C];
+} GpAnimMtxRec;
+STATIC_ASSERT_SIZEOF(GpAnimMtxRec, 0x50);
 
 /// 4-byte animation record. `func_800B3E74` / `func_800B3EE8` index this by
 /// `GpAnimSlot::field_6` and copy `field_2 << 4` into the slot's
@@ -93,7 +113,8 @@ typedef struct _GpAnimSet {
 /// `field_9 = 0x10`, copies `arg1` to both `field_14` and `field_15`,
 /// and stores `recs[field_6].field_3 & 0xF` in `field_B`.
 /// `func_800B404C` is the same init with separate `field_14` /
-/// `field_15` arguments.
+/// `field_15` arguments. `func_800B43E0` indexes `GpAnimCtx.field_4` by
+/// `field_14` and copies pose translation when `field_B == 1`.
 typedef struct _GpAnimSlot {
     /* 0x00 */ u16         field_0;
     /* 0x02 */ u16         field_2;
@@ -119,7 +140,8 @@ STATIC_ASSERT_SIZEOF(GpAnimSlot, 0x28);
 
 /// 0x14-byte context filled by `func_800B3CCC` (no `field_C`) and
 /// `func_800B3F60` (also writes `field_C`). Nearby helpers index
-/// `field_C` as a 0x28-byte slot array and `field_8` at a 0x10 stride.
+/// `field_C` as a 0x28-byte slot array, `field_4` as a 0x50-byte
+/// `GpAnimMtxRec` array, and `field_8` at a 0x10 stride.
 typedef struct _GpAnimCtx {
     /* 0x00 */ GpAnimSet** field_0;
     /* 0x04 */ void*       field_4;
@@ -237,6 +259,8 @@ void     func_800B3F84(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3,
 void     func_800B3FA8(GpAnimCtx* arg0, s32 arg1, s32 arg2);
 void     func_800B404C(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void     func_800B4114(GpAnimCtx* arg0, s32 arg1, u16 arg2, s32 arg3, s32 arg4);
+void     func_800B43E0(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
+                       s32 arg5);
 void     func_800B4514(GpAnimCtx* arg0, s32 arg1);
 void     func_800B4538(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5,
                        s32 arg6);

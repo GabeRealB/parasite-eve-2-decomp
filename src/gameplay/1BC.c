@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include <psyq/inline_c.h>
 #include <psyq/rand.h>
 #include <psyq/stdio.h>
 
@@ -17,6 +18,9 @@
 #include "main/stream.h"
 #include "main/task.h"
 #include "main/tmd.h"
+
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
+#define gte_gpl12_real() __asm__ volatile("nop; nop; .word 0x4BA8003E")
 
 void func_800B1EFC(Task* arg0);
 void func_800B2088(u16* arg0, u16* arg1, s32 arg2, u16* arg3);
@@ -810,7 +814,39 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, u16 arg2, s32 arg3, s32 arg4)
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B4248);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B43E0);
+void func_800B43E0(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
+                   s32 arg5)
+{
+    void**        scratch;
+    void*         head;
+    GpAnimSlot*   slot;
+    GpAnimMtxRec* dest;
+    SVECTOR*      rot;
+    s32           idx;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    slot     = &arg0->field_C[arg1];
+    head     = *scratch;
+    idx      = slot->field_14;
+    *scratch = (u8*)head - 0x10;
+    dest     = &((GpAnimMtxRec*)arg0->field_4)[idx];
+    if (slot->field_B == 1) {
+        dest->mtx.t[0] = arg2->trans.vx;
+        dest->mtx.t[1] = arg2->trans.vy;
+        dest->mtx.t[2] = arg2->trans.vz;
+    }
+    gte_lddp(arg4);
+    gte_ldsv(&arg2->rot);
+    gte_gpf12_real();
+    gte_lddp(arg5);
+    gte_ldsv(&arg3->rot);
+    gte_gpl12_real();
+    rot = (SVECTOR*)((u8*)head - 8);
+    gte_stsv(rot);
+    RotMatrix_gte(rot, &dest->mtx);
+    dest->field_0           = 0;
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+}
 
 void func_800B4514(GpAnimCtx* arg0, s32 arg1)
 {
