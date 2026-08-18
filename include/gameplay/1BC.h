@@ -8,6 +8,7 @@
 #include <psyq/libgs.h>
 
 #include "gameplay/3A34.h"
+#include "main/session.h"
 #include "main/task.h"
 #include "main/tmd.h"
 
@@ -294,6 +295,7 @@ s32        func_800B5E78(Task* arg0, Task* arg1, s32 arg2, Task** arg3);
 s32        func_800B5EE8(Task* arg0);
 s32        func_800B5F5C(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_800B62D4(void);
+void       func_800B6B44(GameSessionFrom4* arg0);
 void       func_800B6CF0(void);
 s32        func_800B6DA4(s32 arg0, s32 arg1);
 

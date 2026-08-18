@@ -71,12 +71,24 @@ typedef struct _GpBit2Rec {
 } GpBit2Rec;
 STATIC_ASSERT_SIZEOF(GpBit2Rec, 0x10);
 
+/// Spawn header for `func_800BBA70` / `func_800B6B44`. `field_0` is
+/// `Task_SpawnFromTable` arg2 (0xFFFF terminator); `field_4` is the
+/// `TaskDesc` table (`func_800B01AC` uses idx 0).
+typedef struct _GpEnemyDesc {
+    /* 0x0 */ u16      field_0;
+    /* 0x2 */ byte     pad_2[2];
+    /* 0x4 */ TaskDesc field_4;
+} GpEnemyDesc;
+STATIC_ASSERT_SIZEOF(GpEnemyDesc, 0x10);
+
 /// 8-byte list node walked by `func_800BB838` / `func_800BAB64`.
 /// field_0 is a `GpBit2Rec` list (NULL skips; `(GpBit2Rec*)-1` ends).
-/// `D_8010D230[i].field_0` points at a table of these.
+/// `func_800B6B44` also reads field_0 as a `GpEnemyPlace` list and field_4
+/// as a 0xFFFF-terminated `GpEnemyDesc` table. `D_8010D230[i].field_0`
+/// points at a table of these.
 typedef struct _GpBit2List {
-    /* 0x00 */ GpBit2Rec* field_0;
-    /* 0x04 */ byte       pad_4[4];
+    /* 0x00 */ GpBit2Rec*   field_0;
+    /* 0x04 */ GpEnemyDesc* field_4;
 } GpBit2List;
 STATIC_ASSERT_SIZEOF(GpBit2List, 0x8);
 
@@ -91,16 +103,7 @@ typedef struct _GpBit2Bank {
 } GpBit2Bank;
 STATIC_ASSERT_SIZEOF(GpBit2Bank, 0x8);
 
-/// Spawn header for `func_800BBA70`. `field_0` is `Task_SpawnFromTable`
-/// arg2; `field_4` is the `TaskDesc` table (`func_800B01AC` uses idx 0).
-typedef struct _GpEnemyDesc {
-    /* 0x0 */ u16      field_0;
-    /* 0x2 */ byte     pad_2[2];
-    /* 0x4 */ TaskDesc field_4;
-} GpEnemyDesc;
-STATIC_ASSERT_SIZEOF(GpEnemyDesc, 0x10);
-
-/// Placement record for `func_800BBA70`. `field_0` / `field_4` pack into
+/// Placement record for `func_800BBA70` / `func_800B6B44`. `field_0` / `field_4` pack into
 /// `GpEnemy.field_8` as `field_0 | (field_4 << 8)`; `field_2` is copied to
 /// `GpEnemy.field_A`. `field_8` / `field_A` / `field_C` are world X/Y/Z
 /// (`GsCOORDINATE2.coord.t`); `field_E` is the yaw stored at coord +0x46

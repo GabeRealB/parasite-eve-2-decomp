@@ -11,6 +11,7 @@
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
 #include "main/mc.h"
 #include "main/mem.h"
 #include "main/session.h"
@@ -1455,7 +1456,63 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B65B0);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B6950);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B6B44);
+void func_800B6B44(GameSessionFrom4* arg0)
+{
+    GpBit2List*   lists;
+    GpEnemyPlace* place;
+    GpEnemyDesc*  desc;
+    GpEnemy*      enemy;
+    Task*         task;
+    GameActorExt* extra;
+    GpCoordPlace* coord;
+    u16           term;
+    u16           id;
+
+    lists = D_8010D230[arg0->field_3].field_0;
+    if (lists == NULL) {
+        return;
+    }
+    place = (GpEnemyPlace*)lists[arg0->field_2].field_0;
+    if (place == NULL) {
+        return;
+    }
+    term = 0xFFFF;
+    if (place->field_0 == term) {
+        return;
+    }
+    do {
+        desc = lists[arg0->field_2].field_4;
+        id   = desc->field_0;
+        if (id != term) {
+            do {
+                if (id == place->field_2) {
+                    enemy = func_800B01AC(&desc->field_4, 0, desc->field_0, NULL);
+                    if (enemy != NULL) {
+                        task = enemy->task;
+                        if (task->spawnType != 0) {
+                            extra             = (GameActorExt*)task->extra;
+                            coord             = (GpCoordPlace*)extra->field_8;
+                            enemy->field_8    = place->field_0 | (place->field_4 << 8);
+                            enemy->field_A    = place->field_2;
+                            coord->coord.t[0] = place->field_8;
+                            coord->coord.t[1] = place->field_A;
+                            coord->coord.t[2] = place->field_C;
+                            coord->field_46   = place->field_E;
+                            if (coord->field_46 != 0) {
+                                Gfx_RotMatrixY(&coord->coord, (s16)place->field_E, 1);
+                            }
+                            coord->flg = 0;
+                        }
+                    }
+                    break;
+                }
+                desc++;
+                id = desc->field_0;
+            } while (id != term);
+        }
+        place++;
+    } while (place->field_0 != term);
+}
 
 void func_800B6CF0(void)
 {

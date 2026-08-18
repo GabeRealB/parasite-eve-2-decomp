@@ -21734,5 +21734,45 @@ The early `y` load also frees `$v1` after `D_80071190 = p + 1`, which is
 what stores the cursor bump before `p->x0`. `func_800C2538` is the example.
 The `textY = baseY - 3` half is the same pattern as `func_800CDBEC`.
 
+## Load a terminator key once so the record pointer stays in `$v1`
+
+A 0xFFFF-terminated record walk that later passes the same key into a
+call wants the record in `$v1` and the first `lhu` in `$a0`:
+
+```
+lw    v1, 4(v0)
+lhu   a0, 0(v1)
+beq   a0, s3, next
+lhu   v0, -0xc(s1)
+bne   a0, v0, incr
+addiu a0, v1, 4
+move  a1, zero
+lhu   a2, 0(v1)
+jal   callee
+```
+
+Writing `rec->key` in the terminator test, the match compare, *and* the
+call argument lets GCC put the record in `$a2` (the call's third arg) and
+emit an extra `lhu` before the compare. Load the key once into a `u16`,
+use that temp for both tests, and re-read the field only as the call
+arg:
+
+```c
+id = rec->key;
+if (id != term) {
+    do {
+        if (id == want) {
+            callee(&rec->payload, 0, rec->key, NULL);
+            break;
+        }
+        rec++;
+        id = rec->key;
+    } while (id != term);
+}
+```
+
+Passing `id` into the call becomes `move a2, v1` instead of `lhu a2, 0(v1)`.
+`func_800B6B44` is the example.
+
 
 
