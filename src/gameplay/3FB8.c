@@ -32,6 +32,7 @@ extern GpAnimBlk*     D_80112D6C[];
 extern u16            D_80112DF4[];
 extern u16            D_80113360[];
 extern void*          D_80113368[];
+extern s32            D_80070F60;
 
 s32  func_8010A854(s32 arg0);
 void func_80101848(GpActorWork* arg0);
@@ -165,7 +166,65 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FB7E4);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FBAB0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FBEBC);
+void func_800FBEBC(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    Task*          slot;
+    s16            flag;
+    s32            y;
+
+    mem   = arg0->spawnArg2;
+    flag  = D_80115740->field_E;
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    if (flag != 0) {
+        if (flag >= 4) {
+            goto kill;
+        }
+        slot = Game_GetPtrSlot(3);
+        if (((GameActorExt*)slot->extra)->field_C & 0x80) {
+            return;
+        }
+        func_80098F58(coord);
+        goto draw_lcg;
+    }
+
+    mem->field_22++;
+    if (arg0->state == 0) {
+        mem->field_10 = 0;
+        mem->field_14 = 0;
+        D_80070F60    = D_80070F60 * 5 + 0x71357911;
+        mem->field_12 = 0xFFF0 - (((u32)D_80070F60 >> 16) & 0x3F);
+        D_80070F60    = D_80070F60 * 5 + 0x71357911;
+        mem->field_24 = ((u32)D_80070F60 >> 16) & 0xFFF;
+        mem->field_26 = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xFFF;
+        arg0->state   = 1;
+        mem->field_28 = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xF000;
+    }
+
+    y                 = coord->coord.t[1] + mem->field_12;
+    coord->flg        = 0;
+    coord->coord.t[1] = y;
+    func_80098F58(coord);
+    if ((mem->field_22 & 3) == 0) {
+        mem->field_20++;
+    }
+    if (mem->field_20 >= 8) {
+        goto kill;
+    }
+    if (mem->field_28 & 0x8000) {
+    draw_lcg:
+        D_80070F60 = D_80070F60 * 5 + 0x71357911;
+        func_800EB2C8(coord, (u16)mem->field_20, mem->field_26,
+                      (u16)mem->field_24 | (((u32)D_80070F60 >> 16) & 0x1000));
+    } else {
+        func_800EB2C8(coord, (u16)mem->field_20, mem->field_26,
+                      (u16)mem->field_24 | (u16)mem->field_28);
+    }
+    return;
+kill:
+    func_800EC7E4(mem, arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FC0B4);
 

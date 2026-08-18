@@ -21531,5 +21531,38 @@ register WipSysConfig* cfg asm("t4");
 
 `func_800C2B70` is the example.
 
+## Assign the LCG back onto `D_80070F60`; split `t[1] +=` so `flg = 0` fills the load delay
+
+Two in-block `D_80070F60 * 5 + 0x71357911` steps that both feed field
+stores want the result written back to the global, not kept in temps:
+
+```c
+D_80070F60    = D_80070F60 * 5 + 0x71357911;
+mem->field_12 = 0xFFF0 - (((u32)D_80070F60 >> 16) & 0x3F);
+D_80070F60    = D_80070F60 * 5 + 0x71357911;
+mem->field_24 = ((u32)D_80070F60 >> 16) & 0xFFF;
+```
+
+The first LCG stays in `$a0`, the constant in `$a2`, `&D_80070F60` in
+`$a1`, and both `sw`s are delayed until after `field_24`. Temps
+(`rng` / `rng2`) put the first result in `$t1` and DSE the first store.
+The same `D_80070F60 = D_80070F60 * 5 + C` form at a later
+`func_800EB2C8` call site lands the LCG in `$v0` so `$a3` can hold the
+constant, then the `>> 16 & 0x1000` bit.
+
+An independent `coord->flg = 0` next to `coord->coord.t[1] += step`
+emits the `sw zero` before the `lh` / `lw`. Split the add so the zero
+store fills the load delay and the `t[1]` store sits in the `jal`
+delay slot:
+
+```c
+y                 = coord->coord.t[1] + mem->field_12;
+coord->flg        = 0;
+coord->coord.t[1] = y;
+func_80098F58(coord);
+```
+
+`func_800FBEBC` is the example.
+
 
 
