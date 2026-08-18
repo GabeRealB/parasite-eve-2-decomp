@@ -21588,5 +21588,66 @@ ret = func_800DE7CC(dir, &block->pos, dir, NULL);
 (the original scratch head, still live after GTE). `block->pos.vx` is
 `0(s1)` and reshapes the whole add. `func_800EA02C` is the example.
 
+## Invert `if (field == 0)` so the else reloads into `$a1`
+
+A `u16` that is both the `!= 0` predicate and the call argument is CSEd
+to `lhu v1` / `beqz` / `move a1, v1`. The target reloads at the else
+site:
+
+```
+lhu   v1, field
+bnez  v1, reload
+ …
+reload:
+lhu   a1, field
+j     join
+ move a0, s4
+```
+
+Write the zero arm first so the nonzero arm is the `else` and must
+emit a fresh `lhu a1`:
+
+```c
+if (actor->field_93C == 0) {
+    mode = 2;
+    if (actor->field_91C == NULL) {
+        mode = 0x13;
+    }
+} else {
+    mode = actor->field_93C;
+}
+```
+
+`if (field != 0) { mode = field; } else { … }` stuck at 91% with only
+that `move a1, v1`. `func_80107E1C` is the example.
+
+## `dx = 1; dest = dx` after an ABS in `$v0`
+
+`register s32 dx asm("v0")` plus `if (dx < 0) dx = -dx` is the
+`lw v0` / `lw v1` / `subu v0, v0, v1` / `bgez` / `nop` / `negu`
+sequence. A later `dest = 1` then uses the live switch constant in
+`$a0` (`sb a0`) and leaves a `nop` in the first `beqz` delay.
+
+Assign the 1 through the same `dx` so the fail join is `li v0, 1` /
+`sb v0` and that `li` fills the first `slti` / `beqz` delay (harmless
+on the close path, which immediately reloads `$v0`):
+
+```c
+dx = coord->coord.t[0];
+dx -= actor->field_20;
+if (dx < 0) {
+    dx = -dx;
+}
+if (dx < 0x69) {
+    /* second axis… */
+} else {
+    dx = 1;
+    actor->field_973 = dx;
+}
+```
+
+Split `dx = t[n]; dx -= other` so `t[n]` lands in `$v0` first.
+`func_80107E1C` is the example.
+
 
 

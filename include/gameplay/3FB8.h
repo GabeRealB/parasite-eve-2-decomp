@@ -278,6 +278,17 @@ typedef struct _GpAngleScratch {
 } GpAngleScratch;
 STATIC_ASSERT_SIZEOF(GpAngleScratch, 0xC);
 
+/// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `func_80107E1C`.
+/// `field_0` is the clamped `func_80103E7C` turn delta applied to
+/// `GameActor.field_52`. `vec` is the target-minus-current offset
+/// (`GameActor.field_20/24/28` minus `GsCOORDINATE2.coord.t`).
+typedef struct _GpApproachScratch {
+    /* 0x00 */ s32     field_0;
+    /* 0x04 */ VECTOR3 vec;
+    /* 0x10 */ s32     pad;
+} GpApproachScratch;
+STATIC_ASSERT_SIZEOF(GpApproachScratch, 0x14);
+
 /// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `func_8010BD88`.
 /// `vx`/`vy`/`vz` overlay a `VECTOR3` for `func_80103C74`; `angle` holds
 /// the `ratan2` result and the clamped turn delta applied to
