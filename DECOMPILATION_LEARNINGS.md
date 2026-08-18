@@ -21430,5 +21430,55 @@ if ((val & 0xFFFF) != 0) {
 
 `func_801011D0` is the example.
 
+## List identical switch cases separately, unique case last, so stores cross-jump
+
+A child-flag switch whose `-1` and `9` arms both do `obj->field_2E = flag`,
+with a different `6` arm (`Ui_TeardownTree` / `status = 1`), wants one
+shared `j cont / sh flag` and only `6` hoisted into a callee-saved
+register (`li s2, 6`).
+
+Writing them as one body:
+
+```c
+switch (flag) {
+    case 9:
+    case -1:
+        obj->field_2E = flag;
+        break;
+    case 6:
+        Ui_TeardownTree(childObj, childObj->owner);
+        obj->status = 1;
+        break;
+}
+```
+
+treats `-1` as a loop-invariant case-group value. GCC hoists it
+(`li s2, -1` / `li s4, 6`), steals the register that should keep `1`
+then `6`, and the `slti 7` delay slot loads `9` instead of `-1`.
+
+Listing the identical arms as separate cases and putting the unique
+arm last:
+
+```c
+switch (flag) {
+    case 9:
+        obj->field_2E = flag;
+        break;
+    case -1:
+        obj->field_2E = flag;
+        break;
+    case 6:
+        Ui_TeardownTree(childObj, childObj->owner);
+        obj->status = 1;
+        break;
+}
+```
+
+emits two `j cont / sh` tails. GCC 2.8.1's cross-jump merges them into
+the one store after the `bne 9` fall-through, while `-1` stays an
+immediate in the `slti` delay slot. Reuse the `1` temp for the pivot
+(`one = 6` before the loop) so that load overwrites `$s2` instead of
+allocating `$s4`. `func_800C8B40` is the example.
+
 
 

@@ -67,6 +67,7 @@ extern char           D_8010F958[];
 extern char           D_8010F96C[];
 extern char           D_8010F9C0[];
 extern char           D_8010F19C[];
+extern u8             D_8010F264[];
 extern char           D_8010F1A4[];
 extern char           D_8010F1AC[];
 extern char           D_8010F1B4[];
@@ -148,6 +149,7 @@ extern char           D_8009701C[];
 extern char           D_8009703C[];
 extern char           D_800970D8[];
 extern char           D_800970E0[];
+extern char           D_80097114[];
 extern char           D_80097120[];
 extern char           D_80097130[];
 extern char           D_80097138[];
@@ -205,6 +207,7 @@ void       func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4,
 void       func_800CFE68(s32 arg0, UiObject* arg1);
 void       func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
+void       func_800C2B70(UiList* arg0, s32 arg1);
 void       func_800C8B40(Task* arg0);
 void       func_800C9654(Task* arg0);
 void       func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -1223,7 +1226,100 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C8368);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C8700);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C8B40);
+void func_800C8B40(Task* arg0)
+{
+    UiObject* obj;
+    UiList*   menu;
+    s32       spawnArg;
+    s32       one;
+    Task*     child;
+    Task*     next;
+    Task*     head;
+    UiObject* childObj;
+    s32       flag;
+
+    obj           = arg0->spawnArg2;
+    spawnArg      = arg0->spawnArg1;
+    obj->field_2E = 0;
+    menu          = &D_8010E9A4;
+    if (arg0->state == 0) {
+        func_800C2B70(menu, spawnArg);
+        Ui_LayoutListPanel(menu, (UiPanel*)obj);
+        if (spawnArg == 0) {
+            menu->field_17 += 0x4C;
+            obj->field_12  += 0x4C;
+        }
+        menu->field_A  = 1;
+        menu->field_10 = 0;
+        menu->field_9  = 0;
+        arg0->state    = arg0->state + 1;
+        if (menu->field_4 == 0) {
+            arg0->state         = arg0->state + 1;
+            arg0->killCountdown = 0xBC;
+            obj->field_4       |= 2;
+            Ui_SizeFromTextPlain((UiPanel*)obj, D_8010F264);
+            return;
+        }
+        if ((s16)obj->field_E + (s16)obj->field_12 < 0x47) {
+            return;
+        }
+        obj->field_E = 0x46 - obj->field_12;
+        return;
+    }
+    one = 1;
+    if (arg0->state == one) {
+        Ui_UpdateListNoAnim(menu, obj);
+        if (obj->status == one) {
+            if (Pad_CheckButtons(0, one, D_8005ED78) != 0) {
+                obj->field_2E = -1;
+            } else if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
+                SndEvt_EnqueueType6(4, 0, 0);
+                obj->field_2E = 6;
+            }
+        }
+        child = arg0->firstChild;
+        if (child != NULL) {
+            one = 6;
+            do {
+                childObj = child->spawnArg2;
+                flag     = childObj->field_2E;
+                next     = child->nextSibling;
+                switch (flag) {
+                    case 9:
+                        obj->field_2E = flag;
+                        break;
+                    case -1:
+                        obj->field_2E = flag;
+                        break;
+                    case 6:
+                        Ui_TeardownTree(childObj, childObj->owner);
+                        obj->status = 1;
+                        break;
+                }
+                head  = arg0->firstChild;
+                child = next;
+                if (child == head) {
+                    break;
+                }
+                if (head == NULL) {
+                    break;
+                }
+            } while (1);
+        }
+        return;
+    }
+    Ui_DrawText((UiPanel*)obj, D_80097114);
+    Text_DrawMultiLine(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, D_8010F264, 0x606060, one, 0);
+    arg0->killCountdown--;
+    if (Pad_CheckButtons(0, 1, D_8005ED78) != 0) {
+        obj->field_2E = -1;
+        return;
+    }
+    if ((arg0->killCountdown == 0) || (Pad_CheckButtons(0, 1, D_8005ED70 | D_8005ED74) != 0)) {
+        obj->field_2E       = 9;
+        arg0->killCountdown = 0x7FFF;
+    }
+}
 
 void func_800C8E10(Task* arg0)
 {
