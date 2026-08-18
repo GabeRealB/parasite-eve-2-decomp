@@ -1304,7 +1304,38 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DE2C0);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DE7CC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DEAFC);
+void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1)
+{
+    void**                 scratch;
+    u8*                    head;
+    GpGridPairScratch*     block;
+    VECTOR*                out;
+    register GpGridParams* p asm("a2");
+
+    scratch      = (void**)G_SCRATCH_HEAD;
+    head         = *scratch;
+    block        = (GpGridPairScratch*)(head - 0x40);
+    block->in.vx = arg0->vx;
+    block->in.vy = arg0->vy;
+    block->in.vz = arg0->vz;
+    out          = (VECTOR*)(head - 0x30);
+    *scratch     = block;
+    ApplyTransposeMatrixLV(&D_80115448->field_0->workm, &block->in, out);
+    p              = D_80115448;
+    block->pos0.vx = (s16)((u16)block->out.vx + (u16)p->field_14 - (u16)p->field_0->coord.t[0]);
+    block->pos0.vy = 0;
+    block->pos0.vz = (s16)((u16)block->out.vz + (u16)p->field_18 - (u16)p->field_0->coord.t[2]);
+    block->in.vx   = arg1->vx;
+    block->in.vy   = arg1->vy;
+    block->in.vz   = arg1->vz;
+    ApplyTransposeMatrixLV(&p->field_0->workm, &block->in, out);
+    p              = D_80115448;
+    block->pos1.vx = (s16)((u16)block->out.vx + (u16)p->field_14 - (u16)p->field_0->coord.t[0]);
+    block->pos1.vy = 0;
+    block->pos1.vz = (s16)((u16)block->out.vz + (u16)p->field_18 - (u16)p->field_0->coord.t[2]);
+    func_800DE2C0((VECTOR*)(head - 0x20), 0);
+    *scratch = (u8*)*scratch + 0x40;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DEC80);
 

@@ -421,8 +421,9 @@ STATIC_ASSERT_SIZEOF(GpObj3A, 0x3C);
 /// if that sum is negative), `out.vy = 0`, and
 /// `out.vz = (pos.vz + field_18) / field_20` (or -1). `func_800E0774`
 /// applies `field_0->workm` with `ApplyTransposeMatrixLV`, then subtracts
-/// `field_0->coord.t[0]` / `t[2]` from the transformed X / Z. Full object
-/// size is not known yet.
+/// `field_0->coord.t[0]` / `t[2]` from the transformed X / Z.
+/// `func_800DEAFC` does the same transform on two `SVECTOR`s, keeping only
+/// the low 16 bits. Full object size is not known yet.
 typedef struct _GpGridParams {
     /* 0x00 */ struct _GsCOORDINATE2* field_0;
     /* 0x04 */ byte                   pad_4[0x10];
@@ -551,6 +552,18 @@ typedef struct _GpPanScratch {
     /* 0x14 */ s16     sx;
 } GpPanScratch;
 STATIC_ASSERT_SIZEOF(GpPanScratch, 0x18);
+
+/// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `func_800DEAFC`.
+/// `in` is the SVECTOR promoted to VECTOR for `ApplyTransposeMatrixLV`;
+/// `out` is that transform; `pos0` / `pos1` are the 16-bit grid-space
+/// results passed to `func_800DE2C0`.
+typedef struct _GpGridPairScratch {
+    /* 0x00 */ VECTOR in;
+    /* 0x10 */ VECTOR out;
+    /* 0x20 */ VECTOR pos0;
+    /* 0x30 */ VECTOR pos1;
+} GpGridPairScratch;
+STATIC_ASSERT_SIZEOF(GpGridPairScratch, 0x40);
 
 /// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_800D9794`.
 /// `dir` is the `Gfx_NormalizeLightDir` output (then overwritten by the
@@ -782,7 +795,9 @@ void func_800DC528(GpObj* node);
 void func_800DCB80(GpObj* node);
 void func_800DD940(GpObj* node);
 void func_800DDDF8(GpObj* node);
+void func_800DE2C0(VECTOR* arg0, s32 arg1);
 s32  func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3);
+void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1);
 void func_800DEF80(GpObj* node, GpObj4C* other);
 s32  func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3);
 void func_800E0294(void);

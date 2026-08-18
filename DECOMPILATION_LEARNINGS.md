@@ -3,6 +3,37 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Pin the next object pointer to `$a2` after a 3-arg call
+
+`ApplyTransposeMatrixLV(m, v0, v1)` leaves `$a2` free. The target then
+reloads a global into that same register so the later field walk and the
+next call reuse it:
+
+```
+jal   ApplyTransposeMatrixLV
+ addiu a0, a0, 0x24
+lw    a2, %lo(D_80115448)(s2)
+lhu   v0, 0x10(s0)
+lw    v1, 0(a2)
+lhu   a0, 0x14(a2)
+```
+
+A named `p = D_80115448` without a pin lands in `$a3` instead. That
+shifts every subsequent field load and the second call's
+`lw a0, 0(p)` / `move a2, out`. Pin the pointer:
+
+```c
+register GpGridParams* p asm("a2");
+
+ApplyTransposeMatrixLV(&D_80115448->field_0->workm, in, out);
+p = D_80115448;
+```
+
+Also pass `(VECTOR*)(head - 0x20)` (not `&block->pos0`) so the follow-up
+call is `addiu a0, s1, -0x20` from the original scratch head. Write the
+independent `pos.vy = 0` *after* the `pos.vx` store so `-fschedule-insns`
+lifts `sw zero` between `addu` and `subu`. `func_800DEAFC` is the example.
+
 ## Keep the raw table pointer so it stays in `$a1` until after the NULL check
 
 Loading a per-stage name table and immediately folding it into the
