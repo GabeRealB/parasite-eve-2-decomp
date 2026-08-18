@@ -45,9 +45,6 @@ extern GsCOORDINATE2* D_80114B9C;
 extern CVECTOR        D_80114BA4;
 extern CVECTOR        D_80114BA8;
 extern u8             D_80114BF0[];
-extern u16            D_80114C02;
-extern s16            D_80114C04;
-extern u8*            D_80114C38;
 extern TaskFuncTable6 D_80093830;
 extern s32            D_80070F60;
 extern char           D_80093804[]; // "new_disp_2d ----> NULL\n"
@@ -67,6 +64,7 @@ void func_8009939C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800A82C0(GsCOORDINATE2* arg0, VECTOR* arg1);
 void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 void func_800A9730(Task* task);
+void func_807150F8(s32 arg0);
 void func_80715198(void);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80097AC0);
@@ -921,7 +919,54 @@ u32* func_8009FD28(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009FD74);
+void func_8009FD74(s32 arg0, PadScratch* arg1)
+{
+    u16                   temp_v0;
+    u16                   temp_v1;
+    register GpPadReplay* rec asm("a0");
+    s32                   offset;
+
+    if (arg0 == 1) {
+        func_807150F8(1);
+        return;
+    }
+
+    offset = (s32)D_80114C38 - (s32)D_8005C374;
+    if (Display_State.field_12c == 0x10) {
+        offset = (s32)D_80114C38 + 0x7F9FFF00;
+    }
+    if (offset <= 0x17FDF) {
+        if (D_8005EC80 != 0) {
+            arg1->buttons = D_80114C02;
+            return;
+        }
+        temp_v1 = D_80114C38->buttons;
+        if (temp_v1 != D_80114C02) {
+            D_80114C02 = temp_v1;
+            D_80114C04 = D_80114C38->duration;
+        }
+        if (arg1->buttons & 0x800) {
+            arg1->buttons        = D_80114C02 | 0x800;
+            Wip_SysFlags.field_4 = 1;
+        } else {
+            arg1->buttons = D_80114C02;
+        }
+        temp_v0    = D_80114C04 - 1;
+        D_80114C04 = temp_v0;
+        if (!(temp_v0 & 0xFFFF)) {
+            rec        = D_80114C38;
+            D_80114C02 = 0xFFFF;
+            D_80114C38 = rec + 1;
+            asm volatile("");
+            if (rec[1].buttons == 0xFFFF) {
+                Wip_SysFlags.field_4    = 0;
+                Pad_RemapState->field_8 = 0;
+            }
+        }
+    } else {
+        Pad_RemapState->field_8 = 0;
+    }
+}
 
 void func_8009FEDC(Task* task)
 {
@@ -953,9 +998,9 @@ void func_8009FEDC(Task* task)
         ds->field_c           = 0;
         ds->field_10          = 0;
         if (ds->field_12c == 0x10) {
-            D_80114C38 = (u8*)0x80600E4C;
+            D_80114C38 = (GpPadReplay*)0x80600E4C;
         } else {
-            D_80114C38 = (u8*)D_8005C374 + 0xD4C;
+            D_80114C38 = (GpPadReplay*)((u8*)D_8005C374 + 0xD4C);
         }
         D_80114C02              = 0xFFFF;
         D_80114C04              = 1;
@@ -1353,9 +1398,9 @@ void func_800A7600(void)
     ds->field_c           = 0;
     ds->field_10          = 0;
     if (ds->field_12c == 0x10) {
-        D_80114C38 = (u8*)0x80600E4C;
+        D_80114C38 = (GpPadReplay*)0x80600E4C;
     } else {
-        D_80114C38 = (u8*)D_8005C374 + 0xD4C;
+        D_80114C38 = (GpPadReplay*)((u8*)D_8005C374 + 0xD4C);
     }
     D_80114C02              = 0xFFFF;
     D_80114C04              = 1;

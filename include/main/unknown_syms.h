@@ -14,6 +14,7 @@
 #include "common.h"
 #include "main/display.h"
 #include "main/mc.h"
+#include "main/pad.h"
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/tmd.h"
@@ -21,7 +22,7 @@
 extern u16 func_8001D82C(void);
 
 // Overlay / dynamically loaded
-extern void  func_8009FD74(s8 arg0, void* arg1);
+extern void  func_8009FD74(s32 arg0, PadScratch* arg1);
 extern void  func_8002C1D8(void);
 extern void  func_80097AC0(GpuOtBuf* arg0);
 extern void  func_8009850C(GpuOtBuf* arg0);

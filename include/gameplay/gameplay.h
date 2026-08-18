@@ -9,6 +9,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "main/pad.h"
 #include "main/tmd.h"
 
 /// Global at `D_80114C08`. `field_0` is a u16 loaded by many helpers.
@@ -142,9 +143,24 @@ typedef struct _GpDisp2d {
 } GpDisp2d;
 STATIC_ASSERT_SIZEOF(GpDisp2d, 0x60);
 
+/// 4-byte recorded pad pair in the demo/replay stream at `D_80114C38`.
+/// `func_8009FD74` copies `buttons` into `PadScratch` and counts `duration`
+/// frames before advancing. `0xFFFF` buttons is the end marker.
+typedef struct _GpPadReplay {
+    /* 0x0 */ u16 buttons;
+    /* 0x2 */ u16 duration;
+} GpPadReplay;
+STATIC_ASSERT_SIZEOF(GpPadReplay, 0x4);
+
+/// Current replay buttons / remaining frame count / stream cursor.
+extern u16          D_80114C02;
+extern u16          D_80114C04;
+extern GpPadReplay* D_80114C38;
+
 void func_80098F58(GsCOORDINATE2* arg0);
 void func_80098F98(GsCOORDINATE2* arg0, s32 arg1);
 Task* func_8009988C(GsCOORDINATE2* arg0);
+void func_8009FD74(s32 arg0, PadScratch* arg1);
 void func_8009FEDC(Task* task);
 u16  func_800A1558(s32 arg0);
 void func_800A7320(s16* arg0);

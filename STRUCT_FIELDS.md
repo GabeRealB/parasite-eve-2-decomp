@@ -126,7 +126,7 @@ Convention: only list fields with evidence. Unlisted `field_*` / `unknown_*` /
 | Off | Member | Role |
 |-----|--------|------|
 | 0x3 | `field_3` | Cleared by `func_800AC164` teardown |
-| 0x8 | `field_8` | Pad input remap mode (nonzero → overlay remap path). `func_8009FEDC` writes -1 when `Display_State.field_12c != 0` |
+| 0x8 | `field_8` | Pad input remap mode (nonzero → overlay remap path). `func_8009FEDC` writes -1 when `Display_State.field_12c != 0`. `func_8009FD74` plays the `D_80114C38` stream when this is not 1, and clears it at end-of-stream / overflow |
 | 0x9 | `field_9` | s8 (`lb`); `func_8009FEDC` calls `func_80715198` when this is 1 and `Display_State.field_12c` is 0 |
 
 ---
@@ -754,6 +754,17 @@ Task overlay: `actor` is `Task::idMap` at 0x1C; `extra` is `Task::extra` at
 | 0x26 | `field_26` | Target scale / `spawnArg1` hi / 0x20 plus `field_2A` (`func_800F5184`) |
 | 0x28 | `field_28` | Size / lifetime / `D_8011291C[].field_0` draw param (`func_800F5184`) |
 | 0x2A | `field_2A` | Packed draw param for `func_800F7AD4`, or `D_8011291C[].field_2` step |
+
+### `GpPadReplay` (0x4) — `gameplay.h`
+Recorded pad pair in the demo/replay stream at `D_80114C38`. `func_8009FD74`
+plays these into `PadScratch->buttons`. `D_80114C02` caches the current
+buttons; `D_80114C04` is the remaining frame count. Stream start is
+`D_8005C374 + 0xD4C`, or `0x80600E4C` when `Display_State.field_12c == 0x10`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x0 | `buttons` | Replay button mask copied to `PadScratch` |
+| 0x2 | `duration` | Frames to hold this mask; `0xFFFF` buttons ends the stream |
 
 ### `GpStateC08` (0x18) — `gameplay.h`
 Global at `D_80114C08`. Splat also emits per-byte labels (`D_80114C0A` / `D_80114C0B` / …)

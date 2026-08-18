@@ -20001,4 +20001,71 @@ if (arg0 == 0) {
 
 `func_800A4904` is the example.
 
+## Subtract globals in one expression so the pointer stays in `$a0`
+
+Loading a stream pointer, subtracting a base, then using the same pointer
+later:
+
+```c
+rec    = D_80114C38;
+offset = (s32)rec - (s32)D_8005C374;
+```
+
+loads the two globals sequentially (`lw a2, ptr` then `lui`/`lw` of the
+base) and parks the pointer in `$a2`. Write the subtract as one
+expression so the two `%hi`/`lw` pairs interleave and CSE keeps the
+pointer in `$a0`:
+
+```c
+offset = (s32)D_80114C38 - (s32)D_8005C374;
+if (Display_State.field_12c == 0x10) {
+    offset = (s32)D_80114C38 + 0x7F9FFF00;
+}
+/* later: D_80114C38->buttons */
+```
+
+```
+lui   v0, %hi(D_80114C38)
+lui   v1, %hi(D_8005C374)
+lw    a0, %lo(D_80114C38)(v0)
+lw    v0, %lo(D_8005C374)(v1)
+subu  a2, a0, v0
+```
+
+`func_8009FD74` is the example.
+
+## Pin the reload to `$a0` and barrier so increment store stays before `lhu`
+
+Advancing a global pointer then reading the next record through the old
+pointer wants:
+
+```
+lw    a0, ptr
+li    v0, 0xffff
+sh    v0, cached
+addiu v0, a0, 4
+sw    v0, ptr
+lhu   v1, 4(a0)
+```
+
+A plain `rec = ptr; ptr = rec + 1; if (rec[1].field == SENTINEL)`
+schedules `lhu` before the `addiu`/`sw`. Wrapping the increment in
+`do { ptr = rec + 1; } while (0)` fixes the order but recolors: `%hi(ptr)`
+lands in `$a0` and the value in `$v1`/`$a1`.
+
+Pin the reload to `$a0` and put an empty `asm volatile("")` after the
+increment store. Dead `$a1` stays as `%hi(ptr)` and the `lhu` waits:
+
+```c
+register Rec* rec asm("a0");
+
+rec = ptr;
+cached = 0xFFFF;
+ptr    = rec + 1;
+asm volatile("");
+if (rec[1].field == 0xFFFF) {
+```
+
+`func_8009FD74` is the example.
+
 
