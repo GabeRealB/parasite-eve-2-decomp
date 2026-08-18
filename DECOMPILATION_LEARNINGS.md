@@ -20499,5 +20499,48 @@ if ((u8)wrap < 0x20) {
 `func_800B91C8`, which avoids the CSE by reloading `field_0` after a
 store instead.
 
+## Split the first-walk count so it can live in `$a2` then move to `$t1`
+
+A function that counts occupied slots and then reuses `$a2` for a second
+table pointer wants:
+
+```
+move  a2, a3        # occupied = i
+...
+move  t1, a2        # copy before the second walk
+```
+
+Keeping one `occupied` live through both walks allocates it to `$t1`
+from the start (its final home) and puts the first-walk limit in `$a2`.
+Copy to a new `used` after the first walk:
+
+```c
+occupied = i;
+if (count != 0) {
+    /* walk; occupied++ */
+}
+used = occupied;
+if (arg1 >= 0x100) {
+    return 1;
+}
+```
+
+`occupied` dies at the copy, so it can take `$a2`; `used = occupied`
+fills the `slti 0x100` delay as `move t1, a2`.
+
+A shared `off` temp used in both walks stays live and steals `$a2`
+(`sll a2, v0, 2` instead of reusing start's `$v0`). Inline each
+`(start << 2) + (s32)table` (or use a walk-local off).
+
+`table2 = (start2 << 2) + table2` is an in-place increment and commutes
+to `addu a2, a2, v0`. A new walker coalesced with the table keeps the
+operand order:
+
+```c
+walker = (GpItemRec*)((start2 << 2) + (s32)table2);
+```
+
+`addu a2, v0, a2`. `func_800B8988` is the example.
+
 
 

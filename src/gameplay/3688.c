@@ -173,7 +173,6 @@ void       func_800D4E40(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_800D5178(DialogPrompt* arg0, UiObject* arg1);
 void       func_800A96A0(void);
 void       func_800AE9B0(void);
-s32        func_800B8988(McItemScan* arg0, s32 arg1);
 char*      func_800B8EB0(s32 arg0, s32 arg1, s32 arg2);
 void       func_800BAE5C(s32 arg0);
 void       func_800C58B8(UiList* arg0, UiObject* arg1);

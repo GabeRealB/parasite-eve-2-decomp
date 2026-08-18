@@ -28,7 +28,7 @@ STATIC_ASSERT_SIZEOF(GpItemMap, 0x4);
 
 /// 4-byte scan descriptor for `func_800BB500` / `func_800BB6FC` /
 /// `func_800BB5BC` / `func_800BB540` / `func_800BB610` / `func_800BC3F8` /
-/// `func_800BAF5C`.
+/// `func_800BAF5C` / `func_800B8988`.
 /// field_0 is the start index into a 4-byte item table; field_1 is the
 /// entry count; field_2 selects the table (1 / 2 / default). Also
 /// `Mc_SaveData.field_5BC`. `D_8010D520` is a ROM default copied there
@@ -235,6 +235,8 @@ void        func_800BAC8C(GpItemScan* arg0);
 void        func_800BAE38(void);
 s32         func_800BAF08(void);
 s32         func_800BAF5C(GpItemScan* arg0);
+/// True if `arg1` can be added to the item table selected by `arg0`.
+s32         func_800B8988(GpItemScan* arg0, s32 arg1);
 s32         func_800B904C(GpItemScan* arg0, s32 arg1, s32 arg2);
 void        func_800B91C8(GpItemRec* arg0);
 GpItemSlot* func_800BAFE0(s32 arg0);
