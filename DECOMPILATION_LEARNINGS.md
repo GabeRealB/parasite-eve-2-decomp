@@ -20379,5 +20379,38 @@ idx = table[slot->field_15] + extra;
 
 `func_800B47A8` is the example.
 
+## Nested `for (i = 0; i < n; )` + `do { } while (++i < n)` for two delay slots
+
+A count-guarded walk that also keeps a running byte pointer wants two
+different schedules at once:
+
+1. `move a2, zero` in the delay slot of the first `beqz n`
+2. `addiu a2, a2, 1` in the load-delay of the loop-back `lhu` of `n`
+
+A plain `if (n != 0) { i = 0; p = …; do { …; i++; } while (i < n); }`
+leaves a `nop` in the `beqz` delay (`i = 0` is a dead store on the skip
+path while `$a2` is still the live `%hi` of a nearby global). A
+`for (i = 0; i < n; i++)` fills that delay but emits `i++` *before* the
+reload of `n`. Putting `p` in the for-init hoists `addiu p, base, off`
+above the `lhu` of `n`.
+
+The for-init is only the `i = 0` / `i < n` peel; the real trip count and
+the `p += stride` live in an inner do-while whose condition is `++i < n`:
+
+```c
+for (i = 0; i < rec->field_2; ) {
+    p = &prim->field_F;
+    do {
+        /* … */
+        p += 0x1C;
+        prim++;
+    } while (++i < rec->field_2);
+}
+```
+
+`func_800AC960` is the example. Pin `prim` with `register … asm("a1")` so
+the `%hi(D_8010CAE8)` reused for the later `D_8010CAE8[0]` NULL check
+stays in `$a2`.
+
 
 

@@ -840,7 +840,7 @@ walks it; `func_800AD410` consumes one record.
 | 0x0 | `field_0` | u16 start index into `GpCb68Rec.field_0` |
 | 0x2 | `field_2` | u16 count of `GpCb68Elem` / `GpPrim1C` slots to process |
 | 0x4 | `field_4` | u8; nonzero skips OT-linking that record's prims |
-| 0x5 | `field_5` | u8; nonzero skips `func_800AD410` entirely |
+| 0x5 | `field_5` | u8; nonzero skips `func_800AD410` and `func_800AC960` |
 
 ### `GpCb68Elem` (0x14) — `D4.h`
 Array at `GpCb68Rec.field_0`. `func_800AD410` indexes from
@@ -862,10 +862,12 @@ Per-view record in tables pointed to by `D_8010CB68`.
 ### `GpPrim1C` (0x1C) — `D4.h`
 Primitive slot in the `D_8010CAE8` dual-buffer lists. `D_80114CC8` is
 the cursor; `func_800AD410` OT-links `tag` and advances one slot.
+`func_800AC960` sets or clears bit 0 of `field_F` for `field_2` slots.
 
 | Off | Member | Role |
 |-----|--------|------|
 | 0x0 | `tag` | OT link word (`0xFF000000` length / `0xFFFFFF` address) |
+| 0xF | `field_F` | u8; bit 0 set when `func_800AC960` arg is nonzero, cleared when 0 |
 
 ### `GpCb7CRec` (0x10) — `D4.h`
 Element of tables pointed to by `D_8010CB7C`. Stage index is

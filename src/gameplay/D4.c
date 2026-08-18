@@ -777,7 +777,48 @@ void func_800AC688(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AC790);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AC960);
+void func_800AC960(s32 arg0)
+{
+    GameSessionFrom4*  sess;
+    s32                view;
+    register GpPrim1C* prim asm("a1");
+    GpCb68Tbl*         tbl;
+    GpCb68Rec*         recs;
+    GpCb68Obj*         rec;
+    u8*                p;
+    u32                i;
+    u8                 flags;
+
+    sess       = (GameSessionFrom4*)&Game_Session->field_4;
+    view       = func_800AD284();
+    prim       = D_8010CAE8[Display_State.field_1f];
+    D_80114CC8 = prim;
+    tbl        = D_8010CB68[sess->field_3 - 1];
+    recs       = tbl->field_0[sess->field_2 - 1];
+    rec        = recs[(u8)view - 1].field_4;
+    if (rec->field_0 != 0xFFFF) {
+        do {
+            if (rec->field_5 == 0) {
+                if (D_8010CAE8[0] != NULL) {
+                    for (i = 0; i < rec->field_2;) {
+                        p = &prim->field_F;
+                        do {
+                            if (arg0 != 0) {
+                                flags = *p | 1;
+                            } else {
+                                flags = *p & 0xFE;
+                            }
+                            *p = flags;
+                            p += 0x1C;
+                            prim++;
+                        } while (++i < rec->field_2);
+                    }
+                }
+            }
+            rec++;
+        } while (rec->field_0 != 0xFFFF);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ACAA8);
 

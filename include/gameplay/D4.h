@@ -51,7 +51,8 @@ extern GpCb54Tbl* D_8010CB54[];
 /// is, `func_800AC688` skips the first record, otherwise it clears
 /// `Display_State.field_100`. `field_0` is the start index into
 /// `GpCb68Rec.field_0`; `field_2` is the count. `field_4` nonzero skips
-/// OT-linking each prim. `field_5` nonzero skips `func_800AD410`.
+/// OT-linking each prim. `field_5` nonzero skips `func_800AD410` and
+/// `func_800AC960`.
 typedef struct _GpCb68Obj {
     /* 0x0 */ u16  field_0;
     /* 0x2 */ u16  field_2;
@@ -112,18 +113,22 @@ typedef struct _GpCb7CTbl {
 extern GpCb7CTbl* D_8010CB7C[];
 
 /// 0x1C-byte primitive slot in the `D_8010CAE8` lists. `func_800AD410`
-/// OT-links each slot and advances `D_80114CC8` by one.
+/// OT-links each slot and advances `D_80114CC8` by one. `func_800AC960`
+/// walks the current view's records and sets or clears bit 0 of `field_F`
+/// on `field_2` consecutive slots (nonzero arg sets, zero arg clears).
 typedef struct _GpPrim1C {
     /* 0x00 */ u32  tag;
-    /* 0x04 */ byte pad_4[0x18];
+    /* 0x04 */ byte pad_4[0xB];
+    /* 0x0F */ u8   field_F;
+    /* 0x10 */ byte pad_10[0xC];
 } GpPrim1C;
 STATIC_ASSERT_SIZEOF(GpPrim1C, 0x1C);
 
 /// Dual-buffer primitive list heads, indexed by `Display_State.field_1f`.
 extern GpPrim1C* D_8010CAE8[];
 
-/// Cursor into the current `D_8010CAE8` list. Set by `func_800AC688`,
-/// advanced by `func_800AD410`.
+/// Cursor into the current `D_8010CAE8` list. Set by `func_800AC688` /
+/// `func_800AC960`, advanced by `func_800AD410`.
 extern GpPrim1C* D_80114CC8;
 
 /// 5-byte table at `D_800938CC`. `func_800A9B3C` copies it to the stack and
@@ -174,6 +179,7 @@ void func_800ABEF8(s32 arg0);
 void func_800ABF1C(struct _GpAreaKey* arg0);
 s32   func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 void  func_800AC688(void);
+void  func_800AC960(s32 arg0);
 void  func_800ACD2C(Task* task);
 /// 1-based index of `(u8)arg0` in the current room's `D_8010CB54` byte
 /// list. Length is the `D_8010CB40` cell as an s16. Returns 0 if absent.
