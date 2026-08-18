@@ -52,6 +52,7 @@ extern char           D_8010E550[];
 extern char           D_8010E554[];
 extern char           D_8010E558[];
 extern char           D_8010E55C[];
+extern char           D_8010E564[];
 extern char           D_8010E578[];
 extern char           D_8010E588[];
 extern char           D_8010E58C[];
@@ -117,6 +118,7 @@ extern UiObjectDesc   D_8010EFBC;
 extern UiObjectDesc   D_8010EFD8;
 extern UiObjectDesc   D_8010F010;
 extern UiObjectDesc   D_8010F02C;
+extern UiObjectDesc   D_8010F080;
 extern UiObjectDesc   D_8010F178;
 extern UiObjectDesc   D_8010F670;
 extern UiObjectDesc   D_8010F6FC;
@@ -150,6 +152,7 @@ extern char           D_80097138[];
 extern char           D_8009715C[];
 extern u8             D_800971A4;
 extern char           D_800971A8[];
+extern char           D_800971B0[];
 extern char           D_800971B8[];
 extern char           D_800971D0[];
 extern char           D_800971D8[];
@@ -1652,7 +1655,68 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CCDC8);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CCEEC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CD160);
+void func_800CD160(Task* arg0)
+{
+    UiObject*   obj;
+    UiObject*   spawned;
+    UiObject*   childObj;
+    Task*       child;
+    GpItemScan* scan;
+    s32         color;
+    s32         one;
+    s32         flag;
+
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    if (arg0->state == 0) {
+        spawned = Ui_SpawnFromDesc(&D_8010EA98, 0, 1, 2, obj);
+        if (spawned != NULL) {
+            spawned->field_C = (obj->baseX + obj->field_1E + 0xA) - spawned->field_10;
+            spawned->field_E = obj->baseY + obj->field_1A;
+            obj->field_2C    = 0;
+            obj->status      = 0;
+        }
+        arg0->state = arg0->state + 1;
+    }
+    Ui_DrawTextColored((UiPanel*)obj, D_800971B0);
+    color = 0x606060;
+    one   = 1;
+    Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, D_8010E564, color, one, 0);
+    child = arg0->firstChild;
+    if (child != NULL) {
+        childObj = child->spawnArg2;
+        flag     = childObj->field_2E;
+        if (flag != -1) {
+            if (flag == 6) {
+                if (arg0->state == one) {
+                    if (childObj->field_2C == 0x33) {
+                        if (D_80114DDC < 0xC0U) {
+                            scan = &Mc_SaveData.field_5BC;
+                            if (func_800B8988(scan, D_80114DDC) != 0) {
+                                func_800BAD08(scan, D_80114DDC, D_80114DD0);
+                            } else {
+                                childObj->field_2C = 0x34;
+                            }
+                        } else if (D_80114DDC < 0x200U) {
+                            func_800BAE5C(D_80114DDC);
+                        }
+                    }
+                    obj->field_2C = childObj->field_2C;
+                    if (obj->field_2C == 0x33) {
+                        Ui_SpawnFromDesc(&D_8010F080, D_80114DDC, 1, 1, obj);
+                        obj->status = 0;
+                        Ui_TeardownTree(childObj, childObj->owner);
+                        arg0->state = arg0->state + 1;
+                    } else {
+                        obj->field_2E = -1;
+                    }
+                }
+            }
+        } else {
+            obj->field_2E = flag;
+        }
+    }
+}
 
 void func_800CD39C(Task* arg0)
 {
