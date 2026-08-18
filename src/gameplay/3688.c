@@ -37,6 +37,7 @@ extern s32          D_80114E8C;
 extern s32          D_80114E90;
 extern s32          D_80114E94;
 extern char         D_8010E494[];
+extern char         D_8010E4A0[];
 extern char         D_8010E500[];
 extern char         D_8010E504[];
 extern char         D_8010E520[];
@@ -126,6 +127,7 @@ extern char         D_80096FEC[];
 extern char         D_80096FF4[];
 extern char         D_8009701C[];
 extern char         D_8009703C[];
+extern char         D_800970D8[];
 extern char         D_800970E0[];
 extern char         D_80097120[];
 extern char         D_80097138[];
@@ -1247,7 +1249,47 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CD160);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CD39C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CD508);
+void func_800CD508(Task* arg0)
+{
+    UiObject* obj;
+    s32       item;
+    s32       width;
+    s32       temp;
+    s32       color;
+    s32       one;
+    u8*       text;
+
+    obj           = arg0->spawnArg2;
+    item          = (u16)arg0->spawnArg1;
+    obj->field_2E = 0;
+    Ui_DrawText((UiPanel*)obj, D_800970D8);
+    if (arg0->state == 0) {
+        arg0->killCountdown = 0xBC;
+        width               = Text_MeasureWidth(func_800B8EB0(item, 0, 0)) + 0xB;
+        temp                = Text_MeasureWidth(D_8010E4A0);
+        if (width < temp) {
+            width = temp;
+        }
+        Ui_UpdateLayoutSize((UiPanel*)obj, width + 5, Ui_Scale15(2) + 1);
+        ((UiPanel*)obj)->field_C.x = (-((UiPanel*)obj)->field_C.w) >> 1;
+        arg0->state                = arg0->state + 1;
+    }
+    color = 0x606060;
+    one   = 1;
+    Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, D_8010E4A0, color, one, 0);
+    text = func_800B8EB0(item, 0, 0);
+    temp = Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0x1E, text, 0x37A78, one, 0);
+    Text_DrawPrompt(obj, temp, (s16)obj->field_18 + 0x1E, D_8010E59C, color, one, 0);
+    arg0->killCountdown--;
+    if (obj->status == one) {
+        if ((arg0->killCountdown <= 0) ||
+            (((arg0->spawnArg1 & 0x10000) == 0) &&
+             (Pad_CheckButtons(0, 1, D_8005ED70 | D_8005ED74) != 0))) {
+            obj->field_2E       = -1;
+            arg0->killCountdown = 0x7FFF;
+        }
+    }
+}
 
 UiObject* func_800CD704(UiObject* arg0)
 {
