@@ -82,9 +82,11 @@ typedef struct _GpAnimSet {
 /// `field_0 == 0x7FFF` marks the slot inactive. `field_0`/`field_2` and
 /// `field_4`/`field_6` are the two (set, frame) pairs. `field_10` is a
 /// flags word (`func_800B4754` sets bit 0 when clamping `field_2`;
-/// `func_800B46A4` / `func_800B4114` / `func_800B4538` set bit 0/1 while
-/// walking `field_3` links). `func_800B4114` / `func_800B4538` also clear
-/// `field_17` and write a stack arg `<< 4` into `field_C` / `field_E`.
+/// `func_800B46A4` / `func_800B4114` / `func_800B4538` / `func_800B47A8`
+/// set bit 0/1 while walking `field_3` links). `func_800B4114` /
+/// `func_800B4538` / `func_800B47A8` also clear `field_17` and write a
+/// stack arg `<< 4` into `field_C` / `field_E`. `func_800B47A8` installs a
+/// non-NULL last arg into `GpAnimCtx::field_0` and `field_20` first.
 /// `func_800B3CE8` inits a passed-in slot (set index 0 becomes 1; a
 /// negative set index is negated) and also writes `field_2` from the
 /// same `field_4[field_15]` table as `field_6`. `func_800B3FA8` writes

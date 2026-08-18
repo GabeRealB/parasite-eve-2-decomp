@@ -864,7 +864,53 @@ void func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3)
     arg1->field_0 = arg2;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B47A8);
+void func_800B47A8(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6,
+                   void* arg7)
+{
+    GpAnimSlot*    slot;
+    GpAnimSet*     set;
+    GpAnimRec*     recs;
+    GpAnimRec*     rec;
+    u16            idx;
+    u16            val;
+    s32            off;
+    register s32   extra asm("s3");
+    register void* sets asm("s1");
+
+    extra = arg4;
+    sets  = arg7;
+    off   = arg1 << 4;
+    slot  = &arg0->field_C[arg1];
+    func_800B3448(arg0, arg1, arg2, (s32)arg0->field_8 + off);
+    slot->field_0 = 0x7FFF;
+    if (sets != NULL) {
+        arg0->field_0  = sets;
+        slot->field_20 = sets;
+    }
+    set  = slot->field_20[arg3];
+    recs = set->field_0;
+    idx  = set->field_4[slot->field_15] + extra;
+    while ((s8)recs[idx].field_3 < 0) {
+        rec = (GpAnimRec*)((idx << 2) + (s32)recs);
+        if (rec->field_3 < 0xC0) {
+            idx = rec->field_0;
+            if (idx == slot->field_6) {
+                slot->field_10 |= 1;
+            }
+            slot->field_10 |= 2;
+        } else {
+            idx             = slot->field_6;
+            slot->field_10 |= 1;
+            break;
+        }
+    }
+    slot->field_6  = idx;
+    slot->field_4  = arg3;
+    val            = arg6 << 4;
+    slot->field_E  = val;
+    slot->field_C  = val;
+    slot->field_17 = 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B48FC);
 

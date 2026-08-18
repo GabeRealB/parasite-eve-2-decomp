@@ -1298,8 +1298,8 @@ Element of `GpAnimCtx.field_C`. Initialized by `func_800B3CE8` /
 | 0x14 | `field_14` | Slot-index-like byte (`func_800B3FA8` writes `arg1` here and to `field_15`; `func_800B404C` writes `arg4`) |
 | 0x15 | `field_15` | This slot's index in the `field_C` array (`func_800B404C` writes `arg3`) |
 | 0x16 | `field_16` | Byte; cleared by `func_800B3FA8` |
-| 0x17 | `field_17` | Byte; cleared by `func_800B4114` / `func_800B4538` after writing a stack arg `<< 4` into `field_C` / `field_E` |
-| 0x20 | `field_20` | `GpAnimSet**` table (copy of `GpAnimCtx.field_0`) |
+| 0x17 | `field_17` | Byte; cleared by `func_800B4114` / `func_800B4538` / `func_800B47A8` after writing a stack arg `<< 4` into `field_C` / `field_E` |
+| 0x20 | `field_20` | `GpAnimSet**` table (copy of `GpAnimCtx.field_0`); `func_800B47A8` overwrites this and `GpAnimCtx.field_0` when the last arg is non-NULL |
 
 ### `GpAnimCtx` (0x14) — `1BC.h`
 Context filled by `func_800B3CCC` / `func_800B3F60`. Used as arg0 by the

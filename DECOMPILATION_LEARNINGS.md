@@ -20346,5 +20346,38 @@ if (spawned != NULL) {
 
 `func_800CD39C` is the example. Same first-child cast as `func_800C010C`.
 
+## Pin two stack args and assign them in the desired `lw` order
+
+A sibling that only keeps one stack addend live across `jal` loads it
+naturally (`func_800B4538`: `lw s0, 0x30(sp)`). Adding another live
+pointer (`arg0` plus a last-arg table) makes GCC rematerialize the
+addend after the call (`lhu` / `lw 0x38(sp)` / `addu`) and, if the
+addend is then pinned, still emit the two pre-`jal` loads in first-use
+order:
+
+```
+lw    s1, 0x44(sp)   /* last arg, used first after jal */
+lw    s3, 0x38(sp)   /* addend, used later */
+```
+
+The target wants source order (`lw s3` then `lw s1`). Pin both and
+assign them in that order *before* the call:
+
+```c
+register s32   extra asm("s3");
+register void* sets asm("s1");
+
+extra = arg4;
+sets  = arg7;
+func_800B3448(...);
+if (sets != NULL) {
+    ctx->field_0  = sets;
+    slot->field_20 = sets;
+}
+idx = table[slot->field_15] + extra;
+```
+
+`func_800B47A8` is the example.
+
 
 
