@@ -21805,5 +21805,61 @@ if (id != term) {
 Passing `id` into the call becomes `move a2, v1` instead of `lhu a2, 0(v1)`.
 `func_800B6B44` is the example.
 
+## Scratch alloc in `$v0`/`$v1`, pin the block, name the 3-arg src
+
+A downward `G_SCRATCH_HEAD` alloc that is then guarded by a NULL check
+wants the head pointer in `$v0` and the subtracted pointer in `$v1`,
+with the store *before* the branch and the saved block copy in the
+`beqz` delay slot:
+
+```
+lui   v0, 0x1F80
+ori   v0, v0, 0x3FC
+lw    s2, 0(v0)
+lw    s3, 0x1C(a0)
+addiu v1, s2, -0x84
+sw    v1, 0(v0)
+lw    v0, 0x90C(s3)
+nop
+beqz  v0, cleanup
+ move s1, v1
+```
+
+An unpinned `scratch` / `tmp` pair lands in `$v1`/`$a1` and sinks the
+store into the delay slot. Pin them, then force the block copy so it
+does not become the call's `$a1`:
+
+```c
+register void** scratch asm("v0");
+register u8*    tmp asm("v1");
+
+scratch  = (void**)G_SCRATCH_HEAD;
+head     = *scratch;
+actor    = arg0->actor;
+tmp      = head - 0x84;
+*scratch = tmp;
+if (actor->field_90C != NULL) {
+    block = (GpPitchScratch*)tmp;
+    __asm__ volatile("" : "+r"(block));
+```
+
+Without the asm, GCC copies `tmp` into `$a1` (the upcoming
+`func_801040A0` dest) and only then into `$s1`. Independent
+`block->rot = 0` stores written *before* the field walk emit first and
+leave `addiu a2, head, -0x14` in the jal delay. Name the first call
+argument so those loads exist, then write the zeros after that load:
+
+```c
+src = (GsCOORDINATE2*)((GameActorExt*)actor->field_91C->extra)->field_8;
+block->rot.vx = 0;
+block->rot.vy = 0;
+block->rot.vz = 0;
+func_801040A0(src, (GsCOORDINATE2*)block, (SVECTOR*)(head - 0x14));
+```
+
+`-fschedule-insns` lifts the three `sh zero` into the `field_91C` /
+`extra` / `field_8` load delays and puts the last one in the jal delay
+slot. `func_80102F10` is the example.
+
 
 

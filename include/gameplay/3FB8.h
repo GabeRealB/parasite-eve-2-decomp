@@ -318,6 +318,26 @@ typedef struct _GpAimScratch {
 } GpAimScratch;
 STATIC_ASSERT_SIZEOF(GpAimScratch, 0x68);
 
+/// 0x84-byte scratch from `G_SCRATCH_HEAD` used by `func_80102F10`.
+/// The first 0x50 bytes are a temp `GsCOORDINATE2`. `delta` is lock
+/// position minus that coord's translation; `lock` is `func_800DAE50`
+/// output; `rot` is the zeroed `SVECTOR` passed to `func_801040A0`.
+/// `angle` holds `ratan2` then the clamped pitch delta applied to
+/// `GameActor.field_78`; `dist` is the XZ length of `delta`.
+typedef struct _GpPitchScratch {
+    /* 0x00 */ byte     pad_0[0x50];
+    /* 0x50 */ VECTOR3  delta;
+    /* 0x5C */ s32      pad_5C;
+    /* 0x60 */ VECTOR3  lock;
+    /* 0x6C */ s32      pad_6C;
+    /* 0x70 */ SVECTOR3 rot;
+    /* 0x76 */ s16      pad_76;
+    /* 0x78 */ s32      angle;
+    /* 0x7C */ s32      dist;
+    /* 0x80 */ s32      pad_80;
+} GpPitchScratch;
+STATIC_ASSERT_SIZEOF(GpPitchScratch, 0x84);
+
 /// Argument for `func_80105070`. `field_0` / `field_4` / `field_8` are
 /// copied onto `GameActor.field_20` / `field_24` / `field_28`.
 typedef struct _GpVecArg {

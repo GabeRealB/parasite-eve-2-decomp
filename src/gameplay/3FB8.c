@@ -48,6 +48,7 @@ void func_80103A18(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_80103AC0(GpActorWork* arg0);
 s16  func_80103E7C(s16 arg0, s16 arg1);
 void func_80103F70(GpActorWork* arg0);
+void func_801040A0(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2);
 s32  func_80104B54(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2);
 s32  func_80104E00(GpActorWork* arg0, s32 arg1, GpXformArg* arg2);
 s32  func_80105070(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3);
@@ -704,7 +705,63 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801029D4);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80102D20);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80102F10);
+void func_80102F10(GpActorWork* arg0)
+{
+    register void** scratch asm("v0");
+    u8*             head;
+    register u8*    tmp asm("v1");
+    GameActor*      actor;
+    GpPitchScratch* block;
+    VECTOR3*        lock;
+    VECTOR3*        dest;
+    GsCOORDINATE2*  src;
+    s32             val;
+    s32             dz;
+    s32             angle;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    actor    = arg0->actor;
+    tmp      = head - 0x84;
+    *scratch = tmp;
+    if (actor->field_90C != NULL) {
+        block = (GpPitchScratch*)tmp;
+        __asm__ volatile("" : "+r"(block));
+        src           = (GsCOORDINATE2*)((GameActorExt*)actor->field_91C->extra)->field_8;
+        block->rot.vx = 0;
+        block->rot.vy = 0;
+        block->rot.vz = 0;
+        func_801040A0(src, (GsCOORDINATE2*)block, (SVECTOR*)(head - 0x14));
+        lock = (VECTOR3*)(head - 0x24);
+        func_800DAE50((GpLockPos*)actor->field_90C, lock);
+        ((VECTOR3*)(head - 0x34))->vx = ((VECTOR3*)(head - 0x24))->vx - ((GsCOORDINATE2*)block)->coord.t[0];
+        dest                          = (VECTOR3*)(head - 0x34);
+        dest->vy                      = lock->vy - ((GsCOORDINATE2*)block)->coord.t[1];
+        dest->vz                      = lock->vz - ((GsCOORDINATE2*)block)->coord.t[2];
+        val                           = block->delta.vx;
+        val                           = ABS(val);
+        val                           = val * val;
+        dz                            = block->delta.vz;
+        dz                            = ABS(dz);
+        dz                            = dz * dz;
+        val                           = SquareRoot0(val + dz);
+        block->dist                   = val;
+        block->angle                  = ratan2(-block->delta.vy, val);
+        angle                         = block->angle - actor->field_78;
+        block->angle                  = angle;
+        if (ABS(angle) >= 0x20) {
+            if (angle >= 0x31) {
+                block->angle = 0x30;
+            } else if (angle < -0x30) {
+                block->angle = -0x30;
+            }
+            if (ABS(actor->field_78 + block->angle) < 0x281) {
+                actor->field_78 += block->angle;
+            }
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x84;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801030CC);
 
