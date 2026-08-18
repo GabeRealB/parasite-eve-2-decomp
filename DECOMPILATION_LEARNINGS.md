@@ -20660,5 +20660,48 @@ GCC 2.8.1 merges the identical `jal`s and sinks the 5th-arg home.
 A `parent` local instead homes to a register (`move v0, zero`) or a
 new stack slot and grows the frame. `func_800BF9FC` is the example.
 
+## Keep scratch `head` and `vec` both live so `$v1` is not coalesced into `$a2`
+
+An 8-byte `G_SCRATCH_HEAD` alloc that later becomes the `SVECTOR*`
+argument of a call wants the decremented pointer in `$v1`, then a
+late `move a2, v1` in an earlier `slti` delay:
+
+```
+lw    v1, 0(v0)
+addiu a3, t1, %lo(params)
+addiu v1, v1, -8
+sw    v1, 0(v0)
+...
+beqz  v0, skip
+ move a2, v1
+```
+
+Writing `vec = (SVECTOR*)(head - 8)` (or assigning `vec` and never
+using `head` again) coalesces them: the load lands in `$a2` and the
+`params` lo16 is no longer in the `lw` delay. `register u8* head
+asm("v1")` gets the register but also blocks that delay fill (`lw` /
+`nop` / `addiu`).
+
+Decrement `head` in place, copy to `vec`, then mention both in the
+same empty asm as the `temp = idx` copy so they stay distinct and
+the scheduler can still hoist:
+
+```c
+head     = *scratch;
+params   = &D_80113358;
+head    -= 8;
+*scratch = head;
+vec      = (SVECTOR*)head;
+if (temp < 3) {
+    idx = temp;
+}
+temp = idx;
+__asm__ volatile("" : "+r"(temp) : "r"(head), "r"(vec));
+```
+
+`+r`(temp) also stops copy-prop of `temp = idx`, freeing `$a0` for
+the switch's `li a0, 1` (reused as `field_95E = 1`). `func_80109844`
+is the example.
+
 
 
