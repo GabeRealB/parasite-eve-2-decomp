@@ -21314,5 +21314,35 @@ if (attach != 0 && attach != 0xFF) {
 
 `func_800A9310` is the example.
 
+## Inline a helper with literal `0` so field loads use `$zero`
+
+Copying `func_800BAD28` and writing `scan = NULL` / `((GpItemScan*)0)->field`
+keeps a 0 in a GPR (`t1`) or CSEs that 0 with an earlier `state == 0` into
+`$s2`, so the target's `lbu r, off($zero)` never appears. A
+`static __inline` helper whose first argument is the scan pointer, called
+as `helper(0, rec, 1)`, lets GCC 2.8.1 (`-finline`) substitute `$zero` for
+every `arg0->field_*` load.
+
+The third inlined arg then wants `$a3` (and `loop_end` `$a1`), matching
+the non-inlined `func_800BAD28` shape after `$a0` is freed. Pin the
+short-lived `table` / `end` / `newQty` temps onto the same `$v1` and
+`loop_end` onto `$a1` so `i + count` overwrites the table pointer after
+`base = table`:
+
+```c
+register GpItemRec* table asm("v1");
+register s32        end asm("v1");
+register s32        loop_end asm("a1");
+register s32        newQty asm("v1");
+
+base = table;
+end  = i + count;
+if (i < end) {
+    loop_end = end;
+```
+
+Pinning only `loop_end` merges `end` into `$a1` and delays `base = table`.
+`func_800B996C` is the example.
+
 
 

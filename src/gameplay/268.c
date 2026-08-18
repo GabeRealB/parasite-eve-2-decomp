@@ -7,6 +7,7 @@
 #include "gameplay/268.h"
 #include "gameplay/3A34.h"
 #include "gameplay/4CC.h"
+#include "gameplay/gameplay.h"
 #include "main/gfx.h"
 #include "main/mc.h"
 #include "main/session.h"
@@ -14,7 +15,9 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-extern u16 D_800739B8;
+extern u16          D_800739B8;
+extern GpItemRec*   D_80114DD4;
+extern UiObjectDesc D_8010D384;
 
 void       func_80180804(void);
 void       func_8017EA68(void);
@@ -44,6 +47,7 @@ void       func_800BAE5C(s32 arg0);
 s32        func_800BBCCC(GpItemRec* arg0, GpItemScan* arg1, s32* arg2, s32 arg3);
 void       func_800C1148(UiPanel* arg0, s32 arg1);
 void       func_801061F0(void);
+void       func_800D2F68(Task* arg0);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B7420);
 
@@ -689,7 +693,105 @@ void func_800B92CC(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B954C);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800B996C);
+static __inline void func_800B996C_RemoveItem(GpItemScan* arg0, GpItemRec* arg1, s32 arg2)
+{
+    GpItemRec*          tmp;
+    register GpItemRec* table asm("v1");
+    register s32        qty asm("a2");
+    register GpItemRec* base asm("t0");
+    s32                 item;
+    GpItemRec*          rec;
+    s32                 i;
+    s32                 count;
+    register s32        end asm("v1");
+    register s32        loop_end asm("a1");
+    register s32        newQty asm("v1");
+
+    item = arg1->field_0;
+    if (item < 0xA0) {
+        arg1->field_0 = 0;
+        arg1->field_2 = 0;
+        arg1->field_1 = 0;
+    } else {
+        switch (arg0->field_2) {
+            case 2:
+                tmp = D_80114C20;
+                break;
+            case 1:
+                tmp = D_80114D70;
+                break;
+            found:
+                qty = rec->field_2;
+                goto after_loop;
+            default:
+                tmp = Mc_SaveData.field_1AC;
+                break;
+        }
+        table = tmp;
+        qty   = 0;
+        asm volatile("" ::"r"(qty));
+        i     = arg0->field_0;
+        count = arg0->field_1;
+        base  = table;
+        end   = i + count;
+        if (i < end) {
+            loop_end = end;
+            rec      = (GpItemRec*)((i << 2) + (s32)base);
+        loop:
+            if (rec->field_0 != item) {
+                i++;
+                rec++;
+                if (i < loop_end) {
+                    goto loop;
+                }
+            } else {
+                goto found;
+            }
+        }
+    after_loop:
+        if (i != arg0->field_0 + arg0->field_1) {
+            if (arg2 < 0) {
+                arg2 = qty;
+            }
+            newQty = qty - arg2;
+            if (newQty < 0) {
+                newQty = 0;
+            }
+            if (newQty == 0) {
+                base[i].field_0 = 0;
+                base[i].field_2 = 0;
+                base[i].field_1 = 0;
+            } else {
+                base[i].field_2 = newQty;
+            }
+        }
+    }
+}
+
+void func_800B996C(UiObject* arg0, Task* arg1)
+{
+    WipSysConfig* cfg;
+    McSaveData*   save;
+    s32           saved;
+
+    if (arg1->state == 0) {
+        cfg                = &Wip_SysConfig;
+        D_80114BE8.field_0 = cfg->field_18;
+        save               = &Mc_SaveData;
+        D_80114BE8.field_4 = cfg->field_1c;
+        if (save->field_27 < 0xFA) {
+            save->field_27 = save->field_27 + 1;
+        }
+        func_800B7930();
+        cfg->field_1c = cfg->field_1e;
+        func_800B996C_RemoveItem(0, D_80114DD4, 1);
+        Ui_SpawnFromDesc(&D_8010D384, 0, 0, 1, arg0);
+    }
+    saved           = arg1->spawnArg1;
+    arg1->spawnArg1 = 0x1D;
+    func_800D2F68(arg1);
+    arg1->spawnArg1 = saved;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B9B40);
 

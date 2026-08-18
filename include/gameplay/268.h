@@ -10,6 +10,7 @@
 #include "main/task.h"
 
 struct _GpEnemy;
+struct _UiObject;
 
 /// Save-inventory slot (`Mc_SaveData.field_1C8`). field_0/field_2 are item ids;
 /// field_1/field_3 are the matching counts (`func_800BAFF4`).
@@ -228,6 +229,7 @@ void        func_800B7A50(s32 arg0);
 void        func_800B7D18(void);
 GpItemRec*  func_800BAD08(GpItemScan* arg0, s32 arg1, s32 arg2);
 s32         func_800BAD28(GpItemScan* arg0, GpItemRec* arg1, s32 arg2);
+void        func_800B996C(struct _UiObject* arg0, Task* arg1);
 s32         func_800B9D80(s32 arg0);
 void        func_800B8014(void);
 void        func_800B8588(GpItemScan* arg0, s32 arg1);
