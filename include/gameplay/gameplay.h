@@ -41,7 +41,9 @@ STATIC_ASSERT_SIZEOF(GpHudScratch, 0x1C);
 /// `field_3` is a signed state byte (`lb`); `func_80109290` compares it to -2
 /// and `func_80109374` requires 0. `field_5` is a signed category index
 /// (`lb` as splat `D_80114C0D`); `func_800A1558` uses it to pick a
-/// `D_8011398C` row when it is `< 0xC`. `field_6` is a flags byte (bit 0
+/// `D_8011398C` row when it is `< 0xC`. `field_B` is the same kind of
+/// signed index (`lb`); `func_800A1634` uses `field_5` when its first
+/// arg is 1 and `field_B` otherwise. `field_6` is a flags byte (bit 0
 /// gates `func_800A7DB8` writing `field_E`; bit 1 is cleared by
 /// `func_800A7574` and forces `func_800A7E5C` to 0 when that function's
 /// arg is 0). `field_A` is a signed byte (`lb`); `func_800A7DE0` sets
@@ -60,7 +62,7 @@ typedef struct _GpStateC08 {
     /* 0x08 */ u8   field_8;
     /* 0x09 */ byte pad_9;
     /* 0x0A */ s8   field_A;
-    /* 0x0B */ byte pad_B;
+    /* 0x0B */ s8   field_B;
     /* 0x0C */ s8   field_C;
     /* 0x0D */ u8   field_D;
     /* 0x0E */ u8   field_E;
@@ -97,6 +99,19 @@ typedef struct _GpIdMapC {
     /* 0x18 */ s16  field_18;
 } GpIdMapC;
 STATIC_ASSERT_SIZEOF(GpIdMapC, 0x1A);
+
+/// 8-byte dispatch record selected by `func_800A1634` as
+/// `(GpRec8*)D_80113D38 + idx * 3 + ret`. `field_0` is the switch key
+/// (0..4). `field_2` / `field_4` are scaled by 100 into the follow-up
+/// calls. `field_6` is passed as `lh` and also read as `lbu` + 2 into
+/// `GpIdMapC.field_16`.
+typedef struct _GpRec8 {
+    /* 0x0 */ s16 field_0;
+    /* 0x2 */ s16 field_2;
+    /* 0x4 */ s16 field_4;
+    /* 0x6 */ s16 field_6;
+} GpRec8;
+STATIC_ASSERT_SIZEOF(GpRec8, 8);
 
 /// 0x30-byte play-clock work `func_8009FEDC` stores at `Task::idMap`.
 /// `field_0` / `field_4` are `Mc_SaveData.field_C` split into minutes and
@@ -188,6 +203,7 @@ Task* func_8009988C(GsCOORDINATE2* arg0);
 void func_8009FD74(s32 arg0, PadScratch* arg1);
 void func_8009FEDC(Task* task);
 u16  func_800A1558(s32 arg0);
+void func_800A1634(s32 arg0, GpIdMapC* arg1);
 void func_800A7320(s16* arg0);
 u8*  func_800A746C(void);
 s32  func_800A74C4(void);

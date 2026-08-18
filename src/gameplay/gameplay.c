@@ -57,8 +57,12 @@ extern DR_STP         D_80114C50;
 
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 
-void func_800A1634(s32 arg0, s32 arg1);
+void func_800A45F0(s32 arg0);
+void func_800A4904(s32 arg0);
 void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_800A5274(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_800A7824(s32 arg0, s32 arg1, s32 arg2);
 void func_800A6A9C(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_8009939C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800A82C0(GsCOORDINATE2* arg0, VECTOR* arg1);
@@ -1285,7 +1289,114 @@ u16 func_800A1558(s32 arg0)
     return *(u16*)off;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A1634);
+void func_800A1634(s32 arg0, GpIdMapC* arg1)
+{
+    WipSysConfig* p;
+    GpStateF0*    state;
+    GpRec8*       rec;
+    s32           cond;
+    register s32  ret asm("a0");
+    u8*           table;
+    s32           idx;
+    register s32  val1 asm("s1");
+    register s32  val2 asm("s2");
+    s32           flag;
+    s32           temp2;
+    s32           temp4;
+    u8            kind;
+    register s32  off asm("v1");
+    register s32  scaled asm("v0");
+
+    idx = D_80114C08.field_B;
+    if (arg0 == 1) {
+        idx = D_80114C08.field_5;
+    }
+    if (idx >= 0xC) {
+        ret = 1;
+    } else {
+        p = &Wip_SysConfig;
+        if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
+            cond = 0;
+        } else {
+            cond = p->field_26 == 4;
+        }
+        if (cond == 0) {
+            table = Mc_SaveData.unknown_850;
+        } else {
+            table = D_80114BF0;
+        }
+        ret = table[idx];
+        if (ret == 0) {
+            ret = 1;
+        }
+        if (p->field_25 & 0x80) {
+            if (ret < 3) {
+                ret++;
+            }
+        }
+    }
+    off             = idx * 3;
+    off             = off * 8;
+    off            += (s32)D_80113D38;
+    scaled          = ret * 8;
+    rec             = (GpRec8*)(off + scaled);
+    state           = &D_801153F0;
+    temp2           = rec->field_2;
+    temp4           = rec->field_4;
+    state->field_5  = 0;
+    state->field_14 = 0;
+    scaled          = (temp2 << 1) + temp2;
+    scaled          = (scaled << 3) + temp2;
+    val1            = scaled << 2;
+    scaled          = (temp4 << 1) + temp4;
+    scaled          = (scaled << 3) + temp4;
+    val2            = scaled << 2;
+    if ((D_801153F0.field_0 == 1 && state->field_6 != 0) || state->field_1 != 0) {
+        flag = 1;
+    } else {
+        flag = 0;
+    }
+    if (flag != 0) {
+        switch (rec->field_0) {
+            case 0:
+                func_800A45F0(arg0);
+                break;
+            case 1:
+                func_800A7824(arg0, val1, val2);
+                if (arg1 != NULL) {
+                    arg1->field_16 = 4;
+                    arg1->field_18 = val2;
+                }
+                break;
+            case 2:
+                func_800A5274(arg0, val1, val2, rec->field_6);
+                goto after_23;
+            case 3:
+                func_800A5574(arg0, val1, val2, rec->field_6);
+            after_23:
+                if (arg1 != NULL) {
+                    kind           = *(u8*)&rec->field_6;
+                    arg1->field_18 = val1;
+                    arg1->field_16 = kind + 2;
+                }
+                break;
+            case 4:
+                func_800A4904(arg0);
+                if (arg1 != NULL) {
+                    arg1->field_16 = 2;
+                    arg1->field_18 = 0x3FFF;
+                }
+                break;
+        }
+        if (arg1 != NULL) {
+            if (idx >= 0xC) {
+                arg1->field_16 = -1;
+            }
+        }
+    } else if (idx == 7) {
+        func_800A45F0(arg0);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A18BC);
 

@@ -3,6 +3,33 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Expand `* 100` so the last `<< 2` can land in a pinned `$s1`/`$s2`
+
+`x * 100` strength-reduces to `((x*2+x)*8+x)*4`. An unpinned dest often
+takes `$s2` first (highest free callee-saved), swapping the two results.
+Pinning the dest to `$s1` makes the *whole* chain accumulate in `$s1`
+(`sll s1, v0, 1` / `addu s1, s1, v1` / …) instead of the target's
+`sll v0, v1, 1` … `sll s1, v0, 2`.
+
+Keep a `$v0` temp for the intermediates and write only the last shift
+into the pinned dest:
+
+```c
+register s32 scaled asm("v0");
+register s32 val1 asm("s1");
+register s32 val2 asm("s2");
+
+scaled = (temp2 << 1) + temp2;
+scaled = (scaled << 3) + temp2;
+val1   = scaled << 2;
+scaled = (temp4 << 1) + temp4;
+scaled = (scaled << 3) + temp4;
+val2   = scaled << 2;
+```
+
+The same `$v0` pin also forces `ret * 8` as `sll v0, a0, 3` rather than
+clobbering `$a0` in place. `func_800A1634` is the example.
+
 ## Pin the next object pointer to `$a2` after a 3-arg call
 
 `ApplyTransposeMatrixLV(m, v0, v1)` leaves `$a2` free. The target then

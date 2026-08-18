@@ -797,6 +797,7 @@ for the same block.
 | 0x07 | `field_7` | Cleared by `func_800A7DE0` |
 | 0x08 | `field_8` | Cleared by `func_800A7DE0` |
 | 0x0A | `field_A` | s8 (`lb`); `func_800A7DE0` sets `field_3 = 2` when >= 2, then clears it; cleared by `func_800A7574` |
+| 0x0B | `field_B` | s8 category index (`lb`); `func_800A1634` uses this unless its first arg is 1, in which case it uses `field_5` |
 | 0x0C | `field_C` | s8 (`lb` as `D_80114C14`); cleared by `func_800A7574` |
 | 0x0D | `field_D` | Cleared by `func_800A7574` |
 | 0x0E | `field_E` | Written by `func_800A7DB8` when `field_6` bit 0 is clear; cleared by `func_800A7DE0` / `func_800A7574` |
