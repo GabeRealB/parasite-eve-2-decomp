@@ -14207,6 +14207,43 @@ p->field = arg1 + (arg2 & func_80037164());
 p->field = arg1 + (func_80037164() & arg2);
 ```
 
+## Pin both the unmasked arg and its in-place-masked copy
+
+When the target saves an incoming arg and immediately copies it so the copy
+can be `andi`'d in place after a call:
+
+```
+move  s6, a1          /* unmasked: later sb s6, … */
+move  s3, s6          /* copy */
+…
+jal   …
+andi  s3, s3, 0xff    /* in-place mask, then beqz / bne == K */
+```
+
+`flag = arg1` without pins either copy-propagates (one register, `andi` from
+the saved arg into a new dest) or colors `arg1` into `$fp`/`$s8`. Pin both:
+
+```c
+register s32 saved1 asm("s6");
+register s32 flag asm("s3");
+
+saved1 = arg1;
+flag   = saved1;
+if ((u8)arg0 == 0) {
+    return;
+}
+/* first call uses unmasked arg0 */
+if ((u8)flag != 0) {
+    ((u8*)head)[-8] = saved1; /* sb of the unmasked copy */
+    /* … */
+    if ((u8)flag == 5) { /* reuses the already-masked s3 */
+```
+
+Do not write `flag = (u8)flag` before the first call — that hoists the `andi`
+above the `jal`. Named locals for constants reused on both enqueue setups
+(`c50`/`c4`/`c6`) claim `$s7`/`$s5`/`$s4` and leave `$fp` for `%hi(Game_Session)`.
+`func_800A9CBC` is the example.
+
 Same schedule either way — only the dest of the `and` and the s-reg
 pairing change. `func_8010BF7C` is the example.
 
