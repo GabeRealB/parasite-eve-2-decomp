@@ -20730,5 +20730,30 @@ dest = &arr[idx];      /* sll / addu, no andi */
 
 `func_800B43E0` is the example.
 
+## Pin the switch-wide record pointer to `$s2` so the accumulator takes `$s1`
+
+A dispatcher that loads one record, builds a short-lived id from two of its
+bytes, then uses a per-case counter (`val` in one arm, reused as the loop
+tally in another) wants:
+
+```
+s0 = flag id (then reused as the case-4 index)
+s1 = val / count
+s2 = record pointer
+```
+
+Leaving all three unpinned gives `rec` in `$s1` and `val` in `$s2` even
+when `flagId` already landed in `$s0`. Pin only the pointer:
+
+```c
+register GpCapCmd* rec asm("s2");
+```
+
+Do not also pin `flagId` / `val`: that rewrites the `lbu` temps
+(`field_7` into `$s0` instead of `$v0`) and drops the `sra` from the
+`bnez count` delay slot. Reuse `val` as the case-4 tally (`i = 0; val = i`)
+so the copy fills that `beqz field_6` delay slot. `func_800E34D8` is the
+example.
+
 
 

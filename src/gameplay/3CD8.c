@@ -123,8 +123,6 @@ void func_800E8A90(Task* task);
 void func_800E8BB0(Task* task);
 void func_800E8CE8(s16 arg0);
 void func_800E8E00(s16 arg0, u8 arg1, u8 arg2, s16 arg3);
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E34D8);
-
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E375C);
 
 void func_800E3B3C(s32 arg0, s32 arg1)

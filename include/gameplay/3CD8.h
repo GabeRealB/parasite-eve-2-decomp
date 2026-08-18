@@ -40,11 +40,28 @@ typedef struct _GpCapEvtTable {
 STATIC_ASSERT_SIZEOF(GpCapEvtTable, 0x10);
 
 /// Count word in front of the relocated pointer table at `GpCapFile::field_10`.
-/// `func_800E40EC` publishes `hdr + 1` as `D_801156A0`.
+/// `func_800E40EC` publishes `hdr + 1` as `D_801156A0` (`GpCapCmd**`).
 typedef struct _GpCapPtrTable {
     /* 0x0 */ s32 count;
 } GpCapPtrTable;
 STATIC_ASSERT_SIZEOF(GpCapPtrTable, 4);
+
+/// Command record pointed to by `D_801156A0[index]`. `func_800E34D8` switches
+/// on `field_0` and may follow `field_8` to another index. Flag id is
+/// `field_3 | (field_7 << 8)`. `field_1` bits: 0 = wrap counter, 1 = persist
+/// counter in a game-flag nibble, 2 = skip/compare against `field_2`.
+/// `func_800E6C70` then starts the event at the same table slot.
+typedef struct _GpCapCmd {
+    /* 0x0 */ u8 field_0; // opcode (0..4)
+    /* 0x1 */ u8 field_1; // flags
+    /* 0x2 */ u8 field_2; // counter limit
+    /* 0x3 */ u8 field_3; // flag id lo
+    /* 0x4 */ u8 field_4; // live counter
+    /* 0x5 */ u8 field_5; // first 2-bit slot (`func_800BB470`)
+    /* 0x6 */ u8 field_6; // slot count
+    /* 0x7 */ u8 field_7; // flag id hi
+    /* 0x8 */ u8 field_8; // next command index
+} GpCapCmd;
 
 /// In-memory CAP dialogue file (`strncmp` magic `"CAP"`). Offsets at
 /// `field_8` / `field_C` / `field_10` are file-relative until
@@ -254,6 +271,7 @@ extern u16           D_80111EC0[];
 
 Task* func_800E8FB0(s32 arg0, s32 arg1);
 void func_800E34D8(s32 arg0, s16 arg1);
+s32  func_800E6C70(s16 arg0, s16 arg1, s16 arg2);
 void func_800E3B80(s32 arg0);
 void func_800E3BBC(s32 arg0);
 void func_800E3D8C(s32 arg0, s32 arg1);
