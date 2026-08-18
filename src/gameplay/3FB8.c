@@ -85,7 +85,6 @@ void func_8010B120(GpActorWork* arg0);
 void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3);
 void func_800FBAB0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3);
-s32  func_801011D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F77F8);
 
@@ -428,7 +427,47 @@ void func_80100E40(GpActorWork* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80100FCC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801011D0);
+s32 func_801011D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3)
+{
+    void**          scratch;
+    u8*             head;
+    register void*  p asm("v0");
+    GpDeltaScratch* s;
+    s32             ret;
+    s32             val;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    p        = head - 0x10;
+    s        = p;
+    *scratch = p;
+    ret      = func_800E0FEC(arg1, s, arg2, arg3);
+    if (ret != 0) {
+        val = ((GpDeltaScratch*)(head - 0x10))->vx.w;
+        if ((val & 0xFFFF) != 0) {
+            ((volatile GpDeltaScratch*)s)->vx.w = val + ((val >= 0) ? 0x10000 : -0x10000);
+        }
+        val = s->vy.w;
+        if ((val & 0xFFFF) != 0) {
+            s->vy.w = val + ((val >= 0) ? 0x10000 : -0x10000);
+        }
+        val = s->vz.w;
+        if ((val & 0xFFFF) != 0) {
+            s->vz.w = val + ((val >= 0) ? 0x10000 : -0x10000);
+        }
+        arg0->coord.t[0] += s->vx.h.hi;
+        arg0->coord.t[1] += s->vy.h.hi;
+        arg0->coord.t[2] += s->vz.h.hi;
+        if (arg3 != NULL) {
+            *arg3 = func_800E1ACC((u8*)arg3);
+        }
+        if ((s->vx.w | s->vz.w) == 0) {
+            ret = 0;
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    return ret;
+}
 
 void func_8010133C(void)
 {

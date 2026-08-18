@@ -795,6 +795,7 @@ void func_800E0774(VECTOR3* arg0, SVECTOR3* arg1);
 void func_800E08CC(GpObj* arg0, VECTOR3* arg1);
 void func_800E0B08(void);
 void func_800E0B48(VECTOR3* arg0, SVECTOR3* arg1);
+s32  func_800E0FEC(s32 arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
 void func_800E15AC(s32 arg0, GpObj* arg1);
 void func_800E1638(GpObj* node);
 void func_800E1688(s32 arg0, GpObj4A* arg1);

@@ -21371,5 +21371,64 @@ if (i < end) {
 Pinning only `loop_end` merges `end` into `$a1` and delays `base = table`.
 `func_800B996C` is the example.
 
+## Pass-through `$a3` so its save stays in the prologue pair
+
+A 4-arg function that calls a callee which also reads `$a3`, then uses
+that same pointer after the return, must pass the incoming `$a3`
+through. Omitting it as "unused" lets GCC delay `move s4, a3` into a
+later load-delay slot and emit `sw ra` before `sw s4`. Passing it
+keeps the incoming-arg pair together:
+
+```
+move  a0, a1
+sw    s4, 0x20(sp)
+move  s4, a3
+sw    ra, 0x24(sp)
+```
+
+`func_801011D0` is the example (`func_800E0FEC(..., arg3)`).
+
+## `>= 0` ternary for `bltz` / `lui 0xffff` / `lui 1`
+
+Stepping a 16.16 word away from zero when the low half is nonzero:
+
+```
+bltz  v1, join
+ lui  v0, 0xffff
+lui   v0, 1
+join:
+addu  v0, v1, v0
+```
+
+`if (val < 0) addend = -0x10000; else addend = 0x10000` inverts to
+`bgez` with `0x1` in the delay. The flipped ternary puts the negative
+constant in the `bltz` delay:
+
+```c
+if ((val & 0xFFFF) != 0) {
+    dest = val + ((val >= 0) ? 0x10000 : -0x10000);
+}
+```
+
+Use `-0x10000` (not `0xFFFF0000`) so the add stays signed. `func_801011D0`
+is the example.
+
+## Volatile store so `lw -N(head)` and `sw 0(block)` stay distinct
+
+A scratch push that later reloads the first word through the original
+head (`lw v1, -0x10(s1)`) but writes back through the block pointer
+(`sw v0, 0(s0)`) CSEs to `sw v0, -0x10(s1)` if both sides use the
+same typed pointer. Load via `head - N` and store through a volatile
+view of the block:
+
+```c
+val = ((T*)(head - 0x10))->vx;
+if ((val & 0xFFFF) != 0) {
+    ((volatile T*)s)->vx = val + addend;
+}
+```
+
+`func_801011D0` is the example.
+
 
 

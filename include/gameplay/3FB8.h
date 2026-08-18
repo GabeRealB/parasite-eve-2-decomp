@@ -237,6 +237,27 @@ typedef struct _GpScratch10 {
 } GpScratch10;
 STATIC_ASSERT_SIZEOF(GpScratch10, 0x10);
 
+/// Word + high-half overlay for a 16.16 component written by `func_800E0FEC`.
+typedef union {
+    s32 w;
+    struct {
+        s16 lo;
+        s16 hi;
+    } h;
+} GpFixed16;
+
+/// 0x10-byte scratch from `G_SCRATCH_HEAD` used by `func_801011D0`.
+/// Words at 0/4/8 are the 16.16 deltas from `func_800E0FEC`; if the
+/// fractional half is nonzero they are stepped away from zero by 0x10000
+/// and the high half is added onto `GsCOORDINATE2.coord.t[]`.
+typedef struct _GpDeltaScratch {
+    /* 0x00 */ GpFixed16 vx;
+    /* 0x04 */ GpFixed16 vy;
+    /* 0x08 */ GpFixed16 vz;
+    /* 0x0C */ s32       pad;
+} GpDeltaScratch;
+STATIC_ASSERT_SIZEOF(GpDeltaScratch, 0x10);
+
 /// 0xC-byte scratch from `G_SCRATCH_HEAD` used by `func_80103E7C`.
 /// `field_0` / `field_4` / `field_8` are the wrap candidates
 /// `tgt - cur`, `tgt - cur + 0x1000`, and `tgt - cur - 0x1000`.
@@ -444,6 +465,7 @@ void func_800FC500(Task* arg0);
 void func_800FC6C0(void);
 void func_800FC74C(Task* arg0);
 void func_800FE41C(Task* arg0);
+s32  func_801011D0(struct _GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3);
 void func_80101408(GpActorWork* arg0);
 void func_801041FC(GpActorWork* arg0, s32 arg1);
 void func_80106350(GpActorWork* arg0, s32 arg1, s32 arg2);
