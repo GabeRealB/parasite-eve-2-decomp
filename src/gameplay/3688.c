@@ -194,7 +194,6 @@ void       func_800D5178(DialogPrompt* arg0, UiObject* arg1);
 void       func_800A96A0(void);
 void       func_800AE9B0(void);
 void       func_800BAE5C(s32 arg0);
-void       func_800C58B8(UiList* arg0, UiObject* arg1);
 void       func_800C5C2C(s32 arg0, s32 arg1);
 void       func_800CDDA0(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3);
 void       func_800CF148(UiObject* arg0, Task* arg1);
@@ -879,7 +878,50 @@ GpItemRec* func_800C5188(McItemScan* arg0, s32 arg1, s32 arg2)
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C5328);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C58B8);
+void func_800C58B8(UiList* arg0, UiObject* arg1)
+{
+    GpItemRec*    table;
+    s32           i;
+    s32           count;
+    register s32  equipped asm("s3");
+    WipSysConfig* p;
+    s32           id;
+    s32           wrap;
+    McItemScan*   scan;
+
+    scan  = &Mc_SaveData.field_5BC;
+    table = func_800BB500(scan);
+    i     = 0;
+    count = 0;
+    table = &table[scan->field_0];
+    for (; i < scan->field_1; i++, table++) {
+        id = table->field_0;
+        if ((D_8010D838[id].field_3 & 4) || (id == 0)) {
+            continue;
+        }
+        wrap = id + 0x80;
+        asm volatile("" ::"r"(wrap));
+        if ((u8)wrap < 0x20) {
+            p        = &Wip_SysConfig;
+            equipped = 0;
+            if (((u32)(id - 0x80) < 0x20U) && (p->field_21 == id - 0x7F)) {
+                equipped = 1;
+            } else if (((u32)(id - 0x60) < 0x20U) && (p->field_23 == id - 0x5F)) {
+                equipped = 1;
+            } else if (((u32)(id - 0xA0) < 0x20U) && (p->field_21 != 0) &&
+                       ((func_800BAFE0(p->field_21 + 0x7F)->field_0 == id) ||
+                        (func_800BAFE0(p->field_21 + 0x7F)->field_2 == id))) {
+                equipped = 1;
+            }
+            if (equipped != 0) {
+                continue;
+            }
+        }
+        count++;
+    }
+    arg0->field_4 = count + 1;
+    arg0->field_5 = 4;
+}
 
 void func_800C5A5C(Task* arg0)
 {
