@@ -4406,7 +4406,46 @@ void func_8010C1FC(GpActorWork* arg0, SVECTOR3* arg1, s32 arg2)
     obj->flags |= 0xC800;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010C30C);
+s32 func_8010C30C(GpActorWork* arg0)
+{
+    GameActorExt*  extra;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* next;
+    GameActor*     actor;
+    VECTOR         vec;
+    void*          prev;
+    void*          anim;
+    s32            changed;
+
+    extra  = arg0->extra;
+    coord  = (GsCOORDINATE2*)extra->field_8;
+    actor  = arg0->actor;
+    next   = coord + 1;
+    vec.vx = next->coord.t[0];
+    vec.vy = next->coord.t[1];
+    vec.vz = next->coord.t[2];
+    ApplyMatrixLV(&coord->coord, &vec, &vec);
+    coord->coord.t[0] += vec.vx;
+    coord->coord.t[2] += vec.vz;
+    next->coord.t[0]   = 0;
+    next->coord.t[2]   = 0;
+    actor->field_10    = coord->coord.t[0];
+    actor->field_14    = coord->coord.t[1];
+    actor->field_18    = coord->coord.t[2];
+    prev               = actor->field_928;
+    actor->field_93A   = D_80113360[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7;
+    anim               = D_80113368[actor->field_93A];
+    changed            = prev != anim;
+    actor->field_928   = anim;
+    func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, (GpAnimObj*)extra, &actor->field_7A8,
+                  (GpAnimSlot*)actor->pad_438);
+    actor->field_985 = 0x10;
+    actor->field_983 = 7;
+    actor->field_95E = 0;
+    actor->field_960 = 0;
+    func_8010BC04(arg0, changed);
+    return 0;
+}
 
 void func_8010C46C(GpActorWork* arg0)
 {

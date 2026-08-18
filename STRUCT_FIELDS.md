@@ -645,6 +645,9 @@ runs `Tmd_ProcessStream` twice.
 `field_914`..`field_924` are child `Task*` slots killed (if non-NULL) on that path.
 `field_944`..`field_950` / `field_970` are s16 timers written to `0x258` by `func_8010A42C`;
 `field_954` is a u16 (`lhu`/`sh`) cleared with the 0x954–0x95E cluster (nonzero skips the 0x6A adjust in `func_80109720`);
+`field_10` / `field_14` / `field_18` are s32s (`lw`/`sw`); `func_8010C30C` copies
+`GsCOORDINATE2.coord.t[0..2]` from `GameActorExt.field_8` here after folding
+`coord[1].coord.t` X/Z through `ApplyMatrixLV`.
 `field_20` / `field_24` / `field_28` are s32s (`lw`/`sw`); `func_80105070` copies
 `GpVecArg.field_0` / `field_4` / `field_8` here. Optional `GpOverrideArg` (NULL zeros
 both) copies `field_0` / `field_4` onto `field_93C` / `field_93E` and sets `field_956 = 4`.

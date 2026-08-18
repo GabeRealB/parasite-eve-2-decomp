@@ -150,7 +150,11 @@ STATIC_ASSERT_SIZEOF(GameActorSlot, 0x28);
 /// Large object pointed to by Task::idMap for the slot-3 game object
 /// (Game_GetPtrSlot(3)). Sparse fields used by Display_SpawnFromMode.
 typedef struct _GameActor {
-    /* 0x000 */ byte                pad_0[0x20];
+    /* 0x000 */ byte                pad_0[0x10];
+    /* 0x010 */ s32                 field_10; // copy of GsCOORDINATE2.coord.t[0]
+    /* 0x014 */ s32                 field_14; // copy of GsCOORDINATE2.coord.t[1]
+    /* 0x018 */ s32                 field_18; // copy of GsCOORDINATE2.coord.t[2]
+    /* 0x01C */ byte                pad_1C[4];
     /* 0x020 */ s32                 field_20; // copied from func_80105070 arg2
     /* 0x024 */ s32                 field_24;
     /* 0x028 */ s32                 field_28;

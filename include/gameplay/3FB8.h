@@ -458,6 +458,7 @@ s32  func_801053A0(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);
 void func_8010C81C(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);
 void func_8010B210(GpActorWork* arg0);
 void func_8010C1FC(GpActorWork* arg0, SVECTOR3* arg1, s32 arg2);
+s32  func_8010C30C(GpActorWork* arg0);
 Task* func_801036FC(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3);
 Task* func_8010BAC8(GpActorArg* arg0, u16 arg1, s32 arg2, u16* arg3);
 
