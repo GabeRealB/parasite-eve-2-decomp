@@ -36,7 +36,9 @@ typedef struct _TmdObject {
     /* 0x20 */ void*              field_20;
     /* 0x24 */ u8                 field_24;
     /* 0x25 */ u8                 field_25;
-    /* 0x26 */ byte               unknown_26[0xA];
+    /* 0x26 */ u8                 field_26;
+    /* 0x27 */ u8                 field_27;
+    /* 0x28 */ byte               unknown_28[0x8];
     /* 0x30 */ s32                field_30;
 } TmdObject;
 STATIC_ASSERT_SIZEOF(TmdObject, 0x34);
