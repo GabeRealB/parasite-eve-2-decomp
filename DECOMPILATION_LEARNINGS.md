@@ -21152,5 +21152,87 @@ if (block->flag >= 0) {
 
 `func_800D937C` is the example.
 
+## Pin the record pointer; peel `field_0` with `volatile` so the loop skips the first load
+
+A 4-byte record walked with `rec++` that also reads `field_3` both before
+and after a `jal` makes GCC clone `rec + 3` into a second `$s` register
+(`lbu -2(s0)` / extra increment / 0x38 frame). Pin the walker:
+
+```c
+register Rec* rec asm("s0");
+```
+
+The first `field_0` check uses `$a0`. After `rec = arg0` the body still
+wants a reload from `$s0`, and the `do` / `while` must branch to the
+`nop` / `sll` *after* that load (the end-of-loop `lbu` already left the
+next index in `$v1`). CSE of `idx = rec->field_0` with the `$a0` check
+drops the reload and aims the `bne` at the load itself. Force the peel:
+
+```c
+rec = arg0;
+idx = *(volatile u8*)&rec->field_0;
+do {
+    tbl = tables[idx];
+    ...
+    rec++;
+    idx = rec->field_0;
+} while (idx != 0xFF);
+```
+
+`func_800AE62C` is the example.
+
+## Default case sits between `apply = 1; goto join` and `join:`
+
+A high-nibble filter that shares `apply = 1` with the `mask == 0` path
+wants this layout:
+
+```
+bne   mask, expected, test
+ move v0, apply
+j     join
+ li   apply, 1
+default:
+move  apply, zero
+join:
+move  v0, apply
+test:
+beqz  v0, skip
+```
+
+Put the default *after* the shared store, not next to the compare:
+
+```c
+if (mask == 0) {
+    goto set_apply;
+}
+if (mode == 0 || mode == 2) {
+    expected = 0x10;
+    goto cmp;
+}
+if (mode == 1 || mode == 3) {
+    expected = 0x20;
+} else {
+    goto set_zero;
+}
+cmp:
+if (mask != expected) {
+    cond = apply;
+    goto test;
+}
+set_apply:
+apply = 1;
+goto join;
+set_zero:
+apply = 0;
+join:
+cond = apply;
+test:
+if (cond != 0) {
+```
+
+A `switch` on 0..3 emits `slti` range checks. An `if`/`else` that assigns
+`apply = 0` in the default arm *before* the compare places that store
+ahead of `bne mask, expected`. `func_800AE62C` is the example.
+
 
 

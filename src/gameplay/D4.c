@@ -1260,7 +1260,83 @@ void func_800AE53C(void)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AE62C);
+void func_800AE62C(GpAreaApplyRec* arg0)
+{
+    GpAreaKey                key;
+    register GpAreaApplyRec* rec asm("s0");
+    GpAreaRec*               tbl;
+    GpAreaObj*               obj;
+    GameSessionFrom4*        sess;
+    McSaveData*              save;
+    GpAreaRec**              tables;
+    s32                      mask;
+    s32                      apply;
+    s32                      expected;
+    s32                      cond;
+    s8                       mode;
+    u8                       idx;
+    u8                       temp;
+
+    apply = 0;
+    sess  = (GameSessionFrom4*)&Game_Session->field_4;
+    if (arg0->field_0 != 0xFF) {
+        tables = D_8010CBCC;
+        save   = &Mc_SaveData;
+        rec    = arg0;
+        idx    = *(volatile u8*)&rec->field_0;
+        do {
+            tbl         = tables[idx];
+            key.field_3 = idx;
+            temp        = rec->field_1;
+            key.field_1 = 1;
+            key.field_2 = temp;
+            key.field_0 = sess->field_0;
+            mask        = rec->field_3 & 0xF0;
+            if (mask == 0) {
+                goto set_apply;
+            }
+            mode = save->field_F;
+            if (mode == 0 || mode == 2) {
+                expected = 0x10;
+                goto cmp;
+            }
+            if (mode == 1 || mode == 3) {
+                expected = 0x20;
+            } else {
+                goto set_zero;
+            }
+        cmp:
+            if (mask != expected) {
+                cond = apply;
+                goto test;
+            }
+        set_apply:
+            apply = 1;
+            goto join;
+        set_zero:
+            apply = 0;
+        join:
+            cond = apply;
+        test:
+            if (cond != 0) {
+                func_800B5B30(&key, rec->field_2, 1);
+                if (tbl != NULL) {
+                    obj = tbl[rec->field_1].field_4;
+                    if (obj != NULL) {
+                        if (rec->field_3 & 0xF) {
+                            obj->field_1 |= 4;
+                        } else {
+                            obj->field_1 &= 0xFB;
+                        }
+                    }
+                }
+            }
+            rec++;
+            apply = 0;
+            idx   = rec->field_0;
+        } while (idx != 0xFF);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AE7AC);
 

@@ -170,6 +170,20 @@ extern GpNpcRoomRec D_80114198[];
 extern GpNpcRoomRec D_801141F0[];
 extern GpNpcRoomRec D_80114248[];
 
+/// 4-byte record in 0xFF-terminated lists walked by `func_800AE62C`.
+/// `field_0` indexes `D_8010CBCC` (same role as `GpAreaKey.field_3`);
+/// `field_1` indexes that table (same role as `GpAreaKey.field_2`);
+/// `field_2` is the id written by `func_800B5B30`. High nibble of `field_3`
+/// is a `Mc_SaveData.field_F` filter (0 = always, 0x10 if 0 or 2, 0x20 if
+/// 1 or 3); low nibble nonzero sets `GpAreaObj.field_1` bit 2, else clears.
+typedef struct _GpAreaApplyRec {
+    /* 0x0 */ u8 field_0;
+    /* 0x1 */ u8 field_1;
+    /* 0x2 */ u8 field_2;
+    /* 0x3 */ u8 field_3;
+} GpAreaApplyRec;
+STATIC_ASSERT_SIZEOF(GpAreaApplyRec, 4);
+
 void func_800A954C(Task* task);
 void func_800A9DF0(Task* task);
 void func_800AB980(struct _GameSessionFrom4* arg0);
@@ -188,5 +202,6 @@ s32   func_800ACF8C(void);
 s32   func_800AD284(void);
 void* func_800AD2E8(void);
 void  func_800AD410(GpCb68Elem* arg0, GpCb68Obj* arg1);
+void  func_800AE62C(GpAreaApplyRec* arg0);
 
 #endif // GAMEPLAY_D4_H
