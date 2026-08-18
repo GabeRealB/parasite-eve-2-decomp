@@ -82,8 +82,8 @@ typedef struct _GpAnimSet {
 /// `field_0 == 0x7FFF` marks the slot inactive. `field_0`/`field_2` and
 /// `field_4`/`field_6` are the two (set, frame) pairs. `field_10` is a
 /// flags word (`func_800B4754` sets bit 0 when clamping `field_2`;
-/// `func_800B46A4` / `func_800B4114` / `func_800B4538` / `func_800B47A8`
-/// set bit 0/1 while walking `field_3` links). `func_800B4114` /
+/// `func_800B32E8` / `func_800B46A4` / `func_800B4114` / `func_800B4538` /
+/// `func_800B47A8` set bit 0/1 while walking `field_3` links). `func_800B4114` /
 /// `func_800B4538` / `func_800B47A8` also clear `field_17` and write a
 /// stack arg `<< 4` into `field_C` / `field_E`. `func_800B47A8` installs a
 /// non-NULL last arg into `GpAnimCtx::field_0` and `field_20` first.
@@ -224,6 +224,7 @@ void     func_800B065C(u8 arg0);
 void     func_800B0FDC(MATRIX* arg0, SVECTOR* arg1);
 void     func_800B27C4(u16* arg0, u16* arg1, s32 arg2, u16* arg3);
 void     func_800B2840(u16* arg0, u16* arg1, s32 arg2, u16* arg3, s32 arg4);
+void     func_800B32E8(GpAnimCtx* arg0, s32 arg1);
 void     func_800B3CCC(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3);
 void     func_800B3CE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3);
 void     func_800B3DB4(GpAnimCtx* arg0, GpAnimSlot* arg1);
