@@ -20320,5 +20320,31 @@ A full `MATRIX` applied to a `VECTOR3` is `gte_SetRotMatrix` +
 `gte_SetTransMatrix` + `gte_ldlvl` + `gte_rtirtr_real`
 (`.word 0x4A498012`, MVMVA on IR with TR) + `gte_stlvl`.
 
+## Assign `firstChild` onto the spawn-result pointer so it stays in `$a0`
+
+A UI task that returns `Ui_SpawnFromDesc` into `spawned` colors that
+pointer `$a0` (`move a0, v0` / `beqz a0`). A later child poll wants
+the same coloring:
+
+```
+lw    a0, 0xc(s3)
+beqz  a0, done
+lw    v0, 0x20(a0)
+lh    v1, 0x2e(v0)
+```
+
+A fresh `Task* child = arg0->firstChild` swaps the registers (`lw v0,
+0xc` / `lw a0, 0x20(v0)`). Assign the child task onto `spawned` and
+load `spawnArg2` into a new object pointer:
+
+```c
+spawned = (UiObject*)arg0->firstChild;
+if (spawned != NULL) {
+    childObj = ((Task*)spawned)->spawnArg2;
+    if (childObj->field_2E == 6) {
+```
+
+`func_800CD39C` is the example. Same first-child cast as `func_800C010C`.
+
 
 

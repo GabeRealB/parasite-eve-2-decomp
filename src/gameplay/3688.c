@@ -46,6 +46,8 @@ extern char         D_8010E550[];
 extern char         D_8010E554[];
 extern char         D_8010E558[];
 extern char         D_8010E55C[];
+extern char         D_8010E578[];
+extern char         D_8010E588[];
 extern char         D_8010E58C[];
 extern char         D_8010E594[];
 extern char         D_8010E59C[];
@@ -134,6 +136,7 @@ extern char         D_80097138[];
 extern char         D_8009715C[];
 extern u8           D_800971A4;
 extern char         D_800971A8[];
+extern char         D_800971B8[];
 extern char         D_800971D0[];
 extern char         D_800971D8[];
 extern char         D_800971DC[];
@@ -1247,7 +1250,40 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CCEEC);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CD160);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CD39C);
+void func_800CD39C(Task* arg0)
+{
+    UiObject* obj;
+    UiObject* spawned;
+    UiObject* childObj;
+    s32       color;
+    s32       one;
+
+    obj = arg0->spawnArg2;
+    Ui_DrawTextColored((UiPanel*)obj, D_800971B8);
+    obj->field_2E = 0;
+    if (arg0->state == 0) {
+        spawned = Ui_SpawnFromDesc(&D_8010EA98, 1, 1, 2, obj);
+        if (spawned != NULL) {
+            spawned->field_C = (obj->baseX + obj->field_1E + 0xA) - spawned->field_10;
+            spawned->field_E = obj->baseY + obj->field_1A;
+            obj->field_2C    = 0;
+            obj->status      = 0;
+        }
+        arg0->state = arg0->state + 1;
+    }
+    color = 0x606060;
+    one   = 1;
+    Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, D_8010E578, color, one, 0);
+    Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0x1E, D_8010E588, color, one, 0);
+    spawned = (UiObject*)arg0->firstChild;
+    if (spawned != NULL) {
+        childObj = ((Task*)spawned)->spawnArg2;
+        if (childObj->field_2E == 6) {
+            obj->field_2E = -1;
+            obj->field_2C = 0x34;
+        }
+    }
+}
 
 void func_800CD508(Task* arg0)
 {
