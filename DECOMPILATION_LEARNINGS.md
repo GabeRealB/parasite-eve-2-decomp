@@ -21111,5 +21111,46 @@ if (item != D_8010E8F8[0]) {
 
 `func_800C7590` is the example.
 
+## Copy `&block->vec` after the scratch store so `ldv0` uses `$v0`
+
+A 0x18-byte scratch alloc that then zeroes `block->vec` and `gte_ldv0`s it
+wants the block pointer copied into `$v0` right after the stack-head store:
+
+```
+addiu  a1, v1, -0x18
+sw     a1, 0(v0)
+move   v0, a1
+...
+lwc2   $0, 0(v0)
+lwc2   $1, 4(v0)
+```
+
+`gte_ldv0(&block->vec)` alone keeps the pointer in `$a1`. Take a second
+local immediately after `*scratch = block`:
+
+```c
+*scratch = block;
+vec      = &block->vec;
+```
+
+`func_800D937C` is the example.
+
+## `if (flag >= 0) { work } else { ret = 0 }` keeps the jump / else block
+
+Inverting that test (`if (flag < 0) ret = 0; else work`) lets GCC put
+`move a0, zero` in the `bltz` delay slot and drop the else label. The
+target wants a nop delay, a `j` after the work, and a standalone
+`move a0, zero`. Write the work in the true arm:
+
+```c
+if (block->flag >= 0) {
+    ret = -block->sx / 10;
+} else {
+    ret = 0;
+}
+```
+
+`func_800D937C` is the example.
+
 
 

@@ -1059,6 +1059,18 @@ alignment pad).
 | 0x18 | `field_18` | s32 Z origin added to world Z before dividing by `field_20` |
 | 0x20 | `field_20` | u16 cell size; divisor for world-to-grid (`lhu`) |
 
+### `GpObj38` (0x44) — `3A34.h`
+Sparse overlay. When `GameActorExt.field_8` is passed in, this is a
+`GsCOORDINATE2` and `field_24` is `workm`. Light helpers treat
+`field_24.t` as a `VECTOR*`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x24 | `field_24` | `MATRIX`; `func_800D937C` loads rot+trans and RTPS of the origin |
+| 0x38 | `field_24.t[0]` | returned by `func_800D9788`; light dir X |
+| 0x3C | `field_24.t[1]` | light dir Y |
+| 0x40 | `field_24.t[2]` | `func_800D9340` subtracts `Display_State.field_110` |
+
 ### `GpObj20` (0x24) — `3A34.h`
 Sparse overlay. Full object size is not known yet.
 

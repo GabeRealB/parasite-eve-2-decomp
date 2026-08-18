@@ -257,7 +257,7 @@ s32 func_800D9340(GpObj38* arg0)
 {
     s32 val;
 
-    val = arg0->field_40 - Display_State.field_110;
+    val = arg0->field_24.t[2] - Display_State.field_110;
     if (val >= 0x7FFF) {
         val = 0x7FFF;
     }
@@ -267,7 +267,44 @@ s32 func_800D9340(GpObj38* arg0)
     return val >> 8;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D937C);
+s32 func_800D937C(GpObj38* arg0)
+{
+    void**        scratch;
+    u8*           head;
+    GpPanScratch* block;
+    SVECTOR*      vec;
+    s32           ret;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    block    = (GpPanScratch*)(head - 0x18);
+    *scratch = block;
+    vec      = &block->vec;
+    gte_SetRotMatrix(&arg0->field_24);
+    gte_SetTransMatrix(&arg0->field_24);
+    block->vec.vz = 0;
+    block->vec.vy = 0;
+    block->vec.vx = 0;
+    gte_ldv0(vec);
+    gte_rtps_real();
+    gte_stsxy(&((GpPanScratch*)(head - 0x18))->sx);
+    gte_stdp(&((GpPanScratch*)(head - 0x18))->p);
+    gte_stflg(&((GpPanScratch*)(head - 0x18))->flag);
+    gte_stszotz(&((GpPanScratch*)(head - 0x18))->otz);
+    if (block->flag >= 0) {
+        if (block->sx >= 0xA0) {
+            block->sx = 0x9F;
+        }
+        if (block->sx < -0x9F) {
+            block->sx = -0xA0;
+        }
+        ret = -block->sx / 10;
+    } else {
+        ret = 0;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+    return -ret;
+}
 
 void func_800D94B8(SVECTOR* arg0)
 {
@@ -382,7 +419,7 @@ s32 func_800D9718(GpObj44* arg0)
 
 s32 func_800D9788(GpObj38* arg0)
 {
-    return arg0->field_38;
+    return arg0->field_24.t[0];
 }
 
 void func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
@@ -403,7 +440,7 @@ void func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
     *scratch = block;
     dirMtx   = arg3->field_1C;
     colorMtx = arg3->field_20;
-    Gfx_NormalizeLightDir((VECTOR*)&((GpObj38*)arg1)->field_38, dir);
+    Gfx_NormalizeLightDir((VECTOR*)((GpObj38*)arg1)->field_24.t, dir);
 
     dirMtx->m[arg0][0] = block->dir.vx;
     dirMtx->m[arg0][1] = block->dir.vy;

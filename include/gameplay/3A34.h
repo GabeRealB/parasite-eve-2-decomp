@@ -261,14 +261,13 @@ typedef struct _GpObj20 {
 } GpObj20;
 STATIC_ASSERT_SIZEOF(GpObj20, 0x24);
 
-/// Object whose word at 0x38 is returned by `func_800D9788`. Adjacent light
-/// helpers load 0x38/0x3C/0x40 as three s32s and take `&obj->field_38` as a
-/// `VECTOR*`.
+/// Object with a `MATRIX` at 0x24 (`GsCOORDINATE2.workm` when this overlays
+/// an actor coordinate). `func_800D937C` loads that matrix for RTPS.
+/// `func_800D9788` returns `field_24.t[0]`. Light helpers take
+/// `field_24.t` as a `VECTOR*` (`t[0]/t[1]/t[2]`).
 typedef struct _GpObj38 {
-    /* 0x00 */ byte pad_0[0x38];
-    /* 0x38 */ s32  field_38;
-    /* 0x3C */ s32  field_3C;
-    /* 0x40 */ s32  field_40;
+    /* 0x00 */ byte   pad_0[0x24];
+    /* 0x24 */ MATRIX field_24;
 } GpObj38;
 STATIC_ASSERT_SIZEOF(GpObj38, 0x44);
 
@@ -276,7 +275,7 @@ STATIC_ASSERT_SIZEOF(GpObj38, 0x44);
 /// treats `field_44` as a room-id filter against `Game_Session->field_4`
 /// (0 = any room), writes `0x1000` (GTE ONE) to `field_4A`, and returns a
 /// weighted `field_50/52/54` luminance. `func_800D9794` casts to
-/// `GpObj38` for `&field_38` as a `VECTOR*`, loads `field_4A` into GTE
+/// `GpObj38` for `field_24.t` as a `VECTOR*`, loads `field_4A` into GTE
 /// IR0, and `gte_ldsv`s the three halfwords at 0x50.
 typedef struct _GpObj44 {
     /* 0x00 */ byte pad_0[0x44];
@@ -540,6 +539,18 @@ typedef struct _GpPerspScratch {
     /* 0x10 */ s32     otz;
 } GpPerspScratch;
 STATIC_ASSERT_SIZEOF(GpPerspScratch, 0x14);
+
+/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `func_800D937C`.
+/// Same RTPS outputs as `GpPerspScratch`, plus the packed `SXY2` at 0x14
+/// (`sx` is the signed screen X used as stereo pan).
+typedef struct _GpPanScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     p;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ s32     otz;
+    /* 0x14 */ s16     sx;
+} GpPanScratch;
+STATIC_ASSERT_SIZEOF(GpPanScratch, 0x18);
 
 /// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_800D9794`.
 /// `dir` is the `Gfx_NormalizeLightDir` output (then overwritten by the
