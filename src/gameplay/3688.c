@@ -780,7 +780,102 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C2538);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C26B8);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C2B70);
+void func_800C2B70(UiList* arg0, s32 arg1)
+{
+    register s32           count asm("t0");
+    register s32           i asm("t3");
+    register McItemRec*    rec asm("a3");
+    register s32           item asm("v1");
+    s32                    j;
+    s32                    off;
+    s32                    temp;
+    s32                    limit;
+    McItemRec*             table;
+    McItemRec*             rec2;
+    McItemScan*            scan;
+    register WipSysConfig* cfg asm("t4");
+    GpItemQty*             table0;
+    GpItemQty*             table1;
+
+    count = 0;
+    table = Mc_SaveData.field_1AC;
+    scan  = &Mc_SaveData.field_5BC;
+    {
+        register s32 hi asm("v1");
+        asm volatile("lui %1, %%hi(Wip_SysConfig)\n\t"
+                     "addiu %0, %1, %%lo(Wip_SysConfig)"
+                     : "=r"(cfg), "=r"(hi));
+    }
+    limit = scan->field_1;
+    asm volatile("" ::"r"(limit));
+    item = scan->field_0;
+    asm volatile("" : "+r"(count));
+    i = count;
+    if (count < limit) {
+        table0 = D_8010E238;
+        table1 = D_8010D278;
+        temp   = item << 2;
+        rec    = (McItemRec*)(temp + (s32)table);
+        do {
+            if ((u8)(rec->field_0 + 0x80) < 0x20) {
+                rec2 = rec;
+                if (arg1 == 0) {
+                    goto increment;
+                }
+                j = 0;
+                asm volatile("" ::"r"(j));
+                item = rec->field_0;
+                off  = (item - 0x80) * 4;
+                item = item - 0x7F;
+                do {
+                    temp = j + off;
+                    if (((GpItemQty*)(temp + (s32)table0))->field_1 == arg1) {
+                        if ((s8)rec2->field_1 > 0) {
+                            count++;
+                        } else if (cfg->field_21 == item) {
+                            count++;
+                        }
+                        break;
+                    }
+                    j++;
+                } while (j < 3);
+
+                j    = 0;
+                item = rec->field_0;
+                rec2 = rec;
+                off  = (item - 0x80) * 4;
+                item = item - 0x7F;
+                do {
+                    temp = j + off;
+                    if (((GpItemQty*)(temp + (s32)table1))->field_1 == arg1) {
+                        if ((s8)rec2->field_1 > 0) {
+                            goto increment;
+                        }
+                        if (cfg->field_21 != item) {
+                            goto next;
+                        }
+                    increment:
+                        count++;
+                        goto next;
+                    }
+                    j++;
+                } while (j < 3);
+            }
+        next:
+            rec++;
+            i++;
+        } while (i < scan->field_1);
+    }
+
+    arg0->field_4 = count;
+    arg0->field_5 = count;
+    if (arg1 == 0) {
+        arg0->field_7 = 0xF;
+        arg0->field_5 = 4;
+    } else {
+        arg0->field_7 = 0xF;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C2CE8);
 

@@ -21480,5 +21480,56 @@ immediate in the `slti` delay slot. Reuse the `1` temp for the pivot
 (`one = 6` before the loop) so that load overwrites `$s2` instead of
 allocating `$s4`. `func_800C8B40` is the example.
 
+## `i = count` after a count barrier fills the `beqz` delay slot
+
+A zeroed counter used both as the loop index seed and as the unsigned
+`slt` left-hand side:
+
+```
+move  t0, zero
+...
+slt   v0, t0, v0
+beqz  v0, skip
+ move t3, t0
+```
+
+wants `i = count` *after* a `asm volatile("" : "+r"(count))` barrier and
+immediately before `if (count < limit)`. Putting `i = count` inside the
+`if` lets the first `lui` of the loop-invariant tables steal the delay
+slot. Putting it next to `count = 0` hoists `move t3, t0` to the top of
+the prologue. The barrier keeps `slt t0, limit` from folding to `beqz
+limit` and stops `i = count` from riding `count = 0`. `func_800C2B70`
+is the example.
+
+## Split-address inline asm for `lui v1; addiu dest, v1` of a second global
+
+Two prologue address-of-globals (`Mc_SaveData.field_1AC` then
+`Wip_SysConfig`) both want `$v0` as the `lui` temp once the first
+`addiu` has freed it. The target instead uses `$v1` for the second:
+
+```
+lui   v0, %hi(Mc_SaveData)
+addiu a2, v0, %lo(Mc_SaveData+0x1ac)
+lui   v1, %hi(Wip_SysConfig)
+addiu t4, v1, %lo(Wip_SysConfig)
+```
+
+`cfg = &Wip_SysConfig` emits `lui v0` / `addiu t4, v0`. Occupying `$v0`
+with the upcoming `lbu` of a scan field spills other incoming args.
+Pin `cfg` to the dest register and emit the split pair (same form as
+`Text_ItoaHex` / `Fs_CopyWorkEntries`):
+
+```c
+register WipSysConfig* cfg asm("t4");
+{
+    register s32 hi asm("v1");
+    asm volatile("lui %1, %%hi(Wip_SysConfig)\n\t"
+                 "addiu %0, %1, %%lo(Wip_SysConfig)"
+                 : "=r"(cfg), "=r"(hi));
+}
+```
+
+`func_800C2B70` is the example.
+
 
 
