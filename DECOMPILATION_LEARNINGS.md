@@ -23716,3 +23716,69 @@ and `sw 0x20(t1)` for the translation delta. Pass the vec to
 `ApplyMatrixLV` as `(VECTOR*)(head - 0x10)` (not `&tmp->vec`) so the
 call is `addiu a1, t0, -0x10`; dest is `(VECTOR*)arg2->t` (`addiu a2,
 a2, 0x14` in the second subtract's load delay).
+
+## Pin array base and the loaded byte both to `$v0` so stores beat `sll 24` / `slti`
+
+`n = arr[i].field_1; menu->field_4 = n; menu->field_5 = n; if ((s8)n >= 0xB)`
+with `n` in `$v1` sign-extends first (`sll` / `sra` / `slti`) and parks the
+two `sb`s in the `slti` delay. The target wants the address in `$v0`, the
+index in `$v1`, `lbu v0, 1(v1)`, then both stores, then the sign-extend.
+Give the pointer and the byte the same hard register so the `lbu`
+clobbers the base and the stores must happen before `sll` reuses `$v0`:
+
+```c
+{
+    register s32         val asm("v0");
+    register GpItemScan* s asm("v0");
+
+    s             = &D_8010D628;
+    val           = s[arg0->spawnArg1].field_1;
+    menu->field_4 = val;
+    menu->field_5 = val;
+    if ((s8)val >= 0xB) {
+        menu->field_5 = 0xA;
+    }
+}
+```
+
+`func_800BD2FC` is the example.
+
+## Three `Ui_DrawText` calls CSE to one `jal` with `lui a1`; a `char*` temp uses `$v0`
+
+A 3-way title pick compiled as
+
+```c
+if (arg0->spawnArg1 == 0) {
+    if (arg0->flags == 1) {
+        Ui_DrawText((UiPanel*)obj, D_80093D70);
+    } else {
+        Ui_DrawText((UiPanel*)obj, D_80093D80);
+    }
+} else {
+    Ui_DrawText((UiPanel*)obj, D_80093D8C);
+}
+```
+
+shares one `jal Ui_DrawText` and loads each string with `lui a1` /
+`addiu a1, a1, %lo(...)`. Assigning through `char* text` first emits
+`lui v0` / `addiu a1, v0` and hoists the else-string into the
+`bnez spawnArg1` delay instead of `move a0, s2`. `func_800BD2FC` is the
+example.
+
+## `count = count < func()` emits `slt s0, s0, v0` / `beqz s0`
+
+`if (count < func_800BAF5C(scan))` keeps the compare in `$v0`
+(`slt v0, s0, v0` / `beqz v0`). Reusing the saved count for the boolean
+writes the `slt` onto `$s0`:
+
+```c
+count = scan->field_1;
+count = count < func_800BAF5C(scan);
+if (count != 0) {
+    obj->field_4 |= 0x20000;
+} else {
+    obj->field_4 &= ~0x20000;
+}
+```
+
+`func_800BD2FC` is the example.

@@ -102,6 +102,9 @@ extern UiListItemFunc D_8010D67C[];
 extern UiList D_8010D68C;
 /// UiList used by `func_800BF464`. `field_10` is 1 when `spawnArg1` is 0.
 extern UiList D_8010D6B4;
+extern char          D_80093D70[]; // "Battle Field"
+extern char          D_80093D80[]; // "Item Box"
+extern char          D_80093D8C[]; // "Player Item"
 extern GpPromptTexts D_80093DA0;
 /// Per-child item-move handler. Walked by `func_800BCC44` over
 /// `obj->owner`'s children as `func_800BC634(child->spawnArg2, child)`.
@@ -112,6 +115,15 @@ void func_800BC634(UiObject* arg0, Task* arg1);
 /// (plus `[9]` when `spawnArg1 == 1`), then walks children through
 /// `func_800BC634`. Always writes `field_2C = 0x34`.
 void func_800BCC44(Task* arg0);
+/// Task callback for one `D_8010D634` inventory pane. `spawnArg1 >= 0x100`
+/// is masked to the low byte and `flags` is set so the title is
+/// `D_80093D70` ("Battle Field") instead of `D_80093D80` ("Item Box");
+/// dest (`spawnArg1 != 0`) uses `D_80093D8C` ("Player Item"). Seeds the
+/// list from `D_8010D628[spawnArg1].field_1` (visible rows capped at 10).
+/// First-state confirm/cancel is `field_2E = -1`; later states write
+/// `0x24`. Circle (src) / Square (dest) / mask 3 switch panes (`0xA`)
+/// and play type-6 sound 2. Walks children through `func_800BF398`.
+void func_800BD2FC(Task* arg0);
 void func_800BD6DC(DialogPrompt* arg0, UiObject* arg1);
 /// List-item confirm for `D_8010D67C`. Draws `D_8010D588`, then on confirm
 /// looks up the selected inventory row and inlines `func_800BF334` against
@@ -138,6 +150,11 @@ void func_800BDDC4(Task* arg0);
 void func_800BE808(DialogPrompt* arg0, UiObject* arg1);
 void func_800BF2C8(UiObject* arg0, void (*arg1)(UiObject*, Task*));
 s32  func_800BF334(s32 arg0, s32 arg1);
+/// Child closer for the `D_8010D634` inventory panes. `-1` tears down and
+/// either restores parent status or sets parent `field_2E = -1` when the
+/// parent owner has no flags; `6` / `0x23` / `38` / `39` copy those codes
+/// onto the parent (`6` also restores status).
+void func_800BF398(UiObject* arg0, Task* arg1);
 void func_800BF464(Task* arg0);
 /// Task callback. `spawnArg2` is the `UiObject`; on first run it is published
 /// as `Wip_UiHolder`. `spawnArg1` is a text pointer; when non-zero, two prompt

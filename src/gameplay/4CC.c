@@ -109,7 +109,147 @@ end:
 
 INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BCEA4);
 
-INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BD2FC);
+void func_800BD2FC(Task* arg0)
+{
+    UiObject*   obj;
+    UiList*     menu;
+    GpItemScan* scan;
+    s32         count;
+    s32         n;
+    s32         status;
+    Task*       owner;
+    Task*       child;
+    Task*       next;
+    Task*       head;
+    void        (*cb)(UiObject*, Task*);
+
+    menu          = &D_8010D634[(u8)arg0->spawnArg1];
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    if (arg0->state == 0) {
+        if (arg0->spawnArg1 >= 0x100) {
+            arg0->spawnArg1 = arg0->spawnArg1 & 0xFF;
+            arg0->flags     = 1;
+        } else {
+            arg0->flags = 0;
+        }
+        {
+            register s32         val asm("v0");
+            register GpItemScan* s asm("v0");
+
+            s             = &D_8010D628;
+            val           = s[arg0->spawnArg1].field_1;
+            menu->field_4 = val;
+            menu->field_5 = val;
+            if ((s8)val >= 0xB) {
+                menu->field_5 = 0xA;
+            }
+        }
+        menu->field_10 = 0;
+        menu->field_9  = 0;
+        Ui_LayoutListPanel(menu, (UiPanel*)obj);
+        menu->field_A = 1;
+        arg0->state   = arg0->state + 1;
+    }
+
+    if (arg0->spawnArg1 == 0) {
+        if (arg0->flags == 1) {
+            Ui_DrawText((UiPanel*)obj, D_80093D70);
+        } else {
+            Ui_DrawText((UiPanel*)obj, D_80093D80);
+        }
+    } else {
+        Ui_DrawText((UiPanel*)obj, D_80093D8C);
+    }
+    Ui_ComputeVisibleRows(menu, (s32)obj);
+    menu->field_A = 1;
+    if (menu->field_10 >= menu->field_4) {
+        menu->field_10 = menu->field_4 - 1;
+    }
+    n = menu->field_4;
+    if ((s8)menu->field_5 >= n) {
+        menu->field_9 = 0;
+    }
+    if (menu->field_4 != 0) {
+        Ui_UpdateListNoAnim(menu, obj);
+    }
+
+    scan  = &D_8010D628 + arg0->spawnArg1;
+    count = scan->field_1;
+    count = count < func_800BAF5C(scan);
+    if (count != 0) {
+        obj->field_4 |= 0x20000;
+    } else {
+        obj->field_4 &= ~0x20000;
+    }
+
+    status = obj->status;
+    if (status == 1) {
+        if (menu->field_4 == 0) {
+            Ui_SmoothCursor((UiMiniObj*)obj, obj->field_1C + 4, (s16)obj->field_18 + 0xA);
+        }
+        if (arg0->state == status) {
+            if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
+                obj->status   = 0;
+                obj->field_2E = -1;
+            } else if (Pad_CheckButtons(0, 1, D_8005ED78) != 0) {
+                obj->status   = 0;
+                obj->field_2E = -1;
+            } else if (Pad_CheckButtons(0, 0, 0x5000) == 0) {
+                if (arg0->spawnArg1 == 0) {
+                    if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
+                        goto do_snd;
+                    }
+                }
+                if (arg0->spawnArg1 == status) {
+                    if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
+                        goto do_snd;
+                    }
+                }
+                if (Pad_CheckButtons(0, 1, 3) == 0) {
+                    goto children;
+                }
+            do_snd:
+                SndEvt_EnqueueType6(2, 0, 0);
+                obj->field_2E = 0xA;
+            }
+        } else if (Pad_CheckButtons(0, 1, D_8005ED74 | D_8005ED78) != 0) {
+            obj->field_2E = 0x24;
+        } else if (Pad_CheckButtons(0, 0, 0x5000) == 0) {
+            if (arg0->spawnArg1 == 0) {
+                if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
+                    obj->field_2E = 0xA;
+                    goto children;
+                }
+            }
+            if (arg0->spawnArg1 == status) {
+                if (Pad_CheckButtons(0, 1, 0x8000) != 0) {
+                    obj->field_2E = 0xA;
+                    goto children;
+                }
+            }
+            if (Pad_CheckButtons(0, 1, 3) != 0) {
+                obj->field_2E = 0xA;
+            }
+        }
+    }
+
+children:
+    cb    = func_800BF398;
+    owner = obj->owner;
+    child = owner->firstChild;
+    if (child != NULL) {
+        do {
+            next = child->nextSibling;
+            cb(child->spawnArg2, child);
+            head  = owner->firstChild;
+            child = next;
+            if (head == NULL) {
+                break;
+            }
+        } while (child != head);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BD6DC);
 
