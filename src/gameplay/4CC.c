@@ -6,6 +6,7 @@
 #include "gameplay/3688.h"
 #include "gameplay/4CC.h"
 #include "main/gamemain.h"
+#include "main/mem.h"
 #include "main/pad.h"
 #include "main/sound.h"
 #include "main/task.h"
@@ -13,14 +14,98 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-extern s32  D_8005ED70;
-extern s32  D_8005ED74;
-extern s32  D_8005ED78;
-extern char D_8010D588[];
+extern s32       D_8005ED70;
+extern s32       D_8005ED74;
+extern s32       D_8005ED78;
+extern char      D_8010D588[];
+extern UiObject* D_80067634;
+
+void func_800CDEF4(void);
 
 INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BC634);
 
-INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BCC44);
+void func_800BCC44(Task* arg0)
+{
+    UiObject*        obj;
+    GpItemMoveState* mem;
+    s32              i;
+    GpItemScan*      src;
+    GpItemScan**     scans;
+    u16              item;
+    s32              val;
+    register s32     code asm("v0");
+    Task*            owner;
+    Task*            child;
+    Task*            next;
+    Task*            head;
+    void             (*cb)(UiObject*, Task*);
+
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    if (arg0->state == 0) {
+        Wip_UiHolder = NULL;
+        D_80067634   = NULL;
+        func_800CDEF4();
+        mem = Mem_Calloc(0x1C, 0);
+        i   = 0;
+        if (mem == NULL) {
+            code          = -1;
+            obj->field_2E = code;
+            code          = 0x34;
+            obj->status   = 0;
+            goto end;
+        }
+        scans        = D_8010D550;
+        arg0->idMap  = (TaskIdMap*)mem;
+        D_80114D78   = mem;
+        mem->field_C = 0;
+        do {
+            if (i == 0) {
+                item       = D_80114DDC;
+                src        = scans[item & 0xFF];
+                D_80114D7C = item;
+            } else {
+                src = &Mc_SaveData.field_5BC;
+            }
+            (&D_8010D628)[i] = *src;
+            i++;
+        } while (i < 2);
+        func_800B8588(&D_8010D628, 0);
+        if (arg0->spawnArg1 == 1) {
+            val          = func_800BC50C();
+            mem->field_8 = 0;
+            mem->field_0 = Ui_SpawnFromDesc(D_8010D6F4, 0x100, 0, 1, obj);
+            mem->field_4 = Ui_SpawnFromDesc(D_8010D6F4 + 1, 0x101, 0, 1, obj);
+            Ui_SpawnFromDesc(D_8010D6F4 + 9, val, 1, 1, mem->field_0);
+        } else {
+            mem->field_8 = 0;
+            mem->field_0 = Ui_SpawnFromDesc(D_8010D6F4, 0, 1, 1, obj);
+            mem->field_4 = Ui_SpawnFromDesc(D_8010D6F4 + 1, 1, 0, 1, obj);
+            obj->status  = 0;
+        }
+        Ui_SpawnFromDesc(&D_8010D80C, 0, 0, 1, obj);
+        Game_Session->field_2 = 1;
+        arg0->state           = arg0->state + 1;
+    }
+
+    cb    = func_800BC634;
+    owner = obj->owner;
+    child = owner->firstChild;
+    if (child != NULL) {
+        do {
+            next = child->nextSibling;
+            cb(child->spawnArg2, child);
+            head  = owner->firstChild;
+            child = next;
+            if (head == NULL) {
+                break;
+            }
+        } while (child != head);
+    }
+    code = 0x34;
+end:
+    obj->field_2C = code;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BCEA4);
 

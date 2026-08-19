@@ -49,6 +49,21 @@ typedef struct {
 } GpPromptTexts;
 STATIC_ASSERT_SIZEOF(GpPromptTexts, 0x10);
 
+/// 0x1C work block allocated by `func_800BCC44` (`Mem_Calloc(0x1C, 0)`)
+/// and stored at `Task::idMap` / `D_80114D78`. `field_0` / `field_4` are
+/// the first two `Ui_SpawnFromDesc` results; `field_8` is a write offset
+/// into this same block (`func_800BC634`).
+typedef struct _GpItemMoveState {
+    /* 0x00 */ UiObject* field_0;
+    /* 0x04 */ UiObject* field_4;
+    /* 0x08 */ s32       field_8;
+    /* 0x0C */ s32       field_C;
+    /* 0x10 */ s32       field_10;
+    /* 0x14 */ s32       field_14;
+    /* 0x18 */ s32       field_18;
+} GpItemMoveState;
+STATIC_ASSERT_SIZEOF(GpItemMoveState, 0x1C);
+
 extern GpItemDesc D_8010D838[];
 /// Second item-descriptor base. Indexed as `D_8010D638[id]` for `id >= 0x100`.
 extern GpItemDesc D_8010D638[];
@@ -71,6 +86,13 @@ extern u16 D_80114DEC;
 /// Item/location halfword copied from `D_80114DDC` by `func_800BCC44`.
 /// `func_800BF334` special-cases the value `0x703`.
 extern u16 D_80114D7C;
+/// Item-move UI work block published by `func_800BCC44`.
+extern GpItemMoveState* D_80114D78;
+/// Item-move `UiObjectDesc` table. `func_800BCC44` spawns `[0]` / `[1]`
+/// and, when `spawnArg1 == 1`, `[9]`.
+extern UiObjectDesc D_8010D6F4[];
+/// Extra `UiObjectDesc` spawned after the `D_8010D6F4` pair.
+extern UiObjectDesc D_8010D80C;
 /// Pair of inventory UiLists indexed by `Task::spawnArg1` (source / dest).
 /// `field_10` is the selected row passed to `func_800BB5BC`.
 extern UiList D_8010D634[];
@@ -81,6 +103,15 @@ extern UiList D_8010D68C;
 /// UiList used by `func_800BF464`. `field_10` is 1 when `spawnArg1` is 0.
 extern UiList D_8010D6B4;
 extern GpPromptTexts D_80093DA0;
+/// Per-child item-move handler. Walked by `func_800BCC44` over
+/// `obj->owner`'s children as `func_800BC634(child->spawnArg2, child)`.
+void func_800BC634(UiObject* arg0, Task* arg1);
+/// Task callback for the item-move UI. `spawnArg2` is the `UiObject`.
+/// First run copies `D_8010D550[D_80114DDC]` / `Mc_SaveData.field_5BC`
+/// into `D_8010D628` / `D_8010D62C`, spawns the `D_8010D6F4` pair
+/// (plus `[9]` when `spawnArg1 == 1`), then walks children through
+/// `func_800BC634`. Always writes `field_2C = 0x34`.
+void func_800BCC44(Task* arg0);
 void func_800BD6DC(DialogPrompt* arg0, UiObject* arg1);
 /// List-item confirm for `D_8010D67C`. Draws `D_8010D588`, then on confirm
 /// looks up the selected inventory row and inlines `func_800BF334` against

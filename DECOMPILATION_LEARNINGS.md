@@ -22677,3 +22677,85 @@ i = 0;
 
 
 
+
+## Index `(&global)[i]` so the dest `la` hoists with other loop invariants
+
+A named dest pointer assigned before the loop is scheduled *before* the
+loop's hoisted `%hi`s:
+
+```
+lui    v0, %hi(table)
+addiu  t1, v0, %lo(table)
+lui    v0, %hi(dest)      /* too early */
+addiu  a1, v0, %lo(dest)
+lui    t0, %hi(halfword)
+lui    a3, %hi(out)
+lui    a2, %hi(other)
+```
+
+The target wants the dest address *after* those `%hi`s, grouped with
+the other loop-invariant addresses, then incremented in the branch
+delay (`addiu a1, a1, 4`).
+
+Don't keep a dest pointer. Write the store as an index of the global
+so the address is a loop invariant, not an early named assignment.
+`-O2` strength-reduces it back to a pointer increment:
+
+```c
+scans = D_8010D550;
+do {
+    if (i == 0) {
+        item       = D_80114DDC;
+        src        = scans[item & 0xFF];
+        D_80114D7C = item;
+    } else {
+        src = &Mc_SaveData.field_5BC;
+    }
+    (&D_8010D628)[i] = *src;
+    i++;
+} while (i < 2);
+```
+
+`func_800BCC44` is the example. `dest = &D_8010D628; *dest = *src;
+dest++` stuck at 98.6% with only that `la` two instructions early.
+
+## Pin fail `-1` and shared `0x34` through `$v0` so the store is a phi
+
+A fail path that writes `field_2E = -1` then shares `field_2C = 0x34`
+with the success tail wants:
+
+```
+li    v0, -1
+sh    v0, 0x2e(s3)
+li    v0, 0x34
+j     store
+ sw    zero, 0(s3)
+...
+li    v0, 0x34
+store:
+sh    v0, 0x2c(s3)
+```
+
+A named `s32 code` without a pin takes `$v1` and is hoisted *before*
+the `-1` store. `obj->field_2C = 0x34` on both arms does not share the
+`sh`. Route both constants through one `$v0` pin so the fail path
+overwrites the same register after the first store:
+
+```c
+register s32 code asm("v0");
+
+if (mem == NULL) {
+    code          = -1;
+    obj->field_2E = code;
+    code          = 0x34;
+    obj->status   = 0;
+    goto end;
+}
+...
+code = 0x34;
+end:
+obj->field_2C = code;
+```
+
+`func_800BCC44` is the example. Unpinned `code` stuck at 98.8% (`li v1,
+0x34` first, then `li v0, -1`).
