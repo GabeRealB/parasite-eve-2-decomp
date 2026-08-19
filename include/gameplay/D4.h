@@ -209,6 +209,10 @@ void func_800AADDC(Task* task);
 /// then after 7 frames clears `CdCmd_Queue.field_22E` and advances state.
 void func_800AB828(Task* task);
 void func_800AB980(struct _GameSessionFrom4* arg0);
+/// Pick companion type into `Mc_SaveData.field_13` from the NPC room tables.
+/// Returns 0 if already current or none; else 1/2/3 for the caller to store
+/// in `GameSession.field_124`.
+s32  func_800ABA4C(void);
 void func_800ABCC8(void);
 void func_800ABE68(struct _GpActorArg* arg0, u16* arg1);
 void func_800ABEF8(s32 arg0);

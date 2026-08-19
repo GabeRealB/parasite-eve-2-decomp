@@ -754,6 +754,36 @@ queue->field_22A = D_8011565C;
 `CdCmd_Queue.field_22A = D_8011565C` stuck at 93.9% with only that
 address and the extra saved register different.
 
+## Write a two-global fail tail through the globals, not hoisted pointers
+
+A shared no-match tail that zeros two BSS objects wants:
+
+```
+lui    v0, %hi(Mc_SaveData)
+lui    v1, %hi(Game_Session)
+lw     a0, %lo(Game_Session)(v1)
+addiu  v0, v0, %lo(Mc_SaveData)
+sb     zero, field(v0)
+sb     zero, field(a0)
+lw     v1, %lo(Game_Session)(v1)
+sb     zero, field(v1)
+```
+
+Hoisting `save = &Mc_SaveData; session = Game_Session` clumps `lui`+`addiu`
+before the session load, or delay-fills the wrong `lui` into the incoming
+`beqz`. Store through the globals by name so `-fschedule-insns` splits the
+first `la` around the second:
+
+```c
+Mc_SaveData.field_13    = 0;
+Mc_SaveData.field_5C7   = 0;
+Game_Session->field_124 = 0;
+Game_Session->field_125 = 0;
+```
+
+`func_800ABA4C` is the example. The hoisted-pointer form stuck at 99.6%
+with only that `addiu` / `lui Game_Session` pair swapped.
+
 ## Reload `&Global` into a second local so the first pointer can die
 
 A sibling of a short last-ref helper (same `p = &Global` prologue, then

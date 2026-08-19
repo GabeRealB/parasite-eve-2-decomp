@@ -666,7 +666,77 @@ void func_800AB980(GameSessionFrom4* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ABA4C);
+s32 func_800ABA4C(void)
+{
+    McSaveData*           save;
+    McSaveData*           p;
+    register McSaveData*  q asm("a0");
+    register GameSession* sess asm("v1");
+    register GameSession* session asm("a0");
+    register u8*          bytes asm("s0");
+    s32                   stage;
+    u8                    hi;
+    register s32          arg asm("a0");
+
+    arg   = 0x4B;
+    save  = &Mc_SaveData;
+    stage = save->field_7;
+    bytes = D_80114198[GameFlag_GetNibble(arg)].field_0;
+    if (bytes != NULL) {
+        if (D_80114198[GameFlag_GetNibble(0x4B)].field_4 == stage) {
+            if (bytes[save->field_6 - 1] != 0) {
+                sess            = Game_Session;
+                save->field_13  = 2;
+                save->field_5C7 = 0;
+                return (sess->field_124 != 2) * 2;
+            }
+        }
+    }
+
+    bytes = D_801141F0[GameFlag_GetNibble(0x4C)].field_0;
+    if (bytes != NULL) {
+        if (D_801141F0[GameFlag_GetNibble(0x4C)].field_4 == stage) {
+            p = &Mc_SaveData;
+            if (bytes[p->field_6 - 1] & 0xF) {
+                session     = Game_Session;
+                p->field_13 = 1;
+                if (session->field_124 == 1) {
+                    hi = bytes[p->field_6 - 1] >> 4;
+                    if (session->field_125 == hi) {
+                        p->field_5C7 = hi;
+                        return 0;
+                    }
+                }
+                q                       = &Mc_SaveData;
+                q->field_5C7            = bytes[q->field_6 - 1] >> 4;
+                Game_Session->field_125 = bytes[q->field_6 - 1] >> 4;
+                return 1;
+            }
+        }
+    }
+
+    bytes = D_80114248[GameFlag_GetNibble(0x4D)].field_0;
+    if (bytes != NULL) {
+        if (D_80114248[GameFlag_GetNibble(0x4D)].field_4 == stage) {
+            p = &Mc_SaveData;
+            if (bytes[p->field_6 - 1] != 0) {
+                session      = Game_Session;
+                p->field_13  = 3;
+                p->field_5C7 = 0;
+                if (session->field_124 == 3) {
+                    return 0;
+                }
+                return 3;
+            }
+        }
+    }
+
+    Mc_SaveData.field_13    = 0;
+    Mc_SaveData.field_5C7   = 0;
+    Game_Session->field_124 = 0;
+    Game_Session->field_125 = 0;
+    return 0;
+}
 
 void func_800ABCC8(void)
 {

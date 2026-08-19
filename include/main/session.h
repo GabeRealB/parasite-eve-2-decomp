@@ -77,7 +77,8 @@ typedef struct _GameSession {
     s16   field_80;
     byte  unknown_82[0x9A];
     s16   field_11C; // cached Mc_SaveData.field_22; -1 forces refresh (func_800B7D18 / func_800AABB0)
-    byte  unknown_11E[7];
+    byte  unknown_11E[6];
+    u8    field_124; // companion type 1/2/3; written from func_800ABA4C's return
     u8    field_125; // written with Mc_SaveData.field_5C7 (func_800A9CBC)
     u8    field_126;
     byte  unknown_127;

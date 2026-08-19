@@ -561,6 +561,8 @@ read `h + 2` as line height; `func_800E67C8` / `func_800E68D8` read `w`.
 | 0x76 | `field_76` | s16 flag; nonzero makes `func_800AD378` rebuild via `func_800ACD2C` then clear it |
 | 0x7C–80 | halfwords | Counters / mode |
 | 0x11C | `field_11C` | s16 cache of `Mc_SaveData.field_22` (`lh`/`sh`). `func_800AABB0` refreshes it (and 0x11E from `Wip_SysConfig.field_26`) when either is stale. `func_800B7D18` writes -1 to force that refresh after an inventory rebuild |
+| 0x124 | `field_124` | u8 companion type 1/2/3. `func_800ABA4C` compares it to the selected type and returns 0 if already set; the caller stores a nonzero return here. Cleared when no companion table hits |
+| 0x125 | `field_125` | u8; written with `Mc_SaveData.field_5C7` (`func_800A9CBC` / `func_800ABA4C` table-2 high nibble) |
 | 0x126 | `field_126` | u8 flag; nonzero skips `func_800A7A64` display-mode init |
 | 0x128 | `field_128` | u8; `0xFF` sentinel (`func_800B0748` / `func_800B082C`) |
 | 0x129 | `field_129` | u8; last `CdCmd_Enqueue(0x21)` `param1[0]` written by `func_800B065C` (no-op if unchanged) |
