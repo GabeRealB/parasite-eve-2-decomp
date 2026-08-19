@@ -1071,8 +1071,8 @@ Sparse overlay. When `GameActorExt.field_8` is passed in, this is a
 | Off | Member | Role |
 |-----|--------|------|
 | 0x24 | `field_24` | `MATRIX`; `func_800D937C` loads rot+trans and RTPS of the origin |
-| 0x38 | `field_24.t[0]` | returned by `func_800D9788`; light dir X |
-| 0x3C | `field_24.t[1]` | light dir Y |
+| 0x38 | `field_24.t[0]` | returned by `func_800D9788`; light dir/pos X. `func_800D9A30` subtracts this from a world `VECTOR` |
+| 0x3C | `field_24.t[1]` | light dir/pos Y |
 | 0x40 | `field_24.t[2]` | `func_800D9340` subtracts `Display_State.field_110` |
 
 ### `GpObj20` (0x24) — `3A34.h`

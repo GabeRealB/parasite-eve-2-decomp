@@ -276,7 +276,9 @@ STATIC_ASSERT_SIZEOF(GpObj38, 0x44);
 /// (0 = any room), writes `0x1000` (GTE ONE) to `field_4A`, and returns a
 /// weighted `field_50/52/54` luminance. `func_800D9794` casts to
 /// `GpObj38` for `field_24.t` as a `VECTOR*`, loads `field_4A` into GTE
-/// IR0, and `gte_ldsv`s the three halfwords at 0x50.
+/// IR0, and `gte_ldsv`s the three halfwords at 0x50. `func_800D9A30`
+/// subtracts `field_24.t` from a world `VECTOR` and writes the negated
+/// normalized direction.
 typedef struct _GpObj44 {
     /* 0x00 */ byte pad_0[0x44];
     /* 0x44 */ s16  field_44;
@@ -565,11 +567,12 @@ typedef struct _GpGridPairScratch {
 } GpGridPairScratch;
 STATIC_ASSERT_SIZEOF(GpGridPairScratch, 0x40);
 
-/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_800D9794`.
-/// `dir` is the `Gfx_NormalizeLightDir` output (then overwritten by the
-/// GPF-scaled color). `scale` holds `GpObj44.field_4A` loaded into IR0.
+/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_800D9794` /
+/// `func_800D9A30`. `in` is the direction `func_800D9A30` feeds to
+/// `Gfx_NormalizeLightDir`. `dir` is that output (then overwritten by
+/// the GPF-scaled color). `scale` holds `GpObj44.field_4A` loaded into IR0.
 typedef struct _GpLightScratch {
-    /* 0x00 */ byte    pad_0[0x10];
+    /* 0x00 */ VECTOR  in;
     /* 0x10 */ SVECTOR dir;
     /* 0x18 */ s32     scale;
 } GpLightScratch;
@@ -756,6 +759,7 @@ void  func_800D96C8(Task* arg0);
 s32   func_800D9718(GpObj44* arg0);
 s32   func_800D9788(GpObj38* arg0);
 void  func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
+void  func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
 void  func_800D9B9C(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void  func_800D9D18(Task* arg0);
 void  func_800D9C3C(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3);

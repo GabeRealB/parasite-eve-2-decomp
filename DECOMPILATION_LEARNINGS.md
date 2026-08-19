@@ -20737,6 +20737,17 @@ The 0x1C scratch is the 0x18 light block plus `s32 scale` at +0x18.
 stores read `block->dir` (`lhu 0x10(s0)`). Pin `block` to `$s0` so it does
 not swap with the dir-matrix pointer.
 
+When `arg2` is live (world position subtracted from `field_24.t` into
+`block->in` before the normalize), `$a2` is taken and the IR0 copy must
+be pinned to `$t0` instead:
+
+```c
+register s32 scale asm("t0");
+```
+
+`func_800D9A30` is the example. It also writes `-block->dir` into the
+direction-matrix row (same as `Gfx_SetFlatLight`).
+
 ## Local `s32` prototype so `Display_SetFadeMax(0xFF)` can fill a delay slot
 
 `display.h` declares `void Display_SetFadeMax(u8 arg0)`. Passing an `s32`
