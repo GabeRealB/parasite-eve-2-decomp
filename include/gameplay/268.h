@@ -235,6 +235,9 @@ s32         func_800BAD28(GpItemScan* arg0, GpItemRec* arg1, s32 arg2);
 void        func_800B996C(struct _UiObject* arg0, Task* arg1);
 s32         func_800B9D80(s32 arg0);
 void        func_800B8014(void);
+/// Moves the item at scan slot `arg1` onto slot `arg2`, shifting the
+/// occupied rows between them toward the hole left at `arg1`.
+void        func_800B83F0(GpItemScan* arg0, s32 arg1, s32 arg2);
 void        func_800B8588(GpItemScan* arg0, s32 arg1);
 void        func_800BAA58(void);
 void        func_800BAB64(s32 arg0);

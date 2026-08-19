@@ -22137,5 +22137,91 @@ the later `Game_Session->field_66 == 1` reuses.
 Set `one = 1` only in the reuse arm; leave a bare `1` in the other.
 `func_800C70F0` is the example.
 
+## Pin switch `tmp` to `$v0` so `table = tmp` is `move a3, v0`
+
+The item-table switch already wants `tmp` then `table = tmp`. If `table` is
+pinned to `$a3` (or naturally lives there), GCC coalesces the two and writes
+each case straight into `$a3`:
+
+```
+addiu a3, v0, %lo(D_80114C20)
+lw    a3, %lo(D_80114D70)(v0)
+```
+
+The target keeps every case in `$v0` and copies once at the join
+(`addiu v0, %lo(...)` / `lw v0` / `move a3, v0`). Pin `tmp` to `$v0`:
+
+```c
+register GpItemRec* tmp asm("v0");
+register GpItemRec* table asm("a3");
+
+switch (scan->field_2) {
+case 2:
+    tmp = D_80114C20;
+    break;
+case 1:
+    tmp = D_80114D70;
+    break;
+default:
+    tmp = Mc_SaveData.field_1AC;
+    break;
+}
+table = tmp;
+```
+
+`func_800B83F0` is the example.
+
+## Write the join dest through `off + table`, not a `rec` temp
+
+Two arms that join on a 4-byte struct store compute the dest in `$v0`
+(`sll v0, idx, 2` in the taken-arm delay slot, then `addu v0, v0, table`).
+Assigning that address to a walk pointer first moves it to `$v1`:
+
+```c
+rec  = (GpItemRec*)(off + (s32)table);
+*rec = saved; /* addu v1, v0, a3 / swl 3(v1) */
+```
+
+Write the store through the computed address so dest stays in `$v0`:
+
+```c
+*(GpItemRec*)((arg2 << 2) + (s32)table) = saved;
+```
+
+`func_800B83F0` is the example.
+
+## Occupancy walk: goto, not `while`, so the ptr step stays in the continue delay
+
+Walking toward a hole (`if (rec->field_0 == 0) break; i--; if (src < i) rec--;`)
+as a `while (rec->field_0 != 0)` rotates: the `lbu` moves to the bottom and
+the bound check becomes `beqz` plus a compensating `i++`. The target checks
+at the top and only steps the pointer when continuing:
+
+```
+lbu   v0, 0(v1)
+beqz  v0, join
+ slt   v0, i, dest
+addiu i, i, -1
+slt   v0, src, i
+bnez  v0, loop
+ addiu v1, v1, -4
+```
+
+Keep the check-then-continue shape with a goto so `rec--` / `rec++` lands
+in the `bnez` delay slot:
+
+```c
+loop:
+    if (rec->field_0 != 0) {
+        i--;
+        if (src < i) {
+            rec--;
+            goto loop;
+        }
+    }
+```
+
+`func_800B83F0` is the example.
+
 
 

@@ -226,7 +226,92 @@ void func_800B7D18(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B8014);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800B83F0);
+void func_800B83F0(GpItemScan* arg0, s32 arg1, s32 arg2)
+{
+    register GpItemRec* tmp asm("v0");
+    register GpItemRec* table asm("a3");
+    GpItemRec*          rec;
+    GpItemRec*          src;
+    GpItemRec           saved;
+    s32                 i;
+    register s32        off asm("v0");
+
+    switch (arg0->field_2) {
+        case 2:
+            tmp = D_80114C20;
+            break;
+        case 1:
+            tmp = D_80114D70;
+            break;
+        default:
+            tmp = Mc_SaveData.field_1AC;
+            break;
+    }
+    table = tmp;
+
+    if (arg1 == arg2) {
+        return;
+    }
+
+    arg1 += arg0->field_0;
+    arg2 += arg0->field_0;
+    i     = arg2;
+
+    if (arg1 < arg2) {
+        off          = arg2 << 2;
+        rec          = (GpItemRec*)(off + (s32)table);
+        off          = arg1 << 2;
+        src          = (GpItemRec*)(off + (s32)table);
+        saved        = *src;
+        src->field_0 = 0;
+        src->field_2 = 0;
+    loop1:
+        if (rec->field_0 != 0) {
+            i--;
+            if (arg1 < i) {
+                rec--;
+                goto loop1;
+            }
+        }
+        if (i < arg2) {
+            off = i << 2;
+            rec = (GpItemRec*)(off + (s32)table);
+            do {
+                *rec = rec[1];
+                i++;
+                rec++;
+            } while (i < arg2);
+        }
+    } else {
+        off          = arg1 << 2;
+        src          = (GpItemRec*)(off + (s32)table);
+        saved        = *src;
+        src->field_0 = 0;
+        src->field_2 = 0;
+        if (arg2 < arg1) {
+            off = arg2 << 2;
+            rec = (GpItemRec*)(off + (s32)table);
+        loop2:
+            if (rec->field_0 != 0) {
+                i++;
+                if (i < arg1) {
+                    rec++;
+                    goto loop2;
+                }
+            }
+        }
+        if (arg2 < i) {
+            off = i << 2;
+            rec = (GpItemRec*)(off + (s32)table);
+            do {
+                *rec = rec[-1];
+                i--;
+                rec--;
+            } while (arg2 < i);
+        }
+    }
+    *(GpItemRec*)((arg2 << 2) + (s32)table) = saved;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B8588);
 
