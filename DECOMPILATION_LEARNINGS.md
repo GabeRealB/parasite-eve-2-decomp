@@ -23590,3 +23590,56 @@ that `mult`'s latency with `addiu s0, s0, -0x5BC` (from
 the `% 3` of `i` keeps `n % 3 + 1` from sliding into that same slot.
 
 `func_800CC15C` is the example.
+
+## `x += shift; store x` so `addu` writes the addend, not the sum temp
+
+`dest = x + (prod >> 12)` with `x` in `$v1` and the shift in `$v0` emits
+`addu v0, v1, v0` / `sh v0`. The target keeps the sum in `$v1`:
+
+```
+sra    v0, t2, 12
+addu   v1, v1, v0
+sh     v1, dest
+```
+
+Update the addend, then store it:
+
+```c
+x += prod >> 12;
+block->src[0].vx = x;
+```
+
+`func_800DDC2C` is the example.
+
+## Pin a loop `%hi` with volatile `lui` so it sits between `i = 0` and the other inits
+
+A loop that reloads `D_sym` wants:
+
+```
+move   t0, zero
+lui    t1, %hi(D_sym)
+move   a2, s1
+li     a3, 0x20
+...
+lw     a1, %lo(D_sym)(t1)
+```
+
+`p = D_sym` inside the loop hoists `%hi` to the preheader *after* every
+C init (`out` / `off`). A second `p = D_sym` also emits a second `lui`.
+Split the address: emit `%hi` after `i = 0` with a fake dep on `i`, then
+load through that register and an independent field so the `%lo` delay
+is filled (not `nop`):
+
+```c
+i = 0;
+asm volatile("lui %0, %%hi(D_80115448)" : "=r"(hi) : "r"(i) : "memory");
+out = block->pos;
+off = 0x20;
+...
+asm("lw %0, %%lo(D_80115448)(%2)\n\tlw %1, 68(%3)"
+    : "=r"(p), "=r"(t) : "r"(hi), "r"(block));
+```
+
+The paired `lw 68(block)` is `block->mat.t[0]` (offset 0x44). Volatile
+`lui` plus `memory` keeps it from sinking below `out` / `off`.
+`func_800DDC2C` is the example.

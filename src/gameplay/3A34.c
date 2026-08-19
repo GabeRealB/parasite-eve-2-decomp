@@ -1460,7 +1460,78 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DD324);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DD940);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DDC2C);
+void func_800DDC2C(GpObj* arg0)
+{
+    register GpObj*         obj asm("a0");
+    register SVECTOR*       dir asm("a1");
+    register void**         scratch asm("a2");
+    register u8*            head asm("s0");
+    register GpEdgeScratch* block asm("s1");
+    GsCOORDINATE2*          coord;
+    s32                     prod;
+    s32                     x;
+
+    obj     = arg0;
+    dir     = (SVECTOR*)obj->field_C;
+    prod    = dir->vx * (u16)obj->field_1C;
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = *scratch;
+    {
+        register s32 tmp asm("v0");
+
+        tmp              = (s32)head - 0x50;
+        x                = (u16)obj->field_10;
+        block            = (GpEdgeScratch*)tmp;
+        block->src[0].vy = 0;
+        x               += prod >> 12;
+        block->src[0].vx = x;
+    }
+    block->src[0].vz = (u16)obj->field_14 + ((dir->vz * (u16)obj->field_1C) >> 12);
+    prod             = dir->vx * (u16)obj->field_1C;
+    x                = (u16)obj->field_10;
+    block->src[1].vy = 0;
+    x               += (-prod) >> 12;
+    block->src[1].vx = x;
+    head            -= 0x20;
+    block->src[1].vz = (u16)obj->field_14 + ((-(dir->vz * (u16)obj->field_1C)) >> 12);
+    coord            = (GsCOORDINATE2*)obj->field_8;
+    *scratch         = block;
+    func_800A8864(&D_80070F34, &coord->workm, (MATRIX*)head);
+    gte_SetRotMatrix((MATRIX*)head);
+    {
+        register VECTOR*       out asm("a2");
+        register s32           off asm("a3");
+        register s32           i asm("t0");
+        register s32           val asm("v0");
+        register s32           t asm("v1");
+        register GpGridParams* p asm("a1");
+        register s32           y asm("a0");
+        register s32           hi asm("t1");
+
+        i = 0;
+        asm volatile("lui %0, %%hi(D_80115448)" : "=r"(hi) : "r"(i) : "memory");
+        out = block->pos;
+        off = 0x20;
+        do {
+            gte_ldv0((SVECTOR*)((u8*)block + off));
+            gte_rtv0_real();
+            gte_stlvnl(out);
+            off += 8;
+            i++;
+            val = out->vx;
+            asm volatile("" : "+r"(val));
+            asm("lw %0, %%lo(D_80115448)(%2)\n\tlw %1, 68(%3)" : "=r"(p), "=r"(t) : "r"(hi), "r"(block));
+            y       = p->field_14;
+            out->vy = 0;
+            out->vx = val + t + y;
+            y       = p->field_18;
+            out->vz = out->vz + block->mat.t[2] + y;
+            out++;
+        } while (i < 2);
+        func_800DE2C0(block->pos, 0);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x50;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DDDF8);
 

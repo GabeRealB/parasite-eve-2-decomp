@@ -585,6 +585,19 @@ typedef struct _GpGridPairScratch {
 } GpGridPairScratch;
 STATIC_ASSERT_SIZEOF(GpGridPairScratch, 0x40);
 
+/// 0x50-byte scratch from `G_SCRATCH_HEAD` used by `func_800DDC2C`.
+/// `src[0]` / `src[1]` are the local XZ endpoints of `GpObj.field_10/14`
+/// offset by `field_C` (as an SVECTOR) scaled by `field_1C >> 12`. `mat`
+/// is `D_80070F34 * field_8->workm`. `pos` holds the rotated endpoints
+/// plus `mat.t[0]/t[2]` and `D_80115448` grid offsets, then passed to
+/// `func_800DE2C0`.
+typedef struct _GpEdgeScratch {
+    /* 0x00 */ VECTOR  pos[2];
+    /* 0x20 */ SVECTOR src[2];
+    /* 0x30 */ MATRIX  mat;
+} GpEdgeScratch;
+STATIC_ASSERT_SIZEOF(GpEdgeScratch, 0x50);
+
 /// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_800D9794` /
 /// `func_800D98C4` / `func_800D9A30`. `in` is the direction
 /// `func_800D98C4` / `func_800D9A30` feed to `Gfx_NormalizeLightDir`.
@@ -850,6 +863,7 @@ s32  func_800DBCAC(GpObj* arg0, GpObj* arg1);
 void func_800DC528(GpObj* node);
 void func_800DCB80(GpObj* node);
 void func_800DD940(GpObj* node);
+void func_800DDC2C(GpObj* arg0);
 void func_800DDDF8(GpObj* node);
 void func_800DE2C0(VECTOR* arg0, s32 arg1);
 s32  func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3);
