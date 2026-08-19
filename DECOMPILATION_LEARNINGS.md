@@ -23474,3 +23474,71 @@ A pair of loops that both compute `(id - 0x80) * 4` then
 one local. Separate `off` / `off2` gives `sw 0x10(sp)` / `sw 0x14(sp)`
 and the `lw a2` / `nop` / `addu v0, s2, a2` form. `func_800C942C` is the
 example.
+
+## Split `lui`/`lbu` of a global byte around an `lhu` from a live `$v0`
+
+After `addr = &table[idx]` in `$v0`, the next global byte wants
+
+```
+addu   v0, v0, a0
+lui    a0, %hi(D_byte)
+lhu    v1, 0(v0)
+lbu    a0, %lo(D_byte)(a0)
+sll    v1, v1, 1
+```
+
+A C `row = D_byte` after the `lhu` emits `lhu` first, then `lui v0` (the
+address is dead so `$v0` is the lui temp). A C `row = D_byte` *before*
+the `lhu` either clobbers the table pointer in `$a0` or puts `lbu`
+before `lhu`.
+
+Split the byte load so `%hi` depends on `addr` (keeps `$v0` live, dest
+`$a0`) and `%lo` depends on the halfword (so `lhu` sits between them).
+`col <<= 1` is independent of `$a0` and wants to fill the `lbu` delay;
+`-fschedule-insns` will still start `row * 20` first and insert a `nop`.
+An empty `asm volatile("")` after the shift parks it:
+
+```c
+addr = (s32)&cols[hp / 10];
+asm("lui %0, %%hi(D_8011541B)" : "=r"(row) : "r"(addr));
+col = *(u16*)addr;
+asm("lbu %0, %%lo(D_8011541B)(%1)" : "=r"(row) : "r"(row), "r"(col));
+col <<= 1;
+asm volatile("");
+col += row * 20;
+```
+
+`func_800E2438` is the example.
+
+## Force unsigned `/ 100` `mfhi` into `$v1` with early `mflo`
+
+`(u32)x / 100` is `multu` / `mfhi` / `srl 5`. When `$v1` is reserved by
+`register ... asm("v1")` (or the dest is a different pinned reg such as
+`$a1`), the umulh temp becomes `$t2`:
+
+```
+mult   a1, v0
+mflo   t2
+lui    v0, 0x51eb
+ori    v0, v0, 0x851f
+multu  t2, v0
+mfhi   t2
+srl    a1, t2, 5
+```
+
+The target reuses `$v1` for `mflo` and `mfhi`. Assign the product to the
+`$v1` pin, force `mflo` before the magic `lui` with `asm volatile("" :
+"+r"(prod))`, load `0x51EB851F` into `$v0`, then emit `multu`/`mfhi`
+with asm so `mfhi` clobbers `$v1`. `(u32)hi >> 5` is `srl`; a signed
+`>> 5` is `sra`:
+
+```c
+col = val * scale;
+asm volatile("" : "+r"(col));
+mag = 0x51EB851F;
+asm volatile("multu %0, %1" : : "r"(col), "r"(mag));
+asm volatile("mfhi %0" : "=r"(col));
+val = (u32)col >> 5;
+```
+
+`func_800E2438` is the example.

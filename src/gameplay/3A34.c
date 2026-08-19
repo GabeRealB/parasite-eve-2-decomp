@@ -2128,7 +2128,98 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1CD4);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1FEC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E2438);
+s32 func_800E2438(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
+{
+    s32                ret;
+    s32                lo;
+    s32                extra;
+    s8                 rem;
+    u16*               scaleTbl;
+    register s32       hp asm("v0");
+    register GpDmgRow* table asm("a1");
+    register u16*      cols asm("a0");
+    register s32       val asm("a1");
+    register s32       addr asm("v0");
+    register s32       scale asm("v0");
+    register s32       div asm("v0");
+    register u32       mag asm("v0");
+
+    ret = 0;
+    if ((arg0 & 0xFFFF0000) != 0x40000) {
+        return ret;
+    }
+
+    lo = arg0 & 0xFFF;
+    if (arg2 != NULL) {
+        *arg2 = ((u32)arg0 >> 12) & 0xF;
+    }
+
+    if (arg3 == 0) {
+        register s32 col asm("v1");
+        register s32 row asm("a0");
+
+        hp    = Wip_SysConfig.field_18;
+        table = D_80113EF0;
+        cols  = D_80113F54;
+        addr  = (s32)&cols[hp / 10];
+        asm("lui %0, %%hi(D_8011541B)" : "=r"(row) : "r"(addr));
+        col = *(u16*)addr;
+        asm("lbu %0, %%lo(D_8011541B)(%1)" : "=r"(row) : "r"(row), "r"(col));
+        col <<= 1;
+        asm volatile("");
+        col  += row * 20;
+        col  += (s32)table;
+        extra = D_80114C08.field_C;
+        col   = ((GpDmgSlot*)col)->field_A;
+        val   = col << 8;
+        if (extra != 0) {
+            scaleTbl = D_80113CFC;
+            div      = extra / 16;
+            col      = (div - 1) * 2;
+            rem      = extra % 16;
+            scale    = scaleTbl[col + rem];
+            col      = val * scale;
+            asm volatile("" : "+r"(col));
+            mag = 0x51EB851F;
+            asm volatile("multu %0, %1" : : "r"(col), "r"(mag));
+            asm volatile("mfhi %0" : "=r"(col));
+            val = (u32)col >> 5;
+        }
+    } else {
+        register s32 col asm("v1");
+        register s32 row asm("a0");
+
+        hp    = (s16)Mc_SaveData.field_6C8;
+        table = D_80113EF0;
+        cols  = D_80113F54;
+        addr  = (s32)&cols[hp / 10];
+        asm("lui %0, %%hi(D_8011541B)" : "=r"(row) : "r"(addr));
+        col = *(u16*)addr;
+        asm("lbu %0, %%lo(D_8011541B)(%1)" : "=r"(row) : "r"(row), "r"(col));
+        col <<= 1;
+        asm volatile("");
+        col  += row * 20;
+        col  += (s32)table;
+        scale = ((GpDmgSlot*)col)->field_0;
+        val   = scale << 8;
+    }
+
+    {
+        register s32 hi asm("v1");
+        mag = 0x51EB851F;
+        asm volatile("multu %0, %1" : : "r"(val), "r"(mag));
+        asm volatile("mfhi %0" : "=r"(hi));
+        val = (u32)hi >> 5;
+        hi  = lo * val;
+        ret = (u32)hi >> 8;
+    }
+    if (ret == 0) {
+        if (lo != 0) {
+            ret = 1;
+        }
+    }
+    return ret;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E25F8);
 

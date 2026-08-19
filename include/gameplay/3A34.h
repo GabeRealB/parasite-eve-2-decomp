@@ -141,6 +141,24 @@ typedef struct _GpRec16 {
 } GpRec16;
 STATIC_ASSERT_SIZEOF(GpRec16, 0x10);
 
+/// 20-byte damage-scale row at `D_80113EF0`. Indexed by `D_8011541B`.
+/// `func_800E2438` adds `D_80113F54[hp / 10] * 2` onto the row base and
+/// then loads `field_A` (arg3 == 0, player HP) or `field_0` (arg3 != 0,
+/// `Mc_SaveData.field_6C8`).
+typedef struct _GpDmgRow {
+    /* 0x00 */ u16 field_0[5];
+    /* 0x0A */ u16 field_A[5];
+} GpDmgRow;
+STATIC_ASSERT_SIZEOF(GpDmgRow, 0x14);
+
+/// Overlay of one column inside a `GpDmgRow` (`col * 2` from the row base).
+typedef struct _GpDmgSlot {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u16 pad_2[4];
+    /* 0xA */ u16 field_A;
+} GpDmgSlot;
+STATIC_ASSERT_SIZEOF(GpDmgSlot, 0xC);
+
 /// Table source pointed to by `GpObj50.field_50`. `field_0` is the
 /// `GpU16Pair` array packed by `func_800E2BF8`. Nearby helpers also
 /// load bytes at +0xB / +0xD / +0xE of this object (`GpPairSrcE`).
@@ -748,6 +766,19 @@ extern u16 D_80113D30[];
 /// `field_50->field_4` by the selected entry and divides by 100.
 extern u16 D_80113D38[];
 
+/// Damage-scale rows used by `func_800E2438`. Indexed by `D_8011541B`.
+extern GpDmgRow D_80113EF0[];
+
+/// Column index table for `D_80113EF0`, indexed by signed HP / 10.
+extern u16 D_80113F54[];
+
+/// Percent scale table used by `func_800E2438` when `D_80114C08.field_C`
+/// is non-zero. Indexed by `((field_C / 16) - 1) * 2 + (s8)(field_C % 16)`.
+extern u16 D_80113CFC[];
+
+/// Row index into `D_80113EF0` for `func_800E2438`.
+extern u8 D_8011541B;
+
 /// "Weapon" string drawn by `func_800D6AA4` (trailing 0x60 byte).
 extern const char D_80097454[];
 
@@ -855,6 +886,10 @@ s32  func_800E1B24(s32 arg0);
 void func_800E1B80(void);
 s32  func_800E1BF0(u16* arg0, u8* arg1, u8* arg2);
 void func_800E1C58(GpObj54* arg0, void* arg1);
+/// Packed-id damage scale. `arg0` must have high bits `0x40000`; low 12 bits
+/// are the power and bits 12-15 are written to `*arg2` when it is non-NULL.
+/// `arg3 == 0` uses `Wip_SysConfig.field_18` and `GpDmgRow.field_A`;
+/// otherwise `Mc_SaveData.field_6C8` and `GpDmgRow.field_0`.
 s32  func_800E2438(s32 arg0, s32 arg1, s32* arg2, s32 arg3);
 s32  func_800E2BF8(GpObj50* arg0, s32 arg1);
 s32  func_800E2C40(GpU16Pair* arg0, s32 arg1);

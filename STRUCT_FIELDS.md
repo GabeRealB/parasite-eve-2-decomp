@@ -827,7 +827,7 @@ for the same block.
 | 0x09 | `field_9` | Cleared by `func_800A1F64` |
 | 0x0A | `field_A` | s8 (`lb`, splat `D_80114C12`); `func_800A7DE0` sets `field_3 = 2` when >= 2, then clears it; cleared by `func_800A7574`; set to 2 by `func_800A1F64`; `func_80109FC4` loads it `lbu` and skips the `field_25` bit `0x80` timer when the value is 2 or 3 |
 | 0x0B | `field_B` | s8 category index (`lb`); `func_800A1634` uses this unless its first arg is 1, in which case it uses `field_5` |
-| 0x0C | `field_C` | s8 (`lb` as `D_80114C14`); cleared by `func_800A7574` |
+| 0x0C | `field_C` | s8 (`lb` as `D_80114C14`); cleared by `func_800A7574`; `func_800E2438` uses it as a signed index into `D_80113CFC` (`((x/16)-1)*2 + (x%16)`) when non-zero |
 | 0x0D | `field_D` | Cleared by `func_800A7574` |
 | 0x0E | `field_E` | Written by `func_800A7DB8` when `field_6` bit 0 is clear; cleared by `func_800A7DE0` / `func_800A7574` |
 | 0x0F | `field_F` | Cleared by `func_800A7574` |
