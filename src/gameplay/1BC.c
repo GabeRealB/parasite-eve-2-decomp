@@ -456,7 +456,61 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B17D4);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B1D00);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B1EFC);
+void func_800B1EFC(Task* arg0)
+{
+    TILE*          p;
+    DR_TPAGE*      dr;
+    s8             yoff;
+    register Task* t asm("t1");
+    register s32   color asm("a2");
+    register s32   y asm("a0");
+    register s32   scaled asm("v0");
+
+    t = arg0;
+    if (t->spawnArg1 > 0) {
+        if (t->killCountdown > 0) {
+            t->killCountdown--;
+            scaled = (u8)t->killCountdown << 3;
+            color  = ~scaled;
+        } else {
+            t->spawnArg1--;
+            color = 0xFF;
+        }
+    } else {
+        t->killCountdown++;
+        scaled = (u8)t->killCountdown << 3;
+        color  = ~scaled;
+        if (t->killCountdown >= 0x1F) {
+            t->state++;
+        }
+    }
+
+    p          = (TILE*)D_80071190;
+    y          = -0x78;
+    D_80071190 = (DR_TPAGE*)(p + 1);
+    setlen(p, 3);
+    setcode(p, 0x62);
+    p->x0      = -0xA0;
+    p->y0      = y;
+    yoff       = Display_State.vramYOffset;
+    p->b0      = color;
+    p->g0      = color;
+    p->r0      = color;
+    dr         = (DR_TPAGE*)D_80071190;
+    p->w       = 0x140;
+    p->h       = 0xF0;
+    p->y0      = y - yoff;
+    D_80071190 = dr + 1;
+    if (t->spawnArg2 == 0) {
+        setlen(dr, 1);
+        dr->code[0] = 0xE1000240;
+    } else {
+        setlen(dr, 1);
+        dr->code[0] = 0xE1000220;
+    }
+    addPrim(Gpu_CurrentOt, p);
+    addPrim(Gpu_CurrentOt, dr);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B2088);
 

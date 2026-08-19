@@ -168,6 +168,27 @@ if (arg0->field_C == 1) {
 
 `func_800C0B98` is the example.
 
+The same field-in-both-arms rule applies to `DR_TPAGE` blend codes.
+A named `code` temp is hoisted as default+override (`lui`/`ori` 0xE1000220
+early, then only the 0x240 arm after the branch — no `j`) and lands in
+`$t2`, so `setlen` / `sw code` interleave with `addPrim`. Writing both
+constants onto `dr->code[0]` (and `setlen(dr, 1)` in each arm) CSE's
+`setlen` after the join and emits the two-`lui` jump if/else in `$v1`:
+
+```c
+if (t->spawnArg2 == 0) {
+    setlen(dr, 1);
+    dr->code[0] = 0xE1000240;
+} else {
+    setlen(dr, 1);
+    dr->code[0] = 0xE1000220;
+}
+```
+
+`func_800B1EFC` is the example; `Display_StepFadeOverlay` uses the same
+shape (its branch delay is a shared `lui 0xE100` because `D_80071190`
+was already incremented).
+
 ## Independent `= 0` store last so it fills a stack-arg load delay
 
 A late `lw` of a stack argument (`arg6 << 4` into two halfwords) wants an
