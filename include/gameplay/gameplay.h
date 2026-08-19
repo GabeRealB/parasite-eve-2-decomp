@@ -222,6 +222,7 @@ s32  func_800A7B20(s32 arg0);
 s32  func_800A7BBC(s32 arg0, s32 arg1);
 void func_800A6F38(struct _GpEnemy* arg0, GpHudTrack* arg1);
 void func_800A784C(GpHudTrack* arg0);
+void func_800A78EC(void);
 void func_800A7A64(void);
 void func_800A7DB8(s32 arg0);
 void func_800A7DE0(void);

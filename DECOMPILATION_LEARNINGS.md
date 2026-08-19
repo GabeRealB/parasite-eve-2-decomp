@@ -22220,6 +22220,14 @@ instruction as `%hi/%lo`. `func_800AADDC` is the example.
 `GameSession.field_78` is an `s16` cache of `field_7`; compare with
 `lbu`/`lh` and write back with `lbu`/`sh`.
 
+When idle-queue work runs *before* the overlay (`func_800AABB0`), assign
+`color = 8` *after* the idle `if`, not before it. GCC copies that
+assignment into the `beqz` delay slot on the skip path and keeps it after
+`task->state++` on the taken path (`lw` / `nop` / `addiu` / `sw` /
+`li a2,8`). Assigning color before the `if` (or rematerialising it at
+the end of the body) schedules `li a2,8` into the `lw state` delay and
+puts `lui Display_State` in the `beqz` slot instead.
+
 ## Don't pin `$s2` for `p = &global` if `la` must split around `jal` via `$v0`
 
 `p = &Wip_SysConfig` allocated to a callee-saved register normally

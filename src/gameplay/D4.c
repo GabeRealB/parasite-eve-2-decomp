@@ -18,6 +18,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/stage.h"
+#include "main/stream.h"
 #include "main/tmd.h"
 #include "main/unknown_syms.h"
 #include "main/wipsys.h"
@@ -549,7 +550,70 @@ void func_800AAA68(Task* arg0)
     D_8007A394       = 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AABB0);
+void func_800AABB0(Task* task)
+{
+    TILE*         tile;
+    DR_TPAGE*     dr;
+    DisplayState* ds;
+    CdCmdQueue*   queue;
+    McSaveData*   save;
+    GameSession*  session;
+    register s32  color asm("a2");
+    register s32  qhi asm("a1");
+    register s32  queued asm("a0");
+    s32           buf;
+    s8            yoff;
+
+    Pad_RemapState->field_3 = 1;
+    queue                   = &CdCmd_Queue;
+    if (CdCmd_IsIdle() & 0xFFFF) {
+        if ((u8)func_80042500()) {
+            return;
+        }
+        queue->field_22E = 1;
+        if (queue->field_224 != 0) {
+            Fs_EnsureBootLoadStarted();
+        }
+        Mem_Set(Stream_Slots, 0, sizeof(Stream_Slots));
+        session = Game_Session;
+        save    = &Mc_SaveData;
+        if (session->field_11C != save->field_22 || session->field_11E != Wip_SysConfig.field_26) {
+            register GameSession* sess asm("v1");
+
+            func_800A9B3C(0);
+            func_800A9BE4();
+            sess            = Game_Session;
+            sess->field_11C = save->field_22;
+            sess->field_11E = Wip_SysConfig.field_26;
+        }
+        func_800A78EC();
+        task->state++;
+    }
+    color = 8;
+    ds    = &Display_State;
+    asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi) : "r"(color), "r"(ds));
+    buf  = ds->field_114;
+    tile = &D_80114C80[buf];
+    asm("" : : "r"(qhi), "r"(tile));
+    dr     = &D_80114CA0[buf];
+    queued = *(u16*)((s32)qhi + (s16)0x91C4);
+    if (queued == 0) {
+        setlen(tile, 3);
+        setcode(tile, 0x62);
+        tile->r0 = color;
+        tile->g0 = color;
+        tile->b0 = color;
+        tile->x0 = -0xA0;
+        yoff     = ds->vramYOffset;
+        tile->w  = 0x140;
+        tile->h  = 0xF0;
+        tile->y0 = -0x78 - yoff;
+        addPrim(Gpu_CurrentOt - 0x10, tile);
+        setlen(dr, 1);
+        dr->code[0] = 0xE1000000 | 0x240;
+        addPrim(Gpu_CurrentOt - 0x10, dr);
+    }
+}
 
 void func_800AADDC(Task* task)
 {

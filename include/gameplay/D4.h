@@ -229,6 +229,15 @@ void func_800A954C(Task* task);
 void func_800A9DF0(Task* task);
 /// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
 /// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0.
+/// Sets `Pad_RemapState->field_3`. When the CD queue is idle and
+/// `func_80042500` returns 0: sets `CdCmd_Queue.field_22E`, starts the
+/// boot load if a command is queued, clears `Stream_Slots`, refreshes
+/// `GameSession.field_11C` / `field_11E` from save/config (enqueueing
+/// CdCmd 0x21 via `func_800A9B3C` / `func_800A9BE4` if stale), then
+/// `func_800A78EC` and advances `task->state`.
+void func_800AABB0(Task* task);
+/// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
+/// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0.
 /// When the CD queue is idle, enqueues a stage reload if
 /// `GameSession.field_7` differs from the cached `field_78`, then
 /// advances `task->state`.
