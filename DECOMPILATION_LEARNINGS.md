@@ -3,6 +3,46 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Split `la` of a later-reused table so `%hi` lands in `$v1` and `%lo` in `$a1`
+
+A global table kept across a loop that also needs `$a1` for a `u16` compare
+(`andi a1, v1, 0xffff`) wants:
+
+```
+lui    v1, %hi(D_table)
+sw     ra/s1/s0
+lbu    v0, idx(sess)
+addiu  a1, v1, %lo(D_table)
+...
+move   t1, a1
+andi   a1, v1, 0xffff
+```
+
+`p = D_table` unpinned lookahead-allocates the `la` dest to `$t1` (the
+loop-resident copy), so you get `addiu t1, v1, %lo` and no `move`.
+`register ... asm("a1")` on the same pointer forces `lui a1` / `addiu a1, a1`.
+
+Form the address with a non-volatile split pair and read the first index
+between them:
+
+```c
+register s32         hi asm("v1");
+register GpBit2Bank* tmp asm("a1");
+register GpBit2Bank* banks asm("t1");
+
+sess = (GameSessionFrom4*)&Mc_SaveData.field_4;
+asm("lui %0, %%hi(D_8010D230)" : "=r"(hi));
+idx8 = sess->field_3;
+asm("addiu %0, %1, %%lo(D_8010D230)" : "=r"(tmp) : "r"(hi));
+lists = tmp[idx8].field_0;
+...
+banks = tmp;
+```
+
+Non-volatile (not `asm volatile`) lets `-fschedule-insns` hoist the `lui`
+above the prologue `sw`s and keep `addiu` after the `lbu`. `volatile` parks
+the `lui` *after* those stores. `func_800B6950` is the example.
+
 ## Expand `* 100` so the last `<< 2` can land in a pinned `$s1`/`$s2`
 
 `x * 100` strength-reduces to `((x*2+x)*8+x)*4`. An unpinned dest often

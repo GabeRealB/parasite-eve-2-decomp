@@ -303,6 +303,11 @@ void       func_800B62D4(void);
 /// item id / extra / stack count into `D_80114DEC` / `D_80114DDC` /
 /// `D_80114DDE` / `D_80114DD0` and returns 1.
 s32        func_800B63B8(s32 arg0);
+/// Walks `D_8010D230[Mc_SaveData.field_6 / field_7]` for a `GpEnemyPlace`
+/// whose `field_0` equals `arg0`. If the packed 2-bit flag at
+/// `D_8010D230[Game_Session->field_7].field_4` is non-zero, spawns that
+/// placement via `func_800B01AC` (same coord/yaw writeback as `func_800B6B44`).
+void       func_800B6950(u16 arg0);
 void       func_800B6B44(GameSessionFrom4* arg0);
 void       func_800B6CF0(void);
 s32        func_800B6DA4(s32 arg0, s32 arg1);

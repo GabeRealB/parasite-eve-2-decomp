@@ -88,9 +88,9 @@ STATIC_ASSERT_SIZEOF(GpEnemyDesc, 0x10);
 /// `func_800B63B8`. field_0 is a `GpBit2Rec` list (NULL skips;
 /// `(GpBit2Rec*)-1` ends in `func_800BB838` / `func_800BAB64`;
 /// `(GpBit2Rec*)0x7FFFFFFF` ends in `func_800B63B8`).
-/// `func_800B6B44` also reads field_0 as a `GpEnemyPlace` list and field_4
-/// as a 0xFFFF-terminated `GpEnemyDesc` table. `D_8010D230[i].field_0`
-/// points at a table of these.
+/// `func_800B6B44` / `func_800B6950` also read field_0 as a `GpEnemyPlace`
+/// list and field_4 as a 0xFFFF-terminated `GpEnemyDesc` table.
+/// `D_8010D230[i].field_0` points at a table of these.
 typedef struct _GpBit2List {
     /* 0x00 */ GpBit2Rec*   field_0;
     /* 0x04 */ GpEnemyDesc* field_4;
@@ -101,14 +101,14 @@ STATIC_ASSERT_SIZEOF(GpBit2List, 0x8);
 /// `GameSessionFrom4.field_3` / `Mc_SaveData.field_7`. field_0 is a
 /// `GpBit2List` table applied by `func_800BAB64` / `func_800BB838`.
 /// field_4 is packed 2-bit flags (`func_800BB974` / `func_800BB8E8` /
-/// `func_800BB470` / `func_800BAC34`).
+/// `func_800BB470` / `func_800BAC34` / `func_800B6950`).
 typedef struct _GpBit2Bank {
     /* 0x00 */ GpBit2List* field_0;
     /* 0x04 */ u32*        field_4;
 } GpBit2Bank;
 STATIC_ASSERT_SIZEOF(GpBit2Bank, 0x8);
 
-/// Placement record for `func_800BBA70` / `func_800B6B44`. `field_0` / `field_4` pack into
+/// Placement record for `func_800BBA70` / `func_800B6B44` / `func_800B6950`. `field_0` / `field_4` pack into
 /// `GpEnemy.field_8` as `field_0 | (field_4 << 8)`; `field_2` is copied to
 /// `GpEnemy.field_A`. `field_8` / `field_A` / `field_C` are world X/Y/Z
 /// (`GsCOORDINATE2.coord.t`); `field_E` is the yaw stored at coord +0x46

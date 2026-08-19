@@ -1648,7 +1648,96 @@ s32 func_800B63B8(s32 arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B65B0);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B6950);
+void func_800B6950(u16 arg0)
+{
+    GameSessionFrom4*    sess;
+    register s32         hi asm("v1");
+    register GpBit2Bank* tmp asm("a1");
+    register GpBit2Bank* banks asm("t1");
+    GpBit2List*          lists;
+    GpEnemyPlace*        place;
+    GpEnemyDesc*         desc;
+    GpEnemy*             enemy;
+    Task*                task;
+    GameActorExt*        extra;
+    GpCoordPlace*        coord;
+    u16                  term;
+    s32                  id;
+    u16                  recId;
+    u8                   idx8;
+
+    sess = (GameSessionFrom4*)&Mc_SaveData.field_4;
+    asm("lui %0, %%hi(D_8010D230)" : "=r"(hi));
+    idx8 = sess->field_3;
+    asm("addiu %0, %1, %%lo(D_8010D230)" : "=r"(tmp) : "r"(hi));
+    lists = tmp[idx8].field_0;
+    if (lists == NULL) {
+        return;
+    }
+    place = (GpEnemyPlace*)lists[sess->field_2].field_0;
+    if (place == NULL) {
+        return;
+    }
+    term = 0xFFFF;
+    id   = place->field_0;
+    if (id == term) {
+        return;
+    }
+    banks = tmp;
+    do {
+        if ((u16)id == (u16)arg0) {
+            s32           temp;
+            register u32* flags asm("v0");
+            register s32  idx asm("v1");
+            s32           shift;
+            u32           word;
+
+            temp   = (u16)id;
+            flags  = banks[Game_Session->field_7].field_4;
+            idx    = temp >> 4;
+            flags += idx;
+            shift  = (temp & 0xF) * 2;
+            word   = *flags;
+            word  &= 3 << shift;
+            word >>= shift;
+            if (word == 0) {
+                return;
+            }
+            desc  = lists[sess->field_2].field_4;
+            recId = desc->field_0;
+            if (recId != term) {
+                do {
+                    if (recId == place->field_2) {
+                        enemy = func_800B01AC(&desc->field_4, 0, desc->field_0, NULL);
+                        if (enemy != NULL) {
+                            task = enemy->task;
+                            if (task->spawnType != 0) {
+                                extra             = (GameActorExt*)task->extra;
+                                coord             = (GpCoordPlace*)extra->field_8;
+                                enemy->field_8    = place->field_0 | (place->field_4 << 8);
+                                enemy->field_A    = place->field_2;
+                                coord->coord.t[0] = place->field_8;
+                                coord->coord.t[1] = place->field_A;
+                                coord->coord.t[2] = place->field_C;
+                                coord->field_46   = place->field_E;
+                                if (coord->field_46 != 0) {
+                                    Gfx_RotMatrixY(&coord->coord, (s16)place->field_E, 1);
+                                }
+                                coord->flg = 0;
+                            }
+                        }
+                        return;
+                    }
+                    desc++;
+                    recId = desc->field_0;
+                } while (recId != term);
+            }
+            return;
+        }
+        place++;
+        id = place->field_0;
+    } while (id != term);
+}
 
 void func_800B6B44(GameSessionFrom4* arg0)
 {
