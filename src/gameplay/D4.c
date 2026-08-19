@@ -1442,7 +1442,58 @@ void func_800ADE74(void)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ADF3C);
+void func_800ADF3C(void)
+{
+    Task*             slot3;
+    Task*             slot7;
+    WipSysConfig*     cfg;
+    GameSessionFrom4* sess;
+    GpCb90Rec         rec;
+    GpSaveLoc*        loc;
+    u8                fade;
+
+    slot3 = Game_GetPtrSlot(3);
+    cfg   = &Wip_SysConfig;
+    slot7 = Game_GetPtrSlot(7);
+
+    sess = (GameSessionFrom4*)&Game_Session->field_4;
+    rec  = D_8010CB90[sess->field_3 - 1][sess->field_2 - 1][(D_80114CD9 >> 4) - 1];
+
+    if (*(s16*)&D_80114CF6 != 0) {
+        fade = *(u8*)&D_80114CF6;
+        Fade_DrawOverlay(fade, fade, fade, 2);
+        D_80114CF6 += 0x1E;
+        if ((s16)D_80114CF6 >= 0x100) {
+            D_80114CF6 = 0xFF;
+        }
+    }
+
+    loc                = &D_80114CE8;
+    loc->field_4       = 1;
+    loc->field_3       = 1;
+    loc->field_5       = 0;
+    *(u16*)&D_80114CE8 = D_80114CD8;
+    loc->field_2       = D_80114CD9 & 0xF;
+    loc->field_6       = rec.field_36;
+    func_800AC464(slot7, 0x13EE, (s32)loc, (s32)loc);
+
+    if (D_80114CF0 != 0) {
+        if (cfg->field_18 > 0) {
+            SndEvt_EnqueueType6(D_80114CF0, 0, 0);
+        }
+    }
+
+    if (D_80114CF4 == 0) {
+        func_800AC464(slot3, 0x3F1, 0, 0);
+        D_80114CF8    = 0;
+        D_80114CD9    = 0;
+        D_80114CD8    = 0;
+        D_80114CD2    = 0;
+        cfg->field_24 = 0;
+    } else {
+        D_80114CD6++;
+    }
+}
 
 void func_800AE150(void)
 {

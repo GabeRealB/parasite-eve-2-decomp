@@ -502,6 +502,18 @@ an `lwl`/`lwr` fallback. Keep the object 4-aligned.
 
 `func_8010C1FC` is the example (`GpActorD4.coord = *extra->field_8`).
 
+## 56-byte assign needs a word-aligned member, not just size `% 4 == 0`
+
+A 0x38-byte stack copy that the target does as three aligned 16-byte
+`lw`/`sw` chunks plus an 8-byte tail (`dest` in `$a1`, `src+0x30` in
+`$v0`) is `rec = table[i][j][k - 1]` of a 4-aligned type.
+
+`byte pad[0x36]; u16 field_36;` is the same size but only 2-aligned, so
+GCC emits `andi src, 3` plus an `lwl`/`lwr` fallback. A leading `s32`
+(or any 4-aligned member) is enough.
+
+`func_800ADF3C` is the example (`D_8010CB90` / `GpCb90Rec`).
+
 ## Barrier after scratch alloc so GTE setup cannot fill load-delay nops
 
 A scratch-head alloc followed by `gte_SetRotMatrix(&obj->field->workm)` is

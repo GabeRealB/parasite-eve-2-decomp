@@ -47,7 +47,9 @@ extern GpCb40Tbl* D_8010CB40[];
 /// `D_80114CDB & 0xF`, `field_3`/`field_4` = 1, `field_5` = 0), posts slot-7
 /// msg `0x13EE`, then copies `field_0` / `field_2` / `field_3` into
 /// `Mc_SaveData.field_6` / `field_8` / `field_5` before `Task_Spawn(0, 0x11,
-/// ...)`. `func_800AF284` does the same copy + spawn.
+/// ...)`. `func_800ADF3C` fills the same payload from `D_80114CD8` /
+/// `D_80114CD9 & 0xF` and `GpCb90Rec.field_36`. `func_800AF284` does the
+/// same copy + spawn.
 typedef struct _GpSaveLoc {
     /* 0x0 */ u8  field_0;
     /* 0x1 */ u8  field_1;

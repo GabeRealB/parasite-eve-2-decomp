@@ -113,6 +113,23 @@ typedef struct _GpCb7CTbl {
 /// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
 extern GpCb7CTbl* D_8010CB7C[];
 
+/// 0x38-byte record in tables pointed to by `D_8010CB90`. Indexed
+/// 1-based by `GameSessionFrom4.field_3` / `field_2`, then
+/// `(D_80114CD9 >> 4)`. `func_800ADF3C` copies one record onto the
+/// stack and writes `field_36` into `GpSaveLoc.field_6`. Leading `s32`
+/// keeps the type 4-aligned so the 56-byte assign is `lw`/`sw`.
+typedef struct _GpCb90Rec {
+    /* 0x00 */ s32  field_0;
+    /* 0x04 */ byte pad_4[0x32];
+    /* 0x36 */ u16  field_36;
+} GpCb90Rec;
+STATIC_ASSERT_SIZEOF(GpCb90Rec, 0x38);
+
+/// Per-stage pointer table. Index is `GameSession.field_7 - 1`. Each
+/// entry is an array of `GpCb90Rec*`, indexed 1-based by
+/// `GameSession.field_6` / `GameSessionFrom4.field_2`.
+extern GpCb90Rec** D_8010CB90[];
+
 /// 0x1C-byte primitive slot in the `D_8010CAE8` lists. `func_800AD410`
 /// OT-links each slot and advances `D_80114CC8` by one. `func_800AC960`
 /// walks the current view's records and sets or clears bit 0 of `field_F`
