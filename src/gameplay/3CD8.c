@@ -1738,7 +1738,47 @@ s32 func_800EA02C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800EA1A8);
+s32 func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1)
+{
+    void**        scratch;
+    u8*           head;
+    GpRayScratch* block;
+    SVECTOR*      dir;
+    s32           ret;
+    u16           vz;
+
+    scratch                                = (void**)G_SCRATCH_HEAD;
+    head                                   = *scratch;
+    block                                  = (GpRayScratch*)(head - 0x10);
+    ((GpRayScratch*)(head - 0x10))->pos.vx = *(u16*)&arg0->vx;
+    block->pos.vy                          = *(u16*)&arg0->vy;
+    vz                                     = *(u16*)&arg0->vz;
+    *scratch                               = block;
+    block->dir.vx                          = 0;
+    block->dir.vy                          = 0x1000;
+    block->dir.vz                          = 0;
+    block->pos.vz                          = vz;
+    gte_SetRotMatrix(&D_80070F34);
+    dir = (SVECTOR*)(head - 8);
+    gte_ldv0(dir);
+    gte_rtv0_real();
+    gte_stsv(dir);
+    block->dir.vx += ((GpRayScratch*)(head - 0x10))->pos.vx;
+    block->dir.vy += block->pos.vy;
+    block->dir.vz += block->pos.vz;
+    ret            = func_800DE7CC(dir, &block->pos, dir, NULL);
+    if (ret == 1) {
+        arg1->vx = block->dir.vx;
+        arg1->vy = block->dir.vy;
+        arg1->vz = block->dir.vz;
+        ret      = block->dir.vy - block->pos.vy;
+        if (ret == 0) {
+            ret = 1;
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+    return ret;
+}
 
 s32 func_800EA318(s16 arg0, s16 arg1, s16 arg2)
 {

@@ -22024,5 +22024,33 @@ Pinning `cfg` here, or writing `slot = func_800BAFE0(id)` directly,
 restores `lui s2` / `move a0` in the delay slot. `func_800D2538` is the
 example.
 
+## Free scratch through `G_SCRATCH_HEAD`, not a live pointer, so it re-`lui`s `$a0`
+
+A `scratch = (void**)G_SCRATCH_HEAD` that is still live at
+`*scratch = (u8*)*scratch + N` stays in a callee-saved register (`$s1`).
+That steals `$s1` from an argument and adds a saved `$s2`. The target of
+a short function that only needs `$s0` (block) and `$s1` (out-arg)
+reloads the constant into `$a0` after the work:
+
+```
+bne   a1, v0, restore
+ lui  a0, 0x1F80
+...
+ori   a0, a0, 0x3FC
+lw    v1, 0(a0)
+addiu v1, v1, 0x10
+sw    v1, 0(a0)
+```
+
+Write the free through the symbol:
+
+```c
+*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+```
+
+`func_800EA1A8` is the example. The longer sibling `func_800EA02C` keeps
+`*scratch += 0x10` because extra calls already force more `$s` regs, so
+the saved pointer is cheaper than a reload.
+
 
 

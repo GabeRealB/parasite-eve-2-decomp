@@ -184,7 +184,7 @@ void func_800F6C2C(Task* arg0)
         } else if (D_80115740->field_8 >= 0) {
             if (!(((GameActorExt*)slot->extra)->field_C & 0x80)) {
                 func_80098F58(coord);
-                if (func_800EA1A8((VECTOR3*)coord->workm.t, &vec) != 0) {
+                if ((s16)func_800EA1A8((VECTOR3*)coord->workm.t, &vec) != 0) {
                     func_800F68AC(&vec, 0x1C0, D_80115740->field_8);
                 }
             }
