@@ -145,6 +145,7 @@ extern s32            D_8005ED70;
 extern s32            D_8005ED74;
 extern s32            D_8005ED78;
 extern u8             D_800626E8;
+extern u8             D_80096E4C[];
 extern char           D_80096FD8[];
 extern char           D_80096FE4[];
 extern char           D_80096FEC[];
@@ -215,6 +216,7 @@ void       func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_800C2B70(UiList* arg0, s32 arg1);
 void       func_800C8B40(Task* arg0);
+void       func_800C942C(UiList* arg0, s32 arg1);
 void       func_800C9654(Task* arg0);
 void       func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void       func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -1607,7 +1609,142 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C9010);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C942C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C9654);
+void func_800C9654(Task* arg0)
+{
+    register UiList*   menu asm("s0");
+    register UiObject* obj asm("s1");
+    register s32       val asm("s2");
+    register Task*     task asm("s3");
+    register s32       one asm("s4");
+    register char*     hi asm("v0");
+    s32                state;
+    GpItemSlot*        slot;
+    u8                 temp;
+    Task*              child;
+    Task*              next;
+    Task*              head;
+    UiObject*          childObj;
+    s32                flag;
+
+    task = arg0;
+    obj  = task->spawnArg2;
+    val  = (u16)task->spawnArg1;
+    asm volatile("lui %0, 0x8011" : "=r"(hi) : "r"(val));
+    obj->field_2E = 0;
+    state         = task->state;
+    menu          = (UiList*)(hi + (s16)0xE9CC);
+    if (state == 0) {
+        func_800C942C(menu, val);
+        Ui_LayoutListPanel(menu, (UiPanel*)obj);
+        menu->field_A  = 1;
+        menu->field_10 = 0;
+        menu->field_9  = 0;
+        task->state    = task->state + 1;
+        if (menu->field_4 == 0) {
+            task->state         = 2;
+            task->killCountdown = 0xBC;
+            obj->field_4       |= 2;
+            if (task->spawnArg1 & 0x10000) {
+                if (val != 0) {
+                    slot = func_800BAFE0(val);
+                    if ((val == 0x92) || (val == 0x99) || (val == 0x96)) {
+                        task->state = 3;
+                    } else if (val == 0x95) {
+                        if (slot->field_1 != 0) {
+                            task->state = 3;
+                        }
+                    } else {
+                        temp = slot->field_2;
+                        if ((temp != 0xFF) && (temp != 0)) {
+                            if (slot->field_3 != 0) {
+                                task->state = 3;
+                            }
+                        }
+                    }
+                }
+            }
+            Ui_SizeFromTextPlain((UiPanel*)obj, D_80096E4C);
+            if (task->state != 2) {
+                func_800CF658((UiPanel*)obj, val);
+            }
+            obj->timer = 9;
+            return;
+        }
+        if ((s16)obj->field_E + (s16)obj->field_12 < 0x47) {
+            return;
+        }
+        obj->field_E = 0x46 - obj->field_12;
+        return;
+    }
+    one = 1;
+    if (state == one) {
+        Ui_UpdateListNoAnim(menu, obj);
+        if (obj->status == one) {
+            if (Pad_CheckButtons(0, one, D_8005ED78) != 0) {
+                obj->field_2E = -1;
+            } else if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
+                SndEvt_EnqueueType6(4, 0, 0);
+                obj->field_2E = 6;
+            }
+        }
+        child = task->firstChild;
+        if (child != NULL) {
+            val = 6;
+            do {
+                childObj = child->spawnArg2;
+                flag     = childObj->field_2E;
+                next     = child->nextSibling;
+                switch (flag) {
+                    case 9:
+                        obj->field_2E = flag;
+                        break;
+                    case -1:
+                        obj->field_2E = flag;
+                        break;
+                    case 6:
+                        Ui_TeardownTree(childObj, childObj->owner);
+                        obj->status = 1;
+                        break;
+                }
+                head  = task->firstChild;
+                child = next;
+                if (child == head) {
+                    break;
+                }
+                if (head == NULL) {
+                    break;
+                }
+            } while (1);
+        }
+        return;
+    }
+    if (state == 2) {
+        Ui_DrawText((UiPanel*)obj, D_800970D8);
+        Text_DrawMultiLine(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, D_80096E4C, 0x606060, one, 0);
+    } else {
+        Ui_DrawText((UiPanel*)obj, D_80097130);
+        func_800CF6E8(obj, val);
+    }
+    task->killCountdown--;
+    if (obj->status == 1) {
+        if (Pad_CheckButtons(0, 1, D_8005ED78) != 0) {
+            obj->field_2E = -1;
+            return;
+        }
+        if ((task->killCountdown == 0) || (Pad_CheckButtons(0, 1, D_8005ED70 | D_8005ED74) != 0)) {
+            if (task->spawnArg1 & 0x10000) {
+                if (task->state == 2) {
+                    obj->field_2E = 6;
+                } else {
+                    obj->field_2E = 9;
+                }
+            } else {
+                obj->field_2E = 9;
+            }
+            task->killCountdown = 0x7FFF;
+        }
+    }
+}
 
 void func_800C9A10(Task* arg0)
 {

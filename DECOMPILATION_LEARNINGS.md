@@ -43,6 +43,44 @@ branch becomes `sll s4, s4, 16` in place. Pin `SquareRoot0`'s result
 through `$v0` then copy to `$a1` (`move a1, v0`) so the compare and
 `ratan2` share that register. `func_80102D20` is the example.
 
+## Split `la` into `$s0` so `%hi` lands in `$v0` and `%lo` is a C `addiu`
+
+`menu = &D_8010E9CC` with `menu` pinned to `$s0` emits `lui s0` / `addiu s0, s0`.
+The target wants the two-register form so the `lui` can sit between
+`lhu val` and `sh field_2E = 0`, and the `addiu` can fill the `bnez state`
+delay slot:
+
+```
+lhu    s2, spawnArg1
+lui    v0, 0x8011          # adjusted %hi(D_8010E9CC)
+sh     zero, field_2E(s1)
+lw     v1, state
+nop
+bnez   v1, not_zero
+ addiu  s0, v0, 0xE9CC     # %lo
+```
+
+Dest `$s1`/`$s2` naturally uses `$v0` as the `lui` temp (`func_800C8B40`).
+Dest `$s0` does not. `asm("addiu %0, %1, %%lo(...)")` will not fill a
+delay slot; a C add will.
+
+`%hi(sym)` + a C add of the signed `%lo` plus a `.reloc` LO16 is wrong:
+ld *adds* `%lo` to the existing immediate (`0xE9CC + 0xE9CC = 0xD398`).
+Emit the already-adjusted pair instead (`0x80110000 + (s16)0xE9CC`):
+
+```c
+register char* hi asm("v0");
+register UiList* menu asm("s0");
+
+asm volatile("lui %0, 0x8011" : "=r"(hi) : "r"(val));
+obj->field_2E = 0;
+state = task->state;
+menu = (UiList*)(hi + (s16)0xE9CC);
+if (state == 0) {
+```
+
+`func_800C9654` is the example.
+
 ## Split `la` of a later-reused table so `%hi` lands in `$v1` and `%lo` in `$a1`
 
 A global table kept across a loop that also needs `$a1` for a `u16` compare
