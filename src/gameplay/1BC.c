@@ -21,6 +21,7 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
+#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 #define gte_gpl12_real() __asm__ volatile("nop; nop; .word 0x4BA8003E")
 
@@ -56,7 +57,7 @@ extern TaskDesc       D_80182FAC[];
 extern TaskDesc       D_8018384C[];
 extern s32            D_8010D208[];
 extern char           D_800939F8[];
-extern s32            D_80070F10;
+extern GsCOORDINATE2  D_80070F10;
 extern s32            D_80070F60;
 extern u8             D_800626E8;
 extern u16            D_80114D14;
@@ -1529,7 +1530,53 @@ void func_800B60C0(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B6118);
+void func_800B6118(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2)
+{
+    void**            scratch;
+    u8*               head;
+    register SVECTOR* vec asm("s2");
+    SVECTOR*          block;
+    MATRIX*           mtx;
+    GsCOORDINATE2*    coord;
+    SVECTOR           tmp;
+    SVECTOR*          tmpp;
+    s32               scale;
+    u16               srcx;
+    u16               dstx;
+
+    srcx = arg1->pos.vx;
+    dstx = arg0->vx;
+    asm("" : "+r"(srcx), "+r"(dstx));
+    scratch                       = (void**)G_SCRATCH_HEAD;
+    head                          = *scratch;
+    block                         = (SVECTOR*)(head - 0x28);
+    vec                           = block;
+    ((SVECTOR*)(head - 0x28))->vx = srcx - dstx;
+    asm("" : "+r"(block));
+    vec->vy  = arg1->pos.vy - arg0->vy;
+    *scratch = block;
+    vec->vz  = arg1->pos.vz - arg0->vz;
+    coord    = &D_80070F10;
+    scale    = SquareRoot0(Gfx_ApplyMatrixNoSf(vec, vec));
+    scale    = scale - arg1->field_2;
+    if (scale >= 0) {
+        scale = -scale;
+    }
+    VectorNormalSS(block, block);
+    mtx = (MATRIX*)(head - 0x20);
+    TransposeMatrix(&coord->workm, mtx);
+    tmp = *(SVECTOR*)(head - 0x28);
+    gte_SetRotMatrix(mtx);
+    __asm__ volatile("addiu %0, $sp, 0x10" : "=r"(tmpp));
+    gte_ldv0(tmpp);
+    gte_rtv0_real();
+    gte_stsv(vec);
+    gte_lddp(scale);
+    gte_ldsv(vec);
+    gte_gpf12_real();
+    gte_stsv(arg2);
+    *scratch = (u8*)*scratch + 0x28;
+}
 
 void func_800B62D4(void)
 {

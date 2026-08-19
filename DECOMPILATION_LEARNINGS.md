@@ -22462,5 +22462,56 @@ that temp at function scope: GCC 2.8.1 reserves the hard register for the
 whole function and steals `$v0` from the earlier math. `func_800A1F64` is
 the example.
 
+## Two scratch aliases: halfword `+r` first, then `+r` the block pointer
+
+A 0x28 scratch that is both an `SVECTOR*` (field stores, `Gfx_ApplyMatrixNoSf`,
+GTE) and the allocation pointer (`*scratch = p`, `VectorNormalSS`) wants:
+
+```
+lhu    v0, 8(s0)
+lhu    v1, 0(a3)
+lw     s4, 0(s5)
+subu   v0, v0, v1
+addiu  s3, s4, -0x28
+move   s2, s3
+sh     v0, -0x28(s4)
+```
+
+One pointer CSE's to `addiu s2`. Pinning both `$s2`/`$s3` hoists the
+`lw` above the `lhu`s and sets `a0` from `$s3`. Load the two halfwords,
+barrier them, *then* form the pair and keep the block pointer live:
+
+```c
+srcx = arg1->pos.vx;
+dstx = arg0->vx;
+asm("" : "+r"(srcx), "+r"(dstx));
+head  = *scratch;
+block = (SVECTOR*)(head - 0x28);
+vec   = block;
+((SVECTOR*)(head - 0x28))->vx = srcx - dstx;
+asm("" : "+r"(block));
+```
+
+`register SVECTOR* vec asm("s2")` is enough; do not pin `block`. Write
+the first component through `head - 0x28` (not `vec->vx`) so the `sh`
+stays head-relative. `func_800B6118` is the example.
+
+## Force `addiu $v0, $sp, N` after `gte_SetRotMatrix`
+
+`SVECTOR tmp = *src; gte_SetRotMatrix(mtx); gte_ldv0(&tmp)` hoists
+`addiu v0, sp, 0x10` into the previous `jal` delay, before the
+`lwl`/`lwr` copy. `asm("" : "+r"(tmpp))` after `tmpp = &tmp` still
+computes the address early. Emit the addiu in the GTE sequence:
+
+```c
+tmp = *(SVECTOR*)(head - 0x28);
+gte_SetRotMatrix(mtx);
+__asm__ volatile("addiu %0, $sp, 0x10" : "=r"(tmpp));
+gte_ldv0(tmpp);
+```
+
+The offset is the stack slot of `tmp` (saved-reg frame: `0x10` when
+`s0`–`s7`/`ra` start at `0x18`). `func_800B6118` is the example.
+
 
 

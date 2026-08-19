@@ -297,6 +297,26 @@ s32        func_800B5E08(Task* arg0, Task* arg1, s32 arg2, Task** arg3);
 s32        func_800B5E78(Task* arg0, Task* arg1, s32 arg2, Task** arg3);
 s32        func_800B5EE8(Task* arg0);
 s32        func_800B5F5C(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Input for `func_800B6118`. `field_2` is the signed length subtracted
+/// from `SquareRoot0(Gfx_ApplyMatrixNoSf(delta, delta))` (the difference
+/// is then forced `<= 0`). `pos` is the far end of that delta.
+typedef struct _GpDirSrc {
+    /* 0x00 */ byte    pad_0[2];
+    /* 0x02 */ s16     field_2;
+    /* 0x04 */ byte    pad_4[4];
+    /* 0x08 */ SVECTOR pos;
+} GpDirSrc;
+/// 0x28-byte scratch from `G_SCRATCH_HEAD` used by `func_800B6118`.
+/// `vec` is the `arg1->pos - arg0` delta (normalized in place);
+/// `mtx` is the transpose of `D_80070F10.workm`.
+typedef struct _GpDirScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ MATRIX  mtx;
+} GpDirScratch;
+STATIC_ASSERT_SIZEOF(GpDirScratch, 0x28);
+/// Builds a camera-space offset from `arg0` toward `arg1->pos`, scaled
+/// by `-abs(length - arg1->field_2)`, and writes it to `arg2`.
+void       func_800B6118(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2);
 void       func_800B62D4(void);
 /// Looks up `arg0` as `GpBit2Rec.field_0` in
 /// `D_8010D230[Mc_SaveData.field_7]`. On a hit, publishes the record's
