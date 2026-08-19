@@ -461,7 +461,47 @@ void func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
     *scratch = (u8*)*scratch + 0x1C;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D98C4);
+void func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
+{
+    void**                   scratch;
+    u8*                      head;
+    register GpLightScratch* block asm("s0");
+    SVECTOR*                 dir;
+    MATRIX*                  dirMtx;
+    MATRIX*                  colorMtx;
+    register s32             val asm("v0");
+    register s32             scale asm("t0");
+
+    scratch      = (void**)G_SCRATCH_HEAD;
+    head         = *scratch;
+    block        = (GpLightScratch*)(head - 0x1C);
+    dir          = (SVECTOR*)(head - 0xC);
+    dirMtx       = arg3->field_1C;
+    colorMtx     = arg3->field_20;
+    block->in.vx = arg2->vx - ((GpObj38*)arg1)->field_24.t[0];
+    block->in.vy = arg2->vy - ((GpObj38*)arg1)->field_24.t[1];
+    *scratch     = block;
+    block->in.vz = arg2->vz - ((GpObj38*)arg1)->field_24.t[2];
+    Gfx_NormalizeLightDir(&block->in, dir);
+
+    dirMtx->m[arg0][0] = -block->dir.vx;
+    dirMtx->m[arg0][1] = -block->dir.vy;
+    dirMtx->m[arg0][2] = -block->dir.vz;
+
+    val          = arg1->field_4A;
+    scale        = val;
+    block->scale = val;
+    gte_lddp(scale);
+    gte_ldsv(&arg1->field_50);
+    gte_gpf12_real();
+    gte_stsv(dir);
+
+    colorMtx->m[0][arg0] = block->dir.vx;
+    colorMtx->m[1][arg0] = block->dir.vy;
+    colorMtx->m[2][arg0] = block->dir.vz;
+
+    *scratch = (u8*)*scratch + 0x1C;
+}
 
 void func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
 {
