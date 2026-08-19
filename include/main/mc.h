@@ -148,7 +148,8 @@ typedef struct _McSaveData {
     /* 0x5C8 */ McItemSlot field_5C8[0x20]; // inited by func_800BBE54; index 0x1A gets field_2=0
     /* 0x6C8 */ u16        field_6C8;
     /* 0x6CA */ u16        field_6CA;
-    /* 0x6CC */ byte       unknown_6CC[4];
+    /* 0x6CC */ u16        field_6CC;         // capped at 9999; incremented by func_800A110C on spawnArg1 == 0
+    /* 0x6CE */ u16        field_6CE;         // capped at 9999; incremented by func_800A110C on spawnArg1 != 0
     /* 0x6D0 */ s32        field_6D0[0x60];   // bit flags; func_800BB7C0 sets/clears bit id for id < 0x180; func_800BC06C tests; func_800BBF84 clears all 96 words
     /* 0x850 */ u8         unknown_850[0x38]; // 3-byte rows; func_800D27E8 indexes [spawnArg1*3 + slot]
     /* 0x888 */ s32        field_888[0x20];   // 1-based counters; cap 0x1869E (func_80106518)

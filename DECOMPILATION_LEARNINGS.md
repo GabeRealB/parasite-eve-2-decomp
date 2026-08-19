@@ -23102,3 +23102,44 @@ if (shifted > 0) {
 A `for (i = 0; i < 3; i++)` over `((u8*)((s32)row + i))[1]` keeps two
 long-lived pointers (`arg2`, a table) in `$s3`/`$s4`. The equivalent
 `goto` loop swaps those two s-registers. `func_800B6EE0` is the example.
+
+## Leave `p = &global` unpinned so `%hi` is `$v0` and fills the incoming `bne`
+
+A merge reached from `bne key, C, increment` plus a fall-through from a
+nested range check wants:
+
+```
+bne    s2, v0, inc
+ lui    v0, %hi(Mc_SaveData)
+lw     v0, Game_Session
+...
+bnez   in_range, skip
+ lui    s0, %hi(scan)
+lui    v0, %hi(Mc_SaveData)
+addiu  a0, v0, %lo(Mc_SaveData)
+```
+
+`register McSaveData* save asm("a0"); save = &Mc_SaveData;` delay-fills
+with `lui a0` / `addiu a0, a0`. An unpinned local plus the skip-goto
+CFG lets `-fdelayed-branch` copy `lui v0, %hi` into the `bne` delay
+and keep `addiu a0, v0, %lo` at the merge:
+
+```c
+if (key == 0x50B0000 || key == 0x51D0000) {
+    if (Game_Session->field_9 - 1 < 3U) {
+        goto skip_count;
+    }
+}
+save = &Mc_SaveData;
+if (save->field_6CC < 0x270FU) {
+    save->field_6CC++;
+}
+skip_count:
+```
+
+A later straight-line `&Mc_SaveData` (no incoming `bne` to fill) still
+needs the split `lui $v0` / `addiu $a0` pair from the D_8010D230 note,
+so `flags = 0` can sit between `addiu` and `lhu`. Pinning one `UiObject*`
+across two states also merges them into `$s0`; the state-3 path wants
+the pointer already in `$a0` for `Ui_TeardownTree`. `func_800A110C` is
+the example.

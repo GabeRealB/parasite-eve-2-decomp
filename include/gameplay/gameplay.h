@@ -210,6 +210,7 @@ void func_80098F98(GsCOORDINATE2* arg0, s32 arg1);
 Task* func_8009988C(GsCOORDINATE2* arg0);
 void func_8009FD74(s32 arg0, PadScratch* arg1);
 void func_8009FEDC(Task* task);
+void func_800A110C(Task* arg0);
 u16  func_800A1558(s32 arg0);
 void func_800A1634(s32 arg0, GpIdMapC* arg1);
 void func_800A1F64(s32 arg0);
@@ -238,11 +239,12 @@ void func_800A8E8C(Task* task);
 void func_800A9010(Task* task);
 void func_800A91CC(Task* task);
 
-/// Overlay of `Task::spawnArg2` for `func_800A0718`. `field_4` is set to 1
-/// on the first run (state 0).
+/// Overlay of `Task::spawnArg2` for `func_800A0718` / `func_800A110C`.
+/// `func_800A0718` sets `field_4` to 1 on the first run (state 0).
+/// `func_800A110C` zeros both words when `spawnArg1` is 0.
 typedef struct _GpEndWork {
-    /* 0x00 */ byte pad_0[4];
-    /* 0x04 */ s32  field_4;
+    /* 0x00 */ s32 field_0;
+    /* 0x04 */ s32 field_4;
 } GpEndWork;
 
 /// Two halfwords at `D_8007A39C`. `func_800A0718` zeros both before spawning

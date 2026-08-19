@@ -735,6 +735,8 @@ void           SndVoice_SetupEnvelope(SndVoice* arg0, s16 arg1, u32 arg2, SndNot
 s32            SndScript_FindOneA(u8* arg0, s16 arg1, SndOneAOut* arg2);
 void           SndVoice_ClearActive(void);
 void           SndEvt_EnqueueType7(s32 arg0, s32 arg1);
+void           SndEvt_EnqueueType8(s32 arg0);
+void           SndEvt_EnqueueType9(s32 arg0);
 void           Spu_InitSystem(s32 arg0);
 void           Spu_Init(void);
 long           Spu_TimerCallback(void);

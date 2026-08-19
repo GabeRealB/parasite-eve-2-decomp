@@ -9,6 +9,7 @@
 #include "gameplay/1BC.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
+#include "gameplay/4CC.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
@@ -32,6 +33,11 @@ extern u8             D_801153F1;
 extern u8             D_8010CA08[]; // "Item obtained!"
 extern u8             D_8010CA18[]; // "Bonus item!!"
 extern s32            D_8010CA28;
+extern GpItemScan     D_8010CA2C;
+extern UiObjectDesc   D_8010CA40;
+extern UiObjectDesc   D_8010CA78[];
+extern UiObjectDesc   D_8010D6D8;
+extern UiObjectDesc   D_80185000;
 extern TaskDesc       D_8010CABC;
 extern TaskDesc       D_8010D1FC;
 extern TmdListHead    D_80114B80;
@@ -1245,7 +1251,146 @@ countdown:
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A087C);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A110C);
+void func_800A110C(Task* arg0)
+{
+    register u32           key asm("s2");
+    GpEndWork*             work;
+    s32                    i;
+    GpActorWork* volatile* p;
+    GpActorWork*           slot;
+    GameSession*           session;
+    GpSndParam*            pair;
+    GpItemScan*            scan;
+    McSaveData*            save;
+
+    if (arg0->state == 0) {
+        work = arg0->spawnArg2;
+        key  = *(u32*)&Game_Session->field_4;
+        key &= 0xFFFF0000;
+        Display_InitPrimBufOnce();
+        i = 0;
+        p = D_80115760;
+        do {
+            slot = *p;
+            if (slot != NULL) {
+                slot->actor->field_90C = NULL;
+            }
+            i++;
+            p++;
+        } while (i < 2);
+        SndEvt_EnqueueType8(0xD);
+        func_800B065C((func_800A7B20(7) + 0x15) & 0xFF);
+        if (key == 0x1140000) {
+            arg0->spawnArg2 = Ui_SpawnFromDesc(&D_80185000, arg0->spawnArg1, 1, 4, NULL);
+        } else {
+            arg0->spawnArg2 = Ui_SpawnFromDesc(&D_8010CA40, arg0->spawnArg1, 1, 1, NULL);
+            if (arg0->spawnArg1 == 0) {
+                work->field_4 = 0;
+                work->field_0 = 0;
+                func_800B5BFC(1, (GpAreaKey*)&Game_Session->field_4);
+                Game_Session->field_126 = 1;
+                if (key == 0x50B0000 || key == 0x51D0000) {
+                    if (Game_Session->field_9 - 1 < 3U) {
+                        goto skip_count;
+                    }
+                }
+                save = &Mc_SaveData;
+                if (save->field_6CC < 0x270FU) {
+                    save->field_6CC++;
+                }
+            skip_count:
+                scan = &D_8010CA2C;
+                func_800BAC8C(scan);
+                arg0->flags = func_800DB128(scan);
+                if (arg0->flags != 0) {
+                    Ui_SpawnFromDesc(D_8010CA78, 1, 0, 0x11, arg0->spawnArg2);
+                    if (arg0->flags == 2) {
+                        Ui_SpawnFromDesc(D_8010CA78 + 1, 2, 0, 0x21, arg0->spawnArg2);
+                    }
+                }
+            } else {
+                register s32         hi asm("v0");
+                register McSaveData* save2 asm("a0");
+
+                asm("lui %0, %%hi(Mc_SaveData)" : "=r"(hi));
+                asm("addiu %0, %1, %%lo(Mc_SaveData)" : "=r"(save2) : "r"(hi));
+                arg0->flags = 0;
+                if (save2->field_6CE < 0x270FU) {
+                    save2->field_6CE++;
+                }
+            }
+        }
+        GameMain_SetFrameTiming(0);
+        arg0->state++;
+    } else if (arg0->state == 1) {
+        session = Game_Session;
+        if (!(session->field_69 & 2)) {
+            session->field_4D = 1;
+            pair              = (GpSndParam*)&D_8007A39C;
+            pair->field_0     = 0;
+            pair->field_2     = 0;
+            if (!(Game_Session->field_69 & 8)) {
+                Task_SpawnFromTable(&D_80062774, 0, 1, 0);
+            } else {
+                Task_SpawnFromTable(&D_80062774, 0, 3, 0);
+            }
+        } else {
+            D_80062734 = 0xFF;
+        }
+        arg0->state++;
+    } else if (arg0->state == 2) {
+        register s32       hi asm("v0");
+        register s32       ff asm("v1");
+        register s32       cur asm("v0");
+        register UiObject* obj asm("s0");
+
+        asm("lui %0, %%hi(D_80062734)" : "=r"(hi));
+        ff = 0xFF;
+        asm("lbu %0, %%lo(D_80062734)(%1)" : "=r"(cur) : "r"(hi), "r"(ff));
+        obj = arg0->spawnArg2;
+        if (cur == ff) {
+            if (CdCmd_IsIdle() & 0xFFFF) {
+                if (obj->field_2E == 6) {
+                    Ui_TeardownTree(obj, obj->owner);
+                    if (arg0->flags != 0) {
+                        D_80114DDC      = 0x700;
+                        arg0->spawnArg2 = Ui_SpawnFromDesc(&D_8010D6D8, 1, 1, 1, NULL);
+                        arg0->state++;
+                    } else {
+                        arg0->killCountdown = 0xA;
+                        arg0->state         = 0x10;
+                    }
+                }
+            }
+        }
+    } else if (arg0->state == 3) {
+        register UiObject* obj asm("a0");
+
+        obj = arg0->spawnArg2;
+        if ((obj->field_2E == 6) || (obj->field_2E == -1)) {
+            Ui_TeardownTree(obj, obj->owner);
+            arg0->killCountdown = 0xA;
+            arg0->state         = 0x10;
+        }
+    } else if (arg0->state == 0x10) {
+        arg0->killCountdown--;
+        if (arg0->killCountdown <= 0) {
+            arg0->state = 0x11;
+        }
+    }
+
+    if (arg0->state >= 0x11) {
+        if (D_80062734 == 0xFF) {
+            if (CdCmd_IsIdle() & 0xFFFF) {
+                GameMain_SetFrameTiming(1);
+                SndEvt_EnqueueType9(0xD);
+                Task_Kill(arg0);
+                Stage_ReleasePrimBuf();
+                Stage_SetEndingFlag();
+            }
+        }
+    }
+}
 
 u16 func_800A1558(s32 arg0)
 {
