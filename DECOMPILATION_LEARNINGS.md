@@ -23307,3 +23307,49 @@ Keep the item id live (`asm volatile("" :: "r"(item))`) so a later
 instead of clobbering `$s3` in place. Split the last-block `0x606060`
 into a new `$v1` temp so `lui v1, 0x60` fills that `beqz` delay.
 `func_800CCEEC` is the example.
+
+## D4 overlay: hold `lhu` until after `tile` when `$a1` is reused
+
+The fade-overlay `lui a1, %hi(CdCmd_Queue)` / C `lhu` pair from
+`func_800AADDC` hoists the load past the TILE / `DR_TPAGE` address math
+when the next block also needs `$a1` (another `lui a1` for a BSS
+halfword). The C load then consumes `$a0` too early (`sll a1` instead
+of `sll a0`, and `addu t2` can no longer fill the `bnez` delay).
+
+Depend the load on the finished `tile` pointer with a non-volatile
+empty asm so `lhu` sits after `addiu %lo(D_80114CA0)` and `addu t2`
+stays in the delay slot:
+
+```c
+tile = &D_80114C80[buf];
+asm("" : : "r"(qhi), "r"(tile));
+dr     = &D_80114CA0[buf];
+queued = *(u16*)((s32)qhi + (s16)0x91C4);
+```
+
+Depending on `dr` as well emits `addu t2` *before* the load. Input
+constraints on the `lui` (`"r"(color), "r"(ds)`) keep `li a2, 8` /
+`la Display_State` ahead of that `lui`.
+
+A later 0/1 flag that is consumed as `if (x & 0xFFFF)` becomes `sltu`
+if written `if (func()) x = 1; else x = 0`. Assign the masked return
+into a `$v0`-pinned temp, keep the success `x = 1; break;`, and fall
+through to the shared `x = 0` (same label as the previous switch arm):
+
+```c
+register s32 done asm("v0");
+
+case 2:
+    done = func() & 0xFFFF;
+    if (done) {
+        done = 1;
+        break;
+    }
+default:
+    done = 0;
+    break;
+}
+if (done & 0xFFFF) {
+```
+
+`func_800AB5F4` is the example.

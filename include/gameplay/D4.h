@@ -149,6 +149,18 @@ extern GpPrim1C* D_8010CAE8[];
 /// `func_800AC960`, advanced by `func_800AD410`.
 extern GpPrim1C* D_80114CC8;
 
+/// Phase for `func_800A9E44`. `func_800AB5F4` clears it when phase 1
+/// (`func_800AA120`) finishes so phase 2 can start.
+extern s16 D_80114C60;
+
+/// Phase for `func_800AA120`. `func_800AB5F4` clears it when entering
+/// its own phase 1.
+extern u16 D_80114C70;
+
+/// Phase for `func_800AB5F4` (0 init, 1 `func_800AA120`, 2 `func_800A9E44`).
+/// `func_800AB3A8` clears it when advancing to this task state.
+extern u16 D_80114C74;
+
 /// Dual-buffer fullscreen TILE overlay, indexed by `Display_State.field_114`.
 /// Paired with `D_80114CA0`. Used by `func_800AB828` and the neighboring
 /// D4 fade-overlay task states.
@@ -221,6 +233,14 @@ void func_800A9DF0(Task* task);
 /// `GameSession.field_7` differs from the cached `field_78`, then
 /// advances `task->state`.
 void func_800AADDC(Task* task);
+/// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
+/// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0.
+/// Then walks `D_80114C74`: phase 0 resets `D_80114C70` and falls into
+/// phase 1 (`func_800AA120`); when that finishes, phase 2 runs
+/// `func_800A9E44`. On success, resets TMD lists / the current OT,
+/// advances `task->state`, and if `Mc_SaveData.field_5C3` is set enables
+/// interlace on both `DISPENV` slots.
+void func_800AB5F4(Task* task);
 /// Dual-buffer TILE / DR_TPAGE overlay (gray 0x64), indexed by
 /// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0,
 /// then after 7 frames clears `CdCmd_Queue.field_22E` and advances state.

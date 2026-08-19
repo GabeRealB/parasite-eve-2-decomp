@@ -23,6 +23,8 @@
 #include "main/wipsys.h"
 
 void func_800A9730(Task* task);
+s32  func_800A9E44(void);
+s32  func_800AA120(void);
 void func_800AA548(s32 arg0);
 void func_800AE7AC(void);
 void func_800AD024(void);
@@ -598,7 +600,81 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AB1C8);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AB3A8);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AB5F4);
+void func_800AB5F4(Task* task)
+{
+    TILE*         tile;
+    DR_TPAGE*     dr;
+    DisplayState* ds;
+    DisplayState* ds2;
+    register s32  color asm("a2");
+    register s32  qhi asm("a1");
+    register s32  queued asm("a0");
+    s32           buf;
+    s8            yoff;
+
+    color = 8;
+    ds    = &Display_State;
+    asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi) : "r"(color), "r"(ds));
+    buf  = ds->field_114;
+    tile = &D_80114C80[buf];
+    asm("" : : "r"(qhi), "r"(tile));
+    dr     = &D_80114CA0[buf];
+    queued = *(u16*)((s32)qhi + (s16)0x91C4);
+    if (queued == 0) {
+        setlen(tile, 3);
+        setcode(tile, 0x62);
+        tile->r0 = color;
+        tile->g0 = color;
+        tile->b0 = color;
+        tile->x0 = -0xA0;
+        yoff     = ds->vramYOffset;
+        tile->w  = 0x140;
+        tile->h  = 0xF0;
+        tile->y0 = -0x78 - yoff;
+        addPrim(Gpu_CurrentOt - 0x10, tile);
+        setlen(dr, 1);
+        dr->code[0] = 0xE1000000 | 0x240;
+        addPrim(Gpu_CurrentOt - 0x10, dr);
+    }
+
+    {
+        register s32 done asm("v0");
+
+        switch (D_80114C74) {
+            case 0:
+                D_80114C70 = 0;
+                D_80114C74 = 1;
+            case 1:
+                if (func_800AA120() & 0xFFFF) {
+                    D_80114C60 = 0;
+                    D_80114C74++;
+                }
+                done = 0;
+                break;
+            case 2:
+                done = func_800A9E44() & 0xFFFF;
+                if (done) {
+                    done = 1;
+                    break;
+                }
+            default:
+                done = 0;
+                break;
+        }
+
+        if (done & 0xFFFF) {
+            func_800E0294();
+            Tmd_InitLists();
+            ds2 = &Display_State;
+            func_8009850C(&Gpu_OtBuffers[ds2->field_1f]);
+            task->state++;
+            if (Mc_SaveData.field_5C3 != 0) {
+                ds2->dispEnv[1].isinter = 1;
+                ds2->dispEnv[0].isinter = 1;
+            }
+        }
+    }
+}
 
 void func_800AB828(Task* task)
 {
