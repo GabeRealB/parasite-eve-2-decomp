@@ -819,7 +819,58 @@ void func_80102F10(GpActorWork* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801030CC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80103294);
+inline static Task* spawn_tmd_attach(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    Task*         task;
+    GameActor*    actor;
+    GameActorExt* extra;
+    GpCoordExt*   coord;
+    TmdObject*    obj;
+    s32*          saved;
+    u8*           table;
+    s32           type;
+
+    extra = arg0->extra;
+    actor = arg0->actor;
+    saved = (s32*)&((GsCOORDINATE2*)extra->field_8)[D_80112E04[arg2][arg1]];
+    table = D_80112DFC;
+    type  = Wip_SysConfig.field_26 - 2;
+    task  = Task_Spawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
+    if (task == NULL) {
+        return NULL;
+    }
+    task->parent    = (Task*)arg0;
+    coord           = (GpCoordExt*)((GameActorExt*)task->extra)->field_8;
+    coord->sub      = saved;
+    coord->field_44 = 0;
+    obj             = (TmdObject*)task->extra;
+    if (actor->field_910 != NULL) {
+        obj->field_24 = 4;
+        obj->field_25 = 6;
+    } else {
+        obj->field_24 = 6;
+        obj->field_25 = 0;
+    }
+    Tmd_ProcessStream(obj);
+    Tmd_ProcessStream(obj);
+    return task;
+}
+
+Task* func_80103294(GpActorWork* arg0, s32 arg1, s32 arg2)
+{
+    GameActor* actor;
+
+    actor = arg0->actor;
+    if (actor->field_920 != NULL) {
+        Task_Kill(actor->field_920);
+    }
+    actor->field_920 = spawn_tmd_attach(arg0, 0, arg1, arg2);
+    if (actor->field_924 != NULL) {
+        Task_Kill(actor->field_924);
+    }
+    actor->field_924 = spawn_tmd_attach(arg0, 1, arg1, arg2);
+    return actor->field_924;
+}
 
 inline static Task* spawn_attach(Task* parent, s32 row, s32 item)
 {

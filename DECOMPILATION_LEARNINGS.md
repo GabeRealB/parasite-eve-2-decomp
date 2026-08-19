@@ -22594,5 +22594,27 @@ The integer add is the always-executed `addu` after the branch (same
 bytes as a delay-slot add when nothing else claims that slot).
 `func_800C9BE8` is the example.
 
+## Assign an inlined helper result to a field, not a local across a call
+
+`task = helper(); if (p->next) Kill(p->next); p->cur = task;` copies the
+helper result into a callee-saved (`$s0`) so it survives `Kill`, then
+stores later. The target keeps the result in `$v0` (`beqz s1` /
+`move v0, zero`, then `move v0, s1`) and puts `sw v0, field` in the
+next branch delay slot.
+
+Assign the helper directly to the field. GCC 2.8.1 then treats `$v0` as
+a value that must be stored before the clobbering call, and can lift
+that store into the `beqz` delay slot of the following `if`:
+
+```c
+p->cur = helper(p, 0, a, b);
+if (p->next != NULL) {
+    Kill(p->next);
+}
+p->next = helper(p, 1, a, b);
+```
+
+`func_80103294` is the example.
+
 
 
