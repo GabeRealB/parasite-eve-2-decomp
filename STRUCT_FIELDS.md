@@ -648,6 +648,11 @@ slot 3; `func_80106238` replaces bits 14–15 with `(arg1 << 1) | arg2`;
 runs `Tmd_ProcessStream` twice.
 `field_914`..`field_924` are child `Task*` slots killed (if non-NULL) on that path.
 `field_944`..`field_950` / `field_970` are s16 timers written to `0x258` by `func_8010A42C`;
+`func_80109FC4` decrements `field_944`/`946`/`948`/`94A`/`94C`/`94E`/`950` (via `lhu`)
+while the matching `WipSysConfig.field_25` bit is set and clears that bit when the
+timer is `<= 0`; bit 4 also ticks `field_98D` and reloads it from `field_958`
+(0 → `0x78`, 3 → `0x14`, else `0x3C`) after `func_8010A854(1)`; bit `0x80` is
+skipped when `D_80114C08.field_A` is 2 or 3.
 `field_954` is a u16 (`lhu`/`sh`) cleared with the 0x954–0x95E cluster (nonzero skips the 0x6A adjust in `func_80109720`);
 `field_10` / `field_14` / `field_18` are s32s (`lw`/`sw`); `func_8010C30C` copies
 `GsCOORDINATE2.coord.t[0..2]` from `GameActorExt.field_8` here after folding
@@ -714,6 +719,7 @@ It stores selected item id − 0x7F (`func_800CF448`); 0 means none selected.
 slot is occupied, else 0, then calls `func_801061F0`.
 `field_24` is a u8 cleared by `func_801053A0`; `func_8010C81C` saves and restores it around that call.
 `field_25` is an OR mask of PE/status bits set by `func_8010A42C` (same bit as the `func_800ECA10` arg).
+`func_80109FC4` ticks those bits each frame and writes the updated mask back.
 `field_1a` is an s16 max recomputed by `func_800BC0C0` from `D_8010D328[field_F].field_0`
 plus `Mc_SaveData.field_26` plus optional `D_8010E2B8[field_23-1].field_4`, then
 clamped to 250. `field_18` is the matching current; `func_800BC0C0` copies `field_1a`
@@ -803,7 +809,7 @@ for the same block.
 | 0x07 | `field_7` | Cleared by `func_800A7DE0` |
 | 0x08 | `field_8` | Cleared by `func_800A7DE0`; set to 1 by `func_800A1F64` |
 | 0x09 | `field_9` | Cleared by `func_800A1F64` |
-| 0x0A | `field_A` | s8 (`lb`); `func_800A7DE0` sets `field_3 = 2` when >= 2, then clears it; cleared by `func_800A7574`; set to 2 by `func_800A1F64` |
+| 0x0A | `field_A` | s8 (`lb`, splat `D_80114C12`); `func_800A7DE0` sets `field_3 = 2` when >= 2, then clears it; cleared by `func_800A7574`; set to 2 by `func_800A1F64`; `func_80109FC4` loads it `lbu` and skips the `field_25` bit `0x80` timer when the value is 2 or 3 |
 | 0x0B | `field_B` | s8 category index (`lb`); `func_800A1634` uses this unless its first arg is 1, in which case it uses `field_5` |
 | 0x0C | `field_C` | s8 (`lb` as `D_80114C14`); cleared by `func_800A7574` |
 | 0x0D | `field_D` | Cleared by `func_800A7574` |

@@ -49,8 +49,10 @@ STATIC_ASSERT_SIZEOF(GpHudScratch, 0x1C);
 /// `field_6` is a flags byte (bit 0 gates `func_800A7DB8` writing
 /// `field_E`; bit 1 is cleared by `func_800A7574` and forces
 /// `func_800A7E5C` to 0 when that function's arg is 0). `field_9` is
-/// cleared by `func_800A1F64`. `field_A` is a signed byte (`lb`);
-/// `func_800A7DE0` sets `field_3 = 2` when it is >= 2, then clears it.
+/// cleared by `func_800A1F64`. `field_A` is a signed byte (`lb`, splat
+/// `D_80114C12`); `func_800A7DE0` sets `field_3 = 2` when it is >= 2,
+/// then clears it. `func_80109FC4` loads it unsigned (`lbu`) and skips
+/// the `field_25` bit `0x80` timer when the value is 2 or 3.
 /// `func_800A7574` also zeros `field_A`, `field_C`..`field_F`,
 /// `field_10`/`field_12`/`field_14`, and `field_16`/`field_17`. Those
 /// two bytes are also the item 4 / item 8 gates in `func_800D6170`

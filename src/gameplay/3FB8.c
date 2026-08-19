@@ -4172,7 +4172,83 @@ void func_80109A1C(GpActorWork* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109BB4);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109FC4);
+void func_80109FC4(GpActorWork* arg0)
+{
+    s32        flags;
+    GameActor* actor;
+    s32        temp;
+    s32        mode;
+
+    flags = Wip_SysConfig.field_25;
+    actor = arg0->actor;
+    if (flags != 0) {
+        if (flags & 1) {
+            temp             = (u16)actor->field_944 - 1;
+            actor->field_944 = temp;
+            if ((s16)temp <= 0) {
+                flags &= ~1;
+            }
+        }
+        if (flags & 2) {
+            temp             = (u16)actor->field_946 - 1;
+            actor->field_946 = temp;
+            if ((s16)temp <= 0) {
+                flags &= ~2;
+            }
+        }
+        if (flags & 4) {
+            temp             = actor->field_98D - 1;
+            actor->field_98D = temp;
+            if ((s8)temp <= 0) {
+                func_8010A854(1);
+                mode = (u16)actor->field_958;
+                if (mode == 0) {
+                    actor->field_98D = 0x78;
+                } else if (mode == 3) {
+                    actor->field_98D = 0x14;
+                } else {
+                    actor->field_98D = 0x3C;
+                }
+            }
+            temp             = (u16)actor->field_948 - 1;
+            actor->field_948 = temp;
+            if ((s16)temp <= 0) {
+                flags &= ~4;
+            }
+        }
+        if (flags & 0x10) {
+            temp             = (u16)actor->field_94A - 1;
+            actor->field_94A = temp;
+            if ((s16)temp <= 0) {
+                flags &= ~0x10;
+            }
+        }
+        if (flags & 0x20) {
+            temp             = (u16)actor->field_94C - 1;
+            actor->field_94C = temp;
+            if ((s16)temp <= 0) {
+                flags &= ~0x20;
+            }
+        }
+        if (flags & 0x40) {
+            temp             = (u16)actor->field_94E - 1;
+            actor->field_94E = temp;
+            if ((s16)temp <= 0) {
+                flags &= ~0x40;
+            }
+        }
+        if (flags & 0x80) {
+            if ((u32)((u8)D_80114C08.field_A - 2) >= 2U) {
+                temp             = (u16)actor->field_950 - 1;
+                actor->field_950 = temp;
+                if ((s16)temp <= 0) {
+                    flags &= ~0x80;
+                }
+            }
+        }
+        Wip_SysConfig.field_25 = flags;
+    }
+}
 
 void func_8010A1B0(s32 arg0, s32 arg1)
 {

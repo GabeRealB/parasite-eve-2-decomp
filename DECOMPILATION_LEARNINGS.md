@@ -22958,3 +22958,39 @@ shared:
 Fallthrough from case 0 into case 1 in source order glues the tail
 onto case 0 (`jal` then `j epilogue`) instead of a `j` to a later
 block. `func_8010747C` is the example.
+
+## 3-way if/else-if stores keep `bnez; li K; j join`
+
+When the target does:
+
+```
+lhu    v1, mode
+nop
+bnez   v1, else
+ li    v0, 3
+j      join
+ li    v0, 0x78
+else:
+bne    v1, v0, join
+ li    v0, 0x3C
+li     v0, 0x14
+join:
+sb     v0, field
+```
+
+a shared temp (`val = 0x78 / 0x14 / 0x3C; field = val`) inverts to
+`beqz` and drops the `j`. Store in each arm instead:
+
+```c
+mode = (u16)actor->field_958;
+if (mode == 0) {
+    actor->field_98D = 0x78;
+} else if (mode == 3) {
+    actor->field_98D = 0x14;
+} else {
+    actor->field_98D = 0x3C;
+}
+```
+
+GCC coalesces the three stores back into one `sb` and keeps `bnez` +
+`j`. `func_80109FC4` is the example.
