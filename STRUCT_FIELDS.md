@@ -581,7 +581,10 @@ of its `GpFacingArg.field_0` here (and `field_4` onto `field_82`).
 toward it by a `func_80103E7C` delta clamped to `[-0x40, 0x40]`.
 `field_58`/`field_5C`/`field_60`/`field_64`/`field_68`/`field_6A`/`field_70` are s16s
 cleared together by `func_8010C46C` / `func_8010C4F0` / `func_8010C75C` (store order
-0x60, 0x58, 0x64, 0x5C, 0x6A, 0x68, 0x70). `field_6A` is the look/aim yaw offset. `func_80109720` (after the `field_954`
+0x60, 0x58, 0x64, 0x5C, 0x6A, 0x68, 0x70). `field_70` is a pitch-like s16: when
+`field_90C` is set and the XZ lock distance exceeds `(s16)arg2`, `func_80102D20`
+adds a `ratan2(-delta.vy, dist) - field_70` step clamped to `[-0x30, 0x30]`
+(ignored if `|step| < 0x20`) while `|field_70 + step| < 0x281`. `field_6A` is the look/aim yaw offset. `func_80109720` (after the `field_954`
 dispatcher) clears `extra->field_8[4].flg`, then if `field_962` has D-pad
 left/right (`0xA000`) and `field_954` is 0, steps it by ±0x20 (left `-0x20`)
 while `|field_6A + step| < 0x1A1`; otherwise decays it by `field_6A >> 3`

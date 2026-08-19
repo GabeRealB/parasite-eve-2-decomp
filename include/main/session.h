@@ -179,7 +179,7 @@ typedef struct _GameActor {
     /* 0x068 */ s16                 field_68;
     /* 0x06A */ s16                 field_6A; // aim/look yaw offset; func_8010BE5C
     /* 0x06C */ byte                pad_6C[4];
-    /* 0x070 */ s16                 field_70;
+    /* 0x070 */ s16                 field_70; // pitch-like angle; func_80102D20
     /* 0x072 */ byte                pad_72[6];
     /* 0x078 */ s16                 field_78; // pitch; func_80102F10
     /* 0x07A */ byte                pad_7A[6];

@@ -321,12 +321,25 @@ typedef struct _GpAimScratch {
 } GpAimScratch;
 STATIC_ASSERT_SIZEOF(GpAimScratch, 0x68);
 
-/// 0x84-byte scratch from `G_SCRATCH_HEAD` used by `func_80102F10`.
-/// The first 0x50 bytes are a temp `GsCOORDINATE2`. `delta` is lock
-/// position minus that coord's translation; `lock` is `func_800DAE50`
-/// output; `rot` is the zeroed `SVECTOR` passed to `func_801040A0`.
-/// `angle` holds `ratan2` then the clamped pitch delta applied to
-/// `GameActor.field_78`; `dist` is the XZ length of `delta`.
+/// 8-byte rotation row (`SVECTOR` layout). `D_801131B4` is indexed by
+/// `func_80102D20` arg1 (`D_80167218[Mc_SaveData.field_5C7]`) and by
+/// `Wip_SysConfig.field_21` in `func_80102348`.
+typedef struct _GpAimRot {
+    /* 0x0 */ s16 vx;
+    /* 0x2 */ s16 vy;
+    /* 0x4 */ s16 vz;
+    /* 0x6 */ s16 pad;
+} GpAimRot;
+STATIC_ASSERT_SIZEOF(GpAimRot, 8);
+
+/// 0x84-byte scratch from `G_SCRATCH_HEAD` used by `func_80102D20` and
+/// `func_80102F10`. The first 0x50 bytes are a temp `GsCOORDINATE2`.
+/// `delta` is lock position minus that coord's translation; `lock` is
+/// `func_800DAE50` output; `rot` is the `SVECTOR` passed to
+/// `func_801040A0` (table row in `func_80102D20`, zeros in
+/// `func_80102F10`). `angle` holds `ratan2` then the clamped pitch
+/// delta applied to `GameActor.field_70` / `field_78`; `dist` is the
+/// XZ length of `delta`.
 typedef struct _GpPitchScratch {
     /* 0x00 */ byte     pad_0[0x50];
     /* 0x50 */ VECTOR3  delta;
@@ -511,6 +524,9 @@ extern s16 D_80167224[];
 /// Overlay-imported u8 table indexed by `Mc_SaveData.field_5C7` and stored
 /// at `GpActorD4.field_CD` (`func_8010B79C`).
 extern u8 D_80167230[];
+
+/// 8-byte `GpAimRot` rows copied onto `GpPitchScratch.rot`.
+extern GpAimRot D_801131B4[];
 
 /// u8 table indexed by `Mc_SaveData.field_5C7`. Non-zero selects
 /// `func_80102634`; zero uses `D_80167218` with `func_80102D20`.

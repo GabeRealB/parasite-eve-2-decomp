@@ -3,6 +3,46 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Save incoming `$a2` first, then split `G_SCRATCH_HEAD` so `lui` sits in the prologue
+
+A 3-arg function that keeps `arg2` in `$s4` and then allocates from
+`G_SCRATCH_HEAD` wants:
+
+```
+sw     s4, 0x20(sp)
+move   s4, a2
+lui    v0, 0x1F80
+ori    v0, v0, 0x3FC
+sw     ra/s3/s2/s1/s0
+lw     s2, 0(v0)
+```
+
+`scratch = (void**)G_SCRATCH_HEAD` first hoists `lui`/`ori` above `sw s4`.
+`register s32 thresh asm("s4"); thresh = arg2;` without a use delays
+`move s4, a2` into the later `beqz` delay (the copy is only needed on
+the call-clobber path). `asm volatile` after the copy keeps `move s4`
+early but parks `lui` *after* every prologue `sw`.
+
+Non-volatile `lui`/`ori` with a fake input dependency on the saved arg
+keeps `lui` after `move s4` and lets `-fschedule-insns` drop it between
+that move and the remaining stores:
+
+```c
+register void** scratch asm("v0");
+register s32    hi asm("v0");
+register s32    thresh asm("s4");
+
+thresh = arg2;
+asm("lui %0, 0x1F80" : "=r"(hi) : "r"(thresh));
+asm("ori %0, %1, 0x3FC" : "=r"(scratch) : "r"(hi));
+```
+
+The later `(s16)thresh < dist` compare must write the cast into `$v0`
+(`sll v0, s4, 16` / `sra` / `slt v0, v0, a1`). A dead `$s4` after the
+branch becomes `sll s4, s4, 16` in place. Pin `SquareRoot0`'s result
+through `$v0` then copy to `$a1` (`move a1, v0`) so the compare and
+`ratan2` share that register. `func_80102D20` is the example.
+
 ## Split `la` of a later-reused table so `%hi` lands in `$v1` and `%lo` in `$a1`
 
 A global table kept across a loop that also needs `$a1` for a `u16` compare
