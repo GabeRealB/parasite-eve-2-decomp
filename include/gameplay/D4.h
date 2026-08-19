@@ -235,6 +235,14 @@ void func_800A9DF0(Task* task);
 void func_800AADDC(Task* task);
 /// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
 /// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0.
+/// When the CD queue is idle, enqueues CdCmd 0x21 with the current
+/// session location (`field_5` / `field_6` / `field_7`), then
+/// `func_800ABA4C`. If that returns a companion type, stores it in
+/// `GameSession.field_124` and calls `func_800A9CBC` with
+/// `Mc_SaveData.field_13` / `field_5C7`. Then advances `task->state`.
+void func_800AB1C8(Task* task);
+/// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
+/// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0.
 /// Then walks `D_80114C74`: phase 0 resets `D_80114C70` and falls into
 /// phase 1 (`func_800AA120`); when that finishes, phase 2 runs
 /// `func_800A9E44`. On success, resets TMD lists / the current OT,

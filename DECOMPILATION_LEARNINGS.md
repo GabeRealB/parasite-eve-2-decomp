@@ -23353,3 +23353,34 @@ if (done & 0xFFFF) {
 ```
 
 `func_800AB5F4` is the example.
+
+## Fill CdCmd_Enqueue arg `addiu`s between session-field `lbu`s
+
+A 0x21 enqueue that copies `GameSession.field_7/6/5` into a stack
+payload wants `&param1` / `&param2` in `$a1` / `$a2` *between* each
+load and store:
+
+```
+lw     v1, Game_Session
+li     a0, 0x21
+lbu    v0, 7(v1)
+addiu  a1, sp, 0x10
+sb     v0, 0x13(sp)
+lbu    v0, 6(v1)
+addiu  a2, sp, 0x18
+sb     v0, 0x12(sp)
+lbu    v1, 5(v1)
+li     v0, 1
+...
+jal    CdCmd_Enqueue
+ sb    v1, 0x11(sp)
+```
+
+Assign the call args as named temps (`cmd = 0x21; p1 = param1;`)
+immediately after each field load so those `addiu`s fill the load
+delay. The last field must overwrite the session pointer in `$v1`
+(`lbu v1, 5(v1)`) and stay there until the `jal` delay: pin both the
+session pointer and that byte to `$v1`. Loading it into `$v0` instead
+stores `param1[2]` late and moves `&param2` after the zeroing stores.
+
+`func_800AB1C8` is the example.
