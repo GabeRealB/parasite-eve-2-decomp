@@ -88,6 +88,7 @@ STATIC_ASSERT_SIZEOF(GpActorD4Rec, 0x18);
 /// stored at `GameActor.field_910`. `func_8010C1FC` copies a `GsCOORDINATE2`
 /// into `field_18`, treats `field_68` as a `GpObj`, fills `field_88`, and
 /// points `field_88.field_14` at `field_A0`. `func_8010BF7C` writes `field_C4`.
+/// `func_8010B79C` writes `field_CD` from `D_80167230[Mc_SaveData.field_5C7]`.
 typedef struct _GpActorD4 {
     /* 0x00 */ byte         pad_0[0x18];
     /* 0x18 */ byte         field_18[0x50]; // GsCOORDINATE2
@@ -96,7 +97,9 @@ typedef struct _GpActorD4 {
     /* 0xA0 */ GpRec18      field_A0;
     /* 0xB8 */ byte         pad_B8[0xC];
     /* 0xC4 */ s16          field_C4;
-    /* 0xC6 */ byte         pad_C6[0xE];
+    /* 0xC6 */ byte         pad_C6[7];
+    /* 0xCD */ u8           field_CD;
+    /* 0xCE */ byte         pad_CE[6];
 } GpActorD4;
 STATIC_ASSERT_SIZEOF(GpActorD4, 0xD4);
 
@@ -495,6 +498,14 @@ extern u8 D_80112F1C[][2];
 /// to `func_80106350` (`func_8010C46C` / `func_8010C4F0` / `func_8010C75C`).
 extern s16 D_80167218[];
 
+/// Overlay-imported s16 table indexed by `Mc_SaveData.field_5C7` and passed
+/// as the third argument of `func_80100FCC` (`func_8010B79C`).
+extern s16 D_80167224[];
+
+/// Overlay-imported u8 table indexed by `Mc_SaveData.field_5C7` and stored
+/// at `GpActorD4.field_CD` (`func_8010B79C`).
+extern u8 D_80167230[];
+
 /// u8 table indexed by `Mc_SaveData.field_5C7`. Non-zero selects
 /// `func_80102634`; zero uses `D_80167218` with `func_80102D20`.
 extern u8 D_80113388[];
@@ -513,6 +524,7 @@ s32  func_801011D0(struct _GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3);
 void func_80101408(GpActorWork* arg0);
 void func_801041FC(GpActorWork* arg0, s32 arg1);
 s32  func_801034C0(void);
+s32  func_8010B79C(void);
 void func_80106350(GpActorWork* arg0, s32 arg1, s32 arg2);
 void func_801088D4(GpActorWork* arg0, s32 arg1, s32 arg2);
 /// Overlay import. `func_801088D4` calls it with `Game_GetPtrSlot(0xA)` when

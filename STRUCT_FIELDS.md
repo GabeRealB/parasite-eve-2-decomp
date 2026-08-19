@@ -636,7 +636,8 @@ Offset 0x4C (`sub` in libgs) is the parent `GameActorExt.field_8` pointer writte
 unlinked by `func_800E1638` during actor teardown (`func_80101408`).
 `field_124` is a u32 packed word at +0x18 of the `field_10C` node;
 `func_801061F0` writes `0x20000 | (WipSysConfig.field_21 << 8) | field_22` from
-slot 3; `func_80106238` replaces bits 14–15 with `(arg1 << 1) | arg2`.
+slot 3; `func_80106238` replaces bits 14–15 with `(arg1 << 1) | arg2`;
+`func_8010B79C` ORs in `0x80` on the slot-0xA companion.
 `field_90C` is a `GpLinkNode*` (same object as `func_800DAB38` unlinks); `func_80103B5C` clears `node->field_5` then nulls the slot. `func_800DB0D8` walks both `D_80115760[]` slots and clears `field_5` without nulling the pointer. `func_800DAC54` returns a 2-bit mask of those slots whose `field_90C` equals the given node. `func_800DACAC` assigns the node onto `D_80115760[0]`'s actor, clearing the previous node's `field_5` and this node's `field_4` bit 0. `func_800DACF8` is the inverse: it nulls any `D_80115760[]` slot whose `field_90C` is this node, clears `field_5`, and sets `field_4` bit 0.
 `field_910` is a `GpActorD4*` (0xD4-byte block from `func_8010BAC8`); `func_8010BF7C` writes `field_C4` as `arg1 + (arg2 & func_80037164())`.
 `func_80104258` tests it as a NULL check on the parent actor: non-NULL writes
@@ -699,6 +700,7 @@ vs `func_80108770` in `func_80106550`;
 | 0x88 | `field_88` | `GpActorD4Rec`; pose / id payload plus `field_14` → `field_A0` |
 | 0xA0 | `field_A0` | `GpRec18` table wiped by `func_800E18E0(..., 1, 0)` |
 | 0xC4 | `field_C4` | s16; `func_8010BF7C` stores `arg1 + (arg2 & rand)` |
+| 0xCD | `field_CD` | u8; `func_8010B79C` copies `D_80167230[Mc_SaveData.field_5C7]` |
 
 ### `WipSysConfig`
 `field_21` is a u8 packed into `GameActor.field_124` bits 8–15 by `func_801061F0`.

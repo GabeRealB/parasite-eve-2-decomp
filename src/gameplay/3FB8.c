@@ -4663,7 +4663,71 @@ void func_8010B674(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010B79C);
+s32 func_8010B79C(void)
+{
+    GpActorWork* work;
+    GameActor*   actor;
+    GameActor*   inner;
+    GameActor*   next;
+    Task*        task;
+    McSaveData*  save;
+    GpActorD4*   block;
+    s16          val1;
+    s16          val2;
+    GpEffWork*   eff;
+    GpAnimObj*   extra;
+    register s32 ret asm("v0");
+
+    work  = Game_GetPtrSlot(0xA);
+    actor = work->actor;
+    if (!work | !actor) {
+        return 0;
+    }
+
+    if (actor->field_924 != NULL) {
+        save             = &Mc_SaveData;
+        task             = func_80104364((GpActorWork*)actor->field_924, save->field_13 + 1, save->field_5C7, 0);
+        actor->field_91C = task;
+        if (task != NULL) {
+            block = actor->field_910;
+            val1  = D_80167218[save->field_5C7];
+            val2  = D_80167224[save->field_5C7];
+            func_80100FCC(work, val1, val2);
+            actor->field_124 |= 0x80;
+            block->field_CD = D_80167230[save->field_5C7];
+            if ((u8)save->field_5C7 == 4 && actor->field_914 == NULL) {
+                eff = func_800EA478(
+                    0x80060180, (GsCOORDINATE2*)((GameActorExt*)actor->field_91C->extra)->field_8, val1, 0);
+                if (eff != NULL) {
+                    actor->field_914 = eff->field_0;
+                    func_80106350(work, val1, 0);
+                }
+            }
+        }
+    }
+
+    inner            = work->actor;
+    extra            = (GpAnimObj*)work->extra;
+    inner->field_93A = D_80113360[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7;
+    inner->field_928 = D_80113368[inner->field_93A];
+    func_800B3F84((GpAnimCtx*)inner->field_424, inner->field_928, extra, &inner->field_7A8,
+                  (GpAnimSlot*)inner->pad_438);
+    next            = work->actor;
+    next->field_954 = 0;
+    next->field_956 = 0;
+    next->field_958 = 0;
+    next->field_95A = 0;
+    next->field_95C = 0;
+    next->field_95E = 0;
+    next->field_942 = 0;
+    next->field_93E = 0;
+    next->field_973 = 0;
+    next->field_975 = 0;
+    func_801038F8(work, 1);
+    ret              = (s32)actor->field_91C;
+    actor->field_983 = 7;
+    return ret;
+}
 
 void func_8010B9A4(GpActorWork* arg0)
 {
