@@ -579,6 +579,23 @@ typedef struct _GpLightScratch {
 } GpLightScratch;
 STATIC_ASSERT_SIZEOF(GpLightScratch, 0x1C);
 
+/// 0x48-byte scratch from `G_SCRATCH_HEAD` used by `func_800DBCAC`.
+/// `func_800E08CC` writes world-space positions into `pos0` / `pos1`.
+/// `delta` is `pos0 - pos1`. On overlap, `src` / `extra` / `rsum` are
+/// filled for `func_800DBA20` (other object's truncated position, a
+/// zeroed extra SVECTOR, and the summed radii).
+typedef struct _GpSphereScratch {
+    /* 0x00 */ SVECTOR src;
+    /* 0x08 */ SVECTOR extra;
+    /* 0x10 */ s16     rsum;
+    /* 0x12 */ s16     pad_12;
+    /* 0x14 */ VECTOR  pos0;
+    /* 0x24 */ VECTOR  pos1;
+    /* 0x34 */ VECTOR  delta;
+    /* 0x44 */ s32     rsum32;
+} GpSphereScratch;
+STATIC_ASSERT_SIZEOF(GpSphereScratch, 0x48);
+
 /// Pending flags written by `func_800D5B14` and consumed by `func_800CE294`.
 /// `D_8010F888 == 1` requests `func_800AC464(..., 0x402, ...)`.
 extern s32 D_8010F888;
@@ -797,6 +814,8 @@ void  func_800DB630(void);
 void  func_800DB6B4(void);
 void  func_800DB72C(void);
 void func_800DB900(GpObj* node);
+void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2);
+s32  func_800DBCAC(GpObj* arg0, GpObj* arg1);
 void func_800DC528(GpObj* node);
 void func_800DCB80(GpObj* node);
 void func_800DD940(GpObj* node);

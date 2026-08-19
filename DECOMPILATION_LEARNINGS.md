@@ -22616,5 +22616,21 @@ p->next = helper(p, 1, a, b);
 
 `func_80103294` is the example.
 
+## `register ... asm("v1")` steals anonymous `mflo`; assign the last square into that pin
+
+A first-half pin such as `register s32 b asm("v1")` keeps `$v1` out of
+anonymous temp allocation for the rest of the function. Three
+`x * x` products then land in `$a2/$a1/$a0` as wanted, but the fourth
+(`rsum * rsum`) goes to `$a3` instead of the target's `$v1`.
+
+Compute the three squares into named dests first (`dx` in `$v0` as the
+common source so each is `lw v0; mult v0,v0; mflo dest`), then write
+the compare as `sum < (b = rsum * rsum)` so the last `mflo` reuses the
+pin. A memory barrier after `delta.vx = dx` keeps that store *before*
+`bgez` (not in the delay slot). On a hit, replay the call-arg and
+field setup in target order (`a0`/`a1`, truncated `pos1`, `a2 = block`,
+`rsum32`, `ret = 1`, zeros) so `li s5, 1` sits after `lhu a3`.
+`func_800DBCAC` is the example.
+
 
 

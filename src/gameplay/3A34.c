@@ -16,6 +16,7 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
+#include <psyq/abs.h>
 #include <psyq/inline_c.h>
 
 #define gte_rtv0_real()   __asm__ volatile("nop; nop; .word 0x4A486012")
@@ -1362,7 +1363,92 @@ void func_800DB900(GpObj* node)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DBA20);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DBCAC);
+s32 func_800DBCAC(GpObj* arg0, GpObj* arg1)
+{
+    void**           scratch;
+    u8*              head;
+    GpSphereScratch* block;
+    register s32     dx asm("v0");
+    register s32     a asm("a0");
+    register s32     b asm("v1");
+    register s32     c asm("a1");
+    register s32     ret asm("s5");
+    register s32     t0 asm("a2");
+    s32              dz;
+    s32              rsum;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    block    = (GpSphereScratch*)(head - 0x48);
+    *scratch = block;
+    func_800E08CC(arg0, (VECTOR3*)(head - 0x34));
+    func_800E08CC(arg1, (VECTOR3*)(head - 0x24));
+
+    dx              = block->pos0.vx;
+    a               = block->pos1.vx;
+    b               = block->pos0.vy;
+    c               = block->pos1.vy;
+    dx             -= a;
+    a               = block->pos0.vz;
+    b              -= c;
+    block->delta.vy = b;
+    b               = block->pos1.vz;
+    ret             = 0;
+    block->delta.vx = dx;
+    __asm__ volatile("" ::: "memory");
+    if (dx < 0) {
+        dx = -dx;
+    }
+    dz              = a - b;
+    block->delta.vz = dz;
+    if ((dx > 0x7FFF) || (ABS(dz) > 0x7FFF)) {
+        *scratch = (u8*)*scratch + 0x48;
+        return 0;
+    }
+
+    __asm__ volatile("" ::: "memory");
+    dx            = block->delta.vx;
+    t0            = dx * dx;
+    dx            = block->delta.vy;
+    c             = dx * dx;
+    dx            = block->delta.vz;
+    a             = dx * dx;
+    rsum          = (u16)arg0->field_1C + (u16)arg1->field_1C;
+    block->rsum32 = rsum;
+    dx            = t0 + c + a;
+    if (dx < (b = rsum * rsum)) {
+        s32 rad;
+
+        a                             = (s32)arg0;
+        c                             = (s32)arg1;
+        dx                            = (u16)block->pos1.vx;
+        t0                            = (s32)block;
+        ((SVECTOR*)(head - 0x48))->vx = dx;
+        dx                            = (u16)block->pos1.vy;
+        b                             = (u16)block->pos1.vz;
+        rad                           = (u16)block->rsum32;
+        ret                           = 1;
+        block->extra.vx               = 0;
+        block->extra.vy               = 0;
+        block->extra.vz               = 0;
+        block->src.vy                 = dx;
+        block->src.vz                 = b;
+        block->rsum                   = rad;
+        func_800DBA20((GpObj*)a, (GpObj*)c, (GpSphereScratch*)t0);
+
+        ((SVECTOR*)(head - 0x48))->vx = (s16)block->pos0.vx;
+        block->src.vy                 = (s16)block->pos0.vy;
+        block->src.vz                 = (s16)block->pos0.vz;
+        block->extra.vx               = 0;
+        block->extra.vy               = 0;
+        block->extra.vz               = 0;
+        block->rsum                   = (s16)block->rsum32;
+        func_800DBA20(arg1, arg0, block);
+    }
+
+    *scratch = (u8*)*scratch + 0x48;
+    return ret;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DBE7C);
 
