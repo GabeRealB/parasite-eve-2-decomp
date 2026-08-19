@@ -23542,3 +23542,51 @@ val = (u32)col >> 5;
 ```
 
 `func_800E2438` is the example.
+
+## Keep a 2D `/3` index from folding, and schedule signed-`/3` magic before the dividend
+
+`unknown_850[i % 3 + (i / 3) * 3]` is algebraically `unknown_850[i]`. GCC
+2.8.1 folds it and emits only one signed `/ 3` (`0x55555556`). Expanding
+the remainder off a copy of the second quotient, then blocking the fold
+with a volatile asm, restores the target's two-divide form:
+
+```
+mult   a1, v0          /* n / 3 */
+...
+mult   v1, v0          /* (n / 3) / 3 */
+move   a0, a2
+subu   a2, v1, a0*3    /* (n / 3) % 3 */
+subu   a1, a1, v1*3
+addiu  a1, a1, 1       /* n % 3 + 1 */
+...
+addu   v0, a2, a0*3    /* reconstructed index */
+```
+
+```c
+register s32 n asm("a1");
+register s32 i asm("v1");
+register s32 row;
+register s32 col;
+
+i    = (arg2 - 0xF) / 3;
+n    = arg2 - 0xF;
+col  = i / 3;
+row  = col;
+col  = i - row * 3;
+save = &Mc_SaveData;
+asm volatile("" : "+r"(row), "+r"(col), "+r"(i), "+r"(n));
+n = n - i * 3 + 1;
+if (save->unknown_850[col + row * 3] < n) {
+    save->unknown_850[col + row * 3] = n;
+}
+```
+
+`i = (arg2 - 0xF) / 3` *before* `n = arg2 - 0xF` (n pinned to `$a1`) CSEs
+the dividend into `$a1` and emits `lui`/`ori` of the `/3` magic *then*
+`addiu a1, s1, -0xF`. Assigning `n` first puts the `addiu` above the
+magic. `save = &Mc_SaveData` in the same block as the second `/3` fills
+that `mult`'s latency with `addiu s0, s0, -0x5BC` (from
+`&Mc_SaveData.field_5BC` back to the struct base). A volatile asm after
+the `% 3` of `i` keeps `n % 3 + 1` from sliding into that same slot.
+
+`func_800CC15C` is the example.

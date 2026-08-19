@@ -93,6 +93,7 @@ typedef struct _GpStateBE8 {
 STATIC_ASSERT_SIZEOF(GpStateBE8, 0x8);
 
 extern GpStateBE8 D_80114BE8;
+extern s32        D_80114BEC; // splat overlay of D_80114BE8.field_4
 
 /// +0xC overlay of the 0x30-byte record `func_8009FEDC` allocates with
 /// `Mem_Calloc(0x30, 0)` and stores at `Task::idMap`. `func_800A7574` is

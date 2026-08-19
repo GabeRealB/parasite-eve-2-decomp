@@ -33,6 +33,7 @@ extern s32            D_80114DE4;
 extern s32            D_80114DE8;
 extern s32            D_80114D8C;
 extern s32            D_80114D90;
+extern s32            D_80114BEC;
 extern UiObject*      D_80114D98[];
 extern s32            D_80114DA0[];
 extern u32            D_80114DCC;
@@ -46,6 +47,7 @@ extern char           D_8010E460[];
 extern char           D_8010E478[];
 extern char           D_8010E494[];
 extern char           D_8010E4A0[];
+extern char           D_8010E4D0[];
 extern char           D_8010E500[];
 extern char           D_8010E504[];
 extern char           D_8010E520[];
@@ -164,6 +166,7 @@ extern char           D_80097120[];
 extern char           D_80097130[];
 extern char           D_80097138[];
 extern char           D_8009715C[];
+extern char           D_80097194[];
 extern u8             D_800971A4;
 extern char           D_800971A8[];
 extern char           D_800971B0[];
@@ -2337,7 +2340,67 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CB33C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CB6FC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CC15C);
+void func_800CC15C(UiObject* arg0, Task* arg1, s32 arg2)
+{
+    u8*           text;
+    s32           width;
+    s32           temp;
+    s32           color;
+    s32           one;
+    WipSysConfig* cfg;
+    McSaveData*   save;
+    register s32  n asm("a1");
+    register s32  i asm("v1");
+    register s32  row;
+    register s32  col;
+
+    text = func_800B8EB0(arg2, 0, 0);
+    if (arg1->state == 0) {
+        width = Text_MeasureWidth(text) + 0xB;
+        temp  = Text_MeasureWidth(D_8010E4D0);
+        if (width < temp) {
+            width = temp;
+        }
+        Ui_UpdateLayoutSize((UiPanel*)arg0, width + 5, Ui_Scale15(2) + 1);
+        ((UiPanel*)arg0)->field_C.x = (-((UiPanel*)arg0)->field_C.w) >> 1;
+        ((UiPanel*)arg0)->field_C.y = ((-((UiPanel*)arg0)->field_C.h) >> 1) - 0x14;
+        func_800BAD28(&Mc_SaveData.field_5BC, (GpItemRec*)D_80114DD4, 1);
+
+        i    = (arg2 - 0xF) / 3;
+        n    = arg2 - 0xF;
+        col  = i / 3;
+        row  = col;
+        col  = i - row * 3;
+        save = &Mc_SaveData;
+        asm volatile("" : "+r"(row), "+r"(col), "+r"(i), "+r"(n));
+        n   = n - i * 3 + 1;
+        cfg = &Wip_SysConfig;
+        if (save->unknown_850[col + row * 3] < n) {
+            save->unknown_850[col + row * 3] = n;
+        }
+        func_800B7930();
+        cfg->field_1c       = cfg->field_1e;
+        D_80114BEC          = cfg->field_1c;
+        arg1->killCountdown = 0xBC;
+        arg1->state         = arg1->state + 1;
+    }
+
+    Ui_DrawText((UiPanel*)arg0, D_80097194);
+    color = 0x606060;
+    one   = 1;
+    Text_DrawPrompt(arg0, arg0->field_1C + 2, (s16)arg0->field_18 + 0xF, D_8010E4D0, color, one, 0);
+    width = Text_DrawPrompt(arg0, arg0->field_1C + 2, (s16)arg0->field_18 + 0x1E, text, 0x37A78, one, 0);
+    Text_DrawPrompt(arg0, width, (s16)arg0->field_18 + 0x1E, D_8010E59C, color, one, 0);
+    arg1->killCountdown--;
+    if (arg0->status == one) {
+        if (Pad_CheckButtons(0, one, D_8005ED78) != 0) {
+            arg0->field_2E = -1;
+        } else if ((arg1->killCountdown <= 0) || (Pad_CheckButtons(0, one, D_8005ED70 | D_8005ED74) != 0)) {
+            arg0->field_2E      = 9;
+            arg1->killCountdown = 0x7FFF;
+        }
+    }
+}
 
 void func_800CC41C(UiObject* arg0, Task* arg1)
 {
