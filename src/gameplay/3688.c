@@ -86,7 +86,9 @@ extern UiList         D_8010E9CC;
 extern UiList         D_8010EA30;
 extern UiListItemFunc D_8010EA6C[];
 extern UiList         D_8010EA74;
+extern char           D_8010F518[];
 extern char           D_8010F528[];
+extern char           D_8010F538[];
 extern u8*            D_8010F544[];
 extern u8*            D_8010F584;
 extern UiList         D_8010F5D0;
@@ -4644,7 +4646,83 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D30CC);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D3660);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D3D98);
+void func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2)
+{
+    TextDrawReq req;
+    TextDrawReq req2;
+    TextDrawReq req3;
+    s32         color;
+    s32         color2;
+    s32         x;
+    s32         y;
+    s32         mask;
+    s32         line;
+    s32         temp;
+    s32         draw;
+    u8*         text;
+
+    if (arg2 == 1) {
+        if ((arg1 & 3) == 0) {
+            arg2 = 0;
+        }
+        arg1 += 1;
+    }
+
+    color = 0x606060;
+    x     = arg0->field_1C + 2;
+    y     = (s16)arg0->field_18 + 0xF;
+    mask  = arg1 & 3;
+    func_800CD924(arg0, x, y, arg1, color, 0);
+    if (mask != 0) {
+        func_800C2538(arg0, x, y, mask, color);
+    }
+
+    text           = D_8010F518;
+    x              = arg0->field_1C + 2;
+    line           = (s16)arg0->field_18;
+    y              = line + 0x21;
+    req.x          = arg0->baseX + x;
+    req.y          = arg0->baseY + line + 0x1C;
+    req.otIndex    = (s16)arg0->drawOrder + 1;
+    req.field_8    = color;
+    req.glyphTable = 0;
+    req.centerMode = 0;
+    req.field_E    = 1;
+    func_8002E53C(&req, text);
+
+    if (CdCmd_IsIdle() & 0xFFFF) {
+        func_800C7AE8(arg0, x, y, 0x200);
+    } else {
+        func_800C7AE8(arg0, x, y, 0x300);
+    }
+
+    color2          = 0x606060;
+    text            = D_8010F528;
+    x               = arg0->field_1C + 0x54;
+    temp            = (s16)arg0->field_18;
+    req2.x          = arg0->baseX + 1 + x;
+    req2.y          = arg0->baseY + temp + 0x24;
+    y               = temp + 0x36;
+    req2.otIndex    = (s16)arg0->drawOrder + 1;
+    req2.field_8    = color2;
+    req2.glyphTable = 0;
+    req2.centerMode = 0;
+    req2.field_E    = 1;
+    func_8002E53C(&req2, text);
+    func_800D3660(arg0, arg1, arg2, x, y, 2);
+
+    req3.x = arg0->baseX + 1 + x;
+    req3.y = arg0->baseY + temp + 0x46;
+    draw   = (s16)arg0->drawOrder;
+    asm("addiu %0, %1, 0x58" : "=r"(y) : "r"(temp), "r"(draw));
+    req3.otIndex    = draw + 1;
+    req3.field_8    = color2;
+    req3.glyphTable = 0;
+    req3.centerMode = 0;
+    req3.field_E    = 1;
+    func_8002E53C(&req3, D_8010F538);
+    func_800D3660(arg0, arg1, arg2, x, y, 3);
+}
 
 void func_800D3FF0(Task* arg0)
 {

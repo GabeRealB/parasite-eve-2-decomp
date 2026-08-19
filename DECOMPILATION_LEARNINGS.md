@@ -23442,6 +23442,30 @@ if (mode != 2) {
 
 `func_800C942C` is the example.
 
+## Pin a late `addiu` to a just-loaded value so it cannot hoist
+
+`y = temp + 0x58` is independent of the third `TextDrawReq` setup, so
+`-fschedule-insns` computes it in the first delay after the previous
+call (`addiu s3, s0, 0x58` before `lhu baseX`). The target wants that
+add in the `lh drawOrder` delay, with `lui`/`%lo` of the string filling
+the earlier loads.
+
+Load `drawOrder` into a named temp first, then emit the add as a
+non-volatile asm that lists `draw` as an input. The data dependence
+keeps the `addiu` after the `lh` without a `volatile` barrier, so `la`
+can still split across `req.x` / `req.y`:
+
+```c
+draw = (s16)obj->drawOrder;
+asm("addiu %0, %1, 0x58" : "=r"(y) : "r"(temp), "r"(draw));
+req.otIndex = draw + 1;
+```
+
+`y = temp + 0x58` plus `asm("" : "+r"(temp) : "r"(draw))` still hoists,
+or else pulls an earlier `lh field_18` out of its `lhu baseX` delay.
+`asm volatile` parks the add correctly but inserts `nop`s and delays
+`la`. `func_800D3D98` is the example.
+
 ## Two spilled offset locals for two `i + off + table` loops
 
 A pair of loops that both compute `(id - 0x80) * 4` then
