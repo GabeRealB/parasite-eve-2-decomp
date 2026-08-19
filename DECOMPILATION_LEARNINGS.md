@@ -22103,5 +22103,39 @@ func_800B3448(arg0, arg1, 0, f8 + off);
 first; `(arg2 << 2) + (s32)slot->field_20` is what puts the shift before
 the load.
 
+## Do not hoist `one = 1` across a toast if/else
+
+A prompt with two text arms (error string vs item name) wants a literal
+`1` in the short arm and a named `one` only in the arm that reuses it
+for several `Text_DrawPrompt` calls:
+
+```
+bne   v1, v0, else
+ move a0, s1
+jal   Ui_LookupTable
+ li   a1, 1
+...
+li    v0, 1
+sw    v0, 0x14(sp)
+j     join
+...
+else:
+jal   Ui_LookupTable
+ li   a1, 1
+...
+li    s0, 1
+sw    s0, 0x14(sp)
+```
+
+Hoisting `one = 1` before the `if` parks `1` in `$s0` and steals the
+`bne` delay slot (`li s0, 1`), turns `Ui_LookupTable(obj, 1)` into
+`move a1, s0`, and makes `if (obj->status == 1)` compare against the
+live `one` (`lw v0, 0(s1)` / `bne v0, s0`) instead of
+`lw s0` / `li v0, 1` / `bne s0, v0`. That last `$s0` load is also what
+the later `Game_Session->field_66 == 1` reuses.
+
+Set `one = 1` only in the reuse arm; leave a bare `1` in the other.
+`func_800C70F0` is the example.
+
 
 

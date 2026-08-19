@@ -42,6 +42,8 @@ extern s32            D_80114E88;
 extern s32            D_80114E8C;
 extern s32            D_80114E90;
 extern s32            D_80114E94;
+extern char           D_8010E460[];
+extern char           D_8010E478[];
 extern char           D_8010E494[];
 extern char           D_8010E4A0[];
 extern char           D_8010E500[];
@@ -1114,7 +1116,82 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C5C2C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C5F70);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C70F0);
+void func_800C70F0(Task* arg0)
+{
+    UiObject* obj;
+    UiList*   menu;
+    void*     slot;
+    s32       item;
+    s32       ret;
+    s32       width;
+    s32       other;
+    s32       color;
+    s32       one;
+    u8*       text;
+
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    if (arg0->state == 0) {
+        menu = &D_8010E960;
+        slot = Game_GetPtrSlot(7);
+        item = func_800BB668(menu->field_10, 0);
+        ret  = func_800AC464(slot, 0x13F1, item, 0);
+        if (ret == 1) {
+            arg0->spawnArg1 = item;
+            width           = Text_MeasureWidth(func_800B8EB0(item, 0, 0)) + 0xB;
+            other           = Text_MeasureWidth(D_8010E478);
+            if (width < other) {
+                width = other;
+            }
+            Ui_UpdateLayoutSize((UiPanel*)obj, width + 5, Ui_Scale15(2) + 1);
+            ((UiPanel*)obj)->field_C.x = (-((UiPanel*)obj)->field_C.w) >> 1;
+            obj->field_4              &= 0x7FFFFFFF;
+        } else if (ret == 2) {
+            Ui_SetState4((Task*)obj, arg0);
+            obj->field_2E = -1;
+            obj->timer    = 0x64;
+            arg0->state   = arg0->state + 1;
+        } else {
+            arg0->spawnArg1 = -1;
+            Ui_SizeFromTextPlain((UiPanel*)obj, D_8010E460);
+            obj->field_4 &= 0x7FFFFFFF;
+        }
+        arg0->killCountdown = 0xBC;
+        arg0->state         = arg0->state + 1;
+    }
+    if (arg0->state != 2) {
+        Ui_DrawText((UiPanel*)obj, D_800970D8);
+        if (arg0->spawnArg1 == -1) {
+            color = Ui_LookupTable(obj, 1);
+            Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, D_8010E460, color, 1, 0);
+        } else {
+            color = Ui_LookupTable(obj, 1);
+            one   = 1;
+            Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, D_8010E478, color, one, 0);
+            text  = func_800B8EB0(arg0->spawnArg1, 0, 0);
+            width = Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0x1E, text, 0x37A78, one, 0);
+            Text_DrawPrompt(obj, width, (s16)obj->field_18 + 0x1E, D_8010E59C, 0x606060, one, 0);
+        }
+        arg0->killCountdown = arg0->killCountdown - Display_State.field_10a;
+        if (obj->status == 1) {
+            if (Pad_CheckButtons(0, 1, D_8005ED78) != 0) {
+                obj->field_2E = -1;
+            } else if ((arg0->killCountdown <= 0) ||
+                       (Pad_CheckButtons(0, 1, D_8005ED70 | D_8005ED74) != 0)) {
+                if (arg0->spawnArg1 == -1) {
+                    if (Game_Session->field_66 == 1) {
+                        obj->field_2E = 6;
+                    } else {
+                        obj->field_2E = 9;
+                    }
+                } else {
+                    obj->field_2E = -1;
+                }
+                arg0->killCountdown = 0x7FFF;
+            }
+        }
+    }
+}
 
 void func_800C7444(Task* arg0)
 {
