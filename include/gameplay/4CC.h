@@ -57,6 +57,9 @@ extern GpItemDesc D_8010D638[];
 /// `Mc_SaveData.field_12` on the case-8 path. Copied into `D_80114D7C`
 /// by `func_800BCC44`.
 extern u16 D_80114DDC;
+/// Extra halfword copied from `GpBit2Rec.field_6` by `func_800B63B8`
+/// (always written on a match; delay slot of the item-id `< 0x100` check).
+extern u16 D_80114DDE;
 /// Set to 1 by `func_800BF624` after it publishes `D_80114DDC` /
 /// `D_80114DD0`.
 extern u16 D_80114DC8;

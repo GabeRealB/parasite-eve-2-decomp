@@ -60,12 +60,15 @@ typedef struct _GpItemQty {
 } GpItemQty;
 STATIC_ASSERT_SIZEOF(GpItemQty, 0x4);
 
-/// 16-byte record walked by `func_800BB838` / `func_800BAB64`.
-/// field_0 is a packed item id (0xFFFF terminator); field_6 low 2 bits
-/// are the value written into the dest 2-bit bank.
+/// 16-byte record walked by `func_800BB838` / `func_800BAB64` /
+/// `func_800B63B8`. field_0 is a packed item id (0xFFFF terminator);
+/// field_2 is the item id published to `D_80114DDC` by `func_800B63B8`;
+/// field_6 is the extra halfword published to `D_80114DDE` (and the low
+/// 2 bits written into the dest 2-bit bank by `func_800BB838`).
 typedef struct _GpBit2Rec {
     /* 0x00 */ u16  field_0;
-    /* 0x02 */ byte pad_2[4];
+    /* 0x02 */ u16  field_2;
+    /* 0x04 */ byte pad_4[2];
     /* 0x06 */ u16  field_6;
     /* 0x08 */ byte pad_8[8];
 } GpBit2Rec;
@@ -81,8 +84,10 @@ typedef struct _GpEnemyDesc {
 } GpEnemyDesc;
 STATIC_ASSERT_SIZEOF(GpEnemyDesc, 0x10);
 
-/// 8-byte list node walked by `func_800BB838` / `func_800BAB64`.
-/// field_0 is a `GpBit2Rec` list (NULL skips; `(GpBit2Rec*)-1` ends).
+/// 8-byte list node walked by `func_800BB838` / `func_800BAB64` /
+/// `func_800B63B8`. field_0 is a `GpBit2Rec` list (NULL skips;
+/// `(GpBit2Rec*)-1` ends in `func_800BB838` / `func_800BAB64`;
+/// `(GpBit2Rec*)0x7FFFFFFF` ends in `func_800B63B8`).
 /// `func_800B6B44` also reads field_0 as a `GpEnemyPlace` list and field_4
 /// as a 0xFFFF-terminated `GpEnemyDesc` table. `D_8010D230[i].field_0`
 /// points at a table of these.

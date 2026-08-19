@@ -1488,13 +1488,14 @@ map onto the 32-entry slice at `D_8010E2B8` (`D_8010DFB8 + 0x60 * 8`).
 | 0x04 | `field_4` | Word added into `Wip_SysConfig.field_1e` (`func_800B7930`) |
 
 ### `GpBit2Rec` (0x10) — `268.h`
-0xFFFF-terminated records walked by `func_800BB838` / `func_800BAB64`.
-Each record writes one 2-bit field into a dest bank.
+0xFFFF-terminated records walked by `func_800BB838` / `func_800BAB64` /
+`func_800B63B8`. Each record writes one 2-bit field into a dest bank.
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x00 | `field_0` | Packed item id (low 4 bits = nibble index; `>> 4` = word index); 0xFFFF ends the list |
-| 0x06 | `field_6` | Low 2 bits are the value stored into the dest bank |
+| 0x00 | `field_0` | Packed item id (low 4 bits = nibble index; `>> 4` = word index); 0xFFFF ends the list. Matched against `func_800B63B8`'s arg |
+| 0x02 | `field_2` | Item id published to `D_80114DDC` by `func_800B63B8` |
+| 0x06 | `field_6` | Extra halfword published to `D_80114DDE` by `func_800B63B8`; low 2 bits are the value stored into the dest bank |
 
 ### `GpBit2List` (0x8) — `268.h`
 Table of record-list pointers walked by `func_800BB838` / `func_800BAB64`.

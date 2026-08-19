@@ -22263,5 +22263,30 @@ mem->field_26 = ((u32)D_80070F60 >> 16) & 0xFFF;
 
 `func_801005D8` is the example.
 
+## Literal `1` hoists into `$s1` among `%hi` `lui`s; a named `one` does not
+
+A pinned `register s32 one asm("s1"); one = 1;` assigned before the loop
+emits `li s1, 1` immediately after the other pre-loop `li` (e.g. the
+`0xFFFF` terminator), *before* hoisted `lui %hi(global)`s. The target
+wants that `li` between the second and third `lui`:
+
+```
+li    s8, 0xffff
+lui   s6, %hi(D_80114DDC)
+lui   s4, %hi(D_80114DD0)
+li    s1, 1
+lui   s5, %hi(D_80114DC8)
+```
+
+Write the stores as a literal `1` (`D_80114DD0 = 1; D_80114DC8 = 1;`)
+and do **not** introduce a `one` temp. GCC CSE's the constant into `$s1`
+and places `li s1, 1` in first-use order among the hoisted `%hi`s.
+
+Duplicate `D_80114DC8 = 1` in each arm of the remap (not once after the
+join) so `%hi(D_80114DC8)` hoists into `$s5`. GCC still CSE's the stores
+back to a single `sh` after the join.
+
+`func_800B63B8` is the example.
+
 
 

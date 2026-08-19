@@ -6,6 +6,7 @@
 
 #include "gameplay/1BC.h"
 #include "gameplay/268.h"
+#include "gameplay/4CC.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
 #include "main/display.h"
@@ -1562,7 +1563,88 @@ void func_800B6398(void)
     func_800D9DFC();
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B63B8);
+typedef struct {
+    /* 0x00 */ u16  field_0;
+    /* 0x02 */ byte pad_2[2];
+    /* 0x04 */ u16  field_4;
+    /* 0x06 */ byte pad_6[0xA];
+} GpBit2Off2;
+STATIC_ASSERT_SIZEOF(GpBit2Off2, 0x10);
+
+s32 func_800B63B8(s32 arg0)
+{
+    GpBit2List*  lists;
+    GpBit2Rec*   rec;
+    GpBit2Off2*  tail;
+    GpItemA0*    attrs;
+    s32          idx;
+    s32          matched;
+    register u16 item asm("v1");
+    u16          extra;
+    s32          term;
+    s32          found;
+
+    idx   = Mc_SaveData.field_7;
+    lists = D_8010D230[idx].field_0;
+    found = 0;
+    if (lists != NULL) {
+        if (lists->field_0 != (GpBit2Rec*)0x7FFFFFFF) {
+            term = 0xFFFF;
+            do {
+                rec     = lists->field_0;
+                matched = 0;
+                if (rec != NULL) {
+                    if (rec->field_0 != term) {
+                        attrs = D_8010E3B8;
+                        tail  = (GpBit2Off2*)&rec->field_2;
+                        do {
+                            if (rec->field_0 == arg0) {
+                                item       = tail->field_0;
+                                extra      = tail->field_4;
+                                D_80114DEC = arg0;
+                                D_80114DDC = item;
+                                D_80114DDE = extra;
+                                if (item < 0x100U) {
+                                    if (func_800B7420(tail->field_0) != 0) {
+                                        if ((u32)(tail->field_0 - 0x80) < 0x20U) {
+                                            D_80114DDC = 0x3D;
+                                        } else {
+                                            D_80114DDC = 0xD;
+                                        }
+                                        D_80114DD0 = 1;
+                                        D_80114DC8 = 1;
+                                    } else if ((u32)(tail->field_0 - 0xA0) < 0x20U) {
+                                        if (func_800BB470(arg0) != 3) {
+                                            idx        = tail->field_0 - 0xA0;
+                                            D_80114DD0 = attrs[idx].field_0;
+                                        } else {
+                                            idx        = tail->field_0 - 0xA0;
+                                            D_80114DD0 = attrs[idx].field_2;
+                                        }
+                                        D_80114DC8 = 1;
+                                    } else {
+                                        D_80114DD0 = 1;
+                                        D_80114DC8 = 1;
+                                    }
+                                }
+                                found   = 1;
+                                matched = found;
+                                break;
+                            }
+                            rec++;
+                            tail++;
+                        } while (rec->field_0 != term);
+                    }
+                }
+                if (matched == 1) {
+                    break;
+                }
+                lists++;
+            } while (lists->field_0 != (GpBit2Rec*)0x7FFFFFFF);
+        }
+    }
+    return found;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B65B0);
 

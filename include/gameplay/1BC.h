@@ -298,6 +298,11 @@ s32        func_800B5E78(Task* arg0, Task* arg1, s32 arg2, Task** arg3);
 s32        func_800B5EE8(Task* arg0);
 s32        func_800B5F5C(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_800B62D4(void);
+/// Looks up `arg0` as `GpBit2Rec.field_0` in
+/// `D_8010D230[Mc_SaveData.field_7]`. On a hit, publishes the record's
+/// item id / extra / stack count into `D_80114DEC` / `D_80114DDC` /
+/// `D_80114DDE` / `D_80114DD0` and returns 1.
+s32        func_800B63B8(s32 arg0);
 void       func_800B6B44(GameSessionFrom4* arg0);
 void       func_800B6CF0(void);
 s32        func_800B6DA4(s32 arg0, s32 arg1);
