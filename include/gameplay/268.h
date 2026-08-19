@@ -263,6 +263,13 @@ s32         func_800B8988(GpItemScan* arg0, s32 arg1);
 /// `func_800BAD08` first, then an existing stack is moved onto the slot when
 /// it is empty. Other ids overwrite the slot (re-adding the previous item).
 GpItemRec*  func_800B8B00(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Adds `arg2` of item `arg1` to the item table selected by `arg0`.
+/// Ids `0xA0..0xBF` stack onto an existing row, clamped to
+/// `D_8010E3B8[id-0xA0].field_2`. `arg2 < 0` uses that row's `field_0`
+/// as the count, or `field_2` when `arg2 == -2`; out-of-range ids use 1.
+/// Other ids take the first free slot with quantity 1. Returns the
+/// written row, or NULL if none was free.
+GpItemRec*  func_800B8CAC(GpItemScan* arg0, s32 arg1, s32 arg2);
 /// Returns the `arg1`-th text field of item `arg0` (NUL / `\\n` / `\\N`
 /// delimiters). `arg2 == 0` reads `Mc_SaveData.field_6D0` and adds 3 to
 /// `arg1` when the bit is clear. Ids `>= 0x500` index `D_801D6484`;

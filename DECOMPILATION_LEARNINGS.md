@@ -22632,5 +22632,48 @@ field setup in target order (`a0`/`a1`, truncated `pos1`, `a2 = block`,
 `rsum32`, `ret = 1`, zeros) so `li s5, 1` sits after `lhu a3`.
 `func_800DBCAC` is the example.
 
+## Split `done` / `ret` so fill jumps to `move $v0` and found jumps to `jr ra`
+
+A leaf that returns a pointer kept in `$t2` wants two epilogue entry points:
+
+```
+bnez  t3, ret
+ move  v0, t2
+...
+j     done
+ sb    zero, 1(t2)
+done:
+move  v0, t2
+ret:
+jr    ra
+ nop
+```
+
+`return dest` after `result = dest` becomes one `jr ra` / `move v0, t2` tail, and a second `if (found) return result` grows its own `jr ra`. Split the labels:
+
+```c
+result = dest;
+if (found != 0) {
+    goto ret;
+}
+...
+goto done;
+done:
+    result = dest;
+ret:
+    return result;
+```
+
+`result = dest` before the branch fills the `bnez` delay; fill / empty-count `goto done` land on the `move`; found skips it.
+
+A later `i = 0` then copy-props from the now-known-zero `found` (`move t0, t3`). Kill that equality with a non-volatile empty asm so the constant 0 uses `$zero`:
+
+```c
+asm("" : "+r"(found));
+i = 0;
+```
+
+`volatile` parks a `nop` in the `beqz count` delay instead of `move t0, zero`. Put a `goto fill` target *above* the non-stacking loop so the empty-slot body is a backward `beqz` between an early `jr ra` and the loop setup. `func_800B8CAC` is the example.
+
 
 

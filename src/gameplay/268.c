@@ -19,35 +19,34 @@ extern u16          D_800739B8;
 extern GpItemRec*   D_80114DD4;
 extern UiObjectDesc D_8010D384;
 
-void       func_80180804(void);
-void       func_8017EA68(void);
-void       func_80181468(void);
-void       func_8017EA90(void);
-void       func_8017E9E8(void);
-void       func_80181364(void);
-void       func_8017EA58(void);
-void       func_8017E9F8(void);
-void       func_8017EAE0(void);
-void       func_8018138C(void);
-void       func_8017EA74(void);
-void       func_8017EA78(void);
-void       func_8017EB2C(void);
-void       func_8017EDE8(void);
-void       func_8017EAB4(void);
-void       func_8017EA64(void);
-void       func_8017EC04(void);
-void       func_8017EAC4(void);
-void       func_8017EA60(void);
-GpItemRec* func_800B8CAC(GpItemScan* arg0, s32 arg1, s32 arg2);
-s32        func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
-void       func_800CF448(s32 arg0);
-void       func_800B6CF0(void);
-void       func_800BAEC0(s32 arg0);
-void       func_800BAE5C(s32 arg0);
-s32        func_800BBCCC(GpItemRec* arg0, GpItemScan* arg1, s32* arg2, s32 arg3);
-void       func_800C1148(UiPanel* arg0, s32 arg1);
-void       func_801061F0(void);
-void       func_800D2F68(Task* arg0);
+void func_80180804(void);
+void func_8017EA68(void);
+void func_80181468(void);
+void func_8017EA90(void);
+void func_8017E9E8(void);
+void func_80181364(void);
+void func_8017EA58(void);
+void func_8017E9F8(void);
+void func_8017EAE0(void);
+void func_8018138C(void);
+void func_8017EA74(void);
+void func_8017EA78(void);
+void func_8017EB2C(void);
+void func_8017EDE8(void);
+void func_8017EAB4(void);
+void func_8017EA64(void);
+void func_8017EC04(void);
+void func_8017EAC4(void);
+void func_8017EA60(void);
+s32  func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_800CF448(s32 arg0);
+void func_800B6CF0(void);
+void func_800BAEC0(s32 arg0);
+void func_800BAE5C(s32 arg0);
+s32  func_800BBCCC(GpItemRec* arg0, GpItemScan* arg1, s32* arg2, s32 arg3);
+void func_800C1148(UiPanel* arg0, s32 arg1);
+void func_801061F0(void);
+void func_800D2F68(Task* arg0);
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B7420);
 
@@ -603,7 +602,130 @@ done:
     return dest;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800B8CAC);
+GpItemRec* func_800B8CAC(GpItemScan* arg0, s32 arg1, s32 arg2)
+{
+    register GpItemRec* tmp asm("v0");
+    register GpItemRec* table asm("t4");
+    register GpItemRec* dest asm("t2");
+    register s32        found asm("t3");
+    register s32        start asm("t1");
+    register s32        i asm("t0");
+    register s32        idx asm("v1");
+    register s32        off asm("v0");
+    register GpItemRec* result asm("v0");
+    GpItemRec*          rec;
+    GpItemA0*           attrs;
+    s32                 temp;
+    s32                 count;
+
+    switch (arg0->field_2) {
+        case 2:
+            tmp = D_80114C20;
+            break;
+        case 1:
+            tmp = D_80114D70;
+            break;
+        default:
+            tmp = Mc_SaveData.field_1AC;
+            break;
+    }
+    dest  = NULL;
+    table = tmp;
+    if (arg2 < 0) {
+        temp = arg1 - 0xA0;
+        if ((u32)temp < 0x20U) {
+            if (arg2 == -2) {
+                arg2 = D_8010E3B8[temp].field_2;
+            } else {
+                arg2 = D_8010E3B8[temp].field_0;
+            }
+        } else {
+            arg2 = 1;
+        }
+    }
+
+    start = arg0->field_0;
+    idx   = arg1 - 0xA0;
+    found = 0;
+    if ((u32)idx < 0x20U) {
+        i = found;
+        if (arg0->field_1 != 0) {
+            attrs = D_8010E3B8;
+            idx   = (idx << 2) + (s32)attrs;
+            do {
+                rec = (GpItemRec*)((start << 2) + (s32)table);
+                if (rec->field_0 == arg1) {
+                    arg2 += rec->field_2;
+                    if (((GpItemA0*)idx)->field_2 < arg2) {
+                        arg2 = ((GpItemA0*)idx)->field_2;
+                    }
+                    rec->field_2 = arg2;
+                    dest         = rec;
+                    found        = 1;
+                    break;
+                }
+                i++;
+                start++;
+            } while (i < arg0->field_1);
+        }
+        result = dest;
+        if (found != 0) {
+            goto ret;
+        }
+        start = arg0->field_0;
+        if (arg0->field_1 == 0) {
+            goto done;
+        }
+        asm("" : "+r"(found));
+        i     = 0;
+        attrs = D_8010E3B8;
+        idx   = arg1 - 0xA0;
+        idx   = (idx << 2) + (s32)attrs;
+        off   = start << 2;
+        rec   = (GpItemRec*)(off + (s32)table);
+        do {
+            if (rec->field_0 == 0) {
+                rec->field_0 = arg1;
+                if (((GpItemA0*)idx)->field_2 < arg2) {
+                    arg2 = ((GpItemA0*)idx)->field_2;
+                }
+                dest          = rec;
+                dest->field_2 = arg2;
+                dest->field_1 = 0;
+                goto done;
+            }
+            i++;
+            rec++;
+        } while (i < arg0->field_1);
+        return dest;
+    }
+
+    goto loop_header;
+fill:
+    dest          = (GpItemRec*)idx;
+    dest->field_0 = arg1;
+    dest->field_2 = 1;
+    dest->field_1 = 0;
+    goto done;
+loop_header:
+    count = arg0->field_1;
+    i     = 0;
+    if (count != 0) {
+        off = start << 2;
+        idx = off + (s32)table;
+        do {
+            if (((GpItemRec*)idx)->field_0 == 0) {
+                goto fill;
+            }
+            i++;
+            idx += 4;
+        } while (i < count);
+    }
+done:
+    result = dest;
+ret:
+    return result;
+}
 
 char* func_800B8EB0(s32 arg0, s32 arg1, s32 arg2)
 {
