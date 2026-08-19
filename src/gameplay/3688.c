@@ -151,6 +151,7 @@ extern char           D_80096FE4[];
 extern char           D_80096FEC[];
 extern char           D_80096FF4[];
 extern char           D_8009701C[];
+extern char           D_80097024[];
 extern char           D_8009703C[];
 extern char           D_800970D8[];
 extern char           D_800970E0[];
@@ -781,7 +782,71 @@ void func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C22D8);
+void func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+{
+    u8            buf[2];
+    TextDrawReq   req;
+    s32           equipped;
+    s32           hasMod;
+    WipSysConfig* cfg;
+    GpItemSlot*   slot;
+    s32           color;
+    s32           x;
+    s32           y;
+
+    equipped = 0;
+    cfg      = &Wip_SysConfig;
+    buf[0]   = 0;
+    buf[1]   = 0;
+    if ((((u32)(arg3 - 0x80) < 0x20U) && (cfg->field_21 == (arg3 - 0x7F))) ||
+        (((u32)(arg3 - 0x60) < 0x20U) && (cfg->field_23 == (arg3 - 0x5F))) ||
+        (((u32)(arg3 - 0xA0) < 0x20U) && (cfg->field_21 != 0) &&
+         ((func_800BAFE0(cfg->field_21 + 0x7F)->field_0 == arg3) ||
+          (func_800BAFE0(cfg->field_21 + 0x7F)->field_2 == arg3)))) {
+        equipped = 1;
+    }
+    if (equipped != 0) {
+        buf[0]         = 0x45;
+        color          = 0x606060;
+        x              = arg0->baseX - 1;
+        req.x          = x + arg1;
+        y              = arg0->baseY - 2;
+        req.y          = y + arg2;
+        req.otIndex    = (s16)arg0->drawOrder + 1;
+        req.field_8    = color;
+        req.glyphTable = 5;
+        req.centerMode = 0;
+        req.field_E    = 2;
+        func_8002E53C(&req, D_80097024);
+    } else {
+        hasMod = 0;
+        if ((u32)(arg3 - 0x80) < 0x20U) {
+            slot = func_800BAFE0(arg3);
+            if (((slot->field_1 != 0) && (func_800D6910(slot->field_0) != NULL)) ||
+                ((slot->field_3 != 0) && (func_800D6910(slot->field_2) != NULL))) {
+                hasMod = 1;
+            }
+        }
+        if (hasMod != 0) {
+            buf[0] = 0x4C;
+        } else if (arg4 == 2) {
+            buf[0] = 0x41;
+        }
+    }
+    if (buf[0] != 0) {
+        color          = 0x606060;
+        x              = arg0->baseX - 1;
+        req.x          = x + arg1;
+        y              = arg0->baseY - 2;
+        req.y          = y + arg2;
+        req.otIndex    = (s16)arg0->drawOrder + 1;
+        req.field_8    = color;
+        req.glyphTable = 5;
+        req.centerMode = 0;
+        req.field_E    = 2;
+        func_8002E53C(&req, buf);
+    }
+}
 
 void func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 {

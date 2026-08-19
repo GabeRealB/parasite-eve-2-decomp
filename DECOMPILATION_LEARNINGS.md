@@ -3,6 +3,24 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Stage `u16 - N` through an `s32` so GCC emits `addiu -N`
+
+`req.x = obj->baseX - 1 + arg1` with `baseX` a `u16` and `req.x` an `s16`
+emits `li v1, 0xffff` / `addu`. A named `s32` temp matches the neighboring
+text-draw functions and gets `addiu v0, v0, -1` / `addu v0, v0, arg1`:
+
+```c
+x     = obj->baseX - 1;
+req.x = x + arg1;
+y     = obj->baseY - 2;
+req.y = y + arg2;
+```
+
+Assign `color = 0x606060` in the same branch so `lui a2, 0x60` fills the
+`beqz equipped` delay slot. Inlining `req.field_8 = 0x606060` puts the
+constant in `$a1` and delays `la a1, D_80097024`. `func_800C22D8` is the
+example.
+
 ## Save incoming `$a2` first, then split `G_SCRATCH_HEAD` so `lui` sits in the prologue
 
 A 3-arg function that keeps `arg2` in `$s4` and then allocates from
