@@ -23074,3 +23074,31 @@ extra->field_C = (flags | 0x80) & 0xFFFB;
 ```
 
 `func_80104684` is the example.
+
+## Copy into `$v0` before `<< 16` so the shift is `move` / `sll`, not `sll` from `$a2`
+
+A 0/1 flag in `$a2` that is then tested as `(s16)flag` (i.e. `sll 16` /
+`blez`) wants:
+
+```
+move   v0, a2
+sll    v0, v0, 0x10
+blez   v0, fail
+```
+
+`shifted = found << 16` with `shifted` pinned to `$v0` emits `sll v0, a2,
+0x10`. Copy first, then a `+r` barrier so `-fschedule-insns` cannot fold
+the copy into the shift:
+
+```c
+register s32 shifted asm("v0");
+
+shifted = found;
+asm volatile("" : "+r"(shifted));
+shifted = shifted << 16;
+if (shifted > 0) {
+```
+
+A `for (i = 0; i < 3; i++)` over `((u8*)((s32)row + i))[1]` keeps two
+long-lived pointers (`arg2`, a table) in `$s3`/`$s4`. The equivalent
+`goto` loop swaps those two s-registers. `func_800B6EE0` is the example.

@@ -345,5 +345,6 @@ void       func_800B6950(u16 arg0);
 void       func_800B6B44(GameSessionFrom4* arg0);
 void       func_800B6CF0(void);
 s32        func_800B6DA4(s32 arg0, s32 arg1);
+s32        func_800B6EE0(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 
 #endif // GAMEPLAY_1BC_H

@@ -1996,6 +1996,127 @@ done:
     return slot->field_3;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B6EE0);
+s32 func_800B6EE0(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    s32          index;
+    s32          index2;
+    GpItemRec*   table;
+    GpItemScan*  scan;
+    GpItemSlot*  slot;
+    s32          found;
+    s32          have;
+    register s32 shifted asm("v0");
+
+    scan  = &Mc_SaveData.field_5BC;
+    table = func_800BB500(scan);
+    if ((u32)(arg1 - 0x80) < 0x20U) {
+        found = 0;
+        if (arg1 >= 0xA0) {
+            index   = scan->field_0;
+            shifted = func_800BBCCC(table, scan, &index, arg1);
+            shifted = shifted << 16;
+        } else {
+            register s32        i asm("v1");
+            register s32        count asm("v0");
+            register s32        end asm("a0");
+            register s32        off asm("v0");
+            register s32        limit asm("a1");
+            register GpItemRec* rec asm("a0");
+
+            i     = scan->field_0;
+            count = scan->field_1;
+            end   = i + count;
+            if (i < end) {
+                off   = i << 2;
+                limit = end;
+                rec   = (GpItemRec*)(off + (s32)table);
+                for (; i < limit; i++, rec++) {
+                    if (rec->field_0 == arg1) {
+                        found = 1;
+                        break;
+                    }
+                }
+            }
+            shifted = found;
+            asm volatile("" : "+r"(shifted));
+            shifted = shifted << 16;
+        }
+        if (shifted > 0) {
+            register s32        off asm("v0");
+            register GpItemQty* qtyTable asm("v1");
+            register s32        maxQty asm("a1");
+            register s32        clamped asm("a0");
+            register s32        i asm("v1");
+            register s32        idx asm("a0");
+            GpItemQty*          row;
+
+            off = arg1 << 2;
+            if (arg0 == 0) {
+                qtyTable = D_8010E038;
+            } else {
+                qtyTable = D_8010D078;
+            }
+            row = (GpItemQty*)(off + (s32)qtyTable);
+            asm volatile("" : "+r"(row));
+            idx    = arg1 - 0x80;
+            maxQty = 0;
+            if ((u32)idx < 0x20U) {
+                off    = idx << 2;
+                maxQty = *(u8*)((s32)qtyTable + off + 0x200);
+            }
+            clamped = maxQty;
+            i       = 0;
+            for (; i < 3; i++) {
+                if (((u8*)((s32)row + i))[1] == arg2) {
+                    break;
+                }
+            }
+            if (i != 3) {
+                if (arg3 < 0) {
+                    arg3 = clamped;
+                }
+                if (clamped < arg3) {
+                    arg3 = clamped;
+                }
+                index2 = scan->field_0;
+                slot   = &Mc_SaveData.field_1C8[arg1];
+                have   = (s16)func_800BBCCC(table, scan, &index2, arg2);
+                have  -= func_800BAFF4(scan, arg2);
+                if (arg0 == 0) {
+                    if (slot->field_0 == arg2) {
+                        have += slot->field_1;
+                    }
+                } else if (slot->field_2 == arg2) {
+                    have += slot->field_3;
+                }
+                if (have > 0) {
+                    goto success;
+                }
+            } else {
+                return -1;
+            }
+        } else {
+            return -1;
+        }
+    }
+    return -1;
+success:
+    if (arg3 != 0) {
+        if (have < arg3) {
+            arg3 = have;
+        }
+        if (arg0 == 0) {
+            slot->field_0 = arg2;
+            slot->field_1 = arg3;
+        } else if (slot->field_2 != 0xFF) {
+            slot->field_2 = arg2;
+            slot->field_3 = arg3;
+        } else {
+            arg3 = -1;
+        }
+        return arg3;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B715C);

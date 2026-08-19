@@ -49,9 +49,11 @@ typedef McItemRec GpItemRec;
 /// 4-byte entry in `D_8010D278` / `D_8010E238` (32 entries, item ids
 /// 0x80–0x9F). field_0 is a count (`func_800BB938` / `func_800B6CF0`);
 /// field_1–3 are related item ids (`func_800C942C` / `func_800B904C` /
-/// `func_800CF4EC`).
-/// `D_8010E238` is the first `GpItemSlot` pair (arg1 == 0);
+/// `func_800CF4EC` / `func_800B6EE0`).
+/// `D_8010E238` is the first `GpItemSlot` pair (arg0 == 0);
 /// `D_8010D278` is the second.
+/// `D_8010E038` / `D_8010D078` are the same tables indexed by raw item id
+/// (`D_8010E238` is `D_8010E038 + 0x200`).
 typedef struct _GpItemQty {
     /* 0x00 */ u8 field_0;
     /* 0x01 */ u8 field_1;
@@ -196,6 +198,9 @@ typedef struct _GpStatRow {
 STATIC_ASSERT_SIZEOF(GpStatRow, 0x8);
 
 extern GpBit2Bank D_8010D230[];
+/// Qty table indexed by raw item id. `D_8010D278` is the 0x80–0x9F slice
+/// at +0x200 (`func_800B6EE0` / `func_800B715C`).
+extern GpItemQty  D_8010D078[];
 extern GpItemQty  D_8010D278[];
 extern GpItemMap  D_8010D2F8[];
 extern GpItemScan D_8010D520;
@@ -210,6 +215,9 @@ extern GpItemScan* D_8010D550[];
 extern GpItemScan* D_8010D55C;
 extern GpStatRow  D_8010D328[];
 extern GpItemAttr D_8010DFB8[];
+/// Qty table indexed by raw item id. `D_8010E238` is the 0x80–0x9F slice
+/// at +0x200 (`func_800B6EE0` / `func_800B715C`).
+extern GpItemQty  D_8010E038[];
 extern GpItemQty  D_8010E238[];
 extern GpItemAttr D_8010E2B8[];
 extern GpItemA0   D_8010E3B8[];
