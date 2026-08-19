@@ -38,29 +38,33 @@ typedef struct _GpHudScratch {
 STATIC_ASSERT_SIZEOF(GpHudScratch, 0x1C);
 
 /// Global at `D_80114C08`. `field_0` is a u16 loaded by many helpers.
-/// `field_3` is a signed state byte (`lb`); `func_80109290` compares it to -2
-/// and `func_80109374` requires 0. `field_5` is a signed category index
-/// (`lb` as splat `D_80114C0D`); `func_800A1558` uses it to pick a
-/// `D_8011398C` row when it is `< 0xC`. `field_B` is the same kind of
-/// signed index (`lb`); `func_800A1634` uses `field_5` when its first
-/// arg is 1 and `field_B` otherwise. `field_6` is a flags byte (bit 0
-/// gates `func_800A7DB8` writing `field_E`; bit 1 is cleared by
-/// `func_800A7574` and forces `func_800A7E5C` to 0 when that function's
-/// arg is 0). `field_A` is a signed byte (`lb`); `func_800A7DE0` sets
-/// `field_3 = 2` when it is >= 2, then clears it. `func_800A7574` also
-/// zeros `field_A`, `field_C`..`field_F`, `field_10`/`field_12`/`field_14`,
-/// and `field_16`/`field_17`. Those two bytes are also the item 4 / item 8
-/// gates in `func_800D6170` (`lb`).
+/// `field_2` is a signed byte (`lb` as splat `D_80114C0A`); `func_800A1F64`
+/// writes the low byte of `func_800A1558(3)`, replacing it with 1 when
+/// that value is <= 0. `field_3` is a signed state byte (`lb`);
+/// `func_80109290` compares it to -2 and `func_80109374` requires 0.
+/// `field_5` is a signed category index (`lb` as splat `D_80114C0D`);
+/// `func_800A1558` uses it to pick a `D_8011398C` row when it is `< 0xC`.
+/// `field_B` is the same kind of signed index (`lb`); `func_800A1634`
+/// uses `field_5` when its first arg is 1 and `field_B` otherwise.
+/// `field_6` is a flags byte (bit 0 gates `func_800A7DB8` writing
+/// `field_E`; bit 1 is cleared by `func_800A7574` and forces
+/// `func_800A7E5C` to 0 when that function's arg is 0). `field_9` is
+/// cleared by `func_800A1F64`. `field_A` is a signed byte (`lb`);
+/// `func_800A7DE0` sets `field_3 = 2` when it is >= 2, then clears it.
+/// `func_800A7574` also zeros `field_A`, `field_C`..`field_F`,
+/// `field_10`/`field_12`/`field_14`, and `field_16`/`field_17`. Those
+/// two bytes are also the item 4 / item 8 gates in `func_800D6170`
+/// (`lb`).
 typedef struct _GpStateC08 {
     /* 0x00 */ u16  field_0;
-    /* 0x02 */ byte pad_2;
+    /* 0x02 */ s8   field_2;
     /* 0x03 */ s8   field_3;
     /* 0x04 */ byte pad_4;
     /* 0x05 */ s8   field_5;
     /* 0x06 */ u8   field_6;
     /* 0x07 */ u8   field_7;
     /* 0x08 */ u8   field_8;
-    /* 0x09 */ byte pad_9;
+    /* 0x09 */ u8   field_9;
     /* 0x0A */ s8   field_A;
     /* 0x0B */ s8   field_B;
     /* 0x0C */ s8   field_C;
@@ -195,6 +199,8 @@ STATIC_ASSERT_SIZEOF(GpPadReplay, 0x4);
 /// Current replay buttons / remaining frame count / stream cursor.
 extern u16          D_80114C02;
 extern u16          D_80114C04;
+/// Word cleared by `func_800A1F64`; `func_800A2F60` increments and tests it.
+extern s32          D_80114C34;
 extern GpPadReplay* D_80114C38;
 
 void func_80098F58(GsCOORDINATE2* arg0);
@@ -204,6 +210,7 @@ void func_8009FD74(s32 arg0, PadScratch* arg1);
 void func_8009FEDC(Task* task);
 u16  func_800A1558(s32 arg0);
 void func_800A1634(s32 arg0, GpIdMapC* arg1);
+void func_800A1F64(s32 arg0);
 void func_800A7320(s16* arg0);
 u8*  func_800A746C(void);
 s32  func_800A74C4(void);

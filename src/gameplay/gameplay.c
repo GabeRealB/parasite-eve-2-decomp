@@ -1402,7 +1402,79 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A18BC);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A1CD0);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A1F64);
+void func_800A1F64(s32 arg0)
+{
+    GpStateC08*   p;
+    WipSysConfig* cfg;
+    s32           cond;
+    s32           ret;
+    u8*           table;
+    register s32  n asm("a1");
+    register s32  val asm("a0");
+    s32           t;
+    s32           tmp;
+    s8            temp;
+    s32           neg;
+
+    D_80114C08.field_E = 0;
+    if (D_80114C08.field_6 & 1) {
+        return;
+    }
+    n                  = (s8)arg0;
+    D_80114C08.field_5 = arg0;
+    val                = n / 3;
+    t                  = (s8)val + 1;
+    tmp                = t * 10 + 1;
+    asm volatile("");
+    t   = (s8)(n - val * 3);
+    val = tmp + t;
+    t   = (val << 2) + val;
+    val = t << 1;
+    asm volatile("");
+    ret = 1;
+    if (n < 0xC) {
+        cfg = &Wip_SysConfig;
+        if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
+            cond = 0;
+        } else {
+            cond = cfg->field_26 == 4;
+        }
+        if (cond == 0) {
+            table = Mc_SaveData.unknown_850;
+        } else {
+            table = D_80114BF0;
+        }
+        table += n;
+        ret    = *table;
+        if (ret == 0) {
+            ret = 1;
+        }
+        if (cfg->field_25 & 0x80) {
+            if (ret < 3) {
+                ret++;
+            }
+        }
+    }
+    val = val + ret;
+    p   = &D_80114C08;
+    asm volatile("");
+    p->field_0 = val;
+    neg        = -2;
+    asm volatile("" : "+r"(neg));
+    p->field_3 = neg;
+    temp       = func_800A1558(3);
+    p->field_2 = temp;
+    if (temp <= 0) {
+        p->field_2 = 1;
+    }
+    p->field_A  = 2;
+    D_80115768  = 0;
+    D_801153F4  = 0;
+    p->field_8  = 1;
+    p->field_9  = 0;
+    D_80114C34  = 0;
+    p->field_6 &= 0xFE;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A2104);
 

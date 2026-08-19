@@ -22357,5 +22357,69 @@ keep the function in a sibling C file (`3CD8_9CC8.c`) and add matching
 `.rodata` / `c` yaml cuts so the jtbl lands after the blob. Same pattern
 as `3CD8_34D8.c` / `3FB8_75BC.c`.
 
+## Isolate `ret = 1` from `* 10` so the shift stays `sll`, not `sllv`
+
+`x * 10` expands to `(x << 2) + x` then `<< 1`. A nearby live `1`
+(`ret = 1`, or extra `+ 1` in the same formula) CSEs into a register and
+turns those `sll`s into `sllv`. Finish the multiply first, then barrier
+before the default:
+
+```c
+tmp = t * 10 + 1;
+asm volatile("");
+t   = (s8)(n - quot * 3);
+val = tmp + t;
+t   = (val << 2) + val;
+val = t << 1;
+asm volatile("");
+ret = 1;
+if (n < 0xC) { … }
+```
+
+Split `(s8)quot + 1` into a temp so `* 10 + 1` can accumulate in `$v1`
+while the s32 quotient stays in `$a0` for the later `n - quot * 3`.
+`func_800A1F64` is the example.
+
+## `table += n; ret = *table` keeps the `addu` dest on the pointer
+
+`ret = table[n]` with `n` in `$a1` reuses the index: `addu a1, v0, a1` /
+`lbu v1, 0(a1)`. The target wants `addu v0, v0, a1` / `lbu v1, 0(v0)`.
+Advance the pointer, then deref:
+
+```c
+table += n;
+ret    = *table;
+```
+
+## `+r` on a delay-slot store constant so its `li` precedes the jal arg
+
+`p->field_0 = val` (val in `$a0`) then `p->field_3 = -2` then `jal f(3)`
+wants:
+
+```
+sh    a0, %lo(D)(v0)
+li    v0, -2
+li    a0, 3
+jal   f
+ sb   v0, 3(s0)
+```
+
+GCC reuses `$a0` immediately after the store (`li a0, 3` then `li v0, -2`).
+Hold the store value in a temp and barrier it before the store/call:
+
+```c
+p->field_0 = val;
+neg        = -2;
+asm volatile("" : "+r"(neg));
+p->field_3 = neg;
+temp       = f(3);
+```
+
+The empty `+r` keeps `-2` live so its `li` is emitted before the call
+arg, while the `sb` can still fill the `jal` delay. Don't `register asm("v0")`
+that temp at function scope: GCC 2.8.1 reserves the hard register for the
+whole function and steals `$v0` from the earlier math. `func_800A1F64` is
+the example.
+
 
 
