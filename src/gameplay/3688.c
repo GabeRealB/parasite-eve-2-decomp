@@ -1673,7 +1673,84 @@ draw:
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C9010);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C942C);
+void func_800C942C(UiList* arg0, s32 arg1)
+{
+    s32         n;
+    s32         mode;
+    s32         count;
+    s32         i;
+    GpItemScan* scan;
+    s32         off;
+    s32         off2;
+    s32         temp;
+    s32         item;
+    s32         qty;
+    s32*        dst;
+    GpItemSlot* slot;
+
+    scan  = &Mc_SaveData.field_5BC;
+    mode  = D_80114D90;
+    count = 0;
+    slot  = func_800BAFE0(arg1);
+    n     = count;
+    if (mode != 2) {
+        asm("" : "+r"(n));
+        i   = n;
+        off = (arg1 - 0x80) * 4;
+        dst = D_80114DA0;
+        do {
+            temp = i + off;
+            item = ((GpItemQty*)(temp + (s32)D_8010E238))->field_1;
+            if (item != 0) {
+                qty  = func_800BB26C(scan, item);
+                qty -= func_800BAFF4(scan, item);
+                if (mode == 0) {
+                    if (slot->field_0 == item) {
+                        qty += slot->field_1;
+                    }
+                }
+                if (qty > 0) {
+                    *dst++ = item;
+                    count++;
+                    n++;
+                }
+            }
+            i++;
+        } while (i < 3);
+    }
+    if (mode != 1) {
+        i    = 0;
+        off2 = (arg1 - 0x80) * 4;
+        dst  = &D_80114DA0[count];
+        do {
+            temp = i + off2;
+            item = ((GpItemQty*)(temp + (s32)D_8010D278))->field_1;
+            if (item != 0) {
+                qty  = func_800BB26C(scan, item);
+                qty -= func_800BAFF4(scan, item);
+                if (mode == 0) {
+                    if (slot->field_2 == item) {
+                        qty += slot->field_3;
+                    }
+                }
+                if (qty > 0) {
+                    *dst++ = item;
+                    count++;
+                    n++;
+                }
+            }
+            i++;
+        } while (i < 3);
+    }
+    if (mode != 0) {
+        if (n > 0) {
+            D_80114DA0[count] = 0;
+            n++;
+        }
+    }
+    arg0->field_4 = n;
+    arg0->field_5 = n;
+}
 
 void func_800C9654(Task* arg0)
 {

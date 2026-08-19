@@ -23414,3 +23414,31 @@ Assigning `xy` only once without incrementing it (or recomputing
 `&poly->x2` each iteration) either freezes the SXY pointer or emits
 `addiu a3, t0, 0x10`. Pin `poly` to `$t0` and `xy` to `$a3`.
 `func_80099B94` is the example.
+
+## Delay-slot copy plus in-`if` `asm("" : "+r"(n))` so `i = n` is not CSE'd
+
+`n = count; if (cond) { i = n; }` wants `n = count` in the `beq` delay
+(`move s3, s5`) and `i = n` as `move s2, s3` after the following
+`lw a2, stack`. Copy-propagating `i = n` to `count` emits `move s2, s5`.
+A volatile `"+r"(n)` *before* the `if` forces the copy early and leaves
+the delay for a hoisted `li v0, 1`. Put a non-volatile empty asm *inside*
+the `if` so the delay-slot copy stands and `i = n` uses `$s3`:
+
+```c
+n = count;
+if (mode != 2) {
+    asm("" : "+r"(n));
+    i = n;
+    off = (arg1 - 0x80) * 4;
+```
+
+`func_800C942C` is the example.
+
+## Two spilled offset locals for two `i + off + table` loops
+
+A pair of loops that both compute `(id - 0x80) * 4` then
+`((GpItemQty*)(i + off + (s32)table))->field_1` will keep `off` in `$s8`
+(clobbering a live scan pointer) or reuse one stack slot if they share
+one local. Separate `off` / `off2` gives `sw 0x10(sp)` / `sw 0x14(sp)`
+and the `lw a2` / `nop` / `addu v0, s2, a2` form. `func_800C942C` is the
+example.
