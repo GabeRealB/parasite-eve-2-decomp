@@ -37,6 +37,15 @@ typedef struct _GpHudScratch {
 } GpHudScratch;
 STATIC_ASSERT_SIZEOF(GpHudScratch, 0x1C);
 
+/// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `func_800A8864`.
+/// `mat` is the transpose of the parent rotation; `vec` is
+/// `child.t - parent.t` before `ApplyMatrixLV` rotates it into dest translation.
+typedef struct _GpRelMatScratch {
+    /* 0x00 */ MATRIX mat;
+    /* 0x20 */ VECTOR vec;
+} GpRelMatScratch;
+STATIC_ASSERT_SIZEOF(GpRelMatScratch, 0x30);
+
 /// Global at `D_80114C08`. `field_0` is a u16 loaded by many helpers.
 /// `field_2` is a signed byte (`lb` as splat `D_80114C0A`); `func_800A1F64`
 /// writes the low byte of `func_800A1558(3)`, replacing it with 1 when
@@ -230,6 +239,7 @@ void func_800A7DE0(void);
 s32  func_800A7E5C(s32 arg0);
 void func_800A8654(Task* task);
 void func_800A8724(void);
+void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 void func_800A8A48(GpCb2CRec* arg0);
 void func_800A8B14(void);
 void func_800A8B6C(void);

@@ -23678,3 +23678,41 @@ if ((ws->field_24 & clipMask) == 0) {
 `setlen` 4 / `setcode` 0x20 / poly size 0x14. `func_8009DB00` is the
 example. Same prologue is used by `func_8009D518` / `func_8009D718` /
 `func_8009D900`.
+
+## Relative matrix: reuse `$a0` as 0x30 scratch, pin after the overwrite
+
+`func_800A8864` is `arg2 = inverse(arg0) * arg1` for rigid transforms:
+transpose the parent rotation into scratch (same `t4`/`t5`/`t6` halfword
+pattern as `Gfx_TransposeRot`), `gte_MulMatrix0_real` into `arg2`, then
+`ApplyMatrixLV` of `child.t - parent.t`. Splat tags it "Handwritten"
+because of COP2; the C is still GCC 2.8.1.
+
+The target copies the incoming parent out of `$a0` immediately:
+
+```
+move   a3, a0
+addiu  a0, t0, -0x30
+sw     a0, 0(s0)
+lhu    t4, 0(a3)     /* not 0(a0) */
+```
+
+`src = arg0; tmp = (Scratch*)(head - 0x30)` without a barrier keeps the
+old `$a0` live for the first `lhu` and parks the new pointer in `$t1`.
+Pin all three after the store so the overwrite sticks:
+
+```c
+register MATRIX*          src asm("a3");
+register GpRelMatScratch* tmp asm("a0");
+
+src      = arg0;
+tmp      = (GpRelMatScratch*)(head - 0x30);
+*scratch = tmp;
+__asm__ volatile("" : "+r"(tmp), "+r"(src), "+r"(head));
+```
+
+Type that scratch as `MATRIX` + `VECTOR` (0x30) and keep `tmp` itself
+pinned to `$a0`. A second `Scratch*` copy of `tmp` emits `move t1, a0`
+and `sw 0x20(t1)` for the translation delta. Pass the vec to
+`ApplyMatrixLV` as `(VECTOR*)(head - 0x10)` (not `&tmp->vec`) so the
+call is `addiu a1, t0, -0x10`; dest is `(VECTOR*)arg2->t` (`addiu a2,
+a2, 0x14` in the second subtract's load delay).

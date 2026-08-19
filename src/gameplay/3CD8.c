@@ -127,7 +127,6 @@ void func_800E6E50(void);
 s32  func_800E6EA0(s32 arg0);
 s32  func_800E86FC(s32 arg0);
 void func_800E8634(s32 arg0, s32 arg1, s32 arg2);
-void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 void func_800E8A90(Task* task);
 void func_800E8BB0(Task* task);
 void func_800E8CE8(s16 arg0);

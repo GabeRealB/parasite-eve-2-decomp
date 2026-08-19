@@ -85,7 +85,6 @@ void func_8010ABD4(GpActorWork* arg0);
 void func_8010AC54(GpActorWork* arg0);
 void func_8010AD64(GpActorWork* arg0);
 void func_8010B120(GpActorWork* arg0);
-void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3);
 void func_800FBAB0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3);
 

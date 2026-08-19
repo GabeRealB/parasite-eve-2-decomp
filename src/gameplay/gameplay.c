@@ -84,6 +84,22 @@ extern DR_STP         D_80114C50;
 #define gte_ldsz1(r0) __asm__ volatile("mtc2 %0, $17" : : "r"(r0))
 #define gte_ldsz2(r0) __asm__ volatile("mtc2 %0, $18" : : "r"(r0))
 
+#define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
+
+#define gte_MulMatrix0_real(r1, r2, r3) \
+    {                                   \
+        gte_SetRotMatrix(r1);           \
+        gte_ldclmv(r2);                 \
+        gte_rtir_real();                \
+        gte_stclmv(r3);                 \
+        gte_ldclmv((char*)(r2) + 2);    \
+        gte_rtir_real();                \
+        gte_stclmv((char*)(r3) + 2);    \
+        gte_ldclmv((char*)(r2) + 4);    \
+        gte_rtir_real();                \
+        gte_stclmv((char*)(r3) + 4);    \
+    }
+
 void func_800A45F0(s32 arg0);
 void func_800A4904(s32 arg0);
 void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -93,7 +109,6 @@ void func_800A7824(s32 arg0, s32 arg1, s32 arg2);
 void func_800A6A9C(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_8009939C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800A82C0(GsCOORDINATE2* arg0, VECTOR* arg1);
-void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
 void func_800A9730(Task* task);
 void func_807150F8(s32 arg0);
 void func_80715198(void);
@@ -2563,7 +2578,57 @@ void func_800A8724(void)
     ((GsCOORDINATE2*)((u8*)trans - OFFSET_OF(GsCOORDINATE2, coord.t)))->flg = 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A8864);
+void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2)
+{
+    register void**           scratch asm("s0");
+    register u8*              head asm("t0");
+    register MATRIX*          src asm("a3");
+    register GpRelMatScratch* tmp asm("a0");
+    register short            t4 asm("t4");
+    register short            t5 asm("t5");
+    register short            t6 asm("t6");
+    VECTOR*                   vec;
+    VECTOR*                   out;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    src      = arg0;
+    tmp      = (GpRelMatScratch*)(head - 0x30);
+    *scratch = tmp;
+    __asm__ volatile("" : "+r"(tmp), "+r"(src), "+r"(head));
+
+    t4               = src->m[0][0];
+    t5               = src->m[1][0];
+    t6               = src->m[2][0];
+    tmp->mat.m[0][0] = t4;
+    tmp->mat.m[0][1] = t5;
+    tmp->mat.m[0][2] = t6;
+
+    t4               = src->m[0][1];
+    t5               = src->m[1][1];
+    t6               = src->m[2][1];
+    tmp->mat.m[1][0] = t4;
+    tmp->mat.m[1][1] = t5;
+    tmp->mat.m[1][2] = t6;
+
+    t4               = src->m[0][2];
+    t5               = src->m[1][2];
+    t6               = src->m[2][2];
+    tmp->mat.m[2][0] = t4;
+    tmp->mat.m[2][1] = t5;
+    tmp->mat.m[2][2] = t6;
+
+    gte_MulMatrix0_real(&tmp->mat, arg1, arg2);
+
+    tmp->vec.vx = arg1->t[0] - src->t[0];
+    tmp->vec.vy = arg1->t[1] - src->t[1];
+    tmp->vec.vz = arg1->t[2] - src->t[2];
+    vec         = (VECTOR*)(head - 0x10);
+    out         = (VECTOR*)arg2->t;
+    ApplyMatrixLV(&tmp->mat, vec, out);
+
+    *scratch = (u8*)*scratch + 0x30;
+}
 
 s32 func_800A8A1C(s32 arg0)
 {

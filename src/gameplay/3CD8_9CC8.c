@@ -36,8 +36,6 @@ extern s32            D_80111C58[];
 extern s32            D_80111CF0[];
 extern s32            D_80111DB4[];
 
-void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
-
 void func_800E9CC8(Task* arg0)
 {
     GpState1C* p;
