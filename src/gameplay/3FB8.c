@@ -2827,7 +2827,133 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106A3C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106C6C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010747C);
+void func_8010747C(GpActorWork* arg0)
+{
+    register GpActorWork* work asm("s1");
+    register s32          fade asm("s2");
+    register s32          a3 asm("a3");
+    register s32          next asm("v0");
+    register s32          kind asm("v1");
+    GameActor*            actor;
+    GameActor*            inner;
+    s32                   mode;
+    s32                   temp;
+    s32                   flag;
+    s32                   snd;
+    s32                   val;
+
+    work             = arg0;
+    actor            = work->actor;
+    actor->field_973 = 0;
+    if (D_80114C08.field_3 == 2) {
+        actor->field_95E = 5;
+    }
+    switch (actor->field_95E) {
+        case 0:
+            actor->field_95C    = 9;
+            actor->field_95E   += 1;
+            D_80114C08.field_6 |= 4;
+            mode                = 0x1A;
+            if (actor->field_93C != 0) {
+                mode = 0x2A;
+                if (actor->field_93C == 1) {
+                    mode = 0x1D;
+                }
+            }
+            func_80103A18(work, mode, 0, 6);
+            goto do_db500_2;
+        case 2:
+            next             = actor->field_95E;
+            kind             = actor->field_93C;
+            actor->field_95C = 0;
+            actor->field_95E = next + 1;
+            asm volatile("" : : : "memory");
+            mode = 0x1B;
+            if (kind != 0) {
+                mode = 0x2B;
+                if (kind == 1) {
+                    mode = 0x1E;
+                }
+            }
+            func_801038F8(work, mode);
+        case 3:
+            if (D_80114C08.field_2 != 0) {
+                goto do_db500_2;
+            }
+            actor->field_95C  = 9;
+            actor->field_95E += 1;
+            snd               = 4;
+            if ((u32)(D_80114C08.field_0 - 0x12C) >= 0x12DU) {
+                snd = 3;
+            }
+            func_800DB500(snd);
+            mode = 0x1C;
+            if (actor->field_93C != 0) {
+                mode = 0x2C;
+                if (actor->field_93C == 1) {
+                    mode = 0x1F;
+                }
+            }
+            func_801038F8(work, mode);
+            break;
+        case 1:
+        do_db500_2:
+            func_800DB500(2);
+            break;
+        case 4:
+            break;
+        case 5:
+            flag = 1;
+            if (actor->field_960 == 0) {
+                func_801066DC(work, 0);
+                break;
+            }
+            a3 = 8;
+            if (actor->field_960 == flag) {
+                a3 = 6;
+            }
+            temp             = 3;
+            inner            = work->actor;
+            val              = 2;
+            fade             = a3;
+            inner->field_954 = 0;
+            inner->field_956 = val;
+            inner->field_958 = 0;
+            if (inner->field_973 != 0) {
+                temp = 1;
+            }
+            inner->field_95A = temp;
+            inner->field_95C = 0;
+            inner->field_95E = 0;
+            if (Wip_SysConfig.field_25 & 1) {
+                func_80103B5C(work);
+                inner->field_97E = flag;
+            } else {
+                inner->field_97E = val;
+            }
+            temp = inner->field_973;
+            if (temp == 0) {
+                if (inner->field_975 != 0) {
+                    mode = 0xD;
+                } else {
+                    mode = 9;
+                }
+            } else if (temp == 1) {
+                mode             = 0xC;
+                inner->field_958 = 3;
+                inner->field_97E = temp;
+            } else {
+                inner->field_958 = 2;
+                mode             = 0xD;
+            }
+            if (fade == 0) {
+                func_801038F8(work, mode);
+            } else {
+                func_80103A18(work, mode, 0, fade);
+            }
+            break;
+    }
+}
 
 void func_8010771C(GpActorWork* arg0)
 {

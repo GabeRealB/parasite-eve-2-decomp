@@ -22909,3 +22909,52 @@ packed = (packed << 5) | ((out->r >> 7) & 0x1F);
 The STP bit is `if ((s16)*src0 < 0 || (s16)*src1 < 0) *dst = packed |
 0x8000;` — GCC puts `ori packed, 0x8000` in both compare delay slots.
 `func_800B2088` is the example.
+
+## Memory barrier after stores so `li` fills the `beqz` delay, not `sh`
+
+A default-in-delay-slot compare after an increment:
+
+```
+lhu    v0, field
+lhu    v1, kind
+sh     zero, other
+addiu  v0, v0, 1
+sh     v0, field
+beqz   v1, join
+ li    a1, DEFAULT
+```
+
+`mode = DEFAULT; if (kind != 0) mode = OTHER` after the stores lets
+`-fschedule-insns` hoist `li a1` above `sh` and put the store in the
+delay slot instead. An empty `asm volatile("" ::: "memory")` between
+the store and the default assignment keeps `sh` before the branch so
+`li` fills the delay. Pin the increment load to `$v0` and `kind` to
+`$v1` so the two `lhu`s stay in that order. `func_8010747C` is the
+example.
+
+## Put a shared switch tail after later cases so `j` / `bnez` land on it
+
+A 6-case jump table that places case 1 *after* case 3 (case 0 `j`s
+there, case 3 `bnez`es there) wants case 1 later in the source:
+
+```c
+case 0:
+    ...
+    goto shared;
+case 2:
+    ... /* fallthrough */
+case 3:
+    if (cond) {
+        goto shared;
+    }
+    ...
+    break;
+case 1:
+shared:
+    func_800DB500(2);
+    break;
+```
+
+Fallthrough from case 0 into case 1 in source order glues the tail
+onto case 0 (`jal` then `j epilogue`) instead of a `j` to a later
+block. `func_8010747C` is the example.
