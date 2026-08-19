@@ -1593,4 +1593,72 @@ void func_800AE62C(GpAreaApplyRec* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AE7AC);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AE9B0);
+void func_800AE9B0(void)
+{
+    GpAreaKey           key;
+    GameSession*        gs;
+    GameSessionFrom4*   sess;
+    GpAreaRec*          tbl;
+    GpAreaObj*          obj;
+    GpAreaRec**         tables;
+    register GpAreaKey* keyp asm("s4");
+    s32                 flag;
+    s32                 bits;
+    register s32        i asm("s1");
+    register s32        one asm("s0");
+    register s32        count asm("s5");
+    u8                  stage;
+
+    gs          = Game_Session;
+    sess        = (GameSessionFrom4*)&gs->field_4;
+    stage       = sess->field_3;
+    key.field_1 = 1;
+    key.field_0 = 2;
+    key.field_3 = stage;
+    if (gs->field_7 - 1 < 5) {
+        count = D_8010CAF0[sess->field_3 - 1];
+        if (count > 0) {
+            i      = 1;
+            keyp   = &key;
+            tables = D_8010CBCC;
+            one    = i;
+            do {
+                key.field_2 = i;
+                tbl         = tables[keyp->field_3];
+                flag        = 0;
+                if (tbl != NULL) {
+                    obj = tbl[keyp->field_2].field_4;
+                    if (obj != NULL) {
+                        flag = obj->field_1 & 4;
+                        flag = flag != 0;
+                    } else {
+                        asm volatile("" : "=r"(flag) : "0"(0));
+                    }
+                }
+                if (flag == one) {
+                    if (func_800B59A8(&key) == one) {
+                        if (key.field_2 < 0x21U) {
+                            goto clear_lo;
+                        }
+                        goto clear_hi;
+                    }
+                    if (key.field_2 < 0x21U) {
+                        D_80114D00[0] |= one << (key.field_2 - 1);
+                    } else {
+                        bits = D_80114D00[1] | (one << (key.field_2 - 0x21));
+                        goto store_hi;
+                    }
+                } else if (key.field_2 < 0x21U) {
+                clear_lo:
+                    D_80114D00[0] &= ~(one << (key.field_2 - 1));
+                } else {
+                clear_hi:
+                    bits = D_80114D00[1] & ~(one << (key.field_2 - 0x21));
+                store_hi:
+                    D_80114D00[1] = bits;
+                }
+                i++;
+            } while (count >= i);
+        }
+    }
+}

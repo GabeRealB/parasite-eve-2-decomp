@@ -22994,3 +22994,34 @@ if (mode == 0) {
 
 GCC coalesces the three stores back into one `sb` and keeps `bnez` +
 `j`. `func_80109FC4` is the example.
+
+## Jump-thread deletes `move v0, zero` when obj lives in `$v0`
+
+An inner `if (obj != NULL) { flag = (obj->field_1 & 4) != 0; } else { flag = 0; }`
+with `obj` loaded into `$v0` wants:
+
+```
+lw     v0, 4(v0)
+beqz   v0, else
+ nop
+lbu    v0, 1(v0)
+andi   v0, v0, 4
+j      join
+ sltu   v0, zero, v0
+else:
+move   v0, zero
+join:
+```
+
+GCC 2.8.1 jump-threads the `beqz` to `join` and deletes `move v0, zero`
+because a NULL pointer is already 0. The then-path `j` then also
+disappears. Force the else to materialize with the same zero-in-register
+constraint used in `mc.c`:
+
+```c
+} else {
+    asm volatile("" : "=r"(flag) : "0"(0));
+}
+```
+
+`func_800AE9B0` is the example.

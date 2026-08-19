@@ -229,4 +229,13 @@ void* func_800AD2E8(void);
 void  func_800AD410(GpCb68Elem* arg0, GpCb68Obj* arg1);
 void  func_800AE62C(GpAreaApplyRec* arg0);
 
+/// Per-stage signed counts, indexed by `GameSession.field_7 - 1`.
+/// `func_800AE9B0` loops area ids `1..count` when the stage is 1–5.
+extern s8 D_8010CAF0[];
+
+/// For each area id `1..D_8010CAF0[stage-1]`, set or clear the matching
+/// bit in `D_80114D00`. The bit is set only when that area object's
+/// `field_1` bit 2 is set and `func_800B59A8` returns 0.
+void func_800AE9B0(void);
+
 #endif // GAMEPLAY_D4_H

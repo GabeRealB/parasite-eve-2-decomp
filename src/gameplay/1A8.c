@@ -32,7 +32,6 @@ extern u8               D_80114CDE;
 extern s16              D_80114CE0;
 extern u16              D_80114CF6;
 extern u8               D_80114CF8;
-extern s32              D_80114D00[2];
 extern s16              D_80114D08;
 extern u16              D_8017A738[];
 extern u16              D_8017A824[];
