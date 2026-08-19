@@ -23143,3 +23143,82 @@ so `flags = 0` can sit between `addiu` and `lhu`. Pinning one `UiObject*`
 across two states also merges them into `$s0`; the state-3 path wants
 the pointer already in `$a0` for `Ui_TeardownTree`. `func_800A110C` is
 the example.
+
+## Finish `idx * sizeof` before loading the array base so the last `sll` sits above `lw` / `nop`
+
+`dest = &arr[idx]` with `sizeof == 0x50` is `sll 2` / `addu` / `sll 4` /
+`lw base` / `addu`. `-fschedule-insns` hoists the independent `lw` between
+the last two shifts (`lw v1` / `sll v0, 4` / `addu`, no load-delay `nop`).
+The target keeps the multiply intact:
+
+```
+sll    v0, v1, 2
+addu   v0, v0, v1
+sll    v0, v0, 4
+lw     v1, 4(a0)
+nop
+addu   s0, v1, v0
+```
+
+Materialize the byte offset, then an input-only empty asm, then the
+array index (CSE reuses the offset):
+
+```c
+off = idx * 0x50;
+asm volatile("" :: "r"(off));
+dest = &((GpAnimMtxRec*)arg0->field_4)[idx];
+```
+
+`+r`(off) instead of `"r"(off)` copies `v0` to `v1` so the `lw` can take
+`$v0`. `func_800B4248` is the example.
+
+## Pin scratch `head` to `$t1` and the `head-N` block to `$t0` when both stay live
+
+A downward scratch alloc that later reads both the original head
+(`lh -0x10(t1)`, `addiu a0, t1, -8`) and the allocated block (`lh 2(t0)`)
+wants:
+
+```
+lw     t1, 0(s1)
+addiu  t0, t1, -0x10
+sw     t0, 0(s1)
+```
+
+Unpinned, `head` takes `$t0` and the alloc takes `$t1`, so the field
+reads fold as `lh -0xE(t0)` / `lh -0xC(t0)` instead of `lh 2(t0)` /
+`lh 4(t0)`. Pin both:
+
+```c
+register void*    head asm("t1");
+register SVECTOR* trans asm("t0");
+
+head  = *scratch;
+trans = (SVECTOR*)((u8*)head - 0x10);
+*scratch = trans;
+```
+
+`func_800B4248` is the example.
+
+## `gte_stsv` dest in `$a0` copy-props into later field reads; split the SSA
+
+`gte_stsv(st)` with `st = trans` in the `bne` delay (`move a0, t0`)
+makes later `trans->vy` / `trans->vz` use `$a0` (`lh 2(a0)`) even when
+`trans` is pinned to `$t0`. The target uses the original alloc pointer
+(`lh 2(t0)` / `lh 4(t0)`); `vx` still folds as `lh -0x10(t1)`.
+
+Empty asm that rewrites `trans` after the `vx` store blocks the
+copy-prop and emits no instruction when in/out stay in `$t0`:
+
+```c
+register SVECTOR* st asm("a0");
+register SVECTOR* trans asm("t0");
+
+st = trans;
+gte_stsv(st);
+dest->mtx.t[0] = trans->vx;
+asm volatile("" : "=r"(trans) : "r"(trans));
+dest->mtx.t[1] = trans->vy;
+dest->mtx.t[2] = trans->vz;
+```
+
+`func_800B4248` is the example.

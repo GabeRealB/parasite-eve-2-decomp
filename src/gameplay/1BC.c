@@ -972,7 +972,54 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, u16 arg2, s32 arg3, s32 arg4)
     slot->field_17 = 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B4248);
+void func_800B4248(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
+                   s32 arg5)
+{
+    void**            scratch;
+    register void*    head asm("t1");
+    GpAnimSlot*       slot;
+    GpAnimMtxRec*     dest;
+    register SVECTOR* st asm("a0");
+    register SVECTOR* trans asm("t0");
+    SVECTOR*          rot;
+    s32               idx;
+    s32               off;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    slot     = &arg0->field_C[arg1];
+    head     = *scratch;
+    idx      = slot->field_14;
+    trans    = (SVECTOR*)((u8*)head - 0x10);
+    *scratch = trans;
+    off      = idx * 0x50;
+    asm volatile("" ::"r"(off));
+    dest = &((GpAnimMtxRec*)arg0->field_4)[idx];
+    if (slot->field_B == 1) {
+        st = trans;
+        gte_lddp(arg4);
+        gte_ldsv(&arg2->trans);
+        gte_gpf12_real();
+        gte_lddp(arg5);
+        gte_ldsv(&arg3->trans);
+        gte_gpl12_real();
+        gte_stsv(st);
+        dest->mtx.t[0] = trans->vx;
+        asm volatile("" : "=r"(trans) : "r"(trans));
+        dest->mtx.t[1] = trans->vy;
+        dest->mtx.t[2] = trans->vz;
+    }
+    gte_lddp(arg4);
+    gte_ldsv(&arg2->rot);
+    gte_gpf12_real();
+    gte_lddp(arg5);
+    gte_ldsv(&arg3->rot);
+    gte_gpl12_real();
+    rot = (SVECTOR*)((u8*)head - 8);
+    gte_stsv(rot);
+    RotMatrix_gte(rot, &dest->mtx);
+    dest->field_0           = 0;
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+}
 
 void func_800B43E0(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
                    s32 arg5)

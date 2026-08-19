@@ -57,14 +57,15 @@ void func_800B25B0(void);
 /// Source object for `func_800B3CCC` / `func_800B3F60`. Word at 0x30 is
 /// copied into the dest context; the address of 0x34 is stored as dest
 /// `field_4` (base of 0x50-byte `GpAnimMtxRec` records in `func_800B3448`
-/// / `func_800B43E0`).
+/// / `func_800B4248` / `func_800B43E0`).
 typedef struct _GpAnimObj {
     /* 0x00 */ byte  pad_0[0x30];
     /* 0x30 */ void* field_30;
     /* 0x34 */ byte  field_34;
 } GpAnimObj;
 
-/// Pose pair used by `func_800B43E0`. Translation is copied into
+/// Pose pair used by `func_800B4248` / `func_800B43E0`. Translation is
+/// GPF/GPL-blended (`func_800B4248`) or copied (`func_800B43E0`) into
 /// `GpAnimMtxRec.mtx.t` when `GpAnimSlot.field_B == 1`; rotation is
 /// GPF/GPL-blended with the other pose and fed to `RotMatrix_gte`.
 typedef struct _GpAnimPose {
@@ -74,8 +75,8 @@ typedef struct _GpAnimPose {
 STATIC_ASSERT_SIZEOF(GpAnimPose, 0x10);
 
 /// 0x50-byte dest record at `GpAnimCtx.field_4`, indexed by
-/// `GpAnimSlot.field_14`. `func_800B43E0` writes `mtx` (rotation at +4,
-/// translation at +0x18) and clears `field_0`.
+/// `GpAnimSlot.field_14`. `func_800B4248` / `func_800B43E0` write `mtx`
+/// (rotation at +4, translation at +0x18) and clear `field_0`.
 typedef struct _GpAnimMtxRec {
     /* 0x00 */ s32    field_0;
     /* 0x04 */ MATRIX mtx;
@@ -122,8 +123,9 @@ typedef struct _GpAnimSet {
 /// `field_9 = 0x10`, copies `arg1` to both `field_14` and `field_15`,
 /// and stores `recs[field_6].field_3 & 0xF` in `field_B`.
 /// `func_800B404C` is the same init with separate `field_14` /
-/// `field_15` arguments. `func_800B43E0` indexes `GpAnimCtx.field_4` by
-/// `field_14` and copies pose translation when `field_B == 1`.
+/// `field_15` arguments. `func_800B4248` / `func_800B43E0` index
+/// `GpAnimCtx.field_4` by `field_14`; `func_800B4248` GPF/GPL-blends
+/// pose translation when `field_B == 1`, `func_800B43E0` copies it.
 typedef struct _GpAnimSlot {
     /* 0x00 */ u16         field_0;
     /* 0x02 */ u16         field_2;
@@ -283,6 +285,8 @@ void     func_800B3F84(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3,
 void     func_800B3FA8(GpAnimCtx* arg0, s32 arg1, s32 arg2);
 void     func_800B404C(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void     func_800B4114(GpAnimCtx* arg0, s32 arg1, u16 arg2, s32 arg3, s32 arg4);
+void     func_800B4248(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
+                       s32 arg5);
 void     func_800B43E0(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
                        s32 arg5);
 void     func_800B4514(GpAnimCtx* arg0, s32 arg1);
