@@ -23025,3 +23025,34 @@ constraint used in `mc.c`:
 ```
 
 `func_800AE9B0` is the example.
+
+## Split `la` of a function pointer so `%hi` lands in `$v1` while `$v0` holds a `lhu`
+
+Taking `func = Tmd_AllocBuffers` with `func` pinned to `$s2` emits the
+same-register form (`lui s2` / `addiu s2, s2`). The target wants the
+two-register form so `%hi` can sit in `$v1` while `$v0` stays live as
+the `lhu` of a nearby `u16` field:
+
+```
+lui    v1, %hi(Tmd_AllocBuffers)
+lhu    v0, field_C(s1)
+addiu  s2, v1, %lo(Tmd_AllocBuffers)
+ori    v0, v0, 0x80
+```
+
+Dest `$s2` would normally use `$v0` as the `lui` temp, but `$v0` is
+busy, so GCC falls back to `lui s2`. Split with a non-volatile pair and
+read the field between them:
+
+```c
+register s32 hi asm("v1");
+register void (*func)(TmdObject*) asm("s2");
+u16 flags;
+
+asm("lui %0, %%hi(Tmd_AllocBuffers)" : "=r"(hi));
+flags = extra->field_C;
+asm("addiu %0, %1, %%lo(Tmd_AllocBuffers)" : "=r"(func) : "r"(hi));
+extra->field_C = (flags | 0x80) & 0xFFFB;
+```
+
+`func_80104684` is the example.

@@ -1682,7 +1682,88 @@ s32 func_80104508(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
     return 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80104684);
+s32 func_80104684(GpActorWork* arg0, s32 arg1, s32 arg2)
+{
+    register GameActor* actor asm("s0");
+    register TmdObject* extra asm("s1");
+    register void       (*func)(TmdObject*) asm("s2");
+    register Task*      child asm("s3");
+    register Task*      cur asm("s0");
+    register s32        hi asm("v1");
+    register Task*      temp asm("v0");
+    u16                 flags;
+
+    actor = arg0->actor;
+    extra = (TmdObject*)arg0->extra;
+    func  = NULL;
+    switch (arg2) {
+        case 0:
+            asm("lui %0, %%hi(Tmd_AllocBuffers)" : "=r"(hi));
+            flags = extra->field_C;
+            asm("addiu %0, %1, %%lo(Tmd_AllocBuffers)" : "=r"(func) : "r"(hi));
+            extra->field_C = (flags | 0x80) & 0xFFFB;
+            break;
+        case 1:
+            extra->field_C = extra->field_C & 0xFF7B;
+            break;
+        case 2:
+            asm("lui %0, %%hi(Tmd_FreeBuffers)" : "=r"(hi));
+            flags = extra->field_C;
+            asm("addiu %0, %1, %%lo(Tmd_FreeBuffers)" : "=r"(func) : "r"(hi));
+            extra->field_C = flags | 0x84;
+            break;
+        case 3:
+            extra->field_C = extra->field_C | 0x84;
+            break;
+        case 4:
+            asm("lui %0, %%hi(Tmd_AllocBuffers)" : "=r"(hi));
+            flags = extra->field_C;
+            asm("addiu %0, %1, %%lo(Tmd_AllocBuffers)" : "=r"(func) : "r"(hi));
+            extra->field_C = flags & 0xFF7B;
+            break;
+    }
+    if (func != NULL) {
+        func(extra);
+    }
+    if (actor->field_920 != NULL) {
+        ((TmdObject*)actor->field_920->extra)->field_C = extra->field_C;
+        if (func != NULL) {
+            func(extra);
+        }
+    }
+    if (actor->field_924 != NULL) {
+        ((TmdObject*)actor->field_924->extra)->field_C = extra->field_C;
+        if (func != NULL) {
+            func(extra);
+        }
+    }
+    if (actor->field_91C != NULL) {
+        {
+            register TmdObject* dest asm("v1");
+            dest          = (TmdObject*)actor->field_91C->extra;
+            dest->field_C = extra->field_C;
+        }
+        temp = actor->field_91C->firstChild;
+        if (temp != NULL) {
+            child                               = temp;
+            ((TmdObject*)child->extra)->field_C = extra->field_C;
+            cur                                 = child;
+            if (func != NULL) {
+                func(extra);
+            }
+            if (child->nextSibling != child) {
+                do {
+                    cur                               = cur->nextSibling;
+                    ((TmdObject*)cur->extra)->field_C = extra->field_C;
+                    if (func != NULL) {
+                        func(extra);
+                    }
+                } while (cur->nextSibling != child);
+            }
+        }
+    }
+    return 0;
+}
 
 s32 func_80104838(GpActorWork* arg0, s32 arg1, s32 arg2)
 {

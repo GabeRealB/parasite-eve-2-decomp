@@ -109,6 +109,7 @@ TmdObject* Tmd_Create(TmdSource* src, s32 flags);
 void       Tmd_ProcessStream(TmdObject* arg0);
 void       Tmd_SetupDraw(TmdObject* arg0);
 void       Tmd_AllocMissingBuffers(void);
+s32        Tmd_AllocBuffers(TmdObject* arg0);
 void       Tmd_FreeBuffers(TmdObject* arg0);
 
 /// Early-image handwritten GTE matrix load (src/main/hasm/Tmd_SetupGteMatrices.s).
