@@ -22288,5 +22288,34 @@ back to a single `sh` after the join.
 
 `func_800B63B8` is the example.
 
+## Seed a later `$s1` result as `Mem_Calloc`'s heap flag
+
+When the target copies `$s1` into `Mem_Calloc`'s second argument (`addu a1,
+s1, zero`) and later reuses that same register as a table-lookup result,
+`Mem_Calloc(size, 0)` emits `move a1, zero` and leaves `$s1` free for
+something else. Write:
+
+```c
+s32 val;
+
+val = 0;
+p   = Mem_Calloc(size, val);
+/* … */
+val = table[idx];
+```
+
+The zero-init pins `$s1` for the whole function. `func_800E9CC8` is the
+example.
+
+## Overlay jtbl not contiguous with the TU's other `.rodata` needs its own C file
+
+Gameplay `.rodata` is a sequence of C jtbl slices interleaved with splat
+`rodata` blobs. A new `switch` in an existing TU appends its jtbl to that
+TU's `.rodata` slice. If a named table sits between the old jtbl and the
+new one (here `D_80097678` between `func_800E9BDC` and `func_800E9CC8`),
+keep the function in a sibling C file (`3CD8_9CC8.c`) and add matching
+`.rodata` / `c` yaml cuts so the jtbl lands after the blob. Same pattern
+as `3CD8_34D8.c` / `3FB8_75BC.c`.
+
 
 

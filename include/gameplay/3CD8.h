@@ -232,8 +232,9 @@ typedef struct _GpState18 {
 } GpState18;
 STATIC_ASSERT_SIZEOF(GpState18, 0x18);
 
-/// 0x1C-byte halfword state allocated by `func_800E9CC8` (`func_8002D978(0x1C)`)
+/// 0x1C-byte halfword state allocated by `func_800E9CC8` (`Mem_Calloc(0x1C, 0)`)
 /// and stored in `D_80115740` (also written to the owner task at +0x1C).
+/// `func_800E9CC8` sets `field_6` to 1 and the rest to 0.
 typedef struct _GpState1C {
     /* 0x00 */ s16 field_0;
     /* 0x02 */ s16 field_2;
@@ -274,6 +275,7 @@ typedef struct _GpRayScratch {
 STATIC_ASSERT_SIZEOF(GpRayScratch, 0x10);
 
 extern GpState1C*    D_80115740;
+extern Task*         D_80115748;
 extern GpCoord64     D_80114F30[8];
 extern GsCOORDINATE2 D_80070F10;
 /// 8 packed RGB-nibble colors. Index is `cln(spawnArg1 << 12) / 2839 & 7`.
@@ -306,6 +308,7 @@ u16  func_800E9A50(GameActor* actor, u16 mask);
 
 void func_800E9BDC(u8 arg0, s32 arg1);
 void func_800E9C6C(void);
+void func_800E9CC8(Task* arg0);
 void func_800E9EFC(void);
 s32  func_800EA02C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
 s32  func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1);

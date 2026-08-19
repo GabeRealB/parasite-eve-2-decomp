@@ -1683,11 +1683,14 @@ dispatch tables with `field_A` and `field_C`.
 | 0x0C | `field_C` | u8 dispatch index B (`func_800E9070`) |
 
 ### `GpState1C` (0x1C) — `3CD8.h`
-Allocated by `func_800E9CC8` (`func_8002D978(0x1C)`); pointed to by `D_80115740`.
-Most members are s16. `func_800EA3A0` writes `arg0 + 1` to `field_C`.
+Allocated by `func_800E9CC8` (`Mem_Calloc(0x1C, 0)`); pointed to by `D_80115740`.
+Most members are s16. `func_800E9CC8` writes the block to the owner task at
+`Task::idMap` and stores that task in `D_80115748`. `func_800EA3A0` writes
+`arg0 + 1` to `field_C`.
 
 | Off | Member | Role |
 |-----|--------|------|
+| 0x06 | `field_6` | s16; initialized to 1 by `func_800E9CC8` |
 | 0x10 | `field_10` | s16 flags; `func_800EC9C8` tests bit 0 before `func_800EA478(0x800600E8, …)` |
 | 0x18 | `field_18` | s16 PE/status bit written by `func_800ECA10` (low byte of arg; same bits as `WipSysConfig.field_25`) |
 | 0x1A | `field_1A` | u16 flags; `func_800FC6C0` ORs in `0x80`, `func_800EC868` ORs in `0x100` |
