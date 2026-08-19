@@ -253,6 +253,20 @@ void     func_800B058C(Task* arg0);
 s32      func_800B05E8(s32 arg0);
 void     func_800B065C(u8 arg0);
 void     func_800B0FDC(MATRIX* arg0, SVECTOR* arg1);
+/// 8-byte RGB555-unpacked vector. `func_800B2088` allocates three of
+/// these (0x18 bytes) from `G_SCRATCH_HEAD`: src0, src1, then the GTE
+/// lerp result. Channels are 5-bit values shifted left 7.
+typedef struct _GpRgbScratch {
+    /* 0x00 */ u16 r;
+    /* 0x02 */ u16 g;
+    /* 0x04 */ u16 b;
+    /* 0x06 */ u16 pad;
+} GpRgbScratch;
+STATIC_ASSERT_SIZEOF(GpRgbScratch, 8);
+/// Unpacks two RGB555 colors, GPF/GPL-blends them by `arg2` / `0x1000 -
+/// arg2`, packs the result into `*arg3`, and copies the STP bit if
+/// either source has it set.
+void     func_800B2088(u16* arg0, u16* arg1, s32 arg2, u16* arg3);
 void     func_800B27C4(u16* arg0, u16* arg1, s32 arg2, u16* arg3);
 void     func_800B2840(u16* arg0, u16* arg1, s32 arg2, u16* arg3, s32 arg4);
 void     func_800B32E8(GpAnimCtx* arg0, s32 arg1);

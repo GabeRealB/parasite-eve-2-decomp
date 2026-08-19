@@ -26,7 +26,6 @@
 #define gte_gpl12_real() __asm__ volatile("nop; nop; .word 0x4BA8003E")
 
 void func_800B1EFC(Task* arg0);
-void func_800B2088(u16* arg0, u16* arg1, s32 arg2, u16* arg3);
 void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800B3910(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
@@ -514,7 +513,53 @@ void func_800B1EFC(Task* arg0)
     addPrim(Gpu_CurrentOt, dr);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B2088);
+void func_800B2088(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
+{
+    void**        scratch;
+    u8*           head;
+    GpRgbScratch* c0;
+    GpRgbScratch* c1;
+    GpRgbScratch* out;
+    u16           color;
+    u16           packed;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    c0       = (GpRgbScratch*)(head - 0x18);
+    *scratch = c0;
+
+    color = *arg0;
+    c0->b = color;
+    c0->g = color;
+    c0->r = (color & 0x1F) << 7;
+    c0->g = (c0->g << 2) & 0xF80;
+    c0->b = (c0->b >> 3) & 0xF80;
+
+    c1    = (GpRgbScratch*)(head - 0x10);
+    color = *arg1;
+    c1->b = color;
+    c1->g = color;
+    c1->r = (color & 0x1F) << 7;
+    c1->g = (c1->g << 2) & 0xF80;
+    c1->b = (c1->b >> 3) & 0xF80;
+
+    gte_lddp(arg2);
+    gte_ldsv(c0);
+    gte_gpf12_real();
+    gte_lddp(0x1000 - arg2);
+    gte_ldsv(c1);
+    gte_gpl12_real();
+    out = (GpRgbScratch*)(head - 8);
+    gte_stsv(out);
+
+    packed = ((out->b >> 2) & 0x3E0) | ((out->g >> 7) & 0x1F);
+    packed = (packed << 5) | ((out->r >> 7) & 0x1F);
+    *arg3  = packed;
+    if ((s16)*arg0 < 0 || (s16)*arg1 < 0) {
+        *arg3 = packed | 0x8000;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B2200);
 

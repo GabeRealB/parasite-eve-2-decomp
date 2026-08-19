@@ -22867,3 +22867,45 @@ from the `Wip_SysConfig` / frame-index loads. Overwriting it with `y`
 kills the RECT copy and frees `$v1` for `lb` / `lbu`. Pin the table `la`
 to `$a0` so it is not colored as the eventual `img` in `$a1`.
 `func_801030CC` is the example.
+
+## Unpack RGB555 through stored `u16` g/b so reloads are `lhu` / `srl`
+
+A CLUT lerp that splits a 16-bit color into three 5-bit channels
+shifted left 7 wants the green/blue extracts to reload the stored
+copies, not reuse the original color register:
+
+```
+lhu    v0, 0(a0)
+sh     v0, 4(dst)          # b = color
+sh     v0, 2(dst)          # g = color
+andi   v0, v0, 0x1F
+sll    v0, v0, 7
+sh     v0, 0(dst)          # r = (color & 0x1F) << 7
+lhu    v0, 2(dst)
+lhu    v1, 4(dst)
+sll    v0, v0, 2
+andi   v0, v0, 0xF80       # g = (g << 2) & 0xF80
+srl    v1, v1, 3
+andi   v1, v1, 0xF80       # b = (b >> 3) & 0xF80
+```
+
+`SVECTOR` (`s16`) reloads as `lh` / `sra`. Use a `u16` r/g/b struct.
+Store `color` into `g` and `b` first so the later `g << 2` / `b >> 3`
+are independent loads that `-fschedule-insns` can interleave. Pack
+the same way so `out->r` is read after `v0` has been reused:
+
+```c
+color = *src;
+dst->b = color;
+dst->g = color;
+dst->r = (color & 0x1F) << 7;
+dst->g = (dst->g << 2) & 0xF80;
+dst->b = (dst->b >> 3) & 0xF80;
+...
+packed = ((out->b >> 2) & 0x3E0) | ((out->g >> 7) & 0x1F);
+packed = (packed << 5) | ((out->r >> 7) & 0x1F);
+```
+
+The STP bit is `if ((s16)*src0 < 0 || (s16)*src1 < 0) *dst = packed |
+0x8000;` — GCC puts `ori packed, 0x8000` in both compare delay slots.
+`func_800B2088` is the example.
