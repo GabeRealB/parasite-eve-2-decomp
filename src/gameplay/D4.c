@@ -549,7 +549,48 @@ void func_800AAA68(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AABB0);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AADDC);
+void func_800AADDC(Task* task)
+{
+    TILE*         tile;
+    DR_TPAGE*     dr;
+    DisplayState* ds;
+    register s32  color asm("a2");
+    register s32  qhi asm("a1");
+    register s32  queued asm("a0");
+    s32           buf;
+    s8            yoff;
+
+    color = 8;
+    ds    = &Display_State;
+    asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi));
+    buf    = ds->field_114;
+    tile   = &D_80114C80[buf];
+    dr     = &D_80114CA0[buf];
+    queued = *(u16*)((s32)qhi + (s16)0x91C4);
+    if (queued == 0) {
+        setlen(tile, 3);
+        setcode(tile, 0x62);
+        tile->r0 = color;
+        tile->g0 = color;
+        tile->b0 = color;
+        tile->x0 = -0xA0;
+        yoff     = ds->vramYOffset;
+        tile->w  = 0x140;
+        tile->h  = 0xF0;
+        tile->y0 = -0x78 - yoff;
+        addPrim(Gpu_CurrentOt - 0x10, tile);
+        setlen(dr, 1);
+        dr->code[0] = 0xE1000000 | 0x240;
+        addPrim(Gpu_CurrentOt - 0x10, dr);
+    }
+    if (CdCmd_IsIdle() & 0xFFFF) {
+        if (Game_Session->field_7 != Game_Session->field_78) {
+            func_800A9C50();
+            Game_Session->field_78 = Game_Session->field_7;
+        }
+        task->state++;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AAF70);
 

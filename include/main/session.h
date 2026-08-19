@@ -70,7 +70,8 @@ typedef struct _GameSession {
     byte  unknown_6A[0xA];
     u16   field_74; // copied from Display_State.field_10e (func_800AAA68); low byte is CdCmd 0x21 param2[0]
     s16   field_76; // set: func_800AD378 rebuilds via func_800ACD2C
-    byte  unknown_78[4];
+    s16   field_78; // cached GameSession.field_7; func_800AADDC
+    byte  unknown_7A[2];
     s16   field_7C;
     s16   field_7E;
     s16   field_80;

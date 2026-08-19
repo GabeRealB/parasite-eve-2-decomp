@@ -22026,6 +22026,47 @@ addPrim(Gpu_CurrentOt - 0x10, dr);
 That is the same split as `Title_MenuTask`; here it is required even
 though the function is a leaf and both `addPrim`s already match.
 
+When the overlay is the first thing in the function and the only queue
+access is `field_224`, the target hoists `li a2,8` then
+`lui a1,%hi(CdCmd_Queue)` (no `addiu` of the queue base) and wants:
+
+```
+addiu v0, v0, %lo(D_80114CA0)
+lhu   a0, %lo(CdCmd_Queue+0x224)(a1)
+nop
+bnez  a0, skip
+ addu t2, v1, v0
+```
+
+`if (CdCmd_Queue.field_224 == 0)` rematerialises `%hi` at the use site
+and parks `buf` in `$a0`. Pin color to `$a2`, emit the hi with
+non-volatile `asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi))`, then load
+through that register as a C halfword (not an `asm lhu`). An `asm lhu`
+is a scheduling barrier and leaves `addu t2` *before* the load. The C
+load participates in delay-slot filling:
+
+```c
+register s32 color asm("a2");
+register s32 qhi asm("a1");
+register s32 queued asm("a0");
+
+color = 8;
+ds    = &Display_State;
+asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi));
+buf    = ds->field_114;
+tile   = &D_80114C80[buf];
+dr     = &D_80114CA0[buf];
+queued = *(u16*)((s32)qhi + (s16)0x91C4); /* %lo(CdCmd_Queue+0x224) */
+if (queued == 0) {
+```
+
+`0x91C4` is the signed 16-bit `%lo` of `CdCmd_Queue.field_224`
+(`0x800691C4`). The object has an unpaired `R_MIPS_HI16` and a
+hardcoded `lhu` offset; GNU ld still produces the same linked
+instruction as `%hi/%lo`. `func_800AADDC` is the example.
+`GameSession.field_78` is an `s16` cache of `field_7`; compare with
+`lbu`/`lh` and write back with `lbu`/`sh`.
+
 ## Don't pin `$s2` for `p = &global` if `la` must split around `jal` via `$v0`
 
 `p = &Wip_SysConfig` allocated to a callee-saved register normally

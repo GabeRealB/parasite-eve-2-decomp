@@ -198,6 +198,12 @@ STATIC_ASSERT_SIZEOF(GpAreaApplyRec, 4);
 void func_800A9310(void);
 void func_800A954C(Task* task);
 void func_800A9DF0(Task* task);
+/// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
+/// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0.
+/// When the CD queue is idle, enqueues a stage reload if
+/// `GameSession.field_7` differs from the cached `field_78`, then
+/// advances `task->state`.
+void func_800AADDC(Task* task);
 /// Dual-buffer TILE / DR_TPAGE overlay (gray 0x64), indexed by
 /// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0,
 /// then after 7 frames clears `CdCmd_Queue.field_22E` and advances state.
