@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+#include "main/display.h"
 #include "main/task.h"
 
 struct _GameSessionFrom4;
@@ -131,6 +132,14 @@ extern GpPrim1C* D_8010CAE8[];
 /// `func_800AC960`, advanced by `func_800AD410`.
 extern GpPrim1C* D_80114CC8;
 
+/// Dual-buffer fullscreen TILE overlay, indexed by `Display_State.field_114`.
+/// Paired with `D_80114CA0`. Used by `func_800AB828` and the neighboring
+/// D4 fade-overlay task states.
+extern TILE D_80114C80[2];
+
+/// Dual-buffer `DR_TPAGE` (code `0xE1000240`) paired with `D_80114C80`.
+extern DR_TPAGE D_80114CA0[2];
+
 /// 5-byte table at `D_800938CC`. `func_800A9B3C` copies it to the stack and
 /// indexes it 1-based by `Wip_SysConfig.field_26`; the byte is CdCmd 0x21
 /// param2[0].
@@ -189,6 +198,10 @@ STATIC_ASSERT_SIZEOF(GpAreaApplyRec, 4);
 void func_800A9310(void);
 void func_800A954C(Task* task);
 void func_800A9DF0(Task* task);
+/// Dual-buffer TILE / DR_TPAGE overlay (gray 0x64), indexed by
+/// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0,
+/// then after 7 frames clears `CdCmd_Queue.field_22E` and advances state.
+void func_800AB828(Task* task);
 void func_800AB980(struct _GameSessionFrom4* arg0);
 void func_800ABCC8(void);
 void func_800ABE68(struct _GpActorArg* arg0, u16* arg1);

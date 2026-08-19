@@ -559,7 +559,44 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AB3A8);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AB5F4);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AB828);
+void func_800AB828(Task* task)
+{
+    TILE*         tile;
+    DR_TPAGE*     dr;
+    DisplayState* ds;
+    CdCmdQueue*   queue;
+    s32           color;
+    s32           buf;
+    s8            yoff;
+
+    queue = &CdCmd_Queue;
+    ds    = &Display_State;
+    color = 0x64;
+    buf   = ds->field_114;
+    tile  = &D_80114C80[buf];
+    dr    = &D_80114CA0[buf];
+    if (queue->field_224 == 0) {
+        setlen(tile, 3);
+        setcode(tile, 0x62);
+        tile->r0 = color;
+        tile->g0 = color;
+        tile->b0 = color;
+        tile->x0 = -0xA0;
+        yoff     = ds->vramYOffset;
+        tile->w  = 0x140;
+        tile->h  = 0xF0;
+        tile->y0 = -0x78 - yoff;
+        addPrim(Gpu_CurrentOt - 0x10, tile);
+        setlen(dr, 1);
+        dr->code[0] = 0xE1000000 | 0x240;
+        addPrim(Gpu_CurrentOt - 0x10, dr);
+    }
+    task->killCountdown++;
+    if (task->killCountdown >= 7) {
+        queue->field_22E = 0;
+        task->state++;
+    }
+}
 
 void func_800AB980(GameSessionFrom4* arg0)
 {

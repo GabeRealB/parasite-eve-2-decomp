@@ -21947,5 +21947,33 @@ struct, not element-wise assignment. Pin the later item-walk locals
 (`i` in `$s2`, scan pointer in `$s3`) so they do not swap. `func_800BE808`
 is the example.
 
+## D4 fade overlay: `D_80114C80`/`D_80114CA0` + split `0xE1000000 | 0x240`
+
+`D_80114C80` is `TILE[2]` and `D_80114CA0` is `DR_TPAGE[2]`, indexed by
+`Display_State.field_114` (16-byte / 8-byte stride). Several neighboring
+D4 task states share this pair (`func_800AABB0` … `func_800AB828`).
+
+On the leaf overlay (`func_800AB828`) the target hoists `0x64` and both
+prim pointers before the `CdCmd_Queue.field_224` check. Keep that order
+in C (`color = 0x64`, then `buf = ds->field_114`, then both `&arr[buf]`).
+
+An `s8 yoff = ds->vramYOffset` local after `x0` is what places
+`sb r/g/b` before `sh x0` and the `lbu 0x109` / `sll`/`sra` between `x0`
+and `w`/`h`. Folding `y0 = -0x78 - ds->vramYOffset` with no local sinks
+the RGB stores.
+
+`dr->code[0] = 0xE1000240` (or an early `mode = 0xE1000240`) either
+delays `lui t0,0xe100` into the TILE stores or emits it *before* the
+`0xFFFFFF` mask. Write the command as two operands at the store site:
+
+```c
+setlen(dr, 1);
+dr->code[0] = 0xE1000000 | 0x240;
+addPrim(Gpu_CurrentOt - 0x10, dr);
+```
+
+That is the same split as `Title_MenuTask`; here it is required even
+though the function is a leaf and both `addPrim`s already match.
+
 
 
