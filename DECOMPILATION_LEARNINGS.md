@@ -23643,3 +23643,38 @@ asm("lw %0, %%lo(D_80115448)(%2)\n\tlw %1, 68(%3)"
 The paired `lw 68(block)` is `block->mat.t[0]` (offset 0x44). Volatile
 `lui` plus `memory` keeps it from sinking below `out` / `off`.
 `func_800DDC2C` is the example.
+
+## Hoist `&field_24` and AND `0x80000000` for TMD FLAG clip (not `>= 0`)
+
+`func_8009D388` (POLY_FT3) tests FLAG with `if (ws->field_24 >= 0)` and
+computes `&ws->field_24` inside the loop (`addiu v0, a3, 0x24` after
+RTPT). The POLY_F3 sibling wants:
+
+```
+addiu  t5, a3, 0x24
+lui    t8, 0x8000
+addiu  t3, a3, 0x28
+```
+
+then `and v0, v0, t8` / `bnez` after each `gte_stflg`. A signed compare
+emits `bltz` and leaves `&field_24` unhoisted. Name both the flag pointer
+and the mask, and store FLAG a second time after `gte_stsxy3_f3`:
+
+```c
+flg      = &ws->field_24;
+clipMask = 0x80000000;
+opz      = &ws->field_28;
+...
+gte_stflg(flg);
+if ((ws->field_24 & clipMask) == 0) {
+    gte_nclip_real();
+    gte_stopz(opz);
+    if (ws->field_28 > 0) {
+        gte_stsxy3_f3(poly);
+        gte_stflg(flg);
+        if ((ws->field_24 & clipMask) == 0) {
+```
+
+`setlen` 4 / `setcode` 0x20 / poly size 0x14. `func_8009DB00` is the
+example. Same prologue is used by `func_8009D518` / `func_8009D718` /
+`func_8009D900`.
