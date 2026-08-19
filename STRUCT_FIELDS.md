@@ -514,6 +514,17 @@ read `h + 2` as line height; `func_800E67C8` / `func_800E68D8` read `w`.
 
 ## Stage / session / TMD
 
+### `TmdScratchModelBlock` (0x88) — model-path scratch; draw handlers share the same low offsets
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | Packet dest (`POLY_FT3*` etc.); advanced by the handler |
+| 0x08 | `field_8` | Vertex array base; TMD indices are `& 0xFFF8` byte offsets |
+| 0x14 | `field_14` | OT base (`u_long*`); same slot as `TmdScratchDrawBlock.field_14` |
+| 0x18 | `field_18` | Stream stride in words |
+| 0x1C | `field_1C` | Remaining primitive count |
+| 0x24 | `field_24` | GTE FLAG (`gte_stflg`) |
+| 0x28 | `field_28` | NCLIP MAC0 / AVSZ3 OTZ |
+
 ### `StageCtx` (0x38)
 | Off | Member | Role |
 |-----|--------|------|

@@ -2437,6 +2437,21 @@ does not match.
 `gte_rtir_real` — load/store helpers (`gte_SetRotMatrix`, `gte_ldclmv`,
 `gte_stclmv`) already emit real MIPS. `Gfx_MatrixToEuler` is the template.
 
+TMD POLY_FT3 draw (`func_8009D388`) needs the same treatment for RTPT /
+NCLIP / AVSZ3 (splat still tags these as "Handwritten" because of COP2):
+
+```c
+#define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
+#define gte_nclip_real() __asm__ volatile("nop; nop; .word 0x4B400006")
+#define gte_avsz3_real() __asm__ volatile("nop; nop; .word 0x4B58002D")
+```
+
+Hoist `opz = &ws->field_28` *before* `ds` / `0xFFFFFF` / `0xFF000000` so
+`&field_28` lands in `$t3`. Name a `u_long* ot` temp and GCC CSEs the
+shifted OT slot (~85%); write both `addPrim` halves as the full
+`((((u32)otz << ds->field_128) >> 2) & 0xFFC) + (s32)ws->field_14`
+expression, same as `func_800AD410`.
+
 ## Large sparse switches: case order and shared handlers
 
 GCC 2.8.1 emits switch case *bodies* in an order tied to the binary-search
