@@ -817,7 +817,72 @@ void func_80102F10(GpActorWork* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x84;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801030CC);
+void func_801030CC(GpActorWork* arg0)
+{
+    register void**      scratch asm("v0");
+    u8*                  head;
+    register s32         temp asm("v1");
+    register RECT*       rect asm("s1");
+    GameActor*           actor;
+    register GpImgRec*** table asm("a0");
+    GpImgRec*            img;
+    register s32         idx asm("v0");
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    actor    = arg0->actor;
+    temp     = (s32)(head - 8);
+    *scratch = (void*)temp;
+    rect     = (RECT*)temp;
+
+    if ((s8)actor->field_987 != 0) {
+        actor->field_988--;
+        if ((s8)actor->field_988 <= 0) {
+            table = D_80112E74;
+            idx   = (s8)actor->field_987;
+            temp  = Wip_SysConfig.field_26;
+            idx   = idx * 4 - 5;
+            idx   = idx + temp;
+            img   = table[idx][(s8)actor->field_989];
+            if (img != NULL) {
+                ((RECT*)head)[-1].x = 0;
+                rect->y             = 0x4E;
+                rect->w             = 0x19;
+                rect->h             = 0x10;
+                func_800DB28C(arg0, img, rect);
+                actor->field_988 = 4;
+                actor->field_989++;
+            } else {
+                actor->field_987 = 0;
+            }
+        }
+    }
+
+    if ((s8)actor->field_98A != 0) {
+        actor->field_98B--;
+        if ((s8)actor->field_98B <= 0) {
+            table = D_80112EB4;
+            idx   = (s8)actor->field_98A;
+            temp  = Wip_SysConfig.field_26;
+            idx   = idx * 4 - 5;
+            idx   = idx + temp;
+            img   = table[idx][(s8)actor->field_98C];
+            if (img != NULL) {
+                rect->x = 0xC;
+                rect->y = 0x68;
+                rect->w = 0xE;
+                rect->h = 0x14;
+                func_800DB28C(arg0, img, rect);
+                actor->field_98B = 8;
+                actor->field_98C++;
+            } else {
+                actor->field_98A = 0;
+            }
+        }
+    }
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+}
 
 inline static Task* spawn_tmd_attach(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
 {

@@ -22759,3 +22759,33 @@ obj->field_2C = code;
 
 `func_800BCC44` is the example. Unpinned `code` stuck at 98.8% (`li v1,
 0x34` first, then `li v0, -1`).
+
+## Materialize `x * 4 - C` before adding a second index so `-C` stays on `$v0`
+
+`table[x * 4 - 5 + y]` reassociates as `x * 4 + (y - 5)` (`addiu v1, v1,
+-5`) or folds `-5 * sizeof(ptr)` into the load (`lw v0, -0x14(v0)`).
+The target wants the subtract on the scaled `x`:
+
+```
+sll    v0, v0, 2
+addiu  v0, v0, -5
+addu   v0, v0, v1
+```
+
+Load `x` and `y` first, then split the math so `-5` cannot move onto `y`:
+
+```c
+idx  = (s8)actor->field_987;
+temp = Wip_SysConfig.field_26;
+idx  = idx * 4 - 5;
+idx  = idx + temp;
+img  = table[idx][(s8)actor->field_989];
+```
+
+Also reuse the scratch-allocation temp (`register s32 temp asm("v1")`)
+as `y`. Leaving that register bound to the allocated `RECT*` lets copy
+prop pass `$v1` as the call's third arg (`move a2, v1`) and steals `$v1`
+from the `Wip_SysConfig` / frame-index loads. Overwriting it with `y`
+kills the RECT copy and frees `$v1` for `lb` / `lbu`. Pin the table `la`
+to `$a0` so it is not colored as the eventual `img` in `$a1`.
+`func_801030CC` is the example.

@@ -268,12 +268,12 @@ typedef struct _GameActor {
     /* 0x984 */ u8                  field_984;
     /* 0x985 */ u8                  field_985;
     /* 0x986 */ u8                  field_986;
-    /* 0x987 */ u8                  field_987;
-    /* 0x988 */ u8                  field_988;
-    /* 0x989 */ u8                  field_989;
-    /* 0x98A */ u8                  field_98A;
-    /* 0x98B */ u8                  field_98B;
-    /* 0x98C */ u8                  field_98C;
+    /* 0x987 */ u8                  field_987; // texture upload seq A (func_801030CC / D_80112E74)
+    /* 0x988 */ u8                  field_988; // field_987 delay; reload 4 after each upload
+    /* 0x989 */ u8                  field_989; // field_987 frame index
+    /* 0x98A */ u8                  field_98A; // texture upload seq B (func_801030CC / D_80112EB4)
+    /* 0x98B */ u8                  field_98B; // field_98A delay; reload 8 after each upload
+    /* 0x98C */ u8                  field_98C; // field_98A frame index
     /* 0x98D */ u8                  field_98D;
     /* 0x98E */ u8                  field_98E;
     /* 0x98F */ u8                  field_98F; // cleared by func_801034C0

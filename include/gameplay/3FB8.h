@@ -490,6 +490,12 @@ extern u8 D_80112E04[][2];
 /// `D_80112E2C[Mc_SaveData.field_22 - 1][arg0]`.
 extern u8 D_80112E2C[][2];
 
+/// NULL-terminated `GpImgRec*` lists for `func_801030CC`. Indexed as
+/// `table[type * 4 + Wip_SysConfig.field_26 - 5][frame]`. `D_80112E74` is
+/// the `field_987` sequence; `D_80112EB4` is the `field_98A` sequence.
+extern struct _GpImgRec** D_80112E74[];
+extern struct _GpImgRec** D_80112EB4[];
+
 /// 2-wide rows indexed by `Wip_SysConfig.field_21`. Zero at `[i][0]`
 /// makes `func_801088D4` abort the item-use path (`field_95E = 0x3E8`).
 extern u8 D_80112F1C[][2];
@@ -524,6 +530,7 @@ void func_801005D8(Task* arg0);
 void func_80100784(struct _GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
 s32  func_801011D0(struct _GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3);
 void func_80101408(GpActorWork* arg0);
+void func_801030CC(GpActorWork* arg0);
 void func_801041FC(GpActorWork* arg0, s32 arg1);
 s32  func_801034C0(void);
 s32  func_8010B79C(void);
