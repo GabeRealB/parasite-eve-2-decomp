@@ -90,7 +90,8 @@ segments:
       - [0x3B3C, .rodata, 3A34] # jtbl from func_800D6170 + mid + func_800E0540
       - [0x3CC8, rodata, rodata_3A34_2] # D_800974C8
       - [0x3CD8, .rodata, 3CD8_34D8] # jtbl from func_800E34D8
-      - [0x3CF0, rodata, rodata_3CD8]
+      - [0x3CF0, .rodata, 3CD8_375C] # jtbl from func_800E375C
+      - [0x3D14, rodata, rodata_3CD8]
       - [0x3E60, .rodata, 3CD8] # jtbl from func_800E9BDC
       - [0x3E78, rodata, rodata_3CD8_2] # D_80097678
       - [0x3E88, .rodata, 3CD8_9CC8] # jtbl from func_800E9CC8
@@ -110,7 +111,8 @@ segments:
       - [0x2C1FC, c, 3688] # func_800BF9FC
       - [0x42314, c, 3A34] # func_800D5B14
       - [0x4FCD8, c, 3CD8_34D8] # func_800E34D8
-      - [0x4FF5C, c, 3CD8] # func_800E375C
+      - [0x4FF5C, c, 3CD8_375C] # func_800E375C
+      - [0x5033C, c, 3CD8] # func_800E3B3C
       - [0x564C8, c, 3CD8_9CC8] # func_800E9CC8
       - [0x592A8, c, 3E9C] # func_800ECAA8
       - [0x63DBC, c, 3FB8_75BC] # func_800F75BC
