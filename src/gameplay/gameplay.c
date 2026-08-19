@@ -66,6 +66,24 @@ extern DR_STP         D_80114C50;
 #define gte_nclip_real() __asm__ volatile("nop; nop; .word 0x4B400006")
 #define gte_avsz3_real() __asm__ volatile("nop; nop; .word 0x4B58002D")
 
+#define gte_ldsxy3_fifo(p)             \
+    __asm__ volatile("lw $14, -8(%0);" \
+                     "nop;"            \
+                     "mtc2 $14, $15;"  \
+                     "lw $14, -4(%0);" \
+                     "nop;"            \
+                     "mtc2 $14, $15;"  \
+                     "lw $14, 0(%0);"  \
+                     "nop;"            \
+                     "mtc2 $14, $15"   \
+                     :                 \
+                     : "r"(p)          \
+                     : "$14")
+
+#define gte_ldsz0(r0) __asm__ volatile("mtc2 %0, $16" : : "r"(r0))
+#define gte_ldsz1(r0) __asm__ volatile("mtc2 %0, $17" : : "r"(r0))
+#define gte_ldsz2(r0) __asm__ volatile("mtc2 %0, $18" : : "r"(r0))
+
 void func_800A45F0(s32 arg0);
 void func_800A4904(s32 arg0);
 void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -302,7 +320,70 @@ void func_80099958(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80099994);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80099B94);
+u32* func_80099B94(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+{
+    TmdScratchModelBlock*  ws;
+    register POLY_F3*      poly asm("t0");
+    register POLY_F3*      xy asm("a3");
+    register s32*          opz asm("t2");
+    register DisplayState* ds asm("t5");
+    register u32           mask asm("t1");
+    register u32           maskHi asm("t4");
+    register u32           clipMask asm("t3");
+    register s32           hi asm("v0");
+    u16*                   rec;
+    s32                    sz;
+    s32                    idx;
+    u8*                    szTable;
+
+    ws   = arg0;
+    poly = (POLY_F3*)ws->field_4;
+    if (ws->field_1C-- > 0) {
+        opz      = &ws->field_28;
+        clipMask = 0x80000000;
+        asm("lui %0, %%hi(Display_State)" : "=r"(hi));
+        asm("addiu %0, %1, %%lo(Display_State)" : "=r"(ds) : "r"(hi));
+        mask   = 0xFFFFFF;
+        maskHi = 0xFF000000;
+        xy     = (POLY_F3*)&poly->x2;
+        do {
+            rec = (u16*)arg2;
+            gte_ldsxy3_fifo(xy);
+            gte_nclip_real();
+            gte_stopz(opz);
+            if (ws->field_28 < 0) {
+                szTable = (u8*)ws->field_10;
+                idx     = rec[0] & 0xFFFC;
+                sz      = *(s32*)(idx + (s32)szTable);
+                if ((sz & clipMask) == 0) {
+                    gte_ldsz0(sz);
+                    idx = rec[1] & 0xFFFC;
+                    sz  = *(s32*)(idx + (s32)szTable);
+                    if ((sz & clipMask) == 0) {
+                        gte_ldsz1(sz);
+                        idx = rec[2] & 0xFFFC;
+                        sz  = *(s32*)(idx + (s32)szTable);
+                        if ((sz & clipMask) == 0) {
+                            gte_ldsz2(sz);
+                            gte_avsz3_real();
+                            gte_stotz(opz);
+                            gte_stotz(opz);
+                            poly->tag =
+                                (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->field_128) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
+                            *(u_long*)(((((u32)ws->field_28 << ds->field_128) >> 2) & 0xFFC) + (s32)ws->field_14) =
+                                (*(u_long*)(((((u32)ws->field_28 << ds->field_128) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)poly & mask);
+                        }
+                    }
+                }
+            }
+            xy++;
+            poly++;
+            arg2 += ws->field_18;
+        } while (ws->field_1C-- > 0);
+    }
+    ws->field_4 = (u8*)poly;
+    return arg2;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80099D40);
 
