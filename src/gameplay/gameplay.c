@@ -388,7 +388,51 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009D900);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009DB00);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009DCB8);
+u32* func_8009DCB8(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+{
+    TmdScratchModelBlock* ws;
+    POLY_FT3*             poly;
+    s32*                  opz;
+    DisplayState*         ds;
+    u32                   mask;
+    u32                   maskHi;
+    u16*                  rec;
+    u8*                   verts;
+
+    ws   = arg0;
+    poly = (POLY_FT3*)ws->field_0;
+    if (ws->field_1C-- > 0) {
+        opz    = &ws->field_28;
+        ds     = &Display_State;
+        mask   = 0xFFFFFF;
+        maskHi = 0xFF000000;
+        do {
+            rec   = (u16*)arg2;
+            verts = (u8*)ws->field_8;
+            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
+            gte_rtpt_real();
+            gte_stflg(&ws->field_24);
+            if (ws->field_24 >= 0) {
+                gte_nclip_real();
+                gte_stopz(opz);
+                if (ws->field_28 > 0) {
+                    gte_stsxy3_ft3(poly);
+                    gte_avsz3_real();
+                    setlen(poly, 7);
+                    setcode(poly, 0x27);
+                    gte_stotz(opz);
+                    poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->field_128) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
+                    *(u_long*)(((((u32)ws->field_28 << ds->field_128) >> 2) & 0xFFC) + (s32)ws->field_14) =
+                        (*(u_long*)(((((u32)ws->field_28 << ds->field_128) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)poly & mask);
+                }
+            }
+            poly++;
+            arg2 += ws->field_18;
+        } while (ws->field_1C-- > 0);
+    }
+    ws->field_0 = (u8*)poly;
+    return arg2;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009DE48);
 
