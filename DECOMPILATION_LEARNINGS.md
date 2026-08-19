@@ -21986,5 +21986,43 @@ addPrim(Gpu_CurrentOt - 0x10, dr);
 That is the same split as `Title_MenuTask`; here it is required even
 though the function is a leaf and both `addPrim`s already match.
 
+## Don't pin `$s2` for `p = &global` if `la` must split around `jal` via `$v0`
+
+`p = &Wip_SysConfig` allocated to a callee-saved register normally
+expands as the two-register form, which `-fschedule-insns` can split
+around a call:
+
+```
+lui   v0, %hi(Wip_SysConfig)
+jal   func
+ addiu s2, v0, %lo(Wip_SysConfig)
+```
+
+`register WipSysConfig* cfg asm("s2")` instead emits a same-register
+`la $s2` (`lui s2` / `addiu s2, s2`). Split around the same `jal` that
+becomes `lui s2` in the delay slot and `addiu s2, s2` after the return —
+`$v0` is never the hi temp. Leave the pointer unpinned so GCC still
+picks `$s2` (it has to survive the call) but keeps the `$v0` expansion.
+
+To get `move a0, id` *before* `move s0, v0` after a prior `jal`, keep
+the return in a `$v0`-pinned temp and copy it after reloading `$a0`:
+
+```c
+register GpItemSlot* ret asm("v0");
+register GpItemSlot* slot asm("s0");
+register s32         a0id asm("a0");
+WipSysConfig*        cfg;
+
+ret  = func_800BAFE0(id);
+a0id = id;
+slot = ret;
+cfg  = &Wip_SysConfig;
+func_800BB0CC(a0id);
+```
+
+Pinning `cfg` here, or writing `slot = func_800BAFE0(id)` directly,
+restores `lui s2` / `move a0` in the delay slot. `func_800D2538` is the
+example.
+
 
 

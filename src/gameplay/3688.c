@@ -86,6 +86,7 @@ extern UiListItemFunc D_8010EA6C[];
 extern UiList         D_8010EA74;
 extern char           D_8010F528[];
 extern u8*            D_8010F544[];
+extern u8*            D_8010F584;
 extern UiList         D_8010F5D0;
 extern UiList         D_8010F5FC;
 extern UiList         D_8010F81C;
@@ -162,6 +163,7 @@ extern char           D_800971D0[];
 extern char           D_800971D8[];
 extern char           D_800971DC[];
 extern char           D_800971E8[];
+extern char           D_800971EC[];
 extern char           D_800971F8[];
 extern char           D_80097200[];
 extern char           D_80097224[];
@@ -203,6 +205,7 @@ void       func_800CDDA0(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3);
 void       func_800CF148(UiObject* arg0, Task* arg1);
 s32        func_800A7508(void);
 void       func_800D2E04(UiObject* arg0, s32 arg1);
+void       func_800D2F68(Task* arg0);
 void       func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 void       func_800CFE68(s32 arg0, UiObject* arg1);
 void       func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -3870,7 +3873,106 @@ void func_800D2384(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800D2538);
+void func_800D2538(Task* arg0)
+{
+    u8*          rec;
+    register s32 id asm("s1");
+    Task*        child;
+    UiObject*    childObj;
+    UiObject*    parentObj;
+
+    rec = D_80114DD4;
+    id  = *rec;
+
+    {
+        register UiObject* obj asm("s2");
+        s32                mode;
+        u8*                text;
+        UiObject*          spawned;
+
+        obj           = arg0->spawnArg2;
+        obj->field_2E = 0;
+        mode          = 0x10;
+        if (D_8010D838[id].field_3 & 1) {
+            mode = 1;
+        } else if (((u32)(id - 0xA0) < 0x20U) && (func_800BAFF4(&Mc_SaveData.field_5BC, id) > 0)) {
+            mode = 3;
+        } else if (func_800CEB84(id) != 0) {
+            mode = 2;
+        }
+        if (mode != 0x10) {
+            arg0->spawnArg1 = mode;
+            func_800D2F68(arg0);
+            return;
+        }
+        text = D_8010F584;
+        if (arg0->state == 0) {
+            Ui_SizeFromTextWide((UiPanel*)obj, text);
+            spawned = func_800CD89C(obj);
+            if (spawned != NULL) {
+                spawned->field_C = (obj->field_C + obj->field_10) - 0x18;
+            }
+            arg0->state += 1;
+        }
+        Ui_DrawTextColored((UiPanel*)obj, D_800971EC);
+        Text_DrawMultiLine(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, text, 0x606060, 1, 0);
+    }
+
+    child = arg0->firstChild;
+    if (child != NULL) {
+        childObj = child->spawnArg2;
+        if (childObj->field_2E == 6) {
+            parentObj = arg0->parent->spawnArg2;
+            if (childObj->field_2C == 0x33) {
+                if ((u32)(id - 0x80) < 0x20U) {
+                    register GpItemSlot* ret asm("v0");
+                    register GpItemSlot* slot asm("s0");
+                    register s32         a0id asm("a0");
+                    WipSysConfig*        cfg;
+
+                    ret  = func_800BAFE0(id);
+                    a0id = id;
+                    slot = ret;
+                    cfg  = &Wip_SysConfig;
+                    func_800BB0CC(a0id);
+                    slot->field_4 = 0;
+                    if (cfg->field_21 == (id - 0x7F)) {
+                        cfg->field_21 = 0;
+                    }
+                } else if ((u32)(id - 0xA0) < 0x20U) {
+                    register s32 i asm("s0");
+                    GpItemSlot*  slot;
+
+                    i = 0x80;
+                    do {
+                        slot = func_800BAFE0(i);
+                        if (slot->field_0 == id) {
+                            slot->field_0 = 0;
+                            slot->field_1 = 0;
+                        }
+                        if (slot->field_2 == id) {
+                            slot->field_2 = 0;
+                            slot->field_3 = 0;
+                        }
+                        i += 1;
+                    } while (i < 0xA0);
+                } else if ((u32)(id - 0x60) < 0x20U) {
+                    WipSysConfig* cfg;
+
+                    Mc_SaveData.field_908[id - 0x60] = 0;
+                    asm volatile("");
+                    cfg = &Wip_SysConfig;
+                    if (cfg->field_23 == (id - 0x5F)) {
+                        cfg->field_23 = 0;
+                    }
+                }
+                func_800BAD28(&Mc_SaveData.field_5BC, (GpItemRec*)rec, -1);
+                asm volatile("" ::"r"(id));
+            }
+            parentObj->field_2E = 6;
+        }
+    }
+}
 
 void func_800D27E8(DialogPrompt* arg0, UiObject* arg1)
 {
