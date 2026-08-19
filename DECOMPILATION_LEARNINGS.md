@@ -23237,3 +23237,31 @@ dest->mtx.t[2] = trans->vz;
 ```
 
 `func_800B4248` is the example.
+
+## Combined `buf[0x20]` + `TextDrawReq` so later stores go through `$a0`
+
+A second text-draw that prints into a stack buffer wants:
+
+```
+addiu  a0, sp, 0x28
+addiu  v0, v0, 1
+sw     v0, 0x4C(sp)      # req.otIndex via $sp
+li     v0, 5
+sb     v0, 0x2C(a0)      # req.glyphTable via buf
+sw     v1, 0x28(a0)      # req.field_8
+sb     v0, 0x2D(a0)      # req.centerMode
+jal    Text_ItoaSigned
+ sb    zero, 0x56(sp)    # req.field_E via $sp
+```
+
+Separate `u8 buf[0x20]; TextDrawReq req2;` emits every later field as
+`0x5x(sp)`. Put them in one struct, pin the struct pointer to `$a0`,
+and mix named vs pointer stores: `draw.req.otIndex` / `draw.req.field_E`
+stay `$sp`-relative, `d->req.glyphTable` / `field_8` / `centerMode` use
+`$a0+0x28/0x2C/0x2D`.
+
+Keep the item id live (`asm volatile("" :: "r"(item))`) so a later
+`(u32)(item - 0xA0) < 0x20U` is `addiu v0, s3, -0xA0` / `sltiu v0`
+instead of clobbering `$s3` in place. Split the last-block `0x606060`
+into a new `$v1` temp so `lui v1, 0x60` fills that `beqz` delay.
+`func_800CCEEC` is the example.

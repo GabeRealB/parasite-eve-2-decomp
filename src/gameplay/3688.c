@@ -125,6 +125,7 @@ extern UiObjectDesc   D_8010EFD8;
 extern UiObjectDesc   D_8010F010;
 extern UiObjectDesc   D_8010F02C;
 extern UiObjectDesc   D_8010F080;
+extern UiObjectDesc   D_8010F09C;
 extern UiObjectDesc   D_8010F178;
 extern UiObjectDesc   D_8010F670;
 extern UiObjectDesc   D_8010F6FC;
@@ -152,6 +153,7 @@ extern char           D_80096FEC[];
 extern char           D_80096FF4[];
 extern char           D_8009701C[];
 extern char           D_80097024[];
+extern char           D_80097028[];
 extern char           D_8009703C[];
 extern char           D_800970D8[];
 extern char           D_800970E0[];
@@ -2459,7 +2461,86 @@ void func_800CCC28(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CCDC8);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CCEEC);
+typedef struct {
+    u8          buf[0x20];
+    TextDrawReq req;
+} ItemCountDraw;
+
+void func_800CCEEC(Task* arg0)
+{
+    TextDrawReq             req;
+    ItemCountDraw           draw;
+    UiObject*               spawned;
+    s32                     color;
+    s32                     x;
+    s32                     y;
+    s32                     temp;
+    s32                     textY;
+    register s32            item asm("s3");
+    register Task*          task asm("s1");
+    register UiObject*      obj asm("s2");
+    register s32            color2 asm("v1");
+    register s32            count asm("a1");
+    register s32            ot asm("v0");
+    register ItemCountDraw* d asm("a0");
+
+    item          = D_80114DDC;
+    task          = arg0;
+    obj           = task->spawnArg2;
+    obj->field_2E = 0;
+    if (item < 0x100) {
+        Ui_DrawTitle((UiPanel*)obj, D_80097028);
+    } else {
+        Ui_DrawTitle((UiPanel*)obj, D_800970E0);
+    }
+    if (task->state == 0) {
+        spawned = Ui_SpawnFromDesc(&D_8010F09C, 0, 0, 1, obj);
+        Ui_UpdateLayoutSize((UiPanel*)obj, 0, Ui_Scale15(1) + 1);
+        if (spawned != NULL) {
+            spawned->field_E = obj->field_E + obj->field_12;
+        }
+        task->state = task->state + 1;
+    }
+    color = 0x606060;
+    x     = obj->field_1C + 2;
+    y     = (s16)obj->field_18 + 0xF;
+    if (obj->mode != 5) {
+        req.x          = obj->baseX + 0x11 + x;
+        textY          = obj->baseY - 6;
+        req.y          = textY + y;
+        req.otIndex    = (s16)obj->drawOrder + 1;
+        req.field_8    = color;
+        req.glyphTable = 0;
+        req.centerMode = 0;
+        req.field_E    = 1;
+        func_8002E53C(&req, func_800B8EB0(item, 0, 0));
+        temp = item - 0xF;
+        if ((u32)temp < 0x24U) {
+            func_800C2538(obj, x, y, temp % 3 + 1, color);
+        }
+        func_800C05CC(obj, x, y, item, 0);
+    }
+    if ((u32)(item - 0xA0) < 0x20U) {
+        color2     = 0x606060;
+        y          = obj->field_1C;
+        x          = (s16)obj->field_18;
+        draw.req.x = obj->baseX + y + 0x86;
+        draw.req.y = obj->baseY + x + 0xC;
+        asm volatile("");
+        count = D_80114DD0;
+        ot    = (s16)obj->drawOrder;
+        asm volatile("" : "+r"(ot));
+        d                 = &draw;
+        draw.req.otIndex  = ot + 1;
+        d->req.glyphTable = 5;
+        d->req.field_8    = color2;
+        d->req.centerMode = 2;
+        draw.req.field_E  = 0;
+        func_8002E53C(&draw.req, Text_ItoaSigned(d->buf, count));
+        Ui_LayoutWithMode0(obj, (void*)(y + 0x6B), (void*)(x + 7), (void*)0x1B, (void*)7, (void*)0x102010);
+    }
+    asm volatile("" ::"r"(item));
+}
 
 void func_800CD160(Task* arg0)
 {
