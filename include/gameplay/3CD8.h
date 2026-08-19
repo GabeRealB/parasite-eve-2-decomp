@@ -7,6 +7,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 
+#include "main/session.h"
 #include "main/task.h"
 
 /// 0xC-byte sequence-table record. `D_801155A8` is the current table
@@ -301,6 +302,7 @@ s32  func_800E6CE0(void);
 /// `Display_ClampField126`, flipping sign on `spawnArg1` parity.
 void func_800E8938(Task* arg0);
 void func_800E956C(void);
+u16  func_800E9A50(GameActor* actor, u16 mask);
 
 void func_800E9BDC(u8 arg0, s32 arg1);
 void func_800E9C6C(void);

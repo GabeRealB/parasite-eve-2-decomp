@@ -43,6 +43,10 @@ extern s32            D_8010FB90[];
 extern s32            D_8010FBE0;
 extern s32            D_8010FBE4;
 extern s32            D_8010FBE8;
+extern u8             D_8010FBEC[];
+extern u8             D_8010FBFC[];
+extern u8             D_8010FC0C[];
+extern u8             D_8010FC1C[];
 extern u16            D_80112D68[];
 extern u16            D_80113360[];
 extern GpEvt12*       D_801155A8;
@@ -1572,7 +1576,45 @@ void func_800E9498(Task* task)
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E956C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E9A50);
+u16 func_800E9A50(GameActor* actor, u16 mask)
+{
+    u16 result;
+    s32 i;
+
+    result = 0;
+    switch (Mc_SaveData.field_1a8) {
+        case 0:
+            for (i = 0; i < 0x10; i++) {
+                if ((mask >> i) & 1) {
+                    result |= 1 << D_8010FBEC[i];
+                }
+            }
+            break;
+        case 1:
+            for (i = 0; i < 0x10; i++) {
+                if ((mask >> i) & 1) {
+                    result |= 1 << D_8010FBFC[i];
+                }
+            }
+            break;
+        case 2:
+            if (actor->field_954 == 0 && actor->field_956 >= 2) {
+                for (i = 0; i < 0x10; i++) {
+                    if ((mask >> i) & 1) {
+                        result |= 1 << D_8010FC1C[i];
+                    }
+                }
+            } else {
+                for (i = 0; i < 0x10; i++) {
+                    if ((mask >> i) & 1) {
+                        result |= 1 << D_8010FC0C[i];
+                    }
+                }
+            }
+            break;
+    }
+    return result;
+}
 
 void func_800E9BDC(u8 arg0, s32 arg1)
 {
