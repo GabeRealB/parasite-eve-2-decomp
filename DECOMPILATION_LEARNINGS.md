@@ -22223,5 +22223,45 @@ loop:
 
 `func_800B83F0` is the example.
 
+## Preload `coord->sub` and the LCG addend so they take `$v0` / `$a0`
+
+Identity-matrix setup that also writes `coord->sub = mem->field_8` wants
+the parent pointer loaded *before* `ONE` is stored:
+
+```
+lw    v0, 8(s0)
+li    v1, 0x1000
+sw    v1, 4(s1)
+sw    v0, 0x4c(s1)
+```
+
+Writing `*(s32*)&coord->coord = ONE` first emits `sw` then `lw`/`nop`.
+Keep the load in a temp:
+
+```c
+parent               = mem->field_8;
+one                  = ONE;
+*(s32*)&coord->coord = one;
+coord->sub           = parent;
+```
+
+A two-step `D_80070F60 * 5 + 0x71357911` that *adds* a spawn-arg nibble
+onto the first roll needs that addend in `$a0` before the multiply, so
+the first LCG lands in `$v1` and the second in `$a0` (both `sw`s delayed
+until after `field_26`). Inlining `(u16)arg0->spawnArg1 & 0xFFF` into
+the field store puts the addend in `$v1` and swaps the LCG registers.
+Extract it first:
+
+```c
+temp          = (u16)arg0->spawnArg1 & 0xFFF;
+mem->field_2A = 0;
+D_80070F60    = D_80070F60 * 5 + 0x71357911;
+mem->field_24 = temp + (((u32)D_80070F60 >> 16) & 0xFF);
+D_80070F60    = D_80070F60 * 5 + 0x71357911;
+mem->field_26 = ((u32)D_80070F60 >> 16) & 0xFFF;
+```
+
+`func_801005D8` is the example.
+
 
 

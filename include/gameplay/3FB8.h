@@ -520,6 +520,8 @@ void func_800FC500(Task* arg0);
 void func_800FC6C0(void);
 void func_800FC74C(Task* arg0);
 void func_800FE41C(Task* arg0);
+void func_801005D8(Task* arg0);
+void func_80100784(struct _GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
 s32  func_801011D0(struct _GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3);
 void func_80101408(GpActorWork* arg0);
 void func_801041FC(GpActorWork* arg0, s32 arg1);

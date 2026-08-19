@@ -436,7 +436,61 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FFA8C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80100020);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801005D8);
+void func_801005D8(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* parent;
+    MATRIX*        m;
+    s16            flag;
+    s32            one;
+    s32            temp;
+
+    mem   = arg0->spawnArg2;
+    flag  = D_80115740->field_4;
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    if (flag < 2) {
+        if (arg0->state == 0) {
+            if (arg0->spawnArg1 < 0) {
+                parent               = mem->field_8;
+                one                  = ONE;
+                *(s32*)&coord->coord = one;
+                coord->sub           = parent;
+                m                    = &coord->coord;
+                *(s32*)&m->m[0][2]   = 0;
+                *(s32*)&m->m[1][1]   = one;
+                *(s32*)&m->m[2][0]   = 0;
+                m->m[2][2]           = one;
+                coord->coord.t[0]    = mem->field_18;
+                coord->coord.t[1]    = mem->field_1A;
+                coord->coord.t[2]    = mem->field_1C;
+                coord->flg           = 0;
+            }
+            temp          = (u16)arg0->spawnArg1 & 0xFFF;
+            mem->field_2A = 0;
+            D_80070F60    = D_80070F60 * 5 + 0x71357911;
+            mem->field_24 = temp + (((u32)D_80070F60 >> 16) & 0xFF);
+            D_80070F60    = D_80070F60 * 5 + 0x71357911;
+            mem->field_26 = ((u32)D_80070F60 >> 16) & 0xFFF;
+            arg0->state++;
+        }
+        func_80098F58(coord);
+        if (!(mem->field_22 & 1)) {
+            func_80100784(coord, (u16)((s16)mem->field_22 >> 1), mem->field_24 | mem->field_2A,
+                          mem->field_26);
+        }
+        if (D_80115740->field_4 != 0) {
+            return;
+        }
+        mem->field_22++;
+        if (mem->field_22 < 0xC) {
+            return;
+        }
+    } else if (flag < 4) {
+        return;
+    }
+    func_800EC7E4(mem, arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80100784);
 
@@ -4694,7 +4748,7 @@ s32 func_8010B79C(void)
             val2  = D_80167224[save->field_5C7];
             func_80100FCC(work, val1, val2);
             actor->field_124 |= 0x80;
-            block->field_CD = D_80167230[save->field_5C7];
+            block->field_CD   = D_80167230[save->field_5C7];
             if ((u8)save->field_5C7 == 4 && actor->field_914 == NULL) {
                 eff = func_800EA478(
                     0x80060180, (GsCOORDINATE2*)((GameActorExt*)actor->field_91C->extra)->field_8, val1, 0);
