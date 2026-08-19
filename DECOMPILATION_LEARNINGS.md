@@ -22052,5 +22052,56 @@ Write the free through the symbol:
 `*scratch += 0x10` because extra calls already force more `$s` regs, so
 the saved pointer is cheaper than a reload.
 
+## Hardcoded `1 << 4` folds to `li 0x10`; pin + barrier keep `li 1` / `sll 4`
+
+`val = 1 << 4` (or `one = 1; val = one << 4`) constant-folds to
+`addiu v0, zero, 0x10`. The target wants the unfolded form used by
+`arg4 << 4` in `func_800B4114`:
+
+```
+addiu v0, zero, 1
+sll   v0, v0, 4
+```
+
+Pin the 1 to `$v0` and block const-prop with an empty `+r` barrier:
+
+```c
+register s32 one asm("v0");
+
+one = 1;
+asm volatile("" : "+r"(one));
+val = one << 4;
+```
+
+`func_800B3910` is the example.
+
+## Pin the 4th call arg's base in `$a3` so `+ off` stays in the `jal` delay
+
+`func_800B3448(ctx, i, 0, field_8 + (i << 4))` wants `addu a3, a3, t0` in
+the `jal` delay and `move a2, zero` in an earlier `lw` delay. A named
+`call_a3 = field_8 + off` emits the add too early and leaves `a2 = 0` as
+the `jal` delay.
+
+Pin the base to `$a3` and add only at the call. A `register s32 raw
+asm("a2")` plus `asm volatile("" : "+r"(raw))` after saving `arg2` keeps
+the first `field_20` index as `sll v1, a2, 2` instead of the saved `$s2`
+copy:
+
+```c
+register s32 raw asm("a2");
+register s32 off asm("t0");
+register s32 f8 asm("a3");
+
+raw = arg2;
+off = arg1 << 4;
+f8  = (s32)arg0->field_8;
+asm volatile("" : "+r"(raw));
+func_800B3448(arg0, arg1, 0, f8 + off);
+```
+
+`func_800B3910` is the example. `slot->field_20[arg2]` loads `field_20`
+first; `(arg2 << 2) + (s32)slot->field_20` is what puts the shift before
+the load.
+
 
 

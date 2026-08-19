@@ -26,7 +26,7 @@
 void func_800B1EFC(Task* arg0);
 void func_800B2088(u16* arg0, u16* arg1, s32 arg2, u16* arg3);
 void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_800B3910(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_800B3910(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 void func_800B6358(Task* task);
 void func_800B6398(void);
@@ -669,7 +669,65 @@ void func_800B32E8(GpAnimCtx* arg0, s32 arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B3448);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B3910);
+void func_800B3910(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    register GpAnimSlot* p asm("s0");
+    register s32         one asm("v0");
+    register s32         raw asm("a2");
+    register s32         scaled asm("v1");
+    register s32         off asm("t0");
+    register s32         f8 asm("a3");
+    GpAnimSlot*          slot;
+    GpAnimSet*           set;
+    GpAnimRec*           recs;
+    GpAnimRec*           recs2;
+    GpAnimRec*           rec;
+    u16                  idx;
+    u16                  val;
+    s32                  extra;
+    s32                  saved2;
+
+    extra  = arg3;
+    slot   = &arg0->field_C[arg1];
+    raw    = arg2;
+    saved2 = raw;
+    off    = arg1 << 4;
+    f8     = (s32)arg0->field_8;
+    asm volatile("" : "+r"(raw));
+    scaled = raw << 2;
+    recs2  = (*(GpAnimSet**)(scaled + (s32)slot->field_20))->field_0;
+    func_800B3448(arg0, arg1, 0, f8 + off);
+    slot->field_0 = 0x7FFF;
+    set           = slot->field_20[(u16)saved2];
+    recs          = set->field_0;
+    idx           = set->field_4[slot->field_15] + extra;
+    p             = slot;
+    while ((s8)recs[idx].field_3 < 0) {
+        rec = (GpAnimRec*)((idx << 2) + (s32)recs);
+        if (rec->field_3 < 0xC0) {
+            idx = rec->field_0;
+            if (idx == p->field_6) {
+                p->field_10 |= 1;
+            }
+            p->field_10 |= 2;
+        } else {
+            idx          = p->field_6;
+            p->field_10 |= 1;
+            break;
+        }
+    }
+    one = 1;
+    asm volatile("" : "+r"(one));
+    val           = one << 4;
+    p->field_6    = idx;
+    p->field_4    = saved2;
+    p->field_E    = val;
+    p->field_C    = val;
+    p->field_17   = 0;
+    val           = recs2[slot->field_6].field_2 << 4;
+    slot->field_E = val;
+    slot->field_C = val;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B3AA4);
 
@@ -823,7 +881,7 @@ void func_800B404C(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     slot->field_B  = op & 0xF;
 }
 
-void func_800B40F4(s32 arg0, s32 arg1, s32 arg2)
+void func_800B40F4(GpAnimCtx* arg0, s32 arg1, s32 arg2)
 {
     func_800B3910(arg0, arg1, arg2, 0);
 }
