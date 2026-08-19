@@ -22513,5 +22513,86 @@ gte_ldv0(tmpp);
 The offset is the stack slot of `tmp` (saved-reg frame: `0x10` when
 `s0`–`s7`/`ra` start at `0x18`). `func_800B6118` is the example.
 
+## Keep the loop result in `$a0` until the first `li a0, 1`
+
+A scan that writes `found` only on a hit, then compares `status` against
+`1`, wants the result in `$a0` through the loop and only then in `$s0`:
+
+```
+lw    v1, 0(s3)
+move  s0, a0
+li    a0, 1
+sra   v0, v1, 16
+beq   v0, a0, ...
+```
+
+Assigning `item = 0` before the loop parks it in `$s0` and drops the
+`move`. Use two names: `found = i` (stays in `$a0`), then after
+`status = obj->status` write `item = found` so the copy is the delay of
+that `lw`. `func_800C9BE8` is the example.
+
+## `do { } while (0)` + `goto` loop + `break` for the found path
+
+A `for (i = 0; i < n; i++, p++)` after `if (n != 0)` still emits an
+initial `slt` / `beqz`. A `do { ... i++; p++; } while (i < n)` unrolls
+the first iteration and fills inner delay slots with `i++` / `i--`.
+
+Wrap a `goto` loop in `do { } while (0)` and `break` out on the hit:
+
+```c
+if (count != 0) {
+    n = count;
+    do {
+    loop:
+        if (match) {
+            found = id;
+            break;
+        }
+        i++;
+        p++;
+        if (i < n) {
+            goto loop;
+        }
+    } while (0);
+}
+```
+
+No initial `slt`, no unroll, and `if (remaining < 0) break` stays
+`bltz` to an out-of-line `move a0, t0` / `j` join. `func_800C9BE8` is
+the example.
+
+## Volatile `sll` so a scaled add can run even when the count is 0
+
+`table = rec + idx` inside `if (count != 0)` puts `sll` in the `beqz`
+delay and leaves a `nop` after `lbu count`. The target scales first,
+then branches, then `addu` (the delay slot always runs):
+
+```
+lbu    v1, idx
+lbu    t0, count
+sll    v1, v1, 2
+beqz   t0, skip
+ addu  a2, v0, v1
+```
+
+Load `idx`, load `count`, emit the shift as `asm volatile`, then add
+the already-scaled byte offset outside the `if`:
+
+```c
+asm("lbu %0, %%lo(scan)(%1)" : "=r"(idx) : "r"(hi));
+count = scan->field_1;
+asm volatile("sll %0, %0, 2" : "+r"(idx));
+table = (volatile GpItemRec*)((s32)rec + idx);
+if (count != 0) {
+    n = count;
+    ...
+}
+```
+
+The volatile `sll` fills the `lbu count` delay and sits before `beqz`.
+The integer add is the always-executed `addu` after the branch (same
+bytes as a delay-slot add when nothing else claims that slot).
+`func_800C9BE8` is the example.
+
 
 
