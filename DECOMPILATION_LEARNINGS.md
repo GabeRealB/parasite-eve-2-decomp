@@ -24532,3 +24532,35 @@ tmp.vz = *(u16*)&arg0->coord.t[2];
 ```
 
 `func_800B1D00` is the example.
+
+## Repeat a global load so `%hi` stays in `$a1`; don't stash it in a local
+
+`u16 val = D_80114C08.field_0` then `val / 10U` / `val / 100U` reuses the
+`%hi` register as the load dest (`lhu a1, %lo(a1)`). The target keeps
+`$a1` as `%hi` for every `field_0` access (`lhu a2, %lo(D_80114C08)(a1)`).
+Write `D_80114C08.field_0` at each use so the CSE temp is `$a2`.
+
+## `x - 1 + y` reassociates onto `y`; a live `-1` variable or a split add does not
+
+`(a + b - 1) + y` with `y` a `(u16)` modulo result becomes `a + b + (y - 1)`
+(`andi` / `addiu -1` / `addu`). The target wants `addiu -1` on the
+accumulator before computing `y`:
+
+```
+addu   v1, v1, v0      # a + b
+addiu  v1, v1, -1
+sll    v0, a3, 2       # start y = val % 10
+```
+
+Two ways to keep that order:
+
+1. In a branch where a live local is already `-1`, add that local instead
+   of the literal (`... * 3 + kind + (u16)(val % 10U)` when `kind == -1`).
+   GCC folds it to `addiu -1` but will not slide it onto `y`.
+2. Split the add (`idx = a + b - 1; idx += (u16)y`). Needed when no such
+   local exists, but it also stops `la table` from sinking into a multiply
+   stall. Use (1) when the index is inlined as `table[expr]` so the `la`
+   can fill `multu` delay (`lui t0` / `addiu t0, %lo` during `tens / 10`).
+
+`func_800FA7CC` is the example (kind-add on the `D_80112A50` arm, split
+add on the `D_80112978` arm).

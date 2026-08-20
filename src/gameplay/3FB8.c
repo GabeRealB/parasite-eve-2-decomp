@@ -161,7 +161,49 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F9FBC);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FA45C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FA7CC);
+void func_800FA7CC(Task* arg0)
+{
+    Task* slot;
+    s32   kind;
+    s32   spawnId;
+    s32   idx;
+
+    slot = Game_GetPtrSlot(3);
+    if (slot == NULL) {
+        return;
+    }
+    if (D_80115740->field_E >= 4) {
+        return;
+    }
+    kind = D_80114C08.field_3;
+    if (kind == 2) {
+        return;
+    }
+    if ((D_80115740->field_16 != 1) && ((D_80114C08.field_0 / 10U) != 0x20)) {
+        return;
+    }
+    if (kind == -1) {
+        spawnId = D_80112A50[((u16)(D_80114C08.field_0 / 100U) - 1) * 9 +
+                             ((u16)((u16)(D_80114C08.field_0 / 10U) % 10U) - 1) * 3 + kind +
+                             (u16)(D_80114C08.field_0 % 10U)];
+        if (spawnId == 0) {
+            return;
+        }
+        func_800EA478(spawnId, (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8,
+                      D_80114C08.field_2, 0);
+    } else if (kind == 1) {
+        idx = ((u16)(D_80114C08.field_0 / 100U) - 1) * 9 +
+              ((u16)((u16)(D_80114C08.field_0 / 10U) % 10U) - 1) * 3 - 1;
+        idx    += (u16)(D_80114C08.field_0 % 10U);
+        spawnId = D_80112978[idx];
+        if (spawnId == 0) {
+            return;
+        }
+        func_800EA478(spawnId,
+                      (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8 + D_80112B28[idx], 0,
+                      0);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FAA14);
 

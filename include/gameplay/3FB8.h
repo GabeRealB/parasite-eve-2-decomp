@@ -211,6 +211,16 @@ STATIC_ASSERT_SIZEOF(GpEffRec, 4);
 
 extern GpEffRec D_8011291C[];
 
+/// Spawn-id words indexed by the 3-digit packing of `D_80114C08.field_0`
+/// `(hundreds-1)*9 + (tens-1)*3 + ones - 1`. `func_800FA7CC` uses this
+/// when `field_3 == 1`, and `D_80112A50` when `field_3 == -1`.
+extern s32 D_80112978[];
+extern s32 D_80112A50[];
+
+/// `GsCOORDINATE2` index parallel to `D_80112978`. `func_800FA7CC` adds
+/// it onto `GameActorExt.field_8` when `field_3 == 1`.
+extern u16 D_80112B28[];
+
 /// 4 packed RGB-nibble colors. `func_800FB67C` indexes with
 /// `GpEffSpawnArg.field_2 & 3` and stores the halfword in `GpEffWork.field_28`.
 extern u16 D_80112C6C[];
@@ -569,6 +579,7 @@ void func_800F52B4(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
 void func_800F75BC(Task* arg0);
 void func_800F7AD4(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
 void func_800F9474(Task* arg0);
+void func_800FA7CC(Task* arg0);
 void func_800FB67C(Task* arg0);
 void func_800FB7E4(Task* arg0);
 void func_800FBEBC(Task* arg0);
