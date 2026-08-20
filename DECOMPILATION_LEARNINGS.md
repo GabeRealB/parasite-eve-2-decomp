@@ -25156,3 +25156,35 @@ gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8), norms + (rec[5] &
 
 `func_8009CED0` is the example. Same `$a1`/`$a0`/`$v1`/`$v0` pattern as a
 single-`gte_ldv3` handler (`func_8009D388`).
+
+## Volatile `move` after a chained load so it does not fill the first delay
+
+`s = p->owner->spawnArg1` then `prompt = arg0` lets `-fschedule-insns2` put
+`move s5, a0` in the `lw owner` delay. The target wants consecutive loads
+(assembler `nop`) then the copy just before `lui a0` clobbers `$a0`. Emit
+the copy as a volatile `move` that lists the second load's result as an
+input so it cannot rise into the first delay:
+
+```c
+spawnArg = obj->owner->spawnArg1;
+asm volatile("move %0, %2" : "=r"(prompt), "+r"(obj) : "r"(arg0), "r"(spawnArg));
+```
+
+`%0` is the `s5` dest, `%1` is the `+r` `obj` operand, `%2` is `arg0`.
+`func_800C8700` is the example. Same “pin the copy so `lui` cannot float
+above it” idea as `func_8009AA5C`.
+
+## Pin `5` to `$v1` so `mode != 5` is `lw v0` / `beq v0, v1`
+
+A duplicated `if (obj->mode != 5)` after `bnez spawnArg` wants `li v1, 5`
+in the delay (and again at the fall-through) then `lw v0, mode` / `beq v0,
+v1`. An unpinned `5` becomes `li v0, 5` / `lw v1, mode` / `beq v1, v0`.
+Give each arm its own `v1` temp:
+
+```c
+register s32 five asm("v1");
+five = 5;
+if (obj->mode != five) {
+```
+
+`func_800C8700` is the example.

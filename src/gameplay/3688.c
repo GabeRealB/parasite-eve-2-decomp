@@ -126,6 +126,7 @@ extern UiObjectDesc   D_8010ED00;
 extern UiObjectDesc   D_8010EE6C;
 extern UiObjectDesc   D_8010EE88;
 extern UiObjectDesc   D_8010EEDC;
+extern UiObjectDesc   D_8010EEF8;
 extern UiObjectDesc   D_8010EF14;
 extern UiObjectDesc   D_8010EF30;
 extern UiObjectDesc   D_8010EF68;
@@ -234,8 +235,10 @@ void       func_800CFE68(s32 arg0, UiObject* arg1);
 void       func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_800C8368(Task* arg0);
+void       func_800C8700(DialogPrompt* arg0, UiObject* arg1);
 void       func_800C2B70(UiList* arg0, s32 arg1);
 void       func_800C8B40(Task* arg0);
+void       func_800CF448(s32 arg0);
 void       func_800C942C(UiList* arg0, s32 arg1);
 void       func_800C9654(Task* arg0);
 void       func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
@@ -2201,7 +2204,143 @@ void func_800C8368(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C8700);
+void func_800C8700(DialogPrompt* arg0, UiObject* arg1)
+{
+    TextDrawReq            req;
+    register s32           spawnArg asm("s4");
+    register s32           item asm("s0");
+    s32                    status;
+    s32                    x;
+    s32                    y;
+    s32                    color;
+    s32                    one;
+    s32                    temp;
+    s32                    i;
+    s32                    minusOne;
+    s32                    baseY;
+    register UiObject*     obj asm("s1");
+    register DialogPrompt* prompt asm("s5");
+    UiObject*              spawned;
+
+    obj      = arg1;
+    spawnArg = obj->owner->spawnArg1;
+    asm volatile("move %0, %2" : "=r"(prompt), "+r"(obj) : "r"(arg0), "r"(spawnArg));
+    item   = func_800B904C(&Mc_SaveData.field_5BC, prompt->field_8, spawnArg);
+    status = obj->status;
+    if (((status >> 16) == 1) || (status == 1)) {
+        if (prompt->field_10 == prompt->field_8) {
+            {
+                register s32 t asm("a0");
+                register s32 a1v asm("a1");
+                a1v = 1;
+                if (item == 0) {
+                    t = (s32)D_8010F8D0;
+                } else {
+                    t = (s32)func_800B8EB0(item, a1v, 0);
+                }
+                a1v = 0;
+                asm volatile("" : "+r"(a1v));
+                Ui_SetHolderParam(t, a1v, a1v);
+            }
+            if (spawnArg != 0) {
+                if (item != D_8010E8F8[0]) {
+                    i        = 0;
+                    minusOne = -1;
+                    for (; i < 3; i++) {
+                        if (i == 0) {
+                            D_8010E8F8[0] = item;
+                        } else {
+                            D_8010E8F8[i] = minusOne;
+                        }
+                    }
+                    func_800C5C2C(item, 0);
+                }
+            }
+        }
+    }
+
+    if (spawnArg == 0) {
+        register s32 five asm("v1");
+        x     = prompt->field_18;
+        y     = prompt->field_1A;
+        color = prompt->field_1C;
+        one   = 1;
+        five  = 5;
+        if (obj->mode != five) {
+            req.x          = obj->baseX + 0x11 + x;
+            baseY          = obj->baseY - 6;
+            req.y          = baseY + y;
+            req.otIndex    = (s16)obj->drawOrder + one;
+            req.field_8    = color;
+            req.glyphTable = 0;
+            req.centerMode = 0;
+            req.field_E    = one;
+            func_8002E53C(&req, func_800B8EB0(item, 0, 0));
+            func_800C22D8(obj, x, y, item, one);
+            temp = item - 0xF;
+            if ((u32)temp < 0x24U) {
+                func_800C2538(obj, x, y, temp % 3 + one, color);
+            }
+            func_800C05CC(obj, x, y, item, 0);
+        }
+    } else {
+        register s32 five asm("v1");
+        x     = prompt->field_18;
+        y     = prompt->field_1A;
+        color = prompt->field_1C;
+        five  = 5;
+        if (obj->mode != five) {
+            req.x          = obj->baseX + 0x11 + x;
+            baseY          = obj->baseY - 6;
+            req.y          = baseY + y;
+            req.otIndex    = (s16)obj->drawOrder + 1;
+            req.field_8    = color;
+            req.glyphTable = 0;
+            req.centerMode = 0;
+            req.field_E    = 1;
+            func_8002E53C(&req, func_800B8EB0(item, 0, 0));
+            temp = item - 0xF;
+            if ((u32)temp < 0x24U) {
+                func_800C2538(obj, x, y, temp % 3 + 1, color);
+            }
+            func_800C05CC(obj, x, y, item, 0);
+        }
+    }
+
+    if (prompt->field_C == 1) {
+        obj->field_2C = item;
+        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+            if (obj->owner->spawnArg1 == 0) {
+                SndEvt_EnqueueType6(0xA, 0, 0);
+                func_800CF448(item);
+                D_80114D90 = 0;
+                spawned    = Ui_SpawnFromDesc(&D_8010EF14, item | 0x10000, 1, 1, obj);
+                if (spawned != NULL) {
+                    Ui_ClampDialogRect((UiPanel*)spawned, (UiPanel*)prompt, (UiPanel*)obj);
+                }
+                obj->status = 0;
+            } else {
+                SndEvt_EnqueueType6(3, 0, 0);
+                Ui_SpawnFromDesc(&D_8010EEF8, (item << 8) | spawnArg, 1, 1, obj);
+                obj->status = 0;
+            }
+        } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
+            SndEvt_EnqueueType6(3, 0, 0);
+            if (spawnArg != 0) {
+                Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, obj);
+            } else {
+                Ui_SpawnFromDesc(&D_8010EFA0, item | 0x10000, 1, 1, obj);
+            }
+            obj->status = 0;
+        }
+    } else if (obj->status != 1) {
+        if (prompt->field_8 == 0) {
+            if (obj->field_2C == 0) {
+                obj->field_2C = item;
+            }
+        }
+    }
+}
 
 void func_800C8B40(Task* arg0)
 {
