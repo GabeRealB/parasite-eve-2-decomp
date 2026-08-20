@@ -23,6 +23,7 @@
 
 #define gte_rtv0_real()   __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
+#define gte_rtir_real()   __asm__ volatile("nop; nop; .word 0x4A49E012")
 #define gte_gpf12_real()  __asm__ volatile("nop; nop; .word 0x4B98003D")
 #define gte_gpl12_real()  __asm__ volatile("nop; nop; .word 0x4BA8003E")
 
@@ -489,7 +490,47 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B1460);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B17D4);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B1D00);
+void func_800B1D00(GsCOORDINATE2* arg0, MATRIX* arg1, SVECTOR* arg2)
+{
+    SVECTOR tmp;
+    MATRIX* m;
+    s32     one;
+
+    if (arg0->sub != &D_80070F10) {
+        func_800B1D00(arg0->sub, arg1, arg2);
+    } else {
+        one                = ONE;
+        m                  = arg1;
+        *(s32*)m           = one;
+        *(s32*)&m->m[0][2] = 0;
+        *(s32*)&m->m[1][1] = one;
+        *(s32*)&m->m[2][0] = 0;
+        m->m[2][2]         = one;
+        arg2->vx           = 0;
+        arg2->vy           = 0;
+        arg2->vz           = 0;
+    }
+
+    tmp.vx = *(u16*)&arg0->coord.t[0];
+    tmp.vy = *(u16*)&arg0->coord.t[1];
+    tmp.vz = *(u16*)&arg0->coord.t[2];
+    gte_SetRotMatrix(arg1);
+    gte_ldv0(&tmp);
+    gte_rtv0_real();
+    gte_stsv(&tmp);
+    arg2->vx += tmp.vx;
+    arg2->vy += tmp.vy;
+    arg2->vz += tmp.vz;
+    gte_ldclmv(&arg0->coord);
+    gte_rtir_real();
+    gte_stclmv(arg1);
+    gte_ldclmv(&arg0->coord.m[0][1]);
+    gte_rtir_real();
+    gte_stclmv(&arg1->m[0][1]);
+    gte_ldclmv(&arg0->coord.m[0][2]);
+    gte_rtir_real();
+    gte_stclmv(&arg1->m[0][2]);
+}
 
 void func_800B1EFC(Task* arg0)
 {

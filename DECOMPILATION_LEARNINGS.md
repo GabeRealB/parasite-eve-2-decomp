@@ -24518,3 +24518,17 @@ Keep the s32 temps inside the init block so they do not steal `s0`/`s1`
 from `mem`/`coord`.
 
 `func_800FB7E4` is the example.
+
+## Copy `MATRIX.t` longs into an `SVECTOR` with `*(u16*)&t[i]`
+
+`tmp.vx = arg0->coord.t[0]` (s32 → s16) emits `lw` / `sh`. The target
+loads only the low half (`lhu` / `nop` / `sh`) because the translation is
+a 16-bit value stored in a `long`. Pun through `u16`:
+
+```c
+tmp.vx = *(u16*)&arg0->coord.t[0];
+tmp.vy = *(u16*)&arg0->coord.t[1];
+tmp.vz = *(u16*)&arg0->coord.t[2];
+```
+
+`func_800B1D00` is the example.

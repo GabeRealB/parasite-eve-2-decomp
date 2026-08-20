@@ -309,6 +309,11 @@ void     func_800B058C(Task* arg0);
 s32      func_800B05E8(s32 arg0);
 void     func_800B065C(u8 arg0);
 void     func_800B0FDC(MATRIX* arg0, SVECTOR* arg1);
+/// Walks `arg0->sub` up to world (`D_80070F10`), composing each node's
+/// `coord` rotation into `arg1` and accumulating the rotated translation
+/// into `arg2`. The world parent initializes `arg1` to identity and
+/// `arg2` to zero.
+void     func_800B1D00(GsCOORDINATE2* arg0, MATRIX* arg1, SVECTOR* arg2);
 /// 8-byte RGB555-unpacked vector. `func_800B2088` allocates three of
 /// these (0x18 bytes) from `G_SCRATCH_HEAD`: src0, src1, then the GTE
 /// lerp result. Channels are 5-bit values shifted left 7.
