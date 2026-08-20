@@ -23867,6 +23867,45 @@ if ((ws->field_24 & clipMask) == 0) {
 example. Same prologue is used by `func_8009D518` / `func_8009D718` /
 `func_8009D900`.
 
+## Quad TMD: shared 4th-vertex draw, `gte_avsz4_real`, pin `mask` to `$t1`
+
+`func_8009D718` is the POLY_GT4 sibling of `func_8009DB00`. After the
+hoisted FLAG/clip/`opz` prologue it RTPT-clips the first three verts,
+`nclip`s, stores SXY into the GT4 (`gte_stsxy3_gt4`) unconditionally,
+then RTPS-clips vertex 3. The first `nclip` result is reused: if
+`field_28 > 0` draw, else `nclip` again on (v0,v1,v3) and draw only when
+that MAC0 is `< 0`. Both paths share one `gte_stsxy2(&poly->x3)` /
+`gte_avsz4_real` / OT block; a `goto` into the `< 0` body emits
+`bgtz` / delay-slot `addiu v0, t0, 0x2C` like the target. No
+`setlen`/`setcode` (another handler fills the packet).
+
+`gte_avsz4_real` is `nop; nop; .word 0x4B68002E` (cf. avsz3
+`0x4B58002D`). Poly stride 0x34.
+
+Without the extra `t1 = poly+7` that the setcode siblings keep, GCC
+colors `opz` as `$t1` and `mask` as `$t2`. Pin the mask so `opz` falls
+into `$t2`:
+
+```c
+register u32 mask asm("t1");
+...
+if (ws->field_28 > 0) {
+    goto draw;
+}
+gte_nclip_real();
+gte_stopz(opz);
+if (ws->field_28 < 0) {
+draw:
+    gte_stsxy2(&poly->x3);
+    gte_avsz4_real();
+    gte_stotz(opz);
+    /* OT link */
+}
+```
+
+`func_8009D518` (POLY_FT4) / `func_8009D900` (POLY_F4) are the same
+shape with different SXY offsets and a live `poly+7`.
+
 ## Relative matrix: reuse `$a0` as 0x30 scratch, pin after the overwrite
 
 `func_800A8864` is `arg2 = inverse(arg0) * arg1` for rigid transforms:
