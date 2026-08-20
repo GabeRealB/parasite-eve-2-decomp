@@ -2293,7 +2293,63 @@ s32 func_800E2438(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E25F8);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E2A24);
+void func_800E2A24(GpObj5D* arg0, s32 arg1)
+{
+    u16 raw;
+    s32 kind;
+    s32 val;
+    s32 limit;
+    s32 rand;
+
+    if ((arg1 & 0x8000) == 0) {
+        raw = D_80113390[arg1 & 0x7F].field_4;
+        asm volatile("" : "+r"(raw));
+        kind = raw;
+    } else {
+        raw = D_8011398C[arg1 & 0x7F].field[5];
+        asm volatile("" : "+r"(raw));
+        kind = raw;
+    }
+
+    switch (kind) {
+        case 0:
+            break;
+        case 1:
+            arg0->field_4C |= 1;
+            break;
+        case 2:
+            arg0->field_58  = 0;
+            arg0->field_5B  = 0;
+            arg0->field_4C |= 2;
+            if ((arg1 & 0x8000) == 0) {
+                arg0->field_5D = 0;
+                return;
+            }
+            if ((arg1 & 0x3F) == 0x31) {
+                arg0->field_5D = 0;
+                return;
+            }
+            arg0->field_5D = D_80114C08.field_0 % 10U;
+            break;
+        case 3:
+            val        = arg0->field_50->field_D;
+            limit      = (val << 12) / 100;
+            D_80070F60 = D_80070F60 * 5 + 0x71357911;
+            rand       = (u32)D_80070F60 >> 16 & 0xFFF;
+            if (rand < limit) {
+                arg0->field_5A  = 0;
+                arg0->field_4C |= 4;
+                D_80070F60      = D_80070F60 * 5 + 0x71357911;
+                arg0->field_59  = ((u32)D_80070F60 >> 16 & 0xF) + 0x53;
+                if ((arg1 & 0x8000) == 0) {
+                    arg0->field_5C = 0;
+                    return;
+                }
+                arg0->field_5C = D_80114C08.field_0 % 10U;
+            }
+            break;
+    }
+}
 
 s32 func_800E2BF8(GpObj50* arg0, s32 arg1)
 {

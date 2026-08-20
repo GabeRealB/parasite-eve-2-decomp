@@ -346,12 +346,16 @@ typedef struct _GpObj4C {
 STATIC_ASSERT_SIZEOF(GpObj4C, 0x50);
 
 /// Sparse overlay of the same object family as `GpObj4C` (flags at 0x4C).
-/// `func_800E301C` ORs bit 0x2 into `field_4C`, clears `field_58` /
-/// `field_5B`, and writes `field_5D` from `D_80114C08.field_0 % 10` when
-/// the id has the 0x8000 bit and low 6 bits != 0x31. `func_800E3084`
-/// compares `field_58` against `field_50->field_C * D_80113D30[field_5D]
-/// / 100` and ticks `field_5B`. Trailing pad keeps pointer alignment;
-/// full object size is not known yet.
+/// `func_800E2A24` looks up a kind from `D_80113390` / `D_8011398C` (same
+/// field as `func_800E2D3C`) and starts one of three effects: bit 0x1
+/// (`func_800E3008`), bit 0x2 (`func_800E301C`, also `field_58` /
+/// `field_5B` / `field_5D`), or bit 0x4 (`func_800E2DE4`, also
+/// `field_59` / `field_5A` / `field_5C`). `func_800E301C` ORs bit 0x2
+/// into `field_4C`, clears `field_58` / `field_5B`, and writes `field_5D`
+/// from `D_80114C08.field_0 % 10` when the id has the 0x8000 bit and low
+/// 6 bits != 0x31. `func_800E3084` compares `field_58` against
+/// `field_50->field_C * D_80113D30[field_5D] / 100` and ticks `field_5B`.
+/// Trailing pad keeps pointer alignment; full object size is not known yet.
 typedef struct _GpObj5D {
     /* 0x00 */ byte        pad_0[0x4C];
     /* 0x4C */ u8          field_4C;
@@ -359,9 +363,10 @@ typedef struct _GpObj5D {
     /* 0x50 */ GpPairSrcE* field_50;
     /* 0x54 */ byte        pad_54[4];
     /* 0x58 */ u8          field_58;
-    /* 0x59 */ byte        pad_59[2];
+    /* 0x59 */ u8          field_59;
+    /* 0x5A */ u8          field_5A;
     /* 0x5B */ u8          field_5B;
-    /* 0x5C */ byte        pad_5C;
+    /* 0x5C */ u8          field_5C;
     /* 0x5D */ u8          field_5D;
     /* 0x5E */ byte        pad_5E[2];
 } GpObj5D;
@@ -905,6 +910,7 @@ void func_800E1C58(GpObj54* arg0, void* arg1);
 /// `arg3 == 0` uses `Wip_SysConfig.field_18` and `GpDmgRow.field_A`;
 /// otherwise `Mc_SaveData.field_6C8` and `GpDmgRow.field_0`.
 s32  func_800E2438(s32 arg0, s32 arg1, s32* arg2, s32 arg3);
+void func_800E2A24(GpObj5D* arg0, s32 arg1);
 s32  func_800E2BF8(GpObj50* arg0, s32 arg1);
 s32  func_800E2C40(GpU16Pair* arg0, s32 arg1);
 void func_800E2C78(GpObj40* arg0, s32 arg1, s32 arg2);

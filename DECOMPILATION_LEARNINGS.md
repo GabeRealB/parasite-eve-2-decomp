@@ -24088,6 +24088,49 @@ beqz   v1, skip
 Write the compare as `if (x > y - 1)` after the increment. `func_800F1364` is
 the example.
 
+## Dummy `case 0` plus a `u16` temp so switch is `lhu v0` / `andi v1`
+
+A 1..3 dispatcher on a `u16` table field wants:
+
+```
+lhu    v0, field(v0)
+j      join
+andi   v1, v0, 0xffff
+...
+lhu    v0, field(v0)
+nop
+andi   v1, v0, 0xffff
+li     v0, 1
+beq    v1, v0, case1
+slti   v0, v1, 2
+```
+
+`switch (kind)` with only cases 1..3 pivots at 2 (`lhu v1` / `li v0, 2` in
+the jump delay). An empty `case 0` pivots at 1 and gives `slti < 2`.
+
+Assigning the `u16` load straight to an `s32` still folds to `lhu v1`.
+Keep a `u16` temp, barrier it, then widen:
+
+```c
+if ((id & 0x8000) == 0) {
+    raw = D_80113390[id & 0x7F].field_4;
+    asm volatile("" : "+r"(raw));
+    kind = raw;
+} else {
+    raw = D_8011398C[id & 0x7F].field[5];
+    asm volatile("" : "+r"(raw));
+    kind = raw;
+}
+switch (kind) {
+    case 0:
+        break;
+    case 1:
+        /* ... */
+```
+
+`kind = raw & 0xFFFF` also matches; `s32 raw` without the mask becomes
+`move` and drops the `andi`. `func_800E2A24` is the example.
+
 ## Unsigned `>> 16` in the `if (x & 0xF0000)` arm so the delay slot is `srl`
 
 ```c
