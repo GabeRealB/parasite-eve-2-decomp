@@ -28,7 +28,6 @@
 void func_800B1EFC(Task* arg0);
 void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800B3910(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 void func_800B6358(Task* task);
 void func_800B6398(void);
 void func_8017FBD8(void);
@@ -820,7 +819,79 @@ void func_800B3910(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
     slot->field_C = val;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B3AA4);
+void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5)
+{
+    GpAnimSlot* slot;
+    GpAnimSet** sets;
+    GpAnimSet*  set;
+    GpAnimRec*  recs;
+    GpAnimRec*  rec;
+    u16         recIdx;
+    u16         val;
+    u8          op;
+    s32         setIdx;
+
+    if (Mc_SaveData.field_23 == 1) {
+        u8  idx;
+        s32 off;
+
+        idx            = arg1->field_15;
+        setIdx         = arg3;
+        arg0->field_C  = arg1 - idx;
+        arg1->field_14 = arg2;
+        idx            = arg1->field_15;
+        off            = idx << 4;
+        slot           = &arg0->field_C[idx];
+        func_800B3448(arg0, idx, 0, (s32)arg0->field_8 + off);
+        slot->field_0 = 0x7FFF;
+        set           = slot->field_20[(u16)setIdx];
+        recs          = set->field_0;
+        recIdx        = set->field_4[slot->field_15] + arg4;
+        while ((s8)recs[recIdx].field_3 < 0) {
+            rec = (GpAnimRec*)((recIdx << 2) + (s32)recs);
+            if (rec->field_3 < 0xC0) {
+                recIdx = rec->field_0;
+                if (recIdx == slot->field_6) {
+                    slot->field_10 |= 1;
+                }
+                slot->field_10 |= 2;
+            } else {
+                recIdx          = slot->field_6;
+                slot->field_10 |= 1;
+                break;
+            }
+        }
+        slot->field_6  = recIdx;
+        slot->field_4  = setIdx;
+        val            = arg5 << 4;
+        slot->field_E  = val;
+        slot->field_C  = val;
+        slot->field_17 = 0;
+    } else {
+        if (arg3 == 0) {
+            arg3 = 1;
+        } else if (arg3 < 0) {
+            arg3 = -arg3;
+        }
+
+        arg1->field_9  = 0x10;
+        arg1->field_C  = 0;
+        arg1->field_0  = arg3;
+        arg1->field_2  = 0;
+        arg1->field_14 = arg2;
+        arg1->field_15 = arg2;
+        arg1->field_4  = arg3;
+        sets           = arg0->field_0;
+        arg1->field_20 = sets;
+        arg1->field_6  = sets[arg3]->field_4[arg1->field_15];
+        arg1->field_2  = arg1->field_20[arg3]->field_4[arg1->field_15];
+        op             = arg1->field_20[arg1->field_4]->field_0[arg1->field_6].field_3;
+        arg1->field_12 = 0;
+        arg1->field_10 = 0;
+        arg1->field_16 = 0;
+        arg1->field_B  = op & 0xF;
+    }
+}
 
 void func_800B3CCC(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3)
 {

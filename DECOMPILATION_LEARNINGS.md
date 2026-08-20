@@ -24233,3 +24233,23 @@ move   v1, a2
 ```
 
 `func_800C8368` is the example.
+
+## Copy a live-across-call arg inside the calling branch, not at entry
+
+A function with `if (flag == 1) { call(); use(arg3); } else { if (arg3 == 0)
+arg3 = 1; use(arg3); }` that mentions `arg3` after the call makes GCC copy
+it at function entry:
+
+```
+sw     s1, 0x14(sp)
+move   s1, a3
+lui    v0, %hi(flag)
+...
+bne    v0, v1, else
+```
+
+Both branches then use `$s1`, so the else-path's `bnez a3` / `negu a3`
+becomes `bnez s1` / `negu s1`. Copy to a local *inside* the calling
+branch (`setIdx = arg3` before the jal, then only `setIdx` after it).
+`$a3` stays the else-path's register, and `move s1, a3` fills the first
+`lbu field_15` delay on the taken path. `func_800B3AA4` is the example.

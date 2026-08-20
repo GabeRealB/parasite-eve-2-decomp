@@ -319,6 +319,7 @@ void       func_800B2998(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* a
 void       func_800B3108(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2);
 void       func_800B32E8(GpAnimCtx* arg0, s32 arg1);
 void       func_800B3910(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
+void       func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 void       func_800B3CCC(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3);
 void       func_800B3CE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3);
 void       func_800B3DB4(GpAnimCtx* arg0, GpAnimSlot* arg1);
