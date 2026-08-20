@@ -252,6 +252,16 @@ void func_800AADDC(Task* task);
 void func_800AB1C8(Task* task);
 /// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
 /// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0.
+/// When the CD queue is idle, if the session location high word is
+/// `0x3010000` and `field_5 >= 4`, re-inits stage sound and enqueues
+/// CdCmd 0x21 (`param1[0] = 0x16`). If `field_4C` is 1, applies
+/// `Mc_SaveData.field_9` via `func_800B5B30` and clears the flag. Then
+/// applies the save location (`func_800ABF1C` / `func_800B601C`), copies
+/// `Mc_SaveData.field_9` into `GameSession.field_9`, builds the stream
+/// VLC, clears `D_80114C74`, and advances `task->state`.
+void func_800AB3A8(Task* task);
+/// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
+/// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0.
 /// Then walks `D_80114C74`: phase 0 resets `D_80114C70` and falls into
 /// phase 1 (`func_800AA120`); when that finishes, phase 2 runs
 /// `func_800A9E44`. On success, resets TMD lists / the current OT,

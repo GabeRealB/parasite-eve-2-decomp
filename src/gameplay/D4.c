@@ -734,7 +734,92 @@ void func_800AB1C8(Task* task)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AB3A8);
+void func_800AB3A8(Task* task)
+{
+    TILE*         tile;
+    DR_TPAGE*     dr;
+    DisplayState* ds;
+    register s32  color asm("a2");
+    register s32  qhi asm("a1");
+    register s32  queued asm("a0");
+    s32           buf;
+    s8            yoff;
+    u8            param1[8];
+    u8            param2[8];
+    GpAreaKey*    saveKey;
+
+    color = 8;
+    ds    = &Display_State;
+    asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi) : "r"(color), "r"(ds));
+    buf  = ds->field_114;
+    tile = &D_80114C80[buf];
+    asm("" : : "r"(qhi), "r"(tile));
+    dr     = &D_80114CA0[buf];
+    queued = *(u16*)((s32)qhi + (s16)0x91C4);
+    if (queued == 0) {
+        setlen(tile, 3);
+        setcode(tile, 0x62);
+        tile->r0 = color;
+        tile->g0 = color;
+        tile->b0 = color;
+        tile->x0 = -0xA0;
+        yoff     = ds->vramYOffset;
+        tile->w  = 0x140;
+        tile->h  = 0xF0;
+        tile->y0 = -0x78 - yoff;
+        addPrim(Gpu_CurrentOt - 0x10, tile);
+        setlen(dr, 1);
+        dr->code[0] = 0xE1000000 | 0x240;
+        addPrim(Gpu_CurrentOt - 0x10, dr);
+    }
+    if (CdCmd_IsIdle() & 0xFFFF) {
+        register GameSession* session asm("a1");
+
+        session = Game_Session;
+        if ((*(u32*)&session->field_4 & 0xFFFF0000) == 0x3010000) {
+            if (session->field_5 >= 4) {
+                register GameSession* sess asm("v1");
+                register s32          cmd asm("a0");
+                register u8*          p1 asm("a1");
+                register u8*          p2 asm("a2");
+                register s32          tmp asm("v0");
+                register s32          loc asm("v1");
+
+                Snd_InitFromStage(session->field_7, session->field_6);
+                cmd       = 0x21;
+                sess      = Game_Session;
+                tmp       = sess->field_7;
+                p1        = param1;
+                param1[3] = tmp;
+                loc       = sess->field_6;
+                p2        = param2;
+                param1[0] = 0x16;
+                param2[0] = 1;
+                param2[1] = 0;
+                param2[2] = 0;
+                param2[3] = 0;
+                param1[2] = loc;
+                CdCmd_Enqueue(cmd, p1, p2);
+            }
+        }
+        {
+            register GameSession* sess asm("a0");
+
+            sess = Game_Session;
+            if (sess->field_4C == 1) {
+                func_800B5B30((GpAreaKey*)&sess->field_4, Mc_SaveData.field_9, -1);
+                Game_Session->field_4C = 0;
+            }
+        }
+        saveKey = (GpAreaKey*)&Mc_SaveData.field_4;
+        func_800ABF1C(saveKey);
+        func_800B601C(saveKey);
+        Game_Session->field_9 = saveKey->field_5;
+        CdCmd_BuildVlcIfStream();
+        D_80114C74 = 0;
+        task->state++;
+    }
+}
 
 void func_800AB5F4(Task* task)
 {
