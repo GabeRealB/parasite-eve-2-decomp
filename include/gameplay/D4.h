@@ -63,13 +63,26 @@ typedef struct _GpCb68Obj {
 } GpCb68Obj;
 STATIC_ASSERT_SIZEOF(GpCb68Obj, 8);
 
-/// 0x14-byte source record. `GpCb68Rec.field_0` is an array of these.
-/// `func_800AD410` indexes from `GpCb68Obj.field_0` for `field_2` entries
-/// and uses `field_C` as the OT depth.
+/// 0x14-byte SPRT source record. `GpCb68Rec.field_0` is an array of these.
+/// `func_800AD410` / `func_800AC790` index from `GpCb68Obj.field_0` for
+/// `field_2` entries. `otz` is the OT depth. `func_800AC790` copies the
+/// remaining fields into a merged `DR_TPAGE`+`SPRT` in `D_80071190`.
+/// `flags` bit 0 skips the RGB copy (shade-tex); the byte is OR'd into
+/// the SPRT code.
 typedef struct _GpCb68Elem {
-    /* 0x00 */ byte pad_0[0xC];
-    /* 0x0C */ u16  field_C;
-    /* 0x0E */ byte pad_E[6];
+    /* 0x00 */ u16 tpage;
+    /* 0x02 */ u16 clut;
+    /* 0x04 */ s16 w;
+    /* 0x06 */ s16 h;
+    /* 0x08 */ s16 x0;
+    /* 0x0A */ s16 y0;
+    /* 0x0C */ u16 otz;
+    /* 0x0E */ u8  u0;
+    /* 0x0F */ u8  v0;
+    /* 0x10 */ u8  r0;
+    /* 0x11 */ u8  g0;
+    /* 0x12 */ u8  b0;
+    /* 0x13 */ u8  flags;
 } GpCb68Elem;
 STATIC_ASSERT_SIZEOF(GpCb68Elem, 0x14);
 
@@ -141,6 +154,15 @@ typedef struct _GpPrim1C {
     /* 0x10 */ byte pad_10[0xC];
 } GpPrim1C;
 STATIC_ASSERT_SIZEOF(GpPrim1C, 0x1C);
+
+/// Merged `DR_TPAGE` + `SPRT` (0x1C) written into `D_80071190` by
+/// `func_800AC790`. `MargePrim` concatenates the tpage packet onto the
+/// sprite so they share one OT entry.
+typedef struct _GpTpageSprt {
+    /* 0x00 */ DR_TPAGE tpage;
+    /* 0x08 */ SPRT     sprt;
+} GpTpageSprt;
+STATIC_ASSERT_SIZEOF(GpTpageSprt, 0x1C);
 
 /// Dual-buffer primitive list heads, indexed by `Display_State.field_1f`.
 extern GpPrim1C* D_8010CAE8[];
@@ -286,6 +308,9 @@ s32   func_800AC464(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// child, clear `GameSession.field_76`, and increment `task->state`.
 void  func_800AC4D8(Task* task);
 void  func_800AC688(void);
+/// Build merged `DR_TPAGE`+`SPRT` packets into `D_80071190` from
+/// `arg0[arg1->field_0]` for `arg1->field_2` entries, and OT-link each.
+void  func_800AC790(GpCb68Elem* arg0, GpCb68Obj* arg1);
 void  func_800AC960(s32 arg0);
 void  func_800ACD2C(Task* task);
 /// 1-based index of `(u8)arg0` in the current room's `D_8010CB54` byte

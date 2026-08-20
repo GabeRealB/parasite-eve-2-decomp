@@ -1395,7 +1395,58 @@ void func_800AC688(void)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AC790);
+void func_800AC790(GpCb68Elem* arg0, GpCb68Obj* arg1)
+{
+    GpCb68Obj*             rec;
+    register u32           i asm("s4");
+    GpTpageSprt*           dest;
+    GpCb68Elem*            elem;
+    GpCb68Elem*            cur;
+    register DisplayState* hi asm("v0");
+    register DisplayState* ds asm("s7");
+    register u32           maskHi asm("s6");
+    u32                    mask;
+    SPRT*                  sprt;
+    u32                    tpage;
+
+    rec        = arg1;
+    i          = 0;
+    dest       = (GpTpageSprt*)D_80071190;
+    elem       = arg0 + rec->field_0;
+    D_80071190 = (DR_TPAGE*)(dest + rec->field_2);
+    if (rec->field_2 != 0) {
+        asm("lui %0, %%hi(Display_State)" : "=r"(hi));
+        asm("addiu %0, %1, %%lo(Display_State)" : "=r"(ds) : "r"(hi));
+        mask   = 0xFFFFFF;
+        maskHi = 0xFF000000;
+        cur    = elem;
+        do {
+            sprt = &dest->sprt;
+            if ((cur->flags & 1) == 0) {
+                *(u32*)&sprt->r0 = *(u32*)&cur->r0;
+            }
+            tpage = elem->tpage;
+            setlen(&dest->tpage, 1);
+            setlen(sprt, 4);
+            setcode(sprt, 0x64);
+            dest->tpage.code[0] = 0xE1000000 | (tpage & 0x9FF);
+            MargePrim(dest, sprt);
+            sprt->code      |= cur->flags;
+            *(u16*)&sprt->u0 = *(u16*)&cur->u0;
+            sprt->clut       = cur->clut;
+            *(u32*)&sprt->x0 = *(u32*)&cur->x0;
+            i++;
+            asm volatile("" : "+r"(i));
+            *(u32*)&sprt->w = *(u32*)&cur->w;
+            elem++;
+            dest->tpage.tag = (dest->tpage.tag & maskHi) | (*(u_long*)(((((u32)cur->otz << ds->field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt) & mask);
+            *(u_long*)(((((u32)cur->otz << ds->field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt) =
+                (*(u_long*)(((((u32)cur->otz << ds->field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt) & maskHi) | ((u32)dest & mask);
+            dest++;
+            cur++;
+        } while (i < rec->field_2);
+    }
+}
 
 void func_800AC960(s32 arg0)
 {
@@ -1649,9 +1700,9 @@ void func_800AD410(GpCb68Elem* arg0, GpCb68Obj* arg1)
         maskHi = 0xFF000000;
         do {
             if (arg1->field_4 == 0) {
-                prim->tag = (prim->tag & maskHi) | (*(u_long*)(((((u32)elem->field_C << ds->field_128) >> 2) & 0xFFC) + (s32)otBase) & mask);
-                *(u_long*)(((((u32)elem->field_C << ds->field_128) >> 2) & 0xFFC) + (s32)otBase) =
-                    (*(u_long*)(((((u32)elem->field_C << ds->field_128) >> 2) & 0xFFC) + (s32)otBase) & maskHi) | ((u32)prim & mask);
+                prim->tag = (prim->tag & maskHi) | (*(u_long*)(((((u32)elem->otz << ds->field_128) >> 2) & 0xFFC) + (s32)otBase) & mask);
+                *(u_long*)(((((u32)elem->otz << ds->field_128) >> 2) & 0xFFC) + (s32)otBase) =
+                    (*(u_long*)(((((u32)elem->otz << ds->field_128) >> 2) & 0xFFC) + (s32)otBase) & maskHi) | ((u32)prim & mask);
             }
             prim++;
             i++;

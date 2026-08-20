@@ -3,6 +3,37 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Pin later `$s` regs so an early arg lands in `$fp` *and* is saved
+
+`register ... asm("fp")` (or `"s8"`) uses `$fp` but GCC 2.8.1 does not emit
+`sw fp` / `lw fp` — it treats the omitted frame pointer as not live. Nine
+live-across-call values want `$s0`–`$s7` plus `$fp`. Pin the *later*
+locals (counter, mask, `Display_State`) and leave the incoming arg
+unpinned so normal allocation gives it `$fp` with a prologue save:
+
+```
+sw     fp, 0x30(sp)
+move   fp, a1
+sw     s4, 0x20(sp)
+move   s4, zero
+lui    a1, %hi(...)
+sw     ra / s7 / s6 / ...
+```
+
+`func_800AC790` is the example.
+
+## Two array pointers so `p++` and `i++` fill different load delays
+
+One pointer through a `0x14`-byte record increments both `$s3` (base)
+and `$s1` (base+0xC) together. A second copy (`elem` for offset-0
+`tpage`, `cur` for the rest) lets `elem++` fill the `wh` load delay
+while `cur++` waits until after both OT-index loads.
+
+A loop counter that is only compared at the backedge sinks into the
+later delay (`addiu s4` with `wh` instead of `xy`). `asm volatile("" :
+"+r"(i))` after `i++` keeps the increment in the `xy` load delay.
+`func_800AC790` is the example.
+
 ## Stage `u16 - N` through an `s32` so GCC emits `addiu -N`
 
 `req.x = obj->baseX - 1 + arg1` with `baseX` a `u16` and `req.x` an `s16`

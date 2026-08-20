@@ -886,7 +886,7 @@ bank 1 type `0x31` `spawnArg2`.
 
 ### `GpCb68Obj` (8) — `D4.h`
 0xFFFF-terminated command list at `GpCb68Rec.field_4`. `func_800AC688`
-walks it; `func_800AD410` consumes one record.
+walks it; `func_800AD410` / `func_800AC790` consume one record.
 
 | Off | Member | Role |
 |-----|--------|------|
@@ -896,12 +896,24 @@ walks it; `func_800AD410` consumes one record.
 | 0x5 | `field_5` | u8; nonzero skips `func_800AD410` and `func_800AC960` |
 
 ### `GpCb68Elem` (0x14) — `D4.h`
-Array at `GpCb68Rec.field_0`. `func_800AD410` indexes from
-`GpCb68Obj.field_0` for `field_2` entries.
+Array at `GpCb68Rec.field_0`. `func_800AD410` / `func_800AC790` index from
+`GpCb68Obj.field_0` for `field_2` entries. `func_800AC790` copies these
+fields into a merged `DR_TPAGE`+`SPRT`.
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0xC | `field_C` | u16 OT depth; shifted by `Display_State.field_128` then `>> 2` and `& 0xFFC` |
+| 0x0 | `tpage` | u16 texture page; `0xE1000000 \| (tpage & 0x9FF)` |
+| 0x2 | `clut` | u16 CLUT copied to the SPRT |
+| 0x4 | `w` / `h` | s16 sprite size (copied as a word) |
+| 0x8 | `x0` / `y0` | s16 sprite position (copied as a word) |
+| 0xC | `otz` | u16 OT depth; shifted by `Display_State.field_128` then `>> 2` and `& 0xFFC` |
+| 0xE | `u0` / `v0` | u8 texcoords (copied as a halfword) |
+| 0x10 | `r0` / `g0` / `b0` | u8 RGB; skipped when `flags` bit 0 is set |
+| 0x13 | `flags` | u8; bit 0 = shade-tex (skip RGB); OR'd into SPRT code |
+
+### `GpTpageSprt` (0x1C) — `D4.h`
+Merged `DR_TPAGE` + `SPRT` packet in the `D_80071190` primitive buffer.
+`func_800AC790` writes one per `GpCb68Elem` and `MargePrim`s them.
 
 ### `GpCb68Rec` (0xC) — `D4.h`
 Per-view record in tables pointed to by `D_8010CB68`.
