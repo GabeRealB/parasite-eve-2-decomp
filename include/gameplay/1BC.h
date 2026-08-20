@@ -414,5 +414,10 @@ void func_800B6B44(GameSessionFrom4* arg0);
 void func_800B6CF0(void);
 s32  func_800B6DA4(s32 arg0, s32 arg1);
 s32  func_800B6EE0(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Equips related item `arg2` (ids `0xA0..0xBF`) onto save-slot `arg1`
+/// (ids `0x80..0x9F`) in the table selected by `arg0`. Tries `D_8010E038`
+/// then `D_8010D078` for a matching related id. `arg3 < 0` uses that
+/// row's max qty. Returns the stored count, 0 if `arg3 == 0`, or -1.
+s32  func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 #endif // GAMEPLAY_1BC_H

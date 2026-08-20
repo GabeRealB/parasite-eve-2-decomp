@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/1BC.h"
 #include "gameplay/268.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
@@ -24,7 +25,6 @@
 #define gte_rtirtr_real() __asm__ volatile("nop; nop; .word 0x4A498012")
 #define gte_gpf12_real()  __asm__ volatile("nop; nop; .word 0x4B98003D")
 
-s32  func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 extern s32 D_80070F60;

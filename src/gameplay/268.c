@@ -39,7 +39,6 @@ void func_8017EA64(void);
 void func_8017EC04(void);
 void func_8017EAC4(void);
 void func_8017EA60(void);
-s32  func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800CF448(s32 arg0);
 void func_800B6CF0(void);
 void func_800BAEC0(s32 arg0);

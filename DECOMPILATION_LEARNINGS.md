@@ -24564,3 +24564,42 @@ Two ways to keep that order:
 
 `func_800FA7CC` is the example (kind-add on the `D_80112A50` arm, split
 add on the `D_80112978` arm).
+
+## Empty `asm volatile("")` pins `if (x <= 0) return` as `bgtz` + `j; li -1`
+
+A large success body after `if (shifted > 0) { huge; return x; } return -1`
+inverts to `blez epilogue`. The target wants the fail physically between
+the compare and the success block, shared with earlier range `goto fail`:
+
+```
+bgtz   success
+ sll    v0, s0, 2     # first insn of success in delay
+j      epilogue
+ li     v0, -1
+success:
+```
+
+Invert the test and put an empty volatile (a scheduling barrier, not a
+nop) on the fail label so jump-opt will not move that return later and
+merge it with other `return -1`s:
+
+```c
+if ((u32)(arg2 - 0xA0) >= 0x20U) {
+    goto fail;
+}
+if ((u32)(arg1 - 0x80) >= 0x20U) {
+    goto fail;
+}
+if (shifted <= 0) {
+fail:
+    asm volatile("");
+    return -1;
+}
+/* huge success; later `if (have <= 0) return -1` stays `blez epilogue` */
+```
+
+`asm volatile("" : "=r"(arg3)); arg3 = 0;` in the `arg3 == 0` else forces
+the redundant `move s2, zero` that CSE would drop. `func_800B715C` is
+the example. Also `asm volatile("" : "+r"(qtyTable))` after `la` so
+`*(u8*)((s32)qtyTable + off + 0x200)` emits `addu v0, v1, v0` rather
+than the commuted `addu v0, v0, v1`.

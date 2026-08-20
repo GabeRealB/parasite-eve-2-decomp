@@ -2431,4 +2431,151 @@ success:
     return 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B715C);
+s32 func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    s32          index;
+    s32          index2;
+    GpItemRec*   table;
+    GpItemSlot*  slot;
+    s32          found;
+    s32          have;
+    register s32 useSecond asm("s5");
+    register s32 shifted asm("v0");
+
+    table = func_800BB500(arg0);
+    if ((u32)(arg2 - 0xA0) >= 0x20U) {
+        goto fail;
+    }
+    useSecond = 0;
+    asm volatile("" : "+r"(useSecond));
+    if ((u32)(arg1 - 0x80) >= 0x20U) {
+        goto fail;
+    }
+    found = 0;
+    if (arg1 >= 0xA0) {
+        index   = arg0->field_0;
+        shifted = func_800BBCCC(table, arg0, &index, arg1);
+        shifted = shifted << 16;
+    } else {
+        register s32        i asm("v1");
+        register s32        count asm("v0");
+        register s32        end asm("a0");
+        register s32        off asm("v0");
+        register s32        limit asm("a1");
+        register GpItemRec* rec asm("a0");
+
+        i     = arg0->field_0;
+        count = arg0->field_1;
+        end   = i + count;
+        if (i < end) {
+            off   = i << 2;
+            limit = end;
+            rec   = (GpItemRec*)(off + (s32)table);
+            for (; i < limit; i++, rec++) {
+                if (rec->field_0 == arg1) {
+                    found = 1;
+                    break;
+                }
+            }
+        }
+        shifted = found;
+        asm volatile("" : "+r"(shifted));
+        shifted = shifted << 16;
+    }
+    if (shifted <= 0) {
+    fail:
+        asm volatile("");
+        return -1;
+    }
+    {
+        register s32        off asm("v0");
+        register GpItemQty* qtyTable asm("v1");
+        register s32        maxQty asm("a1");
+        register s32        clamped asm("a0");
+        register s32        i asm("v1");
+        register s32        idx asm("a0");
+        GpItemQty*          row;
+
+        off      = arg1 << 2;
+        qtyTable = D_8010E038;
+        asm volatile("" : "+r"(qtyTable));
+        row = (GpItemQty*)(off + (s32)qtyTable);
+        asm volatile("" : "+r"(row));
+        idx    = arg1 - 0x80;
+        maxQty = 0;
+        if ((u32)idx < 0x20U) {
+            off    = idx << 2;
+            maxQty = *(u8*)((s32)qtyTable + off + 0x200);
+        }
+        clamped = maxQty;
+        i       = 0;
+        for (; i < 3; i++) {
+            if (((u8*)((s32)row + i))[1] == arg2) {
+                break;
+            }
+        }
+        if (i == 3) {
+            off       = arg1 << 2;
+            useSecond = 1;
+            qtyTable  = D_8010D078;
+            asm volatile("" : "+r"(qtyTable));
+            row = (GpItemQty*)(off + (s32)qtyTable);
+            asm volatile("" : "+r"(row));
+            idx    = arg1 - 0x80;
+            maxQty = 0;
+            if ((u32)idx < 0x20U) {
+                off    = idx << 2;
+                maxQty = *(u8*)((s32)qtyTable + off + 0x200);
+            }
+            clamped = maxQty;
+            i       = 0;
+            for (; i < 3; i++) {
+                if (((u8*)((s32)row + i))[1] == arg2) {
+                    break;
+                }
+            }
+            if (i == 3) {
+                return -1;
+            }
+        }
+        if (arg3 < 0) {
+            arg3 = clamped;
+        }
+        if (clamped < arg3) {
+            arg3 = clamped;
+        }
+        index2 = arg0->field_0;
+        slot   = &Mc_SaveData.field_1C8[arg1];
+        have   = (s16)func_800BBCCC(table, arg0, &index2, arg2);
+        have  -= func_800BAFF4(arg0, arg2);
+        if (slot->field_0 == arg2) {
+            have += slot->field_1;
+        }
+        if (slot->field_2 == arg2) {
+            have += slot->field_3;
+        }
+        if (have <= 0) {
+            return -1;
+        }
+        if (arg3 != 0) {
+            if (have < arg3) {
+                arg3 = have;
+            }
+            if (useSecond == 0) {
+                slot->field_0 = arg2;
+                slot->field_1 = arg3;
+            } else if (slot->field_2 != 0xFF) {
+                slot->field_2 = arg2;
+                slot->field_3 = arg3;
+            }
+            goto join;
+        }
+        asm volatile("" : "=r"(arg3));
+        arg3 = 0;
+    join:
+        if (arg3 > 0) {
+            func_800BB7C0(arg2, 1);
+        }
+        return arg3;
+    }
+}
