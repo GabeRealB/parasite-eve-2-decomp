@@ -3,6 +3,55 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Write `if (x != K)` so the `== K` body is the `beq` target
+
+`if (state == 0x20) { A } else { B }` emits `bne ..., B` with A first and no
+jump after B (B falls into the join). The target wants A physically second:
+
+```
+beq    v1, v0, path_eq      # state == 0x20
+nop
+jal    Text_MeasureWidth    # != path
+addiu  s0, v0, 0xB
+...
+j      join
+move   s0, s1
+path_eq:
+jal    Text_MeasureWidth
+move   s0, v0
+li     a0, 1
+join:
+```
+
+Invert to `if (state != 0x20) { B } else { A }`. The `j join` after
+`if (width < other) width = other` only appears when the `==` body is
+still below it. `func_800CA25C` is the example.
+
+## Inline the first `0x606060`; assign `color` only after a later call
+
+A `color` local reused across two `Text_DrawPrompt` calls is allocated to
+`$v1` from the start, because the later call needs `$v0` for the returned
+x. That also pulls `lh a1` / `lh a2` *after* the tail-merged join (the
+free `$v0` is used for `li v0, 1` early). The target loads the first
+color in `$v0`:
+
+```
+lui    v0, 0x60
+ori    v0, v0, 0x6060
+lh     a1, field_1C
+lh     a2, field_18
+j      join
+addiu  a3, a3, %lo(...)
+...
+sw     v0, 0x10(sp)
+li     v0, 1
+```
+
+Inline `0x606060` on the first (and one-line) prompt so that temp dies at
+the `jal`. Assign `color = 0x606060` only after the middle call, when
+`$v0` holds the returned width and the constant naturally lands in `$v1`.
+`func_800CA25C` is the example.
+
 ## Pin later `$s` regs so an early arg lands in `$fp` *and* is saved
 
 `register ... asm("fp")` (or `"s8"`) uses `$fp` but GCC 2.8.1 does not emit

@@ -47,6 +47,9 @@ extern char           D_8010E460[];
 extern char           D_8010E478[];
 extern char           D_8010E494[];
 extern char           D_8010E4A0[];
+extern char           D_8010E4AC[];
+extern char           D_8010E4B4[];
+extern char           D_8010E4BC[];
 extern char           D_8010E4D0[];
 extern char           D_8010E500[];
 extern char           D_8010E504[];
@@ -165,6 +168,7 @@ extern char           D_80097114[];
 extern char           D_80097120[];
 extern char           D_80097130[];
 extern char           D_80097138[];
+extern char           D_80097154[];
 extern char           D_8009715C[];
 extern char           D_80097194[];
 extern u8             D_800971A4;
@@ -187,6 +191,7 @@ void       func_8017F2F8(Task* task);
 void       func_8017F304(Task* task);
 void       func_80181184(Task* task);
 void       func_801811A0(Task* task);
+s32        func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_800C05CC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void       func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_800CD924(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
@@ -2069,7 +2074,103 @@ void func_800C9BE8(DialogPrompt* arg0, UiObject* arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C9E94);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CA25C);
+void func_800CA25C(Task* arg0)
+{
+    UiObject*   obj;
+    u8*         text;
+    s32         lo;
+    s32         hi;
+    s32         width;
+    s32         other;
+    s32         rows;
+    s32         color;
+    s32         one;
+    GpItemSlot* slot;
+
+    obj           = arg0->spawnArg2;
+    lo            = arg0->spawnArg1 & 0xFF;
+    hi            = (arg0->spawnArg1 >> 8) & 0xFF;
+    obj->field_2E = 0;
+    Ui_DrawText((UiPanel*)obj, D_80097154);
+    if (arg0->state == 0) {
+        if (lo == 0) {
+            slot        = func_800BAFE0(hi);
+            arg0->state = 0x10;
+            if (D_80114D90 == 1) {
+                if (slot->field_0 != 0) {
+                    arg0->spawnArg1 |= slot->field_0;
+                    text             = func_800B8EB0(slot->field_0, 0, 0);
+                } else {
+                    arg0->state = 0x20;
+                    text        = D_8010E4BC;
+                }
+            } else if (D_80114D90 == 2) {
+                if (slot->field_2 != 0) {
+                    arg0->spawnArg1 |= slot->field_2;
+                    text             = func_800B8EB0(slot->field_2, 0, 0);
+                } else {
+                    arg0->state = 0x20;
+                    text        = D_8010E4BC;
+                }
+            } else {
+                arg0->state = 0x20;
+                text        = D_8010E4BC;
+            }
+            func_800BB190(hi, D_80114D90);
+            other = Text_MeasureWidth(D_8010E4B4);
+        } else {
+            func_800BB7C0(lo, 1);
+            text = func_800B8EB0(lo, 0, 0);
+            func_800B715C(&Mc_SaveData.field_5BC, hi, lo, -1);
+            other       = Text_MeasureWidth(D_8010E4AC);
+            arg0->state = 1;
+        }
+        if (arg0->state != 0x20) {
+            width = Text_MeasureWidth(text) + 0xB;
+            if (width < other) {
+                width = other;
+            }
+            rows = 2;
+        } else {
+            width = Text_MeasureWidth(text);
+            rows  = 1;
+        }
+        Ui_UpdateLayoutSize((UiPanel*)obj, width + 5, Ui_Scale15(rows) + 1);
+        ((UiPanel*)obj)->field_C.x = (-((UiPanel*)obj)->field_C.w) >> 1;
+        if (arg0->state < 0x20) {
+            if (arg0->state < 0x10) {
+                SndEvt_EnqueueType6(0x3C, 0, 0);
+            } else {
+                SndEvt_EnqueueType6(3, 0, 0);
+            }
+        } else {
+            SndEvt_EnqueueType6(3, 0, 0);
+        }
+        arg0->killCountdown = 0xBC;
+    } else if (arg0->state < 0x20) {
+        text = func_800B8EB0(lo, 0, 0);
+        if (arg0->state < 0x10) {
+            Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, D_8010E4AC, 0x606060, 1, 0);
+        } else {
+            Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, D_8010E4B4, 0x606060, 1, 0);
+        }
+        one   = 1;
+        width = Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0x1E, text, 0x37A78, one, 0);
+        color = 0x606060;
+        Text_DrawPrompt(obj, width, (s16)obj->field_18 + 0x1E, D_8010E59C, color, one, 0);
+    } else {
+        Text_DrawPrompt(obj, obj->field_1C + 2, (s16)obj->field_18 + 0xF, D_8010E4BC, 0x606060, 1, 0);
+    }
+    arg0->killCountdown--;
+    if (obj->status == 1) {
+        if (Pad_CheckButtons(0, 1, D_8005ED78) != 0) {
+            obj->field_2E = -1;
+        } else if ((arg0->killCountdown <= 0) || (Pad_CheckButtons(0, 1, D_8005ED70 | D_8005ED74) != 0)) {
+            obj->field_2E       = 9;
+            arg0->killCountdown = 0x7FFF;
+        }
+    }
+}
 
 void func_800CA634(Task* arg0)
 {
