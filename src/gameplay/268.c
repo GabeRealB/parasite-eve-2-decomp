@@ -1102,7 +1102,46 @@ void func_800B996C(UiObject* arg0, Task* arg1)
     arg1->spawnArg1 = saved;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800B9B40);
+void func_800B9B40(UiObject* arg0, Task* arg1)
+{
+    WipSysConfig* cfg;
+    McSaveData*   save;
+    s32           saved;
+    s32           hp;
+    u16           val;
+
+    if (arg1->state == 0) {
+        cfg                = &Wip_SysConfig;
+        hp                 = cfg->field_18;
+        D_80114BE8.field_0 = hp;
+        save               = &Mc_SaveData;
+        D_80114BE8.field_4 = cfg->field_1c;
+        if (save->field_26 < 0xFA) {
+            save->field_26 = save->field_26 + 5;
+        }
+        val           = D_8010D328[save->field_F].field_0;
+        cfg->field_1a = val;
+        val          += save->field_26;
+        cfg->field_1a = val;
+        if (cfg->field_23 != 0) {
+            val          += D_8010E2B8[cfg->field_23 - 1].field_4;
+            cfg->field_1a = val;
+        }
+        if (cfg->field_1a >= 0xFB) {
+            cfg->field_1a = 0xFA;
+        }
+        if (cfg->field_1a < hp) {
+            cfg->field_18 = cfg->field_1a;
+        }
+        cfg->field_18 = cfg->field_1a;
+        func_800B996C_RemoveItem(0, D_80114DD4, 1);
+        Ui_SpawnFromDesc(&D_8010D384, 0, 0, 1, arg0);
+    }
+    saved           = arg1->spawnArg1;
+    arg1->spawnArg1 = 0x1C;
+    func_800D2F68(arg1);
+    arg1->spawnArg1 = saved;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B9D80);
 

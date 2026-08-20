@@ -93,8 +93,8 @@ STATIC_ASSERT_SIZEOF(GpStateC08, 0x18);
 extern GpStateC08 D_80114C08;
 
 /// Pair of s32 working copies at `D_80114BE8`. `func_800A7574` (and
-/// `func_800B996C`) sign-extend `Wip_SysConfig.field_18` / `field_1c` into
-/// `field_0` / `field_4`. Splat also emits `D_80114BEC` at +4.
+/// `func_800B996C` / `func_800B9B40`) sign-extend `Wip_SysConfig.field_18` /
+/// `field_1c` into `field_0` / `field_4`. Splat also emits `D_80114BEC` at +4.
 typedef struct _GpStateBE8 {
     /* 0x0 */ s32 field_0;
     /* 0x4 */ s32 field_4;

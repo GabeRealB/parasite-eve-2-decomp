@@ -23782,3 +23782,24 @@ if (count != 0) {
 ```
 
 `func_800BD2FC` is the example.
+
+## Inline a recalc helper so `cfg` stays in `$a1` and the old current stays in `$a3`
+
+`func_800B996C` `jal`s `func_800B7930` then `cfg->field_1c = cfg->field_1e`,
+so `cfg`/`save` live in `$s0`/`$s1`. The HP sibling must write the
+`func_800BC0C0` body inline (no `jal`): `cfg` stays in `$a1`, `save` in
+`$t0`. Cache original `field_18` in an `s32` so the `D_80114BE8` store is
+`lh a3` / `sw a3` and the clamp is `slt v0, v0, a3`:
+
+```c
+hp                 = cfg->field_18;
+D_80114BE8.field_0 = hp;
+...
+if (cfg->field_1a < hp) {
+    cfg->field_18 = cfg->field_1a;
+}
+cfg->field_18 = cfg->field_1a;
+```
+
+Calling `func_800BC0C0()` instead emits a `jal` and reallocates those
+pointers into callee-saved regs. `func_800B9B40` is the example.

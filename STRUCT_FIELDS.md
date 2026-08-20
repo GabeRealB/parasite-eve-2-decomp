@@ -156,9 +156,9 @@ Convention: only list fields with evidence. Unlisted `field_*` / `unknown_*` /
 | 0x4–0x9 | `field_4`… | Header region (checksummed from 0x4, size 0x38) |
 | 0x0C | `field_C` | u16 play time in seconds (`lhu`). `func_8009FEDC` splits it into minutes (`/ 60`) and seconds (`% 60`) on the play-clock idMap |
 | 0x0E | `field_E` | Signed scale flag; if > 0 and `func_800D50D4` arg1 is 0, table value is `* 2 / 5` (unless `field_F` applies) |
-| 0x0F | `field_F` | Signed scale flag; if > 0 and `func_800D50D4` arg1 is 0, table value is `* 4 / 5` (takes priority over `field_E`). Also indexes `D_8010D328` (`func_800BC0C0`) |
-| 0x26 | `field_26` | Unsigned addend for `Wip_SysConfig.field_1a` (`func_800BC0C0`) |
-| 0x27 | `field_27` | Unsigned addend for `Wip_SysConfig.field_1e` (`func_800B7930`) |
+| 0x0F | `field_F` | Signed scale flag; if > 0 and `func_800D50D4` arg1 is 0, table value is `* 4 / 5` (takes priority over `field_E`). Also indexes `D_8010D328` (`func_800BC0C0` / `func_800B9B40`) |
+| 0x26 | `field_26` | Unsigned addend for `Wip_SysConfig.field_1a` (`func_800BC0C0`). `func_800B9B40` adds 5 when the value is below 250 |
+| 0x27 | `field_27` | Unsigned addend for `Wip_SysConfig.field_1e` (`func_800B7930`). `func_800B996C` adds 1 when the value is below 250 |
 | 0x10 | `field_10` | Init bitmask; bit 0 = global init done (`func_800AB980`). Per-slot bit is `field_7` via the `GameSessionFrom4` overlay |
 | 0x12 | `field_12` | Slot index 1..16 |
 | 0x13 | `field_13` | 1-based index into `D_80113360` (`func_800E3D24`); also `D_8007217B` |
@@ -736,10 +736,12 @@ slot is occupied, else 0, then calls `func_801061F0`.
 `field_24` is a u8 cleared by `func_801053A0`; `func_8010C81C` saves and restores it around that call.
 `field_25` is an OR mask of PE/status bits set by `func_8010A42C` (same bit as the `func_800ECA10` arg).
 `func_80109FC4` ticks those bits each frame and writes the updated mask back.
-`field_1a` is an s16 max recomputed by `func_800BC0C0` from `D_8010D328[field_F].field_0`
+`field_1a` is an s16 max recomputed by `func_800BC0C0` (and inlined by
+`func_800B9B40`) from `D_8010D328[field_F].field_0`
 plus `Mc_SaveData.field_26` plus optional `D_8010E2B8[field_23-1].field_4`, then
 clamped to 250. `field_18` is the matching current; `func_800BC0C0` copies `field_1a`
-down into it when current exceeds the new max.
+down into it when current exceeds the new max. `func_800B9B40` then heals
+`field_18` to `field_1a`.
 `field_1e` is the matching max recomputed by `func_800B7930`: signed per-slot
 levels in `Mc_SaveData.unknown_850[0..11]` index `D_8011398C[base+j+1].field[1]`
 (base steps by 3), plus optional `D_8010E2B8[field_23-1].field_6`, plus
@@ -842,7 +844,7 @@ Global at `D_80114BE8`. Working copies of two `Wip_SysConfig` halfwords.
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x0 | `field_0` | s32; sign-extended `Wip_SysConfig.field_18` (`func_800A7574` / `func_800B996C`) |
+| 0x0 | `field_0` | s32; sign-extended `Wip_SysConfig.field_18` (`func_800A7574` / `func_800B996C` / `func_800B9B40`) |
 | 0x4 | `field_4` | s32; sign-extended `Wip_SysConfig.field_1c` (splat label `D_80114BEC`) |
 
 ### `GpIdMapC` (0x1A) — `gameplay.h`

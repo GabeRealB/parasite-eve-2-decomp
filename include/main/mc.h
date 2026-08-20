@@ -126,8 +126,8 @@ typedef struct _McSaveData {
     /* 0x023 */ s8         field_23;
     /* 0x024 */ byte       unknown_24[0x1];
     /* 0x025 */ u8         field_25;
-    /* 0x026 */ u8         field_26; // unsigned addend for Wip_SysConfig.field_1a (func_800BC0C0)
-    /* 0x027 */ u8         field_27; // unsigned addend for Wip_SysConfig.field_1e (func_800B7930)
+    /* 0x026 */ u8         field_26; // unsigned addend for Wip_SysConfig.field_1a (func_800BC0C0); +5 in func_800B9B40
+    /* 0x027 */ u8         field_27; // unsigned addend for Wip_SysConfig.field_1e (func_800B7930); +1 in func_800B996C
     /* 0x028 */ byte       unknown_28[0x180];
     /* 0x1A8 */ s8         field_1a8;
     /* 0x1A9 */ s8         field_1a9;

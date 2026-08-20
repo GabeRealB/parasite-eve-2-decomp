@@ -246,6 +246,11 @@ void        func_800B7D18(void);
 GpItemRec*  func_800BAD08(GpItemScan* arg0, s32 arg1, s32 arg2);
 s32         func_800BAD28(GpItemScan* arg0, GpItemRec* arg1, s32 arg2);
 void        func_800B996C(struct _UiObject* arg0, Task* arg1);
+/// HP counterpart of `func_800B996C`: adds 5 to `Mc_SaveData.field_26`
+/// (clamped below 250), recomputes max HP (same body as `func_800BC0C0`),
+/// heals current HP to that max, then consumes `D_80114DD4` and spawns
+/// `D_8010D384`. `func_800D2F68` is called with `spawnArg1` forced to 0x1C.
+void        func_800B9B40(struct _UiObject* arg0, Task* arg1);
 s32         func_800B9D80(s32 arg0);
 void        func_800B8014(void);
 /// Moves the item at scan slot `arg1` onto slot `arg2`, shifting the
