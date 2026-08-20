@@ -23967,7 +23967,17 @@ draw:
 ```
 
 `func_8009D518` (POLY_FT4) / `func_8009D900` (POLY_F4) are the same
-shape with different SXY offsets and a live `poly+7`.
+shape with different SXY offsets and a live `poly+7`. Those
+`setlen`/`setcode` siblings already occupy `$t1` with `poly+7`, so
+unpinned coloring puts `opz` in `$t2` and `mask` in `$t3`. Pin the
+mask to `$t2` instead so `opz` falls into `$t3`:
+
+```c
+register u32 mask asm("t2");
+```
+
+`func_8009D900` is POLY_F4: `gte_stsxy3_f4`, `setlen` 5 / `setcode`
+0x28, stride 0x18, `gte_stsxy2` at `&poly->x3` (offset 0x14).
 
 ## Relative matrix: reuse `$a0` as 0x30 scratch, pin after the overwrite
 
