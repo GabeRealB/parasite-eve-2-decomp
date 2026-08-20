@@ -25050,3 +25050,90 @@ A `(s8)func()` result that must be `sll s0, v0, 24` / `sra s0, s0, 24` in
 the next `jal` delay needs its own block-scope temp (see “Scope a `| k`
 temp”). Reusing the switch index (`mapId = (s8)func()`) emits
 `sll v0, v0, 24` / `sra s0, v0, 24` instead.
+
+## Pin the walker to `$a0` and the inner copy to `$a1`
+
+A loop that loads a list cursor into `$a0`, then walks a second list that
+also needs `$a0`, wants `move a1, a0` *after* the second list's `!= 0xFF`
+preamble (so the `beq` delay stays `nop`). Pinning the cursor to `$a0`
+for its whole lifetime keeps it in `$a0` during the inner loop and puts
+the second cursor in `$a1` (swapped). Pin both:
+
+```c
+register Rec10* rec10 asm("a0");
+register Rec10* match asm("a1");
+rec10 = cursor;
+if (rec10->id == 0) {
+    /* skip */
+} else {
+    inner = rec->field_4;
+    if (inner->id != 0xFF) {
+        asm volatile("");
+        match = rec10;
+        for (; inner->id != 0xFF; inner++) {
+            if (match->id == inner->id) {
+                break;
+            }
+        }
+    }
+}
+```
+
+The empty `asm volatile("")` before `match = rec10` stops `-fdelayed-branch`
+from filling the `!= 0xFF` `beq` with `move a1, a0`. `func_800A9E44` is the
+example.
+
+## Pin `ptr + 1` to `$v0` so the increment dest is not `$a0`
+
+`cursor = rec10 + 1` with `rec10` pinned to `$a0` and dead in that arm
+reuses `$a0` (`addiu a0, a0, 0x10` / `sw a0`). The target computes the
+next pointer in `$v0` so `$a0` still holds the current record:
+
+```c
+register Rec10* rec10 asm("a0");
+register Rec10* next asm("v0");
+next   = rec10 + 1;
+cursor = next;
+```
+
+That is `addiu v0, a0, 0x10` / `j check` / `sw v0, cursor`. Same function.
+
+## Memory clobber after a stack `sb` so it is not sunk below independent loads
+
+`param1[2] = temp` at the join of a `% 100` / `/ 100` split wants `nop` /
+`sb v0, 0x12(sp)` then the next CdCmd arg loads. `-fschedule-insns` lifts
+`lw cursor` / `li a0, 0x21` into the table-`lbu` delay and stores `param1[2]`
+after them. Clobber memory *after* the store:
+
+```c
+param1[2] = temp;
+asm volatile("" : : : "memory");
+param2[1] = 0;
+param2[2] = cursor->field_D;
+```
+
+Same as the fade TILE RGB “per-branch stores” idea: the store must land
+before independent setup of the next call. `func_800A9E44` is the example.
+
+## Fresh `lui a0` for a loop-continue reload when `$t0` already holds `%hi`
+
+A loop that caches `%hi(global)` in `$t0` (`move t0, a0` from the first
+load) will reuse it on the continue check (`lw v0, %lo(global)(t0)`). The
+target still wants a split `lui a0, %hi(global)` / `lw v0, %lo(global)(a0)`
+at that point. CSE of the HIGH value cannot be undone with a nested local.
+Emit the pair (non-volatile, so the scheduler can place them):
+
+```c
+{
+    register s32 hi asm("a0");
+    Rec10*       p;
+    asm("lui %0, %%hi(D_cursor)" : "=r"(hi));
+    asm("lw %0, %%lo(D_cursor)(%1)" : "=r"(p) : "r"(hi));
+    if (p->id == 0xFF) {
+        break;
+    }
+}
+```
+
+Same split-`la` style as `func_800B6950` / `func_800C9654`. `func_800A9E44`
+is the example.

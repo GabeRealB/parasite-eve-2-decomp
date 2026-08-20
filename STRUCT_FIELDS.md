@@ -1464,19 +1464,41 @@ Object behind `GpAreaRec.field_4`. Full size unknown.
 
 ### `GpAreaTmdRec` (0xC) — `1BC.h`
 0xFF-terminated table at nested `GpAreaRec.field_4`. Walked by `func_800B56AC`.
+`func_800A9E44` views the same 0xC stride as `GpCdRec0C` (`field_2` / `field_4`).
 
 | Off | Member | Role |
 |-----|--------|------|
 | 0x00 | `field_0` | u16 id; compared with `*GpWorkObj.field_3C`; 0xFF ends the table |
 | 0x08 | `field_8` | `u16*`; 1 clears `TmdObject.field_C` bit 2, 0x101 sets it |
 
+### `GpCdRec10` (0x10) — `D4.h`
+0xFF-terminated CdCmd 0x21 source list at inner `GpAreaRec.field_0`.
+Walked by `func_800A9E44` (`D_80114C6C`).
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | u8 id; matches `GpCdRec0C.field_0`; 0 skips; 0xFF ends the list |
+| 0x0C | `field_C` | u8 CdCmd 0x21 param1[0]; 0 skips the record |
+| 0x0D | `field_D` | u8 CdCmd 0x21 param2[2] |
+| 0x0E | `field_E` | u8 CdCmd 0x21 param2[3] |
+
+### `GpCdRec0C` (0xC) — `D4.h`
+0xFF-terminated list at inner `GpAreaRec.field_4` (`D_80114C68`). Same stride
+as `GpAreaTmdRec`. `func_800A9E44` matches `field_0` against `GpCdRec10.field_0`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x0 | `field_0` | u16 id; 0xFF ends the list |
+| 0x2 | `field_2` | u16 packed location; `% 100` / `/ 100` when `>= 100` for CdCmd 0x21 param2[0] / param1[2] addend |
+| 0x4 | `field_4` | u8 index into `D_8010CAD0` (param1[2] base) |
+
 ### `GpAreaRec` (0x8) — `1BC.h`
 Element of tables pointed to by `D_8010CBCC`. Indexed by `GpAreaKey.field_2`.
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x00 | `field_0` | Nested `GpAreaRec*` table (`func_800B5C88`) |
-| 0x04 | `field_4` | Outer: `GpAreaObj*` (`func_800B5A08`). Nested: `GpAreaTmdRec*` table (`func_800B56AC`) |
+| 0x00 | `field_0` | Outer: nested `GpAreaRec*` table (`func_800B5C88`). Inner (`func_800B5CE8` result): `GpCdRec10*` list (`func_800A9E44`) |
+| 0x04 | `field_4` | Outer: `GpAreaObj*` (`func_800B5A08`). Nested: `GpAreaTmdRec*` / `GpCdRec0C*` table (`func_800B56AC` / `func_800A9E44`) |
 
 ### `GpAreaKey` — `1BC.h`
 Location key for `D_8010CBCC`. Same 4-byte prefix as `GameSessionFrom4` /

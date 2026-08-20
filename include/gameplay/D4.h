@@ -173,9 +173,64 @@ extern GpPrim1C* D_8010CAE8[];
 /// `func_800AC960`, advanced by `func_800AD410`.
 extern GpPrim1C* D_80114CC8;
 
-/// Phase for `func_800A9E44`. `func_800AB5F4` clears it when phase 1
-/// (`func_800AA120`) finishes so phase 2 can start.
+/// 0x10-byte 0xFF-terminated CdCmd 0x21 source list at inner
+/// `GpAreaRec.field_0`. Walked by `func_800A9E44`: `field_0` matches
+/// `GpCdRec0C.field_0` (0 skips the record); `field_C` is param1[0]
+/// (0 skips); `field_D` / `field_E` are param2[2] / param2[3].
+typedef struct _GpCdRec10 {
+    /* 0x00 */ u8   field_0;
+    /* 0x01 */ byte pad_1[0xB];
+    /* 0x0C */ u8   field_C;
+    /* 0x0D */ u8   field_D;
+    /* 0x0E */ u8   field_E;
+    /* 0x0F */ byte pad_F;
+} GpCdRec10;
+STATIC_ASSERT_SIZEOF(GpCdRec10, 0x10);
+
+/// 0xC-byte 0xFF-terminated list at inner `GpAreaRec.field_4`, also
+/// stored in `D_80114C68`. `func_800A9E44` matches `field_0` against
+/// `GpCdRec10.field_0`. `field_2` is the packed CdCmd 0x21 location
+/// (`% 100` / `/ 100` when `>= 100`); `field_4` indexes `D_8010CAD0`.
+typedef struct _GpCdRec0C {
+    /* 0x0 */ u16  field_0;
+    /* 0x2 */ u16  field_2;
+    /* 0x4 */ u8   field_4;
+    /* 0x5 */ byte pad_5[7];
+} GpCdRec0C;
+STATIC_ASSERT_SIZEOF(GpCdRec0C, 0xC);
+
+/// Inner `func_800B5CE8` record as used by `func_800A9E44`: `field_0` is
+/// the 0x10-byte list, `field_4` is the 0xC-byte list.
+typedef struct _GpCdAreaRec {
+    /* 0x0 */ GpCdRec10* field_0;
+    /* 0x4 */ GpCdRec0C* field_4;
+} GpCdAreaRec;
+STATIC_ASSERT_SIZEOF(GpCdAreaRec, 8);
+
+/// 2-byte table at `D_8010CAD0`. `func_800A9E44` reads `field_0` at
+/// `GpCdRec0C.field_4` (stride 2) as the CdCmd 0x21 param1[2] base.
+typedef struct _GpTbl2 {
+    /* 0x0 */ u8 field_0;
+    /* 0x1 */ u8 field_1;
+} GpTbl2;
+STATIC_ASSERT_SIZEOF(GpTbl2, 2);
+
+extern GpTbl2 D_8010CAD0[];
+
+/// Phase for `func_800A9E44` (0 init, 1 walk/enqueue, 2 wait idle).
+/// `func_800AB5F4` clears it when phase 1 (`func_800AA120`) finishes
+/// so phase 2 can start.
 extern s16 D_80114C60;
+
+/// Inner area rec from `func_800B5CE8`, shared by `func_800A9E44` /
+/// `func_800AA120`.
+extern GpCdAreaRec* D_80114C64;
+
+/// Cursor into the inner rec's 0xC-byte list (`GpCdAreaRec.field_4`).
+extern GpCdRec0C* D_80114C68;
+
+/// Cursor into the inner rec's 0x10-byte list (`GpCdAreaRec.field_0`).
+extern GpCdRec10* D_80114C6C;
 
 /// Phase for `func_800AA120`. `func_800AB5F4` clears it when entering
 /// its own phase 1.
@@ -251,6 +306,10 @@ STATIC_ASSERT_SIZEOF(GpAreaApplyRec, 4);
 void func_800A9310(void);
 void func_800A954C(Task* task);
 void func_800A9DF0(Task* task);
+/// Walk the inner area rec's 0x10-byte CdCmd 0x21 list (`D_80114C6C`),
+/// matching each id against the 0xC-byte list (`D_80114C68`). Returns 1
+/// when the list is exhausted or missing, else 0 (still in flight).
+s32  func_800A9E44(void);
 /// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
 /// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0.
 /// Sets `Pad_RemapState->field_3`. When the CD queue is idle and

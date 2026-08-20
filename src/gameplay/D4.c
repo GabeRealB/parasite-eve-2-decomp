@@ -24,7 +24,6 @@
 #include "main/wipsys.h"
 
 void func_800A9730(Task* task);
-s32  func_800A9E44(void);
 s32  func_800AA120(void);
 void func_800AA548(s32 arg0);
 void func_800AD024(void);
@@ -508,7 +507,99 @@ void func_800A9DF0(Task* task)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800A9E44);
+s32 func_800A9E44(void)
+{
+    u8                  param1[8];
+    u8                  param2[8];
+    GpCdAreaRec*        rec;
+    register GpCdRec10* rec10 asm("a0");
+    register GpCdRec10* match asm("a1");
+    register GpCdRec10* next asm("v0");
+    GpCdRec0C*          rec12;
+    s32                 val;
+    u8                  temp;
+
+    switch (D_80114C60) {
+        case 0:
+            rec        = (GpCdAreaRec*)func_800B5CE8((GpAreaKey*)&Mc_SaveData.field_4);
+            D_80114C64 = rec;
+            D_80114C6C = rec->field_0;
+            if (rec == NULL) {
+                return 1;
+            }
+            if (D_80114C68 == NULL) {
+                return 1;
+            }
+            if (D_80114C6C == NULL) {
+                return 1;
+            }
+            D_80114C60++;
+        case 1:
+            if (D_80114C6C->field_0 != 0xFF) {
+                do {
+                    rec10 = D_80114C6C;
+                    if (rec10->field_0 == 0) {
+                        next       = rec10 + 1;
+                        D_80114C6C = next;
+                    } else {
+                        D_80114C68 = D_80114C64->field_4;
+                        if (D_80114C68->field_0 != 0xFF) {
+                            asm volatile("");
+                            match = rec10;
+                            for (; D_80114C68->field_0 != 0xFF; D_80114C68++) {
+                                if (match->field_0 == D_80114C68->field_0) {
+                                    break;
+                                }
+                            }
+                        }
+                        if (D_80114C6C->field_C == 0) {
+                            D_80114C6C++;
+                        } else {
+                            param1[3] = 0;
+                            param1[0] = D_80114C6C->field_C;
+                            rec12     = D_80114C68;
+                            val       = (s16)rec12->field_2;
+                            if (val >= 0x64) {
+                                param2[0] = val % 100;
+                                temp      = D_8010CAD0[rec12->field_4].field_0 + ((s16)rec12->field_2 / 100);
+                            } else {
+                                param2[0] = rec12->field_2;
+                                temp      = D_8010CAD0[rec12->field_4].field_0;
+                            }
+                            param1[2] = temp;
+                            asm volatile("" : : : "memory");
+                            param2[1] = 0;
+                            param2[2] = D_80114C6C->field_D;
+                            param2[3] = D_80114C6C->field_E;
+                            CdCmd_Enqueue(0x21, param1, param2);
+                            D_80114C60++;
+                            break;
+                        }
+                    }
+                    {
+                        register s32 hi asm("a0");
+                        GpCdRec10*   p;
+                        asm("lui %0, %%hi(D_80114C6C)" : "=r"(hi));
+                        asm("lw %0, %%lo(D_80114C6C)(%1)" : "=r"(p) : "r"(hi));
+                        if (p->field_0 == 0xFF) {
+                            break;
+                        }
+                    }
+                } while (1);
+            }
+            if (D_80114C6C->field_0 == 0xFF) {
+                return 1;
+            }
+            break;
+        case 2:
+            if (CdCmd_IsIdle() & 0xFFFF) {
+                D_80114C6C++;
+                D_80114C60--;
+            }
+            break;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AA120);
 
