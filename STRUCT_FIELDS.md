@@ -794,8 +794,8 @@ Task overlay: `actor` is `Task::idMap` at 0x1C; `extra` is `Task::extra` at
 
 ### `GpEffWork` (0x2C) — `3FB8.h`
 `Task::spawnArg2` for `func_800F1A9C` / `func_800F5184` / `func_800F75BC` /
-`func_800F77F8` / `func_800F9474` / `func_800FB67C` / `func_800FBEBC` /
-`func_800FE41C`. Allocated by `func_800EA478` (`Mem_Calloc(0x2C)`).
+`func_800F77F8` / `func_800F9474` / `func_800FB67C` / `func_800FB7E4` /
+`func_800FBEBC` / `func_800FE41C`. Allocated by `func_800EA478` (`Mem_Calloc(0x2C)`).
 
 | Off | Member | Role |
 |-----|--------|------|
@@ -804,12 +804,12 @@ Task overlay: `actor` is `Task::idMap` at 0x1C; `extra` is `Task::extra` at
 | 0x12 | `field_12` | Per-frame Y step; `func_800FBEBC` inits `0xFFF0 - (LCG >> 16 & 0x3F)` and adds it to `coord.t[1]` |
 | 0x14 | `field_14` | Zeroed with `field_10` by `func_800FBEBC` |
 | 0x18/1A/1C | `field_18/1A/1C` | s16 translation; sign-extended into `coord.t[]`; `SVECTOR` source of `VectorNormalSS` in `func_800F9474` (LCG-filled if all zero) |
-| 0x20 | `field_20` | Spawn-wave count (`func_800FC74C`); draw-step counter (`func_800FBEBC`, +1 every 4 `field_22` ticks, kill at 8) |
-| 0x22 | `field_22` | Step counter (`func_800F1A9C` / `func_800F5184` / `func_800F9474` / `func_800FBEBC` / `func_800FE41C`) |
+| 0x20 | `field_20` | Spawn-wave count (`func_800FC74C`); draw-step counter (`func_800FBEBC`, +1 every 4 `field_22` ticks, kill at 8); `(D_80114C08.field_0 % 10) - 1` (`func_800FB7E4`) |
+| 0x22 | `field_22` | Step counter (`func_800F1A9C` / `func_800F5184` / `func_800F9474` / `func_800FB7E4` / `func_800FBEBC` / `func_800FE41C`) |
 | 0x24 | `field_24` | Scale / packed `spawnArg1` lo / `(spawnArg1_lo * 3) >> 4` (`func_800F9474`) / 0x10 decay-by-2 (`func_800F5184`) / 0x80 decay-by-8 (`func_800FB67C`) / LCG draw param (`func_800FBEBC`) |
-| 0x26 | `field_26` | Target scale / `spawnArg1` hi / 0x20 plus `field_2A` (`func_800F5184`) / 0x100 plus 0x80 (`func_800FB67C`) / `spawnArg1 & 0xFFF` (`func_800FBEBC`) |
-| 0x28 | `field_28` | Size / lifetime (`field_26 << 2` in `func_800F9474` / `func_800FE41C`) / `D_8011291C[].field_0` draw param (`func_800F5184`) / packed RGB from `D_80112C6C` (`func_800FB67C`) / `spawnArg1 & 0xF000` (`func_800FBEBC`, bit `0x8000` selects LCG `| 0x1000`) |
-| 0x2A | `field_2A` | Packed draw param for `func_800F7AD4`, or `D_8011291C[].field_2` step |
+| 0x26 | `field_26` | Target scale / `spawnArg1` hi / 0x20 plus `field_2A` (`func_800F5184`) / 0x100 plus 0x80 (`func_800FB67C`) / `spawnArg1 & 0xFFF` (`func_800FBEBC`) / 0x20 (`func_800FB7E4`) |
+| 0x28 | `field_28` | Size / lifetime (`field_26 << 2` in `func_800F9474` / `func_800FE41C`) / `D_8011291C[].field_0` draw param (`func_800F5184`) / packed RGB from `D_80112C6C` (`func_800FB67C`) / `spawnArg1 & 0xF000` (`func_800FBEBC`, bit `0x8000` selects LCG `| 0x1000`) / `(field_20 << 7) + 0x180` (`func_800FB7E4`) |
+| 0x2A | `field_2A` | Packed draw param for `func_800F7AD4`, or `D_8011291C[].field_2` step, or `(field_20 << 8) + 0x400` (`func_800FB7E4`) |
 
 ### `GpPadReplay` (0x4) — `gameplay.h`
 Recorded pad pair in the demo/replay stream at `D_80114C38`. `func_8009FD74`
@@ -843,7 +843,7 @@ for the same block.
 | 0x0E | `field_E` | Written by `func_800A7DB8` when `field_6` bit 0 is clear; cleared by `func_800A7DE0` / `func_800A7574` |
 | 0x0F | `field_F` | Cleared by `func_800A7574` |
 | 0x10 | `field_10` | s16 (`lh` as `D_80114C18`); cleared by `func_800A7574` |
-| 0x12 | `field_12` | s16 (`lh` as `D_80114C1A`); cleared by `func_800A7574` |
+| 0x12 | `field_12` | s16 (`lh` as `D_80114C1A`); cleared by `func_800A7574`; nonzero keep-alive gate in `func_800FB7E4` |
 | 0x14 | `field_14` | s16; cleared by `func_800A7574` |
 | 0x16 | `field_16` | s8 (`lb`/`sb` as `D_80114C1E`); cleared by `func_800A7574` |
 | 0x17 | `field_17` | Cleared by `func_800A7574` |
@@ -1775,6 +1775,7 @@ Most members are s16. `func_800E9CC8` writes the block to the owner task at
 |-----|--------|------|
 | 0x06 | `field_6` | s16; initialized to 1 by `func_800E9CC8` |
 | 0x10 | `field_10` | s16 flags; `func_800EC9C8` tests bit 0 before `func_800EA478(0x800600E8, …)` |
+| 0x12 | `field_12` | s16 flags; bit `0x400` set by `func_800FB7E4`, bit `0x800` set by `func_800FC500` and cleared by `func_800ECA54` |
 | 0x18 | `field_18` | s16 PE/status bit written by `func_800ECA10` (low byte of arg; same bits as `WipSysConfig.field_25`) |
 | 0x1A | `field_1A` | u16 flags; `func_800FC6C0` ORs in `0x80`, `func_800EC868` ORs in `0x100` |
 

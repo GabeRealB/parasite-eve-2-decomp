@@ -143,8 +143,8 @@ STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 
 /// 0x2C-byte work at `Task::spawnArg2` for `func_800F1364` / `func_800F1A9C` /
 /// `func_800F5184` / `func_800F75BC` / `func_800F77F8` / `func_800FB67C` /
-/// `func_800FBEBC` / `func_800FC74C` / `func_800FE41C` (`Mem_Calloc(0x2C)` in
-/// `func_800EA478`).
+/// `func_800FB7E4` / `func_800FBEBC` / `func_800FC74C` / `func_800FE41C`
+/// (`Mem_Calloc(0x2C)` in `func_800EA478`).
 /// `field_0` is the spawned `Task*` (`func_800EA478` stores it; `func_801034C0`
 /// copies it onto `GameActor.field_914`).
 /// `field_8` is the parent coordinate copied onto `GsCOORDINATE2.sub`.
@@ -156,10 +156,11 @@ STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 /// an LCG nibble in `func_800FBEBC`). `field_18` / `field_1A` / `field_1C` are
 /// sign-extended into `coord.t[]` on first run. If they are all zero,
 /// `func_800F9474` fills them from three LCG draws centered on 0. `field_20` is the spawn-wave count
-/// (`func_800FC74C`) or the draw-step counter that `func_800FBEBC` increments
-/// every 4 `field_22` ticks and kills at 8. `field_22` is the step counter
-/// (`func_800F1364` / `func_800F1A9C` / `func_800F5184` / `func_800FBEBC` /
-/// `func_800FC74C`).
+/// (`func_800FC74C`), the draw-step counter that `func_800FBEBC` increments
+/// every 4 `field_22` ticks and kills at 8, or
+/// `(D_80114C08.field_0 % 10) - 1` (`func_800FB7E4`). `field_22` is the step
+/// counter (`func_800F1364` / `func_800F1A9C` / `func_800F5184` /
+/// `func_800FB7E4` / `func_800FBEBC` / `func_800FC74C`).
 /// `field_24` is the lifetime (`func_800F1364`, `spawnArg1 >> 16` or 0xC),
 /// the current scale stepped toward `field_26` (`func_800F75BC`),
 /// the LCG angle (`func_800F1A9C`), a 0x10 start that decays by 2
@@ -172,9 +173,11 @@ STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 /// `spawnArg1 & 0xFFF` into `field_26` and `spawnArg1 & 0xF000` into
 /// `field_28` (bit `0x8000` selects the LCG `| 0x1000` draw path).
 /// `func_800F5184` inits `field_26` to 0x20 and adds `field_2A` each frame.
+/// `func_800FB7E4` inits `field_26` to 0x20, `field_28` to
+/// `(field_20 << 7) + 0x180`, and `field_2A` to `(field_20 << 8) + 0x400`.
 /// `func_800FC74C` uses `field_26` as the inter-wave wait timer. `field_2A`
-/// is the packed parameter passed through to `func_800F7AD4`, or the
-/// per-frame `field_26` step.
+/// is the packed parameter passed through to `func_800F7AD4`, the per-frame
+/// `field_26` step, or `func_800FB7E4`'s `func_800EA478` spawn arg.
 typedef struct _GpEffWork {
     /* 0x00 */ struct _Task*          field_0;
     /* 0x04 */ byte                   pad_4[4];
@@ -567,6 +570,7 @@ void func_800F75BC(Task* arg0);
 void func_800F7AD4(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
 void func_800F9474(Task* arg0);
 void func_800FB67C(Task* arg0);
+void func_800FB7E4(Task* arg0);
 void func_800FBEBC(Task* arg0);
 void func_800FC500(Task* arg0);
 void func_800FC6C0(void);

@@ -24467,3 +24467,29 @@ srl    v0, v0, 4
 ```
 
 `func_800F9474` is the example.
+
+## `"+m"` clobber after an s16 store so later field reads stay `lh`
+
+Storing `(u16 % 10U) - 1` to an s16 field leaves a register that is already
+a valid sign-extended s16 (unsigned wrap of 0 − 1 is `0xFFFFFFFF`). GCC
+2.8.1 CSEs that register into later `field << 7` / `field << 8`, emitting
+`sll` / `lhu` instead of the target's `sh` / `lh` / `sh` / `lh` pair with
+both values live for the two shifts.
+
+Clobber the field memory, then snapshot it into two block-scoped s32
+locals around the neighboring store:
+
+```c
+mem->field_20 = (D_80114C08.field_0 % 10U) - 1;
+__asm__ volatile("" : "+m"(mem->field_20));
+x             = mem->field_20; /* lh */
+mem->field_26 = 0x20;
+y             = mem->field_20; /* lh */
+mem->field_28 = (x << 7) + 0x180;
+mem->field_2A = (y << 8) + 0x400;
+```
+
+Keep the s32 temps inside the init block so they do not steal `s0`/`s1`
+from `mem`/`coord`.
+
+`func_800FB7E4` is the example.

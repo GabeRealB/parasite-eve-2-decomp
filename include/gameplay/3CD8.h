@@ -245,7 +245,7 @@ typedef struct _GpState1C {
     /* 0x0C */ s16 field_C;
     /* 0x0E */ s16 field_E;
     /* 0x10 */ s16 field_10; // flags (bit 0 checked by func_800EC9C8, bit 0x80 by func_800ECA54)
-    /* 0x12 */ s16 field_12; // flags (bit 0x800 cleared by func_800ECA54)
+    /* 0x12 */ s16 field_12; // flags (bit 0x400 by func_800FB7E4, bit 0x800 by func_800FC500 / func_800ECA54)
     /* 0x14 */ s16 field_14;
     /* 0x16 */ s16 field_16;
     /* 0x18 */ s16 field_18; // PE bit written by func_800ECA10
