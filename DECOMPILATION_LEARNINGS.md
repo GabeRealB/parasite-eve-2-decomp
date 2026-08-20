@@ -3,6 +3,44 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Scope a `| k` temp so the OR reuses the load dest
+
+`temp = save->field_22; obj->field_18 = temp | packed` with a function-level
+`temp` that is reused later (e.g. as a later `lhu`) emits `or v0, v1, s0` or
+`or s0, v1, s0`. The target is `or v1, v1, s0` / `sw v1` in the `jal` delay.
+Give each `| packed` its own block-scope temp so it dies at the store:
+
+```c
+{
+    s32 temp;
+    temp          = save->field_22;
+    obj->field_1C = size;
+    obj->flags    = 4;
+    obj->field_18 = temp | packed;
+    func_800E15AC(0, obj);
+}
+```
+
+`func_80100B78` is the example.
+
+## Pin the next call's 0 to `$a0` so `move a0, zero` precedes independent setup
+
+After a call that clobbers `$a0`, the next `func(0, obj)` wants `move a0, zero`
+before an independent `field_C` address and `flags |=`. An unpinned `0` sinks
+into an `lhu flags` delay (`ori` / `addiu link` then `move a0, zero`). Pin the
+argument, assign 0, then a volatile `+r` so the rest cannot float above it:
+
+```c
+register s32 zero asm("a0");
+zero = 0;
+asm volatile("" : "+r"(zero));
+link = (GpRec18*)actor->field_94;
+obj->flags |= 0xF200;
+func_800E15AC(zero, obj);
+```
+
+`func_80100B78` is the example.
+
 ## Combine fade-done as `flag == 0 && count <= 0` so the miss jumps into `else if`
 
 A fade-in/fade-out overlay that sets `flag = 0` on the way down and `flag = 1`

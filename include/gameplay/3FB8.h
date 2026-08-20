@@ -15,8 +15,11 @@ typedef struct _GpActorWork {
     /* 0x00 */ byte          pad_0[0x18];
     /* 0x18 */ void*         field_18; // Task::exitCallback; cleared before self-kill
     /* 0x1C */ GameActor*    actor;
-    /* 0x20 */ byte          pad_20[0xC];
+    /* 0x20 */ byte          pad_20[4];
+    /* 0x24 */ void*         field_24; // Task::field_24; GpMsgEntry table
+    /* 0x28 */ byte          pad_28[4];
     /* 0x2C */ GameActorExt* extra; // Task::extra
+    /* 0x30 */ s32           state; // Task::state
 } GpActorWork;
 
 typedef void (*GpActorFunc)(GpActorWork* arg0);
@@ -224,6 +227,9 @@ extern u16 D_80112B28[];
 /// 4 packed RGB-nibble colors. `func_800FB67C` indexes with
 /// `GpEffSpawnArg.field_2 & 3` and stores the halfword in `GpEffWork.field_28`.
 extern u16 D_80112C6C[];
+
+/// Message-handler table stored in `Task::field_24` by `func_80100B78`.
+extern s32 D_80112C88[];
 
 /// Overlay of `Task::spawnArg1` for `func_800F75BC` / `func_800FB67C` /
 /// `func_800FBEBC`. `func_800F75BC` uses `field_0 & 0xFFF` as the target
@@ -590,8 +596,14 @@ void func_800FE41C(Task* arg0);
 void func_801005D8(Task* arg0);
 void func_80100784(struct _GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
 s32  func_801011D0(struct _GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3);
+void func_80100B78(GpActorWork* arg0);
 void func_80100FCC(GpActorWork* arg0, s32 arg1, s32 arg2);
 void func_80101408(GpActorWork* arg0);
+void func_80103874(GpActorWork* arg0);
+Task* func_80104258(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// `arg3` is unused; the actor-init caller passes 0 so the `jal` delay
+/// slot of the `field_93A` load is `move a3, a1`.
+s32  func_80104508(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3);
 void func_801030CC(GpActorWork* arg0);
 void func_801041FC(GpActorWork* arg0, s32 arg1);
 s32  func_801034C0(void);

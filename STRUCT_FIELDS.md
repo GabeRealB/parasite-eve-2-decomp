@@ -22,7 +22,7 @@ Convention: only list fields with evidence. Unlisted `field_*` / `unknown_*` /
 | 0x18 | `exitCallback` | Exit / kill callback (often `Task_Kill`) |
 | 0x1C | `idMap` | Optional `TaskIdMap*` (freed on kill) |
 | 0x20 | `spawnArg2` | Spawn arg2 — often `UiObject*` / UI context |
-| 0x24 | `field_24` | Pointer to `GpMsgEntry` id/handler table (`D_8010D208` via `func_800B6358`, `D_8010FB90` via `func_800E71B0`); walked by `func_800AC464` |
+| 0x24 | `field_24` | Pointer to `GpMsgEntry` id/handler table (`D_8010D208` via `func_800B6358`, `D_8010FB90` via `func_800E71B0`, `D_80112C88` via `func_80100B78`); walked by `func_800AC464` |
 | 0x28 | `spawnType` | Spawn type (desc flags low byte: 0 bare, 1/2 overlay) |
 | 0x29 | `priority` | List priority (lower runs earlier) |
 | 0x2A | `killCountdown` | Deferred-kill countdown / state |
@@ -585,7 +585,10 @@ for `func_801011D0`.
 cleared before `Task_CallExit` when the 2-bit bank value is 2.
 `field_17C` is an 18-entry `GpRec18` table (`func_800E1A6C` walks it from
 `&field_17C` until `field_0` bit 0x2; `func_801041B4` returns 1 if any
-`field_4 & 0x100100 == 0x100000`).
+`field_4 & 0x100100 == 0x100000`). `func_80100B78` stores `&field_17C` at
+`field_90` / `field_9C` / `field_A8` and takes the address of `field_88` /
+`field_94` / `field_A0` as `GpObj.field_C` for the `field_AC` / `field_CC` /
+`field_EC` nodes.
 `field_40`/`field_44`/`field_48` are three s32s (`VECTOR3` vx/vy/vz) copied from the
 argument of `func_80105B74` onto the slot-3 actor.
 `field_50`/`field_52`/`field_54` are an `SVECTOR` (vx/vy/vz) written by `func_80104D68`
@@ -736,6 +739,7 @@ vs `func_80108770` in `func_80106550`;
 | 0xCD | `field_CD` | u8; `func_8010B79C` copies `D_80167230[Mc_SaveData.field_5C7]` |
 
 ### `WipSysConfig`
+`field_4` is a `MATRIX*` (`GsCOORDINATE2.coord`) stored by `func_80100B78`.
 `field_21` is a u8 packed into `GameActor.field_124` bits 8–15 by `func_801061F0`.
 It stores selected item id − 0x7F (`func_800CF448`); 0 means none selected.
 `field_23` is a u8 storing selected item id − 0x5F for ids in 0x60–0x7F (`func_800CEC5C`).

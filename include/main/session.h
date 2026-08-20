@@ -179,17 +179,21 @@ typedef struct _GameActor {
     /* 0x064 */ s16                 field_64;
     /* 0x066 */ byte                pad_66[2];
     /* 0x068 */ s16                 field_68;
-    /* 0x06A */ s16                 field_6A; // aim/look yaw offset; func_8010BE5C
+    /* 0x06A */ s16                 field_6A;       // aim/look yaw offset; func_8010BE5C
     /* 0x06C */ byte                pad_6C[4];
-    /* 0x070 */ s16                 field_70; // pitch-like angle; func_80102D20
+    /* 0x070 */ s16                 field_70;       // pitch-like angle; func_80102D20
     /* 0x072 */ byte                pad_72[6];
-    /* 0x078 */ s16                 field_78; // pitch; func_80102F10
+    /* 0x078 */ s16                 field_78;       // pitch; func_80102F10
     /* 0x07A */ byte                pad_7A[6];
-    /* 0x080 */ s16                 field_80; // copied from func_80104F5C arg2
-    /* 0x082 */ s16                 field_82; // target facing angle; func_80104E00 / func_80108BD8
-    /* 0x084 */ byte                pad_84[0xC];
+    /* 0x080 */ s16                 field_80;       // copied from func_80104F5C arg2
+    /* 0x082 */ s16                 field_82;       // target facing angle; func_80104E00 / func_80108BD8
+    /* 0x084 */ byte                pad_84[4];
+    /* 0x088 */ byte                field_88[8];    // address taken as GpObj.field_C
     /* 0x090 */ s32                 field_90;
-    /* 0x094 */ byte                pad_94[0x18];
+    /* 0x094 */ byte                field_94[8];    // address taken as GpObj.field_C
+    /* 0x09C */ s32                 field_9C;
+    /* 0x0A0 */ byte                field_A0[8];    // address taken as GpObj.field_C
+    /* 0x0A8 */ s32                 field_A8;
     /* 0x0AC */ byte                field_AC[0x20]; // 0x20-byte list node (func_800E1638)
     /* 0x0CC */ byte                field_CC[0x20];
     /* 0x0EC */ byte                field_EC[0x20];

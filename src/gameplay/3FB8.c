@@ -663,7 +663,134 @@ void func_801005D8(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80100784);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80100B78);
+void func_80100B78(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GameActorExt*  extra;
+    GsCOORDINATE2* coord;
+    GpObj*         obj;
+    GpRec18*       recs;
+    GpRec18*       link;
+    McSaveData*    save;
+    s32            packed;
+    s32            size;
+    s32            kind;
+    s32            anim;
+    s32            idx;
+    GpAnimArg      sp;
+    Task*          task;
+
+    actor = arg0->actor;
+    extra = arg0->extra;
+    coord = (GsCOORDINATE2*)extra->field_8;
+    arg0->state++;
+    arg0->field_24        = D_80112C88;
+    arg0->field_18        = func_80101408;
+    actor->field_938      = 0x13;
+    D_80115760[0]         = arg0;
+    Wip_SysConfig.field_4 = &coord->coord;
+    coord->sub            = &D_80070F10;
+    coord->flg            = 0;
+    extra->field_C        = 0;
+    RotMatrix((SVECTOR*)&actor->field_50, &coord->coord);
+    func_80103874(arg0);
+
+    actor->field_985 = 0x10;
+    actor->field_10  = coord->coord.t[0];
+    actor->field_14  = coord->coord.t[1];
+    actor->field_18  = coord->coord.t[2];
+
+    recs            = actor->field_17C;
+    obj             = (GpObj*)actor->field_AC;
+    obj->field_C    = (GpRec18*)actor->field_88;
+    obj->field_8    = coord;
+    actor->field_90 = (s32)recs;
+    obj->field_12   = -0x12C;
+    save            = &Mc_SaveData;
+    obj->field_10   = 0;
+    obj->field_14   = 0;
+    {
+        s32 temp;
+        temp          = save->field_22;
+        obj->field_1C = 0x12C;
+        obj->flags    = 4;
+        packed        = 0x10000;
+        obj->field_18 = temp | packed;
+        func_800E15AC(0, obj);
+    }
+    func_800E18E0((GpRec18*)actor->field_90, 0x12, 0);
+
+    {
+        register s32   zero asm("a0");
+        s32            temp;
+        GsCOORDINATE2* next;
+        zero = 0;
+        asm volatile("" : "+r"(zero));
+        link            = (GpRec18*)actor->field_94;
+        size            = 0xDC;
+        obj->flags     |= 0xF200;
+        obj             = (GpObj*)actor->field_CC;
+        next            = (GsCOORDINATE2*)arg0->extra->field_8;
+        obj->field_C    = link;
+        obj->field_8    = next + 4;
+        actor->field_9C = (s32)recs;
+        obj->field_12   = 0x64;
+        obj->field_10   = 0;
+        obj->field_14   = 0x28;
+        temp            = save->field_22;
+        obj->field_1C   = size;
+        obj->flags      = 0x14;
+        obj->field_18   = temp | packed;
+        func_800E15AC(zero, obj);
+    }
+
+    {
+        register s32   zero asm("a0");
+        s32            temp;
+        GsCOORDINATE2* next;
+        zero = 0;
+        asm volatile("" : "+r"(zero));
+        obj->flags     |= 0x8000;
+        link            = (GpRec18*)actor->field_A0;
+        obj             = (GpObj*)actor->field_EC;
+        next            = (GsCOORDINATE2*)arg0->extra->field_8;
+        obj->field_C    = link;
+        obj->field_8    = next + 1;
+        actor->field_A8 = (s32)recs;
+        obj->field_10   = 0;
+        obj->field_12   = 0x52;
+        obj->field_14   = 0;
+        temp            = save->field_22;
+        obj->field_1C   = size;
+        obj->flags      = 0x24;
+        obj->field_18   = temp | packed;
+        func_800E15AC(zero, obj);
+    }
+    obj->flags |= 0xC000;
+
+    kind             = actor->field_954;
+    anim             = actor->field_93C;
+    actor->field_920 = func_80104258(arg0, 0, 1, 1);
+    task             = func_80104258(arg0, 1, 1, 1);
+    actor->field_924 = task;
+    if (task != NULL) {
+        func_800BBF1C();
+        func_801034C0();
+    }
+    if (kind == 2) {
+        sp.field_C  = 0;
+        idx         = actor->field_93A;
+        sp.field_8  = 0;
+        sp.field_4  = anim;
+        sp.field_10 = 0;
+        sp.field_0  = (void*)idx;
+        func_80104508(arg0, 0, &sp, 0);
+        actor->field_984 = 0x38;
+    }
+    if ((*(u32*)&save->field_4 & 0xFFFF0000) == 0x1050000) {
+        actor->field_991 = 1;
+    }
+}
 
 void func_80100E40(GpActorWork* arg0)
 {
@@ -1883,7 +2010,7 @@ Task* func_80104490(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
     return task;
 }
 
-s32 func_80104508(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
+s32 func_80104508(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3)
 {
     GameActor*    actor;
     GpAnimObj*    extra;

@@ -32,7 +32,8 @@ STATIC_ASSERT_SIZEOF(WipSysPos, 0x8);
 /// WIP: BSS Wip_SysConfig (0x80). Init by Mc_InitSaveSlotDefaults (four s16s = 100);
 /// field_40 filled 0xFF by Mc_InitDualBankBuffers. Likely mix/options block — unproven.
 typedef struct _WipSysConfig {
-    /* 0x00 */ byte      unknown_0[0x8];
+    /* 0x00 */ byte      unknown_0[4];
+    /* 0x04 */ void*     field_4;  // MATRIX* of actor GsCOORDINATE2.coord (`func_80100B78`)
     /* 0x08 */ s32       field_8;
     /* 0x0C */ s32       field_C;  // copied to Mc_SaveData.field_18 (`func_800BB9B8`)
     /* 0x10 */ WipSysPos field_10;
