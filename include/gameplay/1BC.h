@@ -295,6 +295,13 @@ GpEnemy* func_800B0168(s32 bank, s32 type, s32 arg2, GpEnemy* parent);
 GpEnemy* func_800B01AC(TaskDesc* table, s32 idx, s32 arg2, GpEnemy* parent);
 void     func_800B01F0(GpEnemy* enemy, Task* task);
 void     func_800B0234(Task* task);
+/// Copies `arg1`'s matrix onto the coordinate at `Task::extra->field_8`,
+/// adding `arg2` in that space. If `arg1->sub` is world (`D_80070F10`),
+/// copies `coord` and transforms in place; otherwise computes `workm`
+/// via `func_80098F58`, transforms there, and converts to local with
+/// `func_800A8864`. Always parents the dest to world and clears `flg`.
+/// Returns `arg0` (or NULL).
+Task*    func_800B0278(Task* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2);
 GpEnemy* func_800B0494(Task* task, GpEnemy* parent);
 void     func_800B0544(GpEnemy* enemy, Task* task);
 void     func_800B0560(GpEnemy* enemy, Task* task);

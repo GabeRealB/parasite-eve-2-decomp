@@ -193,6 +193,20 @@ Copy `arg1` first, empty non-volatile `asm("" : "+r"(id))` so that store
 lands before `arg2`, then `lui`/`ori` with a fake input dependency on
 `arg2` pinned to `$s5` / scratch to `$v1`. `func_80100FCC` is the example.
 
+Do not keep a scratch pointer live from alloc to free. A local `scratch`
+that is used at both ends is allocated to an extra `$s` register and
+grows the frame (`0x30` with `$s5` instead of `0x28`). Write two
+independent `G_SCRATCH_HEAD` accesses so the compiler reloads into `$v1`
+and can put `lui 0x1F80` in the first-branch jump delay:
+
+```c
+*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 8;
+/* ... */
+*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+```
+
+`func_800B0278` is the example.
+
 `scratch = (void**)G_SCRATCH_HEAD` first hoists `lui`/`ori` above `sw s4`.
 `register s32 thresh asm("s4"); thresh = arg2;` without a use delays
 `move s4, a2` into the later `beqz` delay (the copy is only needed on

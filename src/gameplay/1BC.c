@@ -21,9 +21,10 @@
 #include "main/task.h"
 #include "main/tmd.h"
 
-#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
-#define gte_gpl12_real() __asm__ volatile("nop; nop; .word 0x4BA8003E")
+#define gte_rtv0_real()   __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
+#define gte_gpf12_real()  __asm__ volatile("nop; nop; .word 0x4B98003D")
+#define gte_gpl12_real()  __asm__ volatile("nop; nop; .word 0x4BA8003E")
 
 void func_800B1EFC(Task* arg0);
 void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -250,7 +251,42 @@ void func_800B0234(Task* task)
     Task_Kill(task);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0278);
+Task* func_800B0278(Task* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2)
+{
+    GameActorExt*  extra;
+    GsCOORDINATE2* dest;
+    GsCOORDINATE2* world;
+
+    if (arg0 == NULL) {
+        return NULL;
+    }
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 8;
+    world                   = &D_80070F10;
+    extra                   = (GameActorExt*)arg0->extra;
+    dest                    = (GsCOORDINATE2*)extra->field_8;
+    if (arg1->sub == world) {
+        dest->coord = arg1->coord;
+        gte_SetRotMatrix(&arg1->coord);
+        gte_SetTransMatrix(&arg1->coord);
+        gte_ldv0(arg2);
+        gte_rtv0tr_real();
+        gte_stlvnl(dest->coord.t);
+    } else {
+        func_80098F58(arg1);
+        dest->workm = arg1->workm;
+        gte_SetRotMatrix(&arg1->workm);
+        gte_SetTransMatrix(&arg1->workm);
+        gte_ldv0(arg2);
+        gte_rtv0tr_real();
+        gte_stlvnl(dest->workm.t);
+        func_800A8864(&world->workm, &dest->workm, &dest->coord);
+    }
+    dest->sub               = &D_80070F10;
+    dest->flg               = 0;
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+    return arg0;
+}
 
 GpEnemy* func_800B0494(Task* task, GpEnemy* parent)
 {
