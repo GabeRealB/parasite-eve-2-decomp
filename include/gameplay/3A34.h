@@ -35,6 +35,8 @@ STATIC_ASSERT_SIZEOF(GpLinkNode, 0x8);
 /// `field_C` / the 0x10 SVECTOR / `field_18` / `field_1C` and ORs `flags`
 /// with 0x8000 after linking. `field_8` is a `GsCOORDINATE2*`; `func_800E08CC`
 /// applies `workm` to the 0x10 SVECTOR and adds `workm.t` into a `VECTOR3`.
+/// `func_800E1380` treats `field_C` as a `GpActorD4Rec*` whose `field_14`
+/// is the `GpRec18` table walked for the nearest matching slot.
 /// Embedded as 0x20-byte nodes in `GameActor`
 /// (`field_AC` / `field_CC` / `field_EC` / `field_10C` / `field_12C`).
 /// Full object size is not known for other list users.
@@ -606,6 +608,19 @@ typedef struct _GpAttnScratch {
 } GpAttnScratch;
 STATIC_ASSERT_SIZEOF(GpAttnScratch, 0x20);
 
+/// 0x28-byte scratch from `G_SCRATCH_HEAD` used by `func_800E1380`.
+/// `local` is `GpActorD4Rec.field_8/A/C` plus `GpObj.field_10/12/14`,
+/// rotated by `field_8->workm`. `vec` is that GTE output (then overwritten
+/// with per-slot XYZ deltas). `world` is `vec + workm.t`.
+typedef struct _GpNearScratch {
+    /* 0x00 */ VECTOR3 vec;
+    /* 0x0C */ s32     pad_C;
+    /* 0x10 */ VECTOR3 world;
+    /* 0x1C */ s32     pad_1C;
+    /* 0x20 */ SVECTOR local;
+} GpNearScratch;
+STATIC_ASSERT_SIZEOF(GpNearScratch, 0x28);
+
 /// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `func_800DEAFC`.
 /// `in` is the SVECTOR promoted to VECTOR for `ApplyTransposeMatrixLV`;
 /// `out` is that transform; `pos0` / `pos1` are the 16-bit grid-space
@@ -917,6 +932,11 @@ void func_800E08CC(GpObj* arg0, VECTOR3* arg1);
 void func_800E0B08(void);
 void func_800E0B48(VECTOR3* arg0, SVECTOR3* arg1);
 s32  func_800E0FEC(s32 arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
+/// Transforms `arg0`'s local offset (`GpActorD4Rec` at `field_C` plus the
+/// 0x10 SVECTOR) by `field_8->workm` and returns the 1-based index of the
+/// closest occupied `GpRec18` in `rec->field_14` whose `field_4` high 16
+/// bits match `arg1`, or 0 if none match.
+s32  func_800E1380(GpObj* arg0, s32 arg1);
 void func_800E15AC(s32 arg0, GpObj* arg1);
 void func_800E1638(GpObj* node);
 void func_800E1688(s32 arg0, GpObj4A* arg1);

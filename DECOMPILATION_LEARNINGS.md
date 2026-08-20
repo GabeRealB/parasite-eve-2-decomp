@@ -24906,3 +24906,33 @@ addiu  s1, s0, %lo(...)
 Keep the `%lo` addiu as asm so it retains its reloc. `0x8007` is
 `%hi(Mc_SaveData+0x5BC)` (`Mc_SaveData` is `0x80072168`). `func_800C9E94`
 is the example.
+
+## Store scratch `head - N` through `$v1`, barrier, then copy to the s-reg
+
+A GTE helper that keeps the allocated scratch in `$s0` across a later call
+wants the new head stored from `$v1` and `move s0, v1` in the next
+independent load delay (`lw field_8` of `&coord->workm`):
+
+```
+addiu  v1, a2, -0x28
+sw     v1, 0(v0)
+lw     v0, 8(a0)
+move   s0, v1
+addiu  v0, v0, 0x24
+```
+
+`block = *scratch = (head - N)` computes into `$s0` (`addiu s0` / `sw s0`).
+Assigning `block` after `gte_SetRotMatrix` cannot hoist that copy above the
+volatile GTE asm. Store first, memory-barrier, then copy so the move can
+sit in the `&workm` address load:
+
+```c
+*scratch = (void*)(head - 0x28);
+__asm__ volatile("" ::: "memory");
+block = (GpNearScratch*)(head - 0x28);
+gte_SetRotMatrix(&((GsCOORDINATE2*)arg0->field_8)->workm);
+```
+
+Pin scratch to `$v0` with the existing `lui`/`ori` fake dependency so the
+alloc temp lands in `$v1` and `head` stays in `$a2`. `func_800E1380` is
+the example.

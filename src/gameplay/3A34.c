@@ -1958,7 +1958,68 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0C10);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0FEC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1380);
+s32 func_800E1380(GpObj* arg0, s32 arg1)
+{
+    register void** scratch asm("v0");
+    register s32    hi asm("v0");
+    u8*             head;
+    GpNearScratch*  block;
+    GpActorD4Rec*   rec;
+    GpRec18*        slot;
+    s32             minDist;
+    s32             index;
+    s32             best;
+    s32             dx;
+    s32             dy;
+    s32             dz;
+    s32             dist;
+
+    minDist = -1;
+    index   = 0;
+    best    = index;
+    asm("lui %0, 0x1F80" : "=r"(hi) : "r"(best));
+    asm("ori %0, %1, 0x3FC" : "=r"(scratch) : "r"(hi));
+    rec      = (GpActorD4Rec*)arg0->field_C;
+    head     = *scratch;
+    slot     = rec->field_14;
+    *scratch = (void*)(head - 0x28);
+    __asm__ volatile("" ::: "memory");
+    block = (GpNearScratch*)(head - 0x28);
+    gte_SetRotMatrix(&((GsCOORDINATE2*)arg0->field_8)->workm);
+    block->local.vx = (u16)rec->field_8 + (u16)arg0->field_10;
+    block->local.vy = (u16)rec->field_A + (u16)arg0->field_12;
+    block->local.vz = (u16)rec->field_C + (u16)arg0->field_14;
+    gte_ldv0((SVECTOR*)(head - 8));
+    gte_rtv0_real();
+    gte_stlvnl(block);
+    block->world.vx = ((VECTOR3*)(head - 0x28))->vx + ((GsCOORDINATE2*)arg0->field_8)->workm.t[0];
+    block->world.vy = block->vec.vy + ((GsCOORDINATE2*)arg0->field_8)->workm.t[1];
+    block->world.vz = block->vec.vz + ((GsCOORDINATE2*)arg0->field_8)->workm.t[2];
+
+    for (;;) {
+        if ((slot->field_0 & 1) && ((slot->field_4 & 0xFFFF0000) == arg1)) {
+            dx            = slot->field_8 - block->world.vx;
+            block->vec.vx = dx;
+            dy            = slot->field_A - block->world.vy;
+            block->vec.vy = dy;
+            dz            = slot->field_C - block->world.vz;
+            block->vec.vz = dz;
+            dist          = SquareRoot0((dx * dx) + (dy * dy) + (dz * dz));
+            if ((u32)dist < (u32)minDist) {
+                minDist = dist;
+                best    = index + 1;
+            }
+        }
+        if (slot->field_0 & 2) {
+            break;
+        }
+        slot++;
+        index++;
+    }
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x28;
+    return best;
+}
 
 void func_800E15AC(s32 arg0, GpObj* arg1)
 {
