@@ -664,7 +664,52 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B2998);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B2E90);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B3108);
+void func_800B3108(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2)
+{
+    register void**           scratch asm("v1");
+    register GpAnimScratch80* tmp asm("v0");
+    register s32              blend asm("v1");
+    register GpPackedSvec*    p asm("v1");
+    GpPackedSvec*             dest;
+    GpAnimScratch80*          s;
+    s32                       inv;
+
+    if (arg2->field_E != 0) {
+        scratch  = (void**)G_SCRATCH_HEAD;
+        tmp      = *scratch;
+        tmp     -= 1;
+        *scratch = tmp;
+        if (arg0->field_0 != arg0->field_4) {
+            s        = tmp;
+            blend    = (s16)arg2->field_C << 12;
+            s->blend = blend;
+            blend    = blend / (s32)arg2->field_E;
+            inv      = 0x1000 - blend;
+            s->blend = blend;
+        } else {
+            s        = tmp;
+            inv      = 0x1000;
+            s->blend = 0;
+        }
+        s->invBlend = inv;
+        p           = arg0->field_0;
+        s->vec0.vx  = p->vx << 3;
+        s->vec0.vy  = p->vy << 3;
+        s->vec0.vz  = p->vz << 3;
+        p           = arg0->field_4;
+        s->vec1.vx  = p->vx << 3;
+        s->vec1.vy  = p->vy << 3;
+        s->vec1.vz  = p->vz << 3;
+        func_800B2998(arg0, arg1, arg2, s);
+        dest = arg0->field_8;
+        if (dest != NULL) {
+            dest->vx = s->vec1.vx >> 3;
+            dest->vy = s->vec1.vy >> 3;
+            dest->vz = s->vec1.vz >> 3;
+        }
+        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x80;
+    }
+}
 
 void func_800B32E8(GpAnimCtx* arg0, s32 arg1)
 {

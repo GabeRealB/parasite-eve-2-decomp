@@ -1333,6 +1333,39 @@ Translation + rotation pair used by `func_800B43E0`.
 | 0x00 | `trans` | Copied into `GpAnimMtxRec.mtx.t` when `GpAnimSlot.field_B == 1` |
 | 0x08 | `rot` | GPF/GPL-blended with the other pose, then `RotMatrix_gte` |
 
+### `GpPackedSvec` (4) — `1BC.h`
+11-10-11 packed signed vector. Unpacked `<< 3` / packed `>> 3` by `func_800B3108`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| bits 0–10 | `vx` | Signed 11-bit X |
+| bits 11–20 | `vy` | Signed 10-bit Y |
+| bits 21–31 | `vz` | Signed 11-bit Z |
+
+### `GpAnimBlendSrc` (0x14) — `1BC.h`
+At +4 of the 0x18-byte scratch `func_800B3448` allocates. Passed to `func_800B3108` / `func_800B2E90`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `field_0` | Current-frame packed vector |
+| 0x04 | `field_4` | Next-frame packed vector; equal to `field_0` skips blend |
+| 0x08 | `field_8` | Optional packed dest (`arg3` of `func_800B3448`) |
+| 0x0C | `field_C` | `arg2` of `func_800B3448` |
+| 0x10 | `field_10` | Copy of `GpAnimSlot.field_17` |
+
+### `GpAnimScratch80` (0x80) — `1BC.h`
+Scratch from `G_SCRATCH_HEAD` for `func_800B3108` / `func_800B2E90` / `func_800B2998`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x08 | `vec0` | Unpacked `field_0` (`<< 3`) |
+| 0x10 | `vec1` | Unpacked `field_4`; packed back into `field_8` |
+| 0x18 | `mtx0` | Used by `func_800B2998` |
+| 0x38 | `mtx1` | Used by `func_800B2998` |
+| 0x58 | `mtx2` | Used by `func_800B2998` |
+| 0x78 | `blend` | `(s16)slot->field_C << 12` / `field_E`; 0 if frames match |
+| 0x7C | `invBlend` | `0x1000 - blend` |
+
 ### `GpAnimMtxRec` (0x50) — `1BC.h`
 Element of the array at `GpAnimCtx.field_4`, indexed by `GpAnimSlot.field_14`.
 
@@ -1368,7 +1401,7 @@ Element of `GpAnimCtx.field_C`. Initialized by `func_800B3CE8` /
 | 0x04 | `field_4` | Second set index; `func_800B3FA8` copies `arg2` here with `field_0` |
 | 0x06 | `field_6` | Index into `field_20[set]->field_0` (`func_800B3E74`); `func_800B3FA8` loads `field_4[field_15]` |
 | 0x09 | `field_9` | Written `0x10` by `func_800B3FA8` / `func_800B3CE8` |
-| 0x0B | `field_B` | `recs[field_6].field_3 & 0xF` (`func_800B3FA8`); `func_800B43E0` copies pose translation when this is 1 |
+| 0x0B | `field_B` | `recs[field_6].field_3 & 0xF` (`func_800B3FA8`); `func_800B43E0` copies pose translation when this is 1; `func_800B3448` dispatches 1 → `func_800B2E90`, 4 → `func_800B3108` |
 | 0x0C | `field_C` | Timing value; `func_800B3E74` sets `field_2 << 4`; cleared by `func_800B3FA8` |
 | 0x0E | `field_E` | Timing value; `func_800B3E74` sets the same `field_2 << 4` |
 | 0x10 | `field_10` | Flags word; cleared by `func_800B3FA8` |

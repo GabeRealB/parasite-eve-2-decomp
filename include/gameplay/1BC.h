@@ -74,6 +74,47 @@ typedef struct _GpAnimPose {
 } GpAnimPose;
 STATIC_ASSERT_SIZEOF(GpAnimPose, 0x10);
 
+/// Packed 11-10-11 signed vector (one word). `func_800B3108` unpacks each
+/// component `<< 3` into an `SVECTOR` and packs the interpolated result
+/// back. `func_800B3448` dispatches here when `GpAnimSlot.field_B == 4`.
+typedef struct _GpPackedSvec {
+    s32 vx : 11;
+    s32 vy : 10;
+    s32 vz : 11;
+} GpPackedSvec;
+STATIC_ASSERT_SIZEOF(GpPackedSvec, 4);
+
+/// Source/dest pointers for `func_800B3108` / `func_800B2E90`. Lives at
+/// offset 4 of the 0x18-byte scratch `func_800B3448` allocates from
+/// `G_SCRATCH_HEAD`. `field_0` / `field_4` are the current and next-frame
+/// packed words; `field_8` is an optional packed dest (`arg3` of
+/// `func_800B3448`). `field_C` is `arg2` of `func_800B3448`; `field_10`
+/// is a copy of `GpAnimSlot.field_17`.
+typedef struct _GpAnimBlendSrc {
+    /* 0x00 */ GpPackedSvec* field_0;
+    /* 0x04 */ GpPackedSvec* field_4;
+    /* 0x08 */ GpPackedSvec* field_8;
+    /* 0x0C */ void*         field_C;
+    /* 0x10 */ u8            field_10;
+} GpAnimBlendSrc;
+STATIC_ASSERT_SIZEOF(GpAnimBlendSrc, 0x14);
+
+/// 0x80-byte scratch from `G_SCRATCH_HEAD` used by `func_800B3108` /
+/// `func_800B2E90` / `func_800B2998`. `vec0` / `vec1` are unpacked from
+/// `GpAnimBlendSrc.field_0` / `field_4`; `blend` / `invBlend` are the
+/// 12-bit GPF/GPL weights. `func_800B2998` also uses the matrices.
+typedef struct _GpAnimScratch80 {
+    /* 0x00 */ byte    pad_0[8];
+    /* 0x08 */ SVECTOR vec0;
+    /* 0x10 */ SVECTOR vec1;
+    /* 0x18 */ MATRIX  mtx0;
+    /* 0x38 */ MATRIX  mtx1;
+    /* 0x58 */ MATRIX  mtx2;
+    /* 0x78 */ s32     blend;
+    /* 0x7C */ s32     invBlend;
+} GpAnimScratch80;
+STATIC_ASSERT_SIZEOF(GpAnimScratch80, 0x80);
+
 /// 0x50-byte dest record at `GpAnimCtx.field_4`, indexed by
 /// `GpAnimSlot.field_14`. `func_800B4248` / `func_800B43E0` write `mtx`
 /// (rotation at +4, translation at +0x18) and clear `field_0`.
@@ -126,6 +167,8 @@ typedef struct _GpAnimSet {
 /// `field_15` arguments. `func_800B4248` / `func_800B43E0` index
 /// `GpAnimCtx.field_4` by `field_14`; `func_800B4248` GPF/GPL-blends
 /// pose translation when `field_B == 1`, `func_800B43E0` copies it.
+/// `func_800B3448` dispatches `field_B == 1` to `func_800B2E90` and
+/// `field_B == 4` to `func_800B3108`.
 typedef struct _GpAnimSlot {
     /* 0x00 */ u16         field_0;
     /* 0x02 */ u16         field_2;
@@ -268,35 +311,38 @@ STATIC_ASSERT_SIZEOF(GpRgbScratch, 8);
 /// Unpacks two RGB555 colors, GPF/GPL-blends them by `arg2` / `0x1000 -
 /// arg2`, packs the result into `*arg3`, and copies the STP bit if
 /// either source has it set.
-void     func_800B2088(u16* arg0, u16* arg1, s32 arg2, u16* arg3);
-void     func_800B27C4(u16* arg0, u16* arg1, s32 arg2, u16* arg3);
-void     func_800B2840(u16* arg0, u16* arg1, s32 arg2, u16* arg3, s32 arg4);
-void     func_800B32E8(GpAnimCtx* arg0, s32 arg1);
-void     func_800B3910(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
-void     func_800B3CCC(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3);
-void     func_800B3CE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3);
-void     func_800B3DB4(GpAnimCtx* arg0, GpAnimSlot* arg1);
-void     func_800B3DF4(GpAnimCtx* arg0, GpAnimSlot* arg1);
-void     func_800B3E34(GpAnimCtx* arg0, GpAnimSlot* arg1);
-void     func_800B3E74(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3);
-void     func_800B3EE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4);
-void     func_800B3F60(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4);
-void     func_800B3F84(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4);
-void     func_800B3FA8(GpAnimCtx* arg0, s32 arg1, s32 arg2);
-void     func_800B404C(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void     func_800B4114(GpAnimCtx* arg0, s32 arg1, u16 arg2, s32 arg3, s32 arg4);
-void     func_800B4248(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
-                       s32 arg5);
-void     func_800B43E0(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
-                       s32 arg5);
-void     func_800B4514(GpAnimCtx* arg0, s32 arg1);
-void     func_800B4538(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5,
-                       s32 arg6);
+void       func_800B2088(u16* arg0, u16* arg1, s32 arg2, u16* arg3);
+void       func_800B27C4(u16* arg0, u16* arg1, s32 arg2, u16* arg3);
+void       func_800B2840(u16* arg0, u16* arg1, s32 arg2, u16* arg3, s32 arg4);
+void       func_800B2998(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2,
+                         GpAnimScratch80* arg3);
+void       func_800B3108(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2);
+void       func_800B32E8(GpAnimCtx* arg0, s32 arg1);
+void       func_800B3910(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
+void       func_800B3CCC(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3);
+void       func_800B3CE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3);
+void       func_800B3DB4(GpAnimCtx* arg0, GpAnimSlot* arg1);
+void       func_800B3DF4(GpAnimCtx* arg0, GpAnimSlot* arg1);
+void       func_800B3E34(GpAnimCtx* arg0, GpAnimSlot* arg1);
+void       func_800B3E74(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3);
+void       func_800B3EE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 arg4);
+void       func_800B3F60(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4);
+void       func_800B3F84(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4);
+void       func_800B3FA8(GpAnimCtx* arg0, s32 arg1, s32 arg2);
+void       func_800B404C(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void       func_800B4114(GpAnimCtx* arg0, s32 arg1, u16 arg2, s32 arg3, s32 arg4);
+void       func_800B4248(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
+                         s32 arg5);
+void       func_800B43E0(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
+                         s32 arg5);
+void       func_800B4514(GpAnimCtx* arg0, s32 arg1);
+void       func_800B4538(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5,
+                         s32 arg6);
 GpAnimRec* func_800B4668(GpAnimCtx* arg0, GpAnimSlot* arg1);
-void     func_800B46A4(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3);
-void     func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3);
-void     func_800B47A8(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6,
-                       void* arg7);
+void       func_800B46A4(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3);
+void       func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3);
+void       func_800B47A8(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6,
+                         void* arg7);
 void       func_800B56AC(void);
 void       func_800B57EC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
 GpWorkObj* func_800B584C(u16 arg0);
@@ -334,21 +380,21 @@ typedef struct _GpDirScratch {
 STATIC_ASSERT_SIZEOF(GpDirScratch, 0x28);
 /// Builds a camera-space offset from `arg0` toward `arg1->pos`, scaled
 /// by `-abs(length - arg1->field_2)`, and writes it to `arg2`.
-void       func_800B6118(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2);
-void       func_800B62D4(void);
+void func_800B6118(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2);
+void func_800B62D4(void);
 /// Looks up `arg0` as `GpBit2Rec.field_0` in
 /// `D_8010D230[Mc_SaveData.field_7]`. On a hit, publishes the record's
 /// item id / extra / stack count into `D_80114DEC` / `D_80114DDC` /
 /// `D_80114DDE` / `D_80114DD0` and returns 1.
-s32        func_800B63B8(s32 arg0);
+s32 func_800B63B8(s32 arg0);
 /// Walks `D_8010D230[Mc_SaveData.field_6 / field_7]` for a `GpEnemyPlace`
 /// whose `field_0` equals `arg0`. If the packed 2-bit flag at
 /// `D_8010D230[Game_Session->field_7].field_4` is non-zero, spawns that
 /// placement via `func_800B01AC` (same coord/yaw writeback as `func_800B6B44`).
-void       func_800B6950(u16 arg0);
-void       func_800B6B44(GameSessionFrom4* arg0);
-void       func_800B6CF0(void);
-s32        func_800B6DA4(s32 arg0, s32 arg1);
-s32        func_800B6EE0(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_800B6950(u16 arg0);
+void func_800B6B44(GameSessionFrom4* arg0);
+void func_800B6CF0(void);
+s32  func_800B6DA4(s32 arg0, s32 arg1);
+s32  func_800B6EE0(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 
 #endif // GAMEPLAY_1BC_H

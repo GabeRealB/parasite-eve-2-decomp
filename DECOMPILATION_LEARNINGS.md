@@ -23844,3 +23844,46 @@ A 4x3 byte-clear of `D_80114BF0` then wants `addu v0, v0, a2` (index first).
 `levels[col + i] = 0` is `addu v0, a2, v0`. Write
 `*(u8*)((col + i) + (s32)levels) = 0` inside `for (; item < 4; item++, i += 3)`.
 `func_800BA538` is the example.
+
+## Don't pin a post-call dest to `$a3` when `$a3` is also the last call arg
+
+`f(arg0, arg1, arg2, scratch)` then `dest = obj->field_8; if (dest)` wants
+the call setup:
+
+```
+lw    v0, 0(v1)
+move  a0, s1
+...
+lw    v0, 0(v1)
+move  a3, s0
+jal   f
+```
+
+`register T* dest asm("a3")` for that later NULL-check makes GCC prepare
+`$a3` (4th arg) before `$a0`, swapping the two delay-slot fills (99.8%).
+Leave `dest` unpinned; GCC still loads it into `$a3` after the return.
+`func_800B3108` is the example.
+
+## Reuse `$v1` across scratch head, dividend, and bitfield pointer
+
+A 3-arg function that early-outs on `arg2->field_E`, allocates an 0x80-byte
+scratch, then walks 11-10-11 bitfields wants `$v1` for three sequential
+lifetimes and the subtract in `$v0`:
+
+```c
+register void** scratch asm("v1");
+register T*     tmp asm("v0");
+register s32    blend asm("v1");
+register Packed* p asm("v1");
+
+scratch  = (void**)G_SCRATCH_HEAD;
+tmp      = *scratch;
+tmp -= 1;
+*scratch = tmp;
+```
+
+`tmp -= 1` on the 0x80-byte struct is `addiu v0, v0, -0x80` / `sw v0, 0(v1)`;
+the copy into `$s0` fills the `beq field_0, field_4` delay. Pin `blend` so
+`lh v1, field_C` / `div v1, v0` / `mflo v1` and the invBlend phi stay in
+`$v0`. Pin `p` so each bitfield extract is `lw v0, 0(v1)` instead of
+reloading the pointer from `$s1`. `func_800B3108` is the example.
