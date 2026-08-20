@@ -25004,3 +25004,49 @@ with `li v0, 0x92`. An empty `asm("")` between the `if (n) goto` and
 it because `menu->field_10 = 0` already sat after the store.
 
 `func_800C3CE0` is the example.
+
+## Empty `case` so a 2-node switch subtree still emits `sltu` to default
+
+GCC 2.8.1 `emit_case_nodes` for a node with only a left child that is a
+simple single-value leaf skips the `> pivot` test and just does
+`beq left; j default`. The target wants the 3-node shape (`beq pivot;
+sltu; bnez default; beq low`):
+
+```
+beq    s0, v0, case_10C     # pivot
+sltu   v0, v0, s0
+bnez   v0, default          # > pivot
+lui    v0, %hi(low)
+beq    s0, v0, case_low
+j      default
+```
+
+That extra `sltu` appears when the pivot also has a right child. An empty
+`case` for the missing in-between value (same `break` as default) adds
+that right child without emitting a body:
+
+```c
+switch (mapId) {
+    case 0x1060000:
+        /* play start/end sound */
+        break;
+    case 0x10C0000:
+        /* play */
+        break;
+    case 0x21B0000:
+        break; /* no sound on this path; keeps the 10C pivot */
+    case 0x31B0000:
+        /* play */
+        break;
+}
+```
+
+State 1 of the same function has a real `0x21B0000` body, so the tree
+already has the right child. State 3 must keep the empty case or the
+lower half collapses to two sequential `beq`s. `func_800BEBE4` is the
+example.
+
+A `(s8)func()` result that must be `sll s0, v0, 24` / `sra s0, s0, 24` in
+the next `jal` delay needs its own block-scope temp (see “Scope a `| k`
+temp”). Reusing the switch index (`mapId = (s8)func()`) emits
+`sll v0, v0, 24` / `sra s0, v0, 24` instead.

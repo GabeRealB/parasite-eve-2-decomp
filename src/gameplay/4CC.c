@@ -4,9 +4,12 @@
 
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
+#include "gameplay/3A34.h"
 #include "gameplay/4CC.h"
+#include "gameplay/gameplay.h"
 #include "main/display.h"
 #include "main/gamemain.h"
+#include "main/gfx.h"
 #include "main/mem.h"
 #include "main/pad.h"
 #include "main/sound.h"
@@ -20,6 +23,8 @@ extern s32       D_8005ED74;
 extern s32       D_8005ED78;
 extern char      D_8010D588[];
 extern UiObject* D_80067634;
+extern VECTOR    D_80093DB0;
+extern u8        D_8010D828[];
 
 void func_800CDEF4(void);
 
@@ -521,7 +526,200 @@ void func_800BE808(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BEBE4);
+void func_800BEBE4(Task* arg0)
+{
+    GameSession*   session;
+    GameActorExt*  extra;
+    GpItemObj8*    obj;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* rot;
+    VECTOR         vec;
+    VECTOR         vec2;
+    MATRIX*        mem;
+    GpItemObj2*    done;
+    u32            mapId;
+    s32            room;
+    s32            check;
+    u16            item;
+
+    extra   = arg0->extra;
+    obj     = arg0->spawnArg2;
+    session = Game_Session;
+    mapId   = *(u32*)&session->field_4 & 0xFFFF00FF;
+    item    = obj->field_A;
+    coord   = (GsCOORDINATE2*)extra->field_8;
+    rot     = coord + 2;
+    room    = *(u8*)&session->field_4;
+    if (D_801153F4 == 2) {
+        extra->field_C |= 0x80;
+    } else {
+        extra->field_C &= 0xFF7F;
+    }
+    mapId &= 0xFFFF0000;
+    if (mapId == 0x4100000) {
+        if ((u32)(room - 8) >= 2) {
+            extra->field_C |= 0x80;
+        }
+    } else if (mapId == 0x41F0000) {
+        check = 3;
+        goto compare_room;
+    } else if (mapId == 0x4140000) {
+        check = 0x11;
+    compare_room:
+        if (room != check) {
+            extra->field_C |= 0x80;
+        }
+    }
+    if (arg0->state == 0) {
+        mem = (MATRIX*)Mem_Calloc(0x40, 0);
+        if (mem != NULL) {
+            vec             = D_80093DB0;
+            extra->field_1C = mem;
+            extra->field_20 = mem + 1;
+            func_80098F58((GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8);
+            func_800D7A9C(extra, &vec, 0, 3);
+            arg0->idMap = (TaskIdMap*)mem;
+        }
+        arg0->field_24 = D_8010D828;
+        arg0->flags    = 0;
+        extra->field_C = 0;
+        arg0->state++;
+    } else if (arg0->state == 1) {
+        if (func_800BB470(obj->field_8) != 2) {
+            if (arg0->flags != 0) {
+                arg0->killCountdown = 0;
+                switch (mapId) {
+                    case 0x1060000: {
+                        s32 temp;
+                        temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                        SndEvt_EnqueueType6(0x51060009, temp,
+                                            (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                        break;
+                    }
+                    case 0x10C0000: {
+                        s32 temp;
+                        temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                        SndEvt_EnqueueType6(0x510C0005, temp,
+                                            (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                    }
+                    case 0x21B0000: {
+                        s32 temp;
+                        temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                        SndEvt_EnqueueType6(0x521B000B, temp,
+                                            (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                        break;
+                    }
+                    case 0x31B0000: {
+                        s32 temp;
+                        temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                        SndEvt_EnqueueType6(0x531B000B, temp,
+                                            (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                        break;
+                    }
+                    case 0x4100000: {
+                        s32 temp;
+                        temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                        SndEvt_EnqueueType6(0x54100012, temp,
+                                            (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                        break;
+                    }
+                    case 0x41F0000: {
+                        s32 temp;
+                        temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                        SndEvt_EnqueueType6(0x541F0015, temp,
+                                            (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                        break;
+                    }
+                    case 0x4270000: {
+                        s32 temp;
+                        temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                        SndEvt_EnqueueType6(0x54270008, temp,
+                                            (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                        break;
+                    }
+                }
+                arg0->state++;
+            }
+        }
+    } else if (arg0->state == 2) {
+        arg0->killCountdown++;
+        Gfx_RotMatrixX(&rot->coord, arg0->killCountdown << 5, 1);
+        rot->flg = 0;
+        if (arg0->killCountdown >= 0x14) {
+            Display_InitModeObj(Task_GetDesc(1, 0x26), 0, (s32)arg0->spawnArg2, 0);
+            arg0->state++;
+        }
+    } else if (arg0->state >= 3) {
+        if (arg0->state == 3) {
+            switch (mapId) {
+                case 0x1060000: {
+                    s32 temp;
+                    temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                    SndEvt_EnqueueType6(0x5106000A, temp,
+                                        (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                    break;
+                }
+                case 0x10C0000: {
+                    s32 temp;
+                    temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                    SndEvt_EnqueueType6(0x510C0006, temp,
+                                        (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                    break;
+                }
+                case 0x21B0000:
+                    break;
+                case 0x31B0000: {
+                    s32 temp;
+                    temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                    SndEvt_EnqueueType6(0x531B000C, temp,
+                                        (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                    break;
+                }
+                case 0x4100000: {
+                    s32 temp;
+                    temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                    SndEvt_EnqueueType6(0x54100013, temp,
+                                        (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                    break;
+                }
+                case 0x41F0000: {
+                    s32 temp;
+                    temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                    SndEvt_EnqueueType6(0x541F0016, temp,
+                                        (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                    break;
+                }
+                case 0x4270000: {
+                    s32 temp;
+                    temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                    SndEvt_EnqueueType6(0x54270009, temp,
+                                        (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                    break;
+                }
+            }
+            arg0->state++;
+        }
+        arg0->killCountdown -= 4;
+        if (arg0->killCountdown <= 0) {
+            arg0->killCountdown = 0;
+        }
+        Gfx_RotMatrixX(&rot->coord, arg0->killCountdown << 5, 1);
+        rot->flg = 0;
+        if (arg0->killCountdown == 0) {
+            arg0->flags = 0;
+            done        = (GpItemObj2*)arg0->extraState;
+            if (done != NULL) {
+                done->field_2    = 1;
+                arg0->extraState = 0;
+            }
+            arg0->state = 1;
+        }
+    }
+    vec2 = D_80093DB0;
+    func_80098F58((GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8);
+    func_800D7A9C(extra, &vec2, 0, 3);
+    __asm__ volatile("" ::"r"(item));
+}
 
 void func_800BF2C8(UiObject* arg0, void (*arg1)(UiObject*, Task*))
 {

@@ -856,6 +856,7 @@ GpItemRec* func_800D6994(s32 arg0);
 GpItemRec* func_800D6A24(s32 arg0, GpItemScan* arg1);
 void       func_800D6AA4(Task* arg0);
 s32        func_800D70E4(GpObj44* arg0, VECTOR3* arg1);
+void       func_800D7A9C(GameActorExt* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void  func_800D8684(Task* arg0);
 void  func_800D9138(GpObj44* arg0);
 void  func_800D930C(GpObj4C* arg0, s32 arg1);

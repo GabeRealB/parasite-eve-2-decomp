@@ -148,6 +148,11 @@ void func_800BDDC4(Task* arg0);
 /// `field_10 = 2` / `field_22 = 0x21`; a second cancel does the discard
 /// strip.
 void func_800BE808(DialogPrompt* arg0, UiObject* arg1);
+/// Task callback. `extra` is a `GameActorExt`; `spawnArg2` is a `GpItemObj8`.
+/// Tilts `field_8[2]` (a `GsCOORDINATE2`) while playing a location-specific
+/// type-6 sound, then signals `extraState` (`GpItemObj2.field_2 = 1`) when
+/// the motion returns to 0.
+void func_800BEBE4(Task* arg0);
 void func_800BF2C8(UiObject* arg0, void (*arg1)(UiObject*, Task*));
 s32  func_800BF334(s32 arg0, s32 arg1);
 /// Child closer for the `D_8010D634` inventory panes. `-1` tears down and
