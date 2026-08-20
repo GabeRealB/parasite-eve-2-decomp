@@ -24144,3 +24144,12 @@ if (x & 0xF0000) {
 with a signed `s32` `>>` is `sra` *before* the branch. Put `(u32)x >> 16` in
 the taken arm so GCC fills the `bnez` delay with `srl v0, v1, 0x10` and only
 emits `li v0, K` on the fall-through. `func_800F1364` is the example.
+
+## Pinned `== 1` locals steal `li`, 1 from `$v0`
+
+After `if (x == 1)`, a `register ... asm("sN")` on `x` makes later `1`s copy
+from `$sN` (`move a1, s5`, `move extra, s5`, `move a2, s7`) instead of
+`li ..., 1` / `move ..., v0`. Unpin the flag so Pad's jal delay is `li a1, 1`
+and `Ui_SpawnFromDesc(..., one, one, ...)` is `move a2, v0` / `move a3, v0`.
+Pinning the flag to get the other `$s` coloring is what produces
+`move a3, a2`. `func_800BD6DC` is the example.
