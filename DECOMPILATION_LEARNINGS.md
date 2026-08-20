@@ -24197,3 +24197,39 @@ block->distSq -= lum;
 The first barrier forces `lw` before `move` (move fills the load delay).
 The second redefines `lum` so it is not CSE-equivalent to `inner`, and
 `temp - inner` stays `subu ..., a0`. `func_800D9138` is the example.
+
+## Pin a `$v0` temp so `lbu` does not land in the saved dest
+
+`item = cfg->field_21 + 0x7F` with `item` in `$s2` emits `lbu s2` /
+`addiu s2, s2, 0x7F`. The target loads to `$v0` then adds into `$s2`.
+A nested `register s32 t asm("v0"); t = cfg->field_21; item = t + 0x7F;`
+restores `lbu v0` / `addiu s2, v0, 0x7F`. Same for `field_23 + 0x5F`.
+`func_800C8368` is the example.
+
+## Color a 3-store loop so the table pointer is `$a2` with split `la`
+
+`i` in `$a0`, compare-index in `$a1`, `minusOne` in `$t0` leaves `$a2` for
+`table = D_8010E8F8` as `lui v0, %hi` / `addiu a2, v0, %lo` / `lw v0, 0(a2)`.
+Without those pins the table absorbs `$v1` (or `$a0`) and the `%lo` load
+folds. Keep `table` and `p = table` distinct with `asm volatile("" :
+"+r"(table), "+r"(p))` so the loop walks `$v1` (`move v1, a2` / `p++`).
+Reuse a later `flags` local as the early `idx` copy so `move a3, s8` fills
+the `*stored != item` delay. `func_800C8368` is the example.
+
+## `$v1`-pinned `sel` so `andi` delay-slots then copies before `p` reuses `$v1`
+
+`slot = flags & 0xFF` writes `andi a1, a3, 0xff` directly. The target
+computes into `$v1` in the `beq` delay, copies to `$a1`, then `p = table`
+reuses `$v1`. A `register s32 sel asm("v1")` with `i = 0` between `sel =
+flags & 0xFF` and `slot = sel`, plus `asm volatile("" : "+r"(sel))` so
+`sel` does not coalesce with `slot`, emits:
+
+```
+andi   v1, a3, 0xff
+move   a0, zero
+move   a1, v1
+li     t0, -1
+move   v1, a2
+```
+
+`func_800C8368` is the example.

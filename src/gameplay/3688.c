@@ -158,6 +158,8 @@ extern char           D_80096FD8[];
 extern char           D_80096FE4[];
 extern char           D_80096FEC[];
 extern char           D_80096FF4[];
+extern char           D_80097008[];
+extern char           D_80097010[];
 extern char           D_8009701C[];
 extern char           D_80097024[];
 extern char           D_80097028[];
@@ -226,6 +228,7 @@ void       func_800D3660(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4,
 void       func_800CFE68(s32 arg0, UiObject* arg1);
 void       func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_800C7DA8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
+void       func_800C8368(Task* arg0);
 void       func_800C2B70(UiList* arg0, s32 arg1);
 void       func_800C8B40(Task* arg0);
 void       func_800C942C(UiList* arg0, s32 arg1);
@@ -1511,7 +1514,151 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C7AE8);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C7DA8);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C8368);
+void func_800C8368(Task* arg0)
+{
+    TextDrawReq        req;
+    register s32       item asm("s2");
+    s32                skip;
+    WipSysConfig*      cfg;
+    s32                idx;
+    s32*               stored;
+    s32                mode;
+    register UiObject* obj asm("s3");
+    GpItemSlot*        slotp;
+    s32                x;
+    s32                y;
+    s32                color;
+    s32                one;
+    s32                temp;
+    s32                flags;
+    s32                baseY;
+
+    item   = 0;
+    skip   = item;
+    cfg    = &Wip_SysConfig;
+    stored = (s32*)arg0->idMap;
+    mode   = arg0->spawnArg1;
+    obj    = arg0->spawnArg2;
+    idx    = item;
+    if (mode == 0) {
+        Ui_DrawText((UiPanel*)obj, D_8009701C);
+        {
+            register s32 t asm("v0");
+            t    = cfg->field_21;
+            item = t + 0x7F;
+        }
+        if (item < 0x80) {
+            item = 0;
+        }
+    } else if (mode == 1) {
+        Ui_DrawText((UiPanel*)obj, D_8010E594);
+        slotp = func_800BAFE0(cfg->field_21 + 0x7F);
+        item  = slotp->field_0;
+        if (D_80114D90 == 2) {
+            item = slotp->field_2;
+        }
+    } else if (mode == 2) {
+        Ui_DrawText((UiPanel*)obj, D_80097008);
+        {
+            register s32 t asm("v0");
+            t    = cfg->field_23;
+            item = t + 0x5F;
+        }
+    } else {
+        Ui_DrawText((UiPanel*)obj, D_80097010);
+        skip = 1;
+        if (D_80114DD4 != NULL) {
+            item = *D_80114DD4;
+        }
+    }
+
+    if (arg0->state == 0) {
+        stored      = Mem_Calloc(4, 0);
+        D_80114D84  = 1;
+        arg0->idMap = (TaskIdMap*)stored;
+        *stored     = item;
+        arg0->state = 2;
+    }
+
+    if (*stored != item) {
+        s32*         table;
+        register s32 i asm("a0");
+        register s32 minusOne asm("t0");
+        s32*         p;
+        register s32 slot asm("a1");
+
+        flags = idx;
+        table = D_8010E8F8;
+        asm volatile("" : "+r"(flags), "+r"(table));
+        if (item != table[0]) {
+            register s32 sel asm("v1");
+            sel  = flags & 0xFF;
+            i    = 0;
+            slot = sel;
+            asm volatile("" : "+r"(sel));
+            minusOne = -1;
+            p        = table;
+            asm volatile("" : "+r"(table), "+r"(p));
+            for (; i < 3; i++, p++) {
+                if (i == slot) {
+                    *p = item;
+                } else {
+                    *p = minusOne;
+                }
+            }
+            func_800C5C2C(item, 0);
+        }
+        *stored     = item;
+        arg0->state = 2;
+    }
+
+    if (item != 0) {
+        x     = (s16)obj->field_1C;
+        y     = (s16)obj->field_18;
+        color = Ui_LookupTable(obj, 1);
+        one   = 1;
+        x    += 2;
+        y    += 0xF;
+        if (obj->mode != 5) {
+            req.x          = obj->baseX + 0x11 + x;
+            baseY          = obj->baseY - 6;
+            req.y          = baseY + y;
+            req.otIndex    = (s16)obj->drawOrder + 1;
+            req.field_8    = color;
+            req.glyphTable = 0;
+            req.centerMode = 0;
+            req.field_E    = 1;
+            func_8002E53C(&req, func_800B8EB0(item, 0, 0));
+            func_800C22D8(obj, x, y, item, one);
+            temp = item - 0xF;
+            if ((u32)temp < 0x24U) {
+                func_800C2538(obj, x, y, temp % 3 + one, color);
+            }
+            func_800C05CC(obj, x, y, item, 0);
+        }
+    }
+
+    Ui_DrawHBar((UiPanel*)obj, (s16)obj->field_1C, (s16)obj->field_1E, (s16)obj->field_18 + 0x11);
+    if (skip == 0) {
+        func_800C7DA8(obj, item, 0, 0);
+    }
+
+    flags = idx + 0x10;
+    if ((arg0->state != 1) || (item == 0)) {
+        flags |= 0x100;
+    }
+    func_800C7AE8(obj, (s16)obj->field_1C + 2, (s16)obj->field_18 + 0x16, flags);
+
+    if (arg0->state == 2) {
+        if (CdCmd_IsIdle() & 0xFFFF) {
+            arg0->state = 1;
+        }
+    }
+
+    if (obj->mode == 3) {
+        D_80114D84 = 0;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C8700);
 
