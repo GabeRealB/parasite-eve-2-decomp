@@ -24153,3 +24153,23 @@ from `$sN` (`move a1, s5`, `move extra, s5`, `move a2, s7`) instead of
 and `Ui_SpawnFromDesc(..., one, one, ...)` is `move a2, v0` / `move a3, v0`.
 Pinning the flag to get the other `$s` coloring is what produces
 `move a3, a2`. `func_800BD6DC` is the example.
+
+## Barrier a copied src so `subu` keeps the original register
+
+`lum = inner` then `temp - inner` CSEs to `subu v0, v0, v1` because `lum`
+is the fresh copy in `$v1`. The target saved inner with `move v1, a0` and
+still subtracted `$a0`. Split the first XYZ load from its shift so both
+`lw`s issue before `sra`, then:
+
+```c
+temp = block->outerSq;
+asm volatile("" : "+r"(temp));
+lum  = inner;
+asm volatile("" : "+r"(lum));
+block->outerSq = temp - inner;
+block->distSq -= lum;
+```
+
+The first barrier forces `lw` before `move` (move fills the load delay).
+The second redefines `lum` so it is not CSE-equivalent to `inner`, and
+`temp - inner` stays `subu ..., a0`. `func_800D9138` is the example.

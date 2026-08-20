@@ -239,7 +239,75 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D8C0C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D8EA0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9138);
+void func_800D9138(GpObj44* arg0)
+{
+    register void**         scratch asm("a1");
+    register u8*            head asm("a0");
+    register GpAttnScratch* tmp asm("v1");
+    register GpAttnScratch* block asm("a2");
+    register s32            result asm("t0");
+    register s32            lum asm("v1");
+    s32                     tooFar;
+    s32                     r;
+    s32                     g;
+    s32                     b;
+    s32                     dist;
+    s32                     inner;
+    s32                     vx;
+    u16                     scale;
+    u8*                     ptr;
+
+    result                                  = 0;
+    scratch                                 = (void**)G_SCRATCH_HEAD;
+    vx                                      = arg0->field_18.vx;
+    head                                    = *scratch;
+    vx                                    >>= 1;
+    tmp                                     = (GpAttnScratch*)(head - 0x20);
+    ((GpAttnScratch*)(head - 0x20))->vec.vx = vx;
+    block                                   = tmp;
+    block->vec.vy                           = arg0->field_18.vy >> 1;
+    block->vec.vz                           = arg0->field_18.vz >> 1;
+    block->distSq                           = block->vec.vx * block->vec.vx + block->vec.vy * block->vec.vy + block->vec.vz * block->vec.vz;
+    block->outerSq                          = (arg0->field_5C * arg0->field_5C) >> 2;
+    tooFar                                  = (u32)block->outerSq < (u32)block->distSq;
+    *scratch                                = block;
+    block->scale                            = 0;
+    if (!tooFar) {
+        block->innerSq = (arg0->field_58 * arg0->field_58) >> 2;
+        r              = arg0->field_50;
+        g              = arg0->field_52;
+        b              = arg0->field_54;
+        block->scale   = 0x1000;
+        lum            = (r * 8 + g * 6 + b * 2) >> 8;
+        dist           = block->distSq;
+        inner          = block->innerSq;
+        result         = lum + 0xF00;
+        if ((u32)inner < (u32)dist) {
+            s32 temp;
+
+            temp = block->outerSq;
+            asm volatile("" : "+r"(temp));
+            lum = inner;
+            asm volatile("" : "+r"(lum));
+            block->outerSq = temp - inner;
+            block->distSq -= lum;
+            while ((u32)block->outerSq > 0xFFFF) {
+                block->outerSq = (u32)block->outerSq >> 4;
+                block->distSq  = (u32)block->distSq >> 4;
+            }
+            if (block->outerSq != 0) {
+                block->scale = ((u32)(block->outerSq - block->distSq) << 12) / (u32)block->outerSq;
+                lum          = block->scale * result;
+                result       = (u32)lum >> 12;
+            }
+        }
+    }
+    scale                 = block->scale;
+    ptr                   = *(u8**)G_SCRATCH_HEAD;
+    arg0->field_38        = result;
+    arg0->field_4A        = scale;
+    *(u8**)G_SCRATCH_HEAD = ptr + 0x20;
+}
 
 void func_800D930C(GpObj4C* arg0, s32 arg1)
 {

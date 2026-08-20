@@ -297,17 +297,28 @@ STATIC_ASSERT_SIZEOF(GpObj38, 0x44);
 /// IR0, and `gte_ldsv`s the three halfwords at 0x50. `func_800D98C4` /
 /// `func_800D9A30` subtract `field_24.t` from a world `VECTOR` and write
 /// the negated normalized direction.
+/// `func_800D9138` halves `field_18/1C/20` as XYZ, compares distance²
+/// against inner `field_58` and outer `field_5C` (each squared then
+/// `>> 2`), and writes the attenuated luminance to `field_38` (same
+/// word as `GpObj38.field_24.t[0]`) plus the 12.4 scale to `field_4A`.
 typedef struct _GpObj44 {
-    /* 0x00 */ byte pad_0[0x44];
-    /* 0x44 */ s16  field_44;
-    /* 0x46 */ byte pad_46[4];
-    /* 0x4A */ s16  field_4A;
-    /* 0x4C */ byte pad_4C[4];
-    /* 0x50 */ s16  field_50;
-    /* 0x52 */ s16  field_52;
-    /* 0x54 */ s16  field_54;
+    /* 0x00 */ byte    pad_0[0x18];
+    /* 0x18 */ VECTOR3 field_18;
+    /* 0x24 */ byte    pad_24[0x14];
+    /* 0x38 */ s32     field_38;
+    /* 0x3C */ byte    pad_3C[8];
+    /* 0x44 */ s16     field_44;
+    /* 0x46 */ byte    pad_46[4];
+    /* 0x4A */ s16     field_4A;
+    /* 0x4C */ byte    pad_4C[4];
+    /* 0x50 */ s16     field_50;
+    /* 0x52 */ s16     field_52;
+    /* 0x54 */ s16     field_54;
+    /* 0x56 */ byte    pad_56[2];
+    /* 0x58 */ s32     field_58;
+    /* 0x5C */ s32     field_5C;
 } GpObj44;
-STATIC_ASSERT_SIZEOF(GpObj44, 0x56);
+STATIC_ASSERT_SIZEOF(GpObj44, 0x60);
 
 /// Sparse overlay whose signed halfword at 0x40 is added (unsigned-clamped by
 /// `arg2`) into `D_801153F0.field_14` by `func_800E2C78` when
@@ -578,6 +589,20 @@ typedef struct _GpPanScratch {
 } GpPanScratch;
 STATIC_ASSERT_SIZEOF(GpPanScratch, 0x18);
 
+/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `func_800D9138`.
+/// `vec` is the halved XYZ from `GpObj44.field_18`. `distSq` is
+/// `vx²+vy²+vz²`. `outerSq` / `innerSq` are `(radius²) >> 2` from
+/// `field_5C` / `field_58`. `scale` is 0, `0x1000`, or the 12.4
+/// falloff copied to `field_4A`.
+typedef struct _GpAttnScratch {
+    /* 0x00 */ VECTOR vec;
+    /* 0x10 */ s32    distSq;
+    /* 0x14 */ s32    outerSq;
+    /* 0x18 */ s32    innerSq;
+    /* 0x1C */ s32    scale;
+} GpAttnScratch;
+STATIC_ASSERT_SIZEOF(GpAttnScratch, 0x20);
+
 /// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `func_800DEAFC`.
 /// `in` is the SVECTOR promoted to VECTOR for `ApplyTransposeMatrixLV`;
 /// `out` is that transform; `pos0` / `pos1` are the 16-bit grid-space
@@ -813,6 +838,7 @@ GpItemRec* func_800D6994(s32 arg0);
 GpItemRec* func_800D6A24(s32 arg0, GpItemScan* arg1);
 void       func_800D6AA4(Task* arg0);
 void  func_800D8684(Task* arg0);
+void  func_800D9138(GpObj44* arg0);
 void  func_800D930C(GpObj4C* arg0, s32 arg1);
 s32   func_800D9340(GpObj38* arg0);
 s32   func_800D937C(GpObj38* arg0);
