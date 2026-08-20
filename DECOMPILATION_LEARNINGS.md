@@ -24702,3 +24702,62 @@ coalesce and can recover `shift` in `$a1` / `mask` in `$a2` / delayed
 `register ... asm("a0")` (etc.) is function-wide in 2.8.1 and breaks
 the earlier `Ui_SpawnFromDesc` `xori a1, 1`. `func_800B65B0` is the
 example; not fully matched.
+
+## `i << 2` so the IV init is `move t3, t4` after the hoists
+
+A selection-sort that walks `table[start + i]` wants a running byte
+offset `$t3` initialized *after* the loop-invariant `li` / `lui`s:
+
+```
+move   t4, zero          # i = 0, blez delay
+li     s3, 1
+...                      # hoisted table / remap bases
+move   t3, t4            # off = i*4, i is 0
+loop:
+```
+
+A source-level `off = i` in the preheader is scheduled *before* those
+hoists. Write the index as `i << 2` (or `i * 4`) in the address and let
+strength reduction create the IV; the init lands after the movables.
+
+## Switch then `if (x != 1)` so the second table pick keeps delay slots
+
+Two copies of the 1 / 2 / default table select: a `switch` (case 2, 1,
+default) for the first copy hoists `s3=1`, `s2=2`, `s1=C20`, `s0=D70`,
+`t9=Mc_SaveData`. Repeating that `switch` for the second copy, with
+`minKey = key` in the `== 1` delay, expands to extra `j` / `nop` and
+moves default out of the `bne` delay. Write the second copy as:
+
+```c
+if (scan->field_2 != 1) {
+    table = Mc_SaveData.field_1AC;
+    if (scan->field_2 == 2) {
+        table = D_80114C20;
+    }
+} else {
+    table = D_80114D70;
+}
+```
+
+The first `switch` still owns the s-register assignment; the `if != 1`
+form keeps `addiu default` in the `bne` delay with `minKey` in the
+`beq == 1` delay. `func_800B8588` is the example.
+
+## Unconditional `p += next` so the add fills the following `beqz` delay
+
+`other = base; next = off + 4; if (j < n) other += next` sinks
+`addiu v1, t3, 4` into the `beqz` delay and leaves `addu a3, a3, v1`
+after the branch. The target executes that add even on the skip path
+(delay-slot speculation). Compute it before the compare:
+
+```c
+other = (T*)((s32)table + (start << 2));
+next  = (i << 2) + 4;
+other = (T*)((s32)other + next);
+if (j < n) {
+    /* walk other */
+}
+```
+
+`addiu v1, t3, 4` stays after `addu a3, v1, v0`; `addu a3, a3, v1`
+fills the `beqz`. `func_800B8588` is the example.

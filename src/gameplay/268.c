@@ -312,7 +312,127 @@ void func_800B83F0(GpItemScan* arg0, s32 arg1, s32 arg2)
     *(GpItemRec*)((arg2 << 2) + (s32)table) = saved;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800B8588);
+void func_800B8588(GpItemScan* arg0, s32 arg1)
+{
+    GpItemRec*          tmp;
+    register GpItemRec* table;
+    GpItemRec*          rec;
+    GpItemRec*          other;
+    GpItemRec           saved;
+    s32                 i;
+    s32                 j;
+    s32                 key;
+    register s32        minKey asm("t2");
+    s32                 id;
+    s32                 idx;
+    s32                 next;
+    s32                 count;
+    register s32        dummy5 asm("s5");
+    register s32        dummy6 asm("s6");
+    register s32        dummy7 asm("s7");
+
+    i = 0;
+    if ((arg0->field_1 - 1) > 0) {
+        do {
+            switch (arg0->field_2) {
+                case 2:
+                    tmp = D_80114C20;
+                    break;
+                case 1:
+                    tmp = D_80114D70;
+                    break;
+                default:
+                    tmp = Mc_SaveData.field_1AC;
+                    break;
+            }
+            table = tmp;
+            rec   = (GpItemRec*)((s32)table + (arg0->field_0 << 2));
+            rec   = (GpItemRec*)((s32)rec + (i << 2));
+            id    = rec->field_0;
+
+            key = 0;
+            if (id == 0) {
+                key = 0x1000;
+            } else if ((u32)(id - 1) < 0x5F) {
+                key = D_80114A40[id];
+            } else {
+                idx = id - 0x60;
+                if ((u32)idx < 0x20) {
+                    key = D_80114A88[idx];
+                } else {
+                    idx = id - 0x80;
+                    if ((u32)idx < 0x20) {
+                        key = D_80114A98[idx];
+                    } else {
+                        idx = id - 0xA0;
+                        if ((u32)idx < 0x20) {
+                            key = D_80114ABC[idx];
+                        }
+                    }
+                }
+            }
+            if (key == 0) {
+                key = id + 0x100;
+            }
+            minKey = key;
+
+            if (arg0->field_2 != 1) {
+                tmp = Mc_SaveData.field_1AC;
+                if (arg0->field_2 == 2) {
+                    tmp = D_80114C20;
+                }
+            } else {
+                tmp = D_80114D70;
+            }
+            table = tmp;
+            j     = i + 1;
+            other = (GpItemRec*)((s32)table + (arg0->field_0 << 2));
+            next  = (i << 2) + 4;
+            other = (GpItemRec*)((s32)other + next);
+            if (j < arg0->field_1) {
+                do {
+                    id = other->field_0;
+
+                    key = 0;
+                    if (id == 0) {
+                        key = 0x1000;
+                    } else if ((u32)(id - 1) < 0x5F) {
+                        key = D_80114A40[id];
+                    } else {
+                        idx = id - 0x60;
+                        if ((u32)idx < 0x20) {
+                            key = D_80114A88[idx];
+                        } else {
+                            idx = id - 0x80;
+                            if ((u32)idx < 0x20) {
+                                key = D_80114A98[idx];
+                            } else {
+                                idx = id - 0xA0;
+                                if ((u32)idx < 0x20) {
+                                    key = D_80114ABC[idx];
+                                }
+                            }
+                        }
+                    }
+                    if (key == 0) {
+                        key = id + 0x100;
+                    }
+                    if (key < minKey) {
+                        minKey = key;
+                        saved  = *rec;
+                        *rec   = *other;
+                        *other = saved;
+                    }
+                    count = arg0->field_1;
+                    j++;
+                    other++;
+                } while (j < count);
+            }
+            count = arg0->field_1;
+            i++;
+        } while (i < (count - 1));
+    }
+}
 
 s32 func_800B87F4(GpItemScan* arg0, s32 arg1, s32 arg2)
 {

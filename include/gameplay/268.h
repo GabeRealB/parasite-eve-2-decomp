@@ -262,6 +262,9 @@ void        func_800B8014(void);
 /// Moves the item at scan slot `arg1` onto slot `arg2`, shifting the
 /// occupied rows between them toward the hole left at `arg1`.
 void        func_800B83F0(GpItemScan* arg0, s32 arg1, s32 arg2);
+/// Selection-sorts the item table selected by `arg0` using the same
+/// sort-key remap as `func_800BC18C` (`D_80114A40` / `D_80114A88` /
+/// `D_80114A98` / `D_80114ABC`). `arg1` is unused.
 void        func_800B8588(GpItemScan* arg0, s32 arg1);
 void        func_800BAA58(void);
 void        func_800BAB64(s32 arg0);
