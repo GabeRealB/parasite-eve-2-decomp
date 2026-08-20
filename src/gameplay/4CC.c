@@ -5,6 +5,7 @@
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
 #include "gameplay/4CC.h"
+#include "main/display.h"
 #include "main/gamemain.h"
 #include "main/mem.h"
 #include "main/pad.h"
@@ -688,4 +689,94 @@ void func_800BF624(Task* arg0)
     arg0->state         = arg0->state + 1;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BF738);
+void func_800BF738(Task* arg0)
+{
+    s32       flag;
+    s32       yoff;
+    s32       otIdx;
+    s32       color;
+    TILE*     tile;
+    DR_TPAGE* dr;
+
+    flag = 0;
+    if (arg0->state == 0) {
+        if (arg0->spawnArg1 == 0) {
+            GameMain_SetFrameTiming(1);
+            Display_State.field_103 = 0;
+            arg0->killCountdown     = 7;
+        } else if ((arg0->spawnArg1 == 2) || (arg0->spawnArg1 == 4)) {
+            arg0->killCountdown = 8;
+        } else {
+            arg0->killCountdown = 0;
+        }
+        arg0->state = arg0->state + 1;
+    }
+
+    if (arg0->spawnArg1 == 4) {
+        if (Display_State.field_100 == 2) {
+            arg0->killCountdown--;
+        } else {
+            GameMain_SetFrameTiming(1);
+        }
+    } else if ((arg0->spawnArg1 == 0) || (arg0->spawnArg1 == 2)) {
+        flag = 0;
+        arg0->killCountdown--;
+    } else {
+        flag                 = 1;
+        arg0->killCountdown += flag;
+    }
+
+    yoff = 0;
+    if (arg0->spawnArg1 == 2) {
+        yoff  = Display_State.vramYOffset;
+        otIdx = 0;
+    } else if (arg0->spawnArg1 == 5) {
+        otIdx = 0x3B;
+    } else {
+        otIdx = 0x3F;
+    }
+
+    tile       = (TILE*)D_80071190;
+    D_80071190 = (DR_TPAGE*)(tile + 1);
+    setlen(tile, 3);
+    setcode(tile, 0x62);
+    tile->x0 = -0xA0;
+    tile->y0 = -0x78 - yoff;
+    tile->w  = 0x140;
+    tile->h  = 0xF0;
+    if (arg0->killCountdown < 8) {
+        color    = (arg0->killCountdown << 5) + 0x1F;
+        tile->b0 = color;
+        tile->g0 = color;
+        tile->r0 = color;
+    } else {
+        color    = 0xFF;
+        tile->b0 = color;
+        tile->g0 = color;
+        tile->r0 = color;
+    }
+
+    addPrim((u_long*)((otIdx << 2) + (s32)Gpu_CurrentOt), tile);
+    dr         = (DR_TPAGE*)D_80071190;
+    D_80071190 = dr + 1;
+    setlen(dr, 1);
+    dr->code[0] = 0xE1000640;
+    addPrim((u_long*)((otIdx << 2) + (s32)Gpu_CurrentOt), dr);
+
+    if ((flag == 0) && (arg0->killCountdown <= 0)) {
+        if (arg0->spawnArg1 == 4) {
+            GameMain_SetFrameTiming(0);
+        }
+        Task_Kill(arg0);
+    } else if (flag == 1) {
+        if (arg0->killCountdown >= 8) {
+            if (arg0->spawnArg1 == 5) {
+                Display_State.field_100 = 0;
+            } else {
+                Display_State.field_103 = flag;
+                GameMain_SetFrameTiming(0);
+            }
+            Task_Kill(arg0);
+        }
+    }
+}

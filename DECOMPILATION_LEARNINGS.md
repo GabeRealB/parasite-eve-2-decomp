@@ -3,6 +3,42 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Combine fade-done as `flag == 0 && count <= 0` so the miss jumps into `else if`
+
+A fade-in/fade-out overlay that sets `flag = 0` on the way down and `flag = 1`
+on the way up wants the incomplete fade-in (`flag == 0 && count > 0`) to land
+on the `else if (flag == 1)` compare (`bgtz` delay `li v0, 1` / `bne s1, v0`),
+and the completed fade-in to share `GameMain_SetFrameTiming` / `Task_Kill`
+with the fade-out tail (`beq spawnArg, 4` / `j kill`). Nested
+
+```c
+if (flag == 0) {
+    if (count <= 0) { /* kill */ }
+} else if (flag == 1) {
+    /* fade-out done */
+}
+```
+
+proves `flag` is 0 on the miss and jumps to the epilogue instead. Write the
+gate as one `&&` so both `flag != 0` and `count > 0` are “else”:
+
+```c
+if ((flag == 0) && (count <= 0)) {
+    if (arg == 4) {
+        GameMain_SetFrameTiming(0);
+    }
+    Task_Kill(arg0);
+} else if (flag == 1) {
+    if (count >= 8) {
+        /* fade-out done; shared SetFrameTiming / Task_Kill tail */
+    }
+}
+```
+
+`func_800BF738` is the example. TILE RGB must still be stored in *both*
+arms of the `< 8` color `if` (see “Per-branch stores”) or `-fschedule-insns`
+lifts `addPrim`’s `lui 0xFFFFFF` / `lui 0xE100` above the three `sb`s.
+
 ## Nested scopes so a later copy does not sink an earlier split `la`
 
 Four copies of `p = global_list; tbl = global_ptr; if (tbl) for (; p->id != 0xFF; p++)`

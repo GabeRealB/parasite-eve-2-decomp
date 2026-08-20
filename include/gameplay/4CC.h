@@ -166,5 +166,9 @@ s32  func_800BF5CC(Task* arg0, s32 arg1, GpItemObj2* arg2);
 /// items to 0xD and 0x80–0x9F items to 0x3D, then publishes a stack
 /// count in `D_80114DD0`.
 void func_800BF624(Task* arg0);
+/// Fullscreen semi-trans TILE fade. `spawnArg1` 0/2 count down from 7/8;
+/// 4 also counts down once `Display_State.field_100 == 2`; 5 and other
+/// values count up and write `field_100` / `field_103` on completion.
+void func_800BF738(Task* arg0);
 
 #endif // GAMEPLAY_4CC_H
