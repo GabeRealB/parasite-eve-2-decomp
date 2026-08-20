@@ -23963,3 +23963,32 @@ p->y2 = ((s8)*(volatile u8*)&Display_State.vramYOffset + 7) * -1 + y;
 
 Use that `mask` in a handwritten `addPrim` (same shape as `Ui_DrawCaret`).
 `func_800E6608` is the example.
+
+## `s16` `>=` as `x > y - 1` so GCC emits `addiu -1` / `slt` / `beqz`
+
+`if (++x >= y)` with both sides `s16` emits `slt v0, x, y` / `bnez` (skip the
+body). When the true path is the call and the false path is the epilogue, the
+target wants the inverted form:
+
+```
+addiu  v1, y, -1
+slt    v1, v1, x
+beqz   v1, skip
+```
+
+Write the compare as `if (x > y - 1)` after the increment. `func_800F1364` is
+the example.
+
+## Unsigned `>> 16` in the `if (x & 0xF0000)` arm so the delay slot is `srl`
+
+```c
+if (x & 0xF0000) {
+    y = x >> 16;
+} else {
+    y = K;
+}
+```
+
+with a signed `s32` `>>` is `sra` *before* the branch. Put `(u32)x >> 16` in
+the taken arm so GCC fills the `bnez` delay with `srl v0, v1, 0x10` and only
+emits `li v0, K` on the fall-through. `func_800F1364` is the example.

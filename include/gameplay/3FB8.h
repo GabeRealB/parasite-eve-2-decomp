@@ -127,9 +127,10 @@ typedef struct _GpEffArg {
 } GpEffArg;
 STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 
-/// 0x2C-byte work at `Task::spawnArg2` for `func_800F1A9C` / `func_800F5184` /
-/// `func_800F75BC` / `func_800F77F8` / `func_800FB67C` / `func_800FBEBC` /
-/// `func_800FC74C` / `func_800FE41C` (`Mem_Calloc(0x2C)` in `func_800EA478`).
+/// 0x2C-byte work at `Task::spawnArg2` for `func_800F1364` / `func_800F1A9C` /
+/// `func_800F5184` / `func_800F75BC` / `func_800F77F8` / `func_800FB67C` /
+/// `func_800FBEBC` / `func_800FC74C` / `func_800FE41C` (`Mem_Calloc(0x2C)` in
+/// `func_800EA478`).
 /// `field_0` is the spawned `Task*` (`func_800EA478` stores it; `func_801034C0`
 /// copies it onto `GameActor.field_914`).
 /// `field_8` is the parent coordinate copied onto `GsCOORDINATE2.sub`.
@@ -140,8 +141,10 @@ STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 /// into `coord.t[]` on first run. `field_20` is the spawn-wave count
 /// (`func_800FC74C`) or the draw-step counter that `func_800FBEBC` increments
 /// every 4 `field_22` ticks and kills at 8. `field_22` is the step counter
-/// (`func_800F1A9C` / `func_800F5184` / `func_800FBEBC` / `func_800FC74C`).
-/// `field_24` is the current scale stepped toward `field_26` (`func_800F75BC`),
+/// (`func_800F1364` / `func_800F1A9C` / `func_800F5184` / `func_800FBEBC` /
+/// `func_800FC74C`).
+/// `field_24` is the lifetime (`func_800F1364`, `spawnArg1 >> 16` or 0xC),
+/// the current scale stepped toward `field_26` (`func_800F75BC`),
 /// the LCG angle (`func_800F1A9C`), a 0x10 start that decays by 2
 /// (`func_800F5184`), a 0x80 start that decays by 8 (`func_800FB67C`), the
 /// spawn/wait phase flag (`func_800FC74C`), or the LCG draw param

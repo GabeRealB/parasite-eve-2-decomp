@@ -6,7 +6,8 @@
 #include "main/session.h"
 #include "main/task.h"
 
-extern s32 D_80070F60;
+extern s32     D_80070F60;
+extern SVECTOR D_801125EC[];
 
 void func_800F1BEC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
 void func_800F68AC(VECTOR3* arg0, s32 arg1, s32 arg2);
@@ -35,7 +36,47 @@ INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800EFBC4);
 
 INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F02B4);
 
-INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F1364);
+void func_800F1364(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    s32            rng;
+
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    mem   = arg0->spawnArg2;
+    if (arg0->state == 0) {
+        if (arg0->spawnArg1 & 0xF0000) {
+            mem->field_24 = (u32)arg0->spawnArg1 >> 16;
+        } else {
+            mem->field_24 = 0xC;
+        }
+        arg0->spawnArg1    = (u16)arg0->spawnArg1;
+        coord->sub         = mem->field_8;
+        coord->coord.t[0]  = D_801125EC[arg0->spawnArg1].vx;
+        coord->coord.t[1]  = D_801125EC[arg0->spawnArg1].vy;
+        coord->coord.t[2]  = D_801125EC[arg0->spawnArg1].vz;
+        coord->coord.t[0] += mem->field_18;
+        coord->coord.t[1] += mem->field_1A;
+        coord->coord.t[2] += mem->field_1C;
+        coord->flg         = 0;
+        func_80098F58(coord);
+        arg0->state = 1;
+        rng         = D_80070F60 * 5 + 0x71357911;
+        D_80070F60  = rng;
+        func_800EA478(0x60035, coord, (((u32)rng >> 16) & 0x1FF) | 0x11200, 0);
+        rng        = D_80070F60 * 5 + 0x71357911;
+        D_80070F60 = rng;
+        func_800EA478(0x60035, coord, (((u32)rng >> 16) & 0x1FF) | 0x21200, 0);
+        rng        = D_80070F60 * 5 + 0x71357911;
+        D_80070F60 = rng;
+        func_800EA478(0x60035, coord, (((u32)rng >> 16) & 0x1FF) | 0x31200, 0);
+    }
+    func_800EA478(0x60091, coord, arg0->spawnArg1, 0);
+    mem->field_22++;
+    if (mem->field_22 > mem->field_24 - 1) {
+        func_800EC7E4(mem, arg0);
+    }
+}
 
 void func_800F1594(Task* arg0)
 {
