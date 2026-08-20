@@ -293,6 +293,10 @@ void func_800E3EF0(s32 arg0);
 void func_800E4080(void);
 void func_800E40BC(s32 arg0, s32 arg1);
 s32  func_800E40EC(GpCapFile* file);
+/// Blinking POLY_G3 continue caret. `D_80115658` is a frame delay before the
+/// first draw; `D_8011564C` / `D_8011564E` are base XY; `D_8010FB88` /
+/// `D_8010FB8C` pulse the vertex greys between 8 and 15.
+void func_800E6608(void);
 s16  func_800E67C8(u16* arg0);
 s16  func_800E68D8(u16* arg0, s32 arg1);
 s16  func_800E69F4(u16* arg0);

@@ -39,6 +39,8 @@ extern TaskFuncTable5 D_8009764C;
 extern TaskFuncTable3 D_80097678;
 extern TaskDesc       D_8010FAEC[];
 extern GpRec14        D_8010FB38;
+extern s32            D_8010FB88;
+extern s32            D_8010FB8C;
 extern s32            D_8010FB90[];
 extern s32            D_8010FBE0;
 extern s32            D_8010FBE4;
@@ -57,6 +59,8 @@ extern s16            D_80115678;
 extern GlyphUvwh*     D_8011567C;
 extern u8             D_80115648;
 extern s16            D_8011564A;
+extern u16            D_8011564C;
+extern u16            D_8011564E;
 extern s16            D_80115654;
 extern s16            D_80115656;
 extern u8             D_80115658;
@@ -412,7 +416,61 @@ void func_800E646C(Task* arg0)
     Task_Kill(arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E6608);
+void func_800E6608(void)
+{
+    POLY_G3*     p;
+    s32          color;
+    u16          x;
+    u16          y;
+    register u32 mask asm("a3");
+    u32          mask_hi;
+    u_long*      ot;
+
+    if (D_80115658 != 0) {
+        D_80115658--;
+        return;
+    }
+
+    p          = (POLY_G3*)D_80071190;
+    D_80071190 = (DR_TPAGE*)(p + 1);
+    setPolyG3(p);
+
+    color = (D_8010FB88 << 7) / 15;
+    setRGB0(p, color, color, color);
+
+    color = (D_8010FB88 * 0xC0) / 15;
+    setRGB1(p, color, color, color);
+    setRGB2(p, color, color, color);
+
+    x     = D_8011564C;
+    y     = D_8011564E;
+    p->x0 = x + 3;
+    p->y0 = y - Display_State.vramYOffset;
+    p->x1 = (mask = 0xFF0000, x);
+    asm("" : : "m"(p->y0));
+    p->y1 = ((s8) * (volatile u8*)&Display_State.vramYOffset + 7) * -1 + y;
+    p->x2 = x + 7;
+    asm volatile("" : "+r"(mask) : "m"(p->y1));
+    mask |= 0xFFFF;
+    p->y2 = ((s8) * (volatile u8*)&Display_State.vramYOffset + 7) * -1 + y;
+
+    ot      = Gpu_CurrentOt;
+    mask_hi = 0xFF000000;
+    p->tag  = (p->tag & mask_hi) | (ot[2] & mask);
+    ot[2]   = (ot[2] & mask_hi) | ((u32)p & mask);
+
+    if (D_8010FB8C == 0) {
+        D_8010FB88++;
+        if (D_8010FB88 >= 0xF) {
+            D_8010FB8C = 1;
+        }
+    } else {
+        D_8010FB88--;
+        if (D_8010FB88 < 9) {
+            D_8010FB8C = 0;
+        }
+    }
+}
 
 s16 func_800E67C8(u16* arg0)
 {

@@ -23922,3 +23922,44 @@ setDrawTPage(dr, 0, 1, 0xA | (arg1 << 5));
 
 which is `0xE100020A | (abr << 5)`. Same OT slot as `func_800EC914` with
 `z = 0x10`. `func_800EA858` is the example.
+
+## Keep `+ K` on a sign-extended `s8` with `* -1 + u16`, not `u16 - (s8 + K)`
+
+`y - (vramYOffset + 7)` with `y` a `u16` reassociates to `(y - 7) - vramYOffset`
+(`addiu y, -7` then `subu`). The target wants the add on the byte after
+`lbu` / `sll 24` / `sra 24`:
+
+```
+lbu    v0, vramYOffset
+sll    v0, v0, 24
+sra    v0, v0, 24
+addiu  v0, v0, 7
+subu   v0, y, v0
+```
+
+`(vramYOffset + 7) * -1 + y` keeps that form, but a plain `s8` as the left
+operand of `+ 7` is `lb`. Load through a volatile byte so the extend stays
+the long form:
+
+```c
+p->y1 = ((s8)*(volatile u8*)&Display_State.vramYOffset + 7) * -1 + y;
+```
+
+`addPrim`'s `0xFFFFFF` wants `lui a3, 0xFF` in an earlier load delay and
+`ori 0xFFFF` in a later one. A full `mask = 0xFFFFFF` at the `addPrim` site
+emits both halves together. Split it: comma-assign `mask = 0xFF0000` into an
+independent store so `lui` fills the first delay, barrier across the next
+prim stores, then `mask |= 0xFFFF` before the last vertex:
+
+```c
+p->x1 = (mask = 0xFF0000, x);
+asm("" : : "m"(p->y0));
+p->y1 = ((s8)*(volatile u8*)&Display_State.vramYOffset + 7) * -1 + y;
+p->x2 = x + 7;
+asm volatile("" : "+r"(mask) : "m"(p->y1));
+mask |= 0xFFFF;
+p->y2 = ((s8)*(volatile u8*)&Display_State.vramYOffset + 7) * -1 + y;
+```
+
+Use that `mask` in a handwritten `addPrim` (same shape as `Ui_DrawCaret`).
+`func_800E6608` is the example.
