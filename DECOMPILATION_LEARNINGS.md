@@ -25432,3 +25432,55 @@ the prologue. `func_800ED198` is the example.
 Zero `coord->flg` **after** the three `coord.t[]` stores so `sw zero, 0(s3)`
 sits next to `jal func_80098F58` with `t[2]` in the delay. Putting `flg = 0`
 between `t[1]` and `t[2]` lets it sink into the `lh vy` delay.
+
+## s32 temp so `-(x << 4)` of an s32 stored as s16 keeps `lw`
+
+`mem->field_28 = -(arg0->spawnArg1 << 4) - (rng & 0x7F)` with
+`spawnArg1` an s32 and `field_28` an s16 lets GCC 2.8.1 see that only
+the low 16 bits matter and emit `lhu v1, 0x34(s2)`. The target is `lw`.
+Copy into an s32 first so the load stays 32-bit; a later `arg0->spawnArg1
+* 24` still does its own `lw`:
+
+```c
+temp          = arg0->spawnArg1;
+mem->field_28 = -(temp << 4) - (((u32)D_80070F60 >> 16) & 0x7F);
+mem->field_2A = arg0->spawnArg1 * 24 + 0xC0;
+```
+
+`func_800FC9BC` is the example.
+
+## `goto cont` on `b < 0` so kill is fall-through of `blez` / `bltz`
+
+A state that kills on `a <= 0` *or* `b >= 0`, else continues, wants:
+
+```
+blez   a, kill
+...
+bltz   b, cont
+nop
+kill:
+jal    func_800EC7E4
+...
+j      epilogue
+nop
+cont:
+jal    func_800FCD00
+```
+
+`if (a <= 0 || b >= 0) goto kill` inverts the second test (`bgez kill`)
+and places the continue call first. Jump *to* continue on `b < 0` so
+kill stays the fall-through (and can share the `flag >= 4` kill):
+
+```c
+if (mem->field_26 <= 0) {
+    goto kill;
+}
+if (mem->field_28 < 0) {
+    goto do_fcd00;
+}
+goto kill;
+```
+
+Take `SVECTOR*` addresses of `field_10` / `field_18` *before* the
+`(field_22 & 3) / 3` so those `addiu` fill the `mult` 0x55555556 delay.
+`func_800FC9BC` is the example.

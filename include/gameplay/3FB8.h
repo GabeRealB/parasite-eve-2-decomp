@@ -146,8 +146,8 @@ STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 
 /// 0x2C-byte work at `Task::spawnArg2` for `func_800F1364` / `func_800F1A9C` /
 /// `func_800F5184` / `func_800F75BC` / `func_800F77F8` / `func_800FB67C` /
-/// `func_800FB7E4` / `func_800FBEBC` / `func_800FC74C` / `func_800FE41C`
-/// (`Mem_Calloc(0x2C)` in `func_800EA478`).
+/// `func_800FB7E4` / `func_800FBEBC` / `func_800FC74C` / `func_800FC9BC` /
+/// `func_800FE41C` (`Mem_Calloc(0x2C)` in `func_800EA478`).
 /// `field_0` is the spawned `Task*` (`func_800EA478` stores it; `func_801034C0`
 /// copies it onto `GameActor.field_914`).
 /// `field_8` is the parent coordinate copied onto `GsCOORDINATE2.sub`.
@@ -155,7 +155,10 @@ STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 /// `func_800EA478`; `func_800FBEBC` also zeros `field_10` / `field_14` on
 /// first run. `func_800F9474` treats `field_10` / `field_18` as `SVECTOR`s
 /// (`VectorNormalSS` of `field_18` into `field_10`, then GPF-scales `field_10`
-/// onto the spawned work). `field_12` is the per-frame Y step (`0xFFF0` minus
+/// onto the spawned work). `func_800FC9BC` rotates `field_10` by `coord` and
+/// adds the result at `field_18` onto `coord.t[]`; `field_14` is also a
+/// lifetime that starts at `(field_24 & 0x1F) % (spawnArg1 * 3) + 7` and
+/// decays by `(field_22 & 3) / 3`. `field_12` is the per-frame Y step (`0xFFF0` minus
 /// an LCG nibble in `func_800FBEBC`). `field_18` / `field_1A` / `field_1C` are
 /// sign-extended into `coord.t[]` on first run. If they are all zero,
 /// `func_800F9474` fills them from three LCG draws centered on 0. `field_20` is the spawn-wave count
@@ -163,13 +166,18 @@ STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 /// every 4 `field_22` ticks and kills at 8, or
 /// `(D_80114C08.field_0 % 10) - 1` (`func_800FB7E4`). `field_22` is the step
 /// counter (`func_800F1364` / `func_800F1A9C` / `func_800F5184` /
-/// `func_800FB7E4` / `func_800FBEBC` / `func_800FC74C`).
+/// `func_800FB7E4` / `func_800FBEBC` / `func_800FC74C` / `func_800FC9BC`).
 /// `field_24` is the lifetime (`func_800F1364`, `spawnArg1 >> 16` or 0xC),
 /// the current scale stepped toward `field_26` (`func_800F75BC`),
 /// the LCG angle (`func_800F1A9C`), a 0x10 start that decays by 2
 /// (`func_800F5184`), a 0x80 start that decays by 8 (`func_800FB67C`), the
 /// spawn/wait phase flag (`func_800FC74C`), or the LCG draw param
-/// (`func_800FBEBC`). `func_800FE41C` copies `spawnArg1` into `field_24` /
+/// (`func_800FBEBC`). `func_800FC9BC` uses `field_24` as the LCG Y angle
+/// (`Gfx_RotMatrixY` with `& 0xFF0`), `field_26` as `(field_24 & 0xF) + 8`
+/// then a state-2 decay of `field_22 & 1`, `field_28` as
+/// `-(spawnArg1 << 4) - (LCG >> 16 & 0x7F)` stepped by +2, and `field_2A`
+/// as `spawnArg1 * 24 + 0xC0` stepped by +2 (also `* 3 + 0x3000` into
+/// `func_800EA478`). `func_800FE41C` copies `spawnArg1` into `field_24` /
 /// `field_26` and sets `field_28 = field_26 << 2`. `func_800FB67C` inits
 /// `field_26` to 0x100 and adds 0x80 each frame, and copies
 /// `D_80112C6C[field_2 & 3]` into `field_28`. `func_800FBEBC` copies
@@ -609,6 +617,7 @@ void func_800FBEBC(Task* arg0);
 void func_800FC500(Task* arg0);
 void func_800FC6C0(void);
 void func_800FC74C(Task* arg0);
+void func_800FC9BC(Task* arg0);
 void func_800FE41C(Task* arg0);
 void func_801005D8(Task* arg0);
 void func_80100784(struct _GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);

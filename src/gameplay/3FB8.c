@@ -23,6 +23,7 @@
 #include <psyq/libgte.h>
 #include <psyq/rand.h>
 
+#define gte_rtv0_real()   __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
 #define gte_gpf12_real()  __asm__ volatile("nop; nop; .word 0x4B98003D")
 
@@ -89,6 +90,7 @@ void func_8010AD64(GpActorWork* arg0);
 void func_8010B120(GpActorWork* arg0);
 void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3);
 void func_800FBAB0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3);
+void func_800FCD00(Task* arg0);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F77F8);
 
@@ -543,7 +545,85 @@ void func_800FC74C(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FC9BC);
+void func_800FC9BC(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    SVECTOR*       in;
+    SVECTOR*       out;
+    s16            flag;
+    s32            temp;
+
+    mem   = arg0->spawnArg2;
+    flag  = D_80115740->field_4;
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    if (flag < 4) {
+        switch (arg0->state) {
+            case 0:
+                mem->field_22++;
+                D_80070F60    = D_80070F60 * 5 + 0x71357911;
+                mem->field_24 = (u32)D_80070F60 >> 16;
+                mem->field_26 = (mem->field_24 & 0xF) + 8;
+                D_80070F60    = D_80070F60 * 5 + 0x71357911;
+                temp          = arg0->spawnArg1;
+                mem->field_28 = -(temp << 4) - (((u32)D_80070F60 >> 16) & 0x7F);
+                mem->field_2A = arg0->spawnArg1 * 24 + 0xC0;
+                Gfx_RotMatrixY(&coord->coord, (u16)mem->field_24 & 0xFF0, 1);
+                coord->flg = 0;
+                func_80098F58(coord);
+                arg0->state = 1;
+                mem->field_14 =
+                    ((u16)mem->field_24 & 0x1F) % (arg0->spawnArg1 * 3) + 7;
+                func_800FCD00(arg0);
+                func_800EA478(0x600A7, coord, mem->field_2A * 3 + 0x3000, 0);
+                return;
+            case 1:
+                if (D_801153F4 != 1) {
+                    func_80098F58(coord);
+                    mem->field_22++;
+                    if (mem->field_14 != 0) {
+                        in             = (SVECTOR*)&mem->field_10;
+                        out            = (SVECTOR*)&mem->field_18;
+                        mem->field_14 -= (mem->field_22 & 3) / 3;
+                        gte_SetRotMatrix(&coord->coord);
+                        gte_ldv0(in);
+                        gte_rtv0_real();
+                        gte_stsv(out);
+                        coord->coord.t[0] += mem->field_18;
+                        coord->coord.t[1] += mem->field_1A;
+                        coord->coord.t[2] += mem->field_1C;
+                        coord->flg         = 0;
+                    }
+                    if (mem->field_22 >= 0x81) {
+                        arg0->state = 2;
+                    }
+                }
+                goto do_fcd00;
+            case 2:
+                if (D_801153F4 != 1) {
+                    func_80098F58(coord);
+                    mem->field_22++;
+                    mem->field_26 -= mem->field_22 & 1;
+                    mem->field_28 += 2;
+                    mem->field_2A += 2;
+                    if (mem->field_26 <= 0) {
+                        goto kill;
+                    }
+                    if (mem->field_28 < 0) {
+                        goto do_fcd00;
+                    }
+                    goto kill;
+                }
+                goto do_fcd00;
+        }
+        return;
+    }
+kill:
+    func_800EC7E4(mem, arg0);
+    return;
+do_fcd00:
+    func_800FCD00(arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FCD00);
 
