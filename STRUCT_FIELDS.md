@@ -653,6 +653,14 @@ Offset 0x4C (`sub` in libgs) is the parent `GameActorExt.field_8` pointer writte
 `func_80104364` (with `field_44 = 1`) and `func_80104258` (with `field_44 = 0`).
 `field_AC`/`field_CC`/`field_EC`/`field_10C`/`field_12C` are 0x20-byte list nodes
 unlinked by `func_800E1638` during actor teardown (`func_80101408`).
+`field_14C` is a `GpActorD4Rec` filled by `func_80100FCC` from `D_80112FA4[arg1]`
+(low 16 bits of `vx`/`vy`/`vz` into `field_8`/`field_A`/`field_C`, mirrored to
+`field_0`/`field_2`, `field_4 = field_C + D_80112F60[arg1]`) and linked from
+`field_10C` as `GpObj.field_C`. `field_14` points at `field_32C`.
+`field_32C` is a 6-entry `GpRec18` array wiped by `func_800E18E0(..., 6, 0)`.
+`field_3D4` is a `GsCOORDINATE2` copied from the companion extra (`field_91C`)
+coordinate; `func_80100FCC` then runs `Gfx_RotMatrixX` on `workm` (angle 0x400)
+and zeros the three s16s at 0x418 (`param` as vx/vy/vz, `GpActorSvec`).
 `field_124` is a u32 packed word at +0x18 of the `field_10C` node;
 `func_801061F0` writes `0x20000 | (WipSysConfig.field_21 << 8) | field_22` from
 slot 3; `func_80106238` replaces bits 14–15 with `(arg1 << 1) | arg2`;

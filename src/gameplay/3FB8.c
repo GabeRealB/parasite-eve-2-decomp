@@ -19,6 +19,7 @@
 
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgs.h>
 #include <psyq/libgte.h>
 #include <psyq/rand.h>
 
@@ -60,7 +61,6 @@ s32  func_80105894(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_80105B0C(GpActorWork* arg0);
 s32  func_80105ED4(GpActorWork* arg0);
 void func_8010615C(GpActorWork* arg0);
-void func_80100FCC(GpActorWork* arg0, s32 arg1, s32 arg2);
 void func_801066DC(GpActorWork* arg0, s16 arg1);
 void func_80107E1C(GpActorWork* arg0);
 void func_80109210(GpActorWork* arg0);
@@ -539,7 +539,88 @@ void func_80100E40(GpActorWork* arg0)
     func_80098F58(coord);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80100FCC);
+void func_80100FCC(GpActorWork* arg0, s32 arg1, s32 arg2)
+{
+    register s32           id asm("s4");
+    register s32           kind asm("s5");
+    register void**        scratch asm("v1");
+    register s32           hi asm("v1");
+    register u8*           head asm("v0");
+    register void*         p asm("v0");
+    register GameActor*    actor asm("s1");
+    register GpObj*        obj asm("s2");
+    register GpActorD4Rec* rec asm("s0");
+    VECTOR*                tmp;
+    GsCOORDINATE2*         src;
+    Task*                  task;
+    register void*         extra asm("v0");
+    s16                    vz;
+    s32                    scale;
+    register s32           three asm("v0");
+    register s32           packed asm("v1");
+    register s32           flag asm("v0");
+
+    id = arg1;
+    asm("" : "+r"(id));
+    kind = arg2;
+    asm("lui %0, 0x1F80" : "=r"(hi) : "r"(kind));
+    asm("ori %0, %1, 0x3FC" : "=r"(scratch) : "r"(hi));
+    head  = *scratch;
+    actor = arg0->actor;
+    p     = head - 0x10;
+    obj   = (GpObj*)actor->field_10C;
+    rec   = (GpActorD4Rec*)actor->field_14C;
+    asm("" : "+r"(obj), "+r"(rec) : "r"(p));
+    *scratch = p;
+    task     = actor->field_91C;
+    if (task != NULL) {
+        tmp                               = p;
+        extra                             = task->extra;
+        src                               = (GsCOORDINATE2*)((GameActorExt*)extra)->field_8;
+        *(GsCOORDINATE2*)actor->field_3D4 = *src;
+        Gfx_RotMatrixX(&((GsCOORDINATE2*)actor->field_3D4)->workm, 0x400, 0);
+        obj->field_8                     = actor->field_3D4;
+        ((GpActorSvec*)actor)->field_418 = 0;
+        ((GpActorSvec*)actor)->field_41A = 0;
+        ((GpActorSvec*)actor)->field_41C = 0;
+        obj->field_C                     = (GpRec18*)actor->field_14C;
+        __asm__ volatile("" ::: "memory");
+        three            = 3;
+        packed           = id << 8;
+        obj->flags       = three;
+        flag             = 0x20000;
+        flag             = kind | flag;
+        packed          |= flag;
+        obj->field_10    = 0;
+        obj->field_12    = 0;
+        obj->field_14    = 0;
+        actor->field_124 = packed;
+        *tmp             = D_80112FA4[id];
+        rec->field_8     = tmp->vx;
+        rec->field_A     = tmp->vy;
+        vz               = tmp->vz;
+        rec->field_0     = rec->field_8;
+        rec->field_C     = vz;
+        rec->field_2     = rec->field_A;
+        rec->field_4     = rec->field_C + D_80112F60[id];
+        __asm__ volatile("" ::"r"(id));
+        scale = 0x100;
+        if (Wip_SysConfig.field_21 == 0x13) {
+            scale = 0x280;
+        }
+        rec->field_12 = scale;
+        if (kind != 0xD) {
+            rec->field_10 = scale;
+        } else {
+            rec->field_10 = 0x900;
+        }
+        rec->field_14 = actor->field_32C;
+        func_800E15AC(1, obj);
+        func_800E18E0(rec->field_14, 6, 0);
+        __asm__ volatile("" ::"r"(actor));
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
+}
 
 s32 func_801011D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3)
 {

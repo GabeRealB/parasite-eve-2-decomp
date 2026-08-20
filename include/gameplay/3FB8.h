@@ -6,6 +6,8 @@
 #include "main/session.h"
 #include "main/task.h"
 
+#include <psyq/libgte.h>
+
 struct _GsCOORDINATE2;
 
 /// Work object whose `actor` pointer sits at 0x1C (same slot as `Task::idMap`).
@@ -111,10 +113,22 @@ typedef struct _GpCoordExt {
     /* 0x00 */ s32  flg;
     /* 0x04 */ byte pad_4[0x40];
     /* 0x44 */ s16  field_44;
-    /* 0x46 */ byte pad_46[6];
+    /* 0x46 */ s16  field_46;
+    /* 0x48 */ s16  field_48;
+    /* 0x4A */ byte pad_4A[2];
     /* 0x4C */ s32* sub;
 } GpCoordExt;
 STATIC_ASSERT_SIZEOF(GpCoordExt, 0x50);
+
+/// Overlay of `GameActor` for the three s16s at 0x418 (`GsCOORDINATE2.param`
+/// as vx/vy/vz). `func_80100FCC` zeros them after `Gfx_RotMatrixX` of
+/// `field_3D4.workm`.
+typedef struct _GpActorSvec {
+    /* 0x000 */ byte pad[0x418];
+    /* 0x418 */ s16  field_418;
+    /* 0x41A */ s16  field_41A;
+    /* 0x41C */ s16  field_41C;
+} GpActorSvec;
 
 /// 8-byte argument record for `func_800FDB18`. `field_0` is a coordinate
 /// (fallback `D_80070F10`); `field_4` / `field_6` are packed into the
@@ -516,6 +530,15 @@ extern struct _GpImgRec** D_80112EB4[];
 /// makes `func_801088D4` abort the item-use path (`field_95E = 0x3E8`).
 extern u8 D_80112F1C[][2];
 
+/// u16 table indexed by `func_80100FCC` arg1 and added onto
+/// `GpActorD4Rec.field_C` when filling `field_4`.
+extern u16 D_80112F60[];
+
+/// 0x10-byte `VECTOR` rows indexed by `func_80100FCC` arg1. Copied through
+/// scratch; the low 16 bits of `vx`/`vy`/`vz` seed `GpActorD4Rec.field_8` /
+/// `field_A` / `field_C`.
+extern VECTOR D_80112FA4[];
+
 /// Overlay-imported s16 table indexed by `Mc_SaveData.field_5C7` and passed
 /// to `func_80106350` (`func_8010C46C` / `func_8010C4F0` / `func_8010C75C`).
 extern s16 D_80167218[];
@@ -548,6 +571,7 @@ void func_800FE41C(Task* arg0);
 void func_801005D8(Task* arg0);
 void func_80100784(struct _GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
 s32  func_801011D0(struct _GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3);
+void func_80100FCC(GpActorWork* arg0, s32 arg1, s32 arg2);
 void func_80101408(GpActorWork* arg0);
 void func_801030CC(GpActorWork* arg0);
 void func_801041FC(GpActorWork* arg0, s32 arg1);

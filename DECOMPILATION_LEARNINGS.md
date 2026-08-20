@@ -35,6 +35,24 @@ sw     ra/s3/s2/s1/s0
 lw     s2, 0(v0)
 ```
 
+A 3-arg function that keeps `arg1` in `$s4` and `arg2` in `$s5`, then
+allocates from `G_SCRATCH_HEAD` into `$v1` (not `$v0`), wants:
+
+```
+sw     s4, 0x20(sp)
+move   s4, a1
+sw     s5, 0x24(sp)
+move   s5, a2
+lui    v1, 0x1F80
+ori    v1, v1, 0x3FC
+sw     ra/s3/s2/s1/s0
+lw     v0, 0(v1)
+```
+
+Copy `arg1` first, empty non-volatile `asm("" : "+r"(id))` so that store
+lands before `arg2`, then `lui`/`ori` with a fake input dependency on
+`arg2` pinned to `$s5` / scratch to `$v1`. `func_80100FCC` is the example.
+
 `scratch = (void**)G_SCRATCH_HEAD` first hoists `lui`/`ori` above `sw s4`.
 `register s32 thresh asm("s4"); thresh = arg2;` without a use delays
 `move s4, a2` into the later `beqz` delay (the copy is only needed on
@@ -60,6 +78,17 @@ The later `(s16)thresh < dist` compare must write the cast into `$v0`
 branch becomes `sll s4, s4, 16` in place. Pin `SquareRoot0`'s result
 through `$v0` then copy to `$a1` (`move a1, v0`) so the compare and
 `ratan2` share that register. `func_80102D20` is the example.
+
+## Pin `three`/`packed`/`flag` so `flags = 3` interleaves with `arg << 8`
+
+`obj->flags = 3; actor->field_124 = (arg1 << 8) | (arg2 | 0x20000)` hoists the
+pack immediately after the preceding call. Pin `three` to `$v0`, `packed` to
+`$v1`, `flag` to `$v0` (reusing extra's pin after the copy), assign `three = 3`
+then `packed = id << 8` then `obj->flags = three`, then `flag = 0x20000`. A
+`memory` barrier after `obj->field_C` keeps that block from floating above the
+coordinate stores. Keep a dead `$s4` / `$s1` live with `asm volatile("" :: "r"(id))`
+so `table[id]` is `sll v1, s4, 1` and `&actor->field_32C` is `addiu v0, s1, 0x32C`.
+`func_80100FCC` is the example.
 
 ## Split `la` into `$s0` so `%hi` lands in `$v0` and `%lo` is a C `addiu`
 
