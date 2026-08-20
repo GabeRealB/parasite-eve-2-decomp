@@ -7,6 +7,7 @@
 #include "main/task.h"
 
 extern s32     D_80070F60;
+extern SVECTOR D_801124DC[];
 extern SVECTOR D_801125EC[];
 
 void func_800F1BEC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
@@ -16,7 +17,81 @@ INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800ECAA8);
 
 INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800ECEC0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800ED198);
+void func_800ED198(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    GpCoord64*     base;
+    GpCoordTail*   slot;
+    GpState1C*     st;
+    s32            temp;
+    s32            idx;
+    s32            t2;
+    s32            count;
+
+    base  = D_80114F30;
+    slot  = (GpCoordTail*)&base->coord;
+    mem   = arg0->spawnArg2;
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    st    = D_80115740;
+    if (st->field_4 < 2) {
+        mem->field_22++;
+        if (arg0->state == 0) {
+            temp                   = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+            mem->field_20          = temp;
+            arg0->spawnArg1        = (u8)arg0->spawnArg1;
+            slot->coord.coord.t[0] = coord->coord.t[0];
+            slot->coord.coord.t[1] = coord->coord.t[1];
+            t2                     = coord->coord.t[2];
+            base->coord.flg        = 0;
+            slot->field_50         = 0xC00;
+            slot->field_52         = 0xC00;
+            slot->field_54         = 0xC00;
+            slot->field_58         = 0xFA0;
+            slot->field_5C         = 0x12C0;
+            slot->coord.coord.t[2] = t2;
+            coord->sub             = mem->field_8;
+            coord->coord.t[0]      = D_801124DC[arg0->spawnArg1].vx;
+            coord->coord.t[1]      = D_801124DC[arg0->spawnArg1].vy;
+            coord->coord.t[2]      = D_801124DC[arg0->spawnArg1].vz;
+            coord->flg             = 0;
+            func_80098F58(coord);
+            mem->field_10 = 0;
+            mem->field_12 = 0;
+            D_80070F60    = D_80070F60 * 5 + 0x71357911;
+            mem->field_24 = ((u32)D_80070F60 >> 16) & 0x1FF;
+            {
+                s32 sh;
+                sh = mem->field_24;
+                __asm__("" : "+r"(sh));
+                mem->field_14 = -((s16)sh >> 1);
+            }
+            func_800EA478(0x60034, coord, mem->field_24 + 0x380, (s32)&mem->field_10);
+            D_80070F60 = D_80070F60 * 5 + 0x71357911;
+            func_800EA478(0x60072, coord, (((u32)D_80070F60 >> 16) & 0x1FF) + 0x380, 0);
+            idx         = arg0->spawnArg1;
+            arg0->state = 1;
+            func_800EA478(0x60067, coord, idx, (s32)&D_801125EC[idx]);
+            if (arg0->spawnArg1 == 0x11) {
+                mem->field_24       = 1;
+                D_80114F30->field_0 = 1;
+            } else {
+                mem->field_24       = 4;
+                D_80114F30->field_0 = 4;
+            }
+            if (mem->field_20 == 0) {
+                D_80115740->field_14 = 1;
+            }
+        }
+        if (slot->field_58 >= 0x191) {
+            slot->field_58 -= 0x190;
+        }
+        count = mem->field_22;
+        if (mem->field_24 < count) {
+            func_800EC7E4(mem, arg0);
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800ED42C);
 

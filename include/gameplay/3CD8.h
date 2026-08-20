@@ -253,14 +253,36 @@ typedef struct _GpState1C {
 } GpState1C;
 STATIC_ASSERT_SIZEOF(GpState1C, 0x1C);
 
+/// Overlay of `GpCoord64.coord` plus the 0x10-byte tail. `func_800ED198`
+/// holds `&D_80114F30[0].coord` as this type so `field_50` / `field_58`
+/// are addressed from the coordinate pointer (`s5 + 0x50` / `s5 + 0x58`).
+typedef struct _GpCoordTail {
+    /* 0x00 */ GsCOORDINATE2 coord;
+    /* 0x50 */ s16           field_50;
+    /* 0x52 */ s16           field_52;
+    /* 0x54 */ s16           field_54;
+    /* 0x56 */ s16           pad_56;
+    /* 0x58 */ s32           field_58;
+    /* 0x5C */ s32           field_5C;
+} GpCoordTail;
+STATIC_ASSERT_SIZEOF(GpCoordTail, 0x60);
+
 /// 0x64-byte world-coord slot. `func_800EA3EC` inits all 8 entries of
 /// `D_80114F30`: `coord.sub` is the parent (`&D_80070F10`) and `field_0`
 /// is a refcount (decremented by `func_800EA3B4`). `func_800D9618` returns
-/// how many slots currently have a non-zero refcount.
+/// how many slots currently have a non-zero refcount. `func_800ED198`
+/// copies the actor translation into `coord`, writes `0xC00` into
+/// `field_54` / `field_56` / `field_58`, and decays `field_5C` by `0x190`
+/// while it is `>= 0x191`.
 typedef struct _GpCoord64 {
     /* 0x00 */ s32           field_0;
     /* 0x04 */ GsCOORDINATE2 coord;
-    /* 0x54 */ byte          pad_54[0x10];
+    /* 0x54 */ s16           field_54;
+    /* 0x56 */ s16           field_56;
+    /* 0x58 */ s16           field_58;
+    /* 0x5A */ s16           pad_5A;
+    /* 0x5C */ s32           field_5C;
+    /* 0x60 */ s32           field_60;
 } GpCoord64;
 STATIC_ASSERT_SIZEOF(GpCoord64, 0x64);
 

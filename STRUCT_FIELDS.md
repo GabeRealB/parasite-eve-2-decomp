@@ -1832,8 +1832,13 @@ returns the number of slots whose `field_0` is non-zero.
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x00 | `field_0` | s32 refcount; cleared by `func_800EA3EC`, decremented by `func_800EA3B4`, counted by `func_800D9618` |
+| 0x00 | `field_0` | s32 refcount; cleared by `func_800EA3EC`, decremented by `func_800EA3B4`, counted by `func_800D9618`; `func_800ED198` sets it to 1 or 4 |
 | 0x04 | `coord` | Embedded `GsCOORDINATE2`; `coord.sub` is parented to `&D_80070F10` |
+| 0x54 | `field_54` | s16; `func_800ED198` inits to `0xC00` (same as `GpCoordTail.field_50`) |
+| 0x56 | `field_56` | s16; `func_800ED198` inits to `0xC00` |
+| 0x58 | `field_58` | s16; `func_800ED198` inits to `0xC00` |
+| 0x5C | `field_5C` | s32; `func_800ED198` inits to `0xFA0` and subtracts `0x190` while `>= 0x191` |
+| 0x60 | `field_60` | s32; `func_800ED198` inits to `0x12C0` |
 
 ### `GpMapRec` (0xE) — `3688.h`
 Per-room record in tables pointed to by `D_8010F0F4`. Index is

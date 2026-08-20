@@ -25361,3 +25361,63 @@ picked = (GpRec18*)(bestIdx * 0x18 + (s32)arg0);
 
 `func_80105BC4` is the example. Use this only when operand order must
 match; prefer `arg0 + bestIdx` otherwise.
+
+## Non-volatile block-scoped `+r` pin so `(s16)x >> 1` is `sll 16; sra 17`
+
+`mem->field_24 = ((u32)D_80070F60 >> 16) & 0x1FF; mem->field_14 =
+-(mem->field_24 >> 1)` lets combine see the `andi 0x1FF` range and emit
+`srl 1`. The target is `sll 16; sra 17` (`(s16)x >> 1` of an unknown
+32-bit value). A `volatile` `+r` pin after the store also works, but is
+a scheduling barrier and sinks the next `jal`'s independent `a0`/`a1`/`a3`
+setup below the LCG.
+
+A **non-volatile** pin on a **block-scoped** copy is not a barrier, so
+call setup can still sit above the LCG, while the range is forgotten:
+
+```c
+D_80070F60    = D_80070F60 * 5 + 0x71357911;
+mem->field_24 = ((u32)D_80070F60 >> 16) & 0x1FF;
+{
+    s32 sh;
+    sh = mem->field_24;
+    __asm__("" : "+r"(sh));
+    mem->field_14 = -((s16)sh >> 1);
+}
+func_800EA478(0x60034, coord, mem->field_24 + 0x380, (s32)&mem->field_10);
+```
+
+Reuse of a function-level `temp` for the pin shuffles the LCG into `v1`
+and delays `sw D_80070F60`. `func_800ED198` is the example.
+
+Write `D_80070F60 = D_80070F60 * 5 + K` (no extra `rng` local) so the
+LCG `addu` dest stays `v0` and the store sits immediately after it.
+
+## Overlay `coord` plus tail so extra fields are `s5+0x50`, not `base+0x54`
+
+`D_80114F30` is a `GpCoord64` whose extra s16s/s32s live at `+0x54`.
+Accessing them as `D_80114F30->field_54` uses the slot base (`sw 0x54(a0)`).
+The target computes `s5 = a0+4` (`&slot->coord`) and stores at `0x50(s5)`.
+Hold the coordinate as a `GpCoordTail*` (GsCOORDINATE2 plus the 0x10-byte
+tail) and assign it **before** the `if` so `addiu s5, a0, 4` fills the
+entry `beqz` delay:
+
+```c
+base = D_80114F30;
+slot = (GpCoordTail*)&base->coord;
+st   = D_80115740;
+if (st->field_4 < 2) {
+    slot->field_50 = 0xC00;
+    ...
+    if (slot->field_58 >= 0x191) {
+        slot->field_58 -= 0x190;
+    }
+}
+```
+
+A local `GpState1C* st = D_80115740` interleaves `lui s6, %hi(D_80114F30)`
+with the `D_80115740` load so `addiu a0, s6, %lo(D_80114F30)` stays in
+the prologue. `func_800ED198` is the example.
+
+Zero `coord->flg` **after** the three `coord.t[]` stores so `sw zero, 0(s3)`
+sits next to `jal func_80098F58` with `t[2]` in the delay. Putting `flg = 0`
+between `t[1]` and `t[2]` lets it sink into the `lh vy` delay.
