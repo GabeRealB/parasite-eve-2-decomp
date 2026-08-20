@@ -38,6 +38,7 @@ extern TaskFuncTable5 D_80097638;
 extern TaskFuncTable5 D_8009764C;
 extern TaskFuncTable3 D_80097678;
 extern TaskDesc       D_8010FAEC[];
+extern TaskDesc       D_8010FB4C[];
 extern GpRec14        D_8010FB38;
 extern s32            D_8010FB88;
 extern s32            D_8010FB8C;
@@ -52,11 +53,24 @@ extern u8             D_8010FC1C[];
 extern u16            D_80112D68[];
 extern u16            D_80113360[];
 extern GpEvt12*       D_801155A8;
+extern s16            D_801155AC;
 extern u16            D_801155AE;
+extern s16            D_801155B0;
+extern s16            D_801155B2;
+extern s16            D_801155B4;
+extern s16            D_801155B6;
+extern u8             D_801155B8;
+extern u8             D_801155BA;
+extern u8             D_801155BB;
+extern s16            D_801155BC;
+extern s16            D_801155C0;
 extern u8             D_80115670;
 extern Task*          D_80115674;
 extern s16            D_80115678;
+extern s16            D_8011567A;
 extern GlyphUvwh*     D_8011567C;
+extern u8             D_80115680;
+extern u8             D_80115688;
 extern u8             D_80115648;
 extern s16            D_8011564A;
 extern u16            D_8011564C;
@@ -68,9 +82,13 @@ extern u8             D_80115659;
 extern u8             D_8011565A;
 extern u16            D_8011565C;
 extern s32            D_80115660;
+extern s16            D_80115664;
 extern s16            D_80115666;
 extern s16            D_80115668;
+extern s16            D_8011566A;
 extern u8             D_8011566C;
+extern u8             D_8011566E;
+extern u8             D_8011566F;
 extern s32            D_8011568C;
 extern u8             D_80115690;
 extern s16            D_80115698;
@@ -116,12 +134,12 @@ extern u8             D_80115714;
 extern s16            D_80115716;
 extern s16            D_80115718;
 
-s32  func_800E41F4(s32 arg0, s16 arg1, s16 arg2);
 void func_800E44A0(Task* arg0);
 void func_80724120(void);
 void func_80724324(void);
 void func_807244CC(char* arg0);
 void func_8072455C(s16 arg0, s32 arg1);
+void func_807245B8(void);
 void func_80724714(void);
 void func_800E646C(Task* arg0);
 s32  func_800E6C70(s16 arg0, s16 arg1, s16 arg2);
@@ -363,7 +381,79 @@ s32 func_800E40EC(GpCapFile* file)
     return 1;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E41F4);
+s32 func_800E41F4(s32 arg0, s16 arg1, s16 arg2)
+{
+    register s16 mode asm("s3");
+    CdCmdQueue*  queue;
+    TaskDesc*    desc;
+
+    mode  = arg1;
+    queue = &CdCmd_Queue;
+    if (arg0 == 0) {
+        return 0;
+    }
+
+    D_80115668 = arg2;
+    D_801155A8 = (GpEvt12*)arg0;
+    D_801155AC = 0;
+    D_801155AE = 1;
+    D_801155A8 = (GpEvt12*)arg0;
+    D_801155B0 = 0;
+    D_801155B2 = 0x30;
+    D_801155B4 = 0xC0;
+    D_801155B8 = 7;
+    D_801155B2 = 0x140;
+    D_80115664 = 0;
+    D_8011569A = 0;
+    D_80115698 = 0;
+    D_8011567A = 0;
+    D_801155C0 = 0;
+    D_801156A8 = 0;
+    D_801155BC = 0;
+    D_8011566E = 0;
+    D_8011566F = 0;
+    D_801155BA = 0;
+    D_801155BB = 0;
+    D_80115648 = 0;
+    D_8011566A = 0;
+    D_8011565A = 0;
+    D_80115688 = 0;
+    D_80115690 = 0;
+    D_80115680 = 1;
+    D_80115659 = 0xF;
+    D_801155AE = 1;
+    D_8011566C = Mc_SaveData.field_4;
+    D_8011565C = queue->field_22A;
+    if (Display_State.field_112 != 0) {
+        func_807245B8();
+        D_8011564A = -1;
+    }
+
+    D_801155AE = func_800E6EA0((s16)D_801155AE);
+    if (D_801155A8[(s16)D_801155AE].field_8 == -1) {
+        D_801155A8 = 0;
+        return 0;
+    }
+
+    func_800E6E50();
+    D_801155B4 = func_800E6AD4((u16*)D_801155A8[(s16)D_801155AE].field_8);
+    D_801155B6 = func_800E69F4((u16*)D_801155A8[(s16)D_801155AE].field_8);
+    D_80115666 = mode;
+    D_80115660 = 0;
+    if (mode != 0) {
+        D_80115666 = mode;
+        desc       = Task_GetDesc(2, 7);
+        D_80115674 = (Task*)Display_InitModeObj(desc, 0, 0, 0);
+        if (D_80115666 != 3) {
+            return 0;
+        }
+        Task_SpawnFromTable(D_8010FB4C, 0, 0, 0);
+        D_80115666 = 1;
+    } else {
+        D_80115674 = Task_Spawn(2, 7, 0, 0);
+    }
+    return 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E44A0);
 

@@ -24253,3 +24253,23 @@ becomes `bnez s1` / `negu s1`. Copy to a local *inside* the calling
 branch (`setIdx = arg3` before the jal, then only `setIdx` after it).
 `$a3` stays the else-path's register, and `move s1, a3` fills the first
 `lbu field_15` delay on the taken path. `func_800B3AA4` is the example.
+
+## Same-value extra store hoists `%hi`; keep CSE `1` as a literal
+
+A global stored late (`D = 1` after a long init) still wants
+`lui s0, %hi(D)` in an earlier fill slot. A second, earlier `D = 1` is
+DSE'd (same value) but starts the `%hi` live range, so the `lui` fills
+that slot.
+
+The matching `li s2, 1` then has to come *after* that `lui` (setup for
+the delayed store). `register s32 one asm("s2"); one = 1;` emits
+`li s2, 1` at the assignment, which is too early if `one = 1` is written
+before the extra `D = 1`. Leave the constant as a literal `1` at every
+store; GCC CSE's it into `$s2` and schedules `lui %hi` then `li s2, 1`.
+
+The same extra-store trick on a later global (`mode` copied to a halfword
+before `other = 0` *and* again inside `if (mode != 0)`) hoists that
+`%hi` into the previous `lui`/`sh` gap so the real `sh` can fill `beqz`
+(which forces `sll v0, s3, 16` instead of clobbering `$s3`).
+
+`func_800E41F4` is the example.
