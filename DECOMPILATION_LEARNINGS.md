@@ -23611,6 +23611,17 @@ Assigning `xy` only once without incrementing it (or recomputing
 `addiu a3, t0, 0x10`. Pin `poly` to `$t0` and `xy` to `$a3`.
 `func_80099B94` is the example.
 
+## POLY_F4 SXY FIFO from `&x3` plus `goto draw` for the 4th-vertex nclip
+
+The quad sibling of the POLY_F3 OT insert (`func_80099B94`) points `xy`
+at `&poly->x3` so the first nclip loads `x0`/`x1`/`x2` as `lw -12/-8/-4`
+/ `mtc2 $15`. A 4th `lw 0(xy)` / nclip only runs when the first OPZ
+is `<= 0`; `if (opz > 0) goto draw;` then `if (opz < 0) { draw: ... }`
+emits `bgtz` to the SZ/OT body and `bgez` over it. Pin `opz` to `$t1`
+and `mask` to `$t2` (swapped vs the F3 handler). Do not name the SZ3
+load `gte_ldsz3` — PsyQ already uses that for the 3-arg SZ1/SZ2/SZ3
+macro. `func_80099994` is the example.
+
 ## Delay-slot copy plus in-`if` `asm("" : "+r"(n))` so `i = n` is not CSE'd
 
 `n = count; if (cond) { i = n; }` wants `n = count` in the `beq` delay

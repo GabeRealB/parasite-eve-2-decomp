@@ -82,9 +82,32 @@ extern s32            D_80115724;
                      : "r"(p)          \
                      : "$14")
 
-#define gte_ldsz0(r0) __asm__ volatile("mtc2 %0, $16" : : "r"(r0))
-#define gte_ldsz1(r0) __asm__ volatile("mtc2 %0, $17" : : "r"(r0))
-#define gte_ldsz2(r0) __asm__ volatile("mtc2 %0, $18" : : "r"(r0))
+#define gte_ldsxy3_fifo_f4(p)           \
+    __asm__ volatile("lw $14, -12(%0);" \
+                     "nop;"             \
+                     "mtc2 $14, $15;"   \
+                     "lw $14, -8(%0);"  \
+                     "nop;"             \
+                     "mtc2 $14, $15;"   \
+                     "lw $14, -4(%0);"  \
+                     "nop;"             \
+                     "mtc2 $14, $15"    \
+                     :                  \
+                     : "r"(p)           \
+                     : "$14")
+
+#define gte_ldsxy_fifo0(p)            \
+    __asm__ volatile("lw $14, 0(%0);" \
+                     "nop;"           \
+                     "mtc2 $14, $15"  \
+                     :                \
+                     : "r"(p)         \
+                     : "$14")
+
+#define gte_ldsz0(r0)  __asm__ volatile("mtc2 %0, $16" : : "r"(r0))
+#define gte_ldsz1(r0)  __asm__ volatile("mtc2 %0, $17" : : "r"(r0))
+#define gte_ldsz2(r0)  __asm__ volatile("mtc2 %0, $18" : : "r"(r0))
+#define gte_ldsz3s(r0) __asm__ volatile("mtc2 %0, $19" : : "r"(r0))
 
 #define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
 
@@ -335,7 +358,82 @@ void func_80099958(void)
     func_8009850C(&Gpu_OtBuffers[Display_State.field_1f]);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80099994);
+u32* func_80099994(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+{
+    TmdScratchModelBlock*  ws;
+    register POLY_F4*      poly asm("t0");
+    register POLY_F4*      xy asm("a3");
+    register s32*          opz asm("t1");
+    register DisplayState* ds asm("t5");
+    register u32           mask asm("t2");
+    register u32           maskHi asm("t4");
+    register u32           clipMask asm("t3");
+    register s32           hi asm("v0");
+    u16*                   rec;
+    s32                    sz;
+    s32                    idx;
+    u8*                    szTable;
+
+    ws   = arg0;
+    poly = (POLY_F4*)ws->field_4;
+    if (ws->field_1C-- > 0) {
+        opz      = &ws->field_28;
+        clipMask = 0x80000000;
+        asm("lui %0, %%hi(Display_State)" : "=r"(hi));
+        asm("addiu %0, %1, %%lo(Display_State)" : "=r"(ds) : "r"(hi));
+        mask   = 0xFFFFFF;
+        maskHi = 0xFF000000;
+        xy     = (POLY_F4*)&poly->x3;
+        do {
+            rec = (u16*)arg2;
+            gte_ldsxy3_fifo_f4(xy);
+            gte_nclip_real();
+            gte_stopz(opz);
+            if (ws->field_28 > 0) {
+                goto draw;
+            }
+            gte_ldsxy_fifo0(xy);
+            gte_nclip_real();
+            gte_stopz(opz);
+            if (ws->field_28 < 0) {
+            draw:
+                szTable = (u8*)ws->field_10;
+                idx     = rec[0] & 0xFFFC;
+                sz      = *(s32*)(idx + (s32)szTable);
+                if ((sz & clipMask) == 0) {
+                    gte_ldsz0(sz);
+                    idx = rec[1] & 0xFFFC;
+                    sz  = *(s32*)(idx + (s32)szTable);
+                    if ((sz & clipMask) == 0) {
+                        gte_ldsz1(sz);
+                        idx = rec[2] & 0xFFFC;
+                        sz  = *(s32*)(idx + (s32)szTable);
+                        if ((sz & clipMask) == 0) {
+                            gte_ldsz2(sz);
+                            idx = rec[3] & 0xFFFC;
+                            sz  = *(s32*)(idx + (s32)szTable);
+                            if ((sz & clipMask) == 0) {
+                                gte_ldsz3s(sz);
+                                gte_avsz4_real();
+                                gte_stotz(opz);
+                                gte_stotz(opz);
+                                poly->tag =
+                                    (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->field_128) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
+                                *(u_long*)(((((u32)ws->field_28 << ds->field_128) >> 2) & 0xFFC) + (s32)ws->field_14) =
+                                    (*(u_long*)(((((u32)ws->field_28 << ds->field_128) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)poly & mask);
+                            }
+                        }
+                    }
+                }
+            }
+            xy++;
+            poly++;
+            arg2 += ws->field_18;
+        } while (ws->field_1C-- > 0);
+    }
+    ws->field_4 = (u8*)poly;
+    return arg2;
+}
 
 u32* func_80099B94(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
