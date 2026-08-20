@@ -54,6 +54,7 @@ extern u8             D_80114BF0[];
 extern TaskFuncTable6 D_80093830;
 extern s32            D_80070F60;
 extern char           D_80093804[]; // "new_disp_2d ----> NULL\n"
+extern CVECTOR        D_80093820;
 extern char           D_80093870[]; // "Item"
 extern s32            D_8005ED70;
 extern s32            D_8005ED74;
@@ -64,6 +65,8 @@ extern s32            D_80115724;
 
 #define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
+#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_nccs_real()  __asm__ volatile("nop; nop; .word 0x4B08041B")
 #define gte_nclip_real() __asm__ volatile("nop; nop; .word 0x4B400006")
 #define gte_avsz3_real() __asm__ volatile("nop; nop; .word 0x4B58002D")
 #define gte_avsz4_real() __asm__ volatile("nop; nop; .word 0x4B68002E")
@@ -510,7 +513,62 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009A57C);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009A804);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009AA5C);
+u32* func_8009AA5C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+{
+    TmdScratchModelBlock* ws;
+    s32                   prev;
+    s32                   count;
+    u32                   idx;
+    u16*                  rec;
+    CVECTOR               col;
+    u8*                   dest;
+
+    ws = arg0;
+    __asm__ volatile("" : "+r"(ws));
+    col = D_80093820;
+    gte_ldrgb(&col);
+    count = ws->field_1C;
+    if (count == 0) {
+        return arg2;
+    }
+    prev         = -1;
+    ws->field_1C = count + prev;
+    if (count > 0) {
+        do {
+            rec = (u16*)arg2;
+            idx = rec[0];
+            if (idx != prev) {
+                gte_ldv0((u8*)ws->field_8 + (idx & 0xFFF8));
+                gte_rtps_real();
+                gte_stsz(&ws->field_28);
+                gte_stflg(&ws->field_24);
+                if (ws->field_24 & 0x80000000) {
+                    ws->field_28 |= 0x80000000;
+                }
+                ws->field_10[*(u16*)arg2 >> 3] = ws->field_28;
+            }
+            prev = rec[0];
+            dest = ws->field_4 + rec[2];
+            gte_stsxy(dest);
+            gte_stsxy(&ws->field_7C);
+            gte_ldv0((u8*)ws->field_C + (rec[1] & 0xFFF8));
+            gte_nccs_real();
+            gte_rtv0_real();
+            ws->field_7C = ((s16)ws->field_7C >> 4) + 0x20;
+            ws->field_7E = ((s16)ws->field_7E >> 4) + 0x20;
+            gte_stsv(&ws->field_74);
+            ws->field_7C += (s16)ws->field_74 >> 8;
+            ws->field_7E += (s16)ws->field_76 >> 8;
+            dest          = ws->field_4 + rec[2];
+            dest[4]       = *(u8*)&ws->field_7C;
+            dest          = ws->field_4 + rec[2];
+            dest[5]       = *(u8*)&ws->field_7E;
+            arg2         += ws->field_18;
+            gte_strgb(ws->field_4 + rec[3]);
+        } while (ws->field_1C-- > 0);
+    }
+    return arg2;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009AC58);
 

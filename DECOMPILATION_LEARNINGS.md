@@ -3,6 +3,29 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Pin `ws = arg0` so `move a1, a0` precedes an independent `lui`
+
+`ws = arg0` followed by a CVECTOR copy from a global (`col = D_80093820;
+gte_ldrgb(&col)`) lets `-fschedule-insns` lift the `lui %hi` above the copy:
+
+```
+addiu  sp, sp, -8
+lui    v0, %hi(D_80093820)
+move   a1, a0
+```
+
+The target keeps the copy first (`move a1, a0` then `lui`). Pin `ws` so the
+`move` cannot sink:
+
+```c
+ws = arg0;
+__asm__ volatile("" : "+r"(ws));
+col = D_80093820;
+gte_ldrgb(&col);
+```
+
+`func_8009AA5C` is the example. Same `+r` pin as `func_8009EAA4`'s `prev = -1`.
+
 ## Scope a `| k` temp so the OR reuses the load dest
 
 `temp = save->field_22; obj->field_18 = temp | packed` with a function-level

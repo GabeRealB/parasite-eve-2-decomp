@@ -75,7 +75,12 @@ typedef struct {
     /* 0x2C */ byte       pad_2C[0x44];
     /* 0x70 */ s16        field_70;
     /* 0x72 */ s16        field_72;
-    /* 0x74 */ byte       pad_74[0xC];
+    /* 0x74 */ u16        field_74;
+    /* 0x76 */ u16        field_76;
+    /* 0x78 */ u16        field_78;
+    /* 0x7A */ u16        pad_7A;
+    /* 0x7C */ u16        field_7C;
+    /* 0x7E */ u16        field_7E;
     /* 0x80 */ TmdObject* field_80;
     /* 0x84 */ byte       pad_84[0x4];
 } TmdScratchModelBlock;

@@ -519,12 +519,17 @@ read `h + 2` as line height; `func_800E67C8` / `func_800E68D8` read `w`.
 | Off | Member | Role |
 |-----|--------|------|
 | 0x00 | `field_0` | Packet dest (`POLY_FT3*` etc.); advanced by the handler |
+| 0x04 | `field_4` | Packet dest for per-vertex XY/UV/RGB (`func_8009AA5C` / `func_8009EAA4`) |
 | 0x08 | `field_8` | Vertex array base; TMD indices are `& 0xFFF8` byte offsets |
+| 0x0C | `field_C` | Normal array base; TMD indices are `& 0xFFF8` byte offsets |
+| 0x10 | `field_10` | Per-vertex SZ table (`s32*`); indexed `vtxIdx >> 3` |
 | 0x14 | `field_14` | OT base (`u_long*`); same slot as `TmdScratchDrawBlock.field_14` |
 | 0x18 | `field_18` | Stream stride in words |
 | 0x1C | `field_1C` | Remaining primitive count |
 | 0x24 | `field_24` | GTE FLAG (`gte_stflg`) |
-| 0x28 | `field_28` | NCLIP MAC0 / AVSZ3 OTZ |
+| 0x28 | `field_28` | NCLIP MAC0 / AVSZ3 OTZ; high bit set when FLAG bit 31 is set |
+| 0x74 | `field_74`/`field_76`/`field_78` | Rotated normal via `gte_stsv` (IR1/IR2/IR3) |
+| 0x7C | `field_7C`/`field_7E` | Packed SXY, then env-map UV (`(s16)sxy >> 4 + 0x20` plus `IR >> 8`) |
 
 ### `StageCtx` (0x38)
 | Off | Member | Role |
