@@ -24,6 +24,9 @@
 /// is the same `GpPairSrcE*` slot as `GpObj50` / `GpObj5C` / `GpObj5D`.
 /// `field_4B` is a non-zero occupancy tag written into `McPosRec.field_3`
 /// by `func_800B48FC` (defaulted to 1 when the caller left it 0).
+/// `func_800D8C0C` remaps the actor color matrix from `field_4E` mode
+/// bits; bit 0x80 with `field_4B == 0` is a sine flicker, and
+/// `field_4C & 0xC` enables the default remap.
 typedef struct _GpEnemy {
     /* 0x00 */ Task*       task;
     /* 0x04 */ byte        pad_4[4];
@@ -36,7 +39,8 @@ typedef struct _GpEnemy {
     /* 0x40 */ s16         field_40;
     /* 0x42 */ byte        pad_42[9];
     /* 0x4B */ u8          field_4B;
-    /* 0x4C */ byte        pad_4C[2];
+    /* 0x4C */ u8          field_4C;
+    /* 0x4D */ byte        pad_4D;
     /* 0x4E */ u8          field_4E;
     /* 0x4F */ byte        pad_4F;
     /* 0x50 */ GpPairSrcE* field_50;

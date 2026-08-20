@@ -25188,3 +25188,63 @@ if (obj->mode != five) {
 ```
 
 `func_800C8700` is the example.
+
+## Block-scope `/ k` temps so two loops do not share a function-level `val`
+
+A function-level `val` reused as both a `/ 33` quotient and a later `rsin`
+result pins **both** color-matrix loops to `$a0` (same dest as
+`addiu a0, v0, 0x1800`). The target's default remap wants the weighted sum
+in `$a0` and the quotient in `$v1`. Give each `/ 33` loop its own
+block-scope temp so it dies at the stores:
+
+```c
+{
+    s32 t;
+    for (i = 0; i < 3; i++) {
+        t             = (m[0][i] * 7 + m[1][i] * 6 + m[2][i] * 3) / 33;
+        m[0][i]       = t * 3;
+        m[1][i]       = t;
+        m[2][i]       = t * 3;
+    }
+}
+```
+
+`func_800D8C0C` is the example. Same "temp must die at the store" idea as
+the `| packed` block-scope temp.
+
+## Write `if (x == 1) else if (x < 2)` instead of `switch` for 1/2/3
+
+A `switch (arg2)` with cases 1/2/3 and gotos into `default` emits a median
+pivot (`li v0, 2` / `beq` / `slti 3`). The target is sequential from the
+minimum case:
+
+```
+li     v0, 1
+beq    a2, v0, case1
+slti   v0, a2, 2
+bnez   v0, default
+li     v0, 2
+beq    a2, v0, case2
+li     v0, 3
+beq    a2, v0, case3
+j      default
+```
+
+Write that chain as if-else, then `goto` the bodies in source order
+(1, 3, 2, default):
+
+```c
+if (arg2 == 1) {
+    goto case1;
+} else if (arg2 < 2) {
+    goto def;
+} else if (arg2 == 2) {
+    goto case2;
+} else if (arg2 == 3) {
+    goto case3;
+} else {
+    goto def;
+}
+```
+
+`func_800D8C0C` is the example.

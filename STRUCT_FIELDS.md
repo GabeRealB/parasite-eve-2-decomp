@@ -1278,8 +1278,8 @@ Sparse overlay. Full object size is not known yet.
 | 0x48 | `field_48` | u8 copied to `func_800E1BF0` arg1; `func_800E1B80` matches it against `Game_Session->field_4` |
 | 0x49 | `field_49` | u8 copied to `func_800E1BF0` arg2; `func_800E1B80` copies it to `Mc_SaveData.field_4` |
 | 0x4B | `field_4B` | Signed pending flag; `func_800E0B08` stores 0 when non-zero; `func_800E1BF0` / `func_800E1B80` consume it |
-| 0x4C | `field_4C` | Flag byte; `func_800E3008` ORs bit 0; nearby helpers test bits 0x1 / 0x2 / 0x4 |
-| 0x4E | `field_4E` | Packed modes + flag: bits 0-1 current, bits 2-3 previous, high nibble (incl. 0x80) preserved by `func_800D930C` |
+| 0x4C | `field_4C` | Flag byte; `func_800E3008` ORs bit 0; nearby helpers test bits 0x1 / 0x2 / 0x4; `func_800D8C0C` default mode remaps the color matrix when bits 0xC are set |
+| 0x4E | `field_4E` | Packed modes + flag: bits 0-1 current, bits 2-3 previous, high nibble (incl. 0x80) preserved by `func_800D930C`. `func_800D8C0C` uses bits 0-1 as the lighting mode; bit 0x80 with `field_4B == 0` is a sine flicker that clears the bit |
 | 0x4F | `field_4F` | Blend/transition timer; set to 0x10 by `func_800D930C` when the current mode changes |
 
 ### `GpPairSrcE` (0x10) — `3A34.h`
@@ -1344,7 +1344,9 @@ Sparse overlay. Pointer at 0x20 is a `GpObj5C*` (same family as
 | 0x10 | `node` | `GpLinkNode` unlinked by `func_800DAB38` |
 | 0x18 | `field_18` | Set to `&D_80070F10` by `func_800B0494` |
 | 0x40 | `field_40` | Signed halfword passed to `func_800A6A9C` by `func_800A6F38` |
-| 0x4E | `field_4E` | Flags; `func_800A4904` ORs bit 0x80 |
+| 0x4B | `field_4B` | Occupancy tag; `func_800D8C0C` requires 0 together with `field_4E` bit 0x80 for the sine flicker |
+| 0x4C | `field_4C` | Flag byte (same slot as `GpObj4C.field_4C`); `func_800D8C0C` tests bits 0xC |
+| 0x4E | `field_4E` | Flags; `func_800A4904` ORs bit 0x80. Lighting mode in bits 0-1 (previous in bits 2-3); `func_800D8C0C` consumes bit 0x80 as a flicker request |
 | 0x50 | `field_50` | `GpPairSrcE*`; `func_800A6F38` loads `field_4` (or -1 when `node.field_4` bit 0x8) |
 
 ### `GpAnimObj` — `1BC.h`

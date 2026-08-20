@@ -19,6 +19,7 @@
 
 #include <psyq/abs.h>
 #include <psyq/inline_c.h>
+#include <psyq/libgte.h>
 
 #define gte_rtv0_real()   __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_rtps_real()   __asm__ volatile("nop; nop; .word 0x4A180001")
@@ -312,7 +313,79 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D7A9C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D8684);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D8C0C);
+void func_800D8C0C(GpEnemy* arg0, MATRIX* arg1, s32 arg2)
+{
+    s32 i;
+    s32 val;
+
+    if (arg2 == 1) {
+        goto case1;
+    } else if (arg2 < 2) {
+        goto def;
+    } else if (arg2 == 2) {
+        goto case2;
+    } else if (arg2 == 3) {
+        goto case3;
+    } else {
+        goto def;
+    }
+
+case1: {
+    s32 t;
+    for (i = 0; i < 3; i++) {
+        t             = (arg1->m[0][i] * 7 + arg1->m[1][i] * 6 + arg1->m[2][i] * 3) / 33;
+        arg1->m[0][i] = t * 4;
+        arg1->m[1][i] = t * 2;
+        arg1->m[2][i] = t;
+    }
+}
+    return;
+
+case3:
+    if ((arg0->field_4E & 0x80) && (arg0->field_4B == 0)) {
+        goto flicker;
+    }
+    arg1->m[0][0] = arg1->m[0][1] = arg1->m[0][2] = 0x180;
+    arg1->m[1][0] = arg1->m[1][1] = arg1->m[1][2] = 0x100;
+    arg1->m[2][0] = arg1->m[2][1] = arg1->m[2][2] = 0x100;
+    return;
+
+case2:
+    if ((arg0->field_4E & 0x80) && (arg0->field_4B == 0)) {
+        goto flicker;
+    }
+    arg1->m[0][0] = 0;
+    arg1->m[0][1] = 0;
+    arg1->m[0][2] = 0;
+    arg1->m[1][0] = 0;
+    arg1->m[1][1] = 0;
+    arg1->m[1][2] = 0;
+    arg1->m[2][0] = 0;
+    arg1->m[2][1] = 0;
+    arg1->m[2][2] = 0;
+    return;
+
+def:
+    if ((arg0->field_4E & 0x80) && (arg0->field_4B == 0)) {
+    flicker:
+        val = rsin(Display_State.field_14 << 6) + 0x1800;
+        if ((Display_State.field_14 & 1) == 0) {
+            val >>= 1;
+        }
+        arg1->m[0][0] = arg1->m[0][1] = arg1->m[0][2] = 0x200;
+        arg1->m[1][0] = arg1->m[1][1] = arg1->m[1][2] = val;
+        arg1->m[2][0] = arg1->m[2][1] = arg1->m[2][2] = 0x200;
+        arg0->field_4E                               &= 0x7F;
+    } else if (arg0->field_4C & 0xC) {
+        s32 t;
+        for (i = 0; i < 3; i++) {
+            t             = (arg1->m[0][i] * 7 + arg1->m[1][i] * 6 + arg1->m[2][i] * 3) / 33;
+            arg1->m[0][i] = t * 3;
+            arg1->m[1][i] = t;
+            arg1->m[2][i] = t * 3;
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D8EA0);
 

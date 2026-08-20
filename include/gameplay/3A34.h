@@ -858,6 +858,13 @@ void       func_800D6AA4(Task* arg0);
 s32        func_800D70E4(GpObj44* arg0, VECTOR3* arg1);
 void       func_800D7A9C(GameActorExt* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void  func_800D8684(Task* arg0);
+/// Remaps a 3x3 color matrix (`MATRIX.m`) from lighting mode `arg2`
+/// (`field_4E` bits 0-1, or bits 2-3 when blending). Mode 1 weights
+/// RGB as (7,6,3)/33 then *4/*2/*1. Mode 2 zeros the matrix. Mode 3
+/// fills 0x180/0x100/0x100. Default remaps to *3/*1/*3 when
+/// `field_4C & 0xC`. Bit 0x80 of `field_4E` with `field_4B == 0` applies
+/// a `rsin(Display_State.field_14 << 6)` flicker and clears the bit.
+void  func_800D8C0C(struct _GpEnemy* arg0, MATRIX* arg1, s32 arg2);
 void  func_800D9138(GpObj44* arg0);
 void  func_800D930C(GpObj4C* arg0, s32 arg1);
 s32   func_800D9340(GpObj38* arg0);
