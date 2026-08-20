@@ -223,6 +223,7 @@ void func_8009FEDC(Task* task);
 void func_800A110C(Task* arg0);
 u16  func_800A1558(s32 arg0);
 void func_800A1634(s32 arg0, GpIdMapC* arg1);
+s32  func_800A1CD0(s32 arg0);
 void func_800A1F64(s32 arg0);
 void func_800A7320(s16* arg0);
 u8*  func_800A746C(void);

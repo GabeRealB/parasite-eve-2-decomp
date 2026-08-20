@@ -60,6 +60,7 @@ extern s32            D_8005ED74;
 extern GsCOORDINATE2  D_80070F10;
 extern s16            D_80114C40;
 extern DR_STP         D_80114C50;
+extern s32            D_80115724;
 
 #define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
@@ -1783,7 +1784,136 @@ void func_800A1634(s32 arg0, GpIdMapC* arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A18BC);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A1CD0);
+s32 func_800A1CD0(s32 arg0)
+{
+    WipSysConfig*          cfg;
+    register WipSysConfig* p asm("a1");
+    register s32           result asm("t0");
+    register s32           ret asm("v1");
+    register s32           n asm("a3");
+    register GpRec16*      recs asm("v1");
+    register s32           off asm("v0");
+    GpStateF0*             state;
+    GpStateC08*            c08;
+    u8*                    table;
+    s32                    cond;
+    s32                    flag;
+    u16                    val;
+
+    cfg    = &Wip_SysConfig;
+    result = 0;
+    if (arg0 >= 0xC) {
+        ret = 1;
+    } else {
+        p = cfg;
+        if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
+            cond = 0;
+        } else {
+            cond = cfg->field_26 == 4;
+        }
+        if (cond == 0) {
+            table = Mc_SaveData.unknown_850;
+        } else {
+            table = D_80114BF0;
+        }
+        ret = table[arg0];
+        if (ret == 0) {
+            ret = 1;
+        }
+        if (p->field_25 & 0x80) {
+            if (ret < 3) {
+                ret++;
+            }
+        }
+    }
+    n = ret;
+
+    state = &D_801153F0;
+    if ((D_801153F0.field_0 == 1 && state->field_6 != 0) || state->field_1 != 0) {
+        flag = 1;
+    } else {
+        flag = 0;
+    }
+
+    if (flag == 0) {
+        recs = D_8011398C;
+        off  = (arg0 * 3 + n) * 16;
+        asm volatile("" : "+r"(off));
+        off += 4;
+        asm volatile("" : "+r"(off));
+        off += (s32)recs;
+        val  = *(u16*)off;
+        if (cfg->field_1c < val) {
+            result = 1;
+        } else if (arg0 != 7) {
+            result = 1;
+        } else if (cfg->field_1a == cfg->field_18) {
+            result = 1;
+        }
+    } else if (arg0 < 0xC) {
+        if (cfg->field_25 & 0x10) {
+            result = 1;
+        } else {
+            if (!(cfg->field_25 & 0x80)) {
+                recs = D_8011398C;
+                off  = (arg0 * 3 + n) * 16;
+                asm volatile("" : "+r"(off));
+                off += 4;
+                asm volatile("" : "+r"(off));
+                off += (s32)recs;
+                val  = *(u16*)off;
+                if (cfg->field_1c < val) {
+                    if (Mc_SaveData.field_5C2 == 0) {
+                        result = 1;
+                        goto done;
+                    }
+                }
+            }
+            if (arg0 == 6) {
+                c08 = &D_80114C08;
+                if (c08->field_16 != 0) {
+                    if ((s8)c08->field_17 != 0) {
+                        result = 1;
+                        goto done;
+                    }
+                }
+            }
+            if (arg0 == 7) {
+                if (cfg->field_1a == cfg->field_18) {
+                    if (Mc_SaveData.field_5C2 == 0) {
+                        result = 1;
+                        goto done;
+                    }
+                }
+            }
+            if (arg0 == 0xB) {
+                if (D_80115724 >= 3) {
+                    result = 1;
+                    goto done;
+                }
+            }
+            if (cfg->field_25 & 0x80) {
+                if (arg0 >= 6) {
+                    result = 1;
+                } else {
+                    recs = D_8011398C;
+                    off  = (arg0 * 3 + n) * 16;
+                    asm volatile("" : "+r"(off));
+                    off += 4;
+                    asm volatile("" : "+r"(off));
+                    off += (s32)recs;
+                    val  = *(u16*)off;
+                    if (val * 2 >= cfg->field_18) {
+                        result = 1;
+                    }
+                }
+            }
+        }
+    }
+
+done:
+    return result;
+}
 
 void func_800A1F64(s32 arg0)
 {

@@ -24292,3 +24292,31 @@ before `other = 0` *and* again inside `if (mode != 0)`) hoists that
 (which forces `sll v0, s3, 16` instead of clobbering `$s3`).
 
 `func_800E41F4` is the example.
+
+## Double `asm volatile("" : "+r"(off))` so `<< 4` then `+ 4` stays `addiu`
+
+`off = idx * 16 + 4` after `sll 4` becomes `ori v0, v0, 4` (combine
+turns PLUS into IOR because the shift proves the low 4 bits are 0). An
+empty `+r` barrier after the shift hides that alignment, so GCC emits
+PLUS 4 — then folds it into `lhu 4(base)`.
+
+Barrier before *and* after the `+ 4` keeps a standalone `addiu v0, v0, 4`
+between `sll 4` and `addu` of the table base:
+
+```c
+off <<= 4;
+asm volatile("" : "+r"(off));
+off += 4;
+asm volatile("" : "+r"(off));
+off += (s32)recs;
+val = *(u16*)off;
+```
+
+```
+sll    v0, v0, 4
+addiu  v0, v0, 4
+addu   v0, v0, v1
+lhu    v0, 0(v0)
+```
+
+`func_800A1CD0` is the example.
