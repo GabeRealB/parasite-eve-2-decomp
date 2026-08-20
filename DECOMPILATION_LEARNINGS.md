@@ -24603,3 +24603,27 @@ the redundant `move s2, zero` that CSE would drop. `func_800B715C` is
 the example. Also `asm volatile("" : "+r"(qtyTable))` after `la` so
 `*(u8*)((s32)qtyTable + off + 0x200)` emits `addu v0, v1, v0` rather
 than the commuted `addu v0, v0, v1`.
+
+## Reuse an unpinned temp for `$v0`; do not pin `$v1` across `sltu`
+
+A distance-attenuation helper that wants `mflo v1` / `sra v0, v1, 2` /
+`lw v1, distSq` / `sltu v0, v0, v1` cannot pin the outer-radius temp
+with `register s32 outer asm("v0")`. That reserve steals `$v0` from the
+earlier `vx²+vy²+vz²` dest (`addu a0, a0, a2` instead of `addu v0, a0,
+a2`) and from the epilogue scratch pointer (`$a2` instead of `$a0`).
+Reuse one unpinned `s32 sq` for the distance sum, then the outer radius,
+then the `>> 2` result so GCC keeps the chain in `$v0`:
+
+```c
+sq  = vx * vx + vy * vy + vz * vz;
+block->distSq = sq;
+sq  = obj->field_5C;
+lum = sq * sq;
+sq  = lum >> 2;
+lum = block->distSq;
+tooFar = (u32)sq < (u32)lum;
+```
+
+`register s32 lum asm("v1")` then coalesces the compare into
+`sltu v1, v0, v1`. Leave `lum` unpinned so the dest stays `$v0`.
+`func_800D70E4` is the example.

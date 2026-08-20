@@ -223,7 +223,84 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D6B20);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D6E5C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D70E4);
+s32 func_800D70E4(GpObj44* arg0, VECTOR3* arg1)
+{
+    register void**         scratch asm("a3");
+    register u8*            head;
+    register GpAttnScratch* tmp asm("a0");
+    register GpAttnScratch* block asm("t0");
+    register s32            result asm("a1");
+    register s32            lum;
+    register GpObj44*       obj asm("t1");
+    s32                     tooFar;
+    s32                     r;
+    s32                     g;
+    s32                     b;
+    s32                     dist;
+    s32                     inner;
+    s32                     vx;
+    s32                     sq;
+    u16                     scale;
+    u8*                     ptr;
+
+    obj                                     = arg0;
+    scratch                                 = (void**)G_SCRATCH_HEAD;
+    vx                                      = obj->field_38.vx;
+    head                                    = *scratch;
+    vx                                     -= arg1->vx;
+    vx                                    >>= 1;
+    tmp                                     = (GpAttnScratch*)(head - 0x20);
+    ((GpAttnScratch*)(head - 0x20))->vec.vx = vx;
+    block                                   = tmp;
+    block->vec.vy                           = (obj->field_38.vy - arg1->vy) >> 1;
+    block->vec.vz                           = (obj->field_38.vz - arg1->vz) >> 1;
+    sq                                      = block->vec.vx * block->vec.vx + block->vec.vy * block->vec.vy + block->vec.vz * block->vec.vz;
+    block->distSq                           = sq;
+    sq                                      = obj->field_5C;
+    lum                                     = sq * sq;
+    sq                                      = lum >> 2;
+    lum                                     = block->distSq;
+    result                                  = 0;
+    block->outerSq                          = sq;
+    *scratch                                = block;
+    tooFar                                  = (u32)sq < (u32)lum;
+    block->scale                            = 0;
+    if (!tooFar) {
+        block->innerSq = (obj->field_58 * obj->field_58) >> 2;
+        r              = obj->field_50;
+        g              = obj->field_52;
+        b              = obj->field_54;
+        block->scale   = 0x1000;
+        lum            = (r * 8 + g * 6 + b * 2) >> 8;
+        dist           = block->distSq;
+        inner          = block->innerSq;
+        result         = lum + 0xF00;
+        if ((u32)inner < (u32)dist) {
+            s32 temp;
+
+            temp = block->outerSq;
+            asm volatile("" : "+r"(temp));
+            lum = inner;
+            asm volatile("" : "+r"(lum));
+            block->outerSq = temp - inner;
+            block->distSq -= lum;
+            while ((u32)block->outerSq > 0xFFFF) {
+                block->outerSq = (u32)block->outerSq >> 4;
+                block->distSq  = (u32)block->distSq >> 4;
+            }
+            if (block->outerSq != 0) {
+                block->scale = ((u32)(block->outerSq - block->distSq) << 12) / (u32)block->outerSq;
+                lum          = block->scale * result;
+                result       = (u32)lum >> 12;
+            }
+        }
+    }
+    scale                 = block->scale;
+    ptr                   = *(u8**)G_SCRATCH_HEAD;
+    obj->field_4A         = scale;
+    *(u8**)G_SCRATCH_HEAD = ptr + 0x20;
+    return result;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D72D0);
 
@@ -304,7 +381,7 @@ void func_800D9138(GpObj44* arg0)
     }
     scale                 = block->scale;
     ptr                   = *(u8**)G_SCRATCH_HEAD;
-    arg0->field_38        = result;
+    arg0->field_38.vx     = result;
     arg0->field_4A        = scale;
     *(u8**)G_SCRATCH_HEAD = ptr + 0x20;
 }

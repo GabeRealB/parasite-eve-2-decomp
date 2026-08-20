@@ -297,16 +297,18 @@ STATIC_ASSERT_SIZEOF(GpObj38, 0x44);
 /// IR0, and `gte_ldsv`s the three halfwords at 0x50. `func_800D98C4` /
 /// `func_800D9A30` subtract `field_24.t` from a world `VECTOR` and write
 /// the negated normalized direction.
-/// `func_800D9138` halves `field_18/1C/20` as XYZ, compares distance²
-/// against inner `field_58` and outer `field_5C` (each squared then
-/// `>> 2`), and writes the attenuated luminance to `field_38` (same
-/// word as `GpObj38.field_24.t[0]`) plus the 12.4 scale to `field_4A`.
+/// `func_800D9138` halves `field_18` as XYZ, compares distance² against
+/// inner `field_58` and outer `field_5C` (each squared then `>> 2`), and
+/// writes the attenuated luminance to `field_38.vx` (same word as
+/// `GpObj38.field_24.t[0]`) plus the 12.4 scale to `field_4A`.
+/// `func_800D70E4` instead subtracts a world `VECTOR3` from `field_38`
+/// (same words as `GsCOORDINATE2.workm.t` / `GpObj38.field_24.t`),
+/// writes the scale to `field_4A`, and returns the luminance.
 typedef struct _GpObj44 {
     /* 0x00 */ byte    pad_0[0x18];
     /* 0x18 */ VECTOR3 field_18;
     /* 0x24 */ byte    pad_24[0x14];
-    /* 0x38 */ s32     field_38;
-    /* 0x3C */ byte    pad_3C[8];
+    /* 0x38 */ VECTOR3 field_38;
     /* 0x44 */ s16     field_44;
     /* 0x46 */ byte    pad_46[4];
     /* 0x4A */ s16     field_4A;
@@ -589,7 +591,8 @@ typedef struct _GpPanScratch {
 } GpPanScratch;
 STATIC_ASSERT_SIZEOF(GpPanScratch, 0x18);
 
-/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `func_800D9138`.
+/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `func_800D9138` /
+/// `func_800D70E4`.
 /// `vec` is the halved XYZ from `GpObj44.field_18`. `distSq` is
 /// `vx²+vy²+vz²`. `outerSq` / `innerSq` are `(radius²) >> 2` from
 /// `field_5C` / `field_58`. `scale` is 0, `0x1000`, or the 12.4
@@ -837,6 +840,7 @@ GpItemRec* func_800D6910(s32 arg0);
 GpItemRec* func_800D6994(s32 arg0);
 GpItemRec* func_800D6A24(s32 arg0, GpItemScan* arg1);
 void       func_800D6AA4(Task* arg0);
+s32        func_800D70E4(GpObj44* arg0, VECTOR3* arg1);
 void  func_800D8684(Task* arg0);
 void  func_800D9138(GpObj44* arg0);
 void  func_800D930C(GpObj4C* arg0, s32 arg1);
