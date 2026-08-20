@@ -159,6 +159,7 @@ Convention: only list fields with evidence. Unlisted `field_*` / `unknown_*` /
 | 0x0F | `field_F` | Signed scale flag; if > 0 and `func_800D50D4` arg1 is 0, table value is `* 4 / 5` (takes priority over `field_E`). Also indexes `D_8010D328` (`func_800BC0C0` / `func_800B9B40`) |
 | 0x26 | `field_26` | Unsigned addend for `Wip_SysConfig.field_1a` (`func_800BC0C0`). `func_800B9B40` adds 5 when the value is below 250 |
 | 0x27 | `field_27` | Unsigned addend for `Wip_SysConfig.field_1e` (`func_800B7930`). `func_800B996C` adds 1 when the value is below 250 |
+| 0x28 | `field_28[32]` | `McPosRec` saved object poses (`func_800B48FC`). `field_3 == 0` empty; `field_A` is `GpEnemy.field_8`; `field_4/6/8` world XYZ; `field_0/1/2` packed euler |
 | 0x10 | `field_10` | Init bitmask; bit 0 = global init done (`func_800AB980`). Per-slot bit is `field_7` via the `GameSessionFrom4` overlay |
 | 0x12 | `field_12` | Slot index 1..16 |
 | 0x13 | `field_13` | 1-based index into `D_80113360` (`func_800E3D24`); also `D_8007217B` |

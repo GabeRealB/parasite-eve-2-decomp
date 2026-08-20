@@ -92,6 +92,24 @@ typedef struct _McItemScan {
 } McItemScan;
 STATIC_ASSERT_SIZEOF(McItemScan, 0x4);
 
+/// 0xC-byte saved object pose. 32 of these occupy `Mc_SaveData.field_28`
+/// (`func_800B48FC`). `field_3 == 0` is empty; a non-zero value is copied
+/// from `GpEnemy.field_4B`. `field_A` is the object id (`GpEnemy.field_8`).
+/// `field_4` / `field_6` / `field_8` are world XYZ (low 16 bits of
+/// `GsCOORDINATE2.coord.t`). `field_0` / `field_1` / `field_2` are packed
+/// euler bytes (`Gfx_MatrixToEuler` result `>> 8`).
+typedef struct _McPosRec {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ u8  field_2;
+    /* 0x3 */ s8  field_3;
+    /* 0x4 */ u16 field_4;
+    /* 0x6 */ u16 field_6;
+    /* 0x8 */ u16 field_8;
+    /* 0xA */ u16 field_A;
+} McPosRec;
+STATIC_ASSERT_SIZEOF(McPosRec, 0xC);
+
 /// BSS object Mc_SaveData. Large; only fields used so far are named.
 /// field_12 is a slot/index validated by Mc_VerifySaveHdrChecksum (must be 1..16).
 /// field_1C / field_1E are a sum / ones-complement pair over the 0x38 bytes
@@ -128,7 +146,7 @@ typedef struct _McSaveData {
     /* 0x025 */ u8         field_25;
     /* 0x026 */ u8         field_26; // unsigned addend for Wip_SysConfig.field_1a (func_800BC0C0); +5 in func_800B9B40
     /* 0x027 */ u8         field_27; // unsigned addend for Wip_SysConfig.field_1e (func_800B7930); +1 in func_800B996C
-    /* 0x028 */ byte       unknown_28[0x180];
+    /* 0x028 */ McPosRec   field_28[0x20];
     /* 0x1A8 */ s8         field_1a8;
     /* 0x1A9 */ s8         field_1a9;
     /* 0x1AA */ u8         field_1aa;

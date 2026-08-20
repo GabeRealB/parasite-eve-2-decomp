@@ -1315,7 +1315,80 @@ void func_800B47A8(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 
     slot->field_17 = 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B48FC);
+void func_800B48FC(GpEnemy* arg0)
+{
+    McPosRec*         rec;
+    GameSessionFrom4* loc;
+    GameActorExt*     extra;
+    GsCOORDINATE2*    coord;
+    register SVECTOR* euler asm("s1");
+    u16               id;
+    s32               i;
+
+    rec   = Mc_SaveData.field_28;
+    loc   = (GameSessionFrom4*)&Mc_SaveData.field_4;
+    extra = (GameActorExt*)arg0->task->extra;
+    coord = (GsCOORDINATE2*)extra->field_8;
+    if (arg0->field_4B == 0) {
+        arg0->field_4B = 1;
+    }
+    id = arg0->field_8;
+    for (i = 0; i < 0x20; i++, rec++) {
+        if (rec->field_A == id) {
+            return;
+        }
+    }
+
+    {
+        register void** scratch asm("v1");
+        register void*  tmp asm("v0");
+
+        scratch  = (void**)G_SCRATCH_HEAD;
+        rec      = Mc_SaveData.field_28;
+        tmp      = *scratch;
+        i        = 0;
+        tmp      = (u8*)tmp - 8;
+        euler    = tmp;
+        *scratch = euler;
+    }
+    for (; i < 0x20; i++, rec++) {
+        if (rec->field_3 == 0) {
+            break;
+        }
+    }
+    if (i == 0x20) {
+        register u32 hi asm("v0");
+        register u32 key asm("v1");
+
+        rec  = Mc_SaveData.field_28;
+        i    = 0;
+        hi   = loc->field_3;
+        key  = loc->field_2;
+        hi <<= 8;
+        key  = hi | key;
+        for (; i < 0x1F; i++, rec++) {
+            if ((rec->field_A & 0xFFF) != key) {
+                break;
+            }
+        }
+        for (; i < 0x1F; i++, rec++) {
+            rec[0] = rec[1];
+        }
+    }
+    rec->field_3 = arg0->field_4B;
+    rec->field_A = arg0->field_8;
+    rec->field_4 = coord->coord.t[0];
+    rec->field_6 = coord->coord.t[1];
+    rec->field_8 = coord->coord.t[2];
+    Gfx_MatrixToEuler(&coord->coord, euler);
+    euler->vx               = (s16)euler->vx >> 8;
+    rec->field_0            = euler->vx;
+    euler->vy               = (s16)euler->vy >> 8;
+    rec->field_1            = euler->vy;
+    euler->vz               = (s16)euler->vz >> 8;
+    rec->field_2            = euler->vz;
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B4AF8);
 

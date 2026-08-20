@@ -9187,6 +9187,25 @@ Free paths after a `jal` must rematerialize with a bare
 `*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8` (do not keep the
 `scratch` local live across the call). `CdCmd_EnqueueLoadFile` is the pure example.
 
+## Nested `register asm` blocks so `$v0`/`$v1` can be reused
+
+The 8-byte scratch alloc above wants `$v1` = `G_SCRATCH_HEAD` and `$v0` =
+head (`addiu v0, -8; move s1, v0; sw s1`). A later packed key wants the
+same two registers for a different pair:
+
+```
+lbu    v0, 3(a3)
+lbu    v1, 2(a3)
+sll    v0, v0, 8
+or     v1, v0, v1
+```
+
+Pinning both pairs at function scope collides. Give each pair its own
+block-scope `register … asm("v0")` / `asm("v1")` so the live ranges do
+not overlap. For the `or v1, v0, v1` form, load hi then lo then
+`hi <<= 8; key = hi | key` (a single `(hi << 8) | lo` emits
+`or v1, v1, v0`). `func_800B48FC` is the example.
+
 ## `s8` stack slots for signed `li` of negative byte constants
 
 Under `-funsigned-char`, `u8 param2[4]; param2[i] = -8` emits `li v0, 0xf8`.

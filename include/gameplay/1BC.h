@@ -22,6 +22,8 @@
 /// 0x80 into `field_4E` or claims a `field_54` slot via `func_800E1C58`.
 /// `field_40` is the signed value passed to `func_800A6A9C`; `field_50`
 /// is the same `GpPairSrcE*` slot as `GpObj50` / `GpObj5C` / `GpObj5D`.
+/// `field_4B` is a non-zero occupancy tag written into `McPosRec.field_3`
+/// by `func_800B48FC` (defaulted to 1 when the caller left it 0).
 typedef struct _GpEnemy {
     /* 0x00 */ Task*       task;
     /* 0x04 */ byte        pad_4[4];
@@ -32,7 +34,9 @@ typedef struct _GpEnemy {
     /* 0x18 */ void*       field_18;
     /* 0x1C */ byte        pad_1C[0x24];
     /* 0x40 */ s16         field_40;
-    /* 0x42 */ byte        pad_42[0xC];
+    /* 0x42 */ byte        pad_42[9];
+    /* 0x4B */ u8          field_4B;
+    /* 0x4C */ byte        pad_4C[2];
     /* 0x4E */ u8          field_4E;
     /* 0x4F */ byte        pad_4F;
     /* 0x50 */ GpPairSrcE* field_50;
@@ -344,6 +348,7 @@ void       func_800B46A4(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3);
 void       func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3);
 void       func_800B47A8(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6,
                          void* arg7);
+void       func_800B48FC(GpEnemy* arg0);
 void       func_800B56AC(void);
 void       func_800B57EC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
 GpWorkObj* func_800B584C(u16 arg0);
