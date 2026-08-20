@@ -38,7 +38,8 @@ typedef struct _TmdObject {
     /* 0x25 */ u8                 field_25;
     /* 0x26 */ u8                 field_26;
     /* 0x27 */ u8                 field_27;
-    /* 0x28 */ byte               unknown_28[0x8];
+    /* 0x28 */ byte               unknown_28[0x4];
+    /* 0x2C */ s32                field_2C; // lighting intensity (>> 5 into RGB)
     /* 0x30 */ s32                field_30;
 } TmdObject;
 STATIC_ASSERT_SIZEOF(TmdObject, 0x34);

@@ -54,7 +54,9 @@ extern u8             D_80114BF0[];
 extern TaskFuncTable6 D_80093830;
 extern s32            D_80070F60;
 extern char           D_80093804[]; // "new_disp_2d ----> NULL\n"
+extern CVECTOR        D_8009381C;
 extern CVECTOR        D_80093820;
+extern CVECTOR        D_80093824;
 extern char           D_80093870[]; // "Item"
 extern s32            D_8005ED70;
 extern s32            D_8005ED74;
@@ -575,7 +577,71 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009AC58);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009AF90);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009B2F4);
+u32* func_8009B2F4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+{
+    TmdScratchModelBlock* ws;
+    s32                   prev;
+    s32                   count;
+    u32                   idx;
+    u16*                  rec;
+    CVECTOR               col;
+    CVECTOR               col2;
+    u8*                   dest;
+    s32                   val;
+    s32                   inv;
+
+    ws = arg0;
+    __asm__ volatile("" : "+r"(ws));
+    col    = D_80093824;
+    col2   = D_8009381C;
+    val    = ws->field_80->field_2C >> 5;
+    inv    = 0x80 - val;
+    col.b  = val;
+    col.g  = val;
+    col.r  = val;
+    col2.b = inv;
+    col2.g = inv;
+    col2.r = inv;
+    count  = ws->field_1C;
+    if (count == 0) {
+        return arg2;
+    }
+    prev         = -1;
+    ws->field_1C = count + prev;
+    if (count > 0) {
+        do {
+            rec = (u16*)arg2;
+            idx = rec[0];
+            if (idx != prev) {
+                gte_ldv0((u8*)ws->field_8 + (idx & 0xFFF8));
+                gte_rtps_real();
+                gte_stsz(&ws->field_28);
+                gte_stflg(&ws->field_24);
+                if (ws->field_24 & 0x80000000) {
+                    ws->field_28 |= 0x80000000;
+                }
+                ws->field_10[*(u16*)arg2 >> 3] = ws->field_28;
+            }
+            prev = rec[0];
+            dest = ws->field_4 + rec[2] + 4;
+            gte_stsxy(dest);
+            dest = ws->field_4 + rec[3] + 4;
+            gte_stsxy(dest);
+            gte_stsxy(&ws->field_7C);
+            gte_ldv0((u8*)ws->field_C + (rec[1] & 0xFFF8));
+            gte_ldrgb(&col);
+            gte_nccs_real();
+            gte_strgb(ws->field_4 + rec[2]);
+            gte_ldrgb(&col2);
+            gte_nccs_real();
+            gte_strgb(ws->field_4 + rec[3]);
+            gte_rtv0_real();
+            gte_stsv(&ws->field_74);
+            arg2 += ws->field_18;
+        } while (ws->field_1C-- > 0);
+    }
+    return arg2;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009B500);
 
