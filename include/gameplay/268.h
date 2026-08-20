@@ -252,6 +252,12 @@ void        func_800B996C(struct _UiObject* arg0, Task* arg1);
 /// `D_8010D384`. `func_800D2F68` is called with `spawnArg1` forced to 0x1C.
 void        func_800B9B40(struct _UiObject* arg0, Task* arg1);
 s32         func_800B9D80(s32 arg0);
+/// Unequips `Wip_SysConfig.field_21` (ids 1..32 use the same slot clear as
+/// `func_800BB0CC`), resets the `D_8010D520` item table, copies that scan
+/// into `Mc_SaveData.field_5BC`, adds one of item 0x6C, heals current HP/MP
+/// to max, zeros the 4x3 `D_80114BF0` table, and clears `D_80114C08.field_5`
+/// / `field_B`.
+void        func_800BA538(void);
 void        func_800B8014(void);
 /// Moves the item at scan slot `arg1` onto slot `arg2`, shifting the
 /// occupied rows between them toward the hole left at `arg1`.

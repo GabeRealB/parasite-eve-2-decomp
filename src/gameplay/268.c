@@ -18,6 +18,7 @@
 extern u16          D_800739B8;
 extern GpItemRec*   D_80114DD4;
 extern UiObjectDesc D_8010D384;
+extern u8           D_80114BF0[];
 
 void func_80180804(void);
 void func_8017EA68(void);
@@ -1145,7 +1146,120 @@ void func_800B9B40(UiObject* arg0, Task* arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800B9D80);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BA538);
+void func_800BA538(void)
+{
+    WipSysConfig*        cfg;
+    register s32         item asm("a1");
+    GpItemSlot*          slot;
+    s32                  found;
+    register s32         i asm("a0");
+    GpItemMap*           p;
+    GpItemScan*          scan;
+    GpItemRec*           tmp;
+    register GpItemRec*  table asm("v1");
+    s32                  count;
+    s32                  start;
+    s32                  off;
+    register McSaveData* save asm("v0");
+    GpItemScan*          dest;
+    register GpItemScan* src asm("t4");
+    WipSysConfig*        pcfg;
+    u16                  hp;
+    u16                  mp;
+    u8*                  levels;
+    s32                  col;
+    GpStateC08*          state;
+    s32                  val;
+
+    cfg = &Wip_SysConfig;
+    val = cfg->field_21;
+    if (val != 0) {
+        asm volatile("");
+        asm("addiu %0, %1, 0x7F" : "=r"(item) : "r"(val));
+        if ((u32)(val - 1) < 0x20U) {
+            found = 0;
+            slot  = &Mc_SaveData.field_1C8[item];
+            for (i = found, p = D_8010D2F8; i < 8; i++, p++) {
+                if (item == p->field_1) {
+                    found = 1;
+                    break;
+                }
+            }
+            if ((found == 0) || (D_8010D2F8[i].field_0 != 0)) {
+                slot->field_0 = 0;
+                slot->field_1 = 0;
+            }
+            if ((found == 0) || (D_8010D2F8[i].field_0 != 1)) {
+                if (slot->field_2 != 0xFF) {
+                    slot->field_2 = 0;
+                }
+                slot->field_3 = 0;
+            }
+            asm volatile("" ::"r"(i));
+        }
+        cfg->field_21 = 0;
+    }
+
+    scan = &D_8010D520;
+    switch (scan->field_2) {
+        case 2:
+            tmp = D_80114C20;
+            break;
+        case 1:
+            tmp = D_80114D70;
+            break;
+        default:
+            tmp = Mc_SaveData.field_1AC;
+            break;
+    }
+    table = tmp;
+    i     = 0;
+    count = scan->field_1;
+    start = scan->field_0;
+    if (count != 0) {
+        off   = start << 2;
+        table = (GpItemRec*)(off + (s32)table);
+        do {
+            i++;
+            table->field_0 = 0;
+            table->field_1 = 0;
+            table->field_2 = 0;
+            table++;
+        } while (i < scan->field_1);
+    }
+
+    save = &Mc_SaveData;
+    dest = &save->field_5BC;
+    asm volatile("lui %0, %%hi(D_8010D520)" : "=r"(table));
+    item = 0x6C;
+    asm volatile("" ::"r"(item));
+    asm volatile("addiu %0, %1, %%lo(D_8010D520)" : "=r"(src) : "r"(table));
+    asm volatile("" ::"r"(table));
+    *dest = *src;
+    func_800B8CAC(dest, item, 1);
+    func_800B7A50(0x6C);
+
+    pcfg           = &Wip_SysConfig;
+    hp             = pcfg->field_1a;
+    mp             = pcfg->field_1e;
+    pcfg->field_18 = hp;
+    pcfg->field_1c = mp;
+    func_800B6CF0();
+
+    item   = 0;
+    levels = D_80114BF0;
+    i      = item;
+    for (; item < 4; item++, i += 3) {
+        for (col = 0; col < 3; col++) {
+            *(u8*)((col + i) + (s32)levels) = 0;
+        }
+    }
+    D_80114BF0[0] = 1;
+
+    state          = &D_80114C08;
+    state->field_5 = 0;
+    state->field_B = 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/268", func_800BA75C);
 

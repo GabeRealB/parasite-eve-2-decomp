@@ -23803,3 +23803,44 @@ cfg->field_18 = cfg->field_1a;
 
 Calling `func_800BC0C0()` instead emits a `jal` and reallocates those
 pointers into callee-saved regs. `func_800B9B40` is the example.
+
+## Split an unaligned 4-byte copy so `lui` / `li a1` / `addiu $t4` match the jal args
+
+`save->field_5BC = D_8010D520; func_800B8CAC(&save->field_5BC, 0x6C, 1)`
+schedules `li a1, 0x6C` *before* `lui %hi(D_8010D520)`. The target wants:
+
+```
+addiu  a0, v0, 0x5BC
+lui    v1, %hi(D_8010D520)
+li     a1, 0x6C
+addiu  t4, v1, %lo(D_8010D520)
+lwl/lwr/swl/swr
+jal    func_800B8CAC
+ li    a2, 1
+```
+
+Pin the save pointer to `$v0` and the copy source to `$t4`. Emit the `la`
+as a volatile `lui` into a live `$v1` temp, materialize the `0x6C` (pinned
+`$a1`) *before* the `%lo` `addiu`, then keep that `$v1` live so the `%lo`
+cannot reuse it:
+
+```c
+register McSaveData* save asm("v0");
+register GpItemScan* src asm("t4");
+register GpItemRec*  table asm("v1");
+
+save = &Mc_SaveData;
+dest = &save->field_5BC;
+asm volatile("lui %0, %%hi(D_8010D520)" : "=r"(table));
+item = 0x6C;
+asm volatile("" ::"r"(item));
+asm volatile("addiu %0, %1, %%lo(D_8010D520)" : "=r"(src) : "r"(table));
+asm volatile("" ::"r"(table));
+*dest = *src;
+func_800B8CAC(dest, item, 1);
+```
+
+A 4x3 byte-clear of `D_80114BF0` then wants `addu v0, v0, a2` (index first).
+`levels[col + i] = 0` is `addu v0, a2, v0`. Write
+`*(u8*)((col + i) + (s32)levels) = 0` inside `for (; item < 4; item++, i += 3)`.
+`func_800BA538` is the example.
