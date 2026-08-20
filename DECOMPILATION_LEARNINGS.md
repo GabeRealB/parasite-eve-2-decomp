@@ -24627,3 +24627,40 @@ tooFar = (u32)sq < (u32)lum;
 `register s32 lum asm("v1")` then coalesces the compare into
 `sltu v1, v0, v1`. Leave `lum` unpinned so the dest stays `$v0`.
 `func_800D70E4` is the example.
+
+## `three = 3` hoists into `$v1` and steals the `lhu` id; idx/off coalesce
+
+A merged `func_800BB470` + `func_800BAC34` body wants:
+
+```
+lhu    v1, 0(s1)          # id
+lw     v0, Game_Session
+sra    a0, v1, 4          # idx
+sll    a3, a0, 2          # off, idx stays in $a0
+andi   v1, v1, 0xf
+lbu    v0, 7(v0)
+sll    a1, v1, 1          # shift
+...
+lw     v0, 4(v0)          # flags
+li     v1, 3              # delay slot; $v1 reused after id dies
+addu   v0, v0, a3
+lw     v0, 0(v0)
+sllv   a2, v1, a1         # mask
+```
+
+`s32 three = 3` (or a literal `3 << shift` computed after the flags load)
+is independent, so `-fschedule-insns` lifts `li v1, 3` to the top of the
+block. That occupies `$v1` for the whole block, so `id` lands in `$a0`
+and `idx`/`off` coalesce (`sra a1` / `sll a1, a1, 2`). Reassigning
+`id = 3` after `shift = id << 1` delays the `li` (same pseudo) but the
+long live range loses `$v1` to `mask` (`id` in `$a1`, `sllv` for
+`field_7 << 3` instead of `sll 3`).
+
+`asm volatile("" :: "r"(idx))` after `off = idx << 2` stops the
+coalesce and can recover `shift` in `$a1` / `mask` in `$a2` / delayed
+`li v1, 3`, but the extra live range of `idx` overlaps `sess` and the
+`UiObject*` from `spawnArg2`, swapping `$t0`/`$a3` (obj vs off) and
+`$v0`/`$v1` (Game_Session vs `D_8010D230`). Nested
+`register ... asm("a0")` (etc.) is function-wide in 2.8.1 and breaks
+the earlier `Ui_SpawnFromDesc` `xori a1, 1`. `func_800B65B0` is the
+example; not fully matched.
