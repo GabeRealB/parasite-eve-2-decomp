@@ -25137,3 +25137,22 @@ Emit the pair (non-volatile, so the scheduler can place them):
 
 Same split-`la` style as `func_800B6950` / `func_800C9654`. `func_800A9E44`
 is the example.
+
+## Separate vertex-base locals so each `gte_ldv3` can overwrite `$a0`
+
+Two `gte_ldv3(base + (idx & 0xFFF8), ...)` calls that share one `verts`
+local keep that pointer live, so the first call loads `rec[0]` into `$a0`
+and puts the third vertex in `$v0`. The target loads `rec[0]` into `$a1`,
+`base` into `$a0`, then overwrites `$a0` with the third vertex. Give each
+load its own base so the pointer dies at `gte_ldv3`:
+
+```c
+verts = (u8*)ws->field_8;
+gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
+...
+norms = (u8*)ws->field_C;
+gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8));
+```
+
+`func_8009CED0` is the example. Same `$a1`/`$a0`/`$v1`/`$v0` pattern as a
+single-`gte_ldv3` handler (`func_8009D388`).

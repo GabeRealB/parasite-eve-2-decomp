@@ -70,6 +70,7 @@ extern s32            D_80115724;
 #define gte_nclip_real() __asm__ volatile("nop; nop; .word 0x4B400006")
 #define gte_avsz3_real() __asm__ volatile("nop; nop; .word 0x4B58002D")
 #define gte_avsz4_real() __asm__ volatile("nop; nop; .word 0x4B68002E")
+#define gte_ncct_real()  __asm__ volatile("nop; nop; .word 0x4B18043F")
 
 #define gte_ldsxy3_fifo(p)             \
     __asm__ volatile("lw $14, -8(%0);" \
@@ -584,7 +585,60 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009C024);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009C414);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009CED0);
+u32* func_8009CED0(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+{
+    TmdScratchModelBlock* ws;
+    POLY_GT3*             poly;
+    s32*                  opz;
+    DisplayState*         ds;
+    u32                   mask;
+    u32                   maskHi;
+    u16*                  rec;
+    u8*                   verts;
+    u8*                   norms;
+
+    ws   = arg0;
+    poly = (POLY_GT3*)ws->field_0;
+    if (ws->field_1C-- > 0) {
+        opz    = &ws->field_28;
+        ds     = &Display_State;
+        mask   = 0xFFFFFF;
+        maskHi = 0xFF000000;
+        do {
+            rec   = (u16*)arg2;
+            verts = (u8*)ws->field_8;
+            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
+            gte_rtpt_real();
+            gte_stflg(&ws->field_24);
+            if (ws->field_24 >= 0) {
+                gte_nclip_real();
+                gte_stopz(opz);
+                if (ws->field_28 > 0) {
+                    gte_ldrgb(arg2 + 3);
+                    gte_stsxy3_gt3(poly);
+                    gte_avsz3_real();
+                    norms = (u8*)ws->field_C;
+                    gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8));
+                    gte_ncct_real();
+                    gte_strgb3_gt3(poly);
+                    setlen(poly, 9);
+                    setcode(poly, 0x34);
+                    if (ws->field_80->field_C & 2) {
+                        setcode(poly, 0x36);
+                    }
+                    gte_stotz(opz);
+                    poly->tag = (poly->tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->field_128) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
+                    *(u_long*)(((((u32)ws->field_28 << ds->field_128) >> 2) & 0xFFC) + (s32)ws->field_14) =
+                        (*(u_long*)(((((u32)ws->field_28 << ds->field_128) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)poly & mask);
+                }
+            }
+            poly++;
+            arg2 += ws->field_18;
+        } while (ws->field_1C-- > 0);
+    }
+    ws->field_0 = (u8*)poly;
+    return arg2;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009D0DC);
 
