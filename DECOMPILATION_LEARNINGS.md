@@ -24395,3 +24395,75 @@ lhu    v0, 0(v0)
 ```
 
 `func_800A1CD0` is the example.
+
+## `goto` the spawn body so a shared kill is fall-through between `slt` and `jal`
+
+An effect task that kills on `flag >= 4` *and* on `count >= limit`, else
+spawns, wants kill as the join of both compares, with spawn as the
+`bnez` target:
+
+```
+slti   v0, flag, 4
+beqz   v0, kill
+...
+slt    v0, count, limit
+bnez   v0, spawn
+ lui    a0, 0x6
+move   a0, mem
+kill:
+jal    func_800EC7E4
+move   a1, task
+j      epilogue
+nop
+spawn:
+ori    a0, a0, ...
+```
+
+Nested
+
+```c
+if (flag < 4) {
+    /* init / draw */
+    if (count < limit) {
+        spawn();
+        return;
+    }
+}
+kill();
+```
+
+inverts the inner compare (`beqz` skip-to-kill) and emits spawn first,
+then a `j epilogue` over a trailing kill. Jump *to* the spawn block so
+kill stays the `flag >= 4` / `count >= limit` fall-through:
+
+```c
+if (flag < 4) {
+    /* init / draw */
+    if (count < limit) {
+        goto spawn;
+    }
+}
+kill();
+return;
+spawn:
+    spawn();
+```
+
+`func_800F9474` is the example.
+
+## Unsigned `* 3u >> 4` reuses `state = 1` as `sllv` then `srl`
+
+`field = (u16)spawnArg1 * 3 / 16` as signed int emits the signed-div
+bias (`sra` + add). After `arg0->state = 1` (`li v0, 1` / `sw`), write
+`((u16)spawnArg1 * 3u) >> 4` so that 1 is the `sllv` shift amount:
+
+```
+li     v0, 1
+sw     v0, state
+lhu    v1, spawnArg1
+sllv   v0, v1, v0      # << 1
+addu   v0, v0, v1      # * 3
+srl    v0, v0, 4
+```
+
+`func_800F9474` is the example.

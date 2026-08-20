@@ -24,6 +24,7 @@
 #include <psyq/rand.h>
 
 #define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
+#define gte_gpf12_real()  __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 extern TaskDesc       D_80113340[];
 extern GpEffArg       D_80113358;
@@ -100,7 +101,59 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F8A38);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F91AC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F9474);
+void func_800F9474(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    s16            flag;
+    GpEffWork*     spawned;
+    s32            temp;
+
+    mem   = arg0->spawnArg2;
+    flag  = D_80115740->field_4;
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    if (flag < 4) {
+        if (arg0->state == 0) {
+            coord->sub        = mem->field_8;
+            coord->coord.t[0] = mem->field_18;
+            coord->coord.t[1] = mem->field_1A;
+            coord->coord.t[2] = mem->field_1C;
+            coord->flg        = 0;
+            arg0->state       = 1;
+            mem->field_24     = ((u16)arg0->spawnArg1 * 3u) >> 4;
+            temp              = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+            mem->field_26     = temp;
+            mem->field_28     = temp << 2;
+            if (((u16)mem->field_18 | (u16)mem->field_1A | (u16)mem->field_1C) == 0) {
+                D_80070F60    = D_80070F60 * 5 + 0x71357911;
+                mem->field_18 = (((u32)D_80070F60 >> 16) & 0xFFF) - 0x800;
+                D_80070F60    = D_80070F60 * 5 + 0x71357911;
+                mem->field_1A = (((u32)D_80070F60 >> 16) & 0xFFF) - 0x800;
+                D_80070F60    = D_80070F60 * 5 + 0x71357911;
+                mem->field_1C = (((u32)D_80070F60 >> 16) & 0xFFF) - 0x800;
+            }
+            VectorNormalSS((SVECTOR*)&mem->field_18, (SVECTOR*)&mem->field_10);
+        }
+        func_80098F58(coord);
+        if (D_80115740->field_4 != 0) {
+            return;
+        }
+        if (mem->field_22 < mem->field_28) {
+            goto spawn;
+        }
+    }
+    func_800EC7E4(mem, arg0);
+    return;
+spawn:
+    spawned = func_800EA478(0x60055, coord, 0x12200, 0);
+    if (spawned != NULL) {
+        gte_lddp(mem->field_24 - mem->field_22 * (mem->field_26 + 5));
+        gte_ldsv(&mem->field_10);
+        gte_gpf12_real();
+        gte_stsv(&spawned->field_10);
+    }
+    mem->field_22++;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F96B0);
 

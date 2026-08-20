@@ -150,9 +150,12 @@ STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 /// `field_8` is the parent coordinate copied onto `GsCOORDINATE2.sub`.
 /// `field_10` is the 3-halfword overlay `func_800FE41C` passes to
 /// `func_800EA478`; `func_800FBEBC` also zeros `field_10` / `field_14` on
-/// first run. `field_12` is the per-frame Y step (`0xFFF0` minus an LCG nibble
-/// in `func_800FBEBC`). `field_18` / `field_1A` / `field_1C` are sign-extended
-/// into `coord.t[]` on first run. `field_20` is the spawn-wave count
+/// first run. `func_800F9474` treats `field_10` / `field_18` as `SVECTOR`s
+/// (`VectorNormalSS` of `field_18` into `field_10`, then GPF-scales `field_10`
+/// onto the spawned work). `field_12` is the per-frame Y step (`0xFFF0` minus
+/// an LCG nibble in `func_800FBEBC`). `field_18` / `field_1A` / `field_1C` are
+/// sign-extended into `coord.t[]` on first run. If they are all zero,
+/// `func_800F9474` fills them from three LCG draws centered on 0. `field_20` is the spawn-wave count
 /// (`func_800FC74C`) or the draw-step counter that `func_800FBEBC` increments
 /// every 4 `field_22` ticks and kills at 8. `field_22` is the step counter
 /// (`func_800F1364` / `func_800F1A9C` / `func_800F5184` / `func_800FBEBC` /
@@ -562,6 +565,7 @@ void func_800F5184(Task* arg0);
 void func_800F52B4(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
 void func_800F75BC(Task* arg0);
 void func_800F7AD4(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
+void func_800F9474(Task* arg0);
 void func_800FB67C(Task* arg0);
 void func_800FBEBC(Task* arg0);
 void func_800FC500(Task* arg0);
