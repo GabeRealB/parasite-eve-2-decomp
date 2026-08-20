@@ -24771,3 +24771,65 @@ if (j < n) {
 
 `addiu v1, t3, 4` stays after `addu a3, v1, v0`; `addu a3, a3, v1`
 fills the `beqz`. `func_800B8588` is the example.
+
+## Shared `index = arg0` tail so type 6/3/2 emit `j` / `li` into `move s2, a0`
+
+Classifying an id into `(type, index)` wants types 6, 3, and 2 to share
+`index = arg0`. Writing `index = arg0` in each arm emits `li type` /
+`move index, a0` / `j join`. Jump to a shared assignment with `li type`
+in the delay, and skip that assignment when index is already packed:
+
+```c
+if (arg0 >= 0x500) {
+    type = 6;
+    goto set_index;
+}
+if (arg0 >= 0x300) {
+    type  = 7;
+    index = packed;
+    goto after_index;
+}
+if ((u32)(arg0 - 1) < 0x5FU) {
+    type = 3;
+    goto set_index;
+}
+type = 2;
+set_index:
+index = arg0;
+after_index:
+```
+
+`func_800C5C2C` is the example.
+
+## `idx = (x & 0xFF) << 2` before `p = arr` so `sll` precedes `addiu p`
+
+`p[slot] = -1` after a loop whose exit delay already has `andi v0, arg, 0xFF`
+wants `sll v0, 2` / `addiu s0, sp, flags` / `addu v0, s0, v0` / `jal` delay
+`sw -1`. Assigning `p = arr` first emits `addiu` then `sll`. Compute the
+byte offset first so the already-live `$v0` is shifted immediately:
+
+```c
+idx = (arg1 & 0xFF) << 2;
+p   = blk.flags;
+*(s32*)((s32)p + idx) = -1;
+CdCmd_DropPending();
+```
+
+`func_800C5C2C` is the example.
+
+## Pin `off` to `$v1` as three adds so `base + i*8 + 0x10` is not strength-reduced
+
+`saved[i]` as `base + i*8 + 0x10` in a counted do-while becomes a walking
+pointer (`sll v0` / `addu a0, s4, v0` / `addiu v1, a0, 0x10` / `lbu 0x10(a0)`).
+Three assignments into a `$v1` temp keep `sll v1, s1, 3` in the `beq == -1`
+delay, then `addu v1, s4` / `addiu v1, 0x10`:
+
+```c
+register s32 off asm("v1");
+off = i * 8;
+off = off + (s32)base;
+off = off + 0x10;
+cur = (CdCmdEntry*)off;
+```
+
+`func_800C5C2C` is the example.

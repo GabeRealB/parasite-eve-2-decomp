@@ -1194,7 +1194,158 @@ void func_800C5A5C(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C5C2C);
+typedef struct {
+    s8 idB0;
+    s8 idB1;
+    s8 idB2;
+    s8 idB3;
+    u8 cmd;
+    u8 param0;
+    u8 param1;
+    u8 param2;
+} CdCmdEntryS;
+
+typedef struct {
+    s32        flags[4];
+    CdCmdEntry saved[3];
+    u8         param1[8];
+    u8         param2[8];
+} CdCmdSlotBlk;
+
+void func_800C5C2C(s32 arg0, s32 arg1)
+{
+    CdCmdSlotBlk  blk;
+    CdCmdQueue*   queue;
+    CdCmdEntryS*  entry;
+    s32           index;
+    register s32  type asm("s3");
+    s32           nibble;
+    s32           hi;
+    s32           lo;
+    register s32  minusTwo asm("s0");
+    register s32  three asm("s1");
+    s32*          p;
+    register s32* base asm("s4");
+    register s32  off asm("v1");
+    CdCmdEntry*   cur;
+    register s32  idx asm("v0");
+
+    queue = &CdCmd_Queue;
+    if (arg0 == 0) {
+        return;
+    }
+    if (Display_State.field_112 == -1) {
+        if (Mc_SaveData.field_23 != 0xC) {
+            return;
+        }
+    }
+    if (queue->field_214 == 1) {
+        return;
+    }
+
+    if (arg0 >= 0x500) {
+        type = 6;
+        goto set_index;
+    }
+    if (arg0 >= 0x300) {
+        type   = 7;
+        nibble = arg0 & 3;
+        hi     = (arg0 & 0x30) >> 4;
+        lo     = (arg0 & 0xC) >> 2;
+        if (nibble == 0) {
+            nibble = 1;
+        }
+        index = (hi * 3 + lo) * 3 + nibble;
+        goto after_index;
+    }
+    if ((u32)arg0 >= 0x180U) {
+        return;
+    }
+    if ((u32)(arg0 - 1) < 0x5FU) {
+        type = 3;
+        goto set_index;
+    }
+    if ((u32)(arg0 - 0x60) < 0x20U) {
+        type  = 5;
+        index = arg0 - 0x5F;
+        goto after_index;
+    }
+    if ((u32)(arg0 - 0x80) < 0x20U) {
+        type  = 1;
+        index = arg0 - 0x7F;
+        goto after_index;
+    }
+    if ((u32)(arg0 - 0xA0) < 0x20U) {
+        type  = 4;
+        index = arg0 + 0x61;
+        goto after_index;
+    }
+    type = 2;
+set_index:
+    index = arg0;
+after_index:
+
+    if (arg1 & 0xFF) {
+        D_80114D88 = 1;
+    }
+
+    blk.flags[2] = -1;
+    blk.flags[1] = -1;
+    blk.flags[0] = -1;
+    CdCmd_ResetEntryIter();
+    three    = 3;
+    minusTwo = -2;
+
+    while (1) {
+        entry = (CdCmdEntryS*)CdCmd_NextEntry();
+        if (entry == NULL) {
+            break;
+        }
+        if (entry->idB1 == three) {
+            if ((entry->idB2 == -8) && (entry->idB3 == -3)) {
+                blk.saved[0] = *(CdCmdEntry*)entry;
+                blk.flags[0] = 0;
+                continue;
+            }
+        }
+        if ((entry->idB1 == 0) && (entry->idB2 == 0) && (entry->idB3 == minusTwo)) {
+            blk.saved[1] = *(CdCmdEntry*)entry;
+            blk.flags[1] = 0;
+            continue;
+        }
+        if ((entry->idB1 == three) && (entry->idB2 == 0) && (entry->idB3 == minusTwo)) {
+            blk.saved[2] = *(CdCmdEntry*)entry;
+            blk.flags[2] = 0;
+        }
+    }
+
+    idx                   = (arg1 & 0xFF) << 2;
+    p                     = blk.flags;
+    *(s32*)((s32)p + idx) = -1;
+    CdCmd_DropPending();
+    three = 0;
+    base  = p;
+    do {
+        if (*p != -1) {
+            off           = three * 8;
+            off           = off + (s32)base;
+            off           = off + 0x10;
+            cur           = (CdCmdEntry*)off;
+            blk.param1[3] = cur->param0;
+            blk.param1[2] = cur->param1;
+            blk.param1[0] = cur->param2;
+            blk.param2[0] = cur->idB0;
+            blk.param2[1] = cur->idB1;
+            blk.param2[2] = cur->idB2;
+            blk.param2[3] = cur->idB3;
+            CdCmd_Enqueue(cur->cmd, blk.param1, blk.param2);
+        }
+        three++;
+        p++;
+    } while (three < 3);
+
+    CdCmd_EnqueueLoadFile(type, index & 0xFF, arg1 & 0xFF);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C5F70);
 
