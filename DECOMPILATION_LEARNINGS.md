@@ -17773,6 +17773,17 @@ unsigned type. `func_800CF940` is the example. The bare
 `obj->field_E = -0x5C` stuck at 99.8% with only those two `li`
 encodings different.
 
+The same fold happens for `u8`: `found->field_1 = -1` emits `li v0, 0xff`
+instead of `li v0, -1` (`addiu v0, zero, -1`) in a `beqz` delay. Stage
+`-1` through an `s32` so `sb` keeps the signed immediate:
+
+```c
+neg            = -1;
+found->field_1 = neg;
+```
+
+`func_800B7A50` is the example.
+
 ## Split 0xFFFF sentinels; reuse the id register as the dest pointer
 
 A 2-bit bank writer that walks `-1`-terminated list nodes and

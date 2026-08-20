@@ -241,6 +241,13 @@ extern char*      D_801D6484[];
 
 s32         func_800B7420(s32 arg0);
 void        func_800B7930(void);
+/// Equips item `arg0` (ids `0x60..0x7F`) as `Wip_SysConfig.field_23`
+/// (item id − 0x5F). Marks the new row's `field_1` as −1 and clears the
+/// previous selection, then recomputes max HP/MP (same bodies as
+/// `func_800BC0C0` / `func_800B7930`), refreshes every inventory row with
+/// `func_800B91C8`, and sets the collected bit in `Mc_SaveData.field_6D0`.
+/// `arg0 == 0` only recomputes HP/MP. Both of those paths copy current
+/// HP/MP into `D_80114BE8`; any other id returns without that copy.
 void        func_800B7A50(s32 arg0);
 void        func_800B7D18(void);
 GpItemRec*  func_800BAD08(GpItemScan* arg0, s32 arg1, s32 arg2);

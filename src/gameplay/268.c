@@ -108,7 +108,122 @@ void func_800B7930(void)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800B7A50);
+void func_800B7A50(s32 arg0)
+{
+    WipSysConfig* cfg;
+    GpItemRec*    rec;
+    GpItemRec*    tmp;
+    GpItemScan*   scan;
+    s32           i;
+
+    cfg = &Wip_SysConfig;
+    if ((u32)(arg0 - 0x60) < 0x20U) {
+        if (cfg->field_23 != (arg0 - 0x5F)) {
+            GpItemRec* found;
+            s32        neg;
+
+            found = func_800D6910(arg0);
+            if (found != NULL) {
+                neg            = -1;
+                found->field_1 = neg;
+                if (cfg->field_23 != 0) {
+                    found = func_800D6910(cfg->field_23 + 0x5F);
+                    if (found != NULL) {
+                        found->field_1 = 0;
+                    }
+                }
+                cfg->field_23 = arg0 - 0x5F;
+
+                {
+                    WipSysConfig* p;
+                    McSaveData*   save;
+                    GpStatRow*    table;
+                    u16           val;
+
+                    p           = &Wip_SysConfig;
+                    table       = D_8010D328;
+                    save        = &Mc_SaveData;
+                    val         = table[save->field_F].field_0;
+                    p->field_1a = val;
+                    val        += save->field_26;
+                    p->field_1a = val;
+                    if (p->field_23 != 0) {
+                        val        += D_8010E2B8[p->field_23 - 1].field_4;
+                        p->field_1a = val;
+                    }
+                    if (p->field_1a >= 0xFB) {
+                        p->field_1a = 0xFA;
+                    }
+                    if (p->field_18 > p->field_1a) {
+                        p->field_18 = p->field_1a;
+                    }
+
+                    scan = &save->field_5BC;
+                    func_800B7930();
+                    switch (scan->field_2) {
+                        case 2:
+                            tmp = D_80114C20;
+                            break;
+                        case 1:
+                            tmp = D_80114D70;
+                            break;
+                        default:
+                            tmp = save->field_1AC;
+                            break;
+                    }
+                }
+                i   = 0;
+                rec = &tmp[scan->field_0];
+                if (scan->field_1 != 0) {
+                    do {
+                        func_800B91C8(rec);
+                        i++;
+                        rec++;
+                    } while (i < scan->field_1);
+                }
+
+                {
+                    McSaveData* p;
+                    s32         word;
+                    s32         bit;
+
+                    word = arg0 / 32;
+                    bit  = 1 << (arg0 % 32);
+                    if ((u32)arg0 < 0x180U) {
+                        p                   = &Mc_SaveData;
+                        p->field_6D0[word] |= bit;
+                    }
+                }
+            }
+        }
+    } else if (arg0 == 0) {
+        McSaveData* save;
+        GpStatRow*  table;
+        u16         val;
+
+        table         = D_8010D328;
+        save          = &Mc_SaveData;
+        val           = table[save->field_F].field_0;
+        cfg->field_1a = val;
+        val          += save->field_26;
+        cfg->field_1a = val;
+        if (cfg->field_23 != 0) {
+            val          += D_8010E2B8[cfg->field_23 - 1].field_4;
+            cfg->field_1a = val;
+        }
+        if (cfg->field_1a >= 0xFB) {
+            cfg->field_1a = 0xFA;
+        }
+        if (cfg->field_18 > cfg->field_1a) {
+            cfg->field_18 = cfg->field_1a;
+        }
+        func_800B7930();
+    } else {
+        return;
+    }
+    D_80114BE8.field_0 = cfg->field_18;
+    D_80114BE8.field_4 = cfg->field_1c;
+}
 
 void func_800B7D18(void)
 {
