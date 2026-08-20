@@ -24833,3 +24833,31 @@ cur = (CdCmdEntry*)off;
 ```
 
 `func_800C5C2C` is the example.
+
+## Join `SetHolderParam` text in `$a0` and kill REG_EQUAL on the 0s
+
+`Ui_SetHolderParam(text, 0, 0)` immediately followed by `func_800CDE80(item, 0)`
+with `item` in `$s0` copy-props both 0s: `move a1, zero` / `jal` /
+`move a2, zero`. The target reuses the first 0 as `move a2, a1` in the delay
+and still has `li a1, 1` in the `bnez item` delay of the empty-slot path.
+
+Inlining `SetHolderParam(func_800B8EB0(item, 1, 0), 0, 0)` keeps that `li a1, 1`
+but still copy-props `$a2`. Split the join so the text lives in `$a0` and `$a1`
+is 1 then 0, and kill REG_EQUAL on the 0:
+
+```c
+register s32 t asm("a0");
+register s32 a1v asm("a1");
+a1v = 1;
+if (item == 0) {
+    t = (s32)emptyStr;
+} else {
+    t = (s32)func_800B8EB0(item, a1v, 0);
+}
+a1v = 0;
+asm("" : "+r"(a1v));
+Ui_SetHolderParam(t, a1v, a1v);
+func_800CDE80(item, 0);
+```
+
+`func_800C26B8` is the example.

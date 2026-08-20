@@ -45,6 +45,7 @@ extern s32            D_80114E90;
 extern s32            D_80114E94;
 extern char           D_8010E460[];
 extern char           D_8010E478[];
+extern char           D_8010E480[];
 extern char           D_8010E494[];
 extern char           D_8010E4A0[];
 extern char           D_8010E4AC[];
@@ -900,7 +901,194 @@ void func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     func_8002E53C(&req, Text_ItoaSigned(buf, arg3));
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C26B8);
+void func_800C26B8(DialogPrompt* arg0, UiObject* arg1)
+{
+    register s32         hi asm("s0");
+    register McItemScan* scan asm("s1");
+    register s32         remaining asm("s2");
+    register GpItemRec*  sel asm("s4");
+    register s32         item asm("s0");
+    s32                  status;
+    s32                  one;
+    s32                  temp;
+    s32                  idx1;
+    s32                  idx2;
+    UiObject*            obj;
+
+    asm("lui %0, %%hi(Mc_SaveData+0x5BC)" : "=r"(hi));
+    asm("addiu %0, %1, %%lo(Mc_SaveData+0x5BC)" : "=r"(scan) : "r"(hi));
+    remaining = arg0->field_8;
+    {
+        register GpItemRec* found asm("a1");
+        register GpItemRec* table asm("a2");
+        register s32        ok asm("a3");
+        register s32        loopOne asm("t3");
+        register s32        i asm("t0");
+        register s32        idx asm("v1");
+        WipSysConfig*       p;
+        GpItemRec*          rec;
+        s32                 count;
+        s32                 n;
+        s32                 id;
+
+        rec   = func_800BB500(scan);
+        found = NULL;
+        i     = (s32)found;
+        asm("lbu %0, %%lo(Mc_SaveData+0x5BC)(%1)" : "=r"(idx) : "r"(hi));
+        count = scan->field_1;
+        asm volatile("sll %0, %0, 2" : "+r"(idx));
+        table = (GpItemRec*)((s32)rec + idx);
+        if (count != 0) {
+            p       = &Wip_SysConfig;
+            loopOne = 1;
+            n       = count;
+            do {
+                ok = 1;
+                id = table->field_0;
+                if ((s8)table->field_1 != 0) {
+                    ok = 0;
+                } else if (((u32)(id - 0x60) < 0x20U) && (p->field_23 == id - 0x5F)) {
+                    ok = 0;
+                } else if (((u32)(id - 0x80) < 0x20U) && (p->field_21 == id - 0x7F)) {
+                    ok = 0;
+                }
+                if (ok == loopOne) {
+                    remaining--;
+                }
+                if (remaining < 0) {
+                    found = table;
+                    break;
+                }
+                i++;
+                table++;
+            } while (i < n);
+        }
+        sel = found;
+    }
+    if (sel == NULL) {
+        func_800CEF68(arg0, arg1);
+        return;
+    }
+
+    item   = sel->field_0;
+    status = arg1->status;
+    if (((status >> 16) == 1) || (status == 1)) {
+        if (arg0->field_10 == arg0->field_8) {
+            if (D_80114D8C == 0) {
+                register s32 t asm("a0");
+                register s32 a1v asm("a1");
+                a1v = 1;
+                if (item == 0) {
+                    t = (s32)D_8010F8D0;
+                } else {
+                    t = (s32)func_800B8EB0(item, a1v, 0);
+                }
+                a1v = 0;
+                asm("" : "+r"(a1v));
+                Ui_SetHolderParam(t, a1v, a1v);
+                func_800CDE80(item, 0);
+            } else {
+                Ui_SetHolderParam((s32)D_8010E480, 0, 0);
+            }
+        }
+    }
+
+    if (D_80114D8C == 1) {
+        if (arg0->field_C != 1) {
+            if (sel == (GpItemRec*)D_80114DD4) {
+                arg0->field_1C = 0x37A78;
+            }
+        }
+    }
+
+    {
+        s32         x;
+        s32         y;
+        s32         color;
+        u8          buf[0x20];
+        TextDrawReq req;
+        s32         qty;
+        s32         baseY;
+
+        x     = arg0->field_18;
+        y     = arg0->field_1A;
+        color = arg0->field_1C;
+        if (sel != NULL) {
+            if ((u32)(sel->field_0 - 0xA0) < 0x20U) {
+                qty            = sel->field_2 - func_800BAFF4(&Mc_SaveData.field_5BC, sel->field_0);
+                req.x          = arg1->baseX + 0x84 + x;
+                baseY          = arg1->baseY - 3;
+                req.y          = baseY + y;
+                req.otIndex    = (s16)arg1->drawOrder + 1;
+                req.field_8    = color;
+                req.glyphTable = 5;
+                req.centerMode = 2;
+                req.field_E    = 0;
+                func_8002E53C(&req, Text_ItoaSigned(buf, qty));
+                Ui_LayoutWithMode0(arg1, (void*)(x + 0x69), (void*)(y - 8), (void*)0x1B, (void*)7,
+                                   (void*)0x102010);
+            }
+        }
+    }
+
+    {
+        s32         x;
+        s32         y;
+        s32         color;
+        TextDrawReq req;
+        s32         baseY;
+
+        x     = arg0->field_18;
+        y     = arg0->field_1A;
+        color = arg0->field_1C;
+        one   = 1;
+        if (arg1->mode != 5) {
+            req.x          = arg1->baseX + 0x11 + x;
+            baseY          = arg1->baseY - 6;
+            req.y          = baseY + y;
+            req.otIndex    = (s16)arg1->drawOrder + 1;
+            req.field_8    = color;
+            req.glyphTable = 0;
+            req.centerMode = 0;
+            req.field_E    = 1;
+            func_8002E53C(&req, func_800B8EB0(item, 0, 0));
+            func_800C22D8(arg1, x, y, item, one);
+            temp = item - 0xF;
+            if ((u32)temp < 0x24U) {
+                func_800C2538(arg1, x, y, temp % 3 + 1, color);
+            }
+            func_800C05CC(arg1, x, y, item, 0);
+        }
+    }
+
+    if (arg0->field_C == 1) {
+        if (D_80114D8C == 0) {
+            D_80114DD4 = (u8*)sel;
+            if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+                SndEvt_EnqueueType6(3, 0, 0);
+                obj = Ui_SpawnFromDesc(&D_8010EE6C, 0, 1, 1, arg1);
+                if (obj != NULL) {
+                    Ui_ClampDialogRect((UiPanel*)obj, (UiPanel*)arg0, (UiPanel*)arg1);
+                    arg1->status = 0;
+                }
+            } else {
+                func_800CDF18(arg1);
+            }
+        } else if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+            McItemScan* scan2;
+            scan2 = &Mc_SaveData.field_5BC;
+            idx1  = func_800BB540(scan2, (GpItemRec*)D_80114DD4);
+            idx2  = func_800BB540(scan2, sel);
+            SndEvt_EnqueueType6(3, 0, 0);
+            if (idx1 >= 0) {
+                if (idx2 >= 0) {
+                    func_800B83F0(scan2, idx1, idx2);
+                }
+            }
+            D_80114D8C = 0;
+        }
+    }
+}
 
 void func_800C2B70(UiList* arg0, s32 arg1)
 {
