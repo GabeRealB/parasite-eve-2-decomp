@@ -84,6 +84,8 @@ extern char           D_8010F1C4[];
 extern char           D_8010F1D0[];
 extern u8             D_8010F13D;
 extern UiList         D_8010E820;
+extern UiList         D_8010E854;
+extern UiList         D_8010E884;
 extern UiList         D_8010E8D4;
 extern UiList         D_8010E938;
 extern UiList         D_8010E960;
@@ -1237,7 +1239,205 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C3418);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C388C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C3CE0);
+void func_800C3CE0(Task* arg0)
+{
+    UiObject* obj;
+    UiList*   menu;
+    s32       id;
+    s32       status;
+    Task*     owner;
+    Task*     child;
+    Task*     next;
+    Task*     head;
+    UiObject* childObj;
+    s32       one;
+    s32       mask;
+    s32       flag;
+    struct {
+        s16 unk0;
+        u16 unk2;
+    } cursor;
+
+    obj           = arg0->spawnArg2;
+    menu          = &D_8010E884;
+    obj->field_2E = 0;
+    Ui_DrawText((UiPanel*)obj, D_8009701C);
+    if (arg0->state == 0) {
+        register GpItemSlot* slot asm("v1");
+        register s32         n asm("v0");
+
+        id   = Wip_SysConfig.field_21 + 0x7F;
+        slot = func_800BAFE0(id);
+        asm volatile("" : "+r"(slot));
+        n = id < 0x80;
+        if (n) {
+            n = 1;
+            goto store1;
+        }
+        n = 0x92;
+        if (id == n) {
+            n = 1;
+            goto store1;
+        }
+        n = 0xFF;
+        if (slot->field_2 != n) {
+            n = 3;
+            goto store1;
+        }
+        n = 2;
+    store1:
+        menu->field_4 = n;
+        asm("");
+        menu->field_10 = 0;
+        Ui_InitList(menu, (UiMiniObj*)obj);
+        arg0->state = arg0->state + 1;
+    }
+    {
+        register GpItemSlot* slot asm("v1");
+        register s32         n asm("v0");
+
+        id   = Wip_SysConfig.field_21 + 0x7F;
+        slot = func_800BAFE0(id);
+        asm volatile("" : "+r"(slot));
+        n = id < 0x80;
+        if (n) {
+            n = 1;
+            goto store2;
+        }
+        asm("");
+        n = 0x92;
+        if (id == n) {
+            n = 1;
+            goto store2;
+        }
+        n = 0xFF;
+        if (slot->field_2 != n) {
+            n = 3;
+            goto store2;
+        }
+        n = 2;
+    store2:
+        menu->field_4 = n;
+        asm("");
+        Ui_ComputeVisibleRows(menu, (s32)obj);
+        Ui_UpdateListNoAnim(menu, obj);
+    }
+    if ((D_80114D84 == 1) && (Ui_IsStateDone((Task*)obj) == 0)) {
+        Ui_SetState4((Task*)obj, obj->owner);
+    } else if ((D_80114D84 == 0) && (Ui_IsStateDone((Task*)obj) == 1)) {
+        Ui_ClampAnimOrClose((UiPanel*)obj, (s32)obj->owner, 0x10);
+    }
+    status = obj->status;
+    if (status == 1) {
+        if (menu->field_22 == 3) {
+            SndEvt_EnqueueType6(2, 0, 0);
+            D_80114D98[1]->field_2C = -0xA0;
+            D_80114D98[1]->status   = 0x17;
+            obj->status             = 0;
+        } else if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
+            Task*     parent;
+            UiObject* parentObj;
+
+            parent = arg0->parent;
+            if (parent != 0) {
+                UiList* other;
+                s16     row;
+                s32     sel;
+                s32     row9;
+                s32     vis;
+
+                parentObj = parent->spawnArg2;
+                SndEvt_EnqueueType6(2, 0, 0);
+                *(s32*)&cursor  = Ui_GetCursorFixed();
+                other           = &D_8010E854;
+                row             = cursor.unk2 - (parentObj->baseY + parentObj->field_18);
+                row             = row / other->field_7;
+                vis             = (s8)other->field_5;
+                row9            = (s8)other->field_9;
+                sel             = row + row9;
+                other->field_10 = sel;
+                if (sel >= row9 + vis) {
+                    other->field_10 = row9 + vis - 1;
+                }
+                if (other->field_10 >= other->field_4) {
+                    other->field_10 = other->field_4 - 1;
+                }
+                parentObj->status = status;
+                obj->status       = 0;
+            }
+        } else if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
+            Task*     parent;
+            UiObject* parentObj;
+
+            SndEvt_EnqueueType6(4, 0, 0);
+            parent = arg0->parent;
+            if (parent != 0) {
+                parentObj = parent->spawnArg2;
+                if (D_80114D8C == 0) {
+                    parentObj->field_2C = status;
+                    parentObj->field_2E = 6;
+                } else {
+                    parentObj->status = status;
+                    obj->status       = 0;
+                    D_80114D8C        = 0;
+                }
+            }
+        } else if (Pad_CheckButtons(0, 1, D_8005ED78) != 0) {
+            obj->field_2E = -1;
+        }
+    }
+    owner = obj->owner;
+    head  = owner->firstChild;
+    if (head != NULL) {
+        child = head;
+        one   = 1;
+        mask  = 0xFFFEFFFF;
+        do {
+            childObj = child->spawnArg2;
+            flag     = childObj->field_2E;
+            next     = child->nextSibling;
+            switch (flag) {
+                case -1:
+                    obj->field_2E = flag;
+                    break;
+                case 6:
+                    Ui_TeardownTree(childObj, childObj->owner);
+                    obj->status   = one;
+                    obj->field_4 &= mask;
+                    break;
+                case 0x23:
+                    Ui_TeardownTree(childObj, childObj->owner);
+                    obj->status   = one;
+                    D_80114D8C    = one;
+                    obj->field_4 &= mask;
+                    break;
+            }
+            head  = owner->firstChild;
+            child = next;
+            if (child == head) {
+                break;
+            }
+        } while (head != NULL);
+    }
+    if (obj->status == 0x17) {
+        s32 t;
+
+        t  = (s16)obj->baseY;
+        t += (s16)obj->field_18;
+        t  = obj->field_2C - t;
+        if (t < menu->field_7) {
+            menu->field_10 = 0;
+        } else if ((menu->field_7 * 2 + 0xA) >= t) {
+            menu->field_10 = 1;
+        } else if (menu->field_4 < 2) {
+            menu->field_10 = 1;
+        } else {
+            menu->field_10 = 2;
+        }
+        obj->field_2C = 0;
+        obj->status   = 1;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C41A4);
 

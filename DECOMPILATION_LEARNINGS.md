@@ -24936,3 +24936,71 @@ gte_SetRotMatrix(&((GsCOORDINATE2*)arg0->field_8)->workm);
 Pin scratch to `$v0` with the existing `lui`/`ori` fake dependency so the
 alloc temp lands in `$v1` and `head` stays in `$a2`. `func_800E1380` is
 the example.
+
+## `n = id < K; if (n) goto store` so slti dest is the count, plus `asm("")` to keep `bnez`
+
+A small integer result computed as `1` / `2` / `3` from `id < 0x80`,
+`id == 0x92`, and a `u8 != 0xFF` test wants the count in `$v0` sharing the
+`slti` dest:
+
+```
+move   v1, v0          /* save func() return */
+slti   v0, s0, 0x80
+bnez   v0, store
+ li    v0, 1
+li     v0, 0x92
+bne    s0, v0, check
+ li    v0, 0xFF
+j      store
+ li    v0, 1
+check:
+lbu    v1, 2(v1)
+nop
+bne    v1, v0, store
+ li    v0, 3
+li     v0, 2
+store:
+sb     v0, 4(s5)
+```
+
+Pin the `func()` return to `$v1` and the count to `$v0`, save the return
+before `slti` with `asm volatile("" : "+r"(slot))`, then assign the compare
+into the count so they share `$v0`:
+
+```c
+register GpItemSlot* slot asm("v1");
+register s32         n asm("v0");
+
+slot = func(id);
+asm volatile("" : "+r"(slot));
+n = id < 0x80;
+if (n) {
+    n = 1;
+    goto store;
+}
+n = 0x92;
+if (id == n) {
+    n = 1;
+    goto store;
+}
+n = 0xFF;
+if (slot->field_2 != n) {
+    n = 3;
+    goto store;
+}
+n = 2;
+store:
+menu->field_4 = n;
+```
+
+`if (id < 0x80) { n = 1; }` without `n = id < 0x80` puts `slti` in `$a0`
+because `$v0` is reserved for `n`. Skipping the `+r` barrier lets `slti`
+sink above `move v1, v0` into the `jal` delay.
+
+A later copy of the same chain whose next call is `Ui_ComputeVisibleRows`
+(no extra store after `sb`) inverts `bnez` to `beqz` and fills the delay
+with `li v0, 0x92`. An empty `asm("")` between the `if (n) goto` and
+`n = 0x92` keeps `bnez` / `li v0, 1`. The `Ui_InitList` copy did not need
+it because `menu->field_10 = 0` already sat after the store.
+
+`func_800C3CE0` is the example.
