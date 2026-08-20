@@ -9,6 +9,8 @@
 struct _GameSessionFrom4;
 struct _GpActorArg;
 struct _GpAreaKey;
+struct _GpAreaFlagRec;
+struct _GpAreaRec;
 struct _GpGridParams;
 struct _GpObj4A;
 struct _GpObj3A;
@@ -321,6 +323,25 @@ s32   func_800AD284(void);
 void* func_800AD2E8(void);
 void  func_800AD410(GpCb68Elem* arg0, GpCb68Obj* arg1);
 void  func_800AE62C(GpAreaApplyRec* arg0);
+
+/// 0xFF-terminated `GpAreaFlagRec` lists applied by `func_800AE7AC` to
+/// `D_8010CBD0` / `D_8010CBD4` / `D_8010CBDC` / `D_8010CBE0` (stages 1, 2,
+/// 4, 5 of `D_8010CBCC`).
+extern struct _GpAreaFlagRec D_80114098[];
+extern struct _GpAreaFlagRec D_801140C0[];
+extern struct _GpAreaFlagRec D_801140F8[];
+extern struct _GpAreaFlagRec D_80114154[];
+
+/// `D_8010CBCC[1]`, `[2]`, `[4]`, `[5]`. Splat labels the later slots as
+/// their own symbols; `func_800AE7AC` loads each as a `GpAreaRec*`.
+extern struct _GpAreaRec* D_8010CBD0;
+extern struct _GpAreaRec* D_8010CBD4;
+extern struct _GpAreaRec* D_8010CBDC;
+extern struct _GpAreaRec* D_8010CBE0;
+
+/// New-game init: for each of the four stage flag lists, OR bit 2 into
+/// `GpAreaObj.field_1` on every record whose apply flag is set.
+void func_800AE7AC(void);
 
 /// Per-stage signed counts, indexed by `GameSession.field_7 - 1`.
 /// `func_800AE9B0` loops area ids `1..count` when the stage is 1–5.

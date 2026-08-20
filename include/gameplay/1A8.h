@@ -68,9 +68,10 @@ extern GpSaveLoc D_80114CE8;
 /// `func_800B59A8` is 0, otherwise clears it.
 extern s32 D_80114D00[2];
 
-/// 2-byte record in 0xFF-terminated lists walked by `func_800AF500`.
-/// `field_0` indexes `D_8010CBCC[arg0]` (same role as `GpAreaKey.field_2`);
-/// `field_1` is the apply flag (nonzero → `GpAreaObj.field_1 |= 4`).
+/// 2-byte record in 0xFF-terminated lists walked by `func_800AF500` and
+/// `func_800AE7AC`. `field_0` indexes a `GpAreaRec` table (same role as
+/// `GpAreaKey.field_2`); `field_1` is the apply flag (nonzero →
+/// `GpAreaObj.field_1 |= 4`).
 typedef struct _GpAreaFlagRec {
     /* 0x0 */ u8 field_0;
     /* 0x1 */ u8 field_1;

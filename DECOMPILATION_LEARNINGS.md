@@ -3,6 +3,30 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Nested scopes so a later copy does not sink an earlier split `la`
+
+Four copies of `p = global_list; tbl = global_ptr; if (tbl) for (; p->id != 0xFF; p++)`
+reuse of the same `p`/`tbl` locals sinks each list's `lui %hi` into the `lw tbl`
+delay (`lui v0` of the list, `addiu a0, v0, %lo` in `beqz tbl`). The target
+keeps the split-address form that a *single* copy emits:
+
+```
+lui    v1, %hi(list)
+lui    v0, %hi(tbl)
+lw     a1, %lo(tbl)
+nop
+beqz   a1, skip
+ addiu  a0, v1, %lo(list)
+lbu    v1, %lo(list)(v1)
+li     v0, 0xFF
+beq    v1, v0, skip
+ lui    v1, %hi(next_list)    # first 3 copies; last is move a2, v0
+```
+
+Give each copy its own block-scope `p`/`tbl` (a macro expansion does the same).
+The next list's `lui %hi` then fills the `== 0xFF` delay, with a second `lui`
+after the loop for the NULL / fall-through paths. `func_800AE7AC` is the example.
+
 ## Write `if (x != K)` so the `== K` body is the `beq` target
 
 `if (state == 0x20) { A } else { B }` emits `bne ..., B` with A first and no

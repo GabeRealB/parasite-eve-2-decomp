@@ -27,7 +27,6 @@ void func_800A9730(Task* task);
 s32  func_800A9E44(void);
 s32  func_800AA120(void);
 void func_800AA548(s32 arg0);
-void func_800AE7AC(void);
 void func_800AD024(void);
 void func_800AD620(Task* task);
 void func_800AD65C(Task* task);
@@ -2060,7 +2059,81 @@ void func_800AE62C(GpAreaApplyRec* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AE7AC);
+void func_800AE7AC(void)
+{
+    {
+        GpAreaRec*     tbl;
+        GpAreaObj*     obj;
+        GpAreaFlagRec* rec;
+
+        rec = D_80114098;
+        tbl = D_8010CBD0;
+        if (tbl != NULL) {
+            for (; rec->field_0 != 0xFF; rec++) {
+                if (rec->field_1 != 0) {
+                    obj = tbl[rec->field_0].field_4;
+                    if (obj != NULL) {
+                        obj->field_1 |= 0x4;
+                    }
+                }
+            }
+        }
+    }
+    {
+        GpAreaRec*     tbl;
+        GpAreaObj*     obj;
+        GpAreaFlagRec* rec;
+
+        rec = D_801140C0;
+        tbl = D_8010CBD4;
+        if (tbl != NULL) {
+            for (; rec->field_0 != 0xFF; rec++) {
+                if (rec->field_1 != 0) {
+                    obj = tbl[rec->field_0].field_4;
+                    if (obj != NULL) {
+                        obj->field_1 |= 0x4;
+                    }
+                }
+            }
+        }
+    }
+    {
+        GpAreaRec*     tbl;
+        GpAreaObj*     obj;
+        GpAreaFlagRec* rec;
+
+        rec = D_801140F8;
+        tbl = D_8010CBDC;
+        if (tbl != NULL) {
+            for (; rec->field_0 != 0xFF; rec++) {
+                if (rec->field_1 != 0) {
+                    obj = tbl[rec->field_0].field_4;
+                    if (obj != NULL) {
+                        obj->field_1 |= 0x4;
+                    }
+                }
+            }
+        }
+    }
+    {
+        GpAreaRec*     tbl;
+        GpAreaObj*     obj;
+        GpAreaFlagRec* rec;
+
+        rec = D_80114154;
+        tbl = D_8010CBE0;
+        if (tbl != NULL) {
+            for (; rec->field_0 != 0xFF; rec++) {
+                if (rec->field_1 != 0) {
+                    obj = tbl[rec->field_0].field_4;
+                    if (obj != NULL) {
+                        obj->field_1 |= 0x4;
+                    }
+                }
+            }
+        }
+    }
+}
 
 void func_800AE9B0(void)
 {
