@@ -25248,3 +25248,116 @@ if (arg2 == 1) {
 ```
 
 `func_800D8C0C` is the example.
+
+## Pin the walking element pointer so GCC does not form `p+field`
+
+A loop that both reads `rec->field_4/8/A/C` and passes `rec` to a call
+forms a second walking pointer at `rec+0xC` (`lw -8(s2)` / `lh 0(s2)`)
+and keeps both in `$s` regs. That extra live value spills `arg0` off
+`$fp` (`sw a0, 0x40(sp)`). Pin the element pointer so every access is
+an offset from one base:
+
+```c
+register GpRec18* rec asm("s1");
+rec = arg0;
+do {
+    if (rec->field_4 & 0x100000) {
+        dx = arg1->workm.t[0] - rec->field_8;
+        /* ... */
+        func_800E0FEC((s32)rec, ...);
+    }
+    rec++;
+} while (++i < 6);
+```
+
+`func_80105BC4` is the example. Nine live-across-call values then color
+onto `$s0`–`$s7`+`$fp` with `arg0` in `$fp`.
+
+## Split overlapping `$v0` temps so a later load can preload
+
+`dx` and a later `t2 = arg1->workm.t[2]` both want `$v0`. Declaring
+both in one block reserves `$v0` for the whole block, so `t[2]` cannot
+fill the `lw t[1]` delay (`nop` / `lh field_A` into `$v0` instead of
+`lw v0, 0x40`). Close the `dx` scope first, then pin `t2` to `$v0` and
+assign it next to `dy`:
+
+```c
+{
+    register s32 dx asm("v0");
+    dx   = arg1->workm.t[0] - rec->field_8;
+    fy   = rec->field_A;
+    dist = dx;
+    if (dx < 0) {
+        dist = -dist;
+    }
+}
+{
+    register s32 t2 asm("v0");
+    dy = arg1->workm.t[1] - fy;
+    t2 = arg1->workm.t[2];
+    /* ... */
+}
+```
+
+Pin `fy` to `$a0` so `lh a0, 0xA` fills the `lw t[0]` delay. `func_80105BC4`
+is the example.
+
+## Compute `&stack` before a scratch `lw` so `move rec, arg0` can fill the delay
+
+`addiu s4, sp, 0x10` after `lw v0, 0(v1)` occupies the load delay and
+leaves `move s1, fp` *before* the load (or a `nop` if a volatile asm
+sits on the load). Compute `&idx` first so the pre-load slot is taken;
+delayed-branch then pulls the independent `rec = arg0` into the delay:
+
+```c
+register s32*     pidx asm("s4");
+register void**   scratch asm("v1");
+register GpRec18* rec asm("s1");
+
+pidx    = &idx;
+rec     = arg0;
+p       = *scratch;
+p       = (u8*)p - 0x68;
+```
+
+```
+addiu  s4, sp, 0x10
+lw     v0, 0(v1)
+move   s1, s8
+addiu  v0, v0, -0x68
+```
+
+Pass `pidx` to the callee instead of `&idx` so GCC does not emit a
+second `addiu`. `func_80105BC4` is the example.
+
+## Barrier after `a - b` so an independent add fills the preceding load
+
+`dist += dy` does not use `t2 - fz`, so it can fill either `lh field_C`
+or `bgez t2`. The target wants it in the `lh` delay and a `nop` in the
+`bgez` delay. A volatile `+r` on `t2` / `dist` after the subtract keeps
+the add from sinking:
+
+```c
+fz = rec->field_C;
+dist += dy;
+t2 = t2 - fz;
+asm volatile("" : "+r"(t2), "+r"(dist));
+if (t2 < 0) {
+    t2 = -t2;
+}
+dist += t2;
+```
+
+`func_80105BC4` is the example.
+
+## Write `idx * size + (s32)ptr` so `addu` is `scaled, base`
+
+`&arg0[bestIdx]` / `arg0 + bestIdx` emit `addu v0, s8, v0` (base, scaled).
+The target is `addu v0, v0, s8`. Put the scaled index on the left:
+
+```c
+picked = (GpRec18*)(bestIdx * 0x18 + (s32)arg0);
+```
+
+`func_80105BC4` is the example. Use this only when operand order must
+match; prefer `arg0 + bestIdx` otherwise.

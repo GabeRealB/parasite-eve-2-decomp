@@ -820,6 +820,19 @@ Task overlay: `actor` is `Task::idMap` at 0x1C; `extra` is `Task::extra` at
 | 0x28 | `field_28` | Size / lifetime (`field_26 << 2` in `func_800F9474` / `func_800FE41C`) / `D_8011291C[].field_0` draw param (`func_800F5184`) / packed RGB from `D_80112C6C` (`func_800FB67C`) / `spawnArg1 & 0xF000` (`func_800FBEBC`, bit `0x8000` selects LCG `| 0x1000`) / `(field_20 << 7) + 0x180` (`func_800FB7E4`) |
 | 0x2A | `field_2A` | Packed draw param for `func_800F7AD4`, or `D_8011291C[].field_2` step, or `(field_20 << 8) + 0x400` (`func_800FB7E4`) |
 
+### `GpPickScratch` (0x68) — `3FB8.h`
+Scratch from `G_SCRATCH_HEAD` for `func_80105BC4`. Picks the nearest
+occupied `GpRec18` (bit `0x100000` in `field_4`, `GpCbB8Rec.field_2`
+nonzero) and spawns via `func_800EA478`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `pad_0` | `GpDeltaScratch` overlay passed to `func_800E0FEC` |
+| 0x10 | `flg` | `GsCOORDINATE2.flg` (written as 1); address passed to `func_800EA478` |
+| 0x48 | `t[3]` | `GsCOORDINATE2.workm.t[]` from the chosen `GpRec18` |
+| 0x5C | `sub` | `GsCOORDINATE2.sub` (cleared) |
+| 0x60 | `offset` | Three `rand() & 7` halfwords; `func_800EA478` last arg; added onto `arg2->workm.t[]` |
+
 ### `GpPadReplay` (0x4) — `gameplay.h`
 Recorded pad pair in the demo/replay stream at `D_80114C38`. `func_8009FD74`
 plays these into `PadScratch->buttons`. `D_80114C02` caches the current
@@ -1027,7 +1040,7 @@ loads a pointer at +0x4).
 |-----|--------|------|
 | 0x00 | `field_0` | Unused by `func_800E192C` |
 | 0x01 | `field_1` | Flag; skip when nonzero (`func_800DDDF8`, `func_800DE7CC`) |
-| 0x02 | `field_2` | Flag loaded by `func_80105BC4` |
+| 0x02 | `field_2` | Nonzero: slot is a valid spawn candidate (`func_80105BC4`) |
 | 0x03 | `field_3` | Word copied into `D_80115428[i]` by `func_800E192C` |
 
 ### `GpLinkNode` (0x8) — `3A34.h`

@@ -60,6 +60,7 @@ s32  func_80105690(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  func_8010583C(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  func_80105894(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_80105B0C(GpActorWork* arg0);
+s32  func_80105BC4(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2);
 s32  func_80105ED4(GpActorWork* arg0);
 void func_8010615C(GpActorWork* arg0);
 void func_801066DC(GpActorWork* arg0, s16 arg1);
@@ -2893,7 +2894,116 @@ void func_80105B74(VECTOR3* arg0)
     actor->field_48 = arg0->vz;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105BC4);
+s32 func_80105BC4(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
+{
+    register s32 minDist asm("s5");
+
+    minDist = 0x7FFFFFFF;
+    if (func_800E1A1C(arg0, 0x30000) == 0) {
+        s32               idx;
+        register s32*     pidx asm("s4");
+        register void**   scratch asm("v1");
+        GpPickScratch*    block;
+        register GpRec18* rec asm("s1");
+        register s32      i asm("s3");
+        register s32      bestIdx asm("s6");
+        s32               dist;
+        GpRec18*          picked;
+
+        scratch = (void**)G_SCRATCH_HEAD;
+        i       = 0;
+        bestIdx = i;
+        pidx    = &idx;
+        rec     = arg0;
+        {
+            register void* p asm("v0");
+            p        = *scratch;
+            p        = (u8*)p - 0x68;
+            block    = p;
+            *scratch = p;
+        }
+        do {
+            if (rec->field_4 & 0x100000) {
+                register s32 fy asm("a0");
+                register s32 dy asm("v1");
+                {
+                    register s32 dx asm("v0");
+                    dx   = arg1->workm.t[0] - rec->field_8;
+                    fy   = rec->field_A;
+                    dist = dx;
+                    if (dx < 0) {
+                        dist = -dist;
+                    }
+                }
+                {
+                    register s32 t2 asm("v0");
+                    register s32 fz asm("a0");
+                    dy = arg1->workm.t[1] - fy;
+                    t2 = arg1->workm.t[2];
+                    if (dy < 0) {
+                        dy = -dy;
+                    }
+                    fz    = rec->field_C;
+                    dist += dy;
+                    t2    = t2 - fz;
+                    asm volatile("" : "+r"(t2), "+r"(dist));
+                    if (t2 < 0) {
+                        t2 = -t2;
+                    }
+                    dist += t2;
+                }
+                if (dist < minDist) {
+                    func_800E0FEC((s32)rec, (GpDeltaScratch*)block, 1, pidx);
+                    idx = func_800E1ACC((u8*)pidx);
+                    {
+                        GameSession* session = Game_Session;
+                        if (D_8010CBB8[session->field_7 - 1][session->field_6 - 1][idx]->field_2 != 0) {
+                            minDist = dist;
+                            bestIdx = i;
+                        }
+                    }
+                }
+            }
+            i++;
+            rec++;
+        } while (i < 6);
+        if (minDist != 0x7FFFFFFF) {
+            i                = 1;
+            picked           = (GpRec18*)(bestIdx * 0x18 + (s32)arg0);
+            block->sub       = 0;
+            block->flg       = i;
+            block->t[0]      = picked->field_8;
+            block->t[1]      = picked->field_A;
+            block->t[2]      = picked->field_C;
+            block->offset.vx = rand() & 7;
+            block->offset.vy = rand() & 7;
+            block->offset.vz = rand() & 7;
+            if (arg2 != 0) {
+                arg2->workm.t[0] = block->t[0] + block->offset.vx;
+                arg2->workm.t[1] = block->t[1] + block->offset.vy;
+                arg2->workm.t[2] = block->t[2] + block->offset.vz;
+            }
+            if (Wip_SysConfig.field_21 != 0x1D) {
+                if (Wip_SysConfig.field_22 == 0xE) {
+                    GsCOORDINATE2* coord;
+                    SVECTOR*       vec;
+                    coord = (GsCOORDINATE2*)&block->flg;
+                    vec   = &block->offset;
+                    func_800EA478(0x6008D, coord, 0x300, (s32)vec);
+                    func_800EA478(0x60080, coord, 0x300, (s32)vec);
+                    func_800EA478(0x60070, coord, 0xC0013300, (s32)vec);
+                } else {
+                    func_800EA478(0x6003B, (GsCOORDINATE2*)&block->flg, 0, (s32)&block->offset);
+                }
+            }
+        } else {
+            i = 0;
+        }
+        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x68;
+        return i;
+    }
+    return 0;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80105ED4);
 

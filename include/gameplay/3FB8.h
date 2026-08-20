@@ -360,6 +360,23 @@ typedef struct _GpAimScratch {
 } GpAimScratch;
 STATIC_ASSERT_SIZEOF(GpAimScratch, 0x68);
 
+/// 0x68-byte scratch from `G_SCRATCH_HEAD` used by `func_80105BC4`.
+/// The first 0x10 bytes are the `GpDeltaScratch` passed to `func_800E0FEC`.
+/// Offset 0x10 is a temp `GsCOORDINATE2` (`flg` at 0x10, `workm.t[]` at
+/// 0x48, `sub` at 0x5C) passed to `func_800EA478`. `offset` is three
+/// `rand() & 7` halfwords passed as that call's last argument and added
+/// onto `arg2->workm.t[]` when `arg2` is non-NULL.
+typedef struct _GpPickScratch {
+    /* 0x00 */ byte    pad_0[0x10];
+    /* 0x10 */ u32     flg;
+    /* 0x14 */ byte    pad_14[0x34];
+    /* 0x48 */ s32     t[3];
+    /* 0x54 */ byte    pad_54[8];
+    /* 0x5C */ void*   sub;
+    /* 0x60 */ SVECTOR offset;
+} GpPickScratch;
+STATIC_ASSERT_SIZEOF(GpPickScratch, 0x68);
+
 /// 8-byte rotation row (`SVECTOR` layout). `D_801131B4` is indexed by
 /// `func_80102D20` arg1 (`D_80167218[Mc_SaveData.field_5C7]`) and by
 /// `Wip_SysConfig.field_21` in `func_80102348`.
@@ -622,6 +639,7 @@ s32  func_80103B88(GpActorWork* arg0, GpDirArg* arg1);
 s32  func_80104E00(GpActorWork* arg0, s32 arg1, GpXformArg* arg2);
 s32  func_80105070(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3);
 s32  func_801053A0(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);
+s32  func_80105BC4(GpRec18* arg0, struct _GsCOORDINATE2* arg1, struct _GsCOORDINATE2* arg2);
 void func_8010C81C(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);
 void func_8010B210(GpActorWork* arg0);
 void func_8010C1FC(GpActorWork* arg0, SVECTOR3* arg1, s32 arg2);

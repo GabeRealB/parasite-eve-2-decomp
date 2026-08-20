@@ -252,7 +252,8 @@ STATIC_ASSERT_SIZEOF(GpCbA4Rec, 8);
 /// Record in the 8-entry arrays pointed to by `D_8010CBB8`.
 /// `func_800E192C` copies `field_3` into `D_80115428[]`. Nearby helpers
 /// also load `field_1` (`func_800DDDF8`, `func_800DE7CC`) and `field_2`
-/// (`func_80105BC4`). `func_80105ED4` loads a pointer at +0x4.
+/// (`func_80105BC4` keeps a slot only when this is nonzero). `func_80105ED4`
+/// loads a pointer at +0x4.
 typedef struct _GpCbB8Rec {
     /* 0x0 */ u8 field_0;
     /* 0x1 */ u8 field_1;
