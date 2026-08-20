@@ -318,6 +318,7 @@ void func_800EA3A0(s32 arg0);
 void func_800EA3B4(void);
 void func_800EA3EC(void);
 void* func_800EA478(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, s32 arg3);
+/// Full-screen semi-trans POLY_F4. `arg0` is RGB; `arg1` is ABR (low 2 bits).
 void func_800EA858(u8* arg0, s32 arg1);
 void func_800EAEB8(GsCOORDINATE2* arg0, s32 arg1, u8* arg2);
 void func_800EB2C8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);

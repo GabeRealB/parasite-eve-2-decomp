@@ -23887,3 +23887,38 @@ the copy into `$s0` fills the `beq field_0, field_4` delay. Pin `blend` so
 `lh v1, field_C` / `div v1, v0` / `mflo v1` and the invBlend phi stay in
 `$v0`. Pin `p` so each bitfield extract is `lw v0, 0(v1)` instead of
 reloading the pointer from `$s1`. `func_800B3108` is the example.
+
+## Full-screen POLY_F4 + `setDrawTPage`: extents first, `setSemiTrans` after `addPrim`
+
+A leaf overlay that allocates a `POLY_F4` then a `DR_TPAGE` from `D_80071190`
+wants the screen extents and ABR mask live before the prim cursor load:
+
+```c
+arg1 &= 3;
+x0   = -0xA0;
+x1   = 0xA0;
+yTop = -0x78;
+yBot = 0x78;
+
+p          = (POLY_F4*)D_80071190;
+D_80071190 = (DR_TPAGE*)(p + 1);
+setPolyF4(p);
+setRGB0(p, arg0[0], arg0[1], arg0[2]);
+p->x0 = x0;
+p->y0 = yTop - Display_State.vramYOffset;
+```
+
+`arg1 &= 3` at the top is `andi a1, a1, 3` during the y1 stores; the later
+`arg1 << 5` is `sll a1, a1, 5` inside the first `addPrim`. Folding
+`(arg1 & 3) << 5` at the `setDrawTPage` site delays the `andi`.
+
+`setSemiTrans(p, 1)` **after** the POLY `addPrim` (not before, as in
+`func_800EC888` / `func_800EC914`) lets `lbu code / ori 2 / sb` fill the
+`lui`/`ori 0xE100020A` window. Then:
+
+```c
+setDrawTPage(dr, 0, 1, 0xA | (arg1 << 5));
+```
+
+which is `0xE100020A | (abr << 5)`. Same OT slot as `func_800EC914` with
+`z = 0x10`. `func_800EA858` is the example.

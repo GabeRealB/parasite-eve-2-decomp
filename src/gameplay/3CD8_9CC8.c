@@ -292,7 +292,41 @@ void func_800EA420(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8_9CC8", func_800EA478);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8_9CC8", func_800EA858);
+void func_800EA858(u8* arg0, s32 arg1)
+{
+    POLY_F4*  p;
+    DR_TPAGE* dr;
+    s32       x0;
+    s32       x1;
+    s32       yTop;
+    s32       yBot;
+
+    arg1 &= 3;
+    x0    = -0xA0;
+    x1    = 0xA0;
+    yTop  = -0x78;
+    yBot  = 0x78;
+
+    p          = (POLY_F4*)D_80071190;
+    D_80071190 = (DR_TPAGE*)(p + 1);
+    setPolyF4(p);
+    setRGB0(p, arg0[0], arg0[1], arg0[2]);
+    p->x0 = x0;
+    p->y0 = yTop - Display_State.vramYOffset;
+    p->x1 = x1;
+    p->y1 = yTop - Display_State.vramYOffset;
+    p->x2 = x0;
+    p->y2 = yBot - Display_State.vramYOffset;
+    p->x3 = x1;
+    p->y3 = yBot - Display_State.vramYOffset;
+    addPrim((u_long*)(((((u32)0x10 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), p);
+
+    setSemiTrans(p, 1);
+    dr         = D_80071190;
+    D_80071190 = dr + 1;
+    setDrawTPage(dr, 0, 1, 0xA | (arg1 << 5));
+    addPrim((u_long*)(((((u32)0x10 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), dr);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8_9CC8", func_800EAA0C);
 
