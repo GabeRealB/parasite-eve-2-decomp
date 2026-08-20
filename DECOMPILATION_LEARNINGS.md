@@ -25484,3 +25484,41 @@ goto kill;
 Take `SVECTOR*` addresses of `field_10` / `field_18` *before* the
 `(field_22 & 3) / 3` so those `addiu` fill the `mult` 0x55555556 delay.
 `func_800FC9BC` is the example.
+
+## Force `$a1 = 0` with `addu` from `$zero` when a proven-zero local would copy-prop
+
+`if (item == 0) Ui_SetHolderParam(str, 0, 0)` lets GCC substitute the
+known-zero `item` (`move a1, s3` / `move a2, s3`). The target is
+`move a1, zero` after the `la`. Load the string first, then pin `$a1`
+from `$zero`:
+
+```c
+t = (s32)str;
+{
+    register s32 a1v asm("a1");
+    asm volatile("addu %0, $zero, $zero" : "=r"(a1v));
+    Ui_SetHolderParam(t, a1v, a1v);
+}
+```
+
+`func_800C9010` is the example.
+
+## 4-arg cast so a C store fills the shared-`jal` jump delay
+
+Two `Ui_SpawnFromDesc(..., obj)` sites that share one `jal` want path 1
+to be `j jal` / `sw s4, 0x10(sp)` and the `jal` delay to be `nop` (path 2
+already stored). A 5-arg call emits `sw` in the `jal` delay, so the jump
+gets `nop`. Cast to a 4-arg callee so GCC does not emit that store, then
+write the 5th arg in C. Locals start at `0x18`; the outgoing slot is
+`0x10`, eight bytes before a `0x30` stack union:
+
+```c
+slot = (char*)&draw;
+slot = slot - 8;
+*(UiObject**)slot = obj;
+((void (*)(UiObjectDesc*, s32, s32, s32))Ui_SpawnFromDesc)(a0, a1, a2, a3);
+```
+
+Split `slot = (char*)&draw; slot = slot - 8` so the linter does not see
+a cast in the same `+/-`. Pin `$a0`–`$a3` with `+r` before the store so
+the `j` delay is free for the `sw`. `func_800C9010` is the example.
