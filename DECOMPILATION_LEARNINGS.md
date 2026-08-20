@@ -24861,3 +24861,25 @@ func_800CDE80(item, 0);
 ```
 
 `func_800C26B8` is the example.
+
+## C `lui` of a shifted 16-bit constant fills a branch delay; `asm("lui")` does not
+
+`asm("lui %0, %%hi(sym)")` will not fill a delay slot. The first statement of
+`if (state == 0)` was that asm, so `bnez state, skip` got a `nop` and the
+`lui` sat after it. A C assignment of a value that is only a high 16-bit
+immediate emits `lui` that *can* fill the delay:
+
+```c
+hi = 0x8007 << 16;
+asm("addiu %0, %1, %%lo(Mc_SaveData+0x5BC)" : "=r"(scan) : "r"(hi));
+```
+
+```
+bnez   v0, skip
+ lui    s0, 0x8007          # delay; linked bytes == %hi(Mc_SaveData+0x5BC)
+addiu  s1, s0, %lo(...)
+```
+
+Keep the `%lo` addiu as asm so it retains its reloc. `0x8007` is
+`%hi(Mc_SaveData+0x5BC)` (`Mc_SaveData` is `0x80072168`). `func_800C9E94`
+is the example.

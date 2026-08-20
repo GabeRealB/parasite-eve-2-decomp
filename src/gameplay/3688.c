@@ -89,6 +89,7 @@ extern UiList         D_8010E938;
 extern UiList         D_8010E960;
 extern UiList         D_8010E9A4;
 extern UiList         D_8010E9CC;
+extern UiList         D_8010E9F4;
 extern UiList         D_8010EA30;
 extern UiListItemFunc D_8010EA6C[];
 extern UiList         D_8010EA74;
@@ -171,6 +172,7 @@ extern char           D_80097114[];
 extern char           D_80097120[];
 extern char           D_80097130[];
 extern char           D_80097138[];
+extern char           D_80097144[];
 extern char           D_80097154[];
 extern char           D_8009715C[];
 extern char           D_80097194[];
@@ -2558,7 +2560,216 @@ void func_800C9BE8(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C9E94);
+void func_800C9E94(Task* arg0)
+{
+    UiList*              menu;
+    UiObject*            obj;
+    WipSysConfig*        cfg;
+    register s32         hi asm("s0");
+    register McItemScan* scan asm("s1");
+    GpItemRec*           rec;
+    Task*                parent;
+    Task*                child;
+    Task*                next;
+    Task*                head;
+    UiObject*            childObj;
+    s32*                 p;
+    s32*                 table;
+    s32                  flags;
+    s32                  i;
+    s32                  slot;
+    s32                  minusOne;
+    s32                  flag;
+    s32                  val;
+
+    menu          = &D_8010E9F4;
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    Ui_DrawText((UiPanel*)obj, D_80097144);
+
+    if (arg0->state == 0) {
+        hi = 0x8007 << 16;
+        asm("addiu %0, %1, %%lo(Mc_SaveData+0x5BC)" : "=r"(scan) : "r"(hi));
+        {
+            register McItemScan* a0scan asm("a0");
+            a0scan = scan;
+            asm volatile("" : "+r"(a0scan));
+            cfg = &Wip_SysConfig;
+            rec = func_800BB500(a0scan);
+        }
+        {
+            register s32                 idx asm("v1");
+            register s32                 n asm("a1");
+            register s32                 iter asm("a2");
+            register volatile GpItemRec* recTable asm("a0");
+
+            iter = 0;
+            asm("lbu %0, %%lo(Mc_SaveData+0x5BC)(%1)" : "=r"(idx) : "r"(hi));
+            hi = iter;
+            n  = scan->field_1;
+            asm volatile("sll %0, %0, 2" : "+r"(idx));
+            recTable = (volatile GpItemRec*)((s32)rec + idx);
+            if (n != 0) {
+                do {
+                    if ((u32)(recTable->field_0 - 0x60) < 0x20U) {
+                        if (cfg->field_23 != recTable->field_0 - 0x5F) {
+                            hi++;
+                        }
+                    }
+                    iter++;
+                    recTable++;
+                } while (iter < n);
+            }
+        }
+        menu->field_4 = hi;
+        menu->field_5 = 4;
+        Ui_LayoutListPanel(menu, (UiPanel*)obj);
+        menu->field_A   = 1;
+        menu->field_17 += 0x4C;
+        obj->field_12  += 0x4C;
+        menu->field_10  = 0;
+        menu->field_9   = 0;
+        parent          = arg0->parent;
+        Ui_SetState4(parent->spawnArg2, parent);
+        Ui_SpawnFromDesc(&D_8010EC3C, 2, 0, 0x10, obj);
+        arg0->state = arg0->state + 1;
+    }
+
+    Ui_DrawHBar((UiPanel*)obj, obj->field_1C, (s16)obj->field_1E, (s16)obj->field_18 + 0x4A);
+    Ui_UpdateListNoAnim(menu, obj);
+
+    {
+        register s32 remaining asm("s2");
+        register s32 found asm("a1");
+
+        asm("lui %0, %%hi(Mc_SaveData+0x5BC)" : "=r"(hi));
+        asm("addiu %0, %1, %%lo(Mc_SaveData+0x5BC)" : "=r"(scan) : "r"(hi));
+        {
+            register McItemScan* a0scan asm("a0");
+            a0scan = scan;
+            asm volatile("" : "+r"(a0scan));
+            cfg       = &Wip_SysConfig;
+            remaining = menu->field_10;
+            rec       = func_800BB500(a0scan);
+        }
+        {
+            register s32                 iter asm("a3");
+            register s32                 n asm("a2");
+            register s32                 count asm("t0");
+            register s32                 id asm("a2");
+            register s32                 idx asm("v1");
+            register volatile GpItemRec* recTable asm("a0");
+
+            iter  = 0;
+            found = iter;
+            asm("lbu %0, %%lo(Mc_SaveData+0x5BC)(%1)" : "=r"(idx) : "r"(hi));
+            n = scan->field_1;
+            asm volatile("sll %0, %0, 2" : "+r"(idx));
+            recTable = (volatile GpItemRec*)((s32)rec + idx);
+            if (n != 0) {
+                count = n;
+                do {
+                loop:
+                    if ((u32)(recTable->field_0 - 0x60) < 0x20U) {
+                        id = recTable->field_0;
+                        if (cfg->field_23 != id - 0x5F) {
+                            remaining--;
+                            if (remaining < 0) {
+                                found = id;
+                                break;
+                            }
+                        }
+                    }
+                    iter++;
+                    recTable++;
+                    if (iter < count) {
+                        goto loop;
+                    }
+                } while (0);
+            }
+        }
+        {
+            register UiObject* a0obj asm("a0");
+            a0obj = obj;
+            hi    = found;
+            asm volatile("" : "+r"(hi));
+            func_800C7DA8(a0obj, found, 1, 0);
+        }
+    }
+
+    flags = 0x12;
+    if (hi == 0) {
+        flags = 0x112;
+        goto draw;
+    }
+    if (((obj->status >> 16) == 1) || (obj->status == 1)) {
+        table = D_8010E8F8;
+        if (hi != table[2]) {
+            i = 0;
+            do {
+                slot     = 2;
+                minusOne = -1;
+                p        = table;
+            } while (0);
+            for (; i < 3; i++, p++) {
+                if (i == slot) {
+                    *p = hi;
+                } else {
+                    *p = minusOne;
+                }
+            }
+            func_800C5C2C(hi, 2);
+        }
+    }
+    if ((CdCmd_IsIdle() & 0xFFFF) == 0) {
+        flags |= 0x100;
+    }
+draw:
+    func_800C7AE8(obj, obj->field_1C + 2, (s16)obj->field_18 + 2, flags);
+
+    if (obj->status == 1) {
+        if (Pad_CheckButtons(0, 1, D_8005ED78) != 0) {
+            obj->field_2E = -1;
+        } else if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
+            SndEvt_EnqueueType6(4, 0, 0);
+            obj->field_2E = 9;
+        }
+    }
+
+    child = arg0->firstChild;
+    if (child != NULL) {
+        val = 6;
+        do {
+            childObj = child->spawnArg2;
+            flag     = childObj->field_2E;
+            next     = child->nextSibling;
+            switch (flag) {
+                case 9:
+                    obj->field_2E = flag;
+                    break;
+                case -1:
+                    obj->field_2E = flag;
+                    break;
+                case 6:
+                    Ui_TeardownTree(childObj, childObj->owner);
+                    obj->status = 1;
+                    break;
+            }
+            head  = arg0->firstChild;
+            child = next;
+            if (child == head) {
+                break;
+            }
+            if (head == NULL) {
+                break;
+            }
+        } while (1);
+    }
+
+    if (obj->field_2E == 9) {
+        obj->field_2E = 6;
+    }
+}
 
 void func_800CA25C(Task* arg0)
 {
