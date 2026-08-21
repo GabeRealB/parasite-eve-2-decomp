@@ -26,7 +26,10 @@
 /// by `func_800B48FC` (defaulted to 1 when the caller left it 0).
 /// `func_800D8C0C` remaps the actor color matrix from `field_4E` mode
 /// bits; bit 0x80 with `field_4B == 0` is a sine flicker, and
-/// `field_4C & 0xC` enables the default remap.
+/// `field_4C & 0xC` enables the default remap. `field_4F` is the 0x10
+/// blend timer started by `func_800D930C`; `func_800D8EA0` GPF/GPL-lerps
+/// the previous mode (bits 2-3) toward the current mode (bits 0-1)
+/// while it is positive.
 typedef struct _GpEnemy {
     /* 0x00 */ Task*       task;
     /* 0x04 */ byte        pad_4[4];
@@ -42,7 +45,7 @@ typedef struct _GpEnemy {
     /* 0x4C */ u8          field_4C;
     /* 0x4D */ byte        pad_4D;
     /* 0x4E */ u8          field_4E;
-    /* 0x4F */ byte        pad_4F;
+    /* 0x4F */ u8          field_4F;
     /* 0x50 */ GpPairSrcE* field_50;
     /* 0x54 */ byte        pad_54[0xC];
 } GpEnemy;

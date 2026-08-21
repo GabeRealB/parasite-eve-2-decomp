@@ -25,6 +25,7 @@
 #define gte_rtps_real()   __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_rtirtr_real() __asm__ volatile("nop; nop; .word 0x4A498012")
 #define gte_gpf12_real()  __asm__ volatile("nop; nop; .word 0x4B98003D")
+#define gte_gpl12_real()  __asm__ volatile("nop; nop; .word 0x4BA8003E")
 
 void func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 
@@ -387,7 +388,89 @@ def:
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D8EA0);
+void func_800D8EA0(GpEnemy* arg0, VECTOR* arg1)
+{
+    GameActorExt*   extra;
+    MATRIX*         colorMtx;
+    s32             mode;
+    u8*             head;
+    GpColorScratch* block;
+    SVECTOR*        col0;
+    SVECTOR*        col1;
+    GpMtxCol*       src;
+    GpMtxCol*       dst;
+    s32             i;
+    s32             w0;
+    s32             w1;
+
+    extra    = (GameActorExt*)arg0->task->extra;
+    colorMtx = extra->field_20;
+    mode     = arg0->field_4E & 3;
+    if ((!(extra->field_C & 0x80) && (extra->field_18 != NULL)) || (Game_Session->field_65 != 1)) {
+        {
+            register void**          scratch asm("v1");
+            register GpColorScratch* tmp asm("v0");
+
+            scratch  = (void**)G_SCRATCH_HEAD;
+            head     = *scratch;
+            tmp      = (GpColorScratch*)(head - 0x30);
+            block    = tmp;
+            *scratch = tmp;
+        }
+        func_800D7A9C(extra, arg1, 0, 3);
+        if ((s8)arg0->field_4F <= 0) {
+            func_800D8C0C(arg0, colorMtx, mode);
+        } else {
+            block->mtx.m[0][0] = colorMtx->m[0][0];
+            block->mtx.m[0][1] = colorMtx->m[0][1];
+            block->mtx.m[0][2] = colorMtx->m[0][2];
+            block->mtx.m[1][0] = colorMtx->m[1][0];
+            block->mtx.m[1][1] = colorMtx->m[1][1];
+            block->mtx.m[1][2] = colorMtx->m[1][2];
+            block->mtx.m[2][0] = colorMtx->m[2][0];
+            block->mtx.m[2][1] = colorMtx->m[2][1];
+            block->mtx.m[2][2] = colorMtx->m[2][2];
+            func_800D8C0C(arg0, colorMtx, mode);
+            func_800D8C0C(arg0, &block->mtx, (arg0->field_4E >> 2) & 3);
+            i    = 0;
+            col0 = (SVECTOR*)(head - 0x10);
+            col1 = (SVECTOR*)(head - 8);
+            src  = (GpMtxCol*)colorMtx;
+            w0   = (s8)arg0->field_4F << 8;
+            dst  = (GpMtxCol*)block;
+            w1   = 0x1000 - w0;
+            do {
+                block->col0.vx = src->x;
+                asm volatile("" : "+r"(src));
+                block->col0.vy = src->y;
+                asm volatile("" : "+r"(src));
+                block->col0.vz = src->z;
+                block->col1.vx = dst->x;
+                asm volatile("" : "+r"(dst));
+                block->col1.vy = dst->y;
+                asm volatile("" : "+r"(dst));
+                block->col1.vz = dst->z;
+                gte_lddp(w1);
+                gte_ldsv(col0);
+                gte_gpf12_real();
+                gte_lddp(w0);
+                gte_ldsv(col1);
+                gte_gpl12_real();
+                gte_stsv(col0);
+                src->x = block->col0.vx;
+                dst    = (GpMtxCol*)&dst->_0;
+                src->y = block->col0.vy;
+                i++;
+                src->z = block->col0.vz;
+                src    = (GpMtxCol*)&src->_0;
+            } while (i < 3);
+            if (D_801153F4 == 0) {
+                arg0->field_4F--;
+            }
+        }
+        *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x30;
+    }
+}
 
 void func_800D9138(GpObj44* arg0)
 {

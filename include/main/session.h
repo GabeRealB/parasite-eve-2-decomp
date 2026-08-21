@@ -62,7 +62,7 @@ typedef struct _GameSession {
     u8    field_5F; // skip-gate for func_800E74EC overlay-wait setup
     byte  unknown_60[4];
     u8    field_64; // nonzero: func_800AD5B8 / func_800AD50C skip their state dispatch
-    byte  unknown_65;
+    u8    field_65; // 1: func_800D8EA0 skips color-matrix rebuild unless GameActorExt.field_18 is set
     u8    field_66; // 1: func_800CE3B4 uses D_8010EB94 + Ui_Scale15(2)
     byte  unknown_67;
     u8    field_68; // set/cleared by func_800E7378 / func_800E73E8 / func_800E7434
@@ -297,13 +297,17 @@ STATIC_ASSERT_SIZEOF(GameActor, 0x994);
 /// s32* so Display_SpawnFromMode can clear flg via *ptr = 0) after optional
 /// func_801011D0 / func_800E1A6C setup. field_C flag bits are OR'd with 0x80
 /// in Task_Kill (type-1 deferred kill). `func_800BBC10` writes 8 on first run
-/// and clears bit 0x8 before Task_CallExit. field_1C / field_20 are MATRIX*
-/// defaults (`D_80114E98` / `D_80114EB8`) written by `func_800D9D18`.
+/// and clears bit 0x8 before Task_CallExit. A non-NULL `field_18` lets
+/// `func_800D8EA0` rebuild the color matrix even when
+/// `Game_Session->field_65 == 1` (unless bit 0x80 of `field_C` is set).
+/// field_1C / field_20 are MATRIX* defaults (`D_80114E98` / `D_80114EB8`)
+/// written by `func_800D9D18`.
 typedef struct _GameActorExt {
     /* 0x00 */ byte  pad_0[0x8];
     /* 0x08 */ s32*  field_8;
     /* 0x0C */ u16   field_C;
-    /* 0x0E */ byte  pad_E[0xE];
+    /* 0x0E */ byte  pad_E[0xA];
+    /* 0x18 */ void* field_18;
     /* 0x1C */ void* field_1C;
     /* 0x20 */ void* field_20;
 } GameActorExt;

@@ -269,6 +269,41 @@ Copy `arg1` first, empty non-volatile `asm("" : "+r"(id))` so that store
 lands before `arg2`, then `lui`/`ori` with a fake input dependency on
 `arg2` pinned to `$s5` / scratch to `$v1`. `func_80100FCC` is the example.
 
+Pin `G_SCRATCH_HEAD` to `$v1` and the `(head - N)` temp to `$v0` so the
+delayed `lui 0x1F80` survives a `Game_Session` load in `$v0`, and the
+push is `addiu v0, s2, -N` / `move s0, v0` / delay-slot `sw v0, 0(v1)`
+instead of `addiu s0` / `sw s0`. Coalescing the temp into the live
+`block` local drops the `move`.
+
+```c
+register void**          scratch asm("v1");
+register GpColorScratch* tmp asm("v0");
+
+scratch  = (void**)G_SCRATCH_HEAD;
+head     = *scratch;
+tmp      = (GpColorScratch*)(head - 0x30);
+block    = tmp;
+*scratch = tmp;
+```
+
+`func_800D8EA0` is the example. Same split-address `lui` in a branch delay
+as `func_800B0278`.
+
+Walking packed 3x3 columns as `src->x` / `src->y` / `src->z` (offsets
+0 / 6 / 12) CSEs `&src->z` into a derived pointer (`addiu a0, a1, 0xc`
+then `lhu -6(a0)`). A `+r` pin after each load keeps every access
+relative to the walking base (`lhu 0/6/0xc(a1)`):
+
+```c
+block->col0.vx = src->x;
+asm volatile("" : "+r"(src));
+block->col0.vy = src->y;
+asm volatile("" : "+r"(src));
+block->col0.vz = src->z;
+```
+
+`func_800D8EA0` is the example.
+
 Do not keep a scratch pointer live from alloc to free. A local `scratch`
 that is used at both ends is allocated to an extra `$s` register and
 grows the frame (`0x30` with `$s5` instead of `0x28`). Write two

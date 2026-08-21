@@ -594,6 +594,30 @@ typedef struct _GpPanScratch {
 } GpPanScratch;
 STATIC_ASSERT_SIZEOF(GpPanScratch, 0x18);
 
+/// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `func_800D8EA0`.
+/// `mtx` holds the previous-mode 3x3 copy. `col0` / `col1` are the
+/// current and previous columns packed for GPF/GPL.
+typedef struct _GpColorScratch {
+    /* 0x00 */ MATRIX  mtx;
+    /* 0x20 */ SVECTOR col0;
+    /* 0x28 */ SVECTOR col1;
+} GpColorScratch;
+STATIC_ASSERT_SIZEOF(GpColorScratch, 0x30);
+
+/// Column overlay of a packed 3x3 (`MATRIX.m`). `x` / `y` / `z` are
+/// `m[0][i]` / `m[1][i]` / `m[2][i]`. Advancing to `&col->_0` walks to
+/// column `i+1`.
+typedef struct _GpMtxCol {
+    /* 0x0 */ s16 x;
+    /* 0x2 */ s16 _0;
+    /* 0x4 */ s16 _1;
+    /* 0x6 */ s16 y;
+    /* 0x8 */ s16 _2;
+    /* 0xA */ s16 _3;
+    /* 0xC */ s16 z;
+} GpMtxCol;
+STATIC_ASSERT_SIZEOF(GpMtxCol, 0xE);
+
 /// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `func_800D9138` /
 /// `func_800D70E4`.
 /// `vec` is the halved XYZ from `GpObj44.field_18`. `distSq` is
@@ -866,6 +890,13 @@ void  func_800D8684(Task* arg0);
 /// `field_4C & 0xC`. Bit 0x80 of `field_4E` with `field_4B == 0` applies
 /// a `rsin(Display_State.field_14 << 6)` flicker and clears the bit.
 void  func_800D8C0C(struct _GpEnemy* arg0, MATRIX* arg1, s32 arg2);
+/// Rebuilds the actor color matrix via `func_800D7A9C`, then remaps it
+/// from `field_4E` lighting mode (`func_800D8C0C`). While `field_4F` is
+/// a positive blend timer, GPF/GPL-interpolates the previous mode
+/// (`field_4E` bits 2-3) toward the current mode (bits 0-1). Skips work
+/// when `Game_Session->field_65 == 1` unless `GameActorExt.field_C` bit
+/// 0x80 is clear and `field_18` is set. `D_801153F4` freezes the timer.
+void  func_800D8EA0(struct _GpEnemy* arg0, VECTOR* arg1);
 void  func_800D9138(GpObj44* arg0);
 void  func_800D930C(GpObj4C* arg0, s32 arg1);
 s32   func_800D9340(GpObj38* arg0);

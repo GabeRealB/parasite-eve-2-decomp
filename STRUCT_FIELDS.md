@@ -561,6 +561,7 @@ read `h + 2` as line height; `func_800E67C8` / `func_800E68D8` read `w`.
 | 0x5E | `field_5E` | u8; set to 1 by `func_8009FEDC` before allocating the play-clock idMap |
 | 0x5F | `field_5F` | u8 flag; nonzero makes `func_800E74EC` skip overlay-wait timer setup |
 | 0x64 | `field_64` | u8 flag; nonzero makes `func_800AD5B8` / `func_800AD50C` skip their state dispatch |
+| 0x65 | `field_65` | u8; 1 makes `func_800D8EA0` skip the color-matrix rebuild unless `GameActorExt.field_18` is set (and `field_C` bit 0x80 is clear) |
 | 0x66 | `field_66` | u8; 1 makes `func_800CE3B4` spawn `D_8010EB94` and scale with `Ui_Scale15(2)` (else `D_8010EAD0` / scale 1) |
 | 0x68 | `field_68` | u8 flag; set to 1 by `func_800E7378` and cleared by `func_800E73E8` / `func_800E7434` when `D_8007218B != 9` |
 | 0x69 | `field_69` | u8 flags; bit 0x1 skips the bank-load spawn in `func_800A0718` (sets `D_80062734 = 0xFF` instead); bit 0x2 skips `SndEvt_EnqueueType2(0, 0xB4)` when the last `GpStateF0.field_6` ref is released; bit 0x4 selects spawn arg 3 vs 2 from `D_80062774` |
@@ -649,6 +650,8 @@ pointer.
 as `GpAnimSlot.field_10` on the `pad_438` overlay).
 `func_801058BC` clamps `arg2` to 1..0x7F, writes it through the slid-actor overlay
 at `field_441` for `i = 1 .. field_938-1`, then stores the same byte at `field_985`.
+`GameActorExt.field_18` is a pointer; a non-NULL value lets `func_800D8EA0` rebuild the
+color matrix even when `Game_Session->field_65 == 1`, unless `field_C` bit 0x80 is set.
 `GameActorExt.field_1C` / `field_20` are `MATRIX*` defaults (`D_80114E98` / `D_80114EB8`)
 written by `func_800D9D18` onto the slot-3 extra and onto `field_920`/`field_924` extras.
 `GameActorExt.field_8` is a `GsCOORDINATE2*` (`flg` cleared to 0 by `Display_SpawnFromMode`
