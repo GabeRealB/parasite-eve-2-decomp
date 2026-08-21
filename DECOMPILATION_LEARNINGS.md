@@ -25683,3 +25683,26 @@ status = arg1->status;
 ```
 
 `func_800BCEA4` is the example.
+
+## Pin the last 3-level index to `$a0` so the table `la` uses `$v1`
+
+`dst = table[i - 1][j - 1][k - 1]` of a 0x38-byte record wants `la table`
+in `$v1` so `k` can fill `$a0` during the first-index math (`lbu v0, i` /
+`lbu a0, k` / `addiu -1` / `lw 0` / `lbu v1, j` / `lw -4`). If `$a0` is
+free, GCC puts the table in `$a0` and loads `j` first instead.
+
+Pin `k` in `$a0` before the assign:
+
+```c
+{
+    register s32 room asm("a0");
+    room = sess->field_4;
+    asm volatile("" : "+r"(room));
+    rec = D_8010CB90[sess->field_3 - 1][sess->field_2 - 1][room - 1];
+}
+```
+
+The `lbu k` still lands two insns early (`lbu a0, k` before `addiu dst`
+/ `lui table`). `asm volatile("" : "+m"(rec))` after the copy finishes
+the 8-byte tail before the next `if`, but switches memcpy src from `$a0`
+to `$v1`. `func_800AA548` is the example.
