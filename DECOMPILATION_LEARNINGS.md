@@ -26206,3 +26206,40 @@ An `s8` multiplied as `lbu` / `sll 24` / `sra 24` is `(s8)` of a `u8`
 overlay at the same offset, not `lb` of the `s8` field. A `volatile`
 load of the next pad byte plus `"r"(tmp)` after `session = Game_Session`
 puts that `lbu` in the `lw` delay instead of an independent `sh`.
+
+## Short `if (tooFar)` then-clause so the long success is the `else`
+
+A shared fail join of `j epilogue` / `move a3, zero` with the long
+success as the `beqz` target is `if (tooFar) { result = 0; } else { ... }`.
+`if (!tooFar) { ... } else { result = 0; }` emits the long body first and
+jumps over a trailing `move a3, zero`. GCC 2.8.1 puts a short then-clause
+in the fall-through with `j`, and the long else at the branch target.
+
+`vx = lum >> 2; block->outerSq = vx` then `vx = *(head-0x20)` copy-propagates
+the store into a new temp (`sra a0, v1, 2`). Pin `vx` after the shift:
+
+```c
+vx = lum >> 2;
+asm volatile("" : "+r"(vx));
+block->outerSq = vx;
+```
+
+An early `tmp` pinned to `$a0` (scratch `head - 0x20`) keeps `$a0` reserved
+so a later `vz * vz` lands in `$t4` (`mflo t4`). Scope that pointer in its
+own block, then pin the product to `$a0` in the multiply-add block:
+
+```c
+{
+    register GpAttnScratch* tmp asm("a0");
+    tmp   = (GpAttnScratch*)(head - 0x20);
+    block = tmp;
+}
+{
+    register s32 sq asm("a0");
+    sq = vx * vx;
+    vx = lum + result;
+    tooFar = (u32)block->outerSq < (u32)(vx + sq);
+}
+```
+
+`func_800D6E5C` is the example.

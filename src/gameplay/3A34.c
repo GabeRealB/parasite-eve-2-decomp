@@ -223,7 +223,124 @@ void func_800D6AA4(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D6B20);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D6E5C);
+s32 func_800D6E5C(GpObj44* arg0, VECTOR3* arg1)
+{
+    register void**         scratch asm("a1");
+    register u8*            head asm("a3");
+    register GpAttnScratch* block asm("a2");
+    register s32            vx asm("v0");
+    register s32            lum asm("v1");
+    register GpObj44*       obj asm("t0");
+    register GpObj44*       obj2 asm("t2");
+    register VECTOR3*       pos asm("t1");
+    s32                     result;
+    s32                     tooFar;
+    s32                     r;
+    s32                     g;
+    s32                     b;
+    s32                     dist;
+    s32                     inner;
+    u16                     scale;
+    u8*                     ptr;
+    s16                     room;
+
+    obj  = arg0;
+    obj2 = obj;
+    room = obj2->field_44;
+    pos  = arg1;
+    if (room != 0) {
+        if ((u8)Game_Session->field_4 != room) {
+            return 0;
+        }
+    }
+    scratch = (void**)G_SCRATCH_HEAD;
+    vx      = obj2->field_38.vx;
+    head    = *scratch;
+    vx     -= pos->vx;
+    vx    >>= 1;
+    {
+        register GpAttnScratch* tmp asm("a0");
+
+        tmp                                     = (GpAttnScratch*)(head - 0x20);
+        ((GpAttnScratch*)(head - 0x20))->vec.vx = vx;
+        block                                   = tmp;
+    }
+    block->vec.vy  = (obj2->field_38.vy - pos->vy) >> 1;
+    block->vec.vz  = (obj2->field_38.vz - pos->vz) >> 1;
+    vx             = obj->field_5C;
+    block->scale   = 0;
+    vx           >>= 1;
+    block->outerSq = vx;
+    vx             = ((GpAttnScratch*)(head - 0x20))->vec.vx;
+    *scratch       = block;
+    if (vx < 0) {
+        ((GpAttnScratch*)(head - 0x20))->vec.vx = -vx;
+    }
+    vx = block->vec.vz;
+    if (vx < 0) {
+        block->vec.vz = -vx;
+    }
+    vx     = ((GpAttnScratch*)(head - 0x20))->vec.vx;
+    tooFar = (u32)block->outerSq < (u32)vx;
+    if (!tooFar) {
+        tooFar = (u32)block->outerSq < (u32)block->vec.vz;
+        if (!tooFar) {
+            register s32 sq asm("a0");
+
+            vx  = obj->field_5C;
+            lum = vx * vx;
+            vx  = lum >> 2;
+            asm volatile("" : "+r"(vx));
+            block->outerSq = vx;
+            vx             = ((GpAttnScratch*)(head - 0x20))->vec.vx;
+            lum            = vx * vx;
+            vx             = block->vec.vy;
+            result         = vx * vx;
+            vx             = block->vec.vz;
+            sq             = vx * vx;
+            vx             = lum + result;
+            tooFar         = (u32)block->outerSq < (u32)(vx + sq);
+            block->distSq  = vx + sq;
+        }
+    }
+    if (tooFar) {
+        result = 0;
+    } else {
+        block->innerSq = (obj->field_58 * obj->field_58) >> 2;
+        r              = obj->field_50;
+        g              = obj->field_52;
+        b              = obj->field_54;
+        block->scale   = 0x1000;
+        lum            = (r * 8 + g * 6 + b * 2) >> 8;
+        dist           = block->distSq;
+        inner          = block->innerSq;
+        result         = lum + 0xF00;
+        if ((u32)inner < (u32)dist) {
+            s32 temp;
+
+            temp = block->outerSq;
+            asm volatile("" : "+r"(temp));
+            lum = inner;
+            asm volatile("" : "+r"(lum));
+            block->outerSq = temp - inner;
+            block->distSq -= lum;
+            while ((u32)block->outerSq > 0xFFFF) {
+                block->outerSq = (u32)block->outerSq >> 4;
+                block->distSq  = (u32)block->distSq >> 4;
+            }
+            if (block->outerSq != 0) {
+                block->scale = ((u32)(block->outerSq - block->distSq) << 12) / (u32)block->outerSq;
+                lum          = block->scale * result;
+                result       = (u32)lum >> 12;
+            }
+        }
+    }
+    scale                 = block->scale;
+    ptr                   = *(u8**)G_SCRATCH_HEAD;
+    obj2->field_4A        = scale;
+    *(u8**)G_SCRATCH_HEAD = ptr + 0x20;
+    return result;
+}
 
 s32 func_800D70E4(GpObj44* arg0, VECTOR3* arg1)
 {

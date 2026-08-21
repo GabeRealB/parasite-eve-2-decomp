@@ -310,6 +310,9 @@ STATIC_ASSERT_SIZEOF(GpObj38, 0x44);
 /// `func_800D70E4` instead subtracts a world `VECTOR3` from `field_38`
 /// (same words as `GsCOORDINATE2.workm.t` / `GpObj38.field_24.t`),
 /// writes the scale to `field_4A`, and returns the luminance.
+/// `func_800D6E5C` is that same subtract, plus the `field_44` room-id
+/// filter and an `|dx|` / `|dz|` reject against `field_5C / 2` before
+/// the squared-radius test.
 typedef struct _GpObj44 {
     /* 0x00 */ byte    pad_0[0x18];
     /* 0x18 */ VECTOR3 field_18;
@@ -622,11 +625,13 @@ typedef struct _GpMtxCol {
 STATIC_ASSERT_SIZEOF(GpMtxCol, 0xE);
 
 /// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `func_800D9138` /
-/// `func_800D70E4`.
-/// `vec` is the halved XYZ from `GpObj44.field_18`. `distSq` is
-/// `vx²+vy²+vz²`. `outerSq` / `innerSq` are `(radius²) >> 2` from
-/// `field_5C` / `field_58`. `scale` is 0, `0x1000`, or the 12.4
-/// falloff copied to `field_4A`.
+/// `func_800D70E4` / `func_800D6E5C`.
+/// `vec` is the halved XYZ from `GpObj44.field_18` (`func_800D9138`) or
+/// from `field_38 -` a world `VECTOR3` (`func_800D70E4` / `func_800D6E5C`).
+/// `distSq` is `vx²+vy²+vz²`. `outerSq` / `innerSq` are `(radius²) >> 2`
+/// from `field_5C` / `field_58` (`func_800D6E5C` first stores
+/// `field_5C / 2` in `outerSq` for the `|dx|` / `|dz|` test). `scale`
+/// is 0, `0x1000`, or the 12.4 falloff copied to `field_4A`.
 typedef struct _GpAttnScratch {
     /* 0x00 */ VECTOR vec;
     /* 0x10 */ s32    distSq;
@@ -887,6 +892,7 @@ GpItemRec* func_800D6910(s32 arg0);
 GpItemRec* func_800D6994(s32 arg0);
 GpItemRec* func_800D6A24(s32 arg0, GpItemScan* arg1);
 void       func_800D6AA4(Task* arg0);
+s32        func_800D6E5C(GpObj44* arg0, VECTOR3* arg1);
 s32        func_800D70E4(GpObj44* arg0, VECTOR3* arg1);
 void       func_800D7A9C(GameActorExt* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void  func_800D8684(Task* arg0);
