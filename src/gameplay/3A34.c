@@ -23,6 +23,7 @@
 
 #define gte_rtv0_real()   __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_rtps_real()   __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtir_real()   __asm__ volatile("nop; nop; .word 0x4A49E012")
 #define gte_rtirtr_real() __asm__ volatile("nop; nop; .word 0x4A498012")
 #define gte_gpf12_real()  __asm__ volatile("nop; nop; .word 0x4B98003D")
 #define gte_gpl12_real()  __asm__ volatile("nop; nop; .word 0x4BA8003E")
@@ -3110,7 +3111,73 @@ void func_800E1C58(GpObj54* arg0, void* arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1CD4);
+void func_800E1CD4(VECTOR* arg0, MATRIX* arg1, s32 arg2)
+{
+    void**           scratch;
+    u8*              head;
+    GpDirMatScratch* block;
+    SVECTOR*         vec;
+    MATRIX*          mat1;
+    MATRIX*          mat2;
+    s32              sin_yaw;
+    s32              yaw;
+    s32              pitch;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    block    = (GpDirMatScratch*)(head - 0x4C);
+    vec      = (SVECTOR*)block;
+    *scratch = block;
+    VectorNormalS(arg0, vec);
+
+    mat1       = (MATRIX*)(head - 0x44);
+    yaw        = ratan2(((SVECTOR*)(head - 0x4C))->vx, vec->vz) & 0xFFF;
+    block->yaw = yaw;
+    sin_yaw    = rsin(yaw);
+    block->pitch =
+        ratan2(vec->vy, (vec->vx * sin_yaw + vec->vz * rcos(block->yaw)) >> 12) & 0xFFF;
+
+    ((SVECTOR*)(head - 0x4C))->vx = 0;
+    vec->vz                       = 0;
+    vec->vy                       = block->yaw;
+    RotMatrix(vec, mat1);
+
+    mat2                          = (MATRIX*)(head - 0x24);
+    pitch                         = block->pitch;
+    ((SVECTOR*)(head - 0x4C))->vx = -pitch;
+    vec->vy                       = 0;
+    vec->vz                       = 0;
+    RotMatrix(vec, mat2);
+
+    gte_SetRotMatrix(mat1);
+    gte_ldclmv(mat2);
+    gte_rtir_real();
+    gte_stclmv(mat1);
+    gte_ldclmv(&mat2->m[0][1]);
+    gte_rtir_real();
+    gte_stclmv(&mat1->m[0][1]);
+    gte_ldclmv(&mat2->m[0][2]);
+    gte_rtir_real();
+    gte_stclmv(&mat1->m[0][2]);
+
+    ((SVECTOR*)(head - 0x4C))->vx = 0;
+    vec->vy                       = 0;
+    vec->vz                       = arg2;
+    RotMatrix(vec, mat2);
+
+    gte_SetRotMatrix(mat1);
+    gte_ldclmv(mat2);
+    gte_rtir_real();
+    gte_stclmv(arg1);
+    gte_ldclmv(&mat2->m[0][1]);
+    gte_rtir_real();
+    gte_stclmv(&arg1->m[0][1]);
+    gte_ldclmv(&mat2->m[0][2]);
+    gte_rtir_real();
+    gte_stclmv(&arg1->m[0][2]);
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x4C;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1FEC);
 

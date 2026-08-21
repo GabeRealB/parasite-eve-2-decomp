@@ -26520,3 +26520,26 @@ Walk occupied `GpRec18` slots with `for (;;)` and `goto` out on a hit so
 GCC emits a real loop and hoists `&slot->field_C` (`lh -4/-2/0`). `break`
 from the occupied arm unrolls the body and keeps `lh 8/0xA/0xC(slot)`.
 `func_800DEC80` is the example.
+
+## Widen a stored 12-bit angle to `s32` before negating so the load is `lh`
+
+`field = ratan2(...) & 0xFFF` stores with `andi` / `sh`. Negating that
+`s16` field directly (`vec->vx = -block->pitch`) compiles to `lhu` /
+`negu` because GCC treats the 16-bit reload as an unsigned copy. The
+target sign-extends:
+
+```
+lh     v0, 0x48(s0)
+negu   v0, v0
+sh     v0, -0x4c(s2)
+```
+
+Widen through an `s32` temp so the load is `lh`:
+
+```c
+s32 pitch;
+pitch   = block->pitch;
+vec->vx = -pitch;
+```
+
+`func_800E1CD4` is the example.

@@ -782,6 +782,20 @@ typedef struct _GpLightScratch {
 } GpLightScratch;
 STATIC_ASSERT_SIZEOF(GpLightScratch, 0x1C);
 
+/// 0x4C-byte scratch from `G_SCRATCH_HEAD` used by `func_800E1CD4`.
+/// `vec` is the `VectorNormalS` result, reused as the `RotMatrix` angle
+/// vector. `mat1` is RotY(yaw), then RotY * RotX(-pitch). `mat2` is
+/// RotX(-pitch), then RotZ(roll). `pitch` / `yaw` are `ratan2` angles
+/// in `0..0xFFF`.
+typedef struct _GpDirMatScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ MATRIX  mat1;
+    /* 0x28 */ MATRIX  mat2;
+    /* 0x48 */ s16     pitch;
+    /* 0x4A */ s16     yaw;
+} GpDirMatScratch;
+STATIC_ASSERT_SIZEOF(GpDirMatScratch, 0x4C);
+
 /// 0x48-byte scratch from `G_SCRATCH_HEAD` used by `func_800DBCAC`.
 /// `func_800E08CC` writes world-space positions into `pos0` / `pos1`.
 /// `delta` is `pos0 - pos1`. On overlap, `src` / `extra` / `rsum` are
@@ -1104,6 +1118,9 @@ s32  func_800E1B24(s32 arg0);
 void func_800E1B80(void);
 s32  func_800E1BF0(u16* arg0, u8* arg1, u8* arg2);
 void func_800E1C58(GpObj54* arg0, void* arg1);
+/// Builds a rotation matrix in `arg1` that orients along normalized `arg0`
+/// (yaw from XZ, pitch from Y vs the XZ length, then roll by `arg2`).
+void func_800E1CD4(VECTOR* arg0, MATRIX* arg1, s32 arg2);
 /// Packed-id damage scale. `arg0` must have high bits `0x40000`; low 12 bits
 /// are the power and bits 12-15 are written to `*arg2` when it is non-NULL.
 /// `arg3 == 0` uses `Wip_SysConfig.field_18` and `GpDmgRow.field_A`;
