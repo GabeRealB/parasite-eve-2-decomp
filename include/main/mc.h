@@ -169,7 +169,9 @@ typedef struct _McSaveData {
     /* 0x6CC */ u16        field_6CC;         // capped at 9999; incremented by func_800A110C on spawnArg1 == 0
     /* 0x6CE */ u16        field_6CE;         // capped at 9999; incremented by func_800A110C on spawnArg1 != 0
     /* 0x6D0 */ s32        field_6D0[0x60];   // bit flags; func_800BB7C0 sets/clears bit id for id < 0x180; func_800BC06C tests; func_800BBF84 clears all 96 words
-    /* 0x850 */ u8         unknown_850[0x38]; // 3-byte rows; func_800D27E8 indexes [spawnArg1*3 + slot]
+    /* 0x850 */ u8         unknown_850[0x20]; // 3-byte rows; func_800D27E8 indexes [spawnArg1*3 + slot]
+    /* 0x870 */ u16        field_870;         // capped at 9999; incremented by func_800CB33C
+    /* 0x872 */ byte       unknown_872[0x16];
     /* 0x888 */ s32        field_888[0x20];   // 1-based counters; cap 0x1869E (func_80106518)
     /* 0x908 */ s8         field_908[0x20];   // signed addend for item ids 0x60–0x7F (func_800BC324)
     /* 0x928 */ byte       unknown_928[0x1];

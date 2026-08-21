@@ -4,6 +4,7 @@
 
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
+#include "gameplay/gameplay.h"
 #define Display_SetFadeMax Display_SetFadeMax_u8
 #include "gameplay/3A34.h"
 #include "gameplay/4CC.h"
@@ -180,6 +181,7 @@ extern char           D_80097138[];
 extern char           D_80097144[];
 extern char           D_80097154[];
 extern char           D_8009715C[];
+extern char           D_8009717C[];
 extern char           D_80097194[];
 extern u8             D_800971A4;
 extern char           D_800971A8[];
@@ -203,6 +205,7 @@ void       func_80181184(Task* task);
 void       func_801811A0(Task* task);
 s32        func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_800C05CC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void       func_800C1148(UiPanel* arg0, s32 arg1);
 void       func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       func_800CD924(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 void       func_800CDA64(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
@@ -223,6 +226,7 @@ void       func_800D15D0(Task* arg0);
 void       func_800D131C(void);
 void       func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2);
 void       func_800D2224(DialogPrompt* arg0, UiObject* arg1);
+s32        func_800D50D4(s32 arg0, s32 arg1);
 void       func_800D5178(DialogPrompt* arg0, UiObject* arg1);
 void       func_800A96A0(void);
 void       func_800BAE5C(s32 arg0);
@@ -3835,7 +3839,97 @@ void func_800CB188(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CB33C);
+void func_800CB33C(UiObject* arg0, Task* arg1, s32 arg2)
+{
+    WipSysConfig* cfg;
+    GpStateBE8*   be8;
+    McSaveData*   save;
+    s32           hp;
+    s32           mp;
+    s32           w;
+    s32           h;
+
+    cfg            = &Wip_SysConfig;
+    arg0->field_2E = 0;
+    Ui_DrawText((UiPanel*)arg0, D_8009717C);
+    if (arg1->state == 0) {
+        Ui_UpdateLayoutSize((UiPanel*)arg0, 0xB0, 0x2F);
+        w             = (s16)arg0->field_10;
+        h             = (s16)arg0->field_12;
+        arg0->field_C = -(w >> 1);
+        arg0->field_E = -(h >> 1) - 0x10;
+        hp            = cfg->field_18;
+        be8           = &D_80114BE8;
+        be8->field_0  = hp;
+        mp            = cfg->field_1c;
+        be8->field_4  = mp;
+        if (arg2 < 0x100) {
+            if (arg2 < 4) {
+                if (hp < cfg->field_1a) {
+                    func_800BAD28(0, (GpItemRec*)D_80114DD4, 1);
+                }
+                if (arg2 == 3) {
+                    cfg->field_18 = cfg->field_1a;
+                } else if (arg2 == 2) {
+                    cfg->field_18 = cfg->field_18 + 0x64;
+                } else {
+                    cfg->field_18 = cfg->field_18 + 0x32;
+                }
+            } else if (arg2 == 5) {
+                if ((mp < cfg->field_1e) || (hp < cfg->field_1a)) {
+                    func_800BAD28(0, (GpItemRec*)D_80114DD4, 1);
+                }
+                cfg->field_1c = cfg->field_1c + 0x50;
+                cfg->field_18 = cfg->field_18 + 0x14;
+            } else if ((u32)(arg2 - 6) < 2U) {
+                if (mp < cfg->field_1e) {
+                    func_800BAD28(0, (GpItemRec*)D_80114DD4, 1);
+                }
+                if (arg2 == 7) {
+                    cfg->field_1c = cfg->field_1e;
+                } else {
+                    cfg->field_1c = cfg->field_1c + 0x1E;
+                }
+            } else if (arg2 == 0x3D) {
+                if ((mp < cfg->field_1e) || (hp < cfg->field_1a)) {
+                    func_800BAD28(0, (GpItemRec*)D_80114DD4, 1);
+                }
+                cfg->field_1c = cfg->field_1e;
+                cfg->field_18 = cfg->field_1a;
+            }
+        } else if (hp < cfg->field_1a) {
+            cfg->field_1c = cfg->field_1c - func_800D50D4(arg2, 2);
+            be8->field_4  = cfg->field_1c;
+            cfg->field_18 = cfg->field_18 + func_800D50D4(arg2, 4);
+            save          = &Mc_SaveData;
+            if ((s16)save->field_870 < 0x270F) {
+                save->field_870 = save->field_870 + 1;
+            }
+        }
+        if (cfg->field_18 > cfg->field_1a) {
+            cfg->field_18 = cfg->field_1a;
+        }
+        if (cfg->field_1c > cfg->field_1e) {
+            cfg->field_1c = cfg->field_1e;
+        }
+        arg1->killCountdown = 0xBC;
+        arg1->state         = arg1->state + 1;
+    }
+    func_800C1148((UiPanel*)arg0, 0);
+    if (arg0->status == 1) {
+        if (D_80114BE8.field_0 == cfg->field_18) {
+            if (D_80114BE8.field_4 == cfg->field_1c) {
+                arg1->killCountdown = arg1->killCountdown - 1;
+            }
+        }
+        if ((Pad_CheckButtons(0, 1, D_8005ED70 | D_8005ED74) != 0) || (arg1->killCountdown < 0)) {
+            D_80114BE8.field_0  = cfg->field_18;
+            D_80114BE8.field_4  = cfg->field_1c;
+            arg0->field_2E      = 9;
+            arg1->killCountdown = 0x7FFF;
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800CB6FC);
 
