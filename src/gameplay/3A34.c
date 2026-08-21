@@ -1661,7 +1661,128 @@ void func_800DB900(GpObj* node)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DBA20);
+void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2)
+{
+    register s32      a3v asm("a3");
+    register GpRec18* slot asm("t1");
+    register GpRec18* otable asm("t0");
+    register GpRec18* otherSlot asm("v1");
+    unsigned int      recFlags;
+    u16               f0;
+    s32               key;
+
+    if (arg1->field_18 == 0) {
+        return;
+    }
+
+    a3v = 0;
+    switch (arg0->flags & 7) {
+        case 0:
+            break;
+        case 1:
+            a3v = (s32)arg0->field_C;
+            break;
+        case 2:
+            a3v = (s32)((GpObj*)arg0->field_C)->field_C;
+            break;
+        case 3:
+            a3v = (s32)((GpActorD4Rec*)arg0->field_C)->field_14;
+            break;
+        empty_or: /* between case 3 and 4 so the empty-slot trampoline matches */
+        {
+            register s32 tmp asm("v0");
+            tmp           = a3v & 0xF0;
+            slot->field_0 = recFlags | (tmp + 1);
+            goto fill;
+        }
+        case 4:
+            a3v = (s32)((GpObj*)arg0->field_C)->field_8;
+            break;
+    }
+    slot = (GpRec18*)a3v;
+    if (slot == NULL) {
+        return;
+    }
+
+    a3v = arg0->flags;
+    if (a3v & 0x800) {
+        recFlags = slot->field_0;
+        if (recFlags & 1) {
+            {
+                register s32 cmp asm("v0");
+                cmp = 0x100000;
+                a3v = 0xFFFF0000;
+                if ((slot->field_4 & a3v) != cmp) {
+                    a3v    = (((s32)slot->field_12 << 16) & a3v) | (u16)slot->field_10;
+                    otable = NULL;
+                    switch (((GpObj*)a3v)->flags & 7) {
+                        case 0:
+                            break;
+                        case 1:
+                            otable = ((GpObj*)a3v)->field_C;
+                            break;
+                        case 2:
+                            otable = ((GpObj*)((GpObj*)a3v)->field_C)->field_C;
+                            break;
+                        case 3:
+                            otable = ((GpActorD4Rec*)((GpObj*)a3v)->field_C)->field_14;
+                            break;
+                        case 4:
+                            otable = (GpRec18*)((GpObj*)((GpObj*)a3v)->field_C)->field_8;
+                            break;
+                    }
+                    otherSlot = otable;
+                    if (otherSlot == NULL) {
+                        return;
+                    }
+                    key = arg0->field_18;
+                loop:
+                    if (otherSlot->field_4 != key) {
+                        if (otherSlot->field_0 & 2) {
+                            return;
+                        }
+                        otherSlot++;
+                        goto loop;
+                    }
+                    f0                  = otherSlot->field_0;
+                    otherSlot->field_4  = 0;
+                    otherSlot->field_2  = 0;
+                    otherSlot->field_8  = 0;
+                    otherSlot->field_A  = 0;
+                    otherSlot->field_C  = 0;
+                    otherSlot->field_10 = 0;
+                    otherSlot->field_12 = 0;
+                    otherSlot->field_14 = 0;
+                    otherSlot->field_0  = f0 & 0xFFFE;
+                }
+            }
+            recFlags      = slot->field_0;
+            recFlags      = recFlags | ((arg0->flags & 0xF0) + 1);
+            slot->field_0 = recFlags;
+            goto fill;
+        } else {
+            goto empty_or;
+        }
+    } else {
+        while (1) {
+            recFlags = slot->field_0;
+            if (!(recFlags & 1)) {
+                break;
+            }
+            if (recFlags & 2) {
+                return;
+            }
+            slot++;
+        }
+        slot->field_0 = recFlags | ((arg0->flags & 0xF0) + 1);
+    }
+
+fill:
+    slot->field_4              = arg1->field_18;
+    slot->field_2              = (u16)arg2->rsum;
+    *(SVECTOR*)&slot->field_8  = arg2->src;
+    *(SVECTOR*)&slot->field_10 = arg2->extra;
+}
 
 s32 func_800DBCAC(GpObj* arg0, GpObj* arg1)
 {

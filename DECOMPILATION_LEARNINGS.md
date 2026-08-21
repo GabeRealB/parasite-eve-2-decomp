@@ -25797,6 +25797,71 @@ c08->field_D = c08->field_D | (packed = temp << 4);
 A separate `packed = temp << 4` statement schedules the `sll` above the
 `lbu`. `func_800A45F0` is the example.
 
+## Switch-case label for a 2-insn empty-path trampoline
+
+A `beqz bit0, empty` whose delay is occupied (`lui v0, 0x10`) needs a
+2-insn trampoline `j shared; andi v0, flags, 0xF0`. Reorg emits that
+block after the nearest earlier unconditional jump. A C `if/else` puts
+it after the occupied tail (walk starts two insns late, every label
+shifts 8 bytes).
+
+Park the empty path as a label *between* switch cases 3 and 4 — case 3
+`break`s (the `j` + `move` delay), then the label, then case 4. `goto`
+that label from the empty arm:
+
+```c
+switch (flags & 7) {
+    case 3:
+        table = rec->field_14;
+        break;
+    empty_or:
+        tmp           = flags & 0xF0;
+        slot->field_0 = recFlags | (tmp + 1);
+        goto fill;
+    case 4:
+        table = wrap->field_8;
+        break;
+}
+/* ... */
+if (recFlags & 1) {
+    /* occupied */
+} else {
+    goto empty_or;
+}
+```
+
+`func_800DBA20` is the example. The empty arm must still compute
+`(flags & 0xF0)` into `$v0` (`register s32 tmp asm("v0")`) so it shares
+the `addiu; or; sh` tail with the free-slot walk.
+
+## Occupied `0x100000` assigned inside the arm so it fills `beqz` delay
+
+`andi v0, recFlags, 1` / `beqz empty` wants `lui v0, 0x10` in the delay,
+then `lw v1, field_4`. Pinning `cmp = 0x100000` *before* the bit test
+keeps `$v0` live and steals the `andi` dest (`andi a0, v1, 1`). Assign
+it as the first statement of the occupied arm:
+
+```c
+if (recFlags & 1) {
+    register s32 cmp asm("v0");
+    cmp = 0x100000;
+    mask = 0xFFFF0000;
+    if ((slot->field_4 & mask) != cmp) {
+        /* ... */
+    }
+}
+```
+
+Delay-slot fill pulls the `lui` up and overwrites the bit-test `$v0`.
+`func_800DBA20` is the example.
+
+## `unsigned int` flag temp so occupied `|=` dest stays `$v1`
+
+A `u16 recFlags` for `recFlags = slot->field_0; recFlags |= (flags & 0xF0) + 1;
+slot->field_0 = recFlags` shares the free-slot tail (`or v0, v1, v0;
+sh v0`). `unsigned int recFlags` keeps the occupied store as
+`or v1, v1, v0` / `j fill` / `sh v1`. `func_800DBA20` is the example.
+
 ## Nested `if (val < K)` / `goto` for a sparse `slti` range tree
 
 A handful of 3-wide ID clusters (`311..313`, `321..323`, `411..413`,

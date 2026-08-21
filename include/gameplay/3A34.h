@@ -37,6 +37,9 @@ STATIC_ASSERT_SIZEOF(GpLinkNode, 0x8);
 /// applies `workm` to the 0x10 SVECTOR and adds `workm.t` into a `VECTOR3`.
 /// `func_800E1380` treats `field_C` as a `GpActorD4Rec*` whose `field_14`
 /// is the `GpRec18` table walked for the nearest matching slot.
+/// `func_800DBA20` selects that table from `flags & 7`: 1 is `field_C`
+/// itself, 2 is `((GpObj*)field_C)->field_C`, 3 is `GpActorD4Rec.field_14`,
+/// 4 is `((GpObj*)field_C)->field_8`.
 /// Embedded as 0x20-byte nodes in `GameActor`
 /// (`field_AC` / `field_CC` / `field_EC` / `field_10C` / `field_12C`).
 /// Full object size is not known for other list users.
@@ -687,7 +690,10 @@ STATIC_ASSERT_SIZEOF(GpLightScratch, 0x1C);
 /// `func_800E08CC` writes world-space positions into `pos0` / `pos1`.
 /// `delta` is `pos0 - pos1`. On overlap, `src` / `extra` / `rsum` are
 /// filled for `func_800DBA20` (other object's truncated position, a
-/// zeroed extra SVECTOR, and the summed radii).
+/// zeroed extra SVECTOR, and the summed radii). `func_800DBA20` writes
+/// `src` / `extra` into the chosen `GpRec18` at `field_8` / `field_10`,
+/// stores `arg1->field_18` at `field_4`, and ORs `(flags & 0xF0) + 1`
+/// into `field_0`.
 typedef struct _GpSphereScratch {
     /* 0x00 */ SVECTOR src;
     /* 0x08 */ SVECTOR extra;
