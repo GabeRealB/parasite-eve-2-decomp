@@ -3,6 +3,30 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Subtract a constant from a saved coord via `base + (saved - K)`
+
+`req.y = obj->baseY - 2 + y` with `y` live in `$s0` materializes -2 as
+`li t0, 0xfffe` / `addu v0, v0, t0`. That steals `$t0` from a later
+`lh t0, field_1C` / spill, so the local stays in a saved register and
+the frame shrinks 8 bytes.
+
+`req.y = obj->baseY + (y - 2)` keeps `y` intact and applies -2 to the
+fresh `lhu` of `baseY`:
+
+```c
+y     = (s16)obj->field_18 + 8;
+req.y = obj->baseY + (y - 2);
+```
+
+```
+lhu    v0, 0x22(obj)
+addiu  v0, v0, -2
+addu   v0, v0, s0
+```
+
+Declare the spilled `field_1C` copy immediately after the `TextDrawReq`
+locals so it sits at the next stack slot. `func_800CC6C4` is the example.
+
 ## Nest `if (x != 0)` so a redundant `beqz` survives range checks
 
 `(u32)(x - K) < N` already excludes `x == 0` when `K >= N`, so

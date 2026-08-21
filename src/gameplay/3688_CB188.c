@@ -148,6 +148,7 @@ extern UiObjectDesc   D_8010F09C;
 extern UiObjectDesc   D_8010F178;
 extern UiObjectDesc   D_8010F670;
 extern UiObjectDesc   D_8010F6FC;
+extern UiObjectDesc   D_8010F718;
 extern UiObjectDesc   D_8010F788;
 extern UiObjectDesc   D_8010F7A4;
 extern UiObjectDesc   D_8010F7F8;
@@ -170,6 +171,8 @@ extern char           D_80096FD8[];
 extern char           D_80096FE4[];
 extern char           D_80096FEC[];
 extern char           D_80096FF4[];
+extern char           D_80096FFC[];
+extern char           D_80097000[];
 extern char           D_80097008[];
 extern char           D_80097010[];
 extern char           D_8009701C[];
@@ -187,6 +190,7 @@ extern char           D_80097154[];
 extern char           D_8009715C[];
 extern char           D_8009717C[];
 extern char           D_80097194[];
+extern char           D_8009719C[];
 extern u8             D_800971A4;
 extern char           D_800971A8[];
 extern char           D_800971B0[];
@@ -580,7 +584,111 @@ void func_800CC4F4(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800CC6C4);
+void func_800CC6C4(Task* arg0)
+{
+    u8            buf[0x20];
+    TextDrawReq   req;
+    TextDrawReq   req2;
+    TextDrawReq   req3;
+    TextDrawReq   req4;
+    TextDrawReq   req5;
+    TextDrawReq   req6;
+    s32           xOff;
+    UiObject*     obj;
+    UiObjectDesc* desc;
+    WipSysConfig* cfg;
+    Task*         head;
+    Task*         child;
+    UiObject*     childObj;
+    s32           color;
+    s32           x;
+    s32           y;
+    s32           flag;
+
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    Ui_DrawTitle((UiPanel*)obj, D_8009719C);
+    if (arg0->state == 0) {
+        desc = &D_8010F718;
+        Ui_SpawnFromDesc(desc, 0, 1, 1, obj);
+        Ui_SpawnFromDesc(desc + 1, 1, 0, 1, obj);
+        Ui_SpawnFromDesc(desc + 2, 2, 0, 1, obj);
+        Ui_SpawnFromDesc(desc + 3, 3, 0, 1, obj);
+        arg0->state = arg0->state + 1;
+    }
+    color          = 0x606060;
+    cfg            = &Wip_SysConfig;
+    xOff           = obj->field_1C;
+    x              = xOff + 0x22;
+    y              = (s16)obj->field_18 + 8;
+    req.x          = obj->baseX + x;
+    req.y          = obj->baseY + (y - 2);
+    req.otIndex    = (s16)obj->drawOrder + 1;
+    req.field_8    = color;
+    req.glyphTable = 5;
+    req.centerMode = 2;
+    req.field_E    = 1;
+    func_8002E53C(&req, (u8*)D_80097000);
+    req2.x          = obj->baseX + 0xA + x;
+    req2.y          = obj->baseY + y;
+    req2.otIndex    = (s16)obj->drawOrder + 1;
+    req2.field_8    = color;
+    req2.glyphTable = 0;
+    req2.centerMode = 0;
+    req2.field_E    = 3;
+    func_8002E53C(&req2, Text_ItoaUnsigned(buf, cfg->field_8));
+    x               = xOff + 0x7A;
+    req3.x          = obj->baseX + x;
+    req3.y          = obj->baseY + (y - 2);
+    req3.otIndex    = (s16)obj->drawOrder + 1;
+    req3.field_8    = color;
+    req3.glyphTable = 5;
+    req3.centerMode = 2;
+    req3.field_E    = 1;
+    func_8002E53C(&req3, (u8*)D_80096FFC);
+    req4.x          = obj->baseX + 0xA + x;
+    req4.y          = obj->baseY + y;
+    req4.otIndex    = (s16)obj->drawOrder + 1;
+    req4.field_8    = color;
+    req4.glyphTable = 0;
+    req4.centerMode = 0;
+    req4.field_E    = 3;
+    func_8002E53C(&req4, Text_ItoaSigned(buf, cfg->field_1c));
+    req5.x          = obj->baseX + 0x25 + x;
+    req5.y          = obj->baseY + y;
+    req5.otIndex    = (s16)obj->drawOrder + 1;
+    req5.field_8    = color;
+    req5.glyphTable = 0;
+    req5.centerMode = 1;
+    req5.field_E    = 3;
+    func_8002E53C(&req5, (u8*)D_80096FF4);
+    req6.x          = obj->baseX + 0x2A + x;
+    req6.y          = obj->baseY + y;
+    req6.otIndex    = (s16)obj->drawOrder + 1;
+    req6.field_8    = color;
+    req6.glyphTable = 0;
+    req6.centerMode = 0;
+    req6.field_E    = 3;
+    func_8002E53C(&req6, Text_ItoaSigned(buf, cfg->field_1e));
+    head = arg0->firstChild;
+    if (head != NULL) {
+        child = head;
+        do {
+            childObj = child->spawnArg2;
+            flag     = childObj->field_2E;
+            child    = child->nextSibling;
+            if (flag != -1) {
+                if (flag == 6) {
+                    obj->field_2C = 1;
+                    goto store_flag;
+                }
+            } else {
+            store_flag:
+                obj->field_2E = flag;
+            }
+        } while (child != arg0->firstChild);
+    }
+}
 
 void func_800CCA48(Task* arg0)
 {
