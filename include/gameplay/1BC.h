@@ -98,27 +98,43 @@ typedef struct _GpPackedSvec {
 } GpPackedSvec;
 STATIC_ASSERT_SIZEOF(GpPackedSvec, 4);
 
+/// Packed translation + rotation (no `SVECTOR` pad). `func_800B2E90`
+/// GPF/GPL-blends `vx`/`vy`/`vz` and copies `rx`/`ry`/`rz` into
+/// `GpAnimScratch80.vec0` / `vec1`. `func_800B3448` dispatches here when
+/// `GpAnimSlot.field_B == 1`.
+typedef struct _GpPackedPose {
+    /* 0x00 */ s16 vx;
+    /* 0x02 */ s16 vy;
+    /* 0x04 */ s16 vz;
+    /* 0x06 */ s16 rx;
+    /* 0x08 */ s16 ry;
+    /* 0x0A */ s16 rz;
+} GpPackedPose;
+STATIC_ASSERT_SIZEOF(GpPackedPose, 0xC);
+
 /// Source/dest pointers for `func_800B3108` / `func_800B2E90`. Lives at
 /// offset 4 of the 0x18-byte scratch `func_800B3448` allocates from
 /// `G_SCRATCH_HEAD`. `field_0` / `field_4` are the current and next-frame
-/// packed words; `field_8` is an optional packed dest (`arg3` of
-/// `func_800B3448`). `field_C` is `arg2` of `func_800B3448`; `field_10`
-/// is a copy of `GpAnimSlot.field_17`.
+/// sources (`GpPackedSvec` when `field_B == 4`, `GpPackedPose` when
+/// `field_B == 1`); `field_8` is an optional packed dest (`arg3` of
+/// `func_800B3448`). `field_C` is `arg2` of `func_800B3448` (optional
+/// translation dest); `field_10` is a copy of `GpAnimSlot.field_17`.
 typedef struct _GpAnimBlendSrc {
     /* 0x00 */ GpPackedSvec* field_0;
     /* 0x04 */ GpPackedSvec* field_4;
     /* 0x08 */ GpPackedSvec* field_8;
-    /* 0x0C */ void*         field_C;
+    /* 0x0C */ SVECTOR*      field_C;
     /* 0x10 */ u8            field_10;
 } GpAnimBlendSrc;
 STATIC_ASSERT_SIZEOF(GpAnimBlendSrc, 0x14);
 
 /// 0x80-byte scratch from `G_SCRATCH_HEAD` used by `func_800B3108` /
-/// `func_800B2E90` / `func_800B2998`. `vec0` / `vec1` are unpacked from
+/// `func_800B2E90` / `func_800B2998`. `trans` is the GPF/GPL-blended
+/// translation (`func_800B2E90`); `vec0` / `vec1` are unpacked from
 /// `GpAnimBlendSrc.field_0` / `field_4`; `blend` / `invBlend` are the
 /// 12-bit GPF/GPL weights. `func_800B2998` also uses the matrices.
 typedef struct _GpAnimScratch80 {
-    /* 0x00 */ byte    pad_0[8];
+    /* 0x00 */ SVECTOR trans;
     /* 0x08 */ SVECTOR vec0;
     /* 0x10 */ SVECTOR vec1;
     /* 0x18 */ MATRIX  mtx0;
@@ -387,6 +403,7 @@ void       func_800B27C4(u16* arg0, u16* arg1, s32 arg2, u16* arg3);
 void       func_800B2840(u16* arg0, u16* arg1, s32 arg2, u16* arg3, s32 arg4);
 void       func_800B2998(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2,
                          GpAnimScratch80* arg3);
+void       func_800B2E90(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2);
 void       func_800B3108(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2);
 void       func_800B32E8(GpAnimCtx* arg0, s32 arg1);
 void       func_800B3910(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);

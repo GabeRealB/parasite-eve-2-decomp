@@ -1392,15 +1392,27 @@ Translation + rotation pair used by `func_800B43E0`.
 | bits 11–20 | `vy` | Signed 10-bit Y |
 | bits 21–31 | `vz` | Signed 11-bit Z |
 
+### `GpPackedPose` (0xC) — `1BC.h`
+Packed translation + rotation (no `SVECTOR` pad). Used by `func_800B2E90` when `GpAnimSlot.field_B == 1`.
+
+| Off | Member | Role |
+|-----|--------|------|
+| 0x00 | `vx` | Translation X; GPF/GPL-blended into `GpAnimScratch80.trans` |
+| 0x02 | `vy` | Translation Y |
+| 0x04 | `vz` | Translation Z |
+| 0x06 | `rx` | Rotation X; copied into `vec0` / `vec1` |
+| 0x08 | `ry` | Rotation Y |
+| 0x0A | `rz` | Rotation Z |
+
 ### `GpAnimBlendSrc` (0x14) — `1BC.h`
 At +4 of the 0x18-byte scratch `func_800B3448` allocates. Passed to `func_800B3108` / `func_800B2E90`.
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x00 | `field_0` | Current-frame packed vector |
-| 0x04 | `field_4` | Next-frame packed vector; equal to `field_0` skips blend |
+| 0x00 | `field_0` | Current-frame source (`GpPackedSvec` if `field_B == 4`, `GpPackedPose` if `field_B == 1`) |
+| 0x04 | `field_4` | Next-frame source; equal to `field_0` skips blend |
 | 0x08 | `field_8` | Optional packed dest (`arg3` of `func_800B3448`) |
-| 0x0C | `field_C` | `arg2` of `func_800B3448` |
+| 0x0C | `field_C` | Optional translation dest (`arg2` of `func_800B3448`); NULL writes `mtx.t` |
 | 0x10 | `field_10` | Copy of `GpAnimSlot.field_17` |
 
 ### `GpAnimScratch80` (0x80) — `1BC.h`
@@ -1408,7 +1420,8 @@ Scratch from `G_SCRATCH_HEAD` for `func_800B3108` / `func_800B2E90` / `func_800B
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x08 | `vec0` | Unpacked `field_0` (`<< 3`) |
+| 0x00 | `trans` | GPF/GPL-blended translation (`func_800B2E90`); copied to `mtx.t` or `field_C` |
+| 0x08 | `vec0` | Unpacked `field_0` (`<< 3` in `func_800B3108`; rotation in `func_800B2E90`) |
 | 0x10 | `vec1` | Unpacked `field_4`; packed back into `field_8` |
 | 0x18 | `mtx0` | Used by `func_800B2998` |
 | 0x38 | `mtx1` | Used by `func_800B2998` |

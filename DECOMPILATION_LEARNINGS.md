@@ -25951,3 +25951,40 @@ sin0 = ax + az;
 ```
 
 Same `+r` pin as `func_8009AA5C`. `func_800B114C` is the example.
+
+## Memory clobber so `gte_lddp` reloads a just-stored weight
+
+`s->invBlend = inv; gte_lddp(s->blend); ... gte_lddp(s->invBlend)` CSEs
+`inv` in `$v0`: the `sw 0x7C` sinks into the blend `lw` delay and the
+second `mtc2` uses `$v0` instead of `lw 0x7C`. The target stores
+`invBlend` at the join, then reloads both weights:
+
+```
+sw     v0, 0x7C(s0)
+lw     t0, 0x78(s0)
+nop
+mtc2   t0, $8
+...
+lw     t0, 0x7C(s0)
+nop
+mtc2   t0, $8
+```
+
+`inv` must stay in `$v0` across the join (equal path is `li v0, 0x1000` /
+`sw zero, blend`). Clobber memory after the store so both `gte_lddp`s
+load from the struct:
+
+```c
+s->invBlend = inv;
+asm volatile("" ::: "memory");
+gte_lddp(s->blend);
+gte_ldsv(src0);
+gte_gpf12_real();
+gte_lddp(s->invBlend);
+```
+
+Pin the optional dest to `$v1` so `lui v1, 0x1F80` for the scratch pop
+cannot hoist into the `beqz dest` delay. Write `field_C` dest through
+`arg0->field_C->vx` (no local) so each `sh` reloads the pointer. A named
+`z = trans.vz` before `field_0 = 0` keeps that store in the `lh vz` delay
+rather than the `vy` delay. `func_800B2E90` is the example.

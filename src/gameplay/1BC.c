@@ -834,7 +834,75 @@ Task* func_800B2968(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B2998);
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B2E90);
+void func_800B2E90(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2)
+{
+    register void**           scratch asm("v1");
+    register GpAnimScratch80* tmp asm("v0");
+    register s32              blend asm("v1");
+    register GpPackedPose*    dest asm("v1");
+    GpPackedPose*             p;
+    GpAnimScratch80*          s;
+    s32                       inv;
+    s32                       z;
+
+    if (arg2->field_E != 0) {
+        scratch  = (void**)G_SCRATCH_HEAD;
+        tmp      = *scratch;
+        tmp     -= 1;
+        *scratch = tmp;
+        if (arg0->field_0 != arg0->field_4) {
+            s        = tmp;
+            blend    = (s16)arg2->field_C << 12;
+            s->blend = blend;
+            blend    = blend / (s32)arg2->field_E;
+            inv      = 0x1000 - blend;
+            s->blend = blend;
+        } else {
+            s        = tmp;
+            inv      = 0x1000;
+            s->blend = 0;
+        }
+        s->invBlend = inv;
+        asm volatile("" ::: "memory");
+        gte_lddp(s->blend);
+        gte_ldsv(arg0->field_0);
+        gte_gpf12_real();
+        gte_lddp(s->invBlend);
+        gte_ldsv(arg0->field_4);
+        gte_gpl12_real();
+        gte_stsv(&s->trans);
+        if (arg0->field_C == NULL) {
+            arg1->mtx.t[0] = s->trans.vx;
+            arg1->mtx.t[1] = s->trans.vy;
+            z              = s->trans.vz;
+            arg1->field_0  = 0;
+            arg1->mtx.t[2] = z;
+        } else {
+            arg0->field_C->vx = s->trans.vx;
+            arg0->field_C->vy = s->trans.vy;
+            arg0->field_C->vz = s->trans.vz;
+        }
+        p          = (GpPackedPose*)arg0->field_0;
+        s->vec0.vx = p->rx;
+        s->vec0.vy = p->ry;
+        s->vec0.vz = p->rz;
+        p          = (GpPackedPose*)arg0->field_4;
+        s->vec1.vx = p->rx;
+        s->vec1.vy = p->ry;
+        s->vec1.vz = p->rz;
+        func_800B2998(arg0, arg1, arg2, s);
+        dest = (GpPackedPose*)arg0->field_8;
+        if (dest != NULL) {
+            dest->vx = s->trans.vx;
+            dest->vy = s->trans.vy;
+            dest->vz = s->trans.vz;
+            dest->rx = s->vec1.vx;
+            dest->ry = s->vec1.vy;
+            dest->rz = s->vec1.vz;
+        }
+        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x80;
+    }
+}
 
 void func_800B3108(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2)
 {
