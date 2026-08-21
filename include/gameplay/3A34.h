@@ -39,6 +39,11 @@ STATIC_ASSERT_SIZEOF(GpLinkNode, 0x8);
 /// applies `workm` to the 0x10 SVECTOR and adds `workm.t` into a `VECTOR3`.
 /// `func_800E1380` treats `field_C` as a `GpActorD4Rec*` whose `field_14`
 /// is the `GpRec18` table walked for the nearest matching slot.
+/// `func_800DEC80` uses that same table: flag `0x800` copies the first
+/// occupied slot's `field_8/A/C` (unless `arg3 != 0`), flag `0x400`
+/// copies the first occupied slot whose `field_4` high 16 bits equal
+/// `0x10`. Remaining of two world points come from `field_C` as
+/// `SVECTOR[2]` plus this object's 0x10 SVECTOR, rotated by `workm`.
 /// `func_800DBA20` selects that table from `flags & 7`: 1 is `field_C`
 /// itself, 2 is `((GpObj*)field_C)->field_C`, 3 is `GpActorD4Rec.field_14`,
 /// 4 is `((GpObj*)field_C)->field_8`.
@@ -742,6 +747,16 @@ typedef struct _GpGridPairScratch {
 } GpGridPairScratch;
 STATIC_ASSERT_SIZEOF(GpGridPairScratch, 0x40);
 
+/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `func_800DEC80`.
+/// `local` is `field_C` as `SVECTOR[2]` plus the object's 0x10 SVECTOR,
+/// rotated by `field_8->workm` into `vec` then added to `workm.t`.
+/// `vec` is reused as `arg1[0] - arg1[1]` for `VectorNormalS`.
+typedef struct _GpNormScratch {
+    /* 0x00 */ VECTOR  vec;
+    /* 0x10 */ SVECTOR local;
+} GpNormScratch;
+STATIC_ASSERT_SIZEOF(GpNormScratch, 0x18);
+
 /// 0x50-byte scratch from `G_SCRATCH_HEAD` used by `func_800DDC2C`.
 /// `src[0]` / `src[1]` are the local XZ endpoints of `GpObj.field_10/14`
 /// offset by `field_C` (as an SVECTOR) scaled by `field_1C >> 12`. `mat`
@@ -1051,6 +1066,7 @@ void func_800DDDF8(GpObj* node);
 void func_800DE2C0(VECTOR* arg0, s32 arg1);
 s32  func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3);
 void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1);
+void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3);
 void func_800DEF80(GpObj* node, GpObj4C* other);
 s32  func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3);
 void func_800E0294(void);

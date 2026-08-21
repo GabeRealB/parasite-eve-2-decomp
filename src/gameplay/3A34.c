@@ -2317,7 +2317,118 @@ void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1)
     *scratch = (u8*)*scratch + 0x40;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DEC80);
+void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
+{
+    register GpObj*         obj asm("t2");
+    register void**         scratch asm("v1");
+    register u8*            head asm("v0");
+    register s32            found asm("t1");
+    register GpActorD4Rec*  rec asm("t7");
+    register GpNormScratch* block asm("a0");
+    register VECTOR*        pos asm("t0");
+    register SVECTOR*       src asm("a3");
+    register SVECTOR*       local asm("t3");
+    register s32            temp asm("v0");
+    GpRec18*                slot;
+    s32                     flags;
+
+    obj     = arg0;
+    scratch = (void**)G_SCRATCH_HEAD;
+    asm volatile("" : "+r"(obj), "+r"(scratch));
+    head     = *scratch;
+    found    = 0;
+    head    -= 0x18;
+    *scratch = head;
+    rec      = (GpActorD4Rec*)obj->field_C;
+    block    = (GpNormScratch*)head;
+
+    if (arg3 == 0) {
+        if (obj->flags & 0x800) {
+            temp = (s32)rec;
+            asm volatile("" : "+r"(temp));
+            slot = ((GpActorD4Rec*)temp)->field_14;
+            for (;;) {
+                flags = slot->field_0;
+                if (flags & 1) {
+                    arg1->vx = slot->field_8;
+                    arg1->vy = slot->field_A;
+                    arg1->vz = slot->field_C;
+                    found    = 1;
+                    goto done_search;
+                }
+                if (flags & 2) {
+                    goto done_search;
+                }
+                slot++;
+            }
+        } else if (obj->flags & 0x400) {
+            slot = ((GpActorD4Rec*)obj->field_C)->field_14;
+            for (;;) {
+                if (slot->field_0 & 1) {
+                    if ((slot->field_4 & 0xFFFF0000) == 0x100000) {
+                        arg1->vx = slot->field_8;
+                        arg1->vy = slot->field_A;
+                        arg1->vz = slot->field_C;
+                        found    = 1;
+                        goto done_search;
+                    }
+                }
+                if (slot->field_0 & 2) {
+                    goto done_search;
+                }
+                slot++;
+            }
+        }
+    } else if (obj->flags & 0x400) {
+        slot = ((GpActorD4Rec*)obj->field_C)->field_14;
+        for (;;) {
+            if (slot->field_0 & 1) {
+                if ((slot->field_4 & 0xFFFF0000) == 0x100000) {
+                    arg1->vx = slot->field_8;
+                    arg1->vy = slot->field_A;
+                    arg1->vz = slot->field_C;
+                    found    = 1;
+                    goto done_search;
+                }
+            }
+            if (slot->field_0 & 2) {
+                break;
+            }
+            slot++;
+        }
+    }
+
+done_search:
+    gte_SetRotMatrix(&((GsCOORDINATE2*)obj->field_8)->workm);
+    if (found < 2) {
+        local = &block->local;
+        temp  = found << 4;
+        pos   = (VECTOR*)(temp + (s32)arg1);
+        temp  = found << 3;
+        src   = (SVECTOR*)(temp + (s32)rec);
+        do {
+            block->local.vx = (u16)src->vx + (u16)obj->field_10;
+            block->local.vy = (u16)src->vy + (u16)obj->field_12;
+            block->local.vz = (u16)src->vz + (u16)obj->field_14;
+            gte_ldv0(local);
+            gte_rtv0_real();
+            gte_stlvnl(&block->vec);
+            pos->vx = block->vec.vx + ((GsCOORDINATE2*)obj->field_8)->workm.t[0];
+            pos->vy = block->vec.vy + ((GsCOORDINATE2*)obj->field_8)->workm.t[1];
+            pos->vz = block->vec.vz + ((GsCOORDINATE2*)obj->field_8)->workm.t[2];
+            src++;
+            found++;
+            pos++;
+        } while (found < 2);
+    }
+
+    block->vec.vx = arg1[0].vx - arg1[1].vx;
+    block->vec.vy = arg1[0].vy - arg1[1].vy;
+    block->vec.vz = arg1[0].vz - arg1[1].vz;
+    VectorNormalS(&block->vec, arg2);
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DEF80);
 

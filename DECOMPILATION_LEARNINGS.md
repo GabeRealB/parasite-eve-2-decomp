@@ -26471,3 +26471,52 @@ t >>= 20;
 ```
 
 `func_800A5274` is the example.
+
+## Pin `$t2` / `$v1` together so `sw ra` sits after `ori` of the scratch head
+
+A live `obj = arg0` copy wants `move t2, a0` first, but pinning only the
+object lets GCC emit `lui/ori` of `G_SCRATCH_HEAD` *before* the copy (or
+save `$ra` immediately after `move t2, a0`, filling the `ori` delay with
+the load). Pin both and barrier them as a pair so the prologue is
+`move t2, a0` / `lui v1, 0x1F80` / `ori v1, 0x3FC` / `sw ra`:
+
+```c
+register GpObj* obj asm("t2");
+register void** scratch asm("v1");
+
+obj     = arg0;
+scratch = (void**)G_SCRATCH_HEAD;
+asm volatile("" : "+r"(obj), "+r"(scratch));
+head = *scratch;
+found = 0;
+head -= 0x18;
+```
+
+`found = 0` then lands between the `lw` of the scratch head and
+`addiu -0x18`. Copy a later pointer through a `$v0` temp and barrier it
+so a `beqz flags` delay is `move v0, t7` / `lw 0x14(v0)` rather than
+`nop` / `lw 0x14(t7)`:
+
+```c
+register s32 temp asm("v0");
+temp = (s32)rec;
+asm volatile("" : "+r"(temp));
+slot = ((GpActorD4Rec*)temp)->field_14;
+```
+
+Index a `VECTOR` / `SVECTOR` with that same `$v0` temp so the shifts stay
+`sll v0, t1, 4` / `addu t0, v0, a1` (not `move a3, t1` / `sll t0, a3, 4`).
+`&arg1[found]` and `(SVECTOR*)rec + found` add the extra move and swap
+the `addu` operands:
+
+```c
+temp = found << 4;
+pos  = (VECTOR*)(temp + (s32)arg1);
+temp = found << 3;
+src  = (SVECTOR*)(temp + (s32)rec);
+```
+
+Walk occupied `GpRec18` slots with `for (;;)` and `goto` out on a hit so
+GCC emits a real loop and hoists `&slot->field_C` (`lh -4/-2/0`). `break`
+from the occupied arm unrolls the body and keeps `lh 8/0xA/0xC(slot)`.
+`func_800DEC80` is the example.
