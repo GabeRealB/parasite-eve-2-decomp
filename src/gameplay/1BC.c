@@ -1,6 +1,7 @@
 #include "common.h"
 
 #include <psyq/inline_c.h>
+#include <psyq/libcd.h>
 #include <psyq/rand.h>
 #include <psyq/stdio.h>
 
@@ -9,6 +10,7 @@
 #include "gameplay/4CC.h"
 #include "gameplay/D4.h"
 #include "gameplay/gameplay.h"
+#include "main/cdaudio.h"
 #include "main/display.h"
 #include "main/fs.h"
 #include "main/gamemain.h"
@@ -132,7 +134,278 @@ s16 func_800AF89C(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
     return i;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AFA44);
+void func_800AFA44(void)
+{
+    register s32 one asm("s0");
+    register s32 i_s1 asm("s1");
+    CdCmdQueue*  p;
+    s32          seed;
+    s16          ret;
+    s32          save23;
+
+    p = &CdCmd_Queue;
+    {
+        s32 cmd;
+        cmd = p->entries[p->readIdx].cmd;
+        if (cmd == 0) {
+            goto end_check;
+        }
+        if (cmd < 0) {
+            goto end_check;
+        }
+        if (cmd >= 0x83) {
+            goto end_check;
+        }
+        if (cmd < 0x81) {
+            goto end_check;
+        }
+    }
+
+    switch (p->step) {
+        case 0:
+            CdCmd_SetBusy();
+            p->field_20E = 2;
+            ret          = CdCmd_PollStatus(0, 0);
+            if (ret != 1) {
+                if (ret < 2) {
+                    if (ret == 0) {
+                        return;
+                    }
+                    break;
+                }
+                if (ret != 2) {
+                    break;
+                }
+                CdFlush();
+            }
+            if (p->field_212 == 0) {
+                p->step = p->step + 1;
+                break;
+            }
+            p->step = 6;
+            goto case6;
+        case 1:
+        case 2:
+            p->step = p->step + 1;
+            break;
+        case 3: {
+            register CdCmd190* info asm("a0");
+            register s32       size asm("a1");
+            register s32       temp asm("v0");
+            s32                extra;
+            s32                end;
+
+            info         = p->field_190;
+            p->field_242 = 1;
+            if (info->field_3 != 0) {
+                size = info->field_1C;
+                info = (CdCmd190*)info->field_4;
+                temp = size - 1;
+                if (temp < 0) {
+                    extra = size + 0x7FE;
+                } else {
+                    extra = temp;
+                }
+                extra = extra >> 11;
+                if (extra != 0) {
+                    info = (CdCmd190*)((s32)info + 1);
+                    info = (CdCmd190*)((s32)info + extra);
+                }
+                end = (s32)info;
+                Fs_ReadSectorEx(p->field_190->field_4, end, p->field_1A4, 0);
+                p->step = p->step + 1;
+            } else {
+                p->step = 5;
+            }
+            break;
+        }
+        case 4:
+            if (Fs_CdOpStatus != 0xFF) {
+                break;
+            }
+            ret = CdCmd_PollStatus(0, 0);
+            if (ret != 1) {
+                if (ret < 2) {
+                    if (ret == 0) {
+                        return;
+                    }
+                    break;
+                }
+                if (ret != 2) {
+                    break;
+                }
+                CdFlush();
+                p->step = 3;
+                break;
+            }
+            p->step = p->step + 1;
+            break;
+        case 5: {
+            CdCmd190*     info;
+            s32           sector;
+            s32           bits;
+            u16           maskbits;
+            GpSndMaskRec* entry;
+
+            info   = p->field_190;
+            sector = info->field_4;
+            if (info->field_3 != 0) {
+                sector += 1;
+                sector += (info->field_1C - 1) / 0x800;
+            }
+            CdAudio_StartTrack(sector, p->field_190->field_2);
+            i_s1     = 0;
+            maskbits = p->field_190->field_16;
+            if (D_8010D1C4[0].mask != 0) {
+                bits = maskbits;
+                do {
+                    entry = &D_8010D1C4[(u16)i_s1];
+                    if (bits & entry->mask) {
+                        SndEvt_EnqueueType7(entry->flags, 0);
+                        SndBank_SetEnableFlags(0, entry->flags);
+                    }
+                    i_s1++;
+                } while (D_8010D1C4[(u16)i_s1].mask != 0);
+            }
+            p->field_248 = 0;
+            p->field_244 = 1;
+            p->step      = p->step + 1;
+            break;
+        }
+        case 6:
+        case6: {
+            s32 cmd;
+
+            if (CdAudio_Phase.field_0 != 3) {
+                break;
+            }
+            one          = 1;
+            p->field_212 = one;
+            cmd          = p->entries[p->readIdx].cmd;
+            if (cmd == 0x82) {
+                CdCmd_LoadActiveEntry();
+                CdCmd_AdvanceRead();
+                break;
+            }
+            if (cmd != 0x81) {
+                break;
+            }
+            save23       = Mc_SaveData.field_23;
+            p->field_20E = one;
+            if (save23 != 0) {
+                SndEvt_EnqueueType6(0, 0, 0);
+            }
+            if (p->field_190->field_3 != 0) {
+                p->field_240 = one;
+            }
+            p->field_1A0 = 0;
+            CdAudio_RequestStopB();
+            p->field_244 = one;
+            p->field_242 = 0;
+            p->step      = p->step + 1;
+            break;
+        }
+        case 7: {
+            CdCmd190*     info;
+            s32           i;
+            s32           bits;
+            u16           maskbits;
+            GpSndMaskRec* entry;
+
+            if (CdAudio_Phase.field_1 != 4) {
+                break;
+            }
+            if (Mc_SaveData.field_23 != 0) {
+                SndEvt_EnqueueType6(0, 0, 0);
+            }
+            Mem_Set(&p->field_40, 0, 0x10);
+            info            = p->field_190;
+            p->field_50.cmd = 0;
+            if (info->field_14 != 0) {
+                CdAudio_JumpToSector(info->field_4 + info->field_14);
+                p->field_242 = 1;
+                p->step      = p->step + 1;
+                break;
+            }
+            i        = 0;
+            maskbits = info->field_16;
+            if (D_8010D1C4[0].mask != 0) {
+                bits = maskbits;
+                do {
+                    entry = &D_8010D1C4[(u16)i];
+                    if (bits & entry->mask) {
+                        SndBank_SetEnableFlags(1, entry->flags);
+                    }
+                    i++;
+                } while (D_8010D1C4[(u16)i].mask != 0);
+            }
+            {
+                CdCmdQueue* q;
+                s32         ff;
+                q            = &CdCmd_Queue;
+                seed         = q->field_1AC;
+                ff           = 0xFF;
+                p->field_244 = 0;
+                p->field_20E = 0;
+                q->field_1FE = ff;
+                q->field_23A = 1;
+                q->field_214 = 0;
+                q->field_212 = 0;
+                q->field_216 = 0;
+                q->field_240 = 0;
+                D_80070F60   = q->field_1A8;
+                srand(seed);
+            }
+            CdCmd_AdvanceRead();
+            break;
+        }
+        case 8: {
+            s32           i;
+            s32           bits;
+            u16           maskbits;
+            GpSndMaskRec* entry;
+
+            if (CdAudio_Phase.field_4 != 0xA) {
+                break;
+            }
+            i        = 0;
+            maskbits = p->field_190->field_16;
+            if (D_8010D1C4[0].mask != 0) {
+                bits = maskbits;
+                do {
+                    entry = &D_8010D1C4[(u16)i];
+                    if (bits & entry->mask) {
+                        SndBank_SetEnableFlags(1, entry->flags);
+                    }
+                    i++;
+                } while (D_8010D1C4[(u16)i].mask != 0);
+            }
+            {
+                CdCmdQueue* q;
+                s32         ff;
+                q            = &CdCmd_Queue;
+                seed         = q->field_1AC;
+                ff           = 0xFF;
+                p->field_242 = 0;
+                p->field_244 = 0;
+                p->field_20E = 0;
+                q->field_1FE = ff;
+                q->field_23A = 1;
+                q->field_214 = 0;
+                q->field_212 = 0;
+                q->field_216 = 0;
+                q->field_240 = 0;
+                D_80070F60   = q->field_1A8;
+                srand(seed);
+            }
+            CdCmd_AdvanceRead();
+            break;
+        }
+    }
+
+end_check:
+    CdCmd_StepVlcRebuild();
+}
 
 void func_800AFF90(u16 arg0)
 {

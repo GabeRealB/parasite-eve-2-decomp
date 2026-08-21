@@ -179,7 +179,7 @@ typedef struct _CdCmd190 {
     /* 0x16 */ u16  field_16;
     /* 0x18 */ byte unknown_18[0x2];
     /* 0x1A */ u16  field_1A; // VLC table slot (0=malloc, 1..3=shared buffers)
-    /* 0x1C */ byte unknown_1C[0x2];
+    /* 0x1C */ u16  field_1C; // byte length used to skip extra CD sectors
     /* 0x1E */ u16  field_1E; // malloc size when field_3 == 1
 } CdCmd190;
 STATIC_ASSERT_SIZEOF(CdCmd190, 0x20);

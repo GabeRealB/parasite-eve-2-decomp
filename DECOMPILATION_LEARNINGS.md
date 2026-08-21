@@ -3,6 +3,49 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Don't name a later load from the same base as an earlier arg
+
+`seed = q->field_1AC` then later `rng = q->field_1A8; D_80070F60 = rng;
+srand(seed)` hoists the `field_1A8` load next to the seed load (`lw a0,
+0x1AC` / `lw a1, 0x1A8`). The target reuses `$v1` after `field_23A = 1`
+for that load so it sits just before the zero stores. Write the use
+directly so there is no second named value to pair-load:
+
+```c
+seed = q->field_1AC;
+q->field_1FE = 0xFF;
+q->field_23A = 1;
+q->field_214 = 0;
+D_80070F60   = q->field_1A8;
+srand(seed);
+```
+
+`func_800AFA44` is the example. Same reason to duplicate a small
+cleanup block in two switch cases rather than a shared `q` at function
+scope: a function-level `q` lands in `$v1` instead of `$v0`.
+
+## Pin the `(x - 1) / 2048` temp to `$v0` so the dest can be `$v1`
+
+Signed `(size - 1) / 0x800` with `size` in `$a1` wants `addiu v0, a1,
+-1` / `bgez` delay `move v1, v0` / `addiu v1, a1, 0x7FE`. Assigning the
+result to a plain `extra` reuses dead `$a1`. Split a temp pinned to
+`$v0` from the dest:
+
+```c
+register s32 temp asm("v0");
+temp = size - 1;
+if (temp < 0) {
+    extra = size + 0x7FE;
+} else {
+    extra = temp;
+}
+extra = extra >> 11;
+```
+
+`func_800AFA44` is the example. Reassigning the same `a0` pointer
+(`info = (T*)info->field_4`) then `end = (s32)info` keeps the sector in
+`$a0` and copies it to `$a1` before `Fs_ReadSectorEx` reloads `field_4`.
+
 ## Reuse `$v0` for a store constant then a later temp
 
 `obj->field = 0x900` then `tmp = packed >> 12` wants `li v0, 0x900` in the
