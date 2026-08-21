@@ -360,6 +360,10 @@ void     func_800B058C(Task* arg0);
 s32      func_800B05E8(s32 arg0);
 void     func_800B065C(u8 arg0);
 void     func_800B0FDC(MATRIX* arg0, SVECTOR* arg1);
+/// Extracts ZYX Euler angles from `arg1`'s rotation into `arg0`. Tries `vx`
+/// and `vx ± 0x800` (the other Euler solution) and keeps the candidate with
+/// the smaller sum of absolute angles. Returns `arg0`.
+SVECTOR* func_800B114C(SVECTOR* arg0, MATRIX* arg1);
 /// Walks `arg0->sub` up to world (`D_80070F10`), composing each node's
 /// `coord` rotation into `arg1` and accumulating the rotated translation
 /// into `arg2`. The world parent initializes `arg1` to identity and

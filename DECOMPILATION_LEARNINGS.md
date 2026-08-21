@@ -25890,3 +25890,64 @@ nop
 Write `switch (state) { case 0: ... case 1: ... }`. GCC still uses the
 `beqz`/`beq` cascade (no jump table) but includes the default `j`.
 `func_800ECEC0` is the example.
+
+## Load through `$v0` so `lh v0` / `mflo dest` rather than `lh dest`
+
+`t1 = arg1->m[1][0] * cos` with `t1` pinned to `$v1` loads into `$v1`
+(`lh v1` / `mult v1` / `mflo v1`). The target uses `$v0` as the load
+scratch: `lh v0` / `mult v0` / `mflo v1`. Assign the halfword to a `$v0`
+temp first, then multiply:
+
+```c
+register s32 t1 asm("v1");
+register s32 m asm("v0");
+m  = arg1->m[1][0];
+t1 = (m * cos0) / 4096;
+```
+
+A later `m = arg1->m[2][0]; prod = m * sin0` with `prod` in `$a2` is the
+same pattern for the second product (`lh v0` / `mflo a2`). `func_800B114C`
+is the example.
+
+## `if (s16 <= 0)` so `bgtz` takes the then-block after the else
+
+`if (vx > 0) { vx1 = vx - 0x800; } else { vx1 = vx + 0x800; }` emits
+`blez` to the else with the then-block first. The target is `bgtz` to
+`-0x800` and fall-through `+0x800` / `j` join (else first). Invert:
+
+```c
+if (vx0 <= 0) {
+    vx1 = vx0 + 0x800;
+} else {
+    vx1 = vx0 - 0x800;
+}
+```
+
+`func_800B114C` is the example.
+
+## Reassign dead saved regs so later sums reuse `$s2` / `$s1`
+
+`sin0` / `cos0` live in `$s2` / `$s1` across the `rsin`/`rcos`/`ratan2`
+calls. After the last use, new `sum0` / `sum1` locals take `$a1` / `$v0`.
+Write the abs-sums back into `sin0` / `cos0` so `addu s2` / `addu s1` /
+`slt v0, s2, s1`. `func_800B114C` is the example.
+
+## Two `+r` barriers around an abs so the add stays after `bgez` / `nop`
+
+`ax += ay; if (az < 0) az = -az; sin0 = ax + az` lets `-fschedule-insns`
+put `addu a1, a1, a0` in the next `bgez` delay, or `addu s2, a1, v1` in
+the `az` `bgez` delay (wrong if `az` still needs `negu`). Pin after the
+first add and again after the abs so the target keeps `addu` / `bgez` /
+`nop` / `negu` / `addu s2`:
+
+```c
+ax += ay;
+__asm__ volatile("" : "+r"(ax));
+if (az < 0) {
+    az = -az;
+}
+__asm__ volatile("" : "+r"(az), "+r"(ax));
+sin0 = ax + az;
+```
+
+Same `+r` pin as `func_8009AA5C`. `func_800B114C` is the example.
