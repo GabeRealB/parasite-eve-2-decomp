@@ -1240,7 +1240,184 @@ void func_800C32A8(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C3418);
+void func_800C3418(DialogPrompt* arg0, UiObject* arg1)
+{
+    TextDrawReq            req;
+    WipSysConfig*          cfg;
+    register DialogPrompt* prompt asm("s5");
+    register UiObject*     obj asm("s2");
+    s32                    item;
+    s32                    flag;
+    s32                    status;
+    s32                    count;
+    s32                    x;
+    s32                    y;
+    s32                    color;
+    s32                    temp;
+    s32                    off;
+    UiList*                menu;
+    Task*                  parent;
+    u8*                    ptr;
+
+    prompt = arg0;
+    asm("" : "+r"(prompt));
+    cfg = &Wip_SysConfig;
+    {
+        register s32 t asm("v0");
+        t    = cfg->field_21;
+        item = t + 0x7F;
+    }
+    if (item < 0x80) {
+        item = 0;
+    }
+    obj = arg1;
+    asm("" : "+r"(obj));
+
+    status = obj->status;
+    if (((status >> 16) == 1) || (status == 1)) {
+        if (prompt->field_10 == prompt->field_8) {
+            if (D_80114D8C == 0) {
+                register s32 name asm("a0");
+                register s32 a1v asm("a1");
+                a1v = 1;
+                if (item == 0) {
+                    name = (s32)D_8010F8D0;
+                } else {
+                    name = (s32)func_800B8EB0(item, a1v, 0);
+                }
+                a1v = 0;
+                asm("" : "+r"(a1v));
+                Ui_SetHolderParam(name, a1v, a1v);
+                func_800CDE80(item, 0);
+            } else {
+                Ui_SetHolderParam((s32)D_8010E480, 0, 0);
+            }
+        }
+    }
+
+    status = prompt->field_C;
+    if (status == 1) {
+        flag = D_80114D8C;
+        if (flag == 0) {
+            register McItemScan* scan asm("s4");
+            register GpItemRec*  table asm("v1");
+            register s32         i asm("a1");
+            register s32         idx asm("v0");
+
+            scan  = &Mc_SaveData.field_5BC;
+            table = func_800BB500(scan);
+            if (item != 0) {
+                idx   = ((volatile McItemScan*)&Mc_SaveData.field_5BC)->field_0;
+                count = scan->field_1;
+                asm volatile("sll %0, %0, 2" : "+r"(idx));
+                table = (GpItemRec*)((s32)table + idx);
+                if (flag < count) {
+                    for (i = 0; i < count; i++, table++) {
+                        if (table->field_0 == item) {
+                            break;
+                        }
+                    }
+                }
+                D_80114DD4 = (u8*)table;
+            } else {
+                D_80114DD4 = NULL;
+            }
+            if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+                menu = &D_8010E9A4;
+                func_800C2B70(menu, 0);
+                {
+                    register s32       n asm("v1");
+                    register UiObject* spawned asm("v1");
+                    n = menu->field_4;
+                    if (((u32)n >= 2U) || ((n == 1) && (cfg->field_21 == 0))) {
+                        SndEvt_EnqueueType6(3, 0, 0);
+                        spawned = Ui_SpawnFromDesc(&D_8010ECE4, 0, 1, 0x10, obj);
+                        if (spawned != NULL) {
+                            register s32 t asm("v0");
+                            t                = -0x5C;
+                            spawned->field_E = t;
+                            t                = -8;
+                            spawned->field_C = t;
+                        }
+                    } else {
+                        func_800D4E40(obj, 0x14, 0, 1);
+                    }
+                }
+                obj->status = 0;
+            } else {
+                func_800CDF18(obj);
+            }
+        } else if (flag == status) {
+            if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+                if ((u8)(*D_80114DD4 + 0x80) < 0x20) {
+                    register WipSysConfig* p asm("s0");
+                    register s32           a0item asm("a0");
+                    a0item = item;
+                    asm volatile("" : "+r"(a0item));
+                    p = &Wip_SysConfig;
+                    func_800BB190(a0item, 0);
+                    ptr         = D_80114DD4;
+                    p->field_21 = *ptr - 0x7F;
+                    func_800BB7C0(*ptr, 1);
+                    D_80114D8C = 0;
+                    SndEvt_EnqueueType6(3, 0, 0);
+                } else {
+                    parent = obj->owner->parent;
+                    if (parent != NULL) {
+                        D_80114D8C                             = 0;
+                        ((UiObject*)parent->spawnArg2)->status = flag;
+                        obj->status                            = 0;
+                        SndEvt_EnqueueType6(3, 0, 0);
+                    }
+                }
+            }
+        }
+    }
+
+    x     = prompt->field_18;
+    y     = prompt->field_1A;
+    color = prompt->field_1C;
+    if (obj->mode != 5) {
+        req.x          = obj->baseX + 0x11 + x;
+        off            = obj->baseY - 6;
+        req.y          = off + y;
+        req.otIndex    = (s16)obj->drawOrder + 1;
+        req.field_8    = color;
+        req.glyphTable = 0;
+        req.centerMode = 0;
+        req.field_E    = 1;
+        func_8002E53C(&req, func_800B8EB0(item, 0, 0));
+        temp = item - 0xF;
+        if ((u32)temp < 0x24U) {
+            func_800C2538(obj, x, y, temp % 3 + 1, color);
+        }
+        func_800C05CC(obj, x, y, item, 0);
+    }
+
+    Ui_DrawHBar((UiPanel*)obj, (s16)obj->field_1C, (s16)obj->field_1E, (s16)obj->field_18 + 0x11);
+
+    {
+        register s32 vx asm("v0");
+        register s32 vy asm("v1");
+        s32          grey;
+        grey           = 0x606060;
+        vx             = obj->baseX;
+        vy             = (u16)prompt->field_18;
+        req.x          = vx + vy;
+        vx             = obj->baseY;
+        vy             = (u16)prompt->field_1A;
+        vx             = vx + 9;
+        vy             = vy + vx;
+        req.y          = vy;
+        req.otIndex    = (s16)obj->drawOrder + 1;
+        req.field_8    = grey;
+        req.glyphTable = 5;
+        req.centerMode = 0;
+        req.field_E    = 1;
+        func_8002E53C(&req, D_8010E594);
+    }
+    prompt->field_1A = (u16)prompt->field_1A + 0xA;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C388C);
 

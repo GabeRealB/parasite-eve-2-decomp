@@ -25562,3 +25562,52 @@ mtc2   t8, $15
 
 `func_8009A348` is the example. The GT4 pair (`func_8009A57C`) uses the
 same `$t8` temp with different negative offsets.
+
+## Non-volatile `+r` so `move s5, a0` precedes `lui` without saving `$ra` early
+
+Volatile `asm ("" : "+r"(prompt))` right after `prompt = arg0` is treated
+like a call: GCC saves `$ra` before the independent `lui %hi(Wip_SysConfig)`
+/`sw s6`/`addiu s6, %lo`. The target interleaves that `lui`/`sw s6`/`addiu`
+*before* `sw ra`. A non-volatile empty asm still pins the copy:
+
+```c
+prompt = arg0;
+asm("" : "+r"(prompt));
+cfg = &Wip_SysConfig;
+```
+
+`func_800C3418` is the example.
+
+## C `&global` fills a delay-slot `lui`; `volatile` field load keeps the split `%hi`
+
+`asm("lui %0, %%hi(Mc_SaveData+0x5BC)")` is a scheduling barrier, so
+`bnez s0, else` gets `nop` instead of the `lui`. A C
+`scan = &Mc_SaveData.field_5BC` emits a schedulable `lui`. CSE then turns
+`Mc_SaveData.field_5BC.field_0` into `lbu 0(scan)`. A volatile object
+keeps the split `%hi` in `$s1` for the later `%lo` load:
+
+```c
+scan  = &Mc_SaveData.field_5BC;
+table = func_800BB500(scan);
+idx   = ((volatile McItemScan*)&Mc_SaveData.field_5BC)->field_0;
+count = scan->field_1;
+```
+
+`func_800C3418` is the example.
+
+## Assign through the pinned dest so `addu v1, v1, v0` / `sh v1`
+
+`req.y = vy + vx` with `vy` in `$v1` and `vx` in `$v0` still emits
+`addu v0, v1, v0` / `sh v0` (temp for the `s16` store). Write the add
+into the pinned dest first:
+
+```c
+vx    = obj->baseY;
+vy    = (u16)prompt->field_1A;
+vx    = vx + 9;
+vy    = vy + vx;
+req.y = vy;
+```
+
+`func_800C3418` is the example. Same dest-first add as `sum = sum + tmp`
+(`func_800AC790`).
