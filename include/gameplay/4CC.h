@@ -91,6 +91,8 @@ extern GpItemMoveState* D_80114D78;
 /// Item-move `UiObjectDesc` table. `func_800BCC44` spawns `[0]` / `[1]`
 /// and, when `spawnArg1 == 1`, `[9]`.
 extern UiObjectDesc D_8010D6F4[];
+/// Popup spawned by `func_800BCEA4` on confirm when `owner->state == 1`.
+extern UiObjectDesc D_8010D764;
 /// Extra `UiObjectDesc` spawned after the `D_8010D6F4` pair.
 extern UiObjectDesc D_8010D80C;
 /// Pair of inventory UiLists indexed by `Task::spawnArg1` (source / dest).
@@ -115,6 +117,12 @@ void func_800BC634(UiObject* arg0, Task* arg1);
 /// (plus `[9]` when `spawnArg1 == 1`), then walks children through
 /// `func_800BC634`. Always writes `field_2C = 0x34`.
 void func_800BCC44(Task* arg0);
+/// List-item callback for an inventory row. Looks up
+/// `D_8010D628[owner->spawnArg1]` at `field_8`, highlights the move-source
+/// row in `0x37A78`, draws the item (and ammo count for ids `0xA0..0xBF`),
+/// then on confirm either opens the stack/info popup (`owner->state == 1`)
+/// or starts a move / restriction prompt.
+void func_800BCEA4(DialogPrompt* arg0, UiObject* arg1);
 /// Task callback for one `D_8010D634` inventory pane. `spawnArg1 >= 0x100`
 /// is masked to the low byte and `flags` is set so the title is
 /// `D_80093D70` ("Battle Field") instead of `D_80093D80` ("Item Box");

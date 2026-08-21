@@ -18,13 +18,15 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-extern s32       D_8005ED70;
-extern s32       D_8005ED74;
-extern s32       D_8005ED78;
-extern char      D_8010D588[];
-extern UiObject* D_80067634;
-extern VECTOR    D_80093DB0;
-extern u8        D_8010D828[];
+extern s32          D_8005ED70;
+extern s32          D_8005ED74;
+extern s32          D_8005ED78;
+extern char         D_8010D588[];
+extern UiObject*    D_80067634;
+extern VECTOR       D_80093DB0;
+extern u8           D_8010D828[];
+extern GpItemRec*   D_80114DD4;
+extern UiObjectDesc D_8010EFA0;
 
 void func_800CDEF4(void);
 
@@ -113,7 +115,106 @@ end:
     obj->field_2C = code;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BCEA4);
+void func_800BCEA4(DialogPrompt* arg0, UiObject* arg1)
+{
+    register GpItemRec* rec asm("s1");
+    register s32        item asm("s0");
+    register Task*      owner asm("a1");
+    s32                 item2;
+    s32                 status;
+    s32                 one;
+    s32                 selected;
+    s32                 flag;
+    s32                 flags;
+    s32                 idx;
+    UiObject*           spawned;
+    WipSysConfig*       cfg;
+
+    rec = func_800BB5BC(&D_8010D628 + arg1->owner->spawnArg1, arg0->field_8, 0);
+    __asm__ volatile("" : "+r"(rec));
+    one  = 1;
+    item = rec->field_0;
+    if (arg0->field_C != one) {
+        owner = arg1->owner;
+        if ((owner->state != one) && (arg0->field_8 == D_80114D78->field_14) &&
+            (owner->spawnArg1 == D_80114D78->field_10)) {
+            arg0->field_1C = 0x37A78;
+        }
+    }
+    status = arg1->status;
+    {
+        register s32 one2 asm("a0");
+        one2 = 1;
+        if (((status >> 16) == one2) || (status == one2)) {
+            if (arg0->field_10 == arg0->field_8) {
+                func_800CDE80(item, 0);
+                func_800CEB40(item);
+            }
+        }
+    }
+    if (arg1->owner->spawnArg1 == 0) {
+        func_800CD924(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 0);
+    } else if ((s8)rec->field_1 <= 0) {
+        func_800CD924(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 1);
+    } else {
+        func_800CD924(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 2);
+    }
+    if ((u32)(item - 0xA0) < 0x20U) {
+        func_800CDBEC(arg1, arg0->field_18, arg0->field_1A, rec->field_2, arg0->field_1C);
+    }
+    selected = arg0->field_C;
+    if (selected == 1) {
+        D_80114DD4 = rec;
+        if (arg1->owner->state == selected) {
+            if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+                SndEvt_EnqueueType6(3, 0, 0);
+                spawned = Ui_SpawnFromDesc(&D_8010D764, arg1->owner->spawnArg1, 1, 1, arg1);
+                if (spawned != NULL) {
+                    spawned->field_C = arg1->baseX + (u16)arg1->field_1C + 0x14;
+                    spawned->field_E = (arg1->baseY + (u16)arg0->field_1A) - 0x14;
+                    arg1->status     = 0;
+                }
+            } else if ((Pad_CheckButtons(0, 1, 0x10) != 0) && (item != 0)) {
+                SndEvt_EnqueueType6(3, 0, 0);
+                Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
+                arg1->status = 0;
+            }
+        } else if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+            idx   = arg1->owner->spawnArg1;
+            item2 = func_800BB5BC(&D_8010D628 + idx, D_8010D634[idx].field_10, 0)->field_0;
+            SndEvt_EnqueueType6(3, 0, 0);
+            owner = arg1->owner;
+            item  = -1;
+            if (D_80114D78->field_10 != owner->spawnArg1) {
+                flags = owner->flags;
+                flag  = 0;
+                if (D_8010D838[item2].field_3 & 1) {
+                    flag = flags == 1;
+                }
+                if ((D_80114D7C == 0x703) && (item2 == 0x81) && (Mc_SaveData.field_7 == selected)) {
+                    flag = 1;
+                }
+                if (flag) {
+                    item = 0x20;
+                } else if (((u32)(item2 - 0xA0) < 0x20U) && (arg1->owner->flags == 0)) {
+                    item = 8;
+                } else if (arg1->owner->spawnArg1 == 1) {
+                    cfg = &Wip_SysConfig;
+                    if ((item2 == cfg->field_21 + 0x7F) || (item2 == cfg->field_23 + 0x5F)) {
+                        item = 0xA;
+                    }
+                }
+            }
+            if (item >= 0) {
+                func_800D4E40(arg1, item, 0, 1);
+                arg1->status = 0;
+            } else {
+                D_80114D78->field_18 = arg0->field_8;
+                arg1->field_2E       = 0x25;
+            }
+        }
+    }
+}
 
 void func_800BD2FC(Task* arg0)
 {

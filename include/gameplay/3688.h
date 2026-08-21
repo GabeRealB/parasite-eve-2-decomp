@@ -65,6 +65,10 @@ extern u8 D_80114DF0;
 /// Room-id offset applied by `func_800D131C` (0, or 1 / 3 for two flagged rooms).
 extern u8 D_80114DF1;
 
+void func_800CD924(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
+void func_800CDBEC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void func_800CDE80(s32 arg0, s32 arg1);
+void func_800CEB40(s32 arg0);
 void func_800CF7C4(DialogPrompt* arg0, UiObject* arg1);
 void func_800D4E40(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3);
 u8   func_800D1FD4(void);

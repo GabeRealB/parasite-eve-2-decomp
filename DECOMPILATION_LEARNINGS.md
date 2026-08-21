@@ -25611,3 +25611,40 @@ req.y = vy;
 
 `func_800C3418` is the example. Same dest-first add as `sum = sum + tmp`
 (`func_800AC790`).
+
+## Pin early `$s` locals so args land in `$s2`/`$s3` with a split `la`
+
+A callback that keeps `arg0`/`arg1` live across calls wants them in `$s2`/
+`$s3` so the prologue can emit `move a2, zero` / `lui %hi(table)` between
+those copies and the leftover `sw ra/s4/s1/s0`. Copying into
+`register ... asm("s2")` locals forces every s-save first and sinks the
+`lui` next to `%lo`. Pin the earlier live-across-call locals (`rec` in
+`$s1`, `item` in `$s0`) and leave the incoming args unpinned.
+
+`func_800BCEA4` is the example. Same “pin the later `$s` regs, leave the
+arg unpinned” idea as `func_800AC790`.
+
+## Pin the second `1` to `$a0` so it does not CSE with an earlier `$v1`
+
+`one = 1` before `if (x != one)` puts `1` in `$v1` and keeps it live. A
+later `status = p->status; one = 1; if ((status >> 16) == one)` then
+CSE’s the second `1` (`lw a0, status` / `li v1, 1`). The target reloads
+`1` into `$a0` with status in `$v1`. Scope a new `register s32 one
+asm("a0")` at the second site:
+
+```c
+one = 1;
+if (arg0->field_C != one) {
+    /* ... */
+}
+status = arg1->status;
+{
+    register s32 one2 asm("a0");
+    one2 = 1;
+    if (((status >> 16) == one2) || (status == one2)) {
+        /* ... */
+    }
+}
+```
+
+`func_800BCEA4` is the example.
