@@ -76,6 +76,25 @@ gte_ldrgb(&col);
 
 `func_8009AA5C` is the example. Same `+r` pin as `func_8009EAA4`'s `prev = -1`.
 
+## Pin a scratch block so a later dest copy uses `$s0`, not the alloc temp
+
+`newhead = head - N; block = newhead; *scratch = newhead;
+TransposeMatrix(..., &block->mat)` copy-propagates `newhead` into `$a1`
+(`move a1, v1` / `move s0, a1` / `sw a1`). The target assigns the block
+first (`move s0, v1`), copies that into the call dest (`move a1, s0`),
+and stores `newhead` from `$v1`. Pin `block` after the copy so the dest
+cannot alias the alloc temp:
+
+```c
+newhead = head - 0x48;
+block   = (Scratch*)newhead;
+asm volatile("" : "+r"(block));
+*scratch = newhead;
+TransposeMatrix(&player->workm, &block->mat);
+```
+
+`func_800A70A4` is the example.
+
 ## Scope a `| k` temp so the OR reuses the load dest
 
 `temp = save->field_22; obj->field_18 = temp | packed` with a function-level

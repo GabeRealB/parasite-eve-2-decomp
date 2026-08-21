@@ -46,6 +46,32 @@ typedef struct _GpRelMatScratch {
 } GpRelMatScratch;
 STATIC_ASSERT_SIZEOF(GpRelMatScratch, 0x30);
 
+/// 0x48-byte scratch from `G_SCRATCH_HEAD` used by `func_800A70A4`.
+/// `mat` is the transpose of the player `workm`; `vec` at +0x40 is the
+/// packed SVECTOR that `gte_stsv` / translation add-sub share. The
+/// `stsv` dest pointer is `original_head - 8`, the same address as `vec`.
+typedef struct _GpXformScratch {
+    /* 0x00 */ MATRIX  mat;
+    /* 0x20 */ byte    pad_20[0x20];
+    /* 0x40 */ SVECTOR vec;
+} GpXformScratch;
+STATIC_ASSERT_SIZEOF(GpXformScratch, 0x48);
+
+/// Overlay of a `D_80115268` `GpLinkNode` (embedded at `GpEnemy.node`)
+/// used by `func_800A70A4`. `field_4` is the word at node+4 (same
+/// `(flags & 5) == 1` skip as `func_800A4904`). `coord` is
+/// `GpEnemy.field_18`. `src` / `dst` overlay `GpEnemy.field_1C` /
+/// `field_2C`: local XYZ in, player-relative XYZ out.
+typedef struct _GpLinkXform {
+    /* 0x00 */ struct _GpLinkXform* next;
+    /* 0x04 */ s32                  field_4;
+    /* 0x08 */ GsCOORDINATE2*       coord;
+    /* 0x0C */ VECTOR3              src;
+    /* 0x18 */ byte                 pad_18[4];
+    /* 0x1C */ VECTOR3              dst;
+} GpLinkXform;
+STATIC_ASSERT_SIZEOF(GpLinkXform, 0x28);
+
 /// Global at `D_80114C08`. `field_0` is a u16 loaded by many helpers.
 /// `field_2` is a signed byte (`lb` as splat `D_80114C0A`); `func_800A1F64`
 /// writes the low byte of `func_800A1558(3)`, replacing it with 1 when
@@ -250,6 +276,7 @@ void func_800A7574(GpIdMapC* arg0);
 s32  func_800A7B20(s32 arg0);
 s32  func_800A7BBC(s32 arg0, s32 arg1);
 void func_800A6F38(struct _GpEnemy* arg0, GpHudTrack* arg1);
+void func_800A70A4(void);
 void func_800A784C(GpHudTrack* arg0);
 void func_800A78EC(void);
 void func_800A7A64(void);

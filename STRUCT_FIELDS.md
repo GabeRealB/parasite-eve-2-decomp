@@ -1359,7 +1359,9 @@ Sparse overlay. Pointer at 0x20 is a `GpObj5C*` (same family as
 | 0x0A | `field_A` | Work type halfword; `func_800BBA70` copies `GpEnemyPlace.field_2` (same slot as `GpWorkObj.field_A`) |
 | 0x0C | `field_C` | Countdown word; `func_800B0544` sets 0x78, `func_800B0560` decrements and advances `Task::state` at 0 |
 | 0x10 | `node` | `GpLinkNode` unlinked by `func_800DAB38` |
-| 0x18 | `field_18` | Set to `&D_80070F10` by `func_800B0494` |
+| 0x18 | `field_18` | `GsCOORDINATE2*`; set to `&D_80070F10` by `func_800B0494`. `func_800A70A4` reads it from the node overlay as `coord` |
+| 0x1C | `field_1C` | Local `VECTOR3`; `func_800A70A4` loads the low halves as an SVECTOR |
+| 0x2C | `field_2C` | Player-relative `VECTOR3` written by `func_800A70A4` after rotating by the transposed player `workm` |
 | 0x3C | `field_3C` | `GpAreaPlace*` stored by `func_800B4AF8` (same slot as `GpWorkObj.field_3C`) |
 | 0x40 | `field_40` | Signed halfword passed to `func_800A6A9C` by `func_800A6F38` |
 | 0x4B | `field_4B` | Occupancy tag; `func_800D8C0C` requires 0 together with `field_4E` bit 0x80 for the sine flicker |

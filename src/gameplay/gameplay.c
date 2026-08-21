@@ -3127,7 +3127,78 @@ void func_800A6F38(GpEnemy* arg0, GpHudTrack* arg1)
     arg1->field_6           = block->field_16;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A70A4);
+void func_800A70A4(void)
+{
+    register GsCOORDINATE2*  player asm("s2");
+    register u8*             head asm("s3");
+    register GpXformScratch* block asm("s0");
+    SVECTOR                  tmp;
+    register GpLinkXform*    node asm("s1");
+    GsCOORDINATE2*           coord;
+
+    node = (GpLinkXform*)D_80115268;
+    {
+        register Task*         slot asm("v1");
+        register GameActorExt* extra asm("v1");
+        register void**        scratch asm("v0");
+        register u8*           newhead asm("v1");
+
+        slot = Game_GetPtrSlot(3);
+        if (slot == NULL) {
+            return;
+        }
+        scratch = (void**)G_SCRATCH_HEAD;
+        extra   = (GameActorExt*)slot->extra;
+        head    = *scratch;
+        player  = (GsCOORDINATE2*)extra->field_8;
+        newhead = head - 0x48;
+        block   = (GpXformScratch*)newhead;
+        asm volatile("" : "+r"(block));
+        *scratch = newhead;
+        TransposeMatrix(&player->workm, &block->mat);
+    }
+    if (node != NULL) {
+        register SVECTOR* out asm("a1");
+        register SVECTOR* tmpp asm("a0");
+        out  = (SVECTOR*)(head - 8);
+        tmpp = &tmp;
+        do {
+            if ((node->field_4 & 5) != 1) {
+                block->vec.vx = *(u16*)&node->src.vx;
+                block->vec.vy = *(u16*)&node->src.vy;
+                block->vec.vz = *(u16*)&node->src.vz;
+                coord         = node->coord;
+                tmp           = block->vec;
+                gte_SetRotMatrix(&coord->workm);
+                gte_ldv0(tmpp);
+                gte_rtv0_real();
+                gte_stsv(out);
+                block->vec.vx += *(u16*)&node->coord->workm.t[0];
+                block->vec.vy += *(u16*)&node->coord->workm.t[1];
+                block->vec.vz += *(u16*)&node->coord->workm.t[2];
+                block->vec.vx -= *(u16*)&player->workm.t[0];
+                block->vec.vy -= *(u16*)&player->workm.t[1];
+                block->vec.vz -= *(u16*)&player->workm.t[2];
+                tmp            = block->vec;
+                gte_SetRotMatrix(&block->mat);
+                gte_ldv0(tmpp);
+                gte_rtv0_real();
+                gte_stsv(out);
+                node->dst.vx = block->vec.vx;
+                node->dst.vy = block->vec.vy;
+                node->dst.vz = block->vec.vz;
+            }
+            node = node->next;
+        } while (node != NULL);
+    }
+    {
+        register void** p asm("v1");
+        register u8*    h asm("v0");
+        p  = (void**)G_SCRATCH_HEAD;
+        h  = *p;
+        *p = h + 0x48;
+    }
+}
 
 void func_800A7320(s16* arg0)
 {

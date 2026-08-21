@@ -22,6 +22,10 @@
 /// 0x80 into `field_4E` or claims a `field_54` slot via `func_800E1C58`.
 /// `field_40` is the signed value passed to `func_800A6A9C`; `field_50`
 /// is the same `GpPairSrcE*` slot as `GpObj50` / `GpObj5C` / `GpObj5D`.
+/// `field_18` is a `GsCOORDINATE2*` (`&D_80070F10` from `func_800B0494`);
+/// `func_800A70A4` reads it from the `GpLinkNode` overlay as `coord`.
+/// `field_1C` / `field_2C` are local / player-relative `VECTOR3`s filled
+/// by `func_800A70A4`.
 /// `field_3C` is the `GpAreaPlace*` stored by `func_800B4AF8` (same slot as
 /// `GpWorkObj.field_3C`).
 /// `field_4B` is a non-zero occupancy tag written into `McPosRec.field_3`
@@ -33,24 +37,27 @@
 /// the previous mode (bits 2-3) toward the current mode (bits 0-1)
 /// while it is positive.
 typedef struct _GpEnemy {
-    /* 0x00 */ Task*       task;
-    /* 0x04 */ byte        pad_4[4];
-    /* 0x08 */ u16         field_8;
-    /* 0x0A */ u16         field_A;
-    /* 0x0C */ s32         field_C;
-    /* 0x10 */ GpLinkNode  node;
-    /* 0x18 */ void*       field_18;
-    /* 0x1C */ byte        pad_1C[0x20];
-    /* 0x3C */ void*       field_3C;
-    /* 0x40 */ s16         field_40;
-    /* 0x42 */ byte        pad_42[9];
-    /* 0x4B */ u8          field_4B;
-    /* 0x4C */ u8          field_4C;
-    /* 0x4D */ byte        pad_4D;
-    /* 0x4E */ u8          field_4E;
-    /* 0x4F */ u8          field_4F;
-    /* 0x50 */ GpPairSrcE* field_50;
-    /* 0x54 */ byte        pad_54[0xC];
+    /* 0x00 */ Task*          task;
+    /* 0x04 */ byte           pad_4[4];
+    /* 0x08 */ u16            field_8;
+    /* 0x0A */ u16            field_A;
+    /* 0x0C */ s32            field_C;
+    /* 0x10 */ GpLinkNode     node;
+    /* 0x18 */ GsCOORDINATE2* field_18;
+    /* 0x1C */ VECTOR3        field_1C;
+    /* 0x28 */ byte           pad_28[4];
+    /* 0x2C */ VECTOR3        field_2C;
+    /* 0x38 */ byte           pad_38[4];
+    /* 0x3C */ void*          field_3C;
+    /* 0x40 */ s16            field_40;
+    /* 0x42 */ byte           pad_42[9];
+    /* 0x4B */ u8             field_4B;
+    /* 0x4C */ u8             field_4C;
+    /* 0x4D */ byte           pad_4D;
+    /* 0x4E */ u8             field_4E;
+    /* 0x4F */ u8             field_4F;
+    /* 0x50 */ GpPairSrcE*    field_50;
+    /* 0x54 */ byte           pad_54[0xC];
 } GpEnemy;
 STATIC_ASSERT_SIZEOF(GpEnemy, 0x60);
 
