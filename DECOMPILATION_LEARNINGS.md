@@ -3,6 +3,26 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Pin only the swapped local so its pair stays a copy source
+
+A width/height pair that should live in `$a0` / `$a1` is often allocated
+backwards (`h` in `$a0`, `w` in `$a1`). Pinning both (`register s32 w
+asm("a0"); register s32 h asm("a1")`) puts them in the right registers
+but turns `h - 0x80` into `addiu a1, a1, -0x80`, clobbering height.
+The target is `addiu v0, a1, -0x80` so `$a1` can still be stored as `v2`.
+Pin only the local GCC put in the wrong register:
+
+```c
+register s32 w asm("a0");
+s32          h;
+w = 0x80;
+h = 0x60;
+```
+
+A three-`u16` stack vector for `gte_ldsv` / `gte_stsv` also keeps later
+coord adds as `lhu` while `(s16)vec.vx` at a call is `lh`. `func_800C7AE8`
+is the example.
+
 ## Don't name a later load from the same base as an earlier arg
 
 `seed = q->field_1AC` then later `rng = q->field_1A8; D_80070F60 = rng;

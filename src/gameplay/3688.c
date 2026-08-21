@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include <psyq/inline_c.h>
 #include <psyq/memory.h>
 
 #include "gameplay/268.h"
@@ -25,6 +26,8 @@ void Display_SetFadeMax(s32 arg0);
 #include "main/text.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
+
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 extern s32            D_8010E8F8[5];
 extern u16            D_80114D84;
@@ -2321,7 +2324,106 @@ void func_800C7844(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C7AE8);
+typedef struct {
+    u16 vx;
+    u16 vy;
+    u16 vz;
+} SizeVec;
+
+void func_800C7AE8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    POLY_FT4*    p;
+    SizeVec      vec;
+    register s32 w asm("a0");
+    s32          h;
+    s32          x;
+    s32          y;
+    s32          scale;
+
+    w = 0x80;
+    h = 0x60;
+    if (arg3 & 0x200) {
+        w = 0x50;
+        h = 0x3C;
+    } else if (arg3 & 0x400) {
+        h = 0x7F;
+    }
+    vec.vx = w;
+    vec.vy = h;
+    vec.vz = 0;
+    if ((arg3 & 0xF0) == 0x10) {
+        scale = 0xA00;
+        gte_lddp(scale);
+        gte_ldsv(&vec);
+        gte_gpf12_real();
+        gte_stsv(&vec);
+    } else if ((arg3 & 0xF0) == 0x20) {
+        scale = 0xAA0;
+        gte_lddp(scale);
+        gte_ldsv(&vec);
+        gte_gpf12_real();
+        gte_stsv(&vec);
+    }
+    if (!(arg3 & 0x100)) {
+        p          = (POLY_FT4*)D_80071190;
+        D_80071190 = (DR_TPAGE*)(p + 1);
+        setlen(p, 9);
+        setcode(p, 0x2D);
+        x     = arg0->baseX + arg1;
+        p->x2 = x;
+        p->x0 = x;
+        x     = x + vec.vx;
+        p->x3 = x;
+        p->x1 = x;
+        y     = arg0->baseY + arg2;
+        p->y1 = y;
+        p->y0 = y;
+        y     = y + vec.vy;
+        p->y3 = y;
+        p->y2 = y;
+        switch (arg3 & 0xF) {
+            case 1:
+                p->tpage = 0x8F;
+                p->u0    = 0;
+                p->v0    = 0;
+                p->u1    = w;
+                p->v1    = 0;
+                p->u2    = 0;
+                p->v2    = h;
+                p->u3    = w;
+                p->v3    = h;
+                p->clut  = 0x3F40;
+                break;
+            case 2:
+                p->v0    = 0x80;
+                p->v1    = 0x80;
+                p->v2    = h - 0x80;
+                p->v3    = h - 0x80;
+                p->tpage = 0x8F;
+                p->u0    = 0;
+                p->u1    = w;
+                p->u2    = 0;
+                p->u3    = w;
+                p->clut  = 0x3F80;
+                break;
+            default:
+                p->v0    = 0x80;
+                p->v1    = 0x80;
+                p->v2    = h - 0x80;
+                p->v3    = h - 0x80;
+                p->tpage = 0x87;
+                p->u0    = 0;
+                p->u1    = w;
+                p->u2    = 0;
+                p->u3    = w;
+                p->clut  = 0x3F40;
+                break;
+        }
+        addPrim(Gpu_CurrentOt + (s16)arg0->drawOrder + 1, p);
+    }
+    Ui_LayoutWithMode0(arg0, (void*)(arg1 - 1), (void*)(arg2 - 1), (void*)((s16)vec.vx + 1),
+                       (void*)((s16)vec.vy + 1), (void*)0x81008);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C7DA8);
 
