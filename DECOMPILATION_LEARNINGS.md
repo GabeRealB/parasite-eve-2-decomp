@@ -3,6 +3,22 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Nest `if (x != 0)` so a redundant `beqz` survives range checks
+
+`(u32)(x - K) < N` already excludes `x == 0` when `K >= N`, so
+`if (x != 0 && (u32)(x - K) < N)` drops the zero test (`beqz a2` gone,
+later labels shift 8 bytes). Nest the range check:
+
+```c
+if (arg2 != 0) {
+    if ((u32)(arg2 - 0x80) < 0x20U) {
+        table[n++] = handler;
+    }
+}
+```
+
+`func_800CADFC` cases 1 and 3 are the example.
+
 ## Pin only the swapped local so its pair stays a copy source
 
 A width/height pair that should live in `$a0` / `$a1` is often allocated
