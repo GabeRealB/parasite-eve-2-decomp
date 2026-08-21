@@ -22,6 +22,8 @@
 /// 0x80 into `field_4E` or claims a `field_54` slot via `func_800E1C58`.
 /// `field_40` is the signed value passed to `func_800A6A9C`; `field_50`
 /// is the same `GpPairSrcE*` slot as `GpObj50` / `GpObj5C` / `GpObj5D`.
+/// `field_3C` is the `GpAreaPlace*` stored by `func_800B4AF8` (same slot as
+/// `GpWorkObj.field_3C`).
 /// `field_4B` is a non-zero occupancy tag written into `McPosRec.field_3`
 /// by `func_800B48FC` (defaulted to 1 when the caller left it 0).
 /// `func_800D8C0C` remaps the actor color matrix from `field_4E` mode
@@ -38,7 +40,8 @@ typedef struct _GpEnemy {
     /* 0x0C */ s32         field_C;
     /* 0x10 */ GpLinkNode  node;
     /* 0x18 */ void*       field_18;
-    /* 0x1C */ byte        pad_1C[0x24];
+    /* 0x1C */ byte        pad_1C[0x20];
+    /* 0x3C */ void*       field_3C;
     /* 0x40 */ s16         field_40;
     /* 0x42 */ byte        pad_42[9];
     /* 0x4B */ u8          field_4B;
@@ -225,13 +228,54 @@ typedef struct _GpAreaObj {
     /* 0x01 */ u8 field_1;
 } GpAreaObj;
 
+/// 0x10-byte placement record in the 0xFF-terminated table at nested
+/// `GpAreaRec.field_0` (`func_800B4AF8`). `field_0` is matched against
+/// `GpAreaTmdRec.field_0`. `field_1` / `field_2` pack into `func_800B01AC`
+/// arg2. `field_4` / `field_6` / `field_8` are default world XYZ;
+/// `field_A` is yaw (`GpCoordPlace.field_46` / `Gfx_RotMatrixY`).
+/// `field_D` / `field_E` are copied to `TmdObject.field_24` / `field_25`
+/// when `Task::spawnType == 1`.
+typedef struct _GpAreaPlace {
+    /* 0x00 */ u8  field_0;
+    /* 0x01 */ u8  field_1;
+    /* 0x02 */ u16 field_2;
+    /* 0x04 */ s16 field_4;
+    /* 0x06 */ s16 field_6;
+    /* 0x08 */ s16 field_8;
+    /* 0x0A */ s16 field_A;
+    /* 0x0C */ u8  pad_C;
+    /* 0x0D */ u8  field_D;
+    /* 0x0E */ u8  field_E;
+    /* 0x0F */ u8  pad_F;
+} GpAreaPlace;
+STATIC_ASSERT_SIZEOF(GpAreaPlace, 0x10);
+
+/// Overlay of `GsCOORDINATE2` at `Task::extra->field_8` used by
+/// `func_800B4AF8`. `coord` is `GsCOORDINATE2.coord`; `field_44` /
+/// `field_46` / `field_48` overlay `param` as packed euler (restore
+/// from `McPosRec`) or yaw (`field_46` + `Gfx_RotMatrixY`).
+typedef struct _GpCoordPose {
+    /* 0x00 */ s32    flg;
+    /* 0x04 */ MATRIX coord;
+    /* 0x24 */ byte   pad_24[0x20];
+    /* 0x44 */ s16    field_44;
+    /* 0x46 */ s16    field_46;
+    /* 0x48 */ s16    field_48;
+    /* 0x4A */ byte   pad_4A[2];
+} GpCoordPose;
+STATIC_ASSERT_SIZEOF(GpCoordPose, 0x4C);
+
 /// 0xC-byte record in the 0xFF-terminated table at nested `GpAreaRec.field_4`
-/// (`func_800B56AC`). `field_0` is compared with the byte at
-/// `GpWorkObj.field_3C`; `field_8` points at a halfword whose value 1 clears
-/// `TmdObject.field_C` bit 2 and 0x101 sets it.
+/// (`func_800B56AC` / `func_800B4AF8`). `field_0` is compared with the byte at
+/// `GpWorkObj.field_3C` / `GpAreaPlace.field_0`. `field_5` is the
+/// `func_800B01AC` table index. `field_8` points at a halfword whose value 1
+/// clears `TmdObject.field_C` bit 2 and 0x101 sets it (`func_800B56AC`), or
+/// at a `TaskDesc` table (`func_800B4AF8`).
 typedef struct _GpAreaTmdRec {
     /* 0x00 */ u16  field_0;
-    /* 0x02 */ byte pad_2[6];
+    /* 0x02 */ byte pad_2[3];
+    /* 0x05 */ u8   field_5;
+    /* 0x06 */ byte pad_6[2];
     /* 0x08 */ u16* field_8;
 } GpAreaTmdRec;
 STATIC_ASSERT_SIZEOF(GpAreaTmdRec, 0xC);
@@ -368,6 +412,7 @@ void       func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3);
 void       func_800B47A8(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6,
                          void* arg7);
 void       func_800B48FC(GpEnemy* arg0);
+void       func_800B4AF8(GpAreaKey* arg0);
 void       func_800B56AC(void);
 void       func_800B57EC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
 GpWorkObj* func_800B584C(u16 arg0);

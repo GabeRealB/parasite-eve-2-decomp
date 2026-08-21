@@ -1360,6 +1360,7 @@ Sparse overlay. Pointer at 0x20 is a `GpObj5C*` (same family as
 | 0x0C | `field_C` | Countdown word; `func_800B0544` sets 0x78, `func_800B0560` decrements and advances `Task::state` at 0 |
 | 0x10 | `node` | `GpLinkNode` unlinked by `func_800DAB38` |
 | 0x18 | `field_18` | Set to `&D_80070F10` by `func_800B0494` |
+| 0x3C | `field_3C` | `GpAreaPlace*` stored by `func_800B4AF8` (same slot as `GpWorkObj.field_3C`) |
 | 0x40 | `field_40` | Signed halfword passed to `func_800A6A9C` by `func_800A6F38` |
 | 0x4B | `field_4B` | Occupancy tag; `func_800D8C0C` requires 0 together with `field_4E` bit 0x80 for the sine flicker |
 | 0x4C | `field_4C` | Flag byte (same slot as `GpObj4C.field_4C`); `func_800D8C0C` tests bits 0xC |

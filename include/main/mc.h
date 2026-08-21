@@ -95,7 +95,7 @@ STATIC_ASSERT_SIZEOF(McItemScan, 0x4);
 /// 0xC-byte saved object pose. 32 of these occupy `Mc_SaveData.field_28`
 /// (`func_800B48FC`). `field_3 == 0` is empty; a non-zero value is copied
 /// from `GpEnemy.field_4B`. `field_A` is the object id (`GpEnemy.field_8`).
-/// `field_4` / `field_6` / `field_8` are world XYZ (low 16 bits of
+/// `field_4` / `field_6` / `field_8` are signed world XYZ (low 16 bits of
 /// `GsCOORDINATE2.coord.t`). `field_0` / `field_1` / `field_2` are packed
 /// euler bytes (`Gfx_MatrixToEuler` result `>> 8`).
 typedef struct _McPosRec {
@@ -103,9 +103,9 @@ typedef struct _McPosRec {
     /* 0x1 */ u8  field_1;
     /* 0x2 */ u8  field_2;
     /* 0x3 */ s8  field_3;
-    /* 0x4 */ u16 field_4;
-    /* 0x6 */ u16 field_6;
-    /* 0x8 */ u16 field_8;
+    /* 0x4 */ s16 field_4;
+    /* 0x6 */ s16 field_6;
+    /* 0x8 */ s16 field_8;
     /* 0xA */ u16 field_A;
 } McPosRec;
 STATIC_ASSERT_SIZEOF(McPosRec, 0xC);

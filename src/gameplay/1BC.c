@@ -1467,7 +1467,145 @@ void func_800B48FC(GpEnemy* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B4AF8);
+void func_800B4AF8(GpAreaKey* arg0)
+{
+    GpAreaRec*    recs;
+    GpAreaRec*    nested;
+    GpAreaObj*    obj;
+    GpAreaPlace*  place;
+    GpAreaTmdRec* entry;
+    GpEnemy*      enemy;
+    Task*         task;
+    TmdObject*    extra;
+    GpCoordPose*  coord;
+    u16           id;
+    s32           packed;
+    s32           fp;
+    s32           i;
+
+    recs = D_8010CBCC[arg0->field_3];
+    func_800DAFD0();
+    if (recs == NULL) {
+        return;
+    }
+    nested = recs[arg0->field_2].field_0;
+    obj    = recs[arg0->field_2].field_4;
+    if (nested == NULL) {
+        return;
+    }
+    func_800B5A48(arg0, obj);
+    place = (GpAreaPlace*)nested[arg0->field_5].field_0;
+    fp    = 0;
+    if (place == NULL) {
+        return;
+    }
+    if (place->field_0 == 0xFF) {
+        return;
+    }
+    do {
+        entry = (GpAreaTmdRec*)nested[arg0->field_5].field_4;
+        id    = entry->field_0;
+        if (id != 0xFF) {
+            packed = fp << 24;
+            do {
+                if (id == place->field_0) {
+                    if (obj->field_1 & 2) {
+                        McPosRec*    rec;
+                        s32          found;
+                        s32          j;
+                        register s32 key asm("v1");
+                        s32          t;
+                        register s32 lo asm("a0");
+
+                        rec   = Mc_SaveData.field_28;
+                        found = 0;
+                        j     = found;
+                        key   = packed >> 12;
+                        t     = arg0->field_3;
+                        lo    = arg0->field_2;
+                        key   = key | (t << 8);
+                        key   = key | lo;
+                        for (; j < 0x20; j++, rec++) {
+                            if (rec->field_A == key) {
+                                found = 1;
+                                break;
+                            }
+                        }
+                        if (found == 0) {
+                            break;
+                        }
+                    }
+                    enemy = func_800B01AC((TaskDesc*)entry->field_8, entry->field_5,
+                                          (place->field_1 << 16) | place->field_2, NULL);
+                    if (enemy != NULL) {
+                        register s32 f3 asm("v1");
+                        register s32 f2 asm("a0");
+                        register s32 v asm("v0");
+
+                        v               = 0x900;
+                        f3              = arg0->field_3;
+                        f2              = arg0->field_2;
+                        enemy->field_A  = v;
+                        v               = packed >> 12;
+                        enemy->field_3C = place;
+                        v               = v | (f3 << 8);
+                        task            = enemy->task;
+                        f2              = f2 | v;
+                        enemy->field_8  = f2;
+                        if (task->spawnType != 0) {
+                            extra = (TmdObject*)task->extra;
+                            coord = (GpCoordPose*)extra->field_8;
+                            if (task->spawnType == 1) {
+                                extra->field_24 = place->field_D;
+                                extra->field_25 = place->field_E;
+                                if (extra->field_18 != NULL) {
+                                    Tmd_ProcessStream(extra);
+                                    Tmd_ProcessStream(extra);
+                                }
+                            }
+                            if (!(obj->field_1 & 2)) {
+                                coord->coord.t[0] = place->field_4;
+                                coord->coord.t[1] = place->field_6;
+                                coord->coord.t[2] = place->field_8;
+                                coord->field_46   = place->field_A;
+                                Gfx_RotMatrixY(&coord->coord, place->field_A, 1);
+                            } else {
+                                McPosRec* rec;
+
+                                rec = Mc_SaveData.field_28;
+                                i   = 0;
+                                do {
+                                    if (rec->field_A == enemy->field_8) {
+                                        coord->coord.t[0] = rec->field_4;
+                                        coord->coord.t[1] = rec->field_6;
+                                        coord->coord.t[2] = rec->field_8;
+                                        coord->field_44   = rec->field_0 << 8;
+                                        coord->field_46   = rec->field_1 << 8;
+                                        coord->field_48   = rec->field_2 << 8;
+                                        RotMatrix_gte((SVECTOR*)&coord->field_44,
+                                                      &coord->coord);
+                                        enemy->field_4B = rec->field_3;
+                                        break;
+                                    }
+                                    i++;
+                                    rec++;
+                                } while (i < 0x20);
+                                if (i == 0x20) {
+                                    func_800B01F0(enemy, enemy->task);
+                                }
+                            }
+                        }
+                    }
+                    break;
+                }
+                entry++;
+                id = entry->field_0;
+            } while (id != 0xFF);
+        }
+        fp++;
+        place++;
+    } while (place->field_0 != 0xFF);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B4E54);
 

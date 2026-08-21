@@ -3,6 +3,36 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Reuse `$v0` for a store constant then a later temp
+
+`obj->field = 0x900` then `tmp = packed >> 12` wants `li v0, 0x900` in the
+`beqz` delay, `sh v0`, then `sra v0` into the same register. A separate
+`tmp` takes `$a1` and lifts the `sra` above the `li`. Pin one local to
+`$v0` and assign in that order so the constant and the later temp share
+the register; write `f2 = f2 | v; obj->id = f2` so the final OR dest
+stays `$a0`:
+
+```c
+register s32 f3 asm("v1");
+register s32 f2 asm("a0");
+register s32 v asm("v0");
+
+v              = 0x900;
+f3             = arg0->field_3;
+f2             = arg0->field_2;
+enemy->field_A = v;
+v              = packed >> 12;
+enemy->field_3C = place;
+v              = v | (f3 << 8);
+task           = enemy->task;
+f2             = f2 | v;
+enemy->field_8 = f2;
+```
+
+`func_800B4AF8` is the example. Two similar table walks in one function
+also need separate block-scope pointers: a function-level `pos` lives in
+`$s0` across the `jal`, while the first walk belongs in `$a2`.
+
 ## Fresh block-scope pointer at a join so it reuses a dead `s` register
 
 A function-level `save = &Mc_SaveData` lives in `$s2` from the first half. At a
