@@ -25522,3 +25522,28 @@ slot = slot - 8;
 Split `slot = (char*)&draw; slot = slot - 8` so the linter does not see
 a cast in the same `+/-`. Pin `$a0`–`$a3` with `+r` before the store so
 the `j` delay is free for the `sw`. `func_800C9010` is the example.
+
+## maspsx inline-asm displacements must be decimal
+
+`lw $24, -0x20(%0)` in a GNU C `__asm__` string fails at maspsx with
+`invalid literal for int() with base 10: '-0x20'`. Write the
+displacement in decimal (`-32`, `-20`, `-8`). The existing
+`gte_ldsxy3_fifo` / `_f4` macros already do this.
+
+## Dual-packet GT3 fifo loads clobber `$t8`, not `$t6`
+
+`gte_ldsxy3_fifo` / `_f4` use `$14` (`$t6`). The paired-GT3 OT linker
+keeps packet length `9` in `$t6` and GPU code `0x34` in `$t7` across the
+loop, so the SXY fifo load has to use `$24` (`$t8`):
+
+```
+lw     t8, -0x20(a1)
+mtc2   t8, $15
+lw     t8, -0x14(a1)
+mtc2   t8, $15
+lw     t8, -0x8(a1)
+mtc2   t8, $15
+```
+
+`func_8009A348` is the example. The GT4 pair (`func_8009A57C`) uses the
+same `$t8` temp with different negative offsets.
