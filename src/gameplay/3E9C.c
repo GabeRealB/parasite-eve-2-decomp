@@ -15,7 +15,76 @@ void func_800F68AC(VECTOR3* arg0, s32 arg1, s32 arg2);
 
 INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800ECAA8);
 
-INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800ECEC0);
+void func_800ECEC0(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    GpCoord64*     base;
+    GpCoordTail*   slot;
+    GpState1C*     st;
+    s32            t2;
+
+    base  = D_80114F30;
+    mem   = arg0->spawnArg2;
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    slot  = (GpCoordTail*)&base->coord;
+    if (D_80115740->field_4 < 2) {
+        mem->field_22++;
+        switch (arg0->state) {
+            case 0:
+                slot->coord.coord.t[0] = coord->coord.t[0];
+                slot->coord.coord.t[1] = coord->coord.t[1];
+                t2                     = coord->coord.t[2];
+                base->coord.flg        = 0;
+                slot->field_54         = 0xC00;
+                slot->field_52         = 0xC00;
+                slot->field_50         = 0xC00;
+                slot->field_58         = 0xFA0;
+                slot->field_5C         = 0x12C0;
+                D_80114F30->field_0    = 4;
+                slot->coord.coord.t[2] = t2;
+                coord->sub             = mem->field_8;
+                coord->coord.t[0]      = D_801124DC[arg0->spawnArg1].vx;
+                coord->coord.t[1]      = D_801124DC[arg0->spawnArg1].vy;
+                coord->coord.t[2]      = D_801124DC[arg0->spawnArg1].vz;
+                coord->flg             = 0;
+                func_80098F58(coord);
+                mem->field_10 = 0;
+                mem->field_12 = 0;
+                D_80070F60    = D_80070F60 * 5 + 0x71357911;
+                mem->field_24 = ((u32)D_80070F60 >> 16) & 0x1FF;
+                {
+                    s32 sh;
+                    sh = mem->field_24;
+                    __asm__("" : "+r"(sh));
+                    mem->field_14 = -((s16)sh >> 1);
+                }
+                func_800EA478(0x60034, coord, mem->field_24 + 0x600, (s32)&mem->field_10);
+                st           = D_80115740;
+                arg0->state  = 1;
+                st->field_14 = 1;
+                break;
+            case 1:
+                D_80070F60 = D_80070F60 * 5 + 0x71357911;
+                func_800EA478(0x60035, coord, (((u32)D_80070F60 >> 16) & 0x1FF) + 0x11280,
+                              (s32)&mem->field_10);
+                D_80070F60 = D_80070F60 * 5 + 0x71357911;
+                func_800EA478(0x60035, coord, (((u32)D_80070F60 >> 16) & 0x1FF) + 0x21280,
+                              (s32)&mem->field_10);
+                D_80070F60 = D_80070F60 * 5 + 0x71357911;
+                func_800EA478(0x60035, coord, (((u32)D_80070F60 >> 16) & 0x1FF) + 0x31280,
+                              (s32)&mem->field_10);
+                arg0->state++;
+                break;
+        }
+        if (slot->field_58 >= 0x191) {
+            slot->field_58 -= 0x190;
+        }
+        if (mem->field_22 >= 5) {
+            func_800EC7E4(mem, arg0);
+        }
+    }
+}
 
 void func_800ED198(Task* arg0)
 {

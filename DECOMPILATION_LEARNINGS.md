@@ -25871,3 +25871,22 @@ of `bnez` to the epilogue plus `j` with a rematerialize in the delay).
 Write the tree as nested `if (val < K)` with `goto` to each handler so
 the fall-through leaf is `bnez epilogue` / `lui` / `j body` / `addiu`.
 `func_800A45F0` is the example.
+
+## Two-case `switch` on 0/1 keeps the default `j`
+
+`if (state == 0) { A } else if (state == 1) { B }` emits `bnez` into the
+`== 1` test (`bne v1, v0, join`) with no default jump. The target is a
+switch dispatch:
+
+```
+beqz  v1, case0
+li    v0, 1
+beq   v1, v0, case1
+lui   s2, ...
+j     join
+nop
+```
+
+Write `switch (state) { case 0: ... case 1: ... }`. GCC still uses the
+`beqz`/`beq` cascade (no jump table) but includes the default `j`.
+`func_800ECEC0` is the example.
