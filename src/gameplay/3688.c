@@ -119,6 +119,7 @@ extern TaskDesc       D_8010E7E8;
 extern s32            D_8010E7F4;
 extern s16            D_80115716;
 extern UiObjectDesc   D_8010EB08;
+extern UiObjectDesc   D_8010EB24;
 extern UiObjectDesc   D_8010EB94;
 extern UiObjectDesc   D_8010EBCC;
 extern UiObjectDesc   D_8010EC3C;
@@ -758,7 +759,90 @@ INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C0E20);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C1148);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C16B4);
+void func_800C16B4(Task* arg0)
+{
+    UiObject*     obj;
+    WipSysConfig* cfg;
+    SPRT*         p;
+    POLY_FT4*     poly;
+    s32           color;
+    s32           x;
+    s32           right;
+
+    obj = arg0->spawnArg2;
+    if (arg0->state == 0) {
+        Ui_SpawnFromDesc(&D_8010EB24, 0, 0, 0, obj);
+        cfg                = &Wip_SysConfig;
+        D_80114BE8.field_0 = cfg->field_18;
+        D_80114BE8.field_4 = cfg->field_1c;
+        arg0->state        = arg0->state + 1;
+    }
+    color      = 0x606060;
+    p          = (SPRT*)D_80071190;
+    D_80071190 = (DR_TPAGE*)(p + 1);
+    p->x0      = obj->baseX + obj->field_1E - 0x72;
+    {
+        s32 y;
+        y       = obj->field_E;
+        p->u0   = 0x38;
+        p->v0   = 0x60;
+        p->w    = 0x40;
+        p->h    = 8;
+        p->clut = 0x3C02;
+        setlen(p, 4);
+        *(u32*)&p->r0 = color;
+        setcode(p, 0x64);
+        p->y0 = y + 3;
+        addPrim(Gpu_CurrentOt + (s16)obj->drawOrder + 1, p);
+    }
+    Ui_InsertDrawTPage((s16)obj->drawOrder + 1, 0);
+
+    poly       = (POLY_FT4*)D_80071190;
+    x          = obj->field_C + obj->field_10;
+    right      = x - 1;
+    x          = x - 0x32;
+    poly->x2   = x;
+    poly->x0   = x;
+    D_80071190 = (DR_TPAGE*)(poly + 1);
+    asm volatile("" ::: "memory");
+    {
+        s32 vl;
+        s32 fy;
+        s32 ur;
+        s32 y0;
+
+        vl = 0x80;
+        asm volatile("" : "+r"(vl));
+        poly->x3 = right;
+        poly->x1 = right;
+        fy       = obj->field_E;
+        asm volatile("" : "+r"(right));
+        ur = 0x31;
+        asm volatile("" : "+r"(ur));
+        poly->v0    = vl;
+        poly->v1    = vl;
+        poly->v2    = 0xBE;
+        poly->v3    = 0xBE;
+        poly->clut  = 0x3C40;
+        poly->tpage = 0x9E;
+        poly->u1    = ur;
+        poly->u3    = ur;
+        setlen(poly, 9);
+        poly->u0 = 0;
+        poly->u2 = 0;
+        setcode(poly, 0x2D);
+        y0       = fy + 2;
+        fy       = fy + 0x40;
+        poly->y1 = y0;
+        poly->y0 = y0;
+        poly->y3 = fy;
+        poly->y2 = fy;
+    }
+    addPrim(Gpu_CurrentOt + (s16)obj->drawOrder + 1, poly);
+    Ui_DrawVBar((UiPanel*)obj, (s16)obj->field_18 - 3, (s16)obj->field_1A + 2, (s16)obj->field_1E - 0x32);
+    Ui_DrawHBar((UiPanel*)obj, (s16)obj->field_1C - 2, (s16)obj->field_1E - 0x32, (s16)obj->field_18 + 8);
+    func_800C1148((UiPanel*)obj, 0xB);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C1960);
 

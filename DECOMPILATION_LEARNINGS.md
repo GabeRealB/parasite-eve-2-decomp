@@ -26031,3 +26031,36 @@ val += 0xC;
 The dummy `"r"(dep)` pins the `lui` after an earlier load (e.g. `lbu`)
 so it cannot hoist into a previous delay. Same `lui` / `ori 0x3FC` split
 as `func_80102D20`'s prologue. `func_80102348` is the example.
+
+## Keep `right` live so the next `lhu` takes `$a1`, not `$v1`
+
+A POLY_FT4 whose x edges are `x` and `x - 1` wants `right` in `$v1` through
+the `x3`/`x1` stores, then `lhu a1, y` / `li v1, 0x31` in the load delay.
+A later `fy = obj->field_E` born after those stores reuses the now-dead
+`$v1`. Assign `fy` while `right` is still live (`+r` after the stores) so
+regalloc gives `$a1` to the load and `$v1` to the next constant:
+
+```c
+right = x - 1;
+x     = x - 0x32;
+poly->x2 = x;
+poly->x0 = x;
+D_80071190 = (DR_TPAGE*)(poly + 1);
+asm volatile("" ::: "memory");
+vl = 0x80;
+asm volatile("" : "+r"(vl));
+poly->x3 = right;
+poly->x1 = right;
+fy       = obj->field_E;
+asm volatile("" : "+r"(right));
+ur = 0x31;
+asm volatile("" : "+r"(ur));
+```
+
+Reuse `x` as the left edge so GCC emits `addiu v1, v0, -1` then
+`addiu v0, v0, -0x32` before either store. `vl = 0x80` after the cursor
+update puts `li v0, 0x80` between `sw D_80071190` and the `x3` stores.
+`y0 = fy + 2; fy = fy + 0x40` is `addiu v0, a1, 2` / `addiu a1, a1, 0x40`.
+A block-scope SPRT `y = obj->field_E` right after `p->x0` hoists that
+`lhu` so `D_80071190 = p + 1` stores before `x0`. `func_800C16B4` is the
+example.
