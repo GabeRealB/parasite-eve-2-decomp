@@ -604,7 +604,69 @@ u32* func_8009A348(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009A57C);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009A804);
+u32* func_8009A804(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+{
+    TmdScratchModelBlock* ws;
+    s32                   prev;
+    s32                   count;
+    u32                   idx;
+    u16*                  rec;
+    CVECTOR               col;
+    CVECTOR               col2;
+    u8*                   dest;
+
+    ws = arg0;
+    __asm__ volatile("" : "+r"(ws));
+    col   = D_8009381C;
+    col2  = D_8009381C;
+    count = ws->field_1C;
+    if (count == 0) {
+        return arg2;
+    }
+    prev         = -1;
+    ws->field_1C = count + prev;
+    if (count > 0) {
+        do {
+            rec = (u16*)arg2;
+            idx = rec[0];
+            if (idx != prev) {
+                gte_ldv0((u8*)ws->field_8 + (idx & 0xFFF8));
+                gte_rtps_real();
+                gte_stsz(&ws->field_28);
+                gte_stflg(&ws->field_24);
+                if (ws->field_24 & 0x80000000) {
+                    ws->field_28 |= 0x80000000;
+                }
+                ws->field_10[*(u16*)arg2 >> 3] = ws->field_28;
+            }
+            prev = rec[0];
+            dest = ws->field_4 + rec[2] + 4;
+            gte_stsxy(dest);
+            dest = ws->field_4 + rec[3] + 4;
+            gte_stsxy(dest);
+            gte_stsxy(&ws->field_7C);
+            gte_ldv0((u8*)ws->field_C + (rec[1] & 0xFFF8));
+            gte_ldrgb(&col2);
+            gte_nccs_real();
+            gte_strgb(ws->field_4 + rec[2]);
+            gte_ldrgb(&col);
+            gte_nccs_real();
+            gte_strgb(ws->field_4 + rec[3]);
+            gte_rtv0_real();
+            ws->field_7C = ((s16)ws->field_7C >> 4) + 0x20;
+            ws->field_7E = ((s16)ws->field_7E >> 4) + 0x20;
+            gte_stsv(&ws->field_74);
+            ws->field_7C += (s16)ws->field_74 >> 8;
+            ws->field_7E += (s16)ws->field_76 >> 8;
+            dest          = ws->field_4 + rec[2];
+            dest[8]       = *(u8*)&ws->field_7C;
+            dest          = ws->field_4 + rec[2];
+            dest[9]       = *(u8*)&ws->field_7E;
+            arg2         += ws->field_18;
+        } while (ws->field_1C-- > 0);
+    }
+    return arg2;
+}
 
 u32* func_8009AA5C(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
