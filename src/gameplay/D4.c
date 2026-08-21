@@ -1581,7 +1581,116 @@ void func_800AC960(s32 arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ACAA8);
+typedef struct {
+    s16  w;
+    s16  h;
+    s16  x0;
+    s16  y0;
+    u16  otz;
+    u8   u0;
+    u8   v0;
+    u8   r0;
+    u8   g0;
+    u8   b0;
+    u8   flags;
+    byte pad[4];
+} GpCb68ElemFromW;
+STATIC_ASSERT_SIZEOF(GpCb68ElemFromW, 0x14);
+
+void func_800ACAA8(void)
+{
+    GameSessionFrom4* sess;
+    s32               view;
+    u32               count;
+    register s32      i asm("s3");
+    GpCb68Tbl*        tbl;
+    GpCb68Rec*        recs;
+    GpCb68Obj*        rec;
+    GpCb68Elem*       elems;
+    GpCb68Elem*       elem;
+    s32               bufIdx;
+    GpTpageSprt*      buf[2];
+    GpTpageSprt**     pbuf;
+    GpTpageSprt**     p;
+    GpTpageSprt**     cursor;
+    GpTpageSprt*      dest;
+    SPRT*             sprt;
+    u32               tpage;
+
+    sess  = (GameSessionFrom4*)&Game_Session->field_4;
+    count = 0;
+    view  = func_800AD284();
+    tbl   = D_8010CB68[sess->field_3 - 1];
+    recs  = tbl->field_0[sess->field_2 - 1];
+    rec   = recs[(u8)view - 1].field_4;
+    elems = recs[(u8)view - 1].field_0;
+    if (rec->field_0 != 0xFFFF) {
+        do {
+            count += rec->field_2;
+            rec++;
+        } while (rec->field_0 != 0xFFFF);
+    }
+    count *= 0x38;
+    if (count == 0) {
+        D_8010CAE8[0] = NULL;
+        return;
+    }
+    D_8010CAE8[0] = Mem_Calloc(count, 1);
+    if (D_8010CAE8[0] == NULL) {
+        return;
+    }
+    count       >>= 1;
+    count        += (u32)D_8010CAE8[0];
+    D_8010CAE8[1] = (GpPrim1C*)count;
+    buf[0]        = (GpTpageSprt*)D_8010CAE8[0];
+    buf[1]        = (GpTpageSprt*)count;
+    rec           = recs[(u8)view - 1].field_4;
+    if (rec->field_0 != 0xFFFF) {
+        pbuf = buf;
+        do {
+            if (rec->field_5 == 0) {
+                bufIdx = 0;
+                p      = pbuf;
+                do {
+                    i    = 0;
+                    elem = elems + rec->field_0;
+                    if (rec->field_2 != 0) {
+                        register GpCb68ElemFromW* mid asm("s1");
+
+                        cursor = p;
+                        asm volatile("" : "+r"(cursor));
+                        mid = (GpCb68ElemFromW*)&elem->w;
+                        asm volatile("" : "+r"(mid));
+                        do {
+                            dest             = *cursor;
+                            sprt             = &dest->sprt;
+                            *(u32*)&sprt->r0 = 0x8000;
+                            setlen(&dest->tpage, 1);
+                            tpage = elem->tpage;
+                            setlen(&dest->sprt, 4);
+                            setcode(&dest->sprt, 0x65);
+                            dest->tpage.code[0] = 0xE1000000 | (tpage & 0x9FF);
+                            MargePrim(dest, sprt);
+                            sprt->code      |= mid->flags;
+                            *(u16*)&sprt->u0 = *(u16*)&mid->u0;
+                            sprt->clut       = ((u16*)&mid->w)[-1];
+                            *(u32*)&sprt->x0 = *(u32*)&mid->x0;
+                            asm volatile("" : "+r"(i));
+                            i++;
+                            *(u32*)&sprt->w = *(u32*)&mid->w;
+                            elem++;
+                            (*cursor)++;
+                            mid++;
+                        } while (i < rec->field_2);
+                    }
+                    bufIdx++;
+                    p++;
+                } while (bufIdx < 2);
+            }
+            rec++;
+        } while (rec->field_0 != 0xFFFF);
+    }
+}
 
 void func_800ACD2C(Task* task)
 {

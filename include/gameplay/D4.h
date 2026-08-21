@@ -167,6 +167,8 @@ typedef struct _GpTpageSprt {
 STATIC_ASSERT_SIZEOF(GpTpageSprt, 0x1C);
 
 /// Dual-buffer primitive list heads, indexed by `Display_State.field_1f`.
+/// Allocated by `func_800ACAA8`; `D_8010CAE8[1]` is the second half of
+/// the same block.
 extern GpPrim1C* D_8010CAE8[];
 
 /// Cursor into the current `D_8010CAE8` list. Set by `func_800AC688` /
@@ -373,6 +375,11 @@ void  func_800AC688(void);
 /// `arg0[arg1->field_0]` for `arg1->field_2` entries, and OT-link each.
 void  func_800AC790(GpCb68Elem* arg0, GpCb68Obj* arg1);
 void  func_800AC960(s32 arg0);
+/// Alloc dual-buffer merged `DR_TPAGE`+`SPRT` lists into `D_8010CAE8`
+/// from the current view's `GpCb68` records. Byte size is the sum of
+/// each record's `field_2`, times two 0x1C slots. Records with
+/// `field_5` set are skipped. RGB is `0x8000`; SPRT code is `0x65`.
+void  func_800ACAA8(void);
 void  func_800ACD2C(Task* task);
 /// 1-based index of `(u8)arg0` in the current room's `D_8010CB54` byte
 /// list. Length is the `D_8010CB40` cell as an s16. Returns 0 if absent.

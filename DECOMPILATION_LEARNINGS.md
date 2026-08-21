@@ -204,6 +204,21 @@ later delay (`addiu s4` with `wh` instead of `xy`). `asm volatile("" :
 "+r"(i))` after `i++` keeps the increment in the `xy` load delay.
 `func_800AC790` is the example.
 
+## Nested `asm("s1")` derived pointer so an early `u32` can still use `$s1`
+
+A function-scope `register u32 count asm("s1")` (or a union overlay of
+count and a later pointer) makes GCC store a known-zero `count` with
+`sw s1` instead of `sw zero`. Keep `count` a plain `u32` so the
+`count == 0` path emits `sw $0`. Reuse `$s1` later with a *nested-block*
+`register T* mid asm("s1")` once `count` is dead.
+
+`elem++` updates both the base (`$s2`) and GCC's derived `elem+4`
+(`$s1`) as one pair, in register order (`s1` then `s2`). The target
+wants `s2++` in an earlier load delay and `s1++` in the backedge delay.
+A second pointer at `&elem->w`, pinned with `asm volatile("" : "+r"(mid))`
+right after the assignment, breaks the equivalence so `elem++` and
+`mid++` schedule independently. `func_800ACAA8` is the example.
+
 ## Stage `u16 - N` through an `s32` so GCC emits `addiu -N`
 
 `req.x = obj->baseX - 1 + arg1` with `baseX` a `u16` and `req.x` an `s16`
