@@ -25708,7 +25708,30 @@ mtc2   t8, $15
 ```
 
 `func_8009A348` is the example. The GT4 pair (`func_8009A57C`) uses the
-same `$t8` temp with different negative offsets.
+same `$t8` temp; `xy = poly + 1` so first-packet `x0`/`x1`/`x2` are
+`-44`/`-32`/`-20`, and the F4-style fourth SXY is `-8` (`x3`).
+
+## Dual-packet GT4 = F4 nclip-goto + paired GT3 OT link
+
+`func_8009A57C` stacks `func_80099994`'s four-vertex nclip with
+`func_8009A348`'s dual-packet OT insert:
+
+```c
+if (ws->field_28 > 0) {
+    goto draw;
+}
+gte_ldsxy_fifo_gt4_x3(xy);
+gte_nclip_real();
+gte_stopz(opz);
+if (ws->field_28 < 0) {
+draw:
+    /* gte_ldsz0..3s, avsz4, setlen/setcode 0x3E then 0x3C, link both */
+}
+```
+
+Packet length is `12` (not GT3's `9`). First GPU code is `0x3E`, second
+`0x3C`. Pin `opz` `$t2`, `ds` `$t4`, `maskHi` `$t3` — GT3 used
+`$t4`/`$t3`/`$t2` because it had no extra nclip temps.
 
 ## Non-volatile `+r` so `move s5, a0` precedes `lui` without saving `$ra` early
 
