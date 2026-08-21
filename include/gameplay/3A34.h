@@ -4,6 +4,8 @@
 #include "common.h"
 
 #include <psyq/libgte.h>
+#include <psyq/libgpu.h>
+#include <psyq/libgs.h>
 
 #include "gameplay/268.h"
 #include "gameplay/3FB8.h"
@@ -244,13 +246,87 @@ STATIC_ASSERT_SIZEOF(GpCbA4Vec, 8);
 
 /// 8-byte record in tables pointed to by `D_8010CBA4`. Indexed 1-based
 /// by `GameSessionFrom4.field_1`. `func_800D9C64` returns the record
-/// (or NULL). `func_800D9654` returns `field_0`. `func_800D957C` walks
-/// `field_4` as a nested `GpCbA4Vec` table, falling back to `D_8010F9E4`.
+/// (or NULL). `func_800D9654` returns `field_0` as a `GpCbA4Set*` (or 0).
+/// `func_800D957C` walks `field_4` as a nested `GpCbA4Vec` table, falling
+/// back to `D_8010F9E4`.
 typedef struct _GpCbA4Rec {
     /* 0x0 */ s32        field_0;
     /* 0x4 */ GpCbA4Vec* field_4;
 } GpCbA4Rec;
 STATIC_ASSERT_SIZEOF(GpCbA4Rec, 8);
+
+/// 0x58-byte coordinate object in `GpCbA4Set.arr58`. `func_800D6B20`
+/// parents `coord.sub` to `D_80070F10` and clears `coord.flg`.
+typedef struct _GpCoord58 {
+    /* 0x00 */ GsCOORDINATE2 coord;
+    /* 0x50 */ byte          pad_50[8];
+} GpCoord58;
+STATIC_ASSERT_SIZEOF(GpCoord58, 0x58);
+
+/// 0x60-byte coordinate object in `GpCbA4Set.arr60`. Same `coord.sub` /
+/// `coord.flg` init as `GpCoord58`. Same size as `GpCoordTail`.
+typedef struct _GpCoord60 {
+    /* 0x00 */ GsCOORDINATE2 coord;
+    /* 0x50 */ byte          pad_50[0x10];
+} GpCoord60;
+STATIC_ASSERT_SIZEOF(GpCoord60, 0x60);
+
+/// 0x6C-byte coordinate object in `GpCbA4Set.arr6C`. `func_800D6B20`
+/// parents `coord.sub` to `D_80070F10`, builds `coord.coord` as an
+/// orthonormal basis from `dir` (and a perpendicular scratch vector),
+/// and clears `coord.flg`.
+typedef struct _GpCoord6C {
+    /* 0x00 */ GsCOORDINATE2 coord;
+    /* 0x50 */ byte          pad_50[8];
+    /* 0x58 */ SVECTOR       dir;
+    /* 0x60 */ byte          pad_60[0xC];
+} GpCoord6C;
+STATIC_ASSERT_SIZEOF(GpCoord6C, 0x6C);
+
+/// Room coordinate tables returned by `func_800D9654` (`GpCbA4Rec.field_0`).
+/// `func_800D6B20` parents each array to `D_80070F10` on first run, then
+/// updates them every frame via `func_80098F58` / `func_80098F98`.
+typedef struct _GpCbA4Set {
+    /* 0x00 */ s32        n58;
+    /* 0x04 */ GpCoord58* arr58;
+    /* 0x08 */ s32        n60;
+    /* 0x0C */ GpCoord60* arr60;
+    /* 0x10 */ s32        n6C;
+    /* 0x14 */ GpCoord6C* arr6C;
+} GpCbA4Set;
+STATIC_ASSERT_SIZEOF(GpCbA4Set, 0x18);
+
+/// 0x6C-byte walk overlay of `GpCoord6C` starting at `dir`. `func_800D6B20`
+/// increments this by one object per loop.
+typedef struct _Gp6CDirWalk {
+    /* 0x00 */ SVECTOR dir;
+    /* 0x08 */ byte    pad[0x64];
+} Gp6CDirWalk;
+STATIC_ASSERT_SIZEOF(Gp6CDirWalk, 0x6C);
+
+/// 0x6C-byte walk overlay of `GpCoord6C` starting at `coord.coord`.
+typedef struct _Gp6CMatWalk {
+    /* 0x00 */ MATRIX mtx;
+    /* 0x20 */ byte   pad[0x4C];
+} Gp6CMatWalk;
+STATIC_ASSERT_SIZEOF(Gp6CMatWalk, 0x6C);
+
+/// Overlay of `GpCoord6C` starting at `coord.sub`. `dir` is at +0xC, so a
+/// pointer to `Gp6CDirWalk.dir` minus `OFFSET_OF(Gp6CMid, dir)` is this
+/// object. `func_800D6B20` writes `sub` as `D_80070F10`.
+typedef struct _Gp6CMid {
+    /* 0x00 */ GsCOORDINATE2* sub;
+    /* 0x04 */ byte           pad[8];
+    /* 0x0C */ SVECTOR        dir;
+} Gp6CMid;
+
+/// 0x64-byte walk overlay of `GpCoord64` starting at `coord`. `func_800D6B20`
+/// writes `coord.sub` while a parallel `GpCoord64*` writes `field_0`.
+typedef struct _GpCoord64View {
+    /* 0x00 */ GsCOORDINATE2 coord;
+    /* 0x50 */ byte          pad[0x14];
+} GpCoord64View;
+STATIC_ASSERT_SIZEOF(GpCoord64View, 0x64);
 
 /// Record in the 8-entry arrays pointed to by `D_8010CBB8`.
 /// `func_800E192C` copies `field_3` into `D_80115428[]`. Nearby helpers
@@ -892,6 +968,10 @@ GpItemRec* func_800D6910(s32 arg0);
 GpItemRec* func_800D6994(s32 arg0);
 GpItemRec* func_800D6A24(s32 arg0, GpItemScan* arg1);
 void       func_800D6AA4(Task* arg0);
+/// First-run init plus per-frame update of the current room's `GpCbA4Set`
+/// coordinate arrays (parented to `D_80070F10`) and the `D_80114F30` slots.
+/// Kills `arg0` when `func_800D9654` returns 0.
+void       func_800D6B20(Task* arg0);
 s32        func_800D6E5C(GpObj44* arg0, VECTOR3* arg1);
 s32        func_800D70E4(GpObj44* arg0, VECTOR3* arg1);
 void       func_800D7A9C(GameActorExt* arg0, VECTOR* arg1, s32 arg2, s32 arg3);

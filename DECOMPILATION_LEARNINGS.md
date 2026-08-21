@@ -26243,3 +26243,23 @@ own block, then pin the product to `$a0` in the multiply-add block:
 ```
 
 `func_800D6E5C` is the example.
+
+## Split `%hi` into `$v0` so `%lo` can land in a different dest
+
+`p = D_80114F30` with `p` in `$s1` emits `lui s1, %hi` / `addiu s1, s1, %lo`.
+The target materializes the address as `lui v0, %hi` / `addiu s1, v0, %lo`.
+Pin a dummy `$v0` temp and emit that pair:
+
+```c
+register s32 hi asm("v0");
+register T*  p asm("s1");
+__asm__ volatile(
+    "lui\t%0, %%hi(D_80114F30)\n\t"
+    "addiu\t%1, %0, %%lo(D_80114F30)"
+    : "=r"(hi), "=r"(p));
+```
+
+An empty `asm volatile("" : "=r"(hi))` before `p = D_80114F30` is not
+enough — GCC still uses `$s1` for both halves.
+
+`func_800D6B20` is the example.

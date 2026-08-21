@@ -221,7 +221,212 @@ void func_800D6AA4(Task* arg0)
     Ui_DrawText(panel, D_80097454);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D6B20);
+void func_800D6B20(Task* arg0)
+{
+    register Task*      task asm("s7");
+    register GpCbA4Set* set asm("s5");
+    register SVECTOR*   vec asm("s4");
+    GsCOORDINATE2*      parent6C;
+    register s32        i asm("s1");
+    s32                 j;
+    u16                 tmp;
+
+    task = arg0;
+    {
+        register GameSession* gs asm("a0");
+
+        gs  = Game_Session;
+        set = (GpCbA4Set*)func_800D9654((GameSessionFrom4*)&gs->field_4);
+    }
+    if (set == NULL) {
+        Task_Kill(task);
+        return;
+    }
+
+    {
+        register void** scratch asm("v0");
+        register u8*    head asm("v1");
+
+        scratch  = (void**)G_SCRATCH_HEAD;
+        head     = (u8*)*scratch;
+        head    -= 0x1C;
+        *scratch = head;
+        vec      = (SVECTOR*)head;
+        if (task->state == 0) {
+            {
+                register GpCoord60* p asm("a0");
+                register GpCoord60* cur asm("s0");
+                GsCOORDINATE2*      parent;
+
+                p = set->arr60;
+                if (set->n60 > 0) {
+                    i      = 0;
+                    parent = &D_80070F10;
+                    do {
+                        cur            = p;
+                        i             += 1;
+                        cur->coord.sub = parent;
+                        cur->coord.flg = 0;
+                        p              = cur + 1;
+                    } while (i < set->n60);
+                }
+            }
+
+            {
+                register GpCoord6C*   obj asm("s3");
+                register GpCoord6C*   cur asm("s0");
+                register Gp6CDirWalk* dirw asm("s2");
+                register Gp6CMatWalk* matw asm("s6");
+
+                obj = set->arr6C;
+                i   = 0;
+                if (set->n6C > 0) {
+                    parent6C = &D_80070F10;
+                    dirw     = (Gp6CDirWalk*)&obj->dir;
+                    matw     = (Gp6CMatWalk*)&obj->coord.coord;
+                    do {
+                        cur                                                    = obj;
+                        ((Gp6CMid*)((u8*)dirw - OFFSET_OF(Gp6CMid, dir)))->sub = parent6C;
+                        if (dirw->dir.vy != 0) {
+                            goto perp;
+                        }
+                        if (dirw->dir.vz == 0) {
+                            goto along_x;
+                        }
+                    perp:
+                        vec->vx = 0;
+                        vec->vy = -(s16)(u16)dirw->dir.vz;
+                        vec->vz = (u16)dirw->dir.vy;
+                        goto join;
+                    along_x:
+                        vec->vx = (u16)dirw->dir.vy;
+                        tmp     = (u16)dirw->dir.vx;
+                        vec->vz = 0;
+                        vec->vy = -(s16)tmp;
+                    join:
+                        Gfx_OrthonormalBasis(&matw->mtx, &dirw->dir, vec);
+                        i             += 1;
+                        dirw          += 1;
+                        matw          += 1;
+                        cur->coord.flg = 0;
+                        obj           += 1;
+                    } while (i < set->n6C);
+                }
+            }
+
+            j = 0;
+            if (set->n58 > 0) {
+                register GpCoord58* p asm("a0");
+                register GpCoord58* cur asm("s0");
+                GsCOORDINATE2*      parent;
+
+                p = set->arr58;
+                __asm__ volatile("" : "+r"(j));
+                i = 0;
+                if (i < set->n58) {
+                    parent = &D_80070F10;
+                    do {
+                        cur            = p;
+                        i             += 1;
+                        cur->coord.sub = parent;
+                        cur->coord.flg = 0;
+                        p              = cur + 1;
+                    } while (i < set->n58);
+                    j = 0;
+                }
+            }
+
+            {
+                GsCOORDINATE2*          parent;
+                register GpCoord64View* view asm("a0");
+                register GpCoord64*     slot asm("v1");
+                register void*          base asm("v0");
+
+                parent = &D_80070F10;
+                base   = D_80114F30;
+                view   = (GpCoord64View*)&((GpCoord64*)base)->coord;
+                slot   = (GpCoord64*)base;
+                do {
+                    slot->field_0   = 0;
+                    view->coord.sub = parent;
+                    view           += 1;
+                    j              += 1;
+                    slot           += 1;
+                } while (j < 8);
+            }
+
+            task->state += 1;
+        }
+    }
+
+    __asm__ volatile("" ::: "memory");
+    func_80098F58(&D_80070F10);
+
+    {
+        register s32        hi asm("v0");
+        register GpCoord64* p asm("s1");
+        register s32        k asm("s2");
+
+        __asm__ volatile(
+            "lui\t%0, %%hi(D_80114F30)\n\t"
+            "addiu\t%1, %0, %%lo(D_80114F30)"
+            : "=r"(hi), "=r"(p));
+        k = 0;
+        do {
+            if (p->field_0 != 0) {
+                func_80098F98(&p->coord, (s32)&D_80070F10);
+            }
+            k += 1;
+            p += 1;
+        } while (k < 8);
+    }
+
+    {
+        register GpCoord60* p asm("a0");
+        register GpCoord60* cur asm("s0");
+
+        p = set->arr60;
+        __asm__ volatile("" : "+r"(p));
+        i = 0;
+        if (set->n60 > 0) {
+            do {
+                cur = p;
+                func_80098F98(&cur->coord, (s32)&D_80070F10);
+                i += 1;
+                p  = cur + 1;
+            } while (i < set->n60);
+        }
+    }
+
+    {
+        register GpCoord6C* obj asm("s3");
+        register GpCoord6C* cur asm("s0");
+
+        obj = set->arr6C;
+        i   = 0;
+        if (set->n6C > 0) {
+            do {
+                cur = obj;
+                func_80098F98(&cur->coord, (s32)&D_80070F10);
+                i  += 1;
+                obj = cur + 1;
+            } while (i < set->n6C);
+        }
+    }
+
+    if (set->n58 > 0) {
+        register GpCoord58* p asm("s0");
+
+        p = set->arr58;
+        for (i = 0; i < set->n58;) {
+            func_80098F98(&p->coord, (s32)&D_80070F10);
+            i += 1;
+            p += 1;
+        }
+    }
+
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+}
 
 s32 func_800D6E5C(GpObj44* arg0, VECTOR3* arg1)
 {
