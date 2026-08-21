@@ -26323,3 +26323,59 @@ An empty `asm volatile("" : "=r"(hi))` before `p = D_80114F30` is not
 enough — GCC still uses `$s1` for both halves.
 
 `func_800D6B20` is the example.
+
+## Hardcode `$8` for a second `Mc_SaveData+off` `lui` so `$t0` stays a first-half scratch
+
+`register s32 hi asm("t0")` (even nested inside a later loop) reserves `$t0`
+for the whole function, so an early `lh t0, field_1C` / `sw t0, savedX`
+becomes `$t1`. The first `&Mc_SaveData.field_5BC` can still be
+`lui $8, %hi(Mc_SaveData+0x5BC)` / `addiu scan, $8, %lo(...)` without that
+reservation. After `func_800BB500` clobbers `$t0`, reload with a dummy-input
+asm so `%%hi` is expanded and `$t0` is not an output the allocator owns:
+
+```c
+j = 0;
+asm volatile("lui $8, %%hi(Mc_SaveData+0x5BC)" : : "r"(j));
+found = (GpItemRec*)j;
+asm volatile("lbu %0, %%lo(Mc_SaveData+0x5BC)($8)" : "=r"(idx));
+```
+
+The dummy `"r"(j)` keeps the `lui` between `move a1, zero` and `move a2, a1`.
+
+## Place `found = table` after the outer loop so the inner `beq` is out-of-line
+
+A search `if (match) { found = table; break; }` inlined after the inner loop
+sits on the fall-through of `j < count`, turning `bnez loop` into
+`beqz skip; table++; j loop`. Put the assignment at a label *after* the
+outer `for`, then jump back:
+
+```c
+for (; i < n; i++) {
+    /* ... */
+    if ((s8)table->field_1 == slot) {
+        goto found_assign;
+    }
+    /* ... */
+done_search:
+    /* draw using found */
+}
+goto skip_found;
+found_assign:
+found = table;
+goto done_search;
+skip_found:;
+```
+
+GCC emits `beq match, found_assign` / `j done_search` in the delay of
+`move a2, v1` after the outer loop's `j` / `i++`.
+
+## Unpin the `/5` dest so signed division scratches `$v1`
+
+`register s32 col asm("s1"); col = i / 5` expands in-place
+(`sra s1, t0, 1` / `subu s1, s1, sign`). An unpinned `s32 col` uses `$v1`
+as the `mfhi >> 1` scratch then `subu s1, v1, sign`. Keep that first
+quotient live with a non-volatile `asm("" : "+r"(col))` so copy-prop does
+not retarget the dest into the later `* 5` temp; then `temp = col` is
+`move v1, s1`.
+
+`func_800C1960` is the example.

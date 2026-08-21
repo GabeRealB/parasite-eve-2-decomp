@@ -170,6 +170,8 @@ extern char           D_80096FD8[];
 extern char           D_80096FE4[];
 extern char           D_80096FEC[];
 extern char           D_80096FF4[];
+extern char           D_80096FF8[];
+extern char           D_80096FFC[];
 extern char           D_80097008[];
 extern char           D_80097010[];
 extern char           D_8009701C[];
@@ -846,7 +848,177 @@ void func_800C16B4(Task* arg0)
     func_800C1148((UiPanel*)obj, 0xB);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C1960);
+void func_800C1960(Task* arg0)
+{
+    u8            buf[0x20];
+    TextDrawReq   req1;
+    TextDrawReq   req2;
+    TextDrawReq   req3;
+    TextDrawReq   req4;
+    TextDrawReq   req5;
+    s32           savedX;
+    s32           mid;
+    UiObject*     obj;
+    WipSysConfig* cfg;
+    s32           item;
+    s32           color;
+    register s32  x asm("s6");
+    s32           y;
+    s32           base;
+    register s32  i asm("s4");
+    GpItemAttr*   attr;
+
+    obj           = arg0->spawnArg2;
+    cfg           = &Wip_SysConfig;
+    obj->field_2E = 0;
+    Ui_DrawHBar((UiPanel*)obj, (s16)obj->field_1C, (s16)obj->field_1E, (s16)obj->field_18 + 0x11);
+
+    savedX = (s16)obj->field_1C;
+    x      = savedX + 2;
+    item   = cfg->field_23;
+    base   = (s16)obj->field_18;
+    y      = base + 0xF;
+    mid    = ((s16)obj->field_1E - x) / 2;
+    Ui_DrawTitle((UiPanel*)obj, D_80097008);
+
+    if (item > 0) {
+        item += 0x5F;
+        color = 0x606060;
+        attr  = &D_8010DFB8[item];
+        func_800CD924(obj, x, y, item, color, 0);
+
+        {
+            register s32 vx asm("v0");
+            vx              = obj->baseX + 0x20;
+            vx              = vx + x;
+            req1.x          = vx;
+            y               = base + 0x1D;
+            req1.y          = obj->baseY + y;
+            req1.otIndex    = (s16)obj->drawOrder + 1;
+            req1.field_8    = color;
+            req1.glyphTable = 0;
+            req1.centerMode = 0;
+            req1.field_E    = 3;
+        }
+        func_8002E53C(&req1, Text_ItoaSignedPlus(buf, attr->field_4));
+
+        {
+            register s32 t asm("v0");
+            register s32 bx asm("v1");
+            t               = mid + 0x1E;
+            t               = x + t;
+            bx              = obj->baseX;
+            bx              = bx + t;
+            req2.x          = bx;
+            req2.y          = obj->baseY + y;
+            req2.otIndex    = (s16)obj->drawOrder + 1;
+            req2.field_8    = color;
+            req2.glyphTable = 0;
+            req2.centerMode = 0;
+            req2.field_E    = 3;
+            i               = 0;
+            asm volatile("" : "+r"(i));
+        }
+        func_8002E53C(&req2, Text_ItoaSignedPlus(buf, attr->field_6));
+
+        {
+            register s32 vx asm("v0");
+            vx              = obj->baseX + 2;
+            vx              = vx + x;
+            req3.x          = vx;
+            req3.y          = obj->baseY + (y - 2);
+            req3.otIndex    = (s16)obj->drawOrder + 1;
+            req3.field_8    = color;
+            req3.glyphTable = 5;
+            req3.centerMode = 0;
+            req3.field_E    = 1;
+        }
+        func_8002E53C(&req3, D_80096FF8);
+
+        req4.x          = obj->baseX + (x + mid);
+        req4.y          = obj->baseY + (y - 2);
+        x               = savedX + 4;
+        req4.otIndex    = (s16)obj->drawOrder + 1;
+        req4.field_8    = color;
+        req4.glyphTable = 5;
+        req4.centerMode = 0;
+        req4.field_E    = 1;
+        func_8002E53C(&req4, D_80096FFC);
+
+        y               = base + 0x3D;
+        req5.x          = obj->baseX + x;
+        req5.y          = obj->baseY + base + 0x2C;
+        req5.otIndex    = (s16)obj->drawOrder + 1;
+        req5.field_8    = color;
+        req5.glyphTable = 5;
+        req5.centerMode = 0;
+        req5.field_E    = 1;
+        func_8002E53C(&req5, D_80097010);
+
+        {
+            register GpItemRec* found asm("a2");
+            register GpItemRec* table asm("v1");
+
+            for (; i < func_800BC324(item); i++) {
+                s32                  col;
+                register s32         temp asm("v1");
+                register s32         row asm("s2");
+                register s32         prod asm("v0");
+                register McItemScan* scan asm("s0");
+                GpItemRec*           rec;
+                register s32         idx asm("v1");
+                register s32         j asm("a1");
+                register s32         count asm("a0");
+                register s32         slot asm("a3");
+                s32                  id;
+
+                col = i / 5;
+                asm("lui $8, %%hi(Mc_SaveData+0x5BC)\n\taddiu %0, $8, %%lo(Mc_SaveData+0x5BC)"
+                    : "=r"(scan));
+                asm("" : "+r"(col));
+                temp = col;
+                prod = temp * 5;
+                col  = i - prod;
+                row  = temp;
+                rec  = func_800BB500(scan);
+                j    = 0;
+                asm volatile("lui $8, %%hi(Mc_SaveData+0x5BC)" : : "r"(j));
+                found = (GpItemRec*)j;
+                asm volatile("lbu %0, %%lo(Mc_SaveData+0x5BC)($8)" : "=r"(idx));
+                count = scan->field_1;
+                asm volatile("sll %0, %0, 2" : "+r"(idx));
+                table = (GpItemRec*)((s32)rec + idx);
+                if (count != 0) {
+                    slot = i + 1;
+                loop_search:
+                    if ((s8)table->field_1 == slot) {
+                        goto found_assign;
+                    }
+                    j++;
+                    if (j < count) {
+                        table++;
+                        goto loop_search;
+                    }
+                }
+            done_search:
+                id = 0;
+                if (found != NULL) {
+                    id = found->field_0;
+                }
+                if (id != 0) {
+                    func_800C05CC(obj, x + col * 16, y + row * 16, id, 0);
+                }
+                Ui_LayoutWithMode0(obj, (void*)(x + col * 16), (void*)(y + row * 16 - 0xE),
+                                   (void*)0xE, (void*)0xE, (void*)0x102010);
+            }
+            goto skip_found;
+        found_assign:
+            found = table;
+            goto done_search;
+        skip_found:;
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C1D18);
 
