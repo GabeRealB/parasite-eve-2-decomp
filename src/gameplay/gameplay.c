@@ -145,7 +145,6 @@ extern s32            D_80115724;
         gte_stclmv((char*)(r3) + 4);    \
     }
 
-void func_800A45F0(s32 arg0);
 void func_800A4904(s32 arg0);
 void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800A5274(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -2713,7 +2712,164 @@ INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A2F60);
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A3AF0);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A45F0);
+void func_800A45F0(s32 arg0)
+{
+    WipSysConfig* cfg;
+    GpStateC08*   c08;
+    s32           val;
+
+    if (arg0 == 0) {
+        D_80114F28 = 1;
+        return;
+    }
+
+    cfg = &Wip_SysConfig;
+    asm volatile("" : "+r"(arg0));
+    val = D_80114C08.field_0;
+    c08 = &D_80114C08;
+
+    if (val < 0x144) {
+        if (val < 0x141) {
+            if (val < 0x13A) {
+                if (val < 0x137) {
+                    return;
+                }
+                goto case_311;
+            }
+            return;
+        }
+        goto case_321;
+    }
+    if (val < 0x19B) {
+        return;
+    }
+    if (val < 0x19E) {
+        goto case_411;
+    }
+    if (val < 0x1A8) {
+        if (val < 0x1A5) {
+            return;
+        }
+        goto case_421;
+    }
+    return;
+
+case_411: {
+    GpItemRec8* rec;
+    s32         lo;
+    s32         tmp;
+
+    val                 = (u16)(val % 10U);
+    rec                 = &D_80113E10[val];
+    lo                  = *(u8*)&c08->field_C & 0xF;
+    tmp                 = rec->field_6;
+    *(u8*)&c08->field_C = lo;
+    c08->field_10       = tmp;
+    if (lo < 2) {
+        *(u8*)&c08->field_C = lo + 1;
+    }
+    *(u8*)&c08->field_C = *(u8*)&c08->field_C | (val << 4);
+    return;
+}
+
+case_421: {
+    GpItemRec8*  rec;
+    s32          lo;
+    register s32 temp asm("a0");
+    s32          tmp;
+    register s32 packed asm("v1");
+
+    c08           = &D_80114C08;
+    temp          = D_80114C08.field_0;
+    temp          = (u16)(temp % 10U);
+    rec           = &D_80113E28[temp];
+    lo            = c08->field_D & 0xF;
+    tmp           = rec->field_6;
+    c08->field_D  = lo;
+    c08->field_12 = tmp;
+    if (lo < 2) {
+        c08->field_D = lo + 1;
+    }
+    c08->field_D = c08->field_D | (packed = temp << 4);
+    return;
+}
+
+case_311: {
+    GpItemRec8*          rec;
+    register GpStateC08* p asm("a1");
+    register s32         temp asm("a0");
+    register s32         lo asm("v0");
+    s32                  tmp;
+
+    p = &D_80114C08;
+    asm volatile("" : "+r"(p) : : "v0");
+    temp = D_80114C08.field_0;
+    temp = (u16)(temp % 10U);
+    rec  = &D_80113DC8[temp];
+    asm volatile("" : "+r"(rec), "+r"(temp));
+    lo          = p->field_F & 0xF;
+    tmp         = rec->field_6;
+    p->field_F  = lo;
+    p->field_14 = tmp;
+    if (lo == 0) {
+        p->field_F = lo + 1;
+    }
+    p->field_F |= temp << 4;
+    func_8010A1B0(1, 0xFF);
+    return;
+}
+
+case_321: {
+    s32          idx;
+    s32          min;
+    s32          max;
+    register s32 result asm("v1");
+    s32          flag;
+    s32          t;
+    s32          r;
+    register s32 hi_part asm("a0");
+    GpStateF0*   state;
+    GpRec16*     recs;
+
+    recs = D_8011398C;
+    idx  = (u16)(val % 3U) + 0x16;
+    max  = recs[idx].field[5];
+    min  = recs[idx].field[4];
+    if (min < max) {
+        state = &D_801153F0;
+        if ((D_801153F0.field_0 == 1 && state->field_6 != 0) || state->field_1 != 0) {
+            flag = 1;
+        } else {
+            flag = 0;
+        }
+        if (flag != 0) {
+            goto do_random;
+        }
+    }
+    result = min;
+    goto add_hp;
+do_random:
+    t = rand() & 0xFF;
+    r = t + 1;
+    asm volatile("" ::"r"(t), "r"(r));
+    hi_part = max * r;
+    r       = min * (0x100 - r);
+    {
+        register s32 sum asm("v0");
+        sum = hi_part + r;
+        r   = sum >> 8;
+    }
+    if (r <= 0) {
+        r = 1;
+    }
+    result = r;
+add_hp:
+    cfg->field_18 += result;
+    if (cfg->field_1a < cfg->field_18) {
+        cfg->field_18 = cfg->field_1a;
+    }
+}
+}
 
 void func_800A4904(s32 arg0)
 {

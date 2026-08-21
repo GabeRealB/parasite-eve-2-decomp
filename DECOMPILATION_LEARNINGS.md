@@ -25706,3 +25706,53 @@ The `lbu k` still lands two insns early (`lbu a0, k` before `addiu dst`
 / `lui table`). `asm volatile("" : "+m"(rec))` after the copy finishes
 the 8-byte tail before the next `if`, but switches memcpy src from `$a0`
 to `$v1`. `func_800AA548` is the example.
+
+## Clobber `$v0` on a rematerialize barrier so split-address `lui` uses `$v1`
+
+A `goto` leaf that rematerializes `&global` into `$a1` wants:
+
+```
+slti   v0, a1, K
+bnez   v0, epilogue
+ lui   v1, %hi(global)
+j      body
+ addiu a1, v1, %lo(global)
+```
+
+`$v0` is the `slti` dest and is dead after `bnez`. GCC reuses it for the
+`lui %hi` (`lui v0` / `addiu a1, v0, %lo`). Clobber `$v0` on the
+pointer's `+r` barrier so the `%hi` temp is `$v1`:
+
+```c
+p = &D_80114C08;
+asm volatile("" : "+r"(p) : : "v0");
+```
+
+`func_800A45F0` is the example. Same split-address `lui v1` / `addiu dest,
+v1, %lo` as a rematerialize of an existing `$a2` pointer; the clobber is
+what forces that form when the dest is `$a1`.
+
+## `dst = dst | (packed = x << 4)` so the shift dest is `$v1` and the load is first
+
+`p->byte = p->byte | (x << 4)` with `x` in `$a0` coalesces the shift into
+`sll a0, a0, 4` / `or v0, v0, a0`. The target is `lbu` first, then
+`sll v1, a0, 4` / `or v0, v0, v1`. Assign the shift through a `$v1`-pinned
+temp *inside* the `|` so the load is still the left operand:
+
+```c
+register s32 packed asm("v1");
+c08->field_D = c08->field_D | (packed = temp << 4);
+```
+
+A separate `packed = temp << 4` statement schedules the `sll` above the
+`lbu`. `func_800A45F0` is the example.
+
+## Nested `if (val < K)` / `goto` for a sparse `slti` range tree
+
+A handful of 3-wide ID clusters (`311..313`, `321..323`, `411..413`,
+`421..423`) compiles as GCC 2.8.1's signed `slti` binary tree, not a jump
+table. A C `switch` inverts the leaf polarity (`beqz` to the body instead
+of `bnez` to the epilogue plus `j` with a rematerialize in the delay).
+Write the tree as nested `if (val < K)` with `goto` to each handler so
+the fall-through leaf is `bnez epilogue` / `lui` / `j body` / `addiu`.
+`func_800A45F0` is the example.

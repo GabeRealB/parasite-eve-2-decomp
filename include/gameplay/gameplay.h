@@ -65,7 +65,9 @@ STATIC_ASSERT_SIZEOF(GpRelMatScratch, 0x30);
 /// `func_800A7574` also zeros `field_A`, `field_C`..`field_F`,
 /// `field_10`/`field_12`/`field_14`, and `field_16`/`field_17`. Those
 /// two bytes are also the item 4 / item 8 gates in `func_800D6170`
-/// (`lb`).
+/// (`lb`). `func_800A45F0` packs a nibble plus `field_0 % 10` into
+/// `field_C` / `field_D` / `field_F` and stores a table duration in
+/// `field_10` / `field_12` / `field_14`.
 typedef struct _GpStateC08 {
     /* 0x00 */ u16  field_0;
     /* 0x02 */ s8   field_2;
@@ -128,6 +130,19 @@ typedef struct _GpRec8 {
     /* 0x6 */ s16 field_6;
 } GpRec8;
 STATIC_ASSERT_SIZEOF(GpRec8, 8);
+
+/// 8-byte item-effect row used by `func_800A45F0`. Indexed by
+/// `D_80114C08.field_0 % 10`. `field_6` is loaded `lhu` into
+/// `GpStateC08.field_10` / `field_12` / `field_14`.
+typedef struct _GpItemRec8 {
+    /* 0x0 */ u16 pad_0[3];
+    /* 0x6 */ u16 field_6;
+} GpItemRec8;
+STATIC_ASSERT_SIZEOF(GpItemRec8, 8);
+
+extern GpItemRec8 D_80113DC8[];
+extern GpItemRec8 D_80113E10[];
+extern GpItemRec8 D_80113E28[];
 
 /// 0x30-byte play-clock work `func_8009FEDC` stores at `Task::idMap`.
 /// `field_0` / `field_4` are `Mc_SaveData.field_C` split into minutes and
@@ -223,6 +238,7 @@ void func_8009FEDC(Task* task);
 void func_800A110C(Task* arg0);
 u16  func_800A1558(s32 arg0);
 void func_800A1634(s32 arg0, GpIdMapC* arg1);
+void func_800A45F0(s32 arg0);
 s32  func_800A1CD0(s32 arg0);
 void func_800A1F64(s32 arg0);
 void func_800A7320(s16* arg0);
