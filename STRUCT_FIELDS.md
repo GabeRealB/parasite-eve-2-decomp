@@ -697,6 +697,9 @@ skipped when `D_80114C08.field_A` is 2 or 3.
 `field_20` / `field_24` / `field_28` are s32s (`lw`/`sw`); `func_80105070` copies
 `GpVecArg.field_0` / `field_4` / `field_8` here. Optional `GpOverrideArg` (NULL zeros
 both) copies `field_0` / `field_4` onto `field_93C` / `field_93E` and sets `field_956 = 4`.
+`field_30` / `field_34` / `field_38` are u16s at 4-byte stride (`lhu`); `func_8010154C`
+copies them onto a scratch `SVECTOR` when `field_986` is set, otherwise fills that
+vector from `GsCOORDINATE2.workm` column 2 scaled by `field_973`.
 `field_93C` is a u16 (`lhu`) mode override; `func_80108CC4` passes it to `func_80103A18` when nonzero (else 4);
 `field_958` is an s16 mode written to 1 or 3 by `func_80105A8C` (third arg zero / nonzero);
 `field_95A`/`field_95C` are u16s in that same cluster (`func_80109818` writes `field_95C = 5`);
@@ -704,7 +707,7 @@ both) copies `field_0` / `field_4` onto `field_93C` / `field_93E` and sets `fiel
 `field_93E` is an s16 step (`lhu`/`lh`/`sh`); `func_8010AC54` increments it when the delay expires, inlines the `func_8010AB70` body at 3, and indexes `extra->field_8` as `GsCOORDINATE2[4 - field_93E]` for `func_800EA478(0x600E0, …, 0x320, 0)`; `func_801088D4` writes `arg2` here (0 / 1 / 2);
 `field_95E` is a u16 phase (`lhu`/`sh`); `func_8010ABD4` only runs the `func_8010AB70` body when it is 1; `func_8010AC54` writes 1 on first entry; `func_801088D4` writes `0x3E8` to abort the item-use path when `D_80112F1C[field_21][0]` is zero;
 `field_960` is a u16 (`sh`) previous `field_956` saved by `func_80109290`; `func_801088D4` writes `arg1` here (item-use flags);
-`field_962` is a u16 button mask (`lhu`); `func_80103804` copies `GameSession.field_58` here after saving the previous value to `field_964`; `func_80109250` maps D-pad up/down (`0x5000` / `0x4000`) onto `field_973` as `+1`/`-1`/`0`;
+`field_962` is a u16 button mask (`lhu`); `func_80103804` / `func_8010154C` copy `GameSession.field_58` here after saving the previous value to `field_964`; `func_80109250` maps D-pad up/down (`0x5000` / `0x4000`) onto `field_973` as `+1`/`-1`/`0`;
 `func_80103B88` writes the same `+1`/`-1` when `GpDirArg.field_10 == 7` and the
 XZ direction is non-zero: actor yaw is `ratan2(-coord.m[2][0], coord.m[2][2])`,
 target yaw is `ratan2(field_0, field_8)`, and `+1` means the wrapped delta is

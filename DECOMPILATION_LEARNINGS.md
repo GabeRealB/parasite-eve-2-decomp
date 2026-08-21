@@ -26115,3 +26115,28 @@ text  = func_800B8EB0(a0item, za, zb);
 
 `volatile` on the call args themselves blocks delay-slot filling
 (see above) and leaves `nop`. `func_800B954C` is the example.
+
+## Copy `p` to `$s0` but keep pad stores on `$v1`
+
+A long-lived `actor` needs `$s0` across later calls, while the pad-copy
+head still stores through `$v1` after `move s0, v1`. One pointer CSE's
+the stores onto `$s0`. Two pointers plus `+r` on both after the copy
+keeps the dests distinct:
+
+```c
+p = work->actor;          /* v1 */
+prev = p->field_962;
+actor = p;                /* move s0, v1 */
+asm volatile("" : "+r"(actor), "+r"(p));
+p->field_976 = f975;      /* sb ..., (v1) */
+```
+
+Pin `extra` to `$v0` so the actor load is `lw v1, 0x1C` (not `$v0`).
+Assign scratch `newhead` first (`$a2`) and `vec = newhead` only just
+before the next call so `move s2, a2` fills that `bnez` delay.
+`func_8010154C` is the example.
+
+An `s8` multiplied as `lbu` / `sll 24` / `sra 24` is `(s8)` of a `u8`
+overlay at the same offset, not `lb` of the `s8` field. A `volatile`
+load of the next pad byte plus `"r"(tmp)` after `session = Game_Session`
+puts that `lbu` in the `lw` delay instead of an independent `sh`.

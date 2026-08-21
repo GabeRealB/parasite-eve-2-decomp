@@ -77,6 +77,7 @@ void func_80108874(GpActorWork* arg0);
 void func_80108E0C(GpActorWork* arg0, GpLinkNode* arg1);
 void func_80109374(GpActorWork* arg0);
 void func_801093DC(GpActorWork* arg0);
+void func_801083A0(GpActorWork* arg0);
 void func_801095BC(s32* arg0);
 void func_80109720(GpActorWork* arg0);
 void func_80109844(GpActorWork* arg0);
@@ -1120,7 +1121,113 @@ void func_801014E8(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_8010154C);
+typedef struct {
+    byte pad[0x973];
+    u8   field_973;
+} ActorDirByte;
+
+void func_8010154C(void)
+{
+    void**                  scratch;
+    u8*                     head;
+    u8*                     newhead;
+    SVECTOR*                vec;
+    GpActorWork*            work;
+    GameActor*              actor;
+    GameActor*              p;
+    register GameActorExt*  extra asm("v0");
+    register GsCOORDINATE2* coord asm("s1");
+    u16                     buttons;
+    u16                     prev;
+    s8                      f975;
+    s8                      f977;
+    GameSession*            session;
+    Task*                   task;
+    MATRIX*                 mat;
+    register s8             f973 asm("a1");
+
+    work     = Game_GetPtrSlot(3);
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    newhead  = head - 8;
+    *scratch = newhead;
+    __asm__ volatile("" ::: "memory");
+    p     = work->actor;
+    extra = work->extra;
+    f973  = p->field_973;
+    coord = (GsCOORDINATE2*)extra->field_8;
+    f975  = p->field_975;
+    __asm__ volatile("" : "+r"(coord), "+r"(f975), "+r"(p));
+    prev = p->field_962;
+    __asm__ volatile("" : : "r"(prev));
+    actor = p;
+    __asm__ volatile("" : "+r"(actor), "+r"(p));
+    p->field_976 = f975;
+    p->field_974 = f973;
+    session      = Game_Session;
+    __asm__ volatile("" : "+r"(session) : "r"(f973));
+    f977 = ((volatile GameActor*)p)->field_977;
+    __asm__ volatile("" : : "r"(f977));
+    p->field_964 = prev;
+    buttons      = session->field_58;
+    p->field_978 = f977;
+    p->field_962 = buttons;
+    p->field_966 = p->field_962 & ~p->field_964;
+    p->field_968 = p->field_964 & ~p->field_962;
+    p->field_977 = (p->field_962 >> 6) & 1;
+    D_801153F2   = 0;
+    vec          = (SVECTOR*)newhead;
+    if (D_80115768 == 0) {
+        func_801083A0(work);
+    }
+    coord->coord.t[0] += actor->field_40;
+    coord->coord.t[1] += actor->field_44;
+    coord->coord.t[2] += actor->field_48;
+    actor->field_40    = 0;
+    actor->field_44    = 0;
+    actor->field_48    = 0;
+    func_800E1A6C(actor->field_17C);
+    if (actor->field_91C != NULL) {
+        func_800E1A6C(actor->field_32C);
+    }
+    if (actor->field_984 & 1) {
+        coord->coord.t[1] += 0x80;
+    }
+    coord->flg = 0;
+    func_80098F58(coord);
+    if ((s8)actor->field_986 != 0) {
+        ((SVECTOR*)(head - 8))->vx = actor->field_30;
+        vec->vy                    = actor->field_34;
+        vec->vz                    = actor->field_38;
+    } else {
+        ((SVECTOR*)(head - 8))->vx =
+            (u16)coord->workm.m[0][2] * (s8)((volatile ActorDirByte*)actor)->field_973;
+        vec->vy =
+            (u16)coord->workm.m[1][2] * (s8)((volatile ActorDirByte*)actor)->field_973;
+        vec->vz =
+            (u16)coord->workm.m[2][2] * (s8)((volatile ActorDirByte*)actor)->field_973;
+    }
+    task                            = actor->field_91C;
+    ((SVECTOR*)actor->field_88)->vx = vec->vx;
+    ((SVECTOR*)actor->field_88)->vy = vec->vy;
+    ((SVECTOR*)actor->field_88)->vz = vec->vz;
+    ((SVECTOR*)actor->field_94)->vx = vec->vx;
+    ((SVECTOR*)actor->field_94)->vy = vec->vy;
+    ((SVECTOR*)actor->field_94)->vz = vec->vz;
+    ((SVECTOR*)actor->field_A0)->vx = vec->vx;
+    ((SVECTOR*)actor->field_A0)->vy = vec->vy;
+    ((SVECTOR*)actor->field_A0)->vz = vec->vz;
+    if (task != NULL) {
+        *(GsCOORDINATE2*)actor->field_3D4 =
+            *(GsCOORDINATE2*)((GameActorExt*)task->extra)->field_8;
+        mat = &((GsCOORDINATE2*)actor->field_3D4)->workm;
+        if (Wip_SysConfig.field_21 != 0x17) {
+            Gfx_RotMatrixX(mat, -0x400, 0);
+            Gfx_RotMatrixY(mat, -0x20, 0);
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+}
 
 void func_80101848(GpActorWork* arg0)
 {

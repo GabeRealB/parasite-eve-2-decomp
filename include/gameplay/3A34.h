@@ -487,9 +487,9 @@ STATIC_ASSERT_SIZEOF(GpGridParams, 0x24);
 /// is an alternate-active flag (`func_800A7508` / `func_800A7CB0` /
 /// `func_800A7CF4` / `func_800A7D54`); last-ref release sets it to 0x3C.
 /// `field_2` is a bitset (`func_800DB500` sets bit `arg0 - 1` when
-/// `arg0 != 0`). `field_3` is cleared with `field_2` on last-ref release
-/// (also written as `D_801153F3` by `func_800DB530`). `field_4` is also
-/// `D_801153F4`. `field_5` is a u8 count incremented by `func_800E1C58`
+/// `arg0 != 0`; also written as `D_801153F2`). `field_3` is cleared with
+/// `field_2` on last-ref release (also written as `D_801153F3` by
+/// `func_800DB530`). `field_4` is also `D_801153F4`. `field_5` is a u8 count incremented by `func_800E1C58`
 /// when it claims a `GpSlot18`. `field_6` is a u16
 /// refcount incremented by `func_800DB53C` and decremented by
 /// `func_800DB558` / `func_800DB630` / `func_800DB6B4`. Last-ref
@@ -804,6 +804,7 @@ extern GpObj4A* D_8010FAB0[2];
 extern GpObj3A* D_8010FAB8[1];
 
 extern GpStateF0 D_801153F0;
+extern u8        D_801153F2;
 extern u8        D_801153F3;
 extern u8        D_801153F4;
 /// Head of the `GpObj3A` list pointed to by `D_8010FAB8[0]`.
