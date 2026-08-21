@@ -1209,7 +1209,128 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80101A68);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80101F58);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80102348);
+void func_80102348(GpActorWork* arg0, s32 arg1)
+{
+    register void** scratch asm("v0");
+    register s32    hi asm("v0");
+    u8*             head;
+    register u8*    tmp asm("v1");
+    GameActor*      actor;
+    register s32    thresh asm("s4");
+
+    thresh = arg1;
+    asm("lui %0, 0x1F80" : "=r"(hi) : "r"(thresh));
+    asm("ori %0, %1, 0x3FC" : "=r"(scratch) : "r"(hi));
+    head     = *scratch;
+    actor    = arg0->actor;
+    tmp      = head - 0x6C;
+    *scratch = tmp;
+    if (actor->field_90C != NULL) {
+        GpYawScratch*   block;
+        GpAimRot*       rec;
+        GsCOORDINATE2*  src;
+        VECTOR3*        lock;
+        register s32    val asm("v0");
+        s32             dz;
+        register s32    cmp asm("v1");
+        GpAngleScratch* wrap;
+        u8*             whead;
+        s32             delta;
+        s32             flag;
+        register s32    packed asm("s2");
+        register s32    limit asm("s0");
+        register u16*   tbl asm("a1");
+
+        block = (GpYawScratch*)tmp;
+        __asm__ volatile("" : "+r"(block));
+        rec           = &D_801131B4[Wip_SysConfig.field_21];
+        src           = (GsCOORDINATE2*)((GameActorExt*)actor->field_91C->extra)->field_8;
+        block->rot.vx = rec->vx;
+        block->rot.vy = rec->vy;
+        block->rot.vz = rec->vz;
+        func_801040A0(src, (GsCOORDINATE2*)block, (SVECTOR*)(head - 0xC));
+        lock = (VECTOR3*)(head - 0x1C);
+        func_800DAE50((GpLockPos*)actor->field_90C, lock);
+        ((VECTOR3*)(head - 0x1C))->vx =
+            ((VECTOR3*)(head - 0x1C))->vx - ((GsCOORDINATE2*)block)->coord.t[0];
+        lock->vy = lock->vy - ((GsCOORDINATE2*)block)->coord.t[1];
+        lock->vz = lock->vz - ((GsCOORDINATE2*)block)->coord.t[2];
+        val      = block->delta.vx;
+        val      = ABS(val);
+        val      = val * val;
+        dz       = block->delta.vz;
+        dz       = ABS(dz);
+        dz       = dz * dz;
+        val      = SquareRoot0(val + dz);
+        cmp      = (s16)thresh;
+        cmp      = cmp < val;
+        if (cmp) {
+            block->angle = ratan2(block->delta.vx, block->delta.vz);
+            val          = *(u16*)&block->angle;
+            cmp          = *(u16*)&actor->field_52;
+            asm("lui %0, 0x1F80" : "=r"(whead) : "r"(val), "r"(cmp));
+            whead = *(u8**)(whead + 0x3FC);
+            val   = (s16)val - (s16)cmp;
+            tmp   = (u8*)(whead - 0xC);
+            wrap  = (GpAngleScratch*)tmp;
+            __asm__ volatile("" : "+r"(wrap) : "r"(tmp));
+            ((GpAngleScratch*)(whead - 0xC))->field_0 = val;
+            val                                      += 0x1000;
+            wrap->field_4                             = val;
+            val                                       = ((GpAngleScratch*)(whead - 0xC))->field_0;
+            *(void**)G_SCRATCH_HEAD                   = wrap;
+            delta                                     = val - 0x1000;
+            wrap->field_8                             = delta;
+            if (ABS(((GpAngleScratch*)(whead - 0xC))->field_0) < ABS(wrap->field_4) &&
+                ABS(((GpAngleScratch*)(whead - 0xC))->field_0) < ABS(delta)) {
+                cmp  = *(u16*)&((GpAngleScratch*)(whead - 0xC))->field_0;
+                flag = 0x2000;
+            } else if (ABS(wrap->field_4) < ABS(wrap->field_8)) {
+                cmp  = *(u16*)&wrap->field_4;
+                flag = 0x2000;
+            } else {
+                cmp  = *(u16*)&wrap->field_8;
+                flag = 0x2000;
+            }
+            val = (s16)cmp;
+            asm("lui %0, %%hi(D_80112E30)" : "=r"(tbl) : "r"(val));
+            block->angle = val;
+            asm("lui %0, %%hi(Wip_SysConfig)" : "=r"(val));
+            asm("addiu %0, %1, %%lo(D_80112E30)" : "=r"(tbl) : "r"(tbl));
+            asm("lbu %0, %%lo(Wip_SysConfig+0x21)(%1)" : "=r"(cmp) : "r"(val));
+            asm("lui %0, 0x1F80" : "=r"(val) : "r"(cmp));
+            val = (s32) * (void**)((u8*)val + 0x3FC);
+            asm volatile("" ::"r"(val));
+            cmp                     = tbl[cmp];
+            val                    += 0xC;
+            *(void**)G_SCRATCH_HEAD = (void*)val;
+            asm volatile("" ::"r"(val));
+            packed = cmp << 16;
+            limit  = packed >> 16;
+            if (func_800B9D80(flag) != 0) {
+                val    = packed >> 17;
+                limit += val;
+            }
+            {
+                register s32 angle asm("a0");
+                register s32 neg asm("v1");
+
+                angle = block->angle;
+                neg   = -limit;
+                if (limit < angle) {
+                    block->angle = limit;
+                } else {
+                    val = angle < neg;
+                    if (val) {
+                        block->angle = neg;
+                    }
+                }
+            }
+            actor->field_52 = ((u16)actor->field_52 + (u16)block->angle) & 0xFFF;
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x6C;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80102634);
 

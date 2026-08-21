@@ -396,6 +396,22 @@ typedef struct _GpAimRot {
 } GpAimRot;
 STATIC_ASSERT_SIZEOF(GpAimRot, 8);
 
+/// 0x6C-byte scratch from `G_SCRATCH_HEAD` used by `func_80102348`.
+/// The first 0x50 bytes are a temp `GsCOORDINATE2`. `delta` is
+/// `func_800DAE50` output minus that coord's translation (computed in
+/// place). `rot` is the `SVECTOR` passed to `func_801040A0` (table row
+/// `D_801131B4[Wip_SysConfig.field_21]`). `angle` holds `ratan2` then
+/// the wrapped, clamped yaw delta applied to `GameActor.field_52`.
+typedef struct _GpYawScratch {
+    /* 0x00 */ byte     pad_0[0x50];
+    /* 0x50 */ VECTOR3  delta;
+    /* 0x5C */ s32      pad_5C;
+    /* 0x60 */ SVECTOR3 rot;
+    /* 0x66 */ s16      pad_66;
+    /* 0x68 */ s32      angle;
+} GpYawScratch;
+STATIC_ASSERT_SIZEOF(GpYawScratch, 0x6C);
+
 /// 0x84-byte scratch from `G_SCRATCH_HEAD` used by `func_80102D20` and
 /// `func_80102F10`. The first 0x50 bytes are a temp `GsCOORDINATE2`.
 /// `delta` is lock position minus that coord's translation; `lock` is
@@ -566,6 +582,11 @@ extern u8 D_80112E04[][2];
 /// 2-wide rows of `GsCOORDINATE2` indices. `func_8010403C` indexes
 /// `D_80112E2C[Mc_SaveData.field_22 - 1][arg0]`.
 extern u8 D_80112E2C[][2];
+
+/// u16 turn-rate rows indexed by `Wip_SysConfig.field_21`. `func_80102348`
+/// clamps the wrapped yaw delta to this value (or 1.5x when
+/// `func_800B9D80(0x2000)` is set).
+extern u16 D_80112E30[];
 
 /// NULL-terminated `GpImgRec*` lists for `func_801030CC`. Indexed as
 /// `table[type * 4 + Wip_SysConfig.field_26 - 5][frame]`. `D_80112E74` is

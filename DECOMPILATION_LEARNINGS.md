@@ -25988,3 +25988,46 @@ cannot hoist into the `beqz dest` delay. Write `field_C` dest through
 `arg0->field_C->vx` (no local) so each `sh` reloads the pointer. A named
 `z = trans.vz` before `field_0 = 0` keeps that store in the `lh vz` delay
 rather than the `vy` delay. `func_800B2E90` is the example.
+
+## Put a later call's constant in each wrap-select arm
+
+Inlining the 0xC angle wrap (`func_80103E7C`) leaves the three `lhu` /
+`j join` paths with a free delay. A later `func_800B9D80(0x2000)` wants
+`li a0, 0x2000` in those delays, not a hoisted `lui` of `G_SCRATCH_HEAD`
+for the wrap pop. Assign the flag inside every arm so the `li` is live at
+the join:
+
+```c
+if (ABS(a) < ABS(b) && ABS(a) < ABS(c)) {
+    ret  = a;
+    flag = 0x2000;
+} else if (ABS(b) < ABS(c)) {
+    ret  = b;
+    flag = 0x2000;
+} else {
+    ret  = c;
+    flag = 0x2000;
+}
+```
+
+A single `flag = 0x2000` after the `if` lets `-fschedule-insns` steal the
+delays for the next independent `lui`. `func_80102348` is the example.
+
+## Overwrite-form `G_SCRATCH_HEAD` load via `lui` then `p + 0x3FC`
+
+`val = *(void**)G_SCRATCH_HEAD` CSEs the 0x1F8003FC address with an
+earlier store (`lui a2` / `ori` / `lw 0(a2)`). The target overwrites the
+address register: `lui v0, 0x1F80` / `lw v0, 0x3FC(v0)`, then
+`lui at` / `sw 0x3FC(at)` for the store. Load the high half first and
+index the 0x3FC offset so the dest is the same register:
+
+```c
+asm("lui %0, 0x1F80" : "=r"(val) : "r"(dep));
+val = (s32) * (void**)((u8*)val + 0x3FC);
+val += 0xC;
+*(void**)G_SCRATCH_HEAD = (void*)val;
+```
+
+The dummy `"r"(dep)` pins the `lui` after an earlier load (e.g. `lbu`)
+so it cannot hoist into a previous delay. Same `lui` / `ori 0x3FC` split
+as `func_80102D20`'s prologue. `func_80102348` is the example.
