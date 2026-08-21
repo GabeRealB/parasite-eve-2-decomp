@@ -26379,3 +26379,43 @@ not retarget the dest into the later `* 5` temp; then `temp = col` is
 `move v1, s1`.
 
 `func_800C1960` is the example.
+
+## One extra `asm volatile("" :: "r"(long_lived))` to sit between two t-reg priorities
+
+Three overlapping temps that want `$t0` / `$t1` / `$t2` (a short loop-hoisted
+base, a function-long pointer, and a second hoisted base) are colored by
+`n_refs / live_length`. The short bases win, so the long-lived pointer
+lands in `$t2` and the second base in `$t1`. Pinning the second base to
+`$t2` swaps them but turns its `lui v0` / `addiu t2, v0, %lo` into
+`lui t2` / `addiu t2, t2`. One dummy use of the long-lived pointer after
+it is assigned raises its priority just enough to take `$t1` and leaves
+the second base unpinned in `$t2`:
+
+```c
+cfg = &Wip_SysConfig;
+asm volatile("" ::"r"(cfg));
+```
+
+Zero extra uses leaves `cfg` in `$t2`; several extra uses promote it to
+`$t0` and steal the first base. `func_800BA75C` is the example.
+
+## Empty `asm volatile("")` so a `beqz` delay fills from the fail-path increment
+
+`if ((u32)(id - K) < N) { success; break; } i++;` wants `beqz fail` with
+`addiu i, i, 1` in the delay (jumping to the loop check) so the success
+path's `id - K2` is *not* in the slot. GCC prefers filling from
+fall-through (`addiu v0, id, -K2`). An empty volatile at the start of the
+success block blocks that fill and the reorg takes `i++` from the fail
+path instead:
+
+```c
+if ((u32)(id - 0x60) < 0x20U) {
+    asm volatile("");
+    cfg->field_23 = id - 0x5F;
+    /* ... */
+    break;
+}
+i++;
+```
+
+`func_800BA75C` is the example.

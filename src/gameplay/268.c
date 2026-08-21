@@ -1625,7 +1625,161 @@ void func_800BA538(void)
     state->field_B = 0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800BA75C);
+void func_800BA75C(void)
+{
+    WipSysConfig*       cfg;
+    register s32        item asm("a1");
+    GpItemSlot*         slot;
+    s32                 found;
+    register s32        i asm("a0");
+    GpItemMap*          p;
+    GpItemScan*         scan;
+    GpItemRec*          tmp;
+    register GpItemRec* table asm("v1");
+    s32                 count;
+    s32                 start;
+    s32                 off;
+    McSaveData*         save;
+    WipSysConfig*       pcfg;
+    u16                 hp;
+    u16                 mp;
+    GpStateC08*         state;
+    s32                 val;
+    GpItemScan*         dest;
+    GpItemRec*          rec;
+    s32                 j;
+    GpStatRow*          rows;
+    GpItemAttr*         attrs;
+    McSaveData*         save2;
+    u8                  id;
+    WipSysConfig*       hpCfg;
+    u16                 hpVal;
+    s32                 idx;
+    s32                 n;
+
+    cfg = &Wip_SysConfig;
+    asm volatile("" ::"r"(cfg));
+    val = cfg->field_21;
+    if (val != 0) {
+        asm volatile("");
+        asm("addiu %0, %1, 0x7F" : "=r"(item) : "r"(val));
+        if ((u32)(val - 1) < 0x20U) {
+            found = 0;
+            slot  = &Mc_SaveData.field_1C8[item];
+            for (i = found, p = D_8010D2F8; i < 8; i++, p++) {
+                if (item == p->field_1) {
+                    found = 1;
+                    break;
+                }
+            }
+            if ((found == 0) || (D_8010D2F8[i].field_0 != 0)) {
+                slot->field_0 = 0;
+                slot->field_1 = 0;
+            }
+            if ((found == 0) || (D_8010D2F8[i].field_0 != 1)) {
+                if (slot->field_2 != 0xFF) {
+                    slot->field_2 = 0;
+                }
+                slot->field_3 = 0;
+            }
+            asm volatile("" ::"r"(i));
+        }
+        cfg->field_21 = 0;
+    }
+
+    scan = &D_8010D520;
+    switch (scan->field_2) {
+        case 2:
+            tmp = D_80114C20;
+            break;
+        case 1:
+            tmp = D_80114D70;
+            break;
+        default:
+            tmp = Mc_SaveData.field_1AC;
+            break;
+    }
+    table = tmp;
+    i     = 0;
+    count = scan->field_1;
+    start = scan->field_0;
+    if (count != 0) {
+        off   = start << 2;
+        table = (GpItemRec*)(off + (s32)table);
+        do {
+            i++;
+            table->field_0 = 0;
+            table->field_1 = 0;
+            table->field_2 = 0;
+            table++;
+        } while (i < scan->field_1);
+    }
+
+    save                    = &Mc_SaveData;
+    n                       = 0x14;
+    dest                    = &save->field_5BC;
+    save->field_5BC.field_0 = 0;
+    save->field_5BC.field_1 = n;
+    save->field_5BC.field_2 = 0;
+    switch (dest->field_2) {
+        case 2:
+            rec = D_80114C20;
+            break;
+        case 1:
+            rec = D_80114D70;
+            break;
+        default:
+            rec = save->field_1AC;
+            break;
+    }
+    j   = 0;
+    rec = (GpItemRec*)((s32)rec + (dest->field_0 << 2));
+    if (dest->field_1 != 0) {
+        rows  = D_8010D328;
+        save2 = &Mc_SaveData;
+        attrs = D_8010E2B8;
+        do {
+            if ((s8)rec->field_1 == -1) {
+                id = rec->field_0;
+                if ((u32)(id - 0x60) < 0x20U) {
+                    asm volatile("");
+                    cfg->field_23   = id - 0x5F;
+                    hpCfg           = &Wip_SysConfig;
+                    hpVal           = rows[save2->field_F].field_0;
+                    hpCfg->field_1a = hpVal;
+                    hpVal          += save2->field_26;
+                    hpCfg->field_1a = hpVal;
+                    if (hpCfg->field_23 != 0) {
+                        idx             = hpCfg->field_23;
+                        idx             = idx - 1;
+                        hpVal          += attrs[idx].field_4;
+                        hpCfg->field_1a = hpVal;
+                    }
+                    if (hpCfg->field_1a >= 0xFB) {
+                        hpCfg->field_1a = 0xFA;
+                    }
+                    if (hpCfg->field_18 > hpCfg->field_1a) {
+                        hpCfg->field_18 = hpCfg->field_1a;
+                    }
+                    func_800B7930();
+                    break;
+                }
+            }
+            j++;
+            rec++;
+        } while (j < dest->field_1);
+    }
+
+    state          = &D_80114C08;
+    pcfg           = &Wip_SysConfig;
+    hp             = pcfg->field_1a;
+    mp             = pcfg->field_1e;
+    state->field_B = 0;
+    state->field_5 = 0;
+    pcfg->field_18 = hp;
+    pcfg->field_1c = mp;
+    func_800B6CF0();
+}
 
 void func_800BAA58(void)
 {

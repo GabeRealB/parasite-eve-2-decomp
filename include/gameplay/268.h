@@ -270,6 +270,13 @@ s32         func_800B9D80(s32 arg0);
 /// to max, zeros the 4x3 `D_80114BF0` table, and clears `D_80114C08.field_5`
 /// / `field_B`.
 void        func_800BA538(void);
+/// Unequips `Wip_SysConfig.field_21` (same slot clear as `func_800BA538`),
+/// zeros the `D_8010D520` item table, writes `{0, 0x14, 0}` into
+/// `Mc_SaveData.field_5BC`, and if that table has an equipped 0x60–0x7F
+/// item (`field_1 == -1`) sets `field_23` and recomputes max HP/MP
+/// (`func_800BC0C0` / `func_800B7930`). Heals current HP/MP to max, then
+/// clears `D_80114C08.field_5` / `field_B`.
+void        func_800BA75C(void);
 void        func_800B8014(void);
 /// Moves the item at scan slot `arg1` onto slot `arg2`, shifting the
 /// occupied rows between them toward the hole left at `arg1`.
