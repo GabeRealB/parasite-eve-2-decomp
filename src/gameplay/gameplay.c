@@ -3204,7 +3204,118 @@ void func_800A4904(s32 arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A4A2C);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A5274);
+void func_800A5274(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    SVECTOR*     vec;
+    GpLinkXform* node;
+    GpEnemy*     enemy;
+    GpObj54*     obj54;
+    s32          rx2;
+    s32          ry2;
+    s32          temp_y;
+    s32          temp_x;
+    s32          idx;
+    u16          val;
+
+    if (arg0 == 0) {
+        if (arg3 == 0) {
+            func_800A4A2C(0, arg1, arg2, 0);
+        } else {
+            func_800A4A2C(0, arg1, arg2, 2);
+        }
+    }
+
+    arg2  += 0x64;
+    temp_y = arg2 * arg2;
+    arg1  += 0x64;
+    temp_x = arg1 * arg1;
+
+    {
+        register void** scratch asm("a0");
+        u8*             head;
+
+        scratch  = (void**)G_SCRATCH_HEAD;
+        head     = *scratch;
+        node     = (GpLinkXform*)D_80115268;
+        head    -= 8;
+        *scratch = head;
+        vec      = (SVECTOR*)head;
+    }
+    ry2 = temp_y >> 8;
+    rx2 = temp_x >> 8;
+
+    if (node != NULL) {
+        do {
+            if ((node->field_4 & 5) != 1) {
+                vec->vx = *(u16*)&node->dst.vx;
+                vec->vy = *(u16*)&node->dst.vy;
+                vec->vz = *(u16*)&node->dst.vz;
+                if (arg3 != 0) {
+                    vec->vz -= arg1;
+                }
+                {
+                    register s32 packed asm("a0");
+                    s32          tmp;
+                    s32          t;
+                    s32          x;
+                    s32          y;
+                    s32          x2;
+                    s32          y2;
+                    s32          z2;
+                    s32          scaled;
+
+                    t = vec->vy;
+                    if (t >= -arg2 && t < 0x65) {
+                        tmp    = *(u16*)&vec->vx;
+                        packed = tmp << 16;
+                        asm volatile("" ::"r"(tmp));
+                        t = packed >> 16;
+                        if (t >= -arg1 && !(arg1 < t)) {
+                            t = vec->vz;
+                            if (t >= -arg1 && !(arg1 < t)) {
+                                scaled  = packed >> 20;
+                                vec->vx = scaled;
+                                asm volatile("" ::"r"(packed), "r"(scaled) : "memory");
+                                x       = vec->vx;
+                                x2      = x * x;
+                                t       = *(u16*)&vec->vz;
+                                t     <<= 16;
+                                t     >>= 20;
+                                z2      = t * t;
+                                vec->vy = (*(u16*)&vec->vy << 16) >> 20;
+                                asm volatile("" ::: "memory");
+                                y       = vec->vy;
+                                y2      = y * y;
+                                vec->vz = t;
+                                if ((u32)(ry2 * (x2 + z2) + rx2 * y2) <= (u32)(ry2 * rx2)) {
+                                    goto apply;
+                                }
+                            }
+                        }
+                    }
+                    goto next_node;
+                apply:;
+                }
+                enemy = (GpEnemy*)((u8*)node - OFFSET_OF(GpEnemy, node));
+                obj54 = (GpObj54*)enemy;
+                if (arg0 == 0) {
+                    enemy->field_4E |= 0x80;
+                } else {
+                    val  = D_80114C08.field_0;
+                    idx  = (val / 100U - 1) * 9;
+                    idx += ((val % 100U) / 10U - 1) * 3;
+                    idx += val % 10U;
+                    idx += 0x28000;
+                    func_800E1C58(obj54, (void*)idx);
+                }
+            }
+        next_node:
+            node = node->next;
+        } while (node != NULL);
+    }
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A5574);
 

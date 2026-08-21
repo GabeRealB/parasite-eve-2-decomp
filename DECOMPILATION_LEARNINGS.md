@@ -26419,3 +26419,32 @@ i++;
 ```
 
 `func_800BA75C` is the example.
+
+## Do not pin `$v0` if a later unsigned `/ 100` needs `mfhi v0`
+
+A `register ... asm("v0")` scratch-head or shift temp, even in a nested
+block, reserves `$v0` for the whole function. The unsigned `x / 100U`
+magic (`multu` `0x51EB851F` / `mfhi` / `srl 5`) then lands in `$v1` and
+the follow-up `x % 100 / 10` `mfhi` in `$t2`. Leave `$v0` unpinned and
+keep the `/ 100` apply *outside* a `register ... asm("a0")` packed
+block (goto out of the range-check scope) so both `mfhi` dests are `$v0`.
+
+Keep the `<< 16` packed value live after `>> 20` so the shift is
+`sra v0, a0, 20` rather than destructive `sra a0, a0, 20`. Dummy-use the
+`lhu` temp after `packed = tmp << 16` so that load stays in `$v0` instead
+of coalescing into packed's `$a0`. In-place `t <<= 16; t >>= 20` after
+`t = *(u16*)` keeps `sll v1, v1, 16` / `sra v1, v1, 20`:
+
+```c
+tmp    = *(u16*)&vec->vx;
+packed = tmp << 16;
+asm volatile("" ::"r"(tmp));
+scaled  = packed >> 20;
+vec->vx = scaled;
+asm volatile("" ::"r"(packed), "r"(scaled) : "memory");
+t  = *(u16*)&vec->vz;
+t <<= 16;
+t >>= 20;
+```
+
+`func_800A5274` is the example.
