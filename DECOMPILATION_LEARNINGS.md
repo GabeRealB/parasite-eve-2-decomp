@@ -26083,3 +26083,35 @@ update puts `li v0, 0x80` between `sw D_80071190` and the `x3` stores.
 A block-scope SPRT `y = obj->field_E` right after `p->x0` hoists that
 `lhu` so `D_80071190 = p + 1` stores before `x0`. `func_800C16B4` is the
 example.
+
+## Keep a later literal `1` dead so `>> 1` stays `sra`, not `srav`
+
+`(-w) >> 1` is `negu` / `sra ..., 1`. A nearby `func(..., 1)` (or any
+live `1` in a temp) CSEs with the shift amount and turns it into
+`li t1, 1` / `srav`. Keep that `1` unborn until after the shifts (a
+register barrier after the `>> 1`, or compute the `1` only at the call)
+so the shift keeps the immediate form. `func_800B954C` is the example;
+`func_800CC15C` wants the `srav` form because its `1` is a live `jal`
+arg (`a2`) set up *before* the shift.
+
+## Hold the previous `$s0` dest live so `addiu s0, v0, N` fills the `jal` delay
+
+`width = Text_MeasureWidth(str) + 4` then `func(item, 0, 0)` wants
+`addiu s0, v0, 4` in the `jal` delay (`s0` was the string, overwritten
+with the measured width). Emitting the `+ 4` right after the measure
+leaves the delay for `move a2, a1`. Keep `str` / the call args / the
+measure result live across a dummy `asm` so the `+ 4` is the last
+independent instruction before the `jal` and delay-fills:
+
+```c
+w      = Text_MeasureWidth(str);
+a0item = item;
+za     = 0;
+zb     = za;
+asm volatile("" ::"r"(str), "r"(za), "r"(zb), "r"(w), "r"(a0item));
+width = w + 4;
+text  = func_800B8EB0(a0item, za, zb);
+```
+
+`volatile` on the call args themselves blocks delay-slot filling
+(see above) and leaves `nop`. `func_800B954C` is the example.

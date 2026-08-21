@@ -12,6 +12,7 @@
 #include "main/mc.h"
 #include "main/session.h"
 #include "main/task.h"
+#include "main/text.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
 
@@ -19,6 +20,12 @@ extern u16          D_800739B8;
 extern GpItemRec*   D_80114DD4;
 extern UiObjectDesc D_8010D384;
 extern u8           D_80114BF0[];
+extern char         D_80093CC4[];
+extern u8           D_8010D364[];
+extern u8           D_8010D36C[];
+extern s32          D_8005ED70;
+extern s32          D_8005ED74;
+extern s32          D_8005ED78;
 
 void func_80180804(void);
 void func_8017EA68(void);
@@ -1235,15 +1242,13 @@ void func_800B92CC(void)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800B954C);
-
 static __inline void func_800B996C_RemoveItem(GpItemScan* arg0, GpItemRec* arg1, s32 arg2)
 {
     GpItemRec*          tmp;
     register GpItemRec* table asm("v1");
     register s32        qty asm("a2");
     register GpItemRec* base asm("t0");
-    s32                 item;
+    register s32        item asm("t1");
     GpItemRec*          rec;
     s32                 i;
     s32                 count;
@@ -1308,6 +1313,131 @@ static __inline void func_800B996C_RemoveItem(GpItemScan* arg0, GpItemRec* arg1,
             } else {
                 base[i].field_2 = newQty;
             }
+        }
+    }
+}
+
+void func_800B954C(UiObject* arg0, Task* arg1)
+{
+    register UiObject* obj asm("s7");
+    register Task*     task asm("s6");
+    register s32       sel asm("a0");
+    register s32       color asm("s5");
+    register s32       y0 asm("s4");
+    register s32       one asm("s3");
+    register s32       x asm("s2");
+    register s32       y asm("s1");
+    s32                item;
+    s32                level;
+    s32                width;
+    s32                other;
+    s32                saved;
+    u8*                str;
+    char*              text;
+    GpItemAttr*        p;
+
+    obj  = arg0;
+    sel  = Wip_SysConfig.field_23;
+    task = arg1;
+    item = sel + 0x5F;
+    if (task->state == 0) {
+        task->flags = 0xFF;
+        sel         = sel - 1;
+        level       = 0;
+        if ((u32)sel < 0x20U) {
+            p      = &D_8010DFB8[item];
+            level  = p->field_5;
+            level += Mc_SaveData.field_908[sel];
+            asm volatile("" ::"r"(sel));
+            if (level >= 0xB) {
+                level = 0xA;
+            }
+        }
+        if (level < 0xA) {
+            register s32 idx asm("v1");
+            McSaveData*  save;
+            save = &Mc_SaveData;
+            asm volatile("" : "+r"(save));
+            idx                         = item - 0x60;
+            *(u8*)&save->field_908[idx] = *(u8*)&save->field_908[idx] + 1;
+        } else {
+            task->flags = 0x1A;
+        }
+        if (task->flags != 0xFF) {
+            goto error;
+        }
+        width = Text_MeasureWidth(func_800B8EB0(item, 0, 0)) + Text_MeasureWidth(D_8010D364) + 4;
+        other = Text_MeasureWidth(D_8010D36C);
+        if (width < other) {
+            width = other;
+        }
+        Ui_UpdateLayoutSize((UiPanel*)obj, width + 5, Ui_Scale15(2) + 1);
+        {
+            register s32 tx asm("v1");
+            register s32 ty asm("v0");
+            tx = (-((UiPanel*)obj)->field_C.w) >> 1;
+            ty = ((-((UiPanel*)obj)->field_C.h) >> 1) - 0x14;
+            asm volatile("" ::"r"(obj));
+            ((UiPanel*)obj)->field_C.y = ty;
+            ((UiPanel*)obj)->field_C.x = tx;
+        }
+        func_800B996C_RemoveItem(&Mc_SaveData.field_5BC, D_80114DD4, 1);
+        task->killCountdown = 0xBC;
+        task->state         = task->state + 1;
+    }
+    if (task->flags != 0xFF) {
+    error:
+        saved           = task->spawnArg1;
+        task->spawnArg1 = task->flags;
+        func_800D2F68(task);
+        task->spawnArg1 = saved;
+        return;
+    }
+
+    {
+        register UiObject* a0obj asm("a0");
+        register char*     notice asm("a1");
+
+        a0obj = obj;
+        asm volatile("" : "+r"(a0obj));
+        notice = D_80093CC4;
+        asm volatile("" : "+r"(notice));
+        color = 0x606060;
+        asm volatile("" : "+r"(color));
+        x  = obj->field_1C;
+        y0 = (s16)obj->field_18;
+        Ui_DrawText((UiPanel*)a0obj, notice);
+        x = x + 2;
+        asm volatile("" : "+r"(x));
+    }
+    y   = y0 + 0xF;
+    str = D_8010D364;
+    one = 1;
+    Text_DrawPrompt(obj, x, y, str, color, one, 0);
+    {
+        register s32 w asm("v0");
+        register s32 a0item asm("a0");
+        register s32 za asm("a1");
+        register s32 zb asm("a2");
+        w      = Text_MeasureWidth(str);
+        a0item = item;
+        za     = 0;
+        zb     = za;
+        asm volatile("" ::"r"(str), "r"(za), "r"(zb), "r"(w), "r"(a0item));
+        width = w + 4;
+        text  = func_800B8EB0(a0item, za, zb);
+    }
+    Text_DrawPrompt(obj, x + width, y, text, 0x37A78, one, 0);
+    Text_DrawPrompt(obj, x, y0 + 0x1E, D_8010D36C, color, one, 0);
+
+    if (obj->status == one) {
+        task->killCountdown = task->killCountdown - 1;
+        if ((task->killCountdown <= 0) || (Pad_CheckButtons(0, one, D_8005ED70 | D_8005ED74) != 0)) {
+            obj->field_2E       = 9;
+            task->killCountdown = 0x7FFF;
+        } else if (Pad_CheckButtons(0, 1, D_8005ED78) != 0) {
+            obj->field_2E       = -1;
+            task->killCountdown = 0x7FFF;
         }
     }
 }

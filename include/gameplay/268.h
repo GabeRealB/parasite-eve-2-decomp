@@ -252,6 +252,11 @@ void        func_800B7A50(s32 arg0);
 void        func_800B7D18(void);
 GpItemRec*  func_800BAD08(GpItemScan* arg0, s32 arg1, s32 arg2);
 s32         func_800BAD28(GpItemScan* arg0, GpItemRec* arg1, s32 arg2);
+/// Confirmation UI for raising `Mc_SaveData.field_908` of the equipped
+/// 0x60–0x7F item (`Wip_SysConfig.field_23`). If the clamped level is
+/// already 10, `func_800D2F68` is shown with spawnArg1 0x1A. Otherwise
+/// consumes `D_80114DD4` and draws "More <item> attachments available."
+void        func_800B954C(struct _UiObject* arg0, Task* arg1);
 void        func_800B996C(struct _UiObject* arg0, Task* arg1);
 /// HP counterpart of `func_800B996C`: adds 5 to `Mc_SaveData.field_26`
 /// (clamped below 250), recomputes max HP (same body as `func_800BC0C0`),
