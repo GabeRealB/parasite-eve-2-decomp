@@ -3,6 +3,29 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Force a 3-input OR into the last load's register with `c |= a | b`
+
+`if ((a | b | c) == 0)` after three `lbu`s computes `(a|b)|c` into `$v0`
+(`or v0, v0, v1` / `or v0, v0, a0` / `bnez v0`). The target often wants
+the last OR to rewrite the third load: `or v0, v0, v1` / `or a0, a0, v0`
+/ `bnez a0`.
+
+Pin the three loads and OR into the third:
+
+```c
+register s32 f0 asm("v0");
+register s32 f1 asm("v1");
+register s32 f2 asm("a0");
+f0 = p->code;
+f1 = p->p1;
+f2 = p->p2;
+f2 |= f0 | f1;
+if (f2 == 0) {
+```
+
+Parenthesizing `c | (a | b)` without pins reshuffles the loads. `func_80099D40`
+is the example.
+
 ## Subtract a constant from a saved coord via `base + (saved - K)`
 
 `req.y = obj->baseY - 2 + y` with `y` live in `$s0` materializes -2 as
