@@ -82,7 +82,7 @@ typedef struct _GameSession {
     u8    field_124; // companion type 1/2/3; written from func_800ABA4C's return
     u8    field_125; // written with Mc_SaveData.field_5C7 (func_800A9CBC)
     u8    field_126;
-    byte  unknown_127;
+    u8    field_127; // 0: run death / companion-down checks in func_800A0094
     u8    field_128; // 0xFF sentinel in func_800B0748 / func_800B082C
     u8    field_129; // last CdCmd 0x21 param[0] written by func_800B065C
     byte  unknown_12A[2];

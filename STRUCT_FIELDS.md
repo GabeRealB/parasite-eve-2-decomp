@@ -545,8 +545,8 @@ read `h + 2` as line height; `func_800E67C8` / `func_800E68D8` read `w`.
 ### `GameSession` (0x13C)
 | Off | Member | Role |
 |-----|--------|------|
-| 0x0 | `field_0` | s8 flag; nonzero makes `func_800AC058` kill its task immediately |
-| 0x1 | `field_1` | s8 flag; nonzero skips the `func_800E6CE0` / spawn path in `func_800AF0AC`, `func_800AF180`, and `func_800AE45C` |
+| 0x0 | `field_0` | s8 disk/scenario id (1 or 2). `func_800A0094` rolls it from `D_80070F60` on player/companion death, sets 1 when `field_128 == 0xFF`, and uses `lbu` as `CdCmd_EnqueueLoadFile` index. Nonzero makes `func_800AC058` kill its task immediately |
+| 0x1 | `field_1` | s8 flag; nonzero is an invuln/skip in `func_800A0094` (restores `Wip_SysConfig.field_18` or `Mc_SaveData.field_6C8` to 1 and returns). Also skips the `func_800E6CE0` / spawn path in `func_800AF0AC`, `func_800AF180`, and `func_800AE45C` |
 | 0x2 | `field_2` | Soft state flag |
 | 0x4 | `field_4` | Byte used by CD/display helpers; address taken as a 4-byte location key. Also 1-based index into the innermost `D_8010CB54` byte table (`func_800AD284`). That byte then 1-based-indexes `D_8010CB68` records (`func_800AD2E8` returns `field_8`; `func_800ACF8C` reads `field_4->field_2 == 0`) |
 | 0x5 | `field_5` | u8; 1-based index into `D_8010CB40` / `D_8010CBA4` / `D_8010CB7C` innermost tables (`func_800AEEFC`, `func_800ACEBC`, `func_800D9C64`, `func_800ACD2C`). Second-innermost for `D_8010CB54` |
@@ -572,12 +572,13 @@ read `h + 2` as line height; `func_800E67C8` / `func_800E68D8` read `w`.
 | 0x124 | `field_124` | u8 companion type 1/2/3. `func_800ABA4C` compares it to the selected type and returns 0 if already set; the caller stores a nonzero return here. Cleared when no companion table hits |
 | 0x125 | `field_125` | u8; written with `Mc_SaveData.field_5C7` (`func_800A9CBC` / `func_800ABA4C` table-2 high nibble) |
 | 0x126 | `field_126` | u8 flag; nonzero skips `func_800A7A64` display-mode init |
-| 0x128 | `field_128` | u8; `0xFF` sentinel (`func_800B0748` / `func_800B082C`) |
+| 0x127 | `field_127` | u8 (`lbu`); 0 runs the HP / companion-down checks in `func_800A0094` |
+| 0x128 | `field_128` | u8; `0xFF` sentinel (`func_800B0748` / `func_800B082C`). `func_800A0094` writes 1 when companion type is 1, 4 when type is 3 |
 | 0x129 | `field_129` | u8; last `CdCmd_Enqueue(0x21)` `param1[0]` written by `func_800B065C` (no-op if unchanged) |
 | 0x12C | `field_12C` | u8 flag; 0 runs extra `func_800E06AC` pass in `func_800DB72C` |
 | 0x12D | `field_12D` | s8 countdown (`lb`/`sb`); `0x7F` sentinel in `func_800A7320` |
 | 0x12E | `field_12E` | u8; `func_800A76A4` copies it as `s8` into `D_80114BD8.field_2` |
-| 0x12F | `field_12F` | u8; `func_800AAF70` writes `0x1E` |
+| 0x12F | `field_12F` | u8; `func_800AAF70` writes `0x1E`. `func_800A0094` copies it into `Task::killCountdown` on the death path |
 | 0x139 | `field_139` | u8; `func_800E8888` writes `killCountdown * 2`, or 0 when that task kills itself |
 | 0x13A | `field_13A` | u8; cleared by `func_800AE45C` when `D_80114CDC` is 0 |
 | 0x13B | `field_13B` | u8 flags; cleared by `func_800E8F68` with `Pad_ClearEvents(0)`. Bit 0 is set by `func_800E93D4` while its `spawnArg1` countdown runs and cleared when that task kills itself. Bit 0x80 lets `func_800E93D4` proceed when `D_801153F4` is set. |

@@ -111,6 +111,7 @@ void func_8002DEC4(void);
 void func_8002E53C(TextDrawReq* arg0, u8* arg1);
 u8*  Text_ItoaSigned(u8* arg0, s32 arg1);
 u8*  Text_ItoaUnsigned(u8* arg0, u32 arg1);
+u8*  func_8002F44C(u8* arg0, s32 arg1, s32 arg2);
 u8*  Text_Strcat(u8* dest, u8* src);
 
 // Glyph tables (selected by TextDrawReq.glyphTable); FontGlyph (0xC each).

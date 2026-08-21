@@ -57,6 +57,8 @@ extern char           D_80093804[]; // "new_disp_2d ----> NULL\n"
 extern CVECTOR        D_8009381C;
 extern CVECTOR        D_80093820;
 extern CVECTOR        D_80093824;
+extern u8             D_80093828[]; // ":"
+extern u8             D_8009382C[]; // "'"
 extern char           D_80093870[]; // "Item"
 extern s32            D_8005ED70;
 extern s32            D_8005ED74;
@@ -2099,7 +2101,139 @@ void func_8009FEDC(Task* task)
     task->state++;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A0094);
+void func_800A0094(Task* task)
+{
+    TextDrawReq   req;
+    u8            buf[0x20];
+    GpIdMap30*    rec;
+    McSaveData*   save;
+    WipSysConfig* cfg;
+    GameSession*  session;
+    s32           one;
+    s32           temp;
+    s32           companion;
+
+    rec = (GpIdMap30*)task->idMap;
+    cfg = &Wip_SysConfig;
+    func_800E956C();
+
+    temp         = Display_State.field_4;
+    D_8005ED68  += temp - rec->field_8;
+    rec->field_8 = temp;
+    if (D_8005ED68 >= 0xE10) {
+        McSaveData* p;
+        D_8005ED68 -= 0xE10;
+        p           = &Mc_SaveData;
+        if (p->field_C <= 0xEA5E) {
+            p->field_C++;
+            rec->field_4++;
+            if (rec->field_4 >= 0x3C) {
+                rec->field_4 -= 0x3C;
+                rec->field_0++;
+            }
+        } else {
+            p->field_C   = 0xEA5F;
+            rec->field_0 = 0x3E7;
+            rec->field_4 = 0x3B;
+        }
+    }
+
+    save = &Mc_SaveData;
+    one  = 1;
+    if (save->field_23 == one) {
+        req.x          = -0x96;
+        req.y          = 0x64;
+        req.otIndex    = 4;
+        req.field_8    = 0x502008;
+        req.glyphTable = 2;
+        req.centerMode = 0;
+        req.field_E    = one;
+        func_8002E53C(&req, Text_ItoaUnsigned(buf, rec->field_0));
+        func_8002E53C(&req, D_80093828);
+        func_8002E53C(&req, func_8002F44C(buf, rec->field_4, 2));
+        func_8002E53C(&req, D_8009382C);
+        func_8002E53C(&req, func_8002F44C(buf, D_8005ED68 / 60, 2));
+        Pad_CheckButtons(one, one, 0x100);
+    }
+
+    if (Game_Session->field_127 == 0) {
+        if (cfg->field_18 > 0) {
+            companion = save->field_13;
+            if (companion == one) {
+                if ((s16)save->field_6C8 <= 0) {
+                    goto block_hp;
+                }
+            }
+            if (companion != 3) {
+                goto block_normal;
+            }
+            if ((s16)save->field_6C8 > 0) {
+                goto block_normal;
+            }
+        block_hp:
+            if (cfg->field_18 > 0) {
+                goto block_companion;
+            }
+        }
+
+        if (Game_Session->field_1 != 0) {
+            cfg->field_18 = 1;
+            return;
+        }
+        D_80114C08.field_3 = 0;
+        func_800A7DE0();
+        func_800FC6C0();
+        session = Game_Session;
+        if (session->field_128 != 3) {
+            D_80070F60       = D_80070F60 * 5 + 0x71357911;
+            session->field_0 = ((u32)D_80070F60 >> 16 & 1) + 1;
+            SndEvt_EnqueueType7(0x20000000, 8);
+            SndBank_SetEnableFlags(0, 0x20000000);
+            CdCmd_EnqueueLoadFile(9, ((u8)Game_Session->field_0 + 0x1D) & 0xFF, 3);
+        }
+
+    block_companion: {
+        McSaveData* p;
+        p = &Mc_SaveData;
+        if ((s16)p->field_6C8 <= 0) {
+            if (Game_Session->field_1 != 0) {
+                p->field_6C8 = 1;
+                return;
+            }
+            D_80114C08.field_3 = 0;
+            func_800A7DE0();
+            func_800FC6C0();
+            companion = p->field_13;
+            if (companion == 1) {
+                Game_Session->field_128 = companion;
+                D_80070F60              = D_80070F60 * 5 + 0x71357911;
+                Game_Session->field_0   = ((u32)D_80070F60 >> 16 & 1) + 1;
+                SndEvt_EnqueueType7(0x20000000, 8);
+                SndBank_SetEnableFlags(0, 0x20000000);
+                CdCmd_EnqueueLoadFile(9, ((u8)Game_Session->field_0 + 0x20) & 0xFF, 3);
+                companion = p->field_13;
+            }
+            if (companion == 3) {
+                Game_Session->field_128 = 4;
+            }
+        }
+    }
+        Display_AcquireRef();
+        task->killCountdown  = Game_Session->field_12F;
+        Wip_SysFlags.field_1 = 1;
+        task->state++;
+        return;
+    }
+
+block_normal:
+    if (Game_Session->field_128 == 0xFF) {
+        Display_AcquireRef();
+        Game_Session->field_0 = 1;
+        task->state++;
+    } else {
+        func_800A3AF0(&rec->extra);
+    }
+}
 
 void func_800A0504(Task* arg0)
 {

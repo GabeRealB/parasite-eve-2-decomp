@@ -3,6 +3,26 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Fresh block-scope pointer at a join so it reuses a dead `s` register
+
+A function-level `save = &Mc_SaveData` lives in `$s2` from the first half. At a
+later join the target reloads `&Mc_SaveData` into `$s1` (the now-dead `rec`
+register). Reassigning the same `save` reloads into `$s2`. Give the join its
+own block-scope pointer so the allocator takes the lowest free saved reg:
+
+```c
+block_companion:
+{
+    McSaveData* p;
+    p = &Mc_SaveData;
+    if ((s16)p->field_6C8 <= 0) {
+        /* ... */
+    }
+}
+```
+
+`func_800A0094` is the example.
+
 ## Pin `ws = arg0` so `move a1, a0` precedes an independent `lui`
 
 `ws = arg0` followed by a CVECTOR copy from a global (`col = D_80093820;
