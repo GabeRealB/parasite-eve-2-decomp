@@ -61,6 +61,7 @@ extern char           D_8010E504[];
 extern char           D_8010E50C[];
 extern char           D_8010E520[];
 extern char           D_8010E528[];
+extern char           D_8010E534[];
 extern char           D_8010E550[];
 extern char           D_8010E554[];
 extern char           D_8010E558[];
@@ -73,6 +74,7 @@ extern char           D_8010E594[];
 extern char           D_8010E59C[];
 extern char           D_8010F8D0[];
 extern char           D_8010F988[];
+extern char           D_8010F9A4[];
 extern char           D_8010F8D4[];
 extern char           D_8010F908[];
 extern char           D_8010F930[];
@@ -92,6 +94,8 @@ extern u8             D_8010F13D;
 extern UiList         D_8010E820;
 extern UiList         D_8010E854;
 extern UiList         D_8010E884;
+extern UiList         D_8010E8AC;
+extern s32            D_8010E8BC;
 extern UiList         D_8010E8D4;
 extern UiList         D_8010E938;
 extern UiList         D_8010E960;
@@ -1932,7 +1936,220 @@ GpItemRec* func_800C5188(McItemScan* arg0, s32 arg1, s32 arg2)
     return rec;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C5328);
+void func_800C5328(DialogPrompt* arg0, UiObject* arg1)
+{
+    register DialogPrompt* prompt asm("s4");
+    register UiObject*     obj asm("s5");
+    register McItemScan*   scan asm("s7");
+    register GpItemRec*    rec asm("s0");
+    register s32           hi asm("v0");
+    s32                    item;
+    s32                    five;
+    s32                    i;
+    s32                    count;
+    GpItemRec*             table;
+    UiList*                menu;
+    union {
+        struct {
+            u8          buf[0x20];
+            TextDrawReq req;
+        } count;
+        TextDrawReq req;
+    } draw;
+
+    prompt = arg0;
+    asm("addu %0, %1, $zero" : "=r"(obj) : "r"(arg1), "r"(prompt));
+    asm("lui %0, %%hi(Mc_SaveData+0x5BC)" : "=r"(hi) : "r"(prompt), "r"(obj));
+    asm("addiu %0, %1, %%lo(Mc_SaveData+0x5BC)" : "=r"(scan) : "r"(hi));
+    rec = func_800C5188(scan, prompt->field_8, 0);
+    if (rec != NULL) {
+        asm volatile("" : "+r"(rec));
+        item = rec->field_0;
+        {
+            s32 color;
+            s32 x;
+            s32 y;
+            s32 qty;
+
+            x     = prompt->field_18;
+            y     = prompt->field_1A;
+            color = prompt->field_1C;
+            if ((u32)(item - 0xA0) < 0x20U) {
+                qty                       = rec->field_2 - func_800BAFF4(scan, item);
+                draw.count.req.x          = obj->baseX + 0x84 + x;
+                draw.count.req.y          = obj->baseY + (y - 3);
+                draw.count.req.otIndex    = (s16)obj->drawOrder + 1;
+                draw.count.req.field_8    = color;
+                draw.count.req.glyphTable = 5;
+                draw.count.req.centerMode = 2;
+                draw.count.req.field_E    = 0;
+                func_8002E53C(&draw.count.req, Text_ItoaSigned(draw.count.buf, qty));
+                Ui_LayoutWithMode0(obj, (void*)(x + 0x69), (void*)(y - 8), (void*)0x1B, (void*)7,
+                                   (void*)0x102010);
+            }
+        }
+
+        five = 5;
+        if ((s8)rec->field_1 > 0) {
+            s32 x;
+            s32 y;
+            s32 color;
+            s32 temp;
+
+            x     = prompt->field_18;
+            y     = prompt->field_1A;
+            color = prompt->field_1C;
+            if (obj->mode != five) {
+                draw.req.x          = obj->baseX + 0x11 + x;
+                draw.req.y          = obj->baseY + (y - 6);
+                draw.req.otIndex    = (s16)obj->drawOrder + 1;
+                draw.req.field_8    = color;
+                draw.req.glyphTable = 0;
+                draw.req.centerMode = 0;
+                draw.req.field_E    = 1;
+                func_8002E53C(&draw.req, func_800B8EB0(item, 0, 0));
+                func_800C22D8(obj, x, y, item, 2);
+                temp = item - 0xF;
+                if ((u32)temp < 0x24U) {
+                    func_800C2538(obj, x, y, temp % 3 + 1, color);
+                }
+                func_800C05CC(obj, x, y, item, 0);
+            }
+        } else {
+            s32 x;
+            s32 y;
+            s32 color;
+            s32 temp;
+            s32 one;
+
+            x     = prompt->field_18;
+            y     = prompt->field_1A;
+            color = prompt->field_1C;
+            one   = 1;
+            if (obj->mode != five) {
+                draw.req.x          = obj->baseX + 0x11 + x;
+                draw.req.y          = obj->baseY + (y - 6);
+                draw.req.otIndex    = (s16)obj->drawOrder + one;
+                draw.req.field_8    = color;
+                draw.req.glyphTable = 0;
+                draw.req.centerMode = 0;
+                draw.req.field_E    = one;
+                func_8002E53C(&draw.req, func_800B8EB0(item, 0, 0));
+                func_800C22D8(obj, x, y, item, one);
+                temp = item - 0xF;
+                if ((u32)temp < 0x24U) {
+                    func_800C2538(obj, x, y, temp % 3 + one, color);
+                }
+                func_800C05CC(obj, x, y, item, 0);
+            }
+        }
+
+        {
+            register s32 status asm("v1");
+            register s32 one asm("a0");
+            status = obj->status;
+            one    = 1;
+            if (((status >> 16) == one) || (status == one)) {
+                if (prompt->field_10 == prompt->field_8) {
+                    register s32 t asm("a0");
+                    register s32 a1v asm("a1");
+                    a1v = 1;
+                    if (item == 0) {
+                        t = (s32)D_8010F8D0;
+                    } else {
+                        t = (s32)func_800B8EB0(item, a1v, 0);
+                    }
+                    a1v = 0;
+                    asm volatile("" : "+r"(a1v));
+                    Ui_SetHolderParam(t, a1v, a1v);
+                }
+            }
+        }
+
+        if (prompt->field_C == 1) {
+            if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+                menu = &D_8010E8AC;
+                SndEvt_EnqueueType6(3, 0, 0);
+                table = func_800BB500(scan);
+                i     = 0;
+                count = scan->field_1;
+                table = &table[scan->field_0];
+                if (count != 0) {
+                    do {
+                        if ((s8)table->field_1 == menu->field_10 + 1) {
+                            func_800B91C8(table);
+                            break;
+                        }
+                        i++;
+                        table++;
+                    } while (i < count);
+                }
+                rec->field_1  = (u8)menu->field_10 + 1;
+                obj->field_2E = 9;
+            } else if (Pad_CheckButtons(0, 1, 0x10) != 0) {
+                SndEvt_EnqueueType6(3, 0, 0);
+                Ui_SpawnFromDesc(&D_8010EFA0, item | 0x10000, 1, 1, obj);
+                obj->status = 0;
+            }
+        }
+    } else {
+        s32          target;
+        s32          baseY;
+        register s32 status asm("v1");
+        register s32 one asm("a0");
+        register s32 a1v asm("a1");
+
+        one    = 1;
+        status = obj->status;
+        if (((status >> 16) == one) || (status == one)) {
+            if (prompt->field_10 == prompt->field_8) {
+                register s32 t asm("a0");
+                asm volatile("" : "+r"(rec));
+                t   = (s32)D_8010F9A4;
+                a1v = 0;
+                asm volatile("" : "+r"(t), "+r"(a1v));
+                Ui_SetHolderParam(t, a1v, a1v);
+            }
+        }
+        draw.req.x          = obj->baseX + (u16)prompt->field_18;
+        baseY               = obj->baseY - 6;
+        draw.req.y          = (u16)prompt->field_1A + baseY;
+        draw.req.otIndex    = (s16)obj->drawOrder + 1;
+        draw.req.field_8    = prompt->field_1C;
+        draw.req.glyphTable = 0;
+        draw.req.centerMode = 0;
+        draw.req.field_E    = 1;
+        func_8002E53C(&draw.req, D_8010E534);
+        if (prompt->field_C == 1) {
+            if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+                target = D_8010E8BC + 1;
+                SndEvt_EnqueueType6(3, 0, 0);
+                {
+                    GpItemRec*   tmp;
+                    register s32 idx asm("v1");
+                    register s32 n asm("a0");
+                    tmp = func_800BB500(scan);
+                    i   = 0;
+                    idx = scan->field_0;
+                    n   = scan->field_1;
+                    asm volatile("sll %0, %0, 2" : "+r"(idx));
+                    rec = (GpItemRec*)((s32)tmp + idx);
+                    if (n != 0) {
+                        do {
+                            if ((s8)rec->field_1 == target) {
+                                func_800B91C8(rec);
+                                break;
+                            }
+                            i++;
+                            rec++;
+                        } while (i < n);
+                    }
+                }
+                obj->field_2E = 9;
+            }
+        }
+    }
+}
 
 void func_800C58B8(UiList* arg0, UiObject* arg1)
 {

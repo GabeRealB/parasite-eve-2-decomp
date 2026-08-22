@@ -26725,3 +26725,58 @@ gte_stlvnl(&tmp);
 ```
 
 `func_800B1460` is the example.
+
+## Copy `$a1` into its saved reg with `addu dest, src, $zero` so a later `la` cannot stage it
+
+After `prompt = arg0` (`move s4, a0`), a plain `obj = arg1` is delayed: GCC
+keeps `$a1` live until `lb a1, field_8` clobbers it, then stages the value
+through another saved register (`sw s1` / `move s1, a1` / later `move s5, s1`).
+That extra copy also lets an independent `la` of `&Mc_SaveData.field_5BC`
+lift or land after every `$s` save.
+
+Force the second incoming arg into its pinned register immediately, with the
+first copy as an input so the `addu` cannot run first:
+
+```c
+register DialogPrompt* prompt asm("s4");
+register UiObject*     obj asm("s5");
+register s32           hi asm("v0");
+prompt = arg0;
+asm("addu %0, %1, $zero" : "=r"(obj) : "r"(arg1), "r"(prompt));
+asm("lui %0, %%hi(Mc_SaveData+0x5BC)" : "=r"(hi) : "r"(prompt), "r"(obj));
+asm("addiu %0, %1, %%lo(Mc_SaveData+0x5BC)" : "=r"(scan) : "r"(hi));
+```
+
+```
+move   s4, a0
+move   s5, a1
+lui    v0, %hi(Mc_SaveData+0x5BC)
+addiu  s7, v0, %lo(Mc_SaveData+0x5BC)
+```
+
+A `volatile` empty `"+r"(obj)` barrier also stops the `$s1` staging but
+emits `sw s5` first and postpones the `la` until after the remaining `$s`
+saves. `func_800C5328` is the example.
+
+## Clobber a known-NULL saved pointer so it is not a zero source
+
+`rec = func(); if (rec != NULL) { ... } else { Ui_SetHolderParam(s, 0, 0); }`
+leaves `rec` in `$s0` as a known 0 on the empty path. GCC then writes
+`move a1, s0` instead of `move a1, zero`, and later reuses `$s0` as a
+scratch for `field_0 << 2` when the same pointer is assigned a table walk.
+
+Clobber the register on the empty path before those uses:
+
+```c
+} else {
+    asm volatile("" : "+r"(rec));
+    a1v = 0;
+    Ui_SetHolderParam(str, a1v, a1v);
+    rec = (GpItemRec*)((s32)tmp + (idx << 2));
+}
+```
+
+The empty body still matches `move a1, zero` / `lbu v1, 0(scan)` /
+`addu s0, v0, v1`. Reuse the same `rec` variable as the walker so `$s0`
+is the dest of that `addu` (a new local lands in `$a0` and the following
+`jal func_800B91C8` loses `move a0, s0`). `func_800C5328` is the example.
