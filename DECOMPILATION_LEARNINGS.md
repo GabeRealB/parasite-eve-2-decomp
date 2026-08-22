@@ -26653,3 +26653,24 @@ keeps the add in `$v1`: `addu v1, v1, v0`. Split
 the `lbu` fills the preceding `beqz` delay and `lw 0x91C` sits between
 `addiu table` and `sll`. A `u16` temp for the first `rot.vx` load lets
 `field_8` sit between `lhu` and `sh`. `func_801029D4` is the example.
+
+## Copy the loop index before a call so a later `(u8)i` is not CSE'd into `$s0`
+
+`(u8)i` as a call argument and again after the `jal` to rebuild a table
+pointer is the same value. GCC 2.8.1 saves it in `$s0` (`andi s0, s2,
+0xff` / `jal` / `move a0, s0` / `sll v1, s0, 1`). The target recomputes:
+`jal` delay `andi a0, s2, 0xff`, then another `andi a0, s2, 0xff`.
+
+Pass a copy of `i` into the call so the later index is a different
+expression:
+
+```c
+{
+    s32 idx;
+    idx = i;
+    val = func_800AEBA4((u8)idx);
+}
+rec2 = recs + (u8)i;
+```
+
+`func_800D0C34` is the example (best 95.6%, not a match).
