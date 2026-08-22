@@ -145,7 +145,8 @@ typedef struct _GpEffArg {
 STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 
 /// 0x2C-byte work at `Task::spawnArg2` for `func_800F1364` / `func_800F1A9C` /
-/// `func_800F5184` / `func_800F75BC` / `func_800F77F8` / `func_800FB67C` /
+/// `func_800F5184` / `func_800F75BC` / `func_800F77F8` / `func_800F7E28` /
+/// `func_800FB67C` /
 /// `func_800FB7E4` / `func_800FBEBC` / `func_800FC74C` / `func_800FC9BC` /
 /// `func_800FE41C` (`Mem_Calloc(0x2C)` in `func_800EA478`).
 /// `field_0` is the spawned `Task*` (`func_800EA478` stores it; `func_801034C0`
@@ -632,8 +633,11 @@ extern u8 D_80113388[];
 void func_800F5184(Task* arg0);
 void func_800F52B4(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
 void func_800F75BC(Task* arg0);
+void func_800F77F8(Task* arg0);
 void func_800F7AD4(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
+void func_800F7E28(Task* arg0);
 void func_800F9474(Task* arg0);
+void func_800FA45C(struct _GsCOORDINATE2* arg0, s16 arg1, u16 arg2, u16 arg3);
 void func_800FA7CC(Task* arg0);
 void func_800FB67C(Task* arg0);
 void func_800FB7E4(Task* arg0);

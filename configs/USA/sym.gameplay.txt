@@ -972,7 +972,7 @@ func_800F6C2C = 0x800F6C2C; // type:func
 func_800F6D18 = 0x800F6D18; // type:func
 
 // ---------------------------------------------------------------------------
-// Code (src/gameplay/3FB8.c) — file-split 0x63DBC
+// Code (src/gameplay/3FB8.c) — file-split 0x63DBC / 0x63FF8
 // ---------------------------------------------------------------------------
 func_800F75BC = 0x800F75BC; // type:func
 func_800F77F8 = 0x800F77F8; // type:func

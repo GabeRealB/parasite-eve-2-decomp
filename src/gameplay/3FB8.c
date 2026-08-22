@@ -93,12 +93,6 @@ void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3)
 void func_800FBAB0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3);
 void func_800FCD00(Task* arg0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F77F8);
-
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F7AD4);
-
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F7E28);
-
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F8244);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F8A38);

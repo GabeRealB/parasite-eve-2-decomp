@@ -101,7 +101,8 @@ segments:
       - [0x3E88, .rodata, 3CD8_9CC8] # jtbl from func_800E9CC8
       - [0x3E9C, rodata, rodata_3E9C]
       - [0x3FB8, .rodata, 3FB8_75BC] # jtbl from func_800F75BC
-      - [0x3FD0, rodata, rodata_3FB8]
+      - [0x3FD0, .rodata, 3FB8_7E28] # jtbl from func_800F7E28
+      - [0x3FE8, rodata, rodata_3FB8]
       - [0x4058, .rodata, 3FB8] # jtbls: func_80101848 + still-asm mid + func_80109170 + jtbl_80097A68 + func_8010A42C
       - [0x42B0, rodata, rodata_3FB8_2] # D_80097AB0
       # Text TUs: first function that uses each group's jtbl (file 0 starts
@@ -122,7 +123,8 @@ segments:
       - [0x564C8, c, 3CD8_9CC8] # func_800E9CC8
       - [0x592A8, c, 3E9C] # func_800ECAA8
       - [0x63DBC, c, 3FB8_75BC] # func_800F75BC
-      - [0x63FF8, c, 3FB8] # func_800F77F8
+      - [0x63FF8, c, 3FB8_7E28] # func_800F77F8 / func_800F7AD4 / func_800F7E28
+      - [0x64A44, c, 3FB8] # func_800F8244
       # "Item obtained!" / UI strings / tables after last jr ra
       - [0x79208, data, data]
       # Trailing 1 zero byte past the last word (file size 0x81F69)

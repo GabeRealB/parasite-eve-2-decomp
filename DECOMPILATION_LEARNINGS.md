@@ -20262,7 +20262,10 @@ Give the function its own `c` / `.rodata` pair in the overlay yaml
 TU starting at the next function. Update
 `fix_gameplay_linker_rodata_order` so splat cannot drop the new object
 from `rodata_3FB8` / `3FB8.c` / `rodata_3FB8_2`. `func_800F75BC` is the
-example.
+example. The next 5-case switch (`func_800F7E28`) needs the same cut
+(`3FB8_7E28` at 0x3FD0 / 0x63FF8); keep the unmatched `func_800F77F8` /
+`func_800F7AD4` INCLUDE_ASMs in that TU so `.text` stays contiguous.
+Remaining unmatched jtbls then start at 0x3FE8.
 
 ## Capture the next color before `setlen`/`setcode` so they fill that delay
 
