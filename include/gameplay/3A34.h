@@ -394,6 +394,10 @@ STATIC_ASSERT_SIZEOF(GpObj38, 0x44);
 /// `func_800D6E5C` is that same subtract, plus the `field_44` room-id
 /// filter and an `|dx|` / `|dz|` reject against `field_5C / 2` before
 /// the squared-radius test.
+/// `func_800D72D0` is the cone-light variant (`GpObj68`): same room-id
+/// filter and halved `field_24.t -` world `VECTOR3`, but outer/inner
+/// radii are `field_64` / `field_60`, and the normalized direction is
+/// dotted with `field_24` column 2 against `rcos(field_68 >> 1)`.
 typedef struct _GpObj44 {
     /* 0x00 */ byte    pad_0[0x18];
     /* 0x18 */ VECTOR3 field_18;
@@ -411,6 +415,31 @@ typedef struct _GpObj44 {
     /* 0x5C */ s32     field_5C;
 } GpObj44;
 STATIC_ASSERT_SIZEOF(GpObj44, 0x60);
+
+/// Cone-light overlay of the same object as `GpObj44` / `GpObj38`.
+/// `field_24` is the light matrix (Z column is the cone axis; `t` is the
+/// world position, same words as `GpObj44.field_38`). `field_60` /
+/// `field_64` are inner/outer radii (squared then `>> 2`, like
+/// `GpObj44.field_58` / `field_5C`). `field_68` is the cone angle fed
+/// to `rcos` as `field_68 >> 1`.
+typedef struct _GpObj68 {
+    /* 0x00 */ byte   pad_0[0x24];
+    /* 0x24 */ MATRIX field_24;
+    /* 0x44 */ s16    field_44;
+    /* 0x46 */ byte   pad_46[4];
+    /* 0x4A */ s16    field_4A;
+    /* 0x4C */ byte   pad_4C[4];
+    /* 0x50 */ s16    field_50;
+    /* 0x52 */ s16    field_52;
+    /* 0x54 */ s16    field_54;
+    /* 0x56 */ byte   pad_56[2];
+    /* 0x58 */ s32    field_58;
+    /* 0x5C */ s32    field_5C;
+    /* 0x60 */ s32    field_60;
+    /* 0x64 */ s32    field_64;
+    /* 0x68 */ s32    field_68;
+} GpObj68;
+STATIC_ASSERT_SIZEOF(GpObj68, 0x6C);
 
 /// Sparse overlay whose signed halfword at 0x40 is added (unsigned-clamped by
 /// `arg2`) into `D_801153F0.field_14` by `func_800E2C78` when
@@ -722,6 +751,22 @@ typedef struct _GpAttnScratch {
 } GpAttnScratch;
 STATIC_ASSERT_SIZEOF(GpAttnScratch, 0x20);
 
+/// 0x2C-byte scratch from `G_SCRATCH_HEAD` used by `func_800D72D0`.
+/// `vec` is the halved `field_24.t -` world `VECTOR3`. `dir` is the
+/// `Gfx_NormalizeLightDir` result at `head - 0x1C`. `distSq` / `outerSq`
+/// / `innerSq` / `scale` match `GpAttnScratch`. `cosAng` is
+/// `-(dir · matrix column 2) >> 12`, compared with `rcos(field_68 >> 1)`.
+typedef struct _GpSpotScratch {
+    /* 0x00 */ VECTOR  vec;
+    /* 0x10 */ SVECTOR dir;
+    /* 0x18 */ s32     distSq;
+    /* 0x1C */ s32     outerSq;
+    /* 0x20 */ s32     innerSq;
+    /* 0x24 */ s32     scale;
+    /* 0x28 */ s32     cosAng;
+} GpSpotScratch;
+STATIC_ASSERT_SIZEOF(GpSpotScratch, 0x2C);
+
 /// 0x28-byte scratch from `G_SCRATCH_HEAD` used by `func_800E1380`.
 /// `local` is `GpActorD4Rec.field_8/A/C` plus `GpObj.field_10/12/14`,
 /// rotated by `field_8->workm`. `vec` is that GTE output (then overwritten
@@ -1003,6 +1048,7 @@ void       func_800D6AA4(Task* arg0);
 void       func_800D6B20(Task* arg0);
 s32        func_800D6E5C(GpObj44* arg0, VECTOR3* arg1);
 s32        func_800D70E4(GpObj44* arg0, VECTOR3* arg1);
+s32        func_800D72D0(GpObj68* arg0, VECTOR3* arg1);
 void       func_800D7A9C(GameActorExt* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void  func_800D8684(Task* arg0);
 /// Remaps a 3x3 color matrix (`MATRIX.m`) from lighting mode `arg2`

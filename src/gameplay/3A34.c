@@ -627,7 +627,109 @@ s32 func_800D70E4(GpObj44* arg0, VECTOR3* arg1)
     return result;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D72D0);
+s32 func_800D72D0(GpObj68* arg0, VECTOR3* arg1)
+{
+    register GpObj68*       obj2 asm("s2");
+    register VECTOR3*       pos;
+    register GpObj68*       obj asm("s1");
+    register s32            result asm("s3");
+    register void**         scratch asm("a1");
+    register u8*            head asm("a2");
+    register u8*            addr asm("a0");
+    register GpSpotScratch* block asm("s0");
+    register s32            lum;
+    s32                     tooFar;
+    s32                     r;
+    s32                     g;
+    s32                     b;
+    s32                     dist;
+    s32                     inner;
+    s32                     vx;
+    s32                     sq;
+    u16                     scale;
+    u8*                     ptr;
+    s16                     room;
+
+    obj2 = arg0, pos = arg1, obj = obj2;
+    asm volatile("" : "+r"(obj2), "+r"(pos), "+r"(obj));
+    room   = obj->field_44;
+    result = 0;
+    if (room != 0) {
+        if ((u8)Game_Session->field_4 != room) {
+            return result;
+        }
+    }
+    scratch                                 = (void**)G_SCRATCH_HEAD;
+    vx                                      = obj->field_24.t[0];
+    head                                    = *scratch;
+    vx                                     -= pos->vx;
+    vx                                    >>= 1;
+    addr                                    = head - 0x2C;
+    ((GpSpotScratch*)(head - 0x2C))->vec.vx = vx;
+    block                                   = (GpSpotScratch*)addr;
+    block->vec.vy                           = (obj->field_24.t[1] - pos->vy) >> 1;
+    block->vec.vz                           = (obj->field_24.t[2] - pos->vz) >> 1;
+    asm volatile("" : "+r"(addr));
+    sq             = block->vec.vx * block->vec.vx + block->vec.vy * block->vec.vy + block->vec.vz * block->vec.vz;
+    block->distSq  = sq;
+    sq             = obj2->field_64;
+    lum            = sq * sq;
+    sq             = lum >> 2;
+    lum            = block->distSq;
+    block->outerSq = sq;
+    *scratch       = block;
+    tooFar         = (u32)sq < (u32)lum;
+    block->scale   = 0;
+    if (tooFar) {
+        result = 0;
+    } else {
+        register VECTOR* light asm("a0");
+
+        block->innerSq = (obj2->field_60 * obj2->field_60) >> 2;
+        light          = (VECTOR*)block;
+        Gfx_NormalizeLightDir(light, (SVECTOR*)(head - 0x1C));
+        {
+            register s32 dot asm("v0");
+
+            dot           = block->dir.vx * obj->field_24.m[0][2] + block->dir.vy * obj->field_24.m[1][2] + block->dir.vz * obj->field_24.m[2][2];
+            block->cosAng = -dot >> 12;
+        }
+        if (rcos(obj2->field_68 >> 1) < block->cosAng) {
+            r            = obj2->field_50;
+            g            = obj2->field_52;
+            b            = obj2->field_54;
+            block->scale = 0x1000;
+            lum          = (r * 8 + g * 6 + b * 2) >> 8;
+            dist         = block->distSq;
+            inner        = block->innerSq;
+            result       = lum + 0xF00;
+            if ((u32)inner < (u32)dist) {
+                s32 temp;
+
+                temp = block->outerSq;
+                asm volatile("" : "+r"(temp));
+                lum = inner;
+                asm volatile("" : "+r"(lum));
+                block->outerSq = temp - inner;
+                block->distSq -= lum;
+                while ((u32)block->outerSq > 0xFFFF) {
+                    block->outerSq = (u32)block->outerSq >> 4;
+                    block->distSq  = (u32)block->distSq >> 4;
+                }
+                if (block->outerSq != 0) {
+                    block->scale = ((u32)(block->outerSq - block->distSq) << 12) / (u32)block->outerSq;
+                    lum          = block->scale * result;
+                    result       = (u32)lum >> 12;
+                }
+            }
+        }
+    }
+    scale                 = block->scale;
+    ptr                   = *(u8**)G_SCRATCH_HEAD;
+    obj->field_4A         = scale;
+    *(u8**)G_SCRATCH_HEAD = ptr + 0x2C;
+    return result;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D759C);
 

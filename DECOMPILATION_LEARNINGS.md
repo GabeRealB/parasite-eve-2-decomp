@@ -26556,3 +26556,30 @@ sra    s0, s0, 24
 ```
 
 Assigning that `(s8)` back into the loop index (`i = (s8)func_800D937C(...)`) after `for (i = 0; i < 0x555; i += 0x2AA)` completes the cast in `$v0` first (`sll v0, v0, 24` / `sra s0, v0, 24`) so `move a0, coord` sinks into the `jal` delay. Use a separate `temp` (function-level is fine; it still reuses `$s0` once the loop is dead). `func_800FC0B4` / `func_800FC74C` are the example.
+
+## Don't pin a short-lived arg copy to a later `mflo` dest
+
+`pos = arg1` only lives through the first few loads, then the three-square
+sum wants `mflo a0` / `mflo a3`. `register VECTOR3* pos asm("a3")` reserves
+`$a3` for the whole function, so the second product lands in `$t1`.
+
+Leave `pos` unpinned and force the prologue copy with a comma plus a
+`+r` barrier on the three incoming pointers. After `block = addr`,
+`+r(addr)` (not `+r` before the copy) frees `$a0` for the first `mflo`
+without breaking `lw -0x2C(head)` of `vec.vx`:
+
+```c
+register VECTOR3* pos;
+register u8*      addr asm("a0");
+
+obj2 = arg0, pos = arg1, obj = obj2;
+asm volatile("" : "+r"(obj2), "+r"(pos), "+r"(obj));
+addr  = head - 0x2C;
+((Scratch*)(head - 0x2C))->vec.vx = vx;
+block = (Scratch*)addr;
+asm volatile("" : "+r"(addr));
+```
+
+A later `register VECTOR* light asm("a0"); light = (VECTOR*)block;`
+then restores `$a0` in the `mult` delay of the next call.
+`func_800D72D0` is the example.
