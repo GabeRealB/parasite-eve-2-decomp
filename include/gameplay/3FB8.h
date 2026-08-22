@@ -583,6 +583,10 @@ extern GpPadEvt D_80112E28[];
 /// `D_80112E04[field_22][1]` to `func_80105894`.
 extern u8 D_80112E04[][2];
 
+/// u16 facing-step rows indexed by `GameActor.field_95A`. `func_80101F58`
+/// adds `D_80112E20[field_95A] * field_975` onto `field_52` (masked `0xFFF`).
+extern u16 D_80112E20[];
+
 /// 2-wide rows of `GsCOORDINATE2` indices. `func_8010403C` indexes
 /// `D_80112E2C[Mc_SaveData.field_22 - 1][arg0]`.
 extern u8 D_80112E2C[][2];

@@ -26780,3 +26780,77 @@ The empty body still matches `move a1, zero` / `lbu v1, 0(scan)` /
 `addu s0, v0, v1`. Reuse the same `rec` variable as the walker so `$s0`
 is the dest of that `addu` (a new local lands in `$a0` and the following
 `jal func_800B91C8` loses `move a0, s0`). `func_800C5328` is the example.
+
+## Reassign `coord` onto `&coord->coord` so the MATRIX* reuses `$s0`
+
+`mtx = &coord->coord` with a separate `GsCOORDINATE2*` allocates the base in
+`$a0` and the MATRIX* in `$s0` (`addiu s0, a0, 4` / `sw zero, 0xA0(a0)`). The
+target loads the coordinate pointer into `$s0` and increments it in place:
+
+```
+lw     s0, 8(extra)
+sw     zero, 0xA0(s0)
+addiu  s0, s0, 0xA4
+```
+
+Overwrite the same pointer with the field address so they coalesce:
+
+```c
+coord = (GsCOORDINATE2*)extra->field_8;
+coord[2].flg = 0;
+coord = (GsCOORDINATE2*)&coord[2].coord;
+RotMatrixX(angle, (MATRIX*)coord);
+```
+
+`func_80101F58` is the example.
+
+## Pin the table to `$a0` so the index `lhu` stays in `$v1`
+
+`table[idx]` with a live `s32 idx` puts the index in `$a0` and the `la` in
+`$v1`. Declare the table pointer in `$a0` in the same block so the index load
+keeps `$v1` and the `la` can use `$a0`:
+
+```c
+{
+    register u16* tbl asm("a0");
+    idx = actor->field_95A;
+    if (idx != 0) {
+        tbl = D_80112E20;
+        actor->field_52 = (actor->field_52 + tbl[idx] * yaw) & 0xFFF;
+    }
+}
+```
+
+A `register s32 idx asm("v1")` plus a volatile barrier before the `if` also
+pins the index but splits the prologue (`sw ra` before `sw s2`). Occupying
+`$a0` with the incoming arg (`keep`) only works if `keep` is actually used
+before the `la`; a comma-operator `(keep, table)` is DCE'd when `keep` equals
+the already-copied `$s` work pointer. `func_80101F58` is the example.
+
+## Assign `flag = 1` before the min-step `ABS` so it fills the `beqz` delay
+
+`if (ABS(temp) < 0x20) { flag = 1; val = ±0x20; }` leaves `nop` in the
+`slti; beqz` delay. Set `flag = 1` in the outer `if (field != 0)` *before* the
+abs check. The scheduler puts `li s2, 1` in that delay slot, which is correct
+because the flag should be set whenever the field is nonzero (not only when
+the step was clamped). Same decay shape as `func_80109720`, plus the flag.
+
+## Pin the first `RotMatrix` arg to `$a0` so `&svec` beats `ptr += 4`
+
+```c
+coord = (GsCOORDINATE2*)&coord->coord;
+RotMatrix((SVECTOR*)&actor->field_50, (MATRIX*)coord);
+```
+
+emits `addiu s0, s0, 4` then `addiu a0, s1, 0x50`. Compute the SVECTOR* first,
+pin it to `$a0`, and barrier before the increment:
+
+```c
+register SVECTOR* rot asm("a0");
+rot = (SVECTOR*)&actor->field_50;
+asm volatile("" : "+r"(rot), "+r"(coord));
+coord = (GsCOORDINATE2*)&coord->coord;
+RotMatrix(rot, (MATRIX*)coord);
+```
+
+`func_80101F58` is the example.

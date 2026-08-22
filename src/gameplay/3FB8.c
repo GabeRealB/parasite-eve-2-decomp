@@ -1419,7 +1419,155 @@ static const s32 s_jtbl_pad = 0;
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80101A68);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80101F58);
+void func_80101F58(GpActorWork* arg0)
+{
+    GameActorExt*  extra;
+    GameActor*     actor;
+    GsCOORDINATE2* coord;
+    s32            flag;
+
+    actor = arg0->actor;
+    extra = arg0->extra;
+    {
+        register u16* tbl asm("a0");
+        s32           idx;
+        s32           yaw;
+
+        idx   = actor->field_95A;
+        coord = (GsCOORDINATE2*)extra->field_8;
+        flag  = 0;
+        if (idx != 0) {
+            yaw             = *(volatile u8*)&actor->field_975;
+            tbl             = D_80112E20;
+            actor->field_52 = ((u16)actor->field_52 + tbl[idx] * (s8)yaw) & 0xFFF;
+        }
+    }
+    {
+        register SVECTOR* rot asm("a0");
+
+        rot = (SVECTOR*)&actor->field_50;
+        __asm__ volatile("" : "+r"(rot), "+r"(coord));
+        coord = (GsCOORDINATE2*)&coord->coord;
+        RotMatrix(rot, (MATRIX*)coord);
+        MatrixNormal((MATRIX*)coord, (MATRIX*)coord);
+    }
+    if ((s8)actor->field_97E == 1) {
+        register s32 temp asm("a0");
+        register s16 delta asm("v1");
+        s32          val;
+
+        if (actor->field_58 != 0) {
+            val   = actor->field_58 >> 3;
+            delta = val;
+            temp  = val;
+            flag  = 1;
+            if (ABS(temp) < 0x20) {
+                val = 0x20;
+                if (temp < 0) {
+                    val = -0x20;
+                }
+                delta = val;
+            }
+            actor->field_58 -= delta;
+            if (ABS(actor->field_58) < 0x21) {
+                actor->field_58 = 0;
+            }
+        }
+        if (actor->field_5C != 0) {
+            val   = actor->field_5C >> 3;
+            delta = val;
+            temp  = val;
+            flag  = 1;
+            if (ABS(temp) < 0x20) {
+                val = 0x20;
+                if (temp < 0) {
+                    val = -0x20;
+                }
+                delta = val;
+            }
+            actor->field_5C -= delta;
+            if (ABS(actor->field_5C) < 0x21) {
+                actor->field_5C = 0;
+            }
+        }
+        if (actor->field_60 != 0) {
+            val   = actor->field_60 >> 3;
+            delta = val;
+            temp  = val;
+            flag  = 1;
+            if (ABS(temp) < 0x20) {
+                val = 0x20;
+                if (temp < 0) {
+                    val = -0x20;
+                }
+                delta = val;
+            }
+            actor->field_60 -= delta;
+            if (ABS(actor->field_60) < 0x21) {
+                actor->field_60 = 0;
+            }
+        }
+        if (actor->field_64 != 0) {
+            val   = actor->field_64 >> 3;
+            delta = val;
+            temp  = val;
+            flag  = 1;
+            if (ABS(temp) < 0x20) {
+                val = 0x20;
+                if (temp < 0) {
+                    val = -0x20;
+                }
+                delta = val;
+            }
+            actor->field_64 -= delta;
+            if (ABS(actor->field_64) < 0x21) {
+                actor->field_64 = 0;
+            }
+        }
+        if (actor->field_70 != 0) {
+            val   = actor->field_70 >> 3;
+            delta = val;
+            temp  = val;
+            flag  = 1;
+            if (ABS(temp) < 0x20) {
+                val = 0x20;
+                if (temp < 0) {
+                    val = -0x20;
+                }
+                delta = val;
+            }
+            actor->field_70 -= delta;
+            if (ABS(actor->field_70) < 0x21) {
+                actor->field_70 = 0;
+            }
+        }
+        if (flag == 0) {
+            actor->field_97E = 0;
+        }
+    }
+    coord        = (GsCOORDINATE2*)arg0->extra->field_8;
+    coord[2].flg = 0;
+    coord        = (GsCOORDINATE2*)&coord[2].coord;
+    RotMatrixX(actor->field_58, (MATRIX*)coord);
+    RotMatrixZ(actor->field_5C, (MATRIX*)coord);
+    MatrixNormal((MATRIX*)coord, (MATRIX*)coord);
+    coord        = (GsCOORDINATE2*)arg0->extra->field_8;
+    coord[3].flg = 0;
+    coord        = (GsCOORDINATE2*)&coord[3].coord;
+    RotMatrixX(actor->field_60, (MATRIX*)coord);
+    RotMatrixZ(actor->field_64, (MATRIX*)coord);
+    MatrixNormal((MATRIX*)coord, (MATRIX*)coord);
+    coord        = (GsCOORDINATE2*)arg0->extra->field_8;
+    coord[4].flg = 0;
+    coord        = (GsCOORDINATE2*)&coord[4].coord;
+    Gfx_RotMatrixY((MATRIX*)coord, actor->field_6A, 0);
+    MatrixNormal((MATRIX*)coord, (MATRIX*)coord);
+    coord        = (GsCOORDINATE2*)arg0->extra->field_8;
+    coord[6].flg = 0;
+    coord        = (GsCOORDINATE2*)&coord[6].coord;
+    Gfx_RotMatrixX((MATRIX*)coord, actor->field_70, 0);
+    MatrixNormal((MATRIX*)coord, (MATRIX*)coord);
+}
 
 void func_80102348(GpActorWork* arg0, s32 arg1)
 {
