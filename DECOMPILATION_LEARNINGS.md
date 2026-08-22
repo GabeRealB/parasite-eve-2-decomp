@@ -26583,3 +26583,43 @@ asm volatile("" : "+r"(addr));
 A later `register VECTOR* light asm("a0"); light = (VECTOR*)block;`
 then restores `$a0` in the `mult` delay of the next call.
 `func_800D72D0` is the example.
+
+## Emit signed `/ 7 * 4` by hand when `$v1` is reserved
+
+GCC 2.8.1 signed `/ 7` is `lui/ori 0x92492493` / `mult` / `mfhi` /
+`addu` / `sra 2` / sign / `sll 2`. A live `register ... asm("v1")`
+(scratch `tmp`, table index, …) stops the hi temp coalescing with the
+magic, so `mfhi` lands in `$t0`:
+
+```
+mult   v0, v1
+mfhi   t0
+addu   v1, t0, v0
+```
+
+The target overwrites the magic: `mfhi v1` / `addu v1, v1, v0`. Write
+the expansion with `=&r` for the quotient and `+r` for the dividend
+(ratan2 result in `$v0`) so `mfhi` uses the quotient register:
+
+```c
+x = ratan2(...);
+asm volatile(
+    "lui %0, 0x9249\n\t"
+    "ori %0, %0, 0x2493\n\t"
+    "mult %1, %0\n\t"
+    "mfhi %0\n\t"
+    "addu %0, %0, %1\n\t"
+    "sra %0, %0, 2\n\t"
+    "sra %1, %1, 31\n\t"
+    "subu %0, %0, %1\n\t"
+    "sll %0, %0, 2"
+    : "=&r"(q), "+r"(x));
+dst = q;
+```
+
+`&table[i]` is `addu dst, table, i<<3`. `i = (i << 3) + (s32)table`
+keeps the add in `$v1`: `addu v1, v1, v0`. Split
+`Wip_SysConfig.field_21` / table / `field_91C` with `+r` barriers so
+the `lbu` fills the preceding `beqz` delay and `lw 0x91C` sits between
+`addiu table` and `sll`. A `u16` temp for the first `rot.vx` load lets
+`field_8` sit between `lhu` and `sh`. `func_801029D4` is the example.

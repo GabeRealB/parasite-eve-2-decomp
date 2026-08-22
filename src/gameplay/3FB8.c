@@ -1552,7 +1552,136 @@ void func_80102348(GpActorWork* arg0, s32 arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80102634);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801029D4);
+#define SCALE_PITCH(dst, src)        \
+    do {                             \
+        s32 _q;                      \
+        s32 _x;                      \
+        _x = (src);                  \
+        asm volatile(                \
+            "lui %0, 0x9249\n\t"     \
+            "ori %0, %0, 0x2493\n\t" \
+            "mult %1, %0\n\t"        \
+            "mfhi %0\n\t"            \
+            "addu %0, %0, %1\n\t"    \
+            "sra %0, %0, 2\n\t"      \
+            "sra %1, %1, 31\n\t"     \
+            "subu %0, %0, %1\n\t"    \
+            "sll %0, %0, 2"          \
+            : "=&r"(_q), "+r"(_x));  \
+        (dst) = _q;                  \
+    } while (0)
+
+void func_801029D4(GpActorWork* arg0)
+{
+    register void**          scratch asm("v0");
+    u8*                      head;
+    register u8*             tmp asm("v1");
+    GameActor*               actor;
+    register GpPitchScratch* block asm("s1");
+    register VECTOR3*        lock asm("s0");
+    register VECTOR3*        dest asm("a0");
+    GsCOORDINATE2*           src;
+    register GpAimRot*       tbl asm("v0");
+    register s32             item asm("v1");
+    Task*                    slot;
+    s32                      val;
+    register s32             dz asm("a0");
+    s32                      angle;
+    s32                      dist;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    actor    = arg0->actor;
+    tmp      = head - 0x84;
+    *scratch = tmp;
+    if (actor->field_90C != NULL) {
+        block = (GpPitchScratch*)tmp;
+        __asm__ volatile("" : "+r"(block));
+        src           = (GsCOORDINATE2*)arg0->extra->field_8;
+        block->rot.vx = 0;
+        block->rot.vy = -0x400;
+        block->rot.vz = 0;
+        func_801040A0(&src[2], (GsCOORDINATE2*)block, (SVECTOR*)(head - 0x14));
+        lock = (VECTOR3*)(head - 0x24);
+        func_800DAE50((GpLockPos*)actor->field_90C, lock);
+        ((VECTOR3*)(head - 0x34))->vx =
+            ((VECTOR3*)(head - 0x24))->vx - ((GsCOORDINATE2*)block)->coord.t[0];
+        dest            = (VECTOR3*)(head - 0x34);
+        dest->vy        = lock->vy - ((GsCOORDINATE2*)block)->coord.t[1];
+        dest->vz        = lock->vz - ((GsCOORDINATE2*)block)->coord.t[2];
+        val             = block->delta.vx;
+        val             = ABS(val);
+        val             = val * val;
+        dz              = block->delta.vz;
+        dz              = ABS(dz);
+        dz              = dz * dz;
+        val             = SquareRoot0(val + dz);
+        block->dist     = val;
+        val             = block->delta.vy >> 1;
+        block->delta.vy = val;
+        val             = ratan2(-val, block->dist);
+        SCALE_PITCH(block->angle, val);
+        angle        = block->angle - actor->field_5C;
+        block->angle = angle;
+        if (angle >= 0x31) {
+            block->angle = 0x30;
+        } else if (angle < -0x30) {
+            block->angle = -0x30;
+        }
+        if (ABS(actor->field_5C + block->angle) < 0x121) {
+            actor->field_5C += block->angle;
+        }
+        item = Wip_SysConfig.field_21;
+        __asm__ volatile("" : "+r"(item));
+        tbl = D_801131B4;
+        __asm__ volatile("" : "+r"(item), "+r"(tbl));
+        slot = actor->field_91C;
+        __asm__ volatile("" : "+r"(item) : "r"(slot));
+        item = (item << 3) + (s32)tbl;
+        {
+            register GameActorExt* extra asm("a0");
+            u16                    vx;
+            extra = (GameActorExt*)slot->extra;
+            __asm__ volatile("" : "+r"(extra));
+            vx            = ((GpAimRot*)item)->vx;
+            src           = (GsCOORDINATE2*)extra->field_8;
+            block->rot.vx = vx;
+            block->rot.vy = ((GpAimRot*)item)->vy;
+            block->rot.vz = ((GpAimRot*)item)->vz;
+            func_801040A0(src, (GsCOORDINATE2*)block, (SVECTOR*)&block->rot);
+        }
+        lock = &block->lock;
+        func_800DAE50((GpLockPos*)actor->field_90C, lock);
+        block->delta.vx = block->lock.vx - ((GsCOORDINATE2*)block)->coord.t[0];
+        dest            = &block->delta;
+        dest->vy        = lock->vy - ((GsCOORDINATE2*)block)->coord.t[1];
+        dest->vz        = lock->vz - ((GsCOORDINATE2*)block)->coord.t[2];
+        val             = block->delta.vx;
+        val             = ABS(val);
+        val             = val * val;
+        dz              = block->delta.vz;
+        dz              = ABS(dz);
+        dz              = dz * dz;
+        val             = SquareRoot0(val + dz);
+        dist            = val;
+        block->dist     = dist;
+        val             = ratan2(-block->delta.vy, dist);
+        SCALE_PITCH(block->angle, val);
+        angle        = block->angle - actor->field_64;
+        block->angle = angle;
+        if (angle >= 0x31) {
+            block->angle = 0x30;
+        } else if (angle < -0x30) {
+            block->angle = -0x30;
+        }
+        if (ABS(actor->field_64 + block->angle) < 0x101) {
+            actor->field_64 += block->angle;
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x84;
+}
+
+#undef SCALE_PITCH
 
 void func_80102D20(GpActorWork* arg0, s32 arg1, s32 arg2)
 {

@@ -414,14 +414,15 @@ typedef struct _GpYawScratch {
 } GpYawScratch;
 STATIC_ASSERT_SIZEOF(GpYawScratch, 0x6C);
 
-/// 0x84-byte scratch from `G_SCRATCH_HEAD` used by `func_80102D20` and
-/// `func_80102F10`. The first 0x50 bytes are a temp `GsCOORDINATE2`.
-/// `delta` is lock position minus that coord's translation; `lock` is
-/// `func_800DAE50` output; `rot` is the `SVECTOR` passed to
-/// `func_801040A0` (table row in `func_80102D20`, zeros in
+/// 0x84-byte scratch from `G_SCRATCH_HEAD` used by `func_801029D4`,
+/// `func_80102D20`, and `func_80102F10`. The first 0x50 bytes are a
+/// temp `GsCOORDINATE2`. `delta` is lock position minus that coord's
+/// translation; `lock` is `func_800DAE50` output; `rot` is the
+/// `SVECTOR` passed to `func_801040A0` (zeros then table row in
+/// `func_801029D4`, table row in `func_80102D20`, zeros in
 /// `func_80102F10`). `angle` holds `ratan2` then the clamped pitch
-/// delta applied to `GameActor.field_70` / `field_78`; `dist` is the
-/// XZ length of `delta`.
+/// delta applied to `GameActor.field_5C` / `field_64` /
+/// `field_70` / `field_78`; `dist` is the XZ length of `delta`.
 typedef struct _GpPitchScratch {
     /* 0x00 */ byte     pad_0[0x50];
     /* 0x50 */ VECTOR3  delta;
