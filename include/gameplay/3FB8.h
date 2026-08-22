@@ -164,9 +164,9 @@ STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 /// `func_800F9474` fills them from three LCG draws centered on 0. `field_20` is the spawn-wave count
 /// (`func_800FC74C`), the draw-step counter that `func_800FBEBC` increments
 /// every 4 `field_22` ticks and kills at 8, or
-/// `(D_80114C08.field_0 % 10) - 1` (`func_800FB7E4`). `field_22` is the step
+/// `(D_80114C08.field_0 % 10) - 1` (`func_800FB7E4` / `func_800FC0B4`). `field_22` is the step
 /// counter (`func_800F1364` / `func_800F1A9C` / `func_800F5184` /
-/// `func_800FB7E4` / `func_800FBEBC` / `func_800FC74C` / `func_800FC9BC`).
+/// `func_800FB7E4` / `func_800FBEBC` / `func_800FC0B4` / `func_800FC74C` / `func_800FC9BC`).
 /// `field_24` is the lifetime (`func_800F1364`, `spawnArg1 >> 16` or 0xC),
 /// the current scale stepped toward `field_26` (`func_800F75BC`),
 /// the LCG angle (`func_800F1A9C`), a 0x10 start that decays by 2
@@ -186,6 +186,8 @@ STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 /// `func_800F5184` inits `field_26` to 0x20 and adds `field_2A` each frame.
 /// `func_800FB7E4` inits `field_26` to 0x20, `field_28` to
 /// `(field_20 << 7) + 0x180`, and `field_2A` to `(field_20 << 8) + 0x400`.
+/// `func_800FC0B4` inits `field_26` to 0x20, `field_28` to
+/// `((field_20 + 1) * 3) << 7`, and `field_2A` to `Wip_SysConfig.field_18`.
 /// `func_800FC74C` uses `field_26` as the inter-wave wait timer. `field_2A`
 /// is the packed parameter passed through to `func_800F7AD4`, the per-frame
 /// `field_26` step, or `func_800FB7E4`'s `func_800EA478` spawn arg.
@@ -635,6 +637,7 @@ void func_800FA7CC(Task* arg0);
 void func_800FB67C(Task* arg0);
 void func_800FB7E4(Task* arg0);
 void func_800FBEBC(Task* arg0);
+void func_800FC0B4(Task* arg0);
 void func_800FC500(Task* arg0);
 void func_800FC6C0(void);
 void func_800FC74C(Task* arg0);

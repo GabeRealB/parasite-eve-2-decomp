@@ -26543,3 +26543,16 @@ vec->vx = -pitch;
 ```
 
 `func_800E1CD4` is the example.
+
+## Don't reuse a `for`-loop counter as the `(s8)` dest before a second `jal`
+
+`temp = (s8)func_800D937C(coord)` then `SndEvt_EnqueueType6(..., temp, (s8)func_800D9340(coord))` wants the sign-extend split across the second call:
+
+```
+move   a0, coord
+sll    s0, v0, 24
+jal    func_800D9340
+sra    s0, s0, 24
+```
+
+Assigning that `(s8)` back into the loop index (`i = (s8)func_800D937C(...)`) after `for (i = 0; i < 0x555; i += 0x2AA)` completes the cast in `$v0` first (`sll v0, v0, 24` / `sra s0, v0, 24`) so `move a0, coord` sinks into the `jal` delay. Use a separate `temp` (function-level is fine; it still reuses `$s0` once the loop is dead). `func_800FC0B4` / `func_800FC74C` are the example.

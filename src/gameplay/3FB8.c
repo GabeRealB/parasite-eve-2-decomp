@@ -401,7 +401,118 @@ kill:
     func_800EC7E4(mem, arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FC0B4);
+void func_800FC0B4(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* parent;
+    GpEffWork*     spawned;
+    Task*          slot;
+    u8             rgb[3];
+    u8             col;
+    s32            saved;
+    s32            temp;
+
+    mem   = arg0->spawnArg2;
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    if (D_80115740->field_E != 0 ||
+        (((GameActorExt*)((Task*)Game_GetPtrSlot(3))->extra)->field_C & 0x80)) {
+        if (D_80115740->field_E < 4) {
+            return;
+        }
+        goto kill;
+    }
+
+    mem->field_22++;
+    if (arg0->state == 0) {
+        s32 x;
+
+        D_80115740->field_12 |= 0x200;
+        slot                  = Game_GetPtrSlot(3);
+        parent                = (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8;
+        coord->coord.t[0]     = 0;
+        coord->coord.t[1]     = 0;
+        coord->coord.t[2]     = 0;
+        coord->flg            = 0;
+        coord->sub            = parent + 1;
+        arg0->state           = 1;
+        mem->field_20         = (D_80114C08.field_0 % 10U) - 1;
+        __asm__ volatile("" : "+m"(mem->field_20));
+        x             = mem->field_20;
+        mem->field_26 = 0x20;
+        mem->field_28 = ((x + 1) * 3) << 7;
+        mem->field_2A = Wip_SysConfig.field_18;
+    }
+
+    func_80098F58(coord);
+    mem->field_24 = (u16)mem->field_26 + (((u16)mem->field_22 & 1) << 4);
+    col           = mem->field_24;
+    rgb[1]        = col;
+    rgb[0]        = col;
+    rgb[2]        = (u16)mem->field_24 >> 1;
+    func_800EAEB8(coord, mem->field_28, rgb);
+    func_800EAEB8(coord, (s16)((u16)mem->field_28 << 1), rgb);
+
+    if (D_80114C08.field_10 == 0) {
+        goto kill;
+    }
+    if (!(D_80115740->field_12 & 0x200)) {
+        goto kill;
+    }
+    if (D_80115740->field_16 == 1) {
+        goto continue_fx;
+    }
+kill:
+    SndEvt_EnqueueType7(0x23, 1);
+    func_800EC7E4(mem, arg0);
+    return;
+continue_fx:
+    saved = mem->field_2A;
+    if (Wip_SysConfig.field_18 < saved) {
+        if (!(Wip_SysConfig.field_25 & 0x84) && (mem->field_26 < 0xA0)) {
+            s32 i;
+
+            func_800FBAB0(coord, 0x200, 6, rgb);
+            mem->field_26 = 0xC0;
+            for (i = 0; i < 0x555; i += 0x2AA) {
+                spawned = func_800EA478(0x600C1, coord, i, 0);
+                if (spawned != NULL) {
+                    Task_Reparent(arg0, spawned->field_0);
+                }
+            }
+            temp = (s8)func_800D937C((GpObj38*)coord);
+            SndEvt_EnqueueType6(0xE, temp, (s8)func_800D9340((GpObj38*)coord));
+        } else if (mem->field_26 < 0x80) {
+            mem->field_26 = 0x80;
+        }
+    } else {
+        D_80070F60 = D_80070F60 * 5 + 0x71357911;
+        if ((((u32)D_80070F60 >> 16) & 3) == 0) {
+            slot       = Game_GetPtrSlot(3);
+            D_80070F60 = D_80070F60 * 5 + 0x71357911;
+            func_800EA478(0x600E0,
+                          (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8 +
+                              ((((u32)D_80070F60 >> 16) & 0xF) + 3),
+                          0x10080, 0);
+        }
+    }
+
+    mem->field_2A = (u16)Wip_SysConfig.field_18;
+    if (mem->field_26 < 0x21) {
+        return;
+    }
+    mem->field_26 = (u16)mem->field_26 - 8;
+    D_80070F60    = D_80070F60 * 5 + 0x71357911;
+    if (((u32)D_80070F60 >> 16) & 1) {
+        return;
+    }
+    slot       = Game_GetPtrSlot(3);
+    D_80070F60 = D_80070F60 * 5 + 0x71357911;
+    func_800EA478(0x600E0,
+                  (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8 +
+                      ((((u32)D_80070F60 >> 16) & 0xF) + 3),
+                  0x10200, 0);
+}
 
 void func_800FC500(Task* arg0)
 {
