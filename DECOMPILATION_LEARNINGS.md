@@ -26677,3 +26677,51 @@ rec2 = recs + (u8)i;
 ```
 
 `func_800D0C34` is the example (best 95.6%, not a match).
+
+## Store 3 packed `SVECTOR3` rows in a `MATRIX` so the next `VECTOR[]` lands on 0x10
+
+`VECTOR` arrays are 8-byte aligned. `SVECTOR3[3]` is 0x12 bytes, so a following
+`VECTOR vec[3]` starts 8 bytes early (`0x48` instead of `0x50`) and the frame
+shrinks from `0xC0` to `0xB8`. A `MATRIX` is 0x20 and holds the same 9 packed
+halfwords in `m[3][3]`:
+
+```c
+MATRIX diffs; /* not SVECTOR3 diff[3] */
+diffs.m[i][0] = b->m[i][0] - a->m[i][0];
+vec[i].vx     = a->m[i][0] + (diffs.m[i][0] * t) / ONE;
+```
+
+`func_800B1460` is the example.
+
+## Do not reuse the loop index for a `VectorNormal` return if the copy is `$v1`
+
+After a `for (i = 0; i < 3; i++)` the index lives in `$t1`. Assigning
+`i = VectorNormal(...)` reuses that dead register (`move t1, v0` /
+`slt v0, s1, t1`). The target copies into `$v1`:
+
+```c
+ret = VectorNormal(&tmp, &nrm);
+if (len < ret) {
+    len  = ret;
+    best = 2;
+}
+```
+
+The last compare can still use the return in `$v0` directly
+(`if (len < VectorNormal(...))`). `func_800B1460` is the example.
+
+## GTE outer product of two `VECTOR`s
+
+`gte_ldopv1SV` / `gte_ldopv2SV` / `gte_stsv` are the `SVECTOR` form
+(`Gfx_OrthonormalBasis`). For `VECTOR` rows use the long-word helpers
+plus the real `op12` opcode:
+
+```c
+#define gte_op12_real() __asm__ volatile("nop; nop; .word 0x4B78000C")
+gte_ldopv1(&vec[0]);
+gte_ldopv2(&vec[1]);
+gte_op12_real();
+gte_stlvnl(&tmp);
+```
+
+`func_800B1460` is the example.

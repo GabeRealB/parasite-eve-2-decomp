@@ -26,6 +26,7 @@
 #define gte_rtv0_real()   __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
 #define gte_rtir_real()   __asm__ volatile("nop; nop; .word 0x4A49E012")
+#define gte_op12_real()   __asm__ volatile("nop; nop; .word 0x4B78000C")
 #define gte_gpf12_real()  __asm__ volatile("nop; nop; .word 0x4B98003D")
 #define gte_gpl12_real()  __asm__ volatile("nop; nop; .word 0x4BA8003E")
 
@@ -855,7 +856,90 @@ SVECTOR* func_800B114C(SVECTOR* arg0, MATRIX* arg1)
     return arg0;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B1460);
+void func_800B1460(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2, s32 arg3)
+{
+    MATRIX mtx;
+    MATRIX diffs;
+    VECTOR vec[3];
+    VECTOR tmp;
+    VECTOR nrm;
+    s32    i;
+    s32    best;
+    s32    len;
+    s32    ret;
+
+    best = 0;
+    for (i = 0; i < 3; i++) {
+        diffs.m[i][0] = arg1->m[i][0] - arg0->m[i][0];
+        diffs.m[i][1] = arg1->m[i][1] - arg0->m[i][1];
+        diffs.m[i][2] = arg1->m[i][2] - arg0->m[i][2];
+    }
+    for (i = 0; i < 3; i++) {
+        vec[i].vx = arg0->m[i][0] + (diffs.m[i][0] * arg3) / ONE;
+        vec[i].vy = arg0->m[i][1] + (diffs.m[i][1] * arg3) / ONE;
+        vec[i].vz = arg0->m[i][2] + (diffs.m[i][2] * arg3) / ONE;
+    }
+
+    len = -1;
+
+    gte_ldopv1(&vec[0]);
+    gte_ldopv2(&vec[1]);
+    gte_op12_real();
+    gte_stlvnl(&tmp);
+    ret = VectorNormal(&tmp, &nrm);
+    if (len < ret) {
+        len  = ret;
+        best = 2;
+    }
+
+    gte_ldopv1(&vec[1]);
+    gte_ldopv2(&vec[2]);
+    gte_op12_real();
+    gte_stlvnl(&tmp);
+    ret = VectorNormal(&tmp, &nrm);
+    if (len < ret) {
+        len  = ret;
+        best = 0;
+    }
+
+    gte_ldopv1(&vec[0]);
+    gte_ldopv2(&vec[2]);
+    gte_op12_real();
+    gte_stlvnl(&tmp);
+    if (len < VectorNormal(&tmp, &nrm)) {
+        best = 1;
+    }
+
+    switch (best) {
+        case 0:
+            mtx.m[1][0] = vec[1].vx;
+            mtx.m[1][1] = vec[1].vy;
+            mtx.m[1][2] = vec[1].vz;
+            mtx.m[2][0] = vec[2].vx;
+            mtx.m[2][1] = vec[2].vy;
+            mtx.m[2][2] = vec[2].vz;
+            MatrixNormal_1(&mtx, arg2);
+            break;
+        case 1:
+            mtx.m[0][0] = vec[0].vx;
+            mtx.m[0][1] = vec[0].vy;
+            mtx.m[0][2] = vec[0].vz;
+            mtx.m[2][0] = vec[2].vx;
+            mtx.m[2][1] = vec[2].vy;
+            mtx.m[2][2] = vec[2].vz;
+            MatrixNormal_2(&mtx, arg2);
+            break;
+        case 2:
+            mtx.m[0][0] = vec[0].vx;
+            mtx.m[0][1] = vec[0].vy;
+            mtx.m[0][2] = vec[0].vz;
+            mtx.m[1][0] = vec[1].vx;
+            mtx.m[1][1] = vec[1].vy;
+            mtx.m[1][2] = vec[1].vz;
+            MatrixNormal_0(&mtx, arg2);
+            break;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B17D4);
 

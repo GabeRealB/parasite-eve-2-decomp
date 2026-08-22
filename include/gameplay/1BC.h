@@ -388,6 +388,11 @@ void     func_800B0FDC(MATRIX* arg0, SVECTOR* arg1);
 /// and `vx ± 0x800` (the other Euler solution) and keeps the candidate with
 /// the smaller sum of absolute angles. Returns `arg0`.
 SVECTOR* func_800B114C(SVECTOR* arg0, MATRIX* arg1);
+/// Lerps the 3x3 rotation of `arg0` toward `arg1` by `arg3 / ONE`, then
+/// orthonormalizes into `arg2`. Outer products of each interpolated row
+/// pair pick the two most independent axes; `MatrixNormal_0` / `_1` / `_2`
+/// reconstructs the missing row.
+void     func_800B1460(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2, s32 arg3);
 /// Walks `arg0->sub` up to world (`D_80070F10`), composing each node's
 /// `coord` rotation into `arg1` and accumulating the rotated translation
 /// into `arg2`. The world parent initializes `arg1` to identity and
