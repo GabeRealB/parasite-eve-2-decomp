@@ -26867,3 +26867,33 @@ dividend in `$v0` and divisor in `$a0`.
 
 `func_800EB6E8` is the example (98.4%; remaining diffs are `lui`/`li` delay
 slots around the POLY_FT4 XY stores).
+
+## Regen objdiff expected objects after renaming functions
+
+`expected/` is gitignored and assembled from splat `glabel`s. Renaming a
+function in C and `sym.*.txt` does not refresh those objects. objdiff then
+shows the old auto-name (`F179D4_ClearOTag`, `F16494_ResetSpuAttr`,
+`F04CF8_800148A0`, …) at 0% beside the compiled name (`Gpu_ClearOTag`,
+`Spu_ResetCommonAttr`, `Boot_WaitCdAudioReady`), even though the linked
+binary still matches.
+
+Fix: `python3 ninja_config.py -obj` (re-splat + assemble `expected/`),
+then `ninja -f matching.ninja` for the ROM check. With `-obj`, `build.ninja`
+is the `SKIP_ASM` objdiff base and matching is `matching.ninja`.
+
+## `rel.*.txt` `MIPS_NONE` when C emits a numeric `%hi`/`%lo`
+
+A C `lui`/`addiu`/`lhu` of a baked immediate (`0x8011`, `-0x1634`,
+`-0x6e3c`) matches the linked overlay but not splat's reconstructed
+`%hi(sym)`/`%lo(sym)` reloc. `asm("lui %0, %%hi(sym)")` keeps the reloc
+but will not fill a C branch delay slot.
+
+Mark those instruction VROMs in `configs/USA/rel.gameplay.txt` (same
+`rom:` / `reloc:` / `symbol:` form as `rel.main.txt`) as `MIPS_NONE` so
+expected objects also have the raw immediate. Overlay `rom:` is
+`VRAM - 0x80093800`. Do **not** `MIPS_NONE` a paired `lui %hi` that the
+C still emits as a real reloc (the D4 `CdCmd_Queue` `lhu` is only the
+`%lo`).
+
+`func_800AADDC` / `func_800C9654` / `func_800C9E94` / `func_800BC50C`
+are the examples.

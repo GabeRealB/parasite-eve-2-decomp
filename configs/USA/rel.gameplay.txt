@@ -1,2 +1,49 @@
 // Reloc overrides for the gameplay overlay.
 // Add entries here when splat misidentifies a reloc (same format as rel.main.txt).
+//
+// These instructions are %hi/%lo of a symbol in the original object, but the
+// matching C emits a numeric immediate (so GCC can fill a C branch delay slot;
+// asm("%hi")/"%lo" will not). Linked bytes are identical. Mark them MIPS_NONE
+// so objdiff expected objects match the compiled objects.
+
+//--------------------------------------------------------------------
+//--- VA: 0x800AABB0   D4 fade overlay: lhu %lo(CdCmd_Queue+0x224)
+//--------------------------------------------------------------------
+rom:0x174E4 reloc:MIPS_NONE symbol:CdCmd_Queue
+
+//--------------------------------------------------------------------
+//--- VA: 0x800AADDC
+//--------------------------------------------------------------------
+rom:0x17620 reloc:MIPS_NONE symbol:CdCmd_Queue
+
+//--------------------------------------------------------------------
+//--- VA: 0x800AB1C8
+//--------------------------------------------------------------------
+rom:0x17A0C reloc:MIPS_NONE symbol:CdCmd_Queue
+
+//--------------------------------------------------------------------
+//--- VA: 0x800AB3A8
+//--------------------------------------------------------------------
+rom:0x17BF0 reloc:MIPS_NONE symbol:CdCmd_Queue
+
+//--------------------------------------------------------------------
+//--- VA: 0x800AB5F4
+//--------------------------------------------------------------------
+rom:0x17E38 reloc:MIPS_NONE symbol:CdCmd_Queue
+
+//--------------------------------------------------------------------
+//--- VA: 0x800BC50C   destHi = 0x80110000; dest = destHi + (s16)0xD62C
+//--------------------------------------------------------------------
+rom:0x28D84 reloc:MIPS_NONE symbol:D_8010D62C
+rom:0x28DB8 reloc:MIPS_NONE symbol:D_8010D62C
+
+//--------------------------------------------------------------------
+//--- VA: 0x800C9654   split la of D_8010E9CC (lui in delay of bnez)
+//--------------------------------------------------------------------
+rom:0x35E7C reloc:MIPS_NONE symbol:D_8010E9CC
+rom:0x35E90 reloc:MIPS_NONE symbol:D_8010E9CC
+
+//--------------------------------------------------------------------
+//--- VA: 0x800C9E94   lui %hi(Mc_SaveData+0x5BC) in bnez delay
+//--------------------------------------------------------------------
+rom:0x366E4 reloc:MIPS_NONE symbol:Mc_SaveData
