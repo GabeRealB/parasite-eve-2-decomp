@@ -3,6 +3,7 @@
 #include <psyq/inline_c.h>
 #include <psyq/memory.h>
 
+#include "gameplay/1A8.h"
 #include "gameplay/268.h"
 #include "gameplay/3688.h"
 #include "gameplay/gameplay.h"
@@ -233,7 +234,9 @@ void       func_800D02A4(Task* arg0);
 void       func_800D0C34(Task* arg0);
 void       func_800D0614(Task* arg0);
 void       func_800D08D4(Task* arg0);
+s32        func_800D0F3C(Task* arg0, s32 arg1, s32 arg2);
 void       func_800D15D0(Task* arg0);
+void       func_800D4270(UiObject* arg0, void* arg1, s32 arg2, s32 arg3);
 void       func_800D131C(void);
 void       func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2);
 void       func_800D2224(DialogPrompt* arg0, UiObject* arg1);
@@ -2260,7 +2263,106 @@ INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800D02A4);
 
 INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800D0614);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800D08D4);
+void func_800D08D4(Task* arg0)
+{
+    register Task* keep asm("a0");
+    GameSession*   session;
+    GpFlagBank**   banks;
+    GpFlagBank*    bank;
+    s32            flags[2];
+    u8*            flagTbl;
+    GpMapMark*     recs;
+    GpMapMark**    markTable;
+    UiObject*      obj;
+    s32            color;
+    s32            i;
+    s32            which;
+    s32            bit;
+    s32            idx;
+    s32            one;
+    u8             stage;
+    s32            stageM1;
+
+    keep      = arg0;
+    color     = 0x5D7;
+    session   = Game_Session;
+    banks     = D_80060A30;
+    markTable = (keep, D_8010F11C);
+    stage     = session->field_7;
+    obj       = arg0->spawnArg2;
+    stageM1   = stage - 1;
+    bank      = banks[stage];
+    recs      = markTable[stageM1];
+    flagTbl   = D_8010F108[stageM1];
+    if (stage == 1) {
+        color = 0x83B;
+    }
+    flags[0] = bank->field_4[0];
+    flags[1] = bank->field_4[1];
+    if (session->field_7 == 3) {
+        bank      = banks[2];
+        flags[0] |= bank->field_4[0];
+        flags[1] |= bank->field_4[1];
+    }
+    i = 0;
+    if (D_8010F138[session->field_7 - 1] != 0) {
+        one = 1;
+        do {
+            if (recs[(u8)i].field_4 == (s8)D_80114DF0) {
+                if (recs[(u8)i].field_0 == NULL) {
+                    func_800D0F3C(arg0, (u8)i, 0);
+                } else {
+                    which = 0;
+                    if ((u8)i >= 0x21U) {
+                        which = 1;
+                        bit   = one << ((u8)i - 0x21);
+                    } else {
+                        bit = one << ((u8)i - 1);
+                    }
+                    if (recs[(u8)i].field_5 != 0xFF) {
+                        if (recs[(u8)i].field_5 >= 0x21U) {
+                            bit |= one << (recs[(u8)i].field_5 - 0x21);
+                        } else {
+                            bit |= one << (recs[(u8)i].field_5 - 1);
+                        }
+                    }
+                    idx = i;
+                    if (D_80114DF1 == 3) {
+                        if ((u8)i == 0xE) {
+                            idx = 0x22;
+                        }
+                        if ((u8)i == 0x1B) {
+                            idx = 0x23;
+                        }
+                    }
+                    if (GameFlag_GetNibble(flagTbl[D_80114DF0]) == 0) {
+                        if ((bit & flags[which]) == 0) {
+                            if (func_800D0F3C(arg0, (u8)i, 1) != 0) {
+                                func_800D4270(obj, recs[(u8)idx].field_0, 1, (u16)color);
+                            } else {
+                                func_800D4270(obj, recs[(u8)idx].field_0, 0, (u16)color);
+                            }
+                        } else if ((bit & D_80114D00[which]) != 0) {
+                            func_800D4270(obj, recs[(u8)idx].field_0, 3, (u16)color);
+                            func_800D0F3C(arg0, (u8)i, 0);
+                        } else {
+                            func_800D0F3C(arg0, (u8)i, 0);
+                        }
+                    } else if ((bit & flags[which]) == 0) {
+                        func_800D4270(obj, recs[(u8)idx].field_0, 1, (u16)color);
+                        func_800D0F3C(arg0, (u8)i, 1);
+                    } else if ((bit & D_80114D00[which]) != 0) {
+                        func_800D4270(obj, recs[(u8)idx].field_0, 3, (u16)color);
+                        func_800D0F3C(arg0, (u8)i, 0);
+                    } else {
+                        func_800D0F3C(arg0, (u8)i, 0);
+                    }
+                }
+            }
+            i++;
+        } while ((u8)i < D_8010F138[Game_Session->field_7 - 1]);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800D0C34);
 

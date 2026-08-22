@@ -3,6 +3,36 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Occupy `$a0` with the incoming arg so a later `la` cannot lift
+
+`-fschedule-insns` treats `la` of an independent table as free to run as
+soon as `$a0` is. After `move s7, a0` that register is empty, so
+`lui a0, %hi(table)` lifts above `Game_Session` / other bases that belong
+first:
+
+```
+li     s6, 0x5d7
+lui    a0, %hi(D_8010F11C)      # too early
+addiu  a0, a0, %lo(D_8010F11C)
+lui    v0, %hi(Game_Session)
+```
+
+Keep the incoming arg live in `$a0` until the table address is taken.
+A `register ... asm("a0")` copy plus a comma-operator use at the `la`
+forces the order with no extra insn:
+
+```c
+register Task* keep asm("a0");
+keep      = arg0;
+color     = 0x5D7;
+session   = Game_Session;
+banks     = D_80060A30;
+markTable = (keep, D_8010F11C);
+```
+
+`volatile` asm barriers also order the `lui`s but split the block and
+emit the remaining `s`-saves first. `func_800D08D4` is the example.
+
 ## Force a 3-input OR into the last load's register with `c |= a | b`
 
 `if ((a | b | c) == 0)` after three `lbu`s computes `(a|b)|c` into `$v0`

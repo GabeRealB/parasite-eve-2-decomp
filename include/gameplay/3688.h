@@ -59,6 +59,28 @@ STATIC_ASSERT_SIZEOF(GpMapName, 0x20);
 /// A NULL entry skips the name draw (`func_800D1BAC`).
 extern GpMapName* D_8010F0B8[];
 
+/// 8-byte map marker in tables pointed to by `D_8010F11C`.
+/// Indexed by loop `i` in `func_800D08D4`. `field_0` is the icon object
+/// (`func_800D4270`); `field_4` is the room id (`D_80114DF0`); `field_5`
+/// is an extra bit id (`0xFF` = none).
+typedef struct _GpMapMark {
+    /* 0x0 */ void* field_0;
+    /* 0x4 */ u8    field_4;
+    /* 0x5 */ u8    field_5;
+    /* 0x6 */ byte  pad_6[2];
+} GpMapMark;
+STATIC_ASSERT_SIZEOF(GpMapMark, 8);
+
+/// Per-stage table of `GpMapMark` arrays. Index is `GameSession.field_7 - 1`.
+extern GpMapMark* D_8010F11C[];
+
+/// Per-stage table of GameFlag nibble ids, indexed by room (`D_80114DF0`).
+/// Index is `GameSession.field_7 - 1`.
+extern u8* D_8010F108[];
+
+/// Per-stage `GpMapMark` counts. Index is `GameSession.field_7 - 1`.
+extern u8 D_8010F138[];
+
 /// Current room id copied from `GpMapRec.field_C` by `func_800D1FD4`.
 extern u8 D_80114DF0;
 
