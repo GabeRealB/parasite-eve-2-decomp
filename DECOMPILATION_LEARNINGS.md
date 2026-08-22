@@ -26854,3 +26854,16 @@ RotMatrix(rot, (MATRIX*)coord);
 ```
 
 `func_80101F58` is the example.
+
+## Billboard RTPS: trans then rot, then reuse UV/`u` registers
+
+A 0x18 scratch billboard (`SVECTOR` + otz/flag/half/sxy) that `gte_SetTransMatrix`
+then `gte_SetRotMatrix` on `&GsWSMATRIX` reloads the matrix address for the
+second call. Copy `&block->vec` after `*scratch = block` so `gte_ldv0` uses
+`$v0`. After `*clutp`, assign `clutIdx = u + 0x17` to reuse the table pointer
+as `u1`. After storing `u0`/`u2`, assign `u = (u16)size` so `andi v1, t0,
+0xffff` clobbers `u` and the `* 23 / otz` half-size uses `$v1` with the
+dividend in `$v0` and divisor in `$a0`.
+
+`func_800EB6E8` is the example (98.4%; remaining diffs are `lui`/`li` delay
+slots around the POLY_FT4 XY stores).
