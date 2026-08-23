@@ -2824,12 +2824,18 @@ Wip_UiHolder                = 0x80067694;
 // Vacuum-driven renames (tools/vacuum.log roles)
 CdCmd_EntryIter             = 0x8006AC04; // type:func
 
-// Title overlay stubs (main BSS holes at overlay load addresses; real code in pe2pkg/title)
-Title_RestoreDemoCard       = 0x8009407C; // type:func
-Title_EnqueueDemoScene      = 0x80094B90; // type:func
-Title_TaskDescs             = 0x80094C8C; // size:0x18
+// Title overlay stubs live in configs/USA/sym.main.imports.txt (absolute:True).
 
 // Display tables (taskutil.c .rodata)
 Display_WidthTable          = 0x80013E88; // type:u16
 Display_HeightTable         = 0x80013E94; // type:u16
 D_80013E98                  = 0x80013E98; // size:0x18
+
+// Gameplay naming pass 2 (main-exe table used by overlay)
+Gp_FlagBanks                 = 0x80060A30;
+
+// Gameplay naming pass 9 (main-exe play-time snapshot)
+Gp_PlayTimeMark              = 0x800739B8; // size:0x2
+
+// Gameplay naming pass 15 (main-exe LCG used by overlay)
+Gp_LcgState                  = 0x80070F60;

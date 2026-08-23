@@ -76,29 +76,29 @@ segments:
       - [0x0, rodata, header]
       - [0x78, .rodata, gameplay] # jtbl from func_800A1634
       - [0x8C, rodata, header_2]
-      - [0xD4, .rodata, D4] # jtbl from func_800A9310
+      - [0xD4, .rodata, D4] # jtbl from Gp_EnqueueWeaponCd
       - [0x118, rodata, rodata_D4]
-      - [0x1A8, .rodata, 1A8] # jtbl from func_800AEBA4
+      - [0x1A8, .rodata, 1A8] # jtbl from Gp_LookupStageFlag
       - [0x1BC, rodata, rodata_1BC] # jtbl_800939BC (func_800AF590 still asm)
-      - [0x1D4, .rodata, 1BC] # jtbl from func_800AFA44
-      - [0x1F8, rodata, rodata_1BC_2] # D_800939F8 string + D_80093A10 tables
+      - [0x1D4, .rodata, 1BC] # jtbl from Gp_StepCdAudioCmd
+      - [0x1F8, rodata, rodata_1BC_2] # Gp_StrNewEnemyNull string + Gp_EnemyWaitFuncs tables
       - [0x268, rodata, rodata_268]
       - [0x4CC, rodata, rodata_4CC]
-      - [0x5C4, .rodata, 4CC] # jtbl from func_800BF398
+      - [0x5C4, .rodata, 4CC] # jtbl from Gp_CloseItemPane
       - [0x668, rodata, rodata_4CC_2]
       - [0x3688, .rodata, 3688] # jtbl from func_800BF9FC
       - [0x377C, rodata, rodata_3688]
       - [0x3968, .rodata, 3688_CADFC] # jtbl from func_800CADFC
       - [0x397C, rodata, rodata_3688_2]
       - [0x3A34, rodata, rodata_3A34]
-      - [0x3B3C, .rodata, 3A34] # jtbl from func_800D6170 + mid + func_800E0540
+      - [0x3B3C, .rodata, 3A34] # jtbl from Gp_ItemIsUnusable + mid + func_800E0540
       - [0x3CC8, rodata, rodata_3A34_2] # D_800974C8
-      - [0x3CD8, .rodata, 3CD8_34D8] # jtbl from func_800E34D8
+      - [0x3CD8, .rodata, 3CD8_34D8] # jtbl from Gp_RunCapCmd
       - [0x3CF0, .rodata, 3CD8_375C] # jtbl from func_800E375C
       - [0x3D14, rodata, rodata_3CD8]
       - [0x3E60, .rodata, 3CD8] # jtbl from func_800E9BDC
       - [0x3E78, rodata, rodata_3CD8_2] # D_80097678
-      - [0x3E88, .rodata, 3CD8_9CC8] # jtbl from func_800E9CC8
+      - [0x3E88, .rodata, 3CD8_9CC8] # jtbl from Gp_InitState1C
       - [0x3E9C, rodata, rodata_3E9C]
       - [0x3FB8, .rodata, 3FB8_75BC] # jtbl from func_800F75BC
       - [0x3FD0, .rodata, 3FB8_7E28] # jtbl from func_800F7E28
@@ -108,19 +108,19 @@ segments:
       # Text TUs: first function that uses each group's jtbl (file 0 starts
       # at the first addiu $sp).
       - [0x42C0, c, gameplay] # func_80097AC0
-      - [0x15B10, c, D4] # func_800A9310
-      - [0x1B3A4, c, 1A8] # func_800AEBA4
+      - [0x15B10, c, D4] # Gp_EnqueueWeaponCd
+      - [0x1B3A4, c, 1A8] # Gp_LookupStageFlag
       - [0x1BD90, c, 1BC] # func_800AF590
       - [0x23C20, c, 268] # func_800B7420
-      - [0x28E34, c, 4CC] # func_800BC634
+      - [0x28E34, c, 4CC] # Gp_ItemMoveChild
       - [0x2C1FC, c, 3688] # func_800BF9FC
       - [0x375FC, c, 3688_CADFC] # func_800CADFC
       - [0x37988, c, 3688_CB188] # func_800CB188
       - [0x42314, c, 3A34] # func_800D5B14
-      - [0x4FCD8, c, 3CD8_34D8] # func_800E34D8
+      - [0x4FCD8, c, 3CD8_34D8] # Gp_RunCapCmd
       - [0x4FF5C, c, 3CD8_375C] # func_800E375C
-      - [0x5033C, c, 3CD8] # func_800E3B3C
-      - [0x564C8, c, 3CD8_9CC8] # func_800E9CC8
+      - [0x5033C, c, 3CD8] # Gp_SetNibbleIf
+      - [0x564C8, c, 3CD8_9CC8] # Gp_InitState1C
       - [0x592A8, c, 3E9C] # func_800ECAA8
       - [0x63DBC, c, 3FB8_75BC] # func_800F75BC
       - [0x63FF8, c, 3FB8_7E28] # func_800F77F8 / func_800F7AD4 / func_800F7E28

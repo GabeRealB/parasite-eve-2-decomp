@@ -36,7 +36,7 @@ extern s32            D_80111C58[];
 extern s32            D_80111CF0[];
 extern s32            D_80111DB4[];
 
-void func_800E9CC8(Task* arg0)
+void Gp_InitState1C(Task* arg0)
 {
     GpState1C* p;
     s32        val;
@@ -48,14 +48,14 @@ void func_800E9CC8(Task* arg0)
         return;
     }
 
-    D_80115748  = arg0;
-    D_80115740  = p;
-    arg0->idMap = (TaskIdMap*)p;
-    p->field_0  = 0;
-    p->field_2  = 0;
-    p->field_4  = 0;
-    p->field_6  = 1;
-    p->field_8  = 0;
+    Gp_State1CTask = arg0;
+    Gp_State1C     = p;
+    arg0->idMap    = (TaskIdMap*)p;
+    p->field_0     = 0;
+    p->field_2     = 0;
+    p->field_4     = 0;
+    p->field_6     = 1;
+    p->field_8     = 0;
     func_800EA478(0x60053, 0, 0, 0);
 
     D_80115758  = 0;
@@ -81,7 +81,7 @@ void func_800E9CC8(Task* arg0)
     D_80115738  = 0;
     D_80115724  = 0;
     arg0->state++;
-    func_800EA3EC();
+    Gp_InitRoomCoords();
 
     switch (Game_Session->field_7) {
         case 1:
@@ -107,35 +107,35 @@ void func_800E9CC8(Task* arg0)
     Task_Spawn(6, 0x80000007, 0, 0);
 }
 
-void func_800E9EFC(void)
+void Gp_TickState1C(void)
 {
     GpState1C*  p;
     GpStateF0*  q;
     GpStateC08* r;
     s16         temp;
 
-    if (D_80115740->field_0 <= 0) {
-        D_80115740->field_0 = 0;
+    if (Gp_State1C->field_0 <= 0) {
+        Gp_State1C->field_0 = 0;
     }
-    if (D_80115740->field_2 <= 0) {
-        D_80115740->field_2 = 0;
+    if (Gp_State1C->field_2 <= 0) {
+        Gp_State1C->field_2 = 0;
     }
-    temp = D_80115740->field_16;
-    if ((temp == 1) && (D_801153F0.field_0 != temp)) {
+    temp = Gp_State1C->field_16;
+    if ((temp == 1) && (Gp_StateF0.field_0 != temp)) {
         SndEvt_EnqueueType7(0xFF0D, 1);
-        D_80115740->field_2 = 0;
+        Gp_State1C->field_2 = 0;
     }
-    p           = D_80115740;
-    q           = &D_801153F0;
+    p           = Gp_State1C;
+    q           = &Gp_StateF0;
     p->field_16 = q->field_0;
     p->field_4  = q->field_4 | (p->field_1A & 0x100);
     p->field_E  = q->field_4 | (p->field_1A & 0x180);
     p->field_1A = 0;
     if (!(p->field_4 & 1)) {
-        func_800EA3B4();
+        Gp_DecRoomCoordRefs();
     }
-    if (D_80115740->field_E >= 4) {
-        r           = &D_80114C08;
+    if (Gp_State1C->field_E >= 4) {
+        r           = &Gp_StateC08;
         r->field_10 = 0;
         r->field_C  = 0;
         r->field_12 = 0;
@@ -183,10 +183,10 @@ s32 func_800EA02C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1)
         arg1->workm.t[0] = block->dir.vx;
         arg1->workm.t[1] = block->dir.vy;
         arg1->workm.t[2] = block->dir.vz;
-        func_800A8864(world, &arg1->workm, &arg1->coord);
+        Gp_WorldToLocal(world, &arg1->workm, &arg1->coord);
         arg1->sub = (GsCOORDINATE2*)((u8*)world - OFFSET_OF(GsCOORDINATE2, workm));
         arg1->flg = 0;
-        func_80098F58(arg1);
+        Gp_UpdateCoord(arg1);
     }
     *scratch = (u8*)*scratch + 0x10;
     return ret;
@@ -252,15 +252,15 @@ s32 func_800EA318(s16 arg0, s16 arg1, s16 arg2)
 
 void func_800EA3A0(s32 arg0)
 {
-    D_80115740->field_C = arg0 + 1;
+    Gp_State1C->field_C = arg0 + 1;
 }
 
-void func_800EA3B4(void)
+void Gp_DecRoomCoordRefs(void)
 {
     s32        i;
     GpCoord64* p;
 
-    p = D_80114F30;
+    p = Gp_RoomCoords;
     for (i = 0; i < 8; i++) {
         if (p->field_0 != 0) {
             p->field_0--;
@@ -269,12 +269,12 @@ void func_800EA3B4(void)
     }
 }
 
-void func_800EA3EC(void)
+void Gp_InitRoomCoords(void)
 {
     s32        i;
     GpCoord64* p;
 
-    p = D_80114F30;
+    p = Gp_RoomCoords;
     for (i = 0; i < 8; i++) {
         p->coord.sub = &D_80070F10;
         p->field_0   = 0;
@@ -292,7 +292,7 @@ void func_800EA420(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8_9CC8", func_800EA478);
 
-void func_800EA858(u8* arg0, s32 arg1)
+void Gp_DrawFadeQuad(u8* arg0, s32 arg1)
 {
     POLY_F4*  p;
     DR_TPAGE* dr;
@@ -342,14 +342,14 @@ INCLUDE_ASM("gameplay/nonmatchings/3CD8_9CC8", func_800EBF18);
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8_9CC8", func_800EC47C);
 
-void func_800EC674(Task* arg0)
+void Gp_FadeWaveTask(Task* arg0)
 {
     GpState1C* p;
     GpEffWork* mem;
     u16        color;
     u8         rgb[3];
 
-    p   = D_80115740;
+    p   = Gp_State1C;
     mem = arg0->spawnArg2;
     if (p->field_18 != arg0->spawnArg1) {
         p->field_0--;
@@ -361,42 +361,42 @@ void func_800EC674(Task* arg0)
     mem->field_24 += 0x180;
     mem->field_26  = rsin(mem->field_24) >> 5;
     if (arg0->spawnArg1 != 0) {
-        color  = D_80111EC0[(cln(arg0->spawnArg1 << 12) / 2839) & 7];
+        color  = Gp_FadeQuadColors[(cln(arg0->spawnArg1 << 12) / 2839) & 7];
         rgb[0] = (mem->field_26 * ((color >> 8) & 0xF)) >> 3;
         rgb[1] = (mem->field_26 * ((color >> 4) & 0xF)) >> 3;
         rgb[2] = (mem->field_26 * (color & 0xF)) >> 3;
-        func_800EA858(rgb, color >> 12);
+        Gp_DrawFadeQuad(rgb, color >> 12);
     }
     if (mem->field_24 >= 0x700) {
-        D_80115740->field_0--;
+        Gp_State1C->field_0--;
         Mem_Free(mem);
         Task_Kill(arg0);
     }
 }
 
-void func_800EC7E4(void* arg0, Task* arg1)
+void Gp_ReleaseState1CMem(void* arg0, Task* arg1)
 {
-    D_80115740->field_0--;
+    Gp_State1C->field_0--;
     Mem_Free(arg0);
     Task_Kill(arg1);
 }
 
-void func_800EC824(Task* arg0)
+void Gp_KillState1CTask(Task* arg0)
 {
     void* mem;
 
     mem = arg0->spawnArg2;
-    D_80115740->field_0--;
+    Gp_State1C->field_0--;
     Mem_Free(mem);
     Task_Kill(arg0);
 }
 
-void func_800EC868(void)
+void Gp_PulseState1C(void)
 {
-    D_80115740->field_1A |= 0x100;
+    Gp_State1C->field_1A |= 0x100;
 }
 
-void func_800EC888(P_TAG* arg0, s32 arg1, s32 arg2)
+void Gp_AddTpage(P_TAG* arg0, s32 arg1, s32 arg2)
 {
     DR_TPAGE* p;
 
@@ -408,7 +408,7 @@ void func_800EC888(P_TAG* arg0, s32 arg1, s32 arg2)
     addPrim(Gpu_CurrentOt + (arg2 >> 4), p);
 }
 
-void func_800EC914(P_TAG* arg0, s32 arg1, s32 arg2)
+void Gp_AddTpageShift(P_TAG* arg0, s32 arg1, s32 arg2)
 {
     DR_TPAGE* p;
 
@@ -422,14 +422,14 @@ void func_800EC914(P_TAG* arg0, s32 arg1, s32 arg2)
 
 void func_800EC9C8(void)
 {
-    if (!(D_80115740->field_10 & 1)) {
+    if (!(Gp_State1C->field_10 & 1)) {
         func_800EA478(0x800600E8, 0, 0, 0);
     }
 }
 
-void func_800ECA10(s32 arg0)
+void Gp_SetState1CPe(s32 arg0)
 {
-    D_80115740->field_18 = (u8)arg0;
+    Gp_State1C->field_18 = (u8)arg0;
     func_800EA478(0x8006000F, 0, (u8)arg0, 0);
 }
 
@@ -437,7 +437,7 @@ void func_800ECA54(void)
 {
     GpState1C* p;
 
-    p = D_80115740;
+    p = Gp_State1C;
     if (!(p->field_10 & 0x80)) {
         p->field_12 &= 0xF7FF;
         func_800EA478(0x8006000E, 0, 0, 0);

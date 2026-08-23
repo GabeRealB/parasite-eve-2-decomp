@@ -41,6 +41,7 @@ options:
   section_order: [".rodata", ".text", ".data", ".sdata", ".sbss", ".bss"]
   symbol_addrs_path:
     - configs/USA/sym.main.txt
+    - configs/USA/sym.main.imports.txt
   reloc_addrs_path:
     - configs/USA/rel.main.txt
 

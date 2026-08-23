@@ -73,7 +73,7 @@ STATIC_ASSERT_SIZEOF(McItemRec, 0x4);
 
 /// 8-byte save-inventory slot (`Mc_SaveData.field_1C8` / `field_5C8`).
 /// field_0/field_2 are item ids; field_1/field_3 are the matching counts
-/// (`func_800BAFF4`). field_4 is word-cleared by `func_800BBE54`.
+/// (`Gp_CountEquippedRelated`). field_4 is word-cleared by `Gp_ResetAuxSlots`.
 typedef struct _McItemSlot {
     /* 0x0 */ u8  field_0;
     /* 0x1 */ u8  field_1;
@@ -93,7 +93,7 @@ typedef struct _McItemScan {
 STATIC_ASSERT_SIZEOF(McItemScan, 0x4);
 
 /// 0xC-byte saved object pose. 32 of these occupy `Mc_SaveData.field_28`
-/// (`func_800B48FC`). `field_3 == 0` is empty; a non-zero value is copied
+/// (`Gp_SaveEnemyPose`). `field_3 == 0` is empty; a non-zero value is copied
 /// from `GpEnemy.field_4B`. `field_A` is the object id (`GpEnemy.field_8`).
 /// `field_4` / `field_6` / `field_8` are signed world XYZ (low 16 bits of
 /// `GsCOORDINATE2.coord.t`). `field_0` / `field_1` / `field_2` are packed
@@ -128,14 +128,14 @@ typedef struct _McSaveData {
     /* 0x009 */ u8         field_9;
     /* 0x00A */ byte       unknown_A[0x2];
     /* 0x00C */ u16        field_C;
-    /* 0x00E */ s8         field_E;  // *2/5 scale for D_8011398C[i].field[0] (func_800D50D4)
-    /* 0x00F */ s8         field_F;  // *4/5 scale for D_8011398C[i].field[0] (func_800D50D4)
-    /* 0x010 */ u8         field_10; // init bitmask; bit 0 = global init (func_800AB980)
+    /* 0x00E */ s8         field_E;  // *2/5 scale for Gp_IdParamHi[i].field[0] (func_800D50D4)
+    /* 0x00F */ s8         field_F;  // *4/5 scale for Gp_IdParamHi[i].field[0] (func_800D50D4)
+    /* 0x010 */ u8         field_10; // init bitmask; bit 0 = global init (Gp_InitStageVisit)
     /* 0x011 */ byte       unknown_11;
     /* 0x012 */ u8         field_12;
-    /* 0x013 */ s8         field_13; // 1-based index into D_80113360
-    /* 0x014 */ s32        field_14; // Wip_SysConfig.field_8 (`func_800BB9B8`)
-    /* 0x018 */ s32        field_18; // Wip_SysConfig.field_C (`func_800BB9B8`)
+    /* 0x013 */ s8         field_13; // 1-based index into Gp_AllyIdBase
+    /* 0x014 */ s32        field_14; // Wip_SysConfig.field_8 (`Gp_SavePlayerPos`)
+    /* 0x018 */ s32        field_18; // Wip_SysConfig.field_C (`Gp_SavePlayerPos`)
     /* 0x01C */ u16        field_1C;
     /* 0x01E */ u16        field_1E;
     /* 0x020 */ byte       unknown_20[0x1];
@@ -144,8 +144,8 @@ typedef struct _McSaveData {
     /* 0x023 */ s8         field_23;
     /* 0x024 */ byte       unknown_24[0x1];
     /* 0x025 */ u8         field_25;
-    /* 0x026 */ u8         field_26; // unsigned addend for Wip_SysConfig.field_1a (func_800BC0C0); +5 in func_800B9B40
-    /* 0x027 */ u8         field_27; // unsigned addend for Wip_SysConfig.field_1e (func_800B7930); +1 in func_800B996C
+    /* 0x026 */ u8         field_26; // unsigned addend for Wip_SysConfig.field_1a (Gp_RecalcMaxHp); +5 in Gp_UiBoostHp
+    /* 0x027 */ u8         field_27; // unsigned addend for Wip_SysConfig.field_1e (Gp_RecalcMaxMp); +1 in Gp_UiBoostMp
     /* 0x028 */ McPosRec   field_28[0x20];
     /* 0x1A8 */ s8         field_1a8;
     /* 0x1A9 */ s8         field_1a9;
@@ -162,18 +162,18 @@ typedef struct _McSaveData {
     /* 0x5C4 */ byte       unknown_5C4;
     /* 0x5C5 */ s8         field_5C5;
     /* 0x5C6 */ byte       unknown_5C6[0x1];
-    /* 0x5C7 */ s8         field_5C7;       // addend for D_80113360 lookup
-    /* 0x5C8 */ McItemSlot field_5C8[0x20]; // inited by func_800BBE54; index 0x1A gets field_2=0
+    /* 0x5C7 */ s8         field_5C7;       // addend for Gp_AllyIdBase lookup
+    /* 0x5C8 */ McItemSlot field_5C8[0x20]; // inited by Gp_ResetAuxSlots; index 0x1A gets field_2=0
     /* 0x6C8 */ u16        field_6C8;
     /* 0x6CA */ u16        field_6CA;
     /* 0x6CC */ u16        field_6CC;         // capped at 9999; incremented by func_800A110C on spawnArg1 == 0
     /* 0x6CE */ u16        field_6CE;         // capped at 9999; incremented by func_800A110C on spawnArg1 != 0
-    /* 0x6D0 */ s32        field_6D0[0x60];   // bit flags; func_800BB7C0 sets/clears bit id for id < 0x180; func_800BC06C tests; func_800BBF84 clears all 96 words
+    /* 0x6D0 */ s32        field_6D0[0x60];   // bit flags; Gp_SetItemSeenBit sets/clears bit id for id < 0x180; Gp_HasItemSeenBit tests; Gp_InitItemSeenBits clears all 96 words
     /* 0x850 */ u8         unknown_850[0x20]; // 3-byte rows; func_800D27E8 indexes [spawnArg1*3 + slot]
     /* 0x870 */ u16        field_870;         // capped at 9999; incremented by func_800CB33C
     /* 0x872 */ byte       unknown_872[0x16];
     /* 0x888 */ s32        field_888[0x20];   // 1-based counters; cap 0x1869E (func_80106518)
-    /* 0x908 */ s8         field_908[0x20];   // signed addend for item ids 0x60–0x7F (func_800BC324)
+    /* 0x908 */ s8         field_908[0x20];   // signed addend for item ids 0x60–0x7F (Gp_GetModLevel)
     /* 0x928 */ byte       unknown_928[0x1];
     /* 0x929 */ s8         field_929;
     /* 0x92A */ byte       unknown_92A[0x12];

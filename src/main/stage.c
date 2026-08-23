@@ -189,7 +189,7 @@ Task* Display_SpawnFromMode(void)
         if (flag) {
             func_801011D0((GsCOORDINATE2*)ptr, obj->field_90, 6, &obj->field_930);
         }
-        func_800E1A6C(&obj->field_17C);
+        Gp_ClearRec18Occupied(&obj->field_17C);
         *ptr = 0;
     block_case13:
         Stage_Ctx->field_15 = 1;
@@ -222,7 +222,7 @@ block_default:
     if (flag) {
         func_801011D0((GsCOORDINATE2*)ptr, obj->field_90, 6, &obj->field_930);
     }
-    func_800E1A6C(&obj->field_17C);
+    Gp_ClearRec18Occupied(&obj->field_17C);
     *ptr = 0;
 
 block_end:
@@ -261,7 +261,7 @@ void Display_TransitionTask(Task* arg0)
                     Mem_InitAux();
                     Mc_SaveData.field_4 = Game_Session->field_4;
                     Pad_SetCooldown(0);
-                    func_800A8DC0(2);
+                    Gp_SpawnCurView(2);
                     Game_Session->field_4D = 0;
                     Task_Spawn(0, 0x1E, 2, 0);
                 } else {
@@ -367,12 +367,12 @@ void Display_FlipOtAndDispatch(s32 arg0)
             Task_ExecDefaultList(&Task_DefaultList);
             break;
         case 2:
-            func_800AC688();
+            Gp_LinkViewSprts();
             func_8009850C(&Gpu_OtBuffers[temp->field_114]);
             break;
         case 1:
             Task_ExecListFiltered(&Task_DefaultList, 0x62);
-            func_800AC688();
+            Gp_LinkViewSprts();
             func_80097AC0(&Gpu_OtBuffers[temp->field_114]);
             break;
     }
@@ -721,7 +721,7 @@ void Display_TaskLoadStep(Task* arg0)
     block_3:
         Mem_ConfigureAuxHeap(Game_Session->field_7, Game_Session->field_6);
         Tmd_AllocMissingBuffers();
-        func_800ACAA8();
+        Gp_AllocSprtLists();
     }
     CdCmd_EnqueueLoadFile(0, 0, 4);
     arg0->state = (s32)(arg0->state + 1);

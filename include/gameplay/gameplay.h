@@ -14,9 +14,9 @@
 
 struct _GpEnemy;
 
-/// 8-byte follow state passed to `func_800A6F38` / `func_800A784C`.
+/// 8-byte follow state passed to `Gp_HudTrackEnemy` / `Gp_HudTrackSlot0`.
 /// `field_0` is the last `GpEnemy` drawn; `field_4` / `field_6` are the
-/// previous screen X/Y that `func_800A6F38` lerps toward 0x6A, -0x35
+/// previous screen X/Y that `Gp_HudTrackEnemy` lerps toward 0x6A, -0x35
 /// (or -0x64 when `func_800B9D80(0x100000)` is 0).
 typedef struct _GpHudTrack {
     /* 0x0 */ struct _GpEnemy* field_0;
@@ -25,7 +25,7 @@ typedef struct _GpHudTrack {
 } GpHudTrack;
 STATIC_ASSERT_SIZEOF(GpHudTrack, 8);
 
-/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_800A6F38`.
+/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `Gp_HudTrackEnemy`.
 /// `field_14` / `field_16` are the current screen X/Y; `field_18` /
 /// `field_1A` hold the signed deltas before and after `>> 3`.
 typedef struct _GpHudScratch {
@@ -37,7 +37,7 @@ typedef struct _GpHudScratch {
 } GpHudScratch;
 STATIC_ASSERT_SIZEOF(GpHudScratch, 0x1C);
 
-/// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `func_800A8864`.
+/// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `Gp_WorldToLocal`.
 /// `mat` is the transpose of the parent rotation; `vec` is
 /// `child.t - parent.t` before `ApplyMatrixLV` rotates it into dest translation.
 typedef struct _GpRelMatScratch {
@@ -46,7 +46,7 @@ typedef struct _GpRelMatScratch {
 } GpRelMatScratch;
 STATIC_ASSERT_SIZEOF(GpRelMatScratch, 0x30);
 
-/// 0x48-byte scratch from `G_SCRATCH_HEAD` used by `func_800A70A4`.
+/// 0x48-byte scratch from `G_SCRATCH_HEAD` used by `Gp_UpdateLinkXforms`.
 /// `mat` is the transpose of the player `workm`; `vec` at +0x40 is the
 /// packed SVECTOR that `gte_stsv` / translation add-sub share. The
 /// `stsv` dest pointer is `original_head - 8`, the same address as `vec`.
@@ -57,8 +57,8 @@ typedef struct _GpXformScratch {
 } GpXformScratch;
 STATIC_ASSERT_SIZEOF(GpXformScratch, 0x48);
 
-/// Overlay of a `D_80115268` `GpLinkNode` (embedded at `GpEnemy.node`)
-/// used by `func_800A70A4`. `field_4` is the word at node+4 (same
+/// Overlay of a `Gp_LinkList` `GpLinkNode` (embedded at `GpEnemy.node`)
+/// used by `Gp_UpdateLinkXforms`. `field_4` is the word at node+4 (same
 /// `(flags & 5) == 1` skip as `func_800A4904`). `coord` is
 /// `GpEnemy.field_18`. `src` / `dst` overlay `GpEnemy.field_1C` /
 /// `field_2C`: local XYZ in, player-relative XYZ out.
@@ -72,25 +72,25 @@ typedef struct _GpLinkXform {
 } GpLinkXform;
 STATIC_ASSERT_SIZEOF(GpLinkXform, 0x28);
 
-/// Global at `D_80114C08`. `field_0` is a u16 loaded by many helpers.
+/// Global at `Gp_StateC08`. `field_0` is a u16 loaded by many helpers.
 /// `field_2` is a signed byte (`lb` as splat `D_80114C0A`); `func_800A1F64`
 /// writes the low byte of `func_800A1558(3)`, replacing it with 1 when
 /// that value is <= 0. `field_3` is a signed state byte (`lb`);
 /// `func_80109290` compares it to -2 and `func_80109374` requires 0.
 /// `field_5` is a signed category index (`lb` as splat `D_80114C0D`);
-/// `func_800A1558` uses it to pick a `D_8011398C` row when it is `< 0xC`.
+/// `func_800A1558` uses it to pick a `Gp_IdParamHi` row when it is `< 0xC`.
 /// `field_B` is the same kind of signed index (`lb`); `func_800A1634`
 /// uses `field_5` when its first arg is 1 and `field_B` otherwise.
 /// `field_6` is a flags byte (bit 0 gates `func_800A7DB8` writing
-/// `field_E`; bit 1 is cleared by `func_800A7574` and forces
+/// `field_E`; bit 1 is cleared by `Gp_ResetHudFx` and forces
 /// `func_800A7E5C` to 0 when that function's arg is 0). `field_9` is
 /// cleared by `func_800A1F64`. `field_A` is a signed byte (`lb`, splat
 /// `D_80114C12`); `func_800A7DE0` sets `field_3 = 2` when it is >= 2,
 /// then clears it. `func_80109FC4` loads it unsigned (`lbu`) and skips
 /// the `field_25` bit `0x80` timer when the value is 2 or 3.
-/// `func_800A7574` also zeros `field_A`, `field_C`..`field_F`,
+/// `Gp_ResetHudFx` also zeros `field_A`, `field_C`..`field_F`,
 /// `field_10`/`field_12`/`field_14`, and `field_16`/`field_17`. Those
-/// two bytes are also the item 4 / item 8 gates in `func_800D6170`
+/// two bytes are also the item 4 / item 8 gates in `Gp_ItemIsUnusable`
 /// (`lb`). `func_800A45F0` packs a nibble plus `field_0 % 10` into
 /// `field_C` / `field_D` / `field_F` and stores a table duration in
 /// `field_10` / `field_12` / `field_14`.
@@ -118,10 +118,10 @@ typedef struct _GpStateC08 {
 } GpStateC08;
 STATIC_ASSERT_SIZEOF(GpStateC08, 0x18);
 
-extern GpStateC08 D_80114C08;
+extern GpStateC08 Gp_StateC08;
 
-/// Pair of s32 working copies at `D_80114BE8`. `func_800A7574` (and
-/// `func_800B996C` / `func_800B9B40`) sign-extend `Wip_SysConfig.field_18` /
+/// Pair of s32 working copies at `Gp_HpMpWork`. `Gp_ResetHudFx` (and
+/// `Gp_UiBoostMp` / `Gp_UiBoostHp`) sign-extend `Wip_SysConfig.field_18` /
 /// `field_1c` into `field_0` / `field_4`. Splat also emits `D_80114BEC` at +4.
 typedef struct _GpStateBE8 {
     /* 0x0 */ s32 field_0;
@@ -129,11 +129,11 @@ typedef struct _GpStateBE8 {
 } GpStateBE8;
 STATIC_ASSERT_SIZEOF(GpStateBE8, 0x8);
 
-extern GpStateBE8 D_80114BE8;
-extern s32        D_80114BEC; // splat overlay of D_80114BE8.field_4
+extern GpStateBE8 Gp_HpMpWork;
+extern s32        D_80114BEC; // splat overlay of Gp_HpMpWork.field_4
 
-/// +0xC overlay of the 0x30-byte record `func_8009FEDC` allocates with
-/// `Mem_Calloc(0x30, 0)` and stores at `Task::idMap`. `func_800A7574` is
+/// +0xC overlay of the 0x30-byte record `Gp_InitPlayClock` allocates with
+/// `Mem_Calloc(0x30, 0)` and stores at `Task::idMap`. `Gp_ResetHudFx` is
 /// called with that pointer + 0xC; it writes `field_16 = -1` and clears
 /// `field_18`.
 typedef struct _GpIdMapC {
@@ -158,7 +158,7 @@ typedef struct _GpRec8 {
 STATIC_ASSERT_SIZEOF(GpRec8, 8);
 
 /// 8-byte item-effect row used by `func_800A45F0`. Indexed by
-/// `D_80114C08.field_0 % 10`. `field_6` is loaded `lhu` into
+/// `Gp_StateC08.field_0 % 10`. `field_6` is loaded `lhu` into
 /// `GpStateC08.field_10` / `field_12` / `field_14`.
 typedef struct _GpItemRec8 {
     /* 0x0 */ u16 pad_0[3];
@@ -170,10 +170,10 @@ extern GpItemRec8 D_80113DC8[];
 extern GpItemRec8 D_80113E10[];
 extern GpItemRec8 D_80113E28[];
 
-/// 0x30-byte play-clock work `func_8009FEDC` stores at `Task::idMap`.
+/// 0x30-byte play-clock work `Gp_InitPlayClock` stores at `Task::idMap`.
 /// `field_0` / `field_4` are `Mc_SaveData.field_C` split into minutes and
 /// seconds. `field_8` snapshots `Display_State.field_4`. `extra` is the
-/// +0xC overlay passed to `func_800A7574`.
+/// +0xC overlay passed to `Gp_ResetHudFx`.
 typedef struct _GpIdMap30 {
     /* 0x00 */ s32     field_0;
     /* 0x04 */ s32     field_4;
@@ -195,29 +195,29 @@ STATIC_ASSERT_SIZEOF(GpStateBD8, 0x4);
 
 extern GpStateBD8 D_80114BD8;
 
-/// 0x24-byte camera/view record in tables pointed to by `D_8010CB2C`.
-/// Indexed 1-based by `func_800AD284()`. `mtx` rotation is copied to
-/// `D_80070E44` and translation to `D_80070F28` by `func_800A8724` /
-/// `func_800A8A48` / `func_800A8C74`; `field_20` is `lhu` into
+/// 0x24-byte camera/view record in tables pointed to by `Gp_ViewTables`.
+/// Indexed 1-based by `Gp_GetViewIndex()`. `mtx` rotation is copied to
+/// `D_80070E44` and translation to `D_80070F28` by `Gp_LoadStageView` /
+/// `Gp_ApplyView` / `Gp_ApplyViewTask`; `field_20` is `lhu` into
 /// `Display_State.field_110` and `lw` into GTE H (`gte_SetGeomScreen`).
-typedef struct _GpCb2CRec {
+typedef struct _GpViewRec {
     /* 0x00 */ MATRIX mtx;
     /* 0x20 */ u32    field_20;
-} GpCb2CRec;
-STATIC_ASSERT_SIZEOF(GpCb2CRec, 0x24);
+} GpViewRec;
+STATIC_ASSERT_SIZEOF(GpViewRec, 0x24);
 
-/// Per-stage wrapper. `field_0` is an array of `GpCb2CRec*`, indexed by
+/// Per-stage wrapper. `field_0` is an array of `GpViewRec*`, indexed by
 /// `GameSession.field_6 - 1` / `GameSessionFrom4.field_2 - 1`.
-typedef struct _GpCb2CTbl {
-    /* 0x0 */ GpCb2CRec** field_0;
-} GpCb2CTbl;
+typedef struct _GpViewTbl {
+    /* 0x0 */ GpViewRec** field_0;
+} GpViewTbl;
 
 /// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
-extern GpCb2CTbl* D_8010CB2C[];
+extern GpViewTbl* Gp_ViewTables[];
 
 /// `GsCOORDINATE2` overlay embedded in `GpDisp2d` at +0x10. Same 0x50 layout
 /// as libgs, but offset 0x44 (`param` / first half of `super`) is an `SVECTOR`
-/// of zeros written by `func_80099098`. `sub` is still the parent coordinate
+/// of zeros written by `Gp_AttachDisp2d`. `sub` is still the parent coordinate
 /// (`&D_80070F10`).
 typedef struct _GpDisp2dCoord {
     /* 0x00 */ u32            flg;
@@ -228,7 +228,7 @@ typedef struct _GpDisp2dCoord {
 } GpDisp2dCoord;
 STATIC_ASSERT_SIZEOF(GpDisp2dCoord, 0x50);
 
-/// 0x60-byte spawnType-2 extra (`Mem_Calloc` in `func_80099098`, fail string
+/// 0x60-byte spawnType-2 extra (`Mem_Calloc` in `Gp_AttachDisp2d`, fail string
 /// `"new_disp_2d ----> NULL"`). Linked onto `Tmd_ListAlt`. `field_8` points at
 /// the embedded coord; `field_C` is stored as a word 1.
 typedef struct _GpDisp2d {
@@ -240,8 +240,8 @@ typedef struct _GpDisp2d {
 } GpDisp2d;
 STATIC_ASSERT_SIZEOF(GpDisp2d, 0x60);
 
-/// 4-byte recorded pad pair in the demo/replay stream at `D_80114C38`.
-/// `func_8009FD74` copies `buttons` into `PadScratch` and counts `duration`
+/// 4-byte recorded pad pair in the demo/replay stream at `Gp_ReplayCursor`.
+/// `Gp_ApplyPadReplay` copies `buttons` into `PadScratch` and counts `duration`
 /// frames before advancing. `0xFFFF` buttons is the end marker.
 typedef struct _GpPadReplay {
     /* 0x0 */ u16 buttons;
@@ -250,18 +250,27 @@ typedef struct _GpPadReplay {
 STATIC_ASSERT_SIZEOF(GpPadReplay, 0x4);
 
 /// Current replay buttons / remaining frame count / stream cursor.
-extern u16          D_80114C02;
-extern u16          D_80114C04;
+extern u16          Gp_ReplayButtons;
+extern u16          Gp_ReplayFramesLeft;
 /// Word cleared by `func_800A1F64`; `func_800A2F60` increments and tests it.
 extern s32          D_80114C34;
-extern GpPadReplay* D_80114C38;
+extern GpPadReplay* Gp_ReplayCursor;
 
-void func_80098F58(GsCOORDINATE2* arg0);
-void func_80098F98(GsCOORDINATE2* arg0, s32 arg1);
-Task* func_8009988C(GsCOORDINATE2* arg0);
-void func_8009FD74(s32 arg0, PadScratch* arg1);
-void func_8009FEDC(Task* task);
-void func_800A0094(Task* task);
+void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+void Gp_UpdateCoordEx(GsCOORDINATE2* arg0, s32 arg1);
+void* Gp_AttachTmd(Task* task, TmdSource* src);
+void* Gp_AttachDisp2d(Task* task);
+void* Gp_AttachTmdFlags(Task* task, TmdSource* src, s32 flags);
+void Gp_UnlinkTmd(TmdListHead* arg0);
+void Gp_FreeTmd(TmdObject* arg0);
+void Gp_UnlinkDisp2d(TmdListHead* arg0);
+void Gp_FreeDisp2d(void* arg0);
+void Gp_StashTmdLists(void);
+void Gp_RestoreTmdLists(void);
+Task* Gp_FindTaskByCoord(GsCOORDINATE2* arg0);
+void Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1);
+void Gp_InitPlayClock(Task* task);
+void Gp_TickPlayClock(Task* task);
 void func_800A110C(Task* arg0);
 u16  func_800A1558(s32 arg0);
 void func_800A1634(s32 arg0, GpIdMapC* arg1);
@@ -270,29 +279,30 @@ s32  func_800A1CD0(s32 arg0);
 void func_800A1F64(s32 arg0);
 void func_800A3AF0(GpIdMapC* arg0);
 void func_800A7320(s16* arg0);
-u8*  func_800A746C(void);
-s32  func_800A74C4(void);
-void func_800A7574(GpIdMapC* arg0);
-s32  func_800A7B20(s32 arg0);
-s32  func_800A7BBC(s32 arg0, s32 arg1);
-void func_800A6F38(struct _GpEnemy* arg0, GpHudTrack* arg1);
-void func_800A70A4(void);
-void func_800A784C(GpHudTrack* arg0);
-void func_800A78EC(void);
+u8*  Gp_GetAttachLevels(void);
+s32  Gp_IsDebugAttachRoom(void);
+void Gp_ResetHudFx(GpIdMapC* arg0);
+s32  Gp_GetAttachLevel(s32 arg0);
+s32  Gp_StepAttachSlot(s32 arg0, s32 arg1);
+void Gp_HudTrackEnemy(struct _GpEnemy* arg0, GpHudTrack* arg1);
+void Gp_UpdateLinkXforms(void);
+void Gp_HudTrackSlot0(GpHudTrack* arg0);
+void Gp_EnqueueAttach7Cd(void);
 void func_800A7A64(void);
 void func_800A7DB8(s32 arg0);
 void func_800A7DE0(void);
 s32  func_800A7E5C(s32 arg0);
 void func_800A8654(Task* task);
-void func_800A8724(void);
-void func_800A8864(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
-void func_800A8A48(GpCb2CRec* arg0);
-void func_800A8B14(void);
-void func_800A8B6C(void);
-GpCb2CRec* func_800A8C08(GameSessionFrom4* arg0);
-void func_800A8C74(Task* task);
+void Gp_LoadStageView(void);
+void Gp_WorldToLocal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2);
+s32 Gp_TrySpawnViewTask(s32 arg0);
+void Gp_ApplyView(GpViewRec* arg0);
+void Gp_ResetView(void);
+void Gp_SpawnViewTasks(void);
+GpViewRec* Gp_GetStageView(GameSessionFrom4* arg0);
+void Gp_ApplyViewTask(Task* task);
 void func_800A8D5C(void);
-void func_800A8DC0(s32 arg0);
+void Gp_SpawnCurView(s32 arg0);
 void func_800A8E8C(Task* task);
 void func_800A9010(Task* task);
 void func_800A91CC(Task* task);

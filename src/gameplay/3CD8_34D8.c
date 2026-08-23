@@ -6,9 +6,9 @@
 #include "main/gameflag.h"
 #include "main/session.h"
 
-extern s32* D_801156A0;
+extern s32* Gp_CapCmds;
 
-void func_800E34D8(s32 arg0, s16 arg1)
+void Gp_RunCapCmd(s32 arg0, s16 arg1)
 {
     register GpCapCmd* rec asm("s2");
     s32                flagId;
@@ -16,11 +16,11 @@ void func_800E34D8(s32 arg0, s16 arg1)
     s32                i;
 
     for (;;) {
-        rec    = (GpCapCmd*)D_801156A0[arg0];
+        rec    = (GpCapCmd*)Gp_CapCmds[arg0];
         flagId = rec->field_3 | (rec->field_7 << 8);
         switch (rec->field_0) {
             case 0:
-                func_800E6C70(arg0, arg1, 0);
+                Gp_StartCapSlot(arg0, arg1, 0);
                 return;
             case 1:
                 if (rec->field_1 & 2) {
@@ -34,7 +34,7 @@ void func_800E34D8(s32 arg0, s16 arg1)
                         continue;
                     }
                 }
-                func_800E6C70(arg0, arg1, val);
+                Gp_StartCapSlot(arg0, arg1, val);
                 if ((val < rec->field_2) || (rec->field_1 & 4)) {
                     val++;
                 } else if (rec->field_1 & 1) {
@@ -47,19 +47,19 @@ void func_800E34D8(s32 arg0, s16 arg1)
                 }
                 return;
             case 2:
-                func_800E6C70(arg0, arg1, GameFlag_GetNibble(flagId));
+                Gp_StartCapSlot(arg0, arg1, GameFlag_GetNibble(flagId));
                 return;
             case 3:
-                func_800AC464(Game_GetPtrSlot(7), 0x13F0, arg0, 0);
+                Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F0, arg0, 0);
                 return;
             case 4:
                 i   = 0;
                 val = i;
                 if (rec->field_6 != 0) {
                     do {
-                        if (func_800BB470(rec->field_5 + i) == 0 ||
-                            func_800BB470(rec->field_5 + i) == 1 ||
-                            func_800BB470(rec->field_5 + i) == 3) {
+                        if (Gp_GetCurBit2Flag(rec->field_5 + i) == 0 ||
+                            Gp_GetCurBit2Flag(rec->field_5 + i) == 1 ||
+                            Gp_GetCurBit2Flag(rec->field_5 + i) == 3) {
                             val++;
                         }
                         i++;
@@ -71,7 +71,7 @@ void func_800E34D8(s32 arg0, s16 arg1)
                         continue;
                     }
                 }
-                func_800E6C70(arg0, arg1, val);
+                Gp_StartCapSlot(arg0, arg1, val);
                 return;
         }
         return;

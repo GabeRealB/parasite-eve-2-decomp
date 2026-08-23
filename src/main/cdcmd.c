@@ -679,7 +679,7 @@ void CdCmd_ProcessPhase1(void)
             return;
         case 8:
             if (p->field_242 != 0) {
-                func_800AFA44();
+                Gp_StepCdAudioCmd();
                 return;
             }
             if ((u16)p->field_20E != 0) {
@@ -718,8 +718,8 @@ void CdCmd_ProcessPhase1(void)
                 p->field_50.cmd = 0;
                 p->field_244    = 0;
                 p->field_20E    = 0;
-                func_800B0034(p->field_190->field_16);
-                func_800B00C4();
+                Gp_ApplySndBankMasks(p->field_190->field_16);
+                Gp_RestoreStreamRng();
                 if (p->busy != 0) {
                     p->busy                 = 0;
                     Display_State.field_130 = 0;
@@ -1082,7 +1082,7 @@ void CdCmd_StartOverlay(u16 arg0, u16 arg1, u16 arg2)
     p            = &CdCmd_Queue;
     p->field_1FF = 1;
     p->field_236 = -1;
-    p->field_21A = func_800AF89C(arg0, arg1, arg2, 0);
+    p->field_21A = Gp_FindStreamSlot(arg0, arg1, arg2, 0);
 }
 
 void func_8001D580(void)
@@ -1093,7 +1093,7 @@ void CdCmd_CancelReplaceAndActivate(void)
 {
     CdCmd_Queue.field_50.cmd = 0;
     CdCmd_ActivatePhase1();
-    func_800B00C4();
+    Gp_RestoreStreamRng();
 }
 
 void func_8001D5B4(void)
@@ -1356,7 +1356,7 @@ void CdCmd_Dispatch(void)
                         CdCmd_HandleMount();
                         break;
                     case 8:
-                        func_800AFA44();
+                        Gp_StepCdAudioCmd();
                         break;
                 }
             }

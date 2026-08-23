@@ -176,7 +176,7 @@ void Display_FlipOt(void)
     ot            = Gpu_CurrentOt;
     *ot           = GPU_OT_END_PRIM;
     Gpu_CurrentOt = ot + 0x20;
-    func_800AC688();
+    Gp_LinkViewSprts();
     func_8009850C(&Gpu_OtBuffers[temp->field_114]);
     Gpu_CurrentOt   = saved;
     temp->field_103 = 0;

@@ -49,7 +49,7 @@ typedef struct {
     GpActorFunc funcs[33];
 } GpActorFuncTable33;
 
-/// 0x10-byte spawn argument for `func_8010BAC8` / `func_801036FC`. `field_0`
+/// 0x10-byte spawn argument for `Gp_SpawnAlly` / `Gp_SpawnPlayer`. `field_0`
 /// is copied to `GameActor.field_52`; `field_4` / `field_8` / `field_C` are
 /// copied to the extra coordinate translation.
 typedef struct _GpActorArg {
@@ -61,7 +61,7 @@ typedef struct _GpActorArg {
 } GpActorArg;
 STATIC_ASSERT_SIZEOF(GpActorArg, 0x10);
 
-/// Companion spawn record for `func_801036FC`. `field_0` is copied to
+/// Companion spawn record for `Gp_SpawnPlayer`. `field_0` is copied to
 /// `GameActor.field_93C`. Nonzero `field_2` sets `field_954` to 2.
 typedef struct _GpActorFlags {
     /* 0x0 */ u16  field_0;
@@ -70,7 +70,7 @@ typedef struct _GpActorFlags {
 } GpActorFlags;
 STATIC_ASSERT_SIZEOF(GpActorFlags, 0x4);
 
-/// 0x18-byte record at `GpActorD4.field_88`. `func_8010C1FC` copies `arg1`
+/// 0x18-byte record at `GpActorD4.field_88`. `Gp_BindActorD4` copies `arg1`
 /// into `field_8` / `field_A` / `field_C`, mirrors `field_8` / `field_A`
 /// into `field_0` / `field_2`, stores `arg2` at `field_4`, writes 0x80 to
 /// `field_10` / `field_12`, and points `field_14` at `field_A0`.
@@ -89,8 +89,8 @@ typedef struct _GpActorD4Rec {
 } GpActorD4Rec;
 STATIC_ASSERT_SIZEOF(GpActorD4Rec, 0x18);
 
-/// 0xD4-byte block allocated by `func_8010BAC8` (`Mem_Set` size 0xD4) and
-/// stored at `GameActor.field_910`. `func_8010C1FC` copies a `GsCOORDINATE2`
+/// 0xD4-byte block allocated by `Gp_SpawnAlly` (`Mem_Set` size 0xD4) and
+/// stored at `GameActor.field_910`. `Gp_BindActorD4` copies a `GsCOORDINATE2`
 /// into `field_18`, treats `field_68` as a `GpObj`, fills `field_88`, and
 /// points `field_88.field_14` at `field_A0`. `func_8010BF7C` writes `field_C4`.
 /// `func_8010B79C` writes `field_CD` from `D_80167230[Mc_SaveData.field_5C7]`.
@@ -165,7 +165,7 @@ STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 /// `func_800F9474` fills them from three LCG draws centered on 0. `field_20` is the spawn-wave count
 /// (`func_800FC74C`), the draw-step counter that `func_800FBEBC` increments
 /// every 4 `field_22` ticks and kills at 8, or
-/// `(D_80114C08.field_0 % 10) - 1` (`func_800FB7E4` / `func_800FC0B4`). `field_22` is the step
+/// `(Gp_StateC08.field_0 % 10) - 1` (`func_800FB7E4` / `func_800FC0B4`). `field_22` is the step
 /// counter (`func_800F1364` / `func_800F1A9C` / `func_800F5184` /
 /// `func_800FB7E4` / `func_800FBEBC` / `func_800FC0B4` / `func_800FC74C` / `func_800FC9BC`).
 /// `field_24` is the lifetime (`func_800F1364`, `spawnArg1 >> 16` or 0xC),
@@ -225,7 +225,7 @@ STATIC_ASSERT_SIZEOF(GpEffRec, 4);
 
 extern GpEffRec D_8011291C[];
 
-/// Spawn-id words indexed by the 3-digit packing of `D_80114C08.field_0`
+/// Spawn-id words indexed by the 3-digit packing of `Gp_StateC08.field_0`
 /// `(hundreds-1)*9 + (tens-1)*3 + ones - 1`. `func_800FA7CC` uses this
 /// when `field_3 == 1`, and `D_80112A50` when `field_3 == -1`.
 extern s32 D_80112978[];
@@ -239,8 +239,8 @@ extern u16 D_80112B28[];
 /// `GpEffSpawnArg.field_2 & 3` and stores the halfword in `GpEffWork.field_28`.
 extern u16 D_80112C6C[];
 
-/// Message-handler table stored in `Task::field_24` by `func_80100B78`.
-extern s32 D_80112C88[];
+/// Message-handler table stored in `Task::field_24` by `Gp_InitPlayerWork`.
+extern s32 Gp_PlayerMsgTable[];
 
 /// Overlay of `Task::spawnArg1` for `func_800F75BC` / `func_800FB67C` /
 /// `func_800FBEBC`. `func_800F75BC` uses `field_0 & 0xFFF` as the target
@@ -256,7 +256,7 @@ typedef struct _GpEffSpawnArg {
 STATIC_ASSERT_SIZEOF(GpEffSpawnArg, 4);
 
 /// Record whose word at 0x4 is the id `func_8010B2D4` passes to
-/// `func_800E2438` (and `func_8010B348` passes to `func_800E2CD4`).
+/// `Gp_ScaleDamage` (and `func_8010B348` passes to `Gp_LookupIdField`).
 /// `func_8010B348` also switches on the low 16 bits (2/4 vs 3) before
 /// that call.
 typedef struct _GpIdRec {
@@ -264,7 +264,7 @@ typedef struct _GpIdRec {
     /* 0x4 */ s32  field_4;
 } GpIdRec;
 
-/// Direction argument for `func_80103B88`. `field_0` / `field_8` are the
+/// Direction argument for `Gp_ApplyDirArg`. `field_0` / `field_8` are the
 /// X/Z components passed to `ratan2`. `field_10 == 7` selects the
 /// facing-vs-direction update of `GameActor.field_973`.
 typedef struct _GpDirArg {
@@ -275,9 +275,9 @@ typedef struct _GpDirArg {
     /* 0x10 */ s16  field_10;
 } GpDirArg;
 
-/// Argument for `func_801053A0` / `func_8010C81C`. Same XYZ words as
+/// Argument for `Gp_MoveActorBy` / `Gp_MoveActorByKeep`. Same XYZ words as
 /// `GpDirArg` (added onto `GsCOORDINATE2.coord.t` and passed through to
-/// `func_80103B88`). `field_10` is copied to `GameActor.field_983`.
+/// `Gp_ApplyDirArg`). `field_10` is copied to `GameActor.field_983`.
 /// `field_12 == 0` runs the shared actor-state reset.
 typedef struct _GpMoveArg {
     /* 0x00 */ s32  field_0;
@@ -401,7 +401,7 @@ STATIC_ASSERT_SIZEOF(GpAimRot, 8);
 
 /// 0x6C-byte scratch from `G_SCRATCH_HEAD` used by `func_80102348`.
 /// The first 0x50 bytes are a temp `GsCOORDINATE2`. `delta` is
-/// `func_800DAE50` output minus that coord's translation (computed in
+/// `Gp_GetLockPos` output minus that coord's translation (computed in
 /// place). `rot` is the `SVECTOR` passed to `func_801040A0` (table row
 /// `D_801131B4[Wip_SysConfig.field_21]`). `angle` holds `ratan2` then
 /// the wrapped, clamped yaw delta applied to `GameActor.field_52`.
@@ -418,7 +418,7 @@ STATIC_ASSERT_SIZEOF(GpYawScratch, 0x6C);
 /// 0x84-byte scratch from `G_SCRATCH_HEAD` used by `func_801029D4`,
 /// `func_80102D20`, and `func_80102F10`. The first 0x50 bytes are a
 /// temp `GsCOORDINATE2`. `delta` is lock position minus that coord's
-/// translation; `lock` is `func_800DAE50` output; `rot` is the
+/// translation; `lock` is `Gp_GetLockPos` output; `rot` is the
 /// `SVECTOR` passed to `func_801040A0` (zeros then table row in
 /// `func_801029D4`, table row in `func_80102D20`, zeros in
 /// `func_80102F10`). `angle` holds `ratan2` then the clamped pitch
@@ -438,7 +438,7 @@ typedef struct _GpPitchScratch {
 } GpPitchScratch;
 STATIC_ASSERT_SIZEOF(GpPitchScratch, 0x84);
 
-/// Argument for `func_80105070`. `field_0` / `field_4` / `field_8` are
+/// Argument for `Gp_SetActorDest`. `field_0` / `field_4` / `field_8` are
 /// copied onto `GameActor.field_20` / `field_24` / `field_28`.
 typedef struct _GpVecArg {
     /* 0x0 */ s32 field_0;
@@ -447,7 +447,7 @@ typedef struct _GpVecArg {
 } GpVecArg;
 STATIC_ASSERT_SIZEOF(GpVecArg, 0xC);
 
-/// Optional companion for `func_80105070`. `field_0` / `field_4` are copied
+/// Optional companion for `Gp_SetActorDest`. `field_0` / `field_4` are copied
 /// onto `GameActor.field_93C` / `field_93E`. NULL zeros both halfwords.
 typedef struct _GpOverrideArg {
     /* 0x0 */ u16  field_0;
@@ -458,7 +458,7 @@ STATIC_ASSERT_SIZEOF(GpOverrideArg, 6);
 
 /// Argument for `func_80104F5C`. `field_0` (low 16 bits) is copied onto
 /// `GameActor.field_80`; `field_4` is copied onto `GameActor.field_82`.
-/// Nonzero `field_0` selects anim 0x25, else 0x24, via `func_8010397C`.
+/// Nonzero `field_0` selects anim 0x25, else 0x24, via `Gp_AnimPlayChildSlots`.
 typedef struct _GpFacingArg {
     /* 0x0 */ s32 field_0;
     /* 0x4 */ s16 field_4;
@@ -484,11 +484,11 @@ typedef struct _GpDelayArg {
 /// 0x14-byte argument for `func_80104508` / `func_80104B54` / `func_80104CAC` /
 /// `func_8010C4F0`. `func_80104B54` / `func_80104CAC` copy `field_0` to
 /// `GameActor.field_928`. `func_80104508` / `func_8010C4F0` treat `field_0` as
-/// an index into `D_80112D6C` / `D_80113368` and only reinstall when that
-/// pointer differs. `field_8 == 0` runs `func_801038F8` (plus `func_800B3F84`
+/// an index into `Gp_PlayerAnimBlkTbl` / `Gp_AnimBlkTbl` and only reinstall when that
+/// pointer differs. `field_8 == 0` runs `Gp_AnimResetChildSlots` (plus `func_800B3F84`
 /// in `func_80104B54` / `func_80104CAC`, and in `func_80104508` /
 /// `func_8010C4F0` only on a table miss); otherwise
-/// `func_80103A18(..., field_4, 0 or 1, field_C)`. `field_10` selects
+/// `Gp_AnimPlayChildSlotsEx(..., field_4, 0 or 1, field_C)`. `field_10` selects
 /// `field_983` (7 if nonzero, `0x38` if zero).
 typedef struct _GpAnimArg {
     /* 0x00 */ void* field_0;
@@ -499,15 +499,15 @@ typedef struct _GpAnimArg {
 } GpAnimArg;
 STATIC_ASSERT_SIZEOF(GpAnimArg, 0x14);
 
-/// Animation data pointed to by `D_80112D6C` / `D_80113368` /
-/// `GameActor.field_928`. `func_80105914` and `func_8010C858` copy up to
+/// Animation data pointed to by `Gp_PlayerAnimBlkTbl` / `Gp_AnimBlkTbl` /
+/// `GameActor.field_928`. `Gp_CopyPlayerAnim` and `Gp_CopyAllyAnim` copy up to
 /// 0x20 words onto `field_BC`.
 typedef struct _GpAnimBlk {
     /* 0x00 */ byte pad_0[0xBC];
     /* 0xBC */ s32  field_BC[0x20];
 } GpAnimBlk;
 
-/// Word-copy argument for `func_80105914` / `func_8010C858`. `field_0` is
+/// Word-copy argument for `Gp_CopyPlayerAnim` / `Gp_CopyAllyAnim`. `field_0` is
 /// the source array; `field_4` is the count (must be < 0x21).
 typedef struct _GpCopyArg {
     /* 0x0 */ s32* field_0;
@@ -540,16 +540,16 @@ typedef struct _GpPadEvt {
 STATIC_ASSERT_SIZEOF(GpPadEvt, 0x4);
 
 /// 2-slot table of current actor-work pointers. Slot 0 is the primary
-/// work (set/cleared by `func_80100B78` / `func_80101408`). Walked as a
-/// pair by `func_800DB0D8`, `func_800DAB38`, `func_800DAC54`, and
-/// `func_800DACF8`. `func_800DACAC` assigns `field_90C` on slot 0 only.
-extern GpActorWork* volatile D_80115760[2];
+/// work (set/cleared by `Gp_InitPlayerWork` / `Gp_TeardownSlot0`). Walked as a
+/// pair by `Gp_ClearSlotNodeFlags`, `Gp_UnlinkNode`, `Gp_NodeSlotMask`, and
+/// `Gp_ClearNodeSlots`. `Gp_AssignNodeSlot0` assigns `field_90C` on slot 0 only.
+extern GpActorWork* volatile Gp_ActorSlots[2];
 
-/// Flag byte cleared by `func_800A7DE0` / `func_801036FC`.
+/// Flag byte cleared by `func_800A7DE0` / `Gp_SpawnPlayer`.
 extern u8 D_80115768;
 
-/// Four-entry `Task::state` dispatcher: `func_80100B78`, `func_80100E40`,
-/// `func_801013FC`, `func_80101408`.
+/// Four-entry `Task::state` dispatcher: `Gp_InitPlayerWork`, `func_80100E40`,
+/// `func_801013FC`, `Gp_TeardownSlot0`.
 extern TaskFuncTable4 D_80097848;
 
 /// Four-entry `Task::state` dispatcher: `func_8010B590`, `func_8010B5C0`,
@@ -648,17 +648,17 @@ void func_800FB7E4(Task* arg0);
 void func_800FBEBC(Task* arg0);
 void func_800FC0B4(Task* arg0);
 void func_800FC500(Task* arg0);
-void func_800FC6C0(void);
+void Gp_PulseState1C80(void);
 void func_800FC74C(Task* arg0);
 void func_800FC9BC(Task* arg0);
 void func_800FE41C(Task* arg0);
 void func_801005D8(Task* arg0);
 void func_80100784(struct _GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
 s32  func_801011D0(struct _GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3);
-void func_80100B78(GpActorWork* arg0);
+void Gp_InitPlayerWork(GpActorWork* arg0);
 void func_80100FCC(GpActorWork* arg0, s32 arg1, s32 arg2);
-void func_80101408(GpActorWork* arg0);
-void func_80103874(GpActorWork* arg0);
+void Gp_TeardownSlot0(GpActorWork* arg0);
+void Gp_BindActorAnim(GpActorWork* arg0);
 Task* func_80104258(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// `arg3` is unused; the actor-init caller passes 0 so the `jal` delay
 /// slot of the `field_93A` load is `move a3, a1`.
@@ -676,17 +676,17 @@ void func_80109170(GpActorWork* arg0);
 s32  func_80109290(GpActorWork* arg0);
 void func_8010A1B0(s32 arg0, s32 arg1);
 void func_8010A42C(GpActorWork* arg0, s32 arg1);
-void func_80103B5C(GpActorWork* arg0);
-s32  func_80103B88(GpActorWork* arg0, GpDirArg* arg1);
+void Gp_DetachLinkNode(GpActorWork* arg0);
+s32  Gp_ApplyDirArg(GpActorWork* arg0, GpDirArg* arg1);
 s32  func_80104E00(GpActorWork* arg0, s32 arg1, GpXformArg* arg2);
-s32  func_80105070(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3);
-s32  func_801053A0(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);
+s32  Gp_SetActorDest(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3);
+s32  Gp_MoveActorBy(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);
 s32  func_80105BC4(GpRec18* arg0, struct _GsCOORDINATE2* arg1, struct _GsCOORDINATE2* arg2);
-void func_8010C81C(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);
+void Gp_MoveActorByKeep(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);
 void func_8010B210(GpActorWork* arg0);
-void func_8010C1FC(GpActorWork* arg0, SVECTOR3* arg1, s32 arg2);
+void Gp_BindActorD4(GpActorWork* arg0, SVECTOR3* arg1, s32 arg2);
 s32  func_8010C30C(GpActorWork* arg0);
-Task* func_801036FC(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3);
-Task* func_8010BAC8(GpActorArg* arg0, u16 arg1, s32 arg2, u16* arg3);
+Task* Gp_SpawnPlayer(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3);
+Task* Gp_SpawnAlly(GpActorArg* arg0, u16 arg1, s32 arg2, u16* arg3);
 
 #endif // GAMEPLAY_3FB8_H

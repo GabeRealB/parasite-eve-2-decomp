@@ -40,11 +40,11 @@ case1:
     if (D_8005ED8C != 0) {
         flags_a2 |= 2;
     }
-    extra = func_80099170(task, (TmdSource*)desc->setupArg, flags_a2);
+    extra = Gp_AttachTmdFlags(task, (TmdSource*)desc->setupArg, flags_a2);
     goto merge;
 
 case2:
-    extra = func_80099098(task);
+    extra = Gp_AttachDisp2d(task);
 
 merge:
     if (((u8)desc->flags == 0) || (extra != NULL)) {
@@ -160,7 +160,7 @@ void Task_Kill(Task* arg0)
         return;
 
     case2:
-        func_80099258(arg0->extra);
+        Gp_UnlinkDisp2d(arg0->extra);
         arg0->killCountdown = 1;
         arg0->callback      = (TaskFunc)func_8002DEC4;
         arg0->exitCallback  = (TaskFunc)func_8002DEC4;
@@ -194,12 +194,12 @@ void Task_Kill(Task* arg0)
 
     cu1:
         extra = arg0->extra;
-        func_800991DC(extra);
-        func_80099214(extra);
+        Gp_UnlinkTmd(extra);
+        Gp_FreeTmd(extra);
         goto cu_def;
 
     cu2:
-        func_80099290(arg0->extra);
+        Gp_FreeDisp2d(arg0->extra);
 
     cu_def:
         arg0->spawnType = 0xFF;
@@ -220,13 +220,13 @@ void Task_Kill(Task* arg0)
     goto imm_unlink;
 
 imm1:
-    func_800991DC(arg0->extra);
-    func_80099214(arg0->extra);
+    Gp_UnlinkTmd(arg0->extra);
+    Gp_FreeTmd(arg0->extra);
     goto imm_unlink;
 
 imm2:
-    func_80099258(arg0->extra);
-    func_80099290(arg0->extra);
+    Gp_UnlinkDisp2d(arg0->extra);
+    Gp_FreeDisp2d(arg0->extra);
 
 imm_unlink:
     saved           = Task_ActiveList;
@@ -620,12 +620,12 @@ void Task_CountdownCallback(Task* arg0)
     switch (arg0->spawnType) {
         case 1:
             temp_s0 = arg0->extra;
-            func_800991DC(temp_s0);
-            func_80099214(temp_s0);
+            Gp_UnlinkTmd(temp_s0);
+            Gp_FreeTmd(temp_s0);
             arg0->spawnType = 0xFF;
             break;
         case 2:
-            func_80099290(arg0->extra);
+            Gp_FreeDisp2d(arg0->extra);
             arg0->spawnType = 0xFF;
             break;
         default:

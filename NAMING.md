@@ -41,7 +41,7 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 | `Gpu_` | OT / graph reset helpers | `src/main/otutil.c`, `tmd.c`, `gamemain.c` | `include/main/display.h` |
 | `Boot_` | Cold-boot / title path | `src/main/boot.c` | `include/main/boot.h` |
 | `Title_` | Title / demo / main-menu overlay | `src/title/title.c` | `include/main/title.h` |
-| gameplay | Resident in-game overlay (not yet named) | `src/gameplay/gameplay.c` | `include/gameplay/` (per-TU, e.g. `3A34.h`) |
+| `Gp_` | Resident in-game overlay (actors, view, TMD attach, …) | `src/gameplay/` | `include/gameplay/` (per-TU, e.g. `gameplay.h`, `1BC.h`) |
 | `Mem_` / `GHeap` | Main / aux heaps | `src/main/mem.c` | `include/main/mem.h` |
 | `SndHeap_` | Dedicated 0x3D00 first-fit sound heap | `src/main/sndbank.c` | `include/main/sound.h` |
 | `Task_` | Cooperative task list / spawn / kill | `src/main/task.c` | `include/main/task.h` |

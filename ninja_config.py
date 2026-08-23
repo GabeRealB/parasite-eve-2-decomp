@@ -440,6 +440,82 @@ def fix_title_linker_rodata_order() -> None:
         dest.write_text(text.replace(wrong, right, 1), encoding="utf-8")
 
 
+def append_main_overlay_imports() -> None:
+    """Main TUs call overlay APIs; splat 0.50 omits some as undef funcs.
+
+    Append configs/USA/sym.main.imports.txt onto main's undef scripts and
+    rewrite leftover func_800* overlay entries to the named Gp_/Title_ symbols.
+    """
+    imports = Path("configs/USA/sym.main.imports.txt")
+    fun = Path("linkers/USA/undefined_funcs_auto.main.txt")
+    sym = Path("linkers/USA/undefined_syms_auto.main.txt")
+    if not imports.is_file() or not fun.is_file():
+        return
+    mapping: dict[int, str] = {}
+    extra_fun: list[str] = []
+    extra_sym: list[str] = []
+    for line in imports.read_text(encoding="utf-8").splitlines():
+        m = re.match(r"^(\w+)\s*=\s*(0x[0-9A-Fa-f]+)", line.strip())
+        if not m:
+            continue
+        name, addr_s = m.group(1), m.group(2)
+        addr = int(addr_s, 16)
+        mapping[addr] = name
+        entry = f"{name} = {addr_s};"
+        if "type:func" in line:
+            extra_fun.append(entry)
+        else:
+            extra_sym.append(entry)
+
+    def rewrite(path: Path, extra: list[str]) -> None:
+        lines = path.read_text(encoding="utf-8").splitlines()
+        present = set()
+        out = []
+        for line in lines:
+            m = re.match(r"^(\w+)\s*=\s*(0x[0-9A-Fa-f]+)", line.strip())
+            if m:
+                addr = int(m.group(2), 16)
+                if addr in mapping:
+                    line = f"{mapping[addr]} = {m.group(2)};"
+                    present.add(addr)
+            out.append(line)
+        for entry in extra:
+            m = re.match(r"^(\w+)\s*=\s*(0x[0-9A-Fa-f]+)", entry)
+            addr = int(m.group(2), 16)
+            if addr not in present:
+                out.append(entry)
+                present.add(addr)
+        path.write_text("\n".join(out) + "\n", encoding="utf-8")
+
+    rewrite(fun, extra_fun)
+    if extra_sym and sym.is_file():
+        rewrite(sym, extra_sym)
+
+
+def append_gameplay_aliases() -> None:
+    """Keep overlapping splat aliases that C still references by D_/copy name."""
+    aliases = Path("configs/USA/sym.gameplay.aliases.txt")
+    dest = Path("linkers/USA/undefined_syms_auto.gameplay.txt")
+    if not aliases.is_file() or not dest.is_file():
+        return
+    extra = []
+    for line in aliases.read_text(encoding="utf-8").splitlines():
+        m = re.match(r"^(\w+)\s*=\s*(0x[0-9A-Fa-f]+)", line.strip())
+        if m:
+            extra.append(f"{m.group(1)} = {m.group(2)};")
+    if not extra:
+        return
+    text = dest.read_text(encoding="utf-8")
+    present = set()
+    for line in text.splitlines():
+        m = re.match(r"^(\w+)\s*=", line.strip())
+        if m:
+            present.add(m.group(1))
+    add = [e for e in extra if e.split()[0] not in present]
+    if add:
+        dest.write_text(text.rstrip() + "\n" + "\n".join(add) + "\n", encoding="utf-8")
+
+
 def append_overlay_absolute_imports(basename: str) -> None:
     """splat 0.50 will not put absolute main-exe symbols in overlay undef scripts.
 
@@ -952,6 +1028,7 @@ def main():
         elif yaml == "gameplay.yaml":
             fix_gameplay_linker_rodata_order()
             append_overlay_absolute_imports("gameplay")
+            append_gameplay_aliases()
             fix_overlay_include_asm_paths("gameplay")
         splits_yaml_info.append(
             YamlInfo(
@@ -962,6 +1039,8 @@ def main():
                 split.config["options"]["undefined_syms_auto_path"],
             )
         )
+
+    append_main_overlay_imports()
 
     ninja_build(
         splits_yaml_info,

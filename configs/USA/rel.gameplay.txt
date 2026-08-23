@@ -34,8 +34,8 @@ rom:0x17E38 reloc:MIPS_NONE symbol:CdCmd_Queue
 //--------------------------------------------------------------------
 //--- VA: 0x800BC50C   destHi = 0x80110000; dest = destHi + (s16)0xD62C
 //--------------------------------------------------------------------
-rom:0x28D84 reloc:MIPS_NONE symbol:D_8010D62C
-rom:0x28DB8 reloc:MIPS_NONE symbol:D_8010D62C
+rom:0x28D84 reloc:MIPS_NONE symbol:Gp_MoveScanDst
+rom:0x28DB8 reloc:MIPS_NONE symbol:Gp_MoveScanDst
 
 //--------------------------------------------------------------------
 //--- VA: 0x800C9654   split la of D_8010E9CC (lui in delay of bnez)

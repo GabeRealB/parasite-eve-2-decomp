@@ -30,12 +30,12 @@
 extern TaskDesc       D_80113340[];
 extern GpEffArg       D_80113358;
 extern TaskFuncTable3 D_800977FC;
-extern u16            D_80112D68[];
-extern GpAnimBlk*     D_80112D6C[];
+extern u16            Gp_WeaponIdBase[];
+extern GpAnimBlk*     Gp_PlayerAnimBlkTbl[];
 extern u16            D_80112DF4[];
-extern u16            D_80113360[];
-extern void*          D_80113368[];
-extern s32            D_80070F60;
+extern u16            Gp_AllyIdBase[];
+extern void*          Gp_AnimBlkTbl[];
+extern s32            Gp_LcgState;
 
 s32  func_8010A854(s32 arg0);
 void func_80101848(GpActorWork* arg0);
@@ -45,17 +45,17 @@ void func_80102348(GpActorWork* arg0, s32 arg1);
 void func_80102634(GpActorWork* arg0);
 void func_801029D4(GpActorWork* arg0);
 void func_80102D20(GpActorWork* arg0, s32 arg1, s32 arg2);
-void func_801038F8(GpActorWork* arg0, s32 arg1);
-void func_8010397C(GpActorWork* arg0, s32 arg1, s32 arg2);
-void func_80103A18(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_80103AC0(GpActorWork* arg0);
+void Gp_AnimResetChildSlots(GpActorWork* arg0, s32 arg1);
+void Gp_AnimPlayChildSlots(GpActorWork* arg0, s32 arg1, s32 arg2);
+void Gp_AnimPlayChildSlotsEx(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
+void Gp_AnimTickChildSlots(GpActorWork* arg0);
 s16  func_80103E7C(s16 arg0, s16 arg1);
 void func_80103F70(GpActorWork* arg0);
 void func_801040A0(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2);
 s32  func_80104B54(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2);
 s32  func_80104E00(GpActorWork* arg0, s32 arg1, GpXformArg* arg2);
-s32  func_80105070(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3);
-s32  func_801053A0(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);
+s32  Gp_SetActorDest(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3);
+s32  Gp_MoveActorBy(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);
 s32  func_801055D4(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  func_80105690(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  func_8010583C(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -108,7 +108,7 @@ void func_800F9474(Task* arg0)
     s32            temp;
 
     mem   = arg0->spawnArg2;
-    flag  = D_80115740->field_4;
+    flag  = Gp_State1C->field_4;
     coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
     if (flag < 4) {
         if (arg0->state == 0) {
@@ -123,24 +123,24 @@ void func_800F9474(Task* arg0)
             mem->field_26     = temp;
             mem->field_28     = temp << 2;
             if (((u16)mem->field_18 | (u16)mem->field_1A | (u16)mem->field_1C) == 0) {
-                D_80070F60    = D_80070F60 * 5 + 0x71357911;
-                mem->field_18 = (((u32)D_80070F60 >> 16) & 0xFFF) - 0x800;
-                D_80070F60    = D_80070F60 * 5 + 0x71357911;
-                mem->field_1A = (((u32)D_80070F60 >> 16) & 0xFFF) - 0x800;
-                D_80070F60    = D_80070F60 * 5 + 0x71357911;
-                mem->field_1C = (((u32)D_80070F60 >> 16) & 0xFFF) - 0x800;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_18 = (((u32)Gp_LcgState >> 16) & 0xFFF) - 0x800;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_1A = (((u32)Gp_LcgState >> 16) & 0xFFF) - 0x800;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_1C = (((u32)Gp_LcgState >> 16) & 0xFFF) - 0x800;
             }
             VectorNormalSS((SVECTOR*)&mem->field_18, (SVECTOR*)&mem->field_10);
         }
-        func_80098F58(coord);
-        if (D_80115740->field_4 != 0) {
+        Gp_UpdateCoord(coord);
+        if (Gp_State1C->field_4 != 0) {
             return;
         }
         if (mem->field_22 < mem->field_28) {
             goto spawn;
         }
     }
-    func_800EC7E4(mem, arg0);
+    Gp_ReleaseState1CMem(mem, arg0);
     return;
 spawn:
     spawned = func_800EA478(0x60055, coord, 0x12200, 0);
@@ -170,29 +170,29 @@ void func_800FA7CC(Task* arg0)
     if (slot == NULL) {
         return;
     }
-    if (D_80115740->field_E >= 4) {
+    if (Gp_State1C->field_E >= 4) {
         return;
     }
-    kind = D_80114C08.field_3;
+    kind = Gp_StateC08.field_3;
     if (kind == 2) {
         return;
     }
-    if ((D_80115740->field_16 != 1) && ((D_80114C08.field_0 / 10U) != 0x20)) {
+    if ((Gp_State1C->field_16 != 1) && ((Gp_StateC08.field_0 / 10U) != 0x20)) {
         return;
     }
     if (kind == -1) {
-        spawnId = D_80112A50[((u16)(D_80114C08.field_0 / 100U) - 1) * 9 +
-                             ((u16)((u16)(D_80114C08.field_0 / 10U) % 10U) - 1) * 3 + kind +
-                             (u16)(D_80114C08.field_0 % 10U)];
+        spawnId = D_80112A50[((u16)(Gp_StateC08.field_0 / 100U) - 1) * 9 +
+                             ((u16)((u16)(Gp_StateC08.field_0 / 10U) % 10U) - 1) * 3 + kind +
+                             (u16)(Gp_StateC08.field_0 % 10U)];
         if (spawnId == 0) {
             return;
         }
         func_800EA478(spawnId, (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8,
-                      D_80114C08.field_2, 0);
+                      Gp_StateC08.field_2, 0);
     } else if (kind == 1) {
-        idx = ((u16)(D_80114C08.field_0 / 100U) - 1) * 9 +
-              ((u16)((u16)(D_80114C08.field_0 / 10U) % 10U) - 1) * 3 - 1;
-        idx    += (u16)(D_80114C08.field_0 % 10U);
+        idx = ((u16)(Gp_StateC08.field_0 / 100U) - 1) * 9 +
+              ((u16)((u16)(Gp_StateC08.field_0 / 10U) % 10U) - 1) * 3 - 1;
+        idx    += (u16)(Gp_StateC08.field_0 % 10U);
         spawnId = D_80112978[idx];
         if (spawnId == 0) {
             return;
@@ -220,11 +220,11 @@ void func_800FB67C(Task* arg0)
     s32            angle;
 
     mem   = arg0->spawnArg2;
-    flag  = D_80115740->field_E;
+    flag  = Gp_State1C->field_E;
     coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
     if (flag != 0) {
         if (flag >= 4) {
-            func_800EC7E4(mem, arg0);
+            Gp_ReleaseState1CMem(mem, arg0);
         }
         return;
     }
@@ -239,7 +239,7 @@ void func_800FB67C(Task* arg0)
         arg0->state   = 1;
     }
 
-    func_80098F58(coord);
+    Gp_UpdateCoord(coord);
     rgb[0] = (mem->field_24 * (((u16)mem->field_28 >> 8) & 0xF)) >> 3;
     rgb[1] = (mem->field_24 * ((u8)mem->field_28 >> 4)) >> 3;
     rgb[2] = (mem->field_24 * ((u16)mem->field_28 & 0xF)) >> 3;
@@ -252,7 +252,7 @@ void func_800FB67C(Task* arg0)
     mem->field_24 = scale;
     mem->field_26 = angle;
     if ((s16)scale < 9) {
-        func_800EC7E4(mem, arg0);
+        Gp_ReleaseState1CMem(mem, arg0);
     }
 }
 
@@ -266,9 +266,9 @@ void func_800FB7E4(Task* arg0)
 
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
-    if (D_80115740->field_E != 0 ||
+    if (Gp_State1C->field_E != 0 ||
         (((GameActorExt*)((Task*)Game_GetPtrSlot(3))->extra)->field_C & 0x80)) {
-        if (D_80115740->field_E < 4) {
+        if (Gp_State1C->field_E < 4) {
             return;
         }
         goto kill;
@@ -279,7 +279,7 @@ void func_800FB7E4(Task* arg0)
         s32 x;
         s32 y;
 
-        D_80115740->field_12 |= 0x400;
+        Gp_State1C->field_12 |= 0x400;
         slot                  = Game_GetPtrSlot(3);
         parent                = (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8;
         coord->coord.t[0]     = 0;
@@ -288,7 +288,7 @@ void func_800FB7E4(Task* arg0)
         coord->flg            = 0;
         coord->sub            = parent + 8;
         arg0->state           = 1;
-        mem->field_20         = (D_80114C08.field_0 % 10U) - 1;
+        mem->field_20         = (Gp_StateC08.field_0 % 10U) - 1;
         __asm__ volatile("" : "+m"(mem->field_20));
         x             = mem->field_20;
         mem->field_26 = 0x20;
@@ -297,39 +297,39 @@ void func_800FB7E4(Task* arg0)
         mem->field_2A = (y << 8) + 0x400;
     }
 
-    func_80098F58(coord);
-    if (D_80115740->field_14 != 0) {
+    Gp_UpdateCoord(coord);
+    if (Gp_State1C->field_14 != 0) {
         rgb[2] = 0xC0;
         rgb[0] = 0xC0;
         rgb[1] = 0x60;
         func_800FBAB0(coord, (s16)((u16)mem->field_28 + 0x80), (s16)((u16)mem->field_20 + 6), rgb);
         func_800EAEB8(coord, mem->field_28, rgb);
         func_800EAEB8(coord, (s16)((u16)mem->field_28 << 1), rgb);
-        D_80115740->field_14 = 0;
+        Gp_State1C->field_14 = 0;
     }
 
-    if (D_80114C08.field_12 == 0) {
+    if (Gp_StateC08.field_12 == 0) {
         goto kill;
     }
-    if (!(D_80115740->field_12 & 0x400)) {
+    if (!(Gp_State1C->field_12 & 0x400)) {
         goto kill;
     }
-    if (D_80115740->field_16 == 1) {
+    if (Gp_State1C->field_16 == 1) {
         goto lcg;
     }
 kill:
-    func_800EC7E4(mem, arg0);
+    Gp_ReleaseState1CMem(mem, arg0);
     return;
 lcg:
-    D_80070F60 = D_80070F60 * 5 + 0x71357911;
-    if (((u32)D_80070F60 >> 16) & 3) {
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    if (((u32)Gp_LcgState >> 16) & 3) {
         return;
     }
-    slot       = Game_GetPtrSlot(3);
-    D_80070F60 = D_80070F60 * 5 + 0x71357911;
+    slot        = Game_GetPtrSlot(3);
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     func_800EA478(0x600F4,
                   (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8 +
-                      ((((u32)D_80070F60 >> 16) & 1) * 3 + 15),
+                      ((((u32)Gp_LcgState >> 16) & 1) * 3 + 15),
                   mem->field_2A | 0x8000, 0);
 }
 
@@ -344,7 +344,7 @@ void func_800FBEBC(Task* arg0)
     s32            y;
 
     mem   = arg0->spawnArg2;
-    flag  = D_80115740->field_E;
+    flag  = Gp_State1C->field_E;
     coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
     if (flag != 0) {
         if (flag >= 4) {
@@ -354,7 +354,7 @@ void func_800FBEBC(Task* arg0)
         if (((GameActorExt*)slot->extra)->field_C & 0x80) {
             return;
         }
-        func_80098F58(coord);
+        Gp_UpdateCoord(coord);
         goto draw_lcg;
     }
 
@@ -362,10 +362,10 @@ void func_800FBEBC(Task* arg0)
     if (arg0->state == 0) {
         mem->field_10 = 0;
         mem->field_14 = 0;
-        D_80070F60    = D_80070F60 * 5 + 0x71357911;
-        mem->field_12 = 0xFFF0 - (((u32)D_80070F60 >> 16) & 0x3F);
-        D_80070F60    = D_80070F60 * 5 + 0x71357911;
-        mem->field_24 = ((u32)D_80070F60 >> 16) & 0xFFF;
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        mem->field_12 = 0xFFF0 - (((u32)Gp_LcgState >> 16) & 0x3F);
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        mem->field_24 = ((u32)Gp_LcgState >> 16) & 0xFFF;
         mem->field_26 = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xFFF;
         arg0->state   = 1;
         mem->field_28 = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xF000;
@@ -374,7 +374,7 @@ void func_800FBEBC(Task* arg0)
     y                 = coord->coord.t[1] + mem->field_12;
     coord->flg        = 0;
     coord->coord.t[1] = y;
-    func_80098F58(coord);
+    Gp_UpdateCoord(coord);
     if ((mem->field_22 & 3) == 0) {
         mem->field_20++;
     }
@@ -383,16 +383,16 @@ void func_800FBEBC(Task* arg0)
     }
     if (mem->field_28 & 0x8000) {
     draw_lcg:
-        D_80070F60 = D_80070F60 * 5 + 0x71357911;
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
         func_800EB2C8(coord, (u16)mem->field_20, mem->field_26,
-                      (u16)mem->field_24 | (((u32)D_80070F60 >> 16) & 0x1000));
+                      (u16)mem->field_24 | (((u32)Gp_LcgState >> 16) & 0x1000));
     } else {
         func_800EB2C8(coord, (u16)mem->field_20, mem->field_26,
                       (u16)mem->field_24 | (u16)mem->field_28);
     }
     return;
 kill:
-    func_800EC7E4(mem, arg0);
+    Gp_ReleaseState1CMem(mem, arg0);
 }
 
 void func_800FC0B4(Task* arg0)
@@ -409,9 +409,9 @@ void func_800FC0B4(Task* arg0)
 
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
-    if (D_80115740->field_E != 0 ||
+    if (Gp_State1C->field_E != 0 ||
         (((GameActorExt*)((Task*)Game_GetPtrSlot(3))->extra)->field_C & 0x80)) {
-        if (D_80115740->field_E < 4) {
+        if (Gp_State1C->field_E < 4) {
             return;
         }
         goto kill;
@@ -421,7 +421,7 @@ void func_800FC0B4(Task* arg0)
     if (arg0->state == 0) {
         s32 x;
 
-        D_80115740->field_12 |= 0x200;
+        Gp_State1C->field_12 |= 0x200;
         slot                  = Game_GetPtrSlot(3);
         parent                = (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8;
         coord->coord.t[0]     = 0;
@@ -430,7 +430,7 @@ void func_800FC0B4(Task* arg0)
         coord->flg            = 0;
         coord->sub            = parent + 1;
         arg0->state           = 1;
-        mem->field_20         = (D_80114C08.field_0 % 10U) - 1;
+        mem->field_20         = (Gp_StateC08.field_0 % 10U) - 1;
         __asm__ volatile("" : "+m"(mem->field_20));
         x             = mem->field_20;
         mem->field_26 = 0x20;
@@ -438,7 +438,7 @@ void func_800FC0B4(Task* arg0)
         mem->field_2A = Wip_SysConfig.field_18;
     }
 
-    func_80098F58(coord);
+    Gp_UpdateCoord(coord);
     mem->field_24 = (u16)mem->field_26 + (((u16)mem->field_22 & 1) << 4);
     col           = mem->field_24;
     rgb[1]        = col;
@@ -447,18 +447,18 @@ void func_800FC0B4(Task* arg0)
     func_800EAEB8(coord, mem->field_28, rgb);
     func_800EAEB8(coord, (s16)((u16)mem->field_28 << 1), rgb);
 
-    if (D_80114C08.field_10 == 0) {
+    if (Gp_StateC08.field_10 == 0) {
         goto kill;
     }
-    if (!(D_80115740->field_12 & 0x200)) {
+    if (!(Gp_State1C->field_12 & 0x200)) {
         goto kill;
     }
-    if (D_80115740->field_16 == 1) {
+    if (Gp_State1C->field_16 == 1) {
         goto continue_fx;
     }
 kill:
     SndEvt_EnqueueType7(0x23, 1);
-    func_800EC7E4(mem, arg0);
+    Gp_ReleaseState1CMem(mem, arg0);
     return;
 continue_fx:
     saved = mem->field_2A;
@@ -474,19 +474,19 @@ continue_fx:
                     Task_Reparent(arg0, spawned->field_0);
                 }
             }
-            temp = (s8)func_800D937C((GpObj38*)coord);
-            SndEvt_EnqueueType6(0xE, temp, (s8)func_800D9340((GpObj38*)coord));
+            temp = (s8)Gp_GetObjPan((GpObj38*)coord);
+            SndEvt_EnqueueType6(0xE, temp, (s8)Gp_GetObjDepth((GpObj38*)coord));
         } else if (mem->field_26 < 0x80) {
             mem->field_26 = 0x80;
         }
     } else {
-        D_80070F60 = D_80070F60 * 5 + 0x71357911;
-        if ((((u32)D_80070F60 >> 16) & 3) == 0) {
-            slot       = Game_GetPtrSlot(3);
-            D_80070F60 = D_80070F60 * 5 + 0x71357911;
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
+            slot        = Game_GetPtrSlot(3);
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             func_800EA478(0x600E0,
                           (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8 +
-                              ((((u32)D_80070F60 >> 16) & 0xF) + 3),
+                              ((((u32)Gp_LcgState >> 16) & 0xF) + 3),
                           0x10080, 0);
         }
     }
@@ -496,15 +496,15 @@ continue_fx:
         return;
     }
     mem->field_26 = (u16)mem->field_26 - 8;
-    D_80070F60    = D_80070F60 * 5 + 0x71357911;
-    if (((u32)D_80070F60 >> 16) & 1) {
+    Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+    if (((u32)Gp_LcgState >> 16) & 1) {
         return;
     }
-    slot       = Game_GetPtrSlot(3);
-    D_80070F60 = D_80070F60 * 5 + 0x71357911;
+    slot        = Game_GetPtrSlot(3);
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
     func_800EA478(0x600E0,
                   (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8 +
-                      ((((u32)D_80070F60 >> 16) & 0xF) + 3),
+                      ((((u32)Gp_LcgState >> 16) & 0xF) + 3),
                   0x10200, 0);
 }
 
@@ -520,18 +520,18 @@ void func_800FC500(Task* arg0)
     u8             rgb[3];
 
     mem   = arg0->spawnArg2;
-    flag  = D_80115740->field_4;
+    flag  = Gp_State1C->field_4;
     coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
     if (flag != 0) {
         if (flag >= 4) {
-            func_800EC7E4(mem, arg0);
+            Gp_ReleaseState1CMem(mem, arg0);
         }
         return;
     }
 
     mem->field_22++;
     if (arg0->state == 0) {
-        D_80115740->field_12 |= 0x800;
+        Gp_State1C->field_12 |= 0x800;
         slot                  = Game_GetPtrSlot(3);
         parent                = (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8;
         one                   = ONE;
@@ -549,28 +549,28 @@ void func_800FC500(Task* arg0)
         arg0->state           = 1;
     }
 
-    func_80098F58(coord);
-    if (D_80115740->field_14 != 0) {
+    Gp_UpdateCoord(coord);
+    if (Gp_State1C->field_14 != 0) {
         rgb[0] = 0xC0;
         rgb[1] = 0x30;
         rgb[2] = 0x60;
         func_800FBAB0(coord, 0x200, 4, rgb);
         func_800EAEB8(coord, 0x180, rgb);
         func_800EAEB8(coord, 0x300, rgb);
-        D_80115740->field_14 = 0;
+        Gp_State1C->field_14 = 0;
     }
 
-    if ((Wip_SysConfig.field_25 & 0x80) && (D_80115740->field_12 & 0x800) &&
-        (D_80115740->field_16 == 1)) {
+    if ((Wip_SysConfig.field_25 & 0x80) && (Gp_State1C->field_12 & 0x800) &&
+        (Gp_State1C->field_16 == 1)) {
         return;
     }
-    D_80115740->field_10 &= ~0x80;
-    func_800EC7E4(mem, arg0);
+    Gp_State1C->field_10 &= ~0x80;
+    Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_800FC6C0(void)
+void Gp_PulseState1C80(void)
 {
-    D_80115740->field_1A |= 0x80;
+    Gp_State1C->field_1A |= 0x80;
 }
 
 void func_800FC6E0(Task* arg0)
@@ -595,25 +595,25 @@ void func_800FC74C(Task* arg0)
     s32            temp;
 
     mem   = arg0->spawnArg2;
-    flag  = D_80115740->field_4;
+    flag  = Gp_State1C->field_4;
     coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
     if (flag != 0) {
         if (flag >= 4) {
             SndEvt_EnqueueType7(0xFF0D, 1);
-            D_80115740->field_2 = 0;
-            func_800EC7E4(mem, arg0);
+            Gp_State1C->field_2 = 0;
+            Gp_ReleaseState1CMem(mem, arg0);
         }
         return;
     }
 
-    func_80098F58(coord);
+    Gp_UpdateCoord(coord);
     switch (arg0->state) {
         case 0:
-            if (D_80115740->field_2 == 0) {
-                temp = (s8)func_800D937C((GpObj38*)coord);
-                SndEvt_EnqueueType6(0xD, temp, (s8)func_800D9340((GpObj38*)coord));
+            if (Gp_State1C->field_2 == 0) {
+                temp = (s8)Gp_GetObjPan((GpObj38*)coord);
+                SndEvt_EnqueueType6(0xD, temp, (s8)Gp_GetObjDepth((GpObj38*)coord));
             }
-            D_80115740->field_2++;
+            Gp_State1C->field_2++;
             arg0->state = 1;
             /* fallthrough */
         case 1:
@@ -640,12 +640,12 @@ void func_800FC74C(Task* arg0)
         case 2:
             mem->field_22++;
             if (mem->field_22 >= 0x65) {
-                D_80115740->field_2--;
-                if (D_80115740->field_2 <= 0) {
+                Gp_State1C->field_2--;
+                if (Gp_State1C->field_2 <= 0) {
                     SndEvt_EnqueueType7(0xFF0D, 1);
-                    D_80115740->field_2 = 0;
+                    Gp_State1C->field_2 = 0;
                 }
-                func_800EC7E4(mem, arg0);
+                Gp_ReleaseState1CMem(mem, arg0);
             }
             break;
     }
@@ -661,22 +661,22 @@ void func_800FC9BC(Task* arg0)
     s32            temp;
 
     mem   = arg0->spawnArg2;
-    flag  = D_80115740->field_4;
+    flag  = Gp_State1C->field_4;
     coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
     if (flag < 4) {
         switch (arg0->state) {
             case 0:
                 mem->field_22++;
-                D_80070F60    = D_80070F60 * 5 + 0x71357911;
-                mem->field_24 = (u32)D_80070F60 >> 16;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_24 = (u32)Gp_LcgState >> 16;
                 mem->field_26 = (mem->field_24 & 0xF) + 8;
-                D_80070F60    = D_80070F60 * 5 + 0x71357911;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
                 temp          = arg0->spawnArg1;
-                mem->field_28 = -(temp << 4) - (((u32)D_80070F60 >> 16) & 0x7F);
+                mem->field_28 = -(temp << 4) - (((u32)Gp_LcgState >> 16) & 0x7F);
                 mem->field_2A = arg0->spawnArg1 * 24 + 0xC0;
                 Gfx_RotMatrixY(&coord->coord, (u16)mem->field_24 & 0xFF0, 1);
                 coord->flg = 0;
-                func_80098F58(coord);
+                Gp_UpdateCoord(coord);
                 arg0->state = 1;
                 mem->field_14 =
                     ((u16)mem->field_24 & 0x1F) % (arg0->spawnArg1 * 3) + 7;
@@ -685,7 +685,7 @@ void func_800FC9BC(Task* arg0)
                 return;
             case 1:
                 if (D_801153F4 != 1) {
-                    func_80098F58(coord);
+                    Gp_UpdateCoord(coord);
                     mem->field_22++;
                     if (mem->field_14 != 0) {
                         in             = (SVECTOR*)&mem->field_10;
@@ -707,7 +707,7 @@ void func_800FC9BC(Task* arg0)
                 goto do_fcd00;
             case 2:
                 if (D_801153F4 != 1) {
-                    func_80098F58(coord);
+                    Gp_UpdateCoord(coord);
                     mem->field_22++;
                     mem->field_26 -= mem->field_22 & 1;
                     mem->field_28 += 2;
@@ -725,7 +725,7 @@ void func_800FC9BC(Task* arg0)
         return;
     }
 kill:
-    func_800EC7E4(mem, arg0);
+    Gp_ReleaseState1CMem(mem, arg0);
     return;
 do_fcd00:
     func_800FCD00(arg0);
@@ -747,13 +747,13 @@ void func_800FE41C(Task* arg0)
     s32            temp;
 
     mem   = arg0->spawnArg2;
-    flag  = D_80115740->field_4;
+    flag  = Gp_State1C->field_4;
     coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
     if (flag >= 2) {
         if (flag < 4) {
             return;
         }
-        func_800EC7E4(mem, arg0);
+        Gp_ReleaseState1CMem(mem, arg0);
     } else {
         if (arg0->state == 0) {
             coord->sub        = mem->field_8;
@@ -767,13 +767,13 @@ void func_800FE41C(Task* arg0)
             mem->field_26     = temp;
             mem->field_28     = temp << 2;
         }
-        func_80098F58(coord);
-        if (D_80115740->field_4 != 0) {
+        Gp_UpdateCoord(coord);
+        if (Gp_State1C->field_4 != 0) {
             return;
         }
         mem->field_22++;
         if (mem->field_22 >= mem->field_28) {
-            func_800EC7E4(mem, arg0);
+            Gp_ReleaseState1CMem(mem, arg0);
         } else {
             func_800EA478(0x60070, coord, (mem->field_24 >> 2) + 0x80021400, (s32)&mem->field_10);
         }
@@ -803,7 +803,7 @@ void func_801005D8(Task* arg0)
     s32            temp;
 
     mem   = arg0->spawnArg2;
-    flag  = D_80115740->field_4;
+    flag  = Gp_State1C->field_4;
     coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
     if (flag < 2) {
         if (arg0->state == 0) {
@@ -824,18 +824,18 @@ void func_801005D8(Task* arg0)
             }
             temp          = (u16)arg0->spawnArg1 & 0xFFF;
             mem->field_2A = 0;
-            D_80070F60    = D_80070F60 * 5 + 0x71357911;
-            mem->field_24 = temp + (((u32)D_80070F60 >> 16) & 0xFF);
-            D_80070F60    = D_80070F60 * 5 + 0x71357911;
-            mem->field_26 = ((u32)D_80070F60 >> 16) & 0xFFF;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_24 = temp + (((u32)Gp_LcgState >> 16) & 0xFF);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
             arg0->state++;
         }
-        func_80098F58(coord);
+        Gp_UpdateCoord(coord);
         if (!(mem->field_22 & 1)) {
             func_80100784(coord, (u16)((s16)mem->field_22 >> 1), mem->field_24 | mem->field_2A,
                           mem->field_26);
         }
-        if (D_80115740->field_4 != 0) {
+        if (Gp_State1C->field_4 != 0) {
             return;
         }
         mem->field_22++;
@@ -845,12 +845,12 @@ void func_801005D8(Task* arg0)
     } else if (flag < 4) {
         return;
     }
-    func_800EC7E4(mem, arg0);
+    Gp_ReleaseState1CMem(mem, arg0);
 }
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80100784);
 
-void func_80100B78(GpActorWork* arg0)
+void Gp_InitPlayerWork(GpActorWork* arg0)
 {
     GameActor*     actor;
     GameActorExt*  extra;
@@ -871,16 +871,16 @@ void func_80100B78(GpActorWork* arg0)
     extra = arg0->extra;
     coord = (GsCOORDINATE2*)extra->field_8;
     arg0->state++;
-    arg0->field_24        = D_80112C88;
-    arg0->field_18        = func_80101408;
+    arg0->field_24        = Gp_PlayerMsgTable;
+    arg0->field_18        = Gp_TeardownSlot0;
     actor->field_938      = 0x13;
-    D_80115760[0]         = arg0;
+    Gp_ActorSlots[0]      = arg0;
     Wip_SysConfig.field_4 = &coord->coord;
     coord->sub            = &D_80070F10;
     coord->flg            = 0;
     extra->field_C        = 0;
     RotMatrix((SVECTOR*)&actor->field_50, &coord->coord);
-    func_80103874(arg0);
+    Gp_BindActorAnim(arg0);
 
     actor->field_985 = 0x10;
     actor->field_10  = coord->coord.t[0];
@@ -903,9 +903,9 @@ void func_80100B78(GpActorWork* arg0)
         obj->flags    = 4;
         packed        = 0x10000;
         obj->field_18 = temp | packed;
-        func_800E15AC(0, obj);
+        Gp_LinkObj(0, obj);
     }
-    func_800E18E0((GpRec18*)actor->field_90, 0x12, 0);
+    Gp_InitRec18Table((GpRec18*)actor->field_90, 0x12, 0);
 
     {
         register s32   zero asm("a0");
@@ -928,7 +928,7 @@ void func_80100B78(GpActorWork* arg0)
         obj->field_1C   = size;
         obj->flags      = 0x14;
         obj->field_18   = temp | packed;
-        func_800E15AC(zero, obj);
+        Gp_LinkObj(zero, obj);
     }
 
     {
@@ -951,7 +951,7 @@ void func_80100B78(GpActorWork* arg0)
         obj->field_1C   = size;
         obj->flags      = 0x24;
         obj->field_18   = temp | packed;
-        func_800E15AC(zero, obj);
+        Gp_LinkObj(zero, obj);
     }
     obj->flags |= 0xC000;
 
@@ -961,7 +961,7 @@ void func_80100B78(GpActorWork* arg0)
     task             = func_80104258(arg0, 1, 1, 1);
     actor->field_924 = task;
     if (task != NULL) {
-        func_800BBF1C();
+        Gp_SyncHeldRelated();
         func_801034C0();
     }
     if (kind == 2) {
@@ -1020,7 +1020,7 @@ void func_80100E40(GpActorWork* arg0)
     }
     actor->field_983 = 0;
     coord->flg       = 0;
-    func_80098F58(coord);
+    Gp_UpdateCoord(coord);
 }
 
 void func_80100FCC(GpActorWork* arg0, s32 arg1, s32 arg2)
@@ -1099,8 +1099,8 @@ void func_80100FCC(GpActorWork* arg0, s32 arg1, s32 arg2)
             rec->field_10 = 0x900;
         }
         rec->field_14 = actor->field_32C;
-        func_800E15AC(1, obj);
-        func_800E18E0(rec->field_14, 6, 0);
+        Gp_LinkObj(1, obj);
+        Gp_InitRec18Table(rec->field_14, 6, 0);
         __asm__ volatile("" ::"r"(actor));
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
@@ -1182,15 +1182,15 @@ void func_801013FC(Task* arg0)
     arg0->state = 3;
 }
 
-void func_80101408(GpActorWork* arg0)
+void Gp_TeardownSlot0(GpActorWork* arg0)
 {
     volatile GameActor* inner;
     Task*               task;
 
-    inner          = arg0->actor;
-    arg0->field_18 = NULL;
-    D_80115760[0]  = NULL;
-    task           = inner->field_914;
+    inner            = arg0->actor;
+    arg0->field_18   = NULL;
+    Gp_ActorSlots[0] = NULL;
+    task             = inner->field_914;
     if (task != NULL) {
         Task_Kill(task);
     }
@@ -1210,11 +1210,11 @@ void func_80101408(GpActorWork* arg0)
     if (task != NULL) {
         Task_Kill(task);
     }
-    func_800E1638((GpObj*)inner->field_AC);
-    func_800E1638((GpObj*)inner->field_CC);
-    func_800E1638((GpObj*)inner->field_EC);
-    func_800E1638((GpObj*)inner->field_10C);
-    func_800E1638((GpObj*)inner->field_12C);
+    Gp_UnlinkObj((GpObj*)inner->field_AC);
+    Gp_UnlinkObj((GpObj*)inner->field_CC);
+    Gp_UnlinkObj((GpObj*)inner->field_EC);
+    Gp_UnlinkObj((GpObj*)inner->field_10C);
+    Gp_UnlinkObj((GpObj*)inner->field_12C);
     Task_Kill((Task*)arg0);
 }
 
@@ -1291,15 +1291,15 @@ void func_8010154C(void)
     actor->field_40    = 0;
     actor->field_44    = 0;
     actor->field_48    = 0;
-    func_800E1A6C(actor->field_17C);
+    Gp_ClearRec18Occupied(actor->field_17C);
     if (actor->field_91C != NULL) {
-        func_800E1A6C(actor->field_32C);
+        Gp_ClearRec18Occupied(actor->field_32C);
     }
     if (actor->field_984 & 1) {
         coord->coord.t[1] += 0x80;
     }
     coord->flg = 0;
-    func_80098F58(coord);
+    Gp_UpdateCoord(coord);
     if ((s8)actor->field_986 != 0) {
         ((SVECTOR*)(head - 8))->vx = actor->field_30;
         vec->vy                    = actor->field_34;
@@ -1344,7 +1344,7 @@ void func_80101848(GpActorWork* arg0)
     u16        flags;
 
     actor = arg0->actor;
-    rec   = func_800B4668((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->pad_438 + 1);
+    rec   = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->pad_438 + 1);
     switch (actor->field_95C) {
         case 0:
         case 1:
@@ -1363,8 +1363,8 @@ void func_80101848(GpActorWork* arg0)
             actor             = arg0->actor;
             if (i < actor->field_938) {
                 do {
-                    func_800B47A8((GpAnimCtx*)actor->field_424, i, 0, anim, 0, 0, extra,
-                                  actor->field_928);
+                    Gp_AnimPlaySlot((GpAnimCtx*)actor->field_424, i, 0, anim, 0, 0, extra,
+                                    actor->field_928);
                     ((GameActor*)((i * sizeof(GameActorSlot)) + (s32)actor))->field_441 =
                         actor->field_985;
                     i++;
@@ -1610,7 +1610,7 @@ void func_80102348(GpActorWork* arg0, s32 arg1)
         block->rot.vz = rec->vz;
         func_801040A0(src, (GsCOORDINATE2*)block, (SVECTOR*)(head - 0xC));
         lock = (VECTOR3*)(head - 0x1C);
-        func_800DAE50((GpLockPos*)actor->field_90C, lock);
+        Gp_GetLockPos((GpLockPos*)actor->field_90C, lock);
         ((VECTOR3*)(head - 0x1C))->vx =
             ((VECTOR3*)(head - 0x1C))->vx - ((GsCOORDINATE2*)block)->coord.t[0];
         lock->vy = lock->vy - ((GsCOORDINATE2*)block)->coord.t[1];
@@ -1745,7 +1745,7 @@ void func_801029D4(GpActorWork* arg0)
         block->rot.vz = 0;
         func_801040A0(&src[2], (GsCOORDINATE2*)block, (SVECTOR*)(head - 0x14));
         lock = (VECTOR3*)(head - 0x24);
-        func_800DAE50((GpLockPos*)actor->field_90C, lock);
+        Gp_GetLockPos((GpLockPos*)actor->field_90C, lock);
         ((VECTOR3*)(head - 0x34))->vx =
             ((VECTOR3*)(head - 0x24))->vx - ((GsCOORDINATE2*)block)->coord.t[0];
         dest            = (VECTOR3*)(head - 0x34);
@@ -1793,7 +1793,7 @@ void func_801029D4(GpActorWork* arg0)
             func_801040A0(src, (GsCOORDINATE2*)block, (SVECTOR*)&block->rot);
         }
         lock = &block->lock;
-        func_800DAE50((GpLockPos*)actor->field_90C, lock);
+        Gp_GetLockPos((GpLockPos*)actor->field_90C, lock);
         block->delta.vx = block->lock.vx - ((GsCOORDINATE2*)block)->coord.t[0];
         dest            = &block->delta;
         dest->vy        = lock->vy - ((GsCOORDINATE2*)block)->coord.t[1];
@@ -1861,7 +1861,7 @@ void func_80102D20(GpActorWork* arg0, s32 arg1, s32 arg2)
         block->rot.vz = rec->vz;
         func_801040A0(src, (GsCOORDINATE2*)block, (SVECTOR*)(head - 0x14));
         lock = (VECTOR3*)(head - 0x24);
-        func_800DAE50((GpLockPos*)actor->field_90C, lock);
+        Gp_GetLockPos((GpLockPos*)actor->field_90C, lock);
         ((VECTOR3*)(head - 0x34))->vx = ((VECTOR3*)(head - 0x24))->vx - ((GsCOORDINATE2*)block)->coord.t[0];
         dest                          = (VECTOR3*)(head - 0x34);
         dest->vy                      = lock->vy - ((GsCOORDINATE2*)block)->coord.t[1];
@@ -1923,7 +1923,7 @@ void func_80102F10(GpActorWork* arg0)
         block->rot.vz = 0;
         func_801040A0(src, (GsCOORDINATE2*)block, (SVECTOR*)(head - 0x14));
         lock = (VECTOR3*)(head - 0x24);
-        func_800DAE50((GpLockPos*)actor->field_90C, lock);
+        Gp_GetLockPos((GpLockPos*)actor->field_90C, lock);
         ((VECTOR3*)(head - 0x34))->vx = ((VECTOR3*)(head - 0x24))->vx - ((GsCOORDINATE2*)block)->coord.t[0];
         dest                          = (VECTOR3*)(head - 0x34);
         dest->vy                      = lock->vy - ((GsCOORDINATE2*)block)->coord.t[1];
@@ -1985,7 +1985,7 @@ void func_801030CC(GpActorWork* arg0)
                 rect->y             = 0x4E;
                 rect->w             = 0x19;
                 rect->h             = 0x10;
-                func_800DB28C(arg0, img, rect);
+                Gp_LoadActorImage(arg0, img, rect);
                 actor->field_988 = 4;
                 actor->field_989++;
             } else {
@@ -2008,7 +2008,7 @@ void func_801030CC(GpActorWork* arg0)
                 rect->y = 0x68;
                 rect->w = 0xE;
                 rect->h = 0x14;
-                func_800DB28C(arg0, img, rect);
+                Gp_LoadActorImage(arg0, img, rect);
                 actor->field_98B = 8;
                 actor->field_98C++;
             } else {
@@ -2180,8 +2180,8 @@ join_50:
     actor->field_98F = 0;
     inner            = work->actor;
     anim             = (GpAnimObj*)work->extra;
-    inner->field_93A = D_80112D68[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21;
-    inner->field_928 = D_80112D6C[inner->field_93A];
+    inner->field_93A = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21;
+    inner->field_928 = Gp_PlayerAnimBlkTbl[inner->field_93A];
     func_800B3F84((GpAnimCtx*)inner->field_424, inner->field_928, anim, &inner->field_7A8,
                   (GpAnimSlot*)inner->pad_438);
     func_801066DC(work, 1);
@@ -2191,7 +2191,7 @@ join_50:
     return ret;
 }
 
-Task* func_801036FC(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3)
+Task* Gp_SpawnPlayer(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3)
 {
     Task*          task;
     GameActor*     actor;
@@ -2228,7 +2228,7 @@ have_actor:
     return task;
 }
 
-void func_80103804(GpActorWork* arg0)
+void Gp_CaptureActorPad(GpActorWork* arg0)
 {
     GameActor* actor;
     u16        buttons;
@@ -2247,20 +2247,20 @@ void func_80103804(GpActorWork* arg0)
     actor->field_977 = (actor->field_962 >> 6) & flag;
 }
 
-void func_80103874(GpActorWork* arg0)
+void Gp_BindActorAnim(GpActorWork* arg0)
 {
     GameActor* actor;
     GpAnimObj* extra;
 
     actor            = arg0->actor;
     extra            = (GpAnimObj*)arg0->extra;
-    actor->field_93A = D_80112D68[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21;
-    actor->field_928 = D_80112D6C[actor->field_93A];
+    actor->field_93A = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21;
+    actor->field_928 = Gp_PlayerAnimBlkTbl[actor->field_93A];
     func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
                   (GpAnimSlot*)actor->pad_438);
 }
 
-void func_801038F8(GpActorWork* arg0, s32 arg1)
+void Gp_AnimResetChildSlots(GpActorWork* arg0, s32 arg1)
 {
     GameActor* actor;
     s32        i;
@@ -2269,14 +2269,14 @@ void func_801038F8(GpActorWork* arg0, s32 arg1)
     i     = 1;
     if (i < actor->field_938) {
         do {
-            func_800B3FA8((GpAnimCtx*)actor->field_424, i, arg1);
+            Gp_AnimResetSlot((GpAnimCtx*)actor->field_424, i, arg1);
             ((GameActor*)((i * sizeof(GameActorSlot)) + (s32)actor))->field_441 = actor->field_985;
             i++;
         } while (i < actor->field_938);
     }
 }
 
-void func_8010397C(GpActorWork* arg0, s32 arg1, s32 arg2)
+void Gp_AnimPlayChildSlots(GpActorWork* arg0, s32 arg1, s32 arg2)
 {
     GameActor* actor;
     s32        i;
@@ -2285,14 +2285,14 @@ void func_8010397C(GpActorWork* arg0, s32 arg1, s32 arg2)
     i     = 1;
     if (i < actor->field_938) {
         do {
-            func_800B47A8((GpAnimCtx*)actor->field_424, i, 0, arg1, 0, 0, 0, actor->field_928);
+            Gp_AnimPlaySlot((GpAnimCtx*)actor->field_424, i, 0, arg1, 0, 0, 0, actor->field_928);
             ((GameActor*)((i * sizeof(GameActorSlot)) + (s32)actor))->field_441 = actor->field_985;
             i++;
         } while (i < actor->field_938);
     }
 }
 
-void func_80103A18(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
+void Gp_AnimPlayChildSlotsEx(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     GameActor* actor;
     s32        i;
@@ -2301,14 +2301,14 @@ void func_80103A18(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
     i     = 1;
     if (i < actor->field_938) {
         do {
-            func_800B47A8((GpAnimCtx*)actor->field_424, i, 0, arg1, 0, 0, arg3, actor->field_928);
+            Gp_AnimPlaySlot((GpAnimCtx*)actor->field_424, i, 0, arg1, 0, 0, arg3, actor->field_928);
             ((GameActor*)((i * sizeof(GameActorSlot)) + (s32)actor))->field_441 = actor->field_985;
             i++;
         } while (i < actor->field_938);
     }
 }
 
-void func_80103AC0(GpActorWork* arg0)
+void Gp_AnimTickChildSlots(GpActorWork* arg0)
 {
     GameActor* inner;
     s32        i;
@@ -2317,13 +2317,13 @@ void func_80103AC0(GpActorWork* arg0)
     i     = 1;
     if (i < inner->field_938) {
         do {
-            func_800B4514((GpAnimCtx*)inner->field_424, i);
+            Gp_AnimTickIndex((GpAnimCtx*)inner->field_424, i);
             i++;
         } while (i < inner->field_938);
     }
 }
 
-s32 func_80103B1C(void)
+s32 Gp_HpBand(void)
 {
     WipSysConfig* p;
     s32           temp;
@@ -2342,7 +2342,7 @@ s32 func_80103B1C(void)
     return ret;
 }
 
-void func_80103B5C(GpActorWork* arg0)
+void Gp_DetachLinkNode(GpActorWork* arg0)
 {
     GameActor*  inner;
     GpLinkNode* node;
@@ -2356,7 +2356,7 @@ void func_80103B5C(GpActorWork* arg0)
     inner->field_97E = 1;
 }
 
-s32 func_80103B88(GpActorWork* arg0, GpDirArg* arg1)
+s32 Gp_ApplyDirArg(GpActorWork* arg0, GpDirArg* arg1)
 {
     GameActor*     actor;
     GsCOORDINATE2* coord;
@@ -2540,7 +2540,7 @@ void func_801040A0(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2)
     MATRIX* world;
 
     arg0->flg = 0;
-    func_80098F58(arg0);
+    Gp_UpdateCoord(arg0);
     arg1->workm = arg0->workm;
     gte_SetRotMatrix(&arg0->workm);
     gte_SetTransMatrix(&arg0->workm);
@@ -2548,10 +2548,10 @@ void func_801040A0(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2)
     gte_rtv0tr_real();
     gte_stlvnl(arg1->workm.t);
     world = &D_80070F34;
-    func_800A8864(world, &arg1->workm, &arg1->coord);
+    Gp_WorldToLocal(world, &arg1->workm, &arg1->coord);
     arg1->sub = (GsCOORDINATE2*)((u8*)world - OFFSET_OF(GsCOORDINATE2, workm));
     arg1->flg = 0;
-    func_80098F58(arg1);
+    Gp_UpdateCoord(arg1);
 }
 
 s32 func_801041B4(GpActorWork* arg0)
@@ -2678,7 +2678,7 @@ s32 func_801043F4(void)
         actor->field_914 = NULL;
     }
 
-    func_800E1638((GpObj*)actor->field_10C);
+    Gp_UnlinkObj((GpObj*)actor->field_10C);
     return 1;
 }
 
@@ -2730,17 +2730,17 @@ s32 func_80104508(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3)
         ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
     }
     actor->field_956 = 1;
-    if (actor->field_928 != D_80112D6C[(s32)arg2->field_0]) {
-        actor->field_928 = D_80112D6C[(s32)arg2->field_0];
+    if (actor->field_928 != Gp_PlayerAnimBlkTbl[(s32)arg2->field_0]) {
+        actor->field_928 = Gp_PlayerAnimBlkTbl[(s32)arg2->field_0];
         func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
                       (GpAnimSlot*)actor->pad_438);
         actor->field_93A = (u16)arg2->field_0;
     }
     actor->field_985 = 0x10;
     if (arg2->field_8 == 0) {
-        func_801038F8(arg0, arg2->field_4);
+        Gp_AnimResetChildSlots(arg0, arg2->field_4);
     } else {
-        func_80103A18(arg0, arg2->field_4, 0, arg2->field_C);
+        Gp_AnimPlayChildSlotsEx(arg0, arg2->field_4, 0, arg2->field_C);
     }
     if (arg2->field_10 == 0) {
         actor->field_983 = 0x38;
@@ -2863,12 +2863,12 @@ s32 func_80104838(GpActorWork* arg0, s32 arg1, s32 arg2)
     actor->field_10                   = coord->coord.t[0];
     actor->field_14                   = coord->coord.t[1];
     actor->field_18                   = coord->coord.t[2];
-    actor->field_93A                  = D_80112D68[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21;
-    actor->field_928                  = D_80112D6C[actor->field_93A];
+    actor->field_93A                  = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21;
+    actor->field_928                  = Gp_PlayerAnimBlkTbl[actor->field_93A];
     actor->field_985                  = 0x10;
     actor->field_983                  = 7;
     ((GpObj*)actor->field_AC)->flags |= 0x2000;
-    if (D_801153F0.field_0 == 1) {
+    if (Gp_StateF0.field_0 == 1) {
         func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, (GpAnimObj*)extra, &actor->field_7A8,
                       (GpAnimSlot*)actor->pad_438);
         if (arg2 == mode) {
@@ -2974,9 +2974,9 @@ s32 func_80104B54(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
     if (arg2->field_8 == 0) {
         func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
                       (GpAnimSlot*)actor->pad_438);
-        func_801038F8(arg0, arg2->field_4);
+        Gp_AnimResetChildSlots(arg0, arg2->field_4);
     } else {
-        func_80103A18(arg0, arg2->field_4, 0, arg2->field_C);
+        Gp_AnimPlayChildSlotsEx(arg0, arg2->field_4, 0, arg2->field_C);
     }
     if (arg2->field_10 == 0) {
         actor->field_983 = 0x38;
@@ -3000,9 +3000,9 @@ s32 func_80104CAC(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
     if (arg2->field_8 == 0) {
         func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
                       (GpAnimSlot*)actor->pad_438);
-        func_801038F8(arg0, arg2->field_4);
+        Gp_AnimResetChildSlots(arg0, arg2->field_4);
     } else {
-        func_80103A18(arg0, arg2->field_4, 0, arg2->field_C);
+        Gp_AnimPlayChildSlotsEx(arg0, arg2->field_4, 0, arg2->field_C);
     }
     flag = arg2->field_10;
     if (flag == 0) {
@@ -3034,7 +3034,7 @@ s32 func_80104D68(Task* arg0, s32 arg1, GpXformArg* arg2)
     RotMatrix((SVECTOR*)&actor->field_50, mtx);
     MatrixNormal(mtx, mtx);
     coord->flg = 0;
-    func_80098F58(coord);
+    Gp_UpdateCoord(coord);
     return 0;
 }
 
@@ -3087,7 +3087,7 @@ s32 func_80104E00(GpActorWork* arg0, s32 arg1, GpXformArg* arg2)
     if (val < 0) {
         mode = 5;
     }
-    func_8010397C(arg0, mode, 0);
+    Gp_AnimPlayChildSlots(arg0, mode, 0);
     *scratch = (u8*)*scratch + 0x10;
     return 0;
 }
@@ -3128,11 +3128,11 @@ s32 func_80104F5C(GpActorWork* arg0, s32 arg1, GpFacingArg* arg2)
     if (arg2->field_0 != 0) {
         mode = 0x25;
     }
-    func_8010397C(arg0, mode, 0);
+    Gp_AnimPlayChildSlots(arg0, mode, 0);
     return 0;
 }
 
-s32 func_80105070(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3)
+s32 Gp_SetActorDest(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3)
 {
     GameActor*    actor;
     WipSysConfig* p;
@@ -3251,7 +3251,7 @@ s32 func_801052B8(GpActorWork* arg0, s32 arg1, GpCountArg* arg2)
     return 0;
 }
 
-s32 func_801053A0(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2)
+s32 Gp_MoveActorBy(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2)
 {
     GameActor*     actor;
     GsCOORDINATE2* coord;
@@ -3287,7 +3287,7 @@ s32 func_801053A0(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2)
     coord->coord.t[0] += arg2->field_0;
     coord->coord.t[1] += arg2->field_4;
     coord->coord.t[2] += arg2->field_8;
-    func_80103B88(arg0, (GpDirArg*)arg2);
+    Gp_ApplyDirArg(arg0, (GpDirArg*)arg2);
     return func_801041B4(arg0);
 }
 
@@ -3320,10 +3320,10 @@ s32 func_801054D8(GpActorWork* arg0, s32 arg1, GpDelayArg* arg2)
     if (Game_Session->field_1 != 0) {
         ((GpObj*)actor->field_AC)->flags &= 0xDFFF;
     }
-    actor->field_956    = 6;
-    D_80114C08.field_6 |= 1;
-    actor->field_934    = arg2->field_14;
-    actor->field_93E    = 0;
+    actor->field_956     = 6;
+    Gp_StateC08.field_6 |= 1;
+    actor->field_934     = arg2->field_14;
+    actor->field_93E     = 0;
     return 0;
 }
 
@@ -3477,14 +3477,14 @@ s32 func_801058BC(GpActorWork* arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_80105914(GpActorWork* arg0, s32 arg1, GpCopyArg* arg2)
+s32 Gp_CopyPlayerAnim(GpActorWork* arg0, s32 arg1, GpCopyArg* arg2)
 {
     s32* dest;
     s32* src;
     s32  i;
     s32  count;
 
-    dest  = (s32*)D_80112D6C[D_80112D68[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21];
+    dest  = (s32*)Gp_PlayerAnimBlkTbl[Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21];
     src   = arg2->field_0;
     count = arg2->field_4;
     if (count >= 0x21) {
@@ -3506,9 +3506,9 @@ s32 func_801059AC(GpActorWork* arg0, s32 arg1, s32 arg2)
     actor = arg0->actor;
     ret   = 0;
     if (Mc_SaveData.field_5C2 == 0) {
-        ret = func_8010A854((s16)func_800E2438(arg2, 0, &out, 0));
+        ret = func_8010A854((s16)Gp_ScaleDamage(arg2, 0, &out, 0));
         if (ret != 0) {
-            func_800AC464(Game_GetPtrSlot(4), 0x7DA, 0, 0x7DE);
+            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, 0, 0x7DE);
         } else if (actor->field_910 == 0) {
             func_8010A42C(arg0, (u8)out);
         }
@@ -3518,7 +3518,7 @@ s32 func_801059AC(GpActorWork* arg0, s32 arg1, s32 arg2)
 
 s32 func_80105A60(Task* arg0, s32 arg1, s32 arg2)
 {
-    func_800B57EC((GsCOORDINATE2*)arg2, (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8);
+    Gp_ReparentCoord((GsCOORDINATE2*)arg2, (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8);
     return 0;
 }
 
@@ -3568,7 +3568,7 @@ void func_80105B0C(GpActorWork* arg0)
     i     = 1;
     if (i < inner->field_938) {
         do {
-            func_800B3DF4((GpAnimCtx*)inner->field_424, (GpAnimSlot*)inner->pad_438 + i);
+            Gp_AnimTickSlot2((GpAnimCtx*)inner->field_424, (GpAnimSlot*)inner->pad_438 + i);
             i++;
         } while (i < inner->field_938);
     }
@@ -3589,7 +3589,7 @@ s32 func_80105BC4(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
     register s32 minDist asm("s5");
 
     minDist = 0x7FFFFFFF;
-    if (func_800E1A1C(arg0, 0x30000) == 0) {
+    if (Gp_CountRec18Hi(arg0, 0x30000) == 0) {
         s32               idx;
         register s32*     pidx asm("s4");
         register void**   scratch asm("v1");
@@ -3647,7 +3647,7 @@ s32 func_80105BC4(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
                     idx = func_800E1ACC((u8*)pidx);
                     {
                         GameSession* session = Game_Session;
-                        if (D_8010CBB8[session->field_7 - 1][session->field_6 - 1][idx]->field_2 != 0) {
+                        if (Gp_RoomParamTables[session->field_7 - 1][session->field_6 - 1][idx]->field_2 != 0) {
                             minDist = dist;
                             bestIdx = i;
                         }
@@ -3815,10 +3815,10 @@ s32 func_80106264(s32 arg0)
     item = Wip_SysConfig.field_21 + 0x7F;
     ret  = 0;
     if (arg0 & 1) {
-        ret = func_800B6DA4(item, 0);
+        ret = Gp_ConsumeSlotQty(item, 0);
     }
     if (arg0 & 2) {
-        ret |= func_800B6DA4(item, 0x100) << 16;
+        ret |= Gp_ConsumeSlotQty(item, 0x100) << 16;
     }
     return ret;
 }
@@ -3832,7 +3832,7 @@ s32 func_801062DC(GpActorWork* arg0, s32 arg1)
     ret  = 0;
     item = Wip_SysConfig.field_21;
     flag = arg1 != 1;
-    if (func_800BB418(item + 0x7F, flag) == 1) {
+    if (Gp_UnequipRelated(item + 0x7F, flag) == 1) {
         func_801088D4(arg0, flag, ret);
         ret = 1;
     }
@@ -3854,7 +3854,7 @@ void func_80106350(GpActorWork* arg0, s32 arg1, s32 arg2)
         SndEvt_EnqueueType7(0x20160005, 0);
     } else if (arg1 == 0x19) {
         if (actor->field_914 != NULL) {
-            if (func_800B6DA4(0x98, 0x100) != 0) {
+            if (Gp_ConsumeSlotQty(0x98, 0x100) != 0) {
                 actor->field_914->spawnArg1 = 1;
             } else {
                 actor->field_914->spawnArg1 = 0;
@@ -3862,7 +3862,7 @@ void func_80106350(GpActorWork* arg0, s32 arg1, s32 arg2)
         }
     } else if (arg1 == 0x1C) {
         if (actor->field_914 != NULL) {
-            if (func_800B6DA4(0x9B, 0x100) != 0) {
+            if (Gp_ConsumeSlotQty(0x9B, 0x100) != 0) {
                 value = 1;
                 if (actor->field_914->spawnArg1 == 2) {
                     value = 3;
@@ -3886,10 +3886,10 @@ void func_801064A4(GpObj38* arg0, s32 arg1, s32 arg2)
 {
     s32 temp;
 
-    temp = (s8)func_800D937C(arg0);
-    SndEvt_EnqueueType6(arg1, temp, (s8)func_800D9340(arg0));
+    temp = (s8)Gp_GetObjPan(arg0);
+    SndEvt_EnqueueType6(arg1, temp, (s8)Gp_GetObjDepth(arg0));
     if (arg2 == 1) {
-        func_800DB500(1);
+        Gp_SetStateF0Bit(1);
     }
 }
 
@@ -3936,7 +3936,7 @@ void func_801065A8(GpActorWork* arg0)
         if (inner->field_942 < 0x7FFF) {
             inner->field_942++;
             if (inner->field_942 == 0x12C) {
-                func_80103A18(arg0, func_80103B1C() + 0x17, 0, 5);
+                Gp_AnimPlayChildSlotsEx(arg0, Gp_HpBand() + 0x17, 0, 5);
             }
         }
     }
@@ -3999,9 +3999,9 @@ void func_801066DC(GpActorWork* arg0, s16 arg1)
     inner->field_95E = 0;
     inner->field_942 = 0;
     if (arg1 != 0) {
-        func_801038F8(arg0, mode);
+        Gp_AnimResetChildSlots(arg0, mode);
     } else {
-        func_80103A18(arg0, mode, 0, 4);
+        Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 4);
     }
 }
 
@@ -4061,11 +4061,11 @@ void func_80106838(GpActorWork* arg0)
                 inner->field_973 = 0;
                 inner->field_975 = 0;
                 inner->field_960 = prev;
-                func_80103B5C(arg0);
-                inner->field_12A   &= 0x3FFF;
-                D_80114C08.field_6 |= 1;
+                Gp_DetachLinkNode(arg0);
+                inner->field_12A    &= 0x3FFF;
+                Gp_StateC08.field_6 |= 1;
                 func_80106350(arg0, p->field_21, 0);
-                func_80103A18(arg0, 0x19, 3, 6);
+                Gp_AnimPlayChildSlotsEx(arg0, 0x19, 3, 6);
             }
         }
     }
@@ -4073,7 +4073,7 @@ void func_80106838(GpActorWork* arg0)
     func_80109FC4(arg0);
     func_8010B120(arg0);
     func_80101848(arg0);
-    func_80103AC0(arg0);
+    Gp_AnimTickChildSlots(arg0);
     func_80101F58(arg0);
     func_80101A68(arg0);
     if (Wip_SysConfig.field_18 <= 0) {
@@ -4103,22 +4103,22 @@ void func_8010747C(GpActorWork* arg0)
     work             = arg0;
     actor            = work->actor;
     actor->field_973 = 0;
-    if (D_80114C08.field_3 == 2) {
+    if (Gp_StateC08.field_3 == 2) {
         actor->field_95E = 5;
     }
     switch (actor->field_95E) {
         case 0:
-            actor->field_95C    = 9;
-            actor->field_95E   += 1;
-            D_80114C08.field_6 |= 4;
-            mode                = 0x1A;
+            actor->field_95C     = 9;
+            actor->field_95E    += 1;
+            Gp_StateC08.field_6 |= 4;
+            mode                 = 0x1A;
             if (actor->field_93C != 0) {
                 mode = 0x2A;
                 if (actor->field_93C == 1) {
                     mode = 0x1D;
                 }
             }
-            func_80103A18(work, mode, 0, 6);
+            Gp_AnimPlayChildSlotsEx(work, mode, 0, 6);
             goto do_db500_2;
         case 2:
             next             = actor->field_95E;
@@ -4133,18 +4133,18 @@ void func_8010747C(GpActorWork* arg0)
                     mode = 0x1E;
                 }
             }
-            func_801038F8(work, mode);
+            Gp_AnimResetChildSlots(work, mode);
         case 3:
-            if (D_80114C08.field_2 != 0) {
+            if (Gp_StateC08.field_2 != 0) {
                 goto do_db500_2;
             }
             actor->field_95C  = 9;
             actor->field_95E += 1;
             snd               = 4;
-            if ((u32)(D_80114C08.field_0 - 0x12C) >= 0x12DU) {
+            if ((u32)(Gp_StateC08.field_0 - 0x12C) >= 0x12DU) {
                 snd = 3;
             }
-            func_800DB500(snd);
+            Gp_SetStateF0Bit(snd);
             mode = 0x1C;
             if (actor->field_93C != 0) {
                 mode = 0x2C;
@@ -4152,11 +4152,11 @@ void func_8010747C(GpActorWork* arg0)
                     mode = 0x1F;
                 }
             }
-            func_801038F8(work, mode);
+            Gp_AnimResetChildSlots(work, mode);
             break;
         case 1:
         do_db500_2:
-            func_800DB500(2);
+            Gp_SetStateF0Bit(2);
             break;
         case 4:
             break;
@@ -4184,7 +4184,7 @@ void func_8010747C(GpActorWork* arg0)
             inner->field_95C = 0;
             inner->field_95E = 0;
             if (Wip_SysConfig.field_25 & 1) {
-                func_80103B5C(work);
+                Gp_DetachLinkNode(work);
                 inner->field_97E = flag;
             } else {
                 inner->field_97E = val;
@@ -4205,9 +4205,9 @@ void func_8010747C(GpActorWork* arg0)
                 mode             = 0xD;
             }
             if (fade == 0) {
-                func_801038F8(work, mode);
+                Gp_AnimResetChildSlots(work, mode);
             } else {
-                func_80103A18(work, mode, 0, fade);
+                Gp_AnimPlayChildSlotsEx(work, mode, 0, fade);
             }
             break;
     }
@@ -4256,7 +4256,7 @@ void func_8010771C(GpActorWork* arg0)
             inner->field_95C = 0;
             inner->field_95E = 0;
             if (Wip_SysConfig.field_25 & 1) {
-                func_80103B5C(arg0);
+                Gp_DetachLinkNode(arg0);
                 inner->field_97E = 1;
             } else {
                 inner->field_97E = 2;
@@ -4276,7 +4276,7 @@ void func_8010771C(GpActorWork* arg0)
                 inner->field_958 = 2;
                 mode             = 0xD;
             }
-            func_80103A18(arg0, mode, 0, 6);
+            Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 6);
             break;
     }
 }
@@ -4327,7 +4327,7 @@ void func_80107E1C(GpActorWork* arg0)
             if (block->field_0 < 0) {
                 mode = 5;
             }
-            func_8010397C(arg0, mode, 1);
+            Gp_AnimPlayChildSlots(arg0, mode, 1);
         case 1:
             if (block->field_0 == 0) {
                 actor->field_958 = 1;
@@ -4340,7 +4340,7 @@ void func_80107E1C(GpActorWork* arg0)
                 } else {
                     mode = actor->field_93C;
                 }
-                func_80103A18(arg0, mode, 0, 5);
+                Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 5);
             }
             break;
         case 2:
@@ -4362,7 +4362,7 @@ void func_80107E1C(GpActorWork* arg0)
                     if (actor->field_93E != 0) {
                         mode = actor->field_93E;
                     }
-                    func_80103A18(arg0, mode, 0, 5);
+                    Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 5);
                 } else {
                     dx               = 1;
                     actor->field_973 = dx;
@@ -4377,7 +4377,7 @@ void func_80107E1C(GpActorWork* arg0)
             }
             break;
     }
-    func_80103AC0(arg0);
+    Gp_AnimTickChildSlots(arg0);
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
 }
 
@@ -4396,10 +4396,10 @@ void func_80108224(GpActorWork* arg0)
         case 0:
             flag             = 1;
             actor->field_95E = flag;
-            func_80103A18(arg0, 0x28, 0, 6);
+            Gp_AnimPlayChildSlotsEx(arg0, 0x28, 0, 6);
             break;
         case 1:
-            if (func_800B4668((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->pad_438 + 1) !=
+            if (Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->pad_438 + 1) !=
                 NULL) {
                 if (func_80105894(arg0, D_80112E04[Mc_SaveData.field_22][1], 0, 0) == 0) {
                     inner            = arg0->actor;
@@ -4415,7 +4415,7 @@ void func_80108224(GpActorWork* arg0)
                     inner->field_95C = 0;
                     inner->field_95E = 0;
                     if (Wip_SysConfig.field_25 & 1) {
-                        func_80103B5C(arg0);
+                        Gp_DetachLinkNode(arg0);
                         inner->field_97E = 1;
                     } else {
                         inner->field_97E = 2;
@@ -4435,12 +4435,12 @@ void func_80108224(GpActorWork* arg0)
                         inner->field_958 = 2;
                         mode             = 0xD;
                     }
-                    func_80103A18(arg0, mode, 0, 4);
+                    Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 4);
                 }
             }
             break;
     }
-    func_80103AC0(arg0);
+    Gp_AnimTickChildSlots(arg0);
     func_8010B120(arg0);
 }
 
@@ -4471,12 +4471,12 @@ void func_80108458(GpActorWork* arg0)
     s32         flag;
 
     inner            = arg0->actor;
-    node             = func_800DAD54(arg0);
+    node             = Gp_FindLockNode(arg0);
     inner->field_973 = 0;
-    if ((node != NULL && D_801153F0.field_0 < 2) || (flag = 1, D_801153F0.field_0 == flag) ||
+    if ((node != NULL && Gp_StateF0.field_0 < 2) || (flag = 1, Gp_StateF0.field_0 == flag) ||
         Mc_SaveData.field_929 != 0) {
         if (inner->field_95E != 0) {
-            func_800DB4E0(1);
+            Gp_ArmStateF0(1);
             if (inner->field_97C != 0) {
                 inner->field_97C = 0;
                 if (node != NULL) {
@@ -4490,7 +4490,7 @@ void func_80108458(GpActorWork* arg0)
         if (inner->field_97D & 2) {
             inner->field_97C = 0;
             inner->field_97E = flag;
-            func_80103B5C(arg0);
+            Gp_DetachLinkNode(arg0);
             func_80108874(arg0);
         }
     }
@@ -4541,7 +4541,7 @@ void func_80108620(GpActorWork* arg0)
     } else {
         mode = 5;
     }
-    func_80103A18(arg0, mode, 0, 5);
+    Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 5);
 }
 
 void func_80108684(GpActorWork* arg0)
@@ -4574,7 +4574,7 @@ void func_80108684(GpActorWork* arg0)
             mode = 9;
         }
     }
-    func_80103A18(arg0, mode, 0, 5);
+    Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 5);
 }
 
 void func_8010870C(GpActorWork* arg0, s32 arg1)
@@ -4590,9 +4590,9 @@ void func_8010870C(GpActorWork* arg0, s32 arg1)
     inner->field_95E = 0;
     inner->field_940 = 0;
     if (arg1 == 0) {
-        func_801038F8(arg0, 7);
+        Gp_AnimResetChildSlots(arg0, 7);
     } else {
-        func_80103A18(arg0, 7, 0, arg1);
+        Gp_AnimPlayChildSlotsEx(arg0, 7, 0, arg1);
     }
 }
 
@@ -4615,7 +4615,7 @@ void func_80108770(GpActorWork* arg0, s32 arg1)
     inner->field_95C = 0;
     inner->field_95E = 0;
     if (Wip_SysConfig.field_25 & 1) {
-        func_80103B5C(arg0);
+        Gp_DetachLinkNode(arg0);
         inner->field_97E = 1;
     } else {
         inner->field_97E = 2;
@@ -4636,9 +4636,9 @@ void func_80108770(GpActorWork* arg0, s32 arg1)
         mode             = 0xD;
     }
     if (arg1 == 0) {
-        func_801038F8(arg0, mode);
+        Gp_AnimResetChildSlots(arg0, mode);
     } else {
-        func_80103A18(arg0, mode, 0, arg1);
+        Gp_AnimPlayChildSlotsEx(arg0, mode, 0, arg1);
     }
 }
 
@@ -4653,8 +4653,8 @@ void func_80108874(GpActorWork* arg0)
     inner->field_95A = 2;
     inner->field_95C = 4;
     inner->field_95E = 0;
-    func_80103A18(arg0, 8, 0, 6);
-    func_80103B5C(arg0);
+    Gp_AnimPlayChildSlotsEx(arg0, 8, 0, 6);
+    Gp_DetachLinkNode(arg0);
 }
 
 void func_801088D4(GpActorWork* arg0, s32 arg1, s32 arg2)
@@ -4692,7 +4692,7 @@ void func_801088D4(GpActorWork* arg0, s32 arg1, s32 arg2)
     inner->field_960 = arg1;
     inner->field_93E = arg2;
     func_80106350(arg0, Wip_SysConfig.field_21, 0);
-    func_80103A18(arg0, mode, 0, 3);
+    Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 3);
 }
 
 void func_80108A0C(GpActorWork* arg0)
@@ -4713,9 +4713,9 @@ void func_80108A0C(GpActorWork* arg0)
     inner->field_95E = 0;
     inner->field_973 = 0;
     inner->field_960 = prev;
-    temp             = (D_80114C08.field_0 % 100U) / 10U;
+    temp             = (Gp_StateC08.field_0 % 100U) / 10U;
     tens             = temp;
-    if (D_80114C08.field_0 >= 0x259U) {
+    if (Gp_StateC08.field_0 >= 0x259U) {
         if (tens == 1) {
             inner->field_93C = 0;
         } else {
@@ -4723,7 +4723,7 @@ void func_80108A0C(GpActorWork* arg0)
         }
     } else if (tens == 3) {
         inner->field_93C = 2;
-    } else if (D_80114C08.field_0 < 0x12CU) {
+    } else if (Gp_StateC08.field_0 < 0x12CU) {
         inner->field_93C = 1;
     } else {
         inner->field_93C = 0;
@@ -4747,11 +4747,11 @@ void func_80108AD4(GpActorWork* arg0)
     inner->field_973 = 0;
     inner->field_975 = 0;
     inner->field_960 = prev;
-    func_80103B5C(arg0);
-    inner->field_12A   &= 0x3FFF;
-    D_80114C08.field_6 |= 1;
+    Gp_DetachLinkNode(arg0);
+    inner->field_12A    &= 0x3FFF;
+    Gp_StateC08.field_6 |= 1;
     func_80106350(arg0, Wip_SysConfig.field_21, 0);
-    func_80103A18(arg0, 0x19, 3, 6);
+    Gp_AnimPlayChildSlotsEx(arg0, 0x19, 3, 6);
 }
 
 void func_80108B80(GpActorWork* arg0)
@@ -4762,7 +4762,7 @@ void func_80108B80(GpActorWork* arg0)
 
 void func_80108BAC(GpActorWork* arg0)
 {
-    func_80103AC0(arg0);
+    Gp_AnimTickChildSlots(arg0);
     func_80105ED4(arg0);
 }
 
@@ -4790,7 +4790,7 @@ void func_80108BD8(GpActorWork* arg0)
         inner->field_52  = raw;
         inner->field_982 = 0;
         inner->field_956 = flag;
-        func_80103A18(arg0, flag, 0, 5);
+        Gp_AnimPlayChildSlotsEx(arg0, flag, 0, 5);
     } else {
         delta = func_80103E7C(cur, tgt);
         if (delta > 0x40) {
@@ -4800,7 +4800,7 @@ void func_80108BD8(GpActorWork* arg0)
         }
         inner->field_52 = ((u16)inner->field_52 + delta) & 0xFFF;
     }
-    func_80103AC0(arg0);
+    Gp_AnimTickChildSlots(arg0);
 }
 
 void func_80108CC4(GpActorWork* arg0)
@@ -4819,7 +4819,7 @@ void func_80108CC4(GpActorWork* arg0)
                 if (inner->field_93C != 0) {
                     mode = inner->field_93C;
                 }
-                func_80103A18(arg0, mode, 0, 5);
+                Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 5);
             }
             break;
         case 2:
@@ -4836,13 +4836,13 @@ void func_80108D68(GpActorWork* arg0)
     if (inner->field_93E >= inner->field_934) {
         inner->field_97A = 0x12;
         if (inner->field_95E == 0) {
-            func_800AC464(Game_GetPtrSlot(4), 0x7DA, 0, 0x7DE);
+            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, 0, 0x7DE);
             inner->field_95E = 1;
         }
     } else if (inner->field_966 & 0xF0F0) {
         inner->field_93E++;
     }
-    func_80103AC0(arg0);
+    Gp_AnimTickChildSlots(arg0);
 }
 
 void func_80108E0C(GpActorWork* arg0, GpLinkNode* arg1)
@@ -4880,7 +4880,7 @@ void func_80108E40(GpActorWork* arg0)
     sp = D_800979F8;
     sp.funcs[(u16)arg0->actor->field_96C](arg0);
     func_80101848(arg0);
-    func_80103AC0(arg0);
+    Gp_AnimTickChildSlots(arg0);
     func_80101F58(arg0);
     func_80101A68(arg0);
 }
@@ -4915,7 +4915,7 @@ void func_80108ED4(GpActorWork* arg0)
     sp.funcs[inner->field_956](arg0);
     func_80101F58(arg0);
     if (Wip_SysConfig.field_18 <= 0 && inner->field_956 != 0xA) {
-        func_80103874(arg0);
+        Gp_BindActorAnim(arg0);
         func_8010AA28(arg0, 4);
     }
 }
@@ -4935,12 +4935,12 @@ void func_80108FD4(GpActorWork* arg0)
 
     func_80103F70(arg0);
     inner            = arg0->actor;
-    node             = func_800DAD54(arg0);
+    node             = Gp_FindLockNode(arg0);
     inner->field_973 = 0;
-    if ((node != NULL && D_801153F0.field_0 < 2) || (flag = 1, D_801153F0.field_0 == flag) ||
+    if ((node != NULL && Gp_StateF0.field_0 < 2) || (flag = 1, Gp_StateF0.field_0 == flag) ||
         Mc_SaveData.field_929 != 0) {
         if (inner->field_95E != 0) {
-            func_800DB4E0(1);
+            Gp_ArmStateF0(1);
             if (inner->field_97C != 0) {
                 inner->field_97C = 0;
                 if (node != NULL) {
@@ -4954,7 +4954,7 @@ void func_80108FD4(GpActorWork* arg0)
         if (inner->field_97D & 2) {
             inner->field_97C = 0;
             inner->field_97E = flag;
-            func_80103B5C(arg0);
+            Gp_DetachLinkNode(arg0);
             func_80108874(arg0);
         }
     }
@@ -5060,7 +5060,7 @@ s32 func_80109290(GpActorWork* arg0)
     register s32 temp asm("v0");
 
     ret = 0;
-    if (D_80114C08.field_3 == -2) {
+    if (Gp_StateC08.field_3 == -2) {
         inner            = arg0->actor;
         prev             = inner->field_956;
         inner->field_956 = 6;
@@ -5072,9 +5072,9 @@ s32 func_80109290(GpActorWork* arg0)
         inner->field_973 = 0;
         inner->field_97E = 1;
         inner->field_960 = prev;
-        temp             = (D_80114C08.field_0 % 100U) / 10U;
+        temp             = (Gp_StateC08.field_0 % 100U) / 10U;
         tens             = temp;
-        if (D_80114C08.field_0 >= 0x259U) {
+        if (Gp_StateC08.field_0 >= 0x259U) {
             if (tens == 1) {
                 inner->field_93C = 0;
             } else {
@@ -5082,7 +5082,7 @@ s32 func_80109290(GpActorWork* arg0)
             }
         } else if (tens == 3) {
             inner->field_93C = 2;
-        } else if (D_80114C08.field_0 < 0x12CU) {
+        } else if (Gp_StateC08.field_0 < 0x12CU) {
             inner->field_93C = 1;
         } else {
             inner->field_93C = 0;
@@ -5097,7 +5097,7 @@ void func_80109374(GpActorWork* arg0)
     GameActor* inner;
 
     inner = arg0->actor;
-    if ((inner->field_962 & 0x80) && (D_80114C08.field_3 == 0) && (Wip_SysConfig.field_21 != 0) &&
+    if ((inner->field_962 & 0x80) && (Gp_StateC08.field_3 == 0) && (Wip_SysConfig.field_21 != 0) &&
         (inner->field_991 == 0)) {
         inner->field_97D = 1;
     } else {
@@ -5115,11 +5115,11 @@ void func_801093DC(GpActorWork* arg0)
     if (inner->field_90C != NULL) {
         flags = inner->field_966;
         if (flags & 0x40) {
-            func_80103B5C(arg0);
+            Gp_DetachLinkNode(arg0);
             return;
         }
         if (((inner->field_962 & 0x80) && (flags & 0xA000)) || (flags & 0x80)) {
-            next = func_800DAD78(arg0);
+            next = Gp_FindLockNodePad(arg0);
             goto install;
         }
     } else if ((inner->field_966 & 0x80) && !(Wip_SysConfig.field_25 & 1)) {
@@ -5127,7 +5127,7 @@ void func_801093DC(GpActorWork* arg0)
 
         a                = arg0;
         inner->field_97E = 2;
-        next             = func_800DAD54(a);
+        next             = Gp_FindLockNode(a);
         goto install;
     }
     return;
@@ -5173,14 +5173,14 @@ void func_801094D4(GpActorWork* arg0)
             if (inner->field_934 == 0) {
                 arg2 = 6;
             }
-            func_8010397C(arg0, mode, arg2);
+            Gp_AnimPlayChildSlots(arg0, mode, arg2);
         case 1:
             if (func_80105ED4(arg0) != 0) {
                 inner->field_93E--;
                 if (inner->field_93E <= 0) {
                     inner->field_982 = 0;
                     inner->field_956 = 1;
-                    func_80103A18(arg0, 1, 0, 5);
+                    Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 5);
                 }
             } else {
                 inner->field_973 = 1;
@@ -5188,7 +5188,7 @@ void func_801094D4(GpActorWork* arg0)
             }
             break;
     }
-    func_80103AC0(arg0);
+    Gp_AnimTickChildSlots(arg0);
 }
 
 void func_801095BC(s32* arg0)
@@ -5198,7 +5198,7 @@ void func_801095BC(s32* arg0)
 
     p = &Wip_SysConfig;
     if (p->field_21 == 0x1B) {
-        *arg0 = func_800BAFE0(p->field_21 + 0x7F)->field_2 - 0x9F;
+        *arg0 = Gp_GetItemSlot(p->field_21 + 0x7F)->field_2 - 0x9F;
         if (*arg0 < 0) {
             *arg0 = 0xA;
         }
@@ -5231,9 +5231,9 @@ void func_80109684(GpActorWork* arg0)
             if (inner->field_934 != 0) {
                 mode = 0x21;
             }
-            func_8010397C(arg0, mode, 1);
+            Gp_AnimPlayChildSlots(arg0, mode, 1);
         case 1:
-            func_80103AC0(arg0);
+            Gp_AnimTickChildSlots(arg0);
             break;
     }
     func_8010B120(arg0);
@@ -5241,7 +5241,7 @@ void func_80109684(GpActorWork* arg0)
 
 void func_80109700(GpActorWork* arg0)
 {
-    func_80103AC0(arg0);
+    Gp_AnimTickChildSlots(arg0);
 }
 
 void func_80109720(GpActorWork* arg0)
@@ -5496,7 +5496,7 @@ void func_80109FC4(GpActorWork* arg0)
             }
         }
         if (flags & 0x80) {
-            if ((u32)((u8)D_80114C08.field_A - 2) >= 2U) {
+            if ((u32)((u8)Gp_StateC08.field_A - 2) >= 2U) {
                 temp             = (u16)actor->field_950 - 1;
                 actor->field_950 = temp;
                 if ((s16)temp <= 0) {
@@ -5523,8 +5523,8 @@ void func_8010A1B0(s32 arg0, s32 arg1)
                 Wip_SysConfig.field_25 |= 1;
                 inner->field_944        = 0x258;
                 func_800EC9C8();
-                func_80103B5C(work);
-                func_800ECA10(1);
+                Gp_DetachLinkNode(work);
+                Gp_SetState1CPe(1);
             }
         }
         if (mask & 2) {
@@ -5534,7 +5534,7 @@ void func_8010A1B0(s32 arg0, s32 arg1)
                 inner->field_946        = 0x258;
                 inner->field_98E        = 0;
                 func_8010B210(work);
-                func_800ECA10(2);
+                Gp_SetState1CPe(2);
             }
         }
         if (mask & 4) {
@@ -5543,7 +5543,7 @@ void func_8010A1B0(s32 arg0, s32 arg1)
                 Wip_SysConfig.field_25 |= 4;
                 inner->field_948        = 0x258;
                 inner->field_98D        = 0;
-                func_800ECA10(4);
+                Gp_SetState1CPe(4);
             }
         }
         if (mask & 0x10) {
@@ -5551,7 +5551,7 @@ void func_8010A1B0(s32 arg0, s32 arg1)
             if (func_800B9D80(0x108) == 0) {
                 Wip_SysConfig.field_25 |= 0x10;
                 inner->field_94A        = 0x258;
-                func_800ECA10(0x10);
+                Gp_SetState1CPe(0x10);
             }
         }
         if (mask & 0x20) {
@@ -5559,7 +5559,7 @@ void func_8010A1B0(s32 arg0, s32 arg1)
             if (func_800B9D80(0x110) == 0) {
                 Wip_SysConfig.field_25 |= 0x20;
                 inner->field_94C        = 0x258;
-                func_800ECA10(0x20);
+                Gp_SetState1CPe(0x20);
             }
         }
         if (mask & 0x40) {
@@ -5569,7 +5569,7 @@ void func_8010A1B0(s32 arg0, s32 arg1)
                 inner->field_94E        = 0x258;
                 inner->field_990        = (rand() & 0x1F) + 0xA;
                 inner->field_970        = 0;
-                func_800ECA10(0x40);
+                Gp_SetState1CPe(0x40);
             }
         }
         if (mask & 0x80) {
@@ -5577,7 +5577,7 @@ void func_8010A1B0(s32 arg0, s32 arg1)
             if (func_800B9D80(0x140) == 0) {
                 Wip_SysConfig.field_25 |= 0x80;
                 inner->field_950        = 0x258;
-                func_800ECA10(0x80);
+                Gp_SetState1CPe(0x80);
                 func_800ECA54();
             }
         }
@@ -5605,8 +5605,8 @@ void func_8010A42C(GpActorWork* arg0, s32 arg1)
                 Wip_SysConfig.field_25 |= 1;
                 inner->field_944        = 0x258;
                 func_800EC9C8();
-                func_80103B5C(arg0);
-                func_800ECA10(1);
+                Gp_DetachLinkNode(arg0);
+                Gp_SetState1CPe(1);
                 break;
             }
             case 2: {
@@ -5620,7 +5620,7 @@ void func_8010A42C(GpActorWork* arg0, s32 arg1)
                 inner->field_946        = 0x258;
                 inner->field_98E        = 0;
                 func_8010B210(arg0);
-                func_800ECA10(2);
+                Gp_SetState1CPe(2);
                 break;
             }
             case 3: {
@@ -5633,11 +5633,11 @@ void func_8010A42C(GpActorWork* arg0, s32 arg1)
                 Wip_SysConfig.field_25 |= 4;
                 inner->field_948        = 0x258;
                 inner->field_98D        = 0;
-                func_800ECA10(4);
+                Gp_SetState1CPe(4);
                 break;
             }
             case 4:
-                func_800ECA10(8);
+                Gp_SetState1CPe(8);
                 break;
             case 8: {
                 GameActor* inner;
@@ -5648,7 +5648,7 @@ void func_8010A42C(GpActorWork* arg0, s32 arg1)
                 }
                 Wip_SysConfig.field_25 |= 0x10;
                 inner->field_94A        = 0x258;
-                func_800ECA10(0x10);
+                Gp_SetState1CPe(0x10);
                 break;
             }
             case 9: {
@@ -5660,7 +5660,7 @@ void func_8010A42C(GpActorWork* arg0, s32 arg1)
                 }
                 Wip_SysConfig.field_25 |= 0x20;
                 inner->field_94C        = 0x258;
-                func_800ECA10(0x20);
+                Gp_SetState1CPe(0x20);
                 break;
             }
             case 10: {
@@ -5674,7 +5674,7 @@ void func_8010A42C(GpActorWork* arg0, s32 arg1)
                 inner->field_94E        = 0x258;
                 inner->field_990        = (rand() & 0x1F) + 0xA;
                 inner->field_970        = 0;
-                func_800ECA10(0x40);
+                Gp_SetState1CPe(0x40);
                 break;
             }
             case 11: {
@@ -5686,7 +5686,7 @@ void func_8010A42C(GpActorWork* arg0, s32 arg1)
                 }
                 Wip_SysConfig.field_25 |= 0x80;
                 inner->field_950        = 0x258;
-                func_800ECA10(0x80);
+                Gp_SetState1CPe(0x80);
                 func_800ECA54();
                 break;
             }
@@ -5737,15 +5737,15 @@ void func_8010A670(GpActorWork* arg0)
                 }
             }
         }
-        if (D_801153F0.field_0 == 1) {
+        if (Gp_StateF0.field_0 == 1) {
             if (inner->field_90C != NULL) {
                 if (rand() & 3) {
-                    func_80103B5C(arg0);
+                    Gp_DetachLinkNode(arg0);
                 }
             } else {
                 mode = inner->field_956;
                 if (mode == 2 && !(Wip_SysConfig.field_25 & 1) && (rand() & 3)) {
-                    node = func_800DAD54(arg0);
+                    node = Gp_FindLockNode(arg0);
                     if (node != NULL) {
                         inner->field_97E = mode;
                         func_80108E0C(arg0, node);
@@ -5815,7 +5815,7 @@ void func_8010A9D0(GpActorWork* arg0)
     } else {
         mode = 0x11;
     }
-    func_80103A18(arg0, mode, 0, 3);
+    Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 3);
 }
 
 void func_8010AA28(GpActorWork* arg0, s32 arg1)
@@ -5830,11 +5830,11 @@ void func_8010AA28(GpActorWork* arg0, s32 arg1)
     inner->field_95E = 0;
     inner->field_96C = 3;
     if (arg1 == 0) {
-        func_801038F8(arg0, 0x12);
+        Gp_AnimResetChildSlots(arg0, 0x12);
     } else {
-        func_80103A18(arg0, 0x12, 0, arg1);
+        Gp_AnimPlayChildSlotsEx(arg0, 0x12, 0, arg1);
     }
-    func_80103B5C(arg0);
+    Gp_DetachLinkNode(arg0);
     inner->field_983 |= 0x18;
 }
 
@@ -5843,9 +5843,9 @@ void func_8010AAB4(GpActorWork* arg0)
     GameActor*    inner;
     WipSysConfig* p;
 
-    p                   = &Wip_SysConfig;
-    inner               = arg0->actor;
-    D_80114C08.field_6 |= 1;
+    p                    = &Wip_SysConfig;
+    inner                = arg0->actor;
+    Gp_StateC08.field_6 |= 1;
     func_80106350(arg0, p->field_21, 0);
     if (p->field_18 > 0) {
         inner->field_954 = 1;
@@ -5991,8 +5991,8 @@ void func_8010AE98(GpActorWork* arg0)
     Wip_SysConfig.field_25 |= 1;
     inner->field_944        = 0x258;
     func_800EC9C8();
-    func_80103B5C(arg0);
-    func_800ECA10(1);
+    Gp_DetachLinkNode(arg0);
+    Gp_SetState1CPe(1);
 }
 
 void func_8010AF04(GpActorWork* arg0)
@@ -6007,7 +6007,7 @@ void func_8010AF04(GpActorWork* arg0)
     inner->field_946        = 0x258;
     inner->field_98E        = 0;
     func_8010B210(arg0);
-    func_800ECA10(2);
+    Gp_SetState1CPe(2);
 }
 
 void func_8010AF6C(GpActorWork* arg0)
@@ -6021,7 +6021,7 @@ void func_8010AF6C(GpActorWork* arg0)
     Wip_SysConfig.field_25 |= 4;
     inner->field_948        = 0x258;
     inner->field_98D        = 0;
-    func_800ECA10(4);
+    Gp_SetState1CPe(4);
 }
 
 void func_8010AFC0(GpActorWork* arg0)
@@ -6034,7 +6034,7 @@ void func_8010AFC0(GpActorWork* arg0)
     }
     Wip_SysConfig.field_25 |= 0x10;
     inner->field_94A        = 0x258;
-    func_800ECA10(0x10);
+    Gp_SetState1CPe(0x10);
 }
 
 void func_8010B010(GpActorWork* arg0)
@@ -6047,7 +6047,7 @@ void func_8010B010(GpActorWork* arg0)
     }
     Wip_SysConfig.field_25 |= 0x20;
     inner->field_94C        = 0x258;
-    func_800ECA10(0x20);
+    Gp_SetState1CPe(0x20);
 }
 
 void func_8010B060(GpActorWork* arg0)
@@ -6062,7 +6062,7 @@ void func_8010B060(GpActorWork* arg0)
     inner->field_94E        = 0x258;
     inner->field_990        = (rand() & 0x1F) + 0xA;
     inner->field_970        = 0;
-    func_800ECA10(0x40);
+    Gp_SetState1CPe(0x40);
 }
 
 void func_8010B0C8(GpActorWork* arg0)
@@ -6075,7 +6075,7 @@ void func_8010B0C8(GpActorWork* arg0)
     }
     Wip_SysConfig.field_25 |= 0x80;
     inner->field_950        = 0x258;
-    func_800ECA10(0x80);
+    Gp_SetState1CPe(0x80);
     func_800ECA54();
 }
 
@@ -6107,9 +6107,9 @@ void func_8010B120(GpActorWork* arg0)
     if ((u16)inner2->field_96C == 1) {
         mode = 0x10;
     }
-    func_80103A18(arg0, mode, 0, 3);
-    temp  = (s8)func_800D937C(obj);
-    temp2 = (s8)func_800D9340(obj);
+    Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 3);
+    temp  = (s8)Gp_GetObjPan(obj);
+    temp2 = (s8)Gp_GetObjDepth(obj);
     snd   = 7;
     if ((u16)inner->field_96C == 1) {
         snd = 6;
@@ -6138,7 +6138,7 @@ s32 func_8010B228(s32 arg0)
     p           = &Wip_SysConfig;
     saved18     = p->field_18;
     saved1c     = p->field_1c;
-    ret         = func_8010A854((s16)func_800E2438(arg0, 0, &out, 0));
+    ret         = func_8010A854((s16)Gp_ScaleDamage(arg0, 0, &out, 0));
     p->field_18 = saved18;
     p->field_1c = saved1c;
     if (ret != 0) {
@@ -6168,7 +6168,7 @@ void func_8010B2D4(GpActorWork* arg0, GpIdRec* arg1, s32 arg2)
         } else {
             inner->field_96C = 2;
         }
-        inner->field_96E = func_800E2438(arg1->field_4, 0, &out, flag);
+        inner->field_96E = Gp_ScaleDamage(arg1->field_4, 0, &out, flag);
         inner->field_972 = out;
     }
 }
@@ -6212,7 +6212,7 @@ void func_8010B348(GpActorWork* arg0, GpIdRec* arg1, s32 arg2)
         }
         inner->field_972 = 0;
     do_call:
-        inner->field_96E = func_800E2CD4(arg1->field_4, 0);
+        inner->field_96E = Gp_LookupIdField(arg1->field_4, 0);
     }
 }
 
@@ -6336,11 +6336,11 @@ void func_8010B674(GpActorWork* arg0)
         actor->field_91C = NULL;
         extra            = (GpAnimObj*)arg0->extra;
         inner            = arg0->actor;
-        inner->field_93A = D_80113360[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7;
-        inner->field_928 = D_80113368[inner->field_93A];
+        inner->field_93A = Gp_AllyIdBase[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7;
+        inner->field_928 = Gp_AnimBlkTbl[inner->field_93A];
         func_800B3F84((GpAnimCtx*)inner->field_424, inner->field_928, extra, &inner->field_7A8,
                       (GpAnimSlot*)inner->pad_438);
-        func_801038F8(arg0, 1);
+        Gp_AnimResetChildSlots(arg0, 1);
         next            = arg0->actor;
         next->field_954 = 0;
         next->field_956 = 0;
@@ -6352,7 +6352,7 @@ void func_8010B674(GpActorWork* arg0)
         next->field_93E = 0;
         next->field_973 = 0;
         next->field_975 = 0;
-        func_80103A18(arg0, 1, 0, 4);
+        Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 4);
     }
     task = actor->field_914;
     if (task != NULL) {
@@ -6406,8 +6406,8 @@ s32 func_8010B79C(void)
 
     inner            = work->actor;
     extra            = (GpAnimObj*)work->extra;
-    inner->field_93A = D_80113360[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7;
-    inner->field_928 = D_80113368[inner->field_93A];
+    inner->field_93A = Gp_AllyIdBase[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7;
+    inner->field_928 = Gp_AnimBlkTbl[inner->field_93A];
     func_800B3F84((GpAnimCtx*)inner->field_424, inner->field_928, extra, &inner->field_7A8,
                   (GpAnimSlot*)inner->pad_438);
     next            = work->actor;
@@ -6421,7 +6421,7 @@ s32 func_8010B79C(void)
     next->field_93E = 0;
     next->field_973 = 0;
     next->field_975 = 0;
-    func_801038F8(work, 1);
+    Gp_AnimResetChildSlots(work, 1);
     ret              = (s32)actor->field_91C;
     actor->field_983 = 7;
     return ret;
@@ -6461,10 +6461,10 @@ void func_8010B9A4(GpActorWork* arg0)
     if ((u16)actor->field_96C == 1) {
         anim = 0x10;
     }
-    func_80103A18(arg0, anim, 0, 3);
+    Gp_AnimPlayChildSlotsEx(arg0, anim, 0, 3);
 }
 
-Task* func_8010BAC8(GpActorArg* arg0, u16 arg1, s32 arg2, u16* arg3)
+Task* Gp_SpawnAlly(GpActorArg* arg0, u16 arg1, s32 arg2, u16* arg3)
 {
     Task*          task;
     GameActor*     actor;
@@ -6502,7 +6502,7 @@ have_actor:
     Mem_Set(block, 0, 0xD4);
     task->idMap      = (TaskIdMap*)actor;
     actor->field_910 = block;
-    func_800A9DF0(task);
+    Gp_PumpTmdStream(task);
     actor->field_93C  = *arg3;
     actor->field_52   = arg0->field_0;
     coord             = (GsCOORDINATE2*)((GameActorExt*)task->extra)->field_8;
@@ -6512,7 +6512,7 @@ have_actor:
     return task;
 }
 
-void func_8010BC04(GpActorWork* arg0, s16 arg1)
+void Gp_ResetActorMove(GpActorWork* arg0, s16 arg1)
 {
     GameActor* inner;
 
@@ -6528,9 +6528,9 @@ void func_8010BC04(GpActorWork* arg0, s16 arg1)
     inner->field_973 = 0;
     inner->field_975 = 0;
     if (arg1 != 0) {
-        func_801038F8(arg0, 1);
+        Gp_AnimResetChildSlots(arg0, 1);
     } else {
-        func_80103A18(arg0, 1, 0, 4);
+        Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 4);
     }
 }
 
@@ -6650,8 +6650,8 @@ void func_8010BFCC(GpActorWork* arg0)
 
     actor            = arg0->actor;
     extra            = (GpAnimObj*)arg0->extra;
-    actor->field_93A = D_80113360[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7;
-    actor->field_928 = D_80113368[actor->field_93A];
+    actor->field_93A = Gp_AllyIdBase[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7;
+    actor->field_928 = Gp_AnimBlkTbl[actor->field_93A];
     func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
                   (GpAnimSlot*)actor->pad_438);
 }
@@ -6718,10 +6718,10 @@ void func_8010C180(GpActorWork* arg0)
     actor->field_93E = 0;
     actor->field_973 = 0;
     actor->field_975 = 0;
-    func_80103A18(arg0, 1, 0, 4);
+    Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 4);
 }
 
-void func_8010C1FC(GpActorWork* arg0, SVECTOR3* arg1, s32 arg2)
+void Gp_BindActorD4(GpActorWork* arg0, SVECTOR3* arg1, s32 arg2)
 {
     GsCOORDINATE2* dest;
     GsCOORDINATE2* src;
@@ -6753,8 +6753,8 @@ void func_8010C1FC(GpActorWork* arg0, SVECTOR3* arg1, s32 arg2)
     rec->field_14 = &block->field_A0;
     rec->field_C  = vz;
     rec->field_2  = rec->field_A;
-    func_800E15AC(1, obj);
-    func_800E18E0(rec->field_14, 1, 0);
+    Gp_LinkObj(1, obj);
+    Gp_InitRec18Table(rec->field_14, 1, 0);
     obj->flags |= 0xC800;
 }
 
@@ -6785,8 +6785,8 @@ s32 func_8010C30C(GpActorWork* arg0)
     actor->field_14    = coord->coord.t[1];
     actor->field_18    = coord->coord.t[2];
     prev               = actor->field_928;
-    actor->field_93A   = D_80113360[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7;
-    anim               = D_80113368[actor->field_93A];
+    actor->field_93A   = Gp_AllyIdBase[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7;
+    anim               = Gp_AnimBlkTbl[actor->field_93A];
     changed            = prev != anim;
     actor->field_928   = anim;
     func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, (GpAnimObj*)extra, &actor->field_7A8,
@@ -6795,7 +6795,7 @@ s32 func_8010C30C(GpActorWork* arg0)
     actor->field_983 = 7;
     actor->field_95E = 0;
     actor->field_960 = 0;
-    func_8010BC04(arg0, changed);
+    Gp_ResetActorMove(arg0, changed);
     return 0;
 }
 
@@ -6842,17 +6842,17 @@ s32 func_8010C4F0(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2)
     actor->field_12A &= 0x3FFF;
     func_80106350(arg0, D_80167218[Mc_SaveData.field_5C7], 0);
     actor->field_956 = 1;
-    if (actor->field_928 != D_80113368[(s32)arg2->field_0]) {
-        actor->field_928 = D_80113368[(s32)arg2->field_0];
+    if (actor->field_928 != Gp_AnimBlkTbl[(s32)arg2->field_0]) {
+        actor->field_928 = Gp_AnimBlkTbl[(s32)arg2->field_0];
         func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, extra, &actor->field_7A8,
                       (GpAnimSlot*)actor->pad_438);
         actor->field_93A = (u16)arg2->field_0;
     }
     actor->field_985 = 0x10;
     if (arg2->field_8 == 0) {
-        func_801038F8(arg0, arg2->field_4);
+        Gp_AnimResetChildSlots(arg0, arg2->field_4);
     } else {
-        func_80103A18(arg0, arg2->field_4, 1, arg2->field_C);
+        Gp_AnimPlayChildSlotsEx(arg0, arg2->field_4, 1, arg2->field_C);
     }
     if (arg2->field_10 == 0) {
         actor->field_983 = 0x38;
@@ -6893,7 +6893,7 @@ s32 func_8010C6C8(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* ar
 
     p     = &Wip_SysConfig;
     saved = p->field_24;
-    func_80105070(arg0, arg1, arg2, arg3);
+    Gp_SetActorDest(arg0, arg1, arg2, arg3);
     p->field_24 = saved;
     return 0;
 }
@@ -6907,7 +6907,7 @@ s32 func_8010C708(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* ar
     p     = &Wip_SysConfig;
     actor = arg0->actor;
     saved = p->field_24;
-    func_80105070(arg0, arg1, arg2, arg3);
+    Gp_SetActorDest(arg0, arg1, arg2, arg3);
     p->field_24      = saved;
     actor->field_956 = 8;
     return 0;
@@ -6941,25 +6941,25 @@ s32 func_8010C75C(GpActorWork* arg0, s32 arg1, GpDelayArg* arg2)
     return 0;
 }
 
-void func_8010C81C(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2)
+void Gp_MoveActorByKeep(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2)
 {
     WipSysConfig* p;
     u8            saved;
 
     p     = &Wip_SysConfig;
     saved = p->field_24;
-    func_801053A0(arg0, arg1, arg2);
+    Gp_MoveActorBy(arg0, arg1, arg2);
     p->field_24 = saved;
 }
 
-s32 func_8010C858(GpActorWork* arg0, s32 arg1, GpCopyArg* arg2)
+s32 Gp_CopyAllyAnim(GpActorWork* arg0, s32 arg1, GpCopyArg* arg2)
 {
     s32* dest;
     s32* src;
     s32  i;
     s32  count;
 
-    dest  = (s32*)D_80113368[D_80113360[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7];
+    dest  = (s32*)Gp_AnimBlkTbl[Gp_AllyIdBase[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7];
     src   = arg2->field_0;
     count = arg2->field_4;
     if (count >= 0x21) {
@@ -6972,15 +6972,15 @@ s32 func_8010C858(GpActorWork* arg0, s32 arg1, GpCopyArg* arg2)
     return 0;
 }
 
-s32 func_8010C8F0(GpActorWork* arg0, s32 arg1, s32 arg2)
+s32 Gp_HurtAlly(GpActorWork* arg0, s32 arg1, s32 arg2)
 {
     s32 ret;
 
     ret = 0;
     if (Mc_SaveData.field_5C2 == 0) {
-        Mc_SaveData.field_6C8 -= func_800E2438(arg2, 0, 0, 1);
+        Mc_SaveData.field_6C8 -= Gp_ScaleDamage(arg2, 0, 0, 1);
         if ((s16)Mc_SaveData.field_6C8 <= 0) {
-            func_800AC464(Game_GetPtrSlot(4), 0x7DA, 0, 0x7DE);
+            Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, 0, 0x7DE);
             ret = 1;
         }
     }
@@ -6997,7 +6997,7 @@ void func_8010C980(void* arg0, GpObj* arg1, GpRec18* arg2, s32 arg3, s32 arg4, s
     arg1->flags    = 1;
     arg1->field_18 = arg4 | 0x30000;
     arg1->field_1C = arg5;
-    func_800E15AC(2, arg1);
+    Gp_LinkObj(2, arg1);
     arg1->flags |= 0x8000;
-    func_800E18E0(arg1->field_C, (s16)arg3, 0);
+    Gp_InitRec18Table(arg1->field_C, (s16)arg3, 0);
 }

@@ -6,7 +6,7 @@
 #include "main/session.h"
 #include "main/task.h"
 
-extern s32     D_80070F60;
+extern s32     Gp_LcgState;
 extern SVECTOR D_801124DC[];
 extern SVECTOR D_801125EC[];
 
@@ -24,11 +24,11 @@ void func_800ECEC0(Task* arg0)
     GpState1C*     st;
     s32            t2;
 
-    base  = D_80114F30;
+    base  = Gp_RoomCoords;
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
     slot  = (GpCoordTail*)&base->coord;
-    if (D_80115740->field_4 < 2) {
+    if (Gp_State1C->field_4 < 2) {
         mem->field_22++;
         switch (arg0->state) {
             case 0:
@@ -41,18 +41,18 @@ void func_800ECEC0(Task* arg0)
                 slot->field_50         = 0xC00;
                 slot->field_58         = 0xFA0;
                 slot->field_5C         = 0x12C0;
-                D_80114F30->field_0    = 4;
+                Gp_RoomCoords->field_0 = 4;
                 slot->coord.coord.t[2] = t2;
                 coord->sub             = mem->field_8;
                 coord->coord.t[0]      = D_801124DC[arg0->spawnArg1].vx;
                 coord->coord.t[1]      = D_801124DC[arg0->spawnArg1].vy;
                 coord->coord.t[2]      = D_801124DC[arg0->spawnArg1].vz;
                 coord->flg             = 0;
-                func_80098F58(coord);
+                Gp_UpdateCoord(coord);
                 mem->field_10 = 0;
                 mem->field_12 = 0;
-                D_80070F60    = D_80070F60 * 5 + 0x71357911;
-                mem->field_24 = ((u32)D_80070F60 >> 16) & 0x1FF;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_24 = ((u32)Gp_LcgState >> 16) & 0x1FF;
                 {
                     s32 sh;
                     sh = mem->field_24;
@@ -60,19 +60,19 @@ void func_800ECEC0(Task* arg0)
                     mem->field_14 = -((s16)sh >> 1);
                 }
                 func_800EA478(0x60034, coord, mem->field_24 + 0x600, (s32)&mem->field_10);
-                st           = D_80115740;
+                st           = Gp_State1C;
                 arg0->state  = 1;
                 st->field_14 = 1;
                 break;
             case 1:
-                D_80070F60 = D_80070F60 * 5 + 0x71357911;
-                func_800EA478(0x60035, coord, (((u32)D_80070F60 >> 16) & 0x1FF) + 0x11280,
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                func_800EA478(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x11280,
                               (s32)&mem->field_10);
-                D_80070F60 = D_80070F60 * 5 + 0x71357911;
-                func_800EA478(0x60035, coord, (((u32)D_80070F60 >> 16) & 0x1FF) + 0x21280,
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                func_800EA478(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x21280,
                               (s32)&mem->field_10);
-                D_80070F60 = D_80070F60 * 5 + 0x71357911;
-                func_800EA478(0x60035, coord, (((u32)D_80070F60 >> 16) & 0x1FF) + 0x31280,
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                func_800EA478(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x31280,
                               (s32)&mem->field_10);
                 arg0->state++;
                 break;
@@ -81,7 +81,7 @@ void func_800ECEC0(Task* arg0)
             slot->field_58 -= 0x190;
         }
         if (mem->field_22 >= 5) {
-            func_800EC7E4(mem, arg0);
+            Gp_ReleaseState1CMem(mem, arg0);
         }
     }
 }
@@ -98,11 +98,11 @@ void func_800ED198(Task* arg0)
     s32            t2;
     s32            count;
 
-    base  = D_80114F30;
+    base  = Gp_RoomCoords;
     slot  = (GpCoordTail*)&base->coord;
     mem   = arg0->spawnArg2;
     coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
-    st    = D_80115740;
+    st    = Gp_State1C;
     if (st->field_4 < 2) {
         mem->field_22++;
         if (arg0->state == 0) {
@@ -124,11 +124,11 @@ void func_800ED198(Task* arg0)
             coord->coord.t[1]      = D_801124DC[arg0->spawnArg1].vy;
             coord->coord.t[2]      = D_801124DC[arg0->spawnArg1].vz;
             coord->flg             = 0;
-            func_80098F58(coord);
+            Gp_UpdateCoord(coord);
             mem->field_10 = 0;
             mem->field_12 = 0;
-            D_80070F60    = D_80070F60 * 5 + 0x71357911;
-            mem->field_24 = ((u32)D_80070F60 >> 16) & 0x1FF;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_24 = ((u32)Gp_LcgState >> 16) & 0x1FF;
             {
                 s32 sh;
                 sh = mem->field_24;
@@ -136,20 +136,20 @@ void func_800ED198(Task* arg0)
                 mem->field_14 = -((s16)sh >> 1);
             }
             func_800EA478(0x60034, coord, mem->field_24 + 0x380, (s32)&mem->field_10);
-            D_80070F60 = D_80070F60 * 5 + 0x71357911;
-            func_800EA478(0x60072, coord, (((u32)D_80070F60 >> 16) & 0x1FF) + 0x380, 0);
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            func_800EA478(0x60072, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x380, 0);
             idx         = arg0->spawnArg1;
             arg0->state = 1;
             func_800EA478(0x60067, coord, idx, (s32)&D_801125EC[idx]);
             if (arg0->spawnArg1 == 0x11) {
-                mem->field_24       = 1;
-                D_80114F30->field_0 = 1;
+                mem->field_24          = 1;
+                Gp_RoomCoords->field_0 = 1;
             } else {
-                mem->field_24       = 4;
-                D_80114F30->field_0 = 4;
+                mem->field_24          = 4;
+                Gp_RoomCoords->field_0 = 4;
             }
             if (mem->field_20 == 0) {
-                D_80115740->field_14 = 1;
+                Gp_State1C->field_14 = 1;
             }
         }
         if (slot->field_58 >= 0x191) {
@@ -157,7 +157,7 @@ void func_800ED198(Task* arg0)
         }
         count = mem->field_22;
         if (mem->field_24 < count) {
-            func_800EC7E4(mem, arg0);
+            Gp_ReleaseState1CMem(mem, arg0);
         }
     }
 }
@@ -203,22 +203,22 @@ void func_800F1364(Task* arg0)
         coord->coord.t[1] += mem->field_1A;
         coord->coord.t[2] += mem->field_1C;
         coord->flg         = 0;
-        func_80098F58(coord);
+        Gp_UpdateCoord(coord);
         arg0->state = 1;
-        rng         = D_80070F60 * 5 + 0x71357911;
-        D_80070F60  = rng;
+        rng         = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState = rng;
         func_800EA478(0x60035, coord, (((u32)rng >> 16) & 0x1FF) | 0x11200, 0);
-        rng        = D_80070F60 * 5 + 0x71357911;
-        D_80070F60 = rng;
+        rng         = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState = rng;
         func_800EA478(0x60035, coord, (((u32)rng >> 16) & 0x1FF) | 0x21200, 0);
-        rng        = D_80070F60 * 5 + 0x71357911;
-        D_80070F60 = rng;
+        rng         = Gp_LcgState * 5 + 0x71357911;
+        Gp_LcgState = rng;
         func_800EA478(0x60035, coord, (((u32)rng >> 16) & 0x1FF) | 0x31200, 0);
     }
     func_800EA478(0x60091, coord, arg0->spawnArg1, 0);
     mem->field_22++;
     if (mem->field_22 > mem->field_24 - 1) {
-        func_800EC7E4(mem, arg0);
+        Gp_ReleaseState1CMem(mem, arg0);
     }
 }
 
@@ -241,13 +241,13 @@ void func_800F1594(Task* arg0)
     *(s32*)&m->m[2][0]   = 0;
     m->m[2][2]           = one;
     coord->flg           = 0;
-    func_80098F58(coord);
+    Gp_UpdateCoord(coord);
 
     for (; i < 6; i++) {
         func_800EA478(0x60036, coord, 9, 0);
     }
 
-    func_800EC7E4(mem, arg0);
+    Gp_ReleaseState1CMem(mem, arg0);
 }
 
 INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F1638);
@@ -261,14 +261,14 @@ void func_800F1A9C(Task* arg0)
     s32            rng;
 
     mem   = arg0->spawnArg2;
-    flag  = D_80115740->field_4;
+    flag  = Gp_State1C->field_4;
     coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
     if (flag < 2) {
-        func_80098F58(coord);
+        Gp_UpdateCoord(coord);
         if (arg0->state == 0) {
-            rng           = D_80070F60 * 5 + 0x71357911;
+            rng           = Gp_LcgState * 5 + 0x71357911;
             mem->field_24 = ((u32)rng >> 16) & 0xFFF;
-            D_80070F60    = rng;
+            Gp_LcgState   = rng;
             if (arg0->spawnArg1 & 0xFFF) {
                 mem->field_26 = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xFFF;
             } else {
@@ -280,7 +280,7 @@ void func_800F1A9C(Task* arg0)
             arg0->state = 1;
         }
         func_800F1BEC(coord, mem->field_22, mem->field_26, mem->field_24);
-        if (D_80115740->field_4 != 0) {
+        if (Gp_State1C->field_4 != 0) {
             return;
         }
         mem->field_22++;
@@ -290,7 +290,7 @@ void func_800F1A9C(Task* arg0)
     } else if (flag < 4) {
         return;
     }
-    func_800EC7E4(mem, arg0);
+    Gp_ReleaseState1CMem(mem, arg0);
 }
 
 INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F1BEC);
@@ -314,7 +314,7 @@ void func_800F5184(Task* arg0)
     s16            flag;
 
     mem   = arg0->spawnArg2;
-    flag  = D_80115740->field_4;
+    flag  = Gp_State1C->field_4;
     coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
     if (flag < 4) {
         if (flag < 2) {
@@ -325,7 +325,7 @@ void func_800F5184(Task* arg0)
                 mem->field_2A = D_8011291C[arg0->spawnArg1].field_2;
                 arg0->state++;
             }
-            func_80098F58(coord);
+            Gp_UpdateCoord(coord);
             mem->field_24 -= 2;
             mem->field_26 += mem->field_2A;
             func_800F52B4(coord, mem->field_26, mem->field_24, mem->field_28);
@@ -337,7 +337,7 @@ void func_800F5184(Task* arg0)
             return;
         }
     }
-    func_800EC7E4(mem, arg0);
+    Gp_ReleaseState1CMem(mem, arg0);
 }
 
 INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F52B4);
@@ -364,13 +364,13 @@ void func_800F6C2C(Task* arg0)
             parent     = (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8;
             coord->flg = 0;
             coord->sub = parent + 1;
-            func_80098F58(coord);
+            Gp_UpdateCoord(coord);
             arg0->state = 1;
-        } else if (D_80115740->field_8 >= 0) {
+        } else if (Gp_State1C->field_8 >= 0) {
             if (!(((GameActorExt*)slot->extra)->field_C & 0x80)) {
-                func_80098F58(coord);
+                Gp_UpdateCoord(coord);
                 if ((s16)func_800EA1A8((VECTOR3*)coord->workm.t, &vec) != 0) {
-                    func_800F68AC(&vec, 0x1C0, D_80115740->field_8);
+                    func_800F68AC(&vec, 0x1C0, Gp_State1C->field_8);
                 }
             }
         }

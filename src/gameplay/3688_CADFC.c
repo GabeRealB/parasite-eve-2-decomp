@@ -10,7 +10,7 @@ extern UiListItemFunc D_8010EA18[];
 
 void func_800CAB40(DialogPrompt* arg0, UiObject* arg1);
 void func_800CAC88(DialogPrompt* arg0, UiObject* arg1);
-void func_800CF88C(DialogPrompt* arg0, UiObject* arg1);
+void Gp_DrawMovePrompt(DialogPrompt* arg0, UiObject* arg1);
 void func_800CF940(DialogPrompt* arg0, UiObject* arg1);
 void func_800D5338(DialogPrompt* arg0, UiObject* arg1);
 
@@ -25,22 +25,22 @@ void func_800CADFC(UiList* arg0, UiObject* arg1, s32 arg2, GpItemRec* arg3)
     switch (mode) {
         case 0:
             if (arg2 == 0) {
-                D_8010EA18[n++] = func_800CF88C;
+                D_8010EA18[n++] = Gp_DrawMovePrompt;
             } else if ((u32)(arg2 - 0x80) < 0x20U) {
-                D_8010EA18[n++] = func_800CF88C;
+                D_8010EA18[n++] = Gp_DrawMovePrompt;
                 D_8010EA18[n++] = func_800D5338;
             } else if ((u32)(arg2 - 0x60) < 0x20U) {
-                D_8010EA18[n++] = func_800CF88C;
+                D_8010EA18[n++] = Gp_DrawMovePrompt;
                 D_8010EA18[n++] = func_800D5338;
             } else if ((u32)(arg2 - 0xA0) < 0x20U) {
-                if ((arg3->field_2 - func_800BAFF4(&Mc_SaveData.field_5BC, arg2)) > 0) {
+                if ((arg3->field_2 - Gp_CountEquippedRelated(&Mc_SaveData.field_5BC, arg2)) > 0) {
                     D_8010EA18[n++] = func_800CAB40;
                 }
-                D_8010EA18[n++] = func_800CF88C;
+                D_8010EA18[n++] = Gp_DrawMovePrompt;
                 D_8010EA18[n++] = func_800D5338;
             } else {
-                D_8010EA18[n++] = func_800CF7C4;
-                D_8010EA18[n++] = func_800CF88C;
+                D_8010EA18[n++] = Gp_DrawUsePrompt;
+                D_8010EA18[n++] = Gp_DrawMovePrompt;
                 D_8010EA18[n++] = func_800D5338;
             }
             break;
@@ -77,13 +77,13 @@ void func_800CADFC(UiList* arg0, UiObject* arg1, s32 arg2, GpItemRec* arg3)
             } else if ((u32)(arg2 - 0x60) < 0x20U) {
             } else if ((u32)(arg2 - 0xA0) < 0x20U) {
                 D_8010EA18[n++] = func_800CF940;
-                if ((arg3->field_2 - func_800BAFF4(&Mc_SaveData.field_5BC, arg2)) > 0) {
+                if ((arg3->field_2 - Gp_CountEquippedRelated(&Mc_SaveData.field_5BC, arg2)) > 0) {
                     D_8010EA18[n++] = func_800CAB40;
                 }
                 D_8010EA18[n++] = func_800D5338;
             } else {
                 D_8010EA18[n++] = func_800CF940;
-                D_8010EA18[n++] = func_800CF7C4;
+                D_8010EA18[n++] = Gp_DrawUsePrompt;
                 D_8010EA18[n++] = func_800D5338;
             }
             break;

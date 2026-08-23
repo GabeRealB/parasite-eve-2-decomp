@@ -1,0 +1,13 @@
+// Overlapping splat labels inside named structs / duplicate string copies.
+// splat 0.50 folds these into the parent symbol; C still uses the aliases
+// (matching lui/%hi pairs and a second TOTAL string at 0x800971A8).
+// ninja_config.py appends this file onto undefined_syms_auto.gameplay.txt.
+
+D_801153F1 = 0x801153F1;
+D_801153F2 = 0x801153F2;
+D_801153F3 = 0x801153F3;
+D_801153F4 = 0x801153F4;
+D_8011541B = 0x8011541B;
+D_80114BEC = 0x80114BEC;
+Gp_StrTotal2 = 0x800971A8;
+Gp_StrWrongAmmo2 = 0x80096E4C;

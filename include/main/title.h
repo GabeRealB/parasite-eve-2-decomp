@@ -55,6 +55,8 @@ extern u16 Title_SkipFadeFlag;
 // =============================================================================
 
 void Title_InitTask(Task* task);
+/// One 16px chrome row. v is atlas Y in pe2img_2 (0 logo, 0x10 footer,
+/// 0x20 cursor, 0x30+ menu). clut 0x3FC0, tpage 0xE10002BC.
 void Title_DrawSpriteRow(s32 y, s32 v, s32 color);
 void Title_MenuTask(Task* task);
 void Title_RestoreDemoCard(void);

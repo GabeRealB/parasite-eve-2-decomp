@@ -12,7 +12,7 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-extern s32 D_80070F60;
+extern s32 Gp_LcgState;
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8_7E28", func_800F77F8);
 
@@ -31,22 +31,22 @@ void func_800F7E28(Task* arg0)
 
     extra  = arg0->extra;
     mem    = arg0->spawnArg2;
-    flag   = D_80115740->field_4;
+    flag   = Gp_State1C->field_4;
     coord  = (GsCOORDINATE2*)extra->field_8;
     parent = mem->field_8;
     if (flag >= 2) {
-        func_800EC7E4(mem, arg0);
+        Gp_ReleaseState1CMem(mem, arg0);
         return;
     }
 
-    func_80098F58(parent);
+    Gp_UpdateCoord(parent);
     coord->workm = parent->workm;
     gte_SetRotMatrix(&parent->workm);
     gte_SetTransMatrix(&parent->workm);
     world = &D_80070F34;
-    func_800A8864(world, &coord->workm, &coord->coord);
+    Gp_WorldToLocal(world, &coord->workm, &coord->coord);
     coord->flg = 0;
-    func_80098F58(coord);
+    Gp_UpdateCoord(coord);
 
     switch (arg0->spawnArg1) {
         case 0:
@@ -54,24 +54,24 @@ void func_800F7E28(Task* arg0)
             mem->field_2A   = 1;
             mem->field_26   = 0;
             arg0->spawnArg1 = 1;
-            if (D_80115740->field_4 != 0) {
+            if (Gp_State1C->field_4 != 0) {
                 break;
             }
             func_800EA478(0x60042, coord, mem->field_24 + 0x22200 + mem->field_24, 0);
             break;
         case 1:
             func_800F77F8(arg0);
-            if (D_80115740->field_4 != 0) {
+            if (Gp_State1C->field_4 != 0) {
                 break;
             }
-            D_80070F60 = D_80070F60 * 5 + 0x71357911;
-            if ((((u32)D_80070F60 >> 16) & 3) == 0) {
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
                 func_800EA478(0x60042, coord, mem->field_24 + 0x21000, 0);
             }
             mem->field_22++;
             break;
         case 2:
-            if (D_80115740->field_4 == 0) {
+            if (Gp_State1C->field_4 == 0) {
                 if (mem->field_20 == 0) {
                     func_800EA478(0x60042, coord, mem->field_24 + 0x22200, 0);
                     mem->field_20        = 1;
@@ -95,7 +95,7 @@ void func_800F7E28(Task* arg0)
             }
             goto lcg;
         case 3:
-            if (D_80115740->field_4 == 0 && mem->field_20 == 0) {
+            if (Gp_State1C->field_4 == 0 && mem->field_20 == 0) {
                 func_800EA478(0x60042, coord, mem->field_24 + 0x22200, 0);
                 mem->field_20   = 1;
                 mem->field_22   = 0;
@@ -107,16 +107,16 @@ void func_800F7E28(Task* arg0)
                 break;
             }
         lcg:
-            if (D_80115740->field_4 != 0) {
+            if (Gp_State1C->field_4 != 0) {
                 break;
             }
-            D_80070F60 = D_80070F60 * 5 + 0x71357911;
-            if ((u16)(((u32)D_80070F60 >> 16) % 3U) == 0) {
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if ((u16)(((u32)Gp_LcgState >> 16) % 3U) == 0) {
                 func_800EA478(0x6003F, coord, mem->field_24, 0);
             }
             break;
         case 4:
-            func_800EC7E4(mem, arg0);
+            Gp_ReleaseState1CMem(mem, arg0);
             break;
     }
 }

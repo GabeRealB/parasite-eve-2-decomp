@@ -296,7 +296,8 @@ CdCmd_Enqueue(0x61, slot);
 ```
 
 Both title rows share `interOffset = 0` (same video). Disc → id is still how
-the key is chosen.
+the key is chosen. `field_22 == 1`: 24-bit MDEC (`Display_SetMode` 0xD010
+path). 320×240.
 
 #### In-game
 

@@ -30,11 +30,11 @@
 
 void func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-extern s32 D_80070F60;
+extern s32 Gp_LcgState;
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D5B14);
 
-s32 func_800D6170(s32 arg0, GpItemRec* arg1)
+s32 Gp_ItemIsUnusable(s32 arg0, GpItemRec* arg1)
 {
     WipSysConfig* cfg;
     GpItemScan*   scan;
@@ -48,9 +48,9 @@ s32 func_800D6170(s32 arg0, GpItemRec* arg1)
             ret = 0;
         } else if ((u32)(arg0 - 0xA0) < 0x20U) {
             scan = &Mc_SaveData.field_5BC;
-            val  = arg1->field_2 - func_800BAFF4(scan, arg0);
+            val  = arg1->field_2 - Gp_CountEquippedRelated(scan, arg0);
             if (val > 0) {
-                if (func_800B715C(scan, cfg->field_21 + 0x7F, arg0, 0) == 0) {
+                if (Gp_EquipRelatedItem(scan, cfg->field_21 + 0x7F, arg0, 0) == 0) {
                     ret = 0;
                 }
             }
@@ -64,12 +64,12 @@ s32 func_800D6170(s32 arg0, GpItemRec* arg1)
                     }
                     break;
                 case 4:
-                    if (D_80114C08.field_16 == 0) {
+                    if (Gp_StateC08.field_16 == 0) {
                         ret = 0;
                     }
                     break;
                 case 8:
-                    if ((s8)D_80114C08.field_17 == 0) {
+                    if ((s8)Gp_StateC08.field_17 == 0) {
                         ret = 0;
                     }
                     break;
@@ -113,7 +113,7 @@ s32 func_800D6170(s32 arg0, GpItemRec* arg1)
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D6334);
 
 /* After Armor/Attachments from func_800D6334 so overlay .rodata stays packed. */
-const char D_80097454[] = {
+const char Gp_StrWeapon[] = {
     'W',
     'e',
     'a',
@@ -124,22 +124,22 @@ const char D_80097454[] = {
     0x60,
 };
 
-s32 func_800D68C4(s32 arg0)
+s32 Gp_FlushPendingRelated(s32 arg0)
 {
     s32 val;
 
-    val = D_8010F88C;
+    val = Gp_PendingRelatedId;
     if (val <= 0) {
         if (val >= 0) {
             return -1;
         }
         val = -val;
     }
-    D_8010F88C = 0;
-    return func_800B715C(&Mc_SaveData.field_5BC, arg0, val, -1);
+    Gp_PendingRelatedId = 0;
+    return Gp_EquipRelatedItem(&Mc_SaveData.field_5BC, arg0, val, -1);
 }
 
-GpItemRec* func_800D6910(s32 arg0)
+GpItemRec* Gp_FindItemById(s32 arg0)
 {
     GpItemScan* scan;
     GpItemRec*  table;
@@ -149,7 +149,7 @@ GpItemRec* func_800D6910(s32 arg0)
 
     rec   = NULL;
     scan  = &Mc_SaveData.field_5BC;
-    table = func_800BB500(scan);
+    table = Gp_GetItemTable(scan);
     i     = 0;
     table = &table[scan->field_0];
     count = scan->field_1;
@@ -162,7 +162,7 @@ GpItemRec* func_800D6910(s32 arg0)
     return rec;
 }
 
-GpItemRec* func_800D6994(s32 arg0)
+GpItemRec* Gp_FindItemByKind(s32 arg0)
 {
     GpItemScan* scan;
     GpItemRec*  table;
@@ -172,7 +172,7 @@ GpItemRec* func_800D6994(s32 arg0)
 
     rec   = NULL;
     scan  = &Mc_SaveData.field_5BC;
-    table = func_800BB500(scan);
+    table = Gp_GetItemTable(scan);
     i     = 0;
     table = &table[scan->field_0];
     count = scan->field_1;
@@ -186,7 +186,7 @@ GpItemRec* func_800D6994(s32 arg0)
     return rec;
 }
 
-GpItemRec* func_800D6A24(s32 arg0, GpItemScan* arg1)
+GpItemRec* Gp_FindItemInScan(s32 arg0, GpItemScan* arg1)
 {
     GpItemRec* table;
     s32        i;
@@ -194,7 +194,7 @@ GpItemRec* func_800D6A24(s32 arg0, GpItemScan* arg1)
     GpItemRec* rec;
 
     rec   = NULL;
-    table = func_800BB500(arg1);
+    table = Gp_GetItemTable(arg1);
     i     = 0;
     table = &table[arg1->field_0];
     count = arg1->field_1;
@@ -207,7 +207,7 @@ GpItemRec* func_800D6A24(s32 arg0, GpItemScan* arg1)
     return rec;
 }
 
-void func_800D6AA4(Task* arg0)
+void Gp_DrawWeaponLabel(Task* arg0)
 {
     UiPanel* panel;
     s32      x;
@@ -219,25 +219,25 @@ void func_800D6AA4(Task* arg0)
     x = (s16)panel->field_1C;
     y = (s16)panel->field_18;
     func_800C2140(panel, x + 2, y + 0xF, 1);
-    Ui_DrawText(panel, D_80097454);
+    Ui_DrawText(panel, Gp_StrWeapon);
 }
 
-void func_800D6B20(Task* arg0)
+void Gp_UpdateRoomCoords(Task* arg0)
 {
-    register Task*      task asm("s7");
-    register GpCbA4Set* set asm("s5");
-    register SVECTOR*   vec asm("s4");
-    GsCOORDINATE2*      parent6C;
-    register s32        i asm("s1");
-    s32                 j;
-    u16                 tmp;
+    register Task*           task asm("s7");
+    register GpRoomCoordSet* set asm("s5");
+    register SVECTOR*        vec asm("s4");
+    GsCOORDINATE2*           parent6C;
+    register s32             i asm("s1");
+    s32                      j;
+    u16                      tmp;
 
     task = arg0;
     {
         register GameSession* gs asm("a0");
 
         gs  = Game_Session;
-        set = (GpCbA4Set*)func_800D9654((GameSessionFrom4*)&gs->field_4);
+        set = (GpRoomCoordSet*)Gp_GetRoomCoordSet((GameSessionFrom4*)&gs->field_4);
     }
     if (set == NULL) {
         Task_Kill(task);
@@ -344,7 +344,7 @@ void func_800D6B20(Task* arg0)
                 register void*          base asm("v0");
 
                 parent = &D_80070F10;
-                base   = D_80114F30;
+                base   = Gp_RoomCoords;
                 view   = (GpCoord64View*)&((GpCoord64*)base)->coord;
                 slot   = (GpCoord64*)base;
                 do {
@@ -361,7 +361,7 @@ void func_800D6B20(Task* arg0)
     }
 
     __asm__ volatile("" ::: "memory");
-    func_80098F58(&D_80070F10);
+    Gp_UpdateCoord(&D_80070F10);
 
     {
         register s32        hi asm("v0");
@@ -369,13 +369,13 @@ void func_800D6B20(Task* arg0)
         register s32        k asm("s2");
 
         __asm__ volatile(
-            "lui\t%0, %%hi(D_80114F30)\n\t"
-            "addiu\t%1, %0, %%lo(D_80114F30)"
+            "lui\t%0, %%hi(Gp_RoomCoords)\n\t"
+            "addiu\t%1, %0, %%lo(Gp_RoomCoords)"
             : "=r"(hi), "=r"(p));
         k = 0;
         do {
             if (p->field_0 != 0) {
-                func_80098F98(&p->coord, (s32)&D_80070F10);
+                Gp_UpdateCoordEx(&p->coord, (s32)&D_80070F10);
             }
             k += 1;
             p += 1;
@@ -392,7 +392,7 @@ void func_800D6B20(Task* arg0)
         if (set->n60 > 0) {
             do {
                 cur = p;
-                func_80098F98(&cur->coord, (s32)&D_80070F10);
+                Gp_UpdateCoordEx(&cur->coord, (s32)&D_80070F10);
                 i += 1;
                 p  = cur + 1;
             } while (i < set->n60);
@@ -408,7 +408,7 @@ void func_800D6B20(Task* arg0)
         if (set->n6C > 0) {
             do {
                 cur = obj;
-                func_80098F98(&cur->coord, (s32)&D_80070F10);
+                Gp_UpdateCoordEx(&cur->coord, (s32)&D_80070F10);
                 i  += 1;
                 obj = cur + 1;
             } while (i < set->n6C);
@@ -420,7 +420,7 @@ void func_800D6B20(Task* arg0)
 
         p = set->arr58;
         for (i = 0; i < set->n58;) {
-            func_80098F98(&p->coord, (s32)&D_80070F10);
+            Gp_UpdateCoordEx(&p->coord, (s32)&D_80070F10);
             i += 1;
             p += 1;
         }
@@ -429,7 +429,7 @@ void func_800D6B20(Task* arg0)
     *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
 }
 
-s32 func_800D6E5C(GpObj44* arg0, VECTOR3* arg1)
+s32 Gp_LightPointRoom(GpObj44* arg0, VECTOR3* arg1)
 {
     register void**         scratch asm("a1");
     register u8*            head asm("a3");
@@ -548,7 +548,7 @@ s32 func_800D6E5C(GpObj44* arg0, VECTOR3* arg1)
     return result;
 }
 
-s32 func_800D70E4(GpObj44* arg0, VECTOR3* arg1)
+s32 Gp_LightPoint(GpObj44* arg0, VECTOR3* arg1)
 {
     register void**         scratch asm("a3");
     register u8*            head;
@@ -627,7 +627,7 @@ s32 func_800D70E4(GpObj44* arg0, VECTOR3* arg1)
     return result;
 }
 
-s32 func_800D72D0(GpObj68* arg0, VECTOR3* arg1)
+s32 Gp_LightCone(GpObj68* arg0, VECTOR3* arg1)
 {
     register GpObj68*       obj2 asm("s2");
     register VECTOR3*       pos;
@@ -739,7 +739,7 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D7A9C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D8684);
 
-void func_800D8C0C(GpEnemy* arg0, MATRIX* arg1, s32 arg2)
+void Gp_RemapActorColor(GpEnemy* arg0, MATRIX* arg1, s32 arg2)
 {
     s32 i;
     s32 val;
@@ -813,7 +813,7 @@ def:
     }
 }
 
-void func_800D8EA0(GpEnemy* arg0, VECTOR* arg1)
+void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1)
 {
     GameActorExt*   extra;
     MATRIX*         colorMtx;
@@ -844,7 +844,7 @@ void func_800D8EA0(GpEnemy* arg0, VECTOR* arg1)
         }
         func_800D7A9C(extra, arg1, 0, 3);
         if ((s8)arg0->field_4F <= 0) {
-            func_800D8C0C(arg0, colorMtx, mode);
+            Gp_RemapActorColor(arg0, colorMtx, mode);
         } else {
             block->mtx.m[0][0] = colorMtx->m[0][0];
             block->mtx.m[0][1] = colorMtx->m[0][1];
@@ -855,8 +855,8 @@ void func_800D8EA0(GpEnemy* arg0, VECTOR* arg1)
             block->mtx.m[2][0] = colorMtx->m[2][0];
             block->mtx.m[2][1] = colorMtx->m[2][1];
             block->mtx.m[2][2] = colorMtx->m[2][2];
-            func_800D8C0C(arg0, colorMtx, mode);
-            func_800D8C0C(arg0, &block->mtx, (arg0->field_4E >> 2) & 3);
+            Gp_RemapActorColor(arg0, colorMtx, mode);
+            Gp_RemapActorColor(arg0, &block->mtx, (arg0->field_4E >> 2) & 3);
             i    = 0;
             col0 = (SVECTOR*)(head - 0x10);
             col1 = (SVECTOR*)(head - 8);
@@ -897,7 +897,7 @@ void func_800D8EA0(GpEnemy* arg0, VECTOR* arg1)
     }
 }
 
-void func_800D9138(GpObj44* arg0)
+void Gp_LightFalloff(GpObj44* arg0)
 {
     register void**         scratch asm("a1");
     register u8*            head asm("a0");
@@ -967,7 +967,7 @@ void func_800D9138(GpObj44* arg0)
     *(u8**)G_SCRATCH_HEAD = ptr + 0x20;
 }
 
-void func_800D930C(GpObj4C* arg0, s32 arg1)
+void Gp_SetLightMode(GpObj4C* arg0, s32 arg1)
 {
     u8 val;
 
@@ -979,7 +979,7 @@ void func_800D930C(GpObj4C* arg0, s32 arg1)
     }
 }
 
-s32 func_800D9340(GpObj38* arg0)
+s32 Gp_GetObjDepth(GpObj38* arg0)
 {
     s32 val;
 
@@ -993,7 +993,7 @@ s32 func_800D9340(GpObj38* arg0)
     return val >> 8;
 }
 
-s32 func_800D937C(GpObj38* arg0)
+s32 Gp_GetObjPan(GpObj38* arg0)
 {
     void**        scratch;
     u8*           head;
@@ -1032,27 +1032,27 @@ s32 func_800D937C(GpObj38* arg0)
     return -ret;
 }
 
-void func_800D94B8(SVECTOR* arg0)
+void Gp_SetOverrideVec(SVECTOR* arg0)
 {
     if (arg0 == NULL) {
-        D_80114F18 = 0;
+        Gp_OverrideVecFlag = 0;
         return;
     }
-    D_80114F18 = 1;
-    D_80114F20 = *arg0;
+    Gp_OverrideVecFlag = 1;
+    Gp_OverrideVec     = *arg0;
 }
 
-void func_800D9504(SVECTOR* arg0)
+void Gp_SetOverrideVec2(SVECTOR* arg0)
 {
     if (arg0 == NULL) {
-        D_80115250 = 0;
+        Gp_OverrideVec2Flag = 0;
         return;
     }
-    D_80115250 = 1;
-    D_80115258 = *arg0;
+    Gp_OverrideVec2Flag = 1;
+    Gp_OverrideVec2     = *arg0;
 }
 
-void func_800D9550(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3)
+void Gp_SetObjTrans(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     MATRIX* m;
 
@@ -1062,14 +1062,14 @@ void func_800D9550(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3)
     m->t[2] = arg3;
 }
 
-GpCbA4Vec* func_800D957C(GameSessionFrom4* arg0)
+GpRoomBoundVec* Gp_GetRoomBound(GameSessionFrom4* arg0)
 {
-    GpCbA4Rec** mid;
-    GpCbA4Rec*  rec;
-    GpCbA4Vec*  result;
-    GpCbA4Vec*  table;
+    GpRoomCoordRec** mid;
+    GpRoomCoordRec*  rec;
+    GpRoomBoundVec*  result;
+    GpRoomBoundVec*  table;
 
-    mid = D_8010CBA4[arg0->field_3 - 1];
+    mid = Gp_RoomCoordTables[arg0->field_3 - 1];
     rec = NULL;
     if (mid != NULL) {
         rec = mid[arg0->field_2 - 1];
@@ -1077,7 +1077,7 @@ GpCbA4Vec* func_800D957C(GameSessionFrom4* arg0)
             rec = &rec[arg0->field_1 - 1];
         }
     }
-    result = (GpCbA4Vec*)&D_8010F9E4;
+    result = (GpRoomBoundVec*)&Gp_RoomBoundDefault;
     if (rec != NULL) {
         table = rec->field_4;
         if (table != NULL) {
@@ -1089,28 +1089,28 @@ GpCbA4Vec* func_800D957C(GameSessionFrom4* arg0)
     return result;
 }
 
-s32 func_800D9618(void)
+s32 Gp_CountRoomCoords(void)
 {
     s32 count;
     s32 i;
 
     count = 0;
     for (i = 0; i < 8; i++) {
-        if (D_80114F30[i].field_0 != 0) {
+        if (Gp_RoomCoords[i].field_0 != 0) {
             count++;
         }
     }
     return count;
 }
 
-s32 func_800D9654(GameSessionFrom4* arg0)
+s32 Gp_GetRoomCoordSet(GameSessionFrom4* arg0)
 {
-    GpCbA4Rec** mid;
-    GpCbA4Rec*  rec;
-    s32         result;
+    GpRoomCoordRec** mid;
+    GpRoomCoordRec*  rec;
+    s32              result;
 
     result = 0;
-    mid    = D_8010CBA4[arg0->field_3 - 1];
+    mid    = Gp_RoomCoordTables[arg0->field_3 - 1];
     rec    = NULL;
     if (mid != NULL) {
         rec = mid[arg0->field_2 - 1];
@@ -1126,12 +1126,12 @@ s32 func_800D9654(GameSessionFrom4* arg0)
 
 void func_800D96C8(Task* arg0)
 {
-    TaskFunc funcs[2] = { func_800D9D18, func_800D8684 };
+    TaskFunc funcs[2] = { Gp_BindDefaultMtx, func_800D8684 };
 
     funcs[arg0->state](arg0);
 }
 
-s32 func_800D9718(GpObj44* arg0)
+s32 Gp_GetObjLuma(GpObj44* arg0)
 {
     s16 val;
 
@@ -1143,7 +1143,7 @@ s32 func_800D9718(GpObj44* arg0)
     return ((arg0->field_50 * 8 + arg0->field_52 * 6 + arg0->field_54 * 2) >> 8) + 0xF00;
 }
 
-s32 func_800D9788(GpObj38* arg0)
+s32 Gp_GetObjTransX(GpObj38* arg0)
 {
     return arg0->field_24.t[0];
 }
@@ -1271,7 +1271,7 @@ void func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
     *scratch = (u8*)*scratch + 0x1C;
 }
 
-void func_800D9B9C(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+void Gp_InsertRankedSlot(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 {
     GpRec12* rec;
     GpRec12* next;
@@ -1286,7 +1286,7 @@ void func_800D9B9C(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
             rec[1] = *rec;
         }
         if (arg4 > 0) {
-            func_800D9B9C(arg0, arg1, arg2, arg3, arg4 - 1);
+            Gp_InsertRankedSlot(arg0, arg1, arg2, arg3, arg4 - 1);
         } else {
             arg0->field_4 = arg1;
             arg0->field_0 = arg2;
@@ -1300,19 +1300,19 @@ void func_800D9B9C(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     }
 }
 
-void func_800D9C3C(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3)
+void Gp_FillSVec3x3(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3)
 {
     arg0->field_0.vx = arg0->field_0.vy = arg0->field_0.vz = arg1;
     arg0->field_6.vx = arg0->field_6.vy = arg0->field_6.vz = arg2;
     arg0->field_C.vx = arg0->field_C.vy = arg0->field_C.vz = arg3;
 }
 
-GpCbA4Rec* func_800D9C64(GameSessionFrom4* arg0)
+GpRoomCoordRec* Gp_GetRoomCoordRec(GameSessionFrom4* arg0)
 {
-    GpCbA4Rec** mid;
-    GpCbA4Rec*  rec;
+    GpRoomCoordRec** mid;
+    GpRoomCoordRec*  rec;
 
-    mid = D_8010CBA4[arg0->field_3 - 1];
+    mid = Gp_RoomCoordTables[arg0->field_3 - 1];
     rec = NULL;
     if (mid != NULL) {
         rec = mid[arg0->field_2 - 1];
@@ -1328,12 +1328,12 @@ void func_800D9CC8(Task* arg0)
     Task_CallExit(arg0);
 }
 
-void func_800D9CE8(GBytes8* arg0)
+void Gp_CopyDefaultBound(GBytes8* arg0)
 {
-    *arg0 = D_8010F9E4;
+    *arg0 = Gp_RoomBoundDefault;
 }
 
-void func_800D9D18(Task* arg0)
+void Gp_BindDefaultMtx(Task* arg0)
 {
     GpActorWork*     slot;
     GameActorExt*    extra;
@@ -1347,25 +1347,25 @@ void func_800D9D18(Task* arg0)
     slot  = Game_GetPtrSlot(3);
     extra = slot->extra;
     if (slot != NULL) {
-        result = func_800D9654((GameSessionFrom4*)&Game_Session->field_4);
+        result = Gp_GetRoomCoordSet((GameSessionFrom4*)&Game_Session->field_4);
         i      = 0;
         if (result == 0) {
             Task_Kill(arg0);
             return;
         }
-        addr = (s32)&D_80114E98;
+        addr = (s32)&Gp_DefaultMtx;
         __asm__ volatile("" : "+r"(addr));
         mtxA = (MATRIX*)addr;
-        addr = (s32)&D_80114EB8;
+        addr = (s32)&Gp_DefaultMtx2;
         __asm__ volatile("" : "+r"(addr));
-        mtxB            = (MATRIX*)addr;
-        arg0->spawnArg2 = (void*)result;
-        extra->field_1C = mtxA;
-        extra->field_20 = mtxB;
-        actor           = slot->actor;
-        D_80114F18      = 0;
-        D_80115250      = 0;
-        D_80114F28      = 0;
+        mtxB                = (MATRIX*)addr;
+        arg0->spawnArg2     = (void*)result;
+        extra->field_1C     = mtxA;
+        extra->field_20     = mtxB;
+        actor               = slot->actor;
+        Gp_OverrideVecFlag  = 0;
+        Gp_OverrideVec2Flag = 0;
+        D_80114F28          = 0;
         do {
             extra           = (&actor->field_920)[i]->extra;
             extra->field_1C = mtxA;
@@ -1389,7 +1389,7 @@ void func_800DA6E8(void* arg0, s32 arg1)
 
     found = NULL;
     i     = 0;
-    p     = D_80115270;
+    p     = Gp_LockSlots;
 loop:
     if (p->field_0 == arg0) {
         if (arg1 >= 0) {
@@ -1414,7 +1414,7 @@ loop:
 done:
     if (found == NULL) {
         i = 0;
-        p = D_80115270;
+        p = Gp_LockSlots;
     loop2:
         if (p->field_0 == NULL) {
             found          = p;
@@ -1439,7 +1439,7 @@ done:
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DA7B8);
 
-void func_800DAB38(GpLinkNode* node)
+void Gp_UnlinkNode(GpLinkNode* node)
 {
     s32                    i;
     GpActorWork* volatile* p;
@@ -1448,7 +1448,7 @@ void func_800DAB38(GpLinkNode* node)
     GpLinkNode**           list;
 
     i = 0;
-    p = D_80115760;
+    p = Gp_ActorSlots;
     do {
         work = *p;
         if (work != NULL) {
@@ -1462,8 +1462,8 @@ void func_800DAB38(GpLinkNode* node)
     } while (i < 2);
 
     if (node->field_6 == 1) {
-        list = &D_80115268;
-        if (D_80115268 != node) {
+        list = &Gp_LinkList;
+        if (Gp_LinkList != node) {
             do {
                 if (*list == NULL) {
                     goto done;
@@ -1480,14 +1480,14 @@ void func_800DAB38(GpLinkNode* node)
     }
 }
 
-void func_800DABEC(GpLinkNode* node)
+void Gp_LinkNode(GpLinkNode* node)
 {
     GpLinkNode** p;
     register s32 val asm("v0");
 
     if (node->field_6 == 0) {
-        p = &D_80115268;
-        if (D_80115268 != NULL) {
+        p = &Gp_LinkList;
+        if (Gp_LinkList != NULL) {
             do {
                 p = &(*p)->next;
             } while (*p != NULL);
@@ -1503,7 +1503,7 @@ void func_800DABEC(GpLinkNode* node)
     node->field_4 = val & 0xFE;
 }
 
-s32 func_800DAC54(GpLinkNode* arg0)
+s32 Gp_NodeSlotMask(GpLinkNode* arg0)
 {
     s32                    mask;
     s32                    i;
@@ -1514,7 +1514,7 @@ s32 func_800DAC54(GpLinkNode* arg0)
     mask = 0;
     i    = mask;
     one  = 1;
-    p    = D_80115760;
+    p    = Gp_ActorSlots;
     do {
         work = *p;
         if (work != NULL) {
@@ -1528,14 +1528,14 @@ s32 func_800DAC54(GpLinkNode* arg0)
     return mask;
 }
 
-void func_800DACAC(GpLinkNode* arg0)
+void Gp_AssignNodeSlot0(GpLinkNode* arg0)
 {
     GpActorWork* work;
     GameActor*   actor;
     GpLinkNode*  node;
     u8           val;
 
-    work = D_80115760[0];
+    work = Gp_ActorSlots[0];
     if (work != NULL) {
         actor = work->actor;
         node  = actor->field_90C;
@@ -1549,7 +1549,7 @@ void func_800DACAC(GpLinkNode* arg0)
     arg0->field_4 = val & 0xFE;
 }
 
-void func_800DACF8(GpLinkNode* arg0)
+void Gp_ClearNodeSlots(GpLinkNode* arg0)
 {
     s32                    i;
     GpActorWork* volatile* p;
@@ -1558,7 +1558,7 @@ void func_800DACF8(GpLinkNode* arg0)
     u8                     val;
 
     i = 0;
-    p = D_80115760;
+    p = Gp_ActorSlots;
     do {
         work = *p;
         if (work != NULL) {
@@ -1575,14 +1575,14 @@ void func_800DACF8(GpLinkNode* arg0)
     arg0->field_4 = val | 1;
 }
 
-void* func_800DAD54(GpActorWork* arg0)
+void* Gp_FindLockNode(GpActorWork* arg0)
 {
     VECTOR3 pos;
 
     return func_800DA2A0(arg0, &pos, 0);
 }
 
-void* func_800DAD78(GpActorWork* arg0)
+void* Gp_FindLockNodePad(GpActorWork* arg0)
 {
     VECTOR3  pos;
     VECTOR3* p;
@@ -1599,7 +1599,7 @@ void* func_800DAD78(GpActorWork* arg0)
     return func_800DA2A0(arg0, p, flag);
 }
 
-void* func_800DADE4(GpActorWork* arg0, VECTOR3* pos)
+void* Gp_FindLockNodeAt(GpActorWork* arg0, VECTOR3* pos)
 {
     s32 flag;
 
@@ -1614,7 +1614,7 @@ void* func_800DADE4(GpActorWork* arg0, VECTOR3* pos)
 }
 
 /* After D_8009745C from func_800D8684 so overlay .rodata stays packed. */
-const char D_80097460[] = {
+const char Gp_StrGetLockPosNull[] = {
     '#',
     '#',
     '#',
@@ -1653,7 +1653,7 @@ const char D_80097460[] = {
     0x16,
 };
 
-void func_800DAE50(GpLockPos* arg0, VECTOR3* out)
+void Gp_GetLockPos(GpLockPos* arg0, VECTOR3* out)
 {
     GsCOORDINATE2* world;
     GsCOORDINATE2* coord;
@@ -1662,7 +1662,7 @@ void func_800DAE50(GpLockPos* arg0, VECTOR3* out)
     MATRIX*        mat;
 
     if (arg0 == NULL) {
-        printf(D_80097460);
+        printf(Gp_StrGetLockPosNull);
         out->vx = 0;
         out->vy = 0;
         out->vz = 0;
@@ -1681,9 +1681,9 @@ void func_800DAE50(GpLockPos* arg0, VECTOR3* out)
     scratch  = (void**)G_SCRATCH_HEAD;
     head     = *scratch;
     *scratch = head - 0x28;
-    func_80098F58(coord);
+    Gp_UpdateCoord(coord);
     mat = (MATRIX*)(head - 0x20);
-    func_800A8864(&world->workm, &coord->workm, mat);
+    Gp_WorldToLocal(&world->workm, &coord->workm, mat);
     gte_SetRotMatrix(mat);
     gte_SetTransMatrix(mat);
     gte_ldlvl(&arg0->pos);
@@ -1692,12 +1692,12 @@ void func_800DAE50(GpLockPos* arg0, VECTOR3* out)
     *scratch = (u8*)*scratch + 0x28;
 }
 
-void func_800DAF98(void)
+void Gp_ClearLockSlots(void)
 {
     s32       i;
     GpSlot70* p;
 
-    p = D_80115270;
+    p = Gp_LockSlots;
     i = 0;
     do {
         i++;
@@ -1708,15 +1708,15 @@ void func_800DAF98(void)
     } while (i < 0x20);
 }
 
-void func_800DAFD0(void)
+void Gp_ResetLinkState(void)
 {
-    D_80115268 = NULL;
-    func_800DAF98();
+    Gp_LinkList = NULL;
+    Gp_ClearLockSlots();
     D_8010F9F0 = 0xFFF00000;
     D_8010F9EC = 0xFFF00000;
 }
 
-s32 func_800DB004(GpPerspSrc* arg0, s32* sxy)
+s32 Gp_ProjectToSxy(GpPerspSrc* arg0, s32* sxy)
 {
     void**          scratch;
     u8*             head;
@@ -1744,7 +1744,7 @@ s32 func_800DB004(GpPerspSrc* arg0, s32* sxy)
     return ret;
 }
 
-void func_800DB0D8(void)
+void Gp_ClearSlotNodeFlags(void)
 {
     s32                    i;
     GpActorWork* volatile* p;
@@ -1752,7 +1752,7 @@ void func_800DB0D8(void)
     GpLinkNode*            node;
 
     i = 0;
-    p = D_80115760;
+    p = Gp_ActorSlots;
     do {
         work = *p;
         if (work != NULL) {
@@ -1766,7 +1766,7 @@ void func_800DB0D8(void)
     } while (i < 2);
 }
 
-s32 func_800DB128(GpItemScan* arg0)
+s32 Gp_GrantLocationItems(GpItemScan* arg0)
 {
     GameSessionFrom4* loc;
     GpGiveRec*        rec;
@@ -1803,7 +1803,7 @@ s32 func_800DB128(GpItemScan* arg0)
                                 if (i == 3) {
                                     ret = 2;
                                 }
-                                func_800BAD08(arg0, item, -1);
+                                Gp_GiveItem(arg0, item, -1);
                             }
                         }
                     }
@@ -1816,7 +1816,7 @@ s32 func_800DB128(GpItemScan* arg0)
     return ret;
 }
 
-s32 func_800DB28C(GpActorWork* arg0, GpImgRec* arg1, RECT* arg2)
+s32 Gp_LoadActorImage(GpActorWork* arg0, GpImgRec* arg1, RECT* arg2)
 {
     s32        ret;
     TmdObject* extra;
@@ -1829,14 +1829,14 @@ s32 func_800DB28C(GpActorWork* arg0, GpImgRec* arg1, RECT* arg2)
         arg1->rect.y = arg2->y + 0x100;
         arg1->rect.w = arg2->w;
         arg1->rect.h = arg2->h;
-        func_800DB31C(arg1);
+        Gp_LoadImages(arg1);
     } else {
         ret = 1;
     }
     return ret;
 }
 
-void func_800DB31C(GpImgRec* arg0)
+void Gp_LoadImages(GpImgRec* arg0)
 {
     void**         scratch;
     void*          head;
@@ -1870,14 +1870,14 @@ void func_800DB31C(GpImgRec* arg0)
     asm("" ::"r"(max));
 }
 
-void func_800DB3FC(void)
+void Gp_InitStateF0(void)
 {
     GpStateF0*  p;
     McSaveData* save;
     u8          val;
 
-    p                  = &D_801153F0;
-    D_801153F0.field_0 = 0;
+    p                  = &Gp_StateF0;
+    Gp_StateF0.field_0 = 0;
     p->field_1         = 0;
     p->field_2         = 0;
     p->field_3         = 0;
@@ -1907,7 +1907,7 @@ void func_800DB3FC(void)
     p->field_28        = 0;
     p->field_29        = 0;
     p->field_2A        = 0;
-    if (func_800A74C4() == 1) {
+    if (Gp_IsDebugAttachRoom() == 1) {
         p->field_2B = 0;
     } else {
         save        = &Mc_SaveData;
@@ -1921,41 +1921,41 @@ void func_800DB3FC(void)
     }
 }
 
-void func_800DB4E0(s32 arg0)
+void Gp_ArmStateF0(s32 arg0)
 {
-    if (D_801153F0.field_0 == 0) {
-        D_801153F0.field_0 = 1;
+    if (Gp_StateF0.field_0 == 0) {
+        Gp_StateF0.field_0 = 1;
     }
 }
 
-void func_800DB500(s32 arg0)
+void Gp_SetStateF0Bit(s32 arg0)
 {
     if (arg0 != 0) {
-        D_801153F0.field_2 |= 1 << (arg0 - 1);
+        Gp_StateF0.field_2 |= 1 << (arg0 - 1);
     }
 }
 
-void func_800DB530(s32 arg0)
+void Gp_SetStateF0Byte3(s32 arg0)
 {
     D_801153F3 = arg0;
 }
 
-void func_800DB53C(void)
+void Gp_IncStateF0Ref(void)
 {
-    D_801153F0.field_6++;
+    Gp_StateF0.field_6++;
 }
 
-void func_800DB558(GpObj20E* arg0)
+void Gp_ReleaseStateF0Add(GpObj20E* arg0)
 {
     GpStateF0*  p;
     GpStateF0*  q;
     GpPairSrcE* rec;
 
-    p = &D_801153F0;
+    p = &Gp_StateF0;
     if (p->field_6 != 0) {
         p->field_6--;
         if (p->field_6 == 0) {
-            D_801153F0.field_0 = 2;
+            Gp_StateF0.field_0 = 2;
             p->field_2         = 0;
             p->field_3         = 0;
             p->field_1         = 0x3C;
@@ -1965,7 +1965,7 @@ void func_800DB558(GpObj20E* arg0)
         }
         rec = arg0->field_20->field_50;
         if (rec != NULL) {
-            q            = &D_801153F0;
+            q            = &Gp_StateF0;
             q->field_8  += rec->field_6;
             q->field_C  += rec->field_8;
             q->field_10 += rec->field_A;
@@ -1973,15 +1973,15 @@ void func_800DB558(GpObj20E* arg0)
     }
 }
 
-void func_800DB630(void)
+void Gp_ReleaseStateF0Clear(void)
 {
     GpStateF0* p;
 
-    p = &D_801153F0;
+    p = &Gp_StateF0;
     if (p->field_6 != 0) {
         p->field_6--;
         if (p->field_6 == 0) {
-            D_801153F0.field_0 = 2;
+            Gp_StateF0.field_0 = 2;
             p->field_2         = 0;
             p->field_3         = 0;
             p->field_1         = 0x3C;
@@ -1995,15 +1995,15 @@ void func_800DB630(void)
     }
 }
 
-void func_800DB6B4(void)
+void Gp_ReleaseStateF0(void)
 {
     GpStateF0* p;
 
-    p = &D_801153F0;
+    p = &Gp_StateF0;
     if (p->field_6 != 0) {
         p->field_6--;
         if (p->field_6 == 0) {
-            D_801153F0.field_0 = 2;
+            Gp_StateF0.field_0 = 2;
             p->field_2         = 0;
             p->field_3         = 0;
             p->field_1         = 0x3C;
@@ -2038,8 +2038,8 @@ void func_800DB72C(void)
         func_800DB900(D_80115578);
         func_800E0414(D_8011557C, D_80115580);
         func_800E0414(D_80115580, D_80115590);
-        if (D_80115424 != 0) {
-            func_800E0B08();
+        if (Gp_PendingObj4CFlag != 0) {
+            Gp_ClearPendingObj4C();
         }
         func_800E0608(D_80115570, 0x9007, 0x9004);
         if (Game_Session->field_12C == 0) {
@@ -2227,8 +2227,8 @@ s32 func_800DBCAC(GpObj* arg0, GpObj* arg1)
     head     = *scratch;
     block    = (GpSphereScratch*)(head - 0x48);
     *scratch = block;
-    func_800E08CC(arg0, (VECTOR3*)(head - 0x34));
-    func_800E08CC(arg1, (VECTOR3*)(head - 0x24));
+    Gp_ObjWorldPos(arg0, (VECTOR3*)(head - 0x34));
+    Gp_ObjWorldPos(arg1, (VECTOR3*)(head - 0x24));
 
     dx              = block->pos0.vx;
     a               = block->pos1.vx;
@@ -2342,7 +2342,7 @@ void func_800DDC2C(GpObj* arg0)
     block->src[1].vz = (u16)obj->field_14 + ((-(dir->vz * (u16)obj->field_1C)) >> 12);
     coord            = (GsCOORDINATE2*)obj->field_8;
     *scratch         = block;
-    func_800A8864(&D_80070F34, &coord->workm, (MATRIX*)head);
+    Gp_WorldToLocal(&D_80070F34, &coord->workm, (MATRIX*)head);
     gte_SetRotMatrix((MATRIX*)head);
     {
         register VECTOR*       out asm("a2");
@@ -2355,7 +2355,7 @@ void func_800DDC2C(GpObj* arg0)
         register s32           hi asm("t1");
 
         i = 0;
-        asm volatile("lui %0, %%hi(D_80115448)" : "=r"(hi) : "r"(i) : "memory");
+        asm volatile("lui %0, %%hi(Gp_GridParams)" : "=r"(hi) : "r"(i) : "memory");
         out = block->pos;
         off = 0x20;
         do {
@@ -2366,7 +2366,7 @@ void func_800DDC2C(GpObj* arg0)
             i++;
             val = out->vx;
             asm volatile("" : "+r"(val));
-            asm("lw %0, %%lo(D_80115448)(%2)\n\tlw %1, 68(%3)" : "=r"(p), "=r"(t) : "r"(hi), "r"(block));
+            asm("lw %0, %%lo(Gp_GridParams)(%2)\n\tlw %1, 68(%3)" : "=r"(p), "=r"(t) : "r"(hi), "r"(block));
             y       = p->field_14;
             out->vy = 0;
             out->vx = val + t + y;
@@ -2403,8 +2403,8 @@ void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1)
     block->in.vz = arg0->vz;
     out          = (VECTOR*)(head - 0x30);
     *scratch     = block;
-    ApplyTransposeMatrixLV(&D_80115448->field_0->workm, &block->in, out);
-    p              = D_80115448;
+    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, &block->in, out);
+    p              = Gp_GridParams;
     block->pos0.vx = (s16)((u16)block->out.vx + (u16)p->field_14 - (u16)p->field_0->coord.t[0]);
     block->pos0.vy = 0;
     block->pos0.vz = (s16)((u16)block->out.vz + (u16)p->field_18 - (u16)p->field_0->coord.t[2]);
@@ -2412,7 +2412,7 @@ void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1)
     block->in.vy   = arg1->vy;
     block->in.vz   = arg1->vz;
     ApplyTransposeMatrixLV(&p->field_0->workm, &block->in, out);
-    p              = D_80115448;
+    p              = Gp_GridParams;
     block->pos1.vx = (s16)((u16)block->out.vx + (u16)p->field_14 - (u16)p->field_0->coord.t[0]);
     block->pos1.vy = 0;
     block->pos1.vz = (s16)((u16)block->out.vz + (u16)p->field_18 - (u16)p->field_0->coord.t[2]);
@@ -2539,22 +2539,22 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DF6AC);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DFCCC);
 
-void func_800E0294(void)
+void Gp_ClearObjHeads(void)
 {
-    D_80115570 = NULL;
-    D_80115574 = NULL;
-    D_80115578 = NULL;
-    D_8011557C = NULL;
-    D_80115580 = NULL;
-    D_80115584 = NULL;
-    D_80115588 = NULL;
-    D_8011558C = NULL;
-    D_80115590 = NULL;
-    D_80115448 = 0;
-    D_8011556C = NULL;
-    D_80115554 = NULL;
-    D_80115550 = NULL;
-    D_80115424 = 0;
+    D_80115570          = NULL;
+    D_80115574          = NULL;
+    D_80115578          = NULL;
+    D_8011557C          = NULL;
+    D_80115580          = NULL;
+    D_80115584          = NULL;
+    D_80115588          = NULL;
+    D_8011558C          = NULL;
+    D_80115590          = NULL;
+    Gp_GridParams       = 0;
+    Gp_PendingObj4C     = NULL;
+    Gp_Obj4CList        = NULL;
+    D_80115550          = NULL;
+    Gp_PendingObj4CFlag = 0;
 }
 
 s32 func_800E0308(SVECTOR* arg0, SVECTOR* arg1)
@@ -2631,7 +2631,7 @@ void func_800E0540(GpObj* node)
 {
     u16 flags;
 
-    if (D_80115448 != 0) {
+    if (Gp_GridParams != 0) {
         for (; node != NULL; node = node->next) {
             flags = node->flags;
             if (flags & 0x4000) {
@@ -2662,7 +2662,7 @@ void func_800E0608(GpObj* node, s32 mask, s32 match)
 {
     GpObj4C* other;
 
-    other = D_8011556C;
+    other = Gp_PendingObj4C;
     for (; node != NULL; node = node->next) {
         if ((node->flags & mask) == (u16)match) {
             for (; other != NULL; other = other->next) {
@@ -2676,12 +2676,12 @@ void func_800E0608(GpObj* node, s32 mask, s32 match)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E06AC);
 
-s32 func_800E076C(void)
+s32 Gp_PairNop(void)
 {
     return 0;
 }
 
-void func_800E0774(VECTOR3* arg0, SVECTOR3* arg1)
+void Gp_LocalToGrid(VECTOR3* arg0, SVECTOR3* arg1)
 {
     void**        scratch;
     u8*           head;
@@ -2692,15 +2692,15 @@ void func_800E0774(VECTOR3* arg0, SVECTOR3* arg1)
     scratch = (void**)G_SCRATCH_HEAD;
     head    = *scratch;
     vec = *scratch = (VECTOR*)(head - 0x10);
-    ApplyTransposeMatrixLV(&D_80115448->field_0->workm, (VECTOR*)arg0, vec);
-    p   = D_80115448;
+    ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, (VECTOR*)arg0, vec);
+    p   = Gp_GridParams;
     val = ((VECTOR*)(head - 0x10))->vx + p->field_14 - p->field_0->coord.t[0];
     if (val >= 0) {
         arg1->vx = val / p->field_20;
     } else {
         arg1->vx = -1;
     }
-    p        = D_80115448;
+    p        = Gp_GridParams;
     arg1->vy = 0;
     val      = vec->vz + p->field_18 - p->field_0->coord.t[2];
     if (val >= 0) {
@@ -2711,7 +2711,7 @@ void func_800E0774(VECTOR3* arg0, SVECTOR3* arg1)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
 }
 
-void func_800E08CC(GpObj* arg0, VECTOR3* arg1)
+void Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1)
 {
     void**   scratch;
     u8*      head;
@@ -2734,30 +2734,30 @@ void func_800E08CC(GpObj* arg0, VECTOR3* arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0994);
 
-void func_800E0B08(void)
+void Gp_ClearPendingObj4C(void)
 {
     GpObj4C* node;
 
-    for (node = D_8011556C; node != NULL; node = node->next) {
+    for (node = Gp_PendingObj4C; node != NULL; node = node->next) {
         if (node->field_4B != 0) {
             node->field_4B = 0;
         }
     }
 }
 
-void func_800E0B48(VECTOR3* arg0, SVECTOR3* arg1)
+void Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1)
 {
     s32           val;
     GpGridParams* p;
 
-    p   = D_80115448;
+    p   = Gp_GridParams;
     val = arg0->vx + p->field_14;
     if (val >= 0) {
         arg1->vx = val / p->field_20;
     } else {
         arg1->vx = -1;
     }
-    p        = D_80115448;
+    p        = Gp_GridParams;
     arg1->vy = 0;
     val      = arg0->vz + p->field_18;
     if (val >= 0) {
@@ -2771,7 +2771,7 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0C10);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0FEC);
 
-s32 func_800E1380(GpObj* arg0, s32 arg1)
+s32 Gp_FindNearestSlot(GpObj* arg0, s32 arg1)
 {
     register void** scratch asm("v0");
     register s32    hi asm("v0");
@@ -2834,14 +2834,14 @@ s32 func_800E1380(GpObj* arg0, s32 arg1)
     return best;
 }
 
-void func_800E15AC(s32 arg0, GpObj* arg1)
+void Gp_LinkObj(s32 arg0, GpObj* arg1)
 {
     u16    flags;
     GpObj* head;
     GpObj* node;
     GpObj* temp;
 
-    head  = D_8010FA8C[arg0];
+    head  = Gp_ObjLists[arg0];
     flags = arg1->flags;
     if (!(flags & 0x8)) {
         if ((flags & 0x7) < 5) {
@@ -2863,7 +2863,7 @@ void func_800E15AC(s32 arg0, GpObj* arg1)
     }
 }
 
-void func_800E1638(GpObj* node)
+void Gp_UnlinkObj(GpObj* node)
 {
     u16    flags;
     GpObj* next;
@@ -2885,14 +2885,14 @@ void func_800E1638(GpObj* node)
     }
 }
 
-void func_800E1688(s32 arg0, GpObj4A* arg1)
+void Gp_LinkObj4A(s32 arg0, GpObj4A* arg1)
 {
     u8       flags;
     GpObj4A* head;
     GpObj4A* node;
     GpObj4A* temp;
 
-    head  = D_8010FAB0[arg0];
+    head  = Gp_Obj4ALists[arg0];
     flags = arg1->field_4A;
     if (!(flags & 0x20)) {
         arg1->field_4A = flags | 0x20;
@@ -2912,7 +2912,7 @@ void func_800E1688(s32 arg0, GpObj4A* arg1)
     }
 }
 
-void func_800E1708(s32 arg0, GpObj4A* arg1)
+void Gp_UnlinkObj4A(s32 arg0, GpObj4A* arg1)
 {
     u8       flags;
     GpObj4A* next;
@@ -2934,7 +2934,7 @@ void func_800E1708(s32 arg0, GpObj4A* arg1)
     }
 }
 
-void func_800E1758(s32 arg0)
+void Gp_ClearObj4AList(s32 arg0)
 {
     GpObj4A* head;
     GpObj4A* node;
@@ -2943,7 +2943,7 @@ void func_800E1758(s32 arg0)
     s32      flags;
     s32      mask;
 
-    head = D_8010FAB0[arg0];
+    head = Gp_Obj4ALists[arg0];
     temp = head->next;
     if (temp != NULL) {
         node       = temp;
@@ -2963,14 +2963,14 @@ void func_800E1758(s32 arg0)
     }
 }
 
-void func_800E17B4(s32 arg0, GpObj3A* arg1)
+void Gp_LinkObj3A(s32 arg0, GpObj3A* arg1)
 {
     u8       flags;
     GpObj3A* head;
     GpObj3A* node;
     GpObj3A* temp;
 
-    head  = D_8010FAB8[arg0];
+    head  = Gp_Obj3ALists[arg0];
     flags = arg1->field_3A;
     if (!(flags & 0x20)) {
         arg1->field_3A = flags | 0x20;
@@ -2990,7 +2990,7 @@ void func_800E17B4(s32 arg0, GpObj3A* arg1)
     }
 }
 
-void func_800E1834(s32 arg0, GpObj3A* arg1)
+void Gp_UnlinkObj3A(s32 arg0, GpObj3A* arg1)
 {
     u8       flags;
     GpObj3A* next;
@@ -3012,7 +3012,7 @@ void func_800E1834(s32 arg0, GpObj3A* arg1)
     }
 }
 
-void func_800E1884(s32 arg0)
+void Gp_ClearObj3AList(s32 arg0)
 {
     GpObj3A* head;
     GpObj3A* node;
@@ -3021,7 +3021,7 @@ void func_800E1884(s32 arg0)
     s32      flags;
     s32      mask;
 
-    head = D_8010FAB8[arg0];
+    head = Gp_Obj3ALists[arg0];
     temp = head->next;
     if (temp != NULL) {
         node       = temp;
@@ -3041,30 +3041,30 @@ void func_800E1884(s32 arg0)
     }
 }
 
-void func_800E18E0(GpRec18* arg0, s32 arg1, s32 arg2)
+void Gp_InitRec18Table(GpRec18* arg0, s32 arg1, s32 arg2)
 {
     Mem_Set(arg0, 0, arg1 * 0x18);
     arg0[arg1 - 1].field_0 = 2;
 }
 
-void func_800E192C(void)
+void Gp_LoadRoomParams(void)
 {
-    s32          i;
-    GameSession* session;
-    GpCbB8Rec**  recs;
+    s32              i;
+    GameSession*     session;
+    GpRoomParamRec** recs;
 
     for (i = 7; i >= 0; i--) {
-        D_80115428[i] = 0;
+        Gp_RoomParams[i] = 0;
     }
 
     session = Game_Session;
-    recs    = D_8010CBB8[session->field_7 - 1][session->field_6 - 1];
+    recs    = Gp_RoomParamTables[session->field_7 - 1][session->field_6 - 1];
     for (i = 0; i < 8; i++) {
-        D_80115428[i] = recs[i]->field_3;
+        Gp_RoomParams[i] = recs[i]->field_3;
     }
 }
 
-s32 func_800E19B8(GpRec18* arg0, s32 arg1)
+s32 Gp_FindRec18(GpRec18* arg0, s32 arg1)
 {
     s32 result;
     s32 index;
@@ -3086,7 +3086,7 @@ s32 func_800E19B8(GpRec18* arg0, s32 arg1)
     return result;
 }
 
-s32 func_800E1A1C(GpRec18* arg0, s32 arg1)
+s32 Gp_CountRec18Hi(GpRec18* arg0, s32 arg1)
 {
     s32 count;
 
@@ -3099,7 +3099,7 @@ s32 func_800E1A1C(GpRec18* arg0, s32 arg1)
     return count;
 }
 
-void func_800E1A6C(GpRec18* arg0)
+void Gp_ClearRec18Occupied(GpRec18* arg0)
 {
     for (;;) {
         if (arg0->field_0 & 1) {
@@ -3152,11 +3152,11 @@ s32 func_800E1B24(s32 arg0)
     return ret;
 }
 
-void func_800E1B80(void)
+void Gp_CommitObj4CSave(void)
 {
     GpObj4C* node;
 
-    for (node = D_80115554; node != NULL; node = node->next) {
+    for (node = Gp_Obj4CList; node != NULL; node = node->next) {
         if (node->field_4B != 0) {
             node->field_4B = 0;
             if ((u8)Game_Session->field_4 == node->field_48) {
@@ -3166,23 +3166,23 @@ void func_800E1B80(void)
     }
 }
 
-s32 func_800E1BF0(u16* arg0, u8* arg1, u8* arg2)
+s32 Gp_TakePendingObj4C(u16* arg0, u8* arg1, u8* arg2)
 {
     GpObj4C* node;
 
-    for (node = D_8011556C; node != NULL; node = node->next) {
+    for (node = Gp_PendingObj4C; node != NULL; node = node->next) {
         if (node->field_4B != 0) {
-            D_80115424 = 1;
-            *arg0      = node->field_46;
-            *arg1      = node->field_48;
-            *arg2      = node->field_49;
+            Gp_PendingObj4CFlag = 1;
+            *arg0               = node->field_46;
+            *arg1               = node->field_48;
+            *arg2               = node->field_49;
             return 1;
         }
     }
     return 0;
 }
 
-void func_800E1C58(GpObj54* arg0, void* arg1)
+void Gp_ClaimSlot18(GpObj54* arg0, void* arg1)
 {
     GpSlot18*  slot;
     GpSlot18*  temp;
@@ -3208,12 +3208,12 @@ void func_800E1C58(GpObj54* arg0, void* arg1)
         slot->field_12 = 0;
         slot->field_14 = 0;
         slot->field_0 |= 1;
-        p              = &D_801153F0;
+        p              = &Gp_StateF0;
         p->field_5++;
     }
 }
 
-void func_800E1CD4(VECTOR* arg0, MATRIX* arg1, s32 arg2)
+void Gp_OrientAlong(VECTOR* arg0, MATRIX* arg1, s32 arg2)
 {
     void**           scratch;
     u8*              head;
@@ -3283,7 +3283,7 @@ void func_800E1CD4(VECTOR* arg0, MATRIX* arg1, s32 arg2)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1FEC);
 
-s32 func_800E2438(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
+s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
 {
     s32                ret;
     s32                lo;
@@ -3314,7 +3314,7 @@ s32 func_800E2438(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
         register s32 row asm("a0");
 
         hp    = Wip_SysConfig.field_18;
-        table = D_80113EF0;
+        table = Gp_DmgRows;
         cols  = D_80113F54;
         addr  = (s32)&cols[hp / 10];
         asm("lui %0, %%hi(D_8011541B)" : "=r"(row) : "r"(addr));
@@ -3324,7 +3324,7 @@ s32 func_800E2438(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
         asm volatile("");
         col  += row * 20;
         col  += (s32)table;
-        extra = D_80114C08.field_C;
+        extra = Gp_StateC08.field_C;
         col   = ((GpDmgSlot*)col)->field_A;
         val   = col << 8;
         if (extra != 0) {
@@ -3345,7 +3345,7 @@ s32 func_800E2438(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
         register s32 row asm("a0");
 
         hp    = (s16)Mc_SaveData.field_6C8;
-        table = D_80113EF0;
+        table = Gp_DmgRows;
         cols  = D_80113F54;
         addr  = (s32)&cols[hp / 10];
         asm("lui %0, %%hi(D_8011541B)" : "=r"(row) : "r"(addr));
@@ -3378,7 +3378,7 @@ s32 func_800E2438(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E25F8);
 
-void func_800E2A24(GpObj5D* arg0, s32 arg1)
+void Gp_ApplyObjKind(GpObj5D* arg0, s32 arg1)
 {
     u16 raw;
     s32 kind;
@@ -3387,11 +3387,11 @@ void func_800E2A24(GpObj5D* arg0, s32 arg1)
     s32 rand;
 
     if ((arg1 & 0x8000) == 0) {
-        raw = D_80113390[arg1 & 0x7F].field_4;
+        raw = Gp_IdParamLo[arg1 & 0x7F].field_4;
         asm volatile("" : "+r"(raw));
         kind = raw;
     } else {
-        raw = D_8011398C[arg1 & 0x7F].field[5];
+        raw = Gp_IdParamHi[arg1 & 0x7F].field[5];
         asm volatile("" : "+r"(raw));
         kind = raw;
     }
@@ -3414,29 +3414,29 @@ void func_800E2A24(GpObj5D* arg0, s32 arg1)
                 arg0->field_5D = 0;
                 return;
             }
-            arg0->field_5D = D_80114C08.field_0 % 10U;
+            arg0->field_5D = Gp_StateC08.field_0 % 10U;
             break;
         case 3:
-            val        = arg0->field_50->field_D;
-            limit      = (val << 12) / 100;
-            D_80070F60 = D_80070F60 * 5 + 0x71357911;
-            rand       = (u32)D_80070F60 >> 16 & 0xFFF;
+            val         = arg0->field_50->field_D;
+            limit       = (val << 12) / 100;
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            rand        = (u32)Gp_LcgState >> 16 & 0xFFF;
             if (rand < limit) {
                 arg0->field_5A  = 0;
                 arg0->field_4C |= 4;
-                D_80070F60      = D_80070F60 * 5 + 0x71357911;
-                arg0->field_59  = ((u32)D_80070F60 >> 16 & 0xF) + 0x53;
+                Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+                arg0->field_59  = ((u32)Gp_LcgState >> 16 & 0xF) + 0x53;
                 if ((arg1 & 0x8000) == 0) {
                     arg0->field_5C = 0;
                     return;
                 }
-                arg0->field_5C = D_80114C08.field_0 % 10U;
+                arg0->field_5C = Gp_StateC08.field_0 % 10U;
             }
             break;
     }
 }
 
-s32 func_800E2BF8(GpObj50* arg0, s32 arg1)
+s32 Gp_PackObjPair(GpObj50* arg0, s32 arg1)
 {
     GpU16Pair* pairs;
     s32        ret;
@@ -3451,7 +3451,7 @@ s32 func_800E2BF8(GpObj50* arg0, s32 arg1)
     return ret;
 }
 
-s32 func_800E2C40(GpU16Pair* arg0, s32 arg1)
+s32 Gp_PackPair(GpU16Pair* arg0, s32 arg1)
 {
     s32 ret;
 
@@ -3471,77 +3471,77 @@ void func_800E2C78(GpObj40* arg0, s32 arg1, s32 arg2)
     if ((u32)((arg1 & 0x7F) - 0x19) < 3U) {
         val = arg0->field_40;
         if ((u32)val < (u32)arg2) {
-            D_801153F0.field_14 += val;
+            Gp_StateF0.field_14 += val;
             return;
         }
-        D_801153F0.field_14 += arg2;
+        Gp_StateF0.field_14 += arg2;
     }
 }
 
-s32 func_800E2CD4(s32 arg0, s32 arg1)
+s32 Gp_LookupIdField(s32 arg0, s32 arg1)
 {
     s32 ret;
 
     ret = 0;
     switch (arg1) {
         case 0:
-            ret = D_80114028[(u16)arg0].field_0;
+            ret = Gp_IdField0[(u16)arg0].field_0;
             break;
         case 1:
-            ret = D_80114054[(u16)arg0].field_0;
+            ret = Gp_IdField1[(u16)arg0].field_0;
             break;
     }
     return ret;
 }
 
-s32 func_800E2D3C(s32 arg0)
+s32 Gp_GetIdParam0(s32 arg0)
 {
     s32 ret;
 
     if ((arg0 & 0x8000) == 0) {
-        ret = D_80113390[arg0 & 0x7F].field_4;
+        ret = Gp_IdParamLo[arg0 & 0x7F].field_4;
     } else {
-        ret = D_8011398C[arg0 & 0x7F].field[5];
+        ret = Gp_IdParamHi[arg0 & 0x7F].field[5];
     }
     return ret;
 }
 
-s32 func_800E2D90(s32 arg0)
+s32 Gp_GetIdParam1(s32 arg0)
 {
     s32 ret;
 
     if ((arg0 & 0x8000) == 0) {
-        ret = D_80113390[arg0 & 0x7F].field_6;
+        ret = Gp_IdParamLo[arg0 & 0x7F].field_6;
     } else {
-        ret = D_8011398C[arg0 & 0x7F].field[6];
+        ret = Gp_IdParamHi[arg0 & 0x7F].field[6];
     }
     return ret;
 }
 
-void func_800E2DE4(GpObj5C* arg0, s32 arg1)
+void Gp_SetObjFlag4(GpObj5C* arg0, s32 arg1)
 {
     s32 val;
     s32 limit;
     s32 rand;
 
-    val        = arg0->field_50->field_D;
-    limit      = (val << 12) / 100;
-    D_80070F60 = D_80070F60 * 5 + 0x71357911;
-    rand       = (u32)D_80070F60 >> 16 & 0xFFF;
+    val         = arg0->field_50->field_D;
+    limit       = (val << 12) / 100;
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    rand        = (u32)Gp_LcgState >> 16 & 0xFFF;
     if (rand < limit) {
         arg0->field_5A  = 0;
         arg0->field_4C |= 4;
-        D_80070F60      = D_80070F60 * 5 + 0x71357911;
-        arg0->field_59  = ((u32)D_80070F60 >> 16 & 0xF) + 0x53;
+        Gp_LcgState     = Gp_LcgState * 5 + 0x71357911;
+        arg0->field_59  = ((u32)Gp_LcgState >> 16 & 0xF) + 0x53;
         if ((arg1 & 0x8000) == 0) {
             arg0->field_5C = 0;
             return;
         }
-        arg0->field_5C = D_80114C08.field_0 % 10U;
+        arg0->field_5C = Gp_StateC08.field_0 % 10U;
     }
 }
 
-s32 func_800E2EC4(GpObj5C* arg0)
+s32 Gp_TickObjFlag4(GpObj5C* arg0)
 {
     s32 ret;
     s32 val;
@@ -3551,8 +3551,8 @@ s32 func_800E2EC4(GpObj5C* arg0)
     arg0->field_59--;
     if (arg0->field_59 == 0) {
         arg0->field_5A++;
-        D_80070F60     = D_80070F60 * 5 + 0x71357911;
-        arg0->field_59 = ((u32)D_80070F60 >> 16 & 0xF) + 0x53;
+        Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+        arg0->field_59 = ((u32)Gp_LcgState >> 16 & 0xF) + 0x53;
         val            = arg0->field_50->field_4;
         scale          = D_80113D38[arg0->field_5C];
         ret            = (val * scale) / 100;
@@ -3563,7 +3563,7 @@ s32 func_800E2EC4(GpObj5C* arg0)
     return ret;
 }
 
-s32 func_800E2F7C(GpObj5C* arg0)
+s32 Gp_ObjFlag4Expired(GpObj5C* arg0)
 {
     s32          val;
     s32          ret;
@@ -3584,12 +3584,12 @@ s32 func_800E2F7C(GpObj5C* arg0)
     return ret;
 }
 
-void func_800E3008(GpObj4C* arg0)
+void Gp_SetObjFlag1(GpObj4C* arg0)
 {
     arg0->field_4C |= 1;
 }
 
-void func_800E301C(GpObj5D* arg0, s32 arg1)
+void Gp_SetObjFlag2(GpObj5D* arg0, s32 arg1)
 {
     arg0->field_58  = 0;
     arg0->field_5B  = 0;
@@ -3602,10 +3602,10 @@ void func_800E301C(GpObj5D* arg0, s32 arg1)
         arg0->field_5D = 0;
         return;
     }
-    arg0->field_5D = D_80114C08.field_0 % 10U;
+    arg0->field_5D = Gp_StateC08.field_0 % 10U;
 }
 
-s32 func_800E3084(GpObj5D* arg0)
+s32 Gp_TickObjFlag2(GpObj5D* arg0)
 {
     s32 ret;
     s32 limit;
@@ -3624,8 +3624,8 @@ s32 func_800E3084(GpObj5D* arg0)
         if (arg0->field_5B >= 0x1F) {
             arg0->field_58++;
             if (arg0->field_58 >= limit) {
-                D_80070F60     = D_80070F60 * 5 + 0x71357911;
-                arg0->field_5B = (u32)D_80070F60 >> 16 & 0x3F;
+                Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+                arg0->field_5B = (u32)Gp_LcgState >> 16 & 0x3F;
             } else {
                 arg0->field_5B = 0;
             }
@@ -3639,14 +3639,14 @@ s32 func_800E3084(GpObj5D* arg0)
     return ret;
 }
 
-s32 func_800E3194(s32 arg0)
+s32 Gp_GetIdParam2(s32 arg0)
 {
     s32 ret;
 
     if ((arg0 & 0x8000) == 0) {
-        ret = D_80113390[arg0 & 0x7F].field_8;
+        ret = Gp_IdParamLo[arg0 & 0x7F].field_8;
     } else {
-        ret = D_8011398C[arg0 & 0x7F].field[7];
+        ret = Gp_IdParamHi[arg0 & 0x7F].field[7];
     }
     return ret;
 }
@@ -3666,11 +3666,11 @@ void func_800E337C(Task* arg0)
         case 0:
             bit0 = flags & 1;
             if (bit0 != 0) {
-                func_800E3BBC(0);
+                Gp_MsgPlayerWeapon(0);
                 D_801153F4 = flag;
             }
             if (flags & 2) {
-                func_800E3B80(0);
+                Gp_MsgPlayer3F3(0);
             }
             if (flags & 4) {
                 mode = 2;
@@ -3679,24 +3679,24 @@ void func_800E337C(Task* arg0)
             } else {
                 mode = 0;
             }
-            func_800E34D8((s32)arg0->spawnArg2, mode);
+            Gp_RunCapCmd((s32)arg0->spawnArg2, mode);
             arg0->state++;
             break;
         case 1:
-            if (func_800E6CE0() == 0) {
+            if (Gp_CapBusy() == 0) {
                 arg0->state++;
             }
             break;
         case 2:
             if (flags & 1) {
-                func_800E3BBC(1);
+                Gp_MsgPlayerWeapon(1);
                 D_801153F4 = 0;
             }
             if (flags & 2) {
-                func_800E3B80(1);
+                Gp_MsgPlayer3F3(1);
             }
             if (D_80115598 != 0) {
-                func_800AC464(Game_GetPtrSlot(7), 0x13F2, (s32)arg0->spawnArg2 + 0x64, 0);
+                Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F2, (s32)arg0->spawnArg2 + 0x64, 0);
             }
             Task_Kill(arg0);
             break;

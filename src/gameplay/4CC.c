@@ -21,18 +21,18 @@
 extern s32          D_8005ED70;
 extern s32          D_8005ED74;
 extern s32          D_8005ED78;
-extern char         D_8010D588[];
+extern char         Gp_StrSwitch[];
 extern UiObject*    D_80067634;
 extern VECTOR       D_80093DB0;
 extern u8           D_8010D828[];
-extern GpItemRec*   D_80114DD4;
+extern GpItemRec*   Gp_SelItemRec;
 extern UiObjectDesc D_8010EFA0;
 
-void func_800CDEF4(void);
+void Gp_ClearPreviewItems(void);
 
-INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BC634);
+INCLUDE_ASM("gameplay/nonmatchings/4CC", Gp_ItemMoveChild);
 
-void func_800BCC44(Task* arg0)
+void Gp_ItemMoveTask(Task* arg0)
 {
     UiObject*        obj;
     GpItemMoveState* mem;
@@ -53,7 +53,7 @@ void func_800BCC44(Task* arg0)
     if (arg0->state == 0) {
         Wip_UiHolder = NULL;
         D_80067634   = NULL;
-        func_800CDEF4();
+        Gp_ClearPreviewItems();
         mem = Mem_Calloc(0x1C, 0);
         i   = 0;
         if (mem == NULL) {
@@ -63,24 +63,24 @@ void func_800BCC44(Task* arg0)
             obj->status   = 0;
             goto end;
         }
-        scans        = D_8010D550;
-        arg0->idMap  = (TaskIdMap*)mem;
-        D_80114D78   = mem;
-        mem->field_C = 0;
+        scans           = Gp_ScanPtrs;
+        arg0->idMap     = (TaskIdMap*)mem;
+        Gp_ItemMoveWork = mem;
+        mem->field_C    = 0;
         do {
             if (i == 0) {
-                item       = D_80114DDC;
-                src        = scans[item & 0xFF];
-                D_80114D7C = item;
+                item           = Gp_PubItemLoc;
+                src            = scans[item & 0xFF];
+                Gp_MoveItemKey = item;
             } else {
                 src = &Mc_SaveData.field_5BC;
             }
-            (&D_8010D628)[i] = *src;
+            (&Gp_MoveScanSrc)[i] = *src;
             i++;
         } while (i < 2);
-        func_800B8588(&D_8010D628, 0);
+        Gp_SortItems(&Gp_MoveScanSrc, 0);
         if (arg0->spawnArg1 == 1) {
-            val          = func_800BC50C();
+            val          = Gp_CanMoveItems();
             mem->field_8 = 0;
             mem->field_0 = Ui_SpawnFromDesc(D_8010D6F4, 0x100, 0, 1, obj);
             mem->field_4 = Ui_SpawnFromDesc(D_8010D6F4 + 1, 0x101, 0, 1, obj);
@@ -96,7 +96,7 @@ void func_800BCC44(Task* arg0)
         arg0->state           = arg0->state + 1;
     }
 
-    cb    = func_800BC634;
+    cb    = Gp_ItemMoveChild;
     owner = obj->owner;
     child = owner->firstChild;
     if (child != NULL) {
@@ -115,7 +115,7 @@ end:
     obj->field_2C = code;
 }
 
-void func_800BCEA4(DialogPrompt* arg0, UiObject* arg1)
+void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
 {
     register GpItemRec* rec asm("s1");
     register s32        item asm("s0");
@@ -130,14 +130,14 @@ void func_800BCEA4(DialogPrompt* arg0, UiObject* arg1)
     UiObject*           spawned;
     WipSysConfig*       cfg;
 
-    rec = func_800BB5BC(&D_8010D628 + arg1->owner->spawnArg1, arg0->field_8, 0);
+    rec = Gp_GetScanSlot(&Gp_MoveScanSrc + arg1->owner->spawnArg1, arg0->field_8, 0);
     __asm__ volatile("" : "+r"(rec));
     one  = 1;
     item = rec->field_0;
     if (arg0->field_C != one) {
         owner = arg1->owner;
-        if ((owner->state != one) && (arg0->field_8 == D_80114D78->field_14) &&
-            (owner->spawnArg1 == D_80114D78->field_10)) {
+        if ((owner->state != one) && (arg0->field_8 == Gp_ItemMoveWork->field_14) &&
+            (owner->spawnArg1 == Gp_ItemMoveWork->field_10)) {
             arg0->field_1C = 0x37A78;
         }
     }
@@ -147,24 +147,24 @@ void func_800BCEA4(DialogPrompt* arg0, UiObject* arg1)
         one2 = 1;
         if (((status >> 16) == one2) || (status == one2)) {
             if (arg0->field_10 == arg0->field_8) {
-                func_800CDE80(item, 0);
-                func_800CEB40(item);
+                Gp_SetPreviewItem(item, 0);
+                Gp_SetHolderItemText(item);
             }
         }
     }
     if (arg1->owner->spawnArg1 == 0) {
-        func_800CD924(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 0);
+        Gp_DrawItemLabel(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 0);
     } else if ((s8)rec->field_1 <= 0) {
-        func_800CD924(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 1);
+        Gp_DrawItemLabel(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 1);
     } else {
-        func_800CD924(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 2);
+        Gp_DrawItemLabel(arg1, arg0->field_18, arg0->field_1A, item, arg0->field_1C, 2);
     }
     if ((u32)(item - 0xA0) < 0x20U) {
-        func_800CDBEC(arg1, arg0->field_18, arg0->field_1A, rec->field_2, arg0->field_1C);
+        Gp_DrawQty(arg1, arg0->field_18, arg0->field_1A, rec->field_2, arg0->field_1C);
     }
     selected = arg0->field_C;
     if (selected == 1) {
-        D_80114DD4 = rec;
+        Gp_SelItemRec = rec;
         if (arg1->owner->state == selected) {
             if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
                 SndEvt_EnqueueType6(3, 0, 0);
@@ -181,17 +181,17 @@ void func_800BCEA4(DialogPrompt* arg0, UiObject* arg1)
             }
         } else if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
             idx   = arg1->owner->spawnArg1;
-            item2 = func_800BB5BC(&D_8010D628 + idx, D_8010D634[idx].field_10, 0)->field_0;
+            item2 = Gp_GetScanSlot(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].field_10, 0)->field_0;
             SndEvt_EnqueueType6(3, 0, 0);
             owner = arg1->owner;
             item  = -1;
-            if (D_80114D78->field_10 != owner->spawnArg1) {
+            if (Gp_ItemMoveWork->field_10 != owner->spawnArg1) {
                 flags = owner->flags;
                 flag  = 0;
-                if (D_8010D838[item2].field_3 & 1) {
+                if (Gp_ItemDescs[item2].field_3 & 1) {
                     flag = flags == 1;
                 }
-                if ((D_80114D7C == 0x703) && (item2 == 0x81) && (Mc_SaveData.field_7 == selected)) {
+                if ((Gp_MoveItemKey == 0x703) && (item2 == 0x81) && (Mc_SaveData.field_7 == selected)) {
                     flag = 1;
                 }
                 if (flag) {
@@ -206,17 +206,17 @@ void func_800BCEA4(DialogPrompt* arg0, UiObject* arg1)
                 }
             }
             if (item >= 0) {
-                func_800D4E40(arg1, item, 0, 1);
+                Gp_SpawnItemPrompt(arg1, item, 0, 1);
                 arg1->status = 0;
             } else {
-                D_80114D78->field_18 = arg0->field_8;
-                arg1->field_2E       = 0x25;
+                Gp_ItemMoveWork->field_18 = arg0->field_8;
+                arg1->field_2E            = 0x25;
             }
         }
     }
 }
 
-void func_800BD2FC(Task* arg0)
+void Gp_ItemPaneTask(Task* arg0)
 {
     UiObject*   obj;
     UiList*     menu;
@@ -230,7 +230,7 @@ void func_800BD2FC(Task* arg0)
     Task*       head;
     void        (*cb)(UiObject*, Task*);
 
-    menu          = &D_8010D634[(u8)arg0->spawnArg1];
+    menu          = &Gp_InvLists[(u8)arg0->spawnArg1];
     obj           = arg0->spawnArg2;
     obj->field_2E = 0;
     if (arg0->state == 0) {
@@ -244,7 +244,7 @@ void func_800BD2FC(Task* arg0)
             register s32         val asm("v0");
             register GpItemScan* s asm("v0");
 
-            s             = &D_8010D628;
+            s             = &Gp_MoveScanSrc;
             val           = s[arg0->spawnArg1].field_1;
             menu->field_4 = val;
             menu->field_5 = val;
@@ -261,12 +261,12 @@ void func_800BD2FC(Task* arg0)
 
     if (arg0->spawnArg1 == 0) {
         if (arg0->flags == 1) {
-            Ui_DrawText((UiPanel*)obj, D_80093D70);
+            Ui_DrawText((UiPanel*)obj, Gp_StrBattleField);
         } else {
-            Ui_DrawText((UiPanel*)obj, D_80093D80);
+            Ui_DrawText((UiPanel*)obj, Gp_StrItemBox);
         }
     } else {
-        Ui_DrawText((UiPanel*)obj, D_80093D8C);
+        Ui_DrawText((UiPanel*)obj, Gp_StrPlayerItem);
     }
     Ui_ComputeVisibleRows(menu, (s32)obj);
     menu->field_A = 1;
@@ -281,9 +281,9 @@ void func_800BD2FC(Task* arg0)
         Ui_UpdateListNoAnim(menu, obj);
     }
 
-    scan  = &D_8010D628 + arg0->spawnArg1;
+    scan  = &Gp_MoveScanSrc + arg0->spawnArg1;
     count = scan->field_1;
-    count = count < func_800BAF5C(scan);
+    count = count < Gp_CountScanItems(scan);
     if (count != 0) {
         obj->field_4 |= 0x20000;
     } else {
@@ -342,7 +342,7 @@ void func_800BD2FC(Task* arg0)
     }
 
 children:
-    cb    = func_800BF398;
+    cb    = Gp_CloseItemPane;
     owner = obj->owner;
     child = owner->firstChild;
     if (child != NULL) {
@@ -360,7 +360,7 @@ children:
 
 INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BD6DC);
 
-void func_800BDAA8(DialogPrompt* arg0, UiObject* arg1)
+void Gp_ItemActionConfirm(DialogPrompt* arg0, UiObject* arg1)
 {
     TextDrawReq   req;
     s32           selected;
@@ -379,32 +379,32 @@ void func_800BDAA8(DialogPrompt* arg0, UiObject* arg1)
     req.glyphTable = 0;
     req.centerMode = 0;
     req.field_E    = 1;
-    func_8002E53C(&req, D_8010D588);
+    func_8002E53C(&req, Gp_StrSwitch);
 
     selected = arg0->field_C;
     if (selected == 1) {
         if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
             idx  = arg1->owner->spawnArg1;
-            rec  = func_800BB5BC(&D_8010D628 + idx, D_8010D634[idx].field_10, 0);
+            rec  = Gp_GetScanSlot(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].field_10, 0);
             item = rec->field_0;
             SndEvt_EnqueueType6(3, 0, 0);
 
             owner = arg1->owner;
             flags = owner->parent->flags;
             flag  = 0;
-            if (D_8010D838[item].field_3 & 1) {
+            if (Gp_ItemDescs[item].field_3 & 1) {
                 flag = flags == 1;
             }
-            if ((D_80114D7C == 0x703) && (item == 0x81) && (Mc_SaveData.field_7 == selected)) {
+            if ((Gp_MoveItemKey == 0x703) && (item == 0x81) && (Mc_SaveData.field_7 == selected)) {
                 flag = 1;
             }
             if (flag) {
-                func_800D4E40(arg1, 0x1E, 0, 0);
+                Gp_SpawnItemPrompt(arg1, 0x1E, 0, 0);
                 arg1->status = 0;
             } else if (arg1->owner->spawnArg1 == 1) {
                 cfg = &Wip_SysConfig;
                 if ((item == cfg->field_21 + 0x7F) || (item == cfg->field_23 + 0x5F)) {
-                    func_800D4E40(arg1, 7, 0, 0);
+                    Gp_SpawnItemPrompt(arg1, 7, 0, 0);
                     arg1->status = 0;
                 } else {
                     arg1->field_2E = 0x23;
@@ -416,7 +416,7 @@ void func_800BDAA8(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-void func_800BDC80(UiList* arg0, UiObject* arg1)
+void Gp_FillItemActions(UiList* arg0, UiObject* arg1)
 {
     GpItemRec*      rec;
     s32             item;
@@ -428,33 +428,33 @@ void func_800BDC80(UiList* arg0, UiObject* arg1)
 
     owner = arg1->owner;
     idx   = owner->spawnArg1;
-    scan  = &D_8010D628 + idx;
-    rec   = func_800BB5BC(scan, D_8010D634[idx].field_10, 0);
+    scan  = &Gp_MoveScanSrc + idx;
+    rec   = Gp_GetScanSlot(scan, Gp_InvLists[idx].field_10, 0);
     item  = 0;
     if (rec != NULL) {
         item = rec->field_0;
     }
     if (item == 0) {
-        D_8010D67C[0] = func_800BDAA8;
-        count         = 1;
+        Gp_ItemActionFns[0] = Gp_ItemActionConfirm;
+        count               = 1;
     } else {
-        D_8010D67C[0] = func_800BD6DC;
-        table         = D_8010D67C;
-        count         = 1;
+        Gp_ItemActionFns[0] = func_800BD6DC;
+        table               = Gp_ItemActionFns;
+        count               = 1;
         if (((u32)(item - 0xA0) >= 0x20U) || (arg1->owner->flags != 0)) {
-            table[1] = func_800BDAA8;
+            table[1] = Gp_ItemActionConfirm;
             count    = 2;
         }
         if (((u32)(item - 1) < 3U) || (item == 5) || (item == 6) || (item == 7) || (item == 0x3C) || (item == 0x3D)) {
-            D_8010D67C[count] = func_800CF7C4;
-            count             = count + 1;
+            Gp_ItemActionFns[count] = Gp_DrawUsePrompt;
+            count                   = count + 1;
         }
     }
     arg0->field_5 = count;
     arg0->field_4 = count;
 }
 
-void func_800BDDC4(Task* arg0)
+void Gp_ItemActionListTask(Task* arg0)
 {
     UiObject* obj;
     UiList*   menu;
@@ -464,7 +464,7 @@ void func_800BDDC4(Task* arg0)
 
     obj           = arg0->spawnArg2;
     obj->field_2E = 0;
-    menu          = &D_8010D68C;
+    menu          = &Gp_ItemActionList;
     if (arg0->state == 0) {
         parent = arg0->parent;
         if (parent != NULL) {
@@ -473,7 +473,7 @@ void func_800BDDC4(Task* arg0)
         if (((s16)obj->field_E + (s16)obj->field_12) >= 0x65) {
             obj->field_E = 0x64 - obj->field_12;
         }
-        func_800BDC80(menu, obj);
+        Gp_FillItemActions(menu, obj);
         Ui_LayoutListPanel(menu, (UiPanel*)obj);
         arg0->state = arg0->state + 1;
     }
@@ -512,7 +512,7 @@ void func_800BDDC4(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BDF6C);
 
-void func_800BE808(DialogPrompt* arg0, UiObject* arg1)
+void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
 {
     GpPromptTexts        texts;
     s32                  one;
@@ -522,7 +522,7 @@ void func_800BE808(DialogPrompt* arg0, UiObject* arg1)
     GpItemSlot*          slot;
     s32                  attach;
 
-    texts = D_80093DA0;
+    texts = Gp_ItemPromptTexts;
     if (arg0->field_8 == 0) {
         if (arg1->owner->spawnArg1 == 0) {
             arg0->field_1C = Ui_LookupTable(arg1, 2);
@@ -561,23 +561,23 @@ void func_800BE808(DialogPrompt* arg0, UiObject* arg1)
                 case 2:
                     SndEvt_EnqueueType6(4, 0, 0);
                     scan = &Mc_SaveData.field_5BC;
-                    rec  = func_800BB500(scan);
+                    rec  = Gp_GetItemTable(scan);
                     i    = 0;
                     rec  = &rec[scan->field_0];
                     if (scan->field_1 != 0) {
                         do {
                             if ((u8)(rec->field_0 + 0x80) < 0x20) {
-                                slot   = func_800BAFE0(rec->field_0);
+                                slot   = Gp_GetItemSlot(rec->field_0);
                                 attach = slot->field_0;
                                 if ((attach != 0) && (attach != 0xB9)) {
-                                    if (func_800BB6FC(scan, attach) == 0) {
+                                    if (Gp_SumScanQty(scan, attach) == 0) {
                                         slot->field_1 = 0;
                                     }
                                 }
                                 attach = slot->field_2;
                                 if ((attach != 0) && (attach != 0xFF) && (attach != 0xB5) && (attach != 0xBB) &&
                                     (attach != 0xBD) && (attach != 0xBE)) {
-                                    if (func_800BB6FC(scan, attach) == 0) {
+                                    if (Gp_SumScanQty(scan, attach) == 0) {
                                         slot->field_3 = 0;
                                     }
                                 }
@@ -593,23 +593,23 @@ void func_800BE808(DialogPrompt* arg0, UiObject* arg1)
             SndEvt_EnqueueType6(4, 0, 0);
             if (arg0->field_10 == 2) {
                 scan = &Mc_SaveData.field_5BC;
-                rec  = func_800BB500(scan);
+                rec  = Gp_GetItemTable(scan);
                 i    = 0;
                 rec  = &rec[scan->field_0];
                 if (scan->field_1 != 0) {
                     do {
                         if ((u8)(rec->field_0 + 0x80) < 0x20) {
-                            slot   = func_800BAFE0(rec->field_0);
+                            slot   = Gp_GetItemSlot(rec->field_0);
                             attach = slot->field_0;
                             if ((attach != 0) && (attach != 0xB9)) {
-                                if (func_800BB6FC(scan, attach) == 0) {
+                                if (Gp_SumScanQty(scan, attach) == 0) {
                                     slot->field_1 = 0;
                                 }
                             }
                             attach = slot->field_2;
                             if ((attach != 0) && (attach != 0xFF) && (attach != 0xB5) && (attach != 0xBB) &&
                                 (attach != 0xBD) && (attach != 0xBE)) {
-                                if (func_800BB6FC(scan, attach) == 0) {
+                                if (Gp_SumScanQty(scan, attach) == 0) {
                                     slot->field_3 = 0;
                                 }
                             }
@@ -627,7 +627,7 @@ void func_800BE808(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-void func_800BEBE4(Task* arg0)
+void Gp_ItemPickupTilt(Task* arg0)
 {
     GameSession*   session;
     GameActorExt*  extra;
@@ -677,7 +677,7 @@ void func_800BEBE4(Task* arg0)
             vec             = D_80093DB0;
             extra->field_1C = mem;
             extra->field_20 = mem + 1;
-            func_80098F58((GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8);
+            Gp_UpdateCoord((GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8);
             func_800D7A9C(extra, &vec, 0, 3);
             arg0->idMap = (TaskIdMap*)mem;
         }
@@ -686,56 +686,56 @@ void func_800BEBE4(Task* arg0)
         extra->field_C = 0;
         arg0->state++;
     } else if (arg0->state == 1) {
-        if (func_800BB470(obj->field_8) != 2) {
+        if (Gp_GetCurBit2Flag(obj->field_8) != 2) {
             if (arg0->flags != 0) {
                 arg0->killCountdown = 0;
                 switch (mapId) {
                     case 0x1060000: {
                         s32 temp;
-                        temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                        temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
                         SndEvt_EnqueueType6(0x51060009, temp,
-                                            (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                            (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
                         break;
                     }
                     case 0x10C0000: {
                         s32 temp;
-                        temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                        temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
                         SndEvt_EnqueueType6(0x510C0005, temp,
-                                            (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                            (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
                     }
                     case 0x21B0000: {
                         s32 temp;
-                        temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                        temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
                         SndEvt_EnqueueType6(0x521B000B, temp,
-                                            (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                            (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
                         break;
                     }
                     case 0x31B0000: {
                         s32 temp;
-                        temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                        temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
                         SndEvt_EnqueueType6(0x531B000B, temp,
-                                            (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                            (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
                         break;
                     }
                     case 0x4100000: {
                         s32 temp;
-                        temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                        temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
                         SndEvt_EnqueueType6(0x54100012, temp,
-                                            (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                            (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
                         break;
                     }
                     case 0x41F0000: {
                         s32 temp;
-                        temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                        temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
                         SndEvt_EnqueueType6(0x541F0015, temp,
-                                            (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                            (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
                         break;
                     }
                     case 0x4270000: {
                         s32 temp;
-                        temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                        temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
                         SndEvt_EnqueueType6(0x54270008, temp,
-                                            (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                            (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
                         break;
                     }
                 }
@@ -755,46 +755,46 @@ void func_800BEBE4(Task* arg0)
             switch (mapId) {
                 case 0x1060000: {
                     s32 temp;
-                    temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                    temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
                     SndEvt_EnqueueType6(0x5106000A, temp,
-                                        (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                        (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
                     break;
                 }
                 case 0x10C0000: {
                     s32 temp;
-                    temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                    temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
                     SndEvt_EnqueueType6(0x510C0006, temp,
-                                        (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                        (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
                     break;
                 }
                 case 0x21B0000:
                     break;
                 case 0x31B0000: {
                     s32 temp;
-                    temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                    temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
                     SndEvt_EnqueueType6(0x531B000C, temp,
-                                        (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                        (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
                     break;
                 }
                 case 0x4100000: {
                     s32 temp;
-                    temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                    temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
                     SndEvt_EnqueueType6(0x54100013, temp,
-                                        (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                        (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
                     break;
                 }
                 case 0x41F0000: {
                     s32 temp;
-                    temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                    temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
                     SndEvt_EnqueueType6(0x541F0016, temp,
-                                        (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                        (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
                     break;
                 }
                 case 0x4270000: {
                     s32 temp;
-                    temp = (s8)func_800D937C((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
+                    temp = (s8)Gp_GetObjPan((GpObj38*)((GameActorExt*)arg0->extra)->field_8);
                     SndEvt_EnqueueType6(0x54270009, temp,
-                                        (s8)func_800D9340((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
+                                        (s8)Gp_GetObjDepth((GpObj38*)((GameActorExt*)arg0->extra)->field_8));
                     break;
                 }
             }
@@ -817,12 +817,12 @@ void func_800BEBE4(Task* arg0)
         }
     }
     vec2 = D_80093DB0;
-    func_80098F58((GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8);
+    Gp_UpdateCoord((GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8);
     func_800D7A9C(extra, &vec2, 0, 3);
     __asm__ volatile("" ::"r"(item));
 }
 
-void func_800BF2C8(UiObject* arg0, void (*arg1)(UiObject*, Task*))
+void Gp_ForEachUiChild(UiObject* arg0, void (*arg1)(UiObject*, Task*))
 {
     Task* owner;
     Task* child;
@@ -844,21 +844,21 @@ void func_800BF2C8(UiObject* arg0, void (*arg1)(UiObject*, Task*))
     }
 }
 
-s32 func_800BF334(s32 arg0, s32 arg1)
+s32 Gp_ItemUseRestricted(s32 arg0, s32 arg1)
 {
     s32 ret;
 
     ret = 0;
-    if (D_8010D838[arg0].field_3 & 1) {
+    if (Gp_ItemDescs[arg0].field_3 & 1) {
         ret = arg1 == 1;
     }
-    if ((D_80114D7C == 0x703) && (arg0 == 0x81) && (Mc_SaveData.field_7 == 1)) {
+    if ((Gp_MoveItemKey == 0x703) && (arg0 == 0x81) && (Mc_SaveData.field_7 == 1)) {
         ret = 1;
     }
     return ret;
 }
 
-void func_800BF398(UiObject* arg0, Task* arg1)
+void Gp_CloseItemPane(UiObject* arg0, Task* arg1)
 {
     UiObject* parent;
 
@@ -889,14 +889,14 @@ void func_800BF398(UiObject* arg0, Task* arg1)
     }
 }
 
-void func_800BF464(Task* arg0)
+void Gp_ItemMenuListTask(Task* arg0)
 {
     UiObject* obj;
     UiList*   menu;
 
     obj           = arg0->spawnArg2;
     obj->field_2E = 0;
-    menu          = &D_8010D6B4;
+    menu          = &Gp_ItemMenuList;
     if (arg0->state == 0) {
         Ui_LayoutListPanel(menu, (UiPanel*)obj);
         if (arg0->spawnArg1 == 0) {
@@ -910,7 +910,7 @@ void func_800BF464(Task* arg0)
     Ui_UpdateListNoAnim(menu, obj);
 }
 
-void func_800BF4FC(Task* arg0)
+void Gp_HolderPromptTask(Task* arg0)
 {
     UiObject* obj;
     s32       val;
@@ -934,7 +934,7 @@ void func_800BF4FC(Task* arg0)
     }
 }
 
-s32 func_800BF5CC(Task* arg0, s32 arg1, GpItemObj2* arg2)
+s32 Gp_BindItemObj2(Task* arg0, s32 arg1, GpItemObj2* arg2)
 {
     s32         flag;
     GpItemObj8* obj;
@@ -943,13 +943,13 @@ s32 func_800BF5CC(Task* arg0, s32 arg1, GpItemObj2* arg2)
     flag             = 1;
     arg0->flags      = flag;
     arg0->extraState = (s32)arg2;
-    if (func_800BB470(obj->field_8) == 2) {
+    if (Gp_GetCurBit2Flag(obj->field_8) == 2) {
         arg2->field_2 = flag;
     }
     return 0;
 }
 
-void func_800BF624(Task* arg0)
+void Gp_PublishItemObj(Task* arg0)
 {
     u16 item;
     s32 count;
@@ -958,29 +958,29 @@ void func_800BF624(Task* arg0)
         register GpItemObj8* obj asm("v1");
         register u16         ritem asm("a0");
 
-        obj        = arg0->spawnArg2;
-        ritem      = obj->field_8;
-        D_80114DEC = ritem;
-        ritem      = obj->field_A;
-        D_80114DDC = ritem;
-        item       = ritem;
+        obj           = arg0->spawnArg2;
+        ritem         = obj->field_8;
+        Gp_PubItemId  = ritem;
+        ritem         = obj->field_A;
+        Gp_PubItemLoc = ritem;
+        item          = ritem;
     }
     if (item < 0xA0) {
         if ((u16)(item - 0x60) < 0x20U) {
-            if (func_800B7420(D_80114DDC) != 0) {
-                D_80114DDC = 0xD;
+            if (func_800B7420(Gp_PubItemLoc) != 0) {
+                Gp_PubItemLoc = 0xD;
             }
         } else if ((u16)(item - 0x80) < 0x20U) {
-            if (func_800B7420(D_80114DDC) != 0) {
-                D_80114DDC = 0x3D;
+            if (func_800B7420(Gp_PubItemLoc) != 0) {
+                Gp_PubItemLoc = 0x3D;
             }
         }
-        D_80114DD0 = 1;
-        D_80114DC8 = 1;
+        Gp_PubItemQty   = 1;
+        Gp_PubItemReady = 1;
     } else {
-        count      = D_8010E3B8[D_80114DDC - 0xA0].field_0;
-        D_80114DC8 = 1;
-        D_80114DD0 = count;
+        count           = Gp_StackLimits[Gp_PubItemLoc - 0xA0].field_0;
+        Gp_PubItemReady = 1;
+        Gp_PubItemQty   = count;
     }
     GameMain_SetFrameTiming(0);
     Wip_UiHolder        = NULL;
@@ -988,7 +988,7 @@ void func_800BF624(Task* arg0)
     arg0->state         = arg0->state + 1;
 }
 
-void func_800BF738(Task* arg0)
+void Gp_FadeTileTask(Task* arg0)
 {
     s32       flag;
     s32       yoff;

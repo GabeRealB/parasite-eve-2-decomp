@@ -10,20 +10,20 @@
 #include "main/session.h"
 #include "main/task.h"
 
-/// 0xC-byte sequence-table record. `D_801155A8` is the current table
-/// (`func_800E41F4` stores its first arg there). `func_800E6EA0` walks
+/// 0xC-byte sequence-table record. `Gp_CapTable` is the current table
+/// (`Gp_StartCap` stores its first arg there). `Gp_FindCapEvt` walks
 /// from a start index until `field_8 == -1` (terminator) or `field_5`
-/// equals `D_80115668` (the key `func_800E41F4` saved from its third arg).
+/// equals `Gp_CapEventKey` (the key `Gp_StartCap` saved from its third arg).
 /// When not -1, `field_8` is a relocated `u16*` text stream walked by
-/// `func_800E6AD4` / `func_800E69F4` / `func_800E67C8` / `func_800E68D8` (codes `-1` end,
-/// `-2` newline, `-3` skip; else glyph index `& 0x3FF` into `D_8011567C`).
+/// `Gp_CapTextTopY` / `Gp_CapTextHeight` / `Gp_CapCenterX` / `Gp_CapCenterXLine` (codes `-1` end,
+/// `-2` newline, `-3` skip; else glyph index `& 0x3FF` into `Gp_CapGlyphs`).
 typedef struct _GpEvt12 {
     /* 0x0 */ u8  field_0;
     /* 0x1 */ u8  field_1;
     /* 0x2 */ u8  field_2;
     /* 0x3 */ u8  field_3;
     /* 0x4 */ u8  field_4; // flags copied to D_80115670; bit 0 cleared if field_7
-    /* 0x5 */ u8  field_5; // compared with D_80115668
+    /* 0x5 */ u8  field_5; // compared with Gp_CapEventKey
     /* 0x6 */ u8  field_6;
     /* 0x7 */ u8  field_7; // copied to D_80115678
     /* 0x8 */ s32 field_8; // -1 terminator, else relocated u16* text
@@ -32,7 +32,7 @@ STATIC_ASSERT_SIZEOF(GpEvt12, 0xC);
 
 /// 0x10-byte header in front of a `GpEvt12` array inside a `GpCapFile`
 /// (`field_C`). `count` is the first halfword; the records start at
-/// `hdr + 1`. `func_800E40EC` relocates each record's `field_8` unless
+/// `hdr + 1`. `Gp_RelocCapFile` relocates each record's `field_8` unless
 /// it is `-1`, in which case it also skips the next record.
 typedef struct _GpCapEvtTable {
     /* 0x00 */ s16  count;
@@ -41,24 +41,24 @@ typedef struct _GpCapEvtTable {
 STATIC_ASSERT_SIZEOF(GpCapEvtTable, 0x10);
 
 /// Count word in front of the relocated pointer table at `GpCapFile::field_10`.
-/// `func_800E40EC` publishes `hdr + 1` as `D_801156A0` (`GpCapCmd**`).
+/// `Gp_RelocCapFile` publishes `hdr + 1` as `Gp_CapCmds` (`GpCapCmd**`).
 typedef struct _GpCapPtrTable {
     /* 0x0 */ s32 count;
 } GpCapPtrTable;
 STATIC_ASSERT_SIZEOF(GpCapPtrTable, 4);
 
-/// Command record pointed to by `D_801156A0[index]`. `func_800E34D8` switches
+/// Command record pointed to by `Gp_CapCmds[index]`. `Gp_RunCapCmd` switches
 /// on `field_0` and may follow `field_8` to another index. Flag id is
 /// `field_3 | (field_7 << 8)`. `field_1` bits: 0 = wrap counter, 1 = persist
 /// counter in a game-flag nibble, 2 = skip/compare against `field_2`.
-/// `func_800E6C70` then starts the event at the same table slot.
+/// `Gp_StartCapSlot` then starts the event at the same table slot.
 typedef struct _GpCapCmd {
     /* 0x0 */ u8 field_0; // opcode (0..4)
     /* 0x1 */ u8 field_1; // flags
     /* 0x2 */ u8 field_2; // counter limit
     /* 0x3 */ u8 field_3; // flag id lo
     /* 0x4 */ u8 field_4; // live counter
-    /* 0x5 */ u8 field_5; // first 2-bit slot (`func_800BB470`)
+    /* 0x5 */ u8 field_5; // first 2-bit slot (`Gp_GetCurBit2Flag`)
     /* 0x6 */ u8 field_6; // slot count
     /* 0x7 */ u8 field_7; // flag id hi
     /* 0x8 */ u8 field_8; // next command index
@@ -66,8 +66,8 @@ typedef struct _GpCapCmd {
 
 /// In-memory CAP dialogue file (`strncmp` magic `"CAP"`). Offsets at
 /// `field_8` / `field_C` / `field_10` are file-relative until
-/// `func_800E40EC` adds the file base. After that, `field_8` is a
-/// `GlyphUvwh*` published as `D_8011567C`, `field_C` is a
+/// `Gp_RelocCapFile` adds the file base. After that, `field_8` is a
+/// `GlyphUvwh*` published as `Gp_CapGlyphs`, `field_C` is a
 /// `GpCapEvtTable*`, and `field_10` is a `GpCapPtrTable*` whose
 /// entries (nonzero) are relocated `GpEvt12*` values.
 typedef struct _GpCapFile {
@@ -81,7 +81,7 @@ STATIC_ASSERT_SIZEOF(GpCapFile, 0x14);
 
 /// Three overlay ids passed through `func_800E7498` (table cmd 0xFA6)
 /// to `CdCmd_StartOverlay`. Also the current evs triple held in
-/// `D_801156F4` (`func_800E646C` formats `"evs%d_%d_%d.txt"` from it).
+/// `D_801156F4` (`Gp_CapExit` formats `"evs%d_%d_%d.txt"` from it).
 typedef struct _GpOverlayIds {
     /* 0x0 */ u16 field_0;
     /* 0x2 */ u16 field_2;
@@ -89,13 +89,13 @@ typedef struct _GpOverlayIds {
 } GpOverlayIds;
 STATIC_ASSERT_SIZEOF(GpOverlayIds, 6);
 
-/// 0x14-byte payload copied from `D_8010FB38` by `func_800E3BBC` (arg 0)
+/// 0x14-byte payload copied from `Gp_WeaponMsgRec` by `Gp_MsgPlayerWeapon` (arg 0)
 /// and sent as slot-3 msg `0x3E8`. `field_0` is overwritten with
-/// `D_80112D68[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21`
-/// (same value `func_800E3CEC` writes). `func_800E3EF0` copies the same
+/// `Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21`
+/// (same value `Gp_PlayerWeaponId` writes). `Gp_MsgAllyWeapon` copies the same
 /// record to slot 0xA and overwrites `field_0` with
-/// `D_80113360[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7`
-/// (same value `func_800E3D24` writes). Nearby `D_8010FB10` /
+/// `Gp_AllyIdBase[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7`
+/// (same value `Gp_AllyAnimId` writes). Nearby `D_8010FB10` /
 /// `D_8010FB24` are the same size (`func_800E375C` copies them for msg `0x3FA`).
 typedef struct _GpRec14 {
     /* 0x00 */ s32 field_0;
@@ -106,7 +106,7 @@ typedef struct _GpRec14 {
 } GpRec14;
 STATIC_ASSERT_SIZEOF(GpRec14, 0x14);
 
-/// 4-byte volume-fade payload at `Task::spawnArg2` for `func_800E8378`.
+/// 4-byte volume-fade payload at `Task::spawnArg2` for `Gp_VolFadeTask`.
 /// `field_0` is the target volume passed to `Snd_ApplyVolumeTable`.
 /// `field_2` is the fade duration in frames (`0` applies immediately).
 typedef struct _GpVolFade {
@@ -115,7 +115,7 @@ typedef struct _GpVolFade {
 } GpVolFade;
 STATIC_ASSERT_SIZEOF(GpVolFade, 4);
 
-/// 0xC-byte Type-A sound-param fade at `Task::spawnArg2` for `func_800E84B8`
+/// 0xC-byte Type-A sound-param fade at `Task::spawnArg2` for `Gp_SndFadeTask`
 /// (bank 9 type 0xE; live instance `D_801156E0`). `field_0` is the sound id
 /// passed to `SndEvt_EnqueueTypeA`. `field_4` is the start/current param
 /// (snapshotted into `D_801156C4`); `field_6` is the target; `field_8` is
@@ -130,11 +130,11 @@ typedef struct _GpSndFade {
 } GpSndFade;
 STATIC_ASSERT_SIZEOF(GpSndFade, 0xC);
 
-/// Packed bytes in `Task::spawnArg1` for `func_800E6F60`.
-/// `field_0` is forwarded as a2 to `func_800AC464`.
+/// Packed bytes in `Task::spawnArg1` for `Gp_DelayedMsgTask`.
+/// `field_0` is forwarded as a2 to `Gp_DispatchMsg`.
 /// `field_1` is copied into `Task::killCountdown` on state 0.
 /// `field_2` selects the target: 0 = slot 3, 1 = slot 0xA, else
-/// `func_800E86FC(field_2 - 2)`.
+/// `Gp_LookupSlot4(field_2 - 2)`.
 typedef struct _GpSpawnArg {
     /* 0x0 */ u8 field_0;
     /* 0x1 */ u8 field_1;
@@ -143,7 +143,7 @@ typedef struct _GpSpawnArg {
 } GpSpawnArg;
 STATIC_ASSERT_SIZEOF(GpSpawnArg, 4);
 
-/// Object stored in `Task::spawnArg2` for `func_800E712C`. `field_2` is a
+/// Object stored in `Task::spawnArg2` for `Gp_EndWaitTask`. `field_2` is a
 /// signed completion flag: when non-zero the task calls `Stage_SetEndingFlag`
 /// and kills itself.
 typedef struct _GpEndWait {
@@ -172,7 +172,7 @@ typedef struct _GpScriptRec {
 } GpScriptRec;
 STATIC_ASSERT_SIZEOF(GpScriptRec, 4);
 
-/// 0x34-byte dual-script state allocated by `func_800E8758` (`Mem_Calloc(0x34, 0)`)
+/// 0x34-byte dual-script state allocated by `Gp_ScriptInit` (`Mem_Calloc(0x34, 0)`)
 /// and stored on the owner task at +0x1C (`Task::idMap`).
 /// `field_10` / `field_11` are delay counters for scripts A / B.
 typedef struct _GpState34 {
@@ -196,11 +196,11 @@ typedef struct _GpState34 {
 } GpState34;
 STATIC_ASSERT_SIZEOF(GpState34, 0x34);
 
-/// 0xC-byte interpolator state allocated by `func_800E8D1C` / `func_800E8E00`
+/// 0xC-byte interpolator state allocated by `Gp_SpawnPadLerp` / `Gp_SpawnPadLerpScaled`
 /// (`Mem_Calloc(0xC, 0)`) and stored at `Task::idMap` for bank-2 type 0xC.
 /// `field_8` is the duration; `field_4.as_s32` is start<<8; `field_0` is the
 /// per-frame step `((end<<8) - (start<<8)) / duration`.
-/// `func_800E9498` posts `field_4.bytes.as_u8` (the 8-bit interpolator,
+/// `Gp_PadLerpTask` posts `field_4.bytes.as_u8` (the 8-bit interpolator,
 /// `as_s32 >> 8` on little-endian) via `Pad_PostEvent`.
 typedef struct _GpState0C {
     /* 0x0 */ s32 field_0; // step
@@ -216,25 +216,25 @@ typedef struct _GpState0C {
 } GpState0C;
 STATIC_ASSERT_SIZEOF(GpState0C, 0xC);
 
-/// 0x18-byte work block allocated by `func_800E8FB0` / `func_800E9188`
+/// 0x18-byte work block allocated by `Gp_SpawnScript18` / `Gp_SpawnScript18Ex`
 /// (`Mem_Calloc(0x18)`) and stored at `Task::idMap` for bank-2 type 0xD.
-/// `func_800E8FB0` writes `field_0`/`field_4` from its args and clears
-/// `field_8`; `func_800E9188` writes all three. `func_800E9070` indexes
+/// `Gp_SpawnScript18` writes `field_0`/`field_4` from its args and clears
+/// `field_8`; `Gp_SpawnScript18Ex` writes all three. `Gp_DispatchScript18` indexes
 /// dispatch tables with `field_A` and `field_C`.
 typedef struct _GpState18 {
     /* 0x00 */ s32  field_0;
     /* 0x04 */ s32  field_4;
     /* 0x08 */ s16  field_8;
-    /* 0x0A */ u8   field_A; // dispatch index A (func_800E9070)
+    /* 0x0A */ u8   field_A; // dispatch index A (Gp_DispatchScript18)
     /* 0x0B */ u8   field_B;
-    /* 0x0C */ u8   field_C; // dispatch index B (func_800E9070)
+    /* 0x0C */ u8   field_C; // dispatch index B (Gp_DispatchScript18)
     /* 0x0D */ byte pad_D[0xB];
 } GpState18;
 STATIC_ASSERT_SIZEOF(GpState18, 0x18);
 
-/// 0x1C-byte halfword state allocated by `func_800E9CC8` (`Mem_Calloc(0x1C, 0)`)
-/// and stored in `D_80115740` (also written to the owner task at +0x1C).
-/// `func_800E9CC8` sets `field_6` to 1 and the rest to 0.
+/// 0x1C-byte halfword state allocated by `Gp_InitState1C` (`Mem_Calloc(0x1C, 0)`)
+/// and stored in `Gp_State1C` (also written to the owner task at +0x1C).
+/// `Gp_InitState1C` sets `field_6` to 1 and the rest to 0.
 typedef struct _GpState1C {
     /* 0x00 */ s16 field_0;
     /* 0x02 */ s16 field_2;
@@ -248,13 +248,13 @@ typedef struct _GpState1C {
     /* 0x12 */ s16 field_12; // flags (bit 0x200 by func_800FC0B4, bit 0x400 by func_800FB7E4, bit 0x800 by func_800FC500 / func_800ECA54)
     /* 0x14 */ s16 field_14;
     /* 0x16 */ s16 field_16;
-    /* 0x18 */ s16 field_18; // PE bit written by func_800ECA10
-    /* 0x1A */ u16 field_1A; // flags (0x80 by func_800FC6C0, 0x100 by func_800EC868)
+    /* 0x18 */ s16 field_18; // PE bit written by Gp_SetState1CPe
+    /* 0x1A */ u16 field_1A; // flags (0x80 by Gp_PulseState1C80, 0x100 by Gp_PulseState1C)
 } GpState1C;
 STATIC_ASSERT_SIZEOF(GpState1C, 0x1C);
 
 /// Overlay of `GpCoord64.coord` plus the 0x10-byte tail. `func_800ED198`
-/// holds `&D_80114F30[0].coord` as this type so `field_50` / `field_58`
+/// holds `&Gp_RoomCoords[0].coord` as this type so `field_50` / `field_58`
 /// are addressed from the coordinate pointer (`s5 + 0x50` / `s5 + 0x58`).
 typedef struct _GpCoordTail {
     /* 0x00 */ GsCOORDINATE2 coord;
@@ -267,9 +267,9 @@ typedef struct _GpCoordTail {
 } GpCoordTail;
 STATIC_ASSERT_SIZEOF(GpCoordTail, 0x60);
 
-/// 0x64-byte world-coord slot. `func_800EA3EC` inits all 8 entries of
-/// `D_80114F30`: `coord.sub` is the parent (`&D_80070F10`) and `field_0`
-/// is a refcount (decremented by `func_800EA3B4`). `func_800D9618` returns
+/// 0x64-byte world-coord slot. `Gp_InitRoomCoords` inits all 8 entries of
+/// `Gp_RoomCoords`: `coord.sub` is the parent (`&D_80070F10`) and `field_0`
+/// is a refcount (decremented by `Gp_DecRoomCoordRefs`). `Gp_CountRoomCoords` returns
 /// how many slots currently have a non-zero refcount. `func_800ED198`
 /// copies the actor translation into `coord`, writes `0xC00` into
 /// `field_54` / `field_56` / `field_58`, and decays `field_5C` by `0x190`
@@ -296,66 +296,66 @@ typedef struct _GpRayScratch {
 } GpRayScratch;
 STATIC_ASSERT_SIZEOF(GpRayScratch, 0x10);
 
-extern GpState1C*    D_80115740;
-extern Task*         D_80115748;
-extern GpCoord64     D_80114F30[8];
+extern GpState1C*    Gp_State1C;
+extern Task*         Gp_State1CTask;
+extern GpCoord64     Gp_RoomCoords[8];
 extern GsCOORDINATE2 D_80070F10;
 /// 8 packed RGB-nibble colors. Index is `cln(spawnArg1 << 12) / 2839 & 7`.
-/// High nibble is the `func_800EA858` blend; low three nibbles are R, G, B.
-extern u16           D_80111EC0[];
+/// High nibble is the `Gp_DrawFadeQuad` blend; low three nibbles are R, G, B.
+extern u16           Gp_FadeQuadColors[];
 
-Task* func_800E8FB0(s32 arg0, s32 arg1);
-void func_800E34D8(s32 arg0, s16 arg1);
+Task* Gp_SpawnScript18(s32 arg0, s32 arg1);
+void Gp_RunCapCmd(s32 arg0, s16 arg1);
 void func_800E375C(Task* arg0);
-s32  func_800E6C70(s16 arg0, s16 arg1, s16 arg2);
-void func_800E3B80(s32 arg0);
-void func_800E3BBC(s32 arg0);
-void func_800E3D8C(s32 arg0, s32 arg1);
-void func_800E3EF0(s32 arg0);
-void func_800E4080(void);
-void func_800E40BC(s32 arg0, s32 arg1);
-s32  func_800E40EC(GpCapFile* file);
-s32  func_800E41F4(s32 arg0, s16 arg1, s16 arg2);
-/// Blinking POLY_G3 continue caret. `D_80115658` is a frame delay before the
-/// first draw; `D_8011564C` / `D_8011564E` are base XY; `D_8010FB88` /
-/// `D_8010FB8C` pulse the vertex greys between 8 and 15.
-void func_800E6608(void);
-s16  func_800E67C8(u16* arg0);
-s16  func_800E68D8(u16* arg0, s32 arg1);
-s16  func_800E69F4(u16* arg0);
-s16  func_800E6AD4(u16* arg0);
-s32  func_800E6CE0(void);
+s32  Gp_StartCapSlot(s16 arg0, s16 arg1, s16 arg2);
+void Gp_MsgPlayer3F3(s32 arg0);
+void Gp_MsgPlayerWeapon(s32 arg0);
+void Gp_SpawnIfCapIdle(s32 arg0, s32 arg1);
+void Gp_MsgAllyWeapon(s32 arg0);
+void Gp_ClearAllFlagNibbles(void);
+void Gp_SpawnEvt1(s32 arg0, s32 arg1);
+s32  Gp_RelocCapFile(GpCapFile* file);
+s32  Gp_StartCap(s32 arg0, s16 arg1, s16 arg2);
+/// Blinking POLY_G3 continue caret. `Gp_CapCaretDelay` is a frame delay before the
+/// first draw; `Gp_CapCaretX` / `Gp_CapCaretY` are base XY; `Gp_CapCaretGrey` /
+/// `Gp_CapCaretDir` pulse the vertex greys between 8 and 15.
+void Gp_DrawCapCaret(void);
+s16  Gp_CapCenterX(u16* arg0);
+s16  Gp_CapCenterXLine(u16* arg0, s32 arg1);
+s16  Gp_CapTextHeight(u16* arg0);
+s16  Gp_CapTextTopY(u16* arg0);
+s32  Gp_CapBusy(void);
 
 /// Screen-shake task. `spawnArg2` is a packed s32: low byte is the
 /// duration bound (counter runs `-lo` .. `+lo`); `>> 8` is amplitude.
-/// Each frame an LCG (`D_80070F60`) scales the remaining count into
+/// Each frame an LCG (`Gp_LcgState`) scales the remaining count into
 /// `Display_ClampField126`, flipping sign on `spawnArg1` parity.
-void func_800E8938(Task* arg0);
+void Gp_ShakeTask(Task* arg0);
 void func_800E956C(void);
-u16  func_800E9A50(GameActor* actor, u16 mask);
+u16  Gp_RemapButtons(GameActor* actor, u16 mask);
 
 void func_800E9BDC(u8 arg0, s32 arg1);
 void func_800E9C6C(void);
-void func_800E9CC8(Task* arg0);
-void func_800E9EFC(void);
+void Gp_InitState1C(Task* arg0);
+void Gp_TickState1C(void);
 s32  func_800EA02C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
 s32  func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1);
 s32  func_800EA318(s16 arg0, s16 arg1, s16 arg2);
 void func_800EA3A0(s32 arg0);
-void func_800EA3B4(void);
-void func_800EA3EC(void);
+void Gp_DecRoomCoordRefs(void);
+void Gp_InitRoomCoords(void);
 void* func_800EA478(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, s32 arg3);
 /// Full-screen semi-trans POLY_F4. `arg0` is RGB; `arg1` is ABR (low 2 bits).
-void func_800EA858(u8* arg0, s32 arg1);
+void Gp_DrawFadeQuad(u8* arg0, s32 arg1);
 void func_800EAEB8(GsCOORDINATE2* arg0, s32 arg1, u8* arg2);
 void func_800EB2C8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800EBF18(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* arg3);
-void func_800EC7E4(void* arg0, Task* arg1);
-void func_800EC868(void);
-void func_800EC888(P_TAG* arg0, s32 arg1, s32 arg2);
-void func_800EC914(P_TAG* arg0, s32 arg1, s32 arg2);
+void Gp_ReleaseState1CMem(void* arg0, Task* arg1);
+void Gp_PulseState1C(void);
+void Gp_AddTpage(P_TAG* arg0, s32 arg1, s32 arg2);
+void Gp_AddTpageShift(P_TAG* arg0, s32 arg1, s32 arg2);
 void func_800EC9C8(void);
-void func_800ECA10(s32 arg0);
+void Gp_SetState1CPe(s32 arg0);
 void func_800ECA54(void);
 
 #endif // GAMEPLAY_3CD8_H

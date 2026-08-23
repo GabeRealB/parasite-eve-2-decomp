@@ -351,7 +351,9 @@ depth is written to `pe2img/<stem>.pe2img.json` (`bpp`, `bpp_source`).
 When a neighbouring `.pe2clut` exists (`N±1` by chunk index), the PNG exporter
 applies it for 4/8 bpp (see §7.4 for multi-row selection). Examples:
 
-- `stage0/file2/2.pe2img` + `1.pe2clut` → title menu art
+- `stage0/title/1.pe2img` (`pe2img_0`) → 4 bpp font page at `(960, 256)`
+- `stage0/file2/2.pe2img` + `1.pe2clut` → title chrome (`pe2img_2` is 8 bpp,
+  two columns at x=768; clut at `(0, 255)`)
 - `stage0/file30500/1.pe2img` + `0.pe2clut` → NEO ARK map (needs CLUT **row 1**,
   not row 0 — row 0 is a green monochrome palette)
 
@@ -441,6 +443,79 @@ Concrete case — `stage0/file30500`:
 An earlier exporter that always used row 0 produced the all-green PNG; picking
 the highest-scoring row recovers the real map. Meta JSON notes
 `has_clut` / `clut_note` when a sibling palette was applied.
+
+### 7.5 Title STAGE0 occupancy
+
+HED file order (`stages.json` TREE names): **gameplay** (file 0), **title**
+(file 1), **file2** (still + chrome). Boot brings in the title overlay from
+file 1; `Title_InitTask` then `CdCmd_EnqueueLoadFile(1, …)` (same file) and
+`Text_LoadClutImages`. Chrome/still are file 2.
+
+| Path | Payload | VRAM (halfwords) | BPP |
+|---|---|---|---|
+| `title/1.pe2img` (`pe2img_0`) | UI font page | `(960, 256)` 64×256 | **4** |
+| `title/2.pe2clut` (`pe2clut_0`) | Font TIM clut | `(256, 243)` 64×6 | — |
+| `title/3.pe2img` (`pe2img_1`) | Extra title sheet | `(896, 256)` 64×256 | **8** |
+| `title/4.pe2clut` (`pe2clut_1`) | Img1 clut | `(0, 240)` 256×3 | — |
+| `title/title.pe2pkg` | Title overlay | RAM `0x80093800` | — |
+| `file2/0.bs` (`bs_0`) | Title still | draw band 320×240 | 16-bit BS v2 |
+| `file2/1.pe2clut` (`pe2clut_2`) | Chrome clut | `(0, 255)` 256×6 | — |
+| `file2/2.pe2img` (`pe2img_2`) | Menu chrome | `(768, 256)` 128×256 | **8** (two columns) |
+
+`pe2clut_0` **row 0 is all zero**. 4bpp font draws nothing until
+`Text_LoadClutImages` overwrites `(256, 243)` (and the outline palettes at
+`(0x3D0, 0x1FF)`). See §7.6.
+
+Chrome clut `(0, 255)` `h=6` sits on the last draw-band line and the 32-line
+CLUT gutter (`y=240…271`). Do not `isbg` a 256-high env at `y=240`.
+
+**Chrome is a sprite atlas**, not C-string labels. `Title_DrawSpriteRow`:
+
+| | |
+|---|---|
+| SPRT | `x0=-0x80`, `w=0x100`, `h=0x10`, `u0=0`, `v0=v`, code `0x66` (shaded + ABR) |
+| clut | `0x3FC0` = `GetClut(0, 255)` |
+| tpage | `0xE10002BC` — 8bpp, ABR 1, **dtd=1**, page origin `(768, 256)` |
+
+Atlas `v` (texel Y in the chrome page):
+
+| `v` | Row |
+|---|---|
+| `0x00` | Logo |
+| `0x10` | Footer |
+| `0x20` | Cursor |
+| `0x30`… | Menu (New Game / Load Game / Option), 16px each |
+
+### 7.6 UI font (main EXE) and `Text_LoadClutImages`
+
+Glyph metrics are **not** a CDF chunk. They live in `SLUS_010.42`:
+
+| Table | VA | Count | `glyphTable` | `vBias` (`func_8002E53C`) |
+|---|---|---|---|---|
+| `Font_Glyphs0` | `0x8005EFB0` | 224 (`0x20`…`0xFF`) | 0 | `0x26` |
+| `Font_Glyphs1` | `0x8005FA30` | 224 | 1–4 | `0x80` |
+| `Font_Glyphs2` | `0x800604B0` | 91 (`0x20`…`0x7A`) | 5 | `0` |
+
+`Ui_DrawTextUnderline` sets `glyphTable = 5` (slot 2). Slot 1 letters live
+128 lines down the 256-tall font page; drawing them with `vBias=0` samples
+padding, not glyphs.
+
+`FontGlyph` `u`/`v`/`w`/`h` are **page-local texels** in the 4bpp page at
+`(960, 256)`. SPRT `w`/`h` are `glyph.w+1` / `glyph.h+1`. Pair-shrink is 2
+except table 5 (1). `off_x` / `off_y` are stored bytes used as signed.
+
+`Text_LoadClutImages` (`src/main/textutil.c`):
+
+| Source | Size | `LoadImage` dest | GPU clut |
+|---|---|---|---|
+| `D_80060910` | 64 entries (4×16) | `(0x100, 0xF3)` = `(256, 243)`, `w=0x40`, `h=1` | fill rows at that origin |
+| `D_800609B0` | 48 entries (3×16) | `(0x3D0, 0x1FF)`, `w=0x30`, `h=1` | `0x7FFD` / `0x7FFE` / `0x7FFF` |
+
+UI strings (`Text_DrawGlyphImmediate` / `Queued`) use **`0x7FFD` only**.
+Indices 0–10 are transparent; 11–15 are the letter. Dual SPRT (`0x7FFD` +
+`0x7FFF`) is a second layer (`0x64` + `0x67`). Index 5 in the 4bpp page is
+cell padding: the TIM/fill clut at `(256, 243)` maps it to mid-grey (one
+box per glyph); `0x7FFD` keys it out.
 
 ---
 
@@ -811,6 +886,8 @@ Dependencies: see `requirements.txt` (includes **Pillow** for PNG).
 - **Which CLUT row** an 8 bpp texture uses when `h > 1` is not known offline
   (game picks via `getClut(x,y)`). Exporter scores rows and picks the most
   varied; wrong for textures that intentionally use a monochrome row.
+  Title chrome is `GetClut(0, 255)`. UI text is `0x7FFD` (EXE outline
+  palettes), not the font TIM clut — see §7.5 / §7.6.
 - **Cap2 / dialogue** internals undocumented.
 - **Streaming movies (STR/MDEC)** and **audio (MTS)**: documented in
   [`STREAM_FORMATS.md`](STREAM_FORMATS.md). A full `extract.py` run writes

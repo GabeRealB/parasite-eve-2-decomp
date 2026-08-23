@@ -13,14 +13,14 @@
 #include "main/session.h"
 #include "main/task.h"
 
-/// Singly-linked node unlinked by `func_800DAB38` / linked by `func_800DABEC`.
-/// `field_6 == 1` means the node is on the `D_80115268` list.
-/// `func_800DAC54` returns a 2-bit mask of `D_80115760[]` slots whose
+/// Singly-linked node unlinked by `Gp_UnlinkNode` / linked by `Gp_LinkNode`.
+/// `field_6 == 1` means the node is on the `Gp_LinkList` list.
+/// `Gp_NodeSlotMask` returns a 2-bit mask of `Gp_ActorSlots[]` slots whose
 /// `actor->field_90C` is this node.
-/// `func_800DACAC` assigns the node to `D_80115760[0]->actor->field_90C`,
+/// `Gp_AssignNodeSlot0` assigns the node to `Gp_ActorSlots[0]->actor->field_90C`,
 /// clears the previous node's `field_5`, sets this node's `field_5 = 1`,
 /// and clears `field_4` bit 0.
-/// `func_800DACF8` is the inverse: it nulls any `D_80115760[]` slot whose
+/// `Gp_ClearNodeSlots` is the inverse: it nulls any `Gp_ActorSlots[]` slot whose
 /// `field_90C` is this node, clears `field_5`, and sets `field_4` bit 0.
 typedef struct _GpLinkNode {
     /* 0x00 */ struct _GpLinkNode* next;
@@ -32,12 +32,12 @@ STATIC_ASSERT_SIZEOF(GpLinkNode, 0x8);
 
 /// Linked object used as a list head/node by the 3A34 pair/filter helpers.
 /// `next` is at 0x0, `prev` at 0x4, and `flags` at 0x1E. Bit 0x8 means the
-/// node is on the `D_8010FA8C` list (set by `func_800E15AC`, cleared by
-/// `func_800E1638`, keeping bits 0x7). `func_8010C980` fills `field_8` /
+/// node is on the `Gp_ObjLists` list (set by `Gp_LinkObj`, cleared by
+/// `Gp_UnlinkObj`, keeping bits 0x7). `func_8010C980` fills `field_8` /
 /// `field_C` / the 0x10 SVECTOR / `field_18` / `field_1C` and ORs `flags`
-/// with 0x8000 after linking. `field_8` is a `GsCOORDINATE2*`; `func_800E08CC`
+/// with 0x8000 after linking. `field_8` is a `GsCOORDINATE2*`; `Gp_ObjWorldPos`
 /// applies `workm` to the 0x10 SVECTOR and adds `workm.t` into a `VECTOR3`.
-/// `func_800E1380` treats `field_C` as a `GpActorD4Rec*` whose `field_14`
+/// `Gp_FindNearestSlot` treats `field_C` as a `GpActorD4Rec*` whose `field_14`
 /// is the `GpRec18` table walked for the nearest matching slot.
 /// `func_800DEC80` uses that same table: flag `0x800` copies the first
 /// occupied slot's `field_8/A/C` (unless `arg3 != 0`), flag `0x400`
@@ -65,7 +65,7 @@ typedef struct _GpObj {
 } GpObj;
 STATIC_ASSERT_SIZEOF(GpObj, 0x20);
 
-/// 4-byte table entry packed by `func_800E2C40` / `func_800E2BF8` as
+/// 4-byte table entry packed by `Gp_PackPair` / `Gp_PackObjPair` as
 /// `(field_0 & 0xFFF) | ((field_2 & 0xF) << 12) | 0x40000`.
 typedef struct _GpU16Pair {
     /* 0x0 */ u16 field_0;
@@ -76,7 +76,7 @@ STATIC_ASSERT_SIZEOF(GpU16Pair, 0x4);
 /// Pair-dispatch callback from `D_8010FA38`. `kind` is `GpU16Pair.field_0`.
 typedef void (*GpPairFn)(GpObj* a, GpObj* b, s32 kind);
 
-/// 4-byte table entry at `D_80114028`. `func_800E2CD4(idx, 0)` returns
+/// 4-byte table entry at `Gp_IdField0`. `Gp_LookupIdField(idx, 0)` returns
 /// `field_0` for index `(u16)idx`.
 typedef struct _GpRec4 {
     /* 0x0 */ u16 field_0;
@@ -84,7 +84,7 @@ typedef struct _GpRec4 {
 } GpRec4;
 STATIC_ASSERT_SIZEOF(GpRec4, 0x4);
 
-/// 6-byte table entry at `D_80114054`. `func_800E2CD4(idx, 1)` returns
+/// 6-byte table entry at `Gp_IdField1`. `Gp_LookupIdField(idx, 1)` returns
 /// `field_0` for index `(u16)idx`.
 typedef struct _GpRec6 {
     /* 0x0 */ u16 field_0;
@@ -93,8 +93,8 @@ typedef struct _GpRec6 {
 } GpRec6;
 STATIC_ASSERT_SIZEOF(GpRec6, 0x6);
 
-/// 10-byte table entry at `D_80113390`. Selected when the id's 0x8000 bit
-/// is clear. `func_800E2D3C` / `func_800E2D90` / `func_800E3194` return
+/// 10-byte table entry at `Gp_IdParamLo`. Selected when the id's 0x8000 bit
+/// is clear. `Gp_GetIdParam0` / `Gp_GetIdParam1` / `Gp_GetIdParam2` return
 /// `field_4` / `field_6` / `field_8` for index `id & 0x7F`.
 typedef struct _GpRec10 {
     /* 0x0 */ u16 field_0;
@@ -105,7 +105,7 @@ typedef struct _GpRec10 {
 } GpRec10;
 STATIC_ASSERT_SIZEOF(GpRec10, 0xA);
 
-/// 12-byte ranked slot inserted by `func_800D9B9C`. That helper walks a
+/// 12-byte ranked slot inserted by `Gp_InsertRankedSlot`. That helper walks a
 /// 4-entry table (indices 0..3) from `arg4` toward 0 and keeps slots in
 /// descending `field_4` order. A non-positive key is ignored. When the
 /// new key is larger than slot `arg4`, that slot is copied to `arg4+1`
@@ -118,10 +118,10 @@ typedef struct _GpRec12 {
 } GpRec12;
 STATIC_ASSERT_SIZEOF(GpRec12, 0xC);
 
-/// 12-byte location-keyed grant record walked by `func_800DB128`.
+/// 12-byte location-keyed grant record walked by `Gp_GrantLocationItems`.
 /// `field_0` is `(stage << 24) | (area << 16) | (sub << 8)` from
 /// `GameSessionFrom4.field_3` / `field_2` / `field_5`, or `-1` to end
-/// the list. `items[0..3]` are item ids granted with `func_800BAD08`
+/// the list. `items[0..3]` are item ids granted with `Gp_GiveItem`
 /// when `func_800B7420` is 0; a 0 slot is skipped. `items[3]` also
 /// requires `func_800B9D80(0x80000)`.
 typedef struct _GpGiveRec {
@@ -130,9 +130,9 @@ typedef struct _GpGiveRec {
 } GpGiveRec;
 STATIC_ASSERT_SIZEOF(GpGiveRec, 0xC);
 
-/// 16-byte VRAM upload record walked by `func_800DB31C`. `field_0 == 0`
+/// 16-byte VRAM upload record walked by `Gp_LoadImages`. `field_0 == 0`
 /// uploads `rect` / `data` via `LoadImage`; non-zero ends the walk.
-/// `func_800DB28C` fills `rect` from a source RECT plus the TMD tpage at
+/// `Gp_LoadActorImage` fills `rect` from a source RECT plus the TMD tpage at
 /// `TmdObject.field_24` (`x = tpage * 64 + (src.x + 1) / 2 + 0x180`,
 /// `y = src.y + 0x100`).
 typedef struct _GpImgRec {
@@ -143,8 +143,8 @@ typedef struct _GpImgRec {
 } GpImgRec;
 STATIC_ASSERT_SIZEOF(GpImgRec, 0x10);
 
-/// 16-byte table entry at `D_8011398C`. Selected when the id's 0x8000 bit
-/// is set. `func_800E2D3C` / `func_800E2D90` / `func_800E3194` return
+/// 16-byte table entry at `Gp_IdParamHi`. Selected when the id's 0x8000 bit
+/// is set. `Gp_GetIdParam0` / `Gp_GetIdParam1` / `Gp_GetIdParam2` return
 /// `field[5]` / `field[6]` / `field[7]` for index `id & 0x7F`.
 /// `func_800D50D4` indexes `field[arg1]` after remapping a packed id as
 /// `((id>>4&3)*3 + (id>>2&3))*3 + (id&3)`.
@@ -153,8 +153,8 @@ typedef struct _GpRec16 {
 } GpRec16;
 STATIC_ASSERT_SIZEOF(GpRec16, 0x10);
 
-/// 20-byte damage-scale row at `D_80113EF0`. Indexed by `D_8011541B`.
-/// `func_800E2438` adds `D_80113F54[hp / 10] * 2` onto the row base and
+/// 20-byte damage-scale row at `Gp_DmgRows`. Indexed by `D_8011541B`.
+/// `Gp_ScaleDamage` adds `D_80113F54[hp / 10] * 2` onto the row base and
 /// then loads `field_A` (arg3 == 0, player HP) or `field_0` (arg3 != 0,
 /// `Mc_SaveData.field_6C8`).
 typedef struct _GpDmgRow {
@@ -172,7 +172,7 @@ typedef struct _GpDmgSlot {
 STATIC_ASSERT_SIZEOF(GpDmgSlot, 0xC);
 
 /// Table source pointed to by `GpObj50.field_50`. `field_0` is the
-/// `GpU16Pair` array packed by `func_800E2BF8`. Nearby helpers also
+/// `GpU16Pair` array packed by `Gp_PackObjPair`. Nearby helpers also
 /// load bytes at +0xB / +0xD / +0xE of this object (`GpPairSrcE`).
 typedef struct _GpPairSrc {
     /* 0x00 */ GpU16Pair* field_0;
@@ -180,11 +180,11 @@ typedef struct _GpPairSrc {
 STATIC_ASSERT_SIZEOF(GpPairSrc, 0x4);
 
 /// Wider view of the object pointed to by `GpObj50.field_50`.
-/// `func_800E2EC4` loads `field_4`; `func_800DB558` adds `field_6` /
-/// `field_8` / `field_A` into `D_801153F0.field_8` / `field_C` /
+/// `Gp_TickObjFlag4` loads `field_4`; `Gp_ReleaseStateF0Add` adds `field_6` /
+/// `field_8` / `field_A` into `Gp_StateF0.field_8` / `field_C` /
 /// `field_10`. Nearby helpers also load bytes at +0xB / +0xC / +0xD /
-/// +0xE (`func_800E3084` loads `field_C`; `func_800E2DE4` loads
-/// `field_D`; `func_800E2F7C` loads `field_E`). Trailing pad keeps
+/// +0xE (`Gp_TickObjFlag2` loads `field_C`; `Gp_SetObjFlag4` loads
+/// `field_D`; `Gp_ObjFlag4Expired` loads `field_E`). Trailing pad keeps
 /// 4-byte alignment.
 typedef struct _GpPairSrcE {
     /* 0x00 */ GpU16Pair* field_0;
@@ -200,7 +200,7 @@ typedef struct _GpPairSrcE {
 } GpPairSrcE;
 STATIC_ASSERT_SIZEOF(GpPairSrcE, 0x10);
 
-/// Object whose pointer at 0x50 is a `GpPairSrc*` used by `func_800E2BF8`.
+/// Object whose pointer at 0x50 is a `GpPairSrc*` used by `Gp_PackObjPair`.
 /// Same object family as `GpObj4C` (flags at 0x4C).
 typedef struct _GpObj50 {
     /* 0x00 */ byte       pad_0[0x50];
@@ -209,10 +209,10 @@ typedef struct _GpObj50 {
 STATIC_ASSERT_SIZEOF(GpObj50, 0x54);
 
 /// 0x18-byte slot in the table at `GpObj54.field_54`. Occupied when the
-/// first word's low 2 bits equal 1. `func_800E1C58` claims the first free
+/// first word's low 2 bits equal 1. `Gp_ClaimSlot18` claims the first free
 /// slot: payload in `field_4`, clears `field_2` / `field_8` / `field_A` /
 /// `field_C` / `field_10` / `field_12` / `field_14`, ORs bit 0 into
-/// `field_0`, and increments `D_801153F0.field_5`.
+/// `field_0`, and increments `Gp_StateF0.field_5`.
 typedef struct _GpSlot18 {
     /* 0x00 */ u16   field_0;
     /* 0x02 */ s16   field_2;
@@ -229,38 +229,38 @@ typedef struct _GpSlot18 {
 STATIC_ASSERT_SIZEOF(GpSlot18, 0x18);
 
 /// Sparse overlay whose pointer at 0x54 is a `GpSlot18` table walked by
-/// `func_800E1C58`. Same object family as `GpObj50` / `GpObj4C`.
+/// `Gp_ClaimSlot18`. Same object family as `GpObj50` / `GpObj4C`.
 typedef struct _GpObj54 {
     /* 0x00 */ byte      pad_0[0x54];
     /* 0x54 */ GpSlot18* field_54;
 } GpObj54;
 STATIC_ASSERT_SIZEOF(GpObj54, 0x58);
 
-/// 8-byte nested table entry pointed to by `GpCbA4Rec.field_4`.
-/// Entry 0's `field_0` is the max valid index. `func_800D957C` returns
+/// 8-byte nested table entry pointed to by `GpRoomCoordRec.field_4`.
+/// Entry 0's `field_0` is the max valid index. `Gp_GetRoomBound` returns
 /// `&table[GameSessionFrom4.field_0]` when that index is in range,
-/// otherwise `(GpCbA4Vec*)&D_8010F9E4`. `func_800D7A9C` reads
+/// otherwise `(GpRoomBoundVec*)&Gp_RoomBoundDefault`. `func_800D7A9C` reads
 /// `field_0` / `field_2` / `field_4` as signed XYZ minimums.
-typedef struct _GpCbA4Vec {
+typedef struct _GpRoomBoundVec {
     /* 0x0 */ s16 field_0;
     /* 0x2 */ s16 field_2;
     /* 0x4 */ s16 field_4;
     /* 0x6 */ s16 field_6;
-} GpCbA4Vec;
-STATIC_ASSERT_SIZEOF(GpCbA4Vec, 8);
+} GpRoomBoundVec;
+STATIC_ASSERT_SIZEOF(GpRoomBoundVec, 8);
 
-/// 8-byte record in tables pointed to by `D_8010CBA4`. Indexed 1-based
-/// by `GameSessionFrom4.field_1`. `func_800D9C64` returns the record
-/// (or NULL). `func_800D9654` returns `field_0` as a `GpCbA4Set*` (or 0).
-/// `func_800D957C` walks `field_4` as a nested `GpCbA4Vec` table, falling
-/// back to `D_8010F9E4`.
-typedef struct _GpCbA4Rec {
+/// 8-byte record in tables pointed to by `Gp_RoomCoordTables`. Indexed 1-based
+/// by `GameSessionFrom4.field_1`. `Gp_GetRoomCoordRec` returns the record
+/// (or NULL). `Gp_GetRoomCoordSet` returns `field_0` as a `GpRoomCoordSet*` (or 0).
+/// `Gp_GetRoomBound` walks `field_4` as a nested `GpRoomBoundVec` table, falling
+/// back to `Gp_RoomBoundDefault`.
+typedef struct _GpRoomCoordRec {
     /* 0x0 */ s32        field_0;
-    /* 0x4 */ GpCbA4Vec* field_4;
-} GpCbA4Rec;
-STATIC_ASSERT_SIZEOF(GpCbA4Rec, 8);
+    /* 0x4 */ GpRoomBoundVec* field_4;
+} GpRoomCoordRec;
+STATIC_ASSERT_SIZEOF(GpRoomCoordRec, 8);
 
-/// 0x58-byte coordinate object in `GpCbA4Set.arr58`. `func_800D6B20`
+/// 0x58-byte coordinate object in `GpRoomCoordSet.arr58`. `Gp_UpdateRoomCoords`
 /// parents `coord.sub` to `D_80070F10` and clears `coord.flg`.
 typedef struct _GpCoord58 {
     /* 0x00 */ GsCOORDINATE2 coord;
@@ -268,7 +268,7 @@ typedef struct _GpCoord58 {
 } GpCoord58;
 STATIC_ASSERT_SIZEOF(GpCoord58, 0x58);
 
-/// 0x60-byte coordinate object in `GpCbA4Set.arr60`. Same `coord.sub` /
+/// 0x60-byte coordinate object in `GpRoomCoordSet.arr60`. Same `coord.sub` /
 /// `coord.flg` init as `GpCoord58`. Same size as `GpCoordTail`.
 typedef struct _GpCoord60 {
     /* 0x00 */ GsCOORDINATE2 coord;
@@ -276,7 +276,7 @@ typedef struct _GpCoord60 {
 } GpCoord60;
 STATIC_ASSERT_SIZEOF(GpCoord60, 0x60);
 
-/// 0x6C-byte coordinate object in `GpCbA4Set.arr6C`. `func_800D6B20`
+/// 0x6C-byte coordinate object in `GpRoomCoordSet.arr6C`. `Gp_UpdateRoomCoords`
 /// parents `coord.sub` to `D_80070F10`, builds `coord.coord` as an
 /// orthonormal basis from `dir` (and a perpendicular scratch vector),
 /// and clears `coord.flg`.
@@ -288,20 +288,20 @@ typedef struct _GpCoord6C {
 } GpCoord6C;
 STATIC_ASSERT_SIZEOF(GpCoord6C, 0x6C);
 
-/// Room coordinate tables returned by `func_800D9654` (`GpCbA4Rec.field_0`).
-/// `func_800D6B20` parents each array to `D_80070F10` on first run, then
-/// updates them every frame via `func_80098F58` / `func_80098F98`.
-typedef struct _GpCbA4Set {
+/// Room coordinate tables returned by `Gp_GetRoomCoordSet` (`GpRoomCoordRec.field_0`).
+/// `Gp_UpdateRoomCoords` parents each array to `D_80070F10` on first run, then
+/// updates them every frame via `Gp_UpdateCoord` / `Gp_UpdateCoordEx`.
+typedef struct _GpRoomCoordSet {
     /* 0x00 */ s32        n58;
     /* 0x04 */ GpCoord58* arr58;
     /* 0x08 */ s32        n60;
     /* 0x0C */ GpCoord60* arr60;
     /* 0x10 */ s32        n6C;
     /* 0x14 */ GpCoord6C* arr6C;
-} GpCbA4Set;
-STATIC_ASSERT_SIZEOF(GpCbA4Set, 0x18);
+} GpRoomCoordSet;
+STATIC_ASSERT_SIZEOF(GpRoomCoordSet, 0x18);
 
-/// 0x6C-byte walk overlay of `GpCoord6C` starting at `dir`. `func_800D6B20`
+/// 0x6C-byte walk overlay of `GpCoord6C` starting at `dir`. `Gp_UpdateRoomCoords`
 /// increments this by one object per loop.
 typedef struct _Gp6CDirWalk {
     /* 0x00 */ SVECTOR dir;
@@ -318,14 +318,14 @@ STATIC_ASSERT_SIZEOF(Gp6CMatWalk, 0x6C);
 
 /// Overlay of `GpCoord6C` starting at `coord.sub`. `dir` is at +0xC, so a
 /// pointer to `Gp6CDirWalk.dir` minus `OFFSET_OF(Gp6CMid, dir)` is this
-/// object. `func_800D6B20` writes `sub` as `D_80070F10`.
+/// object. `Gp_UpdateRoomCoords` writes `sub` as `D_80070F10`.
 typedef struct _Gp6CMid {
     /* 0x00 */ GsCOORDINATE2* sub;
     /* 0x04 */ byte           pad[8];
     /* 0x0C */ SVECTOR        dir;
 } Gp6CMid;
 
-/// 0x64-byte walk overlay of `GpCoord64` starting at `coord`. `func_800D6B20`
+/// 0x64-byte walk overlay of `GpCoord64` starting at `coord`. `Gp_UpdateRoomCoords`
 /// writes `coord.sub` while a parallel `GpCoord64*` writes `field_0`.
 typedef struct _GpCoord64View {
     /* 0x00 */ GsCOORDINATE2 coord;
@@ -333,20 +333,20 @@ typedef struct _GpCoord64View {
 } GpCoord64View;
 STATIC_ASSERT_SIZEOF(GpCoord64View, 0x64);
 
-/// Record in the 8-entry arrays pointed to by `D_8010CBB8`.
-/// `func_800E192C` copies `field_3` into `D_80115428[]`. Nearby helpers
+/// Record in the 8-entry arrays pointed to by `Gp_RoomParamTables`.
+/// `Gp_LoadRoomParams` copies `field_3` into `Gp_RoomParams[]`. Nearby helpers
 /// also load `field_1` (`func_800DDDF8`, `func_800DE7CC`) and `field_2`
 /// (`func_80105BC4` keeps a slot only when this is nonzero). `func_80105ED4`
 /// loads a pointer at +0x4.
-typedef struct _GpCbB8Rec {
+typedef struct _GpRoomParamRec {
     /* 0x0 */ u8 field_0;
     /* 0x1 */ u8 field_1;
     /* 0x2 */ u8 field_2;
     /* 0x3 */ u8 field_3;
-} GpCbB8Rec;
-STATIC_ASSERT_SIZEOF(GpCbB8Rec, 4);
+} GpRoomParamRec;
+STATIC_ASSERT_SIZEOF(GpRoomParamRec, 4);
 
-/// Three packed `SVECTOR3`s filled by `func_800D9C3C`. Each vector's
+/// Three packed `SVECTOR3`s filled by `Gp_FillSVec3x3`. Each vector's
 /// components are set to the same s16 argument.
 typedef struct _GpSVec3x3 {
     /* 0x00 */ SVECTOR3 field_0;
@@ -355,9 +355,9 @@ typedef struct _GpSVec3x3 {
 } GpSVec3x3;
 STATIC_ASSERT_SIZEOF(GpSVec3x3, 0x12);
 
-/// Object whose pointers at 0x1C / 0x20 are `MATRIX*`s. `func_800D9550`
-/// writes translation `t[0]/t[1]/t[2]` through `field_20`. `func_800D9D18`
-/// installs the default matrices `D_80114E98` / `D_80114EB8` here (same
+/// Object whose pointers at 0x1C / 0x20 are `MATRIX*`s. `Gp_SetObjTrans`
+/// writes translation `t[0]/t[1]/t[2]` through `field_20`. `Gp_BindDefaultMtx`
+/// installs the default matrices `Gp_DefaultMtx` / `Gp_DefaultMtx2` here (same
 /// overlay as `GameActorExt`).
 typedef struct _GpObj20 {
     /* 0x00 */ byte    pad_0[0x1C];
@@ -367,8 +367,8 @@ typedef struct _GpObj20 {
 STATIC_ASSERT_SIZEOF(GpObj20, 0x24);
 
 /// Object with a `MATRIX` at 0x24 (`GsCOORDINATE2.workm` when this overlays
-/// an actor coordinate). `func_800D937C` loads that matrix for RTPS.
-/// `func_800D9788` returns `field_24.t[0]`. Light helpers take
+/// an actor coordinate). `Gp_GetObjPan` loads that matrix for RTPS.
+/// `Gp_GetObjTransX` returns `field_24.t[0]`. Light helpers take
 /// `field_24.t` as a `VECTOR*` (`t[0]/t[1]/t[2]`).
 typedef struct _GpObj38 {
     /* 0x00 */ byte   pad_0[0x24];
@@ -376,7 +376,7 @@ typedef struct _GpObj38 {
 } GpObj38;
 STATIC_ASSERT_SIZEOF(GpObj38, 0x44);
 
-/// Sparse overlay of the same light object as `GpObj38`. `func_800D9718`
+/// Sparse overlay of the same light object as `GpObj38`. `Gp_GetObjLuma`
 /// treats `field_44` as a room-id filter against `Game_Session->field_4`
 /// (0 = any room), writes `0x1000` (GTE ONE) to `field_4A`, and returns a
 /// weighted `field_50/52/54` luminance. `func_800D9794` casts to
@@ -384,17 +384,17 @@ STATIC_ASSERT_SIZEOF(GpObj38, 0x44);
 /// IR0, and `gte_ldsv`s the three halfwords at 0x50. `func_800D98C4` /
 /// `func_800D9A30` subtract `field_24.t` from a world `VECTOR` and write
 /// the negated normalized direction.
-/// `func_800D9138` halves `field_18` as XYZ, compares distance² against
+/// `Gp_LightFalloff` halves `field_18` as XYZ, compares distance² against
 /// inner `field_58` and outer `field_5C` (each squared then `>> 2`), and
 /// writes the attenuated luminance to `field_38.vx` (same word as
 /// `GpObj38.field_24.t[0]`) plus the 12.4 scale to `field_4A`.
-/// `func_800D70E4` instead subtracts a world `VECTOR3` from `field_38`
+/// `Gp_LightPoint` instead subtracts a world `VECTOR3` from `field_38`
 /// (same words as `GsCOORDINATE2.workm.t` / `GpObj38.field_24.t`),
 /// writes the scale to `field_4A`, and returns the luminance.
-/// `func_800D6E5C` is that same subtract, plus the `field_44` room-id
+/// `Gp_LightPointRoom` is that same subtract, plus the `field_44` room-id
 /// filter and an `|dx|` / `|dz|` reject against `field_5C / 2` before
 /// the squared-radius test.
-/// `func_800D72D0` is the cone-light variant (`GpObj68`): same room-id
+/// `Gp_LightCone` is the cone-light variant (`GpObj68`): same room-id
 /// filter and halved `field_24.t -` world `VECTOR3`, but outer/inner
 /// radii are `field_64` / `field_60`, and the normalized direction is
 /// dotted with `field_24` column 2 against `rcos(field_68 >> 1)`.
@@ -442,7 +442,7 @@ typedef struct _GpObj68 {
 STATIC_ASSERT_SIZEOF(GpObj68, 0x6C);
 
 /// Sparse overlay whose signed halfword at 0x40 is added (unsigned-clamped by
-/// `arg2`) into `D_801153F0.field_14` by `func_800E2C78` when
+/// `arg2`) into `Gp_StateF0.field_14` by `func_800E2C78` when
 /// `(arg1 & 0x7F)` is 0x19..0x1B.
 typedef struct _GpObj40 {
     /* 0x00 */ byte pad_0[0x40];
@@ -450,16 +450,16 @@ typedef struct _GpObj40 {
 } GpObj40;
 STATIC_ASSERT_SIZEOF(GpObj40, 0x42);
 
-/// Object whose flags byte at 0x4C is OR'd by `func_800E3008`. Nearby
+/// Object whose flags byte at 0x4C is OR'd by `Gp_SetObjFlag1`. Nearby
 /// helpers treat 0x4C as a flag field (bits 0x1, 0x2, 0x4). `field_4E`
 /// packs two 2-bit modes (current in bits 0-1, previous in bits 2-3)
-/// plus a high-nibble flag; `func_800D930C` rotates the current mode
+/// plus a high-nibble flag; `Gp_SetLightMode` rotates the current mode
 /// into the previous slot and starts `field_4F` as a 0x10 blend timer.
-/// `next` and signed `field_4B` are the `D_8011556C` list walked by
-/// `func_800E0B08`, which clears a non-zero `field_4B`. `func_800E1BF0`
+/// `next` and signed `field_4B` are the `Gp_PendingObj4C` list walked by
+/// `Gp_ClearPendingObj4C`, which clears a non-zero `field_4B`. `Gp_TakePendingObj4C`
 /// walks the same list and, on a pending `field_4B`, copies `field_46` /
-/// `field_48` / `field_49` to its out-params and sets `D_80115424`. The
-/// same node type is the `D_80115554` list walked by `func_800E1B80`: a
+/// `field_48` / `field_49` to its out-params and sets `Gp_PendingObj4CFlag`. The
+/// same node type is the `Gp_Obj4CList` list walked by `Gp_CommitObj4CSave`: a
 /// pending `field_4B` copies `field_49` into `Mc_SaveData.field_4` when
 /// `field_48` matches `Game_Session->field_4`.
 typedef struct _GpObj4C {
@@ -478,14 +478,14 @@ typedef struct _GpObj4C {
 STATIC_ASSERT_SIZEOF(GpObj4C, 0x50);
 
 /// Sparse overlay of the same object family as `GpObj4C` (flags at 0x4C).
-/// `func_800E2A24` looks up a kind from `D_80113390` / `D_8011398C` (same
-/// field as `func_800E2D3C`) and starts one of three effects: bit 0x1
-/// (`func_800E3008`), bit 0x2 (`func_800E301C`, also `field_58` /
-/// `field_5B` / `field_5D`), or bit 0x4 (`func_800E2DE4`, also
-/// `field_59` / `field_5A` / `field_5C`). `func_800E301C` ORs bit 0x2
+/// `Gp_ApplyObjKind` looks up a kind from `Gp_IdParamLo` / `Gp_IdParamHi` (same
+/// field as `Gp_GetIdParam0`) and starts one of three effects: bit 0x1
+/// (`Gp_SetObjFlag1`), bit 0x2 (`Gp_SetObjFlag2`, also `field_58` /
+/// `field_5B` / `field_5D`), or bit 0x4 (`Gp_SetObjFlag4`, also
+/// `field_59` / `field_5A` / `field_5C`). `Gp_SetObjFlag2` ORs bit 0x2
 /// into `field_4C`, clears `field_58` / `field_5B`, and writes `field_5D`
-/// from `D_80114C08.field_0 % 10` when the id has the 0x8000 bit and low
-/// 6 bits != 0x31. `func_800E3084` compares `field_58` against
+/// from `Gp_StateC08.field_0 % 10` when the id has the 0x8000 bit and low
+/// 6 bits != 0x31. `Gp_TickObjFlag2` compares `field_58` against
 /// `field_50->field_C * D_80113D30[field_5D] / 100` and ticks `field_5B`.
 /// Trailing pad keeps pointer alignment; full object size is not known yet.
 typedef struct _GpObj5D {
@@ -505,15 +505,15 @@ typedef struct _GpObj5D {
 STATIC_ASSERT_SIZEOF(GpObj5D, 0x60);
 
 /// Sparse overlay of the same object family as `GpObj5D` / `GpObj50`.
-/// `func_800E2DE4` rolls `(D_80070F60 * 5 + 0x71357911) >> 16 & 0xFFF`
+/// `Gp_SetObjFlag4` rolls `(Gp_LcgState * 5 + 0x71357911) >> 16 & 0xFFF`
 /// against `field_50->field_D << 12 / 100`. On a hit it clears
 /// `field_5A`, ORs bit 0x4 into `field_4C`, reseeds `field_59` from
-/// `D_80070F60`, and writes `field_5C` from `D_80114C08.field_0 % 10`
+/// `Gp_LcgState`, and writes `field_5C` from `Gp_StateC08.field_0 % 10`
 /// when `arg1` has the 0x8000 bit (else 0).
-/// `func_800E2F7C` tests bit 0x4 of `field_4C` and compares `field_5A`
+/// `Gp_ObjFlag4Expired` tests bit 0x4 of `field_4C` and compares `field_5A`
 /// against `field_50->field_E * D_80113D28[field_5C] / 100`.
-/// `func_800E2EC4` decrements `field_59` and, on expiry, increments
-/// `field_5A`, reseeds `field_59` from `D_80070F60`, and returns
+/// `Gp_TickObjFlag4` decrements `field_59` and, on expiry, increments
+/// `field_5A`, reseeds `field_59` from `Gp_LcgState`, and returns
 /// `field_50->field_4 * D_80113D38[field_5C] / 100` (or 1 if that is 0).
 /// Trailing pad keeps pointer alignment; full object size is not known yet.
 typedef struct _GpObj5C {
@@ -531,17 +531,17 @@ typedef struct _GpObj5C {
 STATIC_ASSERT_SIZEOF(GpObj5C, 0x60);
 
 /// Sparse overlay whose pointer at 0x20 is a `GpObj5C*` (same family as
-/// `GpObj50`). `func_800DB558` reads `field_20->field_50` and adds that
+/// `GpObj50`). `Gp_ReleaseStateF0Add` reads `field_20->field_50` and adds that
 /// `GpPairSrcE`'s `field_6` / `field_8` / `field_A` into
-/// `D_801153F0.field_8` / `field_C` / `field_10`.
+/// `Gp_StateF0.field_8` / `field_C` / `field_10`.
 typedef struct _GpObj20E {
     /* 0x00 */ byte     pad_0[0x20];
     /* 0x20 */ GpObj5C* field_20;
 } GpObj20E;
 STATIC_ASSERT_SIZEOF(GpObj20E, 0x24);
 
-/// 0x4C list node appended to `D_8010FAB0[index]` by `func_800E1688` and
-/// unlinked by `func_800E1708`. `func_800E1758` empties the whole list.
+/// 0x4C list node appended to `Gp_Obj4ALists[index]` by `Gp_LinkObj4A` and
+/// unlinked by `Gp_UnlinkObj4A`. `Gp_ClearObj4AList` empties the whole list.
 /// `field_4A` bit 0x20 means the node is on that list (cleared on unlink,
 /// keeping bits 0x87); bit 0x80 marks the last element of an array walked
 /// at +0x4C. Callers also store `D_80070F10` at +0x8 and OR bit 0x40 into
@@ -556,12 +556,12 @@ typedef struct _GpObj4A {
 } GpObj4A;
 STATIC_ASSERT_SIZEOF(GpObj4A, 0x4C);
 
-/// 0x3C list node appended to `D_8010FAB8[index]` by `func_800E17B4` and
-/// unlinked by `func_800E1834`. `func_800E1884` empties the whole list.
+/// 0x3C list node appended to `Gp_Obj3ALists[index]` by `Gp_LinkObj3A` and
+/// unlinked by `Gp_UnlinkObj3A`. `Gp_ClearObj3AList` empties the whole list.
 /// `field_3A` bit 0x20 means the node is on that list (cleared on unlink,
 /// keeping bits 0x87). Bit 0x40 is the active filter used by
 /// `func_800E0308` before it calls `func_800DFCCC`. Bit 0x80 marks the last
-/// element of an array walked at +0x3C (`func_800ACD2C`). Same link/flag
+/// element of an array walked at +0x3C (`Gp_LinkRoomObjects`). Same link/flag
 /// layout as `GpObj4A`, with the flag byte at 0x3A instead of 0x4A. Full
 /// object size is not known yet.
 typedef struct _GpObj3A {
@@ -573,10 +573,10 @@ typedef struct _GpObj3A {
 } GpObj3A;
 STATIC_ASSERT_SIZEOF(GpObj3A, 0x3C);
 
-/// Grid conversion params pointed to by `D_80115448`.
-/// `func_800E0B48` writes `out.vx = (pos.vx + field_14) / field_20` (or -1
+/// Grid conversion params pointed to by `Gp_GridParams`.
+/// `Gp_WorldToGrid` writes `out.vx = (pos.vx + field_14) / field_20` (or -1
 /// if that sum is negative), `out.vy = 0`, and
-/// `out.vz = (pos.vz + field_18) / field_20` (or -1). `func_800E0774`
+/// `out.vz = (pos.vz + field_18) / field_20` (or -1). `Gp_LocalToGrid`
 /// applies `field_0->workm` with `ApplyTransposeMatrixLV`, then subtracts
 /// `field_0->coord.t[0]` / `t[2]` from the transformed X / Z.
 /// `func_800DEAFC` does the same transform on two `SVECTOR`s, keeping only
@@ -592,27 +592,27 @@ typedef struct _GpGridParams {
 } GpGridParams;
 STATIC_ASSERT_SIZEOF(GpGridParams, 0x24);
 
-/// Global at `D_801153F0`. `func_800DB3FC` zeros the object, then writes
+/// Global at `Gp_StateF0`. `Gp_InitStateF0` zeros the object, then writes
 /// `field_2B` from `Mc_SaveData.field_F` (as `u8`), or 4 when that byte is
-/// 0 and `Mc_SaveData.field_E != 0`. `func_800A74C4() == 1` forces
+/// 0 and `Mc_SaveData.field_E != 0`. `Gp_IsDebugAttachRoom() == 1` forces
 /// `field_2B = 0` instead. `field_0` is a state byte (1 if first set by
-/// `func_800DB4E0`; 2 when the last `field_6` ref is released). `field_1`
-/// is an alternate-active flag (`func_800A7508` / `func_800A7CB0` /
-/// `func_800A7CF4` / `func_800A7D54`); last-ref release sets it to 0x3C.
-/// `field_2` is a bitset (`func_800DB500` sets bit `arg0 - 1` when
+/// `Gp_ArmStateF0`; 2 when the last `field_6` ref is released). `field_1`
+/// is an alternate-active flag (`Gp_IsStateF0Active` / `func_800A7CB0` /
+/// `Gp_EnqueueSndCdIfF0` / `Gp_CdIdleIfF0Active`); last-ref release sets it to 0x3C.
+/// `field_2` is a bitset (`Gp_SetStateF0Bit` sets bit `arg0 - 1` when
 /// `arg0 != 0`; also written as `D_801153F2`). `field_3` is cleared with
 /// `field_2` on last-ref release (also written as `D_801153F3` by
-/// `func_800DB530`). `field_4` is also `D_801153F4`. `field_5` is a u8 count incremented by `func_800E1C58`
+/// `Gp_SetStateF0Byte3`). `field_4` is also `D_801153F4`. `field_5` is a u8 count incremented by `Gp_ClaimSlot18`
 /// when it claims a `GpSlot18`. `field_6` is a u16
-/// refcount incremented by `func_800DB53C` and decremented by
-/// `func_800DB558` / `func_800DB630` / `func_800DB6B4`. Last-ref
-/// release in `func_800DB630` also clears words at 0x8 / 0xC / 0x10.
-/// `func_800DB558` then adds `arg0->field_20->field_50` `field_6` /
+/// refcount incremented by `Gp_IncStateF0Ref` and decremented by
+/// `Gp_ReleaseStateF0Add` / `Gp_ReleaseStateF0Clear` / `Gp_ReleaseStateF0`. Last-ref
+/// release in `Gp_ReleaseStateF0Clear` also clears words at 0x8 / 0xC / 0x10.
+/// `Gp_ReleaseStateF0Add` then adds `arg0->field_20->field_50` `field_6` /
 /// `field_8` / `field_A` into those same words.
 /// `func_800E2C78` adds into
 /// `field_14` when `(arg1 & 0x7F)` is 0x19..0x1B.
-/// `field_18`..`field_2A` are unknown bytes cleared by `func_800DB3FC`.
-/// Full object may still be larger than 0x2C (`D_80115424` is a separate
+/// `field_18`..`field_2A` are unknown bytes cleared by `Gp_InitStateF0`.
+/// Full object may still be larger than 0x2C (`Gp_PendingObj4CFlag` is a separate
 /// symbol at +0x34).
 typedef struct _GpStateF0 {
     /* 0x00 */ u8  field_0;
@@ -649,7 +649,7 @@ typedef struct _GpStateF0 {
 } GpStateF0;
 STATIC_ASSERT_SIZEOF(GpStateF0, 0x2C);
 
-/// 0xC slot in the 32-entry table at `D_80115270`. `func_800DAF98` clears
+/// 0xC slot in the 32-entry table at `Gp_LockSlots`. `Gp_ClearLockSlots` clears
 /// `field_0` / `field_4` / `field_6`. `func_800DA6E8` binds `field_0` and
 /// bumps `field_4`; `func_800DA7B8` treats `field_6` as a countdown and
 /// stores projected screen XY at 0x8.
@@ -662,10 +662,10 @@ typedef struct _GpSlot70 {
 } GpSlot70;
 STATIC_ASSERT_SIZEOF(GpSlot70, 0xC);
 
-/// Overlay used by `func_800DB004`. `field_8` is a `GsCOORDINATE2*`
+/// Overlay used by `Gp_ProjectToSxy`. `field_8` is a `GsCOORDINATE2*`
 /// (`workm` is loaded as both rotation and translation). `field_C` /
 /// `field_10` / `field_14` are the low halves of a `VECTOR3` at +0xC
-/// (same layout `GpLockPos.pos` / `func_800DAE50` loads as three words).
+/// (same layout `GpLockPos.pos` / `Gp_GetLockPos` loads as three words).
 typedef struct _GpPerspSrc {
     /* 0x00 */ byte  pad_0[8];
     /* 0x08 */ void* field_8;
@@ -678,7 +678,7 @@ typedef struct _GpPerspSrc {
 } GpPerspSrc;
 STATIC_ASSERT_SIZEOF(GpPerspSrc, 0x18);
 
-/// Source for `func_800DAE50` (`get_lock_pos`). `coord` is the world
+/// Source for `Gp_GetLockPos` (`get_lock_pos`). `coord` is the world
 /// transform; `pos` is the local `VECTOR3`. Overlays `GpPerspSrc`.
 typedef struct _GpLockPos {
     /* 0x00 */ byte                   pad_0[8];
@@ -687,7 +687,7 @@ typedef struct _GpLockPos {
 } GpLockPos;
 STATIC_ASSERT_SIZEOF(GpLockPos, 0x18);
 
-/// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `func_800DB004`.
+/// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `Gp_ProjectToSxy`.
 /// `vec` is the packed `SVECTOR` fed to RTPS. `p` / `flag` / `otz` hold
 /// IR0, FLAG, and `SZ3 >> 2`.
 typedef struct _GpPerspScratch {
@@ -698,7 +698,7 @@ typedef struct _GpPerspScratch {
 } GpPerspScratch;
 STATIC_ASSERT_SIZEOF(GpPerspScratch, 0x14);
 
-/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `func_800D937C`.
+/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `Gp_GetObjPan`.
 /// Same RTPS outputs as `GpPerspScratch`, plus the packed `SXY2` at 0x14
 /// (`sx` is the signed screen X used as stereo pan).
 typedef struct _GpPanScratch {
@@ -710,7 +710,7 @@ typedef struct _GpPanScratch {
 } GpPanScratch;
 STATIC_ASSERT_SIZEOF(GpPanScratch, 0x18);
 
-/// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `func_800D8EA0`.
+/// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `Gp_UpdateActorColor`.
 /// `mtx` holds the previous-mode 3x3 copy. `col0` / `col1` are the
 /// current and previous columns packed for GPF/GPL.
 typedef struct _GpColorScratch {
@@ -734,12 +734,12 @@ typedef struct _GpMtxCol {
 } GpMtxCol;
 STATIC_ASSERT_SIZEOF(GpMtxCol, 0xE);
 
-/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `func_800D9138` /
-/// `func_800D70E4` / `func_800D6E5C`.
-/// `vec` is the halved XYZ from `GpObj44.field_18` (`func_800D9138`) or
-/// from `field_38 -` a world `VECTOR3` (`func_800D70E4` / `func_800D6E5C`).
+/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `Gp_LightFalloff` /
+/// `Gp_LightPoint` / `Gp_LightPointRoom`.
+/// `vec` is the halved XYZ from `GpObj44.field_18` (`Gp_LightFalloff`) or
+/// from `field_38 -` a world `VECTOR3` (`Gp_LightPoint` / `Gp_LightPointRoom`).
 /// `distSq` is `vx²+vy²+vz²`. `outerSq` / `innerSq` are `(radius²) >> 2`
-/// from `field_5C` / `field_58` (`func_800D6E5C` first stores
+/// from `field_5C` / `field_58` (`Gp_LightPointRoom` first stores
 /// `field_5C / 2` in `outerSq` for the `|dx|` / `|dz|` test). `scale`
 /// is 0, `0x1000`, or the 12.4 falloff copied to `field_4A`.
 typedef struct _GpAttnScratch {
@@ -751,7 +751,7 @@ typedef struct _GpAttnScratch {
 } GpAttnScratch;
 STATIC_ASSERT_SIZEOF(GpAttnScratch, 0x20);
 
-/// 0x2C-byte scratch from `G_SCRATCH_HEAD` used by `func_800D72D0`.
+/// 0x2C-byte scratch from `G_SCRATCH_HEAD` used by `Gp_LightCone`.
 /// `vec` is the halved `field_24.t -` world `VECTOR3`. `dir` is the
 /// `Gfx_NormalizeLightDir` result at `head - 0x1C`. `distSq` / `outerSq`
 /// / `innerSq` / `scale` match `GpAttnScratch`. `cosAng` is
@@ -767,7 +767,7 @@ typedef struct _GpSpotScratch {
 } GpSpotScratch;
 STATIC_ASSERT_SIZEOF(GpSpotScratch, 0x2C);
 
-/// 0x28-byte scratch from `G_SCRATCH_HEAD` used by `func_800E1380`.
+/// 0x28-byte scratch from `G_SCRATCH_HEAD` used by `Gp_FindNearestSlot`.
 /// `local` is `GpActorD4Rec.field_8/A/C` plus `GpObj.field_10/12/14`,
 /// rotated by `field_8->workm`. `vec` is that GTE output (then overwritten
 /// with per-slot XYZ deltas). `world` is `vec + workm.t`.
@@ -806,7 +806,7 @@ STATIC_ASSERT_SIZEOF(GpNormScratch, 0x18);
 /// `src[0]` / `src[1]` are the local XZ endpoints of `GpObj.field_10/14`
 /// offset by `field_C` (as an SVECTOR) scaled by `field_1C >> 12`. `mat`
 /// is `D_80070F34 * field_8->workm`. `pos` holds the rotated endpoints
-/// plus `mat.t[0]/t[2]` and `D_80115448` grid offsets, then passed to
+/// plus `mat.t[0]/t[2]` and `Gp_GridParams` grid offsets, then passed to
 /// `func_800DE2C0`.
 typedef struct _GpEdgeScratch {
     /* 0x00 */ VECTOR  pos[2];
@@ -827,7 +827,7 @@ typedef struct _GpLightScratch {
 } GpLightScratch;
 STATIC_ASSERT_SIZEOF(GpLightScratch, 0x1C);
 
-/// 0x4C-byte scratch from `G_SCRATCH_HEAD` used by `func_800E1CD4`.
+/// 0x4C-byte scratch from `G_SCRATCH_HEAD` used by `Gp_OrientAlong`.
 /// `vec` is the `VectorNormalS` result, reused as the `RotMatrix` angle
 /// vector. `mat1` is RotY(yaw), then RotY * RotX(-pitch). `mat2` is
 /// RotX(-pitch), then RotZ(roll). `pitch` / `yaw` are `ratan2` angles
@@ -842,7 +842,7 @@ typedef struct _GpDirMatScratch {
 STATIC_ASSERT_SIZEOF(GpDirMatScratch, 0x4C);
 
 /// 0x48-byte scratch from `G_SCRATCH_HEAD` used by `func_800DBCAC`.
-/// `func_800E08CC` writes world-space positions into `pos0` / `pos1`.
+/// `Gp_ObjWorldPos` writes world-space positions into `pos0` / `pos1`.
 /// `delta` is `pos0 - pos1`. On overlap, `src` / `extra` / `rsum` are
 /// filled for `func_800DBA20` (other object's truncated position, a
 /// zeroed extra SVECTOR, and the summed radii). `func_800DBA20` writes
@@ -862,82 +862,82 @@ typedef struct _GpSphereScratch {
 STATIC_ASSERT_SIZEOF(GpSphereScratch, 0x48);
 
 /// Pending flags written by `func_800D5B14` and consumed by `func_800CE294`.
-/// `D_8010F888 == 1` requests `func_800AC464(..., 0x402, ...)`.
+/// `D_8010F888 == 1` requests `Gp_DispatchMsg(..., 0x402, ...)`.
 extern s32 D_8010F888;
 
-/// Signed pending item id consumed by `func_800D68C4`. `func_800D5B14`
+/// Signed pending item id consumed by `Gp_FlushPendingRelated`. `func_800D5B14`
 /// stores the id, or its negation for the second `GpItemSlot` pair.
 /// `func_800CE294` also consumes it (with `D_8010F890`) via `func_801088D4`.
-extern s32 D_8010F88C;
+extern s32 Gp_PendingRelatedId;
 
-/// Non-zero when `D_8010F88C` should be applied by `func_800CE294`.
+/// Non-zero when `Gp_PendingRelatedId` should be applied by `func_800CE294`.
 extern s32 D_8010F890;
 
 /// Pending id consumed by `func_800CE294`; `0x3E` also calls `func_8010A1B0`.
 extern s32 D_8010F894;
 
-/// Head of the `GpLinkNode` list walked by `func_800DAB38` / `func_800DABEC`
-/// / `func_800A784C`.
-extern GpLinkNode* D_80115268;
+/// Head of the `GpLinkNode` list walked by `Gp_UnlinkNode` / `Gp_LinkNode`
+/// / `Gp_HudTrackSlot0`.
+extern GpLinkNode* Gp_LinkList;
 
-/// 32-entry marker/slot table cleared by `func_800DAF98`.
-extern GpSlot70 D_80115270[0x20];
+/// 32-entry marker/slot table cleared by `Gp_ClearLockSlots`.
+extern GpSlot70 Gp_LockSlots[0x20];
 
 /// Per-stage pointer table. Index is `GameSessionFrom4.field_3 - 1`.
-/// Each entry is an array of `GpCbA4Rec*`, indexed by `field_2 - 1`.
-extern GpCbA4Rec** D_8010CBA4[];
+/// Each entry is an array of `GpRoomCoordRec*`, indexed by `field_2 - 1`.
+extern GpRoomCoordRec** Gp_RoomCoordTables[];
 
 /// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
-/// Each entry is an array of `GpCbB8Rec**`, indexed by `field_6 - 1`.
-/// Each of those is an 8-entry array of `GpCbB8Rec*` copied into
-/// `D_80115428` by `func_800E192C`.
-extern GpCbB8Rec*** D_8010CBB8[];
+/// Each entry is an array of `GpRoomParamRec**`, indexed by `field_6 - 1`.
+/// Each of those is an 8-entry array of `GpRoomParamRec*` copied into
+/// `Gp_RoomParams` by `Gp_LoadRoomParams`.
+extern GpRoomParamRec*** Gp_RoomParamTables[];
 
-/// Default 8-byte record copied by `func_800D9CE8`. Also the fallback
-/// pointer returned by `func_800D957C` when a table lookup fails.
-extern GBytes8 D_8010F9E4;
+/// Default 8-byte record copied by `Gp_CopyDefaultBound`. Also the fallback
+/// pointer returned by `Gp_GetRoomBound` when a table lookup fails.
+extern GBytes8 Gp_RoomBoundDefault;
 
-/// Default `MATRIX` installed at `GameActorExt.field_1C` by `func_800D9D18`.
-extern MATRIX D_80114E98;
+/// Default `MATRIX` installed at `GameActorExt.field_1C` by `Gp_BindDefaultMtx`.
+extern MATRIX Gp_DefaultMtx;
 
-/// Default `MATRIX` installed at `GameActorExt.field_20` by `func_800D9D18`.
-extern MATRIX D_80114EB8;
+/// Default `MATRIX` installed at `GameActorExt.field_20` by `Gp_BindDefaultMtx`.
+extern MATRIX Gp_DefaultMtx2;
 
-/// Flag set by `func_800D94B8` when an override SVECTOR is stored at
-/// `D_80114F20`. Cleared when that function is called with NULL, and
-/// also by `func_800D9D18`.
-extern u8 D_80114F18;
+/// Flag set by `Gp_SetOverrideVec` when an override SVECTOR is stored at
+/// `Gp_OverrideVec`. Cleared when that function is called with NULL, and
+/// also by `Gp_BindDefaultMtx`.
+extern u8 Gp_OverrideVecFlag;
 
-/// Override SVECTOR copied by `func_800D94B8` from its argument.
-extern SVECTOR D_80114F20;
+/// Override SVECTOR copied by `Gp_SetOverrideVec` from its argument.
+extern SVECTOR Gp_OverrideVec;
 
-/// Word cleared by `func_800D9D18`. Also written by `func_800A45F0` and
+/// Word cleared by `Gp_BindDefaultMtx`. Also written by `func_800A45F0` and
 /// read/cleared by `func_800D8684`.
 extern s32 D_80114F28;
 
-/// Flag set by `func_800D9504` when an override SVECTOR is stored at
-/// `D_80115258`. Cleared when that function is called with NULL, and
-/// also by `func_800D9D18`.
-extern u8 D_80115250;
+/// Flag set by `Gp_SetOverrideVec2` when an override SVECTOR is stored at
+/// `Gp_OverrideVec2`. Cleared when that function is called with NULL, and
+/// also by `Gp_BindDefaultMtx`.
+extern u8 Gp_OverrideVec2Flag;
 
-/// Override SVECTOR copied by `func_800D9504` from its argument.
-extern SVECTOR D_80115258;
+/// Override SVECTOR copied by `Gp_SetOverrideVec2` from its argument.
+extern SVECTOR Gp_OverrideVec2;
 
 /// 8.8 fixed-point pair lerped toward projected screen coords by
-/// `func_800D9DFC`. Reset to `0xFFF00000` by `func_800DAFD0`.
+/// `func_800D9DFC`. Reset to `0xFFF00000` by `Gp_ResetLinkState`.
 extern s32 D_8010F9EC;
 extern s32 D_8010F9F0;
 
-/// Per-stage `GpGiveRec` lists selected by `func_800DB128` when
+/// Per-stage `GpGiveRec` lists selected by `Gp_GrantLocationItems` when
 /// `Mc_SaveData.field_F` is 0 or 2. Indexed by `GameSession.field_7`.
 extern GpGiveRec* D_8010F9F4[];
 
-/// Per-stage `GpGiveRec` lists selected by `func_800DB128` when
+/// Per-stage `GpGiveRec` lists selected by `Gp_GrantLocationItems` when
 /// `Mc_SaveData.field_F` is not 0 or 2. Indexed by `GameSession.field_7`.
 extern GpGiveRec* D_8010FA0C[];
 
 /// Pair-handler table used by `func_800DB900` / `func_800E0414`.
-/// Indexed by `D_8010FA4C[].field_0` (`func_800E076C` / `func_800DBCAC` /
+/// Indexed by `D_8010FA4C[].field_0` (`Gp_PairNop` / `func_800DBCAC` /
 /// `func_800DBE7C`).
 extern GpPairFn D_8010FA38[5];
 
@@ -947,26 +947,26 @@ extern GpPairFn D_8010FA38[5];
 extern GpU16Pair D_8010FA4C[4][4];
 
 /// Nine-entry table of `GpObj` list heads (`D_80115570` .. `D_80115590`).
-/// `func_800E15AC` appends to `D_8010FA8C[index]`; `func_800E1638` unlinks.
-extern GpObj* D_8010FA8C[9];
+/// `Gp_LinkObj` appends to `Gp_ObjLists[index]`; `Gp_UnlinkObj` unlinks.
+extern GpObj* Gp_ObjLists[9];
 
-/// Two-entry table of `GpObj4A` list heads. `func_800E1688` appends to
-/// `D_8010FAB0[index]`; `func_800E1758` walks and clears that list.
-extern GpObj4A* D_8010FAB0[2];
+/// Two-entry table of `GpObj4A` list heads. `Gp_LinkObj4A` appends to
+/// `Gp_Obj4ALists[index]`; `Gp_ClearObj4AList` walks and clears that list.
+extern GpObj4A* Gp_Obj4ALists[2];
 
-/// One-entry table of `GpObj3A` list heads. `func_800E17B4` appends to
-/// `D_8010FAB8[index]`; `func_800E1884` walks and clears that list.
-extern GpObj3A* D_8010FAB8[1];
+/// One-entry table of `GpObj3A` list heads. `Gp_LinkObj3A` appends to
+/// `Gp_Obj3ALists[index]`; `Gp_ClearObj3AList` walks and clears that list.
+extern GpObj3A* Gp_Obj3ALists[1];
 
-extern GpStateF0 D_801153F0;
+extern GpStateF0 Gp_StateF0;
 extern u8        D_801153F2;
 extern u8        D_801153F3;
 extern u8        D_801153F4;
-/// Head of the `GpObj3A` list pointed to by `D_8010FAB8[0]`.
+/// Head of the `GpObj3A` list pointed to by `Gp_Obj3ALists[0]`.
 extern GpObj3A* D_80115550;
-/// Head of the `GpObj4C` list walked by `func_800E1B80`.
-extern GpObj4C* D_80115554;
-extern GpObj4C* D_8011556C;
+/// Head of the `GpObj4C` list walked by `Gp_CommitObj4CSave`.
+extern GpObj4C* Gp_Obj4CList;
+extern GpObj4C* Gp_PendingObj4C;
 extern GpObj* D_80115570;
 extern GpObj* D_80115574;
 extern GpObj* D_80115578;
@@ -977,78 +977,78 @@ extern GpObj* D_80115588;
 extern GpObj* D_8011558C;
 extern GpObj* D_80115590;
 extern u8     D_80115598;
-/// Set to 1 by `func_800E1BF0` when a pending `D_8011556C` node is found;
-/// `func_800DB72C` then calls `func_800E0B08` to clear those flags.
-extern s32    D_80115424;
-/// 8-word table filled by `func_800E192C` from the current room's
-/// `D_8010CBB8` records (`field_3`). Indexed by `(id & 7)` in
+/// Set to 1 by `Gp_TakePendingObj4C` when a pending `Gp_PendingObj4C` node is found;
+/// `func_800DB72C` then calls `Gp_ClearPendingObj4C` to clear those flags.
+extern s32    Gp_PendingObj4CFlag;
+/// 8-word table filled by `Gp_LoadRoomParams` from the current room's
+/// `Gp_RoomParamTables` records (`field_3`). Indexed by `(id & 7)` in
 /// `func_800E0C10` / `func_800E0FEC`.
-extern s32    D_80115428[8];
-/// Grid conversion params used by `func_800E0B48` / `func_800E0774`.
-/// Cleared by `func_800E0294`; `func_800E0540` skips work when this is NULL.
-extern GpGridParams* D_80115448;
+extern s32    Gp_RoomParams[8];
+/// Grid conversion params used by `Gp_WorldToGrid` / `Gp_LocalToGrid`.
+/// Cleared by `Gp_ClearObjHeads`; `func_800E0540` skips work when this is NULL.
+extern GpGridParams* Gp_GridParams;
 
-/// 4-byte records selected by `func_800E2CD4(..., 0)`.
-extern GpRec4 D_80114028[];
+/// 4-byte records selected by `Gp_LookupIdField(..., 0)`.
+extern GpRec4 Gp_IdField0[];
 
-/// 6-byte records selected by `func_800E2CD4(..., 1)`.
-extern GpRec6 D_80114054[];
+/// 6-byte records selected by `Gp_LookupIdField(..., 1)`.
+extern GpRec6 Gp_IdField1[];
 
-/// 10-byte records selected by `func_800E3194` when the id's 0x8000 bit is
+/// 10-byte records selected by `Gp_GetIdParam2` when the id's 0x8000 bit is
 /// clear. Indexed by `id & 0x7F`.
-extern GpRec10 D_80113390[];
+extern GpRec10 Gp_IdParamLo[];
 
-/// 16-byte records selected by `func_800E3194` when the id's 0x8000 bit is
+/// 16-byte records selected by `Gp_GetIdParam2` when the id's 0x8000 bit is
 /// set. Indexed by `id & 0x7F`.
-extern GpRec16 D_8011398C[];
+extern GpRec16 Gp_IdParamHi[];
 
-/// u16 scale table indexed by `GpObj5C.field_5C`. `func_800E2F7C` multiplies
+/// u16 scale table indexed by `GpObj5C.field_5C`. `Gp_ObjFlag4Expired` multiplies
 /// `field_50->field_E` by the selected entry and divides by 100.
 extern u16 D_80113D28[];
 
-/// u16 scale table indexed by `GpObj5D.field_5D`. `func_800E3084` multiplies
+/// u16 scale table indexed by `GpObj5D.field_5D`. `Gp_TickObjFlag2` multiplies
 /// `field_50->field_C` by the selected entry and divides by 100.
 extern u16 D_80113D30[];
 
-/// u16 scale table indexed by `GpObj5C.field_5C`. `func_800E2EC4` multiplies
+/// u16 scale table indexed by `GpObj5C.field_5C`. `Gp_TickObjFlag4` multiplies
 /// `field_50->field_4` by the selected entry and divides by 100.
 extern u16 D_80113D38[];
 
-/// Damage-scale rows used by `func_800E2438`. Indexed by `D_8011541B`.
-extern GpDmgRow D_80113EF0[];
+/// Damage-scale rows used by `Gp_ScaleDamage`. Indexed by `D_8011541B`.
+extern GpDmgRow Gp_DmgRows[];
 
-/// Column index table for `D_80113EF0`, indexed by signed HP / 10.
+/// Column index table for `Gp_DmgRows`, indexed by signed HP / 10.
 extern u16 D_80113F54[];
 
-/// Percent scale table used by `func_800E2438` when `D_80114C08.field_C`
+/// Percent scale table used by `Gp_ScaleDamage` when `Gp_StateC08.field_C`
 /// is non-zero. Indexed by `((field_C / 16) - 1) * 2 + (s8)(field_C % 16)`.
 extern u16 D_80113CFC[];
 
-/// Row index into `D_80113EF0` for `func_800E2438`.
+/// Row index into `Gp_DmgRows` for `Gp_ScaleDamage`.
 extern u8 D_8011541B;
 
-/// "Weapon" string drawn by `func_800D6AA4` (trailing 0x60 byte).
-extern const char D_80097454[];
+/// "Weapon" string drawn by `Gp_DrawWeaponLabel` (trailing 0x60 byte).
+extern const char Gp_StrWeapon[];
 
-/// "#######get_lock_pos ---> NULL!!!\n" printed by `func_800DAE50`
+/// "#######get_lock_pos ---> NULL!!!\n" printed by `Gp_GetLockPos`
 /// (trailing 0x8C 0x16 bytes).
-extern const char D_80097460[];
+extern const char Gp_StrGetLockPosNull[];
 
 /// Returns 1 if item `arg0` cannot be used, 0 if it can.
 /// `arg1` supplies `field_2` (capacity) for ammo ids 0xA0–0xBF.
-s32        func_800D6170(s32 arg0, GpItemRec* arg1);
-s32        func_800D68C4(s32 arg0);
-GpItemRec* func_800D6910(s32 arg0);
-GpItemRec* func_800D6994(s32 arg0);
-GpItemRec* func_800D6A24(s32 arg0, GpItemScan* arg1);
-void       func_800D6AA4(Task* arg0);
-/// First-run init plus per-frame update of the current room's `GpCbA4Set`
-/// coordinate arrays (parented to `D_80070F10`) and the `D_80114F30` slots.
-/// Kills `arg0` when `func_800D9654` returns 0.
-void       func_800D6B20(Task* arg0);
-s32        func_800D6E5C(GpObj44* arg0, VECTOR3* arg1);
-s32        func_800D70E4(GpObj44* arg0, VECTOR3* arg1);
-s32        func_800D72D0(GpObj68* arg0, VECTOR3* arg1);
+s32        Gp_ItemIsUnusable(s32 arg0, GpItemRec* arg1);
+s32        Gp_FlushPendingRelated(s32 arg0);
+GpItemRec* Gp_FindItemById(s32 arg0);
+GpItemRec* Gp_FindItemByKind(s32 arg0);
+GpItemRec* Gp_FindItemInScan(s32 arg0, GpItemScan* arg1);
+void       Gp_DrawWeaponLabel(Task* arg0);
+/// First-run init plus per-frame update of the current room's `GpRoomCoordSet`
+/// coordinate arrays (parented to `D_80070F10`) and the `Gp_RoomCoords` slots.
+/// Kills `arg0` when `Gp_GetRoomCoordSet` returns 0.
+void       Gp_UpdateRoomCoords(Task* arg0);
+s32        Gp_LightPointRoom(GpObj44* arg0, VECTOR3* arg1);
+s32        Gp_LightPoint(GpObj44* arg0, VECTOR3* arg1);
+s32        Gp_LightCone(GpObj68* arg0, VECTOR3* arg1);
 void       func_800D7A9C(GameActorExt* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void  func_800D8684(Task* arg0);
 /// Remaps a 3x3 color matrix (`MATRIX.m`) from lighting mode `arg2`
@@ -1057,63 +1057,63 @@ void  func_800D8684(Task* arg0);
 /// fills 0x180/0x100/0x100. Default remaps to *3/*1/*3 when
 /// `field_4C & 0xC`. Bit 0x80 of `field_4E` with `field_4B == 0` applies
 /// a `rsin(Display_State.field_14 << 6)` flicker and clears the bit.
-void  func_800D8C0C(struct _GpEnemy* arg0, MATRIX* arg1, s32 arg2);
+void  Gp_RemapActorColor(struct _GpEnemy* arg0, MATRIX* arg1, s32 arg2);
 /// Rebuilds the actor color matrix via `func_800D7A9C`, then remaps it
-/// from `field_4E` lighting mode (`func_800D8C0C`). While `field_4F` is
+/// from `field_4E` lighting mode (`Gp_RemapActorColor`). While `field_4F` is
 /// a positive blend timer, GPF/GPL-interpolates the previous mode
 /// (`field_4E` bits 2-3) toward the current mode (bits 0-1). Skips work
 /// when `Game_Session->field_65 == 1` unless `GameActorExt.field_C` bit
 /// 0x80 is clear and `field_18` is set. `D_801153F4` freezes the timer.
-void  func_800D8EA0(struct _GpEnemy* arg0, VECTOR* arg1);
-void  func_800D9138(GpObj44* arg0);
-void  func_800D930C(GpObj4C* arg0, s32 arg1);
-s32   func_800D9340(GpObj38* arg0);
-s32   func_800D937C(GpObj38* arg0);
-void  func_800D94B8(SVECTOR* arg0);
-void  func_800D9504(SVECTOR* arg0);
-void  func_800D9550(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3);
-GpCbA4Vec* func_800D957C(GameSessionFrom4* arg0);
-s32   func_800D9618(void);
-s32   func_800D9654(GameSessionFrom4* arg0);
+void  Gp_UpdateActorColor(struct _GpEnemy* arg0, VECTOR* arg1);
+void  Gp_LightFalloff(GpObj44* arg0);
+void  Gp_SetLightMode(GpObj4C* arg0, s32 arg1);
+s32   Gp_GetObjDepth(GpObj38* arg0);
+s32   Gp_GetObjPan(GpObj38* arg0);
+void  Gp_SetOverrideVec(SVECTOR* arg0);
+void  Gp_SetOverrideVec2(SVECTOR* arg0);
+void  Gp_SetObjTrans(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3);
+GpRoomBoundVec* Gp_GetRoomBound(GameSessionFrom4* arg0);
+s32   Gp_CountRoomCoords(void);
+s32   Gp_GetRoomCoordSet(GameSessionFrom4* arg0);
 void  func_800D96C8(Task* arg0);
-s32   func_800D9718(GpObj44* arg0);
-s32   func_800D9788(GpObj38* arg0);
+s32   Gp_GetObjLuma(GpObj44* arg0);
+s32   Gp_GetObjTransX(GpObj38* arg0);
 void  func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
 void  func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
 void  func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
-void  func_800D9B9C(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void  func_800D9D18(Task* arg0);
-void  func_800D9C3C(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3);
-GpCbA4Rec* func_800D9C64(GameSessionFrom4* arg0);
+void  Gp_InsertRankedSlot(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void  Gp_BindDefaultMtx(Task* arg0);
+void  Gp_FillSVec3x3(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3);
+GpRoomCoordRec* Gp_GetRoomCoordRec(GameSessionFrom4* arg0);
 void  func_800D9CC8(Task* arg0);
-void  func_800D9CE8(GBytes8* arg0);
+void  Gp_CopyDefaultBound(GBytes8* arg0);
 void  func_800D9DFC(void);
 void  func_800DA6E8(void* arg0, s32 arg1);
-void  func_800DAB38(GpLinkNode* node);
-void  func_800DABEC(GpLinkNode* node);
-s32   func_800DAC54(GpLinkNode* arg0);
-void  func_800DACAC(GpLinkNode* node);
-void  func_800DACF8(GpLinkNode* node);
+void  Gp_UnlinkNode(GpLinkNode* node);
+void  Gp_LinkNode(GpLinkNode* node);
+s32   Gp_NodeSlotMask(GpLinkNode* arg0);
+void  Gp_AssignNodeSlot0(GpLinkNode* node);
+void  Gp_ClearNodeSlots(GpLinkNode* node);
 void* func_800DA2A0(GpActorWork* arg0, VECTOR3* pos, s32 arg2);
-void* func_800DAD54(GpActorWork* arg0);
-void* func_800DAD78(GpActorWork* arg0);
-void* func_800DADE4(GpActorWork* arg0, VECTOR3* pos);
-void  func_800DAE50(GpLockPos* arg0, VECTOR3* out);
-void  func_800DAF98(void);
-void  func_800DAFD0(void);
-s32   func_800DB004(GpPerspSrc* arg0, s32* sxy);
-void  func_800DB0D8(void);
-s32   func_800DB128(GpItemScan* arg0);
-s32   func_800DB28C(GpActorWork* arg0, GpImgRec* arg1, RECT* arg2);
-void  func_800DB31C(GpImgRec* arg0);
-void  func_800DB3FC(void);
-void  func_800DB4E0(s32 arg0);
-void  func_800DB500(s32 arg0);
-void  func_800DB530(s32 arg0);
-void  func_800DB53C(void);
-void  func_800DB558(GpObj20E* arg0);
-void  func_800DB630(void);
-void  func_800DB6B4(void);
+void* Gp_FindLockNode(GpActorWork* arg0);
+void* Gp_FindLockNodePad(GpActorWork* arg0);
+void* Gp_FindLockNodeAt(GpActorWork* arg0, VECTOR3* pos);
+void  Gp_GetLockPos(GpLockPos* arg0, VECTOR3* out);
+void  Gp_ClearLockSlots(void);
+void  Gp_ResetLinkState(void);
+s32   Gp_ProjectToSxy(GpPerspSrc* arg0, s32* sxy);
+void  Gp_ClearSlotNodeFlags(void);
+s32   Gp_GrantLocationItems(GpItemScan* arg0);
+s32   Gp_LoadActorImage(GpActorWork* arg0, GpImgRec* arg1, RECT* arg2);
+void  Gp_LoadImages(GpImgRec* arg0);
+void  Gp_InitStateF0(void);
+void  Gp_ArmStateF0(s32 arg0);
+void  Gp_SetStateF0Bit(s32 arg0);
+void  Gp_SetStateF0Byte3(s32 arg0);
+void  Gp_IncStateF0Ref(void);
+void  Gp_ReleaseStateF0Add(GpObj20E* arg0);
+void  Gp_ReleaseStateF0Clear(void);
+void  Gp_ReleaseStateF0(void);
 void  func_800DB72C(void);
 void func_800DB900(GpObj* node);
 void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2);
@@ -1129,63 +1129,63 @@ void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1);
 void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3);
 void func_800DEF80(GpObj* node, GpObj4C* other);
 s32  func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3);
-void func_800E0294(void);
+void Gp_ClearObjHeads(void);
 s32  func_800E0308(SVECTOR* arg0, SVECTOR* arg1);
 void func_800E0414(GpObj* a, GpObj* b);
 void func_800E0540(GpObj* node);
 void func_800E0608(GpObj* node, s32 mask, s32 match);
 void func_800E06AC(GpObj* node, s32 mask, s32 match);
-s32  func_800E076C(void);
-void func_800E0774(VECTOR3* arg0, SVECTOR3* arg1);
-void func_800E08CC(GpObj* arg0, VECTOR3* arg1);
-void func_800E0B08(void);
-void func_800E0B48(VECTOR3* arg0, SVECTOR3* arg1);
+s32  Gp_PairNop(void);
+void Gp_LocalToGrid(VECTOR3* arg0, SVECTOR3* arg1);
+void Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1);
+void Gp_ClearPendingObj4C(void);
+void Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1);
 s32  func_800E0FEC(s32 arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
 /// Transforms `arg0`'s local offset (`GpActorD4Rec` at `field_C` plus the
 /// 0x10 SVECTOR) by `field_8->workm` and returns the 1-based index of the
 /// closest occupied `GpRec18` in `rec->field_14` whose `field_4` high 16
 /// bits match `arg1`, or 0 if none match.
-s32  func_800E1380(GpObj* arg0, s32 arg1);
-void func_800E15AC(s32 arg0, GpObj* arg1);
-void func_800E1638(GpObj* node);
-void func_800E1688(s32 arg0, GpObj4A* arg1);
-void func_800E1708(s32 arg0, GpObj4A* arg1);
-void func_800E1758(s32 arg0);
-void func_800E17B4(s32 arg0, GpObj3A* arg1);
-void func_800E1834(s32 arg0, GpObj3A* arg1);
-void func_800E1884(s32 arg0);
-void func_800E18E0(GpRec18* arg0, s32 arg1, s32 arg2);
-void func_800E192C(void);
-s32  func_800E19B8(GpRec18* arg0, s32 arg1);
-s32  func_800E1A1C(GpRec18* arg0, s32 arg1);
-void func_800E1A6C(GpRec18* arg0);
+s32  Gp_FindNearestSlot(GpObj* arg0, s32 arg1);
+void Gp_LinkObj(s32 arg0, GpObj* arg1);
+void Gp_UnlinkObj(GpObj* node);
+void Gp_LinkObj4A(s32 arg0, GpObj4A* arg1);
+void Gp_UnlinkObj4A(s32 arg0, GpObj4A* arg1);
+void Gp_ClearObj4AList(s32 arg0);
+void Gp_LinkObj3A(s32 arg0, GpObj3A* arg1);
+void Gp_UnlinkObj3A(s32 arg0, GpObj3A* arg1);
+void Gp_ClearObj3AList(s32 arg0);
+void Gp_InitRec18Table(GpRec18* arg0, s32 arg1, s32 arg2);
+void Gp_LoadRoomParams(void);
+s32  Gp_FindRec18(GpRec18* arg0, s32 arg1);
+s32  Gp_CountRec18Hi(GpRec18* arg0, s32 arg1);
+void Gp_ClearRec18Occupied(GpRec18* arg0);
 s32  func_800E1ACC(u8* arg0);
 s32  func_800E1B24(s32 arg0);
-void func_800E1B80(void);
-s32  func_800E1BF0(u16* arg0, u8* arg1, u8* arg2);
-void func_800E1C58(GpObj54* arg0, void* arg1);
+void Gp_CommitObj4CSave(void);
+s32  Gp_TakePendingObj4C(u16* arg0, u8* arg1, u8* arg2);
+void Gp_ClaimSlot18(GpObj54* arg0, void* arg1);
 /// Builds a rotation matrix in `arg1` that orients along normalized `arg0`
 /// (yaw from XZ, pitch from Y vs the XZ length, then roll by `arg2`).
-void func_800E1CD4(VECTOR* arg0, MATRIX* arg1, s32 arg2);
+void Gp_OrientAlong(VECTOR* arg0, MATRIX* arg1, s32 arg2);
 /// Packed-id damage scale. `arg0` must have high bits `0x40000`; low 12 bits
 /// are the power and bits 12-15 are written to `*arg2` when it is non-NULL.
 /// `arg3 == 0` uses `Wip_SysConfig.field_18` and `GpDmgRow.field_A`;
 /// otherwise `Mc_SaveData.field_6C8` and `GpDmgRow.field_0`.
-s32  func_800E2438(s32 arg0, s32 arg1, s32* arg2, s32 arg3);
-void func_800E2A24(GpObj5D* arg0, s32 arg1);
-s32  func_800E2BF8(GpObj50* arg0, s32 arg1);
-s32  func_800E2C40(GpU16Pair* arg0, s32 arg1);
+s32  Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3);
+void Gp_ApplyObjKind(GpObj5D* arg0, s32 arg1);
+s32  Gp_PackObjPair(GpObj50* arg0, s32 arg1);
+s32  Gp_PackPair(GpU16Pair* arg0, s32 arg1);
 void func_800E2C78(GpObj40* arg0, s32 arg1, s32 arg2);
-s32  func_800E2CD4(s32 arg0, s32 arg1);
-s32  func_800E2D3C(s32 arg0);
-s32  func_800E2D90(s32 arg0);
-void func_800E2DE4(GpObj5C* arg0, s32 arg1);
-s32  func_800E2EC4(GpObj5C* arg0);
-s32  func_800E2F7C(GpObj5C* arg0);
-void func_800E3008(GpObj4C* arg0);
-void func_800E301C(GpObj5D* arg0, s32 arg1);
-s32  func_800E3084(GpObj5D* arg0);
-s32  func_800E3194(s32 arg0);
+s32  Gp_LookupIdField(s32 arg0, s32 arg1);
+s32  Gp_GetIdParam0(s32 arg0);
+s32  Gp_GetIdParam1(s32 arg0);
+void Gp_SetObjFlag4(GpObj5C* arg0, s32 arg1);
+s32  Gp_TickObjFlag4(GpObj5C* arg0);
+s32  Gp_ObjFlag4Expired(GpObj5C* arg0);
+void Gp_SetObjFlag1(GpObj4C* arg0);
+void Gp_SetObjFlag2(GpObj5D* arg0, s32 arg1);
+s32  Gp_TickObjFlag2(GpObj5D* arg0);
+s32  Gp_GetIdParam2(s32 arg0);
 void func_800E337C(Task* arg0);
 void func_8010154C(void);
 

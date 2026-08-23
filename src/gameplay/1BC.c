@@ -32,8 +32,8 @@
 
 void func_800B1EFC(Task* arg0);
 void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_800B3910(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_800B6358(Task* task);
+void Gp_AnimSeekSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
+void Gp_BindSlot4(Task* task);
 void func_800B6398(void);
 void func_8017FBD8(void);
 
@@ -57,17 +57,17 @@ extern TaskDesc       D_80182D0C[];
 extern TaskDesc       D_80182E74[];
 extern TaskDesc       D_80182FAC[];
 extern TaskDesc       D_8018384C[];
-extern s32            D_8010D208[];
-extern char           D_800939F8[];
+extern s32            Gp_Slot4MsgTable[];
+extern char           Gp_StrNewEnemyNull[];
 extern GsCOORDINATE2  D_80070F10;
-extern s32            D_80070F60;
+extern s32            Gp_LcgState;
 extern u8             D_800626E8;
 extern u16            D_80114D14;
 extern s32            D_80114D20;
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800AF590);
 
-s16 func_800AF89C(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
+s16 Gp_FindStreamSlot(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
 {
     CdCmdQueue*  p;
     StreamSlot*  slot;
@@ -127,15 +127,15 @@ s16 func_800AF89C(u16 arg0, u16 arg1, u16 arg2, u16 arg3)
     p->field_21C = 0;
     D_80114D14   = 0;
     p->field_238 = slot->field_18;
-    p->field_1A8 = D_80070F60;
+    p->field_1A8 = Gp_LcgState;
     p->field_1AC = rand();
-    D_80070F60   = 0;
+    Gp_LcgState  = 0;
     srand(1);
     D_80114D20 = 0xFFFF;
     return i;
 }
 
-void func_800AFA44(void)
+void Gp_StepCdAudioCmd(void)
 {
     register s32 one asm("s0");
     register s32 i_s1 asm("s1");
@@ -257,16 +257,16 @@ void func_800AFA44(void)
             CdAudio_StartTrack(sector, p->field_190->field_2);
             i_s1     = 0;
             maskbits = p->field_190->field_16;
-            if (D_8010D1C4[0].mask != 0) {
+            if (Gp_SndMaskTable[0].mask != 0) {
                 bits = maskbits;
                 do {
-                    entry = &D_8010D1C4[(u16)i_s1];
+                    entry = &Gp_SndMaskTable[(u16)i_s1];
                     if (bits & entry->mask) {
                         SndEvt_EnqueueType7(entry->flags, 0);
                         SndBank_SetEnableFlags(0, entry->flags);
                     }
                     i_s1++;
-                } while (D_8010D1C4[(u16)i_s1].mask != 0);
+                } while (Gp_SndMaskTable[(u16)i_s1].mask != 0);
             }
             p->field_248 = 0;
             p->field_244 = 1;
@@ -330,15 +330,15 @@ void func_800AFA44(void)
             }
             i        = 0;
             maskbits = info->field_16;
-            if (D_8010D1C4[0].mask != 0) {
+            if (Gp_SndMaskTable[0].mask != 0) {
                 bits = maskbits;
                 do {
-                    entry = &D_8010D1C4[(u16)i];
+                    entry = &Gp_SndMaskTable[(u16)i];
                     if (bits & entry->mask) {
                         SndBank_SetEnableFlags(1, entry->flags);
                     }
                     i++;
-                } while (D_8010D1C4[(u16)i].mask != 0);
+                } while (Gp_SndMaskTable[(u16)i].mask != 0);
             }
             {
                 CdCmdQueue* q;
@@ -354,7 +354,7 @@ void func_800AFA44(void)
                 q->field_212 = 0;
                 q->field_216 = 0;
                 q->field_240 = 0;
-                D_80070F60   = q->field_1A8;
+                Gp_LcgState  = q->field_1A8;
                 srand(seed);
             }
             CdCmd_AdvanceRead();
@@ -371,15 +371,15 @@ void func_800AFA44(void)
             }
             i        = 0;
             maskbits = p->field_190->field_16;
-            if (D_8010D1C4[0].mask != 0) {
+            if (Gp_SndMaskTable[0].mask != 0) {
                 bits = maskbits;
                 do {
-                    entry = &D_8010D1C4[(u16)i];
+                    entry = &Gp_SndMaskTable[(u16)i];
                     if (bits & entry->mask) {
                         SndBank_SetEnableFlags(1, entry->flags);
                     }
                     i++;
-                } while (D_8010D1C4[(u16)i].mask != 0);
+                } while (Gp_SndMaskTable[(u16)i].mask != 0);
             }
             {
                 CdCmdQueue* q;
@@ -396,7 +396,7 @@ void func_800AFA44(void)
                 q->field_212 = 0;
                 q->field_216 = 0;
                 q->field_240 = 0;
-                D_80070F60   = q->field_1A8;
+                Gp_LcgState  = q->field_1A8;
                 srand(seed);
             }
             CdCmd_AdvanceRead();
@@ -408,46 +408,46 @@ end_check:
     CdCmd_StepVlcRebuild();
 }
 
-void func_800AFF90(u16 arg0)
+void Gp_ApplySndMasks(u16 arg0)
 {
     s32           i;
     s32           bits;
     GpSndMaskRec* entry;
 
     i = 0;
-    if (D_8010D1C4[0].mask != 0) {
+    if (Gp_SndMaskTable[0].mask != 0) {
         bits = arg0;
         do {
-            entry = &D_8010D1C4[(u16)i];
+            entry = &Gp_SndMaskTable[(u16)i];
             if (bits & entry->mask) {
                 SndEvt_EnqueueType7(entry->flags, 0);
                 SndBank_SetEnableFlags(0, entry->flags);
             }
             i++;
-        } while (D_8010D1C4[(u16)i].mask != 0);
+        } while (Gp_SndMaskTable[(u16)i].mask != 0);
     }
 }
 
-void func_800B0034(u16 arg0)
+void Gp_ApplySndBankMasks(u16 arg0)
 {
     s32           i;
     s32           bits;
     GpSndMaskRec* entry;
 
     i = 0;
-    if (D_8010D1C4[0].mask != 0) {
+    if (Gp_SndMaskTable[0].mask != 0) {
         bits = arg0;
         do {
-            entry = &D_8010D1C4[(u16)i];
+            entry = &Gp_SndMaskTable[(u16)i];
             if (bits & entry->mask) {
                 SndBank_SetEnableFlags(1, entry->flags);
             }
             i++;
-        } while (D_8010D1C4[(u16)i].mask != 0);
+        } while (Gp_SndMaskTable[(u16)i].mask != 0);
     }
 }
 
-void func_800B00C4(void)
+void Gp_RestoreStreamRng(void)
 {
     CdCmdQueue* p;
 
@@ -458,7 +458,7 @@ void func_800B00C4(void)
     p->field_212 = 0;
     p->field_216 = 0;
     p->field_240 = 0;
-    D_80070F60   = p->field_1A8;
+    Gp_LcgState  = p->field_1A8;
     srand(p->field_1AC);
 }
 
@@ -476,57 +476,57 @@ s32 func_800B0118(s32 arg0, s32 arg1)
     return 0;
 }
 
-void func_800B015C(void* arg0)
+void Gp_SetStreamBuf(void* arg0)
 {
     CdCmd_Queue.field_198 = arg0;
 }
 
-GpEnemy* func_800B0168(s32 bank, s32 type, s32 arg2, GpEnemy* parent)
+GpEnemy* Gp_SpawnEnemy(s32 bank, s32 type, s32 arg2, GpEnemy* parent)
 {
     Task*    task;
     GpEnemy* ret;
 
     task = Task_Spawn(bank, type, arg2, 0);
     if (task != NULL) {
-        ret = func_800B0494(task, parent);
+        ret = Gp_AllocEnemy(task, parent);
     } else {
         ret = NULL;
     }
     return ret;
 }
 
-GpEnemy* func_800B01AC(TaskDesc* table, s32 idx, s32 arg2, GpEnemy* parent)
+GpEnemy* Gp_SpawnEnemyFromTable(TaskDesc* table, s32 idx, s32 arg2, GpEnemy* parent)
 {
     Task*    task;
     GpEnemy* ret;
 
     task = Task_SpawnFromTable(table, idx, arg2, 0);
     if (task != NULL) {
-        ret = func_800B0494(task, parent);
+        ret = Gp_AllocEnemy(task, parent);
     } else {
         ret = NULL;
     }
     return ret;
 }
 
-void func_800B01F0(GpEnemy* enemy, Task* task)
+void Gp_DestroyEnemy(GpEnemy* enemy, Task* task)
 {
-    func_800DAB38(&enemy->node);
+    Gp_UnlinkNode(&enemy->node);
     Mem_Free(enemy);
     Task_Kill(task);
 }
 
-void func_800B0234(Task* task)
+void Gp_EnemyTaskExit(Task* task)
 {
     GpEnemy* enemy;
 
     enemy = task->spawnArg2;
-    func_800DAB38(&enemy->node);
+    Gp_UnlinkNode(&enemy->node);
     Mem_Free(enemy);
     Task_Kill(task);
 }
 
-Task* func_800B0278(Task* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2)
+Task* Gp_CopyCoordOffset(Task* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2)
 {
     GameActorExt*  extra;
     GsCOORDINATE2* dest;
@@ -548,14 +548,14 @@ Task* func_800B0278(Task* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2)
         gte_rtv0tr_real();
         gte_stlvnl(dest->coord.t);
     } else {
-        func_80098F58(arg1);
+        Gp_UpdateCoord(arg1);
         dest->workm = arg1->workm;
         gte_SetRotMatrix(&arg1->workm);
         gte_SetTransMatrix(&arg1->workm);
         gte_ldv0(arg2);
         gte_rtv0tr_real();
         gte_stlvnl(dest->workm.t);
-        func_800A8864(&world->workm, &dest->workm, &dest->coord);
+        Gp_WorldToLocal(&world->workm, &dest->workm, &dest->coord);
     }
     dest->sub               = &D_80070F10;
     dest->flg               = 0;
@@ -563,18 +563,18 @@ Task* func_800B0278(Task* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2)
     return arg0;
 }
 
-GpEnemy* func_800B0494(Task* task, GpEnemy* parent)
+GpEnemy* Gp_AllocEnemy(Task* task, GpEnemy* parent)
 {
     GpEnemy* enemy;
 
     enemy = Mem_Calloc(0x60, 0);
     if (enemy == NULL) {
-        printf(D_800939F8);
+        printf(Gp_StrNewEnemyNull);
         Task_Kill(task);
         return NULL;
     }
 
-    task->exitCallback = func_800B0234;
+    task->exitCallback = Gp_EnemyTaskExit;
     task->spawnArg2    = enemy;
     enemy->task        = task;
     enemy->field_18    = &D_80070F10;
@@ -586,13 +586,13 @@ GpEnemy* func_800B0494(Task* task, GpEnemy* parent)
     return enemy;
 }
 
-void func_800B0544(GpEnemy* enemy, Task* task)
+void Gp_EnemyWaitStart(GpEnemy* enemy, Task* task)
 {
     enemy->field_C = 0x78;
     task->state++;
 }
 
-void func_800B0560(GpEnemy* enemy, Task* task)
+void Gp_EnemyWaitTick(GpEnemy* enemy, Task* task)
 {
     enemy->field_C--;
     if (enemy->field_C == 0) {
@@ -600,15 +600,15 @@ void func_800B0560(GpEnemy* enemy, Task* task)
     }
 }
 
-void func_800B058C(Task* arg0)
+void Gp_EnemyDispatch(Task* arg0)
 {
     GpEnemyTaskFuncTable3 sp;
 
-    sp = D_80093A10;
+    sp = Gp_EnemyWaitFuncs;
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 
-s32 func_800B05E8(s32 arg0)
+s32 Gp_TryEnqueueSndCd(s32 arg0)
 {
     u8 param1[8];
     u8 param2[8];
@@ -628,7 +628,7 @@ s32 func_800B05E8(s32 arg0)
     return 0xFF;
 }
 
-void func_800B065C(u8 arg0)
+void Gp_EnqueueSndCd(u8 arg0)
 {
     u8  param1[8];
     u8  param2[8];
@@ -726,7 +726,7 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0928);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B0CF4);
 
-void func_800B0FDC(MATRIX* arg0, SVECTOR* arg1)
+void Gp_MtxToEuler(MATRIX* arg0, SVECTOR* arg1)
 {
     SVECTOR in;
     SVECTOR out;
@@ -758,7 +758,7 @@ void func_800B0FDC(MATRIX* arg0, SVECTOR* arg1)
     arg1->vz = -ratan2(in.vx, in.vy);
 }
 
-SVECTOR* func_800B114C(SVECTOR* arg0, MATRIX* arg1)
+SVECTOR* Gp_ExtractEuler(SVECTOR* arg0, MATRIX* arg1)
 {
     SVECTOR ang0;
     SVECTOR ang1;
@@ -856,7 +856,7 @@ SVECTOR* func_800B114C(SVECTOR* arg0, MATRIX* arg1)
     return arg0;
 }
 
-void func_800B1460(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2, s32 arg3)
+void Gp_LerpOrthonormal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2, s32 arg3)
 {
     MATRIX mtx;
     MATRIX diffs;
@@ -943,14 +943,14 @@ void func_800B1460(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2, s32 arg3)
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B17D4);
 
-void func_800B1D00(GsCOORDINATE2* arg0, MATRIX* arg1, SVECTOR* arg2)
+void Gp_ComposeParentWorld(GsCOORDINATE2* arg0, MATRIX* arg1, SVECTOR* arg2)
 {
     SVECTOR tmp;
     MATRIX* m;
     s32     one;
 
     if (arg0->sub != &D_80070F10) {
-        func_800B1D00(arg0->sub, arg1, arg2);
+        Gp_ComposeParentWorld(arg0->sub, arg1, arg2);
     } else {
         one                = ONE;
         m                  = arg1;
@@ -1041,7 +1041,7 @@ void func_800B1EFC(Task* arg0)
     addPrim(Gpu_CurrentOt, dr);
 }
 
-void func_800B2088(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
+void Gp_BlendRgb555(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
 {
     void**        scratch;
     u8*           head;
@@ -1143,25 +1143,25 @@ void func_800B25B0(void)
     }
 }
 
-void func_800B27C4(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
+void Gp_BlendRgb555Clut(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
 {
     s32 i;
 
     for (i = 0; i < 0x10; i++) {
-        func_800B2088(arg0, arg1, arg2, arg3);
+        Gp_BlendRgb555(arg0, arg1, arg2, arg3);
         arg0++;
         arg1++;
         arg3++;
     }
 }
 
-void func_800B2840(u16* arg0, u16* arg1, s32 arg2, u16* arg3, s32 arg4)
+void Gp_BlendRgb555ClutMasked(u16* arg0, u16* arg1, s32 arg2, u16* arg3, s32 arg4)
 {
     s32 i;
 
     for (i = 0; i < 0x10; i++) {
         if ((1 << i) & arg4) {
-            func_800B2088(arg0, arg1, arg2, arg3);
+            Gp_BlendRgb555(arg0, arg1, arg2, arg3);
         }
         arg0++;
         arg1++;
@@ -1191,7 +1191,7 @@ Task* func_800B2968(void)
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B2998);
 
-void func_800B2E90(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2)
+void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2)
 {
     register void**           scratch asm("v1");
     register GpAnimScratch80* tmp asm("v0");
@@ -1261,7 +1261,7 @@ void func_800B2E90(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2)
     }
 }
 
-void func_800B3108(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2)
+void Gp_AnimBlendPacked(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2)
 {
     register void**           scratch asm("v1");
     register GpAnimScratch80* tmp asm("v0");
@@ -1308,7 +1308,7 @@ void func_800B3108(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2)
     }
 }
 
-void func_800B32E8(GpAnimCtx* arg0, s32 arg1)
+void Gp_AnimAdvanceSlot(GpAnimCtx* arg0, s32 arg1)
 {
     GpAnimSlot* slot;
     GpAnimSet** sets;
@@ -1357,7 +1357,7 @@ void func_800B32E8(GpAnimCtx* arg0, s32 arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B3448);
 
-void func_800B3910(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
+void Gp_AnimSeekSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     register GpAnimSlot* p asm("s0");
     register s32         one asm("v0");
@@ -1491,7 +1491,7 @@ void func_800B3AA4(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 ar
     }
 }
 
-void func_800B3CCC(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3)
+void Gp_AnimInitCtx(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3)
 {
     arg0->field_0  = arg1;
     arg0->field_4  = &arg2->field_34;
@@ -1499,7 +1499,7 @@ void func_800B3CCC(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3)
     arg0->field_10 = arg2->field_30;
 }
 
-void func_800B3CE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3)
+void Gp_AnimInitSlot(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3)
 {
     GpAnimSet** sets;
     u8          op;
@@ -1528,7 +1528,7 @@ void func_800B3CE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3)
     arg1->field_B  = op & 0xF;
 }
 
-void func_800B3DB4(GpAnimCtx* arg0, GpAnimSlot* arg1)
+void Gp_AnimTickSlot(GpAnimCtx* arg0, GpAnimSlot* arg1)
 {
     u8 idx;
 
@@ -1537,7 +1537,7 @@ void func_800B3DB4(GpAnimCtx* arg0, GpAnimSlot* arg1)
     func_800B3448(arg0, idx, 0, 0);
 }
 
-void func_800B3DF4(GpAnimCtx* arg0, GpAnimSlot* arg1)
+void Gp_AnimTickSlot2(GpAnimCtx* arg0, GpAnimSlot* arg1)
 {
     u8 idx;
 
@@ -1546,7 +1546,7 @@ void func_800B3DF4(GpAnimCtx* arg0, GpAnimSlot* arg1)
     func_800B3448(arg0, idx, 0, 0);
 }
 
-void func_800B3E34(GpAnimCtx* arg0, GpAnimSlot* arg1)
+void Gp_AnimTickSlot3(GpAnimCtx* arg0, GpAnimSlot* arg1)
 {
     u8 idx;
 
@@ -1579,7 +1579,7 @@ void func_800B3EE8(GpAnimCtx* arg0, GpAnimSlot* arg1, s32 arg2, s32 arg3, s32 ar
     arg1->field_C = val;
 }
 
-void func_800B3F60(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4)
+void Gp_AnimInitCtxSlots(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4)
 {
     arg0->field_0  = arg1;
     arg0->field_4  = &arg2->field_34;
@@ -1590,10 +1590,10 @@ void func_800B3F60(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpA
 
 void func_800B3F84(GpAnimCtx* arg0, void* arg1, GpAnimObj* arg2, void* arg3, GpAnimSlot* arg4)
 {
-    func_800B3F60(arg0, arg1, arg2, arg3, arg4);
+    Gp_AnimInitCtxSlots(arg0, arg1, arg2, arg3, arg4);
 }
 
-void func_800B3FA8(GpAnimCtx* arg0, s32 arg1, s32 arg2)
+void Gp_AnimResetSlot(GpAnimCtx* arg0, s32 arg1, s32 arg2)
 {
     GpAnimSlot* slot;
     GpAnimSet** sets;
@@ -1617,7 +1617,7 @@ void func_800B3FA8(GpAnimCtx* arg0, s32 arg1, s32 arg2)
     slot->field_B  = op & 0xF;
 }
 
-void func_800B404C(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+void Gp_AnimResetSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
 {
     GpAnimSlot* slot;
     GpAnimSet** sets;
@@ -1641,9 +1641,9 @@ void func_800B404C(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
     slot->field_B  = op & 0xF;
 }
 
-void func_800B40F4(GpAnimCtx* arg0, s32 arg1, s32 arg2)
+void Gp_AnimSeekSlot(GpAnimCtx* arg0, s32 arg1, s32 arg2)
 {
-    func_800B3910(arg0, arg1, arg2, 0);
+    Gp_AnimSeekSlotEx(arg0, arg1, arg2, 0);
 }
 
 void func_800B4114(GpAnimCtx* arg0, s32 arg1, u16 arg2, s32 arg3, s32 arg4)
@@ -1685,8 +1685,8 @@ void func_800B4114(GpAnimCtx* arg0, s32 arg1, u16 arg2, s32 arg3, s32 arg4)
     slot->field_17 = 0;
 }
 
-void func_800B4248(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
-                   s32 arg5)
+void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
+                           s32 arg5)
 {
     void**            scratch;
     register void*    head asm("t1");
@@ -1734,8 +1734,8 @@ void func_800B4248(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
 }
 
-void func_800B43E0(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
-                   s32 arg5)
+void Gp_AnimWritePoseCopy(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
+                          s32 arg5)
 {
     void**        scratch;
     void*         head;
@@ -1768,7 +1768,7 @@ void func_800B43E0(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
 }
 
-void func_800B4514(GpAnimCtx* arg0, s32 arg1)
+void Gp_AnimTickIndex(GpAnimCtx* arg0, s32 arg1)
 {
     func_800B3448(arg0, arg1, 0, 0);
 }
@@ -1812,7 +1812,7 @@ void func_800B4538(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 
     slot->field_17 = 0;
 }
 
-GpAnimRec* func_800B4668(GpAnimCtx* arg0, GpAnimSlot* arg1)
+GpAnimRec* Gp_AnimGetRec(GpAnimCtx* arg0, GpAnimSlot* arg1)
 {
     u16        idx;
     GpAnimRec* ret;
@@ -1865,8 +1865,8 @@ void func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3)
     arg1->field_0 = arg2;
 }
 
-void func_800B47A8(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6,
-                   void* arg7)
+void Gp_AnimPlaySlot(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6,
+                     void* arg7)
 {
     GpAnimSlot*    slot;
     GpAnimSet*     set;
@@ -1913,7 +1913,7 @@ void func_800B47A8(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 
     slot->field_17 = 0;
 }
 
-void func_800B48FC(GpEnemy* arg0)
+void Gp_SaveEnemyPose(GpEnemy* arg0)
 {
     McPosRec*         rec;
     GameSessionFrom4* loc;
@@ -1988,7 +1988,7 @@ void func_800B48FC(GpEnemy* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
 }
 
-void func_800B4AF8(GpAreaKey* arg0)
+void Gp_SpawnArea(GpAreaKey* arg0)
 {
     GpAreaRec*    recs;
     GpAreaRec*    nested;
@@ -2004,8 +2004,8 @@ void func_800B4AF8(GpAreaKey* arg0)
     s32           fp;
     s32           i;
 
-    recs = D_8010CBCC[arg0->field_3];
-    func_800DAFD0();
+    recs = Gp_AreaTables[arg0->field_3];
+    Gp_ResetLinkState();
     if (recs == NULL) {
         return;
     }
@@ -2056,8 +2056,8 @@ void func_800B4AF8(GpAreaKey* arg0)
                             break;
                         }
                     }
-                    enemy = func_800B01AC((TaskDesc*)entry->field_8, entry->field_5,
-                                          (place->field_1 << 16) | place->field_2, NULL);
+                    enemy = Gp_SpawnEnemyFromTable((TaskDesc*)entry->field_8, entry->field_5,
+                                                   (place->field_1 << 16) | place->field_2, NULL);
                     if (enemy != NULL) {
                         register s32 f3 asm("v1");
                         register s32 f2 asm("a0");
@@ -2112,7 +2112,7 @@ void func_800B4AF8(GpAreaKey* arg0)
                                     rec++;
                                 } while (i < 0x20);
                                 if (i == 0x20) {
-                                    func_800B01F0(enemy, enemy->task);
+                                    Gp_DestroyEnemy(enemy, enemy->task);
                                 }
                             }
                         }
@@ -2132,7 +2132,7 @@ INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B4E54);
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B51F4);
 
-void func_800B56AC(void)
+void Gp_ApplyAreaTmdFlags(void)
 {
     Task*         head;
     Task*         iter;
@@ -2157,7 +2157,7 @@ void func_800B56AC(void)
                 key   = (GpAreaKey*)&Mc_SaveData.field_4;
                 idx   = key->field_3;
                 extra = iter->extra;
-                rec   = D_8010CBCC[idx];
+                rec   = Gp_AreaTables[idx];
                 bytes = work->field_3C;
                 table = NULL;
                 if (rec != NULL) {
@@ -2190,21 +2190,21 @@ void func_800B56AC(void)
     }
 }
 
-void func_800B57EC(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1)
+void Gp_ReparentCoord(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1)
 {
     GsCOORDINATE2* dest;
 
     dest = arg1;
     if (dest->sub != arg0) {
-        func_80098F58(arg0);
-        func_80098F58(dest);
+        Gp_UpdateCoord(arg0);
+        Gp_UpdateCoord(dest);
         dest->sub = arg0;
-        func_800A8864(&arg0->workm, &dest->workm, &dest->coord);
+        Gp_WorldToLocal(&arg0->workm, &dest->workm, &dest->coord);
         dest->flg = 0;
     }
 }
 
-GpWorkObj* func_800B584C(u16 arg0)
+GpWorkObj* Gp_FindWorkById(u16 arg0)
 {
     Task*      head;
     Task*      iter;
@@ -2232,7 +2232,7 @@ GpWorkObj* func_800B584C(u16 arg0)
     return work;
 }
 
-void func_800B58D4(TmdObject* arg0, s32 arg1, s32 arg2)
+void Gp_SetTmdBytes(TmdObject* arg0, s32 arg1, s32 arg2)
 {
     arg0->field_24 = arg1;
     arg0->field_25 = arg2;
@@ -2242,14 +2242,14 @@ void func_800B58D4(TmdObject* arg0, s32 arg1, s32 arg2)
     }
 }
 
-void func_800B5914(s32 arg0)
+void Gp_SetCurAreaFlag2(s32 arg0)
 {
     GpAreaRec* rec;
     GpAreaObj* obj;
     GpAreaKey* key;
 
     key = (GpAreaKey*)&Mc_SaveData.field_4;
-    rec = D_8010CBCC[key->field_3];
+    rec = Gp_AreaTables[key->field_3];
     if (rec != NULL) {
         obj = rec[key->field_2].field_4;
         if (obj != NULL) {
@@ -2264,13 +2264,13 @@ void func_800B5914(s32 arg0)
     }
 }
 
-s32 func_800B59A8(GpAreaKey* arg0)
+s32 Gp_GetAreaFlag2(GpAreaKey* arg0)
 {
     GpAreaRec* rec;
     GpAreaObj* obj;
     s32        val;
 
-    rec = D_8010CBCC[arg0->field_3];
+    rec = Gp_AreaTables[arg0->field_3];
     if (rec != NULL) {
         obj = rec[arg0->field_2].field_4;
         if (obj != NULL) {
@@ -2281,12 +2281,12 @@ s32 func_800B59A8(GpAreaKey* arg0)
     return 0;
 }
 
-GpAreaObj* func_800B5A08(GpAreaKey* arg0)
+GpAreaObj* Gp_GetAreaObj(GpAreaKey* arg0)
 {
     GpAreaRec* rec;
     GpAreaObj* ret;
 
-    rec = D_8010CBCC[arg0->field_3];
+    rec = Gp_AreaTables[arg0->field_3];
     if (rec == NULL) {
         ret = NULL;
     } else {
@@ -2297,12 +2297,12 @@ GpAreaObj* func_800B5A08(GpAreaKey* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B5A48);
 
-void func_800B5B30(GpAreaKey* arg0, s32 arg1, s32 arg2)
+void Gp_SetAreaObjId(GpAreaKey* arg0, s32 arg1, s32 arg2)
 {
     GpAreaRec* rec;
     GpAreaObj* obj;
 
-    rec = D_8010CBCC[arg0->field_3];
+    rec = Gp_AreaTables[arg0->field_3];
     if (rec != NULL) {
         obj = rec[arg0->field_2].field_4;
         if (obj != NULL) {
@@ -2325,12 +2325,12 @@ void func_800B5B30(GpAreaKey* arg0, s32 arg1, s32 arg2)
     }
 }
 
-void func_800B5BFC(s32 arg0, GpAreaKey* arg1)
+void Gp_SetAreaFlag2(s32 arg0, GpAreaKey* arg1)
 {
     GpAreaRec* rec;
     GpAreaObj* obj;
 
-    rec = D_8010CBCC[arg1->field_3];
+    rec = Gp_AreaTables[arg1->field_3];
     if (rec != NULL) {
         obj = rec[arg1->field_2].field_4;
         if (obj != NULL) {
@@ -2345,12 +2345,12 @@ void func_800B5BFC(s32 arg0, GpAreaKey* arg1)
     }
 }
 
-GpAreaObj* func_800B5C88(GpAreaKey* arg0)
+GpAreaObj* Gp_GetNestedAreaObj(GpAreaKey* arg0)
 {
     GpAreaRec* rec;
     GpAreaObj* ret;
 
-    rec = D_8010CBCC[arg0->field_3];
+    rec = Gp_AreaTables[arg0->field_3];
     ret = NULL;
     if (rec != NULL) {
         rec = rec[arg0->field_2].field_0;
@@ -2361,12 +2361,12 @@ GpAreaObj* func_800B5C88(GpAreaKey* arg0)
     return ret;
 }
 
-GpAreaRec* func_800B5CE8(GpAreaKey* arg0)
+GpAreaRec* Gp_GetNestedAreaRec(GpAreaKey* arg0)
 {
     GpAreaRec* rec;
     GpAreaRec* ret;
 
-    rec = D_8010CBCC[arg0->field_3];
+    rec = Gp_AreaTables[arg0->field_3];
     ret = NULL;
     if (rec != NULL) {
         ret = rec[arg0->field_2].field_0;
@@ -2377,14 +2377,14 @@ GpAreaRec* func_800B5CE8(GpAreaKey* arg0)
     return ret;
 }
 
-void func_800B5D44(GpAreaKey* arg0)
+void Gp_SetAreaFlag0(GpAreaKey* arg0)
 {
     u32        key;
     GpAreaRec* rec;
     GpAreaObj* obj;
 
     key = *(u32*)&arg0->field_0 & 0xFFFF0000;
-    rec = D_8010CBCC[arg0->field_3];
+    rec = Gp_AreaTables[arg0->field_3];
     if (key != 0x3260000) {
         if (rec != NULL) {
             obj = rec[arg0->field_2].field_4;
@@ -2397,12 +2397,12 @@ void func_800B5D44(GpAreaKey* arg0)
 
 void func_800B5DB8(Task* arg0)
 {
-    TaskFunc funcs[2] = { func_800B6358, func_800B6398 };
+    TaskFunc funcs[2] = { Gp_BindSlot4, func_800B6398 };
 
     funcs[arg0->state](arg0);
 }
 
-s32 func_800B5E08(Task* arg0, Task* arg1, s32 arg2, Task** arg3)
+s32 Gp_FindChildType9(Task* arg0, Task* arg1, s32 arg2, Task** arg3)
 {
     Task* child;
     s32   ret;
@@ -2426,7 +2426,7 @@ s32 func_800B5E08(Task* arg0, Task* arg1, s32 arg2, Task** arg3)
     return ret;
 }
 
-s32 func_800B5E78(Task* arg0, Task* arg1, s32 arg2, Task** arg3)
+s32 Gp_FindChildExceptType9(Task* arg0, Task* arg1, s32 arg2, Task** arg3)
 {
     Task* child;
     s32   ret;
@@ -2450,7 +2450,7 @@ s32 func_800B5E78(Task* arg0, Task* arg1, s32 arg2, Task** arg3)
     return ret;
 }
 
-s32 func_800B5EE8(Task* arg0)
+s32 Gp_ExitChildrenType9(Task* arg0)
 {
     Task*      child;
     Task*      next;
@@ -2474,7 +2474,7 @@ s32 func_800B5EE8(Task* arg0)
     return 0;
 }
 
-s32 func_800B5F5C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 Gp_SendMsgType9(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     Task*      child;
     Task*      next;
@@ -2491,14 +2491,14 @@ s32 func_800B5F5C(Task* arg0, s32 arg1, s32 arg2, s32 arg3)
         type = work->field_A >> 8;
         next = arg0->nextSibling;
         if (type == 9) {
-            func_800AC464(arg0, arg3, arg2, 0);
+            Gp_DispatchMsg(arg0, arg3, arg2, 0);
         }
         arg0 = next;
     } while (arg0 != child);
     return 0;
 }
 
-void func_800B5FEC(void)
+void Gp_KillSlot4Children(void)
 {
     Task_KillChildren(Game_GetPtrSlot(4));
 }
@@ -2507,13 +2507,13 @@ void func_800B6014(void)
 {
 }
 
-void func_800B601C(GpAreaKey* arg0)
+void Gp_SyncAreaKeyIndex(GpAreaKey* arg0)
 {
     GpAreaRec* rec;
     GpAreaRec* rec2;
     GpAreaObj* obj;
 
-    rec           = D_8010CBCC[arg0->field_3];
+    rec           = Gp_AreaTables[arg0->field_3];
     arg0->field_5 = 1;
     if (rec == NULL) {
         return;
@@ -2546,7 +2546,7 @@ void func_800B60C0(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-void func_800B6118(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2)
+void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2)
 {
     void**            scratch;
     u8*               head;
@@ -2594,7 +2594,7 @@ void func_800B6118(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2)
     *scratch = (u8*)*scratch + 0x28;
 }
 
-void func_800B62D4(void)
+void Gp_FreeSlot4TmdBuffers(void)
 {
     Task*      child;
     Task*      iter;
@@ -2614,10 +2614,10 @@ void func_800B62D4(void)
     }
 }
 
-void func_800B6358(Task* task)
+void Gp_BindSlot4(Task* task)
 {
     Game_SetPtrSlot(task, 4);
-    task->field_24 = D_8010D208;
+    task->field_24 = Gp_Slot4MsgTable;
     task->state++;
 }
 
@@ -2634,7 +2634,7 @@ typedef struct {
 } GpBit2Off2;
 STATIC_ASSERT_SIZEOF(GpBit2Off2, 0x10);
 
-s32 func_800B63B8(s32 arg0)
+s32 Gp_LookupBit2Item(s32 arg0)
 {
     GpBit2List*  lists;
     GpBit2Rec*   rec;
@@ -2648,7 +2648,7 @@ s32 func_800B63B8(s32 arg0)
     s32          found;
 
     idx   = Mc_SaveData.field_7;
-    lists = D_8010D230[idx].field_0;
+    lists = Gp_Bit2Banks[idx].field_0;
     found = 0;
     if (lists != NULL) {
         if (lists->field_0 != (GpBit2Rec*)0x7FFFFFFF) {
@@ -2658,36 +2658,36 @@ s32 func_800B63B8(s32 arg0)
                 matched = 0;
                 if (rec != NULL) {
                     if (rec->field_0 != term) {
-                        attrs = D_8010E3B8;
+                        attrs = Gp_StackLimits;
                         tail  = (GpBit2Off2*)&rec->field_2;
                         do {
                             if (rec->field_0 == arg0) {
-                                item       = tail->field_0;
-                                extra      = tail->field_4;
-                                D_80114DEC = arg0;
-                                D_80114DDC = item;
-                                D_80114DDE = extra;
+                                item          = tail->field_0;
+                                extra         = tail->field_4;
+                                Gp_PubItemId  = arg0;
+                                Gp_PubItemLoc = item;
+                                D_80114DDE    = extra;
                                 if (item < 0x100U) {
                                     if (func_800B7420(tail->field_0) != 0) {
                                         if ((u32)(tail->field_0 - 0x80) < 0x20U) {
-                                            D_80114DDC = 0x3D;
+                                            Gp_PubItemLoc = 0x3D;
                                         } else {
-                                            D_80114DDC = 0xD;
+                                            Gp_PubItemLoc = 0xD;
                                         }
-                                        D_80114DD0 = 1;
-                                        D_80114DC8 = 1;
+                                        Gp_PubItemQty   = 1;
+                                        Gp_PubItemReady = 1;
                                     } else if ((u32)(tail->field_0 - 0xA0) < 0x20U) {
-                                        if (func_800BB470(arg0) != 3) {
-                                            idx        = tail->field_0 - 0xA0;
-                                            D_80114DD0 = attrs[idx].field_0;
+                                        if (Gp_GetCurBit2Flag(arg0) != 3) {
+                                            idx           = tail->field_0 - 0xA0;
+                                            Gp_PubItemQty = attrs[idx].field_0;
                                         } else {
-                                            idx        = tail->field_0 - 0xA0;
-                                            D_80114DD0 = attrs[idx].field_2;
+                                            idx           = tail->field_0 - 0xA0;
+                                            Gp_PubItemQty = attrs[idx].field_2;
                                         }
-                                        D_80114DC8 = 1;
+                                        Gp_PubItemReady = 1;
                                     } else {
-                                        D_80114DD0 = 1;
-                                        D_80114DC8 = 1;
+                                        Gp_PubItemQty   = 1;
+                                        Gp_PubItemReady = 1;
                                     }
                                 }
                                 found   = 1;
@@ -2711,7 +2711,7 @@ s32 func_800B63B8(s32 arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B65B0);
 
-void func_800B6950(u16 arg0)
+void Gp_SpawnPlaceById(u16 arg0)
 {
     GameSessionFrom4*    sess;
     register s32         hi asm("v1");
@@ -2730,9 +2730,9 @@ void func_800B6950(u16 arg0)
     u8                   idx8;
 
     sess = (GameSessionFrom4*)&Mc_SaveData.field_4;
-    asm("lui %0, %%hi(D_8010D230)" : "=r"(hi));
+    asm("lui %0, %%hi(Gp_Bit2Banks)" : "=r"(hi));
     idx8 = sess->field_3;
-    asm("addiu %0, %1, %%lo(D_8010D230)" : "=r"(tmp) : "r"(hi));
+    asm("addiu %0, %1, %%lo(Gp_Bit2Banks)" : "=r"(tmp) : "r"(hi));
     lists = tmp[idx8].field_0;
     if (lists == NULL) {
         return;
@@ -2771,7 +2771,7 @@ void func_800B6950(u16 arg0)
             if (recId != term) {
                 do {
                     if (recId == place->field_2) {
-                        enemy = func_800B01AC(&desc->field_4, 0, desc->field_0, NULL);
+                        enemy = Gp_SpawnEnemyFromTable(&desc->field_4, 0, desc->field_0, NULL);
                         if (enemy != NULL) {
                             task = enemy->task;
                             if (task->spawnType != 0) {
@@ -2802,7 +2802,7 @@ void func_800B6950(u16 arg0)
     } while (id != term);
 }
 
-void func_800B6B44(GameSessionFrom4* arg0)
+void Gp_SpawnPlaces(GameSessionFrom4* arg0)
 {
     GpBit2List*   lists;
     GpEnemyPlace* place;
@@ -2814,7 +2814,7 @@ void func_800B6B44(GameSessionFrom4* arg0)
     u16           term;
     u16           id;
 
-    lists = D_8010D230[arg0->field_3].field_0;
+    lists = Gp_Bit2Banks[arg0->field_3].field_0;
     if (lists == NULL) {
         return;
     }
@@ -2832,7 +2832,7 @@ void func_800B6B44(GameSessionFrom4* arg0)
         if (id != term) {
             do {
                 if (id == place->field_2) {
-                    enemy = func_800B01AC(&desc->field_4, 0, desc->field_0, NULL);
+                    enemy = Gp_SpawnEnemyFromTable(&desc->field_4, 0, desc->field_0, NULL);
                     if (enemy != NULL) {
                         task = enemy->task;
                         if (task->spawnType != 0) {
@@ -2860,7 +2860,7 @@ void func_800B6B44(GameSessionFrom4* arg0)
     } while (place->field_0 != term);
 }
 
-void func_800B6CF0(void)
+void Gp_ApplyItemMap(void)
 {
     s32          i;
     GpItemSlot*  slots;
@@ -2875,10 +2875,10 @@ void func_800B6CF0(void)
 
     i     = 0;
     slots = Mc_SaveData.field_1C8;
-    qty0  = D_8010E238;
-    qty1  = D_8010D278;
+    qty0  = Gp_RelatedQty0;
+    qty1  = Gp_RelatedQty1;
     for (i = 0; i < 8; i++) {
-        map  = &D_8010D2F8[i];
+        map  = &Gp_ItemMaps[i];
         id   = map->field_1;
         slot = (GpItemSlot*)((id << 3) + (s32)slots);
         alt  = slot;
@@ -2906,7 +2906,7 @@ void func_800B6CF0(void)
     }
 }
 
-s32 func_800B6DA4(s32 arg0, s32 arg1)
+s32 Gp_ConsumeSlotQty(s32 arg0, s32 arg1)
 {
     GpItemSlot* slots;
     GpItemSlot* slot;
@@ -2930,7 +2930,7 @@ s32 func_800B6DA4(s32 arg0, s32 arg1)
             if (count != 0) {
                 if (Mc_SaveData.field_5C2 == 0) {
                     slot->field_1 = count - 1;
-                    func_800BB2D4(&Mc_SaveData.field_5BC, slot->field_0, 1);
+                    Gp_ConsumeScanQty(&Mc_SaveData.field_5BC, slot->field_0, 1);
                     count = *counter;
                     if (count <= 0xF423E) {
                         *counter = count + 1;
@@ -2949,7 +2949,7 @@ s32 func_800B6DA4(s32 arg0, s32 arg1)
                     save = &Mc_SaveData;
                     if (save->field_5C2 == 0) {
                         slot->field_3 = count - 1;
-                        func_800BB2D4(&save->field_5BC, slot->field_2, 1);
+                        Gp_ConsumeScanQty(&save->field_5BC, slot->field_2, 1);
                         count = *counter;
                         if (count <= 0xF423E) {
                             *counter = count + 1;
@@ -2967,7 +2967,7 @@ done:
     return slot->field_3;
 }
 
-s32 func_800B6EE0(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     s32          index;
     s32          index2;
@@ -2979,12 +2979,12 @@ s32 func_800B6EE0(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     register s32 shifted asm("v0");
 
     scan  = &Mc_SaveData.field_5BC;
-    table = func_800BB500(scan);
+    table = Gp_GetItemTable(scan);
     if ((u32)(arg1 - 0x80) < 0x20U) {
         found = 0;
         if (arg1 >= 0xA0) {
             index   = scan->field_0;
-            shifted = func_800BBCCC(table, scan, &index, arg1);
+            shifted = Gp_FindScanQty(table, scan, &index, arg1);
             shifted = shifted << 16;
         } else {
             register s32        i asm("v1");
@@ -3023,9 +3023,9 @@ s32 func_800B6EE0(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 
             off = arg1 << 2;
             if (arg0 == 0) {
-                qtyTable = D_8010E038;
+                qtyTable = Gp_QtyById0;
             } else {
-                qtyTable = D_8010D078;
+                qtyTable = Gp_QtyById1;
             }
             row = (GpItemQty*)(off + (s32)qtyTable);
             asm volatile("" : "+r"(row));
@@ -3051,8 +3051,8 @@ s32 func_800B6EE0(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                 }
                 index2 = scan->field_0;
                 slot   = &Mc_SaveData.field_1C8[arg1];
-                have   = (s16)func_800BBCCC(table, scan, &index2, arg2);
-                have  -= func_800BAFF4(scan, arg2);
+                have   = (s16)Gp_FindScanQty(table, scan, &index2, arg2);
+                have  -= Gp_CountEquippedRelated(scan, arg2);
                 if (arg0 == 0) {
                     if (slot->field_0 == arg2) {
                         have += slot->field_1;
@@ -3090,7 +3090,7 @@ success:
     return 0;
 }
 
-s32 func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
+s32 Gp_EquipRelatedItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     s32          index;
     s32          index2;
@@ -3101,7 +3101,7 @@ s32 func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
     register s32 useSecond asm("s5");
     register s32 shifted asm("v0");
 
-    table = func_800BB500(arg0);
+    table = Gp_GetItemTable(arg0);
     if ((u32)(arg2 - 0xA0) >= 0x20U) {
         goto fail;
     }
@@ -3113,7 +3113,7 @@ s32 func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
     found = 0;
     if (arg1 >= 0xA0) {
         index   = arg0->field_0;
-        shifted = func_800BBCCC(table, arg0, &index, arg1);
+        shifted = Gp_FindScanQty(table, arg0, &index, arg1);
         shifted = shifted << 16;
     } else {
         register s32        i asm("v1");
@@ -3156,7 +3156,7 @@ s32 func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
         GpItemQty*          row;
 
         off      = arg1 << 2;
-        qtyTable = D_8010E038;
+        qtyTable = Gp_QtyById0;
         asm volatile("" : "+r"(qtyTable));
         row = (GpItemQty*)(off + (s32)qtyTable);
         asm volatile("" : "+r"(row));
@@ -3176,7 +3176,7 @@ s32 func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
         if (i == 3) {
             off       = arg1 << 2;
             useSecond = 1;
-            qtyTable  = D_8010D078;
+            qtyTable  = Gp_QtyById1;
             asm volatile("" : "+r"(qtyTable));
             row = (GpItemQty*)(off + (s32)qtyTable);
             asm volatile("" : "+r"(row));
@@ -3205,8 +3205,8 @@ s32 func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
         }
         index2 = arg0->field_0;
         slot   = &Mc_SaveData.field_1C8[arg1];
-        have   = (s16)func_800BBCCC(table, arg0, &index2, arg2);
-        have  -= func_800BAFF4(arg0, arg2);
+        have   = (s16)Gp_FindScanQty(table, arg0, &index2, arg2);
+        have  -= Gp_CountEquippedRelated(arg0, arg2);
         if (slot->field_0 == arg2) {
             have += slot->field_1;
         }
@@ -3233,7 +3233,7 @@ s32 func_800B715C(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
         arg3 = 0;
     join:
         if (arg3 > 0) {
-            func_800BB7C0(arg2, 1);
+            Gp_SetItemSeenBit(arg2, 1);
         }
         return arg3;
     }

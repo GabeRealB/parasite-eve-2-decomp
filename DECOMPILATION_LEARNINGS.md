@@ -12,8 +12,8 @@ first:
 
 ```
 li     s6, 0x5d7
-lui    a0, %hi(D_8010F11C)      # too early
-addiu  a0, a0, %lo(D_8010F11C)
+lui    a0, %hi(Gp_MapMarkTables)      # too early
+addiu  a0, a0, %lo(Gp_MapMarkTables)
 lui    v0, %hi(Game_Session)
 ```
 
@@ -26,12 +26,12 @@ register Task* keep asm("a0");
 keep      = arg0;
 color     = 0x5D7;
 session   = Game_Session;
-banks     = D_80060A30;
-markTable = (keep, D_8010F11C);
+banks     = Gp_FlagBanks;
+markTable = (keep, Gp_MapMarkTables);
 ```
 
 `volatile` asm barriers also order the `lui`s but split the block and
-emit the remaining `s`-saves first. `func_800D08D4` is the example.
+emit the remaining `s`-saves first. `Gp_DrawMapMarks` is the example.
 
 ## Force a 3-input OR into the last load's register with `c |= a | b`
 
@@ -118,7 +118,7 @@ is the example.
 
 ## Don't name a later load from the same base as an earlier arg
 
-`seed = q->field_1AC` then later `rng = q->field_1A8; D_80070F60 = rng;
+`seed = q->field_1AC` then later `rng = q->field_1A8; Gp_LcgState = rng;
 srand(seed)` hoists the `field_1A8` load next to the seed load (`lw a0,
 0x1AC` / `lw a1, 0x1A8`). The target reuses `$v1` after `field_23A = 1`
 for that load so it sits just before the zero stores. Write the use
@@ -129,11 +129,11 @@ seed = q->field_1AC;
 q->field_1FE = 0xFF;
 q->field_23A = 1;
 q->field_214 = 0;
-D_80070F60   = q->field_1A8;
+Gp_LcgState   = q->field_1A8;
 srand(seed);
 ```
 
-`func_800AFA44` is the example. Same reason to duplicate a small
+`Gp_StepCdAudioCmd` is the example. Same reason to duplicate a small
 cleanup block in two switch cases rather than a shared `q` at function
 scope: a function-level `q` lands in `$v1` instead of `$v0`.
 
@@ -155,7 +155,7 @@ if (temp < 0) {
 extra = extra >> 11;
 ```
 
-`func_800AFA44` is the example. Reassigning the same `a0` pointer
+`Gp_StepCdAudioCmd` is the example. Reassigning the same `a0` pointer
 (`info = (T*)info->field_4`) then `end = (s32)info` keeps the sector in
 `$a0` and copies it to `$a1` before `Fs_ReadSectorEx` reloads `field_4`.
 
@@ -185,7 +185,7 @@ f2             = f2 | v;
 enemy->field_8 = f2;
 ```
 
-`func_800B4AF8` is the example. Two similar table walks in one function
+`Gp_SpawnArea` is the example. Two similar table walks in one function
 also need separate block-scope pointers: a function-level `pos` lives in
 `$s0` across the `jal`, while the first walk belongs in `$a2`.
 
@@ -207,16 +207,16 @@ block_companion:
 }
 ```
 
-`func_800A0094` is the example.
+`Gp_TickPlayClock` is the example.
 
 ## Pin `ws = arg0` so `move a1, a0` precedes an independent `lui`
 
-`ws = arg0` followed by a CVECTOR copy from a global (`col = D_80093820;
+`ws = arg0` followed by a CVECTOR copy from a global (`col = Gp_ColorOrange;
 gte_ldrgb(&col)`) lets `-fschedule-insns` lift the `lui %hi` above the copy:
 
 ```
 addiu  sp, sp, -8
-lui    v0, %hi(D_80093820)
+lui    v0, %hi(Gp_ColorOrange)
 move   a1, a0
 ```
 
@@ -226,7 +226,7 @@ The target keeps the copy first (`move a1, a0` then `lui`). Pin `ws` so the
 ```c
 ws = arg0;
 __asm__ volatile("" : "+r"(ws));
-col = D_80093820;
+col = Gp_ColorOrange;
 gte_ldrgb(&col);
 ```
 
@@ -249,7 +249,7 @@ asm volatile("" : "+r"(block));
 TransposeMatrix(&player->workm, &block->mat);
 ```
 
-`func_800A70A4` is the example.
+`Gp_UpdateLinkXforms` is the example.
 
 ## Scope a `| k` temp so the OR reuses the load dest
 
@@ -265,11 +265,11 @@ Give each `| packed` its own block-scope temp so it dies at the store:
     obj->field_1C = size;
     obj->flags    = 4;
     obj->field_18 = temp | packed;
-    func_800E15AC(0, obj);
+    Gp_LinkObj(0, obj);
 }
 ```
 
-`func_80100B78` is the example.
+`Gp_InitPlayerWork` is the example.
 
 ## Pin the next call's 0 to `$a0` so `move a0, zero` precedes independent setup
 
@@ -284,10 +284,10 @@ zero = 0;
 asm volatile("" : "+r"(zero));
 link = (GpRec18*)actor->field_94;
 obj->flags |= 0xF200;
-func_800E15AC(zero, obj);
+Gp_LinkObj(zero, obj);
 ```
 
-`func_80100B78` is the example.
+`Gp_InitPlayerWork` is the example.
 
 ## Combine fade-done as `flag == 0 && count <= 0` so the miss jumps into `else if`
 
@@ -321,7 +321,7 @@ if ((flag == 0) && (count <= 0)) {
 }
 ```
 
-`func_800BF738` is the example. TILE RGB must still be stored in *both*
+`Gp_FadeTileTask` is the example. TILE RGB must still be stored in *both*
 arms of the `< 8` color `if` (see “Per-branch stores”) or `-fschedule-insns`
 lifts `addPrim`’s `lui 0xFFFFFF` / `lui 0xE100` above the three `sb`s.
 
@@ -347,7 +347,7 @@ beq    v1, v0, skip
 
 Give each copy its own block-scope `p`/`tbl` (a macro expansion does the same).
 The next list's `lui %hi` then fills the `== 0xFF` delay, with a second `lui`
-after the loop for the NULL / fall-through paths. `func_800AE7AC` is the example.
+after the loop for the NULL / fall-through paths. `Gp_ApplyNewGameAreaFlags` is the example.
 
 ## Write `if (x != K)` so the `== K` body is the `beq` target
 
@@ -415,7 +415,7 @@ lui    a1, %hi(...)
 sw     ra / s7 / s6 / ...
 ```
 
-`func_800AC790` is the example.
+`Gp_EmitSprts` is the example.
 
 ## Two array pointers so `p++` and `i++` fill different load delays
 
@@ -427,7 +427,7 @@ while `cur++` waits until after both OT-index loads.
 A loop counter that is only compared at the backedge sinks into the
 later delay (`addiu s4` with `wh` instead of `xy`). `asm volatile("" :
 "+r"(i))` after `i++` keeps the increment in the `xy` load delay.
-`func_800AC790` is the example.
+`Gp_EmitSprts` is the example.
 
 ## Nested `asm("s1")` derived pointer so an early `u32` can still use `$s1`
 
@@ -442,7 +442,7 @@ count and a later pointer) makes GCC store a known-zero `count` with
 wants `s2++` in an earlier load delay and `s1++` in the backedge delay.
 A second pointer at `&elem->w`, pinned with `asm volatile("" : "+r"(mid))`
 right after the assignment, breaks the equivalence so `elem++` and
-`mid++` schedule independently. `func_800ACAA8` is the example.
+`mid++` schedule independently. `Gp_AllocSprtLists` is the example.
 
 ## Stage `u16 - N` through an `s32` so GCC emits `addiu -N`
 
@@ -459,7 +459,7 @@ req.y = y + arg2;
 
 Assign `color = 0x606060` in the same branch so `lui a2, 0x60` fills the
 `beqz equipped` delay slot. Inlining `req.field_8 = 0x606060` puts the
-constant in `$a1` and delays `la a1, D_80097024`. `func_800C22D8` is the
+constant in `$a1` and delays `la a1, Gp_StrE`. `func_800C22D8` is the
 example.
 
 ## Save incoming `$a2` first, then split `G_SCRATCH_HEAD` so `lui` sits in the prologue
@@ -511,8 +511,8 @@ block    = tmp;
 *scratch = tmp;
 ```
 
-`func_800D8EA0` is the example. Same split-address `lui` in a branch delay
-as `func_800B0278`.
+`Gp_UpdateActorColor` is the example. Same split-address `lui` in a branch delay
+as `Gp_CopyCoordOffset`.
 
 Walking packed 3x3 columns as `src->x` / `src->y` / `src->z` (offsets
 0 / 6 / 12) CSEs `&src->z` into a derived pointer (`addiu a0, a1, 0xc`
@@ -527,7 +527,7 @@ asm volatile("" : "+r"(src));
 block->col0.vz = src->z;
 ```
 
-`func_800D8EA0` is the example.
+`Gp_UpdateActorColor` is the example.
 
 Do not keep a scratch pointer live from alloc to free. A local `scratch`
 that is used at both ends is allocated to an extra `$s` register and
@@ -541,7 +541,7 @@ and can put `lui 0x1F80` in the first-branch jump delay:
 *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
 ```
 
-`func_800B0278` is the example.
+`Gp_CopyCoordOffset` is the example.
 
 `scratch = (void**)G_SCRATCH_HEAD` first hoists `lui`/`ori` above `sw s4`.
 `register s32 thresh asm("s4"); thresh = arg2;` without a use delays
@@ -646,9 +646,9 @@ register GpBit2Bank* tmp asm("a1");
 register GpBit2Bank* banks asm("t1");
 
 sess = (GameSessionFrom4*)&Mc_SaveData.field_4;
-asm("lui %0, %%hi(D_8010D230)" : "=r"(hi));
+asm("lui %0, %%hi(Gp_Bit2Banks)" : "=r"(hi));
 idx8 = sess->field_3;
-asm("addiu %0, %1, %%lo(D_8010D230)" : "=r"(tmp) : "r"(hi));
+asm("addiu %0, %1, %%lo(Gp_Bit2Banks)" : "=r"(tmp) : "r"(hi));
 lists = tmp[idx8].field_0;
 ...
 banks = tmp;
@@ -656,7 +656,7 @@ banks = tmp;
 
 Non-volatile (not `asm volatile`) lets `-fschedule-insns` hoist the `lui`
 above the prologue `sw`s and keep `addiu` after the `lbu`. `volatile` parks
-the `lui` *after* those stores. `func_800B6950` is the example.
+the `lui` *after* those stores. `Gp_SpawnPlaceById` is the example.
 
 ## Expand `* 100` so the last `<< 2` can land in a pinned `$s1`/`$s2`
 
@@ -694,21 +694,21 @@ next call reuse it:
 ```
 jal   ApplyTransposeMatrixLV
  addiu a0, a0, 0x24
-lw    a2, %lo(D_80115448)(s2)
+lw    a2, %lo(Gp_GridParams)(s2)
 lhu   v0, 0x10(s0)
 lw    v1, 0(a2)
 lhu   a0, 0x14(a2)
 ```
 
-A named `p = D_80115448` without a pin lands in `$a3` instead. That
+A named `p = Gp_GridParams` without a pin lands in `$a3` instead. That
 shifts every subsequent field load and the second call's
 `lw a0, 0(p)` / `move a2, out`. Pin the pointer:
 
 ```c
 register GpGridParams* p asm("a2");
 
-ApplyTransposeMatrixLV(&D_80115448->field_0->workm, in, out);
-p = D_80115448;
+ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm, in, out);
+p = Gp_GridParams;
 ```
 
 Also pass `(VECTOR*)(head - 0x20)` (not `&block->pos0`) so the follow-up
@@ -722,7 +722,7 @@ Loading a per-stage name table and immediately folding it into the
 final string pointer:
 
 ```c
-text = D_8010F0B8[stage - 1];
+text = Gp_MapNameTables[stage - 1];
 if (text != NULL) {
     text = text + (room * 0x20 - 0x20);
 ```
@@ -733,13 +733,13 @@ table entry in its own temp so the `lw` stays in `$a1`; index a
 32-byte record with `arr[i - 1]`:
 
 ```c
-names = D_8010F0B8[stage - 1];
+names = Gp_MapNameTables[stage - 1];
 if (names != NULL) {
     text = names[room - 1].text;
 ```
 
 `arr[i - 1]` on a 0x20-byte struct is `sll 5` / `addiu -0x20` / `addu`
-in the `bnez state` delay slot. `func_800D1BAC` is the example.
+in the `bnez state` delay slot. `Gp_DrawMapName` is the example.
 
 ## Index each table in its `if` arm so `la` lands in `$v1`
 
@@ -784,7 +784,7 @@ if (mode == 0 || mode == 2) {
 ```
 
 `register ... asm("v1")` on the table pointer also works but is
-unnecessary. `func_800DB128` is the example.
+unnecessary. `Gp_GrantLocationItems` is the example.
 
 ## if/else on the same field keeps the phi in `$v0`; a ternary steals `$t0`
 
@@ -870,7 +870,7 @@ slot->field_17 = 0;
 ```
 
 `func_800B4538` is the example. The same tail is in `func_800B4114` /
-`func_800B47A8`.
+`Gp_AnimPlaySlot`.
 
 
 ## `s16` step in `$a0`, extra copies, sequential clamp for `bgez`
@@ -951,7 +951,7 @@ end = (byte & 0xFF) / scale;
 Keeping `scale` as `s32` (or writing `(s16)s32_scale` after GCC already
 knows the value fits in 16 bits) drops the `sll`/`sra 16` recast, writes
 the shift into `$v1` instead of `$v0`, and swaps saved-arg registers.
-`func_800E8E00` is the example.
+`Gp_SpawnPadLerpScaled` is the example.
 
 
 
@@ -982,7 +982,7 @@ if (limit > 0) {
 }
 ```
 
-`func_800ACEBC` is the example. `register s16 idx asm("t0")` got the
+`Gp_FindViewIndex` is the example. `register s16 idx asm("t0")` got the
 register but rewrote the increment in place and stuck at 96%.
 
 ## 18-byte MATRIX rotation copy: `u8[16]` + trailing `s16`, not `u8[18]`
@@ -1007,7 +1007,7 @@ layout matches the existing `GBytes4`/`GBytes8` "unaligned word chunks +
 remainder" pattern. A word-aligned `MATRIX` assignment uses `lw`/`sw`
 instead of `lwl`/`lwr`.
 
-`func_800A8A48` is the example (rotation to `D_80070E44`, then a separate
+`Gp_ApplyView` is the example (rotation to `D_80070E44`, then a separate
 `VECTOR3` assign of `mtx.t` to `D_80070F28`).
 
 ## 0x50-byte `GsCOORDINATE2` assign needs word alignment
@@ -1019,7 +1019,7 @@ A 0x50-byte struct copy that the target does as five aligned 16-byte
 `u8 data[0x50]` has alignment 1, so GCC emits an `or`/`andi 3` check plus
 an `lwl`/`lwr` fallback. Keep the object 4-aligned.
 
-`func_8010C1FC` is the example (`GpActorD4.coord = *extra->field_8`).
+`Gp_BindActorD4` is the example (`GpActorD4.coord = *extra->field_8`).
 
 ## 56-byte assign needs a word-aligned member, not just size `% 4 == 0`
 
@@ -1031,7 +1031,7 @@ A 0x38-byte stack copy that the target does as three aligned 16-byte
 GCC emits `andi src, 3` plus an `lwl`/`lwr` fallback. A leading `s32`
 (or any 4-aligned member) is enough.
 
-`func_800ADF3C` is the example (`D_8010CB90` / `GpCb90Rec`).
+`Gp_CommitWarp` is the example (`Gp_WarpTables` / `GpWarpRec`).
 
 ## Barrier after scratch alloc so GTE setup cannot fill load-delay nops
 
@@ -1069,7 +1069,7 @@ __asm__ volatile("" ::: "memory");
 gte_SetRotMatrix(&((GsCOORDINATE2*)arg0->field_8)->workm);
 ```
 
-`func_800E08CC` is the example. Without the barrier the body still
+`Gp_ObjWorldPos` is the example. Without the barrier the body still
 matched and only those two delay-slot nops were gone (90.5%).
 
 ## Capture the table pointer before `idx + (byte - K)`
@@ -1103,14 +1103,14 @@ task  = Task_Spawn(7, table[arg2 + type] + arg3 * 2 + arg1, 0, 0);
 ## Split two `arg0->actor` reloads so they take `$a3` then `$v0`
 
 Reusing one local for both `actor = arg0->actor` reloads (across
-`func_800B3F84` / `func_801038F8`) merges the live range. GCC then
+`func_800B3F84` / `Gp_AnimResetChildSlots`) merges the live range. GCC then
 parks it in `$t0` because the same name is still live after the first
 call. Overwriting the original saved `actor` puts the second reload in
 `$s0` instead.
 
 The target wants the first reload in `$a3` (it becomes
 `&inner->field_7A8`, the 4th arg) and the second in `$v0` (store-only
-scratch before `func_80103A18`):
+scratch before `Gp_AnimPlayChildSlotsEx`):
 
 ```
 lw    a3,0x1c(s1)
@@ -1124,7 +1124,7 @@ sh    zero,0x954(v0)
 
 Use three distinct locals: keep the original actor in a saved register
 for the later `field_914` kill, one local that dies at `func_800B3F84`,
-and a third that exists only for the post-`func_801038F8` stores:
+and a third that exists only for the post-`Gp_AnimResetChildSlots` stores:
 
 ```c
 actor = arg0->actor;
@@ -1133,11 +1133,11 @@ inner            = arg0->actor;
 inner->field_93A = table[idx] + addend;
 inner->field_928 = ptrs[inner->field_93A];
 func_800B3F84(..., &inner->field_7A8, ...);
-func_801038F8(arg0, 1);
+Gp_AnimResetChildSlots(arg0, 1);
 next            = arg0->actor;
 next->field_954 = 0;
 /* ... */
-func_80103A18(arg0, 1, 0, 4);
+Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 4);
 /* Task_Kill(actor->field_914); */
 ```
 
@@ -1260,7 +1260,7 @@ if (((mask << bit) & flags) == 0) {
 }
 ```
 
-`func_800ABF1C` is the example. `flags = bank->field_4[which];
+`Gp_MarkAreaVisited` is the example. `flags = bank->field_4[which];
 mask = 1 << bit` stuck at 98% with only those registers swapped.
 
 ## Hoist `&Global` into a saved register with a local pointer
@@ -1281,7 +1281,7 @@ queue = &CdCmd_Queue;
 queue->field_22A = D_8011565C;
 ```
 
-`func_800E646C` is the example. The direct
+`Gp_CapExit` is the example. The direct
 `CdCmd_Queue.field_22A = D_8011565C` stuck at 93.9% with only that
 address and the extra saved register different.
 
@@ -1312,7 +1312,7 @@ Game_Session->field_124 = 0;
 Game_Session->field_125 = 0;
 ```
 
-`func_800ABA4C` is the example. The hoisted-pointer form stuck at 99.6%
+`Gp_PickCompanion` is the example. The hoisted-pointer form stuck at 99.6%
 with only that `addiu` / `lui Game_Session` pair swapped.
 
 ## Reload `&Global` into a second local so the first pointer can die
@@ -1327,11 +1327,11 @@ sb v0,1(a0)` before `lui Game_Session`) and loads `Game_Session` into
 Use a new local for the later stores:
 
 ```c
-p = &D_801153F0;
+p = &Gp_StateF0;
 if (p->field_6 != 0) {
     p->field_6--;
     if (p->field_6 == 0) {
-        D_801153F0.field_0 = 2;
+        Gp_StateF0.field_0 = 2;
         p->field_2         = 0;
         p->field_3         = 0;
         p->field_1         = 0x3C;
@@ -1339,13 +1339,13 @@ if (p->field_6 != 0) {
     }
     rec = arg0->field_20->field_50;
     if (rec != NULL) {
-        q = &D_801153F0;
+        q = &Gp_StateF0;
         q->field_8 += rec->field_6;
     }
 }
 ```
 
-`func_800DB558` is the example. Reusing `p` for the second half stuck
+`Gp_ReleaseStateF0Add` is the example. Reusing `p` for the second half stuck
 at 94.4% with only that last-ref schedule and the `$a0`/`$v1` reload
 different.
 
@@ -1415,7 +1415,7 @@ y     = arg0->baseY - 3; /* lhu; addiu -3 */
 req.y = y + arg2;        /* addu s2 */
 ```
 
-`func_800CDBEC` is the example. A cast alone (`(s32)arg0->baseY - 3`)
+`Gp_DrawQty` is the example. A cast alone (`(s32)arg0->baseY - 3`)
 folds away before RTL.
 
 ## Assign `(div + K)` inside the add so K stays on the dividend
@@ -1433,7 +1433,7 @@ the tpage and pins K onto the divide result:
 arg1->x = ((s8)extra->field_24 << 6) + (x = (arg2->x + 1) / 2 + 0x180);
 ```
 
-`func_800DB28C` is the example. The natural
+`Gp_LoadActorImage` is the example. The natural
 `tpage + (x + 1) / 2 + 0x180` stuck at 94% with only the `addiu 0x180`
 moved.
 
@@ -1567,7 +1567,7 @@ if (p->field_21 == 0) {
 }
 ```
 
-`func_800BBF1C` is the example. `if (p->field_21) { ... if (item) ... }` stuck
+`Gp_SyncHeldRelated` is the example. `if (p->field_21) { ... if (item) ... }` stuck
 at 88% with the load reused and the inner branch inverted.
 
 ## `volatile` copy of `p` so a range check reloads the same u8
@@ -1636,10 +1636,10 @@ if ((id & 0x3F) == 0x31) {
     p->field_5D = 0;
     return;
 }
-p->field_5D = D_80114C08.field_0 % 10U;
+p->field_5D = Gp_StateC08.field_0 % 10U;
 ```
 
-`func_800E301C` is the example. The `&&` / else-zero form stuck at 87% with
+`Gp_SetObjFlag2` is the example. The `&&` / else-zero form stuck at 87% with
 only the branch inverted and the zero store at the end.
 
 ## Store `== K` in an `s32` and test `== 0` so the false return is `beqz`
@@ -1667,7 +1667,7 @@ return x;
 ```
 
 `if (cond) { return x; } return y;` flips to `bnez` and swaps the two
-tails. `func_800A746C` is the example; `func_800A74C4` is the same
+tails. `Gp_GetAttachLevels` is the example; `Gp_IsDebugAttachRoom` is the same
 predicate returned as the `s32` itself.
 
 ## Comma-assign so `li sN,K` lands only on the else path
@@ -2039,7 +2039,7 @@ if (dest->sub != arg0) {
 }
 ```
 
-`func_800B57EC` is the pure example. Using `arg1` directly swapped `$s0`/`$s1`
+`Gp_ReparentCoord` is the pure example. Using `arg1` directly swapped `$s0`/`$s1`
 (~89%) even with the rest of the body identical.
 
 ## `~x != 0` for `nor` + `sltu` (not `x != -1`)
@@ -2117,12 +2117,12 @@ does not.
 
 When the target is signed `slti`/`bnez` (not `sltiu`) and the body also
 increments a second counter, a pointer `p++` plus `i++` still becomes
-`li N-1; bgez`. Index the typed array instead (`func_800D9618`):
+`li N-1; bgez`. Index the typed array instead (`Gp_CountRoomCoords`):
 
 ```c
 count = 0;
 for (i = 0; i < 8; i++) {
-    if (D_80114F30[i].field_0 != 0) {
+    if (Gp_RoomCoords[i].field_0 != 0) {
         count++;
     }
 }
@@ -2140,7 +2140,7 @@ and inserts a dead `li v0,-1` in the `beqz` delay slot.
 
 ```c
 /* BAD ~83%: p = &arr[arg0] in the for-init */
-for (i = arg0, p = &D_8010D2F8[arg0]; i < 8; i++) {
+for (i = arg0, p = &Gp_ItemMaps[arg0]; i < 8; i++) {
     if (func(scan, p->field_1)) {
         return i;
     }
@@ -2149,14 +2149,14 @@ for (i = arg0, p = &D_8010D2F8[arg0]; i < 8; i++) {
 
 /* GOOD: assign inside the body; GCC still emits p++ */
 for (i = arg0; i < 8; i++) {
-    p = &D_8010D2F8[i];
+    p = &Gp_ItemMaps[i];
     if (func(scan, p->field_1)) {
         return i;
     }
 }
 ```
 
-`func_800BBD40` is the example. The outer `(u32)arg0 >= 8` early `-1` is a
+`Gp_NextMappedSlot` is the example. The outer `(u32)arg0 >= 8` early `-1` is a
 separate `sltiu`/`bnez` and must stay outside the loop.
 
 ## Hoist `%hi(store_global)` before the array base
@@ -2183,10 +2183,10 @@ the walking `s0`:
 ```c
 ds = &Display_State;          /* explicit: a3 first */
 for (; i < 50; i++) {
-    out  = &D_8011568C;       /* hoist 1: lui s1, %hi */
+    out  = &Gp_CapFile;       /* hoist 1: lui s1, %hi */
     slot = &D_8006C338[i];    /* hoist 2: lui v0 / addiu s0 */
     ...
-    D_8011568C = slot->field_4; /* sw %lo(D_8011568C)(s1) */
+    Gp_CapFile = slot->field_4; /* sw %lo(Gp_CapFile)(s1) */
 }
 ```
 
@@ -2210,7 +2210,7 @@ type3 = 3;                    /* li v0, 3 — fills the lbu delay */
 if (slot->field_0 == type3) { /* lbu v1; bne v1, v0 */
 ```
 
-A bare `if (slot->field_0 == 3)` still hoists. `func_800E6D60` is the example.
+A bare `if (slot->field_0 == 3)` still hoists. `Gp_LoadCapFile` is the example.
 
 ## Finding which pass causes a mismatch
 
@@ -2988,7 +2988,7 @@ command + `gte_stlvnl0`. Standard `gte_rtv0` is `mvmva 1,0,0,3,0`
 is the template: `gte_SetRotMatrix` + `gte_SetTransMatrix` + `gte_ldv0` +
 that command + `gte_stlvnl`.
 
-`D_80070F34` is `D_80070F10.workm`. After `func_800A8864(&D_80070F34, ...)`,
+`D_80070F34` is `D_80070F10.workm`. After `Gp_WorldToLocal(&D_80070F34, ...)`,
 recover the parent as
 `(GsCOORDINATE2*)((u8*)world - OFFSET_OF(GsCOORDINATE2, workm))` so the
 compiler emits `addiu s0, s0, -0x24`. A second `&D_80070F10` symbol load
@@ -3011,7 +3011,7 @@ Hoist `opz = &ws->field_28` *before* `ds` / `0xFFFFFF` / `0xFF000000` so
 `&field_28` lands in `$t3`. Name a `u_long* ot` temp and GCC CSEs the
 shifted OT slot (~85%); write both `addPrim` halves as the full
 `((((u32)otz << ds->field_128) >> 2) & 0xFFC) + (s32)ws->field_14`
-expression, same as `func_800AD410`.
+expression, same as `Gp_LinkSprtCmd`.
 
 ## Large sparse switches: case order and shared handlers
 
@@ -9590,7 +9590,7 @@ Pinning both pairs at function scope collides. Give each pair its own
 block-scope `register … asm("v0")` / `asm("v1")` so the live ranges do
 not overlap. For the `or v1, v0, v1` form, load hi then lo then
 `hi <<= 8; key = hi | key` (a single `(hi << 8) | lo` emits
-`or v1, v1, v0`). `func_800B48FC` is the example.
+`or v1, v1, v0`). `Gp_SaveEnemyPose` is the example.
 
 ## `s8` stack slots for signed `li` of negative byte constants
 
@@ -14148,7 +14148,7 @@ if (flag == 0) {
 
 `lb` fills a 32-bit register; the independent store then sits in the `bnez`
 delay slot. Using the `(s8)` cast only in the `if` condition emits `lb` but
-does not hoist the store. `func_800A99E0` is the example.
+does not hoist the store. `Gp_SetupSprtDisplay` is the example.
 
 ## Volatile object pointer pins field loads after a global store
 
@@ -14174,7 +14174,7 @@ Task*               task;
 
 inner          = work->actor;
 work->field_18 = NULL; /* must precede the global */
-D_80115760[0]  = NULL; /* declare as T* volatile, not volatile T* */
+Gp_ActorSlots[0]  = NULL; /* declare as T* volatile, not volatile T* */
 task           = inner->field_914;
 if (task != NULL) {
     Task_Kill(task);
@@ -14186,7 +14186,7 @@ Copy each field into a temp before the call: a volatile `if (inner->field)` /
 
 Declare the global as `T* volatile`, not `volatile T*`. The latter makes the
 *pointee* volatile; `g = NULL` is then a non-volatile pointer store and sinks
-into the following `beqz` delay slot. `func_80101408` is the example.
+into the following `beqz` delay slot. `Gp_TeardownSlot0` is the example.
 
 ## `if (ptr != NULL) { work; return 0; }` shares a leaf epilogue
 
@@ -14249,8 +14249,8 @@ if (id == 0) {
 ```
 
 GCC CSE's the two calls into one `jal` and materializes `K` directly in `$a0`,
-jumping past `move a0, v0`. `func_800CEB40` is the pure example (`D_8010F8D0`
-empty string + `func_800B8EB0` + `func_80049D34`).
+jumping past `move a0, v0`. `Gp_SetHolderItemText` is the pure example (`D_8010F8D0`
+empty string + `Gp_GetItemText` + `func_80049D34`).
 
 ## If/else stores of two constants keep `bnez; nop; j join`
 
@@ -14323,8 +14323,8 @@ materialises `b`'s address first into `$v1`. After a call, do `p = &b` inside
 the `if` body so `lui v1,%hi(b)` fills the `beqz` delay slot; assigning `p`
 before the call puts the `lui` too early.
 
-`func_800BC2C4` is the example (`p = &D_800739B8`; `(s16)(D_80072174 - *p) >= 2`).
-The same shape is how `func_800BC230` emits `lui v1,D_800739B8` first as a leaf.
+`func_800BC2C4` is the example (`p = &Gp_PlayTimeMark`; `(s16)(D_80072174 - *p) >= 2`).
+The same shape is how `Gp_PlayTimeDelta` emits `lui v1,Gp_PlayTimeMark` first as a leaf.
 
 ## Hoist an independent field load so an increment fills the `jal` delay
 
@@ -14351,13 +14351,13 @@ treats that load as ready to interleave:
 void* mem;
 
 mem = arg0->spawnArg2;
-D_80115740->field_0--;
+Gp_State1C->field_0--;
 Mem_Free(mem);
 Task_Kill(arg0);
 ```
 
 Inlining `Mem_Free(arg0->spawnArg2)` after the decrement is the 83% form.
-`func_800EC824` is the example.
+`Gp_KillState1CTask` is the example.
 
 ## `s32 val = func(); byte_global = val` rematerialises same-`%hi` store
 
@@ -14365,7 +14365,7 @@ Inlining `Mem_Free(arg0->spawnArg2)` after the decrement is the 83% form.
 0x8007`. Taking `&Display_State` into a local and then writing
 
 ```c
-D_80071068 = func_800ACF8C();
+D_80071068 = Gp_ViewSprtCmdEmpty();
 ```
 
 lets CSE keep that shared high half in `$s0` across the call (`sw s0` /
@@ -14373,7 +14373,7 @@ lets CSE keep that shared high half in `$s0` across the call (`sw s0` /
 rematerialises after the call:
 
 ```
-jal  func_800ACF8C
+jal  Gp_ViewSprtCmdEmpty
 nop
 lui  v1, %hi(D_80071068)
 sb   v0, %lo(D_80071068)(v1)
@@ -14385,7 +14385,7 @@ into the earlier address:
 ```c
 s32 val;
 
-val        = func_800ACF8C();
+val        = Gp_ViewSprtCmdEmpty();
 D_80071068 = val;
 ```
 
@@ -14396,7 +14396,7 @@ A direct assignment or a `u8*` to the global still pins `$s0`.
 
 `memset` lives at `0x800420F8` in the main exe. Overlay C should call
 `memset` (include `<psyq/memory.h>`) and `sym.gameplay.imports.txt`
-should list that same name at that address. `func_800BBEC0` is the
+should list that same name at that address. `Gp_SumItemQty` is the
 example.
 
 ## Mutate `arg <<= N` before a call so the shift wins the schedule
@@ -14423,7 +14423,7 @@ Ui_SpawnFromDesc(&desc, arg3 | arg1, one, one, arg0);
 ```
 
 A `s32 packed = arg3 << 16` local can also work, but mutating the argument
-keeps the shift in `$a3` (`sll a3, a3, 16` / `or a1, a3, a1`). `func_800D4E40`
+keeps the shift in `$a3` (`sll a3, a3, 16` / `or a1, a3, a1`). `Gp_SpawnItemPrompt`
 is the example.
 
 ## Same-constant stores to a 5-word global want mid-first order
@@ -14468,7 +14468,7 @@ p[3] = val;
 p[4] = val;
 ```
 
-A counted `for` loop is not unrolled. `func_800CDEF4` is the example;
+A counted `for` loop is not unrolled. `Gp_ClearPreviewItems` is the example;
 `func_800CCDC8` inlines the same five stores.
 
 ## Nested `!= 0` then `== 1` keeps the extra `beqz`
@@ -14526,7 +14526,7 @@ if (Pad_CheckButtons(0, 0, 0x8000) != 0) {
 return func(arg0, pos, flag);
 ```
 
-`func_800DADE4` is the example. `flag = 1` before the first poll scored ~77%.
+`Gp_FindLockNodeAt` is the example. `flag = 1` before the first poll scored ~77%.
 
 ## Take `&local` into a pointer temp before the first call
 
@@ -14550,7 +14550,7 @@ if (Pad_CheckButtons(0, 0, 0x8000) != 0) {
 return func(arg0, p, flag);
 ```
 
-`func_800DAD78` is the example — the same flag pattern as `func_800DADE4`, but
+`Gp_FindLockNodePad` is the example — the same flag pattern as `Gp_FindLockNodeAt`, but
 with a stack `VECTOR3`. Bare `&pos` at the call scored ~78%.
 
 ## `if (next == NULL)` keeps the unlink `j` / `nop` delay; `!=` fills it
@@ -14571,7 +14571,7 @@ addiu v0, v0, 4
 
 `if (next != NULL) { pp = &next->prev; } else { pp = &D_xxx; }` is the same
 logic but `-fdelayed-branch` parks `addiu v0,v0,4` in the `bnez` delay slot
-and drops the `j`. `Task_Kill`'s inline unlink and `func_80099258` both need
+and drops the `j`. `Task_Kill`'s inline unlink and `Gp_UnlinkDisp2d` both need
 the `== NULL` form.
 
 The tail must also be a **standalone symbol** (`extern TmdListHead* D_800711C4`,
@@ -14616,7 +14616,7 @@ if ((u32)idx < N) {
 return ret;
 ```
 
-`func_800BB938` is the pure example. The `register … asm("v1")` pin also
+`Gp_GetRelatedQty` is the pure example. The `register … asm("v1")` pin also
 forces the same-reg `lui`/`addiu`, but the two-load shape is the source that
 produces it without a hard register.
 
@@ -14684,10 +14684,10 @@ temp) goes back to `beq == 2; j default` (~74%). `if` / `else if` inlines the
 ```c
 switch (arg0->field_2) {
 case 2:
-    table = D_80114C20;
+    table = Gp_ItemTable2;
     break;
 case 1:
-    table = D_80114D70;
+    table = Gp_ItemTable1;
     break;
 default:
     table = D_80072314;
@@ -14695,7 +14695,7 @@ default:
 }
 ```
 
-`func_800BB5BC` is the pure example.
+`Gp_GetScanSlot` is the pure example.
 
 ## Second pointer so `addu` dest is `$v0`, not the table reg
 
@@ -14710,7 +14710,7 @@ rec = &table[arg0->field_0 + arg1]; /* addu v0, v1, v0 */
 return rec->field_0;                /* lbu  v0, 0(v0) */
 ```
 
-`func_800BB610` is the load-from-row companion of `func_800BB5BC`.
+`Gp_GetScanItemId` is the load-from-row companion of `Gp_GetScanSlot`.
 
 ## Split `&=` / `|=` so the formal stays in `$a0`
 
@@ -14727,7 +14727,7 @@ arg0 &= 0xF0FFFFFF;
 arg0 |= Game_Session->field_7 << 24;
 ```
 
-`func_800E3E30` is the pure example — otherwise a 99% body with only those two
+`Gp_PackStageSndId` is the pure example — otherwise a 99% body with only those two
 ops wrong.
 
 ## Assign `&global` before an earlier call so `%hi` lands in `$s0`
@@ -14812,7 +14812,7 @@ if ((temp >> 17) < hp) {
 ```
 
 `(u16)s16_field << 16` is what produces the shared `lhu` / `sll 16` used by
-both `sra 17` and `sra 18`. `func_80103B1C` is the pure example.
+both `sra 17` and `sra 18`. `Gp_HpBand` is the pure example.
 
 ## Split-constant `lui v0` before a 1-based index
 
@@ -14925,7 +14925,7 @@ the `addiu a0, v0, off` / `move a1, a2` setup.
 
 A separate `extern` for the nearby BSS symbol rematerializes `%hi/%lo`. An
 overlay struct on the same base (`GpItemBlock.scan` at +0x3F4) is what
-emits `addiu a0, v0, 0x3F4`. `func_800BB418` is the pure example.
+emits `addiu a0, v0, 0x3F4`. `Gp_UnequipRelated` is the pure example.
 
 ## Write a dead `||` as one expression, not `if` / `else if`
 
@@ -14964,14 +14964,14 @@ register s32 val asm("s0");
 switch (task->state) {
 case 1:
     if (task->killCountdown == 0) {
-        val = arg->field_0; /* live across func_800AC464 */
+        val = arg->field_0; /* live across Gp_DispatchMsg */
         ...
     }
 }
 ```
 
 Pinning both (`task` to `$s1` and `val` to `$s0`) also matches, but only
-`val` is required. `func_800E6F60` is the example. Inverse of "Copy `arg1`
+`val` is required. `Gp_DelayedMsgTask` is the example. Inverse of "Copy `arg1`
 to a dest local so `arg0` keeps `$s0`".
 
 ## `ret += idx` keeps a pointer chain in `$v0`
@@ -14997,7 +14997,7 @@ ret += slot->field_2; /* pointer stays in $v0; idx loads into $v1 */
 return ret;
 ```
 
-`func_800B4668` is the example. A sentinel `switch (idx) { case 0x7FFF:
+`Gp_AnimGetRec` is the example. A sentinel `switch (idx) { case 0x7FFF:
 return NULL; default: ... }` is what emits `beq` to the trailing
 `jr ra; move v0,zero` instead of an inverted `bne` early-out.
 
@@ -15052,7 +15052,7 @@ if ((u8)flag != 0) {
 Do not write `flag = (u8)flag` before the first call — that hoists the `andi`
 above the `jal`. Named locals for constants reused on both enqueue setups
 (`c50`/`c4`/`c6`) claim `$s7`/`$s5`/`$s4` and leave `$fp` for `%hi(Game_Session)`.
-`func_800A9CBC` is the example.
+`Gp_EnqueueCompanionCd` is the example.
 
 Same schedule either way — only the dest of the `and` and the s-reg
 pairing change. `func_8010BF7C` is the example.
@@ -15145,7 +15145,7 @@ The argument/return must be `s32` so GCC does not emit `sll`/`sra 16`
 around the index. Callers compiled against the old `s16` prototype still
 need that extend: pass `(s16)u16_index` so the call site keeps
 `sll`/`sra 16` in the `jal` delay (`func_800E704C` / `D_801155AE`).
-`func_800E6EA0` is the example.
+`Gp_FindCapEvt` is the example.
 
 ## Sparse switch on `x & 0xFFFF0000` needs a signed mask for `slt`
 
@@ -15207,7 +15207,7 @@ callee, but omitting it drops an instruction and fails the match.
 
 If the callee has no other C callers whose codegen would change, add
 the unused parameter to the real prototype and pass `0`. An unused
-register argument does not change the callee body. `func_800D6AA4` /
+register argument does not change the callee body. `Gp_DrawWeaponLabel` /
 `Ui_InsetLayout(..., 0)` is the example.
 
 ## Non-void callee return occupies `$v0` so the next `li` uses `$v1`
@@ -15221,9 +15221,9 @@ Declaring that same callee `void` frees `$v0` immediately, so you get
 `li v0,K` instead — a one-register miss on an otherwise identical body.
 
 ```c
-s32 func_80105070(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3);
+s32 Gp_SetActorDest(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3);
 
-func_80105070(arg0, arg1, arg2, arg3); /* jal; nop — $v0 still "holds" the return */
+Gp_SetActorDest(arg0, arg1, arg2, arg3); /* jal; nop — $v0 still "holds" the return */
 actor->field_956 = 8;    /* li v1,8; sh v1,0x956(s2) */
 return 0;                /* move v0,zero after the restores */
 ```
@@ -15288,7 +15288,7 @@ return val != 0;
 ```
 
 Inlining `(1 << (arg0 % 32))` without first assigning `arg0 %= 32` drops
-back to the `srav` form. `func_800BB4BC` is the example.
+back to the `srav` form. `Gp_HasCollectedBit` is the example.
 
 ## `if (p != NULL) goto body; return NULL` emits `bnez` + `j` epilogue
 
@@ -15322,7 +15322,7 @@ forward over the kill on the first success, jump back on the second
 fail. Nested `if (p != NULL)` without those gotos parks the kill after
 the success path and uses `beqz`.
 
-`func_8010BAC8` is the example.
+`Gp_SpawnAlly` is the example.
 
 ## Keep `$a0` live so `li v1,K` fills the load-delay of `lw v0,0(v1)`
 
@@ -15358,9 +15358,9 @@ return (word & (3 << shift)) >> shift;
 ```
 
 `word` must be a separate statement: folding `*p` into the return lets
-`li a0,K` sneak back in front of the load. `func_800BB974` is the example.
+`li a0,K` sneak back in front of the load. `Gp_GetBit2Flag` is the example.
 
-The one-arg sibling `func_800BB470` already keeps `$a0` live (the index is
+The one-arg sibling `Gp_GetCurBit2Flag` already keeps `$a0` live (the index is
 shifted in place), so the `:: "r"(arg0)` barrier is not needed. `$a1` is
 free instead, and GCC hoists `li a1,K` at the top. Clobber `$a1` after
 the load so K rematerializes in the now-dead pointer register:
@@ -15397,7 +15397,7 @@ mask = temp << shift;
 ```
 
 Reuse `mask` for `val << shift` and put `~mask` in `$a0` after `$a0` has
-been consumed as the word offset (`arg0 >> 4`). `func_800BB8E8` is the
+been consumed as the word offset (`arg0 >> 4`). `Gp_SetBit2Flag` is the
 example.
 
 The two-arg sibling that takes the bank index from a global byte
@@ -15411,11 +15411,11 @@ delay:
 temp = 3;
 mask = temp << shift;
 temp = Mc_SaveData.field_7;
-p = D_8010D230[temp].field_4;
+p = Gp_Bit2Banks[temp].field_4;
 p += arg0 >> 4;
 ```
 
-`func_800BAC34` is the example.
+`Gp_SetCurBit2Flag` is the example.
 
 ## Do not hoist the jump-table index object before the struct copy
 
@@ -15471,8 +15471,8 @@ Two other pieces have to stay wide:
   (`temp = head->next; if (temp != NULL) { node = temp; ... }`) forces
   `lw v0` / `move v1, v0` in the delay slot, then `sw` / `li a1`.
 
-`func_800E1884` is the example (sibling `func_800E1758` is the same shape
-on `GpObj4A` / `D_8010FAB0`).
+`Gp_ClearObj3AList` is the example (sibling `Gp_ClearObj4AList` is the same shape
+on `GpObj4A` / `Gp_Obj4ALists`).
 
 ## Chained `r = g = b` plus the `<= 0` arm first for CVECTOR stores
 
@@ -15582,7 +15582,7 @@ if ((u32)idx < 0x20) {
 ```
 
 `p = &table[arg0]` (not `table[arg0].field`) is what schedules `sll` before
-the table `lui`. `func_800BC324` is the example.
+the table `lui`. `Gp_GetModLevel` is the example.
 
 ## Load the global first so `lui` precedes `xori`/`sltu` of `!= 1`
 
@@ -15645,7 +15645,7 @@ if (ret == 0) {
 return ret;
 ```
 
-`func_800BC18C` is the example. The unpinned version is a 98% register swap;
+`Gp_ItemSortKey` is the example. The unpinned version is a 98% register swap;
 pinning both drops to ~89%.
 
 ## Pin table `$v1` + session `$a0` so a two-level lookup hoists both `lui`s
@@ -15703,7 +15703,7 @@ recs    = recs + f6;
 }
 ```
 
-`func_800D1FD4` is the example. `field_C` must be a `u8` (or the load is
+`Gp_GetMapRoomId` is the example. `field_C` must be a `u8` (or the load is
 `lhu` + `andi`); neighbouring functions that `lhu` the same halfword can
 overlay it later.
 
@@ -15722,7 +15722,7 @@ default:
 addiu v1, v0, %lo(D_default)
 ```
 
-That is the same coloring as the sibling leaf (`func_800BB5BC`) that
+That is the same coloring as the sibling leaf (`Gp_GetScanSlot`) that
 has no extra locals. Adding a loop index and a `-1` return value
 steals `$a2` for the table and `$v1` for the index — the instruction
 stream stays identical, only those two registers swap (~98%).
@@ -15760,7 +15760,7 @@ for (i = 0; i < scan->field_1; i++) {
 }
 ```
 
-`func_800BB540` is the example.
+`Gp_ScanIndexOf` is the example.
 
 ## Named u16 local pins an lhu for a later mixed-width compare
 
@@ -15926,7 +15926,7 @@ for (i = 3; i >= 0; i--) {
 
 `bit = 0` before `word = *p` matches the target's `move v1, zero` / `lw`
 order. This is the loop counterpart of the single-bit `p += i/32; i %= 32;
-val = *p & (1 << i)` form (`func_800BB4BC`). `func_800BAF08` is the example.
+val = *p & (1 << i)` form (`Gp_HasCollectedBit`). `Gp_CountCollectedBits` is the example.
 
 ## Init `ret = NULL` so a table pointer stays in `$a1`
 
@@ -15965,7 +15965,7 @@ if (rec != NULL) {
 
 Sibling `if (rec == NULL) ret = NULL; else ret = rec[i].field_4;` is still
 correct when the result is loaded into `$v0` and never added to
-(`func_800B5A08`). `func_800B5CE8` is the example that needs the early
+(`Gp_GetAreaObj`). `Gp_GetNestedAreaRec` is the example that needs the early
 init.
 
 ## Index `&base[i]` so the IV is a raw offset, not a pointer
@@ -15997,7 +15997,7 @@ if (i < obj->count) {
 ```
 
 GCC strength-reduces `i * sizeof(Slot) + 0x438` to a single offset IV
-starting at `0x460`. `func_80105B0C` is the example; sibling `func_80103AC0`
+starting at `0x460`. `func_80105B0C` is the example; sibling `Gp_AnimTickChildSlots`
 is the same loop with only the index passed through.
 
 ## Unsigned range-fail early return keeps `sltiu; beqz` fall-through
@@ -16033,7 +16033,7 @@ The inverted `if ((u32)arg0 < N) { work; return val != 0; } return 1;` is
 swapped to `bnez` and CSE reuses the shift's `li v1,1` as `move v0,v1`.
 Taking `&base` before the check also hoists `lui`/`addiu` above the divide.
 
-`func_800BC06C` is the example.
+`Gp_HasItemSeenBit` is the example.
 
 ## `&table[i]` then `*slot` vs `table[i]` for prologue / `$v0` reuse
 
@@ -16061,7 +16061,7 @@ the table base:
 ```c
 void (**slot)(UiObject*, Task*);
 
-id   = *D_80114DD4;
+id   = *Gp_SelItemRec;
 slot = &D_8010D3A0[id];
 if (*slot != NULL) {
     ...
@@ -16126,7 +16126,7 @@ for (;;) {
 }
 ```
 
-`func_800E1A6C` is the example. The sibling `func_800E1A1C` *does* match
+`Gp_ClearRec18Occupied` is the example. The sibling `Gp_CountRec18Hi` *does* match
 as `do … while (!((arg0++)->field_0 & 2))` because it never stores
 `field_0` and the target uses the post-increment form.
 
@@ -16158,7 +16158,7 @@ sp[1] = ...;
 func(slot, cmd, (s32)sp, 0);
 ```
 
-`func_800AF41C` is the example.
+`Gp_MsgPlayer3EF` is the example.
 
 ## Second local so a post-call pointer reload lands in `$v0`
 
@@ -16204,7 +16204,7 @@ val = obj->field_1 & 2;
 return val != 0; /* andi 2; sltu v0, zero, v0 */
 ```
 
-`func_800B59A8` is the example. Same shape as `func_800BB4BC` / `func_800BC06C`
+`Gp_GetAreaFlag2` is the example. Same shape as `Gp_HasCollectedBit` / `Gp_HasItemSeenBit`
 but needed even for a constant 1-bit mask.
 
 ## Assign loop setup before consuming a jal return so it fills `andi` / `addiu`
@@ -16235,7 +16235,7 @@ target = (u8)raw - 1;
 ```
 
 `func_800A91CC` is the example. Pair with `register s32 typeN asm("v0")` (see
-`func_800E6D60`) so the per-iteration kind compare rematerializes as `li v0, K`
+`Gp_LoadCapFile`) so the per-iteration kind compare rematerializes as `li v0, K`
 instead of a hoisted `li t0, K`.
 
 ## Assign the pointer chain first so a later store stays after the loads
@@ -16294,12 +16294,12 @@ sb    zero, %lo(B)(s2)
 first:
 
 ```c
-D_80114CDB = 0; /* $s2 — stored second in the epilogue */
-D_80114CDA = 0; /* $s3 — stored first, then s3 is restored */
+Gp_DirAltNibble = 0; /* $s2 — stored second in the epilogue */
+Gp_DirAlt = 0; /* $s3 — stored first, then s3 is restored */
 ```
 
-`func_800AE36C` is the example. The load-order variant
-`D_80114CDA = 0; D_80114CDB = 0` stuck at 99.5% with only those two
+`Gp_CommitDirWarp` is the example. The load-order variant
+`Gp_DirAlt = 0; Gp_DirAltNibble = 0` stuck at 99.5% with only those two
 `%hi` registers swapped.
 
 ## `*(s32*)&` strips volatile and lets an independent store hoist past earlier ones
@@ -16339,7 +16339,7 @@ c1->coord.t[2] = one;
 m = &D_80070E44;
 ```
 
-`func_800A8B14` is the example. A bare `*(s32*)&D_80070E44 = one` after the
+`Gp_ResetView` is the example. A bare `*(s32*)&D_80070E44 = one` after the
 `t[]` stores stuck at 95% with only those two stores swapped.
 
 ## Assign the sibling walk onto unused `arg1` and the payload back onto `arg0`
@@ -16365,7 +16365,7 @@ do {
 } while (arg1 != child);
 ```
 
-`func_800B5E08` is the example. The same early `if (child == NULL) return ret;`
+`Gp_FindChildType9` is the example. The same early `if (child == NULL) return ret;`
 is what emits `bnez` + `jr` instead of `beqz` to a shared tail.
 
 ## Same-offset `lhu` vs `lbu` needs a union, not a cast
@@ -16383,7 +16383,7 @@ union {
 } field_8;
 ```
 
-`func_800B5E08` uses `field_8.as_u16`; `func_800B5E78` uses `field_8.as_u8`
+`Gp_FindChildType9` uses `field_8.as_u16`; `Gp_FindChildExceptType9` uses `field_8.as_u8`
 and inverts the work-type test (`!= 9` instead of `== 9`).
 
 ## Save `nextSibling` before calling through the iterator
@@ -16417,7 +16417,7 @@ return 0;
 The early `if (child == NULL) return 0;` is what puts `move v0, zero` at the
 *start* of the shared epilogue. A trailing-only `return 0` after
 `if (child != NULL) { ... }` schedules it after the callee-saved restores
-(~98%). `func_800B5EE8` is the example.
+(~98%). `Gp_ExitChildrenType9` is the example.
 
 ## Pin a join-crossing `field & 0xFE` load to `$v0`
 
@@ -16442,8 +16442,8 @@ if (node->field_6 == 0) {
 node->field_4 = val & 0xFE;
 ```
 
-`u8 val` with the same pin does not stick (QImode). `func_800DABEC` is the
-example; the sibling `func_800DACAC` needs no pin because its load and
+`u8 val` with the same pin does not stick (QImode). `Gp_LinkNode` is the
+example; the sibling `Gp_AssignNodeSlot0` needs no pin because its load and
 `= 1` stay in one block.
 
 ## `<< 1` keeps the doubled operand; `* 2` gets reassociated
@@ -16484,13 +16484,13 @@ addiu  a3, a3, -0x24
 Build the address offset-first, then decrement the typed pointer:
 
 ```c
-rec = (GpCb2CRec*)(idx * sizeof(GpCb2CRec) + (s32)recs);
+rec = (GpViewRec*)(idx * sizeof(GpViewRec) + (s32)recs);
 Task_Spawn(0, 0xF, 0, (s32)(rec - 1));
 ```
 
 Same integer form (`idx * sizeof + (s32)recs - sizeof`) also matches.
-Pairs with “Index-first cast for `addu rd, index, base`”. `func_800A8B6C`
-is the example; the sibling `func_800A8C08` can keep `&recs[idx - 1]`
+Pairs with “Index-first cast for `addu rd, index, base`”. `Gp_SpawnViewTasks`
+is the example; the sibling `Gp_GetStageView` can keep `&recs[idx - 1]`
 because that address is a return value, not a call argument.
 
 ## Two-phase switch table, then pin, so `lui v0` survives a later `$v1` walk
@@ -16540,7 +16540,7 @@ Keep the loop index live after the empty-count path (`asm volatile("" ::
 "r"(i))`) so `i = 0` stays at the switch join (`move a1, zero` in the
 case-1 delay) instead of sinking into the `field_1 != 0` arm. Pair with
 `off + (s32)table` and `register s32 off asm("v0")` for `addu v1, v0, v1`
-(see the `off + base` entry). `func_800BAC8C` is the example.
+(see the `off + base` entry). `Gp_ClearScanItems` is the example.
 
 ## Copy the scan count into a limit so `$v1` can become the walk pointer
 
@@ -16560,8 +16560,8 @@ addu  v1, v0, a3  /* rec = off + table */
 (or `$t0`). Assign `limit = count` *after* `if (count != 0)` so the copy
 frees `$v1` for the walk, and keep `off + (s32)table` so dest is a new `rec`.
 Pin the base with `register GpItemRec* table asm("a3")` via the same
-tmp/switch as `func_800BAC8C`. `ret = i` (or `ret = 0` after `i = 0`) fills
-the `beqz` delay with `move a2, a1`. `func_800BAF5C` is the example.
+tmp/switch as `Gp_ClearScanItems`. `ret = i` (or `ret = 0` after `i = 0`) fills
+the `beqz` delay with `move a2, a1`. `Gp_CountScanItems` is the example.
 
 ## `jalr` with the iterator left in `$a1` is a 2-arg callback
 
@@ -16575,9 +16575,9 @@ forces it into `$a1` and emits `move s2, a1` / `lw a1, firstChild` up
 front.
 
 Assign `child = next` *before* the reloaded-`firstChild == NULL` break
-so `move a1, s0` fills that `beqz` delay slot. `func_800BF2C8` is the
-helper; `func_800BD2FC` and `func_800BCC44` inline the same walk with
-`func_800BF398` / `func_800BC634`.
+so `move a1, s0` fills that `beqz` delay slot. `Gp_ForEachUiChild` is the
+helper; `Gp_ItemPaneTask` and `Gp_ItemMoveTask` inline the same walk with
+`Gp_CloseItemPane` / `Gp_ItemMoveChild`.
 
 ## Snapshot `(u16)s32` before an early-out so `lhu` fills the load delay
 
@@ -16652,7 +16652,7 @@ this hoist.
 
 A wrapper-then-3-level lookup (`tbl->field_0[a-1][b-1][c-1]`) written as
 one expression (or with only `tbl`) inverts `$v0`/`$v1` versus the 2-level
-sibling (`func_800AEEFC`): each `lw` lands in the other register and the
+sibling (`Gp_GetViewCountLo`): each `lw` lands in the other register and the
 last `lw` schedules after the final `lbu`.
 
 Assign each pointer level to its own temp. If the last index lives on a
@@ -16667,7 +16667,7 @@ bytes = inner[sess->field_1 - 1];
 return bytes[sess->field_0 - 1]; /* not session->field_4 — that is `lb` */
 ```
 
-`func_800AD284` is the example. The one-liner stuck at 88% with only the
+`Gp_GetViewIndex` is the example. The one-liner stuck at 88% with only the
 register pair flipped. `session->field_4` matched in a scratch `u8` mock
 and became `lb` against the real `GameSession`.
 
@@ -16699,7 +16699,7 @@ if (temp == NULL) {
 entry = temp;
 ```
 
-`func_800AC464` is the example. The one-pointer form stuck at 92% with only
+`Gp_DispatchMsg` is the example. The one-pointer form stuck at 92% with only
 that `lw`/`move` pair missing.
 
 ## Init a NULL result before a call so it rematerializes into leftover `%hi`
@@ -16720,14 +16720,14 @@ constant 0 is rematerialized after the hi is consumed:
 ```c
 rec   = NULL;
 scan  = &Mc_SaveData.field_5BC;
-table = func_800BB500(scan);
+table = Gp_GetItemTable(scan);
 i     = 0;
 table = &table[scan->field_0];
 count = scan->field_1;
 ```
 
 `rec = NULL` after the call CSEs with `i = 0` and lands in `$a3`, so the
-hi stays in `$s0` for the whole function (~92%). `func_800D6994` is the
+hi stays in `$s0` for the whole function (~92%). `Gp_FindItemByKind` is the
 example; `func_800CE980` is the same search with the scan passed in
 (result stays in `$a3` because there is no leftover hi).
 
@@ -16802,7 +16802,7 @@ if (head != NULL) {
 }
 ```
 
-`func_800B584C` is the example.
+`Gp_FindWorkById` is the example.
 
 ## Index the table through the stored `u16` so `addiu %lo` splits around `sh`
 
@@ -16831,7 +16831,7 @@ p->field = table16[i] + addend;
 p->ptr   = table32[p->field];
 ```
 
-`func_80103874` is the example (`D_80112D6C[actor->field_93A]`).
+`Gp_BindActorAnim` is the example (`Gp_PlayerAnimBlkTbl[actor->field_93A]`).
 
 ## Empty `while (x == K) p++` inverts; `while (1)` + `!=` break does not
 
@@ -16861,7 +16861,7 @@ while (1) {
 ```
 
 A `for (; cond; slot++)` or `while (cond) slot++;` stuck at ~79% with only
-that loop inverted. `func_800E1C58` is the example.
+that loop inverted. `Gp_ClaimSlot18` is the example.
 
 ## Reload the stored field for later `~` / `& 1`, not the source temp
 
@@ -16884,22 +16884,22 @@ actor->field_977 = (actor->field_962 >> 6) & flag;
 ```
 
 `actor->field_966 = buttons & ~actor->field_964` (and a literal `& 1`) stuck
-at 84% with only that register move missing. `func_80103804` is the example.
+at 84% with only that register move missing. `Gp_CaptureActorPad` is the example.
 
 ## Hoist the list-head load before the already-linked early-out
 
-`func_800E1688` (and the same-shape `func_800E17B4` / `func_800E15AC`)
+`Gp_LinkObj4A` (and the same-shape `Gp_LinkObj3A` / `Gp_LinkObj`)
 computes `&table[index]` first, then interleaves `lbu flags` with `lw head`.
 Loading the head *inside* the `!(flags & 0x20)` arm delays that work until
 after `bnez` and also inverts the empty-list `beqz`.
 
 Load the head first, then split `head->next` through a temp so the empty
 check is `lw v0` / `beqz` / `move v1, v0` (same temp trick as
-`func_800E1884`). Put the non-empty walk first so `beqz` goes to the
+`Gp_ClearObj3AList`). Put the non-empty walk first so `beqz` goes to the
 empty insert:
 
 ```c
-head  = D_8010FAB0[arg0];
+head  = Gp_Obj4ALists[arg0];
 flags = arg1->field_4A;
 if (!(flags & 0x20)) {
     arg1->field_4A = flags | 0x20;
@@ -16919,7 +16919,7 @@ if (!(flags & 0x20)) {
 }
 ```
 
-`func_800E1688` is the example. The empty-first `if (node == NULL)` form
+`Gp_LinkObj4A` is the example. The empty-first `if (node == NULL)` form
 stuck at 39%.
 
 ## Load the predicate into the same `s32` so `li` overwrites `$v0`
@@ -17045,7 +17045,7 @@ value as the argument forces `lw a0`:
 
 ```c
 if (D_80114CF0 == 0 || SndVoice_HasActiveId(D_80114CF0) == 0) {
-    D_80114CD6++;
+    Gp_DirPhase++;
 }
 ```
 
@@ -17087,7 +17087,7 @@ p->field_6D0[word] |= bit;
 
 A single `p = &Mc_SaveData` before the `arg1` test stuck at 83%
 (`sllv t0` for the mask, CSEd base). Same `p->arr[i]` form as the
-reader (`func_800BC06C`). `func_800BB7C0` is the example.
+reader (`Gp_HasItemSeenBit`). `Gp_SetItemSeenBit` is the example.
 
 ## Share the pointer temp across switch cases so the load dest stays `$v1`
 
@@ -17113,7 +17113,7 @@ case 2:
     break;
 ```
 
-`func_8009988C` is the example. `if ((GsCOORDINATE2*)extra->field_8 == arg0)`
+`Gp_FindTaskByCoord` is the example. `if ((GsCOORDINATE2*)extra->field_8 == arg0)`
 stuck at 99.8% with only that load dest different.
 
 ## Assign `one = 1` after the first global so LIM emits `lui t4` then `li t3`
@@ -17147,12 +17147,12 @@ That pins 0xFFFF in `$t2` too early and lets the first `lhu` clobber `$v0`.
 Leave the literal in both compares so CSE does `li v0, 0xFFFF` / `beq` /
 `move t2, v0`.
 
-`func_800BB668` is the example. Pre-loop `one = 1` stuck at 94% with only
+`Gp_NthCollectedId` is the example. Pre-loop `one = 1` stuck at 94% with only
 the `t4`/`t3` swap.
 
 ## Late `i = 1` needs other loop constants live first
 
-A case that does `i = 1; field += i;` then a `func_800B47A8` walk wants
+A case that does `i = 1; field += i;` then a `Gp_AnimPlaySlot` walk wants
 `li s1, 1` in the *second* `bnez` delay (after the poll), `addu` with `$s1`,
 and `$s2 = arg0` / `$s0 = actor`. Assigning `i = 1` before the poll makes `i`
 live across the jal — correct registers and `addu`, but `li s1, 1` fills the
@@ -17172,7 +17172,7 @@ actor->field_95E += i;
 actor = arg0->actor;
 if (i < actor->field_938) {
     do {
-        func_800B47A8(..., anim, ..., extra, ...);
+        Gp_AnimPlaySlot(..., anim, ..., extra, ...);
         i++;
     } while (i < actor->field_938);
 }
@@ -17241,7 +17241,7 @@ mtxB = (MATRIX*)addr;
 
 Keep the later store of a call result (`arg0->spawnArg2 = result`) *after*
 those copies so the result can live in `$v1` (`register s32 result asm("v1")`)
-instead of being stored immediately from `$v0`. `func_800D9D18` is the example.
+instead of being stored immediately from `$v0`. `Gp_BindDefaultMtx` is the example.
 
 ## Store the task pointer before `Mem_Set` so `sw` fills the jal delay slot
 
@@ -17257,8 +17257,8 @@ task->idMap = (TaskIdMap*)actor;
 Mem_Set(actor, 0, 0x998);
 ```
 
-`func_801036FC` is the example. The same `Mem_Set` then assign order used by
-`func_8010BAC8` stuck at 99.1% with only that delay-slot swap.
+`Gp_SpawnPlayer` is the example. The same `Mem_Set` then assign order used by
+`Gp_SpawnAlly` stuck at 99.1% with only that delay-slot swap.
 
 ## Overlay: still-asm dispatcher tables after expanding `.rodata`
 
@@ -17302,7 +17302,7 @@ cfg = &Wip_SysConfig;            /* later, separate lui/addiu of the base */
 save->field_14 = cfg->field_8;
 ```
 
-`func_800BB9B8` is the example. The same stores as four bare `s16` fields
+`Gp_SavePlayerPos` is the example. The same stores as four bare `s16` fields
 stuck at 90% with only the `addiu`/`%lo` addressing different.
 
 ## Keep the `lb` in a temp so the later store is `sb $v1`, not `lbu`
@@ -17412,7 +17412,7 @@ u8 table[5] = { 4, 3, 2, 5, 6 };
 
 matches the body (scratch score ~99.8%) but emits *new* `.rodata` in the
 C TU. On the gameplay overlay that data already lives in
-`header.rodata.s` (`D_800938CC`); extra bytes from `D4.c.o(.rodata)`
+`header.rodata.s` (`Gp_ConfigCdTable`); extra bytes from `D4.c.o(.rodata)`
 land after the pre-split rodata and shift `.text`.
 
 Type the existing symbol and assign it:
@@ -17422,13 +17422,13 @@ typedef struct {
     u8 field_0[5];
 } GpTbl5;
 
-extern GpTbl5 D_800938CC;
+extern GpTbl5 Gp_ConfigCdTable;
 GpTbl5        table;
 
-table = D_800938CC; /* lwl/lwr/lb of D_800938CC */
+table = Gp_ConfigCdTable; /* lwl/lwr/lb of Gp_ConfigCdTable */
 ```
 
-`func_800A9B3C` is the example.
+`Gp_EnqueueConfigCd` is the example.
 
 ## Pin the table `lhu` to `$v1` so a live `u8` can keep `$a0`
 
@@ -17456,7 +17456,7 @@ if (arg0->count >= (val * scale) / 100) {
 ```
 
 A plain `s32 scale` (no pin) is not enough: local-alloc still hands the
-`lhu` `$a0`. `func_800E2F7C` is the example.
+`lhu` `$a0`. `Gp_ObjFlag4Expired` is the example.
 
 ## Copy `arg2` inside the inner if so `$a2` can hold a table
 
@@ -17478,7 +17478,7 @@ if (arg2 != 0) {
         value = arg2; /* kill $a2 before the table load */
         tmp   = arg3;
         asm volatile("" : "+r"(tmp)); /* move a1, a3 in the beq delay */
-        table = D_8010E8F8;           /* addiu a2, %lo */
+        table = Gp_PreviewItems;           /* addiu a2, %lo */
         ...
     }
 }
@@ -17487,7 +17487,7 @@ if (arg2 != 0) {
 The `+r` barrier on `tmp` is the existing "delay slot ahead of `lui`"
 trick: without it, `lui %hi(table)` steals the `beq` delay instead of
 `move a1, a3`. `func_800CDDA0` is the example (same 3-slot table loop as
-`func_800CDE80`).
+`Gp_SetPreviewItem`).
 
 ## Incoming-arg copies use arg order; explicit locals use register order
 
@@ -17622,7 +17622,7 @@ in the other register (`addiu v1, %lo` / `addu s0, v1, s0`). The two
 statement form keeps both the shift and the later add on `$s0`.
 `*(u16*)((u8*)table + arg0)` is `addu s0, v0, s0`.
 
-`func_800AEBA4` is the example. Shared `table[arg0]` stuck at 97.2% with
+`Gp_LookupStageFlag` is the example. Shared `table[arg0]` stuck at 97.2% with
 only the raw arm's three-instruction join missing.
 
 ## Index `rec[i].field[j]`, not `(&rec[i].field_0)[j]`
@@ -17637,7 +17637,7 @@ Declare the record as `u16 field[8]` and write the natural 2D access so
 GCC treats the symbol as the array base:
 
 ```c
-val = D_8011398C[(a * 3 + b) * 3 + c].field[arg1];
+val = Gp_IdParamHi[(a * 3 + b) * 3 + c].field[arg1];
 ```
 
 `func_800D50D4` is the example. `(&rec[idx].field_0)[arg1]` matched in a
@@ -17720,7 +17720,7 @@ if ((range_a && p->sel_a == id - Ka) ||
 }
 ```
 
-`func_800CEB84` is the example. The if/else-if form stuck at 96.6%;
+`Gp_IsEquippedItem` is the example. The if/else-if form stuck at 96.6%;
 dropping the temp but keeping if/else-if reached 98.7% with only the
 register swap and `lbu a0`.
 
@@ -17777,7 +17777,7 @@ if (val != 0) {
 ```
 
 `register UiObject* obj asm("s2")` also matches, but the split temps are
-enough. `func_800BF4FC` is the example.
+enough. `Gp_HolderPromptTask` is the example.
 
 ## Store via `(T*)(head - K)` before assigning `vec`
 
@@ -17923,7 +17923,7 @@ union {
 Pad_PostEvent(0, 1, state->field_4.bytes.as_u8, 1);
 ```
 
-`func_800E9498` is the example. The shift form compiles and is
+`Gp_PadLerpTask` is the example. The shift form compiles and is
 semantically identical but cannot match.
 
 ## Index the copy (`dest[i] = src[i]`) so `count` wins `$a1`
@@ -17957,7 +17957,7 @@ Assign dest from the table as `s32*` (not the block struct). A
 `Blk* dest = table[i]` load goes to `$v1`; `(s32*)table[i]` reuses
 `$a0` so `dest += 0xBC` is `addiu a0, a0, 0xBC`.
 
-`func_80105914` is the example. The increment form stuck at 93.8%
+`Gp_CopyPlayerAnim` is the example. The increment form stuck at 93.8%
 with only those two loads (and the two `move`s) swapped.
 
 ## Share `i = x - 1` and hoist one array so both tables use `lw 0`
@@ -17973,16 +17973,16 @@ immediately (keeps `&array[i]` live, load delayed), then index the
 other global with the same `i`:
 
 ```c
-tbl68 = D_8010CB68;
+tbl68 = Gp_SprtTables;
 i     = sess->field_3 - 1;
 tbl68 = &tbl68[i];          /* addu a2, v1, a2 */
-tbl   = D_8010CB54[i];      /* addu v1, v1, v0; lw 0(v1) */
+tbl   = Gp_ViewIndexTables[i];      /* addu v1, v1, v0; lw 0(v1) */
 ...
 tbl2  = *tbl68;             /* delayed lw 0(a2) */
 ```
 
-Direct `D_8010CB68[sess->field_3 - 1]` rematerialises that address
-later (`func_800AD2E8`). `func_800ACF8C` is the example.
+Direct `Gp_SprtTables[sess->field_3 - 1]` rematerialises that address
+later (`Gp_GetViewSprtExtra`). `Gp_ViewSprtCmdEmpty` is the example.
 
 ## `volatile` walk pointer so a field reloads after `sltiu`
 
@@ -18057,7 +18057,7 @@ neg            = -1;
 found->field_1 = neg;
 ```
 
-`func_800B7A50` is the example.
+`Gp_EquipMod` is the example.
 
 ## Split 0xFFFF sentinels; reuse the id register as the dest pointer
 
@@ -18096,8 +18096,8 @@ Two sentinels are required: CSE of a single `0xFFFF` becomes
 `move t0,t3` in the prologue. Do **not** pin the table/rec pointers —
 pinning them made the first `lw` use `$a0` instead of `$a3`. Assign
 `tmp = -1` at the outer tail so the compare rematerializes instead of
-CSE into `$t4`. `func_800BB838` is the example (sibling
-`func_800BAB64` is the same walk with a bank lookup in front).
+CSE into `$t4`. `Gp_ApplyBit2List` is the example (sibling
+`Gp_ApplyBit2Bank` is the same walk with a bank lookup in front).
 
 ## Put `&Table` in `$v0` before overwriting it with the compare constant
 
@@ -18124,7 +18124,7 @@ it:
 register s32 tmp asm("v0");
 GpBit2Bank*  bank;
 
-tmp  = (s32)D_8010D230;
+tmp  = (s32)Gp_Bit2Banks;
 bank = (GpBit2Bank*)tmp + arg0;
 tmp  = 3;
 val  = (u32)bank->field_0; /* keeps the first lw in $a1 */
@@ -18135,7 +18135,7 @@ if (arg0 == tmp) {
 table = (GpBit2List*)val; /* delay-slot move a3, a1 */
 ```
 
-`func_800BAB64` is the example. `bank = &D_8010D230[arg0]; tmp = 3`
+`Gp_ApplyBit2Bank` is the example. `bank = &Gp_Bit2Banks[arg0]; tmp = 3`
 stuck at 90–94.5% with only that prologue different. This is the
 inverse of the `mask = 1` before `ptr->arr[i]` rule: here `$v0` must
 hold the *address* first so `3` cannot be reused as the shift.
@@ -18179,7 +18179,7 @@ update:
 `func_800DA6E8` is the example. The follow-up `if (found != NULL)`
 form stuck at 75% with only that control-flow shape different. The
 first search also needs a goto-back loop (not `do`/`while`) so the
-first `lw 0(p)` is not peeled off `&D_80115270` — same anti-peel
+first `lw 0(p)` is not peeled off `&Gp_LockSlots` — same anti-peel
 trick as `Text_SkipLines`.
 
 ## Pin the table to `$v0` inside the `if` so session `lui` takes `$v1`
@@ -18208,7 +18208,7 @@ if (arg0->state == 1) {
     GameSession*         sess;
 
     sess  = Game_Session;
-    banks = D_8010D230;
+    banks = Gp_Bit2Banks;
     p     = banks[sess->field_7].field_4;
     p    += id >> 4;
 }
@@ -18216,7 +18216,7 @@ if (arg0->state == 1) {
 
 Declare the pins *inside* the `if`. Function-scope `asm("v0")` /
 `asm("v1")` steals `$a1` from the task argument (it slides to `$a2`,
-`extra` to `$a3`). `func_800BBC10` is the example. The unpinned
+`extra` to `$a3`). `Gp_WaitItemFlag2` is the example. The unpinned
 one-expression form stuck at 98% with only those two registers swapped.
 
 ## Scratch-head `+r` barrier so `&global` lui fills the load delay
@@ -18449,7 +18449,7 @@ if (node != NULL) {
 }
 ```
 
-`func_80099098` is the example. The same body without the register pin
+`Gp_AttachDisp2d` is the example. The same body without the register pin
 stuck at 92.6% with only those registers (and the late `&Tmd_ListAlt`)
 different.
 
@@ -18548,7 +18548,7 @@ slot->field_10 = 0;
 slot->field_B  = op & 0xF;
 ```
 
-`func_800B3FA8` is the example. `table[(u8)arg1]` stuck at 99.3% with
+`Gp_AnimResetSlot` is the example. `table[(u8)arg1]` stuck at 99.3% with
 only those five index instructions using `$a1` instead of `$v0`.
 
 ## `+r`(index) / `"r"(loaded)` keeps `lbu` before `id -= K`
@@ -18579,7 +18579,7 @@ id -= 0x80;
 slot->field_0 = mapped;
 ```
 
-`func_800B6CF0` is the example. Pair with `register s32 count asm("a1")`
+`Gp_ApplyItemMap` is the example. Pair with `register s32 count asm("a1")`
 so the default `count = 0` stays in `$a1`, and `&arr[i]` each iteration
 (not `p++`) so GCC does not strength-reduce `&p->field_2` into a second
 IV. `off + (s32)base` still supplies `addu a0, v0, base`.
@@ -18617,7 +18617,7 @@ if (tmp == 0) {
 }
 ```
 
-`func_800E8A90` case 3 is the example. The shared-after-if form stuck at
+`Gp_StepScriptA` case 3 is the example. The shared-after-if form stuck at
 97% with only those two `lbu`s merged. The extra live ranges also
 swapped `cmd` / table-pointer coloring (`$v1`/`$a2`) without a pin.
 
@@ -18643,7 +18643,7 @@ slot->field_15 = arg3;
 slot->field_6  = sets[arg2]->field_4[slot->field_15];
 ```
 
-`func_800B404C` is the example (`func_800B3FA8` already uses
+`Gp_AnimResetSlotEx` is the example (`Gp_AnimResetSlot` already uses
 `field_4[slot->field_15]` for the same reason). The `(u8)arg3` form
 stuck at 98.8% with only those six registers swapped.
 
@@ -18653,7 +18653,7 @@ GCC 2.8.1 emits `switch` case bodies in **source order**. The jump table
 still indexes by `arg - first`, but the `.rdata` words point at whatever
 label order the bodies were written.
 
-`func_800D6170` has case 8's `lb` immediately after case 4's `lb`, then
+`Gp_ItemIsUnusable` has case 8's `lb` immediately after case 4's `lb`, then
 cases 5 / 6-7. Writing `case 8:` after `case 7:` stuck at 95% with the
 case-8 block inserted after 6-7 and the table slots swapped. Moving
 `case 8:` to sit under `case 4:` matched the table and the instruction
@@ -18661,12 +18661,12 @@ stream.
 
 ```c
 case 4:
-    if (D_80114C08.field_16 == 0) {
+    if (Gp_StateC08.field_16 == 0) {
         ret = 0;
     }
     break;
 case 8: /* body is next in the target, even though 5-7 come later */
-    if ((s8)D_80114C08.field_17 == 0) {
+    if ((s8)Gp_StateC08.field_17 == 0) {
         ret = 0;
     }
     break;
@@ -18688,8 +18688,8 @@ block cannot just emit another table at the current C `.rodata` cursor
 
 Fill that hole with a `const` in the C file **after** the `INCLUDE_ASM`
 that emits the previous rodata, so `.rdata`/`.rodata` concatenation stays
-packed. `func_800D6170` is the example: yaml `.rodata, 3A34` moved from
-`0x3CB4` to `0x3B3C`, and `D_80097454` is a C `const char[]` after
+packed. `Gp_ItemIsUnusable` is the example: yaml `.rodata, 3A34` moved from
+`0x3CB4` to `0x3B3C`, and `Gp_StrWeapon` is a C `const char[]` after
 `func_800D6334`.
 
 ## Pin the flag, not the pointer, so `&Global[i]` keeps `$v1`
@@ -18717,7 +18717,7 @@ found = 0;
 slot  = &Mc_SaveData.field_1C8[arg0]; /* sll; lui v1; addiu; addu a2,v0,v1 */
 ```
 
-`func_800BB0CC` is the example. Pinning `slot` to `$a2` stuck at 99.6%
+`Gp_ClearEquipSlot` is the example. Pinning `slot` to `$a2` stuck at 99.6%
 with only those three address instructions different.
 
 ## Reuse the mask temp so the second `pad & MASK` writes `$v0`
@@ -18821,10 +18821,10 @@ local. GCC keeps it live across the table select and plants it in the
 item = 0x81;
 switch (scan->field_2) {
     case 2:
-        tmp = D_80114C20;
+        tmp = Gp_ItemTable2;
         break;
     case 1:
-        tmp = D_80114D70;
+        tmp = Gp_ItemTable1;
         break;
     default:
         tmp = Mc_SaveData.field_1AC;
@@ -18838,7 +18838,7 @@ if (rec->field_0 == item) {
 ```
 
 `func_800BAA58` is the example. The rest of the loop is the same shape
-as `func_800BB6FC` (`off + (s32)table`, `limit = count`). A literal
+as `Gp_SumScanQty` (`off + (s32)table`, `limit = count`). A literal
 `== 0x81` after the switch stuck at 84% with the table in `$v1` and no
 `$t0`.
 
@@ -18885,7 +18885,7 @@ if (item < 0xA0) {
 }
 ```
 
-`func_800BF624` is the example. `func(item)` stuck at 96% with only that
+`Gp_PublishItemObj` is the example. `func(item)` stuck at 96% with only that
 delay slot and the compare's `andi` dest different.
 
 ## Volatile `field + K` reloads into dest; pin `v0` + `+r` for `lbu v0; addiu dest, v0, K`
@@ -18920,7 +18920,7 @@ if (acc < glyph->h + 2) {
 
 `&table[code & 0x3FF]` flips the `addu` operands (`table + scaled` vs
 `scaled + table`). The integer `idx * sizeof + (s32)table` form matches
-`addu v1, v0, t3`. `func_800E6AD4` is the example; 99.8% with only that
+`addu v1, v0, t3`. `Gp_CapTextTopY` is the example; 99.8% with only that
 `lbu` dest wrong.
 
 ## Pin the return through `$v0` + `+r` so `move v0, src` stays before the restores
@@ -18958,7 +18958,7 @@ asm volatile("" : "+r"(ret));
 return ret;
 ```
 
-`func_800BAFF4` is the example. A bare `return count` stuck at 98.9% with
+`Gp_CountEquippedRelated` is the example. A bare `return count` stuck at 98.9% with
 only that `move` delayed.
 
 ## Split `end` / `limit` so the bound is `addu v1` then `move t0, v1`
@@ -18977,7 +18977,7 @@ if (start < end) {
     for (; start < limit; start++, rec++) {
 ```
 
-That is `addu v1, a1, v0; slt; ...; move t0, v1`. `func_800BAFF4` is the
+That is `addu v1, a1, v0; slt; ...; move t0, v1`. `Gp_CountEquippedRelated` is the
 example.
 
 ## Share `state++` with `else { goto epilogue; }` after a 3-way dispatch
@@ -19059,10 +19059,10 @@ A regular label *inside* the switch, between those cases, is the hole:
 ```c
 switch (scan->field_2) {
     case 2:
-        tmp = D_80114C20;
+        tmp = Gp_ItemTable2;
         break;
     case 1:
-        tmp = D_80114D70;
+        tmp = Gp_ItemTable1;
         break;
     found:
         qty = rec->field_2;
@@ -19089,7 +19089,7 @@ after_loop:
 
 `qty = 0` plus the volatile keeps `move t0, 0` in the case-1 delay slot
 (so that jump skips the join). Without the pin, `qty = 0` sinks into a
-later delay slot and the gap collapses. `func_800BAD28` is the example.
+later delay slot and the gap collapses. `Gp_RemoveItem` is the example.
 A loop-local `qty = rec->field_2` stuck at 93% with only that block
 after the loop instead of in the switch.
 
@@ -19119,7 +19119,7 @@ addPrim((u_long*)(((((u32)arg2 << Display_State.field_128) >> 2) & 0xFFC)
                   + (s32)Gpu_CurrentOt), p);
 ```
 
-`func_800EC914` is the example. The hoisted `ds` form stuck at 87%
+`Gp_AddTpageShift` is the example. The hoisted `ds` form stuck at 87%
 with only those registers and the `addu` operands swapped.
 
 ## Overlay `save + i*stride` so two `lbu`s share `$v0` and `$v1`
@@ -19187,7 +19187,7 @@ val = temp << 16;
 val = val >> 16;
 ```
 
-`func_80103B88` is the example. Unpinned `temp` stuck at 96% with only
+`Gp_ApplyDirArg` is the example. Unpinned `temp` stuck at 96% with only
 those wrap registers different.
 
 ## Load `field` into a temp before independent `param[i] = 0` stores
@@ -19215,7 +19215,7 @@ The load becomes its own statement, so it cannot stay glued to the
 final store, and the zeros can no longer slip in front of the add:
 
 ```c
-param1[0] = D_80114DF0 + D_80114DF1;
+param1[0] = Gp_MapRoomId + Gp_MapRoomOff;
 stage     = Game_Session->field_7;
 param2[1] = 0;
 param2[3] = 0;
@@ -19224,7 +19224,7 @@ param2[0] = stage;
 CdCmd_Enqueue(0x21, param1, param2);
 ```
 
-`func_800D131C` is the example. The fused
+`Gp_EnqueueMapRoomCd` is the example. The fused
 `param2[0] = Game_Session->field_7` stuck at 97.4% with only those
 three `sb zero` moved before the `addu`.
 
@@ -19289,7 +19289,7 @@ if (ret < src->field_1) {
 `&global` as the later call argument hoists `lui %hi` *after* the rec
 address calc (and often reuses the table's `$s5`). Materializing the hi
 as a constant first pins `$s6` and keeps `addiu a1, s6, %lo` in the jal
-delay. `func_800BC50C` is the example.
+delay. `Gp_CanMoveItems` is the example.
 
 ## Extra store before the shared assignment so `sh` merges
 
@@ -19309,7 +19309,7 @@ if (obj->owner->flags != 0) {
 }
 ```
 
-`func_800BDDC4` is the example. The swapped store order stuck at 95.7%
+`Gp_ItemActionListTask` is the example. The swapped store order stuck at 95.7%
 with a separate `sh` on the -1 path.
 
 ## Switch case order: fall-through-to-epilogue last
@@ -19319,7 +19319,7 @@ must be emitted last. Putting a later simple-store case after it inserts
 `j end; nop` after the call. Source order `-1`, `9`, `6` (store, store,
 teardown+call) matches the target body order.
 
-`func_800BDDC4` is the example. Case order `-1`, `6`, `9` stuck at 95.7%
+`Gp_ItemActionListTask` is the example. Case order `-1`, `6`, `9` stuck at 95.7%
 with the case-9 `sh` after the teardown `jal`.
 
 ## Start the dest-arg local at `extra` and reload between the two loads
@@ -19362,14 +19362,14 @@ func_800FDB18(3, coords, 0, params);
 
 A loop that compares against `-2` / `-3` / `-1` and also reads a global
 table hoists all four. Source assignment order is emit order. Writing
-the table first (`table = D_8011567C; do { if (code == -2) ...`) puts
+the table first (`table = Gp_CapGlyphs; do { if (code == -2) ...`) puts
 `lui/lw` before the `li t5,-2` / `li t4,-3`. Assign the constants first:
 
 ```c
 if (shifted >> 16 != -1) {
     newline = -2;
     skip    = -3;
-    table   = D_8011567C;
+    table   = Gp_CapGlyphs;
     do {
         if (shifted >> 16 == newline) {
             ...
@@ -19380,7 +19380,7 @@ if (shifted >> 16 != -1) {
 }
 ```
 
-Target wants `li -2; li -3; lui/lw table; li -1`. `func_800E69F4` is the
+Target wants `li -2; li -3; lui/lw table; li -1`. `Gp_CapTextHeight` is the
 example; 97.8% with only those four setup insns swapped.
 
 ## Leaf scratch alloc: `tmp` then `s = tmp` for `move a0, v0`
@@ -19516,7 +19516,7 @@ asm("" :: "r"(max));
 `temp = head - 8; dest = temp` keeps the subtract in `$v0` and the
 `move` into the dest s-reg. `*scratch = dest` (not `temp`) is the
 `sw s1`. Walk with `if (rec->field_0 == 0) { copy; LoadImage; } else
-{ done = 1; } rec++;` so work is the `bnez` fall-through. `func_800DB31C`
+{ done = 1; } rec++;` so work is the `bnez` fall-through. `Gp_LoadImages`
 is the example. Assigning `max` before the scratch address stuck at
 97.9% with only those two instruction pairs swapped.
 
@@ -19594,7 +19594,7 @@ if (shifted >> 16 != -1) {
 }
 ```
 
-`func_800E67C8` is the example. A separate `val = shifted >> 16` used
+`Gp_CapCenterX` is the example. A separate `val = shifted >> 16` used
 for both the empty check and the body stuck at ~75% with `lh` + `lhu`.
 
 ## Label increment inside `if (x < 0)` so `== K` is not inverted
@@ -19633,7 +19633,7 @@ after_load:
     /* loop latch */
 ```
 
-`func_800E67C8` is the example. The same gotos with `inc` after the
+`Gp_CapCenterX` is the example. The same gotos with `inc` after the
 `if/else` stuck at 91% with only that `beq` / sunk `addiu`.
 
 ## Compare temp in `$v1` before `li v0, -1`
@@ -19662,7 +19662,7 @@ v0tmp   = -1;
 } while (width != v0tmp);
 ```
 
-A literal `!= -1` hoists `-1` into `$t3`. `func_800E67C8` is the
+A literal `!= -1` hoists `-1` into `$t3`. `Gp_CapCenterX` is the
 example. `v0tmp = -1` before the `sra` stuck at 98.8% with only those
 two instructions swapped.
 
@@ -19687,7 +19687,7 @@ move   a2,a1
 Assign the load first:
 
 ```c
-val = *D_80114DD4;
+val = *Gp_SelItemRec;
 SndEvt_EnqueueType6(3, 0, 0);
 ```
 
@@ -19784,13 +19784,13 @@ do {
 } while (table[arg0] == 0 && save->field_5C2 == 0);
 ```
 
-`func_800A7BBC` is the example. The increment-outside / `while (1)`
+`Gp_StepAttachSlot` is the example. The increment-outside / `while (1)`
 shape stuck at 83.3%.
 
 ## Reuse the `$v1` temp for `(lo - abs)` so the LCG load can overwrite it
 
 A packed-arg fade/shake that does `abs`, `lo - abs`, `packed >> 8`,
-then `D_80070F60 = D_80070F60 * 5 + 0x71357911` wants
+then `Gp_LcgState = Gp_LcgState * 5 + 0x71357911` wants
 
 ```
 subu  v1, a2, v0
@@ -19807,7 +19807,7 @@ mult  t0, v1
 
 A fresh `scaled = lo - tmp` takes `$a1`/`$t0` and pushes the rng load
 into `$v0`. Assign the subtract into the same `$v1` local that later
-holds `(u32)D_80070F60 >> 16`:
+holds `(u32)Gp_LcgState >> 16`:
 
 ```c
 register s32 tmp asm("v0");
@@ -19817,14 +19817,14 @@ tmp    = ABS(arg0->spawnArg1);
 hi     = lo - tmp;
 tmp    = packed >> 8; /* sra v0, a0, 8 — not in-place on packed */
 scaled = hi * tmp;
-D_80070F60 = D_80070F60 * 5 + 0x71357911;
-hi     = (u32)D_80070F60 >> 16;
+Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+hi     = (u32)Gp_LcgState >> 16;
 hi     = scaled * hi;
 ```
 
 `tmp = packed >> 8` is required: `(lo - tmp) * (packed >> 8)` hoists
 `sra a0, a0, 8` into the `lo < spawnArg1` delay slot (killing the
-`lui %hi(D_80070F60)` hoist) and emits `subu v0` / `mult v0, a0`.
+`lui %hi(Gp_LcgState)` hoist) and emits `subu v0` / `mult v0, a0`.
 
 Take `val = hi >> 16` before the sign flip. Passing pinned `hi` to
 `Display_ClampField126` (s8) becomes `sll v1, v1, 24; sra a0, v1, 24`.
@@ -19832,7 +19832,7 @@ The unpinned dest keeps `sll a0, v1, 24`. Odd path is `val = ABS(val)`;
 even is `tmp = ABS(val); val = -tmp` so even stays copy-abs
 (`move v0, v1; negu v0; negu v1, v0`).
 
-`func_800E8938` is the example. A one-liner multiply stuck at 95% with
+`Gp_ShakeTask` is the example. A one-liner multiply stuck at 95% with
 only that hoist and `mult` operand order different. Needs `--expand-div`
 (scratch `build.sh` and the TU).
 
@@ -19919,7 +19919,7 @@ if (flags & 3) {
     req.glyphTable = 0;
     req.centerMode = 0;
     req.field_E = 1;
-    func_8002E53C(&req, D_8010F1C4);
+    func_8002E53C(&req, Gp_StrStrengthen);
 } else {
     req.x = ...;
     req.y = ...;
@@ -19928,7 +19928,7 @@ if (flags & 3) {
     req.glyphTable = 0;
     req.centerMode = 0;
     req.field_E = 1;
-    func_8002E53C(&req, D_8010F1BC);
+    func_8002E53C(&req, Gp_StrRevive);
 }
 ```
 
@@ -19967,7 +19967,7 @@ RotMatrixZYX(&in, &mtx);
 
 Declare the two `SVECTOR`s before the local `MATRIX` so they sit at
 `sp+0x10` / `sp+0x18` and `&in` rematerializes (`addiu rx, sp, 0x10`)
-instead of taking a fifth saved register. `func_800B0FDC` is the
+instead of taking a fifth saved register. `Gp_MtxToEuler` is the
 example. `vx, vz, vy` stuck at 99.3% with only that `sh zero` early.
 
 ## `s16 / 12` clamp: `u16` divide, signed compare, copy back so `$a0` is the call arg
@@ -20054,7 +20054,7 @@ Use the real encoding, same pattern as `gte_rtv0_real`:
 #define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
 ```
 
-`func_800DB004` is the example (scratch `SVECTOR` + `gte_SetRotMatrix` /
+`Gp_ProjectToSxy` is the example (scratch `SVECTOR` + `gte_SetRotMatrix` /
 `gte_SetTransMatrix` / `gte_ldv0` / RTPS / `gte_stsxy` / `gte_stdp` /
 `gte_stflg` / `gte_stszotz`).
 
@@ -20079,7 +20079,7 @@ counter = (s32*)(off4 + (s32)counts);
 ```
 
 Shift `arg0 << 3` *before* mentioning `Mc_SaveData` so that shift takes
-`$v1` and the `lui` of the table can follow it. `func_800B6DA4` is the
+`$v1` and the `lui` of the table can follow it. `Gp_ConsumeSlotQty` is the
 example.
 
 ## Take `&Mc_SaveData` only on the later path so it is not CSEd with `+0x1C8`
@@ -20098,7 +20098,7 @@ addiu  a0,a0,0x5BC
 
 Assign `save = &Mc_SaveData` only in that path and use `save->field_5C2`
 / `&save->field_5BC`. Leave the first path as `Mc_SaveData.field_*` so
-it still CSEs with the live `field_1C8` pointer. `func_800B6DA4` is the
+it still CSEs with the live `field_1C8` pointer. `Gp_ConsumeSlotQty` is the
 example.
 
 ## `s16` layout field wins `$s0`; assign mask / lineY before the first call
@@ -20121,7 +20121,7 @@ s32 lineY;
 y     = arg0->field_18;
 mask  = arg1 & 3;
 lineY = y + 0xF;
-text  = func_800B8EB0(arg1, 1, 1);
+text  = Gp_GetItemText(arg1, 1, 1);
 ```
 
 `req.y = (s16)(arg0->baseY - 6) + lineY` is `addiu v0, v0, -6` /
@@ -20147,7 +20147,7 @@ file->field_8 += (s32)file;
 Zero the loop index before `if (file->field_8 > 0)` so it sinks into
 that `blez` delay slot as `move a0, zero`. A terminator compare of
 `-1` should be a hoisted local (`flag = -1`) so it lives in `$a2`.
-`func_800E40EC` is the example.
+`Gp_RelocCapFile` is the example.
 
 ## Index a global table inside the `jal` so fail paths preload `$a0`
 
@@ -20185,7 +20185,7 @@ and each fail branch preloads the next nibble id. Widen the cached
 compare byte to `s32` (`stage = save->field_7`) so `lbu field_4` /
 `bne v0, s2` does not emit `andi s2, 0xFF`. First `field_6` through
 the `save` pointer, later ones as `Mc_SaveData.field_6` so they
-rematerialize as `lui` / `lbu %lo`. `func_800ABCC8` is the example.
+rematerialize as `lui` / `lbu %lo`. `Gp_ApplyNpcRoomSnd` is the example.
 
 ## Keep a live `-1` so `count + prev` is `addu`, not `addiu -1`
 
@@ -20374,12 +20374,12 @@ is also `$a0` of a later call.
 
 ## Reuse the id `$s0` as the lookup pointer; compare the next field first
 
-An item id that later becomes the `func_800BAFE0` result wants to stay
+An item id that later becomes the `Gp_GetItemSlot` result wants to stay
 in `$s0`. A separate `GpItemSlot* slot` takes `$s2` and parks the id
 fields in `$s0`. Assign the pointer back into the same `s32`:
 
 ```c
-item   = (s32)func_800BAFE0(item);
+item   = (s32)Gp_GetItemSlot(item);
 attach = ((GpItemSlot*)item)->field_0;
 ```
 
@@ -20426,7 +20426,7 @@ if (iter->spawnType == 1) {
 }
 ```
 
-`func_800B56AC` is the example. The same load inside the `if` stuck at
+`Gp_ApplyAreaTmdFlags` is the example. The same load inside the `if` stuck at
 97.9% (one extra instruction).
 
 ## Local 2-func table: use an initializer so the prologue saves come first
@@ -20478,7 +20478,7 @@ Assign the table pointer *before* the subtract so `lui`/`addiu` of the
 symbol precedes `addiu v0, a2, -K`. Use two table locals (one per loop)
 so the second table can reuse the mode register after `mode != 1`.
 
-`func_800CF4EC` is the example.
+`Gp_NthStockRelated` is the example.
 
 ## Store then test `p->field` so the OR dest stays in `$v1`
 
@@ -20519,7 +20519,7 @@ if (!(p->field_4 & 1)) {
 }
 ```
 
-`func_800E9EFC` is the example.
+`Gp_TickState1C` is the example.
 
 ## `s32` dest forces `lh`; duplicate the shared call for kill-before-alt
 
@@ -20593,7 +20593,7 @@ a    = arr->field_4;    /* lw 4(v1) */
 
 `arr + idx` / `&arr[idx]` emits `addu v0, v1, v0` (base + index). The
 `(s32)arr` addend after the scaled index is what swaps the operands.
-`func_800ACD2C` is the example.
+`Gp_LinkRoomObjects` is the example.
 
 ## Pin jal return + empty `asm("")` so `sb` / `andi` / delay-slot `sb` stay in order
 
@@ -20752,7 +20752,7 @@ addiu a2, a0, 0xC
 
 `addPrim(...)` alone hoists the masks *after* `&elem->field_C` and gives
 the `0xFFFFFF` constant `$t0`. Zeroing the loop index at entry (the
-`func_800ACEBC` trick) is not enough: the constant is referenced more
+`Gp_FindViewIndex` trick) is not enough: the constant is referenced more
 often than the index, so it still wins `$t0`.
 
 Assign named `mask = 0xFFFFFF` / `maskHi = 0xFF000000` *before* taking
@@ -20770,9 +20770,9 @@ maskHi = 0xFF000000;
 /* then z = &elem->field_C, then the loop */
 ```
 
-`register ... asm("t0")` is required here — unlike `func_800ACEBC` the
+`register ... asm("t0")` is required here — unlike `Gp_FindViewIndex` the
 target increment is in-place `addiu t0, t0, 1`, so the pin does not
-rewrite it. `func_800AD410` is the example.
+rewrite it. `Gp_LinkSprtCmd` is the example.
 
 ## Repeat a table lookup in the compare and the store so `$v0` holds the value
 
@@ -20798,8 +20798,8 @@ is scheduled before it.
 Write the lookup twice:
 
 ```c
-if (actor->field_928 != D_80113368[idx]) {
-    actor->field_928 = D_80113368[idx];
+if (actor->field_928 != Gp_AnimBlkTbl[idx]) {
+    actor->field_928 = Gp_AnimBlkTbl[idx];
 }
 ```
 
@@ -20808,41 +20808,41 @@ is the example.
 
 ## Dummy `0` on an overlay helper so the `jal` delay slot is `move a2, zero`
 
-A two-argument overlay helper (`func_800BB5BC(scan, idx)`) can still
+A two-argument overlay helper (`Gp_GetScanSlot(scan, idx)`) can still
 need a literal third `0` at one call site so the compiler emits:
 
 ```
 addu  a0, a2, a0
 lw    a1, 0x10(v0)
-jal   func_800BB5BC
+jal   Gp_GetScanSlot
  move  a2, zero
 ```
 
 Omitting it schedules `addu a0, a2, a0` into the delay slot and drops
 one instruction. Add an unused `s32 arg2` to the real prototype (it
 does not change the callee) and pass `0`. Same rule as overlay imports
-of main (`Ui_InsetLayout`). `func_800BDC80` is the example.
+of main (`Ui_InsetLayout`). `Gp_FillItemActions` is the example.
 
 ## Store the first vtable slot through the global, then take its address
 
-`table = D_8010D67C; table[0] = A;` writes `sw A, 0(table)`. The target
+`table = Gp_ItemActionFns; table[0] = A;` writes `sw A, 0(table)`. The target
 stores through `%lo` first, then materializes the address for `table[1]`:
 
 ```
-sw    A, %lo(D_8010D67C)(v0)
-addiu v1, v0, %lo(D_8010D67C)
+sw    A, %lo(Gp_ItemActionFns)(v0)
+addiu v1, v0, %lo(Gp_ItemActionFns)
 sw    B, 4(v1)
 ```
 
 Write the first slot on the symbol, then assign the local:
 
 ```c
-D_8010D67C[0] = func_A;
-table         = D_8010D67C;
+Gp_ItemActionFns[0] = func_A;
+table         = Gp_ItemActionFns;
 table[1]      = func_B;
 ```
 
-`func_800BDC80` is the example. Pair with `count = 1` *before*
+`Gp_FillItemActions` is the example. Pair with `count = 1` *before*
 `(u32)(id - 0xA0) >= 0x20 || flags != 0` so `li a1, 1` sits in the
 `sltiu` delay slot.
 
@@ -20870,7 +20870,7 @@ obj54 = (GpObj54*)enemy;
 if (arg0 == 0) {
     enemy->field_4E |= 0x80;
 } else {
-    func_800E1C58(obj54, payload);
+    Gp_ClaimSlot18(obj54, payload);
 }
 ```
 
@@ -20882,7 +20882,7 @@ Loading a stream pointer, subtracting a base, then using the same pointer
 later:
 
 ```c
-rec    = D_80114C38;
+rec    = Gp_ReplayCursor;
 offset = (s32)rec - (s32)D_8005C374;
 ```
 
@@ -20892,22 +20892,22 @@ expression so the two `%hi`/`lw` pairs interleave and CSE keeps the
 pointer in `$a0`:
 
 ```c
-offset = (s32)D_80114C38 - (s32)D_8005C374;
+offset = (s32)Gp_ReplayCursor - (s32)D_8005C374;
 if (Display_State.field_12c == 0x10) {
-    offset = (s32)D_80114C38 + 0x7F9FFF00;
+    offset = (s32)Gp_ReplayCursor + 0x7F9FFF00;
 }
-/* later: D_80114C38->buttons */
+/* later: Gp_ReplayCursor->buttons */
 ```
 
 ```
-lui   v0, %hi(D_80114C38)
+lui   v0, %hi(Gp_ReplayCursor)
 lui   v1, %hi(D_8005C374)
-lw    a0, %lo(D_80114C38)(v0)
+lw    a0, %lo(Gp_ReplayCursor)(v0)
 lw    v0, %lo(D_8005C374)(v1)
 subu  a2, a0, v0
 ```
 
-`func_8009FD74` is the example.
+`Gp_ApplyPadReplay` is the example.
 
 ## Pin the reload to `$a0` and barrier so increment store stays before `lhu`
 
@@ -20941,7 +20941,7 @@ asm volatile("");
 if (rec[1].field == 0xFFFF) {
 ```
 
-`func_8009FD74` is the example.
+`Gp_ApplyPadReplay` is the example.
 
 ## Assign an `s16` index to `s32` before `& mask` so the load stays `lh`
 
@@ -21152,7 +21152,7 @@ world = &D_80070F10;
 
 Reversing those two lines swaps the `lw` / `lui`. Keeping `world` also
 makes `&world->workm` `addiu a0, s5, 0x24` instead of a fresh
-`la D_80070F34`. `func_800DAE50` is the example.
+`la D_80070F34`. `Gp_GetLockPos` is the example.
 
 A full `MATRIX` applied to a `VECTOR3` is `gte_SetRotMatrix` +
 `gte_SetTransMatrix` + `gte_ldlvl` + `gte_rtirtr_real`
@@ -21215,7 +21215,7 @@ if (sets != NULL) {
 idx = table[slot->field_15] + extra;
 ```
 
-`func_800B47A8` is the example.
+`Gp_AnimPlaySlot` is the example.
 
 ## Nested `for (i = 0; i < n; )` + `do { } while (++i < n)` for two delay slots
 
@@ -21246,8 +21246,8 @@ for (i = 0; i < rec->field_2; ) {
 }
 ```
 
-`func_800AC960` is the example. Pin `prim` with `register … asm("a1")` so
-the `%hi(D_8010CAE8)` reused for the later `D_8010CAE8[0]` NULL check
+`Gp_SetSprtShadeBits` is the example. Pin `prim` with `register … asm("a1")` so
+the `%hi(Gp_SprtLists)` reused for the later `Gp_SprtLists[0]` NULL check
 stays in `$a2`.
 
 ## `j = 0; if (j < n)` after `if (n > 0)` keeps both `blez` checks
@@ -21292,7 +21292,7 @@ A running `base += 3` after the inner walk will steal the `start` copy
 (`$a1` becomes the incrementing base) unless `start` stays live past the
 loop. `register s32 start asm("a1")` plus `asm volatile("" :: "r"(start))`
 after the do-while keeps the copy; `register s32 base asm("a3")` keeps
-the increment on `$a3`. `func_800B7930` is the example.
+the increment on `$a3`. `Gp_RecalcMaxMp` is the example.
 
 ## Keep `id + 0x80` as a live s32 so it does not CSE with `id - 0x80`
 
@@ -21334,7 +21334,7 @@ if ((u8)wrap < 0x20) {
 ```
 
 `func_800C5188` is the example. The same wrap vs range pair is in
-`func_800B91C8`, which avoids the CSE by reloading `field_0` after a
+`Gp_RefreshItemRow`, which avoids the CSE by reloading `field_0` after a
 store instead.
 
 ## Split the first-walk count so it can live in `$a2` then move to `$t1`
@@ -21378,12 +21378,12 @@ operand order:
 walker = (GpItemRec*)((start2 << 2) + (s32)table2);
 ```
 
-`addu a2, v0, a2`. `func_800B8988` is the example.
+`addu a2, v0, a2`. `Gp_CanAddItem` is the example.
 
-The quantity-aware sibling (`func_800B87F4`) is the same two walks plus a
+The quantity-aware sibling (`Gp_CanAddItemQty`) is the same two walks plus a
 live `arg2`, so every temp shifts one register (`table` `$t0`→`$t1`,
 `occupied` `$a2`→`$a3`, `used` `$t1`→`$t2`). After the second table
-select, `if (arg2 < 0) arg2 = D_8010E3B8[id-0xA0].field_0` parks the
+select, `if (arg2 < 0) arg2 = Gp_StackLimits[id-0xA0].field_0` parks the
 `lui` in the `bgez` delay. The stack check wants
 
 ```
@@ -21404,7 +21404,7 @@ if (cap->field_2 >= walker->field_2 + arg2) {
 }
 ```
 
-`func_800B8988` keeps the inverted `sltu` / `beqz` / `li 2` / `j` / `li 1`
+`Gp_CanAddItem` keeps the inverted `sltu` / `beqz` / `li 2` / `j` / `li 1`
 because it is `if (walker < cap) found = 1; else found = 2`.
 
 ## Hoist `id << elem_size` and share that temp with the other arm's `$v1`
@@ -21451,7 +21451,7 @@ val  = tmp + 0xE;
 str  = recurse(arg0 + val, ...);
 ```
 
-`addiu v0, v1, 0xe` / `addu a0, a0, v0`. `func_800B8EB0` is the example.
+`addiu v0, v1, 0xe` / `addu a0, a0, v0`. `Gp_GetItemText` is the example.
 
 ## `gpf 1` is `0x4B98003D`; IR0 wants `$v0` then `$a2`
 
@@ -21604,7 +21604,7 @@ idx  = slot->field_14; /* lbu */
 dest = &arr[idx];      /* sll / addu, no andi */
 ```
 
-`func_800B43E0` is the example.
+`Gp_AnimWritePoseCopy` is the example.
 
 ## Pin the switch-wide record pointer to `$s2` so the accumulator takes `$s1`
 
@@ -21628,7 +21628,7 @@ register GpCapCmd* rec asm("s2");
 Do not also pin `flagId` / `val`: that rewrites the `lbu` temps
 (`field_7` into `$s0` instead of `$v0`) and drops the `sra` from the
 `bnez count` delay slot. Reuse `val` as the case-4 tally (`i = 0; val = i`)
-so the copy fills that `beqz field_6` delay slot. `func_800E34D8` is the
+so the copy fills that `beqz field_6` delay slot. `Gp_RunCapCmd` is the
 example.
 
 ## Force `i = 0` before an independent load so the delay slot stays `nop`
@@ -21660,21 +21660,21 @@ asm volatile("" ::"r"(i));
 item = rec->field_0;
 ```
 
-Same barrier already used in `func_800BAC8C`. A later copy of the same
+Same barrier already used in `Gp_ClearScanItems`. A later copy of the same
 setup can skip it when another independent move (`rec2 = rec`) is
-available to fill that delay. `func_800B904C` is the example.
+available to fill that delay. `Gp_NthRelatedId` is the example.
 
 ## Do not pin the switch result to `$a0` if the `la` must split through `$v0`
 
-The item-table switch (`D_80114C20` / `D_80114D70` / `Mc_SaveData.field_1AC`)
+The item-table switch (`Gp_ItemTable2` / `Gp_ItemTable1` / `Mc_SaveData.field_1AC`)
 wants the default hi in the `bne` delay slot and a split `la`:
 
 ```
 bne   field, 2, default
  lui  v0, %hi(Mc_SaveData)
-lui   v0, %hi(D_80114C20)
+lui   v0, %hi(Gp_ItemTable2)
 j     join
- addiu a0, v0, %lo(D_80114C20)
+ addiu a0, v0, %lo(Gp_ItemTable2)
 default:
 addiu a0, v0, %lo(Mc_SaveData+0x1AC)
 ```
@@ -21683,7 +21683,7 @@ addiu a0, v0, %lo(Mc_SaveData+0x1AC)
 `addiu a0, a0` and puts the case-2 hi in that delay slot instead. Leave
 `tmp` unconstrained so GCC uses `$v0` as the address builder; `tmp`
 still lands in `$a0` when the else path indexes it after the range
-check. `func_800B8B00` is the example.
+check. `Gp_SetScanItem` is the example.
 
 ## Reassign the running pointer before a field-2 store to kill the IV
 
@@ -21702,7 +21702,7 @@ table          = found;
 table->field_2 = 0;
 ```
 
-`found->field_2 = 0` still builds the IV. `func_800B8B00` is the example.
+`found->field_2 = 0` still builds the IV. `Gp_SetScanItem` is the example.
 
 ## Occupied-slot `return dest` after a delayed `dest = jal` skips `move v0, s0`
 
@@ -21712,7 +21712,7 @@ shared `move v0, s0` (GCC sees `$v0` is still live). Sibling arms that
 clobbered `$v0` still need that move, so the target shares one label.
 
 `goto` the shared return instead of `return dest` on the occupied arm
-so every path hits `move v0, s0`. `func_800B8B00` is the example.
+so every path hits `move v0, s0`. `Gp_SetScanItem` is the example.
 
 ## INCLUDE_ASM can hide a second function after the last `jr ra`
 
@@ -21897,12 +21897,12 @@ block    = (Type*)head;
 *scratch = head;
 ```
 
-`func_800A6F38` is the example.
+`Gp_HudTrackEnemy` is the example.
 
 ## Evaluate an inlined helper's args before its body
 
-`func_800BF334(item, owner->parent->flags)` is written out in
-`func_800BDAA8` (no `jal`). Computing `flags` only inside
+`Gp_ItemUseRestricted(item, owner->parent->flags)` is written out in
+`Gp_ItemActionConfirm` (no `jal`). Computing `flags` only inside
 `if (desc->field_3 & 1)` loads `owner` after the bit test, leaves
 `flag` in `$a0`, and inserts nops. Evaluate the second argument
 first so `owner` stays in `$a0` and `parent` / `flags` load before
@@ -21912,7 +21912,7 @@ the `andi`:
 owner = arg1->owner;
 flags = owner->parent->flags;
 flag  = 0;
-if (D_8010D838[item].field_3 & 1) {
+if (Gp_ItemDescs[item].field_3 & 1) {
     flag = flags == 1;
 }
 ```
@@ -21922,15 +21922,15 @@ temp (`$s2`), not a fresh `1`, so the `bne` reuses that register.
 
 ## Index the slot table in the loop so `lui` stays in `$a0`
 
-Filling `D_8010E8F8[0] = item` / `[1] = [2] = -1` by taking the
+Filling `Gp_PreviewItems[0] = item` / `[1] = [2] = -1` by taking the
 address first:
 
 ```c
-p = D_8010E8F8;
+p = Gp_PreviewItems;
 if (item != p[0]) {
     for (; i < 3; i++, p++) {
         if (i == 0) {
-            D_8010E8F8[0] = item;
+            Gp_PreviewItems[0] = item;
         } else {
             *p = minusOne;
         }
@@ -21944,28 +21944,28 @@ the global first (`lui a0` / `lw %lo(a0)`), keeps `i = 0` in that
 delay slot, then copies hi and materializes the pointer:
 
 ```
-lui    a0, %hi(D_8010E8F8)
-lw     v0, %lo(D_8010E8F8)(a0)
+lui    a0, %hi(Gp_PreviewItems)
+lw     v0, %lo(Gp_PreviewItems)(a0)
 beq    s0, v0, skip
  move  v1, zero
 li     a2, -1
 move   a1, a0
-addiu  a0, a1, %lo(D_8010E8F8)
+addiu  a0, a1, %lo(Gp_PreviewItems)
 ```
 
-Write the else-stores as `D_8010E8F8[i]` and let GCC strength-reduce.
+Write the else-stores as `Gp_PreviewItems[i]` and let GCC strength-reduce.
 The comparison then owns `$a0` for the `lui`, and the copy/`addiu`
 appear after the branch:
 
 ```c
-if (item != D_8010E8F8[0]) {
+if (item != Gp_PreviewItems[0]) {
     i        = 0;
     minusOne = -1;
     for (; i < 3; i++) {
         if (i == 0) {
-            D_8010E8F8[0] = item;
+            Gp_PreviewItems[0] = item;
         } else {
-            D_8010E8F8[i] = minusOne;
+            Gp_PreviewItems[i] = minusOne;
         }
     }
 }
@@ -21995,7 +21995,7 @@ local immediately after `*scratch = block`:
 vec      = &block->vec;
 ```
 
-`func_800D937C` is the example.
+`Gp_GetObjPan` is the example.
 
 ## `if (flag >= 0) { work } else { ret = 0 }` keeps the jump / else block
 
@@ -22012,7 +22012,7 @@ if (block->flag >= 0) {
 }
 ```
 
-`func_800D937C` is the example.
+`Gp_GetObjPan` is the example.
 
 ## Pin the record pointer; peel `field_0` with `volatile` so the loop skips the first load
 
@@ -22041,7 +22041,7 @@ do {
 } while (idx != 0xFF);
 ```
 
-`func_800AE62C` is the example.
+`Gp_ApplyAreaRecs` is the example.
 
 ## Default case sits between `apply = 1; goto join` and `join:`
 
@@ -22094,7 +22094,7 @@ if (cond != 0) {
 
 A `switch` on 0..3 emits `slti` range checks. An `if`/`else` that assigns
 `apply = 0` in the default arm *before* the compare places that store
-ahead of `bne mask, expected`. `func_800AE62C` is the example.
+ahead of `bne mask, expected`. `Gp_ApplyAreaRecs` is the example.
 
 ## Don't reuse a saved-reg local for a `max` temp; nest the early string load
 
@@ -22114,21 +22114,21 @@ Reusing the `spawnArg1` local (`val`, already in `$s0`/`$s1` across the
 equip block) for that second width pins the copy to a callee-saved
 register (`move s1, v0`). Give the compare its own short-lived temp.
 
-The same function also calls `func_800B8EB0` once to measure and again
+The same function also calls `Gp_GetItemText` once to measure and again
 to draw. Assigning both results to one `text` local makes that variable
 interfere with `rec` (`$s1`) and `&Wip_SysConfig` (`$s2`), so the later
-`color = 0x606060` / `text = func_800B8EB0(...)` pair swaps (`color` in
+`color = 0x606060` / `text = Gp_GetItemText(...)` pair swaps (`color` in
 `$s1`, `text` in `$s2`). Nest the first call so `text` is only assigned
 on the draw path:
 
 ```c
-width = Text_MeasureWidth(func_800B8EB0(arg0->spawnArg1, 0, 0)) + 0xB;
-other = Text_MeasureWidth(D_8010E494);
+width = Text_MeasureWidth(Gp_GetItemText(arg0->spawnArg1, 0, 0)) + 0xB;
+other = Text_MeasureWidth(Gp_StrEquipped);
 if (width < other) {
     width = other;
 }
 ...
-text  = func_800B8EB0(arg0->spawnArg1, 0, 0);
+text  = Gp_GetItemText(arg0->spawnArg1, 0, 0);
 color = 0x606060;
 ```
 
@@ -22164,7 +22164,7 @@ temp:
 ```c
 register GpItemSlot* slot asm("a0");
 
-slot = func_800BAFE0(item + 0x7F);
+slot = Gp_GetItemSlot(item + 0x7F);
 asm volatile("" : "+r"(slot));
 attach = slot->field_2;
 if (attach != 0 && attach != 0xFF) {
@@ -22174,11 +22174,11 @@ if (attach != 0 && attach != 0xFF) {
 }
 ```
 
-`func_800A9310` is the example.
+`Gp_EnqueueWeaponCd` is the example.
 
 ## Inline a helper with literal `0` so field loads use `$zero`
 
-Copying `func_800BAD28` and writing `scan = NULL` / `((GpItemScan*)0)->field`
+Copying `Gp_RemoveItem` and writing `scan = NULL` / `((GpItemScan*)0)->field`
 keeps a 0 in a GPR (`t1`) or CSEs that 0 with an earlier `state == 0` into
 `$s2`, so the target's `lbu r, off($zero)` never appears. A
 `static __inline` helper whose first argument is the scan pointer, called
@@ -22186,7 +22186,7 @@ as `helper(0, rec, 1)`, lets GCC 2.8.1 (`-finline`) substitute `$zero` for
 every `arg0->field_*` load.
 
 The third inlined arg then wants `$a3` (and `loop_end` `$a1`), matching
-the non-inlined `func_800BAD28` shape after `$a0` is freed. Pin the
+the non-inlined `Gp_RemoveItem` shape after `$a0` is freed. Pin the
 short-lived `table` / `end` / `newQty` temps onto the same `$v1` and
 `loop_end` onto `$a1` so `i + count` overwrites the table pointer after
 `base = table`:
@@ -22204,7 +22204,7 @@ if (i < end) {
 ```
 
 Pinning only `loop_end` merges `end` into `$a1` and delays `base = table`.
-`func_800B996C` is the example.
+`Gp_UiBoostMp` is the example.
 
 ## Pass-through `$a3` so its save stays in the prologue pair
 
@@ -22366,22 +22366,22 @@ register WipSysConfig* cfg asm("t4");
 
 `func_800C2B70` is the example.
 
-## Assign the LCG back onto `D_80070F60`; split `t[1] +=` so `flg = 0` fills the load delay
+## Assign the LCG back onto `Gp_LcgState`; split `t[1] +=` so `flg = 0` fills the load delay
 
-Two in-block `D_80070F60 * 5 + 0x71357911` steps that both feed field
+Two in-block `Gp_LcgState * 5 + 0x71357911` steps that both feed field
 stores want the result written back to the global, not kept in temps:
 
 ```c
-D_80070F60    = D_80070F60 * 5 + 0x71357911;
-mem->field_12 = 0xFFF0 - (((u32)D_80070F60 >> 16) & 0x3F);
-D_80070F60    = D_80070F60 * 5 + 0x71357911;
-mem->field_24 = ((u32)D_80070F60 >> 16) & 0xFFF;
+Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+mem->field_12 = 0xFFF0 - (((u32)Gp_LcgState >> 16) & 0x3F);
+Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+mem->field_24 = ((u32)Gp_LcgState >> 16) & 0xFFF;
 ```
 
-The first LCG stays in `$a0`, the constant in `$a2`, `&D_80070F60` in
+The first LCG stays in `$a0`, the constant in `$a2`, `&Gp_LcgState` in
 `$a1`, and both `sw`s are delayed until after `field_24`. Temps
 (`rng` / `rng2`) put the first result in `$t1` and DSE the first store.
-The same `D_80070F60 = D_80070F60 * 5 + C` form at a later
+The same `Gp_LcgState = Gp_LcgState * 5 + C` form at a later
 `func_800EB2C8` call site lands the LCG in `$v0` so `$a3` can hold the
 constant, then the `>> 16 & 0x1000` bit.
 
@@ -22394,7 +22394,7 @@ delay slot:
 y                 = coord->coord.t[1] + mem->field_12;
 coord->flg        = 0;
 coord->coord.t[1] = y;
-func_80098F58(coord);
+Gp_UpdateCoord(coord);
 ```
 
 `func_800FBEBC` is the example.
@@ -22567,7 +22567,7 @@ req.field_8    = color;
 
 The early `y` load also frees `$v1` after `D_80071190 = p + 1`, which is
 what stores the cursor bump before `p->x0`. `func_800C2538` is the example.
-The `textY = baseY - 3` half is the same pattern as `func_800CDBEC`.
+The `textY = baseY - 3` half is the same pattern as `Gp_DrawQty`.
 
 ## Load a terminator key once so the record pointer stays in `$v1`
 
@@ -22607,7 +22607,7 @@ if (id != term) {
 ```
 
 Passing `id` into the call becomes `move a2, v1` instead of `lhu a2, 0(v1)`.
-`func_800B6B44` is the example.
+`Gp_SpawnPlaces` is the example.
 
 ## Scratch alloc in `$v0`/`$v1`, pin the block, name the 3-arg src
 
@@ -22698,18 +22698,18 @@ if (arg0->field_8 == 0) {
 }
 ```
 
-The 16-byte stack copy itself is `texts = D_80093DA0` of a 4-pointer
+The 16-byte stack copy itself is `texts = Gp_ItemPromptTexts` of a 4-pointer
 struct, not element-wise assignment. Pin the later item-walk locals
-(`i` in `$s2`, scan pointer in `$s3`) so they do not swap. `func_800BE808`
+(`i` in `$s2`, scan pointer in `$s3`) so they do not swap. `Gp_ItemMenuPrompt`
 is the example.
 
-## D4 fade overlay: `D_80114C80`/`D_80114CA0` + split `0xE1000000 | 0x240`
+## D4 fade overlay: `Gp_FadeTiles`/`Gp_FadeTpages` + split `0xE1000000 | 0x240`
 
-`D_80114C80` is `TILE[2]` and `D_80114CA0` is `DR_TPAGE[2]`, indexed by
+`Gp_FadeTiles` is `TILE[2]` and `Gp_FadeTpages` is `DR_TPAGE[2]`, indexed by
 `Display_State.field_114` (16-byte / 8-byte stride). Several neighboring
-D4 task states share this pair (`func_800AABB0` … `func_800AB828`).
+D4 task states share this pair (`Gp_LoadWaitBoot` … `Gp_FadeGrayHold`).
 
-On the leaf overlay (`func_800AB828`) the target hoists `0x64` and both
+On the leaf overlay (`Gp_FadeGrayHold`) the target hoists `0x64` and both
 prim pointers before the `CdCmd_Queue.field_224` check. Keep that order
 in C (`color = 0x64`, then `buf = ds->field_114`, then both `&arr[buf]`).
 
@@ -22736,7 +22736,7 @@ access is `field_224`, the target hoists `li a2,8` then
 `lui a1,%hi(CdCmd_Queue)` (no `addiu` of the queue base) and wants:
 
 ```
-addiu v0, v0, %lo(D_80114CA0)
+addiu v0, v0, %lo(Gp_FadeTpages)
 lhu   a0, %lo(CdCmd_Queue+0x224)(a1)
 nop
 bnez  a0, skip
@@ -22759,8 +22759,8 @@ color = 8;
 ds    = &Display_State;
 asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi));
 buf    = ds->field_114;
-tile   = &D_80114C80[buf];
-dr     = &D_80114CA0[buf];
+tile   = &Gp_FadeTiles[buf];
+dr     = &Gp_FadeTpages[buf];
 queued = *(u16*)((s32)qhi + (s16)0x91C4); /* %lo(CdCmd_Queue+0x224) */
 if (queued == 0) {
 ```
@@ -22768,11 +22768,11 @@ if (queued == 0) {
 `0x91C4` is the signed 16-bit `%lo` of `CdCmd_Queue.field_224`
 (`0x800691C4`). The object has an unpaired `R_MIPS_HI16` and a
 hardcoded `lhu` offset; GNU ld still produces the same linked
-instruction as `%hi/%lo`. `func_800AADDC` is the example.
+instruction as `%hi/%lo`. `Gp_LoadWaitStage` is the example.
 `GameSession.field_78` is an `s16` cache of `field_7`; compare with
 `lbu`/`lh` and write back with `lbu`/`sh`.
 
-When idle-queue work runs *before* the overlay (`func_800AABB0`), assign
+When idle-queue work runs *before* the overlay (`Gp_LoadWaitBoot`), assign
 `color = 8` *after* the idle `if`, not before it. GCC copies that
 assignment into the `beqz` delay slot on the skip path and keeps it after
 `task->state++` on the taken path (`lw` / `nop` / `addiu` / `sw` /
@@ -22807,14 +22807,14 @@ register GpItemSlot* slot asm("s0");
 register s32         a0id asm("a0");
 WipSysConfig*        cfg;
 
-ret  = func_800BAFE0(id);
+ret  = Gp_GetItemSlot(id);
 a0id = id;
 slot = ret;
 cfg  = &Wip_SysConfig;
-func_800BB0CC(a0id);
+Gp_ClearEquipSlot(a0id);
 ```
 
-Pinning `cfg` here, or writing `slot = func_800BAFE0(id)` directly,
+Pinning `cfg` here, or writing `slot = Gp_GetItemSlot(id)` directly,
 restores `lui s2` / `move a0` in the delay slot. `func_800D2538` is the
 example.
 
@@ -22867,7 +22867,7 @@ asm volatile("" : "+r"(one));
 val = one << 4;
 ```
 
-`func_800B3910` is the example.
+`Gp_AnimSeekSlotEx` is the example.
 
 ## Pin the 4th call arg's base in `$a3` so `+ off` stays in the `jal` delay
 
@@ -22893,7 +22893,7 @@ asm volatile("" : "+r"(raw));
 func_800B3448(arg0, arg1, 0, f8 + off);
 ```
 
-`func_800B3910` is the example. `slot->field_20[arg2]` loads `field_20`
+`Gp_AnimSeekSlotEx` is the example. `slot->field_20[arg2]` loads `field_20`
 first; `(arg2 << 2) + (s32)slot->field_20` is what puts the shift before
 the load.
 
@@ -22938,8 +22938,8 @@ pinned to `$a3` (or naturally lives there), GCC coalesces the two and writes
 each case straight into `$a3`:
 
 ```
-addiu a3, v0, %lo(D_80114C20)
-lw    a3, %lo(D_80114D70)(v0)
+addiu a3, v0, %lo(Gp_ItemTable2)
+lw    a3, %lo(Gp_ItemTable1)(v0)
 ```
 
 The target keeps every case in `$v0` and copies once at the join
@@ -22951,10 +22951,10 @@ register GpItemRec* table asm("a3");
 
 switch (scan->field_2) {
 case 2:
-    tmp = D_80114C20;
+    tmp = Gp_ItemTable2;
     break;
 case 1:
-    tmp = D_80114D70;
+    tmp = Gp_ItemTable1;
     break;
 default:
     tmp = Mc_SaveData.field_1AC;
@@ -22963,7 +22963,7 @@ default:
 table = tmp;
 ```
 
-`func_800B83F0` is the example.
+`Gp_MoveItemSlot` is the example.
 
 ## Write the join dest through `off + table`, not a `rec` temp
 
@@ -22982,7 +22982,7 @@ Write the store through the computed address so dest stays in `$v0`:
 *(GpItemRec*)((arg2 << 2) + (s32)table) = saved;
 ```
 
-`func_800B83F0` is the example.
+`Gp_MoveItemSlot` is the example.
 
 ## Occupancy walk: goto, not `while`, so the ptr step stays in the continue delay
 
@@ -23015,7 +23015,7 @@ loop:
     }
 ```
 
-`func_800B83F0` is the example.
+`Gp_MoveItemSlot` is the example.
 
 ## Preload `coord->sub` and the LCG addend so they take `$v0` / `$a0`
 
@@ -23039,7 +23039,7 @@ one                  = ONE;
 coord->sub           = parent;
 ```
 
-A two-step `D_80070F60 * 5 + 0x71357911` that *adds* a spawn-arg nibble
+A two-step `Gp_LcgState * 5 + 0x71357911` that *adds* a spawn-arg nibble
 onto the first roll needs that addend in `$a0` before the multiply, so
 the first LCG lands in `$v1` and the second in `$a0` (both `sw`s delayed
 until after `field_26`). Inlining `(u16)arg0->spawnArg1 & 0xFFF` into
@@ -23049,10 +23049,10 @@ Extract it first:
 ```c
 temp          = (u16)arg0->spawnArg1 & 0xFFF;
 mem->field_2A = 0;
-D_80070F60    = D_80070F60 * 5 + 0x71357911;
-mem->field_24 = temp + (((u32)D_80070F60 >> 16) & 0xFF);
-D_80070F60    = D_80070F60 * 5 + 0x71357911;
-mem->field_26 = ((u32)D_80070F60 >> 16) & 0xFFF;
+Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+mem->field_24 = temp + (((u32)Gp_LcgState >> 16) & 0xFF);
+Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+mem->field_26 = ((u32)Gp_LcgState >> 16) & 0xFFF;
 ```
 
 `func_801005D8` is the example.
@@ -23066,21 +23066,21 @@ wants that `li` between the second and third `lui`:
 
 ```
 li    s8, 0xffff
-lui   s6, %hi(D_80114DDC)
-lui   s4, %hi(D_80114DD0)
+lui   s6, %hi(Gp_PubItemLoc)
+lui   s4, %hi(Gp_PubItemQty)
 li    s1, 1
-lui   s5, %hi(D_80114DC8)
+lui   s5, %hi(Gp_PubItemReady)
 ```
 
-Write the stores as a literal `1` (`D_80114DD0 = 1; D_80114DC8 = 1;`)
+Write the stores as a literal `1` (`Gp_PubItemQty = 1; Gp_PubItemReady = 1;`)
 and do **not** introduce a `one` temp. GCC CSE's the constant into `$s1`
 and places `li s1, 1` in first-use order among the hoisted `%hi`s.
 
-Duplicate `D_80114DC8 = 1` in each arm of the remap (not once after the
-join) so `%hi(D_80114DC8)` hoists into `$s5`. GCC still CSE's the stores
+Duplicate `Gp_PubItemReady = 1` in each arm of the remap (not once after the
+join) so `%hi(Gp_PubItemReady)` hoists into `$s5`. GCC still CSE's the stores
 back to a single `sh` after the join.
 
-`func_800B63B8` is the example.
+`Gp_LookupBit2Item` is the example.
 
 ## Seed a later `$s1` result as `Mem_Calloc`'s heap flag
 
@@ -23098,7 +23098,7 @@ p   = Mem_Calloc(size, val);
 val = table[idx];
 ```
 
-The zero-init pins `$s1` for the whole function. `func_800E9CC8` is the
+The zero-init pins `$s1` for the whole function. `Gp_InitState1C` is the
 example.
 
 ## Overlay jtbl not contiguous with the TU's other `.rodata` needs its own C file
@@ -23106,7 +23106,7 @@ example.
 Gameplay `.rodata` is a sequence of C jtbl slices interleaved with splat
 `rodata` blobs. A new `switch` in an existing TU appends its jtbl to that
 TU's `.rodata` slice. If a named table sits between the old jtbl and the
-new one (here `D_80097678` between `func_800E9BDC` and `func_800E9CC8`),
+new one (here `D_80097678` between `func_800E9BDC` and `Gp_InitState1C`),
 keep the function in a sibling C file (`3CD8_9CC8.c`) and add matching
 `.rodata` / `c` yaml cuts so the jtbl lands after the blob. Same pattern
 as `3CD8_34D8.c` / `3FB8_75BC.c`.
@@ -23207,7 +23207,7 @@ asm("" : "+r"(block));
 
 `register SVECTOR* vec asm("s2")` is enough; do not pin `block`. Write
 the first component through `head - 0x28` (not `vec->vx`) so the `sh`
-stays head-relative. `func_800B6118` is the example.
+stays head-relative. `Gp_MakeDirOffset` is the example.
 
 ## Force `addiu $v0, $sp, N` after `gte_SetRotMatrix`
 
@@ -23224,7 +23224,7 @@ gte_ldv0(tmpp);
 ```
 
 The offset is the stack slot of `tmp` (saved-reg frame: `0x10` when
-`s0`–`s7`/`ra` start at `0x18`). `func_800B6118` is the example.
+`s0`–`s7`/`ra` start at `0x18`). `Gp_MakeDirOffset` is the example.
 
 ## Keep the loop result in `$a0` until the first `li a0, 1`
 
@@ -23386,7 +23386,7 @@ asm("" : "+r"(found));
 i = 0;
 ```
 
-`volatile` parks a `nop` in the `beqz count` delay instead of `move t0, zero`. Put a `goto fill` target *above* the non-stacking loop so the empty-slot body is a backward `beqz` between an early `jr ra` and the loop setup. `func_800B8CAC` is the example.
+`volatile` parks a `nop` in the `beqz count` delay instead of `move t0, zero`. Put a `goto fill` target *above* the non-stacking loop so the empty-slot body is a backward `beqz` between an early `jr ra` and the loop setup. `Gp_AddItem` is the example.
 
 
 
@@ -23415,21 +23415,21 @@ so the address is a loop invariant, not an early named assignment.
 `-O2` strength-reduces it back to a pointer increment:
 
 ```c
-scans = D_8010D550;
+scans = Gp_ScanPtrs;
 do {
     if (i == 0) {
-        item       = D_80114DDC;
+        item       = Gp_PubItemLoc;
         src        = scans[item & 0xFF];
-        D_80114D7C = item;
+        Gp_MoveItemKey = item;
     } else {
         src = &Mc_SaveData.field_5BC;
     }
-    (&D_8010D628)[i] = *src;
+    (&Gp_MoveScanSrc)[i] = *src;
     i++;
 } while (i < 2);
 ```
 
-`func_800BCC44` is the example. `dest = &D_8010D628; *dest = *src;
+`Gp_ItemMoveTask` is the example. `dest = &Gp_MoveScanSrc; *dest = *src;
 dest++` stuck at 98.6% with only that `la` two instructions early.
 
 ## Pin fail `-1` and shared `0x34` through `$v0` so the store is a phi
@@ -23470,7 +23470,7 @@ end:
 obj->field_2C = code;
 ```
 
-`func_800BCC44` is the example. Unpinned `code` stuck at 98.8% (`li v1,
+`Gp_ItemMoveTask` is the example. Unpinned `code` stuck at 98.8% (`li v1,
 0x34` first, then `li v0, -1`).
 
 ## Materialize `x * 4 - C` before adding a second index so `-C` stays on `$v0`
@@ -23543,7 +23543,7 @@ packed = (packed << 5) | ((out->r >> 7) & 0x1F);
 
 The STP bit is `if ((s16)*src0 < 0 || (s16)*src1 < 0) *dst = packed |
 0x8000;` — GCC puts `ori packed, 0x8000` in both compare delay slots.
-`func_800B2088` is the example.
+`Gp_BlendRgb555` is the example.
 
 ## Memory barrier after stores so `li` fills the `beqz` delay, not `sh`
 
@@ -23586,7 +23586,7 @@ case 3:
     break;
 case 1:
 shared:
-    func_800DB500(2);
+    Gp_SetStateF0Bit(2);
     break;
 ```
 
@@ -23659,7 +23659,7 @@ constraint used in `mc.c`:
 }
 ```
 
-`func_800AE9B0` is the example.
+`Gp_RebuildAreaIdBits` is the example.
 
 ## Split `la` of a function pointer so `%hi` lands in `$v1` while `$v0` holds a `lhu`
 
@@ -23718,7 +23718,7 @@ if (shifted > 0) {
 
 A `for (i = 0; i < 3; i++)` over `((u8*)((s32)row + i))[1]` keeps two
 long-lived pointers (`arg2`, a table) in `$s3`/`$s4`. The equivalent
-`goto` loop swaps those two s-registers. `func_800B6EE0` is the example.
+`goto` loop swaps those two s-registers. `Gp_EquipRelatedBank` is the example.
 
 ## Leave `p = &global` unpinned so `%hi` is `$v0` and fills the incoming `bne`
 
@@ -23755,7 +23755,7 @@ skip_count:
 ```
 
 A later straight-line `&Mc_SaveData` (no incoming `bne` to fill) still
-needs the split `lui $v0` / `addiu $a0` pair from the D_8010D230 note,
+needs the split `lui $v0` / `addiu $a0` pair from the Gp_Bit2Banks note,
 so `flags = 0` can sit between `addiu` and `lhu`. Pinning one `UiObject*`
 across two states also merges them into `$s0`; the state-3 path wants
 the pointer already in `$a0` for `Ui_TeardownTree`. `func_800A110C` is
@@ -23787,7 +23787,7 @@ dest = &((GpAnimMtxRec*)arg0->field_4)[idx];
 ```
 
 `+r`(off) instead of `"r"(off)` copies `v0` to `v1` so the `lw` can take
-`$v0`. `func_800B4248` is the example.
+`$v0`. `Gp_AnimWritePoseBlend` is the example.
 
 ## Pin scratch `head` to `$t1` and the `head-N` block to `$t0` when both stay live
 
@@ -23814,7 +23814,7 @@ trans = (SVECTOR*)((u8*)head - 0x10);
 *scratch = trans;
 ```
 
-`func_800B4248` is the example.
+`Gp_AnimWritePoseBlend` is the example.
 
 ## `gte_stsv` dest in `$a0` copy-props into later field reads; split the SSA
 
@@ -23838,7 +23838,7 @@ dest->mtx.t[1] = trans->vy;
 dest->mtx.t[2] = trans->vz;
 ```
 
-`func_800B4248` is the example.
+`Gp_AnimWritePoseBlend` is the example.
 
 ## Combined `buf[0x20]` + `TextDrawReq` so later stores go through `$a0`
 
@@ -23871,19 +23871,19 @@ into a new `$v1` temp so `lui v1, 0x60` fills that `beqz` delay.
 ## D4 overlay: hold `lhu` until after `tile` when `$a1` is reused
 
 The fade-overlay `lui a1, %hi(CdCmd_Queue)` / C `lhu` pair from
-`func_800AADDC` hoists the load past the TILE / `DR_TPAGE` address math
+`Gp_LoadWaitStage` hoists the load past the TILE / `DR_TPAGE` address math
 when the next block also needs `$a1` (another `lui a1` for a BSS
 halfword). The C load then consumes `$a0` too early (`sll a1` instead
 of `sll a0`, and `addu t2` can no longer fill the `bnez` delay).
 
 Depend the load on the finished `tile` pointer with a non-volatile
-empty asm so `lhu` sits after `addiu %lo(D_80114CA0)` and `addu t2`
+empty asm so `lhu` sits after `addiu %lo(Gp_FadeTpages)` and `addu t2`
 stays in the delay slot:
 
 ```c
-tile = &D_80114C80[buf];
+tile = &Gp_FadeTiles[buf];
 asm("" : : "r"(qhi), "r"(tile));
-dr     = &D_80114CA0[buf];
+dr     = &Gp_FadeTpages[buf];
 queued = *(u16*)((s32)qhi + (s16)0x91C4);
 ```
 
@@ -23912,7 +23912,7 @@ default:
 if (done & 0xFFFF) {
 ```
 
-`func_800AB5F4` is the example.
+`Gp_LoadWaitAreaCd` is the example.
 
 ## Fill CdCmd_Enqueue arg `addiu`s between session-field `lbu`s
 
@@ -23943,7 +23943,7 @@ delay. The last field must overwrite the session pointer in `$v1`
 session pointer and that byte to `$v1`. Loading it into `$v0` instead
 stores `param1[2]` late and moves `&param2` after the zeroing stores.
 
-`func_800AB1C8` is the example.
+`Gp_LoadWaitCompanion` is the example.
 
 ## `idx + table` so GCC emits `addu dest, dest, base`
 
@@ -24071,7 +24071,7 @@ asm volatile("");
 col += row * 20;
 ```
 
-`func_800E2438` is the example.
+`Gp_ScaleDamage` is the example.
 
 ## Force unsigned `/ 100` `mfhi` into `$v1` with early `mflo`
 
@@ -24104,7 +24104,7 @@ asm volatile("mfhi %0" : "=r"(col));
 val = (u32)col >> 5;
 ```
 
-`func_800E2438` is the example.
+`Gp_ScaleDamage` is the example.
 
 ## Keep a 2D `/3` index from folding, and schedule signed-`/3` magic before the dividend
 
@@ -24195,11 +24195,11 @@ is filled (not `nop`):
 
 ```c
 i = 0;
-asm volatile("lui %0, %%hi(D_80115448)" : "=r"(hi) : "r"(i) : "memory");
+asm volatile("lui %0, %%hi(Gp_GridParams)" : "=r"(hi) : "r"(i) : "memory");
 out = block->pos;
 off = 0x20;
 ...
-asm("lw %0, %%lo(D_80115448)(%2)\n\tlw %1, 68(%3)"
+asm("lw %0, %%lo(Gp_GridParams)(%2)\n\tlw %1, 68(%3)"
     : "=r"(p), "=r"(t) : "r"(hi), "r"(block));
 ```
 
@@ -24293,7 +24293,7 @@ register u32 mask asm("t2");
 
 ## Relative matrix: reuse `$a0` as 0x30 scratch, pin after the overwrite
 
-`func_800A8864` is `arg2 = inverse(arg0) * arg1` for rigid transforms:
+`Gp_WorldToLocal` is `arg2 = inverse(arg0) * arg1` for rigid transforms:
 transpose the parent rotation into scratch (same `t4`/`t5`/`t6` halfword
 pattern as `Gfx_TransposeRot`), `gte_MulMatrix0_real` into `arg2`, then
 `ApplyMatrixLV` of `child.t - parent.t`. Splat tags it "Handwritten"
@@ -24343,7 +24343,7 @@ clobbers the base and the stores must happen before `sll` reuses `$v0`:
     register s32         val asm("v0");
     register GpItemScan* s asm("v0");
 
-    s             = &D_8010D628;
+    s             = &Gp_MoveScanSrc;
     val           = s[arg0->spawnArg1].field_1;
     menu->field_4 = val;
     menu->field_5 = val;
@@ -24353,7 +24353,7 @@ clobbers the base and the stores must happen before `sll` reuses `$v0`:
 }
 ```
 
-`func_800BD2FC` is the example.
+`Gp_ItemPaneTask` is the example.
 
 ## Three `Ui_DrawText` calls CSE to one `jal` with `lui a1`; a `char*` temp uses `$v0`
 
@@ -24362,30 +24362,30 @@ A 3-way title pick compiled as
 ```c
 if (arg0->spawnArg1 == 0) {
     if (arg0->flags == 1) {
-        Ui_DrawText((UiPanel*)obj, D_80093D70);
+        Ui_DrawText((UiPanel*)obj, Gp_StrBattleField);
     } else {
-        Ui_DrawText((UiPanel*)obj, D_80093D80);
+        Ui_DrawText((UiPanel*)obj, Gp_StrItemBox);
     }
 } else {
-    Ui_DrawText((UiPanel*)obj, D_80093D8C);
+    Ui_DrawText((UiPanel*)obj, Gp_StrPlayerItem);
 }
 ```
 
 shares one `jal Ui_DrawText` and loads each string with `lui a1` /
 `addiu a1, a1, %lo(...)`. Assigning through `char* text` first emits
 `lui v0` / `addiu a1, v0` and hoists the else-string into the
-`bnez spawnArg1` delay instead of `move a0, s2`. `func_800BD2FC` is the
+`bnez spawnArg1` delay instead of `move a0, s2`. `Gp_ItemPaneTask` is the
 example.
 
 ## `count = count < func()` emits `slt s0, s0, v0` / `beqz s0`
 
-`if (count < func_800BAF5C(scan))` keeps the compare in `$v0`
+`if (count < Gp_CountScanItems(scan))` keeps the compare in `$v0`
 (`slt v0, s0, v0` / `beqz v0`). Reusing the saved count for the boolean
 writes the `slt` onto `$s0`:
 
 ```c
 count = scan->field_1;
-count = count < func_800BAF5C(scan);
+count = count < Gp_CountScanItems(scan);
 if (count != 0) {
     obj->field_4 |= 0x20000;
 } else {
@@ -24393,19 +24393,19 @@ if (count != 0) {
 }
 ```
 
-`func_800BD2FC` is the example.
+`Gp_ItemPaneTask` is the example.
 
 ## Inline a recalc helper so `cfg` stays in `$a1` and the old current stays in `$a3`
 
-`func_800B996C` `jal`s `func_800B7930` then `cfg->field_1c = cfg->field_1e`,
+`Gp_UiBoostMp` `jal`s `Gp_RecalcMaxMp` then `cfg->field_1c = cfg->field_1e`,
 so `cfg`/`save` live in `$s0`/`$s1`. The HP sibling must write the
-`func_800BC0C0` body inline (no `jal`): `cfg` stays in `$a1`, `save` in
-`$t0`. Cache original `field_18` in an `s32` so the `D_80114BE8` store is
+`Gp_RecalcMaxHp` body inline (no `jal`): `cfg` stays in `$a1`, `save` in
+`$t0`. Cache original `field_18` in an `s32` so the `Gp_HpMpWork` store is
 `lh a3` / `sw a3` and the clamp is `slt v0, v0, a3`:
 
 ```c
 hp                 = cfg->field_18;
-D_80114BE8.field_0 = hp;
+Gp_HpMpWork.field_0 = hp;
 ...
 if (cfg->field_1a < hp) {
     cfg->field_18 = cfg->field_1a;
@@ -24413,21 +24413,21 @@ if (cfg->field_1a < hp) {
 cfg->field_18 = cfg->field_1a;
 ```
 
-Calling `func_800BC0C0()` instead emits a `jal` and reallocates those
-pointers into callee-saved regs. `func_800B9B40` is the example.
+Calling `Gp_RecalcMaxHp()` instead emits a `jal` and reallocates those
+pointers into callee-saved regs. `Gp_UiBoostHp` is the example.
 
 ## Split an unaligned 4-byte copy so `lui` / `li a1` / `addiu $t4` match the jal args
 
-`save->field_5BC = D_8010D520; func_800B8CAC(&save->field_5BC, 0x6C, 1)`
-schedules `li a1, 0x6C` *before* `lui %hi(D_8010D520)`. The target wants:
+`save->field_5BC = Gp_DefaultScan; Gp_AddItem(&save->field_5BC, 0x6C, 1)`
+schedules `li a1, 0x6C` *before* `lui %hi(Gp_DefaultScan)`. The target wants:
 
 ```
 addiu  a0, v0, 0x5BC
-lui    v1, %hi(D_8010D520)
+lui    v1, %hi(Gp_DefaultScan)
 li     a1, 0x6C
-addiu  t4, v1, %lo(D_8010D520)
+addiu  t4, v1, %lo(Gp_DefaultScan)
 lwl/lwr/swl/swr
-jal    func_800B8CAC
+jal    Gp_AddItem
  li    a2, 1
 ```
 
@@ -24443,19 +24443,19 @@ register GpItemRec*  table asm("v1");
 
 save = &Mc_SaveData;
 dest = &save->field_5BC;
-asm volatile("lui %0, %%hi(D_8010D520)" : "=r"(table));
+asm volatile("lui %0, %%hi(Gp_DefaultScan)" : "=r"(table));
 item = 0x6C;
 asm volatile("" ::"r"(item));
-asm volatile("addiu %0, %1, %%lo(D_8010D520)" : "=r"(src) : "r"(table));
+asm volatile("addiu %0, %1, %%lo(Gp_DefaultScan)" : "=r"(src) : "r"(table));
 asm volatile("" ::"r"(table));
 *dest = *src;
-func_800B8CAC(dest, item, 1);
+Gp_AddItem(dest, item, 1);
 ```
 
-A 4x3 byte-clear of `D_80114BF0` then wants `addu v0, v0, a2` (index first).
+A 4x3 byte-clear of `Gp_DebugAttachLevels` then wants `addu v0, v0, a2` (index first).
 `levels[col + i] = 0` is `addu v0, a2, v0`. Write
 `*(u8*)((col + i) + (s32)levels) = 0` inside `for (; item < 4; item++, i += 3)`.
-`func_800BA538` is the example.
+`Gp_ResetInventory` is the example.
 
 ## Don't pin a post-call dest to `$a3` when `$a3` is also the last call arg
 
@@ -24474,7 +24474,7 @@ jal   f
 `register T* dest asm("a3")` for that later NULL-check makes GCC prepare
 `$a3` (4th arg) before `$a0`, swapping the two delay-slot fills (99.8%).
 Leave `dest` unpinned; GCC still loads it into `$a3` after the return.
-`func_800B3108` is the example.
+`Gp_AnimBlendPacked` is the example.
 
 ## Reuse `$v1` across scratch head, dividend, and bitfield pointer
 
@@ -24498,7 +24498,7 @@ tmp -= 1;
 the copy into `$s0` fills the `beq field_0, field_4` delay. Pin `blend` so
 `lh v1, field_C` / `div v1, v0` / `mflo v1` and the invBlend phi stay in
 `$v0`. Pin `p` so each bitfield extract is `lw v0, 0(v1)` instead of
-reloading the pointer from `$s1`. `func_800B3108` is the example.
+reloading the pointer from `$s1`. `Gp_AnimBlendPacked` is the example.
 
 ## Full-screen POLY_F4 + `setDrawTPage`: extents first, `setSemiTrans` after `addPrim`
 
@@ -24525,15 +24525,15 @@ p->y0 = yTop - Display_State.vramYOffset;
 `(arg1 & 3) << 5` at the `setDrawTPage` site delays the `andi`.
 
 `setSemiTrans(p, 1)` **after** the POLY `addPrim` (not before, as in
-`func_800EC888` / `func_800EC914`) lets `lbu code / ori 2 / sb` fill the
+`Gp_AddTpage` / `Gp_AddTpageShift`) lets `lbu code / ori 2 / sb` fill the
 `lui`/`ori 0xE100020A` window. Then:
 
 ```c
 setDrawTPage(dr, 0, 1, 0xA | (arg1 << 5));
 ```
 
-which is `0xE100020A | (abr << 5)`. Same OT slot as `func_800EC914` with
-`z = 0x10`. `func_800EA858` is the example.
+which is `0xE100020A | (abr << 5)`. Same OT slot as `Gp_AddTpageShift` with
+`z = 0x10`. `Gp_DrawFadeQuad` is the example.
 
 ## Keep `+ K` on a sign-extended `s8` with `* -1 + u16`, not `u16 - (s8 + K)`
 
@@ -24574,7 +24574,7 @@ p->y2 = ((s8)*(volatile u8*)&Display_State.vramYOffset + 7) * -1 + y;
 ```
 
 Use that `mask` in a handwritten `addPrim` (same shape as `Ui_DrawCaret`).
-`func_800E6608` is the example.
+`Gp_DrawCapCaret` is the example.
 
 ## `s16` `>=` as `x > y - 1` so GCC emits `addiu -1` / `slt` / `beqz`
 
@@ -24616,11 +24616,11 @@ Keep a `u16` temp, barrier it, then widen:
 
 ```c
 if ((id & 0x8000) == 0) {
-    raw = D_80113390[id & 0x7F].field_4;
+    raw = Gp_IdParamLo[id & 0x7F].field_4;
     asm volatile("" : "+r"(raw));
     kind = raw;
 } else {
-    raw = D_8011398C[id & 0x7F].field[5];
+    raw = Gp_IdParamHi[id & 0x7F].field[5];
     asm volatile("" : "+r"(raw));
     kind = raw;
 }
@@ -24632,7 +24632,7 @@ switch (kind) {
 ```
 
 `kind = raw & 0xFFFF` also matches; `s32 raw` without the mask becomes
-`move` and drops the `andi`. `func_800E2A24` is the example.
+`move` and drops the `andi`. `Gp_ApplyObjKind` is the example.
 
 ## Unsigned `>> 16` in the `if (x & 0xF0000)` arm so the delay slot is `srl`
 
@@ -24675,7 +24675,7 @@ block->distSq -= lum;
 
 The first barrier forces `lw` before `move` (move fills the load delay).
 The second redefines `lum` so it is not CSE-equivalent to `inner`, and
-`temp - inner` stays `subu ..., a0`. `func_800D9138` is the example.
+`temp - inner` stays `subu ..., a0`. `Gp_LightFalloff` is the example.
 
 ## Pin a `$v0` temp so `lbu` does not land in the saved dest
 
@@ -24688,7 +24688,7 @@ restores `lbu v0` / `addiu s2, v0, 0x7F`. Same for `field_23 + 0x5F`.
 ## Color a 3-store loop so the table pointer is `$a2` with split `la`
 
 `i` in `$a0`, compare-index in `$a1`, `minusOne` in `$t0` leaves `$a2` for
-`table = D_8010E8F8` as `lui v0, %hi` / `addiu a2, v0, %lo` / `lw v0, 0(a2)`.
+`table = Gp_PreviewItems` as `lui v0, %hi` / `addiu a2, v0, %lo` / `lw v0, 0(a2)`.
 Without those pins the table absorbs `$v1` (or `$a0`) and the `%lo` load
 folds. Keep `table` and `p = table` distinct with `asm volatile("" :
 "+r"(table), "+r"(p))` so the loop walks `$v1` (`move v1, a2` / `p++`).
@@ -24751,7 +24751,7 @@ before `other = 0` *and* again inside `if (mode != 0)`) hoists that
 `%hi` into the previous `lui`/`sh` gap so the real `sh` can fill `beqz`
 (which forces `sll v0, s3, 16` instead of clobbering `$s3`).
 
-`func_800E41F4` is the example.
+`Gp_StartCap` is the example.
 
 ## Double `asm volatile("" : "+r"(off))` so `<< 4` then `+ 4` stays `addiu`
 
@@ -24796,7 +24796,7 @@ bnez   v0, spawn
  lui    a0, 0x6
 move   a0, mem
 kill:
-jal    func_800EC7E4
+jal    Gp_ReleaseState1CMem
 move   a1, task
 j      epilogue
 nop
@@ -24865,7 +24865,7 @@ Clobber the field memory, then snapshot it into two block-scoped s32
 locals around the neighboring store:
 
 ```c
-mem->field_20 = (D_80114C08.field_0 % 10U) - 1;
+mem->field_20 = (Gp_StateC08.field_0 % 10U) - 1;
 __asm__ volatile("" : "+m"(mem->field_20));
 x             = mem->field_20; /* lh */
 mem->field_26 = 0x20;
@@ -24891,14 +24891,14 @@ tmp.vy = *(u16*)&arg0->coord.t[1];
 tmp.vz = *(u16*)&arg0->coord.t[2];
 ```
 
-`func_800B1D00` is the example.
+`Gp_ComposeParentWorld` is the example.
 
 ## Repeat a global load so `%hi` stays in `$a1`; don't stash it in a local
 
-`u16 val = D_80114C08.field_0` then `val / 10U` / `val / 100U` reuses the
+`u16 val = Gp_StateC08.field_0` then `val / 10U` / `val / 100U` reuses the
 `%hi` register as the load dest (`lhu a1, %lo(a1)`). The target keeps
-`$a1` as `%hi` for every `field_0` access (`lhu a2, %lo(D_80114C08)(a1)`).
-Write `D_80114C08.field_0` at each use so the CSE temp is `$a2`.
+`$a1` as `%hi` for every `field_0` access (`lhu a2, %lo(Gp_StateC08)(a1)`).
+Write `Gp_StateC08.field_0` at each use so the CSE temp is `$a2`.
 
 ## `x - 1 + y` reassociates onto `y`; a live `-1` variable or a split add does not
 
@@ -24959,7 +24959,7 @@ fail:
 ```
 
 `asm volatile("" : "=r"(arg3)); arg3 = 0;` in the `arg3 == 0` else forces
-the redundant `move s2, zero` that CSE would drop. `func_800B715C` is
+the redundant `move s2, zero` that CSE would drop. `Gp_EquipRelatedItem` is
 the example. Also `asm volatile("" : "+r"(qtyTable))` after `la` so
 `*(u8*)((s32)qtyTable + off + 0x200)` emits `addu v0, v1, v0` rather
 than the commuted `addu v0, v0, v1`.
@@ -24986,11 +24986,11 @@ tooFar = (u32)sq < (u32)lum;
 
 `register s32 lum asm("v1")` then coalesces the compare into
 `sltu v1, v0, v1`. Leave `lum` unpinned so the dest stays `$v0`.
-`func_800D70E4` is the example.
+`Gp_LightPoint` is the example.
 
 ## `three = 3` hoists into `$v1` and steals the `lhu` id; idx/off coalesce
 
-A merged `func_800BB470` + `func_800BAC34` body wants:
+A merged `Gp_GetCurBit2Flag` + `Gp_SetCurBit2Flag` body wants:
 
 ```
 lhu    v1, 0(s1)          # id
@@ -25020,7 +25020,7 @@ long live range loses `$v1` to `mask` (`id` in `$a1`, `sllv` for
 coalesce and can recover `shift` in `$a1` / `mask` in `$a2` / delayed
 `li v1, 3`, but the extra live range of `idx` overlaps `sess` and the
 `UiObject*` from `spawnArg2`, swapping `$t0`/`$a3` (obj vs off) and
-`$v0`/`$v1` (Game_Session vs `D_8010D230`). Nested
+`$v0`/`$v1` (Game_Session vs `Gp_Bit2Banks`). Nested
 `register ... asm("a0")` (etc.) is function-wide in 2.8.1 and breaks
 the earlier `Ui_SpawnFromDesc` `xori a1, 1`. `func_800B65B0` is the
 example; not fully matched.
@@ -25054,16 +25054,16 @@ moves default out of the `bne` delay. Write the second copy as:
 if (scan->field_2 != 1) {
     table = Mc_SaveData.field_1AC;
     if (scan->field_2 == 2) {
-        table = D_80114C20;
+        table = Gp_ItemTable2;
     }
 } else {
-    table = D_80114D70;
+    table = Gp_ItemTable1;
 }
 ```
 
 The first `switch` still owns the s-register assignment; the `if != 1`
 form keeps `addiu default` in the `bne` delay with `minKey` in the
-`beq == 1` delay. `func_800B8588` is the example.
+`beq == 1` delay. `Gp_SortItems` is the example.
 
 ## Unconditional `p += next` so the add fills the following `beqz` delay
 
@@ -25082,7 +25082,7 @@ if (j < n) {
 ```
 
 `addiu v1, t3, 4` stays after `addu a3, v1, v0`; `addu a3, a3, v1`
-fills the `beqz`. `func_800B8588` is the example.
+fills the `beqz`. `Gp_SortItems` is the example.
 
 ## Shared `index = arg0` tail so type 6/3/2 emit `j` / `li` into `move s2, a0`
 
@@ -25111,7 +25111,7 @@ index = arg0;
 after_index:
 ```
 
-`func_800C5C2C` is the example.
+`Gp_EnqueueItemPreviewCd` is the example.
 
 ## `idx = (x & 0xFF) << 2` before `p = arr` so `sll` precedes `addiu p`
 
@@ -25127,7 +25127,7 @@ p   = blk.flags;
 CdCmd_DropPending();
 ```
 
-`func_800C5C2C` is the example.
+`Gp_EnqueueItemPreviewCd` is the example.
 
 ## Pin `off` to `$v1` as three adds so `base + i*8 + 0x10` is not strength-reduced
 
@@ -25144,16 +25144,16 @@ off = off + 0x10;
 cur = (CdCmdEntry*)off;
 ```
 
-`func_800C5C2C` is the example.
+`Gp_EnqueueItemPreviewCd` is the example.
 
 ## Join `SetHolderParam` text in `$a0` and kill REG_EQUAL on the 0s
 
-`Ui_SetHolderParam(text, 0, 0)` immediately followed by `func_800CDE80(item, 0)`
+`Ui_SetHolderParam(text, 0, 0)` immediately followed by `Gp_SetPreviewItem(item, 0)`
 with `item` in `$s0` copy-props both 0s: `move a1, zero` / `jal` /
 `move a2, zero`. The target reuses the first 0 as `move a2, a1` in the delay
 and still has `li a1, 1` in the `bnez item` delay of the empty-slot path.
 
-Inlining `SetHolderParam(func_800B8EB0(item, 1, 0), 0, 0)` keeps that `li a1, 1`
+Inlining `SetHolderParam(Gp_GetItemText(item, 1, 0), 0, 0)` keeps that `li a1, 1`
 but still copy-props `$a2`. Split the join so the text lives in `$a0` and `$a1`
 is 1 then 0, and kill REG_EQUAL on the 0:
 
@@ -25164,12 +25164,12 @@ a1v = 1;
 if (item == 0) {
     t = (s32)emptyStr;
 } else {
-    t = (s32)func_800B8EB0(item, a1v, 0);
+    t = (s32)Gp_GetItemText(item, a1v, 0);
 }
 a1v = 0;
 asm("" : "+r"(a1v));
 Ui_SetHolderParam(t, a1v, a1v);
-func_800CDE80(item, 0);
+Gp_SetPreviewItem(item, 0);
 ```
 
 `func_800C26B8` is the example.
@@ -25223,7 +25223,7 @@ gte_SetRotMatrix(&((GsCOORDINATE2*)arg0->field_8)->workm);
 ```
 
 Pin scratch to `$v0` with the existing `lui`/`ori` fake dependency so the
-alloc temp lands in `$v1` and `head` stays in `$a2`. `func_800E1380` is
+alloc temp lands in `$v1` and `head` stays in `$a2`. `Gp_FindNearestSlot` is
 the example.
 
 ## `n = id < K; if (n) goto store` so slti dest is the count, plus `asm("")` to keep `bnez`
@@ -25332,7 +25332,7 @@ switch (mapId) {
 
 State 1 of the same function has a real `0x21B0000` body, so the tree
 already has the right child. State 3 must keep the empty case or the
-lower half collapses to two sequential `beq`s. `func_800BEBE4` is the
+lower half collapses to two sequential `beq`s. `Gp_ItemPickupTilt` is the
 example.
 
 A `(s8)func()` result that must be `sll s0, v0, 24` / `sra s0, s0, 24` in
@@ -25369,7 +25369,7 @@ if (rec10->id == 0) {
 ```
 
 The empty `asm volatile("")` before `match = rec10` stops `-fdelayed-branch`
-from filling the `!= 0xFF` `beq` with `move a1, a0`. `func_800A9E44` is the
+from filling the `!= 0xFF` `beq` with `move a1, a0`. `Gp_PollAreaCdLoads` is the
 example.
 
 ## Pin `ptr + 1` to `$v0` so the increment dest is not `$a0`
@@ -25402,7 +25402,7 @@ param2[2] = cursor->field_D;
 ```
 
 Same as the fade TILE RGB “per-branch stores” idea: the store must land
-before independent setup of the next call. `func_800A9E44` is the example.
+before independent setup of the next call. `Gp_PollAreaCdLoads` is the example.
 
 ## Fresh `lui a0` for a loop-continue reload when `$t0` already holds `%hi`
 
@@ -25424,7 +25424,7 @@ Emit the pair (non-volatile, so the scheduler can place them):
 }
 ```
 
-Same split-`la` style as `func_800B6950` / `func_800C9654`. `func_800A9E44`
+Same split-`la` style as `Gp_SpawnPlaceById` / `func_800C9654`. `Gp_PollAreaCdLoads`
 is the example.
 
 ## Separate vertex-base locals so each `gte_ldv3` can overwrite `$a0`
@@ -25498,7 +25498,7 @@ block-scope temp so it dies at the stores:
 }
 ```
 
-`func_800D8C0C` is the example. Same "temp must die at the store" idea as
+`Gp_RemapActorColor` is the example. Same "temp must die at the store" idea as
 the `| packed` block-scope temp.
 
 ## Write `if (x == 1) else if (x < 2)` instead of `switch` for 1/2/3
@@ -25536,7 +25536,7 @@ if (arg2 == 1) {
 }
 ```
 
-`func_800D8C0C` is the example.
+`Gp_RemapActorColor` is the example.
 
 ## Pin the walking element pointer so GCC does not form `p+field`
 
@@ -25653,7 +25653,7 @@ match; prefer `arg0 + bestIdx` otherwise.
 
 ## Non-volatile block-scoped `+r` pin so `(s16)x >> 1` is `sll 16; sra 17`
 
-`mem->field_24 = ((u32)D_80070F60 >> 16) & 0x1FF; mem->field_14 =
+`mem->field_24 = ((u32)Gp_LcgState >> 16) & 0x1FF; mem->field_14 =
 -(mem->field_24 >> 1)` lets combine see the `andi 0x1FF` range and emit
 `srl 1`. The target is `sll 16; sra 17` (`(s16)x >> 1` of an unknown
 32-bit value). A `volatile` `+r` pin after the store also works, but is
@@ -25664,8 +25664,8 @@ A **non-volatile** pin on a **block-scoped** copy is not a barrier, so
 call setup can still sit above the LCG, while the range is forgotten:
 
 ```c
-D_80070F60    = D_80070F60 * 5 + 0x71357911;
-mem->field_24 = ((u32)D_80070F60 >> 16) & 0x1FF;
+Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+mem->field_24 = ((u32)Gp_LcgState >> 16) & 0x1FF;
 {
     s32 sh;
     sh = mem->field_24;
@@ -25676,24 +25676,24 @@ func_800EA478(0x60034, coord, mem->field_24 + 0x380, (s32)&mem->field_10);
 ```
 
 Reuse of a function-level `temp` for the pin shuffles the LCG into `v1`
-and delays `sw D_80070F60`. `func_800ED198` is the example.
+and delays `sw Gp_LcgState`. `func_800ED198` is the example.
 
-Write `D_80070F60 = D_80070F60 * 5 + K` (no extra `rng` local) so the
+Write `Gp_LcgState = Gp_LcgState * 5 + K` (no extra `rng` local) so the
 LCG `addu` dest stays `v0` and the store sits immediately after it.
 
 ## Overlay `coord` plus tail so extra fields are `s5+0x50`, not `base+0x54`
 
-`D_80114F30` is a `GpCoord64` whose extra s16s/s32s live at `+0x54`.
-Accessing them as `D_80114F30->field_54` uses the slot base (`sw 0x54(a0)`).
+`Gp_RoomCoords` is a `GpCoord64` whose extra s16s/s32s live at `+0x54`.
+Accessing them as `Gp_RoomCoords->field_54` uses the slot base (`sw 0x54(a0)`).
 The target computes `s5 = a0+4` (`&slot->coord`) and stores at `0x50(s5)`.
 Hold the coordinate as a `GpCoordTail*` (GsCOORDINATE2 plus the 0x10-byte
 tail) and assign it **before** the `if` so `addiu s5, a0, 4` fills the
 entry `beqz` delay:
 
 ```c
-base = D_80114F30;
+base = Gp_RoomCoords;
 slot = (GpCoordTail*)&base->coord;
-st   = D_80115740;
+st   = Gp_State1C;
 if (st->field_4 < 2) {
     slot->field_50 = 0xC00;
     ...
@@ -25703,12 +25703,12 @@ if (st->field_4 < 2) {
 }
 ```
 
-A local `GpState1C* st = D_80115740` interleaves `lui s6, %hi(D_80114F30)`
-with the `D_80115740` load so `addiu a0, s6, %lo(D_80114F30)` stays in
+A local `GpState1C* st = Gp_State1C` interleaves `lui s6, %hi(Gp_RoomCoords)`
+with the `Gp_State1C` load so `addiu a0, s6, %lo(Gp_RoomCoords)` stays in
 the prologue. `func_800ED198` is the example.
 
 Zero `coord->flg` **after** the three `coord.t[]` stores so `sw zero, 0(s3)`
-sits next to `jal func_80098F58` with `t[2]` in the delay. Putting `flg = 0`
+sits next to `jal Gp_UpdateCoord` with `t[2]` in the delay. Putting `flg = 0`
 between `t[1]` and `t[2]` lets it sink into the `lh vy` delay.
 
 ## s32 temp so `-(x << 4)` of an s32 stored as s16 keeps `lw`
@@ -25721,7 +25721,7 @@ Copy into an s32 first so the load stays 32-bit; a later `arg0->spawnArg1
 
 ```c
 temp          = arg0->spawnArg1;
-mem->field_28 = -(temp << 4) - (((u32)D_80070F60 >> 16) & 0x7F);
+mem->field_28 = -(temp << 4) - (((u32)Gp_LcgState >> 16) & 0x7F);
 mem->field_2A = arg0->spawnArg1 * 24 + 0xC0;
 ```
 
@@ -25737,7 +25737,7 @@ blez   a, kill
 bltz   b, cont
 nop
 kill:
-jal    func_800EC7E4
+jal    Gp_ReleaseState1CMem
 ...
 j      epilogue
 nop
@@ -25874,7 +25874,7 @@ keeps the split `%hi` in `$s1` for the later `%lo` load:
 
 ```c
 scan  = &Mc_SaveData.field_5BC;
-table = func_800BB500(scan);
+table = Gp_GetItemTable(scan);
 idx   = ((volatile McItemScan*)&Mc_SaveData.field_5BC)->field_0;
 count = scan->field_1;
 ```
@@ -25896,7 +25896,7 @@ req.y = vy;
 ```
 
 `func_800C3418` is the example. Same dest-first add as `sum = sum + tmp`
-(`func_800AC790`).
+(`Gp_EmitSprts`).
 
 ## Pin early `$s` locals so args land in `$s2`/`$s3` with a split `la`
 
@@ -25907,8 +25907,8 @@ those copies and the leftover `sw ra/s4/s1/s0`. Copying into
 `lui` next to `%lo`. Pin the earlier live-across-call locals (`rec` in
 `$s1`, `item` in `$s0`) and leave the incoming args unpinned.
 
-`func_800BCEA4` is the example. Same “pin the later `$s` regs, leave the
-arg unpinned” idea as `func_800AC790`.
+`Gp_ItemMoveRow` is the example. Same “pin the later `$s` regs, leave the
+arg unpinned” idea as `Gp_EmitSprts`.
 
 ## Pin the second `1` to `$a0` so it does not CSE with an earlier `$v1`
 
@@ -25933,7 +25933,7 @@ status = arg1->status;
 }
 ```
 
-`func_800BCEA4` is the example.
+`Gp_ItemMoveRow` is the example.
 
 ## Pin the last 3-level index to `$a0` so the table `la` uses `$v1`
 
@@ -25949,7 +25949,7 @@ Pin `k` in `$a0` before the assign:
     register s32 room asm("a0");
     room = sess->field_4;
     asm volatile("" : "+r"(room));
-    rec = D_8010CB90[sess->field_3 - 1][sess->field_2 - 1][room - 1];
+    rec = Gp_WarpTables[sess->field_3 - 1][sess->field_2 - 1][room - 1];
 }
 ```
 
@@ -25975,7 +25975,7 @@ j      body
 pointer's `+r` barrier so the `%hi` temp is `$v1`:
 
 ```c
-p = &D_80114C08;
+p = &Gp_StateC08;
 asm volatile("" : "+r"(p) : : "v0");
 ```
 
@@ -26107,7 +26107,7 @@ t1 = (m * cos0) / 4096;
 ```
 
 A later `m = arg1->m[2][0]; prod = m * sin0` with `prod` in `$a2` is the
-same pattern for the second product (`lh v0` / `mflo a2`). `func_800B114C`
+same pattern for the second product (`lh v0` / `mflo a2`). `Gp_ExtractEuler`
 is the example.
 
 ## `if (s16 <= 0)` so `bgtz` takes the then-block after the else
@@ -26124,14 +26124,14 @@ if (vx0 <= 0) {
 }
 ```
 
-`func_800B114C` is the example.
+`Gp_ExtractEuler` is the example.
 
 ## Reassign dead saved regs so later sums reuse `$s2` / `$s1`
 
 `sin0` / `cos0` live in `$s2` / `$s1` across the `rsin`/`rcos`/`ratan2`
 calls. After the last use, new `sum0` / `sum1` locals take `$a1` / `$v0`.
 Write the abs-sums back into `sin0` / `cos0` so `addu s2` / `addu s1` /
-`slt v0, s2, s1`. `func_800B114C` is the example.
+`slt v0, s2, s1`. `Gp_ExtractEuler` is the example.
 
 ## Two `+r` barriers around an abs so the add stays after `bgez` / `nop`
 
@@ -26151,7 +26151,7 @@ __asm__ volatile("" : "+r"(az), "+r"(ax));
 sin0 = ax + az;
 ```
 
-Same `+r` pin as `func_8009AA5C`. `func_800B114C` is the example.
+Same `+r` pin as `func_8009AA5C`. `Gp_ExtractEuler` is the example.
 
 ## Memory clobber so `gte_lddp` reloads a just-stored weight
 
@@ -26188,7 +26188,7 @@ Pin the optional dest to `$v1` so `lui v1, 0x1F80` for the scratch pop
 cannot hoist into the `beqz dest` delay. Write `field_C` dest through
 `arg0->field_C->vx` (no local) so each `sh` reloads the pointer. A named
 `z = trans.vz` before `field_0 = 0` keeps that store in the `lh vz` delay
-rather than the `vy` delay. `func_800B2E90` is the example.
+rather than the `vy` delay. `Gp_AnimBlendPose` is the example.
 
 ## Put a later call's constant in each wrap-select arm
 
@@ -26272,7 +26272,7 @@ example.
 live `1` in a temp) CSEs with the shift amount and turns it into
 `li t1, 1` / `srav`. Keep that `1` unborn until after the shifts (a
 register barrier after the `>> 1`, or compute the `1` only at the call)
-so the shift keeps the immediate form. `func_800B954C` is the example;
+so the shift keeps the immediate form. `Gp_UiBoostAttach` is the example;
 `func_800CC15C` wants the `srav` form because its `1` is a live `jal`
 arg (`a2`) set up *before* the shift.
 
@@ -26292,11 +26292,11 @@ za     = 0;
 zb     = za;
 asm volatile("" ::"r"(str), "r"(za), "r"(zb), "r"(w), "r"(a0item));
 width = w + 4;
-text  = func_800B8EB0(a0item, za, zb);
+text  = Gp_GetItemText(a0item, za, zb);
 ```
 
 `volatile` on the call args themselves blocks delay-slot filling
-(see above) and leaves `nop`. `func_800B954C` is the example.
+(see above) and leaves `nop`. `Gp_UiBoostAttach` is the example.
 
 ## Copy `p` to `$s0` but keep pad stores on `$v1`
 
@@ -26358,11 +26358,11 @@ own block, then pin the product to `$a0` in the multiply-add block:
 }
 ```
 
-`func_800D6E5C` is the example.
+`Gp_LightPointRoom` is the example.
 
 ## Split `%hi` into `$v0` so `%lo` can land in a different dest
 
-`p = D_80114F30` with `p` in `$s1` emits `lui s1, %hi` / `addiu s1, s1, %lo`.
+`p = Gp_RoomCoords` with `p` in `$s1` emits `lui s1, %hi` / `addiu s1, s1, %lo`.
 The target materializes the address as `lui v0, %hi` / `addiu s1, v0, %lo`.
 Pin a dummy `$v0` temp and emit that pair:
 
@@ -26370,15 +26370,15 @@ Pin a dummy `$v0` temp and emit that pair:
 register s32 hi asm("v0");
 register T*  p asm("s1");
 __asm__ volatile(
-    "lui\t%0, %%hi(D_80114F30)\n\t"
-    "addiu\t%1, %0, %%lo(D_80114F30)"
+    "lui\t%0, %%hi(Gp_RoomCoords)\n\t"
+    "addiu\t%1, %0, %%lo(Gp_RoomCoords)"
     : "=r"(hi), "=r"(p));
 ```
 
-An empty `asm volatile("" : "=r"(hi))` before `p = D_80114F30` is not
+An empty `asm volatile("" : "=r"(hi))` before `p = Gp_RoomCoords` is not
 enough — GCC still uses `$s1` for both halves.
 
-`func_800D6B20` is the example.
+`Gp_UpdateRoomCoords` is the example.
 
 ## Hardcode `$8` for a second `Mc_SaveData+off` `lui` so `$t0` stays a first-half scratch
 
@@ -26386,7 +26386,7 @@ enough — GCC still uses `$s1` for both halves.
 for the whole function, so an early `lh t0, field_1C` / `sw t0, savedX`
 becomes `$t1`. The first `&Mc_SaveData.field_5BC` can still be
 `lui $8, %hi(Mc_SaveData+0x5BC)` / `addiu scan, $8, %lo(...)` without that
-reservation. After `func_800BB500` clobbers `$t0`, reload with a dummy-input
+reservation. After `Gp_GetItemTable` clobbers `$t0`, reload with a dummy-input
 asm so `%%hi` is expanded and `$t0` is not an output the allocator owns:
 
 ```c
@@ -26453,7 +26453,7 @@ asm volatile("" ::"r"(cfg));
 ```
 
 Zero extra uses leaves `cfg` in `$t2`; several extra uses promote it to
-`$t0` and steal the first base. `func_800BA75C` is the example.
+`$t0` and steal the first base. `Gp_ClearInventory` is the example.
 
 ## Empty `asm volatile("")` so a `beqz` delay fills from the fail-path increment
 
@@ -26474,7 +26474,7 @@ if ((u32)(id - 0x60) < 0x20U) {
 i++;
 ```
 
-`func_800BA75C` is the example.
+`Gp_ClearInventory` is the example.
 
 ## Do not pin `$v0` if a later unsigned `/ 100` needs `mfhi v0`
 
@@ -26575,20 +26575,20 @@ pitch   = block->pitch;
 vec->vx = -pitch;
 ```
 
-`func_800E1CD4` is the example.
+`Gp_OrientAlong` is the example.
 
 ## Don't reuse a `for`-loop counter as the `(s8)` dest before a second `jal`
 
-`temp = (s8)func_800D937C(coord)` then `SndEvt_EnqueueType6(..., temp, (s8)func_800D9340(coord))` wants the sign-extend split across the second call:
+`temp = (s8)Gp_GetObjPan(coord)` then `SndEvt_EnqueueType6(..., temp, (s8)Gp_GetObjDepth(coord))` wants the sign-extend split across the second call:
 
 ```
 move   a0, coord
 sll    s0, v0, 24
-jal    func_800D9340
+jal    Gp_GetObjDepth
 sra    s0, s0, 24
 ```
 
-Assigning that `(s8)` back into the loop index (`i = (s8)func_800D937C(...)`) after `for (i = 0; i < 0x555; i += 0x2AA)` completes the cast in `$v0` first (`sll v0, v0, 24` / `sra s0, v0, 24`) so `move a0, coord` sinks into the `jal` delay. Use a separate `temp` (function-level is fine; it still reuses `$s0` once the loop is dead). `func_800FC0B4` / `func_800FC74C` are the example.
+Assigning that `(s8)` back into the loop index (`i = (s8)Gp_GetObjPan(...)`) after `for (i = 0; i < 0x555; i += 0x2AA)` completes the cast in `$v0` first (`sll v0, v0, 24` / `sra s0, v0, 24`) so `move a0, coord` sinks into the `jal` delay. Use a separate `temp` (function-level is fine; it still reuses `$s0` once the loop is dead). `func_800FC0B4` / `func_800FC74C` are the example.
 
 ## Don't pin a short-lived arg copy to a later `mflo` dest
 
@@ -26615,7 +26615,7 @@ asm volatile("" : "+r"(addr));
 
 A later `register VECTOR* light asm("a0"); light = (VECTOR*)block;`
 then restores `$a0` in the `mult` delay of the next call.
-`func_800D72D0` is the example.
+`Gp_LightCone` is the example.
 
 ## Emit signed `/ 7 * 4` by hand when `$v1` is reserved
 
@@ -26671,7 +26671,7 @@ expression:
 {
     s32 idx;
     idx = i;
-    val = func_800AEBA4((u8)idx);
+    val = Gp_LookupStageFlag((u8)idx);
 }
 rec2 = recs + (u8)i;
 ```
@@ -26691,7 +26691,7 @@ diffs.m[i][0] = b->m[i][0] - a->m[i][0];
 vec[i].vx     = a->m[i][0] + (diffs.m[i][0] * t) / ONE;
 ```
 
-`func_800B1460` is the example.
+`Gp_LerpOrthonormal` is the example.
 
 ## Do not reuse the loop index for a `VectorNormal` return if the copy is `$v1`
 
@@ -26708,7 +26708,7 @@ if (len < ret) {
 ```
 
 The last compare can still use the return in `$v0` directly
-(`if (len < VectorNormal(...))`). `func_800B1460` is the example.
+(`if (len < VectorNormal(...))`). `Gp_LerpOrthonormal` is the example.
 
 ## GTE outer product of two `VECTOR`s
 
@@ -26724,7 +26724,7 @@ gte_op12_real();
 gte_stlvnl(&tmp);
 ```
 
-`func_800B1460` is the example.
+`Gp_LerpOrthonormal` is the example.
 
 ## Copy `$a1` into its saved reg with `addu dest, src, $zero` so a later `la` cannot stage it
 
@@ -26779,7 +26779,7 @@ Clobber the register on the empty path before those uses:
 The empty body still matches `move a1, zero` / `lbu v1, 0(scan)` /
 `addu s0, v0, v1`. Reuse the same `rec` variable as the walker so `$s0`
 is the dest of that `addu` (a new local lands in `$a0` and the following
-`jal func_800B91C8` loses `move a0, s0`). `func_800C5328` is the example.
+`jal Gp_RefreshItemRow` loses `move a0, s0`). `func_800C5328` is the example.
 
 ## Reassign `coord` onto `&coord->coord` so the MATRIX* reuses `$s0`
 
@@ -26895,5 +26895,5 @@ expected objects also have the raw immediate. Overlay `rom:` is
 C still emits as a real reloc (the D4 `CdCmd_Queue` `lhu` is only the
 `%lo`).
 
-`func_800AADDC` / `func_800C9654` / `func_800C9E94` / `func_800BC50C`
+`Gp_LoadWaitStage` / `func_800C9654` / `func_800C9E94` / `Gp_CanMoveItems`
 are the examples.

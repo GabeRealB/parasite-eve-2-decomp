@@ -19,13 +19,13 @@ extern TaskFuncTable3   D_80093950;
 extern GpVoidFuncTable6 D_80093978;
 extern GpVoidFuncTable5 D_80093990;
 extern u16              D_80114CD0;
-extern u16              D_80114CD2;
+extern u16              Gp_DirFlags;
 extern u16              D_80114CD4;
-extern u16              D_80114CD6;
-extern u8               D_80114CD8;
-extern u8               D_80114CD9;
-extern u8               D_80114CDA;
-extern u8               D_80114CDB;
+extern u16              Gp_DirPhase;
+extern u8               Gp_DirByte;
+extern u8               Gp_DirNibble;
+extern u8               Gp_DirAlt;
+extern u8               Gp_DirAltNibble;
 extern u8               D_80114CDC;
 extern u8               D_80114CDD;
 extern u8               D_80114CDE;
@@ -39,7 +39,7 @@ extern u16              D_8017A9A0[];
 extern u16              D_8017AA0C[];
 extern u16              D_8017AD88[];
 
-s16 func_800AEBA4(s32 arg0)
+s16 Gp_LookupStageFlag(s32 arg0)
 {
     u16* table;
     u16* entry;
@@ -105,12 +105,12 @@ fail:
     return -1;
 }
 
-void func_800AED24(GpAreaKey* arg0)
+void Gp_ClearAreaFlag4(GpAreaKey* arg0)
 {
     GpAreaRec* rec;
     GpAreaObj* obj;
 
-    rec = D_8010CBCC[arg0->field_3];
+    rec = Gp_AreaTables[arg0->field_3];
     if (rec != NULL) {
         obj = rec[arg0->field_2].field_4;
         if (obj != NULL) {
@@ -119,31 +119,31 @@ void func_800AED24(GpAreaKey* arg0)
     }
 }
 
-void func_800AED80(Task* arg0)
+void Gp_InitDirState(Task* arg0)
 {
-    D_80114CDE    = 0;
-    D_80114CDD    = 0;
-    D_80114CD2    = 0;
-    D_80114CD0    = 0;
-    D_80114CDC    = 0;
-    D_80114CD8    = 0;
-    D_80114CD9    = 0;
-    D_80114CD6    = 0;
-    D_80114CF8    = 0;
-    D_80114CE0    = 1;
-    D_80114D00[0] = 0;
-    D_80114D00[1] = 0;
-    D_80114D08    = 0xA;
+    D_80114CDE       = 0;
+    D_80114CDD       = 0;
+    Gp_DirFlags      = 0;
+    D_80114CD0       = 0;
+    D_80114CDC       = 0;
+    Gp_DirByte       = 0;
+    Gp_DirNibble     = 0;
+    Gp_DirPhase      = 0;
+    D_80114CF8       = 0;
+    D_80114CE0       = 1;
+    Gp_AreaIdBits[0] = 0;
+    Gp_AreaIdBits[1] = 0;
+    D_80114D08       = 0xA;
     arg0->state++;
 }
 
 void func_800AEE00(void)
 {
-    func_800E1B80();
+    Gp_CommitObj4CSave();
     func_800AD6BC();
 }
 
-s32 func_800AEE28(Task* arg0, GpPosXZ* arg1)
+s32 Gp_YawToPosXZ(Task* arg0, GpPosXZ* arg1)
 {
     SVECTOR    vec;
     GpCoordXZ* coord;
@@ -168,13 +168,13 @@ void func_800AEE8C(Task* arg0)
     }
 }
 
-u8 func_800AEEFC(void)
+u8 Gp_GetViewCountLo(void)
 {
-    GameSession* session;
-    GpCb40Tbl*   tbl;
+    GameSession*    session;
+    GpViewCountTbl* tbl;
 
     session = Game_Session;
-    tbl     = D_8010CB40[session->field_7 - 1];
+    tbl     = Gp_ViewCountTables[session->field_7 - 1];
     return tbl->field_0[session->field_6 - 1][session->field_5 - 1].field_0;
 }
 
@@ -183,7 +183,7 @@ void func_800AEF4C(void)
     GpVoidFuncTable6 sp;
 
     sp = D_80093978;
-    sp.funcs[*(s16*)&D_80114CD6]();
+    sp.funcs[*(s16*)&Gp_DirPhase]();
 }
 
 void func_800AEFBC(void)
@@ -191,71 +191,71 @@ void func_800AEFBC(void)
     GpVoidFuncTable5 sp;
 
     sp = D_80093990;
-    if (D_801153F0.field_0 == 2) {
+    if (Gp_StateF0.field_0 == 2) {
         if (D_80114CDE == 1) {
             D_80114CDD = D_80114CDE;
         }
     }
     if (D_80114CDD != 0) {
-        D_801153F0.field_1 = 0x3C;
+        Gp_StateF0.field_1 = 0x3C;
     }
-    sp.funcs[*(s16*)&D_80114CD6]();
+    sp.funcs[*(s16*)&Gp_DirPhase]();
 }
 
-void func_800AF070(void)
+void Gp_ClearDirCursor(void)
 {
-    D_80114CD9 = 0;
-    D_80114CD8 = 0;
-    D_80114CD2 = 0;
-    D_80114CDB = 0;
-    D_80114CDA = 0;
-    D_80114CD4 = 0;
-    D_80114CF8 = 0;
+    Gp_DirNibble    = 0;
+    Gp_DirByte      = 0;
+    Gp_DirFlags     = 0;
+    Gp_DirAltNibble = 0;
+    Gp_DirAlt       = 0;
+    D_80114CD4      = 0;
+    D_80114CF8      = 0;
 }
 
-void func_800AF0AC(void)
+void Gp_PostMsg13EF(void)
 {
     GpMsg13EF sp;
     void*     slot;
 
     if (Game_Session->field_1 == 0) {
-        if (func_800E6CE0() == 0) {
-            sp.field_0 = D_80114CD2;
-            sp.field_2 = D_80114CD8;
-            sp.field_3 = D_80114CD9;
+        if (Gp_CapBusy() == 0) {
+            sp.field_0 = Gp_DirFlags;
+            sp.field_2 = Gp_DirByte;
+            sp.field_3 = Gp_DirNibble;
             slot       = Game_GetPtrSlot(7);
-            func_800AC464(slot, 0x13EF, (s32)&sp, 0);
+            Gp_DispatchMsg(slot, 0x13EF, (s32)&sp, 0);
         }
     }
-    D_80114CD9 = 0;
-    D_80114CD8 = 0;
-    D_80114CD2 = 0;
-    D_80114CDB = 0;
-    D_80114CDA = 0;
-    D_80114CD4 = 0;
-    D_80114CF8 = 0;
+    Gp_DirNibble    = 0;
+    Gp_DirByte      = 0;
+    Gp_DirFlags     = 0;
+    Gp_DirAltNibble = 0;
+    Gp_DirAlt       = 0;
+    D_80114CD4      = 0;
+    D_80114CF8      = 0;
     if (D_80114CDC == 0) {
         Game_Session->field_13A = 0;
     }
 }
 
-void func_800AF180(void)
+void Gp_SpawnEvt1IfCapIdle(void)
 {
     if (Game_Session->field_1 == 0) {
-        if (func_800E6CE0() == 0) {
-            func_800E40BC(D_80114CD8, D_80114CD9);
+        if (Gp_CapBusy() == 0) {
+            Gp_SpawnEvt1(Gp_DirByte, Gp_DirNibble);
         }
     }
-    D_80114CF8 = 0;
-    D_80114CD9 = 0;
-    D_80114CD8 = 0;
-    D_80114CD2 = 0;
-    D_80114CDB = 0;
-    D_80114CDA = 0;
-    D_80114CD4 = 0;
+    D_80114CF8      = 0;
+    Gp_DirNibble    = 0;
+    Gp_DirByte      = 0;
+    Gp_DirFlags     = 0;
+    Gp_DirAltNibble = 0;
+    Gp_DirAlt       = 0;
+    D_80114CD4      = 0;
 }
 
-void func_800AF208(void)
+void Gp_FadeDirAdvance(void)
 {
     u8 fade;
 
@@ -267,10 +267,10 @@ void func_800AF208(void)
             D_80114CF6 = 0xFF;
         }
     }
-    D_80114CD6++;
+    Gp_DirPhase++;
 }
 
-void func_800AF284(void)
+void Gp_CommitSaveLoc(void)
 {
     u8 fade;
 
@@ -278,70 +278,70 @@ void func_800AF284(void)
         fade = *(u8*)&D_80114CF6;
         Fade_DrawOverlay(fade, fade, fade, 2);
     }
-    Mc_SaveData.field_6 = D_80114CE8.field_0;
-    Mc_SaveData.field_8 = D_80114CE8.field_2;
-    Mc_SaveData.field_5 = D_80114CE8.field_3;
+    Mc_SaveData.field_6 = Gp_WarpLoc.field_0;
+    Mc_SaveData.field_8 = Gp_WarpLoc.field_2;
+    Mc_SaveData.field_5 = Gp_WarpLoc.field_3;
     Task_Spawn(0, 0x11, 0, 0);
-    D_80114CF8 = 0;
-    D_80114CD9 = 0;
-    D_80114CD8 = 0;
-    D_80114CD2 = 0;
+    D_80114CF8   = 0;
+    Gp_DirNibble = 0;
+    Gp_DirByte   = 0;
+    Gp_DirFlags  = 0;
 }
 
-void func_800AF314(void)
+void Gp_MsgPlayer3EE(void)
 {
     GpMsg3EE sp;
     void*    slot;
 
     slot = Game_GetPtrSlot(3);
     if (Game_Session->field_1 != 0) {
-        D_80114CF8 = 0;
-        D_80114CD9 = 0;
-        D_80114CD8 = 0;
-        D_80114CD2 = 0;
-        D_80114CDB = 0;
-        D_80114CDA = 0;
-        D_80114CD4 = 0;
-        D_80114CDD = 0;
+        D_80114CF8      = 0;
+        Gp_DirNibble    = 0;
+        Gp_DirByte      = 0;
+        Gp_DirFlags     = 0;
+        Gp_DirAltNibble = 0;
+        Gp_DirAlt       = 0;
+        D_80114CD4      = 0;
+        D_80114CDD      = 0;
     } else {
         sp.field_10 = 0;
         sp.field_14 = 0;
-        sp.field_12 = D_80114CD9 << 4;
-        func_800AC464(slot, 0x3EE, (s32)&sp, 0);
-        D_80114CD6++;
+        sp.field_12 = Gp_DirNibble << 4;
+        Gp_DispatchMsg(slot, 0x3EE, (s32)&sp, 0);
+        Gp_DirPhase++;
     }
 }
 
-void func_800AF3D0(void)
+void Gp_MsgPlayer3F0(void)
 {
-    if (func_800AC464(Game_GetPtrSlot(3), 0x3F0, 0, 0) == 0) {
-        D_80114CD6++;
+    if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F0, 0, 0) == 0) {
+        Gp_DirPhase++;
     }
 }
 
-void func_800AF41C(void)
+void Gp_MsgPlayer3EF(void)
 {
     s32   sp[2];
     void* slot;
 
     slot  = Game_GetPtrSlot(3);
-    sp[0] = (D_80114CD2 >> 8) & 1;
-    sp[1] = D_80114CD8 & 0xF;
-    func_800AC464(slot, 0x3EF, (s32)sp, 0);
-    D_80114CDB = 0;
-    D_80114CDA = 0;
-    D_80114CD4 = 0;
-    D_80114CD6++;
+    sp[0] = (Gp_DirFlags >> 8) & 1;
+    sp[1] = Gp_DirByte & 0xF;
+    Gp_DispatchMsg(slot, 0x3EF, (s32)sp, 0);
+    Gp_DirAltNibble = 0;
+    Gp_DirAlt       = 0;
+    D_80114CD4      = 0;
+    Gp_DirPhase++;
 }
 
-void func_800AF498(void)
+void Gp_SetCurAreaFlag4(void)
 {
     GpAreaKey* key;
     GpAreaRec* rec;
     GpAreaObj* obj;
 
     key = (GpAreaKey*)&Game_Session->field_4;
-    rec = D_8010CBCC[key->field_3];
+    rec = Gp_AreaTables[key->field_3];
     if (rec != NULL) {
         obj = rec[key->field_2].field_4;
         if (obj != NULL) {
@@ -350,12 +350,12 @@ void func_800AF498(void)
     }
 }
 
-void func_800AF500(s16 arg0, GpAreaFlagRec* arg1)
+void Gp_ApplyAreaFlag4List(s16 arg0, GpAreaFlagRec* arg1)
 {
     GpAreaRec* rec;
     GpAreaObj* obj;
 
-    rec = D_8010CBCC[arg0];
+    rec = Gp_AreaTables[arg0];
     if (rec != NULL) {
         for (; arg1->field_0 != 0xFF; arg1++) {
             if (arg1->field_1 != 0) {

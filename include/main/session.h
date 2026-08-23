@@ -23,7 +23,7 @@ typedef struct _GBytes8 {
 } GBytes8;
 
 /// 18-byte MATRIX rotation (3x3 s16). Assigned via unaligned lwl/lwr + lh/sh
-/// (see func_800A8A48). The trailing s16 (not u8[2]) keeps the last two bytes
+/// (see Gp_ApplyView). The trailing s16 (not u8[2]) keeps the last two bytes
 /// a halfword; a pure u8[18] emits lb/sb instead.
 typedef struct _GBytes18 {
     u8  data[0x10];
@@ -43,7 +43,7 @@ typedef struct _GameSession {
     u8    field_2;
     byte  unknown_3;
     byte  field_4; // address taken by CdCmd_BuildVlcIfStream
-    u8    field_5; // 1-based index into D_8010CB40 / D_8010CBA4 / D_8010CB7C innermost tables; D_8010CB54 second level
+    u8    field_5; // 1-based index into Gp_ViewCountTables / Gp_RoomCoordTables / Gp_RoomObjTables innermost tables; Gp_ViewIndexTables second level
     u8    field_6;
     u8    field_7;
     u8    field_8;
@@ -56,35 +56,35 @@ typedef struct _GameSession {
     byte  unknown_50[2];
     s16   field_52;
     byte  unknown_54[4];
-    u16   field_58; // current pad mask; func_80103804 copies this onto GameActor.field_962
+    u16   field_58; // current pad mask; Gp_CaptureActorPad copies this onto GameActor.field_962
     byte  unknown_5A[4];
-    u8    field_5E; // set to 1 by func_8009FEDC before allocating the play-clock idMap
+    u8    field_5E; // set to 1 by Gp_InitPlayClock before allocating the play-clock idMap
     u8    field_5F; // skip-gate for func_800E74EC overlay-wait setup
     byte  unknown_60[4];
     u8    field_64; // nonzero: func_800AD5B8 / func_800AD50C skip their state dispatch
-    u8    field_65; // 1: func_800D8EA0 skips color-matrix rebuild unless GameActorExt.field_18 is set
+    u8    field_65; // 1: Gp_UpdateActorColor skips color-matrix rebuild unless GameActorExt.field_18 is set
     u8    field_66; // 1: func_800CE3B4 uses D_8010EB94 + Ui_Scale15(2)
     byte  unknown_67;
     u8    field_68; // set/cleared by func_800E7378 / func_800E73E8 / func_800E7434
     u8    field_69; // bit 0x1: skip bank-load spawn in func_800A0718; bit 0x2: skip bank-load spawn in func_800A110C (else skip SndEvt_EnqueueType2(0, 0xB4) on last GpStateF0 ref); bit 0x4: spawn arg 3 vs 2 in func_800A0718; bit 0x8: spawn arg 3 vs 1 in func_800A110C
     byte  unknown_6A[0xA];
     u16   field_74; // copied from Display_State.field_10e (func_800AAA68); low byte is CdCmd 0x21 param2[0]
-    s16   field_76; // set: func_800AD378 rebuilds via func_800ACD2C
-    s16   field_78; // cached GameSession.field_7; func_800AADDC
+    s16   field_76; // set: func_800AD378 rebuilds via Gp_LinkRoomObjects
+    s16   field_78; // cached GameSession.field_7; Gp_LoadWaitStage
     byte  unknown_7A[2];
     s16   field_7C;
     s16   field_7E;
     s16   field_80;
     byte  unknown_82[0x9A];
-    s16   field_11C; // cached Mc_SaveData.field_22; -1 forces refresh (func_800B7D18 / func_800AABB0)
+    s16   field_11C; // cached Mc_SaveData.field_22; -1 forces refresh (Gp_InitStarterInv / Gp_LoadWaitBoot)
     s16   field_11E; // cached Wip_SysConfig.field_26; refreshed with field_11C
     byte  unknown_120[4];
-    u8    field_124; // companion type 1/2/3; written from func_800ABA4C's return
-    u8    field_125; // written with Mc_SaveData.field_5C7 (func_800A9CBC)
+    u8    field_124; // companion type 1/2/3; written from Gp_PickCompanion's return
+    u8    field_125; // written with Mc_SaveData.field_5C7 (Gp_EnqueueCompanionCd)
     u8    field_126;
-    u8    field_127; // 0: run death / companion-down checks in func_800A0094
+    u8    field_127; // 0: run death / companion-down checks in Gp_TickPlayClock
     u8    field_128; // 0xFF sentinel in func_800B0748 / func_800B082C
-    u8    field_129; // last CdCmd 0x21 param[0] written by func_800B065C
+    u8    field_129; // last CdCmd 0x21 param[0] written by Gp_EnqueueSndCd
     byte  unknown_12A[2];
     u8    field_12C;
     s8    field_12D; // lb/sb countdown; 0x7F sentinel in func_800A7320
@@ -92,14 +92,14 @@ typedef struct _GameSession {
     u8    field_12F;
     byte  unknown_130[9];
     u8    field_139;
-    u8    field_13A; // cleared by func_800AE45C when D_80114CDC is 0
+    u8    field_13A; // cleared by Gp_PostDirIfCapIdle when D_80114CDC is 0
     u8    field_13B;
 } GameSession;
 STATIC_ASSERT_SIZEOF(GameSession, 0x13C);
 
 /// Overlay of `GameSession` starting at offset 0x4 (`field_4`..`field_9`).
 /// Used when the compiler keeps `&Game_Session->field_4` in a register.
-/// `func_800DB128` packs `field_3` / `field_2` / `field_5` into a location key.
+/// `Gp_GrantLocationItems` packs `field_3` / `field_2` / `field_5` into a location key.
 typedef struct _GameSessionFrom4 {
     /* 0x0 */ u8 field_0; // GameSession.field_4
     /* 0x1 */ u8 field_1; // GameSession.field_5
@@ -114,13 +114,13 @@ struct _Task;
 struct _GpLinkNode;
 struct _GpActorD4;
 
-/// 0x18 record wiped by `func_800E18E0`. That helper zeros `count` entries
+/// 0x18 record wiped by `Gp_InitRec18Table`. That helper zeros `count` entries
 /// and writes 2 to the last element's `field_0`. `field_0` bit 0x1 marks an
-/// occupied slot; bit 0x2 marks the last element. `func_800E19B8` returns the
+/// occupied slot; bit 0x2 marks the last element. `Gp_FindRec18` returns the
 /// 1-based index of the last occupied slot whose `field_4` equals `arg1`,
 /// or 1 as soon as any occupied slot is seen when `arg1` is 0.
-/// `func_800E1A1C` counts occupied slots whose `field_4` high 16 bits match
-/// `arg1`. `func_800E1A6C` walks until bit 0x2, and for each occupied slot
+/// `Gp_CountRec18Hi` counts occupied slots whose `field_4` high 16 bits match
+/// `arg1`. `Gp_ClearRec18Occupied` walks until bit 0x2, and for each occupied slot
 /// keeps only that last-element bit and zeros the payload halfwords / word
 /// (leaving 0xE and 0x16 untouched). Embedded as `GameActor.field_17C[18]`;
 /// `func_801041B4` tests `field_4` bits 0x100100.
@@ -158,7 +158,7 @@ typedef struct _GameActor {
     /* 0x014 */ s32                 field_14; // copy of GsCOORDINATE2.coord.t[1]
     /* 0x018 */ s32                 field_18; // copy of GsCOORDINATE2.coord.t[2]
     /* 0x01C */ byte                pad_1C[4];
-    /* 0x020 */ s32                 field_20; // copied from func_80105070 arg2
+    /* 0x020 */ s32                 field_20; // copied from Gp_SetActorDest arg2
     /* 0x024 */ s32                 field_24;
     /* 0x028 */ s32                 field_28;
     /* 0x02C */ byte                pad_2C[4];
@@ -200,7 +200,7 @@ typedef struct _GameActor {
     /* 0x09C */ s32                 field_9C;
     /* 0x0A0 */ byte                field_A0[8];    // address taken as GpObj.field_C
     /* 0x0A8 */ s32                 field_A8;
-    /* 0x0AC */ byte                field_AC[0x20]; // 0x20-byte list node (func_800E1638)
+    /* 0x0AC */ byte                field_AC[0x20]; // 0x20-byte list node (Gp_UnlinkObj)
     /* 0x0CC */ byte                field_CC[0x20];
     /* 0x0EC */ byte                field_EC[0x20];
     /* 0x10C */ byte                field_10C[0x18]; // 0x20-byte list node; field_124 is +0x18
@@ -210,11 +210,11 @@ typedef struct _GameActor {
     /* 0x12C */ byte                field_12C[0x20];
     /* 0x14C */ byte                field_14C[0x18]; // GpActorD4Rec; func_80100FCC
     /* 0x164 */ byte                pad_164[0x18];
-    /* 0x17C */ GpRec18             field_17C[18];   // func_800E1A6C / func_801041B4
-    /* 0x32C */ GpRec18             field_32C[6];    // func_80100FCC / func_800E18E0
+    /* 0x17C */ GpRec18             field_17C[18];   // Gp_ClearRec18Occupied / func_801041B4
+    /* 0x32C */ GpRec18             field_32C[6];    // func_80100FCC / Gp_InitRec18Table
     /* 0x3BC */ byte                pad_3BC[0x18];
     /* 0x3D4 */ byte                field_3D4[0x50]; // GsCOORDINATE2; func_80100FCC
-    /* 0x424 */ byte                field_424[0x14]; // GpAnimCtx overlay; func_800B4514
+    /* 0x424 */ byte                field_424[0x14]; // GpAnimCtx overlay; Gp_AnimTickIndex
     /* 0x438 */ byte                pad_438[9];      // GpAnimSlot array base; func_80105B0C
     /* 0x441 */ u8                  field_441;       // slid-actor overlay; see GameActorSlot
     /* 0x442 */ byte                pad_442[6];
@@ -229,12 +229,12 @@ typedef struct _GameActor {
     /* 0x91C */ struct _Task*       field_91C;
     /* 0x920 */ struct _Task*       field_920;
     /* 0x924 */ struct _Task*       field_924;
-    /* 0x928 */ void*               field_928; // D_80112D6C[field_93A]; func_800B3F84 arg1
+    /* 0x928 */ void*               field_928; // Gp_PlayerAnimBlkTbl[field_93A]; func_800B3F84 arg1
     /* 0x92C */ byte                pad_92C[4];
     /* 0x930 */ s32                 field_930; // sw from func_800AE1F0; addr taken by func_801011D0
     /* 0x934 */ s32                 field_934;
     /* 0x938 */ s16                 field_938; // GameActorSlot count (init 0x13)
-    /* 0x93A */ u16                 field_93A; // D_80112D68[field_22-1] + field_21
+    /* 0x93A */ u16                 field_93A; // Gp_WeaponIdBase[field_22-1] + field_21
     /* 0x93C */ u16                 field_93C;
     /* 0x93E */ s16                 field_93E;
     /* 0x940 */ s16                 field_940;
@@ -301,13 +301,13 @@ STATIC_ASSERT_SIZEOF(GameActor, 0x994);
 
 /// Object pointed to by Task::extra; field_8 is a GsCOORDINATE2* (stored as
 /// s32* so Display_SpawnFromMode can clear flg via *ptr = 0) after optional
-/// func_801011D0 / func_800E1A6C setup. field_C flag bits are OR'd with 0x80
-/// in Task_Kill (type-1 deferred kill). `func_800BBC10` writes 8 on first run
+/// func_801011D0 / Gp_ClearRec18Occupied setup. field_C flag bits are OR'd with 0x80
+/// in Task_Kill (type-1 deferred kill). `Gp_WaitItemFlag2` writes 8 on first run
 /// and clears bit 0x8 before Task_CallExit. A non-NULL `field_18` lets
-/// `func_800D8EA0` rebuild the color matrix even when
+/// `Gp_UpdateActorColor` rebuild the color matrix even when
 /// `Game_Session->field_65 == 1` (unless bit 0x80 of `field_C` is set).
-/// field_1C / field_20 are MATRIX* defaults (`D_80114E98` / `D_80114EB8`)
-/// written by `func_800D9D18`.
+/// field_1C / field_20 are MATRIX* defaults (`Gp_DefaultMtx` / `Gp_DefaultMtx2`)
+/// written by `Gp_BindDefaultMtx`.
 typedef struct _GameActorExt {
     /* 0x00 */ byte  pad_0[0x8];
     /* 0x08 */ s32*  field_8;

@@ -10,7 +10,7 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-extern s32 D_80070F60;
+extern s32 Gp_LcgState;
 
 void func_800F75BC(Task* arg0)
 {
@@ -22,21 +22,21 @@ void func_800F75BC(Task* arg0)
 
     mem   = arg0->spawnArg2;
     extra = arg0->extra;
-    flag  = D_80115740->field_4;
+    flag  = Gp_State1C->field_4;
     coord = (GsCOORDINATE2*)extra->field_8;
     if (flag != 0) {
         if (flag >= 4) {
-            func_800EC7E4(mem, arg0);
+            Gp_ReleaseState1CMem(mem, arg0);
         }
         func_800F7AD4(coord, mem->field_24, mem->field_28, mem->field_2A);
         return;
     }
 
-    func_80098F58(coord);
+    Gp_UpdateCoord(coord);
     switch (arg0->state) {
         case 0:
-            D_80070F60 = D_80070F60 * 5 + 0x71357911;
-            Gfx_RotMatrixY(&coord->coord, ((u32)D_80070F60 >> 16) & 0xFFF, 1);
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            Gfx_RotMatrixY(&coord->coord, ((u32)Gp_LcgState >> 16) & 0xFFF, 1);
             coord->flg    = 0;
             mem->field_26 = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xFFF;
             param         = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
@@ -74,7 +74,7 @@ void func_800F75BC(Task* arg0)
             func_800F7AD4(coord, mem->field_24, mem->field_28, mem->field_2A);
             mem->field_28 -= 4;
             if (mem->field_28 < 4) {
-                func_800EC7E4(mem, arg0);
+                Gp_ReleaseState1CMem(mem, arg0);
             }
             break;
         case 4:

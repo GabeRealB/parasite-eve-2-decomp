@@ -15,7 +15,7 @@ typedef struct _GpCoordXZ {
 } GpCoordXZ;
 STATIC_ASSERT_SIZEOF(GpCoordXZ, 0x22);
 
-/// SVECTOR layout with unsigned X/Z so `func_800AEE28` emits `lhu`.
+/// SVECTOR layout with unsigned X/Z so `Gp_YawToPosXZ` emits `lhu`.
 typedef struct _GpPosXZ {
     /* 0x0 */ u16 vx;
     /* 0x2 */ u16 pad_2;
@@ -24,31 +24,31 @@ typedef struct _GpPosXZ {
 } GpPosXZ;
 STATIC_ASSERT_SIZEOF(GpPosXZ, 8);
 
-/// 2-byte record in tables pointed to by `D_8010CB40`. Indexed by
-/// `GameSession.field_5 - 1`. `func_800AEEFC` loads `field_0`; `func_800ACEBC`
+/// 2-byte record in tables pointed to by `Gp_ViewCountTables`. Indexed by
+/// `GameSession.field_5 - 1`. `Gp_GetViewCountLo` loads `field_0`; `Gp_FindViewIndex`
 /// loads the same cell as a signed halfword.
-typedef struct _GpCb40Rec {
+typedef struct _GpViewCountRec {
     /* 0x0 */ u8 field_0;
     /* 0x1 */ u8 field_1;
-} GpCb40Rec;
-STATIC_ASSERT_SIZEOF(GpCb40Rec, 2);
+} GpViewCountRec;
+STATIC_ASSERT_SIZEOF(GpViewCountRec, 2);
 
-/// Per-stage wrapper. `field_0` is an array of `GpCb40Rec*`, indexed by
+/// Per-stage wrapper. `field_0` is an array of `GpViewCountRec*`, indexed by
 /// `GameSession.field_6 - 1`.
-typedef struct _GpCb40Tbl {
-    /* 0x0 */ GpCb40Rec** field_0;
-} GpCb40Tbl;
+typedef struct _GpViewCountTbl {
+    /* 0x0 */ GpViewCountRec** field_0;
+} GpViewCountTbl;
 
 /// Per-stage pointer table. Index is `GameSession.field_7 - 1`.
-extern GpCb40Tbl* D_8010CB40[];
+extern GpViewCountTbl* Gp_ViewCountTables[];
 
-/// 8-byte dest-location payload at `D_80114CE8`. `func_800AE36C` fills it
-/// (halfword `field_0`/`field_1` from `D_80114CDA`, `field_2` from
-/// `D_80114CDB & 0xF`, `field_3`/`field_4` = 1, `field_5` = 0), posts slot-7
+/// 8-byte dest-location payload at `Gp_WarpLoc`. `Gp_CommitDirWarp` fills it
+/// (halfword `field_0`/`field_1` from `Gp_DirAlt`, `field_2` from
+/// `Gp_DirAltNibble & 0xF`, `field_3`/`field_4` = 1, `field_5` = 0), posts slot-7
 /// msg `0x13EE`, then copies `field_0` / `field_2` / `field_3` into
 /// `Mc_SaveData.field_6` / `field_8` / `field_5` before `Task_Spawn(0, 0x11,
-/// ...)`. `func_800ADF3C` fills the same payload from `D_80114CD8` /
-/// `D_80114CD9 & 0xF` and `GpCb90Rec.field_36`. `func_800AF284` does the
+/// ...)`. `Gp_CommitWarp` fills the same payload from `Gp_DirByte` /
+/// `Gp_DirNibble & 0xF` and `GpWarpRec.field_36`. `Gp_CommitSaveLoc` does the
 /// same copy + spawn.
 typedef struct _GpSaveLoc {
     /* 0x0 */ u8  field_0;
@@ -61,15 +61,15 @@ typedef struct _GpSaveLoc {
 } GpSaveLoc;
 STATIC_ASSERT_SIZEOF(GpSaveLoc, 8);
 
-extern GpSaveLoc D_80114CE8;
+extern GpSaveLoc Gp_WarpLoc;
 
-/// Dual bitmask of area ids 1–32 / 33–64. Zeroed by `func_800AED80`.
-/// `func_800AE9B0` sets a bit when `GpAreaObj.field_1` bit 2 is set and
-/// `func_800B59A8` is 0, otherwise clears it.
-extern s32 D_80114D00[2];
+/// Dual bitmask of area ids 1–32 / 33–64. Zeroed by `Gp_InitDirState`.
+/// `Gp_RebuildAreaIdBits` sets a bit when `GpAreaObj.field_1` bit 2 is set and
+/// `Gp_GetAreaFlag2` is 0, otherwise clears it.
+extern s32 Gp_AreaIdBits[2];
 
-/// 2-byte record in 0xFF-terminated lists walked by `func_800AF500` and
-/// `func_800AE7AC`. `field_0` indexes a `GpAreaRec` table (same role as
+/// 2-byte record in 0xFF-terminated lists walked by `Gp_ApplyAreaFlag4List` and
+/// `Gp_ApplyNewGameAreaFlags`. `field_0` indexes a `GpAreaRec` table (same role as
 /// `GpAreaKey.field_2`); `field_1` is the apply flag (nonzero →
 /// `GpAreaObj.field_1 |= 4`).
 typedef struct _GpAreaFlagRec {
@@ -78,8 +78,8 @@ typedef struct _GpAreaFlagRec {
 } GpAreaFlagRec;
 STATIC_ASSERT_SIZEOF(GpAreaFlagRec, 2);
 
-/// 4-byte stack payload for slot-7 msg `0x13EF`. `func_800AF0AC` copies
-/// `D_80114CD2` / `D_80114CD8` / `D_80114CD9` into the three fields.
+/// 4-byte stack payload for slot-7 msg `0x13EF`. `Gp_PostMsg13EF` copies
+/// `Gp_DirFlags` / `Gp_DirByte` / `Gp_DirNibble` into the three fields.
 typedef struct _GpMsg13EF {
     /* 0x0 */ u16 field_0;
     /* 0x2 */ u8  field_2;
@@ -87,8 +87,8 @@ typedef struct _GpMsg13EF {
 } GpMsg13EF;
 STATIC_ASSERT_SIZEOF(GpMsg13EF, 4);
 
-/// 0x18-byte stack payload for slot-3 msg `0x3EE`. `func_800AF314` writes
-/// `D_80114CD9 << 4` at `field_12` and zeros `field_10` / `field_14`.
+/// 0x18-byte stack payload for slot-3 msg `0x3EE`. `Gp_MsgPlayer3EE` writes
+/// `Gp_DirNibble << 4` at `field_12` and zeros `field_10` / `field_14`.
 typedef struct _GpMsg3EE {
     /* 0x00 */ byte pad_0[0x10];
     /* 0x10 */ s16  field_10;
@@ -115,10 +115,10 @@ typedef struct {
 /// `Game_Session->field_7` (1..5). Low 11 bits are the `GameFlag_GetNibble`
 /// index; bit `0x800` is added onto the result. Unknown stage or out-of-range
 /// index returns -1.
-s16  func_800AEBA4(s32 arg0);
-s32  func_800AEE28(Task* arg0, GpPosXZ* arg1);
-u8   func_800AEEFC(void);
-void func_800AF498(void);
-void func_800AF500(s16 arg0, GpAreaFlagRec* arg1);
+s16  Gp_LookupStageFlag(s32 arg0);
+s32  Gp_YawToPosXZ(Task* arg0, GpPosXZ* arg1);
+u8   Gp_GetViewCountLo(void);
+void Gp_SetCurAreaFlag4(void);
+void Gp_ApplyAreaFlag4List(s16 arg0, GpAreaFlagRec* arg1);
 
 #endif // GAMEPLAY_1A8_H

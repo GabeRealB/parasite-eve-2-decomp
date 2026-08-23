@@ -11,8 +11,8 @@
 
 extern GpRec14 D_8010FB10;
 extern GpRec14 D_8010FB24;
-extern GpRec14 D_8010FB38;
-extern u16     D_80112D68[];
+extern GpRec14 Gp_WeaponMsgRec;
+extern u16     Gp_WeaponIdBase[];
 
 void func_800E375C(Task* arg0)
 {
@@ -27,20 +27,20 @@ void func_800E375C(Task* arg0)
     switch (arg0->state) {
         case 0:
             if ((flags & 1) && (flags != 0xFF)) {
-                recA         = D_8010FB38;
-                recA.field_0 = D_80112D68[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21;
-                func_800AC464(Game_GetPtrSlot(3), 0x3E8, (s32)&recA, 0);
+                recA         = Gp_WeaponMsgRec;
+                recA.field_0 = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21;
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3E8, (s32)&recA, 0);
             }
             recB         = D_8010FB10;
-            recB.field_0 = D_80112D68[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21;
-            func_800AC464(Game_GetPtrSlot(3), 0x3FA, 0, 0);
+            recB.field_0 = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21;
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FA, 0, 0);
             arg0->state++;
             break;
         case 1:
             arg0->state++;
             break;
         case 2:
-            if (func_800AC464(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+            if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) {
                 arg0->state++;
             }
             if (actor->field_954 != 2) {
@@ -52,7 +52,7 @@ void func_800E375C(Task* arg0)
                 D_801153F4 = 1;
             }
             if ((flags & 2) && (flags != 0xFF)) {
-                func_800AC464(Game_GetPtrSlot(3), 0x3F3, 0, 0);
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F3, 0, 0);
             }
             if ((flags & 4) && (flags != 0xFF)) {
                 mode = 2;
@@ -62,32 +62,32 @@ void func_800E375C(Task* arg0)
                 mode = 0;
             }
             if (flags == 0xFF) {
-                func_800AC464(Game_GetPtrSlot(7), 0x13F0, arg0->spawnArg1, mode);
+                Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F0, arg0->spawnArg1, mode);
             } else {
-                func_800E34D8(arg0->spawnArg1, mode);
+                Gp_RunCapCmd(arg0->spawnArg1, mode);
             }
             arg0->state++;
             break;
         case 4:
-            if (func_800E6CE0() == 0) {
-                func_800AC464(Game_GetPtrSlot(3), 0x3F3, 1, 0);
+            if (Gp_CapBusy() == 0) {
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F3, 1, 0);
                 arg0->state++;
             }
             break;
         case 5:
             if (D_80115598 != 0) {
-                func_800AC464(Game_GetPtrSlot(7), 0x13F2, (s32)arg0->spawnArg2 + 0x64, 0);
+                Gp_DispatchMsg(Game_GetPtrSlot(7), 0x13F2, (s32)arg0->spawnArg2 + 0x64, 0);
             }
             recB         = D_8010FB24;
-            recB.field_0 = D_80112D68[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21;
-            func_800AC464(Game_GetPtrSlot(3), 0x3FA, 1, 0);
+            recB.field_0 = Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21;
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3FA, 1, 0);
             arg0->state++;
             break;
         case 6:
             arg0->state++;
             break;
         case 7:
-            if (func_800AC464(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) {
+            if (Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3ED, 0, 0) == 0) {
                 arg0->state++;
             }
             if (actor->field_954 != 2) {
@@ -98,7 +98,7 @@ void func_800E375C(Task* arg0)
         case 8:
             Task_Kill(arg0);
             D_801153F4 = 0;
-            func_800AC464(Game_GetPtrSlot(3), 0x3F1, 0, 0);
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
             break;
     }
 }

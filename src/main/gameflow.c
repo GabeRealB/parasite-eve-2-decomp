@@ -432,7 +432,7 @@ void Pad_UpdatePort0(void)
                         pad->field_50 = 0;
                         pad->field_56 = 0;
                         pad->field_54 = 0;
-                        func_8009FD74(Pad_RemapState->field_8, scratch);
+                        Gp_ApplyPadReplay(Pad_RemapState->field_8, scratch);
                     }
                 }
             }
