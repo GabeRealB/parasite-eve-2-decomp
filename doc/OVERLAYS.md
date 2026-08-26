@@ -8,7 +8,8 @@ of the binaries (MIPS prologues, TMD-like streams, sibling textures, strings).
 
 Related: on-disc chunk packing in [`ASSET_FORMATS.md`](ASSET_FORMATS.md);
 TMD playback in `src/main/tmd.c` / `include/main/tmd.h`; animation player in
-`src/gameplay/1BC.c` / `include/gameplay/1BC.h`.
+`src/gameplay/1BC.c` / `include/gameplay/1BC.h`; the cooperative actor list in
+[`TASKS.md`](TASKS.md) (bank 6 callbacks live in the room overlay slot).
 
 | Area | Code / data |
 |------|-------------|

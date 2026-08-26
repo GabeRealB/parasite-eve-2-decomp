@@ -11,6 +11,9 @@ Convention: only list fields with evidence. Unlisted `field_*` / `unknown_*` /
 
 ## Task system (`task.h`)
 
+Actor-model overview, spawn/kill, and the `Task_DescBanks` catalog:
+[`doc/TASKS.md`](doc/TASKS.md).
+
 ### `Task` (0x48)
 | Off | Member | Role |
 |-----|--------|------|
