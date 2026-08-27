@@ -27216,3 +27216,66 @@ block        = pos;
 pos->field_8 = 0;      /* keeps `pos` live past the copy → move survives */
 block->field_6 = 0;
 ```
+
+## Keep `andi 0xffff` in a range chain: the tested value needs unknown high bits
+
+An angle dispatch such as
+
+```
+addiu v0, v1, -0xF00 ; sltiu v0, v0, 0x100   ; no mask
+sltiu v0, v1, 0x100                          ; no mask
+addiu v0, v1, -0x100 ; andi v0, v0, 0xFFFF ; sltiu v0, v0, 0x200
+addiu v0, v1, -0x300 ; andi v0, v0, 0xFFFF ; sltiu v0, v0, 0x200
+...
+```
+
+is *not* reproduced by `(u16)(ang - K) < 0x200` when `ang` comes straight from a
+`lhu`. combine's `nonzero_bits` proves the pseudo is 16-bit (a single
+zero-extending set is enough, and several `lhu` sets still OR to `0xFFFF`), so
+every `andi` is folded away. Two things have to line up to keep them:
+
+- the C variable must also be assigned a *wide* value somewhere in the function,
+  so the global `reg_nonzero_bits` entry is unknown. Reusing one `s32` temp for
+  both the `rsin(...) >> 5` luminance and the angle does it.
+- the masked comparisons must sit in later basic blocks, so combine cannot fall
+  back on the block-local knowledge from the `lhu`. An `if / else if` chain
+  emits a label before each test and works; a `||` short-circuit chain has no
+  labels between the tests, so *every* mask is folded and only the register
+  allocation differs.
+
+The first test, which is in the same block as the load, therefore genuinely has
+no `andi` in the target — write it without a cast (`((ang - 0xF00) & 0xFFFF)` is
+fine, the mask is dropped there anyway).
+
+## Reuse one local across `x = x / d; x = base - x;` to steer `mflo`
+
+`div` blocks give the allocator two interchangeable scratch registers, and the
+`mflo` destination decides the rest of the expression. Writing the whole thing
+as one expression (`pos->x = rec->field_4 - (num / rec->field_8)`) loads
+`field_4` before the divide, so `field_4` outranks the quotient and takes `$v0`,
+producing the mirrored `mflo v1 / lhu v0 / subu v0,v0,v1`. Splitting the
+statement and *reusing the same local* pins the chain instead:
+
+```c
+off   = rec->field_0 - origin;
+scale = rec->field_8;      /* register s32 scale asm("v1") */
+off   = off / scale;       /* mflo lands in off's register  */
+base  = rec->field_4;      /* register s32 base  asm("v1") */
+off   = base - off;        /* subu v0, v1, v0               */
+pos->x = off;
+```
+
+For the commutative `+` the same trick backfires: `off = base + off` makes
+`expand_binop` swap the operands so the destination is operand 0
+(`addu v0,v0,v1`). Assign that one to a *different* variable that already owns
+`$v0` — reusing the `register ... asm("v0")` temp from earlier in the function
+gives `addu v0, v1, v0`.
+
+## Only one `register ... asm("rN")` variable per hard register per function
+
+Declaring two locals on the same register (e.g. a `v0` block pointer *and* a
+`v0` arithmetic temp) does not give them disjoint live ranges: GCC honours the
+later declaration and silently allocates the earlier one somewhere else, which
+loses whatever the first pin was buying (typically the un-coalesced `move`).
+Reuse the single pinned variable for every role that needs that register, with
+casts if the types differ, rather than adding a second pin.

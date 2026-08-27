@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 // =============================================================================
 // Types — provisional system config / flags (rename when roles are proven)
 // =============================================================================
@@ -33,7 +35,7 @@ STATIC_ASSERT_SIZEOF(WipSysPos, 0x8);
 /// field_40 filled 0xFF by Mc_InitDualBankBuffers. Likely mix/options block — unproven.
 typedef struct _WipSysConfig {
     /* 0x00 */ byte      unknown_0[4];
-    /* 0x04 */ void*     field_4;  // MATRIX* of actor GsCOORDINATE2.coord (`Gp_InitPlayerWork`)
+    /* 0x04 */ MATRIX*   field_4;  // MATRIX* of actor GsCOORDINATE2.coord (`Gp_InitPlayerWork`)
     /* 0x08 */ s32       field_8;
     /* 0x0C */ s32       field_C;  // copied to Mc_SaveData.field_18 (`Gp_SavePlayerPos`)
     /* 0x10 */ WipSysPos field_10;

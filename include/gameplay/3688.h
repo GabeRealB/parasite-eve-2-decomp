@@ -40,8 +40,7 @@ typedef struct _GpMapRec {
     /* 0x06 */ u16 field_6;
     /* 0x08 */ s16 field_8;
     /* 0x0A */ s16 field_A;
-    /* 0x0C */ u8  field_C;
-    /* 0x0D */ u8  field_D;
+    /* 0x0C */ u16 field_C;
 } GpMapRec;
 STATIC_ASSERT_SIZEOF(GpMapRec, 0xE);
 
@@ -104,6 +103,20 @@ typedef struct _GpMapIconPos {
     /* 0xA */ u16 field_A;
 } GpMapIconPos;
 STATIC_ASSERT_SIZEOF(GpMapIconPos, 0xC);
+
+/// 0x1C-byte scratch block `func_800D02A4` / `func_800D0614` carve off
+/// `G_SCRATCH_HEAD` to stage the player cursor position on the map screen.
+/// `x` / `y` are the map coordinates; only the tail from 0xC on is written.
+typedef struct _GpMapCursorPos {
+    /* 0x00 */ byte pad_0[0xC];
+    /* 0x0C */ u16  x;
+    /* 0x0E */ u16  y;
+    /* 0x10 */ u16  field_10;
+    /* 0x12 */ u16  field_12;
+    /* 0x14 */ u16  field_14;
+    /* 0x16 */ byte pad_16[6];
+} GpMapCursorPos;
+STATIC_ASSERT_SIZEOF(GpMapCursorPos, 0x1C);
 
 /// Per-stage table of GameFlag nibble ids, indexed by room (`Gp_MapRoomId`).
 /// Index is `GameSession.field_7 - 1`.

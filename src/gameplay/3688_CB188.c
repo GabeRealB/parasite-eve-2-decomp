@@ -2260,7 +2260,103 @@ void func_800CFE68(s32 arg0, UiObject* arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800CFF04);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800D02A4);
+void func_800D02A4(Task* arg0)
+{
+    UiObject*                obj;
+    GameActor*               actor;
+    GpMapRec*                rec;
+    WipSysConfig*            cfg;
+    register GpMapCursorPos* pos asm("s1");
+    register s32             temp asm("v0");
+    register MATRIX*         mat asm("v1");
+    register s32             origin asm("a0");
+    register s32             scale asm("v1");
+    register s32             base asm("v1");
+    s32                      off;
+    SPRT_16*                 p;
+    DR_TPAGE*                dr;
+    s32                      u0;
+    s32                      ang;
+
+    obj   = arg0->spawnArg2;
+    cfg   = &Wip_SysConfig;
+    actor = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
+    rec   = Gp_MapRecTables[Game_Session->field_7 - 1];
+    rec   = rec + Game_Session->field_6;
+    if (rec->field_C != (s8)Gp_MapRoomId) {
+        return;
+    }
+
+    temp          = (s32) * (void**)G_SCRATCH_HEAD - 0x1C;
+    pos           = (GpMapCursorPos*)temp;
+    pos->field_14 = 0;
+    pos->field_12 = 0;
+    pos->field_10 = 0;
+
+    mat                               = cfg->field_4;
+    origin                            = mat->t[0];
+    off                               = rec->field_0 - origin;
+    scale                             = rec->field_8;
+    off                               = off / scale;
+    base                              = rec->field_4;
+    off                               = base - off;
+    pos->x                            = off;
+    *(GpMapCursorPos**)G_SCRATCH_HEAD = pos;
+    mat                               = cfg->field_4;
+    origin                            = mat->t[2];
+    off                               = rec->field_2 - origin;
+    scale                             = rec->field_A;
+    off                               = off / scale;
+    base                              = rec->field_6;
+    temp                              = base + off;
+    pos->y                            = temp;
+
+    p          = (SPRT_16*)D_80071190;
+    D_80071190 = (DR_TPAGE*)(p + 1);
+    ang        = (rsin(Display_State.field_14 << 6) + 0x1000) >> 5;
+    if (ang == 0x100) {
+        ang = 0xFF;
+    }
+    *(u32*)&p->r0 = ((ang & 0xFF) << 0x10) | ((ang & 0xFF) << 8) | (ang & 0xFF);
+    setlen(p, 3);
+    setcode(p, 0x7E);
+    p->clut = GetClut(0, 0x101);
+
+    ang = (u16)actor->field_52;
+    if (((ang - 0xF00) & 0xFFFF) < 0x100U) {
+        u0 = 0x40;
+    } else if (ang < 0x100U) {
+        u0 = 0x40;
+    } else if (((ang - 0x100) & 0xFFFF) < 0x200U) {
+        u0 = 0x50;
+    } else if (((ang - 0x300) & 0xFFFF) < 0x200U) {
+        u0 = 0x60;
+    } else if (((ang - 0x500) & 0xFFFF) < 0x200U) {
+        u0 = 0x70;
+    } else if (((ang - 0x700) & 0xFFFF) < 0x200U) {
+        u0 = 0x80;
+    } else if (((ang - 0x900) & 0xFFFF) < 0x200U) {
+        u0 = 0x90;
+    } else if (((ang - 0xB00) & 0xFFFF) < 0x200U) {
+        u0 = 0xA0;
+    } else if (((ang - 0xD00) & 0xFFFF) < 0x200U) {
+        u0 = 0xB0;
+    } else {
+        goto noDir;
+    }
+    p->u0 = u0;
+    p->v0 = 0x10;
+noDir:
+
+    p->x0 = pos->x - 8;
+    p->y0 = pos->y - 8;
+    addPrim(&Gpu_CurrentOt[(s16)obj->drawOrder - 0x1C], p);
+    dr         = D_80071190;
+    D_80071190 = dr + 1;
+    setDrawTPage(dr, 0, 0, 0xE);
+    addPrim(&Gpu_CurrentOt[(s16)obj->drawOrder - 0x1C], dr);
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800D0614);
 
