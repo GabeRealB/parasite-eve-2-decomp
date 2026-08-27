@@ -357,6 +357,9 @@ void Gp_InitRoomCoords(void);
 struct _GpEffWork* func_800EA478(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3);
 /// Full-screen semi-trans POLY_F4. `arg0` is RGB; `arg1` is ABR (low 2 bits).
 void Gp_DrawFadeQuad(u8* arg0, s32 arg1);
+/// Handwritten GTE routine. Draws a textured sprite at `arg0`; `arg1` is a
+/// signed half-extent, `arg2` a scale, and `arg3` the RGB triple.
+void func_800EAA0C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3);
 void func_800EAEB8(GsCOORDINATE2* arg0, s32 arg1, u8* arg2);
 void func_800EB2C8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800EB6E8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);

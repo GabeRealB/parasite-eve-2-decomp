@@ -244,6 +244,11 @@ extern u16 D_80112964[];
 extern s32 D_80112978[];
 extern s32 D_80112A50[];
 
+/// Spawn-id words for `func_800FB148`, indexed with the same 3-digit packing
+/// of `Gp_StateC08.field_0` as `D_80112978`; the value becomes the task's
+/// `Task::spawnArg1` sound id.
+extern s32 D_80112B94[];
+
 /// `GsCOORDINATE2` index parallel to `D_80112978`. `func_800FA7CC` adds
 /// it onto `GameActorExt.field_8` when `field_3 == 1`.
 extern u16 D_80112B28[];

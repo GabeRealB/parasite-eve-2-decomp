@@ -332,7 +332,145 @@ draw:
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FB148);
+void func_800FB148(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* parent;
+    MATRIX*        m;
+    s32            state;
+    s32            one;
+    s32            pan;
+    s16            temp;
+    u8             rgb[3];
+
+    mem   = arg0->spawnArg2;
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    state = arg0->state;
+    switch (state) {
+        case 0:
+            parent =
+                (GsCOORDINATE2*)((GameActorExt*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+            one                  = ONE;
+            *(s32*)&coord->coord = one;
+            coord->sub           = parent + 12;
+            m                    = &coord->coord;
+            *(s32*)&m->m[0][2]   = 0;
+            *(s32*)&m->m[1][1]   = one;
+            *(s32*)&m->m[2][0]   = 0;
+            m->m[2][2]           = one;
+            coord->coord.t[0]    = 0;
+            coord->coord.t[1]    = 0;
+            coord->coord.t[2]    = 0;
+            coord->flg           = 0;
+            Gp_UpdateCoord(coord);
+            arg0->state   = 1;
+            mem->field_24 = 0;
+            mem->field_26 = 0x40;
+            mem->field_2A = 0x100 / arg0->spawnArg1;
+            if (Gp_State1C->field_E >= 4) {
+                goto kill;
+            }
+            if (Gp_StateC08.field_3 == 2) {
+                goto kill;
+            }
+            if (Gp_State1C->field_16 != 1) {
+                goto kill;
+            }
+            arg0->spawnArg1 = D_80112B94[((u16)(Gp_StateC08.field_0 / 100U) - 1) * 9 +
+                                         ((u16)((u16)(Gp_StateC08.field_0 / 10U) % 10U) - 1) * 3 +
+                                         ((u16)(Gp_StateC08.field_0 % 10U) - 1U)];
+            pan             = (s8)Gp_GetObjPan((GpObj38*)coord);
+            SndEvt_EnqueueType6(arg0->spawnArg1, pan, (s8)Gp_GetObjDepth((GpObj38*)coord));
+            return;
+        case 1:
+            Gp_UpdateCoord(coord);
+            temp          = (u16)mem->field_24 + (u16)mem->field_2A;
+            mem->field_24 = temp;
+            if (temp >= 0x100) {
+                mem->field_24 = 0xFF;
+            }
+            temp          = (u16)mem->field_26 + 8;
+            mem->field_26 = temp;
+            if (temp >= 0x201) {
+                mem->field_26 = 0x200;
+            }
+            rgb[0] = mem->field_24;
+            rgb[1] = (u16)mem->field_24 >> 1;
+            rgb[2] = (u16)mem->field_24 >> 2;
+            func_800EAEB8(coord, mem->field_26, rgb);
+            func_800EAEB8(coord, (s16)((u16)mem->field_26 << 1), rgb);
+            if (mem->field_24 >= 0x81) {
+                temp          = ((u16)mem->field_2A << 1) + (u16)mem->field_28;
+                mem->field_28 = temp;
+                if (temp >= 0x100) {
+                    mem->field_28 = 0xFF;
+                }
+                rgb[0] = mem->field_28;
+                rgb[1] = (u16)mem->field_28 >> 1;
+                rgb[2] = (u16)mem->field_28 >> 2;
+                func_800EAA0C(coord, ((u8)Gp_StateC08.field_2 << 24) >> 17, 0x60, rgb);
+            }
+            if (Gp_State1C->field_E >= 4) {
+                goto snd7;
+            }
+            if (Gp_StateC08.field_3 == 2) {
+                goto snd7;
+            }
+            if (Gp_State1C->field_16 != 1) {
+                goto snd7;
+            }
+            if (Gp_StateC08.field_2 != 0) {
+                return;
+            }
+            mem->field_24 = 0xFF;
+            arg0->state   = 2;
+            return;
+        case 2:
+            Gp_UpdateCoord(coord);
+            mem->field_22++;
+            if (mem->field_26 <= 0) {
+                goto kill;
+            }
+            rgb[0] = mem->field_24;
+            rgb[1] = (u16)mem->field_24 >> 1;
+            rgb[2] = (u16)mem->field_24 >> 2;
+            func_800EAEB8(coord, mem->field_26, rgb);
+            func_800EAEB8(coord, (s16)((u16)mem->field_26 << 1), rgb);
+            if (Gp_State1C->field_E >= 4) {
+                goto snd7;
+            }
+            if (Gp_StateC08.field_3 == state) {
+                goto snd7;
+            }
+            if (Gp_State1C->field_16 == 1) {
+                goto decay;
+            }
+        snd7:
+            SndEvt_EnqueueType7(arg0->spawnArg1, 1);
+            arg0->state = 3;
+            return;
+        decay:
+            mem->field_24 = (u16)mem->field_24 - 0x10;
+            mem->field_26 = (u16)mem->field_26 - 0x30;
+            return;
+        case 3:
+            Gp_UpdateCoord(coord);
+            if (mem->field_24 < 0x11) {
+                goto kill;
+            }
+            rgb[0] = mem->field_24;
+            rgb[1] = (u16)mem->field_24 >> 1;
+            rgb[2] = (u16)mem->field_24 >> 2;
+            func_800EAEB8(coord, mem->field_26, rgb);
+            func_800EAEB8(coord, (s16)((u16)mem->field_26 << 1), rgb);
+            mem->field_24 = (u16)mem->field_24 - 0x10;
+            return;
+    }
+    return;
+kill:
+    Gp_ReleaseState1CMem(mem, arg0);
+}
 
 void func_800FB67C(Task* arg0)
 {

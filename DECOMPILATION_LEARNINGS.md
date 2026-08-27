@@ -27637,3 +27637,44 @@ object. Three edits are needed:
 3. Drop the matching entry from `fix_gameplay_linker_rodata_order()` in
    `ninja_config.py` — it exists only to re-order that asm piece against the C
    `.rodata`.
+
+## Pin a constant addend to a term with an unsigned `- 1U`
+
+Digit-unpacking indexes like `(h - 1) * 9 + (t - 1) * 3 - 1 + ones` give GCC
+2.8.1 a free constant to move. Written any of the signed ways
+(`… * 3 - 1 + ones`, `(… * 9 + … * 3 - 1) + ones`, `… * 9 - 1 + … * 3 + ones`)
+the `-1` sinks onto whichever leaf is added last or first — you get
+`addiu a2, -1` on the `ones` term or `addiu v1, -1` right after the `* 9`,
+never the target's `addu` of the two products followed by `addiu -1`.
+Splitting into two statements pins the constant correctly but then the
+`lui/addiu %hi/%lo` of the table base is emitted late instead of being
+hoisted into the multiply latency, so that trade is not winnable either.
+
+Making the constant *unsigned* stops the reassociation: the mixed
+signed/unsigned operands block the fold, the sum keeps source order, and the
+symbol address still hoists because the whole index is one expression.
+
+```c
+/* 100% */
+arg0->spawnArg1 = D_80112B94[((u16)(x / 100U) - 1) * 9 +
+                             ((u16)((u16)(x / 10U) % 10U) - 1) * 3 +
+                             ((u16)(x % 10U) - 1U)];
+```
+
+`func_800FB148` is the example; the signed spellings all stalled at 98.9–99.8%
+with exactly one `addiu -1` in the wrong slot.
+
+## `lbu; sll 24; sra N` from a field the header already declares `s8`
+
+The companion to the `(s8)u8_field << 6` note above: when the struct field is
+declared `s8`, GCC folds `(s8)(u8)field` straight back to `lb; sll N` — the
+double cast never survives to RTL. Spell the sign-extension out as shifts on
+the zero-extended load instead:
+
+```c
+func_800EAA0C(coord, ((u8)Gp_StateC08.field_2 << 24) >> 17, 0x60, rgb);
+```
+
+That emits `lbu; sll 24; sra 17` (i.e. `(s8)field << 7`) while a plain
+`Gp_StateC08.field_2 != 0` elsewhere in the same function still uses `lb`, which
+is what the target does.
