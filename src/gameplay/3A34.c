@@ -45,9 +45,271 @@
 
 void func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 
-extern s32 Gp_LcgState;
+extern s32        Gp_LcgState;
+extern GpItemRec* Gp_SelItemRec;
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D5B14);
+s32 func_800D5B14(GpItemRec* arg0)
+{
+    WipSysConfig* cfg;
+    GameActor*    actor;
+    GpItemScan*   scanEquip;
+    GpItemScan*   scanQty;
+    GpItemScan*   scanRel;
+    GpItemScan*   scanFree;
+    GpItemScan*   scanId;
+    GpItemSlot*   slot;
+    GpItemRec*    table;
+    GpItemRec*    rec;
+    GpItemRec*    found;
+    s32           id;
+    s32           ret;
+    s32           flag;
+    s32           i;
+    u8            count;
+    s32           held;
+    s32           prevId;
+    s32           relId;
+    s32           qty;
+    s32           k;
+    s32           avail;
+    s32           slotNum;
+    s32           sel;
+    GpItemRec*    hit;
+
+    ret   = 0;
+    flag  = 1;
+    id    = arg0->field_0;
+    actor = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
+    cfg   = &Wip_SysConfig;
+
+    if (id != 0) {
+        if ((u32)(id - 0x80) < 0x20U) {
+            if (actor->field_954 != 2) {
+                rec       = NULL;
+                scanEquip = &Mc_SaveData.field_5BC;
+                prevId    = cfg->field_21 + 0x7F;
+
+                cfg->field_21 = id - 0x7F;
+
+                table = Gp_GetItemTable(scanEquip);
+                table = &table[scanEquip->field_0];
+                count = scanEquip->field_1;
+                for (i = 0; i < count; i++) {
+                    if (table->field_0 == prevId) {
+                        rec = table;
+                    }
+                    table++;
+                }
+                if (rec != NULL) {
+                    rec->field_1 = arg0->field_1;
+                    Gp_RefreshItemRow(arg0);
+                }
+                Gp_SetItemSeenBit(id, 1);
+            }
+            ret = 1;
+        } else if ((u32)(id - 0xA0) < 0x20U) {
+            relId = 0;
+            qty   = 0;
+            held  = cfg->field_21 + 0x7F;
+            slot  = Gp_GetItemSlot(held);
+            if (Gp_EquipRelatedBank(0, held, id, 0) == 0) {
+                Gp_PendingRelatedId = id;
+                D_8010F890          = flag;
+                relId               = slot->field_0;
+                if (relId != id) {
+                    cfg->field_22 = id + 0x61;
+                    slot->field_0 = id;
+                    slot->field_1 = 0;
+                }
+                Gp_SetItemSeenBit(id, 1);
+                ret = 1;
+            } else if (Gp_EquipRelatedBank(1, held, id, 0) == 0) {
+                Gp_PendingRelatedId = -id;
+                D_8010F890          = flag;
+                relId               = slot->field_2;
+                if (relId != id) {
+                    slot->field_2 = id;
+                    slot->field_3 = 0;
+                }
+                Gp_SetItemSeenBit(id, 1);
+                ret = 1;
+            }
+
+            if (relId != 0 && relId != 0xFF) {
+                scanQty = &Mc_SaveData.field_5BC;
+                qty     = Gp_ScanStackQty(scanQty, relId);
+                qty    -= Gp_CountEquippedRelated(scanQty, relId);
+            }
+            if (qty > 0) {
+                scanRel = &Mc_SaveData.field_5BC;
+                hit     = NULL;
+                table   = Gp_GetItemTable(scanRel);
+                i       = 0;
+                table   = &table[scanRel->field_0];
+                count   = scanRel->field_1;
+                for (; i < count; i++) {
+                    if (table->field_0 == relId) {
+                        hit = table;
+                    }
+                    table++;
+                }
+                found = hit;
+                if (found != NULL && (s8)found->field_1 == 0) {
+                    slotNum  = -1;
+                    scanFree = &Mc_SaveData.field_5BC;
+                    Gp_GetItemTable(scanFree);
+                    for (k = 0; k < 3; k++) {
+                        avail = 1;
+                        table = Gp_GetItemTable(scanFree);
+                        i     = 0;
+                        table = &table[scanFree->field_0];
+                        count = scanFree->field_1;
+                        for (; i < count; i++) {
+                            if (table->field_0 != 0 && (s8)table->field_1 == k + 1) {
+                                avail = 0;
+                                break;
+                            }
+                            table++;
+                        }
+                        if (avail == 1) {
+                            slotNum = k + 1;
+                            break;
+                        }
+                    }
+
+                    if (slotNum == -1) {
+                        scanId = &Mc_SaveData.field_5BC;
+                        hit    = NULL;
+                        table  = Gp_GetItemTable(scanId);
+                        i      = 0;
+                        table  = &table[scanId->field_0];
+                        count  = scanId->field_1;
+                        for (; i < count; i++) {
+                            if (table->field_0 == id) {
+                                hit = table;
+                            }
+                            table++;
+                        }
+                        if (hit != NULL) {
+                            sel            = (s8)hit->field_1;
+                            hit->field_1   = 0;
+                            found->field_1 = sel;
+                        }
+                    } else {
+                        found->field_1 = slotNum;
+                    }
+                }
+            }
+        } else if ((u32)(id - 0x60) >= 0x20U) {
+            D_8010F894 = id;
+
+            if ((u32)(id - 1) < 0x41U) {
+                switch (id) {
+                    case 1:
+                    case 2:
+                    case 3:
+                        if (cfg->field_18 < cfg->field_1a) {
+                            if (id == 1) {
+                                cfg->field_18 += 0x2D;
+                            } else if (id == 2) {
+                                cfg->field_18 += 0x5A;
+                            } else {
+                                cfg->field_18 += 0x96;
+                            }
+                            if (cfg->field_18 > cfg->field_1a) {
+                                cfg->field_18 = cfg->field_1a;
+                            }
+                            D_8010F888 = 1;
+                            ret        = 1;
+                        }
+                        break;
+                    case 0x3C:
+                        if ((u32)Mc_SaveData.field_26 < 0xFAU) {
+                            Mc_SaveData.field_26 += 5;
+                        }
+                        Gp_RecalcMaxHp();
+                        D_8010F888    = 1;
+                        ret           = 1;
+                        cfg->field_18 = cfg->field_1a;
+                        break;
+                    case 4:
+                        func_8010A1B0(1, 0xD0);
+                        ret = D_8010F888 = Gp_StateC08.field_16 = 1;
+                        break;
+                    case 8:
+                        func_8010A1B0(1, 7);
+                        ret = D_8010F888 = Gp_StateC08.field_17 = 1;
+                        break;
+                    case 5:
+                        if (cfg->field_1c < cfg->field_1e || cfg->field_18 < cfg->field_1a) {
+                            cfg->field_1c += 0x50;
+                            cfg->field_18 += 0x14;
+                            if (cfg->field_1c > cfg->field_1e) {
+                                cfg->field_1c = cfg->field_1e;
+                            }
+                            if (cfg->field_18 > cfg->field_1a) {
+                                cfg->field_18 = cfg->field_1a;
+                            }
+                            D_8010F888 = 1;
+                            ret        = 1;
+                        }
+                        break;
+                    case 6:
+                    case 7:
+                        if (cfg->field_1c < cfg->field_1e) {
+                            if (id == 6) {
+                                cfg->field_1c += 0x19;
+                            } else {
+                                cfg->field_1c += 0x64;
+                            }
+                            if (cfg->field_1c > cfg->field_1e) {
+                                cfg->field_1c = cfg->field_1e;
+                            }
+                            D_8010F888 = 1;
+                            ret        = 1;
+                        }
+                        break;
+                    case 0x3A:
+                    case 0x3B:
+                        func_800A7CB0((u8)((id - 0x3A) * 3 + 0x2E));
+                        func_800A7DB8(id - 0x2B);
+                        Gp_SelItemRec = arg0;
+                        flag          = 0;
+                        ret           = 1;
+                        break;
+                    case 0x41:
+                        func_800A7CB0(0x34);
+                        func_800A7DB8(0x11);
+                        Gp_SelItemRec = arg0;
+                        flag          = 0;
+                        ret           = 1;
+                        break;
+                    case 0x3D:
+                        if (cfg->field_1c < cfg->field_1e || cfg->field_18 < cfg->field_1a) {
+                            cfg->field_1c = cfg->field_1e;
+                            D_8010F888    = 1;
+                            cfg->field_18 = cfg->field_1a;
+                        }
+                        D_8010F888 = 1;
+                        ret        = 1;
+                        break;
+                    case 0x3E:
+                        D_8010F888 = 1;
+                        ret        = 1;
+                        break;
+                }
+            }
+
+            if (ret == 1 && flag != 0) {
+                arg0->field_0 = 0;
+                arg0->field_2 = 0;
+                arg0->field_1 = 0;
+                Gp_SetItemSeenBit(id, 1);
+            }
+        }
+    }
+    return ret;
+}
 
 s32 Gp_ItemIsUnusable(s32 arg0, GpItemRec* arg1)
 {

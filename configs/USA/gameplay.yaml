@@ -90,8 +90,7 @@ segments:
       - [0x377C, rodata, rodata_3688]
       - [0x3968, .rodata, 3688_CADFC] # jtbl from func_800CADFC
       - [0x397C, rodata, rodata_3688_2]
-      - [0x3A34, rodata, rodata_3A34]
-      - [0x3B3C, .rodata, 3A34] # jtbl from Gp_ItemIsUnusable + mid + func_800E0540
+      - [0x3A34, .rodata, 3A34] # jtbls: func_800D5B14 + Gp_ItemIsUnusable + mid + func_800E0540
       - [0x3CC8, rodata, rodata_3A34_2] # D_800974C8
       - [0x3CD8, .rodata, 3CD8_34D8] # jtbl from Gp_RunCapCmd
       - [0x3CF0, .rodata, 3CD8_375C] # jtbl from func_800E375C

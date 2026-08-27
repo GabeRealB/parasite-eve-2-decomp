@@ -27559,3 +27559,81 @@ len 12 / code 0x3C-0x3E, 4-iteration u-fixup loop) sibling of the POLY_GT3
 and `_s0` macros swapped matched on the first attempt. When a TU holds a family
 of these clippers, diff the target against the nearest already-matched sibling
 before writing anything from scratch.
+
+## `reload_cse` copies: `GLOBAL = K` before `var = K` keeps a `move` in front of the store
+
+`li sN,K` followed by `move vN,sN` / `sw vN, %lo(GLOBAL)` is *not* a cse artifact
+you can reach by writing `var = K; GLOBAL = var;` — that folds straight into
+`sw sN`. The extra copy is produced after allocation by `reload_cse`, which
+rewrites a redundant `li vN,K` into a `move` from whatever hard register already
+holds `K`. So the copy only survives if cse left *two separate* `(set reg K)`
+insns, and that happens when the variable's assignment does **not** come first:
+
+```c
+/* sw s5 — cse folds the store's temp into ret */
+ret        = 1;
+D_8010F888 = 1;
+
+/* li s5,1 / move v1,s5 / sw v1 — target shape */
+D_8010F888 = 1;
+ret        = 1;
+```
+
+For a mixed-width group the same effect comes from a chained assignment, because
+the narrower store forces a separate QImode quantity that cse cannot unify with
+the SImode one:
+
+```c
+ret = D_8010F888 = Gp_StateC08.field_16 = 1; /* sb then sw, each via `move v0,s5` */
+```
+
+`func_800D5B14` needed both spellings (cases 4/8 chained, case 0x3C reordered);
+4 missing `move` instructions were the whole difference between 97.5% and 98.7%.
+
+## Give every `p = &Global;` site its own local, and every loop bound its field width
+
+Two register-allocation levers that together took `func_800D5B14` from 99.2% to
+a byte match:
+
+* A single `GpItemScan* scan` reassigned `&Mc_SaveData.field_5BC` at five
+  different sites becomes **one** pseudo, so it is pinned in one callee-saved
+  register for the whole function. The target used `s0` / `s1` / `s2` at
+  different sites, i.e. five distinct locals. Splitting them (`scanEquip`,
+  `scanQty`, `scanRel`, `scanFree`, `scanId`) fixed a three-way `s0`/`s1`/`s2`
+  permutation. Sweeping the set partitions of the sites is cheap and mechanical.
+* `count = scan->field_1` where `field_1` is `u8`: declaring the local `u8`
+  rather than `s32` changed the live ranges enough to move the last mismatched
+  pointer into the right callee-saved register (99.5% -> 100%). Match the local
+  to the field's width whenever a loop bound is copied out of a struct.
+
+## Early `return ret;` inflates `ret`'s ref count and flips its callee-saved slot
+
+GCC's `global_alloc` orders allocnos by `floor_log2(n_refs) * n_refs /
+live_length`. Several early `return ret;` statements inside one branch add a
+reference each, which can push the return variable ahead of another
+whole-function local and swap their registers (`ret` in `$s4` / `id` in `$s5`
+instead of the target's `$s5` / `$s4`). Rewriting the branch as nested `if`s
+with a single fall-through exit dropped `ret` from 20 to 17 references and
+flipped the pair; the emitted instructions were identical either way, because
+the `jump` pass merges the exits and `dbr` re-fills the delay slots.
+
+`cc1 <flags> -dl -dg` dumps `.lreg` / `.greg`; the `.lreg` header prints
+`Register N used X times across Y insns; crosses Z calls` and `.greg` prints the
+allocation order, the per-allocno conflict lists (including *hard* registers
+already taken by `local_alloc`) and the final dispositions. That is the fastest
+way to see which of two locals wins a register and why.
+
+## Moving an overlay jtbl from asm rodata into a C TU
+
+When the INCLUDE_ASM function that owned a jump table becomes C, the table moves
+from `asm/<ver>/<ovl>/data/rodata_<unit>.rodata.s` into the TU's own `.rodata`,
+and the link fails with `undefined reference to '.L800D5ECC'` from the stale asm
+object. Three edits are needed:
+
+1. In `configs/<ver>/<ovl>.yaml`, merge the `rodata_<unit>` segment into the
+   following `.rodata, <unit>` segment (keep the earlier address).
+2. Delete the now-orphaned generated `asm/.../rodata_<unit>.rodata.s`; splat will
+   not remove it for you and the linker script still globs it until it is gone.
+3. Drop the matching entry from `fix_gameplay_linker_rodata_order()` in
+   `ninja_config.py` — it exists only to re-order that asm piece against the C
+   `.rodata`.
