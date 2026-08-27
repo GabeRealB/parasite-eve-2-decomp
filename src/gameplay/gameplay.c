@@ -187,6 +187,29 @@ extern s32            D_80115724;
         gte_stclmv((char*)(r3) + 4);    \
     }
 
+/// Writes the transpose of the 3x3 rotation part of `s` into `d`.
+/// Needs `t4` / `t5` / `t6` in scope (the target reads a whole column
+/// before storing it back as a row).
+#define TRANSPOSE_ROT_3X3(d, s)  \
+    t4           = (s)->m[0][0]; \
+    t5           = (s)->m[1][0]; \
+    t6           = (s)->m[2][0]; \
+    (d)->m[0][0] = t4;           \
+    (d)->m[0][1] = t5;           \
+    (d)->m[0][2] = t6;           \
+    t4           = (s)->m[0][1]; \
+    t5           = (s)->m[1][1]; \
+    t6           = (s)->m[2][1]; \
+    (d)->m[1][0] = t4;           \
+    (d)->m[1][1] = t5;           \
+    (d)->m[1][2] = t6;           \
+    t4           = (s)->m[0][2]; \
+    t5           = (s)->m[1][2]; \
+    t6           = (s)->m[2][2]; \
+    (d)->m[2][0] = t4;           \
+    (d)->m[2][1] = t5;           \
+    (d)->m[2][2] = t6;
+
 void func_800A4904(s32 arg0);
 void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800A5274(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -194,7 +217,7 @@ void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800A7824(s32 arg0, s32 arg1, s32 arg2);
 void func_800A6A9C(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_8009939C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_800A82C0(GsCOORDINATE2* arg0, VECTOR* arg1);
+s32  func_800A82C0(GsCOORDINATE2* arg0, VECTOR* arg1);
 void Gp_FinishLoadWait(Task* task);
 void func_807150F8(s32 arg0);
 void func_80715198(void);
@@ -4533,7 +4556,113 @@ s32 Gp_SpendMp(s32 arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7F6C);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A82C0);
+/// Same math as `Gp_WorldToLocal`, but inlined so the scratch-head address is
+/// rematerialised on every access: `out` receives `root->workm` transposed and
+/// multiplied by `arg0->workm`, with the translation delta rotated into
+/// `out->t`.
+static __inline__ void coordToRoot(GsCOORDINATE2* arg0, GsCOORDINATE2* root, MATRIX* out)
+{
+    register short            t4 asm("t4");
+    register short            t5 asm("t5");
+    register short            t6 asm("t6");
+    register GpRelMatScratch* tmp asm("a0");
+    register MATRIX*          rootm asm("a3");
+    register MATRIX*          world asm("a2");
+    register u8*              head asm("a1");
+    VECTOR*                   vec;
+
+    Gp_UpdateCoord(arg0);
+    Gp_UpdateCoord(root);
+
+    rootm = &root->workm;
+    world = &arg0->workm;
+    head  = *(u8**)G_SCRATCH_HEAD;
+    tmp   = (GpRelMatScratch*)(head - 0x30);
+
+    *(void**)G_SCRATCH_HEAD = tmp;
+    __asm__ volatile("" : "+r"(tmp), "+r"(rootm), "+r"(head));
+
+    TRANSPOSE_ROT_3X3(&tmp->mat, rootm)
+
+    gte_MulMatrix0_real(&tmp->mat, world, out);
+    __asm__ volatile("" ::"r"(arg0));
+
+    tmp->vec.vx = world->t[0] - rootm->t[0];
+    tmp->vec.vy = world->t[1] - rootm->t[1];
+    tmp->vec.vz = world->t[2] - rootm->t[2];
+    vec         = (VECTOR*)(head - 0x10);
+    ApplyMatrixLV(&tmp->mat, vec, (VECTOR*)out->t);
+
+    *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x30;
+}
+
+/// Spawns the type-0xE view task and points its coordinate at the inverse of
+/// `arg0` (transposed rotation, negated translation). `arg1` is the optional
+/// world offset stored in the task's 0x10-byte payload.
+s32 func_800A82C0(GsCOORDINATE2* arg0, VECTOR* arg1)
+{
+    register short          t4 asm("t4");
+    register short          t5 asm("t5");
+    register short          t6 asm("t6");
+    register MATRIX*        localMtx asm("v1");
+    register MATRIX*        relMtx asm("s0");
+    register MATRIX*        dstMtx asm("v0");
+    register GsCOORDINATE2* coord asm("s1");
+    Task*                   task;
+    VECTOR*                 pos;
+    GsCOORDINATE2*          root;
+    register GsCOORDINATE2* parent asm("v1");
+    GsCOORDINATE2           rel;
+
+    task = Task_Spawn(0, 0xE, 0, 0);
+    if (task == NULL) {
+        return 0;
+    }
+    pos = Mem_Calloc(sizeof(VECTOR), 0);
+    if (pos == NULL) {
+        Task_Kill(task);
+        return 0;
+    }
+    task->idMap = (TaskIdMap*)pos;
+    coord       = ((TmdObject*)task->extra)->field_8;
+    if (arg1 != NULL) {
+        pos->vx = arg1->vx;
+        pos->vy = arg1->vy;
+        pos->vz = arg1->vz;
+    } else {
+        pos->vx = 0;
+        pos->vy = 0;
+        pos->vz = 0;
+    }
+
+    parent = arg0->sub;
+    __asm__ volatile("" : "+r"(parent));
+    root = &D_80070F10;
+    if (parent == root) {
+        localMtx = &arg0->coord;
+        dstMtx   = &coord->coord;
+        __asm__ volatile("" : "+r"(localMtx), "+r"(dstMtx));
+        TRANSPOSE_ROT_3X3(dstMtx, localMtx)
+
+        coord->coord.t[0] = -arg0->coord.t[0];
+        coord->coord.t[1] = -arg0->coord.t[1];
+        coord->coord.t[2] = -arg0->coord.t[2];
+    } else {
+        coordToRoot(arg0, root, &rel.coord);
+        __asm__ volatile("" : "+r"(coord));
+
+        dstMtx = &coord->coord;
+        relMtx = &rel.coord;
+        __asm__ volatile("" : "+r"(dstMtx), "+r"(relMtx));
+        TRANSPOSE_ROT_3X3(dstMtx, relMtx)
+
+        coord->coord.t[0] = -rel.coord.t[0];
+        coord->coord.t[1] = -rel.coord.t[1];
+        coord->coord.t[2] = -rel.coord.t[2];
+    }
+    __asm__ volatile("" ::"r"(arg1));
+    return 1;
+}
 
 void func_800A8654(Task* task)
 {

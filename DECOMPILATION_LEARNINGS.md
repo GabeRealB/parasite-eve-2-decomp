@@ -27279,3 +27279,51 @@ later declaration and silently allocates the earlier one somewhere else, which
 loses whatever the first pin was buying (typically the un-coalesced `move`).
 Reuse the single pinned variable for every role that needs that register, with
 casts if the types differ, rather than adding a second pin.
+
+## A 0x50-byte "dead" local area is a `GsCOORDINATE2` whose `.coord` is the MATRIX
+
+`func_800A82C0` uses a stack MATRIX at `sp+0x14` but reserves `0x50` bytes of
+locals (frame `0x78` with five saved registers). `MATRIX mtx;` alone lands the
+matrix at `sp+0x10` and shrinks the frame to `0x48`. The extra four bytes in
+front plus `0x2C` behind are `GsCOORDINATE2`'s `flg` and everything after
+`coord`: declare `GsCOORDINATE2 rel;` and use `&rel.coord` as the working
+matrix. Whenever the target's only visible local sits at `+4` inside a local
+area whose size matches a known struct, look for a struct whose interesting
+member is at offset 4 rather than padding the frame by hand.
+
+## `static __inline__` also flips scratch-head codegen at a single call site
+
+The `Gfx_SetDefaultFlatLight` note above (inline helper → `lui 0x1F80` /
+`lw|sw 0x3FC` per access, instead of CSE into an `$sN`) is not specific to
+being called several times. `func_800A82C0` calls its helper once and still
+gets the rematerialised form. Writing the same body straight into the caller —
+with a plain constant, a `volatile` cast, an intervening `memory` barrier, or a
+`void** scratch = (void**)G_SCRATCH_HEAD` local — always CSEs the address into a
+callee-saved register. When the target rematerialises `0x1F8003FC`, move the
+whole alloc/use/free block into a `static __inline__` helper; nothing else
+reproduces it.
+
+## Lengthen a parameter's live range to push it into a higher `$s` register
+
+GCC 2.8.1's global allocator sorts pseudos by references divided by live
+length, so a short-lived second argument can outrank a long-lived first
+argument and grab the lower-numbered callee-saved register. `func_800A82C0`
+wants `arg0` in `$s2` and `arg1` in `$s3`; naturally `arg1` (dead after three
+loads near the top) took `$s2` and its `sw`/`move` pair was emitted first.
+An empty asm that merely reads the argument at the very end of the function
+extends its live range, drops its priority below `arg0`, and fixes both the
+register choice and the prologue ordering without emitting an instruction:
+
+```c
+    __asm__ volatile("" ::"r"(arg1));
+    return 1;
+```
+
+## Force the compare's load ahead of a `%hi` with a `+r` pin on the loaded value
+
+`sub = arg0->sub; root = &D_80070F10; if (sub == root)` schedules
+`lui v0, %hi(D_80070F10)` into the load-delay slot *before* `lw v1, 0x4c(s2)`.
+The target wants the `lw` first and the `lui` filling its delay slot. An empty
+`asm volatile("" : "+r"(sub))` between the load and the address materialisation
+is a scheduling barrier the `lui` cannot cross, and pinning `sub` to `$v1`
+picks the register the compare uses.
