@@ -27402,3 +27402,69 @@ That single edit took the function from 99.4% to 100%. General rule: when a
 computed value has to reach `$aN` and the leftover diff is a `move aN, <temp>`
 plus a missing `move <temp>, aN` in the prologue, look for a place where the
 parameter itself is reassigned rather than read into a new temp.
+
+## Read the global back instead of caching it, so its `%hi` hoists
+
+When the target holds a store-only global's `%hi` in a register *far* ahead of
+the store — and duplicates that `lui` into an earlier branch's delay slot —
+the source is reading the global back, not reusing a local:
+
+```c
+/* target: lui a1,%hi(D_8011570E) sits in the `bnez` delay slot of the block
+   above, and the store is `sh a3,%lo(D_8011570E)(a1)` */
+D_8011570E = ~D_8011570C & D_8011570A;
+...
+if (D_8011570E & 0x900) { ... }      /* not `if (cached & 0x900)` */
+```
+
+With `cached = ...; D_8011570E = cached; ... if (cached & 0x900)` GCC has only
+one reference to the address, materializes `lui`+`sh` back to back at the store,
+and fills the earlier delay slot with some other constant. Reading it back gives
+the address two uses, so CSE promotes it to its own pseudo that lives across the
+whole preceding block; GCC still forwards the stored value, so no `lhu` appears.
+`func_800E956C` went 96.4% → 97.7% on that one change. The neighbouring
+`D_80115710` (also stored then re-read) is the control: it already matched.
+
+## Order `p = &Global` inits to pick the `%hi` scratch register
+
+Two or three `local = &Global` / `local = GlobalPtr` inits at the top of a
+function each split into `lui $vN, %hi` + `addiu $sN, $vN, %lo`. Which scratch
+register (`$v0` vs `$v1`) each `lui` lands in is decided *before* scheduling, so
+it follows source order even though the final listing is reordered:
+
+```c
+pad  = (PadState*)&Pad_States[0];   /* lui v0 ; addiu s1,v0 */
+cfg  = &Wip_SysConfig;              /* lui v1 ; addiu s0,v1  <- needs v0 live */
+work = Gp_ActorSlots[0];            /* lui v0 ; lw a0,%lo(...)(v0) */
+```
+
+Putting the volatile `Gp_ActorSlots[0]` load *between* the other two lets its
+`lui` reuse `$v0` and forces the third `%hi` onto `$v1`; listing `work` second
+gives all three `$v0` and leaves a one-instruction diff that nothing else fixes.
+This was the last diff in `func_800E956C` (99.97% → 100%). When a lone
+`lui $v1` vs `lui $v0` survives everything else, permute the order of these
+address-taking assignments before reaching for a pin.
+
+## `asm volatile("")` *before* the assignment to block cross-jumping
+
+Two `if/else` arms that assign the same two constants (here
+`mask = tmp | 0x80` / `mask = tmp | 0x20`, once under `field_25 == 0` and again
+under `field_25 == 1`) are cross-jumped by GCC 2.8.1: the earlier arm loses its
+copy and branches into the later one, turning `bne .. ; ori 0x20 ; j L ; ori
+0x80` into `beq .. ; ori 0x20 ; j L ; nop`. An empty `asm` in the earlier arm
+breaks the tail match, but **placement matters**:
+
+```c
+if (Mc_SaveData.field_1a8 == 1) {
+    asm volatile("");        /* before: cross-jump broken, delay slots still fill */
+    mask = tmp | 0x80;
+} else {
+    mask = tmp | 0x20;
+}
+```
+
+Putting the barrier *after* `mask = tmp | 0x80;` also stops the cross-jump, but
+the volatile insn then sits between the `ori` and the `j`, so the delay-slot
+filler cannot sink the `ori` and emits `ori 0x80 ; j L ; nop` — one instruction
+too many (98.96% vs 99.97%). Cross-jumping needs at least two matching insns, so
+a barrier ahead of the pair leaves only the `jump` matching and is enough.

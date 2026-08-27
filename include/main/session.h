@@ -57,7 +57,8 @@ typedef struct _GameSession {
     s16   field_52;
     byte  unknown_54[4];
     u16   field_58; // current pad mask; Gp_CaptureActorPad copies this onto GameActor.field_962
-    byte  unknown_5A[4];
+    u16   field_5A; // previous-frame remapped pad mask (func_800E956C)
+    u16   field_5C; // newly-triggered remapped pad mask (func_800E956C)
     u8    field_5E; // set to 1 by Gp_InitPlayClock before allocating the play-clock idMap
     u8    field_5F; // skip-gate for func_800E74EC overlay-wait setup
     byte  unknown_60[4];

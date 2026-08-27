@@ -53,6 +53,7 @@ extern u8             Gp_BtnMap2Alt[];
 extern u16            Gp_WeaponIdBase[];
 extern u16            Gp_AllyIdBase[];
 extern GpEvt12*       Gp_CapTable;
+extern s16            D_80114D08;
 extern s16            D_801155AC;
 extern u16            D_801155AE;
 extern s16            D_801155B0;
@@ -126,10 +127,10 @@ extern u8             Gp_PadLerpHalt;
 extern u8             D_80115708;
 extern u8             D_80115709;
 extern u16            D_8011570A;
-extern s16            D_8011570C;
-extern s16            D_8011570E;
-extern s16            D_80115710;
-extern s16            D_80115712;
+extern u16            D_8011570C;
+extern u16            D_8011570E;
+extern u16            D_80115710;
+extern u16            D_80115712;
 extern u8             D_80115714;
 extern s16            D_80115716;
 extern s16            D_80115718;
@@ -1720,7 +1721,133 @@ void Gp_PadLerpTask(Task* task)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E956C);
+void func_800E956C(void)
+{
+    PadState*     pad;
+    WipSysConfig* cfg;
+    GpActorWork*  work;
+    GameActor*    actor;
+    u16           mask;
+    register u16  prev asm("s2"); // pinned: GCC otherwise gives $s2 to `actor`
+    u16           trig;
+    u16           tmp;
+    u16           tmp2;
+
+    pad  = (PadState*)&Pad_States[0];
+    cfg  = &Wip_SysConfig;
+    work = Gp_ActorSlots[0];
+    if (work == NULL) {
+        return;
+    }
+    actor = work->actor;
+    Gp_ClearPadHalt();
+    if (D_80115714 == 0) {
+        if (actor->field_954 == 0 && Game_Session->field_1 == 0 && Game_Session->field_66 == 0 &&
+            actor->field_956 != 6 && cfg->field_18 > 0 && Game_Session->field_0 == 0) {
+            if (D_80115716 > 0) {
+                D_80115716--;
+                D_80115708 = 1;
+            } else {
+                D_80115708 = 0;
+            }
+        } else {
+            D_80115708 = 1;
+            D_80115718 = 4;
+            D_80115716 = 8;
+            D_80114D08 = 0xA;
+        }
+        if (D_80115708 == 1 && D_80115709 == 0) {
+            D_80115714  = 0;
+            D_8011570A |= 0x900;
+        } else if (D_80115708 == 0 && D_80115709 == 1) {
+            D_80115714  = 0;
+            D_8011570A &= 0xF6FF;
+        }
+        D_80115709 = D_80115708;
+    }
+    D_8011570E = ~D_8011570C & D_8011570A;
+    D_80115710 = D_8011570C & ~D_8011570A;
+    D_8011570C = D_8011570A;
+    if (Display_State.field_12c == 0) {
+        if (D_8011570E & 0x900) {
+            Display_AcquireRef();
+            D_80115712++;
+        }
+        if ((D_80115710 & 0x900) && D_80115712 != 0) {
+            do {
+                Display_ReleaseRef();
+                D_80115712--;
+            } while (D_80115712 != 0);
+        }
+    }
+    if (pad->status == 0x73) {
+        mask = pad->buttons;
+        prev = pad->prevButtons;
+        trig = pad->triggered;
+        if (pad->field_56 < -0x800) {
+            tmp  = mask | 0x1000;
+            mask = tmp;
+            if (actor->field_954 != 0 || actor->field_956 < 2) {
+                if (pad->field_56 < -0xE80) {
+                    if (Mc_SaveData.field_25 == 0) {
+                        if (Mc_SaveData.field_1a8 == 1) {
+                            // barrier: without it GCC cross-jumps this arm into
+                            // the identical `field_25 == 1` arm below
+                            asm volatile("");
+                            mask = tmp | 0x80;
+                        } else {
+                            mask = tmp | 0x20;
+                        }
+                    } else {
+                        if (Mc_SaveData.field_1a8 == 1) {
+                            mask = tmp & 0xFF7F;
+                        } else {
+                            mask = tmp & 0xFFDF;
+                        }
+                    }
+                } else if (Mc_SaveData.field_25 == 1) {
+                    if (Mc_SaveData.field_1a8 == 1) {
+                        mask = tmp | 0x80;
+                    } else {
+                        mask = tmp | 0x20;
+                    }
+                }
+            }
+            if (pad->field_54 >= 0x801) {
+                mask |= 0x2000;
+            } else if (pad->field_54 < -0x800) {
+                mask |= 0x8000;
+            }
+        } else if (pad->field_56 >= 0x801) {
+            tmp2 = mask | 0x4000;
+            mask = tmp2;
+            if (pad->field_54 >= 0x801) {
+                mask = tmp2 | 0x2000;
+            } else if (pad->field_54 < -0x800) {
+                mask = tmp2 | 0x8000;
+            }
+        } else {
+            if (pad->field_54 >= 0x801) {
+                mask |= 0x2000;
+            } else if (pad->field_54 < -0x800) {
+                mask |= 0x8000;
+            }
+        }
+    } else {
+        mask = pad->buttons;
+        prev = pad->prevButtons;
+        trig = pad->triggered;
+    }
+    Game_Session->field_58 = Gp_RemapButtons(actor, mask) & ~D_8011570A;
+    Game_Session->field_5A = Gp_RemapButtons(actor, prev) & ~D_8011570A;
+    Game_Session->field_5C = Gp_RemapButtons(actor, trig) & ~D_8011570A;
+    if (D_80115718 != 0) {
+        D_80115718--;
+        Game_Session->field_58 = Gp_RemapButtons(actor, mask) & ~D_8011570A & ~0x10;
+        Game_Session->field_5A = Gp_RemapButtons(actor, prev) & ~D_8011570A & ~0x10;
+        Game_Session->field_5C = Gp_RemapButtons(actor, trig) & ~D_8011570A & ~0x10;
+    }
+}
 
 u16 Gp_RemapButtons(GameActor* actor, u16 mask)
 {
