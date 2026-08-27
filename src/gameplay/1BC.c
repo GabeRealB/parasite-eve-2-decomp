@@ -1089,7 +1089,100 @@ void Gp_BlendRgb555(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B2200);
+void func_800B2200(Task* arg0)
+{
+    register Task* t asm("t2");
+    register s32   y asm("a1");
+    GpFadeWork*    work;
+    TILE*          tile;
+    DR_TPAGE*      dr;
+    s32            color;
+    s8             yoff;
+
+    t    = arg0;
+    work = t->spawnArg2;
+
+    if (t->state == 0) {
+        t->killCountdown = 0;
+        if (work->field_2 <= 0) {
+            work->field_2 = 0x20;
+        }
+        t->state = t->state + 1;
+    }
+    if ((t->state == 2) && (work->field_1 == 1)) {
+        t->killCountdown = work->field_2;
+    }
+
+    color      = (t->killCountdown * 0xFF0) / work->field_2;
+    tile       = (TILE*)D_80071190;
+    y          = -0x78;
+    tile->y0   = y;
+    D_80071190 = (DR_TPAGE*)(tile + 1);
+    setlen(tile, 3);
+    setcode(tile, 0x62);
+    tile->x0 = -0xA0;
+    yoff     = Display_State.vramYOffset;
+    tile->w  = 0x140;
+    tile->h  = 0xF0;
+    color    = color >> 4;
+    tile->b0 = color;
+    tile->g0 = color;
+    tile->r0 = color;
+    dr       = (DR_TPAGE*)D_80071190;
+    tile->y0 = y - yoff;
+
+    D_80071190 = dr + 1;
+    if (work->field_0 == 0) {
+        setlen(dr, 1);
+        dr->code[0] = 0xE1000240;
+    } else {
+        setlen(dr, 1);
+        dr->code[0] = 0xE1000220;
+    }
+
+    if (t->spawnArg1 != 0) {
+        u_long* ot;
+
+        ot = Gpu_CurrentOt;
+        addPrim(&ot[t->spawnArg1], tile);
+        addPrim(&ot[t->spawnArg1], dr);
+    } else {
+        u_long* ot;
+
+        ot = Gpu_CurrentOt;
+        if ((ot == (u_long*)Gpu_OrderingTables[0].org) || (ot == (u_long*)Gpu_OrderingTables[1].org)) {
+            addPrim(ot, tile);
+            addPrim(ot, dr);
+        } else {
+            addPrim(&ot[-0xA], tile);
+            addPrim(&ot[-0xA], dr);
+        }
+    }
+
+    switch (t->state) {
+        case 1:
+            t->killCountdown = t->killCountdown + 1;
+            if (t->killCountdown == work->field_2) {
+                t->state = t->state + 1;
+            }
+            break;
+        case 2:
+            if (work->field_1 == 1) {
+                t->state = 3;
+            }
+            break;
+        case 3:
+            t->killCountdown = t->killCountdown - 1;
+            if (t->killCountdown <= 0) {
+                work->field_1 = 2;
+                Task_Kill(t);
+            }
+            break;
+        default:
+            Task_Kill(t);
+            break;
+    }
+}
 
 void func_800B25B0(void)
 {

@@ -27468,3 +27468,67 @@ the volatile insn then sits between the `ori` and the `j`, so the delay-slot
 filler cannot sink the `ori` and emits `ori 0x80 ; j L ; nop` — one instruction
 too many (98.96% vs 99.97%). Cross-jumping needs at least two matching insns, so
 a barrier ahead of the pair leaves only the `jump` matching and is enough.
+
+## Duplicate the shared store in both arms so it lands in the cross-jumped tail
+
+`func_800B2200` writes a `DR_TPAGE` whose `code[0]` depends on a flag. Hoisting
+the common `setlen(dr, 1)` above the `if` lets the scheduler sink `li v0, 1` /
+`sb v0, 3(dr)` *above* the `lbu` that tests the flag, and the constant's `lui`
+gets hoisted out of both arms into a spare temp:
+
+```c
+setlen(dr, 1);                    /* wrong: sb runs before the lbu test */
+if (work->field_0 == 0) { dr->code[0] = 0xE1000240; }
+else                    { dr->code[0] = 0xE1000220; }
+```
+
+The target instead has the branch first and `sb len` / `sw code` after the join.
+Write the `setlen` inside *both* arms; GCC 2.8.1 cross-jumps the identical
+two-insn tail back out, and the differing `ori` stays in each arm with the
+shared `lui` in the branch delay slot:
+
+```c
+if (work->field_0 == 0) { setlen(dr, 1); dr->code[0] = 0xE1000240; }
+else                    { setlen(dr, 1); dr->code[0] = 0xE1000220; }
+```
+
+```
+bnez  v0, .else
+ lui  v1, 0xE100
+j     .join
+ ori  v1, v1, 0x240
+.else:
+ori   v1, v1, 0x220
+.join:
+li    v0, 1
+sb    v0, 3(t1)
+sw    v1, 4(t1)
+```
+
+This is the mirror image of the `asm volatile("")` entry above: there the goal
+was to *break* a cross-jump, here it is to *feed* one. 97.6% -> 99.3%.
+
+## One `ot` local per mutually exclusive branch, not one for the whole function
+
+`func_800B2200` sorts its two prims into `Gpu_CurrentOt[spawnArg1]` or, when
+`spawnArg1 == 0`, into the current OT head. A single function-scope
+`u_long* ot` reloaded in both arms is allocated one register for the whole
+function ($t0 in both), which also shifts every other pointer down a register
+and reorders the `lui %hi(Gpu_OrderingTables)` / `lw Gpu_CurrentOt` pair. The
+target gives each arm its own register ($a3 in the indexed arm, $a2 in the
+head arm), so declare the pointer at block scope inside each arm:
+
+```c
+if (t->spawnArg1 != 0) {
+    u_long* ot = Gpu_CurrentOt;
+    addPrim(&ot[t->spawnArg1], tile);
+    addPrim(&ot[t->spawnArg1], dr);
+} else {
+    u_long* ot = Gpu_CurrentOt;
+    ...
+}
+```
+
+Same family as "Fresh block-scope pointer at a join": live ranges that never
+overlap should not share a C variable. 97.6% -> 99.3%, and the remaining
+$t1/$t2 swap was a single `register Task* t asm("t2")` pin.
