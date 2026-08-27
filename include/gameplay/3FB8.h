@@ -225,6 +225,19 @@ STATIC_ASSERT_SIZEOF(GpEffRec, 4);
 
 extern GpEffRec D_8011291C[];
 
+/// Overlay of `D_80112964` at `u16` index `GpEffWork.field_2A`.
+/// `func_800F77F8` loads `field_4`, shifts it into a CLUT X nibble, and
+/// ORs `0x4280`. `func_800FA45C` uses the same table at byte offset 8.
+typedef struct _GpEffClutOff {
+    /* 0x0 */ u16 pad_0;
+    /* 0x2 */ u16 pad_2;
+    /* 0x4 */ u16 field_4;
+} GpEffClutOff;
+
+/// u16 CLUT-source table. Indexed as `&D_80112964[field_2A]` then overlaid
+/// with `GpEffClutOff` so the load is `lhu 4(base + field_2A * 2)`.
+extern u16 D_80112964[];
+
 /// Spawn-id words indexed by the 3-digit packing of `Gp_StateC08.field_0`
 /// `(hundreds-1)*9 + (tens-1)*3 + ones - 1`. `func_800FA7CC` uses this
 /// when `field_3 == 1`, and `D_80112A50` when `field_3 == -1`.
@@ -288,6 +301,20 @@ typedef struct _GpMoveArg {
     /* 0x11 */ byte pad_11;
     /* 0x12 */ u8   field_12;
 } GpMoveArg;
+
+/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `func_800F77F8`.
+/// `vec` is `workm.t[]` truncated to s16 for `gte_ldv0`. `otz` is
+/// `gte_stszotz` then incremented; `flag` is `gte_stflg`; `size` is
+/// `(field_24 * 15 / otz) >> 1`; `sx`/`sy` are `gte_stsxy`.
+typedef struct _GpEffFt4Scratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ s32     size;
+    /* 0x14 */ s16     sx;
+    /* 0x16 */ s16     sy;
+} GpEffFt4Scratch;
+STATIC_ASSERT_SIZEOF(GpEffFt4Scratch, 0x18);
 
 /// 0x10-byte scratch from `G_SCRATCH_HEAD` used by `func_8010133C`.
 /// `field_0` / `field_4` are the outer/inner loop counters. `field_8` is

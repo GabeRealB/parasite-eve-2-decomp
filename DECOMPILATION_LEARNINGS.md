@@ -26999,3 +26999,61 @@ draw:
 ```
 
 `func_800FAC40` is the example.
+
+## Keep `setlen`/`setcode` constants both live after the prim cursor
+
+A POLY_FT4 that does `setlen(p, 9); setcode(p, 0x2D)` after advancing
+`D_80071190` wants:
+
+```
+li    v0,9
+li    v1,0x2d
+sb    v0,3(t0)
+sb    v1,7(t0)
+```
+
+Plain locals reuse `$v0` (`li 9 / sb / li 0x2D / sb`). Pinning `len` to
+`$v0` for the whole `if` hoists `li v0,9` into the cursor update and
+steals `$v0` from `otz++`. Barrier after the cursor, then keep both
+values live with `+r`:
+
+```c
+prim       = (POLY_FT4*)D_80071190;
+D_80071190 = (DR_TPAGE*)(prim + 1);
+__asm__ volatile("" ::: "memory");
+len  = 9;
+code = 0x2D;
+__asm__ volatile("" : "+r"(len), "+r"(code));
+setlen(prim, len);
+setcode(prim, code);
+```
+
+`func_800F77F8` is the example.
+
+## Compute scratch block into `$v0` then copy to `$t1`
+
+A leaf GTE helper that stores `vx` via `sh -0x18(head)` then needs
+`lhu vy` in `$v1` (so the coordinate pointer can stay in `$a1`) wants:
+
+```
+addiu v0,a3,-0x18
+lhu   v1,0x3c(a1)
+move  t1,v0
+```
+
+Assigning `block = head - 0x18` directly emits `addiu t1` and reuses
+`$v0` for `vy`, which then pushes `coord` out of `$a1`. Pin the subtract
+to `$v0` in a short inner scope and copy to a `$t1` block:
+
+```c
+((Scratch*)(head - 0x18))->vec.vx = *(u16*)&coord->workm.t[0];
+{
+    register u8* tmp asm("v0");
+    tmp   = head - 0x18;
+    block = (Scratch*)tmp;
+}
+block->vec.vy = *(u16*)&coord->workm.t[1];
+```
+
+Do not keep the `$v0` pin alive until `gte_ldv0` — that coalesces and
+loads from `$v0` instead of `$t1`. `func_800F77F8` is the example.
