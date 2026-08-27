@@ -311,7 +311,7 @@ void Gp_PumpTmdStream(Task* task);
 /// Walk the inner area rec's 0x10-byte CdCmd 0x21 list (`D_80114C6C`),
 /// matching each id against the 0xC-byte list (`D_80114C68`). Returns 1
 /// when the list is exhausted or missing, else 0 (still in flight).
-s32  Gp_PollAreaCdLoads(void);
+s32 Gp_PollAreaCdLoads(void);
 /// Dual-buffer TILE / DR_TPAGE overlay (RGB 8), indexed by
 /// `Display_State.field_114`. Draws while `CdCmd_Queue.field_224` is 0.
 /// Sets `Pad_RemapState->field_3`. When the CD queue is idle and
@@ -366,21 +366,21 @@ void Gp_ApplyNpcRoomSnd(void);
 void Gp_SetupCompanionActor(struct _GpActorArg* arg0, u16* arg1);
 void Gp_ClearFlagBank(s32 arg0);
 void Gp_MarkAreaVisited(struct _GpAreaKey* arg0);
-s32   Gp_DispatchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32  Gp_DispatchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// Same room-object link as `Gp_LinkRoomObjects`, then spawn type 0x1B as a
 /// child, clear `GameSession.field_76`, and increment `task->state`.
-void  Gp_LinkRoomObjectsSpawn(Task* task);
-void  Gp_LinkViewSprts(void);
+void Gp_LinkRoomObjectsSpawn(Task* task);
+void Gp_LinkViewSprts(void);
 /// Build merged `DR_TPAGE`+`SPRT` packets into `D_80071190` from
 /// `arg0[arg1->field_0]` for `arg1->field_2` entries, and OT-link each.
-void  Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1);
-void  Gp_SetSprtShadeBits(s32 arg0);
+void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1);
+void Gp_SetSprtShadeBits(s32 arg0);
 /// Alloc dual-buffer merged `DR_TPAGE`+`SPRT` lists into `Gp_SprtLists`
 /// from the current view's `GpSprtRec` records. Byte size is the sum of
 /// each record's `field_2`, times two 0x1C slots. Records with
 /// `field_5` set are skipped. RGB is `0x8000`; SPRT code is `0x65`.
-void  Gp_AllocSprtLists(void);
-void  Gp_LinkRoomObjects(Task* task);
+void Gp_AllocSprtLists(void);
+void Gp_LinkRoomObjects(Task* task);
 /// 1-based index of `(u8)arg0` in the current room's `Gp_ViewIndexTables` byte
 /// list. Length is the `Gp_ViewCountTables` cell as an s16. Returns 0 if absent.
 s8    Gp_FindViewIndex(s32 arg0);

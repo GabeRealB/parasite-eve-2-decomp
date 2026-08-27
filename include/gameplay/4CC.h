@@ -103,10 +103,10 @@ extern UiListItemFunc Gp_ItemActionFns[];
 /// UiList used by `Gp_ItemActionListTask`.
 extern UiList Gp_ItemActionList;
 /// UiList used by `Gp_ItemMenuListTask`. `field_10` is 1 when `spawnArg1` is 0.
-extern UiList Gp_ItemMenuList;
+extern UiList        Gp_ItemMenuList;
 extern char          Gp_StrBattleField[]; // "Battle Field"
-extern char          Gp_StrItemBox[]; // "Item Box"
-extern char          Gp_StrPlayerItem[]; // "Player Item"
+extern char          Gp_StrItemBox[];     // "Item Box"
+extern char          Gp_StrPlayerItem[];  // "Player Item"
 extern GpPromptTexts Gp_ItemPromptTexts;
 /// Per-child item-move handler. Walked by `Gp_ItemMoveTask` over
 /// `obj->owner`'s children as `Gp_ItemMoveChild(child->spawnArg2, child)`.

@@ -18,8 +18,8 @@ typedef struct _GpActorWork {
     /* 0x20 */ byte          pad_20[4];
     /* 0x24 */ void*         field_24; // Task::field_24; GpMsgEntry table
     /* 0x28 */ byte          pad_28[4];
-    /* 0x2C */ GameActorExt* extra; // Task::extra
-    /* 0x30 */ s32           state; // Task::state
+    /* 0x2C */ GameActorExt* extra;    // Task::extra
+    /* 0x30 */ s32           state;    // Task::state
 } GpActorWork;
 
 typedef void (*GpActorFunc)(GpActorWork* arg0);
@@ -196,21 +196,21 @@ typedef struct _GpEffWork {
     /* 0x00 */ struct _Task*          field_0;
     /* 0x04 */ byte                   pad_4[4];
     /* 0x08 */ struct _GsCOORDINATE2* field_8;
-    /* 0x0C */ byte                  pad_C[4];
-    /* 0x10 */ s16                   field_10;
-    /* 0x12 */ s16                   field_12;
-    /* 0x14 */ s16                   field_14;
-    /* 0x16 */ s16                   pad_16;
-    /* 0x18 */ s16                   field_18;
-    /* 0x1A */ s16                   field_1A;
-    /* 0x1C */ s16                   field_1C;
-    /* 0x1E */ byte                  pad_1E[2];
-    /* 0x20 */ s16                   field_20;
-    /* 0x22 */ s16                   field_22;
-    /* 0x24 */ s16                   field_24;
-    /* 0x26 */ s16                   field_26;
-    /* 0x28 */ s16                   field_28;
-    /* 0x2A */ s16                   field_2A;
+    /* 0x0C */ byte                   pad_C[4];
+    /* 0x10 */ s16                    field_10;
+    /* 0x12 */ s16                    field_12;
+    /* 0x14 */ s16                    field_14;
+    /* 0x16 */ s16                    pad_16;
+    /* 0x18 */ s16                    field_18;
+    /* 0x1A */ s16                    field_1A;
+    /* 0x1C */ s16                    field_1C;
+    /* 0x1E */ byte                   pad_1E[2];
+    /* 0x20 */ s16                    field_20;
+    /* 0x22 */ s16                    field_22;
+    /* 0x24 */ s16                    field_24;
+    /* 0x26 */ s16                    field_26;
+    /* 0x28 */ s16                    field_28;
+    /* 0x2A */ s16                    field_2A;
 } GpEffWork;
 STATIC_ASSERT_SIZEOF(GpEffWork, 0x2C);
 
@@ -634,31 +634,31 @@ extern GpAimRot D_801131B4[];
 /// `func_80102634`; zero uses `D_80167218` with `func_80102D20`.
 extern u8 D_80113388[];
 
-void func_800F5184(Task* arg0);
-void func_800F52B4(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
-void func_800F75BC(Task* arg0);
-void func_800F77F8(Task* arg0);
-void func_800F7AD4(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
-void func_800F7E28(Task* arg0);
-void func_800F9474(Task* arg0);
-void func_800FA45C(struct _GsCOORDINATE2* arg0, s16 arg1, u16 arg2, u16 arg3);
-void func_800FA7CC(Task* arg0);
-void func_800FB67C(Task* arg0);
-void func_800FB7E4(Task* arg0);
-void func_800FBEBC(Task* arg0);
-void func_800FC0B4(Task* arg0);
-void func_800FC500(Task* arg0);
-void Gp_PulseState1C80(void);
-void func_800FC74C(Task* arg0);
-void func_800FC9BC(Task* arg0);
-void func_800FE41C(Task* arg0);
-void func_801005D8(Task* arg0);
-void func_80100784(struct _GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
-s32  func_801011D0(struct _GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3);
-void Gp_InitPlayerWork(GpActorWork* arg0);
-void func_80100FCC(GpActorWork* arg0, s32 arg1, s32 arg2);
-void Gp_TeardownSlot0(GpActorWork* arg0);
-void Gp_BindActorAnim(GpActorWork* arg0);
+void  func_800F5184(Task* arg0);
+void  func_800F52B4(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
+void  func_800F75BC(Task* arg0);
+void  func_800F77F8(Task* arg0);
+void  func_800F7AD4(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
+void  func_800F7E28(Task* arg0);
+void  func_800F9474(Task* arg0);
+void  func_800FA45C(struct _GsCOORDINATE2* arg0, s16 arg1, u16 arg2, u16 arg3);
+void  func_800FA7CC(Task* arg0);
+void  func_800FB67C(Task* arg0);
+void  func_800FB7E4(Task* arg0);
+void  func_800FBEBC(Task* arg0);
+void  func_800FC0B4(Task* arg0);
+void  func_800FC500(Task* arg0);
+void  Gp_PulseState1C80(void);
+void  func_800FC74C(Task* arg0);
+void  func_800FC9BC(Task* arg0);
+void  func_800FE41C(Task* arg0);
+void  func_801005D8(Task* arg0);
+void  func_80100784(struct _GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
+s32   func_801011D0(struct _GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3);
+void  Gp_InitPlayerWork(GpActorWork* arg0);
+void  func_80100FCC(GpActorWork* arg0, s32 arg1, s32 arg2);
+void  Gp_TeardownSlot0(GpActorWork* arg0);
+void  Gp_BindActorAnim(GpActorWork* arg0);
 Task* func_80104258(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// `arg3` is unused; the actor-init caller passes 0 so the `jal` delay
 /// slot of the `field_93A` load is `move a3, a1`.
@@ -671,21 +671,21 @@ void func_80106350(GpActorWork* arg0, s32 arg1, s32 arg2);
 void func_801088D4(GpActorWork* arg0, s32 arg1, s32 arg2);
 /// Overlay import. `func_801088D4` calls it with `Game_GetPtrSlot(0xA)` when
 /// `Mc_SaveData.field_13 == 1`.
-void func_80166E94(void* arg0, s32 arg1);
-void func_80109170(GpActorWork* arg0);
-s32  func_80109290(GpActorWork* arg0);
-void func_8010A1B0(s32 arg0, s32 arg1);
-void func_8010A42C(GpActorWork* arg0, s32 arg1);
-void Gp_DetachLinkNode(GpActorWork* arg0);
-s32  Gp_ApplyDirArg(GpActorWork* arg0, GpDirArg* arg1);
-s32  func_80104E00(GpActorWork* arg0, s32 arg1, GpXformArg* arg2);
-s32  Gp_SetActorDest(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3);
-s32  Gp_MoveActorBy(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);
-s32  func_80105BC4(GpRec18* arg0, struct _GsCOORDINATE2* arg1, struct _GsCOORDINATE2* arg2);
-void Gp_MoveActorByKeep(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);
-void func_8010B210(GpActorWork* arg0);
-void Gp_BindActorD4(GpActorWork* arg0, SVECTOR3* arg1, s32 arg2);
-s32  func_8010C30C(GpActorWork* arg0);
+void  func_80166E94(void* arg0, s32 arg1);
+void  func_80109170(GpActorWork* arg0);
+s32   func_80109290(GpActorWork* arg0);
+void  func_8010A1B0(s32 arg0, s32 arg1);
+void  func_8010A42C(GpActorWork* arg0, s32 arg1);
+void  Gp_DetachLinkNode(GpActorWork* arg0);
+s32   Gp_ApplyDirArg(GpActorWork* arg0, GpDirArg* arg1);
+s32   func_80104E00(GpActorWork* arg0, s32 arg1, GpXformArg* arg2);
+s32   Gp_SetActorDest(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3);
+s32   Gp_MoveActorBy(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);
+s32   func_80105BC4(GpRec18* arg0, struct _GsCOORDINATE2* arg1, struct _GsCOORDINATE2* arg2);
+void  Gp_MoveActorByKeep(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);
+void  func_8010B210(GpActorWork* arg0);
+void  Gp_BindActorD4(GpActorWork* arg0, SVECTOR3* arg1, s32 arg2);
+s32   func_8010C30C(GpActorWork* arg0);
 Task* Gp_SpawnPlayer(GpActorArg* arg0, u16 arg1, s32 arg2, GpActorFlags* arg3);
 Task* Gp_SpawnAlly(GpActorArg* arg0, u16 arg1, s32 arg2, u16* arg3);
 

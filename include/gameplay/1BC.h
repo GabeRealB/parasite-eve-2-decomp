@@ -392,12 +392,12 @@ SVECTOR* Gp_ExtractEuler(SVECTOR* arg0, MATRIX* arg1);
 /// orthonormalizes into `arg2`. Outer products of each interpolated row
 /// pair pick the two most independent axes; `MatrixNormal_0` / `_1` / `_2`
 /// reconstructs the missing row.
-void     Gp_LerpOrthonormal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2, s32 arg3);
+void Gp_LerpOrthonormal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2, s32 arg3);
 /// Walks `arg0->sub` up to world (`D_80070F10`), composing each node's
 /// `coord` rotation into `arg1` and accumulating the rotated translation
 /// into `arg2`. The world parent initializes `arg1` to identity and
 /// `arg2` to zero.
-void     Gp_ComposeParentWorld(GsCOORDINATE2* arg0, MATRIX* arg1, SVECTOR* arg2);
+void Gp_ComposeParentWorld(GsCOORDINATE2* arg0, MATRIX* arg1, SVECTOR* arg2);
 /// 8-byte RGB555-unpacked vector. `Gp_BlendRgb555` allocates three of
 /// these (0x18 bytes) from `G_SCRATCH_HEAD`: src0, src1, then the GTE
 /// lerp result. Channels are 5-bit values shifted left 7.
@@ -434,9 +434,9 @@ void       Gp_AnimResetSlot(GpAnimCtx* arg0, s32 arg1, s32 arg2);
 void       Gp_AnimResetSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void       func_800B4114(GpAnimCtx* arg0, s32 arg1, u16 arg2, s32 arg3, s32 arg4);
 void       Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
-                         s32 arg5);
+                                 s32 arg5);
 void       Gp_AnimWritePoseCopy(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPose* arg3, s32 arg4,
-                         s32 arg5);
+                                s32 arg5);
 void       Gp_AnimTickIndex(GpAnimCtx* arg0, s32 arg1);
 void       func_800B4538(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5,
                          s32 arg6);
@@ -444,7 +444,7 @@ GpAnimRec* Gp_AnimGetRec(GpAnimCtx* arg0, GpAnimSlot* arg1);
 void       func_800B46A4(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3);
 void       func_800B4754(GpAnimCtx* arg0, GpAnimSlot* arg1, u16 arg2, u16 arg3);
 void       Gp_AnimPlaySlot(GpAnimCtx* arg0, s32 arg1, s32 arg2, u16 arg3, s32 arg4, s32 arg5, s32 arg6,
-                         void* arg7);
+                           void* arg7);
 void       Gp_SaveEnemyPose(GpEnemy* arg0);
 void       Gp_SpawnArea(GpAreaKey* arg0);
 void       Gp_ApplyAreaTmdFlags(void);
@@ -504,6 +504,6 @@ s32  Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 /// (ids `0x80..0x9F`) in the table selected by `arg0`. Tries `Gp_QtyById0`
 /// then `Gp_QtyById1` for a matching related id. `arg3 < 0` uses that
 /// row's max qty. Returns the stored count, 0 if `arg3 == 0`, or -1.
-s32  Gp_EquipRelatedItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
+s32 Gp_EquipRelatedItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 #endif // GAMEPLAY_1BC_H

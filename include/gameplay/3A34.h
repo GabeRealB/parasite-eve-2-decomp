@@ -255,7 +255,7 @@ STATIC_ASSERT_SIZEOF(GpRoomBoundVec, 8);
 /// `Gp_GetRoomBound` walks `field_4` as a nested `GpRoomBoundVec` table, falling
 /// back to `Gp_RoomBoundDefault`.
 typedef struct _GpRoomCoordRec {
-    /* 0x0 */ s32        field_0;
+    /* 0x0 */ s32             field_0;
     /* 0x4 */ GpRoomBoundVec* field_4;
 } GpRoomCoordRec;
 STATIC_ASSERT_SIZEOF(GpRoomCoordRec, 8);
@@ -985,23 +985,23 @@ extern GpObj3A* D_80115550;
 /// Head of the `GpObj4C` list walked by `Gp_CommitObj4CSave`.
 extern GpObj4C* Gp_Obj4CList;
 extern GpObj4C* Gp_PendingObj4C;
-extern GpObj* D_80115570;
-extern GpObj* D_80115574;
-extern GpObj* D_80115578;
-extern GpObj* D_8011557C;
-extern GpObj* D_80115580;
-extern GpObj* D_80115584;
-extern GpObj* D_80115588;
-extern GpObj* D_8011558C;
-extern GpObj* D_80115590;
-extern u8     D_80115598;
+extern GpObj*   D_80115570;
+extern GpObj*   D_80115574;
+extern GpObj*   D_80115578;
+extern GpObj*   D_8011557C;
+extern GpObj*   D_80115580;
+extern GpObj*   D_80115584;
+extern GpObj*   D_80115588;
+extern GpObj*   D_8011558C;
+extern GpObj*   D_80115590;
+extern u8       D_80115598;
 /// Set to 1 by `Gp_TakePendingObj4C` when a pending `Gp_PendingObj4C` node is found;
 /// `func_800DB72C` then calls `Gp_ClearPendingObj4C` to clear those flags.
-extern s32    Gp_PendingObj4CFlag;
+extern s32 Gp_PendingObj4CFlag;
 /// 8-word table filled by `Gp_LoadRoomParams` from the current room's
 /// `Gp_RoomParamTables` records (`field_3`). Indexed by `(id & 7)` in
 /// `func_800E0C10` / `func_800E0FEC`.
-extern s32    Gp_RoomParams[8];
+extern s32 Gp_RoomParams[8];
 /// Grid conversion params used by `Gp_WorldToGrid` / `Gp_LocalToGrid`.
 /// Cleared by `Gp_ClearObjHeads`; `func_800E0540` skips work when this is NULL.
 extern GpGridParams* Gp_GridParams;
@@ -1063,104 +1063,104 @@ void       Gp_DrawWeaponLabel(Task* arg0);
 /// First-run init plus per-frame update of the current room's `GpRoomCoordSet`
 /// coordinate arrays (parented to `D_80070F10`) and the `Gp_RoomCoords` slots.
 /// Kills `arg0` when `Gp_GetRoomCoordSet` returns 0.
-void       Gp_UpdateRoomCoords(Task* arg0);
-s32        Gp_LightPointRoom(GpObj44* arg0, VECTOR3* arg1);
-s32        Gp_LightPoint(GpObj44* arg0, VECTOR3* arg1);
-s32        Gp_LightCone(GpObj68* arg0, VECTOR3* arg1);
-void       func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
-void       func_800D7A9C(GameActorExt* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
-void  func_800D8684(Task* arg0);
+void Gp_UpdateRoomCoords(Task* arg0);
+s32  Gp_LightPointRoom(GpObj44* arg0, VECTOR3* arg1);
+s32  Gp_LightPoint(GpObj44* arg0, VECTOR3* arg1);
+s32  Gp_LightCone(GpObj68* arg0, VECTOR3* arg1);
+void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
+void func_800D7A9C(GameActorExt* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
+void func_800D8684(Task* arg0);
 /// Remaps a 3x3 color matrix (`MATRIX.m`) from lighting mode `arg2`
 /// (`field_4E` bits 0-1, or bits 2-3 when blending). Mode 1 weights
 /// RGB as (7,6,3)/33 then *4/*2/*1. Mode 2 zeros the matrix. Mode 3
 /// fills 0x180/0x100/0x100. Default remaps to *3/*1/*3 when
 /// `field_4C & 0xC`. Bit 0x80 of `field_4E` with `field_4B == 0` applies
 /// a `rsin(Display_State.field_14 << 6)` flicker and clears the bit.
-void  Gp_RemapActorColor(struct _GpEnemy* arg0, MATRIX* arg1, s32 arg2);
+void Gp_RemapActorColor(struct _GpEnemy* arg0, MATRIX* arg1, s32 arg2);
 /// Rebuilds the actor color matrix via `func_800D7A9C`, then remaps it
 /// from `field_4E` lighting mode (`Gp_RemapActorColor`). While `field_4F` is
 /// a positive blend timer, GPF/GPL-interpolates the previous mode
 /// (`field_4E` bits 2-3) toward the current mode (bits 0-1). Skips work
 /// when `Game_Session->field_65 == 1` unless `GameActorExt.field_C` bit
 /// 0x80 is clear and `field_18` is set. `D_801153F4` freezes the timer.
-void  Gp_UpdateActorColor(struct _GpEnemy* arg0, VECTOR* arg1);
-void  Gp_LightFalloff(GpObj44* arg0);
-void  Gp_SetLightMode(GpObj4C* arg0, s32 arg1);
-s32   Gp_GetObjDepth(GpObj38* arg0);
-s32   Gp_GetObjPan(GpObj38* arg0);
-void  Gp_SetOverrideVec(SVECTOR* arg0);
-void  Gp_SetOverrideVec2(SVECTOR* arg0);
-void  Gp_SetObjTrans(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3);
+void            Gp_UpdateActorColor(struct _GpEnemy* arg0, VECTOR* arg1);
+void            Gp_LightFalloff(GpObj44* arg0);
+void            Gp_SetLightMode(GpObj4C* arg0, s32 arg1);
+s32             Gp_GetObjDepth(GpObj38* arg0);
+s32             Gp_GetObjPan(GpObj38* arg0);
+void            Gp_SetOverrideVec(SVECTOR* arg0);
+void            Gp_SetOverrideVec2(SVECTOR* arg0);
+void            Gp_SetObjTrans(GpObj20* arg0, s16 arg1, s16 arg2, s16 arg3);
 GpRoomBoundVec* Gp_GetRoomBound(GameSessionFrom4* arg0);
-s32   Gp_CountRoomCoords(void);
-s32   Gp_GetRoomCoordSet(GameSessionFrom4* arg0);
-void  func_800D96C8(Task* arg0);
-s32   Gp_GetObjLuma(GpObj44* arg0);
-s32   Gp_GetObjTransX(GpObj38* arg0);
-void  func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
-void  func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
-void  func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
-void  Gp_InsertRankedSlot(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-void  Gp_BindDefaultMtx(Task* arg0);
-void  Gp_FillSVec3x3(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3);
+s32             Gp_CountRoomCoords(void);
+s32             Gp_GetRoomCoordSet(GameSessionFrom4* arg0);
+void            func_800D96C8(Task* arg0);
+s32             Gp_GetObjLuma(GpObj44* arg0);
+s32             Gp_GetObjTransX(GpObj38* arg0);
+void            func_800D9794(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
+void            func_800D98C4(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
+void            func_800D9A30(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
+void            Gp_InsertRankedSlot(GpRec12* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void            Gp_BindDefaultMtx(Task* arg0);
+void            Gp_FillSVec3x3(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3);
 GpRoomCoordRec* Gp_GetRoomCoordRec(GameSessionFrom4* arg0);
-void  func_800D9CC8(Task* arg0);
-void  Gp_CopyDefaultBound(GBytes8* arg0);
-void  func_800D9DFC(void);
-void  func_800DA6E8(void* arg0, s32 arg1);
-void  func_800DA7B8(void);
-void  Gp_UnlinkNode(GpLinkNode* node);
-void  Gp_LinkNode(GpLinkNode* node);
-s32   Gp_NodeSlotMask(GpLinkNode* arg0);
-void  Gp_AssignNodeSlot0(GpLinkNode* node);
-void  Gp_ClearNodeSlots(GpLinkNode* node);
-void* func_800DA2A0(GpActorWork* arg0, VECTOR3* pos, s32 arg2);
-void* Gp_FindLockNode(GpActorWork* arg0);
-void* Gp_FindLockNodePad(GpActorWork* arg0);
-void* Gp_FindLockNodeAt(GpActorWork* arg0, VECTOR3* pos);
-void  Gp_GetLockPos(GpLockPos* arg0, VECTOR3* out);
-void  Gp_ClearLockSlots(void);
-void  Gp_ResetLinkState(void);
-s32   Gp_ProjectToSxy(GpPerspSrc* arg0, s32* sxy);
-void  Gp_ClearSlotNodeFlags(void);
-s32   Gp_GrantLocationItems(GpItemScan* arg0);
-s32   Gp_LoadActorImage(GpActorWork* arg0, GpImgRec* arg1, RECT* arg2);
-void  Gp_LoadImages(GpImgRec* arg0);
-void  Gp_InitStateF0(void);
-void  Gp_ArmStateF0(s32 arg0);
-void  Gp_SetStateF0Bit(s32 arg0);
-void  Gp_SetStateF0Byte3(s32 arg0);
-void  Gp_IncStateF0Ref(void);
-void  Gp_ReleaseStateF0Add(GpObj20E* arg0);
-void  Gp_ReleaseStateF0Clear(void);
-void  Gp_ReleaseStateF0(void);
-void  func_800DB72C(void);
-void func_800DB900(GpObj* node);
-void func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2);
-s32  func_800DBCAC(GpObj* arg0, GpObj* arg1);
-void func_800DC528(GpObj* node);
-void func_800DCB80(GpObj* node);
-void func_800DD940(GpObj* node);
-void func_800DDC2C(GpObj* arg0);
-void func_800DDDF8(GpObj* node);
-void func_800DE2C0(VECTOR* arg0, s32 arg1);
-s32  func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3);
-void func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1);
-void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3);
-void func_800DEF80(GpObj* node, GpObj4C* other);
-s32  func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3);
-void Gp_ClearObjHeads(void);
-s32  func_800E0308(SVECTOR* arg0, SVECTOR* arg1);
-void func_800E0414(GpObj* a, GpObj* b);
-void func_800E0540(GpObj* node);
-void func_800E0608(GpObj* node, s32 mask, s32 match);
-void func_800E06AC(GpObj* node, s32 mask, s32 match);
-s32  Gp_PairNop(void);
-void Gp_LocalToGrid(VECTOR3* arg0, SVECTOR3* arg1);
-void Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1);
-void Gp_ClearPendingObj4C(void);
-void Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1);
-s32  func_800E0FEC(s32 arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
+void            func_800D9CC8(Task* arg0);
+void            Gp_CopyDefaultBound(GBytes8* arg0);
+void            func_800D9DFC(void);
+void            func_800DA6E8(void* arg0, s32 arg1);
+void            func_800DA7B8(void);
+void            Gp_UnlinkNode(GpLinkNode* node);
+void            Gp_LinkNode(GpLinkNode* node);
+s32             Gp_NodeSlotMask(GpLinkNode* arg0);
+void            Gp_AssignNodeSlot0(GpLinkNode* node);
+void            Gp_ClearNodeSlots(GpLinkNode* node);
+void*           func_800DA2A0(GpActorWork* arg0, VECTOR3* pos, s32 arg2);
+void*           Gp_FindLockNode(GpActorWork* arg0);
+void*           Gp_FindLockNodePad(GpActorWork* arg0);
+void*           Gp_FindLockNodeAt(GpActorWork* arg0, VECTOR3* pos);
+void            Gp_GetLockPos(GpLockPos* arg0, VECTOR3* out);
+void            Gp_ClearLockSlots(void);
+void            Gp_ResetLinkState(void);
+s32             Gp_ProjectToSxy(GpPerspSrc* arg0, s32* sxy);
+void            Gp_ClearSlotNodeFlags(void);
+s32             Gp_GrantLocationItems(GpItemScan* arg0);
+s32             Gp_LoadActorImage(GpActorWork* arg0, GpImgRec* arg1, RECT* arg2);
+void            Gp_LoadImages(GpImgRec* arg0);
+void            Gp_InitStateF0(void);
+void            Gp_ArmStateF0(s32 arg0);
+void            Gp_SetStateF0Bit(s32 arg0);
+void            Gp_SetStateF0Byte3(s32 arg0);
+void            Gp_IncStateF0Ref(void);
+void            Gp_ReleaseStateF0Add(GpObj20E* arg0);
+void            Gp_ReleaseStateF0Clear(void);
+void            Gp_ReleaseStateF0(void);
+void            func_800DB72C(void);
+void            func_800DB900(GpObj* node);
+void            func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2);
+s32             func_800DBCAC(GpObj* arg0, GpObj* arg1);
+void            func_800DC528(GpObj* node);
+void            func_800DCB80(GpObj* node);
+void            func_800DD940(GpObj* node);
+void            func_800DDC2C(GpObj* arg0);
+void            func_800DDDF8(GpObj* node);
+void            func_800DE2C0(VECTOR* arg0, s32 arg1);
+s32             func_800DE7CC(SVECTOR* arg0, SVECTOR* arg1, SVECTOR* arg2, SVECTOR* arg3);
+void            func_800DEAFC(SVECTOR* arg0, SVECTOR* arg1);
+void            func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3);
+void            func_800DEF80(GpObj* node, GpObj4C* other);
+s32             func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3);
+void            Gp_ClearObjHeads(void);
+s32             func_800E0308(SVECTOR* arg0, SVECTOR* arg1);
+void            func_800E0414(GpObj* a, GpObj* b);
+void            func_800E0540(GpObj* node);
+void            func_800E0608(GpObj* node, s32 mask, s32 match);
+void            func_800E06AC(GpObj* node, s32 mask, s32 match);
+s32             Gp_PairNop(void);
+void            Gp_LocalToGrid(VECTOR3* arg0, SVECTOR3* arg1);
+void            Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1);
+void            Gp_ClearPendingObj4C(void);
+void            Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1);
+s32             func_800E0FEC(s32 arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
 /// Transforms `arg0`'s local offset (`GpActorD4Rec` at `field_C` plus the
 /// 0x10 SVECTOR) by `field_8->workm` and returns the 1-based index of the
 /// closest occupied `GpRec18` in `rec->field_14` whose `field_4` high 16

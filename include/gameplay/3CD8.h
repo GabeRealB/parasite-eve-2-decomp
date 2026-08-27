@@ -176,23 +176,23 @@ STATIC_ASSERT_SIZEOF(GpScriptRec, 4);
 /// and stored on the owner task at +0x1C (`Task::idMap`).
 /// `field_10` / `field_11` are delay counters for scripts A / B.
 typedef struct _GpState34 {
-    /* 0x00 */ GpScriptCmd* field_0; // script table (from Task::spawnArg2)
-    /* 0x04 */ GpScriptRec* field_4; // secondary pad table
-    /* 0x08 */ s16   field_8;
-    /* 0x0A */ u16   field_A;  // current command (script A)
-    /* 0x0C */ u16   field_C;  // current command (script B)
-    /* 0x0E */ u8    field_E;  // script A PC
-    /* 0x0F */ u8    field_F;  // script B PC
-    /* 0x10 */ u8    field_10; // delay A
-    /* 0x11 */ u8    field_11; // delay B
-    /* 0x12 */ u8    field_12;
-    /* 0x13 */ u8    field_13;
-    /* 0x14 */ u8    field_14; // loop counter A
-    /* 0x15 */ u8    field_15; // loop counter B
-    /* 0x16 */ byte  pad_16[0x12];
-    /* 0x28 */ s32   field_28;
-    /* 0x2C */ s32   field_2C;
-    /* 0x30 */ s32   field_30;
+    /* 0x00 */ GpScriptCmd* field_0;  // script table (from Task::spawnArg2)
+    /* 0x04 */ GpScriptRec* field_4;  // secondary pad table
+    /* 0x08 */ s16          field_8;
+    /* 0x0A */ u16          field_A;  // current command (script A)
+    /* 0x0C */ u16          field_C;  // current command (script B)
+    /* 0x0E */ u8           field_E;  // script A PC
+    /* 0x0F */ u8           field_F;  // script B PC
+    /* 0x10 */ u8           field_10; // delay A
+    /* 0x11 */ u8           field_11; // delay B
+    /* 0x12 */ u8           field_12;
+    /* 0x13 */ u8           field_13;
+    /* 0x14 */ u8           field_14; // loop counter A
+    /* 0x15 */ u8           field_15; // loop counter B
+    /* 0x16 */ byte         pad_16[0x12];
+    /* 0x28 */ s32          field_28;
+    /* 0x2C */ s32          field_2C;
+    /* 0x30 */ s32          field_30;
 } GpState34;
 STATIC_ASSERT_SIZEOF(GpState34, 0x34);
 
@@ -205,7 +205,7 @@ STATIC_ASSERT_SIZEOF(GpState34, 0x34);
 typedef struct _GpState0C {
     /* 0x0 */ s32 field_0; // step
     /* 0x4 */ union {
-        s32 as_s32; // start << 8
+        s32 as_s32;        // start << 8
         struct {
             /* 0x4 */ u8 pad_4;
             /* 0x5 */ u8 as_u8; // (as_s32 >> 8)
@@ -302,20 +302,20 @@ extern GpCoord64     Gp_RoomCoords[8];
 extern GsCOORDINATE2 D_80070F10;
 /// 8 packed RGB-nibble colors. Index is `cln(spawnArg1 << 12) / 2839 & 7`.
 /// High nibble is the `Gp_DrawFadeQuad` blend; low three nibbles are R, G, B.
-extern u16           Gp_FadeQuadColors[];
+extern u16 Gp_FadeQuadColors[];
 
 Task* Gp_SpawnScript18(s32 arg0, s32 arg1);
-void Gp_RunCapCmd(s32 arg0, s16 arg1);
-void func_800E375C(Task* arg0);
-s32  Gp_StartCapSlot(s16 arg0, s16 arg1, s16 arg2);
-void Gp_MsgPlayer3F3(s32 arg0);
-void Gp_MsgPlayerWeapon(s32 arg0);
-void Gp_SpawnIfCapIdle(s32 arg0, s32 arg1);
-void Gp_MsgAllyWeapon(s32 arg0);
-void Gp_ClearAllFlagNibbles(void);
-void Gp_SpawnEvt1(s32 arg0, s32 arg1);
-s32  Gp_RelocCapFile(GpCapFile* file);
-s32  Gp_StartCap(s32 arg0, s16 arg1, s16 arg2);
+void  Gp_RunCapCmd(s32 arg0, s16 arg1);
+void  func_800E375C(Task* arg0);
+s32   Gp_StartCapSlot(s16 arg0, s16 arg1, s16 arg2);
+void  Gp_MsgPlayer3F3(s32 arg0);
+void  Gp_MsgPlayerWeapon(s32 arg0);
+void  Gp_SpawnIfCapIdle(s32 arg0, s32 arg1);
+void  Gp_MsgAllyWeapon(s32 arg0);
+void  Gp_ClearAllFlagNibbles(void);
+void  Gp_SpawnEvt1(s32 arg0, s32 arg1);
+s32   Gp_RelocCapFile(GpCapFile* file);
+s32   Gp_StartCap(s32 arg0, s16 arg1, s16 arg2);
 /// Blinking POLY_G3 continue caret. `Gp_CapCaretDelay` is a frame delay before the
 /// first draw; `Gp_CapCaretX` / `Gp_CapCaretY` are base XY; `Gp_CapCaretGrey` /
 /// `Gp_CapCaretDir` pulse the vertex greys between 8 and 15.
@@ -334,16 +334,16 @@ void Gp_ShakeTask(Task* arg0);
 void func_800E956C(void);
 u16  Gp_RemapButtons(GameActor* actor, u16 mask);
 
-void func_800E9BDC(u8 arg0, s32 arg1);
-void func_800E9C6C(void);
-void Gp_InitState1C(Task* arg0);
-void Gp_TickState1C(void);
-s32  func_800EA02C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
-s32  func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1);
-s32  func_800EA318(s16 arg0, s16 arg1, s16 arg2);
-void func_800EA3A0(s32 arg0);
-void Gp_DecRoomCoordRefs(void);
-void Gp_InitRoomCoords(void);
+void  func_800E9BDC(u8 arg0, s32 arg1);
+void  func_800E9C6C(void);
+void  Gp_InitState1C(Task* arg0);
+void  Gp_TickState1C(void);
+s32   func_800EA02C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
+s32   func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1);
+s32   func_800EA318(s16 arg0, s16 arg1, s16 arg2);
+void  func_800EA3A0(s32 arg0);
+void  Gp_DecRoomCoordRefs(void);
+void  Gp_InitRoomCoords(void);
 void* func_800EA478(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, s32 arg3);
 /// Full-screen semi-trans POLY_F4. `arg0` is RGB; `arg1` is ABR (low 2 bits).
 void Gp_DrawFadeQuad(u8* arg0, s32 arg1);
