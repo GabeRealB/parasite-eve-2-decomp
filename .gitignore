@@ -18,6 +18,9 @@ expected/
 tools/vacuum.log
 ctx.c
 ctx.c.m2c
+debug_source.c
+debug_compiled_object.o
+target_object_dump.s
 .DS_Store
 objdiff.json
 compile_commands.json
