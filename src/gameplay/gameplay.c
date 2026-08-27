@@ -60,6 +60,10 @@ extern CVECTOR        Gp_ColorWhite;
 extern u8             Gp_StrColon[];      // ":"
 extern u8             Gp_StrApostrophe[]; // "'"
 extern char           Gp_StrItem[];       // "Item"
+extern u8             D_8009388C[];       // "R1"
+extern u8             D_80093890[];       // "R2"
+extern u8             D_80093894[];       // "%"
+extern u8             D_80093898[];       // "&"
 extern s32            D_8005ED70;
 extern s32            D_8005ED74;
 extern GsCOORDINATE2  D_80070F10;
@@ -3151,7 +3155,199 @@ void func_800A1634(s32 arg0, GpIdMapC* arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A18BC);
+void func_800A18BC(void)
+{
+    u8            buf[0x10];
+    UiObject      obj;
+    TextDrawReq   req;
+    TextDrawReq   req2;
+    RECT          rect;
+    WipSysConfig* cfg;
+    GpItemSlot*   slot;
+    s32           item;
+    s32           count2;
+    s32           count1;
+    s32           height;
+    s32           flag;
+    s32           xBase;
+    s32           y;
+    s32           t;
+
+    cfg    = &Wip_SysConfig;
+    slot   = Gp_GetItemSlot(cfg->field_21 + 0x7F);
+    count2 = -1;
+    if (Pad_RemapState->field_A != 0) {
+        return;
+    }
+    if (Gp_CapBusy() != 0) {
+        return;
+    }
+    if (Game_Session->field_68 != 0) {
+        return;
+    }
+    t = cfg->field_21;
+    if (t == 0) {
+        return;
+    }
+    item = t + 0x7F;
+    if (item == 0x92) {
+        return;
+    }
+    count1 = slot->field_1;
+    if (slot->field_2 != 0) {
+        if (slot->field_2 != 0xFF) {
+            count2 = slot->field_3;
+        }
+        height = 0xE;
+    } else {
+        height = 0xE;
+    }
+    flag          = 0;
+    t             = -3;
+    obj.baseX     = 0;
+    obj.baseY     = 0;
+    obj.drawOrder = t;
+    obj.mode      = 0;
+    xBase         = 0x5F;
+    if (slot->field_2 != 0xFF) {
+        height = 0x18;
+    }
+    y = 0x64 - height;
+    y = y - Display_State.vramYOffset;
+    {
+        register s32          color asm("v1");
+        register u8*          str asm("a1");
+        register TextDrawReq* p asm("a0");
+        register s32          x asm("v0");
+
+        if (Mc_SaveData.field_1a8 != 2) {
+            if (item != 0x96) {
+                color = 0x606060;
+                p     = &req;
+                str   = D_8009388C;
+                x     = 0x63;
+            } else {
+                color = 0x606060;
+                p     = &req;
+                str   = D_80093890;
+                x     = 0x63;
+            }
+        } else {
+            if (item != 0x96) {
+                color = 0x503060;
+                p     = &req;
+                str   = D_80093894;
+                x     = 0x65;
+            } else {
+                color = 0x506030;
+                p     = &req;
+                str   = D_80093898;
+                x     = 0x65;
+            }
+        }
+        req.x          = x;
+        req.y          = y + 9;
+        req.otIndex    = -2;
+        req.glyphTable = 5;
+        req.field_8    = color;
+        req.centerMode = 0;
+        req.field_E    = 1;
+        func_8002E53C(p, str);
+    }
+    if (slot->field_0 != 0) {
+        s32 five;
+
+        req.field_8    = 0x606060;
+        five           = 5;
+        req.glyphTable = five;
+        req.centerMode = 2;
+        req.field_E    = 0;
+        req.x          = obj.baseX + 0x94;
+        req.y          = (obj.baseY + 9) + y;
+        req.otIndex    = (s16)obj.drawOrder + 1;
+        func_8002E53C(&req, Text_ItoaSigned(buf, count1));
+        if (count1 == 0) {
+            flag = 1;
+        }
+    } else {
+        flag = 1;
+    }
+    Ui_LayoutWithMode0(&obj, (void*)0x79, (void*)(y + 4), (void*)0x1B, (void*)7, (void*)0x102010);
+    if (slot->field_2 != 0xFF) {
+        register u8*          str asm("a1");
+        register TextDrawReq* p asm("a0");
+        register s32          v asm("v0");
+        register s32          by asm("v1");
+
+        flag = 0;
+        y   += 0xA;
+        if (Mc_SaveData.field_1a8 != 2) {
+            v = 0x606060;
+            p = &req2;
+            asm("lui %0, %%hi(D_80093890)" : "=r"(str));
+            req2.field_8    = v;
+            v               = 5;
+            req2.glyphTable = v;
+            v               = obj.baseX;
+            asm volatile("" : "+r"(v));
+            by           = 1;
+            req2.field_E = by;
+            by           = obj.baseY;
+            asm("addiu %0, %0, %%lo(D_80093890)" : "+r"(str) : "r"(by));
+            req2.centerMode = 0;
+            asm volatile("" : "+r"(v)::"memory");
+            v += 4;
+        } else {
+            v = 0x506030;
+            p = &req2;
+            asm("lui %0, %%hi(D_80093898)" : "=r"(str));
+            req2.field_8    = v;
+            v               = 5;
+            req2.glyphTable = v;
+            v               = obj.baseX;
+            asm volatile("" : "+r"(v));
+            by           = 1;
+            req2.field_E = by;
+            by           = obj.baseY;
+            asm("addiu %0, %0, %%lo(D_80093898)" : "+r"(str) : "r"(by));
+            req2.centerMode = 0;
+            asm volatile("" : "+r"(v)::"memory");
+            v += 6;
+        }
+        v           += xBase;
+        req2.x       = v;
+        by          += 9;
+        req2.y       = by + y;
+        req2.otIndex = (s16)obj.drawOrder + 1;
+        func_8002E53C(p, str);
+        if (slot->field_2 != 0) {
+            req2.field_8    = 0x606060;
+            req2.glyphTable = 5;
+            req2.centerMode = 2;
+            req2.field_E    = 0;
+            req2.x          = obj.baseX + 0x94;
+            req2.y          = (obj.baseY + 9) + y;
+            req2.otIndex    = (s16)obj.drawOrder + 1;
+            func_8002E53C(&req2, Text_ItoaSigned(buf, count2));
+            if (count2 == 0) {
+                flag = 1;
+            }
+        } else {
+            flag = 1;
+        }
+        Ui_LayoutWithMode0(&obj, (void*)0x79, (void*)(y + 4), (void*)0x1B, (void*)7, (void*)0x102010);
+        y -= 0xA;
+    }
+    rect.w = 0x39;
+    rect.x = xBase;
+    rect.y = y;
+    rect.h = height;
+    if (flag == 1) {
+        Ui_DrawTextInRect(&rect, -1, 0x40004, NULL);
+    } else {
+        Ui_DrawTextInRect(&rect, -1, 0x40002, NULL);
+    }
+}
 
 s32 func_800A1CD0(s32 arg0)
 {

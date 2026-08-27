@@ -26929,3 +26929,38 @@ req.field_8 = color;
 
 `"+r"(color)` marks the constant modified and can spill it out of `$v0`.
 `func_800DA7B8` is the example.
+
+## Split string `la` around HUD `TextDrawReq` setup; keep per-arm stores from sinking
+
+A 2-way fire-button label (`R2` / `&`) wants `lui a1, %hi(str)` right after
+`addiu a0, &req`, then `addiu a1, %lo(str)` only after `lhu` of `baseY`. A
+`char* str = D_xxx` temp emits `lui v0` / `addiu a1, v0` (or completes the
+`la` immediately). Pin `str` to `$a1` and emit the split yourself; make the
+`%lo` depend on the later-loaded `baseY` so it cannot float up:
+
+```c
+register u8* str asm("a1");
+register s32 by asm("v1");
+
+asm("lui %0, %%hi(D_str)" : "=r"(str));
+/* field_8 / glyphTable / baseX / field_E */
+by = obj.baseY;
+asm("addiu %0, %0, %%lo(D_str)" : "+r"(str) : "r"(by));
+req.centerMode = 0;
+```
+
+Identical `centerMode = 0` stores in both arms sink to the join (`sb` after
+the else `addiu x, 6`). A memory clobber after the store keeps it in-arm so
+the `if` path can `j` with `addiu x, 4` in the delay.
+
+Repeated `glyphTable = 5` across a `jal` CSEs the QImode 5 into `$s2` and
+shifts the whole saved-reg frame. Route the *later* store through an `s32`
+temp so CSE cannot widen:
+
+```c
+s32 five;
+five = 5;
+req.glyphTable = five;
+```
+
+`func_800A18BC` is the example.

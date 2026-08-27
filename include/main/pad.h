@@ -101,7 +101,8 @@ typedef struct _PadRemapState {
     /* 0x04 */ byte unknown_4[0x4];
     /* 0x08 */ s8   field_8; // remap mode: 0 off, -1 replay stream, 1 func_807150F8
     /* 0x09 */ s8   field_9; // 1: Gp_InitPlayClock calls func_80715198 when Display_State.field_12c is 0
-    /* 0x0A */ byte unknown_A[0x12];
+    /* 0x0A */ s8   field_A; // nonzero: skip HUD ammo draw (func_800A18BC)
+    /* 0x0B */ byte unknown_B[0x11];
 } PadRemapState;
 STATIC_ASSERT_SIZEOF(PadRemapState, 0x1C);
 
