@@ -1965,7 +1965,134 @@ void func_800AD65C(Task* task)
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD6BC);
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800ADA04);
+void func_800ADA04(void)
+{
+    Task*             slot7;
+    Task*             slot3;
+    WipSysConfig*     cfg;
+    GameActor*        actor;
+    GameSessionFrom4* sess;
+    GpWarpRec         rec;
+    GpMsg3EE          msg;
+    SVECTOR           pos;
+    SVECTOR           pos2;
+    s32               stage;
+    s32               room;
+    s16               ret;
+
+    sess  = (GameSessionFrom4*)&Game_Session->field_4;
+    stage = sess->field_3;
+    room  = sess->field_2;
+    slot7 = Game_GetPtrSlot(7);
+    slot3 = Game_GetPtrSlot(3);
+    cfg   = &Wip_SysConfig;
+    actor = ((GpActorWork*)slot3)->actor;
+
+    if (Game_Session->field_1 != 0) {
+        D_80114CF8      = 0;
+        Gp_DirNibble    = 0;
+        Gp_DirByte      = 0;
+        Gp_DirFlags     = 0;
+        Gp_DirAltNibble = 0;
+        Gp_DirAlt       = 0;
+        D_80114CD4      = 0;
+        return;
+    }
+
+    D_80114CF4 = 0;
+    D_80114CF6 = 0;
+    rec        = Gp_WarpTables[stage - 1][room - 1][(Gp_DirNibble >> 4) - 1];
+
+    Gp_WarpLoc.field_4 = 1;
+    Gp_WarpLoc.field_3 = 1;
+    Gp_WarpLoc.field_5 = 1;
+    *(u16*)&Gp_WarpLoc = Gp_DirByte;
+    Gp_WarpLoc.field_2 = Gp_DirNibble & 0xF;
+    Gp_WarpLoc.field_6 = rec.field_36;
+
+    ret        = Gp_DispatchMsg(slot7, 0x13EE, (s32)&Gp_WarpLoc, (s32)&Gp_WarpLoc);
+    D_80114CF4 = ret;
+
+    switch (ret) {
+        case 1:
+            if (rec.field_2C != 0) {
+                D_80114CF0 = rec.field_2C;
+            } else {
+                D_80114CF0 = 0;
+            }
+            msg.field_10 = 0;
+            msg.field_14 = 0;
+            msg.field_12 = (rec.field_0 + 0x800) & 0xFFF;
+            if (rec.field_0 == 0x7800 || rec.field_0 == 0x7FFF) {
+                pos.vx       = -0x5C1;
+                pos.vy       = 0;
+                pos.vz       = 0x9C1;
+                msg.field_12 = Gp_YawToPosXZ((Task*)Gp_ActorSlots[0], (GpPosXZ*)&pos);
+            } else if (rec.field_0 == 0x7FFE) {
+                msg.field_12 = actor->field_52;
+            }
+            Gp_DispatchMsg(slot3, 0x3EE, (s32)&msg, 0);
+            if (rec.field_35 & 2) {
+                D_80114CF6 = 0x1E;
+            }
+            Gp_DirPhase++;
+            break;
+
+        case 0:
+            if (rec.field_30 != 0) {
+                D_80114CF0 = rec.field_30;
+            } else {
+                D_80114CF0 = 0;
+            }
+            if (Gp_StateF0.field_0 == 1) {
+                Gp_WarpLoc.field_4 = Gp_StateF0.field_0;
+                Gp_WarpLoc.field_3 = Gp_StateF0.field_0;
+                Gp_WarpLoc.field_5 = 0;
+                *(u16*)&Gp_WarpLoc = Gp_DirByte;
+                Gp_WarpLoc.field_2 = Gp_DirNibble & 0xF;
+                Gp_WarpLoc.field_6 = rec.field_36;
+                Gp_DispatchMsg(slot7, 0x13EE, (s32)&Gp_WarpLoc, (s32)&Gp_WarpLoc);
+                D_80114CF8    = 0;
+                Gp_DirNibble  = 0;
+                Gp_DirByte    = 0;
+                Gp_DirFlags   = 0;
+                cfg->field_24 = 0;
+                if (D_80114CF0 != 0 && cfg->field_18 > 0) {
+                    SndEvt_EnqueueType6(D_80114CF0, 0, 0);
+                }
+                return;
+            }
+            msg.field_10 = 0;
+            msg.field_14 = 0;
+            msg.field_12 = (rec.field_0 + 0x800) & 0xFFF;
+            if (rec.field_0 == 0x7800 || rec.field_0 == 0x7FFF) {
+                pos2.vx      = -0x5C1;
+                pos2.vy      = 0;
+                pos2.vz      = 0x9C1;
+                msg.field_12 = Gp_YawToPosXZ((Task*)Gp_ActorSlots[0], (GpPosXZ*)&pos2);
+            } else if (rec.field_0 == 0x7FFE) {
+                msg.field_12 = actor->field_52;
+            }
+            Gp_DispatchMsg(slot3, 0x3EE, (s32)&msg, 0);
+            Gp_DirPhase++;
+            break;
+
+        case 2:
+            Gp_WarpLoc.field_4 = 1;
+            Gp_WarpLoc.field_3 = 1;
+            Gp_WarpLoc.field_5 = 0;
+            *(u16*)&Gp_WarpLoc = Gp_DirByte;
+            Gp_WarpLoc.field_2 = Gp_DirNibble & 0xF;
+            Gp_WarpLoc.field_6 = rec.field_36;
+            Gp_DispatchMsg(slot7, 0x13EE, (s32)&Gp_WarpLoc, (s32)&Gp_WarpLoc);
+            D_80114CF8    = 0;
+            Gp_DirNibble  = 0;
+            Gp_DirByte    = 0;
+            Gp_DirFlags   = 0;
+            cfg->field_24 = 0;
+            break;
+    }
+}
 
 void func_800ADE74(void)
 {

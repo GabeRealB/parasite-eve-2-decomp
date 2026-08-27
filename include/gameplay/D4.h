@@ -135,7 +135,11 @@ extern GpRoomObjTbl* Gp_RoomObjTables[];
 /// keeps the type 4-aligned so the 56-byte assign is `lw`/`sw`.
 typedef struct _GpWarpRec {
     /* 0x00 */ s32  field_0;
-    /* 0x04 */ byte pad_4[0x32];
+    /* 0x04 */ byte pad_4[0x28];
+    /* 0x2C */ s32  field_2C;
+    /* 0x30 */ s32  field_30;
+    /* 0x34 */ byte pad_34[1];
+    /* 0x35 */ u8   field_35;
     /* 0x36 */ u16  field_36;
 } GpWarpRec;
 STATIC_ASSERT_SIZEOF(GpWarpRec, 0x38);

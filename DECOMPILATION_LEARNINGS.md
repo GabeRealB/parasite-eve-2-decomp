@@ -27327,3 +27327,23 @@ The target wants the `lw` first and the `lui` filling its delay slot. An empty
 `asm volatile("" : "+r"(sub))` between the load and the address materialisation
 is a scheduling barrier the `lui` cannot cross, and pinning `sub` to `$v1`
 picks the register the compare uses.
+
+## Swapping two struct stores in one arm re-numbers registers everywhere
+
+Two adjacent stores to different fields of the same object are order-free for
+the scheduler — both orders emit the same instruction sequence in that arm —
+but they are *not* free for the allocator. In `func_800ADA04` the last case of
+the `switch` writes `GpSaveLoc.field_2` and `field_6`; the asm shows `sh` of
+`field_6` first, so that is the order the reading suggests. Writing it that way
+left the whole function one `$s`/`$t` register off: `s2`/`s3` swapped between
+the room index and the slot-7 task, and the inlined 0x38-byte struct copy used
+`t2..t5` instead of `t1..t4` because the `li 1` constant pseudo took `t1` rather
+than reusing the dead copy pointer in `t0`. Swapping the two source statements
+to `field_2` then `field_6` (against what the emitted order suggests) made all
+of it fall into place at 100%.
+
+The practical rule: when the only remaining diffs are register numbering that
+looks uniformly shifted, do not start pinning registers — the cause can be an
+ordering choice in a completely different basic block. `permute.sh` finds these
+quickly because a store swap is exactly the kind of edit it makes; here its
+best output differed from the base by that one swap and nothing else.
