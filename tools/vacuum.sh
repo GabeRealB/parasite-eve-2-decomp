@@ -148,7 +148,7 @@ run_agent() {
   fi
   case "$CLI" in
     claude)
-      claude -p "$prompt"
+      claude -p --dangerously-skip-permissions "$prompt"
       ;;
     grok)
       grok --always-approve --effort high "${extra[@]}" -p "$prompt"

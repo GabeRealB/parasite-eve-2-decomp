@@ -218,7 +218,7 @@ if [[ -n "$ID" ]]; then
             if [[ "$CLI" == grok ]]; then
                 grok --always-approve --effort high "Match ${FUNC_STEM}. Scratch env is already created (do not re-run tools/claude). Read BRIEF.md."
             else
-                $CLI "decompile ${FUNC_STEM}. the appropriate claude environment has already been created (do not re-run tools/claude --bootstrap). use ultrathink"
+                $CLI --dangerously-skip-permissions "decompile ${FUNC_STEM}. the appropriate claude environment has already been created (do not re-run tools/claude --bootstrap). use ultrathink"
             fi
         else
             echo "Please navigate to: $TARGET_DIR"
@@ -311,7 +311,7 @@ elif command -v "$CLI" &>/dev/null; then
     if [[ "$CLI" == grok ]]; then
         grok --always-approve --effort high "Match ${FUNC_STEM}. Scratch env is already created (do not re-run tools/claude). Read BRIEF.md."
     else
-        $CLI "decompile ${FUNC_STEM}. the appropriate claude environment has already been created (do not re-run tools/claude --bootstrap). use ultrathink"
+        $CLI --dangerously-skip-permissions "decompile ${FUNC_STEM}. the appropriate claude environment has already been created (do not re-run tools/claude --bootstrap). use ultrathink"
     fi
 else
     echo "Success! Please navigate to the created directory and start your decompilation work:"
