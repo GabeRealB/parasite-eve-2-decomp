@@ -27057,3 +27057,77 @@ block->vec.vy = *(u16*)&coord->workm.t[1];
 
 Do not keep the `$v0` pin alive until `gte_ldv0` — that coalesces and
 loads from `$v0` instead of `$t1`. `func_800F77F8` is the example.
+
+## Handwritten-asm callees: read the callee to type its arguments
+
+`func_80100784` is a hand-written GTE routine, so its C prototype is pure
+guesswork from callers. The header declared `arg2` as `s16`, which forces
+GCC to emit a truncation (`lhu` + `sll 16` / `sra 16`) on every argument
+expression that is not already a 16-bit value:
+
+```
+lhu   a2,0x24(s0)
+addiu a2,a2,-0x40
+sll   a2,a2,0x10      # unwanted
+sra   a2,a2,0x10      # unwanted
+```
+
+The target for `func_800FF710` has only `lh a2,0x24(s0)` / `addiu a2,a2,-0x40`,
+i.e. no truncation at all, which only happens when the parameter is `s32`.
+Grepping the callee confirmed it: `func_80100784` does `srl $a2, $s4, 16`, so
+it consumes the *upper* half of the argument — it cannot be `s16`.
+
+Widening the prototype to `s32` costs an explicit `(s16)` cast at the already
+matched `func_801005D8` call site (`(s16)(mem->field_24 | mem->field_2A)`),
+which reproduces the `sll`/`sra` pair that function's target does have. When a
+callee is `/* Handwritten function */`, read its `.s` before trusting an
+inferred prototype.
+
+## `lhu` + double `sra` means one `u16` load with two sign-extended uses
+
+```
+lhu $v0, 0x24($s0)
+sll $v1, $v0, 16
+sra $s6, $v1, 17     # (s16)v >> 1
+sra $s1, $v1, 16     # (s16)v
+```
+
+A plain `s16` field gives `lh` (+ `sra 1`), never this shape. The shape comes
+from loading into a `u16` local once and sign-extending it separately at each
+use:
+
+```c
+u16 v;
+v    = mem->field_24;
+half = (s16)v >> 1;
+... % (s16)v ...
+```
+
+Leaving the divisor as an in-loop `% (s16)v` (rather than a pre-loop `range`
+local) also matters: loop-invariant motion then materialises it in the
+preheader *after* the hoisted `0x71357911` constant, which is what decides
+whether the divisor lands in `$s1` or `$s2`.
+
+## Interleave stores to keep redundant global writes alive
+
+A chain of `Gp_LcgState = Gp_LcgState * 5 + K;` steps whose intermediate
+results are only read back immediately loses all but the last store — GCC
+deletes the dead writes:
+
+```c
+/* Wrong: only the final sw Gp_LcgState survives */
+Gp_LcgState = Gp_LcgState * 5 + K;  r0 = ...;
+Gp_LcgState = Gp_LcgState * 5 + K;  r1 = ...;
+```
+
+The target keeps all four `sw %lo(Gp_LcgState)`. Storing each result through
+the work pointer between the updates makes them non-dead (the compiler cannot
+prove `mem->field_10` does not alias the global), and the scheduler then still
+groups the four `sw`s together the way the target does:
+
+```c
+Gp_LcgState   = Gp_LcgState * 5 + K;
+mem->field_10 = (s32)((u32)Gp_LcgState >> 16) % range - half;
+Gp_LcgState   = Gp_LcgState * 5 + K;
+mem->field_12 = ...;
+```

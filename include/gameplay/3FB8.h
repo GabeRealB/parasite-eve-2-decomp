@@ -661,26 +661,29 @@ extern GpAimRot D_801131B4[];
 /// `func_80102634`; zero uses `D_80167218` with `func_80102D20`.
 extern u8 D_80113388[];
 
-void  func_800F5184(Task* arg0);
-void  func_800F52B4(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
-void  func_800F75BC(Task* arg0);
-void  func_800F77F8(Task* arg0);
-void  func_800F7AD4(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
-void  func_800F7E28(Task* arg0);
-void  func_800F9474(Task* arg0);
-void  func_800FA45C(struct _GsCOORDINATE2* arg0, s16 arg1, u16 arg2, u16 arg3);
-void  func_800FA7CC(Task* arg0);
-void  func_800FB67C(Task* arg0);
-void  func_800FB7E4(Task* arg0);
-void  func_800FBEBC(Task* arg0);
-void  func_800FC0B4(Task* arg0);
-void  func_800FC500(Task* arg0);
-void  Gp_PulseState1C80(void);
-void  func_800FC74C(Task* arg0);
-void  func_800FC9BC(Task* arg0);
-void  func_800FE41C(Task* arg0);
-void  func_801005D8(Task* arg0);
-void  func_80100784(struct _GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
+void func_800F5184(Task* arg0);
+void func_800F52B4(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
+void func_800F75BC(Task* arg0);
+void func_800F77F8(Task* arg0);
+void func_800F7AD4(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
+void func_800F7E28(Task* arg0);
+void func_800F9474(Task* arg0);
+void func_800FA45C(struct _GsCOORDINATE2* arg0, s16 arg1, u16 arg2, u16 arg3);
+void func_800FA7CC(Task* arg0);
+void func_800FB67C(Task* arg0);
+void func_800FB7E4(Task* arg0);
+void func_800FBEBC(Task* arg0);
+void func_800FC0B4(Task* arg0);
+void func_800FC500(Task* arg0);
+void Gp_PulseState1C80(void);
+void func_800FC74C(Task* arg0);
+void func_800FC9BC(Task* arg0);
+void func_800FE41C(Task* arg0);
+void func_801005D8(Task* arg0);
+/// Hand-written GTE routine. `arg2` is a full 32-bit word: the callee copies it
+/// to `$s4` and then uses both `$s4 >> 16` and `$s4 & 0xFFF`, so it must not be
+/// declared `s16` (that makes callers emit a spurious `sll`/`sra` truncation).
+void  func_80100784(struct _GsCOORDINATE2* arg0, u16 arg1, s32 arg2, s16 arg3);
 s32   func_801011D0(struct _GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3);
 void  Gp_InitPlayerWork(GpActorWork* arg0);
 void  func_80100FCC(GpActorWork* arg0, s32 arg1, s32 arg2);

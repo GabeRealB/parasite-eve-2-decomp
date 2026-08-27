@@ -957,8 +957,8 @@ void func_801005D8(Task* arg0)
         }
         Gp_UpdateCoord(coord);
         if (!(mem->field_22 & 1)) {
-            func_80100784(coord, (u16)((s16)mem->field_22 >> 1), mem->field_24 | mem->field_2A,
-                          mem->field_26);
+            func_80100784(coord, (u16)((s16)mem->field_22 >> 1),
+                          (s16)(mem->field_24 | mem->field_2A), mem->field_26);
         }
         if (Gp_State1C->field_4 != 0) {
             return;
