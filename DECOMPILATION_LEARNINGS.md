@@ -2398,6 +2398,28 @@ the suffix once every table in the segment is compiler-generated.
 `SUBALIGN(4)` in the linker script overrides the 8-byte alignment GCC gives the
 table, so a table at a 4-mod-8 address still lands correctly.
 
+When only *some* of a segment's tables become compiler-generated, split the
+`rodata` remainder at the **alignment pad**, not at the next `jtbl_`. GCC gives
+each table `.align 3`, so a 0x84-byte table at a 4-mod-8 address is followed by
+one zero word before the next table. That pad belongs to the assembly remainder:
+splitting `[0x3E9C, .rodata, 3E9C]` / `[0x3F20, rodata, rodata_3E9C]` makes splat
+emit the pad as its own `D_80097720` word ahead of `jtbl_80097724`. Splitting at
+`0x3F24` instead drops the pad entirely and shifts every later table by 4.
+
+**A jump table's first entry fixes the lowest `case` label.** The range check
+`addiu $v1, $v0, -0x1; sltiu $v0, $v1, 0x21` says the table is indexed by
+`switch_value - 1` and covers 33 entries, i.e. cases 1..33. If case 1's slot
+points at the default body, you still have to write `case 1:` explicitly on that
+body — leaving it to `default:` alone makes GCC start the table at case 2
+(`addiu -0x2` / `sltiu 0x20`) and the table shrinks by one entry:
+
+```c
+switch (arg0->spawnArg1) {
+    case 1:      /* needed so the table starts at 1, not 2 */
+    default:
+        ...
+```
+
 ## Reading switch statements
 
 - **Jump table present** (`jtbl_*` in the `.rodata.s` file): read the table
