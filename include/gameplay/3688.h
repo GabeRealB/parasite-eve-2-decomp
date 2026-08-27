@@ -74,6 +74,37 @@ STATIC_ASSERT_SIZEOF(GpMapMark, 8);
 /// Per-stage table of `GpMapMark` arrays. Index is `GameSession.field_7 - 1`.
 extern GpMapMark* Gp_MapMarkTables[];
 
+/// 8-byte map icon record in the per-stage tables pointed to by `D_8010F0CC`.
+/// Walked by `func_800D0F3C` until `field_0` is 0. `field_0` is the room id
+/// (`Gp_MapRoomId`), `field_1` the `Gp_DrawMapMarks` marker index the icon
+/// belongs to, `field_2` the icon kind (0 / 1 / 2; kind 2 is the blinking
+/// "current objective" icon gated on `func_800E3FCC(0xA2)`), `field_3` a
+/// GameFlag nibble id (0 = always shown); `x` / `y` are the map coordinates.
+typedef struct _GpMapIcon {
+    /* 0x0 */ u8  field_0;
+    /* 0x1 */ u8  field_1;
+    /* 0x2 */ u8  field_2;
+    /* 0x3 */ u8  field_3;
+    /* 0x4 */ u16 x;
+    /* 0x6 */ u16 y;
+} GpMapIcon;
+STATIC_ASSERT_SIZEOF(GpMapIcon, 8);
+
+/// Per-stage table of `GpMapIcon` arrays. Index is `GameSession.field_7 - 1`.
+extern GpMapIcon* D_8010F0CC[];
+
+/// 0xC-byte scratchpad block `func_800D0F3C` carves off `G_SCRATCH_HEAD` to
+/// stage one map icon position before it is turned into a `SPRT_16`.
+typedef struct _GpMapIconPos {
+    /* 0x0 */ u16 x;
+    /* 0x2 */ u16 y;
+    /* 0x4 */ u16 field_4;
+    /* 0x6 */ u16 field_6;
+    /* 0x8 */ u16 field_8;
+    /* 0xA */ u16 field_A;
+} GpMapIconPos;
+STATIC_ASSERT_SIZEOF(GpMapIconPos, 0xC);
+
 /// Per-stage table of GameFlag nibble ids, indexed by room (`Gp_MapRoomId`).
 /// Index is `GameSession.field_7 - 1`.
 extern u8* Gp_MapFlagIds[];

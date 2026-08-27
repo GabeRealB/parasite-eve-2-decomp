@@ -234,7 +234,8 @@ void       func_800D02A4(Task* arg0);
 void       func_800D0C34(Task* arg0);
 void       func_800D0614(Task* arg0);
 void       Gp_DrawMapMarks(Task* arg0);
-s32        func_800D0F3C(Task* arg0, s32 arg1, s32 arg2);
+s32        func_800D0F3C(Task* arg0, u8 arg1, u8 arg2);
+s32        func_800E3FCC(s32 arg0);
 void       func_800D15D0(Task* arg0);
 void       func_800D4270(UiObject* arg0, void* arg1, s32 arg2, s32 arg3);
 void       Gp_EnqueueMapRoomCd(void);
@@ -2366,7 +2367,118 @@ void Gp_DrawMapMarks(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800D0C34);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800D0F3C);
+s32 func_800D0F3C(Task* arg0, u8 arg1, u8 arg2)
+{
+    UiObject*              obj;
+    GpMapIcon*             icons;
+    GpMapIconPos*          block;
+    register GpMapIconPos* pos asm("v0");
+    void**                 scratch;
+    u8*                    head;
+    SPRT_16*               p;
+    DR_TPAGE*              dr;
+    register s32           i asm("s2");
+    s32                    ret;
+    s32                    otOff;
+    s32                    lum;
+    s32                    u0;
+    u16                    clut;
+
+    otOff   = 0;
+    i       = 0;
+    scratch = (void**)G_SCRATCH_HEAD;
+    ret     = 0;
+    obj     = arg0->spawnArg2;
+    icons   = D_8010F0CC[Game_Session->field_7 - 1];
+    lum     = (rsin(Display_State.field_14 << 6) + 0x1000) >> 5;
+
+    for (;;) {
+        if (icons[(u8)i].field_0 == 0) {
+            goto end;
+        }
+        if (icons[(u8)i].field_2 == 2) {
+            if (icons[(u8)i].field_3 == func_800E3FCC(0xA2)) {
+                goto draw;
+            }
+        next:
+            i++;
+            continue;
+        }
+        if (icons[(u8)i].field_3 != 0) {
+            if (GameFlag_GetNibble(icons[(u8)i].field_3) == 0) {
+                goto next;
+            }
+        }
+    draw:
+        if ((arg2 != 0) && (icons[(u8)i].field_2 < 2)) {
+            goto next;
+        }
+        if ((icons[(u8)i].field_0 != (s8)Gp_MapRoomId) || (icons[(u8)i].field_1 != arg1)) {
+            goto next;
+        }
+
+        head                             = *scratch;
+        pos                              = (GpMapIconPos*)(head - 0xC);
+        block                            = pos;
+        pos->field_8                     = 0;
+        block->field_6                   = 0;
+        block->field_4                   = 0;
+        *scratch                         = block;
+        ((GpMapIconPos*)(head - 0xC))->x = icons[(u8)i].x;
+        p                                = (SPRT_16*)D_80071190;
+        D_80071190                       = (DR_TPAGE*)(p + 1);
+        block->y                         = icons[(u8)i].y;
+        if (icons[(u8)i].field_2 == 2) {
+            if (lum == 0x100) {
+                lum = 0xFF;
+            }
+            *(u32*)&p->r0 = ((lum & 0xFF) << 0x10) | ((lum & 0xFF) << 8) | (lum & 0xFF);
+        }
+        setlen(p, 3);
+        setcode(p, 0x7C);
+        if (icons[(u8)i].field_2 != 2) {
+            setcode(p, 0x7D);
+        }
+        setSemiTrans(p, 1);
+        switch (icons[(u8)i].field_2) {
+            case 0:
+                clut    = GetClut(0x20, 0x101);
+                otOff   = 0x1B;
+                p->clut = clut;
+                u0      = 0x50;
+                break;
+            case 1:
+                clut    = GetClut(0x10, 0x101);
+                otOff   = 0x1C;
+                p->clut = clut;
+                u0      = 0x40;
+                break;
+            case 2:
+                clut    = GetClut(0x40, 0x101);
+                otOff   = 0x1C;
+                ret     = 1;
+                p->clut = clut;
+                u0      = 0x70;
+                break;
+            default:
+                goto linkPrims;
+        }
+        p->u0 = u0;
+        p->v0 = 0;
+    linkPrims:
+        p->x0 = block->x - 8;
+        p->y0 = block->y - 8;
+        addPrim(&Gpu_CurrentOt[(s16)obj->drawOrder - (otOff & 0xFF)], p);
+        dr         = D_80071190;
+        D_80071190 = dr + 1;
+        setDrawTPage(dr, 0, 0, 0xE);
+        addPrim(&Gpu_CurrentOt[(s16)obj->drawOrder - (otOff & 0xFF)], dr);
+        *scratch = (u8*)*scratch + 0xC;
+        goto next;
+    }
+end:
+    return ret;
+}
 
 void Gp_EnqueueMapRoomCd(void)
 {

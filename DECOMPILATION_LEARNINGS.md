@@ -27131,3 +27131,88 @@ mem->field_10 = (s32)((u32)Gp_LcgState >> 16) % range - half;
 Gp_LcgState   = Gp_LcgState * 5 + K;
 mem->field_12 = ...;
 ```
+
+## `for (;;)` + `goto` out of the loop stops the exit-test duplication
+
+A loop whose exit test is the first thing in the body (`while (tbl[i].f0 != 0)`,
+`while (1) { if (tbl[i].f0 == 0) break; ... }`, `do { ... } while (1)`, and the
+`for (; cond; i++)` spelling — GCC normalises all four to the same RTL) gets its
+test *copied into the loop preheader*: the target's single top-of-loop `beqz`
+turns into a pre-loop `lbu`/`beqz` plus a duplicated test at the bottom, and the
+extra references to the table pointer also skew register allocation.
+
+Replacing `break` with a `goto` to a label **after** the loop suppresses the
+copy while keeping the loop a real loop for the optimiser:
+
+```c
+for (;;) {
+    if (icons[(u8)i].field_0 == 0) {
+        goto end;
+    }
+    ...
+}
+end:
+return ret;
+```
+
+Do *not* reach for a fully `goto`-based loop (`loop: ... goto loop;`) instead:
+without the loop notes GCC skips loop-invariant motion, and the tail of the body
+then CSEs `%hi(Gpu_CurrentOt)` / `0xFF000000` into extra long-lived temps that
+the target rematerialises with `lui` at each use. `func_800D0F3C` went
+75% (goto loop) → 92% (`while`, peeled) → 96% (`for (;;)` + `goto end`).
+
+## Put the first `i++; continue;` inline so the shared increment block lands early
+
+When several skip paths share one `addiu iReg, iReg, 1` + `j loop_top` block,
+its *position* follows the first path that reaches it in the source. Writing
+every skip as `goto next;` with `next: i++;` at the bottom of the body puts that
+block at the end of the function, and the body tail then jumps straight to the
+loop top with the increment stolen into the delay slot. Writing the first skip
+path inline instead — and ending the body with an explicit `goto next;` — puts
+the block where the target has it (just after the first test) and leaves the
+body's last store in the `j` delay slot:
+
+```c
+if (icons[(u8)i].field_2 == 2) {
+    if (icons[(u8)i].field_3 == func_800E3FCC(0xA2)) {
+        goto draw;
+    }
+next:
+    i++;
+    continue;
+}
+...
+draw:
+...
+    goto next;       /* not fall-through */
+```
+
+## Let LICM produce `addPrim`'s `0xFFFFFF`, don't hand-roll a mask local
+
+`addPrim` / `setaddr` on the `P_TAG` bitfields makes GCC hoist the `0xFFFFFF`
+address mask out of the loop; that pseudo is created in the *preheader*, so it
+outranks the entry-block pseudos in the allocator and lands in the low
+callee-saved register (`$s3` here), which in turn pushes the `u8` args and the
+return-value local into the frame (`sb a1, 0x10(sp)` / `sw zero, 0x14(sp)`).
+
+Writing the OT link by hand with a `u32 mask = 0xFFFFFF;` local (the
+`Gp_LinkSprtCmd` style) produces the same instructions but ranks `mask` *below*
+the other entry-block locals, so every saved register shifts by one. Prefer the
+psyq macros unless the target really does keep a mask variable of its own.
+
+## An un-coalesced `move` of a pointer needs the temp pinned
+
+`addiu v0, v1, -0xC` / `move s1, v0` / `sh zero, 8(v0)` means the same pointer
+lives in two registers: a block-local temp and a call-crossing variable. GCC
+coalesces any plain `tmp = expr; block = tmp;` pair (and CSE rewrites a repeated
+`((T*)(head - 0xC))->field_8 = 0` into an offset off `head`, e.g. `-0x4(v1)`), so
+neither spelling reproduces it. Pinning just the temp does:
+
+```c
+register GpMapIconPos* pos asm("v0");
+...
+pos          = (GpMapIconPos*)(head - 0xC);
+block        = pos;
+pos->field_8 = 0;      /* keeps `pos` live past the copy → move survives */
+block->field_6 = 0;
+```
