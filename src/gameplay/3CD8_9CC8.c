@@ -14,7 +14,8 @@
 #include "main/sound.h"
 #include "main/task.h"
 
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_rtv0_real()   __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
 
 extern TaskFuncTable3 D_80097678;
 extern s32            D_80115720;
@@ -290,7 +291,104 @@ void func_800EA420(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8_9CC8", func_800EA478);
+GpEffWork* func_800EA478(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3)
+{
+    Task*      task;
+    GpEffWork* mem;
+    s32        bank;
+
+    bank = (arg0 >> 16) & 0x7FFF;
+    if ((arg0 >= 0) && (Gp_State1C->field_0 >= 0x81)) {
+        return NULL;
+    }
+    arg0 &= 0xFFFF;
+    if (arg0 == 0) {
+        return NULL;
+    }
+    task = Task_Spawn(bank, arg0, arg2, 0);
+    if (task == NULL) {
+        return NULL;
+    }
+    mem = Mem_Calloc(sizeof(GpEffWork), false);
+    if (mem == NULL) {
+        Task_Kill(task);
+        return NULL;
+    }
+    Gp_State1C->field_0++;
+
+    if (arg1 != NULL) {
+        GsCOORDINATE2* coord;
+        SVECTOR        vec;
+
+        coord = (GsCOORDINATE2*)((GameActorExt*)task->extra)->field_8;
+        memset(&vec, 0, sizeof(vec));
+        mem->field_C = arg3;
+        if (arg3 == NULL) {
+            arg3 = &vec;
+        }
+        mem->field_18 = arg3->vx;
+        mem->field_1A = arg3->vy;
+        mem->field_1C = arg3->vz;
+        if (arg1->sub == &D_80070F10) {
+            coord->coord = arg1->coord;
+            gte_SetRotMatrix(&arg1->coord);
+            gte_SetTransMatrix(&arg1->coord);
+            gte_ldv0(arg3);
+            gte_rtv0tr_real();
+            gte_stlvnl(coord->coord.t);
+        } else {
+            Gp_UpdateCoord(arg1);
+            coord->workm = arg1->workm;
+            gte_SetRotMatrix(&arg1->workm);
+            gte_SetTransMatrix(&arg1->workm);
+            gte_ldv0(arg3);
+            gte_rtv0tr_real();
+            gte_stlvnl(coord->workm.t);
+            Gp_WorldToLocal(&D_80070F10.workm, &coord->workm, &coord->coord);
+        }
+        coord->sub = &D_80070F10;
+        coord->flg = 0;
+        Gp_UpdateCoord(coord);
+        mem->field_8 = arg1;
+    } else {
+        GsCOORDINATE2* coord;
+        SVECTOR        vec;
+
+        coord = (GsCOORDINATE2*)((GameActorExt*)task->extra)->field_8;
+        memset(&vec, 0, sizeof(vec));
+        mem->field_C = arg3;
+        if (arg3 == NULL) {
+            arg3 = &vec;
+        }
+        mem->field_18 = arg3->vx;
+        mem->field_1A = arg3->vy;
+        mem->field_1C = arg3->vz;
+        gte_SetTransMatrix(&GsWSMATRIX);
+        gte_SetRotMatrix(&GsWSMATRIX);
+        gte_ldv0(arg3);
+        gte_rtv0tr_real();
+        gte_stlvnl(coord->coord.t);
+        coord->sub = &D_80070F10;
+        coord->flg = 0;
+        Gp_UpdateCoord(coord);
+        mem->field_8 = &D_80070F10;
+    }
+
+    task->spawnArg2    = mem;
+    task->exitCallback = Gp_KillState1CTask;
+    mem->field_0       = task;
+    mem->field_20      = 0;
+    mem->field_22      = 0;
+    mem->field_24      = 0;
+    mem->field_26      = 0;
+    mem->field_28      = 0;
+    mem->field_2A      = 0;
+    mem->field_4       = 0;
+    mem->field_10      = 0;
+    mem->field_12      = 0;
+    mem->field_14      = 0;
+    return mem;
+}
 
 void Gp_DrawFadeQuad(u8* arg0, s32 arg1)
 {

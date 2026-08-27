@@ -194,9 +194,9 @@ STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 /// `field_26` step, or `func_800FB7E4`'s `func_800EA478` spawn arg.
 typedef struct _GpEffWork {
     /* 0x00 */ struct _Task*          field_0;
-    /* 0x04 */ byte                   pad_4[4];
+    /* 0x04 */ s32                    field_4;
     /* 0x08 */ struct _GsCOORDINATE2* field_8;
-    /* 0x0C */ byte                   pad_C[4];
+    /* 0x0C */ SVECTOR*               field_C;
     /* 0x10 */ s16                    field_10;
     /* 0x12 */ s16                    field_12;
     /* 0x14 */ s16                    field_14;

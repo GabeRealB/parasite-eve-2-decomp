@@ -10,6 +10,8 @@
 #include "main/session.h"
 #include "main/task.h"
 
+struct _GpEffWork;
+
 /// 0xC-byte sequence-table record. `Gp_CapTable` is the current table
 /// (`Gp_StartCap` stores its first arg there). `Gp_FindCapEvt` walks
 /// from a start index until `field_8 == -1` (terminator) or `field_5`
@@ -334,17 +336,25 @@ void Gp_ShakeTask(Task* arg0);
 void func_800E956C(void);
 u16  Gp_RemapButtons(GameActor* actor, u16 mask);
 
-void  func_800E9BDC(u8 arg0, s32 arg1);
-void  func_800E9C6C(void);
-void  Gp_InitState1C(Task* arg0);
-void  Gp_TickState1C(void);
-s32   func_800EA02C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
-s32   func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1);
-s32   func_800EA318(s16 arg0, s16 arg1, s16 arg2);
-void  func_800EA3A0(s32 arg0);
-void  Gp_DecRoomCoordRefs(void);
-void  Gp_InitRoomCoords(void);
-void* func_800EA478(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, s32 arg3);
+void func_800E9BDC(u8 arg0, s32 arg1);
+void func_800E9C6C(void);
+void Gp_InitState1C(Task* arg0);
+void Gp_TickState1C(void);
+s32  func_800EA02C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
+s32  func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1);
+s32  func_800EA318(s16 arg0, s16 arg1, s16 arg2);
+void func_800EA3A0(s32 arg0);
+void Gp_DecRoomCoordRefs(void);
+void Gp_InitRoomCoords(void);
+/// Spawns a `GpState1C` effect task and its `GpEffWork` (`Mem_Calloc(0x2C)`).
+/// `arg0` packs the `Task_Spawn` bank in bits 16..30 and the type in the low
+/// 16 bits; a negative `arg0` bypasses the 0x80 live-effect cap in
+/// `GpState1C::field_0`. `arg1` is the parent coordinate (`NULL` = world):
+/// the task's own `GameActorExt::field_8` coordinate is seeded from it and
+/// re-parented to `D_80070F10`. `arg2` becomes `Task::spawnArg1`; `arg3` is an
+/// optional offset vector (`NULL` = zero) rotated into the parent's space and
+/// kept in `GpEffWork::field_C`. Returns the work object, or `NULL`.
+struct _GpEffWork* func_800EA478(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3);
 /// Full-screen semi-trans POLY_F4. `arg0` is RGB; `arg1` is ABR (low 2 bits).
 void Gp_DrawFadeQuad(u8* arg0, s32 arg1);
 void func_800EAEB8(GsCOORDINATE2* arg0, s32 arg1, u8* arg2);
@@ -352,6 +362,7 @@ void func_800EB2C8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800EB6E8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800EBF18(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* arg3);
 void Gp_ReleaseState1CMem(void* arg0, Task* arg1);
+void Gp_KillState1CTask(Task* arg0);
 void Gp_PulseState1C(void);
 void Gp_AddTpage(P_TAG* arg0, s32 arg1, s32 arg2);
 void Gp_AddTpageShift(P_TAG* arg0, s32 arg1, s32 arg2);

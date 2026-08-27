@@ -900,7 +900,7 @@ void func_800FE41C(Task* arg0)
         if (mem->field_22 >= mem->field_28) {
             Gp_ReleaseState1CMem(mem, arg0);
         } else {
-            func_800EA478(0x60070, coord, (mem->field_24 >> 2) + 0x80021400, (s32)&mem->field_10);
+            func_800EA478(0x60070, coord, (mem->field_24 >> 2) + 0x80021400, (SVECTOR*)&mem->field_10);
         }
     }
 }
@@ -3914,11 +3914,11 @@ s32 func_80105BC4(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
                     SVECTOR*       vec;
                     coord = (GsCOORDINATE2*)&block->flg;
                     vec   = &block->offset;
-                    func_800EA478(0x6008D, coord, 0x300, (s32)vec);
-                    func_800EA478(0x60080, coord, 0x300, (s32)vec);
-                    func_800EA478(0x60070, coord, 0xC0013300, (s32)vec);
+                    func_800EA478(0x6008D, coord, 0x300, vec);
+                    func_800EA478(0x60080, coord, 0x300, vec);
+                    func_800EA478(0x60070, coord, 0xC0013300, vec);
                 } else {
-                    func_800EA478(0x6003B, (GsCOORDINATE2*)&block->flg, 0, (s32)&block->offset);
+                    func_800EA478(0x6003B, (GsCOORDINATE2*)&block->flg, 0, &block->offset);
                 }
             }
         } else {

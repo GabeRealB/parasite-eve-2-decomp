@@ -27369,3 +27369,36 @@ looks uniformly shifted, do not start pinning registers — the cause can be an
 ordering choice in a completely different basic block. `permute.sh` finds these
 quickly because a store swap is exactly the kind of edit it makes; here its
 best output differed from the base by that one swap and nothing else.
+
+## Mask a parameter in place to free its incoming argument register
+
+`func_800EA478` unpacks its `s32 arg0` into a `Task_Spawn` bank
+(`(arg0 >> 16) & 0x7FFF`) and type (`arg0 & 0xFFFF`), with a sign test and a
+cap check in between. Writing the bank into a local computed before the sign
+test gets the instruction order right, but the allocator keeps `arg0` in its
+incoming `$a0` and parks the bank in `$v1`, then needs `move a0, v1` at the
+call:
+
+```c
+bank = (arg0 >> 16) & 0x7FFF;   /* sra v0,a0,16 ; andi v1,v0,0x7fff */
+if ((arg0 & 0xFFFF) == 0) { ... }
+task = Task_Spawn(bank, arg0 & 0xFFFF, arg2, 0);   /* move a0,v1 */
+```
+
+The target instead copies the parameter out (`move v1, a0`) and lets the bank
+own `$a0` from the start. Masking the formal *in place* is what flips it: the
+extra def shortens nothing but adds a reference to the parameter's pseudo, and
+the in-place `andi v1, v1, 0xffff` in the target is the tell that the source
+assigns back to the same variable.
+
+```c
+bank  = (arg0 >> 16) & 0x7FFF;  /* move v1,a0 ; sra v0,v1,16 ; andi a0,v0,0x7fff */
+arg0 &= 0xFFFF;                 /* andi v1,v1,0xffff */
+if (arg0 == 0) { ... }
+task  = Task_Spawn(bank, arg0, arg2, 0);
+```
+
+That single edit took the function from 99.4% to 100%. General rule: when a
+computed value has to reach `$aN` and the leftover diff is a `move aN, <temp>`
+plus a missing `move <temp>, aN` in the prologue, look for a place where the
+parameter itself is reassigned rather than read into a new temp.

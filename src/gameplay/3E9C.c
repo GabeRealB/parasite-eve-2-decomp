@@ -60,7 +60,7 @@ void func_800ECAA8(Task* arg0)
                         func_800EA478(0x60034, coord, (((u32)rng >> 16) & 0x1FF) | 0x200, 0);
                         idx         = arg0->spawnArg1;
                         arg0->state = 1;
-                        func_800EA478(0x60036, coord, idx, (s32)&D_801125EC[idx]);
+                        func_800EA478(0x60036, coord, idx, &D_801125EC[idx]);
                         mem->field_24 = 4;
                         base->field_0 = 4;
                         break;
@@ -71,7 +71,7 @@ void func_800ECAA8(Task* arg0)
                         func_800EA478(0x60034, coord, (((u32)rng >> 16) & 0x1FF) + 0x300, 0);
                         idx         = arg0->spawnArg1;
                         arg0->state = 1;
-                        func_800EA478(0x60036, coord, idx, (s32)&D_801125EC[idx]);
+                        func_800EA478(0x60036, coord, idx, &D_801125EC[idx]);
                         mem->field_24 = 4;
                         base->field_0 = 4;
                         break;
@@ -83,14 +83,14 @@ void func_800ECAA8(Task* arg0)
                         Gp_LcgState = rng;
                         func_800EA478(0x60034, coord, (((u32)rng >> 16) & 0x1FF) + 0x300, 0);
                         idx = arg0->spawnArg1;
-                        func_800EA478(0x60036, coord, idx, (s32)&D_801125EC[idx]);
+                        func_800EA478(0x60036, coord, idx, &D_801125EC[idx]);
                         mem->field_24 = 2;
                         base->field_0 = 2;
                         break;
                     case 5:
                         idx         = arg0->spawnArg1;
                         arg0->state = 1;
-                        func_800EA478(0x60066, coord, idx, (s32)&D_801125EC[idx]);
+                        func_800EA478(0x60066, coord, idx, &D_801125EC[idx]);
                         mem->field_24 = 4;
                         base->field_0 = 0;
                         break;
@@ -101,7 +101,7 @@ void func_800ECAA8(Task* arg0)
                         Gp_LcgState   = rng;
                         func_800EA478(0x60034, coord, (((u32)rng >> 16) & 0x1FF) + 0x300, 0);
                         idx = arg0->spawnArg1;
-                        func_800EA478(0x60066, coord, idx, (s32)&D_801125EC[idx]);
+                        func_800EA478(0x60066, coord, idx, &D_801125EC[idx]);
                         mem->field_24 = 4;
                         base->field_0 = 0;
                         break;
@@ -171,7 +171,7 @@ void func_800ECEC0(Task* arg0)
                     __asm__("" : "+r"(sh));
                     mem->field_14 = -((s16)sh >> 1);
                 }
-                func_800EA478(0x60034, coord, mem->field_24 + 0x600, (s32)&mem->field_10);
+                func_800EA478(0x60034, coord, mem->field_24 + 0x600, (SVECTOR*)&mem->field_10);
                 st           = Gp_State1C;
                 arg0->state  = 1;
                 st->field_14 = 1;
@@ -247,12 +247,12 @@ void func_800ED198(Task* arg0)
                 __asm__("" : "+r"(sh));
                 mem->field_14 = -((s16)sh >> 1);
             }
-            func_800EA478(0x60034, coord, mem->field_24 + 0x380, (s32)&mem->field_10);
+            func_800EA478(0x60034, coord, mem->field_24 + 0x380, (SVECTOR*)&mem->field_10);
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             func_800EA478(0x60072, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x380, 0);
             idx         = arg0->spawnArg1;
             arg0->state = 1;
-            func_800EA478(0x60067, coord, idx, (s32)&D_801125EC[idx]);
+            func_800EA478(0x60067, coord, idx, &D_801125EC[idx]);
             if (arg0->spawnArg1 == 0x11) {
                 mem->field_24          = 1;
                 Gp_RoomCoords->field_0 = 1;
