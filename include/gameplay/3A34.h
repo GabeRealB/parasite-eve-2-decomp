@@ -398,21 +398,26 @@ STATIC_ASSERT_SIZEOF(GpObj38, 0x44);
 /// filter and halved `field_24.t -` world `VECTOR3`, but outer/inner
 /// radii are `field_64` / `field_60`, and the normalized direction is
 /// dotted with `field_24` column 2 against `rcos(field_68 >> 1)`.
+/// `func_800D759C` overlays `GsCOORDINATE2` at offset 0: `field_18` is
+/// `coord.t`, `field_4C` is `sub`. It normalizes `-field_18`, rotates that
+/// direction by `Transpose(D_80070F34) * sub->workm`, then writes the
+/// negated row into `arg3->field_1C` and the IR0-scaled `field_50` color
+/// into `arg3->field_20` (same matrix slots as `func_800D9794`).
 typedef struct _GpObj44 {
-    /* 0x00 */ byte    pad_0[0x18];
-    /* 0x18 */ VECTOR3 field_18;
-    /* 0x24 */ byte    pad_24[0x14];
-    /* 0x38 */ VECTOR3 field_38;
-    /* 0x44 */ s16     field_44;
-    /* 0x46 */ byte    pad_46[4];
-    /* 0x4A */ s16     field_4A;
-    /* 0x4C */ byte    pad_4C[4];
-    /* 0x50 */ s16     field_50;
-    /* 0x52 */ s16     field_52;
-    /* 0x54 */ s16     field_54;
-    /* 0x56 */ byte    pad_56[2];
-    /* 0x58 */ s32     field_58;
-    /* 0x5C */ s32     field_5C;
+    /* 0x00 */ byte           pad_0[0x18];
+    /* 0x18 */ VECTOR3        field_18;
+    /* 0x24 */ byte           pad_24[0x14];
+    /* 0x38 */ VECTOR3        field_38;
+    /* 0x44 */ s16            field_44;
+    /* 0x46 */ byte           pad_46[4];
+    /* 0x4A */ s16            field_4A;
+    /* 0x4C */ GsCOORDINATE2* field_4C;
+    /* 0x50 */ s16            field_50;
+    /* 0x52 */ s16            field_52;
+    /* 0x54 */ s16            field_54;
+    /* 0x56 */ byte           pad_56[2];
+    /* 0x58 */ s32            field_58;
+    /* 0x5C */ s32            field_5C;
 } GpObj44;
 STATIC_ASSERT_SIZEOF(GpObj44, 0x60);
 
@@ -827,6 +832,19 @@ typedef struct _GpLightScratch {
 } GpLightScratch;
 STATIC_ASSERT_SIZEOF(GpLightScratch, 0x1C);
 
+/// 0x3C-byte scratch from `G_SCRATCH_HEAD` used by `func_800D759C`.
+/// `in` is `-GpObj44.field_18` fed to `Gfx_NormalizeLightDir`. `dir` is
+/// that output, then the view-rotated copy, then the GPF-scaled color.
+/// `mtx` is `Transpose(D_80070F34) * field_4C->workm` (rotation only).
+/// `scale` holds `GpObj44.field_4A` loaded into IR0.
+typedef struct _GpViewLightScratch {
+    /* 0x00 */ VECTOR  in;
+    /* 0x10 */ SVECTOR dir;
+    /* 0x18 */ MATRIX  mtx;
+    /* 0x38 */ s32     scale;
+} GpViewLightScratch;
+STATIC_ASSERT_SIZEOF(GpViewLightScratch, 0x3C);
+
 /// 0x4C-byte scratch from `G_SCRATCH_HEAD` used by `Gp_OrientAlong`.
 /// `vec` is the `VectorNormalS` result, reused as the `RotMatrix` angle
 /// vector. `mat1` is RotY(yaw), then RotY * RotX(-pitch). `mat2` is
@@ -1049,6 +1067,7 @@ void       Gp_UpdateRoomCoords(Task* arg0);
 s32        Gp_LightPointRoom(GpObj44* arg0, VECTOR3* arg1);
 s32        Gp_LightPoint(GpObj44* arg0, VECTOR3* arg1);
 s32        Gp_LightCone(GpObj68* arg0, VECTOR3* arg1);
+void       func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
 void       func_800D7A9C(GameActorExt* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 void  func_800D8684(Task* arg0);
 /// Remaps a 3x3 color matrix (`MATRIX.m`) from lighting mode `arg2`

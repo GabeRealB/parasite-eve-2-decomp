@@ -29,6 +29,20 @@
 #define gte_gpf12_real()  __asm__ volatile("nop; nop; .word 0x4B98003D")
 #define gte_gpl12_real()  __asm__ volatile("nop; nop; .word 0x4BA8003E")
 
+#define gte_MulMatrix0_real(r1, r2, r3) \
+    {                                   \
+        gte_SetRotMatrix(r1);           \
+        gte_ldclmv(r2);                 \
+        gte_rtir_real();                \
+        gte_stclmv(r3);                 \
+        gte_ldclmv((char*)(r2) + 2);    \
+        gte_rtir_real();                \
+        gte_stclmv((char*)(r3) + 2);    \
+        gte_ldclmv((char*)(r2) + 4);    \
+        gte_rtir_real();                \
+        gte_stclmv((char*)(r3) + 4);    \
+    }
+
 void func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 extern s32 Gp_LcgState;
@@ -732,7 +746,63 @@ s32 Gp_LightCone(GpObj68* arg0, VECTOR3* arg1)
     return result;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D759C);
+void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
+{
+    void**                       scratch;
+    u8*                          head;
+    register GpViewLightScratch* block asm("s0");
+    register SVECTOR*            dir asm("s5");
+    MATRIX*                      mtx;
+    register MATRIX*             dirMtx asm("s6");
+    register MATRIX*             colorMtx asm("s7");
+    SVECTOR                      tmp;
+    SVECTOR*                     tmpp;
+    register s32                 val asm("v0");
+    register s32                 scale;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    block    = (GpViewLightScratch*)(head - 0x3C);
+    dir      = (SVECTOR*)(head - 0x2C);
+    mtx      = (MATRIX*)(head - 0x24);
+    dirMtx   = arg3->field_1C;
+    colorMtx = arg3->field_20;
+
+    ((GpViewLightScratch*)(head - 0x3C))->in.vx = -arg1->field_18.vx;
+    block->in.vy                                = -arg1->field_18.vy;
+    *scratch                                    = block;
+    block->in.vz                                = -arg1->field_18.vz;
+    Gfx_NormalizeLightDir((VECTOR*)block, dir);
+
+    Gp_UpdateCoord(arg1->field_4C);
+    TransposeMatrix(&D_80070F34, mtx);
+    gte_MulMatrix0_real(mtx, &arg1->field_4C->workm, mtx);
+
+    tmp = *(SVECTOR*)(head - 0x2C);
+    gte_SetRotMatrix(mtx);
+    __asm__ volatile("addiu %0, $sp, 0x10" : "=r"(tmpp));
+    gte_ldv0(tmpp);
+    gte_rtv0_real();
+    gte_stsv(dir);
+
+    dirMtx->m[arg0][0] = -block->dir.vx;
+    dirMtx->m[arg0][1] = -block->dir.vy;
+    dirMtx->m[arg0][2] = -block->dir.vz;
+
+    val          = arg1->field_4A;
+    scale        = val;
+    block->scale = val;
+    gte_lddp(scale);
+    gte_ldsv(&arg1->field_50);
+    gte_gpf12_real();
+    gte_stsv(dir);
+
+    colorMtx->m[0][arg0] = block->dir.vx;
+    colorMtx->m[1][arg0] = block->dir.vy;
+    colorMtx->m[2][arg0] = block->dir.vz;
+
+    *scratch = (u8*)*scratch + 0x3C;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D78A4);
 
