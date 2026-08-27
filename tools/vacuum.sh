@@ -45,6 +45,8 @@ Environment:
   VACUUM_CLI               Default CLI when no flag is given (claude | grok)
   VACUUM_PERMUTE_TIMEOUT   Permuter cap in seconds (default 360)
   VACUUM_PERMUTE_JOBS      Permuter threads (default: min(nproc, 8))
+  VACUUM_STREAM            0 disables claude's streamed per-step logging
+  VACUUM_STREAM_QUIET      Non-empty: log tool calls only, no commentary
 
 Give-up seeds are stored under tools/giveups/<func>/ (gitignored).
 EOF
@@ -148,7 +150,16 @@ run_agent() {
   fi
   case "$CLI" in
     claude)
-      claude -p --dangerously-skip-permissions "$prompt"
+      # Plain `claude -p` only prints the final result, so an iteration looks
+      # frozen in the log until it ends. Stream the events and format them the
+      # way grok's live output reads. VACUUM_STREAM=0 restores the old output.
+      if [[ "${VACUUM_STREAM:-1}" != "0" ]]; then
+        claude -p --verbose --output-format stream-json \
+          --dangerously-skip-permissions "$prompt" \
+          | python3 tools/stream_format.py ${VACUUM_STREAM_QUIET:+--quiet-text}
+      else
+        claude -p --dangerously-skip-permissions "$prompt"
+      fi
       ;;
     grok)
       grok --always-approve --effort high "${extra[@]}" -p "$prompt"
@@ -267,12 +278,56 @@ commit_match_if_needed() {
   return 0
 }
 
-commit_difficult_if_needed() {
+difficult_listed() {
   local func=$1
+  [[ -f "$DIFFICULT_FUNCTIONS" ]] || return 1
+  awk -v f="$func" '$1 == f { found = 1 } END { exit !found }' "$DIFFICULT_FUNCTIONS"
+}
+
+best_score() {
+  # Highest percentage seen in match_log.txt (scratch first, then the giveup
+  # archive, which is written just before this runs).
+  local func=$1
+  local scratch=$2
+  local log
+  for log in "$scratch/match_log.txt" "tools/giveups/$func/match_log.txt"; do
+    if [[ -f "$log" ]]; then
+      awk 'BEGIN { best = 0 }
+           { s = $2; sub(/%$/, "", s); if (s + 0 > best) best = s + 0 }
+           END { printf "%.3f", best }' "$log"
+      return
+    fi
+  done
+  echo "0.000"
+}
+
+record_difficult_if_needed() {
+  # Safety net: agents are told to append difficult_functions on a stall, but
+  # not all of them do. Without an entry the next iteration re-picks the same
+  # function, so vacuum records the give-up itself.
+  local func=$1
+  local scratch=$2
+  if difficult_listed "$func"; then
+    return 0
+  fi
+  local attempts score
+  attempts=$(count_attempts "$scratch")
+  score=$(best_score "$func" "$scratch")
+  if [[ -s "$DIFFICULT_FUNCTIONS" ]] && [[ -n "$(tail -c 1 "$DIFFICULT_FUNCTIONS")" ]]; then
+    echo "" >>"$DIFFICULT_FUNCTIONS"
+  fi
+  echo "$func $attempts $score" >>"$DIFFICULT_FUNCTIONS"
+  echo "Recorded give-up: $func $attempts $score" | tee -a "$LOG_FILE"
+}
+
+commit_difficult_if_needed() {
+  # $2: 0/2 = the function was matched, anything else = give-up.
+  local func=$1
+  local match_status=$2
   if git diff --quiet -- "$DIFFICULT_FUNCTIONS"; then
     return 0
   fi
-  if ! include_asm_present "$func"; then
+  if [[ $match_status -eq 0 || $match_status -eq 2 ]]; then
     git checkout -- "$DIFFICULT_FUNCTIONS" 2>/dev/null || true
     return 0
   fi
@@ -363,14 +418,15 @@ while true; do
   match_status=1
   commit_match_if_needed "$simplest_func" "$scratch"
   match_status=$?
-  if include_asm_present "$simplest_func"; then
-    python3 tools/archive_giveup.py --func "$simplest_func" --scratch "$scratch" \
-      2>&1 | tee -a "$LOG_FILE" || true
-  else
+  if [[ $match_status -eq 0 || $match_status -eq 2 ]]; then
     python3 tools/archive_giveup.py --func "$simplest_func" --clear \
       2>&1 | tee -a "$LOG_FILE" || true
+  else
+    python3 tools/archive_giveup.py --func "$simplest_func" --scratch "$scratch" \
+      2>&1 | tee -a "$LOG_FILE" || true
+    record_difficult_if_needed "$simplest_func" "$scratch"
   fi
-  commit_difficult_if_needed "$simplest_func" "$scratch"
+  commit_difficult_if_needed "$simplest_func" "$match_status"
 
   git reset --hard HEAD >/dev/null
   git clean -fd -- src include >/dev/null 2>&1 || true
