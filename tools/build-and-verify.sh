@@ -36,9 +36,18 @@ if [[ -z "$CLANG_FORMAT" ]]; then
     exit 1
 fi
 
-# Collect files explicitly so we never walk include/psyq or include/* at root.
+# Format src/ plus every overlay include dir (main, gameplay, title, future
+# nested units). Skip include/psyq, include/decomp, and headers at include/.
+FORMAT_ROOTS=(src)
+while IFS= read -r dir; do
+    FORMAT_ROOTS+=("$dir")
+done < <(
+    find include -mindepth 1 -maxdepth 1 -type d \
+        ! -name psyq ! -name decomp 2>/dev/null | sort
+)
+
 mapfile -t FORMAT_FILES < <(
-    find src include/main \
+    find "${FORMAT_ROOTS[@]}" \
         \( -name '*.c' -o -name '*.h' \) \
         -type f \
         2>/dev/null | sort

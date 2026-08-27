@@ -2,144 +2,113 @@
 
 ## Your Job
 
-You are decompiling Playstation 1 assembly code from Parasite Eve 2. Your goal is to generate C code for `$functionName` that, when compiled, 100% matches the given assembly code.
+You are decompiling Playstation 1 assembly from Parasite Eve 2. Generate C for `$functionName` that, when compiled, 100% matches the target assembly.
 
-The compiler is GCC 2.8.1 with flags `-O2 -mips1`. We follow the C89 standard.
+The compiler is GCC 2.8.1 with flags `-O2 -mips1`. C89.
+
+This scratch directory is already bootstrapped. **Do not** run `./tools/claude`. Project root is the parent of `nonmatchings/` (one level up). Read `BRIEF.md` before exploring.
 
 ### Laying the Foundation
 
-Before doing anything else, create a subagent to gather context about the $functionName and ensure `base.c` is compilable. 
+If `BRIEF.md` exists, use it instead of a context-gathering subagent. Then make the **minimal** edits needed so `base.c` compiles. `base.c` should only `#include "common.h"`; any other types go inline. An accurate baseline score depends on not rewriting m2c output yet.
 
-MAKE THE MINIMAL SET OF CHANGES NECESSARY TO COMPILE `base.c`. This is important for getting an accurate baseline match percentage.
-
-Specifically, the subagent should:
+If `BRIEF.md` is missing:
 
 <subagent-instructions>
-1. Explore how $functionName is used in the codebase. Look at ../../src, ../../include as well as the unmatched code (../../asm/nonmatching). Write a summary of what the $functionName is and how it's used to `LEARNINGS.md`.
-2. Ensure that base.c compiles successfully. Ensure that any missing types are present. base.c should only depend on "common.h". Any other missing types should be provided inline rather than via #include statements. Do not stop until base.c can be successfuly built. Report status and a brief summary of your findings upon completion.
-3. Report back on its progress and findings
+1. Locate `$functionName` via `python3 ../tools/decomp_overlay.py find $functionName --json` (works for any overlay, including nested future ones). Write a short summary to `LEARNINGS.md`.
+2. Make `base.c` compile. Do not stop until `./build.sh base.c` runs.
+3. Report back.
 </subagent-instructions>
 
 ### Build Loop
 
-After base.c builds successfully, repeat the following steps:
+1. `./build.sh base.c` — 100% is a perfect match.
+2. Plan a small change from the diff. Prefer nearby matched C in the same TU (see BRIEF.md) over m2c control flow.
+3. Write `base_N.c` (one attempt per file).
+4. Repeat. Grep `DECOMPILATION_LEARNINGS.md` for the mismatch pattern; do not read it end-to-end.
 
-1. Run `./build.sh base.c` to build and get a diff against the target assembly. A score of 100% indicates a perfect match.
-2. Come up with a plan to improve the match. Look for areas where the control flow and instructions do not match. Consider what the original developers intended to write given the function's broader purpose.
-3. Create a new file (`base_n.c` where `n` is your attempt number) with changes you expect to improve the match. Start small and work incrementally — if you test multiple changes at once they may interact poorly.
-4. Return to step 2 and continue working to improve the match percentage. Record key learnings in `DECOMPILATION_LEARNINGS.md` (project root, symlinked here). Keep going until you reach a 100% match or are unable to make progress (e.g. 40 attempts without any improvement to the match percentage).
+**Permuter:** if the best score is ≥ 95% and the remaining diffs are register allocation, instruction scheduling, or stack slots (not control flow), stop hand-pinning and from the project root run:
+
+```
+./permute.sh --run --timeout 360 -j4 $functionName <asm-path-from-BRIEF> base_N.c
+```
+
+Do this **before** `register … asm("")` pins. Vacuum also permutes after you exit if you leave a ≥95% `base_N.c` here. Give up after ~10 attempts with no improvement, or ~40 attempts total. On stall, `build.sh` itself will tell you to stop.
 
 ### After a 100% match (or giving up)
 
-1. Integrate the matching C into the real project source (replace `INCLUDE_ASM`), fix headers, and run `./tools/build-and-verify.sh` from the project root until `build/USA/out/SLUS_010.42: OK`.
-2. Append any *generalizable* findings to project-root `DECOMPILATION_LEARNINGS.md` (skip one-off rewrites already covered there).
-3. Delete this entire scratch directory (`nonmatchings/<function>/`). Do not leave attempt files, dumps, or empty parents behind.
+1. Integrate into the host C file (replace `INCLUDE_ASM`). Types for this overlay live in **that overlay's** `include/` tree (`include/main/`, `include/gameplay/`, `include/<overlay>/`, …). Do not add named types to `include/main/unknown_syms.h`.
+2. From the project root run `./tools/build-and-verify.sh` until `build/USA/out/SLUS_010.42: OK` (and the overlay checksum if this unit has one).
+3. Commit `matched $functionName <attempts>`.
+4. On give-up: append `tools/difficult_functions` as `$functionName <attempts> <best%>`, revert any host C / header edits, do not leave a partial `INCLUDE_ASM` replacement.
+5. Append generalizable findings to project-root `DECOMPILATION_LEARNINGS.md`.
+6. If vacuum launched you, leave this scratch directory. Otherwise delete it.
 
 ## Tools
 
-- `./build.sh <file>.c` — compile a .c file and diff the resulting object code against the target assembly.
-- `./objdump.py <file>.o` — dump the assembly code for the specified object file.
-- `./diff.sh <file>.o` — diff the assembly of the given object file against the target.
-- `./map_asm_to_c.py <file>.o <line>` — map an assembly line back to the relevant C code.
+- `./build.sh <file>.c` — compile and score against `target.o`
+- `./objdump.py <file>.o`
+- `./diff.sh <file>.o`
+- `./map_asm_to_c.py <file>.o <line>`
+- `../tools/decomp_overlay.py find|pack <func>` — overlay-agnostic paths / brief
 
 ## Coding Guidelines
 
 ### Types and Structs
-- Look to existing code in `src/` and `include/` for guidance on types. Types in the function you're matching could be wrong or misleading.
-- Before adding a new type definition, search the codebase first and reuse existing structs whenever possible.
-- Where appropriate, generate structs to match expected input arguments, return values, etc.
-- Exercise caution when extending or changing existing types — they must remain compatible with the rest of the codebase.
+- Reuse existing structs. Search `src/` and `include/` (including this overlay's headers) before adding a type.
+- Extending a shared struct must keep offsets compatible with every TU that uses it.
 
 ### Struct Field Access
 
-Always prefer struct field or array accesses over pointer arithmatic.
+Always prefer struct field or array accesses over pointer arithmetic.
 
 Common mistakes:
 - `return *(u8 *)(arg0 + 0xC1);`
 - `*(s32*)((u8*)arg0 + 0x34) = value;`
 - `*((s16*)ptr + 2);`
 
-Instead, check if a field exists at that offset in the struct definition that you could use. If the field doesn't exist, update the struct definition: add the proper field, adjust padding arrays, and verify all `/* 0xNN */` offset comments remain accurate
+If the field is missing, add it to the struct with a correct `/* 0xNN */` offset and padding.
 
 ### Style
-- Use `for` loops over `do` or `while` loops.
-- Use temporary variables to break up complex nested expressions, but don't introduce unnecessary re-assignments of the same value across multiple variables.
-- Variable declarations must appear at the start of the function.
-- Never add comments to code.
+- `for` loops over `do`/`while`.
+- Temps are fine; do not re-assign the same value across extra variables.
+- Declarations at the start of the function.
+- No comments in the matched C.
 
 ## Decompilation Strategy
 
-Learnings from past decompilations can be found at `DECOMPILATION_LEARNINGS.md`.
+Learnings: `DECOMPILATION_LEARNINGS.md` (symlinked here). Grep it.
 
 ### General Approach
-- Think about what the function is *doing* within the game. What is its purpose? Structure the code to fulfill that purpose — this is the surest path to a 100% match.
-- Focus on control flow differences over register or stack differences. Register and stack issues are easy to fix later.
-- Look for clues in how the function is called and how it calls other functions.
+- Figure out what the function does in-game, then write that C. That is the surest 100% path.
+- Fix control flow before registers/stack.
+- Use callers/callees from BRIEF.md.
 
 ### Cleaning Up Decompilation Artefacts
-Literal decompilation often produces artefacts. Watch for these common patterns:
 
 <artefact name="for-loops">
-m2c struggles with `for` loops. The compiler often pulls out the condition so it can bail early if it's never met. Note that the comparison operator may also change (e.g. `<` becomes `<=`).
-
-This code:
-```c
-for (i = 0; i < 10; i++) {
-    // stuff
-}
-```
-
-Often decompiles as:
-```c
-i = 0;
-if (i <= 10) {
-    do {
-        // stuff
-        i++;
-    } while (i <= 10);
-}
-```
+m2c turns `for (i = 0; i < 10; i++)` into `i = 0; if (i <= 10) { do { ... i++; } while (i <= 10); }` (comparison may flip).
 </artefact>
 
 <artefact name="gotos">
-Developers rarely, if ever, write GOTO statements but they show up often in decompilation output because many different kinds of control flow are represented as branches and jumps in assembly. Assume that GOTOs are just a decompilation artefact.
+GOTOs are usually decomp artefacts. Restructure.
 </artefact>
 
 <artefact name="duplicated-variables">
-It's far more likely that a single variable is being reused rather than many temporary variables. Literal decompilation and permuting often produce unnecessary re-assignments that hurt the match rate.
+One reused variable is more likely than a pile of temps.
 </artefact>
 
 <artefact name="shifts-instead-of-arithmetic">
-Arithmetic is often converted to shifts:
-- `x >> 2` → `x / 4`
-- `x << 2` → `x * 4`
+`x >> 2` → `x / 4`; `x << 2` → `x * 4`.
 </artefact>
 
 <artefact name="false-returns">
-Explicit returns in assembly might actually be fall-through returns:
-```c
-if (condition) {
-    // main work
-} else {
-    // alternative path
-    return X;
-}
-return Y;  // fall-through from if-branch
-```
+An explicit `return` in m2c is often fall-through.
 </artefact>
 
 <artefact name="gcc-281-codegen">
-GCC 2.8.1 has specific codegen patterns that show up in the target assembly. Recognise these so you don't fight the compiler:
-
-- **Signed division:** dividing a signed integer by a power of two produces a shift-and-bias pattern (shift right to extract the sign bit, add it, then arithmetic shift). Write the natural division (`x / 4`) and let the compiler emit this pattern — don't try to match the shifts manually.
-- **Branchless operations:** the compiler sometimes generates branchless code (e.g. `slti` + `addu`) for simple conditionals. A ternary or `if/else` in C will often produce the same output.
-- **`do{}while(0)` blocks:** wrapping code in `do{}while(0)` can influence register allocation and instruction scheduling without changing semantics. Use this as a last resort when register assignment won't cooperate.
-- **Dead stores:** GCC 2.8.1 sometimes expects a variable to be written before a branch even if the value is overwritten later. Adding an initialisation (e.g. `result = 0`) before a conditional can fix mismatches.
+- Signed `/` by a power of two: write `x / 4`, do not match the shift-and-bias by hand.
+- Simple conditionals may be branchless (`slti` + `addu`); a ternary often matches.
+- `do{}while(0)` is a last-resort scheduler hammer.
+- Dead stores: an init (`result = 0`) before a branch can restore a missing write.
 </artefact>
-
-### Large Functions
-Don't be intimidated — these are often straightforward if approached methodically:
-
-1. Get the function to compile first, filling in missing types, undefined functions, etc.
-2. Focus on control flow. Compare `base.c` against `target.s` — m2c's generated control flow can be convoluted and misleading. Make a checklist of problems and work through them one by one.
-3. Large structs are easy. Often there are significant gaps between fields, so just focus on getting the field accesses correct.

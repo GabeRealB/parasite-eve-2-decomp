@@ -2,9 +2,10 @@
 
 # Function to display usage
 usage() {
-    echo "Usage: $0 [--clean] [--run] [-j THREADS] FUNCTION_NAME ASM_FUNCTION C_FUNCTION"
+    echo "Usage: $0 [--clean] [--run] [--timeout SEC] [-j THREADS] FUNCTION_NAME ASM_FUNCTION C_FUNCTION"
     echo "  --clean       : Clean the output directory before processing"
-    echo "  --run         : Run the permuter after setup"
+    echo "  --run         : Run the permuter after setup (stops on score 0)"
+    echo "  --timeout SEC : Kill --run after SEC seconds"
     echo "  -j THREADS    : Number of threads to use for the permuter (default: 4)"
     echo "  FUNCTION_NAME : Name of the function to permute"
     echo "  ASM_FUNCTION  : Path to the .s file from asm/../nonmatching folder"
@@ -16,6 +17,7 @@ usage() {
 CLEAN=false
 RUN=false
 THREADS=4
+TIMEOUT=""
 
 # Small-data threshold. Must match ninja_config.py, or the permuter compiles
 # with gp-relative addressing the target does not use.
@@ -31,6 +33,15 @@ while [[ "$1" == --* || "$1" == -j ]]; do
         --run)
             RUN=true
             shift
+            ;;
+        --timeout)
+            if [[ -n "$2" && "$2" =~ ^[0-9]+$ ]]; then
+                TIMEOUT="$2"
+                shift 2
+            else
+                echo "Error: --timeout requires a numeric argument (seconds)"
+                usage
+            fi
             ;;
         -j)
             if [[ -n "$2" && "$2" =~ ^[0-9]+$ ]]; then
@@ -126,5 +137,22 @@ if [ "$RUN" = true ]; then
     trap "kill $CLEANER_PID 2>/dev/null" EXIT
 
     echo "Running decomp-permuter"
-    python3 tools/decomp-permuter/permuter.py -j$THREADS --algorithm levenshtein permuter/$FUNCTION_NAME/
+    PYTHON="$SCRIPT_DIR/venv/bin/python"
+    if [[ ! -x "$PYTHON" ]]; then
+        PYTHON="python3"
+    fi
+    PERM_CMD=(
+        "$PYTHON" tools/decomp-permuter/permuter.py
+        -j"$THREADS"
+        --better-only
+        --stop-on-zero
+        --no-context-output
+        --algorithm levenshtein
+        "permuter/$FUNCTION_NAME/"
+    )
+    if [[ -n "$TIMEOUT" ]]; then
+        timeout --kill-after=20s "$TIMEOUT" "${PERM_CMD[@]}"
+    else
+        "${PERM_CMD[@]}"
+    fi
 fi

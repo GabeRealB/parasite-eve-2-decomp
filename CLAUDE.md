@@ -8,20 +8,22 @@ This is a matching decompilation project for Parasite Eve 2 (PS1). The goal is t
 
 ## Project Structure
 
-- `src` decompiled (or partially decompiled) C code
-- `include` headers for decompiled C code
-- `asm/USA/main/nonmatchings` unmatched asm code extracted from the rom. Each file contains a separate function.
-- `asm/USA/main/matchings` decompiled assembly code for already matched C functions. We keep this around as it's sometimes convenient to inspect.
-- `lib` library code such as Ultralib which we call and link against
+- `src/<overlay>` decompiled C (`src/main`, `src/gameplay`, `src/title`, later `src/<nested overlay>`)
+- `include/<overlay>` headers for that unit (`include/main`, `include/gameplay`, …)
+- `asm/<ver>/<overlay>/nonmatchings` unmatched functions (one `.s` per function). Overlays may be nested (e.g. `asm/USA/stage1/101/nonmatchings`).
+- `asm/<ver>/<overlay>/matchings` already-matched functions
+- `lib` library code such as Psy-Q objects we link against
 - `assets` binary asset blobs extracted from the rom
-- `include` common headers included in all C and/or assembly code
 
 ## Tools
 
 - `./tools/build-and-verify.sh` build the project and verify that it matches the target.
 - `diff.py` you can view the difference between the compiled and target assembly code of a given function by running `python3 tools/asm-differ/diff.py --no-pager <function name>`
-- `./tools/claude <function name>` spin up a decompilation environment for a given function.
+- `./tools/claude [--bootstrap-only] [--cli grok|claude] <function>` spin up a scratch matching env. Resolves **any** overlay; always m2c-bootstraps unless `--no-bootstrap`.
+- `python3 tools/decomp_overlay.py find|pack|list-nonmatchings|list-overlays <function>` overlay-agnostic path lookup and vacuum brief.
 - `python3 tools/score_functions.py <directory>` find the easiest function to decompile in a given directory (and its subdirectories).
+- `./tools/vacuum.sh [--grok|--claude] [--dry-run]` pick the easiest unmatched function across every overlay, bootstrap, pack a brief, run the agent. Auto-commits a verified match if the agent forgot to. After a ≥95% give-up, runs decomp-permuter (`--stop-on-zero`, 6 min cap) and a short port follow-up on a hit.
+- `./permute.sh --run --timeout 360 -j4 <func> <asm> <c>` when a match is stuck ≥95% on registers/scheduling. Stops on score 0.
 - `python3 tools/check_pointer_arithmetic.py <file or directory>` detect pointer arithmetic with casts that should be replaced with struct field access. Use `--strict` to fail on violations.
 
 ## Code Quality Standards
@@ -106,7 +108,7 @@ If you write code with pointer arithmetic:
 
 You may be given a directory containing assembly files either in its own directory or its subdirectories.
 
-1. Use `python3 tools/score_functions.py asm/USA/main/nonmatchings/` tool to find the easiest function. Start with that one.
+1. Use `python3 tools/score_functions.py $(python3 tools/decomp_overlay.py list-nonmatchings)` to find the easiest unmatched function across every overlay. Start with that one.
 2. Follow the instructions in the `Decompile assembly to C code` of this document.
 3. If you are able to get a perfect matching decompilation, commit the change with the message `matched <function name> <attempts>` and return to step (1). If you cannot get a perfect match after several attempts, add the function name to `tools/difficult_functions` along with the number of attempts and best match percentage (function names should be separated by newlines). This should be in the form `<function name> <number of attempts to match> <best match percentage>\n`. By adding the function name to difficult_functions. You should also revert any changes you've made adding the function to the C file (we do not want to save incomplete matches).
 4. You are done. Do not attemp to find the next closest match.
@@ -118,14 +120,14 @@ You may be given a function and asked to decompile it to C code.
 First we need to spin up a decomp environment for the function, run:
 
 ```
-./tools/claude <function name>
+./tools/claude --bootstrap-only <function name>
 ```
 
-Move to the directory created by the script. This will be `nonmatchings/<function name>-<number (optional)>`.
+The script searches every overlay under `asm/<ver>/` (not just `main`). Move to the directory it prints (`SCRATCH_DIR=…`). Read `BRIEF.md` there instead of re-exploring the repo.
 
 Use the tools in this directory to match the function. You may need to make several attempts. Each attempt should be in a new file (base_1.c, base_2.c, ... base_n.c, etc). It's okay to give up if you're unable to match after _10_ attempts.
 
-Once you have a matching function, update the C code to use it. The C code will be importing an assembly file, something along the lines of `INCLUDE_ASM/asm/USA/main/nonmatchings/<function name>`. Replace this with the actual C code.
+Once you have a matching function, update the C code to use it. The C code will be importing an assembly file via `INCLUDE_ASM("<overlay>/nonmatchings/<unit>", <function>)`. Replace this with the actual C code.
 
 If the function is defined in a header file (located in include/), this will also need to be updated. These other usages may teach you about the correct type of your function arguments or return types. DO NOT JUST MAKE EVERYTHING void\*!.
 
