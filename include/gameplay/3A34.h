@@ -1089,6 +1089,7 @@ void  func_800D9CC8(Task* arg0);
 void  Gp_CopyDefaultBound(GBytes8* arg0);
 void  func_800D9DFC(void);
 void  func_800DA6E8(void* arg0, s32 arg1);
+void  func_800DA7B8(void);
 void  Gp_UnlinkNode(GpLinkNode* node);
 void  Gp_LinkNode(GpLinkNode* node);
 s32   Gp_NodeSlotMask(GpLinkNode* arg0);

@@ -13,6 +13,7 @@
 #include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
+#include "main/text.h"
 #include "main/tmd.h"
 #include "main/ui.h"
 #include "main/wipsys.h"
@@ -1437,7 +1438,164 @@ done:
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DA7B8);
+static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
+{
+    register u8*             head asm("a0");
+    register GpPerspSrc*     src asm("a1");
+    register GpPerspScratch* block asm("v1");
+
+    src           = (GpPerspSrc*)slot->field_0;
+    head          = *(u8**)G_SCRATCH_HEAD;
+    block         = (GpPerspScratch*)(head - 0x14);
+    block->vec.vx = src->field_C;
+    block->vec.vy = src->field_10;
+    block->vec.vz = src->field_14;
+    __asm__ volatile("" ::: "memory");
+    *(void**)G_SCRATCH_HEAD = block;
+    gte_SetRotMatrix(&((GsCOORDINATE2*)src->field_8)->workm);
+    gte_SetTransMatrix(&((GsCOORDINATE2*)src->field_8)->workm);
+    gte_ldv0(&block->vec);
+    gte_rtps_real();
+    gte_stsxy(sxy);
+    gte_stdp(&((GpPerspScratch*)(head - 0x14))->p);
+    gte_stflg(&((GpPerspScratch*)(head - 0x14))->flag);
+    gte_stszotz(&((GpPerspScratch*)(head - 0x14))->otz);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
+}
+
+void func_800DA7B8(void)
+{
+    RECT          rect;
+    u8            buf[16];
+    TextDrawReq   req;
+    s32           i;
+    GpSlot70*     slot;
+    u8*           bufp;
+    TextDrawReq*  reqp;
+    register s16* p6 asm("s4");
+    s32           x;
+    s32           y;
+    s32           val;
+    register s32  x14 asm("s3");
+    register s32  color asm("v0");
+    s32           ot;
+    void*         obj;
+    GpLinkNode*   node;
+    s32           found;
+
+    slot = Gp_LockSlots;
+    i    = 0;
+    bufp = buf;
+    reqp = &req;
+    p6   = &slot->field_6;
+    do {
+        obj = slot->field_0;
+        if (obj == NULL) {
+            goto empty;
+        }
+        node  = Gp_LinkList;
+        found = 0;
+        if (node != NULL) {
+            do {
+                if (obj == node) {
+                    found = 1;
+                    goto check_found;
+                }
+                node = node->next;
+            } while (node != NULL);
+        }
+    check_found:
+        if (found != 0) {
+            project_slot((s32*)&slot->field_8, slot);
+        } else {
+            slot->field_0 = (void*)4;
+        }
+
+        val = p6[-1];
+        if (val >= 0) {
+            x = p6[1] + 0xA;
+            y = p6[2] + 4;
+        } else {
+            x = p6[1] - 0xA;
+            y = p6[2] - 0x10;
+        }
+        if (x < -0x88) {
+            x = (x & 7) - 0x8F;
+        }
+        if (x >= 0x89) {
+            x = -(x & 7) + 0x8F;
+        }
+        if (y >= 0x55) {
+            y = (y & 7) + 0x4D;
+        }
+        if (y < -0x64) {
+            y = -(y & 7) - 0x5D;
+        }
+
+        color = 0x37A78;
+        x14   = x + 0xE;
+        ot    = -0xA;
+        asm volatile("" ::"r"(color), "r"(x14), "r"(ot));
+        req.field_8    = color;
+        req.glyphTable = 5;
+        req.centerMode = 2;
+        req.x          = x14;
+        req.y          = y;
+        req.otIndex    = ot;
+        req.field_E    = 1;
+
+        val = p6[-1];
+        if (val < 0) {
+            req.field_8 = 0x808008;
+            val         = -val;
+        }
+        if (val >= 0x2710) {
+            val = 0x270F;
+        }
+
+        req.x       = x14;
+        req.field_E = 0;
+        func_8002E53C(reqp, Text_ItoaSigned(bufp, val));
+        req.x       = x14;
+        req.field_E = 4;
+        func_8002E53C(reqp, Text_ItoaSigned(bufp, val));
+
+        rect.x = x - 0x10;
+        rect.y = y - 8;
+        rect.w = 0x20;
+        rect.h = 0xC;
+        if (val >= 0x3E8) {
+            rect.x = x - 0x18;
+            rect.w = 0x28;
+        } else if (val < 0x64) {
+            rect.x = x - 8;
+            rect.w = 0x18;
+        }
+        Ui_DrawTextInRect(&rect, -0xA, 2, NULL);
+
+        {
+            u16 timer;
+            timer = p6[0];
+            timer--;
+            p6[0] = timer;
+            if ((s32)(timer << 16) > 0) {
+                goto next;
+            }
+        }
+        p6[-1]        = 0;
+        p6[0]         = 0;
+        slot->field_0 = NULL;
+        goto next;
+
+    empty:
+        p6[-1] = 0;
+        p6[0]  = 0;
+    next:
+        i++;
+        p6 += 6;
+        slot++;
+    } while (i < 0x20);
+}
 
 void Gp_UnlinkNode(GpLinkNode* node)
 {

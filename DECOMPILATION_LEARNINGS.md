@@ -26905,3 +26905,27 @@ C still emits as a real reloc (the D4 `CdCmd_Queue` `lhu` is only the
 
 `Gp_LoadWaitStage` / `func_800C9654` / `func_800C9E94` / `Gp_CanMoveItems`
 are the examples.
+
+## Barrier so temps fill the gap after a constructed RGB constant
+
+`color = 0x37A78; req.field_8 = color;` stores immediately (`lui`/`ori`/`sw`)
+because the next `li v0, 5` clobbers `$v0`. The target wants independent
+`addiu s3, s2, 0xE` / `li t0, -0xA` between `ori` and `sw`.
+
+Compute those temps, pin the constant to `$v0`, then a barrier that lists
+the constant and the temps as inputs so the store cannot move up:
+
+```c
+register s32 color asm("v0");
+register s32 x14 asm("s3");
+s32          ot;
+
+color = 0x37A78;
+x14   = x + 0xE;
+ot    = -0xA;
+asm volatile("" :: "r"(color), "r"(x14), "r"(ot));
+req.field_8 = color;
+```
+
+`"+r"(color)` marks the constant modified and can spill it out of `$v0`.
+`func_800DA7B8` is the example.

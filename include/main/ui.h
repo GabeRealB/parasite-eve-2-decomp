@@ -285,6 +285,7 @@ s32       Ui_Scale15(s32 arg0);
 void      Ui_DrawHBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 void      Ui_DrawVBar(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 void      Ui_DrawTextUnderline(UiPanel* arg0, s32 arg1, s32 arg2, char* arg3, s32 arg4);
+void      Ui_DrawTextInRect(RECT* arg0, s32 arg1, s32 arg2, char* arg3);
 void      Ui_DrawTitle(UiPanel* arg0, char* arg1);
 void      Ui_DrawTextAtLayout(UiPanel* arg0, s32 arg1, s32 arg2, u8* arg3, s32 arg4, s32 arg5, s32 arg6);
 void      Ui_SetListScrollFlag(UiList* arg0, s32 arg1);
