@@ -26964,3 +26964,38 @@ req.glyphTable = five;
 ```
 
 `func_800A18BC` is the example.
+
+## Shared `state = n` store after a switch, with a dedicated `li 4` label
+
+Several cases write `arg0->state` through one `sw v0, 0x30(s4)` that sits *after*
+the last case. One arm (`field_E >= 4` in case 0) is a `beqz` to a `li v0, 4`
+immediately before that store; the other arms are `j store; li v0, n` and skip
+the `li 4`.
+
+Putting the store inside case 0 (m2c `else { var = 4; label: state = var; }`)
+emits it at the end of case 0. Later cases jump backward, the epilogue is 8
+bytes short, and `beqz` / `j` targets miss.
+
+Keep the store after the switch. Case 0's `>= 4` path is a bare goto to the
+`li 4`; other writers assign then goto the `sw`:
+
+```c
+        if (flag >= 4) {
+            goto set_state_4;
+        }
+        if (other == 2) {
+            newState = 4;
+            goto set_state;
+        }
+        break;
+    }
+    goto draw;
+set_state_4:
+    newState = 4;
+set_state:
+    arg0->state = newState;
+draw:
+    /* shared tail */
+```
+
+`func_800FAC40` is the example.

@@ -205,7 +205,132 @@ void func_800FA7CC(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FAA14);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FAC40);
+void func_800FAC40(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* parent;
+    MATRIX*        m;
+    s16            angle;
+    s16            temp;
+    s32            state;
+    s32            lcg;
+    u32            lcg2;
+    u16            step;
+    s32            one;
+    s32            newState;
+
+    mem           = arg0->spawnArg2;
+    coord         = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    step          = mem->field_22 + 1;
+    mem->field_22 = step;
+    state         = arg0->state;
+    switch (state) {
+        case 0:
+            mem->field_26 = 0x180;
+            mem->field_28 = 0x80;
+            mem->field_2A = 0x400;
+            lcg           = Gp_LcgState * 5 + 0x71357911;
+            lcg2          = lcg * 5 + 0x71357911;
+            temp          = ((lcg2 >> 0x10) & 0x3FF) - 0x200;
+            Gp_LcgState   = lcg;
+            mem->field_24 = ((u32)lcg >> 0x10) & 0xFFF;
+            Gp_LcgState   = (s32)lcg2;
+            mem->field_14 = temp;
+            mem->field_10 = (rcos(temp) * mem->field_2A) >> 0xC;
+            mem->field_12 = ((rsin(mem->field_14) * mem->field_2A) >> 0xC) - 0x400;
+            parent =
+                (GsCOORDINATE2*)((GameActorExt*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+            one                  = ONE;
+            *(s32*)&coord->coord = one;
+            coord->sub           = parent;
+            m                    = &coord->coord;
+            *(s32*)&m->m[0][2]   = 0;
+            *(s32*)&m->m[1][1]   = one;
+            *(s32*)&m->m[2][0]   = 0;
+            m->m[2][2]           = one;
+            angle                = ((s16)mem->field_22 + mem->field_24) * 0x18;
+            coord->coord.t[0]    = (rcos(angle) * mem->field_10) >> 0xC;
+            coord->coord.t[1] =
+                mem->field_12 +
+                ((rsin((Display_State.field_8 + mem->field_24) << 6) * 0x60) >> 0xC);
+            coord->coord.t[2] = (rsin(angle) * mem->field_10) >> 0xC;
+            coord->flg        = 0;
+            Gp_UpdateCoord(coord);
+            arg0->state = 1;
+            if (Gp_State1C->field_E >= 4) {
+                goto set_state_4;
+            }
+            if (Gp_StateC08.field_3 == 2) {
+                newState = 4;
+                goto set_state;
+            }
+            break;
+        case 1:
+            angle             = ((s16)step + mem->field_24) * 0x18;
+            coord->coord.t[0] = (rcos(angle) * mem->field_10) >> 0xC;
+            coord->coord.t[1] =
+                mem->field_12 +
+                ((rsin((Display_State.field_8 + mem->field_24) << 6) * 0x60) >> 0xC);
+            coord->coord.t[2] = (rsin(angle) * mem->field_10) >> 0xC;
+            coord->flg        = 0;
+            Gp_UpdateCoord(coord);
+            if ((Gp_State1C->field_E >= 4) || (Gp_StateC08.field_3 == 2)) {
+                newState = 3;
+                goto set_state;
+            }
+            if (Gp_StateC08.field_2 < 8) {
+                arg0->state = 2;
+            }
+            break;
+        case 2:
+            mem->field_2A     = (u16)mem->field_2A - 0x80;
+            angle             = ((s16)step + mem->field_24) * 0x18;
+            mem->field_10     = (rcos(mem->field_14) * mem->field_2A) >> 0xC;
+            mem->field_12     = ((rsin(mem->field_14) * mem->field_2A) >> 0xC) - 0x400;
+            coord->coord.t[0] = (rcos(angle) * mem->field_10) >> 0xC;
+            coord->coord.t[1] =
+                mem->field_12 +
+                ((rsin((Display_State.field_8 + mem->field_24) << 6) * 0x60) >> 0xC);
+            coord->coord.t[2] = (rsin(angle) * mem->field_10) >> 0xC;
+            coord->flg        = 0;
+            Gp_UpdateCoord(coord);
+            if (Gp_State1C->field_E >= 4) {
+                newState = 4;
+                goto set_state;
+            }
+            if (mem->field_2A < 0x80) {
+                newState = 4;
+                goto set_state;
+            }
+            if (Gp_StateC08.field_3 == state) {
+                newState = 4;
+                goto set_state;
+            }
+            break;
+        case 3:
+            coord->flg         = 0;
+            coord->coord.t[1] += 0x40;
+            Gp_UpdateCoord(coord);
+            if (mem->field_28 < 0xB) {
+                newState = 4;
+                goto set_state;
+            }
+            mem->field_28 = (u16)mem->field_28 - 0xA;
+            break;
+    }
+    goto draw;
+set_state_4:
+    newState = 4;
+set_state:
+    arg0->state = newState;
+draw:
+    func_800EB6E8(coord, (u16)mem->field_22, (u16)mem->field_26 | 0x1000,
+                  (u16)mem->field_28 | 0x1000);
+    if (arg0->state == 4) {
+        Gp_ReleaseState1CMem(mem, arg0);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FB148);
 

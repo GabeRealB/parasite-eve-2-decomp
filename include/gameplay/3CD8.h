@@ -349,6 +349,7 @@ void* func_800EA478(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, s32 arg3);
 void Gp_DrawFadeQuad(u8* arg0, s32 arg1);
 void func_800EAEB8(GsCOORDINATE2* arg0, s32 arg1, u8* arg2);
 void func_800EB2C8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+void func_800EB6E8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800EBF18(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* arg3);
 void Gp_ReleaseState1CMem(void* arg0, Task* arg1);
 void Gp_PulseState1C(void);
