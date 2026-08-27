@@ -45,6 +45,8 @@ Environment:
   VACUUM_CLI               Default CLI when no flag is given (claude | grok)
   VACUUM_PERMUTE_TIMEOUT   Permuter cap in seconds (default 360)
   VACUUM_PERMUTE_JOBS      Permuter threads (default: min(nproc, 8))
+
+Give-up seeds are stored under tools/giveups/<func>/ (gitignored).
 EOF
 }
 
@@ -361,6 +363,13 @@ while true; do
   match_status=1
   commit_match_if_needed "$simplest_func" "$scratch"
   match_status=$?
+  if include_asm_present "$simplest_func"; then
+    python3 tools/archive_giveup.py --func "$simplest_func" --scratch "$scratch" \
+      2>&1 | tee -a "$LOG_FILE" || true
+  else
+    python3 tools/archive_giveup.py --func "$simplest_func" --clear \
+      2>&1 | tee -a "$LOG_FILE" || true
+  fi
   commit_difficult_if_needed "$simplest_func" "$scratch"
 
   git reset --hard HEAD >/dev/null

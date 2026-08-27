@@ -8,6 +8,7 @@ local/
 __pycache__/
 permuter/
 nonmatchings/
+tools/giveups/
 expected/
 .cache/
 .splat/

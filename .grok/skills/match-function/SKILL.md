@@ -28,6 +28,6 @@ That command resolves **any** overlay (`asm/<ver>/<overlay>/…`, including nest
 
 - **100%:** replace `INCLUDE_ASM` in the host C file. New types go in **this overlay's** `include/` (`include/main/`, `include/gameplay/`, `include/<overlay>/`). Not `include/main/unknown_syms.h`. Run `./tools/build-and-verify.sh`. Commit `matched <func> <attempts>`.
 - **Give up:** append `tools/difficult_functions` as `<func> <attempts> <best%>`. Revert host C.
-- If vacuum launched you, **leave the scratch dir** (best unpinned `base_N.c` included). Otherwise delete it after commit/give-up.
+- If vacuum launched you, **leave the scratch dir** (best unpinned `base_N.c` included). Vacuum archives it to `tools/giveups/<func>/` then cleans the scratch. Otherwise delete the scratch after commit/give-up.
 
 No pointer arithmetic with manual offsets. No `void*` when a struct is known. C89: declarations first, no comments in the matched function.

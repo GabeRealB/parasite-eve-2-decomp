@@ -22,7 +22,7 @@ This is a matching decompilation project for Parasite Eve 2 (PS1). The goal is t
 - `./tools/claude [--bootstrap-only] [--cli grok|claude] <function>` spin up a scratch matching env. Resolves **any** overlay; always m2c-bootstraps unless `--no-bootstrap`.
 - `python3 tools/decomp_overlay.py find|pack|list-nonmatchings|list-overlays <function>` overlay-agnostic path lookup and vacuum brief.
 - `python3 tools/score_functions.py <directory>` find the easiest function to decompile in a given directory (and its subdirectories).
-- `./tools/vacuum.sh [--grok|--claude] [--dry-run]` pick the easiest unmatched function across every overlay, bootstrap, pack a brief, run the agent. Auto-commits a verified match if the agent forgot to. After a ≥95% give-up, runs decomp-permuter (`--stop-on-zero`, 6 min cap) and a short port follow-up on a hit.
+- `./tools/vacuum.sh [--grok|--claude] [--dry-run]` pick the easiest unmatched function across every overlay, bootstrap, pack a brief, run the agent. Auto-commits a verified match if the agent forgot to. After a ≥95% give-up, runs decomp-permuter (`--stop-on-zero`, 6 min cap) and a short port follow-up on a hit. Best scratch C is kept at `tools/giveups/<func>/` (gitignored) so a later retry does not start from m2c.
 - `./permute.sh --run --timeout 360 -j4 <func> <asm> <c>` when a match is stuck ≥95% on registers/scheduling. Stops on score 0.
 - `python3 tools/check_pointer_arithmetic.py <file or directory>` detect pointer arithmetic with casts that should be replaced with struct field access. Use `--strict` to fail on violations.
 

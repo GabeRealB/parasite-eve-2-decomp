@@ -42,7 +42,7 @@ Do this **before** `register … asm("")` pins. Vacuum also permutes after you e
 3. Commit `matched $functionName <attempts>`.
 4. On give-up: append `tools/difficult_functions` as `$functionName <attempts> <best%>`, revert any host C / header edits, do not leave a partial `INCLUDE_ASM` replacement.
 5. Append generalizable findings to project-root `DECOMPILATION_LEARNINGS.md`.
-6. If vacuum launched you, leave this scratch directory. Otherwise delete it.
+6. If vacuum launched you, leave this scratch directory (vacuum archives the best seed to `tools/giveups/<func>/`). Otherwise delete it.
 
 ## Tools
 
