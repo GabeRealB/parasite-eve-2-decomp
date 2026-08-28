@@ -31,6 +31,21 @@
 #define gte_gpf12_real()  __asm__ volatile("nop; nop; .word 0x4B98003D")
 #define gte_gpl12_real()  __asm__ volatile("nop; nop; .word 0x4BA8003E")
 
+/// `gte_MulMatrix0` from `psyq/gtemac.h`, but with the real `rtir` encoding.
+#define Gp_MulMatrix0(r1, r2, r3)    \
+    {                                \
+        gte_SetRotMatrix(r1);        \
+        gte_ldclmv(r2);              \
+        gte_rtir_real();             \
+        gte_stclmv(r3);              \
+        gte_ldclmv((char*)(r2) + 2); \
+        gte_rtir_real();             \
+        gte_stclmv((char*)(r3) + 2); \
+        gte_ldclmv((char*)(r2) + 4); \
+        gte_rtir_real();             \
+        gte_stclmv((char*)(r3) + 4); \
+    }
+
 void func_800B1EFC(Task* arg0);
 void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
 void Gp_AnimSeekSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -1284,7 +1299,49 @@ Task* func_800B2968(void)
     return Task_SpawnFromTable(D_80119218, 0, 0, 0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B2998);
+void func_800B2998(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2,
+                   GpAnimScratch80* s)
+{
+    if (arg2->field_17 != 0) {
+        RotMatrix_gte(&s->vec0, &s->mtx0);
+        if (arg0->field_10 == 1) {
+            RotMatrix_gte(&s->vec1, &s->mtx1);
+            TransposeMatrix(&s->mtx0, &s->mtx2);
+            Gp_MulMatrix0(&s->mtx1, &s->mtx2, &s->mtx2);
+            Gfx_MatrixToEuler(&s->mtx2, &arg2->field_18);
+        }
+        gte_lddp(s->invBlend);
+        gte_ldsv(&arg2->field_18);
+        gte_gpf12_real();
+        gte_stsv(&s->vec1);
+        RotMatrix_gte(&s->vec1, &s->mtx2);
+        if (arg0->field_C == NULL) {
+            Gp_MulMatrix0(&s->mtx2, &s->mtx0, &arg1->mtx);
+            if (arg0->field_8 != NULL) {
+                Gfx_MatrixToEuler(&arg1->mtx, &s->vec1);
+            }
+            arg1->field_0 = 0;
+        } else {
+            Gp_MulMatrix0(&s->mtx2, &s->mtx0, &s->mtx2);
+            Gfx_MatrixToEuler(&s->mtx2, &s->vec1);
+            arg0->field_C->rot = s->vec1;
+        }
+    } else {
+        gte_lddp(s->blend);
+        gte_ldsv(&s->vec0);
+        gte_gpf12_real();
+        gte_lddp(s->invBlend);
+        gte_ldsv(&s->vec1);
+        gte_gpl12_real();
+        gte_stsv(&s->vec1);
+        if (arg0->field_C == NULL) {
+            RotMatrix_gte(&s->vec1, &arg1->mtx);
+            arg1->field_0 = 0;
+        } else {
+            arg0->field_C->rot = s->vec1;
+        }
+    }
+}
 
 void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2)
 {
@@ -1330,9 +1387,9 @@ void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2
             arg1->field_0  = 0;
             arg1->mtx.t[2] = z;
         } else {
-            arg0->field_C->vx = s->trans.vx;
-            arg0->field_C->vy = s->trans.vy;
-            arg0->field_C->vz = s->trans.vz;
+            arg0->field_C->trans.vx = s->trans.vx;
+            arg0->field_C->trans.vy = s->trans.vy;
+            arg0->field_C->trans.vz = s->trans.vz;
         }
         p          = (GpPackedPose*)arg0->field_0;
         s->vec0.vx = p->rx;
@@ -1578,7 +1635,7 @@ void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
         s->src.field_10 = 0;
     }
     s->src.field_8 = (GpPackedSvec*)arg3;
-    s->src.field_C = (SVECTOR*)arg2;
+    s->src.field_C = (GpAnimPose*)arg2;
     switch (op) {
         case 1:
             Gp_AnimBlendPose(&s->src, mtx, slot);

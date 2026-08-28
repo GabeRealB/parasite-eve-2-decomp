@@ -130,7 +130,7 @@ typedef struct _GpAnimBlendSrc {
     /* 0x00 */ GpPackedSvec* field_0;
     /* 0x04 */ GpPackedSvec* field_4;
     /* 0x08 */ GpPackedSvec* field_8;
-    /* 0x0C */ SVECTOR*      field_C;
+    /* 0x0C */ GpAnimPose*   field_C;
     /* 0x10 */ u8            field_10;
 } GpAnimBlendSrc;
 STATIC_ASSERT_SIZEOF(GpAnimBlendSrc, 0x14);
@@ -236,7 +236,7 @@ typedef struct _GpAnimSlot {
     /* 0x15 */ u8          field_15;
     /* 0x16 */ u8          field_16;
     /* 0x17 */ u8          field_17;
-    /* 0x18 */ byte        pad_18[8];
+    /* 0x18 */ SVECTOR     field_18;
     /* 0x20 */ GpAnimSet** field_20;
     /* 0x24 */ byte        pad_24[4];
 } GpAnimSlot;
