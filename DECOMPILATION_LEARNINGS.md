@@ -28891,3 +28891,54 @@ the same file is matched *with* the hoist, so source order does not decide it
 (`dr = ...` before, between or after the two `setaddr`s compiles byte for byte
 identically). No formulation found yet; `func_800D15D0` stalls at 95.4% on
 exactly these two blocks.
+
+## `mflo v1` + a `move s5, v1` in the loop preheader means the divisor is `s16`
+
+A loop whose bound and stride are both a division computed *before* the loop
+
+```c
+s32 step = 0x1000 / count;
+for (i = 0; i < step * count; i += step) { /* calls rsin/rcos here */ }
+```
+
+allocates `step` straight into a callee-saved register — `mflo s5` — because
+the single pseudo is live across the calls. The target instead had
+
+```
+mflo   v1
+...
+mult   v1, a2          # entry guard  step * count
+blez   t2, end
+move   s5, v1          # preheader
+...
+mult   s5, v0          # loop condition, i += s5
+```
+
+i.e. *two* pseudos joined by a copy that only appears once the loop is entered.
+Declaring the variable one size narrower produces exactly that:
+
+```c
+s16 step = 0x1000 / count;
+```
+
+The truncation is a provable no-op (no `sll`/`sra` is emitted, the instruction
+count is unchanged), but the `SImode -> HImode` conversion gives GCC 2.8.1 a
+second pseudo: the raw quotient stays block-local and gets `v1` from
+`local-alloc`, while the narrowed value goes to `global-alloc` and lands in
+`s5`, with the coalesce failing so the copy is emitted in the loop preheader.
+Reach for this whenever a `mflo`/`mfhi` destination is a saved register but the
+target uses a temporary plus a preheader `move`; pinning `step` with
+`register ... asm("s5")` or splitting it into two source variables both make the
+diff worse.
+
+## Keep a scratchpad base pointer live with an empty asm to stop reuse
+
+In the `G_SCRATCH_HEAD` idiom (`head = *scratch; block = head - N;`) the head
+pointer is dead after the last `gte_st*` store, so GCC reuses its register for
+the store address: `addiu t1, t1, -0x10` instead of the target's
+`addiu v0, t1, -0x10`. `__asm__ volatile("" ::"r"(head));` after the last
+`gte_st*` costs no instruction and restores the target's allocation. The same
+barrier placed right after `head = *scratch;` also stops `-fschedule-insns`
+from hoisting the unrelated `lhu` of the source vector above the `lw` of the
+head — but it perturbs the rest of the entry block, so re-pin whichever
+argument then swaps saved registers (here `register u8* rgb asm("s7") = arg3;`).

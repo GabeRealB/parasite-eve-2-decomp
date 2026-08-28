@@ -689,7 +689,76 @@ lcg:
                   mem->field_2A | 0x8000, 0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FBAB0);
+void func_800FBAB0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3)
+{
+    register u8*              rgb asm("s7");
+    register void**           scratch asm("t0");
+    register u8*              head asm("t1");
+    register GpEffFt4Scratch* block asm("s3");
+    POLY_G3*                  prim;
+    s16                       step;
+    s32                       i;
+    register s32              lcg asm("a0");
+    s32                       ang;
+    s16                       scale;
+    s16                       count;
+    u16                       vz;
+
+    rgb     = arg3;
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = *scratch;
+    __asm__ volatile("" ::"r"(head));
+    {
+        register u16 vx asm("v0");
+        vx                                        = *(u16*)&arg0->workm.t[0];
+        ((GpEffFt4Scratch*)(head - 0x18))->vec.vx = vx;
+    }
+    {
+        register u8* tmp asm("v0");
+        tmp   = head - 0x18;
+        block = (GpEffFt4Scratch*)tmp;
+    }
+    block->vec.vy = *(u16*)&arg0->workm.t[1];
+    vz            = *(u16*)&arg0->workm.t[2];
+    *scratch      = block;
+    block->vec.vz = vz;
+    count         = arg2;
+    step          = 0x1000 / count;
+    scale         = arg1;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec);
+    gte_rtps_real();
+    gte_stsxy(&((GpEffFt4Scratch*)(head - 0x18))->sx);
+    gte_stflg(&((GpEffFt4Scratch*)(head - 0x18))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((GpEffFt4Scratch*)(head - 0x18))->otz);
+        __asm__ volatile("" ::"r"(head));
+        block->otz++;
+        for (i = 0; i < step * count; i += step) {
+            lcg         = Gp_LcgState * 5 + 0x71357911;
+            prim        = (POLY_G3*)D_80071190;
+            D_80071190  = (DR_TPAGE*)(prim + 1);
+            Gp_LcgState = lcg;
+            setPolyG3(prim);
+            setRGB0(prim, rgb[0], rgb[1], rgb[2]);
+            setRGB1(prim, 0, 0, 0);
+            setRGB2(prim, 0, 0, 0);
+            block->size = (scale * 128) / block->otz;
+            ang         = (s16)(i + (s32)((u32)lcg >> 16) % step);
+            prim->x0    = *(u16*)&block->sx;
+            prim->y0    = *(u16*)&block->sy;
+            prim->x1    = *(u16*)&block->sx + ((block->size * rsin(ang - 0x28)) >> 12);
+            prim->y1    = *(u16*)&block->sy + ((block->size * rcos(ang - 0x28)) >> 12);
+            prim->x2    = *(u16*)&block->sx + ((block->size * rsin(ang + 0x28)) >> 12);
+            prim->y2    = *(u16*)&block->sy + ((block->size * rcos(ang + 0x28)) >> 12);
+            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                    prim);
+            Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+}
 
 void func_800FBEBC(Task* arg0)
 {
