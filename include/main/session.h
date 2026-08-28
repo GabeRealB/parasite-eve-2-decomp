@@ -114,6 +114,7 @@ STATIC_ASSERT_SIZEOF(GameSessionFrom4, 0x6);
 struct _Task;
 struct _GpLinkNode;
 struct _GpActorD4;
+struct _GpAnimRec;
 
 /// 0x18 record wiped by `Gp_InitRec18Table`. That helper zeros `count` entries
 /// and writes 2 to the last element's `field_0`. `field_0` bit 0x1 marks an
@@ -229,7 +230,7 @@ typedef struct _GameActor {
     /* 0x920 */ struct _Task*       field_920;
     /* 0x924 */ struct _Task*       field_924;
     /* 0x928 */ void*               field_928; // Gp_PlayerAnimBlkTbl[field_93A]; func_800B3F84 arg1
-    /* 0x92C */ byte                pad_92C[4];
+    /* 0x92C */ struct _GpAnimRec*  field_92C; // last Gp_AnimGetRec result (func_80106C6C)
     /* 0x930 */ s32                 field_930; // sw from func_800AE1F0; addr taken by func_801011D0
     /* 0x934 */ s32                 field_934;
     /* 0x938 */ s16                 field_938; // GameActorSlot count (init 0x13)
@@ -290,7 +291,7 @@ typedef struct _GameActor {
     /* 0x98C */ u8                  field_98C; // field_98A frame index
     /* 0x98D */ u8                  field_98D;
     /* 0x98E */ u8                  field_98E;
-    /* 0x98F */ u8                  field_98F; // cleared by func_801034C0
+    /* 0x98F */ s8                  field_98F; // cleared by func_801034C0
     /* 0x990 */ u8                  field_990;
     /* 0x991 */ s8                  field_991; // func_80109374 requires 0 to write field_97D = 1
     /* 0x992 */ u8                  field_992; // func_80100E40: func_801011D0 result when field_984 & 1

@@ -4869,7 +4869,285 @@ void func_80106838(GpActorWork* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106A3C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106C6C);
+void func_80106C6C(GpActorWork* arg0)
+{
+    GameActor*     actor;
+    GameActor*     inner;
+    GpAnimRec*     rec;
+    GsCOORDINATE2* coord;
+    s32            base;
+    s32            done;
+    s32            mode;
+    s32            temp;
+    s32            flags;
+    s32            tick;
+    s32            step;
+    u8             item;
+    u16            next;
+    s32            variant;
+
+    actor            = arg0->actor;
+    done             = 0;
+    coord            = (GsCOORDINATE2*)((GameActorExt*)actor->field_91C->extra)->field_8;
+    base             = Wip_SysConfig.field_21 << 16;
+    actor->field_973 = 0;
+    func_801095BC(&variant);
+    if (actor->field_93E != 2 && (actor->field_966 & 0x40) && actor->field_95E != 0x64) {
+        actor->field_98F = 1;
+        inner            = arg0->actor;
+        inner->field_954 = 0;
+        inner->field_956 = 2;
+        inner->field_958 = 0;
+        if (inner->field_973 != 0) {
+            temp = 1;
+        } else {
+            temp = 3;
+        }
+        inner->field_95A = temp;
+        inner->field_95C = 0;
+        inner->field_95E = 0;
+        if (Wip_SysConfig.field_25 & 1) {
+            Gp_DetachLinkNode(arg0);
+            inner->field_97E = 1;
+        } else {
+            inner->field_97E = 2;
+        }
+        temp = inner->field_973;
+        if (temp == 0) {
+            if (inner->field_975 != 0) {
+                mode = 0xD;
+            } else {
+                mode = 9;
+            }
+        } else if (temp == 1) {
+            mode             = 0xC;
+            inner->field_958 = 3;
+            inner->field_97E = temp;
+        } else {
+            inner->field_958 = 2;
+            mode             = 0xD;
+        }
+        Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 6);
+        return;
+    }
+
+    switch (Wip_SysConfig.field_21) {
+        case 3:
+        case 17:
+            rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->pad_438 + 1);
+            if (rec != NULL && rec != actor->field_92C) {
+                actor->field_92C = rec;
+                if ((rec->field_3 & 0x30) == 0x30) {
+                    if (actor->field_95E == 0) {
+                        actor->field_95E = 1;
+                        func_801064A4((GpObj38*)arg0->extra->field_8, base | 0x20000002, 0);
+                    } else {
+                        func_801064A4((GpObj38*)arg0->extra->field_8, base | 0x20000003, 0);
+                        done             = 1;
+                        actor->field_95E = 0x64;
+                    }
+                }
+            }
+            break;
+        case 9:
+            switch (actor->field_95E) {
+                case 0:
+                    actor->field_95E = 1;
+                    actor->field_934 = 0xA;
+                    /* fallthrough */
+                case 1:
+                    tick             = actor->field_934 - 1;
+                    actor->field_934 = tick;
+                    if (tick == -1) {
+                        actor->field_95E += 1;
+                        func_801064A4((GpObj38*)arg0->extra->field_8, base | 0x20000002, 0);
+                        if (actor->field_98F == 0) {
+                            func_800EA478(0x6006D, coord, 0, NULL);
+                        }
+                    }
+                    break;
+                case 2:
+                case 0x64:
+                    rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424,
+                                        (GpAnimSlot*)actor->pad_438 + 1);
+                    if (rec != NULL && rec != actor->field_92C) {
+                        actor->field_92C = rec;
+                        if ((rec->field_3 & 0x30) == 0x30) {
+                            func_801064A4((GpObj38*)arg0->extra->field_8, base | 0x20000003, 0);
+                            done             = 1;
+                            actor->field_98F = 0;
+                            actor->field_95E = 0x64;
+                        }
+                    }
+                    break;
+            }
+            break;
+        case 11:
+            if (actor->field_95E == 0) {
+                actor->field_95E = 1;
+                flags            = 0x20000002;
+                func_801064A4((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
+            } else {
+                rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424,
+                                    (GpAnimSlot*)actor->pad_438 + 1);
+                if (rec != NULL && rec != actor->field_92C) {
+                    actor->field_92C = rec;
+                    if ((rec->field_3 & 0x30) == 0x30) {
+                        flags = 0x20000003;
+                        func_801064A4((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
+                        done             = 1;
+                        actor->field_95E = 0x64;
+                    }
+                }
+            }
+            break;
+        case 12:
+            if (actor->field_95E == 0) {
+                temp             = actor->field_98F;
+                actor->field_95E = 1;
+                if (temp == 0) {
+                    func_800EA478(0x6006E, coord, Wip_SysConfig.field_21, NULL);
+                }
+            }
+            rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->pad_438 + 1);
+            if (rec != NULL && rec != actor->field_92C) {
+                actor->field_92C = rec;
+                if ((rec->field_3 & 0x30) == 0x30) {
+                    flags = 0x20000003;
+                    func_801064A4((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
+                    done             = 1;
+                    actor->field_98F = 0;
+                    actor->field_95E = 0x64;
+                }
+            }
+            break;
+        case 13:
+        case 14:
+        case 23:
+            rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->pad_438 + 1);
+            if (rec != NULL && rec != actor->field_92C) {
+                actor->field_92C = rec;
+                if ((rec->field_3 & 0x30) == 0x30) {
+                    if (actor->field_95E == 0) {
+                        flags = 0x20000003;
+                        func_801064A4((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
+                        done             = 1;
+                        actor->field_95E = 0x64;
+                    } else {
+                        flags = 0x20000002;
+                        func_801064A4((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
+                    }
+                }
+            }
+            break;
+        case 15:
+            rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->pad_438 + 1);
+            if (rec != NULL && rec != actor->field_92C) {
+                actor->field_92C = rec;
+                if ((rec->field_3 & 0x30) == 0x30) {
+                    switch (actor->field_95E) {
+                        case 0:
+                            actor->field_95E = 1;
+                            flags            = 0x20000003;
+                            func_801064A4((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
+                            break;
+                        case 1:
+                            flags = 0x20000003;
+                            func_801064A4((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
+                            done             = 1;
+                            actor->field_95E = 0x64;
+                            break;
+                        case 0x64:
+                            flags = 0x20000002;
+                            func_801064A4((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
+                            break;
+                    }
+                }
+            }
+            break;
+        case 16:
+        case 20:
+        case 21:
+        case 25:
+        case 26:
+        case 28:
+        case 29:
+            rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->pad_438 + 1);
+            if (rec != NULL && rec != actor->field_92C) {
+                actor->field_92C = rec;
+                if ((rec->field_3 & 0x30) == 0x30) {
+                    if (actor->field_95E == 0) {
+                        actor->field_95E = 1;
+                        func_801064A4((GpObj38*)arg0->extra->field_8, base | 0x20000003, 0);
+                    } else {
+                        func_801064A4((GpObj38*)arg0->extra->field_8, base | 0x20000003, 0);
+                        done             = 1;
+                        actor->field_95E = 0x64;
+                    }
+                }
+            }
+            break;
+        case 19:
+            break;
+        case 27:
+            rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->pad_438 + 1);
+            if (rec != NULL && rec != actor->field_92C) {
+                actor->field_92C = rec;
+                if ((rec->field_3 & 0x30) == 0x30) {
+                    item = Gp_GetItemSlot(Wip_SysConfig.field_21 + 0x7F)->field_2;
+                    if (item - 0x9F > 0) {
+                        variant = ((item - 0xA0) % 3) << 24;
+                    }
+                    variant = base | variant;
+                    if (actor->field_960 != 0) {
+                        step = actor->field_95E;
+                        if (step == 0) {
+                            variant |= 0x20000008;
+                        } else if (step == 1) {
+                            variant |= 0x20000005;
+                        } else if (step == 0x64) {
+                            variant |= 0x20000009;
+                        }
+                        func_801064A4((GpObj38*)arg0->extra->field_8, variant, 0);
+                    } else {
+                        func_801064A4((GpObj38*)arg0->extra->field_8, variant | 0x20000003, 0);
+                    }
+                    next             = actor->field_95E + 1;
+                    actor->field_95E = next;
+                    if (next == 2) {
+                        done             = 1;
+                        actor->field_95E = 0x64;
+                    }
+                }
+            }
+            break;
+        default:
+            if (actor->field_95E == 0) {
+                actor->field_95E = 1;
+                func_801064A4((GpObj38*)arg0->extra->field_8, base | 0x20000002, 0);
+            } else {
+                rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424,
+                                    (GpAnimSlot*)actor->pad_438 + 1);
+                if (rec != NULL && rec != actor->field_92C) {
+                    actor->field_92C = rec;
+                    if ((rec->field_3 & 0x30) == 0x30) {
+                        func_801064A4((GpObj38*)arg0->extra->field_8, base | 0x20000003, 0);
+                        done             = 1;
+                        actor->field_95E = 0x64;
+                    }
+                }
+            }
+            break;
+    }
+    if (done != 0) {
+        if (actor->field_93E != 0) {
+            Gp_FlushPendingRelated(Wip_SysConfig.field_21 + 0x7F, actor->field_960);
+        } else {
+            Gp_FillRelated(Wip_SysConfig.field_21 + 0x7F, actor->field_960);
+        }
+    }
+    func_801093DC(arg0);
+}
 
 void func_8010747C(GpActorWork* arg0)
 {

@@ -29686,3 +29686,51 @@ same values through `setUV4(prim, uv, 0xB8, uv2, 0xB8, uv, 0xCF, uv2, 0xCF)`
 puts `uv2`'s first use third, so both stay live in separate registers
 (`addiu a1,v0,0x17` before the stores) and the emitted store order still comes
 out as the target's. `func_800F9FBC` went 96.0% → 98.2% on that rewrite.
+
+## `base | (x | CONST)` reassociates — hold the constant in a local
+
+For a bitwise OR, GCC 2.8.1's `fold` splits the constant out of the inner
+operand and rebuilds `A | (B | C)` as `(A | C) | B`. So
+
+```c
+func(obj, base | (sp10 | 0x20000003), 0); /* or a1,s1,CONST; or a1,a1,sp10 */
+```
+
+emits the constant OR *first*, while the target wanted `sp10 | CONST` first
+and then `base | that`. Splitting the inner OR into its own statement
+(`t = sp10 | 0x20000003; ... base | t;`) fixes the operand order but gives the
+intermediate its own pseudo, so it lands in a scratch register instead of the
+argument register, and sibling call sites stop cross-jumping together.
+
+Assign the *constant* to a local instead. It is no longer an `INTEGER_CST` at
+fold time, so nothing reassociates, and the intermediate is still computed in
+place in the argument register:
+
+```c
+s32 flags;
+
+flags = 0x20000003;
+func(obj, base | (sp10 | flags), 0); /* lw a1,sp10; or a1,a1,v1; or a1,s1,a1 */
+```
+
+`func_80106C6C` went 91.3% → 95.9% with the temp-for-the-value form and
+95.9% → 99.6% with the temp-for-the-constant form; the latter also restored
+the cross-jumped shared tail block that four switch arms branch into.
+
+## Flag stores that belong in the pre-call slot go *after* the call
+
+When the target sets a "did something" flag right before a `jal` (either in
+the delay slot or as the last instruction of the block), writing
+`flag = 1;` before the call statement makes GCC emit `li` ahead of the whole
+argument setup. Moving the assignment *after* the call in the source lets the
+scheduler sink it to just before the `jal`, which is where the target has it:
+
+```c
+func_801064A4(obj, base | 0x20000003, 0);
+done = 1;                 /* li s3,1 ends up immediately before the jal */
+actor->field_95E = 0x64;
+```
+
+`func_80106C6C` gained 1.6% across eight call sites from this alone. Same
+idea as the argument-setup ordering notes above: statement order, not
+semantics, decides which independent instruction fills the pre-call slot.

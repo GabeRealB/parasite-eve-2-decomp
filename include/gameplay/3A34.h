@@ -1130,8 +1130,10 @@ extern const char Gp_StrGetLockPosNull[];
 
 /// Returns 1 if item `arg0` cannot be used, 0 if it can.
 /// `arg1` supplies `field_2` (capacity) for ammo ids 0xA0–0xBF.
-s32        Gp_ItemIsUnusable(s32 arg0, GpItemRec* arg1);
-s32        Gp_FlushPendingRelated(s32 arg0);
+s32 Gp_ItemIsUnusable(s32 arg0, GpItemRec* arg1);
+/// `arg1` is passed by `func_80106C6C` (the actor's `field_960`) but the body
+/// ignores it.
+s32        Gp_FlushPendingRelated(s32 arg0, s32 arg1);
 GpItemRec* Gp_FindItemById(s32 arg0);
 GpItemRec* Gp_FindItemByKind(s32 arg0);
 GpItemRec* Gp_FindItemInScan(s32 arg0, GpItemScan* arg1);

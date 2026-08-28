@@ -401,7 +401,7 @@ const char Gp_StrWeapon[] = {
     0x60,
 };
 
-s32 Gp_FlushPendingRelated(s32 arg0)
+s32 Gp_FlushPendingRelated(s32 arg0, s32 arg1)
 {
     s32 val;
 
