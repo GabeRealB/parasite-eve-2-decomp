@@ -29506,3 +29506,67 @@ addend of `field_22 + y2`, which GCC already emits as `addu v0, v0, s2`.
 
 Rule of thumb: when two saved registers are transposed, pin whichever of the
 pair appears *last* in its commutative sums, or does not appear in one at all.
+
+## Interleave the UV pairs per corner instead of grouping equal constants
+
+`func_800F59DC` fills a `POLY_FT4` whose `0xA8` is `u0`/`u2` and whose `0xDF` is
+`u1`/`u3`, while a live `s32` (the `-0x80 - (field_22 >> 3)` shade) still sits in
+`$a1` waiting to be stored to `r0`. Grouping the assignments the way the struct
+reads them (`v0, v1, u0, u1, u2, v2, …`) let the scheduler pull the two `0xA8`
+stores together, so `local_alloc` had only `$v0`/`$v1` free, spent `$v0` on
+`0xA8`, and had to reload it for `0xFF` — pushing `sb a1, 4(a0)` five
+instructions later and costing the target's `li a1, 0xa8`:
+
+```
+li v0,0xa8 / li v1,0xdf / sb v0,0xc / sb v0,0x1c / li v0,0xff / sb a1,4   <- ours
+sb a1,4    / li a1,0xa8 / li v0,0xc8 / li v1,0xdf / … / sb a1,0xc         <- target
+```
+
+Writing the fields as one `u`/`v` pair per corner fixed it in one attempt
+(97.7% → 100%):
+
+```c
+prim->u0 = 0xA8; prim->v0 = 0xC8;
+prim->u1 = 0xDF; prim->v1 = 0xC8;
+prim->u2 = 0xA8; prim->v2 = 0xFF;
+prim->u3 = 0xDF; prim->v3 = 0xFF;
+```
+
+Unlike `func_800B4E54`, GCC *will* reorder `sb`s to different offsets of the
+same prim, so the emitted store order is not a direct read of the source order —
+but the source order still decides which stores end up adjacent, and that is
+what decides whether a dying pseudo's hard register is free when the repeated
+constant needs one. Try the interleaved order before reaching for a pin.
+
+## `s32` value plus a `u8` copy is what produces `subu` + `move` + `andi 0xff`
+
+When a colour is stored raw to `r0` but shifted for `g0`/`b0`, the target shows
+the value computed once and immediately copied:
+
+```
+subu a1,v1,v0        <- s32 shade
+move a2,a1           <- u8  col = shade
+...
+sb   a1,4(a0)        <- prim->r0 = shade
+andi v0,a2,0xff      <- prim->g0 = col >> 2
+srl  v0,v0,0x2
+```
+
+The `move` is the SImode → QImode pseudo copy, and the `andi` is the QImode
+zero-extend before the shift. Writing `prim->g0 = (u8)shade >> 2` from the
+single `s32` folds both away and loses the `move`; declare the second variable:
+
+```c
+s32 shade = -0x80 - (mem->field_22 >> 3);
+u8  col   = shade;
+```
+
+## Hoist a GTE matrix argument into a local to order the loop preheader
+
+`gte_SetRotMatrix(&coord->workm)` inside a loop is loop-invariant, so GCC hoists
+the `addiu t0, s0, 0x24` into the preheader — but as an anonymous invariant it
+landed *after* the `lui %hi` of the corner table and stole its register. Giving
+it a name (`MATRIX* m = &coord->workm;` assigned with the other preheader
+statements, then `gte_SetRotMatrix(m)`) makes it a plain statement that is
+emitted before the hoisted addresses, matching the target and freeing the `%hi`
+to use its own register. Worth 96.9% → 97.7% on its own.
