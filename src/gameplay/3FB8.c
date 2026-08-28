@@ -4842,7 +4842,122 @@ void func_8010771C(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_801078AC);
+void func_801078AC(GpActorWork* arg0)
+{
+    void**         scratch;
+    u8*            head;
+    GpDashScratch* blk;
+    GpDashScratch* vel;
+    GameActor*     actor;
+    GsCOORDINATE2* coord;
+    s32            angle;
+    s32            delay;
+    s32            mode;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    blk      = (GpDashScratch*)(head - 0x2C);
+    *scratch = blk;
+    vel      = blk;
+    actor    = arg0->actor;
+    coord    = (GsCOORDINATE2*)arg0->extra->field_8;
+    switch (actor->field_95E) {
+        case 0:
+            blk->mtx = coord->coord;
+            angle    = -0x180;
+            if (actor->field_80 == 0) {
+                angle = 0x180;
+            }
+            Gfx_RotMatrixX(&blk->mtx, angle, 0);
+            Gfx_MatrixCol2(&blk->mtx, (SVECTOR*)(head - 0xC));
+            VectorNormalSS((SVECTOR*)(head - 0xC), (SVECTOR*)(head - 0xC));
+            if (actor->field_80 == 0) {
+                actor->field_95E = 1;
+                actor->field_934 = 0;
+                actor->field_93E = actor->field_82 & 1;
+                blk->div         = 0x6E;
+            } else {
+                actor->field_95E = 3;
+                actor->field_934 = 5;
+                blk->div         = 0x64;
+            }
+            actor->field_0 = vel->dir.vx / vel->div;
+            actor->field_4 = vel->dir.vy / vel->div;
+            actor->field_8 = vel->dir.vz / vel->div;
+            break;
+        case 1:
+            if (func_80105ED4(arg0) != 0) {
+                delay = 0xA;
+                if (actor->field_82 == 1) {
+                    delay = 0xB;
+                }
+                actor->field_934 = delay;
+            } else if (actor->field_934 > 0) {
+                actor->field_934--;
+                if (actor->field_934 == 0) {
+                    actor->field_82--;
+                    if (actor->field_82 <= 0) {
+                        actor->field_934 = 8;
+                        actor->field_95E++;
+                        Gfx_MatrixCol2(&coord->coord, (SVECTOR*)(head - 0xC));
+                        VectorNormalSS((SVECTOR*)(head - 0xC), (SVECTOR*)(head - 0xC));
+                        actor->field_0 = (s16)(blk->dir.vx / 180);
+                        actor->field_4 = (s16)(blk->dir.vy / 180);
+                        mode           = 0x26;
+                        actor->field_8 = (s16)(blk->dir.vz / 180);
+                        if (actor->field_93E != 0) {
+                            mode = 0x27;
+                        }
+                        Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 3);
+                    }
+                }
+                coord->coord.t[0] += actor->field_0;
+                coord->coord.t[1] += actor->field_4;
+                coord->coord.t[2] += actor->field_8;
+            }
+            break;
+        case 2:
+            func_80105ED4(arg0);
+            if (actor->field_934 > 0) {
+                actor->field_934--;
+                coord->coord.t[0] += actor->field_0;
+                coord->coord.t[1] += actor->field_4;
+                coord->coord.t[2] += actor->field_8;
+            }
+            if (func_8010583C(arg0, 0, 0, 0) == 0) {
+            block_land:
+                actor->field_982 = 0;
+                actor->field_956 = 1;
+                Gp_AnimPlayChildSlotsEx(arg0, 1, 0, 5);
+            }
+            break;
+        case 3:
+            if (func_80105ED4(arg0) != 0) {
+                if (actor->field_82 == 1) {
+                    Gfx_MatrixCol2(&coord->coord, (SVECTOR*)(head - 0xC));
+                    VectorNormalSS((SVECTOR*)(head - 0xC), (SVECTOR*)(head - 0xC));
+                    actor->field_0 = (s16)(blk->dir.vx / 58);
+                    actor->field_8 = (s16)(blk->dir.vz / 58);
+                }
+                delay = 9;
+                if (actor->field_82 == 1) {
+                    delay = 5;
+                }
+                actor->field_934 = delay;
+                actor->field_82--;
+            } else if (actor->field_934 != 0) {
+                actor->field_934--;
+                coord->coord.t[0] += actor->field_0;
+                coord->coord.t[1] += actor->field_4;
+                coord->coord.t[2] += actor->field_8;
+            } else if (actor->field_82 == 0) {
+                goto block_land;
+            }
+            break;
+    }
+    Gp_AnimTickChildSlots(arg0);
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x2C;
+}
 
 void func_80107E1C(GpActorWork* arg0)
 {

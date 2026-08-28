@@ -510,6 +510,18 @@ typedef struct _GpYawScratch {
 } GpYawScratch;
 STATIC_ASSERT_SIZEOF(GpYawScratch, 0x6C);
 
+/// 0x2C-byte scratch from `G_SCRATCH_HEAD` used by `func_801078AC`.
+/// `mtx` receives a copy of the actor coordinate's `coord` matrix, pitched by
+/// `Gfx_RotMatrixX`; `dir` (at `head - 0xC`) is that matrix's third column
+/// normalized by `VectorNormalSS`, and `div` is the frame count the direction
+/// is divided by to produce `GameActor.field_0` / `field_4` / `field_8`.
+typedef struct _GpDashScratch {
+    /* 0x00 */ MATRIX  mtx;
+    /* 0x20 */ SVECTOR dir;
+    /* 0x28 */ s32     div;
+} GpDashScratch;
+STATIC_ASSERT_SIZEOF(GpDashScratch, 0x2C);
+
 /// 0x84-byte scratch from `G_SCRATCH_HEAD` used by `func_80102634`,
 /// `func_801029D4`, `func_80102D20`, and `func_80102F10`. The first 0x50 bytes are a
 /// temp `GsCOORDINATE2`. `delta` is lock position minus that coord's

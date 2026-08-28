@@ -28599,3 +28599,35 @@ destination. Later `(short)` uses of the same parameter still re-shift from the
 saved copy (`sll v0, t2, 0x10; bnez v0`), so a *second* shift from the copy
 register is not evidence against the `s16` declaration. Remember to narrow the
 forward declaration and any callers' prototypes at the same time.
+
+## Copy of a scratch pointer to force a reload of a just-stored field
+
+A scratch struct whose divisor is written and then immediately divided by three
+times wants a `lw` of that field before *every* division:
+
+```
+sw   v0, 0x28(s3)   /* div = 0x6E / 0x64 (cross-jumped from both arms) */
+lh   v0, 0x20(s4)
+lw   v1, 0x28(s4)   /* reload, even though v0 still holds the stored value */
+div  zero, v0, v1
+```
+
+One pointer is not enough: GCC 2.8.1 forwards the stored constant into the first
+`div` (`div zero, v0, a0`) and sinks the `sw` past it. Assign a plain **copy** of
+the pointer and read through the copy — the copy is a different base register, so
+store-to-load forwarding does not fire and the load is re-emitted:
+
+```c
+blk = (GpDashScratch*)(head - 0x2C);
+*scratch = blk;
+vel = blk;                 /* move s4, s3 — same address, second register */
+…
+blk->div       = 0x6E;     /* store through blk */
+actor->field_0 = vel->dir.vx / vel->div;   /* reads through vel → lw each time */
+```
+
+The copy also has to be assigned up front (next to the original), which is what
+puts `move s4, s3` in the entry branch's delay slot. Pair this with per-arm
+stores of the constant (`blk->div = 0x6E;` / `= 0x64;` instead of a shared
+`frames` local) so cross-jumping keeps the `li v0, 0x6E` in the `j` delay slot
+and the value in `$v0` rather than a spare `$v1`. `func_801078AC` is the example.
