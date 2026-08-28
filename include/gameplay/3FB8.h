@@ -484,6 +484,22 @@ typedef struct _GpHitRec {
 } GpHitRec;
 STATIC_ASSERT_SIZEOF(GpHitRec, 0x18);
 
+/// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `func_80101A68`.
+/// `scale` is `D_80112E10[field_958]` (signed, stored as a word). `angle`
+/// holds `0x640000` then the yaw passed to `Gfx_RotMatrixY`. `saved` is a
+/// copy of `GsCOORDINATE2.coord` around that rotate. `vec` is the matrix
+/// column from `Gfx_MatrixCol2` / `VectorNormalSS`, later the Manhattan
+/// `|dx|+|dz|` to the lock point. `lock` is `Gp_GetLockPos` output.
+typedef struct _GpMoveScratch {
+    /* 0x00 */ s32     scale;
+    /* 0x04 */ s32     angle;
+    /* 0x08 */ MATRIX  saved;
+    /* 0x28 */ SVECTOR vec;
+    /* 0x30 */ VECTOR3 lock;
+    /* 0x3C */ s32     pad;
+} GpMoveScratch;
+STATIC_ASSERT_SIZEOF(GpMoveScratch, 0x40);
+
 /// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `func_80109BB4`.
 /// `pos` is the world position of the colliding `GpObj` (its 0x10 SVECTOR
 /// rotated by `field_8->workm` plus that matrix's translation), later
@@ -736,6 +752,10 @@ extern GpPadEvt D_80112E28[];
 /// 2-wide rows indexed by `Mc_SaveData.field_22`. `func_80108224` passes
 /// `D_80112E04[field_22][1]` to `func_80105894`.
 extern u8 D_80112E04[][2];
+
+/// s16 scale rows indexed by `GameActor.field_958`. `func_80101A68` divides
+/// the normalized matrix-column by `D_80112E10[field_958]`.
+extern s16 D_80112E10[];
 
 /// u16 facing-step rows indexed by `GameActor.field_95A`. `func_80101F58`
 /// adds `D_80112E20[field_95A] * field_975` onto `field_52` (masked `0xFFF`).

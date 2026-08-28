@@ -2093,7 +2093,127 @@ void func_80101848(GpActorWork* arg0)
 
 static const s32 s_jtbl_pad = 0;
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80101A68);
+void func_80101A68(GpActorWork* arg0)
+{
+    register GameActor*     actor asm("s3");
+    register GsCOORDINATE2* coord asm("s5");
+    register GpMoveScratch* s asm("s4");
+    GameActorExt*           extra;
+    u16                     mode;
+    SVECTOR*                vec;
+    MATRIX*                 mat;
+    s16*                    tbl;
+    s32                     val;
+    s32                     dz;
+    register s32            lockz asm("a0");
+    s32                     angle;
+    s32                     flag;
+    s32                     t2;
+
+    {
+        register void** scratch asm("v1");
+        register u8*    tmp asm("v0");
+
+        scratch = (void**)G_SCRATCH_HEAD;
+        tmp     = *scratch;
+        asm volatile("" : "+r"(tmp)::"memory");
+        tmp      = tmp - 0x40;
+        s        = (GpMoveScratch*)tmp;
+        *scratch = tmp;
+    }
+
+    actor = arg0->actor;
+    extra = arg0->extra;
+    mode  = actor->field_958;
+    coord = (GsCOORDINATE2*)extra->field_8;
+    switch (mode) {
+        case 1:
+        case 2:
+        case 3:
+        case 5:
+        case 6:
+        case 7:
+            if (Gp_AnimGetRec((GpAnimCtx*)actor->field_424,
+                              (GpAnimSlot*)actor->pad_438 + 1) == NULL) {
+                case 0:
+                    actor->field_0 = 0;
+                    actor->field_4 = 0;
+                    actor->field_8 = 0;
+            } else {
+                register SVECTOR* vec0 asm("s0");
+
+                s->scale = D_80112E10[(u16)actor->field_958];
+                vec0     = &s->vec;
+                Gfx_MatrixCol2(&coord->coord, vec0);
+                VectorNormalSS(vec0, vec0);
+                val            = s->vec.vx;
+                val           *= actor->field_973;
+                actor->field_0 = val / s->scale;
+                actor->field_4 = 0;
+                val            = s->vec.vz;
+                val           *= actor->field_973;
+                actor->field_8 = val / s->scale;
+            }
+            break;
+        case 4:
+            mat      = &coord->coord;
+            tbl      = D_80112E10;
+            vec      = &s->vec;
+            s->scale = tbl[(u16)actor->field_958];
+            Gfx_MatrixCol2(mat, vec);
+            VectorNormalSS(vec, vec);
+            val                = s->vec.vx;
+            val               *= actor->field_973;
+            actor->field_0     = val / s->scale;
+            actor->field_4     = 0;
+            val                = s->vec.vz;
+            val               *= actor->field_973;
+            actor->field_8     = val / s->scale;
+            coord->coord.t[0] += actor->field_0;
+            coord->coord.t[1] += actor->field_4;
+            coord->coord.t[2] += actor->field_8;
+            s->saved           = coord->coord;
+            s->scale           = tbl[(u16)actor->field_958];
+            Gp_GetLockPos((GpLockPos*)actor->field_90C, &s->lock);
+            val   = coord->coord.t[0];
+            lockz = s->lock.vz;
+            val  -= s->lock.vx;
+            if (val < 0) {
+                val = -val;
+            }
+            s->vec.vx = val;
+            dz        = coord->coord.t[2];
+            dz       -= lockz;
+            if (dz < 0) {
+                dz = -dz;
+            }
+            val      += dz;
+            s->vec.vx = val;
+            s->angle  = 0x640000;
+            angle     = 0x640000 / (s->vec.vx * 0x274);
+            flag      = 0;
+            asm volatile("" : "+r"(flag) : "r"(lockz));
+            angle    = (0x800 - angle) >> 1;
+            s->angle = angle;
+            Gfx_RotMatrixY(mat, angle, flag);
+            Gfx_MatrixCol2(mat, vec);
+            val            = s->vec.vx;
+            val           *= actor->field_975;
+            actor->field_0 = val / s->scale;
+            actor->field_4 = 0;
+            val            = s->vec.vz;
+            val           *= actor->field_975;
+            actor->field_8 = val / s->scale;
+            coord->coord   = s->saved;
+            break;
+    }
+    coord->coord.t[0] += actor->field_0;
+    asm volatile("" ::: "memory");
+    coord->coord.t[1]      += actor->field_4;
+    t2                      = coord->coord.t[2];
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x40;
+    coord->coord.t[2]       = t2 + actor->field_8;
+}
 
 void func_80101F58(GpActorWork* arg0)
 {

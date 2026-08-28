@@ -30009,3 +30009,40 @@ about it, script the permutations — write each candidate to its own `base_N.c`
 run `./build.sh`, and print the scores. Nine orderings ranged from 95.8% to
 100%, and the winner (`w, h, r0, g0, b0`) is not the order the stores appear in
 the target (`w, r0, h, b0, g0`).
+
+## Keep a dead `$a0` temp live so a later `lui 0x64` colors as `$a1`
+
+`func_80101A68` loads lock-Z into `$a0` (`lw a0, 0x38(s4)`), uses it for
+`subu v0, v0, a0`, then wants `$a0` free so the next `move a0, s2` can
+wait until after `sw a1, 4(s4)`. The constant `0x640000` must stay in
+`$a1` (`lui a1, 0x64` / `div a1, v0` / `sw a1`) because that register is
+reused for the `0x800 - quot` call arg.
+
+If lock-Z dies at the `subu`, `$a0` is empty and the `lui 0x64` takes it
+(`lui a0, 0x64`). An `asm volatile("" : "+r"(flag))` barrier after
+`flag = 0` delays `move a0, s2` (correct order) but also stops the
+`0x640000` / `$a1` coalescing with the call arg, so the constant still
+lands in `$a0`. Pin lock-Z to `$a0` and mention it at the barrier so the
+live range covers the `lui`/`div`/`sw`:
+
+```c
+register s32 lockz asm("a0");
+
+lockz = s->lock.vz;
+/* ... abs(dx), dz -= lockz, abs(dz) ... */
+s->angle = 0x640000;
+angle    = 0x640000 / (s->vec.vx * 0x274);
+flag     = 0;
+asm volatile("" : "+r"(flag) : "r"(lockz));
+angle    = (0x800 - angle) >> 1;
+Gfx_RotMatrixY(mat, angle, flag); /* move a0,s2 after sw a1 */
+```
+
+`$a0` stays occupied through the dividend, `0x640000` colors as `$a1`,
+and the dummy use emits no extra insn. Same idea as occupying `$a0`
+with the incoming arg so a later `la` cannot lift.
+
+The same function's scratch-head free wants a memory barrier after
+`t[0] += vel` so `lui a1, 0x1F80` fills the `t[1]` load-delay instead of
+the `t[0]` slot, plus `t2 = coord->coord.t[2]` before the bump so that
+word is preloaded during the `t[1]` add. `func_80101A68` is the example.
