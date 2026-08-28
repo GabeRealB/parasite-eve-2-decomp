@@ -1581,6 +1581,7 @@ Gp_CapCaretDelay            = 0x80115658; // size:0x1
 Gp_CapCaretGrey             = 0x8010FB88; // size:0x4
 Gp_CapCaretDir              = 0x8010FB8C; // size:0x4
 Gp_State1CTask              = 0x80115748; // size:0x4
+Gp_QuadClutX                = 0x80111EA8;
 Gp_FadeQuadColors           = 0x80111EC0;
 
 // Gameplay naming pass 19 (strings, anim slot, script ticks)

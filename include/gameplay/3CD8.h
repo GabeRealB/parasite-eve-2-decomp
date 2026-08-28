@@ -314,10 +314,32 @@ typedef struct _GpRingScratch {
 } GpRingScratch;
 STATIC_ASSERT_SIZEOF(GpRingScratch, 0x18);
 
+/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_800EB2C8`. Same
+/// shape as `GpRingScratch` (the coordinate's `workm.t[]` truncated to s16,
+/// fed to `gte_ldv0`, then `gte_stszotz` / `gte_stflg` / `gte_stsxy` of the
+/// single RTPS), but the ring radius is not cached: instead `dx` / `dy` hold
+/// the current `(arg2 * 31 / otz) * rsin|rcos(angle) >> 12` offsets that are
+/// added to / subtracted from `sx` / `sy` to build the four quad corners.
+/// Only the low halves of `dx` / `dy` are read back.
+typedef struct _GpFxQuadScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ s32     dx;
+    /* 0x14 */ s32     dy;
+    /* 0x18 */ s16     sx;
+    /* 0x1A */ s16     sy;
+} GpFxQuadScratch;
+STATIC_ASSERT_SIZEOF(GpFxQuadScratch, 0x1C);
+
 extern GpState1C*    Gp_State1C;
 extern Task*         Gp_State1CTask;
 extern GpCoord64     Gp_RoomCoords[8];
 extern GsCOORDINATE2 D_80070F10;
+/// Six CLUT X coordinates (0x20, 0x30, 0xC0, 0xD0, 0xE0, 0xF0) selected by
+/// the top nibble of `func_800EB2C8`'s angle argument and paired with CLUT
+/// Y 0x10B.
+extern u16 Gp_QuadClutX[];
 /// 8 packed RGB-nibble colors. Index is `cln(spawnArg1 << 12) / 2839 & 7`.
 /// High nibble is the `Gp_DrawFadeQuad` blend; low three nibbles are R, G, B.
 extern u16 Gp_FadeQuadColors[];
@@ -381,7 +403,13 @@ void func_800EAA0C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3);
 /// 64 and divided by the projected OTZ) and `arg2` the RGB triple, which
 /// only lights the ring's inner vertex so each `POLY_G4` fades to black.
 void func_800EAEB8(GsCOORDINATE2* arg0, s32 arg1, u8* arg2);
-void func_800EB2C8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+/// Draws one textured, additive `POLY_FT4` billboard at `arg0`'s projected
+/// position. `arg1` is the animation frame (U origin `arg1 * 32`, the sprite
+/// is 0x20 x 0x20 at V 0x18), `arg2` the radius (scaled by 31 and divided by
+/// the projected OTZ) and `arg3` packs the sprite's CLUT index
+/// (`Gp_QuadClutX`) in its top nibble and the spin angle in its low 12 bits,
+/// so the quad's corners sit at `angle` and `angle + 0x400`.
+void func_800EB2C8(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, u16 arg3);
 void func_800EB6E8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800EBF18(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* arg3);
 void Gp_ReleaseState1CMem(void* arg0, Task* arg1);

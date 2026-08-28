@@ -29237,3 +29237,42 @@ unsigned. Since the value being masked is the parameter, the clean fix is to
 declare the parameter `u32` rather than sprinkle casts — the already-matched
 caller passed an explicitly cast expression, so widening `s32` → `u32` in the
 prototype changed nothing on its side.
+
+## Sink prim UV temporaries to their first use to free `$v0` for the table `%hi/%lo`
+
+`func_800EB2C8` builds one `POLY_FT4`: `setPolyFT4` / `setSemiTrans` /
+`setShadeTex`, `prim->tpage = 0x2A`, a CLUT read out of a `u16` table, then
+`setUV4`. Computing the two U coordinates where they are conceptually
+introduced (right after the prim is bumped off `D_80071190`) stalls at 98.6%
+with the table address in the wrong register:
+
+```c
+u0 = arg1 << 5;             /* too early */
+u1 = u0 + 0x1F;
+...
+prim->tpage = 0x2A;
+setClut(prim, Gp_QuadClutX[clutIdx], 0x10B);
+setUV4(prim, u0, 0x18, u1, 0x18, u0, 0x37, u1, 0x37);
+```
+
+With the temps live that early, GCC 2.8.1's pre-reload scheduler hoists
+`lui/addiu %hi/%lo` of the table *above* the `sh v0, 0x16(s1)` that stores the
+tpage, so `$v0` is still busy and the table base lands in `$v1` — which then
+flips the register pair of the `sll`/`addu`/`lhu` that indexes it. Moving both
+assignments down to just before `setUV4` drops the pressure, the address load
+stays after the tpage store, and it reuses `$v0` exactly as the target does
+(98.6% → 99.8%).
+
+```c
+prim->tpage = 0x2A;
+setClut(prim, Gp_QuadClutX[clutIdx], 0x10B);
+u0 = arg1 << 5;             /* first use is the next line */
+u1 = u0 + 0x1F;
+setUV4(prim, u0, 0x18, u1, 0x18, u0, 0x37, u1, 0x37);
+```
+
+The last instruction was an empty asm barrier: splitting the angle argument
+into `clutIdx = arg3 >> 12;` and `arg3 &= 0xFFF;` gives three independent
+insns in the RTPS block, and the scheduler slots the mask *between* the
+`andi`/`srl` pair that forms the index. `__asm__ volatile("" ::"r"(clutIdx));`
+between the two statements keeps them in source order.
