@@ -537,7 +537,85 @@ void func_800F1594(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F1638);
+void func_800F1638(Task* arg0)
+{
+    GpEffWork*        mem;
+    GsCOORDINATE2*    coord;
+    GpEffTileScratch* block;
+    TILE*             prim;
+    s16               c;
+
+    coord                  = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    *(u8**)G_SCRATCH_HEAD -= 0x14;
+    block                  = (GpEffTileScratch*)*(u8**)G_SCRATCH_HEAD;
+    mem                    = arg0->spawnArg2;
+    Gp_UpdateCoord(coord);
+    if (arg0->state == 0) {
+        if (arg0->spawnArg1 != 0) {
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_10 = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_12 = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_14 = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
+        } else {
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_10 = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_12 = (((u32)Gp_LcgState >> 16) & 0xFF) + 0x100;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_14 = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+
+            gte_SetRotMatrix(&mem->field_8->coord);
+            gte_ldv0((SVECTOR*)&mem->field_10);
+            gte_rtv0_real();
+            gte_stsv((SVECTOR*)&mem->field_10);
+
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_24 = ((u32)Gp_LcgState >> 16) % 3 + 1;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_26 = (((u32)Gp_LcgState >> 16) & 1) + 1;
+        }
+        arg0->state = 1;
+    }
+    coord->coord.t[0] += mem->field_10;
+    coord->coord.t[1] += mem->field_12;
+    coord->coord.t[2] += mem->field_14;
+    coord->flg         = 0;
+    block->vec.vx      = *(u16*)&coord->workm.t[0];
+    block->vec.vy      = *(u16*)&coord->workm.t[1];
+    block->vec.vz      = *(u16*)&coord->workm.t[2];
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec);
+    gte_rtps_real();
+    gte_stsxy(&block->sxy);
+    gte_stflg(&block->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&block->otz);
+        block->otz = block->otz + 1;
+        prim       = (TILE*)D_80071190;
+        D_80071190 = (DR_TPAGE*)(prim + 1);
+        setlen(prim, 3);
+        setcode(prim, 0x60);
+        c        = 0xFF - (u16)mem->field_22 * 0x10;
+        prim->w  = mem->field_26;
+        prim->h  = mem->field_26;
+        prim->r0 = c;
+        prim->g0 = c >> mem->field_24;
+        prim->b0 = c >> 3;
+        prim->x0 = block->sxy.vx;
+        prim->y0 = block->sxy.vy;
+        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                prim);
+        Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+    }
+    *(u8**)G_SCRATCH_HEAD += 0x14;
+    mem->field_22++;
+    if (mem->field_22 >= 8) {
+        Gp_ReleaseState1CMem(mem, arg0);
+    }
+}
 
 void func_800F1A9C(Task* arg0)
 {

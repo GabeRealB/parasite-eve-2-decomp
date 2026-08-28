@@ -29941,3 +29941,71 @@ ahead of `field_8` in the source — the order the already-matched
 once and took the function to 100%. When several sibling `TextDrawReq` blocks
 all miss by the same shuffle, copy the field order from a matched neighbour
 before touching anything else.
+
+## Chain three LCG draws through `Gp_LcgState` itself, never through temporaries
+
+`func_800F1638` seeds `mem->field_10/12/14` from three consecutive
+`Gp_LcgState * 5 + 0x71357911` steps. Both obvious spellings fail:
+
+```c
+rng1 = Gp_LcgState * 5 + 0x71357911;   /* separate temps */
+mem->field_10 = 0x20 - (((u32)rng1 >> 16) & 0x3F);
+rng2 = rng1 * 5 + 0x71357911;
+...
+Gp_LcgState = rng1; Gp_LcgState = rng2; Gp_LcgState = rng3;
+```
+
+Grouping the three writes at the end lets GCC 2.8.1 delete the first two as
+redundant stores (only one `sw` survives), and interleaving
+`Gp_LcgState = rngN;` after each draw instead makes the scheduler hoist the
+whole nine-instruction multiply chain to the top of the block. The target
+interleaves draw / use / draw / use and parks all three `sw`s together late.
+Re-reading the global every time reproduces it exactly:
+
+```c
+Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+mem->field_10 = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
+Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+mem->field_12 = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
+Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+mem->field_14 = 0x20 - (((u32)Gp_LcgState >> 16) & 0x3F);
+```
+
+CSE still folds each read back to the register just stored, so there is one
+`lw` and three `sw`s, and the store keeps each draw anchored where it was
+written. This took the function from 84.8% to 98.2% in one edit.
+
+## Bump the scratch head in place (`-=`) rather than storing a precomputed block pointer
+
+Allocating from `G_SCRATCH_HEAD` as
+
+```c
+block = (GpEffTileScratch*)(*(u8**)G_SCRATCH_HEAD - 0x14);
+*(u8**)G_SCRATCH_HEAD = (u8*)block;
+```
+
+is one instruction short of the target and loads the caller's other fields
+first. The target has an extra `move s1, v0` and loads the scratch head before
+anything else, which comes from decrementing in place and re-reading:
+
+```c
+*(u8**)G_SCRATCH_HEAD -= 0x14;
+block = (GpEffTileScratch*)*(u8**)G_SCRATCH_HEAD;
+```
+
+The re-read is CSE'd into the copy, and the read-modify-write pins the `lw` to
+the top of the block. The matching release at the end is the mirror image,
+`*(u8**)G_SCRATCH_HEAD += 0x14;`, which re-materialises the `lui`/`ori` of
+0x1F8003FC after the intervening calls instead of burning a callee-saved
+register on it.
+
+## Brute-force the source order of independent primitive-field stores
+
+The last 70 differences in `func_800F1638` were one `sb prim->b0` scheduled two
+slots early. The five `TILE` field writes are independent as far as GCC's alias
+analysis is concerned (`u_char` vs `short` members), so the scheduler reorders
+them freely and source order only shifts the priorities. Rather than reasoning
+about it, script the permutations — write each candidate to its own `base_N.c`,
+run `./build.sh`, and print the scores. Nine orderings ranged from 95.8% to
+100%, and the winner (`w, h, r0, g0, b0`) is not the order the stores appear in
+the target (`w, r0, h, b0, g0`).

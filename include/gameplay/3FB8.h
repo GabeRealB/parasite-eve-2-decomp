@@ -367,6 +367,18 @@ typedef struct _GpEffBeamScratch {
 } GpEffBeamScratch;
 STATIC_ASSERT_SIZEOF(GpEffBeamScratch, 0x1C);
 
+/// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `func_800F1638`.
+/// `vec` is the coordinate's `workm.t[]` truncated to s16 and fed to
+/// `gte_ldv0`. `otz` receives `gte_stszotz`, `flag` `gte_stflg` and `sxy`
+/// `gte_stsxy` of the single RTPS that places the spark `TILE`.
+typedef struct _GpEffTileScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ DVECTOR sxy;
+} GpEffTileScratch;
+STATIC_ASSERT_SIZEOF(GpEffTileScratch, 0x14);
+
 /// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `func_800F4D24`.
 /// `vec0` is the coordinate's current `workm.t[]` truncated to s16 and
 /// `vec1` the position it held on the previous frame (`GpEffWork.field_18`
