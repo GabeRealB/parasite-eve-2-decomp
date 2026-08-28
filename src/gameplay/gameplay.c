@@ -4708,8 +4708,6 @@ s32 Gp_SpendMp(s32 arg0)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A7F6C);
-
 /// Same math as `Gp_WorldToLocal`, but inlined so the scratch-head address is
 /// rematerialised on every access: `out` receives `root->workm` transposed and
 /// multiplied by `arg0->workm`, with the translation delta rotated into
@@ -4739,7 +4737,6 @@ static __inline__ void coordToRoot(GsCOORDINATE2* arg0, GsCOORDINATE2* root, MAT
     TRANSPOSE_ROT_3X3(&tmp->mat, rootm)
 
     gte_MulMatrix0_real(&tmp->mat, world, out);
-    __asm__ volatile("" ::"r"(arg0));
 
     tmp->vec.vx = world->t[0] - rootm->t[0];
     tmp->vec.vy = world->t[1] - rootm->t[1];
@@ -4748,6 +4745,64 @@ static __inline__ void coordToRoot(GsCOORDINATE2* arg0, GsCOORDINATE2* root, MAT
     ApplyMatrixLV(&tmp->mat, vec, (VECTOR*)out->t);
 
     *(u8**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x30;
+}
+
+/// Points the active view at `arg0`: the transposed rotation goes to
+/// `D_80070E44` and the negated translation to `D_80070F10.coord.t`, with
+/// `arg1` (optional) stored as the world offset in `D_80070E90.coord.t`.
+/// Coordinates that are not direct children of the root are first folded to
+/// root space with `coordToRoot`.
+void func_800A7F6C(GsCOORDINATE2* arg0, VECTOR* arg1)
+{
+    register short          t4 asm("t4");
+    register short          t5 asm("t5");
+    register short          t6 asm("t6");
+    register MATRIX*        rot asm("t0");
+    register MATRIX*        localMtx asm("v0");
+    register MATRIX*        relMtx asm("s0");
+    register GsCOORDINATE2* parent asm("v1");
+    GsCOORDINATE2*          root;
+    GsCOORDINATE2           rel;
+
+    if (arg1 != NULL) {
+        D_80070E90.coord.t[0] = arg1->vx;
+        D_80070E90.coord.t[1] = arg1->vy;
+        D_80070E90.coord.t[2] = arg1->vz;
+    } else {
+        D_80070E90.coord.t[0] = 0;
+        D_80070E90.coord.t[1] = 0;
+        D_80070E90.coord.t[2] = 0;
+    }
+
+    parent = arg0->sub;
+    __asm__ volatile("" : "+r"(parent));
+    root = &D_80070F10;
+    if (parent == root) {
+        localMtx = &arg0->coord;
+        rot      = &D_80070E44;
+        __asm__ volatile("" : "+r"(localMtx), "+r"(rot));
+        TRANSPOSE_ROT_3X3(rot, localMtx)
+
+        root->coord.t[0] = -arg0->coord.t[0];
+        root->coord.t[1] = -arg0->coord.t[1];
+        root->coord.t[2] = -arg0->coord.t[2];
+    } else {
+        coordToRoot(arg0, root, &rel.coord);
+
+        rot    = &D_80070E44;
+        relMtx = &rel.coord;
+        __asm__ volatile("" : "+r"(rot), "+r"(relMtx));
+        TRANSPOSE_ROT_3X3(rot, relMtx)
+
+        root->coord.t[0] = -rel.coord.t[0];
+        root->coord.t[1] = -rel.coord.t[1];
+        root->coord.t[2] = -rel.coord.t[2];
+    }
+    arg0->flg = 0;
+
+    D_80070E90.flg = 0;
+    D_80070E40.flg = 0;
+    D_80070F10.flg = 0;
 }
 
 /// Spawns the type-0xE view task and points its coordinate at the inverse of

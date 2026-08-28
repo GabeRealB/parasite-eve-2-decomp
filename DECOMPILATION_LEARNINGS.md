@@ -27805,3 +27805,26 @@ chokes on the expanded `gte_ldv0`/`gte_stsxy`/… bodies
 macros has to be matched by hand. Also note the flag must be written `-j 4`
 with a space: `permute.sh` only recognises the literal token `-j`, so `-j4`
 falls through and is consumed as the function name.
+
+## A barrier inside a shared `static __inline__` changes the *caller's* register allocation
+
+`coordToRoot` in `src/gameplay/gameplay.c` ended with an
+`__asm__ volatile("" ::"r"(arg0));` that a previous match (`func_800A82C0`)
+needed. When `func_800A7F6C` was written against the same helper, the inlined
+copy of that barrier counted as one extra reference to *its* `arg0`, which
+pushed the parameter ahead of the `root = &D_80070F10;` local in
+`global_alloc`'s priority order. Every instruction matched, but `arg0` landed
+in `$s1` and `root` in `$s2` — exactly the reverse of the target. Deleting the
+barrier (still a 100% match for `func_800A82C0`) dropped `arg0` by one
+reference and flipped the pair, taking the score from 99.4% to 100%.
+
+The lesson is that scheduling barriers baked into a shared inline helper are
+not local to the call site that motivated them: re-check whether they are still
+required once a second caller is decompiled, instead of reaching for
+`register … asm("sN")` in the new function.
+
+Pinning is in fact the wrong tool for this shape. `register GsCOORDINATE2*
+coord asm("s2")` does put the pointer in `$s2`, but GCC then copies the hard
+register into a pseudo before doing address arithmetic on it, so
+`addiu $v0, $s2, 0x26` becomes `move $v1, $s2` + `addiu $v0, $v1, 0x26` and the
+function is one instruction long. Adjust the allocation priority instead.
