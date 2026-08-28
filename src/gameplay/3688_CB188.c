@@ -104,6 +104,10 @@ extern UiListItemFunc D_8010EA6C[];
 extern UiList         D_8010EA74;
 extern char           Gp_StrAreaEffect[];
 extern char           Gp_StrCastCost[];
+extern u8             D_8009720C[]; // "EXP"
+extern u8             D_80097220[]; // "MP"
+extern u8             Gp_StrCost[];
+extern u8             Gp_StrBonus[];
 extern char           Gp_StrAtpLoss[];
 extern u8*            D_8010F544[];
 extern u8*            D_8010F584;
@@ -152,6 +156,7 @@ extern UiObjectDesc   D_8010F6FC;
 extern UiObjectDesc   D_8010F718;
 extern UiObjectDesc   D_8010F788;
 extern UiObjectDesc   D_8010F7A4;
+extern UiObjectDesc   D_8010F7C0;
 extern UiObjectDesc   D_8010F7F8;
 extern UiObjectDesc   D_8010F840;
 extern UiObjectDesc   D_8010F868;
@@ -3214,7 +3219,157 @@ void func_800D2F68(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800D30CC);
+/// Level-up / strengthen dialog. Draws the "EXP / COST" and "MP / BONUS" rows
+/// for the slot selected by `Task::spawnArg1`, then watches the child prompts:
+/// choosing 0x33 pays the cost out of `Wip_SysConfig.field_8` and bumps the
+/// stored level in `Mc_SaveData.unknown_850`.
+void func_800D30CC(Task* arg0)
+{
+    u8            str[0x20];
+    TextDrawReq   req;
+    TextDrawReq   req2;
+    TextDrawReq   req3;
+    TextDrawReq   req4;
+    UiObject*     obj;
+    UiObject*     frame;
+    UiObject*     childObj;
+    Task*         child;
+    Task*         next;
+    s32           id;
+    s32           row2;
+    s32           col2;
+    s32           lvl2;
+    s32           row3;
+    s32           col3;
+    s32           lvl3;
+    s32           row;
+    s32           col;
+    s32           lvl;
+    s32           y;
+    s32           bonusIdx;
+    s32           x;
+    s32           cost;
+    WipSysConfig* cfg;
+    s32           price;
+
+    obj           = arg0->spawnArg2;
+    id            = arg0->spawnArg1;
+    obj->field_2E = 0;
+
+    if (arg0->state == 0) {
+        Ui_UpdateLayoutSize((UiPanel*)obj, 0, Ui_Scale15(2) + 1);
+        frame = func_800CD814(obj);
+        if (frame != NULL) {
+            frame->timer    = obj->timer - 8;
+            frame->field_E += 4;
+        }
+        Ui_SpawnFromDesc(&D_8010F7C0, id, 0, 1, obj);
+        arg0->state = arg0->state + 1;
+    }
+
+    x = 0x20;
+    y = (s16)obj->field_18 + 0xF;
+
+    req.x          = obj->baseX + x;
+    req.y          = (s16)(obj->baseY - 8) + y;
+    req.otIndex    = (s16)obj->drawOrder + 1;
+    req.field_8    = 0x606060;
+    req.glyphTable = 5;
+    req.centerMode = 2;
+    req.field_E    = 1;
+    func_8002E53C(&req, D_8009720C);
+
+    req2.x          = obj->baseX + x;
+    req2.y          = (s16)(obj->baseY - 2) + y;
+    req2.otIndex    = (s16)obj->drawOrder + 1;
+    req2.field_8    = 0x606060;
+    req2.glyphTable = 5;
+    req2.centerMode = 2;
+    req2.field_E    = 1;
+    func_8002E53C(&req2, Gp_StrCost);
+
+    row  = ((id + 1) & 0x30) >> 4;
+    col  = ((id + 1) & 0xC) >> 2;
+    lvl  = (id + 1) & 3;
+    cost = Gp_IdParamHi[(row * 3 + col) * 3 + lvl].field[0];
+    if (Mc_SaveData.field_F > 0) {
+        cost = (cost * 4) / 5;
+    } else if (Mc_SaveData.field_E > 0) {
+        cost = (cost * 2) / 5;
+    }
+    Text_DrawPrompt(obj, x + 0x30, y, Text_ItoaSigned(str, cost & 0xFFFF), 0x606060, 3, 2);
+
+    y += 0xF;
+
+    req3.x          = obj->baseX + x;
+    req3.y          = (s16)(obj->baseY - 8) + y;
+    req3.otIndex    = (s16)obj->drawOrder + 1;
+    req3.field_8    = 0x606060;
+    req3.glyphTable = 5;
+    req3.centerMode = 2;
+    req3.field_E    = 1;
+    func_8002E53C(&req3, Gp_StrBonus);
+
+    req4.x          = obj->baseX + x;
+    req4.y          = (s16)(obj->baseY - 2) + y;
+    req4.otIndex    = (s16)obj->drawOrder + 1;
+    req4.field_8    = 0x606060;
+    req4.glyphTable = 5;
+    req4.centerMode = 2;
+    req4.field_E    = 1;
+    func_8002E53C(&req4, D_80097220);
+
+    bonusIdx = 1;
+    row2     = ((id + 1) & 0x30) >> 4;
+    col2     = ((id + 1) & 0xC) >> 2;
+    lvl2     = (id + 1) & 3;
+    Text_DrawPrompt(obj, x + 0x30, y, Text_ItoaSigned(str, Gp_IdParamHi[(row2 * 3 + col2) * 3 + lvl2].field[bonusIdx]),
+                    0x606060, 3, 2);
+
+    if (arg0->firstChild != NULL) {
+        child = arg0->firstChild;
+        do {
+            childObj = child->spawnArg2;
+            next     = child->nextSibling;
+            row3     = ((id + 1) & 0x30) >> 4;
+            col3     = ((id + 1) & 0xC) >> 2;
+            lvl3     = (id + 1) & 3;
+            if (childObj->field_2E == 6) {
+                if (childObj->field_2C == 0x33) {
+                    cfg   = &Wip_SysConfig;
+                    price = Gp_IdParamHi[(row3 * 3 + col3) * 3 + lvl3].field[0];
+                    if (Mc_SaveData.field_F > 0) {
+                        price = (price * 4) / 5;
+                    } else if (Mc_SaveData.field_E > 0) {
+                        price = (price * 2) / 5;
+                    }
+                    if (cfg->field_8 < (price & 0xFFFF)) {
+                        Ui_SpawnFromDesc(&D_8010F788, 0xC, 1, 1, obj);
+                        Ui_TeardownTree(childObj, childObj->owner);
+                    } else {
+                        price = Gp_IdParamHi[(row3 * 3 + col3) * 3 + lvl3].field[0];
+                        if (Mc_SaveData.field_F > 0) {
+                            price = (price * 4) / 5;
+                        } else if (Mc_SaveData.field_E > 0) {
+                            price = (price * 2) / 5;
+                        }
+                        cfg->field_8                                                       -= price & 0xFFFF;
+                        Mc_SaveData.unknown_850[((id & 0xC) >> 2) + ((id & 0x30) >> 4) * 3] = (id & 3) + 1;
+                        Gp_RecalcMaxMp();
+                        cfg->field_1c = cfg->field_1e;
+                        D_80114BEC    = cfg->field_1c;
+                        obj->field_2E = 9;
+                    }
+                } else {
+                    obj->field_2E = 9;
+                }
+            } else if (childObj->field_2E == 9) {
+                obj->field_2E = 9;
+            }
+            child = next;
+        } while (child != arg0->firstChild);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800D3660);
 

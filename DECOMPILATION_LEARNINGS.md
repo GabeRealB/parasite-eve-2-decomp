@@ -29820,3 +29820,124 @@ block = (GpEffLineScratch*)*(void**)G_SCRATCH_HEAD;
 
 The second form cost nothing semantically and moved `func_800F4D24` from
 95.2% to 97.3% purely by swapping which locals landed in `$s0` / `$s1`.
+
+## Preheader `move` copies of invariants: recompute them in *fresh* locals at the top of the loop body
+
+`func_800D30CC` computes a packed index (`row`/`col`/`lvl` from `id + 1`) before
+a `do`/`while` and again inside it. The target's preheader is
+
+```
+beqz   a0, end
+ move  s2, s0          # row
+move   s7, s1          # col
+move   s5, s8          # lvl
+lui    v0, %hi(Mc_SaveData)
+addiu  s3, v0, %lo(Mc_SaveData)
+```
+
+Three `move`s means three *new* pseudos, not the pre-loop ones reused. Reusing
+the same C locals inside the loop gives no copies at all (one pseudo, one hard
+register). The shape that reproduces it is: declare separate locals and assign
+them **unconditionally at the top of the loop body**
+
+```c
+do {
+    childObj = child->spawnArg2;
+    next     = child->nextSibling;
+    row3     = ((id + 1) & 0x30) >> 4;   /* fresh locals */
+    col3     = ((id + 1) & 0xC) >> 2;
+    lvl3     = (id + 1) & 3;
+    if (childObj->field_2E == 6) { ... Gp_IdParamHi[(row3 * 3 + col3) * 3 + lvl3] ... }
+```
+
+`loop.c` hoists those three single-set invariants into the preheader, then cse2
+folds each into a copy of the identical pre-loop value — exactly the `move`s.
+Two placement rules matter:
+
+- Put the assignments **inside** the body's `if` and they are *not* hoisted
+  (they are then used from more than one basic block on a path that is not
+  always executed), so you get neither the copies nor the recomputation.
+- Only the assignments themselves are hoisted, not the address chain built from
+  them. That is what keeps `sll/addu … lui %hi(Gp_IdParamHi)` *inside* the loop,
+  once per branch, instead of being hoisted and CSE'd with a pre-loop copy.
+
+## A variable field index keeps `+ K` as its own `addu`, out of the load displacement
+
+The target reads the second table column as
+
+```
+sll   v0, v0, 0x4
+addu  v0, v0, s2          # s2 == 2, the centerMode constant
+lui   t0, %hi(Gp_IdParamHi)
+addiu t0, t0, %lo(Gp_IdParamHi)
+addu  v0, v0, t0
+lhu   a1, 0(v0)
+```
+
+Plain `Gp_IdParamHi[i].field[1]` cannot produce that: `get_inner_reference`
+returns a constant `bitpos`, so expand emits `base + i*16` and folds the `+ 2`
+into the MEM, giving `lhu a1, 2(v0)`. Writing the flat form
+`Gp_IdParamHi->field[i * 8 + 1]` is worse — `fold` proves the low bits are free
+and turns the `+ 2` into `or v0, v0, s2`.
+
+Use a variable field index instead:
+
+```c
+bonusIdx = 1;
+... Gp_IdParamHi[(row * 3 + col) * 3 + lvl].field[bonusIdx]
+```
+
+The offset stays variable, so expand builds `i*16 + bonusIdx*2` as its own add
+insn; RTL constant propagation collapses it to `addiu v0, v0, 2` and CSE then
+substitutes the register that already holds `2`, which is what blocks combine
+from folding it back into the load. (The already-matched `func_800D50D4` in the
+same TU has the same shape with a real parameter.)
+
+## An extra preheader `move` means the guard reloads the list head
+
+```
+lw   v0, 0xc(t0)
+beqz v0, end
+ move s2, s0
+move a0, v0            # <- extra copy
+```
+
+`task = arg0->firstChild; if (task != NULL)` loads straight into the loop
+register and has no copy. Testing the field and *then* reading it again keeps
+the guard's value in its own pseudo, and CSE turns the second load into the
+copy:
+
+```c
+if (arg0->firstChild != NULL) {
+    task = arg0->firstChild;
+    do { ... } while (task != arg0->firstChild);
+}
+```
+
+## Assign a global's address to a local *inside* the conditional to stop loop.c hoisting it
+
+`Wip_SysConfig.field_8` accessed directly from inside a loop body gets its
+`lui`/`addiu` hoisted to the preheader, costing a callee-saved register there
+and shifting every other allocation. The target computes it inside the
+`if (childObj->field_2C == 0x33)` arm instead. Writing
+
+```c
+if (childObj->field_2C == 0x33) {
+    cfg = &Wip_SysConfig;
+    ... cfg->field_8 ...
+```
+
+pins the address to that block for the same reason fresh conditional locals are
+not hoisted. Note the asymmetry: `Mc_SaveData`, read from both arms, *is* still
+hoisted — so convert only the globals the target keeps inside.
+
+## `TextDrawReq` field order is `x, y, otIndex, field_8, glyphTable, centerMode, field_E`
+
+The four request blocks in `func_800D30CC` were the last mismatch at 96%: the
+`sw field_8` / `sb glyphTable/centerMode/field_E` group scheduled three slots
+too early and `li s0, 1` floated to the top of the block. Moving `otIndex`
+ahead of `field_8` in the source — the order the already-matched
+`func_800D2E04` / `func_800D4FD0` in the same TU use — fixed all four blocks at
+once and took the function to 100%. When several sibling `TextDrawReq` blocks
+all miss by the same shuffle, copy the field order from a matched neighbour
+before touching anything else.
