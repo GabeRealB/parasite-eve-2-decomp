@@ -28351,3 +28351,75 @@ position of a `lbu`/`li` pair, permute the individual field stores rather
 than the read that looks misplaced — the constants that CSE together are
 what the register allocator actually sees. decomp-permuter finds this in
 seconds; hand-reordering the "obvious" statement does not.
+
+## Zero-clamp with three `move`s: copy out, clamp the copy, copy back
+
+`if (x < 0) { x = 0; }` on a value that is already in the register the
+comparison wants gives a single in-place `move`, and the delay slot of the
+`bgez` then gets a *duplicate* of the join block's first instruction:
+
+```
+bgez  v1, .L
+ slt  v0, s5, v1      /* duplicated from .L */
+move  v1, zero
+.L:
+slt   v0, s5, v1
+```
+
+A target that instead reads
+
+```
+bgez  v1, .L
+ move v0, v1          /* hoisted from before the branch */
+move  v0, zero
+.L:
+move  v1, v0
+slt   v0, s5, v1
+```
+
+has three live pseudos: the raw value, the clamped copy, and a write-back
+into the raw value's register. Two variables are not enough — `temp = x;
+if (x < 0) temp = 0;` still coalesces, because `temp` dies immediately.
+What survives is copying *out* and then *back into the same variable*, so
+the raw value is still live where the copy is defined and the two conflict:
+
+```c
+push = rec->dist - SquareRoot0(...);
+val  = push;
+if (push < 0) {
+    val = 0;
+}
+push = val;              /* the `move v1, v0` */
+if (best < push) {
+    best = push;
+}
+```
+
+Once the copy exists before the branch, GCC's `fill_simple_delay_slots`
+prefers it over duplicating from the branch target, so the extra `slt`
+disappears too. `func_80109BB4` is the example.
+
+## Hoisting a loop-invariant scratch field address flips callee-saved coloring
+
+A loop that walks a record array with one pointer while reading a group of
+fields at a fixed offset makes GCC build a second induction variable for
+that group (`addiu $s2, $s1, 2`). Which of the two lands in the lower
+callee-saved register is decided by allocno priority, and with nine `$s`
+registers live it can come out swapped even when the instruction stream is
+otherwise identical — pinning either pointer with `register … asm("s1")`
+makes things much worse (91% from 97%).
+
+What fixed it was adding a loop-invariant address as an ordinary local
+assigned at the top of the loop body:
+
+```c
+for (i = 0; i < 0x12; rec++, i++) {
+    delta = &s->delta;          /* &scratch->field, invariant */
+    ...
+        VectorNormal(delta, &s->unit);
+```
+
+The extra pseudo changes the priority order and both induction pointers get
+the target's registers (97.4% → 98.8%). decomp-permuter found this as a
+`new_var` hoist; it is worth trying by hand whenever the only remaining
+diff is a swap of two callee-saved registers.

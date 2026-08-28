@@ -33,6 +33,7 @@ extern TaskFuncTable3 D_800977FC;
 extern u16            Gp_WeaponIdBase[];
 extern GpAnimBlk*     Gp_PlayerAnimBlkTbl[];
 extern u16            D_80112DF4[];
+extern u16            D_80113F9C[];
 extern u16            Gp_AllyIdBase[];
 extern void*          Gp_AnimBlkTbl[];
 extern s32            Gp_LcgState;
@@ -1659,9 +1660,9 @@ void func_8010154C(void)
     coord->flg = 0;
     Gp_UpdateCoord(coord);
     if ((s8)actor->field_986 != 0) {
-        ((SVECTOR*)(head - 8))->vx = actor->field_30;
-        vec->vy                    = actor->field_34;
-        vec->vz                    = actor->field_38;
+        ((SVECTOR*)(head - 8))->vx = (u16)actor->field_30.vx;
+        vec->vy                    = (u16)actor->field_30.vy;
+        vec->vz                    = (u16)actor->field_30.vz;
     } else {
         ((SVECTOR*)(head - 8))->vx =
             (u16)coord->workm.m[0][2] * (s8)((volatile ActorDirByte*)actor)->field_973;
@@ -5896,7 +5897,108 @@ void func_80109A1C(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80109BB4);
+void func_80109BB4(GpActorWork* arg0, GpRec18* arg1)
+{
+    void**             scratch;
+    u8*                head;
+    GpPushBackScratch* s;
+    GameActor*         actor;
+    GsCOORDINATE2*     coord;
+    GpHitRec*          rec;
+    GpObj*             obj;
+    VECTOR*            delta;
+    s32                i;
+    s32                best;
+    s32                push;
+    s32                id;
+    s32                val;
+
+    rec      = (GpHitRec*)arg1;
+    best     = 0;
+    i        = 0;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    *scratch = head - 0x40;
+    s        = (GpPushBackScratch*)(head - 0x40);
+    actor    = arg0->actor;
+    coord    = (GsCOORDINATE2*)arg0->extra->field_8;
+
+    for (i = 0; i < 0x12; rec++, i++) {
+        delta = &s->delta;
+        if (rec->flags & 1) {
+            switch (rec->kind) {
+                case 0:
+                case 1:
+                case 2:
+                    break;
+                case 3:
+                    if ((s8)actor->field_992 != 0) {
+                        break;
+                    }
+                    id = rec->id;
+                    if (id < 0x46 && D_80113F9C[id] == 1) {
+                        obj = &((GpObj*)actor->field_AC)[(u8)rec->flags >> 4];
+                        gte_SetRotMatrix(&((GsCOORDINATE2*)obj->field_8)->workm);
+                        gte_ldv0(&obj->field_10);
+                        gte_rtv0_real();
+                        gte_stlvnl(&s->delta);
+                        s->pos.vx = ((GsCOORDINATE2*)obj->field_8)->workm.t[0] +
+                                    s->delta.vx;
+                        s->pos.vy =
+                            ((GsCOORDINATE2*)obj->field_8)->workm.t[1] + s->delta.vy;
+                        s->pos.vz =
+                            ((GsCOORDINATE2*)obj->field_8)->workm.t[2] + s->delta.vz;
+                        s->delta.vx = s->pos.vx - rec->x;
+                        s->delta.vy = s->pos.vy - rec->y;
+                        s->delta.vz = s->pos.vz - rec->z;
+                        push        = rec->dist - SquareRoot0(s->delta.vx * s->delta.vx +
+                                                              s->delta.vy * s->delta.vy +
+                                                              s->delta.vz * s->delta.vz);
+                        val         = push;
+                        if (push < 0) {
+                            val = 0;
+                        }
+                        push = val;
+                        if (best < push) {
+                            best = push;
+                            VectorNormal(delta, &s->unit);
+                            ApplyTransposeMatrixLV(&Gp_GridParams->field_0->workm,
+                                                   &s->unit, &s->local);
+                        }
+                    }
+                    break;
+                case 4:
+                    func_8010B2D4(arg0, (GpIdRec*)rec, (u8)rec->flags >> 4);
+                    break;
+                case 5:
+                    func_8010B348(arg0, (GpIdRec*)rec, (u8)rec->flags >> 4);
+                    break;
+            }
+        }
+    }
+
+    if (best > 0) {
+        actor->field_986   = 1;
+        actor->field_30.vx = coord->workm.t[0];
+        actor->field_30.vy = coord->workm.t[1];
+        actor->field_30.vz = coord->workm.t[2];
+        s->pos.vx          = coord->coord.t[0];
+        s->pos.vz          = coord->coord.t[2];
+        coord->coord.t[0] += (best * s->local.vx) >> 12;
+        coord->coord.t[2] += (best * s->local.vz) >> 12;
+        coord->flg         = 0;
+        Gp_UpdateCoord(coord);
+        actor->field_30.vx = coord->workm.t[0] - actor->field_30.vx;
+        actor->field_30.vy = coord->workm.t[1] - actor->field_30.vy;
+        actor->field_30.vz = coord->workm.t[2] - actor->field_30.vz;
+        VectorNormal(&actor->field_30, &actor->field_30);
+        coord->coord.t[0] = s->pos.vx + ((best * s->local.vx) >> 14);
+        coord->coord.t[2] = s->pos.vz + ((best * s->local.vz) >> 14);
+        coord->flg        = 0;
+        Gp_UpdateCoord(coord);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x40;
+}
 
 void func_80109FC4(GpActorWork* arg0)
 {

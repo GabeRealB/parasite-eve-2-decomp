@@ -417,6 +417,40 @@ typedef struct _GpTurnScratch {
 } GpTurnScratch;
 STATIC_ASSERT_SIZEOF(GpTurnScratch, 0x14);
 
+/// `GameActor.field_17C` collision record (a `GpRec18`) as `func_80109BB4`
+/// reads it: `flags` bit 0 marks the slot occupied and its high nibble is
+/// the index of the `GpObj` node in `GameActor.field_AC` that produced the
+/// hit, `dist` is the contact radius, and `id` / `kind` are the low / high
+/// halves of `GpRec18.field_4`. `kind` 3 is the push-back case (only for
+/// `id < 0x46` entries whose `D_80113F9C` entry is 1), 4 and 5 dispatch to
+/// `func_8010B2D4` / `func_8010B348`. `x` / `y` / `z` are the world-space
+/// contact point (`GpRec18.field_8`).
+typedef struct _GpHitRec {
+    /* 0x00 */ u16  flags;
+    /* 0x02 */ s16  dist;
+    /* 0x04 */ u16  id;
+    /* 0x06 */ u16  kind;
+    /* 0x08 */ s16  x;
+    /* 0x0A */ s16  y;
+    /* 0x0C */ s16  z;
+    /* 0x0E */ byte pad_E[0xA];
+} GpHitRec;
+STATIC_ASSERT_SIZEOF(GpHitRec, 0x18);
+
+/// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `func_80109BB4`.
+/// `pos` is the world position of the colliding `GpObj` (its 0x10 SVECTOR
+/// rotated by `field_8->workm` plus that matrix's translation), later
+/// reused to save the actor's pre-push `coord.t[0]` / `t[2]`. `delta` is
+/// `pos` minus the contact point, `unit` its `VectorNormal`, and `local`
+/// that direction in grid space via `Gp_GridParams->field_0->workm`.
+typedef struct _GpPushBackScratch {
+    /* 0x00 */ VECTOR pos;
+    /* 0x10 */ VECTOR delta;
+    /* 0x20 */ VECTOR local;
+    /* 0x30 */ VECTOR unit;
+} GpPushBackScratch;
+STATIC_ASSERT_SIZEOF(GpPushBackScratch, 0x40);
+
 /// 0x68-byte scratch from `G_SCRATCH_HEAD` used by `func_8010BE5C`.
 /// `vec` overlays a `VECTOR3` for `func_80103C74` / `ratan2`. `rot` is
 /// the zeroed `SVECTOR` passed to `func_801040A0`. The remaining 0x50

@@ -163,12 +163,7 @@ typedef struct _GameActor {
     /* 0x024 */ s32                 field_24;
     /* 0x028 */ s32                 field_28;
     /* 0x02C */ byte                pad_2C[4];
-    /* 0x030 */ u16                 field_30; // lhu; copied to scratch SVECTOR when field_986 is set
-    /* 0x032 */ byte                pad_32[2];
-    /* 0x034 */ u16                 field_34;
-    /* 0x036 */ byte                pad_36[2];
-    /* 0x038 */ u16                 field_38;
-    /* 0x03A */ byte                pad_3A[6];
+    /* 0x030 */ VECTOR              field_30; // push-back dir (func_80109BB4); low halves go to a scratch SVECTOR
     /* 0x040 */ s32                 field_40;
     /* 0x044 */ s32                 field_44;
     /* 0x048 */ s32                 field_48;
