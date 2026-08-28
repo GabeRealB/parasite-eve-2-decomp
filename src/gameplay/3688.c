@@ -1107,7 +1107,115 @@ void func_800C1960(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C1D18);
+void func_800C1D18(Task* arg0)
+{
+    u8          buf[8];
+    TextDrawReq req;
+    UiObject*   obj;
+    SPRT*       p;
+    u8*         levels;
+    s32         startX;
+    s32         colStep;
+    s32         row;
+    s32         col;
+    s32         slot;
+    s32         x;
+    s32         y;
+    s32         rowOff;
+    s32         show;
+    s32         panelY;
+    s32         level;
+    s32         three;
+    s32         capY;
+    u8*         colLevels;
+    s32         iconCol;
+    s32         iconSlot;
+    s32         baseSlot;
+    s32         markOff;
+
+    obj           = arg0->spawnArg2;
+    obj->field_2E = 0;
+    startX        = obj->field_1C + 3;
+    colStep       = ((s16)obj->field_1E - obj->field_1C) / 4;
+    Ui_DrawTitle((UiPanel*)obj, Gp_StrPEnergy);
+
+    row    = 0;
+    three  = 3;
+    rowOff = 2;
+    panelY = (s16)obj->field_1A;
+    for (; row < 3; row++) {
+        for (col = 0, y = panelY - rowOff, x = startX, slot = 2; col < 4; col++) {
+            levels = Gp_GetAttachLevels() + (slot - row);
+            show   = 0;
+            if (row == 0) {
+                level = levels[0];
+                if ((level > 0) || ((levels[-1] == three) && (levels[-2] == three))) {
+                    show = 1;
+                }
+            }
+            if ((row != 0) || (show != 0)) {
+                req.x          = obj->baseX + 0xC + x;
+                req.y          = obj->baseY + y;
+                req.otIndex    = (s16)obj->drawOrder + 1;
+                req.field_8    = 0x606060;
+                req.glyphTable = 0;
+                req.centerMode = 0;
+                req.field_E    = three;
+                func_8002E53C(&req, Text_ItoaSigned(buf, levels[0]));
+            }
+            x    += colStep;
+            slot += 3;
+        }
+        rowOff += 9;
+    }
+
+    for (iconCol = 0; iconCol < 4; iconCol++) {
+        p          = (SPRT*)D_80071190;
+        D_80071190 = (DR_TPAGE*)(p + 1);
+        setlen(p, 4);
+        *(u32*)&p->r0 = 0x606060;
+        setcode(p, 0x64);
+        addPrim(Gpu_CurrentOt + (s16)obj->drawOrder + 1, p);
+        p->x0   = D_8010E844[iconCol].xOffset + (obj->baseX + startX + iconCol * colStep);
+        p->y0   = obj->baseY + panelY - 0x23;
+        p->w    = (iconCol == 0) ? 0x18 : 0x20;
+        p->h    = 8;
+        p->u0   = D_8010E844[iconCol].u;
+        p->v0   = D_8010E844[iconCol].v;
+        p->clut = ((iconCol == 0) || (iconCol == 3)) ? 0x3C85 : 0x3C86;
+
+        iconSlot = (iconCol + 1) * 3 - 1;
+        for (row = 0, baseSlot = iconSlot, markOff = 6; row < 3; row++) {
+            colLevels = Gp_GetAttachLevels();
+            show      = 0;
+            if (row == 0) {
+                colLevels += baseSlot;
+                if ((colLevels[0] != 0) ||
+                    ((colLevels[-1] == 3) && (colLevels[-2] == 3))) {
+                    show = 1;
+                }
+            }
+            if ((row != 0) || (show != 0)) {
+                p          = (SPRT*)D_80071190;
+                D_80071190 = (DR_TPAGE*)(p + 1);
+                p->x0      = obj->baseX + startX + iconCol * colStep;
+                capY       = obj->baseY + panelY - markOff;
+                p->w       = 8;
+                p->h       = 8;
+                p->u0      = 0xA8;
+                p->v0      = 0x88;
+                p->clut    = 0x3C02;
+                setlen(p, 4);
+                *(u32*)&p->r0 = 0x606060;
+                setcode(p, 0x64);
+                p->y0 = capY;
+                addPrim(Gpu_CurrentOt + (s16)obj->drawOrder + 1, p);
+            }
+            markOff += 9;
+        }
+    }
+    Ui_InsertDrawTPage((s16)obj->drawOrder + 1, 0);
+}
 
 void func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3)
 {

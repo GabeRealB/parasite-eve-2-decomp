@@ -131,6 +131,20 @@ extern u8 Gp_MapRoomId;
 /// Room-id offset applied by `Gp_EnqueueMapRoomCd` (0, or 1 / 3 for two flagged rooms).
 extern u8 Gp_MapRoomOff;
 
+/// Per-column icon descriptor for the P.Energy attach panel (`func_800C1D18`).
+/// One 3-byte entry per weapon/armour column: `u`/`v` are the SPRT texture
+/// coordinates of the column caption and `xOffset` shifts the caption right of
+/// the column origin. The table `D_8010E844` holds the four columns.
+typedef struct _GpEnergyIcon {
+    /* 0x0 */ u8 u;
+    /* 0x1 */ u8 v;
+    /* 0x2 */ u8 xOffset;
+} GpEnergyIcon;
+STATIC_ASSERT_SIZEOF(GpEnergyIcon, 3);
+
+/// Column caption table drawn across the top of the P.Energy attach panel.
+extern GpEnergyIcon D_8010E844[4];
+
 void Gp_DrawItemLabel(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5);
 void Gp_DrawQty(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void Gp_SetPreviewItem(s32 arg0, s32 arg1);

@@ -28687,3 +28687,79 @@ pointer emit `addiu v0, v1, -N`. When `head` is dead after the final one, GCC
 (`register s32* otzp asm("v0")`) restores `$v0` — but both are scheduling
 barriers or pins, so prefer to fix the surrounding code first and re-check
 whether the problem disappears on its own. In `func_800EF0E0` it did.
+
+## `u8` load compared `> 0` folds to `bnez`; assign through an `s32` for `bgtz`
+
+GCC 2.8.1 knows the result of an `lbu` is non-negative, so `if (p[0] > 0)` on a
+`u8*` (or `char*` under `-funsigned-char`) folds to `beq/bne …, $zero`. A cast
+does not help — `(s32)p[0] > 0` still folds. Storing through a plain `s32`
+local first defeats the fold and produces the `bgtz` the target uses:
+
+```c
+if (levels[0] > 0)      /* bnez */
+s32 level = levels[0];
+if (level > 0)          /* bgtz */
+```
+
+The temp does not cost a register when the compare and a later re-read of
+`p[0]` sit in different basic blocks — GCC 2.8.1's CSE is per extended basic
+block, so the later use re-emits its own `lbu`, exactly as in `func_800C1D18`.
+
+## Preheader ordering tells you which initialisations are loop-generated
+
+In a `for (init; cond; incr)` GCC expands `init`, *then* the loop-begin note,
+and both `move_movables` (hoisted invariants) and `strength_reduce` (derived
+induction-variable initialisations) insert immediately before that note. So in
+the preheader the order is always
+
+```
+[source statements / for-init]  [hoisted invariants]  [giv initialisations]
+```
+
+Read the target backwards with that rule. An assignment that appears *before*
+the hoisted `lui`s is a plain statement or a `for`-init; one that appears
+*after* them cannot be — it has to be a giv, so rewrite that accumulator as a
+function of the loop counter. In `func_800C1D18` the second loop nest needed
+
+```c
+for (col = 0; col < 4; col++) {
+    …
+    p->x0 = tab[col].xOffset + (obj->baseX + startX + col * colStep);
+```
+
+instead of an `x += step` accumulator to move `move s6, s4` after
+`lui t0, %hi(D_80071190)`. The same rule explained the outer loop: because the
+constant `3` and the `lh` of the panel height were emitted *after* the counter
+init, the counter init had to be a bare statement (`row = 0; three = 3;
+rowOff = 2; … for (; row < 3; row++)`) rather than a `for (row = 0, …)` header.
+
+Giv initialisations are emitted in reverse discovery order, so the order of the
+first *use* of each derived variable in the loop body controls the order of the
+`li` / `lui` block that follows the invariants.
+
+## `j * 3 + 2` loses the `+ 2` to the use site; write `(j + 1) * 3 - 1`
+
+Expanding `k = j * 3 + 2` gives RTL `t = j * 3; k = t + 2`, so `strength_reduce`
+records *two* givs and `combine_givs` keeps the `add_val == 0` one, emitting
+`move t1, s4` in the preheader and `addiu s7, t1, 2` at the use. Writing the
+same value so the constant folds into a single giv keeps it in the
+initialisation:
+
+```c
+slot = j * 3 + 2;          /* move t1, s4 …  addiu s7, t1, 2 */
+slot = (j + 1) * 3 - 1;    /* li   t1, 2  …  move  s7, t1    */
+```
+
+The target's `li t1, 2` / `move s7, t1` pair is the tell: a giv whose preheader
+init is the *non-zero* constant means the add_val survived combining.
+
+## Give the second loop nest its own locals
+
+Reusing one set of counters/pointers across two independent loop nests forces
+one pseudo per name across the whole function and pins the allocator. Declaring
+separate locals for the second nest lets GCC coalesce them into whatever
+callee-saved register is free per nest — in `func_800C1D18` that alone moved the
+score from 90% to 95% and restored the target's 0x68 frame (`k` living in a
+caller-saved `$t1` with an explicit spill slot around the call). Conversely,
+scratch pointers that the target keeps in the *same* register across both nests
+(here the `SPRT*`) should stay one variable.
