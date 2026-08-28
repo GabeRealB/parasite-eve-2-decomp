@@ -1000,7 +1000,102 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FD49C);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FDB18);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FE034);
+void func_800FE034(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* parent;
+    MATRIX*        m;
+    s16            flag;
+    s16            step;
+    s32            temp;
+    s32            one;
+    s32            span;
+    s16            divisor;
+    s16            half;
+    s32            count;
+    s32            i;
+
+    mem   = arg0->spawnArg2;
+    flag  = Gp_State1C->field_4;
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    if (flag >= 2) {
+        if (flag < 4) {
+            return;
+        }
+        goto release;
+    }
+    if (arg0->state == 0) {
+        parent               = mem->field_8;
+        one                  = ONE;
+        *(s32*)&coord->coord = one;
+        coord->sub           = parent;
+        m                    = &coord->coord;
+        *(s32*)&m->m[0][2]   = 0;
+        *(s32*)&m->m[1][1]   = one;
+        *(s32*)&m->m[2][0]   = 0;
+        m->m[2][2]           = one;
+        coord->coord.t[0]    = mem->field_18;
+        coord->coord.t[1]    = mem->field_1A;
+        coord->coord.t[2]    = mem->field_1C;
+        coord->flg           = 0;
+        arg0->state          = 1;
+        mem->field_24        = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0;
+        temp                 = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+        step                 = temp;
+        mem->field_20        = temp;
+        if (step != 1) {
+            step = step * 3;
+        } else {
+            step = 1;
+        }
+        mem->field_26 = step;
+        mem->field_28 = step * 2;
+        mem->field_2A = mem->field_24 / 1280;
+    }
+    Gp_UpdateCoord(coord);
+    if (Gp_State1C->field_4 != 0) {
+        return;
+    }
+    if (mem->field_22 >= mem->field_28) {
+    release:
+        Gp_ReleaseState1CMem(mem, arg0);
+        return;
+    }
+    span        = mem->field_24 >> 1;
+    half        = (u32)span >> 1;
+    divisor     = span;
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    if (((u32)Gp_LcgState >> 16) & 1) {
+        count = mem->field_2A;
+    } else {
+        count = 1;
+    }
+    for (i = 0; i < count; i++) {
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        mem->field_10 = ((s32)((u32)Gp_LcgState >> 16) % divisor) - half;
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        mem->field_12 = (s32)((u32)Gp_LcgState >> 16) % divisor;
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        mem->field_14 = ((s32)((u32)Gp_LcgState >> 16) % divisor) - half;
+        if (mem->field_22 < mem->field_26) {
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if (mem->field_22 < (s32)((u32)Gp_LcgState >> 16) % mem->field_28) {
+                func_800EA478(0x60080, coord, (mem->field_10 & 0x10000) | 0x300,
+                              (SVECTOR*)&mem->field_10);
+            } else {
+                func_800EA478(0x6008D, coord, 0x300, (SVECTOR*)&mem->field_10);
+            }
+        } else {
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if (((u32)Gp_LcgState >> 16) & 1) {
+                func_800EA478(0x60070, coord, (mem->field_24 >> 2) + 0xC0013200,
+                              (SVECTOR*)&mem->field_10);
+            }
+        }
+    }
+    mem->field_22++;
+}
 
 void func_800FE41C(Task* arg0)
 {

@@ -27985,3 +27985,79 @@ s        = (GpPushScratch*)(head - 0x40);
 stays in `$v0`": there the `sw` must use the alloc temp, here it must use the
 block copy, so check which register the target's `sw` reads before picking a
 spelling.
+
+## Narrow a scratch local to `s16` to flip which chain `-fschedule-insns` runs first
+
+When a basic block holds two independent dependency chains, GCC's scheduler
+picks one by priority and there is no source ordering that changes its mind —
+moving the statements around produces byte-identical output. In `func_800FE034`
+the block computes a spread from `mem->field_24` *and* advances the global LCG:
+
+```c
+span        = mem->field_24 >> 1;
+half        = (u32)span >> 1;          /* u32 -> LCG chain scheduled first */
+Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+```
+
+The target interleaves the `lhu`/`sll`/`sra`/`srl` of the spread *into* the
+`lw`/`sll`/`addu`/`sw` of the LCG, i.e. the short chain goes first. Swapping the
+two statements, hoisting the constant, using a pointer to the global, and
+`store-then-reload` all emit exactly the same 14 instructions in the wrong
+order. Declaring the last value of the short chain one size narrower fixes it:
+
+```c
+s16 half;                              /* not u32 / s32 */
+half = (u32)span >> 1;
+```
+
+The truncation is provably a no-op so no `sll`/`sra` pair is emitted — the
+instruction stream is unchanged — but the narrower pseudo changes the
+scheduler's decision and the whole block reorders to match. Widening the chain
+instead (`half = span; half >>= 1;`) also flips the order but costs a real
+`move`, so it only gets to ~99%. Try the type change before the permuter.
+
+## Interleave the stores to keep repeated writes to the same global
+
+Three back-to-back advances of an LCG global collapse to a single `sw`: GCC
+2.8.1 deletes stores to a global that are overwritten later in the same basic
+block, even though it CSEs the reads into one `lw` and chains the arithmetic in
+registers.
+
+```c
+/* Only the last `sw Gp_LcgState` survives */
+Gp_LcgState = Gp_LcgState * 5 + K;
+x = ((u32)Gp_LcgState >> 16) % n;
+Gp_LcgState = Gp_LcgState * 5 + K;
+y = ((u32)Gp_LcgState >> 16) % n;
+Gp_LcgState = Gp_LcgState * 5 + K;
+z = ((u32)Gp_LcgState >> 16) % n;
+```
+
+Any intervening store to memory invalidates the dead-store list, so writing the
+result out between the draws keeps all three `sw`s (the scheduler still groups
+them at the end of the block, which is what the target looks like):
+
+```c
+Gp_LcgState   = Gp_LcgState * 5 + K;
+mem->field_10 = ((u32)Gp_LcgState >> 16) % n - half;
+Gp_LcgState   = Gp_LcgState * 5 + K;
+mem->field_12 = ((u32)Gp_LcgState >> 16) % n;
+Gp_LcgState   = Gp_LcgState * 5 + K;
+mem->field_14 = ((u32)Gp_LcgState >> 16) % n - half;
+```
+
+## Write the call out per branch instead of collecting args in locals
+
+Hoisting a call out of an `if`/`else` chain by assigning its arguments to locals
+
+```c
+if (...) { id = 0x60080; arg = ...; } else { id = 0x6008D; arg = 0x300; }
+func_800EA478(id, coord, arg, vec);
+```
+
+makes GCC emit the shared `move a1, …` / `addiu a3, …` once at the join and
+raises register pressure enough to spill `$s8`. Duplicating the call in each
+branch is what the target compiles from: GCC emits the argument moves per
+branch and cross-jumping merges only the `jal` itself, because the insn before
+the call (`a0`, the differing id) is not common. `func_800FE034` went from 91%
+to 96% on this change alone.
