@@ -71,6 +71,8 @@ extern s16            D_80114C40;
 extern DR_STP         D_80114C50;
 extern s32            D_80115724;
 
+void func_800C05CC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+
 #define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
 #define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
@@ -3911,7 +3913,95 @@ void func_800A1F64(s32 arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A2104);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A2BE0);
+void func_800A2BE0(s32 arg0, s32 arg1, s32 arg2)
+{
+    UiObject  obj;
+    TILE*     tile;
+    SPRT_16*  sp;
+    SPRT_16*  sp2;
+    POLY_FT4* poly;
+    DR_TPAGE* dr;
+    s32       n;
+    s32       cat;
+    s32       order;
+
+    n = func_800A1558(3);
+    if (Gp_StateC08.field_5 < 0xD) {
+        if (Gp_StateC08.field_2 > 0) {
+            tile       = (TILE*)D_80071190;
+            D_80071190 = (DR_TPAGE*)(tile + 1);
+            tile->x0   = arg1 + 0x18;
+            tile->y0   = arg2 + 0x21;
+            tile->w    = Gp_StateC08.field_2;
+            tile->h    = 1;
+            setlen(tile, 3);
+            *(u32*)&tile->r0 = 0xFFC000;
+            setcode(tile, 0x60);
+            addPrim(Gpu_CurrentOt - 2, tile);
+        }
+
+        if (n < 0xB) {
+            n = 0xB;
+        }
+
+        sp         = (SPRT_16*)D_80071190;
+        D_80071190 = (DR_TPAGE*)(sp + 1);
+        sp->x0     = arg1 + 0x15;
+        sp->y0     = arg2 + 0x1D;
+        sp->u0     = 0x98;
+        sp->v0     = 0x68;
+        sp->clut   = 0x3C0B;
+        setlen(sp, 3);
+        setcode(sp, 0x77);
+        addPrim(Gpu_CurrentOt - 2, sp);
+
+        sp2        = (SPRT_16*)D_80071190;
+        D_80071190 = (DR_TPAGE*)(sp2 + 1);
+        sp2->x0    = n + arg1 + 0x13;
+        sp2->y0    = arg2 + 0x1D;
+        sp2->u0    = 0xA8;
+        sp2->v0    = 0x68;
+        sp2->clut  = 0x3C0B;
+        setlen(sp2, 3);
+        setcode(sp2, 0x77);
+        addPrim(Gpu_CurrentOt - 2, sp2);
+
+        poly        = (POLY_FT4*)D_80071190;
+        D_80071190  = (DR_TPAGE*)(poly + 1);
+        poly->x0    = arg1 + 0x1D;
+        poly->y0    = arg2 + 0x1D;
+        poly->u0    = 0xA0;
+        poly->u2    = 0xA0;
+        poly->v2    = 0x70;
+        poly->v3    = 0x70;
+        poly->tpage = 0x1E;
+        setlen(poly, 9);
+        poly->v0   = 0x68;
+        poly->u1   = 0xA8;
+        poly->v1   = 0x68;
+        poly->u3   = 0xA8;
+        poly->clut = 0x3C0B;
+        setcode(poly, 0x2F);
+        poly->x2 = poly->x0;
+        poly->x1 = poly->x3 = (s16)(poly->x0 - 0xA) + n;
+        poly->y1            = poly->y0;
+        poly->y2 = poly->y3 = poly->y0 + 8;
+        addPrim(Gpu_CurrentOt - 2, poly);
+
+        cat           = Gp_StateC08.field_5;
+        order         = -3;
+        obj.baseX     = 0;
+        obj.baseY     = 0;
+        obj.drawOrder = order;
+        obj.mode      = 0;
+        func_800C05CC(&obj, arg1 + 4, arg2 + 0x28, ((cat / 3) << 4) + ((cat % 3) << 2) + 0x301, 0);
+
+        dr         = D_80071190;
+        D_80071190 = dr + 1;
+        setDrawTPage(dr, 0, 1, 0x1E);
+        addPrim(Gpu_CurrentOt - 2, dr);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A2F60);
 

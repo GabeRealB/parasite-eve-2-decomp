@@ -28460,3 +28460,54 @@ the call sites — the value is already zero-extended in the register, so no cal
 codegen changes — but re-verify the callers' TU after the change. Rule of thumb:
 an unexplained `sll/sra 16` (or `andi 0xFFFF`) on an incoming argument register is
 a statement about the *declared parameter type*, not about the expression using it.
+
+## Give sibling prim blocks the same field-store order to fix hoisted-constant registers
+
+When a function builds several primitives in one basic block, GCC 2.8.1 hoists the
+shared literals (`0x68`, `0x3C0B`, `3`, `0x77`, `arg + K`, …) into `$t0`..`$t4` at the
+top of the block. Which literal lands in which `$t` is decided by `local_alloc`
+priority (roughly refs / live length), and *both* ends of each live range come from
+the source order of the struct-field stores — the birth order in the first prim and
+the death order in the last prim that uses the literal.
+
+Symptom: the whole function is instruction-for-instruction identical to the target
+but two or three `$t` registers are permuted everywhere (`sb t0` vs `sb t1`, …).
+Do not reach for register pins — reorder the field stores instead.
+
+`func_800A2BE0` draws two `SPRT_16`s with the same literals. Writing the second
+sprite's fields in a different order from the first
+
+```c
+sp2->u0 = 0xA8; sp2->v0 = 0x68; setlen(sp2, 3); setcode(sp2, 0x77);
+sp2->x0 = ...;  sp2->y0 = ...;  sp2->clut = 0x3C0B;
+```
+
+stalled at 99.78% with `0x3C0B`/`3`/`0x77` in the wrong `$t`s. Making the two blocks
+use the *same* order (`x0, y0, u0, v0, clut, setlen, setcode`) was 100%. Note the
+scheduler emits the same final instruction order either way — only the pre-schedule
+order that `local_alloc` sees changes.
+
+## `(s16)(p->x0 - K) + n` keeps the signed `addiu` and blocks reassociation
+
+Reading a `short` prim field, biasing it and adding a variable has three failure
+modes at once:
+
+```c
+p->x1 = p->x3 = p->x0 - 0xA + n;        /* addiu a1,n,-0xa  — reassociated onto n */
+p->x1 = p->x3 = (u16)p->x0 - 0xA + n;   /* li v1,0xfff6; addu — HImode unsigned const */
+tx = p->x0 - 0xA;                        /* separate lh reload, and no `move` copy   */
+p->x1 = p->x3 = tx + n;
+```
+
+The target form is `lhu` / `move` / `addiu -0xa` / `addu n`. An explicit `(s16)` on
+the *subtraction* gets all three: the narrowing stops fold from moving `K` onto `n`,
+HImode keeps the constant signed so it stays an `addiu`, and the field read stays a
+single `lhu` that the neighbouring `p->x2 = p->x0;` store shares via a `move`:
+
+```c
+p->x2 = p->x0;
+p->x1 = p->x3 = (s16)(p->x0 - 0xA) + n;
+```
+
+A sibling `p->y2 = p->y3 = p->y0 + 8;` needs no cast — with no second constant there
+is nothing to reassociate, and the CSE-forwarded `p->y0` already gives `move` + `addiu`.
