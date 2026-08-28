@@ -28198,3 +28198,74 @@ break the merge all cost more than they save:
 No formulation found that avoids both; `func_800AA120` is parked at 98.7% for
 this reason. Worth retrying if a future function reveals the actual rule
 `move_movables` uses to decline a hoist.
+
+## `x * 16` keeps the `lw`; `x << 4` narrows it to `lhu`
+
+Storing a shifted `s32` struct field into a 16-bit slot lets combine shrink the
+load, because only the low half of the result is ever used:
+
+```c
+vec.vx = cmd->arg0 << 4;   /* lhu; sll 4; sh  */
+vec.vx = cmd->arg0 * 16;   /* lw;  sll 4; sh  */
+```
+
+Both fold to the same `ashift` tree, but the multiply form keeps the SImode load
+that the ROM has. In `func_800E75C8` the two `Gp_SetOverrideVec` cases build an
+`SVECTOR` from three `s32` command arguments; writing `<< 4` cost six `lw`→`lhu`
+mismatches and, in the case that also *tests* the same field, split one `lw`
+into a `lw` for the branch plus a second `lhu` for the value. Switching to
+`* 16` fixed all of it (95.6% → 97.4%).
+
+The narrowing is not limited to shifts: a plain `dst16 = cmd->arg0;` is
+narrowed to `lhu` too, and `dst8 = cmd->arg0;` to `lbu`. That is usually what
+you want, so prefer plain `s32` command/record fields plus explicit `(s8)` /
+`(u16)` casts over a union of differently-sized members — the union spellings
+make combine narrow in places the ROM does not.
+
+## A switch's case bodies are emitted in source order, not jump-table order
+
+For a dense `switch`, splat's jump table gives you the case *values*, but the
+order the bodies appear in the `.s` gives you the order they were written in the
+original C — GCC lays the bodies out in source order regardless of the table.
+`func_800E75C8`'s 50-case dispatcher has a table that runs `-1, 0, 1, 2, …` while
+the bodies run `1, -1, 2, 3, 4, 5, 6, 7, 8, 10, 9, 30, 11, …`; simply reordering
+the `case` labels to match the body layout took the function from 85.7% to
+95.2% with no other change. Do this before chasing anything else: while the
+order is wrong every block after the first divergence is misaligned and the diff
+is unreadable.
+
+A body that ends in a `j` to *another* case's label (rather than to the loop
+tail) is a duplicated tail that cross-jumping merged — write the shared code out
+verbatim in both cases, or place the two cases adjacently and fall through.
+
+## `permute.sh`'s `target.o` is unusable for functions with a jump table
+
+`permute.sh` assembles `permuter/<fn>/target.o` straight from
+`asm/<ver>/<overlay>/nonmatchings/<unit>/<fn>.s`, where the jump table is an
+undefined external (`jtbl_800975*`). A compiled candidate references its own
+local `.rodata` instead, so every `lui/addiu` pair for the table — and the score
+floor with it — never converges; `func_800E75C8` sat at a base score of ~14500
+with the real object only ~4 instructions away. Copy the scratch env's
+`target.o` (the one `build.sh`/`dist.py` compare against) over
+`permuter/<fn>/target.o` before running the permuter; the base score for the
+same source then drops to a comparable ~650.
+
+Also note `permute.sh` parses `-j 4`, not `-j4`: the packed form is treated as
+the function name and the run silently permutes a non-existent function.
+
+## A one-instruction common tail is not cross-jumped — select into a temp
+
+The cross-jumping note above understates the limit: GCC 2.8.1 will not merge a
+common tail that is a *single* instruction. `func_800E75C8` needs
+
+```c
+if (cmd->arg1 != 0) { val = (u16)cmd->arg1; } else { val = 7; }
+D_801156D4.field_2 = val;
+```
+
+(one `sh` at the join, with the `li 7` scheduled into the branch delay slot).
+Writing the store in both arms instead leaves `j; sh` + `sh` — the two `sh`s are
+never merged, even on one source line, even though the same function's
+`jal Task_Spawn` + `sw` two-instruction tail *is* merged into a shared
+`.L800E7E88`. Whenever the ROM has one store at a join, the original selected a
+value into a local; whenever it has two, the original repeated the statement.
