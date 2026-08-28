@@ -381,12 +381,16 @@ typedef struct _GpEffTileScratch {
 } GpEffTileScratch;
 STATIC_ASSERT_SIZEOF(GpEffTileScratch, 0x14);
 
-/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `func_800F4D24`.
-/// `vec0` is the coordinate's current `workm.t[]` truncated to s16 and
-/// `vec1` the position it held on the previous frame (`GpEffWork.field_18`
-/// ..`field_1C`). Each is projected with its own RTPS: `sxy0` / `sxy1`
-/// receive `gte_stsxy`, `flag` `gte_stflg` and `otz` `gte_stszotz`, giving
-/// the two endpoints of the trail `LINE_F2`.
+/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `func_800F4D24` and
+/// `func_800EEC14`.
+/// `vec0` is the coordinate's current `workm.t[]` truncated to s16.
+/// `func_800F4D24` puts the previous-frame position (`GpEffWork.field_18`
+/// ..`field_1C`) in `vec1`. `func_800EEC14` rotates `field_10` through
+/// `field_8->coord` and `D_80070F34`, scales by `field_22 << 11 + 0x1000`,
+/// and adds `vec0` into `vec1`. Each vector is projected with its own RTPS:
+/// `sxy0` / `sxy1` receive `gte_stsxy`, `flag` `gte_stflg` and `otz`
+/// `gte_stszotz`, giving the two endpoints of a trail `LINE_F2` /
+/// `LINE_G2`.
 typedef struct _GpEffLineScratch {
     /* 0x00 */ SVECTOR vec0;
     /* 0x08 */ SVECTOR vec1;

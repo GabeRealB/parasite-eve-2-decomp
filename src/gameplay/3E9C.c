@@ -14,9 +14,10 @@
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
 
-#define gte_rtv0_real() __asm__ volatile("nop; nop; .word 0x4A486012")
-#define gte_rtps_real() __asm__ volatile("nop; nop; .word 0x4A180001")
-#define gte_rtpt_real() __asm__ volatile("nop; nop; .word 0x4A280030")
+#define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
+#define gte_gpf12_real() __asm__ volatile("nop; nop; .word 0x4B98003D")
 
 extern s32     Gp_LcgState;
 extern SVECTOR D_801124DC[];
@@ -564,7 +565,106 @@ void func_800EE72C(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800EEC14);
+void func_800EEC14(Task* arg0)
+{
+    GpEffWork*        mem;
+    GsCOORDINATE2*    coord;
+    void**            scratch;
+    u8*               head;
+    GpEffLineScratch* block;
+    GpEffLineScratch* vecp;
+    LINE_G2*          prim;
+    s16               flag;
+    s16               c;
+    u16               vz;
+
+    mem   = arg0->spawnArg2;
+    flag  = Gp_State1C->field_4;
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    if (flag < 2) {
+        Gp_UpdateCoord(coord);
+        if (arg0->state == 0) {
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_24 = ((u32)Gp_LcgState >> 16) % 3 + 1;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_10 = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_12 = (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x200;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_14 = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+            arg0->state   = 1;
+        }
+        scratch                                     = (void**)G_SCRATCH_HEAD;
+        head                                        = *scratch;
+        ((GpEffLineScratch*)(head - 0x20))->vec0.vx = *(u16*)&coord->workm.t[0];
+        block                                       = (GpEffLineScratch*)(head - 0x20);
+        block->vec0.vy                              = *(u16*)&coord->workm.t[1];
+        vz                                          = *(u16*)&coord->workm.t[2];
+        *scratch                                    = block;
+        block->vec0.vz                              = vz;
+        vecp                                        = block;
+        gte_SetRotMatrix(&mem->field_8->coord);
+        gte_ldv0((SVECTOR*)&mem->field_10);
+        gte_rtv0_real();
+        gte_stsv(&((GpEffLineScratch*)(head - 0x20))->vec1);
+        gte_SetRotMatrix(&D_80070F34);
+        gte_ldv0(&((GpEffLineScratch*)(head - 0x20))->vec1);
+        gte_rtv0_real();
+        gte_stsv(&((GpEffLineScratch*)(head - 0x20))->vec1);
+        gte_lddp((mem->field_22 << 11) + 0x1000);
+        gte_ldsv(&((GpEffLineScratch*)(head - 0x20))->vec1);
+        gte_gpf12_real();
+        gte_stsv(&((GpEffLineScratch*)(head - 0x20))->vec1);
+        *(u16*)&block->vec1.vx = *(u16*)&block->vec1.vx + *(u16*)&((GpEffLineScratch*)(head - 0x20))->vec0.vx;
+        *(u16*)&block->vec1.vy = *(u16*)&block->vec1.vy + *(u16*)&block->vec0.vy;
+        *(u16*)&block->vec1.vz = *(u16*)&block->vec1.vz + *(u16*)&block->vec0.vz;
+        gte_SetTransMatrix(&GsWSMATRIX);
+        gte_SetRotMatrix(&GsWSMATRIX);
+        gte_ldv0(&vecp->vec0);
+        gte_rtps_real();
+        gte_stsxy(&((GpEffLineScratch*)(head - 0x20))->sxy0);
+        gte_stflg(&((GpEffLineScratch*)(head - 0x20))->flag);
+        if (block->flag >= 0) {
+            gte_ldv0(&((GpEffLineScratch*)(head - 0x20))->vec1);
+            gte_rtps_real();
+            gte_stsxy(&((GpEffLineScratch*)(head - 0x20))->sxy1);
+            gte_stflg(&((GpEffLineScratch*)(head - 0x20))->flag);
+            if (block->flag >= 0) {
+                gte_stszotz(&((GpEffLineScratch*)(head - 0x20))->otz);
+                block->otz = block->otz + 1;
+                prim       = (LINE_G2*)D_80071190;
+                D_80071190 = (DR_TPAGE*)(prim + 1);
+                setlen(prim, 4);
+                setcode(prim, 0x50);
+                c        = 0xFF - ((u16)mem->field_22 << 6);
+                prim->r0 = 0;
+                prim->g0 = 0;
+                prim->b0 = 0;
+                prim->r1 = c;
+                prim->g1 = c >> mem->field_24;
+                prim->b1 = c >> 3;
+                prim->x0 = *(u16*)&block->sxy0.vx;
+                prim->y0 = *(u16*)&block->sxy0.vy;
+                prim->x1 = *(u16*)&block->sxy1.vx;
+                prim->y1 = *(u16*)&block->sxy1.vy;
+                addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                        prim);
+                Gp_AddTpageShift((P_TAG*)prim, 1, block->otz);
+            }
+        }
+        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x20;
+        if (Gp_State1C->field_4 != 0) {
+            return;
+        }
+        mem->field_22++;
+        if (mem->field_22 < 4) {
+            return;
+        }
+    } else if (flag < 4) {
+        return;
+    }
+    Gp_ReleaseState1CMem(mem, arg0);
+}
 
 void func_800EF0E0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
