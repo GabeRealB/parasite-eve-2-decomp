@@ -29186,3 +29186,54 @@ setcode(q, 0x60);
 
 When a prim block is stuck in the high 90s with only a two-instruction shift,
 sweep this statement through the block before reaching for anything else.
+
+## Do not pin the scratch-alloc pair when later temps need those registers
+
+`func_80100784` allocates a `G_SCRATCH_HEAD` block into `$v1` (the
+`lui 0x1F80` / `ori 0x3FC` pointer) and `$t0` (the loaded head), so
+`register void** scratch asm("v1")` / `register u8* head asm("t0")` looks like
+the obvious way to reproduce the prologue. It reproduces the prologue and
+then costs four instructions at the tail: the target recycles both registers
+once they are dead (`mflo v1` for the first `size * rsin` product, `mflo t0`
+for the second, and `addiu v0, t0, -0x14` for the `gte_stszotz` address),
+but a `register asm` pin keeps GCC 2.8.1 from ever reusing that hard
+register, so every one of those temps lands in `$t1` instead.
+
+When the plain-local version already picks the right registers for the
+allocation itself, drop the pins — the allocation shape is usually forced by
+the `lui`/`ori`/`lw` dependency chain anyway, and the unpinned form lets the
+allocator recycle them exactly as the target does (99.57% → 99.76% here).
+
+## Mask a parameter in place to get the entry `move` into a callee-saved reg
+
+Target prologue:
+
+```
+move  s4, a2          /* arg2 copied at entry */
+...
+srl   a2, s4, 0x10    /* high half */
+andi  s4, s4, 0xfff   /* low 12 bits, live across four calls */
+```
+
+Writing the two halves into fresh locals gives `srl t1, a2, 0x10` /
+`andi s4, a2, 0xfff` computed in place with **no** entry copy: the new pseudo
+starts life at the mask, so nothing forces `arg2` itself into a callee-saved
+register. Assigning back to the formal parameter makes its live range span the
+calls, which is what produces the entry `move`:
+
+```c
+pal   = arg2 >> 16;
+arg2 &= 0xFFF;
+...
+block->dx = (((arg2 * 39) / block->otz) * rsin(arg3)) >> 12;
+```
+
+This is the same idea as "Reuse formal parameters for live ranges that span
+early calls", but the tell here is the *entry* `move` rather than the register
+class of a loop variable.
+
+Corollary on signedness: the divide is `divu`, so the numerator has to be
+unsigned. Since the value being masked is the parameter, the clean fix is to
+declare the parameter `u32` rather than sprinkle casts — the already-matched
+caller passed an explicitly cast expression, so widening `s32` → `u32` in the
+prototype changed nothing on its side.

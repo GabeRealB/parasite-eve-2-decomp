@@ -350,7 +350,8 @@ typedef struct _GpQuadScratch {
 } GpQuadScratch;
 STATIC_ASSERT_SIZEOF(GpQuadScratch, 0x38);
 
-/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_800EF0E0`.
+/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_800EF0E0` and
+/// `func_80100784`.
 /// `vec` is the coordinate's `workm.t[]` truncated to s16 and fed to
 /// `gte_ldv0`. `otz` is `gte_stszotz`, `flag` is `gte_stflg` and `sxy` is
 /// `gte_stsxy` of the single RTPS. `dx` / `dy` are the rotated half-extents
@@ -778,10 +779,11 @@ void func_800FC74C(Task* arg0);
 void func_800FC9BC(Task* arg0);
 void func_800FE41C(Task* arg0);
 void func_801005D8(Task* arg0);
-/// Hand-written GTE routine. `arg2` is a full 32-bit word: the callee copies it
-/// to `$s4` and then uses both `$s4 >> 16` and `$s4 & 0xFFF`, so it must not be
-/// declared `s16` (that makes callers emit a spurious `sll`/`sra` truncation).
-void  func_80100784(struct _GsCOORDINATE2* arg0, u16 arg1, s32 arg2, s16 arg3);
+/// Hand-written GTE routine. `arg2` is a full 32-bit word: the high half picks
+/// the CLUT (palette column) and the low 12 bits are the billboard size, so it
+/// must not be declared `s16` (that makes callers emit a spurious `sll`/`sra`
+/// truncation). It is unsigned because the size is divided by `otz` with `divu`.
+void  func_80100784(struct _GsCOORDINATE2* arg0, u16 arg1, u32 arg2, s16 arg3);
 s32   func_801011D0(struct _GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3);
 void  Gp_InitPlayerWork(GpActorWork* arg0);
 void  func_80100FCC(GpActorWork* arg0, s32 arg1, s32 arg2);
