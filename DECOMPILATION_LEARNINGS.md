@@ -29734,3 +29734,72 @@ actor->field_95E = 0x64;
 `func_80106C6C` gained 1.6% across eight call sites from this alone. Same
 idea as the argument-setup ordering notes above: statement order, not
 semantics, decides which independent instruction fills the pre-call slot.
+
+## Narrow a small-constant local to `s16` to stop CSE turning `* 5` into `sllv`
+
+An LCG chain such as `Gp_LcgState = Gp_LcgState * 5 + 0x71357911;` expands to
+`sll x,2 / addu / addu`. If an `s32` local holding a small constant is live
+across it (`s32 step = 2;` for a later `mem->field_24 = step;`), CSE finds the
+constant `2` already in a register and rewrites every `sll …,0x2` as
+`sllv …,t0`, which the target does not do — moving the `step = 2;` statement
+later in the source does not help, because GCC keeps the `li` at the top of the
+basic block anyway.
+
+Declaring the local `s16` (or `u8`) keeps the same `li t0,2` but stops the
+substitution, because the HImode set is no longer an equivalence for the SImode
+shift count:
+
+```c
+s16 step;                /* s32 step; → four spurious sllv */
+
+Gp_LcgState = Gp_LcgState * 5 + 0x71357911;  /* sll a0,v0,0x2 … */
+step = 2;
+if ((((u32)Gp_LcgState >> 16) & 3) != 0) {
+    step = 1;
+}
+mem->field_24 = step;
+```
+
+`func_800F4D24` went 92.3% → 95.2% from this one type change. This is the
+mirror image of the `one = 1; flags |= one << arg0` note above: pick the local's
+width by whether you *want* the constant CSE'd into the shift.
+
+## Store order inside `if`/`else` arms decides how much tail cross-jumps
+
+When both arms of an `if` write the same set of fields and only the values
+differ, GCC 2.8.1 cross-jumps the common tail. Writing the arms in the order
+the *memory offsets* appear leaves an identical trailing computation that gets
+merged out; writing the shared expression in the middle of each arm keeps it
+duplicated in both, which is what the target usually has:
+
+```c
+/* merged: only one lh 0x26 / srav in a shared tail — 98.4% */
+if (cond) { prim->r0 = val >> 3; prim->b0 = val;      prim->g0 = val >> mem->field_26; }
+else      { prim->r0 = val;      prim->b0 = val >> 3; prim->g0 = val >> mem->field_26; }
+
+/* duplicated: lh 0x26 / srav in each arm, only `sb v0,5(t0)` shared — 100% */
+if (cond) { prim->r0 = val >> 3; prim->g0 = val >> mem->field_26; prim->b0 = val;      }
+else      { prim->r0 = val;      prim->g0 = val >> mem->field_26; prim->b0 = val >> 3; }
+```
+
+The scheduler still emits the byte stores in offset order (`sb 4`, `sb 6`,
+`sb 5`), so the source order is invisible in the final asm except through how
+much of the tail survives cross-jumping. `func_800F4D24` is the pure example.
+
+## Read the scratch pointer back instead of computing it into a local
+
+`G_SCRATCH_HEAD` bump code has two shapes that allocate registers differently:
+
+```c
+/* block gets the callee-saved reg the bump computed in — often wrong */
+block = (GpEffLineScratch*)((u8*)*(void**)G_SCRATCH_HEAD - 0x20);
+*(void**)G_SCRATCH_HEAD = block;
+
+/* store first, then read back: CSE turns the reload into `move s1,v0`,   */
+/* which is what the target has, and shifts the other s-regs down one     */
+*(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 0x20;
+block = (GpEffLineScratch*)*(void**)G_SCRATCH_HEAD;
+```
+
+The second form cost nothing semantically and moved `func_800F4D24` from
+95.2% to 97.3% purely by swapping which locals landed in `$s0` / `$s1`.

@@ -367,6 +367,22 @@ typedef struct _GpEffBeamScratch {
 } GpEffBeamScratch;
 STATIC_ASSERT_SIZEOF(GpEffBeamScratch, 0x1C);
 
+/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `func_800F4D24`.
+/// `vec0` is the coordinate's current `workm.t[]` truncated to s16 and
+/// `vec1` the position it held on the previous frame (`GpEffWork.field_18`
+/// ..`field_1C`). Each is projected with its own RTPS: `sxy0` / `sxy1`
+/// receive `gte_stsxy`, `flag` `gte_stflg` and `otz` `gte_stszotz`, giving
+/// the two endpoints of the trail `LINE_F2`.
+typedef struct _GpEffLineScratch {
+    /* 0x00 */ SVECTOR vec0;
+    /* 0x08 */ SVECTOR vec1;
+    /* 0x10 */ s32     otz;
+    /* 0x14 */ s32     flag;
+    /* 0x18 */ DVECTOR sxy0;
+    /* 0x1C */ DVECTOR sxy1;
+} GpEffLineScratch;
+STATIC_ASSERT_SIZEOF(GpEffLineScratch, 0x20);
+
 /// 0x10-byte scratch from `G_SCRATCH_HEAD` used by `func_8010133C`.
 /// `field_0` / `field_4` are the outer/inner loop counters. `field_8` is
 /// a color word (`0x808008`, then `0x37A78`). `field_C` / `field_E` are
