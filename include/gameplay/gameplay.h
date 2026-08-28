@@ -276,6 +276,7 @@ extern u16 Gp_ReplayFramesLeft;
 extern s32          D_80114C34;
 extern GpPadReplay* Gp_ReplayCursor;
 
+void       func_8009939C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void       Gp_UpdateCoordEx(GsCOORDINATE2* arg0, s32 arg1);
 void*      Gp_AttachTmd(Task* task, TmdSource* src);

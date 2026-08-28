@@ -30133,3 +30133,27 @@ prim->u1 = ((uv & 7) * 0x18) + 0x17;
 The local also frees the register the inlined form was burning, which is what
 lets an unpinned `POLY_FT4*` land on its target register — try removing a hard
 register pin after adding the local rather than adding more pins.
+
+## Sequential arithmetic shifts: barrier so `>> 10` then `>> 21` is not `>> 31`
+
+CompMatrixLV-style 10-bit chunking does `x >>= 10;` then `x >> 21` on the
+already-shifted value (two `sra`s, immediates 10 and 21). GCC 2.8.1 will
+fold those into a single `sra 31` of the post-`>>= 10` register, which is
+the wrong total shift.
+
+```c
+vx >>= 10;
+__asm__ volatile("" : "+r"(vx)); /* keep the next >> 21 off the original */
+t4 = vx >> 21;                   /* must stay sra t4, t6, 21 */
+```
+
+Same pattern after `mask >>= 10` before the next `mask >> 21`.
+
+Commutative `and` of that result with `-0x400` also needs the mask in `rs`:
+the target is `and t4, s0, t4`, not `and t4, t4, s0`. A tiny helper
+
+```c
+#define and_mask(dst, m) __asm__ volatile("and %0, %1, %0" : "+r"(dst) : "r"(m))
+```
+
+locks that operand order. `func_8009939C` is the example.
