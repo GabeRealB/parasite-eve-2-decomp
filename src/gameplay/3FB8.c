@@ -24,6 +24,8 @@
 #include <psyq/rand.h>
 
 #define gte_rtv0_real()   __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_rtps_real()   __asm__ volatile("nop; nop; .word 0x4A180001")
+#define gte_rtpt_real()   __asm__ volatile("nop; nop; .word 0x4A280030")
 #define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
 #define gte_gpf12_real()  __asm__ volatile("nop; nop; .word 0x4B98003D")
 
@@ -158,7 +160,97 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F96B0);
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F9FBC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FA45C);
+void func_800FA45C(GsCOORDINATE2* arg0, s32 arg1, u16 arg2, u16 arg3)
+{
+    register GsCOORDINATE2* coord asm("t7");
+    register void**         scratch asm("a0");
+    register GpQuadScratch* block asm("t1");
+    register SVECTOR*       v asm("t0");
+    register s32            i asm("t3");
+    GpQuadCorner*           tbl;
+    register u8*            head asm("v0");
+    register MATRIX*        wm asm("t8");
+    POLY_FT4*               prim;
+    register s32            u0 asm("a2");
+    register s32            u1 asm("v1");
+    s32                     texV;
+    s32                     vTop;
+    u16*                    clutTbl;
+
+    coord    = arg0;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    i        = 0;
+    wm       = &coord->workm;
+    tbl      = D_80111E38;
+    head     = (u8*)*scratch - 0x38;
+    block    = (GpQuadScratch*)head;
+    v        = block->vec;
+    *scratch = block;
+    do {
+        v->vx = tbl->x * arg1;
+        v->vy = 0;
+        v->vz = tbl->y * arg1;
+        gte_SetRotMatrix(wm);
+        gte_ldv0(v);
+        gte_rtv0_real();
+        gte_stsv(v);
+        *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&coord->workm.t[0];
+        tbl++;
+        *(u16*)&v->vy = *(u16*)&v->vy + *(u16*)&coord->workm.t[1];
+        i++;
+        *(u16*)&v->vz = *(u16*)&v->vz + *(u16*)&coord->workm.t[2];
+        v++;
+    } while (i < 4);
+
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec[0]);
+    gte_rtps_real();
+    gte_stsxy(&block->sxy0);
+    gte_stflg(&block->flag);
+    if (block->flag >= 0) {
+        gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
+        gte_rtpt_real();
+        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
+        gte_stflg(&block->flag);
+        if (block->flag >= 0) {
+            gte_stszotz(&block->otz);
+            vTop = 0xB8;
+            block->otz++;
+            prim       = (POLY_FT4*)D_80071190;
+            D_80071190 = (DR_TPAGE*)(prim + 1);
+            __asm__ volatile("" ::: "memory");
+            setlen(prim, 9);
+            setcode(prim, 0x2F);
+            clutTbl     = D_80112964;
+            prim->tpage = 0x29;
+            prim->clut  = ((((GpEffClutOff*)&clutTbl[arg3])->field_8 >> 4) & 0x3F) | 0x4280;
+            u0          = (arg2 & 7) * 0x10 - 0x80;
+            u1          = (arg2 & 7) * 0x10 - 0x71;
+            texV        = vTop;
+            prim->v0    = texV;
+            prim->v1    = texV;
+            prim->u0    = u0;
+            prim->u1    = u1;
+            prim->u2    = u0;
+            texV        = 0xC7;
+            prim->v2    = texV;
+            prim->u3    = u1;
+            prim->v3    = texV;
+            prim->x0    = block->sxy0.vx;
+            prim->y0    = block->sxy0.vy;
+            prim->x1    = block->sxy1.vx;
+            prim->y1    = block->sxy1.vy;
+            prim->x2    = block->sxy2.vx;
+            prim->y2    = block->sxy2.vy;
+            prim->x3    = block->sxy3.vx;
+            prim->y3    = block->sxy3.vy;
+            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                    prim);
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+}
 
 void func_800FA7CC(Task* arg0)
 {

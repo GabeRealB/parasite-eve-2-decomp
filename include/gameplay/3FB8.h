@@ -232,6 +232,8 @@ typedef struct _GpEffClutOff {
     /* 0x0 */ u16 pad_0;
     /* 0x2 */ u16 pad_2;
     /* 0x4 */ u16 field_4;
+    /* 0x6 */ u16 pad_6;
+    /* 0x8 */ u16 field_8;
 } GpEffClutOff;
 
 /// u16 CLUT-source table. Indexed as `&D_80112964[field_2A]` then overlaid
@@ -736,7 +738,7 @@ void func_800F77F8(Task* arg0);
 void func_800F7AD4(struct _GsCOORDINATE2* arg0, s32 arg1, s16 arg2, u16 arg3);
 void func_800F7E28(Task* arg0);
 void func_800F9474(Task* arg0);
-void func_800FA45C(struct _GsCOORDINATE2* arg0, s16 arg1, u16 arg2, u16 arg3);
+void func_800FA45C(struct _GsCOORDINATE2* arg0, s32 arg1, u16 arg2, u16 arg3);
 void func_800FA7CC(Task* arg0);
 void func_800FB67C(Task* arg0);
 void func_800FB7E4(Task* arg0);

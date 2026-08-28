@@ -28511,3 +28511,60 @@ p->x1 = p->x3 = (s16)(p->x0 - 0xA) + n;
 
 A sibling `p->y2 = p->y3 = p->y0 + 8;` needs no cast — with no second constant there
 is nothing to reassociate, and the CSE-forwarded `p->y0` already gives `move` + `addiu`.
+
+## Copy a global array base into a local to swap which operand gets `%hi`
+
+Indexing a global array with a *register* index (a `u16` parameter, not a memory
+load) lets `-fschedule-insns` compute the index first and materialise the symbol
+second, which puts the index and the base in the opposite registers from the
+target:
+
+```c
+prim->clut = ((((GpEffClutOff*)&D_80112964[arg3])->field_8 >> 4) & 0x3F) | 0x4280;
+/* andi v1,a3,0xffff ; lui v0,%hi ; addiu v0 ; sll v1,1 ; addu v1,v1,v0 ; lhu v0,8(v1) */
+```
+
+The target wants the symbol in `$v1` and the index in `$v0`, the order GCC picks
+naturally when the index comes from memory (`lh v0,0x2A(a0)`) — the load issues
+first and the `lui`/`addiu` pair fills its delay. Assigning the base to a plain
+local restores that shape, because the pointer becomes its own pseudo that is born
+before the index expression:
+
+```c
+u16* clutTbl = D_80112964;
+prim->clut = ((((GpEffClutOff*)&clutTbl[arg3])->field_8 >> 4) & 0x3F) | 0x4280;
+/* lui v1,%hi ; addiu v1 ; andi v0,a3,0xffff ; sll v0,1 ; addu v0,v0,v1 ; lhu v0,8(v0) */
+```
+
+In `func_800FA45C` this alone moved 95% → 98.6%; no register pin was needed.
+
+## Two hops for a shared literal: assign it early, copy it at the use site
+
+A literal that feeds several prim fields (`0xB8` into `v0`/`v1`) is normally
+materialised right before its first store. When the target instead shows the `li`
+hoisted several instructions earlier — into the `lui %hi(D_80071190)` / `lw otz`
+group that belongs to a *later* statement — one assignment is not enough, because
+the constant's live range is too short for `local_alloc` to give it an argument
+register and for the scheduler to lift it.
+
+Assign the literal to one local well before the block, then copy it into the
+variable actually stored:
+
+```c
+vTop = 0xB8;                 /* early: crosses the gte_stszotz "memory" asm */
+block->otz++;
+prim       = (POLY_FT4*)D_80071190;
+D_80071190 = (DR_TPAGE*)(prim + 1);
+__asm__ volatile("" ::: "memory");
+...
+texV     = vTop;
+prim->v0 = texV;
+prim->v1 = texV;
+```
+
+Collapsing the two into a single `texV = 0xB8;` at either position loses ~1.4%.
+The extra `"memory"` fence after the `D_80071190` bump is what decides *where* in
+the following group the `li` lands: without it the `li` fell into the `bltz` delay
+slot, and with the fence placed after `prim = D_80071190` (rather than after the
+pointer bump) it landed one instruction early. `func_800FA45C` needed the exact
+combination above for 100%.
