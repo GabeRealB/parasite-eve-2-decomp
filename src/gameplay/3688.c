@@ -177,6 +177,8 @@ extern char           Gp_StrExit[];
 extern char           Gp_StrSlash[];
 extern char           Gp_StrHp[];
 extern char           Gp_StrMp[];
+extern char           Gp_StrExp[];
+extern char           Gp_StrBp[];
 extern char           Gp_StrArmor[];
 extern char           Gp_StrAttachments[];
 extern char           Gp_StrWeaponTitle[];
@@ -1051,7 +1053,159 @@ void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 ar
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C1148);
+void func_800C1148(UiPanel* arg0, s32 arg1)
+{
+    u8            buf[0x20];
+    TextDrawReq   req1;
+    TextDrawReq   req2;
+    TextDrawReq   req3;
+    TextDrawReq   req4;
+    TextDrawReq   req5;
+    TextDrawReq   req6;
+    TextDrawReq   req7;
+    TextDrawReq   req8;
+    TextDrawReq   req9;
+    TextDrawReq   req10;
+    TextDrawReq   req11;
+    WipSysConfig* cfg;
+    s32           xOff;
+    s32           x;
+    s32           y;
+    register s32  y2 asm("s2");
+    s32           barX;
+    s32           color;
+    s32           max;
+
+    cfg  = &Wip_SysConfig;
+    xOff = (s16)arg0->field_1C;
+    arg1 = arg1 + 8;
+    x    = xOff + 6;
+    y    = (s16)arg0->field_18 + arg1;
+    if (Gp_HpMpWork.field_0 < cfg->field_18) {
+        Gp_HpMpWork.field_0 = Gp_HpMpWork.field_0 + 1;
+    }
+    if (Gp_HpMpWork.field_4 < cfg->field_1c) {
+        Gp_HpMpWork.field_4 = Gp_HpMpWork.field_4 + 1;
+    }
+    color = 0x606060;
+
+    req1.x          = arg0->field_20 + 0x17 + x;
+    req1.y          = arg0->field_22 + y;
+    req1.otIndex    = (s16)arg0->field_14 + 1;
+    req1.field_8    = color;
+    req1.glyphTable = 0;
+    req1.centerMode = 0;
+    req1.field_E    = 3;
+    func_8002E53C(&req1, Text_ItoaUnsigned(buf, Gp_HpMpWork.field_0));
+
+    req2.x          = arg0->field_20 + 0x32 + x;
+    req2.y          = arg0->field_22 + y;
+    req2.otIndex    = (s16)arg0->field_14 + 1;
+    req2.field_8    = color;
+    req2.glyphTable = 0;
+    req2.centerMode = 1;
+    req2.field_E    = 3;
+    func_8002E53C(&req2, Gp_StrSlash);
+
+    req3.x          = arg0->field_20 + 0x37 + x;
+    req3.y          = arg0->field_22 + y;
+    req3.otIndex    = (s16)arg0->field_14 + 1;
+    req3.field_8    = color;
+    req3.glyphTable = 0;
+    req3.centerMode = 0;
+    req3.field_E    = 3;
+    func_8002E53C(&req3, Text_ItoaUnsigned(buf, cfg->field_1a));
+
+    max  = cfg->field_1a;
+    barX = xOff + 7;
+    func_800C0E20(arg0, x, barX + ((max - 1) * 0x25) / 64, y + 5, max, Gp_HpMpWork.field_0, 0x1741F);
+
+    y2              = y + 0x12;
+    req4.x          = arg0->field_20 + 0x17 + x;
+    req4.y          = arg0->field_22 + y2;
+    req4.otIndex    = (s16)arg0->field_14 + 1;
+    req4.field_8    = color;
+    req4.glyphTable = 0;
+    req4.centerMode = 0;
+    req4.field_E    = 3;
+    func_8002E53C(&req4, Text_ItoaUnsigned(buf, Gp_HpMpWork.field_4));
+
+    req5.x          = arg0->field_20 + 0x32 + x;
+    req5.y          = arg0->field_22 + y2;
+    req5.otIndex    = (s16)arg0->field_14 + 1;
+    req5.field_8    = color;
+    req5.glyphTable = 0;
+    req5.centerMode = 1;
+    req5.field_E    = 3;
+    func_8002E53C(&req5, Gp_StrSlash);
+
+    req6.x          = arg0->field_20 + 0x37 + x;
+    req6.y          = arg0->field_22 + y2;
+    req6.otIndex    = (s16)arg0->field_14 + 1;
+    req6.field_8    = color;
+    req6.glyphTable = 0;
+    req6.centerMode = 0;
+    req6.field_E    = 3;
+    func_8002E53C(&req6, Text_ItoaUnsigned(buf, cfg->field_1e));
+
+    max = cfg->field_1e;
+    func_800C0E20(arg0, x, barX + ((max - 1) * 0x25) / 64, y + 0x17, max, Gp_HpMpWork.field_4, 0x1741F);
+
+    y2              = y + 0x24;
+    req7.x          = arg0->field_20 + 0x17 + x;
+    req7.y          = arg0->field_22 + y2;
+    req7.otIndex    = (s16)arg0->field_14 + 1;
+    req7.field_8    = color;
+    req7.glyphTable = 0;
+    req7.centerMode = 0;
+    req7.field_E    = 3;
+    func_8002E53C(&req7, Text_ItoaUnsigned(buf, cfg->field_8));
+
+    req8.x          = arg0->field_20 + xOff + 0x72;
+    req8.y          = arg0->field_22 + y2;
+    req8.otIndex    = (s16)arg0->field_14 + 1;
+    req8.field_8    = color;
+    req8.glyphTable = 0;
+    req8.centerMode = 0;
+    req8.field_E    = 3;
+    func_8002E53C(&req8, Text_ItoaUnsigned(buf, cfg->field_C));
+
+    req8.x          = arg0->field_1C + (arg0->field_20 + 2);
+    req8.y          = arg0->field_22 + (y - 2);
+    req8.otIndex    = (s16)arg0->field_14 + 1;
+    req8.field_8    = color;
+    req8.glyphTable = 5;
+    req8.centerMode = 0;
+    req8.field_E    = 1;
+    func_8002E53C(&req8, Gp_StrHp);
+
+    req9.x          = arg0->field_1C + (arg0->field_20 + 2);
+    req9.y          = arg0->field_22 + 0x10 + y;
+    req9.otIndex    = (s16)arg0->field_14 + 1;
+    req9.field_8    = color;
+    req9.glyphTable = 5;
+    req9.centerMode = 0;
+    req9.field_E    = 1;
+    func_8002E53C(&req9, Gp_StrMp);
+
+    req10.x          = arg0->field_1C + (arg0->field_20 + 2);
+    req10.y          = arg0->field_22 + 0x22 + y;
+    req10.otIndex    = (s16)arg0->field_14 + 1;
+    req10.field_8    = color;
+    req10.glyphTable = 5;
+    req10.centerMode = 0;
+    req10.field_E    = 1;
+    func_8002E53C(&req10, Gp_StrExp);
+
+    req11.x          = arg0->field_1C + (arg0->field_20 + 0x57);
+    req11.y          = arg0->field_22 + 0x22 + y;
+    req11.otIndex    = (s16)arg0->field_14 + 1;
+    req11.field_8    = color;
+    req11.glyphTable = 5;
+    req11.centerMode = 0;
+    req11.field_E    = 1;
+    func_8002E53C(&req11, Gp_StrBp);
+}
 
 void func_800C16B4(Task* arg0)
 {

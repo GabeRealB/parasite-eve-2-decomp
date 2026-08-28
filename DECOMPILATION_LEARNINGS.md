@@ -29481,3 +29481,28 @@ The flag loop matches `"$1" == -j` exactly, so `-j4` falls through as the
 positional `FUNCTION_NAME`. The run then creates `permuter/-j4/`, prints
 `Function -j4 not found in base.c`, and randomizes an empty function for the
 whole timeout. Always pass the thread count as a separate argument.
+
+## When a hard pin fixes allocation but flips `addu` operands, pin the other half of the pair
+
+`func_800C1148` had a clean two-register permutation: the target put the
+`xOff + 6` local in `$s0` and the CSE'd `%hi(Gp_HpMpWork)` (later reused for a
+`y + 0x24` local) in `$s2`; GCC swapped them. No source reordering moved it —
+the two quantities' `n_refs / live_length` priorities are too close.
+
+Pinning the *first* member, `register s32 x asm("s0")`, did fix the allocation
+but cost nine instructions: a pinned hard register always becomes the **first**
+operand of a commutative `addu`, so every
+
+```
+addu v0, v0, s0      /* target: (field_20 + K) + x */
+```
+
+came out as `addu v0, s0, v0`, and the last one even clobbered `$s0` in place.
+
+Pinning the *other* member instead — `register s32 y2 asm("s2")`, the local
+that inherits the register after the CSE'd address dies — produced the same
+allocation with no operand-order damage, because `y2` is only ever the second
+addend of `field_22 + y2`, which GCC already emits as `addu v0, v0, s2`.
+
+Rule of thumb: when two saved registers are transposed, pin whichever of the
+pair appears *last* in its commutative sums, or does not appear in one at all.
