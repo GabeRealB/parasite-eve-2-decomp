@@ -17,6 +17,8 @@ expected/
 *.ninja
 
 tools/vacuum.log
+tools/vacuum-*.log
+tools/vacuum.log.lock
 ctx.c
 ctx.c.m2c
 debug_source.c

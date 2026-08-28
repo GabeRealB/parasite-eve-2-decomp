@@ -6,6 +6,7 @@
 # Usage:
 #   ./tools/vacuum.sh [--cli claude|grok] [--claude] [--grok] [--times N]
 #                     [--dry-run] [--keep-scratch] [--no-permute]
+#                     [--orchestrator]
 #
 # Environment:
 #   VACUUM_CLI   Default CLI when no --cli/--claude/--grok flag is given
@@ -24,8 +25,19 @@ KEEP_SCRATCH=0
 PERMUTER=1
 DIFFICULT_FUNCTIONS="tools/difficult_functions"
 CLI="${VACUUM_CLI:-claude}"
-LOG_FILE="tools/vacuum.log"
+LOG_FILE=""
 OVERLAY_PY="tools/decomp_overlay.py"
+ORCH=0
+SESSION=""
+WORKTREE_PARENT=""
+ORCH_FUNC=""
+ORCH_WT=""
+ORCH_SCRATCH=""
+ORCH_BASE=""
+ORCH_MERGE=0
+ORCH_FINISHED=0
+
+orch_cleanup() { :; }
 
 usage() {
   cat <<EOF
@@ -39,6 +51,10 @@ Options:
   --dry-run         Score, bootstrap, pack the prompt; do not launch the agent
   --keep-scratch    Leave nonmatchings/<func> in place after the iteration
   --no-permute      Do not run decomp-permuter after a ≥95% give-up
+  --orchestrator    Claim via tools/vacuum_orch.py, match in a throwaway
+                    worktree, then run a port agent on this tree under the
+                    merge lock. Do not run a non-orchestrator vacuum on this
+                    tree at the same time.
   -h, --help        Show this help
 
 Environment:
@@ -47,12 +63,20 @@ Environment:
   VACUUM_PERMUTE_JOBS      Permuter threads (default: min(nproc, 8))
   VACUUM_STREAM            0 disables claude's streamed per-step logging
   VACUUM_STREAM_QUIET      Non-empty: log tool calls only, no commentary
+  VACUUM_WORKTREE_PARENT   Directory for pe2-wt-<func> worktrees
+                           (default: parent of this repo)
+  VACUUM_ORCH_STATE        Override orchestrator JSON path
+  VACUUM_PORT_MAX_TURNS    Max turns for the port agent (default 80)
+  VACUUM_MERGE_WAIT        Seconds to wait for the merge lock (default 3600)
 
 Give-up seeds are stored under tools/giveups/<func>/ (gitignored).
+Orchestrator sessions log to tools/vacuum-<cli>-<pid>.log and flock-append
+each function onto tools/vacuum.log.
 EOF
 }
 
-trap 'echo ""; echo "Interrupt received, will stop after current function..."; STOP_REQUESTED=1' INT
+trap 'echo ""; echo "Interrupt received, will stop after the current function. An unfinished match is not marked difficult."; STOP_REQUESTED=1' INT
+trap 'orch_cleanup' EXIT
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -94,6 +118,10 @@ while [[ $# -gt 0 ]]; do
       PERMUTER=0
       shift
       ;;
+    --orchestrator)
+      ORCH=1
+      shift
+      ;;
     -h|--help)
       usage
       exit 0
@@ -125,10 +153,21 @@ if [[ $DRY_RUN -eq 0 ]] && ! command -v "$CLI" &>/dev/null; then
   exit 1
 fi
 
+MAIN_LOG_FILE="$ROOT/tools/vacuum.log"
+SESSION="vacuum-${CLI}-$$"
+WORKTREE_PARENT="${VACUUM_WORKTREE_PARENT:-$(dirname "$ROOT")}"
+LOG_FLUSH_POS=0
+if [[ $ORCH -eq 1 ]]; then
+  LOG_FILE="$ROOT/tools/vacuum-${CLI}-$$.log"
+else
+  LOG_FILE="$MAIN_LOG_FILE"
+fi
+
 include_asm_present() {
   local func=$1
+  local repo=${2:-$PWD}
   grep -rE "INCLUDE_ASM[[:space:]]*\\([[:space:]]*\"[^\"]+\"[[:space:]]*,[[:space:]]*${func}[[:space:]]*\\)" \
-    src --include='*.c' -l >/dev/null 2>&1
+    "$repo/src" --include='*.c' -l >/dev/null 2>&1
 }
 
 count_attempts() {
@@ -144,27 +183,31 @@ count_attempts() {
 
 run_agent() {
   local prompt=$1
+  local cwd=${2:-$PWD}
   local extra=()
   if [[ -n "${AGENT_MAX_TURNS:-}" ]]; then
     extra+=(--max-turns "$AGENT_MAX_TURNS")
   fi
-  case "$CLI" in
-    claude)
-      # Plain `claude -p` only prints the final result, so an iteration looks
-      # frozen in the log until it ends. Stream the events and format them the
-      # way grok's live output reads. VACUUM_STREAM=0 restores the old output.
-      if [[ "${VACUUM_STREAM:-1}" != "0" ]]; then
-        claude -p --verbose --output-format stream-json \
-          --dangerously-skip-permissions "$prompt" \
-          | python3 tools/stream_format.py ${VACUUM_STREAM_QUIET:+--quiet-text}
-      else
-        claude -p --dangerously-skip-permissions "$prompt"
-      fi
-      ;;
-    grok)
-      grok --always-approve --effort high "${extra[@]}" -p "$prompt"
-      ;;
-  esac
+  (
+    cd "$cwd" || exit 1
+    case "$CLI" in
+      claude)
+        # Plain `claude -p` only prints the final result, so an iteration looks
+        # frozen in the log until it ends. Stream the events and format them the
+        # way grok's live output reads. VACUUM_STREAM=0 restores the old output.
+        if [[ "${VACUUM_STREAM:-1}" != "0" ]]; then
+          claude -p --verbose --output-format stream-json \
+            --dangerously-skip-permissions "$prompt" \
+            | python3 tools/stream_format.py ${VACUUM_STREAM_QUIET:+--quiet-text}
+        else
+          claude -p --dangerously-skip-permissions "$prompt"
+        fi
+        ;;
+      grok)
+        grok --always-approve --effort high "${extra[@]}" -p "$prompt"
+        ;;
+    esac
+  )
 }
 
 build_prompt() {
@@ -214,6 +257,7 @@ EOF
 try_permuter_poststep() {
   local func=$1
   local scratch=$2
+  local repo=${3:-$PWD}
   if [[ $PERMUTER -eq 0 ]]; then
     return 1
   fi
@@ -221,15 +265,18 @@ try_permuter_poststep() {
     echo "Scratch gone; skipping permuter post-step" | tee -a "$LOG_FILE"
     return 1
   fi
-  if ! include_asm_present "$func"; then
+  if ! include_asm_present "$func" "$repo"; then
     return 1
   fi
 
   echo "Running permuter post-step for $func..." | tee -a "$LOG_FILE"
   local out st
-  out=$(python3 tools/vacuum_permute.py --func "$func" --scratch "$scratch" \
-    --timeout "${VACUUM_PERMUTE_TIMEOUT:-360}" \
-    --jobs "${VACUUM_PERMUTE_JOBS:-0}" 2>&1 | tee -a "$LOG_FILE")
+  out=$(
+    cd "$repo" || exit 1
+    python3 tools/vacuum_permute.py --func "$func" --scratch "$scratch" \
+      --timeout "${VACUUM_PERMUTE_TIMEOUT:-360}" \
+      --jobs "${VACUUM_PERMUTE_JOBS:-0}"
+  2>&1 | tee -a "$LOG_FILE")
   st=${PIPESTATUS[0]}
   if [[ $st -ne 0 ]]; then
     return 1
@@ -241,7 +288,7 @@ try_permuter_poststep() {
     return 1
   fi
   echo "Permuter hit score 0 ($winner); launching a port follow-up..." | tee -a "$LOG_FILE"
-  AGENT_MAX_TURNS=40 run_agent "$(build_permute_prompt "$func" "$scratch" "$seed" "$winner")" | tee -a "$LOG_FILE"
+  AGENT_MAX_TURNS=40 run_agent "$(build_permute_prompt "$func" "$scratch" "$seed" "$winner")" "$repo" | tee -a "$LOG_FILE"
   return 0
 }
 
@@ -339,15 +386,578 @@ commit_difficult_if_needed() {
 cleanup_scratch() {
   local func=$1
   local scratch=$2
+  local repo=${3:-$PWD}
   if [[ $KEEP_SCRATCH -eq 1 ]]; then
     echo "Keeping scratch at $scratch"
     return
   fi
   rm -rf "$scratch"
-  rm -rf "nonmatchings/${func}" "nonmatchings/${func}-"*
-  rmdir nonmatchings 2>/dev/null || true
-  rm -rf "permuter/${func}"
+  rm -rf "$repo/nonmatchings/${func}" "$repo/nonmatchings/${func}-"*
+  rmdir "$repo/nonmatchings" 2>/dev/null || true
+  rm -rf "$repo/permuter/${func}"
 }
+
+json_get() {
+  python3 -c 'import json,sys
+v=json.load(sys.stdin).get(sys.argv[1])
+if v is None:
+    print("")
+elif isinstance(v, bool):
+    print(str(v).lower())
+else:
+    print(v)' "$1"
+}
+
+orch() {
+  python3 "$ROOT/tools/vacuum_orch.py" --root "$ROOT" "$@"
+}
+
+flush_vacuum_log() {
+  [[ $ORCH -eq 1 ]] || return 0
+  [[ -n "${MAIN_LOG_FILE:-}" && -n "${LOG_FILE:-}" ]] || return 0
+  local out new
+  out=$(orch log-flush --local "$LOG_FILE" --main "$MAIN_LOG_FILE" \
+    --offset "${LOG_FLUSH_POS:-0}" --session "$SESSION" --label "${ORCH_FUNC:-}" 2>/dev/null) || return 0
+  new=$(echo "$out" | json_get offset)
+  if [[ "$new" =~ ^[0-9]+$ ]]; then
+    LOG_FLUSH_POS=$new
+  fi
+}
+
+orch_cleanup() {
+  [[ $ORCH -eq 1 ]] || return 0
+  flush_vacuum_log
+  if [[ $ORCH_MERGE -eq 1 ]]; then
+    orch merge-release --session "$SESSION" >/dev/null 2>&1 || true
+    ORCH_MERGE=0
+  fi
+  if [[ -n "$ORCH_FUNC" && $ORCH_FINISHED -eq 0 ]]; then
+    orch relinquish --session "$SESSION" --func "$ORCH_FUNC" >/dev/null 2>&1 || true
+  fi
+}
+
+build_orch_match_prompt() {
+  local func=$1
+  local scratch=$2
+  local brief_file=$3
+  local wt=$4
+  cat <<EOF
+Match \`$func\` in this disposable worktree.
+
+Worktree (your repo root): \`$wt\`
+Scratch (already created): \`$scratch\`
+Canonical trunk (do NOT write here): \`$ROOT\`
+
+Do NOT run ./tools/claude or recreate the scratch directory.
+Do NOT run git merge / rebase / cherry-pick.
+Do NOT edit \`$ROOT\`. Do NOT append tools/difficult_functions (a later port agent does that on trunk).
+
+Read \`$scratch/BRIEF.md\` (also pasted below), then:
+
+1. cd into \`$scratch\` and make \`base.c\` compile with minimal edits (\`./build.sh base.c\`).
+2. Iterate \`base_N.c\` until 100%.
+3. If the best score is ≥ 95% and leftover diffs are registers / scheduling / stack, run the permuter from the worktree root **before** adding register pins:
+   \`./permute.sh --run --timeout 360 -j4 $func <asm path from BRIEF> $scratch/base_N.c\`
+4. On 100%: replace INCLUDE_ASM in the worktree host C file, fix headers in this overlay's include/ tree, run \`./tools/build-and-verify.sh\` **in the worktree**, commit \`matched $func <attempts>\` **on this worktree branch only**.
+5. On stall: revert host C in the worktree, do not leave INCLUDE_ASM replaced, leave the scratch (best unpinned \`base_N.c\` included).
+6. Leave the scratch directory.
+
+---
+$(cat "$brief_file")
+EOF
+}
+
+build_port_prompt() {
+  local func=$1
+  local status=$2
+  local wt=$3
+  local scratch=$4
+  local attempts=$5
+  local score=$6
+  local hint=$7
+  cat <<EOF
+You are the **port** agent for \`$func\`. You are running in the canonical trunk:
+
+  $ROOT
+
+A match session already ran in a disposable worktree. Do **not** git merge, rebase, cherry-pick, or \`git apply\` the worktree onto trunk. Other agents may have landed functions in the same TU / headers since that worktree was created. Port by rewriting current trunk files.
+
+Worktree: \`$wt\`
+Scratch: \`$scratch\`
+Status from match session: \`$status\`
+Attempts: $attempts
+Best scratch score: $score
+
+Rules:
+- Do not claim another function. Do not start vacuum. Do not create a worktree.
+- Do not \`git reset --hard\` except to undo a change **you just made** that failed verify.
+- New types stay in this overlay's include/ tree, not include/main/unknown_syms.h.
+- No pointer arithmetic with manual offsets.
+
+EOF
+  if [[ "$status" == "matched" ]]; then
+    cat <<EOF
+Port the matched function onto **current** trunk:
+
+1. Read the worktree host C / headers / learnings (and \`$scratch\` winning \`base_N.c\`) as the source of intent.
+2. Read the same paths on trunk. Adapt to structs, INCLUDE_ASM sites, and nearby functions that already landed.
+3. Replace INCLUDE_ASM for \`$func\` on trunk. Reconcile types rather than duplicating fields.
+4. If the old body no longer matches because layout / context changed, keep adapting until \`./tools/build-and-verify.sh\` reports \`build/USA/out/SLUS_010.42: OK\`.
+5. Commit \`matched $func $attempts\` on trunk. Run \`python3 ninja_config.py\` if splat still lists this function under nonmatchings.
+6. Optional learnings: add a note to DECOMPILATION_LEARNINGS.md only if it is still true on trunk.
+
+A diff of what the match session touched in the worktree follows as a **hint**, not a patch:
+
+$hint
+EOF
+  else
+    cat <<EOF
+The match session gave up. On **trunk** only:
+
+1. Append \`tools/difficult_functions\` as \`$func $attempts $score\` if that name is not already listed.
+2. Commit \`Update tools/difficult_functions\` if you changed the file.
+3. Do not copy worktree src/include onto trunk. Do not replace INCLUDE_ASM.
+
+Scratch C stays in the worktree for vacuum to copy to tools/giveups/.
+EOF
+  fi
+}
+
+worktree_path_for() {
+  echo "$WORKTREE_PARENT/pe2-wt-$1"
+}
+
+remove_match_worktree() {
+  local func=$1
+  local wt
+  wt=$(worktree_path_for "$func")
+  if git -C "$ROOT" worktree list --porcelain 2>/dev/null | grep -qxF "worktree $wt"; then
+    git -C "$ROOT" worktree remove --force "$wt" 2>/dev/null || true
+  fi
+  rm -rf "$wt"
+  git -C "$ROOT" branch -D "match/${func}" >/dev/null 2>&1 || true
+  git -C "$ROOT" worktree prune >/dev/null 2>&1 || true
+}
+
+prune_stale_worktrees() {
+  local wt func claimed
+  claimed=$(orch status 2>/dev/null | python3 -c 'import json,sys
+d=json.load(sys.stdin)
+print(" ".join(d.get("claims") or []))' 2>/dev/null || true)
+  local current=""
+  while IFS= read -r line; do
+    case "$line" in
+      worktree\ *)
+        current=${line#worktree }
+        ;;
+      branch\ refs/heads/match/*)
+        func=${line#branch refs/heads/match/}
+        if [[ "$current" == *"/pe2-wt-$func" || "$current" == *"/pe2-wt-$func/" ]]; then
+          if [[ " $claimed " != *" $func "* ]]; then
+            echo "Pruning stale worktree $current ($func)" | tee -a "$LOG_FILE"
+            git -C "$ROOT" worktree remove --force "$current" 2>/dev/null || rm -rf "$current"
+            git -C "$ROOT" branch -D "match/${func}" >/dev/null 2>&1 || true
+          fi
+        fi
+        current=""
+        ;;
+      "")
+        current=""
+        ;;
+    esac
+  done < <(git -C "$ROOT" worktree list --porcelain 2>/dev/null)
+  git -C "$ROOT" worktree prune >/dev/null 2>&1 || true
+}
+
+# splat target binaries (configs/USA/{main,title,gameplay}.yaml). ninja_config.py
+# wipes asm/ and re-splits from these; a worktree without them cannot configure.
+SPLAT_ASSET_TARGETS=(
+  assets/USA/main.exe
+  assets/USA/pe2pkg/title.pe2pkg
+  assets/USA/pe2pkg/gameplay.pe2pkg
+)
+
+link_worktree_dir() {
+  local src=$1
+  local dest=$2
+  if [[ ! -e "$src" ]]; then
+    return 1
+  fi
+  if [[ -e "$dest" && ! -L "$dest" ]]; then
+    rm -rf "$dest"
+  fi
+  ln -sfn "$src" "$dest"
+}
+
+# git worktree add does not check out submodule contents. Matching needs
+# maspsx, m2c, decomp-permuter, and asm-differ.
+WORKTREE_SUBMODULES=(
+  tools/maspsx
+  tools/m2c
+  tools/decomp-permuter
+  tools/asm-differ
+)
+
+populate_worktree_submodules() {
+  local wt=$1
+  local path marker
+  git -C "$wt" submodule update --init --recursive 2>&1 | tee -a "$LOG_FILE" || true
+  for path in "${WORKTREE_SUBMODULES[@]}"; do
+    case "$path" in
+      tools/maspsx) marker=maspsx.py ;;
+      tools/m2c) marker=m2c.py ;;
+      tools/decomp-permuter) marker=permuter.py ;;
+      tools/asm-differ) marker=diff.py ;;
+      *) marker="" ;;
+    esac
+    if [[ -n "$marker" && -e "$wt/$path/$marker" ]]; then
+      continue
+    fi
+    if [[ ! -e "$ROOT/$path" ]]; then
+      echo "Error: submodule $path is empty in the worktree and missing on trunk" | tee -a "$LOG_FILE"
+      return 1
+    fi
+    echo "Worktree $path empty after submodule update; linking trunk copy" | tee -a "$LOG_FILE"
+    rm -rf "$wt/$path"
+    ln -sfn "$ROOT/$path" "$wt/$path"
+  done
+}
+
+create_match_worktree() {
+  local func=$1
+  local wt branch rel
+  wt=$(worktree_path_for "$func")
+  branch="match/${func}"
+  remove_match_worktree "$func"
+  git -C "$ROOT" worktree add -b "$branch" "$wt" HEAD || return 1
+  if ! populate_worktree_submodules "$wt"; then
+    remove_match_worktree "$func"
+    return 1
+  fi
+
+  if ! link_worktree_dir "$ROOT/assets" "$wt/assets"; then
+    echo "Error: $ROOT/assets is missing. ninja_config/splat needs overlay binaries:" | tee -a "$LOG_FILE"
+    printf '  %s\n' "${SPLAT_ASSET_TARGETS[@]}" | tee -a "$LOG_FILE"
+    remove_match_worktree "$func"
+    return 1
+  fi
+  for rel in "${SPLAT_ASSET_TARGETS[@]}"; do
+    if [[ ! -e "$wt/$rel" ]]; then
+      echo "Error: worktree missing $rel (splat target). Extract overlays on trunk first." | tee -a "$LOG_FILE"
+      remove_match_worktree "$func"
+      return 1
+    fi
+  done
+  link_worktree_dir "$ROOT/rom" "$wt/rom" || true
+
+  if [[ -d "$ROOT/venv" ]]; then
+    ln -sfn "$ROOT/venv" "$wt/venv"
+  fi
+  if [[ -d "$ROOT/.venv" ]]; then
+    ln -sfn "$ROOT/.venv" "$wt/.venv"
+  fi
+  if [[ -d "$ROOT/tools/giveups/$func" ]]; then
+    mkdir -p "$wt/tools/giveups"
+    cp -a "$ROOT/tools/giveups/$func" "$wt/tools/giveups/"
+  fi
+  # Scratch matching needs the .s (and generated headers) *before* any
+  # ninja_config. Configure wipes asm/ and re-splits; it runs later when the
+  # match/port agent calls build-and-verify.sh.
+  if [[ ! -d "$ROOT/asm" ]]; then
+    echo "Error: $ROOT/asm is missing; cannot bootstrap $func" | tee -a "$LOG_FILE"
+    remove_match_worktree "$func"
+    return 1
+  fi
+  echo "Copying asm/ into $wt ..." | tee -a "$LOG_FILE"
+  cp -a "$ROOT/asm" "$wt/asm"
+  if [[ -d "$ROOT/build" ]]; then
+    cp -a "$ROOT/build" "$wt/build"
+  fi
+  if [[ -d "$ROOT/linkers" ]]; then
+    cp -a "$ROOT/linkers" "$wt/linkers"
+  fi
+  git -C "$ROOT" rev-parse HEAD >"$wt/.vacuum-base"
+}
+
+worktree_hint_diff() {
+  local wt=$1
+  local base=$2
+  git -C "$wt" diff "$base" -- src include DECOMPILATION_LEARNINGS.md STRUCT_FIELDS.md NAMING.md 2>/dev/null \
+    | python3 -c 'import sys; t=sys.stdin.read(); print((t[:80000] + ("\n...[truncated]..." if len(t)>80000 else "")) or "(no diff)")'
+}
+
+copy_giveup_to_main() {
+  local func=$1
+  local scratch=$2
+  python3 "$ROOT/tools/archive_giveup.py" --func "$func" --scratch "$scratch" \
+    2>&1 | tee -a "$LOG_FILE" || true
+}
+
+port_succeeded() {
+  local func=$1
+  local status=$2
+  if [[ "$status" == "matched" ]]; then
+    git -C "$ROOT" log -1 --pretty=%s | grep -qE "^matched ${func}( |$)"
+    return
+  fi
+  difficult_listed "$func"
+}
+
+vacuum_orch_loop() {
+  echo "Vacuum using CLI: $CLI (orchestrator session $SESSION)" | tee -a "$LOG_FILE"
+  echo "Session log: $LOG_FILE" | tee -a "$LOG_FILE"
+  echo "Shared log:  $MAIN_LOG_FILE (flock-appended per function)" | tee -a "$LOG_FILE"
+  prune_stale_worktrees
+
+  local count=0
+  local consecutive_failures=0
+  local claim_json claim_code func wt scratch status attempts score hint
+  local match_status output exit_code bootstrap_out bootstrap_status
+
+  while true; do
+    if [[ $STOP_REQUESTED -eq 1 ]]; then
+      echo "Stopping gracefully."
+      break
+    fi
+    if [[ -n "$MAX_TIMES" ]] && [[ $count -ge "$MAX_TIMES" ]]; then
+      echo "Reached maximum iterations: $MAX_TIMES"
+      break
+    fi
+
+    flush_vacuum_log
+
+    ORCH_FUNC=""
+    ORCH_WT=""
+    ORCH_SCRATCH=""
+    ORCH_BASE=""
+    ORCH_FINISHED=0
+    ORCH_MERGE=0
+
+    claim_json=$(orch claim --session "$SESSION" --pid $$ --cli "$CLI")
+    claim_code=$?
+    echo "$claim_json" | tee -a "$LOG_FILE"
+    if [[ $claim_code -eq 3 ]]; then
+      echo "Error: All functions are marked as difficult!"
+      break
+    fi
+    if [[ $claim_code -ne 0 ]]; then
+      echo "claim failed ($claim_code): $claim_json" | tee -a "$LOG_FILE"
+      ((consecutive_failures++)) || true
+      if [[ $consecutive_failures -ge 3 ]]; then
+        echo ">= 3 consecutive failures detected. Sleeping for 5 minutes..."
+        sleep 300
+      fi
+      ((count++)) || true
+      continue
+    fi
+    func=$(echo "$claim_json" | json_get func)
+    if [[ -z "$func" ]]; then
+      echo "claim returned no func: $claim_json" | tee -a "$LOG_FILE"
+      break
+    fi
+    ORCH_FUNC=$func
+    echo -e "\n[$(date '+%H:%M:%S')] [$CLI] [orch] Decompiling $func...\n" | tee -a "$LOG_FILE"
+
+    local reused skip_match
+    reused=$(echo "$claim_json" | json_get reused)
+    wt=$(worktree_path_for "$func")
+    skip_match=0
+    if [[ "$reused" == "true" && -e "$wt/.git" ]]; then
+      echo "Reusing existing worktree $wt" | tee -a "$LOG_FILE"
+      skip_match=1
+      ORCH_WT=$wt
+      if [[ -f "$wt/.vacuum-base" ]]; then
+        ORCH_BASE=$(cat "$wt/.vacuum-base")
+      else
+        ORCH_BASE=$(git -C "$ROOT" rev-parse HEAD)
+      fi
+      scratch="$wt/nonmatchings/${func}-vacuum"
+      if [[ ! -d "$scratch" ]]; then
+        scratch=$(find "$wt/nonmatchings" -maxdepth 1 -type d -name "${func}*" 2>/dev/null | head -1)
+      fi
+      ORCH_SCRATCH=$scratch
+    fi
+
+    if [[ $skip_match -eq 0 ]]; then
+      if ! create_match_worktree "$func"; then
+        echo "Error: failed to create worktree for $func" | tee -a "$LOG_FILE"
+        orch relinquish --session "$SESSION" --func "$func" >/dev/null 2>&1 || true
+        ORCH_FUNC=""
+        ((consecutive_failures++)) || true
+        ((count++)) || true
+        continue
+      fi
+      wt=$(worktree_path_for "$func")
+      ORCH_WT=$wt
+      ORCH_BASE=$(cat "$wt/.vacuum-base" 2>/dev/null || git -C "$ROOT" rev-parse HEAD)
+
+      rm -rf "$wt/nonmatchings/${func}" "$wt/nonmatchings/${func}-"*
+      bootstrap_out=$(cd "$wt" && ./tools/claude --bootstrap-only --cli "$CLI" --id vacuum "$func" 2>&1)
+      bootstrap_status=$?
+      echo "$bootstrap_out" | tee -a "$LOG_FILE" >/dev/null
+      scratch=$(echo "$bootstrap_out" | awk -F= '/^SCRATCH_DIR=/{print $2}' | tail -1)
+      if [[ -n "$scratch" && "$scratch" != /* ]]; then
+        scratch="$wt/$scratch"
+      fi
+      ORCH_SCRATCH=$scratch
+
+      if [[ $bootstrap_status -ne 0 || -z "$scratch" || ! -d "$scratch" ]]; then
+        echo "Error: failed to bootstrap scratch env for $func" | tee -a "$LOG_FILE"
+        remove_match_worktree "$func"
+        orch relinquish --session "$SESSION" --func "$func" >/dev/null 2>&1 || true
+        ORCH_FUNC=""
+        ORCH_WT=""
+        ((consecutive_failures++)) || true
+        if [[ $consecutive_failures -ge 3 ]]; then
+          echo ">= 3 consecutive failures detected. Sleeping for 5 minutes..."
+          sleep 300
+        fi
+        ((count++)) || true
+        continue
+      fi
+
+      if [[ $DRY_RUN -eq 1 ]]; then
+        echo "----- dry-run orch match prompt for $func -----"
+        build_orch_match_prompt "$func" "$scratch" "$scratch/BRIEF.md" "$wt"
+        echo "----- end prompt (worktree: $wt scratch: $scratch) -----"
+        remove_match_worktree "$func"
+        orch relinquish --session "$SESSION" --func "$func" >/dev/null 2>&1 || true
+        ORCH_FUNC=""
+        ((count++)) || true
+        continue
+      fi
+
+      output=$(run_agent "$(build_orch_match_prompt "$func" "$scratch" "$scratch/BRIEF.md" "$wt")" "$wt" 2>&1 | tee -a "$LOG_FILE")
+      exit_code=${PIPESTATUS[0]}
+      echo "$output"
+
+      if [[ $STOP_REQUESTED -eq 0 ]]; then
+        try_permuter_poststep "$func" "$scratch" "$wt" || true
+      fi
+    else
+      output=""
+      exit_code=0
+    fi
+
+    match_status=1
+    ( cd "$wt" && commit_match_if_needed "$func" "$scratch" )
+    match_status=$?
+    if [[ $match_status -eq 0 || $match_status -eq 2 ]]; then
+      status=matched
+      python3 "$ROOT/tools/archive_giveup.py" --func "$func" --clear \
+        2>&1 | tee -a "$LOG_FILE" || true
+    elif [[ $STOP_REQUESTED -eq 1 ]]; then
+      echo "Interrupted before a match for $func; leaving it unmatched (not difficult)" | tee -a "$LOG_FILE"
+      copy_giveup_to_main "$func" "$scratch"
+      orch relinquish --session "$SESSION" --func "$func" >/dev/null 2>&1 || true
+      if [[ $KEEP_SCRATCH -eq 0 ]]; then
+        remove_match_worktree "$func"
+      fi
+      ORCH_FUNC=""
+      ORCH_WT=""
+      echo "Stopping gracefully."
+      break
+    else
+      status=difficult
+      copy_giveup_to_main "$func" "$scratch"
+      ( cd "$wt" && git checkout -- src include DECOMPILATION_LEARNINGS.md STRUCT_FIELDS.md NAMING.md "$DIFFICULT_FUNCTIONS" 2>/dev/null ) || true
+    fi
+
+    attempts=$(count_attempts "$scratch")
+    score=$(best_score "$func" "$scratch")
+    hint=$(worktree_hint_diff "$wt" "$ORCH_BASE")
+
+    echo "Acquiring merge lock for $func ($status)..." | tee -a "$LOG_FILE"
+    local merge_json merge_code pre_port
+    merge_json=$(orch merge-acquire --session "$SESSION" --pid $$ --wait "${VACUUM_MERGE_WAIT:-3600}")
+    merge_code=$?
+    echo "$merge_json" | tee -a "$LOG_FILE" >/dev/null
+    if [[ $merge_code -ne 0 ]]; then
+      echo "Error: could not acquire merge lock for $func" | tee -a "$LOG_FILE"
+      ((consecutive_failures++)) || true
+      ((count++)) || true
+      continue
+    fi
+    ORCH_MERGE=1
+    pre_port=$(git -C "$ROOT" rev-parse HEAD)
+
+    echo "Starting port agent for $func ($status)..." | tee -a "$LOG_FILE"
+    AGENT_MAX_TURNS="${VACUUM_PORT_MAX_TURNS:-80}" run_agent \
+      "$(build_port_prompt "$func" "$status" "$wt" "$scratch" "$attempts" "$score" "$hint")" \
+      "$ROOT" | tee -a "$LOG_FILE"
+
+    if [[ "$status" == "matched" ]]; then
+      if include_asm_present "$func" "$ROOT"; then
+        :
+      else
+        ( cd "$ROOT" && commit_match_if_needed "$func" "$scratch" ) || true
+      fi
+    else
+      ( cd "$ROOT" && record_difficult_if_needed "$func" "$scratch"
+        commit_difficult_if_needed "$func" 1 ) || true
+    fi
+
+    local landed=0
+    if port_succeeded "$func" "$status"; then
+      if [[ "$status" == "matched" ]] && ! ( cd "$ROOT" && ./tools/build-and-verify.sh ); then
+        echo "Verify failed after port of $func; resetting trunk to $pre_port" | tee -a "$LOG_FILE"
+        git -C "$ROOT" reset --hard "$pre_port" >/dev/null
+        git -C "$ROOT" clean -fd -- src include >/dev/null 2>&1 || true
+      else
+        landed=1
+      fi
+    fi
+
+    orch merge-release --session "$SESSION" >/dev/null 2>&1 || true
+    ORCH_MERGE=0
+
+    if [[ $landed -eq 1 ]]; then
+      orch finish --session "$SESSION" --func "$func" --status "$status" >/dev/null
+      ORCH_FINISHED=1
+      if [[ $KEEP_SCRATCH -eq 1 ]]; then
+        echo "Keeping worktree $wt"
+      else
+        echo "Removing worktree $wt" | tee -a "$LOG_FILE"
+        remove_match_worktree "$func"
+      fi
+      ORCH_FUNC=""
+      ORCH_WT=""
+      consecutive_failures=0
+    else
+      echo "Port agent did not land $func ($status); keeping claim and worktree $wt" | tee -a "$LOG_FILE"
+      git -C "$ROOT" reset --hard "$pre_port" >/dev/null 2>&1 || true
+      git -C "$ROOT" clean -fd -- src include >/dev/null 2>&1 || true
+      ((consecutive_failures++)) || true
+      if [[ $consecutive_failures -ge 3 ]]; then
+        echo ">= 3 consecutive failures detected. Sleeping for 5 minutes..."
+        sleep 300
+      fi
+    fi
+
+    if [[ $STOP_REQUESTED -eq 1 ]]; then
+      echo "Stopping gracefully."
+      break
+    fi
+    if echo "$output" | grep -qF "$STOP_PHRASE"; then
+      echo "$STOP_PHRASE"
+      break
+    fi
+    if [[ $exit_code -ne 0 && $ORCH_FINISHED -eq 0 ]]; then
+      ((consecutive_failures++)) || true
+    fi
+    flush_vacuum_log
+    ((count++)) || true
+  done
+
+  echo "Total iterations: $count" | tee -a "$LOG_FILE"
+  flush_vacuum_log
+}
+
+
+if [[ $ORCH -eq 1 ]]; then
+  vacuum_orch_loop
+  exit $?
+fi
 
 echo "Vacuum using CLI: $CLI" | tee -a "$LOG_FILE"
 
@@ -413,7 +1023,9 @@ while true; do
   exit_code=${PIPESTATUS[0]}
   echo "$output"
 
-  try_permuter_poststep "$simplest_func" "$scratch" || true
+  if [[ $STOP_REQUESTED -eq 0 ]]; then
+    try_permuter_poststep "$simplest_func" "$scratch" || true
+  fi
 
   match_status=1
   commit_match_if_needed "$simplest_func" "$scratch"
@@ -421,6 +1033,15 @@ while true; do
   if [[ $match_status -eq 0 || $match_status -eq 2 ]]; then
     python3 tools/archive_giveup.py --func "$simplest_func" --clear \
       2>&1 | tee -a "$LOG_FILE" || true
+  elif [[ $STOP_REQUESTED -eq 1 ]]; then
+    echo "Interrupted before a match for $simplest_func; leaving it unmatched (not difficult)" | tee -a "$LOG_FILE"
+    python3 tools/archive_giveup.py --func "$simplest_func" --scratch "$scratch" \
+      2>&1 | tee -a "$LOG_FILE" || true
+    git reset --hard HEAD >/dev/null
+    git clean -fd -- src include >/dev/null 2>&1 || true
+    cleanup_scratch "$simplest_func" "$scratch"
+    echo "Stopping gracefully."
+    break
   else
     python3 tools/archive_giveup.py --func "$simplest_func" --scratch "$scratch" \
       2>&1 | tee -a "$LOG_FILE" || true

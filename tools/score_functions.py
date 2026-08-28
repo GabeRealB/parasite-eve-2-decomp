@@ -449,6 +449,18 @@ Examples:
         metavar="MAX",
         help="Only show functions with complexity score <= MAX",
     )
+    parser.add_argument(
+        "--ranked",
+        action="store_true",
+        help="Print remaining function names, easiest first (one per line).",
+    )
+    parser.add_argument(
+        "--exclude-file",
+        action="append",
+        default=[],
+        metavar="PATH",
+        help="Extra names to skip (same format as tools/difficult_functions). Repeatable.",
+    )
 
     args = parser.parse_args()
     folder_paths = args.folder_paths
@@ -489,6 +501,8 @@ Examples:
         script_dir = os.path.dirname(os.path.abspath(__file__))
         difficult_file = os.path.join(script_dir, "difficult_functions")
         difficult_functions = load_difficult_functions(difficult_file)
+        for extra in args.exclude_file:
+            difficult_functions |= load_difficult_functions(extra)
 
         # Only print exclusion message in verbose modes
         if difficult_functions and (
@@ -519,6 +533,11 @@ Examples:
             file=sys.stderr,
         )
         sys.exit(1)
+
+    if args.ranked:
+        for score in filtered_scores:
+            print(score.name)
+        return
 
     # In exhaustive mode, list all functions
     if args.exhaustive:
