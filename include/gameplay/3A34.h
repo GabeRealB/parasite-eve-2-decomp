@@ -716,15 +716,16 @@ typedef struct _GpPerspScratch {
 } GpPerspScratch;
 STATIC_ASSERT_SIZEOF(GpPerspScratch, 0x14);
 
-/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `Gp_GetObjPan`.
-/// Same RTPS outputs as `GpPerspScratch`, plus the packed `SXY2` at 0x14
-/// (`sx` is the signed screen X used as stereo pan).
+/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `Gp_GetObjPan` and
+/// `func_800D9DFC`. Same RTPS outputs as `GpPerspScratch`, plus the packed
+/// `SXY2` at 0x14 (`sx` / `sy` are the projected screen coords).
 typedef struct _GpPanScratch {
     /* 0x00 */ SVECTOR vec;
     /* 0x08 */ s32     p;
     /* 0x0C */ s32     flag;
     /* 0x10 */ s32     otz;
     /* 0x14 */ s16     sx;
+    /* 0x16 */ s16     sy;
 } GpPanScratch;
 STATIC_ASSERT_SIZEOF(GpPanScratch, 0x18);
 
@@ -997,6 +998,16 @@ extern SVECTOR Gp_OverrideVec2;
 /// `func_800D9DFC`. Reset to `0xFFF00000` by `Gp_ResetLinkState`.
 extern s32 D_8010F9EC;
 extern s32 D_8010F9F0;
+
+/// Current `Gp_LinkList` node whose lock-on reticle `func_800D9DFC` is
+/// drawing. Cleared when the walk finds no live target.
+struct _GpLinkXform;
+extern struct _GpLinkXform* D_80115260;
+
+/// Lerp / settle counter for that reticle. `< 5` eases `D_8010F9EC` /
+/// `D_8010F9F0` toward the projected coords (small sprite); `0xFF` snaps.
+/// Reset to `0` on target change and when the list is empty.
+extern s32 D_80115264;
 
 /// Per-stage `GpGiveRec` lists selected by `Gp_GrantLocationItems` when
 /// `Mc_SaveData.field_F` is 0 or 2. Indexed by `GameSession.field_7`.

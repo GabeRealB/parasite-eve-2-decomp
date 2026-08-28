@@ -29717,6 +29717,23 @@ func(obj, base | (sp10 | flags), 0); /* lw a1,sp10; or a1,a1,v1; or a1,s1,a1 */
 95.9% → 99.6% with the temp-for-the-constant form; the latter also restored
 the cross-jumped shared tail block that four switch arms branch into.
 
+## Split `t1 = t1 & hi; t1 = t1 | paddr` keeps AND dest in `t1`
+
+`(t1 & hi) | paddr` into a `register u32 t1 asm("v1")` still emits
+`and a1, v1, a1` / `or v1, a1, a2` — GCC uses the other AND operand as
+the temp. Two assignments force `and v1, v1, a1` / `or v1, v1, a2`:
+
+```c
+t1 = (t1 & hi) | paddr; /* and a1,v1,a1; or v1,a1,a2 */
+t1 = t1 & hi;
+t1 = t1 | paddr;        /* and v1,v1,a1; or v1,v1,a2 */
+```
+
+`func_800D9DFC` needed the split so the OT-link AND/OR reused `v1` instead
+of clobbering the live `0xFF000000` in `a1`. Pair with a `mask` local
+pinned `asm("a2")` for the `0xFFFFFF` side so `addPrim`-style tag/`*ot`
+masking CSEs onto that register instead of emitting a second `lui/ori`.
+
 ## Flag stores that belong in the pre-call slot go *after* the call
 
 When the target sets a "did something" flag right before a `jal` (either in

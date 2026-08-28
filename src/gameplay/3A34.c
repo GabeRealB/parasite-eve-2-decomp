@@ -1710,7 +1710,176 @@ void Gp_BindDefaultMtx(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9DFC);
+void func_800D9DFC(void)
+{
+    GpLinkXform*  node;
+    GameSession*  sess;
+    u8            stateA;
+    void**        scratch;
+    u8*           head;
+    GpPanScratch* block;
+    POLY_FT4*     prim;
+    DisplayState* ds;
+    register s32  small asm("s4");
+    s32           frame;
+    s32           tu;
+    s32           tv;
+    s32           u0;
+    s32           u1;
+    register u32  mask asm("a2");
+    s32           val;
+
+    node = (GpLinkXform*)Gp_LinkList;
+    if (Pad_RemapState->field_A != 0) {
+        return;
+    }
+    func_800DA7B8();
+    sess = Game_Session;
+    if (sess->field_65 == 1) {
+        return;
+    }
+    stateA = *(u8*)&Gp_StateC08.field_A;
+    if ((u8)(stateA - 2) < 2) {
+        return;
+    }
+    if ((s8)stateA == 1) {
+        return;
+    }
+    if (sess->field_1 != 0) {
+        return;
+    }
+    if (sess->field_68 != 0) {
+        return;
+    }
+    if (node != NULL) {
+        scratch = (void**)G_SCRATCH_HEAD;
+        do {
+            if (((GpLinkNode*)node)->field_5 == 0) {
+                goto next;
+            }
+            if (((GpLinkNode*)node)->field_4 & 1) {
+                goto next;
+            }
+            head                                   = *scratch;
+            ((GpPanScratch*)(head - 0x18))->vec.vx = *(u16*)&node->src.vx;
+            {
+                register u8* tmp asm("v0");
+                tmp   = head - 0x18;
+                block = (GpPanScratch*)tmp;
+            }
+            block->vec.vy = *(u16*)&node->src.vy;
+            block->vec.vz = *(u16*)&node->src.vz;
+            *scratch      = block;
+            Gp_UpdateCoord(node->coord);
+            small = 0;
+            gte_SetRotMatrix(&node->coord->workm);
+            gte_SetTransMatrix(&node->coord->workm);
+            gte_ldv0(&block->vec);
+            gte_rtps_real();
+            gte_stsxy(&((GpPanScratch*)(head - 0x18))->sx);
+            gte_stdp(&((GpPanScratch*)(head - 0x18))->p);
+            gte_stflg(&((GpPanScratch*)(head - 0x18))->flag);
+            gte_stszotz(&((GpPanScratch*)(head - 0x18))->otz);
+            if (D_80115260 != node) {
+                if (D_80115260 == NULL) {
+                    D_80115264 = 0xFF;
+                } else {
+                    D_80115264 = 0;
+                }
+                D_80115260 = node;
+            }
+            if (D_80115264 < 5) {
+                D_8010F9EC += ((block->sx << 8) - D_8010F9EC) >> 1;
+                D_8010F9F0 += ((block->sy << 8) - D_8010F9F0) >> 1;
+                if (block->sx != (D_8010F9EC >> 8)) {
+                    goto inc;
+                }
+                if (block->sy == (D_8010F9F0 >> 8)) {
+                    val = 0xFF;
+                    goto store;
+                }
+            inc:
+                val = D_80115264 + 1;
+            store:
+                D_80115264 = val;
+                __asm__ volatile("" : : "m"(D_80115264));
+                small     = 1;
+                block->sx = D_8010F9EC >> 8;
+                block->sy = D_8010F9F0 >> 8;
+            } else {
+                D_8010F9EC = block->sx << 8;
+                D_8010F9F0 = block->sy << 8;
+            }
+            ds                = &Display_State;
+            *(u16*)&block->sy = *(u16*)&block->sy - (s8) * (u8*)&ds->vramYOffset;
+            {
+                register s32 n asm("a0");
+                n     = ds->field_8;
+                n     = (u32)n % 24U;
+                frame = (u32)n / 3U;
+            }
+            prim       = (POLY_FT4*)D_80071190;
+            D_80071190 = (DR_TPAGE*)(prim + 1);
+            if (small == 1) {
+                prim->x0 = prim->x2 = *(u16*)&block->sx - 8;
+                prim->x1 = prim->x3 = *(u16*)&block->sx + 8;
+                prim->y0 = prim->y1 = *(u16*)&block->sy - 8;
+                prim->y2 = prim->y3 = *(u16*)&block->sy + 8;
+            } else {
+                prim->x0 = prim->x2 = *(u16*)&block->sx - 0x10;
+                prim->x1 = prim->x3 = *(u16*)&block->sx + 0x10;
+                prim->y0 = prim->y1 = *(u16*)&block->sy - 0x10;
+                prim->y2 = prim->y3 = *(u16*)&block->sy + 0x10;
+            }
+            mask = 0xFFFFFF;
+            tu   = (frame & 3) << 5;
+            u0   = tu + 0x40;
+            __asm__ volatile("" : "+r"(tu), "+r"(u0), "+r"(frame), "+r"(mask));
+            tv = (frame >> 2) << 5;
+            u1 = tu + 0x60;
+            __asm__ volatile("" : "+r"(tv), "+r"(u1));
+            prim->v0    = tv;
+            prim->v1    = tv;
+            prim->v2    = tv + 0x20;
+            prim->v3    = tv + 0x20;
+            prim->clut  = 0x3C81;
+            prim->tpage = 0x3E;
+            setlen(prim, 9);
+            setcode(prim, 0x2F);
+            prim->u0 = u0;
+            prim->u1 = u1;
+            prim->u2 = u0;
+            prim->u3 = u1;
+            {
+                register u32 hi asm("a1");
+                u32*         otp;
+                u32*         pp;
+                u32          paddr;
+                u32          t0;
+                register u32 t1 asm("v1");
+                otp            = (u32*)Gpu_CurrentOt;
+                hi             = 0xFF000000;
+                pp             = (u32*)prim;
+                *pp            = (*pp & hi) | (*otp & mask);
+                paddr          = (u32)prim & mask;
+                t0             = *(u32*)scratch;
+                t1             = *otp;
+                t0            += 0x18;
+                t1             = t1 & hi;
+                t1             = t1 | paddr;
+                *(u32*)scratch = t0;
+                *otp           = t1;
+            }
+            break;
+        next:
+            node = node->next;
+        } while (node != NULL);
+    }
+    if (node == NULL) {
+        D_80115260 = NULL;
+        D_80115264 = 0;
+    }
+}
 
 void* func_800DA2A0(GpActorWork* arg0, VECTOR3* out, s32 flag)
 {
