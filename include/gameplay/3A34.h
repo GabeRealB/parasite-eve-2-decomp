@@ -811,6 +811,19 @@ typedef struct _GpPushScratch {
 } GpPushScratch;
 STATIC_ASSERT_SIZEOF(GpPushScratch, 0x40);
 
+/// 0x34-byte scratch from `G_SCRATCH_HEAD` used by `func_800E0C10`.
+/// `acc[0]` sums `field_10/12/14 * field_2` for every contributing
+/// `GpRec18` that sits at or above the floor cutoff (`field_12 >=
+/// -0xDDA`); records below it instead accumulate into `acc[1].vy` and
+/// bump `count`, so the average of that column can be folded in at the
+/// end. `acc[2]` holds the pairwise XZ products used to detect two
+/// records pushing in opposing directions.
+typedef struct _GpSlideScratch {
+    /* 0x00 */ VECTOR acc[3];
+    /* 0x30 */ s32    count;
+} GpSlideScratch;
+STATIC_ASSERT_SIZEOF(GpSlideScratch, 0x34);
+
 /// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `func_800DEAFC`.
 /// `in` is the SVECTOR promoted to VECTOR for `ApplyTransposeMatrixLV`;
 /// `out` is that transform; `pos0` / `pos1` are the 16-bit grid-space
@@ -1186,6 +1199,13 @@ void            Gp_LocalToGrid(VECTOR3* arg0, SVECTOR3* arg1);
 void            Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1);
 void            Gp_ClearPendingObj4C(void);
 void            Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1);
+/// Averages the first `arg2` `GpRec18` records of `arg0` into `arg1`
+/// (a 16.16 delta scaled by 16) and, when `arg3` is non-NULL, stores the
+/// `1 << field_4` bitmask of the contributing records there. Records
+/// below the floor cutoff are averaged separately and added on top.
+/// Returns 0 when nothing contributed, 2 when two records push in
+/// opposing directions, and 1 otherwise.
+s32 func_800E0C10(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
 /// Accumulates the push-back of the first `arg2` `GpRec18` records of
 /// `arg0` into `arg1` (a 16.16 delta scaled by 16) and, when `arg3` is
 /// non-NULL, stores the `1 << field_4` bitmask of the contributing

@@ -3378,7 +3378,91 @@ void Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0C10);
+s32 func_800E0C10(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3)
+{
+    void**          scratch;
+    u8*             head;
+    GpSlideScratch* s;
+    GpRec18*        rec;
+    s32             i;
+    s32             j;
+    s32             count;
+    s32             mask;
+    s32             ret;
+
+    count = 0;
+    ret   = 0;
+    mask  = 0;
+    /* `list` is a VLA, so its alloca has to be emitted after the three
+     * initializations above; the inner block is what pins that order. */
+    {
+        s16 list[arg2];
+
+        if (arg2 == 0) {
+            return count;
+        }
+
+        scratch  = (void**)G_SCRATCH_HEAD;
+        head     = *scratch;
+        *scratch = head - 0x34;
+        s        = (GpSlideScratch*)(head - 0x34);
+
+        s->acc[0].vx = 0;
+        s->acc[0].vy = 0;
+        s->acc[0].vz = 0;
+        s->acc[1].vx = 0;
+        s->acc[1].vy = 0;
+        s->acc[1].vz = 0;
+        s->count     = 0;
+
+        for (i = 0; i < arg2; i++) {
+            rec = &arg0[i];
+            if ((rec->field_0 & 1) && (rec->field_4 & 0xFFFF0000) == 0x100000) {
+                mask |= 1 << rec->field_4;
+                if (Gp_RoomParams[rec->field_4 & 7] == 0) {
+                    if (rec->field_12 >= -0xDDA) {
+                        s->acc[0].vx += rec->field_10 * rec->field_2;
+                        s->acc[0].vy += rec->field_12 * rec->field_2;
+                        s->acc[0].vz += rec->field_14 * rec->field_2;
+                        list[count++] = i;
+                    } else {
+                        s->acc[1].vx  = 0;
+                        s->acc[1].vy += rec->field_12 * rec->field_2;
+                        s->acc[1].vz  = 0;
+                        s->count++;
+                    }
+                }
+                ret = 1;
+            }
+        }
+
+        if (arg3 != NULL) {
+            *arg3 = mask;
+        }
+
+        for (i = 0; i < count; i++) {
+            for (j = 1; j < count; j++) {
+                s->acc[2].vx = arg0[list[i]].field_10 * arg0[list[j]].field_10;
+                s->acc[2].vz = arg0[list[i]].field_14 * arg0[list[j]].field_14;
+                if (s->acc[2].vx < -0x800000 || s->acc[2].vz < -0x800000) {
+                    ret = 2;
+                }
+            }
+        }
+
+        arg1->vx.w = s->acc[0].vx << 4;
+        arg1->vy.w = s->acc[0].vy << 4;
+        arg1->vz.w = s->acc[0].vz << 4;
+        if (s->count != 0) {
+            arg1->vx.w += (s->acc[1].vx / s->count) << 4;
+            arg1->vy.w += (s->acc[1].vy / s->count) << 4;
+            arg1->vz.w += (s->acc[1].vz / s->count) << 4;
+        }
+
+        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x34;
+        return ret;
+    }
+}
 
 s32 func_800E0FEC(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3)
 {

@@ -28988,3 +28988,32 @@ sub  *= 3;                 /* sll  v0,v1,1 ; addu v1,v1,v0 */
 
 Split one step at a time from the end: `sub *= 3` alone fixed the `sll`/`addu`
 pair, and moving the subtraction into `sub` as well fixed the `subu`/`sra`.
+
+## A `$fp` prologue plus a `sll/srl/addiu 7/srl/sll` size dance is a VLA
+
+`func_800E0C10` opens with `sw $fp,0x14($sp); move $fp,$sp; ...; subu $sp,$sp,$v0`
+where `$v0 = ((n << 4) >> 3) + 7` rounded down to a multiple of 8. That is
+GCC 2.8.1 emitting a variable-length array: the `<< 4` is the element size in
+*bits* and the `>> 3` converts it to bytes, so `<<4 >>3` means a 2-byte element
+(`s16 list[n]`), `<<5 >>3` a 4-byte one, and so on. The `+7`/`>>3`/`<<3` is the
+8-byte stack alignment. Declaring the array normally reproduces the whole
+prologue; no `alloca` intrinsic is needed.
+
+The alloca is emitted exactly where the declaration sits, and GCC will not sink
+plain initializations past it. If the target computes the VLA size *after*
+zeroing some locals, put the array in a nested block so the declaration comes
+after those statements:
+
+```c
+count = 0;
+ret   = 0;
+mask  = 0;
+{
+    s16 list[arg2];   /* alloca lands here, after the three `move ...,zero` */
+    ...
+}
+```
+
+Without the inner block C89 forces the declaration to the top of the function
+and the three `move` instructions land after `subu $sp`. This alone was 95.8% ->
+100% in `func_800E0C10`.
