@@ -785,6 +785,19 @@ typedef struct _GpNearScratch {
 } GpNearScratch;
 STATIC_ASSERT_SIZEOF(GpNearScratch, 0x28);
 
+/// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `func_800E0FEC`.
+/// Each `GpRec18` whose `field_4` high halfword is `0x10` contributes to
+/// one accumulator, selected by `field_4` bits `0xF00`: kind 0 sums
+/// `field_2 * field_10/12/14` into `acc[0]`, kind 1 writes the lift
+/// `-(field_2 << 12)` into `acc[1].vy`, and kind 2 writes the slide
+/// `field_2 * field_10/14` into `acc[2]` for the record with the smallest
+/// `field_2`. `acc[3]` holds the pairwise XZ products of the kind-0
+/// records used to detect opposing pushes.
+typedef struct _GpPushScratch {
+    /* 0x00 */ VECTOR acc[4];
+} GpPushScratch;
+STATIC_ASSERT_SIZEOF(GpPushScratch, 0x40);
+
 /// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `func_800DEAFC`.
 /// `in` is the SVECTOR promoted to VECTOR for `ApplyTransposeMatrixLV`;
 /// `out` is that transform; `pos0` / `pos1` are the 16-bit grid-space
@@ -1160,7 +1173,12 @@ void            Gp_LocalToGrid(VECTOR3* arg0, SVECTOR3* arg1);
 void            Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1);
 void            Gp_ClearPendingObj4C(void);
 void            Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1);
-s32             func_800E0FEC(s32 arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
+/// Accumulates the push-back of the first `arg2` `GpRec18` records of
+/// `arg0` into `arg1` (a 16.16 delta scaled by 16) and, when `arg3` is
+/// non-NULL, stores the `1 << field_4` bitmask of the contributing
+/// records there. Returns 0 when nothing contributed, 2 when two kind-0
+/// records push in opposing directions, and 1 otherwise.
+s32 func_800E0FEC(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3);
 /// Transforms `arg0`'s local offset (`GpActorD4Rec` at `field_C` plus the
 /// 0x10 SVECTOR) by `field_8->workm` and returns the 1-based index of the
 /// closest occupied `GpRec18` in `rec->field_14` whose `field_4` high 16

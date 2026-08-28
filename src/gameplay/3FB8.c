@@ -1383,7 +1383,7 @@ s32 func_801011D0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3)
     p        = head - 0x10;
     s        = p;
     *scratch = p;
-    ret      = func_800E0FEC(arg1, s, arg2, arg3);
+    ret      = func_800E0FEC((GpRec18*)arg1, s, arg2, arg3);
     if (ret != 0) {
         val = ((GpDeltaScratch*)(head - 0x10))->vx.w;
         if ((val & 0xFFFF) != 0) {
@@ -4016,7 +4016,7 @@ s32 func_80105BC4(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
                     dist += t2;
                 }
                 if (dist < minDist) {
-                    func_800E0FEC((s32)rec, (GpDeltaScratch*)block, 1, pidx);
+                    func_800E0FEC(rec, (GpDeltaScratch*)block, 1, pidx);
                     idx = func_800E1ACC((u8*)pidx);
                     {
                         GameSession* session = Game_Session;

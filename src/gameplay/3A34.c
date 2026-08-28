@@ -3259,7 +3259,97 @@ void Gp_WorldToGrid(VECTOR3* arg0, SVECTOR3* arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0C10);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E0FEC);
+s32 func_800E0FEC(GpRec18* arg0, GpDeltaScratch* arg1, s32 arg2, s32* arg3)
+{
+    void**         scratch;
+    u8*            head;
+    GpPushScratch* s;
+    GpRec18*       rec;
+    s32            i;
+    s32            j;
+    s32            count;
+    s32            mask;
+    s32            ret;
+    s32            prev;
+    u8             list[0x20];
+
+    ret   = 0;
+    count = 0;
+    mask  = 0;
+    prev  = 0;
+    if (arg2 == 0) {
+        return ret;
+    }
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    *scratch = head - 0x40;
+    s        = (GpPushScratch*)(head - 0x40);
+
+    for (i = 0; i < 3; i++) {
+        s->acc[i].vx = 0;
+        s->acc[i].vy = 0;
+        s->acc[i].vz = 0;
+    }
+
+    for (i = 0; i < arg2; i++) {
+        rec = &arg0[i];
+        if ((rec->field_0 & 1) && (rec->field_4 & 0xFFFF0000) == 0x100000) {
+            mask |= 1 << rec->field_4;
+            if (Gp_RoomParams[rec->field_4 & 7] == 0) {
+                switch ((u32)(rec->field_4 & 0xF00) >> 8) {
+                    case 0:
+                        s->acc[0].vx += rec->field_2 * rec->field_10;
+                        s->acc[0].vy += rec->field_2 * rec->field_12;
+                        s->acc[0].vz += rec->field_2 * rec->field_14;
+                        list[count++] = i;
+                        break;
+                    case 1:
+                        s->acc[1].vx = 0;
+                        s->acc[1].vy = -(rec->field_2 << 12);
+                        s->acc[1].vz = 0;
+                        break;
+                    case 2:
+                        if (rec->field_12 == 0 && ((s16)prev == 0 || rec->field_2 < (s16)prev)) {
+                            s->acc[2].vx = rec->field_2 * rec->field_10;
+                            s->acc[2].vy = 0;
+                            s->acc[2].vz = rec->field_2 * rec->field_14;
+                            prev         = (u16)rec->field_2;
+                        }
+                        break;
+                }
+            }
+            ret = 1;
+        }
+    }
+
+    for (i = 0; i < count; i++) {
+        for (j = 1; j < count; j++) {
+            s->acc[3].vx = arg0[list[i]].field_10 * arg0[list[j]].field_10;
+            s->acc[3].vz = arg0[list[i]].field_14 * arg0[list[j]].field_14;
+            if (s->acc[3].vx < -0x800000 || s->acc[3].vz < -0x800000) {
+                ret = 2;
+            }
+        }
+    }
+
+    if (arg3 != NULL) {
+        *arg3 = mask;
+    }
+
+    if (count != 0) {
+        arg1->vx.w = (s->acc[0].vx + s->acc[1].vx) << 4;
+        arg1->vy.w = (s->acc[0].vy + s->acc[1].vy) << 4;
+        arg1->vz.w = (s->acc[0].vz + s->acc[1].vz) << 4;
+    } else {
+        arg1->vx.w = (s->acc[1].vx + s->acc[2].vx) << 4;
+        arg1->vy.w = (s->acc[1].vy + s->acc[2].vy) << 4;
+        arg1->vz.w = (s->acc[1].vz + s->acc[2].vz) << 4;
+    }
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x40;
+    return ret;
+}
 
 s32 Gp_FindNearestSlot(GpObj* arg0, s32 arg1)
 {

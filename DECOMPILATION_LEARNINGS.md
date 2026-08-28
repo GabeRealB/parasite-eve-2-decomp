@@ -27952,3 +27952,36 @@ a 99.8% base source at ~800 instead of ~4, so every candidate looked equally
 bad and the search was useless. `permute.sh` now passes `--expand-div`; if the
 permuter's base score is wildly worse than `build.sh` reports for the same
 file, diff the two maspsx command lines first.
+
+## Store the new scratch head before assigning the block for the extra `move`
+
+A `G_SCRATCH_HEAD` alloc whose block pointer feeds a loop wants three
+registers in the target, not two:
+
+```
+addiu v0, v0, -0x40   /* alloc temp   */
+move  t0, v0          /* block        */
+move  a0, t0          /* loop pointer */
+sw    t0, 0(v1)       /* new head     */
+```
+
+The usual spelling `head = *scratch; s = (T*)(head - 0x40); *scratch = s;`
+folds the subtraction straight into the block register (`addiu t0, v0, -0x40`)
+and loses the first copy. So does every obvious variant: a separate `u8*` or
+`u32` temp for `head - 0x40`, the chained `*scratch = s = (T*)(head - 0x40)`,
+and an `asm volatile("" : "+r"(s))` pin (which only blocks scheduling and adds
+a `nop`). Write the store first and re-spell `head - 0x40` for the block; CSE
+then keeps the shared subtraction in its own pseudo and both later uses are
+copies of it:
+
+```c
+head     = *scratch;
+*scratch = head - 0x40;
+s        = (GpPushScratch*)(head - 0x40);
+```
+
+`func_800E0FEC` is the example (that one instruction was the whole diff at
+99.45%). This is the mirror image of "Assign `lhs = *p = expr` so the temp
+stays in `$v0`": there the `sw` must use the alloc temp, here it must use the
+block copy, so check which register the target's `sw` reads before picking a
+spelling.
