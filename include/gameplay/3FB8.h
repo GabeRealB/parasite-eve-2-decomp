@@ -321,6 +321,33 @@ typedef struct _GpEffFt4Scratch {
 } GpEffFt4Scratch;
 STATIC_ASSERT_SIZEOF(GpEffFt4Scratch, 0x18);
 
+/// One corner of the unit quad in `D_80111E38`: a signed XZ pair scaled by
+/// the caller's half-size before being rotated into world space.
+typedef struct _GpQuadCorner {
+    /* 0x0 */ u16 x;
+    /* 0x2 */ u16 y;
+} GpQuadCorner;
+STATIC_ASSERT_SIZEOF(GpQuadCorner, 0x4);
+
+/// Unit quad corners `(-1, 1)`, `(1, 1)`, `(-1, -1)`, `(1, -1)`.
+extern GpQuadCorner D_80111E38[4];
+
+/// 0x38-byte scratch from `G_SCRATCH_HEAD` used by `func_800F6560`.
+/// `vec[]` holds the four rotated + translated quad corners fed to the GTE;
+/// `otz` is `gte_stszotz` then incremented, `flag` is `gte_stflg`, and
+/// `sxy0` (RTPS of `vec[0]`) plus `sxy1`..`sxy3` (RTPT of the rest) are the
+/// projected screen positions copied into the `POLY_FT4`.
+typedef struct _GpQuadScratch {
+    /* 0x00 */ SVECTOR vec[4];
+    /* 0x20 */ s32     otz;
+    /* 0x24 */ s32     flag;
+    /* 0x28 */ DVECTOR sxy0;
+    /* 0x2C */ DVECTOR sxy1;
+    /* 0x30 */ DVECTOR sxy2;
+    /* 0x34 */ DVECTOR sxy3;
+} GpQuadScratch;
+STATIC_ASSERT_SIZEOF(GpQuadScratch, 0x38);
+
 /// 0x10-byte scratch from `G_SCRATCH_HEAD` used by `func_8010133C`.
 /// `field_0` / `field_4` are the outer/inner loop counters. `field_8` is
 /// a color word (`0x808008`, then `0x37A78`). `field_C` / `field_E` are

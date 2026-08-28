@@ -28309,3 +28309,45 @@ here). The same ordering rule explains a nearby `move t1, a3`: an `s32` (not
 pseudos, so the redundant second widening is CSE'd down to a register copy — a
 `u8` local instead lets everything coalesce into one register and the `move`
 disappears.
+
+## A single prim field-store position decides where the `getcode` `lbu` lands
+
+`func_800F6560` fills a `POLY_FT4` with a run of constant field stores and
+finishes with `setSemiTrans(prim, 1)`. Everything matched except a 4-line
+window: the target reads the code byte immediately after the two `0xC8`
+stores, so the `lbu` gets `$v0` and the `0xE0` constant gets `$v1`:
+
+```
+li     v0, 0xc8
+sb     v0, 0xd(a0)     # v0
+sb     v0, 0x15(a0)    # v1
+lbu    v0, 7(a0)       # getcode
+li     v1, 0xe0
+sb     v1, 0xc(a0)     # u0
+sb     v1, 0x1c(a0)    # u2
+```
+
+Moving the `setSemiTrans` call itself — before the `0xC8` stores, after them,
+anywhere in the block, or splitting it into an explicit
+`code = getcode(prim); … setcode(prim, code | 2)` — changes nothing: GCC's
+pre-RA scheduler normalizes all of those to the same order and the `lbu`
+sinks three slots, so `0xE0` takes `$v0` instead. A `volatile` read of the
+code byte does not pin it either.
+
+What does work is moving one of the *constant field stores* across the
+CSE group boundary. Writing `prim->u0` before the two `prim->v0` /
+`prim->v1` stores (instead of after) splits the `0xE0` pseudo away from the
+`0xC8` pseudo, which flips the register assignment and the schedule:
+
+```c
+prim->u0 = 0xE0;   /* was after the two 0xC8 stores */
+prim->v0 = 0xC8;
+prim->v1 = 0xC8;
+prim->u2 = 0xE0;
+```
+
+99.6% → 100%. The lesson: when a primitive-setup block is off only by the
+position of a `lbu`/`li` pair, permute the individual field stores rather
+than the read that looks misplaced — the constants that CSE together are
+what the register allocator actually sees. decomp-permuter finds this in
+seconds; hand-reordering the "obvious" statement does not.
