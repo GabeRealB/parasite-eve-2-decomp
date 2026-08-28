@@ -29617,3 +29617,72 @@ pseudos, lowers register pressure, and the prologue stops saving the `s`
 registers the target saves (here `s5`/`s4`/`s3`, two of them unused in the body).
 Keep the variables, just move where they are assigned. Worth 99.8% → 100% on
 `func_8009C024`.
+
+## `u16` flag local so its `1` cannot be CSE'd into later `+ 1` / compares
+
+A `s32 flag = 1;` set early and used much later (here the GPU semi-transparency
+rate folded in as `prim->tpage = (abr << 5) | 8`) leaves an SImode `li t0, 1`
+live across the whole body. cse then rewrites *every* later SImode use of the
+constant 1 as that register:
+
+```
+addu  v0,v0,t0        /* block->otz + 1        */
+bne   t2,t0,...       /* if (arg1 == 1)        */
+```
+
+while the target rematerializes both (`addiu v0,v0,1`, `li v0,1` + `bne`).
+
+Fix: declare the flag `u16` (or `u8`/`s16`). cse can take a lowpart of a wider
+register but cannot widen a narrower one, so the promoted-HImode `1` is no
+longer a candidate for the SImode `+ 1` and the SImode compare constant. This
+is the same mode rule as *Constant CSE across differently-sized stores*, used
+to *block* a unification instead of forcing one. `func_800F9FBC` went 92.7% →
+94.3% on this one-word change.
+
+## Barriers to keep a `goto` join from being cross-jumped away
+
+`func_800F9FBC` colors a `POLY_FT4` from two `arg2 != NULL` arms that share a
+tail, which m2c renders as a `goto` into the middle of the second arm:
+
+```c
+if (arg1 == 1) {
+    if (arg2 != NULL) { prim->r0 = arg2[0]; green = arg2[1]; abr = 2; goto rgb; }
+    ...
+} else if (arg2 != NULL) {
+    prim->r0 = arg2[0];
+    green = arg2[1];
+rgb:
+    prim->g0 = green;
+```
+
+Written plainly, GCC schedules the `li t0, 2` up into the `lbu` load-delay
+slot, which makes the arm's tail identical to the code in front of the label,
+and the final cross-jump pass then swallows the `sb r0` / `lbu` pair (the arm
+degenerates to `lbu; j; li t0,2`). A `__asm__ volatile("" ::: "memory")` right
+before `abr = 2` pins the constant load after the stores, the tails stop
+matching, and both arms keep their own copies — exactly what the target has.
+
+The same barrier trick fixes the join block: without it the `setSemiTrans`
+`lbu prim->code` hoists above the `prim->g0` store (different constant offsets
+on the same base, so GCC disambiguates them). Put the barrier after the `g0`
+store, and read the blue byte into a local *before* `setSemiTrans` so the
+scheduler can drop that load into the `lbu code` delay slot:
+
+```c
+prim->g0 = green;
+__asm__ volatile("" ::: "memory");
+blue = arg2[2];
+setSemiTrans(prim, 1);
+prim->b0 = blue;
+```
+
+## `setUV4` keeps the `+ 0x17` u-coordinate in its own register
+
+Storing the eight UV bytes by hand in the order the target emits them
+(`u0, u2, v0, u1, v1, v2, u3, v3`) lets the second u-coordinate be computed
+after the last use of the first, so GCC reuses that register
+(`addiu v0,v0,0x17`) and reorders the `v1` store ahead of `u1`. Writing the
+same values through `setUV4(prim, uv, 0xB8, uv2, 0xB8, uv, 0xCF, uv2, 0xCF)`
+puts `uv2`'s first use third, so both stay live in separate registers
+(`addiu a1,v0,0x17` before the stores) and the emitted store order still comes
+out as the target's. `func_800F9FBC` went 96.0% → 98.2% on that rewrite.

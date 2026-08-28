@@ -158,7 +158,104 @@ spawn:
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F96B0);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F9FBC);
+void func_800F9FBC(Task* arg0, s32 arg1, u8* arg2)
+{
+    void**            scratch;
+    u8*               head;
+    GpEffBeamScratch* block;
+    GpEffWork*        mem;
+    GameActorExt*     extra;
+    GsCOORDINATE2*    coord;
+    POLY_FT4*         prim;
+    u16               abr;
+    s32               uv;
+    s32               uv2;
+    register u8       green asm("v0");
+    u8                blue;
+    s32               ang;
+    u16               size;
+    u16               frame;
+    u16               angle;
+    u16               vz;
+
+    extra                                      = (GameActorExt*)arg0->extra;
+    mem                                        = arg0->spawnArg2;
+    scratch                                    = (void**)G_SCRATCH_HEAD;
+    abr                                        = 1;
+    head                                       = *scratch;
+    coord                                      = (GsCOORDINATE2*)extra->field_8;
+    size                                       = mem->field_18;
+    frame                                      = mem->field_20;
+    angle                                      = mem->field_1C;
+    ((GpEffBeamScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
+    {
+        register u8* tmp asm("v0");
+        tmp   = head - 0x1C;
+        block = (GpEffBeamScratch*)tmp;
+    }
+    block->vec.vy = *(u16*)&coord->workm.t[1];
+    vz            = *(u16*)&coord->workm.t[2];
+    *scratch      = block;
+    block->vec.vz = vz;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec);
+    gte_rtps_real();
+    gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
+    gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((GpEffBeamScratch*)(head - 0x1C))->otz);
+        block->otz = block->otz + 1;
+        prim       = (POLY_FT4*)D_80071190;
+        D_80071190 = (DR_TPAGE*)(prim + 1);
+        setlen(prim, 9);
+        setcode(prim, 0x2C);
+        if (arg1 == 1) {
+            if (arg2 != NULL) {
+                prim->r0 = arg2[0];
+                green    = arg2[1];
+                __asm__ volatile("" ::: "memory");
+                abr = 2;
+                goto rgb;
+            }
+            prim->r0 = 0x20;
+            prim->g0 = 0x20;
+            prim->b0 = 0x20;
+        } else if (arg2 != NULL) {
+            prim->r0 = arg2[0];
+            green    = arg2[1];
+        rgb:
+            prim->g0 = green;
+            __asm__ volatile("" ::: "memory");
+            blue = arg2[2];
+            setSemiTrans(prim, 1);
+            prim->b0 = blue;
+        } else {
+            setcode(prim, 0x2D);
+        }
+        prim->tpage = (abr << 5) | 8;
+        prim->clut  = 0x428E;
+        uv          = (frame & 7) * 0x18;
+        uv2         = uv + 0x17;
+        setUV4(prim, uv, 0xB8, uv2, 0xB8, uv, 0xCF, uv2, 0xCF);
+        block->dx = ((((s16)size * 23) / block->otz) * rsin((s16)angle)) >> 12;
+        block->dy = ((((s16)size * 23) / block->otz) * rcos((s16)angle)) >> 12;
+        prim->x0  = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+        prim->x3  = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+        prim->y0  = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+        prim->y3  = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        ang       = (s16)angle + 0x400;
+        block->dx = ((((s16)size * 23) / block->otz) * rsin(ang)) >> 12;
+        block->dy = ((((s16)size * 23) / block->otz) * rcos(ang)) >> 12;
+        prim->x1  = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+        prim->x2  = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+        prim->y1  = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+        prim->y2  = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+}
 
 void func_800FA45C(GsCOORDINATE2* arg0, s32 arg1, u16 arg2, u16 arg3)
 {
