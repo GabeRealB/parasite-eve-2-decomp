@@ -29570,3 +29570,50 @@ it a name (`MATRIX* m = &coord->workm;` assigned with the other preheader
 statements, then `gte_SetRotMatrix(m)`) makes it a plain statement that is
 emitted before the hoisted addresses, matching the target and freeing the `%hi`
 to use its own register. Worth 96.9% → 97.7% on its own.
+
+## Sink named constants into the loop to put a hoisted invariant *ahead* of them
+
+The complement of the previous entry. Explicit preheader assignments are emitted
+in source order, and GCC 2.8.1 then appends every anonymous loop invariant it
+hoisted *after* all of them. So an address taken only inside the loop — e.g. the
+second `gte_ldrgb(&col2)` operand — always lands last in the preheader:
+
+```
+addiu t8,a3,0x24    <- flg      (explicit)
+lui   s0,0x8000     <- clipMask (explicit)
+addiu t5,a3,0x28    <- opz      (explicit)
+li    t9,0xc        <- len      (explicit)
+...
+addiu t7,sp,8       <- &col2, hoisted: appended at the end
+```
+
+When the target instead interleaves it (`&col2` fourth, before `len`), naming it
+does not help: an explicit `c2 = &col2;` is a frame-relative constant, so CSE
+floats the `addiu` to the top of the block (often into the `blez` delay slot) and
+leaves a `move t7,v0` behind — worse, not better.
+
+The fix is to make *everything* in the preheader an anonymous invariant, so the
+whole run is emitted in first-use order. Move the constant assignments out of the
+preheader and down into the loop body, immediately before their first use and
+*after* the operand you want hoisted first:
+
+```c
+if (ws->field_1C-- > 0) {
+    flg = &ws->field_24; clipMask = 0x80000000; opz = &ws->field_28;
+    do {
+        ...
+        gte_ldrgb(&col2);          /* discovered first -> hoisted first */
+        ...
+        len = 0xC; code = 0x3C; ds = &Display_State;
+        mask = 0xFFFFFF; maskHi = 0xFF000000;
+        setlen(&poly[0], len);
+        ...
+    } while (ws->field_1C-- > 0);
+}
+```
+
+Do not instead replace the named temps with literals: that drops the live
+pseudos, lowers register pressure, and the prologue stops saving the `s`
+registers the target saves (here `s5`/`s4`/`s3`, two of them unused in the body).
+Keep the variables, just move where they are assigned. Worth 99.8% → 100% on
+`func_8009C024`.
