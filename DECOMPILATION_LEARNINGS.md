@@ -28631,3 +28631,59 @@ puts `move s4, s3` in the entry branch's delay slot. Pair this with per-arm
 stores of the constant (`blk->div = 0x6E;` / `= 0x64;` instead of a shared
 `frames` local) so cross-jumping keeps the `li v0, 0x6E` in the `j` delay slot
 and the value in `$v0` rather than a spare `$v1`. `func_801078AC` is the example.
+
+## Inline the `(s16)` cast at the first call sites so `lui %hi(sym)` wins the ready list
+
+`func_800EF0E0` calls `rsin`/`rcos` four times with an angle that must survive
+the calls, and the taken branch also loads a global prim pointer:
+
+```
+sw     t4, 0(v0)               /* gte_stszotz */
+lui    v1, %hi(D_80071190)
+sll    s2, a2, 0x10
+sra    s2, s2, 0x10
+move   a0, s2
+lw     s1, %lo(D_80071190)(v1)
+```
+
+Writing `ang = (s16)arg2;` as its own statement gives the `sll`/`sra` chain a
+high enough scheduling priority that GCC 2.8.1 emits it *before* the `lui`. Drop
+the named local at the first two call sites and cast in place, keeping the local
+only for the value that is actually different:
+
+```c
+block->dx = ((((s16)arg1 * 55) / block->otz) * rsin((s16)arg2)) >> 12;
+block->dy = ((((s16)arg1 * 55) / block->otz) * rcos((s16)arg2)) >> 12;
+…
+ang = (s16)arg2 + 0x400;       /* addiu s2, s2, 0x400 — CSEs onto the same reg */
+block->dx = ((((s16)arg1 * 55) / block->otz) * rsin(ang)) >> 12;
+```
+
+CSE still keeps one `sll`/`sra` pair in `$s2` and the later angle is a plain
+`addiu`, but the sign-extension is now sunk behind the `lui`. Note the same
+function needs `(s16)arg1 * 55` written out at all four use sites rather than
+hoisted into a local: GCC evaluates the `rsin`/`rcos` call first and only then
+the `55 * arg1` / `div`, which is what puts the multiply *after* the `jal`.
+
+## Remove `register asm()` pins again once the surrounding code settles
+
+A pin that was needed at 92% can be actively harmful at 99%. In `func_800EF0E0`
+the `gte_ldv0` pointer had to be a separate copy (`move v0, s3`), and pinning it
+to `$v0` looked right — but the pin made the copy schedulable early enough that
+it stole the `lhu v0, 0x40(a0)` load-delay slot and pushed
+`lui t0, %hi(GsWSMATRIX)` all the way up into the prologue. Leaving it as a
+plain local (`vecp = block; … gte_ldv0(&vecp->vec);`) fixed twelve instructions
+at once. After each improvement, re-test the function with each existing pin
+removed one at a time; only `register s32 u70 asm("a1")` (so `li a1, 0x70` is
+free to fill a `lw` load-delay slot instead of being CSE'd into two adjacent
+`sb`s) survived in the final match.
+
+## A dead `head` still wants `$v0` for the last GTE store address
+
+`gte_stsxy` / `gte_stflg` / `gte_stszotz` addressed off the scratch `head`
+pointer emit `addiu v0, v1, -N`. When `head` is dead after the final one, GCC
+2.8.1 reuses `$v1` (`addiu v1, v1, -0x14`). Either `__asm__ volatile("" ::
+"r"(head));` after the last store or pinning the address temp
+(`register s32* otzp asm("v0")`) restores `$v0` — but both are scheduling
+barriers or pins, so prefer to fix the surrounding code first and re-check
+whether the problem disappears on its own. In `func_800EF0E0` it did.

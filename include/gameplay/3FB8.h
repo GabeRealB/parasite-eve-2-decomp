@@ -350,6 +350,22 @@ typedef struct _GpQuadScratch {
 } GpQuadScratch;
 STATIC_ASSERT_SIZEOF(GpQuadScratch, 0x38);
 
+/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_800EF0E0`.
+/// `vec` is the coordinate's `workm.t[]` truncated to s16 and fed to
+/// `gte_ldv0`. `otz` is `gte_stszotz`, `flag` is `gte_stflg` and `sxy` is
+/// `gte_stsxy` of the single RTPS. `dx` / `dy` are the rotated half-extents
+/// `(size * 55 / otz) * rsin/rcos(angle) >> 12` that offset `sxy` into the
+/// four corners of the billboard `POLY_FT4`.
+typedef struct _GpEffBeamScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ s32     dx;
+    /* 0x14 */ s32     dy;
+    /* 0x18 */ DVECTOR sxy;
+} GpEffBeamScratch;
+STATIC_ASSERT_SIZEOF(GpEffBeamScratch, 0x1C);
+
 /// 0x10-byte scratch from `G_SCRATCH_HEAD` used by `func_8010133C`.
 /// `field_0` / `field_4` are the outer/inner loop counters. `field_8` is
 /// a color word (`0x808008`, then `0x37A78`). `field_C` / `field_E` are
