@@ -298,6 +298,22 @@ typedef struct _GpRayScratch {
 } GpRayScratch;
 STATIC_ASSERT_SIZEOF(GpRayScratch, 0x10);
 
+/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `func_800EAEB8`.
+/// `vec` is the coordinate's `workm.t[]` truncated to s16 and fed to
+/// `gte_ldv0`. `otz` is `gte_stszotz` (then incremented so it can also be
+/// used as the divisor), `flag` is `gte_stflg` and `sx` / `sy` are the
+/// `gte_stsxy` of the single RTPS. `step` is the per-vertex radius
+/// `(arg1 * 64) / otz` swept around the ring by `rsin` / `rcos`.
+typedef struct _GpRingScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ s32     step;
+    /* 0x14 */ s16     sx;
+    /* 0x16 */ s16     sy;
+} GpRingScratch;
+STATIC_ASSERT_SIZEOF(GpRingScratch, 0x18);
+
 extern GpState1C*    Gp_State1C;
 extern Task*         Gp_State1CTask;
 extern GpCoord64     Gp_RoomCoords[8];
@@ -360,6 +376,10 @@ void Gp_DrawFadeQuad(u8* arg0, s32 arg1);
 /// Handwritten GTE routine. Draws a textured sprite at `arg0`; `arg1` is a
 /// signed half-extent, `arg2` a scale, and `arg3` the RGB triple.
 void func_800EAA0C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3);
+/// Handwritten GTE routine. Draws an eight-segment gouraud ring centred on
+/// `arg0`'s world position: `arg1` is the radius in world units (scaled by
+/// 64 and divided by the projected OTZ) and `arg2` the RGB triple, which
+/// only lights the ring's inner vertex so each `POLY_G4` fades to black.
 void func_800EAEB8(GsCOORDINATE2* arg0, s32 arg1, u8* arg2);
 void func_800EB2C8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800EB6E8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);

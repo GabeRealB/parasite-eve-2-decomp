@@ -14,6 +14,7 @@
 #include "main/sound.h"
 #include "main/task.h"
 
+#define gte_rtps_real()   __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_rtv0_real()   __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_rtv0tr_real() __asm__ volatile("nop; nop; .word 0x4A480012")
 
@@ -428,7 +429,81 @@ void Gp_DrawFadeQuad(u8* arg0, s32 arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8_9CC8", func_800EAA0C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8_9CC8", func_800EAEB8);
+void func_800EAEB8(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+{
+    register void**         scratch asm("a1");
+    register u8*            head asm("a2");
+    register GpRingScratch* block asm("s2");
+    POLY_G4*                prim;
+    DR_TPAGE*               dr;
+    register s32            ang asm("s3");
+    register s32            ang2 asm("s1");
+    s32                     otz;
+    u16                     vz;
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = *scratch;
+    __asm__ volatile("" ::"r"(head));
+    {
+        register u16 vx asm("v0");
+        vx                                      = *(u16*)&arg0->workm.t[0];
+        ((GpRingScratch*)(head - 0x18))->vec.vx = vx;
+    }
+    {
+        register u8* tmp asm("v0");
+        tmp   = head - 0x18;
+        block = (GpRingScratch*)tmp;
+    }
+    block->vec.vy = *(u16*)&arg0->workm.t[1];
+    vz            = *(u16*)&arg0->workm.t[2];
+    *scratch      = block;
+    block->vec.vz = vz;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec);
+    gte_rtps_real();
+    gte_stsxy(&((GpRingScratch*)(head - 0x18))->sx);
+    gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
+        __asm__ volatile("" ::"r"(head));
+        block->otz++;
+        block->step = ((s16)arg1 * 64) / block->otz;
+        ang         = 0;
+        do {
+            prim       = (POLY_G4*)D_80071190;
+            D_80071190 = (DR_TPAGE*)(prim + 1);
+            setPolyG4(prim);
+            setRGB0(prim, 0, 0, 0);
+            setRGB1(prim, 0, 0, 0);
+            setRGB2(prim, rgb[0], rgb[1], rgb[2]);
+            setRGB3(prim, 0, 0, 0);
+            prim->x0 = *(u16*)&block->sx + ((block->step * rsin(ang)) >> 12);
+            prim->y0 = *(u16*)&block->sy + ((block->step * rcos(ang)) >> 12);
+            ang2     = ang + 0x100;
+            prim->x1 = *(u16*)&block->sx + ((block->step * rsin(ang2)) >> 12);
+            prim->y1 = *(u16*)&block->sy + ((block->step * rcos(ang2)) >> 12);
+            prim->x2 = *(u16*)&block->sx;
+            prim->y2 = *(u16*)&block->sy;
+            ang2     = ang + 0x200;
+            prim->x3 = *(u16*)&block->sx + ((block->step * rsin(ang2)) >> 12);
+            prim->y3 = *(u16*)&block->sy + ((block->step * rcos(ang2)) >> 12);
+            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+                              (s32)Gpu_CurrentOt),
+                    prim);
+            otz = block->otz;
+            setSemiTrans(prim, 1);
+            dr         = D_80071190;
+            D_80071190 = dr + 1;
+            setDrawTPage(dr, 0, 1, 0x2A);
+            addPrim((u_long*)(((((u32)otz << Display_State.field_128) >> 2) & 0xFFC) +
+                              (s32)Gpu_CurrentOt),
+                    dr);
+            ang = ang2;
+        } while (ang < 0x1000);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8_9CC8", func_800EB2C8);
 

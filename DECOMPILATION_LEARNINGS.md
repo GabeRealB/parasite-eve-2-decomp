@@ -514,6 +514,32 @@ block    = tmp;
 `Gp_UpdateActorColor` is the example. Same split-address `lui` in a branch delay
 as `Gp_CopyCoordOffset`.
 
+Pinning that push temp to `$v0` also *takes `$v0` away from the first field
+copy*, which flips the schedule: the target fills the `lhu` load-delay slot
+with the GTE macro's `lui %hi(GsWSMATRIX)`, but with `$v0` reserved the first
+`lhu` lands in `$v1` and `addiu v0, head, -N` floats up into that slot instead.
+Give the copy its own `$v0` scope — the two live ranges are disjoint, so GCC
+2.8.1 accepts both — and add a no-op `asm volatile("" ::"r"(head))` after the
+head load so the scheduler cannot hoist the field `lhu` above `lw head`:
+
+```c
+scratch = (void**)G_SCRATCH_HEAD;
+head    = *scratch;
+asm volatile("" ::"r"(head)); /* lw head stays ahead of the field load */
+{
+    register u16 vx asm("v0");
+    vx                                      = *(u16*)&arg0->workm.t[0];
+    ((GpRingScratch*)(head - 0x18))->vec.vx = vx;
+}
+{
+    register u8* tmp asm("v0");
+    tmp   = head - 0x18;
+    block = (GpRingScratch*)tmp;
+}
+```
+
+`func_800EAEB8` is the example (98.98% → 100% from the two barriers alone).
+
 Walking packed 3x3 columns as `src->x` / `src->y` / `src->z` (offsets
 0 / 6 / 12) CSEs `&src->z` into a derived pointer (`addiu a0, a1, 0xc`
 then `lhu -6(a0)`). A `+r` pin after each load keeps every access
