@@ -27678,3 +27678,51 @@ func_800EAA0C(coord, ((u8)Gp_StateC08.field_2 << 24) >> 17, 0x60, rgb);
 That emits `lbu; sll 24; sra 17` (i.e. `(s8)field << 7`) while a plain
 `Gp_StateC08.field_2 != 0` elsewhere in the same function still uses `lb`, which
 is what the target does.
+
+## Recovering a switch's `slti … → default` with one dummy case below the tree root
+
+Refines "Two-case switch may drop the `slti` range check". When the target is
+
+```
+lw   v1, 0x34(s5)
+li   v0, 0xc
+beq  v1, v0, case12
+slti v0, v1, 0xd      /* x <= 12 */
+bnez v0, default
+li   v0, 0x1b
+beq  v1, v0, case27
+                      /* falls through to default */
+```
+
+a plain `switch (x) { default: …; case 12: …; case 27: …; }` compiles to the
+equality chain *without* the `slti`/`bnez`: with only two case values
+`balance_case_nodes` leaves a linear list (root 12, right child 27), the right
+child is a childless single value, and GCC takes the "omit the conditional
+branch to default" path.
+
+Adding **one** dummy case *below* the lower case value, sharing the default
+body, produces the target exactly:
+
+```c
+switch (arg0->spawnArg1) {
+    case 1:
+    default:  /* … */ break;
+    case 12:  /* … */ break;
+    case 27:  /* … */ break;
+}
+```
+
+Now there are three case nodes, so the tree is balanced around the middle one
+(12): root 12 with a left leaf (1) and a right leaf (27). The both-children
+path emits `EQ 12 → case12`, `GT 12 → test_label`, the left subtree, an
+unconditional jump to default, then `test_label:` and the right subtree. The
+left subtree is only `beq x, 1, default` immediately followed by
+`j default`, so jump.c deletes the dead conditional, and the now-empty left
+side lets the `GT 12` invert into `slti x, 0xd; bnez default`. Nothing of the
+dummy case survives.
+
+Requirements: exactly one extra value, strictly below the real lower case (so
+the real lower case becomes the root), and its body must be the default's.
+The concrete value is unrecoverable — any of them emit identical code — so
+pick one that fits the neighbouring functions (`func_800ECAA8` in the same TU
+already uses `case 1: default:`). `func_800EDDFC` went 98.8% → 100% with this.

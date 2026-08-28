@@ -9,7 +9,10 @@
 extern s32     Gp_LcgState;
 extern SVECTOR D_801124DC[];
 extern SVECTOR D_801125EC[];
+extern SVECTOR D_801126FC[];
+extern SVECTOR D_8011280C[];
 
+void func_800EF0E0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800F1BEC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
 void func_800F68AC(VECTOR3* arg0, s32 arg1, s32 arg2);
 
@@ -276,7 +279,107 @@ void func_800ED198(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800ED42C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800EDDFC);
+void func_800EDDFC(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    GpCoord64*     base;
+    GpCoordTail*   slot;
+    s32            temp;
+    s32            idx;
+    s32            t2;
+    s32            rng;
+    s32            rng2;
+    s32            count;
+    s32            i;
+
+    mem   = arg0->spawnArg2;
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    base  = Gp_RoomCoords;
+    slot  = (GpCoordTail*)&base->coord;
+    if (Gp_State1C->field_4 < 2) {
+        mem->field_22++;
+        switch (arg0->state) {
+            case 0:
+                temp                   = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+                mem->field_20          = temp;
+                arg0->spawnArg1        = (u8)arg0->spawnArg1;
+                slot->coord.coord.t[0] = coord->coord.t[0];
+                slot->coord.coord.t[1] = coord->coord.t[1];
+                t2                     = coord->coord.t[2];
+                base->coord.flg        = 0;
+                slot->field_50         = 0xC00;
+                slot->field_52         = 0xC00;
+                slot->field_54         = 0xC00;
+                slot->field_58         = 0xFA0;
+                slot->field_5C         = 0x12C0;
+                slot->coord.coord.t[2] = t2;
+                coord->sub             = mem->field_8;
+                coord->coord.t[0]      = D_801126FC[arg0->spawnArg1].vx;
+                coord->coord.t[1]      = D_801126FC[arg0->spawnArg1].vy;
+                coord->coord.t[2]      = D_801126FC[arg0->spawnArg1].vz;
+                coord->flg             = 0;
+                Gp_UpdateCoord(coord);
+                rng           = Gp_LcgState * 5 + 0x71357911;
+                idx           = ((u32)rng >> 16) & 0x1FF;
+                rng2          = rng * 5 + 0x71357911;
+                Gp_LcgState   = rng;
+                mem->field_24 = idx;
+                Gp_LcgState   = rng2;
+                func_800EF0E0(coord, idx | 0x400, ((u32)rng2 >> 16) & 0xFFF, idx);
+                for (i = 0; i < 4; i++) {
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    func_800EA478(0x6006F, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x380, 0);
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    func_800EA478(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x21380, 0);
+                }
+                switch (arg0->spawnArg1) {
+                    case 1:
+                    default:
+                        arg0->state   = 1;
+                        mem->field_24 = 0x10;
+                        break;
+                    case 12:
+                        arg0->state   = 2;
+                        mem->field_24 = 4;
+                        break;
+                    case 27:
+                        mem->field_26 = 0xA;
+                        arg0->state   = 1;
+                        mem->field_24 = 0x18;
+                        break;
+                }
+                base->field_0 = 4;
+                if (mem->field_20 == 0) {
+                    Gp_State1C->field_14 = 1;
+                }
+                break;
+            case 1:
+                if (mem->field_22 == mem->field_24) {
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    func_800EA478(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0xFF) + 0x12180,
+                                  &D_8011280C[arg0->spawnArg1]);
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    func_800EA478(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0xFF) + 0x22180,
+                                  &D_8011280C[arg0->spawnArg1]);
+                    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                    func_800EA478(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0xFF) + 0x32180,
+                                  &D_8011280C[arg0->spawnArg1]);
+                    func_800EA478(0x60091, coord, arg0->spawnArg1 + mem->field_26,
+                                  &D_8011280C[arg0->spawnArg1]);
+                    arg0->state = 2;
+                }
+                break;
+        }
+        if (slot->field_58 >= 0x191) {
+            slot->field_58 -= 0x190;
+        }
+        count = mem->field_22;
+        if (mem->field_24 < count) {
+            Gp_ReleaseState1CMem(mem, arg0);
+        }
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800EE210);
 
