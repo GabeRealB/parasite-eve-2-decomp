@@ -28825,3 +28825,69 @@ block->vec[2].vx = block->vec[0].vx;
 That one change was worth 94.8% -> 96.9%. Reusing a *single* named temp across
 the `vy`/`vx`/`vz` groups is the other trap: it gives all three one pseudo, one
 hard register, and a schedule the target does not have.
+
+## Re-read `tbl[(u8)i]` at every use instead of caching it in a `u8` local
+
+A scan loop that loads one table byte, tests it twice and passes it on:
+
+```c
+id = flagIds[(u8)i];            /* wrong: addu v0,s6,a0 ; lbu a1,0(v0) ; nop delay slot */
+if (id == 0)    break;
+if (id == 0xFF) break;
+ret = func_800D1434((u8)i, id);
+```
+
+gives the load one pseudo whose only non-compare use is the call argument, so
+`local_alloc` honours the copy preference and loads straight into `$a1`. The
+address temp then takes `$v0` and the `jal` delay slot is a `nop`. The target
+wants the address in `$a1` and the value in `$v1` with `move a1,v1` filling the
+delay slot. Writing the subscript out at all three uses (CSE still emits one
+`lbu`) makes the address pseudo win `$a1`, which then conflicts with the value's
+preference and pushes it to `$v1`:
+
+```c
+if (flagIds[(u8)i] == 0)    break;
+if (flagIds[(u8)i] == 0xFF) break;
+ret = func_800D1434((u8)i, flagIds[(u8)i]);
+```
+
+`func_800D15D0`'s two scan loops went from 93.7% to 95.4% with this alone.
+
+## `register u8 x asm("v1")` is silently ignored; declare the pin as `s32`
+
+GCC 2.8.1 drops a local register asm on a `QImode` variable — the pseudo is
+allocated normally and the pin has no effect on the output. The same
+declaration as `s32` is honoured:
+
+```c
+register u8  id asm("v1");   /* no effect at all */
+register s32 id asm("v1");   /* pins the lbu destination */
+```
+
+Pointer pins work, but only if the variable survives copy propagation: a
+`register u8* p asm("a1"); p = &tbl[i]; x = *p;` is folded back into the
+addressing mode and the pinned hard reg disappears with it.
+
+## A fixed-address global load hoists over `addPrim`'s tag store
+
+GCC 2.8.1's aliaser exempts a *fixed-address scalar* from a *varying-address
+struct* reference, so the prim-cursor reload
+
+```c
+addPrim(&Gpu_CurrentOt[(s16)obj->drawOrder - 0x1C], p);
+dr         = D_80071190;
+D_80071190 = dr + 1;
+```
+
+has no dependency on `setaddr(p, ...)`'s `sw v1,0(s0)` and `-fschedule-insns`
+lifts `lw D_80071190` above it. The load then overlaps the `Gpu_CurrentOt`
+base's live range, so `dr` is coloured `$a3` instead of reusing the dying `$a1`,
+and the whole tail reschedules. Verified with micro-tests: only a *scalar*
+store (`*(u32*)p = ...`) conflicts with such a global — `p->field`,
+`((P_TAG*)p)->addr` and `ot[k]` are all struct references and never do; making
+the store scalar blocks the hoist but then also invalidates the cached
+`Gpu_CurrentOt`, adding a reload the target does not have. `func_800D0F3C` in
+the same file is matched *with* the hoist, so source order does not decide it
+(`dr = ...` before, between or after the two `setaddr`s compiles byte for byte
+identically). No formulation found yet; `func_800D15D0` stalls at 95.4% on
+exactly these two blocks.
