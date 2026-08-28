@@ -332,6 +332,23 @@ typedef struct _GpFxQuadScratch {
 } GpFxQuadScratch;
 STATIC_ASSERT_SIZEOF(GpFxQuadScratch, 0x1C);
 
+/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_800EAA0C`. Same
+/// projection preamble as `GpRingScratch` (the coordinate's `workm.t[]`
+/// truncated to s16, fed to `gte_ldv0`, then `gte_stszotz` / `gte_stflg` /
+/// `gte_stsxy` of the single RTPS), but two radii are cached instead of one:
+/// `inner` is `(arg1 * 64) / otz` and `outer` is `((arg1 + arg2) * 64) / otz`.
+/// Each of the 16 `POLY_G4` segments spans both radii over a 0x100 arc.
+typedef struct _GpArcScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ s32     otz;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ s32     inner;
+    /* 0x14 */ s32     outer;
+    /* 0x18 */ s16     sx;
+    /* 0x1A */ s16     sy;
+} GpArcScratch;
+STATIC_ASSERT_SIZEOF(GpArcScratch, 0x1C);
+
 extern GpState1C*    Gp_State1C;
 extern Task*         Gp_State1CTask;
 extern GpCoord64     Gp_RoomCoords[8];

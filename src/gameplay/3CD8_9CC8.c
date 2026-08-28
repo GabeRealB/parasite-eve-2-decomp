@@ -427,7 +427,81 @@ void Gp_DrawFadeQuad(u8* arg0, s32 arg1)
     addPrim((u_long*)(((((u32)0x10 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), dr);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8_9CC8", func_800EAA0C);
+void func_800EAA0C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+{
+    register void**        scratch asm("a1");
+    register u8*           head asm("a3");
+    register GpArcScratch* block asm("s2");
+    POLY_G4*               prim;
+    DR_TPAGE*              dr;
+    register s32           ang asm("s3");
+    register s32           ang2 asm("s1");
+    s32                    otz;
+    u16                    vz;
+
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = *scratch;
+    __asm__ volatile("" ::"r"(head));
+    {
+        register u16 vx asm("v0");
+        vx                                     = *(u16*)&arg0->workm.t[0];
+        ((GpArcScratch*)(head - 0x1C))->vec.vx = vx;
+    }
+    {
+        register u8* tmp asm("v0");
+        tmp   = head - 0x1C;
+        block = (GpArcScratch*)tmp;
+    }
+    block->vec.vy = *(u16*)&arg0->workm.t[1];
+    vz            = *(u16*)&arg0->workm.t[2];
+    *scratch      = block;
+    block->vec.vz = vz;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec);
+    gte_rtps_real();
+    gte_stsxy(&((GpArcScratch*)(head - 0x1C))->sx);
+    gte_stflg(&((GpArcScratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((GpArcScratch*)(head - 0x1C))->otz);
+        __asm__ volatile("" ::"r"(head));
+        block->otz++;
+        ang          = 0;
+        block->inner = ((s16)arg1 * 64) / block->otz;
+        block->outer = (((s16)arg1 + (s16)arg2) * 64) / block->otz;
+        do {
+            prim       = (POLY_G4*)D_80071190;
+            D_80071190 = (DR_TPAGE*)(prim + 1);
+            setPolyG4(prim);
+            setRGB0(prim, 0, 0, 0);
+            setRGB1(prim, 0, 0, 0);
+            setRGB2(prim, rgb[0], rgb[1], rgb[2]);
+            setRGB3(prim, rgb[0], rgb[1], rgb[2]);
+            prim->x0 = *(u16*)&block->sx + ((block->inner * rsin(ang)) >> 12);
+            ang2     = ang + 0x100;
+            prim->y0 = *(u16*)&block->sy + ((block->inner * rcos(ang)) >> 12);
+            prim->x1 = *(u16*)&block->sx + ((block->inner * rsin(ang2)) >> 12);
+            prim->y1 = *(u16*)&block->sy + ((block->inner * rcos(ang2)) >> 12);
+            prim->x2 = *(u16*)&block->sx + ((block->outer * rsin(ang)) >> 12);
+            prim->y2 = *(u16*)&block->sy + ((block->outer * rcos(ang)) >> 12);
+            prim->x3 = *(u16*)&block->sx + ((block->outer * rsin(ang2)) >> 12);
+            prim->y3 = *(u16*)&block->sy + ((block->outer * rcos(ang2)) >> 12);
+            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) +
+                              (s32)Gpu_CurrentOt),
+                    prim);
+            otz = block->otz;
+            setSemiTrans(prim, 1);
+            dr         = D_80071190;
+            D_80071190 = dr + 1;
+            setDrawTPage(dr, 0, 1, 0x2A);
+            addPrim((u_long*)(((((u32)otz << Display_State.field_128) >> 2) & 0xFFC) +
+                              (s32)Gpu_CurrentOt),
+                    dr);
+            ang = ang2;
+        } while (ang < 0x1000);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+}
 
 void func_800EAEB8(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
 {
