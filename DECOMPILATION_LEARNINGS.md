@@ -28269,3 +28269,43 @@ never merged, even on one source line, even though the same function's
 `jal Task_Spawn` + `sw` two-instruction tail *is* merged into a shared
 `.L800E7E88`. Whenever the ROM has one store at a join, the original selected a
 value into a local; whenever it has two, the original repeated the statement.
+
+## Store the `u8` field *before* reading it as an `int` to get a separate `andi`
+
+When a `u8` struct field is both written somewhere as a byte and read as an
+`int`, GCC 2.8.1 emits one `lbu` and then decides whether the widening `andi`
+gets its own register or clobbers the load register — and that decision is
+driven purely by statement order. `func_800C2CE8`'s inlined row counter needs
+
+```
+lbu   a0, 1(s0)          /* scan->field_1 */
+andi  a3, a0, 0xff
+addu  a1, v0, v1
+beqz  a3, ...
+sb    a0, 4(s2)          /* menu->field_4 = scan->field_1 (delay slot) */
+```
+
+i.e. the raw load stays live in `$a0` for the `sb` while the widened copy lives
+in `$a3`. Writing the natural order
+
+```c
+n = scan->field_1;               /* s32 n */
+menu->field_4 = scan->field_1;
+if (n != 0) { ... }
+```
+
+gives `sb` *then* `andi a0, a0, 0xff` — the raw value is dead at the widening,
+so GCC reuses `$a0`, and having the `andi` write `$a0` in turn pins it after the
+`sb`. Swapping the two statements:
+
+```c
+menu->field_4 = scan->field_1;   /* sb from the raw lbu */
+n = scan->field_1;               /* s32; widened into a fresh reg */
+```
+
+is enough to flip both the register choice and the schedule (93.3% → 99.6%
+here). The same ordering rule explains a nearby `move t1, a3`: an `s32` (not
+`u8`) local for the loop bound keeps the guard value and the bound as two
+pseudos, so the redundant second widening is CSE'd down to a register copy — a
+`u8` local instead lets everything coalesce into one register and the `move`
+disappears.

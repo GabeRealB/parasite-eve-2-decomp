@@ -127,6 +127,7 @@ extern s32            D_8010E7F4;
 extern s16            D_80115716;
 extern UiObjectDesc   D_8010EB08;
 extern UiObjectDesc   D_8010EB24;
+extern UiObjectDesc   D_8010EB40;
 extern UiObjectDesc   D_8010EB94;
 extern UiObjectDesc   D_8010EBCC;
 extern UiObjectDesc   D_8010EC3C;
@@ -1544,7 +1545,156 @@ void func_800C2B70(UiList* arg0, s32 arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C2CE8);
+static __inline__ void countItemRows(UiList* menu)
+{
+    McItemScan*   scan;
+    GpItemRec*    table;
+    WipSysConfig* p;
+    register s32  i asm("a2");
+    s32           n;
+    s32           count;
+    s32           ok;
+    s32           id;
+
+    scan          = &Mc_SaveData.field_5BC;
+    table         = Gp_GetItemTable(scan);
+    i             = 0;
+    table         = &table[scan->field_0];
+    menu->field_4 = scan->field_1;
+    n             = scan->field_1;
+    if (n != 0) {
+        p     = &Wip_SysConfig;
+        count = n;
+        do {
+            id = table->field_0;
+            ok = 1;
+            if (((s8)table->field_1 != 0) ||
+                (((u32)(id - 0x60) < 0x20U) && (p->field_23 == id - 0x5F)) ||
+                (((u32)(id - 0x80) < 0x20U) && (p->field_21 == id - 0x7F))) {
+                ok = 0;
+            }
+            if (ok == 0) {
+                menu->field_4--;
+            }
+            i++;
+            table++;
+        } while (i < count);
+    }
+    menu->field_4 = menu->field_4 + 1;
+    menu->field_5 = menu->field_4;
+    if ((s8)menu->field_5 >= 0xA) {
+        menu->field_5 = 9;
+    }
+}
+
+void func_800C2CE8(Task* arg0)
+{
+    UiObject*  obj;
+    UiList*    menu;
+    UiObject*  child;
+    TaskIdMap* map;
+    s32        status;
+    Task*      owner;
+    Task*      head;
+    Task*      node;
+    Task*      next;
+    UiObject*  childObj;
+    s32        flag;
+    s32        one;
+    s32        mask;
+
+    obj           = arg0->spawnArg2;
+    menu          = &D_8010E854;
+    obj->field_2E = 0;
+    if (arg0->state == 0) {
+        D_80114D8C = 0;
+        map        = Mem_Calloc(4, 0);
+        if (map == NULL) {
+            Ui_TeardownTree(obj, arg0);
+            return;
+        }
+        arg0->idMap   = map;
+        menu->field_6 = 0;
+        countItemRows(menu);
+        menu->field_5 = 9;
+        menu->field_4 = 9;
+        Ui_LayoutListPanel(menu, (UiPanel*)obj);
+        countItemRows(menu);
+        menu->field_A  = 1;
+        menu->field_10 = 0;
+        menu->field_9  = 0;
+        child          = Ui_SpawnFromDesc(&D_8010EB40, 0, 0, 1, obj);
+        if (child != NULL) {
+            child->field_E = obj->field_E + obj->field_12;
+        }
+        arg0->state = arg0->state + 1;
+    }
+    Ui_DrawText((UiPanel*)obj, Gp_StrItemHdr);
+    countItemRows(menu);
+    Ui_ComputeVisibleRows(menu, (s32)obj);
+    menu->field_A = 1;
+    if (menu->field_10 >= (s32)menu->field_4) {
+        menu->field_10 = menu->field_4 - 1;
+    }
+    if ((menu->field_4 - (s8)menu->field_5) < (s8)menu->field_9) {
+        menu->field_9 = menu->field_4 - menu->field_5;
+    }
+    Ui_UpdateListNoAnim(menu, obj);
+    status = obj->status;
+    if (status == 1) {
+        if (obj->field_2E == 0) {
+            if (Pad_CheckButtons(0, 1, D_8005ED78) != 0) {
+                obj->field_2E = -1;
+            } else if (D_80114D8C == 0) {
+                if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
+                    SndEvt_EnqueueType6(4, 0, 0);
+                    obj->field_2C = 1;
+                    obj->field_2E = 6;
+                } else {
+                    Pad_CheckButtons(0, 1, 3);
+                }
+            } else if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
+                SndEvt_EnqueueType6(4, 0, 0);
+                D_80114D8C = 0;
+            }
+        }
+    } else if (status >= 2) {
+        obj->status = 1;
+    }
+    owner = obj->owner;
+    head  = owner->firstChild;
+    if (head != NULL) {
+        node = head;
+        one  = 1;
+        mask = 0xFFFEFFFF;
+        do {
+            childObj = node->spawnArg2;
+            flag     = childObj->field_2E;
+            next     = node->nextSibling;
+            switch (flag) {
+                case -1:
+                    obj->field_2E = flag;
+                    break;
+                case 6:
+                    Ui_TeardownTree(childObj, childObj->owner);
+                    obj->status   = one;
+                    obj->field_4 &= mask;
+                    break;
+                case 0x23:
+                    Ui_TeardownTree(childObj, childObj->owner);
+                    obj->status   = one;
+                    D_80114D8C    = one;
+                    obj->field_4 &= mask;
+                    break;
+            }
+            head = owner->firstChild;
+            node = next;
+            if (node == head) {
+                break;
+            }
+        } while (head != NULL);
+    }
+}
 
 void func_800C32A8(Task* arg0)
 {
