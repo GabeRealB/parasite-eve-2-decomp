@@ -29043,3 +29043,58 @@ mask  = 0;
 Without the inner block C89 forces the declaration to the top of the function
 and the three `move` instructions land after `subu $sp`. This alone was 95.8% ->
 100% in `func_800E0C10`.
+
+## One C variable = one hard register: split reused temporaries per loop
+
+`func_800B3448` stalled at ~98% with the *same* mismatch shape in two similar
+loops: the target used one register pair (`a2`/`t1`) for `(setIdx, field_15*2)`
+and mine used the swap, and likewise for `(idx, lim)`. GCC 2.8.1 builds one
+pseudo per declared local, so a variable reused in two disjoint loops gets a
+single allocno whose conflicts are the *union* of both live ranges. Giving each
+loop its own local (`setIdx`/`setIdx2`, `idx`/`idx2`) lets the allocator pick
+per-loop registers and was worth 98.4% -> 99.9% here.
+
+The converse is just as useful: when the target reuses one register for the same
+role in two loops (`recs` in `a2` in both), assign to the *same* variable in both
+places instead of introducing a second one.
+
+## Split `&base[i]` into a base-pointer local to control the final `addu` dest
+
+The last two diffs in `func_800B3448` were `addu v0,v1,v0` vs `addu v1,v1,v0` —
+same operands, different destination — from
+
+```c
+s->src.field_0 = &set->field_8[op][recs[slot->field_2].field_0];
+```
+
+GCC ties the add's output to whichever input pseudo it decides dies first.
+Hoisting the inner pointer into its own local flips that choice:
+
+```c
+poses          = set->field_8[op];
+s->src.field_0 = &poses[recs[slot->field_2].field_0];
+```
+
+Neither a temporary for the whole address (`p = &...; x = p;`) nor the
+`ptr + idx` spelling changed anything; only naming the *base* did. 99.9% -> 100%.
+
+## `lbu` + `sll 24` + `sra 24` vs `lb`: it is the statement form, not the cast
+
+Both branches of an if in `func_800B3448` sign-extend the same `u8` field, but
+the target emits `lb` in one and `lbu; sll 24; sra 24` in the other. The cast is
+identical in both; what differs is the assignment:
+
+```c
+base          = slot->field_C - 1;              /* lhu, then lb  for field_9 */
+slot->field_C = base - (((s8)slot->field_9 - 1) >> 1);
+...
+slot->field_C -= (s8)slot->field_9;             /* lbu; sll 24; sra 24 */
+```
+
+A compound `x -= (s8)f` evaluates the RHS before reloading `x` and loses the
+`lb` combine; a plain `x = a - b` keeps it. GCC's cross-jumping then merges the
+shared `subu`/`sh` tail, so the two branches still converge on one store.
+
+Related: writing `slot->field_C = (slot->field_C - 1) - expr` lets `fold`
+reassociate into `field_C - (expr + 1)` and emits a stray `addiu v0,v0,1`.
+Assigning `slot->field_C - 1` to a `u16` local first blocks the reassociation.

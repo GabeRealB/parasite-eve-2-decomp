@@ -38,6 +38,7 @@ void Gp_BindSlot4(Task* task);
 void func_800B6398(void);
 void func_8017FBD8(void);
 
+extern char           D_80093A44[];
 extern TaskFuncTable3 D_80093A1C;
 extern TaskFuncTable3 D_80093A38;
 extern TaskFuncTable3 D_80093A5C;
@@ -1449,7 +1450,148 @@ void Gp_AnimAdvanceSlot(GpAnimCtx* arg0, s32 arg1)
     func_800B3448(arg0, arg1, 0, 0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/1BC", func_800B3448);
+void func_800B3448(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    GpAnimScratch18*  s;
+    GpAnimSlot*       slot;
+    GpAnimMtxRec*     mtx;
+    GpAnimSet*        set;
+    GpAnimRec*        recs;
+    GpAnimRec*        rec;
+    GpPackedSvec*     poses;
+    u16               idx;
+    u16               idx2;
+    s32               setIdx;
+    s32               setIdx2;
+    u16               lim;
+    u16               val;
+    s16               rem;
+    s32               op;
+    u16               base;
+    GpAnimScratch18** head;
+
+    head           = (GpAnimScratch18**)G_SCRATCH_HEAD;
+    slot           = &arg0->field_C[arg1];
+    mtx            = &((GpAnimMtxRec*)arg0->field_4)[slot->field_14];
+    *head          = *head - 1;
+    s              = *head;
+    slot->field_10 = 0;
+    if (slot->field_16 == 1) {
+        if (*(s32*)&slot->field_4 == *(s32*)&slot->field_0) {
+            slot->field_10 = 0x100;
+        } else {
+            slot->field_16 = 0;
+        }
+    } else {
+        if (Game_Session->field_0 != 0) {
+            base          = slot->field_C - 1;
+            slot->field_C = base - (((s8)slot->field_9 - 1) >> 1);
+        } else {
+            slot->field_C -= (s8)slot->field_9;
+        }
+    }
+
+    rem = slot->field_C;
+    if (rem <= 0) {
+        slot->pad_A = 0;
+        while ((s16)slot->field_C <= 0) {
+            *(s32*)&slot->field_0 = *(s32*)&slot->field_4;
+            idx                   = slot->field_6 + 1;
+            setIdx                = slot->field_4;
+            recs                  = slot->field_20[setIdx]->field_0;
+            while ((s8)recs[idx].field_3 < 0) {
+                rec = (GpAnimRec*)((idx << 2) + (s32)recs);
+                if (rec->field_3 < 0xC0) {
+                    idx = rec->field_0;
+                    if (idx == slot->field_6) {
+                        slot->field_10 |= 1;
+                    }
+                    slot->field_10 |= 2;
+                } else {
+                    idx             = slot->field_6;
+                    slot->field_10 |= 1;
+                    break;
+                }
+            }
+            slot->field_4  = setIdx;
+            slot->field_6  = idx;
+            recs           = slot->field_20[slot->field_4]->field_0;
+            val            = recs[slot->field_6].field_2 << 4;
+            slot->field_E  = val;
+            slot->field_C += val;
+        }
+        if (slot->field_10 & 1) {
+            slot->field_16  = 1;
+            slot->field_10 |= 0x100;
+        } else {
+            slot->field_16 = 0;
+        }
+    } else if (slot->field_E < rem) {
+        slot->pad_A = 0;
+        while ((s16)slot->field_C > slot->field_E) {
+            slot->field_C        -= slot->field_E;
+            *(s32*)&slot->field_4 = *(s32*)&slot->field_0;
+            setIdx2               = slot->field_0;
+            idx2                  = slot->field_2 - 1;
+            lim                   = slot->field_20[setIdx2]->field_4[slot->field_15];
+            if (idx2 < lim) {
+                idx2            = lim;
+                slot->field_10 |= 1;
+            }
+            slot->field_2 = idx2;
+            slot->field_0 = setIdx2;
+            recs          = slot->field_20[slot->field_4]->field_0;
+            val           = recs[slot->field_6].field_2 << 4;
+            slot->field_E = val;
+        }
+        if (slot->field_10 & 1) {
+            slot->field_16  = 1;
+            slot->field_10 |= 0x100;
+        } else {
+            slot->field_16 = 0;
+        }
+    }
+
+    op              = slot->field_B;
+    s->src.field_10 = slot->field_17;
+    slot->field_17  = 0;
+    if (slot->field_0 == 0x7FFF) {
+        s->src.field_0 = (GpPackedSvec*)((s32)arg0->field_8 + (arg1 << 4));
+        slot->field_17 = 1;
+    } else {
+        recs           = slot->field_20[slot->field_0]->field_0;
+        poses          = slot->field_20[slot->field_0]->field_8[op];
+        s->src.field_0 = &poses[recs[slot->field_2].field_0];
+    }
+    if (slot->field_4 == 0x7FFF) {
+        s->src.field_4 = (GpPackedSvec*)((s32)arg0->field_8 + (arg1 << 4));
+        slot->field_17 = 1;
+    } else {
+        set            = slot->field_20[slot->field_4];
+        recs           = set->field_0;
+        poses          = set->field_8[op];
+        s->src.field_4 = &poses[recs[slot->field_6].field_0];
+    }
+    if ((s->src.field_10 == 0) && (slot->field_17 == 1)) {
+        s->src.field_10 = slot->field_17;
+    } else {
+        s->src.field_10 = 0;
+    }
+    s->src.field_8 = (GpPackedSvec*)arg3;
+    s->src.field_C = (SVECTOR*)arg2;
+    switch (op) {
+        case 1:
+            Gp_AnimBlendPose(&s->src, mtx, slot);
+            break;
+        case 2:
+            printf(D_80093A44);
+            break;
+        case 4:
+            Gp_AnimBlendPacked(&s->src, mtx, slot);
+            break;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+}
 
 void Gp_AnimSeekSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
 {

@@ -177,10 +177,23 @@ STATIC_ASSERT_SIZEOF(GpAnimRec, 4);
 /// Object behind each pointer in `GpAnimSlot::field_20` (same table as
 /// `GpAnimCtx::field_0`). `field_0` is the base of 4-byte records.
 /// `field_4` is a u16 table indexed by `GpAnimSlot::field_15`.
+/// `field_8` is a table of pose banks indexed by `GpAnimSlot::field_B`
+/// (`func_800B3448`); each bank is addressed with a 4-byte stride, so it is
+/// `GpPackedSvec*` for `field_B == 4` and `GpPackedPose*` for `field_B == 1`.
 typedef struct _GpAnimSet {
-    /* 0x00 */ GpAnimRec* field_0;
-    /* 0x04 */ u16*       field_4;
+    /* 0x00 */ GpAnimRec*    field_0;
+    /* 0x04 */ u16*          field_4;
+    /* 0x08 */ GpPackedSvec* field_8[1];
 } GpAnimSet;
+
+/// 0x18-byte scratch `func_800B3448` allocates from `G_SCRATCH_HEAD` before
+/// dispatching to `Gp_AnimBlendPose` / `Gp_AnimBlendPacked`; only `src` is
+/// written.
+typedef struct _GpAnimScratch18 {
+    /* 0x00 */ s32            field_0;
+    /* 0x04 */ GpAnimBlendSrc src;
+} GpAnimScratch18;
+STATIC_ASSERT_SIZEOF(GpAnimScratch18, 0x18);
 
 /// 0x28-byte animation slot. `field_15` is this slot's index in the
 /// `GpAnimCtx::field_C` array; `Gp_AnimTickSlot` / `Gp_AnimTickSlot2` /
