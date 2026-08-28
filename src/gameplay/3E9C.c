@@ -26,7 +26,7 @@ extern SVECTOR D_8011280C[];
 
 void func_800EF0E0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800F1BEC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_800F68AC(VECTOR3* arg0, s32 arg1, s32 arg2);
+void func_800F68AC(VECTOR3* arg0, s32 arg1, s16 arg2);
 
 void func_800ECAA8(Task* arg0)
 {
@@ -650,7 +650,87 @@ void func_800F6560(GsCOORDINATE2* arg0, s32 arg1, u32 arg2)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F68AC);
+void func_800F68AC(VECTOR3* arg0, s32 arg1, s16 arg2)
+{
+    register void**         scratch asm("v0");
+    register u8*            head asm("v1");
+    register GpQuadScratch* block asm("t1");
+    register SVECTOR*       v asm("a2");
+    register s32            i asm("t0");
+    GpQuadCorner*           tbl;
+    POLY_FT4*               prim;
+
+    if (arg2 >= 0 && Gp_State1C->field_4 < 2) {
+        scratch  = (void**)G_SCRATCH_HEAD;
+        head     = (u8*)*scratch - 0x38;
+        block    = (GpQuadScratch*)head;
+        *scratch = head;
+        gte_SetTransMatrix(&GsWSMATRIX);
+        i   = 0;
+        v   = block->vec;
+        tbl = D_80111E38;
+        do {
+            v->vx = tbl->x * arg1;
+            v->vy = 0;
+            v->vz = tbl->y * arg1;
+            gte_SetRotMatrix(&D_80070F34);
+            gte_ldv0(v);
+            gte_rtv0_real();
+            gte_stsv(v);
+            *(u16*)&v->vx = *(u16*)&v->vx + *(u16*)&arg0->vx;
+            tbl++;
+            *(u16*)&v->vy = *(u16*)&v->vy + *(u16*)&arg0->vy;
+            i++;
+            *(u16*)&v->vz = *(u16*)&v->vz + *(u16*)&arg0->vz;
+            v++;
+        } while (i < 4);
+
+        gte_SetRotMatrix(&GsWSMATRIX);
+        gte_ldv0(&block->vec[0]);
+        gte_rtps_real();
+        gte_stsxy(&block->sxy0);
+        gte_ldv3(&block->vec[1], &block->vec[2], &block->vec[3]);
+        gte_rtpt_real();
+        gte_stsxy3(&block->sxy1, &block->sxy2, &block->sxy3);
+        gte_stflg(&block->flag);
+        if (block->flag >= 0) {
+            gte_stszotz(&block->otz);
+            prim       = (POLY_FT4*)D_80071190;
+            D_80071190 = (DR_TPAGE*)(prim + 1);
+            setlen(prim, 9);
+            setcode(prim, 0x2C);
+            if (arg2 == 0) {
+                setcode(prim, 0x2D);
+            } else {
+                prim->r0 = arg2;
+                prim->g0 = arg2;
+                prim->b0 = arg2;
+            }
+            prim->tpage = 0x48;
+            prim->clut  = 0x4283;
+            prim->u0    = 0xC0;
+            prim->v0    = 0x98;
+            prim->v1    = 0x98;
+            prim->u2    = 0xC0;
+            prim->u1    = 0xF7;
+            prim->v2    = 0xCF;
+            prim->u3    = 0xF7;
+            prim->v3    = 0xCF;
+            setSemiTrans(prim, 1);
+            prim->x0 = block->sxy0.vx;
+            prim->y0 = block->sxy0.vy;
+            prim->x1 = block->sxy1.vx;
+            prim->y1 = block->sxy1.vy;
+            prim->x2 = block->sxy2.vx;
+            prim->y2 = block->sxy2.vy;
+            prim->x3 = block->sxy3.vx;
+            prim->y3 = block->sxy3.vy;
+            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                    prim);
+        }
+        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    }
+}
 
 void func_800F6C2C(Task* arg0)
 {

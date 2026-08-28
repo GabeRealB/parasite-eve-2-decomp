@@ -28568,3 +28568,34 @@ the following group the `li` lands: without it the `li` fell into the `bltz` del
 slot, and with the fence placed after `prim = D_80071190` (rather than after the
 pointer bump) it landed one instruction early. `func_800FA45C` needed the exact
 combination above for 100%.
+
+## `sll aN, aN, 0x10; bltz` on an argument means the parameter really is `s16`
+
+When the target sign-tests a 32-bit-looking argument through a shift, the
+*destination register* of the shift tells you whether the parameter is declared
+`s16` or an `s32` you cast. `func_800F68AC` starts with:
+
+```
+move t2, a2       /* arg2 copied out because a2 is needed elsewhere */
+sll  a2, a2, 0x10 /* shift writes back into the incoming arg register */
+bltz a2, end
+```
+
+Writing the guard as a cast on an `s32` parameter (`if ((s16)arg2 >= 0)`, or the
+equivalent `(arg2 << 16) >= 0`) scores 99.9% but always emits
+
+```
+move t2, a2
+sll  v0, t2, 0x10
+bltz v0, end
+```
+
+because copy propagation rewrites the shift's source to the already-copied `t2`
+and the allocator then picks a fresh temporary for the result. Declaring the
+parameter `s16` instead makes GCC 2.8.1 emit the prologue sign-extension
+`sll a2,a2,0x10; sra a2,a2,0x10` on the incoming register, combine folds the
+`sra` away against `bltz`, and the shift keeps `a2` as both source and
+destination. Later `(short)` uses of the same parameter still re-shift from the
+saved copy (`sll v0, t2, 0x10; bnez v0`), so a *second* shift from the copy
+register is not evidence against the `s16` declaration. Remember to narrow the
+forward declaration and any callers' prototypes at the same time.
