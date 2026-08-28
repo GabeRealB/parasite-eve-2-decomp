@@ -685,7 +685,210 @@ store:
     arg0->field_E = height - width;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C05CC);
+void func_800CE3B4(UiObject* arg0, Task* arg1);
+
+/// Three-entry dispatcher table indexed by `Task::state` (`func_800CE498`).
+const UiObjectTaskFuncTable3 D_80096F7C = { { func_800CE3B4, func_800C010C, func_800C02A0 } };
+
+/// CLUT ids for the ten item-category icons drawn by `func_800C05CC`.
+const u16 D_80096F88[12] = {
+    0x3C8F,
+    0x3C8F,
+    0x3C8E,
+    0x3C8D,
+    0x3C8C,
+    0x3C8B,
+    0x3C8A,
+    0x3C89,
+    0x3C80,
+    0x3C83,
+    0x0000,
+    0x0000,
+};
+
+void func_800C05CC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4)
+{
+    POLY_FT4* p;
+    TILE*     q;
+    s32       icon;
+    s32       kind;
+    s32       tu;
+    s32       tv;
+    s32       clut;
+    s32       flag0;
+    s32       flag1;
+    s32       flag2;
+    s32       flag3;
+    s32       idx;
+    s32       rel;
+    s32       tmp;
+
+    clut  = 0;
+    tv    = 0;
+    tu    = 0;
+    flag0 = arg4 & 1;
+    flag1 = (arg4 >> 1) & 1;
+    flag2 = (arg4 >> 2) & 1;
+    flag3 = (arg4 >> 3) & 1;
+
+    if (arg3 >= 0x300) {
+        icon = -1;
+        kind = -1;
+        if (arg3 < 0x340) {
+            tu   = ((arg3 & 0xC) << 2) + 0xB0;
+            tv   = (arg3 & 0xF0) + 0x80;
+            clut = getClut((arg3 & 0xF0) + 0x40, 0xF0);
+        } else {
+            tu   = 0xE0;
+            tv   = 0x40;
+            clut = 0x3C8B;
+        }
+    } else if (arg3 == 0) {
+        icon = 6;
+        kind = 8;
+    } else if (flag0 == 0 && Gp_HasItemSeenBit(arg3) == 0) {
+        icon = 2;
+        kind = 2;
+    } else if (arg3 < 0x60) {
+        if ((u32)(arg3 - 0xF) < 0x24) {
+            idx  = (arg3 - 0xF) / 3;
+            icon = -1;
+            kind = -1;
+            tu   = (idx % 3) * 16 + 0xB0;
+            tv   = (idx / 3) * 16 + 0x80;
+            clut = getClut((idx / 3) * 16 + 0x40, 0xF0);
+        } else if ((Gp_ItemDescs[arg3].field_2 & 0xF) == 1) {
+            icon = 1;
+            kind = 4;
+        } else {
+            if (arg3 < 0x47) {
+                if (arg3 < 0x42) {
+                    switch (arg3) {
+                        case 9:
+                        case 0xC:
+                            icon = 3;
+                            break;
+                        case 0xA:
+                            icon = 6;
+                            break;
+                        default:
+                            icon = 9;
+                            break;
+                    }
+                } else {
+                    icon = 6;
+                }
+            } else {
+                icon = 9;
+            }
+            kind = 6;
+        }
+    } else if (arg3 < 0x80) {
+        icon = 9;
+        kind = 3;
+    } else if (arg3 < 0xA0) {
+        rel = Gp_RelatedQty0[arg3 - 0x80].field_1;
+        if (rel == 0) {
+            icon = 2;
+        } else {
+            switch (Gp_ItemDescs[rel].field_2 & 0xF) {
+                case 1:
+                    icon = 3;
+                    break;
+                case 3:
+                    icon = 4;
+                    break;
+                case 4:
+                    icon = 7;
+                    break;
+                case 5:
+                    icon = 5;
+                    break;
+                case 6:
+                    icon = 6;
+                    break;
+                case 8:
+                    icon = 8;
+                    break;
+                default:
+                    icon = 2;
+                    break;
+            }
+        }
+        kind = 0;
+    } else if (arg3 < 0xC0) {
+        switch (Gp_ItemDescs[arg3].field_2 & 0xF) {
+            case 1:
+                icon = 3;
+                break;
+            case 3:
+                icon = 4;
+                break;
+            case 4:
+                icon = 7;
+                break;
+            case 5:
+                icon = 5;
+                break;
+            case 6:
+                icon = 6;
+                break;
+            default:
+                icon = 2;
+                break;
+        }
+        kind = 1;
+    } else {
+        icon = 1;
+        kind = 7;
+    }
+
+    p          = (POLY_FT4*)D_80071190;
+    D_80071190 = (DR_TPAGE*)(p + 1);
+    p->x2 = p->x0 = arg0->baseX + arg1;
+    p->x1 = p->x3 = p->x0 + 0xE;
+    p->y1 = p->y0 = arg0->baseY + arg2 - 0xE;
+    p->y2 = p->y3 = p->y0 + 0xE;
+    if (flag1 != 0) {
+        p->x2 = p->x0 = p->x0 - 2;
+        p->x3 = p->x1 = p->x1 + 2;
+        p->y1 = p->y0 = p->y0 - 2;
+        p->y3 = p->y2 = p->y2 + 2;
+    }
+    if (kind >= 0) {
+        tmp = (kind + 1) * 16;
+        setUV4(p, -tmp, 0xF0, 0xE - tmp, 0xF0, -tmp, 0xFE, 0xE - tmp, 0xFE);
+    } else {
+        setUVWH(p, tu + 1, tv + 1, 0xE, 0xE);
+    }
+    if (icon >= 0) {
+        p->clut = D_80096F88[icon];
+    } else {
+        p->clut = clut;
+    }
+    p->tpage = 0x1E;
+    if (flag2 == 0) {
+        setlen(p, 9);
+        setcode(p, 0x2D);
+    } else {
+        *(u32*)&p->r0 = 0x404040;
+        setlen(p, 9);
+        setcode(p, 0x2C);
+    }
+    addPrim(Gpu_CurrentOt + (s16)arg0->drawOrder + 1, p);
+    if (flag3 != 0) {
+        q             = (TILE*)D_80071190;
+        q->x0         = p->x0 - 1;
+        q->y0         = p->y0 - 1;
+        q->w          = p->x1 - p->x0 + 2;
+        q->h          = p->y2 - p->y0 + 2;
+        D_80071190    = (DR_TPAGE*)(q + 1);
+        *(u32*)&q->r0 = 0xC0C0C0;
+        setlen(q, 3);
+        setcode(q, 0x60);
+        addPrim(Gpu_CurrentOt + (s16)arg0->drawOrder + 1, q);
+    }
+}
 
 void func_800C0B98(DialogPrompt* arg0, UiObject* arg1, u32 arg2)
 {

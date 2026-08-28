@@ -87,7 +87,7 @@ segments:
       - [0x5C4, .rodata, 4CC] # jtbl from Gp_CloseItemPane
       - [0x668, rodata, rodata_4CC_2]
       - [0x3688, .rodata, 3688] # jtbl from func_800BF9FC
-      - [0x377C, rodata, rodata_3688]
+      - [0x37D8, rodata, rodata_3688]
       - [0x3968, .rodata, 3688_CADFC] # jtbl from func_800CADFC
       - [0x397C, rodata, rodata_3688_2]
       - [0x3A34, .rodata, 3A34] # jtbls: func_800D5B14 + Gp_ItemIsUnusable + mid + func_800E0540

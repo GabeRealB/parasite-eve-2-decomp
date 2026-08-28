@@ -29098,3 +29098,91 @@ shared `subu`/`sh` tail, so the two branches still converge on one store.
 Related: writing `slot->field_C = (slot->field_C - 1) - expr` lets `fold`
 reassociate into `field_C - (expr + 1)` and emits a stray `addiu v0,v0,1`.
 Assigning `slot->field_C - 1` to a `u16` local first blocks the reassociation.
+
+## Promote the intervening `rodata` blob into the C TU when a new jtbl lands past it
+
+The linker script emits one contiguous `<file>.c.o(.rodata)` chunk per TU, so a
+new jump table always appends directly onto that TU's existing `.rodata` slice.
+`func_800C05CC` (gameplay `3688`) has two jtbls at 0x37A0/0x37C0, but the TU's
+`.rodata` ended at 0x377C and the splat blob `rodata_3688` (`D_80096F7C`,
+`D_80096F88`, then the jtbls, then strings) filled the gap. Splitting the yaml
+into two `.rodata, 3688` cuts does not work — the same object may appear only
+once.
+
+The fix is the reverse of "give the function its own C file": move the
+*intervening* named tables into the C TU, declared `const` so they land in
+`.rodata` and not `.data`, positioned in the source between the function that
+owns the earlier jtbl and the new one. GCC 2.8.1 assembles file-scope
+definitions in source order, so `.rodata` comes out
+`jtbl(func_800BF9FC) | D_80096F7C | D_80096F88 | jtbl(func_800C05CC)`.
+Then trim the leading entries out of `asm/.../rodata_3688.rodata.s` and bump
+that segment's yaml address to the first surviving symbol. Existing `extern`
+declarations must gain `const` too; assigning a `const` struct to a plain local
+(`sp = D_80096F7C;` in `func_800CE498`) still compiles and still matches.
+
+## Chained prim assignments give the CSE-forwarded `move` + `addiu`
+
+Filling a `POLY_FT4` rectangle, the target reads a field it just wrote:
+
+```
+sh v1,8(t0) ; move v0,v1 ; addiu v0,v0,0xe ; sh v1,0x18(t0) ; sh v0,0x20(t0) ; sh v0,0x10(t0)
+```
+
+`setXYWH(p, x, y, 0xE, 0xE)` with locals emits a single `addiu` and, worse, the
+scheduler groups the stores differently. Writing the corners as chained
+assignments that re-read the first field reproduces both the store order and the
+`move` + `addiu` pair, because CSE forwards the stored register rather than
+folding the constant:
+
+```c
+p->x2 = p->x0 = arg0->baseX + arg1;
+p->x1 = p->x3 = p->x0 + 0xE;
+p->y1 = p->y0 = arg0->baseY + arg2 - 0xE;
+p->y2 = p->y3 = p->y0 + 0xE;
+```
+
+The same shape covers a later inset pass (`p->x2 = p->x0 = p->x0 - 2;` …): CSE's
+related-value lookup turns `p->x1 + 2` into `lhu 0x10` + `addiu 2` and `p->y2 + 2`
+into `move` + `addiu` off the still-live register. Note `a = b = v` stores `b`
+first, so the field named *last* is the one written first.
+
+## `setUVWH` cannot produce `li 0xe` / `subu`; use `setUV4`
+
+For a negative texture origin the target computes the far edge from the
+*unnegated* product:
+
+```
+addiu v0,a3,1 ; sll v0,v0,4 ; negu a1,v0 ; li v1,0xe ; subu v1,v1,v0
+```
+
+`setUVWH(p, -((kind + 1) * 16), 0xF0, 0xE, 0xE)` expands `(_u0)+(_w)` to
+`(-X) + 14`; gcc 2.8.1's `fold` only rewrites `A + (-B)`, not `(-B) + A`, so the
+negation is CSEd and reused as `negu` + `addiu`. `setUV4` with the subtraction
+written out keeps the `minus` and matches (store order is identical to
+`setUVWH`):
+
+```c
+tmp = (kind + 1) * 16;
+setUV4(p, -tmp, 0xF0, 0xE - tmp, 0xF0, -tmp, 0xFE, 0xE - tmp, 0xFE);
+```
+
+## Permute the `D_80071190` cursor bump against the prim's own stores
+
+Where `D_80071190 = (DR_TPAGE*)(q + 1);` sits relative to the field writes is a
+real degree of freedom, not cosmetic: sched1 runs before the pseudos are
+coloured, so a different position changes both the hard registers and the final
+order. For the `TILE` in `func_800C05CC` the eight placements scored 94.5% to
+100%; the house style (bump immediately after `q = D_80071190;`) was 96.6% and
+the winner was after all four geometry fields and before the header writes:
+
+```c
+q->w = p->x1 - p->x0 + 2;
+q->h = p->y2 - p->y0 + 2;
+D_80071190    = (DR_TPAGE*)(q + 1);
+*(u32*)&q->r0 = 0xC0C0C0;
+setlen(q, 3);
+setcode(q, 0x60);
+```
+
+When a prim block is stuck in the high 90s with only a two-instruction shift,
+sweep this statement through the block before reaching for anything else.

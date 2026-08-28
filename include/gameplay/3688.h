@@ -22,7 +22,11 @@ typedef struct {
 extern TaskFuncTable5 D_80096E70;
 
 /// Three-entry dispatcher table: `func_800CE3B4`, `func_800C010C`, `func_800C02A0`.
-extern UiObjectTaskFuncTable3 D_80096F7C;
+extern const UiObjectTaskFuncTable3 D_80096F7C;
+
+/// CLUT ids for the ten item-category icons drawn by `func_800C05CC`,
+/// indexed by the icon index that function derives from the item id.
+extern const u16 D_80096F88[];
 
 /// Four-entry dispatcher table: `func_800D1D5C`, `func_800D1E28`, `func_800CFF04`,
 /// `func_800D1EB8`.
