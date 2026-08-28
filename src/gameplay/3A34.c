@@ -1712,7 +1712,128 @@ void Gp_BindDefaultMtx(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D9DFC);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DA2A0);
+void* func_800DA2A0(GpActorWork* arg0, VECTOR3* out, s32 flag)
+{
+    void**             scratch;
+    u8*                head;
+    GpLockScanScratch* block;
+    GameActor*         actor;
+    GsCOORDINATE2*     coord;
+    GsCOORDINATE2*     nodeCoord;
+    GpLinkXform*       node;
+    GpLinkXform*       best;
+    s32                bestAngle;
+    u32                bestDist;
+    s32                baseAngle;
+    s32                angle;
+    u32                dist;
+    s32                sub;
+    SVECTOR            tmp;
+    SVECTOR*           srcp;
+
+    best    = NULL;
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = *scratch;
+    {
+        register u8* newhead asm("a1");
+        newhead = head - 0x38;
+        block   = (GpLockScanScratch*)newhead;
+    }
+    actor         = arg0->actor;
+    coord         = (GsCOORDINATE2*)arg0->extra->field_8;
+    block->src.vx = *(u16*)&coord->coord.t[0];
+    block->src.vy = *(u16*)&coord->coord.t[1] - 1000;
+    block->src.vz = *(u16*)&coord->coord.t[2];
+    *scratch      = block;
+    Gp_UpdateCoord(&D_80070F10);
+    srcp = &((GpLockScanScratch*)(head - 0x38))->src;
+    gte_SetRotMatrix(&D_80070F34);
+    gte_ldv0(srcp);
+    gte_rtv0_real();
+    gte_stsv(&block->self);
+    *(u16*)&block->self.vx = *(u16*)&block->self.vx + *(u16*)&D_80070F10.workm.t[0];
+    *(u16*)&block->self.vy = *(u16*)&block->self.vy + *(u16*)&D_80070F10.workm.t[1];
+    *(u16*)&block->self.vz = *(u16*)&block->self.vz + *(u16*)&D_80070F10.workm.t[2];
+
+    if (actor->field_90C != NULL && flag != 0) {
+        node      = (GpLinkXform*)actor->field_90C;
+        baseAngle = ratan2(node->dst.vx, node->dst.vz);
+    } else {
+        baseAngle = 0;
+    }
+    bestAngle = 0x3000;
+    bestDist  = 0x7FFFFFFF;
+    dist      = 0;
+    for (node = (GpLinkXform*)Gp_LinkList; node != NULL; node = node->next) {
+        if (((GpLinkNode*)node)->field_4 & 1) {
+            continue;
+        }
+        angle = ratan2(node->dst.vx, node->dst.vz);
+        if (flag == 0) {
+            dist = node->dst.vz * node->dst.vz + node->dst.vx * node->dst.vx + node->dst.vy * node->dst.vy;
+            if (angle < 0) {
+                angle = -angle;
+            }
+            if (dist <= 0x300000) {
+                sub    = 0x300000 - dist;
+                sub  >>= 13;
+                sub   *= 3;
+                angle -= sub;
+                if (angle < 0) {
+                    angle = 0;
+                }
+                dist += sub / 3;
+            }
+            angle >>= 10;
+            if ((GpLinkNode*)node == actor->field_90C) {
+                angle += 0x1000;
+            }
+            if (angle == bestAngle && dist > bestDist) {
+                angle = 0x2000;
+            }
+        } else {
+            angle -= baseAngle;
+            if (angle < 0) {
+                angle += 0x1000;
+            }
+            if (angle >= 0x1000) {
+                angle -= 0x1000;
+            }
+            if (flag == 1) {
+                angle = -angle;
+            }
+            if ((GpLinkNode*)node == actor->field_90C) {
+                angle += 0x1000;
+            }
+        }
+        if (angle > bestAngle) {
+            continue;
+        }
+        Gp_UpdateCoord(node->coord);
+        block->node.vx = *(u16*)&node->src.vx;
+        block->node.vy = *(u16*)&node->src.vy;
+        block->node.vz = *(u16*)&node->src.vz;
+        nodeCoord      = node->coord;
+        tmp            = block->node;
+        gte_SetRotMatrix(&nodeCoord->workm);
+        gte_ldv0(&tmp);
+        gte_rtv0_real();
+        gte_stsv(&block->node);
+        block->node.vx += *(u16*)&node->coord->workm.t[0];
+        block->node.vy += *(u16*)&node->coord->workm.t[1];
+        block->node.vz += *(u16*)&node->coord->workm.t[2];
+        if (func_800E0308(&block->node, &block->self) != 1) {
+            bestAngle = angle;
+            best      = node;
+            bestDist  = dist;
+        }
+    }
+    if (best != NULL) {
+        Gp_GetLockPos((GpLockPos*)best, out);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
+    return best;
+}
 
 void func_800DA6E8(void* arg0, s32 arg1)
 {

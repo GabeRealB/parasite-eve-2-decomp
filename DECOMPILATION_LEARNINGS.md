@@ -28942,3 +28942,49 @@ barrier placed right after `head = *scratch;` also stops `-fschedule-insns`
 from hoisting the unrelated `lhu` of the source vector above the `lw` of the
 head — but it perturbs the rest of the entry block, so re-pin whichever
 argument then swaps saved registers (here `register u8* rgb asm("s7") = arg3;`).
+
+## `+=` on an `s16` field lets the scheduler braid the XYZ updates; write both sides through `*(u16*)&`
+
+Adding a matrix translation into a scratch `SVECTOR` three components at a time:
+
+```c
+block->self.vx += *(u16*)&D_80070F10.workm.t[0];   /* wrong */
+block->self.vy += *(u16*)&D_80070F10.workm.t[1];
+block->self.vz += *(u16*)&D_80070F10.workm.t[2];
+```
+
+emits the right eight instructions but in the wrong order: GCC 2.8.1 hoists the
+`vz` pair above the `vy` store, spends `a0`/`a1` on the extra live values, and
+the two load-delay `nop`s the target has disappear. Casting the *destination*
+too keeps each component self-contained, so the schedule degenerates back to
+`lhu`/`lhu`/`nop`/`addu`/`sh` per component exactly as in the target:
+
+```c
+*(u16*)&block->self.vx = *(u16*)&block->self.vx + *(u16*)&D_80070F10.workm.t[0];
+*(u16*)&block->self.vy = *(u16*)&block->self.vy + *(u16*)&D_80070F10.workm.t[1];
+*(u16*)&block->self.vz = *(u16*)&block->self.vz + *(u16*)&D_80070F10.workm.t[2];
+```
+
+The `+=` form goes through the `s16` field's own mode, which gives the RMW a
+distinct pseudo per component that the scheduler is free to interleave; the
+all-`u16` form makes load, add and store one dependency chain. This was worth
+95.9% -> 97.7% in `func_800DA2A0`. Note the neighbouring, already-matched
+`Gp_UpdateLinkXforms` wants the `+=` form — check which schedule the target has
+before copying either idiom.
+
+## Chain compound assignments to make a multi-step expression reuse one register
+
+`sub = ((0x300000 - dist) >> 13) * 3;` allocates a fresh pseudo per sub-result,
+so the subtract, the shift and the `*3` land in whatever registers are free
+(`subu v0` / `sra v1,v0` / `sll v0,v1` / `addu v1,v1,v0`). Writing the same
+arithmetic as compound assignments to one variable makes every step reuse that
+variable's pseudo, which is what the target does:
+
+```c
+sub   = 0x300000 - dist;   /* subu v1,a3,s3 */
+sub >>= 13;                /* sra  v1,v1,0xd */
+sub  *= 3;                 /* sll  v0,v1,1 ; addu v1,v1,v0 */
+```
+
+Split one step at a time from the end: `sub *= 3` alone fixed the `sll`/`addu`
+pair, and moving the subtraction into `sub` as well fixed the `subu`/`sra`.

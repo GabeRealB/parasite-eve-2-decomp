@@ -692,6 +692,19 @@ typedef struct _GpLockPos {
 } GpLockPos;
 STATIC_ASSERT_SIZEOF(GpLockPos, 0x18);
 
+/// 0x38-byte scratch from `G_SCRATCH_HEAD` used by `func_800DA2A0`.
+/// `src` is the actor's `coord.t` (lowered by 1000 on Y) before
+/// `D_80070F34` rotates it into `self`, the world-space aim origin.
+/// `node` is the candidate `Gp_LinkList` node's world position; both are
+/// handed to `func_800E0308` as the line-of-sight segment.
+typedef struct _GpLockScanScratch {
+    /* 0x00 */ SVECTOR self;
+    /* 0x08 */ SVECTOR node;
+    /* 0x10 */ SVECTOR src;
+    /* 0x18 */ byte    pad_18[0x20];
+} GpLockScanScratch;
+STATIC_ASSERT_SIZEOF(GpLockScanScratch, 0x38);
+
 /// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `Gp_ProjectToSxy`.
 /// `vec` is the packed `SVECTOR` fed to RTPS. `p` / `flag` / `otz` hold
 /// IR0, FLAG, and `SZ3 >> 2`.
@@ -1127,7 +1140,7 @@ void            Gp_LinkNode(GpLinkNode* node);
 s32             Gp_NodeSlotMask(GpLinkNode* arg0);
 void            Gp_AssignNodeSlot0(GpLinkNode* node);
 void            Gp_ClearNodeSlots(GpLinkNode* node);
-void*           func_800DA2A0(GpActorWork* arg0, VECTOR3* pos, s32 arg2);
+void*           func_800DA2A0(GpActorWork* arg0, VECTOR3* out, s32 flag);
 void*           Gp_FindLockNode(GpActorWork* arg0);
 void*           Gp_FindLockNodePad(GpActorWork* arg0);
 void*           Gp_FindLockNodeAt(GpActorWork* arg0, VECTOR3* pos);
