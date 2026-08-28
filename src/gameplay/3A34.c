@@ -4111,7 +4111,7 @@ u32 func_800E1FEC(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
 
         col = arg1 / 1000;
         if (col < 0x10) {
-            sel = D_80113864[col][0];
+            sel = (u8)D_80113864[col];
         } else {
             sel = 5;
         }
@@ -4264,7 +4264,97 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E25F8);
+s32 func_800E25F8(GpEnemy* arg0, u32 arg1, s32 arg2)
+{
+    GpActorWork*   slot;
+    GsCOORDINATE2* pcoord;
+    void**         scratch;
+    u8*            head;
+    GpDistScratch* blk;
+    s32            dist;
+    u16            sel;
+    s32            kind;
+    s32            col;
+    s32            val;
+    s32            chance;
+    u16            base;
+    s32            extra;
+    s32            rand;
+
+    slot = Game_GetPtrSlot(3);
+    if (slot == NULL) {
+        return 0;
+    }
+    if ((arg1 & 0x8000) != 0) {
+        return 0;
+    }
+
+    base = (arg0->field_50->field_B << 12) / 100;
+    if (base == 0) {
+        return 0;
+    }
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    blk      = (GpDistScratch*)(head - 0x20);
+    *scratch = blk;
+    Gp_UpdateCoord(arg0->field_18);
+
+    ((VECTOR3*)(head - 0x20))->vx = arg0->field_1C.vx;
+    blk->local.vy                 = arg0->field_1C.vy;
+    blk->local.vz                 = arg0->field_1C.vz;
+
+    gte_SetRotMatrix(&arg0->field_18->workm);
+    gte_ldv0(&blk->local);
+    gte_rtv0_real();
+    gte_stlvnl(head - 0x10);
+
+    blk->world.vx = arg0->field_18->workm.t[0] + blk->world.vx;
+    blk->world.vy = arg0->field_18->workm.t[1] + blk->world.vy;
+    blk->world.vz = arg0->field_18->workm.t[2] + blk->world.vz;
+
+    pcoord                        = (GsCOORDINATE2*)slot->extra->field_8;
+    ((VECTOR3*)(head - 0x20))->vx = blk->world.vx - pcoord->workm.t[0];
+    blk->local.vy                 = blk->world.vy - pcoord->workm.t[1];
+    blk->local.vz                 = blk->world.vz - pcoord->workm.t[2];
+
+    dist = SquareRoot0(((VECTOR3*)(head - 0x20))->vx * ((VECTOR3*)(head - 0x20))->vx +
+                       blk->local.vy * blk->local.vy + blk->local.vz * blk->local.vz);
+
+    sel = dist / 1000;
+    sel = sel < 0x10 ? D_80113864[sel] : 5;
+
+    kind = (arg1 >> 8) & 0x3F;
+    if (Gp_IdParamLo[arg1 & 0x7F].field_4 == 6) {
+        val = (D_80113858[sel] << 12) / 100;
+    } else {
+        val = (D_80113568[kind][sel] << 12) / 100;
+    }
+
+    if ((arg1 & 0x4000) != 0) {
+        col = 7;
+    } else {
+        col = 6;
+    }
+
+    chance = (((D_80113568[kind][col] << 12) / 100) * base >> 12) * val >> 12;
+    if ((arg0->field_4C & 2) != 0) {
+        chance <<= 1;
+    }
+
+    extra = (s8)Gp_StateC08.field_D;
+    if (extra != 0) {
+        chance = chance * D_80113D0C[(extra / 16 - 1) * 2 + (s8)(extra % 16)][1] / 100;
+    }
+    if (arg2 != 0) {
+        chance *= arg2;
+    }
+
+    Gp_LcgState             = Gp_LcgState * 5 + 0x71357911;
+    rand                    = (u32)Gp_LcgState >> 16 & 0xFFF;
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x20;
+    return rand < chance;
+}
 
 void Gp_ApplyObjKind(GpObj5D* arg0, s32 arg1)
 {

@@ -29314,3 +29314,59 @@ target offset**, the control flow is wrong, not the schedule. Here
 `beqz v0, 0x2b4` vs `beqz v0, 0x288` on the `if (flag)` test was the whole
 signal that the `func_800B9D80(0x10000)` call belonged *inside* that `if`
 block, not after it.
+
+## Ternary assignment leaves the `move` copies and lets combine drop a later `andi`
+
+`func_800E25F8` (gameplay/3A34) picks a distance class from `D_80113864` into a
+`u16` variable, then uses it as an array index in two later branches. The
+target is:
+
+```
+beqz  v0,.L_else
+lui   v1,%hi(D_80113864)
+...
+lhu   v0,0(v0)
+j     .L_join
+ move  a2,v0        # <- explicit copy
+li    v0,5
+move  a2,v0         # <- explicit copy
+```
+
+Written as `if (sel < 0x10) sel = D_80113864[sel]; else sel = 5;` GCC 2.8.1
+writes the destination register directly (`lhu a2,0(v0)` / `li a2,5`) and there
+is no copy to remove — 96.8%. Written as the conditional expression
+
+```c
+sel = sel < 0x10 ? D_80113864[sel] : 5;
+```
+
+`expand_expr` evaluates each arm into its own temp and then copies it to the
+destination pseudo, which is exactly the target's `move a2,v0` pair. It also
+freed the delay slot that GCC had otherwise filled by duplicating the following
+`srl v0,s4,8` into both arms.
+
+The same rewrite silently fixed a second diff: with the `if/else` form GCC
+emitted `andi v0,a2,0xffff` before *both* later index uses of the `u16`
+variable, while the target only has the `andi` on one of them. Going through
+the ternary's copy insn is enough for `combine`'s `nonzero_bits` to see the
+zero-extension is redundant in the first use, so the mask disappears there and
+survives in the other. When a `u16`/`u8` local is zero-extended at some uses but
+not others, suspect the shape of the assignment, not a missing cast.
+
+## Inline the index expression to schedule `%hi/%lo` before the `andi`
+
+Same function, last diff. With a named local:
+
+```c
+lo = arg1 & 0x7F;
+...
+if (Gp_IdParamLo[lo].field_4 == 6)
+```
+
+GCC emits the `andi` first and the table's `lui/addiu %hi/%lo` after it. The
+target loads the base first. Dropping the local and writing
+`Gp_IdParamLo[arg1 & 0x7F].field_4` moves the mask to the point of use, so the
+base address is materialised before the index — 99.1% → 100%. This is the
+non-call sibling of the "ternary second arg schedules `arr[idx]`
+base-before-index" note above: a named index local pins the index computation
+to its assignment point.

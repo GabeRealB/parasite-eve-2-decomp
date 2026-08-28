@@ -798,6 +798,19 @@ typedef struct _GpNearScratch {
 } GpNearScratch;
 STATIC_ASSERT_SIZEOF(GpNearScratch, 0x28);
 
+/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `func_800E25F8`.
+/// `local` first holds `GpEnemy.field_1C`, which `field_18->workm` rotates
+/// into `world`; `world` then gets `workm.t[]` added to become a world
+/// position, and `local` is reused for the delta against the player
+/// coordinate whose length feeds `SquareRoot0`.
+typedef struct _GpDistScratch {
+    /* 0x00 */ VECTOR3 local;
+    /* 0x0C */ s32     pad_C;
+    /* 0x10 */ VECTOR3 world;
+    /* 0x1C */ s32     pad_1C;
+} GpDistScratch;
+STATIC_ASSERT_SIZEOF(GpDistScratch, 0x20);
+
 /// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `func_800E0FEC`.
 /// Each `GpRec18` whose `field_4` high halfword is `0x10` contributes to
 /// one accumulator, selected by `field_4` bits `0xF00`: kind 0 sums
@@ -1089,13 +1102,20 @@ extern u8 D_8011541B;
 /// `D_80113864` (or 5). The selected entry is scaled `<< 8` then / 100.
 extern u16 D_80113568[][8];
 
-/// Class table for `D_80113568`, indexed by `(u8)(hits / 1000)` when that
-/// value is below 0x10. Only the first byte of each 2-byte slot is read.
-extern u8 D_80113864[][2];
+/// Column table used when `GpRec10.field_4` is 6, indexed by the distance
+/// class picked from `D_80113864`. Scaled `<< 12` then / 100 by
+/// `func_800E25F8`.
+extern u16 D_80113858[];
 
-/// Percent scale table used by `func_800E1FEC` when `Gp_StateC08.field_D`
-/// is non-zero. Indexed by `((field_D / 16) - 1) * 2 + (s8)(field_D % 16)`;
-/// only the first `u16` of each 4-byte slot is read.
+/// Distance/hit class table for `D_80113568`, indexed by `hits / 1000` (or by
+/// `SquareRoot0(distance) / 1000` in `func_800E25F8`) when that value is
+/// below 0x10. `func_800E1FEC` only keeps the low byte of the entry.
+extern u16 D_80113864[];
+
+/// Percent scale table used by `func_800E1FEC` / `func_800E25F8` when
+/// `Gp_StateC08.field_D` is non-zero. Indexed by
+/// `((field_D / 16) - 1) * 2 + (s8)(field_D % 16)`; `func_800E1FEC` reads
+/// `field_0` and `func_800E25F8` reads `field_2` of each 4-byte slot.
 extern u16 D_80113D0C[][2];
 
 /// Final percent scale applied by `func_800E1FEC`, indexed by `D_8011541B`.
@@ -1266,7 +1286,18 @@ u32 func_800E1FEC(u32 arg0, u32 arg1, s32 arg2, s32 arg3);
 /// are the power and bits 12-15 are written to `*arg2` when it is non-NULL.
 /// `arg3 == 0` uses `Wip_SysConfig.field_18` and `GpDmgRow.field_A`;
 /// otherwise `Mc_SaveData.field_6C8` and `GpDmgRow.field_0`.
-s32  Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3);
+s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3);
+/// Rolls a status/effect chance for `arg0` against the player. Returns 0 for
+/// ids with bit 0x8000 set, when no slot 3 is active, or when
+/// `GpPairSrcE.field_B` scaled by 1/100 is zero. Otherwise the enemy's world
+/// distance to the player picks a `D_80113864` class, that class selects a
+/// percentage from `D_80113858` (when `GpRec10.field_4` is 6) or from the
+/// `D_80113568` row for `(arg1 >> 8) & 0x3F`, and column 6 (or 7 with bit
+/// 0x4000) of that same row scales `field_B`. `GpEnemy.field_4C` bit 1
+/// doubles the chance, `Gp_StateC08.field_D` applies a `D_80113D0C` percent,
+/// and `arg2` multiplies it when non-zero. The result is compared against a
+/// 12-bit `Gp_LcgState` draw.
+s32  func_800E25F8(struct _GpEnemy* arg0, u32 arg1, s32 arg2);
 void Gp_ApplyObjKind(GpObj5D* arg0, s32 arg1);
 s32  Gp_PackObjPair(GpObj50* arg0, s32 arg1);
 s32  Gp_PackPair(GpU16Pair* arg0, s32 arg1);
