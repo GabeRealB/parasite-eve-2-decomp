@@ -27828,3 +27828,75 @@ coord asm("s2")` does put the pointer in `$s2`, but GCC then copies the hard
 register into a pseudo before doing address arithmetic on it, so
 `addiu $v0, $s2, 0x26` becomes `move $v1, $s2` + `addiu $v0, $v1, 0x26` and the
 function is one instruction long. Adjust the allocation priority instead.
+
+## Drop the `ws = arg0` local when a two-register pair comes out swapped
+
+`func_8009BD00` reached 98.98% with *every* instruction correct and only one
+defect: the scratch pointer sat in `$a3` and the second-packet induction
+variable in `$t0`, while the target wants `$t0` / `$a3`. The C had the usual
+`ws = arg0;` copy that the neighbouring handlers use.
+
+MIPS `REG_ALLOC_ORDER` hands out `$a3` before `$t0`, so the swap just means the
+two allocnos were ranked in the wrong order. `ws` is a source-level pseudo, so
+it gets a lower allocno than the giv the loop optimizer invents for
+`&poly[1]`, and ties in `allocno_compare` break by allocno number. Deleting the
+local and writing `arg0->…` throughout removes that pseudo, the giv is ranked
+first, and the pair flips:
+
+```c
+/* 98.98%: ws in $a3, giv in $t0 */
+ws = arg0;
+poly = (POLY_GT3*)ws->field_0;
+
+/* 100%: parameter used directly, giv gets $a3 */
+poly = (POLY_GT3*)arg0->field_0;
+```
+
+This is the mirror image of the `ws = arg0` + `__asm__ volatile("" : "+r"(ws))`
+pin used by `func_8009AA5C`: adding the local raises the parameter's rank,
+removing it lowers it. Try both before reaching for `register … asm("")`.
+
+## Loop-invariant constants used once are not hoisted — declare them as locals
+
+GCC 2.8.1's `move_movables` only hoists an invariant when
+`threshold * savings * lifetime >= insn_count`, and for a constant materialised
+immediately before its single use both `savings` and `lifetime` are 1. So in a
+draw loop that emits two packets:
+
+```c
+setlen(&poly[0], 9);
+setcode(&poly[0], 0x36);
+setlen(&poly[1], 9);
+setcode(&poly[1], 0x34);
+```
+
+the `9` (two uses) is hoisted into the preheader as `li t7, 9` but the `0x34`
+is re-materialised inside the loop, and the extra in-loop `li` perturbs both
+scheduling and register allocation (90.4% here). The target's preheader holds
+*both* constants. Give the once-used constant an explicit pre-loop local so it
+is live-in rather than invariant:
+
+```c
+len  = 9;
+code = 0x34;
+/* ... */
+setlen(&poly[0], len);
+setcode(&poly[0], 0x36);
+setlen(&poly[1], len);
+setcode(&poly[1], code);
+```
+
+Assign these locals in the order the target's preheader sets them (here after
+`opz = &ws->field_28` and before `ds = &Display_State`), since explicit
+assignments are emitted in source order while LICM appends its own hoists
+afterwards. `func_8009BD00` went 90.4% → 98.98% on this change alone.
+
+## Two packets per stream record: index one pointer, do not keep two
+
+`func_8009BD00` writes a `POLY_GT3` pair per record and advances by 0x50. Two
+parallel pointers (`poly`, `poly2`, each `+= 2`) make the loop optimizer create
+*four* induction variables — one per address form, including the byte-field
+addresses used by `setlen`/`setcode` — and the extra pressure spills into
+`$s3` (90.4%). One pointer with `&poly[0]` / `&poly[1]` lets GCC combine the
+givs down to the two the target uses, addressing `poly[0]`'s byte fields as
+negative offsets from the `poly[1]` register (`sb t7, -0x25(a3)`): 96.4%.
