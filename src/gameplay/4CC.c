@@ -23,14 +23,169 @@ extern s32          D_8005ED74;
 extern s32          D_8005ED78;
 extern char         Gp_StrSwitch[];
 extern UiObject*    D_80067634;
-extern VECTOR       D_80093DB0;
 extern u8           D_8010D828[];
 extern GpItemRec*   Gp_SelItemRec;
 extern UiObjectDesc D_8010EFA0;
 
 void Gp_ClearPreviewItems(void);
 
-INCLUDE_ASM("gameplay/nonmatchings/4CC", Gp_ItemMoveChild);
+void Gp_ItemMoveChild(UiObject* arg0, Task* arg1)
+{
+    GpItemMoveState* mem;
+    UiObject*        obj;
+    GpItemRec*       tbl;
+    GpItemScan*      scanSrc;
+    s32              i;
+    s32              base;
+    s32              flag;
+    s32              val;
+    GpItemScan*      dst;
+    GpItemScan*      src;
+    GpItemRec*       recDst;
+    GpItemRec*       recSrc;
+    s32              rowDst;
+    s32              rowSrc;
+    s32              idDst;
+    s32              idSrc;
+    s32              qtyDst;
+    s32              qtySrc;
+    GpItemScan*      scan;
+    GpItemRec*       recA;
+    GpItemRec*       recB;
+    s32              rowA;
+    s32              rowB;
+    s32              idA;
+    s32              idB;
+    s32              qtyA;
+    s32              qtyB;
+    s32              subA;
+    s32              subB;
+
+    obj = arg1->parent->spawnArg2;
+    mem = (GpItemMoveState*)arg1->parent->idMap;
+    switch (arg0->field_2E) {
+        case 0x26:
+            scanSrc = &Gp_MoveScanSrc;
+            tbl     = Gp_GetItemTable(scanSrc);
+            base    = scanSrc->field_0;
+            i       = 0;
+            if (scanSrc->field_1 != 0) {
+                do {
+                    if (tbl[base].field_0 != 0) {
+                        Gp_GiveItem(&Gp_MoveScanDst, tbl[base].field_0, tbl[base].field_2);
+                        tbl[base].field_0 = 0;
+                        tbl[base].field_2 = 0;
+                    }
+                    i++;
+                    base++;
+                } while (i < scanSrc->field_1);
+            }
+            /* fallthrough */
+        case -1:
+            flag = 0;
+            if (mem->objs[0]->owner->flags != 0) {
+                flag = Gp_CountScanItems(&Gp_MoveScanSrc) > 0;
+            }
+            mem->objs[mem->field_8]->owner->state     = 1;
+            mem->objs[mem->field_8 ^ 1]->owner->state = 1;
+            if ((arg0->field_2E != 0x26) && flag) {
+                val = Gp_CanMoveItems();
+                SndEvt_EnqueueType6(4, 0, 0);
+                mem->field_8 = 0;
+                Ui_SpawnFromDesc(&D_8010D7F0, val, 1, 1, mem->objs[0]);
+                break;
+            }
+            /* fallthrough */
+        case 0x27:
+            Game_Session->field_2 = 0;
+            obj->field_2E         = -1;
+            break;
+        case 6:
+            Ui_TeardownTree(arg0, arg1);
+            mem->objs[mem->field_8]->owner->state     = 1;
+            mem->objs[mem->field_8 ^ 1]->owner->state = 1;
+            mem->field_8                              = mem->field_8 ^ 1;
+            mem->objs[mem->field_8]->status           = 0;
+            mem->field_8                              = mem->field_8 ^ 1;
+            mem->objs[mem->field_8]->status           = 1;
+            break;
+        case 0x23:
+            mem->field_10                             = mem->field_8;
+            mem->field_14                             = Gp_InvLists[mem->field_8].field_10;
+            mem->objs[mem->field_8]->owner->state     = 2;
+            mem->objs[mem->field_8 ^ 1]->owner->state = 2;
+            mem->objs[mem->field_8]->status           = 0;
+            mem->field_8                              = mem->field_8 ^ 1;
+            mem->objs[mem->field_8]->status           = 1;
+            break;
+        case 0x25:
+            if (mem->field_10 != mem->field_8) {
+                if (mem->field_8 == 0) {
+                    rowSrc = mem->field_18;
+                    rowDst = mem->field_14;
+                } else {
+                    rowSrc = mem->field_14;
+                    rowDst = mem->field_18;
+                }
+                dst    = &Gp_MoveScanDst;
+                recDst = Gp_GetScanSlot(dst, rowDst, 0);
+                qtyDst = recDst->field_2;
+                idDst  = recDst->field_0;
+                Gp_RemoveItem(dst, recDst, qtyDst);
+                src    = dst - 1;
+                recSrc = Gp_GetScanSlot(src, rowSrc, 0);
+                qtySrc = recSrc->field_2;
+                idSrc  = recSrc->field_0;
+                Gp_RemoveItem(src, recSrc, qtySrc);
+                Gp_SetScanItem(dst, rowDst, idSrc, qtySrc);
+                Gp_SetScanItem(src, rowSrc, idDst, qtyDst);
+                if ((u8)(recDst->field_0 + 0x80) < 0x20) {
+                    Gp_ClearEquipSlot(recDst->field_0);
+                }
+            } else {
+                rowA = mem->field_14;
+                rowB = mem->field_18;
+                if (rowA != rowB) {
+                    scan = &Gp_MoveScanSrc + mem->field_10;
+                    recA = Gp_GetScanSlot(scan, rowA, 0);
+                    qtyA = recA->field_2;
+                    idA  = recA->field_0;
+                    subA = (s8)recA->field_1;
+                    Gp_RemoveItem(scan, recA, qtyA);
+                    recB = Gp_GetScanSlot(scan, rowB, 0);
+                    qtyB = recB->field_2;
+                    idB  = recB->field_0;
+                    subB = (s8)recB->field_1;
+                    Gp_RemoveItem(scan, recB, qtyB);
+                    Gp_SetScanItem(scan, rowA, idB, qtyB)->field_1 = subB;
+                    Gp_SetScanItem(scan, rowB, idA, qtyA)->field_1 = subA;
+                }
+            }
+            mem->objs[mem->field_8]->owner->state     = 1;
+            mem->objs[mem->field_8 ^ 1]->owner->state = 1;
+            break;
+        case 0x24:
+            mem->objs[mem->field_8]->owner->state     = 1;
+            mem->objs[mem->field_8 ^ 1]->owner->state = 1;
+            if (mem->field_10 != mem->field_8) {
+                mem->objs[mem->field_8]->status = 0;
+                mem->field_8                    = mem->field_8 ^ 1;
+                mem->objs[mem->field_8]->status = 1;
+            }
+            break;
+        case 0xA:
+            mem->objs[mem->field_8]->status = 0;
+            mem->field_8                    = mem->field_8 ^ 1;
+            mem->objs[mem->field_8]->status = 1;
+            break;
+    }
+}
+
+/* Kept next to Gp_ItemMoveChild's jump table so the overlay .rodata stays packed;
+   Gp_StrBullet follows from func_800BDF6C's still-assembled .rodata. */
+const char Gp_StrBattleField[] = "Battle Field";
+const char Gp_StrItemBox[]     = "Item Box";
+const char Gp_StrPlayerItem[]  = "Player Item";
 
 void Gp_ItemMoveTask(Task* arg0)
 {
@@ -82,13 +237,13 @@ void Gp_ItemMoveTask(Task* arg0)
         if (arg0->spawnArg1 == 1) {
             val          = Gp_CanMoveItems();
             mem->field_8 = 0;
-            mem->field_0 = Ui_SpawnFromDesc(D_8010D6F4, 0x100, 0, 1, obj);
-            mem->field_4 = Ui_SpawnFromDesc(D_8010D6F4 + 1, 0x101, 0, 1, obj);
-            Ui_SpawnFromDesc(D_8010D6F4 + 9, val, 1, 1, mem->field_0);
+            mem->objs[0] = Ui_SpawnFromDesc(D_8010D6F4, 0x100, 0, 1, obj);
+            mem->objs[1] = Ui_SpawnFromDesc(D_8010D6F4 + 1, 0x101, 0, 1, obj);
+            Ui_SpawnFromDesc(D_8010D6F4 + 9, val, 1, 1, mem->objs[0]);
         } else {
             mem->field_8 = 0;
-            mem->field_0 = Ui_SpawnFromDesc(D_8010D6F4, 0, 1, 1, obj);
-            mem->field_4 = Ui_SpawnFromDesc(D_8010D6F4 + 1, 1, 0, 1, obj);
+            mem->objs[0] = Ui_SpawnFromDesc(D_8010D6F4, 0, 1, 1, obj);
+            mem->objs[1] = Ui_SpawnFromDesc(D_8010D6F4 + 1, 1, 0, 1, obj);
             obj->status  = 0;
         }
         Ui_SpawnFromDesc(&D_8010D80C, 0, 0, 1, obj);
@@ -511,6 +666,10 @@ void Gp_ItemActionListTask(Task* arg0)
 }
 
 INCLUDE_ASM("gameplay/nonmatchings/4CC", func_800BDF6C);
+
+/* After Gp_StrBullet from func_800BDF6C so the overlay .rodata stays packed. */
+const GpPromptTexts Gp_ItemPromptTexts = { Gp_StrAll, Gp_StrSelect, Gp_StrDiscard, Gp_StrEnd };
+const VECTOR        D_80093DB0         = { 0, -100, 0, 0 };
 
 void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
 {

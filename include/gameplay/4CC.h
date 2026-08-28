@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "main/mc.h"
 #include "main/task.h"
 #include "main/ui.h"
@@ -50,12 +52,12 @@ typedef struct {
 STATIC_ASSERT_SIZEOF(GpPromptTexts, 0x10);
 
 /// 0x1C work block allocated by `Gp_ItemMoveTask` (`Mem_Calloc(0x1C, 0)`)
-/// and stored at `Task::idMap` / `Gp_ItemMoveWork`. `field_0` / `field_4` are
-/// the first two `Ui_SpawnFromDesc` results; `field_8` is a write offset
-/// into this same block (`Gp_ItemMoveChild`).
+/// and stored at `Task::idMap` / `Gp_ItemMoveWork`. `objs` holds the first two
+/// `Ui_SpawnFromDesc` results (the source / dest inventory panes); `field_8` is
+/// the index of the pane that currently has focus and is used to index `objs`
+/// (`Gp_ItemMoveChild` toggles it with `^ 1`).
 typedef struct _GpItemMoveState {
-    /* 0x00 */ UiObject* field_0;
-    /* 0x04 */ UiObject* field_4;
+    /* 0x00 */ UiObject* objs[2];
     /* 0x08 */ s32       field_8;
     /* 0x0C */ s32       field_C;
     /* 0x10 */ s32       field_10;
@@ -93,6 +95,9 @@ extern GpItemMoveState* Gp_ItemMoveWork;
 extern UiObjectDesc D_8010D6F4[];
 /// Popup spawned by `Gp_ItemMoveRow` on confirm when `owner->state == 1`.
 extern UiObjectDesc D_8010D764;
+/// "Move items" confirmation popup spawned by `Gp_ItemMoveChild` when the
+/// pane is closed with items still selected (`Gp_CanMoveItems` result as arg1).
+extern UiObjectDesc D_8010D7F0;
 /// Extra `UiObjectDesc` spawned after the `D_8010D6F4` pair.
 extern UiObjectDesc D_8010D80C;
 /// Pair of inventory UiLists indexed by `Task::spawnArg1` (source / dest).
@@ -103,11 +108,18 @@ extern UiListItemFunc Gp_ItemActionFns[];
 /// UiList used by `Gp_ItemActionListTask`.
 extern UiList Gp_ItemActionList;
 /// UiList used by `Gp_ItemMenuListTask`. `field_10` is 1 when `spawnArg1` is 0.
-extern UiList        Gp_ItemMenuList;
-extern char          Gp_StrBattleField[]; // "Battle Field"
-extern char          Gp_StrItemBox[];     // "Item Box"
-extern char          Gp_StrPlayerItem[];  // "Player Item"
-extern GpPromptTexts Gp_ItemPromptTexts;
+extern UiList              Gp_ItemMenuList;
+extern const char          Gp_StrBattleField[]; // "Battle Field"
+extern const char          Gp_StrItemBox[];     // "Item Box"
+extern const char          Gp_StrPlayerItem[];  // "Player Item"
+extern u8                  Gp_StrAll[];         // "All"
+extern u8                  Gp_StrSelect[];      // "Select"
+extern u8                  Gp_StrDiscard[];     // "Discard"
+extern u8                  Gp_StrEnd[];         // "End"
+extern char                Gp_StrBullet[];      // "Bullet"
+extern const GpPromptTexts Gp_ItemPromptTexts;
+/// Fullscreen-fade vector template used by `Gp_FadeTileTask` / `Gp_ItemPickupTilt`.
+extern const VECTOR D_80093DB0;
 /// Per-child item-move handler. Walked by `Gp_ItemMoveTask` over
 /// `obj->owner`'s children as `Gp_ItemMoveChild(child->spawnArg2, child)`.
 void Gp_ItemMoveChild(UiObject* arg0, Task* arg1);

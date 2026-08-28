@@ -29370,3 +29370,62 @@ base address is materialised before the index — 99.1% → 100%. This is the
 non-call sibling of the "ternary second arg schedules `arr[idx]`
 base-before-index" note above: a named index local pins the index computation
 to its assignment point.
+
+## A separate index biv puts the giv init in the loop preheader
+
+`Gp_ItemMoveChild` walks an item table slice. The target sets the walking
+pointer up *after* the loop guard, and adds the scaled index first:
+
+```
+beqz  v0, exit          # guard on the count
+move  s1, zero          # i = 0
+lui   s3, %hi(...)      # hoisted invariant
+sll   v0, v1, 0x2       # base * 4
+addu  s0, v0, a0        # ... + table   <- mult operand first
+```
+
+`addu <mult>, <ptr>` (not `addu <ptr>, <mult>`) is the signature of
+`emit_iv_add_mult`, i.e. the *giv initial value* GCC computes in the preheader
+from the biv's initial value. Source-level pointer arithmetic can never emit
+that operand order: `pointer_int_sum` always builds `PLUS_EXPR(ptr, index)`, so
+`rec = tbl + base;`, `rec = &tbl[base];` and `rec = base + tbl;` all give
+`addu <ptr>, <mult>` — and, being ordinary statements, they land *before* the
+guard rather than in the preheader.
+
+The fix is to make the table index its own induction variable whose initial
+value is the non-constant base:
+
+```c
+tbl  = Gp_GetItemTable(scanSrc);
+base = scanSrc->field_0;          /* lbu stays before the guard */
+i    = 0;
+if (scanSrc->field_1 != 0) {      /* explicit guard, else GCC adds a second */
+    do {
+        if (tbl[base].field_0 != 0) { ... }
+        i++;
+        base++;
+    } while (i < scanSrc->field_1);
+}
+```
+
+Strength reduction then replaces `base` with the address giv (`s0 += 4`), leaves
+`i` as the exit counter, and emits `sll`/`addu <mult>, <ptr>` in the preheader —
+99.4% → 100%. Related notes: `tbl[base + i]` is *not* equivalent, GCC 2.8.1
+fails to reduce it and recomputes `addu`/`sll` every iteration; and a plain
+`for` inside the explicit `if` emits the guard twice, so the body must be a
+`do`/`while`.
+
+## Distinct spill slots mean distinct locals, not one shared set
+
+Two sibling branches of the same `switch` case each moved an item between two
+inventory slots, so the obvious C reuses one set of locals (`rowA`, `idA`,
+`qtyA`, …). That collapsed the frame from 0x50 to 0x48: GCC gives one stack slot
+per *pseudo*, so shared names share slots. The target had three separate spill
+slots (`0x18` used by one branch, `0x1C`/`0x20` by the other), which only
+happens when the branches spill different pseudos.
+
+Giving each branch its own locals (`rowDst`/`rowSrc`/`idDst`/… vs
+`rowA`/`rowB`/`idA`/…) restored the frame size *and* fixed the global register
+allocation across the whole function — 89.9% → 97.4% in one edit. When the
+target's frame is larger than yours and the extra bytes are spill slots, look
+for locals you merged that the original kept apart.
