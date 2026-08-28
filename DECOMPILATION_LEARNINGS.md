@@ -28061,3 +28061,47 @@ branch is what the target compiles from: GCC emits the argument moves per
 branch and cross-jumping merges only the `jal` itself, because the insn before
 the call (`a0`, the differing id) is not common. `func_800FE034` went from 91%
 to 96% on this change alone.
+
+## Pin a loop-invariant pointer with `asm("" : "+r"(p))` to lock its schedule slot and its register
+
+`func_8009AF90` copies `&ws->field_7C` into a local pointer at the top of the
+block that follows an `if`, and only reads `p->vy` many instructions later:
+
+```c
+sxy  = (DVECTOR*)&ws->field_7C;   /* loop.c hoists the address, leaves `move t1, t8` here */
+flag = 0;
+dest = ws->field_4 + rec[2] + 8;
+```
+
+Two things went wrong with the plain version. The copy has no in-block
+successor, so the scheduler sank it to the bottom of the region (the target has
+it as the block's *first* insn, which is what lets `reorg` duplicate it into the
+`beqz` delay slot and leave the original behind). And because the copy's live
+range is long and its reference count low, the allocator ranked it below `flag`
+and handed `flag` the lower register (`$t1` vs `$t2`).
+
+Adding the codebase's usual opaque-value barrier immediately after the
+assignment fixes both at once:
+
+```c
+sxy = (DVECTOR*)&ws->field_7C;
+__asm__ volatile("" : "+r"(sxy));
+```
+
+The empty `asm volatile` is a scheduling barrier, so the copy cannot sink past
+it and stays first in the block; and because the pointer now flows through an
+asm operand it is allocated before `flag`. This took the function from 99.8% to
+a match. A bare `__asm__ volatile("")` pins the schedule but not the register,
+and `__asm__ volatile("" ::: "memory")` does neither — the `"+r"` operand is the
+part that matters for allocation.
+
+## `decomp-permuter` cannot parse GCC asm operands that are not unary expressions
+
+The vendored `perm_pycparser` grammar has
+`asm_operand : ... LPAREN unary_expression RPAREN`, so any inline-asm operand
+containing a cast or a binary operator — which is most of the `gte_*` macro call
+sites, e.g. `gte_stsxy(ws->field_4 + rec[2] + 4)` — makes the permuter bail with
+`Syntax error in base.c ... before: +`. Hoisting those operands into temporaries
+to work around it changes codegen (it cost ~5% on `func_8009AF90`), so for
+GTE-heavy functions treat the permuter as unavailable and iterate on the C by
+hand instead.
