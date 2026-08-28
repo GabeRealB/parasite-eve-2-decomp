@@ -29429,3 +29429,55 @@ Giving each branch its own locals (`rowDst`/`rowSrc`/`idDst`/… vs
 allocation across the whole function — 89.9% → 97.4% in one edit. When the
 target's frame is larger than yours and the extra bytes are spill slots, look
 for locals you merged that the original kept apart.
+
+## Read `.lreg` and shorten the loser's range when two prim quantities swap registers
+
+`func_800A6A9C` reached "instruction-for-instruction identical, two registers
+permuted": the target puts `span + x - 2` in `$a2` and `addPrim`'s `0xFFFFFF`
+bitfield mask in `$a3`, and every source ordering produced the opposite. No
+statement permutation of the three prim blocks (`SPRT`, `SPRT`, `POLY_FT4`),
+no declaration order, and no `register … asm()` pin on the value itself fixed
+it — pinning it to `$a2` forced the `addu` into the wrong scheduler slot.
+
+Dump `local_alloc`'s view instead of guessing. Compile the scratch `.c` by
+hand with `-dl` and read `<file>.lreg`:
+
+```
+Register 90  used 4 times across 42 insns in block 21;   <- span + x - 2
+Register 190 used 10 times across 99 insns in block 21;  <- 0xFFFFFF
+;; Register 90 in 7.        <- $a3
+;; Register 190 in 6.       <- $a2
+```
+
+The quantity with the higher `n_refs / live_length` is allocated first and
+takes the lower-numbered register. Here `10/99 = 0.1010` beat `4/42 = 0.0952`.
+Sweeping one variable's live range showed the crossover exactly where the
+formula predicts: length 40 → `$a3`, length 39 (`4/39 = 0.1026`) → `$a2`, and
+100% at every length from 38 down to 29.
+
+The lever is the *death* end of the range, not the birth: moving the
+`poly->x3 = right; poly->x1 = right;` pair earlier in the `POLY_FT4` block
+shortens the range at local-alloc time, and the post-reload scheduler still
+emits those two `sh`s in the target's late position, so the instruction order
+is unchanged. Grouping them with the other X writes
+
+```c
+poly->x2 = x + 0xC;
+poly->x0 = x + 0xC;
+poly->x3 = right;
+poly->x1 = right;
+poly->y3 = y + 0x13;
+```
+
+was 99.75% → 100%. Note the two facts that make this work and that the earlier
+"only a hard pin fixes it" note (`func_800C0E20`) did not have: the priority is
+plain `n_refs / live_length` (no `floor_log2` weighting was needed to predict
+the crossover), and a *use* several statements away from the contested register
+is a legal, invisible place to move.
+
+## `permute.sh` needs `-j 4`, not `-j4`
+
+The flag loop matches `"$1" == -j` exactly, so `-j4` falls through as the
+positional `FUNCTION_NAME`. The run then creates `permuter/-j4/`, prints
+`Function -j4 not found in base.c`, and randomizes an empty function for the
+whole timeout. Always pass the thread count as a separate argument.

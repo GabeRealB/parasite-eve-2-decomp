@@ -10,6 +10,7 @@
 #include <psyq/libgs.h>
 
 #include "main/pad.h"
+#include "main/text.h"
 #include "main/tmd.h"
 
 struct _GpEnemy;
@@ -36,6 +37,25 @@ typedef struct _GpHudScratch {
     /* 0x1A */ s16  field_1A;
 } GpHudScratch;
 STATIC_ASSERT_SIZEOF(GpHudScratch, 0x1C);
+
+/// 0x30-byte stack scratch shared by the enemy HP-bar HUD (`func_800A6A9C`).
+/// The block is first initialised as a `UiObject` (`baseX` / `baseY` /
+/// `drawOrder` / `mode`), then reused: `text.buf` is the `Text_ItoaUnsigned`
+/// digit buffer with `text.req` (at +0x10) the matching draw request, while the
+/// "????" case draws through `bar.req` (at +0) and the trailing
+/// `Ui_DrawTextInRect` rectangle is `bar.rect` (also at +0x10).
+typedef union GpHudBarScratch {
+    UiObject obj;
+    struct {
+        /* 0x00 */ u8          buf[0x10];
+        /* 0x10 */ TextDrawReq req;
+    } text;
+    struct {
+        /* 0x00 */ TextDrawReq req;
+        /* 0x10 */ RECT        rect;
+    } bar;
+} GpHudBarScratch;
+STATIC_ASSERT_SIZEOF(GpHudBarScratch, 0x30);
 
 /// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `Gp_WorldToLocal`.
 /// `mat` is the transpose of the parent rotation; `vec` is

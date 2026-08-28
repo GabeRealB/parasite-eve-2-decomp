@@ -64,6 +64,8 @@ extern u8             D_8009388C[];       // "R1"
 extern u8             D_80093890[];       // "R2"
 extern u8             D_80093894[];       // "%"
 extern u8             D_80093898[];       // "&"
+extern u8             D_800938AC[];       // "????"
+extern u8             Gp_StrHP[];         // "HP"
 extern s32            D_8005ED70;
 extern s32            D_8005ED74;
 extern GsCOORDINATE2  D_80070F10;
@@ -4354,7 +4356,173 @@ after_uv:
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A6480);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A6A9C);
+void func_800A6A9C(s32 x, s32 y, s32 cur, s32 max, s32 kind)
+{
+    GpHudBarScratch s;
+    TextDrawReq     req;
+    TILE*           tile;
+    SPRT*           sp;
+    POLY_FT4*       poly;
+    s32             span;
+    s32             right;
+    register s32    yb asm("t3");
+    register s32    clut asm("t5");
+    s32             w;
+    s32             order;
+
+    span = 0x25;
+    if (cur < 0) {
+        cur = 0;
+    }
+    y -= Display_State.vramYOffset;
+    if (Pad_RemapState->field_A != 0) {
+        return;
+    }
+
+    order           = -3;
+    s.obj.baseX     = 0;
+    s.obj.baseY     = 0;
+    s.obj.drawOrder = order;
+    s.obj.mode      = 0;
+
+    req.x          = x + 4;
+    req.y          = y + 8;
+    req.otIndex    = -2;
+    req.field_8    = 0x606060;
+    req.glyphTable = 5;
+    req.centerMode = 0;
+    req.field_E    = 1;
+    func_8002E53C(&req, Gp_StrHP);
+
+    if (max >= 0) {
+        s32 val = cur;
+
+        if (kind == 0) {
+            s32 tx = x + 0x2B;
+            s32 ty = y + 0xA;
+
+            if (val < 0) {
+                val = 0;
+            }
+            s.text.req.x          = tx;
+            s.text.req.y          = ty;
+            s.text.req.otIndex    = -2;
+            s.text.req.field_8    = 0x606060;
+            s.text.req.glyphTable = 0;
+            s.text.req.centerMode = 2;
+            s.text.req.field_E    = 3;
+            func_8002E53C(&s.text.req, Text_ItoaUnsigned(s.text.buf, val));
+        } else {
+            s32 tx = x + 0x33;
+            s32 ty = y + 0xA;
+
+            if (val < 0) {
+                val = 0;
+            }
+            s.text.req.x          = tx;
+            s.text.req.y          = ty;
+            s.text.req.otIndex    = -2;
+            s.text.req.field_8    = 0x606060;
+            s.text.req.glyphTable = 0;
+            s.text.req.centerMode = 2;
+            s.text.req.field_E    = 3;
+            func_8002E53C(&s.text.req, Text_ItoaUnsigned(s.text.buf, val));
+            span = 0x2D;
+        }
+
+        if (max == 0) {
+            w = span;
+        } else {
+            w = cur * span / max;
+        }
+
+        if (w > 0) {
+            tile       = (TILE*)D_80071190;
+            D_80071190 = (DR_TPAGE*)(tile + 1);
+            if (span < w) {
+                w = span;
+            }
+            tile->x0 = x + 5;
+            tile->y0 = y + 0xE;
+            tile->w  = w;
+            tile->h  = 2;
+            if (kind == 0) {
+                *(u32*)&tile->r0 = 0x1741F;
+            } else {
+                *(u32*)&tile->r0 = 0x80;
+            }
+            setlen(tile, 3);
+            setcode(tile, 0x60);
+            addPrim(Gpu_CurrentOt - 2, tile);
+        }
+
+        yb   = y + 0xB;
+        clut = 0x3C0B;
+
+        sp         = (SPRT*)D_80071190;
+        D_80071190 = (DR_TPAGE*)(sp + 1);
+        sp->x0     = x + 4;
+        sp->y0     = yb;
+        sp->u0     = 0x98;
+        sp->v0     = 0x68;
+        sp->clut   = clut;
+        setlen(sp, 3);
+        setcode(sp, 0x75);
+        addPrim(Gpu_CurrentOt - 2, sp);
+
+        sp         = (SPRT*)D_80071190;
+        D_80071190 = (DR_TPAGE*)(sp + 1);
+        right      = (span + x) - 2;
+        sp->x0     = right;
+        sp->y0     = yb;
+        sp->clut   = clut;
+        sp->u0     = 0xA8;
+        sp->v0     = 0x68;
+        setlen(sp, 3);
+        setcode(sp, 0x75);
+        addPrim(Gpu_CurrentOt - 2, sp);
+
+        poly        = (POLY_FT4*)D_80071190;
+        D_80071190  = (DR_TPAGE*)(poly + 1);
+        poly->x2    = x + 0xC;
+        poly->x0    = x + 0xC;
+        poly->x3    = right;
+        poly->x1    = right;
+        poly->y3    = y + 0x13;
+        poly->y2    = y + 0x13;
+        poly->u0    = 0xA0;
+        poly->u2    = 0xA0;
+        poly->v2    = 0x70;
+        poly->v3    = 0x70;
+        poly->tpage = 0x3E;
+        setlen(poly, 9);
+        poly->y1   = yb;
+        poly->y0   = yb;
+        poly->v0   = 0x68;
+        poly->u1   = 0xA8;
+        poly->v1   = 0x68;
+        poly->u3   = 0xA8;
+        poly->clut = clut;
+        setcode(poly, 0x2D);
+        addPrim(Gpu_CurrentOt - 2, poly);
+    } else {
+        s.bar.req.x          = x + 0x33;
+        s.bar.req.y          = y + 0xA;
+        s.bar.req.otIndex    = -2;
+        s.bar.req.field_8    = 0x37A78;
+        s.bar.req.glyphTable = 0;
+        s.bar.req.centerMode = 2;
+        s.bar.req.field_E    = 3;
+        func_8002E53C(&s.bar.req, D_800938AC);
+        span = 0x2D;
+    }
+
+    s.bar.rect.x = x;
+    s.bar.rect.y = y;
+    s.bar.rect.w = span + 0xA;
+    s.bar.rect.h = 0x14;
+    Ui_DrawTextInRect(&s.bar.rect, -1, 0x40002, NULL);
+}
 
 void Gp_HudTrackEnemy(GpEnemy* arg0, GpHudTrack* arg1)
 {
