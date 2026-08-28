@@ -2315,6 +2315,59 @@ form* with the *wrong register* (`andi v0,t0,0xff` where the target has
 wrong form (`andi t1,t1,0xff`). That means the variable is naturally allocated
 elsewhere and the conflict is upstream — not that the pin is wrong.
 
+## Share one pinned `$v0` across blocks; non-volatile asm for the copy
+
+A local `register T* x asm("v0")` reserves `$v0` for the *whole* function as
+far as the allocator is concerned, even when the declaration sits in a nested
+block. In `func_800D8684` a pin that fixed four `field_918` / `field_920`
+loops (`lw v0,0x920(a0)`) simultaneously broke an unrelated color-matrix block
+earlier in the function, which flipped from `mtx` in `$v0` / constant in `$v1`
+to the reverse.
+
+The fix is not to drop the pin but to pin the other block's variable to the
+*same* register. Live ranges in disjoint blocks do not conflict, so several
+`register T* p asm("v0")` declarations in sibling scopes all get `$v0`:
+
+```c
+{
+    register MATRIX* colorMtx asm("v0");
+    /* ... if/else chain filling the 3x3 ... */
+}
+...
+{
+    register Task* task asm("v0");
+    i = 0;
+    do { task = (&actor->field_920)[i]; ... } while (i < 2);
+}
+```
+
+Separately, when the target loads into `$v0` and then copies to a saved
+register (`lw v0,0x2c(v1)` / `move s2,v0`), GCC coalesces the copy away if you
+just write `e = work->extra; extra = e;` — even with `e` pinned to `$v0`. An
+empty asm that reads and writes `e` keeps the copy, but it must be
+**non-volatile**: `asm volatile("" : "+r"(e))` also blocks scheduling, so the
+independent `lui`/`addiu` pair that the target hoists into the `beqz` delay
+slot sinks below the loads instead.
+
+```c
+register GameActorExt* e asm("v0");
+e      = work->extra;
+actor2 = work->actor;
+__asm__("" : "+r"(e));   /* no `volatile` */
+extra = e;
+```
+
+`func_800D8684` is the example: 98.7% with `asm volatile`, 100% without it.
+
+## Fold `+4` into a `%lo` by casting away `volatile`
+
+`extern T* volatile Table[2];` compiles `Table[1]` as
+`lui v0,%hi(Table)` / `addiu v0,v0,%lo(Table)` / `lw v0,4(v0)`. The target's
+two-instruction `lui v0,%hi(Table+4)` / `lw v1,%lo(Table+4)(v0)` needs a
+non-volatile read; `((T**)Table)[1]` produces it without changing the
+declaration other callers rely on. `func_800D8684` reading `Gp_ActorSlots[1]`
+is the example.
+
 ## Dummy pin that outlives a short constant (Ui_SpawnTextBlock)
 
 When the target holds a small constant K in `$s5` only during early init, then

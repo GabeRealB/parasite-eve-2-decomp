@@ -729,6 +729,20 @@ typedef struct _GpPanScratch {
 } GpPanScratch;
 STATIC_ASSERT_SIZEOF(GpPanScratch, 0x18);
 
+/// Room-light capture block owned by another overlay (imported at
+/// `D_80760618`). `func_800D7A9C` fills the four `field_30` entries with the
+/// per-channel light rows while `field_1` is set, and `func_800D78A4` writes
+/// the resolved light direction into `field_24`. `func_800D8684` raises
+/// `field_1` around that pair so the capture happens, then clears it.
+typedef struct _GpLightCapture {
+    /* 0x00 */ byte    pad_0[0x1];
+    /* 0x01 */ s8      field_1;
+    /* 0x02 */ byte    pad_2[0x22];
+    /* 0x24 */ VECTOR3 field_24;
+    /* 0x30 */ VECTOR3 field_30[4];
+} GpLightCapture;
+STATIC_ASSERT_SIZEOF(GpLightCapture, 0x60);
+
 /// 0x30-byte scratch from `G_SCRATCH_HEAD` used by `Gp_UpdateActorColor`.
 /// `mtx` holds the previous-mode 3x3 copy. `col0` / `col1` are the
 /// current and previous columns packed for GPF/GPL.
@@ -974,6 +988,13 @@ extern MATRIX Gp_DefaultMtx;
 /// Default `MATRIX` installed at `GameActorExt.field_20` by `Gp_BindDefaultMtx`.
 extern MATRIX Gp_DefaultMtx2;
 
+/// Light/color `MATRIX` pair `func_800D8684` installs at
+/// `GameActorExt.field_1C` / `field_20` for the `Gp_ActorSlots[1]` actor and
+/// its `field_918` / `field_920` child tasks (the second actor uses its own
+/// pair instead of `Gp_DefaultMtx` / `Gp_DefaultMtx2`).
+extern MATRIX D_80114ED8;
+extern MATRIX D_80114EF8;
+
 /// Flag set by `Gp_SetOverrideVec` when an override SVECTOR is stored at
 /// `Gp_OverrideVec`. Cleared when that function is called with NULL, and
 /// also by `Gp_BindDefaultMtx`.
@@ -985,6 +1006,10 @@ extern SVECTOR Gp_OverrideVec;
 /// Word cleared by `Gp_BindDefaultMtx`. Also written by `func_800A45F0` and
 /// read/cleared by `func_800D8684`.
 extern s32 D_80114F28;
+
+/// Overlay import: pointer to the room-light capture block written by
+/// `func_800D7A9C` / `func_800D78A4`.
+extern GpLightCapture* D_80760618;
 
 /// Flag set by `Gp_SetOverrideVec2` when an override SVECTOR is stored at
 /// `Gp_OverrideVec2`. Cleared when that function is called with NULL, and
@@ -1158,6 +1183,10 @@ s32  Gp_LightPoint(GpObj44* arg0, VECTOR3* arg1);
 s32  Gp_LightCone(GpObj68* arg0, VECTOR3* arg1);
 void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
 void func_800D7A9C(GameActorExt* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
+/// Resolves the strongest room light for the world position `arg0` and writes
+/// its direction into `arg1` (`GpLightCapture.field_24` at the call site in
+/// `func_800D8684`). No-ops when `Gp_GetRoomCoordSet` returns 0.
+void func_800D78A4(VECTOR* arg0, VECTOR3* arg1);
 void func_800D8684(Task* arg0);
 /// Remaps a 3x3 color matrix (`MATRIX.m`) from lighting mode `arg2`
 /// (`field_4E` bits 0-1, or bits 2-3 when blending). Mode 1 weights

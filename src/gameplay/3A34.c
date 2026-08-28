@@ -1070,7 +1070,189 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D78A4);
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D7A9C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800D8684);
+const char D_8009745C[] = {
+    '?',
+    '\0',
+    0x00,
+    0x42,
+};
+
+void func_800D8684(Task* arg0)
+{
+    GpActorWork*   slot;
+    GpActorWork*   work;
+    WipSysConfig*  cfg;
+    GameActorExt*  extra;
+    GsCOORDINATE2* coord;
+    GameActor*     actor;
+    GameActor*     actor2;
+    MATRIX*        mtx;
+    void**         scratch;
+    u8*            head;
+    GpPanScratch*  block;
+    SVECTOR*       vecp;
+    VECTOR         vec;
+    TextDrawReq    req;
+    s32            i;
+    s32            val;
+
+    slot = Game_GetPtrSlot(3);
+    cfg  = &Wip_SysConfig;
+    if (slot == NULL) {
+        return;
+    }
+
+    extra = slot->extra;
+    coord = &((GsCOORDINATE2*)extra->field_8)[1];
+    Gp_UpdateCoord(coord);
+    vec.vx = coord->workm.t[0];
+    vec.vy = coord->workm.t[1] - 0x64;
+    vec.vz = coord->workm.t[2];
+
+    if (Pad_RemapState->field_1 == 0x13) {
+        scratch             = (void**)G_SCRATCH_HEAD;
+        head                = *scratch;
+        block               = (GpPanScratch*)(head - 0x18);
+        *scratch            = block;
+        D_80760618->field_1 = 1;
+        func_800D7A9C(extra, &vec, 0, 3);
+        func_800D78A4(&vec, &D_80760618->field_24);
+        vecp                = &block->vec;
+        D_80760618->field_1 = 0;
+        gte_SetRotMatrix(&GsWSMATRIX);
+        gte_SetTransMatrix(&GsWSMATRIX);
+        ((GpPanScratch*)(head - 0x18))->vec.vx = vec.vx;
+        block->vec.vy                          = vec.vy;
+        block->vec.vz                          = vec.vz;
+        gte_ldv0(vecp);
+        gte_rtps_real();
+        gte_stsxy(&((GpPanScratch*)(head - 0x18))->sx);
+        gte_stdp(&((GpPanScratch*)(head - 0x18))->p);
+        gte_stflg(&((GpPanScratch*)(head - 0x18))->flag);
+        gte_stszotz(&((GpPanScratch*)(head - 0x18))->otz);
+        if (block->flag >= 0) {
+            req.x          = block->sx;
+            req.y          = block->sy;
+            req.otIndex    = 4;
+            req.field_8    = 0x37A78;
+            req.glyphTable = 0;
+            req.centerMode = 1;
+            req.field_E    = 0;
+            func_8002E53C(&req, (u8*)D_8009745C);
+        }
+        *scratch = (u8*)*scratch + 0x18;
+    } else {
+        func_800D7A9C(extra, &vec, 0, 3);
+        if (D_80114F28 != 0) {
+            mtx = extra->field_20;
+            val = rsin(Display_State.field_14 << 6) + 0x1800;
+            if ((Display_State.field_14 & 1) == 0) {
+                val >>= 1;
+            }
+            mtx->m[0][0] = mtx->m[0][1] = mtx->m[0][2] = 0x200;
+            mtx->m[1][0] = mtx->m[1][1] = mtx->m[1][2] = val;
+            mtx->m[2][0] = mtx->m[2][1] = mtx->m[2][2] = 0x200;
+            D_80114F28                                 = 0;
+        } else if (((u32)Display_State.field_8 % 3) == 0 && cfg->field_18 > 0 && Game_Session->field_1 == 0) {
+            {
+                register MATRIX* colorMtx asm("v0");
+                if (Gp_StateC08.field_14 > 0 || (Gp_StateC08.field_16 != 0 && (s8)Gp_StateC08.field_17 != 0)) {
+                    colorMtx          = extra->field_20;
+                    colorMtx->m[0][0] = colorMtx->m[0][1] = colorMtx->m[0][2] = 0x400;
+                    colorMtx->m[1][0] = colorMtx->m[1][1] = colorMtx->m[1][2] = 0x2000;
+                    colorMtx->m[2][0] = colorMtx->m[2][1] = colorMtx->m[2][2] = 0x2000;
+                } else if (Gp_StateC08.field_16 != 0) {
+                    colorMtx          = extra->field_20;
+                    colorMtx->m[0][0] = colorMtx->m[0][1] = colorMtx->m[0][2] = 0x400;
+                    colorMtx->m[1][0] = colorMtx->m[1][1] = colorMtx->m[1][2] = 0x400;
+                    colorMtx->m[2][0] = colorMtx->m[2][1] = colorMtx->m[2][2] = 0x2000;
+                } else if ((s8)Gp_StateC08.field_17 != 0) {
+                    colorMtx          = extra->field_20;
+                    colorMtx->m[0][0] = colorMtx->m[0][1] = colorMtx->m[0][2] = 0x2000;
+                    colorMtx->m[1][0] = colorMtx->m[1][1] = colorMtx->m[1][2] = 0x2000;
+                    colorMtx->m[2][0] = colorMtx->m[2][1] = colorMtx->m[2][2] = 0x400;
+                }
+                if (cfg->field_25 & 0x80) {
+                    colorMtx          = extra->field_20;
+                    colorMtx->m[0][0] = colorMtx->m[0][1] = colorMtx->m[0][2] = 0x2000;
+                    colorMtx->m[1][0] = colorMtx->m[1][1] = colorMtx->m[1][2] = 0x400;
+                    colorMtx->m[2][0] = colorMtx->m[2][1] = colorMtx->m[2][2] = 0x400;
+                }
+            }
+        }
+    }
+
+    actor = slot->actor;
+    {
+        register Task* task asm("v0");
+        i = 0;
+        do {
+            task = (&actor->field_920)[i];
+            if (task != NULL) {
+                extra           = task->extra;
+                extra->field_1C = &Gp_DefaultMtx;
+                extra->field_20 = &Gp_DefaultMtx2;
+            }
+            i++;
+        } while (i < 2);
+        i = 0;
+        do {
+            task = (&actor->field_918)[i];
+            if (task != NULL) {
+                extra           = task->extra;
+                extra->field_1C = &Gp_DefaultMtx;
+                extra->field_20 = &Gp_DefaultMtx2;
+            }
+            i++;
+        } while (i < 2);
+    }
+
+    /* Read without the `volatile` so the +4 folds into the `%lo`. */
+    work = ((GpActorWork**)Gp_ActorSlots)[1];
+    if (work != NULL) {
+        {
+            /* The target loads the extra into $v0 and copies it into the saved
+               register; the non-volatile asm keeps that copy without acting as
+               a scheduling barrier. */
+            register GameActorExt* e asm("v0");
+            e      = work->extra;
+            actor2 = work->actor;
+            __asm__("" : "+r"(e));
+            extra = e;
+        }
+        coord           = &((GsCOORDINATE2*)extra->field_8)[1];
+        extra->field_20 = &D_80114EF8;
+        extra->field_1C = &D_80114ED8;
+        Gp_UpdateCoord(coord);
+        vec.vx = coord->workm.t[0];
+        vec.vy = coord->workm.t[1] - 0x64;
+        vec.vz = coord->workm.t[2];
+        func_800D7A9C(extra, &vec, 0, 3);
+        {
+            register Task* task asm("v0");
+            i = 0;
+            do {
+                task = (&actor2->field_920)[i];
+                if (task != NULL) {
+                    extra           = task->extra;
+                    extra->field_1C = &D_80114ED8;
+                    extra->field_20 = &D_80114EF8;
+                }
+                i++;
+            } while (i < 2);
+            i = 0;
+            do {
+                task = (&actor2->field_918)[i];
+                if (task != NULL) {
+                    extra           = task->extra;
+                    extra->field_1C = &D_80114ED8;
+                    extra->field_20 = &D_80114EF8;
+                }
+                i++;
+            } while (i < 2);
+        }
+    }
+}
 
 void Gp_RemapActorColor(GpEnemy* arg0, MATRIX* arg1, s32 arg2)
 {
