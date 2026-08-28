@@ -763,7 +763,89 @@ void func_800C0CA0(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C0E20);
+void func_800C0E20(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4, s32 arg5, u32 arg6)
+{
+    TILE*        tile;
+    SPRT*        sp;
+    POLY_FT4*    poly;
+    s32          span;
+    s32          max;
+    s32          bar;
+    s32          right;
+    register s32 clut asm("t3");
+
+    if (arg1 < arg2) {
+        span = arg2 - arg1;
+        max  = span - 2;
+        bar  = (max * arg5) / arg4;
+        arg1 = arg1 + (s16)arg0->field_20;
+        arg3 = arg3 + (s16)arg0->field_22;
+        if (max < bar) {
+            bar = max;
+        }
+        if (bar > 0) {
+            tile             = (TILE*)D_80071190;
+            D_80071190       = (DR_TPAGE*)(tile + 1);
+            tile->x0         = arg1 + 1;
+            tile->y0         = arg3 - 1;
+            tile->w          = bar;
+            tile->h          = 2;
+            *(u32*)&tile->r0 = arg6;
+            setlen(tile, 3);
+            setcode(tile, 0x60);
+            addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 1, tile);
+        }
+        arg3 = arg3 - 4;
+        clut = 0x3C0B;
+
+        sp         = (SPRT*)D_80071190;
+        D_80071190 = (DR_TPAGE*)(sp + 1);
+        sp->x0     = arg1;
+        sp->y0     = arg3;
+        sp->u0     = 0x98;
+        sp->v0     = 0x68;
+        sp->clut   = clut;
+        setlen(sp, 3);
+        setcode(sp, 0x75);
+        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 1, sp);
+
+        sp         = (SPRT*)D_80071190;
+        D_80071190 = (DR_TPAGE*)(sp + 1);
+        right      = (arg1 + span) - 8;
+        sp->x0     = right;
+        sp->y0     = arg3;
+        sp->u0     = 0xA8;
+        sp->v0     = 0x68;
+        sp->clut   = clut;
+        setlen(sp, 3);
+        setcode(sp, 0x75);
+        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 1, sp);
+
+        poly        = (POLY_FT4*)D_80071190;
+        D_80071190  = (DR_TPAGE*)(poly + 1);
+        poly->x2    = arg1 + 8;
+        poly->x0    = arg1 + 8;
+        poly->y3    = arg3 + 8;
+        poly->y2    = arg3 + 8;
+        poly->u0    = 0xA0;
+        poly->u2    = 0xA0;
+        poly->v2    = 0x70;
+        poly->v3    = 0x70;
+        poly->tpage = 0x3E;
+        setlen(poly, 9);
+        poly->x3   = right;
+        poly->x1   = right;
+        poly->y1   = arg3;
+        poly->y0   = arg3;
+        poly->v0   = 0x68;
+        poly->u1   = 0xA8;
+        poly->v1   = 0x68;
+        poly->u3   = 0xA8;
+        poly->clut = clut;
+        setcode(poly, 0x2D);
+        addPrim(Gpu_CurrentOt + (s16)arg0->field_14 + 1, poly);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C1148);
 

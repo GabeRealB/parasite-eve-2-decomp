@@ -27900,3 +27900,55 @@ addresses used by `setlen`/`setcode` — and the extra pressure spills into
 `$s3` (90.4%). One pointer with `&poly[0]` / `&poly[1]` lets GCC combine the
 givs down to the two the target uses, addressing `poly[0]`'s byte fields as
 negative offsets from the `poly[1]` register (`sb t7, -0x25(a3)`): 96.4%.
+
+## A shared prim constant can lose the `%hi` tie, and only a hard pin fixes it
+
+`func_800C0E20` builds a `TILE`, two `SPRT`s and a `POLY_FT4`, all with
+`clut = 0x3C0B`, and calls `addPrim` four times. Two block-local pseudos end up
+competing for the same pair of registers: the shared `0x3C0B` constant and the
+hoisted `lui %hi(Gpu_CurrentOt)`. Both have 4 references, so `local_alloc`
+decides on `floor_log2(n_refs) * n_refs * size / live_length` — and `size` is
+`PSEUDO_REGNO_SIZE`, i.e. *words*, so a `HImode` constant and an `SImode`
+pointer both count 1 and only `live_length` separates them. `cc1 … -dl` reports
+it directly:
+
+```
+Register 158 used 4 times across 170 insns in block 5; 2 bytes;   <- 0x3C0B
+Register 166 used 4 times across 166 insns in block 5; pointer;   <- %hi(Gpu_CurrentOt)
+```
+
+170 > 166, so the pointer was allocated first and took `$t3`, giving `$t4` to
+the constant — the target has them the other way round (40 diffs, 99.8%).
+Shortening the constant's range by four insns flips it, but every way of doing
+that moves a store: GCC never reorders stores to the same object, so the
+`clut` write always lands wherever the source puts it, and the target's order
+(`u0`, `v0`, `clut`, `setlen`, `setcode`) pins both endpoints. Moving the
+`li` earlier or later is not available either, because the pre-reload scheduler
+hoists the constant to the first use.
+
+With both endpoints fixed there is no source-level lever left; a hard register
+local is the fix, and it matches on the first try:
+
+```c
+register s32 clut asm("t3");
+/* ... */
+clut       = 0x3C0B;
+sp->clut   = clut;   /* both SPRTs */
+poly->clut = clut;
+```
+
+The rule of thumb: when a constant is shared across several primitives, check
+`.lreg` before hunting for a statement order. If the constant's live range is
+bounded on both sides by stores the target already fixes, the tie cannot be
+broken by reordering and a pin is the only option.
+
+## `permute.sh` must mirror `ninja_config.py`'s maspsx flags
+
+`ninja_config.py` passes `--expand-div` to maspsx for every TU, and the scratch
+`build.sh` does too, but the `compile.sh` that `permute.sh` generates did not.
+For any function containing a signed `div`, the permuter therefore compiled
+without the ASPSX trap sequence (`bnez`/`break 7`, `bne`/`break 6`) and scored
+a 99.8% base source at ~800 instead of ~4, so every candidate looked equally
+bad and the search was useless. `permute.sh` now passes `--expand-div`; if the
+permuter's base score is wildly worse than `build.sh` reports for the same
+file, diff the two maspsx command lines first.
