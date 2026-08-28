@@ -733,7 +733,7 @@ void func_800F5184(Task* arg0);
 void func_800F52B4(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
 void func_800F75BC(Task* arg0);
 void func_800F77F8(Task* arg0);
-void func_800F7AD4(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
+void func_800F7AD4(struct _GsCOORDINATE2* arg0, s32 arg1, s16 arg2, u16 arg3);
 void func_800F7E28(Task* arg0);
 void func_800F9474(Task* arg0);
 void func_800FA45C(struct _GsCOORDINATE2* arg0, s16 arg1, u16 arg2, u16 arg3);

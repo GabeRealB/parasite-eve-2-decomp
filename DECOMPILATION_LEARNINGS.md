@@ -28423,3 +28423,40 @@ The extra pseudo changes the priority order and both induction pointers get
 the target's registers (97.4% → 98.8%). decomp-permuter found this as a
 `new_var` hoist; it is worth trying by hand whenever the only remaining
 diff is a swap of two callee-saved registers.
+
+## Un-pinning beats pinning for `lui tmp,%hi` + `addiu reg,tmp,%lo`
+
+The existing entry above solves the `lui v0,%hi / addiu v1,v0,%lo` split with an
+inline-asm block. In `func_800F7AD4` the same split appeared for the quad-corner
+table, and the fix was the opposite of pinning: *remove* the pin.
+
+```c
+register GpQuadCorner* tbl asm("t2");   /* -> lui t2,%hi; addiu t2,t2,%lo */
+GpQuadCorner*          tbl;             /* -> lui v1,%hi; addiu t2,v1,%lo */
+```
+
+With every other local already pinned (`t7`, `a0`, `v0`, `t1`, `t0`, `t3`, `t8`),
+`t2` was the only temp left, so the allocator picked it anyway — and because the
+pseudo was not tied to a hard register, GCC was free to materialize `%hi` in a
+scratch register and interleave the `lw` between the two halves, exactly as the
+target does. Reach for the inline-asm hack only when the surrounding pins do not
+already force the register you want. 99.95% -> 100%.
+
+## A stray `sll/sra 0x10` pair on an argument means the parameter is `s32`, not `s16`
+
+`func_800F7AD4` feeds its second argument straight into `mult $v0, $a1`. Declaring
+it `s16` (which is what the callers' `u16` field suggested) made GCC 2.8.1 widen
+it first:
+
+```
+sll  a1,a1,0x10
+sra  a1,a1,0x10
+mult v0,a1
+```
+
+The target has no widening, so the original prototype used a full-width `s32`
+even though every caller passes a `u16` field. Widening the prototype is safe for
+the call sites — the value is already zero-extended in the register, so no caller
+codegen changes — but re-verify the callers' TU after the change. Rule of thumb:
+an unexplained `sll/sra 16` (or `andi 0xFFFF`) on an incoming argument register is
+a statement about the *declared parameter type*, not about the expression using it.
