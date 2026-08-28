@@ -501,6 +501,32 @@ typedef struct _GpDirScratch {
     /* 0x08 */ MATRIX  mtx;
 } GpDirScratch;
 STATIC_ASSERT_SIZEOF(GpDirScratch, 0x28);
+
+/// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `func_800B4E54`.
+/// `vec[]` holds the four corners of an axis-aligned XZ square of side
+/// `size` anchored at the caller's origin; each is projected with a
+/// separate RTPS. `dp` / `flag` / `otz` receive `gte_stdp` / `gte_stflg` /
+/// `gte_stszotz` of the current corner, `sxy0`..`sxy3` the projected screen
+/// positions copied into the `POLY_FT4`, and `maxotz` the running maximum
+/// `otz` used as the OT bucket.
+typedef struct _GpFloorQuadScratch {
+    /* 0x00 */ SVECTOR vec[4];
+    /* 0x20 */ s32     otz;
+    /* 0x24 */ s32     dp;
+    /* 0x28 */ s32     flag;
+    /* 0x2C */ DVECTOR sxy0;
+    /* 0x30 */ DVECTOR sxy1;
+    /* 0x34 */ DVECTOR sxy2;
+    /* 0x38 */ DVECTOR sxy3;
+    /* 0x3C */ s32     maxotz;
+} GpFloorQuadScratch;
+STATIC_ASSERT_SIZEOF(GpFloorQuadScratch, 0x40);
+
+/// Draws a semi-transparent textured square of side `arg1` on the XZ plane,
+/// anchored at `arg2` (or at the coordinate's own origin when `arg2` is
+/// `NULL`), transformed by `arg0->workm` and linked into `Gpu_CurrentOt`
+/// at the largest corner `otz`.
+void func_800B4E54(GsCOORDINATE2* arg0, u32 arg1, SVECTOR* arg2);
 /// Builds a camera-space offset from `arg0` toward `arg1->pos`, scaled
 /// by `-abs(length - arg1->field_2)`, and writes it to `arg2`.
 void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2);

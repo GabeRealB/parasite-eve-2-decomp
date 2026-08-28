@@ -28763,3 +28763,65 @@ score from 90% to 95% and restored the target's 0x68 frame (`k` living in a
 caller-saved `$t1` with an explicit spill slot around the call). Conversely,
 scratch pointers that the target keeps in the *same* register across both nests
 (here the `SPRT*`) should stay one variable.
+
+## Pin repeated UV/RGB constants so the scheduler can spend them as load-delay filler
+
+`func_800B4E54` fills a `POLY_FT4` whose `0xC0` appears five times (`u0`, `u2`,
+`g0`, `b0`, `r0`) and whose `0xF7` appears twice (`u1`, `u3`), then calls
+`addPrim`. Written as plain literals, GCC materialises both at their first use:
+
+```
+lw   v0,0x2c(s0)
+lui  a3,0xff            <- addPrim's 0xFFFFFF mask wins the delay slot
+...
+li   v0,0xc0            <- emitted immediately before `sb v0,0xc(a0)`
+```
+
+The target instead spends `li a1,0xf7` and `li v1,0xc0` on two of the five
+`lw`/`sw` load-delay slots in the `sxy` copies, and defers `lui a1,0xff00` to
+the end. The pre-reload scheduler ranks by longest path to the end of the
+block, so the `addPrim` masks (which feed the `and`/`or`/`sw` chain) always
+outrank a constant that only feeds `sb`s — no statement order fixes that,
+because the store order is already the source order and GCC will not reorder
+stores to the same prim. Two hard-register locals do:
+
+```c
+register s32 c0 asm("v1");
+register s32 f7 asm("a1");
+/* ... */
+c0 = 0xC0;
+f7 = 0xF7;
+prim->u0 = prim->u2 = ... = c0;   /* written out as separate stores */
+prim->u1 = prim->u3 = f7;
+```
+
+This went from 96.9% to 100% in one attempt. Note the difference from the
+`%hi` tie in `func_800C0E20`: there the pin fixed which of two equal-priority
+pseudos `local_alloc` coloured first; here it fixes *where the scheduler puts
+the `li`*, which is why picking the target's own registers (`v1`, `a1`) matters
+— they are the ones free at the slots the target fills.
+
+## Mixing `*(u16*)&f` and the plain `f` read is what produces `lhu` + `move`
+
+Same function, fanning one `SVECTOR` corner out to four:
+
+```c
+s32 tmp = *(u16*)&block->vec[0].vx;      /* lhu v1 ; addu v0,v1,a1 — no `move` */
+block->vec[1].vx = block->vec[3].vx = tmp + arg1;
+block->vec[2].vx = tmp;
+```
+
+A single `s32` local collapses to one pseudo, so the load lands directly in the
+surviving register and the copy disappears. Dropping the local and reading the
+field twice — once through the `u16` cast for the arithmetic, once plainly for
+the copy — makes CSE forward the zero-extended load into the `s16` read and
+emit the target's `lhu v0` / `move v1,v0` / `addu v0,v0,a1`:
+
+```c
+block->vec[1].vx = block->vec[3].vx = *(u16*)&block->vec[0].vx + arg1;
+block->vec[2].vx = block->vec[0].vx;
+```
+
+That one change was worth 94.8% -> 96.9%. Reusing a *single* named temp across
+the `vy`/`vx`/`vz` groups is the other trap: it gives all three one pseudo, one
+hard register, and a schedule the target does not have.
