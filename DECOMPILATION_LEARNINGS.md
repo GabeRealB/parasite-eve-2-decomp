@@ -28105,3 +28105,96 @@ sites, e.g. `gte_stsxy(ws->field_4 + rec[2] + 4)` — makes the permuter bail wi
 to work around it changes codegen (it cost ~5% on `func_8009AF90`), so for
 GTE-heavy functions treat the permuter as unavailable and iterate on the C by
 hand instead.
+
+## Fully duplicate the tail into every arm to reproduce identical-but-unmerged blocks
+
+GCC 2.8.1's cross-jumping is much weaker than "merge any two identical blocks":
+it only compares the insns *before a jump* with the insns *before that jump's
+target label*. So two byte-identical blocks that both `j` to a third label are
+left alone, while a block that falls into a label is merged with everything that
+jumps to it.
+
+`func_800AA120` walks a list and, for three different conditions, runs the same
+`CdCmd_Enqueue` preamble. The ROM has **three verbatim copies** of the
+`param1[3]=0; param1[0]=0; val=(s16)rec->field_2; if (val >= 100) {...}` head,
+but only **one** copy of the `< 100` else-branch and of the `param1[2]=…; jal
+CdCmd_Enqueue` tail. Factoring the shared part after the `if`/`else` (or using
+`a || b` plus one inner `if`) scores ~65%: GCC keeps one copy of everything and
+threads the third condition into the second arm.
+
+Writing each arm as a complete copy — preamble *and* enqueue *and* `break` —
+reproduces the ROM exactly (65% → 90%):
+
+```c
+if (rec->field_4 != 5) {
+    if (found) { d = ...; e = ...; PREP; ENQUEUE; break; }
+    else       { d = 0;   e = 0;   PREP; ENQUEUE; break; }
+} else if (found) {
+    d = ...; e = ...; PREP; ENQUEUE; break;
+} else {
+    advance;
+}
+```
+
+Cross-jumping then merges the three `ENQUEUE` tails into one (each `j`s to the
+same label, and the last one falls into it), merges the three `else` branches
+the same way, and leaves the three `if (val >= 100)` heads and their division
+bodies duplicated — because those end in a `j` to the *merged tail*, whose
+fall-in predecessor is the merged `else`, not another copy of themselves.
+
+## `s16` local + `(s8)` cast for the `lbu` / `sll 24` / `sra 24` form
+
+Reading a `u8` struct field into a signed byte has three distinct codegens; pick
+the local's type to match the target:
+
+| C | codegen |
+|---|---|
+| `s8 d; d = p->field_D;` | bare `lbu` (extension elided — only the low byte is ever `sb`-stored) |
+| `s32 d; d = (s8)p->field_D;` | `lb` (combine folds the extension into the load) |
+| `s16 d; d = (s8)p->field_D;` | `lbu` + `sll 24` + `sra 24` |
+
+The `s16` form is what keeps the redundant sign-extend pair the ROM has when the
+value is only ever written back out with `sb`. Same family as the existing
+"`s16 val`, not an `s32`/`s8` temp" note above.
+
+## Split an adjacent-halfword global into two symbols for `%hi(sym+2)` addressing
+
+When the target addresses two 16-bit globals four bytes apart as
+`lui r,%hi(D_x)` / `%lo(D_x)(r)` **and** `lui r2,%hi(D_x+2)` /
+`%lo(D_x+2)(r2)` — two independent `lui`s, no shared base — model them as two
+separate symbols. Any single-symbol model (`struct { u16 a; u16 b; }` or
+`u16 D_x[2]`) makes GCC materialize the whole address once
+(`lui r,%hi(D_x)` + `addiu r,r,%lo(D_x)`) and index off it with `2(r)`, which
+never matches. Splitting means adding a `dlabel` in the overlay's
+`data.data.s` (splat only knows the first symbol, which is why the disassembly
+renders the second as `D_x + 0x2`); the linked bytes are identical either way.
+
+## GCC 2.8.1 merges equal loop-invariant constants across a whole nest
+
+`loop.c`'s `combine_movables` merges every `(set reg (const_int K))` in a loop
+that has the same value, sums their `savings`, and then `move_movables` hoists
+the single survivor to the loop preheader. This bites when the same sentinel is
+compared at several nesting levels. In `func_800AA120` the byte `0xFF`
+terminator is tested in three places inside the outer loop — an entry guard, the
+inner search loop, and the outer loop's own exit test. The ROM keeps three
+separate `addiu rX, $zero, 0xFF` (one of them hoisted only as far as the *inner*
+loop's preheader, in the guard's branch delay slot); GCC instead merges all
+three and hoists one `li` to the outer preheader, shifting every subsequent
+register allocation (~95% instead of ~99%).
+
+Confirmed by changing just the inner comparison to a different literal: the
+merge disappears and the rest of the function matches exactly. Workarounds that
+break the merge all cost more than they save:
+
+- `register u32 term asm("a1")` — reserves the register function-wide, which
+  lowers loop.c's move threshold and makes it hoist an unrelated
+  `lui %hi(...)` into the preheader instead.
+- `asm("" : "+r"(term))` — same hoist, plus it blocks the `li` from being
+  scheduled into the guard's delay slot.
+- Holding the sentinel in a variable that is assigned twice in the loop (so it
+  is not a movable at all) puts the `li` in exactly the right place but again
+  trades the constant hoist for the `lui` hoist.
+
+No formulation found that avoids both; `func_800AA120` is parked at 98.7% for
+this reason. Worth retrying if a future function reveals the actual rule
+`move_movables` uses to decline a hoist.
