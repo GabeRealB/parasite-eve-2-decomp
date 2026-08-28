@@ -27726,3 +27726,82 @@ the real lower case becomes the root), and its body must be the default's.
 The concrete value is unrecoverable — any of them emit identical code — so
 pick one that fits the neighbouring functions (`func_800ECAA8` in the same TU
 already uses `case 1: default:`). `func_800EDDFC` went 98.8% → 100% with this.
+
+## `a + C - b` folds to `a - (b - C)`; split it into two statements
+
+`fold` reassociates `(a + C) - b` into `a - (b - C)`, which swaps the two loads
+and turns `addiu`/`subu` into `addiu -C`/`subu`:
+
+```c
+/* Wrong: lh a, 0x74; lh b, 0x7c; addiu a,a,-0xA0; subu b,b,a  */
+uv = (s16)ws->field_7C + 0xA0 - (s16)ws->field_74;
+```
+
+Writing it as two statements defeats the reassociation (GCC 2.8.1 has no SSA,
+so nothing puts the tree back together) and reproduces the target's operand and
+load order:
+
+```c
+/* Matches: lh a, 0x7c; lh b, 0x74; addiu v0,a,0xA0; subu v0,v0,b */
+uv  = (s16)ws->field_7C + 0xA0;
+uv -= (s16)ws->field_74;
+```
+
+Seen while matching `func_8009AC58` (gameplay): 92.9% → 96.1% from this alone.
+
+## Caching `p->field` in a local vs. repeating it changes the caller-save temp
+
+An expression like `ws->field_80->field_2C` read three times inside one `if`
+generates the *same* code whether you assign it to a local first or repeat it —
+CSE collapses it either way — but the temporaries land in different hard
+registers. A user variable (`s32 val = ws->field_80->field_2C;`) makes the
+pointer temp take `$v0`; repeating the expression and letting CSE create the
+temp makes it take `$v1`:
+
+```c
+/* $v0 for the ws->field_80 temp */
+val = ws->field_80->field_2C;
+if (val < 0x1000) { gte_lddp(val); … gte_lddp(0x1000 - val); }
+
+/* $v1 for the ws->field_80 temp — matched the target */
+if (ws->field_80->field_2C < 0x1000) {
+    gte_lddp(ws->field_80->field_2C);
+    …
+    gte_lddp(0x1000 - ws->field_80->field_2C);
+}
+```
+
+That one register choice cascades: with the pointer in `$v1` the following
+`addiu dest, v0, 4` can sit in the load-delay slot, which frees a different
+`move` for the branch delay slot and shifts the whole block schedule.
+
+## A `move` duplicated in a delay slot *and* before the label
+
+When the target shows the same instruction twice — once in a branch delay slot
+and once as the last instruction before the branch's label — that is
+`fill_slots_from_thread` stealing the *first* instruction of the join block and
+advancing the label past it:
+
+```
+    beqz  $v0, .L8009AE80
+     addu $t1, $t8, $zero     # copy in the delay slot
+    …then-block…
+    addu  $t1, $t8, $zero     # original, still on the fall-through path
+.L8009AE80:
+    lhu   $v1, 0x4($a1)
+```
+
+GCC only does this when nothing *before* the branch is eligible. So the source
+must have **no** plain assignment between the last volatile asm and the `if`;
+putting one there (e.g. `sv = &ws->field_74;` just above the condition) lets
+the simple filler grab it instead, and the object ends up exactly one
+instruction shorter than the target.
+
+## decomp-permuter cannot parse the psyq GTE inline-asm macros
+
+`./permute.sh` preprocesses the scratch C and feeds it to pycparser, which
+chokes on the expanded `gte_ldv0`/`gte_stsxy`/… bodies
+(`Syntax error … before: +`). Any function whose body is mostly `inline_c.h`
+macros has to be matched by hand. Also note the flag must be written `-j 4`
+with a space: `permute.sh` only recognises the literal token `-j`, so `-j4`
+falls through and is consumed as the function name.
