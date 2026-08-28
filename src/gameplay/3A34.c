@@ -4066,7 +4066,110 @@ void Gp_OrientAlong(VECTOR* arg0, MATRIX* arg1, s32 arg2)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x4C;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E1FEC);
+u32 func_800E1FEC(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
+{
+    u8  flag;
+    u32 dmg;
+
+    flag = 0;
+    if ((arg0 & 0xFFFF0000) != 0x20000) {
+        return 0;
+    }
+
+    if ((arg0 & 0x8000) == 0) {
+        u8  lo;
+        u32 base;
+        u32 raw;
+        u32 rand;
+        s32 pct;
+        u8  col;
+        s32 sel;
+        s32 val;
+        s32 mult;
+        u32 tmp;
+        s32 extra;
+
+        if ((arg0 & 0x80) == 0) {
+            if ((arg0 & 0x7F) < 0x21) {
+                flag = 1;
+            }
+        }
+        lo   = arg0 & 0x7F;
+        arg0 = (arg0 >> 8) & 0x3F;
+        raw  = Gp_IdParamLo[lo].field_0;
+        base = raw << 8;
+        if (flag != 0) {
+            if ((Wip_SysConfig.field_25 & 0x80) != 0) {
+                base = base * 150 / 100;
+            }
+        }
+
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        rand        = (u32)Gp_LcgState >> 16;
+        pct         = (u16)(rand % 20) + 100;
+        base        = base * pct / 100;
+
+        col = arg1 / 1000;
+        if (col < 0x10) {
+            sel = D_80113864[col][0];
+        } else {
+            sel = 5;
+        }
+        val = (D_80113568[arg0][sel] << 8) / 100;
+
+        if (arg2 == 0) {
+            mult = 0x100;
+        } else if (Gp_IdParamLo[lo].field_4 == arg2) {
+            mult = arg3;
+        } else {
+            mult = 0x100;
+        }
+
+        tmp = base * val >> 8;
+        dmg = tmp * mult >> 16;
+
+        if (flag != 0) {
+            extra = (s8)Gp_StateC08.field_D;
+            if (extra != 0) {
+                dmg = dmg * D_80113D0C[(extra / 16 - 1) * 2 + (s8)(extra % 16)][0] / 100;
+            }
+            if (func_800B9D80(0x10000) != 0) {
+                dmg = dmg * 120 / 100;
+            }
+        }
+
+        dmg = dmg * D_80113F90[D_8011541B] / 100;
+        if (dmg == 0) {
+            if (base != 0) {
+                dmg = 1;
+            }
+        }
+    } else {
+        u32 rnd;
+        s32 pc;
+
+        dmg = Gp_IdParamHi[arg0 & 0x7F].field[4];
+        if ((arg0 & 0x7F) >= 0x19 && (arg0 & 0x7F) < 0x1C) {
+            if (Gp_StateF0.field_5 != 0) {
+                dmg = dmg / Gp_StateF0.field_5;
+            } else {
+                dmg = 0;
+            }
+        }
+
+        Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+        rnd         = (u32)Gp_LcgState >> 16;
+        pc          = (u16)(rnd % 10) + 100;
+        dmg         = dmg * pc / 100;
+
+        if (func_800B9D80(0x20000) != 0) {
+            dmg = dmg * 150 / 100;
+        }
+
+        dmg = dmg * D_80113F90[D_8011541B] / 100;
+    }
+    return dmg;
+}
 
 s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
 {

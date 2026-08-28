@@ -1084,6 +1084,23 @@ extern u16 D_80113CFC[];
 /// Row index into `Gp_DmgRows` for `Gp_ScaleDamage`.
 extern u8 D_8011541B;
 
+/// Per-sub-id damage rows used by `func_800E1FEC`. The row is the id's
+/// `(id >> 8) & 0x3F` nibble pair; the column is the class picked from
+/// `D_80113864` (or 5). The selected entry is scaled `<< 8` then / 100.
+extern u16 D_80113568[][8];
+
+/// Class table for `D_80113568`, indexed by `(u8)(hits / 1000)` when that
+/// value is below 0x10. Only the first byte of each 2-byte slot is read.
+extern u8 D_80113864[][2];
+
+/// Percent scale table used by `func_800E1FEC` when `Gp_StateC08.field_D`
+/// is non-zero. Indexed by `((field_D / 16) - 1) * 2 + (s8)(field_D % 16)`;
+/// only the first `u16` of each 4-byte slot is read.
+extern u16 D_80113D0C[][2];
+
+/// Final percent scale applied by `func_800E1FEC`, indexed by `D_8011541B`.
+extern u16 D_80113F90[];
+
 /// "Weapon" string drawn by `Gp_DrawWeaponLabel` (trailing 0x60 byte).
 extern const char Gp_StrWeapon[];
 
@@ -1238,6 +1255,13 @@ void Gp_ClaimSlot18(GpObj54* arg0, void* arg1);
 /// Builds a rotation matrix in `arg1` that orients along normalized `arg0`
 /// (yaw from XZ, pitch from Y vs the XZ length, then roll by `arg2`).
 void Gp_OrientAlong(VECTOR* arg0, MATRIX* arg1, s32 arg2);
+/// Packed-id enemy damage roll. `arg0` must have high bits `0x20000`. Ids
+/// without bit 0x8000 read `Gp_IdParamLo`, scale by a random 100..119 percent,
+/// by the `D_80113568` row for `(arg0 >> 8) & 0x3F`, and by `arg3` when
+/// `arg2` matches the record's `field_4`; ids with bit 0x8000 read
+/// `Gp_IdParamHi` and scale by a random 100..109 percent. `arg1` is a hit
+/// count that selects the `D_80113568` column through `D_80113864`.
+u32 func_800E1FEC(u32 arg0, u32 arg1, s32 arg2, s32 arg3);
 /// Packed-id damage scale. `arg0` must have high bits `0x40000`; low 12 bits
 /// are the power and bits 12-15 are written to `*arg2` when it is non-NULL.
 /// `arg3 == 0` uses `Wip_SysConfig.field_18` and `GpDmgRow.field_A`;
