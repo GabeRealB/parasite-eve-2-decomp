@@ -1399,7 +1399,123 @@ void func_800FE41C(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FE56C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FEAF8);
+void func_800FEAF8(Task* arg0)
+{
+    register void**           scratch asm("a0");
+    register u8*              head asm("a1");
+    register GpEffFt4Scratch* block asm("t1");
+    register GsCOORDINATE2*   coord asm("s1");
+    register GpEffWork*       mem asm("s0");
+    POLY_FT4*                 prim;
+    s16                       x;
+    s16                       y;
+    register s32              amt asm("t2");
+    s32                       t;
+    u16                       uv;
+    u16                       vz;
+    s32                       scale;
+    s32                       c;
+
+    mem   = arg0->spawnArg2;
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    if (Gp_State1C->field_4 < 4) {
+        Gp_UpdateCoord(coord);
+        scratch                                   = (void**)G_SCRATCH_HEAD;
+        head                                      = *scratch;
+        ((GpEffFt4Scratch*)(head - 0x18))->vec.vx = *(u16*)&coord->workm.t[0];
+        {
+            register u8* tmp asm("v0");
+            tmp   = head - 0x18;
+            block = (GpEffFt4Scratch*)tmp;
+        }
+        block->vec.vy = *(u16*)&coord->workm.t[1];
+        vz            = *(u16*)&coord->workm.t[2];
+        *scratch      = block;
+        block->vec.vz = vz;
+        gte_SetTransMatrix(&GsWSMATRIX);
+        gte_SetRotMatrix(&GsWSMATRIX);
+        gte_ldv0(&block->vec);
+        gte_rtps_real();
+        gte_stsxy(&((GpEffFt4Scratch*)(head - 0x18))->sx);
+        gte_stflg(&((GpEffFt4Scratch*)(head - 0x18))->flag);
+        if (block->flag >= 0) {
+            gte_stszotz(&((GpEffFt4Scratch*)(head - 0x18))->otz);
+            __asm__ volatile("" ::"r"(head));
+            block->otz++;
+            prim       = (POLY_FT4*)D_80071190;
+            D_80071190 = (DR_TPAGE*)(prim + 1);
+            setlen(prim, 9);
+            setcode(prim, 0x2C);
+            if (arg0->state == 0) {
+                t   = (u16)arg0->spawnArg1 & 0xFFF;
+                amt = 0x200;
+                if (t != 0) {
+                    amt = t;
+                }
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_24 = amt;
+                mem->field_26 = (((u32)Gp_LcgState >> 16) & 7) + 0x10;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_2A = ((u32)Gp_LcgState >> 16) % 0x30;
+                arg0->state++;
+                arg0->spawnArg1 &= 0x80000000;
+            }
+            if (mem->field_22 < 0xC) {
+                scale = mem->field_24 * mem->field_22 / 12;
+            } else {
+                scale = (u16)mem->field_24;
+            }
+            mem->field_28 = scale;
+            if (mem->field_26 - 8 < mem->field_22) {
+                c = (mem->field_26 - mem->field_22 + 1) * 0x10;
+                setRGB0(prim, c, c, c);
+            } else {
+                prim->code |= 1;
+            }
+            prim->tpage = 0x28;
+            prim->clut  = 0x430D;
+            prim->code |= 2;
+            uv          = mem->field_22;
+            prim->v0    = 0xA0;
+            prim->u0    = (uv & 7) * 0x18;
+            uv          = mem->field_22;
+            prim->v1    = 0xA0;
+            prim->u1    = ((uv & 7) * 0x18) + 0x17;
+            uv          = mem->field_22;
+            prim->v2    = 0xB7;
+            prim->u2    = (uv & 7) * 0x18;
+            uv          = mem->field_22;
+            prim->v3    = 0xB7;
+            prim->u3    = ((uv & 7) * 0x18) + 0x17;
+            block->size = (mem->field_28 * 0x17) / block->otz;
+            x           = *(u16*)&block->sx - *(u16*)&block->size;
+            prim->x2    = x;
+            prim->x0    = x;
+            x           = *(u16*)&block->sx + *(u16*)&block->size;
+            prim->x3    = x;
+            prim->x1    = x;
+            y           = *(u16*)&block->sy - *(u16*)&block->size;
+            prim->y1    = y;
+            prim->y0    = y;
+            y           = *(u16*)&block->sy + *(u16*)&block->size;
+            prim->y3    = y;
+            prim->y2    = y;
+            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                    prim);
+        }
+        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+        if (Gp_State1C->field_4 != 0) {
+            return;
+        }
+        coord->coord.t[1] -= mem->field_2A;
+        coord->flg         = 0;
+        mem->field_22++;
+        if (mem->field_26 >= mem->field_22) {
+            return;
+        }
+    }
+    Gp_ReleaseState1CMem(mem, arg0);
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FEFA4);
 

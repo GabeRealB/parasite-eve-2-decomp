@@ -309,10 +309,12 @@ typedef struct _GpMoveArg {
     /* 0x12 */ u8   field_12;
 } GpMoveArg;
 
-/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `func_800F77F8`.
+/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `func_800F77F8` and
+/// `func_800FEAF8`.
 /// `vec` is `workm.t[]` truncated to s16 for `gte_ldv0`. `otz` is
 /// `gte_stszotz` then incremented; `flag` is `gte_stflg`; `size` is
-/// `(field_24 * 15 / otz) >> 1`; `sx`/`sy` are `gte_stsxy`.
+/// `(field_24 * 15 / otz) >> 1` (`func_800F77F8`) or `field_28 * 23 / otz`
+/// (`func_800FEAF8`); `sx`/`sy` are `gte_stsxy`.
 typedef struct _GpEffFt4Scratch {
     /* 0x00 */ SVECTOR vec;
     /* 0x08 */ s32     otz;

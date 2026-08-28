@@ -30046,3 +30046,37 @@ The same function's scratch-head free wants a memory barrier after
 `t[0] += vel` so `lui a1, 0x1F80` fills the `t[1]` load-delay instead of
 the `t[0]` slot, plus `t2 = coord->coord.t[2]` before the bump so that
 word is preloaded during the `t[1]` add. `func_80101A68` is the example.
+
+## Keep a scratch local for a repeated struct load feeding primitive stores
+
+`func_800FEAF8` writes four `u`/`v` pairs of a `POLY_FT4` from the same work
+field. The target reloads it before every pair and parks each `lhu` in the delay
+slot of the *previous* pair's `sb`:
+
+```
+sb    a0,0xd(t0)      /* v0 */
+andi  v1,v1,0x7
+...
+sb    v0,0xc(t0)      /* u0 */
+lhu   v1,0x22(s0)     /* reload for the next pair */
+sb    a0,0x15(t0)     /* v1 */
+```
+
+Inlining the load in each expression is the obvious source form and it is
+wrong — with no local to anchor them GCC hoists all four `lhu`s a slot too far
+and drags the `li 0xA0` / `li 0xB7` constants along with them, dropping the
+score by 1.6%. Assigning to a plain (non-`register`) local before each pair
+restores the target order:
+
+```c
+uv       = mem->field_22;
+prim->v0 = 0xA0;
+prim->u0 = (uv & 7) * 0x18;
+uv       = mem->field_22;      /* redundant in C, required for the schedule */
+prim->v1 = 0xA0;
+prim->u1 = ((uv & 7) * 0x18) + 0x17;
+```
+
+The local also frees the register the inlined form was burning, which is what
+lets an unpinned `POLY_FT4*` land on its target register — try removing a hard
+register pin after adding the local rather than adding more pins.
