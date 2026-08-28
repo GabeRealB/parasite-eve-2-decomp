@@ -13,6 +13,15 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+# Prefer the project venv. Agent CLIs (especially grok) often invoke this
+# script with a PATH that has system python3 and no splat/spimdisasm.
+PYTHON="python3"
+if [[ -x "$ROOT/venv/bin/python3" ]]; then
+    PYTHON="$ROOT/venv/bin/python3"
+elif [[ -x "$ROOT/.venv/bin/python3" ]]; then
+    PYTHON="$ROOT/.venv/bin/python3"
+fi
+
 # Prefer newer clang-format (project .clang-format uses recent keys).
 CLANG_FORMAT=""
 for candidate in \
@@ -76,8 +85,8 @@ fi
 
 "$CLANG_FORMAT" -i "${STYLE_ARGS[@]}" "${FORMAT_FILES[@]}"
 
-python3 ninja_config.py -c 1>/dev/null \
-    && python3 ninja_config.py 1>/dev/null \
+"$PYTHON" ninja_config.py -c 1>/dev/null \
+    && "$PYTHON" ninja_config.py 1>/dev/null \
     && ninja 1>/dev/null \
     && (echo "✅ BUILD SUCCEEDED. Everything matched and there were no compiler or linter errors") \
     || (echo "BUILD HAS FAILED. Claude, you should treat this as a build failure. Adding new warnings or accepting a non-matching checksum count as failures." && false)

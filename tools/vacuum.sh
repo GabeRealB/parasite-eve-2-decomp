@@ -67,6 +67,9 @@ Environment:
                            (default: parent of this repo)
   VACUUM_ORCH_STATE        Override orchestrator JSON path
   VACUUM_PORT_MAX_TURNS    Max turns for the port agent (default 80)
+  VACUUM_PORT_TRIES        Failed trunk landings before marking difficult
+                           (default 2). Stops the same claimed function from
+                           being retried forever after a rejected port.
   VACUUM_MERGE_WAIT        Seconds to wait for the merge lock (default 3600)
 
 Give-up seeds are stored under tools/giveups/<func>/ (gitignored).
@@ -190,6 +193,16 @@ run_agent() {
   fi
   (
     cd "$cwd" || exit 1
+    # Grok's tool subprocesses often get a clean PATH without the caller's
+    # venv, so ninja_config.py dies on splat/spimdisasm and the agent then
+    # "verifies" against leftover build/USA/out binaries.
+    if [[ -f venv/bin/activate ]]; then
+      # shellcheck disable=SC1091
+      source venv/bin/activate
+    elif [[ -f .venv/bin/activate ]]; then
+      # shellcheck disable=SC1091
+      source .venv/bin/activate
+    fi
     case "$CLI" in
       claude)
         # Plain `claude -p` only prints the final result, so an iteration looks
@@ -204,7 +217,7 @@ run_agent() {
         fi
         ;;
       grok)
-        grok --always-approve --effort high "${extra[@]}" -p "$prompt"
+        grok --always-approve --effort high --cwd "$cwd" "${extra[@]}" -p "$prompt"
         ;;
     esac
   )
@@ -436,6 +449,17 @@ orch_cleanup() {
   fi
 }
 
+stale_build_warning() {
+  local tree=$1
+  cat <<EOF
+IMPORTANT — stale build artifacts:
+\`build/\` in \`$tree\` already contains binaries that checksum from the INCLUDE_ASM version. \`sha256sum --check\` / an existing \`build/USA/out/SLUS_010.42: OK\` is NOT a match.
+The only success is running \`./tools/build-and-verify.sh\` **in \`$tree\`** after your edits and seeing:
+  ✅ BUILD SUCCEEDED. Everything matched and there were no compiler or linter errors
+That script reformats, regenerates ninja, and rebuilds. If \`python3 ninja_config.py\` fails with missing splat/spimdisasm, use \`venv/bin/python3\`.
+EOF
+}
+
 build_orch_match_prompt() {
   local func=$1
   local scratch=$2
@@ -451,6 +475,8 @@ Canonical trunk (do NOT write here): \`$ROOT\`
 Do NOT run ./tools/claude or recreate the scratch directory.
 Do NOT run git merge / rebase / cherry-pick.
 Do NOT edit \`$ROOT\`. Do NOT append tools/difficult_functions (a later port agent does that on trunk).
+
+$(stale_build_warning "$wt")
 
 Read \`$scratch/BRIEF.md\` (also pasted below), then:
 
@@ -494,6 +520,8 @@ Rules:
 - New types stay in this overlay's include/ tree, not include/main/unknown_syms.h.
 - No pointer arithmetic with manual offsets.
 
+$(stale_build_warning "$ROOT")
+
 EOF
   if [[ "$status" == "matched" ]]; then
     cat <<EOF
@@ -502,8 +530,8 @@ Port the matched function onto **current** trunk:
 1. Read the worktree host C / headers / learnings (and \`$scratch\` winning \`base_N.c\`) as the source of intent.
 2. Read the same paths on trunk. Adapt to structs, INCLUDE_ASM sites, and nearby functions that already landed.
 3. Replace INCLUDE_ASM for \`$func\` on trunk. Reconcile types rather than duplicating fields.
-4. If the old body no longer matches because layout / context changed, keep adapting until \`./tools/build-and-verify.sh\` reports \`build/USA/out/SLUS_010.42: OK\`.
-5. Commit \`matched $func $attempts\` on trunk. Run \`python3 ninja_config.py\` if splat still lists this function under nonmatchings.
+4. If the old body no longer matches because layout / context changed, keep adapting until \`./tools/build-and-verify.sh\` prints \`✅ BUILD SUCCEEDED\`.
+5. Commit \`matched $func $attempts\` on trunk. Run \`venv/bin/python3 ninja_config.py\` if splat still lists this function under nonmatchings.
 6. Optional learnings: add a note to DECOMPILATION_LEARNINGS.md only if it is still true on trunk.
 
 A diff of what the match session touched in the worktree follows as a **hint**, not a patch:
@@ -703,6 +731,57 @@ port_succeeded() {
   difficult_listed "$func"
 }
 
+verify_repo() {
+  local repo=$1
+  local st
+  echo "Running build-and-verify in $repo ..." | tee -a "$LOG_FILE"
+  ( cd "$repo" && ./tools/build-and-verify.sh ) 2>&1 | tee -a "$LOG_FILE"
+  st=${PIPESTATUS[0]}
+  return "$st"
+}
+
+# Copy worktree src/include onto trunk when those files have not moved since
+# the worktree was created. Avoids a port agent (and grok's stale-checksum
+# "verify") for the common no-divergence case.
+fast_port_from_worktree() {
+  local func=$1
+  local wt=$2
+  local base=$3
+  local scratch=$4
+  local -a changed=()
+  mapfile -t changed < <(git -C "$wt" diff --name-only --diff-filter=ACDMR "$base" -- \
+    src include DECOMPILATION_LEARNINGS.md STRUCT_FIELDS.md NAMING.md)
+  if [[ ${#changed[@]} -eq 0 ]]; then
+    echo "Fast port skipped: worktree has no src/include diff for $func" | tee -a "$LOG_FILE"
+    return 1
+  fi
+  if ! git -C "$ROOT" diff --quiet "$base" -- "${changed[@]}"; then
+    echo "Fast port skipped: trunk diverged in: ${changed[*]}" | tee -a "$LOG_FILE"
+    return 1
+  fi
+  echo "Fast-porting $func from worktree (trunk files unchanged since worktree base)" | tee -a "$LOG_FILE"
+  git -C "$ROOT" checkout "match/${func}" -- "${changed[@]}"
+  local st
+  ( cd "$ROOT" && commit_match_if_needed "$func" "$scratch" )
+  st=$?
+  if [[ $st -eq 0 ]]; then
+    return 0
+  fi
+  if [[ $st -eq 2 ]]; then
+    if verify_repo "$ROOT"; then
+      return 0
+    fi
+    return 1
+  fi
+  return 1
+}
+
+reset_trunk_to() {
+  local rev=$1
+  git -C "$ROOT" reset --hard "$rev" >/dev/null 2>&1 || true
+  git -C "$ROOT" clean -fd -- src include >/dev/null 2>&1 || true
+}
+
 vacuum_orch_loop() {
   echo "Vacuum using CLI: $CLI (orchestrator session $SESSION)" | tee -a "$LOG_FILE"
   echo "Session log: $LOG_FILE" | tee -a "$LOG_FILE"
@@ -713,6 +792,9 @@ vacuum_orch_loop() {
   local consecutive_failures=0
   local claim_json claim_code func wt scratch status attempts score hint
   local match_status output exit_code bootstrap_out bootstrap_status
+  local port_tries=0
+  local port_try_func=""
+  local wt_verified_func=""
 
   while true; do
     if [[ $STOP_REQUESTED -eq 1 ]]; then
@@ -757,6 +839,11 @@ vacuum_orch_loop() {
     fi
     ORCH_FUNC=$func
     echo -e "\n[$(date '+%H:%M:%S')] [$CLI] [orch] Decompiling $func...\n" | tee -a "$LOG_FILE"
+    if [[ "$func" != "$port_try_func" ]]; then
+      port_tries=0
+      port_try_func=$func
+      wt_verified_func=""
+    fi
 
     local reused skip_match
     reused=$(echo "$claim_json" | json_get reused)
@@ -779,6 +866,7 @@ vacuum_orch_loop() {
     fi
 
     if [[ $skip_match -eq 0 ]]; then
+      wt_verified_func=""
       if ! create_match_worktree "$func"; then
         echo "Error: failed to create worktree for $func" | tee -a "$LOG_FILE"
         orch relinquish --session "$SESSION" --func "$func" >/dev/null 2>&1 || true
@@ -843,9 +931,31 @@ vacuum_orch_loop() {
     ( cd "$wt" && commit_match_if_needed "$func" "$scratch" )
     match_status=$?
     if [[ $match_status -eq 0 || $match_status -eq 2 ]]; then
-      status=matched
-      python3 "$ROOT/tools/archive_giveup.py" --func "$func" --clear \
-        2>&1 | tee -a "$LOG_FILE" || true
+      # Agents (especially grok) commit "matched" after sha256-checking leftover
+      # build/ artifacts. Vacuum must rebuild before treating it as matched.
+      if [[ "$wt_verified_func" == "$func" ]]; then
+        status=matched
+      elif [[ $match_status -eq 0 ]]; then
+        status=matched
+        wt_verified_func=$func
+      else
+        echo "Independently verifying worktree match for $func..." | tee -a "$LOG_FILE"
+        git -C "$wt" reset --hard HEAD >/dev/null 2>&1 || true
+        git -C "$wt" clean -fd -- src include >/dev/null 2>&1 || true
+        if verify_repo "$wt"; then
+          status=matched
+          wt_verified_func=$func
+        else
+          echo "Worktree verify failed for $func; agent commit was not a real match" | tee -a "$LOG_FILE"
+          status=difficult
+          copy_giveup_to_main "$func" "$scratch"
+          git -C "$wt" reset --hard "$ORCH_BASE" >/dev/null 2>&1 || true
+        fi
+      fi
+      if [[ "$status" == "matched" ]]; then
+        python3 "$ROOT/tools/archive_giveup.py" --func "$func" --clear \
+          2>&1 | tee -a "$LOG_FILE" || true
+      fi
     elif [[ $STOP_REQUESTED -eq 1 ]]; then
       echo "Interrupted before a match for $func; leaving it unmatched (not difficult)" | tee -a "$LOG_FILE"
       copy_giveup_to_main "$func" "$scratch"
@@ -881,30 +991,44 @@ vacuum_orch_loop() {
     ORCH_MERGE=1
     pre_port=$(git -C "$ROOT" rev-parse HEAD)
 
-    echo "Starting port agent for $func ($status)..." | tee -a "$LOG_FILE"
-    AGENT_MAX_TURNS="${VACUUM_PORT_MAX_TURNS:-80}" run_agent \
-      "$(build_port_prompt "$func" "$status" "$wt" "$scratch" "$attempts" "$score" "$hint")" \
-      "$ROOT" | tee -a "$LOG_FILE"
-
+    local did_fast=0
     if [[ "$status" == "matched" ]]; then
-      if include_asm_present "$func" "$ROOT"; then
-        :
+      if fast_port_from_worktree "$func" "$wt" "$ORCH_BASE" "$scratch"; then
+        did_fast=1
       else
-        ( cd "$ROOT" && commit_match_if_needed "$func" "$scratch" ) || true
+        reset_trunk_to "$pre_port"
       fi
-    else
-      ( cd "$ROOT" && record_difficult_if_needed "$func" "$scratch"
-        commit_difficult_if_needed "$func" 1 ) || true
+    fi
+
+    if [[ $did_fast -eq 0 ]]; then
+      if [[ "$status" == "matched" ]]; then
+        echo "Starting port agent for $func ($status)..." | tee -a "$LOG_FILE"
+        AGENT_MAX_TURNS="${VACUUM_PORT_MAX_TURNS:-80}" run_agent \
+          "$(build_port_prompt "$func" "$status" "$wt" "$scratch" "$attempts" "$score" "$hint")" \
+          "$ROOT" | tee -a "$LOG_FILE"
+        if include_asm_present "$func" "$ROOT"; then
+          :
+        else
+          ( cd "$ROOT" && commit_match_if_needed "$func" "$scratch" ) || true
+        fi
+      else
+        echo "Recording give-up for $func on trunk (no port agent)" | tee -a "$LOG_FILE"
+        ( cd "$ROOT" && record_difficult_if_needed "$func" "$scratch"
+          commit_difficult_if_needed "$func" 1 ) || true
+      fi
     fi
 
     local landed=0
     if port_succeeded "$func" "$status"; then
-      if [[ "$status" == "matched" ]] && ! ( cd "$ROOT" && ./tools/build-and-verify.sh ); then
-        echo "Verify failed after port of $func; resetting trunk to $pre_port" | tee -a "$LOG_FILE"
-        git -C "$ROOT" reset --hard "$pre_port" >/dev/null
-        git -C "$ROOT" clean -fd -- src include >/dev/null 2>&1 || true
-      else
+      if [[ "$status" != "matched" ]]; then
         landed=1
+      elif [[ $did_fast -eq 1 ]]; then
+        landed=1
+      elif verify_repo "$ROOT"; then
+        landed=1
+      else
+        echo "Verify failed after port of $func; resetting trunk to $pre_port" | tee -a "$LOG_FILE"
+        reset_trunk_to "$pre_port"
       fi
     fi
 
@@ -922,15 +1046,38 @@ vacuum_orch_loop() {
       fi
       ORCH_FUNC=""
       ORCH_WT=""
+      port_tries=0
+      wt_verified_func=""
       consecutive_failures=0
     else
-      echo "Port agent did not land $func ($status); keeping claim and worktree $wt" | tee -a "$LOG_FILE"
-      git -C "$ROOT" reset --hard "$pre_port" >/dev/null 2>&1 || true
-      git -C "$ROOT" clean -fd -- src include >/dev/null 2>&1 || true
-      ((consecutive_failures++)) || true
-      if [[ $consecutive_failures -ge 3 ]]; then
-        echo ">= 3 consecutive failures detected. Sleeping for 5 minutes..."
-        sleep 300
+      reset_trunk_to "$pre_port"
+      ((port_tries++)) || true
+      local max_tries="${VACUUM_PORT_TRIES:-2}"
+      if [[ $port_tries -ge $max_tries ]]; then
+        echo "Giving up $func after $port_tries failed trunk landings; marking difficult" | tee -a "$LOG_FILE"
+        copy_giveup_to_main "$func" "$scratch"
+        ( cd "$ROOT" && record_difficult_if_needed "$func" "$scratch"
+          commit_difficult_if_needed "$func" 1 ) || true
+        orch finish --session "$SESSION" --func "$func" --status difficult >/dev/null
+        ORCH_FINISHED=1
+        if [[ $KEEP_SCRATCH -eq 1 ]]; then
+          echo "Keeping worktree $wt"
+        else
+          echo "Removing worktree $wt" | tee -a "$LOG_FILE"
+          remove_match_worktree "$func"
+        fi
+        ORCH_FUNC=""
+        ORCH_WT=""
+        port_tries=0
+        wt_verified_func=""
+        consecutive_failures=0
+      else
+        echo "Port did not land $func ($status); keeping claim for retry $port_tries/$max_tries ($wt)" | tee -a "$LOG_FILE"
+        ((consecutive_failures++)) || true
+        if [[ $consecutive_failures -ge 3 ]]; then
+          echo ">= 3 consecutive failures detected. Sleeping for 5 minutes..."
+          sleep 300
+        fi
       fi
     fi
 

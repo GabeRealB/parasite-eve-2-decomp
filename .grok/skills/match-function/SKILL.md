@@ -26,10 +26,11 @@ That command resolves **any** overlay (`asm/<ver>/<overlay>/…`, including nest
 
 ## Finish
 
-- **100%:** replace `INCLUDE_ASM` in the host C file. New types go in **this overlay's** `include/` (`include/main/`, `include/gameplay/`, `include/<overlay>/`). Not `include/main/unknown_syms.h`. Run `./tools/build-and-verify.sh`. Commit `matched <func> <attempts>`.
+- **100%:** replace `INCLUDE_ASM` in the host C file. New types go in **this overlay's** `include/` (`include/main/`, `include/gameplay/`, `include/<overlay>/`). Not `include/main/unknown_syms.h`. Run `./tools/build-and-verify.sh` and wait for `✅ BUILD SUCCEEDED`. Commit `matched <func> <attempts>`.
 - **Give up:** append `tools/difficult_functions` as `<func> <attempts> <best%>`. Revert host C.
 - If vacuum launched you, **leave the scratch dir** (best unpinned `base_N.c` included). Vacuum archives it to `tools/giveups/<func>/` then cleans the scratch. Otherwise delete the scratch after commit/give-up.
 - If the vacuum prompt says this is a disposable worktree (`pe2-wt-<func>`), commit **only on this worktree**. Do not `git merge` onto trunk and do not append `tools/difficult_functions` there; a later port agent on the original tree lands the result.
 - If the vacuum prompt says you are the **port** agent: rewrite the function onto current trunk. Never `git merge` / rebase / cherry-pick the worktree. Adapt to structs and TUs other agents already landed, then verify and commit on trunk.
+- **Stale `build/`:** worktrees copy existing binaries that still checksum from the INCLUDE_ASM version. `sha256sum --check` on `build/USA/out/SLUS_010.42` is not a match. Only `./tools/build-and-verify.sh` → `✅ BUILD SUCCEEDED` counts. If `python3` lacks splat/spimdisasm, use `venv/bin/python3`.
 
 No pointer arithmetic with manual offsets. No `void*` when a struct is known. C89: declarations first, no comments in the matched function.
