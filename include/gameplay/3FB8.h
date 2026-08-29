@@ -371,7 +371,7 @@ typedef struct _GpQuadScratch {
 STATIC_ASSERT_SIZEOF(GpQuadScratch, 0x38);
 
 /// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_800EF0E0`,
-/// `func_800FFA8C`, and `func_80100784`.
+/// `func_800F5E1C`, `func_800FFA8C`, and `func_80100784`.
 /// `vec` is the coordinate's `workm.t[]` truncated to s16 and fed to
 /// `gte_ldv0`. `otz` is `gte_stszotz`, `flag` is `gte_stflg` and `sxy` is
 /// `gte_stsxy` of the single RTPS. `dx` / `dy` are the rotated half-extents

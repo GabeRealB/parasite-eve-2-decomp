@@ -31132,3 +31132,28 @@ prim->r0 = col;
 Unlike `register s32 tmp asm("v1")`, this does not reserve a hard register, so
 it leaves the rest of the allocation alone — the pinned version stole `$v1`
 from two later `mult`/`mflo` pairs in `func_800F3A78`.
+
+## Put the `div`-derived `u` before the constant `v` so the constant fills the `mflo` slot
+
+In a `POLY_FT4` fill where each UV pair is `prim->uN = (a / b) << 5;` and
+`prim->vN = <constant>;`, the source order of the two stores decides which
+load-delay slot the constant store lands in. Writing the constant first
+(`v0`, then `u0`) makes it ready too early: the scheduler hoists `li a0,0x18;
+sb a0,0xd(prim)` into the delay slot of the preceding `lbu` from
+`setSemiTrans`, which in turn pushes the `prim->clut` store above that `lbu`
+(and gives it `$v0` instead of `$v1`). Every later constant store then lands
+one slot early, and the tail of the function shifts by one instruction.
+
+```c
+/* BAD — constant store fills the setSemiTrans lbu delay slot */
+prim->v0 = 0x18;
+prim->u0 = (mem->field_22 / mem->field_28) << 5;
+
+/* GOOD — constant store fills the mflo latency slot after the div */
+prim->u0 = (mem->field_22 / mem->field_28) << 5;
+prim->v0 = 0x18;
+```
+
+With the `u` store first, the constant is only ready after the `div`, so
+`prim->clut` stays in the `lbu` slot and each `li/sb` pair sits between `mflo`
+and the `sll`. This took `func_800F5E1C` from 92.4% to 100%.
