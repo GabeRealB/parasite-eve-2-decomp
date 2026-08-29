@@ -274,7 +274,369 @@ void Gp_FinishLoadWait(Task* task);
 void func_807150F8(s32 arg0);
 void func_80715198(void);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_80097AC0);
+void func_80097AC0(GpuOtBuf* arg0)
+{
+    register TmdObject*     node asm("s3");
+    register GsCOORDINATE2* coord asm("s1");
+    register s32            flag asm("s4");
+    register s32            bit asm("s6");
+    register s32            vy asm("t7");
+    register u32            i asm("s5");
+    register GpCoordFromT*  tail asm("s2");
+    GsCOORDINATE2*          parent;
+
+    {
+        register s32 tmp asm("v0");
+        register s32 mask asm("a0");
+
+        mask = 0x7FFFFFFF;
+        tmp  = D_80071210;
+        node = Tmd_ListAlt.next;
+        flag = tmp & mask;
+        bit  = tmp & 1;
+    }
+    if (node != NULL) {
+        do {
+            coord      = (GsCOORDINATE2*)node->field_8;
+            parent     = coord->sub;
+            coord->flg = (coord->flg << 1) >> 1;
+            if (parent == NULL) {
+                if (coord->flg == 0) {
+                    coord->workm = coord->coord;
+                    coord->flg   = flag;
+                }
+            } else {
+                if ((parent->flg == 0) || ((parent->flg >> 31) != bit)) {
+                    func_8009939C(parent, flag, bit, 0);
+                }
+                if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
+                    register MATRIX* pwm asm("v0");
+                    register VECTOR* out asm("v1");
+                    register VECTOR* trans asm("a0");
+
+                    pwm = &parent->workm;
+                    gte_SetRotMatrix(pwm);
+                    gte_ldclmv(&coord->coord);
+                    gte_rtir_real();
+                    gte_stclmv(&coord->workm);
+                    gte_ldclmv(&coord->coord.m[0][1]);
+                    gte_rtir_real();
+                    gte_stclmv(&coord->workm.m[0][1]);
+                    gte_ldclmv(&coord->coord.m[0][2]);
+                    gte_rtir_real();
+                    gte_stclmv(&coord->workm.m[0][2]);
+                    gte_SetTransMatrix(pwm);
+                    trans = (VECTOR*)coord->coord.t;
+                    gte_ldlv0(trans);
+                    gte_rtv0tr_real();
+                    out = (VECTOR*)coord->workm.t;
+                    gte_stlvnl(out);
+                    coord->flg = flag;
+
+                    gte_SetRotMatrix(pwm);
+                    gte_ldclmv(&coord->coord);
+                    gte_rtir_real();
+                    gte_stclmv(&coord->workm);
+                    gte_ldclmv(&coord->coord.m[0][1]);
+                    gte_rtir_real();
+                    coord->flg = flag;
+                    gte_stclmv(&coord->workm.m[0][1]);
+                    gte_ldclmv(&coord->coord.m[0][2]);
+                    gte_rtir_real();
+                    gte_SetTransVector(parent->workm.t);
+                    gte_stclmv(&coord->workm.m[0][2]);
+
+                    {
+                        register s32 vx asm("t6");
+                        register s32 t4 asm("t4");
+                        register s32 t5 asm("t5");
+                        register s32 mask asm("s0");
+
+                        __asm__ volatile("lw %0, 0(%1)" : "=r"(vx) : "r"(trans));
+                        __asm__ volatile("lw %0, 4(%1)" : "=r"(vy) : "r"(trans));
+                        mask = -0x400;
+                        t4   = vx >> 21;
+                        and_mask(t4, mask);
+                        t5  = vx & 0x3FF;
+                        t4  = t5 | t4;
+                        t4 &= 0xFFFF;
+                        t5  = vy >> 21;
+                        and_mask(t5, mask);
+                        mask = vy & 0x3FF;
+                        t5   = mask | t5;
+                        t5 <<= 16;
+                        t4   = t5 | t4;
+                        gte_ldVXY0(t4);
+
+                        vx >>= 10;
+                        vy >>= 10;
+                        __asm__ volatile("" : "+r"(vx), "+r"(vy));
+                        mask = -0x400;
+                        t4   = vx >> 21;
+                        and_mask(t4, mask);
+                        t5 = vx & 0x3FF;
+                        t4 = t5 | t4;
+                        t5 = vy >> 21;
+                        and_mask(t5, mask);
+                        mask = vy & 0x3FF;
+                        t5   = mask | t5;
+                        mask = (u32)vy >> 31;
+                        t5  += mask;
+                        t5 <<= 16;
+                        mask = (u32)vx >> 31;
+                        t4  += mask;
+                        t4  &= 0xFFFF;
+                        t4   = t5 | t4;
+                        gte_ldVXY1(t4);
+
+                        vx >>= 10;
+                        vy >>= 10;
+                        t4   = vx & 0xFFFF;
+                        mask = (u32)vx >> 31;
+                        t4   = mask + t4;
+                        t4  &= 0xFFFF;
+                        t5   = vy & 0xFFFF;
+                        mask = (u32)vy >> 31;
+                        t5   = mask + t5;
+                        t5 <<= 16;
+                        t4   = t5 | t4;
+                        gte_ldVXY2(t4);
+
+                        __asm__ volatile("lw %0, 8(%1)" : "=r"(mask) : "r"(trans));
+                        vx = -0x400;
+                        vy = (u32)mask >> 31;
+                        t4 = mask >> 21;
+                        and_mask(t4, vx);
+                        t5 = mask & 0x3FF;
+                        t4 = t5 | t4;
+                        gte_ldVZ0(t4);
+                        mask >>= 10;
+                        __asm__ volatile("" : "+r"(mask));
+                        t4 = mask >> 21;
+                        and_mask(t4, vx);
+                        t5  = mask & 0x3FF;
+                        t4  = t5 | t4;
+                        t4 += vy;
+                        gte_ldVZ1(t4);
+                        mask >>= 10;
+                        t4     = mask + vy;
+                        gte_ldVZ2(t4);
+
+                        gte_rtv0tr_real();
+                        __asm__ volatile("mfc2 %0, $25" : "=r"(vx));
+                        __asm__ volatile("mfc2 %0, $26" : "=r"(vy));
+                        __asm__ volatile("mfc2 %0, $27" : "=r"(mask));
+                        gte_rtv1sf0();
+                        __asm__ volatile("mfc2 %0, $25; nop" : "=r"(t4));
+                        t4 >>= 2;
+                        vx   = t4 + vx;
+                        __asm__ volatile("mfc2 %0, $26; nop" : "=r"(t4));
+                        t4 >>= 2;
+                        vy   = t4 + vy;
+                        __asm__ volatile("mfc2 %0, $27; nop" : "=r"(t4));
+                        t4 >>= 2;
+                        mask = t4 + mask;
+                        gte_rtv2sf0();
+                        __asm__ volatile("mfc2 %0, $25; nop" : "=r"(t4));
+                        t4 <<= 8;
+                        vx   = t4 + vx;
+                        __asm__ volatile("mfc2 %0, $26; nop" : "=r"(t4));
+                        t4 <<= 8;
+                        vy   = t4 + vy;
+                        __asm__ volatile("mfc2 %0, $27; nop" : "=r"(t4));
+                        t4 <<= 8;
+                        mask = t4 + mask;
+                        __asm__ volatile("sw %1, 0(%0); sw %2, 4(%0); sw %3, 8(%0)"
+                                         :
+                                         : "r"(out), "r"(vx), "r"(vy), "r"(mask)
+                                         : "memory");
+                    }
+                }
+            }
+            if (bit != 0) {
+                coord->flg |= 0x80000000;
+            }
+            node = node->next;
+        } while (node != NULL);
+    }
+
+    node = Tmd_List.next;
+    if (node != NULL) {
+        do {
+            coord = (GsCOORDINATE2*)node->field_8;
+            i     = 0;
+            if (node->field_30 != 0) {
+                tail = (GpCoordFromT*)coord->workm.t;
+                do {
+                    parent     = tail->sub;
+                    coord->flg = (coord->flg << 1) >> 1;
+                    if (parent == NULL) {
+                        if (coord->flg == 0) {
+                            GsCOORDINATE2* c;
+                            c          = (GsCOORDINATE2*)((u8*)tail - OFFSET_OF(GsCOORDINATE2, workm.t));
+                            c->workm   = c->coord;
+                            coord->flg = flag;
+                        }
+                    } else {
+                        if ((parent->flg == 0) || ((parent->flg >> 31) != bit)) {
+                            func_8009939C(parent, flag, bit, 0);
+                        }
+                        if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
+                            register MATRIX* pwm asm("v0");
+                            register VECTOR* trans asm("v1");
+
+                            pwm = &parent->workm;
+                            gte_SetRotMatrix(pwm);
+                            gte_ldclmv(&coord->coord);
+                            gte_rtir_real();
+                            gte_stclmv(&coord->workm);
+                            gte_ldclmv(&coord->coord.m[0][1]);
+                            gte_rtir_real();
+                            gte_stclmv(&coord->workm.m[0][1]);
+                            gte_ldclmv(&coord->coord.m[0][2]);
+                            gte_rtir_real();
+                            gte_stclmv(&coord->workm.m[0][2]);
+                            gte_SetTransMatrix(pwm);
+                            trans = (VECTOR*)coord->coord.t;
+                            gte_ldlv0(trans);
+                            gte_rtv0tr_real();
+                            gte_stlvnl((VECTOR*)tail);
+                            coord->flg = flag;
+
+                            gte_SetRotMatrix(pwm);
+                            gte_ldclmv(&coord->coord);
+                            gte_rtir_real();
+                            gte_stclmv(&coord->workm);
+                            gte_ldclmv(&coord->coord.m[0][1]);
+                            gte_rtir_real();
+                            coord->flg = flag;
+                            gte_stclmv(&coord->workm.m[0][1]);
+                            gte_ldclmv(&coord->coord.m[0][2]);
+                            gte_rtir_real();
+                            gte_SetTransVector(parent->workm.t);
+                            gte_stclmv(&coord->workm.m[0][2]);
+
+                            {
+                                register s32 vx asm("t6");
+                                register s32 t4 asm("t4");
+                                register s32 t5 asm("t5");
+                                register s32 mask asm("s0");
+
+                                __asm__ volatile("lw %0, 0(%1)" : "=r"(vx) : "r"(trans));
+                                __asm__ volatile("lw %0, 4(%1)" : "=r"(vy) : "r"(trans));
+                                mask = -0x400;
+                                t4   = vx >> 21;
+                                and_mask(t4, mask);
+                                t5  = vx & 0x3FF;
+                                t4  = t5 | t4;
+                                t4 &= 0xFFFF;
+                                t5  = vy >> 21;
+                                and_mask(t5, mask);
+                                mask = vy & 0x3FF;
+                                t5   = mask | t5;
+                                t5 <<= 16;
+                                t4   = t5 | t4;
+                                gte_ldVXY0(t4);
+
+                                vx >>= 10;
+                                vy >>= 10;
+                                __asm__ volatile("" : "+r"(vx), "+r"(vy));
+                                mask = -0x400;
+                                t4   = vx >> 21;
+                                and_mask(t4, mask);
+                                t5 = vx & 0x3FF;
+                                t4 = t5 | t4;
+                                t5 = vy >> 21;
+                                and_mask(t5, mask);
+                                mask = vy & 0x3FF;
+                                t5   = mask | t5;
+                                mask = (u32)vy >> 31;
+                                t5  += mask;
+                                t5 <<= 16;
+                                mask = (u32)vx >> 31;
+                                t4  += mask;
+                                t4  &= 0xFFFF;
+                                t4   = t5 | t4;
+                                gte_ldVXY1(t4);
+
+                                vx >>= 10;
+                                vy >>= 10;
+                                t4   = vx & 0xFFFF;
+                                mask = (u32)vx >> 31;
+                                t4   = mask + t4;
+                                t4  &= 0xFFFF;
+                                t5   = vy & 0xFFFF;
+                                mask = (u32)vy >> 31;
+                                t5   = mask + t5;
+                                t5 <<= 16;
+                                t4   = t5 | t4;
+                                gte_ldVXY2(t4);
+
+                                __asm__ volatile("lw %0, 8(%1)" : "=r"(mask) : "r"(trans));
+                                vx = -0x400;
+                                vy = (u32)mask >> 31;
+                                t4 = mask >> 21;
+                                and_mask(t4, vx);
+                                t5 = mask & 0x3FF;
+                                t4 = t5 | t4;
+                                gte_ldVZ0(t4);
+                                mask >>= 10;
+                                __asm__ volatile("" : "+r"(mask));
+                                t4 = mask >> 21;
+                                and_mask(t4, vx);
+                                t5  = mask & 0x3FF;
+                                t4  = t5 | t4;
+                                t4 += vy;
+                                gte_ldVZ1(t4);
+                                mask >>= 10;
+                                t4     = mask + vy;
+                                gte_ldVZ2(t4);
+
+                                gte_rtv0tr_real();
+                                __asm__ volatile("mfc2 %0, $25" : "=r"(vx));
+                                __asm__ volatile("mfc2 %0, $26" : "=r"(vy));
+                                __asm__ volatile("mfc2 %0, $27" : "=r"(mask));
+                                gte_rtv1sf0();
+                                __asm__ volatile("mfc2 %0, $25; nop" : "=r"(t4));
+                                t4 >>= 2;
+                                vx   = t4 + vx;
+                                __asm__ volatile("mfc2 %0, $26; nop" : "=r"(t4));
+                                t4 >>= 2;
+                                vy   = t4 + vy;
+                                __asm__ volatile("mfc2 %0, $27; nop" : "=r"(t4));
+                                t4 >>= 2;
+                                mask = t4 + mask;
+                                gte_rtv2sf0();
+                                __asm__ volatile("mfc2 %0, $25; nop" : "=r"(t4));
+                                t4 <<= 8;
+                                vx   = t4 + vx;
+                                __asm__ volatile("mfc2 %0, $26; nop" : "=r"(t4));
+                                t4 <<= 8;
+                                vy   = t4 + vy;
+                                __asm__ volatile("mfc2 %0, $27; nop" : "=r"(t4));
+                                t4 <<= 8;
+                                mask = t4 + mask;
+                                __asm__ volatile("sw %1, 0(%0); sw %2, 4(%0); sw %3, 8(%0)"
+                                                 :
+                                                 : "r"(tail), "r"(vx), "r"(vy), "r"(mask)
+                                                 : "memory");
+                            }
+                        }
+                    }
+                    if (bit != 0) {
+                        coord->flg |= 0x80000000;
+                    }
+                    tail++;
+                    coord++;
+                } while (++i < (u32)node->field_30);
+            }
+            node = node->next;
+        } while (node != NULL);
+    }
+
+    D_80071210 += 1;
+    Tmd_DrawFlaggedNodes(Tmd_List.next);
+}
 
 void func_8009850C(GpuOtBuf* arg0)
 {
