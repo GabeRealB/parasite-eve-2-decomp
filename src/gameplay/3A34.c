@@ -2830,7 +2830,7 @@ void Gp_LoadImages(GpImgRec* arg0)
     } while (done == 0);
 
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
-    asm("" ::"r"(max));
+    SOFT_USE_REG(max);
 }
 
 void Gp_InitStateF0(void)
@@ -3948,7 +3948,7 @@ s32 func_800E0308(SVECTOR* arg0, SVECTOR* arg1)
     ((VECTOR*)(head - 0x10))->vx = arg1->vx - arg0->vx;
     head                         = head - 0x10;
     vec                          = (VECTOR*)head;
-    __asm__ volatile("" : "+r"(vec) : "r"(head));
+    TOUCH_REG_USE(vec, head);
     vec->vy  = arg1->vy - arg0->vy;
     *scratch = vec;
     vec->vz  = arg1->vz - arg0->vz;

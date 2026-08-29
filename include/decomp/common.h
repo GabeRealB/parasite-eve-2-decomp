@@ -57,6 +57,7 @@
 #define TOUCH_REG5(a, b, c, d, e)     __asm__ volatile("" : "+r"(a), "+r"(b), "+r"(c), "+r"(d), "+r"(e))
 #define TOUCH_REG_MEM(x)              __asm__ volatile("" : "+r"(x) :: "memory")
 #define TOUCH_REG2_MEM(a, b)          __asm__ volatile("" : "+r"(a), "+r"(b) :: "memory")
+#define TOUCH_REG_USE(x, y)           __asm__ volatile("" : "+r"(x) : "r"(y))
 
 #define SOFT_TOUCH_REG(x)             __asm__("" : "+r"(x))
 #define SOFT_TOUCH_REG2(a, b)         __asm__("" : "+r"(a), "+r"(b))
@@ -70,6 +71,8 @@
 #define USE_REG3(a, b, c)       __asm__ volatile("" :: "r"(a), "r"(b), "r"(c))
 #define USE_REG4(a, b, c, d)    __asm__ volatile("" :: "r"(a), "r"(b), "r"(c), "r"(d))
 #define USE_REG5(a, b, c, d, e) __asm__ volatile("" :: "r"(a), "r"(b), "r"(c), "r"(d), "r"(e))
+#define SOFT_USE_REG(x)         __asm__("" :: "r"(x))
+#define SOFT_USE_REG2(a, b)     __asm__("" :: "r"(a), "r"(b))
 
 #define CLOBBER_REG(reg) __asm__ volatile("" ::: #reg)
 

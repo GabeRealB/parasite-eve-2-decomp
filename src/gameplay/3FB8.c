@@ -3166,7 +3166,7 @@ void func_8010154C(void)
     p->field_976 = f975;
     p->field_974 = f973;
     session      = Game_Session;
-    __asm__ volatile("" : "+r"(session) : "r"(f973));
+    TOUCH_REG_USE(session, f973);
     f977 = ((volatile GameActor*)p)->field_977;
     USE_REG(f977);
     p->field_964 = prev;
@@ -3412,7 +3412,7 @@ void func_80101A68(GpActorWork* arg0)
             s->angle  = 0x640000;
             angle     = 0x640000 / (s->vec.vx * 0x274);
             flag      = 0;
-            asm volatile("" : "+r"(flag) : "r"(lockz));
+            TOUCH_REG_USE(flag, lockz);
             angle    = (0x800 - angle) >> 1;
             s->angle = angle;
             Gfx_RotMatrixY(mat, angle, flag);
@@ -3649,7 +3649,7 @@ void func_80102348(GpActorWork* arg0, s32 arg1)
             val   = (s16)val - (s16)cmp;
             tmp   = (u8*)(whead - 0xC);
             wrap  = (GpAngleScratch*)tmp;
-            __asm__ volatile("" : "+r"(wrap) : "r"(tmp));
+            TOUCH_REG_USE(wrap, tmp);
             ((GpAngleScratch*)(whead - 0xC))->field_0 = val;
             val                                      += 0x1000;
             wrap->field_4                             = val;
@@ -3793,7 +3793,7 @@ void func_80102634(GpActorWork* arg0)
         tbl = D_801131B4;
         TOUCH_REG2(item, tbl);
         slot = actor->field_91C;
-        __asm__ volatile("" : "+r"(item) : "r"(slot));
+        TOUCH_REG_USE(item, slot);
         item = (item << 3) + (s32)tbl;
         {
             register GameActorExt* extra asm("a0");
@@ -3904,7 +3904,7 @@ void func_801029D4(GpActorWork* arg0)
         tbl = D_801131B4;
         TOUCH_REG2(item, tbl);
         slot = actor->field_91C;
-        __asm__ volatile("" : "+r"(item) : "r"(slot));
+        TOUCH_REG_USE(item, slot);
         item = (item << 3) + (s32)tbl;
         {
             register GameActorExt* extra asm("a0");
@@ -4595,7 +4595,7 @@ s16 func_80103E7C(s16 arg0, s16 arg1)
     delta   = arg1 - arg0;
     tmp     = (s32)(head - 0xC);
     block   = (GpAngleScratch*)tmp;
-    __asm__ volatile("" : "+r"(block) : "r"(tmp));
+    TOUCH_REG_USE(block, tmp);
     ((GpAngleScratch*)(head - 0xC))->field_0 = delta;
     delta                                   += 0x1000;
     block->field_4                           = delta;

@@ -3280,7 +3280,7 @@ void Gp_ApplyItemMap(void)
         alt  = slot;
         if (map->field_0 == 0) {
             mapped = map->field_2;
-            asm volatile("" : "+r"(id) : "r"(mapped));
+            TOUCH_REG_USE(id, mapped);
             id           -= 0x80;
             slot->field_0 = mapped;
             count         = 0;
@@ -3290,7 +3290,7 @@ void Gp_ApplyItemMap(void)
             slot->field_1 = count;
         } else {
             mapped = map->field_2;
-            asm volatile("" : "+r"(id) : "r"(mapped));
+            TOUCH_REG_USE(id, mapped);
             id           -= 0x80;
             slot->field_2 = mapped;
             count         = 0;

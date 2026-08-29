@@ -132,7 +132,7 @@ void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag)
         sy = block->sin_y;
         TOUCH_REG(sy);
         cy = cos_y;
-        __asm__ volatile("" : "+r"(cy) : "r"(cos_y));
+        TOUCH_REG_USE(cy, cos_y);
         block->vec.vz = cy;
         block->vec.vx = sy;
     }
@@ -231,7 +231,7 @@ void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
         vmat->m[2][1] = 0;
         block->vec.vx = 0;
         neg           = sin_y;
-        __asm__ volatile("" : "+r"(neg) : "r"(sin_y));
+        TOUCH_REG_USE(neg, sin_y);
         vmat->m[0][2] = sin_y;
         cos_y2        = vblock->cos_y;
         neg           = -neg;
@@ -250,7 +250,7 @@ void Gfx_RotMatrixYXZ(MATRIX* out, SVECTOR* angles, s32 flag)
         register s16 sx asm("v0");
         register u16 cx asm("v1");
         sx = sin_x;
-        __asm__ volatile("" : "+r"(sx) : "r"(sin_x));
+        TOUCH_REG_USE(sx, sin_x);
         sx            = -sx;
         cx            = block->cos_x;
         col1          = (u8*)head - 0x32;
@@ -375,7 +375,7 @@ void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
         sy = block->sin_y;
         TOUCH_REG(sy);
         cy = cos_y;
-        __asm__ volatile("" : "+r"(cy) : "r"(cos_y));
+        TOUCH_REG_USE(cy, cos_y);
         block->vec3.vy = 0;
         block->vec3.vz = cy;
         block->vec3.vx = sy;
@@ -466,7 +466,7 @@ void Gfx_MatrixToEuler(MATRIX* arg0, SVECTOR* arg1)
         vmat->m[2][0] = 0;
         vmat->m[1][1] = cos_u;
         neg_s         = sin_u;
-        __asm__ volatile("" : "+r"(neg_s) : "r"(sin_u));
+        TOUCH_REG_USE(neg_s, sin_u);
         vmat->m[1][2] = sin_u;
         cos2          = block->cos_val;
         vmat->m[2][1] = -neg_s;
@@ -603,7 +603,7 @@ void Gfx_RotMatrixX(MATRIX* arg0, s32 angle, s32 flag)
         vmat->m[2][0]        = 0;
         vmat->m[2][2]        = cos2;
         copy                 = sin_u;
-        __asm__ volatile("" : "+r"(copy) : "r"(sin_u));
+        TOUCH_REG_USE(copy, sin_u);
         vmat->m[1][2] = -sin_u;
         vmat->m[2][1] = copy;
 
@@ -662,7 +662,7 @@ void Gfx_RotMatrixY(MATRIX* arg0, s32 angle, s32 flag)
         vmat->m[1][2]        = 0;
         vmat->m[2][1]        = 0;
         neg_s                = sin_u;
-        __asm__ volatile("" : "+r"(neg_s) : "r"(sin_u));
+        TOUCH_REG_USE(neg_s, sin_u);
         vmat->m[0][2] = sin_u;
         cos2          = block->cos_val;
         vmat->m[2][0] = -neg_s;
@@ -725,7 +725,7 @@ void Gfx_RotMatrixZ(MATRIX* arg0, s32 angle, s32 flag)
         vmat->m[2][0] = 0;
         vmat->m[2][1] = 0;
         copy          = sin_u;
-        __asm__ volatile("" : "+r"(copy) : "r"(sin_u));
+        TOUCH_REG_USE(copy, sin_u);
         vmat->m[0][1] = -sin_u;
         vmat->m[1][0] = copy;
         vmat->m[1][1] = cos2;

@@ -31,7 +31,7 @@ A 93% score with `branch`/`insert`/`delete` still non-zero is a **control-flow**
 
 ## Empty asm
 
-Prefer the named helpers in `include/decomp/common.h` over raw empty `asm` / `asm volatile`. `TOUCH_REG(x)` is `"+r"` (blocks CSE / copy-prop). `USE_REG(x)` is input-only (keeps live). `SCHED_BARRIER()` vs `SOFT_BARRIER()` is volatile vs not — that is a matching difference. Do not wrap them in `do { } while (0)` or extra braces. Instruction-emitting `lui`/`lo`/`sll` stays written out. `register T x asm("v0")` is still a pin, not these macros.
+Prefer the named helpers in `include/decomp/common.h` over raw empty `asm` / `asm volatile`. `TOUCH_REG(x)` is `"+r"` (blocks CSE / copy-prop). `TOUCH_REG_USE(x, y)` is `"+r"(x)` plus a keep-live `"r"(y)`. `USE_REG(x)` is input-only (keeps live); `SOFT_USE_REG` is the non-volatile form. `SCHED_BARRIER()` vs `SOFT_BARRIER()` is volatile vs not — that is a matching difference. Do not wrap them in `do { } while (0)` or extra braces. Instruction-emitting `lui`/`lo`/`sll` stays written out. `register T x asm("v0")` is still a pin, not these macros.
 
 ## Permuter
 

@@ -684,7 +684,7 @@ void Gp_LoadWaitBoot(Task* task)
     asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi) : "r"(color), "r"(ds));
     buf  = ds->field_114;
     tile = &Gp_FadeTiles[buf];
-    asm("" : : "r"(qhi), "r"(tile));
+    SOFT_USE_REG2(qhi, tile);
     dr     = &Gp_FadeTpages[buf];
     queued = *(u16*)((s32)qhi + (s16)0x91C4);
     if (queued == 0) {
@@ -770,7 +770,7 @@ void Gp_LoadWaitCompanion(Task* task)
     asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi) : "r"(color), "r"(ds));
     buf  = ds->field_114;
     tile = &Gp_FadeTiles[buf];
-    asm("" : : "r"(qhi), "r"(tile));
+    SOFT_USE_REG2(qhi, tile);
     dr     = &Gp_FadeTpages[buf];
     queued = *(u16*)((s32)qhi + (s16)0x91C4);
     if (queued == 0) {
@@ -843,7 +843,7 @@ void Gp_LoadWaitSave(Task* task)
     asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi) : "r"(color), "r"(ds));
     buf  = ds->field_114;
     tile = &Gp_FadeTiles[buf];
-    asm("" : : "r"(qhi), "r"(tile));
+    SOFT_USE_REG2(qhi, tile);
     dr     = &Gp_FadeTpages[buf];
     queued = *(u16*)((s32)qhi + (s16)0x91C4);
     if (queued == 0) {
@@ -928,7 +928,7 @@ void Gp_LoadWaitAreaCd(Task* task)
     asm("lui %0, %%hi(CdCmd_Queue)" : "=r"(qhi) : "r"(color), "r"(ds));
     buf  = ds->field_114;
     tile = &Gp_FadeTiles[buf];
-    asm("" : : "r"(qhi), "r"(tile));
+    SOFT_USE_REG2(qhi, tile);
     dr     = &Gp_FadeTpages[buf];
     queued = *(u16*)((s32)qhi + (s16)0x91C4);
     if (queued == 0) {

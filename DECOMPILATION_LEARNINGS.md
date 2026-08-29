@@ -31468,8 +31468,10 @@ SCHED_BARRIER();          /* volatile; blocks delay-slot fill / insn motion */
 SOFT_BARRIER();           /* same constraint, scheduler may still move around it */
 COMPILER_BARRIER();       /* volatile; "" ::: "memory" */
 TOUCH_REG(x);             /* volatile; "+r" — block CSE / copy-prop / rematerialize */
+TOUCH_REG_USE(x, y);      /* volatile; "+r"(x) : "r"(y) — touch x, keep y live */
 SOFT_TOUCH_REG(x);        /* non-volatile "+r" */
 USE_REG(x);               /* volatile; :: "r" — keep live, do not rewrite */
+SOFT_USE_REG(x);          /* non-volatile :: "r" */
 CLOBBER_REG(a0);          /* volatile; ::: "a0" (or $4) */
 TOUCH_MEM(sp);            /* "m" — keep a stack object live */
 MOVE_ZERO(x);             /* "=r"(x) : "0"(0) → move dst, $zero */
