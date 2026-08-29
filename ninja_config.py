@@ -88,6 +88,71 @@ OVERLAY_MANIFEST = Path("configs/USA/overlays.toml")
 GENERATED_CONFIG_SUBDIR = "generated"
 
 
+# Family name for the three hand-written configs, so a scope selector can name
+# them the same way it names a generated family.
+CORE_FAMILY = "core"
+
+
+def all_overlays() -> list[tuple[str, str, str]]:
+    """(yaml, basename, family) for every splittable unit, main first."""
+    core = [(y, y.removesuffix(".yaml"), CORE_FAMILY) for y in YAML_EXECUTABLE]
+    return core + generated_overlay_yamls()
+
+
+def resolve_scope(
+    selectors: list[str], ordered: list[tuple[str, str, str]]
+) -> list[tuple[str, str, str]]:
+    """Filter the split list to the requested families and overlays.
+
+    A selector is a family (`weapons`, `core`) or a single basename (`m93r`,
+    `gameplay`). Order is always the canonical one - main first, then overlays -
+    regardless of the order selectors are given in, because main's undef scripts
+    are rewritten from what the overlays resolved.
+    """
+    if not selectors:
+        return ordered
+    families = {f for _y, _n, f in ordered}
+    names = {n for _y, n, _f in ordered}
+    wanted: set[str] = set()
+    unknown: list[str] = []
+    for raw in selectors:
+        for sel in (s.strip() for s in raw.split(",") if s.strip()):
+            if sel in families:
+                wanted.update(n for _y, n, f in ordered if f == sel)
+            elif sel in names:
+                wanted.add(sel)
+            else:
+                unknown.append(sel)
+    if unknown:
+        print(f"ERROR: unknown scope selector(s): {', '.join(unknown)}")
+        print(f"  families: {', '.join(sorted(families))}")
+        print(f"  overlays: {len(names)} (see tools/gen_overlay_configs.py --list)")
+        sys.exit(1)
+    return [t for t in ordered if t[1] in wanted]
+
+
+def clean_scoped_files(selected: list[tuple[str, str, str]]) -> None:
+    """Remove just the selected overlays' generated files.
+
+    A full run wipes asm/ and linkers/ outright, which is fine when everything
+    is about to be re-split. A scoped run must not: the whole point is to leave
+    the other overlays' disassembly in place so diff.py and the matching tools
+    keep working while one unit is rebuilt. build/ is left alone too, so ninja
+    can do its own incremental work.
+    """
+    for _yaml, name, family in selected:
+        asm_dir = ASM_DIR / "USA" / (name if family == CORE_FAMILY else f"{family}/{name}")
+        shutil.rmtree(asm_dir, ignore_errors=True)
+        for path in (
+            LINKER_DIR / "USA" / f"{name}.ld",
+            LINKER_DIR / "USA" / f"undefined_funcs_auto.{name}.txt",
+            LINKER_DIR / "USA" / f"undefined_syms_auto.{name}.txt",
+        ):
+            path.unlink(missing_ok=True)
+    if os.path.exists(".splache"):
+        os.remove(".splache")
+
+
 def generated_overlay_yamls() -> list[tuple[str, str, str]]:
     """(yaml path relative to configs/<version>/, basename, family) per overlay."""
     if not OVERLAY_MANIFEST.is_file():
@@ -544,12 +609,35 @@ def fix_overlay_include_asm_paths(basename: str, src_dir: str | None = None) -> 
             path.write_text(new, encoding="utf-8")
 
 
+def write_scoped_checksum(version_dir: str, names: list[str], exe_name: str) -> str:
+    """Subset of checksum.sha covering only the scoped targets.
+
+    `main` builds to the disc's executable name, not to `main`, so the basename
+    is translated the same way the link step does before matching.
+    """
+    full = Path(f"{CONFIG_DIR}/{version_dir}/checksum.sha")
+    wanted = {exe_name if n == "main" else n for n in names}
+    lines = []
+    for line in full.read_text(encoding="utf-8").splitlines():
+        parts = line.split()
+        if len(parts) == 2 and Path(parts[1]).name.removesuffix(".fix") in wanted:
+            lines.append(line)
+    if not lines:
+        print("ERROR: scoped build matched no checksum.sha entries")
+        sys.exit(1)
+    dest = Path(f"{BUILD_DIR}/{version_dir}/out/checksum.scoped.sha")
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return str(dest)
+
+
 def ninja_build(
     split_entries: list[YamlInfo],
     game_version_idx: int,
     objdiff_mode: bool,
     skip_checksum: bool,
     non_matching: bool,
+    scoped_names: list[str] | None = None,
 ):
     if objdiff_mode:
         ninja_file = ninja_syntax.Writer(
@@ -808,6 +896,19 @@ def ninja_build(
         else:
             checksum_target = f"{CONFIG_DIR}/{version_dir}/checksum.sha"
 
+        if scoped_names is not None:
+            # A scoped build produces only some of the outputs, and the
+            # sha256sum rule passes --ignore-missing - so checking the full
+            # list would quietly verify whichever targets happened to survive
+            # from an earlier run. Write a checksum file holding exactly the
+            # scoped targets instead, so the check covers what was just built
+            # and nothing else.
+            checksum_target = write_scoped_checksum(
+                version_dir,
+                scoped_names,
+                GAME_VERSIONS[game_version_idx].metadata.exe_disk1,
+            )
+
         ninja_file.build(
             outputs=f"{BUILD_DIR}/{GAME_VERSIONS[game_version_idx].metadata.version_dir}/out/checksum.ok",
             rule="sha256sum",
@@ -938,6 +1039,18 @@ def main():
         action="store_true",
     )
     parser.add_argument(
+        "-o",
+        "--only",
+        action="append",
+        metavar="SELECTOR",
+        help=(
+            "Split and build only these units. A selector is a family "
+            "(core, weapons) or a single basename (gameplay, m93r); repeat the "
+            "flag or comma-separate. Leaves other overlays' asm/ and linkers/ "
+            "in place, and checksums only what was built."
+        ),
+    )
+    parser.add_argument(
         "-sc",
         "--skip_checksum",
         help="Skip checksum",
@@ -999,14 +1112,26 @@ def main():
         return
 
     subprocess.check_call([PYTHON, str(TOOLS_DIR / "gen_overlay_configs.py")])
-    generated = generated_overlay_yamls()
     family_imports = overlay_family_imports()
-    overlay_family = {yaml: family for yaml, _name, family in generated}
-    overlay_basename = {yaml: name for yaml, name, _family in generated}
+    ordered = all_overlays()
+    selected = resolve_scope(args.only or [], ordered)
+    scoped = bool(args.only)
+    overlay_family = {yaml: family for yaml, _name, family in selected}
+    overlay_basename = {yaml: name for yaml, name, _family in selected}
+    scoped_names = [name for _y, name, _f in selected] if scoped else None
 
-    yamls_paths.extend(YAML_EXECUTABLE)
-    yamls_paths.extend(yaml for yaml, _n, _f in generated)
-    clean_working_files(True, objdiff_config_option)
+    if scoped:
+        print(
+            f"Scope: {len(selected)} of {len(ordered)} unit(s) "
+            f"({', '.join(n for _y, n, _f in selected[:8])}"
+            f"{', …' if len(selected) > 8 else ''})"
+        )
+
+    yamls_paths.extend(yaml for yaml, _n, _f in selected)
+    if scoped:
+        clean_scoped_files(selected)
+    else:
+        clean_working_files(True, objdiff_config_option)
 
     for yaml in yamls_paths:
         splat.util.symbols.spim_context = spimdisasm.common.Context()
@@ -1030,7 +1155,7 @@ def main():
             fix_gameplay_linker_rodata_order()
             append_overlay_absolute_imports("gameplay")
             fix_overlay_include_asm_paths("gameplay")
-        elif yaml in overlay_family:
+        elif yaml in overlay_family and overlay_family[yaml] != CORE_FAMILY:
             family = overlay_family[yaml]
             basename = overlay_basename[yaml]
             append_overlay_absolute_imports(basename, family_imports.get(family))
@@ -1053,6 +1178,7 @@ def main():
         objdiff_config_option,
         skip_checksum_option,
         non_matching_option,
+        scoped_names,
     )
 
     if objdiff_config_option:

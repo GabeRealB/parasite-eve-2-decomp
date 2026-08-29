@@ -49,4 +49,15 @@ If the kept `.s` matches and the `.o` does not, the bug is maspsx (`--expand-div
 
 Worktrees copy `build/` binaries that still checksum from `INCLUDE_ASM`. `sha256sum --check` on `build/USA/out/SLUS_010.42` is **not** a match.
 
-Only `./tools/build-and-verify.sh` from the **repo / worktree root** printing `✅ BUILD SUCCEEDED` counts. If `python3 ninja_config.py` fails on splat/spimdisasm, use `venv/bin/python3`.
+Verify in two steps, both from the **repo / worktree root**:
+
+```
+./tools/build-and-verify.sh --only <scope>    # inner loop, seconds
+./tools/build-and-verify.sh                   # the finish line
+```
+
+`<scope>` is the `Build scope:` line in BRIEF.md — the overlay basename (`gameplay`, `m93r`), or a family (`core`, `weapons`). A scoped run splits, builds and checksums only those units and leaves every other overlay's `asm/` and `linkers/` alone, so it is safe to run repeatedly while iterating: 1.6s for one weapon overlay and 4s for gameplay, against 18s for the project.
+
+A scoped `✅ SCOPED BUILD SUCCEEDED` says **nothing** about the overlays it skipped, and it says so in the message. Only the bare `./tools/build-and-verify.sh` printing `✅ BUILD SUCCEEDED` counts as a match — run it before committing or reporting one. Struct changes are the case that bites: they reach every overlay that shares the type, and the scoped run cannot see it.
+
+If `python3 ninja_config.py` fails on splat/spimdisasm, use `venv/bin/python3`.

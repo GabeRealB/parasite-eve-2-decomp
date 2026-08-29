@@ -49,7 +49,14 @@ overlay.
 
 ## Tools
 
-- `./tools/build-and-verify.sh` build the project and verify that it matches the target.
+- `./tools/build-and-verify.sh [--only SELECTOR[,SELECTOR...]]` build the
+  project and verify that it matches the target. `--only` splits, builds and
+  checksums just those units — a family (`core`, `weapons`) or a single
+  basename (`gameplay`, `m93r`) — leaving every other overlay's `asm/` and
+  `linkers/` alone. Use it as the inner loop while matching (1.6s for one
+  weapon overlay, 4s for gameplay, against 18s for the project), then run it
+  **unscoped** before committing: a scoped pass says nothing about the
+  overlays it skipped, which is exactly what a struct change breaks.
 - `diff.py` you can view the difference between the compiled and target assembly code of a given function by running `python3 tools/asm-differ/diff.py --no-pager <function name>`
 - `./tools/claude [--bootstrap-only] [--cli grok|claude] <function>` spin up a scratch matching env. Resolves **any** overlay; always m2c-bootstraps unless `--no-bootstrap`. Matching loop: `tools/claude-decomp-env/MATCH_LOOP.md` (Grok also loads it from `.grok/rules/match-loop.md`).
 - `python3 tools/decomp_overlay.py find|pack|list-nonmatchings|list-overlays <function>` overlay-agnostic path lookup and vacuum brief.

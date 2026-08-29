@@ -364,6 +364,15 @@ run_agent() {
 # Shared with non-orch and orch match prompts. Claude also gets this via scratch
 # CLAUDE.md; grok -p does not auto-read that file, so the vacuum prompt must
 # carry MATCH_LOOP.md or it only stares at asm-differ.
+# Overlay basename to pass to build-and-verify.sh --only. decomp_overlay.py
+# writes it into the brief, so the agent and the vacuum agree on the scope
+# without re-deriving it from paths.
+build_scope() {
+  local bf="$1"
+  [ -f "$bf" ] || return 0
+  sed -n 's/^- Build scope: `\(.*\)`$/\1/p' "$bf" | head -1
+}
+
 dump_loop_instructions() {
   local func=${1:-${AGENT_FUNC:-}}
   match_loop_text "$func"
@@ -373,6 +382,8 @@ build_prompt() {
   local func=$1
   local scratch=$2
   local brief_file=$3
+  local scope
+  scope=$(build_scope "$brief_file")
   cat <<EOF
 Match \`$func\`. The scratch environment is already created at \`$scratch\`.
 Do NOT run ./tools/claude or recreate the scratch directory.
@@ -383,7 +394,7 @@ Read \`$scratch/BRIEF.md\` (also pasted below), then:
 2. $(dump_loop_instructions "$func")
 3. If the best score is ≥ 95% and leftover diffs are registers / scheduling / stack (\`branch\`=\`insert\`=\`delete\`=0), run the permuter from the repo root **before** adding register pins:
    \`./permute.sh --run --timeout 360 -j4 $func <asm path from BRIEF> $scratch/base_N.c\`
-4. On 100%: replace INCLUDE_ASM in the host C file, fix headers in this overlay's include/ tree, run \`./tools/build-and-verify.sh\`, commit \`matched $func <attempts>\`.
+4. On 100%: replace INCLUDE_ASM in the host C file, fix headers in this overlay's include/ tree, then verify twice — \`./tools/build-and-verify.sh${scope:+ --only $scope}\` for a fast check of this overlay, then the bare \`./tools/build-and-verify.sh\` before you commit, since a scoped pass says nothing about the overlays it skipped. Commit \`matched $func <attempts>\`.
 5. On stall: append \`tools/difficult_functions\` as \`$func <attempts> <best%>\`, revert host C, do not leave INCLUDE_ASM replaced.
 6. Leave the scratch directory (including the best unpinned \`base_N.c\`). Vacuum will run the permuter after you exit, then clean up.
 
@@ -397,6 +408,8 @@ build_permute_prompt() {
   local scratch=$2
   local seed=$3
   local winner=$4
+  local scope
+  scope=$(build_scope "$scratch/BRIEF.md")
   cat <<EOF
 decomp-permuter found a **score 0** candidate for \`$func\` after the matching session stalled.
 
@@ -408,7 +421,8 @@ Report: \`$scratch/PERMUTER.txt\`
 Port the permuter's transformations into the seed (or a new \`$scratch/base_N.c\`).
 Do NOT add \`register … asm("")\` pins. Do NOT re-run \`./tools/claude\` or the permuter.
 Confirm \`./build.sh <file>.c\` in the scratch dir reports 100%, then replace INCLUDE_ASM
-in the host C file, run \`./tools/build-and-verify.sh\`, and commit \`matched $func permute\`.
+in the host C file, run \`./tools/build-and-verify.sh${scope:+ --only $scope}\` and then the
+bare \`./tools/build-and-verify.sh\`, and commit \`matched $func permute\`.
 Leave the scratch directory.
 EOF
 }
@@ -469,6 +483,9 @@ commit_match_if_needed() {
   fi
 
   echo "INCLUDE_ASM for $func is gone; verifying before auto-commit..." | tee -a "$LOG_FILE"
+  # Deliberately unscoped. The agent's inner loop uses --only, but this is the
+  # vacuum's own check before it commits, and a scoped run cannot see an
+  # overlay the change broke somewhere else.
   if ! ./tools/build-and-verify.sh; then
     echo "Verify failed after INCLUDE_ASM removal; discarding uncommitted match" | tee -a "$LOG_FILE"
     return 1
@@ -878,6 +895,7 @@ verify_repo() {
   local repo=$1
   local st
   echo "Running build-and-verify in $repo ..." | tee -a "$LOG_FILE"
+  # Unscoped on purpose: this is the independent verification, not the loop.
   ( cd "$repo" && ./tools/build-and-verify.sh ) 2>&1 | tee -a "$LOG_FILE"
   st=${PIPESTATUS[0]}
   return "$st"

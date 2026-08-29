@@ -435,6 +435,7 @@ def pack_context(func_name: str, version: Optional[str] = None) -> str:
         + (" (missing — create it)" if not info["c_file_exists"] else ""),
         f"- Headers: `{info['include_path'] or 'none yet; use this overlay include/ when it exists'}`",
         f"- Yaml: `{info['yaml_path'] or 'none'}`",
+        f"- Build scope: `{loc.overlay.name.split('/')[-1]}`",
         f"- Project root: `{project_root}`",
     ]
     if giveup_line:
@@ -446,7 +447,12 @@ def pack_context(func_name: str, version: Optional[str] = None) -> str:
         "auto-dumps RTL at ≥90%). Do not rewrite `base.c` from the asm before the",
         "first score. Read the dump summary; unpin / split locals before adding",
         "`register … asm(\"\")` pins.",
-        "From project root after a 100% match: `./tools/build-and-verify.sh`",
+        "From project root after a 100% match, verify this overlay first:",
+        f"`./tools/build-and-verify.sh --only {loc.overlay.name.split('/')[-1]}`",
+        "That splits and checksums only this unit - seconds instead of the full",
+        "project. It is the inner loop, not the finish line: a scoped pass says",
+        "nothing about the other overlays, so run the bare",
+        "`./tools/build-and-verify.sh` before committing or reporting a match.",
         "If the best score stays >= 95% on register/scheduling diffs, run",
         f"`./permute.sh --run -j4 {loc.name} {info['asm_file']} <scratch>/base_N.c`",
         "from the project root.",

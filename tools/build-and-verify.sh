@@ -1,6 +1,14 @@
 #!/usr/bin/env bash
 # Format project sources, then build and verify the matching binary.
 #
+# Usage: build-and-verify.sh [--only SELECTOR[,SELECTOR...]]
+#
+# With --only, splits and builds just those units and checksums only what it
+# built - a family (core, weapons) or a single basename (gameplay, m93r).
+# Other overlays' asm/ and linkers/ are left alone, so a scoped run is the fast
+# inner loop while matching one function; finish with an unscoped run before
+# calling anything done.
+#
 # Formats:
 #   - src/**/*.{c,h}
 #   - include/main/**/*.{c,h}
@@ -12,6 +20,24 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
+
+SCOPE_ARGS=()
+SCOPE_LABEL=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --only|-o)
+            [[ $# -ge 2 ]] || { echo "build-and-verify.sh: --only needs a value" >&2; exit 2; }
+            SCOPE_ARGS+=(--only "$2"); SCOPE_LABEL="${SCOPE_LABEL:+$SCOPE_LABEL,}$2"; shift 2 ;;
+        --only=*)
+            SCOPE_ARGS+=(--only "${1#*=}"); SCOPE_LABEL="${SCOPE_LABEL:+$SCOPE_LABEL,}${1#*=}"; shift ;;
+        -h|--help)
+            sed -n "2,12p" "$0"; exit 0 ;;
+        *)
+            echo "build-and-verify.sh: unknown argument '$1'" >&2
+            echo "usage: build-and-verify.sh [--only SELECTOR[,SELECTOR...]]" >&2
+            exit 2 ;;
+    esac
+done
 
 # Prefer the project venv. Agent CLIs (especially grok) often invoke this
 # script with a PATH that has system python3 and no splat/spimdisasm.
@@ -85,8 +111,16 @@ fi
 
 "$CLANG_FORMAT" -i "${STYLE_ARGS[@]}" "${FORMAT_FILES[@]}"
 
-"$PYTHON" ninja_config.py -c 1>/dev/null \
-    && "$PYTHON" ninja_config.py 1>/dev/null \
+# A full run starts from a clean build tree. A scoped run must not: wiping
+# build/ would throw away exactly the incremental work that makes it fast.
+if [[ ${#SCOPE_ARGS[@]} -eq 0 ]]; then
+    "$PYTHON" ninja_config.py -c 1>/dev/null
+    SUCCESS="✅ BUILD SUCCEEDED. Everything matched and there were no compiler or linter errors"
+else
+    SUCCESS="✅ SCOPED BUILD SUCCEEDED (${SCOPE_LABEL}). Only these units were split, built and checksummed - run without --only before treating the project as matching."
+fi
+
+"$PYTHON" ninja_config.py "${SCOPE_ARGS[@]+"${SCOPE_ARGS[@]}"}" 1>/dev/null \
     && ninja 1>/dev/null \
-    && (echo "✅ BUILD SUCCEEDED. Everything matched and there were no compiler or linter errors") \
+    && (echo "$SUCCESS") \
     || (echo "BUILD HAS FAILED. Claude, you should treat this as a build failure. Adding new warnings or accepting a non-matching checksum count as failures." && false)
