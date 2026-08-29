@@ -30727,3 +30727,56 @@ Write the control flow literally, with a shared fall-through `ok = 0`:
     ok = 0;
 have:
 ```
+
+## `static __inline__` helpers when a stack copy steals an address register
+
+Copying a scratch vector to a stack `SVECTOR` and feeding it to `gte_ldv0`
+puts the `addiu` for `&sv` in the wrong place:
+
+```c
+sc->vec.vx = 0; sc->vec.vy = 0x12C; sc->vec.vz = 0;
+sv = sc->vec;                       /* lwl/lwr + swl/swr block move */
+gte_SetRotMatrix(&coord->workm);
+gte_ldv0(&sv);
+```
+
+GCC's MIPS block move `copy_addr_to_reg`s the destination, so `addiu vN, sp,
+K` is emitted at the *copy* and CSE then reuses that register for the
+`gte_ldv0` operand. The target computes it after the `ctc2` block instead
+(`addiu v0, a2, 0x24` / `ctc2 …` / `addiu v0, sp, 0x10` / `lwc2`), reusing
+`$v0` for both pointers. No barrier or `register … asm("v0")` pin fixes this:
+pinning only produces `addiu v1, sp, K` + `move v0, v1`, and a `"memory"`
+clobber does not constrain a non-memory `addiu`.
+
+Wrapping the copy plus the GTE setup in a `static __inline__` helper does fix
+it — the inlined local gets its address materialized at the `gte_ldv0`:
+
+```c
+static __inline__ void Gp_LoadRotSV(MATRIX* m, SVECTOR* src)
+{
+    SVECTOR sv;
+
+    sv = *src;
+    gte_SetRotMatrix(m);
+    gte_ldv0(&sv);
+}
+```
+
+`func_800A4A2C` is the example (98.7% -> 99.7% from this alone). The same
+trick helps whenever two loops repeat an identical block: factoring the
+`LINE_F2` + `addPrim` tail of `func_800A4A2C` into a second `static
+__inline__` helper also changed loop-invariant motion so the `0xFFFFFF`
+`setaddr` mask hoisted out of the *outer* loop the way the target does
+(99.7% -> 99.96%).
+
+Two related details from the same function:
+
+* A flat `LINE_F2` whose colour word is a constant matches as
+  `*(u32*)&prim->r0 = 0x40C000;` followed by `x0`, then `x1`, then
+  `setlen` / `setcode`. Putting `setlen` / `setcode` before the `x1` store
+  makes the scheduler fill the `lw sxy` load-delay slot with the `sb`s
+  instead of the `addiu t1, t1, %lo(Display_State)` the target uses.
+* `for (t = 0; t <= limit; ang += 0x73, t += 0x80)` — with the *secondary*
+  induction variable first in the comma — lets `t += 0x80` fill the
+  `lw sxy` load delay. The natural `t += 0x80, ang += 0x73` order emits the
+  increment before the load and leaves a `nop`.

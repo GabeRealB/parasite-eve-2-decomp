@@ -4954,7 +4954,173 @@ void func_800A4904(s32 arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A4A2C);
+static __inline__ void Gp_LoadRotSV(MATRIX* m, SVECTOR* src)
+{
+    SVECTOR sv;
+
+    sv = *src;
+    gte_SetRotMatrix(m);
+    gte_ldv0(&sv);
+}
+
+static __inline__ void Gp_RingPointXZ(GpCircleScratch* sc, s32 ang)
+{
+    sc->vec.vx = (sc->radius * rcos(ang)) >> 12;
+    sc->vec.vz = (sc->radius * rsin(ang)) >> 12;
+}
+
+static __inline__ void Gp_ProjectRingPt(GpCircleScratch* sc)
+{
+    gte_ldv0(&sc->vec);
+    gte_rtps_real();
+    gte_stsxy(&sc->sxy);
+    gte_stdp(&sc->dp);
+    gte_stflg(&sc->flag);
+    gte_stszotz(&sc->otz);
+}
+
+static __inline__ void Gp_LinkRingSeg(GpCircleScratch* sc)
+{
+    register LINE_F2* prim asm("a0");
+
+    prim             = (LINE_F2*)D_80071190;
+    D_80071190       = (DR_TPAGE*)(prim + 1);
+    *(u32*)&prim->r0 = 0x40C000;
+    *(u32*)&prim->x0 = *(u32*)&sc->sxyPrev;
+    *(u32*)&prim->x1 = *(u32*)&sc->sxy;
+    setlen(prim, 3);
+    setcode(prim, 0x40);
+    addPrim((u_long*)(((((u32)sc->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+            prim);
+}
+
+void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+{
+    Task*            slot;
+    GsCOORDINATE2*   coord;
+    GsCOORDINATE2*   other;
+    GpCircleScratch* sc;
+    u8*              head;
+    s32              base;
+    s32              limit;
+    s32              ang;
+    s32              i;
+    s32              t;
+    s32              pass;
+
+    slot = Game_GetPtrSlot(3);
+    {
+        register void** scratch asm("a0");
+        register u8*    newhead asm("v1");
+
+        scratch  = (void**)G_SCRATCH_HEAD;
+        head     = *scratch;
+        newhead  = head - 0x60;
+        sc       = (GpCircleScratch*)newhead;
+        coord    = (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8;
+        sc->rx   = arg1;
+        sc->ry   = arg2;
+        base     = Display_State.field_8 << 4;
+        *scratch = sc;
+    }
+    gte_SetRotMatrix(&D_80070F34);
+    if (arg3 & 4) {
+        other      = (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8 + 4;
+        sc->vec.vx = 0;
+        sc->vec.vy = 0x12C;
+        sc->vec.vz = 0;
+        Gp_LoadRotSV(&coord->workm, &sc->vec);
+        gte_rtv0_real();
+        gte_stsv(&sc->vec);
+        sc->trans.vx = other->workm.t[0] + sc->vec.vx;
+        sc->trans.vy = other->workm.t[1] + sc->vec.vy;
+        sc->trans.vz = other->workm.t[2] + sc->vec.vz;
+        gte_SetTransVector(&sc->trans);
+    } else if ((arg3 & 2) == 0) {
+        gte_SetTransMatrix(&coord->workm);
+    } else {
+        arg3      &= ~2;
+        sc->vec.vx = 0;
+        sc->vec.vy = 0;
+        sc->vec.vz = arg1;
+        Gp_LoadRotSV(&coord->workm, &sc->vec);
+        gte_rtv0_real();
+        gte_stsv(&sc->vec);
+        sc->trans.vx = coord->workm.t[0] + sc->vec.vx;
+        sc->trans.vy = coord->workm.t[1] + sc->vec.vy;
+        sc->trans.vz = coord->workm.t[2] + sc->vec.vz;
+        gte_SetTransVector(&sc->trans);
+    }
+
+    if (arg3 & 4) {
+        sc->mat = coord->workm;
+        Gfx_RotMatrixX(&sc->mat, -0x400, 0);
+        arg3 &= ~4;
+    } else {
+        sc->mat = D_80070F10.workm;
+    }
+    gte_SetRotMatrix(&sc->mat);
+
+    limit = 0x400;
+    if (arg3 == 0) {
+        limit = 0x300;
+    }
+
+    for (i = 0; i < 12; i++) {
+        ang = base + ((i << 12) / 12);
+        for (t = 0; t <= limit; ang += 0x73, t += 0x80) {
+            if (arg3 == 0) {
+                sc->radius = (sc->rx * rcos(t)) >> 12;
+                sc->vec.vy = -(sc->ry * rsin(t)) >> 12;
+                Gp_RingPointXZ(sc, ang);
+            } else {
+                sc->vec.vy = -(sc->ry * t) >> 10;
+                sc->vec.vx = (sc->rx * rcos(ang)) >> 12;
+                sc->vec.vz = (sc->rx * rsin(ang)) >> 12;
+            }
+            Gp_ProjectRingPt(sc);
+            if (t > 0) {
+                Gp_LinkRingSeg(sc);
+            }
+            *(u32*)&sc->sxyPrev = *(u32*)&sc->sxy;
+        }
+    }
+
+    base = -base;
+    for (pass = 0; pass < 2; pass++) {
+        if (pass == 0) {
+            if (arg3 == 0) {
+                sc->radius = (sc->rx * rcos(0x300)) >> 12;
+                sc->vec.vy = -(sc->ry * rsin(0x300)) >> 12;
+            } else {
+                sc->radius = sc->rx;
+                sc->vec.vy = -*(u16*)&sc->ry;
+            }
+        } else {
+            sc->vec.vy = 0;
+            sc->radius = sc->rx;
+        }
+        for (i = 0; i < 25; i++) {
+            register s32 prod asm("v1");
+            register s32 val asm("v0");
+
+            ang        = base + ((i << 12) / 24);
+            prod       = sc->radius * rcos(ang);
+            val        = prod >> 12;
+            sc->vec.vx = val;
+            prod       = sc->radius * rsin(ang);
+            val        = prod >> 12;
+            sc->vec.vz = val;
+            Gp_ProjectRingPt(sc);
+            if (i != 0) {
+                Gp_LinkRingSeg(sc);
+            }
+            *(u32*)&sc->sxyPrev = *(u32*)&sc->sxy;
+        }
+    }
+
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x60;
+}
 
 void func_800A5274(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {

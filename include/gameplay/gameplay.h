@@ -77,6 +77,29 @@ typedef struct _GpXformScratch {
 } GpXformScratch;
 STATIC_ASSERT_SIZEOF(GpXformScratch, 0x48);
 
+/// 0x60-byte scratch from `G_SCRATCH_HEAD` used by `func_800A4A2C` to draw the
+/// wireframe targeting sphere. `vec` is the point being rotated / projected,
+/// `mat` the rotation loaded into the GTE, `rx` / `ry` the two radii taken from
+/// the caller and `radius` the per-ring radius derived from them. `dp` / `flag`
+/// / `otz` / `sxy` receive `gte_stdp` / `gte_stflg` / `gte_stszotz` /
+/// `gte_stsxy` of each RTPS, and `sxyPrev` keeps the previous point so the two
+/// form a `LINE_F2`. `trans` is the GTE translation vector (`gte_SetTransVector`).
+typedef struct _GpCircleScratch {
+    /* 0x00 */ SVECTOR vec;
+    /* 0x08 */ MATRIX  mat;
+    /* 0x28 */ s32     rx;
+    /* 0x2C */ s32     ry;
+    /* 0x30 */ s32     radius;
+    /* 0x34 */ s32     dp;
+    /* 0x38 */ s32     flag;
+    /* 0x3C */ s32     otz;
+    /* 0x40 */ DVECTOR sxyPrev;
+    /* 0x44 */ DVECTOR sxy;
+    /* 0x48 */ byte    pad_48[8];
+    /* 0x50 */ VECTOR  trans;
+} GpCircleScratch;
+STATIC_ASSERT_SIZEOF(GpCircleScratch, 0x60);
+
 /// Overlay of a `Gp_LinkList` `GpLinkNode` (embedded at `GpEnemy.node`)
 /// used by `Gp_UpdateLinkXforms`. `field_4` is the word at node+4 (same
 /// `(flags & 5) == 1` skip as `func_800A4904`). `coord` is
