@@ -30641,6 +30641,24 @@ Useful corollary when reasoning about which registers are even candidates:
 `gte_SetRotMatrix` / `gte_ldopv1` clobber `$12`-`$14` (`$t4`-`$t6`), so any
 pseudo live across them is barred from those three registers.
 
+## Name the UV `div` quotient so `sb v` lands after `mflo`
+
+Four `POLY_FT4` UV corners that all use `field_22 / field_28` look like they
+can be written as `prim->v0 = 0; prim->u0 = (mem->field_22 / mem->field_28) * 24 + 0x30`.
+That hoists `sb zero, v0` *before* the `div`. The target stores v after
+`mflo` and before the `* 24` for u.
+
+Assign the quotient to a local first:
+
+```c
+quot     = mem->field_22 / mem->field_28;
+prim->v0 = 0;
+prim->u0 = quot * 24 + 0x30;
+```
+
+Repeat the `div` for each corner (do not reuse one quotient). `func_800EF4D0`
+is the example.
+
 ## Two pseudos for one scratch pointer produce the `move` GCC needs
 
 `block = (X*)(head - 0x70); *scratch = block;` emits one `addiu` and reuses the
