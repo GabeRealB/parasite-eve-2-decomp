@@ -30194,3 +30194,28 @@ V pair with `t = 0x77`. `func_800FFA8C` is the example.
 
 Copying `GpEffSpawnArg.field_2` (s16) straight into `GpEffWork.field_2A`
 (s16) also emits `lhu`; assign through an `s32` local first to get `lh`.
+
+## Hoist the `gte_ldv0` alias above the init block to get a callee-saved register
+
+The `vecp = block; … gte_ldv0(&vecp->vec);` alias only earns its own register
+if it is live across a branch. When the scratch alloc is followed by a
+one-shot init block (`if (task->state == 0) { rng / spawn-arg copy }`) and only
+then by `Gp_UpdateCoord` + the GTE sequence, writing `vecp = block;` next to
+the `gte_ldv0` emits a throwaway `move v0, s1` at the use site. Assign it
+immediately after `*scratch = block;`, before the init block, and GCC 2.8.1
+keeps it in `$s5` (filling the init-block `bnez` delay slot with
+`move s5, s1`) and re-shuffles `head`/`coord` onto `$s0`/`$s3`:
+
+```c
+scratch  = (void**)G_SCRATCH_HEAD;
+head     = *scratch;
+block    = (GpEffBeamScratch*)(head - 0x1C);
+*scratch = block;
+vecp     = block;          /* not down by the gte_ldv0 */
+if (arg0->state == 0) {
+    /* rng + spawn-arg init */
+}
+Gp_UpdateCoord(coord);
+```
+
+`func_80100020` is the example: the hoist alone is 96.8% → 100%.
