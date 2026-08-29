@@ -369,6 +369,23 @@ typedef struct _GpEffBeamScratch {
 } GpEffBeamScratch;
 STATIC_ASSERT_SIZEOF(GpEffBeamScratch, 0x1C);
 
+/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_800FD49C`. Same
+/// contents as `GpEffBeamScratch` in a different field order: `vec` is the
+/// coordinate's `workm.t[]` truncated to s16 and fed to `gte_ldv0`, `otz` is
+/// `gte_stszotz` then incremented, `flag` is `gte_stflg` and `sxy` is
+/// `gte_stsxy` of the single RTPS. `dx` / `dy` are the rotated half-extents
+/// `(field_26 * 31 / otz) * rsin/rcos(angle) >> 12` that offset `sxy` into
+/// the four corners of the billboard `POLY_FT4`.
+typedef struct _GpEffFlareScratch {
+    /* 0x00 */ s32     otz;
+    /* 0x04 */ s32     dx;
+    /* 0x08 */ s32     dy;
+    /* 0x0C */ s32     flag;
+    /* 0x10 */ SVECTOR vec;
+    /* 0x18 */ DVECTOR sxy;
+} GpEffFlareScratch;
+STATIC_ASSERT_SIZEOF(GpEffFlareScratch, 0x1C);
+
 /// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `func_800F1638`.
 /// `vec` is the coordinate's `workm.t[]` truncated to s16 and fed to
 /// `gte_ldv0`. `otz` receives `gte_stszotz`, `flag` `gte_stflg` and `sxy`

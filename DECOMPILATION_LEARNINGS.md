@@ -30471,3 +30471,43 @@ being partially hoisted out of the loop. Folding it into a single chained
 assignment where the value is consumed (`rng = Gp_LcgState = Gp_LcgState * 5 +
 0x71357911;`) restored the target's allocation and the `lui $a0, 0x7135` in the
 loop-back delay slot — worth 1.5% on `func_800F52B4`.
+
+## Forced `$v1` divisor copy, and the `$v1` it steals back
+
+`func_800FD49C` divides `mem->field_22` by the same `n` four times, and the
+target copies the value first (`move $v1, $s7` / `div $zero, $v0, $v1`). A plain
+`s32 count = n;` is copy-propagated away, and the usual
+`__asm__ volatile("" : "+r"(count));` barrier pins the `move` *before* the
+`lh $v0, 0x22($s2)` instead of into its load-delay slot. A scoped
+`register s32 count asm("v1");` gives the exact `lh` / `move` / `div` order —
+and it is also what drops `n`'s reference count enough for `arg0` to win `$s5`
+over it.
+
+The pin has a side effect: the later `(… * rsin(θ)) >> 12` product moves off
+`$v1` onto `$a2`. Route that product through its own `v1`-pinned variable and
+keep it live past the shift so the shift result still lands in `$v0`:
+
+```c
+{
+    register s32 prod asm("v1");
+    prod      = ((mem->field_26 * 31) / block->otz) * rsin(mem->field_24);
+    block->dx = prod >> 12;
+    __asm__ volatile("" ::"r"(prod)); /* else GCC emits sra $v1, $v1, 12 */
+}
+```
+
+## Duplicate the shared tail call instead of `goto`; let cross-jumping merge it
+
+For a `flag >= 4` early exit that ends in the same `Gp_ReleaseState1CMem(mem,
+arg0)` as the normal path, `goto release;` into the late `if` body produces the
+right `j` / shared `jal`, but leaves `arg0` one reference short: it loses `$s5`
+to the scratch-head pointer. Writing the call out twice gives the identical
+cross-jumped code *and* the target's `arg0 = $s5` / `scratch = $s6` split.
+
+## `a > K` vs `K < a` decides which temp gets `$v0` in a loop-end compare
+
+`if (n * 8 - 1 < mem->field_22)` and `if (mem->field_22 > n * 8 - 1)` compile to
+the same `slt` / `beqz`, but only the `>` form schedules `sll $v0, $s7, 3` ahead
+of the `sw` that frees `$v1`, so `n * 8` stays in `$v0` and the reloaded
+`field_22` takes `$v1` — matching the target. Hoisting the limit into its own
+local does not help; the operand order does.

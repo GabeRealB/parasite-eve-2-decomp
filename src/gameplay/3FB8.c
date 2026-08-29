@@ -1255,7 +1255,135 @@ do_fcd00:
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FCD00);
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FD49C);
+void func_800FD49C(Task* arg0)
+{
+    GpEffWork*         mem;
+    GsCOORDINATE2*     coord;
+    GsCOORDINATE2*     parent;
+    MATRIX*            m;
+    void**             scratch;
+    u8*                head;
+    GpEffFlareScratch* block;
+    GpEffFlareScratch* otzp;
+    POLY_FT4*          prim;
+    s16                flag;
+    s32                rng;
+    s32                one;
+    s32                n;
+    s16                step;
+    u16                vz;
+
+    mem   = arg0->spawnArg2;
+    flag  = Gp_State1C->field_4;
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    if (flag >= 2) {
+        if (flag < 4) {
+            return;
+        }
+        Gp_ReleaseState1CMem(mem, arg0);
+        return;
+    }
+    if (arg0->state == 0) {
+        rng                  = Gp_LcgState * 5 + 0x71357911;
+        mem->field_24        = ((u32)rng >> 16) & 0xFFF;
+        mem->field_26        = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xFFF;
+        parent               = mem->field_8;
+        mem->field_12        = -(mem->field_24 & 7);
+        one                  = ONE;
+        *(s32*)&coord->coord = one;
+        coord->sub           = parent;
+        m                    = &coord->coord;
+        *(s32*)&m->m[0][2]   = 0;
+        *(s32*)&m->m[1][1]   = one;
+        *(s32*)&m->m[2][0]   = 0;
+        m->m[2][2]           = one;
+        coord->coord.t[2]    = 0;
+        coord->coord.t[1]    = 0;
+        coord->coord.t[0]    = 0;
+        coord->flg           = 0;
+        Gp_LcgState          = rng;
+        arg0->state++;
+    }
+    Gp_UpdateCoord(coord);
+    scratch       = (void**)G_SCRATCH_HEAD;
+    head          = *scratch;
+    block         = (GpEffFlareScratch*)(head - 0x1C);
+    block->vec.vx = *(u16*)&coord->workm.t[0];
+    block->vec.vy = *(u16*)&coord->workm.t[1];
+    vz            = *(u16*)&coord->workm.t[2];
+    otzp          = block;
+    *scratch      = block;
+    block->vec.vz = vz;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&((GpEffFlareScratch*)(head - 0x1C))->vec);
+    gte_rtps_real();
+    n = (((s32)arg0->spawnArg1 >> 12) & 3) + 1;
+    gte_stsxy(&((GpEffFlareScratch*)(head - 0x1C))->sxy);
+    gte_stflg(&((GpEffFlareScratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&otzp->otz);
+        prim                                     = (POLY_FT4*)D_80071190;
+        ((GpEffFlareScratch*)(head - 0x1C))->otz = ((GpEffFlareScratch*)(head - 0x1C))->otz + 1;
+        D_80071190                               = (DR_TPAGE*)(prim + 1);
+        setlen(prim, 9);
+        setcode(prim, 0x2C);
+        setRGB0(prim, 0x60, 0x60, 0x60);
+        prim->tpage = 0x28;
+        prim->clut  = 0x4253;
+        prim->code |= 2;
+        {
+            /* the divisor must stay a live copy of `n` in $v1 */
+            register s32 count asm("v1");
+            count    = n;
+            prim->u0 = (mem->field_22 / count) << 5;
+            prim->v0 = 0x18;
+            prim->u1 = ((mem->field_22 / count) << 5) + 0x1F;
+            prim->v1 = 0x18;
+            prim->u2 = (mem->field_22 / count) << 5;
+            prim->v2 = 0x37;
+            prim->u3 = ((mem->field_22 / count) << 5) + 0x1F;
+            prim->v3 = 0x37;
+        }
+        {
+            register s32 prod asm("v1");
+            prod      = ((mem->field_26 * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(mem->field_24);
+            block->dx = prod >> 12;
+            __asm__ volatile("" ::"r"(prod)); /* keep prod live so the shift lands in $v0 */
+        }
+        block->dy = (((mem->field_26 * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(mem->field_24)) >> 12;
+        prim->x0  = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+        prim->x3  = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+        prim->y0  = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+        prim->y3  = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        {
+            register s32 prod asm("v1");
+            prod      = ((mem->field_26 * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(mem->field_24 + 0x400);
+            block->dx = prod >> 12;
+            __asm__ volatile("" ::"r"(prod));
+        }
+        block->dy = (((mem->field_26 * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(mem->field_24 + 0x400)) >> 12;
+        prim->x1  = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+        prim->x2  = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+        prim->y1  = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+        prim->y2  = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        addPrim((u_long*)(((((u32)((GpEffFlareScratch*)(head - 0x1C))->otz << Display_State.field_128) >> 2) & 0xFFC) +
+                          (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *scratch = (u8*)*scratch + 0x1C;
+    if (Gp_State1C->field_4 != 0) {
+        return;
+    }
+    step               = mem->field_12 - (mem->field_22 & 1);
+    mem->field_12      = step;
+    coord->flg         = 0;
+    coord->coord.t[1] += step;
+    mem->field_22++;
+    if (mem->field_22 > n * 8 - 1) {
+        Gp_ReleaseState1CMem(mem, arg0);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FDB18);
 
