@@ -3,6 +3,48 @@
 Notes on the GCC 2.8.1 (`-O2 -mips1`, aspsx 2.77) toolchain used by this project.
 Each entry was verified against real target assembly.
 
+## Scratch `-dp` comments drop maspsx load-delay nops after volatile `lbu`
+
+Scratch `build.sh` passes `-dp`, so a volatile byte load looks like
+
+```
+#.set	volatile
+lbu	$2,3($3)
+#.set	novolatile  # 76 movqi_internal2/3
+#nop
+addu	$2,$2,2
+```
+
+maspsx only skips an exact `#.set	novolatile`. The RTL-uid suffix makes
+that line look like the next insn, `line_loads_from_reg` fails, and the
+`#nop` stays a comment — object dump is missing the two nops the target
+has after `lbu v0,3(v1)`. Project `CC_FLAGS` have no `-dp`, so the same
+C inserts real nops. Do not rewrite the compare/update just to force
+nops in scratch; `func_800E6BB8` is the example.
+
+## `for (;;)` + `break` so `v0tmp = cont` dies before `shifted = code << 16`
+
+A cap-text `do { ... shifted = code << 16; v0tmp = cont; } while (v0tmp)`
+keeps both live at the latch, so they cannot share `$v0`. GCC then
+either tests `$a3` directly (`bnez a3`) or blocks delay-slot `sll v0`
+with `TOUCH_REG(v0tmp)`. Put the copy *before* the exit test and the
+shift *after* it:
+
+```c
+v0tmp = cont;
+TOUCH_REG(v0tmp);
+if (v0tmp == 0) {
+    break;
+}
+shifted = code << 16;
+```
+
+`v0tmp` dies at the branch; `shifted` is born in the continue path. They
+color the same `$v0`, reorg puts `sll v0, v1, 16` in the `bnez v0` delay,
+and `TOUCH_REG` before the test keeps `move v0, a3`. `break` (not `goto`
+past the loop) is required so GCC still treats it as the loop exit.
+`func_800E6BB8` is the example.
+
 ## Occupy `$a0` with the incoming arg so a later `la` cannot lift
 
 `-fschedule-insns` treats `la` of an independent table as free to run as

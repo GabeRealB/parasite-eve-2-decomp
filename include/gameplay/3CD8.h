@@ -17,7 +17,7 @@ struct _GpEffWork;
 /// from a start index until `field_8 == -1` (terminator) or `field_5`
 /// equals `Gp_CapEventKey` (the key `Gp_StartCap` saved from its third arg).
 /// When not -1, `field_8` is a relocated `u16*` text stream walked by
-/// `Gp_CapTextTopY` / `Gp_CapTextHeight` / `Gp_CapCenterX` / `Gp_CapCenterXLine` (codes `-1` end,
+/// `Gp_CapTextTopY` / `Gp_CapTextHeight` / `func_800E6BB8` / `Gp_CapCenterX` / `Gp_CapCenterXLine` (codes `-1` end,
 /// `-2` newline, `-3` skip; else glyph index `& 0x3FF` into `Gp_CapGlyphs`).
 typedef struct _GpEvt12 {
     /* 0x0 */ u8  field_0;
@@ -401,6 +401,7 @@ s16  Gp_CapCenterX(u16* arg0);
 s16  Gp_CapCenterXLine(u16* arg0, s32 arg1);
 s16  Gp_CapTextHeight(u16* arg0);
 s16  Gp_CapTextTopY(u16* arg0);
+s32  func_800E6BB8(u16* arg0);
 s32  Gp_CapBusy(void);
 
 /// Screen-shake task. `spawnArg2` is a packed s32: low byte is the
