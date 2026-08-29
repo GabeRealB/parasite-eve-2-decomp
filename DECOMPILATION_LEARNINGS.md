@@ -30511,3 +30511,104 @@ the same `slt` / `beqz`, but only the `>` form schedules `sll $v0, $s7, 3` ahead
 of the `sw` that frees `$v1`, so `n * 8` stays in `$v0` and the reloaded
 `field_22` takes `$v1` — matching the target. Hoisting the limit into its own
 local does not help; the operand order does.
+
+## `break` rotates a loop, `goto` past it does not
+
+GCC 2.8.1's `expand_end_loop` moves a top-of-loop exit test down to the bottom
+(the classic guard-test + duplicated tail-test shape) only when the exit jump
+targets the loop's own end label — that is, when it comes from `break`. An exit
+written as `goto` to a label *past* the loop is not recognised as the loop's
+exit test, so the test stays at the top and the body just ends in `j <top>`.
+
+```c
+for (;; cell++) {
+    id = *cell;
+    if (id == -1) {
+        goto done;   /* `break;` here duplicates the test at the loop end */
+    }
+    ...
+}
+```
+
+`func_800DC528` needed this for both its cell walk and the inner free-slot
+search; each `break` cost a duplicated three-instruction test plus the guard.
+
+## Where the `continue` increment lands: `for (;; p++)` vs explicit `p++`
+
+With `for (;; p++)` every `continue` jumps to one shared increment block at the
+end of the body. Cross-jumping folds the *conditional* continues into a single
+`beqz $v0, <that block>`, while `reorg` steals the `addiu` into the delay slot
+of the *unconditional* ones, so the same `j <top>` / `addiu` pair appears
+duplicated at each fall-through site. Writing `p++; continue;` by hand at every
+site instead gives each one its own inline copy and no shared block. Match the
+target by counting how many `addiu` + `j <top>` pairs it has and whether the
+conditional continues branch to a block at the very end of the loop body.
+
+The choice also changes register pressure: the explicit form raises the
+induction variable's reference count enough to move it several registers down
+the callee-saved order.
+
+## Out-of-line `then` blocks: GCC appends them just before the next statement
+
+For `if (c) { x = 1; break; }` deep inside a loop, GCC emits the two-instruction
+body out of line and inverts the branch. It parks that block immediately before
+the code of the statement following the enclosing `if` — *not* at the branch.
+When the target has some other block in between, that block has to come from a
+`goto` label the source placed there, e.g.
+
+```c
+    if ((u16)arg0->field_1C >= ABS((s16)dist)) {
+        goto edges;
+    }
+    continue;
+
+mark_outside:            /* jumped to from inside the edge loop below */
+    outside = 1;
+    goto edges_done;
+
+fill:                    /* jumped to from the slot search below */
+    slot->field_0 = flags | 1;
+    ...
+    continue;
+
+edges:
+    n = ...;
+```
+
+`func_800DC528`'s layout only fell into place once the `fill` body lived at that
+spot instead of after the loop that jumps to it.
+
+## Evaluate the cheap operand first to control which load is scheduled first
+
+Computing an absolute value into a temp and then comparing it
+(`val = ABS((s16)dist); if ((u16)arg0->field_1C < val)`) emits the `lhu` of
+`field_1C` *after* the abs. Folding it back into the comparison
+(`if ((u16)arg0->field_1C >= ABS((s16)dist))`) makes GCC materialise the left
+operand first, which is what puts the `lhu` in front of the `bgez` / `negu`
+pair. Worth ~1.5% on `func_800DC528`.
+
+## Reuse of a temp variable can hide a spill the target has
+
+Two dot products in different loops both written through one `s32 plane` local
+kept the second `mflo` in a register. Giving the second its own local recreated
+the target's dead `sw $t3, 0x1C($sp)` spill and pulled the whole caller-saved
+allocation into line. When the target spills something that looks pointless,
+check whether two expressions in the C are sharing a variable that the original
+did not.
+
+## Read a global directly instead of through a local when the pointer must die
+
+`p = Gp_GridParams; gte_ldv0(&p->field_8[...]);` gives every use of `p` one hard
+register, so a load whose value the target drops immediately (`lw $v1, %lo(...)`
+/ `lw $v1, 8($v1)`) stays pinned in a callee-saved-ish temp. Writing
+`Gp_GridParams->field_8[...]` inline creates a short-lived pseudo that dies into
+`$v1`. In `func_800DC528` every site had to be the direct form; introducing the
+local anywhere shifted `$a0`/`$a1` across the whole function.
+
+## `gte_op12` real encoding
+
+`psyq/inline_c.h` ships placeholder `.word`s for the type-2 GTE ops, the same
+way `gte_rtv0` does. The real outer-product encoding is
+`#define gte_op12_real() __asm__ volatile("nop; nop; .word 0x4B78000C")`
+(`gte_ldopv1` / `gte_ldopv2` / `gte_op12_real` / `gte_stlvnl` is a cross
+product). `src/gameplay/1BC.c` already had it; `3A34.c` did not.

@@ -26,6 +26,7 @@
 #define gte_rtps_real()   __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_rtir_real()   __asm__ volatile("nop; nop; .word 0x4A49E012")
 #define gte_rtirtr_real() __asm__ volatile("nop; nop; .word 0x4A498012")
+#define gte_op12_real()   __asm__ volatile("nop; nop; .word 0x4B78000C")
 #define gte_gpf12_real()  __asm__ volatile("nop; nop; .word 0x4B98003D")
 #define gte_gpl12_real()  __asm__ volatile("nop; nop; .word 0x4BA8003E")
 
@@ -3260,7 +3261,145 @@ s32 func_800DBCAC(GpObj* arg0, GpObj* arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DBE7C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DC528);
+void func_800DC528(GpObj* arg0)
+{
+    void**            scratch;
+    u8*               head;
+    GpGridHitScratch* block;
+    VECTOR3*          pos;
+    GpGridFace*       face;
+    GpRec18*          slot;
+    register s16*     cell asm("s7");
+    s32               id;
+    s32               i;
+    s32               n;
+    s32               outside;
+    s32               val;
+    s32               faceDot;
+    s32               edgeDot;
+    u16               dist;
+    u16               flags;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    pos      = (VECTOR3*)(head - 0x80);
+    *scratch = head - 0x88;
+    block    = (GpGridHitScratch*)(head - 0x88);
+    Gp_ObjWorldPos(arg0, pos);
+    Gp_LocalToGrid(pos, &block->grid);
+
+    if ((u16)block->grid.vx < Gp_GridParams->field_1C && (u16)block->grid.vz < Gp_GridParams->field_1E) {
+        cell = Gp_GridParams->field_10[block->grid.vx * Gp_GridParams->field_1E + block->grid.vz];
+        if (cell != NULL) {
+            for (;; cell++) {
+                id = *cell;
+                if (id == -1) {
+                    goto done;
+                }
+                face = &Gp_GridParams->field_C[id];
+                if (face->verts[0] == 0 && face->verts[1] == 0) {
+                    continue;
+                }
+
+                __asm__ volatile("" ::: "memory");
+                gte_SetRotMatrix(&Gp_GridParams->field_0->workm);
+                gte_ldv0(&Gp_GridParams->field_8[face->verts[0]]);
+                gte_rtv0_real();
+                gte_stlvnl(&block->verts[0]);
+                block->verts[0].vx += Gp_GridParams->field_0->workm.t[0];
+                block->verts[0].vy += Gp_GridParams->field_0->workm.t[1];
+                block->verts[0].vz += Gp_GridParams->field_0->workm.t[2];
+
+                gte_ldv0(&Gp_GridParams->field_4[face->field_8]);
+                gte_rtv0_real();
+                gte_stlvnl(&block->normal);
+
+                faceDot = (block->normal.vx * block->verts[0].vx + block->normal.vy * block->verts[0].vy +
+                           block->normal.vz * block->verts[0].vz) >>
+                          12;
+                dist = ((block->normal.vx * block->pos.vx + block->normal.vy * block->pos.vy +
+                         block->normal.vz * block->pos.vz) >>
+                        12) -
+                       faceDot;
+                if ((u16)arg0->field_1C >= ABS((s16)dist)) {
+                    goto edges;
+                }
+                continue;
+
+            mark_outside:
+                outside = 1;
+                goto edges_done;
+
+            fill:
+                slot->field_0              = flags | 1;
+                slot->field_2              = (u16)arg0->field_1C - dist;
+                slot->field_4              = face->field_A | 0x100000;
+                slot->field_8              = 0;
+                slot->field_A              = 0;
+                slot->field_C              = 0;
+                *(SVECTOR*)&slot->field_10 = Gp_GridParams->field_4[face->field_8];
+                continue;
+
+            edges:
+                n = (face->verts[3] != 0xFFFF) ? 4 : 3;
+                for (i = 1; i < n; i++) {
+                    gte_ldv0(&Gp_GridParams->field_8[face->verts[i]]);
+                    gte_rtv0_real();
+                    gte_stlvnl(&block->verts[i]);
+                    block->verts[i].vx += Gp_GridParams->field_0->workm.t[0];
+                    block->verts[i].vy += Gp_GridParams->field_0->workm.t[1];
+                    block->verts[i].vz += Gp_GridParams->field_0->workm.t[2];
+                }
+
+                outside = 0;
+                for (i = n - 3; i < n * 2 - 3; i++) {
+                    block->delta.vx =
+                        block->verts[D_8010FA24[i].field_0].vx - block->verts[D_8010FA24[i].field_2].vx;
+                    block->delta.vy =
+                        block->verts[D_8010FA24[i].field_0].vy - block->verts[D_8010FA24[i].field_2].vy;
+                    block->delta.vz =
+                        block->verts[D_8010FA24[i].field_0].vz - block->verts[D_8010FA24[i].field_2].vz;
+                    VectorNormal(&block->delta, &block->unit);
+                    gte_ldopv1(&block->normal);
+                    gte_ldopv2(&block->unit);
+                    gte_op12_real();
+                    gte_stlvnl(&block->delta);
+
+                    edgeDot = (block->delta.vx * block->verts[D_8010FA24[i].field_0].vx +
+                               block->delta.vy * block->verts[D_8010FA24[i].field_0].vy +
+                               block->delta.vz * block->verts[D_8010FA24[i].field_0].vz) >>
+                              12;
+                    val = (s16)(((block->delta.vx * block->pos.vx + block->delta.vy * block->pos.vy +
+                                  block->delta.vz * block->pos.vz) >>
+                                 12) -
+                                edgeDot);
+                    if (val - 10 > 0) {
+                        goto mark_outside;
+                    }
+                }
+            edges_done:
+                if (outside) {
+                    continue;
+                }
+
+                slot = arg0->field_C;
+                for (;;) {
+                    flags = slot->field_0;
+                    if (!(flags & 1)) {
+                        goto fill;
+                    }
+                    if (flags & 2) {
+                        goto done;
+                    }
+                    slot++;
+                }
+            }
+        }
+    }
+
+done:
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x88;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DCB80);
 

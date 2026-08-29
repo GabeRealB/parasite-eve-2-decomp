@@ -73,6 +73,16 @@ typedef struct _GpU16Pair {
 } GpU16Pair;
 STATIC_ASSERT_SIZEOF(GpU16Pair, 0x4);
 
+/// Edge endpoint pair at `D_8010FA24`, indexing the transformed corners of a
+/// `GpGridFace`. Entries 0..2 are the edges of a triangle; entries 1..4 are the
+/// edges of a quad, so a face with `n` corners walks entries `n - 3` up to
+/// `n * 2 - 3`.
+typedef struct _GpEdgePair {
+    /* 0x0 */ s16 field_0;
+    /* 0x2 */ s16 field_2;
+} GpEdgePair;
+STATIC_ASSERT_SIZEOF(GpEdgePair, 0x4);
+
 /// Pair-dispatch callback from `D_8010FA38`. `kind` is `GpU16Pair.field_0`.
 typedef void (*GpPairFn)(GpObj* a, GpObj* b, s32 kind);
 
@@ -578,6 +588,18 @@ typedef struct _GpObj3A {
 } GpObj3A;
 STATIC_ASSERT_SIZEOF(GpObj3A, 0x3C);
 
+/// 0xC record in `GpGridParams.field_C`, one per collision face. The first
+/// four halfwords index `GpGridParams.field_8` (the face corners); a `verts[3]`
+/// of 0xFFFF marks a triangle instead of a quad. `field_8` indexes
+/// `GpGridParams.field_4` (the face normal) and `field_A` is the face id stored
+/// into `GpRec18.field_4` alongside the 0x100000 kind bits.
+typedef struct _GpGridFace {
+    /* 0x0 */ u16 verts[4];
+    /* 0x8 */ u16 field_8;
+    /* 0xA */ s16 field_A;
+} GpGridFace;
+STATIC_ASSERT_SIZEOF(GpGridFace, 0xC);
+
 /// Grid conversion params pointed to by `Gp_GridParams`.
 /// `Gp_WorldToGrid` writes `out.vx = (pos.vx + field_14) / field_20` (or -1
 /// if that sum is negative), `out.vy = 0`, and
@@ -585,13 +607,21 @@ STATIC_ASSERT_SIZEOF(GpObj3A, 0x3C);
 /// applies `field_0->workm` with `ApplyTransposeMatrixLV`, then subtracts
 /// `field_0->coord.t[0]` / `t[2]` from the transformed X / Z.
 /// `func_800DEAFC` does the same transform on two `SVECTOR`s, keeping only
-/// the low 16 bits. Full object size is not known yet.
+/// the low 16 bits. `field_4` and `field_8` are `SVECTOR` pools holding face
+/// normals and face corners; `field_C` is the `GpGridFace` table indexed by
+/// the face ids stored in the `field_10` cell grid. That grid is
+/// `field_1C` by `field_1E` cells of `s16*` face-id lists, each terminated by
+/// -1, indexed as `field_10[x * field_1E + z]`.
 typedef struct _GpGridParams {
     /* 0x00 */ struct _GsCOORDINATE2* field_0;
-    /* 0x04 */ byte                   pad_4[0x10];
+    /* 0x04 */ SVECTOR*               field_4;
+    /* 0x08 */ SVECTOR*               field_8;
+    /* 0x0C */ GpGridFace*            field_C;
+    /* 0x10 */ s16**                  field_10;
     /* 0x14 */ s32                    field_14;
     /* 0x18 */ s32                    field_18;
-    /* 0x1C */ byte                   pad_1C[4];
+    /* 0x1C */ u16                    field_1C;
+    /* 0x1E */ u16                    field_1E;
     /* 0x20 */ u16                    field_20;
     /* 0x22 */ byte                   pad_22[2];
 } GpGridParams;
@@ -946,6 +976,25 @@ typedef struct _GpSphereScratch {
 } GpSphereScratch;
 STATIC_ASSERT_SIZEOF(GpSphereScratch, 0x48);
 
+/// 0x88-byte scratch from `G_SCRATCH_HEAD` used by `func_800DC528`.
+/// `pos` is the object's world position (`Gp_ObjWorldPos`) and `grid` its cell
+/// (`Gp_LocalToGrid`). `verts` holds the face corners rotated by
+/// `Gp_GridParams->field_0->workm` and translated by that matrix, `normal` the
+/// rotated face normal. Per edge, `delta` is the corner difference, `unit` its
+/// `VectorNormal`, and `delta` is then reused for the `normal x unit` inward
+/// edge plane.
+typedef struct _GpGridHitScratch {
+    /* 0x00 */ SVECTOR3 grid;
+    /* 0x06 */ s16      pad_6;
+    /* 0x08 */ VECTOR3  pos;
+    /* 0x14 */ s32      pad_14;
+    /* 0x18 */ VECTOR   verts[4];
+    /* 0x58 */ VECTOR   normal;
+    /* 0x68 */ VECTOR   unit;
+    /* 0x78 */ VECTOR   delta;
+} GpGridHitScratch;
+STATIC_ASSERT_SIZEOF(GpGridHitScratch, 0x88);
+
 /// Pending flags written by `func_800D5B14` and consumed by `func_800CE294`.
 /// `D_8010F888 == 1` requests `Gp_DispatchMsg(..., 0x402, ...)`.
 extern s32 D_8010F888;
@@ -1041,6 +1090,10 @@ extern GpGiveRec* D_8010F9F4[];
 /// Per-stage `GpGiveRec` lists selected by `Gp_GrantLocationItems` when
 /// `Mc_SaveData.field_F` is not 0 or 2. Indexed by `GameSession.field_7`.
 extern GpGiveRec* D_8010FA0C[];
+
+/// Face edge endpoint pairs walked by the grid collision helpers
+/// (`func_800DC528` / `func_800DCB80` / `func_800DD324` / `func_800DFCCC`).
+extern GpEdgePair D_8010FA24[5];
 
 /// Pair-handler table used by `func_800DB900` / `func_800E0414`.
 /// Indexed by `D_8010FA4C[].field_0` (`Gp_PairNop` / `func_800DBCAC` /
