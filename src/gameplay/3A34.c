@@ -3403,7 +3403,106 @@ done:
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DCB80);
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DD324);
+s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, s32 arg3)
+{
+    void**            scratch;
+    u8*               head;
+    GpGridRayScratch* block;
+    GpGridFace*       face;
+    s32               i;
+    s32               n;
+    s16               faceDot;
+    s32               denom;
+    s32               t;
+    s32               edgeDot;
+    s32               val;
+    s32               limit;
+
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    *scratch = head - 0x70;
+    face     = &Gp_GridParams->field_C[faceId];
+    block    = (GpGridRayScratch*)(head - 0x70);
+
+    gte_SetRotMatrix(&Gp_GridParams->field_0->workm);
+    gte_ldv0(&Gp_GridParams->field_8[face->verts[0]]);
+    gte_rtv0_real();
+    gte_stlvnl(&block->verts[0]);
+    block->verts[0].vx += Gp_GridParams->field_0->workm.t[0];
+    block->verts[0].vy += Gp_GridParams->field_0->workm.t[1];
+    block->verts[0].vz += Gp_GridParams->field_0->workm.t[2];
+
+    gte_ldv0(&Gp_GridParams->field_4[face->field_8]);
+    gte_rtv0_real();
+    gte_stlvnl(&block->normal);
+
+    faceDot = (block->normal.vx * block->verts[0].vx + block->normal.vy * block->verts[0].vy +
+               block->normal.vz * block->verts[0].vz) >>
+              12;
+    denom = (block->normal.vx * ray[0].vx + block->normal.vy * ray[0].vy + block->normal.vz * ray[0].vz) >> 12;
+
+    if (denom >= 0) {
+        *scratch = (u8*)*scratch + 0x70;
+        return 0;
+    }
+    if ((((block->normal.vx * seg[1].vx + block->normal.vy * seg[1].vy + block->normal.vz * seg[1].vz) >> 12) -
+         faceDot) <= 0) {
+        *scratch = (u8*)*scratch + 0x70;
+        return 0;
+    }
+    t = -(((((block->normal.vx * seg[0].vx + block->normal.vy * seg[0].vy + block->normal.vz * seg[0].vz) >> 12) -
+            faceDot)
+           << 12)) /
+        denom;
+    if (t >= 0) {
+        *scratch = (u8*)*scratch + 0x70;
+        return 0;
+    }
+
+    ray[1].vx = seg[0].vx + ((ray[0].vx * t) >> 12);
+    ray[1].vy = seg[0].vy + ((ray[0].vy * t) >> 12);
+    ray[1].vz = seg[0].vz + ((ray[0].vz * t) >> 12);
+
+    n = (face->verts[3] == 0xFFFF) ? 3 : 4;
+
+    gte_SetRotMatrix(&Gp_GridParams->field_0->workm);
+    for (i = 1; i < n; i++) {
+        gte_ldv0(&Gp_GridParams->field_8[face->verts[i]]);
+        gte_rtv0_real();
+        gte_stlvnl(&block->verts[i]);
+        block->verts[i].vx += Gp_GridParams->field_0->workm.t[0];
+        block->verts[i].vy += Gp_GridParams->field_0->workm.t[1];
+        block->verts[i].vz += Gp_GridParams->field_0->workm.t[2];
+    }
+
+    for (i = n - 3; i < n * 2 - 3; i++) {
+        block->delta.vx = block->verts[D_8010FA24[i].field_0].vx - block->verts[D_8010FA24[i].field_2].vx;
+        block->delta.vy = block->verts[D_8010FA24[i].field_0].vy - block->verts[D_8010FA24[i].field_2].vy;
+        block->delta.vz = block->verts[D_8010FA24[i].field_0].vz - block->verts[D_8010FA24[i].field_2].vz;
+        VectorNormal(&block->delta, &block->unit);
+        gte_ldopv1(&block->normal);
+        gte_ldopv2(&block->unit);
+        gte_op12_real();
+        gte_stlvnl(&block->delta);
+
+        edgeDot = (block->delta.vx * block->verts[D_8010FA24[i].field_0].vx +
+                   block->delta.vy * block->verts[D_8010FA24[i].field_0].vy +
+                   block->delta.vz * block->verts[D_8010FA24[i].field_0].vz) >>
+                  12;
+        limit = 5;
+        val   = ((block->delta.vx * ray[1].vx + block->delta.vy * ray[1].vy + block->delta.vz * ray[1].vz) >> 12) -
+              edgeDot;
+        if (arg3 != 0) {
+            limit = 10;
+        }
+        if ((s16)val - limit > 0) {
+            *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x70;
+            return 0;
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x70;
+    return 1;
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DD940);
 

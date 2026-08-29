@@ -995,6 +995,21 @@ typedef struct _GpGridHitScratch {
 } GpGridHitScratch;
 STATIC_ASSERT_SIZEOF(GpGridHitScratch, 0x88);
 
+/// 0x70-byte scratch from `G_SCRATCH_HEAD` used by `func_800DD324`, the
+/// ray / face intersection test. Same tail layout as `GpGridHitScratch`
+/// without the object position and cell: `verts` are the face corners rotated
+/// by `Gp_GridParams->field_0->workm` and translated by that matrix, `normal`
+/// the rotated face normal, and per edge `delta` is the corner difference,
+/// `unit` its `VectorNormal`, then `delta` is reused for the `normal x unit`
+/// inward edge plane.
+typedef struct _GpGridRayScratch {
+    /* 0x00 */ VECTOR verts[4];
+    /* 0x40 */ VECTOR normal;
+    /* 0x50 */ VECTOR unit;
+    /* 0x60 */ VECTOR delta;
+} GpGridRayScratch;
+STATIC_ASSERT_SIZEOF(GpGridRayScratch, 0x70);
+
 /// Pending flags written by `func_800D5B14` and consumed by `func_800CE294`.
 /// `D_8010F888 == 1` requests `Gp_DispatchMsg(..., 0x402, ...)`.
 extern s32 D_8010F888;

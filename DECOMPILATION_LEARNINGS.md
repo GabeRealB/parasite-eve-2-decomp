@@ -30612,3 +30612,46 @@ way `gte_rtv0` does. The real outer-product encoding is
 `#define gte_op12_real() __asm__ volatile("nop; nop; .word 0x4B78000C")`
 (`gte_ldopv1` / `gte_ldopv2` / `gte_op12_real` / `gte_stlvnl` is a cross
 product). `src/gameplay/1BC.c` already had it; `3A34.c` did not.
+
+## A whole-function register shift traces back to one hoisted address multiply
+
+When every temp in a function is one register off the target (`$t2/$t1/$t0`
+where the target has `$t1/$t0/$a3`), the cause is usually a single pseudo that
+was still live — or already dead — at the *first* load, not a hundred bad
+allocations. In `func_800DD324` the culprit was `face = &Gp_GridParams->field_C[faceId]`.
+Written directly after the scratch-head bookkeeping, the pre-reload scheduler
+hoisted the whole `faceId * 12` chain (`sll`/`addu`/`sll`) into the prologue's
+`sw` delay slots, so `$a0` was dead by the time `Gp_GridParams` was loaded and
+the global took `$a0` instead of `$a1`. That freed `$a1` for the face pointer,
+which then no longer needed a callee-saved register, and the shift cascaded
+through every `mflo` below.
+
+Moving the statement one line — between the store of the new head and the
+assignment of the scratch pointer — left `addu v0, v0, a0` after the
+`lw a1, %lo(Gp_GridParams)` and fixed all ~40 register diffs at once:
+
+```c
+    head     = *scratch;
+    *scratch = head - 0x70;
+    face     = &Gp_GridParams->field_C[faceId];   /* not before, not after */
+    block    = (GpGridRayScratch*)(head - 0x70);
+```
+
+Useful corollary when reasoning about which registers are even candidates:
+`gte_SetRotMatrix` / `gte_ldopv1` clobber `$12`-`$14` (`$t4`-`$t6`), so any
+pseudo live across them is barred from those three registers.
+
+## Two pseudos for one scratch pointer produce the `move` GCC needs
+
+`block = (X*)(head - 0x70); *scratch = block;` emits one `addiu` and reuses the
+register. The target's extra `addiu a2, s0, -0x70` / `sw a2` / `move s1, a2`
+comes from storing the expression and re-deriving the pointer:
+
+```c
+    *scratch = head - 0x70;
+    block    = (GpGridRayScratch*)(head - 0x70);
+```
+
+CSE rewrites the second occurrence as a copy of the first pseudo, and the two
+end up in different hard registers (a caller-saved one for the short-lived
+store operand, a callee-saved one for the long-lived block pointer).
