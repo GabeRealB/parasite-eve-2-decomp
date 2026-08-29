@@ -1395,7 +1395,43 @@ s8 SndVoice_GetMasterVolume(void)
     return D_80082748;
 }
 
-INCLUDE_ASM("main/nonmatchings/sndscript", func_80055EF8);
+s8 func_80055EF8(SndVoicePick* arg0, s32 arg1)
+{
+    s32 v;
+    u8  u;
+    s32 none;
+
+    none = -1;
+    if (arg1 == none) {
+        return -9;
+    }
+    if (arg0->field_C < arg1) {
+        return -5;
+    }
+    if (arg0->field_2 != none) {
+        goto field6;
+    }
+    v = arg0->field_4;
+    u = arg0->field_4;
+    if (v != none) {
+        goto store;
+    }
+    v = arg0->field_5;
+    u = arg0->field_5;
+join:
+    if (v == none) {
+        goto ret_m6;
+    }
+store:
+    arg0->field_0 = u;
+    return v;
+field6:
+    v = arg0->field_6;
+    u = arg0->field_6;
+    goto join;
+ret_m6:
+    return -6;
+}
 
 void SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, s32 arg4, SndVoiceParams* arg5)
 {

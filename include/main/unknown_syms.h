@@ -56,7 +56,6 @@ extern void  func_80046EEC(void* arg0, void* arg1, s32 arg2);
 extern s16   func_8004DE18(void* arg0);
 extern void  func_8004E200(void);
 extern u8*   func_80052488(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3);
-extern s8    func_80055EF8(SndVoicePick* arg0, s16 arg1);
 extern s32   func_80057BC0(void);
 extern void  func_8001F430(void);
 extern u32   func_8001F180(u32);

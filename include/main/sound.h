@@ -711,6 +711,7 @@ s32            SndScript_Exec(SndScript* arg0);
 void           SndVoice_TickEnvelope(SndVoice* arg0);
 s32            SndVoice_AllocSlot(s32 arg0, s8 arg1, s8 arg2, s32 arg3, SndVoiceParams* arg4);
 void           SndVoice_ScanCandidates(SndVoicePick* arg0, u16 arg1, s32 arg2, u16 arg3);
+s8             func_80055EF8(SndVoicePick* arg0, s32 arg1);
 void           SndScript_Play(s32 arg0, s8 arg1, s8 arg2, s32 arg3, s32 arg4, SndVoiceParams* arg5);
 s32            SndVoice_Tick(SndVoice* arg0);
 s32            SndScript_StopMatching(s32 arg0, s32 arg1);

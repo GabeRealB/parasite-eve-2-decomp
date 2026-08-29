@@ -31407,3 +31407,53 @@ without the jtbl automatically. The C TU's `.rodata` must be the *first*
 jtbl-bearing group at that offset (here the TU's text starts at
 `func_800B7420`), otherwise the generated jtbl lands in the wrong order and
 `fix_gameplay_linker_rodata_order` has to be extended.
+
+## Shared `-1` local plus dual `s32`/`u8` loads for `lb`/`lbu` join
+
+When the target keeps `-1` in `$a2` for every compare (`beq a1,a2` / `bne v0,a2`
+/ `beq v0,a2`) and each candidate byte is `lb v0` + `lbu v1` of the same `s8`
+field, a dominating `if (p->flag == -1)` CSE-replaces later `-1` tests with the
+flag load. That keeps the flag live, steals `$v0`, and inverts the join.
+
+Hold the constant in an `s32` used at every compare, assign each candidate to
+both an `s32` (signed `lb`) and a `u8` (unsigned `lbu`), and write the join with
+gotos so `beq == -1` falls into `jr ra; sb v1` while the other arm sits after
+the store and jumps back:
+
+```c
+s32 v;
+u8  u;
+s32 none;
+
+none = -1;
+if (arg1 == none) {
+    return -9;
+}
+if (p->field_2 != none) {
+    goto other;
+}
+v = p->field_4;
+u = p->field_4;
+if (v != none) {
+    goto store;
+}
+v = p->field_5;
+u = p->field_5;
+join:
+if (v == none) {
+    goto ret_m6;
+}
+store:
+p->field_0 = u;
+return v;
+other:
+v = p->field_6;
+u = p->field_6;
+goto join;
+ret_m6:
+return -6;
+```
+
+`s16 arg1` inserts `sll`/`sra 16` (see the existing “stray `sll/sra` means
+`s32`” note). An `s8` candidate temp alone becomes `lbu` + `sll 24` at the join.
+`func_80055EF8` is the example.
