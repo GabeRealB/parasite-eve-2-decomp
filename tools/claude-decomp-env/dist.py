@@ -330,6 +330,15 @@ def score_files(
         100.0 if final_score == 0 else max(0, 100.0 - (final_score / total_lines))
     )
 
+    penalties = {
+        "stack": num_stack_penalties,
+        "branch": num_branch_penalties,
+        "regs": num_regalloc_penalties,
+        "reorder": num_reordering_penalties,
+        "insert": num_insertion_penalties,
+        "delete": num_deletion_penalties,
+    }
+
     if debug_mode:
         print("\nPenalty Breakdown:")
         print(f" Stack Differences: {num_stack_penalties} x {PENALTY_STACKDIFF}")
@@ -348,6 +357,7 @@ def score_files(
         final_score,
         hashlib.sha256(joined_cand.encode()).hexdigest(),
         match_percentage,
+        penalties,
     )
 
 
@@ -382,12 +392,21 @@ def main():
     if assertions:
         check_assertions(target_lines, cand_lines, assertions)
 
-    score, sha256_hash, match_percentage = score_files(
+    score, sha256_hash, match_percentage, penalties = score_files(
         target_lines, cand_lines, debug_mode=args.debug
     )
 
     # Use the raw score directly as the differences value
     print(f"Score: {match_percentage:.3f}% ({score} differences)")
+    print(
+        "Penalties: "
+        f"stack={penalties['stack']} "
+        f"branch={penalties['branch']} "
+        f"regs={penalties['regs']} "
+        f"reorder={penalties['reorder']} "
+        f"insert={penalties['insert']} "
+        f"delete={penalties['delete']}"
+    )
 
 
 if __name__ == "__main__":

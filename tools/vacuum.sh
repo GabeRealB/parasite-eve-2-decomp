@@ -233,8 +233,8 @@ Do NOT run ./tools/claude or recreate the scratch directory.
 
 Read \`$scratch/BRIEF.md\` (also pasted below), then:
 
-1. cd into \`$scratch\` and make \`base.c\` compile with minimal edits (\`./build.sh base.c\`).
-2. Iterate \`base_N.c\` until 100%.
+1. cd into \`$scratch\` and make \`base.c\` compile with **minimal** edits (\`./build.sh base.c\`). If this was a give-up retry, \`base.c\` is the archived seed — do not restart from m2c or rewrite from the asm before the first score.
+2. Iterate \`base_N.c\` until 100%. Read the **Penalties:** line. At ≥90% \`build.sh\` auto-runs \`./dump.sh\` and prints a \`.lreg\`/\`.greg\`/\`.dbr\` summary. Shorten live ranges, split reused locals, or **unpin**. Do not add \`register … asm("")\` pins yet.
 3. If the best score is ≥ 95% and leftover diffs are registers / scheduling / stack, run the permuter from the repo root **before** adding register pins:
    \`./permute.sh --run --timeout 360 -j4 $func <asm path from BRIEF> $scratch/base_N.c\`
 4. On 100%: replace INCLUDE_ASM in the host C file, fix headers in this overlay's include/ tree, run \`./tools/build-and-verify.sh\`, commit \`matched $func <attempts>\`.

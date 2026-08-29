@@ -10,7 +10,7 @@ This scratch directory is already bootstrapped. **Do not** run `./tools/claude`.
 
 ### Laying the Foundation
 
-If `BRIEF.md` exists, use it instead of a context-gathering subagent. Then make the **minimal** edits needed so `base.c` compiles. `base.c` should only `#include "common.h"`; any other types go inline. An accurate baseline score depends on not rewriting m2c output yet.
+If `BRIEF.md` exists, use it instead of a context-gathering subagent. Then make the **minimal** edits needed so `base.c` compiles. `base.c` should only `#include "common.h"`; any other types go inline. An accurate baseline score depends on not rewriting m2c (or a give-up seed) yet. Do **not** rewrite the function from the asm before the first `./build.sh base.c`.
 
 If `BRIEF.md` is missing:
 
@@ -22,10 +22,28 @@ If `BRIEF.md` is missing:
 
 ### Build Loop
 
-1. `./build.sh base.c` — 100% is a perfect match.
-2. Plan a small change from the diff. Prefer nearby matched C in the same TU (see BRIEF.md) over m2c control flow.
+1. `./build.sh base.c` — 100% is a perfect match. Read the **Penalties:** line (stack / branch / regs / reorder / insert / delete).
+2. Plan a small change from the diff **and** the penalty mix. Prefer nearby matched C in the same TU (see BRIEF.md) over m2c control flow.
 3. Write `base_N.c` (one attempt per file).
 4. Repeat. Grep `DECOMPILATION_LEARNINGS.md` for the mismatch pattern; do not read it end-to-end.
+
+**When stuck (regs / reorder / delay slots), dump before pinning:**
+
+`build.sh` keeps the `.s` with RTL insn uids (`# 31 movsi_internal2/5`). At ≥90% it runs `./dump.sh` itself: cc1 `-da -dp`, a `.lreg`/`.greg`/`.dbr` summary, and a dump-delta vs the previous `base_N`. You can also run `./dump.sh base_N.c` by hand. Open the dump that matches the leftover:
+
+| leftover | dump |
+|---|---|
+| wrong `$sN` / swapped regs | `.lreg` `.greg` |
+| fused const, `lb` vs `lh`, dropped `andi` | `.cse` `.cse2` `.combine` |
+| loop IV / one walking pointer | `.loop` then `.cse2` |
+| insn order, load-delay `nop` | `.sched` `.sched2` |
+| empty delay slot after `jal`/`beq` | `.dbr` |
+| merged tails, extra `j` | `.jump` `.jump2` |
+| dead store / `REG_DEAD` | `.flow` |
+
+From `.lreg`/`.greg`: shorten the loser's live range, **split a reused local**, or **unpin**. Function-scope `register T x asm("s4")` reserves that hard register for the whole function — unpinning is often the 100% move. Do not add new pins until you have dumped.
+
+If the kept `.s` already matches and the `.o` does not, the bug is maspsx (`--expand-div`), not GCC.
 
 **Permuter:** if the best score is ≥ 95% and the remaining diffs are register allocation, instruction scheduling, or stack slots (not control flow), stop hand-pinning and from the project root run:
 
@@ -46,7 +64,8 @@ Do this **before** `register … asm("")` pins. Vacuum also permutes after you e
 
 ## Tools
 
-- `./build.sh <file>.c` — compile and score against `target.o`
+- `./build.sh <file>.c` — compile and score against `target.o` (penalty mix; auto-dumps at ≥90%)
+- `./dump.sh <file>.c` — cc1 `-da -dp`; prints `.lreg`/`.greg`/`.dbr` summary + dump-delta
 - `./objdump.py <file>.o`
 - `./diff.sh <file>.o`
 - `./map_asm_to_c.py <file>.o <line>`

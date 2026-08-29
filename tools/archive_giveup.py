@@ -2,9 +2,9 @@
 """Save the best scratch seed so a give-up can be retried later.
 
 Vacuum deletes nonmatchings/<func>/ after each iteration. This copies the
-best-scoring C (plus match_log / brief / permuter notes) to
-tools/giveups/<func>/, replacing an older archive only when the new score
-is higher.
+best unpinned C within 1% of the top score (plus match_log / brief /
+DUMP.txt / permuter notes) to tools/giveups/<func>/. Replaces an older
+archive on a higher score, or an unpinned seed within 1% of a pinned one.
 
 Exit 0 on write, 2 if skipped.
 """
@@ -46,7 +46,9 @@ def load_meta(dest: Path) -> Optional[dict]:
 def pick_any_seed(scratch: Path) -> Optional[vp.Seed]:
     seeds = vp.parse_match_log(scratch)
     if seeds:
-        return max(seeds, key=lambda s: (s.score, not s.pinned, s.path.name))
+        picked = vp.pick_seed(seeds, min_score=0.0)
+        if picked is not None:
+            return picked
     numbered = sorted(
         scratch.glob("base_*.c"),
         key=lambda p: p.stat().st_mtime,
@@ -86,15 +88,23 @@ def archive(func: str, scratch: Path) -> tuple[int, str]:
 
     dest = GIVEUPS / func
     prev = load_meta(dest)
-    if prev is not None:
+    if prev is not None and (dest / "base.c").is_file():
         try:
             old_score = float(prev.get("score", 0))
         except (TypeError, ValueError):
             old_score = 0.0
-        if old_score >= seed.score and (dest / "base.c").is_file():
+        old_pinned = bool(prev.get("pinned", False))
+        better_score = seed.score > old_score
+        unpin_swap = (
+            old_pinned
+            and not seed.pinned
+            and seed.score >= old_score - vp.UNPINNED_WINDOW
+        )
+        if not better_score and not unpin_swap:
             return 2, (
-                f"GIVEUP_SKIP=keep existing {old_score:.3f}% "
-                f"(new {seed.score:.3f}%)"
+                f"GIVEUP_SKIP=keep existing {old_score:.3f}%"
+                f"{' pinned' if old_pinned else ''} "
+                f"(new {seed.score:.3f}%{' pinned' if seed.pinned else ''})"
             )
 
     dest.mkdir(parents=True, exist_ok=True)
@@ -110,7 +120,7 @@ def archive(func: str, scratch: Path) -> tuple[int, str]:
         (dest / "match_log.txt").write_text(
             f"{seed.path.name} {seed.score:.3f}%\n", encoding="utf-8"
         )
-    for extra in ("BRIEF.md", "PERMUTER.txt", "permute_seed.c"):
+    for extra in ("BRIEF.md", "PERMUTER.txt", "permute_seed.c", "DUMP.txt"):
         src = scratch / extra
         if src.is_file():
             shutil.copy2(src, dest / extra)
@@ -121,6 +131,7 @@ def archive(func: str, scratch: Path) -> tuple[int, str]:
         "score": seed.score,
         "seed_name": seed.path.name,
         "pinned": seed.pinned,
+        "penalties": seed.penalties,
         "attempts": sum(1 for _ in scratch.glob("base_*.c")) + 1,
         "archived_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "overlay": loc.get("overlay"),

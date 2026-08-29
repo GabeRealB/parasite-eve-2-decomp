@@ -241,6 +241,9 @@ write_blank_base() {
     } >"$created_dir/base.c"
 }
 
+GIVEUP_BASE="$ROOT/tools/giveups/$FUNC_STEM/base.c"
+GIVEUP_META="$ROOT/tools/giveups/$FUNC_STEM/meta.json"
+
 if [[ "$USE_SCRATCH_SOURCE" == true ]]; then
     {
         echo '#include "common.h"'
@@ -250,6 +253,22 @@ if [[ "$USE_SCRATCH_SOURCE" == true ]]; then
         echo "$SOURCE_CODE"
     } >"$created_dir/base.c"
     echo "Using source code from decomp.me scratch (${SCRATCH_SCORE}% match)"
+elif [[ -f "$GIVEUP_BASE" ]]; then
+    cp "$GIVEUP_BASE" "$created_dir/base.c"
+    giveup_note="tools/giveups/$FUNC_STEM/base.c"
+    if [[ -f "$GIVEUP_META" ]]; then
+        giveup_note=$(python3 -c '
+import json, sys
+m = json.load(open(sys.argv[1], encoding="utf-8"))
+score = m.get("score", "")
+seed = m.get("seed_name", "base.c")
+func = m.get("func", "?")
+pinned = " pinned" if m.get("pinned") else ""
+print("tools/giveups/%s/%s (%s%%%s)" % (func, seed, score, pinned))
+' "$GIVEUP_META" 2>/dev/null || echo "$giveup_note")
+    fi
+    echo "Using give-up seed $giveup_note"
+    echo "Do not restart from m2c. Compile this first, then dump/unpin/permute."
 elif [[ "$BOOTSTRAP" == true ]]; then
     echo "Generating initial C code using m2c..."
     CONTEXT_ARG=()

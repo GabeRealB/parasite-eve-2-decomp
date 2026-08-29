@@ -367,6 +367,12 @@ def pack_context(func_name: str, version: Optional[str] = None) -> str:
     fields = _struct_field_hits(needles)
 
     project_root = str(REPO_ROOT)
+    giveup = REPO_ROOT / "tools" / "giveups" / loc.name / "base.c"
+    giveup_line = (
+        f"- Give-up seed: `{giveup.relative_to(REPO_ROOT)}` — bootstrap uses this as `base.c`; do not restart from m2c"
+        if giveup.is_file()
+        else ""
+    )
     lines = [
         f"# Decomp brief: {loc.name}",
         "",
@@ -380,9 +386,16 @@ def pack_context(func_name: str, version: Optional[str] = None) -> str:
         f"- Headers: `{info['include_path'] or 'none yet; use this overlay include/ when it exists'}`",
         f"- Yaml: `{info['yaml_path'] or 'none'}`",
         f"- Project root: `{project_root}`",
+    ]
+    if giveup_line:
+        lines.append(giveup_line)
+    lines += [
         "",
         "Scratch env is already bootstrapped. Do **not** run `./tools/claude`.",
-        "From the scratch directory: `./build.sh base.c`",
+        "From the scratch directory: `./build.sh base.c` (prints a Penalties: mix;",
+        "auto-dumps RTL at ≥90%). Do not rewrite `base.c` from the asm before the",
+        "first score. Read the dump summary; unpin / split locals before adding",
+        "`register … asm(\"\")` pins.",
         "From project root after a 100% match: `./tools/build-and-verify.sh`",
         "If the best score stays >= 95% on register/scheduling diffs, run",
         f"`./permute.sh --run -j4 {loc.name} {info['asm_file']} <scratch>/base_N.c`",

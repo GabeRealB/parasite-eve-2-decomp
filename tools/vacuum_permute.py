@@ -2,7 +2,9 @@
 """Pick a ≥95% scratch seed and run decomp-permuter until score 0 or timeout.
 
 Intended as a vacuum *post-step* after the agent gives up. Prefers an unpinned
-seed (register-asm pins shrink the search). Prints a STATUS= line for vacuum.sh.
+seed (register-asm pins shrink the search). Skips when match_log penalties
+show insert/delete/branch dominating regs/reorder/stack. Prints a STATUS=
+line for vacuum.sh.
 
 Exit codes:
   0  permuter produced output-0-* (PERMUTER_HIT=...)
@@ -31,11 +33,39 @@ REGISTER_ASM_RE = re.compile(
 )
 
 
+PENALTY_KEYS = ("stack", "branch", "regs", "reorder", "insert", "delete")
+# Same weights as tools/claude-decomp-env/dist.py
+PENALTY_WEIGHTS = {
+    "stack": 1,
+    "branch": 1,
+    "regs": 5,
+    "reorder": 60,
+    "insert": 100,
+    "delete": 100,
+}
+
+
 @dataclass
 class Seed:
     path: Path
     score: float
     pinned: bool
+    penalties: Optional[dict] = None
+
+
+def parse_penalties(fields: list[str]) -> Optional[dict]:
+    out: dict[str, int] = {}
+    for field in fields:
+        if "=" not in field:
+            continue
+        key, _, raw = field.partition("=")
+        if key not in PENALTY_KEYS:
+            continue
+        try:
+            out[key] = int(raw)
+        except ValueError:
+            return None
+    return out or None
 
 
 def parse_match_log(scratch: Path) -> list[Seed]:
@@ -58,8 +88,33 @@ def parse_match_log(scratch: Path) -> list[Seed]:
         if not path.is_file():
             continue
         text = path.read_text(encoding="utf-8", errors="replace")
-        seeds.append(Seed(path=path, score=score, pinned=bool(ASM_PIN_RE.search(text))))
+        seeds.append(
+            Seed(
+                path=path,
+                score=score,
+                pinned=bool(ASM_PIN_RE.search(text)),
+                penalties=parse_penalties(parts[2:]),
+            )
+        )
     return seeds
+
+
+def cfg_dominates(penalties: Optional[dict]) -> bool:
+    """True when insert/delete/branch outweigh regs/reorder/stack.
+
+    Missing penalties (old match_log lines) must not skip the permuter.
+    """
+    if not penalties:
+        return False
+    cfg = sum(penalties.get(k, 0) * PENALTY_WEIGHTS[k] for k in ("branch", "insert", "delete"))
+    rest = sum(penalties.get(k, 0) * PENALTY_WEIGHTS[k] for k in ("stack", "regs", "reorder"))
+    return cfg > rest
+
+
+def format_penalties(penalties: Optional[dict]) -> str:
+    if not penalties:
+        return ""
+    return " ".join(f"{k}={penalties.get(k, 0)}" for k in PENALTY_KEYS)
 
 
 def pick_seed(seeds: list[Seed], min_score: float) -> Optional[Seed]:
@@ -183,7 +238,15 @@ def main(argv: Optional[list[str]] = None) -> int:
     print(
         f"PERMUTER_SEED={seed.path.relative_to(REPO_ROOT) if seed.path.is_relative_to(REPO_ROOT) else seed.path} "
         f"score={seed.score:.3f}% pinned={int(seed.pinned)}"
+        + (f" {format_penalties(seed.penalties)}" if seed.penalties else "")
     )
+
+    if cfg_dominates(seed.penalties):
+        print(
+            "PERMUTER_SKIP=cfg leftovers dominate "
+            f"({format_penalties(seed.penalties)})"
+        )
+        return 2
 
     work_seed = seed.path
     if seed.pinned:
