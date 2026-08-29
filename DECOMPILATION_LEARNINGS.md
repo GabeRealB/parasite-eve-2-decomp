@@ -30780,3 +30780,20 @@ Two related details from the same function:
   induction variable first in the comma — lets `t += 0x80` fill the
   `lw sxy` load delay. The natural `t += 0x80, ang += 0x73` order emits the
   increment before the load and leaves a `nop`.
+
+## Repeat `p->field` for GTE blend; pin the packet-header tail
+
+`func_8009B500` blends each GT3 vertex with `gte_gpf12` / `gte_gpl12`. Caching
+`ws->field_80->field_2C` in a local coalesces the second/third loads into `$v0`
+and drops the `move v0, s6` / `move v0, s7` the target keeps. Repeating the
+expression after `gte_stcv` (memory clobber) reloads into `$s6`/`$s7` and
+restores those copies.
+
+After UVs, `len = 9; len2 = len; setcode(..., 0x36)` always sinks past the
+setcode stores: `li v0, 0x36` chains through `$v0` reuse into `gte_stotz` and
+the OT, so the scheduler prefers that chain. Barriers that mention `len` either
+LICM-hoist `li 9` into the preheader or steal `$s4` from the `CVECTOR` copy.
+A volatile block that emits the `li $20, 9` / `li $2, 0x36` / `move $21, $20` /
+`sb` / `stotz` sequence in order is what matches. Pin `ws` to `$t8`,
+`svBase` to `$s0`, and the combined UV flag to `$t7` so those three do not
+rotate with the `poly[1]` giv.

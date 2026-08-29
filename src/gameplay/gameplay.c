@@ -84,6 +84,8 @@ void func_800A2F60(GpIdMapC* arg0);
 #define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
 #define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
+#define gte_rtv1_real()  __asm__ volatile("nop; nop; .word 0x4A48E012")
+#define gte_rtv2_real()  __asm__ volatile("nop; nop; .word 0x4A496012")
 #define gte_nccs_real()  __asm__ volatile("nop; nop; .word 0x4B08041B")
 #define gte_nclip_real() __asm__ volatile("nop; nop; .word 0x4B400006")
 #define gte_avsz3_real() __asm__ volatile("nop; nop; .word 0x4B58002D")
@@ -1501,7 +1503,247 @@ u32* func_8009B2F4(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009B500);
+u32* func_8009B500(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
+{
+    register TmdScratchModelBlock* ws asm("t8");
+    POLY_GT3*                      poly;
+    register SVECTOR*              svBase asm("s0");
+    DisplayState*                  ds;
+    u32                            mask;
+    u32                            maskHi;
+    u16*                           rec;
+    u8*                            verts;
+    u8*                            norms;
+    CVECTOR                        col;
+    SVECTOR*                       sv;
+    DVECTOR*                       sxy;
+    u8*                            dest;
+    u8*                            rgb;
+    u8*                            pCode;
+    u8*                            pU;
+    s32                            scale;
+    register s32                   combined asm("t7");
+    s32                            flag;
+    s32                            x;
+    s32                            i;
+    s32                            tpage;
+    s8                             su;
+    u8                             uu;
+
+    ws = arg0;
+    __asm__ volatile("" : "+r"(ws));
+    poly = (POLY_GT3*)ws->field_0;
+    col  = Gp_ColorGrey;
+    if (ws->field_1C-- > 0) {
+        scale  = 0x1000;
+        svBase = (SVECTOR*)&ws->field_74;
+        ds     = &Display_State;
+        mask   = 0xFFFFFF;
+        maskHi = 0xFF000000;
+        do {
+            rec   = (u16*)arg2;
+            verts = (u8*)ws->field_8;
+            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
+            gte_rtpt_real();
+            gte_stflg(&ws->field_24);
+            if (ws->field_24 >= 0) {
+                gte_nclip_real();
+                gte_stopz(&ws->field_28);
+                if (ws->field_28 > 0) {
+                    gte_stsxy3_gt3(&poly[0]);
+                    gte_stsxy3_gt3(&poly[1]);
+                    gte_avsz3_real();
+                    norms = (u8*)ws->field_C;
+                    gte_ldv3(norms + (rec[3] & 0xFFF8), norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8));
+                    gte_ldrgb(&D_80114BA4);
+                    gte_ncct_real();
+                    gte_strgb3_gt3(&poly[0]);
+                    gte_ldrgb(&D_80114BA8);
+                    gte_ncct_real();
+                    gte_strgb3_gt3(&poly[1]);
+                    if (ws->field_80->field_2C < 0x1000) {
+                        gte_lddp(ws->field_80->field_2C);
+                        rgb = (u8*)&poly[0].r0;
+                        gte_ldcv(rgb);
+                        gte_gpf12_real();
+                        gte_lddp(scale - ws->field_80->field_2C);
+                        gte_ldcv(&col);
+                        gte_gpl12_real();
+                        gte_stcv(rgb);
+                        gte_lddp(ws->field_80->field_2C);
+                        rgb = (u8*)&poly[0].r1;
+                        gte_ldcv(rgb);
+                        gte_gpf12_real();
+                        gte_lddp(scale - ws->field_80->field_2C);
+                        gte_ldcv(&col);
+                        gte_gpl12_real();
+                        gte_stcv(rgb);
+                        gte_lddp(ws->field_80->field_2C);
+                        rgb = (u8*)&poly[0].r2;
+                        gte_ldcv(rgb);
+                        gte_gpf12_real();
+                        gte_lddp(scale - ws->field_80->field_2C);
+                        gte_ldcv(&col);
+                        gte_gpl12_real();
+                        gte_stcv(rgb);
+                    }
+                    gte_rtv0_real();
+                    gte_stsv(svBase);
+                    combined = 0;
+                    sxy      = (DVECTOR*)&poly[0].x0;
+                    __asm__ volatile("" : "+r"(sxy));
+                    dest = (u8*)&poly[0].u0;
+                    flag = combined;
+                    sv   = svBase;
+                    gte_lddp(ws->field_80->field_2C >> 9);
+                    gte_ldsv(sv);
+                    gte_gpf12_real();
+                    gte_stsv(sv);
+                    x  = poly[0].x0 + 0xA0;
+                    x -= (s16)ws->field_74;
+                    if (x < 0) {
+                        x = combined;
+                    } else if (x >= 0x100) {
+                        x   -= 0x80;
+                        flag = 1;
+                        if (x >= 0xC0) {
+                            x = 0xBF;
+                        }
+                    }
+                    *dest = x;
+                    dest++;
+                    x  = sxy->vy + 0x78;
+                    x -= sv->vy;
+                    if (x < 0) {
+                        x = 0;
+                    } else if (x >= 0xF0) {
+                        x = 0xEF;
+                    }
+                    combined |= flag;
+                    *dest     = x;
+                    dest[-6]  = flag;
+
+                    gte_rtv1_real();
+                    gte_stsv(svBase);
+                    sxy = (DVECTOR*)&poly[0].x1;
+                    __asm__ volatile("" : "+r"(sxy));
+                    dest = (u8*)&poly[0].u1;
+                    flag = 0;
+                    sv   = svBase;
+                    gte_lddp(ws->field_80->field_2C >> 9);
+                    gte_ldsv(sv);
+                    gte_gpf12_real();
+                    gte_stsv(sv);
+                    x  = poly[0].x1 + 0xA0;
+                    x -= (s16)ws->field_74;
+                    if (x < 0) {
+                        x = flag;
+                    } else if (x >= 0x100) {
+                        x   -= 0x80;
+                        flag = 1;
+                        if (x >= 0xC0) {
+                            x = 0xBF;
+                        }
+                    }
+                    *dest = x;
+                    dest++;
+                    x  = sxy->vy + 0x78;
+                    x -= sv->vy;
+                    if (x < 0) {
+                        x = 0;
+                    } else if (x >= 0xF0) {
+                        x = 0xEF;
+                    }
+                    combined |= flag;
+                    *dest     = x;
+                    dest[-6]  = flag;
+
+                    gte_rtv2_real();
+                    gte_stsv(svBase);
+                    sxy = (DVECTOR*)&poly[0].x2;
+                    __asm__ volatile("" : "+r"(sxy));
+                    dest = (u8*)&poly[0].u2;
+                    flag = 0;
+                    sv   = svBase;
+                    gte_lddp(ws->field_80->field_2C >> 9);
+                    gte_ldsv(sv);
+                    gte_gpf12_real();
+                    gte_stsv(sv);
+                    x  = poly[0].x2 + 0xA0;
+                    x -= (s16)ws->field_74;
+                    if (x < 0) {
+                        x = flag;
+                    } else if (x >= 0x100) {
+                        x   -= 0x80;
+                        flag = 1;
+                        if (x >= 0xC0) {
+                            x = 0xBF;
+                        }
+                    }
+                    *dest = x;
+                    dest++;
+                    x  = sxy->vy + 0x78;
+                    x -= sv->vy;
+                    if (x < 0) {
+                        x = 0;
+                    } else if (x >= 0xF0) {
+                        x = 0xEF;
+                    }
+                    combined |= flag;
+                    *dest     = x;
+                    dest[-6]  = flag;
+                    if (combined == 0) {
+                        tpage = 0x137;
+                    } else {
+                        pCode = &poly[0].code;
+                        i     = 0;
+                        pU    = &poly[0].u0;
+                        do {
+                            if (*pCode == 0) {
+                                su = *pU;
+                                uu = *pU;
+                                if (su < 0) {
+                                    *pU = uu + 0x80;
+                                } else {
+                                    *pU = 0;
+                                }
+                            }
+                            pU += 0xC;
+                            i++;
+                            pCode += 0xC;
+                        } while (i < 3);
+                        tpage = 0x139;
+                    }
+                    poly[0].tpage = tpage;
+                    __asm__ volatile(
+                        "li $20, 9\n\t"
+                        "li $2, 0x36\n\t"
+                        "move $21, $20\n\t"
+                        "sb $2, -33(%0)\n\t"
+                        "li $2, 0x34\n\t"
+                        "sb $2, 7(%0)\n\t"
+                        "addiu $2, %1, 40\n\t"
+                        "sb $20, -37(%0)\n\t"
+                        "sb $21, 3(%0)\n\t"
+                        "swc2 $7, 0($2)"
+                        :
+                        : "r"(&poly[1]), "r"(ws)
+                        : "$2", "memory");
+                    poly[0].tag = (poly[0].tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->field_128) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
+                    *(u_long*)(((((u32)ws->field_28 << ds->field_128) >> 2) & 0xFFC) + (s32)ws->field_14) =
+                        (*(u_long*)(((((u32)ws->field_28 << ds->field_128) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)&poly[0] & mask);
+                    poly[1].tag = (poly[1].tag & maskHi) | (*(u_long*)(((((u32)ws->field_28 << ds->field_128) >> 2) & 0xFFC) + (s32)ws->field_14) & mask);
+                    *(u_long*)(((((u32)ws->field_28 << ds->field_128) >> 2) & 0xFFC) + (s32)ws->field_14) =
+                        (*(u_long*)(((((u32)ws->field_28 << ds->field_128) >> 2) & 0xFFC) + (s32)ws->field_14) & maskHi) | ((u32)&poly[1] & mask);
+                }
+            }
+            poly += 2;
+            arg2 += ws->field_18;
+        } while (ws->field_1C-- > 0);
+    }
+    ws->field_0 = (u8*)poly;
+    return arg2;
+}
 
 u32* func_8009BD00(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
 {
