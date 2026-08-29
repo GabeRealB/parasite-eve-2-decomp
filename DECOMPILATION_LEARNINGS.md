@@ -31277,3 +31277,45 @@ if ((u16)(((u32)Gp_LcgState >> 16) % 3) == 0) {
 
 Same idea as the existing "split a reused local" advice, but the trigger here
 is the *scope* of the declaration, not the number of assignments.
+
+## Two s16 increments: keep both live, store the compare operand, widen, then store the other
+
+A pair of `lhu` / `addiu` / `sh` updates that must compile as
+
+```
+lhu    v0, field_12
+lhu    v1, field_22
+addiu  v0, 6
+addiu  v1, 1
+sh     v1, field_22
+sll    v1, 16
+sh     v0, field_12
+lh     v0, field_28
+sra    v1, 16
+```
+
+will not if you write `field_22++; field_12 += 6; if (limit < field_22)`. GCC
+either reloads `field_22` with `lh` or hoists `field_28` into `$v0` and sinks
+the `field_12` store into the `beqz` delay. A memory barrier after both stores
+fixes the registers but leaves `sll` after both `sh`.
+
+Assign both temps first, pin them live so both `lhu` issue before either
+store, store the value used in the compare, widen it to `s32` (that is the
+`sll`), then store the other temp (fills the `sll` delay). Compare against the
+`s32` copy so `sra` sinks after the next load:
+
+```c
+y    = (u16)mem->field_12 + 6;
+next = (u16)mem->field_22 + 1;
+__asm__ volatile("" ::"r"(y), "r"(next));
+mem->field_22 = next;
+n32           = next;
+mem->field_12 = y;
+if ((mem->field_28 * 8 - 1) < n32) {
+    Gp_ReleaseState1CMem(mem, arg0);
+}
+```
+
+`func_800F8A38` is the example. Pair with the existing `code |= 3` memory
+barrier plus a `tpage` local so `clut` fills the `field_2A` `lhu` delay instead
+of the `lbu` of `code`.
