@@ -225,6 +225,24 @@ STATIC_ASSERT_SIZEOF(GpEffRec, 4);
 
 extern GpEffRec D_8011291C[];
 
+/// 0xC-byte sprite frame of `D_80112934`, indexed by `GpEffWork.field_22`.
+/// `w` is both the UV quad size and the billboard scale factor. `u` / `v` are
+/// the UV origin. `clutX` / `clutY` feed `getClut`; `tpageX` feeds
+/// `getTPage(0, 1, tpageX, 0)`.
+typedef struct _GpEffSprRec {
+    /* 0x0 */ u16 w;
+    /* 0x2 */ u8  u;
+    /* 0x3 */ u8  pad3;
+    /* 0x4 */ u8  v;
+    /* 0x5 */ u8  pad5;
+    /* 0x6 */ u16 clutX;
+    /* 0x8 */ u16 clutY;
+    /* 0xA */ u16 tpageX;
+} GpEffSprRec;
+STATIC_ASSERT_SIZEOF(GpEffSprRec, 0xC);
+
+extern GpEffSprRec D_80112934[];
+
 /// Overlay of `D_80112964` at `u16` index `GpEffWork.field_2A`.
 /// `func_800F77F8` loads `field_4`, shifts it into a CLUT X nibble, and
 /// ORs `0x4280`. `func_800FA45C` uses the same table at byte offset 8.

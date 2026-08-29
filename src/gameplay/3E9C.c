@@ -992,7 +992,88 @@ INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F1FF4);
 
 INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F289C);
 
-INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F3414);
+void func_800F3414(Task* arg0)
+{
+    void**                     scratch;
+    u8*                        head;
+    register GpEffBeamScratch* vecp asm("v0");
+    GpEffBeamScratch*          block;
+    GsCOORDINATE2*             coord;
+    GpEffWork*                 mem;
+    POLY_FT4*                  prim;
+    u16                        size;
+    s16                        scale;
+    s32                        rng;
+
+    coord    = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    vecp     = (GpEffBeamScratch*)(head - 0x1C);
+    block    = vecp;
+    *scratch = vecp;
+    mem      = arg0->spawnArg2;
+    Gp_UpdateCoord(coord);
+    ((GpEffBeamScratch*)(head - 0x1C))->vec.vx = *(u16*)&coord->workm.t[0];
+    block->vec.vy                              = *(u16*)&coord->workm.t[1];
+    block->vec.vz                              = *(u16*)&coord->workm.t[2];
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec);
+    gte_rtps_real();
+    gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
+    gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((GpEffBeamScratch*)(head - 0x1C))->otz);
+        block->otz = block->otz + 1;
+        prim       = (POLY_FT4*)D_80071190;
+        D_80071190 = (DR_TPAGE*)(prim + 1);
+        setlen(prim, 9);
+        setcode(prim, 0x2C);
+        size = D_80112934[mem->field_22].w;
+        if (arg0->state == 0) {
+            if (arg0->spawnArg1 & 0xFFF) {
+                scale = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xFFF;
+            } else {
+                scale = 0x200;
+            }
+            mem->field_24 = scale;
+            rng           = Gp_LcgState * 5 + 0x71357911;
+            Gp_LcgState   = rng;
+            mem->field_26 = ((u32)rng >> 16) & 0xFFF;
+            arg0->state   = 1;
+        }
+        prim->code |= 3;
+        prim->tpage = ((D_80112934[mem->field_22].tpageX & 0x3FF) >> 6) | 0x20;
+        prim->clut  = (D_80112934[mem->field_22].clutY << 6) | ((D_80112934[mem->field_22].clutX >> 4) & 0x3F);
+        prim->u0    = D_80112934[mem->field_22].u;
+        prim->v0    = D_80112934[mem->field_22].v;
+        prim->u1    = D_80112934[mem->field_22].u + size;
+        prim->v1    = D_80112934[mem->field_22].v;
+        prim->u2    = D_80112934[mem->field_22].u;
+        prim->v2    = D_80112934[mem->field_22].v + size;
+        prim->u3    = D_80112934[mem->field_22].u + size;
+        prim->v3    = D_80112934[mem->field_22].v + size;
+        block->dx   = ((((s16)size * mem->field_24) / block->otz) * rsin(mem->field_26)) >> 12;
+        block->dy   = ((((s16)size * mem->field_24) / block->otz) * rcos(mem->field_26)) >> 12;
+        prim->x0    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+        prim->x3    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+        prim->y0    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+        prim->y3    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        block->dx   = ((((s16)size * mem->field_24) / block->otz) * rsin(mem->field_26 + 0x400)) >> 12;
+        block->dy   = ((((s16)size * mem->field_24) / block->otz) * rcos(mem->field_26 + 0x400)) >> 12;
+        prim->x1    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+        prim->x2    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+        prim->y1    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+        prim->y2    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    mem->field_22++;
+    if (mem->field_22 >= 4) {
+        Gp_ReleaseState1CMem(mem, arg0);
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F3A78);
 
