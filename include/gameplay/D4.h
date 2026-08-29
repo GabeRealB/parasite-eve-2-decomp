@@ -264,7 +264,7 @@ STATIC_ASSERT_SIZEOF(GpTbl5, 5);
 
 extern GpTbl5 Gp_ConfigCdTable;
 
-/// 8-byte pair of byte-table pointers at `D_801149FC`. `func_800AE1F0`
+/// 8-byte pair of byte-table pointers at `D_801149FC`. `Gp_MsgPlayerDirFacing`
 /// indexes by `(Gp_DirByte & 0x70) >> 4`. `Gp_DirFlags & 0x100` selects
 /// `field_4` over `field_0`. The byte at `(Gp_DirByte & 0xF) -
 /// GameActor.field_82` is stored into `GameActor.field_930`.

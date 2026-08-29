@@ -166,12 +166,12 @@ typedef struct _McSaveData {
     /* 0x5C8 */ McItemSlot field_5C8[0x20]; // inited by Gp_ResetAuxSlots; index 0x1A gets field_2=0
     /* 0x6C8 */ u16        field_6C8;
     /* 0x6CA */ u16        field_6CA;
-    /* 0x6CC */ u16        field_6CC;         // capped at 9999; incremented by func_800A110C on spawnArg1 == 0
-    /* 0x6CE */ u16        field_6CE;         // capped at 9999; incremented by func_800A110C on spawnArg1 != 0
+    /* 0x6CC */ u16        field_6CC;         // capped at 9999; incremented by Gp_AreaEnterTask on spawnArg1 == 0
+    /* 0x6CE */ u16        field_6CE;         // capped at 9999; incremented by Gp_AreaEnterTask on spawnArg1 != 0
     /* 0x6D0 */ s32        field_6D0[0x60];   // bit flags; Gp_SetItemSeenBit sets/clears bit id for id < 0x180; Gp_HasItemSeenBit tests; Gp_InitItemSeenBits clears all 96 words
-    /* 0x850 */ u8         unknown_850[0x12]; // 3-byte rows; func_800D27E8 indexes [spawnArg1*3 + slot]
-    /* 0x862 */ s16        field_862[7];      // per-category use counters capped at 9999; func_800A2F60 indexes by Gp_StateC08.field_5, which can run past the 7 entries into field_870 and unknown_872
-    /* 0x870 */ u16        field_870;         // capped at 9999; incremented by func_800CB33C
+    /* 0x850 */ u8         unknown_850[0x12]; // 3-byte rows; Gp_DrawPeSlotRow indexes [spawnArg1*3 + slot]
+    /* 0x862 */ s16        field_862[7];      // per-category use counters capped at 9999; Gp_UseItemTask indexes by Gp_StateC08.field_5, which can run past the 7 entries into field_870 and unknown_872
+    /* 0x870 */ u16        field_870;         // capped at 9999; incremented by Gp_UseHealItemPanel
     /* 0x872 */ byte       unknown_872[0x16];
     /* 0x888 */ s32        field_888[0x20];   // 1-based counters; cap 0x1869E (func_80106518)
     /* 0x908 */ s8         field_908[0x20];   // signed addend for item ids 0x60–0x7F (Gp_GetModLevel)

@@ -10,10 +10,10 @@
 #include "main/ui.h"
 
 /// Object at `Task::spawnArg2` for `Gp_BindItemObj2` / `Gp_PublishItemObj` /
-/// `func_800CE094` / `Gp_WaitItemFlag2`. `field_8` is the packed item id passed
+/// `Gp_PickupResultTask` / `Gp_WaitItemFlag2`. `field_8` is the packed item id passed
 /// to `Gp_GetCurBit2Flag` (and inlined by `Gp_WaitItemFlag2`).
 /// `field_A` is the item/location halfword copied into `Gp_PubItemLoc` by
-/// `Gp_PublishItemObj` and cleared by `func_800CE094` on the cancel path.
+/// `Gp_PublishItemObj` and cleared by `Gp_PickupResultTask` on the cancel path.
 typedef struct _GpItemObj8 {
     /* 0x00 */ byte pad_0[8];
     /* 0x08 */ u8   field_8;
@@ -70,7 +70,7 @@ extern GpItemDesc Gp_ItemDescs[];
 /// Second item-descriptor base. Indexed as `Gp_ItemDescsHi[id]` for `id >= 0x100`.
 extern GpItemDesc Gp_ItemDescsHi[];
 /// Packed item/location halfword. High byte selects a UI path in
-/// `func_800CDFA8` (0/1, 8, or default); low byte is written to
+/// `Gp_SpawnPickupUiTask` (0/1, 8, or default); low byte is written to
 /// `Mc_SaveData.field_12` on the case-8 path. Copied into `Gp_MoveItemKey`
 /// by `Gp_ItemMoveTask`.
 extern u16 Gp_PubItemLoc;

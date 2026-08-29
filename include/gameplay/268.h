@@ -48,7 +48,7 @@ typedef McItemRec GpItemRec;
 
 /// 4-byte entry in `Gp_RelatedQty1` / `Gp_RelatedQty0` (32 entries, item ids
 /// 0x80–0x9F). field_0 is a count (`Gp_GetRelatedQty` / `Gp_ApplyItemMap`);
-/// field_1–3 are related item ids (`func_800C942C` / `Gp_NthRelatedId` /
+/// field_1–3 are related item ids (`Gp_BuildAttachList` / `Gp_NthRelatedId` /
 /// `Gp_NthStockRelated` / `Gp_EquipRelatedBank`).
 /// `Gp_RelatedQty0` is the first `GpItemSlot` pair (arg0 == 0);
 /// `Gp_RelatedQty1` is the second.
@@ -254,14 +254,14 @@ GpItemRec* Gp_GiveItem(GpItemScan* arg0, s32 arg1, s32 arg2);
 s32        Gp_RemoveItem(GpItemScan* arg0, GpItemRec* arg1, s32 arg2);
 /// Confirmation UI for raising `Mc_SaveData.field_908` of the equipped
 /// 0x60–0x7F item (`Wip_SysConfig.field_23`). If the clamped level is
-/// already 10, `func_800D2F68` is shown with spawnArg1 0x1A. Otherwise
+/// already 10, `Gp_NoticePanelTask` is shown with spawnArg1 0x1A. Otherwise
 /// consumes `Gp_SelItemRec` and draws "More <item> attachments available."
 void Gp_UiBoostAttach(struct _UiObject* arg0, Task* arg1);
 void Gp_UiBoostMp(struct _UiObject* arg0, Task* arg1);
 /// HP counterpart of `Gp_UiBoostMp`: adds 5 to `Mc_SaveData.field_26`
 /// (clamped below 250), recomputes max HP (same body as `Gp_RecalcMaxHp`),
 /// heals current HP to that max, then consumes `Gp_SelItemRec` and spawns
-/// `Gp_BoostPanelDesc`. `func_800D2F68` is called with `spawnArg1` forced to 0x1C.
+/// `Gp_BoostPanelDesc`. `Gp_NoticePanelTask` is called with `spawnArg1` forced to 0x1C.
 void Gp_UiBoostHp(struct _UiObject* arg0, Task* arg1);
 s32  func_800B9D80(s32 arg0);
 /// Unequips `Wip_SysConfig.field_21` (ids 1..32 use the same slot clear as
@@ -285,7 +285,7 @@ void Gp_MoveItemSlot(GpItemScan* arg0, s32 arg1, s32 arg2);
 /// sort-key remap as `Gp_ItemSortKey` (`Gp_ItemSortKey0` / `Gp_ItemSortKey60` /
 /// `Gp_ItemSortKey80` / `Gp_ItemSortKeyA0`). `arg1` is unused.
 void Gp_SortItems(GpItemScan* arg0, s32 arg1);
-void func_800BAA58(void);
+void Gp_InitModeEquip(void);
 void Gp_ApplyBit2Bank(s32 arg0);
 void Gp_SetCurBit2Flag(s32 arg0, u8 arg1);
 void Gp_ClearScanItems(GpItemScan* arg0);

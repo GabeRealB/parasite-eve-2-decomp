@@ -5,7 +5,7 @@
 #include "main/cdstream.h"
 #include "main/fs.h"
 
-s32 func_800567E4(void)
+s32 CdAudio_DriveStream(void)
 {
     volatile CdAudioPhase* p;
     volatile CdAudioLocEx* audio;
@@ -93,7 +93,7 @@ s32 func_800567E4(void)
     return 1;
 }
 
-/* Alignment pad after func_800567E4's 5-entry jump table so CdAudio_DriveSeek's
+/* Alignment pad after CdAudio_DriveStream's 5-entry jump table so CdAudio_DriveSeek's
  * compiler-generated jtbl lands at 0x800141DC. */
 static const s32 s_jtbl_pad_567E4 = 0;
 
@@ -785,7 +785,7 @@ void CdAudio_JumpWithPitch(s32 arg0, s32 arg1)
     CdAudio_Loc.field_0   = 6;
 }
 
-s32 func_80057BC0(void)
+s32 CdAudio_DriveNull(void)
 {
     return 0;
 }

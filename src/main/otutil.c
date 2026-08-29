@@ -177,7 +177,7 @@ void Display_FlipOt(void)
     *ot           = GPU_OT_END_PRIM;
     Gpu_CurrentOt = ot + 0x20;
     Gp_LinkViewSprts();
-    func_8009850C(&Gpu_OtBuffers[temp->field_114]);
+    Gp_DrawActorTmdActive(&Gpu_OtBuffers[temp->field_114]);
     Gpu_CurrentOt   = saved;
     temp->field_103 = 0;
 }
@@ -302,7 +302,7 @@ void Display_FlipOtAlt(void)
     Gpu_ClearOTag(temp->field_114);
     Gpu_CurrentOt = Gpu_CurrentOt + 0x20;
     Task_ExecListFiltered(&Task_DefaultList, 0x62);
-    func_80097AC0(&Gpu_OtBuffers[temp->field_114]);
+    Gp_DrawActorTmdFlagged(&Gpu_OtBuffers[temp->field_114]);
     Gpu_CurrentOt   = saved;
     temp->field_103 = 0;
 }

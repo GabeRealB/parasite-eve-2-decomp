@@ -97,13 +97,13 @@ void Pad_UpdatePort0(void);
 /// 0x1C-byte block; field_8 remaps pad input (Pad_UpdatePort0).
 typedef struct _PadRemapState {
     /* 0x00 */ byte unknown_0[0x1];
-    /* 0x01 */ u8   field_1; // stage/debug selector; 0x13 enables the light-probe path in func_800D8684
+    /* 0x01 */ u8   field_1; // stage/debug selector; 0x13 enables the light-probe path in Gp_DebugPanTask
     /* 0x02 */ byte unknown_2[0x1];
-    /* 0x03 */ u8   field_3; // cleared by func_800AC164 teardown
+    /* 0x03 */ u8   field_3; // cleared by Gp_LoadFinishTask teardown
     /* 0x04 */ byte unknown_4[0x4];
     /* 0x08 */ s8   field_8; // remap mode: 0 off, -1 replay stream, 1 func_807150F8
     /* 0x09 */ s8   field_9; // 1: Gp_InitPlayClock calls func_80715198 when Display_State.field_12c is 0
-    /* 0x0A */ s8   field_A; // nonzero: skip HUD ammo draw (func_800A18BC)
+    /* 0x0A */ s8   field_A; // nonzero: skip HUD ammo draw (Gp_DrawItemPrompt)
     /* 0x0B */ byte unknown_B[0x11];
 } PadRemapState;
 STATIC_ASSERT_SIZEOF(PadRemapState, 0x1C);

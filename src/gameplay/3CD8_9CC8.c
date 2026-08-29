@@ -59,7 +59,7 @@ void Gp_InitState1C(Task* arg0)
     p->field_4     = 0;
     p->field_6     = 1;
     p->field_8     = 0;
-    func_800EA478(0x60053, 0, 0, 0);
+    Gp_SpawnEff(0x60053, 0, 0, 0);
 
     D_80115758  = 0;
     D_8011572C  = 0;
@@ -105,7 +105,7 @@ void Gp_InitState1C(Task* arg0)
     }
 
     if (val != 0) {
-        func_800EA478(val | 0x60000, 0, 0, 0);
+        Gp_SpawnEff(val | 0x60000, 0, 0, 0);
     }
     Task_Spawn(6, 0x80000007, 0, 0);
 }
@@ -147,11 +147,11 @@ void Gp_TickState1C(void)
         r->field_F  = 0;
         r->field_16 = 0;
         r->field_17 = 0;
-        func_8010A1B0(1, 0x80);
+        Gp_TriggerPeState(1, 0x80);
     }
 }
 
-s32 func_800EA02C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1)
+s32 Gp_TraceGroundCoord(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1)
 {
     void**        scratch;
     u8*           head;
@@ -293,7 +293,7 @@ void func_800EA420(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-GpEffWork* func_800EA478(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3)
+GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3)
 {
     Task*      task;
     GpEffWork* mem;
@@ -428,7 +428,7 @@ void Gp_DrawFadeQuad(u8* arg0, s32 arg1)
     addPrim((u_long*)(((((u32)0x10 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), dr);
 }
 
-void func_800EAA0C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
+void Gp_DrawArc(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
 {
     register void**        scratch asm("a1");
     register u8*           head asm("a3");
@@ -504,7 +504,7 @@ void func_800EAA0C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
 }
 
-void func_800EAEB8(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
+void Gp_DrawRing(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
 {
     register void**         scratch asm("a1");
     register u8*            head asm("a2");
@@ -580,7 +580,7 @@ void func_800EAEB8(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
 }
 
-void func_800EB2C8(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, u16 arg3)
+void Gp_DrawFxQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, u16 arg3)
 {
     void**           scratch;
     u8*              head;
@@ -909,14 +909,14 @@ void Gp_AddTpageShift(P_TAG* arg0, s32 arg1, s32 arg2)
 void func_800EC9C8(void)
 {
     if (!(Gp_State1C->field_10 & 1)) {
-        func_800EA478(0x800600E8, 0, 0, 0);
+        Gp_SpawnEff(0x800600E8, 0, 0, 0);
     }
 }
 
 void Gp_SetState1CPe(s32 arg0)
 {
     Gp_State1C->field_18 = (u8)arg0;
-    func_800EA478(0x8006000F, 0, (u8)arg0, 0);
+    Gp_SpawnEff(0x8006000F, 0, (u8)arg0, 0);
 }
 
 void func_800ECA54(void)
@@ -926,6 +926,6 @@ void func_800ECA54(void)
     p = Gp_State1C;
     if (!(p->field_10 & 0x80)) {
         p->field_12 &= 0xF7FF;
-        func_800EA478(0x8006000E, 0, 0, 0);
+        Gp_SpawnEff(0x8006000E, 0, 0, 0);
     }
 }

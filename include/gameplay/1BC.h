@@ -20,7 +20,7 @@
 /// `field_4` into `field_8` and copies `field_2` into `field_A`).
 /// Same object family as `GpObj4C` / `GpObj54`: `func_800A4904` ORs bit
 /// 0x80 into `field_4E` or claims a `field_54` slot via `Gp_ClaimSlot18`.
-/// `field_40` is the signed value passed to `func_800A6A9C`; `field_50`
+/// `field_40` is the signed value passed to `Gp_DrawHudNumbers`; `field_50`
 /// is the same `GpPairSrcE*` slot as `GpObj50` / `GpObj5C` / `GpObj5D`.
 /// `field_18` is a `GsCOORDINATE2*` (`&D_80070F10` from `Gp_AllocEnemy`);
 /// `Gp_UpdateLinkXforms` reads it from the `GpLinkNode` overlay as `coord`.
@@ -136,10 +136,10 @@ typedef struct _GpAnimBlendSrc {
 STATIC_ASSERT_SIZEOF(GpAnimBlendSrc, 0x14);
 
 /// 0x80-byte scratch from `G_SCRATCH_HEAD` used by `Gp_AnimBlendPacked` /
-/// `Gp_AnimBlendPose` / `func_800B2998`. `trans` is the GPF/GPL-blended
+/// `Gp_AnimBlendPose` / `Gp_BlendAnimRot`. `trans` is the GPF/GPL-blended
 /// translation (`Gp_AnimBlendPose`); `vec0` / `vec1` are unpacked from
 /// `GpAnimBlendSrc.field_0` / `field_4`; `blend` / `invBlend` are the
-/// 12-bit GPF/GPL weights. `func_800B2998` also uses the matrices.
+/// 12-bit GPF/GPL weights. `Gp_BlendAnimRot` also uses the matrices.
 typedef struct _GpAnimScratch80 {
     /* 0x00 */ SVECTOR trans;
     /* 0x08 */ SVECTOR vec0;
@@ -446,8 +446,8 @@ STATIC_ASSERT_SIZEOF(GpFadeWork, 4);
 /// of the current ordering table, backing up 0xA entries when the current
 /// OT is not one of the two `Gpu_OrderingTables` roots.
 void       func_800B2200(Task* arg0);
-void       func_800B2998(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2,
-                         GpAnimScratch80* arg3);
+void       Gp_BlendAnimRot(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2,
+                           GpAnimScratch80* arg3);
 void       Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2);
 void       Gp_AnimBlendPacked(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2);
 void       Gp_AnimAdvanceSlot(GpAnimCtx* arg0, s32 arg1);

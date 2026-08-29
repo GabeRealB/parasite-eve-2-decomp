@@ -98,7 +98,7 @@ STATIC_ASSERT_SIZEOF(GpOverlayIds, 6);
 /// record to slot 0xA and overwrites `field_0` with
 /// `Gp_AllyIdBase[Mc_SaveData.field_13 - 1] + Mc_SaveData.field_5C7`
 /// (same value `Gp_AllyAnimId` writes). Nearby `D_8010FB10` /
-/// `D_8010FB24` are the same size (`func_800E375C` copies them for msg `0x3FA`).
+/// `D_8010FB24` are the same size (`Gp_EvtCapWeaponTask` copies them for msg `0x3FA`).
 typedef struct _GpRec14 {
     /* 0x00 */ s32 field_0;
     /* 0x04 */ s32 field_4;
@@ -247,7 +247,7 @@ typedef struct _GpState1C {
     /* 0x0C */ s16 field_C;
     /* 0x0E */ s16 field_E;
     /* 0x10 */ s16 field_10; // flags (bit 0 checked by func_800EC9C8, bit 0x80 by func_800ECA54)
-    /* 0x12 */ s16 field_12; // flags (bit 0x200 by func_800FC0B4, bit 0x400 by func_800FB7E4, bit 0x800 by func_800FC500 / func_800ECA54)
+    /* 0x12 */ s16 field_12; // flags (bit 0x200 by Gp_EffCtlTaskAC, bit 0x400 by Gp_EffCtlTaskF3, bit 0x800 by Gp_EffCtlTask0E / func_800ECA54)
     /* 0x14 */ s16 field_14;
     /* 0x16 */ s16 field_16;
     /* 0x18 */ s16 field_18; // PE bit written by Gp_SetState1CPe
@@ -255,7 +255,7 @@ typedef struct _GpState1C {
 } GpState1C;
 STATIC_ASSERT_SIZEOF(GpState1C, 0x1C);
 
-/// Overlay of `GpCoord64.coord` plus the 0x10-byte tail. `func_800ED198`
+/// Overlay of `GpCoord64.coord` plus the 0x10-byte tail. `Gp_EffCtlTask6B`
 /// holds `&Gp_RoomCoords[0].coord` as this type so `field_50` / `field_58`
 /// are addressed from the coordinate pointer (`s5 + 0x50` / `s5 + 0x58`).
 typedef struct _GpCoordTail {
@@ -272,7 +272,7 @@ STATIC_ASSERT_SIZEOF(GpCoordTail, 0x60);
 /// 0x64-byte world-coord slot. `Gp_InitRoomCoords` inits all 8 entries of
 /// `Gp_RoomCoords`: `coord.sub` is the parent (`&D_80070F10`) and `field_0`
 /// is a refcount (decremented by `Gp_DecRoomCoordRefs`). `Gp_CountRoomCoords` returns
-/// how many slots currently have a non-zero refcount. `func_800ED198`
+/// how many slots currently have a non-zero refcount. `Gp_EffCtlTask6B`
 /// copies the actor translation into `coord`, writes `0xC00` into
 /// `field_54` / `field_56` / `field_58`, and decays `field_5C` by `0x190`
 /// while it is `>= 0x191`.
@@ -288,7 +288,7 @@ typedef struct _GpCoord64 {
 } GpCoord64;
 STATIC_ASSERT_SIZEOF(GpCoord64, 0x64);
 
-/// 0x10-byte scratch from `G_SCRATCH_HEAD` used by `func_800EA02C` and
+/// 0x10-byte scratch from `G_SCRATCH_HEAD` used by `Gp_TraceGroundCoord` and
 /// `func_800EA1A8`. `pos` is the low halves of the source XYZ. `dir`
 /// starts as `(0, 0x1000, 0)`, is rotated by `D_80070F34`, then added
 /// onto `pos` and passed to `func_800DE7CC`.
@@ -298,7 +298,7 @@ typedef struct _GpRayScratch {
 } GpRayScratch;
 STATIC_ASSERT_SIZEOF(GpRayScratch, 0x10);
 
-/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `func_800EAEB8`.
+/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `Gp_DrawRing`.
 /// `vec` is the coordinate's `workm.t[]` truncated to s16 and fed to
 /// `gte_ldv0`. `otz` is `gte_stszotz` (then incremented so it can also be
 /// used as the divisor), `flag` is `gte_stflg` and `sx` / `sy` are the
@@ -314,7 +314,7 @@ typedef struct _GpRingScratch {
 } GpRingScratch;
 STATIC_ASSERT_SIZEOF(GpRingScratch, 0x18);
 
-/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_800EB2C8`. Same
+/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `Gp_DrawFxQuad`. Same
 /// shape as `GpRingScratch` (the coordinate's `workm.t[]` truncated to s16,
 /// fed to `gte_ldv0`, then `gte_stszotz` / `gte_stflg` / `gte_stsxy` of the
 /// single RTPS), but the ring radius is not cached: instead `dx` / `dy` hold
@@ -332,7 +332,7 @@ typedef struct _GpFxQuadScratch {
 } GpFxQuadScratch;
 STATIC_ASSERT_SIZEOF(GpFxQuadScratch, 0x1C);
 
-/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_800EAA0C`. Same
+/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `Gp_DrawArc`. Same
 /// projection preamble as `GpRingScratch` (the coordinate's `workm.t[]`
 /// truncated to s16, fed to `gte_ldv0`, then `gte_stszotz` / `gte_stflg` /
 /// `gte_stsxy` of the single RTPS), but two radii are cached instead of one:
@@ -374,7 +374,7 @@ extern Task*         Gp_State1CTask;
 extern GpCoord64     Gp_RoomCoords[8];
 extern GsCOORDINATE2 D_80070F10;
 /// Six CLUT X coordinates (0x20, 0x30, 0xC0, 0xD0, 0xE0, 0xF0) selected by
-/// the top nibble of `func_800EB2C8`'s angle argument and paired with CLUT
+/// the top nibble of `Gp_DrawFxQuad`'s angle argument and paired with CLUT
 /// Y 0x10B.
 extern u16 Gp_QuadClutX[];
 /// 8 packed RGB-nibble colors. Index is `cln(spawnArg1 << 12) / 2839 & 7`.
@@ -383,7 +383,7 @@ extern u16 Gp_FadeQuadColors[];
 
 Task* Gp_SpawnScript18(s32 arg0, s32 arg1);
 void  Gp_RunCapCmd(s32 arg0, s16 arg1);
-void  func_800E375C(Task* arg0);
+void  Gp_EvtCapWeaponTask(Task* arg0);
 s32   Gp_StartCapSlot(s16 arg0, s16 arg1, s16 arg2);
 void  Gp_MsgPlayer3F3(s32 arg0);
 void  Gp_MsgPlayerWeapon(s32 arg0);
@@ -409,14 +409,14 @@ s32  Gp_CapBusy(void);
 /// Each frame an LCG (`Gp_LcgState`) scales the remaining count into
 /// `Display_ClampField126`, flipping sign on `spawnArg1` parity.
 void Gp_ShakeTask(Task* arg0);
-void func_800E956C(void);
+void Gp_UpdatePadInput(void);
 u16  Gp_RemapButtons(GameActor* actor, u16 mask);
 
 void func_800E9BDC(u8 arg0, s32 arg1);
 void func_800E9C6C(void);
 void Gp_InitState1C(Task* arg0);
 void Gp_TickState1C(void);
-s32  func_800EA02C(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
+s32  Gp_TraceGroundCoord(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
 s32  func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1);
 s32  func_800EA318(s16 arg0, s16 arg1, s16 arg2);
 void func_800EA3A0(s32 arg0);
@@ -430,24 +430,24 @@ void Gp_InitRoomCoords(void);
 /// re-parented to `D_80070F10`. `arg2` becomes `Task::spawnArg1`; `arg3` is an
 /// optional offset vector (`NULL` = zero) rotated into the parent's space and
 /// kept in `GpEffWork::field_C`. Returns the work object, or `NULL`.
-struct _GpEffWork* func_800EA478(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3);
+struct _GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3);
 /// Full-screen semi-trans POLY_F4. `arg0` is RGB; `arg1` is ABR (low 2 bits).
 void Gp_DrawFadeQuad(u8* arg0, s32 arg1);
 /// Handwritten GTE routine. Draws a textured sprite at `arg0`; `arg1` is a
 /// signed half-extent, `arg2` a scale, and `arg3` the RGB triple.
-void func_800EAA0C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3);
+void Gp_DrawArc(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3);
 /// Handwritten GTE routine. Draws an eight-segment gouraud ring centred on
 /// `arg0`'s world position: `arg1` is the radius in world units (scaled by
 /// 64 and divided by the projected OTZ) and `arg2` the RGB triple, which
 /// only lights the ring's inner vertex so each `POLY_G4` fades to black.
-void func_800EAEB8(GsCOORDINATE2* arg0, s32 arg1, u8* arg2);
+void Gp_DrawRing(GsCOORDINATE2* arg0, s32 arg1, u8* arg2);
 /// Draws one textured, additive `POLY_FT4` billboard at `arg0`'s projected
 /// position. `arg1` is the animation frame (U origin `arg1 * 32`, the sprite
 /// is 0x20 x 0x20 at V 0x18), `arg2` the radius (scaled by 31 and divided by
 /// the projected OTZ) and `arg3` packs the sprite's CLUT index
 /// (`Gp_QuadClutX`) in its top nibble and the spin angle in its low 12 bits,
 /// so the quad's corners sit at `angle` and `angle + 0x400`.
-void func_800EB2C8(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, u16 arg3);
+void Gp_DrawFxQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, u16 arg3);
 void func_800EB6E8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800EBF18(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* arg3);
 void Gp_ReleaseState1CMem(void* arg0, Task* arg1);

@@ -79,10 +79,10 @@ extern s32            D_80115724;
 
 extern GpItemRec* Gp_SelItemRec;
 
-void func_800C05CC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void Gp_DrawItemIcon(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_80108874(void);
 void func_800A57B0(GpIdMapC* arg0);
-void func_800A2F60(GpIdMapC* arg0);
+void Gp_UseItemTask(GpIdMapC* arg0);
 s32  func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2);
 s32  func_800A7550(void);
 
@@ -264,17 +264,17 @@ s32  func_800A7550(void);
     (d)->m[2][2] = t6;
 
 void func_800A4904(s32 arg0);
-void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_800A5274(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
+void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800A5574(s32 arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800A7824(s32 arg0, s32 arg1, s32 arg2);
-void func_800A6A9C(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
-s32  func_800A82C0(GsCOORDINATE2* arg0, VECTOR* arg1);
+void Gp_DrawHudNumbers(s32 arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+s32  Gp_SpawnViewCoordTask(GsCOORDINATE2* arg0, VECTOR* arg1);
 void Gp_FinishLoadWait(Task* task);
 void func_807150F8(s32 arg0);
 void func_80715198(void);
 
-void func_80097AC0(GpuOtBuf* arg0)
+void Gp_DrawActorTmdFlagged(GpuOtBuf* arg0)
 {
     register TmdObject*     node asm("s3");
     register GsCOORDINATE2* coord asm("s1");
@@ -307,7 +307,7 @@ void func_80097AC0(GpuOtBuf* arg0)
                 }
             } else {
                 if ((parent->flg == 0) || ((parent->flg >> 31) != bit)) {
-                    func_8009939C(parent, flag, bit, 0);
+                    Gp_UpdateCoordTree(parent, flag, bit, 0);
                 }
                 if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
                     register MATRIX* pwm asm("v0");
@@ -479,7 +479,7 @@ void func_80097AC0(GpuOtBuf* arg0)
                         }
                     } else {
                         if ((parent->flg == 0) || ((parent->flg >> 31) != bit)) {
-                            func_8009939C(parent, flag, bit, 0);
+                            Gp_UpdateCoordTree(parent, flag, bit, 0);
                         }
                         if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
                             register MATRIX* pwm asm("v0");
@@ -638,7 +638,7 @@ void func_80097AC0(GpuOtBuf* arg0)
     Tmd_DrawFlaggedNodes(Tmd_List.next);
 }
 
-void func_8009850C(GpuOtBuf* arg0)
+void Gp_DrawActorTmdActive(GpuOtBuf* arg0)
 {
     register TmdObject*     node asm("s3");
     register GsCOORDINATE2* coord asm("s1");
@@ -671,7 +671,7 @@ void func_8009850C(GpuOtBuf* arg0)
                 }
             } else {
                 if ((parent->flg == 0) || ((parent->flg >> 31) != bit)) {
-                    func_8009939C(parent, flag, bit, 0);
+                    Gp_UpdateCoordTree(parent, flag, bit, 0);
                 }
                 if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
                     register MATRIX* pwm asm("v0");
@@ -843,7 +843,7 @@ void func_8009850C(GpuOtBuf* arg0)
                         }
                     } else {
                         if ((parent->flg == 0) || ((parent->flg >> 31) != bit)) {
-                            func_8009939C(parent, flag, bit, 0);
+                            Gp_UpdateCoordTree(parent, flag, bit, 0);
                         }
                         if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
                             register MATRIX* pwm asm("v0");
@@ -1005,17 +1005,17 @@ void func_8009850C(GpuOtBuf* arg0)
 void Gp_UpdateCoord(GsCOORDINATE2* arg0)
 {
     Gp_CurCoord = arg0;
-    func_8009939C(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, 0);
+    Gp_UpdateCoordTree(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, 0);
 }
 
 void Gp_UpdateCoordEx(GsCOORDINATE2* arg0, s32 arg1)
 {
     if (arg0->sub == NULL) {
         Gp_CurCoord = arg0;
-        func_8009939C(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, 0);
+        Gp_UpdateCoordTree(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, 0);
         Gp_WorldToLocal(&D_80070F34, &arg0->workm, &arg0->coord);
     } else {
-        func_8009939C(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, arg1);
+        Gp_UpdateCoordTree(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, arg1);
     }
 }
 
@@ -1168,7 +1168,7 @@ void Gp_RestoreTmdLists(void)
     Tmd_ListAlt = Gp_TmdListAltStash;
 }
 
-void func_8009939C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+void Gp_UpdateCoordTree(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     register GsCOORDINATE2* coord asm("s1");
     register s32            s2 asm("s2");
@@ -1189,7 +1189,7 @@ void func_8009939C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
         }
     } else {
         if ((parent->flg == 0) || ((parent->flg >> 31) != s3)) {
-            func_8009939C(parent, s2, s3, arg3);
+            Gp_UpdateCoordTree(parent, s2, s3, arg3);
         }
         if (coord->flg < (parent->flg & 0x7FFFFFFF)) {
             register MATRIX* pwm asm("v0");
@@ -1385,7 +1385,7 @@ Task* Gp_FindTaskByCoord(GsCOORDINATE2* arg0)
 
 void Gp_DrawDisp2dOt(void)
 {
-    func_8009850C(&Gpu_OtBuffers[Display_State.field_1f]);
+    Gp_DrawActorTmdActive(&Gpu_OtBuffers[Display_State.field_1f]);
 }
 
 u32* func_80099994(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
@@ -4509,7 +4509,7 @@ void Gp_InitPlayClock(Task* task)
     GpIdMap30*    rec;
     DisplayState* ds;
 
-    func_800E956C();
+    Gp_UpdatePadInput();
     Game_Session->field_5E = 1;
     rec                    = Mem_Calloc(0x30, 0);
     if (rec == NULL) {
@@ -4561,7 +4561,7 @@ void Gp_TickPlayClock(Task* task)
 
     rec = (GpIdMap30*)task->idMap;
     cfg = &Wip_SysConfig;
-    func_800E956C();
+    Gp_UpdatePadInput();
 
     temp         = Display_State.field_4;
     D_8005ED68  += temp - rec->field_8;
@@ -4677,11 +4677,11 @@ block_normal:
         Game_Session->field_0 = 1;
         task->state++;
     } else {
-        func_800A3AF0(&rec->extra);
+        Gp_HudTask(&rec->extra);
     }
 }
 
-void func_800A0504(Task* arg0)
+void Gp_RestartSessionTask(Task* arg0)
 {
     RECT          rect;
     DisplayState* ds;
@@ -4690,7 +4690,7 @@ void func_800A0504(Task* arg0)
     s32           flag;
 
     queue = &CdCmd_Queue;
-    func_800A7320(&arg0->killCountdown);
+    Gp_StartAreaBgm(&arg0->killCountdown);
     arg0->spawnArg1 += 0xA;
     if (arg0->spawnArg1 < 0x100) {
         return;
@@ -4739,7 +4739,7 @@ void func_800A0504(Task* arg0)
     Task_SpawnFromTable(&D_8010D1FC, 0, 0, 0);
 }
 
-void func_800A0718(Task* arg0)
+void Gp_EndingTask(Task* arg0)
 {
     GameSession* session;
     GpEndWork*   work;
@@ -4785,7 +4785,7 @@ countdown:
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A087C);
 
-void func_800A110C(Task* arg0)
+void Gp_AreaEnterTask(Task* arg0)
 {
     register u32           key asm("s2");
     GpEndWork*             work;
@@ -4926,7 +4926,7 @@ void func_800A110C(Task* arg0)
     }
 }
 
-u16 func_800A1558(s32 arg0)
+u16 Gp_GetAttachParam(s32 arg0)
 {
     WipSysConfig* p;
     s32           cond;
@@ -4968,7 +4968,7 @@ u16 func_800A1558(s32 arg0)
     return *(u16*)off;
 }
 
-void func_800A1634(s32 arg0, GpIdMapC* arg1)
+void Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1)
 {
     WipSysConfig* p;
     GpStateF0*    state;
@@ -5038,7 +5038,7 @@ void func_800A1634(s32 arg0, GpIdMapC* arg1)
     if (flag != 0) {
         switch (rec->field_0) {
             case 0:
-                func_800A45F0(arg0);
+                Gp_UpdateAttachCombo(arg0);
                 break;
             case 1:
                 func_800A7824(arg0, val1, val2);
@@ -5048,7 +5048,7 @@ void func_800A1634(s32 arg0, GpIdMapC* arg1)
                 }
                 break;
             case 2:
-                func_800A5274(arg0, val1, val2, rec->field_6);
+                Gp_InitSlot18(arg0, val1, val2, rec->field_6);
                 goto after_23;
             case 3:
                 func_800A5574(arg0, val1, val2, rec->field_6);
@@ -5073,11 +5073,11 @@ void func_800A1634(s32 arg0, GpIdMapC* arg1)
             }
         }
     } else if (idx == 7) {
-        func_800A45F0(arg0);
+        Gp_UpdateAttachCombo(arg0);
     }
 }
 
-void func_800A18BC(s32 arg0, s32 arg1)
+void Gp_DrawItemPrompt(s32 arg0, s32 arg1)
 {
     u8            buf[0x10];
     UiObject      obj;
@@ -5271,7 +5271,7 @@ void func_800A18BC(s32 arg0, s32 arg1)
     }
 }
 
-s32 func_800A1CD0(s32 arg0)
+s32 Gp_CheckAttachThreshold(s32 arg0)
 {
     WipSysConfig*          cfg;
     register WipSysConfig* p asm("a1");
@@ -5402,7 +5402,7 @@ done:
     return result;
 }
 
-void func_800A1F64(s32 arg0)
+void Gp_SetAttachState(s32 arg0)
 {
     GpStateC08*   p;
     WipSysConfig* cfg;
@@ -5462,7 +5462,7 @@ void func_800A1F64(s32 arg0)
     neg        = -2;
     TOUCH_REG(neg);
     p->field_3 = neg;
-    temp       = func_800A1558(3);
+    temp       = Gp_GetAttachParam(3);
     p->field_2 = temp;
     if (temp <= 0) {
         p->field_2 = 1;
@@ -5478,7 +5478,7 @@ void func_800A1F64(s32 arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A2104);
 
-void func_800A2BE0(s32 arg0, s32 arg1, s32 arg2)
+void Gp_DrawPeGauge(s32 arg0, s32 arg1, s32 arg2)
 {
     UiObject  obj;
     TILE*     tile;
@@ -5490,7 +5490,7 @@ void func_800A2BE0(s32 arg0, s32 arg1, s32 arg2)
     s32       cat;
     s32       order;
 
-    n = func_800A1558(3);
+    n = Gp_GetAttachParam(3);
     if (Gp_StateC08.field_5 < 0xD) {
         if (Gp_StateC08.field_2 > 0) {
             tile       = (TILE*)D_80071190;
@@ -5559,7 +5559,7 @@ void func_800A2BE0(s32 arg0, s32 arg1, s32 arg2)
         obj.baseY     = 0;
         obj.drawOrder = order;
         obj.mode      = 0;
-        func_800C05CC(&obj, arg1 + 4, arg2 + 0x28, ((cat / 3) << 4) + ((cat % 3) << 2) + 0x301, 0);
+        Gp_DrawItemIcon(&obj, arg1 + 4, arg2 + 0x28, ((cat / 3) << 4) + ((cat % 3) << 2) + 0x301, 0);
 
         dr         = D_80071190;
         D_80071190 = dr + 1;
@@ -5713,7 +5713,7 @@ static __inline__ u8 stateF0Gate_(void)
     return 0;
 }
 
-void func_800A2F60(GpIdMapC* arg0)
+void Gp_UseItemTask(GpIdMapC* arg0)
 {
     WipSysConfig*      cfg;
     GpActorWork*       work;
@@ -5778,7 +5778,7 @@ void func_800A2F60(GpIdMapC* arg0)
             Gp_StateF0.field_4  = 0;
             Gp_StateC08.field_9 = 0;
             if (isStateF0Active_()) {
-                func_800A18BC(x, y);
+                Gp_DrawItemPrompt(x, y);
             }
             return;
         }
@@ -5809,7 +5809,7 @@ void func_800A2F60(GpIdMapC* arg0)
             flag = 1;
         } else {
             if (isStateF0Active_()) {
-                func_800A18BC(x, y);
+                Gp_DrawItemPrompt(x, y);
             }
             return;
         }
@@ -5822,7 +5822,7 @@ void func_800A2F60(GpIdMapC* arg0)
             Gp_StateC08.field_3  = -1;
             Gp_StateC08.field_A  = 3;
         }
-        func_800A2BE0((s32)arg0, x, y);
+        Gp_DrawPeGauge((s32)arg0, x, y);
         if (Gp_StateC08.field_A == 3) {
             Gp_StateC08.field_2--;
         }
@@ -5836,12 +5836,12 @@ void func_800A2F60(GpIdMapC* arg0)
                 D_8010CA28          = 0x14;
                 CdCmd_EnqueueLoadFile(0, 0, 4);
                 if (cfg->field_25 & 0x80) {
-                    cfg->field_18 -= func_800A1558(2) * 2;
+                    cfg->field_18 -= Gp_GetAttachParam(2) * 2;
                     if (cfg->field_18 <= 0) {
                         cfg->field_18 = 1;
                     }
                 } else {
-                    cfg->field_1c -= func_800A1558(2);
+                    cfg->field_1c -= Gp_GetAttachParam(2);
                     if (cfg->field_1c < 0) {
                         cfg->field_1c = 0;
                     }
@@ -5901,14 +5901,14 @@ void func_800A2F60(GpIdMapC* arg0)
             } else {
                 Gp_StateC08.field_5 = Gp_StateC08.field_B;
             }
-            if (func_800A1CD0(Gp_StateC08.field_5) == 0) {
-                func_800A1F64(Gp_StateC08.field_5);
+            if (Gp_CheckAttachThreshold(Gp_StateC08.field_5) == 0) {
+                Gp_SetAttachState(Gp_StateC08.field_5);
             }
         }
     }
 
     if (Gp_StateC08.field_A != 0) {
-        func_800A1634(0, arg0);
+        Gp_ApplyAttachStats(0, arg0);
     }
     if (flag) {
         idx                 = getAttachLevel(Gp_StateC08.field_B);
@@ -5921,7 +5921,7 @@ void func_800A2F60(GpIdMapC* arg0)
     }
 }
 
-void func_800A3AF0(GpIdMapC* arg0)
+void Gp_HudTask(GpIdMapC* arg0)
 {
     DisplayState* ds;
     WipSysConfig* cfg;
@@ -6156,7 +6156,7 @@ after:
                 if (n != 2) {
                     goto tail;
                 }
-                func_8010A1B0(1, 0xFF);
+                Gp_TriggerPeState(1, 0xFF);
                 CdCmd_EnqueueLoadFile(0, 0, 4);
                 if (c08->field_A >= 2) {
                     c08->field_3 = n;
@@ -6325,7 +6325,7 @@ tail:
             func_800A57B0(arg0);
             if (func_800B9D80(0x100000) != 0) {
                 if (Game_Session->field_65 == 0) {
-                    func_800A6480(arg0);
+                    Gp_DrawHudSprites(arg0);
                 }
             }
         }
@@ -6383,7 +6383,7 @@ end:
                     }
                 }
             }
-            func_800A2F60(arg0);
+            Gp_UseItemTask(arg0);
             Gp_StateC08.field_6 &= 0xFE;
             if (D_8010CA28 > 0) {
                 D_8010CA28 = D_8010CA28 - 1;
@@ -6395,7 +6395,7 @@ end:
     }
 }
 
-void func_800A45F0(s32 arg0)
+void Gp_UpdateAttachCombo(s32 arg0)
 {
     WipSysConfig* cfg;
     GpStateC08*   c08;
@@ -6498,7 +6498,7 @@ case_311: {
         p->field_F = lo + 1;
     }
     p->field_F |= temp << 4;
-    func_8010A1B0(1, 0xFF);
+    Gp_TriggerPeState(1, 0xFF);
     return;
 }
 
@@ -6620,7 +6620,7 @@ static __inline__ void Gp_LinkRingSeg(GpCircleScratch* sc)
             prim);
 }
 
-void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     Task*            slot;
     GsCOORDINATE2*   coord;
@@ -6748,7 +6748,7 @@ void func_800A4A2C(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x60;
 }
 
-void func_800A5274(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
+void Gp_InitSlot18(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     SVECTOR*     vec;
     GpLinkXform* node;
@@ -6763,9 +6763,9 @@ void func_800A5274(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 
     if (arg0 == 0) {
         if (arg3 == 0) {
-            func_800A4A2C(0, arg1, arg2, 0);
+            Gp_DrawAimCircle(0, arg1, arg2, 0);
         } else {
-            func_800A4A2C(0, arg1, arg2, 2);
+            Gp_DrawAimCircle(0, arg1, arg2, 2);
         }
     }
 
@@ -6906,7 +6906,7 @@ after_uv:
     addPrim(Gpu_CurrentOt + otIdx - 2, p);
 }
 
-void func_800A6480(GpIdMapC* arg0)
+void Gp_DrawHudSprites(GpIdMapC* arg0)
 {
     register void**          scratch asm("v1");
     register u8*             newhead asm("v0");
@@ -7084,7 +7084,7 @@ void func_800A6480(GpIdMapC* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x48;
 }
 
-void func_800A6A9C(s32 x, s32 y, s32 cur, s32 max, s32 kind)
+void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
 {
     GpHudBarScratch s;
     TextDrawReq     req;
@@ -7288,7 +7288,7 @@ void Gp_HudTrackEnemy(GpEnemy* arg0, GpHudTrack* arg1)
         if (arg0->node.field_4 & 8) {
             val = -1;
         }
-        func_800A6A9C(block->field_14 - 8, block->field_16, arg0->field_40, val, 1);
+        Gp_DrawHudNumbers(block->field_14 - 8, block->field_16, arg0->field_40, val, 1);
     }
     arg1->field_4           = block->field_14;
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
@@ -7368,7 +7368,7 @@ void Gp_UpdateLinkXforms(void)
     }
 }
 
-void func_800A7320(s16* arg0)
+void Gp_StartAreaBgm(s16* arg0)
 {
     s16*          dest;
     register s32  three asm("s2");
@@ -7457,7 +7457,7 @@ s32 Gp_IsStateF0Active(void)
 
 s32 func_800A7550(void)
 {
-    func_800A1634(1, 0);
+    Gp_ApplyAttachStats(1, 0);
     return 0;
 }
 
@@ -7521,7 +7521,7 @@ void func_800A76A4(Task* arg0)
     arg0->killCountdown--;
     if (arg0->killCountdown <= 0) {
         arg0->killCountdown = 0;
-        func_800A7320(&arg0->killCountdown);
+        Gp_StartAreaBgm(&arg0->killCountdown);
         session             = Game_Session;
         Gp_StateC08.field_3 = 0;
         if (session->field_128 != 3) {
@@ -7538,7 +7538,7 @@ void func_800A76A4(Task* arg0)
 
 void func_800A7744(Task* arg0)
 {
-    func_800A7320(&arg0->killCountdown);
+    Gp_StartAreaBgm(&arg0->killCountdown);
     arg0->spawnArg1++;
     if (arg0->spawnArg1 == 0x40) {
         if (Game_Session->field_128 == 3) {
@@ -7560,7 +7560,7 @@ void func_800A77B4(Task* arg0)
 void func_800A7824(s32 arg0, s32 arg1, s32 arg2)
 {
     if (arg0 == 0) {
-        func_800A4A2C(0, arg1, arg2, 5);
+        Gp_DrawAimCircle(0, arg1, arg2, 5);
     }
 }
 
@@ -7635,14 +7635,14 @@ void Gp_DrawItemTitle(Task* arg0)
     }
 }
 
-void func_800A7A64(void)
+void Gp_TriggerPeIfArmed(void)
 {
     u8 state;
 
     state = Gp_StateF0.field_0;
     if ((state == 1) || (state == 3)) {
         if (Game_Session->field_126 == 0) {
-            func_8010A1B0(1, 0xFF);
+            Gp_TriggerPeState(1, 0xFF);
             Gp_PulseState1C80();
             Display_State.field_12f = 0;
             Display_InitModeObj(&D_8010CABC, 1, 0, 0x102);
@@ -7916,7 +7916,7 @@ static __inline__ void coordToRoot(GsCOORDINATE2* arg0, GsCOORDINATE2* root, MAT
 /// `arg1` (optional) stored as the world offset in `D_80070E90.coord.t`.
 /// Coordinates that are not direct children of the root are first folded to
 /// root space with `coordToRoot`.
-void func_800A7F6C(GsCOORDINATE2* arg0, VECTOR* arg1)
+void Gp_SetViewFromCoord(GsCOORDINATE2* arg0, VECTOR* arg1)
 {
     register short          t4 asm("t4");
     register short          t5 asm("t5");
@@ -7972,7 +7972,7 @@ void func_800A7F6C(GsCOORDINATE2* arg0, VECTOR* arg1)
 /// Spawns the type-0xE view task and points its coordinate at the inverse of
 /// `arg0` (transposed rotation, negated translation). `arg1` is the optional
 /// world offset stored in the task's 0x10-byte payload.
-s32 func_800A82C0(GsCOORDINATE2* arg0, VECTOR* arg1)
+s32 Gp_SpawnViewCoordTask(GsCOORDINATE2* arg0, VECTOR* arg1)
 {
     register short          t4 asm("t4");
     register short          t5 asm("t5");
@@ -8307,7 +8307,7 @@ void func_800A8D5C(void)
     coord.coord.t[0]            = 0;
     coord.coord.t[1]            = 0;
     coord.coord.t[2]            = 0;
-    func_800A82C0(&coord, &vec);
+    Gp_SpawnViewCoordTask(&coord, &vec);
 }
 
 void Gp_SpawnCurView(s32 arg0)
@@ -8332,7 +8332,7 @@ void Gp_SpawnCurView(s32 arg0)
     }
 }
 
-void func_800A8E8C(Task* task)
+void Gp_ViewGateTask(Task* task)
 {
     GameSession* sess;
     McSaveData*  save;
@@ -8378,7 +8378,7 @@ void func_800A8E8C(Task* task)
     }
 }
 
-void func_800A9010(Task* task)
+void Gp_ViewBeginLoad(Task* task)
 {
     DisplayState*     ds;
     CdCmdQueue*       q;
@@ -8425,13 +8425,13 @@ void func_800A9010(Task* task)
                 param2[3] = 0;
                 CdCmd_Enqueue(0x21, param1, param2);
                 task->state += 2;
-                func_800A91CC(task);
+                Gp_ViewLoadImage(task);
             }
         }
     }
 }
 
-void func_800A91CC(Task* task)
+void Gp_ViewLoadImage(Task* task)
 {
     CdCmdQueue*   q;
     s32           i;

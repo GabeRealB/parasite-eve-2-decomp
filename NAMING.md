@@ -19,6 +19,20 @@ This decomp still has many address-based placeholders (`func_800xxxxx`, `D_800xx
 | **Unnamed functions** | `func_800XXXXX` (VRAM) | only until matched + understood |
 | **Unnamed data** | `D_800XXXXX` or `D{file}{off}_…` | file-local prefix ok while WIP |
 
+## Table-slot names
+
+Some callbacks are only distinguishable by the table slot that dispatches
+them; the slot *is* the game's own identifier, so it goes in the name rather
+than an invented visual description:
+
+| Family | Pattern | Dispatched by |
+|---|---|---|
+| Gameplay effect tasks | `Gp_Eff<Kind>Task<ID>` (`Gp_EffSprTask34`) | `Task_Spawn(6, ID, …)` via the bank-6 `TaskDesc` table `D_8010FC2C`; `Gp_SpawnEff(0x6xxxx, …)` passes the same ID. `Kind` is the primitive the body draws: `Spr` (animated textured billboard), `Line`, `Tile`, `Poly` (gouraud tris/quads), `Model`, `Attach`, or `Ctl` when the task only spawns and steps other effects. |
+| Player actor states | `Gp_Player<Mode>State<N>` (`Gp_PlayerNormalState5`) | `GameActor.field_956` indexes `D_8009794C` in mode 0 (`Gp_TickPlayerNormal`) and `D_80097A08` in mode 2; `field_954` picks the mode through `D_80097940`. |
+
+A handler shared by several slots takes a behavioural name instead
+(`Gp_EffModelTask` covers bank-6 0x36/0x66/0x67/0x68/0x91).
+
 ## Modules (current)
 
 | Prefix | Area | Source / splat unit | Header |

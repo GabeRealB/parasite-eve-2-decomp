@@ -29,10 +29,10 @@ extern SVECTOR D_8011280C[];
 
 void func_800EF0E0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800F1BEC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
-void func_800F68AC(VECTOR3* arg0, s32 arg1, s16 arg2);
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
 void func_800F6560(GsCOORDINATE2* arg0, s32 arg1, u32 arg2);
 
-void func_800ECAA8(Task* arg0)
+void Gp_EffCtlTask2B(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
@@ -76,10 +76,10 @@ void func_800ECAA8(Task* arg0)
                     default:
                         rng         = Gp_LcgState * 5 + 0x71357911;
                         Gp_LcgState = rng;
-                        func_800EA478(0x60034, coord, (((u32)rng >> 16) & 0x1FF) | 0x200, 0);
+                        Gp_SpawnEff(0x60034, coord, (((u32)rng >> 16) & 0x1FF) | 0x200, 0);
                         idx         = arg0->spawnArg1;
                         arg0->state = 1;
-                        func_800EA478(0x60036, coord, idx, &D_801125EC[idx]);
+                        Gp_SpawnEff(0x60036, coord, idx, &D_801125EC[idx]);
                         mem->field_24 = 4;
                         base->field_0 = 4;
                         break;
@@ -87,10 +87,10 @@ void func_800ECAA8(Task* arg0)
                     case 3:
                         rng         = Gp_LcgState * 5 + 0x71357911;
                         Gp_LcgState = rng;
-                        func_800EA478(0x60034, coord, (((u32)rng >> 16) & 0x1FF) + 0x300, 0);
+                        Gp_SpawnEff(0x60034, coord, (((u32)rng >> 16) & 0x1FF) + 0x300, 0);
                         idx         = arg0->spawnArg1;
                         arg0->state = 1;
-                        func_800EA478(0x60036, coord, idx, &D_801125EC[idx]);
+                        Gp_SpawnEff(0x60036, coord, idx, &D_801125EC[idx]);
                         mem->field_24 = 4;
                         base->field_0 = 4;
                         break;
@@ -100,16 +100,16 @@ void func_800ECAA8(Task* arg0)
                         arg0->state = 2;
                         rng         = Gp_LcgState * 5 + 0x71357911;
                         Gp_LcgState = rng;
-                        func_800EA478(0x60034, coord, (((u32)rng >> 16) & 0x1FF) + 0x300, 0);
+                        Gp_SpawnEff(0x60034, coord, (((u32)rng >> 16) & 0x1FF) + 0x300, 0);
                         idx = arg0->spawnArg1;
-                        func_800EA478(0x60036, coord, idx, &D_801125EC[idx]);
+                        Gp_SpawnEff(0x60036, coord, idx, &D_801125EC[idx]);
                         mem->field_24 = 2;
                         base->field_0 = 2;
                         break;
                     case 5:
                         idx         = arg0->spawnArg1;
                         arg0->state = 1;
-                        func_800EA478(0x60066, coord, idx, &D_801125EC[idx]);
+                        Gp_SpawnEff(0x60066, coord, idx, &D_801125EC[idx]);
                         mem->field_24 = 4;
                         base->field_0 = 0;
                         break;
@@ -118,9 +118,9 @@ void func_800ECAA8(Task* arg0)
                         arg0->state   = 1;
                         rng           = Gp_LcgState * 5 + 0x71357911;
                         Gp_LcgState   = rng;
-                        func_800EA478(0x60034, coord, (((u32)rng >> 16) & 0x1FF) + 0x300, 0);
+                        Gp_SpawnEff(0x60034, coord, (((u32)rng >> 16) & 0x1FF) + 0x300, 0);
                         idx = arg0->spawnArg1;
-                        func_800EA478(0x60066, coord, idx, &D_801125EC[idx]);
+                        Gp_SpawnEff(0x60066, coord, idx, &D_801125EC[idx]);
                         mem->field_24 = 4;
                         base->field_0 = 0;
                         break;
@@ -132,7 +132,7 @@ void func_800ECAA8(Task* arg0)
             case 1:
                 rng         = Gp_LcgState * 5 + 0x71357911;
                 Gp_LcgState = rng;
-                func_800EA478(0x60035, coord, (((u32)rng >> 16) & 0x1FF) | 0x200, 0);
+                Gp_SpawnEff(0x60035, coord, (((u32)rng >> 16) & 0x1FF) | 0x200, 0);
                 arg0->state++;
                 break;
         }
@@ -146,7 +146,7 @@ void func_800ECAA8(Task* arg0)
     }
 }
 
-void func_800ECEC0(Task* arg0)
+void Gp_EffCtlTask6A(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
@@ -190,21 +190,21 @@ void func_800ECEC0(Task* arg0)
                     SOFT_TOUCH_REG(sh);
                     mem->field_14 = -((s16)sh >> 1);
                 }
-                func_800EA478(0x60034, coord, mem->field_24 + 0x600, (SVECTOR*)&mem->field_10);
+                Gp_SpawnEff(0x60034, coord, mem->field_24 + 0x600, (SVECTOR*)&mem->field_10);
                 st           = Gp_State1C;
                 arg0->state  = 1;
                 st->field_14 = 1;
                 break;
             case 1:
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                func_800EA478(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x11280,
-                              (s32)&mem->field_10);
+                Gp_SpawnEff(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x11280,
+                            (s32)&mem->field_10);
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                func_800EA478(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x21280,
-                              (s32)&mem->field_10);
+                Gp_SpawnEff(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x21280,
+                            (s32)&mem->field_10);
                 Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                func_800EA478(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x31280,
-                              (s32)&mem->field_10);
+                Gp_SpawnEff(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x31280,
+                            (s32)&mem->field_10);
                 arg0->state++;
                 break;
         }
@@ -217,7 +217,7 @@ void func_800ECEC0(Task* arg0)
     }
 }
 
-void func_800ED198(Task* arg0)
+void Gp_EffCtlTask6B(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
@@ -266,12 +266,12 @@ void func_800ED198(Task* arg0)
                 SOFT_TOUCH_REG(sh);
                 mem->field_14 = -((s16)sh >> 1);
             }
-            func_800EA478(0x60034, coord, mem->field_24 + 0x380, (SVECTOR*)&mem->field_10);
+            Gp_SpawnEff(0x60034, coord, mem->field_24 + 0x380, (SVECTOR*)&mem->field_10);
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            func_800EA478(0x60072, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x380, 0);
+            Gp_SpawnEff(0x60072, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x380, 0);
             idx         = arg0->spawnArg1;
             arg0->state = 1;
-            func_800EA478(0x60067, coord, idx, &D_801125EC[idx]);
+            Gp_SpawnEff(0x60067, coord, idx, &D_801125EC[idx]);
             if (arg0->spawnArg1 == 0x11) {
                 mem->field_24          = 1;
                 Gp_RoomCoords->field_0 = 1;
@@ -295,7 +295,7 @@ void func_800ED198(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800ED42C);
 
-void func_800EDDFC(Task* arg0)
+void Gp_EffCtlTask6C(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
@@ -345,9 +345,9 @@ void func_800EDDFC(Task* arg0)
                 func_800EF0E0(coord, idx | 0x400, ((u32)rng2 >> 16) & 0xFFF, idx);
                 for (i = 0; i < 4; i++) {
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    func_800EA478(0x6006F, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x380, 0);
+                    Gp_SpawnEff(0x6006F, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x380, 0);
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    func_800EA478(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x21380, 0);
+                    Gp_SpawnEff(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x21380, 0);
                 }
                 switch (arg0->spawnArg1) {
                     case 1:
@@ -373,16 +373,16 @@ void func_800EDDFC(Task* arg0)
             case 1:
                 if (mem->field_22 == mem->field_24) {
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    func_800EA478(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0xFF) + 0x12180,
-                                  &D_8011280C[arg0->spawnArg1]);
+                    Gp_SpawnEff(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0xFF) + 0x12180,
+                                &D_8011280C[arg0->spawnArg1]);
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    func_800EA478(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0xFF) + 0x22180,
-                                  &D_8011280C[arg0->spawnArg1]);
+                    Gp_SpawnEff(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0xFF) + 0x22180,
+                                &D_8011280C[arg0->spawnArg1]);
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                    func_800EA478(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0xFF) + 0x32180,
-                                  &D_8011280C[arg0->spawnArg1]);
-                    func_800EA478(0x60091, coord, arg0->spawnArg1 + mem->field_26,
-                                  &D_8011280C[arg0->spawnArg1]);
+                    Gp_SpawnEff(0x60035, coord, (((u32)Gp_LcgState >> 16) & 0xFF) + 0x32180,
+                                &D_8011280C[arg0->spawnArg1]);
+                    Gp_SpawnEff(0x60091, coord, arg0->spawnArg1 + mem->field_26,
+                                &D_8011280C[arg0->spawnArg1]);
                     arg0->state = 2;
                 }
                 break;
@@ -397,7 +397,7 @@ void func_800EDDFC(Task* arg0)
     }
 }
 
-void func_800EE210(Task* arg0)
+void Gp_EffSprTask34(Task* arg0)
 {
     GpEffWork*        mem;
     GsCOORDINATE2*    coord;
@@ -482,7 +482,7 @@ void func_800EE210(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_800EE72C(Task* arg0)
+void Gp_EffSprTask72(Task* arg0)
 {
     GpEffWork*        mem;
     GsCOORDINATE2*    coord;
@@ -568,7 +568,7 @@ void func_800EE72C(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_800EEC14(Task* arg0)
+void Gp_EffLineTaskA3(Task* arg0)
 {
     GpEffWork*        mem;
     GsCOORDINATE2*    coord;
@@ -731,7 +731,7 @@ void func_800EF0E0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
     *scratch = (u8*)*scratch + 0x1C;
 }
 
-void func_800EF4D0(Task* arg0)
+void Gp_EffSprTask35(Task* arg0)
 {
     GpEffWork*        mem;
     GsCOORDINATE2*    coord;
@@ -844,7 +844,7 @@ void func_800EF4D0(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_800EFBC4(Task* arg0)
+void Gp_EffSprTask6F(Task* arg0)
 {
     GpEffWork*        mem;
     GsCOORDINATE2*    coord;
@@ -952,7 +952,7 @@ void func_800EFBC4(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_800F02B4(Task* arg0)
+void Gp_EffModelTask(Task* arg0)
 {
     SVECTOR        delta;
     SVECTOR        dir;
@@ -1279,7 +1279,7 @@ release:
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_800F1364(Task* arg0)
+void Gp_EffCtlTask6E(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
@@ -1306,22 +1306,22 @@ void func_800F1364(Task* arg0)
         arg0->state = 1;
         rng         = Gp_LcgState * 5 + 0x71357911;
         Gp_LcgState = rng;
-        func_800EA478(0x60035, coord, (((u32)rng >> 16) & 0x1FF) | 0x11200, 0);
+        Gp_SpawnEff(0x60035, coord, (((u32)rng >> 16) & 0x1FF) | 0x11200, 0);
         rng         = Gp_LcgState * 5 + 0x71357911;
         Gp_LcgState = rng;
-        func_800EA478(0x60035, coord, (((u32)rng >> 16) & 0x1FF) | 0x21200, 0);
+        Gp_SpawnEff(0x60035, coord, (((u32)rng >> 16) & 0x1FF) | 0x21200, 0);
         rng         = Gp_LcgState * 5 + 0x71357911;
         Gp_LcgState = rng;
-        func_800EA478(0x60035, coord, (((u32)rng >> 16) & 0x1FF) | 0x31200, 0);
+        Gp_SpawnEff(0x60035, coord, (((u32)rng >> 16) & 0x1FF) | 0x31200, 0);
     }
-    func_800EA478(0x60091, coord, arg0->spawnArg1, 0);
+    Gp_SpawnEff(0x60091, coord, arg0->spawnArg1, 0);
     mem->field_22++;
     if (mem->field_22 > mem->field_24 - 1) {
         Gp_ReleaseState1CMem(mem, arg0);
     }
 }
 
-void func_800F1594(Task* arg0)
+void Gp_EffCtlTask6D(Task* arg0)
 {
     GsCOORDINATE2* coord;
     MATRIX*        m;
@@ -1343,13 +1343,13 @@ void func_800F1594(Task* arg0)
     Gp_UpdateCoord(coord);
 
     for (; i < 6; i++) {
-        func_800EA478(0x60036, coord, 9, 0);
+        Gp_SpawnEff(0x60036, coord, 9, 0);
     }
 
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_800F1638(Task* arg0)
+void Gp_EffTileTaskA4(Task* arg0)
 {
     GpEffWork*        mem;
     GsCOORDINATE2*    coord;
@@ -1429,7 +1429,7 @@ void func_800F1638(Task* arg0)
     }
 }
 
-void func_800F1A9C(Task* arg0)
+void Gp_EffCtlTask3B(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
@@ -1452,7 +1452,7 @@ void func_800F1A9C(Task* arg0)
                 mem->field_26 = 0x200;
             }
             for (i = 0; i < 6; i++) {
-                func_800EA478(0x600A4, coord, 1, 0);
+                Gp_SpawnEff(0x600A4, coord, 1, 0);
             }
             arg0->state = 1;
         }
@@ -1533,7 +1533,7 @@ void func_800F1BEC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
     *scratch = (u8*)*scratch + 0x1C;
 }
 
-void func_800F1FF4(Task* arg0)
+void Gp_EffSprTask5C(Task* arg0)
 {
     void**            scratch;
     u8*               head;
@@ -1604,7 +1604,7 @@ void func_800F1FF4(Task* arg0)
                 i = 0;
                 if (n != 0) {
                     do {
-                        func_800EA478(0x6005C, coord, ((s32)(*(u16*)&mem->field_24 << 16) >> 17) | 0x02001000, 0);
+                        Gp_SpawnEff(0x6005C, coord, ((s32)(*(u16*)&mem->field_24 << 16) >> 17) | 0x02001000, 0);
                         i += 1;
                     } while (i < n);
                 }
@@ -1612,7 +1612,7 @@ void func_800F1FF4(Task* arg0)
                 i = 0;
                 if (n > 0) {
                     do {
-                        func_800EA478(0x6005C, coord, ((s32)(*(u16*)&mem->field_24 << 16) >> 17) | 0x01002000, 0);
+                        Gp_SpawnEff(0x6005C, coord, ((s32)(*(u16*)&mem->field_24 << 16) >> 17) | 0x01002000, 0);
                         i += 1;
                     } while (i < n);
                 }
@@ -1688,7 +1688,7 @@ void func_800F1FF4(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F289C);
 
-void func_800F3414(Task* arg0)
+void Gp_EffSprTask76(Task* arg0)
 {
     void**                     scratch;
     u8*                        head;
@@ -1771,7 +1771,7 @@ void func_800F3414(Task* arg0)
     }
 }
 
-void func_800F3A78(Task* arg0)
+void Gp_EffSprTask7C(Task* arg0)
 {
     GsCOORDINATE2              hit;
     GpEffWork*                 mem;
@@ -1903,7 +1903,7 @@ void func_800F3A78(Task* arg0)
         Gp_ReleaseState1CMem(mem, arg0);
         return;
     }
-    if (func_800EA02C(coord, &hit) == 1) {
+    if (Gp_TraceGroundCoord(coord, &hit) == 1) {
         func_800F6560(&hit, (s32)(*(u16*)&mem->field_24 << 16) >> 17, param);
     }
     if (coord->coord.t[1] > hit.coord.t[1]) {
@@ -1916,7 +1916,7 @@ void func_800F3A78(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F4308);
 
-void func_800F4D24(Task* arg0)
+void Gp_EffLineTask92(Task* arg0)
 {
     GpEffLineScratch* block;
     GpEffWork*        mem;
@@ -2017,7 +2017,7 @@ void func_800F4D24(Task* arg0)
     }
 }
 
-void func_800F5184(Task* arg0)
+void Gp_EffPolyTask9C(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
@@ -2038,7 +2038,7 @@ void func_800F5184(Task* arg0)
             Gp_UpdateCoord(coord);
             mem->field_24 -= 2;
             mem->field_26 += mem->field_2A;
-            func_800F52B4(coord, mem->field_26, mem->field_24, mem->field_28);
+            Gp_DrawEffShard(coord, mem->field_26, mem->field_24, mem->field_28);
             mem->field_22++;
             if (mem->field_22 < 8) {
                 return;
@@ -2050,7 +2050,7 @@ void func_800F5184(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_800F52B4(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3)
+void Gp_DrawEffShard(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3)
 {
     void**                     scratch;
     register u8*               head asm("a2");
@@ -2166,7 +2166,7 @@ void func_800F52B4(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
 }
 
-void func_800F59DC(Task* arg0)
+void Gp_EffSprTask9E(Task* arg0)
 {
     register void**         scratch asm("a0");
     register u8*            head asm("v0");
@@ -2272,7 +2272,7 @@ void func_800F59DC(Task* arg0)
     }
 }
 
-void func_800F5E1C(Task* arg0)
+void Gp_EffSprTask54(Task* arg0)
 {
     void**            scratch;
     u8*               head;
@@ -2313,10 +2313,10 @@ void func_800F5E1C(Task* arg0)
         mem->field_14 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
         if (arg0->spawnArg1 < 0) {
             if (mem->field_26 & 1) {
-                func_800EA478(0x60054, coord, ((mem->field_24 * 3) >> 2) + 0x3000, NULL);
+                Gp_SpawnEff(0x60054, coord, ((mem->field_24 * 3) >> 2) + 0x3000, NULL);
             }
             if (!(mem->field_26 & 3)) {
-                func_800EA478(0x60054, coord, ((mem->field_24 * 3) >> 2) + 0x3000, NULL);
+                Gp_SpawnEff(0x60054, coord, ((mem->field_24 * 3) >> 2) + 0x3000, NULL);
             }
         }
         arg0->state = 1;
@@ -2464,7 +2464,7 @@ void func_800F6560(GsCOORDINATE2* arg0, s32 arg1, u32 arg2)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
 }
 
-void func_800F68AC(VECTOR3* arg0, s32 arg1, s16 arg2)
+void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2)
 {
     register void**         scratch asm("v0");
     register u8*            head asm("v1");
@@ -2546,7 +2546,7 @@ void func_800F68AC(VECTOR3* arg0, s32 arg1, s16 arg2)
     }
 }
 
-void func_800F6C2C(Task* arg0)
+void Gp_EffSprTask53(Task* arg0)
 {
     VECTOR3        vec;
     Task*          slot;
@@ -2566,14 +2566,14 @@ void func_800F6C2C(Task* arg0)
             if (!(((GameActorExt*)slot->extra)->field_C & 0x80)) {
                 Gp_UpdateCoord(coord);
                 if ((s16)func_800EA1A8((VECTOR3*)coord->workm.t, &vec) != 0) {
-                    func_800F68AC(&vec, 0x1C0, Gp_State1C->field_8);
+                    Gp_DrawEffGroundQuad(&vec, 0x1C0, Gp_State1C->field_8);
                 }
             }
         }
     }
 }
 
-void func_800F6D18(Task* arg0)
+void Gp_EffAttachTask37(Task* arg0)
 {
     SVECTOR        delta;
     SVECTOR        dir;
@@ -2706,7 +2706,7 @@ void func_800F6D18(Task* arg0)
                 if (!(mem->field_22 & 3)) {
                     func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
                 }
-                func_800EA478(0x60055, coord, mem->field_26 + 0x12200, 0);
+                Gp_SpawnEff(0x60055, coord, mem->field_26 + 0x12200, 0);
                 gte_lddp(0x800);
                 gte_ldsv(rot);
                 gte_gpf12_real();
@@ -2736,11 +2736,11 @@ void func_800F6D18(Task* arg0)
             mem->field_12 += 0x10000 / mem->field_24;
             Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
             if (!(((u32)Gp_LcgState >> 16) & 3)) {
-                func_800EA478(0x60042, coord, mem->field_26 + 0x11000, 0);
+                Gp_SpawnEff(0x60042, coord, mem->field_26 + 0x11000, 0);
             }
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if (!(((u32)Gp_LcgState >> 16) & 7)) {
-                func_800EA478(0x60055, coord, mem->field_26 + 0x11000, 0);
+                Gp_SpawnEff(0x60055, coord, mem->field_26 + 0x11000, 0);
             }
             if (mem->field_22 >= 0x33) {
                 extra->field_C |= 2;
@@ -2773,7 +2773,7 @@ void func_800F6D18(Task* arg0)
                 Gp_SetObjTrans((GpObj20*)extra, trans, trans, trans);
             }
             if (mem->field_22 == 8) {
-                func_800EA478(0x600A5, coord, mem->field_26 >= 0x100, 0);
+                Gp_SpawnEff(0x600A5, coord, mem->field_26 >= 0x100, 0);
             }
             return;
     }

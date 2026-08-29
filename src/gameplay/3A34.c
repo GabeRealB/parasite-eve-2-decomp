@@ -44,12 +44,12 @@
         gte_stclmv((char*)(r3) + 4);    \
     }
 
-void func_800C2140(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
+void Gp_DrawEquipSummary(UiPanel* arg0, s32 arg1, s32 arg2, s32 arg3);
 
 extern s32        Gp_LcgState;
 extern GpItemRec* Gp_SelItemRec;
 
-s32 func_800D5B14(GpItemRec* arg0)
+s32 Gp_ApplyItemUse(GpItemRec* arg0)
 {
     WipSysConfig* cfg;
     GameActor*    actor;
@@ -234,11 +234,11 @@ s32 func_800D5B14(GpItemRec* arg0)
                         cfg->field_18 = cfg->field_1a;
                         break;
                     case 4:
-                        func_8010A1B0(1, 0xD0);
+                        Gp_TriggerPeState(1, 0xD0);
                         ret = D_8010F888 = Gp_StateC08.field_16 = 1;
                         break;
                     case 8:
-                        func_8010A1B0(1, 7);
+                        Gp_TriggerPeState(1, 7);
                         ret = D_8010F888 = Gp_StateC08.field_17 = 1;
                         break;
                     case 5:
@@ -496,7 +496,7 @@ void Gp_DrawWeaponLabel(Task* arg0)
     Ui_InsetLayout(panel, NULL, NULL, 0);
     x = (s16)panel->field_1C;
     y = (s16)panel->field_18;
-    func_800C2140(panel, x + 2, y + 0xF, 1);
+    Gp_DrawEquipSummary(panel, x + 2, y + 0xF, 1);
     Ui_DrawText(panel, Gp_StrWeapon);
 }
 
@@ -1078,7 +1078,7 @@ const char D_8009745C[] = {
     0x42,
 };
 
-void func_800D8684(Task* arg0)
+void Gp_DebugPanTask(Task* arg0)
 {
     GpActorWork*   slot;
     GpActorWork*   work;
@@ -1642,7 +1642,7 @@ s32 Gp_GetRoomCoordSet(GameSessionFrom4* arg0)
 
 void func_800D96C8(Task* arg0)
 {
-    TaskFunc funcs[2] = { Gp_BindDefaultMtx, func_800D8684 };
+    TaskFunc funcs[2] = { Gp_BindDefaultMtx, Gp_DebugPanTask };
 
     funcs[arg0->state](arg0);
 }
@@ -1889,11 +1889,11 @@ void Gp_BindDefaultMtx(Task* arg0)
             i++;
         } while (i < 2);
         arg0->state++;
-        func_800D8684(arg0);
+        Gp_DebugPanTask(arg0);
     }
 }
 
-void func_800D9DFC(void)
+void Gp_DrawTargetCursor(void)
 {
     GpLinkXform*  node;
     GameSession*  sess;
@@ -1916,7 +1916,7 @@ void func_800D9DFC(void)
     if (Pad_RemapState->field_A != 0) {
         return;
     }
-    func_800DA7B8();
+    Gp_UpdateLockSlots();
     sess = Game_Session;
     if (sess->field_65 == 1) {
         return;
@@ -2268,7 +2268,7 @@ static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
 }
 
-void func_800DA7B8(void)
+void Gp_UpdateLockSlots(void)
 {
     RECT          rect;
     u8            buf[16];
@@ -2576,7 +2576,7 @@ void* Gp_FindLockNodeAt(GpActorWork* arg0, VECTOR3* pos)
     return func_800DA2A0(arg0, pos, flag);
 }
 
-/* After D_8009745C from func_800D8684 so overlay .rodata stays packed. */
+/* After D_8009745C from Gp_DebugPanTask so overlay .rodata stays packed. */
 const char Gp_StrGetLockPosNull[] = {
     '#',
     '#',
@@ -2977,10 +2977,10 @@ void Gp_ReleaseStateF0(void)
     }
 }
 
-void func_800DB72C(void)
+void Gp_TickWorldCollision(void)
 {
     if (Game_GetPtrSlot(3) != NULL) {
-        func_8010154C();
+        Gp_UpdatePlayerMove();
         func_800E0540(D_80115570);
         func_800E0540(D_80115574);
         func_800E0540(D_80115578);
@@ -3261,7 +3261,7 @@ s32 func_800DBCAC(GpObj* arg0, GpObj* arg1)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DBE7C);
 
-void func_800DC528(GpObj* arg0)
+void Gp_CollideObjGrid(GpObj* arg0)
 {
     void**            scratch;
     u8*               head;
@@ -3401,7 +3401,7 @@ done:
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x88;
 }
 
-void func_800DCB80(GpObj* arg0)
+void Gp_CollideObjGridDir(GpObj* arg0)
 {
     void**            scratch;
     u8*               head;
@@ -4015,7 +4015,7 @@ void func_800E0540(GpObj* node)
                     case 0:
                         break;
                     case 1:
-                        func_800DC528(node);
+                        Gp_CollideObjGrid(node);
                         break;
                     case 2:
                         break;
@@ -4026,7 +4026,7 @@ void func_800E0540(GpObj* node)
                         if (node->flags & 0x200) {
                             func_800DD940(node);
                         }
-                        func_800DCB80(node);
+                        Gp_CollideObjGridDir(node);
                         break;
                 }
             }
@@ -4831,7 +4831,7 @@ void Gp_OrientAlong(VECTOR* arg0, MATRIX* arg1, s32 arg2)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x4C;
 }
 
-u32 func_800E1FEC(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
+u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
 {
     u8  flag;
     u32 dmg;
@@ -5029,7 +5029,7 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
     return ret;
 }
 
-s32 func_800E25F8(GpEnemy* arg0, u32 arg1, s32 arg2)
+s32 Gp_RollEnemyChance(GpEnemy* arg0, u32 arg1, s32 arg2)
 {
     GpActorWork*   slot;
     GsCOORDINATE2* pcoord;
@@ -5396,7 +5396,7 @@ s32 Gp_GetIdParam2(s32 arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800E31E8);
 
-void func_800E337C(Task* arg0)
+void Gp_EvtCapTask(Task* arg0)
 {
     s32 flags;
     s32 bit0;

@@ -96,7 +96,7 @@ typedef void (*UiListItemFunc)(struct _DialogPrompt* arg0, struct _UiObject* arg
 
 /// UI list/menu object (data symbols D_8006116C, D_80061194, D_8006125C,
 /// D_80061284, D_800612AC, D_80067654; size 0x24).
-/// funcs is a function-table pointer (`func_800D2384` writes draw/confirm
+/// funcs is a function-table pointer (`Gp_PeCommandMenuTask` writes draw/confirm
 /// handlers into the two slots); field_4 / field_5 are base indices
 /// (Ui_ListTaskCallback seeds both from context); field_5 is also subtracted when
 /// computing field_9; field_6 / field_7 are signed layout sizes (Ui_DrawListHighlight
@@ -106,10 +106,10 @@ typedef void (*UiListItemFunc)(struct _DialogPrompt* arg0, struct _UiObject* arg
 /// Ui_InitList; field_17 is a signed layout adjust subtracted from the child
 /// height when computing visible rows (Ui_ComputeVisibleRows / Ui_ComputeVisibleRowsEx; the latter
 /// also writes field_17 from its third argument). field_20 is the selected
-/// item id (`lhu`; copied to UiObject::field_2C by `func_800CC4F4`). field_22
-/// is a selected action code polled by list-task handlers (`func_800CB188`:
+/// item id (`lhu`; copied to UiObject::field_2C by `Gp_YesNoMenuTask`). field_22
+/// is a selected action code polled by list-task handlers (`Gp_ItemCmdMenuTask`:
 /// 0x20 skips pad input, 0x23 is copied to UiObject::field_2E; 6 is confirm
-/// in `func_800CC4F4`; same values DialogPrompt handlers write to
+/// in `Gp_YesNoMenuTask`; same values DialogPrompt handlers write to
 /// DialogPrompt::field_22).
 typedef struct _UiList {
     /* 0x00 */ UiListItemFunc* funcs;    // function-table pointer
@@ -205,7 +205,7 @@ extern UiPanelFuncTable6 D_80013F2C;
 /// McMenu_ConfirmDialog, McMenu_ConfirmWithRender). field_8 is a signed menu/option index passed
 /// to rendering helpers; field_B is a flag written on the alternate confirm
 /// path; field_C is a selection/confirm flag (1 = confirm); field_10 is compared
-/// to field_8 (`func_800CEF68`); field_18/field_1A are position halfwords;
+/// to field_8 (`Gp_DrawSortCmd`); field_18/field_1A are position halfwords;
 /// field_1C is data passed through to Text_DrawPrompt; field_20/field_22 are
 /// state halfwords set on confirm (field_22 also on the alternate confirm path).
 typedef struct _DialogPrompt {

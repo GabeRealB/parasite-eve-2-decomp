@@ -39,7 +39,7 @@ Allocated with `Mem_Calloc(0x48, 0)`. Inserted into the **active list**
 | `0x10` | Boot, memcard |
 | `0x18` | Main gameflow |
 | `0x20`–`0x2F` | View / HUD / some gameplay |
-| `0x50`–`0x70` | Type-1 TMD attaches (bank 7, shared `func_800F6D18`) |
+| `0x50`–`0x70` | Type-1 TMD attaches (bank 7, shared `Gp_EffAttachTask37`) |
 | `0xC0` | Default actor |
 | `0xE0`–`0xF8` | Draw / load-wait (late in the list) |
 
@@ -150,9 +150,9 @@ NULL.
 | 5 | `D_800626AC` | 5 | Stubs + `Task_KillMaybeSpawn` + one overlay |
 | 6 | `D_8010FC2C` | **667** | Room-overlay actor catalog (gameplay data → `0x8017xxxx`) |
 | 7 | `D_800678F4` | 164 | Equipped TMD attaches (`func_8010B610` + per-item `setupArg`) |
-| 8 | `D_800626EC` | 6 | Stubs + shared `func_800F6D18` |
+| 8 | `D_800626EC` | 6 | Stubs + shared `Gp_EffAttachTask37` |
 | 9 | `D_80067734` | 19 | FX / wait: shake, volume fade, sound fade, end-wait |
-| 10 | `0x80114B34` | 6 | Stubs + `func_800F6D18` (splat-merged into `Gp_CollectedIds`) |
+| 10 | `0x80114B34` | 6 | Stubs + `Gp_EffAttachTask37` (splat-merged into `Gp_CollectedIds`) |
 | 14 | `D_80068B7C` | 5 | Stubs + one `0x807xxxxx` |
 
 Callback addresses fall in four windows:
@@ -164,7 +164,7 @@ Callback addresses fall in four windows:
 | `0x80115770`+ | Aya / weapon / actor / **room** overlays ([`OVERLAYS.md`](OVERLAYS.md) §2) |
 | `0x807xxxxx` | Imported overlay, not splat’d in this tree |
 
-`func_800F6D18` is a generic type-1 TMD actor reused in banks 1, 2, 4, 6, 8, 10
+`Gp_EffAttachTask37` is a generic type-1 TMD actor reused in banks 1, 2, 4, 6, 8, 10
 (and the bank-2 aliases). It is still a `func_*`.
 
 ---
@@ -198,18 +198,18 @@ This is the only bank we can describe entry-by-entry. Spawn with
 | `13` | `10` | `Mc_DispatchStateTable26` | Same as `0B` |
 | `14` | `1F` | `func_800AEE8C` | Area / dir helper (`1A8.c`, matched) |
 | `15` | `C0` | `Task_Kill` | Unused |
-| `16` | `30` | `func_800A8E8C` | Gameplay dispatcher |
+| `16` | `30` | `Gp_ViewGateTask` | Gameplay dispatcher |
 | `17` | `2F` | `Gp_AllocSprtListsTask` | HUD sprite lists. Spawned next to the view task |
 | `18` | `C0` | `Stage_TaskExit` | Stage teardown |
 | `19` | `C0` | `0x807011D8` | Stage overlay — not in this tree |
 | `1A` | `E0` | `Gp_DrawDisp2dOt` | 2D OT draw. Live pointer `Gp_TmdStashTask` |
 | `1B` | `D0` | `func_800AD5B8` | Sibling of type `10` |
-| `1C` | `2F` | `func_800AC25C` | 8-way dispatcher (pause / menu-ish) |
+| `1C` | `2F` | `Gp_LoadStateTask` | 8-way dispatcher (pause / menu-ish) |
 | `1D` | `18` | `func_800A77B4` | 6-way dispatcher |
 | `1E` | `F8` | `Gp_LoadWaitDispatch` | Load-wait. `D4.c` / stage fade spawn this |
 | `1F` | `10` | `Boot_LoadInitialFile` | Cold boot (`D_8005EC64 == 1`) |
 | `20` | `10` | `Boot_LoadTask` | Cold boot (otherwise). `GameMain_SpawnBootTask` |
-| `21` | `2F` | `func_800AC344` | White fade-out, then continue (`D4.c`) |
+| `21` | `2F` | `Gp_FlashWhiteTask` | White fade-out, then continue (`D4.c`) |
 | `22` | `F8` | NULL | Unused |
 | `23` | `C0` | `0x80701400` | Stage overlay — not in this tree |
 | `24` | `2F` | NULL | Unused |
@@ -252,7 +252,7 @@ Payload structs: `include/gameplay/3CD8.h`.
 | `0B` | `Gp_PadHoldTask` | `Gp_SpawnPadHold` — hold countdown in `spawnArg1` |
 | `0C` | `Gp_PadLerpTask` | `Gp_SpawnPadLerp` — work block in `idMap` |
 | `0D` | `Gp_Script18Task` | Script-18 dispatcher |
-| `06`, `10` | `func_800F6D18` | Shared type-1 TMD |
+| `06`, `10` | `Gp_EffAttachTask37` | Shared type-1 TMD |
 | `04` | `0x807257A0` | Stage overlay |
 | `08`–`0A`, `0E`–`0F` | `0x8017xxxx` / `0x8018xxxx` | Room overlay |
 

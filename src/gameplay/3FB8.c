@@ -40,21 +40,21 @@ extern u16            Gp_AllyIdBase[];
 extern void*          Gp_AnimBlkTbl[];
 extern s32            Gp_LcgState;
 
-s32  func_8010A854(s32 arg0);
-void func_80101848(GpActorWork* arg0);
-void func_80101A68(GpActorWork* arg0);
-void func_80101F58(GpActorWork* arg0);
-void func_80102348(GpActorWork* arg0, s32 arg1);
-void func_80102634(GpActorWork* arg0);
-void func_801029D4(GpActorWork* arg0);
-void func_80102D20(GpActorWork* arg0, s32 arg1, s32 arg2);
+s32  Gp_ApplyHpDamage(s32 arg0);
+void Gp_TickActorAnimState(GpActorWork* arg0);
+void Gp_StepPlayerMove(GpActorWork* arg0);
+void Gp_TurnPlayer(GpActorWork* arg0);
+void Gp_AimYawToLock(GpActorWork* arg0, s32 arg1);
+void Gp_AimPitchToLock(GpActorWork* arg0);
+void Gp_AimPitchToLockAlt(GpActorWork* arg0);
+void Gp_AimPitchRec(GpActorWork* arg0, s32 arg1, s32 arg2);
 void Gp_AnimResetChildSlots(GpActorWork* arg0, s32 arg1);
 void Gp_AnimPlayChildSlots(GpActorWork* arg0, s32 arg1, s32 arg2);
 void Gp_AnimPlayChildSlotsEx(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 void Gp_AnimTickChildSlots(GpActorWork* arg0);
 s16  func_80103E7C(s16 arg0, s16 arg1);
-void func_80103F70(GpActorWork* arg0);
-void func_801040A0(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2);
+void Gp_TrackLockTarget(GpActorWork* arg0);
+void Gp_PlaceCoordOffset(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2);
 s32  func_80104B54(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2);
 s32  func_80104E00(GpActorWork* arg0, s32 arg1, GpXformArg* arg2);
 s32  Gp_SetActorDest(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3);
@@ -64,39 +64,39 @@ s32  func_80105690(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  func_8010583C(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  func_80105894(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_80105B0C(GpActorWork* arg0);
-s32  func_80105BC4(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2);
+s32  Gp_PickNearestRec18(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2);
 s32  func_80105ED4(GpActorWork* arg0);
 void func_8010615C(GpActorWork* arg0);
 void func_801066DC(GpActorWork* arg0, s16 arg1);
-void func_80107E1C(GpActorWork* arg0);
+void Gp_PlayerMode2State4(GpActorWork* arg0);
 void func_80109210(GpActorWork* arg0);
 void func_80109250(GpActorWork* arg0);
 void func_80109FC4(GpActorWork* arg0);
 void func_8010A670(GpActorWork* arg0);
 void func_80108684(GpActorWork* arg0);
 void func_8010870C(GpActorWork* arg0, s32 arg1);
-void func_80108770(GpActorWork* arg0, s32 arg1);
+void Gp_ResetActorAnimState(GpActorWork* arg0, s32 arg1);
 void func_80108874(GpActorWork* arg0);
 void func_80108E0C(GpActorWork* arg0, GpLinkNode* arg1);
 void func_80109374(GpActorWork* arg0);
-void func_801093DC(GpActorWork* arg0);
+void Gp_UpdateLockTarget(GpActorWork* arg0);
 void func_801083A0(GpActorWork* arg0);
 void func_801095BC(s32* arg0);
 void func_80109720(GpActorWork* arg0);
 void func_80109844(GpActorWork* arg0);
 void func_80109A1C(GpActorWork* arg0);
 void func_80109BB4(GpActorWork* arg0, GpRec18* arg1);
-void func_8010AA28(GpActorWork* arg0, s32 arg1);
+void Gp_StopPlayerAnim(GpActorWork* arg0, s32 arg1);
 void func_8010AAB4(GpActorWork* arg0);
 void func_8010ABD4(GpActorWork* arg0);
 void func_8010AC54(GpActorWork* arg0);
 void func_8010AD64(GpActorWork* arg0);
-void func_8010B120(GpActorWork* arg0);
+void Gp_PlayerStepSfx(GpActorWork* arg0);
 void func_800FDB18(s32 arg0, GsCOORDINATE2* arg1, SVECTOR* arg2, GpEffArg* arg3);
-void func_800FBAB0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3);
+void Gp_DrawEffTri(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3);
 void func_800FCD00(Task* arg0);
 
-void func_800F8244(Task* arg0)
+void Gp_EffSprTask55(Task* arg0)
 {
     GpEffWork*        mem;
     GsCOORDINATE2*    coord;
@@ -251,7 +251,7 @@ void func_800F8244(Task* arg0)
     }
 }
 
-void func_800F8A38(Task* arg0)
+void Gp_EffSprTask42(Task* arg0)
 {
     GpEffWork*        mem;
     GsCOORDINATE2*    coord;
@@ -403,7 +403,7 @@ void func_800F8A38(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F91AC);
 
-void func_800F9474(Task* arg0)
+void Gp_EffCtlTask9B(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
@@ -447,7 +447,7 @@ void func_800F9474(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
     return;
 spawn:
-    spawned = func_800EA478(0x60055, coord, 0x12200, 0);
+    spawned = Gp_SpawnEff(0x60055, coord, 0x12200, 0);
     if (spawned != NULL) {
         gte_lddp(mem->field_24 - mem->field_22 * (mem->field_26 + 5));
         gte_ldsv(&mem->field_10);
@@ -457,7 +457,7 @@ spawn:
     mem->field_22++;
 }
 
-void func_800F96B0(Task* arg0)
+void Gp_EffSprTask30(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
@@ -576,7 +576,7 @@ void func_800F96B0(Task* arg0)
                         base = 0x12100;
                         id   = 0x60055;
                     }
-                    func_800EA478(id, coord, mem->field_18 + base, NULL);
+                    Gp_SpawnEff(id, coord, mem->field_18 + base, NULL);
                 }
                 if (mem->field_22 - mem->field_2A < 8 && mem->field_24 < 0x20) {
                     arg0->state   = arg0->spawnArg1 + 2;
@@ -592,9 +592,9 @@ void func_800F96B0(Task* arg0)
             }
             if (arg0->spawnArg1 == 2) {
                 color[0] = color[1] = color[2] = 0x80;
-                func_800F9FBC(arg0, arg0->spawnArg1, color);
+                Gp_DrawEffSpark(arg0, arg0->spawnArg1, color);
             } else {
-                func_800F9FBC(arg0, arg0->spawnArg1, NULL);
+                Gp_DrawEffSpark(arg0, arg0->spawnArg1, NULL);
             }
             return;
         case 2:
@@ -603,7 +603,7 @@ void func_800F96B0(Task* arg0)
                 if (mem->field_26 < 0x10) {
                     mem->field_24++;
                     if (mem->field_24 < 8) {
-                        func_800FA45C(coord, mem->field_28, mem->field_24, 0);
+                        Gp_DrawEffQuadT29(coord, mem->field_28, mem->field_24, 0);
                     } else {
                         Gp_ReleaseState1CMem(mem, arg0);
                     }
@@ -611,18 +611,18 @@ void func_800F96B0(Task* arg0)
                     u16 rnd;
 
                     color[0] = color[1] = color[2] = mem->field_26;
-                    func_800F9FBC(arg0, arg0->spawnArg1, color);
+                    Gp_DrawEffSpark(arg0, arg0->spawnArg1, color);
                     mem->field_28 += (s16)(u16)mem->field_18 >> 4;
                     Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
                     rnd            = ((u32)Gp_LcgState >> 16) % 3;
                     if (rnd == 0) {
-                        func_800EA478(0x600A7, coord, mem->field_18, NULL);
+                        Gp_SpawnEff(0x600A7, coord, mem->field_18, NULL);
                     }
-                    func_800FA45C(coord, mem->field_28, 0, 0);
+                    Gp_DrawEffQuadT29(coord, mem->field_28, 0, 0);
                     mem->field_26 -= 0x10;
                 }
             } else {
-                func_800F9FBC(arg0, arg0->spawnArg1, NULL);
+                Gp_DrawEffSpark(arg0, arg0->spawnArg1, NULL);
             }
             return;
         case 3:
@@ -633,10 +633,10 @@ void func_800F96B0(Task* arg0)
                     return;
                 }
                 color[0] = color[1] = color[2] = mem->field_26;
-                func_800F9FBC(arg0, arg0->spawnArg1, color);
+                Gp_DrawEffSpark(arg0, arg0->spawnArg1, color);
                 mem->field_26 -= 0x10;
             } else {
-                func_800F9FBC(arg0, arg0->spawnArg1, NULL);
+                Gp_DrawEffSpark(arg0, arg0->spawnArg1, NULL);
             }
             return;
         case 4:
@@ -645,7 +645,7 @@ void func_800F96B0(Task* arg0)
                 if (mem->field_26 < 0x10) {
                     mem->field_24++;
                     if (mem->field_24 < 8) {
-                        func_800FA45C(coord, mem->field_28, mem->field_24, 0);
+                        Gp_DrawEffQuadT29(coord, mem->field_28, mem->field_24, 0);
                     } else {
                         Gp_ReleaseState1CMem(mem, arg0);
                     }
@@ -653,19 +653,19 @@ void func_800F96B0(Task* arg0)
                     u16 rnd;
 
                     color[0] = color[1] = color[2] = mem->field_26;
-                    func_800F9FBC(arg0, arg0->spawnArg1, color);
+                    Gp_DrawEffSpark(arg0, arg0->spawnArg1, color);
                     mem->field_28 += (s16)(u16)mem->field_18 >> 4;
                     Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
                     rnd            = ((u32)Gp_LcgState >> 16) % 3;
                     if (rnd == 0) {
-                        func_800EA478(0x600A7, coord, mem->field_18, NULL);
+                        Gp_SpawnEff(0x600A7, coord, mem->field_18, NULL);
                     }
-                    func_800FA45C(coord, mem->field_28, 0, 0);
+                    Gp_DrawEffQuadT29(coord, mem->field_28, 0, 0);
                     mem->field_26 -= 0x10;
                 }
             } else {
                 color[0] = color[1] = color[2] = mem->field_26;
-                func_800F9FBC(arg0, arg0->spawnArg1, color);
+                Gp_DrawEffSpark(arg0, arg0->spawnArg1, color);
             }
             return;
     }
@@ -682,7 +682,7 @@ __asm__(".section .rodata\n"
         ".section .text\n");
 #endif
 
-void func_800F9FBC(Task* arg0, s32 arg1, u8* arg2)
+void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2)
 {
     void**            scratch;
     u8*               head;
@@ -781,7 +781,7 @@ void func_800F9FBC(Task* arg0, s32 arg1, u8* arg2)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
 }
 
-void func_800FA45C(GsCOORDINATE2* arg0, s32 arg1, u16 arg2, u16 arg3)
+void Gp_DrawEffQuadT29(GsCOORDINATE2* arg0, s32 arg1, u16 arg2, u16 arg3)
 {
     register GsCOORDINATE2* coord asm("t7");
     register void**         scratch asm("a0");
@@ -901,8 +901,8 @@ void func_800FA7CC(Task* arg0)
         if (spawnId == 0) {
             return;
         }
-        func_800EA478(spawnId, (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8,
-                      Gp_StateC08.field_2, 0);
+        Gp_SpawnEff(spawnId, (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8,
+                    Gp_StateC08.field_2, 0);
     } else if (kind == 1) {
         idx = ((u16)(Gp_StateC08.field_0 / 100U) - 1) * 9 +
               ((u16)((u16)(Gp_StateC08.field_0 / 10U) % 10U) - 1) * 3 - 1;
@@ -911,15 +911,15 @@ void func_800FA7CC(Task* arg0)
         if (spawnId == 0) {
             return;
         }
-        func_800EA478(spawnId,
-                      (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8 + D_80112B28[idx], 0,
-                      0);
+        Gp_SpawnEff(spawnId,
+                    (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8 + D_80112B28[idx], 0,
+                    0);
     }
 }
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FAA14);
 
-void func_800FAC40(Task* arg0)
+void Gp_EffCtlTask32(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
@@ -1046,7 +1046,7 @@ draw:
     }
 }
 
-void func_800FB148(Task* arg0)
+void Gp_EffCtlTaskAE(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
@@ -1112,8 +1112,8 @@ void func_800FB148(Task* arg0)
             rgb[0] = mem->field_24;
             rgb[1] = (u16)mem->field_24 >> 1;
             rgb[2] = (u16)mem->field_24 >> 2;
-            func_800EAEB8(coord, mem->field_26, rgb);
-            func_800EAEB8(coord, (s16)((u16)mem->field_26 << 1), rgb);
+            Gp_DrawRing(coord, mem->field_26, rgb);
+            Gp_DrawRing(coord, (s16)((u16)mem->field_26 << 1), rgb);
             if (mem->field_24 >= 0x81) {
                 temp          = ((u16)mem->field_2A << 1) + (u16)mem->field_28;
                 mem->field_28 = temp;
@@ -1123,7 +1123,7 @@ void func_800FB148(Task* arg0)
                 rgb[0] = mem->field_28;
                 rgb[1] = (u16)mem->field_28 >> 1;
                 rgb[2] = (u16)mem->field_28 >> 2;
-                func_800EAA0C(coord, ((u8)Gp_StateC08.field_2 << 24) >> 17, 0x60, rgb);
+                Gp_DrawArc(coord, ((u8)Gp_StateC08.field_2 << 24) >> 17, 0x60, rgb);
             }
             if (Gp_State1C->field_E >= 4) {
                 goto snd7;
@@ -1149,8 +1149,8 @@ void func_800FB148(Task* arg0)
             rgb[0] = mem->field_24;
             rgb[1] = (u16)mem->field_24 >> 1;
             rgb[2] = (u16)mem->field_24 >> 2;
-            func_800EAEB8(coord, mem->field_26, rgb);
-            func_800EAEB8(coord, (s16)((u16)mem->field_26 << 1), rgb);
+            Gp_DrawRing(coord, mem->field_26, rgb);
+            Gp_DrawRing(coord, (s16)((u16)mem->field_26 << 1), rgb);
             if (Gp_State1C->field_E >= 4) {
                 goto snd7;
             }
@@ -1176,8 +1176,8 @@ void func_800FB148(Task* arg0)
             rgb[0] = mem->field_24;
             rgb[1] = (u16)mem->field_24 >> 1;
             rgb[2] = (u16)mem->field_24 >> 2;
-            func_800EAEB8(coord, mem->field_26, rgb);
-            func_800EAEB8(coord, (s16)((u16)mem->field_26 << 1), rgb);
+            Gp_DrawRing(coord, mem->field_26, rgb);
+            Gp_DrawRing(coord, (s16)((u16)mem->field_26 << 1), rgb);
             mem->field_24 = (u16)mem->field_24 - 0x10;
             return;
     }
@@ -1186,7 +1186,7 @@ kill:
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_800FB67C(Task* arg0)
+void Gp_EffCtlTaskC1(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
@@ -1233,7 +1233,7 @@ void func_800FB67C(Task* arg0)
     }
 }
 
-void func_800FB7E4(Task* arg0)
+void Gp_EffCtlTaskF3(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
@@ -1279,9 +1279,9 @@ void func_800FB7E4(Task* arg0)
         rgb[2] = 0xC0;
         rgb[0] = 0xC0;
         rgb[1] = 0x60;
-        func_800FBAB0(coord, (s16)((u16)mem->field_28 + 0x80), (s16)((u16)mem->field_20 + 6), rgb);
-        func_800EAEB8(coord, mem->field_28, rgb);
-        func_800EAEB8(coord, (s16)((u16)mem->field_28 << 1), rgb);
+        Gp_DrawEffTri(coord, (s16)((u16)mem->field_28 + 0x80), (s16)((u16)mem->field_20 + 6), rgb);
+        Gp_DrawRing(coord, mem->field_28, rgb);
+        Gp_DrawRing(coord, (s16)((u16)mem->field_28 << 1), rgb);
         Gp_State1C->field_14 = 0;
     }
 
@@ -1304,13 +1304,13 @@ lcg:
     }
     slot        = Game_GetPtrSlot(3);
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    func_800EA478(0x600F4,
-                  (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8 +
-                      ((((u32)Gp_LcgState >> 16) & 1) * 3 + 15),
-                  mem->field_2A | 0x8000, 0);
+    Gp_SpawnEff(0x600F4,
+                (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8 +
+                    ((((u32)Gp_LcgState >> 16) & 1) * 3 + 15),
+                mem->field_2A | 0x8000, 0);
 }
 
-void func_800FBAB0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3)
+void Gp_DrawEffTri(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3)
 {
     register u8*              rgb asm("s7");
     register void**           scratch asm("t0");
@@ -1381,7 +1381,7 @@ void func_800FBAB0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
 }
 
-void func_800FBEBC(Task* arg0)
+void Gp_EffCtlTaskF4(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
@@ -1430,10 +1430,10 @@ void func_800FBEBC(Task* arg0)
     if (mem->field_28 & 0x8000) {
     draw_lcg:
         Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-        func_800EB2C8(coord, (u16)mem->field_20, mem->field_26,
+        Gp_DrawFxQuad(coord, (u16)mem->field_20, mem->field_26,
                       (u16)mem->field_24 | (((u32)Gp_LcgState >> 16) & 0x1000));
     } else {
-        func_800EB2C8(coord, (u16)mem->field_20, mem->field_26,
+        Gp_DrawFxQuad(coord, (u16)mem->field_20, mem->field_26,
                       (u16)mem->field_24 | (u16)mem->field_28);
     }
     return;
@@ -1441,7 +1441,7 @@ kill:
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_800FC0B4(Task* arg0)
+void Gp_EffCtlTaskAC(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
@@ -1490,8 +1490,8 @@ void func_800FC0B4(Task* arg0)
     rgb[1]        = col;
     rgb[0]        = col;
     rgb[2]        = (u16)mem->field_24 >> 1;
-    func_800EAEB8(coord, mem->field_28, rgb);
-    func_800EAEB8(coord, (s16)((u16)mem->field_28 << 1), rgb);
+    Gp_DrawRing(coord, mem->field_28, rgb);
+    Gp_DrawRing(coord, (s16)((u16)mem->field_28 << 1), rgb);
 
     if (Gp_StateC08.field_10 == 0) {
         goto kill;
@@ -1512,10 +1512,10 @@ continue_fx:
         if (!(Wip_SysConfig.field_25 & 0x84) && (mem->field_26 < 0xA0)) {
             s32 i;
 
-            func_800FBAB0(coord, 0x200, 6, rgb);
+            Gp_DrawEffTri(coord, 0x200, 6, rgb);
             mem->field_26 = 0xC0;
             for (i = 0; i < 0x555; i += 0x2AA) {
-                spawned = func_800EA478(0x600C1, coord, i, 0);
+                spawned = Gp_SpawnEff(0x600C1, coord, i, 0);
                 if (spawned != NULL) {
                     Task_Reparent(arg0, spawned->field_0);
                 }
@@ -1530,10 +1530,10 @@ continue_fx:
         if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
             slot        = Game_GetPtrSlot(3);
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-            func_800EA478(0x600E0,
-                          (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8 +
-                              ((((u32)Gp_LcgState >> 16) & 0xF) + 3),
-                          0x10080, 0);
+            Gp_SpawnEff(0x600E0,
+                        (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8 +
+                            ((((u32)Gp_LcgState >> 16) & 0xF) + 3),
+                        0x10080, 0);
         }
     }
 
@@ -1548,13 +1548,13 @@ continue_fx:
     }
     slot        = Game_GetPtrSlot(3);
     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-    func_800EA478(0x600E0,
-                  (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8 +
-                      ((((u32)Gp_LcgState >> 16) & 0xF) + 3),
-                  0x10200, 0);
+    Gp_SpawnEff(0x600E0,
+                (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8 +
+                    ((((u32)Gp_LcgState >> 16) & 0xF) + 3),
+                0x10200, 0);
 }
 
-void func_800FC500(Task* arg0)
+void Gp_EffCtlTask0E(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
@@ -1600,9 +1600,9 @@ void func_800FC500(Task* arg0)
         rgb[0] = 0xC0;
         rgb[1] = 0x30;
         rgb[2] = 0x60;
-        func_800FBAB0(coord, 0x200, 4, rgb);
-        func_800EAEB8(coord, 0x180, rgb);
-        func_800EAEB8(coord, 0x300, rgb);
+        Gp_DrawEffTri(coord, 0x200, 4, rgb);
+        Gp_DrawRing(coord, 0x180, rgb);
+        Gp_DrawRing(coord, 0x300, rgb);
         Gp_State1C->field_14 = 0;
     }
 
@@ -1632,7 +1632,7 @@ void func_800FC6F4(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-void func_800FC74C(Task* arg0)
+void Gp_EffCtlTaskA5(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
@@ -1664,11 +1664,11 @@ void func_800FC74C(Task* arg0)
             /* fallthrough */
         case 1:
             if (arg0->spawnArg1 == 0) {
-                func_800EA478(0x600A6, coord, 1, 0);
+                Gp_SpawnEff(0x600A6, coord, 1, 0);
                 arg0->state = 2;
             } else if (mem->field_24 == 0) {
                 for (i = 0; i < 3; i++) {
-                    func_800EA478(0x600A6, coord, arg0->spawnArg1, 0);
+                    Gp_SpawnEff(0x600A6, coord, arg0->spawnArg1, 0);
                 }
                 mem->field_24++;
             } else {
@@ -1697,7 +1697,7 @@ void func_800FC74C(Task* arg0)
     }
 }
 
-void func_800FC9BC(Task* arg0)
+void Gp_EffCtlTaskA6(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
@@ -1727,7 +1727,7 @@ void func_800FC9BC(Task* arg0)
                 mem->field_14 =
                     ((u16)mem->field_24 & 0x1F) % (arg0->spawnArg1 * 3) + 7;
                 func_800FCD00(arg0);
-                func_800EA478(0x600A7, coord, mem->field_2A * 3 + 0x3000, 0);
+                Gp_SpawnEff(0x600A7, coord, mem->field_2A * 3 + 0x3000, 0);
                 return;
             case 1:
                 if (D_801153F4 != 1) {
@@ -1779,7 +1779,7 @@ do_fcd00:
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FCD00);
 
-void func_800FD49C(Task* arg0)
+void Gp_EffSprTaskA7(Task* arg0)
 {
     GpEffWork*         mem;
     GsCOORDINATE2*     coord;
@@ -1923,7 +1923,7 @@ __asm__(".section .rodata\n"
         ".section .text\n");
 #endif
 
-void func_800FE034(Task* arg0)
+void Gp_EffCtlTask7F(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
@@ -2004,23 +2004,23 @@ void func_800FE034(Task* arg0)
         if (mem->field_22 < mem->field_26) {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if (mem->field_22 < (s32)((u32)Gp_LcgState >> 16) % mem->field_28) {
-                func_800EA478(0x60080, coord, (mem->field_10 & 0x10000) | 0x300,
-                              (SVECTOR*)&mem->field_10);
+                Gp_SpawnEff(0x60080, coord, (mem->field_10 & 0x10000) | 0x300,
+                            (SVECTOR*)&mem->field_10);
             } else {
-                func_800EA478(0x6008D, coord, 0x300, (SVECTOR*)&mem->field_10);
+                Gp_SpawnEff(0x6008D, coord, 0x300, (SVECTOR*)&mem->field_10);
             }
         } else {
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if (((u32)Gp_LcgState >> 16) & 1) {
-                func_800EA478(0x60070, coord, (mem->field_24 >> 2) + 0xC0013200,
-                              (SVECTOR*)&mem->field_10);
+                Gp_SpawnEff(0x60070, coord, (mem->field_24 >> 2) + 0xC0013200,
+                            (SVECTOR*)&mem->field_10);
             }
         }
     }
     mem->field_22++;
 }
 
-void func_800FE41C(Task* arg0)
+void Gp_EffCtlTaskE3(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
@@ -2056,12 +2056,12 @@ void func_800FE41C(Task* arg0)
         if (mem->field_22 >= mem->field_28) {
             Gp_ReleaseState1CMem(mem, arg0);
         } else {
-            func_800EA478(0x60070, coord, (mem->field_24 >> 2) + 0x80021400, (SVECTOR*)&mem->field_10);
+            Gp_SpawnEff(0x60070, coord, (mem->field_24 >> 2) + 0x80021400, (SVECTOR*)&mem->field_10);
         }
     }
 }
 
-void func_800FE56C(Task* arg0)
+void Gp_EffSprTask80(Task* arg0)
 {
     GpEffFt4Scratch*        block;
     register GsCOORDINATE2* coord asm("s2");
@@ -2181,7 +2181,7 @@ void func_800FE56C(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_800FEAF8(Task* arg0)
+void Gp_EffSprTask8D(Task* arg0)
 {
     register void**           scratch asm("a0");
     register u8*              head asm("a1");
@@ -2299,7 +2299,7 @@ void func_800FEAF8(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_800FEFA4(Task* arg0)
+void Gp_EffSprTask3F(Task* arg0)
 {
     GpEffWork*        mem;
     GsCOORDINATE2*    coord;
@@ -2423,7 +2423,7 @@ void func_800FEFA4(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FF710);
 
-void func_800FFA8C(Task* arg0)
+void Gp_EffSprTaskE0(Task* arg0)
 {
     GpEffWork*        mem;
     GsCOORDINATE2*    coord;
@@ -2526,7 +2526,7 @@ void func_800FFA8C(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_80100020(Task* arg0)
+void Gp_EffSprTaskE1(Task* arg0)
 {
     GpEffWork*        mem;
     GsCOORDINATE2*    coord;
@@ -2858,7 +2858,7 @@ void Gp_InitPlayerWork(GpActorWork* arg0)
     actor->field_924 = task;
     if (task != NULL) {
         Gp_SyncHeldRelated();
-        func_801034C0();
+        Gp_SpawnWeaponEff();
     }
     if (kind == 2) {
         sp.field_C  = 0;
@@ -2919,7 +2919,7 @@ void func_80100E40(GpActorWork* arg0)
     Gp_UpdateCoord(coord);
 }
 
-void func_80100FCC(GpActorWork* arg0, s32 arg1, s32 arg2)
+void Gp_AttachActorObj(GpActorWork* arg0, s32 arg1, s32 arg2)
 {
     register s32           id asm("s4");
     register s32           kind asm("s5");
@@ -3127,7 +3127,7 @@ typedef struct {
     u8   field_973;
 } ActorDirByte;
 
-void func_8010154C(void)
+void Gp_UpdatePlayerMove(void)
 {
     void**                  scratch;
     u8*                     head;
@@ -3230,7 +3230,7 @@ void func_8010154C(void)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
 }
 
-void func_80101848(GpActorWork* arg0)
+void Gp_TickActorAnimState(GpActorWork* arg0)
 {
     GameActor* actor;
     GpAnimRec* rec;
@@ -3272,7 +3272,7 @@ void func_80101848(GpActorWork* arg0)
         case 5:
             if (rec != NULL) {
                 if (func_80105894(arg0, 1, 0, 0) == 0) {
-                    func_80108770(arg0, 3);
+                    Gp_ResetActorAnimState(arg0, 3);
                 }
             }
             break;
@@ -3313,7 +3313,7 @@ void func_80101848(GpActorWork* arg0)
 
 static const s32 s_jtbl_pad = 0;
 
-void func_80101A68(GpActorWork* arg0)
+void Gp_StepPlayerMove(GpActorWork* arg0)
 {
     register GameActor*     actor asm("s3");
     register GsCOORDINATE2* coord asm("s5");
@@ -3435,7 +3435,7 @@ void func_80101A68(GpActorWork* arg0)
     coord->coord.t[2]       = t2 + actor->field_8;
 }
 
-void func_80101F58(GpActorWork* arg0)
+void Gp_TurnPlayer(GpActorWork* arg0)
 {
     GameActorExt*  extra;
     GameActor*     actor;
@@ -3585,7 +3585,7 @@ void func_80101F58(GpActorWork* arg0)
     MatrixNormal((MATRIX*)coord, (MATRIX*)coord);
 }
 
-void func_80102348(GpActorWork* arg0, s32 arg1)
+void Gp_AimYawToLock(GpActorWork* arg0, s32 arg1)
 {
     register void** scratch asm("v0");
     register s32    hi asm("v0");
@@ -3624,7 +3624,7 @@ void func_80102348(GpActorWork* arg0, s32 arg1)
         block->rot.vx = rec->vx;
         block->rot.vy = rec->vy;
         block->rot.vz = rec->vz;
-        func_801040A0(src, (GsCOORDINATE2*)block, (SVECTOR*)(head - 0xC));
+        Gp_PlaceCoordOffset(src, (GsCOORDINATE2*)block, (SVECTOR*)(head - 0xC));
         lock = (VECTOR3*)(head - 0x1C);
         Gp_GetLockPos((GpLockPos*)actor->field_90C, lock);
         ((VECTOR3*)(head - 0x1C))->vx =
@@ -3727,7 +3727,7 @@ void func_80102348(GpActorWork* arg0, s32 arg1)
         (dst) = _q;                  \
     } while (0)
 
-void func_80102634(GpActorWork* arg0)
+void Gp_AimPitchToLock(GpActorWork* arg0)
 {
     register void**          scratch asm("v0");
     u8*                      head;
@@ -3757,7 +3757,7 @@ void func_80102634(GpActorWork* arg0)
         block->rot.vx = 0;
         block->rot.vy = -0x400;
         block->rot.vz = 0;
-        func_801040A0(&src[2], (GsCOORDINATE2*)block, (SVECTOR*)(head - 0x14));
+        Gp_PlaceCoordOffset(&src[2], (GsCOORDINATE2*)block, (SVECTOR*)(head - 0x14));
         lock = (VECTOR3*)(head - 0x24);
         Gp_GetLockPos((GpLockPos*)actor->field_90C, lock);
         ((VECTOR3*)(head - 0x34))->vx =
@@ -3805,7 +3805,7 @@ void func_80102634(GpActorWork* arg0)
             block->rot.vx = vx;
             block->rot.vy = ((GpAimRot*)item)->vy;
             block->rot.vz = ((GpAimRot*)item)->vz;
-            func_801040A0(src, (GsCOORDINATE2*)block, (SVECTOR*)&block->rot);
+            Gp_PlaceCoordOffset(src, (GsCOORDINATE2*)block, (SVECTOR*)&block->rot);
         }
         lock = &block->lock;
         Gp_GetLockPos((GpLockPos*)actor->field_90C, lock);
@@ -3839,7 +3839,7 @@ void func_80102634(GpActorWork* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x84;
 }
 
-void func_801029D4(GpActorWork* arg0)
+void Gp_AimPitchToLockAlt(GpActorWork* arg0)
 {
     register void**          scratch asm("v0");
     u8*                      head;
@@ -3869,7 +3869,7 @@ void func_801029D4(GpActorWork* arg0)
         block->rot.vx = 0;
         block->rot.vy = -0x400;
         block->rot.vz = 0;
-        func_801040A0(&src[2], (GsCOORDINATE2*)block, (SVECTOR*)(head - 0x14));
+        Gp_PlaceCoordOffset(&src[2], (GsCOORDINATE2*)block, (SVECTOR*)(head - 0x14));
         lock = (VECTOR3*)(head - 0x24);
         Gp_GetLockPos((GpLockPos*)actor->field_90C, lock);
         ((VECTOR3*)(head - 0x34))->vx =
@@ -3916,7 +3916,7 @@ void func_801029D4(GpActorWork* arg0)
             block->rot.vx = vx;
             block->rot.vy = ((GpAimRot*)item)->vy;
             block->rot.vz = ((GpAimRot*)item)->vz;
-            func_801040A0(src, (GsCOORDINATE2*)block, (SVECTOR*)&block->rot);
+            Gp_PlaceCoordOffset(src, (GsCOORDINATE2*)block, (SVECTOR*)&block->rot);
         }
         lock = &block->lock;
         Gp_GetLockPos((GpLockPos*)actor->field_90C, lock);
@@ -3951,7 +3951,7 @@ void func_801029D4(GpActorWork* arg0)
 
 #undef SCALE_PITCH
 
-void func_80102D20(GpActorWork* arg0, s32 arg1, s32 arg2)
+void Gp_AimPitchRec(GpActorWork* arg0, s32 arg1, s32 arg2)
 {
     register void** scratch asm("v0");
     register s32    hi asm("v0");
@@ -3985,7 +3985,7 @@ void func_80102D20(GpActorWork* arg0, s32 arg1, s32 arg2)
         block->rot.vx = rec->vx;
         block->rot.vy = rec->vy;
         block->rot.vz = rec->vz;
-        func_801040A0(src, (GsCOORDINATE2*)block, (SVECTOR*)(head - 0x14));
+        Gp_PlaceCoordOffset(src, (GsCOORDINATE2*)block, (SVECTOR*)(head - 0x14));
         lock = (VECTOR3*)(head - 0x24);
         Gp_GetLockPos((GpLockPos*)actor->field_90C, lock);
         ((VECTOR3*)(head - 0x34))->vx = ((VECTOR3*)(head - 0x24))->vx - ((GsCOORDINATE2*)block)->coord.t[0];
@@ -4021,7 +4021,7 @@ void func_80102D20(GpActorWork* arg0, s32 arg1, s32 arg2)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x84;
 }
 
-void func_80102F10(GpActorWork* arg0)
+void Gp_AimPitchDirect(GpActorWork* arg0)
 {
     register void** scratch asm("v0");
     u8*             head;
@@ -4047,7 +4047,7 @@ void func_80102F10(GpActorWork* arg0)
         block->rot.vx = 0;
         block->rot.vy = 0;
         block->rot.vz = 0;
-        func_801040A0(src, (GsCOORDINATE2*)block, (SVECTOR*)(head - 0x14));
+        Gp_PlaceCoordOffset(src, (GsCOORDINATE2*)block, (SVECTOR*)(head - 0x14));
         lock = (VECTOR3*)(head - 0x24);
         Gp_GetLockPos((GpLockPos*)actor->field_90C, lock);
         ((VECTOR3*)(head - 0x34))->vx = ((VECTOR3*)(head - 0x24))->vx - ((GsCOORDINATE2*)block)->coord.t[0];
@@ -4224,7 +4224,7 @@ inline static Task* spawn_attach(Task* parent, s32 row, s32 item)
     return task;
 }
 
-s32 func_801034C0(void)
+s32 Gp_SpawnWeaponEff(void)
 {
     GpActorWork*  work;
     GameActor*    actor;
@@ -4259,7 +4259,7 @@ s32 func_801034C0(void)
     }
 
     cfg = &Wip_SysConfig;
-    func_80100FCC(work, cfg->field_21, cfg->field_22);
+    Gp_AttachActorObj(work, cfg->field_21, cfg->field_22);
     if (actor->field_914 != NULL) {
         goto join_50;
     }
@@ -4296,7 +4296,7 @@ check_1C:
 do_call_item:
     arg2 = cfg->field_21;
 do_call:
-    eff = func_800EA478(id, (GsCOORDINATE2*)coord, arg2, 0);
+    eff = Gp_SpawnEff(id, (GsCOORDINATE2*)coord, arg2, 0);
     if (eff != NULL) {
         goto do_success;
     }
@@ -4616,7 +4616,7 @@ s16 func_80103E7C(s16 arg0, s16 arg1)
     return ret;
 }
 
-void func_80103F70(GpActorWork* arg0)
+void Gp_TrackLockTarget(GpActorWork* arg0)
 {
     GameActor*    actor;
     GpLinkNode*   node;
@@ -4642,11 +4642,11 @@ void func_80103F70(GpActorWork* arg0)
         } else {
             val = 0x180;
         }
-        func_80102348(arg0, val);
+        Gp_AimYawToLock(arg0, val);
         if (p->field_21 == 0x17) {
-            func_801029D4(arg0);
+            Gp_AimPitchToLockAlt(arg0);
         } else {
-            func_80102634(arg0);
+            Gp_AimPitchToLock(arg0);
         }
     }
 }
@@ -4661,7 +4661,7 @@ GsCOORDINATE2* func_8010403C(s32 arg0)
     return &((GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8)[idx];
 }
 
-void func_801040A0(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2)
+void Gp_PlaceCoordOffset(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2)
 {
     MATRIX* world;
 
@@ -4774,7 +4774,7 @@ Task* func_80104364(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3)
     return task;
 }
 
-s32 func_801043F4(void)
+s32 Gp_KillPlayerEffs(void)
 {
     GpActorWork* work;
     GameActor*   actor;
@@ -4959,7 +4959,7 @@ s32 func_80104684(GpActorWork* arg0, s32 arg1, s32 arg2)
     return 0;
 }
 
-s32 func_80104838(GpActorWork* arg0, s32 arg1, s32 arg2)
+s32 Gp_EnterActorMode2(GpActorWork* arg0, s32 arg1, s32 arg2)
 {
     GameActorExt*  extra;
     GameActor*     actor;
@@ -4998,7 +4998,7 @@ s32 func_80104838(GpActorWork* arg0, s32 arg1, s32 arg2)
         func_800B3F84((GpAnimCtx*)actor->field_424, actor->field_928, (GpAnimObj*)extra, &actor->field_7A8,
                       (GpAnimSlot*)actor->pad_438);
         if (arg2 == mode) {
-            func_80108770(arg0, 0);
+            Gp_ResetActorAnimState(arg0, 0);
         } else {
             func_8010870C(arg0, 0);
         }
@@ -5623,7 +5623,7 @@ s32 Gp_CopyPlayerAnim(GpActorWork* arg0, s32 arg1, GpCopyArg* arg2)
     return 0;
 }
 
-s32 func_801059AC(GpActorWork* arg0, s32 arg1, s32 arg2)
+s32 Gp_ApplyPlayerDamage(GpActorWork* arg0, s32 arg1, s32 arg2)
 {
     GameActor* actor;
     s32        ret;
@@ -5632,7 +5632,7 @@ s32 func_801059AC(GpActorWork* arg0, s32 arg1, s32 arg2)
     actor = arg0->actor;
     ret   = 0;
     if (Mc_SaveData.field_5C2 == 0) {
-        ret = func_8010A854((s16)Gp_ScaleDamage(arg2, 0, &out, 0));
+        ret = Gp_ApplyHpDamage((s16)Gp_ScaleDamage(arg2, 0, &out, 0));
         if (ret != 0) {
             Gp_DispatchMsg(Game_GetPtrSlot(4), 0x7DA, 0, 0x7DE);
         } else if (actor->field_910 == 0) {
@@ -5710,7 +5710,7 @@ void func_80105B74(VECTOR3* arg0)
     actor->field_48 = arg0->vz;
 }
 
-s32 func_80105BC4(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
+s32 Gp_PickNearestRec18(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
 {
     register s32 minDist asm("s5");
 
@@ -5805,11 +5805,11 @@ s32 func_80105BC4(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
                     SVECTOR*       vec;
                     coord = (GsCOORDINATE2*)&block->flg;
                     vec   = &block->offset;
-                    func_800EA478(0x6008D, coord, 0x300, vec);
-                    func_800EA478(0x60080, coord, 0x300, vec);
-                    func_800EA478(0x60070, coord, 0xC0013300, vec);
+                    Gp_SpawnEff(0x6008D, coord, 0x300, vec);
+                    Gp_SpawnEff(0x60080, coord, 0x300, vec);
+                    Gp_SpawnEff(0x60070, coord, 0xC0013300, vec);
                 } else {
-                    func_800EA478(0x6003B, (GsCOORDINATE2*)&block->flg, 0, &block->offset);
+                    Gp_SpawnEff(0x6003B, (GsCOORDINATE2*)&block->flg, 0, &block->offset);
                 }
             }
         } else {
@@ -6008,7 +6008,7 @@ void func_80106350(GpActorWork* arg0, s32 arg1, s32 arg2)
     actor->field_12A &= 0x3FFF;
 }
 
-void func_801064A4(GpObj38* arg0, s32 arg1, s32 arg2)
+void Gp_PlayObjSfx(GpObj38* arg0, s32 arg1, s32 arg2)
 {
     s32 temp;
 
@@ -6036,7 +6036,7 @@ void func_80106550(GpActorWork* arg0)
     if (arg0->actor->field_97D & 4) {
         func_801055D4(arg0, 0, 0, 0);
     } else {
-        func_80108770(arg0, 3);
+        Gp_ResetActorAnimState(arg0, 3);
     }
 }
 
@@ -6139,18 +6139,18 @@ __asm__(".section .rodata\n"
         "\t.globl D_8009794C\n"
         "D_8009794C:\n"
         "\t.word func_80108FA0\n"
-        "\t.word func_80108FD4\n"
-        "\t.word func_80106A3C\n"
+        "\t.word Gp_PlayerNormalState1\n"
+        "\t.word Gp_PlayerNormalState2\n"
         "\t.word func_801090E8\n"
         "\t.word func_80109138\n"
-        "\t.word func_80106C6C\n"
-        "\t.word func_8010747C\n"
+        "\t.word Gp_PlayerNormalState5\n"
+        "\t.word Gp_PlayerNormalState6\n"
         "\t.word func_8010771C\n"
         "\t.word 0x00000000\n"
         ".section .text\n");
 #endif
 
-void func_80106838(GpActorWork* arg0)
+void Gp_TickPlayerNormal(GpActorWork* arg0)
 {
     GameActor*        actor;
     GameActor*        inner;
@@ -6197,17 +6197,17 @@ void func_80106838(GpActorWork* arg0)
     }
     sp.funcs[actor->field_956](arg0);
     func_80109FC4(arg0);
-    func_8010B120(arg0);
-    func_80101848(arg0);
+    Gp_PlayerStepSfx(arg0);
+    Gp_TickActorAnimState(arg0);
     Gp_AnimTickChildSlots(arg0);
-    func_80101F58(arg0);
-    func_80101A68(arg0);
+    Gp_TurnPlayer(arg0);
+    Gp_StepPlayerMove(arg0);
     if (Wip_SysConfig.field_18 <= 0) {
-        func_8010AA28(arg0, 4);
+        Gp_StopPlayerAnim(arg0, 4);
     }
 }
 
-void func_80106A3C(GpActorWork* arg0)
+void Gp_PlayerNormalState2(GpActorWork* arg0)
 {
     GameActor* actor;
     s32        dir;
@@ -6220,15 +6220,15 @@ void func_80106A3C(GpActorWork* arg0)
 
     actor = arg0->actor;
     if (actor->field_973 != actor->field_974) {
-        func_80108770(arg0, 4);
+        Gp_ResetActorAnimState(arg0, 4);
     } else if (actor->field_973 == 0 && actor->field_975 != actor->field_976) {
         func_80108684(arg0);
     }
     if (func_80109290(arg0) == 0) {
         if ((actor->field_962 & 0xF000) == 0) {
-            func_80103F70(arg0);
+            Gp_TrackLockTarget(arg0);
         }
-        func_801093DC(arg0);
+        Gp_UpdateLockTarget(arg0);
         if ((s8)func_801060E0(arg0) != 0 &&
             Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->pad_438 + 1) != NULL &&
             actor->field_940 == 0) {
@@ -6238,7 +6238,7 @@ void func_80106A3C(GpActorWork* arg0)
                 (item = actor->field_97F,
                  D_80112F1C[Wip_SysConfig.field_21][(u8)(item - 1)] != 0)) {
                 if (Wip_SysConfig.field_25 & 0x80) {
-                    func_8010A854(2);
+                    Gp_ApplyHpDamage(2);
                 }
                 if (Wip_SysConfig.field_18 > 0) {
                     actor->field_97D = 1;
@@ -6253,7 +6253,7 @@ void func_80106A3C(GpActorWork* arg0)
                         func_801095BC(&variant);
                         base = Wip_SysConfig.field_21 << 16;
                         val  = variant | 0x20000001;
-                        func_801064A4((GpObj38*)arg0->extra->field_8, base | val, 0);
+                        Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, base | val, 0);
                     }
                 }
             }
@@ -6262,7 +6262,7 @@ void func_80106A3C(GpActorWork* arg0)
     func_80105ED4(arg0);
 }
 
-void func_80106C6C(GpActorWork* arg0)
+void Gp_PlayerNormalState5(GpActorWork* arg0)
 {
     GameActor*     actor;
     GameActor*     inner;
@@ -6333,9 +6333,9 @@ void func_80106C6C(GpActorWork* arg0)
                 if ((rec->field_3 & 0x30) == 0x30) {
                     if (actor->field_95E == 0) {
                         actor->field_95E = 1;
-                        func_801064A4((GpObj38*)arg0->extra->field_8, base | 0x20000002, 0);
+                        Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, base | 0x20000002, 0);
                     } else {
-                        func_801064A4((GpObj38*)arg0->extra->field_8, base | 0x20000003, 0);
+                        Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, base | 0x20000003, 0);
                         done             = 1;
                         actor->field_95E = 0x64;
                     }
@@ -6353,9 +6353,9 @@ void func_80106C6C(GpActorWork* arg0)
                     actor->field_934 = tick;
                     if (tick == -1) {
                         actor->field_95E += 1;
-                        func_801064A4((GpObj38*)arg0->extra->field_8, base | 0x20000002, 0);
+                        Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, base | 0x20000002, 0);
                         if (actor->field_98F == 0) {
-                            func_800EA478(0x6006D, coord, 0, NULL);
+                            Gp_SpawnEff(0x6006D, coord, 0, NULL);
                         }
                     }
                     break;
@@ -6366,7 +6366,7 @@ void func_80106C6C(GpActorWork* arg0)
                     if (rec != NULL && rec != actor->field_92C) {
                         actor->field_92C = rec;
                         if ((rec->field_3 & 0x30) == 0x30) {
-                            func_801064A4((GpObj38*)arg0->extra->field_8, base | 0x20000003, 0);
+                            Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, base | 0x20000003, 0);
                             done             = 1;
                             actor->field_98F = 0;
                             actor->field_95E = 0x64;
@@ -6379,7 +6379,7 @@ void func_80106C6C(GpActorWork* arg0)
             if (actor->field_95E == 0) {
                 actor->field_95E = 1;
                 flags            = 0x20000002;
-                func_801064A4((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
+                Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
             } else {
                 rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424,
                                     (GpAnimSlot*)actor->pad_438 + 1);
@@ -6387,7 +6387,7 @@ void func_80106C6C(GpActorWork* arg0)
                     actor->field_92C = rec;
                     if ((rec->field_3 & 0x30) == 0x30) {
                         flags = 0x20000003;
-                        func_801064A4((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
+                        Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
                         done             = 1;
                         actor->field_95E = 0x64;
                     }
@@ -6399,7 +6399,7 @@ void func_80106C6C(GpActorWork* arg0)
                 temp             = actor->field_98F;
                 actor->field_95E = 1;
                 if (temp == 0) {
-                    func_800EA478(0x6006E, coord, Wip_SysConfig.field_21, NULL);
+                    Gp_SpawnEff(0x6006E, coord, Wip_SysConfig.field_21, NULL);
                 }
             }
             rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->pad_438 + 1);
@@ -6407,7 +6407,7 @@ void func_80106C6C(GpActorWork* arg0)
                 actor->field_92C = rec;
                 if ((rec->field_3 & 0x30) == 0x30) {
                     flags = 0x20000003;
-                    func_801064A4((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
+                    Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
                     done             = 1;
                     actor->field_98F = 0;
                     actor->field_95E = 0x64;
@@ -6423,12 +6423,12 @@ void func_80106C6C(GpActorWork* arg0)
                 if ((rec->field_3 & 0x30) == 0x30) {
                     if (actor->field_95E == 0) {
                         flags = 0x20000003;
-                        func_801064A4((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
+                        Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
                         done             = 1;
                         actor->field_95E = 0x64;
                     } else {
                         flags = 0x20000002;
-                        func_801064A4((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
+                        Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
                     }
                 }
             }
@@ -6442,17 +6442,17 @@ void func_80106C6C(GpActorWork* arg0)
                         case 0:
                             actor->field_95E = 1;
                             flags            = 0x20000003;
-                            func_801064A4((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
+                            Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
                             break;
                         case 1:
                             flags = 0x20000003;
-                            func_801064A4((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
+                            Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
                             done             = 1;
                             actor->field_95E = 0x64;
                             break;
                         case 0x64:
                             flags = 0x20000002;
-                            func_801064A4((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
+                            Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, base | (variant | flags), 0);
                             break;
                     }
                 }
@@ -6471,9 +6471,9 @@ void func_80106C6C(GpActorWork* arg0)
                 if ((rec->field_3 & 0x30) == 0x30) {
                     if (actor->field_95E == 0) {
                         actor->field_95E = 1;
-                        func_801064A4((GpObj38*)arg0->extra->field_8, base | 0x20000003, 0);
+                        Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, base | 0x20000003, 0);
                     } else {
-                        func_801064A4((GpObj38*)arg0->extra->field_8, base | 0x20000003, 0);
+                        Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, base | 0x20000003, 0);
                         done             = 1;
                         actor->field_95E = 0x64;
                     }
@@ -6501,9 +6501,9 @@ void func_80106C6C(GpActorWork* arg0)
                         } else if (step == 0x64) {
                             variant |= 0x20000009;
                         }
-                        func_801064A4((GpObj38*)arg0->extra->field_8, variant, 0);
+                        Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, variant, 0);
                     } else {
-                        func_801064A4((GpObj38*)arg0->extra->field_8, variant | 0x20000003, 0);
+                        Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, variant | 0x20000003, 0);
                     }
                     next             = actor->field_95E + 1;
                     actor->field_95E = next;
@@ -6517,14 +6517,14 @@ void func_80106C6C(GpActorWork* arg0)
         default:
             if (actor->field_95E == 0) {
                 actor->field_95E = 1;
-                func_801064A4((GpObj38*)arg0->extra->field_8, base | 0x20000002, 0);
+                Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, base | 0x20000002, 0);
             } else {
                 rec = Gp_AnimGetRec((GpAnimCtx*)actor->field_424,
                                     (GpAnimSlot*)actor->pad_438 + 1);
                 if (rec != NULL && rec != actor->field_92C) {
                     actor->field_92C = rec;
                     if ((rec->field_3 & 0x30) == 0x30) {
-                        func_801064A4((GpObj38*)arg0->extra->field_8, base | 0x20000003, 0);
+                        Gp_PlayObjSfx((GpObj38*)arg0->extra->field_8, base | 0x20000003, 0);
                         done             = 1;
                         actor->field_95E = 0x64;
                     }
@@ -6539,10 +6539,10 @@ void func_80106C6C(GpActorWork* arg0)
             Gp_FillRelated(Wip_SysConfig.field_21 + 0x7F, actor->field_960);
         }
     }
-    func_801093DC(arg0);
+    Gp_UpdateLockTarget(arg0);
 }
 
-void func_8010747C(GpActorWork* arg0)
+void Gp_PlayerNormalState6(GpActorWork* arg0)
 {
     register GpActorWork* work asm("s1");
     register s32          fade asm("s2");
@@ -6738,7 +6738,7 @@ void func_8010771C(GpActorWork* arg0)
     }
 }
 
-void func_801078AC(GpActorWork* arg0)
+void Gp_PlayerMode2State3(GpActorWork* arg0)
 {
     void**         scratch;
     u8*            head;
@@ -6855,7 +6855,7 @@ void func_801078AC(GpActorWork* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x2C;
 }
 
-void func_80107E1C(GpActorWork* arg0)
+void Gp_PlayerMode2State4(GpActorWork* arg0)
 {
     register u8*       tmp asm("a0");
     register s32       dx asm("v0");
@@ -6938,13 +6938,13 @@ void func_80107E1C(GpActorWork* arg0)
                 } else {
                     dx               = 1;
                     actor->field_973 = dx;
-                    func_80101A68(arg0);
+                    Gp_StepPlayerMove(arg0);
                     func_80105ED4(arg0);
                 }
             } else {
                 dx               = 1;
                 actor->field_973 = dx;
-                func_80101A68(arg0);
+                Gp_StepPlayerMove(arg0);
                 func_80105ED4(arg0);
             }
             break;
@@ -6955,7 +6955,7 @@ void func_80107E1C(GpActorWork* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108084);
 
-void func_80108224(GpActorWork* arg0)
+void Gp_PlayerMode2StateB(GpActorWork* arg0)
 {
     GameActor* actor;
     GameActor* inner;
@@ -7013,7 +7013,7 @@ void func_80108224(GpActorWork* arg0)
             break;
     }
     Gp_AnimTickChildSlots(arg0);
-    func_8010B120(arg0);
+    Gp_PlayerStepSfx(arg0);
 }
 
 void func_801083A0(GpActorWork* arg0)
@@ -7036,7 +7036,7 @@ void func_801083A0(GpActorWork* arg0)
     func_801030CC(arg0);
 }
 
-void func_80108458(GpActorWork* arg0)
+void Gp_ArmLockOnState(GpActorWork* arg0)
 {
     GameActor*  inner;
     GpLinkNode* node;
@@ -7055,7 +7055,7 @@ void func_80108458(GpActorWork* arg0)
                     func_80108E0C(arg0, node);
                 }
             }
-            func_80108770(arg0, 3);
+            Gp_ResetActorAnimState(arg0, 3);
         }
     } else {
         func_80109374(arg0);
@@ -7074,7 +7074,7 @@ void func_80108568(GpActorWork* arg0)
 
     actor = arg0->actor;
     if (actor->field_973 != actor->field_974) {
-        func_80108770(arg0, 4);
+        Gp_ResetActorAnimState(arg0, 4);
     } else if (actor->field_973 == 0) {
         if (actor->field_975 != actor->field_976) {
             func_80108684(arg0);
@@ -7168,7 +7168,7 @@ void func_8010870C(GpActorWork* arg0, s32 arg1)
     }
 }
 
-void func_80108770(GpActorWork* arg0, s32 arg1)
+void Gp_ResetActorAnimState(GpActorWork* arg0, s32 arg1)
 {
     GameActor* inner;
     s32        mode;
@@ -7384,7 +7384,7 @@ void func_80108CC4(GpActorWork* arg0)
     switch (inner->field_95E) {
         case 0:
         case 1:
-            func_80107E1C(arg0);
+            Gp_PlayerMode2State4(arg0);
             if (inner->field_95E == 2) {
                 inner->field_958 = 3;
                 mode             = 4;
@@ -7395,12 +7395,12 @@ void func_80108CC4(GpActorWork* arg0)
             }
             break;
         case 2:
-            func_80107E1C(arg0);
+            Gp_PlayerMode2State4(arg0);
             break;
     }
 }
 
-void func_80108D68(GpActorWork* arg0)
+void Gp_PlayerMode2State6(GpActorWork* arg0)
 {
     GameActor* inner;
 
@@ -7445,16 +7445,16 @@ __asm__(".section .rodata\n"
         ".section .text\n");
 #endif
 
-void func_80108E40(GpActorWork* arg0)
+void Gp_TickPlayerMode1(GpActorWork* arg0)
 {
     GpActorFuncTable4 sp;
 
     sp = D_800979F8;
     sp.funcs[(u16)arg0->actor->field_96C](arg0);
-    func_80101848(arg0);
+    Gp_TickActorAnimState(arg0);
     Gp_AnimTickChildSlots(arg0);
-    func_80101F58(arg0);
-    func_80101A68(arg0);
+    Gp_TurnPlayer(arg0);
+    Gp_StepPlayerMove(arg0);
 }
 
 #if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
@@ -7465,19 +7465,19 @@ __asm__(".section .rodata\n"
         "\t.word func_80108B80\n"
         "\t.word func_80108BAC\n"
         "\t.word func_80108BD8\n"
-        "\t.word func_801078AC\n"
-        "\t.word func_80107E1C\n"
-        "\t.word func_801094D4\n"
-        "\t.word func_80108D68\n"
-        "\t.word func_80109684\n"
+        "\t.word Gp_PlayerMode2State3\n"
+        "\t.word Gp_PlayerMode2State4\n"
+        "\t.word Gp_PlayerMode2State5\n"
+        "\t.word Gp_PlayerMode2State6\n"
+        "\t.word Gp_PlayerMode2State7\n"
         "\t.word func_80108CC4\n"
         "\t.word func_80109700\n"
         "\t.word func_80108084\n"
-        "\t.word func_80108224\n"
+        "\t.word Gp_PlayerMode2StateB\n"
         ".section .text\n");
 #endif
 
-void func_80108ED4(GpActorWork* arg0)
+void Gp_TickPlayerMode2(GpActorWork* arg0)
 {
     GameActor*         inner;
     GpActorFuncTable12 sp;
@@ -7485,10 +7485,10 @@ void func_80108ED4(GpActorWork* arg0)
     sp    = D_80097A08;
     inner = arg0->actor;
     sp.funcs[inner->field_956](arg0);
-    func_80101F58(arg0);
+    Gp_TurnPlayer(arg0);
     if (Wip_SysConfig.field_18 <= 0 && inner->field_956 != 0xA) {
         Gp_BindActorAnim(arg0);
-        func_8010AA28(arg0, 4);
+        Gp_StopPlayerAnim(arg0, 4);
     }
 }
 
@@ -7499,13 +7499,13 @@ void func_80108FA0(GpActorWork* arg0)
     func_80105ED4(arg0);
 }
 
-void func_80108FD4(GpActorWork* arg0)
+void Gp_PlayerNormalState1(GpActorWork* arg0)
 {
     GameActor*  inner;
     GpLinkNode* node;
     s32         flag;
 
-    func_80103F70(arg0);
+    Gp_TrackLockTarget(arg0);
     inner            = arg0->actor;
     node             = Gp_FindLockNode(arg0);
     inner->field_973 = 0;
@@ -7519,7 +7519,7 @@ void func_80108FD4(GpActorWork* arg0)
                     func_80108E0C(arg0, node);
                 }
             }
-            func_80108770(arg0, 3);
+            Gp_ResetActorAnimState(arg0, 3);
         }
     } else {
         func_80109374(arg0);
@@ -7548,7 +7548,7 @@ void func_80109138(GpActorWork* arg0)
 {
     func_8010615C(arg0);
     func_801041FC(arg0, 0);
-    func_801093DC(arg0);
+    Gp_UpdateLockTarget(arg0);
 }
 
 void func_80109170(GpActorWork* arg0)
@@ -7677,7 +7677,7 @@ void func_80109374(GpActorWork* arg0)
     }
 }
 
-void func_801093DC(GpActorWork* arg0)
+void Gp_UpdateLockTarget(GpActorWork* arg0)
 {
     register GameActor* inner asm("a1");
     GpLinkNode*         next;
@@ -7724,7 +7724,7 @@ install: {
 }
 }
 
-void func_801094D4(GpActorWork* arg0)
+void Gp_PlayerMode2State5(GpActorWork* arg0)
 {
     GameActor* inner;
     s32        mode;
@@ -7756,7 +7756,7 @@ void func_801094D4(GpActorWork* arg0)
                 }
             } else {
                 inner->field_973 = 1;
-                func_80101A68(arg0);
+                Gp_StepPlayerMove(arg0);
             }
             break;
     }
@@ -7788,7 +7788,7 @@ void func_801095BC(s32* arg0)
     }
 }
 
-void func_80109684(GpActorWork* arg0)
+void Gp_PlayerMode2State7(GpActorWork* arg0)
 {
     GameActor* inner;
     s32        mode;
@@ -7808,7 +7808,7 @@ void func_80109684(GpActorWork* arg0)
             Gp_AnimTickChildSlots(arg0);
             break;
     }
-    func_8010B120(arg0);
+    Gp_PlayerStepSfx(arg0);
 }
 
 void func_80109700(GpActorWork* arg0)
@@ -8131,7 +8131,7 @@ void func_80109FC4(GpActorWork* arg0)
             temp             = actor->field_98D - 1;
             actor->field_98D = temp;
             if ((s8)temp <= 0) {
-                func_8010A854(1);
+                Gp_ApplyHpDamage(1);
                 mode = (u16)actor->field_958;
                 if (mode == 0) {
                     actor->field_98D = 0x78;
@@ -8181,7 +8181,7 @@ void func_80109FC4(GpActorWork* arg0)
     }
 }
 
-void func_8010A1B0(s32 arg0, s32 arg1)
+void Gp_TriggerPeState(s32 arg0, s32 arg1)
 {
     GpActorWork* work;
     GameActor*   inner;
@@ -8432,7 +8432,7 @@ void func_8010A670(GpActorWork* arg0)
     }
 }
 
-s32 func_8010A854(s32 arg0)
+s32 Gp_ApplyHpDamage(s32 arg0)
 {
     register s32  amount asm("s1");
     s32           ret;
@@ -8459,7 +8459,7 @@ s32 func_8010A854(s32 arg0)
             slot        = Game_GetPtrSlot(3);
             coords      = ((GameActorExt*)slot->extra)->field_8;
             p->field_18 = 1;
-            func_800EA478(0x6009C, (GsCOORDINATE2*)coords + 1, 5, 0);
+            Gp_SpawnEff(0x6009C, (GsCOORDINATE2*)coords + 1, 5, 0);
             return 0;
         }
     }
@@ -8491,7 +8491,7 @@ void func_8010A9D0(GpActorWork* arg0)
     Gp_AnimPlayChildSlotsEx(arg0, mode, 0, 3);
 }
 
-void func_8010AA28(GpActorWork* arg0, s32 arg1)
+void Gp_StopPlayerAnim(GpActorWork* arg0, s32 arg1)
 {
     GameActor* inner;
 
@@ -8527,7 +8527,7 @@ void func_8010AAB4(GpActorWork* arg0)
         inner->field_95C = 7;
         inner->field_95E = 0;
         inner->field_973 = 0;
-        func_8010A854(inner->field_96E);
+        Gp_ApplyHpDamage(inner->field_96E);
         inner->field_12A &= 0x3FFF;
         if ((s8)inner->field_97E == 2) {
             inner->field_97E = 1;
@@ -8593,7 +8593,7 @@ void func_8010AC54(GpActorWork* arg0)
         } else {
             inner->field_934 = 5;
         }
-        func_800EA478(
+        Gp_SpawnEff(
             0x600E0, &((GsCOORDINATE2*)arg0->extra->field_8)[4 - inner->field_93E], 0x320, 0);
     } else {
         inner->field_934--;
@@ -8752,7 +8752,7 @@ void func_8010B0C8(GpActorWork* arg0)
     func_800ECA54();
 }
 
-void func_8010B120(GpActorWork* arg0)
+void Gp_PlayerStepSfx(GpActorWork* arg0)
 {
     GameActor* inner;
     GameActor* inner2;
@@ -8800,7 +8800,7 @@ void func_8010B210(GpActorWork* arg0)
     inner->field_96E = 0;
 }
 
-s32 func_8010B228(s32 arg0)
+s32 Gp_TestHpDamage(s32 arg0)
 {
     WipSysConfig* p;
     u16           saved18;
@@ -8811,7 +8811,7 @@ s32 func_8010B228(s32 arg0)
     p           = &Wip_SysConfig;
     saved18     = p->field_18;
     saved1c     = p->field_1c;
-    ret         = func_8010A854((s16)Gp_ScaleDamage(arg0, 0, &out, 0));
+    ret         = Gp_ApplyHpDamage((s16)Gp_ScaleDamage(arg0, 0, &out, 0));
     p->field_18 = saved18;
     p->field_1c = saved1c;
     if (ret != 0) {
@@ -8994,7 +8994,7 @@ void func_8010B610(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-void func_8010B674(GpActorWork* arg0)
+void Gp_EndPlayerActorTask(GpActorWork* arg0)
 {
     GameActor* actor;
     GameActor* inner;
@@ -9034,7 +9034,7 @@ void func_8010B674(GpActorWork* arg0)
     }
 }
 
-s32 func_8010B79C(void)
+s32 Gp_SetupAllyWeapon(void)
 {
     GpActorWork* work;
     GameActor*   actor;
@@ -9063,11 +9063,11 @@ s32 func_8010B79C(void)
             block = actor->field_910;
             val1  = D_80167218[save->field_5C7];
             val2  = D_80167224[save->field_5C7];
-            func_80100FCC(work, val1, val2);
+            Gp_AttachActorObj(work, val1, val2);
             actor->field_124 |= 0x80;
             block->field_CD   = D_80167230[save->field_5C7];
             if ((u8)save->field_5C7 == 4 && actor->field_914 == NULL) {
-                eff = func_800EA478(
+                eff = Gp_SpawnEff(
                     0x80060180, (GsCOORDINATE2*)((GameActorExt*)actor->field_91C->extra)->field_8, val1, 0);
                 if (eff != NULL) {
                     actor->field_914 = eff->field_0;
@@ -9296,7 +9296,7 @@ void func_8010BE5C(GpActorWork* arg0, VECTOR3* arg1)
     block->rot.vx    = 0;
     block->rot.vy    = 0;
     block->rot.vz    = 0;
-    func_801040A0((GsCOORDINATE2*)extra + 4, coord, rot);
+    Gp_PlaceCoordOffset((GsCOORDINATE2*)extra + 4, coord, rot);
     func_80103C74(coord, arg1, (VECTOR3*)block);
     val = ratan2(((VECTOR3*)(head - 0x68))->vx, block->vec.vz) - actor->field_52;
     val = func_80103E7C(actor->field_6A, val);
@@ -9343,7 +9343,7 @@ s32 func_8010C058(void)
     return ret;
 }
 
-void func_8010C098(GpActorWork* arg0, s32 arg1)
+void Gp_TrackAllyLockTarget(GpActorWork* arg0, s32 arg1)
 {
     GameActor*  actor;
     GpLinkNode* node;
@@ -9360,13 +9360,13 @@ void func_8010C098(GpActorWork* arg0, s32 arg1)
             if (arg1 != 1) {
                 val = 0x380;
             }
-            func_80102348(arg0, val);
+            Gp_AimYawToLock(arg0, val);
         }
         if (arg1 & 2) {
             if (D_80113388[Mc_SaveData.field_5C7] != 0) {
-                func_80102634(arg0);
+                Gp_AimPitchToLock(arg0);
             } else {
-                func_80102D20(arg0, D_80167218[Mc_SaveData.field_5C7], 0x380);
+                Gp_AimPitchRec(arg0, D_80167218[Mc_SaveData.field_5C7], 0x380);
             }
         }
     }

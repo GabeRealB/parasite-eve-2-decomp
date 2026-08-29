@@ -1092,7 +1092,7 @@ void Gp_EndWaitTask(Task* task)
     }
 }
 
-void func_800E71B0(Task* task)
+void Gp_InitCapTask(Task* task)
 {
     void* mem;
 
@@ -1775,7 +1775,7 @@ void Gp_PadLerpTask(Task* task)
     }
 }
 
-void func_800E956C(void)
+void Gp_UpdatePadInput(void)
 {
     PadState*     pad;
     WipSysConfig* cfg;

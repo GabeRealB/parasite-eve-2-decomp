@@ -35,7 +35,7 @@
  * VOLATILE variants are scheduling fences (delay slots, insn motion).
  * SOFT_ variants apply the same constraint without volatile; GCC 2.8.1
  * -fschedule-insns may still move surrounding instructions. That
- * distinction is a matching difference (see func_800D8684).
+ * distinction is a matching difference (see Gp_DebugPanTask).
  *
  * Expansions are plain statement-asm. Do not wrap them in do/while or
  * extra braces: that changes stack and scheduling. GCC 2.8.1 has no

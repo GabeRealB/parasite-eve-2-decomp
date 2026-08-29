@@ -67,8 +67,8 @@ STATIC_ASSERT_SIZEOF(GpObj, 0x20);
 
 /// Payload a kind-4 `GpObj` points at with `field_C` (`GameActor.field_88`,
 /// followed by `GameActor.field_90`). `dir` is the facing vector
-/// `func_8010154C` writes there each frame; `field_8` is the `GpRec18` table
-/// `func_800DCB80` walks for that object. `func_800DBA20` reaches the same
+/// `Gp_UpdatePlayerMove` writes there each frame; `field_8` is the `GpRec18` table
+/// `Gp_CollideObjGridDir` walks for that object. `func_800DBA20` reaches the same
 /// pointer by casting `field_C` to a `GpObj*` and reading its `field_8`.
 typedef struct _GpObjDirRec {
     /* 0x0 */ SVECTOR  dir;
@@ -357,7 +357,7 @@ STATIC_ASSERT_SIZEOF(GpCoord64View, 0x64);
 /// Record in the 8-entry arrays pointed to by `Gp_RoomParamTables`.
 /// `Gp_LoadRoomParams` copies `field_3` into `Gp_RoomParams[]`. Nearby helpers
 /// also load `field_1` (`func_800DDDF8`, `func_800DE7CC`) and `field_2`
-/// (`func_80105BC4` keeps a slot only when this is nonzero). `func_80105ED4`
+/// (`Gp_PickNearestRec18` keeps a slot only when this is nonzero). `func_80105ED4`
 /// loads a pointer at +0x4.
 typedef struct _GpRoomParamRec {
     /* 0x0 */ u8 field_0;
@@ -697,7 +697,7 @@ STATIC_ASSERT_SIZEOF(GpStateF0, 0x2C);
 
 /// 0xC slot in the 32-entry table at `Gp_LockSlots`. `Gp_ClearLockSlots` clears
 /// `field_0` / `field_4` / `field_6`. `func_800DA6E8` binds `field_0` and
-/// bumps `field_4`; `func_800DA7B8` treats `field_6` as a countdown and
+/// bumps `field_4`; `Gp_UpdateLockSlots` treats `field_6` as a countdown and
 /// stores projected screen XY at 0x8.
 typedef struct _GpSlot70 {
     /* 0x0 */ void* field_0;
@@ -758,7 +758,7 @@ typedef struct _GpPerspScratch {
 STATIC_ASSERT_SIZEOF(GpPerspScratch, 0x14);
 
 /// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `Gp_GetObjPan` and
-/// `func_800D9DFC`. Same RTPS outputs as `GpPerspScratch`, plus the packed
+/// `Gp_DrawTargetCursor`. Same RTPS outputs as `GpPerspScratch`, plus the packed
 /// `SXY2` at 0x14 (`sx` / `sy` are the projected screen coords).
 typedef struct _GpPanScratch {
     /* 0x00 */ SVECTOR vec;
@@ -773,7 +773,7 @@ STATIC_ASSERT_SIZEOF(GpPanScratch, 0x18);
 /// Room-light capture block owned by another overlay (imported at
 /// `D_80760618`). `func_800D7A9C` fills the four `field_30` entries with the
 /// per-channel light rows while `field_1` is set, and `func_800D78A4` writes
-/// the resolved light direction into `field_24`. `func_800D8684` raises
+/// the resolved light direction into `field_24`. `Gp_DebugPanTask` raises
 /// `field_1` around that pair so the capture happens, then clears it.
 typedef struct _GpLightCapture {
     /* 0x00 */ byte    pad_0[0x1];
@@ -854,7 +854,7 @@ typedef struct _GpNearScratch {
 } GpNearScratch;
 STATIC_ASSERT_SIZEOF(GpNearScratch, 0x28);
 
-/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `func_800E25F8`.
+/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `Gp_RollEnemyChance`.
 /// `local` first holds `GpEnemy.field_1C`, which `field_18->workm` rotates
 /// into `world`; `world` then gets `workm.t[]` added to become a world
 /// position, and `local` is reused for the delta against the player
@@ -987,7 +987,7 @@ typedef struct _GpSphereScratch {
 } GpSphereScratch;
 STATIC_ASSERT_SIZEOF(GpSphereScratch, 0x48);
 
-/// 0x88-byte scratch from `G_SCRATCH_HEAD` used by `func_800DC528`.
+/// 0x88-byte scratch from `G_SCRATCH_HEAD` used by `Gp_CollideObjGrid`.
 /// `pos` is the object's world position (`Gp_ObjWorldPos`) and `grid` its cell
 /// (`Gp_LocalToGrid`). `verts` holds the face corners rotated by
 /// `Gp_GridParams->field_0->workm` and translated by that matrix, `normal` the
@@ -1021,19 +1021,19 @@ typedef struct _GpGridRayScratch {
 } GpGridRayScratch;
 STATIC_ASSERT_SIZEOF(GpGridRayScratch, 0x70);
 
-/// Pending flags written by `func_800D5B14` and consumed by `func_800CE294`.
+/// Pending flags written by `Gp_ApplyItemUse` and consumed by `Gp_MenuExitCallback`.
 /// `D_8010F888 == 1` requests `Gp_DispatchMsg(..., 0x402, ...)`.
 extern s32 D_8010F888;
 
-/// Signed pending item id consumed by `Gp_FlushPendingRelated`. `func_800D5B14`
+/// Signed pending item id consumed by `Gp_FlushPendingRelated`. `Gp_ApplyItemUse`
 /// stores the id, or its negation for the second `GpItemSlot` pair.
-/// `func_800CE294` also consumes it (with `D_8010F890`) via `func_801088D4`.
+/// `Gp_MenuExitCallback` also consumes it (with `D_8010F890`) via `func_801088D4`.
 extern s32 Gp_PendingRelatedId;
 
-/// Non-zero when `Gp_PendingRelatedId` should be applied by `func_800CE294`.
+/// Non-zero when `Gp_PendingRelatedId` should be applied by `Gp_MenuExitCallback`.
 extern s32 D_8010F890;
 
-/// Pending id consumed by `func_800CE294`; `0x3E` also calls `func_8010A1B0`.
+/// Pending id consumed by `Gp_MenuExitCallback`; `0x3E` also calls `Gp_TriggerPeState`.
 extern s32 D_8010F894;
 
 /// Head of the `GpLinkNode` list walked by `Gp_UnlinkNode` / `Gp_LinkNode`
@@ -1063,7 +1063,7 @@ extern MATRIX Gp_DefaultMtx;
 /// Default `MATRIX` installed at `GameActorExt.field_20` by `Gp_BindDefaultMtx`.
 extern MATRIX Gp_DefaultMtx2;
 
-/// Light/color `MATRIX` pair `func_800D8684` installs at
+/// Light/color `MATRIX` pair `Gp_DebugPanTask` installs at
 /// `GameActorExt.field_1C` / `field_20` for the `Gp_ActorSlots[1]` actor and
 /// its `field_918` / `field_920` child tasks (the second actor uses its own
 /// pair instead of `Gp_DefaultMtx` / `Gp_DefaultMtx2`).
@@ -1078,8 +1078,8 @@ extern u8 Gp_OverrideVecFlag;
 /// Override SVECTOR copied by `Gp_SetOverrideVec` from its argument.
 extern SVECTOR Gp_OverrideVec;
 
-/// Word cleared by `Gp_BindDefaultMtx`. Also written by `func_800A45F0` and
-/// read/cleared by `func_800D8684`.
+/// Word cleared by `Gp_BindDefaultMtx`. Also written by `Gp_UpdateAttachCombo` and
+/// read/cleared by `Gp_DebugPanTask`.
 extern s32 D_80114F28;
 
 /// Overlay import: pointer to the room-light capture block written by
@@ -1095,11 +1095,11 @@ extern u8 Gp_OverrideVec2Flag;
 extern SVECTOR Gp_OverrideVec2;
 
 /// 8.8 fixed-point pair lerped toward projected screen coords by
-/// `func_800D9DFC`. Reset to `0xFFF00000` by `Gp_ResetLinkState`.
+/// `Gp_DrawTargetCursor`. Reset to `0xFFF00000` by `Gp_ResetLinkState`.
 extern s32 D_8010F9EC;
 extern s32 D_8010F9F0;
 
-/// Current `Gp_LinkList` node whose lock-on reticle `func_800D9DFC` is
+/// Current `Gp_LinkList` node whose lock-on reticle `Gp_DrawTargetCursor` is
 /// drawing. Cleared when the walk finds no live target.
 struct _GpLinkXform;
 extern struct _GpLinkXform* D_80115260;
@@ -1118,7 +1118,7 @@ extern GpGiveRec* D_8010F9F4[];
 extern GpGiveRec* D_8010FA0C[];
 
 /// Face edge endpoint pairs walked by the grid collision helpers
-/// (`func_800DC528` / `func_800DCB80` / `func_800DD324` / `func_800DFCCC`).
+/// (`Gp_CollideObjGrid` / `Gp_CollideObjGridDir` / `func_800DD324` / `func_800DFCCC`).
 extern GpEdgePair D_8010FA24[5];
 
 /// Pair-handler table used by `func_800DB900` / `func_800E0414`.
@@ -1163,7 +1163,7 @@ extern GpObj*   D_8011558C;
 extern GpObj*   D_80115590;
 extern u8       D_80115598;
 /// Set to 1 by `Gp_TakePendingObj4C` when a pending `Gp_PendingObj4C` node is found;
-/// `func_800DB72C` then calls `Gp_ClearPendingObj4C` to clear those flags.
+/// `Gp_TickWorldCollision` then calls `Gp_ClearPendingObj4C` to clear those flags.
 extern s32 Gp_PendingObj4CFlag;
 /// 8-word table filled by `Gp_LoadRoomParams` from the current room's
 /// `Gp_RoomParamTables` records (`field_3`). Indexed by `(id & 7)` in
@@ -1212,28 +1212,28 @@ extern u16 D_80113CFC[];
 /// Row index into `Gp_DmgRows` for `Gp_ScaleDamage`.
 extern u8 D_8011541B;
 
-/// Per-sub-id damage rows used by `func_800E1FEC`. The row is the id's
+/// Per-sub-id damage rows used by `Gp_ComputeDamage`. The row is the id's
 /// `(id >> 8) & 0x3F` nibble pair; the column is the class picked from
 /// `D_80113864` (or 5). The selected entry is scaled `<< 8` then / 100.
 extern u16 D_80113568[][8];
 
 /// Column table used when `GpRec10.field_4` is 6, indexed by the distance
 /// class picked from `D_80113864`. Scaled `<< 12` then / 100 by
-/// `func_800E25F8`.
+/// `Gp_RollEnemyChance`.
 extern u16 D_80113858[];
 
 /// Distance/hit class table for `D_80113568`, indexed by `hits / 1000` (or by
-/// `SquareRoot0(distance) / 1000` in `func_800E25F8`) when that value is
-/// below 0x10. `func_800E1FEC` only keeps the low byte of the entry.
+/// `SquareRoot0(distance) / 1000` in `Gp_RollEnemyChance`) when that value is
+/// below 0x10. `Gp_ComputeDamage` only keeps the low byte of the entry.
 extern u16 D_80113864[];
 
-/// Percent scale table used by `func_800E1FEC` / `func_800E25F8` when
+/// Percent scale table used by `Gp_ComputeDamage` / `Gp_RollEnemyChance` when
 /// `Gp_StateC08.field_D` is non-zero. Indexed by
-/// `((field_D / 16) - 1) * 2 + (s8)(field_D % 16)`; `func_800E1FEC` reads
-/// `field_0` and `func_800E25F8` reads `field_2` of each 4-byte slot.
+/// `((field_D / 16) - 1) * 2 + (s8)(field_D % 16)`; `Gp_ComputeDamage` reads
+/// `field_0` and `Gp_RollEnemyChance` reads `field_2` of each 4-byte slot.
 extern u16 D_80113D0C[][2];
 
-/// Final percent scale applied by `func_800E1FEC`, indexed by `D_8011541B`.
+/// Final percent scale applied by `Gp_ComputeDamage`, indexed by `D_8011541B`.
 extern u16 D_80113F90[];
 
 /// "Weapon" string drawn by `Gp_DrawWeaponLabel` (trailing 0x60 byte).
@@ -1246,7 +1246,7 @@ extern const char Gp_StrGetLockPosNull[];
 /// Returns 1 if item `arg0` cannot be used, 0 if it can.
 /// `arg1` supplies `field_2` (capacity) for ammo ids 0xA0–0xBF.
 s32 Gp_ItemIsUnusable(s32 arg0, GpItemRec* arg1);
-/// `arg1` is passed by `func_80106C6C` (the actor's `field_960`) but the body
+/// `arg1` is passed by `Gp_PlayerNormalState5` (the actor's `field_960`) but the body
 /// ignores it.
 s32        Gp_FlushPendingRelated(s32 arg0, s32 arg1);
 GpItemRec* Gp_FindItemById(s32 arg0);
@@ -1264,9 +1264,9 @@ void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3);
 void func_800D7A9C(GameActorExt* arg0, VECTOR* arg1, s32 arg2, s32 arg3);
 /// Resolves the strongest room light for the world position `arg0` and writes
 /// its direction into `arg1` (`GpLightCapture.field_24` at the call site in
-/// `func_800D8684`). No-ops when `Gp_GetRoomCoordSet` returns 0.
+/// `Gp_DebugPanTask`). No-ops when `Gp_GetRoomCoordSet` returns 0.
 void func_800D78A4(VECTOR* arg0, VECTOR3* arg1);
-void func_800D8684(Task* arg0);
+void Gp_DebugPanTask(Task* arg0);
 /// Remaps a 3x3 color matrix (`MATRIX.m`) from lighting mode `arg2`
 /// (`field_4E` bits 0-1, or bits 2-3 when blending). Mode 1 weights
 /// RGB as (7,6,3)/33 then *4/*2/*1. Mode 2 zeros the matrix. Mode 3
@@ -1303,9 +1303,9 @@ void            Gp_FillSVec3x3(GpSVec3x3* arg0, s16 arg1, s16 arg2, s16 arg3);
 GpRoomCoordRec* Gp_GetRoomCoordRec(GameSessionFrom4* arg0);
 void            func_800D9CC8(Task* arg0);
 void            Gp_CopyDefaultBound(GBytes8* arg0);
-void            func_800D9DFC(void);
+void            Gp_DrawTargetCursor(void);
 void            func_800DA6E8(void* arg0, s32 arg1);
-void            func_800DA7B8(void);
+void            Gp_UpdateLockSlots(void);
 void            Gp_UnlinkNode(GpLinkNode* node);
 void            Gp_LinkNode(GpLinkNode* node);
 s32             Gp_NodeSlotMask(GpLinkNode* arg0);
@@ -1331,12 +1331,12 @@ void            Gp_IncStateF0Ref(void);
 void            Gp_ReleaseStateF0Add(GpObj20E* arg0);
 void            Gp_ReleaseStateF0Clear(void);
 void            Gp_ReleaseStateF0(void);
-void            func_800DB72C(void);
+void            Gp_TickWorldCollision(void);
 void            func_800DB900(GpObj* node);
 void            func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2);
 s32             func_800DBCAC(GpObj* arg0, GpObj* arg1);
-void            func_800DC528(GpObj* node);
-void            func_800DCB80(GpObj* node);
+void            Gp_CollideObjGrid(GpObj* node);
+void            Gp_CollideObjGridDir(GpObj* node);
 void            func_800DD940(GpObj* node);
 void            func_800DDC2C(GpObj* arg0);
 void            func_800DDDF8(GpObj* node);
@@ -1402,7 +1402,7 @@ void Gp_OrientAlong(VECTOR* arg0, MATRIX* arg1, s32 arg2);
 /// `arg2` matches the record's `field_4`; ids with bit 0x8000 read
 /// `Gp_IdParamHi` and scale by a random 100..109 percent. `arg1` is a hit
 /// count that selects the `D_80113568` column through `D_80113864`.
-u32 func_800E1FEC(u32 arg0, u32 arg1, s32 arg2, s32 arg3);
+u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3);
 /// Packed-id damage scale. `arg0` must have high bits `0x40000`; low 12 bits
 /// are the power and bits 12-15 are written to `*arg2` when it is non-NULL.
 /// `arg3 == 0` uses `Wip_SysConfig.field_18` and `GpDmgRow.field_A`;
@@ -1418,7 +1418,7 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3);
 /// doubles the chance, `Gp_StateC08.field_D` applies a `D_80113D0C` percent,
 /// and `arg2` multiplies it when non-zero. The result is compared against a
 /// 12-bit `Gp_LcgState` draw.
-s32  func_800E25F8(struct _GpEnemy* arg0, u32 arg1, s32 arg2);
+s32  Gp_RollEnemyChance(struct _GpEnemy* arg0, u32 arg1, s32 arg2);
 void Gp_ApplyObjKind(GpObj5D* arg0, s32 arg1);
 s32  Gp_PackObjPair(GpObj50* arg0, s32 arg1);
 s32  Gp_PackPair(GpU16Pair* arg0, s32 arg1);
@@ -1433,7 +1433,7 @@ void Gp_SetObjFlag1(GpObj4C* arg0);
 void Gp_SetObjFlag2(GpObj5D* arg0, s32 arg1);
 s32  Gp_TickObjFlag2(GpObj5D* arg0);
 s32  Gp_GetIdParam2(s32 arg0);
-void func_800E337C(Task* arg0);
-void func_8010154C(void);
+void Gp_EvtCapTask(Task* arg0);
+void Gp_UpdatePlayerMove(void);
 
 #endif // GAMEPLAY_3A34_H

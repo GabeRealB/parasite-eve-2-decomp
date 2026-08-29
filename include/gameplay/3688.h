@@ -17,25 +17,25 @@ typedef struct {
     UiObjectTaskFunc funcs[3];
 } UiObjectTaskFuncTable3;
 
-/// Five-entry dispatcher table: `Gp_PublishItemObj`, `func_800CDFA8`, `func_800CE094`,
-/// `func_800CE188`, `func_800CE1E0`. Copied onto the stack by `func_800CE22C`.
+/// Five-entry dispatcher table: `Gp_PublishItemObj`, `Gp_SpawnPickupUiTask`, `Gp_PickupResultTask`,
+/// `func_800CE188`, `Gp_PickupExitTask`. Copied onto the stack by `func_800CE22C`.
 extern TaskFuncTable5 D_80096E70;
 
-/// Three-entry dispatcher table: `func_800CE3B4`, `func_800C010C`, `func_800C02A0`.
+/// Three-entry dispatcher table: `Gp_ItemMenuInit`, `Gp_UiPromptUpdate`, `Gp_UiPromptDispatch`.
 extern const UiObjectTaskFuncTable3 D_80096F7C;
 
-/// CLUT ids for the ten item-category icons drawn by `func_800C05CC`,
+/// CLUT ids for the ten item-category icons drawn by `Gp_DrawItemIcon`,
 /// indexed by the icon index that function derives from the item id.
 extern const u16 D_80096F88[];
 
-/// Four-entry dispatcher table: `func_800D1D5C`, `func_800D1E28`, `func_800CFF04`,
-/// `func_800D1EB8`.
+/// Four-entry dispatcher table: `Gp_MapPanelInit`, `Gp_MapFirstDrawTask`, `func_800CFF04`,
+/// `Gp_MapDrawTask`.
 extern TaskFuncTable4 D_800971C0;
 
 /// 0xE-byte per-room record in tables pointed to by `Gp_MapRecTables`.
 /// Indexed by `GameSession.field_7 - 1` then `GameSession.field_6`.
 /// field_0/field_2 are signed coords, field_4/field_6 unsigned extents,
-/// field_8/field_A signed scales (`func_800D02A4`); field_C is the
+/// field_8/field_A signed scales (`Gp_DrawMapCursor`); field_C is the
 /// room id stored in `Gp_MapRoomId` (`Gp_GetMapRoomId`).
 typedef struct _GpMapRec {
     /* 0x00 */ s16 field_0;
@@ -78,7 +78,7 @@ STATIC_ASSERT_SIZEOF(GpMapMark, 8);
 extern GpMapMark* Gp_MapMarkTables[];
 
 /// 8-byte map icon record in the per-stage tables pointed to by `D_8010F0CC`.
-/// Walked by `func_800D0F3C` until `field_0` is 0. `field_0` is the room id
+/// Walked by `Gp_DrawMapIcons` until `field_0` is 0. `field_0` is the room id
 /// (`Gp_MapRoomId`), `field_1` the `Gp_DrawMapMarks` marker index the icon
 /// belongs to, `field_2` the icon kind (0 / 1 / 2; kind 2 is the blinking
 /// "current objective" icon gated on `func_800E3FCC(0xA2)`), `field_3` a
@@ -96,7 +96,7 @@ STATIC_ASSERT_SIZEOF(GpMapIcon, 8);
 /// Per-stage table of `GpMapIcon` arrays. Index is `GameSession.field_7 - 1`.
 extern GpMapIcon* D_8010F0CC[];
 
-/// 0xC-byte scratchpad block `func_800D0F3C` carves off `G_SCRATCH_HEAD` to
+/// 0xC-byte scratchpad block `Gp_DrawMapIcons` carves off `G_SCRATCH_HEAD` to
 /// stage one map icon position before it is turned into a `SPRT_16`.
 typedef struct _GpMapIconPos {
     /* 0x0 */ u16 x;
@@ -108,7 +108,7 @@ typedef struct _GpMapIconPos {
 } GpMapIconPos;
 STATIC_ASSERT_SIZEOF(GpMapIconPos, 0xC);
 
-/// 0x1C-byte scratch block `func_800D02A4` / `func_800D0614` carve off
+/// 0x1C-byte scratch block `Gp_DrawMapCursor` / `func_800D0614` carve off
 /// `G_SCRATCH_HEAD` to stage the player cursor position on the map screen.
 /// `x` / `y` are the map coordinates; only the tail from 0xC on is written.
 typedef struct _GpMapCursorPos {
@@ -135,7 +135,7 @@ extern u8 Gp_MapRoomId;
 /// Room-id offset applied by `Gp_EnqueueMapRoomCd` (0, or 1 / 3 for two flagged rooms).
 extern u8 Gp_MapRoomOff;
 
-/// Per-column icon descriptor for the P.Energy attach panel (`func_800C1D18`).
+/// Per-column icon descriptor for the P.Energy attach panel (`Gp_PeGridPanelTask`).
 /// One 3-byte entry per weapon/armour column: `u`/`v` are the SPRT texture
 /// coordinates of the column caption and `xOffset` shifts the caption right of
 /// the column origin. The table `D_8010E844` holds the four columns.

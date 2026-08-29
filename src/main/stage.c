@@ -368,12 +368,12 @@ void Display_FlipOtAndDispatch(s32 arg0)
             break;
         case 2:
             Gp_LinkViewSprts();
-            func_8009850C(&Gpu_OtBuffers[temp->field_114]);
+            Gp_DrawActorTmdActive(&Gpu_OtBuffers[temp->field_114]);
             break;
         case 1:
             Task_ExecListFiltered(&Task_DefaultList, 0x62);
             Gp_LinkViewSprts();
-            func_80097AC0(&Gpu_OtBuffers[temp->field_114]);
+            Gp_DrawActorTmdFlagged(&Gpu_OtBuffers[temp->field_114]);
             break;
     }
     Gpu_CurrentOt = saved;

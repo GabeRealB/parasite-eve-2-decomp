@@ -2189,7 +2189,7 @@ CdAudio_Begin               = 0x80056700; // type:func
 //--------------------------------------------------------------------
 //--- PA: 0x46FE4   VA: 0x800567E4   subsegment: c, 46FE4
 //--------------------------------------------------------------------
-func_800567E4               = 0x800567E4; // type:func
+CdAudio_DriveStream               = 0x800567E4; // type:func
 CdAudio_DrivePhase0               = 0x800569D4; // type:func
 CdAudio_DriveSeek               = 0x80056B28; // type:func
 CdAudio_DriveRead               = 0x80056E38; // type:func
@@ -2215,7 +2215,7 @@ CdAudio_SeekAbs               = 0x80057A88; // type:func
 CdAudio_RequestStop               = 0x80057ACC; // type:func
 CdAudio_StartVolumeRamp               = 0x80057B24; // type:func
 CdAudio_JumpWithPitch               = 0x80057B88; // type:func
-func_80057BC0               = 0x80057BC0; // type:func
+CdAudio_DriveNull               = 0x80057BC0; // type:func
 CdAudio_DrivePhase1               = 0x80057BC8; // type:func
 CdAudio_ReadyCallback               = 0x80057C74; // type:func
 CdAudio_SetLocFlag               = 0x80057D24; // type:func

@@ -6,8 +6,8 @@ Title_RestoreDemoCard = 0x8009407C; // type:func absolute:True
 Title_EnqueueDemoScene = 0x80094B90; // type:func absolute:True
 Title_TaskDescs = 0x80094C8C; // absolute:True
 
-func_80097AC0 = 0x80097AC0; // type:func absolute:True
-func_8009850C = 0x8009850C; // type:func absolute:True
+Gp_DrawActorTmdFlagged = 0x80097AC0; // type:func absolute:True
+Gp_DrawActorTmdActive = 0x8009850C; // type:func absolute:True
 Gp_AttachDisp2d = 0x80099098; // type:func absolute:True
 Gp_AttachTmdFlags = 0x80099170; // type:func absolute:True
 Gp_UnlinkTmd = 0x800991DC; // type:func absolute:True

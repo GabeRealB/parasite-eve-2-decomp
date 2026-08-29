@@ -12,7 +12,7 @@
 
 extern s32 Gp_LcgState;
 
-void func_800F75BC(Task* arg0)
+void Gp_EffSprTask46(Task* arg0)
 {
     GpEffWork*     mem;
     GameActorExt*  extra;

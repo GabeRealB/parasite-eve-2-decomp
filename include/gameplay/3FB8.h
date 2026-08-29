@@ -29,17 +29,17 @@ typedef struct {
     GpActorFunc funcs[3];
 } GpActorFuncTable3;
 
-/// 8-entry callback table copied onto the stack by `func_80106838`.
+/// 8-entry callback table copied onto the stack by `Gp_TickPlayerNormal`.
 typedef struct {
     GpActorFunc funcs[8];
 } GpActorFuncTable8;
 
-/// 4-entry callback table copied onto the stack by `func_80108E40`.
+/// 4-entry callback table copied onto the stack by `Gp_TickPlayerMode1`.
 typedef struct {
     GpActorFunc funcs[4];
 } GpActorFuncTable4;
 
-/// 12-entry callback table copied onto the stack by `func_80108ED4`.
+/// 12-entry callback table copied onto the stack by `Gp_TickPlayerMode2`.
 typedef struct {
     GpActorFunc funcs[12];
 } GpActorFuncTable12;
@@ -93,7 +93,7 @@ STATIC_ASSERT_SIZEOF(GpActorD4Rec, 0x18);
 /// stored at `GameActor.field_910`. `Gp_BindActorD4` copies a `GsCOORDINATE2`
 /// into `field_18`, treats `field_68` as a `GpObj`, fills `field_88`, and
 /// points `field_88.field_14` at `field_A0`. `func_8010BF7C` writes `field_C4`.
-/// `func_8010B79C` writes `field_CD` from `D_80167230[Mc_SaveData.field_5C7]`.
+/// `Gp_SetupAllyWeapon` writes `field_CD` from `D_80167230[Mc_SaveData.field_5C7]`.
 typedef struct _GpActorD4 {
     /* 0x00 */ byte         pad_0[0x18];
     /* 0x18 */ byte         field_18[0x50]; // GsCOORDINATE2
@@ -124,7 +124,7 @@ typedef struct _GpCoordExt {
 STATIC_ASSERT_SIZEOF(GpCoordExt, 0x50);
 
 /// Overlay of `GameActor` for the three s16s at 0x418 (`GsCOORDINATE2.param`
-/// as vx/vy/vz). `func_80100FCC` zeros them after `Gfx_RotMatrixX` of
+/// as vx/vy/vz). `Gp_AttachActorObj` zeros them after `Gfx_RotMatrixX` of
 /// `field_3D4.workm`.
 typedef struct _GpActorSvec {
     /* 0x000 */ byte pad[0x418];
@@ -135,7 +135,7 @@ typedef struct _GpActorSvec {
 
 /// 8-byte argument record for `func_800FDB18`. `field_0` is a coordinate
 /// (fallback `D_80070F10`); `field_4` / `field_6` are packed into the
-/// `func_800EA478` argument. The third `func_800FDB18` argument is an
+/// `Gp_SpawnEff` argument. The third `func_800FDB18` argument is an
 /// `SVECTOR*` (or NULL).
 typedef struct _GpEffArg {
     /* 0x0 */ struct _GsCOORDINATE2* field_0;
@@ -144,54 +144,54 @@ typedef struct _GpEffArg {
 } GpEffArg;
 STATIC_ASSERT_SIZEOF(GpEffArg, 0x8);
 
-/// 0x2C-byte work at `Task::spawnArg2` for `func_800F1364` / `func_800F1A9C` /
-/// `func_800F5184` / `func_800F75BC` / `func_800F77F8` / `func_800F7E28` /
-/// `func_800FB67C` /
-/// `func_800FB7E4` / `func_800FBEBC` / `func_800FC74C` / `func_800FC9BC` /
-/// `func_800FE41C` (`Mem_Calloc(0x2C)` in `func_800EA478`).
-/// `field_0` is the spawned `Task*` (`func_800EA478` stores it; `func_801034C0`
+/// 0x2C-byte work at `Task::spawnArg2` for `Gp_EffCtlTask6E` / `Gp_EffCtlTask3B` /
+/// `Gp_EffPolyTask9C` / `Gp_EffSprTask46` / `Gp_DrawEffSprite81` / `Gp_EffSprTask81` /
+/// `Gp_EffCtlTaskC1` /
+/// `Gp_EffCtlTaskF3` / `Gp_EffCtlTaskF4` / `Gp_EffCtlTaskA5` / `Gp_EffCtlTaskA6` /
+/// `Gp_EffCtlTaskE3` (`Mem_Calloc(0x2C)` in `Gp_SpawnEff`).
+/// `field_0` is the spawned `Task*` (`Gp_SpawnEff` stores it; `Gp_SpawnWeaponEff`
 /// copies it onto `GameActor.field_914`).
 /// `field_8` is the parent coordinate copied onto `GsCOORDINATE2.sub`.
-/// `field_10` is the 3-halfword overlay `func_800FE41C` passes to
-/// `func_800EA478`; `func_800FBEBC` also zeros `field_10` / `field_14` on
-/// first run. `func_800F9474` treats `field_10` / `field_18` as `SVECTOR`s
+/// `field_10` is the 3-halfword overlay `Gp_EffCtlTaskE3` passes to
+/// `Gp_SpawnEff`; `Gp_EffCtlTaskF4` also zeros `field_10` / `field_14` on
+/// first run. `Gp_EffCtlTask9B` treats `field_10` / `field_18` as `SVECTOR`s
 /// (`VectorNormalSS` of `field_18` into `field_10`, then GPF-scales `field_10`
-/// onto the spawned work). `func_800FC9BC` rotates `field_10` by `coord` and
+/// onto the spawned work). `Gp_EffCtlTaskA6` rotates `field_10` by `coord` and
 /// adds the result at `field_18` onto `coord.t[]`; `field_14` is also a
 /// lifetime that starts at `(field_24 & 0x1F) % (spawnArg1 * 3) + 7` and
 /// decays by `(field_22 & 3) / 3`. `field_12` is the per-frame Y step (`0xFFF0` minus
-/// an LCG nibble in `func_800FBEBC`). `field_18` / `field_1A` / `field_1C` are
+/// an LCG nibble in `Gp_EffCtlTaskF4`). `field_18` / `field_1A` / `field_1C` are
 /// sign-extended into `coord.t[]` on first run. If they are all zero,
-/// `func_800F9474` fills them from three LCG draws centered on 0. `field_20` is the spawn-wave count
-/// (`func_800FC74C`), the draw-step counter that `func_800FBEBC` increments
+/// `Gp_EffCtlTask9B` fills them from three LCG draws centered on 0. `field_20` is the spawn-wave count
+/// (`Gp_EffCtlTaskA5`), the draw-step counter that `Gp_EffCtlTaskF4` increments
 /// every 4 `field_22` ticks and kills at 8, or
-/// `(Gp_StateC08.field_0 % 10) - 1` (`func_800FB7E4` / `func_800FC0B4`). `field_22` is the step
-/// counter (`func_800F1364` / `func_800F1A9C` / `func_800F5184` /
-/// `func_800FB7E4` / `func_800FBEBC` / `func_800FC0B4` / `func_800FC74C` / `func_800FC9BC`).
-/// `field_24` is the lifetime (`func_800F1364`, `spawnArg1 >> 16` or 0xC),
-/// the current scale stepped toward `field_26` (`func_800F75BC`),
-/// the LCG angle (`func_800F1A9C`), a 0x10 start that decays by 2
-/// (`func_800F5184`), a 0x80 start that decays by 8 (`func_800FB67C`), the
-/// spawn/wait phase flag (`func_800FC74C`), or the LCG draw param
-/// (`func_800FBEBC`). `func_800FC9BC` uses `field_24` as the LCG Y angle
+/// `(Gp_StateC08.field_0 % 10) - 1` (`Gp_EffCtlTaskF3` / `Gp_EffCtlTaskAC`). `field_22` is the step
+/// counter (`Gp_EffCtlTask6E` / `Gp_EffCtlTask3B` / `Gp_EffPolyTask9C` /
+/// `Gp_EffCtlTaskF3` / `Gp_EffCtlTaskF4` / `Gp_EffCtlTaskAC` / `Gp_EffCtlTaskA5` / `Gp_EffCtlTaskA6`).
+/// `field_24` is the lifetime (`Gp_EffCtlTask6E`, `spawnArg1 >> 16` or 0xC),
+/// the current scale stepped toward `field_26` (`Gp_EffSprTask46`),
+/// the LCG angle (`Gp_EffCtlTask3B`), a 0x10 start that decays by 2
+/// (`Gp_EffPolyTask9C`), a 0x80 start that decays by 8 (`Gp_EffCtlTaskC1`), the
+/// spawn/wait phase flag (`Gp_EffCtlTaskA5`), or the LCG draw param
+/// (`Gp_EffCtlTaskF4`). `Gp_EffCtlTaskA6` uses `field_24` as the LCG Y angle
 /// (`Gfx_RotMatrixY` with `& 0xFF0`), `field_26` as `(field_24 & 0xF) + 8`
 /// then a state-2 decay of `field_22 & 1`, `field_28` as
 /// `-(spawnArg1 << 4) - (LCG >> 16 & 0x7F)` stepped by +2, and `field_2A`
 /// as `spawnArg1 * 24 + 0xC0` stepped by +2 (also `* 3 + 0x3000` into
-/// `func_800EA478`). `func_800FE41C` copies `spawnArg1` into `field_24` /
-/// `field_26` and sets `field_28 = field_26 << 2`. `func_800FB67C` inits
+/// `Gp_SpawnEff`). `Gp_EffCtlTaskE3` copies `spawnArg1` into `field_24` /
+/// `field_26` and sets `field_28 = field_26 << 2`. `Gp_EffCtlTaskC1` inits
 /// `field_26` to 0x100 and adds 0x80 each frame, and copies
-/// `D_80112C6C[field_2 & 3]` into `field_28`. `func_800FBEBC` copies
+/// `D_80112C6C[field_2 & 3]` into `field_28`. `Gp_EffCtlTaskF4` copies
 /// `spawnArg1 & 0xFFF` into `field_26` and `spawnArg1 & 0xF000` into
 /// `field_28` (bit `0x8000` selects the LCG `| 0x1000` draw path).
-/// `func_800F5184` inits `field_26` to 0x20 and adds `field_2A` each frame.
-/// `func_800FB7E4` inits `field_26` to 0x20, `field_28` to
+/// `Gp_EffPolyTask9C` inits `field_26` to 0x20 and adds `field_2A` each frame.
+/// `Gp_EffCtlTaskF3` inits `field_26` to 0x20, `field_28` to
 /// `(field_20 << 7) + 0x180`, and `field_2A` to `(field_20 << 8) + 0x400`.
-/// `func_800FC0B4` inits `field_26` to 0x20, `field_28` to
+/// `Gp_EffCtlTaskAC` inits `field_26` to 0x20, `field_28` to
 /// `((field_20 + 1) * 3) << 7`, and `field_2A` to `Wip_SysConfig.field_18`.
-/// `func_800FC74C` uses `field_26` as the inter-wave wait timer. `field_2A`
+/// `Gp_EffCtlTaskA5` uses `field_26` as the inter-wave wait timer. `field_2A`
 /// is the packed parameter passed through to `func_800F7AD4`, the per-frame
-/// `field_26` step, or `func_800FB7E4`'s `func_800EA478` spawn arg.
+/// `field_26` step, or `Gp_EffCtlTaskF3`'s `Gp_SpawnEff` spawn arg.
 typedef struct _GpEffWork {
     /* 0x00 */ struct _Task*          field_0;
     /* 0x04 */ s32                    field_4;
@@ -214,7 +214,7 @@ typedef struct _GpEffWork {
 } GpEffWork;
 STATIC_ASSERT_SIZEOF(GpEffWork, 0x2C);
 
-/// 32-bit view of a `MATRIX` rotation block. `func_800F96B0` writes an
+/// 32-bit view of a `MATRIX` rotation block. `Gp_EffSprTask30` writes an
 /// identity rotation into `GsCOORDINATE2.coord` with word-sized stores:
 /// `w0` covers `m[0][0]` / `m[0][1]`, `w1` covers `m[0][2]` / `m[1][0]`,
 /// `w2` covers `m[1][1]` / `m[1][2]`, `w3` covers `m[2][0]` / `m[2][1]`,
@@ -228,8 +228,8 @@ typedef struct _GpMtxWords {
 } GpMtxWords;
 
 /// 4-byte row of `D_8011291C`, indexed by `Task::spawnArg1`.
-/// `func_800F5184` copies `field_0` / `field_2` into `GpEffWork.field_28` /
-/// `field_2A` (draw param for `func_800F52B4` and per-frame `field_26` step).
+/// `Gp_EffPolyTask9C` copies `field_0` / `field_2` into `GpEffWork.field_28` /
+/// `field_2A` (draw param for `Gp_DrawEffShard` and per-frame `field_26` step).
 typedef struct _GpEffRec {
     /* 0x0 */ u16 field_0;
     /* 0x2 */ u16 field_2;
@@ -257,7 +257,7 @@ STATIC_ASSERT_SIZEOF(GpEffSprRec, 0xC);
 extern GpEffSprRec D_80112934[];
 
 /// 8-byte sprite frame of `D_80111E48`, indexed by
-/// `GpEffWork.field_22 / GpEffWork.field_28` in `func_800F1FF4`.
+/// `GpEffWork.field_22 / GpEffWork.field_28` in `Gp_EffSprTask5C`.
 /// `u` / `v` are the UV origin of a 0x28-wide quad; `clutX` / `clutY` feed
 /// `getClut`. TPage is hardcoded to 0x29.
 typedef struct _GpEffUv8 {
@@ -273,8 +273,8 @@ STATIC_ASSERT_SIZEOF(GpEffUv8, 8);
 extern GpEffUv8 D_80111E48[];
 
 /// Overlay of `D_80112964` at `u16` index `GpEffWork.field_2A`.
-/// `func_800F77F8` loads `field_4`, shifts it into a CLUT X nibble, and
-/// ORs `0x4280`. `func_800FA45C` uses the same table at byte offset 8.
+/// `Gp_DrawEffSprite81` loads `field_4`, shifts it into a CLUT X nibble, and
+/// ORs `0x4280`. `Gp_DrawEffQuadT29` uses the same table at byte offset 8.
 typedef struct _GpEffClutOff {
     /* 0x0 */ u16 pad_0;
     /* 0x2 */ u16 pad_2;
@@ -293,7 +293,7 @@ extern u16 D_80112964[];
 extern s32 D_80112978[];
 extern s32 D_80112A50[];
 
-/// Spawn-id words for `func_800FB148`, indexed with the same 3-digit packing
+/// Spawn-id words for `Gp_EffCtlTaskAE`, indexed with the same 3-digit packing
 /// of `Gp_StateC08.field_0` as `D_80112978`; the value becomes the task's
 /// `Task::spawnArg1` sound id.
 extern s32 D_80112B94[];
@@ -302,19 +302,19 @@ extern s32 D_80112B94[];
 /// it onto `GameActorExt.field_8` when `field_3 == 1`.
 extern u16 D_80112B28[];
 
-/// 4 packed RGB-nibble colors. `func_800FB67C` indexes with
+/// 4 packed RGB-nibble colors. `Gp_EffCtlTaskC1` indexes with
 /// `GpEffSpawnArg.field_2 & 3` and stores the halfword in `GpEffWork.field_28`.
 extern u16 D_80112C6C[];
 
 /// Message-handler table stored in `Task::field_24` by `Gp_InitPlayerWork`.
 extern s32 Gp_PlayerMsgTable[];
 
-/// Overlay of `Task::spawnArg1` for `func_800F75BC` / `func_800FB67C` /
-/// `func_800FBEBC`. `func_800F75BC` uses `field_0 & 0xFFF` as the target
+/// Overlay of `Task::spawnArg1` for `Gp_EffSprTask46` / `Gp_EffCtlTaskC1` /
+/// `Gp_EffCtlTaskF4`. `Gp_EffSprTask46` uses `field_0 & 0xFFF` as the target
 /// scale and `field_2 & 0xF` as the draw parameter; the parent word's
-/// `0x20000000` / `0x10000000` bits pick the start state. `func_800FB67C`
+/// `0x20000000` / `0x10000000` bits pick the start state. `Gp_EffCtlTaskC1`
 /// uses the parent word's low 12 bits as a Z rotation and `field_2 & 3` as
-/// an index into `D_80112C6C`. `func_800FBEBC` copies `field_0 & 0xFFF` to
+/// an index into `D_80112C6C`. `Gp_EffCtlTaskF4` copies `field_0 & 0xFFF` to
 /// `GpEffWork.field_26` and `field_0 & 0xF000` to `field_28`.
 typedef struct _GpEffSpawnArg {
     /* 0x0 */ u16 field_0;
@@ -323,7 +323,7 @@ typedef struct _GpEffSpawnArg {
 STATIC_ASSERT_SIZEOF(GpEffSpawnArg, 4);
 
 /// Overlay of `Task::spawnArg1` when the high byte is an `lb` nibble.
-/// `func_800F1FF4` copies `field_3 & 0xF` into `GpEffWork.field_20`.
+/// `Gp_EffSprTask5C` copies `field_3 & 0xF` into `GpEffWork.field_20`.
 typedef struct _GpEffSpawnArgHi {
     /* 0x0 */ u16 field_0;
     /* 0x2 */ u8  pad_2;
@@ -365,12 +365,12 @@ typedef struct _GpMoveArg {
     /* 0x12 */ u8   field_12;
 } GpMoveArg;
 
-/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `func_800F77F8` and
-/// `func_800FEAF8`.
+/// 0x18-byte scratch from `G_SCRATCH_HEAD` used by `Gp_DrawEffSprite81` and
+/// `Gp_EffSprTask8D`.
 /// `vec` is `workm.t[]` truncated to s16 for `gte_ldv0`. `otz` is
 /// `gte_stszotz` then incremented; `flag` is `gte_stflg`; `size` is
-/// `(field_24 * 15 / otz) >> 1` (`func_800F77F8`) or `field_28 * 23 / otz`
-/// (`func_800FEAF8`); `sx`/`sy` are `gte_stsxy`.
+/// `(field_24 * 15 / otz) >> 1` (`Gp_DrawEffSprite81`) or `field_28 * 23 / otz`
+/// (`Gp_EffSprTask8D`); `sx`/`sy` are `gte_stsxy`.
 typedef struct _GpEffFt4Scratch {
     /* 0x00 */ SVECTOR vec;
     /* 0x08 */ s32     otz;
@@ -409,8 +409,8 @@ typedef struct _GpQuadScratch {
 STATIC_ASSERT_SIZEOF(GpQuadScratch, 0x38);
 
 /// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_800EF0E0`,
-/// `func_800F5E1C`, `func_800F8244`, `func_800F8A38`, `func_800FEFA4`,
-/// `func_800FFA8C`, and `func_80100784`.
+/// `Gp_EffSprTask54`, `Gp_EffSprTask55`, `Gp_EffSprTask42`, `Gp_EffSprTask3F`,
+/// `Gp_EffSprTaskE0`, and `func_80100784`.
 /// `vec` is the coordinate's `workm.t[]` truncated to s16 and fed to
 /// `gte_ldv0`. `otz` is `gte_stszotz`, `flag` is `gte_stflg` and `sxy` is
 /// `gte_stsxy` of the single RTPS. `dx` / `dy` are the rotated half-extents
@@ -426,7 +426,7 @@ typedef struct _GpEffBeamScratch {
 } GpEffBeamScratch;
 STATIC_ASSERT_SIZEOF(GpEffBeamScratch, 0x1C);
 
-/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_800FD49C`. Same
+/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `Gp_EffSprTaskA7`. Same
 /// contents as `GpEffBeamScratch` in a different field order: `vec` is the
 /// coordinate's `workm.t[]` truncated to s16 and fed to `gte_ldv0`, `otz` is
 /// `gte_stszotz` then incremented, `flag` is `gte_stflg` and `sxy` is
@@ -443,7 +443,7 @@ typedef struct _GpEffFlareScratch {
 } GpEffFlareScratch;
 STATIC_ASSERT_SIZEOF(GpEffFlareScratch, 0x1C);
 
-/// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `func_800F1638`.
+/// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `Gp_EffTileTaskA4`.
 /// `vec` is the coordinate's `workm.t[]` truncated to s16 and fed to
 /// `gte_ldv0`. `otz` receives `gte_stszotz`, `flag` `gte_stflg` and `sxy`
 /// `gte_stsxy` of the single RTPS that places the spark `TILE`.
@@ -455,11 +455,11 @@ typedef struct _GpEffTileScratch {
 } GpEffTileScratch;
 STATIC_ASSERT_SIZEOF(GpEffTileScratch, 0x14);
 
-/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `func_800F4D24` and
-/// `func_800EEC14`.
+/// 0x20-byte scratch from `G_SCRATCH_HEAD` used by `Gp_EffLineTask92` and
+/// `Gp_EffLineTaskA3`.
 /// `vec0` is the coordinate's current `workm.t[]` truncated to s16.
-/// `func_800F4D24` puts the previous-frame position (`GpEffWork.field_18`
-/// ..`field_1C`) in `vec1`. `func_800EEC14` rotates `field_10` through
+/// `Gp_EffLineTask92` puts the previous-frame position (`GpEffWork.field_18`
+/// ..`field_1C`) in `vec1`. `Gp_EffLineTaskA3` rotates `field_10` through
 /// `field_8->coord` and `D_80070F34`, scales by `field_22 << 11 + 0x1000`,
 /// and adds `vec0` into `vec1`. Each vector is projected with its own RTPS:
 /// `sxy0` / `sxy1` receive `gte_stsxy`, `flag` `gte_stflg` and `otz`
@@ -520,7 +520,7 @@ typedef struct _GpAngleScratch {
 } GpAngleScratch;
 STATIC_ASSERT_SIZEOF(GpAngleScratch, 0xC);
 
-/// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `func_80107E1C`.
+/// 0x14-byte scratch from `G_SCRATCH_HEAD` used by `Gp_PlayerMode2State4`.
 /// `field_0` is the clamped `func_80103E7C` turn delta applied to
 /// `GameActor.field_52`. `vec` is the target-minus-current offset
 /// (`GameActor.field_20/24/28` minus `GsCOORDINATE2.coord.t`).
@@ -564,7 +564,7 @@ typedef struct _GpHitRec {
 } GpHitRec;
 STATIC_ASSERT_SIZEOF(GpHitRec, 0x18);
 
-/// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `func_80101A68`.
+/// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `Gp_StepPlayerMove`.
 /// `scale` is `D_80112E10[field_958]` (signed, stored as a word). `angle`
 /// holds `0x640000` then the yaw passed to `Gfx_RotMatrixY`. `saved` is a
 /// copy of `GsCOORDINATE2.coord` around that rotate. `vec` is the matrix
@@ -596,7 +596,7 @@ STATIC_ASSERT_SIZEOF(GpPushBackScratch, 0x40);
 
 /// 0x68-byte scratch from `G_SCRATCH_HEAD` used by `func_8010BE5C`.
 /// `vec` overlays a `VECTOR3` for `func_80103C74` / `ratan2`. `rot` is
-/// the zeroed `SVECTOR` passed to `func_801040A0`. The remaining 0x50
+/// the zeroed `SVECTOR` passed to `Gp_PlaceCoordOffset`. The remaining 0x50
 /// bytes are a temp `GsCOORDINATE2` at `head - 0x50`.
 typedef struct _GpAimScratch {
     /* 0x00 */ VECTOR3  vec;
@@ -607,10 +607,10 @@ typedef struct _GpAimScratch {
 } GpAimScratch;
 STATIC_ASSERT_SIZEOF(GpAimScratch, 0x68);
 
-/// 0x68-byte scratch from `G_SCRATCH_HEAD` used by `func_80105BC4`.
+/// 0x68-byte scratch from `G_SCRATCH_HEAD` used by `Gp_PickNearestRec18`.
 /// The first 0x10 bytes are the `GpDeltaScratch` passed to `func_800E0FEC`.
 /// Offset 0x10 is a temp `GsCOORDINATE2` (`flg` at 0x10, `workm.t[]` at
-/// 0x48, `sub` at 0x5C) passed to `func_800EA478`. `offset` is three
+/// 0x48, `sub` at 0x5C) passed to `Gp_SpawnEff`. `offset` is three
 /// `rand() & 7` halfwords passed as that call's last argument and added
 /// onto `arg2->workm.t[]` when `arg2` is non-NULL.
 typedef struct _GpPickScratch {
@@ -625,8 +625,8 @@ typedef struct _GpPickScratch {
 STATIC_ASSERT_SIZEOF(GpPickScratch, 0x68);
 
 /// 8-byte rotation row (`SVECTOR` layout). `D_801131B4` is indexed by
-/// `func_80102D20` arg1 (`D_80167218[Mc_SaveData.field_5C7]`) and by
-/// `Wip_SysConfig.field_21` in `func_80102348`.
+/// `Gp_AimPitchRec` arg1 (`D_80167218[Mc_SaveData.field_5C7]`) and by
+/// `Wip_SysConfig.field_21` in `Gp_AimYawToLock`.
 typedef struct _GpAimRot {
     /* 0x0 */ s16 vx;
     /* 0x2 */ s16 vy;
@@ -635,10 +635,10 @@ typedef struct _GpAimRot {
 } GpAimRot;
 STATIC_ASSERT_SIZEOF(GpAimRot, 8);
 
-/// 0x6C-byte scratch from `G_SCRATCH_HEAD` used by `func_80102348`.
+/// 0x6C-byte scratch from `G_SCRATCH_HEAD` used by `Gp_AimYawToLock`.
 /// The first 0x50 bytes are a temp `GsCOORDINATE2`. `delta` is
 /// `Gp_GetLockPos` output minus that coord's translation (computed in
-/// place). `rot` is the `SVECTOR` passed to `func_801040A0` (table row
+/// place). `rot` is the `SVECTOR` passed to `Gp_PlaceCoordOffset` (table row
 /// `D_801131B4[Wip_SysConfig.field_21]`). `angle` holds `ratan2` then
 /// the wrapped, clamped yaw delta applied to `GameActor.field_52`.
 typedef struct _GpYawScratch {
@@ -651,7 +651,7 @@ typedef struct _GpYawScratch {
 } GpYawScratch;
 STATIC_ASSERT_SIZEOF(GpYawScratch, 0x6C);
 
-/// 0x2C-byte scratch from `G_SCRATCH_HEAD` used by `func_801078AC`.
+/// 0x2C-byte scratch from `G_SCRATCH_HEAD` used by `Gp_PlayerMode2State3`.
 /// `mtx` receives a copy of the actor coordinate's `coord` matrix, pitched by
 /// `Gfx_RotMatrixX`; `dir` (at `head - 0xC`) is that matrix's third column
 /// normalized by `VectorNormalSS`, and `div` is the frame count the direction
@@ -663,16 +663,16 @@ typedef struct _GpDashScratch {
 } GpDashScratch;
 STATIC_ASSERT_SIZEOF(GpDashScratch, 0x2C);
 
-/// 0x84-byte scratch from `G_SCRATCH_HEAD` used by `func_80102634`,
-/// `func_801029D4`, `func_80102D20`, and `func_80102F10`. The first 0x50 bytes are a
+/// 0x84-byte scratch from `G_SCRATCH_HEAD` used by `Gp_AimPitchToLock`,
+/// `Gp_AimPitchToLockAlt`, `Gp_AimPitchRec`, and `Gp_AimPitchDirect`. The first 0x50 bytes are a
 /// temp `GsCOORDINATE2`. `delta` is lock position minus that coord's
 /// translation; `lock` is `Gp_GetLockPos` output; `rot` is the
-/// `SVECTOR` passed to `func_801040A0` (zeros then table row in
-/// `func_801029D4`, table row in `func_80102D20`, zeros in
-/// `func_80102F10`). `angle` holds `ratan2` then the clamped pitch
+/// `SVECTOR` passed to `Gp_PlaceCoordOffset` (zeros then table row in
+/// `Gp_AimPitchToLockAlt`, table row in `Gp_AimPitchRec`, zeros in
+/// `Gp_AimPitchDirect`). `angle` holds `ratan2` then the clamped pitch
 /// delta applied to `GameActor.field_58` / `field_5C` / `field_60` /
 /// `field_64` / `field_70` / `field_78`; `dist` is the XZ length of
-/// `delta`. `func_80102634` also derives `field_5C` / `field_64` from
+/// `delta`. `Gp_AimPitchToLock` also derives `field_5C` / `field_64` from
 /// the updated `field_58` / `field_60` (`/ 5` scaled by 3 then 2).
 typedef struct _GpPitchScratch {
     /* 0x00 */ byte     pad_0[0x50];
@@ -810,16 +810,16 @@ extern TaskFuncTable4 D_80097AB0;
 /// slots are `func_801065A0`; others are weapon-overlay entry points.
 extern GpActorFuncTable33 D_800978BC;
 
-/// `field_954` dispatcher: `func_80106838`, `func_80108E40`, `func_80108ED4`.
+/// `field_954` dispatcher: `Gp_TickPlayerNormal`, `Gp_TickPlayerMode1`, `Gp_TickPlayerMode2`.
 extern GpActorFuncTable3 D_80097940;
 
-/// `field_956` dispatcher copied by `func_80106838`.
+/// `field_956` dispatcher copied by `Gp_TickPlayerNormal`.
 extern GpActorFuncTable8 D_8009794C;
 
 /// `field_96C` dispatcher: three slots of `func_80109170`, then `func_80109208`.
 extern GpActorFuncTable4 D_800979F8;
 
-/// `field_956` dispatcher copied by `func_80108ED4`.
+/// `field_956` dispatcher copied by `Gp_TickPlayerMode2`.
 extern GpActorFuncTable12 D_80097A08;
 
 /// u8 Task_Spawn type bases. `func_80104258` indexes
@@ -829,15 +829,15 @@ extern u8 D_80112DFC[];
 /// Pad-event templates for `func_801041FC` (`D_80112E28[arg1 & 0xFFFF]`).
 extern GpPadEvt D_80112E28[];
 
-/// 2-wide rows indexed by `Mc_SaveData.field_22`. `func_80108224` passes
+/// 2-wide rows indexed by `Mc_SaveData.field_22`. `Gp_PlayerMode2StateB` passes
 /// `D_80112E04[field_22][1]` to `func_80105894`.
 extern u8 D_80112E04[][2];
 
-/// s16 scale rows indexed by `GameActor.field_958`. `func_80101A68` divides
+/// s16 scale rows indexed by `GameActor.field_958`. `Gp_StepPlayerMove` divides
 /// the normalized matrix-column by `D_80112E10[field_958]`.
 extern s16 D_80112E10[];
 
-/// u16 facing-step rows indexed by `GameActor.field_95A`. `func_80101F58`
+/// u16 facing-step rows indexed by `GameActor.field_95A`. `Gp_TurnPlayer`
 /// adds `D_80112E20[field_95A] * field_975` onto `field_52` (masked `0xFFF`).
 extern u16 D_80112E20[];
 
@@ -845,7 +845,7 @@ extern u16 D_80112E20[];
 /// `D_80112E2C[Mc_SaveData.field_22 - 1][arg0]`.
 extern u8 D_80112E2C[][2];
 
-/// u16 turn-rate rows indexed by `Wip_SysConfig.field_21`. `func_80102348`
+/// u16 turn-rate rows indexed by `Wip_SysConfig.field_21`. `Gp_AimYawToLock`
 /// clamps the wrapped yaw delta to this value (or 1.5x when
 /// `func_800B9D80(0x2000)` is set).
 extern u16 D_80112E30[];
@@ -857,7 +857,7 @@ extern struct _GpImgRec** D_80112E74[];
 extern struct _GpImgRec** D_80112EB4[];
 
 /// Per-item flag byte indexed by `Wip_SysConfig.field_21`. Nonzero makes
-/// `func_80106A3C` / `func_80108084` pass `GameActor.field_97F` (the current
+/// `Gp_PlayerNormalState2` / `func_80108084` pass `GameActor.field_97F` (the current
 /// aim direction) to `func_80106264` instead of the default 1.
 extern u8 D_80112EF8[];
 
@@ -865,11 +865,11 @@ extern u8 D_80112EF8[];
 /// makes `func_801088D4` abort the item-use path (`field_95E = 0x3E8`).
 extern u8 D_80112F1C[][2];
 
-/// u16 table indexed by `func_80100FCC` arg1 and added onto
+/// u16 table indexed by `Gp_AttachActorObj` arg1 and added onto
 /// `GpActorD4Rec.field_C` when filling `field_4`.
 extern u16 D_80112F60[];
 
-/// 0x10-byte `VECTOR` rows indexed by `func_80100FCC` arg1. Copied through
+/// 0x10-byte `VECTOR` rows indexed by `Gp_AttachActorObj` arg1. Copied through
 /// scratch; the low 16 bits of `vx`/`vy`/`vz` seed `GpActorD4Rec.field_8` /
 /// `field_A` / `field_C`.
 extern VECTOR D_80112FA4[];
@@ -879,43 +879,43 @@ extern VECTOR D_80112FA4[];
 extern s16 D_80167218[];
 
 /// Overlay-imported s16 table indexed by `Mc_SaveData.field_5C7` and passed
-/// as the third argument of `func_80100FCC` (`func_8010B79C`).
+/// as the third argument of `Gp_AttachActorObj` (`Gp_SetupAllyWeapon`).
 extern s16 D_80167224[];
 
 /// Overlay-imported u8 table indexed by `Mc_SaveData.field_5C7` and stored
-/// at `GpActorD4.field_CD` (`func_8010B79C`).
+/// at `GpActorD4.field_CD` (`Gp_SetupAllyWeapon`).
 extern u8 D_80167230[];
 
 /// 8-byte `GpAimRot` rows copied onto `GpPitchScratch.rot`.
 extern GpAimRot D_801131B4[];
 
 /// u8 table indexed by `Mc_SaveData.field_5C7`. Non-zero selects
-/// `func_80102634`; zero uses `D_80167218` with `func_80102D20`.
+/// `Gp_AimPitchToLock`; zero uses `D_80167218` with `Gp_AimPitchRec`.
 extern u8 D_80113388[];
 
-void func_800F5184(Task* arg0);
-void func_800F52B4(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
-void func_800F75BC(Task* arg0);
-void func_800F77F8(Task* arg0);
+void Gp_EffPolyTask9C(Task* arg0);
+void Gp_DrawEffShard(struct _GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3);
+void Gp_EffSprTask46(Task* arg0);
+void Gp_DrawEffSprite81(Task* arg0);
 void func_800F7AD4(struct _GsCOORDINATE2* arg0, s32 arg1, s16 arg2, u16 arg3);
-void func_800F7E28(Task* arg0);
-void func_800F8244(Task* arg0);
-void func_800F8A38(Task* arg0);
-void func_800F9474(Task* arg0);
-void func_800F96B0(Task* arg0);
-void func_800F9FBC(Task* arg0, s32 arg1, u8* arg2);
-void func_800FA45C(struct _GsCOORDINATE2* arg0, s32 arg1, u16 arg2, u16 arg3);
+void Gp_EffSprTask81(Task* arg0);
+void Gp_EffSprTask55(Task* arg0);
+void Gp_EffSprTask42(Task* arg0);
+void Gp_EffCtlTask9B(Task* arg0);
+void Gp_EffSprTask30(Task* arg0);
+void Gp_DrawEffSpark(Task* arg0, s32 arg1, u8* arg2);
+void Gp_DrawEffQuadT29(struct _GsCOORDINATE2* arg0, s32 arg1, u16 arg2, u16 arg3);
 void func_800FA7CC(Task* arg0);
-void func_800FB67C(Task* arg0);
-void func_800FB7E4(Task* arg0);
-void func_800FBEBC(Task* arg0);
-void func_800FC0B4(Task* arg0);
-void func_800FC500(Task* arg0);
+void Gp_EffCtlTaskC1(Task* arg0);
+void Gp_EffCtlTaskF3(Task* arg0);
+void Gp_EffCtlTaskF4(Task* arg0);
+void Gp_EffCtlTaskAC(Task* arg0);
+void Gp_EffCtlTask0E(Task* arg0);
 void Gp_PulseState1C80(void);
-void func_800FC74C(Task* arg0);
-void func_800FC9BC(Task* arg0);
-void func_800FE41C(Task* arg0);
-void func_800FFA8C(Task* arg0);
+void Gp_EffCtlTaskA5(Task* arg0);
+void Gp_EffCtlTaskA6(Task* arg0);
+void Gp_EffCtlTaskE3(Task* arg0);
+void Gp_EffSprTaskE0(Task* arg0);
 void func_801005D8(Task* arg0);
 /// Hand-written GTE routine. `arg2` is a full 32-bit word: the high half picks
 /// the CLUT (palette column) and the low 12 bits are the billboard size, so it
@@ -924,7 +924,7 @@ void func_801005D8(Task* arg0);
 void  func_80100784(struct _GsCOORDINATE2* arg0, u16 arg1, u32 arg2, s16 arg3);
 s32   func_801011D0(struct _GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32* arg3);
 void  Gp_InitPlayerWork(GpActorWork* arg0);
-void  func_80100FCC(GpActorWork* arg0, s32 arg1, s32 arg2);
+void  Gp_AttachActorObj(GpActorWork* arg0, s32 arg1, s32 arg2);
 void  Gp_TeardownSlot0(GpActorWork* arg0);
 void  Gp_BindActorAnim(GpActorWork* arg0);
 Task* func_80104258(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
@@ -933,8 +933,8 @@ Task* func_80104258(GpActorWork* arg0, s32 arg1, s32 arg2, s32 arg3);
 s32  func_80104508(GpActorWork* arg0, s32 arg1, GpAnimArg* arg2, s32 arg3);
 void func_801030CC(GpActorWork* arg0);
 void func_801041FC(GpActorWork* arg0, s32 arg1);
-s32  func_801034C0(void);
-s32  func_8010B79C(void);
+s32  Gp_SpawnWeaponEff(void);
+s32  Gp_SetupAllyWeapon(void);
 void func_80106350(GpActorWork* arg0, s32 arg1, s32 arg2);
 void func_801088D4(GpActorWork* arg0, s32 arg1, s32 arg2);
 /// Overlay import. `func_801088D4` calls it with `Game_GetPtrSlot(0xA)` when
@@ -942,14 +942,14 @@ void func_801088D4(GpActorWork* arg0, s32 arg1, s32 arg2);
 void  func_80166E94(void* arg0, s32 arg1);
 void  func_80109170(GpActorWork* arg0);
 s32   func_80109290(GpActorWork* arg0);
-void  func_8010A1B0(s32 arg0, s32 arg1);
+void  Gp_TriggerPeState(s32 arg0, s32 arg1);
 void  func_8010A42C(GpActorWork* arg0, s32 arg1);
 void  Gp_DetachLinkNode(GpActorWork* arg0);
 s32   Gp_ApplyDirArg(GpActorWork* arg0, GpDirArg* arg1);
 s32   func_80104E00(GpActorWork* arg0, s32 arg1, GpXformArg* arg2);
 s32   Gp_SetActorDest(GpActorWork* arg0, s32 arg1, GpVecArg* arg2, GpOverrideArg* arg3);
 s32   Gp_MoveActorBy(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);
-s32   func_80105BC4(GpRec18* arg0, struct _GsCOORDINATE2* arg1, struct _GsCOORDINATE2* arg2);
+s32   Gp_PickNearestRec18(GpRec18* arg0, struct _GsCOORDINATE2* arg1, struct _GsCOORDINATE2* arg2);
 void  Gp_MoveActorByKeep(GpActorWork* arg0, s32 arg1, GpMoveArg* arg2);
 void  func_8010B210(GpActorWork* arg0);
 void  Gp_BindActorD4(GpActorWork* arg0, SVECTOR3* arg1, s32 arg2);

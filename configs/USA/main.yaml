@@ -147,7 +147,7 @@ segments:
       - [0x4864, .rodata, "sndevt"]
       # jtbl_800140E8 + D_80014124 + TaskIdMap / StopMatching / TickEnvelope jtbls
       - [0x48e8, .rodata, "sndscript"]
-      # jtbl_800141C4 (func_800567E4) + jtbl from CdAudio_DriveSeek +
+      # jtbl_800141C4 (CdAudio_DriveStream) + jtbl from CdAudio_DriveSeek +
       # jtbl from CdAudio_DriveRead + jtbl from CdAudio_DrivePhase1
       - [0x49c4, .rodata, "cdaudio"]
       # Jump tables still used by unmatched assembly functions in 4A6E0.c.

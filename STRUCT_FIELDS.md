@@ -25,7 +25,7 @@ Actor-model overview, spawn/kill, and the `Task_DescBanks` catalog:
 | 0x18 | `exitCallback` | Exit / kill callback (often `Task_Kill`) |
 | 0x1C | `idMap` | Optional `TaskIdMap*` (freed on kill) |
 | 0x20 | `spawnArg2` | Spawn arg2 — often `UiObject*` / UI context |
-| 0x24 | `field_24` | Pointer to `GpMsgEntry` id/handler table (`Gp_Slot4MsgTable` via `Gp_BindSlot4`, `D_8010FB90` via `func_800E71B0`, `Gp_PlayerMsgTable` via `Gp_InitPlayerWork`); walked by `Gp_DispatchMsg` |
+| 0x24 | `field_24` | Pointer to `GpMsgEntry` id/handler table (`Gp_Slot4MsgTable` via `Gp_BindSlot4`, `D_8010FB90` via `Gp_InitCapTask`, `Gp_PlayerMsgTable` via `Gp_InitPlayerWork`); walked by `Gp_DispatchMsg` |
 | 0x28 | `spawnType` | Spawn type (desc flags low byte: 0 bare, 1/2 overlay) |
 | 0x29 | `priority` | List priority (lower runs earlier) |
 | 0x2A | `killCountdown` | Deferred-kill countdown / state |
@@ -128,7 +128,7 @@ Actor-model overview, spawn/kill, and the `Task_DescBanks` catalog:
 ### `PadRemapState` (0x1C)
 | Off | Member | Role |
 |-----|--------|------|
-| 0x3 | `field_3` | Cleared by `func_800AC164` teardown |
+| 0x3 | `field_3` | Cleared by `Gp_LoadFinishTask` teardown |
 | 0x8 | `field_8` | Pad input remap mode (nonzero → overlay remap path). `Gp_InitPlayClock` writes -1 when `Display_State.field_12c != 0`. `Gp_ApplyPadReplay` plays the `Gp_ReplayCursor` stream when this is not 1, and clears it at end-of-stream / overflow |
 | 0x9 | `field_9` | s8 (`lb`); `Gp_InitPlayClock` calls `func_80715198` when this is 1 and `Display_State.field_12c` is 0 |
 
@@ -170,8 +170,8 @@ Actor-model overview, spawn/kill, and the `Task_DescBanks` catalog:
 | 0x5C8 | `field_5C8[]` | 32 `McItemSlot`s; `Gp_ResetAuxSlots` clears each and sets `field_2` to 0xFF except index 0x1A |
 | 0x1C/1E | checksum pair | Save header sum / ones-complement |
 | 0x6C8/6CA | `field_6C8/6CA` | Halfword pair; `Gp_InitStageVisit` inits both to 100 on first visit |
-| 0x6CC | `field_6CC` | u16 counter capped at 9999; `func_800A110C` increments it when `spawnArg1 == 0` |
-| 0x6CE | `field_6CE` | u16 counter capped at 9999; `func_800A110C` increments it when `spawnArg1 != 0` |
+| 0x6CC | `field_6CC` | u16 counter capped at 9999; `Gp_AreaEnterTask` increments it when `spawnArg1 == 0` |
+| 0x6CE | `field_6CE` | u16 counter capped at 9999; `Gp_AreaEnterTask` increments it when `spawnArg1 != 0` |
 | 0x6D0 | `field_6D0[]` | 96-word bit flags; `Gp_SetItemSeenBit` sets (`arg1 != 0`) / clears (`arg1 == 0`) bit `id` for `id < 0x180`; `Gp_HasItemSeenBit` tests (else returns 1); `Gp_InitItemSeenBits` clears all 96 words |
 | 0x888 | `field_888[]` | 1-based `s32` counters; increment capped at 0x1869E (`func_80106518`) |
 | 0x908 | `field_908[]` | 32 signed addends for item ids 0x60–0x7F (`Gp_GetModLevel`) |
@@ -219,7 +219,7 @@ Actor-model overview, spawn/kill, and the `Task_DescBanks` catalog:
 | 0x190 | `field_190` | `CdCmd190*` stream descriptor |
 | 0x1A8 | `field_1A8` | Copied to `Gp_LcgState` by `Gp_RestoreStreamRng` |
 | 0x1AC | `field_1AC` | `srand` seed restored by `Gp_RestoreStreamRng` |
-| 0x210 | `field_210` | u16 flag; `func_800A9010` sets 1 after `Stream_FindSlot` succeeds and `Gp_FreeSlot4TmdBuffers`, clears it after `Gp_ApplyAreaTmdFlags` |
+| 0x210 | `field_210` | u16 flag; `Gp_ViewBeginLoad` sets 1 after `Stream_FindSlot` succeeds and `Gp_FreeSlot4TmdBuffers`, clears it after `Gp_ApplyAreaTmdFlags` |
 
 ### `CdCmd58Entry` / `CdCmd190`
 See inline comments in `fs.h` (buffer offsets, stream id, VLC slots).
@@ -548,7 +548,7 @@ read `h + 2` as line height; `Gp_CapCenterX` / `Gp_CapCenterXLine` read `w`.
 ### `GameSession` (0x13C)
 | Off | Member | Role |
 |-----|--------|------|
-| 0x0 | `field_0` | s8 disk/scenario id (1 or 2). `Gp_TickPlayClock` rolls it from `Gp_LcgState` on player/companion death, sets 1 when `field_128 == 0xFF`, and uses `lbu` as `CdCmd_EnqueueLoadFile` index. Nonzero makes `func_800AC058` kill its task immediately |
+| 0x0 | `field_0` | s8 disk/scenario id (1 or 2). `Gp_TickPlayClock` rolls it from `Gp_LcgState` on player/companion death, sets 1 when `field_128 == 0xFF`, and uses `lbu` as `CdCmd_EnqueueLoadFile` index. Nonzero makes `Gp_ResumeSessionTask` kill its task immediately |
 | 0x1 | `field_1` | s8 flag; nonzero is an invuln/skip in `Gp_TickPlayClock` (restores `Wip_SysConfig.field_18` or `Mc_SaveData.field_6C8` to 1 and returns). Also skips the `Gp_CapBusy` / spawn path in `Gp_PostMsg13EF`, `Gp_SpawnEvt1IfCapIdle`, and `Gp_PostDirIfCapIdle` |
 | 0x2 | `field_2` | Soft state flag |
 | 0x4 | `field_4` | Byte used by CD/display helpers; address taken as a 4-byte location key. Also 1-based index into the innermost `Gp_ViewIndexTables` byte table (`Gp_GetViewIndex`). That byte then 1-based-indexes `Gp_SprtTables` records (`Gp_GetViewSprtExtra` returns `field_8`; `Gp_ViewSprtCmdEmpty` reads `field_4->field_2 == 0`) |
@@ -565,21 +565,21 @@ read `h + 2` as line height; `Gp_CapCenterX` / `Gp_CapCenterXLine` read `w`.
 | 0x5F | `field_5F` | u8 flag; nonzero makes `func_800E74EC` skip overlay-wait timer setup |
 | 0x64 | `field_64` | u8 flag; nonzero makes `func_800AD5B8` / `func_800AD50C` skip their state dispatch |
 | 0x65 | `field_65` | u8; 1 makes `Gp_UpdateActorColor` skip the color-matrix rebuild unless `GameActorExt.field_18` is set (and `field_C` bit 0x80 is clear) |
-| 0x66 | `field_66` | u8; 1 makes `func_800CE3B4` spawn `D_8010EB94` and scale with `Ui_Scale15(2)` (else `D_8010EAD0` / scale 1) |
+| 0x66 | `field_66` | u8; 1 makes `Gp_ItemMenuInit` spawn `D_8010EB94` and scale with `Ui_Scale15(2)` (else `D_8010EAD0` / scale 1) |
 | 0x68 | `field_68` | u8 flag; set to 1 by `func_800E7378` and cleared by `func_800E73E8` / `func_800E7434` when `D_8007218B != 9` |
-| 0x69 | `field_69` | u8 flags; bit 0x1 skips the bank-load spawn in `func_800A0718` (sets `D_80062734 = 0xFF` instead); bit 0x2 skips `SndEvt_EnqueueType2(0, 0xB4)` when the last `GpStateF0.field_6` ref is released; bit 0x4 selects spawn arg 3 vs 2 from `D_80062774` |
+| 0x69 | `field_69` | u8 flags; bit 0x1 skips the bank-load spawn in `Gp_EndingTask` (sets `D_80062734 = 0xFF` instead); bit 0x2 skips `SndEvt_EnqueueType2(0, 0xB4)` when the last `GpStateF0.field_6` ref is released; bit 0x4 selects spawn arg 3 vs 2 from `D_80062774` |
 | 0x76 | `field_76` | s16 flag; nonzero makes `func_800AD378` rebuild via `Gp_LinkRoomObjects` then clear it |
 | 0x7C–80 | halfwords | Counters / mode |
 | 0x11C | `field_11C` | s16 cache of `Mc_SaveData.field_22` (`lh`/`sh`). `Gp_LoadWaitBoot` refreshes it (and `field_11E` from `Wip_SysConfig.field_26`) when either is stale. `Gp_InitStarterInv` writes -1 to force that refresh after an inventory rebuild |
 | 0x11E | `field_11E` | s16 cache of `Wip_SysConfig.field_26` (`lh`/`sh`). Refreshed with `field_11C` by `Gp_LoadWaitBoot` |
 | 0x124 | `field_124` | u8 companion type 1/2/3. `Gp_PickCompanion` compares it to the selected type and returns 0 if already set; the caller stores a nonzero return here. Cleared when no companion table hits |
 | 0x125 | `field_125` | u8; written with `Mc_SaveData.field_5C7` (`Gp_EnqueueCompanionCd` / `Gp_PickCompanion` table-2 high nibble) |
-| 0x126 | `field_126` | u8 flag; nonzero skips `func_800A7A64` display-mode init |
+| 0x126 | `field_126` | u8 flag; nonzero skips `Gp_TriggerPeIfArmed` display-mode init |
 | 0x127 | `field_127` | u8 (`lbu`); 0 runs the HP / companion-down checks in `Gp_TickPlayClock` |
-| 0x128 | `field_128` | u8; `0xFF` sentinel (`func_800B0748` / `func_800B082C`). `Gp_TickPlayClock` writes 1 when companion type is 1, 4 when type is 3 |
+| 0x128 | `field_128` | u8; `0xFF` sentinel (`Gp_StartStageLoad` / `Gp_FinishStageLoad`). `Gp_TickPlayClock` writes 1 when companion type is 1, 4 when type is 3 |
 | 0x129 | `field_129` | u8; last `CdCmd_Enqueue(0x21)` `param1[0]` written by `Gp_EnqueueSndCd` (no-op if unchanged) |
-| 0x12C | `field_12C` | u8 flag; 0 runs extra `func_800E06AC` pass in `func_800DB72C` |
-| 0x12D | `field_12D` | s8 countdown (`lb`/`sb`); `0x7F` sentinel in `func_800A7320` |
+| 0x12C | `field_12C` | u8 flag; 0 runs extra `func_800E06AC` pass in `Gp_TickWorldCollision` |
+| 0x12D | `field_12D` | s8 countdown (`lb`/`sb`); `0x7F` sentinel in `Gp_StartAreaBgm` |
 | 0x12E | `field_12E` | u8; `func_800A76A4` copies it as `s8` into `D_80114BD8.field_2` |
 | 0x12F | `field_12F` | u8; `func_800AAF70` writes `0x1E`. `Gp_TickPlayClock` copies it into `Task::killCountdown` on the death path |
 | 0x139 | `field_139` | u8; `func_800E8888` writes `killCountdown * 2`, or 0 when that task kills itself |
@@ -588,7 +588,7 @@ read `h + 2` as line height; `Gp_CapCenterX` / `Gp_CapCenterXLine` read `w`.
 
 ### `GameActor` / `GameActorExt`
 Sparse: `field_17C`/`field_930` addresses for overlay setup; `field_C` kill flag bit 0x80.
-`field_930` is an s32 (`sw`); `func_800AE1F0` writes a lookup byte from `D_801149FC`
+`field_930` is an s32 (`sw`); `Gp_MsgPlayerDirFacing` writes a lookup byte from `D_801149FC`
 (or `(Gp_DirByte & 0x70) >> 4`) here. `Display_SpawnFromMode` still takes its address
 for `func_801011D0`.
 `GameActorExt.field_C` bit 0x8 is written by `Gp_WaitItemFlag2` on first run and
@@ -612,7 +612,7 @@ toward it by a `func_80103E7C` delta clamped to `[-0x40, 0x40]`.
 `field_58`/`field_5C`/`field_60`/`field_64`/`field_68`/`field_6A`/`field_70` are s16s
 cleared together by `func_8010C46C` / `func_8010C4F0` / `func_8010C75C` (store order
 0x60, 0x58, 0x64, 0x5C, 0x6A, 0x68, 0x70). `field_70` is a pitch-like s16: when
-`field_90C` is set and the XZ lock distance exceeds `(s16)arg2`, `func_80102D20`
+`field_90C` is set and the XZ lock distance exceeds `(s16)arg2`, `Gp_AimPitchRec`
 adds a `ratan2(-delta.vy, dist) - field_70` step clamped to `[-0x30, 0x30]`
 (ignored if `|step| < 0x20`) while `|field_70 + step| < 0x281`. `field_6A` is the look/aim yaw offset. `func_80109720` (after the `field_954`
 dispatcher) clears `extra->field_8[4].flg`, then if `field_962` has D-pad
@@ -631,7 +631,7 @@ the slid overlay at `field_441`.
 `GameActorSlot`, but starting 0x10 before `field_448`); `func_80105B0C`
 passes `&pad_438[i]` to `Gp_AnimTickSlot2` for `i = 1 .. field_938-1`.
 `field_7A8` is the address `Gp_BindActorAnim` (and the same-shaped helpers
-`func_801034C0` / `func_8010BFCC` / …) passes as `func_800B3F84` arg3
+`Gp_SpawnWeaponEff` / `func_8010BFCC` / …) passes as `func_800B3F84` arg3
 (`GpAnimCtx.field_8`).
 `field_93A` is a u16 anim-table index (`sh` / `lhu`); `Gp_BindActorAnim` writes
 `Gp_WeaponIdBase[Mc_SaveData.field_22 - 1] + Wip_SysConfig.field_21` (same sum as
@@ -649,7 +649,7 @@ assigns `Gp_AnimBlkTbl[arg2->field_0]` only when it differs from the current
 pointer.
 `field_448` is a 19-entry table of `GameActorSlot` (0x28 each; flags halfword at +0x00).
 `Gp_InitPlayerWork` stores count `0x13` at `field_938`; `func_80105894` returns
-`(slot[arg1].field_0 & 0x102) == 0`. `func_80101848` case 8 reads
+`(slot[arg1].field_0 & 0x102) == 0`. `Gp_TickActorAnimState` case 8 reads
 `field_448[1].field_0` and continues when bit 0 or bit 1 is set (same halfword
 as `GpAnimSlot.field_10` on the `pad_438` overlay).
 `func_801058BC` clamps `arg2` to 1..0x7F, writes it through the slid-actor overlay
@@ -669,18 +669,18 @@ Offset 0x4C (`sub` in libgs) is the parent `GameActorExt.field_8` pointer writte
 `func_80104364` (with `field_44 = 1`) and `func_80104258` (with `field_44 = 0`).
 `field_AC`/`field_CC`/`field_EC`/`field_10C`/`field_12C` are 0x20-byte list nodes
 unlinked by `Gp_UnlinkObj` during actor teardown (`Gp_TeardownSlot0`).
-`field_14C` is a `GpActorD4Rec` filled by `func_80100FCC` from `D_80112FA4[arg1]`
+`field_14C` is a `GpActorD4Rec` filled by `Gp_AttachActorObj` from `D_80112FA4[arg1]`
 (low 16 bits of `vx`/`vy`/`vz` into `field_8`/`field_A`/`field_C`, mirrored to
 `field_0`/`field_2`, `field_4 = field_C + D_80112F60[arg1]`) and linked from
 `field_10C` as `GpObj.field_C`. `field_14` points at `field_32C`.
 `field_32C` is a 6-entry `GpRec18` array wiped by `Gp_InitRec18Table(..., 6, 0)`.
 `field_3D4` is a `GsCOORDINATE2` copied from the companion extra (`field_91C`)
-coordinate; `func_80100FCC` then runs `Gfx_RotMatrixX` on `workm` (angle 0x400)
+coordinate; `Gp_AttachActorObj` then runs `Gfx_RotMatrixX` on `workm` (angle 0x400)
 and zeros the three s16s at 0x418 (`param` as vx/vy/vz, `GpActorSvec`).
 `field_124` is a u32 packed word at +0x18 of the `field_10C` node;
 `func_801061F0` writes `0x20000 | (WipSysConfig.field_21 << 8) | field_22` from
 slot 3; `func_80106238` replaces bits 14–15 with `(arg1 << 1) | arg2`;
-`func_8010B79C` ORs in `0x80` on the slot-0xA companion.
+`Gp_SetupAllyWeapon` ORs in `0x80` on the slot-0xA companion.
 `field_90C` is a `GpLinkNode*` (same object as `Gp_UnlinkNode` unlinks); `Gp_DetachLinkNode` clears `node->field_5` then nulls the slot. `Gp_ClearSlotNodeFlags` walks both `Gp_ActorSlots[]` slots and clears `field_5` without nulling the pointer. `Gp_NodeSlotMask` returns a 2-bit mask of those slots whose `field_90C` equals the given node. `Gp_AssignNodeSlot0` assigns the node onto `Gp_ActorSlots[0]`'s actor, clearing the previous node's `field_5` and this node's `field_4` bit 0. `Gp_ClearNodeSlots` is the inverse: it nulls any `Gp_ActorSlots[]` slot whose `field_90C` is this node, clears `field_5`, and sets `field_4` bit 0.
 `field_910` is a `GpActorD4*` (0xD4-byte block from `Gp_SpawnAlly`); `func_8010BF7C` writes `field_C4` as `arg1 + (arg2 & func_80037164())`.
 `func_80104258` tests it as a NULL check on the parent actor: non-NULL writes
@@ -691,7 +691,7 @@ runs `Tmd_ProcessStream` twice.
 `func_80109FC4` decrements `field_944`/`946`/`948`/`94A`/`94C`/`94E`/`950` (via `lhu`)
 while the matching `WipSysConfig.field_25` bit is set and clears that bit when the
 timer is `<= 0`; bit 4 also ticks `field_98D` and reloads it from `field_958`
-(0 → `0x78`, 3 → `0x14`, else `0x3C`) after `func_8010A854(1)`; bit `0x80` is
+(0 → `0x78`, 3 → `0x14`, else `0x3C`) after `Gp_ApplyHpDamage(1)`; bit `0x80` is
 skipped when `Gp_StateC08.field_A` is 2 or 3.
 `field_954` is a u16 (`lhu`/`sh`) cleared with the 0x954–0x95E cluster (nonzero skips the 0x6A adjust in `func_80109720`);
 `field_10` / `field_14` / `field_18` are s32s (`lw`/`sw`); `func_8010C30C` copies
@@ -700,22 +700,22 @@ skipped when `Gp_StateC08.field_A` is 2 or 3.
 `field_20` / `field_24` / `field_28` are s32s (`lw`/`sw`); `Gp_SetActorDest` copies
 `GpVecArg.field_0` / `field_4` / `field_8` here. Optional `GpOverrideArg` (NULL zeros
 both) copies `field_0` / `field_4` onto `field_93C` / `field_93E` and sets `field_956 = 4`.
-`field_30` / `field_34` / `field_38` are u16s at 4-byte stride (`lhu`); `func_8010154C`
+`field_30` / `field_34` / `field_38` are u16s at 4-byte stride (`lhu`); `Gp_UpdatePlayerMove`
 copies them onto a scratch `SVECTOR` when `field_986` is set, otherwise fills that
 vector from `GsCOORDINATE2.workm` column 2 scaled by `field_973`.
 `field_93C` is a u16 (`lhu`) mode override; `func_80108CC4` passes it to `Gp_AnimPlayChildSlotsEx` when nonzero (else 4);
 `field_958` is an s16 mode written to 1 or 3 by `func_80105A8C` (third arg zero / nonzero);
 `field_95A`/`field_95C` are u16s in that same cluster (`func_80109818` writes `field_95C = 5`);
-`field_95A` indexes `D_80112E20` (`u16` facing steps): `func_80101F58` adds
+`field_95A` indexes `D_80112E20` (`u16` facing steps): `Gp_TurnPlayer` adds
 `D_80112E20[field_95A] * field_975` onto `field_52` (masked `0xFFF`) when nonzero.
-When `field_97E == 1`, `func_80101F58` decays `field_58`/`field_5C`/`field_60`/`field_64`/`field_70`
+When `field_97E == 1`, `Gp_TurnPlayer` decays `field_58`/`field_5C`/`field_60`/`field_64`/`field_70`
 by `value >> 3` (minimum step `±0x20`) and snaps to 0 when `|value| < 0x21`, then
 clears `field_97E` if all five were already 0;
 `field_934` is an s32 (`lw`/`sw`); `func_8010AC54` treats it as a frame delay (decrement when nonzero; reload 5 after each `field_93E` step); `func_8010C75C` copies `GpDelayArg.field_14` here, writes `field_956 = 6`, and clears `field_93E`;
-`field_93E` is an s16 step (`lhu`/`lh`/`sh`); `func_8010AC54` increments it when the delay expires, inlines the `func_8010AB70` body at 3, and indexes `extra->field_8` as `GsCOORDINATE2[4 - field_93E]` for `func_800EA478(0x600E0, …, 0x320, 0)`; `func_801088D4` writes `arg2` here (0 / 1 / 2);
+`field_93E` is an s16 step (`lhu`/`lh`/`sh`); `func_8010AC54` increments it when the delay expires, inlines the `func_8010AB70` body at 3, and indexes `extra->field_8` as `GsCOORDINATE2[4 - field_93E]` for `Gp_SpawnEff(0x600E0, …, 0x320, 0)`; `func_801088D4` writes `arg2` here (0 / 1 / 2);
 `field_95E` is a u16 phase (`lhu`/`sh`); `func_8010ABD4` only runs the `func_8010AB70` body when it is 1; `func_8010AC54` writes 1 on first entry; `func_801088D4` writes `0x3E8` to abort the item-use path when `D_80112F1C[field_21][0]` is zero;
 `field_960` is a u16 (`sh`) previous `field_956` saved by `func_80109290`; `func_801088D4` writes `arg1` here (item-use flags);
-`field_962` is a u16 button mask (`lhu`); `Gp_CaptureActorPad` / `func_8010154C` copy `GameSession.field_58` here after saving the previous value to `field_964`; `func_80109250` maps D-pad up/down (`0x5000` / `0x4000`) onto `field_973` as `+1`/`-1`/`0`;
+`field_962` is a u16 button mask (`lhu`); `Gp_CaptureActorPad` / `Gp_UpdatePlayerMove` copy `GameSession.field_58` here after saving the previous value to `field_964`; `func_80109250` maps D-pad up/down (`0x5000` / `0x4000`) onto `field_973` as `+1`/`-1`/`0`;
 `Gp_ApplyDirArg` writes the same `+1`/`-1` when `GpDirArg.field_10 == 7` and the
 XZ direction is non-zero: actor yaw is `ratan2(-coord.m[2][0], coord.m[2][2])`,
 target yaw is `ratan2(field_0, field_8)`, and `+1` means the wrapped delta is
@@ -725,18 +725,18 @@ within 90° (`0x400`);
 `field_968` is a u16 newly-released mask;
 `field_96C`/`field_96E` are s16s cleared with `field_972` by `func_8010B210` (called from `func_8010A42C` case 2);
 `func_8010A9D0` compares `field_96C` as `u16` (`lhu`) against 1 and passes `0x10` or `0x11` to `Gp_AnimPlayChildSlotsEx`;
-`field_973`/`field_974` and `field_975`/`field_976` are signed-byte pairs compared by `func_80108568` (first mismatch → `func_80108770(..., 4)`; second mismatch only when `field_973 == 0` → `func_80108684`);
+`field_973`/`field_974` and `field_975`/`field_976` are signed-byte pairs compared by `func_80108568` (first mismatch → `Gp_ResetActorAnimState(..., 4)`; second mismatch only when `field_973 == 0` → `func_80108684`);
 `Gp_CaptureActorPad` snapshots each pair (`974=973`, `976=975`, `978=977`) before overwriting `field_977` with bit 6 of the new `field_962`;
-`field_97C` is a signed flag byte (`lb`/`sb`); `func_80108FD4` / `func_80108458` clear it before `func_80108E0C` or `Gp_DetachLinkNode`;
+`field_97C` is a signed flag byte (`lb`/`sb`); `Gp_PlayerNormalState1` / `Gp_ArmLockOnState` clear it before `func_80108E0C` or `Gp_DetachLinkNode`;
 `field_97D` is a flag byte (`lbu`/`sb`); `func_80109374` writes 1 when `field_962`
 bit 0x80 is set, `Gp_StateC08.field_3 == 0`, `Wip_SysConfig.field_21 != 0`, and
 `field_991 == 0`, else 2. Callers test bit 0x1 (`func_801085D0` / `func_801090E8`)
-or bit 0x2 (`func_80108458` / `func_80108FD4`). Bit 0x4 selects `func_801055D4`
-vs `func_80108770` in `func_80106550`;
-`field_97E` is a flag byte set to 1 by `Gp_DetachLinkNode` / `func_80103F70` (no `field_90C`, or `field_4` bit 0 set). `func_80103F70` compares it as signed (`lb`) against 2 before the `field_21 == 0x17` helpers;
+or bit 0x2 (`Gp_ArmLockOnState` / `Gp_PlayerNormalState1`). Bit 0x4 selects `func_801055D4`
+vs `Gp_ResetActorAnimState` in `func_80106550`;
+`field_97E` is a flag byte set to 1 by `Gp_DetachLinkNode` / `Gp_TrackLockTarget` (no `field_90C`, or `field_4` bit 0 set). `Gp_TrackLockTarget` compares it as signed (`lb`) against 2 before the `field_21 == 0x17` helpers;
 `field_97F` is a signed result byte (`lb`/`sb`); `func_801060E0` writes 1 / 2 / 0 from button bits (mask 0x8/0x2, or 0x80/0x10 when `field_954` and `D_80072310` are both 2);
 `field_981` is a u8 counter cleared with the 0x954–0x95E cluster; `func_801041FC` increments it from 0 (`lb`/`lbu`);
-`field_983` is a u8 flag byte (`lbu`/`sb`); `func_8010AA28` ORs in `0x18` after `Gp_DetachLinkNode`;
+`field_983` is a u8 flag byte (`lbu`/`sb`); `Gp_StopPlayerAnim` ORs in `0x18` after `Gp_DetachLinkNode`;
 `func_80104CAC` writes 7 or `0x38` from `GpAnimArg.field_10` (nonzero / zero);
 `field_985` is a u8 default copied onto slid `field_441` by `Gp_AnimResetChildSlots`;
 `func_80104CAC` writes `0x10` before that walk;
@@ -756,7 +756,7 @@ vs `func_80108770` in `func_80106550`;
 | 0x88 | `field_88` | `GpActorD4Rec`; pose / id payload plus `field_14` → `field_A0` |
 | 0xA0 | `field_A0` | `GpRec18` table wiped by `Gp_InitRec18Table(..., 1, 0)` |
 | 0xC4 | `field_C4` | s16; `func_8010BF7C` stores `arg1 + (arg2 & rand)` |
-| 0xCD | `field_CD` | u8; `func_8010B79C` copies `D_80167230[Mc_SaveData.field_5C7]` |
+| 0xCD | `field_CD` | u8; `Gp_SetupAllyWeapon` copies `D_80167230[Mc_SaveData.field_5C7]` |
 
 ### `WipSysConfig`
 `field_4` is a `MATRIX*` (`GsCOORDINATE2.coord`) stored by `Gp_InitPlayerWork`.
@@ -813,40 +813,40 @@ it when current exceeds the new max.
 
 ### `GpActorWork` — `3FB8.h`
 Task overlay: `actor` is `Task::idMap` at 0x1C; `extra` is `Task::extra` at
-0x2C (`GameActorExt*`). `func_8010B120` passes `extra->field_8` to
+0x2C (`GameActorExt*`). `Gp_PlayerStepSfx` passes `extra->field_8` to
 `Gp_GetObjPan` / `Gp_GetObjDepth` as a `GpObj38*`.
 
 ### `GpEffWork` (0x2C) — `3FB8.h`
-`Task::spawnArg2` for `func_800F1A9C` / `func_800F5184` / `func_800F75BC` /
-`func_800F77F8` / `func_800F9474` / `func_800FB67C` / `func_800FB7E4` /
-`func_800FBEBC` / `func_800FE41C`. Allocated by `func_800EA478` (`Mem_Calloc(0x2C)`).
+`Task::spawnArg2` for `Gp_EffCtlTask3B` / `Gp_EffPolyTask9C` / `Gp_EffSprTask46` /
+`Gp_DrawEffSprite81` / `Gp_EffCtlTask9B` / `Gp_EffCtlTaskC1` / `Gp_EffCtlTaskF3` /
+`Gp_EffCtlTaskF4` / `Gp_EffCtlTaskE3`. Allocated by `Gp_SpawnEff` (`Mem_Calloc(0x2C)`).
 
 | Off | Member | Role |
 |-----|--------|------|
 | 0x08 | `field_8` | Parent `GsCOORDINATE2*`; copied to `coord->sub` on first run |
-| 0x10 | `field_10` | 3-halfword overlay passed to `func_800EA478` (`&field_10`); zeroed by `func_800FBEBC`; `SVECTOR` dest of `VectorNormalSS` / GPF source in `func_800F9474` |
-| 0x12 | `field_12` | Per-frame Y step; `func_800FBEBC` inits `0xFFF0 - (LCG >> 16 & 0x3F)` and adds it to `coord.t[1]` |
-| 0x14 | `field_14` | Zeroed with `field_10` by `func_800FBEBC` |
-| 0x18/1A/1C | `field_18/1A/1C` | s16 translation; sign-extended into `coord.t[]`; `SVECTOR` source of `VectorNormalSS` in `func_800F9474` (LCG-filled if all zero) |
-| 0x20 | `field_20` | Spawn-wave count (`func_800FC74C`); draw-step counter (`func_800FBEBC`, +1 every 4 `field_22` ticks, kill at 8); `(Gp_StateC08.field_0 % 10) - 1` (`func_800FB7E4`) |
-| 0x22 | `field_22` | Step counter (`func_800F1A9C` / `func_800F5184` / `func_800F9474` / `func_800FB7E4` / `func_800FBEBC` / `func_800FE41C`) |
-| 0x24 | `field_24` | Scale / packed `spawnArg1` lo / `(spawnArg1_lo * 3) >> 4` (`func_800F9474`) / 0x10 decay-by-2 (`func_800F5184`) / 0x80 decay-by-8 (`func_800FB67C`) / LCG draw param (`func_800FBEBC`) |
-| 0x26 | `field_26` | Target scale / `spawnArg1` hi / 0x20 plus `field_2A` (`func_800F5184`) / 0x100 plus 0x80 (`func_800FB67C`) / `spawnArg1 & 0xFFF` (`func_800FBEBC`) / 0x20 (`func_800FB7E4`) |
-| 0x28 | `field_28` | Size / lifetime (`field_26 << 2` in `func_800F9474` / `func_800FE41C`) / `D_8011291C[].field_0` draw param (`func_800F5184`) / packed RGB from `D_80112C6C` (`func_800FB67C`) / `spawnArg1 & 0xF000` (`func_800FBEBC`, bit `0x8000` selects LCG `| 0x1000`) / `(field_20 << 7) + 0x180` (`func_800FB7E4`) |
-| 0x2A | `field_2A` | Packed draw param for `func_800F7AD4`, or `D_8011291C[].field_2` step, or `(field_20 << 8) + 0x400` (`func_800FB7E4`) |
+| 0x10 | `field_10` | 3-halfword overlay passed to `Gp_SpawnEff` (`&field_10`); zeroed by `Gp_EffCtlTaskF4`; `SVECTOR` dest of `VectorNormalSS` / GPF source in `Gp_EffCtlTask9B` |
+| 0x12 | `field_12` | Per-frame Y step; `Gp_EffCtlTaskF4` inits `0xFFF0 - (LCG >> 16 & 0x3F)` and adds it to `coord.t[1]` |
+| 0x14 | `field_14` | Zeroed with `field_10` by `Gp_EffCtlTaskF4` |
+| 0x18/1A/1C | `field_18/1A/1C` | s16 translation; sign-extended into `coord.t[]`; `SVECTOR` source of `VectorNormalSS` in `Gp_EffCtlTask9B` (LCG-filled if all zero) |
+| 0x20 | `field_20` | Spawn-wave count (`Gp_EffCtlTaskA5`); draw-step counter (`Gp_EffCtlTaskF4`, +1 every 4 `field_22` ticks, kill at 8); `(Gp_StateC08.field_0 % 10) - 1` (`Gp_EffCtlTaskF3`) |
+| 0x22 | `field_22` | Step counter (`Gp_EffCtlTask3B` / `Gp_EffPolyTask9C` / `Gp_EffCtlTask9B` / `Gp_EffCtlTaskF3` / `Gp_EffCtlTaskF4` / `Gp_EffCtlTaskE3`) |
+| 0x24 | `field_24` | Scale / packed `spawnArg1` lo / `(spawnArg1_lo * 3) >> 4` (`Gp_EffCtlTask9B`) / 0x10 decay-by-2 (`Gp_EffPolyTask9C`) / 0x80 decay-by-8 (`Gp_EffCtlTaskC1`) / LCG draw param (`Gp_EffCtlTaskF4`) |
+| 0x26 | `field_26` | Target scale / `spawnArg1` hi / 0x20 plus `field_2A` (`Gp_EffPolyTask9C`) / 0x100 plus 0x80 (`Gp_EffCtlTaskC1`) / `spawnArg1 & 0xFFF` (`Gp_EffCtlTaskF4`) / 0x20 (`Gp_EffCtlTaskF3`) |
+| 0x28 | `field_28` | Size / lifetime (`field_26 << 2` in `Gp_EffCtlTask9B` / `Gp_EffCtlTaskE3`) / `D_8011291C[].field_0` draw param (`Gp_EffPolyTask9C`) / packed RGB from `D_80112C6C` (`Gp_EffCtlTaskC1`) / `spawnArg1 & 0xF000` (`Gp_EffCtlTaskF4`, bit `0x8000` selects LCG `| 0x1000`) / `(field_20 << 7) + 0x180` (`Gp_EffCtlTaskF3`) |
+| 0x2A | `field_2A` | Packed draw param for `func_800F7AD4`, or `D_8011291C[].field_2` step, or `(field_20 << 8) + 0x400` (`Gp_EffCtlTaskF3`) |
 
 ### `GpPickScratch` (0x68) — `3FB8.h`
-Scratch from `G_SCRATCH_HEAD` for `func_80105BC4`. Picks the nearest
+Scratch from `G_SCRATCH_HEAD` for `Gp_PickNearestRec18`. Picks the nearest
 occupied `GpRec18` (bit `0x100000` in `field_4`, `GpRoomParamRec.field_2`
-nonzero) and spawns via `func_800EA478`.
+nonzero) and spawns via `Gp_SpawnEff`.
 
 | Off | Member | Role |
 |-----|--------|------|
 | 0x00 | `pad_0` | `GpDeltaScratch` overlay passed to `func_800E0FEC` |
-| 0x10 | `flg` | `GsCOORDINATE2.flg` (written as 1); address passed to `func_800EA478` |
+| 0x10 | `flg` | `GsCOORDINATE2.flg` (written as 1); address passed to `Gp_SpawnEff` |
 | 0x48 | `t[3]` | `GsCOORDINATE2.workm.t[]` from the chosen `GpRec18` |
 | 0x5C | `sub` | `GsCOORDINATE2.sub` (cleared) |
-| 0x60 | `offset` | Three `rand() & 7` halfwords; `func_800EA478` last arg; added onto `arg2->workm.t[]` |
+| 0x60 | `offset` | Three `rand() & 7` halfwords; `Gp_SpawnEff` last arg; added onto `arg2->workm.t[]` |
 
 ### `GpPadReplay` (0x4) — `gameplay.h`
 Recorded pad pair in the demo/replay stream at `Gp_ReplayCursor`. `Gp_ApplyPadReplay`
@@ -866,21 +866,21 @@ for the same block.
 | Off | Member | Role |
 |-----|--------|------|
 | 0x00 | `field_0` | u16 loaded by many helpers |
-| 0x02 | `field_2` | s8 (`lb`/`sb` as splat `D_80114C0A`); `func_800A1F64` writes the low byte of `func_800A1558(3)`, or 1 if that value is <= 0 |
-| 0x03 | `field_3` | s8 state (`lb`); `func_80109290` compares to -2; `func_80109374` requires 0; `func_800A7DE0` writes 2 when `field_A >= 2`; `func_800A1F64` writes -2 |
-| 0x05 | `field_5` | s8 category index (`lb` as splat `D_80114C0D`); `func_800A1558` reads a `Gp_IdParamHi` row from it when `< 0xC` |
+| 0x02 | `field_2` | s8 (`lb`/`sb` as splat `D_80114C0A`); `Gp_SetAttachState` writes the low byte of `Gp_GetAttachParam(3)`, or 1 if that value is <= 0 |
+| 0x03 | `field_3` | s8 state (`lb`); `func_80109290` compares to -2; `func_80109374` requires 0; `func_800A7DE0` writes 2 when `field_A >= 2`; `Gp_SetAttachState` writes -2 |
+| 0x05 | `field_5` | s8 category index (`lb` as splat `D_80114C0D`); `Gp_GetAttachParam` reads a `Gp_IdParamHi` row from it when `< 0xC` |
 | 0x06 | `field_6` | Flags; bit 0 gates `func_800A7DB8` writing `field_E`; bit 1 cleared by `Gp_ResetHudFx` |
 | 0x07 | `field_7` | Cleared by `func_800A7DE0` |
-| 0x08 | `field_8` | Cleared by `func_800A7DE0`; set to 1 by `func_800A1F64` |
-| 0x09 | `field_9` | Cleared by `func_800A1F64` |
-| 0x0A | `field_A` | s8 (`lb`, splat `D_80114C12`); `func_800A7DE0` sets `field_3 = 2` when >= 2, then clears it; cleared by `Gp_ResetHudFx`; set to 2 by `func_800A1F64`; `func_80109FC4` loads it `lbu` and skips the `field_25` bit `0x80` timer when the value is 2 or 3 |
-| 0x0B | `field_B` | s8 category index (`lb`); `func_800A1634` uses this unless its first arg is 1, in which case it uses `field_5` |
+| 0x08 | `field_8` | Cleared by `func_800A7DE0`; set to 1 by `Gp_SetAttachState` |
+| 0x09 | `field_9` | Cleared by `Gp_SetAttachState` |
+| 0x0A | `field_A` | s8 (`lb`, splat `D_80114C12`); `func_800A7DE0` sets `field_3 = 2` when >= 2, then clears it; cleared by `Gp_ResetHudFx`; set to 2 by `Gp_SetAttachState`; `func_80109FC4` loads it `lbu` and skips the `field_25` bit `0x80` timer when the value is 2 or 3 |
+| 0x0B | `field_B` | s8 category index (`lb`); `Gp_ApplyAttachStats` uses this unless its first arg is 1, in which case it uses `field_5` |
 | 0x0C | `field_C` | s8 (`lb` as `D_80114C14`); cleared by `Gp_ResetHudFx`; `Gp_ScaleDamage` uses it as a signed index into `D_80113CFC` (`((x/16)-1)*2 + (x%16)`) when non-zero |
 | 0x0D | `field_D` | Cleared by `Gp_ResetHudFx` |
 | 0x0E | `field_E` | Written by `func_800A7DB8` when `field_6` bit 0 is clear; cleared by `func_800A7DE0` / `Gp_ResetHudFx` |
 | 0x0F | `field_F` | Cleared by `Gp_ResetHudFx` |
 | 0x10 | `field_10` | s16 (`lh` as `D_80114C18`); cleared by `Gp_ResetHudFx` |
-| 0x12 | `field_12` | s16 (`lh` as `D_80114C1A`); cleared by `Gp_ResetHudFx`; nonzero keep-alive gate in `func_800FB7E4` |
+| 0x12 | `field_12` | s16 (`lh` as `D_80114C1A`); cleared by `Gp_ResetHudFx`; nonzero keep-alive gate in `Gp_EffCtlTaskF3` |
 | 0x14 | `field_14` | s16; cleared by `Gp_ResetHudFx` |
 | 0x16 | `field_16` | s8 (`lb`/`sb` as `D_80114C1E`); cleared by `Gp_ResetHudFx` |
 | 0x17 | `field_17` | Cleared by `Gp_ResetHudFx` |
@@ -1055,7 +1055,7 @@ loads a pointer at +0x4).
 |-----|--------|------|
 | 0x00 | `field_0` | Unused by `Gp_LoadRoomParams` |
 | 0x01 | `field_1` | Flag; skip when nonzero (`func_800DDDF8`, `func_800DE7CC`) |
-| 0x02 | `field_2` | Nonzero: slot is a valid spawn candidate (`func_80105BC4`) |
+| 0x02 | `field_2` | Nonzero: slot is a valid spawn candidate (`Gp_PickNearestRec18`) |
 | 0x03 | `field_3` | Word copied into `Gp_RoomParams[i]` by `Gp_LoadRoomParams` |
 
 ### `GpLinkNode` (0x8) — `3A34.h`
@@ -1073,9 +1073,9 @@ Embedded at `GpEnemy.node` (+0x10). `Gp_UnlinkNode` also clears `GameActor+0x90C
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x00 | `field_0` | Object pointer (NULL = free; `func_800DA7B8` may store 4 as a sentinel) |
+| 0x00 | `field_0` | Object pointer (NULL = free; `Gp_UpdateLockSlots` may store 4 as a sentinel) |
 | 0x04 | `field_4` | Signed value (`lh`/`bgez`; incremented by `func_800DA6E8`) |
-| 0x06 | `field_6` | Countdown timer (set to 0x14; decremented by `func_800DA7B8`) |
+| 0x06 | `field_6` | Countdown timer (set to 0x14; decremented by `Gp_UpdateLockSlots`) |
 | 0x08 | `field_8` | Projected screen X (`swc2 SXY2` / `lh`) |
 | 0x0A | `field_A` | Projected screen Y |
 
@@ -1374,7 +1374,7 @@ Sparse overlay. Pointer at 0x20 is a `GpObj5C*` (same family as
 | 0x1C | `field_1C` | Local `VECTOR3`; `Gp_UpdateLinkXforms` loads the low halves as an SVECTOR |
 | 0x2C | `field_2C` | Player-relative `VECTOR3` written by `Gp_UpdateLinkXforms` after rotating by the transposed player `workm` |
 | 0x3C | `field_3C` | `GpAreaPlace*` stored by `Gp_SpawnArea` (same slot as `GpWorkObj.field_3C`) |
-| 0x40 | `field_40` | Signed halfword passed to `func_800A6A9C` by `Gp_HudTrackEnemy` |
+| 0x40 | `field_40` | Signed halfword passed to `Gp_DrawHudNumbers` by `Gp_HudTrackEnemy` |
 | 0x4B | `field_4B` | Occupancy tag; `Gp_RemapActorColor` requires 0 together with `field_4E` bit 0x80 for the sine flicker |
 | 0x4C | `field_4C` | Flag byte (same slot as `GpObj4C.field_4C`); `Gp_RemapActorColor` tests bits 0xC |
 | 0x4E | `field_4E` | Flags; `func_800A4904` ORs bit 0x80. Lighting mode in bits 0-1 (previous in bits 2-3); `Gp_RemapActorColor` consumes bit 0x80 as a flicker request |
@@ -1429,16 +1429,16 @@ At +4 of the 0x18-byte scratch `func_800B3448` allocates. Passed to `Gp_AnimBlen
 | 0x10 | `field_10` | Copy of `GpAnimSlot.field_17` |
 
 ### `GpAnimScratch80` (0x80) — `1BC.h`
-Scratch from `G_SCRATCH_HEAD` for `Gp_AnimBlendPacked` / `Gp_AnimBlendPose` / `func_800B2998`.
+Scratch from `G_SCRATCH_HEAD` for `Gp_AnimBlendPacked` / `Gp_AnimBlendPose` / `Gp_BlendAnimRot`.
 
 | Off | Member | Role |
 |-----|--------|------|
 | 0x00 | `trans` | GPF/GPL-blended translation (`Gp_AnimBlendPose`); copied to `mtx.t` or `field_C` |
 | 0x08 | `vec0` | Unpacked `field_0` (`<< 3` in `Gp_AnimBlendPacked`; rotation in `Gp_AnimBlendPose`) |
 | 0x10 | `vec1` | Unpacked `field_4`; packed back into `field_8` |
-| 0x18 | `mtx0` | Used by `func_800B2998` |
-| 0x38 | `mtx1` | Used by `func_800B2998` |
-| 0x58 | `mtx2` | Used by `func_800B2998` |
+| 0x18 | `mtx0` | Used by `Gp_BlendAnimRot` |
+| 0x38 | `mtx1` | Used by `Gp_BlendAnimRot` |
+| 0x58 | `mtx2` | Used by `Gp_BlendAnimRot` |
 | 0x78 | `blend` | `(s16)slot->field_C << 12` / `field_E`; 0 if frames match |
 | 0x7C | `invBlend` | `0x1000 - blend` |
 
@@ -1691,12 +1691,12 @@ override.
 
 ### `GpItemObj8` — `4CC.h`
 Object at `Task::spawnArg2` for `Gp_BindItemObj2` / `Gp_PublishItemObj` /
-`func_800CE094`. Full size unknown.
+`Gp_PickupResultTask`. Full size unknown.
 
 | Off | Member | Role |
 |-----|--------|------|
 | 0x08 | `field_8` | Packed item id passed to `Gp_GetCurBit2Flag`; copied to `Gp_PubItemId` by `Gp_PublishItemObj` |
-| 0x0A | `field_A` | Item/location halfword; copied to `Gp_PubItemLoc` by `Gp_PublishItemObj`, cleared on cancel by `func_800CE094` |
+| 0x0A | `field_A` | Item/location halfword; copied to `Gp_PubItemLoc` by `Gp_PublishItemObj`, cleared on cancel by `Gp_PickupResultTask` |
 
 ### `GpItemA0` (4) — `268.h`
 Row in `Gp_StackLimits`, indexed by item id − 0xA0.
@@ -1851,8 +1851,8 @@ Most members are s16. `Gp_InitState1C` writes the block to the owner task at
 | Off | Member | Role |
 |-----|--------|------|
 | 0x06 | `field_6` | s16; initialized to 1 by `Gp_InitState1C` |
-| 0x10 | `field_10` | s16 flags; `func_800EC9C8` tests bit 0 before `func_800EA478(0x800600E8, …)` |
-| 0x12 | `field_12` | s16 flags; bit `0x400` set by `func_800FB7E4`, bit `0x800` set by `func_800FC500` and cleared by `func_800ECA54` |
+| 0x10 | `field_10` | s16 flags; `func_800EC9C8` tests bit 0 before `Gp_SpawnEff(0x800600E8, …)` |
+| 0x12 | `field_12` | s16 flags; bit `0x400` set by `Gp_EffCtlTaskF3`, bit `0x800` set by `Gp_EffCtlTask0E` and cleared by `func_800ECA54` |
 | 0x18 | `field_18` | s16 PE/status bit written by `Gp_SetState1CPe` (low byte of arg; same bits as `WipSysConfig.field_25`) |
 | 0x1A | `field_1A` | u16 flags; `Gp_PulseState1C80` ORs in `0x80`, `Gp_PulseState1C` ORs in `0x100` |
 
@@ -1863,13 +1863,13 @@ returns the number of slots whose `field_0` is non-zero.
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x00 | `field_0` | s32 refcount; cleared by `Gp_InitRoomCoords`, decremented by `Gp_DecRoomCoordRefs`, counted by `Gp_CountRoomCoords`; `func_800ED198` sets it to 1 or 4 |
+| 0x00 | `field_0` | s32 refcount; cleared by `Gp_InitRoomCoords`, decremented by `Gp_DecRoomCoordRefs`, counted by `Gp_CountRoomCoords`; `Gp_EffCtlTask6B` sets it to 1 or 4 |
 | 0x04 | `coord` | Embedded `GsCOORDINATE2`; `coord.sub` is parented to `&D_80070F10` |
-| 0x54 | `field_54` | s16; `func_800ED198` inits to `0xC00` (same as `GpCoordTail.field_50`) |
-| 0x56 | `field_56` | s16; `func_800ED198` inits to `0xC00` |
-| 0x58 | `field_58` | s16; `func_800ED198` inits to `0xC00` |
-| 0x5C | `field_5C` | s32; `func_800ED198` inits to `0xFA0` and subtracts `0x190` while `>= 0x191` |
-| 0x60 | `field_60` | s32; `func_800ED198` inits to `0x12C0` |
+| 0x54 | `field_54` | s16; `Gp_EffCtlTask6B` inits to `0xC00` (same as `GpCoordTail.field_50`) |
+| 0x56 | `field_56` | s16; `Gp_EffCtlTask6B` inits to `0xC00` |
+| 0x58 | `field_58` | s16; `Gp_EffCtlTask6B` inits to `0xC00` |
+| 0x5C | `field_5C` | s32; `Gp_EffCtlTask6B` inits to `0xFA0` and subtracts `0x190` while `>= 0x191` |
+| 0x60 | `field_60` | s32; `Gp_EffCtlTask6B` inits to `0x12C0` |
 
 ### `GpMapRec` (0xE) — `3688.h`
 Per-room record in tables pointed to by `Gp_MapRecTables`. Index is
@@ -1877,13 +1877,13 @@ Per-room record in tables pointed to by `Gp_MapRecTables`. Index is
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x00 | `field_0` | s16 X coord (`func_800D02A4`) |
-| 0x02 | `field_2` | s16 Y coord (`func_800D02A4`) |
-| 0x04 | `field_4` | u16 X extent (`func_800D02A4`) |
-| 0x06 | `field_6` | u16 Y extent (`func_800D02A4`) |
-| 0x08 | `field_8` | s16 X scale (`func_800D02A4`) |
-| 0x0A | `field_A` | s16 Y scale (`func_800D02A4`) |
-| 0x0C | `field_C` | u8 room id stored in `Gp_MapRoomId` (`Gp_GetMapRoomId`); also `lhu` / `0xFFFF` sentinel (`func_800D02A4` / `func_800D1434`) |
+| 0x00 | `field_0` | s16 X coord (`Gp_DrawMapCursor`) |
+| 0x02 | `field_2` | s16 Y coord (`Gp_DrawMapCursor`) |
+| 0x04 | `field_4` | u16 X extent (`Gp_DrawMapCursor`) |
+| 0x06 | `field_6` | u16 Y extent (`Gp_DrawMapCursor`) |
+| 0x08 | `field_8` | s16 X scale (`Gp_DrawMapCursor`) |
+| 0x0A | `field_A` | s16 Y scale (`Gp_DrawMapCursor`) |
+| 0x0C | `field_C` | u8 room id stored in `Gp_MapRoomId` (`Gp_GetMapRoomId`); also `lhu` / `0xFFFF` sentinel (`Gp_DrawMapCursor` / `func_800D1434`) |
 
 ---
 

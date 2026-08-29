@@ -675,7 +675,7 @@ void func_800B06F0(Task* arg0)
     sp.funcs[arg0->state](arg0);
 }
 
-void func_800B0748(Task* task)
+void Gp_StartStageLoad(Task* task)
 {
     s32           i;
     u8            param1[8];
@@ -710,7 +710,7 @@ void func_800B0748(Task* task)
     }
 }
 
-void func_800B082C(Task* task)
+void Gp_FinishStageLoad(Task* task)
 {
     if (CdCmd_IsIdle() & 0xFFFF) {
         Display_State.field_100 = 1;
@@ -1299,8 +1299,8 @@ Task* func_800B2968(void)
     return Task_SpawnFromTable(D_80119218, 0, 0, 0);
 }
 
-void func_800B2998(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2,
-                   GpAnimScratch80* s)
+void Gp_BlendAnimRot(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2,
+                     GpAnimScratch80* s)
 {
     if (arg2->field_17 != 0) {
         RotMatrix_gte(&s->vec0, &s->mtx0);
@@ -1399,7 +1399,7 @@ void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2
         s->vec1.vx = p->rx;
         s->vec1.vy = p->ry;
         s->vec1.vz = p->rz;
-        func_800B2998(arg0, arg1, arg2, s);
+        Gp_BlendAnimRot(arg0, arg1, arg2, s);
         dest = (GpPackedPose*)arg0->field_8;
         if (dest != NULL) {
             dest->vx = s->trans.vx;
@@ -1449,7 +1449,7 @@ void Gp_AnimBlendPacked(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* ar
         s->vec1.vx  = p->vx << 3;
         s->vec1.vy  = p->vy << 3;
         s->vec1.vz  = p->vz << 3;
-        func_800B2998(arg0, arg1, arg2, s);
+        Gp_BlendAnimRot(arg0, arg1, arg2, s);
         dest = arg0->field_8;
         if (dest != NULL) {
             dest->vx = s->vec1.vx >> 3;
@@ -3019,7 +3019,7 @@ void Gp_BindSlot4(Task* task)
 
 void func_800B6398(void)
 {
-    func_800D9DFC();
+    Gp_DrawTargetCursor();
 }
 
 typedef struct {

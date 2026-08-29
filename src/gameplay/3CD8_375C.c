@@ -14,7 +14,7 @@ extern GpRec14 D_8010FB24;
 extern GpRec14 Gp_WeaponMsgRec;
 extern u16     Gp_WeaponIdBase[];
 
-void func_800E375C(Task* arg0)
+void Gp_EvtCapWeaponTask(Task* arg0)
 {
     s32        flags;
     GameActor* actor;

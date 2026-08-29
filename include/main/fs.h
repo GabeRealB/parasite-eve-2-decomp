@@ -257,7 +257,7 @@ typedef struct _CdCmdQueue {
     u16          field_20A;
     byte         unknown_20C[0x2];
     s16          field_20E;
-    u16          field_210; // 0x210 — set when Stream_FindSlot succeeds (func_800A9010)
+    u16          field_210; // 0x210 — set when Stream_FindSlot succeeds (Gp_ViewBeginLoad)
     u16          field_212;
     u16          field_214;
     u16          field_216; // 0x216 — non-zero enables buffer setup in CdCmd_SetupMdecBuffers

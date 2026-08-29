@@ -57,19 +57,19 @@ typedef struct _GameSession {
     s16   field_52;
     byte  unknown_54[4];
     u16   field_58; // current pad mask; Gp_CaptureActorPad copies this onto GameActor.field_962
-    u16   field_5A; // previous-frame remapped pad mask (func_800E956C)
-    u16   field_5C; // newly-triggered remapped pad mask (func_800E956C)
+    u16   field_5A; // previous-frame remapped pad mask (Gp_UpdatePadInput)
+    u16   field_5C; // newly-triggered remapped pad mask (Gp_UpdatePadInput)
     u8    field_5E; // set to 1 by Gp_InitPlayClock before allocating the play-clock idMap
     u8    field_5F; // skip-gate for func_800E74EC overlay-wait setup
     byte  unknown_60[4];
     u8    field_64; // nonzero: func_800AD5B8 / func_800AD50C skip their state dispatch
     u8    field_65; // 1: Gp_UpdateActorColor skips color-matrix rebuild unless GameActorExt.field_18 is set
-    u8    field_66; // 1: func_800CE3B4 uses D_8010EB94 + Ui_Scale15(2)
+    u8    field_66; // 1: Gp_ItemMenuInit uses D_8010EB94 + Ui_Scale15(2)
     byte  unknown_67;
     u8    field_68; // set/cleared by func_800E7378 / func_800E73E8 / func_800E7434
-    u8    field_69; // bit 0x1: skip bank-load spawn in func_800A0718; bit 0x2: skip bank-load spawn in func_800A110C (else skip SndEvt_EnqueueType2(0, 0xB4) on last GpStateF0 ref); bit 0x4: spawn arg 3 vs 2 in func_800A0718; bit 0x8: spawn arg 3 vs 1 in func_800A110C
+    u8    field_69; // bit 0x1: skip bank-load spawn in Gp_EndingTask; bit 0x2: skip bank-load spawn in Gp_AreaEnterTask (else skip SndEvt_EnqueueType2(0, 0xB4) on last GpStateF0 ref); bit 0x4: spawn arg 3 vs 2 in Gp_EndingTask; bit 0x8: spawn arg 3 vs 1 in Gp_AreaEnterTask
     byte  unknown_6A[0xA];
-    u16   field_74; // copied from Display_State.field_10e (func_800AAA68); low byte is CdCmd 0x21 param2[0]
+    u16   field_74; // copied from Display_State.field_10e (Gp_BeginSessionTask); low byte is CdCmd 0x21 param2[0]
     s16   field_76; // set: func_800AD378 rebuilds via Gp_LinkRoomObjects
     s16   field_78; // cached GameSession.field_7; Gp_LoadWaitStage
     byte  unknown_7A[2];
@@ -84,11 +84,11 @@ typedef struct _GameSession {
     u8    field_125; // written with Mc_SaveData.field_5C7 (Gp_EnqueueCompanionCd)
     u8    field_126;
     u8    field_127; // 0: run death / companion-down checks in Gp_TickPlayClock
-    u8    field_128; // 0xFF sentinel in func_800B0748 / func_800B082C
+    u8    field_128; // 0xFF sentinel in Gp_StartStageLoad / Gp_FinishStageLoad
     u8    field_129; // last CdCmd 0x21 param[0] written by Gp_EnqueueSndCd
     byte  unknown_12A[2];
     u8    field_12C;
-    s8    field_12D; // lb/sb countdown; 0x7F sentinel in func_800A7320
+    s8    field_12D; // lb/sb countdown; 0x7F sentinel in Gp_StartAreaBgm
     u8    field_12E; // copied as s8 into D_80114BD8.field_2 (func_800A76A4)
     u8    field_12F;
     byte  unknown_130[9];
@@ -142,7 +142,7 @@ typedef struct _GpRec18 {
 STATIC_ASSERT_SIZEOF(GpRec18, 0x18);
 
 /// 0x28-byte record in `GameActor.field_448`. `field_0` is a flag halfword
-/// (bits 0/1: `func_80101848` case 8; bit 0x100: `func_8010583C`;
+/// (bits 0/1: `Gp_TickActorAnimState` case 8; bit 0x100: `func_8010583C`;
 /// bits 0x102: `func_80105894`). Count is
 /// `GameActor.field_938` (init 0x13). Slid-actor overlay: `func_801058BC`
 /// stores a clamped 1..0x7F byte at `GameActor.field_441`.
@@ -155,7 +155,7 @@ STATIC_ASSERT_SIZEOF(GameActorSlot, 0x28);
 /// Large object pointed to by Task::idMap for the slot-3 game object
 /// (Game_GetPtrSlot(3)). Sparse fields used by Display_SpawnFromMode.
 typedef struct _GameActor {
-    /* 0x000 */ s32                 field_0;  // per-frame X velocity (func_801078AC)
+    /* 0x000 */ s32                 field_0;  // per-frame X velocity (Gp_PlayerMode2State3)
     /* 0x004 */ s32                 field_4;  // per-frame Y velocity
     /* 0x008 */ s32                 field_8;  // per-frame Z velocity
     /* 0x00C */ byte                pad_C[4];
@@ -178,18 +178,18 @@ typedef struct _GameActor {
     /* 0x056 */ byte                pad_56[2];
     /* 0x058 */ s16                 field_58;
     /* 0x05A */ byte                pad_5A[2];
-    /* 0x05C */ s16                 field_5C; // pitch; func_801029D4
+    /* 0x05C */ s16                 field_5C; // pitch; Gp_AimPitchToLockAlt
     /* 0x05E */ byte                pad_5E[2];
     /* 0x060 */ s16                 field_60;
     /* 0x062 */ byte                pad_62[2];
-    /* 0x064 */ s16                 field_64; // pitch; func_801029D4
+    /* 0x064 */ s16                 field_64; // pitch; Gp_AimPitchToLockAlt
     /* 0x066 */ byte                pad_66[2];
     /* 0x068 */ s16                 field_68;
     /* 0x06A */ s16                 field_6A;       // aim/look yaw offset; func_8010BE5C
     /* 0x06C */ byte                pad_6C[4];
-    /* 0x070 */ s16                 field_70;       // pitch-like angle; func_80102D20
+    /* 0x070 */ s16                 field_70;       // pitch-like angle; Gp_AimPitchRec
     /* 0x072 */ byte                pad_72[6];
-    /* 0x078 */ s16                 field_78;       // pitch; func_80102F10
+    /* 0x078 */ s16                 field_78;       // pitch; Gp_AimPitchDirect
     /* 0x07A */ byte                pad_7A[6];
     /* 0x080 */ s16                 field_80;       // copied from func_80104F5C arg2
     /* 0x082 */ s16                 field_82;       // target facing angle; func_80104E00 / func_80108BD8
@@ -208,12 +208,12 @@ typedef struct _GameActor {
     /* 0x128 */ byte                pad_128[2];
     /* 0x12A */ u16                 field_12A;
     /* 0x12C */ byte                field_12C[0x20];
-    /* 0x14C */ byte                field_14C[0x18]; // GpActorD4Rec; func_80100FCC
+    /* 0x14C */ byte                field_14C[0x18]; // GpActorD4Rec; Gp_AttachActorObj
     /* 0x164 */ byte                pad_164[0x18];
     /* 0x17C */ GpRec18             field_17C[18];   // Gp_ClearRec18Occupied / func_801041B4
-    /* 0x32C */ GpRec18             field_32C[6];    // func_80100FCC / Gp_InitRec18Table
+    /* 0x32C */ GpRec18             field_32C[6];    // Gp_AttachActorObj / Gp_InitRec18Table
     /* 0x3BC */ byte                pad_3BC[0x18];
-    /* 0x3D4 */ byte                field_3D4[0x50]; // GsCOORDINATE2; func_80100FCC
+    /* 0x3D4 */ byte                field_3D4[0x50]; // GsCOORDINATE2; Gp_AttachActorObj
     /* 0x424 */ byte                field_424[0x14]; // GpAnimCtx overlay; Gp_AnimTickIndex
     /* 0x438 */ byte                pad_438[9];      // GpAnimSlot array base; func_80105B0C
     /* 0x441 */ u8                  field_441;       // slid-actor overlay; see GameActorSlot
@@ -230,8 +230,8 @@ typedef struct _GameActor {
     /* 0x920 */ struct _Task*       field_920;
     /* 0x924 */ struct _Task*       field_924;
     /* 0x928 */ void*               field_928; // Gp_PlayerAnimBlkTbl[field_93A]; func_800B3F84 arg1
-    /* 0x92C */ struct _GpAnimRec*  field_92C; // last Gp_AnimGetRec result (func_80106C6C)
-    /* 0x930 */ s32                 field_930; // sw from func_800AE1F0; addr taken by func_801011D0
+    /* 0x92C */ struct _GpAnimRec*  field_92C; // last Gp_AnimGetRec result (Gp_PlayerNormalState5)
+    /* 0x930 */ s32                 field_930; // sw from Gp_MsgPlayerDirFacing; addr taken by func_801011D0
     /* 0x934 */ s32                 field_934;
     /* 0x938 */ s16                 field_938; // GameActorSlot count (init 0x13)
     /* 0x93A */ u16                 field_93A; // Gp_WeaponIdBase[field_22-1] + field_21
@@ -291,7 +291,7 @@ typedef struct _GameActor {
     /* 0x98C */ u8                  field_98C; // field_98A frame index
     /* 0x98D */ u8                  field_98D;
     /* 0x98E */ u8                  field_98E;
-    /* 0x98F */ s8                  field_98F; // cleared by func_801034C0
+    /* 0x98F */ s8                  field_98F; // cleared by Gp_SpawnWeaponEff
     /* 0x990 */ u8                  field_990;
     /* 0x991 */ s8                  field_991; // func_80109374 requires 0 to write field_97D = 1
     /* 0x992 */ u8                  field_992; // func_80100E40: func_801011D0 result when field_984 & 1

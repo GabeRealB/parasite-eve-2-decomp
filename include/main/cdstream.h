@@ -109,7 +109,7 @@ typedef struct _CdReadyQueue {
 STATIC_ASSERT_SIZEOF(CdReadyQueue, 0x58);
 
 /// BSS object CdStream_Params (size 0x20). CD/SPU stream setup block for
-/// func_800567E4 / CdStream_Start: sector position, buffer, callbacks, and
+/// CdAudio_DriveStream / CdStream_Start: sector position, buffer, callbacks, and
 /// voice indices.
 typedef struct _CdStreamParams {
     /* 0x00 */ s32   startSector;

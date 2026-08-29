@@ -38,7 +38,7 @@ typedef struct _GpHudScratch {
 } GpHudScratch;
 STATIC_ASSERT_SIZEOF(GpHudScratch, 0x1C);
 
-/// 0x30-byte stack scratch shared by the enemy HP-bar HUD (`func_800A6A9C`).
+/// 0x30-byte stack scratch shared by the enemy HP-bar HUD (`Gp_DrawHudNumbers`).
 /// The block is first initialised as a `UiObject` (`baseX` / `baseY` /
 /// `drawOrder` / `mode`), then reused: `text.buf` is the `Text_ItoaUnsigned`
 /// digit buffer with `text.req` (at +0x10) the matching draw request, while the
@@ -77,7 +77,7 @@ typedef struct _GpXformScratch {
 } GpXformScratch;
 STATIC_ASSERT_SIZEOF(GpXformScratch, 0x48);
 
-/// 0x60-byte scratch from `G_SCRATCH_HEAD` used by `func_800A4A2C` to draw the
+/// 0x60-byte scratch from `G_SCRATCH_HEAD` used by `Gp_DrawAimCircle` to draw the
 /// wireframe targeting sphere. `vec` is the point being rotated / projected,
 /// `mat` the rotation loaded into the GTE, `rx` / `ry` the two radii taken from
 /// the caller and `radius` the per-ring radius derived from them. `dp` / `flag`
@@ -116,28 +116,28 @@ typedef struct _GpLinkXform {
 STATIC_ASSERT_SIZEOF(GpLinkXform, 0x28);
 
 /// Global at `Gp_StateC08`. `field_0` is a u16 loaded by many helpers.
-/// `field_2` is a signed byte (`lb` as splat `D_80114C0A`); `func_800A1F64`
-/// writes the low byte of `func_800A1558(3)`, replacing it with 1 when
+/// `field_2` is a signed byte (`lb` as splat `D_80114C0A`); `Gp_SetAttachState`
+/// writes the low byte of `Gp_GetAttachParam(3)`, replacing it with 1 when
 /// that value is <= 0. `field_3` is a signed state byte (`lb`);
 /// `func_80109290` compares it to -2 and `func_80109374` requires 0.
 /// `field_5` is a signed category index (`lb` as splat `D_80114C0D`);
-/// `func_800A1558` uses it to pick a `Gp_IdParamHi` row when it is `< 0xC`.
-/// `field_B` is the same kind of signed index (`lb`); `func_800A1634`
+/// `Gp_GetAttachParam` uses it to pick a `Gp_IdParamHi` row when it is `< 0xC`.
+/// `field_B` is the same kind of signed index (`lb`); `Gp_ApplyAttachStats`
 /// uses `field_5` when its first arg is 1 and `field_B` otherwise.
 /// `field_6` is a flags byte (bit 0 gates `func_800A7DB8` writing
 /// `field_E`; bit 1 is cleared by `Gp_ResetHudFx` and forces
 /// `func_800A7E5C` to 0 when that function's arg is 0). `field_9` is
-/// cleared by `func_800A1F64`. `field_A` is a signed byte (`lb`, splat
+/// cleared by `Gp_SetAttachState`. `field_A` is a signed byte (`lb`, splat
 /// `D_80114C12`); `func_800A7DE0` sets `field_3 = 2` when it is >= 2,
 /// then clears it. `func_80109FC4` loads it unsigned (`lbu`) and skips
 /// the `field_25` bit `0x80` timer when the value is 2 or 3.
 /// `Gp_ResetHudFx` also zeros `field_A`, `field_C`..`field_F`,
 /// `field_10`/`field_12`/`field_14`, and `field_16`/`field_17`. Those
 /// two bytes are also the item 4 / item 8 gates in `Gp_ItemIsUnusable`
-/// (`lb`). `func_800A45F0` packs a nibble plus `field_0 % 10` into
+/// (`lb`). `Gp_UpdateAttachCombo` packs a nibble plus `field_0 % 10` into
 /// `field_C` / `field_D` / `field_F` and stores a table duration in
 /// `field_10` / `field_12` / `field_14`. `field_7` and `field_8` are signed
-/// bytes (`lb`): `func_800A2F60` treats `field_7` as a positive-only sound id
+/// bytes (`lb`): `Gp_UseItemTask` treats `field_7` as a positive-only sound id
 /// (`blez` clears it) and steps `field_8` 1 -> 2 -> 0 as the attach sound is
 /// queued and the category is committed. `field_E` is a signed pending
 /// category (`lb`), copied into `field_5` / `field_B` once the pad is idle,
@@ -184,7 +184,7 @@ extern s32        D_80114BEC; // splat overlay of Gp_HpMpWork.field_4
 /// +0xC overlay of the 0x30-byte record `Gp_InitPlayClock` allocates with
 /// `Mem_Calloc(0x30, 0)` and stores at `Task::idMap`. `Gp_ResetHudFx` is
 /// called with that pointer + 0xC; it writes `field_16 = -1` and clears
-/// `field_18`. `func_800A2F60` clears `field_10` (word) and `field_E` (`sb`)
+/// `field_18`. `Gp_UseItemTask` clears `field_10` (word) and `field_E` (`sb`)
 /// on entry and reads `field_15` (`lb`) as a gate on the pad poll.
 typedef struct _GpIdMapC {
     /* 0x00 */ s32        field_0;
@@ -205,7 +205,7 @@ typedef struct _GpIdMapC {
 } GpIdMapC;
 STATIC_ASSERT_SIZEOF(GpIdMapC, 0x24);
 
-/// 8-byte dispatch record selected by `func_800A1634` as
+/// 8-byte dispatch record selected by `Gp_ApplyAttachStats` as
 /// `(GpRec8*)D_80113D38 + idx * 3 + ret`. `field_0` is the switch key
 /// (0..4). `field_2` / `field_4` are scaled by 100 into the follow-up
 /// calls. `field_6` is passed as `lh` and also read as `lbu` + 2 into
@@ -218,7 +218,7 @@ typedef struct _GpRec8 {
 } GpRec8;
 STATIC_ASSERT_SIZEOF(GpRec8, 8);
 
-/// 8-byte item-effect row used by `func_800A45F0`. Indexed by
+/// 8-byte item-effect row used by `Gp_UpdateAttachCombo`. Indexed by
 /// `Gp_StateC08.field_0 % 10`. `field_6` is loaded `lhu` into
 /// `GpStateC08.field_10` / `field_12` / `field_14`.
 typedef struct _GpItemRec8 {
@@ -323,11 +323,11 @@ STATIC_ASSERT_SIZEOF(GpPadReplay, 0x4);
 /// Current replay buttons / remaining frame count / stream cursor.
 extern u16 Gp_ReplayButtons;
 extern u16 Gp_ReplayFramesLeft;
-/// Word cleared by `func_800A1F64`; `func_800A2F60` increments and tests it.
+/// Word cleared by `Gp_SetAttachState`; `Gp_UseItemTask` increments and tests it.
 extern s32          D_80114C34;
 extern GpPadReplay* Gp_ReplayCursor;
 
-void       func_8009939C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+void       Gp_UpdateCoordTree(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void       Gp_UpdateCoord(GsCOORDINATE2* arg0);
 void       Gp_UpdateCoordEx(GsCOORDINATE2* arg0, s32 arg1);
 void*      Gp_AttachTmd(Task* task, TmdSource* src);
@@ -343,14 +343,14 @@ Task*      Gp_FindTaskByCoord(GsCOORDINATE2* arg0);
 void       Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1);
 void       Gp_InitPlayClock(Task* task);
 void       Gp_TickPlayClock(Task* task);
-void       func_800A110C(Task* arg0);
-u16        func_800A1558(s32 arg0);
-void       func_800A1634(s32 arg0, GpIdMapC* arg1);
-void       func_800A45F0(s32 arg0);
-s32        func_800A1CD0(s32 arg0);
-void       func_800A1F64(s32 arg0);
-void       func_800A3AF0(GpIdMapC* arg0);
-void       func_800A7320(s16* arg0);
+void       Gp_AreaEnterTask(Task* arg0);
+u16        Gp_GetAttachParam(s32 arg0);
+void       Gp_ApplyAttachStats(s32 arg0, GpIdMapC* arg1);
+void       Gp_UpdateAttachCombo(s32 arg0);
+s32        Gp_CheckAttachThreshold(s32 arg0);
+void       Gp_SetAttachState(s32 arg0);
+void       Gp_HudTask(GpIdMapC* arg0);
+void       Gp_StartAreaBgm(s16* arg0);
 u8*        Gp_GetAttachLevels(void);
 s32        Gp_IsDebugAttachRoom(void);
 void       Gp_ResetHudFx(GpIdMapC* arg0);
@@ -360,7 +360,7 @@ void       Gp_HudTrackEnemy(struct _GpEnemy* arg0, GpHudTrack* arg1);
 void       Gp_UpdateLinkXforms(void);
 void       Gp_HudTrackSlot0(GpHudTrack* arg0);
 void       Gp_EnqueueAttach7Cd(void);
-void       func_800A7A64(void);
+void       Gp_TriggerPeIfArmed(void);
 void       func_800A7DB8(s32 arg0);
 void       func_800A7DE0(void);
 s32        func_800A7E5C(s32 arg0);
@@ -375,19 +375,19 @@ GpViewRec* Gp_GetStageView(GameSessionFrom4* arg0);
 void       Gp_ApplyViewTask(Task* task);
 void       func_800A8D5C(void);
 void       Gp_SpawnCurView(s32 arg0);
-void       func_800A8E8C(Task* task);
-void       func_800A9010(Task* task);
-void       func_800A91CC(Task* task);
+void       Gp_ViewGateTask(Task* task);
+void       Gp_ViewBeginLoad(Task* task);
+void       Gp_ViewLoadImage(Task* task);
 
-/// Overlay of `Task::spawnArg2` for `func_800A0718` / `func_800A110C`.
-/// `func_800A0718` sets `field_4` to 1 on the first run (state 0).
-/// `func_800A110C` zeros both words when `spawnArg1` is 0.
+/// Overlay of `Task::spawnArg2` for `Gp_EndingTask` / `Gp_AreaEnterTask`.
+/// `Gp_EndingTask` sets `field_4` to 1 on the first run (state 0).
+/// `Gp_AreaEnterTask` zeros both words when `spawnArg1` is 0.
 typedef struct _GpEndWork {
     /* 0x00 */ s32 field_0;
     /* 0x04 */ s32 field_4;
 } GpEndWork;
 
-/// Two halfwords at `D_8007A39C`. `func_800A0718` zeros both before spawning
+/// Two halfwords at `D_8007A39C`. `Gp_EndingTask` zeros both before spawning
 /// the bank-load task. `field_0` is the u16 sound param used by
 /// `Task_AllocIdMap`.
 typedef struct _GpSndParam {

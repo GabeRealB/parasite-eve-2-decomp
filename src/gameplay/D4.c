@@ -605,7 +605,7 @@ INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AA120);
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AA548);
 
-void func_800AAA68(Task* arg0)
+void Gp_BeginSessionTask(Task* arg0)
 {
     CdCmdQueue*   queue;
     DisplayState* ds;
@@ -977,7 +977,7 @@ void Gp_LoadWaitAreaCd(Task* task)
             Gp_ClearObjHeads();
             Tmd_InitLists();
             ds2 = &Display_State;
-            func_8009850C(&Gpu_OtBuffers[ds2->field_1f]);
+            Gp_DrawActorTmdActive(&Gpu_OtBuffers[ds2->field_1f]);
             task->state++;
             if (Mc_SaveData.field_5C3 != 0) {
                 ds2->dispEnv[1].isinter = 1;
@@ -1252,7 +1252,7 @@ void func_800AC008(Task* task)
     task->state++;
 }
 
-void func_800AC058(Task* task)
+void Gp_ResumeSessionTask(Task* task)
 {
     SndBank_SetEnableFlags(0, 0x40000000);
     if (Game_Session->field_0 != 0) {
@@ -1263,7 +1263,7 @@ void func_800AC058(Task* task)
         if (Gp_StateF0.field_0 == 2) {
             Gp_StateF0.field_0 = 3;
         }
-        func_800A7A64();
+        Gp_TriggerPeIfArmed();
     }
     task->state++;
 }
@@ -1278,7 +1278,7 @@ void func_800AC0F0(Task* task)
     sp.funcs[((volatile Task*)task)->state](task);
 }
 
-void func_800AC164(Task* task)
+void Gp_LoadFinishTask(Task* task)
 {
     if (CdCmd_Queue.field_224 == 0) {
         Gpu_ClearOTag(0);
@@ -1302,7 +1302,7 @@ void func_800AC164(Task* task)
     }
 }
 
-void func_800AC25C(Task* task)
+void Gp_LoadStateTask(Task* task)
 {
     TaskFuncTable8 sp;
     DisplayState*  ds;
@@ -1322,7 +1322,7 @@ void func_800AC25C(Task* task)
     sp.funcs[task->state](task);
 }
 
-void func_800AC344(Task* task)
+void Gp_FlashWhiteTask(Task* task)
 {
     CdCmdQueue* queue;
     u8          fade;
@@ -1965,7 +1965,7 @@ void func_800AD65C(Task* task)
 
 INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AD6BC);
 
-void func_800ADA04(void)
+void Gp_SetupDirWarp(void)
 {
     Task*             slot7;
     Task*             slot3;
@@ -2094,7 +2094,7 @@ void func_800ADA04(void)
     }
 }
 
-void func_800ADE74(void)
+void Gp_FadeDirWaitMsg(void)
 {
     void* slot;
     u8    fade;
@@ -2186,7 +2186,7 @@ void func_800AE150(void)
     }
 }
 
-void func_800AE1F0(void)
+void Gp_MsgPlayerDirFacing(void)
 {
     Task*      slot;
     GameActor* actor;
@@ -2284,7 +2284,7 @@ void Gp_PostDirIfCapIdle(void)
     }
 }
 
-void func_800AE53C(void)
+void Gp_RunDirAction(void)
 {
     void (*fns[2])(s32, s32) = { D_8017DA78, D_8017EF60 };
 

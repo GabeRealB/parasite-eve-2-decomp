@@ -20,7 +20,7 @@
 
 extern s32 Gp_LcgState;
 
-void func_800F77F8(Task* arg0)
+void Gp_DrawEffSprite81(Task* arg0)
 {
     register void**           scratch asm("a2");
     register u8*              head asm("a3");
@@ -185,7 +185,7 @@ void func_800F7AD4(GsCOORDINATE2* arg0, s32 arg1, s16 arg2, u16 arg3)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
 }
 
-void func_800F7E28(Task* arg0)
+void Gp_EffSprTask81(Task* arg0)
 {
     GpEffWork*     mem;
     GameActorExt*  extra;
@@ -224,23 +224,23 @@ void func_800F7E28(Task* arg0)
             if (Gp_State1C->field_4 != 0) {
                 break;
             }
-            func_800EA478(0x60042, coord, mem->field_24 + 0x22200 + mem->field_24, 0);
+            Gp_SpawnEff(0x60042, coord, mem->field_24 + 0x22200 + mem->field_24, 0);
             break;
         case 1:
-            func_800F77F8(arg0);
+            Gp_DrawEffSprite81(arg0);
             if (Gp_State1C->field_4 != 0) {
                 break;
             }
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((((u32)Gp_LcgState >> 16) & 3) == 0) {
-                func_800EA478(0x60042, coord, mem->field_24 + 0x21000, 0);
+                Gp_SpawnEff(0x60042, coord, mem->field_24 + 0x21000, 0);
             }
             mem->field_22++;
             break;
         case 2:
             if (Gp_State1C->field_4 == 0) {
                 if (mem->field_20 == 0) {
-                    func_800EA478(0x60042, coord, mem->field_24 + 0x22200, 0);
+                    Gp_SpawnEff(0x60042, coord, mem->field_24 + 0x22200, 0);
                     mem->field_20        = 1;
                     mem->field_22        = 0;
                     mem->field_24      >>= 2;
@@ -255,7 +255,7 @@ void func_800F7E28(Task* arg0)
                 mem->field_22 += (u16)Display_State.field_8 & 1;
             }
             if (mem->field_22 < 0x10) {
-                func_800FA45C(coord, mem->field_24, mem->field_22 >> 1, mem->field_2A);
+                Gp_DrawEffQuadT29(coord, mem->field_24, mem->field_22 >> 1, mem->field_2A);
             } else {
                 arg0->spawnArg1 = 4;
                 break;
@@ -263,7 +263,7 @@ void func_800F7E28(Task* arg0)
             goto lcg;
         case 3:
             if (Gp_State1C->field_4 == 0 && mem->field_20 == 0) {
-                func_800EA478(0x60042, coord, mem->field_24 + 0x22200, 0);
+                Gp_SpawnEff(0x60042, coord, mem->field_24 + 0x22200, 0);
                 mem->field_20   = 1;
                 mem->field_22   = 0;
                 mem->field_24 >>= 2;
@@ -279,7 +279,7 @@ void func_800F7E28(Task* arg0)
             }
             Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
             if ((u16)(((u32)Gp_LcgState >> 16) % 3U) == 0) {
-                func_800EA478(0x6003F, coord, mem->field_24, 0);
+                Gp_SpawnEff(0x6003F, coord, mem->field_24, 0);
             }
             break;
         case 4:

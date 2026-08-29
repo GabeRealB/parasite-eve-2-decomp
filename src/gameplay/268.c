@@ -54,9 +54,9 @@ void Gp_ApplyItemMap(void);
 void Gp_ClearCollectedBit(s32 arg0);
 void Gp_SetCollectedBit(s32 arg0);
 s32  Gp_FindScanQty(GpItemRec* arg0, GpItemScan* arg1, s32* arg2, s32 arg3);
-void func_800C1148(UiPanel* arg0, s32 arg1);
+void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1);
 void func_801061F0(void);
-void func_800D2F68(Task* arg0);
+void Gp_NoticePanelTask(Task* arg0);
 
 s32 func_800B7420(s32 arg0)
 {
@@ -1573,7 +1573,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
     error:
         saved           = task->spawnArg1;
         task->spawnArg1 = task->flags;
-        func_800D2F68(task);
+        Gp_NoticePanelTask(task);
         task->spawnArg1 = saved;
         return;
     }
@@ -1647,7 +1647,7 @@ void Gp_UiBoostMp(UiObject* arg0, Task* arg1)
     }
     saved           = arg1->spawnArg1;
     arg1->spawnArg1 = 0x1D;
-    func_800D2F68(arg1);
+    Gp_NoticePanelTask(arg1);
     arg1->spawnArg1 = saved;
 }
 
@@ -1688,7 +1688,7 @@ void Gp_UiBoostHp(UiObject* arg0, Task* arg1)
     }
     saved           = arg1->spawnArg1;
     arg1->spawnArg1 = 0x1C;
-    func_800D2F68(arg1);
+    Gp_NoticePanelTask(arg1);
     arg1->spawnArg1 = saved;
 }
 
@@ -1965,7 +1965,7 @@ void Gp_ClearInventory(void)
     Gp_ApplyItemMap();
 }
 
-void func_800BAA58(void)
+void Gp_InitModeEquip(void)
 {
     WipSysConfig*       cfg;
     GpItemScan*         scan;
@@ -3245,7 +3245,7 @@ s16 Gp_PlayTimeDelta(void)
     return Mc_SaveData.field_C - *p;
 }
 
-s32 func_800BC254(void)
+s32 Gp_AgeFlag119(void)
 {
     s32  ret;
     u16* p;
@@ -3262,7 +3262,7 @@ s32 func_800BC254(void)
     return ret;
 }
 
-void func_800BC2C4(void)
+void Gp_AgeFlag119Void(void)
 {
     u16* p;
 
@@ -3306,7 +3306,7 @@ void Gp_TickBoostPanel(Task* arg0)
         panel->field_C.x = -panel->field_C.w / 2;
         arg0->state++;
     }
-    func_800C1148(panel, 0);
+    Gp_DrawHpMpStats(panel, 0);
 }
 
 s32 Gp_HasStockedItem(s32 arg0)
@@ -3356,13 +3356,13 @@ void Gp_ResetScanDefault(void)
 void func_800BC4BC(void)
 {
     Wip_SysConfig.field_26 = 1;
-    func_800BAA58();
+    Gp_InitModeEquip();
 }
 
 void func_800BC4E4(void)
 {
     Wip_SysConfig.field_26 = 2;
-    func_800BAA58();
+    Gp_InitModeEquip();
 }
 
 s32 Gp_CanMoveItems(void)
