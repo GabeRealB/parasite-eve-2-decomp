@@ -1022,19 +1022,19 @@ typedef struct _GpGridRayScratch {
 STATIC_ASSERT_SIZEOF(GpGridRayScratch, 0x70);
 
 /// Pending flags written by `Gp_ApplyItemUse` and consumed by `Gp_MenuExitCallback`.
-/// `D_8010F888 == 1` requests `Gp_DispatchMsg(..., 0x402, ...)`.
-extern s32 D_8010F888;
+/// `Gp_HealPending == 1` requests `Gp_DispatchMsg(..., 0x402, ...)`.
+extern s32 Gp_HealPending;
 
 /// Signed pending item id consumed by `Gp_FlushPendingRelated`. `Gp_ApplyItemUse`
 /// stores the id, or its negation for the second `GpItemSlot` pair.
-/// `Gp_MenuExitCallback` also consumes it (with `D_8010F890`) via `func_801088D4`.
+/// `Gp_MenuExitCallback` also consumes it (with `Gp_RelatedPending`) via `func_801088D4`.
 extern s32 Gp_PendingRelatedId;
 
 /// Non-zero when `Gp_PendingRelatedId` should be applied by `Gp_MenuExitCallback`.
-extern s32 D_8010F890;
+extern s32 Gp_RelatedPending;
 
 /// Pending id consumed by `Gp_MenuExitCallback`; `0x3E` also calls `Gp_TriggerPeState`.
-extern s32 D_8010F894;
+extern s32 Gp_UsedItemId;
 
 /// Head of the `GpLinkNode` list walked by `Gp_UnlinkNode` / `Gp_LinkNode`
 /// / `Gp_HudTrackSlot0`.
@@ -1121,17 +1121,17 @@ extern GpGiveRec* D_8010FA0C[];
 /// (`Gp_CollideObjGrid` / `Gp_CollideObjGridDir` / `func_800DD324` / `func_800DFCCC`).
 extern GpEdgePair Gp_FaceEdgePairs[5];
 
-/// Pair-handler table used by `func_800DB900` / `func_800E0414`.
+/// Pair-handler table used by `func_800DB900` / `Gp_CollideLists`.
 /// Indexed by `D_8010FA4C[].field_0` (`Gp_PairNop` / `func_800DBCAC` /
 /// `func_800DBE7C`).
 extern GpPairFn D_8010FA38[5];
 
-/// 4x4 pair-rule table used by `func_800DB900` / `func_800E0414`.
+/// 4x4 pair-rule table used by `func_800DB900` / `Gp_CollideLists`.
 /// Rows/cols are `(flags & 7) - 1`. `field_0` selects `D_8010FA38`;
 /// a non-zero `field_2` swaps the two `GpObj` arguments.
 extern GpU16Pair D_8010FA4C[4][4];
 
-/// Nine-entry table of `GpObj` list heads (`D_80115570` .. `D_80115590`).
+/// Nine-entry table of `GpObj` list heads (`Gp_ObjList0` .. `Gp_ObjList8`).
 /// `Gp_LinkObj` appends to `Gp_ObjLists[index]`; `Gp_UnlinkObj` unlinks.
 extern GpObj* Gp_ObjLists[9];
 
@@ -1152,16 +1152,21 @@ extern GpObj3A* D_80115550;
 /// Head of the `GpObj4C` list walked by `Gp_CommitObj4CSave`.
 extern GpObj4C* Gp_Obj4CList;
 extern GpObj4C* Gp_PendingObj4C;
-extern GpObj*   D_80115570;
-extern GpObj*   D_80115574;
-extern GpObj*   D_80115578;
-extern GpObj*   D_8011557C;
-extern GpObj*   D_80115580;
-extern GpObj*   D_80115584;
-extern GpObj*   D_80115588;
-extern GpObj*   D_8011558C;
-extern GpObj*   D_80115590;
-extern u8       D_80115598;
+/// The nine list heads `Gp_ObjLists` points at. Each is a bare `GpObj*`
+/// that doubles as a sentinel node: `Gp_LinkObj` treats it as a `GpObj`
+/// whose `next` (offset 0) is the first real node.
+/// `Gp_TickWorldCollision` runs `Gp_CollideListGrid` over each list and
+/// `Gp_CollideLists` over the pairs that can interact.
+extern GpObj* Gp_ObjList0;
+extern GpObj* Gp_ObjList1;
+extern GpObj* Gp_ObjList2;
+extern GpObj* Gp_ObjList3;
+extern GpObj* Gp_ObjList4;
+extern GpObj* Gp_ObjList5;
+extern GpObj* Gp_ObjList6;
+extern GpObj* Gp_ObjList7;
+extern GpObj* Gp_ObjList8;
+extern u8     D_80115598;
 /// Set to 1 by `Gp_TakePendingObj4C` when a pending `Gp_PendingObj4C` node is found;
 /// `Gp_TickWorldCollision` then calls `Gp_ClearPendingObj4C` to clear those flags.
 extern s32 Gp_PendingObj4CFlag;
@@ -1170,7 +1175,7 @@ extern s32 Gp_PendingObj4CFlag;
 /// `func_800E0C10` / `func_800E0FEC`.
 extern s32 Gp_RoomParams[8];
 /// Grid conversion params used by `Gp_WorldToGrid` / `Gp_LocalToGrid`.
-/// Cleared by `Gp_ClearObjHeads`; `func_800E0540` skips work when this is NULL.
+/// Cleared by `Gp_ClearObjHeads`; `Gp_CollideListGrid` skips work when this is NULL.
 extern GpGridParams* Gp_GridParams;
 
 /// 4-byte records selected by `Gp_LookupIdField(..., 0)`.
@@ -1348,8 +1353,8 @@ void            func_800DEF80(GpObj* node, GpObj4C* other);
 s32             func_800DFCCC(GpObj3A* arg0, SVECTOR* arg1, SVECTOR* arg2, VECTOR* arg3);
 void            Gp_ClearObjHeads(void);
 s32             func_800E0308(SVECTOR* arg0, SVECTOR* arg1);
-void            func_800E0414(GpObj* a, GpObj* b);
-void            func_800E0540(GpObj* node);
+void            Gp_CollideLists(GpObj* a, GpObj* b);
+void            Gp_CollideListGrid(GpObj* node);
 void            func_800E0608(GpObj* node, s32 mask, s32 match);
 void            func_800E06AC(GpObj* node, s32 mask, s32 match);
 s32             Gp_PairNop(void);

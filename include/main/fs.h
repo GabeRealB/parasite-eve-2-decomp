@@ -641,8 +641,8 @@ extern u8 D_800630B0[];
 extern u16*          D_8005C36C;
 extern u16*          D_8005C370;
 extern u16*          D_8005C374;
-extern u8*           D_8007A364; // resolved decode base (Mdec_ResolveStreamBuffer)
-extern CdCmd58Entry* D_8007A368; // matched CdCmd_Queue.field_58 entry
+extern u8*           Mdec_DecodeBase; // resolved decode base (Mdec_ResolveStreamBuffer)
+extern CdCmd58Entry* Stage_CdEntry;   // matched CdCmd_Queue.field_58 entry
 extern u16           D_8007A35C;
 
 #endif

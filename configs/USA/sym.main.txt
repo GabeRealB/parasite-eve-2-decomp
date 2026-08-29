@@ -2853,3 +2853,9 @@ Pad_MaskConfirm             = 0x8005ED70;
 Pad_MaskCancel              = 0x8005ED74;
 Pad_MaskMenu                = 0x8005ED78;
 Mc_StrMemoryCard            = 0x8001398C;
+
+// Globals naming pass 2
+Display_PendingFlip         = 0x8005EC70;
+GameMain_HaltFlags          = 0x8005EC80;
+Mdec_DecodeBase             = 0x8007A364;
+Stage_CdEntry               = 0x8007A368;

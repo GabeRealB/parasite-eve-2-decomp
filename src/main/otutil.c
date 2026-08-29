@@ -39,31 +39,31 @@ s32 Display_FrameFlipDraw(s32 arg0, s32 arg1, s32 arg2)
     }
     if (((VSync(1) - arg1) & 0x7FFF) < D_8005EC6C) {
         EnterCriticalSection();
-        temp->vsyncFlag   = 1;
-        D_8005EC70        = temp->frameMode;
-        D_80070E38        = temp->field_103;
-        *(u8*)&D_8006EC30 = temp->field_100;
+        temp->vsyncFlag     = 1;
+        Display_PendingFlip = temp->frameMode;
+        D_80070E38          = temp->field_103;
+        *(u8*)&D_8006EC30   = temp->field_100;
         ExitCriticalSection();
         VSync(D_8005EC68);
         neg1 = -1;
-        if (D_8005EC70 != neg1) {
+        if (Display_PendingFlip != neg1) {
             D_8005EC78 = 0;
             arg1       = VSync(1) & 0x7FFF;
             Display_FlipDraw(temp->frameMode);
-            D_8005EC70 = neg1;
+            Display_PendingFlip = neg1;
         } else {
             D_8005EC78 = D_8005EC74;
             arg1       = -D_8005EC74;
         }
     } else {
-        D_8005EC78        = 0;
-        arg1              = VSync(1) & 0x7FFF;
-        temp->vsyncFlag   = 1;
-        D_8005EC70        = -2;
-        D_80070E38        = temp->field_103;
-        *(u8*)&D_8006EC30 = temp->field_100;
+        D_8005EC78          = 0;
+        arg1                = VSync(1) & 0x7FFF;
+        temp->vsyncFlag     = 1;
+        Display_PendingFlip = -2;
+        D_80070E38          = temp->field_103;
+        *(u8*)&D_8006EC30   = temp->field_100;
         Display_FlipDraw(temp->frameMode);
-        D_8005EC70 = -1;
+        Display_PendingFlip = -1;
     }
     Gpu_CurrentOt = saved;
     return arg1;

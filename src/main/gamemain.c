@@ -49,7 +49,7 @@ void GameMain_Init(void)
     Display_State.field_14  = 0;
     GameMain_SetFrameTiming(0);
 
-    D_8005EC70 = 0;
+    Display_PendingFlip = 0;
     Gpu_ClearOTag(0);
     Gpu_ClearOTag(1);
     Spu_WaitDma();
@@ -104,11 +104,11 @@ void Display_VSyncCallback(void)
     DISPENV*      dispBase;
 
     temp_s4 = VSync(1);
-    if ((s32)D_8005EC70 >= 0) {
+    if ((s32)Display_PendingFlip >= 0) {
         if (((temp_s4 & 0xFFFF) + D_8005EC78) > (D_8005EC6C >> 1)) {
             ds = &Display_State;
             if (ds->vsyncFlag == 0) {
-                temp_s0  = D_8005EC70;
+                temp_s0  = Display_PendingFlip;
                 drawBase = ds->drawEnv;
                 PutDrawEnv(&drawBase[temp_s0]);
                 stride   = temp_s0 * 0x14;
@@ -121,10 +121,10 @@ void Display_VSyncCallback(void)
                 if (ds->field_104 == 0) {
                     DrawOTag(Gpu_OtBuffers[temp_s0].lastTag);
                 }
-                D_8005EC70 = -1;
+                Display_PendingFlip = -1;
             } else if (ds->vsyncFlag == 1) {
-                Display_FlipDraw(D_8005EC70);
-                D_8005EC70 = -1;
+                Display_FlipDraw(Display_PendingFlip);
+                Display_PendingFlip = -1;
             }
         }
     }
@@ -156,9 +156,9 @@ void GameMain_ShowLoading(s32 arg0)
     DISPENV*      dispBase;
     s8            yoff;
 
-    if (!(D_8005EC80 & ~1)) {
+    if (!(GameMain_HaltFlags & ~1)) {
         skip = 0;
-        if (((s16)CdCmd_Queue.field_244 != 0) && !(D_8005EC80 & 8)) {
+        if (((s16)CdCmd_Queue.field_244 != 0) && !(GameMain_HaltFlags & 8)) {
             skip = 1;
         } else if ((Display_State.vsyncFlag == 1) && ((s8)Display_State.field_103 == 2)) {
             skip = 1;
@@ -168,10 +168,10 @@ void GameMain_ShowLoading(s32 arg0)
             skip = 1;
         }
         if (skip == 0) {
-            D_8005EC80 |= 1 << arg0;
-            one         = 1;
-            tile        = &D_8006EC18;
-            dr          = &D_8006EC28;
+            GameMain_HaltFlags |= 1 << arg0;
+            one                 = 1;
+            tile                = &D_8006EC18;
+            dr                  = &D_8006EC28;
             if (arg0 == one) {
                 SndEvt_EnqueueTypeD();
             }
@@ -207,7 +207,7 @@ void GameMain_ShowLoading(s32 arg0)
             PutDispEnv(&dispBase[buf]);
 
             EnterCriticalSection();
-            D_8005EC70 = -1;
+            Display_PendingFlip = -1;
             ExitCriticalSection();
         }
     }
@@ -249,11 +249,11 @@ void GameMain_Loop(void)
         {
             register s32 t4 asm("v0");
             /* depend on t so Display load completes in v0 first */
-            __asm__("lui %0, %%hi(D_8005EC80)" : "=r"(t4) : "r"(t));
+            __asm__("lui %0, %%hi(GameMain_HaltFlags)" : "=r"(t4) : "r"(t));
             __asm__("move %0, %1" : "=r"(s4r) : "r"(t4));
         }
     }
-    __asm__("lui %0, %%hi(D_8005EC70)" : "=r"(s5r));
+    __asm__("lui %0, %%hi(Display_PendingFlip)" : "=r"(s5r));
     neg1 = -1;
     __asm__("lui %0, %%hi(Gpu_OtBuffers)" : "=r"(ot_hi));
     {
@@ -263,7 +263,7 @@ void GameMain_Loop(void)
         __asm__ volatile("addiu %0, %1, %%lo(Gpu_OtBuffers)"
                          : "=r"(otBase)
                          : "r"(ot_hi), "r"(v));
-        __asm__ volatile("sw $zero, %%lo(D_8005EC80)(%0)" ::"r"(s4r) : "memory");
+        __asm__ volatile("sw $zero, %%lo(GameMain_HaltFlags)(%0)" ::"r"(s4r) : "memory");
         ds->field_114 = v;
     }
     /* Force s4r/s5r as the only EC80/EC70 bases for the whole function */
@@ -289,7 +289,7 @@ void GameMain_Loop(void)
             }
         do_init:
             GameMain_Init();
-            __asm__ volatile("sw $zero, %%lo(D_8005EC80)(%0)" ::"r"(s4r) : "memory");
+            __asm__ volatile("sw $zero, %%lo(GameMain_HaltFlags)(%0)" ::"r"(s4r) : "memory");
         after_init:
             *(u32*)0x1F8003FC = 0x1F8003FC;
             Pad_UpdatePort0();
@@ -300,16 +300,16 @@ void GameMain_Loop(void)
                 GameMain_ShowLoading(1);
             } else {
                 register s32 _e asm("v0");
-                __asm__ volatile("lw %0, %%lo(D_8005EC80)(%1)" : "=r"(_e) : "r"(s4r));
+                __asm__ volatile("lw %0, %%lo(GameMain_HaltFlags)(%1)" : "=r"(_e) : "r"(s4r));
                 if (_e & 2) {
                     SndEvt_EnqueueTypeE();
-                    __asm__ volatile("lw %0, %%lo(D_8005EC80)(%1)" : "=r"(_e) : "r"(s4r));
+                    __asm__ volatile("lw %0, %%lo(GameMain_HaltFlags)(%1)" : "=r"(_e) : "r"(s4r));
                     {
                         register s32 m3 asm("v1");
                         m3  = -3;
                         _e &= m3;
                     }
-                    __asm__ volatile("sw %0, %%lo(D_8005EC80)(%1)" ::"r"(_e), "r"(s4r) : "memory");
+                    __asm__ volatile("sw %0, %%lo(GameMain_HaltFlags)(%1)" ::"r"(_e), "r"(s4r) : "memory");
                 }
             }
 
@@ -317,14 +317,14 @@ void GameMain_Loop(void)
 
             {
                 register s32 _e asm("v0");
-                __asm__ volatile("lw %0, %%lo(D_8005EC80)(%1)" : "=r"(_e) : "r"(s4r));
+                __asm__ volatile("lw %0, %%lo(GameMain_HaltFlags)(%1)" : "=r"(_e) : "r"(s4r));
                 if (_e != 0) {
                     skip = 0;
                     /* && short-circuit: reload EC80 only when field_244 != 0 */
                     if ((s16)CdCmd_Queue.field_244 != 0 &&
                         !(({
                               register s32 _e2 asm("v0");
-                              __asm__ volatile("lw %0, %%lo(D_8005EC80)(%1)"
+                              __asm__ volatile("lw %0, %%lo(GameMain_HaltFlags)(%1)"
                                                : "=r"(_e2)
                                                : "r"(s4r));
                               _e2;
@@ -432,7 +432,7 @@ void GameMain_Loop(void)
                 register s32 z asm("a0");
                 z = 0;
                 if ((s16)nv->height == 0x1E0) {
-                    __asm__ volatile("sw %0, %%lo(D_8005EC70)(%1)" ::"r"(neg1), "r"(s5r) : "memory");
+                    __asm__ volatile("sw %0, %%lo(Display_PendingFlip)(%1)" ::"r"(neg1), "r"(s5r) : "memory");
                     VSync(z);
                     ResetGraph(1);
                     buf      = nv->field_114;
@@ -511,13 +511,13 @@ void GameMain_Loop(void)
                     nv->vsyncFlag = 0;
                     {
                         s32 _t = nv->field_114;
-                        __asm__ volatile("sw %0, %%lo(D_8005EC70)(%1)" ::"r"(_t), "r"(s5r)
+                        __asm__ volatile("sw %0, %%lo(Display_PendingFlip)(%1)" ::"r"(_t), "r"(s5r)
                                          : "memory");
                     }
                     VSync(vsarg);
                     {
                         s32 _t;
-                        __asm__ volatile("lw %0, %%lo(D_8005EC70)(%1)" : "=r"(_t) : "r"(s5r));
+                        __asm__ volatile("lw %0, %%lo(Display_PendingFlip)(%1)" : "=r"(_t) : "r"(s5r));
                         if (_t == (u32)neg1) {
                             D_8005EC78 = D_8005EC74;
                             s3         = -D_8005EC74;
@@ -532,7 +532,7 @@ void GameMain_Loop(void)
                     m2  = -2;
                     TOUCH_REG2(one, m2);
                     nv->vsyncFlag = 0;
-                    __asm__ volatile("sw %0, %%lo(D_8005EC70)(%1)" ::"r"(m2), "r"(s5r) : "memory");
+                    __asm__ volatile("sw %0, %%lo(Display_PendingFlip)(%1)" ::"r"(m2), "r"(s5r) : "memory");
                     a0 = one;
                 }
             }
@@ -556,7 +556,7 @@ void GameMain_Loop(void)
             if (nv->field_104 == 0) {
                 DrawOTag(otBase[buf].lastTag);
             }
-            __asm__ volatile("sw %0, %%lo(D_8005EC70)(%1)" ::"r"(neg1), "r"(s5r) : "memory");
+            __asm__ volatile("sw %0, %%lo(Display_PendingFlip)(%1)" ::"r"(neg1), "r"(s5r) : "memory");
 
         apply_offset:
             raw = *(volatile u8*)&nv->field_126;

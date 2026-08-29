@@ -72,7 +72,7 @@ extern char           D_8010E588[];
 extern char           Gp_StrSort[];
 extern char           Gp_StrAmmoCaps[];
 extern char           Gp_StrDot[];
-extern char           D_8010F8D0[];
+extern char           Gp_StrEmpty[];
 extern char           Gp_StrRemoveAmmoHelp[];
 extern char           Gp_StrDetachArmorHelp[];
 extern char           Gp_StrReleasePe[];
@@ -637,7 +637,7 @@ void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1)
         case 5:
             desc = &D_8010EAB4;
             Ui_SpawnFromDesc(desc + 5, 0, 1, 8, arg0);
-            Ui_SetHolderParam((s32)D_8010F8D0, 0, 0);
+            Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);
             Ui_StartCloseAnim((UiPanel*)arg0, arg0->owner);
             break;
         case 0x14:
@@ -651,21 +651,21 @@ void Gp_UiPromptDispatch(UiObject* arg0, Task* arg1)
         case 0x101:
             Display_SetDrawMode(1);
             Ui_SpawnFromDesc(&D_8010EAD0, 0, 1, 8, arg0);
-            Ui_SetHolderParam((s32)D_8010F8D0, 0, 0);
+            Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);
             Ui_StartCloseAnim((UiPanel*)arg0, arg0->owner);
             break;
         case 6:
         case 0xC:
             Display_SetDrawMode(1);
             Ui_SpawnFromDesc(&D_8010EAB4 + arg0->field_2C, 0, 0, 8, arg0);
-            Ui_SetHolderParam((s32)D_8010F8D0, 0, 0);
+            Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);
             Ui_StartCloseAnim((UiPanel*)arg0, arg0->owner);
             break;
         case 0x24:
         default:
             Display_SetDrawMode(1);
             Ui_SpawnFromDesc(&D_8010EAB4 + arg0->field_2C, 0, 1, 8, arg0);
-            Ui_SetHolderParam((s32)D_8010F8D0, 0, 0);
+            Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);
             Ui_StartCloseAnim((UiPanel*)arg0, arg0->owner);
             break;
     }
@@ -1805,7 +1805,7 @@ void Gp_DrawItemOrderRow(DialogPrompt* arg0, UiObject* arg1)
                 register s32 a1v asm("a1");
                 a1v = 1;
                 if (item == 0) {
-                    t = (s32)D_8010F8D0;
+                    t = (s32)Gp_StrEmpty;
                 } else {
                     t = (s32)Gp_GetItemText(item, a1v, 0);
                 }
@@ -2247,7 +2247,7 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* arg0, UiObject* arg1)
                 register s32 a1v asm("a1");
                 a1v = 1;
                 if (item == 0) {
-                    name = (s32)D_8010F8D0;
+                    name = (s32)Gp_StrEmpty;
                 } else {
                     name = (s32)Gp_GetItemText(item, a1v, 0);
                 }
@@ -2698,7 +2698,7 @@ void Gp_ArmorMenuTask(Task* arg0)
                     register s32 a1v asm("a1");
                     a1v = 1;
                     if (item == 0) {
-                        name = (s32)D_8010F8D0;
+                        name = (s32)Gp_StrEmpty;
                     } else {
                         name = (s32)Gp_GetItemText(item, a1v, 0);
                     }
@@ -3182,7 +3182,7 @@ void Gp_DrawRemoveArmorRow(DialogPrompt* arg0, UiObject* arg1)
                     register s32 a1v asm("a1");
                     a1v = 1;
                     if (item == 0) {
-                        t = (s32)D_8010F8D0;
+                        t = (s32)Gp_StrEmpty;
                     } else {
                         t = (s32)Gp_GetItemText(item, a1v, 0);
                     }
@@ -3701,7 +3701,7 @@ void Gp_DrawCollectedRow(DialogPrompt* arg0, UiObject* arg1)
                 Gp_EnqueueItemPreviewCd(item, 0);
             }
             if (item == 0) {
-                Ui_SetHolderParam((s32)D_8010F8D0, 0, 0);
+                Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);
             } else {
                 Ui_SetHolderParam((s32)Gp_GetItemText(item, 1, 0), 0, 0);
             }
@@ -4118,7 +4118,7 @@ void Gp_DrawAmmoRow(DialogPrompt* arg0, UiObject* arg1)
                 register s32 a1v asm("a1");
                 a1v = 1;
                 if (item == 0) {
-                    t = (s32)D_8010F8D0;
+                    t = (s32)Gp_StrEmpty;
                 } else {
                     t = (s32)Gp_GetItemText(item, a1v, 0);
                 }
@@ -4925,7 +4925,7 @@ void Gp_DrawArmorSelectRow(DialogPrompt* arg0, UiObject* arg1)
     if (((status >> 16) == 1) || (status == 1)) {
         if (arg0->field_10 == arg0->field_8) {
             if (item == 0) {
-                Ui_SetHolderParam((s32)D_8010F8D0, 0, 0);
+                Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);
             } else {
                 Ui_SetHolderParam((s32)Gp_GetItemText(item, 1, 0), 0, 0);
             }

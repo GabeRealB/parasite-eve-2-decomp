@@ -72,7 +72,7 @@ extern char           D_8010E588[];
 extern char           Gp_StrSort[];
 extern char           Gp_StrAmmoCaps[];
 extern char           Gp_StrDot[];
-extern char           D_8010F8D0[];
+extern char           Gp_StrEmpty[];
 extern char           Gp_StrRemoveAmmoHelp[];
 extern char           Gp_StrReleasePe[];
 extern char           Gp_StrReturnGame[];
@@ -1388,7 +1388,7 @@ void Gp_MenuExitCallback(Task* arg0)
     void* slot;
 
     slot = Game_GetPtrSlot(3);
-    if ((Gp_PendingRelatedId != 0) && (D_8010F890 != 0)) {
+    if ((Gp_PendingRelatedId != 0) && (Gp_RelatedPending != 0)) {
         if (Gp_IsStateF0Active() == 0) {
             Gp_PendingRelatedId = 0;
         } else if (Gp_PendingRelatedId > 0) {
@@ -1396,17 +1396,17 @@ void Gp_MenuExitCallback(Task* arg0)
         } else {
             func_801088D4(slot, 1, 1);
         }
-        D_8010F890 = 0;
+        Gp_RelatedPending = 0;
     }
-    if (D_8010F888 == 1) {
+    if (Gp_HealPending == 1) {
         Gp_DispatchMsg(slot, 0x402, 0, 0);
-        D_8010F888 = 0;
+        Gp_HealPending = 0;
     }
-    if (D_8010F894 != 0) {
-        if (D_8010F894 == 0x3E) {
+    if (Gp_UsedItemId != 0) {
+        if (Gp_UsedItemId == 0x3E) {
             Gp_TriggerPeState(0, 0x80);
         }
-        D_8010F894 = 0;
+        Gp_UsedItemId = 0;
     }
     Display_ReleaseRef();
     Task_CallExit(arg0);
@@ -1658,7 +1658,7 @@ void Gp_WeaponSummaryTask(Task* arg0)
 void Gp_SetHolderItemText(s32 arg0)
 {
     if (arg0 == 0) {
-        Ui_SetHolderParam((s32)D_8010F8D0, 0, 0);
+        Ui_SetHolderParam((s32)Gp_StrEmpty, 0, 0);
     } else {
         Ui_SetHolderParam((s32)Gp_GetItemText(arg0, 1, 0), 0, 0);
     }

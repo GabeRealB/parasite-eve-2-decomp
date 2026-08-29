@@ -1862,7 +1862,7 @@ obviously have filled, the global involved is probably `volatile` — most often
 because it is shared with an interrupt or VSync callback.
 
 Corollary: this is a useful signal *about the game*, not just a matching trick.
-`D_8005EC70` is written by the VSync callback `Display_VSyncCallback` and read by the
+`Display_PendingFlip` is written by the VSync callback `Display_VSyncCallback` and read by the
 main loop `GameMain_Loop`, so `volatile` is semantically correct there.
 
 Inverse check: if the target *does* fill the slot with a store, that variable is
@@ -10847,7 +10847,7 @@ kept putting `$s3` first, while the late assign matched the target prologue.
 
 ## Volatile flags: force reload + delay-slot `lui`
 
-Shared flag words (e.g. `D_8005EC80`) that the target reloads from a kept
+Shared flag words (e.g. `GameMain_HaltFlags`) that the target reloads from a kept
 `%hi` base in `$a0` will CSE into a single load if the global is non-volatile:
 the value stays in a register, the second access becomes `andi` of that reg,
 and the address never lands in `$a0`. Mark the flag `volatile` so each access
@@ -10858,7 +10858,7 @@ amount for `flags |= 1 << arg` and as a later live value (`setlen`, compares,
 stores), write the shift with a literal first and assign the named temp after:
 
 ```c
-D_8005EC80 |= 1 << arg0; /* volatile load address can fill prior bnez delay */
+GameMain_HaltFlags |= 1 << arg0; /* volatile load address can fill prior bnez delay */
 one = 1;                 /* li s2,1 then CSE into the shift as sllv …,s2 */
 tile = &D_8006EC18;
 /* … setlen(dr, one); … if (arg0 == one) … */
@@ -13674,7 +13674,7 @@ D5B498_8006C234 = t;          /* sb of low 8 bits; li stays -3 */
 ## Force 3-way `%hi` s-reg order: pin + `lui` asm, then `%lo` accesses
 
 When three loop-live globals need a fixed s-reg coloring for split-address
-form (e.g. target `s5=D_8007A368`, `s7=Fs_ChunkMode`, `s6=D5B498_8006C233`)
+form (e.g. target `s5=Stage_CdEntry`, `s7=Fs_ChunkMode`, `s6=D5B498_8006C233`)
 but natural allocation rotates them, pin and materialise with one asm block,
 then do every load/store through those his:
 
@@ -13684,12 +13684,12 @@ register s32 hiMode asm("s7");
 register s32 hi233 asm("s6");
 register s32 hi364 asm("s4");
 __asm__ volatile(
-    "lui %0, %%hi(D_8007A368)\n\t"
+    "lui %0, %%hi(Stage_CdEntry)\n\t"
     "lui %1, %%hi(Fs_ChunkMode)\n\t"
     "lui %2, %%hi(D5B498_8006C233)\n\t"
-    "lui %3, %%hi(D_8007A364)"
+    "lui %3, %%hi(Mdec_DecodeBase)"
     : "=&r"(hi368), "=&r"(hiMode), "=&r"(hi233), "=r"(hi364));
-/* loads: */  __asm__ volatile("lw %0, %%lo(D_8007A368)(%1)" : "=r"(base) : "r"(hi368));
+/* loads: */  __asm__ volatile("lw %0, %%lo(Stage_CdEntry)(%1)" : "=r"(base) : "r"(hi368));
 /* stores with branch-delay `li`: use tab-noreorder */
 __asm__ volatile(
     ".set\tnoreorder\n\t"
@@ -13756,7 +13756,7 @@ definitions go to `.data` and break the layout. `SndLoad_ResolveSpuAddr` + `D_80
 Shared status words reloaded twice in a prologue (e.g. `D_800689E8`) CSE into
 one load when non-volatile, and the address often lands in `$a1`. Mark them
 `volatile` so each access reloads and GCC keeps `%hi` in `$a0` after
-`move sN,a0` frees the argument register — same pattern as `D_8005EC80` in
+`move sN,a0` frees the argument register — same pattern as `GameMain_HaltFlags` in
 `GameMain_ShowLoading`.
 
 Do **not** hard-pin the state pointer to `$s3` with `register … asm("s3")` while
@@ -13920,10 +13920,10 @@ lui  v0, %hi(Display_State)
 addiu v0, v0, %lo(Display_State)
 sw   s2, …(sp)
 move s2, v0
-lui  v0, %hi(D_8005EC80)
+lui  v0, %hi(GameMain_HaltFlags)
 sw   s4, …(sp)
 move s4, v0
-sw   s5; lui s5, %hi(D_8005EC70)
+sw   s5; lui s5, %hi(Display_PendingFlip)
 …
 ```
 
@@ -13947,10 +13947,10 @@ ds = &Display_State; /* CSE → move s2,v0; alias-known */
 {
     register s32 t4 asm("v0");
     /* "r"(t) keeps Display load in v0 before EC80 hi reuses it */
-    __asm__("lui %0, %%hi(D_8005EC80)" : "=r"(t4) : "r"(t));
+    __asm__("lui %0, %%hi(GameMain_HaltFlags)" : "=r"(t4) : "r"(t));
     __asm__("move %0, %1" : "=r"(s4r) : "r"(t4)); /* s4 only holds %hi */
 }
-__asm__("lui %0, %%hi(D_8005EC70)" : "=r"(s5r)); /* direct lui s5 is fine */
+__asm__("lui %0, %%hi(Display_PendingFlip)" : "=r"(s5r)); /* direct lui s5 is fine */
 ```
 
 Rules of thumb:
@@ -14436,7 +14436,7 @@ if (id == 0) {
 ```
 
 GCC CSE's the two calls into one `jal` and materializes `K` directly in `$a0`,
-jumping past `move a0, v0`. `Gp_SetHolderItemText` is the pure example (`D_8010F8D0`
+jumping past `move a0, v0`. `Gp_SetHolderItemText` is the pure example (`Gp_StrEmpty`
 empty string + `Gp_GetItemText` + `func_80049D34`).
 
 ## If/else stores of two constants keep `bnez; nop; j join`
@@ -21261,7 +21261,7 @@ rec    = &D_8010FA4C[0][0] + (temp >> 2);
 ```
 
 Inlining `arr[row][col]` stuck at 99.8%. `func_800DB900` is the example
-(same addressing in `func_800E0414`).
+(same addressing in `Gp_CollideLists`).
 
 ## Load both pair fields before the swap `if`
 
@@ -27748,10 +27748,10 @@ insns, and that happens when the variable's assignment does **not** come first:
 ```c
 /* sw s5 — cse folds the store's temp into ret */
 ret        = 1;
-D_8010F888 = 1;
+Gp_HealPending = 1;
 
 /* li s5,1 / move v1,s5 / sw v1 — target shape */
-D_8010F888 = 1;
+Gp_HealPending = 1;
 ret        = 1;
 ```
 
@@ -27760,7 +27760,7 @@ the narrower store forces a separate QImode quantity that cse cannot unify with
 the SImode one:
 
 ```c
-ret = D_8010F888 = Gp_StateC08.field_16 = 1; /* sb then sw, each via `move v0,s5` */
+ret = Gp_HealPending = Gp_StateC08.field_16 = 1; /* sb then sw, each via `move v0,s5` */
 ```
 
 `Gp_ApplyItemUse` needed both spellings (cases 4/8 chained, case 0x3C reordered);

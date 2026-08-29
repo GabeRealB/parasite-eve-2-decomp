@@ -115,7 +115,7 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
             slot  = Gp_GetItemSlot(held);
             if (Gp_EquipRelatedBank(0, held, id, 0) == 0) {
                 Gp_PendingRelatedId = id;
-                D_8010F890          = flag;
+                Gp_RelatedPending   = flag;
                 relId               = slot->field_0;
                 if (relId != id) {
                     cfg->field_22 = id + 0x61;
@@ -126,7 +126,7 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
                 ret = 1;
             } else if (Gp_EquipRelatedBank(1, held, id, 0) == 0) {
                 Gp_PendingRelatedId = -id;
-                D_8010F890          = flag;
+                Gp_RelatedPending   = flag;
                 relId               = slot->field_2;
                 if (relId != id) {
                     slot->field_2 = id;
@@ -202,7 +202,7 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
                 }
             }
         } else if ((u32)(id - 0x60) >= 0x20U) {
-            D_8010F894 = id;
+            Gp_UsedItemId = id;
 
             if ((u32)(id - 1) < 0x41U) {
                 switch (id) {
@@ -220,8 +220,8 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
                             if (cfg->field_18 > cfg->field_1a) {
                                 cfg->field_18 = cfg->field_1a;
                             }
-                            D_8010F888 = 1;
-                            ret        = 1;
+                            Gp_HealPending = 1;
+                            ret            = 1;
                         }
                         break;
                     case 0x3C:
@@ -229,17 +229,17 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
                             Mc_SaveData.field_26 += 5;
                         }
                         Gp_RecalcMaxHp();
-                        D_8010F888    = 1;
-                        ret           = 1;
-                        cfg->field_18 = cfg->field_1a;
+                        Gp_HealPending = 1;
+                        ret            = 1;
+                        cfg->field_18  = cfg->field_1a;
                         break;
                     case 4:
                         Gp_TriggerPeState(1, 0xD0);
-                        ret = D_8010F888 = Gp_StateC08.field_16 = 1;
+                        ret = Gp_HealPending = Gp_StateC08.field_16 = 1;
                         break;
                     case 8:
                         Gp_TriggerPeState(1, 7);
-                        ret = D_8010F888 = Gp_StateC08.field_17 = 1;
+                        ret = Gp_HealPending = Gp_StateC08.field_17 = 1;
                         break;
                     case 5:
                         if (cfg->field_1c < cfg->field_1e || cfg->field_18 < cfg->field_1a) {
@@ -251,8 +251,8 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
                             if (cfg->field_18 > cfg->field_1a) {
                                 cfg->field_18 = cfg->field_1a;
                             }
-                            D_8010F888 = 1;
-                            ret        = 1;
+                            Gp_HealPending = 1;
+                            ret            = 1;
                         }
                         break;
                     case 6:
@@ -266,8 +266,8 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
                             if (cfg->field_1c > cfg->field_1e) {
                                 cfg->field_1c = cfg->field_1e;
                             }
-                            D_8010F888 = 1;
-                            ret        = 1;
+                            Gp_HealPending = 1;
+                            ret            = 1;
                         }
                         break;
                     case 0x3A:
@@ -287,16 +287,16 @@ s32 Gp_ApplyItemUse(GpItemRec* arg0)
                         break;
                     case 0x3D:
                         if (cfg->field_1c < cfg->field_1e || cfg->field_18 < cfg->field_1a) {
-                            cfg->field_1c = cfg->field_1e;
-                            D_8010F888    = 1;
-                            cfg->field_18 = cfg->field_1a;
+                            cfg->field_1c  = cfg->field_1e;
+                            Gp_HealPending = 1;
+                            cfg->field_18  = cfg->field_1a;
                         }
-                        D_8010F888 = 1;
-                        ret        = 1;
+                        Gp_HealPending = 1;
+                        ret            = 1;
                         break;
                     case 0x3E:
-                        D_8010F888 = 1;
-                        ret        = 1;
+                        Gp_HealPending = 1;
+                        ret            = 1;
                         break;
                 }
             }
@@ -2981,32 +2981,32 @@ void Gp_TickWorldCollision(void)
 {
     if (Game_GetPtrSlot(3) != NULL) {
         Gp_UpdatePlayerMove();
-        func_800E0540(D_80115570);
-        func_800E0540(D_80115574);
-        func_800E0540(D_80115578);
-        func_800E0540(D_8011557C);
-        func_800E0540(D_80115580);
-        func_800E0540(D_8011558C);
-        func_800E0540(D_80115590);
-        func_800E0414(D_80115570, D_80115578);
-        func_800E0414(D_80115570, D_8011557C);
-        func_800E0414(D_80115570, D_80115580);
-        func_800E0414(D_80115570, D_80115590);
-        func_800DB900(D_80115570);
-        func_800E0414(D_80115574, D_80115578);
-        func_800E0414(D_80115574, D_80115580);
-        func_800E0414(D_80115574, D_80115588);
-        func_800E0414(D_80115578, D_80115580);
-        func_800E0414(D_80115578, D_80115590);
-        func_800DB900(D_80115578);
-        func_800E0414(D_8011557C, D_80115580);
-        func_800E0414(D_80115580, D_80115590);
+        Gp_CollideListGrid(Gp_ObjList0);
+        Gp_CollideListGrid(Gp_ObjList1);
+        Gp_CollideListGrid(Gp_ObjList2);
+        Gp_CollideListGrid(Gp_ObjList3);
+        Gp_CollideListGrid(Gp_ObjList4);
+        Gp_CollideListGrid(Gp_ObjList7);
+        Gp_CollideListGrid(Gp_ObjList8);
+        Gp_CollideLists(Gp_ObjList0, Gp_ObjList2);
+        Gp_CollideLists(Gp_ObjList0, Gp_ObjList3);
+        Gp_CollideLists(Gp_ObjList0, Gp_ObjList4);
+        Gp_CollideLists(Gp_ObjList0, Gp_ObjList8);
+        func_800DB900(Gp_ObjList0);
+        Gp_CollideLists(Gp_ObjList1, Gp_ObjList2);
+        Gp_CollideLists(Gp_ObjList1, Gp_ObjList4);
+        Gp_CollideLists(Gp_ObjList1, Gp_ObjList6);
+        Gp_CollideLists(Gp_ObjList2, Gp_ObjList4);
+        Gp_CollideLists(Gp_ObjList2, Gp_ObjList8);
+        func_800DB900(Gp_ObjList2);
+        Gp_CollideLists(Gp_ObjList3, Gp_ObjList4);
+        Gp_CollideLists(Gp_ObjList4, Gp_ObjList8);
         if (Gp_PendingObj4CFlag != 0) {
             Gp_ClearPendingObj4C();
         }
-        func_800E0608(D_80115570, 0x9007, 0x9004);
+        func_800E0608(Gp_ObjList0, 0x9007, 0x9004);
         if (Game_Session->field_12C == 0) {
-            func_800E06AC(D_80115570, 0xA007, 0xA004);
+            func_800E06AC(Gp_ObjList0, 0xA007, 0xA004);
         }
     }
 }
@@ -3917,15 +3917,15 @@ INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DFCCC);
 
 void Gp_ClearObjHeads(void)
 {
-    D_80115570          = NULL;
-    D_80115574          = NULL;
-    D_80115578          = NULL;
-    D_8011557C          = NULL;
-    D_80115580          = NULL;
-    D_80115584          = NULL;
-    D_80115588          = NULL;
-    D_8011558C          = NULL;
-    D_80115590          = NULL;
+    Gp_ObjList0         = NULL;
+    Gp_ObjList1         = NULL;
+    Gp_ObjList2         = NULL;
+    Gp_ObjList3         = NULL;
+    Gp_ObjList4         = NULL;
+    Gp_ObjList5         = NULL;
+    Gp_ObjList6         = NULL;
+    Gp_ObjList7         = NULL;
+    Gp_ObjList8         = NULL;
     Gp_GridParams       = 0;
     Gp_PendingObj4C     = NULL;
     Gp_Obj4CList        = NULL;
@@ -3965,7 +3965,7 @@ s32 func_800E0308(SVECTOR* arg0, SVECTOR* arg1)
     return ret;
 }
 
-void func_800E0414(GpObj* a, GpObj* b)
+void Gp_CollideLists(GpObj* a, GpObj* b)
 {
     GpObj*     other;
     GpU16Pair* rec;
@@ -4003,7 +4003,7 @@ void func_800E0414(GpObj* a, GpObj* b)
     }
 }
 
-void func_800E0540(GpObj* node)
+void Gp_CollideListGrid(GpObj* node)
 {
     u16 flags;
 

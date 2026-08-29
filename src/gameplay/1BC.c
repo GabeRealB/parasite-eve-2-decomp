@@ -485,10 +485,10 @@ s32 func_800B0118(s32 arg0, s32 arg1)
 
     temp = arg0;
     if (temp != 0) {
-        D_80114D20  = temp;
-        D_8005EC80 |= 8;
+        D_80114D20          = temp;
+        GameMain_HaltFlags |= 8;
     } else {
-        D_8005EC80 &= ~8;
+        GameMain_HaltFlags &= ~8;
     }
     return 0;
 }

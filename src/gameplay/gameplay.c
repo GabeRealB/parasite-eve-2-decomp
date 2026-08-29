@@ -4472,7 +4472,7 @@ void Gp_ApplyPadReplay(s32 arg0, PadScratch* arg1)
         offset = (s32)Gp_ReplayCursor + 0x7F9FFF00;
     }
     if (offset <= 0x17FDF) {
-        if (D_8005EC80 != 0) {
+        if (GameMain_HaltFlags != 0) {
             arg1->buttons = Gp_ReplayButtons;
             return;
         }

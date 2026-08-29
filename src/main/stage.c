@@ -795,54 +795,54 @@ matched:
     goto done;
 
 success:
-    D_8007A368 = &p->field_58[i];
-    type       = D_8007A368->field_34;
+    Stage_CdEntry = &p->field_58[i];
+    type          = Stage_CdEntry->field_34;
     switch (type) {
         case 0:
             base = p->field_184;
             goto store_base;
         case 1:
-            D_8007A364 = (u8*)D_8005C36C;
+            Mdec_DecodeBase = (u8*)D_8005C36C;
             if (p->field_190->field_1A == 1) {
-                D_8007A364 = (u8*)D_8005C36C + 0x11000;
+                Mdec_DecodeBase = (u8*)D_8005C36C + 0x11000;
             }
             if (p->field_190->field_3 == 2) {
-                D_8007A364 = D_8007A364 + p->field_190->field_1E;
+                Mdec_DecodeBase = Mdec_DecodeBase + p->field_190->field_1E;
             }
             Game_Session->field_7C = 0;
             break;
         case 2:
-            D_8007A364 = (u8*)D_8005C370;
+            Mdec_DecodeBase = (u8*)D_8005C370;
             if (p->field_190->field_1A == 2) {
-                D_8007A364 = (u8*)D_8005C370 + 0x11000;
+                Mdec_DecodeBase = (u8*)D_8005C370 + 0x11000;
             }
             if (p->field_190->field_3 == 3) {
-                D_8007A364 = D_8007A364 + p->field_190->field_1E;
+                Mdec_DecodeBase = Mdec_DecodeBase + p->field_190->field_1E;
             }
             Game_Session->field_7E = 0;
             break;
         case 3:
-            D_8007A364 = (u8*)D_8005C374;
+            Mdec_DecodeBase = (u8*)D_8005C374;
             if (p->field_190->field_1A == 3) {
-                D_8007A364 = (u8*)D_8005C374 + 0x11000;
+                Mdec_DecodeBase = (u8*)D_8005C374 + 0x11000;
             }
             if (p->field_190->field_3 == 4) {
-                D_8007A364 = D_8007A364 + p->field_190->field_1E;
+                Mdec_DecodeBase = Mdec_DecodeBase + p->field_190->field_1E;
             }
             Game_Session->field_80 = 0;
             break;
         case 4:
             base = p->field_198;
         store_base:
-            D_8007A364 = base;
+            Mdec_DecodeBase = base;
             break;
     }
-    offset       = D_8007A368->field_0;
+    offset       = Stage_CdEntry->field_0;
     D_8007A35C   = 0;
     p->field_200 = 1;
     p->field_1FE = 0;
     p->field_202 = 0;
-    D_8007A360   = D_8007A364 + offset;
+    D_8007A360   = Mdec_DecodeBase + offset;
 }
 
 void Mdec_StripCallback(void);
@@ -873,7 +873,7 @@ void Mdec_ProcessDecode(void)
             if ((u32)temp_v0 >= 0x5BU) {
                 D_8007A358 = 0;
                 Gpu_ResetGraphAndOt();
-                if (D_8007A368->field_34 == 0) {
+                if (Stage_CdEntry->field_34 == 0) {
                     p->field_188 = (s32)p->field_194;
                 }
                 if ((s8)Display_State.field_122 == 0) {
@@ -920,10 +920,10 @@ void Mdec_ProcessDecode(void)
                 one    = 1;
                 limit  = 0x7F;
                 __asm__ volatile(
-                    "lui %0, %%hi(D_8007A368)\n\t"
+                    "lui %0, %%hi(Stage_CdEntry)\n\t"
                     "lui %1, %%hi(Fs_ChunkMode)\n\t"
                     "lui %2, %%hi(D5B498_8006C233)\n\t"
-                    "lui %3, %%hi(D_8007A364)"
+                    "lui %3, %%hi(Mdec_DecodeBase)"
                     : "=&r"(hi368), "=&r"(hiMode), "=&r"(hi233), "=r"(hi364));
                 do {
                     /* Mirror target: andi a0; lw v1,%lo(368)(s5); sll s0,a0,2;
@@ -935,7 +935,7 @@ void Mdec_ProcessDecode(void)
                     s32            field4;
 
                     var_a0 = var_s1 & 0xFFFF;
-                    __asm__ volatile("lw %0, %%lo(D_8007A368)(%1)"
+                    __asm__ volatile("lw %0, %%lo(Stage_CdEntry)(%1)"
                                      : "=r"(base)
                                      : "r"(hi368));
                     temp_s0 = var_a0 * 4;
@@ -967,7 +967,7 @@ void Mdec_ProcessDecode(void)
                         {
                             register s32 o asm("a0");
                             register u8* b asm("v0");
-                            __asm__ volatile("lw %0, %%lo(D_8007A364)(%1)"
+                            __asm__ volatile("lw %0, %%lo(Mdec_DecodeBase)(%1)"
                                              : "=r"(b)
                                              : "r"(hi364));
                             o        = *(s32*)((u8*)a1p + 4);
@@ -984,11 +984,11 @@ void Mdec_ProcessDecode(void)
                                     register u8* b asm("v1");
                                     register s32 e asm("v0");
                                     __asm__ volatile(
-                                        "lw %0, %%lo(D_8007A368)(%1)"
+                                        "lw %0, %%lo(Stage_CdEntry)(%1)"
                                         : "=r"(e)
                                         : "r"(hi368));
                                     __asm__ volatile(
-                                        "lw %0, %%lo(D_8007A364)(%1)"
+                                        "lw %0, %%lo(Mdec_DecodeBase)(%1)"
                                         : "=r"(b)
                                         : "r"(hi364));
                                     o        = *(s32*)(e + temp_s0 + 4);
@@ -1016,17 +1016,17 @@ void Mdec_ProcessDecode(void)
                     register s32 h234b asm("s4");
                     register s32 h364b asm("s6");
                     __asm__ volatile(
-                        "lui %0, %%hi(D_8007A368)\n\t"
+                        "lui %0, %%hi(Stage_CdEntry)\n\t"
                         "lui %1, %%hi(Fs_ChunkMode)\n\t"
                         "lui %2, %%hi(D5B498_8006C234)\n\t"
-                        "lui %3, %%hi(D_8007A364)"
+                        "lui %3, %%hi(Mdec_DecodeBase)"
                         : "=&r"(h368b), "=&r"(hModeb), "=&r"(h234b), "=r"(h364b));
                     do {
                         register s32 idx asm("a0");
                         register s32 ebase asm("v1");
                         register s32 t4 asm("a1");
                         idx = var_s1_2 & 0xFFFF;
-                        __asm__ volatile("lw %0, %%lo(D_8007A368)(%1)"
+                        __asm__ volatile("lw %0, %%lo(Stage_CdEntry)(%1)"
                                          : "=r"(ebase) : "r"(h368b));
                         t4        = idx * 4;
                         temp_a1_2 = t4;
@@ -1057,9 +1057,9 @@ void Mdec_ProcessDecode(void)
                                 register s32 b asm("v1");
                                 register s32 o asm("a0");
                                 register s32 a1c asm("a1");
-                                __asm__ volatile("lw %0, %%lo(D_8007A368)(%1)"
+                                __asm__ volatile("lw %0, %%lo(Stage_CdEntry)(%1)"
                                                  : "=r"(e) : "r"(h368b));
-                                __asm__ volatile("lw %0, %%lo(D_8007A364)(%1)"
+                                __asm__ volatile("lw %0, %%lo(Mdec_DecodeBase)(%1)"
                                                  : "=r"(b) : "r"(h364b));
                                 o         = *(s32*)(e + temp_s0 + 0x10);
                                 o         = b + o;
@@ -1079,12 +1079,12 @@ void Mdec_ProcessDecode(void)
                 }
 
                 p->field_21C = 1;
-                if (D_8007A368->field_34 == 0) {
+                if (Stage_CdEntry->field_34 == 0) {
                     p->field_188 = (s32)p->field_194;
                 }
                 if (p->field_190->field_3 != 0) {
-                    Mem_CopyUnaligned(&D_8007A364[D_8007A368->field_1C], p->field_1A4,
-                                      (u32)D_8007A368->field_38);
+                    Mem_CopyUnaligned(&Mdec_DecodeBase[Stage_CdEntry->field_1C], p->field_1A4,
+                                      (u32)Stage_CdEntry->field_38);
                 }
                 goto block_44;
             }
@@ -1093,7 +1093,7 @@ void Mdec_ProcessDecode(void)
             if ((u32)temp_v0_3 >= 0x5BU) {
                 D_8007A358 = 0;
                 Gpu_ResetGraphAndOt();
-                if (D_8007A368->field_34 == 0) {
+                if (Stage_CdEntry->field_34 == 0) {
                     p->field_188 = (s32)p->field_194;
                 }
             block_44:
