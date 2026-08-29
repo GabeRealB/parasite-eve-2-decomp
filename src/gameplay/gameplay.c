@@ -49,6 +49,8 @@ extern TmdListHead    Gp_TmdListAltStash;
 extern Task*          Gp_TmdStashTask;
 extern GsCOORDINATE2* Gp_CurCoord;
 extern CVECTOR        D_80114BA4;
+extern u16            D_80114BB0[];
+extern RECT           D_80114BD0;
 extern CVECTOR        D_80114BA8;
 extern u8             Gp_DebugAttachLevels[];
 extern TaskFuncTable6 D_80093830;
@@ -4636,7 +4638,183 @@ after_uv:
     addPrim(Gpu_CurrentOt + otIdx - 2, p);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A6480);
+void func_800A6480(GpIdMapC* arg0)
+{
+    register void**          scratch asm("v1");
+    register u8*             newhead asm("v0");
+    register u8*             head asm("s2");
+    register GpXformScratch* block asm("s0");
+    SVECTOR*                 vec;
+    register GpLinkXform*    node asm("s1");
+    register s32             mode asm("s5");
+    s32                      x;
+    register s32             cx asm("s6");
+    s32                      cy;
+    s32                      y;
+    s16                      vx;
+    s32                      vz;
+    s32                      i;
+    s32                      n;
+    s32                      sy;
+    DR_TPAGE*                tp;
+    SPRT*                    sp;
+    SPRT*                    sp2;
+    POLY_GT4*                poly;
+
+    x  = 0x61;
+    y  = -0x6C;
+    y -= Display_State.vramYOffset;
+    cx = x + 0x23;
+    cy = y + 0x23;
+    func_800A63B4(cx, cy, 0);
+    scratch  = (void**)G_SCRATCH_HEAD;
+    head     = *scratch;
+    node     = (GpLinkXform*)Gp_LinkList;
+    newhead  = head - 0x48;
+    block    = (GpXformScratch*)newhead;
+    *scratch = newhead;
+    mode     = func_800B9D80(0x400);
+    if (node != NULL) {
+        vec = (SVECTOR*)(head - 8);
+        do {
+            if ((node->field_4 & 5) != 1) {
+                block->vec.vx = *(u16*)&node->dst.vx;
+                block->vec.vz = *(u16*)&node->dst.vz;
+                block->vec.vy = 0;
+                if (mode == 0) {
+                    gte_lddp(0x1555);
+                    gte_ldsv(vec);
+                    gte_gpf12_real();
+                    gte_stsv(vec);
+                } else {
+                    gte_lddp(0xAAA);
+                    gte_ldsv(vec);
+                    gte_gpf12_real();
+                    gte_stsv(vec);
+                }
+                if (((GpLinkNode*)node)->field_4 & 1) {
+                    goto next;
+                }
+                vx = block->vec.vx;
+                if (vx < -0x1300 || vx > 0x1300) {
+                    goto next;
+                }
+                vz = block->vec.vz;
+                if (vz > 0x1300) {
+                    goto next;
+                }
+                if (vz < -0x1300) {
+                    goto next;
+                }
+                if (vx * vx + vz * vz > 0x168FFFF) {
+                    goto next;
+                }
+                block->vec.vx = (s16)(vx + 0x80) >> 8;
+                vz            = (s16)(block->vec.vz + 0x80) >> 8;
+                block->vec.vz = vz;
+                if (((GpLinkNode*)node)->field_5 != 0) {
+                    func_800A63B4(cx + block->vec.vx, cy - vz, 2);
+                } else {
+                    func_800A63B4(cx + block->vec.vx, cy - vz, 1);
+                }
+            }
+        next:
+            node = node->next;
+        } while (node != NULL);
+    }
+    sy = arg0->field_18;
+    if (mode == 0) {
+        sy *= 2;
+    }
+    tp         = D_80071190;
+    D_80071190 = tp + 1;
+    setlen(tp, 1);
+    tp->code[0] = 0xE100023E;
+    addPrim(Gpu_CurrentOt - 2, tp);
+    tp         = D_80071190;
+    D_80071190 = tp + 1;
+    setlen(tp, 1);
+    tp->code[0] = 0xE100023E;
+    addPrim(Gpu_CurrentOt - 3, tp);
+    if (mode == 1) {
+        sp         = (SPRT*)D_80071190;
+        D_80071190 = (DR_TPAGE*)(sp + 1);
+        sp->x0     = x + 0xD;
+        sp->y0     = y + 0xC;
+        sp->h      = 0x28;
+        sp->w      = 0x28;
+        sp->u0     = 0x60;
+        sp->v0     = 0xC0;
+        sp->clut   = 0x3C0C;
+        setlen(sp, 4);
+        setcode(sp, 0x65);
+        addPrim(Gpu_CurrentOt - 2, sp);
+    }
+    poly             = (POLY_GT4*)D_80071190;
+    D_80071190       = (DR_TPAGE*)(poly + 1);
+    *(u32*)&poly->r2 = 0xC0C0C0;
+    *(u32*)&poly->r3 = 0x808080;
+    *(u32*)&poly->r0 = 0x404040;
+    *(u32*)&poly->r1 = 0x303030;
+    poly->x1 = poly->x3 = x + 0x40;
+    poly->y2 = poly->y3 = y + 0x40;
+    poly->tpage         = 0x1E;
+    poly->clut          = 0x3C0C;
+    setUV4(poly, 0x60, 0x80, 0xA0, 0x80, 0x60, 0xC0, 0xA0, 0xC0);
+    setPolyGT4(poly);
+    poly->x0 = poly->x2 = x;
+    poly->y0 = poly->y1 = y;
+    addPrim(Gpu_CurrentOt - 2, poly);
+    if (arg0->field_16 != -1) {
+        sp2        = (SPRT*)D_80071190;
+        D_80071190 = (DR_TPAGE*)(sp2 + 1);
+        sp2->x0    = x + 0xD;
+        sp2->y0    = y + 0xC;
+        sp2->h     = 0x28;
+        sp2->w     = 0x28;
+        if (arg0->field_16 != 4) {
+            if (arg0->field_16 == 2) {
+                sp2->u0 = 0x88;
+            } else {
+                sp2->u0 = 0xD8;
+            }
+        } else {
+            sp2->u0 = 0xB0;
+        }
+        sp2->v0   = 0xC0;
+        sp2->clut = 0x3C82;
+        setlen(sp2, 4);
+        setcode(sp2, 0x67);
+        addPrim(Gpu_CurrentOt - 3, sp2);
+        Ui_InsertDrawTPage(-3, 1);
+        n = sy;
+        if (n > 0x1300) {
+            n = 0x1300;
+        }
+        n >>= 8;
+        n  -= 4;
+        if (n <= 0) {
+            n = 1;
+        }
+        for (i = 0; i < 0x10; i++) {
+            if (i < n) {
+                D_80114BB0[i] = 0x9E06;
+            } else {
+                D_80114BB0[i] = 0;
+            }
+            if (i == n && i != 0xF) {
+                D_80114BB0[i] = 0x8D03;
+            }
+        }
+        D_80114BD0.x = 0x20;
+        D_80114BD0.y = 0xF2;
+        D_80114BD0.w = 0x10;
+        D_80114BD0.h = 1;
+        LoadImage(&D_80114BD0, (u_long*)D_80114BB0);
+        arg0->field_16 = -1;
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x48;
+}
 
 void func_800A6A9C(s32 x, s32 y, s32 cur, s32 max, s32 kind)
 {

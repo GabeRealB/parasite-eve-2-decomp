@@ -30346,3 +30346,67 @@ The variable must be unsigned (`u32`) or the divide becomes the signed
 `mult 0x2AAAAAAB` sequence instead of `multu 0xCCCCCCCD`. Pinning `rnd` to
 `$a0` instead pushes the `srl`/`sll` intermediates onto `$a1`, so this is not
 a job for a register pin. `func_800FE56C` is the example (99.96% → 100%).
+
+## Type a range-test temp `s16`, not `s32`, when the target has `lhu` + `andi 0xFFFF`
+
+`if (v < -0x1300 || v > 0x1300)` is folded by GCC 2.8.1 into an unsigned
+window test, and it does that fold in the *unsigned counterpart of the operand
+type*. With an `s32` temp the type is `unsigned int`, so you get
+
+```
+lh    a0, 0x40(s0)
+addiu v0, a0, 0x1300
+sltiu v0, v0, 0x2601
+```
+
+With an `s16` temp the type is `unsigned short`, and the extra truncation makes
+combine switch the load to `lhu` as well:
+
+```
+lhu   a0, 0x40(s0)
+addiu v0, a0, 0x1300
+andi  v0, v0, 0xFFFF     <- only appears for the short-typed temp
+sltiu v0, v0, 0x2601
+```
+
+So a stray `andi 0xFFFF` between the `addiu` and the `sltiu` is the tell that
+the source temp was `short`. Later uses that need the sign (`v * v`) then come
+out as `sll 16` / `sra 16` off the same `lhu` register rather than a second
+load. `func_800A6480` is the example.
+
+## Use `setUV4` / `setXY4` when a POLY_* fill will not schedule right
+
+For a `POLY_GT4` fill, the order in which GCC materialises the shared byte
+constants follows the *first appearance* of each distinct value in the source.
+Writing the fields grouped by kind
+
+```c
+poly->v0 = 0x80; poly->v1 = 0x80; poly->v2 = 0xC0; poly->v3 = 0xC0;
+poly->u0 = 0x60; poly->u1 = 0xA0; poly->u2 = 0x60; poly->u3 = 0xA0;
+```
+
+emits `li 0x80` before `li 0x60`, which then cascades into a different register
+assignment for the reused `$a0`/`$a1`. The psy-q macro interleaves them,
+
+```c
+setUV4(poly, 0x60, 0x80, 0xA0, 0x80, 0x60, 0xC0, 0xA0, 0xC0);
+```
+
+giving `li 0x60`, `li 0x80`, `li 0xA0`, `li 0xC0` in that order — which is what
+the retail code was built from. Likewise `setPolyGT4(p)` (rather than separate
+`setlen`/`setcode`) puts the `li 0xC` / `li 0x3C` pair adjacent in the RTL.
+Chained stores (`poly->x1 = poly->x3 = x + 0x40;`) are the way to get the
+higher-offset field stored *first*, since C assigns right to left.
+`func_800A6480` went 96.8% → 100% on these three changes.
+
+## The four `sw` colour words of a quad are allocated in source order
+
+`*(u32*)&poly->rN = 0x......;` writes get `$a3, $a2, $a1, $a0` in the order the
+statements appear, so the group order in the source is directly readable off the
+target: whichever colour is materialised first in the `lui/ori` run is the first
+statement. For `func_800A6480` the target materialises `0xC0C0C0`, `0x808080`,
+`0x404040`, `0x303030`, so the source order is `r2, r3, r0, r1` even though the
+`sw`s are emitted in ascending-offset order after scheduling. Getting this wrong
+also costs an instruction: the delay slot of the preceding `bne` is filled with
+the first `lui`, and if that register is clobbered on the fall-through path GCC
+has to emit the `lui` a second time.
