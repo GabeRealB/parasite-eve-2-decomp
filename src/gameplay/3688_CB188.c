@@ -1867,7 +1867,45 @@ void func_800CF090(UiList* arg0, UiObject* arg1)
     arg0->field_5 = 4;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800CF148);
+void func_800CF148(UiObject* arg0, Task* arg1)
+{
+    Task*     child;
+    Task*     next;
+    Task*     head;
+    UiObject* childObj;
+    s32       flag;
+    s32       val;
+
+    child = arg1->firstChild;
+    if (child != NULL) {
+        val = 6;
+        do {
+            childObj = child->spawnArg2;
+            flag     = childObj->field_2E;
+            next     = child->nextSibling;
+            switch (flag) {
+                case 9:
+                    arg0->field_2E = flag;
+                    break;
+                case -1:
+                    arg0->field_2E = flag;
+                    break;
+                case 6:
+                    Ui_TeardownTree(childObj, childObj->owner);
+                    arg0->status = 1;
+                    break;
+            }
+            head  = arg1->firstChild;
+            child = next;
+            if (child == head) {
+                break;
+            }
+            if (head == NULL) {
+                break;
+            }
+        } while (1);
+    }
+}
 
 s32 func_800CF204(CdCmdEntry* arg0)
 {
