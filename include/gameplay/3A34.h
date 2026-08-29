@@ -65,6 +65,17 @@ typedef struct _GpObj {
 } GpObj;
 STATIC_ASSERT_SIZEOF(GpObj, 0x20);
 
+/// Payload a kind-4 `GpObj` points at with `field_C` (`GameActor.field_88`,
+/// followed by `GameActor.field_90`). `dir` is the facing vector
+/// `func_8010154C` writes there each frame; `field_8` is the `GpRec18` table
+/// `func_800DCB80` walks for that object. `func_800DBA20` reaches the same
+/// pointer by casting `field_C` to a `GpObj*` and reading its `field_8`.
+typedef struct _GpObjDirRec {
+    /* 0x0 */ SVECTOR  dir;
+    /* 0x8 */ GpRec18* field_8;
+} GpObjDirRec;
+STATIC_ASSERT_SIZEOF(GpObjDirRec, 0xC);
+
 /// 4-byte table entry packed by `Gp_PackPair` / `Gp_PackObjPair` as
 /// `(field_0 & 0xFFF) | ((field_2 & 0xF) << 12) | 0x40000`.
 typedef struct _GpU16Pair {

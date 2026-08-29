@@ -31017,3 +31017,76 @@ block, where the scheduler is free to slot the next `li` in front of it.
 Assigning `poly[0].tpage` inside each arm lets cross-jumping merge the two
 stores into the join, so the block starts with `sh` and the following
 `li v1, 0xc` lands after it — the target's order.
+
+## Keeping a `move` that GCC would otherwise coalesce away
+
+`dist = expr; ... ABS((s16)dist)` compiles to `subu <dist>, v0, v1` — GCC
+expands the RHS straight into `dist`'s pseudo. The target instead had
+
+```
+subu v0, v0, v1
+move t3, v0        # dist = <expr>
+sll  v0, v0, 0x10  # ABS reads the *source* of the copy, not dist
+```
+
+i.e. two pseudos with the short-lived one in `v0`. Introducing a plain temp
+(`tmp = expr; dist = tmp; ABS((s16)tmp)`) does not help: cse forward-propagates
+`dist` into the use of `tmp`, `tmp` then dies at the copy, and the two are
+merged again. Redefining `tmp` afterwards, chaining `dist = tmp = expr`, or a
+`register` pin on `dist` all still collapse.
+
+What works is pinning the short-lived value and making it opaque:
+
+```c
+{
+    register s32 planeDist asm("v0");
+
+    planeDist = <expr>;
+    dist      = planeDist;
+    __asm__ volatile("" : "+r"(planeDist));
+    if (limit >= ABS((s16)planeDist)) { ... }
+}
+```
+
+The pin forces the `subu` to write `v0` and the assignment to become a real
+`move`; the barrier stops cse substituting `dist` back into the `sll`. The pin
+alone gets the `move` but leaves `sll v0, <dist>, 0x10`; the barrier alone
+leaves the two pseudos merged. Both are needed (`func_800DCB80`).
+
+## Inline one arm of a shared flag store to win a call-saved register
+
+`func_800DCB80` sets an `outside` flag from two places inside its edge loop and
+reads it after. Written as two `goto mark_outside;` with
+
+```c
+mark_outside:
+    outside = 1;
+    goto edges_done;
+```
+
+placed before the loop, `outside` has three references, all at the outer loop's
+depth, and loses `global-alloc`'s priority race to the loop-invariant
+`&block->unit` / `&block->delta` pointers — it ends up on the stack while they
+take `s6`/`s7`. Turning *both* sites into `outside = 1; break;` fixes the
+allocation (the refs are now at the inner loop's depth) but moves the merged
+block to the end of the function.
+
+Inlining only *one* of the two sites gives both:
+
+```c
+    if (val - limit > 0) {
+        outside = 1;          /* inner-loop depth: raises the priority */
+        goto edges_done;
+    }
+    if (val > 0) {
+        if ((s16)dist < 0) {
+            goto mark_outside; /* keeps the block where the target has it */
+        }
+        ...
+    }
+```
+
+Cross-jumping (which runs after register allocation) merges the inlined store
+into the earlier `mark_outside` block, so the layout matches the target while
+the extra in-loop reference is what the allocator saw. This took the score from
+94.4% to 99.5%.
