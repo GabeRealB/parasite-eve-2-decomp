@@ -540,7 +540,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
                 p = set->arr60;
                 if (set->n60 > 0) {
                     i      = 0;
-                    parent = &D_80070F10;
+                    parent = &Gfx_ViewCoord;
                     do {
                         cur            = p;
                         i             += 1;
@@ -560,7 +560,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
                 obj = set->arr6C;
                 i   = 0;
                 if (set->n6C > 0) {
-                    parent6C = &D_80070F10;
+                    parent6C = &Gfx_ViewCoord;
                     dirw     = (Gp6CDirWalk*)&obj->dir;
                     matw     = (Gp6CMatWalk*)&obj->coord.coord;
                     do {
@@ -603,7 +603,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
                 TOUCH_REG(j);
                 i = 0;
                 if (i < set->n58) {
-                    parent = &D_80070F10;
+                    parent = &Gfx_ViewCoord;
                     do {
                         cur            = p;
                         i             += 1;
@@ -621,7 +621,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
                 register GpCoord64*     slot asm("v1");
                 register void*          base asm("v0");
 
-                parent = &D_80070F10;
+                parent = &Gfx_ViewCoord;
                 base   = Gp_RoomCoords;
                 view   = (GpCoord64View*)&((GpCoord64*)base)->coord;
                 slot   = (GpCoord64*)base;
@@ -639,7 +639,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
     }
 
     COMPILER_BARRIER();
-    Gp_UpdateCoord(&D_80070F10);
+    Gp_UpdateCoord(&Gfx_ViewCoord);
 
     {
         register s32        hi asm("v0");
@@ -653,7 +653,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
         k = 0;
         do {
             if (p->field_0 != 0) {
-                Gp_UpdateCoordEx(&p->coord, (s32)&D_80070F10);
+                Gp_UpdateCoordEx(&p->coord, (s32)&Gfx_ViewCoord);
             }
             k += 1;
             p += 1;
@@ -670,7 +670,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
         if (set->n60 > 0) {
             do {
                 cur = p;
-                Gp_UpdateCoordEx(&cur->coord, (s32)&D_80070F10);
+                Gp_UpdateCoordEx(&cur->coord, (s32)&Gfx_ViewCoord);
                 i += 1;
                 p  = cur + 1;
             } while (i < set->n60);
@@ -686,7 +686,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
         if (set->n6C > 0) {
             do {
                 cur = obj;
-                Gp_UpdateCoordEx(&cur->coord, (s32)&D_80070F10);
+                Gp_UpdateCoordEx(&cur->coord, (s32)&Gfx_ViewCoord);
                 i  += 1;
                 obj = cur + 1;
             } while (i < set->n6C);
@@ -698,7 +698,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
 
         p = set->arr58;
         for (i = 0; i < set->n58;) {
-            Gp_UpdateCoordEx(&p->coord, (s32)&D_80070F10);
+            Gp_UpdateCoordEx(&p->coord, (s32)&Gfx_ViewCoord);
             i += 1;
             p += 1;
         }
@@ -1038,7 +1038,7 @@ void func_800D759C(s32 arg0, GpObj44* arg1, VECTOR* arg2, GpObj20* arg3)
     Gfx_NormalizeLightDir((VECTOR*)block, dir);
 
     Gp_UpdateCoord(arg1->field_4C);
-    TransposeMatrix(&D_80070F34, mtx);
+    TransposeMatrix(&Gfx_ViewWorldMtx, mtx);
     gte_MulMatrix0_real(mtx, &arg1->field_4C->workm, mtx);
 
     tmp = *(SVECTOR*)(head - 0x2C);
@@ -2001,8 +2001,8 @@ void Gp_DrawTargetCursor(void)
                 n     = (u32)n % 24U;
                 frame = (u32)n / 3U;
             }
-            prim       = (POLY_FT4*)D_80071190;
-            D_80071190 = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_FT4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
             if (small == 1) {
                 prim->x0 = prim->x2 = *(u16*)&block->sx - 8;
                 prim->x1 = prim->x3 = *(u16*)&block->sx + 8;
@@ -2097,15 +2097,15 @@ void* func_800DA2A0(GpActorWork* arg0, VECTOR3* out, s32 flag)
     block->src.vy = *(u16*)&coord->coord.t[1] - 1000;
     block->src.vz = *(u16*)&coord->coord.t[2];
     *scratch      = block;
-    Gp_UpdateCoord(&D_80070F10);
+    Gp_UpdateCoord(&Gfx_ViewCoord);
     srcp = &((GpLockScanScratch*)(head - 0x38))->src;
-    gte_SetRotMatrix(&D_80070F34);
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(srcp);
     gte_rtv0_real();
     gte_stsv(&block->self);
-    *(u16*)&block->self.vx = *(u16*)&block->self.vx + *(u16*)&D_80070F10.workm.t[0];
-    *(u16*)&block->self.vy = *(u16*)&block->self.vy + *(u16*)&D_80070F10.workm.t[1];
-    *(u16*)&block->self.vz = *(u16*)&block->self.vz + *(u16*)&D_80070F10.workm.t[2];
+    *(u16*)&block->self.vx = *(u16*)&block->self.vx + *(u16*)&Gfx_ViewCoord.workm.t[0];
+    *(u16*)&block->self.vy = *(u16*)&block->self.vy + *(u16*)&Gfx_ViewCoord.workm.t[1];
+    *(u16*)&block->self.vz = *(u16*)&block->self.vz + *(u16*)&Gfx_ViewCoord.workm.t[2];
 
     if (actor->field_90C != NULL && flag != 0) {
         node      = (GpLinkXform*)actor->field_90C;
@@ -2633,7 +2633,7 @@ void Gp_GetLockPos(GpLockPos* arg0, VECTOR3* out)
     }
 
     coord = arg0->coord;
-    world = &D_80070F10;
+    world = &Gfx_ViewCoord;
     if (coord == world) {
         out->vx = arg0->pos.vx;
         out->vy = arg0->pos.vy;
@@ -3354,20 +3354,20 @@ void Gp_CollideObjGrid(GpObj* arg0)
                 outside = 0;
                 for (i = n - 3; i < n * 2 - 3; i++) {
                     block->delta.vx =
-                        block->verts[D_8010FA24[i].field_0].vx - block->verts[D_8010FA24[i].field_2].vx;
+                        block->verts[Gp_FaceEdgePairs[i].field_0].vx - block->verts[Gp_FaceEdgePairs[i].field_2].vx;
                     block->delta.vy =
-                        block->verts[D_8010FA24[i].field_0].vy - block->verts[D_8010FA24[i].field_2].vy;
+                        block->verts[Gp_FaceEdgePairs[i].field_0].vy - block->verts[Gp_FaceEdgePairs[i].field_2].vy;
                     block->delta.vz =
-                        block->verts[D_8010FA24[i].field_0].vz - block->verts[D_8010FA24[i].field_2].vz;
+                        block->verts[Gp_FaceEdgePairs[i].field_0].vz - block->verts[Gp_FaceEdgePairs[i].field_2].vz;
                     VectorNormal(&block->delta, &block->unit);
                     gte_ldopv1(&block->normal);
                     gte_ldopv2(&block->unit);
                     gte_op12_real();
                     gte_stlvnl(&block->delta);
 
-                    edgeDot = (block->delta.vx * block->verts[D_8010FA24[i].field_0].vx +
-                               block->delta.vy * block->verts[D_8010FA24[i].field_0].vy +
-                               block->delta.vz * block->verts[D_8010FA24[i].field_0].vz) >>
+                    edgeDot = (block->delta.vx * block->verts[Gp_FaceEdgePairs[i].field_0].vx +
+                               block->delta.vy * block->verts[Gp_FaceEdgePairs[i].field_0].vy +
+                               block->delta.vz * block->verts[Gp_FaceEdgePairs[i].field_0].vz) >>
                               12;
                     val = (s16)(((block->delta.vx * block->pos.vx + block->delta.vy * block->pos.vy +
                                   block->delta.vz * block->pos.vz) >>
@@ -3504,20 +3504,20 @@ void Gp_CollideObjGridDir(GpObj* arg0)
                 outside = 0;
                 for (i = n - 3; i < n * 2 - 3; i++) {
                     block->delta.vx =
-                        block->verts[D_8010FA24[i].field_0].vx - block->verts[D_8010FA24[i].field_2].vx;
+                        block->verts[Gp_FaceEdgePairs[i].field_0].vx - block->verts[Gp_FaceEdgePairs[i].field_2].vx;
                     block->delta.vy =
-                        block->verts[D_8010FA24[i].field_0].vy - block->verts[D_8010FA24[i].field_2].vy;
+                        block->verts[Gp_FaceEdgePairs[i].field_0].vy - block->verts[Gp_FaceEdgePairs[i].field_2].vy;
                     block->delta.vz =
-                        block->verts[D_8010FA24[i].field_0].vz - block->verts[D_8010FA24[i].field_2].vz;
+                        block->verts[Gp_FaceEdgePairs[i].field_0].vz - block->verts[Gp_FaceEdgePairs[i].field_2].vz;
                     VectorNormal(&block->delta, &block->unit);
                     gte_ldopv1(&block->normal);
                     gte_ldopv2(&block->unit);
                     gte_op12_real();
                     gte_stlvnl(&block->delta);
 
-                    edgeDot = (block->delta.vx * block->verts[D_8010FA24[i].field_0].vx +
-                               block->delta.vy * block->verts[D_8010FA24[i].field_0].vy +
-                               block->delta.vz * block->verts[D_8010FA24[i].field_0].vz) >>
+                    edgeDot = (block->delta.vx * block->verts[Gp_FaceEdgePairs[i].field_0].vx +
+                               block->delta.vy * block->verts[Gp_FaceEdgePairs[i].field_0].vy +
+                               block->delta.vz * block->verts[Gp_FaceEdgePairs[i].field_0].vz) >>
                               12;
                     val = (s16)(((block->delta.vx * block->pos.vx + block->delta.vy * block->pos.vy +
                                   block->delta.vz * block->pos.vz) >>
@@ -3652,18 +3652,18 @@ s32 func_800DD324(s32 faceId, VECTOR* seg, SVECTOR* ray, s32 arg3)
     }
 
     for (i = n - 3; i < n * 2 - 3; i++) {
-        block->delta.vx = block->verts[D_8010FA24[i].field_0].vx - block->verts[D_8010FA24[i].field_2].vx;
-        block->delta.vy = block->verts[D_8010FA24[i].field_0].vy - block->verts[D_8010FA24[i].field_2].vy;
-        block->delta.vz = block->verts[D_8010FA24[i].field_0].vz - block->verts[D_8010FA24[i].field_2].vz;
+        block->delta.vx = block->verts[Gp_FaceEdgePairs[i].field_0].vx - block->verts[Gp_FaceEdgePairs[i].field_2].vx;
+        block->delta.vy = block->verts[Gp_FaceEdgePairs[i].field_0].vy - block->verts[Gp_FaceEdgePairs[i].field_2].vy;
+        block->delta.vz = block->verts[Gp_FaceEdgePairs[i].field_0].vz - block->verts[Gp_FaceEdgePairs[i].field_2].vz;
         VectorNormal(&block->delta, &block->unit);
         gte_ldopv1(&block->normal);
         gte_ldopv2(&block->unit);
         gte_op12_real();
         gte_stlvnl(&block->delta);
 
-        edgeDot = (block->delta.vx * block->verts[D_8010FA24[i].field_0].vx +
-                   block->delta.vy * block->verts[D_8010FA24[i].field_0].vy +
-                   block->delta.vz * block->verts[D_8010FA24[i].field_0].vz) >>
+        edgeDot = (block->delta.vx * block->verts[Gp_FaceEdgePairs[i].field_0].vx +
+                   block->delta.vy * block->verts[Gp_FaceEdgePairs[i].field_0].vy +
+                   block->delta.vz * block->verts[Gp_FaceEdgePairs[i].field_0].vz) >>
                   12;
         limit = 5;
         val   = ((block->delta.vx * ray[1].vx + block->delta.vy * ray[1].vy + block->delta.vz * ray[1].vz) >> 12) -
@@ -3718,7 +3718,7 @@ void func_800DDC2C(GpObj* arg0)
     block->src[1].vz = (u16)obj->field_14 + ((-(dir->vz * (u16)obj->field_1C)) >> 12);
     coord            = (GsCOORDINATE2*)obj->field_8;
     *scratch         = block;
-    Gp_WorldToLocal(&D_80070F34, &coord->workm, (MATRIX*)head);
+    Gp_WorldToLocal(&Gfx_ViewWorldMtx, &coord->workm, (MATRIX*)head);
     gte_SetRotMatrix((MATRIX*)head);
     {
         register VECTOR*       out asm("a2");

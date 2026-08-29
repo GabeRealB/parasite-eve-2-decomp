@@ -1599,3 +1599,24 @@ Gp_StrNotice2               = 0x80093CC4;
 Gp_StrRemoveArmor           = 0x8010E534;
 Gp_StrChangeOrderHelp       = 0x8010F9C0;
 Gp_StrCancel2               = 0x8010F1D0;
+
+// Globals naming pass 1
+Gp_ItemGrantCooldown        = 0x8010CA28;
+Gp_ItemCmdFns               = 0x8010EA18;
+Gp_FaceEdgePairs            = 0x8010FA24;
+Gp_EffSprRecs               = 0x80112934;
+Gp_CdRecCur                 = 0x80114C6C;
+Gp_DirFadeLevel             = 0x80114CF6;
+Gp_ItemCountShow            = 0x80114D84;
+Gp_ItemOrderMode            = 0x80114D8C;
+Gp_ReloadMode               = 0x80114D90;
+Gp_AttachListIds            = 0x80114DA0;
+Gp_MenuLockNow              = 0x80115708;
+Gp_MenuLockPrev             = 0x80115709;
+Gp_PadSuppressMask          = 0x8011570A;
+Gp_PadSuppressPrev          = 0x8011570C;
+Gp_PadSuppressRise          = 0x8011570E;
+Gp_PadSuppressFall          = 0x80115710;
+Gp_PadSuppressRefs          = 0x80115712;
+Gp_MenuLockHold             = 0x80115714;
+Gp_MenuLockDelay            = 0x80115716;

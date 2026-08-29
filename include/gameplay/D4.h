@@ -68,7 +68,7 @@ STATIC_ASSERT_SIZEOF(GpSprtCmd, 8);
 /// 0x14-byte SPRT source record. `GpSprtRec.field_0` is an array of these.
 /// `Gp_LinkSprtCmd` / `Gp_EmitSprts` index from `GpSprtCmd.field_0` for
 /// `field_2` entries. `otz` is the OT depth. `Gp_EmitSprts` copies the
-/// remaining fields into a merged `DR_TPAGE`+`SPRT` in `D_80071190`.
+/// remaining fields into a merged `DR_TPAGE`+`SPRT` in `Gpu_PrimCursor`.
 /// `flags` bit 0 skips the RGB copy (shade-tex); the byte is OR'd into
 /// the SPRT code.
 typedef struct _GpSprtElem {
@@ -109,7 +109,7 @@ extern GpSprtTbl* Gp_SprtTables[];
 
 /// 0x10-byte per-room record in tables pointed to by `Gp_RoomObjTables`.
 /// Indexed 1-based by `GameSession.field_5` / `GameSessionFrom4.field_1`.
-/// `Gp_LinkRoomObjects` / `Gp_LinkRoomObjectsSpawn` parent `field_0` to `&D_80070F10` and
+/// `Gp_LinkRoomObjects` / `Gp_LinkRoomObjectsSpawn` parent `field_0` to `&Gfx_ViewCoord` and
 /// link the `field_4` / `field_8` (`GpObj4A`) and `field_C` (`GpObj3A`) arrays.
 typedef struct _GpRoomObjRec {
     /* 0x0 */ struct _GpGridParams* field_0;
@@ -161,7 +161,7 @@ typedef struct _GpSprtPrim {
 } GpSprtPrim;
 STATIC_ASSERT_SIZEOF(GpSprtPrim, 0x1C);
 
-/// Merged `DR_TPAGE` + `SPRT` (0x1C) written into `D_80071190` by
+/// Merged `DR_TPAGE` + `SPRT` (0x1C) written into `Gpu_PrimCursor` by
 /// `Gp_EmitSprts`. `MargePrim` concatenates the tpage packet onto the
 /// sprite so they share one OT entry.
 typedef struct _GpTpageSprt {
@@ -236,7 +236,7 @@ extern GpCdAreaRec* D_80114C64;
 extern GpCdRec0C* D_80114C68;
 
 /// Cursor into the inner rec's 0x10-byte list (`GpCdAreaRec.field_0`).
-extern GpCdRec10* D_80114C6C;
+extern GpCdRec10* Gp_CdRecCur;
 
 /// Phase for `func_800AA120`. `Gp_LoadWaitAreaCd` clears it when entering
 /// its own phase 1.
@@ -312,7 +312,7 @@ STATIC_ASSERT_SIZEOF(GpAreaApplyRec, 4);
 void Gp_EnqueueWeaponCd(void);
 void Gp_EnqueueViewCd(Task* task);
 void Gp_PumpTmdStream(Task* task);
-/// Walk the inner area rec's 0x10-byte CdCmd 0x21 list (`D_80114C6C`),
+/// Walk the inner area rec's 0x10-byte CdCmd 0x21 list (`Gp_CdRecCur`),
 /// matching each id against the 0xC-byte list (`D_80114C68`). Returns 1
 /// when the list is exhausted or missing, else 0 (still in flight).
 s32 Gp_PollAreaCdLoads(void);
@@ -375,7 +375,7 @@ s32  Gp_DispatchMsg(Task* arg0, s32 arg1, s32 arg2, s32 arg3);
 /// child, clear `GameSession.field_76`, and increment `task->state`.
 void Gp_LinkRoomObjectsSpawn(Task* task);
 void Gp_LinkViewSprts(void);
-/// Build merged `DR_TPAGE`+`SPRT` packets into `D_80071190` from
+/// Build merged `DR_TPAGE`+`SPRT` packets into `Gpu_PrimCursor` from
 /// `arg0[arg1->field_0]` for `arg1->field_2` entries, and OT-link each.
 void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1);
 void Gp_SetSprtShadeBits(s32 arg0);

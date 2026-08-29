@@ -577,7 +577,7 @@ void Tmd_SetupDraw(TmdObject* arg0)
 
         m = (MATRIX*)((u8*)tmp - 0x48);
         TOUCH_REG(m);
-        src = &D_80070F34;
+        src = &Gfx_ViewWorldMtx;
         TOUCH_REG(src);
         flags = arg0->field_C;
         TOUCH_REG(flags);

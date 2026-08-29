@@ -438,9 +438,9 @@ void Gp_EffSprTask34(Task* arg0)
         gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
             gte_stszotz(&((GpEffBeamScratch*)(head - 0x1C))->otz);
-            block->otz = block->otz + 1;
-            prim       = (POLY_FT4*)D_80071190;
-            D_80071190 = (DR_TPAGE*)(prim + 1);
+            block->otz     = block->otz + 1;
+            prim           = (POLY_FT4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
             setlen(prim, 9);
             setcode(prim, 0x2F);
             prim->tpage = 0x2A;
@@ -524,9 +524,9 @@ void Gp_EffSprTask72(Task* arg0)
         gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
             gte_stszotz(&((GpEffBeamScratch*)(head - 0x1C))->otz);
-            block->otz = block->otz + 1;
-            prim       = (POLY_FT4*)D_80071190;
-            D_80071190 = (DR_TPAGE*)(prim + 1);
+            block->otz     = block->otz + 1;
+            prim           = (POLY_FT4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
             setlen(prim, 9);
             setcode(prim, 0x2F);
             prim->tpage = 0x28;
@@ -610,7 +610,7 @@ void Gp_EffLineTaskA3(Task* arg0)
         gte_ldv0((SVECTOR*)&mem->field_10);
         gte_rtv0_real();
         gte_stsv(&((GpEffLineScratch*)(head - 0x20))->vec1);
-        gte_SetRotMatrix(&D_80070F34);
+        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_ldv0(&((GpEffLineScratch*)(head - 0x20))->vec1);
         gte_rtv0_real();
         gte_stsv(&((GpEffLineScratch*)(head - 0x20))->vec1);
@@ -634,9 +634,9 @@ void Gp_EffLineTaskA3(Task* arg0)
             gte_stflg(&((GpEffLineScratch*)(head - 0x20))->flag);
             if (block->flag >= 0) {
                 gte_stszotz(&((GpEffLineScratch*)(head - 0x20))->otz);
-                block->otz = block->otz + 1;
-                prim       = (LINE_G2*)D_80071190;
-                D_80071190 = (DR_TPAGE*)(prim + 1);
+                block->otz     = block->otz + 1;
+                prim           = (LINE_G2*)Gpu_PrimCursor;
+                Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
                 setlen(prim, 4);
                 setcode(prim, 0x50);
                 c        = 0xFF - ((u16)mem->field_22 << 6);
@@ -697,8 +697,8 @@ void func_800EF0E0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
     gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpEffBeamScratch*)(head - 0x1C))->otz);
-        prim       = (POLY_FT4*)D_80071190;
-        D_80071190 = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
         setlen(prim, 9);
         setcode(prim, 0x2F);
         prim->tpage = 0x29;
@@ -794,8 +794,8 @@ void Gp_EffSprTask35(Task* arg0)
         gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
             gte_stszotz(&((GpEffBeamScratch*)(head - 0x1C))->otz);
-            prim       = (POLY_FT4*)D_80071190;
-            D_80071190 = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_FT4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
             setlen(prim, 9);
             setcode(prim, 0x2F);
             prim->tpage = 0x28;
@@ -902,8 +902,8 @@ void Gp_EffSprTask6F(Task* arg0)
         gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
             gte_stszotz(&((GpEffBeamScratch*)(head - 0x1C))->otz);
-            prim       = (POLY_FT4*)D_80071190;
-            D_80071190 = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_FT4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
             setlen(prim, 9);
             setcode(prim, 0x2F);
             prim->tpage = 0x28;
@@ -1211,7 +1211,7 @@ void Gp_EffModelTask(Task* arg0)
     t2                 = coord->coord.t[2] + delta.vz;
     coord->flg         = 0;
     coord->coord.t[2]  = t2;
-    gte_SetRotMatrix(&D_80070F34);
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     gte_ldv0(&delta);
     gte_rtv0_real();
     gte_stsv(&dir);
@@ -1405,9 +1405,9 @@ void Gp_EffTileTaskA4(Task* arg0)
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        block->otz = block->otz + 1;
-        prim       = (TILE*)D_80071190;
-        D_80071190 = (DR_TPAGE*)(prim + 1);
+        block->otz     = block->otz + 1;
+        prim           = (TILE*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
         setlen(prim, 3);
         setcode(prim, 0x60);
         c        = 0xFF - (u16)mem->field_22 * 0x10;
@@ -1498,9 +1498,9 @@ void func_800F1BEC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
     gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpEffBeamScratch*)(head - 0x1C))->otz);
-        block->otz = block->otz + 1;
-        prim       = (POLY_FT4*)D_80071190;
-        D_80071190 = (DR_TPAGE*)(prim + 1);
+        block->otz     = block->otz + 1;
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
         setlen(prim, 9);
         setcode(prim, 0x2F);
         prim->tpage = 0x28;
@@ -1636,9 +1636,9 @@ void Gp_EffSprTask5C(Task* arg0)
         gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
         if (block->flag >= 0) {
             gte_stszotz(&((GpEffBeamScratch*)(head - 0x1C))->otz);
-            block->otz = block->otz + 1;
-            prim       = (POLY_FT4*)D_80071190;
-            D_80071190 = (DR_TPAGE*)(prim + 1);
+            block->otz     = block->otz + 1;
+            prim           = (POLY_FT4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
             setlen(prim, 9);
             setcode(prim, 0x2C);
             rec         = &D_80111E48[mem->field_22 / mem->field_28];
@@ -1720,12 +1720,12 @@ void Gp_EffSprTask76(Task* arg0)
     gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpEffBeamScratch*)(head - 0x1C))->otz);
-        block->otz = block->otz + 1;
-        prim       = (POLY_FT4*)D_80071190;
-        D_80071190 = (DR_TPAGE*)(prim + 1);
+        block->otz     = block->otz + 1;
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
         setlen(prim, 9);
         setcode(prim, 0x2C);
-        size = D_80112934[mem->field_22].w;
+        size = Gp_EffSprRecs[mem->field_22].w;
         if (arg0->state == 0) {
             if (arg0->spawnArg1 & 0xFFF) {
                 scale = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xFFF;
@@ -1739,16 +1739,16 @@ void Gp_EffSprTask76(Task* arg0)
             arg0->state   = 1;
         }
         prim->code |= 3;
-        prim->tpage = ((D_80112934[mem->field_22].tpageX & 0x3FF) >> 6) | 0x20;
-        prim->clut  = (D_80112934[mem->field_22].clutY << 6) | ((D_80112934[mem->field_22].clutX >> 4) & 0x3F);
-        prim->u0    = D_80112934[mem->field_22].u;
-        prim->v0    = D_80112934[mem->field_22].v;
-        prim->u1    = D_80112934[mem->field_22].u + size;
-        prim->v1    = D_80112934[mem->field_22].v;
-        prim->u2    = D_80112934[mem->field_22].u;
-        prim->v2    = D_80112934[mem->field_22].v + size;
-        prim->u3    = D_80112934[mem->field_22].u + size;
-        prim->v3    = D_80112934[mem->field_22].v + size;
+        prim->tpage = ((Gp_EffSprRecs[mem->field_22].tpageX & 0x3FF) >> 6) | 0x20;
+        prim->clut  = (Gp_EffSprRecs[mem->field_22].clutY << 6) | ((Gp_EffSprRecs[mem->field_22].clutX >> 4) & 0x3F);
+        prim->u0    = Gp_EffSprRecs[mem->field_22].u;
+        prim->v0    = Gp_EffSprRecs[mem->field_22].v;
+        prim->u1    = Gp_EffSprRecs[mem->field_22].u + size;
+        prim->v1    = Gp_EffSprRecs[mem->field_22].v;
+        prim->u2    = Gp_EffSprRecs[mem->field_22].u;
+        prim->v2    = Gp_EffSprRecs[mem->field_22].v + size;
+        prim->u3    = Gp_EffSprRecs[mem->field_22].u + size;
+        prim->v3    = Gp_EffSprRecs[mem->field_22].v + size;
         block->dx   = ((((s16)size * mem->field_24) / block->otz) * rsin(mem->field_26)) >> 12;
         block->dy   = ((((s16)size * mem->field_24) / block->otz) * rcos(mem->field_26)) >> 12;
         prim->x0    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
@@ -1846,9 +1846,9 @@ void Gp_EffSprTask7C(Task* arg0)
     gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpEffBeamScratch*)(head - 0x1C))->otz);
-        block->otz = block->otz + 1;
-        prim       = (POLY_FT4*)D_80071190;
-        D_80071190 = (DR_TPAGE*)(prim + 1);
+        block->otz     = block->otz + 1;
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
         setlen(prim, 9);
         setcode(prim, 0x2C);
         if (mem->field_22 >= 0x18) {
@@ -1983,9 +1983,9 @@ void Gp_EffLineTask92(Task* arg0)
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
-            prim       = (LINE_F2*)D_80071190;
-            block->otz = block->otz + 1;
-            D_80071190 = (DR_TPAGE*)(prim + 1);
+            prim           = (LINE_F2*)Gpu_PrimCursor;
+            block->otz     = block->otz + 1;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
             setlen(prim, 3);
             setcode(prim, 0x40);
             val = 0xFF - (mem->field_22 << (6 - mem->field_24));
@@ -2096,8 +2096,8 @@ void Gp_DrawEffShard(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3)
         b         = arg2 * (arg3 & 0xF);
         ang       = 0;
         do {
-            quad       = (POLY_G4*)D_80071190;
-            D_80071190 = (DR_TPAGE*)(quad + 1);
+            quad           = (POLY_G4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(quad + 1);
             setlen(quad, 8);
             setcode(quad, 0x38);
             quad->r0 = r;
@@ -2132,8 +2132,8 @@ void Gp_DrawEffShard(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3)
             ang       = 0;
             do {
                 rng = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
-                tri               = (POLY_G3*)D_80071190;
-                D_80071190        = (DR_TPAGE*)(tri + 1);
+                tri               = (POLY_G3*)Gpu_PrimCursor;
+                Gpu_PrimCursor    = (DR_TPAGE*)(tri + 1);
                 setlen(tri, 6);
                 setcode(tri, 0x30);
                 tri->r0 = r;
@@ -2236,9 +2236,9 @@ void Gp_EffSprTask9E(Task* arg0)
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        block->otz += 0x80;
-        prim        = (POLY_FT4*)D_80071190;
-        D_80071190  = (DR_TPAGE*)(prim + 1);
+        block->otz    += 0x80;
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
         setlen(prim, 9);
         setcode(prim, 0x2E);
         prim->g0    = col >> 2;
@@ -2339,8 +2339,8 @@ void Gp_EffSprTask54(Task* arg0)
     gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpEffBeamScratch*)(head - 0x1C))->otz);
-        prim       = (POLY_FT4*)D_80071190;
-        D_80071190 = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
         setlen(prim, 9);
         setcode(prim, 0x2C);
         prim->r0    = 0x68;
@@ -2409,7 +2409,7 @@ void func_800F6560(GsCOORDINATE2* arg0, s32 arg1, u32 arg2)
         v->vx = tbl->x * arg1;
         v->vy = 0;
         v->vz = tbl->y * arg1;
-        gte_SetRotMatrix(&D_80070F34);
+        gte_SetRotMatrix(&Gfx_ViewWorldMtx);
         gte_ldv0(v);
         gte_rtv0_real();
         gte_stsv(v);
@@ -2432,8 +2432,8 @@ void func_800F6560(GsCOORDINATE2* arg0, s32 arg1, u32 arg2)
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
         block->otz++;
-        prim       = (POLY_FT4*)D_80071190;
-        D_80071190 = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
         setlen(prim, 9);
         setcode(prim, 0x2C);
         prim->r0    = arg2 >> 1;
@@ -2487,7 +2487,7 @@ void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2)
             v->vx = tbl->x * arg1;
             v->vy = 0;
             v->vz = tbl->y * arg1;
-            gte_SetRotMatrix(&D_80070F34);
+            gte_SetRotMatrix(&Gfx_ViewWorldMtx);
             gte_ldv0(v);
             gte_rtv0_real();
             gte_stsv(v);
@@ -2509,8 +2509,8 @@ void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2)
         gte_stflg(&block->flag);
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
-            prim       = (POLY_FT4*)D_80071190;
-            D_80071190 = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_FT4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
             setlen(prim, 9);
             setcode(prim, 0x2C);
             if (arg2 == 0) {
@@ -2651,7 +2651,7 @@ void Gp_EffAttachTask37(Task* arg0)
             coord->coord.t[1] += delta.vy;
             coord->coord.t[2] += delta.vz;
             coord->flg         = 0;
-            gte_SetRotMatrix(&D_80070F34);
+            gte_SetRotMatrix(&Gfx_ViewWorldMtx);
             gte_ldv0(&delta);
             gte_rtv0_real();
             gte_stsv(&dir);

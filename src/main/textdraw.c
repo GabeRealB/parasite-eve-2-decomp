@@ -113,14 +113,14 @@ void Text_DrawGlyphDualSprtA(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     SPRT* p2;
     s32   temp;
 
-    p             = (SPRT*)D_80071190;
-    D_80071190    = (DR_TPAGE*)(p + 1);
-    *(s32*)&p->r0 = arg2;
+    p              = (SPRT*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    *(s32*)&p->r0  = arg2;
     setlen(p, 4);
     setcode(p, 0x66);
 
-    p2         = (SPRT*)D_80071190;
-    D_80071190 = (DR_TPAGE*)(p2 + 1);
+    p2             = (SPRT*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(p2 + 1);
     setlen(p2, 4);
     setcode(p2, 0x67);
 
@@ -144,14 +144,14 @@ void Text_DrawGlyphDualSprt(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     SPRT* p2;
     s32   temp;
 
-    p             = (SPRT*)D_80071190;
-    D_80071190    = (DR_TPAGE*)(p + 1);
-    *(s32*)&p->r0 = arg2;
+    p              = (SPRT*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    *(s32*)&p->r0  = arg2;
     setlen(p, 4);
     setcode(p, 0x64);
 
-    p2         = (SPRT*)D_80071190;
-    D_80071190 = (DR_TPAGE*)(p2 + 1);
+    p2             = (SPRT*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(p2 + 1);
     setlen(p2, 4);
     setcode(p2, 0x67);
 
@@ -176,14 +176,14 @@ void Text_DrawGlyphDualSprtTpage(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     DR_TPAGE* dr;
     s32       temp;
 
-    p             = (SPRT*)D_80071190;
-    D_80071190    = (DR_TPAGE*)(p + 1);
-    *(s32*)&p->r0 = arg2;
+    p              = (SPRT*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    *(s32*)&p->r0  = arg2;
     setlen(p, 4);
     setcode(p, 0x64);
 
-    p2         = (SPRT*)D_80071190;
-    D_80071190 = (DR_TPAGE*)(p2 + 1);
+    p2             = (SPRT*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(p2 + 1);
     setlen(p2, 4);
     setcode(p2, 0x67);
 
@@ -198,15 +198,15 @@ void Text_DrawGlyphDualSprtTpage(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     p->clut      = 0x7FFD;
 
     addPrim(Gpu_CurrentOt + arg0->otIndex, p);
-    dr         = D_80071190;
-    D_80071190 = dr + 1;
+    dr             = Gpu_PrimCursor;
+    Gpu_PrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE100023F;
     addPrim(Gpu_CurrentOt + arg0->otIndex, dr);
 
     addPrim(Gpu_CurrentOt + arg0->otIndex, p2);
-    dr         = D_80071190;
-    D_80071190 = dr + 1;
+    dr             = Gpu_PrimCursor;
+    Gpu_PrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE100025F;
     addPrim(Gpu_CurrentOt + arg0->otIndex, dr);
@@ -730,8 +730,8 @@ void Text_DrawGlyphQueued(TextDrawReq* arg0, FontGlyph* arg1, s32 arg2)
     SPRT* p;
     s32   temp;
 
-    p          = (SPRT*)D_80071190;
-    D_80071190 = (DR_TPAGE*)(p + 1);
+    p              = (SPRT*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
     setlen(p, 4);
     *(s32*)&p->r0 = arg2;
     setcode(p, 0x64);
@@ -751,8 +751,8 @@ void Text_DrawGlyphOt(TextDrawReq* arg0, FontGlyph* arg1)
     SPRT* p;
     s32   temp;
 
-    p          = (SPRT*)D_80071190;
-    D_80071190 = (DR_TPAGE*)(p + 1);
+    p              = (SPRT*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
     setlen(p, 4);
     setcode(p, 0x67);
     p->x0   = arg0->x + (s8)arg1->off_x;

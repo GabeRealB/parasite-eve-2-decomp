@@ -61,8 +61,8 @@ void Gp_DrawEffSprite81(Task* arg0)
         gte_stszotz(&((GpEffFt4Scratch*)(head - 0x18))->otz);
         USE_REG(head);
         block->otz++;
-        prim       = (POLY_FT4*)D_80071190;
-        D_80071190 = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
         COMPILER_BARRIER();
         len  = 9;
         code = 0x2D;
@@ -153,9 +153,9 @@ void func_800F7AD4(GsCOORDINATE2* arg0, s32 arg1, s16 arg2, u16 arg3)
     gte_stflg(&block->flag);
     if (block->flag >= 0) {
         gte_stszotz(&block->otz);
-        block->otz += 0x20;
-        prim        = (POLY_FT4*)D_80071190;
-        D_80071190  = (DR_TPAGE*)(prim + 1);
+        block->otz    += 0x20;
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
         setlen(prim, 9);
         setcode(prim, 0x2E);
         prim->tpage = 0x29;
@@ -210,7 +210,7 @@ void Gp_EffSprTask81(Task* arg0)
     coord->workm = parent->workm;
     gte_SetRotMatrix(&parent->workm);
     gte_SetTransMatrix(&parent->workm);
-    world = &D_80070F34;
+    world = &Gfx_ViewWorldMtx;
     Gp_WorldToLocal(world, &coord->workm, &coord->coord);
     coord->flg = 0;
     Gp_UpdateCoord(coord);

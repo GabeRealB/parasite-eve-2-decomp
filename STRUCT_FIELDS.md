@@ -950,7 +950,7 @@ fields into a merged `DR_TPAGE`+`SPRT`.
 | 0x13 | `flags` | u8; bit 0 = shade-tex (skip RGB); OR'd into SPRT code |
 
 ### `GpTpageSprt` (0x1C) — `D4.h`
-Merged `DR_TPAGE` + `SPRT` packet in the `D_80071190` primitive buffer.
+Merged `DR_TPAGE` + `SPRT` packet in the `Gpu_PrimCursor` primitive buffer.
 `Gp_EmitSprts` writes one per `GpSprtElem` and `MargePrim`s them.
 
 ### `GpSprtRec` (0xC) — `D4.h`
@@ -980,7 +980,7 @@ the current room's grid params and object lists from this record.
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x0 | `field_0` | `GpGridParams*`; parented to `&D_80070F10` and stored in `Gp_GridParams` |
+| 0x0 | `field_0` | `GpGridParams*`; parented to `&Gfx_ViewCoord` and stored in `Gp_GridParams` |
 | 0x4 | `field_4` | `GpObj4A*` array; linked onto `Gp_Obj4ALists[1]` (`Gp_LinkObj4A(1, …)`) |
 | 0x8 | `field_8` | `GpObj4A*` array; linked onto `Gp_Obj4ALists[0]` (`Gp_LinkObj4A(0, …)`) |
 | 0xC | `field_C` | `GpObj3A*` array; linked onto `Gp_Obj3ALists[0]` (`Gp_LinkObj3A(0, …)`) |
@@ -993,13 +993,13 @@ record index is `Gp_GetViewIndex() - 1`. Passed as `Task_Spawn` type-0xF
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x00 | `mtx` | `MATRIX`; rotation copied to `D_80070E44`, translation to `D_80070F28` (`Gp_LoadStageView` / `Gp_ApplyView`) |
+| 0x00 | `mtx` | `MATRIX`; rotation copied to `Gfx_ViewRotMtx`, translation to `D_80070F28` (`Gp_LoadStageView` / `Gp_ApplyView`) |
 | 0x20 | `field_20` | Extra word; `lhu` into `Display_State.field_110`, `lw` into GTE H / `gte_SetGeomScreen` (`Gp_LoadStageView` / `Gp_ApplyView`) |
 
 ### `GpDisp2dCoord` (0x50) — `gameplay.h`
 `GsCOORDINATE2` overlay embedded in `GpDisp2d`. `Gp_AttachDisp2d` writes an
 identity `mtx`, zeros `rot` as three halfwords at 0x44/0x46/0x48 (libgs
-`param` / first half of `super`), and parents `sub` to `&D_80070F10`.
+`param` / first half of `super`), and parents `sub` to `&Gfx_ViewCoord`.
 
 | Off | Member | Role |
 |-----|--------|------|
@@ -1007,7 +1007,7 @@ identity `mtx`, zeros `rot` as three halfwords at 0x44/0x46/0x48 (libgs
 | 0x04 | `mtx` | Local `MATRIX`; identity (diagonal `ONE`) |
 | 0x24 | `workm` | Work matrix (left zero from `Mem_Calloc`) |
 | 0x44 | `rot` | `SVECTOR` overlay of libgs `param`/`super` |
-| 0x4C | `sub` | Parent coordinate (`&D_80070F10`) |
+| 0x4C | `sub` | Parent coordinate (`&Gfx_ViewCoord`) |
 
 ### `GpDisp2d` (0x60) — `gameplay.h`
 spawnType-2 task extra allocated by `Gp_AttachDisp2d` (`"new_disp_2d"`).
@@ -1147,7 +1147,7 @@ alignment pad).
 
 | Off | Member | Role |
 |-----|--------|------|
-| 0x00 | `field_0` | `GsCOORDINATE2*` (`Gp_LinkRoomObjects` stores `&D_80070F10`). `Gp_LocalToGrid` applies `workm` via `ApplyTransposeMatrixLV` and subtracts `coord.t[0]` / `coord.t[2]` from transformed X / Z |
+| 0x00 | `field_0` | `GsCOORDINATE2*` (`Gp_LinkRoomObjects` stores `&Gfx_ViewCoord`). `Gp_LocalToGrid` applies `workm` via `ApplyTransposeMatrixLV` and subtracts `coord.t[0]` / `coord.t[2]` from transformed X / Z |
 | 0x14 | `field_14` | s32 X origin added to world X before dividing by `field_20` |
 | 0x18 | `field_18` | s32 Z origin added to world Z before dividing by `field_20` |
 | 0x20 | `field_20` | u16 cell size; divisor for world-to-grid (`lhu`) |
@@ -1221,7 +1221,7 @@ by `Gp_UnlinkObj4A`. Walked at +0x4C until `field_4A` bit 0x80.
 |-----|--------|------|
 | 0x00 | `next` | Intrusive next; NULL-terminated |
 | 0x04 | `prev` | Previous node, or the list-head object when first |
-| 0x08 | `field_8` | `GsCOORDINATE2*`; `Gp_LinkRoomObjects` stores `&D_80070F10` |
+| 0x08 | `field_8` | `GsCOORDINATE2*`; `Gp_LinkRoomObjects` stores `&Gfx_ViewCoord` |
 | 0x4A | `field_4A` | Flag byte: 0x20 = on list, 0x40 set after insert, 0x80 = last in array. Unlink keeps bits 0x87 |
 
 ### `GpObj3A` (0x3C) — `3A34.h`
@@ -1370,7 +1370,7 @@ Sparse overlay. Pointer at 0x20 is a `GpObj5C*` (same family as
 | 0x0A | `field_A` | Work type halfword; `Gp_SpawnAtPlace` copies `GpEnemyPlace.field_2` (same slot as `GpWorkObj.field_A`) |
 | 0x0C | `field_C` | Countdown word; `Gp_EnemyWaitStart` sets 0x78, `Gp_EnemyWaitTick` decrements and advances `Task::state` at 0 |
 | 0x10 | `node` | `GpLinkNode` unlinked by `Gp_UnlinkNode` |
-| 0x18 | `field_18` | `GsCOORDINATE2*`; set to `&D_80070F10` by `Gp_AllocEnemy`. `Gp_UpdateLinkXforms` reads it from the node overlay as `coord` |
+| 0x18 | `field_18` | `GsCOORDINATE2*`; set to `&Gfx_ViewCoord` by `Gp_AllocEnemy`. `Gp_UpdateLinkXforms` reads it from the node overlay as `coord` |
 | 0x1C | `field_1C` | Local `VECTOR3`; `Gp_UpdateLinkXforms` loads the low halves as an SVECTOR |
 | 0x2C | `field_2C` | Player-relative `VECTOR3` written by `Gp_UpdateLinkXforms` after rotating by the transposed player `workm` |
 | 0x3C | `field_3C` | `GpAreaPlace*` stored by `Gp_SpawnArea` (same slot as `GpWorkObj.field_3C`) |
@@ -1519,7 +1519,7 @@ Object behind `GpAreaRec.field_4`. Full size unknown.
 
 ### `GpCdRec10` (0x10) — `D4.h`
 0xFF-terminated CdCmd 0x21 source list at inner `GpAreaRec.field_0`.
-Walked by `Gp_PollAreaCdLoads` (`D_80114C6C`).
+Walked by `Gp_PollAreaCdLoads` (`Gp_CdRecCur`).
 
 | Off | Member | Role |
 |-----|--------|------|
@@ -1864,7 +1864,7 @@ returns the number of slots whose `field_0` is non-zero.
 | Off | Member | Role |
 |-----|--------|------|
 | 0x00 | `field_0` | s32 refcount; cleared by `Gp_InitRoomCoords`, decremented by `Gp_DecRoomCoordRefs`, counted by `Gp_CountRoomCoords`; `Gp_EffCtlTask6B` sets it to 1 or 4 |
-| 0x04 | `coord` | Embedded `GsCOORDINATE2`; `coord.sub` is parented to `&D_80070F10` |
+| 0x04 | `coord` | Embedded `GsCOORDINATE2`; `coord.sub` is parented to `&Gfx_ViewCoord` |
 | 0x54 | `field_54` | s16; `Gp_EffCtlTask6B` inits to `0xC00` (same as `GpCoordTail.field_50`) |
 | 0x56 | `field_56` | s16; `Gp_EffCtlTask6B` inits to `0xC00` |
 | 0x58 | `field_58` | s16; `Gp_EffCtlTask6B` inits to `0xC00` |

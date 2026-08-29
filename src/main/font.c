@@ -343,8 +343,8 @@ void Prim_DrawSprt(PrimDrawParams* arg0, u32 arg1, s32 arg2)
     SPRT* p;
     u8    v;
 
-    p          = (SPRT*)D_80070EE0;
-    D_80070EE0 = (u8*)(p + 1);
+    p                 = (SPRT*)Gpu_SysPrimCursor;
+    Gpu_SysPrimCursor = (u8*)(p + 1);
     SetSprt(p);
     if (arg0->shadeMode == 0) {
         SetShadeTex(p, 1);
@@ -371,8 +371,8 @@ void Prim_DrawTPage(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     DR_TPAGE* p;
 
-    p          = (DR_TPAGE*)D_80070EE0;
-    D_80070EE0 = (u8*)(p + 1);
+    p                 = (DR_TPAGE*)Gpu_SysPrimCursor;
+    Gpu_SysPrimCursor = (u8*)(p + 1);
     SetDrawTPage(p, 1, 0, GetTPage(0, (s16)arg0, (s16)arg1, (s16)arg2) & 0xFFFF);
     AddPrim(Gpu_CurrentOt + arg3, p);
 }
@@ -409,8 +409,8 @@ void Prim_DrawTile(PrimDrawParams* arg0)
 {
     TILE* p;
 
-    p          = (TILE*)D_80070EE0;
-    D_80070EE0 = (u8*)(p + 1);
+    p                 = (TILE*)Gpu_SysPrimCursor;
+    Gpu_SysPrimCursor = (u8*)(p + 1);
     SetTile(p);
     if (arg0->shadeMode == 0) {
         SetShadeTex(p, 1);

@@ -18,10 +18,10 @@ s32 Fade_StepIn(s32 arg0)
     register s32 ret asm("v0");
     register s32 w asm("t7");
 
-    w          = 0x140;
-    color      = *(volatile u8*)&D_8006ACB4;
-    p          = (TILE*)D_80070EE0;
-    D_80070EE0 = (u8*)(p + 1);
+    w                 = 0x140;
+    color             = *(volatile u8*)&D_8006ACB4;
+    p                 = (TILE*)Gpu_SysPrimCursor;
+    Gpu_SysPrimCursor = (u8*)(p + 1);
     setlen(p, 3);
     setcode(p, 0x62);
     p->r0 = color;
@@ -33,8 +33,8 @@ s32 Fade_StepIn(s32 arg0)
     p->h  = 0xF0;
     addPrim(Gpu_CurrentOt - 0x10, p);
 
-    dr         = (DR_TPAGE*)D_80070EE0;
-    D_80070EE0 = (u8*)(dr + 1);
+    dr                = (DR_TPAGE*)Gpu_SysPrimCursor;
+    Gpu_SysPrimCursor = (u8*)(dr + 1);
     setDrawTPage(dr, 0, 1, 0x40);
     addPrim(Gpu_CurrentOt - 0x10, dr);
 
@@ -66,10 +66,10 @@ void Fade_StartWhite(void)
     Display_SetMode(0xD010);
     SetDispMask(1);
 
-    D_8006ACB4 = 0xFF;
-    color      = *(volatile u8*)&D_8006ACB4;
-    p          = (TILE*)D_80070EE0;
-    D_80070EE0 = (u8*)(p + 1);
+    D_8006ACB4        = 0xFF;
+    color             = *(volatile u8*)&D_8006ACB4;
+    p                 = (TILE*)Gpu_SysPrimCursor;
+    Gpu_SysPrimCursor = (u8*)(p + 1);
     setlen(p, 3);
     setcode(p, 0x62);
     p->r0 = color;
@@ -81,8 +81,8 @@ void Fade_StartWhite(void)
     p->h  = 0xF0;
     addPrim(Gpu_CurrentOt - 0x10, p);
 
-    dr         = (DR_TPAGE*)D_80070EE0;
-    D_80070EE0 = (u8*)(dr + 1);
+    dr                = (DR_TPAGE*)Gpu_SysPrimCursor;
+    Gpu_SysPrimCursor = (u8*)(dr + 1);
     setDrawTPage(dr, 0, 1, 0x40);
     addPrim(Gpu_CurrentOt - 0x10, dr);
 }
@@ -96,8 +96,8 @@ s32 Fade_StepOut(s32 arg0)
 
     Display_State.field_100 = 1;
     color                   = *(volatile u8*)&D_8006ACB4;
-    p                       = (TILE*)D_80070EE0;
-    D_80070EE0              = (u8*)(p + 1);
+    p                       = (TILE*)Gpu_SysPrimCursor;
+    Gpu_SysPrimCursor       = (u8*)(p + 1);
     setlen(p, 3);
     setcode(p, 0x62);
     p->r0 = color;
@@ -109,8 +109,8 @@ s32 Fade_StepOut(s32 arg0)
     p->h  = 0xF0;
     addPrim(Gpu_CurrentOt - 0x10, p);
 
-    dr         = (DR_TPAGE*)D_80070EE0;
-    D_80070EE0 = (u8*)(dr + 1);
+    dr                = (DR_TPAGE*)Gpu_SysPrimCursor;
+    Gpu_SysPrimCursor = (u8*)(dr + 1);
     setDrawTPage(dr, 0, 1, 0x40);
     addPrim(Gpu_CurrentOt - 0x10, dr);
 

@@ -20,7 +20,7 @@
 #include "main/wipsys.h"
 
 extern u_long*      Gpu_CurrentOt;
-extern DR_TPAGE*    D_80071190;
+extern DR_TPAGE*    Gpu_PrimCursor;
 extern WipUiHolder* Wip_UiHolder;
 extern u16*         D_8005C374;
 extern u8           D_800733F0[2][0x6C];
@@ -29,7 +29,7 @@ extern u8           D_80073628[2][0x24];
 extern u8           D_80073670[2][0xE4];
 extern u8           D_80073838[2][0xA4];
 extern u8           D_80073980[0x208];
-extern s32          D_8005ED70;
+extern s32          Pad_MaskConfirm;
 
 void func_807246B4(void);
 
@@ -83,14 +83,14 @@ void Title_DrawSpriteRow(s32 y, s32 v, s32 color)
     DR_TPAGE* dr;
     u8        c;
 
-    c             = color;
-    p             = (SPRT*)D_80071190;
-    D_80071190    = (DR_TPAGE*)(p + 1);
-    p->x0         = -0x80;
-    p->w          = 0x100;
-    p->h          = 0x10;
-    p->clut       = 0x3FC0;
-    *(s32*)&p->r0 = (c << 16) | (c << 8) | c;
+    c              = color;
+    p              = (SPRT*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    p->x0          = -0x80;
+    p->w           = 0x100;
+    p->h           = 0x10;
+    p->clut        = 0x3FC0;
+    *(s32*)&p->r0  = (c << 16) | (c << 8) | c;
     setlen(p, 4);
     p->u0 = 0;
     p->v0 = v;
@@ -98,8 +98,8 @@ void Title_DrawSpriteRow(s32 y, s32 v, s32 color)
     p->y0 = y;
     addPrim(Gpu_CurrentOt, p);
 
-    dr         = D_80071190;
-    D_80071190 = dr + 1;
+    dr             = Gpu_PrimCursor;
+    Gpu_PrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE10002BC;
     addPrim(Gpu_CurrentOt, dr);
@@ -138,8 +138,8 @@ void Title_MenuTask(Task* arg0)
         a1 = prev; /* pin after prologue so color uses $a1 */
         h  = 0xF0;
 
-        a0         = (TILE*)D_80071190;
-        D_80071190 = (DR_TPAGE*)(a0 + 1);
+        a0             = (TILE*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(a0 + 1);
         setlen(a0, 3);
         setcode(a0, 0x60);
         c      = a1 * 16;
@@ -155,8 +155,8 @@ void Title_MenuTask(Task* arg0)
         setSemiTrans(a0, 1);
         addPrim(Gpu_CurrentOt, a0);
 
-        dr         = D_80071190;
-        D_80071190 = dr + 1;
+        dr             = Gpu_PrimCursor;
+        Gpu_PrimCursor = dr + 1;
         setlen(dr, 1);
         /* Split like Title_DrawSpriteRow: lui 0xE100 / ori 0x240, after 0xFFFFFF */
         dr->code[0] = 0xE1000000 | 0x240;
@@ -200,8 +200,8 @@ normal:
             DR_TPAGE* dr;
             s32       tmp;
 
-            p          = (TILE*)D_80071190;
-            D_80071190 = (DR_TPAGE*)(p + 1);
+            p              = (TILE*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
             setlen(p, 3);
             setcode(p, 0x62);
             tmp   = s3->timer;
@@ -215,8 +215,8 @@ normal:
             p->r0 = color;
             addPrim(Gpu_CurrentOt, p);
 
-            dr         = D_80071190;
-            D_80071190 = dr + 1;
+            dr             = Gpu_PrimCursor;
+            Gpu_PrimCursor = dr + 1;
             setlen(dr, 1);
             dr->code[0] = 0xE1000000 | 0x240;
             addPrim(Gpu_CurrentOt, dr);
@@ -302,7 +302,7 @@ normal:
         goto end;
     }
 
-    if (Pad_CheckButtons(0, 1, D_8005ED70 | 0x800) != 0) {
+    if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | 0x800) != 0) {
         SndEvt_EnqueueType6(3, 0, 0);
         Task_Spawn(0, Title_MenuSpawnIds[s3->selection], 0, 0);
         Display_State.field_100 = 0;
@@ -323,7 +323,7 @@ intro:
         Title_DrawSpriteRow(0x40 - (q >> 3), 0, fade);
     }
     Title_DrawSpriteRow(0x5C, 0x10, 0x80);
-    if (Pad_CheckButtons(0, 1, D_8005ED70 | 0x800) != 0) {
+    if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | 0x800) != 0) {
         SndEvt_EnqueueType6(3, 0, 0);
         s3->timer = 0;
         s4->state = s4->state + 1;

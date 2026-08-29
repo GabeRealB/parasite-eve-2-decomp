@@ -172,7 +172,7 @@ s32 Gp_TraceGroundCoord(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1)
     block->dir.vy                          = 0x1000;
     block->dir.vz                          = 0;
     block->pos.vz                          = vz;
-    gte_SetRotMatrix(&D_80070F34);
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     dir = (SVECTOR*)(head - 8);
     gte_ldv0(dir);
     gte_rtv0_real();
@@ -182,7 +182,7 @@ s32 Gp_TraceGroundCoord(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1)
     block->dir.vz += block->pos.vz;
     ret            = func_800DE7CC(dir, &block->pos, dir, NULL);
     if (ret == 1) {
-        world            = &D_80070F34;
+        world            = &Gfx_ViewWorldMtx;
         arg1->workm.t[0] = block->dir.vx;
         arg1->workm.t[1] = block->dir.vy;
         arg1->workm.t[2] = block->dir.vz;
@@ -215,7 +215,7 @@ s32 func_800EA1A8(VECTOR3* arg0, VECTOR3* arg1)
     block->dir.vy                          = 0x1000;
     block->dir.vz                          = 0;
     block->pos.vz                          = vz;
-    gte_SetRotMatrix(&D_80070F34);
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     dir = (SVECTOR*)(head - 8);
     gte_ldv0(dir);
     gte_rtv0_real();
@@ -279,7 +279,7 @@ void Gp_InitRoomCoords(void)
 
     p = Gp_RoomCoords;
     for (i = 0; i < 8; i++) {
-        p->coord.sub = &D_80070F10;
+        p->coord.sub = &Gfx_ViewCoord;
         p->field_0   = 0;
         p++;
     }
@@ -331,7 +331,7 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3)
         mem->field_18 = arg3->vx;
         mem->field_1A = arg3->vy;
         mem->field_1C = arg3->vz;
-        if (arg1->sub == &D_80070F10) {
+        if (arg1->sub == &Gfx_ViewCoord) {
             coord->coord = arg1->coord;
             gte_SetRotMatrix(&arg1->coord);
             gte_SetTransMatrix(&arg1->coord);
@@ -346,9 +346,9 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3)
             gte_ldv0(arg3);
             gte_rtv0tr_real();
             gte_stlvnl(coord->workm.t);
-            Gp_WorldToLocal(&D_80070F10.workm, &coord->workm, &coord->coord);
+            Gp_WorldToLocal(&Gfx_ViewCoord.workm, &coord->workm, &coord->coord);
         }
-        coord->sub = &D_80070F10;
+        coord->sub = &Gfx_ViewCoord;
         coord->flg = 0;
         Gp_UpdateCoord(coord);
         mem->field_8 = arg1;
@@ -370,10 +370,10 @@ GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3)
         gte_ldv0(arg3);
         gte_rtv0tr_real();
         gte_stlvnl(coord->coord.t);
-        coord->sub = &D_80070F10;
+        coord->sub = &Gfx_ViewCoord;
         coord->flg = 0;
         Gp_UpdateCoord(coord);
-        mem->field_8 = &D_80070F10;
+        mem->field_8 = &Gfx_ViewCoord;
     }
 
     task->spawnArg2    = mem;
@@ -407,8 +407,8 @@ void Gp_DrawFadeQuad(u8* arg0, s32 arg1)
     yTop  = -0x78;
     yBot  = 0x78;
 
-    p          = (POLY_F4*)D_80071190;
-    D_80071190 = (DR_TPAGE*)(p + 1);
+    p              = (POLY_F4*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
     setPolyF4(p);
     setRGB0(p, arg0[0], arg0[1], arg0[2]);
     p->x0 = x0;
@@ -422,8 +422,8 @@ void Gp_DrawFadeQuad(u8* arg0, s32 arg1)
     addPrim((u_long*)(((((u32)0x10 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), p);
 
     setSemiTrans(p, 1);
-    dr         = D_80071190;
-    D_80071190 = dr + 1;
+    dr             = Gpu_PrimCursor;
+    Gpu_PrimCursor = dr + 1;
     setDrawTPage(dr, 0, 1, 0xA | (arg1 << 5));
     addPrim((u_long*)(((((u32)0x10 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), dr);
 }
@@ -471,8 +471,8 @@ void Gp_DrawArc(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
         block->inner = ((s16)arg1 * 64) / block->otz;
         block->outer = (((s16)arg1 + (s16)arg2) * 64) / block->otz;
         do {
-            prim       = (POLY_G4*)D_80071190;
-            D_80071190 = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
             setRGB1(prim, 0, 0, 0);
@@ -492,8 +492,8 @@ void Gp_DrawArc(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
                     prim);
             otz = block->otz;
             setSemiTrans(prim, 1);
-            dr         = D_80071190;
-            D_80071190 = dr + 1;
+            dr             = Gpu_PrimCursor;
+            Gpu_PrimCursor = dr + 1;
             setDrawTPage(dr, 0, 1, 0x2A);
             addPrim((u_long*)(((((u32)otz << Display_State.field_128) >> 2) & 0xFFC) +
                               (s32)Gpu_CurrentOt),
@@ -546,8 +546,8 @@ void Gp_DrawRing(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
         block->step = ((s16)arg1 * 64) / block->otz;
         ang         = 0;
         do {
-            prim       = (POLY_G4*)D_80071190;
-            D_80071190 = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
             setPolyG4(prim);
             setRGB0(prim, 0, 0, 0);
             setRGB1(prim, 0, 0, 0);
@@ -568,8 +568,8 @@ void Gp_DrawRing(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
                     prim);
             otz = block->otz;
             setSemiTrans(prim, 1);
-            dr         = D_80071190;
-            D_80071190 = dr + 1;
+            dr             = Gpu_PrimCursor;
+            Gpu_PrimCursor = dr + 1;
             setDrawTPage(dr, 0, 1, 0x2A);
             addPrim((u_long*)(((((u32)otz << Display_State.field_128) >> 2) & 0xFFC) +
                               (s32)Gpu_CurrentOt),
@@ -614,8 +614,8 @@ void Gp_DrawFxQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, u16 arg3)
     if (block->flag >= 0) {
         gte_stszotz(&((GpFxQuadScratch*)(head - 0x1C))->otz);
         block->otz++;
-        prim       = (POLY_FT4*)D_80071190;
-        D_80071190 = (DR_TPAGE*)(prim + 1);
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
         setPolyFT4(prim);
         setSemiTrans(prim, 1);
         setShadeTex(prim, 1);
@@ -705,8 +705,8 @@ void func_800EB9B0(GsCOORDINATE2* arg0, s16 arg1, u8* rgb)
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
-            prim       = (POLY_G4*)D_80071190;
-            D_80071190 = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
             setPolyG4(prim);
             setRGB0(prim, rgb[0], rgb[1], rgb[2]);
             setRGB1(prim, rgb[0], rgb[1], rgb[2]);
@@ -725,8 +725,8 @@ void func_800EB9B0(GsCOORDINATE2* arg0, s16 arg1, u8* rgb)
                     prim);
             otz = block->otz;
             setSemiTrans(prim, 1);
-            dr         = D_80071190;
-            D_80071190 = dr + 1;
+            dr             = Gpu_PrimCursor;
+            Gpu_PrimCursor = dr + 1;
             setDrawTPage(dr, 0, 1, 0x2A);
             addPrim((u_long*)(((((u32)otz << Display_State.field_128) >> 2) & 0xFFC) +
                               (s32)Gpu_CurrentOt),
@@ -795,8 +795,8 @@ void func_800EBF18(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* rgb)
         if (block->flag >= 0) {
             gte_stszotz(&block->otz);
             block->otz++;
-            prim       = (POLY_G4*)D_80071190;
-            D_80071190 = (DR_TPAGE*)(prim + 1);
+            prim           = (POLY_G4*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
             setPolyG4(prim);
             setRGB0(prim, rgb[0], rgb[1], rgb[2]);
             setRGB1(prim, rgb[0], rgb[1], rgb[2]);
@@ -815,8 +815,8 @@ void func_800EBF18(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* rgb)
                     prim);
             otz = block->otz;
             setSemiTrans(prim, 1);
-            dr         = D_80071190;
-            D_80071190 = dr + 1;
+            dr             = Gpu_PrimCursor;
+            Gpu_PrimCursor = dr + 1;
             setDrawTPage(dr, 0, 1, 0x2A);
             addPrim((u_long*)(((((u32)otz << Display_State.field_128) >> 2) & 0xFFC) +
                               (s32)Gpu_CurrentOt),
@@ -887,8 +887,8 @@ void Gp_AddTpage(P_TAG* arg0, s32 arg1, s32 arg2)
     DR_TPAGE* p;
 
     setSemiTrans(arg0, 1);
-    p          = D_80071190;
-    D_80071190 = p + 1;
+    p              = Gpu_PrimCursor;
+    Gpu_PrimCursor = p + 1;
     setlen(p, 1);
     p->code[0] = 0xE100020A | ((arg1 & 3) << 5);
     addPrim(Gpu_CurrentOt + (arg2 >> 4), p);
@@ -899,9 +899,9 @@ void Gp_AddTpageShift(P_TAG* arg0, s32 arg1, s32 arg2)
     DR_TPAGE* p;
 
     setSemiTrans(arg0, 1);
-    p          = D_80071190;
-    D_80071190 = p + 1;
-    p->code[0] = 0xE100020A | ((arg1 & 3) << 5);
+    p              = Gpu_PrimCursor;
+    Gpu_PrimCursor = p + 1;
+    p->code[0]     = 0xE100020A | ((arg1 & 3) << 5);
     setlen(p, 1);
     addPrim((u_long*)(((((u32)arg2 << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt), p);
 }

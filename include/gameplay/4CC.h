@@ -156,9 +156,9 @@ void Gp_ItemActionConfirm(DialogPrompt* arg0, UiObject* arg1);
 void Gp_FillItemActions(UiList* arg0, UiObject* arg1);
 /// Task callback for the `Gp_ItemActionList` item list. On first run it copies
 /// `parent->flags`, clamps `field_E + field_12` to 0x64, then calls
-/// `Gp_FillItemActions` and `Ui_LayoutListPanel`. Confirm (`D_8005ED78`) is
+/// `Gp_FillItemActions` and `Ui_LayoutListPanel`. Confirm (`Pad_MaskMenu`) is
 /// cancel (`field_2E = -1`) when `owner->flags` is 0, else 6; cancel
-/// (`D_8005ED74`) is 6. Child `field_2E` -1 / 9 / 6 closes, remaps to
+/// (`Pad_MaskCancel`) is 6. Child `field_2E` -1 / 9 / 6 closes, remaps to
 /// 6, or teardowns.
 void Gp_ItemActionListTask(Task* arg0);
 /// List-item callback for All / Select / Discard / End. Draws

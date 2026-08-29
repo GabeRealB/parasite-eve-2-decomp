@@ -33,7 +33,7 @@ void Mem_ConfigureAuxHeap(s32 arg0, s32 arg1)
     if ((Display_State.field_12a == 0) || (arg0 == 0)) {
         D_800691F4         = (u8*)0x80179950;
         D_800691F8         = 0x836B0;
-        D_80068F88         = 0x80179950;
+        Gpu_PrimHeapBase   = 0x80179950;
         GActiveAuxHeap     = (u8*)0x80189950;
         GActiveAuxHeapSize = 0x4D6B0;
     } else {
@@ -42,21 +42,21 @@ void Mem_ConfigureAuxHeap(s32 arg0, s32 arg1)
         slot               = (GfxImageSlot*)t;
         D_800691F4         = (u8*)slot->pixels;
         D_800691F8         = slot->size + 0x26000;
-        D_80068F88         = (size_t)slot->pixels;
-        GActiveAuxHeap     = (u8*)(D_80068F88 + 0x10000);
+        Gpu_PrimHeapBase   = (size_t)slot->pixels;
+        GActiveAuxHeap     = (u8*)(Gpu_PrimHeapBase + 0x10000);
         GActiveAuxHeapSize = slot->size - 0x10000;
     }
-    i            = 0;
-    D_80068F90   = 0x10000;
-    GAuxHeap     = GActiveAuxHeap;
-    GAuxHeapSize = D_800691F8 - 0x10000;
+    i                = 0;
+    Gpu_PrimHeapSize = 0x10000;
+    GAuxHeap         = GActiveAuxHeap;
+    GAuxHeapSize     = D_800691F8 - 0x10000;
     do {
-        *(u8*)((D_80068F90 - (i & 0xFF)) + D_80068F88 - 1) = 0;
-        i                                                 += 1;
+        *(u8*)((Gpu_PrimHeapSize - (i & 0xFF)) + Gpu_PrimHeapBase - 1) = 0;
+        i                                                             += 1;
     } while ((u32)(i & 0xFF) < 0xAU);
     p98  = &D_80068F98;
-    p88  = &D_80068F88;
-    p90  = &D_80068F90;
+    p88  = &Gpu_PrimHeapBase;
+    p90  = &Gpu_PrimHeapSize;
     temp = *p90 - 0xA;
     *p98 = *p88 + temp;
 }
@@ -201,7 +201,7 @@ void Gfx_StoreImageSlot(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
 
     imgBufSize = 0x25800;
     do {
-        D_80068F90 = 0x10000;
+        Gpu_PrimHeapSize = 0x10000;
     } while (0);
     pSize        = &GActiveAuxHeapSize;
     size         = 0x10000 - arg3;
@@ -209,11 +209,11 @@ void Gfx_StoreImageSlot(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
     D_800691F8   = 0x10000;
     GAuxHeapSize = size;
 
-    ptr            = (u8*)entries[arg1].pixels + imgBufSize;
-    D_80068F88     = (size_t)ptr;
-    GActiveAuxHeap = ptr + arg3;
-    D_800691F4     = ptr;
-    GAuxHeap       = ptr + arg3;
+    ptr              = (u8*)entries[arg1].pixels + imgBufSize;
+    Gpu_PrimHeapBase = (size_t)ptr;
+    GActiveAuxHeap   = ptr + arg3;
+    D_800691F4       = ptr;
+    GAuxHeap         = ptr + arg3;
 }
 
 void Gfx_LoadImageSlot(s32 arg0, s32 arg1, s32 arg2)

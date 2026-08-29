@@ -70,9 +70,6 @@ extern s8            D_800138BC[]; // "99999999"
 extern s8            D_800138C8[]; // "0"
 extern s8            D_800138CC[]; // "999999999"
 
-extern s32  D_8005ED70;
-extern s32  D_8005ED74;
-extern s32  D_8005ED78;
 extern u16  D_8005ED8A;
 extern s32* D_8005DCB4[];
 
@@ -156,8 +153,6 @@ extern s32 D_8006763C[];
 extern s32 D_80067648;
 extern s32 D_8006764C;
 
-extern u8     D_800740E0[0x6000];
-extern void*  D_8007A0E0;
 extern s32    D_8007A0E4;
 extern u_long D_8007A120[0x80];
 extern s32    D_8007A118;

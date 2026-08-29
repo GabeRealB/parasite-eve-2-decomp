@@ -25,13 +25,13 @@ s32 Display_FrameFlipDraw(s32 arg0, s32 arg1, s32 arg2)
     }
     ot = Gpu_OrderingTables;
     GsClearOt(0, 0, &ot[temp->frameMode]);
-    org           = ot[temp->frameMode].org;
-    size          = D_8007A0E4;
-    *org          = GPU_OT_END_PRIM;
-    size         /= 2;
-    saved         = Gpu_CurrentOt;
-    Gpu_CurrentOt = ot[temp->frameMode].org;
-    D_80071190    = (DR_TPAGE*)((s32)D_8007A0E0 + temp->frameMode * size);
+    org            = ot[temp->frameMode].org;
+    size           = D_8007A0E4;
+    *org           = GPU_OT_END_PRIM;
+    size          /= 2;
+    saved          = Gpu_CurrentOt;
+    Gpu_CurrentOt  = ot[temp->frameMode].org;
+    Gpu_PrimCursor = (DR_TPAGE*)((s32)Gpu_PrimBufBase + temp->frameMode * size);
     Task_ExecList(&D_8007A110);
     Boot_DispatchCdCmd();
     if (temp->field_106 == 0) {
@@ -84,7 +84,7 @@ Task* Display_SpawnWithOtSmall(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         ot->org         = D_8007A120;
         ot[1].length    = 6;
         ot[1].org       = D_8007A120 + 0x40;
-        D_8007A0E0      = D_800740E0;
+        Gpu_PrimBufBase = Gpu_PrimBufStatic;
         D_8007A0E4      = 0x6000;
         temp->frameMode = temp->field_1f ^ 1;
         saved           = Task_GetActiveList();
@@ -115,7 +115,7 @@ Task* Display_SpawnWithOt(TaskDesc* arg0, s32 arg1, s32 arg2, s32 arg3)
         ot->org         = D_8007A120;
         ot[1].length    = 6;
         ot[1].org       = D_8007A120 + 0x40;
-        D_8007A0E0      = D_800740E0;
+        Gpu_PrimBufBase = Gpu_PrimBufStatic;
         D_8007A0E4      = 0x6000;
         temp->frameMode = temp->field_1f ^ 1;
         saved           = Task_GetActiveList();
@@ -240,13 +240,13 @@ void Gpu_InitOtSmall(void)
 {
     GsOT* ot;
 
-    ot           = Gpu_OrderingTables;
-    ot->length   = 6;
-    ot->org      = D_8007A120;
-    ot[1].length = 6;
-    ot[1].org    = D_8007A120 + 0x40;
-    D_8007A0E0   = D_800740E0;
-    D_8007A0E4   = 0x6000;
+    ot              = Gpu_OrderingTables;
+    ot->length      = 6;
+    ot->org         = D_8007A120;
+    ot[1].length    = 6;
+    ot[1].org       = D_8007A120 + 0x40;
+    Gpu_PrimBufBase = Gpu_PrimBufStatic;
+    D_8007A0E4      = 0x6000;
 }
 
 s32 Display_DispatchModeId(s32 arg0)
@@ -327,12 +327,12 @@ void Gpu_InitOt(void)
 
 void Display_SetPrimBufLarge(void)
 {
-    D_8007A0E4 = 0x10000;
-    D_8007A0E0 = (void*)D_80068F88;
+    D_8007A0E4      = 0x10000;
+    Gpu_PrimBufBase = (void*)Gpu_PrimHeapBase;
 }
 
 void Display_SetPrimBufSmall(void)
 {
-    D_8007A0E0 = D_800740E0;
-    D_8007A0E4 = 0x6000;
+    Gpu_PrimBufBase = Gpu_PrimBufStatic;
+    D_8007A0E4      = 0x6000;
 }

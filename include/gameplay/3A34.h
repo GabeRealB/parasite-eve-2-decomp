@@ -84,7 +84,7 @@ typedef struct _GpU16Pair {
 } GpU16Pair;
 STATIC_ASSERT_SIZEOF(GpU16Pair, 0x4);
 
-/// Edge endpoint pair at `D_8010FA24`, indexing the transformed corners of a
+/// Edge endpoint pair at `Gp_FaceEdgePairs`, indexing the transformed corners of a
 /// `GpGridFace`. Entries 0..2 are the edges of a triangle; entries 1..4 are the
 /// edges of a quad, so a face with `n` corners walks entries `n - 3` up to
 /// `n * 2 - 3`.
@@ -282,7 +282,7 @@ typedef struct _GpRoomCoordRec {
 STATIC_ASSERT_SIZEOF(GpRoomCoordRec, 8);
 
 /// 0x58-byte coordinate object in `GpRoomCoordSet.arr58`. `Gp_UpdateRoomCoords`
-/// parents `coord.sub` to `D_80070F10` and clears `coord.flg`.
+/// parents `coord.sub` to `Gfx_ViewCoord` and clears `coord.flg`.
 typedef struct _GpCoord58 {
     /* 0x00 */ GsCOORDINATE2 coord;
     /* 0x50 */ byte          pad_50[8];
@@ -298,7 +298,7 @@ typedef struct _GpCoord60 {
 STATIC_ASSERT_SIZEOF(GpCoord60, 0x60);
 
 /// 0x6C-byte coordinate object in `GpRoomCoordSet.arr6C`. `Gp_UpdateRoomCoords`
-/// parents `coord.sub` to `D_80070F10`, builds `coord.coord` as an
+/// parents `coord.sub` to `Gfx_ViewCoord`, builds `coord.coord` as an
 /// orthonormal basis from `dir` (and a perpendicular scratch vector),
 /// and clears `coord.flg`.
 typedef struct _GpCoord6C {
@@ -310,7 +310,7 @@ typedef struct _GpCoord6C {
 STATIC_ASSERT_SIZEOF(GpCoord6C, 0x6C);
 
 /// Room coordinate tables returned by `Gp_GetRoomCoordSet` (`GpRoomCoordRec.field_0`).
-/// `Gp_UpdateRoomCoords` parents each array to `D_80070F10` on first run, then
+/// `Gp_UpdateRoomCoords` parents each array to `Gfx_ViewCoord` on first run, then
 /// updates them every frame via `Gp_UpdateCoord` / `Gp_UpdateCoordEx`.
 typedef struct _GpRoomCoordSet {
     /* 0x00 */ s32        n58;
@@ -339,7 +339,7 @@ STATIC_ASSERT_SIZEOF(Gp6CMatWalk, 0x6C);
 
 /// Overlay of `GpCoord6C` starting at `coord.sub`. `dir` is at +0xC, so a
 /// pointer to `Gp6CDirWalk.dir` minus `OFFSET_OF(Gp6CMid, dir)` is this
-/// object. `Gp_UpdateRoomCoords` writes `sub` as `D_80070F10`.
+/// object. `Gp_UpdateRoomCoords` writes `sub` as `Gfx_ViewCoord`.
 typedef struct _Gp6CMid {
     /* 0x00 */ GsCOORDINATE2* sub;
     /* 0x04 */ byte           pad[8];
@@ -421,7 +421,7 @@ STATIC_ASSERT_SIZEOF(GpObj38, 0x44);
 /// dotted with `field_24` column 2 against `rcos(field_68 >> 1)`.
 /// `func_800D759C` overlays `GsCOORDINATE2` at offset 0: `field_18` is
 /// `coord.t`, `field_4C` is `sub`. It normalizes `-field_18`, rotates that
-/// direction by `Transpose(D_80070F34) * sub->workm`, then writes the
+/// direction by `Transpose(Gfx_ViewWorldMtx) * sub->workm`, then writes the
 /// negated row into `arg3->field_1C` and the IR0-scaled `field_50` color
 /// into `arg3->field_20` (same matrix slots as `func_800D9794`).
 typedef struct _GpObj44 {
@@ -570,12 +570,12 @@ STATIC_ASSERT_SIZEOF(GpObj20E, 0x24);
 /// unlinked by `Gp_UnlinkObj4A`. `Gp_ClearObj4AList` empties the whole list.
 /// `field_4A` bit 0x20 means the node is on that list (cleared on unlink,
 /// keeping bits 0x87); bit 0x80 marks the last element of an array walked
-/// at +0x4C. Callers also store `D_80070F10` at +0x8 and OR bit 0x40 into
+/// at +0x4C. Callers also store `Gfx_ViewCoord` at +0x8 and OR bit 0x40 into
 /// `field_4A`.
 typedef struct _GpObj4A {
     /* 0x00 */ struct _GpObj4A* next;
     /* 0x04 */ struct _GpObj4A* prev;
-    /* 0x08 */ void*            field_8; // GsCOORDINATE2*; callers store &D_80070F10
+    /* 0x08 */ void*            field_8; // GsCOORDINATE2*; callers store &Gfx_ViewCoord
     /* 0x0C */ byte             pad_C[0x3E];
     /* 0x4A */ u8               field_4A;
     /* 0x4B */ byte             pad_4B;
@@ -735,7 +735,7 @@ STATIC_ASSERT_SIZEOF(GpLockPos, 0x18);
 
 /// 0x38-byte scratch from `G_SCRATCH_HEAD` used by `func_800DA2A0`.
 /// `src` is the actor's `coord.t` (lowered by 1000 on Y) before
-/// `D_80070F34` rotates it into `self`, the world-space aim origin.
+/// `Gfx_ViewWorldMtx` rotates it into `self`, the world-space aim origin.
 /// `node` is the candidate `Gp_LinkList` node's world position; both are
 /// handed to `func_800E0308` as the line-of-sight segment.
 typedef struct _GpLockScanScratch {
@@ -918,7 +918,7 @@ STATIC_ASSERT_SIZEOF(GpNormScratch, 0x18);
 /// 0x50-byte scratch from `G_SCRATCH_HEAD` used by `func_800DDC2C`.
 /// `src[0]` / `src[1]` are the local XZ endpoints of `GpObj.field_10/14`
 /// offset by `field_C` (as an SVECTOR) scaled by `field_1C >> 12`. `mat`
-/// is `D_80070F34 * field_8->workm`. `pos` holds the rotated endpoints
+/// is `Gfx_ViewWorldMtx * field_8->workm`. `pos` holds the rotated endpoints
 /// plus `mat.t[0]/t[2]` and `Gp_GridParams` grid offsets, then passed to
 /// `func_800DE2C0`.
 typedef struct _GpEdgeScratch {
@@ -943,7 +943,7 @@ STATIC_ASSERT_SIZEOF(GpLightScratch, 0x1C);
 /// 0x3C-byte scratch from `G_SCRATCH_HEAD` used by `func_800D759C`.
 /// `in` is `-GpObj44.field_18` fed to `Gfx_NormalizeLightDir`. `dir` is
 /// that output, then the view-rotated copy, then the GPF-scaled color.
-/// `mtx` is `Transpose(D_80070F34) * field_4C->workm` (rotation only).
+/// `mtx` is `Transpose(Gfx_ViewWorldMtx) * field_4C->workm` (rotation only).
 /// `scale` holds `GpObj44.field_4A` loaded into IR0.
 typedef struct _GpViewLightScratch {
     /* 0x00 */ VECTOR  in;
@@ -1119,7 +1119,7 @@ extern GpGiveRec* D_8010FA0C[];
 
 /// Face edge endpoint pairs walked by the grid collision helpers
 /// (`Gp_CollideObjGrid` / `Gp_CollideObjGridDir` / `func_800DD324` / `func_800DFCCC`).
-extern GpEdgePair D_8010FA24[5];
+extern GpEdgePair Gp_FaceEdgePairs[5];
 
 /// Pair-handler table used by `func_800DB900` / `func_800E0414`.
 /// Indexed by `D_8010FA4C[].field_0` (`Gp_PairNop` / `func_800DBCAC` /
@@ -1254,7 +1254,7 @@ GpItemRec* Gp_FindItemByKind(s32 arg0);
 GpItemRec* Gp_FindItemInScan(s32 arg0, GpItemScan* arg1);
 void       Gp_DrawWeaponLabel(Task* arg0);
 /// First-run init plus per-frame update of the current room's `GpRoomCoordSet`
-/// coordinate arrays (parented to `D_80070F10`) and the `Gp_RoomCoords` slots.
+/// coordinate arrays (parented to `Gfx_ViewCoord`) and the `Gp_RoomCoords` slots.
 /// Kills `arg0` when `Gp_GetRoomCoordSet` returns 0.
 void Gp_UpdateRoomCoords(Task* arg0);
 s32  Gp_LightPointRoom(GpObj44* arg0, VECTOR3* arg1);

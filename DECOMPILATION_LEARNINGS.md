@@ -925,7 +925,7 @@ if (t->spawnArg2 == 0) {
 ```
 
 `func_800B1EFC` is the example; `Display_StepFadeOverlay` uses the same
-shape (its branch delay is a shared `lui 0xE100` because `D_80071190`
+shape (its branch delay is a shared `lui 0xE100` because `Gpu_PrimCursor`
 was already incremented).
 
 ## Independent `= 0` store last so it fills a stack-arg load delay
@@ -1091,7 +1091,7 @@ layout matches the existing `GBytes4`/`GBytes8` "unaligned word chunks +
 remainder" pattern. A word-aligned `MATRIX` assignment uses `lw`/`sw`
 instead of `lwl`/`lwr`.
 
-`Gp_ApplyView` is the example (rotation to `D_80070E44`, then a separate
+`Gp_ApplyView` is the example (rotation to `Gfx_ViewRotMtx`, then a separate
 `VECTOR3` assign of `mtx.t` to `D_80070F28`).
 
 ## 0x50-byte `GsCOORDINATE2` assign needs word alignment
@@ -1474,11 +1474,11 @@ Write the `|=` first. Its address is allocated later and lands in `$a1`,
 and the simple store takes `$a0`:
 
 ```c
-D_8011570A |= mask; /* lui a1 */
-D_80115714 = 1;     /* lui a0 */
+Gp_PadSuppressMask |= mask; /* lui a1 */
+Gp_MenuLockHold = 1;     /* lui a0 */
 ```
 
-`func_800E9BDC` case 3 is the example. `D_80115714 = 1; D_8011570A |= mask`
+`func_800E9BDC` case 3 is the example. `Gp_MenuLockHold = 1; Gp_PadSuppressMask |= mask`
 stuck at 99.3% with only those two addresses swapped.
 
 ## Assign `u16 - K` to an `s32` before the `s16` store
@@ -1935,7 +1935,7 @@ size = D_8007A0E4;           /* load fills the org-load delay; claims $a0 */
 size /= 2;                   /* signed /2 after the store */
 saved      = Gpu_CurrentOt;
 Gpu_CurrentOt = ot[i].org;      /* second load of org — do not reuse `org` */
-D_80071190 = base + i * size;
+Gpu_PrimCursor = base + i * size;
 ```
 
 Putting `saved = Gpu_CurrentOt` immediately after `*org = …` steals the delay
@@ -3175,10 +3175,10 @@ command + `gte_stlvnl0`. Standard `gte_rtv0` is `mvmva 1,0,0,3,0`
 is the template: `gte_SetRotMatrix` + `gte_SetTransMatrix` + `gte_ldv0` +
 that command + `gte_stlvnl`.
 
-`D_80070F34` is `D_80070F10.workm`. After `Gp_WorldToLocal(&D_80070F34, ...)`,
+`Gfx_ViewWorldMtx` is `Gfx_ViewCoord.workm`. After `Gp_WorldToLocal(&Gfx_ViewWorldMtx, ...)`,
 recover the parent as
 `(GsCOORDINATE2*)((u8*)world - OFFSET_OF(GsCOORDINATE2, workm))` so the
-compiler emits `addiu s0, s0, -0x24`. A second `&D_80070F10` symbol load
+compiler emits `addiu s0, s0, -0x24`. A second `&Gfx_ViewCoord` symbol load
 does not match.
 
 `gte_MulMatrix0` from `gtemac.h` is fine if `gte_rtir` is swapped for
@@ -5787,8 +5787,8 @@ codegen:
 ```c
 DR_TPAGE* p;
 
-p          = D_80071190;
-D_80071190 = p + 1;
+p          = Gpu_PrimCursor;
+Gpu_PrimCursor = p + 1;
 setDrawTPage(p, 0, 1, 0x1E | ((abr & 3) << 5));
 addPrim(Gpu_CurrentOt + otz, p);
 ```
@@ -7363,7 +7363,7 @@ size_t* pSize;
 
 imgBufSize = 0x25800; /* keep late pointer math constant live early in $a1 */
 do {
-    D_80068F90 = 0x10000;
+    Gpu_PrimHeapSize = 0x10000;
 } while (0);
 pSize  = &GActiveAuxHeapSize; /* lui %hi before subu */
 size   = 0x10000 - arg3;
@@ -8449,7 +8449,7 @@ halfword pairs; individual halfword assigns usually do not.
 `(GsCOORDINATE2*)((u8*)m - OFFSET_OF(GsCOORDINATE2, coord))` so `sub` /
 `coord.t[]` / `flg` use `off($a2)` while the matrix body stays on `$v0`
 (including `sw zero, -4($v0)` for `flg`). Naming a separate base symbol
-(`&D_80070E90`) reloads with a fresh `lui` and breaks the match.
+(`&Gfx_ViewOffsetCoord`) reloads with a fresh `lui` and breaks the match.
 
 ## Store stack-derived field before unrelated prim color word
 
@@ -9114,7 +9114,7 @@ shifting every later label. Use this when the target has an otherwise-redundant
 ## Fade color global before prim cursor for `lui` order
 
 When a function both writes a halfword fade/clear color and allocates a TILE from
-`D_80070EE0`, source order of the *first mention* of each global controls the
+`Gpu_SysPrimCursor`, source order of the *first mention* of each global controls the
 early `lui %hi` order, while the actual `lw`/`sh` can still schedule as
 `lw cursor` then `sh color`:
 
@@ -9123,8 +9123,8 @@ extern volatile s16 D_8006ACB4;
 
 D_8006ACB4 = 0xFF;                      /* mention color first → lui v1 first */
 color      = *(volatile u8*)&D_8006ACB4; /* forces lbu reload, not reg reuse */
-p          = (TILE*)D_80070EE0;         /* lui t0 second; lw may still lead */
-D_80070EE0 = (u8*)(p + 1);
+p          = (TILE*)Gpu_SysPrimCursor;         /* lui t0 second; lw may still lead */
+Gpu_SysPrimCursor = (u8*)(p + 1);
 setlen(p, 3);
 setcode(p, 0x62);                       /* 0x62 = TILE | semi-trans */
 p->r0 = color;
@@ -9133,7 +9133,7 @@ p->b0 = color;
 /* x/y/w/h then addPrim(Gpu_CurrentOt - 0x10, p); DR_TPAGE with setDrawTPage */
 ```
 
-Writing `p = D_80070EE0` first swaps the two `lui`s (~99.7% near-match). The
+Writing `p = Gpu_SysPrimCursor` first swaps the two `lui`s (~99.7% near-match). The
 `*(volatile u8*)&` cast is required for the post-`sh` `lbu`; a plain
 `(u8)D_8006ACB4` may keep the value in a register. `Fade_StartWhite` is the pure
 example (fullscreen white TILE at OT slot `-0x10` plus `setDrawTPage(..., 0, 1, 0x40)`).
@@ -9592,8 +9592,8 @@ written (e.g. POLY_F3 is `0x14` but the target does `addiu …, 0x1C`), cast
 through a same-header type of the right size for the `+ 1` step:
 
 ```c
-p          = (POLY_F3*)D_80071190;
-D_80071190 = (DR_TPAGE*)((POLY_G3*)p + 1); /* +0x1C */
+p          = (POLY_F3*)Gpu_PrimCursor;
+Gpu_PrimCursor = (DR_TPAGE*)((POLY_G3*)p + 1); /* +0x1C */
 ```
 
 Avoid raw `(u8*)p + 0x1C`.
@@ -10028,7 +10028,7 @@ entry->field_0 = (entry->field_0 & flags) | ((ret & 1) * 8);
 ## Reuse arg regs for fixed UV constants; pin f20/next for prim cursor order
 
 When a POLY_FT4 setup reuses `$a1`/`$a2` for fixed U coordinates after their last
-use as real arguments (target: `li a1,0x6F` right after the `D_80071190` update,
+use as real arguments (target: `li a1,0x6F` right after the `Gpu_PrimCursor` update,
 `li a2,0x68` right after `field_20 + arg2`), separate locals for those constants
 usually rematerialize as late `li v0,K`. Two tricks together match:
 
@@ -10048,7 +10048,7 @@ p->x0 = temp;
 
     f20  = arg0->field_20;          /* lhu into $v0 before cursor update */
     next = (s32)(p + 1);
-    D_80071190 = (DR_TPAGE*)next; /* addiu/sw via $v1; frees $a1 */
+    Gpu_PrimCursor = (DR_TPAGE*)next; /* addiu/sw via $v1; frees $a1 */
     ur   = 0x6F;                    /* li a1,0x6F */
     temp = f20 + arg2;
     arg2 = 0x68;                    /* li a2,0x68 — reuses arg reg */
@@ -10070,7 +10070,7 @@ hoists `li v0,0x50`, losing the `lhu`/`addiu` interleave. Without `arg2 = 0x68`,
 `field_20+arg3±offsets`) and cannot reassign `arg2` — both arg1 and arg2 are
 still live for the Y edges, so the compiler saves them to `$t1`/`$t2` and the
 U constant must land in the now-free `$a2` via an explicit pin. Also pin the
-X offset through `$v1` so `$a1` stays free for the `D_80071190` hi/lo pair
+X offset through `$v1` so `$a1` stays free for the `Gpu_PrimCursor` hi/lo pair
 (natural allocation otherwise puts arg3 in `$a1` and the cursor hi in `$a2`,
 pushing `0x70` to a late `li v0`):
 
@@ -10081,7 +10081,7 @@ if (arg1 < arg2) {
     s32          base;   /* s32 avoids sll/sra sign-extend on left = base-3 */
 
     xoff = arg3;         /* delay-slot move v1,a3 */
-    p    = (POLY_FT4*)D_80071190;
+    p    = (POLY_FT4*)Gpu_PrimCursor;
     base = arg0->field_20 + xoff;
     left = base - 3;
     temp = base + 5;
@@ -10094,7 +10094,7 @@ if (arg1 < arg2) {
 
         f22 = arg0->field_22;
         next = (s32)(p + 1);
-        D_80071190 = (DR_TPAGE*)next;
+        Gpu_PrimCursor = (DR_TPAGE*)next;
         ur = 0x77;
         ul = 0x70;       /* early li a2,0x70 (reg free after t2 save) */
         /* … p->u0 = ul; p->u2 = ul; … */
@@ -10466,7 +10466,7 @@ sw   a3, 4(p)                   /* *(s32*)&p->r0 = 0x21002 */
 ```
 
 Writing `*(s32*)&p->r0 = 0x21002` *after* `p->y3 = y + 7` puts the constant
-in `$a1` and forces `%hi(D_80071190)` into `$v1`, which then reorders the
+in `$a1` and forces `%hi(Gpu_PrimCursor)` into `$v1`, which then reorders the
 cursor advance and the final call's field loads. Store color first:
 
 ```c
@@ -11200,7 +11200,7 @@ temp = *pB - K;
 *pDst = *pA + temp;
 ```
 
-`Mem_ConfigureAuxHeap` is the pure example (`D_80068F98 = D_80068F88 + (D_80068F90 - 0xA)`).
+`Mem_ConfigureAuxHeap` is the pure example (`D_80068F98 = Gpu_PrimHeapBase + (Gpu_PrimHeapSize - 0xA)`).
 
 ## Zero-tail loop: single index, `i & 0xFF`, increment at bottom
 
@@ -12858,15 +12858,15 @@ and reassign it for each block rather than `dr` / `dr2`:
 
 ```c
 addPrim(ot, p);
-dr         = D_80071190;
-D_80071190 = dr + 1;
+dr         = Gpu_PrimCursor;
+Gpu_PrimCursor = dr + 1;
 setlen(dr, 1);
 dr->code[0] = 0xE100023F;
 addPrim(ot, dr);
 
 addPrim(ot, p2);
-dr         = D_80071190;
-D_80071190 = dr + 1;
+dr         = Gpu_PrimCursor;
+Gpu_PrimCursor = dr + 1;
 setlen(dr, 1);
 dr->code[0] = 0xE100025F;
 addPrim(ot, dr);
@@ -13009,7 +13009,7 @@ Making *both* volatile keeps the body order correct but parks `lui` after
 
 `Tmd_SetupDraw` loads `arg0->field_20` (color MATRIX, often `D_80074080`) with
 `gte_SetColorMatrix`, then ambient from `t[]` via `gte_ldbkdir(t[0],t[1],t[2])`
-(not `gte_SetBackColor` — no `<<4`). It then transpose-copies `D_80070F34` into
+(not `gte_SetBackColor` — no `<<4`). It then transpose-copies `Gfx_ViewWorldMtx` into
 scratch (same `t4/t5/t6` halfword pattern as `Gfx_TransposeRot`), `gte_SetRotMatrix`
 on `arg0->field_1C` (light dir, often `GsLIGHTWSMATRIX`), and in-place column
 RTIR via `gte_ldclmv` + `gte_rtir_real` (`0x4A49E012`) + `gte_stclmv` three times
@@ -13104,13 +13104,13 @@ When a block starts with a screen-size constant then a prim-buffer load:
 ```
 beqz  s3, skip
  li    v0, 0x140          /* delay — must be the constant */
-lui   a2, %hi(D_80071190)
+lui   a2, %hi(Gpu_PrimCursor)
 sh    v0, …               /* store the constant */
 …
-lw    s0, %lo(D_80071190)(a2)
+lw    s0, %lo(Gpu_PrimCursor)(a2)
 ```
 
-plain statement order (`tw = 0x140; p = D_80071190; sp.w = tw`) often lets the
+plain statement order (`tw = 0x140; p = Gpu_PrimCursor; sp.w = tw`) often lets the
 scheduler put `lui` in the delay slot instead. Pre-branch assigns sink; nested
 blocks that finish the store before mentioning the global put `li` in the delay
 but then emit `sh` before `lui`.
@@ -13123,7 +13123,7 @@ tw = 0x140;
 asm volatile("" : "+r"(tw));
 sp.w = tw;
 sp.h = 0xF0;
-p = (DR_AREA*)D_80071190;
+p = (DR_AREA*)Gpu_PrimCursor;
 ```
 
 The `+r` barrier forces `li` to complete before any following `lui`, so delay-slot
@@ -13514,7 +13514,7 @@ does:
 
 ```
 addiu  a3, s0, 0x68      /* allocate prim */
-sw     a3, D_80071190    /* delay of first validity check */
+sw     a3, Gpu_PrimCursor    /* delay of first validity check */
 ...
 move   t0, a3            /* delay of second check */
 lui    a3, 0xff          /* reuse a3 as 0x00FFFFFF mask */
@@ -13534,7 +13534,7 @@ DR_MODE* dr;
 {
     register DR_MODE* r asm("a3");
     r = (DR_MODE*)(p + 2);
-    D_80071190 = (DR_TPAGE*)r;
+    Gpu_PrimCursor = (DR_TPAGE*)r;
     if (valid) {
         dr = r;
         goto body;
@@ -16010,7 +16010,7 @@ if (flags & 4) {
 
 A stack `GsCOORDINATE2` whose `coord` is an identity matrix (same shape as
 `Gfx_InitCoordinateTrees`) needs `li v0,0x1000` *before* `lui` of the parent
-(`D_80070F10`) and a `MATRIX*` in `$v1` used for only two of the stores
+(`Gfx_ViewCoord`) and a `MATRIX*` in `$v1` used for only two of the stores
 (`sw one, 8(v1)` / `sh one, 0x10(v1)`). The rest stay SP-relative.
 
 `one = ONE` as the first statement is scheduled too late: the parent address
@@ -16024,7 +16024,7 @@ vec.vy = 0;
 vec.vz = ONE; /* first use of ONE — li v0, then the store waits */
 one    = ONE;
 m      = &coord.coord;
-coord.sub = &D_80070F10;
+coord.sub = &Gfx_ViewCoord;
 *(s32*)&coord.coord         = one; /* sw one, 0x24(sp) */
 *(s32*)&coord.coord.m[0][2] = 0;   /* sw zero, 0x28(sp) */
 *(s32*)&m->m[1][1]          = one; /* sw one, 8(v1) */
@@ -16516,17 +16516,17 @@ Keep the earlier object on a `volatile` pointer, write the packed identity
 through a volatile cast, and leave the last `flg` target non-volatile:
 
 ```c
-volatile GsCOORDINATE2* c1 = &D_80070E90;
+volatile GsCOORDINATE2* c1 = &Gfx_ViewOffsetCoord;
 s32 one = ONE;
 
 c1->coord.t[0] = 0;
 c1->coord.t[1] = 0;
 c1->coord.t[2] = one;
-*(volatile s32*)&D_80070E44 = one; /* must stay volatile */
-m = &D_80070E44;
+*(volatile s32*)&Gfx_ViewRotMtx = one; /* must stay volatile */
+m = &Gfx_ViewRotMtx;
 ```
 
-`Gp_ResetView` is the example. A bare `*(s32*)&D_80070E44 = one` after the
+`Gp_ResetView` is the example. A bare `*(s32*)&Gfx_ViewRotMtx = one` after the
 `t[]` stores stuck at 95% with only those two stores swapped.
 
 ## Assign the sibling walk onto unused `arg1` and the payload back onto `arg0`
@@ -18629,7 +18629,7 @@ coord = &node->coord;
 if (node != NULL) {
     node->field_C = 1;
     node->field_8 = coord;
-    coord->sub    = &D_80070F10;
+    coord->sub    = &Gfx_ViewCoord;
     one           = ONE;
     ...
     list = &Tmd_ListAlt;
@@ -21334,12 +21334,12 @@ the field first so `lw` precedes `lui %hi(global)`:
 
 ```c
 coord = arg0->coord;
-world = &D_80070F10;
+world = &Gfx_ViewCoord;
 ```
 
 Reversing those two lines swaps the `lw` / `lui`. Keeping `world` also
 makes `&world->workm` `addiu a0, s5, 0x24` instead of a fresh
-`la D_80070F34`. `Gp_GetLockPos` is the example.
+`la Gfx_ViewWorldMtx`. `Gp_GetLockPos` is the example.
 
 A full `MATRIX` applied to a `VECTOR3` is `gte_SetRotMatrix` +
 `gte_SetTransMatrix` + `gte_ldlvl` + `gte_rtirtr_real`
@@ -22752,7 +22752,7 @@ req.y          = textY + arg2;
 req.field_8    = color;
 ```
 
-The early `y` load also frees `$v1` after `D_80071190 = p + 1`, which is
+The early `y` load also frees `$v1` after `Gpu_PrimCursor = p + 1`, which is
 what stores the cursor bump before `p->x0`. `func_800C2538` is the example.
 The `textY = baseY - 3` half is the same pattern as `Gp_DrawQty`.
 
@@ -24697,7 +24697,7 @@ reloading the pointer from `$s1`. `Gp_AnimBlendPacked` is the example.
 
 ## Full-screen POLY_F4 + `setDrawTPage`: extents first, `setSemiTrans` after `addPrim`
 
-A leaf overlay that allocates a `POLY_F4` then a `DR_TPAGE` from `D_80071190`
+A leaf overlay that allocates a `POLY_F4` then a `DR_TPAGE` from `Gpu_PrimCursor`
 wants the screen extents and ABR mask live before the prim cursor load:
 
 ```c
@@ -24707,8 +24707,8 @@ x1   = 0xA0;
 yTop = -0x78;
 yBot = 0x78;
 
-p          = (POLY_F4*)D_80071190;
-D_80071190 = (DR_TPAGE*)(p + 1);
+p          = (POLY_F4*)Gpu_PrimCursor;
+Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
 setPolyF4(p);
 setRGB0(p, arg0[0], arg0[1], arg0[2]);
 p->x0 = x0;
@@ -26441,7 +26441,7 @@ right = x - 1;
 x     = x - 0x32;
 poly->x2 = x;
 poly->x0 = x;
-D_80071190 = (DR_TPAGE*)(poly + 1);
+Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
 asm volatile("" ::: "memory");
 vl = 0x80;
 asm volatile("" : "+r"(vl));
@@ -26455,10 +26455,10 @@ asm volatile("" : "+r"(ur));
 
 Reuse `x` as the left edge so GCC emits `addiu v1, v0, -1` then
 `addiu v0, v0, -0x32` before either store. `vl = 0x80` after the cursor
-update puts `li v0, 0x80` between `sw D_80071190` and the `x3` stores.
+update puts `li v0, 0x80` between `sw Gpu_PrimCursor` and the `x3` stores.
 `y0 = fy + 2; fy = fy + 0x40` is `addiu v0, a1, 2` / `addiu a1, a1, 0x40`.
 A block-scope SPRT `y = obj->field_E` right after `p->x0` hoists that
-`lhu` so `D_80071190 = p + 1` stores before `x0`. `Gp_HpMpBarTask` is the
+`lhu` so `Gpu_PrimCursor = p + 1` stores before `x0`. `Gp_HpMpBarTask` is the
 example.
 
 ## Keep a later literal `1` dead so `>> 1` stays `sra`, not `srav`
@@ -27201,7 +27201,7 @@ draw:
 ## Keep `setlen`/`setcode` constants both live after the prim cursor
 
 A POLY_FT4 that does `setlen(p, 9); setcode(p, 0x2D)` after advancing
-`D_80071190` wants:
+`Gpu_PrimCursor` wants:
 
 ```
 li    v0,9
@@ -27216,8 +27216,8 @@ steals `$v0` from `otz++`. Barrier after the cursor, then keep both
 values live with `+r`:
 
 ```c
-prim       = (POLY_FT4*)D_80071190;
-D_80071190 = (DR_TPAGE*)(prim + 1);
+prim       = (POLY_FT4*)Gpu_PrimCursor;
+Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
 __asm__ volatile("" ::: "memory");
 len  = 9;
 code = 0x2D;
@@ -27519,8 +27519,8 @@ register choice and the prologue ordering without emitting an instruction:
 
 ## Force the compare's load ahead of a `%hi` with a `+r` pin on the loaded value
 
-`sub = arg0->sub; root = &D_80070F10; if (sub == root)` schedules
-`lui v0, %hi(D_80070F10)` into the load-delay slot *before* `lw v1, 0x4c(s2)`.
+`sub = arg0->sub; root = &Gfx_ViewCoord; if (sub == root)` schedules
+`lui v0, %hi(Gfx_ViewCoord)` into the load-delay slot *before* `lw v1, 0x4c(s2)`.
 The target wants the `lw` first and the `lui` filling its delay slot. An empty
 `asm volatile("" : "+r"(sub))` between the load and the address materialisation
 is a scheduling barrier the `lui` cannot cross, and pinning `sub` to `$v1`
@@ -27586,20 +27586,20 @@ the store — and duplicates that `lui` into an earlier branch's delay slot —
 the source is reading the global back, not reusing a local:
 
 ```c
-/* target: lui a1,%hi(D_8011570E) sits in the `bnez` delay slot of the block
-   above, and the store is `sh a3,%lo(D_8011570E)(a1)` */
-D_8011570E = ~D_8011570C & D_8011570A;
+/* target: lui a1,%hi(Gp_PadSuppressRise) sits in the `bnez` delay slot of the block
+   above, and the store is `sh a3,%lo(Gp_PadSuppressRise)(a1)` */
+Gp_PadSuppressRise = ~Gp_PadSuppressPrev & Gp_PadSuppressMask;
 ...
-if (D_8011570E & 0x900) { ... }      /* not `if (cached & 0x900)` */
+if (Gp_PadSuppressRise & 0x900) { ... }      /* not `if (cached & 0x900)` */
 ```
 
-With `cached = ...; D_8011570E = cached; ... if (cached & 0x900)` GCC has only
+With `cached = ...; Gp_PadSuppressRise = cached; ... if (cached & 0x900)` GCC has only
 one reference to the address, materializes `lui`+`sh` back to back at the store,
 and fills the earlier delay slot with some other constant. Reading it back gives
 the address two uses, so CSE promotes it to its own pseudo that lives across the
 whole preceding block; GCC still forwards the stored value, so no `lhu` appears.
 `Gp_UpdatePadInput` went 96.4% → 97.7% on that one change. The neighbouring
-`D_80115710` (also stored then re-read) is the control: it already matched.
+`Gp_PadSuppressFall` (also stored then re-read) is the control: it already matched.
 
 ## Order `p = &Global` inits to pick the `%hi` scratch register
 
@@ -27988,7 +27988,7 @@ falls through and is consumed as the function name.
 `__asm__ volatile("" ::"r"(arg0));` that a previous match (`Gp_SpawnViewCoordTask`)
 needed. When `Gp_SetViewFromCoord` was written against the same helper, the inlined
 copy of that barrier counted as one extra reference to *its* `arg0`, which
-pushed the parameter ahead of the `root = &D_80070F10;` local in
+pushed the parameter ahead of the `root = &Gfx_ViewCoord;` local in
 `global_alloc`'s priority order. Every instruction matched, but `arg0` landed
 in `$s1` and `root` in `$s2` — exactly the reverse of the target. Deleting the
 barrier (still a 100% match for `Gp_SpawnViewCoordTask`) dropped `arg0` by one
@@ -28718,7 +28718,7 @@ In `Gp_DrawEffQuadT29` this alone moved 95% → 98.6%; no register pin was neede
 
 A literal that feeds several prim fields (`0xB8` into `v0`/`v1`) is normally
 materialised right before its first store. When the target instead shows the `li`
-hoisted several instructions earlier — into the `lui %hi(D_80071190)` / `lw otz`
+hoisted several instructions earlier — into the `lui %hi(Gpu_PrimCursor)` / `lw otz`
 group that belongs to a *later* statement — one assignment is not enough, because
 the constant's live range is too short for `local_alloc` to give it an argument
 register and for the scheduler to lift it.
@@ -28729,8 +28729,8 @@ variable actually stored:
 ```c
 vTop = 0xB8;                 /* early: crosses the gte_stszotz "memory" asm */
 block->otz++;
-prim       = (POLY_FT4*)D_80071190;
-D_80071190 = (DR_TPAGE*)(prim + 1);
+prim       = (POLY_FT4*)Gpu_PrimCursor;
+Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
 __asm__ volatile("" ::: "memory");
 ...
 texV     = vTop;
@@ -28739,9 +28739,9 @@ prim->v1 = texV;
 ```
 
 Collapsing the two into a single `texV = 0xB8;` at either position loses ~1.4%.
-The extra `"memory"` fence after the `D_80071190` bump is what decides *where* in
+The extra `"memory"` fence after the `Gpu_PrimCursor` bump is what decides *where* in
 the following group the `li` lands: without it the `li` fell into the `bltz` delay
-slot, and with the fence placed after `prim = D_80071190` (rather than after the
+slot, and with the fence placed after `prim = Gpu_PrimCursor` (rather than after the
 pointer bump) it landed one instruction early. `Gp_DrawEffQuadT29` needed the exact
 combination above for 100%.
 
@@ -28815,11 +28815,11 @@ the calls, and the taken branch also loads a global prim pointer:
 
 ```
 sw     t4, 0(v0)               /* gte_stszotz */
-lui    v1, %hi(D_80071190)
+lui    v1, %hi(Gpu_PrimCursor)
 sll    s2, a2, 0x10
 sra    s2, s2, 0x10
 move   a0, s2
-lw     s1, %lo(D_80071190)(v1)
+lw     s1, %lo(Gpu_PrimCursor)(v1)
 ```
 
 Writing `ang = (s16)arg2;` as its own statement gives the `sll`/`sra` chain a
@@ -28904,7 +28904,7 @@ for (col = 0; col < 4; col++) {
 ```
 
 instead of an `x += step` accumulator to move `move s6, s4` after
-`lui t0, %hi(D_80071190)`. The same rule explained the outer loop: because the
+`lui t0, %hi(Gpu_PrimCursor)`. The same rule explained the outer loop: because the
 constant `3` and the `lh` of the panel height were emitted *after* the counter
 init, the counter init had to be a bare statement (`row = 0; three = 3;
 rowOff = 2; … for (; row < 3; row++)`) rather than a `for (row = 0, …)` header.
@@ -29051,12 +29051,12 @@ struct* reference, so the prim-cursor reload
 
 ```c
 addPrim(&Gpu_CurrentOt[(s16)obj->drawOrder - 0x1C], p);
-dr         = D_80071190;
-D_80071190 = dr + 1;
+dr         = Gpu_PrimCursor;
+Gpu_PrimCursor = dr + 1;
 ```
 
 has no dependency on `setaddr(p, ...)`'s `sw v1,0(s0)` and `-fschedule-insns`
-lifts `lw D_80071190` above it. The load then overlaps the `Gpu_CurrentOt`
+lifts `lw Gpu_PrimCursor` above it. The load then overlaps the `Gpu_CurrentOt`
 base's live range, so `dr` is coloured `$a3` instead of reusing the dying `$a1`,
 and the whole tail reschedules. Verified with micro-tests: only a *scalar*
 store (`*(u32*)p = ...`) conflicts with such a global — `p->field`,
@@ -29124,9 +29124,9 @@ argument then swaps saved registers (here `register u8* rgb asm("s7") = arg3;`).
 Adding a matrix translation into a scratch `SVECTOR` three components at a time:
 
 ```c
-block->self.vx += *(u16*)&D_80070F10.workm.t[0];   /* wrong */
-block->self.vy += *(u16*)&D_80070F10.workm.t[1];
-block->self.vz += *(u16*)&D_80070F10.workm.t[2];
+block->self.vx += *(u16*)&Gfx_ViewCoord.workm.t[0];   /* wrong */
+block->self.vy += *(u16*)&Gfx_ViewCoord.workm.t[1];
+block->self.vz += *(u16*)&Gfx_ViewCoord.workm.t[2];
 ```
 
 emits the right eight instructions but in the wrong order: GCC 2.8.1 hoists the
@@ -29136,9 +29136,9 @@ too keeps each component self-contained, so the schedule degenerates back to
 `lhu`/`lhu`/`nop`/`addu`/`sh` per component exactly as in the target:
 
 ```c
-*(u16*)&block->self.vx = *(u16*)&block->self.vx + *(u16*)&D_80070F10.workm.t[0];
-*(u16*)&block->self.vy = *(u16*)&block->self.vy + *(u16*)&D_80070F10.workm.t[1];
-*(u16*)&block->self.vz = *(u16*)&block->self.vz + *(u16*)&D_80070F10.workm.t[2];
+*(u16*)&block->self.vx = *(u16*)&block->self.vx + *(u16*)&Gfx_ViewCoord.workm.t[0];
+*(u16*)&block->self.vy = *(u16*)&block->self.vy + *(u16*)&Gfx_ViewCoord.workm.t[1];
+*(u16*)&block->self.vz = *(u16*)&block->self.vz + *(u16*)&Gfx_ViewCoord.workm.t[2];
 ```
 
 The `+=` form goes through the `s16` field's own mode, which gives the RMW a
@@ -29316,19 +29316,19 @@ tmp = (kind + 1) * 16;
 setUV4(p, -tmp, 0xF0, 0xE - tmp, 0xF0, -tmp, 0xFE, 0xE - tmp, 0xFE);
 ```
 
-## Permute the `D_80071190` cursor bump against the prim's own stores
+## Permute the `Gpu_PrimCursor` cursor bump against the prim's own stores
 
-Where `D_80071190 = (DR_TPAGE*)(q + 1);` sits relative to the field writes is a
+Where `Gpu_PrimCursor = (DR_TPAGE*)(q + 1);` sits relative to the field writes is a
 real degree of freedom, not cosmetic: sched1 runs before the pseudos are
 coloured, so a different position changes both the hard registers and the final
 order. For the `TILE` in `Gp_DrawItemIcon` the eight placements scored 94.5% to
-100%; the house style (bump immediately after `q = D_80071190;`) was 96.6% and
+100%; the house style (bump immediately after `q = Gpu_PrimCursor;`) was 96.6% and
 the winner was after all four geometry fields and before the header writes:
 
 ```c
 q->w = p->x1 - p->x0 + 2;
 q->h = p->y2 - p->y0 + 2;
-D_80071190    = (DR_TPAGE*)(q + 1);
+Gpu_PrimCursor    = (DR_TPAGE*)(q + 1);
 *(u32*)&q->r0 = 0xC0C0C0;
 setlen(q, 3);
 setcode(q, 0x60);
@@ -29393,7 +29393,7 @@ prototype changed nothing on its side.
 `Gp_DrawFxQuad` builds one `POLY_FT4`: `setPolyFT4` / `setSemiTrans` /
 `setShadeTex`, `prim->tpage = 0x2A`, a CLUT read out of a `u16` table, then
 `setUV4`. Computing the two U coordinates where they are conceptually
-introduced (right after the prim is bumped off `D_80071190`) stalls at 98.6%
+introduced (right after the prim is bumped off `Gpu_PrimCursor`) stalls at 98.6%
 with the table address in the wrong register:
 
 ```c
@@ -30790,7 +30790,7 @@ Moving the coordinates in only one of the two blocks makes it worse, not better
 
 ## Spell out the CFG when GCC if-converts the last term of `a && b && c`
 
-`ok = hit && D_8010CA28 <= 0 && D_801153F1 == 0;` (and the equivalent
+`ok = hit && Gp_ItemGrantCooldown <= 0 && D_801153F1 == 0;` (and the equivalent
 `if/else if/else` chain) compiles the final term with `sltiu v1,v0,1`. The
 target instead branches on it and sets the flag in a delay slot:
 
@@ -30807,7 +30807,7 @@ Write the control flow literally, with a shared fall-through `ok = 0`:
 
 ```c
     if (hit != 0) {
-        if (D_8010CA28 > 0) { ok = 0; goto have; }
+        if (Gp_ItemGrantCooldown > 0) { ok = 0; goto have; }
         if (D_801153F1 == 0) { ok = 1; goto have; }
     }
     ok = 0;
@@ -30976,7 +30976,7 @@ comparison, leaving the branch with nothing but a jump to the join:
 
 ```c
     if (flag != 0) {
-        if (D_8010CA28 <= 0) {
+        if (Gp_ItemGrantCooldown <= 0) {
             ret = 1;
             if (D_801153F1 == 0) {
                 goto done;

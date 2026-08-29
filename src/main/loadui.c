@@ -77,8 +77,8 @@ void Prim_DrawLoadingSprt(void)
     DR_TPAGE* dr;
     u8        mode;
 
-    p          = (SPRT*)D_80071190;
-    D_80071190 = (DR_TPAGE*)(p + 1);
+    p              = (SPRT*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
     setlen(p, 4);
     setcode(p, 0x67);
     p->clut = GetClut(0, 0xFF);
@@ -113,8 +113,8 @@ void Prim_DrawLoadingSprt(void)
 
     addPrim(Gpu_CurrentOt - 0x10, p);
 
-    dr         = (DR_TPAGE*)D_80071190;
-    D_80071190 = dr + 1;
+    dr             = (DR_TPAGE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = dr + 1;
     setDrawTPage(dr, 0, 0, 0xF);
     addPrim(Gpu_CurrentOt - 0x10, dr);
 }

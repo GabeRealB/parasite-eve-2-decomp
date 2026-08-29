@@ -76,7 +76,7 @@ extern TaskDesc       D_80182FAC[];
 extern TaskDesc       D_8018384C[];
 extern s32            Gp_Slot4MsgTable[];
 extern char           Gp_StrNewEnemyNull[];
-extern GsCOORDINATE2  D_80070F10;
+extern GsCOORDINATE2  Gfx_ViewCoord;
 extern s32            Gp_LcgState;
 extern u8             D_800626E8;
 extern u16            D_80114D14;
@@ -554,7 +554,7 @@ Task* Gp_CopyCoordOffset(Task* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2)
     }
 
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD - 8;
-    world                   = &D_80070F10;
+    world                   = &Gfx_ViewCoord;
     extra                   = (GameActorExt*)arg0->extra;
     dest                    = (GsCOORDINATE2*)extra->field_8;
     if (arg1->sub == world) {
@@ -574,7 +574,7 @@ Task* Gp_CopyCoordOffset(Task* arg0, GsCOORDINATE2* arg1, SVECTOR* arg2)
         gte_stlvnl(dest->workm.t);
         Gp_WorldToLocal(&world->workm, &dest->workm, &dest->coord);
     }
-    dest->sub               = &D_80070F10;
+    dest->sub               = &Gfx_ViewCoord;
     dest->flg               = 0;
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 8;
     return arg0;
@@ -594,7 +594,7 @@ GpEnemy* Gp_AllocEnemy(Task* task, GpEnemy* parent)
     task->exitCallback = Gp_EnemyTaskExit;
     task->spawnArg2    = enemy;
     enemy->task        = task;
-    enemy->field_18    = &D_80070F10;
+    enemy->field_18    = &Gfx_ViewCoord;
     if (parent != NULL) {
         Task_Reparent(parent->task, task);
     } else {
@@ -966,7 +966,7 @@ void Gp_ComposeParentWorld(GsCOORDINATE2* arg0, MATRIX* arg1, SVECTOR* arg2)
     MATRIX* m;
     s32     one;
 
-    if (arg0->sub != &D_80070F10) {
+    if (arg0->sub != &Gfx_ViewCoord) {
         Gp_ComposeParentWorld(arg0->sub, arg1, arg2);
     } else {
         one                = ONE;
@@ -1031,22 +1031,22 @@ void func_800B1EFC(Task* arg0)
         }
     }
 
-    p          = (TILE*)D_80071190;
-    y          = -0x78;
-    D_80071190 = (DR_TPAGE*)(p + 1);
+    p              = (TILE*)Gpu_PrimCursor;
+    y              = -0x78;
+    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
     setlen(p, 3);
     setcode(p, 0x62);
-    p->x0      = -0xA0;
-    p->y0      = y;
-    yoff       = Display_State.vramYOffset;
-    p->b0      = color;
-    p->g0      = color;
-    p->r0      = color;
-    dr         = (DR_TPAGE*)D_80071190;
-    p->w       = 0x140;
-    p->h       = 0xF0;
-    p->y0      = y - yoff;
-    D_80071190 = dr + 1;
+    p->x0          = -0xA0;
+    p->y0          = y;
+    yoff           = Display_State.vramYOffset;
+    p->b0          = color;
+    p->g0          = color;
+    p->r0          = color;
+    dr             = (DR_TPAGE*)Gpu_PrimCursor;
+    p->w           = 0x140;
+    p->h           = 0xF0;
+    p->y0          = y - yoff;
+    Gpu_PrimCursor = dr + 1;
     if (t->spawnArg2 == 0) {
         setlen(dr, 1);
         dr->code[0] = 0xE1000240;
@@ -1130,11 +1130,11 @@ void func_800B2200(Task* arg0)
         t->killCountdown = work->field_2;
     }
 
-    color      = (t->killCountdown * 0xFF0) / work->field_2;
-    tile       = (TILE*)D_80071190;
-    y          = -0x78;
-    tile->y0   = y;
-    D_80071190 = (DR_TPAGE*)(tile + 1);
+    color          = (t->killCountdown * 0xFF0) / work->field_2;
+    tile           = (TILE*)Gpu_PrimCursor;
+    y              = -0x78;
+    tile->y0       = y;
+    Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
     setlen(tile, 3);
     setcode(tile, 0x62);
     tile->x0 = -0xA0;
@@ -1145,10 +1145,10 @@ void func_800B2200(Task* arg0)
     tile->b0 = color;
     tile->g0 = color;
     tile->r0 = color;
-    dr       = (DR_TPAGE*)D_80071190;
+    dr       = (DR_TPAGE*)Gpu_PrimCursor;
     tile->y0 = y - yoff;
 
-    D_80071190 = dr + 1;
+    Gpu_PrimCursor = dr + 1;
     if (work->field_0 == 0) {
         setlen(dr, 1);
         dr->code[0] = 0xE1000240;
@@ -2498,10 +2498,10 @@ void func_800B4E54(GsCOORDINATE2* arg0, u32 arg1, SVECTOR* arg2)
     }
 
     if (block->flag >= 0) {
-        c0         = 0xC0;
-        f7         = 0xF7;
-        prim       = (POLY_FT4*)D_80071190;
-        D_80071190 = (DR_TPAGE*)(prim + 1);
+        c0             = 0xC0;
+        f7             = 0xF7;
+        prim           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(prim + 1);
         setlen(prim, 9);
         setcode(prim, 0x2E);
         *(u32*)&prim->x0 = *(u32*)&block->sxy0;
@@ -2968,7 +2968,7 @@ void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2)
     vec->vy  = arg1->pos.vy - arg0->vy;
     *scratch = block;
     vec->vz  = arg1->pos.vz - arg0->vz;
-    coord    = &D_80070F10;
+    coord    = &Gfx_ViewCoord;
     scale    = SquareRoot0(Gfx_ApplyMatrixNoSf(vec, vec));
     scale    = scale - arg1->field_2;
     if (scale >= 0) {

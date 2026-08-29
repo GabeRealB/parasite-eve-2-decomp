@@ -96,11 +96,13 @@ extern u_long       Gpu_OtTags[2 * GPU_OT_ENTRIES];
 extern GpuOtBuf     Gpu_OtBuffers[2];
 extern GsOT         Gpu_OrderingTables[2];
 extern u_long*      Gpu_CurrentOt;
-extern u8*          D_80070EE0; // primitive buffer cursor
-extern DR_TPAGE*    D_80071190; // primitive buffer cursor
-extern volatile u8  D_8006EC30; // snapshot of Display_State.field_100 / field_103
+extern u8*          Gpu_SysPrimCursor;         // primitive buffer cursor
+extern DR_TPAGE*    Gpu_PrimCursor;            // primitive buffer cursor
+extern u8           Gpu_PrimBufStatic[0x6000]; // 2 x 0x3000, base of Gpu_SysPrimCursor
+extern void*        Gpu_PrimBufBase;           // base Gpu_PrimCursor is reset from
+extern volatile u8  D_8006EC30;                // snapshot of Display_State.field_100 / field_103
 extern volatile u8  D_80070E38;
-extern volatile s32 D_80070F64; // VSync countdown
+extern volatile s32 D_80070F64;                // VSync countdown
 
 // --- APIs ---
 void  Gpu_ClearOTag(s16 tableIdx);

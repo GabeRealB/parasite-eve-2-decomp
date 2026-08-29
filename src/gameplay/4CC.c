@@ -18,9 +18,9 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-extern s32          D_8005ED70;
-extern s32          D_8005ED74;
-extern s32          D_8005ED78;
+extern s32          Pad_MaskConfirm;
+extern s32          Pad_MaskCancel;
+extern s32          Pad_MaskMenu;
 extern char         Gp_StrSwitch[];
 extern UiObject*    D_80067634;
 extern u8           D_8010D828[];
@@ -321,7 +321,7 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
     if (selected == 1) {
         Gp_SelItemRec = rec;
         if (arg1->owner->state == selected) {
-            if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+            if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
                 SndEvt_EnqueueType6(3, 0, 0);
                 spawned = Ui_SpawnFromDesc(&D_8010D764, arg1->owner->spawnArg1, 1, 1, arg1);
                 if (spawned != NULL) {
@@ -334,7 +334,7 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
                 Ui_SpawnFromDesc(&D_8010EFA0, item, 1, 1, arg1);
                 arg1->status = 0;
             }
-        } else if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+        } else if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             idx   = arg1->owner->spawnArg1;
             item2 = Gp_GetScanSlot(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].field_10, 0)->field_0;
             SndEvt_EnqueueType6(3, 0, 0);
@@ -451,10 +451,10 @@ void Gp_ItemPaneTask(Task* arg0)
             Ui_SmoothCursor((UiMiniObj*)obj, obj->field_1C + 4, (s16)obj->field_18 + 0xA);
         }
         if (arg0->state == status) {
-            if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
+            if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
                 obj->status   = 0;
                 obj->field_2E = -1;
-            } else if (Pad_CheckButtons(0, 1, D_8005ED78) != 0) {
+            } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
                 obj->status   = 0;
                 obj->field_2E = -1;
             } else if (Pad_CheckButtons(0, 0, 0x5000) == 0) {
@@ -475,7 +475,7 @@ void Gp_ItemPaneTask(Task* arg0)
                 SndEvt_EnqueueType6(2, 0, 0);
                 obj->field_2E = 0xA;
             }
-        } else if (Pad_CheckButtons(0, 1, D_8005ED74 | D_8005ED78) != 0) {
+        } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel | Pad_MaskMenu) != 0) {
             obj->field_2E = 0x24;
         } else if (Pad_CheckButtons(0, 0, 0x5000) == 0) {
             if (arg0->spawnArg1 == 0) {
@@ -538,7 +538,7 @@ void Gp_ItemActionConfirm(DialogPrompt* arg0, UiObject* arg1)
 
     selected = arg0->field_C;
     if (selected == 1) {
-        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             idx  = arg1->owner->spawnArg1;
             rec  = Gp_GetScanSlot(&Gp_MoveScanSrc + idx, Gp_InvLists[idx].field_10, 0);
             item = rec->field_0;
@@ -634,14 +634,14 @@ void Gp_ItemActionListTask(Task* arg0)
     }
     Ui_UpdateListNoAnim(menu, obj);
     if (obj->status == 1) {
-        if (Pad_CheckButtons(0, 1, D_8005ED78) != 0) {
+        if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             if (obj->owner->flags != 0) {
                 obj->field_2E = 6;
             } else {
                 obj->status   = 0;
                 obj->field_2E = -1;
             }
-        } else if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
+        } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             obj->field_2E = 6;
         }
     }
@@ -707,7 +707,7 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
                 return;
             }
         }
-        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             switch (arg0->field_8) {
                 case 0:
                     SndEvt_EnqueueType6(3, 0, 0);
@@ -748,7 +748,7 @@ void Gp_ItemMenuPrompt(DialogPrompt* arg0, UiObject* arg1)
                     arg1->field_2E = 0x27;
                     break;
             }
-        } else if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
+        } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(4, 0, 0);
             if (arg0->field_10 == 2) {
                 scan = &Mc_SaveData.field_5BC;
@@ -1194,8 +1194,8 @@ void Gp_FadeTileTask(Task* arg0)
         otIdx = 0x3F;
     }
 
-    tile       = (TILE*)D_80071190;
-    D_80071190 = (DR_TPAGE*)(tile + 1);
+    tile           = (TILE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
     setlen(tile, 3);
     setcode(tile, 0x62);
     tile->x0 = -0xA0;
@@ -1215,8 +1215,8 @@ void Gp_FadeTileTask(Task* arg0)
     }
 
     addPrim((u_long*)((otIdx << 2) + (s32)Gpu_CurrentOt), tile);
-    dr         = (DR_TPAGE*)D_80071190;
-    D_80071190 = dr + 1;
+    dr             = (DR_TPAGE*)Gpu_PrimCursor;
+    Gpu_PrimCursor = dr + 1;
     setlen(dr, 1);
     dr->code[0] = 0xE1000640;
     addPrim((u_long*)((otIdx << 2) + (s32)Gpu_CurrentOt), dr);

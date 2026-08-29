@@ -124,15 +124,15 @@ extern u8             D_801153F4;
 extern u8             Gp_PadScriptHalt;
 extern u8             Gp_PadHoldHalt;
 extern u8             Gp_PadLerpHalt;
-extern u8             D_80115708;
-extern u8             D_80115709;
-extern u16            D_8011570A;
-extern u16            D_8011570C;
-extern u16            D_8011570E;
-extern u16            D_80115710;
-extern u16            D_80115712;
-extern u8             D_80115714;
-extern s16            D_80115716;
+extern u8             Gp_MenuLockNow;
+extern u8             Gp_MenuLockPrev;
+extern u16            Gp_PadSuppressMask;
+extern u16            Gp_PadSuppressPrev;
+extern u16            Gp_PadSuppressRise;
+extern u16            Gp_PadSuppressFall;
+extern u16            Gp_PadSuppressRefs;
+extern u8             Gp_MenuLockHold;
+extern s16            Gp_MenuLockDelay;
 extern s16            D_80115718;
 
 void func_800E44A0(Task* arg0);
@@ -522,8 +522,8 @@ void Gp_DrawCapCaret(void)
         return;
     }
 
-    p          = (POLY_G3*)D_80071190;
-    D_80071190 = (DR_TPAGE*)(p + 1);
+    p              = (POLY_G3*)Gpu_PrimCursor;
+    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
     setPolyG3(p);
 
     color = (Gp_CapCaretGrey << 7) / 15;
@@ -1795,43 +1795,43 @@ void Gp_UpdatePadInput(void)
     }
     actor = work->actor;
     Gp_ClearPadHalt();
-    if (D_80115714 == 0) {
+    if (Gp_MenuLockHold == 0) {
         if (actor->field_954 == 0 && Game_Session->field_1 == 0 && Game_Session->field_66 == 0 &&
             actor->field_956 != 6 && cfg->field_18 > 0 && Game_Session->field_0 == 0) {
-            if (D_80115716 > 0) {
-                D_80115716--;
-                D_80115708 = 1;
+            if (Gp_MenuLockDelay > 0) {
+                Gp_MenuLockDelay--;
+                Gp_MenuLockNow = 1;
             } else {
-                D_80115708 = 0;
+                Gp_MenuLockNow = 0;
             }
         } else {
-            D_80115708 = 1;
-            D_80115718 = 4;
-            D_80115716 = 8;
-            D_80114D08 = 0xA;
+            Gp_MenuLockNow   = 1;
+            D_80115718       = 4;
+            Gp_MenuLockDelay = 8;
+            D_80114D08       = 0xA;
         }
-        if (D_80115708 == 1 && D_80115709 == 0) {
-            D_80115714  = 0;
-            D_8011570A |= 0x900;
-        } else if (D_80115708 == 0 && D_80115709 == 1) {
-            D_80115714  = 0;
-            D_8011570A &= 0xF6FF;
+        if (Gp_MenuLockNow == 1 && Gp_MenuLockPrev == 0) {
+            Gp_MenuLockHold     = 0;
+            Gp_PadSuppressMask |= 0x900;
+        } else if (Gp_MenuLockNow == 0 && Gp_MenuLockPrev == 1) {
+            Gp_MenuLockHold     = 0;
+            Gp_PadSuppressMask &= 0xF6FF;
         }
-        D_80115709 = D_80115708;
+        Gp_MenuLockPrev = Gp_MenuLockNow;
     }
-    D_8011570E = ~D_8011570C & D_8011570A;
-    D_80115710 = D_8011570C & ~D_8011570A;
-    D_8011570C = D_8011570A;
+    Gp_PadSuppressRise = ~Gp_PadSuppressPrev & Gp_PadSuppressMask;
+    Gp_PadSuppressFall = Gp_PadSuppressPrev & ~Gp_PadSuppressMask;
+    Gp_PadSuppressPrev = Gp_PadSuppressMask;
     if (Display_State.field_12c == 0) {
-        if (D_8011570E & 0x900) {
+        if (Gp_PadSuppressRise & 0x900) {
             Display_AcquireRef();
-            D_80115712++;
+            Gp_PadSuppressRefs++;
         }
-        if ((D_80115710 & 0x900) && D_80115712 != 0) {
+        if ((Gp_PadSuppressFall & 0x900) && Gp_PadSuppressRefs != 0) {
             do {
                 Display_ReleaseRef();
-                D_80115712--;
-            } while (D_80115712 != 0);
+                Gp_PadSuppressRefs--;
+            } while (Gp_PadSuppressRefs != 0);
         }
     }
     if (pad->status == 0x73) {
@@ -1892,14 +1892,14 @@ void Gp_UpdatePadInput(void)
         prev = pad->prevButtons;
         trig = pad->triggered;
     }
-    Game_Session->field_58 = Gp_RemapButtons(actor, mask) & ~D_8011570A;
-    Game_Session->field_5A = Gp_RemapButtons(actor, prev) & ~D_8011570A;
-    Game_Session->field_5C = Gp_RemapButtons(actor, trig) & ~D_8011570A;
+    Game_Session->field_58 = Gp_RemapButtons(actor, mask) & ~Gp_PadSuppressMask;
+    Game_Session->field_5A = Gp_RemapButtons(actor, prev) & ~Gp_PadSuppressMask;
+    Game_Session->field_5C = Gp_RemapButtons(actor, trig) & ~Gp_PadSuppressMask;
     if (D_80115718 != 0) {
         D_80115718--;
-        Game_Session->field_58 = Gp_RemapButtons(actor, mask) & ~D_8011570A & ~0x10;
-        Game_Session->field_5A = Gp_RemapButtons(actor, prev) & ~D_8011570A & ~0x10;
-        Game_Session->field_5C = Gp_RemapButtons(actor, trig) & ~D_8011570A & ~0x10;
+        Game_Session->field_58 = Gp_RemapButtons(actor, mask) & ~Gp_PadSuppressMask & ~0x10;
+        Game_Session->field_5A = Gp_RemapButtons(actor, prev) & ~Gp_PadSuppressMask & ~0x10;
+        Game_Session->field_5C = Gp_RemapButtons(actor, trig) & ~Gp_PadSuppressMask & ~0x10;
     }
 }
 
@@ -1948,17 +1948,17 @@ void func_800E9BDC(u8 arg0, s32 arg1)
     switch (arg0) {
         case 1:
         case 5:
-            D_80115714  = 0;
-            D_8011570A |= arg1;
+            Gp_MenuLockHold     = 0;
+            Gp_PadSuppressMask |= arg1;
             break;
         case 3:
-            D_8011570A |= arg1;
-            D_80115714  = 1;
+            Gp_PadSuppressMask |= arg1;
+            Gp_MenuLockHold     = 1;
             break;
         case 0:
         case 2:
-            D_80115714  = 0;
-            D_8011570A &= ~arg1;
+            Gp_MenuLockHold     = 0;
+            Gp_PadSuppressMask &= ~arg1;
         case 4:
             break;
     }
@@ -1966,14 +1966,14 @@ void func_800E9BDC(u8 arg0, s32 arg1)
 
 void func_800E9C6C(void)
 {
-    D_80115712 = 0;
-    D_8011570A = 0;
-    D_8011570C = 0;
-    D_8011570E = 0;
-    D_80115710 = 0;
-    D_80115708 = 0;
-    D_80115709 = 0;
-    D_80115714 = 0;
-    D_80115716 = 8;
-    D_80115718 = 4;
+    Gp_PadSuppressRefs = 0;
+    Gp_PadSuppressMask = 0;
+    Gp_PadSuppressPrev = 0;
+    Gp_PadSuppressRise = 0;
+    Gp_PadSuppressFall = 0;
+    Gp_MenuLockNow     = 0;
+    Gp_MenuLockPrev    = 0;
+    Gp_MenuLockHold    = 0;
+    Gp_MenuLockDelay   = 8;
+    D_80115718         = 4;
 }

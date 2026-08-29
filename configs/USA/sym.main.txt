@@ -2576,9 +2576,9 @@ _spu_rev_param              = 0x800686D4;
 //--------------------------------------------------------------------
 GAuxHeap                    = 0x80068F80;
 GAuxHeapSize                = 0x80068F84;
-D_80068F88                  = 0x80068F88;
+Gpu_PrimHeapBase                  = 0x80068F88;
 GActiveAuxHeap              = 0x80068F8C;
-D_80068F90                  = 0x80068F90;
+Gpu_PrimHeapSize                  = 0x80068F90;
 GActiveAuxHeapSize          = 0x80068F94;
 D_80068F98                  = 0x80068F98; // size:0x4
 D_80068F9C                  = 0x80068F9C; // ignore:true
@@ -2839,3 +2839,17 @@ Gp_PlayTimeMark              = 0x800739B8; // size:0x2
 
 // Gameplay naming pass 15 (main-exe LCG used by overlay)
 Gp_LcgState                  = 0x80070F60;
+
+// Globals naming pass 1
+Gpu_PrimCursor              = 0x80071190;
+Gpu_SysPrimCursor           = 0x80070EE0;
+Gpu_PrimBufStatic           = 0x800740E0;
+Gpu_PrimBufBase             = 0x8007A0E0;
+Gfx_ViewCoord               = 0x80070F10;
+Gfx_ViewWorldMtx            = 0x80070F34;
+Gfx_ViewRotMtx              = 0x80070E44;
+Gfx_ViewOffsetCoord         = 0x80070E90;
+Pad_MaskConfirm             = 0x8005ED70;
+Pad_MaskCancel              = 0x8005ED74;
+Pad_MaskMenu                = 0x8005ED78;
+Mc_StrMemoryCard            = 0x8001398C;

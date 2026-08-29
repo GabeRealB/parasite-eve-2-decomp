@@ -111,12 +111,12 @@ extern u8* GAuxHeap;
 /// Length in bytes of the heap pointed to by `GAuxHeap`.
 extern size_t GAuxHeapSize;
 
-extern size_t D_80068F88;
+extern size_t Gpu_PrimHeapBase;
 
 /// Pointer to the active auxilary heap.
 extern u8* GActiveAuxHeap;
 
-extern size_t D_80068F90;
+extern size_t Gpu_PrimHeapSize;
 
 /// Length in bytes of the heap pointed to by `GActiveAuxHeap`.
 extern size_t GActiveAuxHeapSize;

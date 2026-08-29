@@ -50,7 +50,7 @@ extern u8             D_80114CDC;
 extern u8             D_80114CDD;
 extern s32            D_80114CF0;
 extern s16            D_80114CF4;
-extern u16            D_80114CF6;
+extern u16            Gp_DirFadeLevel;
 extern u8             D_80114CF8;
 
 void Gp_EnqueueWeaponCd(void)
@@ -521,26 +521,26 @@ s32 Gp_PollAreaCdLoads(void)
 
     switch (Gp_AreaCdPhase) {
         case 0:
-            rec        = (GpCdAreaRec*)Gp_GetNestedAreaRec((GpAreaKey*)&Mc_SaveData.field_4);
-            D_80114C64 = rec;
-            D_80114C6C = rec->field_0;
+            rec         = (GpCdAreaRec*)Gp_GetNestedAreaRec((GpAreaKey*)&Mc_SaveData.field_4);
+            D_80114C64  = rec;
+            Gp_CdRecCur = rec->field_0;
             if (rec == NULL) {
                 return 1;
             }
             if (D_80114C68 == NULL) {
                 return 1;
             }
-            if (D_80114C6C == NULL) {
+            if (Gp_CdRecCur == NULL) {
                 return 1;
             }
             Gp_AreaCdPhase++;
         case 1:
-            if (D_80114C6C->field_0 != 0xFF) {
+            if (Gp_CdRecCur->field_0 != 0xFF) {
                 do {
-                    rec10 = D_80114C6C;
+                    rec10 = Gp_CdRecCur;
                     if (rec10->field_0 == 0) {
-                        next       = rec10 + 1;
-                        D_80114C6C = next;
+                        next        = rec10 + 1;
+                        Gp_CdRecCur = next;
                     } else {
                         D_80114C68 = D_80114C64->field_4;
                         if (D_80114C68->field_0 != 0xFF) {
@@ -552,11 +552,11 @@ s32 Gp_PollAreaCdLoads(void)
                                 }
                             }
                         }
-                        if (D_80114C6C->field_C == 0) {
-                            D_80114C6C++;
+                        if (Gp_CdRecCur->field_C == 0) {
+                            Gp_CdRecCur++;
                         } else {
                             param1[3] = 0;
-                            param1[0] = D_80114C6C->field_C;
+                            param1[0] = Gp_CdRecCur->field_C;
                             rec12     = D_80114C68;
                             val       = (s16)rec12->field_2;
                             if (val >= 0x64) {
@@ -569,8 +569,8 @@ s32 Gp_PollAreaCdLoads(void)
                             param1[2] = temp;
                             COMPILER_BARRIER();
                             param2[1] = 0;
-                            param2[2] = D_80114C6C->field_D;
-                            param2[3] = D_80114C6C->field_E;
+                            param2[2] = Gp_CdRecCur->field_D;
+                            param2[3] = Gp_CdRecCur->field_E;
                             CdCmd_Enqueue(0x21, param1, param2);
                             Gp_AreaCdPhase++;
                             break;
@@ -579,21 +579,21 @@ s32 Gp_PollAreaCdLoads(void)
                     {
                         register s32 hi asm("a0");
                         GpCdRec10*   p;
-                        asm("lui %0, %%hi(D_80114C6C)" : "=r"(hi));
-                        asm("lw %0, %%lo(D_80114C6C)(%1)" : "=r"(p) : "r"(hi));
+                        asm("lui %0, %%hi(Gp_CdRecCur)" : "=r"(hi));
+                        asm("lw %0, %%lo(Gp_CdRecCur)(%1)" : "=r"(p) : "r"(hi));
                         if (p->field_0 == 0xFF) {
                             break;
                         }
                     }
                 } while (1);
             }
-            if (D_80114C6C->field_0 == 0xFF) {
+            if (Gp_CdRecCur->field_0 == 0xFF) {
                 return 1;
             }
             break;
         case 2:
             if (CdCmd_IsIdle() & 0xFFFF) {
-                D_80114C6C++;
+                Gp_CdRecCur++;
                 Gp_AreaCdPhase--;
             }
             break;
@@ -1404,11 +1404,11 @@ void Gp_LinkRoomObjectsSpawn(Task* task)
         list2 = recs->field_8;
         list3 = recs->field_C;
         if (grid != NULL) {
-            grid->field_0 = &D_80070F10;
+            grid->field_0 = &Gfx_ViewCoord;
             Gp_GridParams = grid;
         }
         if (list1 != NULL) {
-            coord = &D_80070F10;
+            coord = &Gfx_ViewCoord;
             obj   = list1;
             do {
                 obj->field_8 = coord;
@@ -1420,7 +1420,7 @@ void Gp_LinkRoomObjectsSpawn(Task* task)
             } while (!(flags & 0x80));
         }
         if (list2 != NULL) {
-            coord = &D_80070F10;
+            coord = &Gfx_ViewCoord;
             obj   = list2;
             do {
                 obj->field_8 = coord;
@@ -1499,11 +1499,11 @@ void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
     SPRT*                  sprt;
     u32                    tpage;
 
-    rec        = arg1;
-    i          = 0;
-    dest       = (GpTpageSprt*)D_80071190;
-    elem       = arg0 + rec->field_0;
-    D_80071190 = (DR_TPAGE*)(dest + rec->field_2);
+    rec            = arg1;
+    i              = 0;
+    dest           = (GpTpageSprt*)Gpu_PrimCursor;
+    elem           = arg0 + rec->field_0;
+    Gpu_PrimCursor = (DR_TPAGE*)(dest + rec->field_2);
     if (rec->field_2 != 0) {
         asm("lui %0, %%hi(Display_State)" : "=r"(hi));
         asm("addiu %0, %1, %%lo(Display_State)" : "=r"(ds) : "r"(hi));
@@ -1721,11 +1721,11 @@ void Gp_LinkRoomObjects(Task* task)
         list2 = recs->field_8;
         list3 = recs->field_C;
         if (grid != NULL) {
-            grid->field_0 = &D_80070F10;
+            grid->field_0 = &Gfx_ViewCoord;
             Gp_GridParams = grid;
         }
         if (list1 != NULL) {
-            coord = &D_80070F10;
+            coord = &Gfx_ViewCoord;
             obj   = list1;
             do {
                 obj->field_8 = coord;
@@ -1737,7 +1737,7 @@ void Gp_LinkRoomObjects(Task* task)
             } while (!(flags & 0x80));
         }
         if (list2 != NULL) {
-            coord = &D_80070F10;
+            coord = &Gfx_ViewCoord;
             obj   = list2;
             do {
                 obj->field_8 = coord;
@@ -1759,8 +1759,8 @@ void Gp_LinkRoomObjects(Task* task)
             } while (!(flags & 0x80));
         }
     }
-    D_80070F10.flg = 0;
-    Gp_UpdateCoord(&D_80070F10);
+    Gfx_ViewCoord.flg = 0;
+    Gp_UpdateCoord(&Gfx_ViewCoord);
 }
 
 s8 Gp_FindViewIndex(s32 arg0)
@@ -1865,8 +1865,8 @@ void* Gp_GetViewSprtExtra(void)
 void func_800AD378(Task* task)
 {
     if (task->spawnArg1 != (u8)Game_Session->field_4) {
-        D_80070F10.flg = 0;
-        Gp_UpdateCoord(&D_80070F10);
+        Gfx_ViewCoord.flg = 0;
+        Gp_UpdateCoord(&Gfx_ViewCoord);
         task->spawnArg1 = (u8)Game_Session->field_4;
     }
     if (Game_Session->field_76 != 0) {
@@ -1999,9 +1999,9 @@ void Gp_SetupDirWarp(void)
         return;
     }
 
-    D_80114CF4 = 0;
-    D_80114CF6 = 0;
-    rec        = Gp_WarpTables[stage - 1][room - 1][(Gp_DirNibble >> 4) - 1];
+    D_80114CF4      = 0;
+    Gp_DirFadeLevel = 0;
+    rec             = Gp_WarpTables[stage - 1][room - 1][(Gp_DirNibble >> 4) - 1];
 
     Gp_WarpLoc.field_4 = 1;
     Gp_WarpLoc.field_3 = 1;
@@ -2033,7 +2033,7 @@ void Gp_SetupDirWarp(void)
             }
             Gp_DispatchMsg(slot3, 0x3EE, (s32)&msg, 0);
             if (rec.field_35 & 2) {
-                D_80114CF6 = 0x1E;
+                Gp_DirFadeLevel = 0x1E;
             }
             Gp_DirPhase++;
             break;
@@ -2100,12 +2100,12 @@ void Gp_FadeDirWaitMsg(void)
     u8    fade;
 
     slot = Game_GetPtrSlot(3);
-    if (*(s16*)&D_80114CF6 != 0) {
-        fade = *(u8*)&D_80114CF6;
+    if (*(s16*)&Gp_DirFadeLevel != 0) {
+        fade = *(u8*)&Gp_DirFadeLevel;
         Fade_DrawOverlay(fade, fade, fade, 2);
-        D_80114CF6 += 0x1E;
-        if ((s16)D_80114CF6 >= 0x100) {
-            D_80114CF6 = 0xFF;
+        Gp_DirFadeLevel += 0x1E;
+        if ((s16)Gp_DirFadeLevel >= 0x100) {
+            Gp_DirFadeLevel = 0xFF;
         }
     }
     if (Gp_DispatchMsg(slot, 0x3F0, 0, 0) == 0) {
@@ -2133,12 +2133,12 @@ void Gp_CommitWarp(void)
     sess = (GameSessionFrom4*)&Game_Session->field_4;
     rec  = Gp_WarpTables[sess->field_3 - 1][sess->field_2 - 1][(Gp_DirNibble >> 4) - 1];
 
-    if (*(s16*)&D_80114CF6 != 0) {
-        fade = *(u8*)&D_80114CF6;
+    if (*(s16*)&Gp_DirFadeLevel != 0) {
+        fade = *(u8*)&Gp_DirFadeLevel;
         Fade_DrawOverlay(fade, fade, fade, 2);
-        D_80114CF6 += 0x1E;
-        if ((s16)D_80114CF6 >= 0x100) {
-            D_80114CF6 = 0xFF;
+        Gp_DirFadeLevel += 0x1E;
+        if ((s16)Gp_DirFadeLevel >= 0x100) {
+            Gp_DirFadeLevel = 0xFF;
         }
     }
 
@@ -2173,12 +2173,12 @@ void func_800AE150(void)
 {
     u8 fade;
 
-    if (*(s16*)&D_80114CF6 != 0) {
-        fade = *(u8*)&D_80114CF6;
+    if (*(s16*)&Gp_DirFadeLevel != 0) {
+        fade = *(u8*)&Gp_DirFadeLevel;
         Fade_DrawOverlay(fade, fade, fade, 2);
-        D_80114CF6 += 0x1E;
-        if ((s16)D_80114CF6 >= 0x100) {
-            D_80114CF6 = 0xFF;
+        Gp_DirFadeLevel += 0x1E;
+        if ((s16)Gp_DirFadeLevel >= 0x100) {
+            Gp_DirFadeLevel = 0xFF;
         }
     }
     if (D_80114CF0 == 0 || SndVoice_HasActiveId(D_80114CF0) == 0) {

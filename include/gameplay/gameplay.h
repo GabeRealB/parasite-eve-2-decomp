@@ -257,7 +257,7 @@ extern GpStateBD8 D_80114BD8;
 
 /// 0x24-byte camera/view record in tables pointed to by `Gp_ViewTables`.
 /// Indexed 1-based by `Gp_GetViewIndex()`. `mtx` rotation is copied to
-/// `D_80070E44` and translation to `D_80070F28` by `Gp_LoadStageView` /
+/// `Gfx_ViewRotMtx` and translation to `D_80070F28` by `Gp_LoadStageView` /
 /// `Gp_ApplyView` / `Gp_ApplyViewTask`; `field_20` is `lhu` into
 /// `Display_State.field_110` and `lw` into GTE H (`gte_SetGeomScreen`).
 typedef struct _GpViewRec {
@@ -278,7 +278,7 @@ extern GpViewTbl* Gp_ViewTables[];
 /// `GsCOORDINATE2` overlay embedded in `GpDisp2d` at +0x10. Same 0x50 layout
 /// as libgs, but offset 0x44 (`param` / first half of `super`) is an `SVECTOR`
 /// of zeros written by `Gp_AttachDisp2d`. `sub` is still the parent coordinate
-/// (`&D_80070F10`).
+/// (`&Gfx_ViewCoord`).
 typedef struct _GpDisp2dCoord {
     /* 0x00 */ u32            flg;
     /* 0x04 */ MATRIX         mtx;

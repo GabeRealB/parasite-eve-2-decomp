@@ -285,7 +285,7 @@ extern u8           Mc_DefaultChecksumSrc[];
 extern McPromptPair Mc_PromptTable[];
 extern McSaveData   Mc_SaveData;
 /// "Memory Card" string passed to Ui_DrawTitle by Mc_DrawPrompt.
-extern char D_8001398C[];
+extern char Mc_StrMemoryCard[];
 /// "*" wildcard passed to MemCardGetDirentry by Mc_StateScanDirFlags.
 extern char D_80013A5C[];
 /// Jump table of 44 McStateFunc handlers used by Mc_DispatchStateTable.

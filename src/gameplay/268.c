@@ -26,9 +26,9 @@ extern u8           Gp_StrAttachAvail[];
 extern u8           D_8010D318[];
 extern u8           D_8010D320[];
 extern u8           D_8010D324[];
-extern s32          D_8005ED70;
-extern s32          D_8005ED74;
-extern s32          D_8005ED78;
+extern s32          Pad_MaskConfirm;
+extern s32          Pad_MaskCancel;
+extern s32          Pad_MaskMenu;
 
 void func_80180804(void);
 void func_8017EA68(void);
@@ -1616,10 +1616,10 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
 
     if (obj->status == one) {
         task->killCountdown = task->killCountdown - 1;
-        if ((task->killCountdown <= 0) || (Pad_CheckButtons(0, one, D_8005ED70 | D_8005ED74) != 0)) {
+        if ((task->killCountdown <= 0) || (Pad_CheckButtons(0, one, Pad_MaskConfirm | Pad_MaskCancel) != 0)) {
             obj->field_2E       = 9;
             task->killCountdown = 0x7FFF;
-        } else if (Pad_CheckButtons(0, 1, D_8005ED78) != 0) {
+        } else if (Pad_CheckButtons(0, 1, Pad_MaskMenu) != 0) {
             obj->field_2E       = -1;
             task->killCountdown = 0x7FFF;
         }

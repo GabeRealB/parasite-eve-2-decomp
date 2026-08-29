@@ -22,7 +22,7 @@
 /// 0x80 into `field_4E` or claims a `field_54` slot via `Gp_ClaimSlot18`.
 /// `field_40` is the signed value passed to `Gp_DrawHudNumbers`; `field_50`
 /// is the same `GpPairSrcE*` slot as `GpObj50` / `GpObj5C` / `GpObj5D`.
-/// `field_18` is a `GsCOORDINATE2*` (`&D_80070F10` from `Gp_AllocEnemy`);
+/// `field_18` is a `GsCOORDINATE2*` (`&Gfx_ViewCoord` from `Gp_AllocEnemy`);
 /// `Gp_UpdateLinkXforms` reads it from the `GpLinkNode` overlay as `coord`.
 /// `field_1C` / `field_2C` are local / player-relative `VECTOR3`s filled
 /// by `Gp_UpdateLinkXforms`.
@@ -384,7 +384,7 @@ GpEnemy* Gp_SpawnEnemyFromTable(TaskDesc* table, s32 idx, s32 arg2, GpEnemy* par
 void     Gp_DestroyEnemy(GpEnemy* enemy, Task* task);
 void     Gp_EnemyTaskExit(Task* task);
 /// Copies `arg1`'s matrix onto the coordinate at `Task::extra->field_8`,
-/// adding `arg2` in that space. If `arg1->sub` is world (`D_80070F10`),
+/// adding `arg2` in that space. If `arg1->sub` is world (`Gfx_ViewCoord`),
 /// copies `coord` and transforms in place; otherwise computes `workm`
 /// via `Gp_UpdateCoord`, transforms there, and converts to local with
 /// `Gp_WorldToLocal`. Always parents the dest to world and clears `flg`.
@@ -406,7 +406,7 @@ SVECTOR* Gp_ExtractEuler(SVECTOR* arg0, MATRIX* arg1);
 /// pair pick the two most independent axes; `MatrixNormal_0` / `_1` / `_2`
 /// reconstructs the missing row.
 void Gp_LerpOrthonormal(MATRIX* arg0, MATRIX* arg1, MATRIX* arg2, s32 arg3);
-/// Walks `arg0->sub` up to world (`D_80070F10`), composing each node's
+/// Walks `arg0->sub` up to world (`Gfx_ViewCoord`), composing each node's
 /// `coord` rotation into `arg1` and accumulating the rotated translation
 /// into `arg2`. The world parent initializes `arg1` to identity and
 /// `arg2` to zero.
@@ -508,7 +508,7 @@ typedef struct _GpDirSrc {
 } GpDirSrc;
 /// 0x28-byte scratch from `G_SCRATCH_HEAD` used by `Gp_MakeDirOffset`.
 /// `vec` is the `arg1->pos - arg0` delta (normalized in place);
-/// `mtx` is the transpose of `D_80070F10.workm`.
+/// `mtx` is the transpose of `Gfx_ViewCoord.workm`.
 typedef struct _GpDirScratch {
     /* 0x00 */ SVECTOR vec;
     /* 0x08 */ MATRIX  mtx;

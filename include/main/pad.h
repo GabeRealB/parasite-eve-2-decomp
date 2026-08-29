@@ -116,4 +116,11 @@ extern volatile PadState Pad_States[2];
 extern PadRawPort        Pad_RawPorts[2];
 extern PadRemapState*    Pad_RemapState;
 
+// Button masks checked with Pad_CheckButtons: confirm (0x40), cancel
+// (0xA0) and menu-open (0x900). Gp_PadSuppressMask masks out 0x900
+// exactly while the in-game menu is locked.
+extern s32 Pad_MaskConfirm;
+extern s32 Pad_MaskCancel;
+extern s32 Pad_MaskMenu;
+
 #endif // PAD_H

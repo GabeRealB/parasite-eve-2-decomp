@@ -33,7 +33,7 @@
 extern u8             D_801153F1;
 extern u8             Gp_StrItemObtained[]; // "Item obtained!"
 extern u8             Gp_StrBonusItem[];    // "Bonus item!!"
-extern s32            D_8010CA28;
+extern s32            Gp_ItemGrantCooldown;
 extern GpItemScan     D_8010CA2C;
 extern UiObjectDesc   D_8010CA40;
 extern UiObjectDesc   D_8010CA78[];
@@ -70,9 +70,9 @@ extern u8             D_80093894[];       // "%"
 extern u8             D_80093898[];       // "&"
 extern u8             D_800938AC[];       // "????"
 extern u8             Gp_StrHP[];         // "HP"
-extern s32            D_8005ED70;
-extern s32            D_8005ED74;
-extern GsCOORDINATE2  D_80070F10;
+extern s32            Pad_MaskConfirm;
+extern s32            Pad_MaskCancel;
+extern GsCOORDINATE2  Gfx_ViewCoord;
 extern s16            D_80114C40;
 extern DR_STP         D_80114C50;
 extern s32            D_80115724;
@@ -1013,7 +1013,7 @@ void Gp_UpdateCoordEx(GsCOORDINATE2* arg0, s32 arg1)
     if (arg0->sub == NULL) {
         Gp_CurCoord = arg0;
         Gp_UpdateCoordTree(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, 0);
-        Gp_WorldToLocal(&D_80070F34, &arg0->workm, &arg0->coord);
+        Gp_WorldToLocal(&Gfx_ViewWorldMtx, &arg0->workm, &arg0->coord);
     } else {
         Gp_UpdateCoordTree(arg0, D_80071210 & 0x7FFFFFFF, D_80071210 & 1, arg1);
     }
@@ -1053,7 +1053,7 @@ void* Gp_AttachDisp2d(Task* task)
     if (node != NULL) {
         node->field_C           = 1;
         node->field_8           = coord;
-        coord->sub              = &D_80070F10;
+        coord->sub              = &Gfx_ViewCoord;
         one                     = ONE;
         m                       = &node->coord.mtx;
         *(s32*)&node->coord.mtx = one;
@@ -4726,9 +4726,9 @@ void Gp_RestartSessionTask(Task* arg0)
     memset(&Game_Session->field_4, 0, 8);
     Mem_ConfigureAuxHeap(0, 0);
     if (Game_Session->field_128 == flag) {
-        D_80068F90         = 0xB000;
+        Gpu_PrimHeapSize   = 0xB000;
         GActiveAuxHeapSize = 0x30000;
-        D_80068F88         = (size_t)((u8*)Fs_ImgBuffers - 0x35800);
+        Gpu_PrimHeapBase   = (size_t)((u8*)Fs_ImgBuffers - 0x35800);
         GActiveAuxHeap     = (u8*)Fs_ImgBuffers - 0xA800;
     }
     Mem_Init();
@@ -5493,12 +5493,12 @@ void Gp_DrawPeGauge(s32 arg0, s32 arg1, s32 arg2)
     n = Gp_GetAttachParam(3);
     if (Gp_StateC08.field_5 < 0xD) {
         if (Gp_StateC08.field_2 > 0) {
-            tile       = (TILE*)D_80071190;
-            D_80071190 = (DR_TPAGE*)(tile + 1);
-            tile->x0   = arg1 + 0x18;
-            tile->y0   = arg2 + 0x21;
-            tile->w    = Gp_StateC08.field_2;
-            tile->h    = 1;
+            tile           = (TILE*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
+            tile->x0       = arg1 + 0x18;
+            tile->y0       = arg2 + 0x21;
+            tile->w        = Gp_StateC08.field_2;
+            tile->h        = 1;
             setlen(tile, 3);
             *(u32*)&tile->r0 = 0xFFC000;
             setcode(tile, 0x60);
@@ -5509,37 +5509,37 @@ void Gp_DrawPeGauge(s32 arg0, s32 arg1, s32 arg2)
             n = 0xB;
         }
 
-        sp         = (SPRT_16*)D_80071190;
-        D_80071190 = (DR_TPAGE*)(sp + 1);
-        sp->x0     = arg1 + 0x15;
-        sp->y0     = arg2 + 0x1D;
-        sp->u0     = 0x98;
-        sp->v0     = 0x68;
-        sp->clut   = 0x3C0B;
+        sp             = (SPRT_16*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(sp + 1);
+        sp->x0         = arg1 + 0x15;
+        sp->y0         = arg2 + 0x1D;
+        sp->u0         = 0x98;
+        sp->v0         = 0x68;
+        sp->clut       = 0x3C0B;
         setlen(sp, 3);
         setcode(sp, 0x77);
         addPrim(Gpu_CurrentOt - 2, sp);
 
-        sp2        = (SPRT_16*)D_80071190;
-        D_80071190 = (DR_TPAGE*)(sp2 + 1);
-        sp2->x0    = n + arg1 + 0x13;
-        sp2->y0    = arg2 + 0x1D;
-        sp2->u0    = 0xA8;
-        sp2->v0    = 0x68;
-        sp2->clut  = 0x3C0B;
+        sp2            = (SPRT_16*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(sp2 + 1);
+        sp2->x0        = n + arg1 + 0x13;
+        sp2->y0        = arg2 + 0x1D;
+        sp2->u0        = 0xA8;
+        sp2->v0        = 0x68;
+        sp2->clut      = 0x3C0B;
         setlen(sp2, 3);
         setcode(sp2, 0x77);
         addPrim(Gpu_CurrentOt - 2, sp2);
 
-        poly        = (POLY_FT4*)D_80071190;
-        D_80071190  = (DR_TPAGE*)(poly + 1);
-        poly->x0    = arg1 + 0x1D;
-        poly->y0    = arg2 + 0x1D;
-        poly->u0    = 0xA0;
-        poly->u2    = 0xA0;
-        poly->v2    = 0x70;
-        poly->v3    = 0x70;
-        poly->tpage = 0x1E;
+        poly           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+        poly->x0       = arg1 + 0x1D;
+        poly->y0       = arg2 + 0x1D;
+        poly->u0       = 0xA0;
+        poly->u2       = 0xA0;
+        poly->v2       = 0x70;
+        poly->v3       = 0x70;
+        poly->tpage    = 0x1E;
         setlen(poly, 9);
         poly->v0   = 0x68;
         poly->u1   = 0xA8;
@@ -5561,8 +5561,8 @@ void Gp_DrawPeGauge(s32 arg0, s32 arg1, s32 arg2)
         obj.mode      = 0;
         Gp_DrawItemIcon(&obj, arg1 + 4, arg2 + 0x28, ((cat / 3) << 4) + ((cat % 3) << 2) + 0x301, 0);
 
-        dr         = D_80071190;
-        D_80071190 = dr + 1;
+        dr             = Gpu_PrimCursor;
+        Gpu_PrimCursor = dr + 1;
         setDrawTPage(dr, 0, 1, 0x1E);
         addPrim(Gpu_CurrentOt - 2, dr);
     }
@@ -5621,7 +5621,7 @@ static __inline__ s32 getAttachLevel(s32 idx)
 
 /// Inline copy of `func_800A7E5C(0)`: the HUD category can be swapped only
 /// while the player actor is idle, no CD request is pending and the
-/// `D_8010CA28` cooldown has expired.
+/// `Gp_ItemGrantCooldown` cooldown has expired.
 static __inline__ s32 hudSwapReady(void)
 {
     GpActorWork*  work;
@@ -5649,7 +5649,7 @@ static __inline__ s32 hudSwapReady(void)
         flag = 0;
     }
     if (flag != 0) {
-        if (D_8010CA28 <= 0) {
+        if (Gp_ItemGrantCooldown <= 0) {
             ret = 1;
             if (D_801153F1 == 0) {
                 goto done;
@@ -5828,12 +5828,12 @@ void Gp_UseItemTask(GpIdMapC* arg0)
         }
         if (Gp_StateC08.field_2 <= 0) {
             if (cdIdleIfF0Active_()) {
-                Gp_StateC08.field_A = 0;
-                D_80115768          = 0;
-                D_801153F4          = 0;
-                Gp_StateC08.field_9 = 0;
-                Gp_StateC08.field_3 = 1;
-                D_8010CA28          = 0x14;
+                Gp_StateC08.field_A  = 0;
+                D_80115768           = 0;
+                D_801153F4           = 0;
+                Gp_StateC08.field_9  = 0;
+                Gp_StateC08.field_3  = 1;
+                Gp_ItemGrantCooldown = 0x14;
                 CdCmd_EnqueueLoadFile(0, 0, 4);
                 if (cfg->field_25 & 0x80) {
                     cfg->field_18 -= Gp_GetAttachParam(2) * 2;
@@ -5886,11 +5886,11 @@ void Gp_UseItemTask(GpIdMapC* arg0)
     if ((Gp_StateC08.field_E != 0 && actor->field_954 == 2) || (Gp_StateC08.field_6 & 1)) {
         Gp_StateC08.field_E = 0;
     }
-    if ((arg0->field_15 == 0 && Pad_CheckButtons(0, 0, D_8005ED70) != 0) ||
+    if ((arg0->field_15 == 0 && Pad_CheckButtons(0, 0, Pad_MaskConfirm) != 0) ||
         Gp_StateC08.field_E != 0) {
         if (cdIdleIfF0Active_()) {
             pad                     = &Pad_States[0];
-            mask                    = D_8005ED70;
+            mask                    = Pad_MaskConfirm;
             pad->prevButtons       &= ~mask;
             Game_Session->field_5A &= ~mask;
             Game_Session->field_58 &= ~mask;
@@ -5943,53 +5943,53 @@ void Gp_HudTask(GpIdMapC* arg0)
     cfg   = &Wip_SysConfig;
     ds    = &Display_State;
     if (ds->field_12c != 0) {
-        poly        = (POLY_FT4*)D_80071190;
-        D_80071190  = (DR_TPAGE*)(poly + 1);
-        poly->x2    = 0x16;
-        poly->x0    = 0x16;
-        poly->x3    = 0x96;
-        poly->x1    = 0x96;
-        poly->y1    = -0x6B;
-        poly->y0    = -0x6B;
-        poly->y3    = -0x2C;
-        poly->y2    = -0x2C;
-        poly->tpage = 0xA7;
-        poly->v2    = 0xBF;
-        poly->v3    = 0xBF;
-        poly->clut  = 0x3F80;
-        poly->u0    = 0;
-        poly->v0    = 0x80;
-        poly->u1    = 0x80;
-        poly->v1    = 0x80;
-        poly->u2    = 0;
-        poly->u3    = 0x80;
+        poly           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+        poly->x2       = 0x16;
+        poly->x0       = 0x16;
+        poly->x3       = 0x96;
+        poly->x1       = 0x96;
+        poly->y1       = -0x6B;
+        poly->y0       = -0x6B;
+        poly->y3       = -0x2C;
+        poly->y2       = -0x2C;
+        poly->tpage    = 0xA7;
+        poly->v2       = 0xBF;
+        poly->v3       = 0xBF;
+        poly->clut     = 0x3F80;
+        poly->u0       = 0;
+        poly->v0       = 0x80;
+        poly->u1       = 0x80;
+        poly->v1       = 0x80;
+        poly->u2       = 0;
+        poly->u3       = 0x80;
         setlen(poly, 9);
         setcode(poly, 0x2D);
         addPrim(Gpu_CurrentOt - 5, poly);
 
-        poly        = (POLY_FT4*)D_80071190;
-        D_80071190  = (DR_TPAGE*)(poly + 1);
-        poly->x2    = 0x16;
-        poly->x0    = 0x16;
-        poly->x3    = 0x96;
-        poly->x1    = 0x96;
-        poly->y1    = -0x6B;
-        poly->y0    = -0x6B;
-        poly->y3    = -0x2C;
-        poly->y2    = -0x2C;
-        poly->b0    = 0x40;
-        poly->g0    = 0x40;
-        poly->r0    = 0x40;
-        poly->tpage = 0xC7;
-        poly->v0    = 0xC0;
-        poly->v1    = 0xC0;
-        poly->v2    = 0xFF;
-        poly->v3    = 0xFF;
-        poly->clut  = 0x3F40;
-        poly->u0    = 0;
-        poly->u1    = 0x80;
-        poly->u2    = 0;
-        poly->u3    = 0x80;
+        poly           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+        poly->x2       = 0x16;
+        poly->x0       = 0x16;
+        poly->x3       = 0x96;
+        poly->x1       = 0x96;
+        poly->y1       = -0x6B;
+        poly->y0       = -0x6B;
+        poly->y3       = -0x2C;
+        poly->y2       = -0x2C;
+        poly->b0       = 0x40;
+        poly->g0       = 0x40;
+        poly->r0       = 0x40;
+        poly->tpage    = 0xC7;
+        poly->v0       = 0xC0;
+        poly->v1       = 0xC0;
+        poly->v2       = 0xFF;
+        poly->v3       = 0xFF;
+        poly->clut     = 0x3F40;
+        poly->u0       = 0;
+        poly->u1       = 0x80;
+        poly->u2       = 0;
+        poly->u3       = 0x80;
         setlen(poly, 9);
         setcode(poly, 0x2F);
         addPrim(Gpu_CurrentOt - 5, poly);
@@ -6025,7 +6025,7 @@ void Gp_HudTask(GpIdMapC* arg0)
                 goto after;
             }
         }
-        if (D_8010CA28 > 0) {
+        if (Gp_ItemGrantCooldown > 0) {
             goto after;
         }
         if (Game_Session->field_13A != 0) {
@@ -6070,7 +6070,7 @@ void Gp_HudTask(GpIdMapC* arg0)
                 }
             }
             if (hit != 0) {
-                if (D_8010CA28 > 0) {
+                if (Gp_ItemGrantCooldown > 0) {
                     ok = 0;
                     goto have;
                 }
@@ -6385,8 +6385,8 @@ end:
             }
             Gp_UseItemTask(arg0);
             Gp_StateC08.field_6 &= 0xFE;
-            if (D_8010CA28 > 0) {
-                D_8010CA28 = D_8010CA28 - 1;
+            if (Gp_ItemGrantCooldown > 0) {
+                Gp_ItemGrantCooldown = Gp_ItemGrantCooldown - 1;
             }
         }
     }
@@ -6609,8 +6609,8 @@ static __inline__ void Gp_LinkRingSeg(GpCircleScratch* sc)
 {
     register LINE_F2* prim asm("a0");
 
-    prim             = (LINE_F2*)D_80071190;
-    D_80071190       = (DR_TPAGE*)(prim + 1);
+    prim             = (LINE_F2*)Gpu_PrimCursor;
+    Gpu_PrimCursor   = (DR_TPAGE*)(prim + 1);
     *(u32*)&prim->r0 = 0x40C000;
     *(u32*)&prim->x0 = *(u32*)&sc->sxyPrev;
     *(u32*)&prim->x1 = *(u32*)&sc->sxy;
@@ -6649,7 +6649,7 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         base     = Display_State.field_8 << 4;
         *scratch = sc;
     }
-    gte_SetRotMatrix(&D_80070F34);
+    gte_SetRotMatrix(&Gfx_ViewWorldMtx);
     if (arg3 & 4) {
         other      = (GsCOORDINATE2*)((GameActorExt*)slot->extra)->field_8 + 4;
         sc->vec.vx = 0;
@@ -6683,7 +6683,7 @@ void Gp_DrawAimCircle(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
         Gfx_RotMatrixX(&sc->mat, -0x400, 0);
         arg3 &= ~4;
     } else {
-        sc->mat = D_80070F10.workm;
+        sc->mat = Gfx_ViewCoord.workm;
     }
     gte_SetRotMatrix(&sc->mat);
 
@@ -6871,13 +6871,13 @@ void func_800A63B4(s32 arg0, s32 arg1, s32 arg2)
     s32     otIdx;
     s32     u;
 
-    otIdx      = 0;
-    arg0      -= 6;
-    p          = (SPRT_8*)D_80071190;
-    arg1      -= 8;
-    D_80071190 = (DR_TPAGE*)(p + 1);
-    p->x0      = arg0;
-    p->y0      = arg1;
+    otIdx          = 0;
+    arg0          -= 6;
+    p              = (SPRT_8*)Gpu_PrimCursor;
+    arg1          -= 8;
+    Gpu_PrimCursor = (DR_TPAGE*)(p + 1);
+    p->x0          = arg0;
+    p->y0          = arg1;
     if (arg2 == 1) {
         goto case1;
     }
@@ -6994,32 +6994,32 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
     if (mode == 0) {
         sy *= 2;
     }
-    tp         = D_80071190;
-    D_80071190 = tp + 1;
+    tp             = Gpu_PrimCursor;
+    Gpu_PrimCursor = tp + 1;
     setlen(tp, 1);
     tp->code[0] = 0xE100023E;
     addPrim(Gpu_CurrentOt - 2, tp);
-    tp         = D_80071190;
-    D_80071190 = tp + 1;
+    tp             = Gpu_PrimCursor;
+    Gpu_PrimCursor = tp + 1;
     setlen(tp, 1);
     tp->code[0] = 0xE100023E;
     addPrim(Gpu_CurrentOt - 3, tp);
     if (mode == 1) {
-        sp         = (SPRT*)D_80071190;
-        D_80071190 = (DR_TPAGE*)(sp + 1);
-        sp->x0     = x + 0xD;
-        sp->y0     = y + 0xC;
-        sp->h      = 0x28;
-        sp->w      = 0x28;
-        sp->u0     = 0x60;
-        sp->v0     = 0xC0;
-        sp->clut   = 0x3C0C;
+        sp             = (SPRT*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(sp + 1);
+        sp->x0         = x + 0xD;
+        sp->y0         = y + 0xC;
+        sp->h          = 0x28;
+        sp->w          = 0x28;
+        sp->u0         = 0x60;
+        sp->v0         = 0xC0;
+        sp->clut       = 0x3C0C;
         setlen(sp, 4);
         setcode(sp, 0x65);
         addPrim(Gpu_CurrentOt - 2, sp);
     }
-    poly             = (POLY_GT4*)D_80071190;
-    D_80071190       = (DR_TPAGE*)(poly + 1);
+    poly             = (POLY_GT4*)Gpu_PrimCursor;
+    Gpu_PrimCursor   = (DR_TPAGE*)(poly + 1);
     *(u32*)&poly->r2 = 0xC0C0C0;
     *(u32*)&poly->r3 = 0x808080;
     *(u32*)&poly->r0 = 0x404040;
@@ -7034,12 +7034,12 @@ void Gp_DrawHudSprites(GpIdMapC* arg0)
     poly->y0 = poly->y1 = y;
     addPrim(Gpu_CurrentOt - 2, poly);
     if (arg0->field_16 != -1) {
-        sp2        = (SPRT*)D_80071190;
-        D_80071190 = (DR_TPAGE*)(sp2 + 1);
-        sp2->x0    = x + 0xD;
-        sp2->y0    = y + 0xC;
-        sp2->h     = 0x28;
-        sp2->w     = 0x28;
+        sp2            = (SPRT*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(sp2 + 1);
+        sp2->x0        = x + 0xD;
+        sp2->y0        = y + 0xC;
+        sp2->h         = 0x28;
+        sp2->w         = 0x28;
         if (arg0->field_16 != 4) {
             if (arg0->field_16 == 2) {
                 sp2->u0 = 0x88;
@@ -7165,8 +7165,8 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
         }
 
         if (w > 0) {
-            tile       = (TILE*)D_80071190;
-            D_80071190 = (DR_TPAGE*)(tile + 1);
+            tile           = (TILE*)Gpu_PrimCursor;
+            Gpu_PrimCursor = (DR_TPAGE*)(tile + 1);
             if (span < w) {
                 w = span;
             }
@@ -7187,42 +7187,42 @@ void Gp_DrawHudNumbers(s32 x, s32 y, s32 cur, s32 max, s32 kind)
         yb   = y + 0xB;
         clut = 0x3C0B;
 
-        sp         = (SPRT*)D_80071190;
-        D_80071190 = (DR_TPAGE*)(sp + 1);
-        sp->x0     = x + 4;
-        sp->y0     = yb;
-        sp->u0     = 0x98;
-        sp->v0     = 0x68;
-        sp->clut   = clut;
+        sp             = (SPRT*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(sp + 1);
+        sp->x0         = x + 4;
+        sp->y0         = yb;
+        sp->u0         = 0x98;
+        sp->v0         = 0x68;
+        sp->clut       = clut;
         setlen(sp, 3);
         setcode(sp, 0x75);
         addPrim(Gpu_CurrentOt - 2, sp);
 
-        sp         = (SPRT*)D_80071190;
-        D_80071190 = (DR_TPAGE*)(sp + 1);
-        right      = (span + x) - 2;
-        sp->x0     = right;
-        sp->y0     = yb;
-        sp->clut   = clut;
-        sp->u0     = 0xA8;
-        sp->v0     = 0x68;
+        sp             = (SPRT*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(sp + 1);
+        right          = (span + x) - 2;
+        sp->x0         = right;
+        sp->y0         = yb;
+        sp->clut       = clut;
+        sp->u0         = 0xA8;
+        sp->v0         = 0x68;
         setlen(sp, 3);
         setcode(sp, 0x75);
         addPrim(Gpu_CurrentOt - 2, sp);
 
-        poly        = (POLY_FT4*)D_80071190;
-        D_80071190  = (DR_TPAGE*)(poly + 1);
-        poly->x2    = x + 0xC;
-        poly->x0    = x + 0xC;
-        poly->x3    = right;
-        poly->x1    = right;
-        poly->y3    = y + 0x13;
-        poly->y2    = y + 0x13;
-        poly->u0    = 0xA0;
-        poly->u2    = 0xA0;
-        poly->v2    = 0x70;
-        poly->v3    = 0x70;
-        poly->tpage = 0x3E;
+        poly           = (POLY_FT4*)Gpu_PrimCursor;
+        Gpu_PrimCursor = (DR_TPAGE*)(poly + 1);
+        poly->x2       = x + 0xC;
+        poly->x0       = x + 0xC;
+        poly->x3       = right;
+        poly->x1       = right;
+        poly->y3       = y + 0x13;
+        poly->y2       = y + 0x13;
+        poly->u0       = 0xA0;
+        poly->u2       = 0xA0;
+        poly->v2       = 0x70;
+        poly->v3       = 0x70;
+        poly->tpage    = 0x3E;
         setlen(poly, 9);
         poly->y1   = yb;
         poly->y0   = yb;
@@ -7485,7 +7485,7 @@ void Gp_ResetHudFx(GpIdMapC* arg0)
     p->field_17             = 0;
     p->field_A              = 0;
     Game_Session->field_126 = 0;
-    D_8010CA28              = 0;
+    Gp_ItemGrantCooldown    = 0;
     Display_State.field_12f = 1;
     p->field_6             &= ~2;
 }
@@ -7629,7 +7629,7 @@ void Gp_DrawItemTitle(Task* arg0)
     obj->field_2E = 0;
     Ui_DrawTitle(obj, Gp_StrItem);
     if (obj->status == 1) {
-        if (Pad_CheckButtons(0, 1, D_8005ED70 | D_8005ED74) != 0) {
+        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
             obj->field_2E = 6;
         }
     }
@@ -7807,7 +7807,7 @@ void func_800A7DE0(void)
 
 void func_800A7E4C(void)
 {
-    D_8010CA28 = 5;
+    Gp_ItemGrantCooldown = 5;
 }
 
 s32 func_800A7E5C(s32 arg0)
@@ -7838,7 +7838,7 @@ s32 func_800A7E5C(s32 arg0)
         }
     }
     if (flag != 0) {
-        if (D_8010CA28 <= 0) {
+        if (Gp_ItemGrantCooldown <= 0) {
             if (D_801153F1 == 0) {
                 return 1;
             }
@@ -7912,8 +7912,8 @@ static __inline__ void coordToRoot(GsCOORDINATE2* arg0, GsCOORDINATE2* root, MAT
 }
 
 /// Points the active view at `arg0`: the transposed rotation goes to
-/// `D_80070E44` and the negated translation to `D_80070F10.coord.t`, with
-/// `arg1` (optional) stored as the world offset in `D_80070E90.coord.t`.
+/// `Gfx_ViewRotMtx` and the negated translation to `Gfx_ViewCoord.coord.t`, with
+/// `arg1` (optional) stored as the world offset in `Gfx_ViewOffsetCoord.coord.t`.
 /// Coordinates that are not direct children of the root are first folded to
 /// root space with `coordToRoot`.
 void Gp_SetViewFromCoord(GsCOORDINATE2* arg0, VECTOR* arg1)
@@ -7929,21 +7929,21 @@ void Gp_SetViewFromCoord(GsCOORDINATE2* arg0, VECTOR* arg1)
     GsCOORDINATE2           rel;
 
     if (arg1 != NULL) {
-        D_80070E90.coord.t[0] = arg1->vx;
-        D_80070E90.coord.t[1] = arg1->vy;
-        D_80070E90.coord.t[2] = arg1->vz;
+        Gfx_ViewOffsetCoord.coord.t[0] = arg1->vx;
+        Gfx_ViewOffsetCoord.coord.t[1] = arg1->vy;
+        Gfx_ViewOffsetCoord.coord.t[2] = arg1->vz;
     } else {
-        D_80070E90.coord.t[0] = 0;
-        D_80070E90.coord.t[1] = 0;
-        D_80070E90.coord.t[2] = 0;
+        Gfx_ViewOffsetCoord.coord.t[0] = 0;
+        Gfx_ViewOffsetCoord.coord.t[1] = 0;
+        Gfx_ViewOffsetCoord.coord.t[2] = 0;
     }
 
     parent = arg0->sub;
     TOUCH_REG(parent);
-    root = &D_80070F10;
+    root = &Gfx_ViewCoord;
     if (parent == root) {
         localMtx = &arg0->coord;
-        rot      = &D_80070E44;
+        rot      = &Gfx_ViewRotMtx;
         TOUCH_REG2(localMtx, rot);
         TRANSPOSE_ROT_3X3(rot, localMtx)
 
@@ -7953,7 +7953,7 @@ void Gp_SetViewFromCoord(GsCOORDINATE2* arg0, VECTOR* arg1)
     } else {
         coordToRoot(arg0, root, &rel.coord);
 
-        rot    = &D_80070E44;
+        rot    = &Gfx_ViewRotMtx;
         relMtx = &rel.coord;
         TOUCH_REG2(rot, relMtx);
         TRANSPOSE_ROT_3X3(rot, relMtx)
@@ -7964,9 +7964,9 @@ void Gp_SetViewFromCoord(GsCOORDINATE2* arg0, VECTOR* arg1)
     }
     arg0->flg = 0;
 
-    D_80070E90.flg = 0;
-    D_80070E40.flg = 0;
-    D_80070F10.flg = 0;
+    Gfx_ViewOffsetCoord.flg = 0;
+    D_80070E40.flg          = 0;
+    Gfx_ViewCoord.flg       = 0;
 }
 
 /// Spawns the type-0xE view task and points its coordinate at the inverse of
@@ -8010,7 +8010,7 @@ s32 Gp_SpawnViewCoordTask(GsCOORDINATE2* arg0, VECTOR* arg1)
 
     parent = arg0->sub;
     TOUCH_REG(parent);
-    root = &D_80070F10;
+    root = &Gfx_ViewCoord;
     if (parent == root) {
         localMtx = &arg0->coord;
         dstMtx   = &coord->coord;
@@ -8049,7 +8049,7 @@ void func_800A8654(Task* task)
     s32            j;
 
     i              = 0;
-    c1             = &D_80070E90;
+    c1             = &Gfx_ViewOffsetCoord;
     extra          = task->extra;
     vec            = (VECTOR*)task->idMap;
     src            = extra->field_8;
@@ -8064,14 +8064,14 @@ void func_800A8654(Task* task)
         }
     }
 
-    c3             = &D_80070F10;
+    c3             = &Gfx_ViewCoord;
     c3->coord.t[0] = src->coord.t[0];
     c3->coord.t[1] = src->coord.t[1];
     c3->coord.t[2] = src->coord.t[2];
 
-    D_80070E90.flg = 0;
-    D_80070E40.flg = 0;
-    D_80070F10.flg = 0;
+    Gfx_ViewOffsetCoord.flg = 0;
+    D_80070E40.flg          = 0;
+    Gfx_ViewCoord.flg       = 0;
     Task_Kill(task);
 }
 
@@ -8091,9 +8091,9 @@ void Gp_LoadStageView(void)
     recs = tbl->field_0[sess->field_2 - 1];
     idx  = Gp_GetViewIndex();
 
-    rot   = &D_80070E44;
+    rot   = &Gfx_ViewRotMtx;
     trans = &D_80070F28;
-    c1    = &D_80070E90;
+    c1    = &Gfx_ViewOffsetCoord;
     rec   = (GpViewRec*)(idx * sizeof(GpViewRec) + (s32)recs);
 
     *(GBytes18*)rot = *(GBytes18*)(rec - 1);
@@ -8109,7 +8109,7 @@ void Gp_LoadStageView(void)
     gte_SetGeomScreen(rec->field_20);
     gte_SetGeomOffset(0, 0);
 
-    D_80070E90.flg                                                          = 0;
+    Gfx_ViewOffsetCoord.flg                                                 = 0;
     ((GsCOORDINATE2*)((u8*)rot - OFFSET_OF(GsCOORDINATE2, coord)))->flg     = 0;
     ((GsCOORDINATE2*)((u8*)trans - OFFSET_OF(GsCOORDINATE2, coord.t)))->flg = 0;
 }
@@ -8177,9 +8177,9 @@ void Gp_ApplyView(GpViewRec* arg0)
     MATRIX*        rot;
     VECTOR3*       trans;
 
-    rot   = &D_80070E44;
+    rot   = &Gfx_ViewRotMtx;
     trans = &D_80070F28;
-    c1    = &D_80070E90;
+    c1    = &Gfx_ViewOffsetCoord;
 
     *(GBytes18*)rot = *(GBytes18*)arg0;
     *trans          = *(VECTOR3*)&arg0->mtx.t;
@@ -8192,7 +8192,7 @@ void Gp_ApplyView(GpViewRec* arg0)
     gte_SetGeomScreen(arg0->field_20);
     gte_SetGeomOffset(0, 0);
 
-    D_80070E90.flg                                                          = 0;
+    Gfx_ViewOffsetCoord.flg                                                 = 0;
     ((GsCOORDINATE2*)((u8*)rot - OFFSET_OF(GsCOORDINATE2, coord)))->flg     = 0;
     ((GsCOORDINATE2*)((u8*)trans - OFFSET_OF(GsCOORDINATE2, coord.t)))->flg = 0;
 }
@@ -8205,19 +8205,19 @@ void Gp_ResetView(void)
     GsCOORDINATE2*          c3;
     s32                     one;
 
-    c1             = &D_80070E90;
+    c1             = &Gfx_ViewOffsetCoord;
     one            = ONE;
     c1->coord.t[0] = 0;
     c1->coord.t[1] = 0;
     c1->coord.t[2] = one;
 
-    *(volatile s32*)&D_80070E44 = one;
-    m                           = &D_80070E44;
-    c2                          = (GsCOORDINATE2*)((u8*)m - OFFSET_OF(GsCOORDINATE2, coord));
-    *(s32*)&m->m[1][1]          = one;
-    m->m[2][2]                  = one;
+    *(volatile s32*)&Gfx_ViewRotMtx = one;
+    m                               = &Gfx_ViewRotMtx;
+    c2                              = (GsCOORDINATE2*)((u8*)m - OFFSET_OF(GsCOORDINATE2, coord));
+    *(s32*)&m->m[1][1]              = one;
+    m->m[2][2]                      = one;
 
-    c3                 = &D_80070F10;
+    c3                 = &Gfx_ViewCoord;
     *(s32*)&m->m[0][2] = 0;
     *(s32*)&m->m[2][0] = 0;
     c3->coord.t[0]     = 0;
@@ -8264,9 +8264,9 @@ void Gp_ApplyViewTask(Task* task)
     VECTOR3*       trans;
     GpViewRec*     rec;
 
-    rot   = &D_80070E44;
+    rot   = &Gfx_ViewRotMtx;
     trans = &D_80070F28;
-    c1    = &D_80070E90;
+    c1    = &Gfx_ViewOffsetCoord;
     rec   = task->spawnArg2;
 
     *(GBytes18*)rot = *(GBytes18*)rec;
@@ -8280,7 +8280,7 @@ void Gp_ApplyViewTask(Task* task)
     gte_SetGeomScreen(rec->field_20);
     gte_SetGeomOffset(0, 0);
 
-    D_80070E90.flg                                                          = 0;
+    Gfx_ViewOffsetCoord.flg                                                 = 0;
     ((GsCOORDINATE2*)((u8*)rot - OFFSET_OF(GsCOORDINATE2, coord)))->flg     = 0;
     ((GsCOORDINATE2*)((u8*)trans - OFFSET_OF(GsCOORDINATE2, coord.t)))->flg = 0;
     Task_Kill(task);
@@ -8298,7 +8298,7 @@ void func_800A8D5C(void)
     vec.vz                      = ONE;
     one                         = ONE;
     m                           = &coord.coord;
-    coord.sub                   = &D_80070F10;
+    coord.sub                   = &Gfx_ViewCoord;
     *(s32*)&coord.coord         = one;
     *(s32*)&coord.coord.m[0][2] = 0;
     *(s32*)&m->m[1][1]          = one;

@@ -30,7 +30,7 @@ extern u8               D_80114CDC;
 extern u8               D_80114CDD;
 extern u8               D_80114CDE;
 extern s16              D_80114CE0;
-extern u16              D_80114CF6;
+extern u16              Gp_DirFadeLevel;
 extern u8               D_80114CF8;
 extern s16              D_80114D08;
 extern u16              D_8017A738[];
@@ -259,12 +259,12 @@ void Gp_FadeDirAdvance(void)
 {
     u8 fade;
 
-    if (*(s16*)&D_80114CF6 != 0) {
-        fade = *(u8*)&D_80114CF6;
+    if (*(s16*)&Gp_DirFadeLevel != 0) {
+        fade = *(u8*)&Gp_DirFadeLevel;
         Fade_DrawOverlay(fade, fade, fade, 2);
-        D_80114CF6 += 0x1E;
-        if ((s16)D_80114CF6 >= 0x100) {
-            D_80114CF6 = 0xFF;
+        Gp_DirFadeLevel += 0x1E;
+        if ((s16)Gp_DirFadeLevel >= 0x100) {
+            Gp_DirFadeLevel = 0xFF;
         }
     }
     Gp_DirPhase++;
@@ -274,8 +274,8 @@ void Gp_CommitSaveLoc(void)
 {
     u8 fade;
 
-    if (*(s16*)&D_80114CF6 != 0) {
-        fade = *(u8*)&D_80114CF6;
+    if (*(s16*)&Gp_DirFadeLevel != 0) {
+        fade = *(u8*)&Gp_DirFadeLevel;
         Fade_DrawOverlay(fade, fade, fade, 2);
     }
     Mc_SaveData.field_6 = Gp_WarpLoc.field_0;

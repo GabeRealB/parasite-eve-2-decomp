@@ -67,16 +67,16 @@ s32  Gfx_ApplyMatrixNoSf(SVECTOR* arg0, SVECTOR* arg1);
 extern GfxImageSlot* Gfx_ImageSlotTables[];
 /// Color/light matrix written by Gfx_SetDefaultFlatLight / Gfx_SetLightAmbient.
 extern MATRIX D_80074080;
-/// GsCOORDINATE2 whose `.coord` is `D_80070E44`.
+/// GsCOORDINATE2 whose `.coord` is `Gfx_ViewRotMtx`.
 extern GsCOORDINATE2 D_80070E40;
 /// Identity-matrix storage for GsCOORDINATE2.coord (parent at symbol - 4).
-extern MATRIX D_80070E44;
+extern MATRIX Gfx_ViewRotMtx;
 /// GsCOORDINATE2 whose `.coord` is `D_80070E94`.
-extern GsCOORDINATE2 D_80070E90;
+extern GsCOORDINATE2 Gfx_ViewOffsetCoord;
 extern MATRIX        D_80070E94;
 extern MATRIX        D_80070F14;
-/// Translation of `D_80070F14` / `D_80070F10.coord.t`.
+/// Translation of `D_80070F14` / `Gfx_ViewCoord.coord.t`.
 extern VECTOR3 D_80070F28;
-extern MATRIX  D_80070F34;
+extern MATRIX  Gfx_ViewWorldMtx;
 
 #endif // GFX_H

@@ -134,7 +134,7 @@ typedef struct _GpActorSvec {
 } GpActorSvec;
 
 /// 8-byte argument record for `func_800FDB18`. `field_0` is a coordinate
-/// (fallback `D_80070F10`); `field_4` / `field_6` are packed into the
+/// (fallback `Gfx_ViewCoord`); `field_4` / `field_6` are packed into the
 /// `Gp_SpawnEff` argument. The third `func_800FDB18` argument is an
 /// `SVECTOR*` (or NULL).
 typedef struct _GpEffArg {
@@ -238,7 +238,7 @@ STATIC_ASSERT_SIZEOF(GpEffRec, 4);
 
 extern GpEffRec D_8011291C[];
 
-/// 0xC-byte sprite frame of `D_80112934`, indexed by `GpEffWork.field_22`.
+/// 0xC-byte sprite frame of `Gp_EffSprRecs`, indexed by `GpEffWork.field_22`.
 /// `w` is both the UV quad size and the billboard scale factor. `u` / `v` are
 /// the UV origin. `clutX` / `clutY` feed `getClut`; `tpageX` feeds
 /// `getTPage(0, 1, tpageX, 0)`.
@@ -254,7 +254,7 @@ typedef struct _GpEffSprRec {
 } GpEffSprRec;
 STATIC_ASSERT_SIZEOF(GpEffSprRec, 0xC);
 
-extern GpEffSprRec D_80112934[];
+extern GpEffSprRec Gp_EffSprRecs[];
 
 /// 8-byte sprite frame of `D_80111E48`, indexed by
 /// `GpEffWork.field_22 / GpEffWork.field_28` in `Gp_EffSprTask5C`.
@@ -460,7 +460,7 @@ STATIC_ASSERT_SIZEOF(GpEffTileScratch, 0x14);
 /// `vec0` is the coordinate's current `workm.t[]` truncated to s16.
 /// `Gp_EffLineTask92` puts the previous-frame position (`GpEffWork.field_18`
 /// ..`field_1C`) in `vec1`. `Gp_EffLineTaskA3` rotates `field_10` through
-/// `field_8->coord` and `D_80070F34`, scales by `field_22 << 11 + 0x1000`,
+/// `field_8->coord` and `Gfx_ViewWorldMtx`, scales by `field_22 << 11 + 0x1000`,
 /// and adds `vec0` into `vec1`. Each vector is projected with its own RTPS:
 /// `sxy0` / `sxy1` receive `gte_stsxy`, `flag` `gte_stflg` and `otz`
 /// `gte_stszotz`, giving the two endpoints of a trail `LINE_F2` /

@@ -270,7 +270,7 @@ typedef struct _GpCoordTail {
 STATIC_ASSERT_SIZEOF(GpCoordTail, 0x60);
 
 /// 0x64-byte world-coord slot. `Gp_InitRoomCoords` inits all 8 entries of
-/// `Gp_RoomCoords`: `coord.sub` is the parent (`&D_80070F10`) and `field_0`
+/// `Gp_RoomCoords`: `coord.sub` is the parent (`&Gfx_ViewCoord`) and `field_0`
 /// is a refcount (decremented by `Gp_DecRoomCoordRefs`). `Gp_CountRoomCoords` returns
 /// how many slots currently have a non-zero refcount. `Gp_EffCtlTask6B`
 /// copies the actor translation into `coord`, writes `0xC00` into
@@ -290,7 +290,7 @@ STATIC_ASSERT_SIZEOF(GpCoord64, 0x64);
 
 /// 0x10-byte scratch from `G_SCRATCH_HEAD` used by `Gp_TraceGroundCoord` and
 /// `func_800EA1A8`. `pos` is the low halves of the source XYZ. `dir`
-/// starts as `(0, 0x1000, 0)`, is rotated by `D_80070F34`, then added
+/// starts as `(0, 0x1000, 0)`, is rotated by `Gfx_ViewWorldMtx`, then added
 /// onto `pos` and passed to `func_800DE7CC`.
 typedef struct _GpRayScratch {
     /* 0x0 */ SVECTOR pos;
@@ -372,7 +372,7 @@ STATIC_ASSERT_SIZEOF(GpBandScratch, 0x118);
 extern GpState1C*    Gp_State1C;
 extern Task*         Gp_State1CTask;
 extern GpCoord64     Gp_RoomCoords[8];
-extern GsCOORDINATE2 D_80070F10;
+extern GsCOORDINATE2 Gfx_ViewCoord;
 /// Six CLUT X coordinates (0x20, 0x30, 0xC0, 0xD0, 0xE0, 0xF0) selected by
 /// the top nibble of `Gp_DrawFxQuad`'s angle argument and paired with CLUT
 /// Y 0x10B.
@@ -427,7 +427,7 @@ void Gp_InitRoomCoords(void);
 /// 16 bits; a negative `arg0` bypasses the 0x80 live-effect cap in
 /// `GpState1C::field_0`. `arg1` is the parent coordinate (`NULL` = world):
 /// the task's own `GameActorExt::field_8` coordinate is seeded from it and
-/// re-parented to `D_80070F10`. `arg2` becomes `Task::spawnArg1`; `arg3` is an
+/// re-parented to `Gfx_ViewCoord`. `arg2` becomes `Task::spawnArg1`; `arg3` is an
 /// optional offset vector (`NULL` = zero) rotated into the parent's space and
 /// kept in `GpEffWork::field_C`. Returns the work object, or `NULL`.
 struct _GpEffWork* Gp_SpawnEff(s32 arg0, GsCOORDINATE2* arg1, s32 arg2, SVECTOR* arg3);

@@ -53,13 +53,13 @@ void McMenu_ConfirmWithRender(DialogPrompt* arg0, UiObject* arg1)
     temp  = arg1->owner->spawnArg1;
     func_800330D8(arg1, temp, temp2, 0, arg0->field_1A + 7);
     if (arg0->field_C == 1) {
-        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(0x16, 0, 0);
             arg1->field_2E = 6;
             var_v0         = (s8)(u8)arg0->field_8;
             goto block_5;
         }
-        if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
+        if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(0x3B, 0, 0);
             arg1->field_2E = 6;
             var_v0         = -1;
@@ -131,11 +131,11 @@ void McMenu_ConfirmDialog(DialogPrompt* arg0, UiObject* arg1)
     Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, D_80060A54, arg0->field_1C, 1, 0);
     temp = arg0->field_C;
     if (temp == 1) {
-        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(0x16, 0, 0);
             arg1->field_2E = 6;
             arg1->field_2C = temp;
-        } else if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
+        } else if (Pad_CheckButtons(0, 1, Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(0x15, 0, 0);
             arg0->field_B  = temp;
             arg0->field_22 = 0x41;
@@ -150,7 +150,7 @@ void McMenu_ConfirmDialogAlt(DialogPrompt* arg0, UiObject* arg1)
     Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, D_80060A64, arg0->field_1C, 1, 0);
     temp = arg0->field_C;
     if (temp == 1) {
-        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(0x16, 0, 0);
             arg1->field_2E = 6;
             arg1->field_2C = temp;
@@ -165,7 +165,7 @@ void McMenu_ConfirmYes(DialogPrompt* arg0, UiObject* arg1)
     Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, D_80060A5C, arg0->field_1C, 1, 0);
     temp = arg0->field_C;
     if (temp == 1) {
-        if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm) != 0) {
             SndEvt_EnqueueType6(0x3B, 0, 0);
             arg1->field_2E = 6;
             arg1->field_2C = temp;
@@ -177,7 +177,7 @@ void McMenu_ConfirmNo(DialogPrompt* arg0, UiObject* arg1)
 {
     Text_DrawPrompt(arg1, arg0->field_18, arg0->field_1A, D_80060A58, arg0->field_1C, 1, 0);
     if (arg0->field_C == 1) {
-        if (Pad_CheckButtons(0, 1, D_8005ED70 | D_8005ED74) != 0) {
+        if (Pad_CheckButtons(0, 1, Pad_MaskConfirm | Pad_MaskCancel) != 0) {
             SndEvt_EnqueueType6(0x3B, 0, 0);
             arg1->field_2E = 6;
             arg1->field_2C = -1;

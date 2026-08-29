@@ -414,10 +414,10 @@ void GameMain_Loop(void)
 
             {
                 register s32 idx asm("a0");
-                idx        = nv->field_114;
-                D_80070EE0 = D_800740E0 + (u32)idx * 0x3000;
-                D_80071190 =
-                    (DR_TPAGE*)((u8*)D_80068F88 + (u32)idx * ((u32)D_80068F90 >> 1));
+                idx               = nv->field_114;
+                Gpu_SysPrimCursor = Gpu_PrimBufStatic + (u32)idx * 0x3000;
+                Gpu_PrimCursor =
+                    (DR_TPAGE*)((u8*)Gpu_PrimHeapBase + (u32)idx * ((u32)Gpu_PrimHeapSize >> 1));
                 /* Callee reloads Task_DefaultList itself; keep idx in $a0. */
                 Task_ExecDefaultList((TaskNode*)idx);
             }
@@ -603,18 +603,18 @@ void Gfx_InitCoordinateTrees(void)
     c1->coord.t[2]     = 0x8000;
     c1->flg            = 0;
 
-    *(s32*)&D_80070E44 = one;
-    m                  = &D_80070E44;
-    c2                 = (GsCOORDINATE2*)((u8*)m - OFFSET_OF(GsCOORDINATE2, coord));
-    *(s32*)&m->m[0][2] = 0;
-    *(s32*)&m->m[1][1] = one;
-    *(s32*)&m->m[2][0] = 0;
-    m->m[2][2]         = one;
-    c2->sub            = c1;
-    c2->coord.t[0]     = 0;
-    c2->coord.t[1]     = 0;
-    c2->coord.t[2]     = 0;
-    c2->flg            = 0;
+    *(s32*)&Gfx_ViewRotMtx = one;
+    m                      = &Gfx_ViewRotMtx;
+    c2                     = (GsCOORDINATE2*)((u8*)m - OFFSET_OF(GsCOORDINATE2, coord));
+    *(s32*)&m->m[0][2]     = 0;
+    *(s32*)&m->m[1][1]     = one;
+    *(s32*)&m->m[2][0]     = 0;
+    m->m[2][2]             = one;
+    c2->sub                = c1;
+    c2->coord.t[0]         = 0;
+    c2->coord.t[1]         = 0;
+    c2->coord.t[2]         = 0;
+    c2->flg                = 0;
 
     *(s32*)&D_80070F14 = one;
     m                  = &D_80070F14;
