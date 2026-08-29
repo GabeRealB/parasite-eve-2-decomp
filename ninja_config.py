@@ -7,6 +7,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tomllib
 from dataclasses import dataclass
 from enum import IntEnum
 from pathlib import Path
@@ -76,7 +77,36 @@ class YamlInfo:
 
 
 # Each entry is a splat config under configs/<version>/. main first; overlays after.
+# These three are hand-maintained: each has quirks (a PS-X EXE header, rodata
+# ordering fixes, hasm segments) that the overlay template cannot express.
 YAML_EXECUTABLE = ["main.yaml", "title.yaml", "gameplay.yaml"]
+
+# The rest of the overlays are flat .pe2pkg files with the same shape, so their
+# configs are generated from configs/<version>/overlays.toml rather than written
+# out 446 times. See tools/gen_overlay_configs.py.
+OVERLAY_MANIFEST = Path("configs/USA/overlays.toml")
+GENERATED_CONFIG_SUBDIR = "generated"
+
+
+def generated_overlay_yamls() -> list[tuple[str, str, str]]:
+    """(yaml path relative to configs/<version>/, basename, family) per overlay."""
+    if not OVERLAY_MANIFEST.is_file():
+        return []
+    manifest = tomllib.loads(OVERLAY_MANIFEST.read_text(encoding="utf-8"))
+    out = []
+    for family, spec in manifest.items():
+        for _file_id, entry in sorted(spec["overlays"].items()):
+            name = entry["name"]
+            out.append((f"{GENERATED_CONFIG_SUBDIR}/{name}.yaml", name, family))
+    return out
+
+
+def overlay_family_imports() -> dict[str, str]:
+    """family -> shared imports file, from the manifest."""
+    if not OVERLAY_MANIFEST.is_file():
+        return {}
+    manifest = tomllib.loads(OVERLAY_MANIFEST.read_text(encoding="utf-8"))
+    return {family: spec["imports"] for family, spec in manifest.items()}
 
 # Directories
 ASSETS_DIR = Path("assets")
@@ -474,12 +504,14 @@ def append_main_overlay_imports() -> None:
         rewrite(sym, extra_sym)
 
 
-def append_overlay_absolute_imports(basename: str) -> None:
+def append_overlay_absolute_imports(basename: str, imports_path: str | None = None) -> None:
     """splat 0.50 will not put absolute main-exe symbols in overlay undef scripts.
 
     Overlay TUs are C and still need those names at link time (`-T` undef files).
+    Generated overlays share one imports file per family, so the path is passed
+    in; the hand-written overlays keep the per-basename default.
     """
-    imports = Path(f"configs/USA/sym.{basename}.imports.txt")
+    imports = Path(imports_path or f"configs/USA/sym.{basename}.imports.txt")
     dest = Path(f"linkers/USA/undefined_syms_auto.{basename}.txt")
     if not imports.is_file() or not dest.is_file():
         return
@@ -498,13 +530,13 @@ def append_title_absolute_imports() -> None:
     append_overlay_absolute_imports("title")
 
 
-def fix_overlay_include_asm_paths(basename: str) -> None:
+def fix_overlay_include_asm_paths(basename: str, src_dir: str | None = None) -> None:
     """splat 0.50 emits INCLUDE_ASM(\"asm/USA/...\"). Project macro already
     prefixes asm/USA/, so strip the extra directory from generated C."""
-    src_dir = Path(f"src/{basename}")
-    if not src_dir.is_dir():
+    src_dir_path = Path(src_dir or f"src/{basename}")
+    if not src_dir_path.is_dir():
         return
-    for path in src_dir.glob("*.c"):
+    for path in src_dir_path.rglob("*.c"):
         text = path.read_text(encoding="utf-8")
         new = text.replace('INCLUDE_ASM("asm/USA/', 'INCLUDE_ASM("')
         new = new.replace('INCLUDE_RODATA("asm/USA/', 'INCLUDE_RODATA("')
@@ -770,12 +802,11 @@ def ninja_build(
         )
 
     if not skip_checksum:
+        version_dir = GAME_VERSIONS[game_version_idx].metadata.version_dir
         if PLATFORM == Platform.Windows:
-            checksum_target = (
-                f"{CONFIG_DIR}/{GAME_VERSIONS[game_version_idx].metadata.version_dir}"
-            )
+            checksum_target = f"{CONFIG_DIR}/{version_dir}"
         else:
-            checksum_target = f"{CONFIG_DIR}/{GAME_VERSIONS[game_version_idx].metadata.version_dir}/checksum.sha"
+            checksum_target = f"{CONFIG_DIR}/{version_dir}/checksum.sha"
 
         ninja_file.build(
             outputs=f"{BUILD_DIR}/{GAME_VERSIONS[game_version_idx].metadata.version_dir}/out/checksum.ok",
@@ -967,7 +998,14 @@ def main():
         )
         return
 
+    subprocess.check_call([PYTHON, str(TOOLS_DIR / "gen_overlay_configs.py")])
+    generated = generated_overlay_yamls()
+    family_imports = overlay_family_imports()
+    overlay_family = {yaml: family for yaml, _name, family in generated}
+    overlay_basename = {yaml: name for yaml, name, _family in generated}
+
     yamls_paths.extend(YAML_EXECUTABLE)
+    yamls_paths.extend(yaml for yaml, _n, _f in generated)
     clean_working_files(True, objdiff_config_option)
 
     for yaml in yamls_paths:
@@ -992,6 +1030,11 @@ def main():
             fix_gameplay_linker_rodata_order()
             append_overlay_absolute_imports("gameplay")
             fix_overlay_include_asm_paths("gameplay")
+        elif yaml in overlay_family:
+            family = overlay_family[yaml]
+            basename = overlay_basename[yaml]
+            append_overlay_absolute_imports(basename, family_imports.get(family))
+            fix_overlay_include_asm_paths(basename, f"src/{family}/{basename}")
         splits_yaml_info.append(
             YamlInfo(
                 [split.linker_writer.entries],

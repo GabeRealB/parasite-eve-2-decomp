@@ -1,0 +1,1 @@
+// Overlay-local symbols for M4A1 Hammer (file 10325).

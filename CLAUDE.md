@@ -8,12 +8,44 @@ This is a matching decompilation project for Parasite Eve 2 (PS1). The goal is t
 
 ## Project Structure
 
-- `src/<overlay>` decompiled C (`src/main`, `src/gameplay`, `src/title`, later `src/<nested overlay>`)
+- `src/<overlay>` decompiled C (`src/main`, `src/gameplay`, `src/title`) and
+  `src/<family>/<overlay>` for the generated overlay families (`src/weapons/m93r`, …)
 - `include/<overlay>` headers for that unit (`include/main`, `include/gameplay`, …)
 - `asm/<ver>/<overlay>/nonmatchings` unmatched functions (one `.s` per function). Overlays may be nested (e.g. `asm/USA/stage1/101/nonmatchings`).
 - `asm/<ver>/<overlay>/matchings` already-matched functions
 - `lib` library code such as Psy-Q objects we link against
 - `assets` binary asset blobs extracted from the rom
+
+### Generated overlay configs
+
+`main` / `gameplay` / `title` have hand-written splat configs; each has quirks a
+template cannot express. Every other overlay is a flat `.pe2pkg` with the same
+shape, and there are 446 of them, so their configs are **generated**:
+
+| File | Role |
+|---|---|
+| `configs/USA/overlays.toml` | the manifest — only human decisions (each overlay's name and what it is) |
+| `configs/USA/overlay.template.yaml` | the shared config body |
+| `configs/USA/generated/*.yaml` | output, gitignored, rewritten by every `ninja_config.py` run |
+| `configs/USA/sym/<family>/<name>.txt` | per-overlay symbol map |
+| `configs/USA/sym/<family>.imports.txt` | main + gameplay imports, shared by the family |
+
+`sha1`, size and the `.text` span are **derived from the package**, never
+written in the manifest, so a config cannot drift from the data it describes.
+
+Two maintenance commands, neither run by the build:
+
+- `python3 tools/gen_overlay_configs.py [--family F] [--list]` — regenerate the
+  configs. `ninja_config.py` also calls this, so the build is self-consistent.
+- `python3 tools/gen_overlay_imports.py [family]` — rebuild a family's imports
+  file from the split output, then re-split so the sources pick up the names.
+  Run it after adding a family or after a naming pass.
+
+Overlays in a family all load at the same address, so `symbol_name_format`
+prefixes generated names with the segment (`func_m4a1_8011D1C4`). Keep that:
+the decomp tooling (`decomp_overlay.py find`, `tools/claude`,
+`score_functions.py`, the vacuum) assumes a function name identifies one
+overlay.
 
 ## Tools
 

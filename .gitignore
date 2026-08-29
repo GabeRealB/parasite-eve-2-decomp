@@ -32,3 +32,6 @@ venv*/
 
 # peassets ladder logs (regenerated each run)
 tools/peassets/logs/
+
+# Generated splat configs (tools/gen_overlay_configs.py)
+configs/USA/generated/

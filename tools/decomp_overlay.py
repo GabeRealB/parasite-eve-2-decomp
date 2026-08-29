@@ -118,10 +118,15 @@ def discover_overlays(version: Optional[str] = None) -> list[Overlay]:
         cfg_dir = REPO_ROOT / "configs" / ver
         if not cfg_dir.is_dir():
             continue
-        for yaml_path in sorted(cfg_dir.glob("*.yaml")):
+        # Hand-written configs sit directly in configs/<ver>/; the generated
+        # overlay families are one level down. overlay.template.yaml lives
+        # alongside the hand-written ones and is not a config - its fields are
+        # still @@PLACEHOLDER@@ text, so skip anything that still has them.
+        yaml_paths = sorted(cfg_dir.glob("*.yaml")) + sorted(cfg_dir.glob("generated/*.yaml"))
+        for yaml_path in yaml_paths:
             fields = parse_splat_yaml(yaml_path)
             asm_path_s = fields.get("asm_path")
-            if not asm_path_s:
+            if not asm_path_s or "@@" in asm_path_s:
                 continue
             asm_path = REPO_ROOT / asm_path_s
             src_path_s = fields.get("src_path")

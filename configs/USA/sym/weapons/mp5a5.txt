@@ -1,0 +1,1 @@
+// Overlay-local symbols for MP5A5 (file 10330).

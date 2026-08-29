@@ -221,6 +221,56 @@ often &lt; 1 KiB). The rest of the ~55 KiB is clip tables (pointers back
 into the same overlay, e.g. `10301` at `+0x774`) and keyframe-like
 halfwords. Fire / reload / inspect are per-gun.
 
+**Which package is which gun.** `Gp_EnqueueItemPreviewCd`
+(`src/gameplay/3688.c`) maps an equipped item to its overlay:
+
+```c
+if ((u32)(arg0 - 0x80) < 0x20U) {   // the 32 weapon item ids
+    type  = 1;
+    index = arg0 - 0x7F;            // → file 10300 + index
+```
+
+so **item `0x80 + n` is package `10301 + n`**, and the name comes from
+`Gp_ItemDescs[id].field_4`. Three independent facts agree with that mapping,
+which is what rules out an off-by-one:
+
+* The variant groups line up. `10316`/`10320`/`10321` share one animation
+  block and land on `M4A1 Rifle` / `M4A1(+1)` / `M4A1(+2)`; `10330`–`10332`
+  share another and land on `MP5A5` / `MP5A5(+1)` / `MP5A5(+2)`; `10301` and
+  `10304` share a third and are `P08(S. Magazine)` / `P08` — one gun, two
+  magazines.
+* Six descriptors in `0x80`–`0x9F` are **fully zeroed** — unused weapon slots
+  (`0x85`–`0x87`, `0x89`, `0x91`, `0x97`).
+* Five packages are byte-for-byte the same size (53 332) and share a single
+  placeholder animation block: `10307`, `10308`, `10310`, `10318`, `10324` —
+  exactly five of those six zeroed slots. None of the six contains a single
+  function; they are pure data.
+
+The overlays are named after the weapon, in `configs/USA/overlays.toml`:
+
+| Pkg | Item | Weapon | Overlay | | Pkg | Item | Weapon | Overlay |
+|---|---|---|---|---|---|---|---|---|
+| 10301 | `0x80` | P08(S. Magazine) | `p08_snail` | | 10317 | `0x90` | M249 | `m249` |
+| 10302 | `0x81` | M93R | `m93r` | | 10318 | `0x91` | — | `unused_91` |
+| 10303 | `0x82` | M950 | `m950` | | 10319 | `0x92` | Tonfa Baton | `tonfa_baton` |
+| 10304 | `0x83` | P08 | `p08` | | 10320 | `0x93` | M4A1(+1) | `m4a1_p1` |
+| 10305 | `0x84` | P229 | `p229` | | 10321 | `0x94` | M4A1(+2) | `m4a1_p2` |
+| 10306 | `0x85` | — | `unused_85` | | 10322 | `0x95` | Hypervelocity | `hypervelocity` |
+| 10307 | `0x86` | — | `unused_86` | | 10323 | `0x96` | Gunblade | `gunblade` |
+| 10308 | `0x87` | — | `unused_87` | | 10324 | `0x97` | — | `unused_97` |
+| 10309 | `0x88` | Mongoose | `mongoose` | | 10325 | `0x98` | M4A1 Hammer | `m4a1_hammer` |
+| 10310 | `0x89` | — | `unused_89` | | 10326 | `0x99` | M4A1 Bayonet | `m4a1_bayonet` |
+| 10311 | `0x8A` | Grenade Pistol | `grenade_pistol` | | 10327 | `0x9A` | M4A1 Grenade | `m4a1_grenade` |
+| 10312 | `0x8B` | MM1 | `mm1` | | 10328 | `0x9B` | M4A1 Pyke | `m4a1_pyke` |
+| 10313 | `0x8C` | PA3 | `pa3` | | 10329 | `0x9C` | M4A1 Javelin | `m4a1_javelin` |
+| 10314 | `0x8D` | SP12 | `sp12` | | 10330 | `0x9D` | MP5A5 | `mp5a5` |
+| 10315 | `0x8E` | AS12 | `as12` | | 10331 | `0x9E` | MP5A5(+1) | `mp5a5_p1` |
+| 10316 | `0x8F` | M4A1 Rifle | `m4a1` | | 10332 | `0x9F` | MP5A5(+2) | `mp5a5_p2` |
+
+Code is a rounding error here: 124 symbols across all 32, and `hypervelocity`
+alone has 16 of them. The other ~98% of each package is model and animation
+data.
+
 ### 5.4 Actor / enemy characters — `1xxxxx` / `2xxxxx` / `3xxxxx`
 
 Three **relocated copies** of the same character so three NPCs/enemies can
