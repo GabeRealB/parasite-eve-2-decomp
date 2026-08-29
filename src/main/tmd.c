@@ -544,7 +544,7 @@ void Tmd_SetupDraw(TmdObject* arg0)
         register void*      b asm("v1");
         s32                 field18;
 
-        __asm__ volatile("" ::: "memory");
+        COMPILER_BARRIER();
         ot           = Gpu_CurrentOt;
         p            = arg0->field_10;
         field18      = p->field_18;
@@ -576,11 +576,11 @@ void Tmd_SetupDraw(TmdObject* arg0)
         register MATRIX* light asm("t7");
 
         m = (MATRIX*)((u8*)tmp - 0x48);
-        __asm__ volatile("" : "+r"(m));
+        TOUCH_REG(m);
         src = &D_80070F34;
-        __asm__ volatile("" : "+r"(src));
+        TOUCH_REG(src);
         flags = arg0->field_C;
-        __asm__ volatile("" : "+r"(flags));
+        TOUCH_REG(flags);
 
         t4         = src->m[0][0];
         t5         = src->m[1][0];

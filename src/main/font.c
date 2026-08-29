@@ -395,7 +395,7 @@ s32 Prim_DrawFadeTile(RECT* arg0, u8* arg1, s16* arg2)
         sp.r         = 0;
         sp.shadeMode = 1;
         Prim_DrawTile(&sp);
-        asm("" : "+r"(ret));
+        SOFT_TOUCH_REG(ret);
         Prim_DrawTPage(ret, ret, ret, 5);
         *arg2 = *arg2 - 1;
         if (*arg2 <= 0) {

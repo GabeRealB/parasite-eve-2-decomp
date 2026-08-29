@@ -146,7 +146,7 @@ L_case3:
     }
     ch   = 0;
     size = 0x20000;
-    asm("" : "+r"(ch), "+r"(size));
+    SOFT_TOUCH_REG2(ch, size);
     Mem_Set(Fs_ImgBuffers, ch, size | 0x5800);
 advance:
     next = a0->state;

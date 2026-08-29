@@ -371,7 +371,7 @@ void Mdec_UploadSlice(void)
             size    = D_8006AC6C;
             flipped = t ^ 1;
             p       = &base[t & mask];
-            asm("" : "+r"(p), "+r"(flipped));
+            SOFT_TOUCH_REG2(p, flipped);
             D_8005EAEE = flipped;
             if (D_8006AC14 == 1) {
                 size *= 0xC;

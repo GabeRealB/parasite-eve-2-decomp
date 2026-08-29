@@ -130,7 +130,7 @@ void Gfx_RotMatrixXYZ(MATRIX* out, SVECTOR* angles, s32 flag)
         register u16 sy asm("v0");
         register u16 cy asm("v1");
         sy = block->sin_y;
-        __asm__ volatile("" : "+r"(sy));
+        TOUCH_REG(sy);
         cy = cos_y;
         __asm__ volatile("" : "+r"(cy) : "r"(cos_y));
         block->vec.vz = cy;
@@ -373,7 +373,7 @@ void Gfx_RotMatrixZYX(MATRIX* out, SVECTOR* angles, s32 flag)
         register u16 sy asm("v0");
         register u16 cy asm("v1");
         sy = block->sin_y;
-        __asm__ volatile("" : "+r"(sy));
+        TOUCH_REG(sy);
         cy = cos_y;
         __asm__ volatile("" : "+r"(cy) : "r"(cos_y));
         block->vec3.vy = 0;
@@ -717,7 +717,7 @@ void Gfx_RotMatrixZ(MATRIX* arg0, s32 angle, s32 flag)
         *(s16*)(head - 0x24) = cos;
         vmat                 = &block->mat;
         vmat->m[2][2]        = ONE;
-        __asm__ volatile("" ::: "memory");
+        COMPILER_BARRIER();
         sin_u         = block->sin_val;
         cos2          = block->cos_val;
         vmat->m[0][2] = 0;
@@ -797,11 +797,11 @@ void Gfx_NormalizeLightDir(VECTOR* light, SVECTOR* out)
             register s32 t_sh2 asm("a1");
 
             t_vy = block->vy;
-            __asm__ volatile("" ::"r"(t_vy));
+            USE_REG(t_vy);
             t_sh  = block->lzc_min;
             t_vz  = block->vz;
             t_sh2 = t_sh;
-            __asm__ volatile("" : "+r"(t_sh2));
+            TOUCH_REG(t_sh2);
             block->vy = t_vy >> t_sh;
             block->vz = t_vz >> t_sh2;
         }

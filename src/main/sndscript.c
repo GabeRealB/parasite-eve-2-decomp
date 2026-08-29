@@ -1066,7 +1066,7 @@ void SndVoice_TickEnvelope(SndVoice* arg0)
             rate = -rate;
         }
         fx->field_E = rate;
-        asm volatile("" ::: "memory");
+        COMPILER_BARRIER();
         t            = fx->field_10;
         fx->field_C  = 0;
         fx->field_2  = 2;
@@ -1692,13 +1692,13 @@ void SndVoice_ScaleVolume(s8 arg0, s8 arg1, SndVoice* arg2, LinInterp* arg3, s16
         if (temp_v0 < 0) {
             temp_v0 = -temp_v0;
         }
-        asm volatile("");
+        SCHED_BARRIER();
         temp_v1 = 0x7F - temp_v0;
         temp_v0 = arg2->field_2;
         if (temp_v1 < 0) {
             temp_v1 = -temp_v1;
         }
-        asm volatile("");
+        SCHED_BARRIER();
         temp_v0 *= temp_v1;
         temp_v1  = temp_v0 / 127;
         if (temp_v1 < 0x80) {

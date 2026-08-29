@@ -91,7 +91,7 @@ setup_events:
         // an empty assembler instruction. Maybe it has something to do with
         // the compiler/maspsx version, or rewriting the function with more
         // sensible control flow could fix it, but this matches.
-        asm("");
+        SOFT_BARRIER();
 
         ExitCriticalSection();
         EnableEvent(D648E0_SpuTimerED);

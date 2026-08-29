@@ -31,14 +31,14 @@ s32 func_800567E4(void)
                 voice = (s8)i;
                 temp  = acc + ((s32 (*)(s32))Spu_GetVoiceStatus)(voice);
                 acc   = temp;
-                asm("" : "+r"(temp));
+                SOFT_TOUCH_REG(temp);
                 status = (s8)temp;
                 if (status != 0) {
                     Spu_KeyOff(voice);
                 }
                 next = i + 1;
                 i    = next;
-                asm("" : "+r"(next));
+                SOFT_TOUCH_REG(next);
             } while ((s8)next < 0x18);
             if (status != 0) {
                 break;
@@ -1228,7 +1228,7 @@ void CdStream_TeardownVoices(void)
             CdStream_State.readySlot = 0;
         }
         rem_tmp = (s32)&entry;
-        asm("" : "+r"(rem_tmp));
+        SOFT_TOUCH_REG(rem_tmp);
         do {
             temp = (s32)func_80059EE0;
         } while (0);

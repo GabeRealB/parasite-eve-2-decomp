@@ -320,7 +320,7 @@ u8 Fs_ProcessChunkHeader(void)
         {
             register s32 f2 asm("v0");
             f2 = sec->chunk.field_2;
-            __asm__ volatile("" : "+r"(f2));
+            TOUCH_REG(f2);
             type = Fs_CdSector.chunk.type;
             __asm__ volatile(
                 ".set\tnoreorder\n\t"
@@ -998,7 +998,7 @@ void Fs_PrepareFolderLoad(s32 arg0, s32 arg1, s32 arg2)
     }
 
     i = 0;
-    asm("");
+    SOFT_BARRIER();
     D_8006ADE2 = 0;
     folderId   = ((u8)arg1 * 100) + (u8)arg2;
 
@@ -1101,7 +1101,7 @@ loop_streams:
     stream = (FsCdfStream*)(((j & 0xFFFF) * 0x28) + (s32)streams);
     if (*(s32*)&stream->data.movie.field_c != 0) {
         src = (u8*)stream;
-        asm("");
+        SOFT_BARRIER();
         dst             = (u8*)(((j & 0xFFFF) * 0x28) + (s32)destBase);
         stream->offset += files->offset + *table;
         for (k = 0; (u16)k < 0x28; k++) {
@@ -1454,7 +1454,7 @@ restart:
                         char* s;
                         s       = D_800132F4;
                         nameIdx = i & 0xFF;
-                        asm volatile("" : "+r"(s), "+r"(nameIdx));
+                        TOUCH_REG2(s, nameIdx);
                         namePtr = (entry + 0x21) + nameIdx;
                         if (strncmp(s, (char*)namePtr, 4) == 0) {
                             u8 stageNum;
@@ -1654,7 +1654,7 @@ s32 Fs_LoadImageChunk(FsImageChunk* arg0, u8 arg1)
         // Force a0 re-materialization of `ot` on the retry path so the
         // delay slot of `bnez s1` can hold `move a0, zero` for ContinueDraw
         // while the taken path restores a0 before Fs_ContinueDrawing.
-        asm volatile("" : : : "$4");
+        CLOBBER_REG($4);
     }
 
     D_8006C4C8[D5B498_8006ADF4] = (u8)Fs_ImageRect.h;
@@ -1862,7 +1862,7 @@ u8 Fs_WaitDiskSwap(void)
         }
 
         // This prevents the compiler from optimizing away the branch.
-        asm("");
+        SOFT_BARRIER();
         return -1;
     }
 

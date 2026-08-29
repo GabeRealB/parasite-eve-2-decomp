@@ -406,7 +406,7 @@ void Pad_UpdatePort0(void)
         if (pad->cooldown == 0) {
             scratch->rawHi = raw->field_2;
             scratch->rawLo = raw->field_3;
-            asm volatile("" : "+r"(raw));
+            TOUCH_REG(raw);
             buttons          = ~*(u16*)&scratch->rawLo;
             scratch->buttons = buttons;
 
@@ -467,7 +467,7 @@ void Pad_UpdatePort0(void)
                 if (*cooldown == 0) {
                     scratch->rawHi = raw->field_2;
                     scratch->rawLo = raw->field_3;
-                    asm volatile("" : "+r"(raw));
+                    TOUCH_REG(raw);
                     buttons          = ~*(u16*)&scratch->rawLo;
                     scratch->buttons = buttons;
                     pad->buttons     = buttons;

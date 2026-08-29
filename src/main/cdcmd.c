@@ -259,7 +259,7 @@ void CdCmd_HandleFileLoad(void)
 
             sync    = CdSync(1, NULL);
             diskErr = CdlDiskError;
-            asm("" : "+r"(diskErr));
+            SOFT_TOUCH_REG(diskErr);
             if (sync == diskErr) {
                 CdSyncCallback(NULL);
                 CdReadyCallback(NULL);
@@ -284,7 +284,7 @@ void CdCmd_HandleFileLoad(void)
                     }
                     sync    = CdSync(1, NULL);
                     diskErr = CdlDiskError;
-                    asm("" : "+r"(diskErr));
+                    SOFT_TOUCH_REG(diskErr);
                     if (sync == diskErr) {
                     wait_reset_step1:
                         Fs_WaitDiskReset(1);
@@ -349,7 +349,7 @@ void CdCmd_HandleFileLoad(void)
 
             sync    = CdSync(1, NULL);
             diskErr = CdlDiskError;
-            asm("" : "+r"(diskErr));
+            SOFT_TOUCH_REG(diskErr);
             if (sync == diskErr) {
                 CdSyncCallback(NULL);
                 CdReadyCallback(NULL);
@@ -374,7 +374,7 @@ void CdCmd_HandleFileLoad(void)
                     }
                     sync    = CdSync(1, NULL);
                     diskErr = CdlDiskError;
-                    asm("" : "+r"(diskErr));
+                    SOFT_TOUCH_REG(diskErr);
                     if (sync == diskErr) {
                     wait_reset_step4:
                         Fs_WaitDiskReset(1);
@@ -1244,7 +1244,7 @@ u16 func_8001D82C(void)
     }
     /* Keeps `idle = 1` out of a store-flag collapse so the two ring index
        tests stay as branches. */
-    asm("");
+    SOFT_BARRIER();
     idle = 1;
 check_idle:
     if (idle == 0) {

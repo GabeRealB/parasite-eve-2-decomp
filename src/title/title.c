@@ -147,7 +147,7 @@ void Title_MenuTask(Task* arg0)
         a0->b0 = c;
         a0->g0 = c;
         a0->r0 = c;
-        asm("" : "+r"(a1));
+        SOFT_TOUCH_REG(a1);
         a0->x0 = -0xA0;
         a0->y0 = -0x78;
         a0->w  = 0x140;
@@ -167,13 +167,13 @@ void Title_MenuTask(Task* arg0)
 exit_path:
     Wip_SysFlags.field_4 = 0;
     if (Wip_SysFlags.field_0 == 1) {
-        asm volatile("" ::: "a0");
+        CLOBBER_REG(a0);
         Task_CallExit(s4);
         {
             register u32 v0 asm("v0");
             v0 = GameMain_GetResetCount();
             ds = &Display_State;
-            asm("" : "+r"(v0), "+r"(ds));
+            SOFT_TOUCH_REG2(v0, ds);
             v0            = v0 + 2;
             ds->field_12c = v0;
             asm("" : "+r"(v0), "+m"(ds->field_12c));
@@ -248,7 +248,7 @@ normal:
             a2  = s3->menuFade;
             s1 += 0x10;
             s0 += 0xE;
-            asm("" : "+r"(a0), "+r"(a1), "+r"(a2), "+r"(s0), "+r"(s1));
+            SOFT_TOUCH_REG5(a0, a1, a2, s0, s1);
             Title_DrawSpriteRow(a0, a1, a2);
             s2 += 1;
         } while (s2 < 3);
@@ -463,7 +463,7 @@ L_case1:
         cmd  = 0x61;
         zero = 0;
         p    = slotParam;
-        asm("" : "+r"(cmd), "+r"(zero), "+r"(p), "+r"(slot));
+        SOFT_TOUCH_REG4(cmd, zero, p, slot);
         slotParam[0] = slot;
         CdCmd_Enqueue(cmd, zero, p);
     }
@@ -486,7 +486,7 @@ L_case3:
     {
         register s32 mask asm("a0");
         mask = 0;
-        asm("" : "+r"(mask));
+        SOFT_TOUCH_REG(mask);
         Title_SkipFadeFlag = 0;
         SetDispMask(mask);
     }
@@ -504,7 +504,7 @@ L_case4:
         cmd = 0x21;
         p1  = param1;
         p2  = param2;
-        asm("" : "+r"(cmd), "+r"(p1), "+r"(p2));
+        SOFT_TOUCH_REG3(cmd, p1, p2);
         CdCmd_Queue.field_23E = 1;
         param1[3]             = 0;
         param1[2]             = 0;

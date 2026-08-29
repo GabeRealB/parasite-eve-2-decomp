@@ -451,7 +451,7 @@ void Mc_InitBufferSlots(void)
         }
         sum   = 0;
         block = slot->field_0;
-        asm("");
+        SOFT_BARRIER();
         i     = 0;
         count = size - 4;
         cptr  = block->field_4;

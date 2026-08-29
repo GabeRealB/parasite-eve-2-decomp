@@ -25,7 +25,7 @@ s32 Text_MeasureGlyphWidth(TextDrawReq* arg0, u8* arg1, u8* arg2)
     ctx   = arg0;
     width = 0;
     glyph = (FontGlyph*)arg2;
-    asm("" : "+r"(ctx), "+r"(width), "+r"(glyph));
+    SOFT_TOUCH_REG3(ctx, width, glyph);
     c = *arg1;
     if (c == 0) {
         goto end;
@@ -71,7 +71,7 @@ s32 Text_MeasureGlyphWidth(TextDrawReq* arg0, u8* arg1, u8* arg2)
                     goto check_bs;
                 }
                 end_flag = 1;
-                asm("" ::: "memory");
+                SOFT_COMPILER_BARRIER();
                 ch = *arg1;
             check_bs:
                 arg1 += 1;
@@ -237,7 +237,7 @@ u8* Text_FormatTime(u8* arg0, s32 arg1)
     s32 lt10;
 
     ptr = arg0;
-    asm("" : "+r"(ptr));
+    SOFT_TOUCH_REG(ptr);
     if ((u32)(arg1 & 0xFFFF) > 0xEA5FU) {
         arg1 = 0xEA5F;
         ret  = ptr;
@@ -313,7 +313,7 @@ after_off:
             u32 mag;
             mag = 0xCCCCCCCD;
             i   = 0x30;
-            asm volatile("" : "+r"(mag), "+r"(i));
+            TOUCH_REG2(mag, i);
             do {
                 asm volatile(
                     "multu %0, %2\n\t"
@@ -388,7 +388,7 @@ u8* Text_ItoaSignedPlus(u8* arg0, s32 arg1)
     s32 cmp;
     s32 sign;
 
-    asm("" ::: "memory");
+    SOFT_COMPILER_BARRIER();
     sign = 0x2D;
     if (arg1 >= 0) {
         sign = 0x2B;
@@ -531,7 +531,7 @@ u8* Text_ItoaUnsigned(u8* arg0, u32 arg1)
     }
     *dest = 0;
     ret   = arg0;
-    asm("" : "+r"(ret));
+    SOFT_TOUCH_REG(ret);
     return ret;
 }
 
@@ -576,7 +576,7 @@ u8* Text_ItoaHexSigned(u8* arg0, s32 arg1)
         do {
             digit = arg1 / place;
             *dest = digit;
-            asm("");
+            SOFT_BARRIER();
             temp    = digit & 0xFF;
             prod    = temp * place;
             place >>= 4;
@@ -591,7 +591,7 @@ u8* Text_ItoaHexSigned(u8* arg0, s32 arg1)
     }
     *dest = 0;
     ret   = arg0;
-    asm("" : "+r"(ret));
+    SOFT_TOUCH_REG(ret);
     return ret;
 }
 
@@ -631,7 +631,7 @@ u8* Text_ItoaHex(u8* arg0, u32 arg1)
         do {
             digit = arg1 / place;
             *dest = digit;
-            asm("");
+            SOFT_BARRIER();
             temp    = digit & 0xFF;
             prod    = temp * place;
             place >>= 4;
@@ -646,7 +646,7 @@ u8* Text_ItoaHex(u8* arg0, u32 arg1)
     }
     *dest = 0;
     ret   = arg0;
-    asm("" : "+r"(ret));
+    SOFT_TOUCH_REG(ret);
     return ret;
 }
 

@@ -296,7 +296,7 @@ s32 Midi_InitSequence(u8 arg0, u16 arg1)
                             }
                             p[-1] = Midi_ReadVlq(trackPtr, &sp10);
                             j++;
-                            asm("" ::: "memory");
+                            SOFT_COMPILER_BARRIER();
                             cur           = ((u8**)p)[-3] + sp10;
                             *p            = 0xE0F;
                             ((u8**)p)[-3] = cur;
@@ -1299,7 +1299,7 @@ u8* Midi_PitchBend(s32 arg0, u8* arg1, MidiSong* arg2)
             prod  = scale * pitchBend;
             key   = (s8) * (volatile u8*)&slot->field_2 & 0xFFFF;
             pitch = prod / 8191;
-            asm volatile("" ::"r"(prod));
+            USE_REG(prod);
             slot->field_8 = pitch;
             attr          = sp10.field_4;
             attr->pitch =
@@ -1514,7 +1514,7 @@ s32 SndBank_SetupFromLoad(SndLoadState* arg0)
     if (D_800689E8 == 0) {
         index = bank->field_8;
         mask  = 0xFFFF;
-        asm("" : "+r"(index), "+r"(mask));
+        SOFT_TOUCH_REG2(index, mask);
         temp = index & 0xFFFF;
         if (temp != mask) {
             goto success;
@@ -1604,7 +1604,7 @@ s32 SndLoad_Complete(SndLoadState* arg0)
         }
     }
     D_800689E4 = 0xFF;
-    __asm__ volatile("" : "+r"(s1) : : "memory");
+    TOUCH_REG_MEM(s1);
     v0r = s1;
     goto block_clear14;
 

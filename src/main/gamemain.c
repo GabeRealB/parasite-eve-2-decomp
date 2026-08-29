@@ -267,7 +267,7 @@ void GameMain_Loop(void)
         ds->field_114 = v;
     }
     /* Force s4r/s5r as the only EC80/EC70 bases for the whole function */
-    __asm__ volatile("" ::"r"(s4r), "r"(s5r));
+    USE_REG2(s4r, s5r);
 
     {
         DisplayState* nv = ds;
@@ -386,7 +386,7 @@ void GameMain_Loop(void)
             ot_local = Gpu_OtTags + (u32)flip * GPU_OT_ENTRIES;
             n        = GPU_OT_ENTRIES;
             /* Keep ot/n live so li a1 lands right after ot setup, before EC68 loads */
-            __asm__ volatile("" : "+r"(ot_local), "+r"(n));
+            TOUCH_REG2(ot_local, n);
             {
                 register s32 d710r asm("s0");
                 s32          half;
@@ -530,7 +530,7 @@ void GameMain_Loop(void)
                     register s32 m2 asm("v0");
                     one = 1;
                     m2  = -2;
-                    __asm__ volatile("" : "+r"(one), "+r"(m2));
+                    TOUCH_REG2(one, m2);
                     nv->vsyncFlag = 0;
                     __asm__ volatile("sw %0, %%lo(D_8005EC70)(%1)" ::"r"(m2), "r"(s5r) : "memory");
                     a0 = one;

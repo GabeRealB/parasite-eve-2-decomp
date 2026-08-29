@@ -466,7 +466,7 @@ void Mc_StateBackupBuffers(Task* arg0, McWork* arg1)
         work->field_4 = work->field_4 + 1;
     } else {
         tmp = work->field_1C + Mc_BufferSlots[9 - field24].field_8;
-        asm("" ::: "memory");
+        SOFT_COMPILER_BARRIER();
         f24            = work->field_24;
         work->field_1C = tmp;
     update: {
@@ -474,7 +474,7 @@ void Mc_StateBackupBuffers(Task* arg0, McWork* arg1)
         f28 = work->field_28;
         f24 = f24 - 1;
         f28 = (u32)f28 >> 1;
-        asm volatile("" : "+r"(f24), "+r"(f28));
+        TOUCH_REG2(f24, f28);
         work->field_24 = f24;
         work->field_28 = f28;
     }
@@ -983,7 +983,7 @@ void Mc_StateFinishWrite(Task* arg0, McWork* arg1)
             if (slotIdx == 0) {
                 sum   = 0;
                 limit = 0x200;
-                asm volatile("" : "=r"(slotIdx) : "0"(0));
+                MOVE_ZERO(slotIdx);
                 dst             = (s16*)&arg1->field_A1C;
                 src             = (u8*)arg1->field_18;
                 arg1->field_A1C = 0;
@@ -1066,7 +1066,7 @@ void Mc_StateSaveSlotUi(DialogPrompt* arg0, UiObject* arg1)
 
     s1 = arg0;
     s0 = arg1;
-    asm("" : "+r"(s0), "+r"(s1));
+    SOFT_TOUCH_REG2(s0, s1);
     var_s3  = 1;
     off     = (s1->field_8 << 7) + 0x294;
     s2      = s0->owner->spawnArg1;
