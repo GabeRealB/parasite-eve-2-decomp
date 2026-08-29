@@ -540,6 +540,22 @@ asm volatile("" ::"r"(head)); /* lw head stays ahead of the field load */
 
 `func_800EAEB8` is the example (98.98% → 100% from the two barriers alone).
 
+When that barrier fixes the *order* but shifts the registers (`lw v1, 0(a1)`
+where the target has `lw a0, 0(a1)`, dragging the `head - N` displacements
+along with it), drop the barrier and pin `head` to the target's register
+instead. The pin both anchors the load ahead of the field `lhu` and fixes the
+colouring, so only the two `$v0` scopes are left:
+
+```c
+register u8* head asm("a0");   /* function scope */
+
+scratch = (void**)G_SCRATCH_HEAD;
+head    = *scratch;            /* lw a0, 0(a1) */
+```
+
+`func_800FEFA4` is the example: the `asm volatile("" ::"r"(head))` variant
+stalls at 99.91% with nine register penalties, the `$a0` pin is 100%.
+
 Walking packed 3x3 columns as `src->x` / `src->y` / `src->z` (offsets
 0 / 6 / 12) CSEs `&src->z` into a derived pointer (`addiu a0, a1, 0xc`
 then `lhu -6(a0)`). A `+r` pin after each load keeps every access
