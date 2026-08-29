@@ -272,7 +272,7 @@ STATIC_ASSERT_SIZEOF(SndLoadState, 0x30);
 /// Track/channel entry inside MidiSong (stride 0x3C). field_5 is a per-entry flag
 /// written by Midi_ResetTrackFlags; absolute offset of first entry's field_5 is 0x51.
 /// field_0 / field_1 / field_4 are NRPN/RPN state used by the MIDI CC handler
-/// (func_80052488). field_6 / field_7 and field_8[] form a loop stack for the
+/// (Midi_Event3). field_6 / field_7 and field_8[] form a loop stack for the
 /// 0xF5/0xF6 meta opcodes (Midi_HandleMetaSysex); field_8[8] is also the track data
 /// pointer resolved by Midi_ResolveTrackData (absolute offset 0x74). field_2C is the
 /// current track cursor advanced by the MIDI event driver (Midi_DriveTrack).
@@ -758,7 +758,7 @@ s32            Snd_InitBanks(u32);
 void           Spu_ResetCommonAttr(void);
 
 typedef u8*        (*MidiHandler)(s32, u8*, MidiSong*, MidiTrack*);
-extern MidiHandler D_800689C4[];
+extern MidiHandler Midi_EventFns[];
 extern void        (*SndEvt_Handlers[])(SndEvt*);
 
 extern HeapBlockHeader* SndHeap_Start;

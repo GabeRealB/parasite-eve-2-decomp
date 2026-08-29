@@ -547,7 +547,7 @@ u8 CdAudio_GetState(void)
 void CdAudio_Tick(void)
 {
     if ((CdAudio_Loc.field_4 != 0) && (CdAudio_Loc.field_0 != 0)) {
-        CdAudio_Loc.field_0 = D_80068B34[CdAudio_Loc.field_0 & 7]();
+        CdAudio_Loc.field_0 = CdAudio_DriveFns[CdAudio_Loc.field_0 & 7]();
         CdStream_Drive();
     }
 }

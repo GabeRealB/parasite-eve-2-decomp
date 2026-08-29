@@ -8,11 +8,11 @@
 
 struct _UiObject;
 
-/// Callback for UiObject + Task state handlers (e.g. entries in `D_80096F7C`).
+/// Callback for UiObject + Task state handlers (e.g. entries in `Gp_ItemMenuStates`).
 typedef void (*UiObjectTaskFunc)(struct _UiObject* arg0, Task* arg1);
 
 /// Fixed-size table of `UiObjectTaskFunc` callbacks. Copied onto the stack by
-/// `func_800CE498` so the call uses a local jump table.
+/// `Gp_ItemMenuTask` so the call uses a local jump table.
 typedef struct {
     UiObjectTaskFunc funcs[3];
 } UiObjectTaskFuncTable3;
@@ -22,15 +22,15 @@ typedef struct {
 extern TaskFuncTable5 D_80096E70;
 
 /// Three-entry dispatcher table: `Gp_ItemMenuInit`, `Gp_UiPromptUpdate`, `Gp_UiPromptDispatch`.
-extern const UiObjectTaskFuncTable3 D_80096F7C;
+extern const UiObjectTaskFuncTable3 Gp_ItemMenuStates;
 
 /// CLUT ids for the ten item-category icons drawn by `Gp_DrawItemIcon`,
 /// indexed by the icon index that function derives from the item id.
 extern const u16 D_80096F88[];
 
-/// Four-entry dispatcher table: `Gp_MapPanelInit`, `Gp_MapFirstDrawTask`, `func_800CFF04`,
+/// Four-entry dispatcher table: `Gp_MapPanelInit`, `Gp_MapFirstDrawTask`, `Gp_MapTaskState2`,
 /// `Gp_MapDrawTask`.
-extern TaskFuncTable4 D_800971C0;
+extern TaskFuncTable4 Gp_MapTaskStates;
 
 /// 0xE-byte per-room record in tables pointed to by `Gp_MapRecTables`.
 /// Indexed by `GameSession.field_7 - 1` then `GameSession.field_6`.

@@ -750,7 +750,7 @@ void Display_DispatchTaskTable(Task* arg0)
 {
     TaskFuncTable6 sp;
 
-    sp = D_80013E98;
+    sp = Display_TaskStates;
     sp.funcs[arg0->state](arg0);
     Display_StepFadeOverlay();
 }

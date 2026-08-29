@@ -646,7 +646,7 @@ void Gp_DrawFxQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, u16 arg3)
 
 INCLUDE_ASM("gameplay/nonmatchings/3CD8_9CC8", func_800EB6E8);
 
-void func_800EB9B0(GsCOORDINATE2* arg0, s16 arg1, u8* rgb)
+void Gp_DrawBand(GsCOORDINATE2* arg0, s16 arg1, u8* rgb)
 {
     void**         scratch;
     register u8*   head asm("v0");
@@ -736,7 +736,7 @@ void func_800EB9B0(GsCOORDINATE2* arg0, s16 arg1, u8* rgb)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x118;
 }
 
-void func_800EBF18(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* rgb)
+void Gp_DrawBandEx(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* rgb)
 {
     void**         scratch;
     register u8*   head asm("v0");

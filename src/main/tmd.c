@@ -757,7 +757,7 @@ void Tmd_DispatchTask(Task* arg0)
 {
     TaskFuncTable3 sp;
 
-    sp = D_80013EDC;
+    sp = Tmd_TaskStates;
     sp.funcs[arg0->state](arg0);
 }
 

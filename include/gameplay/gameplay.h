@@ -243,7 +243,7 @@ typedef struct _GpIdMap30 {
 } GpIdMap30;
 STATIC_ASSERT_SIZEOF(GpIdMap30, 0x30);
 
-/// 4-byte spawn arg at `D_80114BD8`. `func_800A76A4` zeros `field_0` / `field_1`,
+/// 4-byte spawn arg at `D_80114BD8`. `Gp_PlayClockState2` zeros `field_0` / `field_1`,
 /// writes `GameSession.field_12E` as a signed halfword to `field_2`, then passes
 /// the record to `Task_Spawn(1, 0x31, 0, ...)`.
 typedef struct _GpStateBD8 {

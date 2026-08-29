@@ -2097,8 +2097,8 @@ Midi_ResetTrackFlags               = 0x80051AB8; // type:func
 Midi_KeyOffVoices               = 0x80051AF0; // type:func
 Midi_DriveTrack               = 0x80051BB0; // type:func
 Midi_UpdateVoiceVolumes               = 0x80051DF4; // type:func
-func_800520A8               = 0x800520A8; // type:func
-func_80052488               = 0x80052488; // type:func
+Midi_Event1               = 0x800520A8; // type:func
+Midi_Event3               = 0x80052488; // type:func
 Midi_HandleMetaSysex               = 0x800526A4; // type:func
 Midi_ReadVlq               = 0x8005287C; // type:func
 Midi_InitChannelTable               = 0x800528BC; // type:func
@@ -2829,7 +2829,7 @@ CdCmd_EntryIter             = 0x8006AC04; // type:func
 // Display tables (taskutil.c .rodata)
 Display_WidthTable          = 0x80013E88; // type:u16
 Display_HeightTable         = 0x80013E94; // type:u16
-D_80013E98                  = 0x80013E98; // size:0x18
+Display_TaskStates                  = 0x80013E98; // size:0x18
 
 // Gameplay naming pass 2 (main-exe table used by overlay)
 Gp_FlagBanks                 = 0x80060A30;
@@ -2859,3 +2859,14 @@ Display_PendingFlip         = 0x8005EC70;
 GameMain_HaltFlags          = 0x8005EC80;
 Mdec_DecodeBase             = 0x8007A364;
 Stage_CdEntry               = 0x8007A368;
+
+// Rodata dispatch tables
+Midi_EventFns               = 0x800689C4;
+CdAudio_DriveFns            = 0x80068B34;
+Stage_TaskStates            = 0x80013F1C;
+GameFlow_States5            = 0x800134BC;
+GameFlow_States3            = 0x800134D0;
+Mc_FileSelectStates         = 0x80013ACC;
+Mc_PromptStates             = 0x800139AC;
+Tmd_TaskStates              = 0x80013EDC;
+Ui_ObjectStates             = 0x80013F2C;

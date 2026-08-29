@@ -31,7 +31,7 @@
 
 extern TaskDesc       D_80113340[];
 extern GpEffArg       D_80113358;
-extern TaskFuncTable3 D_800977FC;
+extern TaskFuncTable3 Gp_EffTask07States;
 extern u16            Gp_WeaponIdBase[];
 extern GpAnimBlk*     Gp_PlayerAnimBlkTbl[];
 extern u16            D_80112DF4[];
@@ -80,7 +80,7 @@ void func_80108874(GpActorWork* arg0);
 void func_80108E0C(GpActorWork* arg0, GpLinkNode* arg1);
 void func_80109374(GpActorWork* arg0);
 void Gp_UpdateLockTarget(GpActorWork* arg0);
-void func_801083A0(GpActorWork* arg0);
+void Gp_TickPlayerActor(GpActorWork* arg0);
 void func_801095BC(s32* arg0);
 void func_80109720(GpActorWork* arg0);
 void func_80109844(GpActorWork* arg0);
@@ -674,10 +674,10 @@ void Gp_EffSprTask30(Task* arg0)
 #if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
 __asm__(".section .rodata\n"
         "\t.align 2\n"
-        "\t.globl D_800977FC\n"
-        "D_800977FC:\n"
-        "\t.word func_800FC6E0\n"
-        "\t.word func_800FA7CC\n"
+        "\t.globl Gp_EffTask07States\n"
+        "Gp_EffTask07States:\n"
+        "\t.word Gp_EffTask07State0\n"
+        "\t.word Gp_EffTask07State1\n"
         "\t.word Task_Kill\n"
         ".section .text\n");
 #endif
@@ -873,7 +873,7 @@ void Gp_DrawEffQuadT29(GsCOORDINATE2* arg0, s32 arg1, u16 arg2, u16 arg3)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x38;
 }
 
-void func_800FA7CC(Task* arg0)
+void Gp_EffTask07State1(Task* arg0)
 {
     Task* slot;
     s32   kind;
@@ -1220,7 +1220,7 @@ void Gp_EffCtlTaskC1(Task* arg0)
     rgb[0] = (mem->field_24 * (((u16)mem->field_28 >> 8) & 0xF)) >> 3;
     rgb[1] = (mem->field_24 * ((u8)mem->field_28 >> 4)) >> 3;
     rgb[2] = (mem->field_24 * ((u16)mem->field_28 & 0xF)) >> 3;
-    func_800EBF18(coord, mem->field_26, 0x100, rgb);
+    Gp_DrawBandEx(coord, mem->field_26, 0x100, rgb);
 
     angle         = (u16)mem->field_26;
     scale         = (u16)mem->field_24;
@@ -1619,16 +1619,16 @@ void Gp_PulseState1C80(void)
     Gp_State1C->field_1A |= 0x80;
 }
 
-void func_800FC6E0(Task* arg0)
+void Gp_EffTask07State0(Task* arg0)
 {
     arg0->state = arg0->state + 1;
 }
 
-void func_800FC6F4(Task* arg0)
+void Gp_EffCtlTask07(Task* arg0)
 {
     TaskFuncTable3 sp;
 
-    sp = D_800977FC;
+    sp = Gp_EffTask07States;
     sp.funcs[arg0->state](arg0);
 }
 
@@ -1914,11 +1914,11 @@ INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FDB18);
 #if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
 __asm__(".section .rodata\n"
         "\t.align 2\n"
-        "\t.globl D_80097848\n"
-        "D_80097848:\n"
+        "\t.globl Gp_PlayerWorkStates\n"
+        "Gp_PlayerWorkStates:\n"
         "\t.word Gp_InitPlayerWork\n"
-        "\t.word func_80100E40\n"
-        "\t.word func_801013FC\n"
+        "\t.word Gp_PlayerWorkState1\n"
+        "\t.word Gp_PlayerWorkState2\n"
         "\t.word Gp_TeardownSlot0\n"
         ".section .text\n");
 #endif
@@ -2629,7 +2629,7 @@ void Gp_EffSprTaskE1(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_801005D8(Task* arg0)
+void Gp_EffSprTaskE2(Task* arg0)
 {
     GpEffWork*     mem;
     GsCOORDINATE2* coord;
@@ -2669,8 +2669,8 @@ void func_801005D8(Task* arg0)
         }
         Gp_UpdateCoord(coord);
         if (!(mem->field_22 & 1)) {
-            func_80100784(coord, (u16)((s16)mem->field_22 >> 1),
-                          (s16)(mem->field_24 | mem->field_2A), mem->field_26);
+            Gp_DrawEffSpriteE2(coord, (u16)((s16)mem->field_22 >> 1),
+                               (s16)(mem->field_24 | mem->field_2A), mem->field_26);
         }
         if (Gp_State1C->field_4 != 0) {
             return;
@@ -2685,7 +2685,7 @@ void func_801005D8(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_80100784(GsCOORDINATE2* arg0, u16 arg1, u32 arg2, s16 arg3)
+void Gp_DrawEffSpriteE2(GsCOORDINATE2* arg0, u16 arg1, u32 arg2, s16 arg3)
 {
     void**            scratch;
     u8*               head;
@@ -2875,7 +2875,7 @@ void Gp_InitPlayerWork(GpActorWork* arg0)
     }
 }
 
-void func_80100E40(GpActorWork* arg0)
+void Gp_PlayerWorkState1(GpActorWork* arg0)
 {
     GameActor*     actor;
     GsCOORDINATE2* coord;
@@ -3073,7 +3073,7 @@ void func_8010133C(void)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
 }
 
-void func_801013FC(Task* arg0)
+void Gp_PlayerWorkState2(Task* arg0)
 {
     arg0->state = 3;
 }
@@ -3114,11 +3114,11 @@ void Gp_TeardownSlot0(GpActorWork* arg0)
     Task_Kill((Task*)arg0);
 }
 
-void func_801014E8(Task* arg0)
+void Gp_PlayerWorkTask(Task* arg0)
 {
     TaskFuncTable4 sp;
 
-    sp = D_80097848;
+    sp = Gp_PlayerWorkStates;
     sp.funcs[arg0->state](arg0);
 }
 
@@ -3179,7 +3179,7 @@ void Gp_UpdatePlayerMove(void)
     D_801153F2   = 0;
     vec          = (SVECTOR*)newhead;
     if (D_80115768 == 0) {
-        func_801083A0(work);
+        Gp_TickPlayerActor(work);
     }
     coord->coord.t[0] += actor->field_40;
     coord->coord.t[1] += actor->field_44;
@@ -6131,7 +6131,7 @@ void func_801066DC(GpActorWork* arg0, s16 arg1)
     }
 }
 
-INCLUDE_RODATA("gameplay/nonmatchings/3FB8", D_80097940);
+INCLUDE_RODATA("gameplay/nonmatchings/3FB8", Gp_PlayerModeFns);
 
 #if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
 __asm__(".section .rodata\n"
@@ -6953,7 +6953,7 @@ void Gp_PlayerMode2State4(GpActorWork* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x14;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80108084);
+INCLUDE_ASM("gameplay/nonmatchings/3FB8", Gp_PlayerMode2StateA);
 
 void Gp_PlayerMode2StateB(GpActorWork* arg0)
 {
@@ -7016,12 +7016,12 @@ void Gp_PlayerMode2StateB(GpActorWork* arg0)
     Gp_PlayerStepSfx(arg0);
 }
 
-void func_801083A0(GpActorWork* arg0)
+void Gp_TickPlayerActor(GpActorWork* arg0)
 {
     GameActor*        inner;
     GpActorFuncTable3 sp;
 
-    sp    = D_80097940;
+    sp    = Gp_PlayerModeFns;
     inner = arg0->actor;
     func_80104A4C(arg0);
     if (inner->field_940 > 0) {
@@ -7326,19 +7326,19 @@ void func_80108AD4(GpActorWork* arg0)
     Gp_AnimPlayChildSlotsEx(arg0, 0x19, 3, 6);
 }
 
-void func_80108B80(GpActorWork* arg0)
+void Gp_PlayerMode2State0(GpActorWork* arg0)
 {
     func_80105B0C(arg0);
     func_80105ED4(arg0);
 }
 
-void func_80108BAC(GpActorWork* arg0)
+void Gp_PlayerMode2State1(GpActorWork* arg0)
 {
     Gp_AnimTickChildSlots(arg0);
     func_80105ED4(arg0);
 }
 
-void func_80108BD8(GpActorWork* arg0)
+void Gp_PlayerMode2State2(GpActorWork* arg0)
 {
     GameActor* inner;
     s16        cur;
@@ -7375,7 +7375,7 @@ void func_80108BD8(GpActorWork* arg0)
     Gp_AnimTickChildSlots(arg0);
 }
 
-void func_80108CC4(GpActorWork* arg0)
+void Gp_PlayerMode2State8(GpActorWork* arg0)
 {
     GameActor* inner;
     s32        mode;
@@ -7436,12 +7436,12 @@ void func_80108E0C(GpActorWork* arg0, GpLinkNode* arg1)
 #if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
 __asm__(".section .rodata\n"
         "\t.align 2\n"
-        "\t.globl D_800979F8\n"
-        "D_800979F8:\n"
-        "\t.word func_80109170\n"
-        "\t.word func_80109170\n"
-        "\t.word func_80109170\n"
-        "\t.word func_80109208\n"
+        "\t.globl Gp_PlayerMode1States\n"
+        "Gp_PlayerMode1States:\n"
+        "\t.word Gp_PlayerMode1State0\n"
+        "\t.word Gp_PlayerMode1State0\n"
+        "\t.word Gp_PlayerMode1State0\n"
+        "\t.word Gp_PlayerMode1State3\n"
         ".section .text\n");
 #endif
 
@@ -7449,7 +7449,7 @@ void Gp_TickPlayerMode1(GpActorWork* arg0)
 {
     GpActorFuncTable4 sp;
 
-    sp = D_800979F8;
+    sp = Gp_PlayerMode1States;
     sp.funcs[(u16)arg0->actor->field_96C](arg0);
     Gp_TickActorAnimState(arg0);
     Gp_AnimTickChildSlots(arg0);
@@ -7460,19 +7460,19 @@ void Gp_TickPlayerMode1(GpActorWork* arg0)
 #if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
 __asm__(".section .rodata\n"
         "\t.align 2\n"
-        "\t.globl D_80097A08\n"
-        "D_80097A08:\n"
-        "\t.word func_80108B80\n"
-        "\t.word func_80108BAC\n"
-        "\t.word func_80108BD8\n"
+        "\t.globl Gp_PlayerMode2States\n"
+        "Gp_PlayerMode2States:\n"
+        "\t.word Gp_PlayerMode2State0\n"
+        "\t.word Gp_PlayerMode2State1\n"
+        "\t.word Gp_PlayerMode2State2\n"
         "\t.word Gp_PlayerMode2State3\n"
         "\t.word Gp_PlayerMode2State4\n"
         "\t.word Gp_PlayerMode2State5\n"
         "\t.word Gp_PlayerMode2State6\n"
         "\t.word Gp_PlayerMode2State7\n"
-        "\t.word func_80108CC4\n"
-        "\t.word func_80109700\n"
-        "\t.word func_80108084\n"
+        "\t.word Gp_PlayerMode2State8\n"
+        "\t.word Gp_PlayerMode2State9\n"
+        "\t.word Gp_PlayerMode2StateA\n"
         "\t.word Gp_PlayerMode2StateB\n"
         ".section .text\n");
 #endif
@@ -7482,7 +7482,7 @@ void Gp_TickPlayerMode2(GpActorWork* arg0)
     GameActor*         inner;
     GpActorFuncTable12 sp;
 
-    sp    = D_80097A08;
+    sp    = Gp_PlayerMode2States;
     inner = arg0->actor;
     sp.funcs[inner->field_956](arg0);
     Gp_TurnPlayer(arg0);
@@ -7551,7 +7551,7 @@ void func_80109138(GpActorWork* arg0)
     Gp_UpdateLockTarget(arg0);
 }
 
-void func_80109170(GpActorWork* arg0)
+void Gp_PlayerMode1State0(GpActorWork* arg0)
 {
     GameActor* inner;
     u8         kind;
@@ -7583,7 +7583,7 @@ void func_80109170(GpActorWork* arg0)
     }
 }
 
-void func_80109208(void)
+void Gp_PlayerMode1State3(void)
 {
 }
 
@@ -7811,7 +7811,7 @@ void Gp_PlayerMode2State7(GpActorWork* arg0)
     Gp_PlayerStepSfx(arg0);
 }
 
-void func_80109700(GpActorWork* arg0)
+void Gp_PlayerMode2State9(GpActorWork* arg0)
 {
     Gp_AnimTickChildSlots(arg0);
 }

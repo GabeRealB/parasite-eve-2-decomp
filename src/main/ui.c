@@ -2048,7 +2048,7 @@ void Ui_DispatchObjectState(Task* arg0)
     UiPanelFuncTable6 sp;
     UiPanel*          temp;
 
-    sp   = D_80013F2C;
+    sp   = Ui_ObjectStates;
     temp = arg0->spawnArg2;
     sp.funcs[temp->field_8](temp, arg0);
 }

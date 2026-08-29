@@ -197,7 +197,7 @@ void Stage_DispatchTaskTable(Task* arg0)
 {
     TaskFuncTable4 sp;
 
-    sp = D_80013F1C;
+    sp = Stage_TaskStates;
     sp.funcs[arg0->state](arg0);
 }
 

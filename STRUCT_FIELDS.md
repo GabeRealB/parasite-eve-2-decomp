@@ -568,7 +568,7 @@ read `h + 2` as line height; `Gp_CapCenterX` / `Gp_CapCenterXLine` read `w`.
 | 0x66 | `field_66` | u8; 1 makes `Gp_ItemMenuInit` spawn `D_8010EB94` and scale with `Ui_Scale15(2)` (else `D_8010EAD0` / scale 1) |
 | 0x68 | `field_68` | u8 flag; set to 1 by `func_800E7378` and cleared by `func_800E73E8` / `func_800E7434` when `D_8007218B != 9` |
 | 0x69 | `field_69` | u8 flags; bit 0x1 skips the bank-load spawn in `Gp_EndingTask` (sets `D_80062734 = 0xFF` instead); bit 0x2 skips `SndEvt_EnqueueType2(0, 0xB4)` when the last `GpStateF0.field_6` ref is released; bit 0x4 selects spawn arg 3 vs 2 from `D_80062774` |
-| 0x76 | `field_76` | s16 flag; nonzero makes `func_800AD378` rebuild via `Gp_LinkRoomObjects` then clear it |
+| 0x76 | `field_76` | s16 flag; nonzero makes `Gp_RoomObjState1` rebuild via `Gp_LinkRoomObjects` then clear it |
 | 0x7C–80 | halfwords | Counters / mode |
 | 0x11C | `field_11C` | s16 cache of `Mc_SaveData.field_22` (`lh`/`sh`). `Gp_LoadWaitBoot` refreshes it (and `field_11E` from `Wip_SysConfig.field_26`) when either is stale. `Gp_InitStarterInv` writes -1 to force that refresh after an inventory rebuild |
 | 0x11E | `field_11E` | s16 cache of `Wip_SysConfig.field_26` (`lh`/`sh`). Refreshed with `field_11C` by `Gp_LoadWaitBoot` |
@@ -580,8 +580,8 @@ read `h + 2` as line height; `Gp_CapCenterX` / `Gp_CapCenterXLine` read `w`.
 | 0x129 | `field_129` | u8; last `CdCmd_Enqueue(0x21)` `param1[0]` written by `Gp_EnqueueSndCd` (no-op if unchanged) |
 | 0x12C | `field_12C` | u8 flag; 0 runs extra `func_800E06AC` pass in `Gp_TickWorldCollision` |
 | 0x12D | `field_12D` | s8 countdown (`lb`/`sb`); `0x7F` sentinel in `Gp_StartAreaBgm` |
-| 0x12E | `field_12E` | u8; `func_800A76A4` copies it as `s8` into `D_80114BD8.field_2` |
-| 0x12F | `field_12F` | u8; `func_800AAF70` writes `0x1E`. `Gp_TickPlayClock` copies it into `Task::killCountdown` on the death path |
+| 0x12E | `field_12E` | u8; `Gp_PlayClockState2` copies it as `s8` into `D_80114BD8.field_2` |
+| 0x12F | `field_12F` | u8; `Gp_LoadState2` writes `0x1E`. `Gp_TickPlayClock` copies it into `Task::killCountdown` on the death path |
 | 0x139 | `field_139` | u8; `func_800E8888` writes `killCountdown * 2`, or 0 when that task kills itself |
 | 0x13A | `field_13A` | u8; cleared by `Gp_PostDirIfCapIdle` when `D_80114CDC` is 0 |
 | 0x13B | `field_13B` | u8 flags; cleared by `Gp_HaltPadScripts` with `Pad_ClearEvents(0)`. Bit 0 is set by `Gp_PadHoldTask` while its `spawnArg1` countdown runs and cleared when that task kills itself. Bit 0x80 lets `Gp_PadHoldTask` proceed when `D_801153F4` is set. |
@@ -606,7 +606,7 @@ from its pose argument and passed to `RotMatrix`; `field_52` is also the facing
 angle (`lh`) used by `func_8010BCF4` / `func_80103E7C`.
 `field_80` is an s16 sibling of `field_82`. `func_80104F5C` copies the low 16 bits
 of its `GpFacingArg.field_0` here (and `field_4` onto `field_82`).
-`field_82` is an s16 target facing angle. `func_80108BD8` compares it to `field_52`
+`field_82` is an s16 target facing angle. `Gp_PlayerMode2State2` compares it to `field_52`
 (including the `tgt - 0x1000` wrap) and either snaps `field_52` to it or steps
 toward it by a `func_80103E7C` delta clamped to `[-0x40, 0x40]`.
 `field_58`/`field_5C`/`field_60`/`field_64`/`field_68`/`field_6A`/`field_70` are s16s
@@ -703,7 +703,7 @@ both) copies `field_0` / `field_4` onto `field_93C` / `field_93E` and sets `fiel
 `field_30` / `field_34` / `field_38` are u16s at 4-byte stride (`lhu`); `Gp_UpdatePlayerMove`
 copies them onto a scratch `SVECTOR` when `field_986` is set, otherwise fills that
 vector from `GsCOORDINATE2.workm` column 2 scaled by `field_973`.
-`field_93C` is a u16 (`lhu`) mode override; `func_80108CC4` passes it to `Gp_AnimPlayChildSlotsEx` when nonzero (else 4);
+`field_93C` is a u16 (`lhu`) mode override; `Gp_PlayerMode2State8` passes it to `Gp_AnimPlayChildSlotsEx` when nonzero (else 4);
 `field_958` is an s16 mode written to 1 or 3 by `func_80105A8C` (third arg zero / nonzero);
 `field_95A`/`field_95C` are u16s in that same cluster (`func_80109818` writes `field_95C = 5`);
 `field_95A` indexes `D_80112E20` (`u16` facing steps): `Gp_TurnPlayer` adds
@@ -833,7 +833,7 @@ Task overlay: `actor` is `Task::idMap` at 0x1C; `extra` is `Task::extra` at
 | 0x24 | `field_24` | Scale / packed `spawnArg1` lo / `(spawnArg1_lo * 3) >> 4` (`Gp_EffCtlTask9B`) / 0x10 decay-by-2 (`Gp_EffPolyTask9C`) / 0x80 decay-by-8 (`Gp_EffCtlTaskC1`) / LCG draw param (`Gp_EffCtlTaskF4`) |
 | 0x26 | `field_26` | Target scale / `spawnArg1` hi / 0x20 plus `field_2A` (`Gp_EffPolyTask9C`) / 0x100 plus 0x80 (`Gp_EffCtlTaskC1`) / `spawnArg1 & 0xFFF` (`Gp_EffCtlTaskF4`) / 0x20 (`Gp_EffCtlTaskF3`) |
 | 0x28 | `field_28` | Size / lifetime (`field_26 << 2` in `Gp_EffCtlTask9B` / `Gp_EffCtlTaskE3`) / `D_8011291C[].field_0` draw param (`Gp_EffPolyTask9C`) / packed RGB from `D_80112C6C` (`Gp_EffCtlTaskC1`) / `spawnArg1 & 0xF000` (`Gp_EffCtlTaskF4`, bit `0x8000` selects LCG `| 0x1000`) / `(field_20 << 7) + 0x180` (`Gp_EffCtlTaskF3`) |
-| 0x2A | `field_2A` | Packed draw param for `func_800F7AD4`, or `D_8011291C[].field_2` step, or `(field_20 << 8) + 0x400` (`Gp_EffCtlTaskF3`) |
+| 0x2A | `field_2A` | Packed draw param for `Gp_DrawEffSprite46`, or `D_8011291C[].field_2` step, or `(field_20 << 8) + 0x400` (`Gp_EffCtlTaskF3`) |
 
 ### `GpPickScratch` (0x68) — `3FB8.h`
 Scratch from `G_SCRATCH_HEAD` for `Gp_PickNearestRec18`. Picks the nearest
@@ -913,7 +913,7 @@ Play-clock work allocated by `Gp_InitPlayClock` and stored at `Task::idMap`.
 | 0x0C | `extra` | `GpIdMapC` overlay passed to `Gp_ResetHudFx` |
 
 ### `GpStateBD8` (0x4) — `gameplay.h`
-Global at `D_80114BD8`. Filled by `func_800A76A4` and passed as `Task_Spawn`
+Global at `D_80114BD8`. Filled by `Gp_PlayClockState2` and passed as `Task_Spawn`
 bank 1 type `0x31` `spawnArg2`.
 
 | Off | Member | Role |
@@ -1770,7 +1770,7 @@ counts frames. Completing or instant-applying the fade clears
 
 ### `GpSndFade` (0xC) — `3CD8.h`
 Type-A sound-param fade at `Task::spawnArg2` for `Gp_SndFadeTask` (bank 9
-type 0xE). Live instance is `D_801156E0`, filled by `func_800E75C8`. Start
+type 0xE). Live instance is `D_801156E0`, filled by `Gp_ScriptTaskState1`. Start
 param is snapshotted from `field_4` into `D_801156C4`; `D_801156C6` counts
 frames. Completing or instant-applying the fade clears `D_8010FBE8`.
 

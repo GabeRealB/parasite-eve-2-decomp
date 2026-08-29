@@ -70,7 +70,7 @@ typedef struct _GameSession {
     u8    field_69; // bit 0x1: skip bank-load spawn in Gp_EndingTask; bit 0x2: skip bank-load spawn in Gp_AreaEnterTask (else skip SndEvt_EnqueueType2(0, 0xB4) on last GpStateF0 ref); bit 0x4: spawn arg 3 vs 2 in Gp_EndingTask; bit 0x8: spawn arg 3 vs 1 in Gp_AreaEnterTask
     byte  unknown_6A[0xA];
     u16   field_74; // copied from Display_State.field_10e (Gp_BeginSessionTask); low byte is CdCmd 0x21 param2[0]
-    s16   field_76; // set: func_800AD378 rebuilds via Gp_LinkRoomObjects
+    s16   field_76; // set: Gp_RoomObjState1 rebuilds via Gp_LinkRoomObjects
     s16   field_78; // cached GameSession.field_7; Gp_LoadWaitStage
     byte  unknown_7A[2];
     s16   field_7C;
@@ -89,7 +89,7 @@ typedef struct _GameSession {
     byte  unknown_12A[2];
     u8    field_12C;
     s8    field_12D; // lb/sb countdown; 0x7F sentinel in Gp_StartAreaBgm
-    u8    field_12E; // copied as s8 into D_80114BD8.field_2 (func_800A76A4)
+    u8    field_12E; // copied as s8 into D_80114BD8.field_2 (Gp_PlayClockState2)
     u8    field_12F;
     byte  unknown_130[9];
     u8    field_139;
@@ -192,7 +192,7 @@ typedef struct _GameActor {
     /* 0x078 */ s16                 field_78;       // pitch; Gp_AimPitchDirect
     /* 0x07A */ byte                pad_7A[6];
     /* 0x080 */ s16                 field_80;       // copied from func_80104F5C arg2
-    /* 0x082 */ s16                 field_82;       // target facing angle; func_80104E00 / func_80108BD8
+    /* 0x082 */ s16                 field_82;       // target facing angle; func_80104E00 / Gp_PlayerMode2State2
     /* 0x084 */ byte                pad_84[4];
     /* 0x088 */ byte                field_88[8];    // address taken as GpObj.field_C
     /* 0x090 */ s32                 field_90;
@@ -294,7 +294,7 @@ typedef struct _GameActor {
     /* 0x98F */ s8                  field_98F; // cleared by Gp_SpawnWeaponEff
     /* 0x990 */ u8                  field_990;
     /* 0x991 */ s8                  field_991; // func_80109374 requires 0 to write field_97D = 1
-    /* 0x992 */ u8                  field_992; // func_80100E40: func_801011D0 result when field_984 & 1
+    /* 0x992 */ u8                  field_992; // Gp_PlayerWorkState1: func_801011D0 result when field_984 & 1
     /* 0x993 */ u8                  field_993;
 } GameActor;
 STATIC_ASSERT_SIZEOF(GameActor, 0x994);

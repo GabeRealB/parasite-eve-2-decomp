@@ -35,10 +35,10 @@ void func_80724748(GameSessionFrom4* arg0);
 void func_80724E2C(void);
 
 extern TaskDesc       D_80183824[];
-extern TaskFuncTable6 D_800938B4;
-extern TaskFuncTable3 D_80093918;
-extern TaskFuncTable8 D_80093924;
-extern TaskFuncTable3 D_80093944;
+extern TaskFuncTable6 Gp_LoadWaitFns;
+extern TaskFuncTable3 Gp_SessionStates;
+extern TaskFuncTable8 Gp_LoadStateFns;
+extern TaskFuncTable3 Gp_RoomObjStates;
 extern u16            Gp_DirFlags;
 extern u16            D_80114CD4;
 extern u16            Gp_DirPhase;
@@ -258,7 +258,7 @@ void Gp_LoadWaitDispatch(Task* task)
 {
     TaskFuncTable6 sp;
 
-    sp = D_800938B4;
+    sp = Gp_LoadWaitFns;
     Pad_SetCooldown(0);
     if (task->state < 0) {
         Gp_FinishLoadWait(task);
@@ -748,7 +748,7 @@ void Gp_LoadWaitStage(Task* task)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/D4", func_800AAF70);
+INCLUDE_ASM("gameplay/nonmatchings/D4", Gp_LoadState2);
 
 void Gp_LoadWaitCompanion(Task* task)
 {
@@ -1235,7 +1235,7 @@ void func_800AC000(void)
 {
 }
 
-void func_800AC008(Task* task)
+void Gp_SessionState1(Task* task)
 {
     DisplayState* ds;
     s32           temp;
@@ -1272,7 +1272,7 @@ void func_800AC0F0(Task* task)
 {
     TaskFuncTable3 sp;
 
-    sp = D_80093918;
+    sp = Gp_SessionStates;
     Pad_SetCooldown(0);
     *(volatile u8*)&D_801153F4 = 1;
     sp.funcs[((volatile Task*)task)->state](task);
@@ -1307,7 +1307,7 @@ void Gp_LoadStateTask(Task* task)
     TaskFuncTable8 sp;
     DisplayState*  ds;
 
-    sp = D_80093924;
+    sp = Gp_LoadStateFns;
     Pad_SetCooldown(0);
     ds = &Display_State;
     if (ds->field_12c != 0) {
@@ -1862,7 +1862,7 @@ void* Gp_GetViewSprtExtra(void)
     return recs[idx - 1].field_8;
 }
 
-void func_800AD378(Task* task)
+void Gp_RoomObjState1(Task* task)
 {
     if (task->spawnArg1 != (u8)Game_Session->field_4) {
         Gfx_ViewCoord.flg = 0;
@@ -1915,7 +1915,7 @@ void func_800AD50C(Task* task)
 {
     TaskFuncTable3 funcs;
 
-    funcs = D_80093944;
+    funcs = Gp_RoomObjStates;
     if (Game_Session->field_64 == 0) {
         funcs.funcs[task->state](task);
     } else {
@@ -2169,7 +2169,7 @@ void Gp_CommitWarp(void)
     }
 }
 
-void func_800AE150(void)
+void Gp_WarpPhase4(void)
 {
     u8 fade;
 

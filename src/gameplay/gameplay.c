@@ -55,7 +55,7 @@ extern u16            D_80114BB0[];
 extern RECT           D_80114BD0;
 extern CVECTOR        D_80114BA8;
 extern u8             Gp_DebugAttachLevels[];
-extern TaskFuncTable6 D_80093830;
+extern TaskFuncTable6 Gp_PlayClockStates;
 extern s32            Gp_LcgState;
 extern char           Gp_StrNewDisp2dNull[]; // "new_disp_2d ----> NULL\n"
 extern CVECTOR        Gp_ColorGrey;
@@ -7513,7 +7513,7 @@ void Gp_StartPadReplay(void)
     Pad_RemapState->field_8 = -1;
 }
 
-void func_800A76A4(Task* arg0)
+void Gp_PlayClockState2(Task* arg0)
 {
     GameSession* session;
     GpStateBD8*  p;
@@ -7536,7 +7536,7 @@ void func_800A76A4(Task* arg0)
     }
 }
 
-void func_800A7744(Task* arg0)
+void Gp_PlayClockState3(Task* arg0)
 {
     Gp_StartAreaBgm(&arg0->killCountdown);
     arg0->spawnArg1++;
@@ -7553,7 +7553,7 @@ void func_800A77B4(Task* arg0)
 {
     TaskFuncTable6 sp;
 
-    sp = D_80093830;
+    sp = Gp_PlayClockStates;
     sp.funcs[arg0->state](arg0);
 }
 

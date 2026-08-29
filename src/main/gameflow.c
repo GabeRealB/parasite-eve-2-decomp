@@ -242,7 +242,7 @@ void GameFlow_DispatchTable5(Task* arg0)
 {
     TaskFuncTable5 sp;
 
-    sp = D_800134BC;
+    sp = GameFlow_States5;
     sp.funcs[arg0->state](arg0);
 }
 
@@ -290,7 +290,7 @@ void GameFlow_DispatchTable(Task* arg0)
 {
     TaskFuncTable3 sp;
 
-    sp = D_800134D0;
+    sp = GameFlow_States3;
     Pad_SetCooldown(0);
     sp.funcs[arg0->state](arg0);
 }

@@ -28,7 +28,7 @@ void Gp_EffSprTask46(Task* arg0)
         if (flag >= 4) {
             Gp_ReleaseState1CMem(mem, arg0);
         }
-        func_800F7AD4(coord, mem->field_24, mem->field_28, mem->field_2A);
+        Gp_DrawEffSprite46(coord, mem->field_24, mem->field_28, mem->field_2A);
         return;
     }
 
@@ -56,7 +56,7 @@ void Gp_EffSprTask46(Task* arg0)
             }
             break;
         case 1:
-            func_800F7AD4(coord, mem->field_24, mem->field_28, mem->field_2A);
+            Gp_DrawEffSprite46(coord, mem->field_24, mem->field_28, mem->field_2A);
             if (mem->field_24 < mem->field_26) {
                 mem->field_24 += 6;
             } else {
@@ -65,20 +65,20 @@ void Gp_EffSprTask46(Task* arg0)
             }
             break;
         case 2:
-            func_800F7AD4(coord, mem->field_24, mem->field_28, mem->field_2A);
+            Gp_DrawEffSprite46(coord, mem->field_24, mem->field_28, mem->field_2A);
             if (mem->field_28 >= 0x41) {
                 mem->field_28--;
             }
             break;
         case 3:
-            func_800F7AD4(coord, mem->field_24, mem->field_28, mem->field_2A);
+            Gp_DrawEffSprite46(coord, mem->field_24, mem->field_28, mem->field_2A);
             mem->field_28 -= 4;
             if (mem->field_28 < 4) {
                 Gp_ReleaseState1CMem(mem, arg0);
             }
             break;
         case 4:
-            func_800F7AD4(coord, mem->field_24, mem->field_28, mem->field_2A);
+            Gp_DrawEffSprite46(coord, mem->field_24, mem->field_28, mem->field_2A);
             break;
     }
 }

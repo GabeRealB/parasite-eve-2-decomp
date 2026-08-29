@@ -2064,7 +2064,7 @@ void Gp_DrawTargetCursor(void)
     }
 }
 
-void* func_800DA2A0(GpActorWork* arg0, VECTOR3* out, s32 flag)
+void* Gp_ScanLockNodes(GpActorWork* arg0, VECTOR3* out, s32 flag)
 {
     void**             scratch;
     u8*                head;
@@ -2542,7 +2542,7 @@ void* Gp_FindLockNode(GpActorWork* arg0)
 {
     VECTOR3 pos;
 
-    return func_800DA2A0(arg0, &pos, 0);
+    return Gp_ScanLockNodes(arg0, &pos, 0);
 }
 
 void* Gp_FindLockNodePad(GpActorWork* arg0)
@@ -2559,7 +2559,7 @@ void* Gp_FindLockNodePad(GpActorWork* arg0)
     } else {
         flag = 0;
     }
-    return func_800DA2A0(arg0, p, flag);
+    return Gp_ScanLockNodes(arg0, p, flag);
 }
 
 void* Gp_FindLockNodeAt(GpActorWork* arg0, VECTOR3* pos)
@@ -2573,7 +2573,7 @@ void* Gp_FindLockNodeAt(GpActorWork* arg0, VECTOR3* pos)
     } else {
         flag = 0;
     }
-    return func_800DA2A0(arg0, pos, flag);
+    return Gp_ScanLockNodes(arg0, pos, flag);
 }
 
 /* After D_8009745C from Gp_DebugPanTask so overlay .rodata stays packed. */
@@ -2992,13 +2992,13 @@ void Gp_TickWorldCollision(void)
         Gp_CollideLists(Gp_ObjList0, Gp_ObjList3);
         Gp_CollideLists(Gp_ObjList0, Gp_ObjList4);
         Gp_CollideLists(Gp_ObjList0, Gp_ObjList8);
-        func_800DB900(Gp_ObjList0);
+        Gp_RunPairHandler(Gp_ObjList0);
         Gp_CollideLists(Gp_ObjList1, Gp_ObjList2);
         Gp_CollideLists(Gp_ObjList1, Gp_ObjList4);
         Gp_CollideLists(Gp_ObjList1, Gp_ObjList6);
         Gp_CollideLists(Gp_ObjList2, Gp_ObjList4);
         Gp_CollideLists(Gp_ObjList2, Gp_ObjList8);
-        func_800DB900(Gp_ObjList2);
+        Gp_RunPairHandler(Gp_ObjList2);
         Gp_CollideLists(Gp_ObjList3, Gp_ObjList4);
         Gp_CollideLists(Gp_ObjList4, Gp_ObjList8);
         if (Gp_PendingObj4CFlag != 0) {
@@ -3011,7 +3011,7 @@ void Gp_TickWorldCollision(void)
     }
 }
 
-void func_800DB900(GpObj* node)
+void Gp_RunPairHandler(GpObj* node)
 {
     GpObj*     other;
     GpU16Pair* rec;
@@ -3038,9 +3038,9 @@ void func_800DB900(GpObj* node)
                         swap      = rec->field_2;
                         handler   = rec->field_0;
                         if (swap == 0) {
-                            D_8010FA38[handler](node, other, handler);
+                            Gp_PairHandlers[handler](node, other, handler);
                         } else {
-                            D_8010FA38[handler](other, node, handler);
+                            Gp_PairHandlers[handler](other, node, handler);
                         }
                     }
                 }
@@ -3172,7 +3172,7 @@ fill:
     *(SVECTOR*)&slot->field_10 = arg2->extra;
 }
 
-s32 func_800DBCAC(GpObj* arg0, GpObj* arg1)
+s32 Gp_PairHandler1(GpObj* arg0, GpObj* arg1)
 {
     void**           scratch;
     u8*              head;
@@ -3259,7 +3259,7 @@ s32 func_800DBCAC(GpObj* arg0, GpObj* arg1)
     return ret;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3A34", func_800DBE7C);
+INCLUDE_ASM("gameplay/nonmatchings/3A34", Gp_PairHandler3);
 
 void Gp_CollideObjGrid(GpObj* arg0)
 {
@@ -3992,9 +3992,9 @@ void Gp_CollideLists(GpObj* a, GpObj* b)
                         swap      = rec->field_2;
                         handler   = rec->field_0;
                         if (swap == 0) {
-                            D_8010FA38[handler](a, other, handler);
+                            Gp_PairHandlers[handler](a, other, handler);
                         } else {
-                            D_8010FA38[handler](other, a, handler);
+                            Gp_PairHandlers[handler](other, a, handler);
                         }
                     }
                 }

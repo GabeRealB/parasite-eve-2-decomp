@@ -103,13 +103,13 @@ extern UiList         D_8010E9A4;
 extern UiList         D_8010E9CC;
 extern UiList         D_8010E9F4;
 extern UiList         D_8010EA30;
-extern UiListItemFunc D_8010EA6C[];
+extern UiListItemFunc Gp_DialogCmdFns[];
 extern UiList         D_8010EA74;
 extern char           Gp_StrAreaEffect[];
 extern char           Gp_StrCastCost[];
 extern char           Gp_StrAtpLoss[];
-extern u8*            D_8010F544[];
-extern u8*            D_8010F584;
+extern u8*            Gp_NoticeTexts[];
+extern u8*            Gp_PromptTexts;
 extern UiList         D_8010F5D0;
 extern UiList         D_8010F5FC;
 extern UiList         D_8010F81C;
@@ -240,7 +240,7 @@ void       Gp_EnqueueMapRoomCd(void);
 void       func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2);
 void       Gp_DrawReviveCmd(DialogPrompt* arg0, UiObject* arg1);
 s32        func_800D50D4(s32 arg0, s32 arg1);
-void       func_800D5178(DialogPrompt* arg0, UiObject* arg1);
+void       Gp_DrawPeSlotCmd(DialogPrompt* arg0, UiObject* arg1);
 void       Gp_LoadViewImages(void);
 void       Gp_SetCollectedBit(s32 arg0);
 void       Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1);
@@ -692,8 +692,8 @@ store:
 
 void Gp_ItemMenuInit(UiObject* arg0, Task* arg1);
 
-/// Three-entry dispatcher table indexed by `Task::state` (`func_800CE498`).
-const UiObjectTaskFuncTable3 D_80096F7C = { { Gp_ItemMenuInit, Gp_UiPromptUpdate, Gp_UiPromptDispatch } };
+/// Three-entry dispatcher table indexed by `Task::state` (`Gp_ItemMenuTask`).
+const UiObjectTaskFuncTable3 Gp_ItemMenuStates = { { Gp_ItemMenuInit, Gp_UiPromptUpdate, Gp_UiPromptDispatch } };
 
 /// CLUT ids for the ten item-category icons drawn by `Gp_DrawItemIcon`.
 const u16 D_80096F88[12] = {
@@ -2385,7 +2385,7 @@ void Gp_DrawWeaponSlotRow(DialogPrompt* arg0, UiObject* arg1)
     prompt->field_1A = (u16)prompt->field_1A + 0xA;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C388C);
+INCLUDE_ASM("gameplay/nonmatchings/3688", Gp_DrawWeaponSlotRow2);
 
 void Gp_WeaponMenuTask(Task* arg0)
 {

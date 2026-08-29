@@ -907,7 +907,7 @@ rem_join: {
     if (ticks < entry->field_34) {
         goto end;
     }
-    table  = D_800689C4;
+    table  = Midi_EventFns;
     ticks -= entry->field_34;
 loop_outer:
     entry->field_34 = 0;
@@ -1026,9 +1026,9 @@ after_volume:
     } while (i < 0x12);
 }
 
-INCLUDE_ASM("main/nonmatchings/sndevt", func_800520A8);
+INCLUDE_ASM("main/nonmatchings/sndevt", Midi_Event1);
 
-u8* func_80052488(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3)
+u8* Midi_Event3(s32 arg0, u8* arg1, MidiSong* arg2, MidiTrack* arg3)
 {
     u8  channel;
     u8  ctrl;

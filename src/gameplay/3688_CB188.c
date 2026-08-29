@@ -100,7 +100,7 @@ extern UiList         D_8010E9A4;
 extern UiList         D_8010E9CC;
 extern UiList         D_8010E9F4;
 extern UiList         D_8010EA30;
-extern UiListItemFunc D_8010EA6C[];
+extern UiListItemFunc Gp_DialogCmdFns[];
 extern UiList         D_8010EA74;
 extern char           Gp_StrAreaEffect[];
 extern char           Gp_StrCastCost[];
@@ -109,8 +109,8 @@ extern u8             D_80097220[]; // "MP"
 extern u8             Gp_StrCost[];
 extern u8             Gp_StrBonus[];
 extern char           Gp_StrAtpLoss[];
-extern u8*            D_8010F544[];
-extern u8*            D_8010F584;
+extern u8*            Gp_NoticeTexts[];
+extern u8*            Gp_PromptTexts;
 extern UiList         D_8010F5D0;
 extern UiList         D_8010F5FC;
 extern UiList         D_8010F81C;
@@ -247,7 +247,7 @@ void       Gp_EnqueueMapRoomCd(void);
 void       func_800D3D98(UiObject* arg0, s32 arg1, s32 arg2);
 void       Gp_DrawReviveCmd(DialogPrompt* arg0, UiObject* arg1);
 s32        func_800D50D4(s32 arg0, s32 arg1);
-void       func_800D5178(DialogPrompt* arg0, UiObject* arg1);
+void       Gp_DrawPeSlotCmd(DialogPrompt* arg0, UiObject* arg1);
 void       Gp_LoadViewImages(void);
 void       Gp_SetCollectedBit(s32 arg0);
 void       Gp_EnqueueItemPreviewCd(s32 arg0, s32 arg1);
@@ -550,22 +550,22 @@ void Gp_YesNoMenuTask(Task* arg0)
         mode = arg0->spawnArg1 & 0xF;
         switch (mode) {
             case 1:
-                D_8010EA6C[0] = Gp_DrawOkCmd;
-                menu->field_4 = mode;
+                Gp_DialogCmdFns[0] = Gp_DrawOkCmd;
+                menu->field_4      = mode;
                 break;
             case 2:
-                D_8010EA6C[0] = Gp_DrawCancelCmd;
-                menu->field_4 = 1;
+                Gp_DialogCmdFns[0] = Gp_DrawCancelCmd;
+                menu->field_4      = 1;
                 break;
             case 3:
-                D_8010EA6C[0] = Gp_DrawYesCmd;
-                D_8010EA6C[1] = Gp_DrawNoCmd;
-                menu->field_4 = 2;
+                Gp_DialogCmdFns[0] = Gp_DrawYesCmd;
+                Gp_DialogCmdFns[1] = Gp_DrawNoCmd;
+                menu->field_4      = 2;
                 break;
             default:
-                D_8010EA6C[0] = Gp_DrawYesCmd;
-                D_8010EA6C[1] = Gp_DrawNoCmd;
-                menu->field_4 = 2;
+                Gp_DialogCmdFns[0] = Gp_DrawYesCmd;
+                Gp_DialogCmdFns[1] = Gp_DrawNoCmd;
+                menu->field_4      = 2;
                 break;
         }
         menu->field_5 = menu->field_4;
@@ -1445,11 +1445,11 @@ void Gp_ItemMenuInit(UiObject* arg0, Task* arg1)
     }
 }
 
-void func_800CE498(Task* arg0)
+void Gp_ItemMenuTask(Task* arg0)
 {
     UiObjectTaskFuncTable3 sp;
 
-    sp = D_80096F7C;
+    sp = Gp_ItemMenuStates;
     sp.funcs[arg0->state](arg0->spawnArg2, arg0);
 }
 
@@ -1561,7 +1561,7 @@ void Gp_DrawOptionCmd(DialogPrompt* arg0, UiObject* arg1)
     }
 }
 
-void func_800CE894(DialogPrompt* arg0, UiObject* arg1)
+void Gp_DrawExitCmd(DialogPrompt* arg0, UiObject* arg1)
 {
     TextDrawReq req;
     s32         status;
@@ -2301,7 +2301,7 @@ void Gp_SpawnItemUsePrompt(s32 arg0, UiObject* arg1)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", func_800CFF04);
+INCLUDE_ASM("gameplay/nonmatchings/3688_CB188", Gp_MapTaskState2);
 
 void Gp_DrawMapCursor(Task* arg0)
 {
@@ -2728,11 +2728,11 @@ void Gp_DrawMapName(Task* arg0)
     }
 }
 
-void func_800D1CF8(Task* arg0)
+void Gp_MapTask(Task* arg0)
 {
     TaskFuncTable4 sp;
 
-    sp = D_800971C0;
+    sp = Gp_MapTaskStates;
     sp.funcs[arg0->state](arg0);
 }
 
@@ -2981,7 +2981,7 @@ void Gp_PeCommandMenuTask(Task* arg0)
     if (arg0->state == 0) {
         table         = menu->funcs;
         table[0]      = Gp_DrawReviveCmd;
-        table[1]      = func_800D5178;
+        table[1]      = Gp_DrawPeSlotCmd;
         two           = 2;
         menu->field_5 = two;
         menu->field_4 = two;
@@ -3060,7 +3060,7 @@ void Gp_DiscardWarnTask(Task* arg0)
             Gp_NoticePanelTask(arg0);
             return;
         }
-        text = D_8010F584;
+        text = Gp_PromptTexts;
         if (arg0->state == 0) {
             Ui_SizeFromTextWide((UiPanel*)obj, text);
             spawned = func_800CD89C(obj);
@@ -3229,7 +3229,7 @@ void Gp_NoticePanelTask(Task* arg0)
     Ui_DrawText((UiPanel*)obj, Gp_StrNotice3);
 
     color = 0x606060;
-    text  = D_8010F544[(u16)arg0->spawnArg1];
+    text  = Gp_NoticeTexts[(u16)arg0->spawnArg1];
 
     if (arg0->state == 0) {
         Ui_SizeFromTextPlain((UiPanel*)obj, text);
@@ -3714,7 +3714,7 @@ s32 func_800D50D4(s32 arg0, s32 arg1)
     return val & 0xFFFF;
 }
 
-void func_800D5178(DialogPrompt* arg0, UiObject* arg1)
+void Gp_DrawPeSlotCmd(DialogPrompt* arg0, UiObject* arg1)
 {
     TextDrawReq req;
 
@@ -3818,7 +3818,7 @@ void Gp_DrawPushCmd(UiObject* arg0, Task* arg1)
     s32 color;
 
     color = 0x606060;
-    text  = D_8010F544[(u16)arg1->spawnArg1];
+    text  = Gp_NoticeTexts[(u16)arg1->spawnArg1];
 
     if (arg1->state == 0) {
         Ui_SizeFromTextPlain((UiPanel*)arg0, text);
@@ -3899,7 +3899,7 @@ void Gp_DrawSpecsCmd(Task* arg0)
     }
 }
 
-void func_800D587C(DialogPrompt* arg0, UiObject* arg1)
+void Gp_DrawExaminePushCmd(DialogPrompt* arg0, UiObject* arg1)
 {
     TextDrawReq req;
     char*       text;

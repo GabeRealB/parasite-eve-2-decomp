@@ -31,11 +31,11 @@ extern u16            D_8007A396;
 extern TaskFuncTable3 D_800974C8;
 extern char           Gp_StrCapMagic[];
 extern char           Gp_StrEvsFmt[];
-extern TaskFuncTable3 D_8009752C;
-extern TaskFuncTable3 D_80097538;
-extern TaskFuncTable3 D_8009762C;
-extern TaskFuncTable5 D_80097638;
-extern TaskFuncTable5 D_8009764C;
+extern TaskFuncTable3 Gp_CapTaskStates;
+extern TaskFuncTable3 Gp_ScriptTaskStates;
+extern TaskFuncTable3 Gp_Script18States;
+extern TaskFuncTable5 Gp_ScriptAStates;
+extern TaskFuncTable5 Gp_ScriptBStates;
 extern TaskFuncTable3 D_80097678;
 extern TaskDesc       Gp_EvtSpawnTable[];
 extern TaskDesc       D_8010FB4C[];
@@ -133,7 +133,7 @@ extern u16            Gp_PadSuppressFall;
 extern u16            Gp_PadSuppressRefs;
 extern u8             Gp_MenuLockHold;
 extern s16            Gp_MenuLockDelay;
-extern s16            D_80115718;
+extern s16            Gp_PadSuppressTimer;
 
 void func_800E44A0(Task* arg0);
 void func_80724120(void);
@@ -1110,7 +1110,7 @@ void Gp_InitCapTask(Task* task)
     task->state++;
 }
 
-void func_800E7240(void)
+void Gp_CapTaskState1(void)
 {
     if (Display_State.field_112 != 0) {
         func_80724120();
@@ -1232,11 +1232,11 @@ void func_800E7570(Task* arg0)
 {
     TaskFuncTable3 sp;
 
-    sp = D_8009752C;
+    sp = Gp_CapTaskStates;
     sp.funcs[arg0->state](arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3CD8", func_800E75C8);
+INCLUDE_ASM("gameplay/nonmatchings/3CD8", Gp_ScriptTaskState1);
 
 void Gp_VolFadeTask(Task* arg0)
 {
@@ -1367,7 +1367,7 @@ void func_800E8830(Task* arg0)
 {
     TaskFuncTable3 sp;
 
-    sp = D_80097538;
+    sp = Gp_ScriptTaskStates;
     sp.funcs[arg0->state](arg0);
 }
 
@@ -1646,8 +1646,8 @@ void Gp_DispatchScript18(Task* task)
     GpState18*     state;
 
     state  = (GpState18*)task->idMap;
-    tableA = D_80097638;
-    tableB = D_8009764C;
+    tableA = Gp_ScriptAStates;
+    tableB = Gp_ScriptBStates;
     tableA.funcs[state->field_A](task);
     tableB.funcs[state->field_C](task);
     if (state->field_A == 0 && state->field_C == 0) {
@@ -1686,7 +1686,7 @@ void Gp_Script18Task(Task* arg0)
 {
     TaskFuncTable3 sp;
 
-    sp = D_8009762C;
+    sp = Gp_Script18States;
     if (D_801153F4 == 0 || (Game_Session->field_13B & 0x80)) {
         if (Gp_PadScriptHalt != 0) {
             arg0->state = 2;
@@ -1695,7 +1695,7 @@ void Gp_Script18Task(Task* arg0)
     }
 }
 
-void func_800E92BC(void)
+void Gp_ScriptAState0(void)
 {
 }
 
@@ -1709,17 +1709,17 @@ void Gp_TickScriptADelay(Task* task)
     }
 }
 
-void func_800E9308(Task* task)
+void Gp_ScriptAState3(Task* task)
 {
     Gp_StepScriptA(task);
 }
 
-void func_800E9328(Task* task)
+void Gp_ScriptAState4(Task* task)
 {
     Gp_StepScriptA(task);
 }
 
-void func_800E9348(void)
+void Gp_ScriptBState0(void)
 {
 }
 
@@ -1733,12 +1733,12 @@ void Gp_TickScriptBDelay(Task* task)
     }
 }
 
-void func_800E9394(Task* task)
+void Gp_ScriptBState3(Task* task)
 {
     Gp_StepScriptB(task);
 }
 
-void func_800E93B4(Task* task)
+void Gp_ScriptBState4(Task* task)
 {
     Gp_StepScriptB(task);
 }
@@ -1805,10 +1805,10 @@ void Gp_UpdatePadInput(void)
                 Gp_MenuLockNow = 0;
             }
         } else {
-            Gp_MenuLockNow   = 1;
-            D_80115718       = 4;
-            Gp_MenuLockDelay = 8;
-            D_80114D08       = 0xA;
+            Gp_MenuLockNow      = 1;
+            Gp_PadSuppressTimer = 4;
+            Gp_MenuLockDelay    = 8;
+            D_80114D08          = 0xA;
         }
         if (Gp_MenuLockNow == 1 && Gp_MenuLockPrev == 0) {
             Gp_MenuLockHold     = 0;
@@ -1895,8 +1895,8 @@ void Gp_UpdatePadInput(void)
     Game_Session->field_58 = Gp_RemapButtons(actor, mask) & ~Gp_PadSuppressMask;
     Game_Session->field_5A = Gp_RemapButtons(actor, prev) & ~Gp_PadSuppressMask;
     Game_Session->field_5C = Gp_RemapButtons(actor, trig) & ~Gp_PadSuppressMask;
-    if (D_80115718 != 0) {
-        D_80115718--;
+    if (Gp_PadSuppressTimer != 0) {
+        Gp_PadSuppressTimer--;
         Game_Session->field_58 = Gp_RemapButtons(actor, mask) & ~Gp_PadSuppressMask & ~0x10;
         Game_Session->field_5A = Gp_RemapButtons(actor, prev) & ~Gp_PadSuppressMask & ~0x10;
         Game_Session->field_5C = Gp_RemapButtons(actor, trig) & ~Gp_PadSuppressMask & ~0x10;
@@ -1964,16 +1964,16 @@ void func_800E9BDC(u8 arg0, s32 arg1)
     }
 }
 
-void func_800E9C6C(void)
+void Gp_ResetMenuLock(void)
 {
-    Gp_PadSuppressRefs = 0;
-    Gp_PadSuppressMask = 0;
-    Gp_PadSuppressPrev = 0;
-    Gp_PadSuppressRise = 0;
-    Gp_PadSuppressFall = 0;
-    Gp_MenuLockNow     = 0;
-    Gp_MenuLockPrev    = 0;
-    Gp_MenuLockHold    = 0;
-    Gp_MenuLockDelay   = 8;
-    D_80115718         = 4;
+    Gp_PadSuppressRefs  = 0;
+    Gp_PadSuppressMask  = 0;
+    Gp_PadSuppressPrev  = 0;
+    Gp_PadSuppressRise  = 0;
+    Gp_PadSuppressFall  = 0;
+    Gp_MenuLockNow      = 0;
+    Gp_MenuLockPrev     = 0;
+    Gp_MenuLockHold     = 0;
+    Gp_MenuLockDelay    = 8;
+    Gp_PadSuppressTimer = 4;
 }

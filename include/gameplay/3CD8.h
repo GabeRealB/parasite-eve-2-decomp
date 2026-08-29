@@ -349,7 +349,7 @@ typedef struct _GpArcScratch {
 } GpArcScratch;
 STATIC_ASSERT_SIZEOF(GpArcScratch, 0x1C);
 
-/// 0x118-byte scratch from `G_SCRATCH_HEAD` used by `func_800EBF18`. Holds
+/// 0x118-byte scratch from `G_SCRATCH_HEAD` used by `Gp_DrawBandEx`. Holds
 /// the two 16-vertex rings of a shaded band: `inner[i]` is the ring of
 /// radius `arg1` and `outer[i]` the ring of radius `arg1 + arg2`, both built
 /// in the XZ plane by `rsin` / `rcos`, rotated by the coordinate's `workm`
@@ -413,7 +413,7 @@ void Gp_UpdatePadInput(void);
 u16  Gp_RemapButtons(GameActor* actor, u16 mask);
 
 void func_800E9BDC(u8 arg0, s32 arg1);
-void func_800E9C6C(void);
+void Gp_ResetMenuLock(void);
 void Gp_InitState1C(Task* arg0);
 void Gp_TickState1C(void);
 s32  Gp_TraceGroundCoord(GsCOORDINATE2* arg0, GsCOORDINATE2* arg1);
@@ -449,7 +449,7 @@ void Gp_DrawRing(GsCOORDINATE2* arg0, s32 arg1, u8* arg2);
 /// so the quad's corners sit at `angle` and `angle + 0x400`.
 void Gp_DrawFxQuad(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, u16 arg3);
 void func_800EB6E8(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_800EBF18(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* arg3);
+void Gp_DrawBandEx(GsCOORDINATE2* arg0, s16 arg1, s32 arg2, u8* arg3);
 void Gp_ReleaseState1CMem(void* arg0, Task* arg1);
 void Gp_KillState1CTask(Task* arg0);
 void Gp_PulseState1C(void);

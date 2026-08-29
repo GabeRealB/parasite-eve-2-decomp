@@ -99,8 +99,8 @@ typedef struct _GpMsg3EE {
 STATIC_ASSERT_SIZEOF(GpMsg3EE, 0x18);
 
 /// Tables of no-arg callbacks copied onto the stack by the sibling
-/// dispatchers. `func_800AEF4C` copies the 6-entry `D_80093978`;
-/// `func_800AEFBC` copies the 5-entry `D_80093990`.
+/// dispatchers. `Gp_DirAction0` copies the 6-entry `Gp_WarpPhaseFns`;
+/// `Gp_DirAction1` copies the 5-entry `D_80093990`.
 typedef void (*GpVoidFunc)(void);
 
 typedef struct {

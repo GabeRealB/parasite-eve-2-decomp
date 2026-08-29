@@ -54,7 +54,7 @@ void func_800B6398(void);
 void func_8017FBD8(void);
 
 extern char           D_80093A44[];
-extern TaskFuncTable3 D_80093A1C;
+extern TaskFuncTable3 Gp_StageLoadStates;
 extern TaskFuncTable3 D_80093A38;
 extern TaskFuncTable3 D_80093A5C;
 extern TaskDesc       D_80115D9C[];
@@ -671,7 +671,7 @@ void func_800B06F0(Task* arg0)
 {
     TaskFuncTable3 sp;
 
-    sp = D_80093A1C;
+    sp = Gp_StageLoadStates;
     sp.funcs[arg0->state](arg0);
 }
 
@@ -725,7 +725,7 @@ void Gp_FinishStageLoad(Task* task)
     }
 }
 
-void func_800B08D8(Task* task)
+void Gp_StageLoadState2(Task* task)
 {
     s32           out;
     DisplayState* ds;
@@ -1106,7 +1106,7 @@ void Gp_BlendRgb555(u16* arg0, u16* arg1, s32 arg2, u16* arg3)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
 }
 
-void func_800B2200(Task* arg0)
+void Gp_FadeWorkTask(Task* arg0)
 {
     register Task* t asm("t2");
     register s32   y asm("a1");
@@ -2421,7 +2421,7 @@ void Gp_SpawnArea(GpAreaKey* arg0)
     } while (place->field_0 != 0xFF);
 }
 
-void func_800B4E54(GsCOORDINATE2* arg0, u32 arg1, SVECTOR* arg2)
+void Gp_DrawFloorQuad(GsCOORDINATE2* arg0, u32 arg1, SVECTOR* arg2)
 {
     void**              scratch;
     u8*                 head;

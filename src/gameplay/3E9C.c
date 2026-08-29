@@ -27,10 +27,10 @@ extern SVECTOR D_801125EC[];
 extern SVECTOR D_801126FC[];
 extern SVECTOR D_8011280C[];
 
-void func_800EF0E0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
-void func_800F1BEC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
+void Gp_DrawEffSprite6C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
+void Gp_DrawEffSprite3B(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
 void Gp_DrawEffGroundQuad(VECTOR3* arg0, s32 arg1, s16 arg2);
-void func_800F6560(GsCOORDINATE2* arg0, s32 arg1, u32 arg2);
+void Gp_DrawEffSprite7C(GsCOORDINATE2* arg0, s32 arg1, u32 arg2);
 
 void Gp_EffCtlTask2B(Task* arg0)
 {
@@ -342,7 +342,7 @@ void Gp_EffCtlTask6C(Task* arg0)
                 Gp_LcgState   = rng;
                 mem->field_24 = idx;
                 Gp_LcgState   = rng2;
-                func_800EF0E0(coord, idx | 0x400, ((u32)rng2 >> 16) & 0xFFF, idx);
+                Gp_DrawEffSprite6C(coord, idx | 0x400, ((u32)rng2 >> 16) & 0xFFF, idx);
                 for (i = 0; i < 4; i++) {
                     Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
                     Gp_SpawnEff(0x6006F, coord, (((u32)Gp_LcgState >> 16) & 0x1FF) + 0x380, 0);
@@ -669,7 +669,7 @@ void Gp_EffLineTaskA3(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_800EF0E0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
+void Gp_DrawEffSprite6C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3)
 {
     void**            scratch;
     u8*               head;
@@ -1456,7 +1456,7 @@ void Gp_EffCtlTask3B(Task* arg0)
             }
             arg0->state = 1;
         }
-        func_800F1BEC(coord, mem->field_22, mem->field_26, mem->field_24);
+        Gp_DrawEffSprite3B(coord, mem->field_22, mem->field_26, mem->field_24);
         if (Gp_State1C->field_4 != 0) {
             return;
         }
@@ -1470,7 +1470,7 @@ void Gp_EffCtlTask3B(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-void func_800F1BEC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
+void Gp_DrawEffSprite3B(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3)
 {
     void**            scratch;
     u8*               head;
@@ -1904,7 +1904,7 @@ void Gp_EffSprTask7C(Task* arg0)
         return;
     }
     if (Gp_TraceGroundCoord(coord, &hit) == 1) {
-        func_800F6560(&hit, (s32)(*(u16*)&mem->field_24 << 16) >> 17, param);
+        Gp_DrawEffSprite7C(&hit, (s32)(*(u16*)&mem->field_24 << 16) >> 17, param);
     }
     if (coord->coord.t[1] > hit.coord.t[1]) {
         coord->coord.t[1] -= mem->field_12 * 2;
@@ -2387,7 +2387,7 @@ void Gp_EffSprTask54(Task* arg0)
     }
 }
 
-void func_800F6560(GsCOORDINATE2* arg0, s32 arg1, u32 arg2)
+void Gp_DrawEffSprite7C(GsCOORDINATE2* arg0, s32 arg1, u32 arg2)
 {
     register void**         scratch asm("v0");
     register u8*            head asm("v1");

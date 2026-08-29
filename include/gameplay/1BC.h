@@ -427,7 +427,7 @@ STATIC_ASSERT_SIZEOF(GpRgbScratch, 8);
 void Gp_BlendRgb555(u16* arg0, u16* arg1, s32 arg2, u16* arg3);
 void Gp_BlendRgb555Clut(u16* arg0, u16* arg1, s32 arg2, u16* arg3);
 void Gp_BlendRgb555ClutMasked(u16* arg0, u16* arg1, s32 arg2, u16* arg3, s32 arg4);
-/// 4-byte work at `Task::spawnArg2` for `func_800B2200`. `field_0`
+/// 4-byte work at `Task::spawnArg2` for `Gp_FadeWorkTask`. `field_0`
 /// selects the semi-transparency rate of the trailing `DR_TPAGE`
 /// (`0xE1000240` when 0, `0xE1000220` otherwise); `field_1` is the
 /// handshake flag the owner sets to 1 to start the fade-out and the task
@@ -445,7 +445,7 @@ STATIC_ASSERT_SIZEOF(GpFadeWork, 4);
 /// `Gpu_CurrentOt[Task::spawnArg1]`, or (`spawnArg1 == 0`) into the head
 /// of the current ordering table, backing up 0xA entries when the current
 /// OT is not one of the two `Gpu_OrderingTables` roots.
-void       func_800B2200(Task* arg0);
+void       Gp_FadeWorkTask(Task* arg0);
 void       Gp_BlendAnimRot(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2,
                            GpAnimScratch80* arg3);
 void       Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2);
@@ -515,7 +515,7 @@ typedef struct _GpDirScratch {
 } GpDirScratch;
 STATIC_ASSERT_SIZEOF(GpDirScratch, 0x28);
 
-/// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `func_800B4E54`.
+/// 0x40-byte scratch from `G_SCRATCH_HEAD` used by `Gp_DrawFloorQuad`.
 /// `vec[]` holds the four corners of an axis-aligned XZ square of side
 /// `size` anchored at the caller's origin; each is projected with a
 /// separate RTPS. `dp` / `flag` / `otz` receive `gte_stdp` / `gte_stflg` /
@@ -539,7 +539,7 @@ STATIC_ASSERT_SIZEOF(GpFloorQuadScratch, 0x40);
 /// anchored at `arg2` (or at the coordinate's own origin when `arg2` is
 /// `NULL`), transformed by `arg0->workm` and linked into `Gpu_CurrentOt`
 /// at the largest corner `otz`.
-void func_800B4E54(GsCOORDINATE2* arg0, u32 arg1, SVECTOR* arg2);
+void Gp_DrawFloorQuad(GsCOORDINATE2* arg0, u32 arg1, SVECTOR* arg2);
 /// Builds a camera-space offset from `arg0` toward `arg1->pos`, scaled
 /// by `-abs(length - arg1->field_2)`, and writes it to `arg2`.
 void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2);

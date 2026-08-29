@@ -116,7 +116,7 @@ extern s32                   D_80068B18[];
 extern s32                   D_80068B1C;
 extern s16                   D_80068B28[];
 extern s32                   D_80068B2C[];
-extern s32                   (*D_80068B34[])(void);
+extern s32                   (*CdAudio_DriveFns[])(void);
 extern u16                   D_80068BB8[];
 extern u16                   D_80068C78[];
 extern u16                   D_80068D78[];

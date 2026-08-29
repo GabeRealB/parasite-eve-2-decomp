@@ -289,9 +289,9 @@ extern char Mc_StrMemoryCard[];
 /// "*" wildcard passed to MemCardGetDirentry by Mc_StateScanDirFlags.
 extern char D_80013A5C[];
 /// Jump table of 44 McStateFunc handlers used by Mc_DispatchStateTable.
-extern McStateFuncTable44 D_800139AC;
+extern McStateFuncTable44 Mc_PromptStates;
 /// Jump table of 26 McStateFunc handlers used by Mc_DispatchStateTable26.
-extern McStateFuncTable26 D_80013ACC;
+extern McStateFuncTable26 Mc_FileSelectStates;
 /// Global McWork instance used by the memcard state dispatcher.
 extern McWork D_80071730;
 /// Memcard product-code prefix (12 bytes, e.g. "BASLUS-01042").

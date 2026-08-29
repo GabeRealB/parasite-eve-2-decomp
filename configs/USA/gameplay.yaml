@@ -101,7 +101,7 @@ segments:
       - [0x3E9C, .rodata, 3E9C] # jtbls: Gp_EffCtlTask2B + Gp_EffModelTask
       - [0x3FB8, .rodata, 3FB8_75BC] # jtbl from Gp_EffSprTask46
       - [0x3FD0, .rodata, 3FB8_7E28] # jtbl from Gp_EffSprTask81
-      - [0x3FE8, .rodata, 3FB8] # jtbls: Gp_EffSprTask30 + inline D_800977FC/jtbl_80097808/D_80097848 + Gp_TickActorAnimState + still-asm mid + func_80109170 + jtbl_80097A68 + func_8010A42C
+      - [0x3FE8, .rodata, 3FB8] # jtbls: Gp_EffSprTask30 + inline Gp_EffTask07States/jtbl_80097808/Gp_PlayerWorkStates + Gp_TickActorAnimState + still-asm mid + Gp_PlayerMode1State0 + jtbl_80097A68 + func_8010A42C
       - [0x42B0, rodata, rodata_3FB8_2] # D_80097AB0
       # Text TUs: first function that uses each group's jtbl (file 0 starts
       # at the first addiu $sp).
@@ -121,7 +121,7 @@ segments:
       - [0x564C8, c, 3CD8_9CC8] # Gp_InitState1C
       - [0x592A8, c, 3E9C] # Gp_EffCtlTask2B
       - [0x63DBC, c, 3FB8_75BC] # Gp_EffSprTask46
-      - [0x63FF8, c, 3FB8_7E28] # Gp_DrawEffSprite81 / func_800F7AD4 / Gp_EffSprTask81
+      - [0x63FF8, c, 3FB8_7E28] # Gp_DrawEffSprite81 / Gp_DrawEffSprite46 / Gp_EffSprTask81
       - [0x64A44, c, 3FB8] # Gp_EffSprTask55
       # "Item obtained!" / UI strings / tables after last jr ra
       - [0x79208, data, data]

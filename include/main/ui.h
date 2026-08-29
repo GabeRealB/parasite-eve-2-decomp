@@ -166,7 +166,7 @@ extern UiObjectDesc D_800612D0[];
 extern UiObjectDesc D_80067678;
 extern char         D_80013B64[]; // "Select"
 
-/// Object used by 34E98.c handlers (e.g. Ui_AnimOpenStep / D_80013F2C table).
+/// Object used by 34E98.c handlers (e.g. Ui_AnimOpenStep / Ui_ObjectStates table).
 /// field_4 low nibble selects layout padding (Ui_InsetLayout); high nibble of the
 /// low byte selects a fill mode (Ui_ScaleRect). field_8 is a small integer
 /// state; field_C is a source RECT used by layout helpers (Ui_InsetLayout /
@@ -190,7 +190,7 @@ typedef struct _UiPanel {
     /* 0x24 */ void (*field_24)(void*); // handler callback
 } UiPanel;
 
-/// Callback for UiPanel state handlers (e.g. entries in D_80013F2C).
+/// Callback for UiPanel state handlers (e.g. entries in Ui_ObjectStates).
 typedef void (*UiPanelFunc)(UiPanel* arg0, void* arg1);
 
 /// Fixed-size table of UiPanelFunc callbacks. Copied onto the stack by
@@ -199,7 +199,7 @@ typedef struct {
     UiPanelFunc funcs[6];
 } UiPanelFuncTable6;
 
-extern UiPanelFuncTable6 D_80013F2C;
+extern UiPanelFuncTable6 Ui_ObjectStates;
 
 /// Dialog / prompt descriptor used by 21FDC.c handlers (e.g. McMenu_ConfirmDialogAlt,
 /// McMenu_ConfirmDialog, McMenu_ConfirmWithRender). field_8 is a signed menu/option index passed

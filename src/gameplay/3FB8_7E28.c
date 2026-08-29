@@ -105,7 +105,7 @@ void Gp_DrawEffSprite81(Task* arg0)
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
 }
 
-void func_800F7AD4(GsCOORDINATE2* arg0, s32 arg1, s16 arg2, u16 arg3)
+void Gp_DrawEffSprite46(GsCOORDINATE2* arg0, s32 arg1, s16 arg2, u16 arg3)
 {
     register GsCOORDINATE2* coord asm("t7");
     register void**         scratch asm("a0");

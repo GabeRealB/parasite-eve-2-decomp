@@ -689,7 +689,7 @@ void Mc_StateSyncFileSelect(Task* arg0, McWork* arg1)
     }
 }
 
-const McStateFuncTable26 D_80013ACC = { {
+const McStateFuncTable26 Mc_FileSelectStates = { {
     (McStateFunc)0x80035A94,
     (McStateFunc)0x80035AD4,
     (McStateFunc)0x80035AF0,
@@ -2378,7 +2378,7 @@ void Mc_DispatchStateTable(Task* arg0)
     McWork*            work;
     s32                state;
 
-    sp    = D_800139AC;
+    sp    = Mc_PromptStates;
     work  = &D_80071730;
     state = arg0->state;
     if (state < 0) {
@@ -2869,7 +2869,7 @@ void Mc_DispatchStateTable26(Task* arg0)
     McStateFuncTable26 sp;
     McWork*            work;
 
-    sp   = D_80013ACC;
+    sp   = Mc_FileSelectStates;
     work = &D_80071730;
     sp.funcs[arg0->state](arg0, work);
     if (work->field_4 >= 0xB5) {

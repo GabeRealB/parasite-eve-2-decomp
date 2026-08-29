@@ -15,8 +15,8 @@
 
 void func_800AD6BC(void);
 
-extern TaskFuncTable3   D_80093950;
-extern GpVoidFuncTable6 D_80093978;
+extern TaskFuncTable3   Gp_DirTaskStates;
+extern GpVoidFuncTable6 Gp_WarpPhaseFns;
 extern GpVoidFuncTable5 D_80093990;
 extern u16              D_80114CD0;
 extern u16              Gp_DirFlags;
@@ -137,7 +137,7 @@ void Gp_InitDirState(Task* arg0)
     arg0->state++;
 }
 
-void func_800AEE00(void)
+void Gp_DirTaskState1(void)
 {
     Gp_CommitObj4CSave();
     func_800AD6BC();
@@ -162,7 +162,7 @@ void func_800AEE8C(Task* arg0)
     void*          slot;
 
     slot = Game_GetPtrSlot(3);
-    sp   = D_80093950;
+    sp   = Gp_DirTaskStates;
     if (slot != NULL) {
         sp.funcs[arg0->state](arg0);
     }
@@ -178,15 +178,15 @@ u8 Gp_GetViewCountLo(void)
     return tbl->field_0[session->field_6 - 1][session->field_5 - 1].field_0;
 }
 
-void func_800AEF4C(void)
+void Gp_DirAction0(void)
 {
     GpVoidFuncTable6 sp;
 
-    sp = D_80093978;
+    sp = Gp_WarpPhaseFns;
     sp.funcs[*(s16*)&Gp_DirPhase]();
 }
 
-void func_800AEFBC(void)
+void Gp_DirAction1(void)
 {
     GpVoidFuncTable5 sp;
 

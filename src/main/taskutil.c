@@ -18,7 +18,7 @@ const u16 Display_HeightTable[] = {
     0x1E0,
 };
 
-const TaskFuncTable6 D_80013E98 = { {
+const TaskFuncTable6 Display_TaskStates = { {
     Stage_WaitCdActivate,
     Stage_WaitCdAndSpawn,
     Display_TransitionTask,

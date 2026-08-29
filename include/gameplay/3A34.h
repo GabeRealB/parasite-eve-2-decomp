@@ -94,7 +94,7 @@ typedef struct _GpEdgePair {
 } GpEdgePair;
 STATIC_ASSERT_SIZEOF(GpEdgePair, 0x4);
 
-/// Pair-dispatch callback from `D_8010FA38`. `kind` is `GpU16Pair.field_0`.
+/// Pair-dispatch callback from `Gp_PairHandlers`. `kind` is `GpU16Pair.field_0`.
 typedef void (*GpPairFn)(GpObj* a, GpObj* b, s32 kind);
 
 /// 4-byte table entry at `Gp_IdField0`. `Gp_LookupIdField(idx, 0)` returns
@@ -733,7 +733,7 @@ typedef struct _GpLockPos {
 } GpLockPos;
 STATIC_ASSERT_SIZEOF(GpLockPos, 0x18);
 
-/// 0x38-byte scratch from `G_SCRATCH_HEAD` used by `func_800DA2A0`.
+/// 0x38-byte scratch from `G_SCRATCH_HEAD` used by `Gp_ScanLockNodes`.
 /// `src` is the actor's `coord.t` (lowered by 1000 on Y) before
 /// `Gfx_ViewWorldMtx` rotates it into `self`, the world-space aim origin.
 /// `node` is the candidate `Gp_LinkList` node's world position; both are
@@ -967,7 +967,7 @@ typedef struct _GpDirMatScratch {
 } GpDirMatScratch;
 STATIC_ASSERT_SIZEOF(GpDirMatScratch, 0x4C);
 
-/// 0x48-byte scratch from `G_SCRATCH_HEAD` used by `func_800DBCAC`.
+/// 0x48-byte scratch from `G_SCRATCH_HEAD` used by `Gp_PairHandler1`.
 /// `Gp_ObjWorldPos` writes world-space positions into `pos0` / `pos1`.
 /// `delta` is `pos0 - pos1`. On overlap, `src` / `extra` / `rsum` are
 /// filled for `func_800DBA20` (other object's truncated position, a
@@ -1121,13 +1121,13 @@ extern GpGiveRec* D_8010FA0C[];
 /// (`Gp_CollideObjGrid` / `Gp_CollideObjGridDir` / `func_800DD324` / `func_800DFCCC`).
 extern GpEdgePair Gp_FaceEdgePairs[5];
 
-/// Pair-handler table used by `func_800DB900` / `Gp_CollideLists`.
-/// Indexed by `D_8010FA4C[].field_0` (`Gp_PairNop` / `func_800DBCAC` /
-/// `func_800DBE7C`).
-extern GpPairFn D_8010FA38[5];
+/// Pair-handler table used by `Gp_RunPairHandler` / `Gp_CollideLists`.
+/// Indexed by `D_8010FA4C[].field_0` (`Gp_PairNop` / `Gp_PairHandler1` /
+/// `Gp_PairHandler3`).
+extern GpPairFn Gp_PairHandlers[5];
 
-/// 4x4 pair-rule table used by `func_800DB900` / `Gp_CollideLists`.
-/// Rows/cols are `(flags & 7) - 1`. `field_0` selects `D_8010FA38`;
+/// 4x4 pair-rule table used by `Gp_RunPairHandler` / `Gp_CollideLists`.
+/// Rows/cols are `(flags & 7) - 1`. `field_0` selects `Gp_PairHandlers`;
 /// a non-zero `field_2` swaps the two `GpObj` arguments.
 extern GpU16Pair D_8010FA4C[4][4];
 
@@ -1316,7 +1316,7 @@ void            Gp_LinkNode(GpLinkNode* node);
 s32             Gp_NodeSlotMask(GpLinkNode* arg0);
 void            Gp_AssignNodeSlot0(GpLinkNode* node);
 void            Gp_ClearNodeSlots(GpLinkNode* node);
-void*           func_800DA2A0(GpActorWork* arg0, VECTOR3* out, s32 flag);
+void*           Gp_ScanLockNodes(GpActorWork* arg0, VECTOR3* out, s32 flag);
 void*           Gp_FindLockNode(GpActorWork* arg0);
 void*           Gp_FindLockNodePad(GpActorWork* arg0);
 void*           Gp_FindLockNodeAt(GpActorWork* arg0, VECTOR3* pos);
@@ -1337,9 +1337,9 @@ void            Gp_ReleaseStateF0Add(GpObj20E* arg0);
 void            Gp_ReleaseStateF0Clear(void);
 void            Gp_ReleaseStateF0(void);
 void            Gp_TickWorldCollision(void);
-void            func_800DB900(GpObj* node);
+void            Gp_RunPairHandler(GpObj* node);
 void            func_800DBA20(GpObj* arg0, GpObj* arg1, GpSphereScratch* arg2);
-s32             func_800DBCAC(GpObj* arg0, GpObj* arg1);
+s32             Gp_PairHandler1(GpObj* arg0, GpObj* arg1);
 void            Gp_CollideObjGrid(GpObj* node);
 void            Gp_CollideObjGridDir(GpObj* node);
 void            func_800DD940(GpObj* node);
