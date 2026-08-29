@@ -30673,3 +30673,57 @@ comes from storing the expression and re-deriving the pointer:
 CSE rewrites the second occurrence as a copy of the first pseudo, and the two
 end up in different hard registers (a caller-saved one for the short-lived
 store operand, a callee-saved one for the long-lived block pointer).
+
+## Two adjacent `POLY_*` fills: write X/Y first in *both* blocks
+
+When two `POLY_FT4` primitives in a row share literal coordinates, GCC CSEs the
+constants into hoisted `li`s at the top of the block. The emitted *store* order
+is not the source order — the scheduler sinks half of the `sh`s down to fill the
+`lw Gpu_CurrentOt` / `lw tag` load stalls — so matching the store order does not
+mean the registers will line up. The hard-register numbers of those hoisted
+`li`s are decided by the pre-scheduling order, i.e. by where the field writes
+appear in the C source.
+
+`func_800A3AF0` sat at 99.7% with a perfect instruction sequence and only the
+`t0`-`t6` names wrong. The fix was to put the eight coordinate writes at the top
+of *both* primitive blocks, before the colour/UV/tpage fields, even though the
+target emits poly 1's `sh`s at the very end and poly 2's split across the block:
+
+```c
+    poly->x2 = 0x16; poly->x0 = 0x16;
+    poly->x3 = 0x96; poly->x1 = 0x96;
+    poly->y1 = -0x6B; poly->y0 = -0x6B;
+    poly->y3 = -0x2C; poly->y2 = -0x2C;
+    poly->tpage = 0xA7;
+    /* ... UV, clut, setlen, setcode ... */
+    addPrim(Gpu_CurrentOt - 5, poly);
+```
+
+Moving the coordinates in only one of the two blocks makes it worse, not better
+(99.8% / 99.7% for the asymmetric variants). Try the symmetric arrangement.
+
+## Spell out the CFG when GCC if-converts the last term of `a && b && c`
+
+`ok = hit && D_8010CA28 <= 0 && D_801153F1 == 0;` (and the equivalent
+`if/else if/else` chain) compiles the final term with `sltiu v1,v0,1`. The
+target instead branches on it and sets the flag in a delay slot:
+
+```
+    bgtz  v0, L_done      ; delay: move v1, zero
+    lbu   v0, D_801153F1
+    beqz  v0, L_done      ; delay: li   v1, 1
+L_false:
+    move  v1, zero
+L_done:
+```
+
+Write the control flow literally, with a shared fall-through `ok = 0`:
+
+```c
+    if (hit != 0) {
+        if (D_8010CA28 > 0) { ok = 0; goto have; }
+        if (D_801153F1 == 0) { ok = 1; goto have; }
+    }
+    ok = 0;
+have:
+```

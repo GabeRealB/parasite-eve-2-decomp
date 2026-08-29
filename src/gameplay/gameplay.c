@@ -38,6 +38,7 @@ extern UiObjectDesc   D_8010CA40;
 extern UiObjectDesc   D_8010CA78[];
 extern UiObjectDesc   D_8010D6D8;
 extern UiObjectDesc   D_80185000;
+extern TaskDesc       D_8010CAB0;
 extern TaskDesc       D_8010CABC;
 extern TaskDesc       D_8010D1FC;
 extern TmdListHead    Gp_TmdListStash;
@@ -76,6 +77,9 @@ extern DR_STP         D_80114C50;
 extern s32            D_80115724;
 
 void func_800C05CC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void func_80108874(void);
+void func_800A57B0(GpIdMapC* arg0);
+void func_800A2F60(GpIdMapC* arg0);
 
 #define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
@@ -4291,7 +4295,479 @@ void func_800A2BE0(s32 arg0, s32 arg1, s32 arg2)
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A2F60);
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A3AF0);
+void func_800A3AF0(GpIdMapC* arg0)
+{
+    DisplayState* ds;
+    WipSysConfig* cfg;
+    GpStateC08*   c08;
+    GpStateF0*    f0;
+    Task*         slot;
+    GpActorWork*  work;
+    POLY_FT4*     poly;
+    s32           kind;
+    s32           bad;
+    s32           state;
+    s32           sub;
+    s32           n;
+    s32           b;
+
+    bad   = 0;
+    kind  = *(u32*)&Game_Session->field_4;
+    kind &= 0xFFFF0000;
+    cfg   = &Wip_SysConfig;
+    ds    = &Display_State;
+    if (ds->field_12c != 0) {
+        poly        = (POLY_FT4*)D_80071190;
+        D_80071190  = (DR_TPAGE*)(poly + 1);
+        poly->x2    = 0x16;
+        poly->x0    = 0x16;
+        poly->x3    = 0x96;
+        poly->x1    = 0x96;
+        poly->y1    = -0x6B;
+        poly->y0    = -0x6B;
+        poly->y3    = -0x2C;
+        poly->y2    = -0x2C;
+        poly->tpage = 0xA7;
+        poly->v2    = 0xBF;
+        poly->v3    = 0xBF;
+        poly->clut  = 0x3F80;
+        poly->u0    = 0;
+        poly->v0    = 0x80;
+        poly->u1    = 0x80;
+        poly->v1    = 0x80;
+        poly->u2    = 0;
+        poly->u3    = 0x80;
+        setlen(poly, 9);
+        setcode(poly, 0x2D);
+        addPrim(Gpu_CurrentOt - 5, poly);
+
+        poly        = (POLY_FT4*)D_80071190;
+        D_80071190  = (DR_TPAGE*)(poly + 1);
+        poly->x2    = 0x16;
+        poly->x0    = 0x16;
+        poly->x3    = 0x96;
+        poly->x1    = 0x96;
+        poly->y1    = -0x6B;
+        poly->y0    = -0x6B;
+        poly->y3    = -0x2C;
+        poly->y2    = -0x2C;
+        poly->b0    = 0x40;
+        poly->g0    = 0x40;
+        poly->r0    = 0x40;
+        poly->tpage = 0xC7;
+        poly->v0    = 0xC0;
+        poly->v1    = 0xC0;
+        poly->v2    = 0xFF;
+        poly->v3    = 0xFF;
+        poly->clut  = 0x3F40;
+        poly->u0    = 0;
+        poly->u1    = 0x80;
+        poly->u2    = 0;
+        poly->u3    = 0x80;
+        setlen(poly, 9);
+        setcode(poly, 0x2F);
+        addPrim(Gpu_CurrentOt - 5, poly);
+    }
+
+    b             = arg0->field_14;
+    arg0->field_D = 0;
+    if (b != 0) {
+        if (ds->field_10d == 0) {
+            if (ds->field_1d >= 0) {
+                ds->field_10d = b;
+            }
+        }
+        arg0->field_14 = 0;
+    }
+
+    slot = Game_GetPtrSlot(1);
+    if (slot != NULL) {
+        if (slot->spawnArg1 != Mc_SaveData.field_4) {
+            bad = 1;
+        }
+    }
+
+    if (bad == 0) {
+        DisplayState* d2;
+
+        d2 = &Display_State;
+        if (d2->field_1d < 0) {
+            goto after;
+        }
+        if (Gp_StateC08.field_A != 0) {
+            if (d2->field_12c == 0) {
+                goto after;
+            }
+        }
+        if (D_8010CA28 > 0) {
+            goto after;
+        }
+        if (Game_Session->field_13A != 0) {
+            goto after;
+        }
+        if (cfg->field_24 != 0) {
+            goto after;
+        }
+        if (D_801153F1 != 0) {
+            goto after;
+        }
+        if (d2->field_10d != 0) {
+            goto after;
+        }
+        if (Pad_CheckButtons(0, 1, 0x800) != 0) {
+            s32 hit;
+            s32 ok;
+
+            if (arg0->field_0 == 0) {
+                arg0->field_14 = 0x41;
+                arg0->field_D  = 0x20;
+                goto after;
+            }
+            hit  = 0;
+            work = Gp_ActorSlots[0];
+            if (work != NULL) {
+                GameActor*    actor;
+                WipSysConfig* p;
+                s32           mode;
+
+                actor = work->actor;
+                p     = &Wip_SysConfig;
+                if (actor->field_954 == 0) {
+                    mode = actor->field_956;
+                    if (mode == 0 || mode == 2) {
+                        if (Game_Session->field_13A == 0) {
+                            if (p->field_24 == 0) {
+                                hit = 1;
+                            }
+                        }
+                    }
+                }
+            }
+            if (hit != 0) {
+                if (D_8010CA28 > 0) {
+                    ok = 0;
+                    goto have;
+                }
+                if (D_801153F1 == 0) {
+                    ok = 1;
+                    goto have;
+                }
+            }
+            ok = 0;
+        have:
+            if (ok == 0) {
+                goto after;
+            }
+            if (Wip_SysConfig.field_23 == 0) {
+                goto after;
+            }
+            arg0->field_14 = 0x42;
+            arg0->field_D  = 0x10;
+            goto after;
+        }
+        if (Pad_CheckButtons(0, 1, 0x100) != 0) {
+            if (arg0->field_0 != 0) {
+                WipSysConfig* p;
+                s32           cond;
+
+                p = &Wip_SysConfig;
+                if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
+                    cond = 0;
+                } else {
+                    cond = p->field_26 == 4;
+                }
+                if (cond != 0) {
+                    goto after;
+                }
+                arg0->field_14 = 0x45;
+            } else {
+                arg0->field_14 = 0x43;
+            }
+            arg0->field_D = 0x20;
+        }
+    }
+
+after:
+    Gp_UpdateLinkXforms();
+    {
+        DisplayState* d3;
+
+        c08           = &Gp_StateC08;
+        d3            = &Display_State;
+        c08->field_3  = 0;
+        d3->field_12f = 1;
+        state         = arg0->field_0;
+        if (state != 1) {
+            goto other;
+        }
+        sub = arg0->field_4;
+        if (sub == 0) {
+            s32 k;
+
+            if (bad != 0) {
+                goto tail;
+            }
+            k             = *(u32*)&Game_Session->field_4;
+            k            &= 0xFFFF0000;
+            arg0->field_8 = 0;
+            if (k != 0x1140000) {
+                Display_InitModeObj(&D_8010CAB0, 0, (s32)arg0, 0x100);
+            } else {
+                arg0->field_4 = arg0->field_4 + 1;
+            }
+            Gp_StateC08.field_A = 0;
+            goto tail;
+        }
+        if (sub == state) {
+            f0            = &Gp_StateF0;
+            b             = f0->field_1;
+            d3->field_12f = 0;
+            if (b != 0) {
+                if (f0->field_4 == 0) {
+                    f0->field_1 = b - 1;
+                }
+                n = f0->field_1;
+                if (n != 2) {
+                    goto tail;
+                }
+                func_8010A1B0(1, 0xFF);
+                CdCmd_EnqueueLoadFile(0, 0, 4);
+                if (c08->field_A >= 2) {
+                    c08->field_3 = n;
+                }
+                c08->field_E = 0;
+                c08->field_A = 0;
+                D_80115768   = 0;
+                f0->field_4  = 0;
+                c08->field_7 = 0;
+                c08->field_8 = 0;
+                Gp_PulseState1C80();
+                Gp_ClearSlotNodeFlags();
+                if ((Game_Session->field_69 & 0x80) == 0) {
+                    goto inc1;
+                }
+                work = Game_GetPtrSlot(3);
+                func_80106350(work, Wip_SysConfig.field_21, 0);
+                if (Game_Session->field_69 & 0x40) {
+                    Gp_MsgPlayerWeapon(0);
+                }
+                arg0->field_4 = arg0->field_4 + 2;
+                goto tail;
+            } else {
+                GameSession* session;
+
+                if (kind != 0x1140000) {
+                    goto tail;
+                }
+                session = Game_Session;
+                if (session->field_126 == 0) {
+                    goto tail;
+                }
+                f0->field_0        = 0;
+                f0->field_6        = 0;
+                session->field_126 = 0;
+                if (c08->field_A >= 2) {
+                    c08->field_3 = 2;
+                }
+                c08->field_E  = 0;
+                c08->field_A  = 0;
+                D_80115768    = 0;
+                f0->field_4   = 0;
+                c08->field_9  = 0;
+                arg0->field_4 = 0;
+                arg0->field_0 = 0;
+                goto tail;
+            }
+        }
+        if (sub == 2) {
+            GpStateF0*   p;
+            GpActorWork* w;
+            s32          c;
+
+            p = &Gp_StateF0;
+            c = p->field_1;
+            if (c != 0) {
+                if (p->field_4 == 0) {
+                    p->field_1 = c - 1;
+                }
+            }
+            w = Game_GetPtrSlot(3);
+            if (w == NULL) {
+                goto inc1;
+            }
+            func_801088D4(w, 0, 2);
+            goto inc1;
+        }
+        if (sub == 3) {
+            s32           hit;
+            s32           flags;
+            s32           item;
+            WipSysConfig* p;
+            s32           cond;
+
+            GpStateF0*   p2;
+            GpActorWork* w;
+            s32          c;
+
+            w   = Game_GetPtrSlot(3);
+            hit = 0;
+            p2  = &Gp_StateF0;
+            c   = p2->field_1;
+            if (c != 0) {
+                if (p2->field_4 == 0) {
+                    p2->field_1 = c - 1;
+                }
+            }
+            if (w != NULL) {
+                if (w->actor->field_95E == 0x3E8) {
+                    hit = 1;
+                }
+            }
+            flags = Game_Session->field_69;
+            if ((flags & 0x80) == 0) {
+                if (w != NULL) {
+                    if (hit == 0) {
+                        goto tail;
+                    }
+                }
+                func_80108874();
+            } else {
+                if (flags & 0x40) {
+                    Gp_DispatchMsg((Task*)w, 0x3F1, 2, 0);
+                }
+            }
+            p    = &Wip_SysConfig;
+            item = p->field_21 + 0x7F;
+            Gp_FillRelated(item, 0);
+            Gp_FillRelated(item, 1);
+            if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
+                cond = 0;
+            } else {
+                cond = p->field_26 == 4;
+            }
+            if (cond != 0) {
+                if (Game_Session->field_126 != 0) {
+                    goto inc1;
+                }
+            }
+            arg0->field_D = 0x20;
+        inc1:
+            arg0->field_4 = arg0->field_4 + 1;
+            goto tail;
+        }
+        if (sub == 4 && bad == 0) {
+            WipSysConfig* p;
+            s32           cond;
+            DisplayState* d4;
+            GpStateC08*   q;
+
+            p = &Wip_SysConfig;
+            if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
+                cond = 0;
+            } else {
+                cond = p->field_26 == 4;
+            }
+            if (cond != 0) {
+                if (Game_Session->field_126 != 0) {
+                    goto zero;
+                }
+            }
+            d4 = &Display_State;
+            if (d4->field_12c != 0) {
+                d4->field_11e = 1;
+            zero:
+                arg0->field_4 = 0;
+                arg0->field_0 = 0;
+            } else {
+                Display_InitModeObj(&D_8010CABC, 0, (s32)arg0, 0);
+            }
+            q = &Gp_StateC08;
+            if (q->field_A >= 2) {
+                q->field_3 = 2;
+            }
+            q->field_E = 0;
+            q->field_A = 0;
+            D_80115768 = 0;
+            D_801153F4 = 0;
+            q->field_9 = 0;
+        }
+    }
+
+tail:
+    if (arg0->field_D < 0x11) {
+        if (Game_Session->field_68 == 0) {
+            func_800A57B0(arg0);
+            if (func_800B9D80(0x100000) != 0) {
+                if (Game_Session->field_65 == 0) {
+                    func_800A6480(arg0);
+                }
+            }
+        }
+    }
+    goto end;
+
+other: {
+    GpStateF0*  p;
+    GpStateC08* q;
+    s32         m;
+
+    if (Gp_StateF0.field_1 != 0) {
+        if (Gp_StateF0.field_4 == 0) {
+            Gp_StateF0.field_1 = Gp_StateF0.field_1 - 1;
+        }
+    }
+    p = &Gp_StateF0;
+    m = Gp_StateF0.field_0;
+    if (m == 1) {
+        arg0->field_4 = 0;
+        arg0->field_0 = m;
+        CdCmd_EnqueueLoadFile(0, 0, 4);
+        q = &Gp_StateC08;
+        if (q->field_A >= 2) {
+            q->field_3 = 2;
+        }
+        q->field_E    = 0;
+        q->field_A    = 0;
+        D_80115768    = 0;
+        p->field_4    = 0;
+        q->field_7    = 0;
+        q->field_8    = 0;
+        arg0->field_D = 0x20;
+    } else {
+        if (arg0->field_D < 0x11) {
+            if (Game_Session->field_68 == 0) {
+                func_800A57B0(arg0);
+                goto end;
+            }
+        }
+        arg0->field_D = 0x20;
+    }
+}
+
+end:
+    if (arg0->field_D <= 0) {
+        if (Game_Session->field_1 == 0) {
+            if (func_800B9D80(0x4000) != 0) {
+                GameSession* session;
+
+                session = Game_Session;
+                if (session->field_68 == 0) {
+                    if (session->field_65 == 0) {
+                        Gp_HudTrackSlot0(&arg0->field_1C);
+                    }
+                }
+            }
+            func_800A2F60(arg0);
+            Gp_StateC08.field_6 &= 0xFE;
+            if (D_8010CA28 > 0) {
+                D_8010CA28 = D_8010CA28 - 1;
+            }
+        }
+    }
+    if (Display_State.field_10d == 0x43) {
+        Gp_PulseState1C80();
+    }
+}
 
 void func_800A45F0(s32 arg0)
 {

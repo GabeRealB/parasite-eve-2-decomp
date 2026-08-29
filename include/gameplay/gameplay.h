@@ -157,12 +157,21 @@ extern s32        D_80114BEC; // splat overlay of Gp_HpMpWork.field_4
 /// called with that pointer + 0xC; it writes `field_16 = -1` and clears
 /// `field_18`.
 typedef struct _GpIdMapC {
-    /* 0x00 */ byte pad_0[0x16];
-    /* 0x16 */ s8   field_16;
-    /* 0x17 */ byte pad_17;
-    /* 0x18 */ s16  field_18;
+    /* 0x00 */ s32        field_0;
+    /* 0x04 */ s32        field_4;
+    /* 0x08 */ s32        field_8;
+    /* 0x0C */ byte       pad_C;
+    /* 0x0D */ s8         field_D;
+    /* 0x0E */ byte       pad_E[6];
+    /* 0x14 */ u8         field_14;
+    /* 0x15 */ byte       pad_15;
+    /* 0x16 */ s8         field_16;
+    /* 0x17 */ byte       pad_17;
+    /* 0x18 */ s16        field_18;
+    /* 0x1A */ byte       pad_1A[2];
+    /* 0x1C */ GpHudTrack field_1C;
 } GpIdMapC;
-STATIC_ASSERT_SIZEOF(GpIdMapC, 0x1A);
+STATIC_ASSERT_SIZEOF(GpIdMapC, 0x24);
 
 /// 8-byte dispatch record selected by `func_800A1634` as
 /// `(GpRec8*)D_80113D38 + idx * 3 + ret`. `field_0` is the switch key
@@ -199,7 +208,6 @@ typedef struct _GpIdMap30 {
     /* 0x04 */ s32      field_4;
     /* 0x08 */ s32      field_8;
     /* 0x0C */ GpIdMapC extra;
-    /* 0x26 */ byte     pad_26[0xA];
 } GpIdMap30;
 STATIC_ASSERT_SIZEOF(GpIdMap30, 0x30);
 
