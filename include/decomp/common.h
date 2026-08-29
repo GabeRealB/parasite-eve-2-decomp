@@ -29,4 +29,53 @@
 #define STATIC_ASSERT_SIZEOF(type, size) \
     typedef char static_assertion_sizeof_##type[(sizeof(type) == (size)) ? 1 : -1]
 
+/*
+ * Matching helpers: empty GNU C statement-asm that emit no MIPS.
+ *
+ * VOLATILE variants are scheduling fences (delay slots, insn motion).
+ * SOFT_ variants apply the same constraint without volatile; GCC 2.8.1
+ * -fschedule-insns may still move surrounding instructions. That
+ * distinction is a matching difference (see func_800D8684).
+ *
+ * Expansions are plain statement-asm. Do not wrap them in do/while or
+ * extra braces: that changes stack and scheduling. GCC 2.8.1 has no
+ * variadic macros; use the numbered forms for multiple operands.
+ *
+ * register T x asm("v0") is a different tool (function-wide hard pin).
+ * Instruction-emitting asm (lui/lo, sll, move) stays written out.
+ */
+#define SCHED_BARRIER() __asm__ volatile("")
+#define SOFT_BARRIER()  __asm__("")
+
+#define COMPILER_BARRIER()      __asm__ volatile("" ::: "memory")
+#define SOFT_COMPILER_BARRIER() __asm__("" ::: "memory")
+
+#define TOUCH_REG(x)                  __asm__ volatile("" : "+r"(x))
+#define TOUCH_REG2(a, b)              __asm__ volatile("" : "+r"(a), "+r"(b))
+#define TOUCH_REG3(a, b, c)           __asm__ volatile("" : "+r"(a), "+r"(b), "+r"(c))
+#define TOUCH_REG4(a, b, c, d)        __asm__ volatile("" : "+r"(a), "+r"(b), "+r"(c), "+r"(d))
+#define TOUCH_REG5(a, b, c, d, e)     __asm__ volatile("" : "+r"(a), "+r"(b), "+r"(c), "+r"(d), "+r"(e))
+#define TOUCH_REG_MEM(x)              __asm__ volatile("" : "+r"(x) :: "memory")
+#define TOUCH_REG2_MEM(a, b)          __asm__ volatile("" : "+r"(a), "+r"(b) :: "memory")
+
+#define SOFT_TOUCH_REG(x)             __asm__("" : "+r"(x))
+#define SOFT_TOUCH_REG2(a, b)         __asm__("" : "+r"(a), "+r"(b))
+#define SOFT_TOUCH_REG3(a, b, c)      __asm__("" : "+r"(a), "+r"(b), "+r"(c))
+#define SOFT_TOUCH_REG4(a, b, c, d)   __asm__("" : "+r"(a), "+r"(b), "+r"(c), "+r"(d))
+#define SOFT_TOUCH_REG5(a, b, c, d, e) \
+    __asm__("" : "+r"(a), "+r"(b), "+r"(c), "+r"(d), "+r"(e))
+
+#define USE_REG(x)              __asm__ volatile("" :: "r"(x))
+#define USE_REG2(a, b)          __asm__ volatile("" :: "r"(a), "r"(b))
+#define USE_REG3(a, b, c)       __asm__ volatile("" :: "r"(a), "r"(b), "r"(c))
+#define USE_REG4(a, b, c, d)    __asm__ volatile("" :: "r"(a), "r"(b), "r"(c), "r"(d))
+#define USE_REG5(a, b, c, d, e) __asm__ volatile("" :: "r"(a), "r"(b), "r"(c), "r"(d), "r"(e))
+
+#define CLOBBER_REG(reg) __asm__ volatile("" ::: #reg)
+
+#define TOUCH_MEM(x) __asm__("" : : "m"(x))
+
+#define MOVE_ZERO(x)       __asm__ volatile("" : "=r"(x) : "0"(0))
+#define COPY_REG(dst, src) __asm__ volatile("" : "=r"(dst) : "r"(src))
+
 #endif // COMMON_H

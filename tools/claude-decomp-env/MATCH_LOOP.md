@@ -29,6 +29,10 @@ A 93% score with `branch`/`insert`/`delete` still non-zero is a **control-flow**
 - If the seed already has pins, **unpin and rescore** as its own `base_N.c`. Unpinning is often the 100% move.
 - Never treat a pinned ≥90% as the best seed. Leave an unpinned `base_N.c` in the scratch dir.
 
+## Empty asm
+
+Prefer the named helpers in `include/decomp/common.h` over raw empty `asm` / `asm volatile`. `TOUCH_REG(x)` is `"+r"` (blocks CSE / copy-prop). `USE_REG(x)` is input-only (keeps live). `SCHED_BARRIER()` vs `SOFT_BARRIER()` is volatile vs not — that is a matching difference. Do not wrap them in `do { } while (0)` or extra braces. Instruction-emitting `lui`/`lo`/`sll` stays written out. `register T x asm("v0")` is still a pin, not these macros.
+
 ## Permuter
 
 Only if best ≥ 95% **and** leftovers are `regs` / `reorder` / `stack` (`branch`=`insert`=`delete`=0). From the project root, **before** pins:
