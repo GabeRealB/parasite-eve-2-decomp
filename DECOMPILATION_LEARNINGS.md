@@ -30929,3 +30929,91 @@ subu  s1, s1, v1
 This is not cosmetic: the extra reference changes the pseudo's priority in
 `local-alloc`, which in this function swapped `$s1`/`$s2` between the
 `&Wip_SysConfig` pointer and the coordinate and moved a dozen instructions.
+
+## `addPrim` beats hand-rolled OT tag masking
+
+Writing the OT insert by hand,
+
+```c
+poly[0].tag = (poly[0].tag & maskHi) | (*ot & mask);
+*ot = (*ot & maskHi) | ((u32)&poly[0] & mask);
+```
+
+leaves `mask` (`0xFFFFFF`) *and* `maskHi` (`0xFF000000`) as separate loop
+invariants. LICM hoists both, they compete for the same callee-saved registers
+as the strength-reduced givs, and the extra live value costs a spill slot
+(frame `0x40` instead of `0x38`).
+
+psyq's `addPrim(ot, p)` expands to `setaddr(p, getaddr(ot)), setaddr(ot, p)`,
+i.e. two `P_TAG.addr` (`unsigned addr:24`) bitfield accesses. GCC materialises
+the same `and`/`and`/`or`/`sw` pair, re-evaluates the OT-slot expression once
+per `setaddr` (four times for two `addPrim`s — exactly what the target does),
+and only `0xFFFFFF` survives as a hoisted invariant; `0xFF000000` is
+rematerialised inside the loop. `func_8009C414` went from 91% to 98% on this
+change alone. `src/gameplay/3FB8_7E28.c` shows the idiomatic call:
+
+```c
+addPrim((u_long*)(((((u32)ws->field_28 << Display_State.field_128) >> 2) & 0xFFC)
+                  + (s32)ws->field_14), &poly[0]);
+```
+
+## A lone `p = base + const` is never strength-reduced
+
+Strength reduction accepts a `DEST_REG` giv only when
+`benefit - copy_cost - add_cost > 0`, and a plain `(plus (reg biv) (const_int))`
+scores `benefit = 2` against `add_cost = 2`. One such assignment therefore stays
+an in-loop `addiu`; the target's hoisted `addiu s2, t3, 0x28` /
+`addiu s2, s2, 0x68` walker needs **two** giv records with the same offset so
+`combine_givs` can sum their benefits, and the *later* record (the group leader)
+must be `replaceable` with `lifetime >= 2`:
+
+- two records = two textual `&poly[0].rN` computations that CSE cannot unify,
+  so they must sit in different CSE paths (a join label resets the table);
+- `replaceable` needs the set and its last use in the same basic block;
+- `lifetime >= 2` means at least one insn between the set and the use — an
+  assignment immediately followed by its use is rejected (`2 * 1 * threshold`
+  came out at `248` against `insn_count 443`).
+
+Watch these decisions directly with the loop dump:
+
+```sh
+cc1 <normal flags> -dL -o out.s in.i   # in.i.loop
+```
+
+It prints `giv reg N ... benefit B used U lifetime L replaceable`,
+`giv at X combined with giv at Y` and `giv of insn X not worth while, A vs B`.
+`-dg` similarly prints `;; N regs to allocate: <priority order>`, the conflict
+graph and the final `Register dispositions`, which is how the remaining
+register-naming differences in `func_8009C414` were tracked down.
+
+## Reference count nudges from `__asm__ volatile("" : "+r"(v))`
+
+The empty-template constraint emits no instruction but counts as a set *and* a
+use of `v`. That does three useful things:
+
+- it stops CSE folding `v` into a `(mem (plus base const))`, keeping
+  `lh v0, 2(t0)` instead of the base-relative `lh v0, -0x6(t2)`;
+- it raises `v`'s `REG_N_REFS`, which is the numerator of `global-alloc`'s
+  priority, so a pointer can be pulled ahead of a rival for the lower-numbered
+  hard register;
+- it pins the value into a register across a following volatile asm.
+
+In `func_8009C414` one barrier on `poly` and one on `dest` (just before the
+`*dest = x` store) were what finally lined up `t0/t1/t3/t7` and `a1/a3` with
+the target. `func_8009AF90` / `func_8009AA5C` already use the same idiom.
+
+## Re-read a field instead of caching it when a "memory" clobber sits between
+
+`gte_stcv` clobbers memory, so four consecutive
+`gte_lddp(ws->field_80->field_2C)` blocks each need their own load. Written
+inline the four loads become four *different* pseudos (`$a0`, `$s5`, `$s6`,
+`$s3` in the target); assigning them all to one `dp` local collapses them into
+a single register and loses the `move v0, s5` copies the target has.
+
+## Store the constant in both arms rather than joining through a temp
+
+`tp = 0x137 / 0x139; poly[0].tpage = tp;` puts the `sh` at the head of the join
+block, where the scheduler is free to slot the next `li` in front of it.
+Assigning `poly[0].tpage` inside each arm lets cross-jumping merge the two
+stores into the join, so the block starts with `sh` and the following
+`li v1, 0xc` lands after it — the target's order.

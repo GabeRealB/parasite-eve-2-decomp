@@ -2655,7 +2655,311 @@ u32* func_8009C024(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
     return arg2;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_8009C414);
+u32* func_8009C414(TmdScratchModelBlock* ws, s32 arg1, u32* arg2)
+{
+    POLY_GT4* poly;
+    s32*      opz;
+    s32*      flg;
+    u16*      rec;
+    u8*       verts;
+    u8*       norms;
+    CVECTOR   col;
+    SVECTOR*  sv;
+    DVECTOR*  sxy;
+    DVECTOR*  sxy3;
+    u8*       rgb3;
+    u8*       dest;
+    u8*       uv;
+    u8*       rgb;
+    u8*       codep;
+    s32       flag;
+    s32       anyflag;
+    s32       x;
+    s32       i;
+    s32       len;
+
+    poly = (POLY_GT4*)ws->field_0;
+    __asm__ volatile("" : "+r"(poly));
+    col = Gp_ColorGrey;
+    if (ws->field_1C-- > 0) {
+        flg = &ws->field_24;
+        opz = &ws->field_28;
+        do {
+            rec   = (u16*)arg2;
+            verts = (u8*)ws->field_8;
+            gte_ldv3(verts + (rec[0] & 0xFFF8), verts + (rec[1] & 0xFFF8), verts + (rec[2] & 0xFFF8));
+            gte_rtpt_real();
+            gte_stflg(flg);
+            if ((ws->field_24 & 0x80000000) == 0) {
+                gte_nclip_real();
+                gte_stopz(opz);
+                gte_stsxy3_gt4(&poly[0]);
+                gte_stsxy3_gt4(&poly[1]);
+                gte_ldv0((u8*)ws->field_8 + (rec[3] & 0xFFF8));
+                gte_rtps_real();
+                gte_stflg(flg);
+                if ((ws->field_24 & 0x80000000) == 0) {
+                    gte_nclip_real();
+                    gte_stsxy2(&poly[0].x3);
+                    gte_stsxy2(&poly[1].x3);
+                    if (ws->field_28 <= 0) {
+                        *(u_long*)&poly[0].x0 = *(u_long*)&poly[0].x1;
+                        *(u_long*)&poly[1].x0 = *(u_long*)&poly[1].x1;
+                        gte_stopz(opz);
+                        if (ws->field_28 >= 0) {
+                            goto skip;
+                        }
+                    } else {
+                        gte_stopz(opz);
+                        if (ws->field_28 >= 0) {
+                            *(u_long*)&poly[0].x3 = *(u_long*)&poly[0].x2;
+                            *(u_long*)&poly[1].x3 = *(u_long*)&poly[1].x2;
+                        }
+                    }
+                    gte_avsz4_real();
+                    norms = (u8*)ws->field_C;
+                    gte_ldv3(norms + (rec[4] & 0xFFF8), norms + (rec[5] & 0xFFF8), norms + (rec[6] & 0xFFF8));
+                    gte_ldrgb(&D_80114BA4);
+                    gte_ncct_real();
+                    gte_strgb3_gt4(&poly[0]);
+                    gte_ldrgb(&D_80114BA8);
+                    gte_ncct_real();
+                    gte_strgb3_gt4(&poly[1]);
+
+                    /* vertex 0 */
+                    gte_rtv0_real();
+                    gte_stsv(&ws->field_74);
+                    anyflag = 0;
+                    sxy     = (DVECTOR*)&poly[0].x0;
+                    dest    = &poly[0].u0;
+                    flag    = 0;
+                    sv      = (SVECTOR*)&ws->field_74;
+                    gte_lddp(ws->field_80->field_2C >> 9);
+                    gte_ldsv(sv);
+                    gte_gpf12_real();
+                    gte_stsv(sv);
+                    x  = poly[0].x0 + 0xA0;
+                    x -= (s16)ws->field_74;
+                    if (x < 0) {
+                        x = 0;
+                    } else if (x >= 0x100) {
+                        x   -= 0x80;
+                        flag = 1;
+                        if (x >= 0xC0) {
+                            x = 0xBF;
+                        }
+                    }
+                    __asm__ volatile("" : "+r"(sxy));
+                    __asm__ volatile("" : "+r"(dest));
+                    *dest = x;
+                    dest++;
+                    x  = sxy->vy + 0x78;
+                    x -= sv->vy;
+                    if (x < 0) {
+                        x = 0;
+                    } else if (x >= 0xF0) {
+                        x = 0xEF;
+                    }
+                    *dest    = x;
+                    dest[-6] = flag;
+                    anyflag |= flag;
+
+                    /* vertex 1 */
+                    gte_rtv1_real();
+                    gte_stsv(&ws->field_74);
+                    sxy  = (DVECTOR*)&poly[0].x1;
+                    dest = &poly[0].u1;
+                    flag = 0;
+                    sv   = (SVECTOR*)&ws->field_74;
+                    gte_lddp(ws->field_80->field_2C >> 9);
+                    gte_ldsv(sv);
+                    gte_gpf12_real();
+                    gte_stsv(sv);
+                    x  = poly[0].x1 + 0xA0;
+                    x -= (s16)ws->field_74;
+                    if (x < 0) {
+                        x = 0;
+                    } else if (x >= 0x100) {
+                        x   -= 0x80;
+                        flag = 1;
+                        if (x >= 0xC0) {
+                            x = 0xBF;
+                        }
+                    }
+                    __asm__ volatile("" : "+r"(sxy));
+                    __asm__ volatile("" : "+r"(dest));
+                    *dest = x;
+                    dest++;
+                    x  = sxy->vy + 0x78;
+                    x -= sv->vy;
+                    if (x < 0) {
+                        x = 0;
+                    } else if (x >= 0xF0) {
+                        x = 0xEF;
+                    }
+                    *dest    = x;
+                    dest[-6] = flag;
+                    anyflag |= flag;
+
+                    /* vertex 2 */
+                    gte_rtv2_real();
+                    gte_stsv(&ws->field_74);
+                    sxy  = (DVECTOR*)&poly[0].x2;
+                    dest = &poly[0].u2;
+                    flag = 0;
+                    sv   = (SVECTOR*)&ws->field_74;
+                    gte_lddp(ws->field_80->field_2C >> 9);
+                    gte_ldsv(sv);
+                    gte_gpf12_real();
+                    gte_stsv(sv);
+                    x  = poly[0].x2 + 0xA0;
+                    x -= (s16)ws->field_74;
+                    if (x < 0) {
+                        x = 0;
+                    } else if (x >= 0x100) {
+                        x   -= 0x80;
+                        flag = 1;
+                        if (x >= 0xC0) {
+                            x = 0xBF;
+                        }
+                    }
+                    __asm__ volatile("" : "+r"(sxy));
+                    __asm__ volatile("" : "+r"(dest));
+                    *dest = x;
+                    dest++;
+                    x  = sxy->vy + 0x78;
+                    x -= sv->vy;
+                    if (x < 0) {
+                        x = 0;
+                    } else if (x >= 0xF0) {
+                        x = 0xEF;
+                    }
+                    *dest    = x;
+                    dest[-6] = flag;
+                    anyflag |= flag;
+
+                    /* vertex 3 */
+                    sxy3 = (DVECTOR*)&poly[0].x3;
+                    gte_ldv0((u8*)ws->field_C + (rec[7] & 0xFFF8));
+                    gte_ldrgb(&D_80114BA4);
+                    gte_nccs_real();
+                    gte_strgb(&poly[0].r3);
+                    gte_ldrgb(&D_80114BA8);
+                    gte_nccs_real();
+                    gte_strgb(&poly[1].r3);
+                    gte_rtv0_real();
+                    gte_stsv(&ws->field_74);
+                    sxy  = sxy3;
+                    dest = &poly[0].u3;
+                    flag = 0;
+                    sv   = (SVECTOR*)&ws->field_74;
+                    gte_lddp(ws->field_80->field_2C >> 9);
+                    gte_ldsv(sv);
+                    gte_gpf12_real();
+                    gte_stsv(sv);
+                    x  = poly[0].x3 + 0xA0;
+                    x -= (s16)ws->field_74;
+                    if (x < 0) {
+                        x = 0;
+                    } else if (x >= 0x100) {
+                        x   -= 0x80;
+                        flag = 1;
+                        if (x >= 0xC0) {
+                            x = 0xBF;
+                        }
+                    }
+                    __asm__ volatile("" : "+r"(sxy));
+                    __asm__ volatile("" : "+r"(dest));
+                    *dest = x;
+                    dest++;
+                    x  = sxy->vy + 0x78;
+                    x -= sv->vy;
+                    if (x < 0) {
+                        x = 0;
+                    } else if (x >= 0xF0) {
+                        x = 0xEF;
+                    }
+                    *dest    = x;
+                    dest[-6] = flag;
+
+                    anyflag |= flag;
+                    if (ws->field_80->field_2C < 0x1000) {
+                        gte_lddp(ws->field_80->field_2C);
+                        rgb = &poly[0].r0;
+                        gte_ldcv(rgb);
+                        gte_gpf12_real();
+                        gte_lddp(0x1000 - ws->field_80->field_2C);
+                        gte_ldcv(&col);
+                        gte_gpl12_real();
+                        gte_stcv(rgb);
+
+                        gte_lddp(ws->field_80->field_2C);
+                        rgb = &poly[0].r1;
+                        gte_ldcv(rgb);
+                        gte_gpf12_real();
+                        gte_lddp(0x1000 - ws->field_80->field_2C);
+                        gte_ldcv(&col);
+                        gte_gpl12_real();
+                        gte_stcv(rgb);
+
+                        gte_lddp(ws->field_80->field_2C);
+                        rgb = &poly[0].r2;
+                        gte_ldcv(rgb);
+                        gte_gpf12_real();
+                        gte_lddp(0x1000 - ws->field_80->field_2C);
+                        gte_ldcv(&col);
+                        gte_gpl12_real();
+                        gte_stcv(rgb);
+
+                        gte_lddp(ws->field_80->field_2C);
+                        rgb3 = &poly[0].r3;
+                        gte_ldcv(rgb3);
+                        gte_gpf12_real();
+                        gte_lddp(0x1000 - ws->field_80->field_2C);
+                        gte_ldcv(&col);
+                        gte_gpl12_real();
+                        gte_stcv(rgb3);
+                    }
+
+                    codep = &poly[0].code;
+                    if (anyflag == 0) {
+                        poly[0].tpage = 0x137;
+                    } else {
+                        i  = 0;
+                        uv = &poly[0].u0;
+                        do {
+                            if (*codep == 0) {
+                                if ((s8)*uv < 0) {
+                                    *uv = *uv + 0x80;
+                                } else {
+                                    *uv = 0;
+                                }
+                            }
+                            uv    += 0xC;
+                            i     += 1;
+                            codep += 0xC;
+                        } while (i < 4);
+                        poly[0].tpage = 0x139;
+                    }
+
+                    len = 0xC;
+                    setlen(&poly[0], len);
+                    setcode(&poly[0], 0x3E);
+                    setlen(&poly[1], len);
+                    setcode(&poly[1], 0x3C);
+                    gte_stotz(opz);
+                    addPrim((u_long*)(((((u32)ws->field_28 << Display_State.field_128) >> 2) & 0xFFC) + (s32)ws->field_14), &poly[0]);
+                    addPrim((u_long*)(((((u32)ws->field_28 << Display_State.field_128) >> 2) & 0xFFC) + (s32)ws->field_14), &poly[1]);
+                }
+            }
+        skip:
+            poly += 2;
+            arg2 += ws->field_18;
+        } while (ws->field_1C-- > 0);
+    }
+    ws->field_0 = (u8*)poly;
+    return arg2;
+}
 
 u32* func_8009CED0(TmdScratchModelBlock* arg0, s32 arg1, u32* arg2)
 {
