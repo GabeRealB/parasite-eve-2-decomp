@@ -71,6 +71,8 @@ Environment:
                            (default 2). Stops the same claimed function from
                            being retried forever after a rejected port.
   VACUUM_MERGE_WAIT        Seconds to wait for the merge lock (default 3600)
+  VACUUM_GROK_EFFORT       Grok --effort for match/port (default: xhigh)
+  GROK_MATCH_EFFORT        Same, used by tools/claude when launching grok
 
 Give-up seeds are stored under tools/giveups/<func>/ (gitignored).
 Orchestrator sessions log to tools/vacuum-<cli>-<pid>.log and flock-append
@@ -184,22 +186,44 @@ count_attempts() {
   echo $((n + 1))
 }
 
+MATCH_LOOP_MD="$ROOT/tools/claude-decomp-env/MATCH_LOOP.md"
+
+# Substitute $functionName in MATCH_LOOP.md. Empty func leaves the placeholder.
+match_loop_text() {
+  local func=${1:-}
+  if [[ -f "$MATCH_LOOP_MD" ]]; then
+    sed "s/\\\$functionName/${func}/g" "$MATCH_LOOP_MD"
+  else
+    echo "ERROR: missing $MATCH_LOOP_MD" >&2
+  fi
+}
+
 run_agent() {
   local prompt=$1
   local cwd=${2:-$PWD}
   local extra=()
+  local grok_rules=""
   if [[ -n "${AGENT_MAX_TURNS:-}" ]]; then
     extra+=(--max-turns "$AGENT_MAX_TURNS")
+  fi
+  if [[ -n "${AGENT_FUNC:-}" ]]; then
+    grok_rules=$(match_loop_text "$AGENT_FUNC")
+  elif [[ -f "$MATCH_LOOP_MD" ]]; then
+    grok_rules=$(match_loop_text)
   fi
   (
     cd "$cwd" || exit 1
     # Grok's tool subprocesses often get a clean PATH without the caller's
     # venv, so ninja_config.py dies on splat/spimdisasm and the agent then
     # "verifies" against leftover build/USA/out binaries.
-    if [[ -f venv/bin/activate ]]; then
+    if [[ -d venv/bin ]]; then
+      export VIRTUAL_ENV="$PWD/venv"
+      export PATH="$PWD/venv/bin:$PATH"
       # shellcheck disable=SC1091
       source venv/bin/activate
-    elif [[ -f .venv/bin/activate ]]; then
+    elif [[ -d .venv/bin ]]; then
+      export VIRTUAL_ENV="$PWD/.venv"
+      export PATH="$PWD/.venv/bin:$PATH"
       # shellcheck disable=SC1091
       source .venv/bin/activate
     fi
@@ -217,7 +241,14 @@ run_agent() {
         fi
         ;;
       grok)
-        grok --always-approve --effort high --cwd "$cwd" "${extra[@]}" -p "$prompt"
+        # grok -p cwd is the worktree/repo root, so scratch CLAUDE.md is not
+        # auto-loaded. --rules injects MATCH_LOOP.md into the system prompt.
+        # xhigh (override with VACUUM_GROK_EFFORT) is closer to claude ultrathink.
+        extra+=(--effort "${VACUUM_GROK_EFFORT:-xhigh}" --cwd "$cwd")
+        if [[ -n "$grok_rules" ]]; then
+          extra+=(--rules "$grok_rules")
+        fi
+        grok --always-approve "${extra[@]}" -p "$prompt"
         ;;
     esac
   )
@@ -225,30 +256,10 @@ run_agent() {
 
 # Shared with non-orch and orch match prompts. Claude also gets this via scratch
 # CLAUDE.md; grok -p does not auto-read that file, so the vacuum prompt must
-# carry the leftover → dump mapping or it only stares at asm-differ.
+# carry MATCH_LOOP.md or it only stares at asm-differ.
 dump_loop_instructions() {
-  cat <<'EOF'
-Iterate `base_N.c` until 100%. Read `./build.sh`'s **Penalties:** line. At ≥90% it auto-runs `./dump.sh` and prints a `.lreg`/`.greg`/`.dbr` summary plus a dump-delta vs the previous `base_N`. **Open the dump file that matches the leftover** (the summary is not enough). Do not plan the next edit from the asm-differ alone.
-
-- `insert` / `delete` / `branch` → control flow still wrong. Fix C shape. Read `.jump` / `.jump2`.
-- `regs` → read `.lreg` / `.greg`. Shorten the loser's live range, **split a reused local**, or **unpin**. Do not add `register … asm("")` yet.
-- `reorder` → `.sched` / `.sched2` / `.dbr`. Statement order and delay slots.
-- `stack` → extra locals / frame; split or shrink locals.
-
-Dump files sit next to the `.i` (`base_N.i.lreg`, …). You can also run `./dump.sh base_N.c` by hand. Leftover → file:
-
-| leftover | file |
-|---|---|
-| wrong `$sN` / swapped regs | `.lreg` `.greg` |
-| fused const, `lb` vs `lh`, dropped `andi` | `.cse` `.cse2` `.combine` |
-| loop IV / one walking pointer | `.loop` then `.cse2` |
-| insn order, load-delay `nop` | `.sched` `.sched2` |
-| empty delay slot after `jal`/`beq` | `.dbr` |
-| merged tails, extra `j` | `.jump` `.jump2` |
-| dead store / `REG_DEAD` | `.flow` |
-
-The kept `.s` comments like `# 31 movsi_internal2/5` are RTL insn uids. Diff the dump that changed between attempts. If the `.s` matches and the `.o` does not, the bug is maspsx (`--expand-div`), not GCC. Pins are last resort: function-scope `register T x asm("s4")` reserves that hard register for the **whole function**. Unpinning is often the 100% move.
-EOF
+  local func=${1:-${AGENT_FUNC:-}}
+  match_loop_text "$func"
 }
 
 build_prompt() {
@@ -262,8 +273,8 @@ Do NOT run ./tools/claude or recreate the scratch directory.
 Read \`$scratch/BRIEF.md\` (also pasted below), then:
 
 1. cd into \`$scratch\` and make \`base.c\` compile with **minimal** edits (\`./build.sh base.c\`). If this was a give-up retry, \`base.c\` is the archived seed — do not restart from m2c or rewrite from the asm before the first score.
-2. $(dump_loop_instructions)
-3. If the best score is ≥ 95% and leftover diffs are registers / scheduling / stack, run the permuter from the repo root **before** adding register pins:
+2. $(dump_loop_instructions "$func")
+3. If the best score is ≥ 95% and leftover diffs are registers / scheduling / stack (\`branch\`=\`insert\`=\`delete\`=0), run the permuter from the repo root **before** adding register pins:
    \`./permute.sh --run --timeout 360 -j4 $func <asm path from BRIEF> $scratch/base_N.c\`
 4. On 100%: replace INCLUDE_ASM in the host C file, fix headers in this overlay's include/ tree, run \`./tools/build-and-verify.sh\`, commit \`matched $func <attempts>\`.
 5. On stall: append \`tools/difficult_functions\` as \`$func <attempts> <best%>\`, revert host C, do not leave INCLUDE_ASM replaced.
@@ -329,7 +340,7 @@ try_permuter_poststep() {
     return 1
   fi
   echo "Permuter hit score 0 ($winner); launching a port follow-up..." | tee -a "$LOG_FILE"
-  AGENT_MAX_TURNS=40 run_agent "$(build_permute_prompt "$func" "$scratch" "$seed" "$winner")" "$repo" | tee -a "$LOG_FILE"
+  AGENT_FUNC="$func" AGENT_MAX_TURNS=40 run_agent "$(build_permute_prompt "$func" "$scratch" "$seed" "$winner")" "$repo" | tee -a "$LOG_FILE"
   return 0
 }
 
@@ -509,8 +520,8 @@ $(stale_build_warning "$wt")
 Read \`$scratch/BRIEF.md\` (also pasted below), then:
 
 1. cd into \`$scratch\` and make \`base.c\` compile with minimal edits (\`./build.sh base.c\`). If this was a give-up retry, \`base.c\` is the archived seed — do not restart from m2c or rewrite from the asm before the first score.
-2. $(dump_loop_instructions)
-3. If the best score is ≥ 95% and leftover diffs are registers / scheduling / stack, run the permuter from the worktree root **before** adding register pins:
+2. $(dump_loop_instructions "$func")
+3. If the best score is ≥ 95% and leftover diffs are registers / scheduling / stack (\`branch\`=\`insert\`=\`delete\`=0), run the permuter from the worktree root **before** adding register pins:
    \`./permute.sh --run --timeout 360 -j4 $func <asm path from BRIEF> $scratch/base_N.c\`
 4. On 100%: replace INCLUDE_ASM in the worktree host C file, fix headers in this overlay's include/ tree, run \`./tools/build-and-verify.sh\` **in the worktree**, commit \`matched $func <attempts>\` **on this worktree branch only**.
 5. On stall: revert host C in the worktree, do not leave INCLUDE_ASM replaced, leave the scratch (best unpinned \`base_N.c\` included).
@@ -943,7 +954,7 @@ vacuum_orch_loop() {
         continue
       fi
 
-      output=$(run_agent "$(build_orch_match_prompt "$func" "$scratch" "$scratch/BRIEF.md" "$wt")" "$wt" 2>&1 | tee -a "$LOG_FILE")
+      output=$(AGENT_FUNC="$func" run_agent "$(build_orch_match_prompt "$func" "$scratch" "$scratch/BRIEF.md" "$wt")" "$wt" 2>&1 | tee -a "$LOG_FILE")
       exit_code=${PIPESTATUS[0]}
       echo "$output"
 
@@ -1031,7 +1042,7 @@ vacuum_orch_loop() {
     if [[ $did_fast -eq 0 ]]; then
       if [[ "$status" == "matched" ]]; then
         echo "Starting port agent for $func ($status)..." | tee -a "$LOG_FILE"
-        AGENT_MAX_TURNS="${VACUUM_PORT_MAX_TURNS:-80}" run_agent \
+        AGENT_FUNC="$func" AGENT_MAX_TURNS="${VACUUM_PORT_MAX_TURNS:-80}" run_agent \
           "$(build_port_prompt "$func" "$status" "$wt" "$scratch" "$attempts" "$score" "$hint")" \
           "$ROOT" | tee -a "$LOG_FILE"
         if include_asm_present "$func" "$ROOT"; then
@@ -1194,7 +1205,7 @@ while true; do
     continue
   fi
 
-  output=$(run_agent "$prompt" 2>&1 | tee -a "$LOG_FILE")
+  output=$(AGENT_FUNC="$simplest_func" run_agent "$prompt" 2>&1 | tee -a "$LOG_FILE")
   exit_code=${PIPESTATUS[0]}
   echo "$output"
 

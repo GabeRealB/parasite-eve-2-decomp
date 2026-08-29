@@ -216,7 +216,9 @@ if [[ -n "$ID" ]]; then
         elif command -v "$CLI" &>/dev/null; then
             cd "$TARGET_DIR"
             if [[ "$CLI" == grok ]]; then
-                grok --always-approve --effort high "Match ${FUNC_STEM}. Scratch env is already created (do not re-run tools/claude). Read BRIEF.md."
+                grok --always-approve --effort "${GROK_MATCH_EFFORT:-xhigh}" \
+                    --rules "$(sed "s/\\\$functionName/${FUNC_STEM}/g" "${CLAUDE_DIR}/MATCH_LOOP.md")" \
+                    "Match ${FUNC_STEM}. Scratch env is already created (do not re-run tools/claude). Read BRIEF.md."
             else
                 $CLI --dangerously-skip-permissions "decompile ${FUNC_STEM}. the appropriate claude environment has already been created (do not re-run tools/claude --bootstrap). use ultrathink"
             fi
@@ -313,8 +315,15 @@ cat "${CLAUDE_DIR}/prelude.inc" "${CLAUDE_DIR}/../../include/macro.inc" "$ASM_PA
 mips-linux-gnu-as -EL -march=r3000 -mtune=r3000 -Iinclude -o "$created_dir/target.o" "$created_dir/target.s"
 
 ln -sfn "${CLAUDE_DIR}/"* "$created_dir/"
-rm -f "$created_dir/CLAUDE.md"
-sed "s/\\\$functionName/${FUNC_STEM}/g" "${CLAUDE_DIR}/CLAUDE.md" >"$created_dir/CLAUDE.md"
+rm -f "$created_dir/CLAUDE.md" "$created_dir/AGENTS.md"
+{
+    sed "s/\\\$functionName/${FUNC_STEM}/g" "${CLAUDE_DIR}/CLAUDE.md"
+    echo
+    sed "s/\\\$functionName/${FUNC_STEM}/g" "${CLAUDE_DIR}/MATCH_LOOP.md"
+} >"$created_dir/CLAUDE.md"
+# Grok loads AGENTS.md / CLAUDE.md from cwd; vacuum often starts at repo root,
+# but a cd into the scratch dir still picks this up.
+cp "$created_dir/CLAUDE.md" "$created_dir/AGENTS.md"
 ln -sfn "${CLAUDE_CONFIG}" "$created_dir/"
 ln -sfn "$ROOT/DECOMPILATION_LEARNINGS.md" "$created_dir/"
 
@@ -328,7 +337,9 @@ if [[ "$BOOTSTRAP_ONLY" == true ]]; then
 elif command -v "$CLI" &>/dev/null; then
     cd "$created_dir"
     if [[ "$CLI" == grok ]]; then
-        grok --always-approve --effort high "Match ${FUNC_STEM}. Scratch env is already created (do not re-run tools/claude). Read BRIEF.md."
+        grok --always-approve --effort "${GROK_MATCH_EFFORT:-xhigh}" \
+            --rules "$(sed "s/\\\$functionName/${FUNC_STEM}/g" "${CLAUDE_DIR}/MATCH_LOOP.md")" \
+            "Match ${FUNC_STEM}. Scratch env is already created (do not re-run tools/claude). Read BRIEF.md."
     else
         $CLI --dangerously-skip-permissions "decompile ${FUNC_STEM}. the appropriate claude environment has already been created (do not re-run tools/claude --bootstrap). use ultrathink"
     fi

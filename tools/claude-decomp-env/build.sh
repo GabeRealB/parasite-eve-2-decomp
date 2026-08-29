@@ -133,4 +133,32 @@ fi
 if [[ -n "$MATCH_PERCENT" ]] && awk -v p="$MATCH_PERCENT" 'BEGIN { exit !(p + 0 >= 90 && p + 0 < 100) }'; then
     echo "Score ≥ 90% — running ./dump.sh $1 (RTL summary below). Do not add register pins yet."
     "$SCRIPT_PATH/dump.sh" "$INPUT" || echo "dump.sh failed (score above still stands)"
+
+    # Name the dump files the next tool call must open. Penalty mix decides;
+    # the printed summary is not a substitute for reading these files.
+    stem="${1%.c}"
+    branch=$(echo "$PENALTIES" | grep -oP 'branch=\K[0-9]+' || echo 0)
+    regs=$(echo "$PENALTIES" | grep -oP 'regs=\K[0-9]+' || echo 0)
+    reorder=$(echo "$PENALTIES" | grep -oP 'reorder=\K[0-9]+' || echo 0)
+    insert=$(echo "$PENALTIES" | grep -oP 'insert=\K[0-9]+' || echo 0)
+    delete=$(echo "$PENALTIES" | grep -oP 'delete=\K[0-9]+' || echo 0)
+    stack=$(echo "$PENALTIES" | grep -oP 'stack=\K[0-9]+' || echo 0)
+    echo "NEXT: open these dump files before editing C (summary is not enough):"
+    if awk -v b="$branch" -v i="$insert" -v d="$delete" 'BEGIN { exit !((b+i+d) > 0) }'; then
+        echo "  ${stem}.i.jump  ${stem}.i.jump2    (control flow still wrong — fix C shape, do not pin)"
+    fi
+    if awk -v r="$regs" 'BEGIN { exit !(r > 0) }'; then
+        echo "  ${stem}.i.lreg  ${stem}.i.greg     (split a reused local or unpin; do not add register asm pins)"
+    fi
+    if awk -v r="$reorder" 'BEGIN { exit !(r > 0) }'; then
+        echo "  ${stem}.i.sched  ${stem}.i.sched2  ${stem}.i.dbr    (statement order / delay slots)"
+    fi
+    if awk -v s="$stack" 'BEGIN { exit !(s > 0) }'; then
+        echo "  extra locals / frame — split or shrink locals"
+    fi
+    echo "Do not add register … asm(\"\") pins. A non-zero branch/insert/delete score is not a register-coloring problem."
+fi
+
+if grep -qE 'register[[:space:]][^;]+asm[[:space:]]*\(' "$INPUT" 2>/dev/null; then
+    echo "PIN WARNING: $1 contains register … asm(\"\"). Function-scope pins reserve that hard register for the whole function. Unpin and rescore as its own base_N.c before treating this as the best seed."
 fi

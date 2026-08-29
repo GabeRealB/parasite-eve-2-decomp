@@ -288,8 +288,10 @@ def summarize(i_path: Path) -> str:
         return "No RTL dumps next to this .i — run ./dump.sh <file.c> first.\n"
 
     hint = (
-        "Next: regs → shorten live range / split locals / unpin; "
-        "reorder → .sched/.sched2/.dbr; extra j → .jump2. Do not add register pins yet."
+        "NEXT: open the dump files named by build.sh (this summary is not enough). "
+        "regs → .lreg/.greg (split locals / unpin); "
+        "reorder → .sched/.sched2/.dbr; extra j → .jump2. "
+        "Non-zero branch/insert/delete is control flow — do not pin."
     )
     return "\n".join(chunks) + "\n" + hint + "\n"
 
