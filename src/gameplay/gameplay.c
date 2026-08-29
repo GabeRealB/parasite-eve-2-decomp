@@ -7,6 +7,7 @@
 
 #include "gameplay/1A8.h"
 #include "gameplay/1BC.h"
+#include "gameplay/268.h"
 #include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/4CC.h"
@@ -76,10 +77,14 @@ extern s16            D_80114C40;
 extern DR_STP         D_80114C50;
 extern s32            D_80115724;
 
+extern GpItemRec* Gp_SelItemRec;
+
 void func_800C05CC(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void func_80108874(void);
 void func_800A57B0(GpIdMapC* arg0);
 void func_800A2F60(GpIdMapC* arg0);
+s32  func_800A2104(GpIdMapC* arg0, s32 arg1, s32 arg2);
+s32  func_800A7550(void);
 
 #define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
 #define gte_rtpt_real()  __asm__ volatile("nop; nop; .word 0x4A280030")
@@ -4406,7 +4411,7 @@ void func_800A1634(s32 arg0, GpIdMapC* arg1)
     }
 }
 
-void func_800A18BC(void)
+void func_800A18BC(s32 arg0, s32 arg1)
 {
     u8            buf[0x10];
     UiObject      obj;
@@ -4897,7 +4902,358 @@ void func_800A2BE0(s32 arg0, s32 arg1, s32 arg2)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A2F60);
+/// Inline copy of `Gp_GetAttachLevels`.
+static __inline__ u8* getAttachLevels(void)
+{
+    WipSysConfig* p;
+    s32           cond;
+
+    p = &Wip_SysConfig;
+    if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
+        cond = 0;
+    } else {
+        cond = p->field_26 == 4;
+    }
+    if (cond == 0) {
+        return Mc_SaveData.unknown_850;
+    }
+    return Gp_DebugAttachLevels;
+}
+
+/// Inline copy of `Gp_GetAttachLevel`.
+static __inline__ s32 getAttachLevel(s32 idx)
+{
+    WipSysConfig* p;
+    u8*           table;
+    s32           cond;
+    s32           lvl;
+
+    if (idx >= 0xC) {
+        lvl = 1;
+    } else {
+        p = &Wip_SysConfig;
+        if ((*(u32*)&Game_Session->field_4 & 0xFFFF0000) != 0x1140000) {
+            cond = 0;
+        } else {
+            cond = p->field_26 == 4;
+        }
+        if (cond == 0) {
+            table = Mc_SaveData.unknown_850;
+        } else {
+            table = Gp_DebugAttachLevels;
+        }
+        lvl = table[idx];
+        if (lvl == 0) {
+            lvl = 1;
+        }
+        if ((p->field_25 & 0x80) && lvl < 3) {
+            lvl++;
+        }
+    }
+    return lvl;
+}
+
+/// Inline copy of `func_800A7E5C(0)`: the HUD category can be swapped only
+/// while the player actor is idle, no CD request is pending and the
+/// `D_8010CA28` cooldown has expired.
+static __inline__ s32 hudSwapReady(void)
+{
+    GpActorWork*  work;
+    GameActor*    actor;
+    WipSysConfig* p;
+    s32           flag;
+    s32           ret;
+
+    flag = 0;
+    work = Gp_ActorSlots[0];
+    if (work != NULL) {
+        actor = work->actor;
+        p     = &Wip_SysConfig;
+        if (actor->field_954 == 0) {
+            if (actor->field_956 == 0 || actor->field_956 == 2) {
+                if (Game_Session->field_13A == 0) {
+                    if (p->field_24 == 0) {
+                        flag = 1;
+                    }
+                }
+            }
+        }
+    }
+    if (Gp_StateC08.field_6 & 2) {
+        flag = 0;
+    }
+    if (flag != 0) {
+        if (D_8010CA28 <= 0) {
+            ret = 1;
+            if (D_801153F1 == 0) {
+                goto done;
+            }
+        }
+    }
+    ret = 0;
+done:
+    return ret;
+}
+
+/// Inline copy of `Gp_IsStateF0Active`.
+static __inline__ s32 isStateF0Active_(void)
+{
+    GpStateF0* p;
+
+    p = &Gp_StateF0;
+    if ((p->field_0 == 1 && p->field_6 != 0) || p->field_1 != 0) {
+        return 1;
+    }
+    return 0;
+}
+
+/// Inline copy of `Gp_CdIdleIfF0Active`.
+static __inline__ s32 cdIdleIfF0Active_(void)
+{
+    GpStateF0* p;
+    s32        cond;
+    u16        ret;
+
+    p = &Gp_StateF0;
+    if ((p->field_0 == 1 && p->field_6 != 0) || p->field_1 != 0) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        ret = CdCmd_IsIdle();
+    } else {
+        ret = 1;
+    }
+    return ret;
+}
+
+/// Inline copy of `func_800A7CB0`, which evaluates the same gate as
+/// `Gp_IsStateF0Active` but always returns 0.
+static __inline__ u8 stateF0Gate_(void)
+{
+    GpStateF0* p;
+    s32        cond;
+
+    p = &Gp_StateF0;
+    if ((p->field_0 == 1 && p->field_6 != 0) || p->field_1 != 0) {
+        cond = 1;
+    } else {
+        cond = 0;
+    }
+    if (cond) {
+        return 0;
+    }
+    return 0;
+}
+
+void func_800A2F60(GpIdMapC* arg0)
+{
+    WipSysConfig*      cfg;
+    GpActorWork*       work;
+    GameActor*         actor;
+    volatile PadState* pad;
+    s32                flag;
+    s32                idx;
+    s32                lvl;
+    s32                sndId;
+    s32                x;
+    s32                ok;
+    s32                y;
+    u8                 mode;
+    u8                 side;
+    u16                mask;
+
+    cfg            = &Wip_SysConfig;
+    flag           = 0;
+    arg0->field_10 = 0;
+    if (Gp_StateC08.field_8 == 1) {
+        if (++D_80114C34 > 0) {
+            lvl   = getAttachLevel(Gp_StateC08.field_5);
+            sndId = Gp_StateC08.field_5 * 3 + lvl;
+            if (isStateF0Active_()) {
+                Gp_EnqueueSndCd(sndId);
+            }
+            Gp_StateC08.field_8 = 2;
+            Gp_StateC08.field_7 = 0;
+            D_80114C34          = 0;
+        }
+    }
+
+    x                     = 9;
+    y                     = 0x3C;
+    y                    -= Display_State.vramYOffset;
+    arg0->field_E         = 0;
+    Game_Session->field_2 = 0;
+    if (Gp_StateC08.field_6 & 8) {
+        func_800A7550();
+        Gp_StateC08.field_6 &= 0xF7;
+    }
+
+    if (Gp_StateC08.field_A != 1) {
+        if (Gp_StateC08.field_10 <= 0 || --Gp_StateC08.field_10 <= 0) {
+            Gp_StateC08.field_C = 0;
+        }
+        if (Gp_StateC08.field_12 <= 0 || --Gp_StateC08.field_12 <= 0) {
+            Gp_StateC08.field_D = 0;
+        }
+        if (Gp_StateC08.field_14 <= 0 || --Gp_StateC08.field_14 <= 0) {
+            Gp_StateC08.field_F = 0;
+        }
+    }
+    if (Gp_StateC08.field_A == 1) {
+        if (Game_Session->field_5A & 0x50) {
+            work = (GpActorWork*)Game_GetPtrSlot(3);
+            if (work != NULL) {
+                work->actor->field_962 |= 0x40;
+            }
+            Gp_StateC08.field_A = 0;
+            D_80115768          = 0;
+            Gp_StateF0.field_4  = 0;
+            Gp_StateC08.field_9 = 0;
+            if (isStateF0Active_()) {
+                func_800A18BC(x, y);
+            }
+            return;
+        }
+    }
+
+    if (Gp_StateC08.field_A == 0 && Gp_StateC08.field_E == 0) {
+        ok = hudSwapReady();
+        if ((ok != 0 && (Game_Session->field_5A & 0x10) && Display_State.field_10d == 0 &&
+             !(Gp_StateC08.field_6 & 1)) ||
+            (Gp_StateC08.field_6 & 0x10)) {
+            Gp_StateC08.field_9  = 1;
+            Gp_StateC08.field_6 &= 0xEF;
+            side                 = Gp_StateC08.field_A ^ 1;
+            Gp_StateC08.field_A  = side;
+            D_80115768           = side;
+            Gp_StateF0.field_4   = side;
+            if (Gp_StateC08.field_B >= 0xC) {
+                Gp_StateC08.field_B = 0;
+            }
+            if (Gp_StateC08.field_B < 0) {
+                Gp_StateC08.field_B = 0;
+            }
+            if (!isStateF0Active_()) {
+                if (getAttachLevels()[7] != 0) {
+                    Gp_StateC08.field_B = 7;
+                }
+            }
+            flag = 1;
+        } else {
+            if (isStateF0Active_()) {
+                func_800A18BC(x, y);
+            }
+            return;
+        }
+    }
+
+    mode = Gp_StateC08.field_A;
+    if (mode == 2 || mode == 3) {
+        if (Gp_StateC08.field_6 & 4) {
+            Gp_StateC08.field_6 &= 0xFB;
+            Gp_StateC08.field_3  = -1;
+            Gp_StateC08.field_A  = 3;
+        }
+        func_800A2BE0((s32)arg0, x, y);
+        if (Gp_StateC08.field_A == 3) {
+            Gp_StateC08.field_2--;
+        }
+        if (Gp_StateC08.field_2 <= 0) {
+            if (cdIdleIfF0Active_()) {
+                Gp_StateC08.field_A = 0;
+                D_80115768          = 0;
+                D_801153F4          = 0;
+                Gp_StateC08.field_9 = 0;
+                Gp_StateC08.field_3 = 1;
+                D_8010CA28          = 0x14;
+                CdCmd_EnqueueLoadFile(0, 0, 4);
+                if (cfg->field_25 & 0x80) {
+                    cfg->field_18 -= func_800A1558(2) * 2;
+                    if (cfg->field_18 <= 0) {
+                        cfg->field_18 = 1;
+                    }
+                } else {
+                    cfg->field_1c -= func_800A1558(2);
+                    if (cfg->field_1c < 0) {
+                        cfg->field_1c = 0;
+                    }
+                }
+                if (Gp_StateC08.field_5 >= 0xC) {
+                    Gp_SetItemSeenBit(Gp_SelItemRec->field_0, 1);
+                    Gp_RemoveItem(NULL, Gp_SelItemRec, 0);
+                }
+                if (Mc_SaveData.field_862[Gp_StateC08.field_5] < 0x270F) {
+                    Mc_SaveData.field_862[Gp_StateC08.field_5]++;
+                }
+                Gp_StateC08.field_8 = 0;
+            } else {
+                Gp_StateC08.field_2 = 1;
+            }
+            if (Gp_StateC08.field_2 <= 0) {
+                return;
+            }
+        }
+
+        if ((Gp_StateC08.field_6 & 1) ||
+            (Gp_StateC08.field_5 < 0xC && (Game_Session->field_5A & 0x40))) {
+            Game_Session->field_129 = 0;
+            CdCmd_EnqueueLoadFile(0, 0, 4);
+            if (Gp_StateC08.field_A >= 2) {
+                Gp_StateC08.field_3 = 2;
+            }
+            Gp_StateC08.field_E = 0;
+            Gp_StateC08.field_A = 0;
+            D_80115768          = 0;
+            D_801153F4          = 0;
+            Gp_StateC08.field_7 = 0;
+            Gp_StateC08.field_8 = 0;
+        }
+        return;
+    }
+
+    if (func_800A2104(arg0, x, y) != 0) {
+        flag = 1;
+    }
+    actor = ((GpActorWork*)Game_GetPtrSlot(3))->actor;
+    if ((Gp_StateC08.field_E != 0 && actor->field_954 == 2) || (Gp_StateC08.field_6 & 1)) {
+        Gp_StateC08.field_E = 0;
+    }
+    if ((arg0->field_15 == 0 && Pad_CheckButtons(0, 0, D_8005ED70) != 0) ||
+        Gp_StateC08.field_E != 0) {
+        if (cdIdleIfF0Active_()) {
+            pad                     = &Pad_States[0];
+            mask                    = D_8005ED70;
+            pad->prevButtons       &= ~mask;
+            Game_Session->field_5A &= ~mask;
+            Game_Session->field_58 &= ~mask;
+            Game_Session->field_5C &= ~mask;
+            if (Gp_StateC08.field_E != 0) {
+                Gp_StateC08.field_5 = Gp_StateC08.field_E;
+                Gp_StateC08.field_B = Gp_StateC08.field_E;
+            } else {
+                Gp_StateC08.field_5 = Gp_StateC08.field_B;
+            }
+            if (func_800A1CD0(Gp_StateC08.field_5) == 0) {
+                func_800A1F64(Gp_StateC08.field_5);
+            }
+        }
+    }
+
+    if (Gp_StateC08.field_A != 0) {
+        func_800A1634(0, arg0);
+    }
+    if (flag) {
+        idx                 = getAttachLevel(Gp_StateC08.field_B);
+        Gp_StateC08.field_7 = Gp_StateC08.field_B * 3 + idx;
+    }
+    if (Gp_StateC08.field_7 > 0) {
+        if (stateF0Gate_() == 0) {
+            Gp_StateC08.field_7 = 0;
+        }
+    }
+}
 
 void func_800A3AF0(GpIdMapC* arg0)
 {

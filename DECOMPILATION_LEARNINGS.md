@@ -30837,3 +30837,95 @@ branch delay.
 A second pointer typed as a 0x50-byte overlay of `GsCOORDINATE2` starting at
 `workm.t` (`sub` at +0x14) makes the inner copy use negative offsets off `$s2`
 instead of `$s1+0x4C`. `func_8009850C` is the example.
+
+## Inline helpers: reassigning the parameter vs. a separate result local
+
+A `static __inline__` helper that reassigns its own parameter makes GCC
+coalesce the parameter and the return value into one register. At a call site
+where the caller's destination already lives elsewhere, that shows up as an
+extra `move`:
+
+```c
+static __inline__ s32 getAttachLevel(s32 idx)
+{
+    ...
+    idx = table[idx];        /* param reused as the result */
+    if (idx == 0) { idx = 1; }
+    return idx;
+}
+```
+
+```
+lbu   a0, 0(v0)      ; result lands in the parameter register
+...
+move  a1, a0         ; extra copy the target does not have
+addiu a0, a0, 1
+move  a1, a0
+```
+
+Writing the result into its own local splits the two live ranges, so the
+parameter keeps `$a0` and the result is produced directly in the caller's
+register:
+
+```c
+    s32 lvl;
+    ...
+    lvl = table[idx];
+    if (lvl == 0) { lvl = 1; }
+    return lvl;
+```
+
+The same helper can need *both* forms at different call sites: where the
+caller's variable is free to take the parameter register the coalesced version
+matches, so compare each site rather than applying one shape everywhere.
+
+## Hoist the `= 1` above the last test to stop GCC folding a flag into `sltiu`
+
+The "spell out the CFG" entry above is not always enough. With a helper whose
+result is a distinct local, `if (A) { if (B) { if (C) { ret = 1; goto done; } } }
+ret = 0; done:` still collapses the innermost test to `sltiu v1,v0,1`, and
+adding explicit `ret = 0; goto done;` arms for the outer tests does not help
+either. What reproduces the target is assigning the `1` *before* the last
+comparison, leaving the branch with nothing but a jump to the join:
+
+```c
+    if (flag != 0) {
+        if (D_8010CA28 <= 0) {
+            ret = 1;
+            if (D_801153F1 == 0) {
+                goto done;
+            }
+        }
+    }
+    ret = 0;
+done:
+    return ret;
+```
+
+The delay-slot filler then pulls `li v1, 1` into the `beqz` and duplicates the
+join's `move v1, zero` into the earlier `bgtz`, which is exactly the target
+sequence. Reusing one variable for both the working flag and the result also
+suppresses the fold, but then the two share a register and the whole helper's
+allocation is off by one.
+
+## `y = K; y -= x;` and `y = K - x;` put the constant in different registers
+
+`y = 0x3C - Display_State.vramYOffset;` loads `0x3C` into a scratch register
+and subtracts into a third (`li v1,0x3c` / `subu s2,v1,a0`). Splitting it into
+an assignment plus a compound subtract loads the constant straight into the
+destination:
+
+```c
+    y  = 0x3C;
+    y -= Display_State.vramYOffset;
+```
+
+```
+li    s1, 0x3c
+...
+subu  s1, s1, v1
+```
+
+This is not cosmetic: the extra reference changes the pseudo's priority in
+`local-alloc`, which in this function swapped `$s1`/`$s2` between the
+`&Wip_SysConfig` pointer and the coordinate and moved a dozen instructions.

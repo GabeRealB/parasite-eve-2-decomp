@@ -136,7 +136,13 @@ STATIC_ASSERT_SIZEOF(GpLinkXform, 0x28);
 /// two bytes are also the item 4 / item 8 gates in `Gp_ItemIsUnusable`
 /// (`lb`). `func_800A45F0` packs a nibble plus `field_0 % 10` into
 /// `field_C` / `field_D` / `field_F` and stores a table duration in
-/// `field_10` / `field_12` / `field_14`.
+/// `field_10` / `field_12` / `field_14`. `field_7` and `field_8` are signed
+/// bytes (`lb`): `func_800A2F60` treats `field_7` as a positive-only sound id
+/// (`blez` clears it) and steps `field_8` 1 -> 2 -> 0 as the attach sound is
+/// queued and the category is committed. `field_E` is a signed pending
+/// category (`lb`), copied into `field_5` / `field_B` once the pad is idle,
+/// and `field_10` / `field_12` / `field_14` are `s16` countdowns that clear
+/// `field_C` / `field_D` / `field_F` when they reach 0.
 typedef struct _GpStateC08 {
     /* 0x00 */ u16  field_0;
     /* 0x02 */ s8   field_2;
@@ -144,14 +150,14 @@ typedef struct _GpStateC08 {
     /* 0x04 */ byte pad_4;
     /* 0x05 */ s8   field_5;
     /* 0x06 */ u8   field_6;
-    /* 0x07 */ u8   field_7;
-    /* 0x08 */ u8   field_8;
+    /* 0x07 */ s8   field_7;
+    /* 0x08 */ s8   field_8;
     /* 0x09 */ u8   field_9;
     /* 0x0A */ s8   field_A;
     /* 0x0B */ s8   field_B;
     /* 0x0C */ s8   field_C;
     /* 0x0D */ u8   field_D;
-    /* 0x0E */ u8   field_E;
+    /* 0x0E */ s8   field_E;
     /* 0x0F */ u8   field_F;
     /* 0x10 */ s16  field_10;
     /* 0x12 */ s16  field_12;
@@ -178,16 +184,19 @@ extern s32        D_80114BEC; // splat overlay of Gp_HpMpWork.field_4
 /// +0xC overlay of the 0x30-byte record `Gp_InitPlayClock` allocates with
 /// `Mem_Calloc(0x30, 0)` and stores at `Task::idMap`. `Gp_ResetHudFx` is
 /// called with that pointer + 0xC; it writes `field_16 = -1` and clears
-/// `field_18`.
+/// `field_18`. `func_800A2F60` clears `field_10` (word) and `field_E` (`sb`)
+/// on entry and reads `field_15` (`lb`) as a gate on the pad poll.
 typedef struct _GpIdMapC {
     /* 0x00 */ s32        field_0;
     /* 0x04 */ s32        field_4;
     /* 0x08 */ s32        field_8;
     /* 0x0C */ byte       pad_C;
     /* 0x0D */ s8         field_D;
-    /* 0x0E */ byte       pad_E[6];
+    /* 0x0E */ s8         field_E;
+    /* 0x0F */ byte       pad_F;
+    /* 0x10 */ s32        field_10;
     /* 0x14 */ u8         field_14;
-    /* 0x15 */ byte       pad_15;
+    /* 0x15 */ s8         field_15;
     /* 0x16 */ s8         field_16;
     /* 0x17 */ byte       pad_17;
     /* 0x18 */ s16        field_18;
