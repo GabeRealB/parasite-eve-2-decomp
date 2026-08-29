@@ -30219,3 +30219,32 @@ Gp_UpdateCoord(coord);
 ```
 
 `func_80100020` is the example: the hoist alone is 96.8% → 100%.
+
+## Split a second-array pointer with `&arr[i] + N` so an asm operand recomputes
+
+When a loop touches two parallel arrays in one scratch struct and the second
+array's element address is *also* fed to a GTE inline asm, the target can show
+three different addressings of the same element: `0x80(s2)` for one field,
+`2(s0)` / `4(s0)` with `addiu s0, s2, 0x80` for the others, and a freshly
+recomputed `sll s1, i, 3; addiu s1, s1, 0x80; addu s1, base, s1` for the asm
+operand. Writing the pointer as `op = &block->outer[i];` collapses all three:
+cse1 folds it to the same rtx as `&block->outer[i]` in the asm operand, so the
+asm's non-reducible address wins and the field refs ride along on it.
+
+Derive the pointer from the *other* array instead. `&block->inner[i] + 16`
+expands as `(base + i*8) + 128`, which cse1 does not equate with the asm
+operand's `base + (i*8 + 128)`. The loop pass then strength-reduces it as a
+giv combined with the inner walking pointer (`addiu s0, s2, 0x80`) while the
+asm operand keeps its own computation:
+
+```c
+block->outer[i].vx = (rsin(ang) * r1) >> 12;
+op                 = &block->inner[i] + 16;  /* not &block->outer[i] */
+op->vy             = 0;
+op->vz             = (rcos(ang) * r1) >> 12;
+gte_ldv0(&block->outer[i]);
+```
+
+`func_800EBF18` is the example (98.6% → 99.7% from this alone). Flattening the
+two arrays into one `SVECTOR v[32]` and indexing `v[i + 16]` is much worse
+(94.2%) — the `(i + 16) * 8` form loses the `addiu 0x80` shape everywhere.

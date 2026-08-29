@@ -349,6 +349,26 @@ typedef struct _GpArcScratch {
 } GpArcScratch;
 STATIC_ASSERT_SIZEOF(GpArcScratch, 0x1C);
 
+/// 0x118-byte scratch from `G_SCRATCH_HEAD` used by `func_800EBF18`. Holds
+/// the two 16-vertex rings of a shaded band: `inner[i]` is the ring of
+/// radius `arg1` and `outer[i]` the ring of radius `arg1 + arg2`, both built
+/// in the XZ plane by `rsin` / `rcos`, rotated by the coordinate's `workm`
+/// and offset by its `workm.t[]`. The second pass projects each segment:
+/// `sxy0` is the `gte_stsxy` of `inner[i]` and `sxy1` / `sxy2` / `sxy3` the
+/// `gte_stsxy3` of `inner[i + 1]` / `outer[i]` / `outer[i + 1]`, with `otz`
+/// from `gte_stszotz` (then incremented) and `flag` from `gte_stflg`.
+typedef struct _GpBandScratch {
+    /* 0x000 */ SVECTOR inner[16];
+    /* 0x080 */ SVECTOR outer[16];
+    /* 0x100 */ s32     otz;
+    /* 0x104 */ s32     flag;
+    /* 0x108 */ DVECTOR sxy0;
+    /* 0x10C */ DVECTOR sxy1;
+    /* 0x110 */ DVECTOR sxy2;
+    /* 0x114 */ DVECTOR sxy3;
+} GpBandScratch;
+STATIC_ASSERT_SIZEOF(GpBandScratch, 0x118);
+
 extern GpState1C*    Gp_State1C;
 extern Task*         Gp_State1CTask;
 extern GpCoord64     Gp_RoomCoords[8];
