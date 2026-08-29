@@ -31207,3 +31207,73 @@ rotates the loop: the first increment peels above the header and the latch
 becomes `addiu s0, 1` instead of `lui a0`. After the call, `-fschedule-insns`
 moves the independent increment into the `lhu` slot. `func_800F1FF4` is the
 example.
+
+## A newly matched `switch` can swallow the raw `rodata` split in front of the C unit
+
+`func_800F96B0` is the first `switch` in `src/gameplay/3FB8.c`, and its
+`jtbl_800977E8` sits at 0x3FE8 — *before* the unit's existing
+`- [0x4058, .rodata, 3FB8]` split and inside the raw
+`- [0x3FE8, rodata, rodata_3FB8]` split. A single object's `.rodata` is linked
+as one contiguous run, so the jtbl cannot go to 0x3FE8 while the rest of the
+unit's `.rodata` starts at 0x4058.
+
+Fix: delete the raw split and start the C unit's `.rodata` at the jtbl address
+(one yaml line replaces two), then re-supply the raw bytes from inside the C
+file, in address order:
+
+- A **jtbl owned by a still-asm function** needs nothing. Once the address is
+  covered by a `.rodata` split, splat emits the table at the top of that
+  function's `asm/.../nonmatchings/<fn>.s`, and the `INCLUDE_ASM` line drops it
+  in the right place. Injecting it by hand instead gives
+  `Error: symbol 'jtbl_XXXXXXXX' is already defined`.
+- **Plain data** (function-pointer tables referenced from C) has no such home:
+  emit it with a file-scope `__asm__(".section .rodata\n" … ".section .text\n")`
+  block, guarded by the usual
+  `#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)`,
+  placed at the source position matching its address.
+
+For 3FB8 that meant `D_800977FC` right after `func_800F96B0` and `D_80097848`
+right after `INCLUDE_ASM(…, func_800FDB18)` (whose `.s` now carries
+`jtbl_80097808`). Check the result in `build/USA/out/<ovl>.elf.map`: the unit's
+`.rodata` should start at the jtbl VMA and every named symbol should keep its
+original address. Also drop the now-dead raw-split entry from
+`fix_gameplay_linker_rodata_order` in `ninja_config.py`.
+
+## Write the `if` arm that the target falls through into, not the one you'd write by hand
+
+Two `case`s of `func_800F96B0` share `mem->field_24++; if (… < 8) … else
+Gp_ReleaseState1CMem(…)`. Written the natural way —
+
+```c
+if (mem->field_26 >= 0x10) { big_block(); } else { small_block(); }
+```
+
+— GCC lays `big_block` out inline and jumps to `small_block`, so cross-jumping
+keeps the *later* copy of the shared tail and the whole block order shifts
+(branch/insert/delete penalties, ~5% of the score here). The target branches
+*to* the big block, i.e. the small one falls through. Inverting the source
+condition fixes it:
+
+```c
+if (mem->field_26 < 0x10) { small_block(); } else { big_block(); }
+```
+
+Rule of thumb: the arm that the target reaches by falling through belongs in
+the `if` body; the arm the target jumps to belongs in the `else`.
+
+## Block-scope a temp that appears in two cross-jumped copies
+
+`u16 rnd = ((u32)Gp_LcgState >> 16) % 3;` appeared in two `case` blocks of
+`func_800F96B0` that cross-jumping later merges. Declared once at function
+scope it becomes a *global* allocno (assigned in `.greg`) and lands in `$v0`,
+giving `subu v0, a1, v0`; the target reuses the dividend's register,
+`subu a1, a1, v0`. Declaring it at the top of each block instead makes it a
+local allocno coloured next to its uses and the register falls out right.
+Inlining the expression into the `if` works too:
+
+```c
+if ((u16)(((u32)Gp_LcgState >> 16) % 3) == 0) {
+```
+
+Same idea as the existing "split a reused local" advice, but the trigger here
+is the *scope* of the declaration, not the number of assignments.

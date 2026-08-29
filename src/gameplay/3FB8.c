@@ -156,7 +156,230 @@ spawn:
     mem->field_22++;
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800F96B0);
+void func_800F96B0(Task* arg0)
+{
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    GpMtxWords*    rot;
+    s16            flag;
+    s32            sub;
+    s32            ret;
+    s32            id;
+    s32            base;
+    SVECTOR        vec;
+    SVECTOR        dir;
+    SVECTOR        wpos;
+    u8             color[3];
+
+    mem   = arg0->spawnArg2;
+    flag  = Gp_State1C->field_4;
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    if (flag != 0) {
+        if (flag >= 4) {
+            Gp_ReleaseState1CMem(mem, arg0);
+        }
+        return;
+    }
+    Gp_UpdateCoord(coord);
+    mem->field_22++;
+    switch (arg0->state) {
+        case 0:
+            rot           = (GpMtxWords*)&coord->coord;
+            rot->w0       = 0x1000;
+            rot->w2       = 0x1000;
+            rot->h4       = 0x1000;
+            rot->w1       = 0;
+            rot->w3       = 0;
+            mem->field_18 = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xFFF;
+            mem->field_24 = 0x100;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_1A = ((u32)Gp_LcgState >> 16) & 7;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_20 = ((u32)Gp_LcgState >> 16) & 7;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_1C = ((u32)Gp_LcgState >> 16) & 0xFFF;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_28 = 0x200 - (((u32)Gp_LcgState >> 16) & 0x3FF);
+            if (((u16)mem->field_10 | (u16)mem->field_12 | (u16)mem->field_14) == 0) {
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_12 = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_14 = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+                gte_SetRotMatrix(&coord->coord);
+                gte_ldv0(&mem->field_10);
+                gte_rtv0_real();
+                gte_stsv(&mem->field_10);
+            }
+            VectorNormalSS((SVECTOR*)&mem->field_10, (SVECTOR*)&mem->field_10);
+            coord->flg = 0;
+            Gp_UpdateCoord(coord);
+            sub             = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+            arg0->state     = 1;
+            arg0->spawnArg1 = sub & 3;
+            return;
+        case 1:
+            if (mem->field_22 >= 0x51) {
+                Gp_ReleaseState1CMem(mem, arg0);
+                return;
+            }
+            mem->field_1C += mem->field_28;
+            if (mem->field_1A != 0 && mem->field_22 % mem->field_1A == 0) {
+                mem->field_20++;
+            }
+            gte_lddp(mem->field_24);
+            gte_ldsv(&mem->field_10);
+            gte_gpf12_real();
+            gte_stsv(&vec);
+            coord->coord.t[0] += vec.vx;
+            coord->coord.t[1] += vec.vy;
+            coord->coord.t[2] += vec.vz;
+            coord->flg         = 0;
+            gte_SetRotMatrix(&D_80070F34);
+            gte_ldv0(&vec);
+            gte_rtv0_real();
+            gte_stsv(&dir);
+            wpos.vx = *(u16*)&coord->workm.t[0];
+            wpos.vy = *(u16*)&coord->workm.t[1];
+            wpos.vz = *(u16*)&coord->workm.t[2];
+            dir.vx += wpos.vx;
+            dir.vy += wpos.vy;
+            dir.vz += wpos.vz;
+            ret     = func_800DE7CC(&dir, &wpos, &dir, &wpos);
+            if (ret == 1) {
+                coord->coord.t[0] -= vec.vx;
+                coord->coord.t[1] -= vec.vy;
+                coord->coord.t[2] -= vec.vz;
+                mem->field_10      = ((s16)(u16)wpos.vx >> 1) + ((s16)(u16)mem->field_10 >> 1);
+                mem->field_12      = wpos.vy + ((s16)(u16)mem->field_12 >> 1);
+                mem->field_14      = ((s16)(u16)wpos.vz >> 1) + ((s16)(u16)mem->field_14 >> 1);
+                VectorNormalSS((SVECTOR*)&mem->field_10, (SVECTOR*)&mem->field_10);
+                mem->field_24 = (s16)(u16)mem->field_24 >> 1;
+                mem->field_28 = (s16)(u16)mem->field_28 >> 1;
+                gte_lddp(mem->field_24);
+                gte_ldsv(&mem->field_10);
+                gte_gpf12_real();
+                gte_stsv(&vec);
+                coord->coord.t[0] += vec.vx;
+                coord->coord.t[1] += vec.vy;
+                coord->coord.t[2] += vec.vz;
+                coord->flg         = 0;
+                Gp_UpdateCoord(coord);
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                if ((((u32)Gp_LcgState >> 16) & 1) != 0) {
+                    if (arg0->spawnArg1 == 1) {
+                        base = 0xC0001100;
+                        id   = 0x60070;
+                    } else {
+                        base = 0x12100;
+                        id   = 0x60055;
+                    }
+                    func_800EA478(id, coord, mem->field_18 + base, NULL);
+                }
+                if (mem->field_22 - mem->field_2A < 8 && mem->field_24 < 0x20) {
+                    arg0->state   = arg0->spawnArg1 + 2;
+                    mem->field_24 = 0;
+                    mem->field_28 = 0;
+                    mem->field_26 = 0x80;
+                } else {
+                    mem->field_2A = mem->field_22;
+                }
+            } else if (mem->field_24 != 0) {
+                Gp_UpdateCoord(coord);
+                mem->field_12 += 0x10000 / mem->field_24;
+            }
+            if (arg0->spawnArg1 == 2) {
+                color[0] = color[1] = color[2] = 0x80;
+                func_800F9FBC(arg0, arg0->spawnArg1, color);
+            } else {
+                func_800F9FBC(arg0, arg0->spawnArg1, NULL);
+            }
+            return;
+        case 2:
+            Gp_UpdateCoord(coord);
+            if (mem->field_22 >= 0x33) {
+                if (mem->field_26 < 0x10) {
+                    mem->field_24++;
+                    if (mem->field_24 < 8) {
+                        func_800FA45C(coord, mem->field_28, mem->field_24, 0);
+                    } else {
+                        Gp_ReleaseState1CMem(mem, arg0);
+                    }
+                } else {
+                    u16 rnd;
+
+                    color[0] = color[1] = color[2] = mem->field_26;
+                    func_800F9FBC(arg0, arg0->spawnArg1, color);
+                    mem->field_28 += (s16)(u16)mem->field_18 >> 4;
+                    Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+                    rnd            = ((u32)Gp_LcgState >> 16) % 3;
+                    if (rnd == 0) {
+                        func_800EA478(0x600A7, coord, mem->field_18, NULL);
+                    }
+                    func_800FA45C(coord, mem->field_28, 0, 0);
+                    mem->field_26 -= 0x10;
+                }
+            } else {
+                func_800F9FBC(arg0, arg0->spawnArg1, NULL);
+            }
+            return;
+        case 3:
+            Gp_UpdateCoord(coord);
+            if (mem->field_22 >= 0x33) {
+                if (mem->field_26 < 0x10) {
+                    Gp_ReleaseState1CMem(mem, arg0);
+                    return;
+                }
+                color[0] = color[1] = color[2] = mem->field_26;
+                func_800F9FBC(arg0, arg0->spawnArg1, color);
+                mem->field_26 -= 0x10;
+            } else {
+                func_800F9FBC(arg0, arg0->spawnArg1, NULL);
+            }
+            return;
+        case 4:
+            Gp_UpdateCoord(coord);
+            if (mem->field_22 >= 0x33) {
+                if (mem->field_26 < 0x10) {
+                    mem->field_24++;
+                    if (mem->field_24 < 8) {
+                        func_800FA45C(coord, mem->field_28, mem->field_24, 0);
+                    } else {
+                        Gp_ReleaseState1CMem(mem, arg0);
+                    }
+                } else {
+                    u16 rnd;
+
+                    color[0] = color[1] = color[2] = mem->field_26;
+                    func_800F9FBC(arg0, arg0->spawnArg1, color);
+                    mem->field_28 += (s16)(u16)mem->field_18 >> 4;
+                    Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+                    rnd            = ((u32)Gp_LcgState >> 16) % 3;
+                    if (rnd == 0) {
+                        func_800EA478(0x600A7, coord, mem->field_18, NULL);
+                    }
+                    func_800FA45C(coord, mem->field_28, 0, 0);
+                    mem->field_26 -= 0x10;
+                }
+            } else {
+                color[0] = color[1] = color[2] = mem->field_26;
+                func_800F9FBC(arg0, arg0->spawnArg1, color);
+            }
+            return;
+    }
+}
+
+#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
+__asm__(".section .rodata\n"
+        "\t.align 2\n"
+        "\t.globl D_800977FC\n"
+        "D_800977FC:\n"
+        "\t.word func_800FC6E0\n"
+        "\t.word func_800FA7CC\n"
+        "\t.word Task_Kill\n"
+        ".section .text\n");
+#endif
 
 void func_800F9FBC(Task* arg0, s32 arg1, u8* arg2)
 {
@@ -1386,6 +1609,18 @@ void func_800FD49C(Task* arg0)
 }
 
 INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FDB18);
+
+#if !defined(SPLAT) && !defined(M2CTX) && !defined(PERMUTER) && !defined(SKIP_ASM)
+__asm__(".section .rodata\n"
+        "\t.align 2\n"
+        "\t.globl D_80097848\n"
+        "D_80097848:\n"
+        "\t.word Gp_InitPlayerWork\n"
+        "\t.word func_80100E40\n"
+        "\t.word func_801013FC\n"
+        "\t.word Gp_TeardownSlot0\n"
+        ".section .text\n");
+#endif
 
 void func_800FE034(Task* arg0)
 {

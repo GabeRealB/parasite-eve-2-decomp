@@ -353,10 +353,10 @@ def ninja_setup_list_add_source(
 def fix_gameplay_linker_rodata_order() -> None:
     """Keep C-generated overlay jtbls between the surrounding asm rodata pieces.
 
-    The `.rodata, 3FB8` sibling (jtbl @ 0x4280) can land at the front of the
-    C .rodata group. Linked order must stay 3FB8_75BC.c, 3FB8_7E28.c,
-    rodata_3FB8, 3FB8.c, rodata_3FB8_2. Same for `.rodata, gameplay`
-    (func_800A1634 jtbl @ 0x78, between header and header_2).
+    The `.rodata, 3FB8` sibling can land at the front of the C .rodata group.
+    Linked order must stay 3FB8_75BC.c, 3FB8_7E28.c, 3FB8.c, rodata_3FB8_2.
+    Same for `.rodata, gameplay` (func_800A1634 jtbl @ 0x78, between header
+    and header_2).
     """
     dest = Path("linkers/USA/gameplay.ld")
     if not dest.is_file():
@@ -366,31 +366,21 @@ def fix_gameplay_linker_rodata_order() -> None:
         (
             "        build/USA/src/gameplay/3FB8_75BC.c.o(.rodata);\n"
             "        build/USA/src/gameplay/3FB8_7E28.c.o(.rodata);\n"
-            "        build/USA/asm/USA/gameplay/data/rodata_3FB8.rodata.s.o(.rodata);\n"
             "        build/USA/src/gameplay/3FB8.c.o(.rodata);\n"
             "        build/USA/asm/USA/gameplay/data/rodata_3FB8_2.rodata.s.o(.rodata);\n",
-            "        build/USA/src/gameplay/3FB8_75BC.c.o(.rodata);\n"
-            "        build/USA/asm/USA/gameplay/data/rodata_3FB8.rodata.s.o(.rodata);\n"
             "        build/USA/src/gameplay/3FB8.c.o(.rodata);\n"
+            "        build/USA/src/gameplay/3FB8_75BC.c.o(.rodata);\n"
+            "        build/USA/src/gameplay/3FB8_7E28.c.o(.rodata);\n"
             "        build/USA/asm/USA/gameplay/data/rodata_3FB8_2.rodata.s.o(.rodata);\n",
         ),
         (
             "        build/USA/src/gameplay/3FB8_75BC.c.o(.rodata);\n"
             "        build/USA/src/gameplay/3FB8_7E28.c.o(.rodata);\n"
-            "        build/USA/asm/USA/gameplay/data/rodata_3FB8.rodata.s.o(.rodata);\n"
             "        build/USA/src/gameplay/3FB8.c.o(.rodata);\n"
             "        build/USA/asm/USA/gameplay/data/rodata_3FB8_2.rodata.s.o(.rodata);\n",
-            "        build/USA/asm/USA/gameplay/data/rodata_3FB8.rodata.s.o(.rodata);\n"
-            "        build/USA/src/gameplay/3FB8.c.o(.rodata);\n"
-            "        build/USA/asm/USA/gameplay/data/rodata_3FB8_2.rodata.s.o(.rodata);\n",
-        ),
-        (
             "        build/USA/src/gameplay/3FB8_75BC.c.o(.rodata);\n"
-            "        build/USA/src/gameplay/3FB8_7E28.c.o(.rodata);\n"
-            "        build/USA/asm/USA/gameplay/data/rodata_3FB8.rodata.s.o(.rodata);\n"
             "        build/USA/src/gameplay/3FB8.c.o(.rodata);\n"
-            "        build/USA/asm/USA/gameplay/data/rodata_3FB8_2.rodata.s.o(.rodata);\n",
-            "        build/USA/asm/USA/gameplay/data/rodata_3FB8.rodata.s.o(.rodata);\n"
+            "        build/USA/src/gameplay/3FB8_7E28.c.o(.rodata);\n"
             "        build/USA/asm/USA/gameplay/data/rodata_3FB8_2.rodata.s.o(.rodata);\n",
         ),
         (

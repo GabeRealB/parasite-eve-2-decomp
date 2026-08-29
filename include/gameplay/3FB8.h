@@ -214,6 +214,19 @@ typedef struct _GpEffWork {
 } GpEffWork;
 STATIC_ASSERT_SIZEOF(GpEffWork, 0x2C);
 
+/// 32-bit view of a `MATRIX` rotation block. `func_800F96B0` writes an
+/// identity rotation into `GsCOORDINATE2.coord` with word-sized stores:
+/// `w0` covers `m[0][0]` / `m[0][1]`, `w1` covers `m[0][2]` / `m[1][0]`,
+/// `w2` covers `m[1][1]` / `m[1][2]`, `w3` covers `m[2][0]` / `m[2][1]`,
+/// and `h4` is `m[2][2]`.
+typedef struct _GpMtxWords {
+    /* 0x00 */ s32 w0;
+    /* 0x04 */ s32 w1;
+    /* 0x08 */ s32 w2;
+    /* 0x0C */ s32 w3;
+    /* 0x10 */ s16 h4;
+} GpMtxWords;
+
 /// 4-byte row of `D_8011291C`, indexed by `Task::spawnArg1`.
 /// `func_800F5184` copies `field_0` / `field_2` into `GpEffWork.field_28` /
 /// `field_2A` (draw param for `func_800F52B4` and per-frame `field_26` step).
@@ -881,6 +894,8 @@ void func_800F77F8(Task* arg0);
 void func_800F7AD4(struct _GsCOORDINATE2* arg0, s32 arg1, s16 arg2, u16 arg3);
 void func_800F7E28(Task* arg0);
 void func_800F9474(Task* arg0);
+void func_800F96B0(Task* arg0);
+void func_800F9FBC(Task* arg0, s32 arg1, u8* arg2);
 void func_800FA45C(struct _GsCOORDINATE2* arg0, s32 arg1, u16 arg2, u16 arg3);
 void func_800FA7CC(Task* arg0);
 void func_800FB67C(Task* arg0);
