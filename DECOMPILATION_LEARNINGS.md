@@ -30248,3 +30248,36 @@ gte_ldv0(&block->outer[i]);
 `func_800EBF18` is the example (98.6% → 99.7% from this alone). Flattening the
 two arrays into one `SVECTOR v[32]` and indexing `v[i + 16]` is much worse
 (94.2%) — the `(i + 16) * 8` form loses the `addiu 0x80` shape everywhere.
+
+## Don't mirror an emitted store order that the `mult`/`mflo` gap created
+
+When a field is set from `(rsin(ang) * r) >> 12` and a sibling field is set to a
+plain constant, the target's *store* order is not the source order. GCC 2.8.1
+emits `mult` and then needs filler before `mflo`, and `-fschedule-insns` lifts
+the constant store into that window:
+
+```
+jal    rcos
+ sh    v0,0(s2)     # vx, in the delay slot
+mult   v0,s8
+li     v0,0x100
+sh     v0,4(s2)     # vz, hoisted into the mult -> mflo gap
+mflo   t7
+sra    v0,t7,0xc
+sh     v0,2(s2)     # vy
+```
+
+Writing the source in that apparent order (`vx`, `vz`, `vy`) makes the constant
+store available too early and the scheduler parks it *before* the `jal`. Write
+the fields in natural order and let the gap pull the constant forward:
+
+```c
+block->inner[i].vx = (rsin(ang) * r0) >> 12;
+block->inner[i].vy = (rcos(ang) * r0) >> 12;
+block->inner[i].vz = 0x100;   /* lands between mult and mflo */
+```
+
+Same for `op->vy = (rcos(ang) * r1) >> 12; op->vz = 0;` — keeping the constant
+last also stops the `addiu a0, s2, 0x80` from crossing the `rcos` call, so `op`
+stays in a caller-saved register instead of being promoted to `$s0`.
+`func_800EB9B0` is the example: 98.2% -> 100% from this reorder alone.
