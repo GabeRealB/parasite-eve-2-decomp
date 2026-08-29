@@ -352,8 +352,8 @@ typedef struct _GpQuadScratch {
 } GpQuadScratch;
 STATIC_ASSERT_SIZEOF(GpQuadScratch, 0x38);
 
-/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_800EF0E0` and
-/// `func_80100784`.
+/// 0x1C-byte scratch from `G_SCRATCH_HEAD` used by `func_800EF0E0`,
+/// `func_800FFA8C`, and `func_80100784`.
 /// `vec` is the coordinate's `workm.t[]` truncated to s16 and fed to
 /// `gte_ldv0`. `otz` is `gte_stszotz`, `flag` is `gte_stflg` and `sxy` is
 /// `gte_stsxy` of the single RTPS. `dx` / `dy` are the rotated half-extents
@@ -832,6 +832,7 @@ void Gp_PulseState1C80(void);
 void func_800FC74C(Task* arg0);
 void func_800FC9BC(Task* arg0);
 void func_800FE41C(Task* arg0);
+void func_800FFA8C(Task* arg0);
 void func_801005D8(Task* arg0);
 /// Hand-written GTE routine. `arg2` is a full 32-bit word: the high half picks
 /// the CLUT (palette column) and the low 12 bits are the billboard size, so it

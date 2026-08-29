@@ -30168,3 +30168,29 @@ the target is `and t4, s0, t4`, not `and t4, t4, s0`. A tiny helper
 ```
 
 locks that operand order. `func_8009939C` is the example.
+
+## Reuse the clut local for UV V so `li` fills the `field_22` load delay
+
+A `POLY_FT4` whose clut is computed from a mem halfword (`lhu` + math +
+`sh`) then sets `v0 = 0x50` will hoist that `li`/`sb` into the clut
+`lhu` delay (`$a1`) and cascade every later V store one slot early.
+Assign the clut word to an `s32`, store it, load `field_22` into a
+separate `s32` (not `s16`: that becomes `lhu`+`sll`/`sra`), then reuse
+the clut local for the V coordinates:
+
+```c
+t          = (((u16)mem->field_2A + 0x10A) << 6) | ((mem->field_2A * 6) & 0x3F);
+prim->clut = t;
+uv         = mem->field_22;
+t          = 0x50;
+prim->v0   = t;
+prim->u0   = uv * 0x28;
+```
+
+The reuse is a write-after-read on `$a0`, so `li a0, 0x50` cannot overlap
+the clut math. Combined with the `s32` `uv` load it becomes `lh` /
+`li a0, 0x50` / `sb`, matching the target. Same pattern for the second
+V pair with `t = 0x77`. `func_800FFA8C` is the example.
+
+Copying `GpEffSpawnArg.field_2` (s16) straight into `GpEffWork.field_2A`
+(s16) also emits `lhu`; assign through an `s32` local first to get `lh`.
