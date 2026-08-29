@@ -1132,7 +1132,121 @@ void func_800F5184(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F52B4);
+void func_800F52B4(GsCOORDINATE2* arg0, s16 arg1, s16 arg2, u16 arg3)
+{
+    void**                     scratch;
+    register u8*               head asm("a2");
+    GpEffBeamScratch*          block;
+    register u16               vx asm("v0");
+    register GpEffBeamScratch* vecp asm("v0");
+    register s32*              otzp asm("v0");
+    POLY_G4*                   quad;
+    POLY_G3*                   tri;
+    s32                        ang;
+    s32                        ang2;
+    s32                        rng;
+    s32                        base;
+    u8                         r;
+    u8                         g;
+    u8                         b;
+    u16                        vz;
+
+    scratch                                    = (void**)G_SCRATCH_HEAD;
+    head                                       = *scratch;
+    vx                                         = *(u16*)&arg0->workm.t[0];
+    ((GpEffBeamScratch*)(head - 0x1C))->vec.vx = vx;
+    vecp                                       = (GpEffBeamScratch*)(head - 0x1C);
+    block                                      = vecp;
+    block->vec.vy                              = *(u16*)&arg0->workm.t[1];
+    vz                                         = *(u16*)&arg0->workm.t[2];
+    *scratch                                   = block;
+    block->vec.vz                              = vz;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec);
+    gte_rtps_real();
+    gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
+    gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        otzp = &((GpEffBeamScratch*)(head - 0x1C))->otz;
+        gte_stszotz(otzp);
+        block->otz++;
+        block->dx = (arg1 << 8) / block->otz;
+        block->dy = (arg1 << 7) / block->otz;
+        r         = arg2 * ((arg3 >> 8) & 0xF);
+        g         = arg2 * ((arg3 >> 4) & 0xF);
+        b         = arg2 * (arg3 & 0xF);
+        ang       = 0;
+        do {
+            quad       = (POLY_G4*)D_80071190;
+            D_80071190 = (DR_TPAGE*)(quad + 1);
+            setlen(quad, 8);
+            setcode(quad, 0x38);
+            quad->r0 = r;
+            quad->r1 = r;
+            quad->g0 = g;
+            quad->b0 = b;
+            quad->g1 = g;
+            quad->b1 = b;
+            quad->r2 = 0;
+            quad->g2 = 0;
+            quad->b2 = 0;
+            quad->r3 = 0;
+            quad->g3 = 0;
+            quad->b3 = 0;
+            quad->x0 = *(u16*)&block->sxy.vx + ((block->dx * rsin(ang)) >> 12);
+            ang2     = ang + 0x100;
+            quad->y0 = *(u16*)&block->sxy.vy + ((block->dx * rcos(ang)) >> 12);
+            quad->x1 = *(u16*)&block->sxy.vx + ((block->dx * rsin(ang2)) >> 12);
+            quad->y1 = *(u16*)&block->sxy.vy + ((block->dx * rcos(ang2)) >> 12);
+            quad->x2 = *(u16*)&block->sxy.vx + ((block->dy * rsin(ang)) >> 12);
+            quad->y2 = *(u16*)&block->sxy.vy + ((block->dy * rcos(ang)) >> 12);
+            quad->x3 = *(u16*)&block->sxy.vx + ((block->dy * rsin(ang2)) >> 12);
+            quad->y3 = *(u16*)&block->sxy.vy + ((block->dy * rcos(ang2)) >> 12);
+            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                    quad);
+            ang = ang2;
+            Gp_AddTpageShift((P_TAG*)quad, 1, block->otz);
+        } while (ang < 0x1000);
+        if (arg3 & 0x1000) {
+            block->dx = 0x12000 / block->otz;
+            block->dy = 0x2400 / block->otz;
+            ang       = 0;
+            do {
+                rng = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                tri               = (POLY_G3*)D_80071190;
+                D_80071190        = (DR_TPAGE*)(tri + 1);
+                setlen(tri, 6);
+                setcode(tri, 0x30);
+                tri->r0 = r;
+                tri->g0 = g;
+                tri->b0 = b;
+                tri->r1 = 0;
+                tri->g1 = 0;
+                tri->b1 = 0;
+                tri->r2 = 0;
+                tri->g2 = 0;
+                tri->b2 = 0;
+                base    = ang + (((u32)rng >> 16) & 0x300);
+                tri->x0 = *(u16*)&block->sxy.vx;
+                tri->y0 = *(u16*)&block->sxy.vy;
+                tri->x1 = *(u16*)&block->sxy.vx + ((block->dx * rsin(base)) >> 12) +
+                          ((block->dy * rsin(base + 0xC00)) >> 12);
+                tri->y1 = *(u16*)&block->sxy.vy + ((block->dx * rcos(base)) >> 12) +
+                          ((block->dy * rcos(base + 0xC00)) >> 12);
+                tri->x2 = *(u16*)&block->sxy.vx + ((block->dx * rsin(base)) >> 12) +
+                          ((block->dy * rsin(base + 0x400)) >> 12);
+                tri->y2 = *(u16*)&block->sxy.vy + ((block->dx * rcos(base)) >> 12) +
+                          ((block->dy * rcos(base + 0x400)) >> 12);
+                addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                        tri);
+                ang += 0x400;
+                Gp_AddTpageShift((P_TAG*)tri, 1, block->otz);
+            } while (ang < 0x1000);
+        }
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+}
 
 void func_800F59DC(Task* arg0)
 {

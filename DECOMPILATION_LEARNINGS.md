@@ -30410,3 +30410,64 @@ statement. For `func_800A6480` the target materialises `0xC0C0C0`, `0x808080`,
 also costs an instruction: the delay slot of the preceding `bne` is filled with
 the first `lui`, and if that register is clobbered on the fall-through path GCC
 has to emit the `lui` a second time.
+
+## A stray `move` into a callee-saved pointer means a pinned `register` temp
+
+`func_800F52B4` allocates the usual 0x1C scratch block, but the target does it in
+*two* instructions:
+
+```
+sh    $v0, -0x1C($a2)      # ((GpEffBeamScratch*)(head - 0x1C))->vec.vx = ...
+addiu $v0, $a2, -0x1C
+addu  $s4, $v0, $zero      # <-- the copy
+```
+
+The ordinary idiom (`block = (GpEffBeamScratch*)(head - 0x1C);`, as in
+`func_800EF0E0` / `func_800FFA8C`) collapses to a single `addiu $s4, $a2, -0x1C`,
+and no amount of extra temporaries, chained assignments or store/reload tricks
+brings the copy back: cse propagates the temp into `block`'s uses and combine
+then merges the two insns. The copy only survives when the *source* of the copy
+is a hard register, because cse's `make_regs_eqv` keeps the pseudo (`block`) as
+the canonical representative instead of the hard reg, so `block`'s later uses are
+not rewritten. That is the same construct `func_800F59DC` already uses in this
+file:
+
+```c
+register GpEffBeamScratch* vecp asm("v0");
+vecp  = (GpEffBeamScratch*)(head - 0x1C);
+block = vecp;
+```
+
+Two further consequences of pinning:
+
+* A pinned `v0` temp makes the pre-RA scheduler slot its `addiu` into the load
+  delay of the preceding `lhu`, which pushes that load into `$v1`. Give the same
+  `v0` variable an *earlier* life (here the `workm.t[0]` value that is stored to
+  `vec.vx`) so the register is already busy at that point and the schedule lines
+  up. Several distinct `register ... asm("v0")` variables with disjoint lives are
+  fine.
+* Pinning the surviving pointer (`register u8* head asm("a2")`) makes GCC reuse
+  `a2` in place for the last `gte_st*` operand (`addiu $a2, $a2, -0x14`) because
+  `head` is dead there. Route that one operand through another `v0`-pinned
+  variable (`register s32* otzp asm("v0"); otzp = &...->otz; gte_stszotz(otzp);`)
+  to get the target's `addiu $v0, $a2, -0x14`.
+
+## Store the `r`/`g`/`b` fields of a POLY_* in the order the spill is reloaded
+
+In `func_800F52B4` one of the three colour bytes is spilled to the stack, and the
+target reloads it (`lbu $t2, 0x18($sp)`) eight stores before it is used. Because
+GCC can prove that `4($s0)` and `5($s0)` do not overlap, it happily reorders the
+`sb`s, so the reload position — not the final store order — tells you the source
+order. Moving `prim->r0 = r; prim->r1 = r;` up to directly after `setcode()`
+(before the `g`/`b` stores) reproduced the reload placement in both loops and
+took the function from 98.9% to 99.4%.
+
+## `x = Gp_LcgState = Gp_LcgState * 5 + 0x71357911;` is one statement, not two
+
+Writing the LCG step as `rng = Gp_LcgState * 5 + 0x71357911; ... Gp_LcgState = rng;`
+gives the store a separate live range and costs a callee-saved register in the
+loop: the whole `s0`/`s1` assignment shifts and the `0x71357911` constant stops
+being partially hoisted out of the loop. Folding it into a single chained
+assignment where the value is consumed (`rng = Gp_LcgState = Gp_LcgState * 5 +
+0x71357911;`) restored the target's allocation and the `lui $a0, 0x7135` in the
+loop-back delay slot — worth 1.5% on `func_800F52B4`.
