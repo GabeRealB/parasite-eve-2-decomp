@@ -30797,3 +30797,43 @@ A volatile block that emits the `li $20, 9` / `li $2, 0x36` / `move $21, $20` /
 `sb` / `stotz` sequence in order is what matches. Pin `ws` to `$t8`,
 `svBase` to `$s0`, and the combined UV flag to `$t7` so those three do not
 rotate with the `poly[1]` giv.
+
+## Nested `a0`/`v0` temps so a pinned dest does not eat `lui 0x7FFF`
+
+Pinning `flag` to `$s4` makes `flag = D_80071210 & 0x7FFFFFFF` load the mask
+straight into `$s4` (`lui s4, 0x7fff`) and the BSS word into the other pinned
+dest (`lw s6, D_80071210`). The target keeps the mask in `$a0` and the load in
+`$v0`, then `and s4, v0, a0`. Compute both in a nested block whose temps are
+pinned to those scratch regs:
+
+```c
+register s32 flag asm("s4");
+{
+    register s32 tmp asm("v0");
+    register s32 mask asm("a0");
+    mask = 0x7FFFFFFF;
+    tmp  = D_80071210;
+    flag = tmp & mask;
+    bit  = tmp & 1;
+}
+```
+
+The inner pins die at the closing brace, so later GTE code can reuse `$a0` /
+`$v0`. `func_8009850C` is the example.
+
+## `i = 0` before `if (n != 0)` fills the `beqz` delay; `++i` in `while` fills the limit load
+
+A MIPS delay slot always runs. `i = 0` as the first statement of
+`if (node->field_30 != 0)` is a new debug line / BB, so GCC leaves a `nop` in
+the `beqz` delay. Assign `i = 0` *before* the test (it is a no-op when the
+count is zero) and GCC puts `move s5, zero` in that delay.
+
+The matching backedge is `tail++; lw field_30; i++; sltu; bnez; coord++`.
+`i++; ... } while (i < n)` schedules `i++` before the load and needs a `nop`.
+`tail++; coord++; } while (++i < (u32)node->field_30)` ties the increment to
+the compare so it fills the `lw field_30` delay, with `coord++` left for the
+branch delay.
+
+A second pointer typed as a 0x50-byte overlay of `GsCOORDINATE2` starting at
+`workm.t` (`sub` at +0x14) makes the inner copy use negative offsets off `$s2`
+instead of `$s1+0x4C`. `func_8009850C` is the example.

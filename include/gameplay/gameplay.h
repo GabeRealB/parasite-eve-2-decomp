@@ -279,6 +279,17 @@ typedef struct _GpDisp2dCoord {
 } GpDisp2dCoord;
 STATIC_ASSERT_SIZEOF(GpDisp2dCoord, 0x50);
 
+/// View of `GsCOORDINATE2` starting at `workm.t`. `sub` is at +0x14 (coord
+/// +0x4C). Size is the coord stride so `tail++` walks the `field_8` array.
+typedef struct {
+    /* 0x00 */ long           t[3];
+    /* 0x0C */ GsCOORD2PARAM* param;
+    /* 0x10 */ GsCOORDINATE2* super;
+    /* 0x14 */ GsCOORDINATE2* sub;
+    /* 0x18 */ byte           pad[0x38];
+} GpCoordFromT;
+STATIC_ASSERT_SIZEOF(GpCoordFromT, 0x50);
+
 /// 0x60-byte spawnType-2 extra (`Mem_Calloc` in `Gp_AttachDisp2d`, fail string
 /// `"new_disp_2d ----> NULL"`). Linked onto `Tmd_ListAlt`. `field_8` points at
 /// the embedded coord; `field_C` is stored as a word 1.

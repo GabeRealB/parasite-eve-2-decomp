@@ -122,6 +122,7 @@ void       Tmd_FreeBuffers(TmdObject* arg0);
 void Tmd_SetupGteMatrices(TmdScratchDrawBlock* ws, u32 flags, void* stream, TmdObject* node);
 /// Walk stream records and jalr each draw handler until terminator -2.
 u32* Tmd_DispatchStream(TmdScratchDrawBlock* ws, s32 flags, u32* stream);
+void Tmd_DrawActiveNodes(TmdObject* node);
 
 // Early-image handlers (src/main/hasm/Tmd_StreamHandler_*.s).
 // Same ABI for model and draw scratch (shared offsets 0x18/0x1C/…); declared
