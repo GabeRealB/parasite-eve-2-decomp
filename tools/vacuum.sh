@@ -6,7 +6,7 @@
 # Usage:
 #   ./tools/vacuum.sh [--cli claude|grok] [--claude] [--grok] [--times N]
 #                     [--dry-run] [--keep-scratch] [--no-permute]
-#                     [--orchestrator]
+#                     [--orchestrator] [--difficult] [--overlay NAME]
 #
 # Environment:
 #   VACUUM_CLI   Default CLI when no --cli/--claude/--grok flag is given
@@ -28,6 +28,9 @@ CLI="${VACUUM_CLI:-claude}"
 LOG_FILE=""
 OVERLAY_PY="tools/decomp_overlay.py"
 ORCH=0
+ONLY_DIFFICULT=0
+OVERLAY=""
+SKIP_FILE=""
 SESSION=""
 WORKTREE_PARENT=""
 ORCH_FUNC=""
@@ -55,6 +58,9 @@ Options:
                     worktree, then run a port agent on this tree under the
                     merge lock. Do not run a non-orchestrator vacuum on this
                     tree at the same time.
+  --difficult       Only pick functions listed in tools/difficult_functions
+  --overlay NAME    Only pick functions from this overlay (gameplay, USA/main,
+                    asm path suffix). Combined with --difficult: intersection.
   -h, --help        Show this help
 
 Environment:
@@ -81,7 +87,7 @@ EOF
 }
 
 trap 'echo ""; echo "Interrupt received, will stop after the current function. An unfinished match is not marked difficult."; STOP_REQUESTED=1' INT
-trap 'orch_cleanup' EXIT
+trap 'rm -f "${SKIP_FILE:-}"; orch_cleanup' EXIT
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -127,6 +133,19 @@ while [[ $# -gt 0 ]]; do
       ORCH=1
       shift
       ;;
+    --difficult|--only-difficult)
+      ONLY_DIFFICULT=1
+      shift
+      ;;
+    --overlay)
+      if [[ $# -lt 2 ]]; then
+        echo "Error: --overlay requires a value (e.g. gameplay, USA/main)"
+        usage
+        exit 1
+      fi
+      OVERLAY="$2"
+      shift 2
+      ;;
     -h|--help)
       usage
       exit 0
@@ -157,6 +176,76 @@ if [[ $DRY_RUN -eq 0 ]] && ! command -v "$CLI" &>/dev/null; then
   echo "Error: '$CLI' not found in PATH"
   exit 1
 fi
+
+if [[ -n "$OVERLAY" ]]; then
+  if ! python3 "$OVERLAY_PY" list-nonmatchings --overlay "$OVERLAY" >/dev/null; then
+    exit 1
+  fi
+fi
+
+SKIP_FILE=$(mktemp "${TMPDIR:-/tmp}/vacuum-skip.XXXXXX")
+
+vacuum_filter_desc() {
+  local parts=()
+  if [[ -n "$OVERLAY" ]]; then
+    parts+=("overlay=$OVERLAY")
+  fi
+  if [[ $ONLY_DIFFICULT -eq 1 ]]; then
+    parts+=("difficult only")
+  fi
+  if [[ ${#parts[@]} -eq 0 ]]; then
+    return 0
+  fi
+  local IFS=', '
+  echo "Filter: ${parts[*]}"
+}
+
+list_vacuum_nonmatchings() {
+  local args=()
+  if [[ -n "$OVERLAY" ]]; then
+    args+=(--overlay "$OVERLAY")
+  fi
+  python3 "$OVERLAY_PY" list-nonmatchings "${args[@]}"
+}
+
+pick_simplest_func() {
+  local extra=()
+  if [[ $ONLY_DIFFICULT -eq 1 ]]; then
+    extra+=(--only-difficult)
+  fi
+  if [[ -n "$SKIP_FILE" && -f "$SKIP_FILE" ]]; then
+    extra+=(--exclude-file "$SKIP_FILE")
+  fi
+  python3 tools/score_functions.py "${extra[@]}" "$@"
+}
+
+note_skip() {
+  local func=$1
+  [[ -n "$SKIP_FILE" ]] || return 0
+  echo "$func" >>"$SKIP_FILE"
+}
+
+forget_difficult_entry() {
+  local func=$1
+  [[ -f "$DIFFICULT_FUNCTIONS" ]] || return 0
+  awk -v f="$func" 'NF && $1 == f { next } { print }' "$DIFFICULT_FUNCTIONS" \
+    >"${DIFFICULT_FUNCTIONS}.tmp" \
+    && mv "${DIFFICULT_FUNCTIONS}.tmp" "$DIFFICULT_FUNCTIONS"
+}
+
+orch_claim_args() {
+  local args=(claim --session "$SESSION" --pid $$ --cli "$CLI")
+  if [[ $ONLY_DIFFICULT -eq 1 ]]; then
+    args+=(--only-difficult)
+  fi
+  if [[ -n "$OVERLAY" ]]; then
+    args+=(--overlay "$OVERLAY")
+  fi
+  if [[ -n "$SKIP_FILE" && -f "$SKIP_FILE" ]]; then
+    args+=(--exclude-file "$SKIP_FILE")
+  fi
+  printf '%s\n' "${args[@]}"
+}
 
 MAIN_LOG_FILE="$ROOT/tools/vacuum.log"
 SESSION="vacuum-${CLI}-$$"
@@ -423,11 +512,11 @@ commit_difficult_if_needed() {
   # $2: 0/2 = the function was matched, anything else = give-up.
   local func=$1
   local match_status=$2
-  if git diff --quiet -- "$DIFFICULT_FUNCTIONS"; then
-    return 0
-  fi
   if [[ $match_status -eq 0 || $match_status -eq 2 ]]; then
     git checkout -- "$DIFFICULT_FUNCTIONS" 2>/dev/null || true
+    forget_difficult_entry "$func"
+  fi
+  if git diff --quiet -- "$DIFFICULT_FUNCTIONS"; then
     return 0
   fi
   git add -- "$DIFFICULT_FUNCTIONS"
@@ -823,6 +912,7 @@ reset_trunk_to() {
 
 vacuum_orch_loop() {
   echo "Vacuum using CLI: $CLI (orchestrator session $SESSION)" | tee -a "$LOG_FILE"
+  vacuum_filter_desc | tee -a "$LOG_FILE"
   echo "Session log: $LOG_FILE" | tee -a "$LOG_FILE"
   echo "Shared log:  $MAIN_LOG_FILE (flock-appended per function)" | tee -a "$LOG_FILE"
   prune_stale_worktrees
@@ -854,11 +944,12 @@ vacuum_orch_loop() {
     ORCH_FINISHED=0
     ORCH_MERGE=0
 
-    claim_json=$(orch claim --session "$SESSION" --pid $$ --cli "$CLI")
+    mapfile -t _claim_args < <(orch_claim_args)
+    claim_json=$(orch "${_claim_args[@]}")
     claim_code=$?
     echo "$claim_json" | tee -a "$LOG_FILE"
     if [[ $claim_code -eq 3 ]]; then
-      echo "Error: All functions are marked as difficult!"
+      echo "Error: $(echo "$claim_json" | json_get error)"
       break
     fi
     if [[ $claim_code -ne 0 ]]; then
@@ -877,6 +968,7 @@ vacuum_orch_loop() {
       break
     fi
     ORCH_FUNC=$func
+    note_skip "$func"
     echo -e "\n[$(date '+%H:%M:%S')] [$CLI] [orch] Decompiling $func...\n" | tee -a "$LOG_FILE"
     if [[ "$func" != "$port_try_func" ]]; then
       port_tries=0
@@ -1146,6 +1238,7 @@ if [[ $ORCH -eq 1 ]]; then
 fi
 
 echo "Vacuum using CLI: $CLI" | tee -a "$LOG_FILE"
+vacuum_filter_desc | tee -a "$LOG_FILE"
 
 count=0
 consecutive_failures=0
@@ -1161,18 +1254,23 @@ while true; do
     break
   fi
 
-  mapfile -t NONMATCHING_DIRS < <(python3 "$OVERLAY_PY" list-nonmatchings)
+  mapfile -t NONMATCHING_DIRS < <(list_vacuum_nonmatchings)
   if [[ ${#NONMATCHING_DIRS[@]} -eq 0 ]]; then
-    echo "Error: No nonmatchings directories found under asm/"
+    if [[ -n "$OVERLAY" ]]; then
+      echo "Error: No nonmatchings directories found for overlay $OVERLAY"
+    else
+      echo "Error: No nonmatchings directories found under asm/"
+    fi
     break
   fi
 
-  simplest_func=$(python3 tools/score_functions.py "${NONMATCHING_DIRS[@]}" 2>&1)
+  simplest_func=$(pick_simplest_func "${NONMATCHING_DIRS[@]}" 2>&1)
   if [[ -z "$simplest_func" ]] || echo "$simplest_func" | grep -qF "Error:"; then
     echo "$simplest_func"
     break
   fi
 
+  note_skip "$simplest_func"
   echo -e "\n[$(date '+%H:%M:%S')] [$CLI] Decompiling $simplest_func...\n" | tee -a "$LOG_FILE"
 
   rm -rf "nonmatchings/${simplest_func}" "nonmatchings/${simplest_func}-"*

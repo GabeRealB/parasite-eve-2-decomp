@@ -145,10 +145,55 @@ def discover_overlays(version: Optional[str] = None) -> list[Overlay]:
     return sorted(by_name.values(), key=lambda o: (o.version, o.name))
 
 
-def list_nonmatching_dirs(version: Optional[str] = None) -> list[Path]:
+def overlay_key(overlay: Overlay) -> str:
+    return f"{overlay.version}/{overlay.name}"
+
+
+def overlay_matches(overlay: Overlay, needle: str) -> bool:
+    """True if *needle* names this overlay.
+
+    Accepts ``gameplay``, ``USA/gameplay``, or an ``asm/...`` path suffix.
+    """
+    raw = needle.strip().strip("/")
+    if not raw:
+        return False
+    if overlay.name == raw:
+        return True
+    if overlay_key(overlay) == raw:
+        return True
+    try:
+        rel = overlay.asm_path.relative_to(REPO_ROOT)
+    except ValueError:
+        rel = overlay.asm_path
+    rel_s = str(rel).strip("/")
+    if rel_s == raw or rel_s.endswith("/" + raw):
+        return True
+    if raw.startswith("asm/") and rel_s == raw[len("asm/") :]:
+        return True
+    return False
+
+
+def resolve_overlays(
+    needle: str, version: Optional[str] = None
+) -> list[Overlay]:
+    hits = [o for o in discover_overlays(version) if overlay_matches(o, needle)]
+    # Prefer an exact name match when both a parent and a nested unit hit.
+    exact = [o for o in hits if o.name == needle.strip().strip("/")]
+    return exact or hits
+
+
+def list_nonmatching_dirs(
+    version: Optional[str] = None, overlay: Optional[str] = None
+) -> list[Path]:
+    overlays = discover_overlays(version)
+    if overlay:
+        overlays = resolve_overlays(overlay, version)
+        if not overlays:
+            known = ", ".join(overlay_key(o) for o in discover_overlays(version)) or "(none)"
+            raise ValueError(f"unknown overlay '{overlay}'. Known: {known}")
     dirs: list[Path] = []
-    for overlay in discover_overlays(version):
-        candidate = overlay.asm_path / "nonmatchings"
+    for item in overlays:
+        candidate = item.asm_path / "nonmatchings"
         if candidate.is_dir():
             dirs.append(candidate)
     return dirs
@@ -442,7 +487,12 @@ def _cmd_pack(args: argparse.Namespace) -> int:
 
 
 def _cmd_list_nonmatchings(args: argparse.Namespace) -> int:
-    for path in list_nonmatching_dirs(args.version):
+    try:
+        dirs = list_nonmatching_dirs(args.version, overlay=args.overlay)
+    except ValueError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
+    for path in dirs:
         print(path.relative_to(REPO_ROOT))
     return 0
 
@@ -490,6 +540,11 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     p_nm = sub.add_parser(
         "list-nonmatchings", help="Print every overlay nonmatchings directory"
+    )
+    p_nm.add_argument(
+        "--overlay",
+        default=None,
+        help="Restrict to one overlay (name, version/name, or asm path suffix)",
     )
     p_nm.set_defaults(func=_cmd_list_nonmatchings)
 

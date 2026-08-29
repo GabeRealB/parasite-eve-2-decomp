@@ -461,6 +461,11 @@ Examples:
         metavar="PATH",
         help="Extra names to skip (same format as tools/difficult_functions). Repeatable.",
     )
+    parser.add_argument(
+        "--only-difficult",
+        action="store_true",
+        help="Only score functions listed in tools/difficult_functions (minus --exclude-file).",
+    )
 
     args = parser.parse_args()
     folder_paths = args.folder_paths
@@ -495,29 +500,33 @@ Examples:
 
     scores = score_folders(folder_paths, exhaustive=args.exhaustive)
 
-    # Load difficult functions to exclude (only in non-exhaustive mode)
-    difficult_functions = set()
-    if not args.exhaustive:
-        script_dir = os.path.dirname(os.path.abspath(__file__))
-        difficult_file = os.path.join(script_dir, "difficult_functions")
-        difficult_functions = load_difficult_functions(difficult_file)
-        for extra in args.exclude_file:
-            difficult_functions |= load_difficult_functions(extra)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    difficult_file = os.path.join(script_dir, "difficult_functions")
+    listed = set()
+    extra_skip = set()
+    for extra in args.exclude_file:
+        extra_skip |= load_difficult_functions(extra)
+    # Exhaustive listing ignores the give-up file unless --only-difficult.
+    if args.only_difficult or not args.exhaustive:
+        listed = load_difficult_functions(difficult_file)
 
-        # Only print exclusion message in verbose modes
-        if difficult_functions and (
-            args.exhaustive or args.min_score is not None or args.max_score is not None
-        ):
-            print(f"Excluding {len(difficult_functions)} difficult function(s)\n")
+    if args.only_difficult and not listed:
+        print("Error: tools/difficult_functions is empty", file=sys.stderr)
+        sys.exit(1)
 
-    # Filter out difficult functions and data sections (functions with 0 instructions)
-    filtered_scores = [
-        s
-        for s in scores
-        if s.name not in difficult_functions and s.instruction_count > 0
-    ]
+    filtered_scores = []
+    for score in scores:
+        if score.instruction_count <= 0:
+            continue
+        if score.name in extra_skip:
+            continue
+        if args.only_difficult:
+            if score.name not in listed:
+                continue
+        elif score.name in listed:
+            continue
+        filtered_scores.append(score)
 
-    # Apply score range filters if specified
     if args.min_score is not None:
         filtered_scores = [
             s for s in filtered_scores if s.total_score >= args.min_score
@@ -528,10 +537,13 @@ Examples:
         ]
 
     if not filtered_scores:
-        print(
-            "Error: All functions are marked as difficult or are data sections!",
-            file=sys.stderr,
-        )
+        if args.only_difficult:
+            print("Error: No remaining difficult functions", file=sys.stderr)
+        else:
+            print(
+                "Error: All functions are marked as difficult or are data sections!",
+                file=sys.stderr,
+            )
         sys.exit(1)
 
     if args.ranked:

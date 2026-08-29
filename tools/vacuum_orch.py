@@ -136,17 +136,24 @@ class Store:
         return None
 
 
-def list_nonmatching_dirs(root: Path) -> list[str]:
-    out = subprocess.check_output(
-        [sys.executable, str(root / "tools" / "decomp_overlay.py"), "list-nonmatchings"],
-        cwd=root,
-        text=True,
-    )
-    return [line.strip() for line in out.splitlines() if line.strip()]
+def list_nonmatching_dirs(root: Path, overlay: Optional[str] = None) -> list[str]:
+    cmd = [sys.executable, str(root / "tools" / "decomp_overlay.py"), "list-nonmatchings"]
+    if overlay:
+        cmd.extend(["--overlay", overlay])
+    proc = subprocess.run(cmd, cwd=root, capture_output=True, text=True)
+    if proc.returncode != 0:
+        err = (proc.stderr or proc.stdout or "").strip()
+        raise RuntimeError(err or "decomp_overlay.py list-nonmatchings failed")
+    return [line.strip() for line in proc.stdout.splitlines() if line.strip()]
 
 
-def ranked_functions(root: Path, extra_exclude: Optional[Path] = None) -> list[str]:
-    dirs = list_nonmatching_dirs(root)
+def ranked_functions(
+    root: Path,
+    extra_exclude: Optional[Path] = None,
+    overlay: Optional[str] = None,
+    only_difficult: bool = False,
+) -> list[str]:
+    dirs = list_nonmatching_dirs(root, overlay=overlay)
     if not dirs:
         return []
     cmd = [
@@ -155,30 +162,62 @@ def ranked_functions(root: Path, extra_exclude: Optional[Path] = None) -> list[s
         "--ranked",
         *dirs,
     ]
+    if only_difficult:
+        cmd.append("--only-difficult")
     if extra_exclude is not None and extra_exclude.is_file():
         cmd.extend(["--exclude-file", str(extra_exclude)])
     proc = subprocess.run(cmd, cwd=root, capture_output=True, text=True)
     if proc.returncode != 0:
         err = (proc.stderr or proc.stdout or "").strip()
-        if "All functions are marked as difficult" in err:
+        if (
+            "All functions are marked as difficult" in err
+            or "No remaining difficult functions" in err
+            or "difficult_functions is empty" in err
+        ):
             return []
         raise RuntimeError(err or "score_functions.py failed")
     return [line.strip() for line in proc.stdout.splitlines() if line.strip()]
 
 
-def blocked_names(state: dict) -> set[str]:
+def blocked_names(state: dict, *, only_difficult: bool = False) -> set[str]:
     names = set(state["claims"])
     names.update(state.get("matched") or [])
-    names.update(state.get("difficult") or [])
+    # Historical give-ups are the --difficult pool; only skip them in normal vacuum.
+    if not only_difficult:
+        names.update(state.get("difficult") or [])
     return names
 
 
-def pick_func(root: Path, state: dict) -> Optional[str]:
-    blocked = blocked_names(state)
-    for name in ranked_functions(root):
+def pick_func(
+    root: Path,
+    state: dict,
+    *,
+    overlay: Optional[str] = None,
+    only_difficult: bool = False,
+    extra_exclude: Optional[Path] = None,
+) -> Optional[str]:
+    blocked = blocked_names(state, only_difficult=only_difficult)
+    for name in ranked_functions(
+        root,
+        extra_exclude=extra_exclude,
+        overlay=overlay,
+        only_difficult=only_difficult,
+    ):
         if name not in blocked:
             return name
     return None
+
+
+def empty_claim_error(
+    *, overlay: Optional[str], only_difficult: bool
+) -> str:
+    if only_difficult and overlay:
+        return f"no remaining difficult functions in overlay {overlay}"
+    if only_difficult:
+        return "no remaining difficult functions"
+    if overlay:
+        return f"no unmatched unclaimed functions in overlay {overlay}"
+    return "no unmatched unclaimed functions"
 
 
 def result(ok: bool, **kwargs) -> dict:
@@ -194,6 +233,9 @@ def cmd_claim(
     cli: str,
     func: Optional[str],
     root: Path,
+    overlay: Optional[str] = None,
+    only_difficult: bool = False,
+    extra_exclude: Optional[Path] = None,
 ) -> tuple[int, dict]:
     existing = store.session_claim(session)
     if existing:
@@ -208,10 +250,21 @@ def cmd_claim(
         return EXIT_OK, result(True, func=existing, reused=True)
 
     if not func:
-        func = pick_func(root, store.data)
+        try:
+            func = pick_func(
+                root,
+                store.data,
+                overlay=overlay,
+                only_difficult=only_difficult,
+                extra_exclude=extra_exclude,
+            )
+        except RuntimeError as exc:
+            return EXIT_ERROR, result(False, error=str(exc), code="error")
         if not func:
             return EXIT_EMPTY, result(
-                False, error="no unmatched unclaimed functions", code="empty"
+                False,
+                error=empty_claim_error(overlay=overlay, only_difficult=only_difficult),
+                code="empty",
             )
 
     claim = store.data["claims"].get(func)
@@ -227,10 +280,16 @@ def cmd_claim(
         return EXIT_CONFLICT, result(
             False, error=f"{func} already matched", code="conflict", func=func
         )
-    if func in store.data.get("difficult") or []:
-        return EXIT_CONFLICT, result(
-            False, error=f"{func} marked difficult", code="conflict", func=func
-        )
+    difficult = store.data.setdefault("difficult", [])
+    if func in difficult:
+        if only_difficult:
+            # Retry a previous give-up. Drop it from the orch skip list so a
+            # concurrent worker can also see the claim rather than a stale skip.
+            difficult.remove(func)
+        else:
+            return EXIT_CONFLICT, result(
+                False, error=f"{func} marked difficult", code="conflict", func=func
+            )
 
     store.data["claims"][func] = {
         "session": session,
@@ -355,6 +414,7 @@ def cmd_log_flush(
 
 def dispatch(cmd: str, store: Store, args: argparse.Namespace) -> tuple[int, dict]:
     if cmd == "claim":
+        exclude = getattr(args, "exclude_file", None)
         return cmd_claim(
             store,
             session=args.session,
@@ -362,6 +422,9 @@ def dispatch(cmd: str, store: Store, args: argparse.Namespace) -> tuple[int, dic
             cli=args.cli,
             func=args.func,
             root=Path(args.root),
+            overlay=getattr(args, "overlay", None) or None,
+            only_difficult=bool(getattr(args, "only_difficult", False)),
+            extra_exclude=Path(exclude) if exclude else None,
         )
     if cmd == "relinquish":
         if not args.func:
@@ -470,6 +533,11 @@ def serve(args: argparse.Namespace) -> int:
                 state=str(state_path),
                 wait=int(body.get("wait") or 0),
                 poll=float(body.get("poll") or 1.0),
+                overlay=body.get("overlay"),
+                only_difficult=bool(
+                    body.get("only_difficult") or body.get("difficult")
+                ),
+                exclude_file=body.get("exclude_file"),
             )
             if not ns.session and cmd != "status":
                 self._send(400, result(False, error="session required"))
@@ -515,6 +583,21 @@ def build_parser() -> argparse.ArgumentParser:
     add_session(p_claim)
     p_claim.add_argument("--cli", default="unknown")
     p_claim.add_argument("--func", default=None)
+    p_claim.add_argument(
+        "--overlay",
+        default=None,
+        help="Restrict auto-pick to one overlay (name, version/name, or asm path)",
+    )
+    p_claim.add_argument(
+        "--only-difficult",
+        action="store_true",
+        help="Auto-pick from tools/difficult_functions instead of skipping it",
+    )
+    p_claim.add_argument(
+        "--exclude-file",
+        default=None,
+        help="Extra names to skip (same format as tools/difficult_functions)",
+    )
 
     p_rel = sub.add_parser("relinquish", help="Drop a claim without finishing")
     add_session(p_rel, pid=False)
