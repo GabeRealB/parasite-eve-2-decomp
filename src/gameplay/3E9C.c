@@ -952,7 +952,332 @@ void func_800EFBC4(Task* arg0)
     Gp_ReleaseState1CMem(mem, arg0);
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F02B4);
+void func_800F02B4(Task* arg0)
+{
+    SVECTOR        delta;
+    SVECTOR        dir;
+    SVECTOR        pos;
+    VECTOR         vec;
+    VECTOR         tmp;
+    GameActorExt*  extra;
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    SVECTOR*       vel;
+    s16            flag;
+    s32            t2;
+    s32            scale;
+    u16            tx;
+    u16            ty;
+    u16            tz;
+    s32            dz;
+
+    extra = (GameActorExt*)arg0->extra;
+    mem   = arg0->spawnArg2;
+    flag  = Gp_State1C->field_4;
+    coord = (GsCOORDINATE2*)extra->field_8;
+    if (flag != 0) {
+        if (flag < 4) {
+            return;
+        }
+        goto release;
+    }
+    Gp_UpdateCoord(coord);
+    if (arg0->state == 0) {
+        extra->field_C &= 0xFF7F;
+        switch (arg0->spawnArg1) {
+            case 1:
+            default:
+                mem->field_24 = 0xD4;
+                mem->field_26 = 0x14;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x60;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_12 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_14 = ((u32)Gp_LcgState >> 16) & 0x7F;
+                gte_SetRotMatrix(&mem->field_8->coord);
+                gte_ldv0((SVECTOR*)&mem->field_10);
+                gte_rtv0_real();
+                gte_stsv((SVECTOR*)&mem->field_10);
+                break;
+            case 2:
+                mem->field_24 = 0x100;
+                mem->field_26 = 0x14;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x60;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_12 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_14 = ((u32)Gp_LcgState >> 16) & 0x7F;
+                gte_SetRotMatrix(&mem->field_8->coord);
+                gte_ldv0((SVECTOR*)&mem->field_10);
+                gte_rtv0_real();
+                gte_stsv((SVECTOR*)&mem->field_10);
+                break;
+            case 3:
+                mem->field_24 = 0x114;
+                mem->field_26 = 0xF;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x60;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_12 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_14 = ((u32)Gp_LcgState >> 16) & 0x7F;
+                gte_SetRotMatrix(&mem->field_8->coord);
+                gte_ldv0((SVECTOR*)&mem->field_10);
+                gte_rtv0_real();
+                gte_stsv((SVECTOR*)&mem->field_10);
+                break;
+            case 30:
+            case 31:
+            case 32:
+                mem->field_24 = 0x114;
+                mem->field_26 = 0xA;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x60;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_12 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_14 = ((u32)Gp_LcgState >> 16) & 0x7F;
+                gte_SetRotMatrix(&mem->field_8->coord);
+                gte_ldv0((SVECTOR*)&mem->field_10);
+                gte_rtv0_real();
+                gte_stsv((SVECTOR*)&mem->field_10);
+                break;
+            case 5:
+            case 33:
+                mem->field_24 = 0xD4;
+                mem->field_26 = 0x14;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x60;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_12 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_14 = ((u32)Gp_LcgState >> 16) & 0x7F;
+                gte_SetRotMatrix(&mem->field_8->coord);
+                gte_ldv0((SVECTOR*)&mem->field_10);
+                gte_rtv0_real();
+                gte_stsv((SVECTOR*)&mem->field_10);
+                break;
+            case 9:
+                mem->field_26 = 0x14;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_12 = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x40;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_14 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_24 = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x40;
+                gte_SetRotMatrix(&mem->field_8->coord);
+                gte_ldv0((SVECTOR*)&mem->field_10);
+                gte_rtv0_real();
+                gte_stsv((SVECTOR*)&mem->field_10);
+                break;
+            case 16:
+            case 20:
+            case 21:
+            case 25:
+            case 26:
+            case 27:
+            case 28:
+            case 29:
+                mem->field_24 = 0x114;
+                mem->field_26 = 0xF;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x60;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_12 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_14 = ((u32)Gp_LcgState >> 16) & 0x7F;
+                gte_SetRotMatrix(&mem->field_8->coord);
+                gte_ldv0((SVECTOR*)&mem->field_10);
+                gte_rtv0_real();
+                gte_stsv((SVECTOR*)&mem->field_10);
+                break;
+            case 17:
+                mem->field_24 = 0x114;
+                mem->field_26 = 5;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x40;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_12 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_14 = 0xFF80 - (((u32)Gp_LcgState >> 16) & 0x3F);
+                gte_SetRotMatrix(&mem->field_8->coord);
+                gte_ldv0((SVECTOR*)&mem->field_10);
+                gte_rtv0_real();
+                gte_stsv((SVECTOR*)&mem->field_10);
+                break;
+            case 13:
+            case 14:
+            case 15:
+                mem->field_24 = 0xBF;
+                mem->field_26 = 0x14;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = (((u32)Gp_LcgState >> 16) & 0x3F) + 0x60;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_12 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_14 = ((u32)Gp_LcgState >> 16) & 0x7F;
+                gte_SetRotMatrix(&mem->field_8->coord);
+                gte_ldv0((SVECTOR*)&mem->field_10);
+                gte_rtv0_real();
+                gte_stsv((SVECTOR*)&mem->field_10);
+                break;
+            case 23:
+                mem->field_24 = 0xBF;
+                mem->field_26 = 0x14;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = 0xFFA0 - (((u32)Gp_LcgState >> 16) & 0x3F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_12 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x7F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_14 = -(((u32)Gp_LcgState >> 16) & 0x7F);
+                memset(&tmp, 0, 0x10);
+                tmp.vx = mem->field_10;
+                tmp.vy = mem->field_12;
+                tmp.vz = mem->field_14;
+                vec    = tmp;
+                ApplyTransposeMatrixLV(&coord->coord, &vec, &vec);
+                mem->field_10 = vec.vx;
+                mem->field_12 = vec.vy;
+                mem->field_14 = vec.vz;
+                break;
+            case 11:
+                mem->field_24 = 0x60;
+                mem->field_26 = 0x14;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_12 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_14 = ((((u32)Gp_LcgState >> 16) & 0x1F) + 0x10);
+                gte_SetRotMatrix(&mem->field_8->coord);
+                gte_ldv0((SVECTOR*)&mem->field_10);
+                gte_rtv0_real();
+                gte_stsv((SVECTOR*)&mem->field_10);
+                break;
+            case 12:
+                mem->field_24 = 0x80;
+                mem->field_26 = 0xF;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_12 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_14 = 0xFFC0 - (((u32)Gp_LcgState >> 16) & 0x3F);
+                gte_SetRotMatrix(&mem->field_8->coord);
+                gte_ldv0((SVECTOR*)&mem->field_10);
+                gte_rtv0_real();
+                gte_stsv((SVECTOR*)&mem->field_10);
+                break;
+            case 37:
+                mem->field_24 = 0x60;
+                mem->field_26 = 0x14;
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_10 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_12 = 0x10 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+                mem->field_14 = 0xFFF0 - (((u32)Gp_LcgState >> 16) & 0x1F);
+                gte_SetRotMatrix(&mem->field_8->coord);
+                gte_ldv0((SVECTOR*)&mem->field_10);
+                gte_rtv0_real();
+                gte_stsv((SVECTOR*)&mem->field_10);
+                break;
+        }
+        VectorNormalSS((SVECTOR*)&mem->field_10, (SVECTOR*)&mem->field_10);
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        mem->field_18 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        mem->field_1A = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        mem->field_1C = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+        coord->flg    = 0;
+        arg0->state   = 1;
+        Gfx_RotMatrixX(&coord->coord, 0x800, 0);
+        return;
+    }
+    Gfx_RotMatrixXYZ(&coord->coord, (SVECTOR*)&mem->field_18, 0);
+    MatrixNormal(&coord->coord, &coord->coord);
+    gte_lddp(*(u16*)&mem->field_24);
+    vel = (SVECTOR*)&mem->field_10;
+    gte_ldsv(vel);
+    gte_gpf12_real();
+    gte_stsv(&delta);
+    coord->coord.t[0] += delta.vx;
+    coord->coord.t[1] += delta.vy;
+    t2                 = coord->coord.t[2] + delta.vz;
+    coord->flg         = 0;
+    coord->coord.t[2]  = t2;
+    gte_SetRotMatrix(&D_80070F34);
+    gte_ldv0(&delta);
+    gte_rtv0_real();
+    gte_stsv(&dir);
+    tx             = *(u16*)&coord->workm.t[0];
+    pos.vx         = tx;
+    ty             = *(u16*)&coord->workm.t[1];
+    pos.vy         = ty;
+    tz             = *(u16*)&coord->workm.t[2];
+    *(u16*)&dir.vx = *(u16*)&dir.vx + tx;
+    *(u16*)&dir.vy = *(u16*)&dir.vy + ty;
+    pos.vz         = tz;
+    *(u16*)&dir.vz = *(u16*)&dir.vz + tz;
+    if (func_800DE7CC(&dir, &pos, &dir, &pos) == 1) {
+        register SVECTOR* r0 asm("a0");
+        r0 = vel;
+        __asm__ volatile("" ::"r"(r0));
+        coord->coord.t[0] -= delta.vx;
+        coord->coord.t[1] -= delta.vy;
+        coord->coord.t[2] -= delta.vz;
+        __asm__ volatile("" ::: "memory");
+        {
+            u16          t10;
+            u16          t11;
+            register s32 t12 asm("a1");
+            s32          sum;
+            t10 = *(volatile u16*)&pos.vx;
+            t11 = *(volatile u16*)&mem->field_10;
+            t12 = *(volatile u16*)&mem->field_12;
+            sum = ((s32)(t10 << 16) >> 17) + ((s32)(t11 << 16) >> 17);
+            __asm__ volatile("" ::"r"(t12));
+            mem->field_10 = sum;
+            t12         <<= 16;
+            t12         >>= 17;
+            __asm__ volatile("" ::: "memory");
+            mem->field_12 = *(u16*)&pos.vy + t12;
+        }
+        dz            = (s32)(*(u16*)&mem->field_14 << 16) >> 17;
+        mem->field_14 = ((s32)(*(u16*)&pos.vz << 16) >> 17) + dz;
+        VectorNormalSS(vel, vel);
+        scale         = (mem->field_24 * 2) / 3;
+        mem->field_24 = scale;
+        gte_lddp(scale);
+        gte_ldsv(vel);
+        gte_gpf12_real();
+        gte_stsv(&delta);
+        coord->coord.t[0] += delta.vx;
+        coord->coord.t[1] += delta.vy;
+        coord->coord.t[2] += delta.vz;
+    } else {
+        mem->field_12 += 0x180;
+    }
+    mem->field_22++;
+    if (mem->field_26 < mem->field_22) {
+        if (Display_State.field_8 & 1) {
+            extra->field_C &= 0xFF7F;
+        } else {
+            extra->field_C |= 0x80;
+        }
+        if (mem->field_26 * 2 < mem->field_22) {
+            goto release;
+        }
+    }
+    return;
+release:
+    Gp_ReleaseState1CMem(mem, arg0);
+}
 
 void func_800F1364(Task* arg0)
 {

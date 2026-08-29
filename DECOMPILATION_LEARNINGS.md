@@ -2485,6 +2485,34 @@ splitting `[0x3E9C, .rodata, 3E9C]` / `[0x3F20, rodata, rodata_3E9C]` makes spla
 emit the pad as its own `D_80097720` word ahead of `jtbl_80097724`. Splitting at
 `0x3F24` instead drops the pad entirely and shifts every later table by 4.
 
+Once the *second* table also becomes compiler-generated, do the reverse: delete
+the `rodata` remainder segment (and its `asm/<ver>/<overlay>/data/<name>.rodata.s`)
+and let the single `.rodata` subsegment span both tables. The pad word comes back
+on its own, because GCC emits `.align 3` before the second table inside the same
+object. `[0x3E9C, .rodata, 3E9C]` / `[0x3F20, rodata, rodata_3E9C]` collapsed to
+just `[0x3E9C, .rodata, 3E9C]` when `func_800F02B4` joined `func_800ECAA8`
+(0x84-byte table at +0, `.align 3` pad at +0x84, second table at +0x88). Leaving
+the `rodata` remainder in place instead makes splat's scan complain that
+"the rodata segment ... has jumptables that are not aligned properly file-wise".
+
+## m2c: "the corresponding jump table is not provided"
+
+The scratch bootstrapper only feeds m2c the function's own `.s`, so any function
+with a `jr $v0` switch comes back as an empty `base.c` with
+`// file is blank because m2c failed to decompile function`. That is not a
+verdict on the function's difficulty — re-run m2c yourself with the overlay's
+rodata file appended as a second input:
+
+```sh
+python3 tools/m2ctx.py src/gameplay/3E9C.c          # writes ./ctx.c
+python3 tools/m2c/m2c.py --target mipsel-gcc-c -f func_800F02B4 --context ctx.c \
+    asm/USA/gameplay/nonmatchings/3E9C/func_800F02B4.s \
+    asm/USA/gameplay/data/rodata_3E9C.rodata.s
+```
+
+Find the right rodata file by grepping the `jtbl_XXXXXXXX` name named in the
+`lui`/`addiu` pair just above the `jr`.
+
 **A jump table's first entry fixes the lowest `case` label.** The range check
 `addiu $v1, $v0, -0x1; sltiu $v0, $v1, 0x21` says the table is indexed by
 `switch_value - 1` and covers 33 entries, i.e. cases 1..33. If case 1's slot
