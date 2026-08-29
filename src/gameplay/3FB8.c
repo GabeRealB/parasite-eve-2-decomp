@@ -1397,7 +1397,125 @@ void func_800FE41C(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_800FE56C);
+void func_800FE56C(Task* arg0)
+{
+    GpEffFt4Scratch*        block;
+    register GsCOORDINATE2* coord asm("s2");
+    register GpEffWork*     mem asm("s1");
+    POLY_FT4*               prim;
+    s16                     x;
+    s16                     y;
+    register s32            amt asm("a2");
+    s32                     t;
+    u16                     uv;
+    s32                     scale;
+    s32                     c;
+    u32                     rnd;
+    s32                     flag2;
+    u8*                     head;
+
+    mem   = arg0->spawnArg2;
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    if (Gp_State1C->field_4 < 4) {
+        head                    = (u8*)*(void**)G_SCRATCH_HEAD - 0x18;
+        *(void**)G_SCRATCH_HEAD = head;
+        block                   = (GpEffFt4Scratch*)head;
+        if (arg0->state == 0) {
+            t   = (u16)arg0->spawnArg1 & 0xFFF;
+            amt = 0x200;
+            if (t != 0) {
+                amt = t;
+            }
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_24 = amt;
+            mem->field_26 = ((u32)Gp_LcgState >> 16) % 12 + 12;
+            flag2         = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_2;
+            if (flag2 & 1) {
+                Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+                rnd         = (u32)Gp_LcgState >> 16;
+                rnd         = rnd % 40;
+            } else {
+                rnd = 0;
+            }
+            mem->field_2A = rnd;
+            arg0->state++;
+            arg0->spawnArg1 &= 0x80000000;
+        }
+        Gp_UpdateCoord(coord);
+        block->vec.vx = *(u16*)&coord->workm.t[0];
+        block->vec.vy = *(u16*)&coord->workm.t[1];
+        block->vec.vz = *(u16*)&coord->workm.t[2];
+        gte_SetTransMatrix(&GsWSMATRIX);
+        gte_SetRotMatrix(&GsWSMATRIX);
+        gte_ldv0(&block->vec);
+        gte_rtps_real();
+        gte_stsxy(&block->sx);
+        gte_stflg(&block->flag);
+        if (block->flag >= 0) {
+            gte_stszotz(&block->otz);
+            block->otz++;
+            prim       = (POLY_FT4*)D_80071190;
+            D_80071190 = (DR_TPAGE*)(prim + 1);
+            setlen(prim, 9);
+            setcode(prim, 0x2C);
+            if (mem->field_22 < 0xC) {
+                scale = mem->field_24 * mem->field_22 / 12;
+            } else {
+                scale = (u16)mem->field_24;
+            }
+            mem->field_28 = scale;
+            if (mem->field_26 - 8 < mem->field_22) {
+                c = (mem->field_26 - mem->field_22 + 1) * 0x10;
+                setRGB0(prim, c, c, c);
+            } else {
+                prim->code |= 1;
+            }
+            prim->tpage = 0x29;
+            prim->clut  = 0x4282;
+            prim->code |= 2;
+            uv          = mem->field_22;
+            prim->v0    = 0x98;
+            prim->u0    = (s16)((s16)uv % 6) * 0x20;
+            uv          = mem->field_22;
+            prim->v1    = 0x98;
+            prim->u1    = ((s16)((s16)uv % 6) * 0x20) + 0x1F;
+            uv          = mem->field_22;
+            prim->v2    = 0xB7;
+            prim->u2    = (s16)((s16)uv % 6) * 0x20;
+            uv          = mem->field_22;
+            prim->v3    = 0xB7;
+            prim->u3    = ((s16)((s16)uv % 6) * 0x20) + 0x1F;
+            block->size = (mem->field_28 * 0x1F) / block->otz;
+            x           = *(u16*)&block->sx - *(u16*)&block->size;
+            prim->x2    = x;
+            prim->x0    = x;
+            x           = *(u16*)&block->sx + *(u16*)&block->size;
+            prim->x3    = x;
+            prim->x1    = x;
+            y           = *(u16*)&block->sy - *(u16*)&block->size;
+            prim->y1    = y;
+            prim->y0    = y;
+            y           = *(u16*)&block->sy + *(u16*)&block->size;
+            prim->y3    = y;
+            prim->y2    = y;
+            addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                    prim);
+        }
+        *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x18;
+        if (Gp_State1C->field_4 != 0) {
+            return;
+        }
+        if (mem->field_2A != 0) {
+            coord->coord.t[1] -= mem->field_2A;
+            coord->flg         = 0;
+        }
+        mem->field_22++;
+        if (mem->field_26 >= mem->field_22) {
+            return;
+        }
+    }
+    Gp_ReleaseState1CMem(mem, arg0);
+}
 
 void func_800FEAF8(Task* arg0)
 {

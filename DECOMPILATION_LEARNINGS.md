@@ -30281,3 +30281,68 @@ Same for `op->vy = (rcos(ang) * r1) >> 12; op->vz = 0;` — keeping the constant
 last also stops the `addiu a0, s2, 0x80` from crossing the `rcos` call, so `op`
 stays in a caller-saved register instead of being promoted to `$s0`.
 `func_800EB9B0` is the example: 98.2% -> 100% from this reorder alone.
+
+## Unpin the scratch `block` instead of pinning the `head` temp
+
+The `G_SCRATCH_HEAD` push wants `lw v1` / `addiu v1,v1,-0x18` / `sw v1,0(v0)`
+plus a separate `move s0, v1`. With `register GpEffFt4Scratch* block asm("s0")`
+GCC 2.8.1 coalesces the `head` temp straight into `$s0` and the `move`
+disappears, no matter how the push is written (plain local, `*head -= 0x18`
+re-read, or a no-op `asm volatile("" ::"r"(head))` barrier — all three still
+give `lw s0` / `addiu s0` / `sw s0`).
+
+Pinning `head` to `$v1` does restore the `move`, but a function-scope
+`register ... asm("v1")` reserves `$v1` for the whole body, so every later
+`mfhi` temp that the target puts in `$v0` / `$v1` slides up to `$a3`:
+
+```
+-mfhi    v1          # target
+-sra     v1,v1,0x1
++mfhi    a3          # with head pinned to $v1
++sra     v1,a3,0x1
+```
+
+A *block-scoped* `register u8* head asm("v1")` does not help — the allocator
+still treats the hard register as taken everywhere.
+
+The fix is the opposite of the usual one: drop the pin on the **destination**.
+`block` is live across `Gp_UpdateCoord` so it lands in `$s0` on its own, and
+with nothing pinned GCC allocates the push temp to `$v1`, emits the `move`, and
+leaves `$v0`/`$v1` free for the `mfhi`s:
+
+```c
+GpEffFt4Scratch* block;   /* not pinned */
+u8*              head;
+
+head                    = (u8*)*(void**)G_SCRATCH_HEAD - 0x18;
+*(void**)G_SCRATCH_HEAD = head;
+block                   = (GpEffFt4Scratch*)head;
+```
+
+`func_800FE56C` is the example (99.34% → 99.96% from removing the `$s0` pin).
+
+## Split an unsigned `%` across two statements to tie the remainder to the dividend
+
+`rnd = ((u32)Gp_LcgState >> 16) % 40;` in one arm of an if/else allocates the
+remainder to a *new* pseudo (`subu v1,a0,v0`), because the value has to survive
+the join. The target reuses the dividend register (`subu a0,a0,v0`). Writing
+the shift and the modulo as two statements on the same variable makes GCC 2.8.1
+tie them:
+
+```c
+u32 rnd;
+
+if (flag & 1) {
+    Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+    rnd         = (u32)Gp_LcgState >> 16;
+    rnd         = rnd % 40;   /* subu a0,a0,v0 */
+} else {
+    rnd = 0;                  /* move a0,zero  */
+}
+mem->field_2A = rnd;
+```
+
+The variable must be unsigned (`u32`) or the divide becomes the signed
+`mult 0x2AAAAAAB` sequence instead of `multu 0xCCCCCCCD`. Pinning `rnd` to
+`$a0` instead pushes the `srl`/`sll` intermediates onto `$a1`, so this is not
+a job for a register pin. `func_800FE56C` is the example (99.96% → 100%).
