@@ -26489,6 +26489,17 @@ enough — GCC still uses `$s1` for both halves.
 
 `Gp_UpdateRoomCoords` is the example.
 
+## Do not pin a BSS pointer that already lands in the right `$s` reg
+
+`register UiList* menu asm("s4"); menu = &D_8010E8AC` emits
+`lui s4, %hi` / `addiu s4, s4, %lo`. The prologue wants the save of `$s4`
+interleaved as `lui v0, %hi` / `sw s4, off(sp)` / `addiu s4, v0, %lo`.
+Unpinning `menu` was enough: GCC still colored it `$s4` (other long-lived
+values were already pinned to `$s1`/`$s5`/`$s7`) and used `$v0` for `%hi`.
+A dummy `$v0` temp plus `menu = p` coalesced back to `lui s4`.
+
+`func_800C46B4` is the example.
+
 ## Hardcode `$8` for a second `Mc_SaveData+off` `lui` so `$t0` stays a first-half scratch
 
 `register s32 hi asm("t0")` (even nested inside a later loop) reserves `$t0`

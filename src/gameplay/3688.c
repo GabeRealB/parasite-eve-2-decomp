@@ -181,6 +181,7 @@ extern char           Gp_StrExp[];
 extern char           Gp_StrBp[];
 extern char           Gp_StrArmor[];
 extern char           Gp_StrAttachments[];
+extern char           Gp_StrAttachments2[];
 extern char           Gp_StrWeaponTitle[];
 extern char           Gp_StrE[];
 extern char           Gp_StrItemHdr[];
@@ -261,6 +262,8 @@ void       func_800C942C(UiList* arg0, s32 arg1);
 void       func_800C9654(Task* arg0);
 void       func_800C22D8(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
 void       func_800C2538(UiObject* arg0, s32 arg1, s32 arg2, s32 arg3, s32 arg4);
+void       func_800CDF18(UiObject* arg0);
+void       func_800CF090(UiList* arg0, UiObject* arg1);
 GpItemRec* func_800C5188(McItemScan* arg0, s32 arg1, s32 arg2);
 s32        Display_SetFlag20000000(void);
 s32        Stage_GetFadeStatus(void);
@@ -2586,7 +2589,434 @@ void func_800C3CE0(Task* arg0)
 
 INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C41A4);
 
-INCLUDE_ASM("gameplay/nonmatchings/3688", func_800C46B4);
+void func_800C46B4(Task* arg0)
+{
+    register UiObject* obj asm("s1");
+    UiList*            menu;
+    register s32       item asm("s5");
+    register s32       color asm("s7");
+    WipSysConfig*      cfg;
+    s32                status;
+    s32                x;
+    s32                y;
+    struct {
+        TextDrawReq req;
+        struct {
+            s16 unk0;
+            u16 unk2;
+        } cursor;
+        s32 pad0;
+        s16 x;
+        s16 y;
+        s32 pad[2];
+    } locals;
+
+    menu          = &D_8010E8AC;
+    obj           = arg0->spawnArg2;
+    cfg           = &Wip_SysConfig;
+    obj->field_2E = 0;
+    Ui_DrawText((UiPanel*)obj, Gp_StrArmor);
+
+    if (arg0->state == 0) {
+        s32 id;
+        s32 temp;
+
+        id = cfg->field_23 + 0x5F;
+        if (id != 0) {
+            menu->field_4 = Gp_GetModLevel(id);
+        }
+        menu->field_5 = menu->field_4;
+        if ((s8)menu->field_4 >= 4) {
+            menu->field_5 = 3;
+        }
+        if ((menu->field_4 - (s8)menu->field_5) < (s8)menu->field_9) {
+            menu->field_9 = 0;
+        }
+        if (menu->field_14 == 0) {
+            temp = (s8)menu->field_9 + (s8)menu->field_5;
+            if (menu->field_10 >= temp) {
+                menu->field_10 = temp - 1;
+            }
+        }
+        Ui_InitList(menu, (UiMiniObj*)obj);
+        menu->field_17 = 0x1A;
+        menu->field_A  = 1;
+        arg0->state    = arg0->state + 2;
+    }
+
+    item = cfg->field_23;
+    if (item > 0) {
+        item += 0x5F;
+    }
+    {
+        s32 id;
+        s32 temp;
+
+        id = Wip_SysConfig.field_23 + 0x5F;
+        if (id != 0) {
+            menu->field_4 = Gp_GetModLevel(id);
+        }
+        {
+            u8 n;
+            n             = menu->field_4;
+            menu->field_5 = n;
+            if ((s8)n >= 4) {
+                menu->field_5 = 3;
+            }
+        }
+        if ((menu->field_4 - (s8)menu->field_5) < (s8)menu->field_9) {
+            menu->field_9 = 0;
+        }
+        if (menu->field_14 == 0) {
+            temp = (s8)menu->field_9 + (s8)menu->field_5;
+            if (menu->field_10 >= temp) {
+                menu->field_10 = temp - 1;
+            }
+        }
+        Ui_ComputeVisibleRows(menu, (s32)obj);
+        menu->field_17 = 0x1A;
+        menu->field_A  = 1;
+    }
+
+    if ((D_80114D84 == 1) && (Ui_IsStateDone((Task*)obj) == 0)) {
+        Ui_SetState4((Task*)obj, obj->owner);
+    } else if ((D_80114D84 == 0) && (Ui_IsStateDone((Task*)obj) == 1)) {
+        Ui_ClampAnimOrClose((UiPanel*)obj, (s32)obj->owner, 0x10);
+    }
+
+    color = Ui_LookupTable(obj, 1);
+
+    if (arg0->state == 2) {
+        {
+            s32 t;
+            s32 one;
+            t   = obj->status;
+            one = 1;
+            if (((t >> 16) == one) || (t == one)) {
+                if (D_80114D8C == 0) {
+                    register s32 name asm("a0");
+                    register s32 a1v asm("a1");
+                    a1v = 1;
+                    if (item == 0) {
+                        name = (s32)D_8010F8D0;
+                    } else {
+                        name = (s32)Gp_GetItemText(item, a1v, 0);
+                    }
+                    a1v = 0;
+                    asm volatile("" : "+r"(a1v));
+                    Ui_SetHolderParam(name, a1v, a1v);
+                    Gp_SetPreviewItem(item, 0);
+                } else {
+                    Ui_SetHolderParam((s32)Gp_StrSelectDest, 0, 0);
+                }
+            }
+        }
+        status      = obj->status;
+        obj->status = 0;
+        Ui_UpdateListNoAnim(menu, obj);
+        obj->status = status;
+        if (status == 1) {
+            Ui_SmoothCursor((UiMiniObj*)obj, (s32)(s16)obj->field_1C, (s16)obj->field_18 + 7);
+            if (Pad_CheckButtons(0, 1, 0x4000) != 0) {
+                SndEvt_EnqueueType6(2, 0, 0);
+                arg0->state    = status;
+                menu->field_10 = (s8)menu->field_9;
+            } else if (Pad_CheckButtons(0, 1, 0x1000) != 0) {
+                SndEvt_EnqueueType6(2, 0, 0);
+                D_80114D98[0]->status = status;
+                D_8010E884.field_10   = D_8010E884.field_4 - 1;
+                obj->status           = 0;
+            } else {
+                s32 flag;
+                flag = D_80114D8C;
+                if (flag == 0) {
+                    register McItemScan* scan;
+                    register GpItemRec*  table;
+                    register s32         i;
+                    register s32         idx;
+                    s32                  count;
+
+                    scan  = &Mc_SaveData.field_5BC;
+                    table = Gp_GetItemTable(scan);
+                    i     = 0;
+                    idx   = scan->field_0;
+                    count = scan->field_1;
+                    idx <<= 2;
+                    table = (GpItemRec*)((s32)table + idx);
+                    if (flag < count) {
+                        do {
+                            if (table->field_0 == item) {
+                                locals.x      = obj->field_1C + 2;
+                                Gp_SelItemRec = (u8*)table;
+                                locals.y      = obj->field_18 + 0xF;
+                                if (Pad_CheckButtons(0, 1, D_8005ED70) != 0) {
+                                    SndEvt_EnqueueType6(3, 0, 0);
+                                    func_800CF090(&D_8010E9F4, obj);
+                                    if (D_8010E9F4.field_4 != 0) {
+                                        UiObject* spawned;
+                                        s32       t;
+                                        SndEvt_EnqueueType6(3, 0, 0);
+                                        spawned = Ui_SpawnFromDesc(&D_8010ECAC, 0, 1, 0x10, obj);
+                                        {
+                                            register UiObject* p asm("v1");
+                                            p = spawned;
+                                            if (p != NULL) {
+                                                t          = -0x5C;
+                                                p->field_E = t;
+                                                t          = -8;
+                                                p->field_C = t;
+                                            }
+                                        }
+                                        obj->status = 0;
+                                    } else {
+                                        Gp_SpawnItemPrompt(obj, 0x15, 0, 1);
+                                        obj->status = 0;
+                                    }
+                                } else {
+                                    func_800CDF18(obj);
+                                }
+                                break;
+                            }
+                            i++;
+                            table++;
+                        } while (i < scan->field_1);
+                    }
+                } else if ((flag == status) && (Pad_CheckButtons(0, 1, D_8005ED70) != 0)) {
+                    if ((u32)(*Gp_SelItemRec - 0x60) < 0x20U) {
+                        SndEvt_EnqueueType6(3, 0, 0);
+                        Gp_EquipMod((s32)*Gp_SelItemRec);
+                        Gp_SetItemSeenBit((s32)*Gp_SelItemRec, 1);
+                        D_80114D8C = 0;
+                    } else {
+                        Task* parent;
+                        parent = arg0->parent;
+                        if (parent != 0) {
+                            UiObject* po;
+                            po         = parent->spawnArg2;
+                            D_80114D8C = 0;
+                            asm volatile("" : "+r"(flag));
+                            po->status  = flag;
+                            obj->status = 0;
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        s32 val;
+        Ui_UpdateListNoAnim(menu, obj);
+        val = menu->field_22;
+        if (val == 2) {
+            SndEvt_EnqueueType6(2, 0, 0);
+            arg0->state = val;
+        }
+    }
+
+    x = (s16)obj->field_1C + 2;
+    y = (s16)obj->field_18 + 0xF;
+    if (obj->mode != 5) {
+        s32 off;
+        s32 temp;
+        locals.req.x          = obj->baseX + 0x11 + x;
+        off                   = obj->baseY - 6;
+        locals.req.y          = off + y;
+        locals.req.otIndex    = (s16)obj->drawOrder + 1;
+        locals.req.field_8    = color;
+        locals.req.glyphTable = 0;
+        locals.req.centerMode = 0;
+        locals.req.field_E    = 1;
+        func_8002E53C(&locals.req, Gp_GetItemText(item, 0, 0));
+        temp = item - 0xF;
+        if ((u32)temp < 0x24U) {
+            func_800C2538(obj, x, y, temp % 3 + 1, color);
+        }
+        func_800C05CC(obj, x, y, item, 0);
+    }
+
+    if ((obj->status == 1) && (arg0->state == 2)) {
+        obj->drawOrder += 1;
+        Ui_AllocTile((UiPanel*)obj, (s32)(s16)obj->field_1C, (s32)(s16)obj->field_18,
+                     ((s16)obj->field_1E - (s16)obj->field_1C) - 1, 0x10, 0x1741FU);
+        obj->drawOrder -= 1;
+    }
+
+    Ui_DrawHBar((UiPanel*)obj, (s32)(s16)obj->field_1C, (s32)(s16)obj->field_1E, (s16)obj->field_18 + 0x11);
+
+    {
+        s32 grey;
+        grey = 0x606060;
+        {
+            register s32 vx asm("v0");
+            register s32 vy asm("v1");
+            vx           = obj->baseX;
+            vy           = (u16)obj->field_1C;
+            vx           = vx + 2;
+            vy           = vy + vx;
+            locals.req.x = vy;
+            vx           = obj->baseY;
+            vy           = (u16)obj->field_18;
+            vx           = vx + 0x18;
+            vy           = vy + vx;
+            locals.req.y = vy;
+        }
+        locals.req.otIndex    = (s16)obj->drawOrder + 1;
+        locals.req.field_8    = grey;
+        locals.req.glyphTable = 5;
+        locals.req.centerMode = 0;
+        locals.req.field_E    = 1;
+        func_8002E53C(&locals.req, Gp_StrAttachments2);
+    }
+
+    {
+        s32 st;
+        st = obj->status;
+        if (st == 1) {
+            if (Pad_CheckButtons(0, 1, D_8005ED78) != 0) {
+                obj->field_2E = -1;
+            } else if (Pad_CheckButtons(0, 1, D_8005ED74) != 0) {
+                Task*     parent;
+                UiObject* parentObj;
+                SndEvt_EnqueueType6(4, 0, 0);
+                parent = arg0->parent;
+                if (parent != 0) {
+                    parentObj = parent->spawnArg2;
+                    if (D_80114D8C == 0) {
+                        parentObj->field_2C = st;
+                        parentObj->field_2E = 6;
+                    } else {
+                        parentObj->status = st;
+                        obj->status       = 0;
+                        D_80114D8C        = 0;
+                    }
+                }
+            } else if (Pad_CheckButtons(0, 1, 0x2000) != 0) {
+                Task*     parent;
+                UiObject* parentObj;
+                parent = arg0->parent;
+                if (parent != 0) {
+                    UiList* other;
+                    s16     row;
+                    s32     sel;
+                    s32     row9;
+                    s32     vis;
+
+                    parentObj             = parent->spawnArg2;
+                    *(s32*)&locals.cursor = Ui_GetCursorFixed();
+                    SndEvt_EnqueueType6(2, 0, 0);
+                    other           = &D_8010E854;
+                    row             = locals.cursor.unk2 - (parentObj->baseY + parentObj->field_18);
+                    row             = row / other->field_7;
+                    vis             = (s8)other->field_5;
+                    row9            = (s8)other->field_9;
+                    sel             = row + row9;
+                    other->field_10 = sel;
+                    if (sel >= row9 + vis) {
+                        other->field_10 = row9 + vis - 1;
+                    }
+                    if (other->field_10 >= other->field_4) {
+                        other->field_10 = other->field_4 - 1;
+                    }
+                    parentObj->status = st;
+                    obj->status       = 0;
+                }
+            }
+        }
+    }
+
+    if (obj->status == 0x17) {
+        register s32 t asm("a1");
+        register s32 by asm("v0");
+        register s32 f18 asm("v1");
+        register s32 f2c asm("a0");
+        by  = (s16)obj->baseY;
+        f18 = (s16)obj->field_18;
+        f2c = obj->field_2C;
+        by += f18;
+        t   = f2c - by;
+        if (t < 0xF) {
+            arg0->state = 2;
+        } else {
+            register s32 h asm("a0");
+            register s32 v asm("v1");
+            register s32 one asm("v0");
+            one         = 1;
+            arg0->state = one;
+            h           = menu->field_7;
+            v           = t - 0xA;
+            t           = v - (h << one);
+            if (t < 0) {
+                menu->field_10 = (s8)menu->field_9;
+            } else {
+                register s32 row9 asm("v0");
+                register s32 f5 asm("v1");
+                register s32 vis asm("a0");
+                t    = t / h;
+                row9 = (s8)menu->field_9;
+                f5   = (s8)menu->field_5;
+                vis  = row9;
+                asm volatile("" : "+r"(vis));
+                vis            = vis + f5;
+                t              = t + 1;
+                row9           = t + row9;
+                menu->field_10 = row9;
+                if (row9 >= vis) {
+                    row9           = vis - 1;
+                    menu->field_10 = row9;
+                }
+                if (menu->field_10 >= (s32)menu->field_4) {
+                    menu->field_10 = menu->field_4 - 1;
+                }
+            }
+        }
+        obj->field_2C = 0;
+        obj->status   = 1;
+    }
+
+    {
+        Task*     owner;
+        Task*     head;
+        Task*     child;
+        Task*     next;
+        UiObject* childObj;
+        s32       one;
+        s32       mask;
+        s32       flag;
+
+        owner = obj->owner;
+        head  = owner->firstChild;
+        if (head != NULL) {
+            child = head;
+            one   = 1;
+            mask  = 0xFFFEFFFF;
+            do {
+                childObj = child->spawnArg2;
+                flag     = childObj->field_2E;
+                next     = child->nextSibling;
+                switch (flag) {
+                    case -1:
+                        obj->field_2E = flag;
+                        break;
+                    case 6:
+                        Ui_TeardownTree(childObj, childObj->owner);
+                        obj->status   = one;
+                        obj->field_4 &= mask;
+                        break;
+                    case 0x23:
+                        Ui_TeardownTree(childObj, childObj->owner);
+                        obj->status   = one;
+                        D_80114D8C    = one;
+                        obj->field_4 &= mask;
+                        break;
+                }
+                head  = owner->firstChild;
+                child = next;
+                if (child == head) {
+                    break;
+                }
+            } while (head != NULL);
+        }
+    }
+}
 
 GpItemRec* func_800C5188(McItemScan* arg0, s32 arg1, s32 arg2)
 {
