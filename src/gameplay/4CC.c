@@ -286,7 +286,7 @@ void Gp_ItemMoveRow(DialogPrompt* arg0, UiObject* arg1)
     WipSysConfig*       cfg;
 
     rec = Gp_GetScanSlot(&Gp_MoveScanSrc + arg1->owner->spawnArg1, arg0->field_8, 0);
-    __asm__ volatile("" : "+r"(rec));
+    TOUCH_REG(rec);
     one  = 1;
     item = rec->field_0;
     if (arg0->field_C != one) {
@@ -978,7 +978,7 @@ void Gp_ItemPickupTilt(Task* arg0)
     vec2 = D_80093DB0;
     Gp_UpdateCoord((GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8);
     func_800D7A9C(extra, &vec2, 0, 3);
-    __asm__ volatile("" ::"r"(item));
+    USE_REG(item);
 }
 
 void Gp_ForEachUiChild(UiObject* arg0, void (*arg1)(UiObject*, Task*))

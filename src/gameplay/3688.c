@@ -363,7 +363,7 @@ void func_800BF9FC(Task* arg0)
                 ca0 = 1;
                 ca1 = 0;
                 ca2 = ca1;
-                asm("" : "+r"(ca0), "+r"(ca1), "+r"(ca2));
+                SOFT_TOUCH_REG3(ca0, ca1, ca2);
                 Wip_UiHolder = NULL;
                 CdCmd_EnqueueLoadFile(ca0, ca1, ca2);
             }
@@ -397,7 +397,7 @@ void func_800BF9FC(Task* arg0)
                         desc = &D_8010F898;
                         a1   = 0;
                         a2   = 1;
-                        asm("" : "+r"(a2));
+                        SOFT_TOUCH_REG(a2);
                         a3   = a2;
                         flag = a2;
                     } else {
@@ -437,7 +437,7 @@ void func_800BF9FC(Task* arg0)
                 SndEvt_EnqueueType6(5, 0, 0);
             }
             fade = 0xFF;
-            asm("" : "+r"(fade));
+            SOFT_TOUCH_REG(fade);
             arg0->killCountdown = 0xC;
             Display_SetFadeMax(fade);
             Display_SetFadeRate(0, 0, 0, 1);
@@ -1255,7 +1255,7 @@ void func_800C16B4(Task* arg0)
     poly->x2   = x;
     poly->x0   = x;
     D_80071190 = (DR_TPAGE*)(poly + 1);
-    asm volatile("" ::: "memory");
+    COMPILER_BARRIER();
     {
         s32 vl;
         s32 fy;
@@ -1263,13 +1263,13 @@ void func_800C16B4(Task* arg0)
         s32 y0;
 
         vl = 0x80;
-        asm volatile("" : "+r"(vl));
+        TOUCH_REG(vl);
         poly->x3 = right;
         poly->x1 = right;
         fy       = obj->field_E;
-        asm volatile("" : "+r"(right));
+        TOUCH_REG(right);
         ur = 0x31;
-        asm volatile("" : "+r"(ur));
+        TOUCH_REG(ur);
         poly->v0    = vl;
         poly->v1    = vl;
         poly->v2    = 0xBE;
@@ -1364,7 +1364,7 @@ void func_800C1960(Task* arg0)
             req2.centerMode = 0;
             req2.field_E    = 3;
             i               = 0;
-            asm volatile("" : "+r"(i));
+            TOUCH_REG(i);
         }
         func_8002E53C(&req2, Text_ItoaSignedPlus(buf, attr->field_6));
 
@@ -1422,7 +1422,7 @@ void func_800C1960(Task* arg0)
                 col = i / 5;
                 asm("lui $8, %%hi(Mc_SaveData+0x5BC)\n\taddiu %0, $8, %%lo(Mc_SaveData+0x5BC)"
                     : "=r"(scan));
-                asm("" : "+r"(col));
+                SOFT_TOUCH_REG(col);
                 temp = col;
                 prod = temp * 5;
                 col  = i - prod;
@@ -1810,7 +1810,7 @@ void func_800C26B8(DialogPrompt* arg0, UiObject* arg1)
                     t = (s32)Gp_GetItemText(item, a1v, 0);
                 }
                 a1v = 0;
-                asm("" : "+r"(a1v));
+                SOFT_TOUCH_REG(a1v);
                 Ui_SetHolderParam(t, a1v, a1v);
                 Gp_SetPreviewItem(item, 0);
             } else {
@@ -1943,9 +1943,9 @@ void func_800C2B70(UiList* arg0, s32 arg1)
                      : "=r"(cfg), "=r"(hi));
     }
     limit = scan->field_1;
-    asm volatile("" ::"r"(limit));
+    USE_REG(limit);
     item = scan->field_0;
-    asm volatile("" : "+r"(count));
+    TOUCH_REG(count);
     i = count;
     if (count < limit) {
         table0 = Gp_RelatedQty0;
@@ -1959,7 +1959,7 @@ void func_800C2B70(UiList* arg0, s32 arg1)
                     goto increment;
                 }
                 j = 0;
-                asm volatile("" ::"r"(j));
+                USE_REG(j);
                 item = rec->field_0;
                 off  = (item - 0x80) * 4;
                 item = item - 0x7F;
@@ -2226,7 +2226,7 @@ void func_800C3418(DialogPrompt* arg0, UiObject* arg1)
     u8*                    ptr;
 
     prompt = arg0;
-    asm("" : "+r"(prompt));
+    SOFT_TOUCH_REG(prompt);
     cfg = &Wip_SysConfig;
     {
         register s32 t asm("v0");
@@ -2237,7 +2237,7 @@ void func_800C3418(DialogPrompt* arg0, UiObject* arg1)
         item = 0;
     }
     obj = arg1;
-    asm("" : "+r"(obj));
+    SOFT_TOUCH_REG(obj);
 
     status = obj->status;
     if (((status >> 16) == 1) || (status == 1)) {
@@ -2252,7 +2252,7 @@ void func_800C3418(DialogPrompt* arg0, UiObject* arg1)
                     name = (s32)Gp_GetItemText(item, a1v, 0);
                 }
                 a1v = 0;
-                asm("" : "+r"(a1v));
+                SOFT_TOUCH_REG(a1v);
                 Ui_SetHolderParam(name, a1v, a1v);
                 Gp_SetPreviewItem(item, 0);
             } else {
@@ -2319,7 +2319,7 @@ void func_800C3418(DialogPrompt* arg0, UiObject* arg1)
                     register WipSysConfig* p asm("s0");
                     register s32           a0item asm("a0");
                     a0item = item;
-                    asm volatile("" : "+r"(a0item));
+                    TOUCH_REG(a0item);
                     p = &Wip_SysConfig;
                     Gp_ClearEquipSlotSel(a0item, 0);
                     ptr         = Gp_SelItemRec;
@@ -2416,7 +2416,7 @@ void func_800C3CE0(Task* arg0)
 
         id   = Wip_SysConfig.field_21 + 0x7F;
         slot = Gp_GetItemSlot(id);
-        asm volatile("" : "+r"(slot));
+        TOUCH_REG(slot);
         n = id < 0x80;
         if (n) {
             n = 1;
@@ -2435,7 +2435,7 @@ void func_800C3CE0(Task* arg0)
         n = 2;
     store1:
         menu->field_4 = n;
-        asm("");
+        SOFT_BARRIER();
         menu->field_10 = 0;
         Ui_InitList(menu, (UiMiniObj*)obj);
         arg0->state = arg0->state + 1;
@@ -2446,13 +2446,13 @@ void func_800C3CE0(Task* arg0)
 
         id   = Wip_SysConfig.field_21 + 0x7F;
         slot = Gp_GetItemSlot(id);
-        asm volatile("" : "+r"(slot));
+        TOUCH_REG(slot);
         n = id < 0x80;
         if (n) {
             n = 1;
             goto store2;
         }
-        asm("");
+        SOFT_BARRIER();
         n = 0x92;
         if (id == n) {
             n = 1;
@@ -2466,7 +2466,7 @@ void func_800C3CE0(Task* arg0)
         n = 2;
     store2:
         menu->field_4 = n;
-        asm("");
+        SOFT_BARRIER();
         Ui_ComputeVisibleRows(menu, (s32)obj);
         Ui_UpdateListNoAnim(menu, obj);
     }
@@ -2703,7 +2703,7 @@ void func_800C46B4(Task* arg0)
                         name = (s32)Gp_GetItemText(item, a1v, 0);
                     }
                     a1v = 0;
-                    asm volatile("" : "+r"(a1v));
+                    TOUCH_REG(a1v);
                     Ui_SetHolderParam(name, a1v, a1v);
                     Gp_SetPreviewItem(item, 0);
                 } else {
@@ -2794,7 +2794,7 @@ void func_800C46B4(Task* arg0)
                             UiObject* po;
                             po         = parent->spawnArg2;
                             D_80114D8C = 0;
-                            asm volatile("" : "+r"(flag));
+                            TOUCH_REG(flag);
                             po->status  = flag;
                             obj->status = 0;
                         }
@@ -2954,7 +2954,7 @@ void func_800C46B4(Task* arg0)
                 row9 = (s8)menu->field_9;
                 f5   = (s8)menu->field_5;
                 vis  = row9;
-                asm volatile("" : "+r"(vis));
+                TOUCH_REG(vis);
                 vis            = vis + f5;
                 t              = t + 1;
                 row9           = t + row9;
@@ -3037,7 +3037,7 @@ GpItemRec* func_800C5188(McItemScan* arg0, s32 arg1, s32 arg2)
             continue;
         }
         wrap = id + 0x80;
-        asm volatile("" ::"r"(wrap));
+        USE_REG(wrap);
         if ((u8)wrap < 0x20) {
             p        = &Wip_SysConfig;
             equipped = 0;
@@ -3090,7 +3090,7 @@ void func_800C5328(DialogPrompt* arg0, UiObject* arg1)
     asm("addiu %0, %1, %%lo(Mc_SaveData+0x5BC)" : "=r"(scan) : "r"(hi));
     rec = func_800C5188(scan, prompt->field_8, 0);
     if (rec != NULL) {
-        asm volatile("" : "+r"(rec));
+        TOUCH_REG(rec);
         item = rec->field_0;
         {
             s32 color;
@@ -3187,7 +3187,7 @@ void func_800C5328(DialogPrompt* arg0, UiObject* arg1)
                         t = (s32)Gp_GetItemText(item, a1v, 0);
                     }
                     a1v = 0;
-                    asm volatile("" : "+r"(a1v));
+                    TOUCH_REG(a1v);
                     Ui_SetHolderParam(t, a1v, a1v);
                 }
             }
@@ -3231,10 +3231,10 @@ void func_800C5328(DialogPrompt* arg0, UiObject* arg1)
         if (((status >> 16) == one) || (status == one)) {
             if (prompt->field_10 == prompt->field_8) {
                 register s32 t asm("a0");
-                asm volatile("" : "+r"(rec));
+                TOUCH_REG(rec);
                 t   = (s32)Gp_StrDetachArmorHelp;
                 a1v = 0;
-                asm volatile("" : "+r"(t), "+r"(a1v));
+                TOUCH_REG2(t, a1v);
                 Ui_SetHolderParam(t, a1v, a1v);
             }
         }
@@ -3300,7 +3300,7 @@ void func_800C58B8(UiList* arg0, UiObject* arg1)
             continue;
         }
         wrap = id + 0x80;
-        asm volatile("" ::"r"(wrap));
+        USE_REG(wrap);
         if ((u8)wrap < 0x20) {
             p        = &Wip_SysConfig;
             equipped = 0;
@@ -3754,7 +3754,7 @@ void func_800C7844(Task* arg0)
         count         = Gp_CountCollectedBits();
         sel           = menu->field_10;
         menu->field_4 = count;
-        asm("");
+        SOFT_BARRIER();
         menu->field_5 = count;
         count8        = count & 0xFF;
         if (count8 < sel) {
@@ -3773,7 +3773,7 @@ void func_800C7844(Task* arg0)
         count         = Gp_CountCollectedBits();
         sel           = menu->field_10;
         menu->field_4 = count;
-        asm("");
+        SOFT_BARRIER();
         menu->field_5 = count;
         count8        = count & 0xFF;
         if (count8 < sel) {
@@ -4017,16 +4017,16 @@ void func_800C8368(Task* arg0)
 
         flags = idx;
         table = Gp_PreviewItems;
-        asm volatile("" : "+r"(flags), "+r"(table));
+        TOUCH_REG2(flags, table);
         if (item != table[0]) {
             register s32 sel asm("v1");
             sel  = flags & 0xFF;
             i    = 0;
             slot = sel;
-            asm volatile("" : "+r"(sel));
+            TOUCH_REG(sel);
             minusOne = -1;
             p        = table;
-            asm volatile("" : "+r"(table), "+r"(p));
+            TOUCH_REG2(table, p);
             for (; i < 3; i++, p++) {
                 if (i == slot) {
                     *p = item;
@@ -4123,7 +4123,7 @@ void func_800C8700(DialogPrompt* arg0, UiObject* arg1)
                     t = (s32)Gp_GetItemText(item, a1v, 0);
                 }
                 a1v = 0;
-                asm volatile("" : "+r"(a1v));
+                TOUCH_REG(a1v);
                 Ui_SetHolderParam(t, a1v, a1v);
             }
             if (spawnArg != 0) {
@@ -4540,7 +4540,7 @@ void func_800C9010(DialogPrompt* arg0, UiObject* arg1)
                 a1v = (spawnArg << 8) | item;
                 a2v = 1;
                 a3v = a2v;
-                asm volatile("" : "+r"(a0v), "+r"(a1v), "+r"(a2v), "+r"(a3v));
+                TOUCH_REG4(a0v, a1v, a2v, a3v);
                 slot              = (char*)&draw;
                 slot              = slot - 8;
                 *(UiObject**)slot = obj;
@@ -4566,7 +4566,7 @@ void func_800C9010(DialogPrompt* arg0, UiObject* arg1)
                 a1v = item | 0x10000;
                 a2v = 1;
                 a3v = a2v;
-                asm volatile("" : "+r"(a0v), "+r"(a1v), "+r"(a2v), "+r"(a3v));
+                TOUCH_REG4(a0v, a1v, a2v, a3v);
                 ((void (*)(UiObjectDesc*, s32, s32, s32))Ui_SpawnFromDesc)(a0v, a1v, a2v, a3v);
             }
         } else {
@@ -4598,7 +4598,7 @@ void func_800C942C(UiList* arg0, s32 arg1)
     slot  = Gp_GetItemSlot(arg1);
     n     = count;
     if (mode != 2) {
-        asm("" : "+r"(n));
+        SOFT_TOUCH_REG(n);
         i   = n;
         off = (arg1 - 0x80) * 4;
         dst = D_80114DA0;
@@ -4999,7 +4999,7 @@ void func_800C9E94(Task* arg0)
         {
             register McItemScan* a0scan asm("a0");
             a0scan = scan;
-            asm volatile("" : "+r"(a0scan));
+            TOUCH_REG(a0scan);
             cfg = &Wip_SysConfig;
             rec = Gp_GetItemTable(a0scan);
         }
@@ -5053,7 +5053,7 @@ void func_800C9E94(Task* arg0)
         {
             register McItemScan* a0scan asm("a0");
             a0scan = scan;
-            asm volatile("" : "+r"(a0scan));
+            TOUCH_REG(a0scan);
             cfg       = &Wip_SysConfig;
             remaining = menu->field_10;
             rec       = Gp_GetItemTable(a0scan);
@@ -5098,7 +5098,7 @@ void func_800C9E94(Task* arg0)
             register UiObject* a0obj asm("a0");
             a0obj = obj;
             hi    = found;
-            asm volatile("" : "+r"(hi));
+            TOUCH_REG(hi);
             func_800C7DA8(a0obj, found, 1, 0);
         }
     }

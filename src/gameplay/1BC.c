@@ -846,11 +846,11 @@ SVECTOR* Gp_ExtractEuler(SVECTOR* arg0, MATRIX* arg1)
             ay = -ay;
         }
         ax += ay;
-        __asm__ volatile("" : "+r"(ax));
+        TOUCH_REG(ax);
         if (az < 0) {
             az = -az;
         }
-        __asm__ volatile("" : "+r"(az), "+r"(ax));
+        TOUCH_REG2(az, ax);
         sin0 = ax + az;
 
         ay = ang1.vx;
@@ -1372,7 +1372,7 @@ void Gp_AnimBlendPose(GpAnimBlendSrc* arg0, GpAnimMtxRec* arg1, GpAnimSlot* arg2
             s->blend = 0;
         }
         s->invBlend = inv;
-        asm volatile("" ::: "memory");
+        COMPILER_BARRIER();
         gte_lddp(s->blend);
         gte_ldsv(arg0->field_0);
         gte_gpf12_real();
@@ -1674,7 +1674,7 @@ void Gp_AnimSeekSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
     saved2 = raw;
     off    = arg1 << 4;
     f8     = (s32)arg0->field_8;
-    asm volatile("" : "+r"(raw));
+    TOUCH_REG(raw);
     scaled = raw << 2;
     recs2  = (*(GpAnimSet**)(scaled + (s32)slot->field_20))->field_0;
     func_800B3448(arg0, arg1, 0, f8 + off);
@@ -1698,7 +1698,7 @@ void Gp_AnimSeekSlotEx(GpAnimCtx* arg0, s32 arg1, s32 arg2, s32 arg3)
         }
     }
     one = 1;
-    asm volatile("" : "+r"(one));
+    TOUCH_REG(one);
     val           = one << 4;
     p->field_6    = idx;
     p->field_4    = saved2;
@@ -1998,7 +1998,7 @@ void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPo
     trans    = (SVECTOR*)((u8*)head - 0x10);
     *scratch = trans;
     off      = idx * 0x50;
-    asm volatile("" ::"r"(off));
+    USE_REG(off);
     dest = &((GpAnimMtxRec*)arg0->field_4)[idx];
     if (slot->field_B == 1) {
         st = trans;
@@ -2010,7 +2010,7 @@ void Gp_AnimWritePoseBlend(GpAnimCtx* arg0, s32 arg1, GpAnimPose* arg2, GpAnimPo
         gte_gpl12_real();
         gte_stsv(st);
         dest->mtx.t[0] = trans->vx;
-        asm volatile("" : "=r"(trans) : "r"(trans));
+        COPY_REG(trans, trans);
         dest->mtx.t[1] = trans->vy;
         dest->mtx.t[2] = trans->vz;
     }
@@ -2958,13 +2958,13 @@ void Gp_MakeDirOffset(SVECTOR* arg0, GpDirSrc* arg1, SVECTOR* arg2)
 
     srcx = arg1->pos.vx;
     dstx = arg0->vx;
-    asm("" : "+r"(srcx), "+r"(dstx));
+    SOFT_TOUCH_REG2(srcx, dstx);
     scratch                       = (void**)G_SCRATCH_HEAD;
     head                          = *scratch;
     block                         = (SVECTOR*)(head - 0x28);
     vec                           = block;
     ((SVECTOR*)(head - 0x28))->vx = srcx - dstx;
-    asm("" : "+r"(block));
+    SOFT_TOUCH_REG(block);
     vec->vy  = arg1->pos.vy - arg0->vy;
     *scratch = block;
     vec->vz  = arg1->pos.vz - arg0->vz;
@@ -3405,7 +3405,7 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                 }
             }
             shifted = found;
-            asm volatile("" : "+r"(shifted));
+            TOUCH_REG(shifted);
             shifted = shifted << 16;
         }
         if (shifted > 0) {
@@ -3424,7 +3424,7 @@ s32 Gp_EquipRelatedBank(s32 arg0, s32 arg1, s32 arg2, s32 arg3)
                 qtyTable = Gp_QtyById1;
             }
             row = (GpItemQty*)(off + (s32)qtyTable);
-            asm volatile("" : "+r"(row));
+            TOUCH_REG(row);
             idx    = arg1 - 0x80;
             maxQty = 0;
             if ((u32)idx < 0x20U) {
@@ -3502,7 +3502,7 @@ s32 Gp_EquipRelatedItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
         goto fail;
     }
     useSecond = 0;
-    asm volatile("" : "+r"(useSecond));
+    TOUCH_REG(useSecond);
     if ((u32)(arg1 - 0x80) >= 0x20U) {
         goto fail;
     }
@@ -3534,12 +3534,12 @@ s32 Gp_EquipRelatedItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
             }
         }
         shifted = found;
-        asm volatile("" : "+r"(shifted));
+        TOUCH_REG(shifted);
         shifted = shifted << 16;
     }
     if (shifted <= 0) {
     fail:
-        asm volatile("");
+        SCHED_BARRIER();
         return -1;
     }
     {
@@ -3553,9 +3553,9 @@ s32 Gp_EquipRelatedItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
 
         off      = arg1 << 2;
         qtyTable = Gp_QtyById0;
-        asm volatile("" : "+r"(qtyTable));
+        TOUCH_REG(qtyTable);
         row = (GpItemQty*)(off + (s32)qtyTable);
-        asm volatile("" : "+r"(row));
+        TOUCH_REG(row);
         idx    = arg1 - 0x80;
         maxQty = 0;
         if ((u32)idx < 0x20U) {
@@ -3573,9 +3573,9 @@ s32 Gp_EquipRelatedItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
             off       = arg1 << 2;
             useSecond = 1;
             qtyTable  = Gp_QtyById1;
-            asm volatile("" : "+r"(qtyTable));
+            TOUCH_REG(qtyTable);
             row = (GpItemQty*)(off + (s32)qtyTable);
-            asm volatile("" : "+r"(row));
+            TOUCH_REG(row);
             idx    = arg1 - 0x80;
             maxQty = 0;
             if ((u32)idx < 0x20U) {

@@ -476,7 +476,7 @@ void func_800CC15C(UiObject* arg0, Task* arg1, s32 arg2)
         row  = col;
         col  = i - row * 3;
         save = &Mc_SaveData;
-        asm volatile("" : "+r"(row), "+r"(col), "+r"(i), "+r"(n));
+        TOUCH_REG4(row, col, i, n);
         n   = n - i * 3 + 1;
         cfg = &Wip_SysConfig;
         if (save->unknown_850[col + row * 3] < n) {
@@ -876,10 +876,10 @@ void func_800CCEEC(Task* arg0)
         x          = (s16)obj->field_18;
         draw.req.x = obj->baseX + y + 0x86;
         draw.req.y = obj->baseY + x + 0xC;
-        asm volatile("");
+        SCHED_BARRIER();
         count = Gp_PubItemQty;
         ot    = (s16)obj->drawOrder;
-        asm volatile("" : "+r"(ot));
+        TOUCH_REG(ot);
         d                 = &draw;
         draw.req.otIndex  = ot + 1;
         d->req.glyphTable = 5;
@@ -889,7 +889,7 @@ void func_800CCEEC(Task* arg0)
         func_8002E53C(&draw.req, Text_ItoaSigned(d->buf, count));
         Ui_LayoutWithMode0(obj, (void*)(y + 0x6B), (void*)(x + 7), (void*)0x1B, (void*)7, (void*)0x102010);
     }
-    asm volatile("" ::"r"(item));
+    USE_REG(item);
 }
 
 void func_800CD160(Task* arg0)
@@ -1207,7 +1207,7 @@ void func_800CDDA0(UiList* arg0, UiObject* arg1, s32 arg2, s32 arg3)
 
             value = arg2;
             tmp   = arg3;
-            asm volatile("" : "+r"(tmp));
+            TOUCH_REG(tmp);
             table = Gp_PreviewItems;
             idx   = tmp & 0xFF;
             if (value != table[idx]) {
@@ -3115,14 +3115,14 @@ void func_800D2538(Task* arg0)
                     WipSysConfig* cfg;
 
                     Mc_SaveData.field_908[id - 0x60] = 0;
-                    asm volatile("");
+                    SCHED_BARRIER();
                     cfg = &Wip_SysConfig;
                     if (cfg->field_23 == (id - 0x5F)) {
                         cfg->field_23 = 0;
                     }
                 }
                 Gp_RemoveItem(&Mc_SaveData.field_5BC, (GpItemRec*)rec, -1);
-                asm volatile("" ::"r"(id));
+                USE_REG(id);
             }
             parentObj->field_2E = 6;
         }

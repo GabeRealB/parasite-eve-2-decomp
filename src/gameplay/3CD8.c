@@ -538,7 +538,7 @@ void Gp_DrawCapCaret(void)
     p->x0 = x + 3;
     p->y0 = y - Display_State.vramYOffset;
     p->x1 = (mask = 0xFF0000, x);
-    asm("" : : "m"(p->y0));
+    TOUCH_MEM(p->y0);
     p->y1 = ((s8) * (volatile u8*)&Display_State.vramYOffset + 7) * -1 + y;
     p->x2 = x + 7;
     asm volatile("" : "+r"(mask) : "m"(p->y1));
@@ -600,7 +600,7 @@ s16 Gp_CapCenterX(u16* arg0)
                 goto do_inc;
             }
             masked = shifted & 0xFF00;
-            asm volatile("" : "+r"(masked));
+            TOUCH_REG(masked);
             v0tmp = 0x8400;
             if (masked == v0tmp) {
                 lineW += 0x10;
@@ -609,7 +609,7 @@ s16 Gp_CapCenterX(u16* arg0)
             if (shifted >= 0) {
                 v0tmp = i + 1;
                 i     = v0tmp;
-                asm volatile("" : "+r"(v0tmp));
+                TOUCH_REG(v0tmp);
                 glyph = (GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)table);
                 code  = arg0[(s16)v0tmp];
                 lineW = glyph->w + lineW - 1;
@@ -619,7 +619,7 @@ s16 Gp_CapCenterX(u16* arg0)
             do_inc:
                 v0tmp = i + 1;
                 i     = v0tmp;
-                asm volatile("" : "+r"(v0tmp));
+                TOUCH_REG(v0tmp);
                 code = arg0[(s16)v0tmp];
             }
         after_load:
@@ -674,7 +674,7 @@ s16 Gp_CapCenterXLine(u16* arg0, s32 arg1)
                 goto do_inc;
             }
             masked = shifted & 0xFF00;
-            asm volatile("" : "+r"(masked));
+            TOUCH_REG(masked);
             v0tmp = 0x8400;
             if (masked == v0tmp) {
                 lineW += 0x10;
@@ -683,7 +683,7 @@ s16 Gp_CapCenterXLine(u16* arg0, s32 arg1)
             if (shifted >= 0) {
                 v0tmp = i + 1;
                 i     = v0tmp;
-                asm volatile("" : "+r"(v0tmp));
+                TOUCH_REG(v0tmp);
                 glyph = (GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)table);
                 code  = arg0[(s16)v0tmp];
                 lineW = glyph->w + lineW - 1;
@@ -694,7 +694,7 @@ s16 Gp_CapCenterXLine(u16* arg0, s32 arg1)
                 v0tmp = i + 1;
                 i     = v0tmp;
             after_inc:
-                asm volatile("" : "+r"(v0tmp));
+                TOUCH_REG(v0tmp);
                 code = arg0[(s16)v0tmp];
             }
         after_load:
@@ -742,7 +742,7 @@ s16 Gp_CapTextHeight(u16* arg0)
                     glyph = (GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)table);
                     if (lineH < glyph->h + 2) {
                         v0tmp = glyph->h;
-                        asm volatile("" : "+r"(v0tmp));
+                        TOUCH_REG(v0tmp);
                         lineH = v0tmp + 2;
                     }
                 }
@@ -796,7 +796,7 @@ s16 Gp_CapTextTopY(u16* arg0)
                     glyph = (GlyphUvwh*)((code & 0x3FF) * sizeof(GlyphUvwh) + (s32)Gp_CapGlyphs);
                     if (lineH < glyph->h + 2) {
                         v0tmp = glyph->h;
-                        asm volatile("" : "+r"(v0tmp));
+                        TOUCH_REG(v0tmp);
                         lineH = v0tmp + 2;
                     }
                 }
@@ -1793,7 +1793,7 @@ void func_800E956C(void)
                         if (Mc_SaveData.field_1a8 == 1) {
                             // barrier: without it GCC cross-jumps this arm into
                             // the identical `field_25 == 1` arm below
-                            asm volatile("");
+                            SCHED_BARRIER();
                             mask = tmp | 0x80;
                         } else {
                             mask = tmp | 0x20;

@@ -187,7 +187,7 @@ void func_800ECEC0(Task* arg0)
                 {
                     s32 sh;
                     sh = mem->field_24;
-                    __asm__("" : "+r"(sh));
+                    SOFT_TOUCH_REG(sh);
                     mem->field_14 = -((s16)sh >> 1);
                 }
                 func_800EA478(0x60034, coord, mem->field_24 + 0x600, (SVECTOR*)&mem->field_10);
@@ -263,7 +263,7 @@ void func_800ED198(Task* arg0)
             {
                 s32 sh;
                 sh = mem->field_24;
-                __asm__("" : "+r"(sh));
+                SOFT_TOUCH_REG(sh);
                 mem->field_14 = -((s16)sh >> 1);
             }
             func_800EA478(0x60034, coord, mem->field_24 + 0x380, (SVECTOR*)&mem->field_10);
@@ -1227,11 +1227,11 @@ void func_800F02B4(Task* arg0)
     if (func_800DE7CC(&dir, &pos, &dir, &pos) == 1) {
         register SVECTOR* r0 asm("a0");
         r0 = vel;
-        __asm__ volatile("" ::"r"(r0));
+        USE_REG(r0);
         coord->coord.t[0] -= delta.vx;
         coord->coord.t[1] -= delta.vy;
         coord->coord.t[2] -= delta.vz;
-        __asm__ volatile("" ::: "memory");
+        COMPILER_BARRIER();
         {
             u16          t10;
             u16          t11;
@@ -1241,11 +1241,11 @@ void func_800F02B4(Task* arg0)
             t11 = *(volatile u16*)&mem->field_10;
             t12 = *(volatile u16*)&mem->field_12;
             sum = ((s32)(t10 << 16) >> 17) + ((s32)(t11 << 16) >> 17);
-            __asm__ volatile("" ::"r"(t12));
+            USE_REG(t12);
             mem->field_10 = sum;
             t12         <<= 16;
             t12         >>= 17;
-            __asm__ volatile("" ::: "memory");
+            COMPILER_BARRIER();
             mem->field_12 = *(u16*)&pos.vy + t12;
         }
         dz            = (s32)(*(u16*)&mem->field_14 << 16) >> 17;
@@ -1829,7 +1829,7 @@ void func_800F3A78(Task* arg0)
     Gp_UpdateCoord(coord);
     scratch = (void**)G_SCRATCH_HEAD;
     head    = *scratch;
-    __asm__ volatile("" ::"r"(head));
+    USE_REG(head);
     vx                                         = *(u16*)&coord->workm.t[0];
     ((GpEffBeamScratch*)(head - 0x1C))->vec.vx = vx;
     vecp                                       = (GpEffBeamScratch*)(head - 0x1C);
@@ -2669,11 +2669,11 @@ void func_800F6D18(Task* arg0)
                 register SVECTOR* r0 asm("a0");
                 vel = (SVECTOR*)&mem->field_10;
                 r0  = vel;
-                __asm__ volatile("" ::"r"(r0));
+                USE_REG(r0);
                 coord->coord.t[0] -= delta.vx;
                 coord->coord.t[1] -= delta.vy;
                 coord->coord.t[2] -= delta.vz;
-                __asm__ volatile("" ::: "memory");
+                COMPILER_BARRIER();
                 {
                     u16          t10;
                     u16          t11;
@@ -2683,11 +2683,11 @@ void func_800F6D18(Task* arg0)
                     t11 = *(volatile u16*)&mem->field_10;
                     t12 = *(volatile u16*)&mem->field_12;
                     sum = ((s32)(t10 << 16) >> 17) + ((s32)(t11 << 16) >> 17);
-                    __asm__ volatile("" ::"r"(t12));
+                    USE_REG(t12);
                     mem->field_10 = sum;
                     t12         <<= 16;
                     t12         >>= 17;
-                    __asm__ volatile("" ::: "memory");
+                    COMPILER_BARRIER();
                     mem->field_12 = *(u16*)&pos.vy + t12;
                 }
                 dz            = (s32)(*(u16*)&mem->field_14 << 16) >> 17;

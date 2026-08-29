@@ -600,7 +600,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
                 GsCOORDINATE2*      parent;
 
                 p = set->arr58;
-                __asm__ volatile("" : "+r"(j));
+                TOUCH_REG(j);
                 i = 0;
                 if (i < set->n58) {
                     parent = &D_80070F10;
@@ -638,7 +638,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
         }
     }
 
-    __asm__ volatile("" ::: "memory");
+    COMPILER_BARRIER();
     Gp_UpdateCoord(&D_80070F10);
 
     {
@@ -665,7 +665,7 @@ void Gp_UpdateRoomCoords(Task* arg0)
         register GpCoord60* cur asm("s0");
 
         p = set->arr60;
-        __asm__ volatile("" : "+r"(p));
+        TOUCH_REG(p);
         i = 0;
         if (set->n60 > 0) {
             do {
@@ -774,7 +774,7 @@ s32 Gp_LightPointRoom(GpObj44* arg0, VECTOR3* arg1)
             vx  = obj->field_5C;
             lum = vx * vx;
             vx  = lum >> 2;
-            asm volatile("" : "+r"(vx));
+            TOUCH_REG(vx);
             block->outerSq = vx;
             vx             = ((GpAttnScratch*)(head - 0x20))->vec.vx;
             lum            = vx * vx;
@@ -803,9 +803,9 @@ s32 Gp_LightPointRoom(GpObj44* arg0, VECTOR3* arg1)
             s32 temp;
 
             temp = block->outerSq;
-            asm volatile("" : "+r"(temp));
+            TOUCH_REG(temp);
             lum = inner;
-            asm volatile("" : "+r"(lum));
+            TOUCH_REG(lum);
             block->outerSq = temp - inner;
             block->distSq -= lum;
             while ((u32)block->outerSq > 0xFFFF) {
@@ -882,9 +882,9 @@ s32 Gp_LightPoint(GpObj44* arg0, VECTOR3* arg1)
             s32 temp;
 
             temp = block->outerSq;
-            asm volatile("" : "+r"(temp));
+            TOUCH_REG(temp);
             lum = inner;
-            asm volatile("" : "+r"(lum));
+            TOUCH_REG(lum);
             block->outerSq = temp - inner;
             block->distSq -= lum;
             while ((u32)block->outerSq > 0xFFFF) {
@@ -929,7 +929,7 @@ s32 Gp_LightCone(GpObj68* arg0, VECTOR3* arg1)
     s16                     room;
 
     obj2 = arg0, pos = arg1, obj = obj2;
-    asm volatile("" : "+r"(obj2), "+r"(pos), "+r"(obj));
+    TOUCH_REG3(obj2, pos, obj);
     room   = obj->field_44;
     result = 0;
     if (room != 0) {
@@ -947,7 +947,7 @@ s32 Gp_LightCone(GpObj68* arg0, VECTOR3* arg1)
     block                                   = (GpSpotScratch*)addr;
     block->vec.vy                           = (obj->field_24.t[1] - pos->vy) >> 1;
     block->vec.vz                           = (obj->field_24.t[2] - pos->vz) >> 1;
-    asm volatile("" : "+r"(addr));
+    TOUCH_REG(addr);
     sq             = block->vec.vx * block->vec.vx + block->vec.vy * block->vec.vy + block->vec.vz * block->vec.vz;
     block->distSq  = sq;
     sq             = obj2->field_64;
@@ -985,9 +985,9 @@ s32 Gp_LightCone(GpObj68* arg0, VECTOR3* arg1)
                 s32 temp;
 
                 temp = block->outerSq;
-                asm volatile("" : "+r"(temp));
+                TOUCH_REG(temp);
                 lum = inner;
-                asm volatile("" : "+r"(lum));
+                TOUCH_REG(lum);
                 block->outerSq = temp - inner;
                 block->distSq -= lum;
                 while ((u32)block->outerSq > 0xFFFF) {
@@ -1218,7 +1218,7 @@ void func_800D8684(Task* arg0)
             register GameActorExt* e asm("v0");
             e      = work->extra;
             actor2 = work->actor;
-            __asm__("" : "+r"(e));
+            SOFT_TOUCH_REG(e);
             extra = e;
         }
         coord           = &((GsCOORDINATE2*)extra->field_8)[1];
@@ -1382,14 +1382,14 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1)
             w1   = 0x1000 - w0;
             do {
                 block->col0.vx = src->x;
-                asm volatile("" : "+r"(src));
+                TOUCH_REG(src);
                 block->col0.vy = src->y;
-                asm volatile("" : "+r"(src));
+                TOUCH_REG(src);
                 block->col0.vz = src->z;
                 block->col1.vx = dst->x;
-                asm volatile("" : "+r"(dst));
+                TOUCH_REG(dst);
                 block->col1.vy = dst->y;
-                asm volatile("" : "+r"(dst));
+                TOUCH_REG(dst);
                 block->col1.vz = dst->z;
                 gte_lddp(w1);
                 gte_ldsv(col0);
@@ -1460,9 +1460,9 @@ void Gp_LightFalloff(GpObj44* arg0)
             s32 temp;
 
             temp = block->outerSq;
-            asm volatile("" : "+r"(temp));
+            TOUCH_REG(temp);
             lum = inner;
-            asm volatile("" : "+r"(lum));
+            TOUCH_REG(lum);
             block->outerSq = temp - inner;
             block->distSq -= lum;
             while ((u32)block->outerSq > 0xFFFF) {
@@ -1870,10 +1870,10 @@ void Gp_BindDefaultMtx(Task* arg0)
             return;
         }
         addr = (s32)&Gp_DefaultMtx;
-        __asm__ volatile("" : "+r"(addr));
+        TOUCH_REG(addr);
         mtxA = (MATRIX*)addr;
         addr = (s32)&Gp_DefaultMtx2;
-        __asm__ volatile("" : "+r"(addr));
+        TOUCH_REG(addr);
         mtxB                = (MATRIX*)addr;
         arg0->spawnArg2     = (void*)result;
         extra->field_1C     = mtxA;
@@ -2017,10 +2017,10 @@ void func_800D9DFC(void)
             mask = 0xFFFFFF;
             tu   = (frame & 3) << 5;
             u0   = tu + 0x40;
-            __asm__ volatile("" : "+r"(tu), "+r"(u0), "+r"(frame), "+r"(mask));
+            TOUCH_REG4(tu, u0, frame, mask);
             tv = (frame >> 2) << 5;
             u1 = tu + 0x60;
-            __asm__ volatile("" : "+r"(tv), "+r"(u1));
+            TOUCH_REG2(tv, u1);
             prim->v0    = tv;
             prim->v1    = tv;
             prim->v2    = tv + 0x20;
@@ -2255,7 +2255,7 @@ static __inline__ void project_slot(s32* sxy, GpSlot70* slot)
     block->vec.vx = src->field_C;
     block->vec.vy = src->field_10;
     block->vec.vz = src->field_14;
-    __asm__ volatile("" ::: "memory");
+    COMPILER_BARRIER();
     *(void**)G_SCRATCH_HEAD = block;
     gte_SetRotMatrix(&((GsCOORDINATE2*)src->field_8)->workm);
     gte_SetTransMatrix(&((GsCOORDINATE2*)src->field_8)->workm);
@@ -2340,7 +2340,7 @@ void func_800DA7B8(void)
         color = 0x37A78;
         x14   = x + 0xE;
         ot    = -0xA;
-        asm volatile("" ::"r"(color), "r"(x14), "r"(ot));
+        USE_REG3(color, x14, ot);
         req.field_8    = color;
         req.glyphTable = 5;
         req.centerMode = 2;
@@ -2693,7 +2693,7 @@ s32 Gp_ProjectToSxy(GpPerspSrc* arg0, s32* sxy)
     block->vec.vy = arg0->field_10;
     *scratch      = block;
     block->vec.vz = arg0->field_14;
-    __asm__ volatile("" ::: "memory");
+    COMPILER_BARRIER();
     gte_SetRotMatrix(&((GsCOORDINATE2*)arg0->field_8)->workm);
     gte_SetTransMatrix(&((GsCOORDINATE2*)arg0->field_8)->workm);
     gte_ldv0(&block->vec);
@@ -3204,7 +3204,7 @@ s32 func_800DBCAC(GpObj* arg0, GpObj* arg1)
     b               = block->pos1.vz;
     ret             = 0;
     block->delta.vx = dx;
-    __asm__ volatile("" ::: "memory");
+    COMPILER_BARRIER();
     if (dx < 0) {
         dx = -dx;
     }
@@ -3215,7 +3215,7 @@ s32 func_800DBCAC(GpObj* arg0, GpObj* arg1)
         return 0;
     }
 
-    __asm__ volatile("" ::: "memory");
+    COMPILER_BARRIER();
     dx            = block->delta.vx;
     t0            = dx * dx;
     dx            = block->delta.vy;
@@ -3301,7 +3301,7 @@ void func_800DC528(GpObj* arg0)
                     continue;
                 }
 
-                __asm__ volatile("" ::: "memory");
+                COMPILER_BARRIER();
                 gte_SetRotMatrix(&Gp_GridParams->field_0->workm);
                 gte_ldv0(&Gp_GridParams->field_8[face->verts[0]]);
                 gte_rtv0_real();
@@ -3444,7 +3444,7 @@ void func_800DCB80(GpObj* arg0)
                 if (face->verts[0] == 0 && face->verts[1] == 0) {
                     continue;
                 }
-                __asm__ volatile("" ::: "memory");
+                COMPILER_BARRIER();
                 if (Gp_GridParams->field_4[face->field_8].vy < -0xDDA) {
                     continue;
                 }
@@ -3478,7 +3478,7 @@ void func_800DCB80(GpObj* arg0)
                                  12) -
                                 faceDot;
                     dist = planeDist;
-                    __asm__ volatile("" : "+r"(planeDist));
+                    TOUCH_REG(planeDist);
                     if ((u16)arg0->field_1C >= ABS((s16)planeDist)) {
                         goto edges;
                     }
@@ -3741,7 +3741,7 @@ void func_800DDC2C(GpObj* arg0)
             off += 8;
             i++;
             val = out->vx;
-            asm volatile("" : "+r"(val));
+            TOUCH_REG(val);
             asm("lw %0, %%lo(Gp_GridParams)(%2)\n\tlw %1, 68(%3)" : "=r"(p), "=r"(t) : "r"(hi), "r"(block));
             y       = p->field_14;
             out->vy = 0;
@@ -3813,7 +3813,7 @@ void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
 
     obj     = arg0;
     scratch = (void**)G_SCRATCH_HEAD;
-    asm volatile("" : "+r"(obj), "+r"(scratch));
+    TOUCH_REG2(obj, scratch);
     head     = *scratch;
     found    = 0;
     head    -= 0x18;
@@ -3824,7 +3824,7 @@ void func_800DEC80(GpObj* arg0, VECTOR* arg1, SVECTOR* arg2, s32 arg3)
     if (arg3 == 0) {
         if (obj->flags & 0x800) {
             temp = (s32)rec;
-            asm volatile("" : "+r"(temp));
+            TOUCH_REG(temp);
             slot = ((GpActorD4Rec*)temp)->field_14;
             for (;;) {
                 flags = slot->field_0;
@@ -4097,7 +4097,7 @@ void Gp_ObjWorldPos(GpObj* arg0, VECTOR3* arg1)
     head     = *scratch;
     vec      = (VECTOR3*)(head - 0x30);
     *scratch = vec;
-    __asm__ volatile("" ::: "memory");
+    COMPILER_BARRIER();
     gte_SetRotMatrix(&((GsCOORDINATE2*)arg0->field_8)->workm);
     gte_ldv0(&arg0->field_10);
     gte_rtv0_real();
@@ -4346,7 +4346,7 @@ s32 Gp_FindNearestSlot(GpObj* arg0, s32 arg1)
     head     = *scratch;
     slot     = rec->field_14;
     *scratch = (void*)(head - 0x28);
-    __asm__ volatile("" ::: "memory");
+    COMPILER_BARRIER();
     block = (GpNearScratch*)(head - 0x28);
     gte_SetRotMatrix(&((GsCOORDINATE2*)arg0->field_8)->workm);
     block->local.vx = (u16)rec->field_8 + (u16)arg0->field_10;
@@ -4974,7 +4974,7 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
         col = *(u16*)addr;
         asm("lbu %0, %%lo(D_8011541B)(%1)" : "=r"(row) : "r"(row), "r"(col));
         col <<= 1;
-        asm volatile("");
+        SCHED_BARRIER();
         col  += row * 20;
         col  += (s32)table;
         extra = Gp_StateC08.field_C;
@@ -4987,7 +4987,7 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
             rem      = extra % 16;
             scale    = scaleTbl[col + rem];
             col      = val * scale;
-            asm volatile("" : "+r"(col));
+            TOUCH_REG(col);
             mag = 0x51EB851F;
             asm volatile("multu %0, %1" : : "r"(col), "r"(mag));
             asm volatile("mfhi %0" : "=r"(col));
@@ -5005,7 +5005,7 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
         col = *(u16*)addr;
         asm("lbu %0, %%lo(D_8011541B)(%1)" : "=r"(row) : "r"(row), "r"(col));
         col <<= 1;
-        asm volatile("");
+        SCHED_BARRIER();
         col  += row * 20;
         col  += (s32)table;
         scale = ((GpDmgSlot*)col)->field_0;
@@ -5131,11 +5131,11 @@ void Gp_ApplyObjKind(GpObj5D* arg0, s32 arg1)
 
     if ((arg1 & 0x8000) == 0) {
         raw = Gp_IdParamLo[arg1 & 0x7F].field_4;
-        asm volatile("" : "+r"(raw));
+        TOUCH_REG(raw);
         kind = raw;
     } else {
         raw = Gp_IdParamHi[arg1 & 0x7F].field[5];
-        asm volatile("" : "+r"(raw));
+        TOUCH_REG(raw);
         kind = raw;
     }
 

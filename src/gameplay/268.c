@@ -158,7 +158,7 @@ s32 func_800B7420(s32 arg0)
                 return 1;
             }
             /* Keeps GCC from cross-jumping the identical two-probe case tails. */
-            asm("" ::: "memory");
+            SOFT_COMPILER_BARRIER();
             return 0;
 
         case 0x42:
@@ -172,7 +172,7 @@ s32 func_800B7420(s32 arg0)
             if (Gp_SumScanQty(&scan, 0x42)) {
                 return 1;
             }
-            asm("" ::: "memory");
+            SOFT_COMPILER_BARRIER();
             return 0;
 
         case 0x43:
@@ -186,7 +186,7 @@ s32 func_800B7420(s32 arg0)
             if (Gp_SumScanQty(&scan, 0x43)) {
                 return 1;
             }
-            asm("" ::: "memory");
+            SOFT_COMPILER_BARRIER();
             return 0;
 
         case 0x44:
@@ -200,7 +200,7 @@ s32 func_800B7420(s32 arg0)
             if (Gp_SumScanQty(&scan, 0x44)) {
                 return 1;
             }
-            asm("" ::: "memory");
+            SOFT_COMPILER_BARRIER();
             return 0;
 
         case 0x45:
@@ -214,7 +214,7 @@ s32 func_800B7420(s32 arg0)
             if (Gp_SumScanQty(&scan, 0x45)) {
                 return 1;
             }
-            asm("" ::: "memory");
+            SOFT_COMPILER_BARRIER();
             return 0;
 
         case 0x46:
@@ -228,7 +228,7 @@ s32 func_800B7420(s32 arg0)
             if (Gp_SumScanQty(&scan, 0x46)) {
                 return 1;
             }
-            asm("" ::: "memory");
+            SOFT_COMPILER_BARRIER();
             return 0;
 
         default:
@@ -277,7 +277,7 @@ void Gp_RecalcMaxMp(void)
                     j++;
                 } while (j < limit);
             }
-            asm volatile("" ::"r"(start));
+            USE_REG(start);
         }
         levels++;
         i++;
@@ -981,7 +981,7 @@ GpItemRec* Gp_SetScanItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
             goto done;
         }
         start = i;
-        asm volatile("" ::"r"(start));
+        USE_REG(start);
         if (arg0->field_1 == 0) {
             return dest;
         }
@@ -1010,7 +1010,7 @@ GpItemRec* Gp_SetScanItem(GpItemScan* arg0, s32 arg1, s32 arg2, s32 arg3)
     field0 = arg0->field_0;
     idx    = field0 + arg1;
     field0 = idx << 2;
-    asm volatile("" ::"r"(field0));
+    USE_REG(field0);
     rec = (GpItemRec*)(field0 + (s32)tmp);
     if (rec->field_0 == 0) {
         dest          = rec;
@@ -1102,7 +1102,7 @@ GpItemRec* Gp_AddItem(GpItemScan* arg0, s32 arg1, s32 arg2)
         if (arg0->field_1 == 0) {
             goto done;
         }
-        asm("" : "+r"(found));
+        SOFT_TOUCH_REG(found);
         i     = 0;
         attrs = Gp_StackLimits;
         idx   = arg1 - 0xA0;
@@ -1266,7 +1266,7 @@ s32 Gp_NthRelatedId(GpItemScan* arg0, s32 arg1, s32 arg2)
                     goto decrement;
                 }
                 i = 0;
-                asm volatile("" ::"r"(i));
+                USE_REG(i);
                 item = rec->field_0;
                 off  = (item - 0x80) * 4;
                 item = item - 0x7F;
@@ -1462,7 +1462,7 @@ static __inline void func_800B996C_RemoveItem(GpItemScan* arg0, GpItemRec* arg1,
         }
         table = tmp;
         qty   = 0;
-        asm volatile("" ::"r"(qty));
+        USE_REG(qty);
         i     = arg0->field_0;
         count = arg0->field_1;
         base  = table;
@@ -1532,7 +1532,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
             p      = &Gp_ItemAttrs[item];
             level  = p->field_5;
             level += Mc_SaveData.field_908[sel];
-            asm volatile("" ::"r"(sel));
+            USE_REG(sel);
             if (level >= 0xB) {
                 level = 0xA;
             }
@@ -1541,7 +1541,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
             register s32 idx asm("v1");
             McSaveData*  save;
             save = &Mc_SaveData;
-            asm volatile("" : "+r"(save));
+            TOUCH_REG(save);
             idx                         = item - 0x60;
             *(u8*)&save->field_908[idx] = *(u8*)&save->field_908[idx] + 1;
         } else {
@@ -1561,7 +1561,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
             register s32 ty asm("v0");
             tx = (-((UiPanel*)obj)->field_C.w) >> 1;
             ty = ((-((UiPanel*)obj)->field_C.h) >> 1) - 0x14;
-            asm volatile("" ::"r"(obj));
+            USE_REG(obj);
             ((UiPanel*)obj)->field_C.y = ty;
             ((UiPanel*)obj)->field_C.x = tx;
         }
@@ -1583,16 +1583,16 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
         register char*     notice asm("a1");
 
         a0obj = obj;
-        asm volatile("" : "+r"(a0obj));
+        TOUCH_REG(a0obj);
         notice = Gp_StrNotice2;
-        asm volatile("" : "+r"(notice));
+        TOUCH_REG(notice);
         color = 0x606060;
-        asm volatile("" : "+r"(color));
+        TOUCH_REG(color);
         x  = obj->field_1C;
         y0 = (s16)obj->field_18;
         Ui_DrawText((UiPanel*)a0obj, notice);
         x = x + 2;
-        asm volatile("" : "+r"(x));
+        TOUCH_REG(x);
     }
     y   = y0 + 0xF;
     str = Gp_StrMore;
@@ -1607,7 +1607,7 @@ void Gp_UiBoostAttach(UiObject* arg0, Task* arg1)
         a0item = item;
         za     = 0;
         zb     = za;
-        asm volatile("" ::"r"(str), "r"(za), "r"(zb), "r"(w), "r"(a0item));
+        USE_REG5(str, za, zb, w, a0item);
         width = w + 4;
         text  = Gp_GetItemText(a0item, za, zb);
     }
@@ -1722,7 +1722,7 @@ void Gp_ResetInventory(void)
     cfg = &Wip_SysConfig;
     val = cfg->field_21;
     if (val != 0) {
-        asm volatile("");
+        SCHED_BARRIER();
         asm("addiu %0, %1, 0x7F" : "=r"(item) : "r"(val));
         if ((u32)(val - 1) < 0x20U) {
             found = 0;
@@ -1743,7 +1743,7 @@ void Gp_ResetInventory(void)
                 }
                 slot->field_3 = 0;
             }
-            asm volatile("" ::"r"(i));
+            USE_REG(i);
         }
         cfg->field_21 = 0;
     }
@@ -1780,9 +1780,9 @@ void Gp_ResetInventory(void)
     dest = &save->field_5BC;
     asm volatile("lui %0, %%hi(Gp_DefaultScan)" : "=r"(table));
     item = 0x6C;
-    asm volatile("" ::"r"(item));
+    USE_REG(item);
     asm volatile("addiu %0, %1, %%lo(Gp_DefaultScan)" : "=r"(src) : "r"(table));
-    asm volatile("" ::"r"(table));
+    USE_REG(table);
     *dest = *src;
     Gp_AddItem(dest, item, 1);
     Gp_EquipMod(0x6C);
@@ -1842,10 +1842,10 @@ void Gp_ClearInventory(void)
     s32                 n;
 
     cfg = &Wip_SysConfig;
-    asm volatile("" ::"r"(cfg));
+    USE_REG(cfg);
     val = cfg->field_21;
     if (val != 0) {
-        asm volatile("");
+        SCHED_BARRIER();
         asm("addiu %0, %1, 0x7F" : "=r"(item) : "r"(val));
         if ((u32)(val - 1) < 0x20U) {
             found = 0;
@@ -1866,7 +1866,7 @@ void Gp_ClearInventory(void)
                 }
                 slot->field_3 = 0;
             }
-            asm volatile("" ::"r"(i));
+            USE_REG(i);
         }
         cfg->field_21 = 0;
     }
@@ -1926,7 +1926,7 @@ void Gp_ClearInventory(void)
             if ((s8)rec->field_1 == -1) {
                 id = rec->field_0;
                 if ((u32)(id - 0x60) < 0x20U) {
-                    asm volatile("");
+                    SCHED_BARRIER();
                     cfg->field_23   = id - 0x5F;
                     hpCfg           = &Wip_SysConfig;
                     hpVal           = rows[save2->field_F].field_0;
@@ -2101,7 +2101,7 @@ void Gp_SetCurBit2Flag(s32 arg0, u8 arg1)
     register s32  temp asm("v0");
 
     shift = (arg0 & 0xF) * 2;
-    asm volatile("" ::"r"(shift));
+    USE_REG(shift);
     temp  = 3;
     mask  = temp << shift;
     temp  = Mc_SaveData.field_7;
@@ -2148,7 +2148,7 @@ void Gp_ClearScanItems(GpItemScan* arg0)
             table++;
         } while (i < arg0->field_1);
     }
-    asm volatile("" ::"r"(i));
+    USE_REG(i);
 }
 
 GpItemRec* Gp_GiveItem(GpItemScan* arg0, s32 arg1, s32 arg2)
@@ -2191,7 +2191,7 @@ s32 Gp_RemoveItem(GpItemScan* arg0, GpItemRec* arg1, s32 arg2)
         }
         table = tmp;
         qty   = 0;
-        asm volatile("" ::"r"(qty));
+        USE_REG(qty);
         i     = arg0->field_0;
         count = arg0->field_1;
         base  = table;
@@ -2383,7 +2383,7 @@ s32 Gp_CountEquippedRelated(GpItemScan* arg0, s32 arg1)
         }
     }
     ret = count;
-    asm volatile("" : "+r"(ret));
+    TOUCH_REG(ret);
     return ret;
 }
 
@@ -2501,7 +2501,7 @@ void Gp_ConsumeScanQty(GpItemScan* arg0, s32 arg1, s32 arg2)
     }
     table = tmp;
     qty   = 0;
-    asm volatile("" ::"r"(qty));
+    USE_REG(qty);
     i     = arg0->field_0;
     count = arg0->field_1;
     base  = table;
@@ -2581,7 +2581,7 @@ s32 Gp_GetCurBit2Flag(s32 arg0)
     p    += arg0 >> 4;
     shift = (arg0 & 0xF) * 2;
     word  = *p;
-    asm volatile("" ::: "a1");
+    CLOBBER_REG(a1);
     return (word & (3 << shift)) >> shift;
 }
 
@@ -2848,7 +2848,7 @@ void Gp_SetBit2Flag(s32 arg0, u8 arg1, s32 arg2)
     register s32  temp asm("v0");
 
     shift = (arg0 & 0xF) * 2;
-    asm volatile("" ::"r"(shift));
+    USE_REG(shift);
     temp  = 3;
     mask  = temp << shift;
     p     = Gp_Bit2Banks[arg2].field_4;
@@ -2885,7 +2885,7 @@ s32 Gp_GetBit2Flag(GameSessionFrom4* arg0, s32 arg1)
     p    += arg1 >> 4;
     shift = (arg1 & 0xF) * 2;
     word  = *p;
-    asm volatile("" ::"r"(arg0));
+    USE_REG(arg0);
     return (word & (3 << shift)) >> shift;
 }
 
@@ -3287,7 +3287,7 @@ s32 Gp_GetModLevel(s32 arg0)
         p    = &Gp_ItemAttrs[arg0];
         ret  = p->field_5;
         ret += Mc_SaveData.field_908[idx];
-        asm volatile("" ::"r"(idx));
+        USE_REG(idx);
         if (ret >= 0xB) {
             ret = 0xA;
         }
@@ -3387,7 +3387,7 @@ s32 Gp_CanMoveItems(void)
     if (Gp_CountScanItems(src) <= 0) {
         return ret;
     }
-    asm volatile("" : "+r"(ret));
+    TOUCH_REG(ret);
     i = ret;
     if (ret < src->field_1) {
         destHi = 0x80110000; /* %hi(Gp_MoveScanDst); must precede the rec address */
@@ -3407,7 +3407,7 @@ s32 Gp_CanMoveItems(void)
             rec++;
         } while (i < src->field_1);
     }
-    asm volatile("" ::"r"(table));
+    USE_REG(table);
     if (flag != 0) {
         return ret;
     }

@@ -131,7 +131,7 @@ void func_800F8244(Task* arg0)
         Gp_UpdateCoord(coord);
         scratch = (void**)G_SCRATCH_HEAD;
         head    = *scratch;
-        __asm__ volatile("" ::"r"(head));
+        USE_REG(head);
         {
             register u16 vx asm("v0");
             vx                                         = *(u16*)&coord->workm.t[0];
@@ -241,7 +241,7 @@ void func_800F8244(Task* arg0)
         coord->coord.t[2]  = t2;
         y                  = (u16)mem->field_12 + 6;
         next               = (u16)mem->field_22 + 1;
-        __asm__ volatile("" ::"r"(y), "r"(next));
+        USE_REG2(y, next);
         mem->field_22 = next;
         n32           = next;
         mem->field_12 = y;
@@ -284,7 +284,7 @@ void func_800F8A38(Task* arg0)
         Gp_UpdateCoord(coord);
         scratch = (void**)G_SCRATCH_HEAD;
         head    = *scratch;
-        __asm__ volatile("" ::"r"(head));
+        USE_REG(head);
         {
             register u16 vx asm("v0");
             vx                                         = *(u16*)&coord->workm.t[0];
@@ -350,7 +350,7 @@ void func_800F8A38(Task* arg0)
                 arg0->state = 1;
             }
             prim->code |= 3;
-            __asm__ volatile("" ::: "memory");
+            COMPILER_BARRIER();
             {
                 s32 tp;
                 tp          = ((mem->field_2A & 3) << 5) | 9;
@@ -391,7 +391,7 @@ void func_800F8A38(Task* arg0)
         coord->coord.t[2]  = t2;
         y                  = (u16)mem->field_12 + 6;
         next               = (u16)mem->field_22 + 1;
-        __asm__ volatile("" ::"r"(y), "r"(next));
+        USE_REG2(y, next);
         mem->field_22 = next;
         n32           = next;
         mem->field_12 = y;
@@ -738,7 +738,7 @@ void func_800F9FBC(Task* arg0, s32 arg1, u8* arg2)
             if (arg2 != NULL) {
                 prim->r0 = arg2[0];
                 green    = arg2[1];
-                __asm__ volatile("" ::: "memory");
+                COMPILER_BARRIER();
                 abr = 2;
                 goto rgb;
             }
@@ -750,7 +750,7 @@ void func_800F9FBC(Task* arg0, s32 arg1, u8* arg2)
             green    = arg2[1];
         rgb:
             prim->g0 = green;
-            __asm__ volatile("" ::: "memory");
+            COMPILER_BARRIER();
             blue = arg2[2];
             setSemiTrans(prim, 1);
             prim->b0 = blue;
@@ -840,7 +840,7 @@ void func_800FA45C(GsCOORDINATE2* arg0, s32 arg1, u16 arg2, u16 arg3)
             block->otz++;
             prim       = (POLY_FT4*)D_80071190;
             D_80071190 = (DR_TPAGE*)(prim + 1);
-            __asm__ volatile("" ::: "memory");
+            COMPILER_BARRIER();
             setlen(prim, 9);
             setcode(prim, 0x2F);
             clutTbl     = D_80112964;
@@ -1328,7 +1328,7 @@ void func_800FBAB0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3)
     rgb     = arg3;
     scratch = (void**)G_SCRATCH_HEAD;
     head    = *scratch;
-    __asm__ volatile("" ::"r"(head));
+    USE_REG(head);
     {
         register u16 vx asm("v0");
         vx                                        = *(u16*)&arg0->workm.t[0];
@@ -1354,7 +1354,7 @@ void func_800FBAB0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* arg3)
     gte_stflg(&((GpEffFt4Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpEffFt4Scratch*)(head - 0x18))->otz);
-        __asm__ volatile("" ::"r"(head));
+        USE_REG(head);
         block->otz++;
         for (i = 0; i < step * count; i += step) {
             lcg         = Gp_LcgState * 5 + 0x71357911;
@@ -1873,7 +1873,7 @@ void func_800FD49C(Task* arg0)
             register s32 prod asm("v1");
             prod      = ((mem->field_26 * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(mem->field_24);
             block->dx = prod >> 12;
-            __asm__ volatile("" ::"r"(prod)); /* keep prod live so the shift lands in $v0 */
+            USE_REG(prod); /* keep prod live so the shift lands in $v0 */
         }
         block->dy = (((mem->field_26 * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(mem->field_24)) >> 12;
         prim->x0  = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
@@ -1884,7 +1884,7 @@ void func_800FD49C(Task* arg0)
             register s32 prod asm("v1");
             prod      = ((mem->field_26 * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rsin(mem->field_24 + 0x400);
             block->dx = prod >> 12;
-            __asm__ volatile("" ::"r"(prod));
+            USE_REG(prod);
         }
         block->dy = (((mem->field_26 * 31) / ((GpEffFlareScratch*)(head - 0x1C))->otz) * rcos(mem->field_24 + 0x400)) >> 12;
         prim->x1  = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
@@ -2222,7 +2222,7 @@ void func_800FEAF8(Task* arg0)
         gte_stflg(&((GpEffFt4Scratch*)(head - 0x18))->flag);
         if (block->flag >= 0) {
             gte_stszotz(&((GpEffFt4Scratch*)(head - 0x18))->otz);
-            __asm__ volatile("" ::"r"(head));
+            USE_REG(head);
             block->otz++;
             prim       = (POLY_FT4*)D_80071190;
             D_80071190 = (DR_TPAGE*)(prim + 1);
@@ -2808,7 +2808,7 @@ void Gp_InitPlayerWork(GpActorWork* arg0)
         s32            temp;
         GsCOORDINATE2* next;
         zero = 0;
-        asm volatile("" : "+r"(zero));
+        TOUCH_REG(zero);
         link            = (GpRec18*)actor->field_94;
         size            = 0xDC;
         obj->flags     |= 0xF200;
@@ -2832,7 +2832,7 @@ void Gp_InitPlayerWork(GpActorWork* arg0)
         s32            temp;
         GsCOORDINATE2* next;
         zero = 0;
-        asm volatile("" : "+r"(zero));
+        TOUCH_REG(zero);
         obj->flags     |= 0x8000;
         link            = (GpRec18*)actor->field_A0;
         obj             = (GpObj*)actor->field_EC;
@@ -2941,7 +2941,7 @@ void func_80100FCC(GpActorWork* arg0, s32 arg1, s32 arg2)
     register s32           flag asm("v0");
 
     id = arg1;
-    asm("" : "+r"(id));
+    SOFT_TOUCH_REG(id);
     kind = arg2;
     asm("lui %0, 0x1F80" : "=r"(hi) : "r"(kind));
     asm("ori %0, %1, 0x3FC" : "=r"(scratch) : "r"(hi));
@@ -2964,7 +2964,7 @@ void func_80100FCC(GpActorWork* arg0, s32 arg1, s32 arg2)
         ((GpActorSvec*)actor)->field_41A = 0;
         ((GpActorSvec*)actor)->field_41C = 0;
         obj->field_C                     = (GpRec18*)actor->field_14C;
-        __asm__ volatile("" ::: "memory");
+        COMPILER_BARRIER();
         three            = 3;
         packed           = id << 8;
         obj->flags       = three;
@@ -2983,7 +2983,7 @@ void func_80100FCC(GpActorWork* arg0, s32 arg1, s32 arg2)
         rec->field_C     = vz;
         rec->field_2     = rec->field_A;
         rec->field_4     = rec->field_C + D_80112F60[id];
-        __asm__ volatile("" ::"r"(id));
+        USE_REG(id);
         scale = 0x100;
         if (Wip_SysConfig.field_21 == 0x13) {
             scale = 0x280;
@@ -2997,7 +2997,7 @@ void func_80100FCC(GpActorWork* arg0, s32 arg1, s32 arg2)
         rec->field_14 = actor->field_32C;
         Gp_LinkObj(1, obj);
         Gp_InitRec18Table(rec->field_14, 6, 0);
-        __asm__ volatile("" ::"r"(actor));
+        USE_REG(actor);
     }
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x10;
 }
@@ -3152,23 +3152,23 @@ void func_8010154C(void)
     head     = *scratch;
     newhead  = head - 8;
     *scratch = newhead;
-    __asm__ volatile("" ::: "memory");
+    COMPILER_BARRIER();
     p     = work->actor;
     extra = work->extra;
     f973  = p->field_973;
     coord = (GsCOORDINATE2*)extra->field_8;
     f975  = p->field_975;
-    __asm__ volatile("" : "+r"(coord), "+r"(f975), "+r"(p));
+    TOUCH_REG3(coord, f975, p);
     prev = p->field_962;
-    __asm__ volatile("" : : "r"(prev));
+    USE_REG(prev);
     actor = p;
-    __asm__ volatile("" : "+r"(actor), "+r"(p));
+    TOUCH_REG2(actor, p);
     p->field_976 = f975;
     p->field_974 = f973;
     session      = Game_Session;
     __asm__ volatile("" : "+r"(session) : "r"(f973));
     f977 = ((volatile GameActor*)p)->field_977;
-    __asm__ volatile("" : : "r"(f977));
+    USE_REG(f977);
     p->field_964 = prev;
     buttons      = session->field_58;
     p->field_978 = f977;
@@ -3336,7 +3336,7 @@ void func_80101A68(GpActorWork* arg0)
 
         scratch = (void**)G_SCRATCH_HEAD;
         tmp     = *scratch;
-        asm volatile("" : "+r"(tmp)::"memory");
+        TOUCH_REG_MEM(tmp);
         tmp      = tmp - 0x40;
         s        = (GpMoveScratch*)tmp;
         *scratch = tmp;
@@ -3428,7 +3428,7 @@ void func_80101A68(GpActorWork* arg0)
             break;
     }
     coord->coord.t[0] += actor->field_0;
-    asm volatile("" ::: "memory");
+    COMPILER_BARRIER();
     coord->coord.t[1]      += actor->field_4;
     t2                      = coord->coord.t[2];
     *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x40;
@@ -3462,7 +3462,7 @@ void func_80101F58(GpActorWork* arg0)
         register SVECTOR* rot asm("a0");
 
         rot = (SVECTOR*)&actor->field_50;
-        __asm__ volatile("" : "+r"(rot), "+r"(coord));
+        TOUCH_REG2(rot, coord);
         coord = (GsCOORDINATE2*)&coord->coord;
         RotMatrix(rot, (MATRIX*)coord);
         MatrixNormal((MATRIX*)coord, (MATRIX*)coord);
@@ -3618,7 +3618,7 @@ void func_80102348(GpActorWork* arg0, s32 arg1)
         register u16*   tbl asm("a1");
 
         block = (GpYawScratch*)tmp;
-        __asm__ volatile("" : "+r"(block));
+        TOUCH_REG(block);
         rec           = &D_801131B4[Wip_SysConfig.field_21];
         src           = (GsCOORDINATE2*)((GameActorExt*)actor->field_91C->extra)->field_8;
         block->rot.vx = rec->vx;
@@ -3676,11 +3676,11 @@ void func_80102348(GpActorWork* arg0, s32 arg1)
             asm("lbu %0, %%lo(Wip_SysConfig+0x21)(%1)" : "=r"(cmp) : "r"(val));
             asm("lui %0, 0x1F80" : "=r"(val) : "r"(cmp));
             val = (s32) * (void**)((u8*)val + 0x3FC);
-            asm volatile("" ::"r"(val));
+            USE_REG(val);
             cmp                     = tbl[cmp];
             val                    += 0xC;
             *(void**)G_SCRATCH_HEAD = (void*)val;
-            asm volatile("" ::"r"(val));
+            USE_REG(val);
             packed = cmp << 16;
             limit  = packed >> 16;
             if (func_800B9D80(flag) != 0) {
@@ -3752,7 +3752,7 @@ void func_80102634(GpActorWork* arg0)
     *scratch = tmp;
     if (actor->field_90C != NULL) {
         block = (GpPitchScratch*)tmp;
-        __asm__ volatile("" : "+r"(block));
+        TOUCH_REG(block);
         src           = (GsCOORDINATE2*)arg0->extra->field_8;
         block->rot.vx = 0;
         block->rot.vy = -0x400;
@@ -3789,9 +3789,9 @@ void func_80102634(GpActorWork* arg0)
             actor->field_5C  = (s16)(actor->field_58 / 5) * 3;
         }
         item = Wip_SysConfig.field_21;
-        __asm__ volatile("" : "+r"(item));
+        TOUCH_REG(item);
         tbl = D_801131B4;
-        __asm__ volatile("" : "+r"(item), "+r"(tbl));
+        TOUCH_REG2(item, tbl);
         slot = actor->field_91C;
         __asm__ volatile("" : "+r"(item) : "r"(slot));
         item = (item << 3) + (s32)tbl;
@@ -3799,7 +3799,7 @@ void func_80102634(GpActorWork* arg0)
             register GameActorExt* extra asm("a0");
             u16                    vx;
             extra = (GameActorExt*)slot->extra;
-            __asm__ volatile("" : "+r"(extra));
+            TOUCH_REG(extra);
             vx            = ((GpAimRot*)item)->vx;
             src           = (GsCOORDINATE2*)extra->field_8;
             block->rot.vx = vx;
@@ -3864,7 +3864,7 @@ void func_801029D4(GpActorWork* arg0)
     *scratch = tmp;
     if (actor->field_90C != NULL) {
         block = (GpPitchScratch*)tmp;
-        __asm__ volatile("" : "+r"(block));
+        TOUCH_REG(block);
         src           = (GsCOORDINATE2*)arg0->extra->field_8;
         block->rot.vx = 0;
         block->rot.vy = -0x400;
@@ -3900,9 +3900,9 @@ void func_801029D4(GpActorWork* arg0)
             actor->field_5C += block->angle;
         }
         item = Wip_SysConfig.field_21;
-        __asm__ volatile("" : "+r"(item));
+        TOUCH_REG(item);
         tbl = D_801131B4;
-        __asm__ volatile("" : "+r"(item), "+r"(tbl));
+        TOUCH_REG2(item, tbl);
         slot = actor->field_91C;
         __asm__ volatile("" : "+r"(item) : "r"(slot));
         item = (item << 3) + (s32)tbl;
@@ -3910,7 +3910,7 @@ void func_801029D4(GpActorWork* arg0)
             register GameActorExt* extra asm("a0");
             u16                    vx;
             extra = (GameActorExt*)slot->extra;
-            __asm__ volatile("" : "+r"(extra));
+            TOUCH_REG(extra);
             vx            = ((GpAimRot*)item)->vx;
             src           = (GsCOORDINATE2*)extra->field_8;
             block->rot.vx = vx;
@@ -3979,7 +3979,7 @@ void func_80102D20(GpActorWork* arg0, s32 arg1, s32 arg2)
     *scratch = tmp;
     if (actor->field_90C != NULL) {
         block = (GpPitchScratch*)tmp;
-        __asm__ volatile("" : "+r"(block));
+        TOUCH_REG(block);
         rec           = &D_801131B4[arg1];
         src           = (GsCOORDINATE2*)((GameActorExt*)actor->field_91C->extra)->field_8;
         block->rot.vx = rec->vx;
@@ -4042,7 +4042,7 @@ void func_80102F10(GpActorWork* arg0)
     *scratch = tmp;
     if (actor->field_90C != NULL) {
         block = (GpPitchScratch*)tmp;
-        __asm__ volatile("" : "+r"(block));
+        TOUCH_REG(block);
         src           = (GsCOORDINATE2*)((GameActorExt*)actor->field_91C->extra)->field_8;
         block->rot.vx = 0;
         block->rot.vy = 0;
@@ -4705,7 +4705,7 @@ void func_801041FC(GpActorWork* arg0, s32 arg1)
     count = actor->field_981;
     if ((s8)actor->field_981 == 0) {
         idx = arg1 & 0xFFFF;
-        asm("");
+        SOFT_BARRIER();
         actor->field_981 = count + 1;
         entry            = &D_80112E28[idx];
         Pad_PostEvent(0, 1, entry->field_0, entry->field_2);
@@ -5762,7 +5762,7 @@ s32 func_80105BC4(GpRec18* arg0, GsCOORDINATE2* arg1, GsCOORDINATE2* arg2)
                     fz    = rec->field_C;
                     dist += dy;
                     t2    = t2 - fz;
-                    asm volatile("" : "+r"(t2), "+r"(dist));
+                    TOUCH_REG2(t2, dist);
                     if (t2 < 0) {
                         t2 = -t2;
                     }
@@ -6529,7 +6529,7 @@ void func_8010747C(GpActorWork* arg0)
             kind             = actor->field_93C;
             actor->field_95C = 0;
             actor->field_95E = next + 1;
-            asm volatile("" : : : "memory");
+            COMPILER_BARRIER();
             mode = 0x1B;
             if (kind != 0) {
                 mode = 0x2B;
@@ -8560,7 +8560,7 @@ void func_8010AD64(GpActorWork* arg0)
     s32                 idx;
 
     scratch = (void**)G_SCRATCH_HEAD;
-    __asm__ volatile("" : "+r"(scratch));
+    TOUCH_REG(scratch);
     head     = *scratch;
     params   = &D_80113358;
     vec      = (SVECTOR*)(head - 8);
@@ -8586,7 +8586,7 @@ void func_8010AD64(GpActorWork* arg0)
         case 1:
             break;
         case 2:
-            asm("" ::: "memory");
+            SOFT_COMPILER_BARRIER();
             inner2 = arg0->actor;
             func_8010B210(arg0);
             inner2->field_97A = 0x12;

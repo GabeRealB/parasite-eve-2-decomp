@@ -130,11 +130,11 @@ void Gp_EnqueueWeaponCd(void)
 
             param1[0] = 0x10;
             slot      = Gp_GetItemSlot(item + 0x7F);
-            asm volatile("" : "+r"(slot));
+            TOUCH_REG(slot);
             attach = slot->field_2;
             if (attach != 0 && attach != 0xFF) {
                 temp = attach;
-                asm volatile("" : "+r"(temp));
+                TOUCH_REG(temp);
                 attach = temp - 0x9F;
                 if (attach == 0xB) {
                     param1[0] = 0x11;
@@ -544,7 +544,7 @@ s32 Gp_PollAreaCdLoads(void)
                     } else {
                         D_80114C68 = D_80114C64->field_4;
                         if (D_80114C68->field_0 != 0xFF) {
-                            asm volatile("");
+                            SCHED_BARRIER();
                             match = rec10;
                             for (; D_80114C68->field_0 != 0xFF; D_80114C68++) {
                                 if (match->field_0 == D_80114C68->field_0) {
@@ -567,7 +567,7 @@ s32 Gp_PollAreaCdLoads(void)
                                 temp      = D_8010CAD0[rec12->field_4].field_0;
                             }
                             param1[2] = temp;
-                            asm volatile("" : : : "memory");
+                            COMPILER_BARRIER();
                             param2[1] = 0;
                             param2[2] = D_80114C6C->field_D;
                             param2[3] = D_80114C6C->field_E;
@@ -1415,7 +1415,7 @@ void Gp_LinkRoomObjectsSpawn(Task* task)
                 Gp_LinkObj4A(1, obj);
                 flags         = obj->field_4A | 0x40;
                 obj->field_4A = flags;
-                asm volatile("" : "+r"(obj));
+                TOUCH_REG(obj);
                 obj++;
             } while (!(flags & 0x80));
         }
@@ -1427,7 +1427,7 @@ void Gp_LinkRoomObjectsSpawn(Task* task)
                 Gp_LinkObj4A(0, obj);
                 flags         = obj->field_4A | 0x40;
                 obj->field_4A = flags;
-                asm volatile("" : "+r"(obj));
+                TOUCH_REG(obj);
                 obj++;
             } while (!(flags & 0x80));
         }
@@ -1437,7 +1437,7 @@ void Gp_LinkRoomObjectsSpawn(Task* task)
                 Gp_LinkObj3A(0, obj3);
                 flags          = obj3->field_3A | 0x40;
                 obj3->field_3A = flags;
-                asm volatile("" : "+r"(obj3));
+                TOUCH_REG(obj3);
                 obj3++;
             } while (!(flags & 0x80));
         }
@@ -1526,7 +1526,7 @@ void Gp_EmitSprts(GpSprtElem* arg0, GpSprtCmd* arg1)
             sprt->clut       = cur->clut;
             *(u32*)&sprt->x0 = *(u32*)&cur->x0;
             i++;
-            asm volatile("" : "+r"(i));
+            TOUCH_REG(i);
             *(u32*)&sprt->w = *(u32*)&cur->w;
             elem++;
             dest->tpage.tag = (dest->tpage.tag & maskHi) | (*(u_long*)(((((u32)cur->otz << ds->field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt) & mask);
@@ -1658,9 +1658,9 @@ void Gp_AllocSprtLists(void)
                         register GpSprtElemFromW* mid asm("s1");
 
                         cursor = p;
-                        asm volatile("" : "+r"(cursor));
+                        TOUCH_REG(cursor);
                         mid = (GpSprtElemFromW*)&elem->w;
-                        asm volatile("" : "+r"(mid));
+                        TOUCH_REG(mid);
                         do {
                             dest             = *cursor;
                             sprt             = &dest->sprt;
@@ -1675,7 +1675,7 @@ void Gp_AllocSprtLists(void)
                             *(u16*)&sprt->u0 = *(u16*)&mid->u0;
                             sprt->clut       = ((u16*)&mid->w)[-1];
                             *(u32*)&sprt->x0 = *(u32*)&mid->x0;
-                            asm volatile("" : "+r"(i));
+                            TOUCH_REG(i);
                             i++;
                             *(u32*)&sprt->w = *(u32*)&mid->w;
                             elem++;
@@ -1732,7 +1732,7 @@ void Gp_LinkRoomObjects(Task* task)
                 Gp_LinkObj4A(1, obj);
                 flags         = obj->field_4A | 0x40;
                 obj->field_4A = flags;
-                asm volatile("" : "+r"(obj));
+                TOUCH_REG(obj);
                 obj++;
             } while (!(flags & 0x80));
         }
@@ -1744,7 +1744,7 @@ void Gp_LinkRoomObjects(Task* task)
                 Gp_LinkObj4A(0, obj);
                 flags         = obj->field_4A | 0x40;
                 obj->field_4A = flags;
-                asm volatile("" : "+r"(obj));
+                TOUCH_REG(obj);
                 obj++;
             } while (!(flags & 0x80));
         }
@@ -1754,7 +1754,7 @@ void Gp_LinkRoomObjects(Task* task)
                 Gp_LinkObj3A(0, obj3);
                 flags          = obj3->field_3A | 0x40;
                 obj3->field_3A = flags;
-                asm volatile("" : "+r"(obj3));
+                TOUCH_REG(obj3);
                 obj3++;
             } while (!(flags & 0x80));
         }
@@ -2501,7 +2501,7 @@ void Gp_RebuildAreaIdBits(void)
                         flag = obj->field_1 & 4;
                         flag = flag != 0;
                     } else {
-                        asm volatile("" : "=r"(flag) : "0"(0));
+                        MOVE_ZERO(flag);
                     }
                 }
                 if (flag == one) {

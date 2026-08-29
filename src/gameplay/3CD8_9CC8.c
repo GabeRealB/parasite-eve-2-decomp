@@ -442,7 +442,7 @@ void func_800EAA0C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
 
     scratch = (void**)G_SCRATCH_HEAD;
     head    = *scratch;
-    __asm__ volatile("" ::"r"(head));
+    USE_REG(head);
     {
         register u16 vx asm("v0");
         vx                                     = *(u16*)&arg0->workm.t[0];
@@ -465,7 +465,7 @@ void func_800EAA0C(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, u8* rgb)
     gte_stflg(&((GpArcScratch*)(head - 0x1C))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpArcScratch*)(head - 0x1C))->otz);
-        __asm__ volatile("" ::"r"(head));
+        USE_REG(head);
         block->otz++;
         ang          = 0;
         block->inner = ((s16)arg1 * 64) / block->otz;
@@ -518,7 +518,7 @@ void func_800EAEB8(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
 
     scratch = (void**)G_SCRATCH_HEAD;
     head    = *scratch;
-    __asm__ volatile("" ::"r"(head));
+    USE_REG(head);
     {
         register u16 vx asm("v0");
         vx                                      = *(u16*)&arg0->workm.t[0];
@@ -541,7 +541,7 @@ void func_800EAEB8(GsCOORDINATE2* arg0, s32 arg1, u8* rgb)
     gte_stflg(&((GpRingScratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpRingScratch*)(head - 0x18))->otz);
-        __asm__ volatile("" ::"r"(head));
+        USE_REG(head);
         block->otz++;
         block->step = ((s16)arg1 * 64) / block->otz;
         ang         = 0;
@@ -607,7 +607,7 @@ void func_800EB2C8(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, u16 arg3)
     gte_ldv0(vec);
     gte_rtps_real();
     clutIdx = arg3 >> 12;
-    __asm__ volatile("" ::"r"(clutIdx));
+    USE_REG(clutIdx);
     arg3 &= 0xFFF;
     gte_stsxy(&((GpFxQuadScratch*)(head - 0x1C))->sx);
     gte_stflg(&((GpFxQuadScratch*)(head - 0x1C))->flag);

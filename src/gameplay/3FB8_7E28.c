@@ -59,14 +59,14 @@ void func_800F77F8(Task* arg0)
     gte_stflg(&((GpEffFt4Scratch*)(head - 0x18))->flag);
     if (block->flag >= 0) {
         gte_stszotz(&((GpEffFt4Scratch*)(head - 0x18))->otz);
-        __asm__ volatile("" ::"r"(head));
+        USE_REG(head);
         block->otz++;
         prim       = (POLY_FT4*)D_80071190;
         D_80071190 = (DR_TPAGE*)(prim + 1);
-        __asm__ volatile("" ::: "memory");
+        COMPILER_BARRIER();
         len  = 9;
         code = 0x2D;
-        __asm__ volatile("" : "+r"(len), "+r"(code));
+        TOUCH_REG2(len, code);
         setlen(prim, len);
         setcode(prim, code);
         if (mem->field_26 != 0) {
