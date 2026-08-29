@@ -1218,7 +1218,45 @@ s32 CdCmd_CommitReplace(void)
     return (s16)writeIdx;
 }
 
-INCLUDE_ASM("main/nonmatchings/cdcmd", func_8001D82C);
+/**
+ * Non-zero while the queue must not accept new work: either the ring is
+ * completely idle (no error latched and nothing pending) or the entry the
+ * consumer is about to run is a 0x8_ command.
+ */
+u16 func_8001D82C(void)
+{
+    CdCmdQueue*          p;
+    register CdCmdEntry* entry asm("v0");
+    u32                  cmd;
+    u32                  cmdKind;
+    u16                  idle;
+
+    p = &CdCmd_Queue;
+
+    if (p->field_4c != 0) {
+        idle = 0;
+        goto check_idle;
+    }
+    cmd = p->writeIdx;
+    if (cmd != p->readIdx) {
+        idle = 0;
+        goto check_idle;
+    }
+    /* Keeps `idle = 1` out of a store-flag collapse so the two ring index
+       tests stay as branches. */
+    asm("");
+    idle = 1;
+check_idle:
+    if (idle == 0) {
+        entry   = &p->entries[p->readIdx];
+        cmd     = entry->cmd;
+        cmdKind = 8;
+        if ((cmd >> 4) != cmdKind) {
+            return 0;
+        }
+    }
+    return 1;
+}
 
 CdCmdEntry* CdCmd_NextEntry(void)
 {

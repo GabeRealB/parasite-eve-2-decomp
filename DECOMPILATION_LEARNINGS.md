@@ -31457,3 +31457,110 @@ return -6;
 `s16 arg1` inserts `sll`/`sra 16` (see the existing “stray `sll/sra` means
 `s32`” note). An `s8` candidate temp alone becomes `lbu` + `sll 24` at the join.
 `func_80055EF8` is the example.
+
+## Named macros for empty matching `asm`
+
+Empty GNU C statement-asm used only to constrain GCC 2.8.1 lives in
+`include/decomp/common.h`. Prefer those names over raw `asm volatile("")`:
+
+```c
+SCHED_BARRIER();          /* volatile; blocks delay-slot fill / insn motion */
+SOFT_BARRIER();           /* same constraint, scheduler may still move around it */
+COMPILER_BARRIER();       /* volatile; "" ::: "memory" */
+TOUCH_REG(x);             /* volatile; "+r" — block CSE / copy-prop / rematerialize */
+SOFT_TOUCH_REG(x);        /* non-volatile "+r" */
+USE_REG(x);               /* volatile; :: "r" — keep live, do not rewrite */
+CLOBBER_REG(a0);          /* volatile; ::: "a0" (or $4) */
+TOUCH_MEM(sp);            /* "m" — keep a stack object live */
+MOVE_ZERO(x);             /* "=r"(x) : "0"(0) → move dst, $zero */
+```
+
+`SOFT_` vs volatile is a matching difference (`func_800D8684`: 98.7% with
+`asm volatile("" : "+r"(e))`, 100% without volatile). Numbered forms
+(`TOUCH_REG2`, `USE_REG5`, …) exist because GCC 2.8.1 has no `__VA_ARGS__`.
+Do not wrap the macros in `do { } while (0)` or extra braces. Instruction
+`lui`/`lo`/`sll`/`move` and `register T x asm("v0")` pins stay written out.
+
+## `asm("")` instead of a wider temp to keep a `0`/`1` flag branchy
+
+The documented "assign the success constant through a wider temporary that is
+also the function's default return" trick (`new_var`) does force `bne` for a
+queue-idle style flag, but it has a side effect: with `return new_var;` the
+function's last statement is not a *constant* at the first `jump_optimize`
+pass, so GCC never runs its `x = b; if (...) x = a;` transform on the two
+`return` blocks. The `return 0` block then survives to `jump2` as a plain
+`jump end_label`, gets converted into its own `(return)` insn, the shared
+return label is deleted, and `dbr` fills the remaining `jr $ra` delay slot
+with the fall-through `li $v0, 1`. Result: an extra `jr $ra` and a stuck
+96% with `insert=1`.
+
+An empty `asm("")` before the `flag = 1` blocks the store-flag collapse just
+as well, emits nothing, and — because it is a volatile insn that never
+disappears — keeps working after `cse` folds the constant. Both `return`
+statements stay literal constants, so `jump_optimize` hoists the `0` and both
+exits share one `jr $ra`:
+
+```c
+if (p->field_4c != 0) {
+    idle = 0;
+    goto check_idle;
+}
+cmd = p->writeIdx;
+if (cmd != p->readIdx) {
+    idle = 0;
+    goto check_idle;
+}
+asm("");           /* not `new_var = 1; idle = new_var;` */
+idle = 1;
+check_idle:
+if (idle == 0) {
+    ...
+    return 0;
+}
+return 1;
+```
+
+Target tail to look for (shared return, empty delay slot, `li` *before* the
+label — not in the slot):
+
+```
+bne  $v1, $a0, .Lret
+ addu $v0, $zero, $zero
+.L1: addiu $v0, $zero, 1
+.Lret: jr $ra
+ nop
+```
+
+`func_8001D82C` is the example. The `new_var` form stuck at 96.259%
+(`insert=1`) through ~30 rewrites and a 15-minute permuter run; swapping it
+for `asm("")` fixed the tail in one step.
+
+## Pin the ring-entry pointer to `$v0` when a flag constant is pre-set there
+
+Once the `0` return value is hoisted (see above), `$v0` is live across the
+block that indexes the ring, so the register allocator pushes the whole
+`lhu / sll / addu / lbu` address chain into `$v1` and the target's
+
+```
+lhu  $v0, 0x1CA($a0)
+sll  $v0, $v0, 3
+addu $v0, $a0, $v0
+lbu  $v1, 0x4($v0)
+```
+
+becomes an all-`$v1` chain (~91%, `regs=6`). Naming the entry pointer and
+pinning it puts the address back in `$v0` and lets the loaded byte take
+`$v1`:
+
+```c
+register CdCmdEntry* entry asm("v0");
+...
+entry = &p->entries[p->readIdx];
+cmd   = entry->cmd;
+```
+
+Also assign the compare constant to its own local (`cmdKind = 8;`) rather than
+writing the literal inline: as a separate quantity it is allocated after
+`$v0`/`$v1` are taken and lands in `$a0` (the now-dead queue pointer), which
+is what puts `addiu $a0, $zero, 8` in the load-delay slot instead of hoisting
+`li $v1, 8` into an earlier branch delay slot. `func_8001D82C` needs both.
