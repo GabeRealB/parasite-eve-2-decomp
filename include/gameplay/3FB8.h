@@ -856,6 +856,11 @@ extern u16 D_80112E30[];
 extern struct _GpImgRec** D_80112E74[];
 extern struct _GpImgRec** D_80112EB4[];
 
+/// Per-item flag byte indexed by `Wip_SysConfig.field_21`. Nonzero makes
+/// `func_80106A3C` / `func_80108084` pass `GameActor.field_97F` (the current
+/// aim direction) to `func_80106264` instead of the default 1.
+extern u8 D_80112EF8[];
+
 /// 2-wide rows indexed by `Wip_SysConfig.field_21`. Zero at `[i][0]`
 /// makes `func_801088D4` abort the item-use path (`field_95E = 0x3E8`).
 extern u8 D_80112F1C[][2];

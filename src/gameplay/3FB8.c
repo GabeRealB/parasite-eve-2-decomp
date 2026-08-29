@@ -6207,7 +6207,60 @@ void func_80106838(GpActorWork* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3FB8", func_80106A3C);
+void func_80106A3C(GpActorWork* arg0)
+{
+    GameActor* actor;
+    s32        dir;
+    s32        res;
+    u8         item;
+    u16        pad;
+    s32        variant;
+    s32        val;
+    s32        base;
+
+    actor = arg0->actor;
+    if (actor->field_973 != actor->field_974) {
+        func_80108770(arg0, 4);
+    } else if (actor->field_973 == 0 && actor->field_975 != actor->field_976) {
+        func_80108684(arg0);
+    }
+    if (func_80109290(arg0) == 0) {
+        if ((actor->field_962 & 0xF000) == 0) {
+            func_80103F70(arg0);
+        }
+        func_801093DC(arg0);
+        if ((s8)func_801060E0(arg0) != 0 &&
+            Gp_AnimGetRec((GpAnimCtx*)actor->field_424, (GpAnimSlot*)actor->pad_438 + 1) != NULL &&
+            actor->field_940 == 0) {
+            dir = D_80112EF8[Wip_SysConfig.field_21] != 0 ? actor->field_97F : 1;
+            res = func_80106264(dir);
+            if (res > 0 ||
+                (item = actor->field_97F,
+                 D_80112F1C[Wip_SysConfig.field_21][(u8)(item - 1)] != 0)) {
+                if (Wip_SysConfig.field_25 & 0x80) {
+                    func_8010A854(2);
+                }
+                if (Wip_SysConfig.field_18 > 0) {
+                    actor->field_97D = 1;
+                    actor->field_95E = 0;
+                    func_8010615C(arg0);
+                }
+            } else if (res == 0) {
+                pad = actor->field_966;
+                if ((s8)item == 1 ? (pad & 8) : (pad & 2)) {
+                    actor->field_940 = 0xA;
+                    if (func_801062DC(arg0, dir) == 0) {
+                        func_801095BC(&variant);
+                        base = Wip_SysConfig.field_21 << 16;
+                        val  = variant | 0x20000001;
+                        func_801064A4((GpObj38*)arg0->extra->field_8, base | val, 0);
+                    }
+                }
+            }
+        }
+    }
+    func_80105ED4(arg0);
+}
 
 void func_80106C6C(GpActorWork* arg0)
 {

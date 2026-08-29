@@ -31608,3 +31608,64 @@ writing the literal inline: as a separate quantity it is allocated after
 `$v0`/`$v1` are taken and lands in `$a0` (the now-dead queue pointer), which
 is what puts `addiu $a0, $zero, 8` in the load-delay slot instead of hoisting
 `li $v1, 8` into an earlier branch delay slot. `func_8001D82C` needs both.
+
+## Ternary/if-else for the guarded init keeps a global's `%hi(sym+off)` folded
+
+GCC 2.8.1 expands *every* `Global.field` access as `lui`/`addiu` of the plain
+symbol plus a displacement, and combine folds it back to the two-instruction
+`lui %hi(sym+off)` / `lbu %lo(sym+off)` form only when that address pseudo has
+a **single** use. CSE merges the per-reference pseudos along its extended
+basic block, so a function that touches two different offsets of the same
+global tends to collapse into one shared base register (`addiu s3, v0,
+%lo(Wip_SysConfig)` then `0x21(s3)` / `0x25(s3)` / `0x18(s3)`). That costs an
+extra callee-saved register and a bigger frame, which shifts every branch
+offset in the diff.
+
+`func_80106A3C` wants three independent folded `%lo(Wip_SysConfig+0x21)`
+reads plus one shared `&Wip_SysConfig` base for the `field_25`/`field_18`
+pair. The lever is the *shape of the statement that guards the first read*,
+not any pointer local (`cfg = &Wip_SysConfig` inside the block, `volatile`
+casts, `SOFT_BARRIER()`, and `TOUCH_REG` all made no difference or were
+worse). Writing the guarded initialisation as a plain assignment
+
+```c
+dir = 1;
+if (D_80112EF8[Wip_SysConfig.field_21] != 0) {
+    dir = actor->field_97F;
+}
+```
+
+leaves CSE's chain running straight through the following blocks and merges
+all four references (89.7%, `regs=21`). The ternary — or the equivalent
+`if/else` with an assignment in both arms — breaks the chain and each
+reference folds on its own (98.2%):
+
+```c
+dir = D_80112EF8[Wip_SysConfig.field_21] != 0 ? actor->field_97F : 1;
+```
+
+Both forms emit the identical `li s1, 1` in the branch delay slot followed by
+`lb s1, 0x97F(s0)`, so the difference is invisible in the final assembly
+except through the addressing mode.
+
+## Split a `(a << N) | (b | K)` argument into two named locals
+
+`func_801064A4(obj, (Wip_SysConfig.field_21 << 16) | (variant | 0x20000001), 0)`
+is reassociated by `fold` into `((x << 16) | K) | variant` and emits the
+constant `or` first. Hoisting only the constant part (`val = variant | K;`)
+stops the reassociation but still evaluates the shift into the argument
+register, giving `or a1, a1, v0` where the target has `or a1, v0, a1`.
+
+Both halves need their own local, and the shift must be assigned *first*:
+
+```c
+base = Wip_SysConfig.field_21 << 16;
+val  = variant | 0x20000001;
+func_801064A4((GpObj38*)arg0->extra->field_8, base | val, 0);
+```
+
+`val`-then-`base` scores 98.2% with the two `or` sources swapped; `val |=
+base` folds the two ORs into one accumulator (99.9%). Note also that
+`variant |= K` on a stack local whose address was passed to
+`func_801095BC(&variant)` forces a write-back (`sw v0, 0x10(sp)`) — use a
+second local instead of compound-assigning the address-taken one.
