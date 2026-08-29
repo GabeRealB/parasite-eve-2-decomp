@@ -243,6 +243,22 @@ STATIC_ASSERT_SIZEOF(GpEffSprRec, 0xC);
 
 extern GpEffSprRec D_80112934[];
 
+/// 8-byte sprite frame of `D_80111E48`, indexed by
+/// `GpEffWork.field_22 / GpEffWork.field_28` in `func_800F1FF4`.
+/// `u` / `v` are the UV origin of a 0x28-wide quad; `clutX` / `clutY` feed
+/// `getClut`. TPage is hardcoded to 0x29.
+typedef struct _GpEffUv8 {
+    /* 0x0 */ u8  u;
+    /* 0x1 */ u8  pad1;
+    /* 0x2 */ u8  v;
+    /* 0x3 */ u8  pad3;
+    /* 0x4 */ u16 clutX;
+    /* 0x6 */ u16 clutY;
+} GpEffUv8;
+STATIC_ASSERT_SIZEOF(GpEffUv8, 8);
+
+extern GpEffUv8 D_80111E48[];
+
 /// Overlay of `D_80112964` at `u16` index `GpEffWork.field_2A`.
 /// `func_800F77F8` loads `field_4`, shifts it into a CLUT X nibble, and
 /// ORs `0x4280`. `func_800FA45C` uses the same table at byte offset 8.
@@ -292,6 +308,15 @@ typedef struct _GpEffSpawnArg {
     /* 0x2 */ s16 field_2;
 } GpEffSpawnArg;
 STATIC_ASSERT_SIZEOF(GpEffSpawnArg, 4);
+
+/// Overlay of `Task::spawnArg1` when the high byte is an `lb` nibble.
+/// `func_800F1FF4` copies `field_3 & 0xF` into `GpEffWork.field_20`.
+typedef struct _GpEffSpawnArgHi {
+    /* 0x0 */ u16 field_0;
+    /* 0x2 */ u8  pad_2;
+    /* 0x3 */ s8  field_3;
+} GpEffSpawnArgHi;
+STATIC_ASSERT_SIZEOF(GpEffSpawnArgHi, 4);
 
 /// Record whose word at 0x4 is the id `func_8010B2D4` passes to
 /// `Gp_ScaleDamage` (and `func_8010B348` passes to `Gp_LookupIdField`).

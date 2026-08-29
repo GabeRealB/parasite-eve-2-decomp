@@ -31157,3 +31157,25 @@ prim->v0 = 0x18;
 With the `u` store first, the constant is only ready after the `div`, so
 `prim->clut` stays in the `lbu` slot and each `li/sb` pair sits between `mflo`
 and the `sll`. This took `func_800F5E1C` from 92.4% to 100%.
+
+## `s32 tmp = s8_byte` keeps `lb`; masking an `s8` local becomes `lbu`
+
+`lb 0x37(s5)` / `andi 0xF` is a sign-extending byte load of `spawnArg1`'s high
+byte. Assigning the byte to an `s8` local and immediately `& 0xF` lets GCC
+2.8.1 prove the sign bits are unused, so it emits `lbu`. Widen to `s32` first:
+
+```c
+s32 tmp;
+tmp           = ((GpEffSpawnArgHi*)&arg0->spawnArg1)->field_3; /* lb */
+mem->field_20 = tmp & 0xF;                                    /* andi */
+```
+
+## Put `i += 1` after the `jal` so it fills the next `lhu` delay
+
+A `do { func_800EA478(..., lhu_arg, 0); i += 1; } while (i < n);` loop needs
+the increment in the load-delay slot of `lhu a2, field_24` (argument setup),
+with `lui a0, 0x6` in the `bnez` delay. Writing `i += 1` *before* the call
+rotates the loop: the first increment peels above the header and the latch
+becomes `addiu s0, 1` instead of `lui a0`. After the call, `-fschedule-insns`
+moves the independent increment into the `lhu` slot. `func_800F1FF4` is the
+example.
