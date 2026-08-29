@@ -363,6 +363,8 @@ TYPE_DIR_BY_EXT: dict[str, str] = {
     ".bs": "bs",
     ".spk": "spk",
     ".txt": "txt",
+    ".mcsave": "mcsave",
+    ".tmd": "model",
 }
 
 IMAGE_EXTS = frozenset({".pe2img", ".pe2clut"})
@@ -370,6 +372,12 @@ IMAGE_EXTS = frozenset({".pe2img", ".pe2clut"})
 PNG_INFLATE_EXTS = frozenset({".pe2img", ".pe2clut", ".bs"})
 # Sound banks inflate to a directory of WAV + meta.
 SPK_INFLATE_EXT = ".spk"
+# Assets embedded in the executables; inflate to a directory like SPK does.
+EMBEDDED_INFLATE_EXTS = frozenset({".mcsave"})
+# Types we can locate but not yet decode: stored raw, with no type-dir form, so
+# nothing implies a decode that does not exist. Drop an ext from here once its
+# materialize branch lands.
+RAW_ONLY_EXTS = frozenset({".tmd"})
 RAW_ROOT_NAME = "raw"
 
 
@@ -459,6 +467,12 @@ class AssetStore:
         if ext == SPK_INFLATE_EXT:
             # Directory of meta.json + sample_*.wav
             return f"{type_dir}/{stem}/meta.json"
+        if ext in EMBEDDED_INFLATE_EXTS:
+            # Directory of meta.json + the decoded images
+            return f"{type_dir}/{stem}/meta.json"
+        if ext in RAW_ONLY_EXTS:
+            # Located but not decoded: the raw file is the only form.
+            return f"{RAW_ROOT_NAME}/{type_dir}/{stem}{ext}"
         return f"{type_dir}/{stem}{ext}"
 
     def _map_entry(
@@ -558,6 +572,64 @@ class AssetStore:
         )
         return raw_path, stem, True
 
+    def put_embedded(
+        self, data: bytes, *, ext: str, asset_id: str, canonical: str, info: dict
+    ) -> tuple[Path, str, bool]:
+        """Store an asset carved out of a binary by address.
+
+        Same raw/{type} store and SHA-1 dedup as :meth:`put_raw`; the stem is
+        the catalogue id rather than a chunk-derived name, since these have no
+        chunk coordinates to fall back on.
+        """
+        ext = ext if ext.startswith(".") else f".{ext}"
+        type_dir = self.type_dir_for(ext)
+        digest = hashlib.sha1(data).hexdigest()
+        by_hash = self._by_hash.setdefault(type_dir, {})
+
+        if digest in by_hash:
+            raw_rel = by_hash[digest]
+            raw_path = self.assets_root / raw_rel
+            stem = Path(raw_rel).stem
+            self.map[canonical] = self._map_entry(
+                type_dir=type_dir,
+                stem=stem,
+                ext=ext,
+                raw_rel=raw_rel,
+                digest=digest,
+                duplicate_of=self._first_canonical.get(raw_rel),
+                header={},
+            )
+            return raw_path, stem, False
+
+        used = self._used_names.setdefault(type_dir, set())
+        stem = asset_id
+        n = 2
+        while stem in used:
+            stem = f"{asset_id}_{n}"
+            n += 1
+        used.add(stem)
+
+        raw_rel = f"{RAW_ROOT_NAME}/{type_dir}/{stem}{ext}"
+        raw_path = self.assets_root / raw_rel
+        raw_path.parent.mkdir(parents=True, exist_ok=True)
+        raw_path.write_bytes(data)
+
+        by_hash[digest] = raw_rel
+        self._first_canonical[raw_rel] = canonical
+        self._unique_raw[raw_rel] = (type_dir, stem, ext)
+        entry = self._map_entry(
+            type_dir=type_dir,
+            stem=stem,
+            ext=ext,
+            raw_rel=raw_rel,
+            digest=digest,
+            duplicate_of=None,
+            header={},
+        )
+        entry.update(info)
+        self.map[canonical] = entry
+        return raw_path, stem, True
+
     def materialize_inflated(
         self,
         *,
@@ -584,6 +656,8 @@ class AssetStore:
         for raw_rel, (type_dir, stem, ext) in sorted(
             self._unique_raw.items(), key=lambda kv: asset_name_key(kv[0])
         ):
+            if ext in RAW_ONLY_EXTS:
+                continue
             if only_pe2pkg_stems is not None:
                 if type_dir != "pe2pkg" or stem not in only_pe2pkg_stems:
                     continue
@@ -727,6 +801,24 @@ def _materialize_one_job(job: dict) -> dict:
                     fallback.write_bytes(raw_path.read_bytes())
                 path_override = f"{type_dir}/{stem}{ext}"
                 log = f"BS decode failed {raw_rel}: {ex}; raw .bs copied"
+        elif ext in EMBEDDED_INFLATE_EXTS:
+            log = f"decode embedded {raw_rel} → {out_rel}"
+            dest_dir = assets_root / type_dir / stem
+            try:
+                from exe_assets import materialize_save_header_asset
+
+                materialize_save_header_asset(raw_path, dest_dir)
+            except Exception as ex:
+                fallback = assets_root / type_dir / f"{stem}{ext}"
+                fallback.parent.mkdir(parents=True, exist_ok=True)
+                if fallback.exists() or fallback.is_symlink():
+                    fallback.unlink()
+                try:
+                    fallback.hardlink_to(raw_path)
+                except OSError:
+                    fallback.write_bytes(raw_path.read_bytes())
+                path_override = f"{type_dir}/{stem}{ext}"
+                log = f"embedded decode failed {raw_rel}: {ex}; raw copied"
         elif ext == SPK_INFLATE_EXT:
             log = f"decode spk {raw_rel} → {out_rel}"
             dest_dir = assets_root / type_dir / stem
@@ -989,26 +1081,67 @@ def extract_stage_n(data: BinaryIO, *, stage: int, store: AssetStore):
 
 
 
-def run_embedded_asset_decode(output_path: Path, *, skip: bool) -> None:
-    """Decode assets baked into the executables themselves.
+def run_package_analysis(output_path: Path, store: "AssetStore", *, skip: bool) -> None:
+    """Carve assets that live inside the inflated packages.
 
-    Runs on every extraction mode, minimal included: the inputs are the same
-    binaries the build splits (``main.exe`` plus the required overlays), so
-    there is nothing extra to fetch. Pillow is optional here - a missing
-    Pillow degrades to a warning rather than failing the extract.
+    Model streams are contiguous, so they become raw assets of their own.
+    Needs the full package set, so it no-ops after a minimal extract.
     """
     if skip:
-        logging.info("skip-embedded: skipped embedded asset decode")
         return
     try:
-        from exe_assets import extract_embedded_assets
-    except ImportError as exc:
-        logging.warning("Skipping embedded asset decode (%s)", exc)
-        return
-    try:
-        extract_embedded_assets(output_path)
+        from pkg_model import extract_package_models
+
+        extract_package_models(output_path, store)
     except Exception:
-        logging.exception("Failed to decode embedded assets")
+        logging.exception("Failed to carve package model streams")
+
+
+def store_embedded_assets(output_path: Path, store: "AssetStore", *, skip: bool) -> int:
+    """Carve catalogued assets out of the binaries and into the normal store.
+
+    Runs on every extraction mode: the inputs are just the binaries the build
+    splits, which even a minimal extract materialises. The decoded form is
+    produced later by ``materialize_inflated`` like any other type, so a
+    raw-only run stores the bytes and stops there.
+    """
+    if skip:
+        logging.info("skip-embedded: skipped embedded assets")
+        return 0
+    try:
+        from exe_assets import collect
+    except ImportError as exc:
+        logging.warning("Skipping embedded assets (%s)", exc)
+        return 0
+
+    targets: list[tuple[Path, int | None]] = [(output_path / "main.exe", None)]
+    pkg_dir = output_path / "pe2pkg"
+    if pkg_dir.is_dir():
+        targets += [(p, None) for p in sorted(pkg_dir.glob("*.pe2pkg"))]
+
+    total = 0
+    for path, base in targets:
+        try:
+            found = collect(path, base=base)
+        except Exception:
+            logging.exception("Failed to read embedded assets from %s", path.name)
+            continue
+        for item in found:
+            raw_path, stem, is_new = store.put_embedded(
+                item.data,
+                ext=item.ext,
+                asset_id=item.asset_id,
+                canonical=item.canonical,
+                info=item.info,
+            )
+            total += 1
+            logging.info(
+                "  %s %s → %s",
+                "raw" if is_new else "dedup",
+                item.canonical,
+                raw_path.relative_to(store.assets_root),
+            )
+    return total
 
 
 def main():
@@ -1149,9 +1282,12 @@ def main():
     logging.info(f"Copying main executable {executable_disk1.name}")
     shutil.copy(f"{executable_disk1.name}", f"{output_path / 'main.exe'}")
 
+    n_embedded = store_embedded_assets(output_path, store, skip=args.skip_embedded)
+    if n_embedded:
+        logging.info("Stored %d embedded asset(s) from the binaries", n_embedded)
+
     if args.raw_only:
         logging.info("raw-only: skipped inflate, stages/ISO manifests")
-        run_embedded_asset_decode(output_path, skip=args.skip_embedded)
         logging.info("All done! (raw at %s)", store.raw_root)
         return
 
@@ -1172,7 +1308,6 @@ def main():
         if missing:
             logging.warning("Required overlay(s) not found in store: %s", missing)
         logging.info("minimal-inflate: skipped stages/ISO manifests")
-        run_embedded_asset_decode(output_path, skip=args.skip_embedded)
         logging.info("All done! (raw + pe2pkg overlays under %s)", output_path)
         return
 
@@ -1210,7 +1345,7 @@ def main():
     except Exception:
         logging.exception("Failed to write pack/ISO manifests")
 
-    run_embedded_asset_decode(output_path, skip=args.skip_embedded)
+    run_package_analysis(output_path, store, skip=args.skip_embedded)
     logging.info("All done!")
 
 

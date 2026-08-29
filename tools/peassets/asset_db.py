@@ -38,6 +38,35 @@ if str(_DIR) not in sys.path:
 
 from asset_data import ASSETS, TREE  # noqa: E402
 
+# Assets baked into the executables rather than shipped as CDF chunks. Nothing
+# on disc references them, so the chunk walker cannot find them - they are
+# located by address instead, and then flow through the normal store (raw/{type}
+# plus an inflated form in the type dir) like any other asset.
+#
+# ``vram`` is the load-time address; ``extract.py`` converts it to a file offset
+# using the PS-X EXE header for main.exe, or the overlay's load address.
+# ``size`` is exact - these are fixed-size structures, not walked.
+EMBEDDED_ASSETS: dict[str, dict[str, Any]] = {
+    # The memory-card entry the game writes when a card fails to validate:
+    # "SC" magic, Shift-JIS title, 16-entry CLUT, three 16x16 4bpp icon frames.
+    # Split across two symbols in the disassembly (Mc_DefaultChecksumSrc is the
+    # first 4 bytes, Mc_SaveHeaderBody the rest); one asset here.
+    "mc_save_header": {
+        "source": "main.exe",
+        "vram": 0x80060EFC,
+        "size": 0x200,
+        "ext": ".mcsave",
+        "type": "mcsave",
+    },
+}
+
+
+def embedded_for_source(source: str) -> list[tuple[str, dict[str, Any]]]:
+    """Catalogued embedded assets carried by one binary, in address order."""
+    items = [(k, v) for k, v in EMBEDDED_ASSETS.items() if v.get("source") == source]
+    return sorted(items, key=lambda kv: kv[1]["vram"])
+
+
 _SAFE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 _GENERATED_ID = re.compile(r"^[A-Za-z][A-Za-z0-9]*_\d+$")
 
