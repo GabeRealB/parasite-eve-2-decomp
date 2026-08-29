@@ -31090,3 +31090,45 @@ Cross-jumping (which runs after register allocation) merges the inlined store
 into the earlier `mark_outside` block, so the layout matches the target while
 the extra in-loop reference is what the allocator saw. This took the score from
 94.4% to 99.5%.
+
+## A run of LCG draws: assign `Gp_LcgState` directly, don't route through a temp
+
+`func_800F3A78` seeds four `GpEffWork` fields from four consecutive LCG steps.
+Written with a temp per step (`rng = Gp_LcgState * 5 + 0x71357911;
+Gp_LcgState = rng; mem->field_X = ((u32)rng >> 16) & M;`) GCC 2.8.1 hoists all
+four `sll`/`addu`/`addu` multiply chains to the front of the block and defers
+every `andi`/`subu`/`sh`, because the temps form one dependency chain with
+nothing anchoring the extractions. Reading and writing the global directly
+
+```c
+Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+mem->field_2A = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1F0);
+Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+mem->field_10 = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+```
+
+keeps each extraction next to its draw (the value still stays in registers —
+`Gp_LcgState`'s address is never taken, so it is loaded once). That single
+change was worth 7.3% on `func_800F3A78`. Note this is the opposite fix from
+the chained `x = Gp_LcgState = ...` entry above, which applies when a *single*
+draw's value has to survive into a loop-carried live range.
+
+## `(u8)x` folds to `andi 0xF0` when GCC knows the low nibble
+
+A fade colour `col = (0x1F - n) * 16;` assigned to a `u32` with `param = (u8)col;`
+compiles to `andi <param>, <col>, 0xFF`, but assigning it to a `u8` variable —
+or anything else that lets combine see the `sll` feeding the mask — folds the
+constant to `0xF0`. If the target has `andi ..., 0xFF` *and* a preceding
+register copy, both come from making the value opaque with a tie-constrained
+no-op asm:
+
+```c
+col = (0x1F - mem->field_22) * 16;
+__asm__ volatile("" : "=r"(tmp) : "0"(col)); /* move <tmp>, <col> */
+param = (u8)tmp;                              /* andi <param>, <tmp>, 0xFF */
+prim->r0 = col;
+```
+
+Unlike `register s32 tmp asm("v1")`, this does not reserve a hard register, so
+it leaves the rest of the allocation alone — the pinned version stole `$v1`
+from two later `mult`/`mflo` pairs in `func_800F3A78`.

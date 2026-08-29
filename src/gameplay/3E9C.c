@@ -30,6 +30,7 @@ extern SVECTOR D_8011280C[];
 void func_800EF0E0(GsCOORDINATE2* arg0, s32 arg1, s32 arg2, s32 arg3);
 void func_800F1BEC(GsCOORDINATE2* arg0, u16 arg1, s16 arg2, s16 arg3);
 void func_800F68AC(VECTOR3* arg0, s32 arg1, s16 arg2);
+void func_800F6560(GsCOORDINATE2* arg0, s32 arg1, u32 arg2);
 
 void func_800ECAA8(Task* arg0)
 {
@@ -1294,7 +1295,148 @@ void func_800F3414(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F3A78);
+void func_800F3A78(Task* arg0)
+{
+    GsCOORDINATE2              hit;
+    GpEffWork*                 mem;
+    GsCOORDINATE2*             coord;
+    void**                     scratch;
+    u8*                        head;
+    register GpEffBeamScratch* vecp asm("v0");
+    GpEffBeamScratch*          block;
+    POLY_FT4*                  prim;
+    s16                        flag;
+    s32                        rng;
+    s16                        scale;
+    s16                        step;
+    s32                        col;
+    s32                        tmp;
+    u32                        param;
+    register u16               vx asm("v0");
+    u16                        vz;
+
+    mem   = arg0->spawnArg2;
+    flag  = Gp_State1C->field_4;
+    coord = (GsCOORDINATE2*)((GameActorExt*)arg0->extra)->field_8;
+    param = 0x80;
+    if (flag >= 2) {
+        if (flag >= 4) {
+            Gp_ReleaseState1CMem(mem, arg0);
+        }
+        return;
+    }
+    if (mem->field_20 == 0) {
+        scale = 0x200;
+        if (arg0->spawnArg1 & 0xFFF) {
+            scale = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xFFF;
+        }
+        mem->field_24 = scale;
+        rng           = Gp_LcgState * 5 + 0x71357911;
+        mem->field_26 = ((u32)rng >> 16) & 0xFFF;
+        Gp_LcgState   = rng;
+        if (arg0->spawnArg1 & 0xF000) {
+            step = (arg0->spawnArg1 >> 12) & 0xF;
+        } else {
+            step = 1;
+        }
+        mem->field_28 = step;
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        mem->field_2A = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1F0);
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        mem->field_10 = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        mem->field_12 = 0x80 - (((u32)Gp_LcgState >> 16) & 0xFF);
+        Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+        mem->field_14 = 0x40 - (((u32)Gp_LcgState >> 16) & 0x7F);
+        mem->field_20++;
+    }
+    Gp_UpdateCoord(coord);
+    scratch = (void**)G_SCRATCH_HEAD;
+    head    = *scratch;
+    __asm__ volatile("" ::"r"(head));
+    vx                                         = *(u16*)&coord->workm.t[0];
+    ((GpEffBeamScratch*)(head - 0x1C))->vec.vx = vx;
+    vecp                                       = (GpEffBeamScratch*)(head - 0x1C);
+    block                                      = vecp;
+    block->vec.vy                              = *(u16*)&coord->workm.t[1];
+    vz                                         = *(u16*)&coord->workm.t[2];
+    *scratch                                   = block;
+    block->vec.vz                              = vz;
+    gte_SetTransMatrix(&GsWSMATRIX);
+    gte_SetRotMatrix(&GsWSMATRIX);
+    gte_ldv0(&block->vec);
+    gte_rtps_real();
+    gte_stsxy(&((GpEffBeamScratch*)(head - 0x1C))->sxy);
+    gte_stflg(&((GpEffBeamScratch*)(head - 0x1C))->flag);
+    if (block->flag >= 0) {
+        gte_stszotz(&((GpEffBeamScratch*)(head - 0x1C))->otz);
+        block->otz = block->otz + 1;
+        prim       = (POLY_FT4*)D_80071190;
+        D_80071190 = (DR_TPAGE*)(prim + 1);
+        setlen(prim, 9);
+        setcode(prim, 0x2C);
+        if (mem->field_22 >= 0x18) {
+            col = (0x1F - mem->field_22) * 16;
+            __asm__ volatile("" : "=r"(tmp) : "0"(col));
+            param    = (u8)tmp;
+            prim->r0 = col;
+            prim->g0 = col;
+            prim->b0 = col;
+        } else {
+            setcode(prim, 0x2D);
+        }
+        prim->tpage = 0x28;
+        prim->code |= 2;
+        prim->clut  = 0x428A;
+        prim->u0    = ((mem->field_22 / mem->field_28) % 6) * 16;
+        prim->v0    = 0x58;
+        prim->u1    = ((mem->field_22 / mem->field_28) % 6) * 16 + 0xF;
+        prim->v1    = 0x58;
+        prim->u2    = ((mem->field_22 / mem->field_28) % 6) * 16;
+        prim->v2    = 0x67;
+        prim->u3    = ((mem->field_22 / mem->field_28) % 6) * 16 + 0xF;
+        prim->v3    = 0x67;
+        block->dx   = (((mem->field_24 * 15) / block->otz) * rsin(mem->field_26)) >> 12;
+        block->dy   = (((mem->field_24 * 15) / block->otz) * rcos(mem->field_26)) >> 12;
+        prim->x0    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+        prim->x3    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+        prim->y0    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+        prim->y3    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        block->dx   = (((mem->field_24 * 15) / block->otz) * rsin(mem->field_26 + 0x400)) >> 12;
+        block->dy   = (((mem->field_24 * 15) / block->otz) * rcos(mem->field_26 + 0x400)) >> 12;
+        prim->x1    = *(u16*)&block->sxy.vx + *(u16*)&block->dx;
+        prim->x2    = *(u16*)&block->sxy.vx - *(u16*)&block->dx;
+        prim->y1    = *(u16*)&block->sxy.vy - *(u16*)&block->dy;
+        prim->y2    = *(u16*)&block->sxy.vy + *(u16*)&block->dy;
+        addPrim((u_long*)(((((u32)block->otz << Display_State.field_128) >> 2) & 0xFFC) + (s32)Gpu_CurrentOt),
+                prim);
+    }
+    *(void**)G_SCRATCH_HEAD = (u8*)*(void**)G_SCRATCH_HEAD + 0x1C;
+    if (Gp_State1C->field_4 != 0) {
+        return;
+    }
+    coord->coord.t[0] += mem->field_10;
+    coord->coord.t[1] += mem->field_12;
+    coord->coord.t[2] += mem->field_14;
+    coord->flg         = 0;
+    Gp_UpdateCoord(coord);
+    mem->field_12 += 5;
+    mem->field_26 += mem->field_2A;
+    mem->field_22++;
+    if (mem->field_22 >= 0x1F) {
+        Gp_ReleaseState1CMem(mem, arg0);
+        return;
+    }
+    if (func_800EA02C(coord, &hit) == 1) {
+        func_800F6560(&hit, (s32)(*(u16*)&mem->field_24 << 16) >> 17, param);
+    }
+    if (coord->coord.t[1] > hit.coord.t[1]) {
+        coord->coord.t[1] -= mem->field_12 * 2;
+        mem->field_12      = -((s32)(*(u16*)&mem->field_12 << 16) >> 17);
+        mem->field_10      = (s32)(*(u16*)&mem->field_10 << 16) >> 17;
+        mem->field_14      = (s32)(*(u16*)&mem->field_14 << 16) >> 17;
+    }
+}
 
 INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F4308);
 
