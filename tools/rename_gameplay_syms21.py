@@ -53,13 +53,14 @@ RENAMES: list[tuple[str, str]] = [
     ("func_800A7A64", "Gp_TriggerPeIfArmed"),
 ]
 
-TEXT_EXTS = {".c", ".h", ".s", ".txt", ".md", ".inc", ".yaml", ".yml", ".json", ".ld"}
+TEXT_EXTS = {".c", ".h", ".s", ".txt", ".md", ".inc", ".yaml", ".yml", ".json", ".ld", ".py"}
+EXTLESS_FILES = {"difficult_functions", "CLAUDE.md", "AGENTS.md"}
+
 SKIP_DIRS = {
     ".git", "venv", "build", "expected", "rom", "lib", "assets",
     "tools/asm-differ", "tools/decomp-permuter", "tools/m2c", "tools/maspsx",
     "tools/linux", "tools/macos", "tools/windows", "tools/objdiff",
     "tools/pepkgs", "tools/peassets", "tools/claude-decomp-env", "local",
-    "tools/giveups",
 }
 
 
@@ -93,7 +94,7 @@ def main() -> int:
     for path in ROOT.rglob("*"):
         if not path.is_file() or should_skip(path):
             continue
-        if path.suffix not in TEXT_EXTS:
+        if path.suffix not in TEXT_EXTS and path.name not in EXTLESS_FILES:
             continue
         try:
             raw = path.read_text(encoding="utf-8")
@@ -115,8 +116,18 @@ def main() -> int:
                 path.rename(new_path)
                 renamed += 1
 
+    giveups = ROOT / "tools/giveups"
+    moved_dirs = 0
+    if giveups.is_dir():
+        for d in list(giveups.iterdir()):
+            if d.is_dir() and d.name in name_map:
+                dest = d.with_name(name_map[d.name])
+                if not dest.exists():
+                    d.rename(dest)
+                    moved_dirs += 1
+
     print(f"Updated {files_changed} files ({total_subs} substitutions)")
-    print(f"Renamed {renamed} assembly basenames")
+    print(f"Renamed {renamed} assembly basenames, {moved_dirs} giveup dirs")
     return 0
 
 

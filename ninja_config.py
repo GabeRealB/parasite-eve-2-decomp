@@ -355,7 +355,7 @@ def fix_gameplay_linker_rodata_order() -> None:
 
     The `.rodata, 3FB8` sibling can land at the front of the C .rodata group.
     Linked order must stay 3FB8_75BC.c, 3FB8_7E28.c, 3FB8.c, rodata_3FB8_2.
-    Same for `.rodata, gameplay` (func_800A1634 jtbl @ 0x78, between header
+    Same for `.rodata, gameplay` (Gp_ApplyAttachStats jtbl @ 0x78, between header
     and header_2).
     """
     dest = Path("linkers/USA/gameplay.ld")
