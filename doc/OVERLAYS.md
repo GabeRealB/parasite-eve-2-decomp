@@ -21,6 +21,12 @@ TMD playback in `src/main/tmd.c` / `include/main/tmd.h`; animation player in
 | Model stream | `Tmd_InitSourceStream` / `Tmd_ProcessStream` |
 | Anim player | `GpAnimCtx` / `GpAnimSlot` / `GpAnimSet` (`1BC.c`) |
 
+The formats themselves are documented in
+[`TMD_FORMAT.md`](TMD_FORMAT.md) (the model packet stream and its opcodes) and
+[`ASSET_FORMATS.md` §9](ASSET_FORMATS.md#9-models-and-animation) (the
+`GpAnimSet` clip layout, and how gameplay's index tables attribute a block to
+the package that owns it).
+
 There is **no separate model or animation chunk type**. Both sit inside the
 same `.pe2pkg` as code (or *instead* of code). Textures are sibling `.pe2img`
 / `.pe2clut` in the same stage-0 file.
