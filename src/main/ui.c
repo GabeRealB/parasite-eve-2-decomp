@@ -117,7 +117,7 @@ body:
         c     = t & 0xFF;
         if (t <= 0) {
             t = 1;
-            asm("" : "+r"(t));
+            SOFT_TOUCH_REG(t);
             c = t & 0xFF;
         }
         color          = 0x80;
@@ -264,7 +264,7 @@ void Ui_DrawPanel(UiPanel* arg0, RECT* arg1, RECT* arg2, s32 arg3)
         if (arg3 != 0) {
             s32 tw;
             tw = 0x140;
-            asm volatile("" : "+r"(tw));
+            TOUCH_REG(tw);
             sp18.w     = tw;
             sp18.h     = 0xF0;
             p          = (DR_AREA*)D_80071190;
@@ -627,7 +627,7 @@ void Ui_DrawCursor(UiPanel* arg0, s32 arg1, s32 arg2)
         arg2  = n - row * 3;
         half  = row / 2;
         half  = row - half * 2;
-        asm("" : "+r"(half), "+r"(arg2));
+        SOFT_TOUCH_REG2(half, arg2);
         t     = arg2 * 8 - 0x18;
         p->u0 = t;
         t     = half * 8 + 0x30;
@@ -892,7 +892,7 @@ void Ui_LayoutListPanel(UiList* arg0_, UiPanel* arg1_)
     temp_v1_2 = arg0->field_4;
     if (arg0->field_10 >= temp_v1_2) {
         arg0->field_10 = temp_v1_2 - 1;
-        asm("" ::: "memory");
+        SOFT_COMPILER_BARRIER();
         temp_v1_2 = arg0->field_4;
     }
     if (arg0->field_5 >= temp_v1_2) {
@@ -936,12 +936,12 @@ void Ui_DrawListHighlight(UiList* arg0, UiPanel* arg1, s32 arg2)
 
     a1    = (UiPanelSignedLayout*)arg1;
     color = 0x1741F;
-    asm("" : "+r"(color), "+r"(a1));
+    SOFT_TOUCH_REG2(color, a1);
     f14          = a1->field_14;
     h            = arg0->field_7;
     x1           = a1->field_1C;
     a1->field_14 = f14 + 1;
-    asm("" ::: "memory");
+    SOFT_COMPILER_BARRIER();
     width = a1->field_1E - x1;
     if ((width - 1) >= 2) {
         p          = (TILE*)D_80071190;
@@ -1251,7 +1251,7 @@ UiObject* Ui_SpawnTextBlock(TextBlockDesc* arg0_)
 
     arg0   = arg0_;
     result = NULL;
-    asm("" : "+r"(arg0));
+    SOFT_TOUCH_REG(arg0);
     if (arg0->count > 0) {
         obj              = NULL;
         sp.desc.flags    = D_80067678.field_10;
@@ -1327,7 +1327,7 @@ UiObject* Ui_SpawnTextBlock(TextBlockDesc* arg0_)
             maxWidth        -= (s16)result->field_1A - (s16)result->field_18;
             result->field_12 = result->field_12 + maxWidth;
             result->field_E  = -((s16)result->field_12 / 2);
-            asm volatile("" ::"r"(dummy));
+            USE_REG(dummy);
         }
     }
     arg0->field_2 = 0;
@@ -1573,7 +1573,7 @@ void Ui_InitList(UiList* arg0, UiMiniObj* arg1)
     temp_v1_2 = arg0->field_4;
     if (arg0->field_10 >= temp_v1_2) {
         arg0->field_10 = temp_v1_2 - 1;
-        asm("" ::: "memory");
+        SOFT_COMPILER_BARRIER();
         temp_v1_2 = arg0->field_4;
     }
     if ((s8)arg0->field_5 >= temp_v1_2) {
@@ -1587,7 +1587,7 @@ void Ui_InitList(UiList* arg0, UiMiniObj* arg1)
         arg0->field_10 = 0;
         arg0->field_9  = 0;
     }
-    asm("" : : "m"(sp));
+    TOUCH_MEM(sp);
 }
 
 void Ui_ComputeVisibleRows(UiList* arg0, s32 arg1)
@@ -1623,14 +1623,14 @@ void Ui_ComputeVisibleRows(UiList* arg0, s32 arg1)
     temp_v1_2 = arg0->field_4;
     if (arg0->field_10 >= temp_v1_2) {
         arg0->field_10 = temp_v1_2 - 1;
-        asm("" ::: "memory");
+        SOFT_COMPILER_BARRIER();
         temp_v1_2 = arg0->field_4;
     }
     if ((s8)arg0->field_5 >= temp_v1_2) {
         arg0->field_9 = 0;
     }
     arg0->field_A = 0;
-    asm("" : : "m"(sp));
+    TOUCH_MEM(sp);
 }
 
 void Ui_UpdateListNoAnim(void* arg0, void* arg1)
@@ -1671,14 +1671,14 @@ void Ui_ComputeVisibleRowsEx(UiList* arg0, UiPanel* arg1, s32 arg2)
     temp_v1_2 = arg0->field_4;
     if (arg0->field_10 >= temp_v1_2) {
         arg0->field_10 = temp_v1_2 - 1;
-        asm("" ::: "memory");
+        SOFT_COMPILER_BARRIER();
         temp_v1_2 = arg0->field_4;
     }
     if ((s8)arg0->field_5 >= temp_v1_2) {
         arg0->field_9 = 0;
     }
     arg0->field_A = 0;
-    asm("" : : "m"(sp));
+    TOUCH_MEM(sp);
 }
 
 void Ui_SmoothCursor(UiMiniObj* arg0, s32 arg1, s32 arg2)
