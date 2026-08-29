@@ -82,7 +82,8 @@ segments:
       - [0x1BC, rodata, rodata_1BC] # jtbl_800939BC (func_800AF590 still asm)
       - [0x1D4, .rodata, 1BC] # jtbl from Gp_StepCdAudioCmd
       - [0x1F8, rodata, rodata_1BC_2] # Gp_StrNewEnemyNull string + Gp_EnemyWaitFuncs tables
-      - [0x268, rodata, rodata_268]
+      - [0x268, .rodata, 268] # jtbl from func_800B7420
+      - [0x4C4, rodata, rodata_268]
       - [0x4CC, .rodata, 4CC] # jtbls: Gp_ItemMoveChild + strings/tables + Gp_CloseItemPane
       - [0x668, rodata, rodata_4CC_2]
       - [0x3688, .rodata, 3688] # jtbl from func_800BF9FC

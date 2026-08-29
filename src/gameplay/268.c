@@ -23,6 +23,9 @@ extern u8           Gp_DebugAttachLevels[];
 extern char         Gp_StrNotice2[];
 extern u8           Gp_StrMore[];
 extern u8           Gp_StrAttachAvail[];
+extern u8           D_8010D318[];
+extern u8           D_8010D320[];
+extern u8           D_8010D324[];
 extern s32          D_8005ED70;
 extern s32          D_8005ED74;
 extern s32          D_8005ED78;
@@ -55,7 +58,188 @@ void func_800C1148(UiPanel* arg0, s32 arg1);
 void func_801061F0(void);
 void func_800D2F68(Task* arg0);
 
-INCLUDE_ASM("gameplay/nonmatchings/268", func_800B7420);
+s32 func_800B7420(s32 arg0)
+{
+    GpItemScan scan;
+    s32        i;
+    s32        id;
+
+    switch (arg0) {
+        case 0x8F:
+        case 0x93:
+        case 0x94:
+        case 0x98:
+        case 0x99:
+        case 0x9A:
+        case 0x9B:
+        case 0x9C:
+            for (i = 0; i < 8; i++) {
+                id = D_8010D318[i];
+                memset(&scan, 0, sizeof(scan));
+                scan.field_1 = 0xFF;
+                if (Gp_SumScanQty(&scan, id)) {
+                    return 1;
+                }
+            }
+            return 0;
+
+        case 0x80:
+        case 0x83:
+            for (i = 0; i < 2; i++) {
+                id = D_8010D320[i];
+                memset(&scan, 0, sizeof(scan));
+                scan.field_1 = 0xFF;
+                if (Gp_SumScanQty(&scan, id)) {
+                    return 1;
+                }
+            }
+            return 0;
+
+        case 0x9D:
+        case 0x9E:
+        case 0x9F:
+            for (i = 0; i < 3; i++) {
+                id = D_8010D324[i];
+                memset(&scan, 0, sizeof(scan));
+                scan.field_1 = 0xFF;
+                if (Gp_SumScanQty(&scan, id)) {
+                    return 1;
+                }
+            }
+            return 0;
+
+        case 0x9:
+            memset(&scan, 0, sizeof(scan));
+            scan.field_1 = 0xFF;
+            if (Gp_SumScanQty(&scan, 0x9F)) {
+                return 1;
+            }
+            memset(&scan, 0, sizeof(scan));
+            scan.field_1 = 0xFF;
+            if (Gp_SumScanQty(&scan, 0x9E)) {
+                memset(&scan, 0, sizeof(scan));
+                scan.field_1 = 0xFF;
+                if (Gp_SumScanQty(&scan, 0x9)) {
+                    return 1;
+                }
+            }
+            memset(&scan, 0, sizeof(scan));
+            scan.field_1 = 0xFF;
+            return Gp_SumScanQty(&scan, 0x9) >= 2;
+
+        case 0xA:
+            memset(&scan, 0, sizeof(scan));
+            scan.field_1 = 0xFF;
+            if (Gp_SumScanQty(&scan, 0x94)) {
+                return 1;
+            }
+            memset(&scan, 0, sizeof(scan));
+            scan.field_1 = 0xFF;
+            if (Gp_SumScanQty(&scan, 0x93)) {
+                memset(&scan, 0, sizeof(scan));
+                scan.field_1 = 0xFF;
+                if (Gp_SumScanQty(&scan, 0xA)) {
+                    return 1;
+                }
+            }
+            memset(&scan, 0, sizeof(scan));
+            scan.field_1 = 0xFF;
+            return Gp_SumScanQty(&scan, 0xA) >= 2;
+
+        case 0xC:
+            memset(&scan, 0, sizeof(scan));
+            scan.field_1 = 0xFF;
+            if (Gp_SumScanQty(&scan, 0x80)) {
+                return 1;
+            }
+            memset(&scan, 0, sizeof(scan));
+            scan.field_1 = 0xFF;
+            if (Gp_SumScanQty(&scan, 0xC)) {
+                return 1;
+            }
+            /* Keeps GCC from cross-jumping the identical two-probe case tails. */
+            asm("" ::: "memory");
+            return 0;
+
+        case 0x42:
+            memset(&scan, 0, sizeof(scan));
+            scan.field_1 = 0xFF;
+            if (Gp_SumScanQty(&scan, 0x98)) {
+                return 1;
+            }
+            memset(&scan, 0, sizeof(scan));
+            scan.field_1 = 0xFF;
+            if (Gp_SumScanQty(&scan, 0x42)) {
+                return 1;
+            }
+            asm("" ::: "memory");
+            return 0;
+
+        case 0x43:
+            memset(&scan, 0, sizeof(scan));
+            scan.field_1 = 0xFF;
+            if (Gp_SumScanQty(&scan, 0x9B)) {
+                return 1;
+            }
+            memset(&scan, 0, sizeof(scan));
+            scan.field_1 = 0xFF;
+            if (Gp_SumScanQty(&scan, 0x43)) {
+                return 1;
+            }
+            asm("" ::: "memory");
+            return 0;
+
+        case 0x44:
+            memset(&scan, 0, sizeof(scan));
+            scan.field_1 = 0xFF;
+            if (Gp_SumScanQty(&scan, 0x9C)) {
+                return 1;
+            }
+            memset(&scan, 0, sizeof(scan));
+            scan.field_1 = 0xFF;
+            if (Gp_SumScanQty(&scan, 0x44)) {
+                return 1;
+            }
+            asm("" ::: "memory");
+            return 0;
+
+        case 0x45:
+            memset(&scan, 0, sizeof(scan));
+            scan.field_1 = 0xFF;
+            if (Gp_SumScanQty(&scan, 0x9A)) {
+                return 1;
+            }
+            memset(&scan, 0, sizeof(scan));
+            scan.field_1 = 0xFF;
+            if (Gp_SumScanQty(&scan, 0x45)) {
+                return 1;
+            }
+            asm("" ::: "memory");
+            return 0;
+
+        case 0x46:
+            memset(&scan, 0, sizeof(scan));
+            scan.field_1 = 0xFF;
+            if (Gp_SumScanQty(&scan, 0x99)) {
+                return 1;
+            }
+            memset(&scan, 0, sizeof(scan));
+            scan.field_1 = 0xFF;
+            if (Gp_SumScanQty(&scan, 0x46)) {
+                return 1;
+            }
+            asm("" ::: "memory");
+            return 0;
+
+        default:
+            if ((u32)(arg0 - 0x60) < 0x40) {
+                memset(&scan, 0, sizeof(scan));
+                scan.field_1 = 0xFF;
+                return Gp_SumScanQty(&scan, arg0);
+            }
+            return 0;
+    }
+}
 
 void Gp_RecalcMaxMp(void)
 {

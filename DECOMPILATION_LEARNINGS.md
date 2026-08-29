@@ -31335,3 +31335,75 @@ if ((mem->field_28 * 8 - 1) < n32) {
 `func_800F8A38` is the example. Pair with the existing `code |= 3` memory
 barrier plus a `tpage` local so `clut` fills the `field_2A` `lhu` delay instead
 of the `lbu` of `code`.
+
+## Switch cases with identical tails: `asm("" ::: "memory")` blocks cross-jumping
+
+A switch where several cases run the *same* two probes with different
+constants:
+
+```c
+case 0x42:
+    memset(&scan, 0, sizeof(scan));
+    scan.field_1 = 0xFF;
+    if (Gp_SumScanQty(&scan, 0x98)) {
+        return 1;
+    }
+    memset(&scan, 0, sizeof(scan));
+    scan.field_1 = 0xFF;
+    if (Gp_SumScanQty(&scan, 0x42)) {
+        return 1;
+    }
+    return 0;
+```
+
+compiles with every second half folded into one shared tail
+(`j .text+0x450 / li a1,0x42` instead of `jal … / bnez / li v0,1 / j / move
+v0,zero`), because GCC 2.8.1's post-reload `jump_optimize` cross-jump merges
+the identical `jal`/`bnez`/`move v0,zero`/`j Lret` suffixes; only the `li a1,
+imm` differs and it sits before the call. The last case additionally collapses
+to `sltu v0, zero, v0`. Result ~87–89% with `delete` ≈ 25–30.
+
+No C shape avoids this. Verified against cc1 2.8.1 directly: inverted tests
+(`if (probe() == 0) { … } return 1;`), a shared `ret` variable with `break`,
+a shared `goto yes;` label, and hoisting both results into temps all still
+merge.
+
+Fix: put an empty memory barrier before each duplicated `return 0`.
+
+```c
+    if (Gp_SumScanQty(&scan, 0x42)) {
+        return 1;
+    }
+    asm("" ::: "memory");
+    return 0;
+```
+
+The barrier emits nothing, but the extra insn in the tail stops
+`find_cross_jump` from matching backwards, so each case keeps its own
+`bnez v0, ret / li v0,1` (the delay-slot filler then folds each per-case
+`return 1` block into the branch) and its own `j ret / move v0,zero`.
+`func_800B7420` went 89% → 100% with six of these. Cases that *should* share a
+tail in the target (there, the `>= 2` tails of two other cases) must be left
+alone — only barrier the ones the ROM keeps separate.
+
+## Un-asm'ing a function with a jump table: move the jtbl to a dotted `.rodata` split
+
+While the function is `INCLUDE_ASM`, its jump table lives in a standalone
+`rodata` subsegment (`- [0x268, rodata, rodata_268]`) whose `.word .L800B78D4`
+entries reference labels inside the asm file. Once the function is C, those
+labels vanish and the link fails with
+`undefined reference to '.L800B78D4'` from `rodata_268.rodata.s.o`.
+
+Split the jtbl range off into a dotted sibling of the C TU and keep the
+remainder as asm:
+
+```yaml
+      - [0x268, .rodata, 268] # jtbl from func_800B7420
+      - [0x4C4, rodata, rodata_268]
+```
+
+`ninja_config.py` re-runs splat every time, so the asm file is regenerated
+without the jtbl automatically. The C TU's `.rodata` must be the *first*
+jtbl-bearing group at that offset (here the TU's text starts at
+`func_800B7420`), otherwise the generated jtbl lands in the wrong order and
+`fix_gameplay_linker_rodata_order` has to be extended.
