@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/3A34.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/3FB8.h"
 #include "gameplay/gameplay.h"
@@ -13,6 +14,7 @@
 #include <psyq/libgpu.h>
 #include <psyq/libgs.h>
 #include <psyq/libgte.h>
+#include <psyq/memory.h>
 
 #define gte_rtv0_real()  __asm__ volatile("nop; nop; .word 0x4A486012")
 #define gte_rtps_real()  __asm__ volatile("nop; nop; .word 0x4A180001")
@@ -1623,4 +1625,211 @@ void func_800F6C2C(Task* arg0)
     }
 }
 
-INCLUDE_ASM("gameplay/nonmatchings/3E9C", func_800F6D18);
+void func_800F6D18(Task* arg0)
+{
+    SVECTOR        delta;
+    SVECTOR        dir;
+    SVECTOR        pos;
+    VECTOR         scale2;
+    VECTOR         scale;
+    GameActorExt*  extra;
+    GpEffWork*     mem;
+    GsCOORDINATE2* coord;
+    GsCOORDINATE2* player;
+    SVECTOR*       rot;
+    MATRIX*        mtx;
+    s32            state;
+    s16            flag;
+    s16            trans;
+    s32            temp;
+    u16            tx;
+    u16            ty;
+    u16            tz;
+    s32            dz;
+
+    extra  = (GameActorExt*)arg0->extra;
+    mem    = arg0->spawnArg2;
+    coord  = (GsCOORDINATE2*)extra->field_8;
+    player = (GsCOORDINATE2*)((GameActorExt*)((Task*)Game_GetPtrSlot(3))->extra)->field_8;
+    flag   = Gp_State1C->field_4;
+    if (flag != 0) {
+        if (flag < 4) {
+            return;
+        }
+        goto release;
+    }
+    Gp_UpdateCoord(coord);
+    mem->field_22++;
+    state = arg0->state;
+    switch (state) {
+        case 0:
+            extra->field_C &= 0xFF7F;
+            mem->field_24   = 0x100;
+            if (arg0->spawnArg1 & 0xFFF) {
+                temp = ((GpEffSpawnArg*)&arg0->spawnArg1)->field_0 & 0xFFF;
+            } else {
+                temp = 0x200;
+            }
+            mem->field_26 = temp;
+            mem->field_28 = 0x800;
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_10 = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_12 = 0x400 - (((u32)Gp_LcgState >> 16) % 0xC00);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_14 = 0x800 - (((u32)Gp_LcgState >> 16) & 0xFFF);
+            VectorNormalSS((SVECTOR*)&mem->field_10, (SVECTOR*)&mem->field_10);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_18 = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_1A = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+            Gp_LcgState   = Gp_LcgState * 5 + 0x71357911;
+            mem->field_1C = 0x100 - (((u32)Gp_LcgState >> 16) & 0x1FF);
+            coord->flg    = 0;
+            Gp_UpdateCoord(coord);
+            arg0->state = 1;
+            func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
+            return;
+        case 1:
+            mtx = &coord->coord;
+            rot = (SVECTOR*)&mem->field_18;
+            Gfx_RotMatrixXYZ(mtx, rot, 0);
+            MatrixNormal(mtx, mtx);
+            gte_lddp(*(u16*)&mem->field_24);
+            gte_ldsv((SVECTOR*)&mem->field_10);
+            gte_gpf12_real();
+            gte_stsv(&delta);
+            coord->coord.t[0] += delta.vx;
+            coord->coord.t[1] += delta.vy;
+            coord->coord.t[2] += delta.vz;
+            coord->flg         = 0;
+            gte_SetRotMatrix(&D_80070F34);
+            gte_ldv0(&delta);
+            gte_rtv0_real();
+            gte_stsv(&dir);
+            tx             = *(u16*)&coord->workm.t[0];
+            pos.vx         = tx;
+            ty             = *(u16*)&coord->workm.t[1];
+            pos.vy         = ty;
+            tz             = *(u16*)&coord->workm.t[2];
+            *(u16*)&dir.vx = *(u16*)&dir.vx + tx;
+            *(u16*)&dir.vy = *(u16*)&dir.vy + ty;
+            pos.vz         = tz;
+            *(u16*)&dir.vz = *(u16*)&dir.vz + tz;
+            if (func_800DE7CC(&dir, &pos, &dir, &pos) == state) {
+                SVECTOR*          vel;
+                register SVECTOR* r0 asm("a0");
+                vel = (SVECTOR*)&mem->field_10;
+                r0  = vel;
+                __asm__ volatile("" ::"r"(r0));
+                coord->coord.t[0] -= delta.vx;
+                coord->coord.t[1] -= delta.vy;
+                coord->coord.t[2] -= delta.vz;
+                __asm__ volatile("" ::: "memory");
+                {
+                    u16          t10;
+                    u16          t11;
+                    register s32 t12 asm("a1");
+                    s32          sum;
+                    t10 = *(volatile u16*)&pos.vx;
+                    t11 = *(volatile u16*)&mem->field_10;
+                    t12 = *(volatile u16*)&mem->field_12;
+                    sum = ((s32)(t10 << 16) >> 17) + ((s32)(t11 << 16) >> 17);
+                    __asm__ volatile("" ::"r"(t12));
+                    mem->field_10 = sum;
+                    t12         <<= 16;
+                    t12         >>= 17;
+                    __asm__ volatile("" ::: "memory");
+                    mem->field_12 = *(u16*)&pos.vy + t12;
+                }
+                dz            = (s32)(*(u16*)&mem->field_14 << 16) >> 17;
+                mem->field_14 = ((s32)(*(u16*)&pos.vz << 16) >> 17) + dz;
+                VectorNormalSS(vel, vel);
+                mem->field_24 = (s32)(*(u16*)&mem->field_24 << 16) >> 17;
+                gte_lddp(mem->field_24);
+                gte_ldsv(vel);
+                gte_gpf12_real();
+                gte_stsv(&delta);
+                coord->coord.t[0] += delta.vx;
+                coord->coord.t[1] += delta.vy;
+                coord->coord.t[2] += delta.vz;
+                coord->flg         = 0;
+                Gp_UpdateCoord(coord);
+                if (!(mem->field_22 & 3)) {
+                    func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
+                }
+                func_800EA478(0x60055, coord, mem->field_26 + 0x12200, 0);
+                gte_lddp(0x800);
+                gte_ldsv(rot);
+                gte_gpf12_real();
+                gte_stsv(rot);
+                if (((s16)mem->field_22 - mem->field_2A) < 8 && mem->field_24 < 0x20) {
+                    extra->field_C |= 2;
+                    mem->field_22   = 0;
+                    arg0->state     = 2;
+                    return;
+                }
+                mem->field_2A = mem->field_22;
+                return;
+            }
+            if (mem->field_24 == 0) {
+                return;
+            }
+            if (mem->field_22 >= 0x4C) {
+                goto release;
+            }
+            if (player->coord.t[1] + 0x100 < coord->coord.t[1]) {
+                mem->field_22 += 0xA;
+            }
+            Gp_UpdateCoord(coord);
+            if (!(mem->field_22 & 3)) {
+                func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
+            }
+            mem->field_12 += 0x10000 / mem->field_24;
+            Gp_LcgState    = Gp_LcgState * 5 + 0x71357911;
+            if (!(((u32)Gp_LcgState >> 16) & 3)) {
+                func_800EA478(0x60042, coord, mem->field_26 + 0x11000, 0);
+            }
+            Gp_LcgState = Gp_LcgState * 5 + 0x71357911;
+            if (!(((u32)Gp_LcgState >> 16) & 7)) {
+                func_800EA478(0x60055, coord, mem->field_26 + 0x11000, 0);
+            }
+            if (mem->field_22 >= 0x33) {
+                extra->field_C |= 2;
+                if (mem->field_28 >= 0x41) {
+                    trans         = mem->field_28 - 0x40;
+                    mem->field_28 = trans;
+                    Gp_SetObjTrans((GpObj20*)extra, trans, trans, trans);
+                    return;
+                }
+            }
+            return;
+        case 2:
+            Gp_UpdateCoord(coord);
+            if (!(mem->field_22 & 3)) {
+                func_800D7A9C(extra, (VECTOR*)coord->workm.t, 0, 3);
+            }
+            if (mem->field_22 >= 0x10) {
+                goto release;
+            }
+            memset(&scale, 0, 0x10);
+            scale.vx = 0x1000;
+            scale.vy = (0x10 - mem->field_22) << 8;
+            scale.vz = 0x1000;
+            scale2   = scale;
+            ScaleMatrix(&coord->coord, &scale2);
+            coord->flg = 0;
+            if (mem->field_28 >= 0x81) {
+                trans         = mem->field_28 - 0x80;
+                mem->field_28 = trans;
+                Gp_SetObjTrans((GpObj20*)extra, trans, trans, trans);
+            }
+            if (mem->field_22 == 8) {
+                func_800EA478(0x600A5, coord, mem->field_26 >= 0x100, 0);
+            }
+            return;
+    }
+    return;
+release:
+    Gp_ReleaseState1CMem(mem, arg0);
+}
