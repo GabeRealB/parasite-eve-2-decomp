@@ -2467,6 +2467,7 @@ Mc_GlyphsUpper              = 0x80060E48;
 Mc_GlyphsLower              = 0x80060E80;
 Mc_GlyphsSymbol             = 0x80060EB8;
 Mc_DefaultChecksumSrc       = 0x80060EFC;
+Mc_SaveHeaderBody           = 0x80060F00;
 Mc_BufferSlots              = 0x800610FC; // type:McBufferSlot
 
 //--------------------------------------------------------------------

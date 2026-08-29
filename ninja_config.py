@@ -671,6 +671,11 @@ def ninja_build(
                         | "sbss"
                         | "rodata"
                         | "header"
+                        # *bin segments emit a small .s that .incbin's the
+                        # bytes back from assets/; same assemble rule.
+                        | "databin"
+                        | "rodatabin"
+                        | "textbin"
                     ):
                         if re.search("^asm.(USA|JAP).main.*", source_path):
                             ninja_file.build(

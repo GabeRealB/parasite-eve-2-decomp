@@ -200,14 +200,40 @@ Before declaring a decompilation complete, verify:
 
 ### Assets
 
-Typically small 5-6 length symbols (e.g. D_4237C0) are asset addresses. Another strong hint that they are assets if if they are passed to `dmaRequestAndUpdateStateWithSize`.
+**Never commit game data.** `README.md` states the repository contains no ROMs,
+disc images or copyrighted assets, and `.gitignore` enforces it: `rom/`,
+`assets/`, `asm/`, `linkers/` and `build/` are all regenerated from the user's
+own discs. Anything you move out of those trees and into `src/` or `include/`
+is being committed, so that move is a licensing decision, not a formatting one.
 
-Use `USE_ASSET(symbol)` to load symbols, for example D_4237C0 and dmaRequestAndUpdateStateWithSize would become:
+Game content lives in files, not in the executable: `assets/USA/pe2img`
+(textures), `pe2clut` (palettes), `pe2pkg` (room/actor overlays), `pe2cap2`,
+`audio`, `movie`, `bs`. See [`doc/ASSET_FORMATS.md`](doc/ASSET_FORMATS.md).
 
-```
-USE_ASSET(_4237C0);
+Some content *is* embedded in the binaries, though, and it must stay in the
+generated trees:
 
-dmaRequestAndUpdateStateWithSize(_4237C0_ROM_START, _4237C0_ROM_END);
-```
+| What | Where | Note |
+|---|---|---|
+| Memory-card save header | `Mc_SaveHeaderMagic` + the block after it (main `.data`) | `"SC"` magic, Shift-JIS title, 16-colour CLUT, three 16x16 4bpp icon frames |
+| UI font glyph metrics | `Font_Glyphs0/1/2` (main `.data`) | 224/224/91 x `FontGlyph`; pixels come from a CLUT image, see ASSET_FORMATS 7.6 |
+| Item / balance tables | `Gp_ItemDescs`, `Gp_IdParamHi` (gameplay `.data`) | |
+| UI and dialogue text | the `.asciz` pools in gameplay `.rodata` | |
+| Meshes and animation clips | gameplay `.data` trailing region and room/actor `.pe2pkg` overlays | no separate chunk type; see [`doc/OVERLAYS.md`](doc/OVERLAYS.md) |
 
-Failure to handle assets properly will almost certainly guarantee a mismatch.
+What **is** fine to write into C is program structure whose "data" is
+references to our own decompiled symbols, or small constants that encode
+logic: function-pointer dispatch tables (`Display_TaskStates`,
+`Mc_FileSelectStates`, `Gp_ItemMenuStates`), index tables such as
+`Gp_FaceEdgePairs`, and the short strings a matched function needs in its own
+`.rodata`. That is the existing pattern - data moves into C when matching
+forces it into the owning TU's section, not as a cleanup exercise.
+
+Prefer a splat `databin` / `rodatabin` segment for a blob that is real
+content: splat writes the bytes to `assets/` (gitignored) and emits a small
+`.s` that `.incbin`s them back, so the build keeps matching and nothing lands
+in git.
+
+There is no `USE_ASSET` macro and no `dmaRequestAndUpdateStateWithSize` in
+this project; earlier revisions of this file described a scheme from a
+different decomp. Ignore any reference to them.
