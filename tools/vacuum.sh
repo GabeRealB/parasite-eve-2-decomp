@@ -17,13 +17,22 @@ set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-STOP_PHRASE="Error: All functions are marked as difficult!"
 MAX_TIMES=""
 STOP_REQUESTED=0
 DRY_RUN=0
 KEEP_SCRATCH=0
 PERMUTER=1
 DIFFICULT_FUNCTIONS="tools/difficult_functions"
+# Paths a match is allowed to land. Jump-table / splat edits live in configs/.
+# Do not add tools/ or ninja_config.py; agents sometimes stage those by accident.
+MATCH_LAND_PATHS=(
+  src
+  include
+  configs
+  DECOMPILATION_LEARNINGS.md
+  STRUCT_FIELDS.md
+  NAMING.md
+)
 CLI="${VACUUM_CLI:-claude}"
 LOG_FILE=""
 OVERLAY_PY="tools/decomp_overlay.py"
@@ -58,7 +67,8 @@ Options:
                     worktree, then run a port agent on this tree under the
                     merge lock. Do not run a non-orchestrator vacuum on this
                     tree at the same time.
-  --difficult       Only pick functions listed in tools/difficult_functions
+  --difficult       Only pick functions listed in tools/difficult_functions.
+                    A verified match removes that name from the list.
   --overlay NAME    Only pick functions from this overlay (gameplay, USA/main,
                     asm path suffix). Combined with --difficult: intersection.
   -h, --help        Show this help
@@ -225,12 +235,20 @@ note_skip() {
   echo "$func" >>"$SKIP_FILE"
 }
 
+difficult_listed() {
+  local func=$1
+  [[ -f "$DIFFICULT_FUNCTIONS" ]] || return 1
+  awk -v f="$func" '$1 == f { found = 1 } END { exit !found }' "$DIFFICULT_FUNCTIONS"
+}
+
 forget_difficult_entry() {
   local func=$1
   [[ -f "$DIFFICULT_FUNCTIONS" ]] || return 0
+  difficult_listed "$func" || return 0
   awk -v f="$func" 'NF && $1 == f { next } { print }' "$DIFFICULT_FUNCTIONS" \
     >"${DIFFICULT_FUNCTIONS}.tmp" \
     && mv "${DIFFICULT_FUNCTIONS}.tmp" "$DIFFICULT_FUNCTIONS"
+  echo "Removed $func from $DIFFICULT_FUNCTIONS" | tee -a "$LOG_FILE"
 }
 
 orch_claim_args() {
@@ -456,20 +474,16 @@ commit_match_if_needed() {
     return 1
   fi
 
-  git add -A -- src include DECOMPILATION_LEARNINGS.md STRUCT_FIELDS.md NAMING.md 2>/dev/null || true
+  git add -A -- "${MATCH_LAND_PATHS[@]}" 2>/dev/null || true
   if git diff --cached --quiet; then
     echo "No staged match files to commit" | tee -a "$LOG_FILE"
     return 1
   fi
+  forget_difficult_entry "$func"
+  git add -- "$DIFFICULT_FUNCTIONS" 2>/dev/null || true
   git commit -m "matched $func $attempts"
   echo "Auto-committed matched $func $attempts" | tee -a "$LOG_FILE"
   return 0
-}
-
-difficult_listed() {
-  local func=$1
-  [[ -f "$DIFFICULT_FUNCTIONS" ]] || return 1
-  awk -v f="$func" '$1 == f { found = 1 } END { exit !found }' "$DIFFICULT_FUNCTIONS"
 }
 
 best_score() {
@@ -602,7 +616,7 @@ Canonical trunk (do NOT write here): \`$ROOT\`
 
 Do NOT run ./tools/claude or recreate the scratch directory.
 Do NOT run git merge / rebase / cherry-pick.
-Do NOT edit \`$ROOT\`. Do NOT append tools/difficult_functions (a later port agent does that on trunk).
+Do NOT edit \`$ROOT\`. Do NOT append tools/difficult_functions (vacuum records give-ups on trunk).
 
 $(stale_build_warning "$wt")
 
@@ -612,7 +626,7 @@ Read \`$scratch/BRIEF.md\` (also pasted below), then:
 2. $(dump_loop_instructions "$func")
 3. If the best score is ≥ 95% and leftover diffs are registers / scheduling / stack (\`branch\`=\`insert\`=\`delete\`=0), run the permuter from the worktree root **before** adding register pins:
    \`./permute.sh --run --timeout 360 -j4 $func <asm path from BRIEF> $scratch/base_N.c\`
-4. On 100%: replace INCLUDE_ASM in the worktree host C file, fix headers in this overlay's include/ tree, run \`./tools/build-and-verify.sh\` **in the worktree**, commit \`matched $func <attempts>\` **on this worktree branch only**.
+4. On 100%: replace INCLUDE_ASM in the worktree host C file, fix headers in this overlay's include/ tree, include any \`configs/\` splat or jump-table yaml, run \`./tools/build-and-verify.sh\` **in the worktree**, commit \`matched $func <attempts>\` **on this worktree branch only**.
 5. On stall: revert host C in the worktree, do not leave INCLUDE_ASM replaced, leave the scratch (best unpinned \`base_N.c\` included).
 6. Leave the scratch directory.
 
@@ -655,12 +669,13 @@ EOF
     cat <<EOF
 Port the matched function onto **current** trunk:
 
-1. Read the worktree host C / headers / learnings (and \`$scratch\` winning \`base_N.c\`) as the source of intent.
-2. Read the same paths on trunk. Adapt to structs, INCLUDE_ASM sites, and nearby functions that already landed.
-3. Replace INCLUDE_ASM for \`$func\` on trunk. Reconcile types rather than duplicating fields.
+1. Read the worktree host C / headers / configs / learnings (and \`$scratch\` winning \`base_N.c\`) as the source of intent.
+2. Read the same paths on trunk. Adapt to structs, INCLUDE_ASM sites, splat yaml, and nearby functions that already landed.
+3. Replace INCLUDE_ASM for \`$func\` on trunk. Copy any \`configs/\` splat/jump-table edits. Reconcile types rather than duplicating fields.
 4. If the old body no longer matches because layout / context changed, keep adapting until \`./tools/build-and-verify.sh\` prints \`✅ BUILD SUCCEEDED\`.
 5. Commit \`matched $func $attempts\` on trunk. Run \`venv/bin/python3 ninja_config.py\` if splat still lists this function under nonmatchings.
-6. Optional learnings: add a note to DECOMPILATION_LEARNINGS.md only if it is still true on trunk.
+6. If \`$func\` is listed in \`tools/difficult_functions\`, delete that line and include the file in the match commit (or a follow-up \`Update tools/difficult_functions\`). Vacuum also drops the name after a verified land.
+7. Optional learnings: add a note to DECOMPILATION_LEARNINGS.md only if it is still true on trunk.
 
 A diff of what the match session touched in the worktree follows as a **hint**, not a patch:
 
@@ -838,7 +853,7 @@ create_match_worktree() {
 worktree_hint_diff() {
   local wt=$1
   local base=$2
-  git -C "$wt" diff "$base" -- src include DECOMPILATION_LEARNINGS.md STRUCT_FIELDS.md NAMING.md 2>/dev/null \
+  git -C "$wt" diff "$base" -- "${MATCH_LAND_PATHS[@]}" 2>/dev/null \
     | python3 -c 'import sys; t=sys.stdin.read(); print((t[:80000] + ("\n...[truncated]..." if len(t)>80000 else "")) or "(no diff)")'
 }
 
@@ -868,7 +883,7 @@ verify_repo() {
   return "$st"
 }
 
-# Copy worktree src/include onto trunk when those files have not moved since
+# Copy worktree match files onto trunk when those paths have not moved since
 # the worktree was created. Avoids a port agent (and grok's stale-checksum
 # "verify") for the common no-divergence case.
 fast_port_from_worktree() {
@@ -878,9 +893,9 @@ fast_port_from_worktree() {
   local scratch=$4
   local -a changed=()
   mapfile -t changed < <(git -C "$wt" diff --name-only --diff-filter=ACDMR "$base" -- \
-    src include DECOMPILATION_LEARNINGS.md STRUCT_FIELDS.md NAMING.md)
+    "${MATCH_LAND_PATHS[@]}")
   if [[ ${#changed[@]} -eq 0 ]]; then
-    echo "Fast port skipped: worktree has no src/include diff for $func" | tee -a "$LOG_FILE"
+    echo "Fast port skipped: worktree has no landable diff for $func" | tee -a "$LOG_FILE"
     return 1
   fi
   if ! git -C "$ROOT" diff --quiet "$base" -- "${changed[@]}"; then
@@ -907,7 +922,7 @@ fast_port_from_worktree() {
 reset_trunk_to() {
   local rev=$1
   git -C "$ROOT" reset --hard "$rev" >/dev/null 2>&1 || true
-  git -C "$ROOT" clean -fd -- src include >/dev/null 2>&1 || true
+  git -C "$ROOT" clean -fd -- "${MATCH_LAND_PATHS[@]}" >/dev/null 2>&1 || true
 }
 
 vacuum_orch_loop() {
@@ -1072,7 +1087,7 @@ vacuum_orch_loop() {
       else
         echo "Independently verifying worktree match for $func..." | tee -a "$LOG_FILE"
         git -C "$wt" reset --hard HEAD >/dev/null 2>&1 || true
-        git -C "$wt" clean -fd -- src include >/dev/null 2>&1 || true
+        git -C "$wt" clean -fd -- "${MATCH_LAND_PATHS[@]}" >/dev/null 2>&1 || true
         if verify_repo "$wt"; then
           status=matched
           wt_verified_func=$func
@@ -1101,7 +1116,7 @@ vacuum_orch_loop() {
     else
       status=difficult
       copy_giveup_to_main "$func" "$scratch"
-      ( cd "$wt" && git checkout -- src include DECOMPILATION_LEARNINGS.md STRUCT_FIELDS.md NAMING.md "$DIFFICULT_FUNCTIONS" 2>/dev/null ) || true
+      ( cd "$wt" && git checkout -- "${MATCH_LAND_PATHS[@]}" "$DIFFICULT_FUNCTIONS" 2>/dev/null ) || true
     fi
 
     attempts=$(count_attempts "$scratch")
@@ -1163,6 +1178,11 @@ vacuum_orch_loop() {
       fi
     fi
 
+    # Drop the give-up listing on trunk while we still hold the merge lock.
+    if [[ $landed -eq 1 && "$status" == "matched" ]]; then
+      ( cd "$ROOT" && commit_difficult_if_needed "$func" 0 ) || true
+    fi
+
     orch merge-release --session "$SESSION" >/dev/null 2>&1 || true
     ORCH_MERGE=0
 
@@ -1214,10 +1234,6 @@ vacuum_orch_loop() {
 
     if [[ $STOP_REQUESTED -eq 1 ]]; then
       echo "Stopping gracefully."
-      break
-    fi
-    if echo "$output" | grep -qF "$STOP_PHRASE"; then
-      echo "$STOP_PHRASE"
       break
     fi
     if [[ $exit_code -ne 0 && $ORCH_FINISHED -eq 0 ]]; then
@@ -1322,7 +1338,7 @@ while true; do
     python3 tools/archive_giveup.py --func "$simplest_func" --scratch "$scratch" \
       2>&1 | tee -a "$LOG_FILE" || true
     git reset --hard HEAD >/dev/null
-    git clean -fd -- src include >/dev/null 2>&1 || true
+    git clean -fd -- "${MATCH_LAND_PATHS[@]}" >/dev/null 2>&1 || true
     cleanup_scratch "$simplest_func" "$scratch"
     echo "Stopping gracefully."
     break
@@ -1334,7 +1350,7 @@ while true; do
   commit_difficult_if_needed "$simplest_func" "$match_status"
 
   git reset --hard HEAD >/dev/null
-  git clean -fd -- src include >/dev/null 2>&1 || true
+  git clean -fd -- "${MATCH_LAND_PATHS[@]}" >/dev/null 2>&1 || true
   cleanup_scratch "$simplest_func" "$scratch"
 
   # 0 already ran verify before auto-commit; 1/2 still need a tree check.
@@ -1344,11 +1360,6 @@ while true; do
 
   if [[ $STOP_REQUESTED -eq 1 ]]; then
     echo "Stopping gracefully."
-    break
-  fi
-
-  if echo "$output" | grep -qF "$STOP_PHRASE"; then
-    echo "$STOP_PHRASE"
     break
   fi
 
