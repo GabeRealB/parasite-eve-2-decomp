@@ -519,6 +519,44 @@ box per glyph); `0x7FFD` keys it out.
 
 ---
 
+## 7.7 Assets embedded in the executables
+
+A few things are baked into `SLUS_010.42` rather than shipped as CDF chunks,
+so nothing on disc references them and the chunk walker cannot see them.
+`tools/peassets/exe_assets.py` finds them by signature and writes the decoded
+form to `assets/USA/embedded/decoded/<binary>/<asset>/`. It runs from
+`extract.py` in every mode, minimal included, because its inputs are just the
+binaries the build already splits (`--skip-embedded` turns it off; a missing
+Pillow degrades to a warning).
+
+The raw bytes reach the build by a separate route - a splat `databin` segment
+writing to `assets/USA/embedded/` - so game data stays out of git either way.
+
+### Memory-card save header (`main.exe` `0x0516FC`, VA `0x80060EFC`)
+
+One 512-byte PlayStation save header, the entry the game writes for a card
+that failed to validate. Split across two symbols: `Mc_DefaultChecksumSrc` is
+the first 4 bytes (and what `Mc_BufferSlots[0]` points at), `Mc_SaveHeaderBody`
+is the rest.
+
+| Off | Size | Field |
+|---|---|---|
+| 0x00 | 2 | `"SC"` magic |
+| 0x02 | 1 | icon flag `0x11`-`0x13`; low nibble is the frame count (3 here) |
+| 0x03 | 1 | block count (1) |
+| 0x04 | 0x3C | Shift-JIS title, NUL-terminated - `ＰＥ２　Ｄａｔａ　Ｃｏｒｒｕｐｔｅｄ．` |
+| 0x60 | 0x20 | 16-entry 5-5-5 CLUT; entry 0 transparent |
+| 0x80 | 0x80 x3 | icon frames, 16x16 4bpp, low nibble = left pixel |
+
+The three frames animate a portrait dissolving into the teal PE energy effect.
+
+Adding another embedded type means a `find_*` scanner and a `decode_*` writer
+in `exe_assets.py`, registered in `SCANNERS`. Meshes and animation clips are
+the obvious next candidates - see [`OVERLAYS.md`](OVERLAYS.md), which places
+them in gameplay `.data` and the room/actor packages.
+
+---
+
 ## 8. Room backgrounds (`.bs`)
 
 - Chunk type `0x5`.

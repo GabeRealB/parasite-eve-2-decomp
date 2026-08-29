@@ -988,6 +988,29 @@ def extract_stage_n(data: BinaryIO, *, stage: int, store: AssetStore):
         folder_offset += entry.folder_size
 
 
+
+def run_embedded_asset_decode(output_path: Path, *, skip: bool) -> None:
+    """Decode assets baked into the executables themselves.
+
+    Runs on every extraction mode, minimal included: the inputs are the same
+    binaries the build splits (``main.exe`` plus the required overlays), so
+    there is nothing extra to fetch. Pillow is optional here - a missing
+    Pillow degrades to a warning rather than failing the extract.
+    """
+    if skip:
+        logging.info("skip-embedded: skipped embedded asset decode")
+        return
+    try:
+        from exe_assets import extract_embedded_assets
+    except ImportError as exc:
+        logging.warning("Skipping embedded asset decode (%s)", exc)
+        return
+    try:
+        extract_embedded_assets(output_path)
+    except Exception:
+        logging.exception("Failed to decode embedded assets")
+
+
 def main():
     logging.basicConfig(level=logging.INFO)
     parser = ArgumentParser()
@@ -1029,6 +1052,11 @@ def main():
             "Skip images/ascii/full inflate, CD audio/movie streams, "
             "and stages/ISO manifests. Intended for CI / matching builds."
         ),
+    )
+    parser.add_argument(
+        "--skip-embedded",
+        action="store_true",
+        help="Skip decoding assets embedded in the executables",
     )
     parser.add_argument(
         "--skip-streams",
@@ -1123,6 +1151,7 @@ def main():
 
     if args.raw_only:
         logging.info("raw-only: skipped inflate, stages/ISO manifests")
+        run_embedded_asset_decode(output_path, skip=args.skip_embedded)
         logging.info("All done! (raw at %s)", store.raw_root)
         return
 
@@ -1143,6 +1172,7 @@ def main():
         if missing:
             logging.warning("Required overlay(s) not found in store: %s", missing)
         logging.info("minimal-inflate: skipped stages/ISO manifests")
+        run_embedded_asset_decode(output_path, skip=args.skip_embedded)
         logging.info("All done! (raw + pe2pkg overlays under %s)", output_path)
         return
 
@@ -1180,6 +1210,7 @@ def main():
     except Exception:
         logging.exception("Failed to write pack/ISO manifests")
 
+    run_embedded_asset_decode(output_path, skip=args.skip_embedded)
     logging.info("All done!")
 
 
