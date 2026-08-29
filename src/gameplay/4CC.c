@@ -810,7 +810,7 @@ void Gp_ItemPickupTilt(Task* arg0)
     coord   = (GsCOORDINATE2*)extra->field_8;
     rot     = coord + 2;
     room    = *(u8*)&session->field_4;
-    if (D_801153F4 == 2) {
+    if (Gp_StateF0.field_4 == 2) {
         extra->field_C |= 0x80;
     } else {
         extra->field_C &= 0xFF7F;

@@ -174,7 +174,7 @@ typedef struct _GpRec16 {
 } GpRec16;
 STATIC_ASSERT_SIZEOF(GpRec16, 0x10);
 
-/// 20-byte damage-scale row at `Gp_DmgRows`. Indexed by `D_8011541B`.
+/// 20-byte damage-scale row at `Gp_DmgRows`. Indexed by `Gp_StateF0.field_2B`.
 /// `Gp_ScaleDamage` adds `D_80113F54[hp / 10] * 2` onto the row base and
 /// then loads `field_A` (arg3 == 0, player HP) or `field_0` (arg3 != 0,
 /// `Mc_SaveData.field_6C8`).
@@ -646,9 +646,9 @@ STATIC_ASSERT_SIZEOF(GpGridParams, 0x24);
 /// is an alternate-active flag (`Gp_IsStateF0Active` / `func_800A7CB0` /
 /// `Gp_EnqueueSndCdIfF0` / `Gp_CdIdleIfF0Active`); last-ref release sets it to 0x3C.
 /// `field_2` is a bitset (`Gp_SetStateF0Bit` sets bit `arg0 - 1` when
-/// `arg0 != 0`; also written as `D_801153F2`). `field_3` is cleared with
-/// `field_2` on last-ref release (also written as `D_801153F3` by
-/// `Gp_SetStateF0Byte3`). `field_4` is also `D_801153F4`. `field_5` is a u8 count incremented by `Gp_ClaimSlot18`
+/// `arg0 != 0`; also written as `Gp_StateF0.field_2`). `field_3` is cleared with
+/// `field_2` on last-ref release (also written as `Gp_StateF0.field_3` by
+/// `Gp_SetStateF0Byte3`). `field_4` is also `Gp_StateF0.field_4`. `field_5` is a u8 count incremented by `Gp_ClaimSlot18`
 /// when it claims a `GpSlot18`. `field_6` is a u16
 /// refcount incremented by `Gp_IncStateF0Ref` and decremented by
 /// `Gp_ReleaseStateF0Add` / `Gp_ReleaseStateF0Clear` / `Gp_ReleaseStateF0`. Last-ref
@@ -1144,9 +1144,6 @@ extern GpObj4A* Gp_Obj4ALists[2];
 extern GpObj3A* Gp_Obj3ALists[1];
 
 extern GpStateF0 Gp_StateF0;
-extern u8        D_801153F2;
-extern u8        D_801153F3;
-extern u8        D_801153F4;
 /// Head of the `GpObj3A` list pointed to by `Gp_Obj3ALists[0]`.
 extern GpObj3A* D_80115550;
 /// Head of the `GpObj4C` list walked by `Gp_CommitObj4CSave`.
@@ -1204,7 +1201,7 @@ extern u16 D_80113D30[];
 /// `field_50->field_4` by the selected entry and divides by 100.
 extern u16 D_80113D38[];
 
-/// Damage-scale rows used by `Gp_ScaleDamage`. Indexed by `D_8011541B`.
+/// Damage-scale rows used by `Gp_ScaleDamage`. Indexed by `Gp_StateF0.field_2B`.
 extern GpDmgRow Gp_DmgRows[];
 
 /// Column index table for `Gp_DmgRows`, indexed by signed HP / 10.
@@ -1215,7 +1212,6 @@ extern u16 D_80113F54[];
 extern u16 D_80113CFC[];
 
 /// Row index into `Gp_DmgRows` for `Gp_ScaleDamage`.
-extern u8 D_8011541B;
 
 /// Per-sub-id damage rows used by `Gp_ComputeDamage`. The row is the id's
 /// `(id >> 8) & 0x3F` nibble pair; the column is the class picked from
@@ -1238,7 +1234,7 @@ extern u16 D_80113864[];
 /// `field_0` and `Gp_RollEnemyChance` reads `field_2` of each 4-byte slot.
 extern u16 D_80113D0C[][2];
 
-/// Final percent scale applied by `Gp_ComputeDamage`, indexed by `D_8011541B`.
+/// Final percent scale applied by `Gp_ComputeDamage`, indexed by `Gp_StateF0.field_2B`.
 extern u16 D_80113F90[];
 
 /// "Weapon" string drawn by `Gp_DrawWeaponLabel` (trailing 0x60 byte).
@@ -1284,7 +1280,7 @@ void Gp_RemapActorColor(struct _GpEnemy* arg0, MATRIX* arg1, s32 arg2);
 /// a positive blend timer, GPF/GPL-interpolates the previous mode
 /// (`field_4E` bits 2-3) toward the current mode (bits 0-1). Skips work
 /// when `Game_Session->field_65 == 1` unless `GameActorExt.field_C` bit
-/// 0x80 is clear and `field_18` is set. `D_801153F4` freezes the timer.
+/// 0x80 is clear and `field_18` is set. `Gp_StateF0.field_4` freezes the timer.
 void            Gp_UpdateActorColor(struct _GpEnemy* arg0, VECTOR* arg1);
 void            Gp_LightFalloff(GpObj44* arg0);
 void            Gp_SetLightMode(GpObj4C* arg0, s32 arg1);

@@ -474,30 +474,6 @@ def append_main_overlay_imports() -> None:
         rewrite(sym, extra_sym)
 
 
-def append_gameplay_aliases() -> None:
-    """Keep overlapping splat aliases that C still references by D_/copy name."""
-    aliases = Path("configs/USA/sym.gameplay.aliases.txt")
-    dest = Path("linkers/USA/undefined_syms_auto.gameplay.txt")
-    if not aliases.is_file() or not dest.is_file():
-        return
-    extra = []
-    for line in aliases.read_text(encoding="utf-8").splitlines():
-        m = re.match(r"^(\w+)\s*=\s*(0x[0-9A-Fa-f]+)", line.strip())
-        if m:
-            extra.append(f"{m.group(1)} = {m.group(2)};")
-    if not extra:
-        return
-    text = dest.read_text(encoding="utf-8")
-    present = set()
-    for line in text.splitlines():
-        m = re.match(r"^(\w+)\s*=", line.strip())
-        if m:
-            present.add(m.group(1))
-    add = [e for e in extra if e.split()[0] not in present]
-    if add:
-        dest.write_text(text.rstrip() + "\n" + "\n".join(add) + "\n", encoding="utf-8")
-
-
 def append_overlay_absolute_imports(basename: str) -> None:
     """splat 0.50 will not put absolute main-exe symbols in overlay undef scripts.
 
@@ -1015,7 +991,6 @@ def main():
         elif yaml == "gameplay.yaml":
             fix_gameplay_linker_rodata_order()
             append_overlay_absolute_imports("gameplay")
-            append_gameplay_aliases()
             fix_overlay_include_asm_paths("gameplay")
         splits_yaml_info.append(
             YamlInfo(

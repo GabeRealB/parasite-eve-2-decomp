@@ -1730,7 +1730,7 @@ void Gp_EffCtlTaskA6(Task* arg0)
                 Gp_SpawnEff(0x600A7, coord, mem->field_2A * 3 + 0x3000, 0);
                 return;
             case 1:
-                if (D_801153F4 != 1) {
+                if (Gp_StateF0.field_4 != 1) {
                     Gp_UpdateCoord(coord);
                     mem->field_22++;
                     if (mem->field_14 != 0) {
@@ -1752,7 +1752,7 @@ void Gp_EffCtlTaskA6(Task* arg0)
                 }
                 goto do_fcd00;
             case 2:
-                if (D_801153F4 != 1) {
+                if (Gp_StateF0.field_4 != 1) {
                     Gp_UpdateCoord(coord);
                     mem->field_22++;
                     mem->field_26 -= mem->field_22 & 1;
@@ -3169,15 +3169,15 @@ void Gp_UpdatePlayerMove(void)
     TOUCH_REG_USE(session, f973);
     f977 = ((volatile GameActor*)p)->field_977;
     USE_REG(f977);
-    p->field_964 = prev;
-    buttons      = session->field_58;
-    p->field_978 = f977;
-    p->field_962 = buttons;
-    p->field_966 = p->field_962 & ~p->field_964;
-    p->field_968 = p->field_964 & ~p->field_962;
-    p->field_977 = (p->field_962 >> 6) & 1;
-    D_801153F2   = 0;
-    vec          = (SVECTOR*)newhead;
+    p->field_964       = prev;
+    buttons            = session->field_58;
+    p->field_978       = f977;
+    p->field_962       = buttons;
+    p->field_966       = p->field_962 & ~p->field_964;
+    p->field_968       = p->field_964 & ~p->field_962;
+    p->field_977       = (p->field_962 >> 6) & 1;
+    Gp_StateF0.field_2 = 0;
+    vec                = (SVECTOR*)newhead;
     if (D_80115768 == 0) {
         Gp_TickPlayerActor(work);
     }

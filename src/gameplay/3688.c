@@ -37,7 +37,6 @@ extern s32            D_80114DE4;
 extern s32            D_80114DE8;
 extern s32            Gp_ItemOrderMode;
 extern s32            Gp_ReloadMode;
-extern s32            D_80114BEC;
 extern UiObject*      D_80114D98[];
 extern s32            Gp_AttachListIds[];
 extern u32            D_80114DCC;

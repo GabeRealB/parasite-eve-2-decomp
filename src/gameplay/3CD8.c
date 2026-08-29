@@ -120,7 +120,6 @@ extern u8             D_801156F0;
 extern GpOverlayIds*  D_801156F4;
 extern u8             D_801156F8;
 extern u8             D_801156F9;
-extern u8             D_801153F4;
 extern u8             Gp_PadScriptHalt;
 extern u8             Gp_PadHoldHalt;
 extern u8             Gp_PadLerpHalt;
@@ -481,7 +480,7 @@ void Gp_CapExit(Task* arg0)
         goto block_11;
     }
     if (D_80115690 == 0) {
-        D_801153F4 = 0;
+        Gp_StateF0.field_4 = 0;
     }
     if (Game_Session->field_1 == 0) {
         Game_Session->field_68 = 0;
@@ -1687,7 +1686,7 @@ void Gp_Script18Task(Task* arg0)
     TaskFuncTable3 sp;
 
     sp = Gp_Script18States;
-    if (D_801153F4 == 0 || (Game_Session->field_13B & 0x80)) {
+    if (Gp_StateF0.field_4 == 0 || (Game_Session->field_13B & 0x80)) {
         if (Gp_PadScriptHalt != 0) {
             arg0->state = 2;
         }
@@ -1745,7 +1744,7 @@ void Gp_ScriptBState4(Task* task)
 
 void Gp_PadHoldTask(Task* task)
 {
-    if (D_801153F4 == 0 || (Game_Session->field_13B & 0x80)) {
+    if (Gp_StateF0.field_4 == 0 || (Game_Session->field_13B & 0x80)) {
         if (task->spawnArg1 != 0 && Gp_PadHoldHalt == 0) {
             task->spawnArg1--;
             Pad_PostEvent(0, 0, 1, 1);
@@ -1762,7 +1761,7 @@ void Gp_PadLerpTask(Task* task)
     GpState0C* state;
 
     state = (GpState0C*)task->idMap;
-    if (D_801153F4 == 0 || (Game_Session->field_13B & 0x80)) {
+    if (Gp_StateF0.field_4 == 0 || (Game_Session->field_13B & 0x80)) {
         if (state->field_8 != 0 && Gp_PadLerpHalt == 0) {
             state->field_8--;
             Pad_PostEvent(0, 1, state->field_4.bytes.as_u8, 1);

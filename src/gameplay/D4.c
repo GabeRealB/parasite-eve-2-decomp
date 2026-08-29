@@ -1274,7 +1274,7 @@ void func_800AC0F0(Task* task)
 
     sp = Gp_SessionStates;
     Pad_SetCooldown(0);
-    *(volatile u8*)&D_801153F4 = 1;
+    *(volatile u8*)&Gp_StateF0.field_4 = 1;
     sp.funcs[((volatile Task*)task)->state](task);
 }
 
@@ -2110,7 +2110,7 @@ void Gp_FadeDirWaitMsg(void)
     }
     if (Gp_DispatchMsg(slot, 0x3F0, 0, 0) == 0) {
         if (D_80114CF4 != 0) {
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
         }
         Gp_DirPhase++;
     }
@@ -2222,7 +2222,7 @@ void Gp_MsgPlayerDirFacing(void)
         D_80114CDD      = 0;
     } else if (Gp_TakePendingObj4C(&D_80114CD4, &Gp_DirAlt, &Gp_DirAltNibble)) {
         if ((u8)D_80114CD4 == 0) {
-            D_801153F4 = 1;
+            Gp_StateF0.field_4 = 1;
             Gp_DirPhase++;
         }
     }

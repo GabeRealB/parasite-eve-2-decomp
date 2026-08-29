@@ -10,59 +10,59 @@
 #define gte_rtir_real() __asm__ volatile("nop; nop; .word 0x4A49E012")
 
 // Other model stream handlers (same ABI as TmdModelStreamHandler; not yet in hasm).
-u32* D_80099994(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_80099B94(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_80099D40(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_80099FF4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009A348(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009A57C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009AF90(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009B2F4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009B500(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009BD00(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009C024(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009C414(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009CED0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009D0DC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009D388(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009D518(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009D718(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009D900(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009DB00(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009DCB8(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009DE48(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009E048(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009E274(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009E4A0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009E770(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009EAA4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009EB84(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009EC1C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009ECC0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009ED28(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009ED90(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009EE28(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009EECC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009EF64(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009EFFC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009F0A0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009F144(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009F1DC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009F280(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009F360(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009F3F8(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009F49C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009F504(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009F56C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009F670(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009F708(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009F824(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009F8C8(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009F970(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009FA24(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009FB28(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009FC44(TmdScratchModelBlock* ws, s32 flags, u32* stream);
-u32* D_8009FC90(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_80099994(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_80099B94(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_80099D40(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_80099FF4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009A348(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009A57C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009AF90(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009B2F4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009B500(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009BD00(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009C024(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009C414(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009CED0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009D0DC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009D388(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009D518(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009D718(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009D900(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009DB00(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009DCB8(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009DE48(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009E048(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009E274(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009E4A0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009E770(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009EAA4(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009EB84(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009EC1C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009ECC0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009ED28(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009ED90(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009EE28(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009EECC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009EF64(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009EFFC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009F0A0(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009F144(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009F1DC(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009F280(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009F360(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009F3F8(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009F49C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009F504(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009F56C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009F670(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009F708(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009F824(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009F8C8(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009F970(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009FA24(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009FB28(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009FC44(TmdScratchModelBlock* ws, s32 flags, u32* stream);
+u32* func_8009FC90(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* D_80136224(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* D_80136500(TmdScratchModelBlock* ws, s32 flags, u32* stream);
 u32* D_8013685C(TmdScratchModelBlock* ws, s32 flags, u32* stream);
@@ -104,13 +104,13 @@ void Tmd_InitSourceStream(TmdSource* arg0)
                     handler = Tmd_StreamHandler_OpC0;
                     break;
                 case 0xC4:
-                    handler = D_8009EAA4;
+                    handler = func_8009EAA4;
                     break;
                 case 5:
-                    handler = D_80099B94;
+                    handler = func_80099B94;
                     break;
                 case 0x45:
-                    handler = D_80099994;
+                    handler = func_80099994;
                     break;
                 case 0x21:
                 case 0x121:
@@ -157,9 +157,9 @@ void Tmd_InitSourceStream(TmdSource* arg0)
                     handler = Tmd_StreamHandler_OpC8;
                     break;
                 case 0x40C8:
-                    handler = D_8009AF90;
+                    handler = func_8009AF90;
                     if (flag != 0) {
-                        handler = D_8009B2F4;
+                        handler = func_8009B2F4;
                     }
                     break;
                 case 0x200C8:
@@ -188,15 +188,15 @@ void Tmd_InitSourceStream(TmdSource* arg0)
                     handler = Tmd_StreamHandler_Op7B;
                     break;
                 case 0x4039:
-                    handler = D_80099D40;
+                    handler = func_80099D40;
                     if (flag != 0) {
-                        handler = D_8009A348;
+                        handler = func_8009A348;
                     }
                     break;
                 case 0x4079:
-                    handler = D_80099FF4;
+                    handler = func_80099FF4;
                     if (flag != 0) {
-                        handler = D_8009A57C;
+                        handler = func_8009A57C;
                     }
                     break;
                 case 0:
@@ -218,61 +218,61 @@ void Tmd_InitSourceStream(TmdSource* arg0)
                     handler = Tmd_StreamHandler_Op5A;
                     break;
                 case 0x4078:
-                    handler = D_8009C414;
+                    handler = func_8009C414;
                     if (flag != 0) {
-                        handler = D_8009C024;
+                        handler = func_8009C024;
                     }
                     break;
                 case 0x4038:
-                    handler = D_8009B500;
+                    handler = func_8009B500;
                     if (flag != 0) {
-                        handler = D_8009BD00;
+                        handler = func_8009BD00;
                     }
                     break;
                 case 0x120:
-                    handler = D_8009E048;
+                    handler = func_8009E048;
                     break;
                 case 0x122:
-                    handler = D_8009E274;
+                    handler = func_8009E274;
                     break;
                 case 0x160:
-                    handler = D_8009E4A0;
+                    handler = func_8009E4A0;
                     break;
                 case 0x162:
-                    handler = D_8009E770;
+                    handler = func_8009E770;
                     break;
                 case 0x1C:
-                    handler = D_8009D388;
+                    handler = func_8009D388;
                     break;
                 case 0x1E:
-                    handler = D_8009DCB8;
+                    handler = func_8009DCB8;
                     break;
                 case 0x5C:
-                    handler = D_8009D518;
+                    handler = func_8009D518;
                     break;
                 case 0x5E:
-                    handler = D_8009DE48;
+                    handler = func_8009DE48;
                     break;
                 case 0x30:
-                    handler = D_8009CED0;
+                    handler = func_8009CED0;
                     break;
                 case 0x130:
                     handler = Tmd_StreamHandler_Op130;
                     break;
                 case 0x70:
-                    handler = D_8009D0DC;
+                    handler = func_8009D0DC;
                     break;
                 case 0x170:
                     handler = Tmd_StreamHandler_Op170;
                     break;
                 case 0x156:
-                    handler = D_8009D718;
+                    handler = func_8009D718;
                     break;
                 case 4:
-                    handler = D_8009DB00;
+                    handler = func_8009DB00;
                     break;
                 case 0x44:
-                    handler = D_8009D900;
+                    handler = func_8009D900;
                     break;
                 default:
                     handler = Tmd_StreamHandler_Default;
@@ -354,9 +354,9 @@ void Tmd_ProcessStream(TmdObject* arg0)
     for (;;) {
         switch (id) {
             case 0x4038:
-                handler = D_8009F670;
+                handler = func_8009F670;
                 if (flag != 0) {
-                    handler = D_8009F56C;
+                    handler = func_8009F56C;
                 }
                 break;
             case 0x38:
@@ -365,12 +365,12 @@ void Tmd_ProcessStream(TmdObject* arg0)
             case 0x10038:
             case 0x1003A:
             case 0x20038:
-                handler = D_8009ED90;
+                handler = func_8009ED90;
                 break;
             case 0x4078:
-                handler = D_8009F824;
+                handler = func_8009F824;
                 if (flag != 0) {
-                    handler = D_8009F708;
+                    handler = func_8009F708;
                 }
                 break;
             case 0x78:
@@ -378,76 +378,76 @@ void Tmd_ProcessStream(TmdObject* arg0)
             case 0x8078:
             case 0x10078:
             case 0x20078:
-                handler = D_8009EE28;
+                handler = func_8009EE28;
                 break;
             case 0x31:
             case 0x39:
             case 0x3B:
             case 0x131:
             case 0x8039:
-                handler = D_8009EB84;
+                handler = func_8009EB84;
                 break;
             case 0x71:
             case 0x79:
             case 0x7B:
             case 0x171:
             case 0x8079:
-                handler = D_8009EC1C;
+                handler = func_8009EC1C;
                 break;
             case 0x4039:
-                handler = D_8009F8C8;
+                handler = func_8009F8C8;
                 if (flag != 0) {
-                    handler = D_8009FA24;
+                    handler = func_8009FA24;
                 }
                 break;
             case 0x4079:
-                handler = D_8009F970;
+                handler = func_8009F970;
                 if (flag != 0) {
-                    handler = D_8009FB28;
+                    handler = func_8009FB28;
                 }
                 break;
             case 0x18:
             case 0x1A:
-                handler = D_8009F144;
+                handler = func_8009F144;
                 break;
             case 0x58:
             case 0x5A:
-                handler = D_8009F1DC;
+                handler = func_8009F1DC;
                 break;
             case 0x1C:
             case 0x1E:
-                handler = D_8009F360;
+                handler = func_8009F360;
                 break;
             case 0x5C:
             case 0x5E:
-                handler = D_8009F3F8;
+                handler = func_8009F3F8;
                 break;
             case 0x30:
-                handler = D_8009EECC;
+                handler = func_8009EECC;
                 break;
             case 0x130:
-                handler = D_8009EF64;
+                handler = func_8009EF64;
                 break;
             case 0x70:
-                handler = D_8009EFFC;
+                handler = func_8009EFFC;
                 break;
             case 0x170:
-                handler = D_8009F0A0;
+                handler = func_8009F0A0;
                 break;
             case 0x156:
-                handler = D_8009F280;
+                handler = func_8009F280;
                 break;
             case 4:
-                handler = D_8009F504;
+                handler = func_8009F504;
                 break;
             case 0x44:
-                handler = D_8009F49C;
+                handler = func_8009F49C;
                 break;
             case 5:
-                handler = D_8009ED28;
+                handler = func_8009ED28;
                 break;
             case 0x45:
-                handler = D_8009ECC0;
+                handler = func_8009ECC0;
                 break;
             case 0x40:
             case 0x60:
@@ -455,7 +455,7 @@ void Tmd_ProcessStream(TmdObject* arg0)
             case 0x4040:
             case 0x4060:
             case 0x4160:
-                handler = D_8009FC44;
+                handler = func_8009FC44;
                 break;
             default:
                 handler = Tmd_StreamHandler_Default;
@@ -466,7 +466,7 @@ void Tmd_ProcessStream(TmdObject* arg0)
             case 0x4000:
             case 0x4020:
             case 0x4120:
-                handler = D_8009FC90;
+                handler = func_8009FC90;
                 break;
         }
 

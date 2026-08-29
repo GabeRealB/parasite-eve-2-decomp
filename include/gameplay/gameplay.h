@@ -171,7 +171,7 @@ extern GpStateC08 Gp_StateC08;
 
 /// Pair of s32 working copies at `Gp_HpMpWork`. `Gp_ResetHudFx` (and
 /// `Gp_UiBoostMp` / `Gp_UiBoostHp`) sign-extend `Wip_SysConfig.field_18` /
-/// `field_1c` into `field_0` / `field_4`. Splat also emits `D_80114BEC` at +4.
+/// `field_1c` into `field_0` / `field_4`.
 typedef struct _GpStateBE8 {
     /* 0x0 */ s32 field_0;
     /* 0x4 */ s32 field_4;
@@ -179,7 +179,6 @@ typedef struct _GpStateBE8 {
 STATIC_ASSERT_SIZEOF(GpStateBE8, 0x8);
 
 extern GpStateBE8 Gp_HpMpWork;
-extern s32        D_80114BEC; // splat overlay of Gp_HpMpWork.field_4
 
 /// +0xC overlay of the 0x30-byte record `Gp_InitPlayClock` allocates with
 /// `Mem_Calloc(0x30, 0)` and stores at `Task::idMap`. `Gp_ResetHudFx` is

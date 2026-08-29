@@ -49,7 +49,7 @@ void Gp_EvtCapWeaponTask(Task* arg0)
             break;
         case 3:
             if ((flags & 1) && (flags != 0xFF)) {
-                D_801153F4 = 1;
+                Gp_StateF0.field_4 = 1;
             }
             if ((flags & 2) && (flags != 0xFF)) {
                 Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F3, 0, 0);
@@ -92,12 +92,12 @@ void Gp_EvtCapWeaponTask(Task* arg0)
             }
             if (actor->field_954 != 2) {
                 Task_Kill(arg0);
-                D_801153F4 = 0;
+                Gp_StateF0.field_4 = 0;
             }
             break;
         case 8:
             Task_Kill(arg0);
-            D_801153F4 = 0;
+            Gp_StateF0.field_4 = 0;
             Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F1, 0, 0);
             break;
     }

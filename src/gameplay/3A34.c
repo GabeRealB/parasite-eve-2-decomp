@@ -1405,7 +1405,7 @@ void Gp_UpdateActorColor(GpEnemy* arg0, VECTOR* arg1)
                 src->z = block->col0.vz;
                 src    = (GpMtxCol*)&src->_0;
             } while (i < 3);
-            if (D_801153F4 == 0) {
+            if (Gp_StateF0.field_4 == 0) {
                 arg0->field_4F--;
             }
         }
@@ -2900,7 +2900,7 @@ void Gp_SetStateF0Bit(s32 arg0)
 
 void Gp_SetStateF0Byte3(s32 arg0)
 {
-    D_801153F3 = arg0;
+    Gp_StateF0.field_3 = arg0;
 }
 
 void Gp_IncStateF0Ref(void)
@@ -4903,7 +4903,7 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
             }
         }
 
-        dmg = dmg * D_80113F90[D_8011541B] / 100;
+        dmg = dmg * D_80113F90[Gp_StateF0.field_2B] / 100;
         if (dmg == 0) {
             if (base != 0) {
                 dmg = 1;
@@ -4931,7 +4931,7 @@ u32 Gp_ComputeDamage(u32 arg0, u32 arg1, s32 arg2, s32 arg3)
             dmg = dmg * 150 / 100;
         }
 
-        dmg = dmg * D_80113F90[D_8011541B] / 100;
+        dmg = dmg * D_80113F90[Gp_StateF0.field_2B] / 100;
     }
     return dmg;
 }
@@ -4970,9 +4970,9 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
         table = Gp_DmgRows;
         cols  = D_80113F54;
         addr  = (s32)&cols[hp / 10];
-        asm("lui %0, %%hi(D_8011541B)" : "=r"(row) : "r"(addr));
+        asm("lui %0, %%hi(Gp_StateF0 + 0x2B)" : "=r"(row) : "r"(addr));
         col = *(u16*)addr;
-        asm("lbu %0, %%lo(D_8011541B)(%1)" : "=r"(row) : "r"(row), "r"(col));
+        asm("lbu %0, %%lo(Gp_StateF0 + 0x2B)(%1)" : "=r"(row) : "r"(row), "r"(col));
         col <<= 1;
         SCHED_BARRIER();
         col  += row * 20;
@@ -5001,9 +5001,9 @@ s32 Gp_ScaleDamage(s32 arg0, s32 arg1, s32* arg2, s32 arg3)
         table = Gp_DmgRows;
         cols  = D_80113F54;
         addr  = (s32)&cols[hp / 10];
-        asm("lui %0, %%hi(D_8011541B)" : "=r"(row) : "r"(addr));
+        asm("lui %0, %%hi(Gp_StateF0 + 0x2B)" : "=r"(row) : "r"(addr));
         col = *(u16*)addr;
-        asm("lbu %0, %%lo(D_8011541B)(%1)" : "=r"(row) : "r"(row), "r"(col));
+        asm("lbu %0, %%lo(Gp_StateF0 + 0x2B)(%1)" : "=r"(row) : "r"(row), "r"(col));
         col <<= 1;
         SCHED_BARRIER();
         col  += row * 20;
@@ -5410,7 +5410,7 @@ void Gp_EvtCapTask(Task* arg0)
             bit0 = flags & 1;
             if (bit0 != 0) {
                 Gp_MsgPlayerWeapon(0);
-                D_801153F4 = flag;
+                Gp_StateF0.field_4 = flag;
             }
             if (flags & 2) {
                 Gp_MsgPlayer3F3(0);
@@ -5433,7 +5433,7 @@ void Gp_EvtCapTask(Task* arg0)
         case 2:
             if (flags & 1) {
                 Gp_MsgPlayerWeapon(1);
-                D_801153F4 = 0;
+                Gp_StateF0.field_4 = 0;
             }
             if (flags & 2) {
                 Gp_MsgPlayer3F3(1);

@@ -1552,14 +1552,8 @@ Gp_StrDetachArmorHelp       = 0x8010F9A4;
 
 // Gameplay naming pass 15 (StateF0, play clock, load-wait, lock)
 Gp_StateF0                  = 0x801153F0; // size:0x2C
-D_801153F1                  = 0x801153F1; // size:0x1 allow_duplicated:True
-D_801153F2                  = 0x801153F2; // size:0x1 allow_duplicated:True
-D_801153F3                  = 0x801153F3; // size:0x1 allow_duplicated:True
-D_801153F4                  = 0x801153F4; // size:0x1 allow_duplicated:True
-D_8011541B                  = 0x8011541B; // size:0x1 allow_duplicated:True
 Gp_StateC08                 = 0x80114C08; // size:0x18
 Gp_HpMpWork                 = 0x80114BE8; // size:0x8
-D_80114BEC                  = 0x80114BEC; // size:0x4 allow_duplicated:True
 Gp_State1C                  = 0x80115740; // size:0x4
 Gp_PreviewItems             = 0x8010E8F8; // size:0x14
 Gp_SelItemRec               = 0x80114DD4; // size:0x4

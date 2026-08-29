@@ -31719,3 +31719,100 @@ and exits 0, which keeps re-running it harmless.
 Cross-overlay reuse is not a clash: `0x80093830` is `Title_DemoCardRestoreMsg`
 in `sym.title.txt` and `Gp_PlayClockStates` in `sym.gameplay.txt`, because
 each overlay carries its own map.
+
+## Name a cross-overlay import after the overlay that defines it
+
+The rule already documented for overlay code calling main (`func_800CFD78` /
+`Task_Kill`) runs the other way too, and that direction was not being followed.
+`src/main/tmd.c` called 53 gameplay functions as `D_800xxxxx` while
+`src/gameplay/gameplay.c` defines the same addresses as `func_800xxxxx`.
+
+Nothing was broken: each binary has its own symbol map, and main's references
+resolved through the generated `linkers/USA/undefined_syms_auto.main.txt`. That
+is exactly why it went unnoticed — and why it cost real time. Searching for
+`D_8009ED90` finds only main, searching for `func_8009ED90` finds only the
+overlay, so the TMD draw handlers read as "unmatched overlay assembly" for a
+whole investigation while being decompiled C the entire time.
+
+Two practical points when fixing one:
+
+- The import belongs in `configs/USA/sym.<importer>.imports.txt`, which
+  `ninja_config.py` appends onto the undefined-symbol script. Renaming only the
+  C breaks the link, because splat's auto-undef list still emits the old name
+  and now nothing defines the new one.
+- splat names an auto-undef symbol from how the *referencing* binary sees it.
+  A function stored as a pointer looks like data, so it comes out `D_`, not
+  `func_`. Do not read that prefix as evidence about what the symbol is.
+
+Audit for the whole tree:
+
+```python
+# for each D_/func_ token in one overlay's sources, if another overlay's
+# sym table defines that address under a different name, they disagree
+```
+
+`tools/rename_overlay_imports.py` is the pass that fixed the 53.
+
+
+## A named symbol added to the sym map does not remove the old alias
+
+`configs/USA/sym.gameplay.aliases.txt` used to hold labels splat folds into a
+parent symbol, appended onto `undefined_syms_auto.gameplay.txt` by
+`ninja_config.py`. Over time all eight of its entries — `Gp_StrTotal2`,
+`Gp_StrWrongAmmo2` and the `D_8011xxxx` interiors — were *also* added to
+`sym.gameplay.txt`, so the linker received each assignment twice.
+
+Identical assignments link fine, which is why it went unnoticed: nothing warns,
+the checksum still matches, and the redundant copy just sits there. Removing
+the eight built and matched, which proved the main table was carrying them; the
+file and its `append_gameplay_aliases()` machinery are now gone.
+
+The lesson generalises past that one file. When renaming data, check whether
+the symbol already lives in an alias or imports file before adding it to the
+main table, and vice versa. The audit that catches it, run over every file
+feeding one link:
+
+```python
+rep[(addr, name)] += 1        # exact repeats across sym.*.txt + imports
+byaddr[addr].add(name)        # one address under two names
+byname[name].add(addr)        # one name at two addresses
+```
+
+The exact-repeat case is the one that hides, because the other two produce
+visible symptoms. All three are zero for main, gameplay and title.
+
+If splat ever folds a label C still needs, the mechanism to bring back is a
+file appended onto the overlay's `undefined_syms_auto` script — but check the
+main table first.
+
+## Splat's overlap warnings mean an interior symbol, not a wrong size
+
+`Range check triggered: .data symbol (name: Gp_StateF0 …) User declared size
+(0x2C) does not match the amount of bytes that will be emitted (0x4)` does not
+mean the size is wrong. It means another symbol sits *inside* that range, so
+splat stops emitting the parent at the interior symbol's address. The paired
+`WARNING: The user declared symbol 'D_801153F1' … overlaps with the previously
+defined 'Gp_StateF0'` names the culprit.
+
+Splat reports **one overlap per parent per run**, so fixing the first reveals
+the next. Expect to iterate rather than to see the whole list up front.
+
+**The fix is to delete the interior symbol**, not to annotate it. Every one of
+them names a byte that already has a name as a struct field, so it obscures the
+real symbol and violates the struct rule in `CLAUDE.md` at the same time:
+
+| Removed | Real name |
+|---|---|
+| `D_80114BEC` | `Gp_HpMpWork.field_4` |
+| `D_801153F1`–`F4` | `Gp_StateF0.field_1`–`field_4` |
+| `D_8011541B` | `Gp_StateF0.field_2B` |
+
+Hand-written inline asm is not an excuse to keep one. `Gp_ScaleDamage` had four
+`%hi`/`%lo` references to `D_8011541B`; the assembler takes an offset
+expression, so `%hi(Gp_StateF0 + 0x2B)` assembles to the same relocation and the
+build still matches.
+
+Two dead ends worth not repeating: `allow_duplicated:True` does **not** silence
+the warning, and `type:label` does (splat's `add_user_symbol` skips the check
+for label types) — but silencing it just preserves the symbol that should not
+exist.

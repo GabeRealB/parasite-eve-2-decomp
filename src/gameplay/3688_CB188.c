@@ -38,7 +38,6 @@ extern s32            D_80114DE4;
 extern s32            D_80114DE8;
 extern s32            Gp_ItemOrderMode;
 extern s32            Gp_ReloadMode;
-extern s32            D_80114BEC;
 extern UiObject*      D_80114D98[];
 extern s32            Gp_AttachListIds[];
 extern u32            D_80114DCC;
@@ -484,7 +483,7 @@ void Gp_InvokePeItemPanel(UiObject* arg0, Task* arg1, s32 arg2)
         }
         Gp_RecalcMaxMp();
         cfg->field_1c       = cfg->field_1e;
-        D_80114BEC          = cfg->field_1c;
+        Gp_HpMpWork.field_4 = cfg->field_1c;
         arg1->killCountdown = 0xBC;
         arg1->state         = arg1->state + 1;
     }
@@ -3394,9 +3393,9 @@ void Gp_PeUpgradePanelTask(Task* arg0)
                         cfg->field_8                                                       -= price & 0xFFFF;
                         Mc_SaveData.unknown_850[((id & 0xC) >> 2) + ((id & 0x30) >> 4) * 3] = (id & 3) + 1;
                         Gp_RecalcMaxMp();
-                        cfg->field_1c = cfg->field_1e;
-                        D_80114BEC    = cfg->field_1c;
-                        obj->field_2E = 9;
+                        cfg->field_1c       = cfg->field_1e;
+                        Gp_HpMpWork.field_4 = cfg->field_1c;
+                        obj->field_2E       = 9;
                     }
                 } else {
                     obj->field_2E = 9;

@@ -30,7 +30,6 @@
 #include "main/ui.h"
 #include "main/wipsys.h"
 
-extern u8             D_801153F1;
 extern u8             Gp_StrItemObtained[]; // "Item obtained!"
 extern u8             Gp_StrBonusItem[];    // "Bonus item!!"
 extern s32            Gp_ItemGrantCooldown;
@@ -5467,13 +5466,13 @@ void Gp_SetAttachState(s32 arg0)
     if (temp <= 0) {
         p->field_2 = 1;
     }
-    p->field_A  = 2;
-    D_80115768  = 0;
-    D_801153F4  = 0;
-    p->field_8  = 1;
-    p->field_9  = 0;
-    D_80114C34  = 0;
-    p->field_6 &= 0xFE;
+    p->field_A         = 2;
+    D_80115768         = 0;
+    Gp_StateF0.field_4 = 0;
+    p->field_8         = 1;
+    p->field_9         = 0;
+    D_80114C34         = 0;
+    p->field_6        &= 0xFE;
 }
 
 INCLUDE_ASM("gameplay/nonmatchings/gameplay", func_800A2104);
@@ -5651,7 +5650,7 @@ static __inline__ s32 hudSwapReady(void)
     if (flag != 0) {
         if (Gp_ItemGrantCooldown <= 0) {
             ret = 1;
-            if (D_801153F1 == 0) {
+            if (Gp_StateF0.field_1 == 0) {
                 goto done;
             }
         }
@@ -5830,7 +5829,7 @@ void Gp_UseItemTask(GpIdMapC* arg0)
             if (cdIdleIfF0Active_()) {
                 Gp_StateC08.field_A  = 0;
                 D_80115768           = 0;
-                D_801153F4           = 0;
+                Gp_StateF0.field_4   = 0;
                 Gp_StateC08.field_9  = 0;
                 Gp_StateC08.field_3  = 1;
                 Gp_ItemGrantCooldown = 0x14;
@@ -5872,7 +5871,7 @@ void Gp_UseItemTask(GpIdMapC* arg0)
             Gp_StateC08.field_E = 0;
             Gp_StateC08.field_A = 0;
             D_80115768          = 0;
-            D_801153F4          = 0;
+            Gp_StateF0.field_4  = 0;
             Gp_StateC08.field_7 = 0;
             Gp_StateC08.field_8 = 0;
         }
@@ -6034,7 +6033,7 @@ void Gp_HudTask(GpIdMapC* arg0)
         if (cfg->field_24 != 0) {
             goto after;
         }
-        if (D_801153F1 != 0) {
+        if (Gp_StateF0.field_1 != 0) {
             goto after;
         }
         if (d2->field_10d != 0) {
@@ -6074,7 +6073,7 @@ void Gp_HudTask(GpIdMapC* arg0)
                     ok = 0;
                     goto have;
                 }
-                if (D_801153F1 == 0) {
+                if (Gp_StateF0.field_1 == 0) {
                     ok = 1;
                     goto have;
                 }
@@ -6311,11 +6310,11 @@ after:
             if (q->field_A >= 2) {
                 q->field_3 = 2;
             }
-            q->field_E = 0;
-            q->field_A = 0;
-            D_80115768 = 0;
-            D_801153F4 = 0;
-            q->field_9 = 0;
+            q->field_E         = 0;
+            q->field_A         = 0;
+            D_80115768         = 0;
+            Gp_StateF0.field_4 = 0;
+            q->field_9         = 0;
         }
     }
 
@@ -7595,7 +7594,7 @@ void Gp_HudTrackSlot0(GpHudTrack* arg0)
 
 s32 Gp_IsStateF0AltClear(void)
 {
-    return D_801153F1 == 0;
+    return Gp_StateF0.field_1 == 0;
 }
 
 void Gp_EnqueueAttach7Cd(void)
@@ -7797,12 +7796,12 @@ void func_800A7DE0(void)
     if (p->field_A >= 2) {
         p->field_3 = 2;
     }
-    p->field_E = 0;
-    p->field_A = 0;
-    D_80115768 = 0;
-    D_801153F4 = 0;
-    p->field_7 = 0;
-    p->field_8 = 0;
+    p->field_E         = 0;
+    p->field_A         = 0;
+    D_80115768         = 0;
+    Gp_StateF0.field_4 = 0;
+    p->field_7         = 0;
+    p->field_8         = 0;
 }
 
 void func_800A7E4C(void)
@@ -7839,7 +7838,7 @@ s32 func_800A7E5C(s32 arg0)
     }
     if (flag != 0) {
         if (Gp_ItemGrantCooldown <= 0) {
-            if (D_801153F1 == 0) {
+            if (Gp_StateF0.field_1 == 0) {
                 return 1;
             }
         }
