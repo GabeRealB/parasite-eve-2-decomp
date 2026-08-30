@@ -7,6 +7,11 @@
 [submodule "tools/decomp-permuter"]
 	path = tools/decomp-permuter
 	url = https://github.com/simonlindholm/decomp-permuter.git
+	# permute.sh keeps tools/decomp-permuter-objdump.patch applied here, so a
+	# dirty working tree is the expected steady state, not work in progress.
+	# "dirty" hides only file edits; a moved pointer still shows, which is the
+	# case that would actually need committing.
+	ignore = dirty
 [submodule "tools/asm-differ"]
 	path = tools/asm-differ
 	url = https://github.com/simonlindholm/asm-differ.git
