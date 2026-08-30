@@ -33691,3 +33691,30 @@ units = ["0x6B8"], rodata = [{ start = "0x44", unit = "shelter_1f_bulwark_2" }]
 The cut renumbers every later unit (`_2` → `_3`, …), so `git mv` the existing
 `src/<overlay>/<overlay>_N.c` files from the highest number down and rewrite the
 unit suffix inside their `INCLUDE_ASM` folder strings; splat will not do it.
+
+## Missing `nop` after `lw field`: a byte store to a scalar global does not block the load
+
+`case 1: if (Gp_CapBusy() == 0) { D_801153F4 = 2; task->state = task->state + 1; }`
+compiled with the load hoisted into the store's slot, one instruction shorter
+than the target:
+
+```
+lui   v0,%hi(D_801153F4)     target:  lui   v1,%hi(D_801153F4)
+lw    v1,0x30(s0)                     li    v0,2
+li    a0,2                            sb    v0,%lo(D_801153F4)(v1)
+sb    a0,%lo(D_801153F4)(v0)          lw    v0,0x30(s0)
+addiu v1,v1,1                         nop
+                                      addiu v0,v0,1
+```
+
+GCC 2.8.1 proves the `QI` store to a plain `extern u8` global cannot alias the
+`mem/s` field load off the `Task*`, so `-fschedule-insns` moves the `lw` above
+it to fill the load delay. That also costs the register match: in the target the
+constant `2` dies at the `sb` and the `lw` reuses `$v0`, while the hoisted
+version needs three live registers (`$v0`/`$v1`/`$a0`), so a 3-instruction
+scheduling win showed up as `regs=7` in the score.
+
+`SOFT_BARRIER()` between the two statements is the fix; the volatile
+`SCHED_BARRIER()` matches too, so prefer the soft one. Statement order does not
+help — writing the increment first emits the whole `lw`/`addiu`/`sw` block
+before the store. `func_dryfield_water_tower_8017D948` is the example.
