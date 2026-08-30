@@ -88,7 +88,30 @@ INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_80165534);
 
-INCLUDE_ASM("actors/nonmatchings/actor_800200/actor_800200", func_actor_800200_80165580);
+void func_actor_800200_80165580(GpActorWork* arg0)
+{
+    u8 temp_v1;
+
+    if (arg0->actor->field_910->field_D0 == 1) {
+        func_actor_800200_801654EC(arg0, 0);
+        return;
+    }
+    temp_v1 = Game_Session->field_6;
+    switch (temp_v1) {
+        case 26:
+            func_actor_800200_80162990();
+            return;
+        case 24:
+            func_actor_800200_80165814();
+            return;
+        case 23:
+            func_actor_800200_80162BFC();
+            return;
+        case 25:
+            func_actor_800200_801658E0();
+            return;
+    }
+}
 
 void func_actor_800200_80165644(GpActorWork* arg0)
 {
