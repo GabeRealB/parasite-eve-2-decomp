@@ -33556,3 +33556,69 @@ jal   f
 Symptom: ~99.9% with `regs=1`, object dump `move a0, zero` vs target `move a1, zero`.
 `func_actor_800200_80165644` is the example. Sibling calls of the same helper
 (`func_actor_800200_8016599C`) also pass `a1 = 0`.
+
+## Keep the switch selector out of a case body: `SOFT_TOUCH_REG` on the arg
+
+Inside `case 8:` GCC 2.8.1's cse records `arg2 == 8` from the dispatch `beq` and
+folds every later use of `arg2` in that arm — even across `jal`s. A call that
+takes the selector as a narrower type then becomes a plain `li a0, 8` instead of
+the target's `sll a0, s0, 0x10` / `sra a0, a0, 0x10`, and with `arg2` dead the
+function no longer needs a callee-saved register at all:
+
+```
+-sw    s0,0x10(sp)      /* target keeps arg2 in $s0 across the calls */
+-move  s0,a2
+-sll   a0,s0,0x10
+-sra   a0,a0,0x10
++li    a0,8             /* cse folded the case constant */
+```
+
+Symptom: control flow, delay slots and block order all match (~81%), and the
+only leftovers are the missing `$s0` save/restore, the `sll`/`sra` pair, and the
+`0x10`/`0x14` stack offsets that shift with it.
+
+Fix: an empty non-volatile barrier on the argument at the top of the case, so
+the value cse propagates and the value the calls consume are different pseudos:
+
+```c
+case 8:
+    SOFT_TOUCH_REG(arg2);
+    ...
+    Gp_StartCapSlot(arg2, 1, 0);   /* s16 param: sll/sra 16 from $s0 */
+```
+
+Copying the argument to a local first (`s32 id = arg2;`) does **not** work —
+copy propagation reunites the two pseudos and the fold comes back.
+`RoomsShared8017d994` (matched as `func_dryfield_junk_yard_8017D994`) is the
+example.
+
+## Promoting a sharer's *first* code unit renumbers all of its own `.c` files
+
+The documented case for `promote` is a span in the middle of an overlay, where
+the tail becomes a new `<name>_2` unit. When the span is the overlay's **first**
+`c` subsegment the shift goes the other way: the base name `<name>` is handed to
+what used to be `<name>_2`, `_2` to `_3`, and so on, and the last file is left
+with no subsegment at all. Every one of that overlay's `.c` files now points at
+the wrong `asm/` unit directory, and the build fails at the *link*, not the
+compile, because the assembler only warns:
+
+```
+{standard input}:28: Error: can't open asm/USA/rooms/nonmatchings/dryfield_night_junk_yard/dryfield_night_junk_yard_2/func_dryfield_night_junk_yard_8017D6AC.s
+...
+ld: cannot find build/USA/src/rooms/dryfield_night_junk_yard/dryfield_night_junk_yard_2.c.o
+```
+
+Renaming the files by hand is error-prone because the leading `.rodata`
+subsegment also moves onto the new first code unit. Delete the overlay's sources
+and asm and let splat lay them out:
+
+```
+rm -f  src/<family>/<overlay>/*.c
+rm -rf asm/USA/<family>/{non,}matchings/<overlay>
+venv/bin/python3 ninja_config.py --only <overlay>
+```
+
+splat preserves function bodies already decompiled in those files, so the only
+thing to re-check is that each regenerated `.c` still has its includes.
+`dryfield_night_junk_yard` is the example: its shared body sat at offset `0x34`,
+the first thing after the header rodata.

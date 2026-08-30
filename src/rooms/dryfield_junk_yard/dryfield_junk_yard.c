@@ -13,5 +13,3 @@ INCLUDE_RODATA("rooms/nonmatchings/dryfield_junk_yard/dryfield_junk_yard", D_dry
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_junk_yard/dryfield_junk_yard", D_dryfield_junk_yard_8017D5D0);
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_junk_yard/dryfield_junk_yard", func_dryfield_junk_yard_8017D848);
-
-INCLUDE_ASM("rooms/nonmatchings/dryfield_junk_yard/dryfield_junk_yard", func_dryfield_junk_yard_8017D994);
