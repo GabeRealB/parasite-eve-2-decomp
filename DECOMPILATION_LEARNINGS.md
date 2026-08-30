@@ -33125,3 +33125,53 @@ a *second* cut for the tail whenever the table is not the last leading rodata
 tail's new owner must be a unit that does not already own rodata elsewhere.
 Delete every `src/` file whose `INCLUDE_RODATA` lines move and re-split - splat
 never rewrites an existing `.c`, so it will not relocate them for you.
+
+## `rodata_head` moves a mid-unit jump table to the front without a `units` cut
+
+The manifest comment presents `rodata_head` as the tool for the overlay's
+*first* function, but it also solves the commoner case: a function that sits in
+the **first** code unit yet is not the first `INCLUDE_ASM` in the file, whose
+generated table therefore lands mid-object and picks up GCC's `.align 3` pad.
+The documented fix pairs a `rodata` cut with a `units` `.text` cut, but a
+`units` cut renumbers every overlay-local unit after it (`_2` becomes `_3`, …),
+so every existing `src/<overlay>/<overlay>_N.c` has to be renamed. Handing the
+rodata *ahead* of the table to `<name>_hdr` instead leaves the numbering alone:
+
+```toml
+shelter_b3_elevator_hall = { rodata_head = "0x3C",
+                             rodata = [{ start = "0x58", unit = "shelter_b3_elevator_hall_4" }],
+                             shared = [...] }
+```
+
+`func_shelter_b3_elevator_hall_8017DAF0`'s 7-entry table is at `0x3C`, the third
+of four rodata symbols ahead of `.text`. `rodata_head = "0x3C"` puts
+`D_…_8017D5C0`, `jtbl_…_8017D5C4`, `jtbl_…_8017D5DC` and `D_…_8017D5F0` into an
+asm-only `shelter_b3_elevator_hall_hdr` object, so unit 1's `.rodata` now
+*starts* at the generated table and `subalign: 4` re-aligns it. The still-asm
+functions that own the two moved tables keep matching: splat re-emits their jump
+targets as `jlabel` (global) once the table and the code are in different
+objects. The tail (`jtbl_…_8017D618`, whose function lives in unit 4) still needs
+the ordinary forward cut from the section above.
+
+Delete the `INCLUDE_RODATA` lines for every symbol that moved before re-splitting
+— splat never rewrites an existing `.c`, and the `.s` files they name are gone.
+
+## Break a cross-jumped `jal` tail with a barrier *after* it when the `j` slot is `nop`
+
+The companion to "`asm volatile("")` *before* the assignment": that entry puts
+the barrier ahead of the pair because a barrier between the last insn and the
+`j` blocks the delay-slot filler. When the target's `j` already has an empty
+delay slot, the barrier belongs *after* the duplicated insns instead — there is
+nothing left to sink, and placing it before does not break the match at all.
+
+Two switch cases ending `Task_Kill(task); goto advance;` cross-jump into one
+tail (97.66%, `branch`=4 `delete`=2). A `SCHED_BARRIER()` before `Task_Kill` in
+the earlier case changes nothing: the merge compares `jal Task_Kill` /
+`move a0,s0`, and the barrier sits ahead of both. Putting it after the call
+splits them and reproduces the ROM's duplicated tail (97.66% → 99.9%):
+
+```c
+Task_SpawnFromTable(D_shelter_b3_elevator_hall_80182A2C, 0, 0x542A0001, 0);
+Task_Kill(task);
+SCHED_BARRIER();   /* after: breaks the merge; target's `j advance` slot is nop */
+```
