@@ -1,45 +1,45 @@
 #include "common.h"
 
-INCLUDE_RODATA("rooms/neo_ark_submarine_tunnel/nonmatchings/neo_ark_submarine_tunnel", D_neo_ark_submarine_tunnel_8017D5C0);
+INCLUDE_RODATA("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", D_neo_ark_submarine_tunnel_8017D5C0);
 
-INCLUDE_ASM("rooms/neo_ark_submarine_tunnel/nonmatchings/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017D634);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017D634);
 
-INCLUDE_ASM("rooms/neo_ark_submarine_tunnel/nonmatchings/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017E288);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017E288);
 
-INCLUDE_ASM("rooms/neo_ark_submarine_tunnel/nonmatchings/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017E828);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017E828);
 
-INCLUDE_ASM("rooms/neo_ark_submarine_tunnel/nonmatchings/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017F064);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017F064);
 
-INCLUDE_ASM("rooms/neo_ark_submarine_tunnel/nonmatchings/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017F27C);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017F27C);
 
-INCLUDE_ASM("rooms/neo_ark_submarine_tunnel/nonmatchings/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017F284);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017F284);
 
-INCLUDE_ASM("rooms/neo_ark_submarine_tunnel/nonmatchings/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017F2C8);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017F2C8);
 
-INCLUDE_ASM("rooms/neo_ark_submarine_tunnel/nonmatchings/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017F318);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017F318);
 
-INCLUDE_ASM("rooms/neo_ark_submarine_tunnel/nonmatchings/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017F398);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017F398);
 
-INCLUDE_ASM("rooms/neo_ark_submarine_tunnel/nonmatchings/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017F3BC);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017F3BC);
 
-INCLUDE_ASM("rooms/neo_ark_submarine_tunnel/nonmatchings/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017F414);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017F414);
 
-INCLUDE_ASM("rooms/neo_ark_submarine_tunnel/nonmatchings/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017F434);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017F434);
 
-INCLUDE_ASM("rooms/neo_ark_submarine_tunnel/nonmatchings/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017F48C);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017F48C);
 
-INCLUDE_ASM("rooms/neo_ark_submarine_tunnel/nonmatchings/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017F4DC);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017F4DC);
 
-INCLUDE_ASM("rooms/neo_ark_submarine_tunnel/nonmatchings/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017FA34);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017FA34);
 
-INCLUDE_ASM("rooms/neo_ark_submarine_tunnel/nonmatchings/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017FC58);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017FC58);
 
-INCLUDE_ASM("rooms/neo_ark_submarine_tunnel/nonmatchings/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017FEDC);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_8017FEDC);
 
-INCLUDE_ASM("rooms/neo_ark_submarine_tunnel/nonmatchings/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_80180300);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_80180300);
 
-INCLUDE_ASM("rooms/neo_ark_submarine_tunnel/nonmatchings/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_80180694);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_80180694);
 
-INCLUDE_ASM("rooms/neo_ark_submarine_tunnel/nonmatchings/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_80180840);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_80180840);
 
-INCLUDE_ASM("rooms/neo_ark_submarine_tunnel/nonmatchings/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_80180D6C);
+INCLUDE_ASM("rooms/nonmatchings/neo_ark_submarine_tunnel/neo_ark_submarine_tunnel", func_neo_ark_submarine_tunnel_80180D6C);

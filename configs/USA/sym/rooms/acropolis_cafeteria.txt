@@ -1,1 +1,2 @@
 // Overlay-local symbols for acropolis_cafeteria.
+Room_DrawBillboard = 0x80180F1C; // shared body, see src/rooms/lib/

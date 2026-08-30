@@ -80,11 +80,19 @@ def trailing_segment(name: str, data: bytes) -> list[str]:
     return [f"      - [{start}, databin, {name}_tail]"]
 
 
-def subsegments(name: str, data: bytes, span: tuple[int, int] | None) -> str:
+def subsegments(
+    name: str, data: bytes, span: tuple[int, int] | None, shared: list[dict]
+) -> str:
     """The package layout as splat subsegment lines.
 
-    A data-only package still gets one `data` subsegment covering the file;
-    six of the 32 weapon overlays are unused slots with no code at all.
+    `src_path` is the family root, so a subsegment is named `<overlay>/<unit>`
+    and its object lands in the overlay's own directory. A **shared** body is
+    named `lib/<unit>` instead: several overlays name the same path, splat puts
+    the same `build/.../src/<family>/lib/<unit>` object in each of their linker
+    scripts, and one object relocates into all of them. That is the whole
+    mechanism - a body that appears in 55 rooms is built and matched once.
+
+    A data-only package still gets one `data` subsegment covering the file.
     """
     lines: list[str] = []
     if span is None:
@@ -95,9 +103,28 @@ def subsegments(name: str, data: bytes, span: tuple[int, int] | None) -> str:
     start, end = span
     if start:
         # Leading rodata: the package header that sits ahead of the first
-        # function.
-        lines.append(f"      - [0x0, .rodata, {name}]")
-    lines.append(f"      - [0x{start:X}, c, {name}]")
+        # function. Named to match its `c` sibling so splat pairs them.
+        lines.append(f"      - [0x0, .rodata, {name}/{name}]")
+
+    # Walk the code region, cutting out each shared body as its own subsegment
+    # and giving the runs between them numbered overlay-local units.
+    cuts = sorted(shared, key=lambda s: int(str(s["start"]), 16))
+    pos, unit = start, 0
+    for cut in cuts:
+        cut_start, cut_end = int(str(cut["start"]), 16), int(str(cut["end"]), 16)
+        if not (start <= cut_start < cut_end <= end):
+            raise SystemExit(f"{name}: shared span {cut['unit']} is outside .text")
+        if cut_start > pos:
+            unit += 1
+            suffix = "" if unit == 1 else f"_{unit}"
+            lines.append(f"      - [0x{pos:X}, c, {name}/{name}{suffix}]")
+        lines.append(f"      - [0x{cut_start:X}, c, lib/{cut['unit']}]")
+        pos = cut_end
+    if pos < end:
+        unit += 1
+        suffix = "" if unit == 1 else f"_{unit}"
+        lines.append(f"      - [0x{pos:X}, c, {name}/{name}{suffix}]")
+
     if end < len(data):
         # Trailing data: models, animation banks, scripts - not code.
         lines.append(f"      - [0x{end:X}, data, {name}_data]")
@@ -162,7 +189,7 @@ def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path
             "GLOBAL_VRAM_START": f"0x{spec['global_vram_start']:08X}",
             "GLOBAL_VRAM_END": f"0x{spec['global_vram_end']:08X}",
             "IMPORTS": spec["imports"],
-            "SUBSEGMENTS": subsegments(name, data, span),
+            "SUBSEGMENTS": subsegments(name, data, span, entry.get("shared", [])),
         }.items():
             text = text.replace(f"@@{key}@@", val)
         if "@@" in text:

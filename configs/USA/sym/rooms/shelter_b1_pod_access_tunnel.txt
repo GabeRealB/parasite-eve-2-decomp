@@ -1,1 +1,2 @@
 // Overlay-local symbols for shelter_b1_pod_access_tunnel.
+Room_DrawBillboard = 0x8018070C; // shared body, see src/rooms/lib/

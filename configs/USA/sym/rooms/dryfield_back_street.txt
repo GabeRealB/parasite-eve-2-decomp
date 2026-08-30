@@ -1,1 +1,2 @@
 // Overlay-local symbols for dryfield_back_street.
+Room_DrawBillboard = 0x8017EFA4; // shared body, see src/rooms/lib/

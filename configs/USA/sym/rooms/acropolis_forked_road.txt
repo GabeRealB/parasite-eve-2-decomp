@@ -1,1 +1,2 @@
 // Overlay-local symbols for acropolis_forked_road.
+Room_DrawBillboard = 0x80180554; // shared body, see src/rooms/lib/

@@ -1,1 +1,2 @@
 // Overlay-local symbols for neo_ark_shrine.
+Room_DrawBillboard = 0x80181474; // shared body, see src/rooms/lib/

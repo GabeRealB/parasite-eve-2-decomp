@@ -1,1 +1,2 @@
 // Overlay-local symbols for shelter_b1_south_maintenance_walkway.
+Room_DrawBillboard = 0x8017FD34; // shared body, see src/rooms/lib/

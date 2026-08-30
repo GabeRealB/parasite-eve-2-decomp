@@ -1,5 +1,5 @@
 #include "common.h"
 
-INCLUDE_RODATA("weapons/mongoose/nonmatchings/mongoose", D_mongoose_8011D1C0);
+INCLUDE_RODATA("weapons/nonmatchings/mongoose/mongoose", D_mongoose_8011D1C0);
 
-INCLUDE_ASM("weapons/mongoose/nonmatchings/mongoose", func_mongoose_8011D1D8);
+INCLUDE_ASM("weapons/nonmatchings/mongoose/mongoose", func_mongoose_8011D1D8);

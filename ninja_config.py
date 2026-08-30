@@ -779,6 +779,11 @@ def ninja_build(
     elf_build_requirements = []
     checksum_build_requirements = []
     objdiff_config_requirements = []
+    # Objects shared between overlays appear in several linker scripts, so the
+    # same output is reached once per overlay that links it. ninja rejects two
+    # rules for one output, and the second rule would be identical anyway, so
+    # emit the rule the first time and afterwards only record the dependency.
+    emitted_objects: set[str] = set()
 
     # Build all the objects
     for split_config in split_entries:
@@ -794,6 +799,11 @@ def ninja_build(
 
                 source_path = str(entry.src_paths[0])
                 target_path = str(entry.object_path)
+
+                if target_path in emitted_objects:
+                    elf_build_requirements.append(target_path)
+                    continue
+                emitted_objects.add(target_path)
 
                 match seg.type:
                     case (
@@ -1197,7 +1207,9 @@ def main():
             family = overlay_family[yaml]
             basename = overlay_basename[yaml]
             append_overlay_absolute_imports(basename, family_imports.get(family))
-            fix_overlay_include_asm_paths(basename, f"src/{family}/{basename}")
+            # src_path is the family root now, and a shared unit lives in
+            # src/<family>/lib/, so fix the whole family tree.
+            fix_overlay_include_asm_paths(basename, f"src/{family}")
             seg = split.config["segments"][0]
             text_sub = next(
                 (s for s in seg.get("subsegments", []) if len(s) > 2 and s[1] == "c"),

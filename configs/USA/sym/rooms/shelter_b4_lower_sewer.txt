@@ -1,1 +1,2 @@
 // Overlay-local symbols for shelter_b4_lower_sewer.
+Room_DrawBillboard = 0x80181484; // shared body, see src/rooms/lib/

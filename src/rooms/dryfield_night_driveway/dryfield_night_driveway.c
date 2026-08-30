@@ -1,35 +1,35 @@
 #include "common.h"
 
-INCLUDE_RODATA("rooms/dryfield_night_driveway/nonmatchings/dryfield_night_driveway", D_dryfield_night_driveway_8017D5C0);
+INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_driveway/dryfield_night_driveway", D_dryfield_night_driveway_8017D5C0);
 
-INCLUDE_ASM("rooms/dryfield_night_driveway/nonmatchings/dryfield_night_driveway", func_dryfield_night_driveway_8017D608);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_driveway/dryfield_night_driveway", func_dryfield_night_driveway_8017D608);
 
-INCLUDE_ASM("rooms/dryfield_night_driveway/nonmatchings/dryfield_night_driveway", func_dryfield_night_driveway_8017D7A0);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_driveway/dryfield_night_driveway", func_dryfield_night_driveway_8017D7A0);
 
-INCLUDE_ASM("rooms/dryfield_night_driveway/nonmatchings/dryfield_night_driveway", func_dryfield_night_driveway_8017DAF4);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_driveway/dryfield_night_driveway", func_dryfield_night_driveway_8017DAF4);
 
-INCLUDE_ASM("rooms/dryfield_night_driveway/nonmatchings/dryfield_night_driveway", func_dryfield_night_driveway_8017DB8C);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_driveway/dryfield_night_driveway", func_dryfield_night_driveway_8017DB8C);
 
-INCLUDE_ASM("rooms/dryfield_night_driveway/nonmatchings/dryfield_night_driveway", func_dryfield_night_driveway_8017DC6C);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_driveway/dryfield_night_driveway", func_dryfield_night_driveway_8017DC6C);
 
-INCLUDE_ASM("rooms/dryfield_night_driveway/nonmatchings/dryfield_night_driveway", func_dryfield_night_driveway_8017DC78);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_driveway/dryfield_night_driveway", func_dryfield_night_driveway_8017DC78);
 
-INCLUDE_ASM("rooms/dryfield_night_driveway/nonmatchings/dryfield_night_driveway", func_dryfield_night_driveway_8017DC88);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_driveway/dryfield_night_driveway", func_dryfield_night_driveway_8017DC88);
 
-INCLUDE_ASM("rooms/dryfield_night_driveway/nonmatchings/dryfield_night_driveway", func_dryfield_night_driveway_8017DC94);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_driveway/dryfield_night_driveway", func_dryfield_night_driveway_8017DC94);
 
-INCLUDE_ASM("rooms/dryfield_night_driveway/nonmatchings/dryfield_night_driveway", func_dryfield_night_driveway_8017DCE4);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_driveway/dryfield_night_driveway", func_dryfield_night_driveway_8017DCE4);
 
-INCLUDE_ASM("rooms/dryfield_night_driveway/nonmatchings/dryfield_night_driveway", func_dryfield_night_driveway_8017DCEC);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_driveway/dryfield_night_driveway", func_dryfield_night_driveway_8017DCEC);
 
-INCLUDE_ASM("rooms/dryfield_night_driveway/nonmatchings/dryfield_night_driveway", func_dryfield_night_driveway_8017DCF4);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_driveway/dryfield_night_driveway", func_dryfield_night_driveway_8017DCF4);
 
-INCLUDE_ASM("rooms/dryfield_night_driveway/nonmatchings/dryfield_night_driveway", func_dryfield_night_driveway_8017DCFC);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_driveway/dryfield_night_driveway", func_dryfield_night_driveway_8017DCFC);
 
-INCLUDE_ASM("rooms/dryfield_night_driveway/nonmatchings/dryfield_night_driveway", func_dryfield_night_driveway_8017DD7C);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_driveway/dryfield_night_driveway", func_dryfield_night_driveway_8017DD7C);
 
-INCLUDE_ASM("rooms/dryfield_night_driveway/nonmatchings/dryfield_night_driveway", func_dryfield_night_driveway_8017DD8C);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_driveway/dryfield_night_driveway", func_dryfield_night_driveway_8017DD8C);
 
-INCLUDE_ASM("rooms/dryfield_night_driveway/nonmatchings/dryfield_night_driveway", func_dryfield_night_driveway_8017DDE4);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_driveway/dryfield_night_driveway", func_dryfield_night_driveway_8017DDE4);
 
-INCLUDE_ASM("rooms/dryfield_night_driveway/nonmatchings/dryfield_night_driveway", func_dryfield_night_driveway_8017E5CC);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_night_driveway/dryfield_night_driveway", func_dryfield_night_driveway_8017E5CC);

@@ -1,64 +1,64 @@
 #include "common.h"
 
-INCLUDE_RODATA("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", D_shelter_b1_elevator_hall_8017D5C0);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", D_shelter_b1_elevator_hall_8017D5C0);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017D620);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017D620);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017D810);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017D810);
 
-INCLUDE_RODATA("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", D_shelter_b1_elevator_hall_8017D5D8);
+INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", D_shelter_b1_elevator_hall_8017D5D8);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017D99C);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017D99C);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017DB54);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017DB54);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017DB5C);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017DB5C);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017DB64);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017DB64);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017DB6C);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017DB6C);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017DBB8);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017DBB8);
 
 void func_shelter_b1_elevator_hall_8017DC20(void) {
 }
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017DC28);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017DC28);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017DC80);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017DC80);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017DEB0);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017DEB0);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017E6F4);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017E6F4);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017E9C0);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017E9C0);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017EC84);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017EC84);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017F0A8);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017F0A8);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017F43C);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017F43C);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017F7D4);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017F7D4);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017F980);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017F980);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017FEAC);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8017FEAC);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_80180224);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_80180224);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_80180BE4);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_80180BE4);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_80180D18);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_80180D18);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_80180FBC);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_80180FBC);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_801813E8);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_801813E8);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8018177C);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_8018177C);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_80181C6C);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_80181C6C);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_80182064);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_80182064);
 
-INCLUDE_ASM("rooms/shelter_b1_elevator_hall/nonmatchings/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_801822EC);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_elevator_hall/shelter_b1_elevator_hall", func_shelter_b1_elevator_hall_801822EC);

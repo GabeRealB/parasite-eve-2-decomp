@@ -1,1 +1,2 @@
 // Overlay-local symbols for neo_ark_power_plant_2.
+Room_DrawBillboard = 0x8017F3C8; // shared body, see src/rooms/lib/

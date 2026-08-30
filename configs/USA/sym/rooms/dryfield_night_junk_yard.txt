@@ -1,1 +1,2 @@
 // Overlay-local symbols for dryfield_night_junk_yard.
+Room_DrawBillboard = 0x8017FB9C; // shared body, see src/rooms/lib/

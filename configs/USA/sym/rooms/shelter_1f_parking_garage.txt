@@ -1,1 +1,2 @@
 // Overlay-local symbols for shelter_1f_parking_garage.
+Room_DrawBillboard = 0x801801E0; // shared body, see src/rooms/lib/

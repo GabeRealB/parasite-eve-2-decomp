@@ -1,1 +1,2 @@
 // Overlay-local symbols for shelter_1f_bulwark.
+Room_DrawBillboard = 0x8017F960; // shared body, see src/rooms/lib/

@@ -1,1 +1,2 @@
 // Overlay-local symbols for neo_ark_island.
+Room_DrawBillboard = 0x80181170; // shared body, see src/rooms/lib/

@@ -1,0 +1,19 @@
+#include "common.h"
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall_2", func_shelter_b3_elevator_hall_80180CE4);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall_2", func_shelter_b3_elevator_hall_80180E18);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall_2", func_shelter_b3_elevator_hall_80181370);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall_2", func_shelter_b3_elevator_hall_80181594);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall_2", func_shelter_b3_elevator_hall_80181818);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall_2", func_shelter_b3_elevator_hall_80181C3C);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall_2", func_shelter_b3_elevator_hall_80181FD0);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall_2", func_shelter_b3_elevator_hall_8018217C);
+
+INCLUDE_ASM("rooms/nonmatchings/shelter_b3_elevator_hall/shelter_b3_elevator_hall_2", func_shelter_b3_elevator_hall_801826A8);

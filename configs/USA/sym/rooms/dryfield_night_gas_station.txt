@@ -1,1 +1,2 @@
 // Overlay-local symbols for dryfield_night_gas_station.
+Room_DrawBillboard = 0x80183354; // shared body, see src/rooms/lib/

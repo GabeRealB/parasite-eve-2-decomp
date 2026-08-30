@@ -1,1 +1,2 @@
 // Overlay-local symbols for neo_ark_pyramid.
+Room_DrawBillboard = 0x8017F224; // shared body, see src/rooms/lib/
