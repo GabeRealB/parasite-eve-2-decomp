@@ -33425,3 +33425,28 @@ constants gives the target's `move a2,a1` / `move a2,a0`. The rule of thumb:
 duplicate argument *setup*, but keep a constant store that shares its value
 with a live compare in the shared tail. `regs` plus an unexpected extra
 callee-saved register in the prologue is the tell.
+
+## Extra delay case: write `state++` inline, keep `goto advance` for the rest
+
+The stream-load dispatcher family (`rooms_shared_8017da34` and copies) shares
+one `advance:` that reloads `task->state` then increments. A variant that
+inserts a `killCountdown` wait as case 0 — `SetDispMask(0); killCountdown = 0;
+state++` — has *two* entry points in the ROM: other cases `j` to the reload,
+case 0 loads state itself (scheduled around the `sh $zero, 0x2A(s0)`) and
+jumps *past* the reload into the increment.
+
+`goto advance` from every case, including 0, drops that load (`delete=1`,
+`branch` targets all off by 4). Writing the increment inline in case 0 only:
+
+```c
+L_case0:
+    SetDispMask(0);
+    task->killCountdown = 0;
+    task->state         = task->state + 1;
+    return;
+```
+
+lets cross-jumping merge onto the shared increment and skip the reload. Leave
+the later cases on `goto advance`. `func_shelter_r49_8017D71C` is the example.
+This is the opposite of "write `state++; return;` out in every switch case"
+above, which applies when duplicate *bodies* must not merge.
