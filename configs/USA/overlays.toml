@@ -264,7 +264,7 @@ dryfield_night_motel_room_3 = { room = "Motel room 3" }
 dryfield_night_motel_room_4 = { room = "Motel room 4" }
 dryfield_night_parking_lot = { room = "Parking lot" }
 dryfield_night_toilet = { room = "Toilet" }
-dryfield_night_motel_lobby = { room = "Motel lobby" }
+dryfield_night_motel_lobby = { room = "Motel lobby", units = ["0x1F44", "0x24B0"], rodata = [{ start = "0x84", unit = "dryfield_night_motel_lobby_2" }, { start = "0xE4", unit = "dryfield_night_motel_lobby_3" }] }
 dryfield_night_saloon_g_r = { room = "Saloon G & R" }
 dryfield_night_g_r_kitchen = { room = "G & R kitchen" }
 dryfield_night_water_tower = { room = "Water tower" }
