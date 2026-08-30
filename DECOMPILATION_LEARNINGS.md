@@ -33787,3 +33787,46 @@ That `lui`-into-a-scratch-register pair is the diagnostic: it is the same rule
 as "duplicate the call in each branch when only one argument differs" above, but
 here the leftover is four register diffs rather than a spill, so it looks like a
 colouring problem and is not one.
+
+## A shared body may reference overlay-local data — give the datum one name in every sym map
+
+`overlay_dup_index.py promote` refuses an **unmatched** body that references its
+own overlay's code or data, because the shared unit would then be one
+disassembly file baking in one overlay's addresses. A **matched** body has no
+such limit, and the guard says so, but the plumbing it does not do is the data
+side: `promote` only writes the shared *function* symbol into each carrying
+overlay's `configs/USA/sym/<family>/<name>.txt`.
+
+`func_dryfield_main_street_8017DFC8` passes a `TaskDesc` to
+`Task_SpawnFromTable`, and the two copies point at their own room's table —
+`D_dryfield_main_street_80180E94` in one, `D_dryfield_night_main_street_801820A4`
+in the other. One C body cannot name both. The fix is to name the *datum* the
+same way the function is named: add a line per overlay, each at its own address,
+
+```
+Room_Script14Desc = 0x80180E94; // dryfield_main_street
+Room_Script14Desc = 0x801820A4; // dryfield_night_main_street
+```
+
+so splat emits `dlabel Room_Script14Desc` in each overlay's `.data.s`, the
+shared `src/<family>/lib/*.c` declares one `extern`, and each link resolves it
+locally. This is the general rule for promoting a matched body: every
+overlay-local symbol it touches needs a shared name in every carrying overlay's
+sym map, not just the entry point.
+
+## `promote` says "contains it twice" when a scoped split left a stale `.s`
+
+`ninja_config.py --only <overlay>` (and `build-and-verify.sh --only`) writes the
+newly matched function under `asm/.../matchings/` but does **not** delete the
+old copy under `asm/.../nonmatchings/`. The duplicate index is derived from
+`asm/`, so it then sees the same body twice in one overlay and `promote` bails:
+
+```
+func_...: every overlay carrying it contains it twice; cannot share
+```
+
+which is the guard for an overlay that genuinely contains two copies (ld links
+an input object once, so the second slot would go unfilled). Confirm with
+`overlay_dup_index.py find <fn> --rebuild` — a stale split shows the same
+overlay listed twice, one entry marked `matched` — then
+`rm -rf asm/USA/<family>/nonmatchings/<overlay>/<unit>` and rebuild the index.

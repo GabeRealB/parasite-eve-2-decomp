@@ -1,3 +1,5 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_main_street/dryfield_main_street_2", func_dryfield_main_street_8017DFC8);
+INCLUDE_ASM("rooms/nonmatchings/dryfield_main_street/dryfield_main_street_2", func_dryfield_main_street_8017E05C);
+
+INCLUDE_ASM("rooms/nonmatchings/dryfield_main_street/dryfield_main_street_2", func_dryfield_main_street_8017E0D8);
