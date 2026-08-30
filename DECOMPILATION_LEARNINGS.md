@@ -32126,3 +32126,36 @@ GCC interleaves (`lui hi(G)`, `li`, then the `la`, then `sb`), and only once
 the block continues past the call does the `la` migrate all the way to the
 front. Reproduce a suspected scheduling miss on a five-line test file before
 concluding the C shape is wrong.
+
+## Irregular switch: put the shared `state++` label after the last fall-through case
+
+m2c often emits a `block_N:` increment immediately after case 0, with later
+cases `goto` it. GCC 2.8.1 then places that `lw`/`addiu`/`sw` block *there*,
+so case 0 falls through into it and case 2 has to `j` backwards. When the
+target has the increment after case 2 (cases 0/1 `j` forward, case 2 falls
+through, no extra `j` after the last `jal`), move the label:
+
+```c
+case 0:
+    ...
+    goto inc;
+case 1:
+    if (idle) {
+        ...
+        goto inc;
+    }
+    return;
+case 2:
+    ...
+    if (flag == 0) {
+        GameFlag_SetNibble(...);
+    }
+inc:
+    task->state = task->state + 1;
+    return;
+```
+
+`func_dryfield_night_garage_801807E4` went 94.5% (`branch`/`insert`/`delete`
+from the extra case-2 `j`) to 100% with this move. Same idea as the loop
+"shared increment block lands early" note: the first source path that reaches
+the label decides where the block is emitted.
