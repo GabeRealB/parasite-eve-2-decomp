@@ -358,7 +358,7 @@ shelter_b6_corridor = { room = "Corridor", floor = "B6" }
 shelter_b6_training_room = { room = "Training room", floor = "B6" }
 neo_ark_r26 = { note = "cutscene or one-off room; no map names it" }
 neo_ark_bridge = { room = "Bridge", note = "no map pool names this room", shared = [{ start = "0x3F98", end = "0x4958", unit = "room_draw_billboard" }] }
-shelter_1f_tent = { room = "Tent", floor = "1F", note = "no map pool names this room" }
+shelter_1f_tent = { room = "Tent", floor = "1F", note = "no map pool names this room", units = ["0x1EC4", "0x2430"], rodata = [{ start = "0x84", unit = "shelter_1f_tent_2" }, { start = "0xE4", unit = "shelter_1f_tent_3" }] }
 neo_ark_woodland_path = { room = "Woodland path", note = "no map pool names this room" }
 neo_ark_submarine_gallery = { room = "Submarine gallery", note = "no map pool names this room" }
 neo_ark_r31 = { note = "cutscene or one-off room; no map names it" }
