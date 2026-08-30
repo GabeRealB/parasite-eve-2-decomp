@@ -328,7 +328,7 @@ shelter_b4_lower_sewer = { room = "Lower sewer", floor = "B4", note = "no map po
 shelter_b4_upper_sewer = { room = "Upper sewer", floor = "B4", note = "no map pool names this room" }
 shelter_b4_reservoir = { room = "Reservoir", floor = "B4", note = "no map pool names this room" }
 shelter_b4_water_supply = { room = "Water supply", floor = "B4", note = "no map pool names this room" }
-shelter_r47 = { note = "cutscene or one-off room; no map names it" }
+shelter_r47 = { note = "cutscene or one-off room; no map names it", units = ["0x2068", "0x25D4"], rodata = [{ start = "0x84", unit = "shelter_r47_2" }, { start = "0xE4", unit = "shelter_r47_3" }] }
 shelter_r48 = { note = "cutscene or one-off room; no map names it" }
 shelter_r49 = { note = "cutscene or one-off room; no map names it" }
 shelter_1f_parking_garage = { room = "Parking garage", floor = "1F", shared = [{ start = "0x2C20", end = "0x35E0", unit = "room_draw_billboard" }] }
