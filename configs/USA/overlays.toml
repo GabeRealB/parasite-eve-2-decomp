@@ -277,7 +277,7 @@ dryfield_night_junk_yard = { room = "Junk yard", shared = [{ start = "0x25DC", e
 dryfield_night_trailer_coach = { room = "Trailer coach", units = ["0x47F0", "0x4D5C"], rodata = [{ start = "0x1BC", unit = "dryfield_night_trailer_coach_2" }, { start = "0x21C", unit = "dryfield_night_trailer_coach_3" }] }
 dryfield_night_motel_room_5 = { room = "Motel room 5" }
 dryfield_night_motel_balcony = { room = "Motel balcony" }
-dryfield_night_motel_room_6 = { room = "Motel room 6" }
+dryfield_night_motel_room_6 = { room = "Motel room 6", units = ["0x3C30", "0x419C"], rodata = [{ start = "0x94", unit = "dryfield_night_motel_room_6_2" }, { start = "0xF4", unit = "dryfield_night_motel_room_6_3" }] }
 dryfield_night_motel_loft = { room = "Motel loft" }
 dryfield_night_water_hole = { room = "Water hole" }
 dryfield_night_cellar = { room = "Cellar" }
