@@ -31963,3 +31963,40 @@ Two dead ends worth not repeating: `allow_duplicated:True` does **not** silence
 the warning, and `type:label` does (splat's `add_user_symbol` skips the check
 for label types) — but silencing it just preserves the symbol that should not
 exist.
+
+
+## Check `overlay_dup_index.py find` before writing any C for a room function
+
+`python3 tools/overlay_dup_index.py find <fn>` lists every overlay carrying the
+same body, marking which copies are byte-identical. Over half of the room
+functions are duplicates of another room's, so for anything under
+`asm/<ver>/rooms/` this is cheaper than reading m2c output:
+
+```
+$ python3 tools/overlay_dup_index.py find func_shelter_b1_underground_parking_80182154
+  same body: 6 copies   identical bytes: 1
+    ~ USA/rooms/mist_parking  func_mist_parking_80181E8C   (already matched)
+```
+
+When one of the copies is already in `asm/<ver>/<family>/matchings/`, the port
+is a symbol rename of the matched `.c` body: overlay-local data symbols
+(`D_<seg>_<vram>`), the function name, and the local struct typedef. Confirm the
+bodies really are equal first by diffing the instruction streams with the
+overlay prefix, the local `.L`/`jtbl` labels and the `.word` table entries
+normalised away — the dup index matches on shape, and the two functions sit at
+different link offsets:
+
+```sh
+norm() { grep -oP '(?<=\*/)\s+\S.*' "$1" | sed -E \
+    's/<ovlA>|<ovlB>/OVL/g; s/OVL_8[0-9A-F]{7}/L/g;
+     s/jtbl_OVL_[0-9A-F]+/JT/g; s/D_OVL_[0-9A-F]+/D/g; s/\.word .*/WORD/'; }
+diff <(norm "$A") <(norm "$B") && echo IDENTICAL
+```
+
+The scratch env still scores such a port below 100%: `dist.py` compares
+relocation *names*, and the ported C reaches a byte through the struct the
+matched sibling used (`Mc_SaveData+0x13`) where the target `.s` names the raw
+splat symbol (`D_8007217B`). A 99.9% score whose whole `base_N_diff` is
+`%hi(Mc_SaveData)` against `%hi(D_8007217B)` — plus `%hi(.rodata)` against
+`%hi(jtbl_…)` for the compiler-generated switch table — is a match; the
+authority is `./tools/build-and-verify.sh`, not the scratch score.

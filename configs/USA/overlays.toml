@@ -301,7 +301,7 @@ shelter_b1_sterilization_room = { room = "Sterilization room", floor = "B1" }
 shelter_b1_pod_access_tunnel = { room = "Pod access tunnel", floor = "B1", shared = [{ start = "0x314C", end = "0x3B0C", unit = "room_draw_billboard" }] }
 shelter_b1_control_room = { room = "Control room", floor = "B1" }
 shelter_b1_access_tunnel = { room = "Access tunnel", floor = "B1" }
-shelter_b1_underground_parking = { room = "Underground parking", floor = "B1" }
+shelter_b1_underground_parking = { room = "Underground parking", floor = "B1", units = ["0x4B94"], rodata = [{ start = "0x1D4", unit = "shelter_b1_underground_parking_2" }] }
 shelter_b1_golem_freezer_1 = { room = "Golem freezer 1", floor = "B1" }
 shelter_b2_pod_bottom = { room = "Pod bottom", floor = "B2" }
 shelter_b1_pod_service_gantry = { room = "Pod service gantry", floor = "B1" }
