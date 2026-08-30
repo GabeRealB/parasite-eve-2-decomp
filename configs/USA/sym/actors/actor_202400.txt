@@ -1,1 +1,10 @@
 // Overlay-local symbols for actor_202400.
+ActorsShared80134c2c = 0x8014CC2C; // shared body, see src/actors/lib/
+ActorsShared80134c2c_Fn32A28 = 0x8014AA28; // type:func absolute:True
+ActorsShared80134c2c_Fn33EAC = 0x8014BEAC; // type:func absolute:True
+ActorsShared80134c2c_Fn34084 = 0x8014C084; // type:func absolute:True
+ActorsShared80134c2c_Fn34CFC = 0x8014CCFC; // type:func absolute:True
+ActorsShared80134c2c_Fn34EB8 = 0x8014CEB8; // type:func absolute:True
+ActorsShared80134c2c_Fn34F60 = 0x8014CF60; // type:func absolute:True
+ActorsShared80134c2c_Fn34FF0 = 0x8014CFF0; // type:func absolute:True
+ActorsShared80134c2c_Fn35048 = 0x8014D048; // type:func absolute:True
