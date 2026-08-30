@@ -217,7 +217,7 @@ mist_r18 = { note = "cutscene or one-off room; no map names it" }
 mist_parking = { room = "MIST parking", units = ["0x48CC"], rodata = [{ start = "0x1BC", unit = "mist_parking_2" }] }
 mist_shooting_gallery = { room = "Shooting gallery" }
 mist_r21 = { note = "cutscene or one-off room; no map names it" }
-dryfield_gas_station = { room = "Gas station" }
+dryfield_gas_station = { room = "Gas station", units = ["0x1EF4", "0x2460"], rodata = [{ start = "0x84", unit = "dryfield_gas_station_2" }, { start = "0xE4", unit = "dryfield_gas_station_3" }] }
 dryfield_main_street = { room = "Main street", shared = [{ start = "0x2EFC", end = "0x38BC", unit = "room_draw_billboard" }] }
 dryfield_general_store = { room = "General store" }
 dryfield_r04 = { note = "cutscene or one-off room; no map names it" }
