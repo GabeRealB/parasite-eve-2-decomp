@@ -3,6 +3,10 @@
 #include "gameplay/3CD8.h"
 #include "main/gameflag.h"
 
+extern s32 D_actor_460200_80137AA0;
+extern s32 D_actor_460200_80137BA8;
+extern s32 D_actor_460200_80137CB0;
+extern s32 D_actor_460200_80137DA0;
 extern s32 D_actor_460200_80137F98;
 extern s32 D_actor_460200_80137FE0;
 extern s32 D_actor_460200_80138028;
@@ -22,7 +26,26 @@ INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_80132210);
 
-INCLUDE_ASM("actors/nonmatchings/actor_460200/actor_460200", func_actor_460200_801322B8);
+void func_actor_460200_801322B8(void)
+{
+    switch (GameFlag_GetNibble(0x114)) {
+        case 0:
+            func_800E8614((s32)&D_actor_460200_80137AA0, 0);
+            GameFlag_SetNibble(0x114, 1);
+            break;
+        case 1:
+            func_800E8614((s32)&D_actor_460200_80137BA8, 0);
+            GameFlag_SetNibble(0x114, 2);
+            break;
+        case 2:
+            func_800E8614((s32)&D_actor_460200_80137CB0, 0);
+            GameFlag_SetNibble(0x114, 3);
+            break;
+        case 3:
+            func_800E8614((s32)&D_actor_460200_80137DA0, 0);
+            break;
+    }
+}
 
 void func_actor_460200_80132390(void)
 {
