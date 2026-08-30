@@ -1,5 +1,12 @@
 #include "common.h"
 
+#include "gameplay/3CD8.h"
+#include "main/gameflag.h"
+
+extern s32 D_actor_215100_80153ED4;
+extern s32 D_actor_215100_80153FDC;
+extern s32 D_actor_215100_801543E4;
+
 INCLUDE_RODATA("actors/nonmatchings/actor_215100/actor_215100", D_actor_215100_80149E20);
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_80149F2C);
@@ -34,7 +41,22 @@ INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014AEC4);
 
-INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014AF0C);
+void func_actor_215100_8014AF0C(void)
+{
+    switch (GameFlag_GetNibble(0xF5)) {
+        case 0:
+            GameFlag_SetNibble(0xF5, 1);
+            func_800E8614((s32)&D_actor_215100_80153ED4, 0);
+            break;
+        case 1:
+            func_800E8614((s32)&D_actor_215100_80153FDC, 0);
+            GameFlag_SetNibble(0xF5, 2);
+            break;
+        case 2:
+            func_800E8614((s32)&D_actor_215100_801543E4, 0);
+            break;
+    }
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_215100/actor_215100", func_actor_215100_8014AFAC);
 
