@@ -33592,6 +33592,46 @@ copy propagation reunites the two pseudos and the fold comes back.
 `RoomsShared8017d994` (matched as `func_dryfield_junk_yard_8017D994`) is the
 example.
 
+## Two-case `switch` plus a post-`break` `goto` tail
+
+`if (arg2 == 6) else if (arg2 == 8)` is `bne` and constant-folds `arg2` to 8 in
+the second arm (`li a0, 8`). The target is `move s0, a2` / `beq` / `j default`
+and `sll s0, 16` / `sra` into `Gp_StartCapSlot`. `switch (arg2)` copies to `$s0`
+and keeps that later `(s16)` conversion.
+
+`nibble > 0 ? 6 : 0xC` is `blez` + delay `li 0xC`. The target `bgtz` + delay
+`li 6` / `j` + delay `li 0xC` is `nibble <= 0 ? 0xC : 6`.
+
+Several `Gp_RunCapCmd1(cmd)` sites join *after* `Gp_StartCapSlot`. An `if
+(flag != 1) { Gp_RunCapCmd1(9); } else { ... }` inverts to `beq` and emits the
+call before the then-block. `goto` a label after the StartCapSlot `break`:
+
+```c
+switch (arg2) {
+case 6:
+    cmd = GameFlag_GetNibble(0x3A) <= 0 ? 0xC : 6;
+    goto run_cap;
+case 8:
+    if (Gp_GetCurBit2Flag(0x1C) != 1) {
+        cmd = 9;
+        goto run_cap;
+    }
+    if (GameFlag_GetNibble(0x73) == 0 && GameFlag_GetNibble(0x7C) != 0) {
+        cmd = 8;
+        goto run_cap;
+    }
+    Gp_StartCapSlot(arg2, 1, 0);
+    break;
+run_cap:
+    Gp_RunCapCmd1(cmd);
+    break;
+}
+```
+
+`bne` delay-slots `li a0, cmd` into the shared tail. Same body as the
+`SOFT_TOUCH_REG(arg2)` form above: `RoomsShared8017d994` /
+`func_dryfield_night_junk_yard_8017D5F4`.
+
 ## Promoting a sharer's *first* code unit renumbers all of its own `.c` files
 
 The documented case for `promote` is a span in the middle of an overlay, where
