@@ -32731,3 +32731,50 @@ trees and re-split, then re-apply any already-matched function to its new file.
 Splat will not rewrite a `src/` file that already exists, and a stale
 `INCLUDE_RODATA` naming the old unit's directory shows up as
 `undefined reference to '.L<overlay>_<addr>'` at link time.
+
+## `if (f() == K) { x = K; }` reuses the returned register, so the store cross-jumps
+
+GCC 2.8.1's CSE records the equality implied by a taken conditional branch
+(`record_jump_equiv`), so a constant stored inside the arm guarded by
+`== <that constant>` is emitted as the register the comparison already used —
+no `li` at all.
+
+`func_mist_parking_80183EAC` searches five nibble flags for the value 2 and
+sets `task->state = 2` when it finds one:
+
+```
+jal   GameFlag_GetNibble
+addiu a0, s0, 0x125
+beq   v0, s1, .L80183F80   # s1 = 2, hoisted out of the loop
+addiu s0, s0, 1
+...
+.L80183F80:
+sw    v0, 0x30(s2)         # stores the *returned* register, not li 2
+```
+
+m2c cannot see that and writes a phi instead — `var_v0 = GameFlag_GetNibble(…);
+if (var_v0 != 2) { var_v0 = 6; } … arg0->state = var_v0;` — which is
+semantically identical but keeps one pseudo live across the whole loop. That
+pseudo conflicts with `$v0` (the call's return register), so it lands in `$v1`
+and the body gains a `move v1, v0`. Worse, the `$v1` store can no longer
+cross-jump with the `sw v0, 0x30(s2)` tails of the other switch cases, so every
+`task->state = K` in the function grows its own store and jump. Here that was
+five extra instructions and 95.5% instead of 100%.
+
+Write the plain source instead and let CSE and cross-jumping rebuild the phi:
+
+```c
+for (i = 0; i < 5; i++) {
+    if (GameFlag_GetNibble(i + 0x125) == 2) {
+        task->state = 2;
+        return;
+    }
+}
+task->state = 6;
+```
+
+The trailing `task->state = 6` gets sunk into the loop-back branch's delay slot
+(`bnez v0, loop / li v0, 6`), which is what makes the exit block disappear
+entirely. The general rule: when a constant appears both in a comparison and in
+an assignment on the same path, keep them as separate plain statements — a
+temporary that carries the value between them defeats both CSE and cross-jumping.
