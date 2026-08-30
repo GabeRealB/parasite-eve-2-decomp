@@ -33024,3 +33024,28 @@ temp into it — 99.59% → byte match, with no pins. This is the mirror image o
 "Pinned `s0` entry after a clear loop": reuse of the local is what *causes* the
 two-register split, so splitting the local is the first thing to try when a
 `lui`/`addiu` pair disagrees only about the `lui`'s destination register.
+
+## `if (x == 0) A; else if (x == 1) B; else C` is the bnez / j-delay-A form
+
+A three-way byte pick whose target is
+
+```
+bnez  v1, then
+li    v0, 1
+j     merge
+li    v0, 0x64        /* A in the j delay */
+then:
+bne   v1, v0, merge
+li    v0, 0x66        /* C in the bne delay */
+li    v0, 0x65        /* B falls through */
+merge:
+sb    v0, ...
+```
+
+is `if (x == 0) A; else if (x == 1) B; else C` with one store after the chain.
+Nesting the nonzero tests (`if (x != 0) { if (x == 1) B; else C; } else A;`)
+inverts the outer branch to `beqz` and keeps a `j` after B — the shape that
+"Nest `if (x != 0)` so the zero case is a real else" documents as the *other*
+target. `func_neo_ark_altar_8017DA40` is the example. An `s32 id` temp for A/B/C
+also pulled `spawnArg1` out of `$v1` into `$a0`; store through `key.data[0]` in
+each arm and let GCC merge onto `$v0`.
