@@ -91,7 +91,43 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_2"
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_2", func_dryfield_night_factory_8017FE9C);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_2", func_dryfield_night_factory_8017FEF4);
+/// Second cutscene driver for the night factory: silences both weapons, runs
+/// the cap command in `Task::spawnArg1`, and once the cap reports event key 3
+/// records progress flag 0x4A, restores the weapons and kills the task.
+void func_dryfield_night_factory_8017FEF4(Task* task)
+{
+    s32 state = task->state;
+
+    switch (state) {
+        case 0:
+            Gp_MsgPlayerWeapon(0);
+            Gp_MsgAllyWeapon(0);
+            Gp_RunCapCmd(task->spawnArg1, 0);
+            goto advance;
+        case 1:
+            if (GameFlag_GetNibble(0x4A) < 2) {
+                Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F3, 0, 0);
+            }
+            task->state++;
+            /* fallthrough */
+        case 2:
+            if (Gp_CapBusy() != 0) {
+                return;
+            }
+        advance:
+            task->state++;
+            return;
+        case 3:
+            if (Gp_GetCapEventKey() == state) {
+                GameFlag_SetNibble(0x4A, 2);
+            }
+            Gp_MsgPlayerWeapon(1);
+            Gp_MsgAllyWeapon(1);
+            Gp_DispatchMsg(Game_GetPtrSlot(3), 0x3F3, 1, 0);
+            Task_Kill(task);
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_factory/dryfield_night_factory_2", func_dryfield_night_factory_80180038);
 
