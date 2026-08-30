@@ -33757,3 +33757,33 @@ one and `$v1` in the other, and in the second arm the shared pseudo also pulled
 its `addu` ahead of a neighbouring `sw` (`regs=7 reorder=1`, 99.6%). Declaring
 `u8 *p;` and `u8 *slot;` and using one per arm took the same function to 100%
 with no other edit. `func_actor_143000_80133EE4` is the example.
+
+## `lui $v0 / addiu $a0,$v0` instead of `lui $a0 / addiu $a0,$a0` means the call was duplicated
+
+When an `if`/`else` picks between two static symbols and passes the result to
+one call, writing it as a temporary
+
+```c
+if (cond) { recs = D_80184F78; } else { recs = D_80184F7C; }
+Gp_ApplyAreaRecs(recs);
+```
+
+gives GCC 2.8.1 a pseudo-register for the address, and the pseudo is copied into
+the argument register at the join:
+
+```
+lui   v0,%hi(D_80184F78)
+addiu a0,v0,%lo(D_80184F78)
+```
+
+The target instead forms the address directly in `$a0`
+(`lui a0,%hi(...) / addiu a0,a0,%lo(...)`), which is what a **duplicated call**
+in each arm compiles to — cross-jumping then merges the two `jal`s back into
+one, so the instruction count is unchanged and only the register differs.
+Writing `Gp_ApplyAreaRecs(...)` inside both arms took
+`func_acropolis_security_room_8017F300` from 99.79% (`regs=4`) to 100%.
+
+That `lui`-into-a-scratch-register pair is the diagnostic: it is the same rule
+as "duplicate the call in each branch when only one argument differs" above, but
+here the leftover is four register diffs rather than a spill, so it looks like a
+colouring problem and is not one.

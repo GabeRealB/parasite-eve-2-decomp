@@ -4,6 +4,7 @@
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 #include "main/gameflag.h"
+#include "main/session.h"
 #include "main/sound.h"
 #include "main/task.h"
 
@@ -14,7 +15,10 @@ typedef struct {
 
 void func_acropolis_security_room_8017FD64(s32 arg0);
 
-/// 0xFF-terminated (empty) area-record list applied once the script ends.
+/// 0xFF-terminated area-record lists applied as the script ends.
+extern GpAreaApplyRec D_acropolis_security_room_80184F50[];
+extern GpAreaApplyRec D_acropolis_security_room_80184F78[];
+extern GpAreaApplyRec D_acropolis_security_room_80184F7C[];
 extern GpAreaApplyRec D_acropolis_security_room_80184F80[];
 
 void func_acropolis_security_room_8017F1BC(Task* task)
@@ -55,7 +59,50 @@ void func_acropolis_security_room_8017F1BC(Task* task)
     task->state = 2;
 }
 
-INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017F300);
+void func_acropolis_security_room_8017F300(Task* task)
+{
+    AcropolisSecurityRoomState* st = (AcropolisSecurityRoomState*)task->idMap;
+    s32                         flag;
+    s32                         step;
+
+    flag = GameFlag_GetNibble(9);
+    if ((flag == 0) || (flag == 1)) {
+        step = st->field_0;
+        if (step == 0) {
+            Gp_StartCapSlot(4, 1, 0);
+        } else if (step == 2) {
+            Gp_ClearCollectedBit(0x103);
+            SndEvt_EnqueueType6(0x51060001, 0, 0);
+            GameFlag_SetNibble(9, GameFlag_GetNibble(9) | 2);
+            func_acropolis_security_room_8017FD64(GameFlag_GetNibble(9) & 0xFF);
+            st->field_0           = 0;
+            task->state           = 0xA;
+            Game_Session->field_1 = 1;
+            func_800E9BDC(1, 0xF9FF);
+            Gp_ApplyAreaRecs(D_acropolis_security_room_80184F50);
+            if (GameFlag_GetNibble(3) < 3) {
+                Gp_ApplyAreaRecs(D_acropolis_security_room_80184F78);
+            } else {
+                Gp_ApplyAreaRecs(D_acropolis_security_room_80184F7C);
+            }
+            Task_Kill((Task*)task->spawnArg2);
+            return;
+        } else {
+            Gp_StartCapSlot(4, 1, 2);
+            task->state = 2;
+            return;
+        }
+    } else if ((flag == 2) || (flag == 3)) {
+        if (st->field_0 == 0) {
+            Gp_StartCapSlot(4, 1, 1);
+        } else {
+            Gp_StartCapSlot(4, 1, 3);
+        }
+    } else {
+        return;
+    }
+    task->state = 2;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room_2", func_acropolis_security_room_8017F480);
 
