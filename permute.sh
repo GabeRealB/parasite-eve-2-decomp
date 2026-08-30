@@ -72,19 +72,19 @@ fi
 # Get the path to the current script's directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# decomp-permuter is an upstream submodule, so our jump-table fix cannot be
+# decomp-permuter is an upstream submodule, so our objdump fix cannot be
 # committed as a file and does not survive `git submodule update`. Keep it as a
 # tracked patch and re-apply it whenever the submodule comes back pristine.
-# Without it, a byte-perfect jump-table match scores 2 * PENALTY_REGALLOC
-# instead of 0 (the target says %hi(jtbl_800141DC), any compiled candidate says
-# %hi(.rodata)), so --stop-on-zero can never fire on those functions.
-PERMUTER_PATCH="$SCRIPT_DIR/tools/decomp-permuter-jtbl.patch"
+# Without it, scoring dies outright on any function where GCC emits a `j` to a
+# label inside itself - objdump prints that target as bare hex and int(imm, 0)
+# raises. Long switch bodies are exactly what produces those jumps.
+PERMUTER_PATCH="$SCRIPT_DIR/tools/decomp-permuter-objdump.patch"
 if [ -f "$PERMUTER_PATCH" ] &&
-    ! grep -q RE_JTBL_SYMBOL "$SCRIPT_DIR/tools/decomp-permuter/src/objdump.py" 2>/dev/null; then
+    ! grep -q "def parse_imm" "$SCRIPT_DIR/tools/decomp-permuter/src/objdump.py" 2>/dev/null; then
     if git -C "$SCRIPT_DIR/tools/decomp-permuter" apply "$PERMUTER_PATCH" 2>/dev/null; then
-        echo "Applied jump-table scoring patch to tools/decomp-permuter"
+        echo "Applied objdump patch to tools/decomp-permuter"
     else
-        echo "Warning: could not apply $PERMUTER_PATCH; jump-table functions will not score 0" >&2
+        echo "Warning: could not apply $PERMUTER_PATCH; scoring may crash on switch-heavy functions" >&2
     fi
 fi
 
@@ -123,7 +123,13 @@ echo "Creating compile.sh file"
 chmod +x permuter/$FUNCTION_NAME/compile.sh
 
 echo "Creating or overwriting permuter/$FUNCTION_NAME/target.s file from $ASM_FUNCTION"
+# prelude.inc is not optional. Without `.set noreorder` gas fills the target's
+# delay slots and inserts its own nops, so the target we score against is not
+# the target at all: a seed that build.sh scores 99.512% scored 70.141% here,
+# and the permuter then spent 24k iterations chasing a stream it could never
+# reach. Assemble the target exactly the way the scratch env does.
 {
+    cat "$SCRIPT_DIR/tools/claude-decomp-env/prelude.inc"
     echo '.include "macro.inc"'
     echo ''
     echo ''

@@ -2501,8 +2501,37 @@ which is in `requirements.txt`):
 ```
 
 Check the reported `base score = N` against `dist.py`'s difference count for the
-same file — if they disagree, the generated `compile.sh` is not compiling the
-way `build.sh` does and the search is worthless.
+same file — if they disagree, the search is worthless. Suspect `target.s` before
+`compile.sh`: a wrong target is silent, while a wrong compile usually shows up
+as permuter errors.
+
+**`prelude.inc` is not optional in `target.s` (fixed).** `permute.sh` used to
+build `target.s` from `macro.inc` plus the `.s`, leaving out the
+`.set noat` / `.set noreorder` / `.set gp=32` that `tools/claude` prepends. With
+`noreorder` missing, `gas` reorders the *target* — filling its delay slots and
+inserting its own nops — so the permuter optimizes toward a stream that no
+compiler output can reach. `func_actor_203700_8014A6F0`'s 99.512% seed scored
+70.141% against that target (`branch=5 insert=10 delete=29`), and a run left it
+at 24,285 iterations oscillating between 3000 and 5000. With `prelude.inc`
+prepended the same seed scores its true 60 — one `PENALTY_REORDERING`. This was
+not specific to jump tables; it applied to every function.
+
+**The bare-hex immediate crash.** A `j` to a label inside the same function
+relocates against `.text`, and objdump prints the target as bare hex
+(`j 2d8 <fn+0x2d8>`), which the permuter's `int(imm, 0)` rejects with
+`ValueError: invalid literal for int() with base 0`. GCC emits those for long
+switch bodies, so scoring dies on exactly the functions worth permuting.
+`tools/decomp-permuter-objdump.patch` fixes it; `permute.sh` re-applies it
+whenever the submodule comes back pristine.
+
+**Jump table symbol names do not need normalizing for scoring.** The permuter
+already ignores a candidate field containing `.` when the target line carried a
+relocation (`field_matches_any_symbol` in `scorer.py`), so a target's
+`%hi(jtbl_...)` against a compiled `%hi(.rodata+0x18)` costs nothing. The
+normalization in `dist.py` / `normalize_asm.py` / `objdump.py` is for readable
+dumps only. Match the whole symbol (`jtbl_\w+`): overlay tables are named
+`jtbl_actor_203700_80149E34`, and a hex-only pattern stops inside the name —
+`ac` is valid hex — leaving spliced garbage like `.rodatator_203700_80149E34`.
 
 Improvements land in `permuter/<fn>/output-<score>-<n>/source.c`, as the whole
 preprocessed file reformatted by pycparser. Diff only the function against the
