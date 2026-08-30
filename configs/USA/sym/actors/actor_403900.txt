@@ -13,4 +13,12 @@ ActorsShared80137b78_Fn3592C = 0x8013592C; // type:func absolute:True
 ActorsShared80137b78_Fn35A24 = 0x80135A24; // type:func absolute:True
 ActorsShared80137b78_Fn37D7C = 0x80137D7C; // type:func absolute:True
 ActorsShared80137b78_Fn380DC = 0x801380DC; // type:func absolute:True
-
+ActorsShared80137a20 = 0x80137A20; // shared body, see src/actors/lib/
+ActorsShared80137a20_Fn31F54 = 0x80131F54; // type:func absolute:True
+ActorsShared80137a20_Fn34968 = 0x80134968; // type:func absolute:True
+ActorsShared80137a20_Fn35BE0 = 0x80135BE0; // type:func absolute:True
+ActorsShared80137a20_Fn37E4C = 0x80137E4C; // type:func absolute:True
+ActorsShared80137a20_Fn37EF0 = 0x80137EF0; // type:func absolute:True
+ActorsShared80137a20_Fn37FB4 = 0x80137FB4; // type:func absolute:True
+ActorsShared80137a20_Fn38070 = 0x80138070; // type:func absolute:True
+ActorsShared80137a20_Fn3820C = 0x8013820C; // type:func absolute:True

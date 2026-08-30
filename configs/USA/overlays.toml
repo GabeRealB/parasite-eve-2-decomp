@@ -467,12 +467,12 @@ actor_400600 = { }
 actor_401000 = { }
 actor_401300 = { }
 actor_401800 = { }
-actor_402200 = { rodata = [{ start = "0x104", unit = "actors_shared_80137b78" }], shared = [{ start = "0x5D54", end = "0x5E84", unit = "actors_shared_80137b78" }] }
+actor_402200 = { rodata = [{ start = "0x104", unit = "actors_shared_80137b78" }], shared = [{ start = "0x5BFC", end = "0x5D54", unit = "actors_shared_80137a20" }, { start = "0x5D54", end = "0x5E84", unit = "actors_shared_80137b78" }] }
 actor_403000 = { }
 actor_403100 = { }
 actor_403200 = { }
 actor_403600 = { }
-actor_403900 = { rodata = [{ start = "0x104", unit = "actors_shared_80137b78" }], shared = [{ start = "0x5D58", end = "0x5E88", unit = "actors_shared_80137b78" }] }
+actor_403900 = { rodata = [{ start = "0x104", unit = "actors_shared_80137b78" }], shared = [{ start = "0x5C00", end = "0x5D58", unit = "actors_shared_80137a20" }, { start = "0x5D58", end = "0x5E88", unit = "actors_shared_80137b78" }] }
 actor_405800 = { }
 actor_407500 = { shared = [{ start = "0x1FC", end = "0xBD90", unit = "actor_400100_text" }], relocs = "configs/USA/rel.actor_400100.txt" }
 actor_420700 = { }
