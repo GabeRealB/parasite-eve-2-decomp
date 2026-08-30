@@ -322,7 +322,7 @@ shelter_r37 = { note = "cutscene or one-off room; no map names it" }
 shelter_1f_heliport_s4 = { room = "Heliport", floor = "1F", note = "the same 1F heliport as shelter_1f_heliport (stage 5); this is the stage-4 file set's much smaller script for it" }
 shelter_b3_dumping_hole = { room = "Dumping hole", floor = "B3", note = "no map pool names this room" }
 shelter_b3_garbage_incinerator = { room = "Garbage incinerator", floor = "B3", note = "no map pool names this room" }
-shelter_b3_incinerator_control_room = { room = "Incinerator control room", floor = "B3", note = "no map pool names this room" }
+shelter_b3_incinerator_control_room = { room = "Incinerator control room", floor = "B3", note = "no map pool names this room", units = ["0x1EC8", "0x2434"], rodata = [{ start = "0x84", unit = "shelter_b3_incinerator_control_room_2" }, { start = "0xE4", unit = "shelter_b3_incinerator_control_room_3" }] }
 shelter_b3_elevator_hall = { room = "Elevator hall", floor = "B3", note = "no map pool names this room", shared = [{ start = "0x2D64", end = "0x3724", unit = "room_draw_billboard" }] }
 shelter_b4_lower_sewer = { room = "Lower sewer", floor = "B4", note = "no map pool names this room", shared = [{ start = "0x3EC4", end = "0x4884", unit = "room_draw_billboard" }] }
 shelter_b4_upper_sewer = { room = "Upper sewer", floor = "B4", note = "no map pool names this room" }
