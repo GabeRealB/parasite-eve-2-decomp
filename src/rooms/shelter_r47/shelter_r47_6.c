@@ -1,8 +1,18 @@
 #include "common.h"
 
+#include <psyq/libgte.h>
+
 #include "gameplay/3CD8.h"
+#include "gameplay/D4.h"
 #include "main/gameflag.h"
 #include "main/task.h"
+
+extern SVECTOR D_shelter_r47_80187624[];
+extern SVECTOR D_shelter_r47_80187664[];
+
+void Room_Draw05(SVECTOR* v, s32 arg1, s32 arg2);
+void Room_Draw13(SVECTOR* v, s32 arg1, s32 arg2);
+void Room_Draw18(SVECTOR* v, s32 arg1, s32 arg2);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_8018061C);
 
@@ -185,4 +195,37 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_801
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_8018585C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_r47/shelter_r47_6", func_shelter_r47_801858BC);
+void func_shelter_r47_801858BC(void)
+{
+    u8 view;
+
+    view = Gp_GetViewIndex();
+    switch (view) {
+        case 5:
+            Room_Draw18(&D_shelter_r47_80187624[0], 0x60, 0xA0);
+            Room_Draw13(&D_shelter_r47_80187624[1], 0x280, 0x444);
+            Room_Draw13(&D_shelter_r47_80187624[2], 0x280, 0x444);
+            Room_Draw13(&D_shelter_r47_80187624[3], 0x280, 0x444);
+            Room_Draw13(&D_shelter_r47_80187624[4], 0x280, 0x444);
+            Room_Draw13(&D_shelter_r47_80187624[5], 0x280, 0x444);
+            Room_Draw13(&D_shelter_r47_80187624[6], 0x100, 0x344);
+            Room_Draw13(&D_shelter_r47_80187624[7], 0x300, 0x344);
+            Room_Draw13(&D_shelter_r47_80187624[8], 0x280, 0x344);
+            Room_Draw13(&D_shelter_r47_80187624[9], 0x180, 0x344);
+            break;
+        case 13:
+            Room_Draw13(&D_shelter_r47_80187664[0], 0x280, 0x344);
+            Room_Draw13(&D_shelter_r47_80187664[1], 0x180, 0x344);
+            break;
+        case 14:
+            Room_Draw18(&D_shelter_r47_80187624[0], 0x60, 0xA0);
+            Room_Draw13(&D_shelter_r47_80187624[6], 0x100, 0x344);
+            Room_Draw13(&D_shelter_r47_80187624[8], 0x280, 0x344);
+            Room_Draw13(&D_shelter_r47_80187624[9], 0x180, 0x344);
+            break;
+        case 44:
+            Room_Draw05(&D_shelter_r47_80187624[0], 0x60, 0xA0);
+            Room_Draw13(&D_shelter_r47_80187624[6], 0x100, 0x344);
+            break;
+    }
+}
