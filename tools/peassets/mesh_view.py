@@ -68,9 +68,9 @@ class MeshView(ttk.Frame):
         ).pack(side=tk.LEFT, padx=(0, 10))
         ttk.Button(bar, text="Reset view", command=self.reset_view).pack(side=tk.LEFT)
         ttk.Label(bar, text="  Part:").pack(side=tk.LEFT)
-        self._part = tk.StringVar(value="All (unposed)")
+        self._part = tk.StringVar(value="All")
         self._part_combo = ttk.Combobox(
-            bar, textvariable=self._part, state="readonly", width=16, values=("All (unposed)",)
+            bar, textvariable=self._part, state="readonly", width=14, values=("All",)
         )
         self._part_combo.pack(side=tk.LEFT, padx=(4, 0))
         self._part_combo.bind("<<ComboboxSelected>>", lambda _e: self._draw())
@@ -105,15 +105,12 @@ class MeshView(ttk.Frame):
         self._faces = [faces[i] for i in keep]
         self._normals = [normals[i] for i in keep] if normals else []
         self._parts = [parts[i] for i in keep] if parts else []
-        # One entry per part that actually carries geometry. "All" is honest
-        # about what it shows: without the runtime bone matrices the parts sit
-        # in their own local frames and overlap.
+        # One entry per part that actually carries geometry, so a single limb
+        # can be inspected on its own.
         present = sorted(set(self._parts))
-        self._part_combo.configure(
-            values=["All (unposed)"] + [f"part {i}" for i in present]
-        )
+        self._part_combo.configure(values=["All"] + [f"part {i}" for i in present])
         if self._part.get() not in self._part_combo.cget("values"):
-            self._part.set("All (unposed)")
+            self._part.set("All")
         if verts:
             xs = [v[0] for v in verts]
             ys = [v[1] for v in verts]

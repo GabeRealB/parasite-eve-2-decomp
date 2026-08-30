@@ -198,12 +198,62 @@ class Mesh:
     """
 
     verts: list[tuple[float, float, float]] = field(default_factory=list)
+    bone_of_vertex: list[int] = field(default_factory=list)
+    bones: list[dict] = field(default_factory=list)   # world matrices per part
+    posed: bool = False
     faces: list[tuple[int, ...]] = field(default_factory=list)
     normals: list[tuple[float, float, float]] = field(default_factory=list)
     parts: list[int] = field(default_factory=list)  # per face
     part_count: int = 1
     skipped: dict[int, int] = field(default_factory=dict)
     stored_normals: int = 0  # faces that got a normal from the file
+
+
+def compose_skeleton(skel: dict) -> list[tuple[list, list]]:
+    """World (rotation, translation) per bone, as `Gp_UpdateCoordTree` does it.
+
+    ``workm.m = parent.workm.m * coord.m`` and
+    ``workm.t = parent.workm.m * coord.t + parent.workm.t`` - the rotate-and-
+    translate the handler performs with `gte_rtir` / `gte_rtv0tr`.
+    """
+    bones = skel["bones"]
+    out: list[tuple[list, list] | None] = [None] * len(bones)
+
+    def resolve(i: int, seen: frozenset = frozenset()) -> tuple[list, list]:
+        if out[i] is not None:
+            return out[i]
+        b = bones[i]
+        m = b["rot"]
+        rot = [[m[0] / 4096.0, m[1] / 4096.0, m[2] / 4096.0],
+               [m[3] / 4096.0, m[4] / 4096.0, m[5] / 4096.0],
+               [m[6] / 4096.0, m[7] / 4096.0, m[8] / 4096.0]]
+        trans = [float(v) for v in b["trans"]]
+        parent = b["parent"]
+        # The root names itself as its parent; a cycle in damaged data would
+        # otherwise recurse forever.
+        if parent == i or i in seen:
+            out[i] = (rot, trans)
+            return out[i]
+        pr, pt = resolve(parent, seen | {i})
+        out[i] = (
+            [[sum(pr[r][k] * rot[k][c] for k in range(3)) for c in range(3)] for r in range(3)],
+            [sum(pr[r][k] * trans[k] for k in range(3)) + pt[r] for r in range(3)],
+        )
+        return out[i]
+
+    for i in range(len(bones)):
+        resolve(i)
+    return [o for o in out if o is not None]
+
+
+def _bone_of_vertex(skel: dict, vertex_count: int) -> list[int]:
+    """Vertex index -> owning bone, from the per-part vertex counts."""
+    owner: list[int] = []
+    for i, c in enumerate(skel["part_verts"]):
+        owner.extend([i] * int(c))
+    if len(owner) < vertex_count:
+        owner.extend([max(0, len(skel["part_verts"]) - 1)] * (vertex_count - len(owner)))
+    return owner[:vertex_count]
 
 
 def _winding_normal(verts, face):
@@ -226,6 +276,34 @@ def decode_model(overlay: Overlay, emb: Embedded) -> Mesh:
     faces, nrefs, parts, skipped = tmd_export.decode_stream_geometry(
         data, emb.offset, count, ncount
     )
+    # Pose the rest skeleton. Without this every part sits in its own local
+    # frame and the limbs pile up on the origin.
+    skel = src.get("skeleton")
+    owner: list[int] = []
+    world: list[tuple[list, list]] = []
+    if skel and skel["part_count"] == len(skel["bones"]):
+        world = compose_skeleton(skel)
+        owner = _bone_of_vertex(skel, count)
+        placed = []
+        for i, (x, y, z) in enumerate(raw_v):
+            rot, tr = world[owner[i]] if owner[i] < len(world) else ([[1, 0, 0], [0, 1, 0], [0, 0, 1]], [0, 0, 0])
+            placed.append(
+                (
+                    rot[0][0] * x + rot[0][1] * y + rot[0][2] * z + tr[0],
+                    rot[1][0] * x + rot[1][1] * y + rot[1][2] * z + tr[1],
+                    rot[2][0] * x + rot[2][1] * y + rot[2][2] * z + tr[2],
+                )
+            )
+        raw_v = placed
+        # Normals rotate with their bone, but not by the translation.
+        rotated = []
+        for i, nvec in enumerate(raw_n):
+            rot = world[owner[i]][0] if i < len(owner) and owner[i] < len(world) else [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+            rotated.append(
+                tuple(sum(rot[r][k] * nvec[k] for k in range(3)) for r in range(3))
+            )
+        raw_n = rotated
+
     verts = [(x, -y, z) for x, y, z in raw_v]
 
     normals: list[tuple[float, float, float]] = []
@@ -238,13 +316,16 @@ def decode_model(overlay: Overlay, emb: Embedded) -> Mesh:
         else:
             normals.append(_winding_normal(verts, face))
     return Mesh(
-        verts,
-        faces,
-        normals,
-        parts,
-        max(parts, default=0) + 1,
-        dict(skipped),
-        stored,
+        verts=verts,
+        bone_of_vertex=owner,
+        bones=[{"rot": r, "trans": t} for r, t in world],
+        posed=bool(world),
+        faces=faces,
+        normals=normals,
+        parts=parts,
+        part_count=max(parts, default=0) + 1,
+        skipped=dict(skipped),
+        stored_normals=stored,
     )
 
 

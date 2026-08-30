@@ -1498,7 +1498,9 @@ class AssetViewer(tk.Tk):
         verts, faces, skipped = mesh.verts, mesh.faces, mesh.skipped
         note = f"{len(verts)} verts · {len(faces)} faces"
         if mesh.part_count > 1:
-            note += f" · {mesh.part_count} parts (unposed)"
+            note += f" · {mesh.part_count} parts"
+        if mesh.posed:
+            note += " · posed"
         if skipped:
             note += f" · {sum(skipped.values())} elements skipped"
         self.mesh_view.show(verts, faces, mesh.normals, mesh.parts, note)
@@ -1524,13 +1526,27 @@ class AssetViewer(tk.Tk):
         if mesh.part_count > 1:
             lines += [
                 "",
-                f"{mesh.part_count} parts, split at the 0xFFFFFFFE markers. The game",
-                "draws each under its own bone matrix (Tmd_SetupGteMatrices), so",
-                "vertices only share a coordinate space within a part. Those",
-                "matrices are runtime pose data (TmdObject.field_8) and are not in",
-                "the package, so 'All' overlaps the parts - pick one to see it in",
-                "its own frame.",
+                f"{mesh.part_count} parts, split at the 0xFFFFFFFE markers; the game",
+                "draws each under its own bone matrix (Tmd_SetupGteMatrices).",
             ]
+        if mesh.posed:
+            lines += [
+                f"Posed with the rest skeleton from TmdSource+0x1C ({len(mesh.bones)}",
+                "bones), composed through the parent index the way",
+                "Gp_UpdateCoordTree does. Vertices are assigned to bones by the",
+                "per-part counts at TmdSource+0x10.",
+                "",
+                "bone   parent   verts   world position",
+            ]
+            counts = {}
+            for b in mesh.bone_of_vertex:
+                counts[b] = counts.get(b, 0) + 1
+            for i, b in enumerate(mesh.bones):
+                t3 = b["trans"]
+                lines.append(
+                    f"  {i:>3}          {counts.get(i, 0):>4}   "
+                    f"({t3[0]:>8.1f},{t3[1]:>8.1f},{t3[2]:>8.1f})"
+                )
         else:
             lines.append("No TmdSource points at this stream — vertex array unknown.")
         if skipped:

@@ -152,9 +152,48 @@ def find_streams(data: bytes) -> list[dict]:
 
 
 TMD_SOURCE_SIZE = 0x24
+SRC_PARTS = 0x0C      # part (bone) count
+SRC_PARTVERTS = 0x10  # partCount x u32: vertices owned by each part
 SRC_VERTS = 0x14
 SRC_NORMS = 0x18
+SRC_SKELETON = 0x1C   # partCount x TmdBone (0x24): rest pose + parent index
 SRC_STREAM = 0x20
+BONE_SIZE = 0x24
+
+
+def read_skeleton(data: bytes, base: int, src_off: int) -> dict | None:
+    """The rest pose behind a `TmdSource`, or None when it does not resolve.
+
+    ``TmdSource`` carries the whole skeleton (see `include/main/tmd.h`):
+    ``+0x0C`` the part count, ``+0x10`` a table of how many vertices each part
+    owns - the vertex array is grouped by part, and the counts sum to the
+    array length - and ``+0x1C`` one 0x24-byte bone per part holding a rest
+    rotation (identity on disc), a translation from the parent, and the parent
+    index. Composing those the way ``Gp_UpdateCoordTree`` does is what turns a
+    pile of part-local geometry into a standing character.
+    """
+    end = base + len(data)
+    (count,) = struct.unpack_from("<I", data, src_off + SRC_PARTS)
+    if not 1 <= count <= 256:
+        return None
+    counts_va, skel_va = struct.unpack_from("<2I", data, src_off + SRC_PARTVERTS)
+    (skel_va,) = struct.unpack_from("<I", data, src_off + SRC_SKELETON)
+    if not (base <= counts_va < end and base <= skel_va < end):
+        return None
+    c_off, s_off = counts_va - base, skel_va - base
+    if c_off + count * 4 > len(data) or s_off + count * BONE_SIZE > len(data):
+        return None
+    part_verts = list(struct.unpack_from(f"<{count}I", data, c_off))
+    bones = []
+    for i in range(count):
+        b = s_off + i * BONE_SIZE
+        rot = struct.unpack_from("<9h", data, b)
+        trans = struct.unpack_from("<3i", data, b + 0x14)
+        (parent,) = struct.unpack_from("<i", data, b + 0x20)
+        if not 0 <= parent < count:
+            return None
+        bones.append({"rot": list(rot), "trans": list(trans), "parent": parent})
+    return {"part_count": count, "part_verts": part_verts, "bones": bones}
 
 
 def _load_addrs(output_path: Path) -> dict[str, int]:
@@ -224,8 +263,10 @@ def find_sources(data: bytes, base: int, stream_vas: set[int]) -> dict[int, dict
         # The gaps are the array sizes, so the three must be in order.
         if not verts < norms < stream_va:
             continue
+        skel = read_skeleton(data, base, off)
         out[stream_va] = {
             "source_offset": f"0x{off:05X}",
+            "skeleton": skel,
             "stream_declared": f"0x{raw_va - base:05X}",
             "verts_offset": f"0x{verts - base:05X}",
             "norms_offset": f"0x{norms - base:05X}",

@@ -155,6 +155,35 @@ def decode_stream(data: bytes, stream_off: int, vertex_count: int):
     return faces, skipped
 
 
+def pose_vertices(verts, skel):
+    """Place part-local vertices with the rest skeleton (doc/TMD_FORMAT.md 2.2).
+
+    A model stream is one part per bone and its vertices are in that bone's
+    local frame, so an unposed export piles every limb on the origin. The rest
+    pose that fixes it ships in the `TmdSource` itself.
+    """
+    if not skel:
+        return verts
+    import pkg_overlay  # local: avoids a cycle at module import
+
+    world = pkg_overlay.compose_skeleton(skel)
+    owner = pkg_overlay._bone_of_vertex(skel, len(verts))
+    out = []
+    for i, (x, y, z) in enumerate(verts):
+        if i >= len(owner) or owner[i] >= len(world):
+            out.append((x, y, z))
+            continue
+        rot, tr = world[owner[i]]
+        out.append(
+            (
+                rot[0][0] * x + rot[0][1] * y + rot[0][2] * z + tr[0],
+                rot[1][0] * x + rot[1][1] * y + rot[1][2] * z + tr[1],
+                rot[2][0] * x + rot[2][1] * y + rot[2][2] * z + tr[2],
+            )
+        )
+    return out
+
+
 def write_obj(path: Path, verts, faces, comment: str) -> None:
     lines = [f"# {comment}", f"# {len(verts)} vertices, {len(faces)} faces", ""]
     # PlayStation is Y-down; OBJ viewers are Y-up.
@@ -208,6 +237,7 @@ def main() -> int:
             if vcount < args.min_verts:
                 continue
             verts = read_vertices(data, int(src["verts_offset"], 16), vcount)
+            verts = pose_vertices(verts, src.get("skeleton"))
             faces, skipped = decode_stream(data, off, vcount)
             if not faces:
                 continue

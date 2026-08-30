@@ -9,15 +9,31 @@
 // Types — TMD model lists (src/main/tmd.c; stage fade/MDEC lives in stage.c)
 
 /// Source/model data pointed to by TmdObject::field_10 (see Tmd_Create).
+/// One entry of the `TmdSource.skeleton` array: a bone's rest transform and its
+/// parent. The local matrix is what the animation overwrites each frame
+/// (`Gp_BlendAnimRot` writes `GpAnimMtxRec.mtx`, which is this same
+/// `GsCOORDINATE2.coord` slot); composing it through `parent` the way
+/// `Gp_UpdateCoordTree` does gives the world matrix `Tmd_SetupGteMatrices`
+/// loads per part. On disc every rotation is identity, so the array as shipped
+/// is the bind pose.
+typedef struct _TmdBone {
+    /* 0x00 */ s16 m[3][3]; // rotation, 4096 = 1.0
+    /* 0x12 */ s16 pad_12;
+    /* 0x14 */ s32 t[3];    // translation from the parent
+    /* 0x20 */ s32 parent;  // index into the same array; 0 on the root
+} TmdBone;
+STATIC_ASSERT_SIZEOF(TmdBone, 0x24);
+
 typedef struct _TmdSource {
-    /* 0x00 */ s32  field_0;  // one-shot init flag (set 1)
-    /* 0x04 */ s32  field_4;  // byte count for aux alloc (calloc size * 2)
-    /* 0x08 */ s32  field_8;  // offset into half-buffer base
-    /* 0x0C */ byte unknown_C[0x8];
-    /* 0x14 */ s32  field_14; // copied to scratch ws
-    /* 0x18 */ s32  field_18; // copied to scratch ws
-    /* 0x1C */ byte unknown_1C[0x4];
-    /* 0x20 */ u32* field_20; // [id, handler_slot, dims, data…] stream
+    /* 0x00 */ s32   field_0;   // one-shot init flag (set 1)
+    /* 0x04 */ s32   field_4;   // byte count for aux alloc (calloc size * 2)
+    /* 0x08 */ s32   field_8;   // offset into half-buffer base
+    /* 0x0C */ s32   partCount; // parts (bones); copied to TmdObject.field_30
+    /* 0x10 */ u8*   partVerts; // partCount x u32, vertices owned by each part
+    /* 0x14 */ s32   field_14;  // vertex array; copied to scratch ws
+    /* 0x18 */ s32   field_18;  // normal array; copied to scratch ws
+    /* 0x1C */ void* skeleton;  // partCount x TmdBone, the rest pose
+    /* 0x20 */ u32*  field_20;  // [id, handler_slot, dims, data…] stream
 } TmdSource;
 
 /// Node in the Tmd_List linked list (tmd.c TMD/model objects).

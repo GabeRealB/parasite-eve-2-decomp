@@ -119,19 +119,38 @@ Two consequences:
   the per-model bone count §6 lists as the blocker on decoding the pose banks.
   `aya_10200` is 19, the named-human body 20, `actor_100300` 19. Parts with no
   geometry are joints.
-* **The matrices are not in the package.** `TmdObject.field_8` is a
-  `GsCOORDINATE2` array — 0x50 bytes each, which is why the stride is 0x50, with
-  `workm` at `+0x24` and its translation at `+0x38`/`+0x3C`/`+0x40` exactly as
-  the handler reads them (`Gp_DrawActorTmdFlagged` casts the field, and
-  `Gp_ComposeParentWorld` walks `.sub` up to `Gfx_ViewCoord`). It is built at
-  runtime: scanning the packages for a 0x50-stride array with a rotation at
-  `+0x04` and in-range `super`/`sub` finds none. An offline viewer can draw one
-  part correctly but cannot pose the whole model.
+* **The rest pose ships in the `TmdSource`.** The runtime matrices live in
+  `TmdObject.field_8`, a `GsCOORDINATE2` array — 0x50 bytes each, which is why
+  the stride is 0x50, with `workm` at `+0x24` and its translation at
+  `+0x38`/`+0x3C`/`+0x40` exactly as the handler reads them. But the skeleton
+  those are built from is on disc, in three `TmdSource` fields that were
+  previously unnamed:
 
-  The animation side is bound to it one-for-one — an animation set carries one
-  track per part (`ASSET_FORMATS.md` §9.3.1) — and `GpPackedPose` holds a
-  translation as well as a rotation per bone, so there is no separate skeleton
-  and no bind pose: any pose is an animation frame.
+  | Field | Meaning |
+  |---|---|
+  | `+0x0C` | part count — what `TmdObject.field_30` is set from |
+  | `+0x10` | `partCount` x u32: how many vertices each part owns |
+  | `+0x1C` | `partCount` x `TmdBone` (0x24 bytes) — the rest pose |
+
+  `TmdBone` is a 3x3 rest rotation (identity on disc, `4096` = 1.0), a pad
+  halfword, `s32 t[3]` translating from the parent, and an `s32` parent index.
+  The `+0x10` counts sum exactly to the vertex-array length (352 for
+  `aya_10200`, 300 for the named-human body), so the vertex array is grouped
+  by part and each vertex's bone is known.
+
+  Composing those through the parent the way `Gp_UpdateCoordTree` does —
+  `workm.m = parent.workm.m * coord.m`, `workm.t = parent.workm.m * coord.t +
+  parent.workm.t` — assembles the character. For the named human it yields a
+  pelvis at `y = -951`, a head at `-1594`, arms out to `x = ±211` and feet at
+  `-108` with the root on the ground (`y` is down). `tmd_export.py` and the
+  viewer both apply it, so exports and the Model tab show standing figures
+  rather than a heap.
+
+  Animation replaces the *local* matrix of each bone and leaves the parent
+  links alone: `Gp_BlendAnimRot` writes `GpAnimMtxRec.mtx`, which is the same
+  `GsCOORDINATE2.coord` slot the rest pose initialises. So playback is this
+  same composition with `coord` overwritten per frame, and an animation set
+  carries exactly one track per bone (`ASSET_FORMATS.md` §9.3.1).
 
 The **last** part is special: it carries the pre-transformed (`op & 0x01`)
 primitives, whose screen coordinates were written by the earlier parts'

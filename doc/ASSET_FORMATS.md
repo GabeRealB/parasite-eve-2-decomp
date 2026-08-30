@@ -712,11 +712,11 @@ is a single part, its blocks come from `Gp_PlayerAnimBlkTbl`, and 19 is **Aya's*
 part count — the weapon package carries the *player's* animation for that
 weapon, driving Aya's skeleton, not its own geometry.
 
-That fixes the model ↔ animation binding, which is what a posed render needs.
-What it does not supply is a rest pose: `GpPackedPose` holds a translation
-*and* a rotation per bone, so the limb offsets live in the pose data too, and
-neither the model package nor a scan for a `GsCOORDINATE2` array turns up a
-bind pose to fall back on. Any pose is an animation frame.
+That fixes the model ↔ animation binding. The rest pose itself does not come
+from here — it ships in the `TmdSource` ([`TMD_FORMAT.md` §2.2](TMD_FORMAT.md)),
+so a static model can be posed without touching the animation data at all.
+Animation then replaces each bone's local matrix and reuses the same parent
+links.
 
 ### 9.4 What is still open
 
@@ -801,15 +801,13 @@ The mesh comes from the same decoder as `tmd_export.py`, Y-flip included, so a
 model that looks upright in the viewport looks upright in Blender. Only faces
 are drawn — no textures and no UVs.
 
-**Characters are drawn per part.** A model stream is split by `0xFFFFFFFE` into
-parts that the game poses with one bone matrix each, so vertices only share a
-coordinate space within a part, and those matrices are runtime data that is not
-in the package ([`TMD_FORMAT.md` §2.2](TMD_FORMAT.md)). The Model tab has a
-**Part** selector for that reason: `All (unposed)` overlaps the limbs — aya's
-left and right arm both sit at `x[-39, 40]` — while picking a part shows it
-correctly in its own frame. A single-part model (a weapon, a hand) looks right
-either way. The last part holds the pre-transformed primitives and is
-positioned by the earlier parts, so it does not stand alone.
+**Characters are posed with their rest skeleton.** A model stream is split by
+`0xFFFFFFFE` into parts, one per bone, and each part's vertices are in that
+bone's local frame; the skeleton that places them ships in the `TmdSource`
+([`TMD_FORMAT.md` §2.2](TMD_FORMAT.md)). The viewer composes it, so characters
+stand up. The **Part** selector isolates one bone's geometry when you want to
+look at a single limb. The last part holds the pre-transformed primitives and
+is positioned by the earlier parts, so it does not stand alone.
 
 Visibility and shading come from two different places, as they do on the
 hardware (see [`TMD_FORMAT.md` §7](TMD_FORMAT.md)). Backface culling is
