@@ -53,7 +53,7 @@ options:
   symbol_addrs_path:
     - configs/USA/sym/@@FAMILY@@/@@NAME@@.txt
     - @@IMPORTS@@
-  reloc_addrs_path: []
+  reloc_addrs_path: @@RELOCS@@
 
   undefined_funcs_auto_path: linkers/USA/undefined_funcs_auto.@@NAME@@.txt
   undefined_syms_auto_path: linkers/USA/undefined_syms_auto.@@NAME@@.txt

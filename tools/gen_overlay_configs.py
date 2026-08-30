@@ -115,7 +115,22 @@ def subsegments(
         return "\n".join(lines)
 
     start, end = span
-    if start:
+    cuts_pre = sorted(shared, key=lambda s: int(str(s["start"]), 16))
+    # When the whole text is shared - a relocated actor copy, where the slot-2
+    # package is the slot-1 package with every address shifted - there is no
+    # overlay-local `c` unit for the leading rodata to pair with. It must not
+    # join the shared object either: it holds this overlay's own dispatch
+    # pointers and, in word 0, the package id, which is the one word the twins
+    # genuinely differ in. Emit it as this overlay's own data instead.
+    text_all_shared = bool(cuts_pre) and int(str(cuts_pre[0]["start"]), 16) == start \
+        and int(str(cuts_pre[0]["end"]), 16) == end
+    if start and text_all_shared:
+        if rodata or rodata_head:
+            raise SystemExit(f"{name}: rodata cuts make no sense when the whole text is shared")
+        # `rodata`, not `data`: section_order puts .rodata before .text and
+        # .data after it, so a `data` header would link after the code.
+        lines.append(f"      - [0x0, rodata, {name}_header]")
+    elif start:
         # Leading rodata: the package header that sits ahead of the first
         # function. One subsegment per owning unit, named to match its `c`
         # sibling so splat pairs them: a unit's `.rodata` appears once in the
@@ -220,6 +235,13 @@ def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path
         span = tuple(entry["text"]) if "text" in entry else text_span(data)
         title = f"{spec['description']} - {overlay_label(name, entry)}"
 
+        # A family may span several RAM slots. The actors do: one actor is
+        # issued as three packages at three addresses, and they have to be one
+        # family so the relocated copies can share source out of
+        # src/<family>/lib/.
+        load = int(entry.get("load_addr", spec["load_addr"]))
+        vram_end = int(entry.get("global_vram_end", spec["global_vram_end"]))
+
         text = template
         for key, val in {
             "TITLE": title,
@@ -229,10 +251,13 @@ def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path
             "SHA1": hashlib.sha1(data).hexdigest(),
             "SIZE": str(len(data)),
             "SIZE_HEX": f"0x{len(data):X}",
-            "VRAM": f"0x{spec['load_addr']:08X}",
+            "VRAM": f"0x{load:08X}",
             "GLOBAL_VRAM_START": f"0x{spec['global_vram_start']:08X}",
-            "GLOBAL_VRAM_END": f"0x{spec['global_vram_end']:08X}",
+            "GLOBAL_VRAM_END": f"0x{vram_end:08X}",
             "IMPORTS": spec["imports"],
+            "RELOCS": (
+                f'[{spec["relocs"]}]' if spec.get("relocs") else "[]"
+            ),
             "SUBSEGMENTS": subsegments(
                 name,
                 data,

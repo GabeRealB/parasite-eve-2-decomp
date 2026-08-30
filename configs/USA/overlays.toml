@@ -370,3 +370,20 @@ neo_ark_submarine_gallery = { room = "Submarine gallery", note = "no map pool na
 neo_ark_r31 = { note = "cutscene or one-off room; no map names it", shared = [{ start = "0x2F8", end = "0x33C", unit = "room_util03" }] }
 neo_ark_pyramid = { room = "Pyramid", note = "no map pool names this room", shared = [{ start = "0x438", end = "0x47C", unit = "room_util03" }, { start = "0x934", end = "0xD60", unit = "room_draw02" }, { start = "0xD60", end = "0x10F4", unit = "room_draw04" }, { start = "0x15E4", end = "0x19DC", unit = "room_draw03" }, { start = "0x1C64", end = "0x2624", unit = "room_draw_billboard" }] }
 neo_ark_substation = { room = "Substation", note = "no map pool names this room", shared = [{ start = "0x164", end = "0x1A8", unit = "room_util03" }, { start = "0x490", end = "0xCD4", unit = "room_draw01" }] }
+
+[actors]
+description = "Actor / enemy overlay"
+# One actor is issued as up to three packages, one per RAM slot, and the slot-2
+# and slot-3 packages are the slot-1 package relocated - every differing word is
+# a pointer, a j/jal target, a %hi/%lo half, or word 0 (the package id). They are
+# one family, not three, so a relocated copy can share the original's source out
+# of src/actors/lib/; the slot is a per-overlay `load_addr`.
+load_addr   = 0x80131E20
+global_vram_start = 0x80010000
+global_vram_end   = 0x80131E20
+imports = "configs/USA/sym/actors.imports.txt"
+relocs = "configs/USA/rel.actors.txt"
+
+[actors.overlays]
+actor_102000 = { note = "actor 02000, slot 1", shared = [{ start = "0x78", end = "0x3784", unit = "actor_02000_text" }] }
+actor_202000 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20, note = "actor 02000, slot 2 - relocated copy of actor_102000", shared = [{ start = "0x78", end = "0x3784", unit = "actor_02000_text" }] }
