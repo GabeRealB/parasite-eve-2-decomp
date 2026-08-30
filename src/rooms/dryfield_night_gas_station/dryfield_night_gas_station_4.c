@@ -1,5 +1,6 @@
 #include "common.h"
 
+#include "gameplay/268.h"
 #include "gameplay/3CD8.h"
 #include "gameplay/D4.h"
 
@@ -46,7 +47,34 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_st
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_4", func_dryfield_night_gas_station_8017F7E0);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_4", func_dryfield_night_gas_station_8017F89C);
+s32 func_dryfield_night_gas_station_8017F89C(s32 arg0, s32 arg1, s32 arg2)
+{
+    s16 var_a2;
+
+    if (arg2 == 1) {
+        Gp_RunCapCmd1(0x11);
+    }
+    if (arg2 == 5) {
+        if (Gp_HasCollectedBit(0x118) == 0) {
+            Gp_HasCollectedBit(0x117);
+            var_a2 = 0;
+        } else {
+            var_a2 = 1;
+        }
+        Gp_StartCapSlot(0x12, 1, var_a2);
+    }
+    if ((arg2 == 0x17) && (Game_Session->field_5 == 4)) {
+        if (Gp_HasCollectedBit(0x11E) != 0) {
+            if (GameFlag_GetNibble(0xD4) == 0) {
+                GameFlag_SetNibble(0xD4, 1);
+            } else {
+                GameFlag_SetNibble(0xD4, 2);
+            }
+        }
+        Gp_SpawnIfCapIdle(GameFlag_GetNibble(0xD4) != 0 ? (GameFlag_GetNibble(0xD4) == 1 ? 0x20 : 0x1F) : arg2, 0);
+    }
+    return 0;
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_gas_station/dryfield_night_gas_station_4", func_dryfield_night_gas_station_8017F990);
 
