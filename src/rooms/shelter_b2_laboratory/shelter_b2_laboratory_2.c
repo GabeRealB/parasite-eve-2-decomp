@@ -40,6 +40,25 @@ extern TaskDesc       D_shelter_b2_laboratory_80182A08[];
 extern GpAreaApplyRec D_80188888[];
 extern Task*          D_shelter_b2_laboratory_801864A4;
 
+/// Endpoint pool for the room's view-specific debug/ambient line overlays.
+/// `func_..._80180AB4` draws the segment `pt[n]`..`pt[n + 1]`;
+/// `func_..._801812F8` and `func_..._8018176C` take a single point.
+extern SVECTOR D_shelter_b2_laboratory_80182AA0[];
+extern SVECTOR D_shelter_b2_laboratory_80182AB0[];
+extern SVECTOR D_shelter_b2_laboratory_80182B00[];
+extern SVECTOR D_shelter_b2_laboratory_80182B20[];
+extern SVECTOR D_shelter_b2_laboratory_80182B60[];
+extern SVECTOR D_shelter_b2_laboratory_80182B70[];
+extern SVECTOR D_shelter_b2_laboratory_80182BF0[];
+extern SVECTOR D_shelter_b2_laboratory_80182C00[];
+
+/// Set to 0 when the overlay task starts; non-zero selects the brighter pass.
+extern u16 D_shelter_b2_laboratory_80186540;
+
+void func_shelter_b2_laboratory_80180AB4(SVECTOR* line, s32 arg1, s32 arg2);
+void func_shelter_b2_laboratory_801812F8(SVECTOR* pos, s32 arg1, s32 arg2);
+void func_shelter_b2_laboratory_8018176C(SVECTOR* pos, s32 arg1, s32 arg2);
+
 void func_shelter_b2_laboratory_8017F4D8(Task* task)
 {
     s32                         out;
@@ -255,7 +274,127 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_2", 
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_2", func_shelter_b2_laboratory_801804FC);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_2", func_shelter_b2_laboratory_80180548);
+void func_shelter_b2_laboratory_80180548(Task* task)
+{
+    if (task->state == 0) {
+        D_shelter_b2_laboratory_80186540 = 0;
+        task->state                      = 1;
+    }
+
+    switch (Gp_GetViewIndex() & 0xFF) {
+        case 2:
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[4], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[6], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[8], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[10], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[26], 0x200, 0x241);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
+            break;
+        case 3:
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x444);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[2], 0x180, 0x444);
+            break;
+        case 4:
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B60[0], 0x200, 0x444);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B60[4], 0x200, 0x241);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B60[12], 0x200, 0x124);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B60[14], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B60[16], 0x200, 0x124);
+            break;
+        case 5:
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[0], 0x180, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[4], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[6], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[8], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[10], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[12], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[14], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[26], 0x200, 0x241);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[30], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[32], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[34], 0x200, 0x124);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AA0[42], 0x180, 0x124);
+            if (D_shelter_b2_laboratory_80186540 != 0) {
+                func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182AA0[44], 0x180, 0x80);
+            } else {
+                func_shelter_b2_laboratory_801812F8(D_shelter_b2_laboratory_80182C00, 0x60, 0x80);
+            }
+            break;
+        case 6:
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[0], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[2], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[4], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[6], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[8], 0x180, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[20], 0x200, 0x124);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[22], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[24], 0x200, 0x124);
+            break;
+        case 7:
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B60[0], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B60[12], 0x200, 0x124);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B60[14], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B60[16], 0x200, 0x124);
+            break;
+        case 8:
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[0], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[2], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[20], 0x200, 0x124);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[22], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B20[24], 0x200, 0x124);
+            break;
+        case 9:
+            func_shelter_b2_laboratory_80180AB4(D_shelter_b2_laboratory_80182BF0, 0x180, 0x124);
+            break;
+        case 10:
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AB0[0], 0x180, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AB0[2], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AB0[4], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AB0[26], 0x200, 0x241);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182AB0[40], 0x180, 0x124);
+            if (D_shelter_b2_laboratory_80186540 != 0) {
+                func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182AB0[42], 0x180, 0x80);
+            } else {
+                func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182AB0[42], 0x60, 0x80);
+            }
+            break;
+        case 12:
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B00[0], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B00[2], 0x180, 0x333);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B00[18], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B00[20], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B00[22], 0x200, 0x124);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B00[30], 0x180, 0x124);
+            if (D_shelter_b2_laboratory_80186540 != 0) {
+                func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182B00[32], 0x180, 0x80);
+            } else {
+                func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182B00[32], 0x60, 0x80);
+            }
+            break;
+        case 13:
+            if (D_shelter_b2_laboratory_80186540 != 0) {
+                func_shelter_b2_laboratory_8018176C(D_shelter_b2_laboratory_80182C00, 0x180, 0x80);
+            } else {
+                func_shelter_b2_laboratory_8018176C(D_shelter_b2_laboratory_80182C00, 0x60, 0x80);
+            }
+            break;
+        case 15:
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B70[0], 0x200, 0x241);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B70[4], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B70[6], 0x200, 0x222);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B70[8], 0x200, 0x124);
+            func_shelter_b2_laboratory_80180AB4(&D_shelter_b2_laboratory_80182B70[16], 0x180, 0x124);
+            if (D_shelter_b2_laboratory_80186540 != 0) {
+                func_shelter_b2_laboratory_801812F8(&D_shelter_b2_laboratory_80182B70[18], 0x180, 0x80);
+            } else {
+                func_shelter_b2_laboratory_801812F8(D_shelter_b2_laboratory_80182C00, 0x60, 0x80);
+            }
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_laboratory/shelter_b2_laboratory_2", func_shelter_b2_laboratory_80180AB4);
 

@@ -32189,3 +32189,34 @@ call and the `j` costs nothing — unlike the `ori`/`j` case, where it blocked
 the delay-slot fill. Use `SOFT_BARRIER()`; the volatile form matches here too
 but is not needed. `func_dryfield_factory_8017FC18` has two such arms (one
 per state) and goes 79.6% -> 100% with nothing else changed.
+
+## Room view dispatchers: index the global array, do not cache the base in a local
+
+`func_shelter_b2_laboratory_80180548` is the room family's per-view line-overlay
+dispatcher: `switch (Gp_GetViewIndex() & 0xFF)` with one case per camera view,
+each case a run of `func_..._80180AB4(&points[n], size, color)` calls. Writing
+the obvious `seg = D_..._80182AA0;` at the head of each case and then `&seg[n]`
+costs 14 `regs` penalties and stalls at 99.798%: the cached local turns the
+address into a `high`/`lo_sum` pair whose short-lived `high` pseudo is allocated
+`$v0` in *every* case, so the base always comes out as
+
+```
+lui    v0, %hi(D_..._80182AA0)
+addiu  s0, v0, %lo(D_..._80182AA0)
+```
+
+The target uses that form only in the cases that also read a global flag later
+(`lhu %lo(D_..._80186540)`, whose `lui` reuses `$v0`); the cases that need
+nothing but the base coalesce the two halves into `lui s0` / `addiu s0, s0`.
+Dropping the local and writing `&D_..._80182AA0[n]` at every call site lets GCC
+make that choice per case and matches with no other change (99.798% -> 100%).
+`func_neo_ark_power_plant_1_8017DA18` is the already-matched example of the
+same idiom.
+
+Type these pools as flat `extern SVECTOR D_<seg>_<vram>[];`, not as an array of
+a two-point struct, even when the offsets are all multiples of 0x10: the
+529-instruction drawer (`func_..._80180AB4` and its 26 copies) reads
+`0x0`/`0x8` and so takes *two* points, but the smaller siblings it shares the
+pool with (`func_..._801812F8`, `func_..._8018176C`) read only `0x0` and take a
+single point. One flat `SVECTOR` array with doubled indices is the only typing
+that is honest for both.
