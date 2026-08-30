@@ -32453,3 +32453,46 @@ what the ROM has.
 Same family as "Fully duplicate the tail into every arm to reproduce
 identical-but-unmerged blocks": prefer the redundant-looking C and let
 cross-jumping do the factoring, rather than factoring by hand.
+
+## Two `Gp_RunCapCmd1` tails: assign `cmd` after each nibble, then `goto`
+
+When some arms are `Gp_RunCapCmd1(cmd)` and others are that call plus
+`Task_SpawnFromTable`, writing the call in every arm (the one-tail advice
+above) does **not** cross-jump into that two-block shape. GCC inlines
+`jal Gp_RunCapCmd1` / `j rest` on the cap-only arms and only merges the
+spawn arms, leaving extra `li a0` / `bne` instead of `beq` + delay-slot
+`li a0` into a shared cap-only block.
+
+Keep a `cmd` phi and two labels. Hoist each `GameFlag_GetNibble` into a
+`flag` temp so `cmd = K` is *after* the `jal` (otherwise `cmd` is live
+across the call and goes in `$s0`, as in the previous entry):
+
+```c
+flag = GameFlag_GetNibble(0xBB);
+if (flag == 1) {
+    cmd = 0x11;
+    goto cap_only;
+}
+flag = GameFlag_GetNibble(0xBB);
+if (flag == 3) {
+    cmd = 0x12;
+    goto spawn;
+}
+flag = GameFlag_GetNibble(0xBE);
+cmd = 5;
+if (flag == 2) {
+    goto cap_only;
+}
+spawn:
+    Gp_RunCapCmd1(cmd);
+    Task_SpawnFromTable(table, 0, 0, 0);
+    goto rest;
+cap_only:
+    Gp_RunCapCmd1(cmd);
+rest:
+```
+
+`cmd = 5` before `if (flag == 2)` is the same hoist as "default lands in
+`$a0`": both the taken `goto cap_only` and the fall-through spawn see one
+`li a0, 5` in the `beq` delay slot. `func_mine_cavern_8017DAA0` is the
+example.
