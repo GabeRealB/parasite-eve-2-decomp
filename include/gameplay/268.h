@@ -331,6 +331,7 @@ s32         Gp_FillRelated(s32 arg0, s32 arg1);
 s32         Gp_UnequipRelated(s32 arg0, s32 arg1);
 s32         Gp_GetCurBit2Flag(s32 arg0);
 s32         Gp_HasCollectedBit(s32 arg0);
+void        Gp_ClearCollectedBit(s32 arg0);
 GpItemRec*  Gp_GetItemTable(GpItemScan* arg0);
 s32         Gp_ScanIndexOf(GpItemScan* arg0, GpItemRec* arg1);
 /// `arg2` is unused; some callers pass 0 so the `jal` delay slot is `move a2, zero`.

@@ -51,7 +51,6 @@ void func_8017EAC4(void);
 void func_8017EA60(void);
 void Gp_EquipHeld(s32 arg0);
 void Gp_ApplyItemMap(void);
-void Gp_ClearCollectedBit(s32 arg0);
 void Gp_SetCollectedBit(s32 arg0);
 s32  Gp_FindScanQty(GpItemRec* arg0, GpItemScan* arg1, s32* arg2, s32 arg3);
 void Gp_DrawHpMpStats(UiPanel* arg0, s32 arg1);

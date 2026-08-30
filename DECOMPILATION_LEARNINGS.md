@@ -32333,3 +32333,42 @@ Fix: delete the `goto` and the `var_a0` temp, write the final call out in full
 in every case, and end each case with `break`. GCC re-merges them itself, in
 its own direction. `func_shelter_1f_airlock_8017D6D0` is the minimal example
 (two arms of 8 and 14 `SVECTOR` emitter calls sharing one last call).
+
+## Two elements of a global array: derive a second base pointer, don't index
+
+Touching two fixed elements of an extern array with the field at a small
+offset, `arr[0].field_4A |= 0x40; arr[1].field_4A &= 0xBF;` folds both
+addresses onto one register:
+
+```
+addiu v1, v1, %lo(arr)
+lbu   v0, 0x4a(v1)
+lbu   a3, 0xe2(v1)     /* 0x98 + 0x4a fused */
+```
+
+The target instead materializes the second element's address:
+
+```
+addiu v1, v1, %lo(arr)
+addiu t0, v1, 0x98
+lbu   v0, 0x4a(v1)
+lbu   a3, 0x4a(t0)
+```
+
+Assign the array to a local pointer and derive the second one from it, both
+*before* the accesses. The `+ 1` is then its own RTL add that CSE keeps in a
+register, and the two `lbu`/`sb` pairs each use `0x4a(reg)`:
+
+```c
+base = arr;
+obj  = base + 1;
+base->field_4A |= 0x40;
+obj->field_4A &= 0xBF;
+```
+
+Order matters: writing `obj = arr + 1;` first anchors CSE on `arr + 0x98` and
+emits `addiu t0, obj, -0x98` for the base instead.
+`func_dryfield_night_garage_801800C8` and its sibling
+`func_dryfield_night_garage_8017FF2C` are the examples. Note this is the
+mirror of "Volatile global: index via global name, not a local pointer" — a
+local base pointer is the fix here and the bug there, so score both shapes.
