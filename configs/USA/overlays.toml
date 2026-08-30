@@ -417,8 +417,8 @@ actor_104500 = { note = "empty actor slot; the id resolves, the package has no c
 actor_104600 = { note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
 actor_104900 = { note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
 actor_105100 = { }
-actor_105300 = { }
-actor_105400 = { }
+actor_105300 = { shared = [{ start = "0x1648", end = "0x1710", unit = "actors_shared_80133468" }] }
+actor_105400 = { shared = [{ start = "0x1648", end = "0x1710", unit = "actors_shared_80133468" }] }
 actor_105500 = { shared = [{ start = "0x6C", end = "0x3FE4", unit = "actor_105500_text" }] }
 actor_105600 = { note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }
 actor_105700 = { note = "not shared with its other slots: an unpaired %hi/%lo that splat emits as a literal, which bakes one slot address into a shared body" }

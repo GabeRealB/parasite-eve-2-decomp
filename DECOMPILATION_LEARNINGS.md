@@ -2798,7 +2798,11 @@ same offset that a pre-promotion single-overlay landing needed is redundant and
 should go. Splitting the body out also splits the overlay's `.c`: everything
 from the byte after the span onwards belongs to the new `<name>_2` unit, and
 splat never rewrites an existing `.c`, so move those `INCLUDE_ASM` lines by hand
-in **every** sharer and retarget their path string to `<name>_2`.
+in **every** sharer and retarget their path string to `<name>_2`. A later
+function that lived in the first unit used to carry leading-rodata tables via
+`migrate_rodata_to_functions`; after the cut those tables stay in the first
+unit's `.rodata` as their own `.s` files. `INCLUDE_RODATA` them there, in
+address order, or that unit's `.rodata` is short and `.text` shifts.
 
 The shared C has one name and relocates per overlay. Callees that stay
 overlay-local need generic names in that C, with `absolute:True` aliases in

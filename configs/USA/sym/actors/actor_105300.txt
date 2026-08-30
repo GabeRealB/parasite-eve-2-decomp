@@ -1,1 +1,7 @@
 // Overlay-local symbols for actor_105300.
+ActorsShared80133468 = 0x80133468; // shared body, see src/actors/lib/
+ActorsShared80133468_Fn31E3C = 0x80131E3C; // type:func absolute:True
+ActorsShared80133468_Fn3222C = 0x8013222C; // type:func absolute:True
+ActorsShared80133468_Fn33530 = 0x80133530; // type:func absolute:True
+ActorsShared80133468_Fn335B8 = 0x801335B8; // type:func absolute:True
+ActorsShared80133468_Fn33610 = 0x80133610; // type:func absolute:True
