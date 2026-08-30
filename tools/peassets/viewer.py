@@ -1497,9 +1497,11 @@ class AssetViewer(tk.Tk):
 
         verts, faces, skipped = mesh.verts, mesh.faces, mesh.skipped
         note = f"{len(verts)} verts · {len(faces)} faces"
+        if mesh.part_count > 1:
+            note += f" · {mesh.part_count} parts (unposed)"
         if skipped:
             note += f" · {sum(skipped.values())} elements skipped"
-        self.mesh_view.show(verts, faces, mesh.normals, note)
+        self.mesh_view.show(verts, faces, mesh.normals, mesh.parts, note)
         self.preview_nb.select(self.mesh_view)
 
         stream = emb.detail.get("stream") or {}
@@ -1518,6 +1520,16 @@ class AssetViewer(tk.Tk):
                 f"  normals  @{src['norms_offset']}  ({src['normal_count']})",
                 f"  {mesh.stored_normals} of {len(faces)} faces oriented by a "
                 f"stored normal; the rest fall back to winding",
+            ]
+        if mesh.part_count > 1:
+            lines += [
+                "",
+                f"{mesh.part_count} parts, split at the 0xFFFFFFFE markers. The game",
+                "draws each under its own bone matrix (Tmd_SetupGteMatrices), so",
+                "vertices only share a coordinate space within a part. Those",
+                "matrices are runtime pose data (TmdObject.field_8) and are not in",
+                "the package, so 'All' overlaps the parts - pick one to see it in",
+                "its own frame.",
             ]
         else:
             lines.append("No TmdSource points at this stream — vertex array unknown.")

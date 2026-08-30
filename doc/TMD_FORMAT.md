@@ -69,7 +69,7 @@ three.
 ```text
 repeated:
   u32 id            opcode; 0xFFFFFFFF ends the stream,
-                    0xFFFFFFFE is a skip (advance one word, re-read)
+                    0xFFFFFFFE ends one PART (see 2.2)
   u32 handler_slot  overwritten at runtime - see below
   u32 dims          (count << 16) | stride, stride in words
   u32 payload[stride * count]
@@ -84,6 +84,51 @@ at the stride interval — every 7 words in an `0x78` packet, not every 20.
 `Tmd_InitSourceStream` resolves each `id` to a handler and **writes the pointer
 into `handler_slot`**, so a stream that has run once no longer matches its
 on-disc form. Decode from the extracted file, never from a RAM dump.
+
+### 2.2 `0xFFFFFFFE` is a part boundary, not padding
+
+Reading it as "skip a word and carry on" merges the whole skeleton into one
+coordinate frame. `Tmd_DispatchStream` **returns** when it reads `0xFFFFFFFE`,
+handing the pointer back to its caller:
+
+```text
+Tmd_SetupGteMatrices(ws, flags, stream, obj):
+    s0 = obj->field_30          # part count
+    s1 = obj->field_8           # per-part blocks, 0x50 bytes each
+    loop:
+        w = *stream
+        if w == 0xFFFFFFFF: return                  # model done
+        if w != 0xFFFFFFFE and s0 > 0:
+            ctc2 rotation   <- s1[0x24 .. 0x37]     # GTE R11R12 .. R33
+            ctc2 translation<- s1[0x38], [0x3C], [0x40]
+        stream = Tmd_DispatchStream(stream)         # walks to the next 0xFFFFFFFE
+        stream += 4;  s0 -= 1;  s1 += 0x50
+```
+
+So a stream is a sequence of parts, each drawn under its own bone matrix, and
+**vertices only share a coordinate space within a part**. The vertex array
+holds each part in its own local frame: in `aya_10200` the left and right arm
+both span `x[-39, 40]`, sitting inside one another, and drawing all 19 parts
+together gives a lump with no legs or head. Rendered one at a time the parts
+are plainly a head, an upper arm, a forearm, a thigh, a shin and a foot.
+
+Two consequences:
+
+* **The part count is the bone count.** `obj->field_30` is the number of
+  separators plus one, and it is derivable offline by counting them — which is
+  the per-model bone count §6 lists as the blocker on decoding the pose banks.
+  `aya_10200` is 19, the named-human body 20, `actor_100300` 19. Parts with no
+  geometry are joints.
+* **The matrices are not in the package.** `TmdObject.field_8` is runtime pose
+  data supplied by the animation system; a scan of `aya_10200` for a 0x50- or
+  0x20-stride array of plausible rotation matrices finds none. An offline
+  viewer can draw one part correctly but cannot pose the whole model until the
+  pose banks are decoded.
+
+The **last** part is special: it carries the pre-transformed (`op & 0x01`)
+primitives, whose screen coordinates were written by the earlier parts'
+`0xC8` passes under those parts' own matrices. They are already positioned, so
+they cannot be drawn from raw vertices in any single frame.
 
 ### 2.1 Rejecting false streams
 

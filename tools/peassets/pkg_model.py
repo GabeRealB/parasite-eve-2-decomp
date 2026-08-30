@@ -5,8 +5,16 @@ The model format is a packet stream, read out of ``Tmd_InitSourceStream``
 
     [id][handler slot][dims][payload ...]   repeated
     id   = 0xFFFFFFFF  end of stream
-         = 0xFFFFFFFE  skip, advance one word and re-read
+         = 0xFFFFFFFE  end of one **part**, advance one word and re-read
     dims = (count << 16) | stride, payload is stride*count words
+
+``0xFFFFFFFE`` is not padding. ``Tmd_DispatchStream`` *returns* when it reads
+one, and its caller ``Tmd_SetupGteMatrices`` then loads the next bone's matrix
+(``TmdObject.field_8``, 0x50 bytes per bone) before dispatching again. So the
+stream is a sequence of parts, each drawn under its own matrix, and each
+part's vertices are in that part's local space. Walking straight over the
+marker merges every limb into one frame, which piles them on top of each
+other. Each packet therefore carries the index of the part it belongs to.
 
 The handler slot is why this must be read from the file rather than from RAM:
 ``Tmd_InitSourceStream`` resolves each id to a function pointer and **writes it
@@ -67,11 +75,13 @@ def walk_stream(data: bytes, off: int) -> tuple[list[dict], int] | None:
     """Walk from ``off``; return (packets, end offset) or None if invalid."""
     n = len(data)
     packets: list[dict] = []
+    part = 0
     for _ in range(MAX_PACKETS):
         if off + 4 > n:
             return None
         (idv,) = struct.unpack_from("<I", data, off)
         while idv == STREAM_SKIP:
+            part += 1
             off += 4
             if off + 4 > n:
                 return None
@@ -88,7 +98,9 @@ def walk_stream(data: bytes, off: int) -> tuple[list[dict], int] | None:
         # data - a stride-7 packet repeats its CLUT word every 7 words.
         count = dims >> 16
         stride = dims & 0xFFFF
-        packets.append({"offset": off, "op": idv, "count": count, "stride": stride})
+        packets.append(
+            {"offset": off, "op": idv, "count": count, "stride": stride, "part": part}
+        )
         off += HEADER_WORDS * 4 + stride * count * 4
         if off > n:
             return None
@@ -130,6 +142,7 @@ def find_streams(data: bytes) -> list[dict]:
                 "end": f"0x{end:05X}",
                 "bytes": end - off,
                 "packets": len(packets),
+                "parts": max((p["part"] for p in packets), default=0) + 1,
                 "ops": sorted({p["op"] for p in packets}),
                 "packet_list": packets,
             }

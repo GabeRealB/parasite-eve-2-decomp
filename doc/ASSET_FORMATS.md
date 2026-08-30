@@ -699,7 +699,10 @@ decodes them yet.
   draw families; the rest are open, tracked per family in
   [`TMD_FORMAT.md` §5](TMD_FORMAT.md#5-opcode-reference) with what is still
   missing in [§6](TMD_FORMAT.md#6-what-is-still-open).
-- **Pose banks.** Still blocked on the per-model bone count. `0xC8` turned out
+- **Pose banks.** The per-model bone count is now available — it is the number
+  of `0xFFFFFFFE`-delimited parts in the model stream
+  ([`TMD_FORMAT.md` §2.2](TMD_FORMAT.md)) — but the per-part matrix block that
+  `Tmd_SetupGteMatrices` consumes is still undocumented. `0xC8` turned out
   to be a vertex transform pass rather than bone data
   ([`TMD_FORMAT.md` §3.0](TMD_FORMAT.md#35-the-transform-pre-pass--0xc0--0xc4--0xc8)), so the count has
   to come from somewhere else — the animation side, or one of the remaining
@@ -768,8 +771,17 @@ stall the window. A package is scanned when its node is first expanded.
 
 The mesh comes from the same decoder as `tmd_export.py`, Y-flip included, so a
 model that looks upright in the viewport looks upright in Blender. Only faces
-are drawn — no textures, no UVs, and no bone transforms — which is enough to
-tell one character from another and not enough to judge a pose.
+are drawn — no textures and no UVs.
+
+**Characters are drawn per part.** A model stream is split by `0xFFFFFFFE` into
+parts that the game poses with one bone matrix each, so vertices only share a
+coordinate space within a part, and those matrices are runtime data that is not
+in the package ([`TMD_FORMAT.md` §2.2](TMD_FORMAT.md)). The Model tab has a
+**Part** selector for that reason: `All (unposed)` overlaps the limbs — aya's
+left and right arm both sit at `x[-39, 40]` — while picking a part shows it
+correctly in its own frame. A single-part model (a weapon, a hand) looks right
+either way. The last part holds the pre-transformed primitives and is
+positioned by the earlier parts, so it does not stand alone.
 
 Visibility and shading come from two different places, as they do on the
 hardware (see [`TMD_FORMAT.md` §7](TMD_FORMAT.md)). Backface culling is

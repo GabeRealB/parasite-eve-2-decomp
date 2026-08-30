@@ -113,13 +113,19 @@ def element_faces(op: int, words: tuple[int, ...], vertex_count: int) -> list[tu
 def decode_stream_geometry(
     data: bytes, stream_off: int, vertex_count: int, normal_count: int = 0
 ):
-    """(faces, per-face normal index or None, skipped-opcode counter)."""
+    """(faces, per-face normal index or None, per-face part, skipped counter).
+
+    The part index matters: a stream is split by ``0xFFFFFFFE`` into parts that
+    the game draws under one bone matrix each, so vertices only share a
+    coordinate space *within* a part.
+    """
     walked = pkg_model.walk_stream(data, stream_off)
     if not walked:
-        return [], [], Counter()
+        return [], [], [], Counter()
     packets, _end = walked
     faces: list[tuple[int, ...]] = []
     normals: list[int | None] = []
+    parts: list[int] = []
     skipped: Counter = Counter()
     for pk in packets:
         op, count, stride = pk["op"], pk["count"], pk["stride"]
@@ -135,14 +141,17 @@ def decode_stream_geometry(
             if got:
                 faces.append(got[0])
                 normals.append(got[1])
+                parts.append(pk["part"])
             else:
                 skipped[op] += 1
-    return faces, normals, skipped
+    return faces, normals, parts, skipped
 
 
 def decode_stream(data: bytes, stream_off: int, vertex_count: int):
     """(faces, skipped-opcode counter) for one stream."""
-    faces, _normals, skipped = decode_stream_geometry(data, stream_off, vertex_count)
+    faces, _normals, _parts, skipped = decode_stream_geometry(
+        data, stream_off, vertex_count
+    )
     return faces, skipped
 
 

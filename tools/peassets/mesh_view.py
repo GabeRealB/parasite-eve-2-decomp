@@ -40,6 +40,7 @@ class MeshView(ttk.Frame):
         self._verts: list[tuple[float, float, float]] = []
         self._faces: list[tuple[int, ...]] = []
         self._normals: list[tuple[float, float, float]] = []
+        self._parts: list[int] = []
         self._yaw = 0.55
         self._pitch = 0.25
         self._zoom = 1.0
@@ -66,6 +67,13 @@ class MeshView(ttk.Frame):
             bar, text="Backface cull", variable=self._cull, command=self._draw
         ).pack(side=tk.LEFT, padx=(0, 10))
         ttk.Button(bar, text="Reset view", command=self.reset_view).pack(side=tk.LEFT)
+        ttk.Label(bar, text="  Part:").pack(side=tk.LEFT)
+        self._part = tk.StringVar(value="All (unposed)")
+        self._part_combo = ttk.Combobox(
+            bar, textvariable=self._part, state="readonly", width=16, values=("All (unposed)",)
+        )
+        self._part_combo.pack(side=tk.LEFT, padx=(4, 0))
+        self._part_combo.bind("<<ComboboxSelected>>", lambda _e: self._draw())
         self._info = ttk.Label(bar, text="", foreground="#888")
         self._info.pack(side=tk.RIGHT)
 
@@ -85,7 +93,7 @@ class MeshView(ttk.Frame):
         self.canvas.bind("<Button-5>", lambda _e: self._scale_zoom(1 / 1.1))
 
     # ------------------------------------------------------------------ data
-    def show(self, verts, faces, normals=None, note: str = "") -> None:
+    def show(self, verts, faces, normals=None, parts=None, note: str = "") -> None:
         """Load a mesh, normalised into a unit box centred on its bounds.
 
         ``normals`` is one outward direction per face, in the same space as
@@ -96,6 +104,16 @@ class MeshView(ttk.Frame):
         keep = [i for i, f in enumerate(faces) if len(f) >= 3]
         self._faces = [faces[i] for i in keep]
         self._normals = [normals[i] for i in keep] if normals else []
+        self._parts = [parts[i] for i in keep] if parts else []
+        # One entry per part that actually carries geometry. "All" is honest
+        # about what it shows: without the runtime bone matrices the parts sit
+        # in their own local frames and overlap.
+        present = sorted(set(self._parts))
+        self._part_combo.configure(
+            values=["All (unposed)"] + [f"part {i}" for i in present]
+        )
+        if self._part.get() not in self._part_combo.cget("values"):
+            self._part.set("All (unposed)")
         if verts:
             xs = [v[0] for v in verts]
             ys = [v[1] for v in verts]
@@ -117,6 +135,7 @@ class MeshView(ttk.Frame):
         self._verts = []
         self._faces = []
         self._normals = []
+        self._parts = []
         self._info.configure(text="")
         self.canvas.delete("all")
         if msg:
@@ -171,6 +190,14 @@ class MeshView(ttk.Frame):
         h = self.canvas.winfo_height() or 300
         self.canvas.create_text(w / 2, h / 2, text=msg, fill="#888")
 
+    def _selected_faces(self) -> list[int]:
+        """Indices into self._faces for the current part selection."""
+        sel = self._part.get()
+        if not sel.startswith("part ") or not self._parts:
+            return list(range(len(self._faces)))
+        want = int(sel.split()[1])
+        return [i for i, p in enumerate(self._parts) if p == want]
+
     def _draw(self) -> None:
         c = self.canvas
         c.delete("all")
@@ -222,7 +249,8 @@ class MeshView(ttk.Frame):
             return xr, yr, y * sp + zr * cp
 
         order = []
-        for k, f in enumerate(self._faces):
+        for k in self._selected_faces():
+            f = self._faces[k]
             if any(i >= n for i in f):
                 continue
             order.append((sum(pts[i][2] for i in f) / len(f), k, f))

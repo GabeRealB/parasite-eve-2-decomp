@@ -172,6 +172,15 @@ def anim_candidates(pkg_dir: Path) -> list[tuple[str, int, int]]:
 class Mesh:
     """A decoded model stream, in Y-up space.
 
+    ``parts`` is parallel to ``faces`` and names the part each face belongs to.
+    A stream is split by ``0xFFFFFFFE`` into parts that the game draws under one
+    bone matrix each (``Tmd_SetupGteMatrices``), so **vertices only share a
+    coordinate space within a part**. Drawing every part together without those
+    matrices piles the limbs on top of each other - aya's left and right arm
+    both span x[-39, 40] because each is in its own local frame. The matrices
+    live in ``TmdObject.field_8`` at runtime and are not in the package, so an
+    offline viewer can draw one part correctly but cannot pose the whole model.
+
     ``normals`` is parallel to ``faces`` and holds each face's **outward**
     direction. Getting that right needs the stored normal array, not the
     winding: measured across aya, the named humans, an actor and a weapon, the
@@ -191,6 +200,8 @@ class Mesh:
     verts: list[tuple[float, float, float]] = field(default_factory=list)
     faces: list[tuple[int, ...]] = field(default_factory=list)
     normals: list[tuple[float, float, float]] = field(default_factory=list)
+    parts: list[int] = field(default_factory=list)  # per face
+    part_count: int = 1
     skipped: dict[int, int] = field(default_factory=dict)
     stored_normals: int = 0  # faces that got a normal from the file
 
@@ -212,7 +223,7 @@ def decode_model(overlay: Overlay, emb: Embedded) -> Mesh:
     ncount = int(src["normal_count"])
     raw_v = tmd_export.read_vertices(data, int(src["verts_offset"], 16), count)
     raw_n = tmd_export.read_vertices(data, int(src["norms_offset"], 16), ncount)
-    faces, nrefs, skipped = tmd_export.decode_stream_geometry(
+    faces, nrefs, parts, skipped = tmd_export.decode_stream_geometry(
         data, emb.offset, count, ncount
     )
     verts = [(x, -y, z) for x, y, z in raw_v]
@@ -226,7 +237,15 @@ def decode_model(overlay: Overlay, emb: Embedded) -> Mesh:
             stored += 1
         else:
             normals.append(_winding_normal(verts, face))
-    return Mesh(verts, faces, normals, dict(skipped), stored)
+    return Mesh(
+        verts,
+        faces,
+        normals,
+        parts,
+        max(parts, default=0) + 1,
+        dict(skipped),
+        stored,
+    )
 
 
 def package_id(path: Path) -> int | None:
