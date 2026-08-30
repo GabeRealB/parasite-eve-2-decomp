@@ -287,7 +287,7 @@ mine_cavern = { room = "Cavern", shared = [{ start = "0x37B0", end = "0x4170", u
 mine_tunnel_entrance = { room = "Tunnel entrance" }
 mine_tunnel = { room = "Tunnel" }
 mine_gorge = { room = "Gorge" }
-mine_refuge = { room = "Refuge" }
+mine_refuge = { room = "Refuge", units = ["0x1EDC", "0x2448"], rodata = [{ start = "0x84", unit = "mine_refuge_2" }, { start = "0xE4", unit = "mine_refuge_3" }] }
 mine_forked_tunnel = { room = "Forked tunnel" }
 mine_secret_passage = { room = "Secret passage", shared = [{ start = "0x2DD8", end = "0x3798", unit = "room_draw_billboard" }] }
 shelter_b1_elevator_hall = { room = "Elevator hall", floor = "B1" }

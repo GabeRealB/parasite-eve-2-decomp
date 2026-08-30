@@ -2700,6 +2700,17 @@ if (GameFlag_GetNibble(0x7A) != 1) {
 Put the asm on the **first** compare so the second stays `li v1, 1` after the
 jal. `func_dryfield_night_trailer_coach_80181DB0` is the example.
 
+## Cap-task restore `sb` stays `Mc_SaveData.field_4`
+
+Case 11 writes the saved area id with `sb` at `Mc_SaveData+4`. Some overlays'
+target asm names that reloc `D_8007216C`; the linked bytes are the same as
+`Mc_SaveData.field_4 = (u8)D_80115694`. Do not overlay `*(u8*)&D_8007216C` in
+a function that also word-loads `D_8007216C` for the `0xFFFF0000` test — GCC
+2.8.1 treats them as one object and the switch grows insert/delete.
+
+`func_mine_refuge_8017F49C` is the example (scratch leftover was the symbol
+name; the overlay checksum matched).
+
 ## m2c: "the corresponding jump table is not provided"
 
 The scratch bootstrapper only feeds m2c the function's own `.s`, so any function
