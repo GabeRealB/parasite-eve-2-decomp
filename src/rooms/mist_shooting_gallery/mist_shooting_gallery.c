@@ -1,5 +1,8 @@
 #include "common.h"
 
+#include "gameplay/3CD8.h"
+#include "main/task.h"
+
 INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017D5C0);
 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017DCAC);
@@ -56,7 +59,39 @@ INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", fu
 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017FD40);
 
-INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017FDD0);
+void func_mist_shooting_gallery_8017FDD0(Task* task)
+{
+    s32 fade;
+    s32 state;
+
+    state = task->state;
+    switch (state) {
+        case 0:
+            Gp_CapFile = 0;
+            if ((s32)task->spawnArg2 == 3) {
+                Gp_LoadCapFile(3);
+                fade = 0x2C0;
+            } else {
+                Gp_LoadCapFile(1);
+                fade = 0x300;
+            }
+            func_800E6D4C(fade, 0);
+            Gp_RunCapCmd(task->spawnArg1, 0);
+            goto advance;
+        case 1:
+            if (Gp_CapBusy() != 0) {
+                return;
+            }
+        advance:
+            task->state = task->state + 1;
+            return;
+        case 2:
+            Gp_MsgPlayerWeapon(1);
+            Gp_ResetCap();
+            Task_Kill(task);
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", func_mist_shooting_gallery_8017FEB0);
 
