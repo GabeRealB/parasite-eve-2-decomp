@@ -2657,6 +2657,35 @@ actor_510900 = { units = ["0x9A50", "0x9B68"],
                  rodata = [{ start = "0xD0", unit = "actor_510900_2" }] }
 ```
 
+### Promoting a jump-table body into `src/<family>/lib/`
+
+A matched switch that also exists in another overlay of the family should be
+promoted, not landed twice. `overlay_dup_index.py promote` refuses the body
+while it is still `INCLUDE_ASM` if the copies are not byte-identical or if they
+jal overlay-local functions; match first, or write the `shared` span by hand.
+`words` in the dup index counts every `/* offset vram encoding */` line in the
+function's `.s`, including a migrated jump table, so `words * 4` overruns the
+next function. The text span is file offset of the first instruction through
+the byte after `jr $ra`'s delay slot (`0x5D58`..`0x5E88` for
+`func_actor_403900_80137B78`).
+
+Pair the table with the shared object: a `rodata` cut whose `unit` matches a
+`shared` span is emitted as `lib/<unit>`, so GCC's table (which must start that
+object's `.rodata` for `SUBALIGN(4)`) lands at the same overlay offset in every
+sharer.
+
+```toml
+actor_403900 = { rodata = [{ start = "0x104", unit = "actors_shared_80137b78" }],
+                 shared = [{ start = "0x5D58", end = "0x5E88", unit = "actors_shared_80137b78" }] }
+```
+
+The shared C has one name and relocates per overlay. Callees that stay
+overlay-local need generic names in that C, with `absolute:True` aliases in
+each overlay's `configs/USA/sym/<family>/<overlay>.txt` at that overlay's
+address. splat treats `absolute:True` as already defined and omits them from
+the undef script; `append_overlay_absolute_imports` copies those lines into
+`undefined_syms_auto.<overlay>.txt` so ld can patch the `jal`s.
+
 ### The overlay's *first* function needs `rodata_head`, not a `rodata` cut
 
 A `rodata` cut only works because it pairs with a `.text` cut, and the first

@@ -637,16 +637,30 @@ def append_overlay_absolute_imports(basename: str, imports_path: str | None = No
     Overlay TUs are C and still need those names at link time (`-T` undef files).
     Generated overlays share one imports file per family, so the path is passed
     in; the hand-written overlays keep the per-basename default.
+
+    Overlay-local ``absolute:True`` symbols (aliases a shared C body uses to
+    jal overlay-specific callees) are the same problem: splat treats them as
+    already defined and omits them from the undef script, so they are copied
+    from the overlay's own symbol map as well.
     """
-    imports = Path(imports_path or f"configs/USA/sym.{basename}.imports.txt")
     dest = Path(f"linkers/USA/undefined_syms_auto.{basename}.txt")
-    if not imports.is_file() or not dest.is_file():
+    if not dest.is_file():
         return
     extra = []
-    for line in imports.read_text(encoding="utf-8").splitlines():
-        m = re.match(r"^(\w+)\s*=\s*(0x[0-9A-Fa-f]+)", line.strip())
-        if m:
-            extra.append(f"{m.group(1)} = {m.group(2)};")
+    imports = Path(imports_path or f"configs/USA/sym.{basename}.imports.txt")
+    if imports.is_file():
+        for line in imports.read_text(encoding="utf-8").splitlines():
+            m = re.match(r"^(\w+)\s*=\s*(0x[0-9A-Fa-f]+)", line.strip())
+            if m:
+                extra.append(f"{m.group(1)} = {m.group(2)};")
+    overlay_sym = next(Path("configs/USA/sym").glob(f"*/{basename}.txt"), None)
+    if overlay_sym is not None and overlay_sym.is_file():
+        for line in overlay_sym.read_text(encoding="utf-8").splitlines():
+            if "absolute:True" not in line:
+                continue
+            m = re.match(r"^(\w+)\s*=\s*(0x[0-9A-Fa-f]+)", line.strip())
+            if m:
+                extra.append(f"{m.group(1)} = {m.group(2)};")
     if not extra:
         return
     text = dest.read_text(encoding="utf-8")

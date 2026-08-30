@@ -1,1 +1,16 @@
 // Overlay-local symbols for actor_402200.
+ActorsShared80137b78 = 0x80137B74; // shared body, see src/actors/lib/
+ActorsShared80137b78_Fn32688 = 0x80132688; // type:func absolute:True
+ActorsShared80137b78_Fn329A4 = 0x801329A4; // type:func absolute:True
+ActorsShared80137b78_Fn3314C = 0x8013314C; // type:func absolute:True
+ActorsShared80137b78_Fn33AEC = 0x80133AEC; // type:func absolute:True
+ActorsShared80137b78_Fn34194 = 0x80134194; // type:func absolute:True
+ActorsShared80137b78_Fn347F4 = 0x801347F4; // type:func absolute:True
+ActorsShared80137b78_Fn3539C = 0x8013539C; // type:func absolute:True
+ActorsShared80137b78_Fn354B0 = 0x801354B0; // type:func absolute:True
+ActorsShared80137b78_Fn35630 = 0x80135630; // type:func absolute:True
+ActorsShared80137b78_Fn3592C = 0x8013592C; // type:func absolute:True
+ActorsShared80137b78_Fn35A24 = 0x80135A24; // type:func absolute:True
+ActorsShared80137b78_Fn37D7C = 0x80137D78; // type:func absolute:True
+ActorsShared80137b78_Fn380DC = 0x801380D8; // type:func absolute:True
+

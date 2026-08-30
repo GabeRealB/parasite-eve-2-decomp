@@ -22,6 +22,10 @@
 # assembly as its own `<name>_hdr` object and the first code unit's `.rodata`
 # starts at `<offset>`, which is where its table has to land.
 #
+# A `rodata` cut whose `unit` matches a `shared` span is emitted as
+# `lib/<unit>`, pairing the compiler-generated jump table with the shared
+# C object rather than an overlay-local unit.
+#
 # `duplicate_of = "<file id>"` marks an overlay whose package is byte-identical
 # to another's. It gets no config and is never split: splitting it a second time
 # would produce a second copy of the same disassembly and the same functions
@@ -463,12 +467,12 @@ actor_400600 = { }
 actor_401000 = { }
 actor_401300 = { }
 actor_401800 = { }
-actor_402200 = { }
+actor_402200 = { rodata = [{ start = "0x104", unit = "actors_shared_80137b78" }], shared = [{ start = "0x5D54", end = "0x5E84", unit = "actors_shared_80137b78" }] }
 actor_403000 = { }
 actor_403100 = { }
 actor_403200 = { }
 actor_403600 = { }
-actor_403900 = { }
+actor_403900 = { rodata = [{ start = "0x104", unit = "actors_shared_80137b78" }], shared = [{ start = "0x5D58", end = "0x5E88", unit = "actors_shared_80137b78" }] }
 actor_405800 = { }
 actor_407500 = { shared = [{ start = "0x1FC", end = "0xBD90", unit = "actor_400100_text" }], relocs = "configs/USA/rel.actor_400100.txt" }
 actor_420700 = { }

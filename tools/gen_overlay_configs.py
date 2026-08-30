@@ -104,7 +104,10 @@ def subsegments(
     cut is: a jump table GCC emits mid-object gets an `.align 3` pad, while one
     that starts an object's `.rodata` is re-aligned by the linker script's
     `SUBALIGN(4)`. Runs keep the same `<name>`, `<name>_2`, ... numbering the
-    shared cuts produce, so a `rodata` cut names the unit it pairs with.
+    shared cuts produce, so a `rodata` cut names the unit it pairs with. A cut
+    whose `unit` matches a `shared` span (or is already `lib/...`) is emitted
+    as `lib/<unit>` so a compiler-generated jump table from the shared C
+    object lands at that offset in every overlay that carries the body.
 
     A data-only package still gets one `data` subsegment covering the file.
     """
@@ -146,6 +149,7 @@ def subsegments(
                 )
             lines.append(f"      - [0x0, rodata, {name}_hdr]")
         lines.append(f"      - [0x{head:X}, .rodata, {name}/{name}]")
+        shared_units = {s["unit"] for s in shared}
         for cut in sorted(rodata, key=lambda r: int(str(r["start"]), 16)):
             cut_start = int(str(cut["start"]), 16)
             if not head < cut_start < start:
@@ -153,7 +157,14 @@ def subsegments(
                     f"{name}: rodata cut {cut['unit']} at 0x{cut_start:X} is "
                     f"outside the leading rodata (0x{head:X}..0x{start:X})"
                 )
-            lines.append(f"      - [0x{cut_start:X}, .rodata, {name}/{cut['unit']}]")
+            unit = str(cut["unit"])
+            if unit.startswith("lib/"):
+                path = unit
+            elif unit in shared_units:
+                path = f"lib/{unit}"
+            else:
+                path = f"{name}/{unit}"
+            lines.append(f"      - [0x{cut_start:X}, .rodata, {path}]")
     elif rodata or rodata_head:
         raise SystemExit(f"{name}: rodata cuts but the package has no leading rodata")
 
