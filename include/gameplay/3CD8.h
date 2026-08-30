@@ -414,6 +414,7 @@ void Gp_RunCapCmd1(s32 arg0);
 void Gp_MsgAlly3F3(s32 arg0);
 void func_800E6D4C(s16 arg0, s16 arg1);
 void func_800E3FAC(s32 arg0, s32 arg1);
+void Gp_FillPlayerHpMp(void);
 
 /// Screen-shake task. `spawnArg2` is a packed s32: low byte is the
 /// duration bound (counter runs `-lo` .. `+lo`); `>> 8` is amplitude.
