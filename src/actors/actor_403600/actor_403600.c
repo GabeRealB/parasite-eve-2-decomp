@@ -1,5 +1,25 @@
 #include "common.h"
 
+#include "actors/actor_403600.h"
+#include "main/sound.h"
+
+extern u8 D_80071075;
+extern u8 D_801153F4;
+
+void Gp_SetObjTrans(Actor403600Obj2C* arg0, s16 arg1, s16 arg2, s16 arg3);
+void Gp_UpdateCoord(GsCOORDINATE2* arg0);
+void func_actor_403600_8013955C(Actor403600* arg0);
+void func_actor_403600_801396F8(Actor403600* arg0);
+void func_actor_403600_8013D15C(Actor403600* arg0);
+void func_actor_403600_8013DC7C(Actor403600* arg0);
+void func_actor_403600_8013F0C0(Actor403600* arg0);
+void func_actor_403600_801411D4(Actor403600* arg0, s32 arg1);
+void func_actor_403600_801412D0(Actor403600Ctx* arg0, Actor403600* arg1);
+void func_actor_403600_80141338(Actor403600* arg0);
+void func_actor_403600_801414FC(Actor403600* arg0);
+void func_actor_403600_8014161C(Actor403600* arg0);
+void func_actor_403600_80141A34(Actor403600* arg0);
+
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_801320F8);
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_801327A0);
@@ -52,7 +72,87 @@ INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_80138EF8);
 
-INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013938C);
+void func_actor_403600_8013938C(Actor403600Ctx* arg0, Actor403600* arg1)
+{
+    s16              temp_a1;
+    s16              temp_v0;
+    s16              temp_v0_2;
+    s32              state;
+    Actor403600Work* work;
+    GsCOORDINATE2*   var_a0;
+
+    state = D_801153F4;
+    work  = arg1->field_1C;
+    if (state == 1) {
+        goto case1;
+    }
+    if (state >= 2) {
+        goto ge2;
+    }
+    if (state == 0) {
+        goto case0;
+    }
+    goto default_body;
+ge2:
+    if (state == 2) {
+        goto case2;
+    }
+    goto default_body;
+case0:
+    if (work->field_7AC != 0) {
+        work->field_7AC = 0;
+        SndEvt_EnqueueType9(0x50000000);
+    }
+    goto default_body;
+case1:
+    func_actor_403600_801412D0(arg0, arg1);
+    if (work->field_7AC == 0) {
+        work->field_7AC = state;
+        SndEvt_EnqueueType8(0x50000000);
+    }
+    return;
+case2:
+    arg1->field_2C->field_C = 0x80;
+    arg0->field_14          = 9;
+    return;
+default_body:
+    if (((D_80071075 & 0xF0) == 0x40) && (work->field_7AC == 0)) {
+        work->field_7AC = 1;
+        SndEvt_EnqueueType8(0x50000000);
+    }
+    func_actor_403600_801396F8(arg1);
+    temp_v0 = work->field_730;
+    if (temp_v0 != 0) {
+        if (temp_v0 < 0xA) {
+            func_actor_403600_8013DC7C(arg1);
+            func_actor_403600_8013955C(arg1);
+            func_actor_403600_8013D15C(arg1);
+        }
+    }
+    func_actor_403600_801411D4(arg1, 0x14);
+    temp_v0_2 = work->field_730;
+    if (temp_v0_2 != 0) {
+        var_a0 = &work->field_4B8;
+        if (temp_v0_2 < 0xA) {
+            func_actor_403600_80141338(arg1);
+            func_actor_403600_8014161C(arg1);
+            func_actor_403600_80141A34(arg1);
+            goto block_21;
+        }
+    } else {
+    block_21:
+        var_a0 = &work->field_4B8;
+    }
+    work->field_4B8.flg = 0;
+    Gp_UpdateCoord(var_a0);
+    func_actor_403600_801412D0(arg0, arg1);
+    temp_a1 = work->field_77A;
+    if (temp_a1 != 0) {
+        Gp_SetObjTrans(arg1->field_2C, temp_a1, temp_a1, temp_a1);
+    }
+    func_actor_403600_801414FC(arg1);
+    func_actor_403600_8013F0C0(arg1);
+}
 
 INCLUDE_ASM("actors/nonmatchings/actor_403600/actor_403600", func_actor_403600_8013955C);
 
