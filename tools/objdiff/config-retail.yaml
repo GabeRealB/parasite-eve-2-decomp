@@ -77,6 +77,11 @@ categories:
   # Actors are per-RAM-slot: the same enemy loaded into slot 1, 2 or 3 is a
   # separate package. Where those copies are byte-identical after relocation
   # they share one object, the same way the room bodies do.
+  - id: pe
+    name: Parasite Energy
+    paths:
+      - pe
+
   - id: actors
     name: Actors
     paths:

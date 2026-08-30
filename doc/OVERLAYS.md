@@ -62,7 +62,7 @@ Slots are packed back-to-back in high RAM. Title and gameplay share
 | `0x80093800` | **gameplay** *or* **title** | 520 KiB / 5.2 KiB | Gameplay ends at `0x80115769` |
 | `0x80115770` | Aya costume (`10200`–`10600`); also replay-bonus `21000` | ~30 KiB | Starts the instant gameplay ends |
 | `0x8011D1C0` | Equipped weapon (`10301`–`10332`) | ~50–70 KiB | |
-| `0x8012EF30` | Map-picture helper **or** `501xx` helper | 0.5–12 KiB | Mutually exclusive |
+| `0x8012EF30` | Map-picture helper **or** PE effect | 0.5–12 KiB | Mutually exclusive |
 | `0x80131E20` | Actor slot 1 (`1xxxxx`) | ~50–90 KiB | Stride `0x18000` to next slot |
 | `0x80149E20` | Actor slot 2 (`2xxxxx`) | same | `slot1 + 0x18000` |
 | `0x80161E20` | Actor slot 3 (`3xxxxx`) | same | `slot2 + 0x18000` |
@@ -104,7 +104,7 @@ Word 0 is an id, not a pointer count:
 | Actor `100300` | `0x58` (relocated copy `200300` uses `0xB1`) |
 | Room `stage1/101` … `2101` | `0x11D` … `0x131` (monotonic per room) |
 | Map UI `900000`–`900005` | `0x118` … `0x11C` |
-| `501xx` helpers | `0x30`, `0x31`, … one value per unique type |
+| `501xx` PE effects | `0x30`–`0x3E`, one value per spell / item effect |
 
 ---
 
@@ -404,13 +404,45 @@ unique bodies.
 `900000`/`900001` share a body (Akropolis / MIST names). `900002`/`900003`
 are Dryfield variants.
 
-### 5.7 `50100`–`50152` @ `0x8012EF30`
+### 5.7 `50100`–`50152` @ `0x8012EF30` — Parasite Energy
 
-Same address as the map pictures, so they **replace** that helper. Music +
-3–12 KiB of code, no TMD, no texture. Groups of three identical copies
-with header `0x30`, `0x31`, … (~15 unique types). Best current fit:
-enemy behaviour / sound helpers, not the models (those are the 50–90 KiB
-actor slots). Not proven.
+**The Parasite Energy effects.** Same address as the map pictures, so they
+**replace** that helper — you are not looking at the map while casting. Sound
+bank + 0.8–12 KiB of code, no TMD, no texture: pure effect code.
+
+The 40 file ids are only **15 packages**, headers `0x30`–`0x3E`. Each package is
+loaded by three consecutive ids that differ only in the SPK they pair with, so
+the code is shared by the three and the sound is per-id.
+
+`Gp_ItemDescs` is what identifies them. It carries the twelve PE spells at items
+15–50, each as three consecutive entries — the three spell levels — and those
+twelve are, in order, exactly the twelve packages in the contiguous run:
+
+| File ids | Package | Spell | | File ids | Package | Spell |
+|---|---|---|---|---|---|---|
+| `50101`–`50103` | `pyrokinesis` | Pyrokinesis | | `50119`–`50121` | `metabolism` | Metabolism |
+| `50104`–`50106` | `combustion` | Combustion | | `50122`–`50124` | `healing` | Healing |
+| `50107`–`50109` | `inferno` | Inferno | | `50125`–`50127` | `lifedrain` | Lifedrain |
+| `50110`–`50112` | `necrosis` | Necrosis | | `50128`–`50130` | `antibody` | Antibody |
+| `50113`–`50115` | `plasma` | Plasma | | `50131`–`50133` | `energyshot` | Energyshot |
+| `50116`–`50118` | `apobiosis` | Apobiosis | | `50134`–`50136` | `energyball` | Energyball |
+
+So the three ids per package are the three levels, one sound bank each. `50100`
+is an extra id onto the same package and sound bank as `50101`.
+
+The call profiles agree with the spell descriptions: the offensive spells drive
+`Gp_SpawnEff` and `Task_Reparent`, while the support ones — `metabolism`,
+`healing`, `antibody` — draw rings and arcs around Aya and little else, and are
+the smallest packages in the family.
+
+`50146` / `50149` / `50152` keep the stride-3 spacing at slots 15, 16 and 17,
+which lines up with the items after the four passive “Attach this and see what
+happens” ornaments. Only two of those, Flare and Pepper Spray, are “Use to …”
+items, so there is one package more than the usable items account for. The names
+`ofuda` / `flare` / `pepper_spray` are assigned by position and by what the code
+draws — rings and fade quads with no motion, a spawned moving object, and a
+scrolling-texture cloud (`Gp_AddTpageShift`) that suits a gas spray — and are
+marked `ambiguous` in the manifest.
 
 ### 5.8 Menus sitting above the stack
 
@@ -520,7 +552,7 @@ link address.
 - Room `.pe2pkg` — event tables + script code.
 - Room `.pe2cap2` — dialogue.
 - `301xx` / `900xxx` — map art + map names.
-- `501xx` — code-only helpers.
+- `501xx` — code-only Parasite Energy effects.
 - `20100` / title — menus.
 - Gameplay — engine + Aya clip *tables*, almost no mesh (~0.8 KiB leftover prims).
 
@@ -624,7 +656,7 @@ names must be unique within a container — so those extra ids keep their defaul
 | `0x80093800` | 2 | gameplay, title |
 | `0x80115770` | 7 | Aya + replay-bonus + stubs |
 | `0x8011D1C0` | 32 | weapons |
-| `0x8012EF30` | 64 | map pictures + `501xx` |
+| `0x8012EF30` | 64 | map pictures + PE effects |
 | `0x80131E20` | 102 | actor slot 1 (+ `4xxxxx`) |
 | `0x80149E20` | 40 | actor slot 2 |
 | `0x80161E20` | 54 | actor slot 3 (+ some `8xxxxx`) |
@@ -638,12 +670,14 @@ names must be unique within a container — so those extra ids keep their defaul
 
 ## 9. Open questions
 
-- Exact role of `501xx` (behaviour vs sound vs something else).
 - What `20900` and the 4-byte actor stubs are *for* at runtime
   (id presence vs real payload).
 - Full `TmdSource` / bone-matrix stride for Aya (first `MATRIX` is identity;
   later bones are not a plain `0x20` `MATRIX` array).
 - Whether room TMD specks are world props, inventory pickups, or noise.
+- Which effect the three `501xx` tail packages are (§5.7): the stride puts them
+  at slots 15-17, but only two of the items there are usable, so one of
+  `ofuda` / `flare` / `pepper_spray` is misassigned or is not an item at all.
 - Friendly names for actor suffixes (`300`, `400`, `700`, …) — not yet
   matched to in-game character ids, though `20600` (§5.9) now supplies the
   roster to match them *against*.

@@ -580,3 +580,50 @@ actor_361100 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_800100 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_800200 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
 actor_800300 = { load_addr = 0x80161E20, global_vram_end = 0x80161E20 }
+
+# Parasite Energy effects, at the map-picture address, so the two are mutually
+# exclusive - you are not looking at the map while casting.
+#
+# What they are was read off the item table. `Gp_ItemDescs` carries the twelve PE
+# spells at items 15-50, each as three consecutive entries (the three levels), in
+# exactly the order of the twelve packages here. The file ids match that stride:
+# each package is loaded by three consecutive `501xx` ids, one per level, and the
+# three differ only in the SPK sound bank they pair with - so the code is shared
+# by the levels and only the sound is per-level.
+#
+# The call profiles agree: the offensive spells drive `Gp_SpawnEff` and
+# `Task_Reparent`, while the support ones (metabolism, healing, antibody) draw
+# rings and arcs around Aya and nothing else. No package holds a TMD or a
+# texture; they are pure effect code.
+[pe]
+description = "Parasite Energy effect"
+load_addr   = 0x8012EF30
+global_vram_start = 0x80010000
+global_vram_end   = 0x8012EF30
+imports = "configs/USA/sym/pe.imports.txt"
+
+[pe.overlays]
+pyrokinesis = { pe_level_ids = "50101-50103" }
+combustion = { pe_level_ids = "50104-50106" }
+inferno = { pe_level_ids = "50107-50109" }
+necrosis = { pe_level_ids = "50110-50112" }
+plasma = { pe_level_ids = "50113-50115" }
+apobiosis = { pe_level_ids = "50116-50118" }
+metabolism = { pe_level_ids = "50119-50121" }
+healing = { pe_level_ids = "50122-50124" }
+lifedrain = { pe_level_ids = "50125-50127" }
+antibody = { pe_level_ids = "50128-50130" }
+energyshot = { pe_level_ids = "50131-50133" }
+energyball = { pe_level_ids = "50134-50136" }
+
+# The tail sits at the same stride-3 spacing (slots 15, 16, 17 of the same
+# enumeration), which lines up with the three items after the four passive
+# "Attach this and see what happens" ornaments. Only two of those - Flare and
+# Pepper Spray - are "Use to ..." items, so the third package is one more than
+# the usable items account for, and the assignment below is by position and by
+# what the code draws, not proven: 820 bytes of rings and fade quads with no
+# motion, a spawned moving object, and a scrolling-texture cloud
+# (`Gp_AddTpageShift`) that suits a gas spray.
+ofuda        = { pe_slot = 15, ambiguous = true }
+flare        = { pe_slot = 16, ambiguous = true }
+pepper_spray = { pe_slot = 17, ambiguous = true }
