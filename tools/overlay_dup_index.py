@@ -51,7 +51,12 @@ LOCAL = re.compile(r"\b(func|D|jtbl)_([A-Za-z0-9_]+?)_([0-9A-F]{8})\b")
 # `symbol_name_format` applies to local labels too, so they read
 # `.L<overlay>_<vram>` - match any local label, not just a bare address.
 BRANCH = re.compile(r"\.L\w+")
-SKIP = ("glabel", "endlabel", "nonmatching", ".include", ".set", ".section", "/*")
+# `.align` says where the block sits, not what it is: splat emits an
+# `.align 3` ahead of a jump table that starts a cut rodata subsegment and
+# nothing ahead of the same table mid-block, so keeping it would stop a
+# matched copy from grouping with the unmatched copies it is meant to serve.
+SKIP = ("glabel", "endlabel", "nonmatching", ".include", ".set", ".section",
+        ".align", "/*")
 
 
 def scan_function(path: Path, unit: str) -> dict | None:
@@ -59,6 +64,12 @@ def scan_function(path: Path, unit: str) -> dict | None:
     found = WORD.findall(text)
     if not found:
         return None
+    # splat prepends the `.rodata` a function owns - its jump table - ahead of
+    # the code, so the first word in the file is not the function's. `vram` and
+    # `words` describe the body alone, because promotion turns them into a
+    # `.text` span and a jump table is not part of it.
+    body = re.search(rf"^glabel {re.escape(path.stem)}\b", text, re.M)
+    code = WORD.findall(text[body.start():]) if body else found
     # splat writes the encoding big-endian in the comment; the target is little.
     words = [struct.unpack("<I", struct.pack(">I", int(w, 16)))[0] for _v, w in found]
 
@@ -81,8 +92,8 @@ def scan_function(path: Path, unit: str) -> dict | None:
     return {
         "name": path.stem,
         "unit": unit,
-        "words": len(words),
-        "vram": found[0][0],
+        "words": len(code),
+        "vram": code[0][0],
         "raw": hashlib.sha1(struct.pack(f"<{len(words)}I", *words)).hexdigest(),
         "text": hashlib.sha1("\n".join(canon).encode()).hexdigest(),
         "refs": sorted({a or b for a, b in REF.findall(text)}),
@@ -204,12 +215,16 @@ def cmd_promote(data: dict, name: str, unit: str | None) -> int:
     manifest_path = Path("configs/USA/overlays.toml")
     manifest = tomllib.loads(manifest_path.read_text(encoding="utf-8"))
     overlays = manifest[family]["overlays"]
-    load = manifest[family]["load_addr"]
+    family_load = manifest[family]["load_addr"]
     text = manifest_path.read_text(encoding="utf-8")
     size = hit["words"] * 4
 
     for f in sorted(keep, key=lambda f: f["overlay"]):
         room = f["overlay"].split("/")[-1]
+        # A relocated slot overrides the family load address, and the span is a
+        # file offset: reading the family value for every overlay would put a
+        # slot-2 body 0x18000 past the end of its own package.
+        load = overlays[room].get("load_addr", family_load)
         start = int(f["vram"], 16) - load
         spans = [(int(str(s["start"]), 16), int(str(s["end"]), 16), s["unit"])
                  for s in overlays[room].get("shared", [])]

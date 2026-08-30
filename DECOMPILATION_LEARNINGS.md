@@ -2645,6 +2645,16 @@ dryfield_night_trailer_coach = { room = "Trailer coach",
 the switch file is how GCC's `.align 3` after the table shifts the rest of the
 overlay.
 
+**The symptom of a missing cut is a bare checksum `FAILED`, so read the `.map`.**
+Nothing warns: the C compiles, splat is happy, and `ninja` only says
+`build/USA/out/<overlay>: FAILED`. `asm-differ` cannot help either, because a
+generated overlay has no `source.bin`. The fastest confirmation is the linker
+map - `grep -A3 rodata build/USA/out/<overlay>.elf.map` prints the C object's
+`.rodata` size, and comparing it against the span the extracted symbols cover
+(last rodata address + its length, minus the load address) shows the four bytes
+of `.align 3` pad directly. `actor_202600`'s leading rodata runs
+`0x80149E20..0x80149E8C`, i.e. `0x6C`, so a `0x70` there is the pad.
+
 When the table is the last object in the leading rodata (it ends at the first
 `.text` address), skip that remainder cut: there is nothing after the table for
 a later unit's `.rodata` to own. Still cut `.text` at the *next* function so
@@ -2663,11 +2673,18 @@ A matched switch that also exists in another overlay of the family should be
 promoted, not landed twice. `overlay_dup_index.py promote` refuses the body
 while it is still `INCLUDE_ASM` if the copies are not byte-identical or if they
 jal overlay-local functions; match first, or write the `shared` span by hand.
-`words` in the dup index counts every `/* offset vram encoding */` line in the
-function's `.s`, including a migrated jump table, so `words * 4` overruns the
-next function. The text span is file offset of the first instruction through
-the byte after `jr $ra`'s delay slot (`0x5D58`..`0x5E88` for
-`func_actor_403900_80137B78`).
+The text span is file offset of the first instruction through the byte after
+`jr $ra`'s delay slot (`0x5D58`..`0x5E88` for `func_actor_403900_80137B78`);
+the dup index derives it from the `glabel` onwards, so the migrated jump table
+printed ahead of the code does not inflate it.
+
+**Matching the body is what lets the index group it, so the canonical form must
+ignore `.align`.** splat emits an `.align 3` ahead of a jump table that starts a
+cut `.rodata` subsegment and nothing ahead of the same table mid-block, so the
+copy you just matched would otherwise hash differently from the unmatched
+copies it is meant to serve, and `promote` would report "only one copy". That
+one directive is the whole difference; `SKIP` in `overlay_dup_index.py` drops
+it.
 
 Pair the table with the shared object: a `rodata` cut whose `unit` matches a
 `shared` span is emitted as `lib/<unit>`, so GCC's table (which must start that
@@ -2678,6 +2695,24 @@ sharer.
 actor_403900 = { rodata = [{ start = "0x104", unit = "actors_shared_80137b78" }],
                  shared = [{ start = "0x5D58", end = "0x5E88", unit = "actors_shared_80137b78" }] }
 ```
+
+The `shared` span is a **file offset**, so a relocated slot measures it from its
+own `load_addr`, not the family's. `actor_202600` loads at `0x80149E20` against
+the family's `0x80131E20`; reading the family value would place its body at
+`0x1B784`, well past the end of a `0x3FDC`-byte package.
+
+```toml
+actor_202600 = { load_addr = 0x80149E20, global_vram_end = 0x80149E20,
+                 rodata = [{ start = "0x44", unit = "actors_shared_801355a4" }],
+                 shared = [{ start = "0x3784", end = "0x385C", unit = "actors_shared_801355a4" }] }
+```
+
+The `shared` cut already breaks `.text` at the body, so a `units` entry at the
+same offset that a pre-promotion single-overlay landing needed is redundant and
+should go. Splitting the body out also splits the overlay's `.c`: everything
+from the byte after the span onwards belongs to the new `<name>_2` unit, and
+splat never rewrites an existing `.c`, so move those `INCLUDE_ASM` lines by hand
+in **every** sharer and retarget their path string to `<name>_2`.
 
 The shared C has one name and relocates per overlay. Callees that stay
 overlay-local need generic names in that C, with `absolute:True` aliases in
