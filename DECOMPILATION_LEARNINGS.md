@@ -2671,6 +2671,32 @@ first thing in the object even when its function is not the first in the unit.
 `rodata = [..., { start = "0x104", unit = "dryfield_night_motel_room_6_6" }]`
 was the whole config change — no `units` entry.
 
+**Cut at the table, not at the first symbol the later unit owns, when a plain
+`D_*` sits in between.** The rule above ("cut at the first symbol whose owner is
+the later unit") assumes the first such symbol *is* the table. When the later
+unit owns a non-table symbol ahead of it, starting the cut there puts that
+symbol at offset 0 of the new object's `.rodata` and the compiler's table behind
+it, where GCC's `.align 3` becomes real padding. `dryfield_gas_station` has
+`D_dryfield_gas_station_8017D6A4` at `0xE4` (0xC bytes, referenced by
+`func_..._8017FF8C`) immediately ahead of `jtbl_..._8017D6B0` at `0xF0`, and both
+functions live in unit `_6`. Cutting at `0xE4` links cleanly and silently builds
+the wrong binary: the table lands at `0x8017D6B4` and every later rodata symbol
+shifts by 4 (`jtbl_..._8017D6C8` shows as `0x8017d6cc` in the `.elf.map`).
+Cutting at `0xF0` instead — leaving the `D_*` word with the previous owner, whose
+unit never emits compiler rodata — puts the table at offset 0 where `SUBALIGN(4)`
+handles the alignment, and needs no `units` `.text` cut:
+
+```toml
+rodata = [{ start = "0x84", unit = "dryfield_gas_station_2" },
+          { start = "0xE4", unit = "dryfield_gas_station_3" },   # D_8017D6A4 only
+          { start = "0xF0", unit = "dryfield_gas_station_6" }]   # the jtbls
+```
+
+A cut's `unit` records ownership only; it does not have to match who references
+the symbols in it, so parking an `INCLUDE_RODATA`-only word under the earlier
+unit is fine. Check the result in `build/USA/out/<overlay>.elf.map` — a 4-byte
+shift there is the pad, and it is the only symptom besides the checksum.
+
 **Moving the tail of a cut leaves a stale `INCLUDE_RODATA` behind, and the link
 error names the old unit.** Splat only writes a C file that does not exist, so
 the previous owner's `.c` keeps its `INCLUDE_RODATA(..., jtbl_*)` line after the
