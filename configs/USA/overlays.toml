@@ -196,7 +196,7 @@ imports = "configs/USA/sym/rooms.imports.txt"
 # own backgrounds. Renaming is cheap while a room is still all INCLUDE_ASM and
 # expensive once its functions are matched, so do it before decompiling.
 [rooms.overlays]
-acropolis_square = { room = "Square" }
+acropolis_square = { room = "Square", units = ["0x3C68", "0x41D4"], rodata = [{ start = "0x94", unit = "acropolis_square_2" }, { start = "0xF4", unit = "acropolis_square_3" }] }
 acropolis_east_elevator_hall = { room = "East elevator hall" }
 acropolis_patio = { room = "Patio" }
 acropolis_cafeteria = { room = "Cafeteria", shared = [{ start = "0x395C", end = "0x431C", unit = "room_draw_billboard" }] }
