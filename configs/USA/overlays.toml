@@ -312,7 +312,7 @@ shelter_b2_elevator_hall = { room = "Elevator hall", floor = "B2" }
 shelter_b2_south_maintenance_walkway = { room = "South maintenance walkway", floor = "B2", shared = [{ start = "0x29B0", end = "0x3370", unit = "room_draw_billboard" }] }
 shelter_b2_operating_room = { room = "Operating room", floor = "B2" }
 shelter_b2_north_maintenance_walkway = { room = "North maintenance walkway", floor = "B2" }
-shelter_b2_laboratory = { room = "Laboratory", floor = "B2" }
+shelter_b2_laboratory = { room = "Laboratory", floor = "B2", units = ["0x1F18"], rodata = [{ start = "0x84", unit = "shelter_b2_laboratory_2" }] }
 shelter_b2_breeding_room = { room = "Breeding room", floor = "B2" }
 shelter_b2_main_corridor = { room = "Main corridor", floor = "B2", shared = [{ start = "0x4960", end = "0x5320", unit = "room_draw_billboard" }] }
 shelter_b2_septic_tank = { room = "Septic tank", floor = "B2", shared = [{ start = "0x4BF4", end = "0x55B4", unit = "room_draw_billboard" }] }
