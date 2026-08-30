@@ -210,7 +210,7 @@ acropolis_promenade = { room = "Promenade" }
 acropolis_sanctuary = { room = "Sanctuary" }
 acropolis_roof_garden = { room = "Roof garden" }
 acropolis_bridge = { room = "Bridge" }
-acropolis_fire_escape = { room = "Fire escape" }
+acropolis_fire_escape = { room = "Fire escape", units = ["0x1ECC", "0x2438"], rodata = [{ start = "0x84", unit = "acropolis_fire_escape_2" }, { start = "0xE4", unit = "acropolis_fire_escape_3" }] }
 acropolis_helicopter_landing_pad = { room = "Helicopter landing pad" }
 acropolis_west_elevator_hall = { room = "West elevator hall" }
 mist_r18 = { note = "cutscene or one-off room; no map names it" }
