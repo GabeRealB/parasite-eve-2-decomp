@@ -16,6 +16,12 @@
 # appears once in the linker script, at the offset its subsegment names, so the
 # cut is what puts the compiler-generated table at the right address.
 #
+# A `rodata` cut pairs with a `.text` cut, so it cannot give a table to the
+# overlay's *first* function - there is no text ahead of it to cut at. Use
+# `rodata_head = "<offset>"` instead: the `0x0..<offset>` header stays in
+# assembly as its own `<name>_hdr` object and the first code unit's `.rodata`
+# starts at `<offset>`, which is where its table has to land.
+#
 # `duplicate_of = "<file id>"` marks an overlay whose package is byte-identical
 # to another's. It gets no config and is never split: splitting it a second time
 # would produce a second copy of the same disassembly and the same functions
@@ -350,7 +356,7 @@ neo_ark_power_plant_2 = { room = "Power plant 2", shared = [{ start = "0x1E08", 
 neo_ark_power_plant_1 = { room = "Power plant 1" }
 neo_ark_savanna_zone = { room = "Savanna zone", shared = [{ start = "0x1A20", end = "0x23E0", unit = "room_draw_billboard" }] }
 neo_ark_south_promenade = { room = "South promenade", shared = [{ start = "0x1734", end = "0x20F4", unit = "room_draw_billboard" }] }
-neo_ark_altar = { room = "Altar" }
+neo_ark_altar = { room = "Altar", units = ["0x2FC"], rodata_head = "0x14", rodata = [{ start = "0x40", unit = "neo_ark_altar_2" }] }
 neo_ark_shrine = { room = "Shrine", shared = [{ start = "0x3EB4", end = "0x4874", unit = "room_draw_billboard" }] }
 shelter_b6_nursery = { room = "Nursery", floor = "B6", shared = [{ start = "0x6D3C", end = "0x76FC", unit = "room_draw_billboard" }], units = ["0x1F28", "0x2494"], rodata = [{ start = "0x84", unit = "shelter_b6_nursery_2" }, { start = "0xE4", unit = "shelter_b6_nursery_3" }] }
 shelter_b6_growth_room = { room = "Growth room", floor = "B6" }

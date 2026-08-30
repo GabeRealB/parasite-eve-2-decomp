@@ -2645,6 +2645,31 @@ dryfield_night_trailer_coach = { room = "Trailer coach",
 the switch file is how GCC's `.align 3` after the table shifts the rest of the
 overlay.
 
+### The overlay's *first* function needs `rodata_head`, not a `rodata` cut
+
+A `rodata` cut only works because it pairs with a `.text` cut, and the first
+function has no text ahead of it to cut at - `gen_overlay_configs.py` rejects a
+`units` break at the start of `.text`. `neo_ark_altar` hit this: `func_..._8017D668`
+is the first function and its table is `jtbl_..._8017D5D4` at rodata `0x14`,
+which is 4-mod-8, so GCC's `.align 3` padded it to `0x18` and shifted every
+`.text` symbol by 8.
+
+The fix is to take the header *out of C* instead of moving the function out of
+unit 1. `rodata_head = "<offset>"` emits a plain (assembly) `rodata` subsegment
+for `0x0..<offset>` as `<name>_hdr`, so the first code unit's `.rodata` starts at
+the table and the linker script's `SUBALIGN(4)` re-aligns it:
+
+```toml
+neo_ark_altar = { room = "Altar", units = ["0x2FC"], rodata_head = "0x14",
+                  rodata = [{ start = "0x40", unit = "neo_ark_altar_2" }] }
+```
+
+`rodata_head` alone is not enough. Unit 1's `.rodata` now starts 4-mod-8, so
+every `.align 3` *after* the generated table inside that same section pads for
+real - the next table, `jtbl_..._8017D600` at `0x40`, would land at `0x44`. Pair
+it with an ordinary `rodata` + `units` cut so the generated table is the only
+thing in its object's `.rodata`, exactly as with a mid-overlay table.
+
 ## Shared `task->state++` is per-case stores, not a `next` phi
 
 A long task switch whose every advancing arm is `lw v0, 0x30(s1) / j store /

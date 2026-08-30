@@ -86,6 +86,7 @@ def subsegments(
     span: tuple[int, int] | None,
     shared: list[dict],
     rodata: list[dict],
+    rodata_head: str | int | None,
     units: list[str],
 ) -> str:
     """The package layout as splat subsegment lines.
@@ -121,16 +122,24 @@ def subsegments(
         # linker script, at the offset its subsegment names, so a jump table a
         # decompiled function emits from C only lands at the right address if
         # the rodata is cut where ownership changes.
-        lines.append(f"      - [0x0, .rodata, {name}/{name}]")
+        head = int(str(rodata_head), 16) if rodata_head else 0
+        if head:
+            if not 0 < head < start:
+                raise SystemExit(
+                    f"{name}: rodata_head 0x{head:X} is outside the leading "
+                    f"rodata (0x0..0x{start:X})"
+                )
+            lines.append(f"      - [0x0, rodata, {name}_hdr]")
+        lines.append(f"      - [0x{head:X}, .rodata, {name}/{name}]")
         for cut in sorted(rodata, key=lambda r: int(str(r["start"]), 16)):
             cut_start = int(str(cut["start"]), 16)
-            if not 0 < cut_start < start:
+            if not head < cut_start < start:
                 raise SystemExit(
                     f"{name}: rodata cut {cut['unit']} at 0x{cut_start:X} is "
-                    f"outside the leading rodata (0x0..0x{start:X})"
+                    f"outside the leading rodata (0x{head:X}..0x{start:X})"
                 )
             lines.append(f"      - [0x{cut_start:X}, .rodata, {name}/{cut['unit']}]")
-    elif rodata:
+    elif rodata or rodata_head:
         raise SystemExit(f"{name}: rodata cuts but the package has no leading rodata")
 
     # Walk the code region, cutting out each shared body as its own subsegment
@@ -230,6 +239,7 @@ def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path
                 span,
                 entry.get("shared", []),
                 entry.get("rodata", []),
+                entry.get("rodata_head"),
                 entry.get("units", []),
             ),
         }.items():
