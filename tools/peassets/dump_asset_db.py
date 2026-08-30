@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Rebuild ``asset_data.py`` (ASSETS + TREE) from an extracted assets tree.
+"""Rebuild ``asset_data.py`` (MODELS + ASSETS + TREE) from an extracted assets tree.
 
 Unique blobs come from ``raw/{type}/`` (SHA-1 of the on-disc payload).
 CDF placement comes from ``stages.json``. Extra ASSETS fields (``bpp``,
-``required``, …) and TREE folder/file **keys** are preserved across
+``required``, …), the whole ``MODELS`` map and TREE folder/file **keys** are preserved across
 regenerations (matched by sha1 / disc id). pe2img ``bpp`` is an int, or a
 list (one depth per work-entry column). Missing ``bpp`` is filled with
 ``guess_bpp()`` for every column.
@@ -54,15 +54,16 @@ RAW_TYPE_DIRS = (
 )
 
 
-def _load_old() -> tuple[dict[str, dict[str, Any]], dict[int, Any]]:
+def _load_old() -> tuple[dict[str, dict[str, Any]], dict[int, Any], dict[str, str]]:
     try:
         import asset_data
 
         assets = dict(getattr(asset_data, "ASSETS", {}) or {})
         tree = dict(getattr(asset_data, "TREE", {}) or {})
-        return assets, tree
+        models = dict(getattr(asset_data, "MODELS", {}) or {})
+        return assets, tree, models
     except Exception:
-        return {}, {}
+        return {}, {}, {}
 
 
 def _sha1_file(path: Path) -> str:
@@ -343,7 +344,8 @@ def _fmt_chunks(chunks: dict[int, str]) -> str:
 
 
 def emit_module(
-    assets: dict[str, dict[str, Any]], tree: dict[int, Any]
+    assets: dict[str, dict[str, Any]], tree: dict[int, Any],
+    models: dict[str, str] | None = None,
 ) -> str:
     lines: list[str] = [
         '"""Generated unique-asset table and CDF tree. See asset_db.py.',
@@ -358,8 +360,16 @@ def emit_module(
         "",
         "from __future__ import annotations",
         "",
-        "ASSETS = {",
     ]
+    # Hand-written and keyed by content, so it survives regeneration the same
+    # way extra ASSETS fields do.
+    if models:
+        lines.append("MODELS = {")
+        for digest in sorted(models, key=lambda d: models[d]):
+            lines.append(f"    {digest!r}: {models[digest]!r},")
+        lines.append("}")
+        lines.append("")
+    lines.append("ASSETS = {")
     for aid in sorted(assets, key=asset_name_key):
         lines.append(f"    {aid!r}: {_fmt_record(assets[aid])},")
     lines.append("}")
@@ -416,10 +426,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"missing raw/ under {assets_root}", file=sys.stderr)
         return 1
 
-    old_assets, old_tree = _load_old()
+    old_assets, old_tree, models = _load_old()
     assets = collect_assets(assets_root, old_assets)
     tree = collect_tree(assets_root, old_tree)
-    text = emit_module(assets, tree)
+    text = emit_module(assets, tree, models)
     args.out.write_text(text, encoding="utf-8")
     n_chunks = 0
     for body in tree.values():

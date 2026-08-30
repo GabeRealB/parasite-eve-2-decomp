@@ -40,6 +40,7 @@ in ``src/main/hasm/Tmd_StreamHandlers_Ops.s``, which is a separate job.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import struct
@@ -276,6 +277,15 @@ def find_sources(data: bytes, base: int, stream_vas: set[int]) -> dict[int, dict
     return out
 
 
+def model_name(stream: bytes) -> str | None:
+    """Catalogued name for a model stream, keyed by its SHA-1."""
+    try:
+        from asset_data import MODELS
+    except Exception:
+        return None
+    return MODELS.get(hashlib.sha1(stream).hexdigest())
+
+
 def extract_package_models(output_path: Path, store=None, *, limit: int | None = None) -> int:
     """Carve every located model stream into ``raw/model/``.
 
@@ -314,7 +324,11 @@ def extract_package_models(output_path: Path, store=None, *, limit: int | None =
             src = srcs.get(base + off) if base is not None else None
             if src:
                 sourced += 1
-            asset_id = f"{pkg.stem}_model_{off:05X}"
+            # Prefer the catalogued name. Streams are deduped by SHA-1, so
+            # without this the first package scanned names the mesh, and that
+            # is alphabetical order rather than anything meaningful - Kyle's
+            # body would land under `actor_120400_model_015D8`.
+            asset_id = model_name(data[off:end]) or f"{pkg.stem}_model_{off:05X}"
             _raw_path, _stem, is_new = store.put_embedded(
                 data[off:end],
                 ext=".tmd",

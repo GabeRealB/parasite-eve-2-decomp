@@ -33,6 +33,10 @@ shape, and there are 446 of them, so their configs are **generated**:
 `sha1`, size and the `.text` span are **derived from the package**, never
 written in the manifest, so a config cannot drift from the data it describes.
 
+**Model streams are named too**, by SHA-1 in `asset_data.MODELS`, because dedup
+otherwise lets whichever package sorts first name a shared mesh. A named mesh
+shows under that name in every package carrying it.
+
 **An overlay is an extracted package.** Identified packages — and the folders
 and stage-0 files that contain them — are *named in the extractor* (`tools/peassets/asset_data.py`, preserved across
 `dump_asset_db.py` regeneration by sha1), so they extract as `m93r.pe2pkg`

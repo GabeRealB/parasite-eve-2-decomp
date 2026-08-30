@@ -127,8 +127,10 @@ def scan_overlay(overlay: Overlay, *, anim_candidates=None) -> list[Embedded]:
         # can be listed but not drawn; say so in the label rather than
         # offering an empty viewport.
         verts = int(src["vertex_count"]) if src else 0
-        detail = {"stream": s, "source": src}
-        label = f"model @0x{off:05X}"
+        end = off + int(s["bytes"])
+        named = pkg_model.model_name(data[off:end])
+        detail = {"stream": s, "source": src, "name": named}
+        label = named or f"model @0x{off:05X}"
         if src:
             label += f"  ({verts} verts)"
         else:

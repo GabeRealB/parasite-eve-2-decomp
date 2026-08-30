@@ -796,6 +796,15 @@ Angles use `4096` for a full turn and the rotation order is PsyQ's `RotMatrix`
 form and nothing implies a decoder that does not exist. Drop the extension from
 that set once a materialize branch lands.
 
+**Models are named by content, in `asset_data.MODELS`.** A stream is deduped by
+SHA-1, so without a catalogue the first package scanned names the mesh — and
+that is alphabetical order, not meaning: Kyle's body would be stored as
+`actor_120400_model_015D8` because that package sorts before his. `MODELS` maps
+the stream's SHA-1 to a name, so the name follows the mesh into every package
+that shares it, and the viewer's overlay tree shows it there too. It is
+hand-written and preserved across `dump_asset_db.py` regeneration, the same way
+extra `ASSETS` fields are.
+
 572 streams are located across 212 packages; SHA-1 dedup in the store collapses
 them to **298 unique** files, so 274 are meshes shared between packages. (Both
 figures dropped once the scanner stopped accepting zero padding as a stream —

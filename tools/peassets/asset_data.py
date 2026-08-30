@@ -10,6 +10,20 @@ Regenerate (preserves extra ASSETS fields and TREE keys, matched by sha1):
 
 from __future__ import annotations
 
+# Model streams are carved out of the packages, not walked out of the CDF, so
+# they are not in ASSETS. They are still deduped by SHA-1, which means whichever
+# package happens to be scanned first would otherwise name a mesh - Kyle's body
+# would come out as `actor_120400_model_015D8` because that sorts first. Naming
+# by content instead makes the name independent of scan order and of which
+# package you found it in.
+#
+# Keyed by the stream's SHA-1, like ASSETS is keyed by name and matched by sha1.
+MODELS = {
+    # Kyle's body, shared byte-identically by his four packages and by eight
+    # actor packages that are human NPCs built on the same rig.
+    'e7c2daac6a7d007e492746a17d82110fddfc398a': 'kyle_body',
+}
+
 ASSETS = {
     'mm1': {"sha1": "6a8753d07f022f125155ea3c47f1cd44a45d577c", "type": "pe2pkg", 'required': True},
     'p08': {"sha1": "9a4cfdcbd95eccc4376628265d7ecdd50381ed94", "type": "pe2pkg", 'required': True},
