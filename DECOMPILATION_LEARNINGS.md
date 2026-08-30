@@ -32310,3 +32310,26 @@ cross-jumping) leaves behind: with the default already assigned, the arm that
 overwrites it needs no else block to jump over.
 `func_shelter_b1_sterilization_room_801816E0` is the example — 83% as m2c wrote
 it, 92% cross-jumped, 95% with a shared variable, 100% with the temp.
+
+## m2c `goto block_N` for a cross-jumped tail merges in the wrong direction
+
+A `switch` whose cases end in the same call gets one shared copy of that tail
+from GCC's cross-jumping. m2c reconstructs the merge as an explicit
+`var_a0 = …; goto block_N;` and places the surviving copy in the **earlier**
+case, so the later case jumps *backwards* into it. GCC does the opposite: it
+keeps the tail at the end of the **later** block and redirects the earlier case
+*forwards* to it.
+
+Symptom is a 95%-ish score with `branch=1 insert=1 delete=1` and a diff whose
+only content is the shared block moving between the two arms:
+
+```
+-j    .text+0x1a4          /* target: case 3 jumps forward … */
+ addiu a0, s0, 0x88
++li   a1, 0x180            /* … ours kept the tail in case 3 instead */
+```
+
+Fix: delete the `goto` and the `var_a0` temp, write the final call out in full
+in every case, and end each case with `break`. GCC re-merges them itself, in
+its own direction. `func_shelter_1f_airlock_8017D6D0` is the minimal example
+(two arms of 8 and 14 `SVECTOR` emitter calls sharing one last call).
