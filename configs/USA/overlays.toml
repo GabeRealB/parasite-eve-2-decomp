@@ -274,7 +274,7 @@ dryfield_night_factory = { room = "Factory" }
 dryfield_night_garage = { room = "Garage" }
 dryfield_night_driveway = { room = "Driveway" }
 dryfield_night_junk_yard = { room = "Junk yard", shared = [{ start = "0x25DC", end = "0x2F9C", unit = "room_draw_billboard" }] }
-dryfield_night_trailer_coach = { room = "Trailer coach" }
+dryfield_night_trailer_coach = { room = "Trailer coach", units = ["0x47F0", "0x4D5C"], rodata = [{ start = "0x1BC", unit = "dryfield_night_trailer_coach_2" }, { start = "0x21C", unit = "dryfield_night_trailer_coach_3" }] }
 dryfield_night_motel_room_5 = { room = "Motel room 5" }
 dryfield_night_motel_balcony = { room = "Motel balcony" }
 dryfield_night_motel_room_6 = { room = "Motel room 6" }

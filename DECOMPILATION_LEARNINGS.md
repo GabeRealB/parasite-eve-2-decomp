@@ -2627,6 +2627,79 @@ Then delete **both** `src/` files and re-split, as with any rodata cut. Splat
 re-emits already-matched bodies from `asm/<ver>/<family>/matchings/`, so only
 hand-written C needs saving first.
 
+When the table is immediately followed by `INCLUDE_RODATA` that belongs to a
+*later* function, add a second pair so the table is the only thing in its
+object's `.rodata`. `func_dryfield_night_trailer_coach_80181DB0` is a 0x60-byte
+0..23 table at `0x1BC` ending at `0x21C`, and `D_..._8017D7DC` starts there:
+
+```toml
+dryfield_night_trailer_coach = { room = "Trailer coach",
+    units = ["0x47F0", "0x4D5C"],
+    rodata = [
+        { start = "0x1BC", unit = "dryfield_night_trailer_coach_2" },
+        { start = "0x21C", unit = "dryfield_night_trailer_coach_3" },
+    ] }
+```
+
+`_2` is the switch; `_3` is the remainder. Leaving the later `INCLUDE_RODATA` in
+the switch file is how GCC's `.align 3` after the table shifts the rest of the
+overlay.
+
+## Shared `task->state++` is per-case stores, not a `next` phi
+
+A long task switch whose every advancing arm is `lw v0, 0x30(s1) / j store /
+addiu v0, 1` with one shared `sw v0, 0x30(s1)` wants `task->state++` (or
+`task->state = K`) **inside each case**. Routing through a `next` local + goto
+assigns that phi to `$s0` and clobbers the spawn-arg pointer. GCC 2.8.1 still
+merges the stores to one `sw`. Dummy `case 15: ... case 19: break;` keeps a
+0..23 `sltiu` table when those slots just return.
+
+## Irregular inner `if` chain: jump to bodies, default last
+
+`Gp_GetCapEventKey()` dispatched with `beq 0xB` / `beq 0xC` / `j default` then
+bodies `[B][C][default]` is not `if / else if / else`. The else-if form inlines
+default between the tests and case B. Force order with gotos:
+
+```c
+if (key == 0xB) {
+    goto L_keyB;
+}
+if (key == 0xC) {
+    goto L_keyC;
+}
+goto L_keyDefault;
+L_keyB:
+    ...
+    break;
+L_keyC:
+    ...
+    break;
+L_keyDefault:
+    ...
+    break;
+```
+
+## Two literal `1`s across calls CSE into `$s0`
+
+`if (cmd == 1)` then later `if (GameFlag_GetNibble(...) != 1)` shares CONST_INT
+1 across the jals between them, so the first compare becomes `li s0, 1` and the
+second drops its `li`. Block-scoped `s32 one = 1` locals still merge. Emit one
+of the two as an asm output so CSE cannot see it as CONST_INT 1:
+
+```c
+__asm__ volatile("addiu %0, $zero, 1" : "=r"(one));
+if (cmd != one) {
+    goto run;
+}
+cmd = GameFlag_GetNibble(0x155) + 0x10;
+run:
+Gp_RunCapCmd(cmd, 0);
+if (GameFlag_GetNibble(0x7A) != 1) {
+```
+
+Put the asm on the **first** compare so the second stays `li v1, 1` after the
+jal. `func_dryfield_night_trailer_coach_80181DB0` is the example.
+
 ## m2c: "the corresponding jump table is not provided"
 
 The scratch bootstrapper only feeds m2c the function's own `.s`, so any function
