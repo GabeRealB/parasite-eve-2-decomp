@@ -1,5 +1,7 @@
 #include "common.h"
 
+extern void func_dryfield_night_motel_balcony_8017E250(s32 arg0, s16 arg1);
+
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony", func_dryfield_night_motel_balcony_8017D694);
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony", D_dryfield_night_motel_balcony_8017D5C0);
@@ -32,7 +34,18 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_mote
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony", func_dryfield_night_motel_balcony_8017E250);
 
-INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony", func_dryfield_night_motel_balcony_8017E3C8);
+void func_dryfield_night_motel_balcony_8017E3C8(void)
+{
+    func_dryfield_night_motel_balcony_8017E250(0, GameFlag_GetNibble(0x85));
+    func_dryfield_night_motel_balcony_8017E250(1, GameFlag_GetNibble(0x86));
+    func_dryfield_night_motel_balcony_8017E250(2, GameFlag_GetNibble(0x87));
+    func_dryfield_night_motel_balcony_8017E250(3, GameFlag_GetNibble(0x88));
+    func_dryfield_night_motel_balcony_8017E250(4, GameFlag_GetNibble(0x89));
+    func_dryfield_night_motel_balcony_8017E250(5, GameFlag_GetNibble(0x8A));
+    func_dryfield_night_motel_balcony_8017E250(6, GameFlag_GetNibble(0x8B));
+    func_dryfield_night_motel_balcony_8017E250(7, GameFlag_GetNibble(0x8C));
+    func_dryfield_night_motel_balcony_8017E250(8, GameFlag_GetNibble(0x8D));
+}
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_motel_balcony/dryfield_night_motel_balcony", func_dryfield_night_motel_balcony_8017E4B8);
 
