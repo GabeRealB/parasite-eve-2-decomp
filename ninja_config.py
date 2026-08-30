@@ -8,6 +8,7 @@ import shutil
 import subprocess
 import sys
 import tomllib
+from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
 from enum import IntEnum
 from pathlib import Path
@@ -65,6 +66,28 @@ GAME_VERSIONS = [
         ),
     ),
 ]
+
+
+@dataclass
+class SplitSeg:
+    """The two `segment` fields `ninja_build` reads, as plain data."""
+
+    type: str
+    is_lib: bool
+
+
+@dataclass
+class SplitEntry:
+    """A `LinkerEntry` reduced to what survives a process boundary.
+
+    splat's own entries hold spimdisasm symbols carrying local lambdas, so they
+    cannot be pickled back from a worker; `ninja_build` only ever reads the
+    segment type, the object path and the first source path.
+    """
+
+    segment: SplitSeg
+    object_path: str | None
+    src_paths: list[str]
 
 
 @dataclass
@@ -889,7 +912,7 @@ def ninja_build(
                         print(f"ERROR: Unsupported build segment type {seg.type}")
                         sys.exit(1)
 
-                if not isinstance(seg, splat.segtypes.common.lib.CommonSegLib):
+                if not seg.is_lib:
                     elf_build_requirements += [str(s) for s in [entry.object_path]]
 
         if split_config.split_basename == "main":
@@ -967,6 +990,80 @@ def ninja_build(
 
     with open("compile_commands.json", "w") as cc_file:
         json.dump(cc_entries, cc_file, indent=2)
+
+
+class SplitFailure(Exception):
+    """A worker could not split a unit; the message is already user-facing."""
+
+
+def split_one(job: tuple) -> YamlInfo:
+    """Split one config and run its post-split fixups.
+
+    Runs in a worker process. Each unit is independent - its own spimdisasm
+    context, its own output files under asm/, src/ and linkers/ - so the only
+    thing that has to come back is what `ninja_build` needs, reduced to plain
+    data because splat's linker entries carry unpicklable symbols.
+    """
+    (
+        yaml,
+        version_dir,
+        overlay_family,
+        overlay_basename,
+        family_imports,
+        core_family,
+        objdiff_config_option,
+    ) = job
+
+    splat.util.symbols.spim_context = spimdisasm.common.Context()
+    splat.util.symbols.reset_symbols()
+    split.main(
+        [Path(f"{CONFIG_DIR}/{version_dir}/{yaml}")],
+        modes="all",
+        use_cache=False,
+        verbose=False,
+        disassemble_all=True,
+        make_full_disasm_for_code=objdiff_config_option,
+    )
+
+    if yaml == "title.yaml":
+        fix_title_linker_rodata_order()
+        append_overlay_absolute_imports("title")
+    elif yaml == "gameplay.yaml":
+        fix_gameplay_linker_rodata_order()
+        append_overlay_absolute_imports("gameplay")
+        fix_overlay_include_asm_paths("gameplay")
+    elif yaml in overlay_family and overlay_family[yaml] != core_family:
+        family = overlay_family[yaml]
+        basename = overlay_basename[yaml]
+        append_overlay_absolute_imports(basename, family_imports.get(family))
+        fix_overlay_include_asm_paths(basename, f"src/{family}")
+        seg = split.config["segments"][0]
+        text_sub = next(
+            (s for s in seg.get("subsegments", []) if len(s) > 2 and s[1] == "c"), None
+        )
+        if text_sub is not None:
+            check_overlay_text_span(family, basename, seg["vram"], text_sub[0])
+
+    entries = []
+    for entry in split.linker_writer.entries:
+        seg = entry.segment
+        entries.append(
+            SplitEntry(
+                segment=SplitSeg(
+                    type=seg.type,
+                    is_lib=isinstance(seg, splat.segtypes.common.lib.CommonSegLib),
+                ),
+                object_path=None if entry.object_path is None else str(entry.object_path),
+                src_paths=[str(s) for s in entry.src_paths],
+            )
+        )
+    return YamlInfo(
+        [entries],
+        split.config["options"]["basename"],
+        split.config["options"]["ld_script_path"],
+        split.config["options"]["undefined_funcs_auto_path"],
+        split.config["options"]["undefined_syms_auto_path"],
+    )
 
 
 def clean_working_files(clean_build_files: bool, clean_target_files: bool):
@@ -1118,6 +1215,13 @@ def main():
         action="store_true",
     )
     parser.add_argument(
+        "-j",
+        "--jobs",
+        help="parallel split workers (default: CPU count; 1 forces sequential)",
+        type=int,
+        default=0,
+    )
+    parser.add_argument(
         "-ver",
         "--game_version",
         help="Extract and work under a specific version of the game",
@@ -1125,6 +1229,7 @@ def main():
     )
     args = parser.parse_args()
 
+    jobs_option = int(args.jobs or 0)
     clean_compilation_files = (args.clean) or False
     skip_checksum_option = (args.skip_checksum) or False
     non_matching_option = (args.non_matching) or False
@@ -1182,51 +1287,48 @@ def main():
     else:
         clean_working_files(True, objdiff_config_option)
 
-    for yaml in yamls_paths:
-        splat.util.symbols.spim_context = spimdisasm.common.Context()
-        splat.util.symbols.reset_symbols()
-        split.main(
-            [
-                Path(
-                    f"{CONFIG_DIR}/{GAME_VERSIONS[game_version_option].metadata.version_dir}/{yaml}"
-                )
-            ],
-            modes="all",
-            use_cache=False,
-            verbose=False,
-            disassemble_all=True,
-            make_full_disasm_for_code=objdiff_config_option,
+    version_dir = GAME_VERSIONS[game_version_option].metadata.version_dir
+    jobs = [
+        (
+            yaml,
+            version_dir,
+            overlay_family,
+            overlay_basename,
+            family_imports,
+            CORE_FAMILY,
+            objdiff_config_option,
         )
-        if yaml == "title.yaml":
-            fix_title_linker_rodata_order()
-            append_overlay_absolute_imports("title")
-        elif yaml == "gameplay.yaml":
-            fix_gameplay_linker_rodata_order()
-            append_overlay_absolute_imports("gameplay")
-            fix_overlay_include_asm_paths("gameplay")
-        elif yaml in overlay_family and overlay_family[yaml] != CORE_FAMILY:
-            family = overlay_family[yaml]
-            basename = overlay_basename[yaml]
-            append_overlay_absolute_imports(basename, family_imports.get(family))
-            # src_path is the family root now, and a shared unit lives in
-            # src/<family>/lib/, so fix the whole family tree.
-            fix_overlay_include_asm_paths(basename, f"src/{family}")
-            seg = split.config["segments"][0]
-            text_sub = next(
-                (s for s in seg.get("subsegments", []) if len(s) > 2 and s[1] == "c"),
-                None,
-            )
-            if text_sub is not None:
-                check_overlay_text_span(family, basename, seg["vram"], text_sub[0])
-        splits_yaml_info.append(
-            YamlInfo(
-                [split.linker_writer.entries],
-                split.config["options"]["basename"],
-                split.config["options"]["ld_script_path"],
-                split.config["options"]["undefined_funcs_auto_path"],
-                split.config["options"]["undefined_syms_auto_path"],
-            )
-        )
+        for yaml in yamls_paths
+    ]
+
+    # Splitting dominates a full run - 111 s of ~120 s across 449 units - and
+    # each unit is independent, so it parallelises cleanly. `map` keeps the
+    # original order, which matters: main must stay first in the ninja graph.
+    # One unit is not worth a pool.
+    workers = jobs_option if jobs_option > 0 else (os.cpu_count() or 1)
+    workers = min(len(jobs), max(1, workers))
+    if workers > 1:
+        with ProcessPoolExecutor(max_workers=workers) as pool:
+            results = list(pool.map(split_one, jobs, chunksize=1))
+
+        # A shared `lib/` unit is written by *every* overlay that links it, so
+        # in a sequential run the last one in this order wins. In parallel the
+        # winner is whoever finishes last, which leaves the same instructions
+        # under a different ROM/VRAM comment column - harmless to the build,
+        # but non-deterministic. Re-split each shared unit's last owner in
+        # order so the output is byte-identical to a sequential run.
+        owner: dict[str, int] = {}
+        for i, info in enumerate(results):
+            for entry in info.split_entries[0]:
+                for src in entry.src_paths:
+                    marker = f"{os.sep}lib{os.sep}"
+                    if marker in str(src):
+                        owner[str(src)] = i
+        for i in sorted(set(owner.values())):
+            results[i] = split_one(jobs[i])
+        splits_yaml_info.extend(results)
+    else:
+        splits_yaml_info.extend(split_one(job) for job in jobs)
 
     append_main_overlay_imports()
 

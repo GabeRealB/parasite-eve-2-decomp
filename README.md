@@ -181,6 +181,7 @@ the project matches.
 | `-iso_e` / `--iso_extract` | Extract files from disc images (full inflate) |
 | `-iso_min` / `--iso_extract_minimal` | CI extract: raw + the overlays the build needs (448 packages, ~13s) |
 | `-o` / `--only` | Split and build only the named families or overlays |
+| `-j` / `--jobs` | Parallel split workers (default: CPU count; `1` forces sequential) |
 | `-iso_raw` / `--iso_extract_raw` | Extract raw/{type}/ only (no inflate) |
 | `-sc` / `--skip_checksum` | Build without the matching checksum step |
 | `-nm` / `--non_matching` | Compile with `-DNON_MATCHING` |

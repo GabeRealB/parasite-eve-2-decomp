@@ -96,8 +96,8 @@ overlay.
   project and verify that it matches the target. `--only` splits, builds and
   checksums just those units — a family (`core`, `weapons`) or a single
   basename (`gameplay`, `m93r`) — leaving every other overlay's `asm/` and
-  `linkers/` alone. Use it as the inner loop while matching (1.6s for one
-  weapon overlay, 4s for gameplay, against 18s for the project), then run it
+  `linkers/` alone. Use it as the inner loop while matching (2.6s for one
+  weapon overlay, 4.8s for gameplay, against 38s for the project), then run it
   **unscoped** before committing: a scoped pass says nothing about the
   overlays it skipped, which is exactly what a struct change breaks.
 - `diff.py` you can view the difference between the compiled and target assembly code of a given function by running `python3 tools/asm-differ/diff.py --no-pager <function name>`
