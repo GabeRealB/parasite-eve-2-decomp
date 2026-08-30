@@ -2618,6 +2618,30 @@ compiler's tables at exactly the offsets the migrated block occupied — the
 `INCLUDE_ASM`/`INCLUDE_RODATA` order in the file already encodes the layout and
 needs no hand-editing.
 
+**A cut at the tail of an existing block needs no `.text` cut when every earlier
+function in the unit is still `INCLUDE_ASM`.** The table has to start its
+object's `.rodata` so GCC's `.align 3` costs nothing, and `INCLUDE_ASM`
+functions emit no rodata of their own — so a compiler-generated table is the
+first thing in the object even when its function is not the first in the unit.
+`func_dryfield_night_motel_room_6_8018189C` is the second function in
+`dryfield_night_motel_room_6_6`, its table is the last 0x18 bytes of the block
+`dryfield_night_motel_room_6_3` owned, and
+`rodata = [..., { start = "0x104", unit = "dryfield_night_motel_room_6_6" }]`
+was the whole config change — no `units` entry.
+
+**Moving the tail of a cut leaves a stale `INCLUDE_RODATA` behind, and the link
+error names the old unit.** Splat only writes a C file that does not exist, so
+the previous owner's `.c` keeps its `INCLUDE_RODATA(..., jtbl_*)` line after the
+re-split and the table is emitted twice:
+
+```
+build/USA/src/rooms/.../dryfield_night_motel_room_6_3.c.o:(.rodata+0x10):
+    undefined reference to `.Ldryfield_night_motel_room_6_801818DC'
+```
+
+The `.L*` names are the *new* function's local labels, but the object named is
+the *old* unit — read the object, not the labels, to find the line to delete.
+
 ### Generated overlay configs: a rodata cut needs a matching `.text` cut
 
 A `rodata` cut alone does not move a *function* into the new unit, and the
