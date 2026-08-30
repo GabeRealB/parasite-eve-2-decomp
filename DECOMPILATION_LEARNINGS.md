@@ -33381,3 +33381,47 @@ a ternary steals `$t0`" above: when the value is *stored to a field*, the
 if/else form wins; when it is a *call argument whose condition is itself a
 call*, only the ternary keeps the value out of a callee-saved register.
 `stack` plus `regs` plus a `move aN, sN` where the target has `nop` is the tell.
+
+## Repeating a trailing constant store in every arm can *block* the tail-merge
+
+The dual of "duplicate the setup so GCC tail-merges one `jal`": when the
+common tail after a multi-way `if` is a call plus a **constant store**, and
+the same constant is also a compare operand earlier in the function, writing
+that store into all four arms makes GCC 2.8.1 CSE the constant into a
+callee-saved register. That costs an extra saved register (`$s2` appears,
+`$a0` moves out of `$s1`), and one arm's tail no longer matches the others
+(`li v0,2; sw v0` vs `sw s0`), so cross-jumping merges three of four arms
+instead of all four.
+
+`func_acropolis_security_room_8017F1BC` is the example. Duplicating the call
+*and* the store scored 89%:
+
+```c
+if (step == 0)      { Gp_StartCapSlot(3, 1, 0); task->state = 2; }
+else if (step == 1) { ...; return; }
+else                { Gp_StartCapSlot(3, 1, 2); task->state = 2; }
+```
+
+Duplicating only the **call** and leaving the store once after the chain is
+100%:
+
+```c
+if (flag == 0 || flag == 2) {
+    step = st->field_0;
+    if (step == 0)      { Gp_StartCapSlot(3, 1, 0); }
+    else if (step == 1) { ...; return; }
+    else                { Gp_StartCapSlot(3, 1, 2); }
+} else if (flag == 1 || flag == 3) {
+    ...
+} else {
+    return;
+}
+task->state = 2;
+```
+
+Each arm still emits its own `li a0,3` / `li a1,1` / `li a2,N` — cross-jumping
+merges the `jal` and the store, and per-arm CSE of the already-loaded
+constants gives the target's `move a2,a1` / `move a2,a0`. The rule of thumb:
+duplicate argument *setup*, but keep a constant store that shares its value
+with a live compare in the shared tail. `regs` plus an unexpected extra
+callee-saved register in the prologue is the tell.
