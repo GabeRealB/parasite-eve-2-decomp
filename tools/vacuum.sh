@@ -232,6 +232,20 @@ solved_elsewhere_file() {
   echo "$out"
 }
 
+# Copies of this body in other overlays of the same family. Written to a file so
+# the caller can both count it and paste it into a prompt. Empty is the normal
+# case; a non-empty list means the match must be promoted into the shared
+# library rather than left as one overlay's copy.
+shared_siblings_file() {
+  local func=$1
+  local out
+  out=$(mktemp "${TMPDIR:-/tmp}/vacuum-siblings.XXXXXX")
+  if ! python3 tools/overlay_dup_index.py siblings "$func" --rebuild >"$out" 2>/dev/null; then
+    : >"$out"
+  fi
+  echo "$out"
+}
+
 pick_simplest_func() {
   local extra=()
   if [[ $ONLY_DIFFICULT -eq 1 ]]; then
@@ -682,6 +696,35 @@ build_port_prompt() {
   local attempts=$5
   local score=$6
   local hint=$7
+  local siblings=${8:-}
+  local promote_block=""
+  if [[ -n "$siblings" && -s "$siblings" ]]; then
+    promote_block=$(cat <<PROMOTE
+
+## This body is shared - promote it, do not land it in one overlay
+
+\`$func\` also exists in $(wc -l <"$siblings") other overlay(s) of the same family.
+Landing it in its own overlay only leaves the copies to be matched again later,
+so promotion is part of this port, not a follow-up:
+
+1. \`python3 tools/overlay_dup_index.py promote $func\` — writes the span into
+   every carrying overlay's entry in \`configs/USA/overlays.toml\` and the shared
+   symbol into their \`configs/USA/sym/<family>/*.txt\`.
+2. Put the matched body in \`src/<family>/lib/<unit>.c\` under the shared symbol
+   name it printed, and delete it from this overlay's own \`.c\`.
+3. Delete the now-covered \`INCLUDE_ASM\` line for this body from each of the
+   other overlays' \`.c\` — their span is carved out, so a leftover declaration
+   breaks the link. splat will not do this for you: it never rewrites an
+   existing \`.c\`.
+4. \`venv/bin/python3 ninja_config.py\` then the unscoped
+   \`./tools/build-and-verify.sh\`. All targets must still match.
+
+The copies:
+
+$(cat "$siblings")
+PROMOTE
+)
+  fi
   cat <<EOF
 You are the **port** agent for \`$func\`. You are running in the canonical trunk:
 
@@ -706,6 +749,8 @@ $(stale_build_warning "$ROOT")
 EOF
   if [[ "$status" == "matched" ]]; then
     cat <<EOF
+${promote_block}
+
 Port the matched function onto **current** trunk:
 
 1. Read the worktree host C / headers / configs / learnings (and \`$scratch\` winning \`base_N.c\`) as the source of intent.
@@ -1177,8 +1222,20 @@ vacuum_orch_loop() {
     ORCH_MERGE=1
     pre_port=$(git -C "$ROOT" rev-parse HEAD)
 
-    local did_fast=0
+    # Is this body shared with other overlays? Decided here, between the match
+    # and the port, because it changes which port path is legal.
+    local siblings=""
     if [[ "$status" == "matched" ]]; then
+      siblings=$(cd "$ROOT" && shared_siblings_file "$func")
+      if [[ -s "$siblings" ]]; then
+        echo "$func is shared with $(wc -l <"$siblings") other overlay(s); it must be promoted, not landed in one." | tee -a "$LOG_FILE"
+      fi
+    fi
+
+    local did_fast=0
+    # The fast path copies the worktree onto trunk verbatim, which lands the
+    # body in its own overlay and cannot promote it. Not legal for a shared one.
+    if [[ "$status" == "matched" && ! -s "$siblings" ]]; then
       if fast_port_from_worktree "$func" "$wt" "$ORCH_BASE" "$scratch"; then
         did_fast=1
       else
@@ -1190,7 +1247,7 @@ vacuum_orch_loop() {
       if [[ "$status" == "matched" ]]; then
         echo "Starting port agent for $func ($status)..." | tee -a "$LOG_FILE"
         AGENT_FUNC="$func" AGENT_MAX_TURNS="${VACUUM_PORT_MAX_TURNS:-80}" run_agent \
-          "$(build_port_prompt "$func" "$status" "$wt" "$scratch" "$attempts" "$score" "$hint")" \
+          "$(build_port_prompt "$func" "$status" "$wt" "$scratch" "$attempts" "$score" "$hint" "$siblings")" \
           "$ROOT" | tee -a "$LOG_FILE"
         if include_asm_present "$func" "$ROOT"; then
           :
@@ -1203,6 +1260,7 @@ vacuum_orch_loop() {
           commit_difficult_if_needed "$func" 1 ) || true
       fi
     fi
+    [[ -n "$siblings" ]] && rm -f "$siblings"
 
     local landed=0
     if port_succeeded "$func" "$status"; then

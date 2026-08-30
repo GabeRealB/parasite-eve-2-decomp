@@ -131,6 +131,24 @@ def classes(data: dict, key: str) -> dict[str, list[dict]]:
     return out
 
 
+def cmd_siblings(data: dict, name: str, min_words: int) -> int:
+    """Copies of this body in *other overlays of the same family*, one per line.
+
+    That is the set promotion can serve: the shared unit lives in
+    `src/<family>/lib/`, and an overlay links once so a second copy inside the
+    same overlay is a separate function. Empty output means nothing to promote,
+    which is the common case and is not an error.
+    """
+    hit = next((f for f in data["functions"] if f["name"] == name), None)
+    if hit is None or hit["words"] < min_words:
+        return 0
+    family = hit["overlay"].split("/")[1]
+    for f in sorted(classes(data, "text")[hit["text"]], key=lambda f: f["overlay"]):
+        if f["overlay"] != hit["overlay"] and f["overlay"].split("/")[1] == family:
+            print(f"{f['overlay']}\t{f['name']}")
+    return 0
+
+
 def cmd_promote(data: dict, name: str, unit: str | None) -> int:
     """Move a body into the family's shared library.
 
@@ -325,7 +343,7 @@ def cmd_shared(data: dict, minimum: int, refs: bool) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("command", choices=("stats", "find", "shared", "solved", "promote"))
+    ap.add_argument("command", choices=("stats", "find", "shared", "solved", "promote", "siblings"))
     ap.add_argument("name", nargs="?")
     ap.add_argument("--family", action="append", help="limit to a family (rooms, weapons, …)")
     ap.add_argument("--min", type=int, default=10, help="`shared`: minimum copies")
@@ -339,6 +357,10 @@ def main() -> int:
     data = load(args.rebuild, args.family)
     if args.command == "solved":
         return cmd_solved(data, args.min_words)
+    if args.command == "siblings":
+        if not args.name:
+            ap.error("siblings needs a function name")
+        return cmd_siblings(data, args.name, args.min_words)
     if args.command == "promote":
         if not args.name:
             ap.error("promote needs a function name")
