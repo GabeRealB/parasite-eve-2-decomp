@@ -1504,6 +1504,7 @@ class AssetViewer(tk.Tk):
         if skipped:
             note += f" · {sum(skipped.values())} elements skipped"
         self.mesh_view.show(verts, faces, mesh.normals, mesh.parts, note)
+        self._setup_animations(ov, emb, mesh)
         self.preview_nb.select(self.mesh_view)
 
         stream = emb.detail.get("stream") or {}
@@ -1569,6 +1570,35 @@ class AssetViewer(tk.Tk):
             ]
         self._set_text_widget(self.text_deflated, "\n".join(lines))
         self._set_text_widget(self.text_raw, "")
+
+    def _setup_animations(self, ov, emb, mesh) -> None:
+        """Offer the Model tab any animations that drive this model."""
+        skel = (emb.detail.get("source") or {}).get("skeleton")
+        anims = []
+        if skel and mesh.posed:
+            try:
+                anims = pkg_overlay.load_animations(
+                    ov, emb, skel, self._anim_candidates
+                )
+            except Exception:
+                anims = []
+        if not anims:
+            self.mesh_view.set_animations([], [], None)
+            return
+
+        raw = pkg_overlay.raw_arrays(ov, emb)
+
+        def sample(index, frame):
+            if index is None:
+                world = pkg_overlay.compose_skeleton(skel)
+            else:
+                locals_ = pkg_overlay.sample_animation(ov, anims[index], skel, frame)
+                world = pkg_overlay.compose_locals(skel, locals_)
+            return pkg_overlay.apply_pose(raw[0], raw[1], mesh.bone_of_vertex, world)
+
+        self.mesh_view.set_animations(
+            [a.label for a in anims], [a.frames for a in anims], sample
+        )
 
     def _clear_preview(self, msg: str = "") -> None:
         self._audio_stop()

@@ -19,6 +19,7 @@ Two things shape the design:
 
 from __future__ import annotations
 
+import math
 import struct
 import sys
 import tomllib
@@ -329,6 +330,21 @@ def decode_model(overlay: Overlay, emb: Embedded) -> Mesh:
     )
 
 
+def raw_arrays(overlay: Overlay, emb: Embedded):
+    """(vertices, normals) as they sit on disc, before any posing."""
+    src = emb.detail.get("source")
+    if not src:
+        return [], []
+    data = overlay.path.read_bytes()
+    verts = tmd_export.read_vertices(
+        data, int(src["verts_offset"], 16), int(src["vertex_count"])
+    )
+    norms = tmd_export.read_vertices(
+        data, int(src["norms_offset"], 16), int(src["normal_count"])
+    )
+    return verts, norms
+
+
 def package_id(path: Path) -> int | None:
     """The leading global package id word, or None for a package too short."""
     try:
@@ -338,3 +354,203 @@ def package_id(path: Path) -> int | None:
     if len(data) < 4:
         return None
     return struct.unpack("<I", data)[0]
+
+
+# --------------------------------------------------------------- animation
+#
+# An animation set carries one track per bone (ASSET_FORMATS.md 9.3.1). A track
+# is a run of 4-byte records ending at the first with `field_3 >= 0xC0`; each
+# record names a pose by *word* index into one of the set's banks - the game
+# does `poses[recs[i].field_0]` through a 4-byte-strided pointer - and holds a
+# duration in `field_2`.
+#
+# Two pose kinds, selected by `field_3 & 0xF` and matching the bank slot:
+#   1  GpPackedPose  6 x s16: translation then ZYX Euler rotation
+#   4  GpPackedSvec  one word, 11/10/11 bits, each component << 3 into an angle
+#
+# Kind 4 carries no translation, so the bone keeps its rest offset - which is
+# the usual arrangement: the root translates, the limbs only rotate.
+
+ANGLE_UNIT = 4096.0  # a full turn
+REC_END = 0xC0
+
+
+@dataclass
+class Track:
+    bone: int
+    records: list[tuple[int, int, int]] = field(default_factory=list)  # pose, dur, kind
+
+
+@dataclass
+class Animation:
+    index: int
+    tracks: list[Track] = field(default_factory=list)
+    banks: dict[int, int] = field(default_factory=dict)  # kind -> VA
+    frames: int = 0
+
+    @property
+    def label(self) -> str:
+        return f"anim {self.index}  ({self.frames} frames)"
+
+
+def load_animations(overlay: Overlay, emb: Embedded, skel: dict, candidates) -> list[Animation]:
+    """Animations that drive this model, or [] when none are indexed here."""
+    if not skel or not candidates:
+        return []
+    data = overlay.path.read_bytes()
+    base = overlay.load_addr
+    in_range = [c for c in candidates if base <= c[2] < base + len(data)]
+    if not in_range:
+        return []
+    try:
+        blocks = pkg_anim.decode_package(overlay.path, base, in_range)
+    except Exception:
+        return []
+
+    want = skel["part_count"]
+    out: list[Animation] = []
+    for block in blocks:
+        for si, aset in enumerate(block.sets):
+            # A set belongs to this model only if it has one track per bone.
+            if len(aset.clips) != want:
+                continue
+            recs_off = aset.records_va - base
+            anim = Animation(index=len(out), banks=dict(aset.pose_banks))
+            longest = 0
+            for clip in aset.clips:
+                tr = Track(bone=clip["clip"])
+                start = clip["first_record"]
+                for k in range(clip["records"]):
+                    off = recs_off + (start + k) * 4
+                    if off + 4 > len(data):
+                        break
+                    f0, f2, f3 = struct.unpack_from("<HBB", data, off)
+                    tr.records.append((f0, max(1, f2), f3 & 0xF))
+                anim.tracks.append(tr)
+                longest = max(longest, sum(r[1] for r in tr.records))
+            anim.frames = longest
+            out.append(anim)
+    return out
+
+
+def _rot_matrix(rx: float, ry: float, rz: float) -> list[list[float]]:
+    """PsyQ ``RotMatrix``: rotate about Z, then Y, then X, so M = Rx.Ry.Rz."""
+    ax, ay, az = (r * 2.0 * math.pi / ANGLE_UNIT for r in (rx, ry, rz))
+    cx, sx = math.cos(ax), math.sin(ax)
+    cy, sy = math.cos(ay), math.sin(ay)
+    cz, sz = math.cos(az), math.sin(az)
+    rxm = [[1, 0, 0], [0, cx, -sx], [0, sx, cx]]
+    rym = [[cy, 0, sy], [0, 1, 0], [-sy, 0, cy]]
+    rzm = [[cz, -sz, 0], [sz, cz, 0], [0, 0, 1]]
+
+    def mul(a, b):
+        return [[sum(a[i][k] * b[k][j] for k in range(3)) for j in range(3)] for i in range(3)]
+
+    return mul(mul(rxm, rym), rzm)
+
+
+def _sign_extend(v: int, bits: int) -> int:
+    return v - (1 << bits) if v >= (1 << (bits - 1)) else v
+
+
+def sample_animation(
+    overlay: Overlay, anim: Animation, skel: dict, frame: int
+) -> list[tuple[list, list]]:
+    """Local (rotation, translation) per bone at ``frame``.
+
+    Records hold a duration, so the frame is found by walking the track and
+    accumulating; a bone whose track runs out holds its last record.
+    """
+    data = overlay.path.read_bytes()
+    base = overlay.load_addr
+    bones = skel["bones"]
+    out: list[tuple[list, list]] = []
+    for i, bone in enumerate(bones):
+        m = bone["rot"]
+        rest_rot = [
+            [m[0] / 4096.0, m[1] / 4096.0, m[2] / 4096.0],
+            [m[3] / 4096.0, m[4] / 4096.0, m[5] / 4096.0],
+            [m[6] / 4096.0, m[7] / 4096.0, m[8] / 4096.0],
+        ]
+        rest_t = [float(v) for v in bone["trans"]]
+        track = anim.tracks[i] if i < len(anim.tracks) else None
+        if track is None or not track.records:
+            out.append((rest_rot, rest_t))
+            continue
+        t = frame % max(1, sum(r[1] for r in track.records))
+        pose, kind = track.records[-1][0], track.records[-1][2]
+        for p, dur, k in track.records:
+            if t < dur:
+                pose, kind = p, k
+                break
+            t -= dur
+        bank = anim.banks.get(kind)
+        if bank is None:
+            out.append((rest_rot, rest_t))
+            continue
+        off = bank - base + pose * 4
+        try:
+            if kind == 1:
+                vx, vy, vz, rx, ry, rz = struct.unpack_from("<6h", data, off)
+                out.append((_rot_matrix(rx, ry, rz), [float(vx), float(vy), float(vz)]))
+            else:
+                (w,) = struct.unpack_from("<I", data, off)
+                rx = _sign_extend(w & 0x7FF, 11) << 3
+                ry = _sign_extend((w >> 11) & 0x3FF, 10) << 3
+                rz = _sign_extend((w >> 21) & 0x7FF, 11) << 3
+                out.append((_rot_matrix(rx, ry, rz), rest_t))
+        except struct.error:
+            out.append((rest_rot, rest_t))
+    return out
+
+
+def compose_locals(skel: dict, locals_: list[tuple[list, list]]) -> list[tuple[list, list]]:
+    """World matrices from per-bone locals, same recursion as compose_skeleton."""
+    bones = skel["bones"]
+    out: list[tuple[list, list] | None] = [None] * len(bones)
+
+    def resolve(i: int, seen: frozenset = frozenset()):
+        if out[i] is not None:
+            return out[i]
+        rot, trans = locals_[i]
+        parent = bones[i]["parent"]
+        if parent == i or i in seen or parent >= len(bones):
+            out[i] = (rot, list(trans))
+            return out[i]
+        pr, pt = resolve(parent, seen | {i})
+        out[i] = (
+            [[sum(pr[r][k] * rot[k][c] for k in range(3)) for c in range(3)] for r in range(3)],
+            [sum(pr[r][k] * trans[k] for k in range(3)) + pt[r] for r in range(3)],
+        )
+        return out[i]
+
+    for i in range(len(bones)):
+        resolve(i)
+    return [o for o in out if o is not None]
+
+
+def apply_pose(raw_verts, raw_normals, owner, world):
+    """(verts, normals) placed by per-bone world matrices, Y flipped for a viewer."""
+    verts = []
+    for i, (x, y, z) in enumerate(raw_verts):
+        rot, tr = world[owner[i]] if i < len(owner) and owner[i] < len(world) else (
+            [[1, 0, 0], [0, 1, 0], [0, 0, 1]], [0, 0, 0]
+        )
+        vy = rot[1][0] * x + rot[1][1] * y + rot[1][2] * z + tr[1]
+        verts.append(
+            (
+                rot[0][0] * x + rot[0][1] * y + rot[0][2] * z + tr[0],
+                -vy,
+                rot[2][0] * x + rot[2][1] * y + rot[2][2] * z + tr[2],
+            )
+        )
+    normals = []
+    for i, nv in enumerate(raw_normals):
+        rot = world[owner[i]][0] if i < len(owner) and owner[i] < len(world) else [
+            [1, 0, 0], [0, 1, 0], [0, 0, 1]
+        ]
+        ny = sum(rot[1][k] * nv[k] for k in range(3))
+        normals.append(
+            (sum(rot[0][k] * nv[k] for k in range(3)), -ny, sum(rot[2][k] * nv[k] for k in range(3)))
+        )
+    return verts, normals

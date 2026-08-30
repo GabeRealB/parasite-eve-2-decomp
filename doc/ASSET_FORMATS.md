@@ -718,12 +718,46 @@ so a static model can be posed without touching the animation data at all.
 Animation then replaces each bone's local matrix and reuses the same parent
 links.
 
+### 9.3.2 Playing a clip
+
+Enough of the animation side is decoded to play one back. A set has one track
+per bone; a track is a run of 4-byte records ending at the first with
+`field_3 >= 0xC0`. Each record names a pose and how long to hold it:
+
+| Field | Meaning |
+|---|---|
+| `field_0` | pose index, in **words** — the game indexes the bank through a 4-byte-strided pointer, so the byte offset is `field_0 * 4` |
+| `field_2` | duration in ticks |
+| `field_3 & 0xF` | pose kind, which is also the bank slot in `GpAnimSet.field_8[]` |
+
+Two kinds appear. Kind **1** is `GpPackedPose`, six `s16` — a translation then a
+ZYX Euler rotation. Kind **4** is `GpPackedSvec`, one word split 11/10/11 with
+each component shifted `<< 3` to give the angle; it carries no translation, so
+the bone keeps its rest offset. In practice the root bone is kind 1 and the
+limbs are kind 4, which is what you would expect: the root moves the character,
+the limbs only rotate.
+
+A frame is then: sample each bone's track at that tick, build a local matrix,
+and run the same parent composition the rest pose uses. Playback lives in
+`pkg_overlay.sample_animation` / `compose_locals`, and the viewer's Model tab
+has an **Animation** selector, a play/pause button and a frame slider. The
+named human has 34 animations of 142–320 ticks.
+
+Angles use `4096` for a full turn and the rotation order is PsyQ's `RotMatrix`
+— Z, then Y, then X, so `M = Rx·Ry·Rz`. The clips sampled to check this are
+idle-like, with small angles, so the order is taken from the library
+convention rather than proven by a large-motion pose.
+
 ### 9.4 What is still open
 
 - **Model opcodes.** Arity and element layout are settled for two of the 23
   draw families; the rest are open, tracked per family in
   [`TMD_FORMAT.md` §5](TMD_FORMAT.md#5-opcode-reference) with what is still
   missing in [§6](TMD_FORMAT.md#6-what-is-still-open).
+- **Interpolation.** `Gp_AnimBlendPose` / `Gp_AnimBlendPacked` blend between a
+  current and a next pose with a GTE `GPF`/`GPL` pair driven by
+  `GpAnimSlot.field_C` / `field_E`. The offline player steps records without
+  interpolating, so motion is stepped rather than smooth.
 - **Pose banks.** The per-model bone count is now available — it is the number
   of `0xFFFFFFFE`-delimited parts in the model stream
   ([`TMD_FORMAT.md` §2.2](TMD_FORMAT.md)), and §9.3.1 binds tracks to parts —

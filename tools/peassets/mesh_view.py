@@ -46,6 +46,12 @@ class MeshView(ttk.Frame):
         self._zoom = 1.0
         self._pan = [0.0, 0.0]
         self._drag: tuple[str, int, int] | None = None
+        self._fit: tuple[float, float, float, float] | None = None
+        self._anim_sampler = None      # (anim_index, frame) -> (verts, normals)
+        self._anim_frames: list[int] = []
+        self._frame = 0
+        self._playing = False
+        self._play_after: str | None = None
         self._redraw_after: str | None = None
         self._light = _norm(LIGHT)
 
@@ -77,6 +83,27 @@ class MeshView(ttk.Frame):
         self._info = ttk.Label(bar, text="", foreground="#888")
         self._info.pack(side=tk.RIGHT)
 
+        # Animation transport. Hidden until a model actually has animations.
+        self.anim_bar = ttk.Frame(self)
+        ttk.Label(self.anim_bar, text="Animation:").pack(side=tk.LEFT)
+        self._anim = tk.StringVar(value="Rest pose")
+        self._anim_combo = ttk.Combobox(
+            self.anim_bar, textvariable=self._anim, state="readonly", width=22,
+            values=("Rest pose",),
+        )
+        self._anim_combo.pack(side=tk.LEFT, padx=(4, 8))
+        self._anim_combo.bind("<<ComboboxSelected>>", lambda _e: self._on_anim_changed())
+        self._play_btn = ttk.Button(self.anim_bar, text="\u25b6 Play", width=9, command=self._toggle_play)
+        self._play_btn.pack(side=tk.LEFT, padx=(0, 8))
+        self._frame_var = tk.DoubleVar(value=0.0)
+        self._frame_scale = ttk.Scale(
+            self.anim_bar, from_=0, to=1, orient=tk.HORIZONTAL,
+            variable=self._frame_var, command=self._on_frame_drag,
+        )
+        self._frame_scale.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self._frame_lbl = ttk.Label(self.anim_bar, text="0", width=10, foreground="#888")
+        self._frame_lbl.pack(side=tk.LEFT, padx=(6, 0))
+
         self.canvas = tk.Canvas(self, bg=BG, highlightthickness=0)
         self.canvas.pack(fill=tk.BOTH, expand=True)
         self.canvas.bind("<Configure>", lambda _e: self._draw())
@@ -107,28 +134,124 @@ class MeshView(ttk.Frame):
         self._parts = [parts[i] for i in keep] if parts else []
         # One entry per part that actually carries geometry, so a single limb
         # can be inspected on its own.
-        present = sorted(set(self._parts))
-        self._part_combo.configure(values=["All"] + [f"part {i}" for i in present])
-        if self._part.get() not in self._part_combo.cget("values"):
-            self._part.set("All")
         if verts:
             xs = [v[0] for v in verts]
             ys = [v[1] for v in verts]
             zs = [v[2] for v in verts]
-            cx, cy, cz = (
+            extent = max(max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)) or 1.0
+            self._fit = (
                 (min(xs) + max(xs)) / 2,
                 (min(ys) + max(ys)) / 2,
                 (min(zs) + max(zs)) / 2,
+                extent,
             )
-            extent = max(max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)) or 1.0
-            s = 1.0 / extent
-            self._verts = [((v[0] - cx) * s, (v[1] - cy) * s, (v[2] - cz) * s) for v in verts]
-        else:
-            self._verts = []
+        present = sorted(set(self._parts))
+        self._part_combo.configure(values=["All"] + [f"part {i}" for i in present])
+        if self._part.get() not in self._part_combo.cget("values"):
+            self._part.set("All")
+        self._verts = self._normalise(verts)
         self._info.configure(text=note)
         self._draw()
 
+    def _normalise(self, verts):
+        """Scale into a unit box using the fit taken from the first pose.
+
+        Re-fitting every animation frame would make the model swim about as its
+        bounds change; the rest pose sets the frame once.
+        """
+        if not verts or self._fit is None:
+            return []
+        cx, cy, cz, extent = self._fit
+        s = 1.0 / extent
+        return [((v[0] - cx) * s, (v[1] - cy) * s, (v[2] - cz) * s) for v in verts]
+
+    # ------------------------------------------------------------- animation
+    def set_animations(self, labels: list[str], frames: list[int], sampler) -> None:
+        """Offer these animations; ``sampler(index, frame) -> (verts, normals)``."""
+        self._anim_sampler = sampler
+        self._anim_frames = list(frames)
+        self._stop_play()
+        self._anim.set("Rest pose")
+        self._anim_combo.configure(values=["Rest pose"] + list(labels))
+        if labels:
+            self.anim_bar.pack(side=tk.BOTTOM, fill=tk.X, pady=(4, 0))
+        else:
+            self.anim_bar.pack_forget()
+        self._frame = 0
+        self._frame_var.set(0)
+        self._frame_lbl.configure(text="0")
+
+    def _anim_index(self) -> int | None:
+        sel = self._anim.get()
+        values = list(self._anim_combo.cget("values"))
+        if sel == "Rest pose" or sel not in values:
+            return None
+        return values.index(sel) - 1
+
+    def _on_anim_changed(self) -> None:
+        idx = self._anim_index()
+        self._frame = 0
+        self._frame_var.set(0)
+        if idx is None:
+            self._stop_play()
+            self._frame_scale.configure(to=1)
+        else:
+            self._frame_scale.configure(to=max(1, self._anim_frames[idx] - 1))
+        self._apply_frame()
+
+    def _on_frame_drag(self, _v=None) -> None:
+        if self._playing:
+            return
+        self._frame = int(float(self._frame_var.get()))
+        self._apply_frame()
+
+    def _apply_frame(self) -> None:
+        idx = self._anim_index()
+        if self._anim_sampler is None:
+            return
+        got = self._anim_sampler(idx, self._frame)
+        if got is None:
+            return
+        verts, normals = got
+        self._verts = self._normalise(verts)
+        if normals:
+            self._normals = normals
+        self._frame_lbl.configure(
+            text=f"{self._frame}" if idx is None else f"{self._frame}/{self._anim_frames[idx]}"
+        )
+        self._draw()
+
+    def _toggle_play(self) -> None:
+        if self._playing:
+            self._stop_play()
+        elif self._anim_index() is not None:
+            self._playing = True
+            self._play_btn.configure(text="\u25a0 Pause")
+            self._tick()
+
+    def _stop_play(self) -> None:
+        self._playing = False
+        if self._play_after is not None:
+            self.after_cancel(self._play_after)
+            self._play_after = None
+        self._play_btn.configure(text="\u25b6 Play")
+
+    def _tick(self) -> None:
+        if not self._playing:
+            return
+        idx = self._anim_index()
+        if idx is None:
+            self._stop_play()
+            return
+        total = max(1, self._anim_frames[idx])
+        self._frame = (self._frame + 1) % total
+        self._frame_var.set(self._frame)
+        self._apply_frame()
+        # The game runs these at 60 Hz; a record's duration is in those ticks.
+        self._play_after = self.after(16, self._tick)
+
     def clear(self, msg: str = "") -> None:
+        self._stop_play()
         self._verts = []
         self._faces = []
         self._normals = []
