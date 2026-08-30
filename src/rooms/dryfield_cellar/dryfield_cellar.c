@@ -12,7 +12,8 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_cellar/dryfield_cellar", func_dryfield_
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_cellar/dryfield_cellar", func_dryfield_cellar_8017D730);
 
-void func_dryfield_cellar_8017D77C(void) {
+void func_dryfield_cellar_8017D77C(void)
+{
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_cellar/dryfield_cellar", D_dryfield_cellar_8017D5C0);

@@ -8,7 +8,8 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_promenade/acropolis_promenade", func_a
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_promenade/acropolis_promenade", func_acropolis_promenade_8017D8E0);
 
-void func_acropolis_promenade_8017D930(void) {
+void func_acropolis_promenade_8017D930(void)
+{
 }
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_promenade/acropolis_promenade", func_acropolis_promenade_8017D938);

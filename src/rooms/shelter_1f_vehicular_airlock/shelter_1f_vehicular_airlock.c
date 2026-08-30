@@ -16,7 +16,8 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_1f_vehicular_airlock/shelter_1f_vehicula
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_1f_vehicular_airlock/shelter_1f_vehicular_airlock", func_shelter_1f_vehicular_airlock_8017D9FC);
 
-void func_shelter_1f_vehicular_airlock_8017DA40(void) {
+void func_shelter_1f_vehicular_airlock_8017DA40(void)
+{
 }
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_1f_vehicular_airlock/shelter_1f_vehicular_airlock", func_shelter_1f_vehicular_airlock_8017DA48);

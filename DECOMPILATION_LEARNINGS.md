@@ -32060,3 +32060,32 @@ word) is exactly 0x10 bytes, so the table lands at object offset 0x10, the
 `.align 3` pads nothing, and the jtbl address comes out at the expected
 `0x8017D6B4`. Only a preceding block whose size is not a multiple of 8 forces
 the `units` cut that moves the function to the start of its own `.rodata`.
+
+## Several splat `dlabel`s in one data run are usually one C array
+
+`func_neo_ark_power_plant_1_8017DA18` is a `switch` on `Gp_GetViewIndex()` where
+each arm calls the same helper with a list of `SVECTOR*`. m2c reported five
+different bases — `D_..._8017F110`, `D_..._8017F170`, `D_..._8017F1A0`,
+`D_..._8017F1B8`, `D_..._8017F020` — each with positive *and* negative byte
+offsets (`&D_..._8017F1B8 - 0xC8`). Those labels are not five objects: they are
+one 52-element `SVECTOR` array at `0x8017F020`, and splat put a `dlabel` at each
+address a `%hi`/`%lo` pair happened to point at.
+
+GCC 2.8.1 materialises the address of the *first* element an extended basic
+block references (`lui`/`addiu` of `sym+off`) and CSE's related-value logic
+derives every later element in that block as `addiu $reg, $base, delta`. So the
+base label is simply whichever element the arm touches first — which is why each
+`case` got its own label, and why a single arm's `$s0` base spans three of them.
+
+Write it as one `extern SVECTOR arr[52]` and index it (`&arr[30]`, `&arr[51]`);
+negative offsets from an arbitrary label disappear. The object dump still differs
+from `target.o`, because our relocation is `%lo(D_..._8017F020+0xf0)` where splat
+emitted `%lo(D_..._8017F110)`, and `dist.py` scores that as a register penalty
+(99.8%, `regs=18`, everything else 0). Both resolve to the same address, so the
+link matches — a `regs`-only leftover made up entirely of `%hi`/`%lo` symbol
+names is a false diff, not something to permute or pin away. Confirm with the
+build, not with the score.
+
+A symbol that keeps its own `lui`/`addiu` inside an arm that already has a base
+register (here `D_..._8017F1C0`, which is also passed to `Gp_SpawnEff`) really is
+a separate object — leave it out of the array.

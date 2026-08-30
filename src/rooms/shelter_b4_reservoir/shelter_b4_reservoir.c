@@ -44,7 +44,8 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func_shelter_b4_reservoir_8017E88C);
 
-void func_shelter_b4_reservoir_8017E8E4(void) {
+void func_shelter_b4_reservoir_8017E8E4(void)
+{
 }
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_reservoir/shelter_b4_reservoir", func_shelter_b4_reservoir_8017E8EC);

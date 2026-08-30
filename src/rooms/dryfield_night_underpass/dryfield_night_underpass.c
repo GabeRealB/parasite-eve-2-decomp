@@ -14,7 +14,8 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_underpass/dryfield_night_underpas
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_underpass/dryfield_night_underpass", func_dryfield_night_underpass_8017D910);
 
-void func_dryfield_night_underpass_8017D954(void) {
+void func_dryfield_night_underpass_8017D954(void)
+{
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_underpass/dryfield_night_underpass", D_dryfield_night_underpass_8017D5C0);

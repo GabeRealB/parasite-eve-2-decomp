@@ -12,7 +12,8 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain", func_acr
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_fountain/acropolis_fountain", func_acropolis_fountain_8017D960);
 
-void func_acropolis_fountain_8017D9BC(void) {
+void func_acropolis_fountain_8017D9BC(void)
+{
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_fountain/acropolis_fountain", D_acropolis_fountain_8017D5C0);

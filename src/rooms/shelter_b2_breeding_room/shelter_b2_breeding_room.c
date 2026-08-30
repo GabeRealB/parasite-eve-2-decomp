@@ -16,7 +16,8 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_roo
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", func_shelter_b2_breeding_room_8017D7EC);
 
-void func_shelter_b2_breeding_room_8017D838(void) {
+void func_shelter_b2_breeding_room_8017D838(void)
+{
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b2_breeding_room/shelter_b2_breeding_room", D_shelter_b2_breeding_room_8017D5C0);

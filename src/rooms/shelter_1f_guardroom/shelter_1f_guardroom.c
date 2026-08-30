@@ -18,7 +18,8 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_1f_guardroom/shelter_1f_guardroom", func
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_1f_guardroom/shelter_1f_guardroom", func_shelter_1f_guardroom_8017D824);
 
-void func_shelter_1f_guardroom_8017D878(void) {
+void func_shelter_1f_guardroom_8017D878(void)
+{
 }
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_1f_guardroom/shelter_1f_guardroom", func_shelter_1f_guardroom_8017D880);
@@ -27,5 +28,6 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_1f_guardroom/shelter_1f_guardroom", func
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_1f_guardroom/shelter_1f_guardroom", func_shelter_1f_guardroom_8017D9CC);
 
-void func_shelter_1f_guardroom_8017DA28(void) {
+void func_shelter_1f_guardroom_8017DA28(void)
+{
 }

@@ -8,14 +8,16 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_hallway/acropolis_hallway", func_acrop
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_hallway/acropolis_hallway", func_acropolis_hallway_8017D784);
 
-void func_acropolis_hallway_8017D7C8(void) {
+void func_acropolis_hallway_8017D7C8(void)
+{
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/acropolis_hallway/acropolis_hallway", D_acropolis_hallway_8017D5C0);
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_hallway/acropolis_hallway", func_acropolis_hallway_8017D7D0);
 
-void func_acropolis_hallway_8017D828(void) {
+void func_acropolis_hallway_8017D828(void)
+{
 }
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_hallway/acropolis_hallway", func_acropolis_hallway_8017D830);

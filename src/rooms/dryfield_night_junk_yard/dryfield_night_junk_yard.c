@@ -12,7 +12,8 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_junk_yard/dryfield_night_junk_yar
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_junk_yard/dryfield_night_junk_yard", func_dryfield_night_junk_yard_8017D8B0);
 
-void func_dryfield_night_junk_yard_8017D958(void) {
+void func_dryfield_night_junk_yard_8017D958(void)
+{
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_junk_yard/dryfield_night_junk_yard", D_dryfield_night_junk_yard_8017D5C0);

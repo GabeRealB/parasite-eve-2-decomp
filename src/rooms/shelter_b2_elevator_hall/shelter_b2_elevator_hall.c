@@ -20,7 +20,8 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_elevator_hall/shelter_b2_elevator_hal
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_elevator_hall/shelter_b2_elevator_hall", func_shelter_b2_elevator_hall_8017DCBC);
 
-void func_shelter_b2_elevator_hall_8017DD00(void) {
+void func_shelter_b2_elevator_hall_8017DD00(void)
+{
 }
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_elevator_hall/shelter_b2_elevator_hall", func_shelter_b2_elevator_hall_8017DD08);

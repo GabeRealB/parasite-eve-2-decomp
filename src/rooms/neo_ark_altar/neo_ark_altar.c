@@ -16,7 +16,8 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar", func_neo_ark_altar
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar", func_neo_ark_altar_8017D974);
 
-void func_neo_ark_altar_8017D9E0(void) {
+void func_neo_ark_altar_8017D9E0(void)
+{
 }
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar", func_neo_ark_altar_8017D9E8);
@@ -55,5 +56,6 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar", func_neo_ark_altar
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_altar/neo_ark_altar", func_neo_ark_altar_8017EF34);
 
-void func_neo_ark_altar_8017EF84(void) {
+void func_neo_ark_altar_8017EF84(void)
+{
 }

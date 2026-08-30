@@ -8,7 +8,8 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room", 
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room", func_shelter_b6_growth_room_8017D71C);
 
-void func_shelter_b6_growth_room_8017D7CC(void) {
+void func_shelter_b6_growth_room_8017D7CC(void)
+{
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b6_growth_room/shelter_b6_growth_room", D_shelter_b6_growth_room_8017D5C0);

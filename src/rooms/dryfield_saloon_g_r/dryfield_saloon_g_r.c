@@ -16,7 +16,8 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_saloon_g_r/dryfield_saloon_g_r", func_d
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_saloon_g_r/dryfield_saloon_g_r", func_dryfield_saloon_g_r_8017D9CC);
 
-void func_dryfield_saloon_g_r_8017DA10(void) {
+void func_dryfield_saloon_g_r_8017DA10(void)
+{
 }
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_saloon_g_r/dryfield_saloon_g_r", func_dryfield_saloon_g_r_8017DA18);

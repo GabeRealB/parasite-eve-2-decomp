@@ -16,7 +16,8 @@ INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room"
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017D930);
 
-void func_acropolis_security_room_8017D97C(void) {
+void func_acropolis_security_room_8017D97C(void)
+{
 }
 
 INCLUDE_ASM("rooms/nonmatchings/acropolis_security_room/acropolis_security_room", func_acropolis_security_room_8017D984);

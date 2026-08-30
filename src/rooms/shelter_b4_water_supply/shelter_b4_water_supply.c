@@ -24,7 +24,8 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply"
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017DD40);
 
-void func_shelter_b4_water_supply_8017DD9C(void) {
+void func_shelter_b4_water_supply_8017DD9C(void)
+{
 }
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b4_water_supply/shelter_b4_water_supply", func_shelter_b4_water_supply_8017DDA4);

@@ -16,7 +16,8 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_bridge/neo_ark_bridge", func_neo_ark_bri
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_bridge/neo_ark_bridge", func_neo_ark_bridge_8017E888);
 
-void func_neo_ark_bridge_8017E8F4(void) {
+void func_neo_ark_bridge_8017E8F4(void)
+{
 }
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_bridge/neo_ark_bridge", func_neo_ark_bridge_8017E8FC);

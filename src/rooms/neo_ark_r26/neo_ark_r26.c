@@ -18,5 +18,6 @@ INCLUDE_RODATA("rooms/nonmatchings/neo_ark_r26/neo_ark_r26", D_neo_ark_r26_8017D
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_r26/neo_ark_r26", func_neo_ark_r26_8017D720);
 
-void func_neo_ark_r26_8017D778(void) {
+void func_neo_ark_r26_8017D778(void)
+{
 }

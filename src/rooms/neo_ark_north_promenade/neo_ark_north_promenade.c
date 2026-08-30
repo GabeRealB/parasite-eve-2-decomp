@@ -8,7 +8,8 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_north_promenade/neo_ark_north_promenade"
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_north_promenade/neo_ark_north_promenade", func_neo_ark_north_promenade_8017D67C);
 
-void func_neo_ark_north_promenade_8017D6C0(void) {
+void func_neo_ark_north_promenade_8017D6C0(void)
+{
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_north_promenade/neo_ark_north_promenade", D_neo_ark_north_promenade_8017D5C0);

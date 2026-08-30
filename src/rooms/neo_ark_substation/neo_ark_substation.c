@@ -16,7 +16,8 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_substation/neo_ark_substation", func_neo
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_substation/neo_ark_substation", func_neo_ark_substation_8017D7AC);
 
-void func_neo_ark_substation_8017D814(void) {
+void func_neo_ark_substation_8017D814(void)
+{
 }
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_substation/neo_ark_substation", func_neo_ark_substation_8017D81C);

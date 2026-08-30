@@ -20,7 +20,8 @@ INCLUDE_ASM("rooms/nonmatchings/mine_secret_passage/mine_secret_passage", func_m
 
 INCLUDE_ASM("rooms/nonmatchings/mine_secret_passage/mine_secret_passage", func_mine_secret_passage_8017D914);
 
-void func_mine_secret_passage_8017D968(void) {
+void func_mine_secret_passage_8017D968(void)
+{
 }
 
 INCLUDE_ASM("rooms/nonmatchings/mine_secret_passage/mine_secret_passage", func_mine_secret_passage_8017D970);

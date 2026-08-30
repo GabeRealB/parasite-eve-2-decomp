@@ -20,7 +20,8 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_acce
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_8017DBA8);
 
-void func_shelter_b2_pod_access_tunnel_8017DC0C(void) {
+void func_shelter_b2_pod_access_tunnel_8017DC0C(void)
+{
 }
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b2_pod_access_tunnel/shelter_b2_pod_access_tunnel", func_shelter_b2_pod_access_tunnel_8017DC14);

@@ -10,7 +10,8 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_water_hole/dryfield_water_hole", func_d
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_water_hole/dryfield_water_hole", func_dryfield_water_hole_8017D7DC);
 
-void func_dryfield_water_hole_8017D838(void) {
+void func_dryfield_water_hole_8017D838(void)
+{
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_water_hole/dryfield_water_hole", D_dryfield_water_hole_8017D5C0);

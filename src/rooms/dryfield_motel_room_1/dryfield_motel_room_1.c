@@ -4,7 +4,8 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1", fu
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1", func_dryfield_motel_room_1_8017D69C);
 
-void func_dryfield_motel_room_1_8017D74C(void) {
+void func_dryfield_motel_room_1_8017D74C(void)
+{
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1", D_dryfield_motel_room_1_8017D5C0);
@@ -23,7 +24,8 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1", fu
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1", func_dryfield_motel_room_1_8017DFD0);
 
-void func_dryfield_motel_room_1_8017E0A0(void) {
+void func_dryfield_motel_room_1_8017E0A0(void)
+{
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_motel_room_1/dryfield_motel_room_1", D_dryfield_motel_room_1_8017D5EC);

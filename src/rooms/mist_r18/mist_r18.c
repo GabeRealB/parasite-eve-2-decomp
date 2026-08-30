@@ -20,7 +20,8 @@ INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18", func_mist_r18_8017E2C8);
 
 INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18", func_mist_r18_8017E320);
 
-void func_mist_r18_8017E39C(void) {
+void func_mist_r18_8017E39C(void)
+{
 }
 
 INCLUDE_ASM("rooms/nonmatchings/mist_r18/mist_r18", func_mist_r18_8017E3A4);

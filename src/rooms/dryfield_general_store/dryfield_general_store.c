@@ -32,5 +32,6 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_general_store/dryfield_general_store", 
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_general_store/dryfield_general_store", func_dryfield_general_store_8017E130);
 
-void func_dryfield_general_store_8017E150(void) {
+void func_dryfield_general_store_8017E150(void)
+{
 }

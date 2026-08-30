@@ -22,7 +22,8 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway", func_dry
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway", func_dryfield_breezeway_8017DDB0);
 
-void func_dryfield_breezeway_8017DE60(void) {
+void func_dryfield_breezeway_8017DE60(void)
+{
 }
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_breezeway/dryfield_breezeway", func_dryfield_breezeway_8017DE68);

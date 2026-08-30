@@ -22,5 +22,6 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_water_tank/dryfield_night_water_t
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_water_tank/dryfield_night_water_tank", func_dryfield_night_water_tank_8017DB8C);
 
-void func_dryfield_night_water_tank_8017DD8C(void) {
+void func_dryfield_night_water_tank_8017DD8C(void)
+{
 }

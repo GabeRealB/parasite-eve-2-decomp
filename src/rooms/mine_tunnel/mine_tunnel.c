@@ -10,7 +10,8 @@ INCLUDE_ASM("rooms/nonmatchings/mine_tunnel/mine_tunnel", func_mine_tunnel_8017D
 
 INCLUDE_ASM("rooms/nonmatchings/mine_tunnel/mine_tunnel", func_mine_tunnel_8017D6EC);
 
-void func_mine_tunnel_8017D774(void) {
+void func_mine_tunnel_8017D774(void)
+{
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/mine_tunnel/mine_tunnel", D_mine_tunnel_8017D5C0);

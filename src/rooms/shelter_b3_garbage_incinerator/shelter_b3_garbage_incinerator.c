@@ -114,7 +114,8 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbag
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", func_shelter_b3_garbage_incinerator_801842A4);
 
-void func_shelter_b3_garbage_incinerator_80184D7C(void) {
+void func_shelter_b3_garbage_incinerator_80184D7C(void)
+{
 }
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b3_garbage_incinerator/shelter_b3_garbage_incinerator", func_shelter_b3_garbage_incinerator_80184D84);

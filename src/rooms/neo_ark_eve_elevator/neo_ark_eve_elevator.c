@@ -8,12 +8,14 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_elevator/neo_ark_eve_elevator", func
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_elevator/neo_ark_eve_elevator", func_neo_ark_eve_elevator_8017D678);
 
-void func_neo_ark_eve_elevator_8017D6BC(void) {
+void func_neo_ark_eve_elevator_8017D6BC(void)
+{
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_eve_elevator/neo_ark_eve_elevator", D_neo_ark_eve_elevator_8017D5C0);
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_eve_elevator/neo_ark_eve_elevator", func_neo_ark_eve_elevator_8017D6C4);
 
-void func_neo_ark_eve_elevator_8017D71C(void) {
+void func_neo_ark_eve_elevator_8017D71C(void)
+{
 }

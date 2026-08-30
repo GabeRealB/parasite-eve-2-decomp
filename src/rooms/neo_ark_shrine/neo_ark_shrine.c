@@ -10,7 +10,8 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", func_neo_ark_shr
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", func_neo_ark_shrine_8017D8F4);
 
-void func_neo_ark_shrine_8017D940(void) {
+void func_neo_ark_shrine_8017D940(void)
+{
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/neo_ark_shrine/neo_ark_shrine", D_neo_ark_shrine_8017D5C0);

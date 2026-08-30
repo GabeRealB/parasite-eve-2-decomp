@@ -18,7 +18,8 @@ INCLUDE_ASM("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", func_neo_ark
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", func_neo_ark_pavilion_8017EB80);
 
-void func_neo_ark_pavilion_8017EBEC(void) {
+void func_neo_ark_pavilion_8017EBEC(void)
+{
 }
 
 INCLUDE_ASM("rooms/nonmatchings/neo_ark_pavilion/neo_ark_pavilion", func_neo_ark_pavilion_8017EBF4);

@@ -22,7 +22,8 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_general_store/dryfield_night_gene
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_general_store/dryfield_night_general_store", func_dryfield_night_general_store_8017DE34);
 
-void func_dryfield_night_general_store_8017DE80(void) {
+void func_dryfield_night_general_store_8017DE80(void)
+{
 }
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_general_store/dryfield_night_general_store", func_dryfield_night_general_store_8017DE88);

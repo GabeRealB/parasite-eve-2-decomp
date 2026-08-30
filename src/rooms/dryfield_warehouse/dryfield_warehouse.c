@@ -10,7 +10,8 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_warehouse/dryfield_warehouse", func_dry
 
 INCLUDE_ASM("rooms/nonmatchings/dryfield_warehouse/dryfield_warehouse", func_dryfield_warehouse_8017D99C);
 
-void func_dryfield_warehouse_8017D9F8(void) {
+void func_dryfield_warehouse_8017D9F8(void)
+{
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_warehouse/dryfield_warehouse", D_dryfield_warehouse_8017D5C0);

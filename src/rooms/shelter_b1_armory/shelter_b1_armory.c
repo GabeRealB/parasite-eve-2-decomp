@@ -54,7 +54,8 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory", func_shelt
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory", func_shelter_b1_armory_80180740);
 
-void func_shelter_b1_armory_80180784(void) {
+void func_shelter_b1_armory_80180784(void)
+{
 }
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_armory/shelter_b1_armory", func_shelter_b1_armory_8018078C);

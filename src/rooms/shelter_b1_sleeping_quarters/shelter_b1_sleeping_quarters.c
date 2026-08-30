@@ -14,7 +14,8 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D83C);
 
-void func_shelter_b1_sleeping_quarters_8017D880(void) {
+void func_shelter_b1_sleeping_quarters_8017D880(void)
+{
 }
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", D_shelter_b1_sleeping_quarters_8017D5C0);
