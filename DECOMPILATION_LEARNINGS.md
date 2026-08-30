@@ -2667,6 +2667,36 @@ actor_510900 = { units = ["0x9A50", "0x9B68"],
                  rodata = [{ start = "0xD0", unit = "actor_510900_2" }] }
 ```
 
+**End the remainder cut at the next `jtbl_`, not right after your table.** splat
+emits `.align 3` only ahead of a *jump table*, so a plain `D_*` block that sits
+between your table and the next `jtbl_` carries no directive and no pad. Cutting
+immediately after your table hands that `D_*` to the later unit, whose object
+then starts `D_*` (0xC bytes) + `.align 3` + `jtbl_` - four bytes of padding that
+did not exist in the original, where the pad sits *after* the following table
+instead. Give the `D_*` to your own unit and start the remainder at the next
+`jtbl_`: the generated table lands first with the `D_*` behind it and nothing
+pads, because GCC only aligns what it emits itself. `mist_parking`'s
+`func_..._801837B8` is the worked case - `jtbl_..._8017D844` (0x18 bytes,
+4-mod-8) plus `D_..._8017D85C` go to `mist_parking_9`, and the remainder
+resumes at `0x2A8` where `jtbl_..._8017D868` starts:
+
+```toml
+rodata = [{ start = "0x1BC", unit = "mist_parking_2" },
+          { start = "0x240", unit = "mist_parking_3" },
+          { start = "0x284", unit = "mist_parking_9" },
+          { start = "0x2A8", unit = "mist_parking_10" }]
+```
+
+No `.text` cut was needed: `func_..._801837B8` already lived in
+`mist_parking_9`, and no other function in that unit owns rodata.
+
+**Purging `asm/` leaves stale objects behind.** ninja does not re-run a `.c`
+whose only change is the content of an `INCLUDE_RODATA`/`INCLUDE_ASM` `.s` it
+pulls in, so after `rm -rf asm/<ver>/<family>/{non,}matchings/<overlay>` plus a
+re-split the link can still fail with `multiple definition of D_*` naming an
+object you did not touch. `rm -rf build/<ver>/src/<family>/<overlay>` and
+rebuild.
+
 ### Promoting a jump-table body into `src/<family>/lib/`
 
 A matched switch that also exists in another overlay of the family should be
