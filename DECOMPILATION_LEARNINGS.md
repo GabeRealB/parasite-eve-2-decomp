@@ -33718,3 +33718,42 @@ scheduling win showed up as `regs=7` in the score.
 `SCHED_BARRIER()` matches too, so prefer the soft one. Statement order does not
 help — writing the increment first emits the whole `lw`/`addiu`/`sw` block
 before the store. `func_dryfield_water_tower_8017D948` is the example.
+
+## Descending clear loop: keep the start index a *variable* in the walker init
+
+Zeroing an array backwards from a constant top index has three plausible C
+forms and only one of them matches:
+
+```
+li    v1,0xa                     /* target */
+lui   v0,%hi(arr)
+addiu v0,v0,%lo(arr)
+addu  v0,v0,v1
+L:  sb    zero,0(v0)
+    addiu v1,v1,-0x1
+    bgez  v1,L
+     addiu v0,v0,-0x1
+```
+
+- `for (i = 10; i >= 0; i--) arr[i] = 0;` does **not** strength-reduce here:
+  GCC keeps `i` and recomputes `addu v0,v1,base` inside the loop, one
+  instruction short of the target (`delete=1`).
+- `p = &arr[10];` with the literal folds the offset into the relocation —
+  `addiu v0,v0,%lo(arr+0xa)` — and loses the `li`/`addu` pair.
+- `i = 10; p = &arr[i]; do { *p = 0; i--; p--; } while (i >= 0);` matches.
+  Naming the start index through the same local the loop counts on stops
+  constant propagation from folding it into `%lo`, so the address is still
+  formed as `base + i` at run time.
+
+Note this is the mirror of the ascending case above, where plain `&arr[i]`
+indexing is the natural form. `func_actor_143000_80133EE4` is the example.
+
+## Split a pointer local reused by two switch cases
+
+Two unrelated `case` arms of the same `switch` that each need a walking `u8*`
+must use **two** locals, even though their live ranges never overlap. Sharing
+one local made GCC 2.8.1 colour it `$a0` in both arms; the target uses `$v0` in
+one and `$v1` in the other, and in the second arm the shared pseudo also pulled
+its `addu` ahead of a neighbouring `sw` (`regs=7 reorder=1`, 99.6%). Declaring
+`u8 *p;` and `u8 *slot;` and using one per arm took the same function to 100%
+with no other edit. `func_actor_143000_80133EE4` is the example.

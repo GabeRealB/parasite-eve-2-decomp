@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#include "main/task.h"
+
 typedef struct Actor143000Work {
     /* 0x00 */ byte pad_0[0xC];
     /* 0x0C */ s32  field_C;
@@ -29,5 +31,6 @@ typedef struct Actor143000Spawn {
 STATIC_ASSERT_SIZEOF(Actor143000Spawn, 4);
 
 void func_actor_143000_80132A04(Actor143000* arg0);
+void func_actor_143000_80133EE4(Task* arg0);
 
 #endif
