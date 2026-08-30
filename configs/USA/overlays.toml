@@ -245,7 +245,7 @@ dryfield_junk_yard = { room = "Junk yard" }
 dryfield_trailer_coach = { room = "Trailer coach" }
 dryfield_motel_room_5 = { room = "Motel room 5", day_unlabelled = true }
 dryfield_motel_balcony = { room = "Motel balcony" }
-dryfield_motel_room_6 = { text = [0x100, 0x5428], room = "Motel room 6", note = "code ends at 0x5428; a stray 0x03E00008 in the string block at 0x8E7C fools the span detector" }
+dryfield_motel_room_6 = { text = [0x100, 0x5428], room = "Motel room 6", note = "code ends at 0x5428; a stray 0x03E00008 in the string block at 0x8E7C fools the span detector", units = ["0x3C14", "0x4180"], rodata = [{ start = "0x94", unit = "dryfield_motel_room_6_2" }, { start = "0xF4", unit = "dryfield_motel_room_6_3" }] }
 dryfield_motel_loft = { room = "Motel loft", day_unlabelled = true }
 dryfield_water_hole = { room = "Water hole" }
 dryfield_cellar = { room = "Cellar" }
