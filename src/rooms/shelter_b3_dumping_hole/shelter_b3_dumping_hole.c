@@ -25,11 +25,3 @@ INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_ho
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole", D_shelter_b3_dumping_hole_8017D670);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole", D_shelter_b3_dumping_hole_8017D67C);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole", jtbl_shelter_b3_dumping_hole_8017D690);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole", jtbl_shelter_b3_dumping_hole_8017D720);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole", jtbl_shelter_b3_dumping_hole_8017D740);
-
-INCLUDE_RODATA("rooms/nonmatchings/shelter_b3_dumping_hole/shelter_b3_dumping_hole", D_shelter_b3_dumping_hole_8017D758);
