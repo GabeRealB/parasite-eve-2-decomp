@@ -2645,6 +2645,18 @@ dryfield_night_trailer_coach = { room = "Trailer coach",
 the switch file is how GCC's `.align 3` after the table shifts the rest of the
 overlay.
 
+When the table is the last object in the leading rodata (it ends at the first
+`.text` address), skip that remainder cut: there is nothing after the table for
+a later unit's `.rodata` to own. Still cut `.text` at the *next* function so
+later `INCLUDE_ASM` bodies do not share the switch object's `.rodata`.
+`func_actor_510900_8013B870` is a 13-entry table at overlay `0xD0` ending at
+`0x104` (= start of `.text`):
+
+```toml
+actor_510900 = { units = ["0x9A50", "0x9B68"],
+                 rodata = [{ start = "0xD0", unit = "actor_510900_2" }] }
+```
+
 ### The overlay's *first* function needs `rodata_head`, not a `rodata` cut
 
 A `rodata` cut only works because it pairs with a `.text` cut, and the first
