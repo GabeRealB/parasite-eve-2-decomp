@@ -33260,3 +33260,56 @@ usual `s3` / `ra` / `s2` / `s1` / `s0` order. The zeroing still fills the
 branch delay. Same helper as the "empty memory clobber forces `sw ra` before
 the first delayed branch" entry; this is the s-reg save-order variant.
 `func_actor_143000_80132A04` is the example.
+
+## A call argument chosen by an `if` must be a ternary, not a pre-set local
+
+m2c renders `f(cond ? B : A)` as a local set before the call:
+
+```c
+var_a0 = 4;
+if (GameFlag_GetNibble(0x141) != 0) {
+    var_a0 = 6;
+}
+Gp_RunCapCmd1(var_a0);
+```
+
+That local is live across `GameFlag_GetNibble`, so GCC gives it a
+callee-saved register, adds the save/restore pair and grows the frame:
+
+```
+sw   s1, 0x14(sp)      # extra callee-saved, frame 0x20 not 0x18
+li   s0, 4
+jal  GameFlag_GetNibble
+beqz v0, .L
+ nop
+li   s0, 6
+.L:
+jal  Gp_RunCapCmd1
+ move a0, s0
+```
+
+The target picks the constant *after* the call, straight into `$a0`, so the
+branch's delay slot holds the default and `jal` gets a bare `nop`:
+
+```
+jal  GameFlag_GetNibble
+ li  a0, 0x141
+beqz v0, .L
+ li  a0, 4
+li   a0, 6
+.L:
+jal  Gp_RunCapCmd1
+ nop
+```
+
+Folding the choice into the argument reproduces it exactly:
+
+```c
+Gp_RunCapCmd1(GameFlag_GetNibble(0x141) != 0 ? 6 : 4);
+```
+
+Note this is the mirror of "if/else on the same field keeps the phi in `$v0`;
+a ternary steals `$t0`" above: when the value is *stored to a field*, the
+if/else form wins; when it is a *call argument whose condition is itself a
+call*, only the ternary keeps the value out of a callee-saved register.
+`stack` plus `regs` plus a `move aN, sN` where the target has `nop` is the tell.
