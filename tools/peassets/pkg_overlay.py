@@ -194,7 +194,7 @@ class Mesh:
 
     ``normals`` is parallel to ``faces`` and holds each face's **outward**
     direction. Getting that right needs the stored normal array, not the
-    winding: measured across aya, the named humans, an actor and a weapon, the
+    winding: measured across aya, the Kyles, an actor and a weapon, the
     winding is clockwise - ``cross(v1-v0, v2-v0)`` points *opposite* the stored
     normal in 97-100% of faces. Deriving orientation from winding alone
     therefore turns every face inside out, which is what makes a solid render

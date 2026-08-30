@@ -109,7 +109,7 @@ overlay.
   marking which are byte-identical.
 - `python3 tools/peassets/tmd_export.py <family> [--out DIR]` export a manifest
   family's model streams to Wavefront OBJ (vertices and faces only). Useful for
-  identifying an overlay whose name is still a placeholder — `humans`, `aya`.
+  identifying an overlay whose name is still a placeholder.
 - `python3 tools/check_pointer_arithmetic.py <file or directory>` detect pointer arithmetic with casts that should be replaced with struct field access. Use `--strict` to fail on violations.
 
 ## Code Quality Standards

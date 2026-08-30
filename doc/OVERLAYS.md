@@ -66,7 +66,7 @@ Slots are packed back-to-back in high RAM. Title and gameplay share
 | `0x80131E20` | Actor slot 1 (`1xxxxx`) | ~50–90 KiB | Stride `0x18000` to next slot |
 | `0x80149E20` | Actor slot 2 (`2xxxxx`) | same | `slot1 + 0x18000` |
 | `0x80161E20` | Actor slot 3 (`3xxxxx`) | same | `slot2 + 0x18000` |
-| `0x80167A70` | Named human (`800101`–`800105`) | ~55 KiB | |
+| `0x80167A70` | Kyle (`800101`–`800105`) | ~55 KiB | |
 | `0x80179950` | Area-map UI / room names (`900000`–`900005`) | ~10–15 KiB | Ends at `0x8017D5BC` |
 | `0x8017D5C0` | **Room overlay** (stages 1–5) | ~12–40 KiB typical | |
 | just after that room | Room `.pe2cap2` dialogue | per-room | e.g. `stage1/101` overlay is `0xB35C` bytes → cap2 at `0x80188920` |
@@ -89,7 +89,7 @@ the same flat order:
 [trailing data]     scripts, TMD streams, clip tables, leftover
 ```
 
-Some packages are **data-only** (Aya costumes, several humans, most weapons):
+Some packages are **data-only** (Aya costumes, three of Kyle's, most weapons):
 no `addiu $sp` / `jr $ra` at all. The header is then a skeleton / table, not
 a task-func list.
 
@@ -389,10 +389,20 @@ code + clip / AI tables.
 
 `4xxxxx` is more of this family, mostly loaded into slot 1.
 
-### 5.5 Named humans — `800101`–`800105` @ `0x80167A70`
+### 5.5 Kyle — `800101`–`800105` @ `0x80167A70`
 
-Same mesh language as actors, human face/clothes TIM (`pe2img_249`). Four
-unique bodies.
+One character, not four. Same mesh language as actors, with a shared
+face/clothes TIM (`pe2img_249`).
+
+The four packages carry the *byte-identical* 300-vertex body, the same four
+small meshes (two 27- and two 23-vertex) and the same 20-bone skeleton. Each
+adds one mesh of its own — 22, 52, 36 and 78 vertices — plus its own animation
+block and its own second CLUT/image pair, and only `kyle_800102` contains code.
+File id `800105` is a fifth id onto `kyle_800103`'s package with the same
+textures and no SPK, which is why there are five ids and four packages.
+
+They are therefore laid out the way `aya` is: one family per character, its
+packages being that character's variants.
 
 ### 5.6 Area maps — two cooperating slots
 
@@ -615,7 +625,7 @@ No anim chunk type exists in `STAGE*.CDF`. If it is not in that `.pe2pkg`
 SHA-1, so a package loaded under more than one file id is extracted once and
 both ids resolve to the same file. The counts below are **instances** in
 `stages.json`, so they run ahead of the number of distinct packages: the 32
-weapon ids are 32 packages, but the 7 aya ids are 6, the 5 named-human ids are
+weapon ids are 32 packages, but the 7 aya ids are 6, the 5 Kyle ids are
 4, the 6 map-UI ids are 5, and the 24 map-picture ids are 17.
 
 Packages that have been identified are **named** in the extractor
@@ -660,7 +670,7 @@ names must be unique within a container — so those extra ids keep their defaul
 | `0x80131E20` | 102 | actor slot 1 (+ `4xxxxx`) |
 | `0x80149E20` | 40 | actor slot 2 |
 | `0x80161E20` | 54 | actor slot 3 (+ some `8xxxxx`) |
-| `0x80167A70` | 5 | named humans |
+| `0x80167A70` | 5 | Kyle |
 | `0x80179950` | 6 | map UI |
 | `0x8017D5C0` | 168 | rooms |
 | `0x801D4000` | 2 | options |
@@ -681,8 +691,8 @@ names must be unique within a container — so those extra ids keep their defaul
 - Friendly names for actor suffixes (`300`, `400`, `700`, …) — not yet
   matched to in-game character ids, though `20600` (§5.9) now supplies the
   roster to match them *against*.
-- Who the named humans are. There are five file ids `800101`–`800105` but only
-  **four packages**: `800105` loads `human_800103`'s package with the same
+- Who Kyle's packages are. There are five file ids `800101`–`800105` but only
+  **four packages**: `800105` loads `kyle_800103`'s package with the same
   per-character CLUT and image, differing only in that it has no SPK, so it is
   that character without a sound bank.
 
@@ -690,8 +700,8 @@ names must be unique within a container — so those extra ids keep their defaul
   *byte-identical* 300-vertex body and the same four small meshes (two 27- and
   two 23-vertex), and the same 20-bone skeleton. Each adds exactly one mesh of
   its own — 22, 52, 36 and 78 vertices — and its own animation block, and only
-  `human_800102` contains code. At the byte level `800101`/`800103`/`800104`
+  `kyle_800102` contains code. At the byte level `800101`/`800103`/`800104`
   are ~42% identical at the same offsets, while `800102` shares nothing at a
   fixed offset because its code shifts everything after it. The distinguishing
   meshes are small single-part objects that read as held props rather than
-  heads; `tools/peassets/tmd_export.py humans` writes them out as OBJ.
+  heads; `tools/peassets/tmd_export.py kyle` writes them out as OBJ.

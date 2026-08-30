@@ -23,10 +23,10 @@ categories:
     name: Aya
     paths:
       - aya
-  - id: humans
-    name: Named humans
+  - id: kyle
+    name: Kyle
     paths:
-      - humans
+      - kyle
   - id: mapui
     name: Area maps
     paths:

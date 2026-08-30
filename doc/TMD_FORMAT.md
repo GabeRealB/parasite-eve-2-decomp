@@ -117,7 +117,7 @@ Two consequences:
 * **The part count is the bone count.** `obj->field_30` is the number of
   separators plus one, and it is derivable offline by counting them — which is
   the per-model bone count §6 lists as the blocker on decoding the pose banks.
-  `aya_10200` is 19, the named-human body 20, `actor_100300` 19. Parts with no
+  `aya_10200` is 19, the Kyle body 20, `actor_100300` 19. Parts with no
   geometry are joints.
 * **The rest pose ships in the `TmdSource`.** The runtime matrices live in
   `TmdObject.field_8`, a `GsCOORDINATE2` array — 0x50 bytes each, which is why
@@ -135,12 +135,12 @@ Two consequences:
   `TmdBone` is a 3x3 rest rotation (identity on disc, `4096` = 1.0), a pad
   halfword, `s32 t[3]` translating from the parent, and an `s32` parent index.
   The `+0x10` counts sum exactly to the vertex-array length (352 for
-  `aya_10200`, 300 for the named-human body), so the vertex array is grouped
+  `aya_10200`, 300 for the Kyle body), so the vertex array is grouped
   by part and each vertex's bone is known.
 
   Composing those through the parent the way `Gp_UpdateCoordTree` does —
   `workm.m = parent.workm.m * coord.m`, `workm.t = parent.workm.m * coord.t +
-  parent.workm.t` — assembles the character. For the named human it yields a
+  parent.workm.t` — assembles the character. For Kyle it yields a
   pelvis at `y = -951`, a head at `-1594`, arms out to `x = ±211` and feet at
   `-108` with the root on the ground (`y` is down). `tmd_export.py` and the
   viewer both apply it, so exports and the Model tab show standing figures
@@ -560,7 +560,7 @@ What remains is narrower.
   skips — `Tmd_InitSourceStream` steps over them before reading the first id —
   while the walker starts at the first packet, so the two addresses differ by
   the skips and an exact comparison threw the source away. The 41-packet body
-  mesh in every named-human overlay is one of these: its source declares
+  mesh in every Kyle overlay is one of these: its source declares
   `0x15D4`, the first packet is at `0x15D8`.
 
 ---
@@ -577,13 +577,13 @@ be skipped with them: they index the shading cache, which §3.5 shows is
 `ws->field_10[offset >> 3]` — one word per *vertex*. So their refs are word
 offsets into a vertex-keyed array and the index is `ref / 4`, not `ref / 8`.
 Reading them as ordinary refs silently drops about a third of a character's
-faces (270 of 398 on the named-human body).
+faces (270 of 398 on the Kyle body).
 
 **PlayStation quads are Z-ordered.** `v0 v1` across the top, `v2 v3` across the
 bottom, so the polygon winding is `v0 v1 v3 v2`. Emitting them in index order
 still references the right four vertices — the model looks almost right — but
 every quad is a bow-tie and adjacent faces stop sharing edges. The tell is the
-edge count: a closed mesh has `E = V + F - 2`, and the human accessories came
+edge count: a closed mesh has `E = V + F - 2`, and Kyle's accessory meshes came
 out at 80 edges against an expected 44 until the winding was fixed, after which
 they are exact closed manifolds (χ = 2).
 
@@ -602,7 +602,7 @@ on the *projected* points for visibility, and the stored normal for shading.
 **The winding is clockwise, so it cannot orient a face on its own either.**
 Measured against the stored normal array in the file's raw coordinates,
 `cross(v1-v0, v2-v0)` points *opposite* the element's own normal in 97-100% of
-faces (aya 363/368, the named human 263/270, an actor 271/274, a weapon 45/45).
+faces (aya 363/368, Kyle 263/270, an actor 271/274, a weapon 45/45).
 Take the normal from the normal ref. The pre-transformed opcodes spend their
 trailing words on cache indices rather than normal refs, so those faces — about
 a quarter of a character — fall back to the winding.
@@ -615,7 +615,7 @@ hardware, so +Z stays *away* from the viewer and a painter's-algorithm sort
 draws descending depth first.
 
 The `ref / 4` divisor for the pre-transformed opcodes is confirmed the same
-way. With `/4` the human body decodes to 398 faces, 0 rejected, every edge
+way. With `/4` Kyle's body decodes to 398 faces, 0 rejected, every edge
 shared by exactly two faces; with `/8` it is 279 faces, 119 rejected and only
 71% of edges shared — and aya lands on χ = 2 exactly under `/4`.
 

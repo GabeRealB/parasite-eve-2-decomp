@@ -225,7 +225,7 @@ def _skip_leading_skips(data: bytes, base: int, va: int) -> int:
     the address in the record is not always the address of the first packet.
     The walker starts at the packet, so the two disagree by the skip words and
     an exact comparison loses the source. The 41-packet body mesh in every
-    named-human overlay is one of these.
+    Kyle overlay is one of these.
     """
     off = va - base
     while 0 <= off + 4 <= len(data):

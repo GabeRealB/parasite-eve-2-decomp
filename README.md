@@ -40,7 +40,7 @@ RAM slots and package layout in [`doc/OVERLAYS.md`](doc/OVERLAYS.md).
 | `rooms` | 168 | Room overlays (STAGE1-5, one per folder) | ![coverage rooms](https://decomp.dev/GabeRealB/parasite-eve-2-decomp/SLUS-01042.svg?mode=shield&category=rooms&label=rooms) |
 | `mapui` | 5 | Area maps and their room-name pools | ![coverage mapui](https://decomp.dev/GabeRealB/parasite-eve-2-decomp/SLUS-01042.svg?mode=shield&category=mapui&label=mapui) |
 | `aya` | 6 | Aya costume meshes and the replay bonus | ![coverage aya](https://decomp.dev/GabeRealB/parasite-eve-2-decomp/SLUS-01042.svg?mode=shield&category=aya&label=aya) |
-| `humans` | 4 | Named human characters | ![coverage humans](https://decomp.dev/GabeRealB/parasite-eve-2-decomp/SLUS-01042.svg?mode=shield&category=humans&label=humans) |
+| `kyle` | 4 | Kyle's costume / variant meshes | ![coverage kyle](https://decomp.dev/GabeRealB/parasite-eve-2-decomp/SLUS-01042.svg?mode=shield&category=kyle&label=kyle) |
 | `options` | 2 | Options menu | ![coverage options](https://decomp.dev/GabeRealB/parasite-eve-2-decomp/SLUS-01042.svg?mode=shield&category=options&label=options) |
 | `pe` | 15 | Parasite Energy spell effects | ![coverage pe](https://decomp.dev/GabeRealB/parasite-eve-2-decomp/SLUS-01042.svg?mode=shield&category=pe&label=pe) |
 | `actors` | 196 | Enemy and NPC actors, one per RAM slot | ![coverage actors](https://decomp.dev/GabeRealB/parasite-eve-2-decomp/SLUS-01042.svg?mode=shield&category=actors&label=actors) |

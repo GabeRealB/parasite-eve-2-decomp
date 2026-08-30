@@ -69,7 +69,7 @@ def element_geometry(
     ones is what gives a face a reliable orientation: winding alone cannot say
     which side is outward, and measured against the stored normals the winding
     here is *clockwise* - `cross(v1-v0, v2-v0)` points opposite the stored
-    normal in 97-100% of faces across aya, the humans, an actor and a weapon.
+    normal in 97-100% of faces across aya, kyle, an actor and a weapon.
     """
     # Pre-transformed opcodes index the vertex-keyed shading cache, which holds
     # one word per vertex - so the ref is a word offset and scales by 4.
@@ -214,7 +214,7 @@ def packages_for(family: str) -> list[tuple[str, Path, int]]:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("family", help="manifest family to export (humans, aya, weapons, …)")
+    ap.add_argument("family", help="manifest family to export (kyle, aya, weapons, …)")
     ap.add_argument("--out", default="build/models", help="output directory")
     ap.add_argument("--min-verts", type=int, default=0, help="skip models below this size")
     args = ap.parse_args()

@@ -615,7 +615,7 @@ they hold point into *other* RAM slots — the packages that get loaded on top:
 | Table | VA | Entries | Targets | Slot |
 |---|---|---|---|---|
 | `Gp_PlayerAnimBlkTbl` | `0x80112D6C` | 34 | `0x8012A0D8`–`0x8012EDD0` | weapons, `0x8011D1C0` |
-| `Gp_AnimBlkTbl` | `0x80113368` | 8 | `0x8016CB98`–`0x801772E8` | named humans, `0x80167A70` |
+| `Gp_AnimBlkTbl` | `0x80113368` | 8 | `0x8016CB98`–`0x801772E8` | Kyle, `0x80167A70` |
 
 `Gp_PlayerAnimBlkTbl` is indexed by `GameActor.field_93A`
 (`Gp_WeaponIdBase[...] + Wip_SysConfig.field_21`), so an entry is only
@@ -703,10 +703,10 @@ animation block:
 | Package | Parts | Tracks per set | Sets |
 |---|---:|---:|---:|
 | `actor_800200`, `actor_800300` | 19 | 19 | 34 |
-| `human_800101`–`human_800104` | 20 | 20 | 34 |
+| `kyle_800101`–`kyle_800104` | 20 | 20 | 34 |
 | every weapon | 1 | 19 | 44 |
 
-Actors and named humans match their own part count exactly, 7 blocks out of 7.
+Actors and Kyle's packages match their own part count exactly, 7 blocks out of 7.
 The weapons look like an exception and are the clearest confirmation: a weapon
 is a single part, its blocks come from `Gp_PlayerAnimBlkTbl`, and 19 is **Aya's**
 part count — the weapon package carries the *player's* animation for that
@@ -731,7 +731,7 @@ A set has one track per bone; a track is a run of 4-byte records:
 **Two of the records are control, not keyframes**, and reading them as poses
 turns a 63-tick clip into a 320-frame one that sits still after the first
 quarter: the trailing `0x80`/`0xC0` pair claims 129 + 128 ticks between them,
-which are flagged durations of 1 and 0. Corrected, the named human's clips are
+which are flagged durations of 1 and 0. Corrected, Kyle's clips are
 3–391 ticks.
 
 **The pose kind belongs to the track, not the record.** `Gp_AnimInitSlot` takes
@@ -753,7 +753,7 @@ last pose; the set loops as a whole.
 A frame is then: sample each bone's track, build a local matrix, and run the
 same parent composition the rest pose uses. The viewer's Model tab has an
 **Animation** selector, play/pause and a frame slider, running one tick per
-16 ms — the game's 60 Hz — at about 79 fps on the named human.
+16 ms — the game's 60 Hz — at about 79 fps on Kyle.
 
 Angles use `4096` for a full turn and the rotation order is PsyQ's `RotMatrix`
 — Z, then Y, then X, so `M = Rx·Ry·Rz`.

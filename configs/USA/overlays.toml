@@ -98,21 +98,24 @@ aya_10400 = { note = "44 bones" }
 aya_10500 = { note = "41 bones" }
 aya_20900 = { note = "1.6 KB, 3 functions; role unknown" }
 replay_bonus = { note = "Complete Bonus / GET ITEM / BONUS BP" }
-[humans]
-description = "Named human character overlay"
+# Kyle, laid out like `aya`: one family per character, its packages being that
+# character's variants. The four are not four people - they carry the same
+# byte-identical 300-vertex body, the same four small meshes and the same
+# 20-bone skeleton, and differ by one mesh each, their own animation block and
+# their own texture. File id 800105 is a fifth id onto 800103's package with no
+# SPK, so it does not get an entry of its own.
+[kyle]
+description = "Kyle costume / variant overlay"
 load_addr   = 0x80167A70
 global_vram_start = 0x80010000
 global_vram_end   = 0x80167A70
-imports = "configs/USA/sym/humans.imports.txt"
+imports = "configs/USA/sym/kyle.imports.txt"
 
-# Placeholder names. Nothing in the binaries labels these five, so they keep
-# their file ids until the meshes identify who each one is (see
-# tools/peassets exports). 800103 and 800105 are byte-identical.
-[humans.overlays]
-human_800101 = { note = "word0 = 0xBF" }
-human_800102 = { note = "word0 = 0xC0; the only one with code" }
-human_800103 = { note = "word0 = 0xC1" }
-human_800104 = { note = "word0 = 0xC2" }
+[kyle.overlays]
+kyle_800101 = { note = "word0 = 0xBF" }
+kyle_800102 = { note = "word0 = 0xC0; the only one with code" }
+kyle_800103 = { note = "word0 = 0xC1" }
+kyle_800104 = { note = "word0 = 0xC2" }
 
 [mapui]
 description = "Area map / room-name overlay"

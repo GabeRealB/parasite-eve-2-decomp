@@ -49,7 +49,7 @@ SLOT_BASES = (
     0x80131E20,  # actor slot 1
     0x80149E20,  # actor slot 2
     0x80161E20,  # actor slot 3
-    0x80167A70,  # named humans
+    0x80167A70,  # Kyles
     0x80179950,  # map UI
     0x8017D5C0,  # rooms
 )
