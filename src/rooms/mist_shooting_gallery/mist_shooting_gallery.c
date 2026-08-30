@@ -101,23 +101,3 @@ INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery",
 INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", jtbl_mist_shooting_gallery_8017DB0C);
 
 INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", jtbl_mist_shooting_gallery_8017DB24);
-
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", jtbl_mist_shooting_gallery_8017DB3C);
-
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017DB80);
-
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", D_mist_shooting_gallery_8017DB8C);
-
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", jtbl_mist_shooting_gallery_8017DBA0);
-
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", jtbl_mist_shooting_gallery_8017DBE8);
-
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", jtbl_mist_shooting_gallery_8017DC00);
-
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", jtbl_mist_shooting_gallery_8017DC30);
-
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", jtbl_mist_shooting_gallery_8017DC58);
-
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", jtbl_mist_shooting_gallery_8017DC80);
-
-INCLUDE_RODATA("rooms/nonmatchings/mist_shooting_gallery/mist_shooting_gallery", jtbl_mist_shooting_gallery_8017DC98);
