@@ -170,7 +170,45 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterili
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_3", func_shelter_b1_sterilization_room_80181698);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_3", func_shelter_b1_sterilization_room_801816E0);
+void func_shelter_b1_sterilization_room_801816E0(Task* task)
+{
+    s32 cmd;
+    s32 flag;
+
+    switch (task->state) {
+        case 0:
+            Gp_ResetCap();
+            Gp_CapFile = 0;
+            Gp_LoadCapFile(1);
+            func_800E6D4C(0x2C0, 0x100);
+            if (task->spawnArg1 != 0) {
+                flag = GameFlag_GetNibble(0x77);
+                cmd  = 8;
+                if (flag == 0) {
+                    cmd = 7;
+                }
+                Gp_RunCapCmd1(cmd);
+                GameFlag_SetNibble(0x149, 1);
+            } else {
+                flag = GameFlag_GetNibble(0x77);
+                cmd  = 6;
+                if (flag != 0) {
+                    GameFlag_SetNibble(0x14A, 1);
+                    GameFlag_SetNibble(0x151, 1);
+                    cmd = 9;
+                }
+                Gp_RunCapCmd1(cmd);
+            }
+            task->state++;
+            return;
+        case 1:
+            if (Gp_CapBusy() == 0) {
+                Gp_ResetCap();
+                Task_Kill(task);
+            }
+            return;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sterilization_room/shelter_b1_sterilization_room_3", func_shelter_b1_sterilization_room_801817EC);
 

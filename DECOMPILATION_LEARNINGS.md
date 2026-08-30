@@ -32266,3 +32266,47 @@ register s32 cap asm("a0");
 `func_dryfield_night_trailer_coach_8018243C` is the example. The overlay already
 had a `rodata` cut at `0x21C`; the 0x10-byte leading `INCLUDE_RODATA` plus this
 function's jtbl needs no further manifest change.
+
+## Hoist a call out of the `if` condition so the default lands in `$a0`
+
+`var = D; if (call() == 0) { var = O; } use(var);` — m2c's usual shape — emits
+the `li` *before* the `jal`, so the pseudo is live across the call, gets a
+callee-saved register and grows the frame:
+
+```
+li    s0, D
+jal   GameFlag_GetNibble
+bnez  v0, L
+li    s0, O
+L:  jal   Gp_RunCapCmd1
+move  a0, s0
+```
+
+Assigning into a temp first puts the `li` after the call, so the value is only
+live from there to the argument and the allocator hands it `$a0` directly; the
+`li` then also fills the conditional branch's delay slot and the `move`
+disappears:
+
+```c
+flag = GameFlag_GetNibble(0x77);
+cmd  = 8;
+if (flag == 0) {
+    cmd = 7;
+}
+Gp_RunCapCmd1(cmd);
+```
+
+```
+jal   GameFlag_GetNibble
+li    a0, 0x77
+bnez  v0, L
+li    a0, 8
+li    a0, 7
+L:  jal   Gp_RunCapCmd1
+```
+
+The same rewrite removes the `j` that an if/else (or two calls merged by
+cross-jumping) leaves behind: with the default already assigned, the arm that
+overwrites it needs no else block to jump over.
+`func_shelter_b1_sterilization_room_801816E0` is the example — 83% as m2c wrote
+it, 92% cross-jumped, 95% with a shared variable, 100% with the temp.
