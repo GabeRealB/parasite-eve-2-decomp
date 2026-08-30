@@ -32220,3 +32220,49 @@ a two-point struct, even when the offsets are all multiples of 0x10: the
 pool with (`func_..._801812F8`, `func_..._8018176C`) read only `0x0` and take a
 single point. One flat `SVECTOR` array with doubled indices is the only typing
 that is honest for both.
+
+## Cap-script task: do not let the first `8614(..., 1)` join the later phi
+
+A 0..4 cutscene driver that increments through a shared `inc:` after cases 1/3
+often has two different `func_800E8614` shapes:
+
+- Case 0, first-time flag: `func_800E8614(&script, 1); goto inc;` — own `jal`
+  with `li a1, 1` in the delay, then `j inc`.
+- Case 2 event keys: a phi of `(addr, a1)` that B/C/D-else jump into, one `jal`.
+
+Written without a barrier, GCC 2.8.1 jump-threads the first call into the
+case-2 `a1 = 1; 8614(cap, flag)` label (`j` onto that `jal`, `delete` the first
+call). `SOFT_BARRIER()` between the first `8614` and `goto inc` keeps it
+separate.
+
+The case-0 "already seen" fork (two scripts, then `Task_Kill`) wants **direct
+calls**, not an address local:
+
+```c
+if (GameFlag_GetNibble(0xE0) == 0) {
+    if (GameFlag_GetNibble(0x7A) >= 4) {
+        GameFlag_SetNibble(0xE0, 1);
+        func_800E8614((s32)&scriptA, 0);
+        goto kill;
+    }
+}
+func_800E8614((s32)&scriptB, 0);
+kill:
+    Task_Kill(task);
+```
+
+A `script` local there emits `lui v0` / `addiu a0, v0` and folds the `7A < 4`
+`lui` into the `bnez` delay. Direct calls give `lui a0` / `addiu a0, a0` and
+leave the extra `lui a0` as a real insn so the `E0 != 0` path can skip it.
+
+The case-2 phi still needs the local (B: `a1 = 0; goto jal`, C: `goto li a1, 1`).
+Unpinned, HIGH of each `&script` goes to `$v0`. Pin the dest to `$a0` for
+same-register `la` (see the `lui tmp` / `addiu dest, tmp` unpin note):
+
+```c
+register s32 cap asm("a0");
+```
+
+`func_dryfield_night_trailer_coach_8018243C` is the example. The overlay already
+had a `rodata` cut at `0x21C`; the 0x10-byte leading `INCLUDE_RODATA` plus this
+function's jtbl needs no further manifest change.
