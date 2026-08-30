@@ -23,8 +23,11 @@ TIMEOUT=""
 # with gp-relative addressing the target does not use.
 G_OPTION="-G0"
 
-# Parse flags
-while [[ "$1" == --* || "$1" == -j ]]; do
+# Parse flags. `-j4` and `-j 4` both have to work: every caller-facing doc
+# (CLAUDE.md, MATCH_LOOP.md, the vacuum's agent prompts) writes the attached
+# form, and matching only `-j` made the loop exit on it, so FUNCTION_NAME
+# silently became "-j4" and every later argument shifted by one.
+while [[ "$1" == --* || "$1" == -j* ]]; do
     case "$1" in
         --clean)
             CLEAN=true
@@ -47,6 +50,15 @@ while [[ "$1" == --* || "$1" == -j ]]; do
             if [[ -n "$2" && "$2" =~ ^[0-9]+$ ]]; then
                 THREADS="$2"
                 shift 2
+            else
+                echo "Error: -j requires a numeric argument"
+                usage
+            fi
+            ;;
+        -j*)
+            if [[ "${1#-j}" =~ ^[0-9]+$ ]]; then
+                THREADS="${1#-j}"
+                shift
             else
                 echo "Error: -j requires a numeric argument"
                 usage
@@ -145,18 +157,15 @@ mips-linux-gnu-as -EL -Iinclude -Iinclude/decomp -Iinclude/psyq -I build -O2 -ma
 # Run decomp-permuter if the --run flag is set
 if [ "$RUN" = true ]; then
 
-    # Start a background cleaner that removes old permuter tmp files (older than 2 minutes)
-    (
-        while true; do
-            find /tmp -maxdepth 1 -type f -name "permuter*" -mmin +2 -delete 2>/dev/null
-            sleep 10
-        done
-    ) &
-
-    CLEANER_PID=$!
-
-    # Ensure the cleaner is stopped when the script exits
-    trap "kill $CLEANER_PID 2>/dev/null" EXIT
+    # The permuter leaves a scratch file per candidate compile behind in TMPDIR
+    # (~24 a second). Give it a private one that goes away with the run. This
+    # used to be a background loop deleting /tmp/permuter* older than two
+    # minutes, which only ran under --run: invoking permuter.py directly, as
+    # tools/vacuum_permute.py does, leaked unchecked and filled a 12G tmpfs in
+    # one long search, after which everything needing /tmp fails on ENOSPC.
+    PERM_TMPDIR="$(mktemp -d "${TMPDIR:-/tmp}/permuter-${FUNCTION_NAME}-XXXXXX")"
+    trap 'rm -rf "$PERM_TMPDIR"' EXIT
+    export TMPDIR="$PERM_TMPDIR"
 
     echo "Running decomp-permuter"
     PYTHON="$SCRIPT_DIR/venv/bin/python"

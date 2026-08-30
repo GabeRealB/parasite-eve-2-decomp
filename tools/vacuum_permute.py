@@ -19,6 +19,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -191,7 +192,14 @@ def run_permuter(
         "levenshtein",
         str(perm_dir),
     ]
-    proc = subprocess.run(cmd, cwd=REPO_ROOT, capture_output=True, text=True)
+    # Private TMPDIR that goes away with the run: the permuter leaves a scratch
+    # file per candidate compile behind, and a shared /tmp fills up (12G in one
+    # long search here). permute.sh's cleaner does not cover this call path.
+    with tempfile.TemporaryDirectory(prefix=f"permuter-{func}-") as tmpdir:
+        env = {**os.environ, "TMPDIR": tmpdir}
+        proc = subprocess.run(
+            cmd, cwd=REPO_ROOT, capture_output=True, text=True, env=env
+        )
     winner = find_zero_output(perm_dir)
     log_tail = (proc.stdout or "")[-1500:]
     if winner is not None:
