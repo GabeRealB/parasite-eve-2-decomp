@@ -160,63 +160,6 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underg
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_5", func_shelter_b1_underground_parking_801833DC);
 
-void func_shelter_b1_underground_parking_80183410(Task* task)
-{
-    switch (task->state) {
-        case 0:
-            Gp_RunCapCmd1(task->spawnArg1);
-            goto advance;
-        case 1:
-            if (Gp_CapBusy() != 0) {
-                break;
-            }
-        advance:
-            task->state += 1;
-            break;
-        case 2:
-            if (Gp_GetCapEventKey() == 0xF) {
-                Gp_MsgPlayerWeapon(1);
-                Task_Kill(task);
-            } else {
-                task->state = 0;
-            }
-            break;
-    }
-}
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_5", func_shelter_b1_underground_parking_801834D4);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_5", func_shelter_b1_underground_parking_80183560);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_5", func_shelter_b1_underground_parking_8018363C);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_5", func_shelter_b1_underground_parking_801836D8);
-
-void func_shelter_b1_underground_parking_80183714(Task* task)
-{
-    switch (task->state) {
-        case 0:
-            Gp_CapFile = 0;
-            Gp_LoadCapFile(2);
-            func_800E6D4C(0x300, 0);
-            Gp_RunCapCmd(task->spawnArg1, 0);
-            task->state++;
-            break;
-        case 1:
-            if (Gp_CapBusy() == 0) {
-                task->state++;
-            }
-            break;
-        case 2:
-            Gp_MsgPlayerWeapon(1);
-            Gp_ResetCap();
-            Task_Kill(task);
-            break;
-    }
-}
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_5", func_shelter_b1_underground_parking_801837D8);
-
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_5", D_shelter_b1_underground_parking_8017D9A4);
 
 INCLUDE_RODATA("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_5", jtbl_shelter_b1_underground_parking_8017D9C4);

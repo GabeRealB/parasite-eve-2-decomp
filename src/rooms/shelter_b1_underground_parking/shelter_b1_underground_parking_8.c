@@ -1,23 +1,5 @@
 #include "common.h"
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_8", func_shelter_b1_underground_parking_80184234);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_8", func_shelter_b1_underground_parking_80183B9C);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_8", func_shelter_b1_underground_parking_80184284);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_8", func_shelter_b1_underground_parking_80184304);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_8", func_shelter_b1_underground_parking_801843F0);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_8", func_shelter_b1_underground_parking_80184468);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_8", func_shelter_b1_underground_parking_80184594);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_8", func_shelter_b1_underground_parking_801845F8);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_8", func_shelter_b1_underground_parking_801846EC);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_8", func_shelter_b1_underground_parking_80184778);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_8", func_shelter_b1_underground_parking_801847D0);
-
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_8", func_shelter_b1_underground_parking_801848A4);
+INCLUDE_ASM("rooms/nonmatchings/shelter_b1_underground_parking/shelter_b1_underground_parking_8", func_shelter_b1_underground_parking_80183CEC);

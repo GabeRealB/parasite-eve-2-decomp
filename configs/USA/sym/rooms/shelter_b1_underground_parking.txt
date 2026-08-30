@@ -10,3 +10,4 @@ Room_SaveUi01 = 0x8017F7D0; // shared body, see src/rooms/lib/
 Room_Util01 = 0x8017F13C; // shared body, see src/rooms/lib/
 Room_Util04 = 0x801848BC; // shared body, see src/rooms/lib/
 Room_Util28 = 0x80183804; // shared body, see src/rooms/lib/
+Room_Script23 = 0x80183410; // shared body, see src/rooms/lib/
