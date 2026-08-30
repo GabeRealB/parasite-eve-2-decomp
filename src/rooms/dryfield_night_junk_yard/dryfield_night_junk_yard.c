@@ -1,0 +1,42 @@
+#include "common.h"
+
+INCLUDE_ASM("rooms/dryfield_night_junk_yard/nonmatchings/dryfield_night_junk_yard", func_dryfield_night_junk_yard_8017D5F4);
+
+INCLUDE_ASM("rooms/dryfield_night_junk_yard/nonmatchings/dryfield_night_junk_yard", func_dryfield_night_junk_yard_8017D6A4);
+
+INCLUDE_ASM("rooms/dryfield_night_junk_yard/nonmatchings/dryfield_night_junk_yard", func_dryfield_night_junk_yard_8017D6AC);
+
+INCLUDE_ASM("rooms/dryfield_night_junk_yard/nonmatchings/dryfield_night_junk_yard", func_dryfield_night_junk_yard_8017D82C);
+
+INCLUDE_ASM("rooms/dryfield_night_junk_yard/nonmatchings/dryfield_night_junk_yard", func_dryfield_night_junk_yard_8017D894);
+
+INCLUDE_ASM("rooms/dryfield_night_junk_yard/nonmatchings/dryfield_night_junk_yard", func_dryfield_night_junk_yard_8017D8B0);
+
+void func_dryfield_night_junk_yard_8017D958(void) {
+}
+
+INCLUDE_RODATA("rooms/dryfield_night_junk_yard/nonmatchings/dryfield_night_junk_yard", D_dryfield_night_junk_yard_8017D5C0);
+
+INCLUDE_ASM("rooms/dryfield_night_junk_yard/nonmatchings/dryfield_night_junk_yard", func_dryfield_night_junk_yard_8017D960);
+
+INCLUDE_ASM("rooms/dryfield_night_junk_yard/nonmatchings/dryfield_night_junk_yard", func_dryfield_night_junk_yard_8017D9B8);
+
+INCLUDE_ASM("rooms/dryfield_night_junk_yard/nonmatchings/dryfield_night_junk_yard", func_dryfield_night_junk_yard_8017DA14);
+
+INCLUDE_ASM("rooms/dryfield_night_junk_yard/nonmatchings/dryfield_night_junk_yard", func_dryfield_night_junk_yard_8017DBD0);
+
+INCLUDE_ASM("rooms/dryfield_night_junk_yard/nonmatchings/dryfield_night_junk_yard", func_dryfield_night_junk_yard_8017E34C);
+
+INCLUDE_ASM("rooms/dryfield_night_junk_yard/nonmatchings/dryfield_night_junk_yard", func_dryfield_night_junk_yard_8017E5C8);
+
+INCLUDE_ASM("rooms/dryfield_night_junk_yard/nonmatchings/dryfield_night_junk_yard", func_dryfield_night_junk_yard_8017E86C);
+
+INCLUDE_ASM("rooms/dryfield_night_junk_yard/nonmatchings/dryfield_night_junk_yard", func_dryfield_night_junk_yard_8017EC98);
+
+INCLUDE_ASM("rooms/dryfield_night_junk_yard/nonmatchings/dryfield_night_junk_yard", func_dryfield_night_junk_yard_8017F02C);
+
+INCLUDE_ASM("rooms/dryfield_night_junk_yard/nonmatchings/dryfield_night_junk_yard", func_dryfield_night_junk_yard_8017F51C);
+
+INCLUDE_ASM("rooms/dryfield_night_junk_yard/nonmatchings/dryfield_night_junk_yard", func_dryfield_night_junk_yard_8017F914);
+
+INCLUDE_ASM("rooms/dryfield_night_junk_yard/nonmatchings/dryfield_night_junk_yard", func_dryfield_night_junk_yard_8017FB9C);

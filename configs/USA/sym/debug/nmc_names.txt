@@ -1,0 +1,1 @@
+// Overlay-local symbols for nmc_names (file 20600).

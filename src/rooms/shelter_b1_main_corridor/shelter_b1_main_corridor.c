@@ -1,0 +1,66 @@
+#include "common.h"
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017D620);
+
+INCLUDE_RODATA("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", D_shelter_b1_main_corridor_8017D5C0);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017D784);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017D8F4);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017DA8C);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017DCEC);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017DCF4);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017DCFC);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017DD04);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017DD4C);
+
+void func_shelter_b1_main_corridor_8017DD90(void) {
+}
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017DD98);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017DDF0);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017E070);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017E858);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017EAD4);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017EDA0);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017F064);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017F488);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017F81C);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017FBB4);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8017FD60);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8018028C);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_80180604);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_80180FC4);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_801810F8);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8018139C);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_801817C8);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_80181B5C);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_8018204C);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_80182444);
+
+INCLUDE_ASM("rooms/shelter_b1_main_corridor/nonmatchings/shelter_b1_main_corridor", func_shelter_b1_main_corridor_801826CC);

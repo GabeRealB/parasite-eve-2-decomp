@@ -24,7 +24,7 @@ shape, and there are 446 of them, so their configs are **generated**:
 
 | File | Role |
 |---|---|
-| `configs/USA/overlays.toml` | the manifest — only human decisions (each overlay's name and what it is) |
+| `configs/USA/overlays.toml` | the manifest — keyed by package name, holding only what the decomp adds |
 | `configs/USA/overlay.template.yaml` | the shared config body |
 | `configs/USA/generated/*.yaml` | output, gitignored, rewritten by every `ninja_config.py` run |
 | `configs/USA/sym/<family>/<name>.txt` | per-overlay symbol map |
@@ -32,6 +32,31 @@ shape, and there are 446 of them, so their configs are **generated**:
 
 `sha1`, size and the `.text` span are **derived from the package**, never
 written in the manifest, so a config cannot drift from the data it describes.
+
+**An overlay is an extracted package.** Identified packages — and the folders
+and stage-0 files that contain them — are *named in the extractor* (`tools/peassets/asset_data.py`, preserved across
+`dump_asset_db.py` regeneration by sha1), so they extract as `m93r.pe2pkg`
+rather than `pe2pkg_2.pe2pkg`. The manifest key is that name and the config is
+built from `assets/USA/pe2pkg/<key>.pe2pkg` — file ids appear nowhere in the
+decomp. Several stage-0 ids can load one package (the extractor dedups by
+SHA-1, so `10500` and `10600` are one file); naming it once in the extractor is
+what makes it one thing here. The generator errors if two entries resolve to the
+same package.
+
+Packages the decomp builds are marked `"required": True` in `asset_data.py`, so
+`python3 ninja_config.py -iso_min` materialises exactly that set — 237 overlays
+in ~12s, which is the CI/matching extract. `stages.json` and the ISO manifests
+are written in **every** extraction mode: the content tree comes from the
+HED/CDF plus the extract-time chunk map, so it does not depend on having
+inflated anything, and the viewer and `dump_asset_db.py` both need it.
+
+**The `.text` span is derived, and rarely wrong.** A `0x03E00008` word inside a
+data block can extend the span past the end of the code; splat then emits a
+`dlabel` for that data inside the code subsegment. The build does *not* reliably
+fail on it — from a clean split the reference and definition agree, and it only
+breaks on a later re-split — so `ninja_config.py` checks for it after every
+overlay split and stops with the `text = [start, end]` override to add. One room
+of 168 (`s2_30`) needs one.
 
 Two maintenance commands, neither run by the build:
 
@@ -64,6 +89,13 @@ overlay.
 - `./tools/vacuum.sh [--grok|--claude] [--dry-run] [--orchestrator] [--difficult] [--overlay NAME]` pick the easiest unmatched function across every overlay, bootstrap, pack a brief, run the agent. `--difficult` retries only names in `tools/difficult_functions` (a verified match removes that name from the list); `--overlay gameplay` (or `USA/main`) restricts to that overlay; both flags together are the intersection. Auto-commits a verified match if the agent forgot to. After a ≥95% give-up, runs decomp-permuter (`--stop-on-zero`, 6 min cap) and a short port follow-up on a hit. Best scratch C is kept at `tools/giveups/<func>/` (gitignored) so a later retry does not start from m2c. `--orchestrator` claims a function via `tools/vacuum_orch.py`, matches in a throwaway `pe2-wt-<func>` worktree, independently verifies that worktree (agents often sha256 leftover `build/` artifacts), fast-ports when trunk files have not moved, otherwise runs a port agent. Failed trunk landings are retried (`VACUUM_PORT_TRIES`, default 2) then marked difficult so the same claim cannot loop. Do not run a non-orchestrator vacuum on this checkout at the same time as an orchestrator session.
 - `python3 tools/vacuum_orch.py claim|relinquish|finish|merge-acquire|merge-release|status|serve` coordinate multiple vacuums: function leases plus a merge lock on the original tree. State: `$(git rev-parse --git-common-dir)/vacuum-orch.json`.
 - `./permute.sh --run --timeout 360 -j4 <func> <asm> <c>` when a match is stuck ≥95% on registers/scheduling. Stops on score 0.
+- `python3 tools/overlay_dup_index.py stats|shared|find [--family F]` find code
+  that repeats across overlays in a family. 56% of the room functions are copies
+  of another room's; `find <fn>` lists every overlay carrying the same body,
+  marking which are byte-identical.
+- `python3 tools/peassets/tmd_export.py <family> [--out DIR]` export a manifest
+  family's model streams to Wavefront OBJ (vertices and faces only). Useful for
+  identifying an overlay whose name is still a placeholder — `humans`, `aya`.
 - `python3 tools/check_pointer_arithmetic.py <file or directory>` detect pointer arithmetic with casts that should be replaced with struct field access. Use `--strict` to fail on violations.
 
 ## Code Quality Standards

@@ -1,0 +1,44 @@
+#include "common.h"
+
+INCLUDE_ASM("rooms/shelter_b1_sleeping_quarters/nonmatchings/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D608);
+
+INCLUDE_ASM("rooms/shelter_b1_sleeping_quarters/nonmatchings/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D668);
+
+INCLUDE_ASM("rooms/shelter_b1_sleeping_quarters/nonmatchings/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D670);
+
+INCLUDE_ASM("rooms/shelter_b1_sleeping_quarters/nonmatchings/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D6FC);
+
+INCLUDE_ASM("rooms/shelter_b1_sleeping_quarters/nonmatchings/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D770);
+
+INCLUDE_ASM("rooms/shelter_b1_sleeping_quarters/nonmatchings/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D778);
+
+INCLUDE_ASM("rooms/shelter_b1_sleeping_quarters/nonmatchings/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D83C);
+
+void func_shelter_b1_sleeping_quarters_8017D880(void) {
+}
+
+INCLUDE_RODATA("rooms/shelter_b1_sleeping_quarters/nonmatchings/shelter_b1_sleeping_quarters", D_shelter_b1_sleeping_quarters_8017D5C0);
+
+INCLUDE_ASM("rooms/shelter_b1_sleeping_quarters/nonmatchings/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D888);
+
+INCLUDE_ASM("rooms/shelter_b1_sleeping_quarters/nonmatchings/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D8E0);
+
+INCLUDE_ASM("rooms/shelter_b1_sleeping_quarters/nonmatchings/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017DB50);
+
+INCLUDE_ASM("rooms/shelter_b1_sleeping_quarters/nonmatchings/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017E338);
+
+INCLUDE_ASM("rooms/shelter_b1_sleeping_quarters/nonmatchings/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017E6DC);
+
+INCLUDE_ASM("rooms/shelter_b1_sleeping_quarters/nonmatchings/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017EC34);
+
+INCLUDE_ASM("rooms/shelter_b1_sleeping_quarters/nonmatchings/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017EE58);
+
+INCLUDE_ASM("rooms/shelter_b1_sleeping_quarters/nonmatchings/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017F0DC);
+
+INCLUDE_ASM("rooms/shelter_b1_sleeping_quarters/nonmatchings/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017F500);
+
+INCLUDE_ASM("rooms/shelter_b1_sleeping_quarters/nonmatchings/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017F894);
+
+INCLUDE_ASM("rooms/shelter_b1_sleeping_quarters/nonmatchings/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017FA40);
+
+INCLUDE_ASM("rooms/shelter_b1_sleeping_quarters/nonmatchings/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017FF6C);

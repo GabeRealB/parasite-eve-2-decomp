@@ -108,6 +108,7 @@ def resolve_scope(
     `gameplay`). Order is always the canonical one - main first, then overlays -
     regardless of the order selectors are given in, because main's undef scripts
     are rewritten from what the overlays resolved.
+
     """
     if not selectors:
         return ordered
@@ -160,8 +161,9 @@ def generated_overlay_yamls() -> list[tuple[str, str, str]]:
     manifest = tomllib.loads(OVERLAY_MANIFEST.read_text(encoding="utf-8"))
     out = []
     for family, spec in manifest.items():
-        for _file_id, entry in sorted(spec["overlays"].items()):
-            name = entry["name"]
+        # The manifest key is the extracted package's name, which is also the
+        # overlay basename and the generated config's filename.
+        for name in sorted(spec["overlays"]):
             out.append((f"{GENERATED_CONFIG_SUBDIR}/{name}.yaml", name, family))
     return out
 
@@ -567,6 +569,42 @@ def append_main_overlay_imports() -> None:
     rewrite(fun, extra_fun)
     if extra_sym and sym.is_file():
         rewrite(sym, extra_sym)
+
+
+DLABEL_RE = re.compile(r"^dlabel \w+_([0-9A-F]{8})$", re.M)
+
+
+def check_overlay_text_span(family: str, basename: str, vram: int, text_start: int) -> None:
+    """Fail if the derived .text span swallowed data.
+
+    The span detector runs from the first stack-frame prologue to the last
+    `jr $ra`, and a `0x03E00008` word inside a data block extends it past the
+    real end. splat then disassembles that data as code and emits a `dlabel`
+    for it inside the code subsegment - the same address is referenced as
+    `D_<name>_<vram>` and defined as `func_<name>_<vram>`.
+
+    That does not reliably fail: from a clean split the two agree and the build
+    passes, and it only breaks on a *re-split* with sources present. Checking
+    for the dlabel directly turns a latent, order-dependent failure into a
+    deterministic one that names the fix.
+    """
+    root = ASM_DIR / "USA" / family / basename / "nonmatchings"
+    if not root.is_dir():
+        return
+    for path in root.rglob("*.s"):
+        m = DLABEL_RE.search(path.read_text(encoding="utf-8", errors="replace")[:400])
+        if not m:
+            continue
+        offset = int(m.group(1), 16) - vram
+        if offset < text_start:
+            continue  # the leading rodata header legitimately holds dlabels
+        print(
+            f"ERROR: {family}/{basename}: data at file offset 0x{offset:X} is inside "
+            f"the derived .text span, so the span runs past the end of the code.\n"
+            f"  Pin it in configs/USA/overlays.toml:  "
+            f"{basename} = {{ text = [0x{text_start:X}, 0x{offset:X}] }}"
+        )
+        sys.exit(1)
 
 
 def append_overlay_absolute_imports(basename: str, imports_path: str | None = None) -> None:
@@ -1160,6 +1198,13 @@ def main():
             basename = overlay_basename[yaml]
             append_overlay_absolute_imports(basename, family_imports.get(family))
             fix_overlay_include_asm_paths(basename, f"src/{family}/{basename}")
+            seg = split.config["segments"][0]
+            text_sub = next(
+                (s for s in seg.get("subsegments", []) if len(s) > 2 and s[1] == "c"),
+                None,
+            )
+            if text_sub is not None:
+                check_overlay_text_span(family, basename, seg["vram"], text_sub[0])
         splits_yaml_info.append(
             YamlInfo(
                 [split.linker_writer.entries],

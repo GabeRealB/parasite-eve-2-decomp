@@ -1,0 +1,32 @@
+#include "common.h"
+
+INCLUDE_ASM("rooms/dryfield_night_parking_lot/nonmatchings/dryfield_night_parking_lot", func_dryfield_night_parking_lot_8017D5FC);
+
+INCLUDE_RODATA("rooms/dryfield_night_parking_lot/nonmatchings/dryfield_night_parking_lot", D_dryfield_night_parking_lot_8017D5C0);
+
+INCLUDE_ASM("rooms/dryfield_night_parking_lot/nonmatchings/dryfield_night_parking_lot", func_dryfield_night_parking_lot_8017D760);
+
+INCLUDE_ASM("rooms/dryfield_night_parking_lot/nonmatchings/dryfield_night_parking_lot", func_dryfield_night_parking_lot_8017D8D0);
+
+INCLUDE_ASM("rooms/dryfield_night_parking_lot/nonmatchings/dryfield_night_parking_lot", func_dryfield_night_parking_lot_8017DAB4);
+
+INCLUDE_ASM("rooms/dryfield_night_parking_lot/nonmatchings/dryfield_night_parking_lot", func_dryfield_night_parking_lot_8017DB04);
+
+INCLUDE_ASM("rooms/dryfield_night_parking_lot/nonmatchings/dryfield_night_parking_lot", func_dryfield_night_parking_lot_8017DB0C);
+
+INCLUDE_ASM("rooms/dryfield_night_parking_lot/nonmatchings/dryfield_night_parking_lot", func_dryfield_night_parking_lot_8017DB34);
+
+INCLUDE_ASM("rooms/dryfield_night_parking_lot/nonmatchings/dryfield_night_parking_lot", func_dryfield_night_parking_lot_8017DBA4);
+
+INCLUDE_ASM("rooms/dryfield_night_parking_lot/nonmatchings/dryfield_night_parking_lot", func_dryfield_night_parking_lot_8017DBB0);
+
+void func_dryfield_night_parking_lot_8017DC28(void) {
+}
+
+INCLUDE_ASM("rooms/dryfield_night_parking_lot/nonmatchings/dryfield_night_parking_lot", func_dryfield_night_parking_lot_8017DC30);
+
+INCLUDE_ASM("rooms/dryfield_night_parking_lot/nonmatchings/dryfield_night_parking_lot", func_dryfield_night_parking_lot_8017DC88);
+
+INCLUDE_ASM("rooms/dryfield_night_parking_lot/nonmatchings/dryfield_night_parking_lot", func_dryfield_night_parking_lot_8017DE10);
+
+INCLUDE_ASM("rooms/dryfield_night_parking_lot/nonmatchings/dryfield_night_parking_lot", func_dryfield_night_parking_lot_8017E08C);

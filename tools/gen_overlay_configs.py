@@ -11,6 +11,13 @@ Everything checkable is derived from the package rather than written down:
 
 ``sha1`` / ``size``
     Read off the file, so a config cannot drift from the data it describes.
+An overlay **is** an extracted package. The manifest key is the package's name
+and the config is built from ``assets/USA/pe2pkg/<key>.pe2pkg``; file ids do not
+appear. Several stage-0 ids load one package - the extractor dedups by SHA-1, so
+`10500` and `10600` are a single file - but that is the extractor's business,
+and naming the package there (``tools/peassets/asset_data.py``) is what makes it
+a single thing here. One package, one entry, one split, one set of symbols.
+
 ``.text`` span
     Found the same way ``doc/OVERLAYS.md`` §4.3 does - first stack-frame
     prologue through the last ``jr $ra`` plus its delay slot. The detector
@@ -23,48 +30,18 @@ from __future__ import annotations
 
 import argparse
 import hashlib
-import json
-import re
 import struct
 import sys
 import tomllib
 from pathlib import Path
 
 MANIFEST = Path("configs/USA/overlays.toml")
-STAGES = Path("assets/USA/stages.json")
+PACKAGE_DIR = Path("assets/USA/pe2pkg")
 TEMPLATE = Path("configs/USA/overlay.template.yaml")
 OUT_DIR = Path("configs/USA/generated")
 
 ADDIU_SP = 0x27BD0000  # addiu $sp, $sp, -N  (negative immediate)
 JR_RA = 0x03E00008
-
-
-def package_paths(root: Path) -> dict[str, Path]:
-    """stage-0 file id -> inflated package, straight out of stages.json.
-
-    The inflated names (`pe2pkg_2`, `pe2pkg_3`, …) run in file-id order, so an
-    id could be turned into a path arithmetically - but that is a coincidence
-    of the extractor's numbering, not a fact about the game, and it would break
-    silently if the extraction order ever changed. The manifest keys on the
-    file id because that is what the game uses; resolve it the same way the
-    game's own table does.
-    """
-    out: dict[str, Path] = {}
-
-    def walk(node, path: str = "") -> None:
-        if isinstance(node, dict):
-            if "path" in node and str(node["path"]).endswith(".pe2pkg"):
-                m = re.search(r"file(\d+)", path)
-                if m:
-                    out[m.group(1)] = root / node["path"]
-            for k, v in node.items():
-                walk(v, f"{path}/{k}")
-        elif isinstance(node, list):
-            for i, v in enumerate(node):
-                walk(v, f"{path}[{i}]")
-
-    walk(json.loads(STAGES.read_text(encoding="utf-8")))
-    return out
 
 
 def text_span(data: bytes) -> tuple[int, int] | None:
@@ -80,21 +57,31 @@ def text_span(data: bytes) -> tuple[int, int] | None:
     return min(starts) * 4, (max(ends) + 2) * 4
 
 
-def trailing_pad(data: bytes) -> list[str]:
-    """A `pad` subsegment for a package whose size is not word-aligned.
+def trailing_segment(name: str, data: bytes) -> list[str]:
+    """Cover a package whose size is not word-aligned.
 
     Package sizes are byte counts, not word counts, so a file can end part-way
     through a word. Without this the linker stops at the last whole word and the
     build comes out a couple of bytes short with every other byte identical -
     which is what `title.yaml` spells out by hand for its own 0x14AA size.
+
+    Which segment depends on what those bytes are. `pad` emits zeros, so it is
+    only correct when the tail *is* zeros (tonfa_baton). Two packages end on
+    real content - map_dryfield on b' &' and nmc_names on the last bytes of its
+    ASCII ramp - and those need `databin`, which writes the bytes out and
+    .incbin's them back rather than inventing them.
     """
-    if len(data) % 4 == 0:
+    tail = data[len(data) & ~3 :]
+    if not tail:
         return []
-    return [f"      - [0x{len(data) & ~3:X}, pad]"]
+    start = f"0x{len(data) & ~3:X}"
+    if not any(tail):
+        return [f"      - [{start}, pad]"]
+    return [f"      - [{start}, databin, {name}_tail]"]
 
 
 def subsegments(name: str, data: bytes, span: tuple[int, int] | None) -> str:
-    """The three-part package layout as splat subsegment lines.
+    """The package layout as splat subsegment lines.
 
     A data-only package still gets one `data` subsegment covering the file;
     six of the 32 weapon overlays are unused slots with no code at all.
@@ -102,38 +89,65 @@ def subsegments(name: str, data: bytes, span: tuple[int, int] | None) -> str:
     lines: list[str] = []
     if span is None:
         lines.append(f"      - [0x0, data, {name}]")
-        lines.extend(trailing_pad(data))
+        lines.extend(trailing_segment(name, data))
         return "\n".join(lines)
 
     start, end = span
     if start:
-        # Leading rodata: the package header (task tables, jtbls) that sits
-        # ahead of the first function.
+        # Leading rodata: the package header that sits ahead of the first
+        # function.
         lines.append(f"      - [0x0, .rodata, {name}]")
     lines.append(f"      - [0x{start:X}, c, {name}]")
     if end < len(data):
-        # Trailing data is the bulk of a weapon overlay: model streams and
-        # animation banks, not code.
+        # Trailing data: models, animation banks, scripts - not code.
         lines.append(f"      - [0x{end:X}, data, {name}_data]")
-    lines.extend(trailing_pad(data))
+    lines.extend(trailing_segment(name, data))
     return "\n".join(lines)
 
 
-def generate(
-    family: str, spec: dict, template: str, out_dir: Path, packages: dict[str, Path]
-) -> list[Path]:
+def overlay_label(name: str, entry: dict) -> str:
+    """Human label for the config's title line.
+
+    Families describe their overlays with different keys - `weapon` names the
+    gun, `note` says what an unnamed one is - so the label falls back through
+    them to the overlay name rather than requiring any particular field. A
+    family that adds a new descriptive key needs it listed here, nothing more.
+    """
+    for key in ("weapon", "note"):
+        value = entry.get(key)
+        if value:
+            return str(value)
+    return name
+
+
+def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path]:
     written: list[Path] = []
-    for file_id, entry in sorted(spec["overlays"].items()):
-        name = entry["name"]
-        target = packages.get(file_id)
-        if target is None:
-            raise SystemExit(f"{family}/{name}: file {file_id} not in {STAGES}")
+    seen: dict[bytes, str] = {}
+    for name, entry in sorted(spec["overlays"].items()):
+        target = PACKAGE_DIR / f"{name}.pe2pkg"
         if not target.is_file():
-            raise SystemExit(f"{family}/{name}: {target} not found")
+            raise SystemExit(
+                f"{family}/{name}: {target} not found.\n"
+                f"  Package names come from tools/peassets/asset_data.py; extract with\n"
+                f"  `python3 ninja_config.py -iso_min` to materialise the required set."
+            )
         data = target.read_bytes()
+
+        # Two entries on one package would split the same file twice and give
+        # its functions two symbol prefixes. Distinct names sharing content mean
+        # the extractor's naming disagrees with this manifest.
+        digest = hashlib.sha1(data).digest()
+        clash = seen.get(digest)
+        if clash is not None:
+            raise SystemExit(
+                f"{family}/{name} is the same package as {family}/{clash}.\n"
+                f"  Splitting it again would disassemble the same file twice.\n"
+                f"  Keep one entry, and give the package one name in asset_data.py."
+            )
+        seen[digest] = name
+
         span = tuple(entry["text"]) if "text" in entry else text_span(data)
-        label = entry.get("weapon") or f"unused slot {entry['item']:#04x}"
-        title = f"{spec['description']} - {label} (file {file_id})"
+        title = f"{spec['description']} - {overlay_label(name, entry)}"
 
         text = template
         for key, val in {
@@ -169,19 +183,31 @@ def main() -> int:
     manifest = tomllib.loads(MANIFEST.read_text(encoding="utf-8"))
     template = TEMPLATE.read_text(encoding="utf-8")
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    packages = {} if args.list else package_paths(Path("assets/USA"))
 
     total = 0
+    produced: set[Path] = set()
     for family, spec in manifest.items():
         if args.family and family != args.family:
             continue
         if args.list:
-            for fid, e in sorted(spec["overlays"].items()):
-                print(f"{family}\t{fid}\t{e['name']}")
+            for name, e in sorted(spec["overlays"].items()):
+                print(f"{family}\t{name}\t{overlay_label(name, e)}")
             continue
-        written = generate(family, spec, template, OUT_DIR, packages)
+        written = generate(family, spec, template, OUT_DIR)
+        produced.update(written)
         total += len(written)
         print(f"{family}: wrote {len(written)} config(s) to {OUT_DIR}")
+
+    # Drop configs the manifest no longer produces. Without this, renaming an
+    # overlay or marking one as a duplicate leaves its old config behind and the
+    # build keeps splitting it.
+    if not args.list and not args.family:
+        stale = sorted(p for p in OUT_DIR.glob("*.yaml") if p not in produced)
+        for path in stale:
+            path.unlink()
+        if stale:
+            print(f"removed {len(stale)} stale config(s): "
+                  + ", ".join(p.stem for p in stale))
     return 0 if args.list or total else 1
 
 

@@ -3,7 +3,7 @@
 
 Unique blobs come from ``raw/{type}/`` (SHA-1 of the on-disc payload).
 CDF placement comes from ``stages.json``. Extra ASSETS fields (``bpp``,
-``required``, …) and TREE folder/file ``name``s are preserved across
+``required``, …) and TREE folder/file **keys** are preserved across
 regenerations (matched by sha1 / disc id). pe2img ``bpp`` is an int, or a
 list (one depth per work-entry column). Missing ``bpp`` is filled with
 ``guess_bpp()`` for every column.
@@ -128,6 +128,14 @@ def _is_default_folder_key(name: str, folder_id: int) -> bool:
     return name == str(folder_id)
 
 
+def _by_id(container: dict[Any, Any], disc_id: int) -> dict[str, Any] | None:
+    """Find a TREE node by its disc id. TREE is keyed by name, so this scans."""
+    for node in container.values():
+        if isinstance(node, dict) and int(node.get("id", -1)) == disc_id:
+            return node
+    return None
+
+
 def _old_file_name(
     old_tree: dict[int, Any],
     stage: int,
@@ -138,16 +146,14 @@ def _old_file_name(
     if not isinstance(stage_body, dict):
         return None
     if folder_id is None:
-        node = (stage_body.get("files") or {}).get(file_id)
+        container = stage_body
     else:
-        folder = (stage_body.get("folders") or {}).get(folder_id)
-        if not isinstance(folder, dict):
+        container = _by_id(stage_body.get("folders") or {}, folder_id)
+        if container is None:
             return None
-        node = (folder.get("files") or {}).get(file_id)
-    if isinstance(node, dict):
-        name = node.get("name")
-        if isinstance(name, str) and name:
-            return name
+    for key, node in (container.get("files") or {}).items():
+        if isinstance(node, dict) and int(node.get("id", -1)) == file_id:
+            return None if _is_default_file_key(key, file_id) else key
     return None
 
 
@@ -157,11 +163,9 @@ def _old_folder_name(
     stage_body = old_tree.get(stage)
     if not isinstance(stage_body, dict):
         return None
-    folder = (stage_body.get("folders") or {}).get(folder_id)
-    if isinstance(folder, dict):
-        name = folder.get("name")
-        if isinstance(name, str) and name:
-            return name
+    for key, node in (stage_body.get("folders") or {}).items():
+        if isinstance(node, dict) and int(node.get("id", -1)) == folder_id:
+            return None if _is_default_folder_key(key, folder_id) else key
     return None
 
 
@@ -216,6 +220,17 @@ def collect_assets(assets_root: Path, old_assets: dict[str, dict[str, Any]]) -> 
     return out
 
 
+def _keyed(by_id: dict[int, dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    """Re-key nodes by their name, keeping disc-id order and dropping `_key`."""
+    out: dict[str, dict[str, Any]] = {}
+    for _disc_id, node in sorted(by_id.items()):
+        key = node.pop("_key")
+        if key in out:
+            raise SystemExit(f"duplicate tree key {key!r}")
+        out[key] = node
+    return out
+
+
 def collect_tree(
     assets_root: Path,
     old_tree: dict[int, Any],
@@ -234,12 +249,11 @@ def collect_tree(
         file_key: str,
         chunks: dict[str, Any],
     ) -> dict[str, Any]:
-        node: dict[str, Any] = {}
+        node: dict[str, Any] = {"id": file_id}
         name = _old_file_name(old_tree, stage, folder_id, file_id)
         if name is None and not _is_default_file_key(file_key, file_id):
             name = file_key
-        if name:
-            node["name"] = name
+        node["_key"] = name or f"file{file_id}"
         chunk_map: dict[int, str] = {}
         if isinstance(chunks, dict):
             for ckey, ent in chunks.items():
@@ -277,7 +291,7 @@ def collect_tree(
                     print(f"warn: skip unknown file key {fname!r} in {sname}", file=sys.stderr)
                     continue
                 fmap[fid] = file_node(stage_n, None, fid, str(fname), chunks)
-            out_stage["files"] = dict(sorted(fmap.items()))
+            out_stage["files"] = _keyed(fmap)
         folders = stage_body.get("folders")
         if isinstance(folders, dict):
             fmap_f: dict[int, Any] = {}
@@ -289,12 +303,13 @@ def collect_tree(
                         file=sys.stderr,
                     )
                     continue
-                folder_node: dict[str, Any] = {}
                 fname_name = _old_folder_name(old_tree, stage_n, did)
                 if fname_name is None and not _is_default_folder_key(str(dname), did):
                     fname_name = str(dname)
-                if fname_name:
-                    folder_node["name"] = fname_name
+                folder_node: dict[str, Any] = {
+                    "id": did,
+                    "_key": fname_name or str(did),
+                }
                 ff: dict[int, Any] = {}
                 if isinstance(folder_files, dict):
                     for fname, chunks in folder_files.items():
@@ -306,9 +321,9 @@ def collect_tree(
                             )
                             continue
                         ff[fid] = file_node(stage_n, did, fid, str(fname), chunks)
-                folder_node["files"] = dict(sorted(ff.items()))
+                folder_node["files"] = _keyed(ff)
                 fmap_f[did] = folder_node
-            out_stage["folders"] = dict(sorted(fmap_f.items()))
+            out_stage["folders"] = _keyed(fmap_f)
         tree[stage_n] = out_stage
     return dict(sorted(tree.items()))
 
@@ -333,7 +348,10 @@ def emit_module(
     lines: list[str] = [
         '"""Generated unique-asset table and CDF tree. See asset_db.py.',
         "",
-        "Regenerate (preserves extra ASSETS fields and TREE names, matched by sha1):",
+        "Containers are keyed by name and carry their disc id as `id`, so a name",
+        "cannot collide and mapping a name back to an id is a plain lookup.",
+        "",
+        "Regenerate (preserves extra ASSETS fields and TREE keys, matched by sha1):",
         "",
         "    python3 tools/peassets/dump_asset_db.py",
         '"""',
@@ -347,34 +365,28 @@ def emit_module(
     lines.append("}")
     lines.append("")
     lines.append("TREE = {")
+
+    def node_line(indent: str, key: str, node: dict[str, Any], tail: str = "") -> str:
+        bits = [f'"id": {int(node["id"])}']
+        if tail:
+            bits.append(tail)
+        else:
+            bits.append(f'"chunks": {_fmt_chunks(node.get("chunks") or {})}')
+        return f"{indent}{key!r}: {{{', '.join(bits)}}},"
+
     for stage, body in tree.items():
         lines.append(f"    {stage}: {{")
         if "files" in body:
             lines.append('        "files": {')
-            for fid, node in body["files"].items():
-                name = node.get("name")
-                chunks = node.get("chunks") or {}
-                bits = []
-                if name:
-                    bits.append(f'"name": {name!r}')
-                bits.append(f'"chunks": {_fmt_chunks(chunks)}')
-                lines.append(f"            {fid}: {{{', '.join(bits)}}},")
+            for key, node in body["files"].items():
+                lines.append(node_line("            ", key, node))
             lines.append("        },")
         if "folders" in body:
             lines.append('        "folders": {')
-            for did, folder in body["folders"].items():
-                fname = folder.get("name")
-                files = folder.get("files") or {}
-                header = f'"name": {fname!r}, ' if fname else ""
-                lines.append(f"            {did}: {{{header}\"files\": {{")
-                for fid, node in files.items():
-                    name = node.get("name")
-                    chunks = node.get("chunks") or {}
-                    bits = []
-                    if name:
-                        bits.append(f'"name": {name!r}')
-                    bits.append(f'"chunks": {_fmt_chunks(chunks)}')
-                    lines.append(f"                {fid}: {{{', '.join(bits)}}},")
+            for key, folder in body["folders"].items():
+                lines.append(f'            {key!r}: {{"id": {int(folder["id"])}, "files": {{')
+                for fkey, node in (folder.get("files") or {}).items():
+                    lines.append(node_line("                ", fkey, node))
                 lines.append("            }},")
             lines.append("        },")
         lines.append("    },")

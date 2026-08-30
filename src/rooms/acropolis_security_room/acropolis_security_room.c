@@ -1,0 +1,134 @@
+#include "common.h"
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017D6DC);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017D708);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017D740);
+
+INCLUDE_RODATA("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", D_acropolis_security_room_8017D5C0);
+
+INCLUDE_RODATA("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", D_acropolis_security_room_8017D5C4);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017D77C);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017D834);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017D930);
+
+void func_acropolis_security_room_8017D97C(void) {
+}
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017D984);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017D9DC);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017DB30);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017DC7C);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017DE80);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017E0C4);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017E37C);
+
+INCLUDE_RODATA("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", D_acropolis_security_room_8017D5EC);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017E490);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017E8F0);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017E9D8);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017EA28);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017EA5C);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017EADC);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017EB9C);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017ECB4);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017ED68);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017EDE4);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017EE44);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017EF78);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017F1BC);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017F300);
+
+INCLUDE_RODATA("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", D_acropolis_security_room_8017D63C);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017F480);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017F8E0);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017F9C8);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017FA18);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017FB20);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017FB54);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017FBA4);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017FC30);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017FCB0);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017FD64);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017FE24);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017FE6C);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017FF0C);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017FF84);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8017FFD0);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_80180010);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_80180030);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_801800A4);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_8018014C);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_801801C4);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_80180218);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_80180294);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_80180308);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_80180368);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_801804CC);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_801805A4);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_80180A78);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_80180E34);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_80181108);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_801817A4);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_80181C84);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_80181E28);
+
+INCLUDE_ASM("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", func_acropolis_security_room_80182574);
+
+INCLUDE_RODATA("rooms/acropolis_security_room/nonmatchings/acropolis_security_room", D_acropolis_security_room_8017D6AC);

@@ -1,0 +1,43 @@
+#include "common.h"
+
+INCLUDE_RODATA("rooms/dryfield_night_water_hole/nonmatchings/dryfield_night_water_hole", D_dryfield_night_water_hole_8017D5C0);
+
+INCLUDE_ASM("rooms/dryfield_night_water_hole/nonmatchings/dryfield_night_water_hole", func_dryfield_night_water_hole_8017D6AC);
+
+INCLUDE_ASM("rooms/dryfield_night_water_hole/nonmatchings/dryfield_night_water_hole", func_dryfield_night_water_hole_8017D7E8);
+
+INCLUDE_ASM("rooms/dryfield_night_water_hole/nonmatchings/dryfield_night_water_hole", func_dryfield_night_water_hole_8017D958);
+
+INCLUDE_ASM("rooms/dryfield_night_water_hole/nonmatchings/dryfield_night_water_hole", func_dryfield_night_water_hole_8017DAD4);
+
+INCLUDE_ASM("rooms/dryfield_night_water_hole/nonmatchings/dryfield_night_water_hole", func_dryfield_night_water_hole_8017DADC);
+
+INCLUDE_ASM("rooms/dryfield_night_water_hole/nonmatchings/dryfield_night_water_hole", func_dryfield_night_water_hole_8017DC28);
+
+INCLUDE_ASM("rooms/dryfield_night_water_hole/nonmatchings/dryfield_night_water_hole", func_dryfield_night_water_hole_8017DD5C);
+
+INCLUDE_ASM("rooms/dryfield_night_water_hole/nonmatchings/dryfield_night_water_hole", func_dryfield_night_water_hole_8017DE20);
+
+INCLUDE_ASM("rooms/dryfield_night_water_hole/nonmatchings/dryfield_night_water_hole", func_dryfield_night_water_hole_8017DE30);
+
+INCLUDE_ASM("rooms/dryfield_night_water_hole/nonmatchings/dryfield_night_water_hole", func_dryfield_night_water_hole_8017DE88);
+
+INCLUDE_ASM("rooms/dryfield_night_water_hole/nonmatchings/dryfield_night_water_hole", func_dryfield_night_water_hole_8017DF28);
+
+INCLUDE_ASM("rooms/dryfield_night_water_hole/nonmatchings/dryfield_night_water_hole", func_dryfield_night_water_hole_8017E630);
+
+INCLUDE_ASM("rooms/dryfield_night_water_hole/nonmatchings/dryfield_night_water_hole", func_dryfield_night_water_hole_8017E690);
+
+INCLUDE_ASM("rooms/dryfield_night_water_hole/nonmatchings/dryfield_night_water_hole", func_dryfield_night_water_hole_8017E6D0);
+
+INCLUDE_ASM("rooms/dryfield_night_water_hole/nonmatchings/dryfield_night_water_hole", func_dryfield_night_water_hole_8017EA6C);
+
+INCLUDE_ASM("rooms/dryfield_night_water_hole/nonmatchings/dryfield_night_water_hole", func_dryfield_night_water_hole_8017F254);
+
+INCLUDE_ASM("rooms/dryfield_night_water_hole/nonmatchings/dryfield_night_water_hole", func_dryfield_night_water_hole_8017F3A8);
+
+INCLUDE_ASM("rooms/dryfield_night_water_hole/nonmatchings/dryfield_night_water_hole", func_dryfield_night_water_hole_8017F6DC);
+
+INCLUDE_ASM("rooms/dryfield_night_water_hole/nonmatchings/dryfield_night_water_hole", func_dryfield_night_water_hole_8017FB98);
+
+INCLUDE_ASM("rooms/dryfield_night_water_hole/nonmatchings/dryfield_night_water_hole", func_dryfield_night_water_hole_8017FF84);

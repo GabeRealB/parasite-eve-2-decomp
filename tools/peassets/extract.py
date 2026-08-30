@@ -1081,6 +1081,52 @@ def extract_stage_n(data: BinaryIO, *, stage: int, store: AssetStore):
 
 
 
+def write_pack_manifests(args, output_path: Path, store: "AssetStore", rom_root) -> None:
+    """Emit stages.json + iso_disk*.json and the pack sidecars under stage*/.
+
+    Runs in **every** extraction mode. stages.json is the content tree - which
+    chunk lives in which file of which stage - and that is derived from the
+    HED/CDF plus the extract-time chunk map, neither of which depends on having
+    inflated anything. The viewer reads it, so a raw-only or minimal extract
+    that skipped it left the viewer with nothing to open.
+
+    Best-effort: needs the rom/ tree that holds layout.xml next to the CDF
+    paths, and a failure here must not fail the extract.
+
+    Note that ``path`` in each entry points at the inflated type-store file even
+    when that file has not been materialised - it describes the layout pack
+    rebuilds from, not what is currently on disk. Each entry also carries the
+    raw path, so a consumer can fall back for assets this mode did not inflate.
+    """
+    try:
+        from write_manifest import write_manifest
+
+        s0_hdr = Path(args.stage0_header.name).resolve()
+        if rom_root is not None and (rom_root / "disk1" / "layout.xml").exists():
+            logging.info("Writing stages + ISO manifests for %s", output_path)
+            write_manifest(
+                rom_root,
+                output_path,
+                chunk_map=store.map,
+                stage0_hed=Path(args.stage0_header.name),
+                stage0_cdf=Path(args.stage0_data.name),
+                stage_cdfs={
+                    1: Path(args.stage1.name),
+                    2: Path(args.stage2.name),
+                    3: Path(args.stage3.name),
+                    4: Path(args.stage4.name),
+                    5: Path(args.stage5.name),
+                },
+            )
+        else:
+            logging.warning(
+                "Skipping manifest generation (could not locate rom layout.xml near %s)",
+                s0_hdr,
+            )
+    except Exception:
+        logging.exception("Failed to write pack/ISO manifests")
+
+
 def run_package_analysis(output_path: Path, store: "AssetStore", *, skip: bool) -> None:
     """Carve assets that live inside the inflated packages.
 
@@ -1173,7 +1219,8 @@ def main():
         help=(
             "Write raw/{type}/ only (deduplicated on-disc payloads), "
             "plus raw/audio/*.mts and raw/movie/*.str. "
-            "Skip inflated type dirs, WAV/MP4 decode, stages/ISO manifests."
+            "Skip inflated type dirs and WAV/MP4 decode. stages.json and the "
+            "ISO manifests are still written."
         ),
     )
     parser.add_argument(
@@ -1287,7 +1334,8 @@ def main():
         logging.info("Stored %d embedded asset(s) from the binaries", n_embedded)
 
     if args.raw_only:
-        logging.info("raw-only: skipped inflate, stages/ISO manifests")
+        write_pack_manifests(args, output_path, store, rom_root)
+        logging.info("raw-only: skipped inflate")
         logging.info("All done! (raw at %s)", store.raw_root)
         return
 
@@ -1307,43 +1355,14 @@ def main():
         ]
         if missing:
             logging.warning("Required overlay(s) not found in store: %s", missing)
-        logging.info("minimal-inflate: skipped stages/ISO manifests")
+        write_pack_manifests(args, output_path, store, rom_root)
         logging.info("All done! (raw + pe2pkg overlays under %s)", output_path)
         return
 
     n = store.materialize_inflated(jobs=args.jobs)
     logging.info("Materialized %d inflated assets", n)
 
-    # Emit stages.json + iso_disk*.json and pack sidecars under stage*/.
-    # Best-effort: requires the rom/ tree that holds layout.xml next to the CDF paths.
-    try:
-        from write_manifest import write_manifest
-
-        s0_hdr = Path(args.stage0_header.name).resolve()
-        # .../rom/USA/disk1/STAGE0.HED -> rom/USA
-        if rom_root is not None and (rom_root / "disk1" / "layout.xml").exists():
-            logging.info("Writing stages + ISO manifests for %s", output_path)
-            write_manifest(
-                rom_root,
-                output_path,
-                chunk_map=store.map,
-                stage0_hed=Path(args.stage0_header.name),
-                stage0_cdf=Path(args.stage0_data.name),
-                stage_cdfs={
-                    1: Path(args.stage1.name),
-                    2: Path(args.stage2.name),
-                    3: Path(args.stage3.name),
-                    4: Path(args.stage4.name),
-                    5: Path(args.stage5.name),
-                },
-            )
-        else:
-            logging.warning(
-                "Skipping manifest generation (could not locate rom layout.xml near %s)",
-                s0_hdr,
-            )
-    except Exception:
-        logging.exception("Failed to write pack/ISO manifests")
+    write_pack_manifests(args, output_path, store, rom_root)
 
     run_package_analysis(output_path, store, skip=args.skip_embedded)
     logging.info("All done!")

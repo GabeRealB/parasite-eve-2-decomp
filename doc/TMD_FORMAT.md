@@ -465,16 +465,44 @@ What remains is narrower.
 - **Import.** Writing a stream back needs the `handler_slot` written as it
   appears on disc rather than as the runtime pointer, and the tpage/clut bias
   (§5.1) undone.
-- **The 249 unsourced streams.** 323 of the 572 located streams have a
+- **The 37 unsourced streams.** 535 of the 572 located streams have a
   `TmdSource`; the rest are either real meshes reached from code the scan does
   not see, or remaining false positives. The validator checks structure, not
   semantics, so it cannot tell them apart. A short run in a package that is
   otherwise ~0% covered is the shape to distrust, and `MIN_PACKETS` is the
   remaining knob.
 
+  This was 249 until the source matcher learned about **leading skip words**. A
+  `TmdSource` may point at a stream that opens with one or more `0xFFFFFFFE`
+  skips — `Tmd_InitSourceStream` steps over them before reading the first id —
+  while the walker starts at the first packet, so the two addresses differ by
+  the skips and an exact comparison threw the source away. The 41-packet body
+  mesh in every named-human overlay is one of these: its source declares
+  `0x15D4`, the first packet is at `0x15D8`.
+
 ---
 
 ## 7. Tooling
+
+Reading a model is now end to end: `tmd_export.py` writes OBJ, and the two
+corrections it needed are worth stating because both produce output that looks
+plausible while being wrong.
+
+**The transform pre-pass is not geometry, and its consumers are.** Skipping
+`0xC0`/`0xC4`/`0xC8` is right (§3.5), but the opcodes with bit `0x01` must not
+be skipped with them: they index the shading cache, which §3.5 shows is
+`ws->field_10[offset >> 3]` — one word per *vertex*. So their refs are word
+offsets into a vertex-keyed array and the index is `ref / 4`, not `ref / 8`.
+Reading them as ordinary refs silently drops about a third of a character's
+faces (270 of 398 on the named-human body).
+
+**PlayStation quads are Z-ordered.** `v0 v1` across the top, `v2 v3` across the
+bottom, so the polygon winding is `v0 v1 v3 v2`. Emitting them in index order
+still references the right four vertices — the model looks almost right — but
+every quad is a bow-tie and adjacent faces stop sharing edges. The tell is the
+edge count: a closed mesh has `E = V + F - 2`, and the human accessories came
+out at 80 edges against an expected 44 until the winding was fixed, after which
+they are exact closed manifolds (χ = 2).
 
 | Tool | Role |
 |---|---|

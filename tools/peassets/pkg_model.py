@@ -165,13 +165,33 @@ def _load_addrs(output_path: Path) -> dict[str, int]:
     return out
 
 
+def _skip_leading_skips(data: bytes, base: int, va: int) -> int:
+    """Advance a stream address past any leading 0xFFFFFFFE skip words.
+
+    A source can point at a stream that opens with one or more skip words -
+    ``Tmd_InitSourceStream`` steps over them before reading the first id - so
+    the address in the record is not always the address of the first packet.
+    The walker starts at the packet, so the two disagree by the skip words and
+    an exact comparison loses the source. The 41-packet body mesh in every
+    named-human overlay is one of these.
+    """
+    off = va - base
+    while 0 <= off + 4 <= len(data):
+        (word,) = struct.unpack_from("<I", data, off)
+        if word != STREAM_SKIP:
+            break
+        off += 4
+    return base + off
+
+
 def find_sources(data: bytes, base: int, stream_vas: set[int]) -> dict[int, dict]:
     """Locate the `TmdSource` record that owns each stream.
 
-    A source is a 0x24-byte record whose `+0x20` is the start of a stream we
-    already validated and whose `+0x14` / `+0x18` are the vertex and normal
-    arrays. Anchoring on a known stream is what keeps this from matching noise:
-    three in-range pointers alone occur by chance all over a package.
+    A source is a 0x24-byte record whose `+0x20` reaches the start of a stream
+    we already validated (allowing for leading skip words) and whose `+0x14` /
+    `+0x18` are the vertex and normal arrays. Anchoring on a known stream is
+    what keeps this from matching noise: three in-range pointers alone occur by
+    chance all over a package.
 
     Models are laid out `[verts][norms][stream][source]`, so the array lengths
     come from the gaps.
@@ -179,7 +199,10 @@ def find_sources(data: bytes, base: int, stream_vas: set[int]) -> dict[int, dict
     end = base + len(data)
     out: dict[int, dict] = {}
     for off in range(0, max(0, len(data) - TMD_SOURCE_SIZE), 4):
-        (stream_va,) = struct.unpack_from("<I", data, off + SRC_STREAM)
+        (raw_va,) = struct.unpack_from("<I", data, off + SRC_STREAM)
+        if not base <= raw_va < end:
+            continue
+        stream_va = _skip_leading_skips(data, base, raw_va)
         if stream_va not in stream_vas:
             continue
         verts, norms = struct.unpack_from("<2I", data, off + SRC_VERTS)
@@ -190,6 +213,7 @@ def find_sources(data: bytes, base: int, stream_vas: set[int]) -> dict[int, dict
             continue
         out[stream_va] = {
             "source_offset": f"0x{off:05X}",
+            "stream_declared": f"0x{raw_va - base:05X}",
             "verts_offset": f"0x{verts - base:05X}",
             "norms_offset": f"0x{norms - base:05X}",
             "vertex_count": (norms - verts) // 8,

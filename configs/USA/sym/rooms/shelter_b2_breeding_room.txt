@@ -1,0 +1,1 @@
+// Overlay-local symbols for shelter_b2_breeding_room.

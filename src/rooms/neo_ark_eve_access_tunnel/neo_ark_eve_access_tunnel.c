@@ -1,0 +1,37 @@
+#include "common.h"
+
+INCLUDE_RODATA("rooms/neo_ark_eve_access_tunnel/nonmatchings/neo_ark_eve_access_tunnel", D_neo_ark_eve_access_tunnel_8017D5C0);
+
+INCLUDE_ASM("rooms/neo_ark_eve_access_tunnel/nonmatchings/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017D6D4);
+
+INCLUDE_ASM("rooms/neo_ark_eve_access_tunnel/nonmatchings/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017D810);
+
+INCLUDE_RODATA("rooms/neo_ark_eve_access_tunnel/nonmatchings/neo_ark_eve_access_tunnel", D_neo_ark_eve_access_tunnel_8017D688);
+
+INCLUDE_ASM("rooms/neo_ark_eve_access_tunnel/nonmatchings/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017D980);
+
+INCLUDE_ASM("rooms/neo_ark_eve_access_tunnel/nonmatchings/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017DB18);
+
+INCLUDE_ASM("rooms/neo_ark_eve_access_tunnel/nonmatchings/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017DC64);
+
+INCLUDE_ASM("rooms/neo_ark_eve_access_tunnel/nonmatchings/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017DC6C);
+
+INCLUDE_ASM("rooms/neo_ark_eve_access_tunnel/nonmatchings/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017DD70);
+
+INCLUDE_ASM("rooms/neo_ark_eve_access_tunnel/nonmatchings/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017DE1C);
+
+INCLUDE_ASM("rooms/neo_ark_eve_access_tunnel/nonmatchings/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017DE9C);
+
+INCLUDE_ASM("rooms/neo_ark_eve_access_tunnel/nonmatchings/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017DED0);
+
+INCLUDE_ASM("rooms/neo_ark_eve_access_tunnel/nonmatchings/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017DF24);
+
+INCLUDE_ASM("rooms/neo_ark_eve_access_tunnel/nonmatchings/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017DFC0);
+
+INCLUDE_ASM("rooms/neo_ark_eve_access_tunnel/nonmatchings/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017E038);
+
+INCLUDE_ASM("rooms/neo_ark_eve_access_tunnel/nonmatchings/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017E090);
+
+INCLUDE_ASM("rooms/neo_ark_eve_access_tunnel/nonmatchings/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017E15C);
+
+INCLUDE_ASM("rooms/neo_ark_eve_access_tunnel/nonmatchings/neo_ark_eve_access_tunnel", func_neo_ark_eve_access_tunnel_8017E244);

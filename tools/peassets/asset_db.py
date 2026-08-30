@@ -114,6 +114,8 @@ def _sha1_index() -> dict[str, str]:
 
 
 _SHA1_TO_ID: dict[str, str] = _sha1_index()
+_FOLDER_INDEX: dict[int, dict[int, tuple[str, dict[str, Any]]]] = {}
+_FILE_INDEX: dict[tuple[int, int | None], dict[int, tuple[str, dict[str, Any]]]] = {}
 
 
 def asset_id_for_sha1(digest: str) -> str | None:
@@ -131,28 +133,55 @@ def _tree_stage(stage: int) -> dict[str, Any] | None:
     return body if isinstance(body, dict) else None
 
 
+def _folder_index(stage: int) -> dict[int, tuple[str, dict[str, Any]]]:
+    """disc folder id -> (tree key, node) for one stage.
+
+    TREE keys the containers by their **name** and carries the disc id as an
+    `id` attribute, so a name cannot collide (dict keys are unique) and mapping
+    a name back to an id is a plain lookup. Going the other way needs this
+    index, built once per stage.
+    """
+    cached = _FOLDER_INDEX.get(stage)
+    if cached is None:
+        body = _tree_stage(stage) or {}
+        cached = {
+            int(node["id"]): (key, node)
+            for key, node in (body.get("folders") or {}).items()
+            if isinstance(node, dict) and "id" in node
+        }
+        _FOLDER_INDEX[stage] = cached
+    return cached
+
+
+def _file_index(
+    stage: int, folder_id: int | None = None
+) -> dict[int, tuple[str, dict[str, Any]]]:
+    """disc file id -> (tree key, node), for a stage or one of its folders."""
+    cached = _FILE_INDEX.get((stage, folder_id))
+    if cached is None:
+        if folder_id is None:
+            container = _tree_stage(stage) or {}
+        else:
+            container = _tree_folder(stage, folder_id) or {}
+        cached = {
+            int(node["id"]): (key, node)
+            for key, node in (container.get("files") or {}).items()
+            if isinstance(node, dict) and "id" in node
+        }
+        _FILE_INDEX[(stage, folder_id)] = cached
+    return cached
+
+
 def _tree_folder(stage: int, folder_id: int) -> dict[str, Any] | None:
-    body = _tree_stage(stage)
-    if body is None:
-        return None
-    folder = (body.get("folders") or {}).get(folder_id)
-    return folder if isinstance(folder, dict) else None
+    hit = _folder_index(stage).get(folder_id)
+    return hit[1] if hit else None
 
 
 def _tree_file(
     stage: int, file_id: int, folder_id: int | None = None
 ) -> dict[str, Any] | None:
-    if folder_id is None:
-        body = _tree_stage(stage)
-        if body is None:
-            return None
-        node = (body.get("files") or {}).get(file_id)
-    else:
-        folder = _tree_folder(stage, folder_id)
-        if folder is None:
-            return None
-        node = (folder.get("files") or {}).get(file_id)
-    return node if isinstance(node, dict) else None
+    hit = _file_index(stage, folder_id).get(file_id)
+    return hit[1] if hit else None
 
 
 def tree_chunk_asset(
@@ -249,14 +278,15 @@ def lookup(key: str) -> str | None:
     if parsed is None:
         return None
     kind, stage, folder_id, file_id, chunk_idx = parsed
+    # The TREE key *is* the friendly name; it falls back to the default
+    # (`<id>` / `file<id>`) when the container has not been named, and that
+    # default is not a friendly name, so report it as unnamed.
     if kind == "folder" and folder_id is not None:
-        folder = _tree_folder(stage, folder_id)
-        name = folder.get("name") if folder else None
-        return _check_component(name, key=key) if name else None
+        name = folder_dirname(stage, folder_id)
+        return name if name != str(folder_id) else None
     if kind == "file" and file_id is not None:
-        node = _tree_file(stage, file_id, folder_id)
-        name = node.get("name") if node else None
-        return _check_component(name, key=key) if name else None
+        name = file_dirname(stage, file_id, folder_id)
+        return name if name != f"file{file_id}" else None
     if kind == "chunk" and file_id is not None and chunk_idx is not None:
         aid = tree_chunk_asset(stage, file_id, chunk_idx, folder_id)
         if aid and not _is_generated_id(aid):
@@ -349,34 +379,26 @@ def lookup_image_bpps(*idents: str | None) -> list[int] | None:
 
 def reverse_folder_id(stage: int, dirname: str) -> int | None:
     """Map an on-disk folder directory name back to its disc folder id."""
-    if dirname.isdigit():
-        return int(dirname)
-    body = _tree_stage(stage)
-    if body is None:
-        return None
-    for fid, folder in (body.get("folders") or {}).items():
-        if isinstance(folder, dict) and folder.get("name") == dirname:
-            return int(fid)
-    return None
+    body = _tree_stage(stage) or {}
+    node = (body.get("folders") or {}).get(dirname)
+    if isinstance(node, dict) and "id" in node:
+        return int(node["id"])
+    return int(dirname) if dirname.isdigit() else None
 
 
 def reverse_file_id(
     stage: int, dirname: str, folder_id: int | None = None
 ) -> int | None:
     """Map an on-disk file directory name back to its disc file id."""
+    if folder_id is None:
+        container = _tree_stage(stage) or {}
+    else:
+        container = _tree_folder(stage, folder_id) or {}
+    node = (container.get("files") or {}).get(dirname)
+    if isinstance(node, dict) and "id" in node:
+        return int(node["id"])
     if dirname.startswith("file") and dirname[4:].isdigit():
         return int(dirname[4:])
-    if folder_id is None:
-        body = _tree_stage(stage)
-        files = body.get("files") if body else None
-    else:
-        folder = _tree_folder(stage, folder_id)
-        files = folder.get("files") if folder else None
-    if not isinstance(files, dict):
-        return None
-    for fid, node in files.items():
-        if isinstance(node, dict) and node.get("name") == dirname:
-            return int(fid)
     return None
 
 
@@ -399,21 +421,15 @@ def reverse_chunk_idx(
 
 
 def folder_dirname(stage: int, folder_id: int) -> str:
-    """On-disk folder directory name (default: decimal folder id)."""
-    folder = _tree_folder(stage, folder_id)
-    name = folder.get("name") if folder else None
-    if name:
-        return _check_component(name, key=folder_key(stage, folder_id))
-    return str(folder_id)
+    """On-disk folder directory name (the TREE key; default: decimal id)."""
+    hit = _folder_index(stage).get(folder_id)
+    return hit[0] if hit else str(folder_id)
 
 
 def file_dirname(stage: int, file_id: int, folder_id: int | None = None) -> str:
-    """On-disk file directory name (default: ``file{id}``)."""
-    node = _tree_file(stage, file_id, folder_id)
-    name = node.get("name") if node else None
-    if name:
-        return _check_component(name, key=file_key(stage, file_id, folder_id))
-    return f"file{file_id}"
+    """On-disk file directory name (the TREE key; default: ``file{id}``)."""
+    hit = _file_index(stage, folder_id).get(file_id)
+    return hit[0] if hit else f"file{file_id}"
 
 
 def chunk_stem(
@@ -522,21 +538,25 @@ REQUIRED_OVERLAY_STEMS: frozenset[str] = frozenset(
 )
 
 
-def _check_unique_names(
-    items: dict[Any, Any], *, where: str, name_of
-) -> None:
-    seen: dict[str, Any] = {}
+def _check_container(items: dict[Any, Any], *, where: str) -> None:
+    """Every key is a path-safe component and every id is unique.
+
+    Names cannot collide any more - they are dict keys - so what is left to
+    check is that each key is usable as a directory name and that no two
+    entries claim the same disc id.
+    """
+    seen: dict[int, str] = {}
     for key, node in items.items():
-        name = name_of(node)
-        if not name:
-            continue
-        _check_component(name, key=f"{where}[{key}]")
-        prev = seen.get(name)
-        if prev is not None and prev != key:
-            raise ValueError(
-                f"name {name!r} collides under {where}: {prev!r} and {key!r}"
-            )
-        seen[name] = key
+        if not isinstance(key, str):
+            raise ValueError(f"{where}: key {key!r} must be a string")
+        _check_component(key, key=f"{where}[{key!r}]")
+        if not isinstance(node, dict) or "id" not in node:
+            raise ValueError(f"{where}[{key!r}] must be a dict with an 'id'")
+        disc_id = int(node["id"])
+        prev = seen.get(disc_id)
+        if prev is not None:
+            raise ValueError(f"{where}: id {disc_id} on both {prev!r} and {key!r}")
+        seen[disc_id] = key
 
 
 def validate_asset_db() -> None:
@@ -565,33 +585,19 @@ def validate_asset_db() -> None:
     for stage, body in TREE.items():
         if not isinstance(body, dict):
             raise ValueError(f"TREE[{stage!r}] must be a dict")
+        _check_container(body.get("files") or {}, where=f"TREE[{stage}].files")
+        _check_container(body.get("folders") or {}, where=f"TREE[{stage}].folders")
         files = list((body.get("files") or {}).items())
-        _check_unique_names(
-            body.get("files") or {},
-            where=f"TREE[{stage}].files",
-            name_of=lambda n: n.get("name") if isinstance(n, dict) else None,
-        )
-        _check_unique_names(
-            body.get("folders") or {},
-            where=f"TREE[{stage}].folders",
-            name_of=lambda n: n.get("name") if isinstance(n, dict) else None,
-        )
-        for did, folder in (body.get("folders") or {}).items():
-            if not isinstance(folder, dict):
-                raise ValueError(f"TREE[{stage}].folders[{did}] must be a dict")
-            _check_unique_names(
-                folder.get("files") or {},
-                where=f"TREE[{stage}].folders[{did}].files",
-                name_of=lambda n: n.get("name") if isinstance(n, dict) else None,
+        for key, folder in (body.get("folders") or {}).items():
+            _check_container(
+                folder.get("files") or {}, where=f"TREE[{stage}].folders[{key!r}].files"
             )
             files.extend((folder.get("files") or {}).items())
-        for fid, node in files:
-            if not isinstance(node, dict):
-                raise ValueError(f"TREE file {stage}/{fid} must be a dict")
+        for key, node in files:
             for idx, aid in (node.get("chunks") or {}).items():
                 if aid not in ASSETS:
                     raise ValueError(
-                        f"TREE chunk {stage}/file{fid}/{idx} refs unknown asset {aid!r}"
+                        f"TREE chunk {stage}/{key}/{idx} refs unknown asset {aid!r}"
                     )
 
 

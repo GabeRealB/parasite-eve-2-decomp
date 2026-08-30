@@ -1,0 +1,1 @@
+// Overlay-local symbols for shelter_b3_dumping_hole.

@@ -1,0 +1,33 @@
+#include "common.h"
+
+INCLUDE_ASM("rooms/dryfield_night_motel_loft/nonmatchings/dryfield_night_motel_loft", func_dryfield_night_motel_loft_8017D600);
+
+INCLUDE_ASM("rooms/dryfield_night_motel_loft/nonmatchings/dryfield_night_motel_loft", func_dryfield_night_motel_loft_8017D67C);
+
+INCLUDE_ASM("rooms/dryfield_night_motel_loft/nonmatchings/dryfield_night_motel_loft", func_dryfield_night_motel_loft_8017D6BC);
+
+INCLUDE_ASM("rooms/dryfield_night_motel_loft/nonmatchings/dryfield_night_motel_loft", func_dryfield_night_motel_loft_8017D6C4);
+
+INCLUDE_ASM("rooms/dryfield_night_motel_loft/nonmatchings/dryfield_night_motel_loft", func_dryfield_night_motel_loft_8017D6F8);
+
+INCLUDE_ASM("rooms/dryfield_night_motel_loft/nonmatchings/dryfield_night_motel_loft", func_dryfield_night_motel_loft_8017D7EC);
+
+INCLUDE_ASM("rooms/dryfield_night_motel_loft/nonmatchings/dryfield_night_motel_loft", func_dryfield_night_motel_loft_8017D808);
+
+INCLUDE_ASM("rooms/dryfield_night_motel_loft/nonmatchings/dryfield_night_motel_loft", func_dryfield_night_motel_loft_8017D8B0);
+
+INCLUDE_RODATA("rooms/dryfield_night_motel_loft/nonmatchings/dryfield_night_motel_loft", D_dryfield_night_motel_loft_8017D5C0);
+
+INCLUDE_ASM("rooms/dryfield_night_motel_loft/nonmatchings/dryfield_night_motel_loft", func_dryfield_night_motel_loft_8017D964);
+
+INCLUDE_ASM("rooms/dryfield_night_motel_loft/nonmatchings/dryfield_night_motel_loft", func_dryfield_night_motel_loft_8017D9BC);
+
+INCLUDE_ASM("rooms/dryfield_night_motel_loft/nonmatchings/dryfield_night_motel_loft", func_dryfield_night_motel_loft_8017DB64);
+
+INCLUDE_ASM("rooms/dryfield_night_motel_loft/nonmatchings/dryfield_night_motel_loft", func_dryfield_night_motel_loft_8017DE14);
+
+INCLUDE_ASM("rooms/dryfield_night_motel_loft/nonmatchings/dryfield_night_motel_loft", func_dryfield_night_motel_loft_8017E090);
+
+INCLUDE_ASM("rooms/dryfield_night_motel_loft/nonmatchings/dryfield_night_motel_loft", func_dryfield_night_motel_loft_8017E540);
+
+INCLUDE_RODATA("rooms/dryfield_night_motel_loft/nonmatchings/dryfield_night_motel_loft", D_dryfield_night_motel_loft_8017D5F8);

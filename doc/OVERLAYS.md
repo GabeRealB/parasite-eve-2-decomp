@@ -127,7 +127,103 @@ plus the occasional extra image. File counts per room cluster around 4–12;
 a few rooms exceed 40.
 
 All 168 room overlays load at **`0x8017D5C0`**. One package per folder; all
-binaries unique. Entering a room is `CdCmd_EnqueueLoadFile(0, 0, 4)`
+binaries unique.
+
+**Room names.** The map-UI overlays carry a packed pool of display names, and
+the pool is indexed **positionally against the stage's folders in order** —
+name *i* is the *i*-th folder, not folder `<i>01`. (Folder-number indexing
+cannot work: stage 2 runs up to folder `3801` but has only 26 names.) Two
+boundaries confirm it independently, because two stages hold more than one
+area and the areas change at exactly the right index:
+
+| Stage | Areas | Folder split | Name at the boundary |
+|---|---|---|---|
+| 1 | Acropolis, MIST | `101`–`1701`, then `1801`+ | name 17 `West elevator hall` → 18 `MIST parking` |
+| 5 | Shelter 1F, Neo Ark | `101`–`601`, then `701`+ | name 6 `Guardroom` → 7 `Observatory` |
+
+Stage 4's own split falls out of the same alignment: names 1–8 are the mine
+(`Mesa` … `Secret passage`), 9 onward the shelter B1–B6 (`Elevator hall` …).
+Rooms 1–35 are confirmed — the mine, then shelter B1 and B2 — so stage 4 has no
+gaps at all.
+
+The shelter is named by floor, since several of its names repeat across floors,
+and the floor is what tells the two apart:
+
+| Floor | Rooms |
+|---|---|
+| 1F | 38 |
+| B1 | 9–21, 23–25 |
+| B2 | 22, 26–35 |
+| B3 | 39–42 |
+| B4 | 43–46 |
+
+Room 22 (`Pod bottom`) sitting on B2 between B1 rooms is not an anomaly — it is
+the foot of the pod, reached from the B1 service gantry. Each room carries its
+`floor` in the manifest, so `shelter_b1_main_corridor` and
+`shelter_b2_main_corridor` are distinct without an id fallback.
+
+Stage 4 rooms 1–35 are all confirmed, which means the stage has **no gaps**: its
+35 names map one-for-one onto its first 35 rooms.
+
+Rooms 36–49 lie past the end of that pool, and the stage-4 map does not name them
+at all. They are not unnamed *rooms*, just rooms its own map ignores: room 38 is
+the 1F heliport, which stage 5's map names, and rooms 39–42 are the B3
+incinerator floor, which no map pool names. Both carry a `note` recording where
+the name came from, since neither is derivable from the data here.
+
+**The alignment has interior gaps.** A room with no map cell consumes a folder
+but no name, and every name after it shifts. Nothing in a package marks such a
+room — folder `1801` in stage 1 has an ordinary file count, an ordinary number
+of backgrounds and an ordinary size — so a gap cannot be spotted from one stage
+alone. Stage 1 has one at `1801`, which is why `MIST parking` is `1901`.
+
+**Stages 2 and 3 pin each other.** They are the same town by day and by night,
+and two facts make the day map derivable rather than guessed:
+
+* stage 3's rooms are stage 2's **minus room 4** — the numbering is shared;
+* the day pool is an exact **subsequence** of the night pool, missing precisely
+  `Motel room 3`, `Motel room 4`, `Motel lobby`, `Motel room 5` and `Motel loft`
+  — the motel rooms that are not open during the day.
+
+So a stage-2 room takes its stage-3 name when the day pool also has it, and is a
+gap otherwise. That structure alone does **not** pin the alignment: every choice
+of where stage 3's single gap sits produces a valid fit, consuming all 26 day
+names in the right order — it just moves which rooms are the gaps. What it does
+give is a strong lever, because one known gap in either stage determines the
+whole of both.
+
+Two known cutscene rooms fix it: rooms **4** and **8** are unnamed by day. Room 4
+does not exist in stage 3 at all, so room 8 must be stage 3's single gap, and
+that solution is unique. Everything then falls out coherently:
+
+* rooms 4 and 8 are unnamed in **both** visits — the cutscene rooms;
+* every other room carries the **same** name in both;
+* the five rooms the day map does not label (13, 14, 17, 28, 31) are exactly the
+  five night-only names — `Motel room 3`, `Motel room 4`, `Motel lobby`,
+  `Motel room 5`, `Motel loft` — the motel rooms that are shut during the day;
+* rooms 11–14 are Motel rooms 1–4 and 28–31 the rest of the motel, so the
+  numbering clusters where the geography does.
+
+A room is named for **what it is**, not for whether a given map labels it. Those
+five stage-2 packages *are* motel rooms 3–5, the lobby and the loft, so they take
+those names and are flagged `day_unlabelled = true` in the manifest rather than
+falling back to an id. Only rooms 4 and 8 have no name at all. After that, the
+two stages agree on every one of their 32 shared rooms.
+
+Packages are named `<area>_<room>` (`acropolis_cafeteria`,
+`dryfield_night_motel_loft`, `neo_ark_island`), with the floor inserted where an
+area has several (`shelter_b2_main_corridor`). **156 of 168** are named.
+
+A room is named for **what it is**, not for what a given map happens to label.
+Several names therefore come from outside the room's own stage: the day-locked
+motel rooms take their names from the night map, stage 4's `Heliport` from
+stage 5's, and the shelter's B3/B4 floors from no map at all. Each such entry
+records where its name came from in a `note`.
+
+The remaining 12 are cutscene or one-off rooms that no map names — five of them
+identified as such by the derivation itself (they are the holes that make the
+alignment work), the rest by inspection. They keep `<area>_r<nn>` and say so in
+a `note`, so an unnamed room reads as a finding rather than as unfinished work. Entering a room is `CdCmd_EnqueueLoadFile(0, 0, 4)`
 (`stage.c` / `gameplay.c`), which fills the request from
 `Game_Session->field_6` / `field_7` (folder / stage).
 
@@ -326,6 +422,96 @@ actor slots). Not proven.
 
 ---
 
+### 5.9 `20600` @ `0x801D6000` — the NMC name table
+
+Not a helper at all: 1471 bytes, no code, and a **63-entry pointer table at
+`+0x484`** into Shift-JIS strings. Index 0 is the empty string; 1–62 are the
+enemy roster, left in Japanese in the US build:
+
+| Idx | Name | | Idx | Name |
+|---|---|---|---|---|
+| 1 | ネズミ (rat) | | 30 | ステルスヘッド |
+| 2 | ガ (moth) | | 31–35 | レーザーほうだい１–４, マシンガン |
+| 3 | ミトコンバス | | 36–39 | ノーマル/ヘビーゴーレム（ブレード/グレネード） |
+| 4 | コウモリ (bat) | | 40–41 | ステルスゴーレム, ホワイト |
+| 5 | サソリ (scorpion) | | 42 | メガネおんな |
+| 9–13 | チキンマンＡ/Ｂ, ウォーカー, ライダー, ホッパー | | 43–44 | ギュンター１/２ |
+| 14–15 | コーンヘッド, タートルヘッド | | 45–46 | スノーマフラー, アンデッド— |
+| 16 | パラサイトベイビー | | 47 | ギガントサピエンス |
+| 17 | ブラッドサッカー | | 48–49 | ガービジイーター１/２ |
+| 18 | デザートランナー | | 52 | ジャイアントストーカー |
+| 19–20 | ステルス/ドッペルパニッシャー | | 53–60 | ブラフマンＡ–Ｄ, クリアブラフマンＡ–Ｄ |
+| 21–29 | ナイトシンガー … パラサイトだま | | 61–62 | サボテンダー, チョコボ |
+
+`サボテンダー` (Cactuar) and `チョコボ` (Chocobo) at the end are the Square
+cameos. Being an indexed roster, this is the natural key for naming the actor
+overlays — the mapping from actor file id to index is not yet established.
+
+### 5.10 Shared code between overlays
+
+Overlays in a family are separate links that share a lot of code. Measured on
+the split rooms: **56% of the 4146 functions are copies** of another room's, and
+58% of the instructions. 23 bodies appear in 20 or more rooms; the most-copied
+appears 265 times. `tools/overlay_dup_index.py` indexes this.
+
+Equality is decided on splat's **disassembly text**, not on the instruction
+words. Comparing words is tempting and wrong: clearing the link-dependent fields
+so two copies at different addresses compare equal also clears every other
+I-type immediate, so `lw $v0, 0x4($t0)` and `lw $v0, 0xC($t0)` — a different
+struct field, a different function — come out identical.
+
+The canonical form drops only what names a copy's own position: the
+`/* offset vram encoding */` column, local branch labels (splat names them
+`.L<overlay>_<vram>`), and the *identity* of an overlay-local symbol, keeping
+that it is local. Two hashes come out of it:
+
+| | meaning |
+|---|---|
+| **text** | the same body, wherever it links — **52% of functions, 56% of instructions** |
+| **raw** | the same bytes. Every room loads at `0x8017D5C0`, so a body referencing nothing overlay-local relocates identically everywhere — 24% |
+
+Byte-identical implies text-identical, and the tool asserts it: a `raw` class
+whose members disagree on `text` means the canonical form is losing something.
+That check is what caught the label regex missing `.L<overlay>_<vram>`.
+
+**How a body is shared.** `src_path` is the family root, so a subsegment can be
+named `lib/<unit>` instead of `<overlay>/<unit>`. Several overlays name the same
+path, splat puts the same object in each of their linker scripts, and one object
+relocates into all of them. The manifest records the span per overlay:
+
+```toml
+acropolis_cafeteria = { shared = [{ start = "0x395C", end = "0x431C", unit = "room_draw_billboard" }] }
+```
+
+Three things this needs, each learned by hitting it:
+
+* **A shared symbol name.** Each sharer's symbol map names the address
+  (`Room_DrawBillboard = 0x…`), otherwise every room calls it by its own
+  `func_<room>_<vram>` and the link fails.
+* **One rule per object.** The object is reached once per overlay that links it;
+  `ninja_config.py` emits the build rule the first time and afterwards records
+  only the dependency, because ninja rejects two rules for one output.
+* **No absolute aliases.** splat emits an `alabel` for any known symbol inside
+  the body; named after the room it was split from, it collides in the other 32.
+  Keeping such an address out of the family imports file stops it being emitted.
+
+**A body appearing twice in one overlay cannot be shared** — `ld` includes an
+input object once, so the second slot goes unfilled. `room_draw_billboard`
+appears 55 times across 44 rooms, and 11 of those contain it twice, so 33 rooms
+share it and the other 11 keep their own copies.
+
+The shared unit is a **`c` subsegment, not `hasm`**. A shared body is exactly as
+unmatched as any other until someone decompiles it, and `hasm` would mark it
+hand-written and drop it out of the unmatched count. `asm_path` is the family
+root for the same reason `src_path` is: it puts the shared body's disassembly at
+an overlay-independent path, so one `INCLUDE_ASM` can name it.
+
+That last point is also the limit on sharing an *unmatched* body: every overlay
+writes the same shared `.s`, which is only well-defined when the copies are
+byte-identical. Bodies that are the same source at a different link offset can
+share the C file once matched, because the compiler then regenerates them per
+link address.
+
 ## 6. Models and animations
 
 ### 6.1 What is *not* a model overlay
@@ -393,8 +579,45 @@ No anim chunk type exists in `STAGE*.CDF`. If it is not in that `.pe2pkg`
 
 ## 8. Census (USA unique `.pe2pkg`)
 
-448 unique inflated bodies. By `load_addr` (instance counts in
-`stages.json`, including duplicate refs):
+448 unique inflated bodies — unique by *content*: the extractor dedups by
+SHA-1, so a package loaded under more than one file id is extracted once and
+both ids resolve to the same file. The counts below are **instances** in
+`stages.json`, so they run ahead of the number of distinct packages: the 32
+weapon ids are 32 packages, but the 7 aya ids are 6, the 5 named-human ids are
+4, the 6 map-UI ids are 5, and the 24 map-picture ids are 17.
+
+Packages that have been identified are **named** in the extractor
+(`tools/peassets/asset_data.py`), so they extract as `m93r.pe2pkg`,
+`map_akropolis.pe2pkg`, `nmc_names.pe2pkg` rather than `pe2pkg_2.pe2pkg`. That
+name is the unit everything else keys on — the decomp manifest, the split
+config, the symbol prefix — so a package loaded under several ids is one thing
+with one name, and file ids stop appearing outside the extractor.
+
+The **containers** are named too, so the extracted tree reads the same way. Each
+STAGE1–5 folder is one room, so the folder takes its room's name
+(`stage1/acropolis_square/` rather than `stage1/101/`), and a stage-0 file takes
+the name of the overlay it holds (`stage0/m93r/`, `stage0/nmc_names/`).
+
+`TREE` keys those containers by **name** and carries the disc id as an `id`
+attribute:
+
+```python
+1: {"folders": {
+    'acropolis_square': {"id": 101, "files": {
+        'file0': {"id": 0, "chunks": {3: 'acropolis_square', …}},
+    }},
+}},
+```
+
+A name therefore cannot collide — dict keys are unique — and `reverse_folder_id`
+/ `reverse_file_id` are a plain lookup rather than a scan. The key doubles as
+the on-disk directory name and the `stages.json` key, falling back to `<id>` /
+`file<id>` for anything still unnamed.
+
+Nine stage-0 packages are reachable through more than one file id (`10500` and
+`10600` both load `aya_10500`). Only one file can carry the package's name —
+names must be unique within a container — so those extra ids keep their default
+`file<id>` key rather than a name that would claim to be the primary.
 
 | Load | Count | Family |
 |------|------:|--------|
@@ -416,10 +639,15 @@ No anim chunk type exists in `STAGE*.CDF`. If it is not in that `.pe2pkg`
 ## 9. Open questions
 
 - Exact role of `501xx` (behaviour vs sound vs something else).
-- What `20600` / `20900` and the 4-byte actor stubs are *for* at runtime
+- What `20900` and the 4-byte actor stubs are *for* at runtime
   (id presence vs real payload).
 - Full `TmdSource` / bone-matrix stride for Aya (first `MATRIX` is identity;
   later bones are not a plain `0x20` `MATRIX` array).
 - Whether room TMD specks are world props, inventory pickups, or noise.
 - Friendly names for actor suffixes (`300`, `400`, `700`, …) — not yet
-  matched to in-game character ids.
+  matched to in-game character ids, though `20600` (§5.9) now supplies the
+  roster to match them *against*.
+- Who the five named humans (`800101`–`800105`) are. Their overlays hold a
+  300-vertex body shared by four of the five plus one distinguishing mesh each
+  (22, 36, 52 and 78 vertices); `tools/peassets/tmd_export.py humans` writes
+  them out as OBJ.

@@ -1,0 +1,1 @@
+// Overlay-local symbols for shelter_b6_growth_room.

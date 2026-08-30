@@ -1,0 +1,131 @@
+#include "common.h"
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017D64C);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017DE88);
+
+INCLUDE_RODATA("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", D_dryfield_dilapidated_house_8017D5C0);
+
+INCLUDE_RODATA("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", D_dryfield_dilapidated_house_8017D5C4);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E014);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E144);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E2B0);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E48C);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E56C);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E574);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E684);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E68C);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E6DC);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E780);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E858);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E8A8);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E8C8);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E8E8);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E970);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017E9A4);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017EA10);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017EA7C);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017EAB4);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017EB60);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017EBB8);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017EE58);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017F418);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017F568);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8017FAD4);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_801803A4);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_80180738);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_80180A0C);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_80180B84);
+
+INCLUDE_RODATA("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", D_dryfield_dilapidated_house_8017D61C);
+
+INCLUDE_RODATA("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", D_dryfield_dilapidated_house_8017D628);
+
+INCLUDE_RODATA("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", D_dryfield_dilapidated_house_8017D634);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_80180F04);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_80180F5C);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_80180FB8);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_80180FD8);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_80181028);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_801810F8);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_80181134);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8018118C);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_80181264);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_80181290);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_801812E8);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_80181340);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_801813DC);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8018142C);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_8018145C);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_801814B4);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_80181584);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_801815B8);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_801815E8);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_80181F08);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_801823B8);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_80182744);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_80182A18);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_80182F14);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_801832A8);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_80183728);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_80183BF8);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_80183C8C);
+
+INCLUDE_ASM("rooms/dryfield_dilapidated_house/nonmatchings/dryfield_dilapidated_house", func_dryfield_dilapidated_house_80183D5C);

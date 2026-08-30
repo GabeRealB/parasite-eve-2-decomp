@@ -1,0 +1,46 @@
+#include "common.h"
+
+INCLUDE_ASM("rooms/shelter_b2_operating_room/nonmatchings/shelter_b2_operating_room", func_shelter_b2_operating_room_8017D628);
+
+INCLUDE_RODATA("rooms/shelter_b2_operating_room/nonmatchings/shelter_b2_operating_room", D_shelter_b2_operating_room_8017D5C0);
+
+INCLUDE_ASM("rooms/shelter_b2_operating_room/nonmatchings/shelter_b2_operating_room", func_shelter_b2_operating_room_8017D78C);
+
+INCLUDE_ASM("rooms/shelter_b2_operating_room/nonmatchings/shelter_b2_operating_room", func_shelter_b2_operating_room_8017D8FC);
+
+INCLUDE_ASM("rooms/shelter_b2_operating_room/nonmatchings/shelter_b2_operating_room", func_shelter_b2_operating_room_8017DA94);
+
+INCLUDE_ASM("rooms/shelter_b2_operating_room/nonmatchings/shelter_b2_operating_room", func_shelter_b2_operating_room_8017DC9C);
+
+INCLUDE_ASM("rooms/shelter_b2_operating_room/nonmatchings/shelter_b2_operating_room", func_shelter_b2_operating_room_8017DCA4);
+
+INCLUDE_ASM("rooms/shelter_b2_operating_room/nonmatchings/shelter_b2_operating_room", func_shelter_b2_operating_room_8017DD0C);
+
+INCLUDE_ASM("rooms/shelter_b2_operating_room/nonmatchings/shelter_b2_operating_room", func_shelter_b2_operating_room_8017DD14);
+
+void func_shelter_b2_operating_room_8017DD58(void) {
+}
+
+INCLUDE_ASM("rooms/shelter_b2_operating_room/nonmatchings/shelter_b2_operating_room", func_shelter_b2_operating_room_8017DD60);
+
+INCLUDE_ASM("rooms/shelter_b2_operating_room/nonmatchings/shelter_b2_operating_room", func_shelter_b2_operating_room_8017DDB8);
+
+INCLUDE_ASM("rooms/shelter_b2_operating_room/nonmatchings/shelter_b2_operating_room", func_shelter_b2_operating_room_8017E118);
+
+INCLUDE_ASM("rooms/shelter_b2_operating_room/nonmatchings/shelter_b2_operating_room", func_shelter_b2_operating_room_8017E95C);
+
+INCLUDE_ASM("rooms/shelter_b2_operating_room/nonmatchings/shelter_b2_operating_room", func_shelter_b2_operating_room_8017ECFC);
+
+INCLUDE_ASM("rooms/shelter_b2_operating_room/nonmatchings/shelter_b2_operating_room", func_shelter_b2_operating_room_8017F254);
+
+INCLUDE_ASM("rooms/shelter_b2_operating_room/nonmatchings/shelter_b2_operating_room", func_shelter_b2_operating_room_8017F478);
+
+INCLUDE_ASM("rooms/shelter_b2_operating_room/nonmatchings/shelter_b2_operating_room", func_shelter_b2_operating_room_8017F6FC);
+
+INCLUDE_ASM("rooms/shelter_b2_operating_room/nonmatchings/shelter_b2_operating_room", func_shelter_b2_operating_room_8017FB20);
+
+INCLUDE_ASM("rooms/shelter_b2_operating_room/nonmatchings/shelter_b2_operating_room", func_shelter_b2_operating_room_8017FEB4);
+
+INCLUDE_ASM("rooms/shelter_b2_operating_room/nonmatchings/shelter_b2_operating_room", func_shelter_b2_operating_room_80180060);
+
+INCLUDE_ASM("rooms/shelter_b2_operating_room/nonmatchings/shelter_b2_operating_room", func_shelter_b2_operating_room_8018058C);

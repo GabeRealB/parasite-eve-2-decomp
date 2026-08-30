@@ -1,0 +1,55 @@
+#include "common.h"
+
+INCLUDE_RODATA("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", D_neo_ark_submarine_gallery_8017D5C0);
+
+INCLUDE_ASM("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017D678);
+
+INCLUDE_ASM("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017E2CC);
+
+INCLUDE_RODATA("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", D_neo_ark_submarine_gallery_8017D614);
+
+INCLUDE_ASM("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017E86C);
+
+INCLUDE_ASM("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017EA04);
+
+INCLUDE_ASM("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017EA0C);
+
+INCLUDE_ASM("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017EABC);
+
+INCLUDE_ASM("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017EB48);
+
+INCLUDE_ASM("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017EB50);
+
+void func_neo_ark_submarine_gallery_8017EBC4(void) {
+}
+
+INCLUDE_ASM("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017EBCC);
+
+INCLUDE_ASM("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017EC24);
+
+INCLUDE_ASM("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017EED8);
+
+INCLUDE_ASM("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017EF14);
+
+void func_neo_ark_submarine_gallery_8017EF8C(void) {
+}
+
+INCLUDE_ASM("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017EF94);
+
+INCLUDE_ASM("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017EFEC);
+
+INCLUDE_ASM("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017F288);
+
+INCLUDE_ASM("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017F3DC);
+
+INCLUDE_ASM("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017F710);
+
+INCLUDE_ASM("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017FBCC);
+
+INCLUDE_ASM("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_8017FFB8);
+
+INCLUDE_ASM("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_80180254);
+
+INCLUDE_ASM("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_80180AC8);
+
+INCLUDE_ASM("rooms/neo_ark_submarine_gallery/nonmatchings/neo_ark_submarine_gallery", func_neo_ark_submarine_gallery_80180E80);

@@ -1,0 +1,1 @@
+// Overlay-local symbols for shelter_b1_pod_service_gantry.

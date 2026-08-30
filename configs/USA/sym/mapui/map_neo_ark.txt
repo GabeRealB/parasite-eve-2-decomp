@@ -1,0 +1,1 @@
+// Overlay-local symbols for map_neo_ark (file 900005).

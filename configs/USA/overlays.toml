@@ -8,6 +8,13 @@
 # Only human decisions live here. Size, sha1 and the .text span are derived
 # from the package itself, so they cannot drift out of sync with the data.
 # Set `text` explicitly on an overlay to override the derived span.
+#
+# `duplicate_of = "<file id>"` marks an overlay whose package is byte-identical
+# to another's. It gets no config and is never split: splitting it a second time
+# would produce a second copy of the same disassembly and the same functions
+# under a second symbol prefix. Its build output is copied from the primary, so
+# it is still checksummed against the real file. The generator re-checks the
+# byte-identity every run and fails if it ever stops holding.
 
 [weapons]
 description = "Equipped-weapon overlay"
@@ -27,35 +34,326 @@ imports = "configs/USA/sym/weapons.imports.txt"
 # are byte-identical in size; 0x85 has its own block but is equally nameless.
 # None of the six contains a single function.
 [weapons.overlays]
-10301 = { name = "p08_snail",    item = 0x80, weapon = "P08(S. Magazine)" }
-10302 = { name = "m93r",         item = 0x81, weapon = "M93R" }
-10303 = { name = "m950",         item = 0x82, weapon = "M950" }
-10304 = { name = "p08",          item = 0x83, weapon = "P08" }
-10305 = { name = "p229",         item = 0x84, weapon = "P229" }
-10306 = { name = "unused_85",    item = 0x85, weapon = "" }
-10307 = { name = "unused_86",    item = 0x86, weapon = "" }
-10308 = { name = "unused_87",    item = 0x87, weapon = "" }
-10309 = { name = "mongoose",     item = 0x88, weapon = "Mongoose" }
-10310 = { name = "unused_89",    item = 0x89, weapon = "" }
-10311 = { name = "grenade_pistol", item = 0x8A, weapon = "Grenade Pistol" }
-10312 = { name = "mm1",          item = 0x8B, weapon = "MM1" }
-10313 = { name = "pa3",          item = 0x8C, weapon = "PA3" }
-10314 = { name = "sp12",         item = 0x8D, weapon = "SP12" }
-10315 = { name = "as12",         item = 0x8E, weapon = "AS12" }
-10316 = { name = "m4a1",         item = 0x8F, weapon = "M4A1 Rifle" }
-10317 = { name = "m249",         item = 0x90, weapon = "M249" }
-10318 = { name = "unused_91",    item = 0x91, weapon = "" }
-10319 = { name = "tonfa_baton",  item = 0x92, weapon = "Tonfa Baton" }
-10320 = { name = "m4a1_p1",      item = 0x93, weapon = "M4A1(+1)" }
-10321 = { name = "m4a1_p2",      item = 0x94, weapon = "M4A1(+2)" }
-10322 = { name = "hypervelocity", item = 0x95, weapon = "Hypervelocity" }
-10323 = { name = "gunblade",     item = 0x96, weapon = "Gunblade" }
-10324 = { name = "unused_97",    item = 0x97, weapon = "" }
-10325 = { name = "m4a1_hammer",  item = 0x98, weapon = "M4A1 Hammer" }
-10326 = { name = "m4a1_bayonet", item = 0x99, weapon = "M4A1 Bayonet" }
-10327 = { name = "m4a1_grenade", item = 0x9A, weapon = "M4A1 Grenade" }
-10328 = { name = "m4a1_pyke",    item = 0x9B, weapon = "M4A1 Pyke" }
-10329 = { name = "m4a1_javelin", item = 0x9C, weapon = "M4A1 Javelin" }
-10330 = { name = "mp5a5",        item = 0x9D, weapon = "MP5A5" }
-10331 = { name = "mp5a5_p1",     item = 0x9E, weapon = "MP5A5(+1)" }
-10332 = { name = "mp5a5_p2",     item = 0x9F, weapon = "MP5A5(+2)" }
+as12 = { item = 0x8E, weapon = "AS12" }
+grenade_pistol = { item = 0x8A, weapon = "Grenade Pistol" }
+gunblade = { item = 0x96, weapon = "Gunblade" }
+hypervelocity = { item = 0x95, weapon = "Hypervelocity" }
+m249 = { item = 0x90, weapon = "M249" }
+m4a1 = { item = 0x8F, weapon = "M4A1 Rifle" }
+m4a1_bayonet = { item = 0x99, weapon = "M4A1 Bayonet" }
+m4a1_grenade = { item = 0x9A, weapon = "M4A1 Grenade" }
+m4a1_hammer = { item = 0x98, weapon = "M4A1 Hammer" }
+m4a1_javelin = { item = 0x9C, weapon = "M4A1 Javelin" }
+m4a1_p1 = { item = 0x93, weapon = "M4A1(+1)" }
+m4a1_p2 = { item = 0x94, weapon = "M4A1(+2)" }
+m4a1_pyke = { item = 0x9B, weapon = "M4A1 Pyke" }
+m93r = { item = 0x81, weapon = "M93R" }
+m950 = { item = 0x82, weapon = "M950" }
+mm1 = { item = 0x8B, weapon = "MM1" }
+mongoose = { item = 0x88, weapon = "Mongoose" }
+mp5a5 = { item = 0x9D, weapon = "MP5A5" }
+mp5a5_p1 = { item = 0x9E, weapon = "MP5A5(+1)" }
+mp5a5_p2 = { item = 0x9F, weapon = "MP5A5(+2)" }
+p08 = { item = 0x83, weapon = "P08" }
+p08_snail = { item = 0x80, weapon = "P08(S. Magazine)" }
+p229 = { item = 0x84, weapon = "P229" }
+pa3 = { item = 0x8C, weapon = "PA3" }
+sp12 = { item = 0x8D, weapon = "SP12" }
+tonfa_baton = { item = 0x92, weapon = "Tonfa Baton" }
+unused_85 = { item = 0x85, weapon = "", note = "unused weapon slot 0x85" }
+unused_86 = { item = 0x86, weapon = "", note = "unused weapon slot 0x86" }
+unused_87 = { item = 0x87, weapon = "", note = "unused weapon slot 0x87" }
+unused_89 = { item = 0x89, weapon = "", note = "unused weapon slot 0x89" }
+unused_91 = { item = 0x91, weapon = "", note = "unused weapon slot 0x91" }
+unused_97 = { item = 0x97, weapon = "", note = "unused weapon slot 0x97" }
+
+[aya]
+description = "Aya costume / bonus overlay"
+load_addr   = 0x80115770
+global_vram_start = 0x80010000
+global_vram_end   = 0x80115770
+imports = "configs/USA/sym/aya.imports.txt"
+
+# Costume meshes, named by file id: nothing in the binaries names them, and the
+# bone counts (word 0: 46, 7, 44, 41, 41) do not identify an outfit on their own.
+# 10500 and 10600 are byte-identical. Rename once the meshes or the sibling
+# .pe2img textures identify which outfit is which.
+[aya.overlays]
+aya_10200 = { note = "46 bones" }
+aya_10300 = { note = "7 bones - too few for a full costume" }
+aya_10400 = { note = "44 bones" }
+aya_10500 = { note = "41 bones" }
+aya_20900 = { note = "1.6 KB, 3 functions; role unknown" }
+replay_bonus = { note = "Complete Bonus / GET ITEM / BONUS BP" }
+[humans]
+description = "Named human character overlay"
+load_addr   = 0x80167A70
+global_vram_start = 0x80010000
+global_vram_end   = 0x80167A70
+imports = "configs/USA/sym/humans.imports.txt"
+
+# Placeholder names. Nothing in the binaries labels these five, so they keep
+# their file ids until the meshes identify who each one is (see
+# tools/peassets exports). 800103 and 800105 are byte-identical.
+[humans.overlays]
+human_800101 = { note = "word0 = 0xBF" }
+human_800102 = { note = "word0 = 0xC0; the only one with code" }
+human_800103 = { note = "word0 = 0xC1" }
+human_800104 = { note = "word0 = 0xC2" }
+
+[mapui]
+description = "Area map / room-name overlay"
+load_addr   = 0x80179950
+global_vram_start = 0x80010000
+global_vram_end   = 0x80179950
+imports = "configs/USA/sym/mapui.imports.txt"
+
+# Named after the area whose room names each one carries - the name pool is
+# right there in the package, so this is read off the data rather than guessed.
+# 900000 and 900001 are byte-identical. 900003 is the expanded Dryfield map:
+# same 26 names as 900002 plus Motel rooms 3/4/5, Motel lobby and Motel loft.
+[mapui.overlays]
+map_akropolis = { note = "Square, Patio, Sanctuary, MIST parking" }
+map_dryfield = { note = "26 names" }
+map_dryfield_full = { note = "31 names; adds the later motel rooms" }
+map_neo_ark = { note = "Forest zone, Savanna zone, Pavilion, Island" }
+map_shelter = { note = "Mesa, Cavern, Armory, Golem freezer, Pod" }
+[mappic]
+description = "Map picture"
+load_addr   = 0x8012EF30
+global_vram_start = 0x80010000
+global_vram_end   = 0x8012EF30
+imports = "configs/USA/sym/mappic.imports.txt"
+
+# File id is 3<stage><nn>, so the stage is read straight off the id. Several are
+# byte-identical duplicates (30100/30101, 30200/30201, 30300/30301, 30400/30401,
+# 30406/30407, 30500/30501/30504). None contains any code.
+[mappic.overlays]
+mappic_s1_00 = { }
+mappic_s1_02 = { }
+mappic_s2_00 = { }
+mappic_s2_02 = { }
+mappic_s2_03 = { }
+mappic_s3_00 = { }
+mappic_s3_02 = { }
+mappic_s3_03 = { }
+mappic_s4_00 = { }
+mappic_s4_02 = { }
+mappic_s4_03 = { }
+mappic_s4_04 = { }
+mappic_s4_05 = { }
+mappic_s4_06 = { }
+mappic_s5_00 = { }
+mappic_s5_02 = { }
+mappic_s5_03 = { }
+
+[options]
+description = "Options menu overlay"
+load_addr   = 0x801D4000
+global_vram_start = 0x80010000
+global_vram_end   = 0x801D4000
+imports = "configs/USA/sym/options.imports.txt"
+
+[options.overlays]
+options = { note = "Option / Key Configuration" }
+stub_20200 = { note = "4-byte stub so the id still resolves" }
+
+[debug]
+description = "Leftover debug table"
+load_addr   = 0x801D6000
+global_vram_start = 0x80010000
+global_vram_end   = 0x801D6000
+imports = "configs/USA/sym/debug.imports.txt"
+
+# 20600 was the "role unknown" package in doc/OVERLAYS.md. It is a 63-entry
+# pointer table at +0x484 into Shift-JIS NMC names - index 0 empty, 1..62 the
+# enemy roster from ネズミ (rat) through サボテンダー (Cactuar) and チョコボ
+# (Chocobo). Japanese text left in the US build, and the index is a candidate
+# key for naming the actor overlays.
+[debug.overlays]
+nmc_names = { note = "63-entry Shift-JIS enemy name table" }
+
+[rooms]
+description = "Room overlay"
+load_addr   = 0x8017D5C0
+global_vram_start = 0x80010000
+global_vram_end   = 0x8017D5C0
+imports = "configs/USA/sym/rooms.imports.txt"
+
+# One package per room folder in STAGE1-5, named for the stage and the game's
+# own room number (folder `<n>01` is room n). These are addresses, not
+# descriptions: the display names live in the map-UI overlays (`map_akropolis`
+# and friends hold the pools - Square, Cafeteria, Gas station, Motel room 1),
+# but there is no one-to-one mapping - several rooms share a display name and
+# some have none - so matching a room to its name needs the map plus the room's
+# own backgrounds. Renaming is cheap while a room is still all INCLUDE_ASM and
+# expensive once its functions are matched, so do it before decompiling.
+[rooms.overlays]
+acropolis_square = { room = "Square" }
+acropolis_east_elevator_hall = { room = "East elevator hall" }
+acropolis_patio = { room = "Patio" }
+acropolis_cafeteria = { room = "Cafeteria" }
+acropolis_plaza = { room = "Plaza" }
+acropolis_security_room = { room = "Security room" }
+acropolis_hallway = { room = "Hallway" }
+acropolis_fountain = { room = "Fountain" }
+acropolis_forked_road = { room = "Forked road" }
+acropolis_observatory = { room = "Observatory" }
+acropolis_promenade = { room = "Promenade" }
+acropolis_sanctuary = { room = "Sanctuary" }
+acropolis_roof_garden = { room = "Roof garden" }
+acropolis_bridge = { room = "Bridge" }
+acropolis_fire_escape = { room = "Fire escape" }
+acropolis_helicopter_landing_pad = { room = "Helicopter landing pad" }
+acropolis_west_elevator_hall = { room = "West elevator hall" }
+mist_r18 = { note = "cutscene or one-off room; no map names it" }
+mist_parking = { room = "MIST parking" }
+mist_shooting_gallery = { room = "Shooting gallery" }
+mist_r21 = { note = "cutscene or one-off room; no map names it" }
+dryfield_gas_station = { room = "Gas station" }
+dryfield_main_street = { room = "Main street" }
+dryfield_general_store = { room = "General store" }
+dryfield_r04 = { note = "cutscene or one-off room; no map names it" }
+dryfield_back_street = { room = "Back street" }
+dryfield_souvenir_shop = { room = "Souvenir shop" }
+dryfield_warehouse = { room = "Warehouse" }
+dryfield_r08 = { note = "cutscene or one-off room; no map names it" }
+dryfield_dilapidated_house = { room = "Dilapidated house" }
+dryfield_motel_room_1 = { room = "Motel room 1" }
+dryfield_motel_room_2 = { room = "Motel room 2" }
+dryfield_motel_room_3 = { room = "Motel room 3", day_unlabelled = true }
+dryfield_motel_room_4 = { room = "Motel room 4", day_unlabelled = true }
+dryfield_parking_lot = { room = "Parking lot" }
+dryfield_toilet = { room = "Toilet" }
+dryfield_motel_lobby = { room = "Motel lobby", day_unlabelled = true }
+dryfield_saloon_g_r = { room = "Saloon G & R" }
+dryfield_g_r_kitchen = { room = "G & R kitchen" }
+dryfield_water_tower = { room = "Water tower" }
+dryfield_water_tank = { room = "Water tank" }
+dryfield_breezeway = { room = "Breezeway" }
+dryfield_factory = { room = "Factory" }
+dryfield_garage = { room = "Garage" }
+dryfield_driveway = { room = "Driveway" }
+dryfield_junk_yard = { room = "Junk yard" }
+dryfield_trailer_coach = { room = "Trailer coach" }
+dryfield_motel_room_5 = { room = "Motel room 5", day_unlabelled = true }
+dryfield_motel_balcony = { room = "Motel balcony" }
+dryfield_motel_room_6 = { text = [0x100, 0x5428], room = "Motel room 6", note = "code ends at 0x5428; a stray 0x03E00008 in the string block at 0x8E7C fools the span detector" }
+dryfield_motel_loft = { room = "Motel loft", day_unlabelled = true }
+dryfield_water_hole = { room = "Water hole" }
+dryfield_cellar = { room = "Cellar" }
+dryfield_underpass = { room = "Underpass" }
+dryfield_night_gas_station = { room = "Gas station" }
+dryfield_night_main_street = { room = "Main street" }
+dryfield_night_general_store = { room = "General store" }
+dryfield_night_back_street = { room = "Back street" }
+dryfield_night_souvenir_shop = { room = "Souvenir shop" }
+dryfield_night_warehouse = { room = "Warehouse" }
+dryfield_night_r08 = { note = "cutscene or one-off room; no map names it" }
+dryfield_night_dilapidated_house = { room = "Dilapidated house" }
+dryfield_night_motel_room_1 = { room = "Motel room 1" }
+dryfield_night_motel_room_2 = { room = "Motel room 2" }
+dryfield_night_motel_room_3 = { room = "Motel room 3" }
+dryfield_night_motel_room_4 = { room = "Motel room 4" }
+dryfield_night_parking_lot = { room = "Parking lot" }
+dryfield_night_toilet = { room = "Toilet" }
+dryfield_night_motel_lobby = { room = "Motel lobby" }
+dryfield_night_saloon_g_r = { room = "Saloon G & R" }
+dryfield_night_g_r_kitchen = { room = "G & R kitchen" }
+dryfield_night_water_tower = { room = "Water tower" }
+dryfield_night_water_tank = { room = "Water tank" }
+dryfield_night_breezeway = { room = "Breezeway" }
+dryfield_night_factory = { room = "Factory" }
+dryfield_night_garage = { room = "Garage" }
+dryfield_night_driveway = { room = "Driveway" }
+dryfield_night_junk_yard = { room = "Junk yard" }
+dryfield_night_trailer_coach = { room = "Trailer coach" }
+dryfield_night_motel_room_5 = { room = "Motel room 5" }
+dryfield_night_motel_balcony = { room = "Motel balcony" }
+dryfield_night_motel_room_6 = { room = "Motel room 6" }
+dryfield_night_motel_loft = { room = "Motel loft" }
+dryfield_night_water_hole = { room = "Water hole" }
+dryfield_night_cellar = { room = "Cellar" }
+dryfield_night_underpass = { room = "Underpass" }
+mine_mesa = { room = "Mesa" }
+mine_cavern = { room = "Cavern" }
+mine_tunnel_entrance = { room = "Tunnel entrance" }
+mine_tunnel = { room = "Tunnel" }
+mine_gorge = { room = "Gorge" }
+mine_refuge = { room = "Refuge" }
+mine_forked_tunnel = { room = "Forked tunnel" }
+mine_secret_passage = { room = "Secret passage" }
+shelter_b1_elevator_hall = { room = "Elevator hall", floor = "B1" }
+shelter_b1_south_maintenance_walkway = { room = "South maintenance walkway", floor = "B1" }
+shelter_b1_storeroom = { room = "Storeroom", floor = "B1" }
+shelter_b1_north_maintenance_walkway = { room = "North maintenance walkway", floor = "B1" }
+shelter_b1_armory = { room = "Armory", floor = "B1" }
+shelter_b1_sleeping_quarters = { room = "Sleeping quarters", floor = "B1" }
+shelter_b1_main_corridor = { room = "Main corridor", floor = "B1" }
+shelter_b1_sterilization_room = { room = "Sterilization room", floor = "B1" }
+shelter_b1_pod_access_tunnel = { room = "Pod access tunnel", floor = "B1" }
+shelter_b1_control_room = { room = "Control room", floor = "B1" }
+shelter_b1_access_tunnel = { room = "Access tunnel", floor = "B1" }
+shelter_b1_underground_parking = { room = "Underground parking", floor = "B1" }
+shelter_b1_golem_freezer_1 = { room = "Golem freezer 1", floor = "B1" }
+shelter_b2_pod_bottom = { room = "Pod bottom", floor = "B2" }
+shelter_b1_pod_service_gantry = { room = "Pod service gantry", floor = "B1" }
+shelter_b1_transfer_tunnel = { room = "Transfer tunnel", floor = "B1" }
+shelter_b1_control_room_access_tunnel = { room = "Control room access tunnel", floor = "B1" }
+shelter_b2_elevator = { room = "Elevator", floor = "B2" }
+shelter_b2_elevator_hall = { room = "Elevator hall", floor = "B2" }
+shelter_b2_south_maintenance_walkway = { room = "South maintenance walkway", floor = "B2" }
+shelter_b2_operating_room = { room = "Operating room", floor = "B2" }
+shelter_b2_north_maintenance_walkway = { room = "North maintenance walkway", floor = "B2" }
+shelter_b2_laboratory = { room = "Laboratory", floor = "B2" }
+shelter_b2_breeding_room = { room = "Breeding room", floor = "B2" }
+shelter_b2_main_corridor = { room = "Main corridor", floor = "B2" }
+shelter_b2_septic_tank = { room = "Septic tank", floor = "B2" }
+shelter_b2_pod_access_tunnel = { room = "Pod access tunnel", floor = "B2" }
+shelter_r36 = { note = "cutscene or one-off room; no map names it" }
+shelter_r37 = { note = "cutscene or one-off room; no map names it" }
+shelter_1f_heliport_s4 = { room = "Heliport", floor = "1F", note = "the same 1F heliport as shelter_1f_heliport (stage 5); this is the stage-4 file set's much smaller script for it" }
+shelter_b3_dumping_hole = { room = "Dumping hole", floor = "B3", note = "no map pool names this room" }
+shelter_b3_garbage_incinerator = { room = "Garbage incinerator", floor = "B3", note = "no map pool names this room" }
+shelter_b3_incinerator_control_room = { room = "Incinerator control room", floor = "B3", note = "no map pool names this room" }
+shelter_b3_elevator_hall = { room = "Elevator hall", floor = "B3", note = "no map pool names this room" }
+shelter_b4_lower_sewer = { room = "Lower sewer", floor = "B4", note = "no map pool names this room" }
+shelter_b4_upper_sewer = { room = "Upper sewer", floor = "B4", note = "no map pool names this room" }
+shelter_b4_reservoir = { room = "Reservoir", floor = "B4", note = "no map pool names this room" }
+shelter_b4_water_supply = { room = "Water supply", floor = "B4", note = "no map pool names this room" }
+shelter_r47 = { note = "cutscene or one-off room; no map names it" }
+shelter_r48 = { note = "cutscene or one-off room; no map names it" }
+shelter_r49 = { note = "cutscene or one-off room; no map names it" }
+shelter_1f_parking_garage = { room = "Parking garage", floor = "1F" }
+shelter_1f_vehicular_airlock = { room = "Vehicular airlock", floor = "1F" }
+shelter_1f_bulwark = { room = "Bulwark", floor = "1F" }
+shelter_1f_heliport = { room = "Heliport", floor = "1F" }
+shelter_1f_airlock = { room = "Airlock", floor = "1F" }
+shelter_1f_guardroom = { room = "Guardroom", floor = "1F" }
+neo_ark_observatory = { room = "Observatory" }
+neo_ark_eve_access_tunnel = { room = "EVE access tunnel" }
+neo_ark_eve_elevator = { room = "EVE elevator" }
+neo_ark_north_promenade = { room = "North promenade" }
+neo_ark_forest_zone = { room = "Forest zone" }
+neo_ark_submarine_tunnel = { room = "Submarine tunnel" }
+neo_ark_pavilion = { room = "Pavilion" }
+neo_ark_island = { room = "Island" }
+neo_ark_garden = { room = "Garden" }
+neo_ark_power_plant_2 = { room = "Power plant 2" }
+neo_ark_power_plant_1 = { room = "Power plant 1" }
+neo_ark_savanna_zone = { room = "Savanna zone" }
+neo_ark_south_promenade = { room = "South promenade" }
+neo_ark_altar = { room = "Altar" }
+neo_ark_shrine = { room = "Shrine" }
+shelter_b6_nursery = { room = "Nursery", floor = "B6" }
+shelter_b6_growth_room = { room = "Growth room", floor = "B6" }
+shelter_b6_corridor = { room = "Corridor", floor = "B6" }
+shelter_b6_training_room = { room = "Training room", floor = "B6" }
+neo_ark_r26 = { note = "cutscene or one-off room; no map names it" }
+neo_ark_bridge = { room = "Bridge", note = "no map pool names this room" }
+shelter_1f_tent = { room = "Tent", floor = "1F", note = "no map pool names this room" }
+neo_ark_woodland_path = { room = "Woodland path", note = "no map pool names this room" }
+neo_ark_submarine_gallery = { room = "Submarine gallery", note = "no map pool names this room" }
+neo_ark_r31 = { note = "cutscene or one-off room; no map names it" }
+neo_ark_pyramid = { room = "Pyramid", note = "no map pool names this room" }
+neo_ark_substation = { room = "Substation", note = "no map pool names this room" }
