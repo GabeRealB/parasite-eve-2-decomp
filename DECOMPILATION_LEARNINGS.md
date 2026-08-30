@@ -32372,3 +32372,32 @@ emits `addiu t0, obj, -0x98` for the base instead.
 `func_dryfield_night_garage_8017FF2C` are the examples. Note this is the
 mirror of "Volatile global: index via global name, not a local pointer" — a
 local base pointer is the fix here and the bug there, so score both shapes.
+
+## m2c's `var_a0 = K; if (…) var_a0 = K2; f(var_a0)` — write two calls instead
+
+When the target picks a constant argument in the branch delay slots of both
+arms and falls into one shared `jal`:
+
+```
+bnez  v0, .Ltail
+ li   a0, 6
+j     .Ltail
+ li   a0, 3
+.Ltail:
+jal   Gp_RunCapCmd1
+```
+
+m2c reconstructs the shared `jal` literally, as a local assigned in both arms
+and passed once. That local is live across the earlier `jal`
+(`GameFlag_GetNibble`), so GCC gives it `$s0` and grows the frame by 8:
+`move a0,s0` at the call plus `sw/lw s0` in the prologue and epilogue.
+
+Write the two calls out instead — `if (cond) { f(6); } else { f(3); }`. The
+arms are `li a0,K; j tail` after cross-jumping, which is exactly the target,
+and nothing is live across the call.
+
+The remaining knob is polarity: whichever arm GCC lays out as the *taken*
+branch supplies the first delay slot. `if (x != 0) f(6); else f(3);` gives
+`bnez … li a0,6`; writing the `== 0` test first gives `beqz … li a0,3`.
+Flip the test to move the constants. `func_shelter_b1_control_room_8017ED68`
+is the minimal example.
