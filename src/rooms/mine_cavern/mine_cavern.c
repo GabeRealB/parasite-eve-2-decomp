@@ -44,7 +44,8 @@ INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern", func_mine_cavern_8017E
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern", func_mine_cavern_8017E330);
 
-void func_mine_cavern_8017E358(void) {
+void func_mine_cavern_8017E358(void)
+{
 }
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern", func_mine_cavern_8017E360);
@@ -74,27 +75,3 @@ INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern", func_mine_cavern_80180
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern", func_mine_cavern_801804CC);
 
 INCLUDE_ASM("rooms/nonmatchings/mine_cavern/mine_cavern", func_mine_cavern_801809F8);
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern", jtbl_mine_cavern_8017D630);
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern", jtbl_mine_cavern_8017D648);
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern", D_mine_cavern_8017D65C);
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern", jtbl_mine_cavern_8017D668);
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern", jtbl_mine_cavern_8017D6C8);
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern", jtbl_mine_cavern_8017D728);
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern", jtbl_mine_cavern_8017D788);
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern", D_mine_cavern_8017D7E8);
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern", D_mine_cavern_8017D7F0);
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern", D_mine_cavern_8017D7F8);
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern", D_mine_cavern_8017D80C);
-
-INCLUDE_RODATA("rooms/nonmatchings/mine_cavern/mine_cavern", jtbl_mine_cavern_8017D818);

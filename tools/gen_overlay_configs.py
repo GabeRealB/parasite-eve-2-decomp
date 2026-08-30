@@ -81,7 +81,11 @@ def trailing_segment(name: str, data: bytes) -> list[str]:
 
 
 def subsegments(
-    name: str, data: bytes, span: tuple[int, int] | None, shared: list[dict]
+    name: str,
+    data: bytes,
+    span: tuple[int, int] | None,
+    shared: list[dict],
+    rodata: list[dict],
 ) -> str:
     """The package layout as splat subsegment lines.
 
@@ -103,8 +107,22 @@ def subsegments(
     start, end = span
     if start:
         # Leading rodata: the package header that sits ahead of the first
-        # function. Named to match its `c` sibling so splat pairs them.
+        # function. One subsegment per owning unit, named to match its `c`
+        # sibling so splat pairs them: a unit's `.rodata` appears once in the
+        # linker script, at the offset its subsegment names, so a jump table a
+        # decompiled function emits from C only lands at the right address if
+        # the rodata is cut where ownership changes.
         lines.append(f"      - [0x0, .rodata, {name}/{name}]")
+        for cut in sorted(rodata, key=lambda r: int(str(r["start"]), 16)):
+            cut_start = int(str(cut["start"]), 16)
+            if not 0 < cut_start < start:
+                raise SystemExit(
+                    f"{name}: rodata cut {cut['unit']} at 0x{cut_start:X} is "
+                    f"outside the leading rodata (0x0..0x{start:X})"
+                )
+            lines.append(f"      - [0x{cut_start:X}, .rodata, {name}/{cut['unit']}]")
+    elif rodata:
+        raise SystemExit(f"{name}: rodata cuts but the package has no leading rodata")
 
     # Walk the code region, cutting out each shared body as its own subsegment
     # and giving the runs between them numbered overlay-local units.
@@ -189,7 +207,9 @@ def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path
             "GLOBAL_VRAM_START": f"0x{spec['global_vram_start']:08X}",
             "GLOBAL_VRAM_END": f"0x{spec['global_vram_end']:08X}",
             "IMPORTS": spec["imports"],
-            "SUBSEGMENTS": subsegments(name, data, span, entry.get("shared", [])),
+            "SUBSEGMENTS": subsegments(
+                name, data, span, entry.get("shared", []), entry.get("rodata", [])
+            ),
         }.items():
             text = text.replace(f"@@{key}@@", val)
         if "@@" in text:

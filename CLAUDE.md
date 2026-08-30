@@ -58,6 +58,16 @@ breaks on a later re-split — so `ninja_config.py` checks for it after every
 overlay split and stops with the `text = [start, end]` override to add. One room
 of 168 (`s2_30`) needs one.
 
+**The leading rodata is one subsegment, owned by the first code unit.** That is
+fine while everything is `INCLUDE_ASM`, and wrong the moment you decompile a
+function in a *later* unit whose jump tables live in that block: a unit's
+`.rodata` appears once in the linker script, at the offset its subsegment names,
+so the compiler-generated table lands after everything instead of at its
+address. Cut the block where ownership changes with the manifest's `rodata` key
+(`rooms/mine_cavern` is the worked example), then delete the affected `src/`
+files and re-split so splat places the `INCLUDE_RODATA` lines itself. See
+`DECOMPILATION_LEARNINGS.md`, "Compiler-generated jump tables".
+
 Two maintenance commands, neither run by the build:
 
 - `python3 tools/gen_overlay_configs.py [--family F] [--list]` — regenerate the

@@ -9,6 +9,13 @@
 # from the package itself, so they cannot drift out of sync with the data.
 # Set `text` explicitly on an overlay to override the derived span.
 #
+# The leading rodata is one subsegment owned by the first code unit. When a
+# later unit owns part of it - as it does the moment one of that unit's
+# functions is decompiled and the compiler emits its own jump tables - cut it
+# with `rodata = [{ start = "<offset>", unit = "<unit>" }]`. A unit's `.rodata`
+# appears once in the linker script, at the offset its subsegment names, so the
+# cut is what puts the compiler-generated table at the right address.
+#
 # `duplicate_of = "<file id>"` marks an overlay whose package is byte-identical
 # to another's. It gets no config and is never split: splitting it a second time
 # would produce a second copy of the same disassembly and the same functions
@@ -276,7 +283,7 @@ dryfield_night_water_hole = { room = "Water hole" }
 dryfield_night_cellar = { room = "Cellar" }
 dryfield_night_underpass = { room = "Underpass" }
 mine_mesa = { room = "Mesa", shared = [{ start = "0x3244", end = "0x3C04", unit = "room_draw_billboard" }] }
-mine_cavern = { room = "Cavern", shared = [{ start = "0x37B0", end = "0x4170", unit = "room_draw_billboard" }] }
+mine_cavern = { room = "Cavern", shared = [{ start = "0x37B0", end = "0x4170", unit = "room_draw_billboard" }], rodata = [{ start = "0x70", unit = "mine_cavern_2" }] }
 mine_tunnel_entrance = { room = "Tunnel entrance" }
 mine_tunnel = { room = "Tunnel" }
 mine_gorge = { room = "Gorge" }

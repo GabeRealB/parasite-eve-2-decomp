@@ -2553,6 +2553,48 @@ just `[0x3E9C, .rodata, 3E9C]` when `Gp_EffModelTask` joined `Gp_EffCtlTask2B`
 the `rodata` remainder in place instead makes splat's scan complain that
 "the rodata segment ... has jumptables that are not aligned properly file-wise".
 
+### Generated overlay configs: cut the leading rodata where ownership changes
+
+A generated `.pe2pkg` overlay (`configs/USA/overlays.toml` + the template) gets
+**one** `.rodata` subsegment for the whole block ahead of the first function,
+owned by the first code unit: `- [0x0, .rodata, mine_cavern/mine_cavern]`. Every
+`jtbl_*` in the overlay therefore reaches the C world as an `INCLUDE_RODATA` in
+that first unit's file, even for tables belonging to functions in a later unit.
+
+The moment you decompile one of those later functions, GCC emits its tables from
+*its* object, and a unit's `.rodata` appears exactly once in the linker script —
+at the offset its subsegment names. Split the leading rodata at the offset where
+ownership changes with the manifest's `rodata` key:
+
+```toml
+mine_cavern = { room = "Cavern", shared = [...],
+                rodata = [{ start = "0x70", unit = "mine_cavern_2" }] }
+```
+
+which generates
+
+```yaml
+- [0x0,  .rodata, mine_cavern/mine_cavern]
+- [0x70, .rodata, mine_cavern/mine_cavern_2]
+```
+
+Find the cut by asking who references each rodata symbol —
+`grep -rl D_<seg>_<vram> asm/<ver>/<family>/nonmatchings/<overlay>/` names the
+unit — and cut at the first symbol whose owner is the later unit, not at the
+table you are about to generate.
+
+**Then delete the affected `src/` files and re-split**, rather than hand-editing
+the `INCLUDE_RODATA` lines. `migrate_rodata_to_functions` folds each symbol into
+its referencing function's `.s`, but only when that keeps the rodata in address
+order; the ones it cannot place that way stay as `INCLUDE_RODATA` at exactly the
+right point in the file, and splat works that placement out for you. Splat only
+writes a C file that does not exist, so back up any hand-written bodies first
+and put them back afterwards (`git diff` shows what to restore).
+
+Splat does not delete the now-stale per-symbol `.s` files under the old unit's
+`nonmatchings/` directory. They are harmless — nothing includes them — and a
+clean `asm/` regeneration clears them.
+
 ## m2c: "the corresponding jump table is not provided"
 
 The scratch bootstrapper only feeds m2c the function's own `.s`, so any function
