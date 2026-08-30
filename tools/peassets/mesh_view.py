@@ -49,7 +49,7 @@ class MeshView(ttk.Frame):
         self._fit: tuple[float, float, float, float] | None = None
         self._anim_sampler = None      # (anim_index, frame) -> (verts, normals)
         self._anim_frames: list[int] = []
-        self._frame = 0
+        self._frame = 0.0
         self._playing = False
         self._play_after: str | None = None
         self._redraw_after: str | None = None
@@ -177,9 +177,9 @@ class MeshView(ttk.Frame):
             self.anim_bar.pack(side=tk.BOTTOM, fill=tk.X, pady=(4, 0))
         else:
             self.anim_bar.pack_forget()
-        self._frame = 0
+        self._frame = 0.0
         self._frame_var.set(0)
-        self._frame_lbl.configure(text="0")
+        self._frame_lbl.configure(text="rest")
 
     def _anim_index(self) -> int | None:
         sel = self._anim.get()
@@ -190,7 +190,7 @@ class MeshView(ttk.Frame):
 
     def _on_anim_changed(self) -> None:
         idx = self._anim_index()
-        self._frame = 0
+        self._frame = 0.0
         self._frame_var.set(0)
         if idx is None:
             self._stop_play()
@@ -202,7 +202,7 @@ class MeshView(ttk.Frame):
     def _on_frame_drag(self, _v=None) -> None:
         if self._playing:
             return
-        self._frame = int(float(self._frame_var.get()))
+        self._frame = float(self._frame_var.get())
         self._apply_frame()
 
     def _apply_frame(self) -> None:
@@ -217,7 +217,7 @@ class MeshView(ttk.Frame):
         if normals:
             self._normals = normals
         self._frame_lbl.configure(
-            text=f"{self._frame}" if idx is None else f"{self._frame}/{self._anim_frames[idx]}"
+            text="rest" if idx is None else f"{self._frame:.0f}/{self._anim_frames[idx]}"
         )
         self._draw()
 
@@ -244,7 +244,9 @@ class MeshView(ttk.Frame):
             self._stop_play()
             return
         total = max(1, self._anim_frames[idx])
-        self._frame = (self._frame + 1) % total
+        # One record tick per 16 ms is the game's 60 Hz; interpolation inside a
+        # record does the smoothing, so no sub-stepping is needed.
+        self._frame = (self._frame + 1.0) % total
         self._frame_var.set(self._frame)
         self._apply_frame()
         # The game runs these at 60 Hz; a record's duration is in those ticks.

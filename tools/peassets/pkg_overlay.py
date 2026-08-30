@@ -93,6 +93,16 @@ def list_overlays(manifest: dict[str, Any], pkg_dir: Path) -> dict[str, list[Ove
 
 
 _scan_cache: dict[Path, list[Embedded]] = {}
+_bytes_cache: dict[Path, bytes] = {}
+
+
+def package_bytes(path: Path) -> bytes:
+    """Package body, cached - playback samples this 60 times a second."""
+    data = _bytes_cache.get(path)
+    if data is None:
+        data = path.read_bytes()
+        _bytes_cache[path] = data
+    return data
 
 
 def scan_overlay(overlay: Overlay, *, anim_candidates=None) -> list[Embedded]:
@@ -359,26 +369,49 @@ def package_id(path: Path) -> int | None:
 # --------------------------------------------------------------- animation
 #
 # An animation set carries one track per bone (ASSET_FORMATS.md 9.3.1). A track
-# is a run of 4-byte records ending at the first with `field_3 >= 0xC0`; each
-# record names a pose by *word* index into one of the set's banks - the game
-# does `poses[recs[i].field_0]` through a 4-byte-strided pointer - and holds a
-# duration in `field_2`.
+# is a run of 4-byte records; each names a pose by *word* index into one of the
+# set's banks - the game does `poses[recs[i].field_0]` through a 4-byte-strided
+# pointer - and holds a duration in `field_2`.
 #
-# Two pose kinds, selected by `field_3 & 0xF` and matching the bank slot:
+# `field_3`'s top bits are control, not pose data:
+#   0xC0  end of track. Not a keyframe.
+#   0x80  the last keyframe, and the point the track loops back from.
+# and `field_2` carries a flag in its top bit, so the duration is
+# `field_2 & 0x7F`. Reading those two records as ordinary keyframes is what
+# made a 63-tick clip look like a 320-frame one that sat still after the first
+# quarter: the 0x80/0xC0 pair claims 129 + 128 ticks between them.
+#
+# The pose *kind* is a property of the track, not of each record: the slot
+# takes it once in `Gp_AnimInitSlot` (`arg1->field_B = op & 0xF`) and
+# `func_800B3448` reads `op = slot->field_B` for every record afterwards. The
+# control records carry 0 in those bits, so reading the kind per record loses
+# the final keyframe.
+#
 #   1  GpPackedPose  6 x s16: translation then ZYX Euler rotation
 #   4  GpPackedSvec  one word, 11/10/11 bits, each component << 3 into an angle
 #
 # Kind 4 carries no translation, so the bone keeps its rest offset - which is
 # the usual arrangement: the root translates, the limbs only rotate.
+#
+# Playback interpolates, as `Gp_AnimBlendPose` / `Gp_AnimBlendPacked` do: they
+# hold a current and a next pose and blend with a GTE GPF/GPL pair over the
+# record's duration, so a stepped player looks nothing like the game.
 
 ANGLE_UNIT = 4096.0  # a full turn
-REC_END = 0xC0
+REC_END = 0xC0   # field_3: end of track, not a keyframe
+REC_LAST = 0x80  # field_3: final keyframe, loops back to the start
+REC_DUR = 0x7F   # field_2 mask; the top bit is a flag
 
 
 @dataclass
 class Track:
     bone: int
-    records: list[tuple[int, int, int]] = field(default_factory=list)  # pose, dur, kind
+    kind: int = 0  # pose kind for the whole track (slot->field_B)
+    records: list[tuple[int, int]] = field(default_factory=list)  # pose, duration
+
+    @property
+    def length(self) -> int:
+        return sum(d for _p, d in self.records)
 
 
 @dataclass
@@ -425,9 +458,13 @@ def load_animations(overlay: Overlay, emb: Embedded, skel: dict, candidates) -> 
                     if off + 4 > len(data):
                         break
                     f0, f2, f3 = struct.unpack_from("<HBB", data, off)
-                    tr.records.append((f0, max(1, f2), f3 & 0xF))
+                    if k == 0:
+                        tr.kind = f3 & 0xF
+                    if f3 >= REC_END:
+                        break
+                    tr.records.append((f0, max(1, f2 & REC_DUR)))
                 anim.tracks.append(tr)
-                longest = max(longest, sum(r[1] for r in tr.records))
+                longest = max(longest, tr.length)
             anim.frames = longest
             out.append(anim)
     return out
@@ -453,15 +490,35 @@ def _sign_extend(v: int, bits: int) -> int:
     return v - (1 << bits) if v >= (1 << (bits - 1)) else v
 
 
-def sample_animation(
-    overlay: Overlay, anim: Animation, skel: dict, frame: int
-) -> list[tuple[list, list]]:
-    """Local (rotation, translation) per bone at ``frame``.
+def _read_pose(data: bytes, base: int, bank: int, kind: int, pose: int):
+    """(translation or None, Euler angles) for one bank entry."""
+    off = bank - base + pose * 4
+    try:
+        if kind == 1:
+            vx, vy, vz, rx, ry, rz = struct.unpack_from("<6h", data, off)
+            return [float(vx), float(vy), float(vz)], (float(rx), float(ry), float(rz))
+        (w,) = struct.unpack_from("<I", data, off)
+        return None, (
+            float(_sign_extend(w & 0x7FF, 11) << 3),
+            float(_sign_extend((w >> 11) & 0x3FF, 10) << 3),
+            float(_sign_extend((w >> 21) & 0x7FF, 11) << 3),
+        )
+    except struct.error:
+        return None, None
 
-    Records hold a duration, so the frame is found by walking the track and
-    accumulating; a bone whose track runs out holds its last record.
+
+def sample_animation(
+    overlay: Overlay, anim: Animation, skel: dict, frame: float
+) -> list[tuple[list, list]]:
+    """Local (rotation, translation) per bone at ``frame``, interpolated.
+
+    The game blends between the current record's pose and the next one across
+    the record's duration (`Gp_AnimBlendPose` runs a GTE GPF/GPL pair over
+    `field_C / field_E`), and interpolates the Euler angles themselves rather
+    than the matrices, so this does the same. The track loops, so the pose
+    after the last record is the first again.
     """
-    data = overlay.path.read_bytes()
+    data = package_bytes(overlay.path)
     base = overlay.load_addr
     bones = skel["bones"]
     out: list[tuple[list, list]] = []
@@ -474,33 +531,42 @@ def sample_animation(
         ]
         rest_t = [float(v) for v in bone["trans"]]
         track = anim.tracks[i] if i < len(anim.tracks) else None
-        if track is None or not track.records:
+        bank = anim.banks.get(track.kind) if track else None
+        if not track or not track.records or bank is None:
             out.append((rest_rot, rest_t))
             continue
-        t = frame % max(1, sum(r[1] for r in track.records))
-        pose, kind = track.records[-1][0], track.records[-1][2]
-        for p, dur, k in track.records:
-            if t < dur:
-                pose, kind = p, k
+
+        # Tracks in one set can be shorter than the set: a bone that stops
+        # moving early holds its last pose rather than looping on its own,
+        # while the set as a whole loops at `Animation.frames`.
+        total = max(1, track.length)
+        t = float(frame)
+        held = t >= total
+        if held:
+            t = total - 1e-6
+        idx, acc = len(track.records) - 1, 0.0
+        for k, (_pose, dur) in enumerate(track.records):
+            if t < acc + dur:
+                idx = k
                 break
-            t -= dur
-        bank = anim.banks.get(kind)
-        if bank is None:
+            acc += dur
+        dur = max(1, track.records[idx][1])
+        alpha = 1.0 if held else min(1.0, max(0.0, (t - acc) / dur))
+        nxt = idx if held else (idx + 1) % len(track.records)
+
+        ta, ra = _read_pose(data, base, bank, track.kind, track.records[idx][0])
+        tb, rb = _read_pose(data, base, bank, track.kind, track.records[nxt][0])
+        if ra is None:
             out.append((rest_rot, rest_t))
             continue
-        off = bank - base + pose * 4
-        try:
-            if kind == 1:
-                vx, vy, vz, rx, ry, rz = struct.unpack_from("<6h", data, off)
-                out.append((_rot_matrix(rx, ry, rz), [float(vx), float(vy), float(vz)]))
-            else:
-                (w,) = struct.unpack_from("<I", data, off)
-                rx = _sign_extend(w & 0x7FF, 11) << 3
-                ry = _sign_extend((w >> 11) & 0x3FF, 10) << 3
-                rz = _sign_extend((w >> 21) & 0x7FF, 11) << 3
-                out.append((_rot_matrix(rx, ry, rz), rest_t))
-        except struct.error:
-            out.append((rest_rot, rest_t))
+        if rb is None:
+            rb, tb = ra, ta
+        rot = _rot_matrix(*(a + (b - a) * alpha for a, b in zip(ra, rb)))
+        if ta is None:
+            out.append((rot, rest_t))
+        else:
+            tb = tb if tb is not None else ta
+            out.append((rot, [a + (b - a) * alpha for a, b in zip(ta, tb)]))
     return out
 
 

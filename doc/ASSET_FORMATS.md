@@ -720,33 +720,43 @@ links.
 
 ### 9.3.2 Playing a clip
 
-Enough of the animation side is decoded to play one back. A set has one track
-per bone; a track is a run of 4-byte records ending at the first with
-`field_3 >= 0xC0`. Each record names a pose and how long to hold it:
+A set has one track per bone; a track is a run of 4-byte records:
 
 | Field | Meaning |
 |---|---|
 | `field_0` | pose index, in **words** — the game indexes the bank through a 4-byte-strided pointer, so the byte offset is `field_0 * 4` |
-| `field_2` | duration in ticks |
-| `field_3 & 0xF` | pose kind, which is also the bank slot in `GpAnimSet.field_8[]` |
+| `field_2 & 0x7F` | duration in ticks; the top bit is a flag |
+| `field_3` | `0xC0` ends the track, `0x80` marks the last keyframe and the loop point |
 
-Two kinds appear. Kind **1** is `GpPackedPose`, six `s16` — a translation then a
-ZYX Euler rotation. Kind **4** is `GpPackedSvec`, one word split 11/10/11 with
-each component shifted `<< 3` to give the angle; it carries no translation, so
-the bone keeps its rest offset. In practice the root bone is kind 1 and the
-limbs are kind 4, which is what you would expect: the root moves the character,
-the limbs only rotate.
+**Two of the records are control, not keyframes**, and reading them as poses
+turns a 63-tick clip into a 320-frame one that sits still after the first
+quarter: the trailing `0x80`/`0xC0` pair claims 129 + 128 ticks between them,
+which are flagged durations of 1 and 0. Corrected, the named human's clips are
+3–391 ticks.
 
-A frame is then: sample each bone's track at that tick, build a local matrix,
-and run the same parent composition the rest pose uses. Playback lives in
-`pkg_overlay.sample_animation` / `compose_locals`, and the viewer's Model tab
-has an **Animation** selector, a play/pause button and a frame slider. The
-named human has 34 animations of 142–320 ticks.
+**The pose kind belongs to the track, not the record.** `Gp_AnimInitSlot` takes
+it once (`arg1->field_B = op & 0xF`) and `func_800B3448` reads
+`op = slot->field_B` for every record after that. The control records carry 0
+in those bits, so reading the kind per record throws away the final keyframe.
+Kind **1** is `GpPackedPose`, six `s16` — translation then ZYX Euler. Kind **4**
+is `GpPackedSvec`, one word split 11/10/11 with each component shifted `<< 3`;
+it has no translation, so the bone keeps its rest offset. The root comes out
+kind 1 and the limbs kind 4.
+
+**Playback interpolates.** `Gp_AnimBlendPose` / `Gp_AnimBlendPacked` hold a
+current and a next pose and blend with a GTE `GPF`/`GPL` pair over
+`field_C / field_E`, interpolating the Euler angles themselves rather than the
+matrices. `sample_animation` does the same and takes a fractional frame, so
+motion is smooth rather than stepped. A track shorter than its set holds its
+last pose; the set loops as a whole.
+
+A frame is then: sample each bone's track, build a local matrix, and run the
+same parent composition the rest pose uses. The viewer's Model tab has an
+**Animation** selector, play/pause and a frame slider, running one tick per
+16 ms — the game's 60 Hz — at about 79 fps on the named human.
 
 Angles use `4096` for a full turn and the rotation order is PsyQ's `RotMatrix`
-— Z, then Y, then X, so `M = Rx·Ry·Rz`. The clips sampled to check this are
-idle-like, with small angles, so the order is taken from the library
-convention rather than proven by a large-motion pose.
+— Z, then Y, then X, so `M = Rx·Ry·Rz`.
 
 ### 9.4 What is still open
 
@@ -754,10 +764,10 @@ convention rather than proven by a large-motion pose.
   draw families; the rest are open, tracked per family in
   [`TMD_FORMAT.md` §5](TMD_FORMAT.md#5-opcode-reference) with what is still
   missing in [§6](TMD_FORMAT.md#6-what-is-still-open).
-- **Interpolation.** `Gp_AnimBlendPose` / `Gp_AnimBlendPacked` blend between a
-  current and a next pose with a GTE `GPF`/`GPL` pair driven by
-  `GpAnimSlot.field_C` / `field_E`. The offline player steps records without
-  interpolating, so motion is stepped rather than smooth.
+- **The `field_3` flag bits.** `0x10` and `0x20` appear on some keyframes and
+  are not decoded; `Gp_BlendAnimRot` has a second path (`GpAnimSlot.field_17`)
+  that blends through a delta matrix rather than the Euler angles, and these
+  are likely what selects it.
 - **Pose banks.** The per-model bone count is now available — it is the number
   of `0xFFFFFFFE`-delimited parts in the model stream
   ([`TMD_FORMAT.md` §2.2](TMD_FORMAT.md)), and §9.3.1 binds tracks to parts —
