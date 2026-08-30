@@ -33592,6 +33592,13 @@ copy propagation reunites the two pseudos and the fold comes back.
 `RoomsShared8017d994` (matched as `func_dryfield_junk_yard_8017D994`) is the
 example.
 
+The same fold happens with a plain `if (arg2 == 6) { … }` guard, where the
+constant reaches a call that the target makes with the *register*
+(`move a0, s0` vs `li a0, 6`) while sibling arms in the same block do use
+literals. `SOFT_TOUCH_REG(arg2)` as the first statement of the guarded block
+fixes it there too: `func_dryfield_night_motel_room_6_80181A9C` calls
+`Gp_RunCapCmd1(arg2)` on two of the four paths under `if (arg2 == 6)`.
+
 ## Two-case `switch` plus a post-`break` `goto` tail
 
 `if (arg2 == 6) else if (arg2 == 8)` is `bne` and constant-folds `arg2` to 8 in
