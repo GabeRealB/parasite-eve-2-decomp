@@ -32496,3 +32496,36 @@ rest:
 `$a0`": both the taken `goto cap_only` and the fall-through spawn see one
 `li a0, 5` in the `beq` delay slot. `func_mine_cavern_8017DAA0` is the
 example.
+
+## Guard polarity decides whether cross-jumping eats the branch too
+
+In a task-state switch every advancing arm ends in the same
+`lw v0, 0x30(task) / addiu v0, v0, 1 / sw` block, so cross-jumping folds them
+into one hub. A guarded arm can be folded at two different depths, and the C
+picks which:
+
+```c
+/* merges the *branch* as well: `j hub_with_branch` and the slti in its
+   delay slot — one insn shorter than the ROM */
+if (st->index < 5) {
+    break;
+}
+task->state++;
+break;
+
+/* merges only the increment block: `slti / beqz v0, hub / nop / j end` */
+if (st->index >= 5) {
+    task->state++;
+}
+break;
+```
+
+The first form leaves `bnez v0, end` immediately before its copy of the hub, and
+some other arm's `bnez v0, end` sits immediately before the hub itself, so the
+common tail found by `jump.c` extends one insn further back and the guard
+disappears into the shared block. Inverting the test puts the increment inside
+the `if`, so the only thing available to merge is the increment.
+
+Symptom: `branch` penalty with the function three instructions short, and a
+`j <hub-4>` where the target has `beqz v0, <hub>` followed by `j <epilogue>`.
+`func_mist_parking_80182A44` went 98.8% → 100% on that flip alone.
