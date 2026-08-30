@@ -17,5 +17,3 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_dilapidated_house/dryfield_night_
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_dilapidated_house/dryfield_night_dilapidated_house", func_dryfield_night_dilapidated_house_8017D970);
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_dilapidated_house/dryfield_night_dilapidated_house", D_dryfield_night_dilapidated_house_8017D5DC);
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_dilapidated_house/dryfield_night_dilapidated_house", jtbl_dryfield_night_dilapidated_house_8017D5E8);
