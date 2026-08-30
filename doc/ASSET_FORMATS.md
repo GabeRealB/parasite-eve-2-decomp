@@ -740,9 +740,35 @@ bone count from the model stream.
 |---|---|
 | `tools/peassets/pkg_model.py` | locates streams, carves them into `raw/model/` |
 | `tools/peassets/pkg_anim.py` | walks clip structure; reports, stores nothing |
+| `tools/peassets/pkg_overlay.py` | family → overlay → embedded asset, for the viewer's Overlays tree |
+| `tools/peassets/mesh_view.py` | software-rendered mesh viewport (Tk canvas) |
 
-Both run from `extract.py`, need the full package set, and no-op after a
-minimal extract, which materialises only the two overlays the build splits.
+The first two run from `extract.py`, need the full package set, and no-op after
+a minimal extract, which materialises only the two overlays the build splits.
+
+### 9.6 Browsing them
+
+The viewer's **Overlays** tab is the second tree, next to the CDF one. The CDF
+tree browses the disc — stage → file → chunk; an overlay *is* one of those
+chunks, and the assets inside it sit at raw offsets that no chunk boundary
+describes. So the Overlays tree goes family → overlay → embedded asset, read
+straight out of the package:
+
+- selecting the **overlay** node gives the usual `.pe2pkg` hex/strings preview;
+- a **model** node draws the mesh in the **Model** tab — drag to rotate, wheel
+  to zoom, right-drag to pan, with solid / wireframe / points shading — and
+  writes the `TmdSource` arrays, the undecoded opcodes and the Euler
+  characteristic `V - E + F` into Txt/hex as a sanity check on the face decode;
+- an **anim** node lists the block's sets and clips.
+
+Scanning is on demand and cached per package: `find_streams` walks every 4-byte
+offset and re-walks each candidate, so scanning all 448 packages up front would
+stall the window. A package is scanned when its node is first expanded.
+
+The mesh comes from the same decoder as `tmd_export.py`, Y-flip included, so a
+model that looks upright in the viewport looks upright in Blender. Only faces
+are drawn — no textures, no UVs, and no bone transforms — which is enough to
+tell one character from another and not enough to judge a pose.
 
 ---
 
@@ -1054,7 +1080,8 @@ python3 tools/peassets/extract.py ... -o assets/USA
 python3 tools/peassets/extract.py ... -o assets/USA --raw-only
 python3 tools/peassets/extract.py ... -o assets/USA --minimal-inflate
 
-# browse extracted assets (by type or stage tree + preview; audio/movie playable)
+# browse extracted assets (by type, CDF stage tree, or overlay tree with the
+# assets embedded in each package; audio/movie playable, models in the Model tab)
 python3 tools/peassets/viewer.py assets/USA
 
 # CD streams only (already included in a full extract.py run; see STREAM_FORMATS.md)

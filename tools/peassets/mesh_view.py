@@ -1,0 +1,233 @@
+"""A small software-rendered mesh viewport for the asset viewer.
+
+Tk has no 3D, and the models are tiny by modern standards - a few hundred
+vertices - so the whole renderer is a projection plus a painter's-algorithm
+sort onto a ``tk.Canvas``. That keeps the viewer dependency-free: the meshes
+are here to *identify* a character, not to look good.
+
+Projection is orthographic on purpose. These are low-poly PlayStation models
+seen from arbitrary angles, and perspective mostly adds foreshortening that
+makes silhouettes harder to compare between two candidate actors.
+
+Vertices arrive already Y-flipped (see ``pkg_overlay.decode_model``), so the
+viewport shares the OBJ export's orientation and a model that looks upright
+here looks upright in Blender.
+"""
+
+from __future__ import annotations
+
+import math
+import tkinter as tk
+from tkinter import ttk
+
+BG = "#23262b"
+WIRE = "#7fd1ff"
+SOFT = "#5a6675"  # muted edge for the solid+wire overlay
+EDGE = "#1b1e22"
+LIGHT = (0.35, 0.45, 0.82)  # view-space direction, normalised below
+
+
+def _norm(v):
+    n = math.sqrt(sum(c * c for c in v)) or 1.0
+    return tuple(c / n for c in v)
+
+
+class MeshView(ttk.Frame):
+    """Rotate/zoom/pan viewport for one indexed mesh."""
+
+    def __init__(self, parent: tk.Misc) -> None:
+        super().__init__(parent)
+        self._verts: list[tuple[float, float, float]] = []
+        self._faces: list[tuple[int, ...]] = []
+        self._yaw = 0.55
+        self._pitch = 0.25
+        self._zoom = 1.0
+        self._pan = [0.0, 0.0]
+        self._drag: tuple[str, int, int] | None = None
+        self._redraw_after: str | None = None
+        self._light = _norm(LIGHT)
+
+        bar = ttk.Frame(self)
+        bar.pack(side=tk.TOP, fill=tk.X, pady=(0, 4))
+        self._mode = tk.StringVar(value="Solid")
+        ttk.Label(bar, text="Shading:").pack(side=tk.LEFT)
+        combo = ttk.Combobox(
+            bar,
+            textvariable=self._mode,
+            values=("Solid + wire", "Solid", "Wireframe", "Points"),
+            state="readonly",
+            width=14,
+        )
+        combo.pack(side=tk.LEFT, padx=(4, 10))
+        combo.bind("<<ComboboxSelected>>", lambda _e: self._draw())
+        self._cull = tk.BooleanVar(value=False)
+        ttk.Checkbutton(
+            bar, text="Backface cull", variable=self._cull, command=self._draw
+        ).pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Button(bar, text="Reset view", command=self.reset_view).pack(side=tk.LEFT)
+        self._info = ttk.Label(bar, text="", foreground="#888")
+        self._info.pack(side=tk.RIGHT)
+
+        self.canvas = tk.Canvas(self, bg=BG, highlightthickness=0)
+        self.canvas.pack(fill=tk.BOTH, expand=True)
+        self.canvas.bind("<Configure>", lambda _e: self._draw())
+        self.canvas.bind("<ButtonPress-1>", lambda e: self._press("rot", e))
+        self.canvas.bind("<B1-Motion>", self._motion)
+        self.canvas.bind("<ButtonRelease-1>", lambda _e: self._release())
+        self.canvas.bind("<ButtonPress-3>", lambda e: self._press("pan", e))
+        self.canvas.bind("<B3-Motion>", self._motion)
+        self.canvas.bind("<ButtonRelease-3>", lambda _e: self._release())
+        self.canvas.bind("<Shift-ButtonPress-1>", lambda e: self._press("pan", e))
+        # Wheel: Windows/macOS send <MouseWheel>, X11 sends buttons 4 and 5.
+        self.canvas.bind("<MouseWheel>", self._wheel)
+        self.canvas.bind("<Button-4>", lambda _e: self._scale_zoom(1.1))
+        self.canvas.bind("<Button-5>", lambda _e: self._scale_zoom(1 / 1.1))
+
+    # ------------------------------------------------------------------ data
+    def show(self, verts, faces, note: str = "") -> None:
+        """Load a mesh, normalised into a unit box centred on its bounds."""
+        self._faces = [f for f in faces if len(f) >= 3]
+        if verts:
+            xs = [v[0] for v in verts]
+            ys = [v[1] for v in verts]
+            zs = [v[2] for v in verts]
+            cx, cy, cz = (
+                (min(xs) + max(xs)) / 2,
+                (min(ys) + max(ys)) / 2,
+                (min(zs) + max(zs)) / 2,
+            )
+            extent = max(max(xs) - min(xs), max(ys) - min(ys), max(zs) - min(zs)) or 1.0
+            s = 1.0 / extent
+            self._verts = [((v[0] - cx) * s, (v[1] - cy) * s, (v[2] - cz) * s) for v in verts]
+        else:
+            self._verts = []
+        self._info.configure(text=note)
+        self._draw()
+
+    def clear(self, msg: str = "") -> None:
+        self._verts = []
+        self._faces = []
+        self._info.configure(text="")
+        self.canvas.delete("all")
+        if msg:
+            self._center_text(msg)
+
+    def reset_view(self) -> None:
+        self._yaw, self._pitch, self._zoom = 0.55, 0.25, 1.0
+        self._pan = [0.0, 0.0]
+        self._draw()
+
+    # ----------------------------------------------------------------- input
+    def _press(self, mode: str, event: tk.Event) -> None:
+        self._drag = (mode, event.x, event.y)
+
+    def _release(self) -> None:
+        self._drag = None
+
+    def _motion(self, event: tk.Event) -> None:
+        if not self._drag:
+            return
+        mode, x0, y0 = self._drag
+        dx, dy = event.x - x0, event.y - y0
+        if mode == "rot":
+            self._yaw += dx * 0.01
+            self._pitch = max(-1.55, min(1.55, self._pitch + dy * 0.01))
+        else:
+            self._pan[0] += dx
+            self._pan[1] += dy
+        self._drag = (mode, event.x, event.y)
+        self._schedule()
+
+    def _wheel(self, event: tk.Event) -> None:
+        self._scale_zoom(1.1 if getattr(event, "delta", 0) > 0 else 1 / 1.1)
+
+    def _scale_zoom(self, factor: float) -> None:
+        self._zoom = max(0.05, min(40.0, self._zoom * factor))
+        self._schedule()
+
+    def _schedule(self) -> None:
+        # Coalesce drag events: one redraw per idle beat keeps rotation smooth
+        # on meshes where a full repaint costs more than a mouse-move interval.
+        if self._redraw_after is None:
+            self._redraw_after = self.after_idle(self._draw_now)
+
+    def _draw_now(self) -> None:
+        self._redraw_after = None
+        self._draw()
+
+    # ---------------------------------------------------------------- render
+    def _center_text(self, msg: str) -> None:
+        w = self.canvas.winfo_width() or 400
+        h = self.canvas.winfo_height() or 300
+        self.canvas.create_text(w / 2, h / 2, text=msg, fill="#888")
+
+    def _draw(self) -> None:
+        c = self.canvas
+        c.delete("all")
+        if not self._verts:
+            self._center_text("No mesh")
+            return
+        w = c.winfo_width() or 400
+        h = c.winfo_height() or 300
+        scale = min(w, h) * 0.85 * self._zoom
+        cx = w / 2 + self._pan[0]
+        cy = h / 2 + self._pan[1]
+
+        cy_, sy_ = math.cos(self._yaw), math.sin(self._yaw)
+        cp, sp = math.cos(self._pitch), math.sin(self._pitch)
+        pts = []
+        for x, y, z in self._verts:
+            # yaw about Y, then pitch about X
+            xr = x * cy_ + z * sy_
+            zr = -x * sy_ + z * cy_
+            yr = y * cp - zr * sp
+            zr = y * sp + zr * cp
+            pts.append((cx + xr * scale, cy - yr * scale, zr))
+
+        mode = self._mode.get()
+        if mode == "Points":
+            for px, py, _ in pts:
+                c.create_rectangle(px - 1, py - 1, px + 1, py + 1, outline="", fill=WIRE)
+            return
+
+        if not self._faces:
+            for px, py, _ in pts:
+                c.create_rectangle(px - 1, py - 1, px + 1, py + 1, outline="", fill=WIRE)
+            self._center_text("No faces decoded — showing vertices")
+            return
+
+        solid = mode in ("Solid", "Solid + wire")
+        wire = mode in ("Wireframe", "Solid + wire")
+        n = len(pts)
+        order = []
+        for f in self._faces:
+            if any(i >= n for i in f):
+                continue
+            order.append((sum(pts[i][2] for i in f) / len(f), f))
+        # Painter's algorithm: farthest first. +Z is away from the viewer after
+        # the rotation above, so descending depth paints back to front.
+        order.sort(key=lambda t: -t[0])
+
+        for _d, f in order:
+            flat = []
+            for i in f:
+                flat.extend(pts[i][:2])
+            if solid:
+                ax, ay, az = pts[f[0]]
+                bx, by, bz = pts[f[1]]
+                gx, gy, gz = pts[f[2]]
+                ux, uy, uz = bx - ax, by - ay, bz - az
+                vx, vy, vz = gx - ax, gy - ay, gz - az
+                nx, ny, nz = uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx
+                ln = math.sqrt(nx * nx + ny * ny + nz * nz) or 1.0
+                nx, ny, nz = nx / ln, ny / ln, nz / ln
+                if self._cull.get() and nz > 0:
+                    continue
+                lam = abs(nx * self._light[0] + ny * self._light[1] + nz * self._light[2])
+                v = int(60 + 175 * max(0.0, min(1.0, lam)))
+                fill = f"#{v:02x}{v:02x}{min(255, v + 12):02x}"
+                c.create_polygon(
+                    *flat, fill=fill, outline=EDGE if not wire else SOFT, width=1
+                )
+            else:
+                c.create_polygon(*flat, fill="", outline=WIRE, width=1)

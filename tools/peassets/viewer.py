@@ -37,6 +37,8 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
+import mesh_view  # noqa: E402
+import pkg_overlay  # noqa: E402
 from asset_db import (  # noqa: E402
     asset_name_key,
     chunk_key,
@@ -244,6 +246,9 @@ class AssetItem:
     meta: dict[str, Any] | None = None
     # Sibling CLUT paths when known from the same stage file (for pe2img).
     sibling_cluts: list[Path] | None = None
+    # Set for assets that live *inside* an overlay package rather than as a
+    # file of their own: {"overlay": Overlay, "emb": pkg_overlay.Embedded}.
+    embedded: dict[str, Any] | None = None
 
 
 def _fmt_size(n: int) -> str:
@@ -767,6 +772,14 @@ class AssetViewer(tk.Tk):
         self._audio_seeking = False
         self._media_is_video = False
 
+        # Overlay tree: family -> overlay -> embedded asset. Populated lazily;
+        # scanning a package walks every 4-byte offset looking for model
+        # streams, so all 448 up front would stall the window for seconds.
+        self._repo_root = pkg_overlay.find_repo_root(self.assets_root)
+        self._overlays: dict[str, list[pkg_overlay.Overlay]] = {}
+        self._overlay_map: dict[str, pkg_overlay.Overlay] = {}
+        self._anim_candidates: list[tuple[str, int, int]] = []
+
         self.protocol("WM_DELETE_WINDOW", self._on_close)
         self._build_ui()
         self.reload()
@@ -846,6 +859,27 @@ class AssetViewer(tk.Tk):
             "<<TreeviewSelect>>", lambda e: self._on_select(self.stage_tree)
         )
         self.stage_tree.bind("<<TreeviewOpen>>", self._on_stage_open)
+
+        # Overlay tree (family / overlay / embedded asset)
+        ov_frame = ttk.Frame(self.notebook)
+        self.notebook.add(ov_frame, text="Overlays")
+        self.overlay_tree = ttk.Treeview(
+            ov_frame, columns=("info",), show="tree headings", selectmode="browse"
+        )
+        self.overlay_tree.heading("#0", text="Family / overlay / asset")
+        self.overlay_tree.heading("info", text="Info")
+        self.overlay_tree.column("#0", width=280, stretch=True)
+        self.overlay_tree.column("info", width=100, stretch=False)
+        ov_scroll = ttk.Scrollbar(
+            ov_frame, orient=tk.VERTICAL, command=self.overlay_tree.yview
+        )
+        self.overlay_tree.configure(yscrollcommand=ov_scroll.set)
+        self.overlay_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        ov_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        self.overlay_tree.bind(
+            "<<TreeviewSelect>>", lambda e: self._on_select(self.overlay_tree)
+        )
+        self.overlay_tree.bind("<<TreeviewOpen>>", self._on_overlay_open)
 
         # Preview
         prev_header = ttk.Frame(right)
@@ -949,6 +983,12 @@ class AssetViewer(tk.Tk):
         )
         self.text_raw = self._make_scrolled_text(self.preview_nb, "Raw")
 
+        # Model viewport (TMD streams embedded in overlay packages). Added
+        # last: the rest of the file selects preview tabs by index, and 0/1
+        # are Image and Txt / hex.
+        self.mesh_view = mesh_view.MeshView(self.preview_nb)
+        self.preview_nb.add(self.mesh_view, text="Model")
+
         # Status
         ttk.Label(self, textvariable=self._status_var, anchor=tk.W, padding=(8, 2)).pack(
             side=tk.BOTTOM, fill=tk.X
@@ -1008,6 +1048,7 @@ class AssetViewer(tk.Tk):
         self._item_map.clear()
         self._populate_type_tree()
         self._populate_stage_tree()
+        self._populate_overlay_tree()
         mode = "full" if self.stages else "raw/minimal"
         n_types = sum(
             1
@@ -1111,6 +1152,144 @@ class AssetViewer(tk.Tk):
     def _on_stage_open(self, _event: tk.Event) -> None:
         # Stage tree is fully built; nothing lazy yet.
         pass
+
+    # ------------------------------------------------------------- overlays
+    def _populate_overlay_tree(self) -> None:
+        """Families only; overlays and their contents are filled on expand."""
+        tree = self.overlay_tree
+        tree.delete(*tree.get_children())
+        self._item_map = {
+            k: v for k, v in self._item_map.items() if not k.startswith("ov")
+        }
+        self._overlays = {}
+        self._overlay_map = {}
+        if self._repo_root is None:
+            tree.insert(
+                "", tk.END, text="(overlays.toml not found — no manifest)", values=("",)
+            )
+            return
+        try:
+            manifest = pkg_overlay.load_manifest(self._repo_root)
+        except (OSError, ValueError) as e:
+            tree.insert("", tk.END, text=f"(manifest unreadable: {e})", values=("",))
+            return
+        pkg_dir = self.assets_root / "pe2pkg"
+        self._overlays = pkg_overlay.list_overlays(manifest, pkg_dir)
+        self._anim_candidates = pkg_overlay.anim_candidates(pkg_dir)
+        if not self._overlays:
+            tree.insert(
+                "", tk.END, text="(no extracted .pe2pkg packages)", values=("",)
+            )
+            return
+
+        filt = self._filter_var.get().strip().lower()
+        for family in sorted(self._overlays):
+            rows = self._overlays[family]
+            if filt:
+                rows = [o for o in rows if filt in o.name.lower()]
+            if not rows:
+                continue
+            desc = manifest.get(family, {}).get("description", "")
+            fid = f"ovfam:{family}"
+            tree.insert(
+                "",
+                tk.END,
+                iid=fid,
+                text=f"{family}  ({len(rows)})",
+                values=(desc,),
+                open=False,
+            )
+            tree.insert(fid, tk.END, iid=f"ovfamph:{family}", text="…")
+
+    def _on_overlay_open(self, _event: tk.Event) -> None:
+        tree = self.overlay_tree
+        iid = tree.focus()
+        if iid.startswith("ovfam:"):
+            self._expand_overlay_family(iid.split(":", 1)[1])
+        elif iid.startswith("ovpkg:"):
+            self._expand_overlay(iid.split(":", 1)[1])
+
+    def _expand_overlay_family(self, family: str) -> None:
+        tree = self.overlay_tree
+        fid = f"ovfam:{family}"
+        kids = tree.get_children(fid)
+        if kids and not str(kids[0]).startswith("ovfamph:"):
+            return
+        for kid in kids:
+            tree.delete(kid)
+        filt = self._filter_var.get().strip().lower()
+        for ov in self._overlays.get(family, []):
+            if filt and filt not in ov.name.lower():
+                continue
+            self._overlay_map[ov.name] = ov
+            iid = f"ovpkg:{ov.name}"
+            # The overlay node is the package itself, so selecting it gives the
+            # usual pe2pkg hex/strings preview.
+            self._item_map[iid] = AssetItem(
+                path=ov.path,
+                label=ov.name,
+                kind="pe2pkg",
+                source="overlay",
+                meta={"load_addr": f"0x{ov.load_addr:08X}"},
+            )
+            tree.insert(
+                fid,
+                tk.END,
+                iid=iid,
+                text=ov.name,
+                values=(_fmt_size(ov.size),),
+                open=False,
+            )
+            tree.insert(iid, tk.END, iid=f"ovph:{ov.name}", text="…")
+
+    def _expand_overlay(self, name: str) -> None:
+        tree = self.overlay_tree
+        iid = f"ovpkg:{name}"
+        kids = tree.get_children(iid)
+        if kids and not str(kids[0]).startswith("ovph:"):
+            return
+        ov = self._overlay_map.get(name)
+        if ov is None:
+            return
+        self._status_var.set(f"scanning {ov.path.name} …")
+        self.update_idletasks()
+        try:
+            found = pkg_overlay.scan_overlay(ov, anim_candidates=self._anim_candidates)
+        except Exception as e:  # a malformed package must not kill the tree
+            found = []
+            self._status_var.set(f"{ov.path.name}: scan failed: {e}")
+        for kid in kids:
+            tree.delete(kid)
+        pkg_id = pkg_overlay.package_id(ov.path)
+        tree.insert(
+            iid,
+            tk.END,
+            iid=f"ovinfo:{name}",
+            text=f"package id {pkg_id}" if pkg_id is not None else "package id ?",
+            values=(f"0x{ov.load_addr:08X}",),
+        )
+        if not found:
+            tree.insert(
+                iid, tk.END, iid=f"ovnone:{name}", text="(no embedded assets)", values=("",)
+            )
+        for n, emb in enumerate(found):
+            aid = f"ovemb:{name}:{n}"
+            self._item_map[aid] = AssetItem(
+                path=ov.path,
+                label=f"{name} {emb.label}",
+                kind=emb.kind,
+                source="overlay",
+                meta={"load_addr": f"0x{ov.load_addr:08X}"},
+                embedded={"overlay": ov, "emb": emb},
+            )
+            tree.insert(
+                iid,
+                tk.END,
+                iid=aid,
+                text=emb.label,
+                values=(_fmt_size(emb.size) if emb.size else emb.kind,),
+            )
+        self._status_var.set(f"{ov.path.name}: {len(found)} embedded asset(s)")
 
     def _populate_stage_tree(self) -> None:
         tree = self.stage_tree
@@ -1259,6 +1438,7 @@ class AssetViewer(tk.Tk):
         # Rebuild trees with filter (simple approach)
         self._populate_type_tree()
         self._populate_stage_tree()
+        self._populate_overlay_tree()
 
     # -------------------------------------------------------------- selection
     def _on_select(self, tree: ttk.Treeview) -> None:
@@ -1272,6 +1452,93 @@ class AssetViewer(tk.Tk):
             return
         self._show_item(item)
 
+    def _show_embedded(self, item: AssetItem) -> None:
+        """Preview an asset that lives at an offset inside an overlay package."""
+        emb = item.embedded["emb"]
+        ov = item.embedded["overlay"]
+        if emb.kind == "model":
+            self._show_model(ov, emb)
+            return
+
+        self.mesh_view.clear("Not a model")
+        if emb.kind == "anim":
+            block = emb.detail.get("block", {})
+            lines = [
+                f"# animation block  {ov.name} @{emb.offset:#07x}",
+                f"# table {block.get('table')}  entries {block.get('table_entries')}",
+                f"# va {block.get('block_va')}",
+                "",
+            ]
+            for i, s in enumerate(block.get("sets", [])):
+                lines.append(
+                    f"set {i}: {s['clip_count']} clips, "
+                    f"{s['records_available']} records, "
+                    f"walk_consistent={s['walk_consistent']}"
+                )
+                for clip in s.get("clips", []):
+                    lines.append(
+                        f"    clip {clip['clip']:>3}  first={clip['first_record']:>4}  "
+                        f"{clip['records']:>3} records  pose kinds "
+                        f"{clip['pose_kinds']}"
+                    )
+            self._set_text_widget(self.text_deflated, "\n".join(lines))
+            self._set_text_widget(self.text_raw, "")
+            self.preview_nb.select(1)
+            return
+        self._clear_text_tabs(f"(no preview for {emb.kind})")
+
+    def _show_model(self, ov, emb) -> None:
+        try:
+            verts, faces, skipped = pkg_overlay.decode_model(ov, emb)
+        except Exception as e:
+            self.mesh_view.clear(f"Model decode failed: {e}")
+            self._clear_text_tabs(str(e))
+            return
+
+        note = f"{len(verts)} verts · {len(faces)} faces"
+        if skipped:
+            note += f" · {sum(skipped.values())} elements skipped"
+        self.mesh_view.show(verts, faces, note)
+        self.preview_nb.select(self.mesh_view)
+
+        stream = emb.detail.get("stream") or {}
+        src = emb.detail.get("source")
+        lines = [
+            f"# model stream  {ov.name} @0x{emb.offset:05X}",
+            f"# {emb.size} bytes, {stream.get('packets')} packets",
+            f"# opcodes: " + ", ".join(f"0x{o:X}" for o in stream.get("ops", [])),
+            "",
+        ]
+        if src:
+            lines += [
+                "TmdSource:",
+                f"  record   @{src['source_offset']}",
+                f"  vertices @{src['verts_offset']}  ({src['vertex_count']})",
+                f"  normals  @{src['norms_offset']}  ({src['normal_count']})",
+            ]
+        else:
+            lines.append("No TmdSource points at this stream — vertex array unknown.")
+        if skipped:
+            lines += [
+                "",
+                "elements that did not decode:",
+                *[f"  {n}x 0x{op:X}" for op, n in sorted(skipped.items())],
+            ]
+        # Euler characteristic is the cheap sanity check on the face decode:
+        # a closed surface gives V - E + F = 2 (see doc/TMD_FORMAT.md).
+        if faces:
+            edges = set()
+            for f in faces:
+                for a, b in zip(f, f[1:] + f[:1]):
+                    edges.add((a, b) if a < b else (b, a))
+            lines += [
+                "",
+                f"V={len(verts)}  E={len(edges)}  F={len(faces)}  "
+                f"V-E+F={len(verts) - len(edges) + len(faces)}",
+            ]
+        self._set_text_widget(self.text_deflated, "\n".join(lines))
+        self._set_text_widget(self.text_raw, "")
+
     def _clear_preview(self, msg: str = "") -> None:
         self._audio_stop()
         self._set_audio_controls_enabled(False)
@@ -1283,6 +1550,7 @@ class AssetViewer(tk.Tk):
         self._clut_choices = []
         self._set_clut_controls_enabled(False)
         self.img_canvas.delete("all")
+        self.mesh_view.clear()
         self._clear_text_tabs(msg)
         self.info_label.configure(text="")
 
@@ -1378,6 +1646,11 @@ class AssetViewer(tk.Tk):
                 meta_bits.append(f"{item.meta['frame_count']} frames")
         self.info_label.configure(text="  ·  ".join(meta_bits))
         self._status_var.set(str(path))
+
+        # --- Assets embedded inside an overlay package ---------------------
+        if item.embedded:
+            self._show_embedded(item)
+            return
 
         suf = path.suffix.lower()
         kind = item.kind
