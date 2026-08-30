@@ -95,18 +95,22 @@ def build(families: list[str] | None) -> dict:
     for root in roots:
         if not root.is_dir():
             continue
-        for path in sorted(root.rglob("nonmatchings/**/*.s")):
+        for marker in ("nonmatchings", "matchings"):
+          for path in sorted(root.rglob(f"{marker}/**/*.s")):
             if not path.name.startswith("func_"):
                 continue
             # asm/<ver>/<family>/nonmatchings/<overlay>/<unit…>/<fn>.s - the
             # overlay is the component after the marker, not before it: asm_path
             # is the family root so several overlays share one asm tree.
             parts = path.parts
-            marker = parts.index("nonmatchings")
-            overlay = parts[marker + 1]
+            at = parts.index(marker)
+            overlay = parts[at + 1]
             rec = scan_function(path, overlay)
             if rec:
-                rec["overlay"] = f"{'/'.join(parts[1:marker])}/{overlay}"
+                rec["overlay"] = f"{'/'.join(parts[1:at])}/{overlay}"
+                # A body already decompiled somewhere is solved: its remaining
+                # copies want promoting into the shared library, not matching.
+                rec["state"] = "matched" if marker == "matchings" else "todo"
                 out.append(rec)
     return {"functions": out}
 
@@ -127,8 +131,142 @@ def classes(data: dict, key: str) -> dict[str, list[dict]]:
     return out
 
 
+def cmd_promote(data: dict, name: str, unit: str | None) -> int:
+    """Move a body into the family's shared library.
+
+    Does the plumbing that is identical either way - the span in
+    configs/USA/overlays.toml for every overlay that carries the body, and the
+    shared symbol in each of their symbol maps - so the caller only has to deal
+    with the body itself.
+
+    An overlay that contains the body twice is left out: ld includes an input
+    object once, so the second slot would go unfilled.
+    """
+    import tomllib
+
+    cl = classes(data, "text")
+    hit = next((f for f in data["functions"] if f["name"] == name), None)
+    if hit is None:
+        print(f"{name}: not found", file=sys.stderr)
+        return 1
+    copies = cl[hit["text"]]
+    if len(copies) < 2:
+        print(f"{name}: only one copy, nothing to share")
+        return 1
+
+    family = hit["overlay"].split("/")[1]
+    twice = {u for u, n in collections.Counter(f["overlay"] for f in copies).items() if n > 1}
+    keep = [f for f in copies if f["overlay"] not in twice]
+    if len(keep) < 2:
+        print(f"{name}: every overlay carrying it contains it twice; cannot share")
+        return 1
+    # An unmatched body is shared as one disassembly file, and every overlay
+    # writes it, so that file is only well-defined when the copies are
+    # byte-identical and reference nothing overlay-local. A matched body has no
+    # such limit: the compiler regenerates it for each link address.
+    if hit.get("state") != "matched":
+        images = len({f["raw"] for f in keep})
+        localref = [f for f in keep
+                    if any(r.startswith((f"func_{f['unit']}_", f"D_{f['unit']}_",
+                                         f"jtbl_{f['unit']}_")) for r in f["refs"])]
+        if images > 1 or localref:
+            why = []
+            if images > 1:
+                why.append(f"{images} different byte images")
+            if localref:
+                why.append("references its own overlay's code or data")
+            print(f"{name}: cannot be shared while unmatched - " + " and ".join(why) + ".")
+            print("  Match it first, then promote: the compiler regenerates the body")
+            print("  per link address, which is what makes the differing copies one source.")
+            return 1
+
+    unit = unit or f"{family}_shared_{hit['name'].split('_')[-1].lower()}"
+    sym = "".join(w.capitalize() for w in unit.split("_"))
+
+    manifest_path = Path("configs/USA/overlays.toml")
+    manifest = tomllib.loads(manifest_path.read_text(encoding="utf-8"))
+    overlays = manifest[family]["overlays"]
+    load = manifest[family]["load_addr"]
+    text = manifest_path.read_text(encoding="utf-8")
+    size = hit["words"] * 4
+
+    for f in sorted(keep, key=lambda f: f["overlay"]):
+        room = f["overlay"].split("/")[-1]
+        start = int(f["vram"], 16) - load
+        spans = [(int(str(s["start"]), 16), int(str(s["end"]), 16), s["unit"])
+                 for s in overlays[room].get("shared", [])]
+        spans.append((start, start + size, unit))
+        spans.sort()
+        for (_a1, b1, _u1), (a2, _b2, _u2) in zip(spans, spans[1:]):
+            if b1 > a2:
+                print(f"{room}: shared spans overlap; aborting", file=sys.stderr)
+                return 1
+        items = ", ".join(
+            f'{{ start = "0x{a:X}", end = "0x{b:X}", unit = "{u}" }}' for a, b, u in spans
+        )
+        m = re.search(rf"^{re.escape(room)} = \{{(.*)\}}$", text, re.M)
+        body = re.sub(r",?\s*shared = \[.*?\](?=,|$)", "", m.group(1).strip()).strip().rstrip(",")
+        body = f"{body}, shared = [{items}]" if body else f"shared = [{items}]"
+        text = text[: m.start()] + f"{room} = {{ {body} }}" + text[m.end() :]
+
+        sym_path = Path(f"configs/USA/sym/{family}/{room}.txt")
+        sym_text = sym_path.read_text(encoding="utf-8")
+        if sym not in sym_text:
+            sym_path.write_text(
+                sym_text.rstrip() + f"\n{sym} = 0x{int(f['vram'], 16):08X};"
+                f" // shared body, see src/{family}/lib/\n", encoding="utf-8"
+            )
+    manifest_path.write_text(text, encoding="utf-8")
+
+    print(f"{sym}: {len(keep)} of {len(copies)} copies share src/{family}/lib/{unit}.c")
+    if twice:
+        print(f"  left alone (contains it twice): {', '.join(sorted(twice))}")
+    matched = [f for f in keep if f.get("state") == "matched"]
+    if matched:
+        print(f"  {name} is already decompiled - move its C body into "
+              f"src/{family}/lib/{unit}.c as {sym}(), remove it from its own "
+              f"overlay's .c, then rebuild.")
+    else:
+        print("  splat will write the shared stub on the next split.")
+    print("  run: python3 ninja_config.py && ./tools/build-and-verify.sh")
+    return 0
+
+
+def cmd_solved(data: dict, min_words: int) -> int:
+    """Unmatched functions whose body is already matched in **another** overlay.
+
+    The other-overlay part is the whole point. Two copies inside one overlay are
+    two separate functions that each have to be matched - they cannot share an
+    object, because the overlay links once. Only a copy in a different overlay
+    is work already done, reachable by promoting the body into the shared
+    library instead of matching it again.
+    """
+    cl = classes(data, "text")
+    out = []
+    for v in cl.values():
+        if v[0]["words"] < min_words:
+            continue  # a stub is cheaper to match than to plumb into lib/
+        for f in v:
+            if f.get("state") == "matched":
+                continue
+            # Only a match in the *same family* is reachable: the shared unit
+            # lives in src/<family>/lib/, so a body matched in gameplay says
+            # nothing about a room's copy of it.
+            family = f["overlay"].split("/")[1]
+            if any(
+                o.get("state") == "matched"
+                and o["overlay"] != f["overlay"]
+                and o["overlay"].split("/")[1] == family
+                for o in v
+            ):
+                out.append(f["name"])
+    for name in sorted(out):
+        print(name)
+    return 0
+
+
 def cmd_stats(data: dict) -> int:
-    fns = data["functions"]
+    fns = [f for f in data["functions"] if f.get("state") != "matched"]
     by_family = collections.Counter(f["overlay"].split("/")[0] for f in fns)
     print(f"{len(fns)} functions across {len(by_family)} family/families")
     for key, label in (("text", "same body"), ("raw", "same bytes")):
@@ -164,7 +302,8 @@ def cmd_find(data: dict, name: str) -> int:
     print(f"  same body: {len(same_src)} copies   identical bytes: {len(same_bytes)}")
     for f in sorted(same_src, key=lambda f: f["overlay"]):
         mark = "=" if f["raw"] == hit["raw"] else "~"
-        print(f"    {mark} {f['overlay']:36} {f['name']}")
+        state = "matched" if f.get("state") == "matched" else ""
+        print(f"    {mark} {f['overlay']:36} {f['name']} {state}")
     print("\n  = identical bytes, ~ same body at a different link offset")
     return 0
 
@@ -186,15 +325,24 @@ def cmd_shared(data: dict, minimum: int, refs: bool) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("command", choices=("stats", "find", "shared"))
+    ap.add_argument("command", choices=("stats", "find", "shared", "solved", "promote"))
     ap.add_argument("name", nargs="?")
     ap.add_argument("--family", action="append", help="limit to a family (rooms, weapons, …)")
     ap.add_argument("--min", type=int, default=10, help="`shared`: minimum copies")
     ap.add_argument("--refs", action="store_true", help="`shared`: count overlay-local references")
+    ap.add_argument("--unit", help="`promote`: name for the shared unit")
+    ap.add_argument("--min-words", type=int, default=8, dest="min_words",
+                    help="`solved`: ignore bodies shorter than this (default 8)")
     ap.add_argument("--rebuild", action="store_true", help="ignore the cached index")
     args = ap.parse_args()
 
     data = load(args.rebuild, args.family)
+    if args.command == "solved":
+        return cmd_solved(data, args.min_words)
+    if args.command == "promote":
+        if not args.name:
+            ap.error("promote needs a function name")
+        return cmd_promote(data, args.name, args.unit)
     if args.command == "stats":
         return cmd_stats(data)
     if args.command == "shared":

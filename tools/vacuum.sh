@@ -218,6 +218,20 @@ list_vacuum_nonmatchings() {
   python3 "$OVERLAY_PY" list-nonmatchings "${args[@]}"
 }
 
+# Functions whose body is already decompiled in another overlay. Overlays in a
+# family share a lot of code - of the first 158 room functions matched, only 29
+# were distinct bodies, and one two-instruction stub was matched 112 times.
+# Matching such a function again derives nothing: it wants promoting into the
+# shared library instead (overlay_dup_index.py promote).
+solved_elsewhere_file() {
+  local out
+  out=$(mktemp "${TMPDIR:-/tmp}/vacuum-solved.XXXXXX")
+  if ! python3 tools/overlay_dup_index.py solved --rebuild >"$out" 2>/dev/null; then
+    : >"$out"      # index unavailable: fall through rather than block the vacuum
+  fi
+  echo "$out"
+}
+
 pick_simplest_func() {
   local extra=()
   if [[ $ONLY_DIFFICULT -eq 1 ]]; then
@@ -226,7 +240,14 @@ pick_simplest_func() {
   if [[ -n "$SKIP_FILE" && -f "$SKIP_FILE" ]]; then
     extra+=(--exclude-file "$SKIP_FILE")
   fi
+  local solved
+  solved=$(solved_elsewhere_file)
+  if [[ -s "$solved" ]]; then
+    echo "Skipping $(wc -l <"$solved") function(s) already matched in another overlay." >&2
+    extra+=(--exclude-file "$solved")
+  fi
   python3 tools/score_functions.py "${extra[@]}" "$@"
+  rm -f "$solved"
 }
 
 note_skip() {
@@ -395,6 +416,7 @@ Read \`$scratch/BRIEF.md\` (also pasted below), then:
 3. If the best score is ≥ 95% and leftover diffs are registers / scheduling / stack (\`branch\`=\`insert\`=\`delete\`=0), run the permuter from the repo root **before** adding register pins:
    \`./permute.sh --run --timeout 360 -j4 $func <asm path from BRIEF> $scratch/base_N.c\`
 4. On 100%: replace INCLUDE_ASM in the host C file, fix headers in this overlay's include/ tree, then verify twice — \`./tools/build-and-verify.sh${scope:+ --only $scope}\` for a fast check of this overlay, then the bare \`./tools/build-and-verify.sh\` before you commit, since a scoped pass says nothing about the overlays it skipped. Commit \`matched $func <attempts>\`.
+4b. Then check whether other overlays carry the same body: \`python3 tools/overlay_dup_index.py find $func\`. If they do, promote it so it is matched once — \`python3 tools/overlay_dup_index.py promote $func\` writes the spans and shared symbols, and tells you to move the C body into \`src/<family>/lib/<unit>.c\` and out of this overlay's own .c. Rebuild, verify unscoped, and include it in the same commit.
 5. On stall: append \`tools/difficult_functions\` as \`$func <attempts> <best%>\`, revert host C, do not leave INCLUDE_ASM replaced.
 6. Leave the scratch directory (including the best unpinned \`base_N.c\`). Vacuum will run the permuter after you exit, then clean up.
 
