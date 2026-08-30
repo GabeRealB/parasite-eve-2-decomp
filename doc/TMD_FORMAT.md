@@ -299,6 +299,17 @@ previous result, which is why one vertex appears in several elements with
 different normals — in one 360-vertex model, 514 elements cover 180 distinct
 vertices.
 
+The pass also writes a **per-vertex depth cache** at `ws->field_10`, and that
+is what settles the `ref / 4` divisor of §3.4 from the source rather than by
+inference. `Tmd_StreamHandler_OpC8` stores the `RTPS` result with
+`t3 = ws->field_10 + (vertex_byte_offset >> 1)`, so the cache holds one word
+per vertex; `Tmd_StreamHandler_Op39` then reads its refs as
+`ws->field_10 + ref` and feeds them to `SZ1`/`SZ2`/`SZ3`. Halving an 8-byte
+stride gives 4, so a pre-transformed ref is `vertex_index * 4` and the cache
+slot maps to a vertex one-to-one. The negative-value check either side of it
+(`bltz` on the loaded word) is the off-screen flag `OpC8` sets from GTE
+`FLAG`.
+
 `0xC4`'s handler is decompiled C (`func_8009EAA4` in `src/gameplay/gameplay.c`)
 and spells out what the hasm versions do:
 
@@ -504,24 +515,32 @@ edge count: a closed mesh has `E = V + F - 2`, and the human accessories came
 out at 80 edges against an expected 44 until the winding was fixed, after which
 they are exact closed manifolds (χ = 2).
 
-**The winding is clockwise, so it cannot orient a face on its own.** Measured
-against the stored normal array — `cross(v1-v0, v2-v0)` dotted with the
-element's own normal, in the file's raw coordinates — the two point *opposite*
-in 97-100% of faces (aya 363/368, the named human 263/270, an actor 271/274, a
-weapon 45/45). Anything that derives a face normal from the winding therefore
-gets every face inside out, which makes a solid render look like it is showing
-its interior.
+**Backface culling is `NCLIP`, not a normal test.** `Tmd_StreamHandler_Op38`
+runs the projected points through `NCLIP` (`0x4B400006`) and drops the
+primitive when `MAC0 <= 0` — `mfc2 $t0, $24` then `blez`. It never consults a
+normal to decide visibility. The stored normals are the input to `NCCS`, which
+is *lighting*: a normal here is a shading normal, not necessarily the geometric
+face normal, so culling on it removes real surface. That is what makes heads
+and legs vanish from an offline render while a single-part object like a hand
+or a weapon still looks right.
 
-Two consequences worth keeping straight:
+So an offline renderer wants both: `MAC0 = x0(y1-y2) + x1(y2-y0) + x2(y0-y1)`
+on the *projected* points for visibility, and the stored normal for shading.
 
-* Take the normal from the element's normal ref, not from the winding. The
-  pre-transformed opcodes (`op & 0x01`) spend their trailing words on cache
-  indices rather than normal refs, so those faces have to fall back to the
-  winding — about a quarter of a character.
-* Negating Y to get from the PlayStation's Y-down space to a Y-up viewer is a
-  *reflection*, and a reflection reverses handedness. In Y-up space the
-  winding-derived normal agrees with the (also flipped) stored normal, so the
-  two can be mixed there; in raw space they cannot.
+**The winding is clockwise, so it cannot orient a face on its own either.**
+Measured against the stored normal array in the file's raw coordinates,
+`cross(v1-v0, v2-v0)` points *opposite* the element's own normal in 97-100% of
+faces (aya 363/368, the named human 263/270, an actor 271/274, a weapon 45/45).
+Take the normal from the normal ref. The pre-transformed opcodes spend their
+trailing words on cache indices rather than normal refs, so those faces — about
+a quarter of a character — fall back to the winding.
+
+Negating Y to get from the PlayStation's Y-down space to a Y-up viewer is a
+*reflection*, and a reflection reverses handedness, so in Y-up space the
+winding-derived normal agrees with the (also flipped) stored normal and the two
+can be mixed. It does **not** touch Z: `SZ3` grows with distance on the
+hardware, so +Z stays *away* from the viewer and a painter's-algorithm sort
+draws descending depth first.
 
 The `ref / 4` divisor for the pre-transformed opcodes is confirmed the same
 way. With `/4` the human body decodes to 398 faces, 0 rejected, every edge

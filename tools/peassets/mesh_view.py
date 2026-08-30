@@ -226,30 +226,33 @@ class MeshView(ttk.Frame):
             if any(i >= n for i in f):
                 continue
             order.append((sum(pts[i][2] for i in f) / len(f), k, f))
-        # Painter's algorithm. +Z is toward the viewer in this frame (x right,
-        # y up, right-handed), so ascending depth paints back to front.
-        order.sort(key=lambda t: t[0])
+        # Painter's algorithm, farthest first. The PlayStation's SZ3 grows with
+        # distance and negating Y for a Y-up viewer does not touch Z, so +Z is
+        # away here too and descending depth paints back to front.
+        order.sort(key=lambda t: -t[0])
 
         for _d, k, f in order:
             flat = []
             for i in f:
                 flat.extend(pts[i][:2])
             if solid:
+                # Cull the way the game does. Tmd_StreamHandler_Op38 runs NCLIP
+                # on the *projected* points and drops the primitive when MAC0
+                # <= 0; it never consults a normal for visibility. The stored
+                # normals feed NCCS, which is lighting only - using them to
+                # decide facing drops real surface, which is what made heads
+                # and legs disappear.
+                (x0, y0, _), (x1, y1, _), (x2, y2, _) = pts[f[0]], pts[f[1]], pts[f[2]]
+                mac0 = x0 * (y1 - y2) + x1 * (y2 - y0) + x2 * (y0 - y1)
+                if self._cull.get() and mac0 <= 0:
+                    continue
                 nx, ny, nz = rot(self._normals[k]) if k < len(self._normals) else (0.0, 0.0, 1.0)
                 ln = math.sqrt(nx * nx + ny * ny + nz * nz) or 1.0
-                nx, ny, nz = nx / ln, ny / ln, nz / ln
-                facing = nz > 0.0
-                if self._cull.get() and not facing:
-                    continue
-                lam = nx * self._light[0] + ny * self._light[1] + nz * self._light[2]
-                if facing:
-                    v = int(55 + 190 * max(0.0, min(1.0, lam)))
-                    fill = f"#{v:02x}{v:02x}{min(255, v + 12):02x}"
-                else:
-                    # Interior surfaces stay visible with culling off, but read
-                    # as the inside of the model rather than as more shell.
-                    v = int(30 + 70 * max(0.0, min(1.0, -lam)))
-                    fill = f"#{v + 18:02x}{v:02x}{v:02x}"
+                lam = abs(
+                    (nx * self._light[0] + ny * self._light[1] + nz * self._light[2]) / ln
+                )
+                v = int(60 + 185 * max(0.0, min(1.0, lam)))
+                fill = f"#{v:02x}{v:02x}{min(255, v + 10):02x}"
                 c.create_polygon(
                     *flat, fill=fill, outline=EDGE if not wire else SOFT, width=1
                 )

@@ -771,11 +771,12 @@ model that looks upright in the viewport looks upright in Blender. Only faces
 are drawn — no textures, no UVs, and no bone transforms — which is enough to
 tell one character from another and not enough to judge a pose.
 
-Faces are oriented by the model's **stored normal array**, not by their
-winding: the winding is clockwise, so deriving orientation from it turns every
-face inside out (see [`TMD_FORMAT.md` §7](TMD_FORMAT.md)). Screen space adds a
-second reflection because its Y grows downward, so the normal is rotated with
-the model rather than recomputed from the projected points.
+Visibility and shading come from two different places, as they do on the
+hardware (see [`TMD_FORMAT.md` §7](TMD_FORMAT.md)). Backface culling is
+`NCLIP` on the projected points, exactly what `Tmd_StreamHandler_Op38` does;
+the stored normals feed `NCCS`, which is lighting only, and culling on them
+removes real surface — that is what made heads and legs vanish. Depth sorts
+descending, because `SZ3` grows with distance and negating Y does not touch Z.
 
 ---
 
