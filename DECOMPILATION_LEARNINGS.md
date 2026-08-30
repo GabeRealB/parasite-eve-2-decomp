@@ -2711,6 +2711,16 @@ real - the next table, `jtbl_..._8017D600` at `0x40`, would land at `0x44`. Pair
 it with an ordinary `rodata` + `units` cut so the generated table is the only
 thing in its object's `.rodata`, exactly as with a mid-overlay table.
 
+`rodata_head` alone *is* enough when the generated table is the last thing in
+the leading rodata, because then nothing follows it to be padded.
+`actor_146300` is that case: the header is one `.asciz "_"` at `0x0` and
+`jtbl_..._80131E24` runs `0x4`..`0xAC`, where `.text` begins, so unit 1's
+`.rodata` holds only the table.
+
+```toml
+actor_146300 = { rodata_head = "0x4" }
+```
+
 ## Shared `task->state++` is per-case stores, not a `next` phi
 
 A long task switch whose every advancing arm is `lw v0, 0x30(s1) / j store /

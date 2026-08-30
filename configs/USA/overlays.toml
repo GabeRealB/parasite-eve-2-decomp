@@ -454,7 +454,7 @@ actor_143000 = { }
 actor_143400 = { }
 actor_143900 = { }
 actor_146000 = { }
-actor_146300 = { }
+actor_146300 = { rodata_head = "0x4" }
 actor_150400 = { }
 actor_151000 = { }
 actor_160600 = { }
