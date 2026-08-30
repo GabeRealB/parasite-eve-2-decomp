@@ -388,11 +388,15 @@ s32   Gp_StartCapSlot(s16 arg0, s16 arg1, s16 arg2);
 void  Gp_MsgPlayer3F3(s32 arg0);
 void  Gp_MsgPlayerWeapon(s32 arg0);
 void  Gp_SpawnIfCapIdle(s32 arg0, s32 arg1);
-void  Gp_MsgAllyWeapon(s32 arg0);
-void  Gp_ClearAllFlagNibbles(void);
-void  Gp_SpawnEvt1(s32 arg0, s32 arg1);
-s32   Gp_RelocCapFile(GpCapFile* file);
-s32   Gp_StartCap(s32 arg0, s16 arg1, s16 arg2);
+/// Enqueues a type-6 sound event, substituting the current stage number into
+/// the packed id when its stage nibble is set. `arg1` / `arg2` are the pan and
+/// volume bytes.
+void Gp_EnqueueStageSnd6(s32 arg0, s32 arg1, s32 arg2);
+void Gp_MsgAllyWeapon(s32 arg0);
+void Gp_ClearAllFlagNibbles(void);
+void Gp_SpawnEvt1(s32 arg0, s32 arg1);
+s32  Gp_RelocCapFile(GpCapFile* file);
+s32  Gp_StartCap(s32 arg0, s16 arg1, s16 arg2);
 /// Blinking POLY_G3 continue caret. `Gp_CapCaretDelay` is a frame delay before the
 /// first draw; `Gp_CapCaretX` / `Gp_CapCaretY` are base XY; `Gp_CapCaretGrey` /
 /// `Gp_CapCaretDir` pulse the vertex greys between 8 and 15.
