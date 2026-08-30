@@ -43,9 +43,3 @@ INCLUDE_ASM("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage", fu
 INCLUDE_ASM("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage", func_dryfield_night_garage_80180358);
 
 INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage", D_dryfield_night_garage_8017D6FC);
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage", jtbl_dryfield_night_garage_8017D708);
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage", jtbl_dryfield_night_garage_8017D720);
-
-INCLUDE_RODATA("rooms/nonmatchings/dryfield_night_garage/dryfield_night_garage", func_dryfield_night_garage_8017D754);
