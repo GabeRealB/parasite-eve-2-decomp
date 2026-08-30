@@ -2807,7 +2807,17 @@ address order, or that unit's `.rodata` is short and `.text` shifts.
 The shared C has one name and relocates per overlay. Callees that stay
 overlay-local need generic names in that C, with `absolute:True` aliases in
 each overlay's `configs/USA/sym/<family>/<overlay>.txt` at that overlay's
-address. splat treats `absolute:True` as already defined and omits them from
+address.
+
+**`promote` reads a cache that is never invalidated, so pass `--rebuild` right
+after landing the match.** `overlay_dup_index.py` keys off
+`build/USA/dup_index.json` with `if not rebuild and CACHE.is_file()` - existence
+only, no mtime check against `asm/` - so a body you just moved from
+`nonmatchings/` to `matchings/` still reads as unmatched and `promote` refuses
+it with "cannot be shared while unmatched - N different byte images and
+references its own overlay's code or data". That message describes the
+*unmatched* sharing rule and is not a reason to give up; re-run
+`promote <fn> --rebuild` and it proceeds. splat treats `absolute:True` as already defined and omits them from
 the undef script; `append_overlay_absolute_imports` copies those lines into
 `undefined_syms_auto.<overlay>.txt` so ld can patch the `jal`s.
 
