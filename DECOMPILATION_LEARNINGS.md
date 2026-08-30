@@ -32028,3 +32028,25 @@ an instruction-for-instruction identical body — the day and night versions of 
 room are separate packages, and their scripted-cutscene task is the same code
 with different overlay-local data. A `sed` rename of the overlay prefix, the two
 `D_<seg>_<vram>` symbols and the typedef scored 99.971% on the first build.
+
+Port the sibling's **manifest cuts** along with its body. A cutscene state
+machine emits a compiler-generated jump table, so its object has to own the
+slice of leading `.rodata` holding that table — the sibling entry in
+`configs/USA/overlays.toml` already carries the `units` / `rodata` pair that
+does it. Overlays in a family load at the same address, so the sibling's
+offsets are reusable directly: subtract the family load address from the
+function's vram (`0x8017F4E8 - 0x8017D5C0 = 0x1F28`) and from the address of
+the function after it for the closing cut, and the `rodata` offsets are
+usually identical to the sibling's because the header layout is the same.
+
+```toml
+shelter_r47        = { …, units = ["0x2068", "0x25D4"], rodata = [{ start = "0x84", unit = "shelter_r47_2" },        { start = "0xE4", unit = "shelter_r47_3" }] }
+shelter_b6_nursery = { …, units = ["0x1F28", "0x2494"], rodata = [{ start = "0x84", unit = "shelter_b6_nursery_2" }, { start = "0xE4", unit = "shelter_b6_nursery_3" }] }
+```
+
+Then delete the overlay's `src/` files and re-split so splat writes the new
+`_2` / `_3` units with the `INCLUDE_RODATA` lines in the right places, and put
+the ported body in the `_2` file. A `shared` span coexists with `units`: the
+generator numbers units across the runs between shared bodies, so a shared span
+that ends at the end of `.text` (`room_draw_billboard`) leaves the numbering to
+the code before it.

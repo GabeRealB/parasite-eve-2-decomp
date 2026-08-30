@@ -352,7 +352,7 @@ neo_ark_savanna_zone = { room = "Savanna zone", shared = [{ start = "0x1A20", en
 neo_ark_south_promenade = { room = "South promenade", shared = [{ start = "0x1734", end = "0x20F4", unit = "room_draw_billboard" }] }
 neo_ark_altar = { room = "Altar" }
 neo_ark_shrine = { room = "Shrine", shared = [{ start = "0x3EB4", end = "0x4874", unit = "room_draw_billboard" }] }
-shelter_b6_nursery = { room = "Nursery", floor = "B6", shared = [{ start = "0x6D3C", end = "0x76FC", unit = "room_draw_billboard" }] }
+shelter_b6_nursery = { room = "Nursery", floor = "B6", shared = [{ start = "0x6D3C", end = "0x76FC", unit = "room_draw_billboard" }], units = ["0x1F28", "0x2494"], rodata = [{ start = "0x84", unit = "shelter_b6_nursery_2" }, { start = "0xE4", unit = "shelter_b6_nursery_3" }] }
 shelter_b6_growth_room = { room = "Growth room", floor = "B6" }
 shelter_b6_corridor = { room = "Corridor", floor = "B6" }
 shelter_b6_training_room = { room = "Training room", floor = "B6" }
