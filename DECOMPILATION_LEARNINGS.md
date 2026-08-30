@@ -32050,3 +32050,13 @@ the ported body in the `_2` file. A `shared` span coexists with `units`: the
 generator numbers units across the runs between shared bodies, so a shared span
 that ends at the end of `.text` (`room_draw_billboard`) leaves the numbering to
 the code before it.
+
+Once that `rodata` cut exists, a *later* function in the same unit can grow its
+own jump table without any further manifest change. GCC emits `.align 3` before
+the table, and the alignment is measured from the object's `.rodata` start, not
+from the vram address: in `shelter_b1_sterilization_room_3` the leading
+`INCLUDE_RODATA` block (`D_..._8017D6A4`, three function pointers plus a `0`
+word) is exactly 0x10 bytes, so the table lands at object offset 0x10, the
+`.align 3` pads nothing, and the jtbl address comes out at the expected
+`0x8017D6B4`. Only a preceding block whose size is not a multiple of 8 forces
+the `units` cut that moves the function to the start of its own `.rodata`.
