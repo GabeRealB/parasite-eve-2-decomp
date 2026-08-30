@@ -2821,6 +2821,30 @@ references its own overlay's code or data". That message describes the
 the undef script; `append_overlay_absolute_imports` copies those lines into
 `undefined_syms_auto.<overlay>.txt` so ld can patch the `jal`s.
 
+**A neighbouring shared unit may already name the address you are promoting.**
+`ActorsShared80134c2c` calls the body at `0x80134CFC` through the generic-callee
+mechanism above, so every sharer's symbol map carries
+`ActorsShared80134c2c_Fn34CFC = 0x80134CFC; // type:func absolute:True`.
+Promoting that body as its own unit adds `ActorsShared80134cfc = 0x80134CFC` at
+the same vram and splat stops with
+
+```
+error reading configs/USA/sym/actors/actor_102400.txt, line 11:
+Duplicate symbol detected! ActorsShared80134cfc clashes with ActorsShared80134c2c_Fn34CFC defined at vram 0x80134CFC.
+```
+
+The alias is now redundant - the address is inside a `c` subsegment, so splat
+would drop it from `undefined_syms_auto` anyway and the caller's `jal` would go
+unresolved. Delete the `_Fn` line from every sharer's symbol map and have the
+older shared `.c` call the promoted symbol directly, casting to its view struct:
+
+```c
+ActorsShared80134cfc((ActorShared80134cfc*) arg1);
+```
+
+Two shared units viewing one actor keep separate partial structs, so the cast is
+the seam between them, not a smell.
+
 ### The overlay's *first* function needs `rodata_head`, not a `rodata` cut
 
 A `rodata` cut only works because it pairs with a `.text` cut, and the first
