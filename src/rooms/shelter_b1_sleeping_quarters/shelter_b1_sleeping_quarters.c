@@ -1,5 +1,8 @@
 #include "common.h"
 
+#include "gameplay/3CD8.h"
+#include "main/task.h"
+
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D608);
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D668);
@@ -10,7 +13,28 @@ INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D770);
 
-INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D778);
+void func_shelter_b1_sleeping_quarters_8017D778(Task* task)
+{
+    switch (task->state) {
+        case 0:
+            Gp_CapFile = 0;
+            Gp_LoadCapFile(1);
+            func_800E6D4C(0x2C0, 0);
+            Gp_RunCapCmd(task->spawnArg1, 1);
+            task->state++;
+            break;
+        case 1:
+            if (Gp_CapBusy() == 0) {
+                task->state++;
+            }
+            break;
+        case 2:
+            Gp_MsgPlayerWeapon(1);
+            Gp_ResetCap();
+            Task_Kill(task);
+            break;
+    }
+}
 
 INCLUDE_ASM("rooms/nonmatchings/shelter_b1_sleeping_quarters/shelter_b1_sleeping_quarters", func_shelter_b1_sleeping_quarters_8017D83C);
 
