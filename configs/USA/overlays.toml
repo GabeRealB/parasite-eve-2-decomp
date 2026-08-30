@@ -270,7 +270,7 @@ dryfield_night_g_r_kitchen = { room = "G & R kitchen" }
 dryfield_night_water_tower = { room = "Water tower" }
 dryfield_night_water_tank = { room = "Water tank" }
 dryfield_night_breezeway = { room = "Breezeway" }
-dryfield_night_factory = { room = "Factory" }
+dryfield_night_factory = { room = "Factory", units = ["0x1D70"], rodata = [{ start = "0x2C", unit = "dryfield_night_factory_2" }] }
 dryfield_night_garage = { room = "Garage" }
 dryfield_night_driveway = { room = "Driveway" }
 dryfield_night_junk_yard = { room = "Junk yard", shared = [{ start = "0x25DC", end = "0x2F9C", unit = "room_draw_billboard" }] }
