@@ -33669,3 +33669,25 @@ splat preserves function bodies already decompiled in those files, so the only
 thing to re-check is that each regenerated `.c` still has its includes.
 `dryfield_night_junk_yard` is the example: its shared body sat at offset `0x34`,
 the first thing after the header rodata.
+
+## Overlay grew by exactly 4 bytes: jtbl `.align 3` in a mid-unit `.rodata`
+
+An overlay whose `.text` all matched still failed its checksum, and the map
+showed every text symbol shifted up by 4 (`shelter_1f_bulwark`
+`RODATA_SIZE 0x60` where the package has `0x5C`). Symptom of decompiling a
+`switch` whose jump table is *not* the first thing in its object's `.rodata`:
+the manifest gave the whole leading rodata block to the first code unit, so
+`INCLUDE_RODATA` blobs occupied `0x00..0x44` and GCC's `.align 3` padded the
+generated table from `0x44` up to `0x48`.
+
+Fix in `configs/USA/overlays.toml`: cut a new `.text` unit at the function's
+package offset and hand the rest of the rodata to it, so the table starts that
+object's `.rodata` at an 8-aligned address.
+
+```toml
+units = ["0x6B8"], rodata = [{ start = "0x44", unit = "shelter_1f_bulwark_2" }]
+```
+
+The cut renumbers every later unit (`_2` → `_3`, …), so `git mv` the existing
+`src/<overlay>/<overlay>_N.c` files from the highest number down and rewrite the
+unit suffix inside their `INCLUDE_ASM` folder strings; splat will not do it.
