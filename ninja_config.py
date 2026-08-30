@@ -209,10 +209,11 @@ MKPSXISO_DIR = OS_DIR / "mkpsxiso"
 OBJDIFF_DIR = TOOLS_DIR / "objdiff"
 
 # Tooling Paths
-if PLATFORM == Platform.Windows:
-    PYTHON = "python"
-else:
-    PYTHON = "python3"
+# Prefer the interpreter this script is running under, which in practice is the
+# project venv: the helper scripts it shells out to need the venv's packages
+# (objdiff_generate.py imports pyelftools, and the objdiff step imports ninja),
+# and a bare "python3" is whatever happens to be first on PATH.
+PYTHON = sys.executable or ("python" if PLATFORM == Platform.Windows else "python3")
 MASPSX = f"{PYTHON} {TOOLS_DIR / 'maspsx' / 'maspsx.py'}"
 match PLATFORM:
     case Platform.Windows:

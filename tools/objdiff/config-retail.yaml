@@ -12,6 +12,68 @@ categories:
     paths:
       - gameplay
 
+  # Generated overlay families (configs/USA/overlays.toml). mappic and debug
+  # get no category: those packages contain no code at all, so they would
+  # report 0% for ever rather than "nothing to do".
+  - id: weapons
+    name: Weapons
+    paths:
+      - weapons
+  - id: aya
+    name: Aya
+    paths:
+      - aya
+  - id: humans
+    name: Named humans
+    paths:
+      - humans
+  - id: mapui
+    name: Area maps
+    paths:
+      - mapui
+  - id: options
+    name: Options menu
+    paths:
+      - options
+
+  # Rooms are 4103 of the ~4300 overlay functions, so one bucket would hide all
+  # the movement. A unit may belong to several categories, so `rooms` is the
+  # roll-up and the areas below are its parts. The prefixes are the package
+  # names, so the area split costs nothing to maintain.
+  - id: rooms
+    name: Rooms
+    paths:
+      - rooms
+  - id: rooms_acropolis
+    name: Rooms - Akropolis Tower
+    paths:
+      - rooms/acropolis
+  - id: rooms_mist
+    name: Rooms - MIST HQ
+    paths:
+      - rooms/mist
+  - id: rooms_dryfield
+    name: Rooms - Dryfield
+    paths:
+      - rooms/dryfield
+  - id: rooms_mine
+    name: Rooms - Mine
+    paths:
+      - rooms/mine
+  - id: rooms_shelter
+    name: Rooms - Shelter
+    paths:
+      - rooms/shelter
+  - id: rooms_neo_ark
+    name: Rooms - Neo Ark
+    paths:
+      - rooms/neo_ark
+  # Bodies shared by several rooms: one object, matched once, linked into each.
+  - id: rooms_shared
+    name: Rooms - shared code
+    paths:
+      - rooms/lib
+
 expected_paths:
   ALL: expected/
   USA: expected/USA
