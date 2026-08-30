@@ -297,7 +297,7 @@ shelter_b1_north_maintenance_walkway = { room = "North maintenance walkway", flo
 shelter_b1_armory = { room = "Armory", floor = "B1" }
 shelter_b1_sleeping_quarters = { room = "Sleeping quarters", floor = "B1" }
 shelter_b1_main_corridor = { room = "Main corridor", floor = "B1" }
-shelter_b1_sterilization_room = { room = "Sterilization room", floor = "B1" }
+shelter_b1_sterilization_room = { room = "Sterilization room", floor = "B1", units = ["0x1F90", "0x24FC"], rodata = [{ start = "0x84", unit = "shelter_b1_sterilization_room_2" }, { start = "0xE4", unit = "shelter_b1_sterilization_room_3" }] }
 shelter_b1_pod_access_tunnel = { room = "Pod access tunnel", floor = "B1", shared = [{ start = "0x314C", end = "0x3B0C", unit = "room_draw_billboard" }] }
 shelter_b1_control_room = { room = "Control room", floor = "B1" }
 shelter_b1_access_tunnel = { room = "Access tunnel", floor = "B1" }
