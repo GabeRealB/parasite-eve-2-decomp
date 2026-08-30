@@ -72,6 +72,22 @@ fi
 # Get the path to the current script's directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# decomp-permuter is an upstream submodule, so our jump-table fix cannot be
+# committed as a file and does not survive `git submodule update`. Keep it as a
+# tracked patch and re-apply it whenever the submodule comes back pristine.
+# Without it, a byte-perfect jump-table match scores 2 * PENALTY_REGALLOC
+# instead of 0 (the target says %hi(jtbl_800141DC), any compiled candidate says
+# %hi(.rodata)), so --stop-on-zero can never fire on those functions.
+PERMUTER_PATCH="$SCRIPT_DIR/tools/decomp-permuter-jtbl.patch"
+if [ -f "$PERMUTER_PATCH" ] &&
+    ! grep -q RE_JTBL_SYMBOL "$SCRIPT_DIR/tools/decomp-permuter/src/objdump.py" 2>/dev/null; then
+    if git -C "$SCRIPT_DIR/tools/decomp-permuter" apply "$PERMUTER_PATCH" 2>/dev/null; then
+        echo "Applied jump-table scoring patch to tools/decomp-permuter"
+    else
+        echo "Warning: could not apply $PERMUTER_PATCH; jump-table functions will not score 0" >&2
+    fi
+fi
+
 # Clean the directory if the --clean flag is set
 if [ "$CLEAN" = true ]; then
     echo "Cleaning directory: permuter/$FUNCTION_NAME"

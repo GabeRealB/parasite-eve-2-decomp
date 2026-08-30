@@ -138,8 +138,11 @@ def process_reloc(reloc_row: str, prev_line: str) -> Optional[str]:
 
 def normalize_jumptable_references(line: str) -> str:
     """Normalize jump table references to .rodata for consistent comparison"""
-    # Pattern to match jump table references like jtbl_8009E998_9F598
-    jtbl_pattern = r"jtbl_[0-9A-Fa-f]+_[0-9A-Fa-f]+"
+    # Pattern to match jump table references like jtbl_8009E998_9F598 or
+    # jtbl_80013EB0. This project's symbols carry no _offset suffix, so the
+    # suffix has to be optional or the dumps keep showing the jtbl/.rodata
+    # pair as a diff on a function that dist.py already scores as 100%.
+    jtbl_pattern = r"jtbl_[0-9A-Fa-f]+(?:_[0-9A-Fa-f]+)?"
 
     # Replace jump table references with .rodata
     normalized = re.sub(jtbl_pattern, ".rodata", line)

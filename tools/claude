@@ -286,10 +286,58 @@ elif [[ "$BOOTSTRAP" == true ]]; then
         echo "Note: host C file ${C_FILE:-unknown} not found, generating without context"
     fi
 
+    # m2c cannot decompile a `jr $v0` switch unless the jump table is in its
+    # input. splat leaves the table in the function's own .s only when the
+    # rodata block is still unowned; otherwise it lives in the unit's
+    # .rodata.s and m2c bails with "the corresponding jump table is not
+    # provided", leaving a blank base.c that reads as a hard function.
+    JTBL_ASM=()
+    if grep -q 'jtbl_' "$ASM_PATH" 2>/dev/null; then
+        # Search the overlay first: jtbl_ names are load addresses, so the same
+        # name can exist in sibling overlays of a family.
+        jtbl_scope="${ASM_PATH%%/nonmatchings/*}"
+        if [[ "$jtbl_scope" == "$ASM_PATH" || ! -d "$jtbl_scope" ]]; then
+            jtbl_scope="$ROOT/asm"
+        fi
+        while read -r jtbl; do
+            [[ -n "$jtbl" ]] || continue
+            # Defined right next to the function - m2c already sees it.
+            if grep -qx "dlabel $jtbl" "$ASM_PATH"; then
+                continue
+            fi
+            while read -r rodata; do
+                [[ -n "$rodata" ]] || continue
+                if [[ " ${JTBL_ASM[*]-} " != *" $rodata "* ]]; then
+                    JTBL_ASM+=("$rodata")
+                fi
+            done < <(grep -rlx "dlabel $jtbl" "$jtbl_scope" --include='*.s' 2>/dev/null || true)
+        done < <(grep -oE 'jtbl_[0-9A-Fa-f]+' "$ASM_PATH" | sort -u)
+    fi
+
+    # Only narrow to the one function when extra inputs could widen the output.
+    M2C_FUNC_ARG=()
+    if [[ ${#JTBL_ASM[@]} -gt 0 ]]; then
+        echo "Jump tables live outside the function; also feeding m2c: ${JTBL_ASM[*]}"
+        M2C_FUNC_ARG=(-f "$FUNC_STEM")
+    fi
+
     set +e
-    M2C_OUTPUT=$(python3 "$M2C" --target mips-gcc-c "${CONTEXT_ARG[@]}" "$ASM_PATH" 2>&1)
+    M2C_OUTPUT=$(python3 "$M2C" --target mips-gcc-c "${M2C_FUNC_ARG[@]}" "${CONTEXT_ARG[@]}" "$ASM_PATH" "${JTBL_ASM[@]}" 2>&1)
     M2C_EXIT_CODE=$?
     set -e
+
+    # A context m2c cannot parse aborts the whole run, so the function comes
+    # back blank even though its own asm is fine. The GTE inline-asm macros in
+    # some units do exactly this. Untyped output beats no output: retry bare.
+    if [[ $M2C_EXIT_CODE -ne 0 && ${#CONTEXT_ARG[@]} -gt 0 ]] &&
+        grep -q "parsing C context" <<<"$M2C_OUTPUT"; then
+        echo "Warning: m2c could not parse the context from $C_FILE; retrying without it."
+        echo "         Types will be '?' - the context, not the function, is the problem."
+        set +e
+        M2C_OUTPUT=$(python3 "$M2C" --target mips-gcc-c -f "$FUNC_STEM" "$ASM_PATH" "${JTBL_ASM[@]}" 2>&1)
+        M2C_EXIT_CODE=$?
+        set -e
+    fi
 
     if [[ $M2C_EXIT_CODE -ne 0 ]]; then
         echo "Warning: m2c failed to generate C code. Creating blank base.c file."
