@@ -1,0 +1,9 @@
+// Reloc overrides for actor 00100 and its other-slot copies.
+//
+// A %hi in a branch delay slot whose %lo sits after the branch: splat cannot
+// pair them and emits a literal address, which bakes one RAM slot's value
+// into a body shared between slots.
+rom:0x319C reloc:MIPS_HI16 symbol:Actor00100_D0E1E2
+rom:0x31A8 reloc:MIPS_LO16 symbol:Actor00100_D0E1E2
+rom:0x3210 reloc:MIPS_HI16 symbol:Actor00100_D0E1EA
+rom:0x3218 reloc:MIPS_LO16 symbol:Actor00100_D0E1EA

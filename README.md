@@ -27,9 +27,9 @@ The goal is to recover readable C that, when compiled with a period-correct tool
 | **Title overlay** — title / demo / main menu | ![coverage title](https://decomp.dev/GabeRealB/parasite-eve-2-decomp/SLUS-01042.svg?mode=shield&category=title&label=title) |
 
 <details>
-<summary><strong>Overlays</strong> (448 packages, 237 split)</summary>
+<summary><strong>Overlays</strong> (448 packages, 433 split)</summary>
 
-Everything but the actor overlays and the `501xx` helpers is split and matching.
+Everything but the `501xx` helpers is split and matching.
 An overlay is an extracted `.pe2pkg` package named after what it is; the names,
 load addresses and per-overlay notes live in `configs/USA/overlays.toml`, and the
 RAM slots and package layout in [`doc/OVERLAYS.md`](doc/OVERLAYS.md).
@@ -42,6 +42,7 @@ RAM slots and package layout in [`doc/OVERLAYS.md`](doc/OVERLAYS.md).
 | `aya` | 6 | Aya costume meshes and the replay bonus | ![coverage aya](https://decomp.dev/GabeRealB/parasite-eve-2-decomp/SLUS-01042.svg?mode=shield&category=aya&label=aya) |
 | `humans` | 4 | Named human characters | ![coverage humans](https://decomp.dev/GabeRealB/parasite-eve-2-decomp/SLUS-01042.svg?mode=shield&category=humans&label=humans) |
 | `options` | 2 | Options menu | ![coverage options](https://decomp.dev/GabeRealB/parasite-eve-2-decomp/SLUS-01042.svg?mode=shield&category=options&label=options) |
+| `actors` | 196 | Enemy and NPC actors, one per RAM slot | ![coverage actors](https://decomp.dev/GabeRealB/parasite-eve-2-decomp/SLUS-01042.svg?mode=shield&category=actors&label=actors) |
 | `mappic` | 17 | Map pictures, by stage | no code in these packages |
 | `debug` | 1 | Leftover NMC name table | no code in these packages |
 
@@ -59,8 +60,11 @@ Rooms are most of the overlay code, so they are also tracked per area:
 Bodies that several rooms share are split into their own unit so they are matched
 once and linked into each room that uses them (![coverage rooms_shared](https://decomp.dev/GabeRealB/parasite-eve-2-decomp/SLUS-01042.svg?mode=shield&category=rooms_shared&label=shared)).
 
-**Not yet split:** the 196 actor packages (`1xxxxx` / `2xxxxx` / `3xxxxx`) and the
-40 `501xx` helpers, whose role is still unknown.
+Actors ship the same code assembled for several RAM slots. 39 are empty slots
+with no code at all, and 27 are relocated copies of 12 bodies, linked from one
+shared unit each the way the room bodies are. The rest are distinct.
+
+**Not yet split:** the 40 `501xx` helpers, whose role is still unknown.
 </details>
 
 ### Other regions
@@ -171,7 +175,7 @@ the project matches.
 |---|---|
 | `-c` / `--clean` | Clean build and permuter outputs |
 | `-iso_e` / `--iso_extract` | Extract files from disc images (full inflate) |
-| `-iso_min` / `--iso_extract_minimal` | CI extract: raw + the overlays the build needs (237 packages, ~12s) |
+| `-iso_min` / `--iso_extract_minimal` | CI extract: raw + the overlays the build needs (433 packages, ~13s) |
 | `-o` / `--only` | Split and build only the named families or overlays |
 | `-iso_raw` / `--iso_extract_raw` | Extract raw/{type}/ only (no inflate) |
 | `-sc` / `--skip_checksum` | Build without the matching checksum step |

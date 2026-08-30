@@ -233,7 +233,9 @@ def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path
         seen[digest] = name
 
         span = tuple(entry["text"]) if "text" in entry else text_span(data)
-        title = f"{spec['description']} - {overlay_label(name, entry)}"
+        # The title becomes the config's quoted `name:`, so a note containing a
+        # quote would still break the yaml.
+        title = f"{spec['description']} - {overlay_label(name, entry)}".replace('"', "'")
 
         # A family may span several RAM slots. The actors do: one actor is
         # issued as three packages at three addresses, and they have to be one
@@ -256,7 +258,9 @@ def generate(family: str, spec: dict, template: str, out_dir: Path) -> list[Path
             "GLOBAL_VRAM_END": f"0x{vram_end:08X}",
             "IMPORTS": spec["imports"],
             "RELOCS": (
-                f'[{spec["relocs"]}]' if spec.get("relocs") else "[]"
+                f'[{entry.get("relocs", spec.get("relocs", ""))}]'
+                if entry.get("relocs", spec.get("relocs"))
+                else "[]"
             ),
             "SUBSEGMENTS": subsegments(
                 name,

@@ -74,6 +74,18 @@ categories:
     paths:
       - rooms/lib
 
+  # Actors are per-RAM-slot: the same enemy loaded into slot 1, 2 or 3 is a
+  # separate package. Where those copies are byte-identical after relocation
+  # they share one object, the same way the room bodies do.
+  - id: actors
+    name: Actors
+    paths:
+      - actors
+  - id: actors_shared
+    name: Actors - shared code
+    paths:
+      - actors/lib
+
 expected_paths:
   ALL: expected/
   USA: expected/USA

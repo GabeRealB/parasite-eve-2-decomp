@@ -32529,3 +32529,42 @@ the `if`, so the only thing available to merge is the increment.
 Symptom: `branch` penalty with the function three instructions short, and a
 `j <hub-4>` where the target has `beqz v0, <hub>` followed by `j <epilogue>`.
 `func_mist_parking_80182A44` went 98.8% → 100% on that flip alone.
+
+## Sharing one text unit between overlays needs every reference to be a relocation
+
+An overlay family whose packages are byte-different but instruction-identical
+(the actor twins: the same code assembled for two or three RAM slots) can link
+*one* object into several linker scripts, so the body is decompiled once and
+relocated into each slot. What decides whether a given group can do that is
+whether splat turned every address reference into a relocation.
+
+A `%hi`/`%lo` pair that splat cannot pair up — the `lui` sits in a branch delay
+slot and its `%lo` lands after the branch, or the two are far apart with the
+register reused in between — is emitted as a literal `lui $v0, 0x8014`. That
+bakes one slot's address into the body, so the object is only correct for the
+overlay it was split from and every sibling comes out 3-14 bytes wrong, always
+in the upper half of a `lui` or the immediate of the matching `addiu`/`lhu`.
+
+`reloc_addrs_path` fixes the pairs you can identify:
+
+```
+rom:0x1F30 reloc:MIPS_HI16 symbol:Actor02000_D03784
+rom:0x1F68 reloc:MIPS_LO16 symbol:Actor02000_D03784
+```
+
+Two things to get right. The `rom:` offset is `vram - rom` of the slot the
+overlay was **split** from, not of the sibling that fails — computing it from
+the failing overlay's base silently writes the override at the wrong offset.
+And the file must be attached per-overlay (`relocs = "..."` on the entry), not
+at the family root: a family-wide file forces the symbol on all 196 actors.
+
+Pairing the `%lo` back to its `%hi` by hand is the part that does not
+generalise — "next instruction that uses the register" picks the wrong partner
+often enough that 11 of 24 actor groups still failed after two rounds of it.
+The cheap resolution is to drop those groups from sharing (a manifest `note`)
+and keep the 12 that work; each unshared group costs one duplicated package,
+not a match.
+
+Symptom to recognise: a shared-object family where the lead overlay is `OK` and
+its siblings differ by a handful of bytes, each difference the upper half of an
+address.
