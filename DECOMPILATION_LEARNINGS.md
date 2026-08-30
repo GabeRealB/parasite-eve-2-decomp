@@ -32426,3 +32426,30 @@ branch supplies the first delay slot. `if (x != 0) f(6); else f(3);` gives
 `bnez … li a0,6`; writing the `== 0` test first gives `beqz … li a0,3`.
 Flip the test to move the constants. `func_shelter_b1_control_room_8017ED68`
 is the minimal example.
+
+## Write `state++; return;` out in every switch case, not one shared `goto advance`
+
+A task-state dispatcher whose cases mostly end by advancing the state has two
+equivalent C spellings, and they cross-jump differently.
+
+`func_dryfield_night_motel_balcony_8017DDD0` is a 9-case `switch (task->state)`
+in which cases 2 and 5 are byte-identical (`lhu 0x1FA(a0)` / `SetDispMask(1)`),
+as are the `SetDispMask(0)` heads of cases 3 and 6 and the
+`Stream_FindSlot` / `CdCmd_Enqueue` tails of cases 1 and 4. The ROM keeps
+every one of those duplicate blocks and shares only the trailing
+`lw 0x30(s0); addiu 1; sw 0x30(s0)`, which each case reaches with a `j`.
+
+Writing that shared increment as a label the cases `goto` — the obvious
+reading of the asm — scores 85.7% (`branch=9 delete=22`). The blocks arrive at
+jump-optimization already sharing one target label, so GCC 2.8.1 spends its
+cross-jumping on the *bodies* and merges all three duplicate pairs.
+
+Writing `task->state = task->state + 1; return;` literally in each case is
+100%. Cross-jumping merges the nine copies of the increment into the one
+belonging to the last case that has it, and that consumes the opportunity:
+the bodies in front of those now-shared jumps are left duplicated, which is
+what the ROM has.
+
+Same family as "Fully duplicate the tail into every arm to reproduce
+identical-but-unmerged blocks": prefer the redundant-looking C and let
+cross-jumping do the factoring, rather than factoring by hand.
