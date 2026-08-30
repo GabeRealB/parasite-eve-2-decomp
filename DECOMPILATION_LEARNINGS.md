@@ -2686,6 +2686,15 @@ copies it is meant to serve, and `promote` would report "only one copy". That
 one directive is the whole difference; `SKIP` in `overlay_dup_index.py` drops
 it.
 
+**Purge the overlay's `asm/` before rebuilding the index: splat does not delete
+the unit dir a cut just retired.** Adding a `units`/`shared` cut moves the tail
+functions into `<overlay>_2/`, but the old `<overlay>/` copies stay on disk, so
+`asm/USA/<family>/nonmatchings/<overlay>/<overlay>/<fn>.s` still holds the body
+you just matched. `promote --rebuild` finds that stale `nonmatchings` entry
+first - the scan walks `nonmatchings` before `matchings` - and refuses with
+"cannot be shared while unmatched", counting one byte image per copy. `rm -rf
+asm/USA/<family>/{non,}matchings/<overlay>` and re-split, then promote.
+
 Pair the table with the shared object: a `rodata` cut whose `unit` matches a
 `shared` span is emitted as `lib/<unit>`, so GCC's table (which must start that
 object's `.rodata` for `SUBALIGN(4)`) lands at the same overlay offset in every
