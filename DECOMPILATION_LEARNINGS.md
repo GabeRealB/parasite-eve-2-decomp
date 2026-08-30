@@ -33223,3 +33223,16 @@ Note this is the opposite of the usual advice — normally `&&` and a nested `if
 generate the same code and `&&` reads better. It only differs when the two
 operands are adjacent same-size fields of one object, which is exactly when the
 combine pass can widen the load.
+
+## `COMPILER_BARRIER()` at function start for `sw ra` before `sw s2`
+
+A local that is zeroed then tested (`flag = 0; if (field == 0) { ... flag = 1; }`)
+puts `move s2, zero` in the `bnez` delay slot, which is correct, but also
+schedules that assignment into the prologue. GCC then emits `sw s2` immediately
+after `move s3, a0`, *before* `sw ra` (~99.9%, `regs` leftover only).
+
+`COMPILER_BARRIER()` as the first statement freezes the prologue stores in the
+usual `s3` / `ra` / `s2` / `s1` / `s0` order. The zeroing still fills the
+branch delay. Same helper as the "empty memory clobber forces `sw ra` before
+the first delayed branch" entry; this is the s-reg save-order variant.
+`func_actor_143000_80132A04` is the example.
